@@ -134,6 +134,9 @@
    - millert@cvs.openbsd.org 2001/03/03 21:41:07
      [packet.c]
      Dynamically allocate fd_set; deraadt@ OK
+   - deraadt@cvs.openbsd.org 2001/03/03 22:07:50
+     [sftp-server.c]
+     KNF
 
 20010304
  - (bal) Remove make-ssh-known-hosts.1 since it's no longer valid.
@@ -4326,4 +4329,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.892 2001/03/05 07:07:49 mouring Exp $
+$Id: ChangeLog,v 1.893 2001/03/05 07:09:11 mouring Exp $
