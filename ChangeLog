@@ -1,3 +1,7 @@
+20040308
+ - (dtucker) [sshd.c] Back out rev 1.270 as it caused problems on some
+   platforms (eg SCO, HP-UX) with logging in the wrong TZ.
+
 20040304
  - (dtucker) [auth-pam.c] Don't try to export PAM when compiled with
    -DUSE_POSIX_THREADS.  From antoine.verheijen at ualbert ca.  ok djm@
@@ -1941,4 +1945,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3257.2.4 2004/03/04 11:56:57 dtucker Exp $
+$Id: ChangeLog,v 1.3257.2.5 2004/03/08 11:20:16 dtucker Exp $

@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.287 2004/02/25 00:22:45 djm Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.286 2004/02/23 12:02:33 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -101,7 +101,6 @@ extern char *__progname;
 #else
 char *__progname;
 #endif
-extern char **environ;
 
 /* Server configuration options. */
 ServerOptions options;
@@ -568,7 +567,7 @@ privsep_preauth_child(void)
 	debug3("privsep user:group %u:%u", (u_int)pw->pw_uid,
 	    (u_int)pw->pw_gid);
 #if 0
-	/* XXX not ready, too heavy after chroot */
+	/* XXX not ready, to heavy after chroot */
 	do_setusercontext(pw);
 #else
 	gidset[0] = pw->pw_gid;
@@ -1105,11 +1104,6 @@ main(int ac, char **av)
 	/* Chdir to the root directory so that the current disk can be
 	   unmounted if desired. */
 	chdir("/");
-
-#ifndef HAVE_CYGWIN
-	/* Clear environment */
-	environ[0] = NULL;
-#endif
 
 	/* ignore SIGPIPE */
 	signal(SIGPIPE, SIG_IGN);
