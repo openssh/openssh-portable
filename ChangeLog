@@ -75,6 +75,9 @@
    - stevesk@cvs.openbsd.org 2002/02/03 22:35:57
      [ssh.1 sshd.8]
      some KeepAlive cleanup/clarify; ok markus@
+   - stevesk@cvs.openbsd.org 2002/02/03 23:22:59
+     [ssh-agent.1]
+     ssh-add also adds $HOME/.ssh/id_rsa and $HOME/.ssh/id_dsa now.
 
 20020130
  - (djm) Delay PRNG seeding until we need it in ssh-keygen, from markus@
@@ -7477,4 +7480,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1819 2002/02/05 01:23:58 djm Exp $
+$Id: ChangeLog,v 1.1820 2002/02/05 01:24:19 djm Exp $

@@ -1,4 +1,4 @@
-.\" $OpenBSD: ssh-agent.1,v 1.29 2001/11/19 18:40:46 stevesk Exp $
+.\" $OpenBSD: ssh-agent.1,v 1.30 2002/02/03 23:22:59 stevesk Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -94,9 +94,11 @@ Keys are added using
 .Xr ssh-add 1 .
 When executed without arguments,
 .Xr ssh-add 1
-adds the
-.Pa $HOME/.ssh/identity
-file.
+adds the files
+.Pa $HOME/.ssh/id_rsa ,
+.Pa $HOME/.ssh/id_dsa 
+and
+.Pa $HOME/.ssh/identity .
 If the identity has a passphrase,
 .Xr ssh-add 1
 asks for the passphrase (using a small X11 application if running
