@@ -3,6 +3,10 @@
    - jakob@cvs.openbsd.org 2001/08/16 19:18:34
      [servconf.c servconf.h session.c sshd.8]
      deprecate CheckMail. ok markus@
+   - stevesk@cvs.openbsd.org 2001/08/16 20:14:57
+     [ssh.1 sshd.8]
+     document case sensitivity for ssh, sshd and key file
+     options and arguments; ok markus@
 
 20010815
  - (bal) Fixed stray code in readconf.c that went in by mistake.
@@ -6326,4 +6330,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1485 2001/09/12 16:32:14 mouring Exp $
+$Id: ChangeLog,v 1.1486 2001/09/12 16:36:17 mouring Exp $

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.140 2001/08/16 19:18:34 jakob Exp $
+.\" $OpenBSD: sshd.8,v 1.141 2001/08/16 20:14:57 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -291,12 +291,14 @@ reads configuration data from
 (or the file specified with
 .Fl f
 on the command line).
-The file contains keyword-value pairs, one per line.
+The file contains keyword-argument pairs, one per line.
 Lines starting with
 .Ql #
 and empty lines are interpreted as comments.
 .Pp
-The following keywords are possible.
+The possible
+keywords and their meanings are as follows (note that
+keywords are case-insensitive and arguments are case-sensitive):
 .Bl -tag -width Ds
 .It Cm AFSTokenPassing
 Specifies whether an AFS token may be forwarded to the server.
@@ -947,7 +949,8 @@ file and edit it.
 The options (if present) consist of comma-separated option
 specifications.
 No spaces are permitted, except within double quotes.
-The following option specifications are supported:
+The following option specifications are supported (note
+that option keywords are case-insensitive):
 .Bl -tag -width Ds
 .It Cm from="pattern-list"
 Specifies that in addition to RSA authentication, the canonical name
