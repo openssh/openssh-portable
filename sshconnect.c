@@ -41,6 +41,10 @@ extern char *__progname;
 /* AF_UNSPEC or AF_INET or AF_INET6 */
 extern int IPv4or6;
 
+#ifndef INET6_ADDRSTRLEN		/* for non IPv6 machines */
+#define INET6_ADDRSTRLEN 46
+#endif
+
 static const char *
 sockaddr_ntop(struct sockaddr *sa)
 {

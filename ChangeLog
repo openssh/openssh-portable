@@ -1,3 +1,13 @@
+20010807
+ - (tim) [configure.in sshconnect.c openbsd-compat/Makefile.in
+	 openbsd-compat/openbsd-compat.h ] Add inet_ntop.c inet_ntop.h back
+	 in. Needed for sshconnect.c
+	 [sshconnect.c] fix INET6_ADDRSTRLEN for non IPv6 machines
+	 [configure.in] make tests with missing libraries fail
+	 patch by Wendy Palm <wendyp@cray.com>
+	 Added openbsd-compat/bsd-cray.h. Selective patches from
+	 William L. Jones <jones@mail.utexas.edu> 
+
 20010806
  - OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2001/07/22 21:32:27
@@ -6260,4 +6270,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1467 2001/08/06 23:29:16 mouring Exp $
+$Id: ChangeLog,v 1.1468 2001/08/07 22:29:07 tim Exp $
