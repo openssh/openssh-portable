@@ -190,6 +190,9 @@ rm -rf $RPM_BUILD_ROOT
 if [ ! -f /etc/ssh/ssh_host_key -o ! -s /etc/ssh/ssh_host_key ]; then
 	/usr/bin/ssh-keygen -b 1024 -f /etc/ssh/ssh_host_key -N '' >&2
 fi
+if [ ! -f /etc/ssh/ssh_host_dsa_key -o ! -s /etc/ssh/ssh_host_dsa_key ]; then
+	/usr/bin/ssh-keygen -d -f /etc/ssh/ssh_host_dsa_key -N '' >&2
+fi
 if test -r /var/run/sshd.pid
 then
 	/etc/rc.d/init.d/sshd restart >&2

@@ -1,3 +1,7 @@
+20000508
+ - Makefile and RPM spec fixes
+ - Generate DSA host keys during "make key" or RPM installs
+
 20000507
  - Remove references to SSLeay.
  - Big OpenBSD CVS update
