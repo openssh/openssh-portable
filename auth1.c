@@ -266,8 +266,8 @@ do_authloop(Authctxt *authctxt)
 #elif defined(HAVE_OSF_SIA)
 			/* Do SIA auth with password */
 			if (sia_validate_user(NULL, saved_argc, saved_argv, 
-				get_canonical_hostname(), pw->pw_name, NULL, 0, 
-				NULL, password) == SIASUCCESS) {
+			    get_canonical_hostname(options.reverse_mapping_check), 
+			    pw->pw_name, NULL, 0, NULL, password) == SIASUCCESS) {
 				authenticated = 1;
 			}
 #else /* !USE_PAM && !HAVE_OSF_SIA */
@@ -347,7 +347,9 @@ do_authloop(Authctxt *authctxt)
 
 		if (authctxt->failures++ > AUTH_FAIL_MAX) {
 #ifdef WITH_AIXAUTHENTICATE 
-			loginfailed(user,get_canonical_hostname(),"ssh");
+			loginfailed(user, 
+			    get_canonical_hostname(options.reverse_mapping_check), 
+			    "ssh");
 #endif /* WITH_AIXAUTHENTICATE */
 			packet_disconnect(AUTH_FAIL_MSG, authctxt->user);
 		}
@@ -433,7 +435,9 @@ do_authentication()
 
 #ifdef WITH_AIXAUTHENTICATE
 	/* We don't have a pty yet, so just label the line as "ssh" */
-	if (loginsuccess(authctxt->user,get_canonical_hostname(),"ssh",&aixloginmsg) < 0)
+	if (loginsuccess(authctxt->user, 
+	    get_canonical_hostname(options.reverse_mapping_check),
+	    "ssh", &aixloginmsg) < 0)
 		aixloginmsg = NULL;
 #endif /* WITH_AIXAUTHENTICATE */
 

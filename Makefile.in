@@ -33,9 +33,9 @@ SSH_MODE= @SSHMODE@
 
 INSTALL_SSH_PRNG_CMDS=@INSTALL_SSH_PRNG_CMDS@
 
-@NO_SFTP@SFTP-SERVER=sftp-server$(EXEEXT)
+@NO_SFTP@SFTP_PROGS=sftp-server$(EXEEXT) sftp$(EXEEXT)
 
-TARGETS=ssh$(EXEEXT) sshd$(EXEEXT) ssh-add$(EXEEXT) ssh-keygen$(EXEEXT) ssh-keyscan${EXEEXT} ssh-agent$(EXEEXT) scp$(EXEEXT) $(SFTP-SERVER)
+TARGETS=ssh$(EXEEXT) sshd$(EXEEXT) ssh-add$(EXEEXT) ssh-keygen$(EXEEXT) ssh-keyscan${EXEEXT} ssh-agent$(EXEEXT) scp$(EXEEXT) $(SFTP_PROGS)
 
 LIBSSH_OBJS=atomicio.o authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o cipher.o cli.o compat.o compress.o crc32.o deattack.o dispatch.o hmac.o hostfile.o key.o kex.o log.o match.o misc.o mpaux.o nchan.o packet.o radix.o rijndael.o entropy.o readpass.o rsa.o ssh-dss.o ssh-rsa.o tildexpand.o ttymodes.o uidswap.o uuencode.o xmalloc.o 
 
@@ -43,8 +43,8 @@ SSHOBJS= ssh.o sshconnect.o sshconnect1.o sshconnect2.o log-client.o readconf.o 
 
 SSHDOBJS= sshd.o auth.o auth1.o auth2.o auth-chall.o auth2-chall.o auth-rhosts.o auth-options.o auth-krb4.o auth-pam.o auth2-pam.o auth-passwd.o auth-rsa.o auth-rh-rsa.o dh.o pty.o log-server.o login.o loginrec.o servconf.o serverloop.o md5crypt.o session.o groupaccess.o
 
-TROFFMAN	= scp.1 ssh-add.1 ssh-agent.1 ssh-keygen.1 ssh-keyscan.1 ssh.1 sshd.8 sftp-server.8
-CATMAN		= scp.0 ssh-add.0 ssh-agent.0 ssh-keygen.0 ssh-keyscan.0 ssh.0 sshd.0 sftp-server.0
+TROFFMAN	= scp.1 ssh-add.1 ssh-agent.1 ssh-keygen.1 ssh-keyscan.1 ssh.1 sshd.8 sftp-server.8 sftp.1
+CATMAN		= scp.0 ssh-add.0 ssh-agent.0 ssh-keygen.0 ssh-keyscan.0 ssh.0 sshd.0 sftp-server.0 sftp.1
 MANPAGES	= @MANTYPE@
 
 CONFIGFILES=sshd_config ssh_config primes
@@ -105,8 +105,12 @@ ssh-keygen$(EXEEXT): $(LIBCOMPAT) libssh.a ssh-keygen.o log-client.o
 ssh-keyscan$(EXEEXT): $(LIBCOMPAT) libssh.a log-client.o ssh-keyscan.o
 	$(LD) -o $@ ssh-keyscan.o log-client.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
-sftp-server$(EXEEXT): $(LIBCOMPAT) libssh.a sftp-server.o log-server.o
-	$(LD) -o $@ sftp-server.o log-server.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
+sftp-server$(EXEEXT): $(LIBCOMPAT) libssh.a sftp-server.o sftp-common.o log-server.o
+	$(LD) -o $@ sftp-server.o sftp-common.o log-server.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
+
+# XXX: need to -lssh twice here!
+sftp$(EXEEXT): $(LIBCOMPAT) libssh.a sftp.o sftp-client.o sftp-int.o sftp-common.o log-client.o
+	$(LD) -o $@ sftp.o sftp-client.o sftp-common.o sftp-int.o log-client.o $(LDFLAGS) -lssh -lopenbsd-compat -lssh $(LIBS)
 
 # test driver for the loginrec code - not built by default
 logintest: logintest.o $(LIBCOMPAT) libssh.a log-client.o loginrec.o
@@ -156,6 +160,7 @@ install-files:
 	$(INSTALL) -m 0755 -s ssh-keygen $(DESTDIR)$(bindir)/ssh-keygen
 	$(INSTALL) -m 0775 -s ssh-keyscan $(DESTDIR)$(bindir)/ssh-keyscan
 	$(INSTALL) -m 0755 -s sshd $(DESTDIR)$(sbindir)/sshd
+	@NO_SFTP@$$(INSTALL) -m 0755 -s sftp $(DESTDIR)$(bindir)/sftp
 	@NO_SFTP@$(INSTALL) -m 0755 -s sftp-server $(DESTDIR)$(libexecdir)/sftp-server
 	$(INSTALL) -m 644 ssh.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh.1
 	$(INSTALL) -m 644 scp.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/scp.1
@@ -164,6 +169,7 @@ install-files:
 	$(INSTALL) -m 644 ssh-keygen.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-keygen.1
 	$(INSTALL) -m 644 ssh-keyscan.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-keyscan.1
 	$(INSTALL) -m 644 sshd.[08].out $(DESTDIR)$(mandir)/$(mansubdir)8/sshd.8
+	@NO_SFTP@$$(INSTALL) -m 644 sftp.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/sftp.1
 	@NO_SFTP@$(INSTALL) -m 644 sftp-server.[08].out $(DESTDIR)$(mandir)/$(mansubdir)8/sftp-server.8
 	-rm -f $(DESTDIR)$(bindir)/slogin
 	ln -s ssh$(EXEEXT) $(DESTDIR)$(bindir)/slogin
@@ -241,6 +247,7 @@ uninstall:
 	-rm -f $(DESTDIR)$(bindir)/ssh-agent$(EXEEXT)
 	-rm -f $(DESTDIR)$(bindir)/ssh-keygen$(EXEEXT)
 	-rm -f $(DESTDIR)$(bindir)/ssh-keyscan$(EXEEXT)
+	-rm -f $(DESTDIR)$(bindir)/sftp$(EXEEXT)
 	-rm -f $(DESTDIR)$(sbindir)/sshd$(EXEEXT)
 	-rm -r $(DESTDIR)$(libexecdir)/sftp-server$(EXEEXT)
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/ssh.1
@@ -248,6 +255,7 @@ uninstall:
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-add.1
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-agent.1
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-keygen.1
+	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/sftp.1
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-keyscan.1
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)8/sshd.8
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)8/sftp-server.8

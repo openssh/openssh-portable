@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rhosts.c,v 1.19 2001/01/21 19:05:42 markus Exp $");
+RCSID("$OpenBSD: auth-rhosts.c,v 1.20 2001/02/03 10:08:36 markus Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -183,7 +183,7 @@ auth_rhosts(struct passwd *pw, const char *client_user)
 	    stat(_PATH_SSH_HOSTS_EQUIV, &st) < 0)
 		return 0;
 
-	hostname = get_canonical_hostname();
+	hostname = get_canonical_hostname(options.reverse_mapping_check);
 	ipaddr = get_remote_ipaddr();
 
 	/* If not logging in as superuser, try /etc/hosts.equiv and shosts.equiv. */

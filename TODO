@@ -1,4 +1,6 @@
 Programming:
+- Grep for 'XXX' comments and fix
+
 - Replacement for setproctitle() - HP/UX support only currently
 
 - Improve PAM support (a pam_lastlog module will cause sshd to exit)

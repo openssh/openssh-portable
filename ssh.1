@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.80 2001/01/29 12:36:10 djm Exp $
+.\" $OpenBSD: ssh.1,v 1.83 2001/02/04 11:11:55 djm Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -753,8 +753,8 @@ Specifies a file to use instead of
 .It Cm HostKeyAlias
 Specifies an alias that should be used instead of the
 real host name when looking up or saving the host key
-the kown_hosts files.
-This option is useful for tunneling ssh connection
+in the known_hosts files.
+This option is useful for tunneling ssh connections
 or if you have multiple servers running on a single host.
 .It Cm HostName
 Specifies the real host name to log into.
@@ -914,8 +914,9 @@ RSA authentication will only be
 attempted if the identity file exists, or an authentication agent is
 running.
 Note that this option applies to protocol version 1 only.
-.It Cm SkeyAuthentication
-Specifies whether to use
+.It Cm ChallengeResponseAuthentication
+Specifies whether to use challenge response authentication.
+Currently there is only support for
 .Xr skey 1
 authentication.
 The argument to this keyword must be
@@ -1270,6 +1271,7 @@ protocol versions 1.5 and 2.0.
 .Xr rlogin 1 ,
 .Xr rsh 1 ,
 .Xr scp 1 ,
+.Xr sftp 1 ,
 .Xr ssh-add 1 ,
 .Xr ssh-agent 1 ,
 .Xr ssh-keygen 1 ,

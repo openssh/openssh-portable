@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: sftp-server.c,v 1.14 2001/01/21 19:05:56 markus Exp $");
+RCSID("$OpenBSD: sftp-server.c,v 1.15 2001/02/04 11:11:54 djm Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
@@ -31,6 +31,7 @@ RCSID("$OpenBSD: sftp-server.c,v 1.14 2001/01/21 19:05:56 markus Exp $");
 #include "xmalloc.h"
 
 #include "sftp.h"
+#include "sftp-common.h"
 
 /* helper */
 #define get_int64()			buffer_get_int64(&iqueue);
@@ -50,22 +51,9 @@ Buffer oqueue;
 
 /* portable attibutes, etc. */
 
-typedef struct Attrib Attrib;
 typedef struct Stat Stat;
 
-struct Attrib
-{
-	u_int32_t	flags;
-	u_int64_t	size;
-	u_int32_t	uid;
-	u_int32_t	gid;
-	u_int32_t	perm;
-	u_int32_t	atime;
-	u_int32_t	mtime;
-};
-
-struct Stat
-{
+struct Stat {
 	char *name;
 	char *long_name;
 	Attrib attrib;
@@ -120,90 +108,6 @@ flags_from_portable(int pflags)
 	if (pflags & SSH2_FXF_EXCL)
 		flags |= O_EXCL;
 	return flags;
-}
-
-void
-attrib_clear(Attrib *a)
-{
-	a->flags = 0;
-	a->size = 0;
-	a->uid = 0;
-	a->gid = 0;
-	a->perm = 0;
-	a->atime = 0;
-	a->mtime = 0;
-}
-
-Attrib *
-decode_attrib(Buffer *b)
-{
-	static Attrib a;
-	attrib_clear(&a);
-	a.flags = buffer_get_int(b);
-	if (a.flags & SSH2_FILEXFER_ATTR_SIZE) {
-		a.size = buffer_get_int64(b);
-	}
-	if (a.flags & SSH2_FILEXFER_ATTR_UIDGID) {
-		a.uid = buffer_get_int(b);
-		a.gid = buffer_get_int(b);
-	}
-	if (a.flags & SSH2_FILEXFER_ATTR_PERMISSIONS) {
-		a.perm = buffer_get_int(b);
-	}
-	if (a.flags & SSH2_FILEXFER_ATTR_ACMODTIME) {
-		a.atime = buffer_get_int(b);
-		a.mtime = buffer_get_int(b);
-	}
-	/* vendor-specific extensions */
-	if (a.flags & SSH2_FILEXFER_ATTR_EXTENDED) {
-		char *type, *data;
-		int i, count;
-		count = buffer_get_int(b);
-		for (i = 0; i < count; i++) {
-			type = buffer_get_string(b, NULL);
-			data = buffer_get_string(b, NULL);
-			xfree(type);
-			xfree(data);
-		}
-	}
-	return &a;
-}
-
-void
-encode_attrib(Buffer *b, Attrib *a)
-{
-	buffer_put_int(b, a->flags);
-	if (a->flags & SSH2_FILEXFER_ATTR_SIZE) {
-		buffer_put_int64(b, a->size);
-	}
-	if (a->flags & SSH2_FILEXFER_ATTR_UIDGID) {
-		buffer_put_int(b, a->uid);
-		buffer_put_int(b, a->gid);
-	}
-	if (a->flags & SSH2_FILEXFER_ATTR_PERMISSIONS) {
-		buffer_put_int(b, a->perm);
-	}
-	if (a->flags & SSH2_FILEXFER_ATTR_ACMODTIME) {
-		buffer_put_int(b, a->atime);
-		buffer_put_int(b, a->mtime);
-	}
-}
-
-void
-stat_to_attrib(struct stat *st, Attrib *a)
-{
-	attrib_clear(a);
-	a->flags = 0;
-	a->flags |= SSH2_FILEXFER_ATTR_SIZE;
-	a->size = st->st_size;
-	a->flags |= SSH2_FILEXFER_ATTR_UIDGID;
-	a->uid = st->st_uid;
-	a->gid = st->st_gid;
-	a->flags |= SSH2_FILEXFER_ATTR_PERMISSIONS;
-	a->perm = st->st_mode;
-	a->flags |= SSH2_FILEXFER_ATTR_ACMODTIME;
-	a->atime = st->st_atime;
-	a->mtime = st->st_mtime;
 }
 
 Attrib *

@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.51 2001/01/21 19:05:56 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.52 2001/02/03 10:08:37 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -683,7 +683,7 @@ get_remote_name_or_ip(void)
 {
 	static const char *remote = "";
 	if (utmp_len > 0)
-		remote = get_canonical_hostname();
+		remote = get_canonical_hostname(options.reverse_mapping_check);
 	if (utmp_len == 0 || strlen(remote) > utmp_len)
 		remote = get_remote_ipaddr();
 	return remote;
@@ -1061,7 +1061,7 @@ do_child(const char *command, struct passwd * pw, const char *term,
 #ifdef HAVE_OSF_SIA
 		extern char **saved_argv;
 		extern int saved_argc;
-		char *host = get_canonical_hostname ();
+		char *host = get_canonical_hostname(options.reverse_mapping_check);
 
 		if (sia_become_user(NULL, saved_argc, saved_argv, host,
 		    pw->pw_name, ttyname, 0, NULL, NULL, SIA_BEU_SETLUID) !=

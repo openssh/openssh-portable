@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.86 2001/01/28 20:43:25 stevesk Exp $
+.\" $OpenBSD: sshd.8,v 1.90 2001/02/04 11:11:55 djm Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -593,6 +593,14 @@ The default is
 .It Cm RandomSeed
 Obsolete.
 Random number generation uses other techniques.
+.It Cm ReverseMappingCheck
+Specifies whether
+.Nm
+should try to verify the remote host name and check that
+the resolved host name for the remote IP address maps back to the
+very same IP address.
+The default is
+.Dq no .
 .It Cm RhostsAuthentication
 Specifies whether authentication using rhosts or /etc/hosts.equiv
 files is sufficient.
@@ -616,15 +624,15 @@ Note that this option applies to protocol version 1 only.
 .It Cm ServerKeyBits
 Defines the number of bits in the server key.
 The minimum value is 512, and the default is 768.
-.It Cm SkeyAuthentication
+.It Cm ChallengeResponseAuthentication
 Specifies whether
-.Xr skey 1
+challenge reponse
 authentication is allowed.
+Currently there is only support for
+.Xr skey 1
+authentication.
 The default is
 .Dq yes .
-Note that s/key authentication is enabled only if
-.Cm PasswordAuthentication
-is allowed, too.
 .It Cm StrictModes
 Specifies whether
 .Nm
@@ -797,6 +805,9 @@ authentication.
 The command supplied by the user (if any) is ignored.
 The command is run on a pty if the connection requests a pty;
 otherwise it is run without a tty.
+Note that if you want a 8-bit clean channel,
+you must not request a pty or should specify
+.Cm no-pty .
 A quote may be included in the command by quoting it with a backslash.
 This option might be useful
 to restrict certain RSA keys to perform just a specific operation.
@@ -1076,6 +1087,7 @@ Markus Friedl contributed the support for SSH
 protocol versions 1.5 and 2.0.
 .Sh SEE ALSO
 .Xr scp 1 ,
+.Xr sftp 1 ,
 .Xr sftp-server 8 ,
 .Xr ssh 1 ,
 .Xr ssh-add 1 ,

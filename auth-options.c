@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-options.c,v 1.11 2001/01/21 19:05:41 markus Exp $");
+RCSID("$OpenBSD: auth-options.c,v 1.12 2001/02/03 10:08:36 markus Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -18,6 +18,7 @@ RCSID("$OpenBSD: auth-options.c,v 1.11 2001/01/21 19:05:41 markus Exp $");
 #include "log.h"
 #include "canohost.h"
 #include "auth-options.h"
+#include "servconf.h"
 
 /* Flags set authorized_keys flags */
 int no_port_forwarding_flag = 0;
@@ -30,6 +31,8 @@ char *forced_command = NULL;
 
 /* "environment=" options. */
 struct envstring *custom_environment = NULL;
+
+extern ServerOptions options;
 
 void
 auth_clear_options(void)
@@ -55,61 +58,61 @@ auth_clear_options(void)
  * side effect: sets key option flags
  */
 int
-auth_parse_options(struct passwd *pw, char *options, char *file, u_long linenum)
+auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 {
 	const char *cp;
-	if (!options)
+	if (!opts)
 		return 1;
 
 	/* reset options */
 	auth_clear_options();
 
-	while (*options && *options != ' ' && *options != '\t') {
+	while (*opts && *opts != ' ' && *opts != '\t') {
 		cp = "no-port-forwarding";
-		if (strncasecmp(options, cp, strlen(cp)) == 0) {
+		if (strncasecmp(opts, cp, strlen(cp)) == 0) {
 			packet_send_debug("Port forwarding disabled.");
 			no_port_forwarding_flag = 1;
-			options += strlen(cp);
+			opts += strlen(cp);
 			goto next_option;
 		}
 		cp = "no-agent-forwarding";
-		if (strncasecmp(options, cp, strlen(cp)) == 0) {
+		if (strncasecmp(opts, cp, strlen(cp)) == 0) {
 			packet_send_debug("Agent forwarding disabled.");
 			no_agent_forwarding_flag = 1;
-			options += strlen(cp);
+			opts += strlen(cp);
 			goto next_option;
 		}
 		cp = "no-X11-forwarding";
-		if (strncasecmp(options, cp, strlen(cp)) == 0) {
+		if (strncasecmp(opts, cp, strlen(cp)) == 0) {
 			packet_send_debug("X11 forwarding disabled.");
 			no_x11_forwarding_flag = 1;
-			options += strlen(cp);
+			opts += strlen(cp);
 			goto next_option;
 		}
 		cp = "no-pty";
-		if (strncasecmp(options, cp, strlen(cp)) == 0) {
+		if (strncasecmp(opts, cp, strlen(cp)) == 0) {
 			packet_send_debug("Pty allocation disabled.");
 			no_pty_flag = 1;
-			options += strlen(cp);
+			opts += strlen(cp);
 			goto next_option;
 		}
 		cp = "command=\"";
-		if (strncasecmp(options, cp, strlen(cp)) == 0) {
+		if (strncasecmp(opts, cp, strlen(cp)) == 0) {
 			int i;
-			options += strlen(cp);
-			forced_command = xmalloc(strlen(options) + 1);
+			opts += strlen(cp);
+			forced_command = xmalloc(strlen(opts) + 1);
 			i = 0;
-			while (*options) {
-				if (*options == '"')
+			while (*opts) {
+				if (*opts == '"')
 					break;
-				if (*options == '\\' && options[1] == '"') {
-					options += 2;
+				if (*opts == '\\' && opts[1] == '"') {
+					opts += 2;
 					forced_command[i++] = '"';
 					continue;
 				}
-				forced_command[i++] = *options++;
+				forced_command[i++] = *opts++;
 			}
-			if (!*options) {
+			if (!*opts) {
 				debug("%.100s, line %lu: missing end quote",
 				    file, linenum);
 				packet_send_debug("%.100s, line %lu: missing end quote",
@@ -118,28 +121,28 @@ auth_parse_options(struct passwd *pw, char *options, char *file, u_long linenum)
 			}
 			forced_command[i] = 0;
 			packet_send_debug("Forced command: %.900s", forced_command);
-			options++;
+			opts++;
 			goto next_option;
 		}
 		cp = "environment=\"";
-		if (strncasecmp(options, cp, strlen(cp)) == 0) {
+		if (strncasecmp(opts, cp, strlen(cp)) == 0) {
 			int i;
 			char *s;
 			struct envstring *new_envstring;
-			options += strlen(cp);
-			s = xmalloc(strlen(options) + 1);
+			opts += strlen(cp);
+			s = xmalloc(strlen(opts) + 1);
 			i = 0;
-			while (*options) {
-				if (*options == '"')
+			while (*opts) {
+				if (*opts == '"')
 					break;
-				if (*options == '\\' && options[1] == '"') {
-					options += 2;
+				if (*opts == '\\' && opts[1] == '"') {
+					opts += 2;
 					s[i++] = '"';
 					continue;
 				}
-				s[i++] = *options++;
+				s[i++] = *opts++;
 			}
-			if (!*options) {
+			if (!*opts) {
 				debug("%.100s, line %lu: missing end quote",
 				    file, linenum);
 				packet_send_debug("%.100s, line %lu: missing end quote",
@@ -149,7 +152,7 @@ auth_parse_options(struct passwd *pw, char *options, char *file, u_long linenum)
 			s[i] = 0;
 			packet_send_debug("Adding to environment: %.900s", s);
 			debug("Adding to environment: %.900s", s);
-			options++;
+			opts++;
 			new_envstring = xmalloc(sizeof(struct envstring));
 			new_envstring->s = s;
 			new_envstring->next = custom_environment;
@@ -157,23 +160,26 @@ auth_parse_options(struct passwd *pw, char *options, char *file, u_long linenum)
 			goto next_option;
 		}
 		cp = "from=\"";
-		if (strncasecmp(options, cp, strlen(cp)) == 0) {
+		if (strncasecmp(opts, cp, strlen(cp)) == 0) {
 			int mname, mip;
-			char *patterns = xmalloc(strlen(options) + 1);
+			const char *remote_ip = get_remote_ipaddr();
+			const char *remote_host = get_canonical_hostname(
+			    options.reverse_mapping_check);
+			char *patterns = xmalloc(strlen(opts) + 1);
 			int i;
-			options += strlen(cp);
+			opts += strlen(cp);
 			i = 0;
-			while (*options) {
-				if (*options == '"')
+			while (*opts) {
+				if (*opts == '"')
 					break;
-				if (*options == '\\' && options[1] == '"') {
-					options += 2;
+				if (*opts == '\\' && opts[1] == '"') {
+					opts += 2;
 					patterns[i++] = '"';
 					continue;
 				}
-				patterns[i++] = *options++;
+				patterns[i++] = *opts++;
 			}
-			if (!*options) {
+			if (!*opts) {
 				debug("%.100s, line %lu: missing end quote",
 				    file, linenum);
 				packet_send_debug("%.100s, line %lu: missing end quote",
@@ -181,24 +187,26 @@ auth_parse_options(struct passwd *pw, char *options, char *file, u_long linenum)
 				continue;
 			}
 			patterns[i] = 0;
-			options++;
+			opts++;
 			/*
 			 * Deny access if we get a negative
 			 * match for the hostname or the ip
 			 * or if we get not match at all
 			 */
-			mname = match_hostname(get_canonical_hostname(),
-			    patterns, strlen(patterns));
-			mip = match_hostname(get_remote_ipaddr(),
-			    patterns, strlen(patterns));
+			mname = match_hostname(remote_host, patterns,
+			    strlen(patterns));
+			mip = match_hostname(remote_ip, patterns,
+			    strlen(patterns));
 			xfree(patterns);
 			if (mname == -1 || mip == -1 ||
 			    (mname != 1 && mip != 1)) {
-				log("Authentication tried for %.100s with correct key but not from a permitted host (host=%.200s, ip=%.200s).",
-				    pw->pw_name, get_canonical_hostname(),
-				    get_remote_ipaddr());
-				packet_send_debug("Your host '%.200s' is not permitted to use this key for login.",
-				get_canonical_hostname());
+				log("Authentication tried for %.100s with "
+				    "correct key but not from a permitted "
+				    "host (host=%.200s, ip=%.200s).",
+				    pw->pw_name, remote_host, remote_ip);
+				packet_send_debug("Your host '%.200s' is not "
+				    "permitted to use this key for login.",
+				    remote_host);
 				/* deny access */
 				return 0;
 			}
@@ -210,13 +218,13 @@ next_option:
 		 * Skip the comma, and move to the next option
 		 * (or break out if there are no more).
 		 */
-		if (!*options)
+		if (!*opts)
 			fatal("Bugs in auth-options.c option processing.");
-		if (*options == ' ' || *options == '\t')
+		if (*opts == ' ' || *opts == '\t')
 			break;		/* End of options. */
-		if (*options != ',')
+		if (*opts != ',')
 			goto bad_option;
-		options++;
+		opts++;
 		/* Process the next option. */
 	}
 	/* grant access */
@@ -224,9 +232,9 @@ next_option:
 
 bad_option:
 	log("Bad options in %.100s file, line %lu: %.50s",
-	    file, linenum, options);
+	    file, linenum, opts);
 	packet_send_debug("Bad options in %.100s file, line %lu: %.50s",
-	    file, linenum, options);
+	    file, linenum, opts);
 	/* deny access */
 	return 0;
 }

@@ -1,0 +1,156 @@
+.\" $OpenBSD: sftp.1,v 1.1 2001/02/04 11:11:54 djm Exp $
+.\"
+.\" Copyright (c) 2001 Damien Miller. All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+.\" IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+.\" OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+.\" IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+.\" INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+.\" NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+.\" DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+.\" THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+.\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+.\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+.\"
+.Dd Febuary 4, 2001
+.Dt SFTP 1
+.Os
+.Sh NAME
+.Nm sftp
+.Nd Secure file tranfer program
+.Sh SYNOPSIS
+.Nm sftp
+.Op Fl v Li | Fl C
+.Op Fl o Ar ssh_option
+.Op Ar hostname | user@hostname
+.Sh DESCRIPTION
+.Nm
+is an interactive file transfer program, similar to
+.Xr ftp 1 ,
+which performs all operations over an encrypted
+.Xr ssh 1
+transport.
+It may also use many features of ssh, such as public key authentication and
+compression.
+.Nm
+connects and logs into the specified
+.Ar hostname
+then enters an interactive command mode.
+.Pp
+The options are as follows:
+.Bl -tag -width Ds
+.It Fl C
+Enables compression (via ssh's 
+.Fl C
+flag)
+.It Fl v
+Raise logging level. This option is also passed to ssh.
+.It Fl o Ar ssh_option
+Specify an option to be directly passed to
+.Xr ssh 1 .
+.El
+.Sh INTERACTIVE COMMANDS
+Once in interactive mode
+.Nm ,
+understands a set of commands similar to those of 
+.Xr ftp 1 .
+Commands are case insensitive.
+.Bl -tag -width Ds
+.It Ic CD Ar path
+Change remote directory to 
+.Ar path
+.It Ic LCD Ar path
+Change local directory to 
+.Ar path
+.It Ic CHGRP Ar grp Ar path
+Change group of file 
+.Ar path to 
+.Ar grp .
+.Ar grp
+must be numeric.
+.It Ic CHMOD Ar mode Ar path
+Change permissions of file 
+.Ar path to 
+.Ar mode
+.It Ic CHOWN Ar own Ar path
+Change owner of file 
+.Ar path to 
+.Ar own .
+.Ar own
+must be a numeric UID.
+.It Ic HELP
+Display help text
+.It Ic GET Ar remote-file Op Ar local-file
+Retrieve the
+.Ar remote-file
+and store it on the local machine.
+If the local
+file name is not specified, it is given the same name it has on the 
+remote machine.
+.It Ic LLS Op Ar ls-options Op Ar path
+Display local directory listing of either 
+.Ar path
+or current directory if
+.Ar path
+was not specified.
+.It Ic LMKDIR Ar path
+Create local directory specified by
+.Ar path
+.It Ic LPWD
+Print local working directory
+.It Ic LS Op Ar path
+Display remote directory listing of either
+.Ar path
+or current directory, is
+.Ar path not specified.
+.It Ic LUMASK Ar umask
+Set local umask to 
+.Ar umask
+.It Ic MKDIR Ar path
+Create remote directory specified by
+.Ar path
+.It Ic PUT local-file Op Ar remote-file
+Upload
+.Ar local-file
+and store it on the remote machine. If the local file name is not specified, 
+it is given the same name it has on the local machine.
+.It Ic PWD
+Display remote working directory
+.It Ic EXIT
+Quit sftp
+.It Ic QUIT
+Quit sftp
+.It Ic RENAME Ar oldpath Ar newpath
+Rename remote file from
+.Ar oldpath
+to
+.Ar newpath
+.It Ic RMDIR Ar path
+Remove remote directory specified by
+.Ar path
+.It Ic RM Ar path
+Delete remote file specified by
+.Ar path
+.It Ic ! Ar command
+Execute 
+.Ar command
+in local shell
+.It Ic !
+Escape to local shell
+.Sh AUTHORS
+Damien Miller <djm@mindrot.org>
+.Sh SEE ALSO
+.Xr ssh 1 ,
+.Xr ssh-add 1 ,
+.Xr ssh-keygen 1 ,
+.Xr sshd 8

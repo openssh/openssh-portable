@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.85 2001/01/29 19:42:35 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.88 2001/02/01 21:58:08 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -600,7 +600,7 @@ channel_post_port_listener(Channel *c, fd_set * readset, fd_set * writeset)
 	struct sockaddr addr;
 	int newsock, newch;
 	socklen_t addrlen;
-	char buf[1024], *remote_hostname, *rtype;
+	char buf[1024], *remote_ipaddr, *rtype;
 	int remote_port;
 
 	rtype = (c->type == SSH_CHANNEL_RPORT_LISTENER) ?
@@ -616,13 +616,13 @@ channel_post_port_listener(Channel *c, fd_set * readset, fd_set * writeset)
 			error("accept: %.100s", strerror(errno));
 			return;
 		}
-		remote_hostname = get_remote_hostname(newsock);
+		remote_ipaddr = get_peer_ipaddr(newsock);
 		remote_port = get_peer_port(newsock);
 		snprintf(buf, sizeof buf,
 		    "listen port %d for %.100s port %d, "
 		    "connect from %.200s port %d",
 		    c->listening_port, c->path, c->host_port,
-		    remote_hostname, remote_port);
+		    remote_ipaddr, remote_port);
 
 		newch = channel_new(rtype,
 		    SSH_CHANNEL_OPENING, newsock, newsock, -1,
@@ -644,7 +644,7 @@ channel_post_port_listener(Channel *c, fd_set * readset, fd_set * writeset)
 				packet_put_int(c->host_port);
 			}
 			/* originator host and port */
-			packet_put_cstring(remote_hostname);
+			packet_put_cstring(remote_ipaddr);
 			packet_put_int(remote_port);
 			packet_send();
 		} else {
@@ -657,7 +657,7 @@ channel_post_port_listener(Channel *c, fd_set * readset, fd_set * writeset)
 			}
 			packet_send();
 		}
-		xfree(remote_hostname);
+		xfree(remote_ipaddr);
 	}
 }
 

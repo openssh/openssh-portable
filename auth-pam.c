@@ -32,7 +32,7 @@
 #include "canohost.h"
 #include "readpass.h"
 
-RCSID("$Id: auth-pam.c,v 1.22 2001/01/22 05:34:40 mouring Exp $");
+RCSID("$Id: auth-pam.c,v 1.23 2001/02/04 12:20:19 djm Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now"
@@ -211,10 +211,12 @@ int auth_pam_password(struct passwd *pw, const char *password)
 int do_pam_account(char *username, char *remote_user)
 {
 	int pam_retval;
+	extern ServerOptions options;
 	
-	debug("PAM setting rhost to \"%.200s\"", get_canonical_hostname());
+	debug("PAM setting rhost to \"%.200s\"", 
+	    get_canonical_hostname(options.reverse_mapping_check));
 	pam_retval = pam_set_item(pamh, PAM_RHOST, 
-		get_canonical_hostname());
+		get_canonical_hostname(options.reverse_mapping_check));
 	if (pam_retval != PAM_SUCCESS) {
 		fatal("PAM set rhost failed[%d]: %.200s", 
 			pam_retval, PAM_STRERROR(pamh, pam_retval));

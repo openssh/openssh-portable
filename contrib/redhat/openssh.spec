@@ -223,9 +223,13 @@ fi
 %attr(4755,root,root) %{_bindir}/ssh
 %attr(0755,root,root) %{_bindir}/ssh-agent
 %attr(0755,root,root) %{_bindir}/ssh-add
+%attr(0755,root,root) %{_bindir}/ssh-keyscan
+%attr(0755,root,root) %{_bindir}/sftp
 %attr(0644,root,root) %{_mandir}/man1/ssh.1*
 %attr(0644,root,root) %{_mandir}/man1/ssh-agent.1*
 %attr(0644,root,root) %{_mandir}/man1/ssh-add.1*
+%attr(0644,root,root) %{_mandir}/man1/ssh-keyscan.1*
+%attr(0644,root,root) %{_mandir}/man1/sftp.1*
 %attr(0644,root,root) %config(noreplace) %{_sysconfdir}/ssh_config
 %attr(-,root,root) %{_bindir}/slogin
 %attr(-,root,root) %{_mandir}/man1/slogin.1*

@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rh-rsa.c,v 1.21 2001/01/21 19:05:42 markus Exp $");
+RCSID("$OpenBSD: auth-rh-rsa.c,v 1.22 2001/02/03 10:08:36 markus Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -49,7 +49,8 @@ auth_rhosts_rsa(struct passwd *pw, const char *client_user, RSA *client_host_key
 	if (!auth_rhosts(pw, client_user))
 		return 0;
 
-	canonical_hostname = get_canonical_hostname();
+	canonical_hostname = get_canonical_hostname(
+	    options.reverse_mapping_check);
 
 	debug("Rhosts RSA authentication: canonical host %.900s", canonical_hostname);
 

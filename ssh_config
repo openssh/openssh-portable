@@ -1,8 +1,8 @@
-#	$OpenBSD: ssh_config,v 1.7 2001/01/29 01:58:18 niklas Exp $
+#	$OpenBSD: ssh_config,v 1.8 2001/02/02 12:57:51 deraadt Exp $
 
-# This is ssh client systemwide configuration file.  This file provides 
-# defaults for users, and the values can be changed in per-user configuration
-# files or on the command line.
+# This is ssh client systemwide configuration file.  See ssh(1) for more
+# information.  This file provides defaults for users, and the values can
+# be changed in per-user configuration files or on the command line.
 
 # Configuration data is parsed as follows:
 #  1. command line options

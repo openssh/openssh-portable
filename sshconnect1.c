@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.21 2001/01/29 19:47:31 markus Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.22 2001/02/03 10:08:37 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/evp.h>
@@ -399,11 +399,11 @@ try_kerberos_authentication()
 	if (stat(tkt_string(), &st) < 0)
 		return 0;
 
-	strncpy(inst, (char *) krb_get_phost(get_canonical_hostname()), INST_SZ);
+	strncpy(inst, (char *) krb_get_phost(get_canonical_hostname(1)), INST_SZ);
 
-	realm = (char *) krb_realmofhost(get_canonical_hostname());
+	realm = (char *) krb_realmofhost(get_canonical_hostname(1));
 	if (!realm) {
-		debug("Kerberos V4: no realm for %s", get_canonical_hostname());
+		debug("Kerberos V4: no realm for %s", get_canonical_hostname(1));
 		return 0;
 	}
 	/* This can really be anything. */

@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.63 2001/01/22 23:06:39 markus Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.64 2001/02/03 10:08:37 markus Exp $");
 
 #ifdef KRB4
 #include <krb.h>
@@ -92,6 +92,7 @@ initialize_server_options(ServerOptions *options)
 	options->max_startups_rate = -1;
 	options->max_startups = -1;
 	options->banner = NULL;
+	options->reverse_mapping_check = -1;
 }
 
 void
@@ -186,6 +187,8 @@ fill_default_server_options(ServerOptions *options)
 		options->max_startups_rate = 100;		/* 100% */
 	if (options->max_startups_begin == -1)
 		options->max_startups_begin = options->max_startups;
+	if (options->reverse_mapping_check == -1)
+		options->reverse_mapping_check = 0;
 }
 
 /* Keyword tokens. */
@@ -208,7 +211,7 @@ typedef enum {
 	sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
 	sIgnoreUserKnownHosts, sCiphers, sProtocol, sPidFile,
 	sGatewayPorts, sPubkeyAuthentication, sXAuthLocation, sSubsystem, sMaxStartups,
-	sBanner
+	sBanner, sReverseMappingCheck
 } ServerOpCodes;
 
 /* Textual representation of the tokens. */
@@ -268,6 +271,7 @@ static struct {
 	{ "subsystem", sSubsystem },
 	{ "maxstartups", sMaxStartups },
 	{ "banner", sBanner },
+	{ "reversemappingcheck", sReverseMappingCheck },
 	{ NULL, 0 }
 };
 
@@ -575,6 +579,10 @@ parse_flag:
 
 		case sGatewayPorts:
 			intptr = &options->gateway_ports;
+			goto parse_flag;
+
+		case sReverseMappingCheck:
+			intptr = &options->reverse_mapping_check;
 			goto parse_flag;
 
 		case sLogFacility:

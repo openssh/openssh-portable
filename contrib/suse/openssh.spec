@@ -180,6 +180,8 @@ fi
 %attr(-,root,root) /usr/bin/slogin
 %attr(0755,root,root) /usr/bin/ssh-agent
 %attr(0755,root,root) /usr/bin/ssh-add
+%attr(0755,root,root) /usr/bin/ssh-keyscan
+%attr(0755,root,root) /usr/bin/sftp
 %attr(0755,root,root) /usr/sbin/sshd
 %attr(-,root,root) /usr/sbin/rcsshd
 %attr(0755,root,root) %dir /usr/lib/ssh
