@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.c,v 1.17 2002/02/26 20:03:51 stevesk Exp $	*/
+/*	$OpenBSD: misc.c,v 1.18 2002/03/04 13:10:46 markus Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: misc.c,v 1.17 2002/02/26 20:03:51 stevesk Exp $");
+RCSID("$OpenBSD: misc.c,v 1.18 2002/03/04 13:10:46 markus Exp $");
 
 #include "misc.h"
 #include "log.h"
@@ -65,9 +65,8 @@ set_nonblock(int fd)
 	debug("fd %d setting O_NONBLOCK", fd);
 	val |= O_NONBLOCK;
 	if (fcntl(fd, F_SETFL, val) == -1)
-		if (errno != ENODEV)
-			error("fcntl(%d, F_SETFL, O_NONBLOCK): %s",
-			    fd, strerror(errno));
+		debug("fcntl(%d, F_SETFL, O_NONBLOCK): %s",
+		    fd, strerror(errno));
 }
 
 void
@@ -87,9 +86,8 @@ unset_nonblock(int fd)
 	debug("fd %d clearing O_NONBLOCK", fd);
 	val &= ~O_NONBLOCK;
 	if (fcntl(fd, F_SETFL, val) == -1)
-		if (errno != ENODEV)
-			error("fcntl(%d, F_SETFL, O_NONBLOCK): %s",
-			    fd, strerror(errno));
+		debug("fcntl(%d, F_SETFL, O_NONBLOCK): %s",
+		    fd, strerror(errno));
 }
 
 /* disable nagle on socket */

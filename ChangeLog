@@ -40,6 +40,10 @@
      thanks to wilfried@
    - markus@cvs.openbsd.org 2002/03/04 12:43:06
      [auth-passwd.c auth-rh-rsa.c auth-rhosts.c]
+   - markus@cvs.openbsd.org 2002/03/04 13:10:46
+     [misc.c]
+     error-> debug, because O_NONBLOCK for /dev/null causes too many different 
+     errnos; ok stevesk@, deraadt@
      unused include
 
 20020226
@@ -7772,4 +7776,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1902 2002/03/05 01:45:56 mouring Exp $
+$Id: ChangeLog,v 1.1903 2002/03/05 01:48:09 mouring Exp $
