@@ -52,12 +52,12 @@ install -m755 sshd.init $RPM_BUILD_ROOT/etc/rc.d/init.d/sshd
 install -m600 ssh_config $RPM_BUILD_ROOT/etc/ssh/ssh_config
 install -m600 sshd_config $RPM_BUILD_ROOT/etc/ssh/sshd_config
 
-install -s -m755 bin/sshd $RPM_BUILD_ROOT/usr/sbin
-install -s -m755 bin/ssh $RPM_BUILD_ROOT/usr/bin
-install -s -m755 bin/scp $RPM_BUILD_ROOT/usr/bin
-install -s -m755 bin/ssh-agent $RPM_BUILD_ROOT/usr/bin
-install -s -m755 bin/ssh-add $RPM_BUILD_ROOT/usr/bin
-install -s -m755 bin/ssh-keygen $RPM_BUILD_ROOT/usr/bin
+install -s -m755 sshd $RPM_BUILD_ROOT/usr/sbin
+install -s -m755 ssh $RPM_BUILD_ROOT/usr/bin
+install -s -m755 scp $RPM_BUILD_ROOT/usr/bin
+install -s -m755 ssh-agent $RPM_BUILD_ROOT/usr/bin
+install -s -m755 ssh-add $RPM_BUILD_ROOT/usr/bin
+install -s -m755 ssh-keygen $RPM_BUILD_ROOT/usr/bin
 
 install -m644 sshd.8 $RPM_BUILD_ROOT/usr/man/man8
 install -m644 ssh.1 $RPM_BUILD_ROOT/usr/man/man1

@@ -8,8 +8,8 @@ mandir=@mandir@
 CC=@CC@
 OPT_FLAGS=-g
 CFLAGS=$(OPT_FLAGS) -Wall -DETCDIR=\"@sysconfdir@\" @DEFS@
-TARGETS=bin/libssh.a bin/ssh bin/sshd bin/ssh-add bin/ssh-keygen bin/ssh-agent bin/scp
-LFLAGS=-L./bin
+TARGETS=libssh.a ssh sshd ssh-add ssh-keygen ssh-agent scp
+LFLAGS=-L.
 LIBS=-lssh @LIBS@
 AR=@AR@
 RANLIB=@RANLIB@
@@ -24,37 +24,30 @@ OBJS=	authfd.o authfile.o auth-passwd.o auth-rhosts.o auth-rh-rsa.o \
 
 all: $(OBJS) $(TARGETS)
 
-bin/libssh.a: authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o cipher.o compat.o compress.o crc32.o deattack.o hostfile.o match.o mpaux.o nchan.o packet.o readpass.o rsa.o tildexpand.o ttymodes.o uidswap.o xmalloc.o helper.o rc4.o mktemp.o strlcpy.o
-	[ -d bin ] || mkdir bin
+libssh.a: authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o cipher.o compat.o compress.o crc32.o deattack.o hostfile.o match.o mpaux.o nchan.o packet.o readpass.o rsa.o tildexpand.o ttymodes.o uidswap.o xmalloc.o helper.o rc4.o mktemp.o strlcpy.o
 	$(AR) rv $@ $^
 	$(RANLIB) $@
 
-bin/ssh: ssh.o sshconnect.o log-client.o readconf.o clientloop.o
-	[ -d bin ] || mkdir bin
+ssh: ssh.o sshconnect.o log-client.o readconf.o clientloop.o
 	$(CC) -o $@ $^ $(LFLAGS) $(LIBS) 
 
-bin/sshd:	sshd.o auth-rhosts.o auth-passwd.o auth-rsa.o auth-rh-rsa.o pty.o log-server.o login.o servconf.o serverloop.o
-	[ -d bin ] || mkdir bin
+sshd:	sshd.o auth-rhosts.o auth-passwd.o auth-rsa.o auth-rh-rsa.o pty.o log-server.o login.o servconf.o serverloop.o
 	$(CC) -o $@ $^ $(LFLAGS) $(LIBS) 
 
-bin/scp:	scp.o
-	[ -d bin ] || mkdir bin
+scp:	scp.o
 	$(CC) -o $@ $^ $(LFLAGS) $(LIBS) 
 
-bin/ssh-add: ssh-add.o log-client.o
-	[ -d bin ] || mkdir bin
+ssh-add: ssh-add.o log-client.o
 	$(CC) -o $@ $^ $(LFLAGS) $(LIBS) 
 
-bin/ssh-agent: ssh-agent.o log-client.o
-	[ -d bin ] || mkdir bin
+ssh-agent: ssh-agent.o log-client.o
 	$(CC) -o $@ $^ $(LFLAGS) $(LIBS) 
 
-bin/ssh-keygen: ssh-keygen.o log-client.o
-	[ -d bin ] || mkdir bin
+ssh-keygen: ssh-keygen.o log-client.o
 	$(CC) -o $@ $^ $(LFLAGS) $(LIBS) 
 
 clean:
-	rm -f *.o core bin/* config.status config.cache config.log
+	rm -f *.o core $(TARGETS) config.status config.cache config.log
 	
 install:
 	install -d $(bindir)
@@ -62,12 +55,12 @@ install:
 	install -d $(mandir)
 	install -d $(mandir)/man1
 	install -d $(mandir)/man8
-	install -s -c bin/ssh $(bindir)/ssh
-	install -s -c bin/scp $(bindir)/scp
-	install -s -c bin/ssh-add $(bindir)/ssh-add
-	install -s -c bin/ssh-agent $(bindir)/ssh-agent
-	install -s -c bin/ssh-keygen $(bindir)/ssh-keygen
-	install -s -c bin/sshd $(sbindir)/sshd
+	install -s -c ssh $(bindir)/ssh
+	install -s -c scp $(bindir)/scp
+	install -s -c ssh-add $(bindir)/ssh-add
+	install -s -c ssh-agent $(bindir)/ssh-agent
+	install -s -c ssh-keygen $(bindir)/ssh-keygen
+	install -s -c sshd $(sbindir)/sshd
 	install -m644 -c ssh.1 $(mandir)/man1/ssh.1
 	install -m644 -c scp.1 $(mandir)/man1/scp.1
 	install -m644 -c ssh-add.1 $(mandir)/man1/ssh-add.1
@@ -77,6 +70,5 @@ install:
 
 distclean: clean
 	rm -f Makefile config.h core configure *~
-	rm -rf bin
 
 mrproper: distclean
