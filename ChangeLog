@@ -29,6 +29,7 @@
      [ssh-keygen.1 ssh-keygen.c]
      remove -v again. use -B instead for bubblebabble. make -B consistent
      with -l and make -B work with /path/to/known_hosts. ok deraadt@
+ - (djm) Bump portable version number for generating test RPMs
 
 20010311
  - OpenBSD CVS Sync
@@ -4522,4 +4523,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.947 2001/03/12 03:02:17 mouring Exp $
+$Id: ChangeLog,v 1.948 2001/03/12 03:23:52 djm Exp $
