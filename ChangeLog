@@ -1,3 +1,6 @@
+20021113
+ - (tim) [configure.ac] remove unused variables no_libsocket and no_libnsl
+
 20021111
  - (tim) [contrib/solaris/opensshd.in] add umask 022 so sshd.pid is
    not world writable.
@@ -822,4 +825,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2512 2002/11/13 23:50:04 tim Exp $
+$Id: ChangeLog,v 1.2513 2002/11/13 23:55:55 tim Exp $

@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.91 2002/10/16 00:24:05 mouring Exp $
+# $Id: configure.ac,v 1.92 2002/11/13 23:55:57 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -290,8 +290,6 @@ mips-sony-bsd|mips-sony-newsos4)
 	MANTYPE=man
 	;;
 *-*-unicosmk*)
-	no_libsocket=1
-	no_libnsl=1
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(DISABLE_FD_PASSING)
 	LDFLAGS="$LDFLAGS"
@@ -299,8 +297,6 @@ mips-sony-bsd|mips-sony-newsos4)
 	MANTYPE=cat
 	;;
 *-*-unicos*)
-	no_libsocket=1
-	no_libnsl=1
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(DISABLE_FD_PASSING)
 	AC_DEFINE(NO_SSH_LASTLOG)
