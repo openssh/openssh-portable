@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.152 2001/12/28 12:14:27 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.153 2001/12/28 14:50:54 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -2185,7 +2185,7 @@ void
 channel_request_remote_forwarding(u_short listen_port,
     const char *host_to_connect, u_short port_to_connect)
 {
-	int payload_len, type, success = 0;
+	int type, success = 0;
 
 	/* Record locally that connection to this host/port is permitted. */
 	if (num_permitted_opens >= SSH_MAX_FORWARDS_PER_DIRECTION)
@@ -2212,7 +2212,7 @@ channel_request_remote_forwarding(u_short listen_port,
 		packet_write_wait();
 
 		/* Wait for response from the remote side. */
-		type = packet_read(&payload_len);
+		type = packet_read();
 		switch (type) {
 		case SSH_SMSG_SUCCESS:
 			success = 1;

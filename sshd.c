@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.221 2001/12/28 13:57:33 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.222 2001/12/28 14:50:54 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1251,7 +1251,6 @@ static void
 do_ssh1_kex(void)
 {
 	int i, len;
-	int plen;
 	int rsafail = 0;
 	BIGNUM *session_key_int;
 	u_char session_key[SSH_SESSION_KEY_LENGTH];
@@ -1335,7 +1334,7 @@ do_ssh1_kex(void)
 	    BN_num_bits(sensitive_data.ssh1_host_key->rsa->n));
 
 	/* Read clients reply (cipher type and session key). */
-	packet_read_expect(&plen, SSH_CMSG_SESSION_KEY);
+	packet_read_expect(SSH_CMSG_SESSION_KEY);
 
 	/* Get cipher type and check whether we accept this. */
 	cipher_type = packet_get_char();

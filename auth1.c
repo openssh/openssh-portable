@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.33 2001/12/28 13:57:33 markus Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.34 2001/12/28 14:50:54 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -71,7 +71,6 @@ do_authloop(Authctxt *authctxt)
 	char *client_user, *password;
 	char info[1024];
 	u_int dlen;
-	int plen;
 	u_int ulen;
 	int type = 0;
 	struct passwd *pw = authctxt->pw;
@@ -109,7 +108,7 @@ do_authloop(Authctxt *authctxt)
 		info[0] = '\0';
 
 		/* Get a packet from the client. */
-		type = packet_read(&plen);
+		type = packet_read();
 
 		/* Process the packet. */
 		switch (type) {
@@ -360,12 +359,11 @@ do_authentication(void)
 {
 	Authctxt *authctxt;
 	struct passwd *pw;
-	int plen;
 	u_int ulen;
 	char *p, *user, *style = NULL;
 
 	/* Get the name of the user that we wish to log in as. */
-	packet_read_expect(&plen, SSH_CMSG_USER);
+	packet_read_expect(SSH_CMSG_USER);
 
 	/* Get the user name. */
 	user = packet_get_string(&ulen);

@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.81 2001/12/28 14:13:13 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.82 2001/12/28 14:50:54 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -610,7 +610,7 @@ packet_send(void)
  */
 
 int
-packet_read_seqnr(int *payload_len_ptr, u_int32_t *seqnr_p)
+packet_read_seqnr(u_int32_t *seqnr_p)
 {
 	int type, len;
 	fd_set *setp;
@@ -626,7 +626,7 @@ packet_read_seqnr(int *payload_len_ptr, u_int32_t *seqnr_p)
 	/* Stay in the loop until we have received a complete packet. */
 	for (;;) {
 		/* Try to read a packet from the buffer. */
-		type = packet_read_poll_seqnr(payload_len_ptr, seqnr_p);
+		type = packet_read_poll_seqnr(seqnr_p);
 		if (!compat20 && (
 		    type == SSH_SMSG_SUCCESS
 		    || type == SSH_SMSG_FAILURE
@@ -666,9 +666,9 @@ packet_read_seqnr(int *payload_len_ptr, u_int32_t *seqnr_p)
 }
 
 int
-packet_read(int *payload_len_ptr)
+packet_read(void)
 {
-	return packet_read_seqnr(payload_len_ptr, NULL);
+	return packet_read_seqnr(NULL);
 }
 
 /*
@@ -677,11 +677,11 @@ packet_read(int *payload_len_ptr)
  */
 
 void
-packet_read_expect(int *payload_len_ptr, int expected_type)
+packet_read_expect(int expected_type)
 {
 	int type;
 
-	type = packet_read(payload_len_ptr);
+	type = packet_read();
 	if (type != expected_type)
 		packet_disconnect("Protocol error: expected packet type %d, got %d",
 		    expected_type, type);
@@ -694,16 +694,10 @@ packet_read_expect(int *payload_len_ptr, int expected_type)
  * SSH_MSG_DISCONNECT is handled specially here.  Also,
  * SSH_MSG_IGNORE messages are skipped by this function and are never returned
  * to higher levels.
- *
- * The returned payload_len does include space consumed by:
- * 	Packet length
- * 	Padding
- * 	Packet type
- * 	Check bytes
  */
 
 static int
-packet_read_poll1(int *payload_len_ptr)
+packet_read_poll1(void)
 {
 	u_int len, padded_len;
 	u_char *ucp, type;
@@ -776,12 +770,11 @@ packet_read_poll1(int *payload_len_ptr)
 		    buffer_len(&compression_buffer));
 	}
 	type = buffer_get_char(&incoming_packet);
-	*payload_len_ptr = buffer_len(&incoming_packet);
 	return type;
 }
 
 static int
-packet_read_poll2(int *payload_len_ptr, u_int32_t *seqnr_p)
+packet_read_poll2(u_int32_t *seqnr_p)
 {
 	static u_int32_t seqnr = 0;
 	static u_int packet_length = 0;
@@ -887,7 +880,6 @@ packet_read_poll2(int *payload_len_ptr, u_int32_t *seqnr_p)
 	type = buffer_get_char(&incoming_packet);
 	if (type == SSH2_MSG_NEWKEYS)
 		set_newkeys(MODE_IN);
-	*payload_len_ptr = buffer_len(&incoming_packet);
 #ifdef PACKET_DEBUG
 	fprintf(stderr, "read/plain[%d]:\r\n", type);
 	buffer_dump(&incoming_packet);
@@ -898,7 +890,7 @@ packet_read_poll2(int *payload_len_ptr, u_int32_t *seqnr_p)
 }
 
 int
-packet_read_poll_seqnr(int *payload_len_ptr, u_int32_t *seqnr_p)
+packet_read_poll_seqnr(u_int32_t *seqnr_p)
 {
 	int reason;
 	u_char type;
@@ -906,7 +898,7 @@ packet_read_poll_seqnr(int *payload_len_ptr, u_int32_t *seqnr_p)
 
 	for (;;) {
 		if (compat20) {
-			type = packet_read_poll2(payload_len_ptr, seqnr_p);
+			type = packet_read_poll2(seqnr_p);
 			if (type)
 				DBG(debug("received packet type %d", type));
 			switch (type) {
@@ -933,7 +925,7 @@ packet_read_poll_seqnr(int *payload_len_ptr, u_int32_t *seqnr_p)
 				break;
 			}
 		} else {
-			type = packet_read_poll1(payload_len_ptr);
+			type = packet_read_poll1();
 			switch (type) {
 			case SSH_MSG_IGNORE:
 				break;
@@ -960,9 +952,9 @@ packet_read_poll_seqnr(int *payload_len_ptr, u_int32_t *seqnr_p)
 }
 
 int
-packet_read_poll(int *payload_len_ptr)
+packet_read_poll(void)
 {
-	return packet_read_poll_seqnr(payload_len_ptr, NULL);
+	return packet_read_poll_seqnr(NULL);
 }
 
 /*

@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kexgex.c,v 1.14 2001/12/28 13:57:33 markus Exp $");
+RCSID("$OpenBSD: kexgex.c,v 1.15 2001/12/28 14:50:54 markus Exp $");
 
 #include <openssl/bn.h>
 
@@ -107,7 +107,7 @@ kexgex_client(Kex *kex)
 	Key *server_host_key;
 	u_char *kbuf, *hash, *signature = NULL, *server_host_key_blob = NULL;
 	u_int klen, kout, slen, sbloblen;
-	int plen, min, max, nbits;
+	int min, max, nbits;
 	DH *dh;
 
 	nbits = dh_estimate(kex->we_need * 8);
@@ -138,7 +138,7 @@ kexgex_client(Kex *kex)
 	packet_send();
 
 	debug("expecting SSH2_MSG_KEX_DH_GEX_GROUP");
-	packet_read_expect(&plen, SSH2_MSG_KEX_DH_GEX_GROUP);
+	packet_read_expect(SSH2_MSG_KEX_DH_GEX_GROUP);
 
 	if ((p = BN_new()) == NULL)
 		fatal("BN_new");
@@ -169,7 +169,7 @@ kexgex_client(Kex *kex)
 	packet_send();
 
 	debug("expecting SSH2_MSG_KEX_DH_GEX_REPLY");
-	packet_read_expect(&plen, SSH2_MSG_KEX_DH_GEX_REPLY);
+	packet_read_expect(SSH2_MSG_KEX_DH_GEX_REPLY);
 
 	/* key, cert */
 	server_host_key_blob = packet_get_string(&sbloblen);
@@ -261,7 +261,7 @@ kexgex_server(Kex *kex)
 	DH *dh = dh;
 	u_char *kbuf, *hash, *signature = NULL, *server_host_key_blob = NULL;
 	u_int sbloblen, klen, kout;
-	int min = -1, max = -1, nbits = -1, type, plen, slen;
+	int min = -1, max = -1, nbits = -1, type, slen;
 
 	if (kex->load_host_key == NULL)
 		fatal("Cannot load hostkey");
@@ -269,7 +269,7 @@ kexgex_server(Kex *kex)
 	if (server_host_key == NULL)
 		fatal("Unsupported hostkey type %d", kex->hostkey_type);
 
-	type = packet_read(&plen);
+	type = packet_read();
 	switch (type) {
 	case SSH2_MSG_KEX_DH_GEX_REQUEST:
 		debug("SSH2_MSG_KEX_DH_GEX_REQUEST received");
@@ -312,7 +312,7 @@ kexgex_server(Kex *kex)
 	dh_gen_key(dh, kex->we_need * 8);
 
 	debug("expecting SSH2_MSG_KEX_DH_GEX_INIT");
-	packet_read_expect(&plen, SSH2_MSG_KEX_DH_GEX_INIT);
+	packet_read_expect(SSH2_MSG_KEX_DH_GEX_INIT);
 
 	/* key, cert */
 	if ((dh_client_pub = BN_new()) == NULL)

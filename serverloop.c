@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.91 2001/12/28 12:14:27 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.92 2001/12/28 14:50:54 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -691,8 +691,7 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 		 * the exit status.
 		 */
 		do {
-			int plen;
-			type = packet_read(&plen);
+			type = packet_read();
 		}
 		while (type != SSH_CMSG_EXIT_CONFIRMATION);
 

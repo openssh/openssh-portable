@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.90 2001/12/28 12:14:27 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.91 2001/12/28 14:50:54 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -226,7 +226,6 @@ ssh_userauth2(const char *local_user, const char *server_user, char *host,
 {
 	Authctxt authctxt;
 	int type;
-	int plen;
 
 	if (options.challenge_response_authentication)
 		options.kbd_interactive_authentication = 1;
@@ -236,12 +235,12 @@ ssh_userauth2(const char *local_user, const char *server_user, char *host,
 	packet_put_cstring("ssh-userauth");
 	packet_send();
 	packet_write_wait();
-	type = packet_read(&plen);
+	type = packet_read();
 	if (type != SSH2_MSG_SERVICE_ACCEPT) {
 		fatal("denied SSH2_MSG_SERVICE_ACCEPT: %d", type);
 	}
 	if (packet_remaining() > 0) {
-		char *reply = packet_get_string(&plen);
+		char *reply = packet_get_string(NULL);
 		debug("service_accept: %s", reply);
 		xfree(reply);
 	} else {

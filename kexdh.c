@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kexdh.c,v 1.11 2001/12/28 13:57:33 markus Exp $");
+RCSID("$OpenBSD: kexdh.c,v 1.12 2001/12/28 14:50:54 markus Exp $");
 
 #include <openssl/crypto.h>
 #include <openssl/bn.h>
@@ -97,7 +97,6 @@ kexdh_client(Kex *kex)
 	u_char *server_host_key_blob = NULL, *signature = NULL;
 	u_char *kbuf, *hash;
 	u_int klen, kout, slen, sbloblen;
-	int plen;
 
 	/* generate and send 'e', client DH public key */
 	dh = dh_new_group1();
@@ -115,7 +114,7 @@ kexdh_client(Kex *kex)
 #endif
 
 	debug("expecting SSH2_MSG_KEXDH_REPLY");
-	packet_read_expect(&plen, SSH2_MSG_KEXDH_REPLY);
+	packet_read_expect(SSH2_MSG_KEXDH_REPLY);
 
 	/* key, cert */
 	server_host_key_blob = packet_get_string(&sbloblen);
@@ -201,14 +200,14 @@ kexdh_server(Kex *kex)
 	Key *server_host_key;
 	u_char *kbuf, *hash, *signature = NULL, *server_host_key_blob = NULL;
 	u_int sbloblen, klen, kout;
-	int slen, plen;
+	int slen;
 
 	/* generate server DH public key */
 	dh = dh_new_group1();
 	dh_gen_key(dh, kex->we_need * 8);
 
 	debug("expecting SSH2_MSG_KEXDH_INIT");
-	packet_read_expect(&plen, SSH2_MSG_KEXDH_INIT);
+	packet_read_expect(SSH2_MSG_KEXDH_INIT);
 
 	if (kex->load_host_key == NULL)
 		fatal("Cannot load hostkey");
