@@ -16,7 +16,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.59 2004/11/29 07:41:24 djm Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.60 2004/12/10 03:10:42 fgsch Exp $");
 
 #ifdef USE_LIBEDIT
 #include <histedit.h>
@@ -746,12 +746,14 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 {
 	glob_t g;
 	int i, c = 1, colspace = 0, columns = 1;
-	Attrib *a;
+	Attrib *a = NULL;
 
 	memset(&g, 0, sizeof(g));
 
 	if (remote_glob(conn, path, GLOB_MARK|GLOB_NOCHECK|GLOB_BRACE,
-	    NULL, &g)) {
+	    NULL, &g) || (g.gl_pathc && !g.gl_matchc)) {
+		if (g.gl_pathc)
+			globfree(&g);
 		error("Can't ls: \"%s\" not found", path);
 		return (-1);
 	}
@@ -760,19 +762,21 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 		goto out;
 
 	/*
-	 * If the glob returns a single match, which is the same as the
-	 * input glob, and it is a directory, then just list its contents
+	 * If the glob returns a single match and it is a directory,
+	 * then just list its contents.
 	 */
-	if (g.gl_pathc == 1 &&
-	    strncmp(path, g.gl_pathv[0], strlen(g.gl_pathv[0]) - 1) == 0) {
-		if ((a = do_lstat(conn, path, 1)) == NULL) {
+	if (g.gl_matchc == 1) {
+		if ((a = do_lstat(conn, g.gl_pathv[0], 1)) == NULL) {
 			globfree(&g);
 			return (-1);
 		}
 		if ((a->flags & SSH2_FILEXFER_ATTR_PERMISSIONS) &&
 		    S_ISDIR(a->perm)) {
+			int err;
+
+			err = do_ls_dir(conn, g.gl_pathv[0], strip_path, lflag);
 			globfree(&g);
-			return (do_ls_dir(conn, path, strip_path, lflag));
+			return (err);
 		}
 	}
 
@@ -792,7 +796,7 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 		colspace = width / columns;
 	}
 
-	for (i = 0; g.gl_pathv[i] && !interrupted; i++) {
+	for (i = 0; g.gl_pathv[i] && !interrupted; i++, a = NULL) {
 		char *fname;
 
 		fname = path_strip(g.gl_pathv[i], strip_path);
@@ -809,7 +813,8 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 			 * that the server returns as well as the filenames.
 			 */
 			memset(&sb, 0, sizeof(sb));
-			a = do_lstat(conn, g.gl_pathv[i], 1);
+			if (a == NULL)
+				a = do_lstat(conn, g.gl_pathv[i], 1);
 			if (a != NULL)
 				attrib_to_stat(a, &sb);
 			lname = ls_file(fname, &sb, 1);

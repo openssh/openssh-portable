@@ -3,6 +3,15 @@
    - markus@cvs.openbsd.org 2004/12/06 16:00:43
      [bufaux.c]
      use 0x00 not \0 since buf[] is a bignum
+   - fgsch@cvs.openbsd.org 2004/12/10 03:10:42
+     [sftp.c]
+     - fix globbed ls for paths the same lenght as the globbed path when
+       we have a unique matching.
+     - fix globbed ls in case of a directory when we have a unique matching.
+     - as a side effect, if the path does not exist error (used to silently
+       ignore).
+     - don't do extra do_lstat() if we only have one matching file.
+     djm@ ok
 
 20041208
  - (tim) [configure.ac] Comment some non obvious platforms in the
@@ -1933,4 +1942,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3601 2004/12/11 02:34:56 dtucker Exp $
+$Id: ChangeLog,v 1.3602 2004/12/11 02:37:22 dtucker Exp $
