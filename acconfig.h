@@ -30,6 +30,10 @@
 /* Define if your ssl headers are included with #include <openssl/header.h>  */
 #undef HAVE_OPENSSL
 
+/* Define if you are linking against RSAref.  Used only to print the right
+ * message at run-time. */
+#undef RSAREF
+
 /* Define is utmp.h has a ut_host field */
 #undef HAVE_HOST_IN_UTMP
 

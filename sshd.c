@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.46 1999/12/28 04:09:36 damien Exp $");
+RCSID("$Id: sshd.c,v 1.47 1999/12/28 23:17:09 damien Exp $");
 
 #ifdef HAVE_POLL_H
 # include <poll.h>
@@ -510,6 +510,9 @@ main(int ac, char **av)
 		case '?':
 		default:
 			fprintf(stderr, "sshd version %s\n", SSH_VERSION);
+#ifdef RSAREF
+			fprintf(stderr, "Compiled with RSAref.\n");
+#endif
 			fprintf(stderr, "Usage: %s [options]\n", av0);
 			fprintf(stderr, "Options:\n");
 			fprintf(stderr, "  -f file    Configuration file (default %s)\n", SERVER_CONFIG_FILE);

@@ -96,7 +96,8 @@ AC_MSG_CHECKING([for RSAref library])
 saved_LIBS="$LIBS"
 LIBS="$saved_LIBS -lRSAglue -lrsaref"
 AC_TRY_LINK([], [],
-[AC_MSG_RESULT(yes); ],
+[AC_MSG_RESULT(yes);
+ AC_DEFINE(RSAREF)],
 [AC_MSG_RESULT(no)]; LIBS="$saved_LIBS")
 
 dnl Checks for libraries.
