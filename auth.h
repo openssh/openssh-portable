@@ -123,8 +123,8 @@ void	krb5_cleanup_proc(Authctxt *authctxt);
 
 #include "auth-pam.h"
 
-void  do_authentication(Authctxt *);
-void  do_authentication2(Authctxt *);
+void	do_authentication(Authctxt *);
+void	do_authentication2(Authctxt *);
 
 void	auth_log(Authctxt *, int, char *, char *);
 void	userauth_finish(Authctxt *, int, char *);

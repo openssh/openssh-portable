@@ -40,7 +40,6 @@ RCSID("$OpenBSD: auth-krb5.c,v 1.15 2003/11/21 11:57:02 djm Exp $");
 #include "auth.h"
 
 #ifdef KRB5
-
 #include <krb5.h>
 
 extern ServerOptions	 options;
@@ -105,6 +104,7 @@ auth_krb5_password(Authctxt *authctxt, const char *password)
 
 	if (problem)
 		goto out;
+
 	problem = krb5_cc_gen_new(authctxt->krb5_ctx, &krb5_fcc_ops,
 	    &authctxt->krb5_fwd_ccache);
 	if (problem)
