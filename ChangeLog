@@ -67,6 +67,11 @@
      [auth2.c monitor.c sshconnect2.c auth2-krb5.c]
      implement kerberos over ssh2 ("kerberos-2@ssh.com"); tested with jakob@
      server interops with commercial client; ok jakob@ djm@
+   - jmc@cvs.openbsd.org 2003/05/14 08:25:39
+     [sftp.1]
+     - better formatting in SYNOPSIS
+     - whitespace at EOL
+     ok djm@
  - (djm) Make portable build with MIT krb5 (some issues remain)
  - (djm) Add new UsePAM configuration directive to allow runtime control
    over usage of PAM. This allows non-root use of sshd when built with
@@ -1460,4 +1465,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2696 2003/05/14 09:23:56 djm Exp $
+$Id: ChangeLog,v 1.2697 2003/05/14 09:30:38 djm Exp $
