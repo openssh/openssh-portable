@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.184 2004/01/08 13:19:25 dtucker Exp $
+# $Id: configure.ac,v 1.185 2004/01/22 01:05:35 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -2020,39 +2020,58 @@ AC_SEARCH_LIBS(getrrsetbyname, resolv,
 KRB5_MSG="no"
 AC_ARG_WITH(kerberos5,
 	[  --with-kerberos5=PATH   Enable Kerberos 5 support],
-	[
-		if test "x$withval" != "xno" ; then
-			if test "x$withval" = "xyes" ; then
-				KRB5ROOT="/usr/local"
+	[ if test "x$withval" != "xno" ; then
+		if test "x$withval" = "xyes" ; then
+			KRB5ROOT="/usr/local"
+		else
+			KRB5ROOT=${withval}
+		fi
+
+		AC_DEFINE(KRB5)
+		KRB5_MSG="yes"
+
+		AC_MSG_CHECKING(for krb5-config)
+		if test -x  $KRB5ROOT/bin/krb5-config ; then
+			KRB5CONF=$KRB5ROOT/bin/krb5-config
+			AC_MSG_RESULT($KRB5CONF)
+
+			AC_MSG_CHECKING(for gssapi support)
+			if $KRB5CONF | grep gssapi >/dev/null ; then
+				AC_MSG_RESULT(yes)
+				K5CFLAGS="`$KRB5CONF --cflags gssapi`"
+				dnl  m4 quadragraphs: "sed 's/-l[^- ]*//g'"
+				K5LDFLAGS="`$KRB5CONF --libs gssapi | sed 's/-l@<:@^- @:>@*//g'`"
+				K5LIBS="`$KRB5CONF --libs gssapi | sed 's/-L@<:@^- @:>@*//g'`"
 			else
-				KRB5ROOT=${withval}
+				AC_MSG_RESULT(no)
+				K5CFLAGS="`$KRB5CONF --cflags`"
+				K5LDFLAGS="`$KRB5CONF --libs | sed 's/-l@<:@^- @:>@*//g'`"
+				K5LIBS="`$KRB5CONF --libs | sed 's/-L@<:@^- @:>@*//g'`"
 			fi
+			CPPFLAGS="$CPPFLAGS $K5CFLAGS"
+			LDFLAGS="$LDFLAGS $K5LDFLAGS"
+			AC_MSG_CHECKING(whether we are using Heimdal)
+			AC_TRY_COMPILE([ #include <krb5.h> ],
+				       [ char *tmp = heimdal_version; ],
+				       [ AC_MSG_RESULT(yes)
+					 AC_DEFINE(HEIMDAL) ],
+				         AC_MSG_RESULT(no)
+			)
+		else
+			AC_MSG_RESULT(no)
 			CPPFLAGS="$CPPFLAGS -I${KRB5ROOT}/include"
 			LDFLAGS="$LDFLAGS -L${KRB5ROOT}/lib"
-			AC_DEFINE(KRB5)
-			KRB5_MSG="yes"
 			AC_MSG_CHECKING(whether we are using Heimdal)
 			AC_TRY_COMPILE([ #include <krb5.h> ],
 				       [ char *tmp = heimdal_version; ],
 				       [ AC_MSG_RESULT(yes)
 					 AC_DEFINE(HEIMDAL)
 					 K5LIBS="-lkrb5 -ldes -lcom_err -lasn1 -lroken"
-					 AC_SEARCH_LIBS(k_hasafs, kafs,
-						[ AC_DEFINE(AFS)
-						  K5LIBS="-lkafs $K5LIBS"
-						]
-					 )
 				       ],
 				       [ AC_MSG_RESULT(no)
 					 K5LIBS="-lkrb5 -lk5crypto -lcom_err"
 				       ]
 			)
-			if test ! -z "$need_dash_r" ; then
-				LDFLAGS="$LDFLAGS -R${KRB5ROOT}/lib"
-			fi
-			if test ! -z "$blibpath" ; then
-				blibpath="$blibpath:${KRB5ROOT}/lib"
-			fi
 			AC_SEARCH_LIBS(dn_expand, resolv)
 
 			AC_CHECK_LIB(gssapi,gss_init_sec_context,
@@ -2080,9 +2099,19 @@ AC_ARG_WITH(kerberos5,
 			AC_CHECK_HEADER(gssapi_krb5.h, ,
 					[ CPPFLAGS="$oldCPP" ])
 
-			KRB5=yes
 		fi
-	]
+		if test ! -z "$need_dash_r" ; then
+			LDFLAGS="$LDFLAGS -R${KRB5ROOT}/lib"
+		fi
+		if test ! -z "$blibpath" ; then
+			blibpath="$blibpath:${KRB5ROOT}/lib"
+		fi
+	fi ]
+	AC_SEARCH_LIBS(k_hasafs, kafs,
+		[ AC_DEFINE(AFS)
+		  K5LIBS="-lkafs $K5LIBS"
+		]
+	)
 )
 LIBS="$LIBS $K5LIBS"
 
