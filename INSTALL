@@ -161,12 +161,6 @@ created.
 
 --with-xauth=PATH specifies the location of the xauth binary
 
---with-ipv4-default instructs OpenSSH to use IPv4 by default for new
-connections. Normally OpenSSH will try attempt to lookup both IPv6 and
-IPv4 addresses. On Linux/glibc-2.1.2 this causes long delays in name
-resolution. If this option is specified, you can still attempt to 
-connect to IPv6 addresses using the command line option '-6'.
-
 --with-ssl-dir=DIR allows you to specify where your OpenSSL libraries
 are installed.
 
@@ -217,4 +211,4 @@ Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
 
 
-$Id: INSTALL,v 1.56 2003/05/24 01:41:16 dtucker Exp $
+$Id: INSTALL,v 1.57 2003/09/19 06:30:14 djm Exp $
