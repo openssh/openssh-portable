@@ -13,7 +13,7 @@
  * 
  */
 
-/* RCSID("$Id: ssh.h,v 1.25 2000/01/22 23:32:04 damien Exp $"); */
+/* RCSID("$Id: ssh.h,v 1.26 2000/02/07 02:20:26 damien Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -752,97 +752,4 @@ extern int IPv4or6;
 #include "auth-pam.h"
 #endif /* USE_PAM */
 
-#if defined(HAVE_DANTE) || defined(HAVE_SOCKS4)
-/*
- * The following defines map the normal socket operations to SOCKSified
- * versions coming from the Dante SOCKS package.
- */
-#define accept Raccept
-#define bind Rbind
-#define bindresvport Rbindresvport
-#define connect Rconnect
-#define gethostbyname Rgethostbyname
-#define gethostbyname2 Rgethostbyname2
-#define getpeername Rgetpeername
-#define getsockname Rgetsockname
-#define read Rread
-#define readv Rreadv
-#define recv Rrecv
-#define recvmsg Rrecvmsg
-#define recvfrom Rrecvfrom
-#define rresvport Rrresvport
-#define send Rsend
-#define sendmsg Rsendmsg
-#define sendto Rsendto
-#define write Rwrite
-#define writev Rwritev
-int     Raccept (int, struct sockaddr *, socklen_t *);
-int     Rbind (int, const struct sockaddr *, socklen_t);
-int	Rbindresvport(int , struct sockaddr_in *);
-int     Rconnect (int, const struct sockaddr *, socklen_t);
-struct hostent *Rgethostbyname(const char *);
-struct hostent *Rgethostbyname2(const char *, int);
-int     Rgetpeername (int, struct sockaddr *, socklen_t *);
-int     Rgetsockname (int, struct sockaddr *, socklen_t *);
-ssize_t Rread(int , void *, size_t );
-ssize_t Rreadv(int d, const struct iovec *iov, int iovcnt);
-ssize_t Rrecv (int, void *, size_t, int);
-ssize_t Rrecvfrom (int, void *, size_t, int, struct sockaddr *,
-            socklen_t *);
-ssize_t Rsend (int, const void *, size_t, int);
-ssize_t Rsendmsg (int, const struct msghdr *, int);
-ssize_t Rsendto (int, const void *,
-            size_t, int, const struct sockaddr *, socklen_t);
-ssize_t Rwrite(int , const void *, size_t );
-ssize_t Rwritev(int , const struct iovec *, int );
-#endif /* HAVE_DANTE || HAVE_SOCKS4 */
-
-#if defined(HAVE_SOCKS5) 
-/*
- * The following defines map the normal socket operations to SOCKSified
- * versions coming from the SOCKS package.
- */
-#define accept SOCKSaccept
-#define bind SOCKSbind
-#define bindresvport SOCKSbindresvport
-#define connect SOCKSconnect
-#define gethostbyname SOCKSgethostbyname
-#define gethostbyname2 SOCKSgethostbyname2
-#define getpeername SOCKSgetpeername
-#define getsockname SOCKSgetsockname
-#define read SOCKSread
-#define readv SOCKSreadv
-#define recv SOCKSrecv
-#define recvmsg SOCKSrecvmsg
-#define recvfrom SOCKSrecvfrom
-#define rresvport SOCKSrresvport
-#define send SOCKSsend
-#define sendmsg SOCKSsendmsg
-#define sendto SOCKSsendto
-#define write SOCKSwrite
-#define writev SOCKSwritev
-int     SOCKSaccept (int, struct sockaddr *, socklen_t *);
-int     SOCKSbind (int, const struct sockaddr *, socklen_t);
-int	SOCKSbindresvport(int , struct sockaddr_in *);
-int     SOCKSconnect (int, const struct sockaddr *, socklen_t);
-struct hostent *SOCKSgethostbyname(const char *);
-struct hostent *SOCKSgethostbyname2(const char *, int);
-int     SOCKSgetpeername (int, struct sockaddr *, socklen_t *);
-int     SOCKSgetsockname (int, struct sockaddr *, socklen_t *);
-ssize_t SOCKSread(int , void *, size_t );
-ssize_t SOCKSreadv(int d, const struct iovec *iov, int iovcnt);
-ssize_t SOCKSrecv (int, void *, size_t, int);
-ssize_t SOCKSrecvfrom (int, void *, size_t, int, struct sockaddr *,
-            socklen_t *);
-ssize_t SOCKSsend (int, const void *, size_t, int);
-ssize_t SOCKSsendmsg (int, const struct msghdr *, int);
-ssize_t SOCKSsendto (int, const void *,
-            size_t, int, const struct sockaddr *, socklen_t);
-ssize_t SOCKSwrite(int , const void *, size_t );
-ssize_t SOCKSwritev(int , const struct iovec *, int );
-#endif /* SOCKS5 */
-
-#if defined(DANTE) || defined(SOCKS4) || defined(SOCKS5)
-#define SOCKS
-#endif /* defined(DANTE) || defined(SOCKS4) || defined(SOCKS5) */
 #endif				/* SSH_H */

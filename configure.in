@@ -524,59 +524,6 @@ if test ! -z "$nolastlog" ; then
 	AC_DEFINE(DISABLE_LASTLOG)
 fi
 
-dnl Compile with dante SOCKS library
-AC_ARG_WITH(dante,
-	[  --with-dante=DIR        Use Dante SOCKS lib (default is system library path)],
-	[
-		SAVELIBS="$LIBS"
-		SOCKSLIBS=""
-		SOCKSLIBPATH=""
-		if test "x$withval" != "xno" ; then
-			if test -n $withval ; then
-				LIBS="$LIBS -L$withval"
-				SOCKSLIBPATH="-L$withval"
-			fi
-			AC_CHECK_LIB(socks, Rconnect, AC_DEFINE(HAVE_DANTE) SOCKSLIBS="$SOCKSLIBPATH -lsocks")
-		fi
-		LIBS="$SAVELIBS $SOCKSLIBS"
-	]
-)
-
-dnl Compile with SOCKS4 SOCKS library
-AC_ARG_WITH(socks4,
-	[  --with-socks4=DIR        Use Socks4 SOCKS lib (default is system library path)],
-	[
-		SAVELIBS="$LIBS"
-		SOCKSLIBS=""
-		SOCKSLIBPATH=""
-		if test "x$withval" != "xno" ; then
-			if test -n $withval ; then
-				LIBS="$LIBS -L$withval"
-				SOCKSLIBPATH="-L$withval"
-			fi
-			AC_CHECK_LIB(socks, Rconnect, AC_DEFINE(HAVE_SOCKS4) SOCKSLIBS="$SOCKSLIBPATH -lsocks")
-		fi
-		LIBS="$SAVELIBS $SOCKSLIBS"
-	]
-)
-
-dnl Compile with SOCKS5 SOCKS library
-AC_ARG_WITH(socks5,
-	[  --with-socks5=DIR        Use Socks5 SOCKS lib (default is system library path)],
-	[
-		SAVELIBS="$LIBS"
-		SOCKSLIBS=""
-		SOCKSLIBPATH=""
-		if test "x$withval" != "xno" ; then
-			if test -n $withval ; then
-				LIBS="$LIBS -L$withval"
-				SOCKSLIBPATH="-L$withval"
-			fi
-			AC_CHECK_LIB(socks5, SOCKSconnect, AC_DEFINE(HAVE_SOCKS5) SOCKSLIBS="$SOCKSLIBPATH -lsocks5")
-		fi
-		LIBS="$SAVELIBS $SOCKSLIBS"
-	]
-)
 AC_ARG_WITH(catman,
 	[  --with-catman=man|cat   Install preformatted manpages[no]],
 	[
@@ -769,3 +716,5 @@ if test ! -z "$MAIL" ; then
 fi
 
 AC_OUTPUT(Makefile)
+
+
