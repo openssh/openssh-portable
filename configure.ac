@@ -1,4 +1,4 @@
-i# $Id: configure.ac,v 1.15 2002/01/22 21:59:32 stevesk Exp $
+# $Id: configure.ac,v 1.16 2002/01/23 00:21:01 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -897,7 +897,17 @@ AC_SUBST(INSTALL_SSH_RAND_HELPER)
 AC_ARG_WITH(prngd-port,
 	[  --with-prngd-port=PORT  read entropy from PRNGD/EGD TCP localhost:PORT],
 	[
-		if test ! -z "$withval" -a "x$withval" != "xno" ; then
+		case "$withval" in
+		no)
+			withval=""
+			;;
+		[[0-9]]*)
+			;;
+		*)
+			AC_MSG_ERROR(You must specify a numeric port number for --with-prngd-port)
+			;;
+		esac
+		if test ! -z "$withval" ; then
 			PRNGD_PORT="$withval"
 			AC_DEFINE_UNQUOTED(PRNGD_PORT, $PRNGD_PORT)
 		fi
@@ -908,18 +918,24 @@ AC_ARG_WITH(prngd-port,
 AC_ARG_WITH(prngd-socket,
 	[  --with-prngd-socket=FILE read entropy from PRNGD/EGD socket FILE (default=/var/run/egd-pool)],
 	[
-		if test -z "$withval" ; then
+		case "$withval" in
+		yes)
 			withval="/var/run/egd-pool"
-		fi
-		if test "x$withval" != "xno" ; then
+			;;
+		no)
+			withval=""
+			;;
+		/*)
+			;;
+		*)
+			AC_MSG_ERROR(You must specify an absolute path to the entropy socket)
+			;;
+		esac
+
+		if test ! -z "$withval" ; then
 			if test ! -z "$PRNGD_PORT" ; then
 				AC_MSG_ERROR(You may not specify both a PRNGD/EGD port and socket)
 			fi
-			if echo "$withval" | grep '^/' >/dev/null 2>&1 ; then 
-				# Good
-			else
-				AC_MSG_ERROR(You must specify an absolute path to the entropy socket)
-			fi			
 			if test ! -r "$withval" ; then
 				AC_MSG_WARN(Entropy socket is not readable)
 			fi
