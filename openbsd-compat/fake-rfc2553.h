@@ -1,4 +1,4 @@
-/* $Id: fake-rfc2553.h,v 1.6 2003/08/29 16:59:52 mouring Exp $ */
+/* $Id: fake-rfc2553.h,v 1.7 2003/09/22 02:08:23 dtucker Exp $ */
 
 /*
  * Copyright (C) 2000-2003 Damien Miller.  All rights reserved.
@@ -137,7 +137,7 @@ int getaddrinfo(const char *, const char *,
     const struct addrinfo *, struct addrinfo **);
 #endif /* !HAVE_GETADDRINFO */
 
-#ifndef HAVE_GAI_STRERROR
+#if !defined(HAVE_GAI_STRERROR) && !defined(HAVE_CONST_GAI_STRERROR_PROTO)
 char *gai_strerror(int);
 #endif /* !HAVE_GAI_STRERROR */
 

@@ -9,6 +9,10 @@
    Patch from david.haughton at ncr.com
  - (dtucker) [configure.ac] Bug #659: uid swapping issues on IRIX 6.
    Part of patch supplied by bugzilla-openssh at thewrittenword.com
+ - (dtucker) [configure.ac openbsd-compat/fake-rfc2553.c
+   openbsd-compat/fake-rfc2553.h] Bug #659: Test for and handle systems with
+   where gai_strerror is defined as "const char *".  Part of patch supplied
+   by bugzilla-openssh at thewrittenword.com
 
 20030919
  - (djm) Bug #683: Remove reference to --with-ipv4-default from INSTALL;
@@ -1145,4 +1149,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3015 2003/09/22 01:58:21 dtucker Exp $
+$Id: ChangeLog,v 1.3016 2003/09/22 02:08:23 dtucker Exp $

@@ -37,7 +37,7 @@
 
 #include "includes.h"
 
-RCSID("$Id: fake-rfc2553.c,v 1.4 2003/06/13 22:43:23 djm Exp $");
+RCSID("$Id: fake-rfc2553.c,v 1.5 2003/09/22 02:08:23 dtucker Exp $");
 
 #ifndef HAVE_GETNAMEINFO
 int getnameinfo(const struct sockaddr *sa, size_t salen, char *host, 
@@ -77,7 +77,11 @@ int getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 #endif /* !HAVE_GETNAMEINFO */
 
 #ifndef HAVE_GAI_STRERROR
+#ifdef HAVE_CONST_GAI_STRERROR_PROTO
+const char *
+#else
 char *
+#endif
 gai_strerror(int err)
 {
 	switch (err) {

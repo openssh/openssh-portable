@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.161 2003/09/22 01:58:21 dtucker Exp $
+# $Id: configure.ac,v 1.162 2003/09/22 02:08:23 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -731,7 +731,7 @@ dnl    Checks for library functions. Please keep in alphabetical order
 AC_CHECK_FUNCS(\
 	arc4random __b64_ntop b64_ntop __b64_pton b64_pton \
 	bcopy bindresvport_sa clock fchmod fchown freeaddrinfo futimes \
-	gai_strerror getaddrinfo getcwd getgrouplist getnameinfo getopt \
+	getaddrinfo getcwd getgrouplist getnameinfo getopt \
 	getpeereid _getpty getrlimit getttyent glob inet_aton \
 	inet_ntoa inet_ntop innetgr login_getcapbool md5_crypt memmove \
 	mkdtemp mmap ngetaddrinfo nsleep ogetaddrinfo openlog_r openpty \
@@ -742,6 +742,21 @@ AC_CHECK_FUNCS(\
 	strlcat strlcpy strmode strnvis sysconf tcgetpgrp \
 	truncate utimes vhangup vsnprintf waitpid \
 )
+
+# IRIX has a const char return value for gai_strerror()
+AC_CHECK_FUNCS(gai_strerror,[
+	AC_DEFINE(HAVE_GAI_STRERROR)
+	AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+
+const char *gai_strerror(int);],[
+char *str;
+
+str = gai_strerror(0);],[
+		AC_DEFINE(HAVE_CONST_GAI_STRERROR_PROTO, 1,
+		[Define if gai_strerror() returns const char *])])])
 
 AC_SEARCH_LIBS(nanosleep, rt posix4, AC_DEFINE(HAVE_NANOSLEEP))
 
