@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.88 2002/04/06 18:24:09 mouring Exp $");
+RCSID("$OpenBSD: scp.c,v 1.89 2002/06/08 12:36:53 markus Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -230,7 +230,6 @@ main(argc, argv)
 	addargs(&args, "ssh");	 	/* overwritten with ssh_program */
 	addargs(&args, "-x");
 	addargs(&args, "-oForwardAgent no");
-	addargs(&args, "-oFallBackToRsh no");
 	addargs(&args, "-oClearAllForwardings yes");
 
 	fflag = tflag = 0;
@@ -365,8 +364,7 @@ toremote(targ, argc, argv)
 		src = colon(argv[i]);
 		if (src) {	/* remote to remote */
 			static char *ssh_options =
-			    "-x -o'FallBackToRsh no' "
-			    "-o'ClearAllForwardings yes'";
+			    "-x -o'ClearAllForwardings yes'";
 			*src++ = 0;
 			if (*src == 0)
 				src = ".";
