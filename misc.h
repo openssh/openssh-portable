@@ -12,14 +12,16 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-char  *chop(char *);
-char  *strdelim(char **);
-void   set_nonblock(int);
-void   unset_nonblock(int);
-int    a2port(const char *);
-char  *cleanhostname(char *);
-char  *colon(char *);
-long   convtime(const char *);
+char	*chop(char *);
+char	*strdelim(char **);
+void	 set_nonblock(int);
+void	 unset_nonblock(int);
+int	 a2port(const char *);
+char	*cleanhostname(char *);
+char	*colon(char *);
+long	 convtime(const char *);
+
+struct passwd *pwcopy(struct passwd *);
 
 typedef struct arglist arglist;
 struct arglist {
@@ -27,8 +29,7 @@ struct arglist {
         int     num;
         int     nalloc;
 };
-
-void   addargs(arglist *, char *, ...) __attribute__((format(printf, 2, 3)));
+void	 addargs(arglist *, char *, ...) __attribute__((format(printf, 2, 3)));
 
 /* wrapper for signal interface */
 typedef void (*mysig_t)(int);
