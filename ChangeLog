@@ -6,6 +6,7 @@
    CVS ID.
  - (djm) Remove "noip6" option from RedHat spec file. This may now be 
    set at runtime using AddressFamily option.
+ - (djm) Fix use of macro before #define in cipher-aes.c
 
 20030530
  - (dtucker) Add missing semicolon in md5crypt.c, patch from openssh at
@@ -1632,4 +1633,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2758 2003/06/02 07:43:19 djm Exp $
+$Id: ChangeLog,v 1.2759 2003/06/02 08:57:59 djm Exp $
