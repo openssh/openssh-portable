@@ -50,9 +50,9 @@ t1:
 	ssh-keygen -if ${.CURDIR}/rsa_ssh2.prv | diff - ${.CURDIR}/rsa_openssh.prv
 
 t2:
-	cat ${.CURDIR}/rsa_openssh.prv > t2.out
-	chmod 600 t2.out
-	ssh-keygen -yf t2.out | diff - ${.CURDIR}/rsa_openssh.pub
+	cat ${.CURDIR}/rsa_openssh.prv > $(OBJ)/t2.out
+	chmod 600 $(OBJ)/t2.out
+	ssh-keygen -yf $(OBJ)/t2.out | diff - ${.CURDIR}/rsa_openssh.pub
 
 t3:
 	ssh-keygen -ef ${.CURDIR}/rsa_openssh.pub >$(OBJ)/rsa_secsh.pub
@@ -68,17 +68,17 @@ t5:
 		awk '{print $$2}' | diff - ${.CURDIR}/t5.ok
 
 t6:
-	ssh-keygen -if ${.CURDIR}/dsa_ssh2.prv > t6.out1
-	ssh-keygen -if ${.CURDIR}/dsa_ssh2.pub > t6.out2
-	chmod 600 t6.out1
-	ssh-keygen -yf t6.out1 | diff - t6.out2
+	ssh-keygen -if ${.CURDIR}/dsa_ssh2.prv > $(OBJ)/t6.out1
+	ssh-keygen -if ${.CURDIR}/dsa_ssh2.pub > $(OBJ)/t6.out2
+	chmod 600 $(OBJ)/t6.out1
+	ssh-keygen -yf $(OBJ)/t6.out1 | diff - $(OBJ)/t6.out2
 
-t7.out:
+$(OBJ)/t7.out:
 	ssh-keygen -q -t rsa -N '' -f $@
 
-t7: t7.out
-	ssh-keygen -lf t7.out > /dev/null
-	ssh-keygen -Bf t7.out > /dev/null
+t7: $(OBJ)/t7.out
+	ssh-keygen -lf $(OBJ)/t7.out > /dev/null
+	ssh-keygen -Bf $(OBJ)/t7.out > /dev/null
 
 t-exec:	${LTESTS:=.sh}
 	@if [ "x$?" = "x" ]; then exit 0; fi; \
