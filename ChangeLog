@@ -1,5 +1,10 @@
 20010916
  - (djm) Workaround XFree breakage in RPM spec file
+ - (bal) OpenBSD CVS Sync
+    - markus@cvs.openbsd.org 2001/09/16 14:46:54
+      [session.c]
+      calls krb_afslog() after setting $HOME; mattiasa@e.kth.se; fixes
+      pr 1943b
 
 20010915
  - (djm) Make do_pre_login static to avoid prototype #ifdef hell
@@ -6444,4 +6449,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1521 2001/09/16 07:13:45 djm Exp $
+$Id: ChangeLog,v 1.1522 2001/09/16 22:17:15 mouring Exp $

@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.101 2001/09/14 18:59:11 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.102 2001/09/16 14:46:54 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1194,18 +1194,6 @@ do_child(Session *s, const char *command)
 	shell = login_getcapstr(lc, "shell", (char *)shell, (char *)shell);
 #endif
 
-#ifdef AFS
-	/* Try to get AFS tokens for the local cell. */
-	if (k_hasafs()) {
-		char cell[64];
-		
-		if (k_afs_cell_of_file(pw->pw_dir, cell, sizeof(cell)) == 0)
-			krb_afslog(cell, 0);
-		
-		krb_afslog(0, 0);
-	}
-#endif /* AFS */
-
 	/* Initialize the environment. */
 	envsize = 100;
 	env = xmalloc(envsize * sizeof(char *));
@@ -1370,6 +1358,18 @@ do_child(Session *s, const char *command)
 	 * xauth are run in the proper environment.
 	 */
 	environ = env;
+
+#ifdef AFS
+	/* Try to get AFS tokens for the local cell. */
+	if (k_hasafs()) {
+		char cell[64];
+		
+		if (k_afs_cell_of_file(pw->pw_dir, cell, sizeof(cell)) == 0)
+			krb_afslog(cell, 0);
+		
+		krb_afslog(0, 0);
+	}
+#endif /* AFS */
 
 	/*
 	 * Run $HOME/.ssh/rc, /etc/sshrc, or xauth (whichever is found first
