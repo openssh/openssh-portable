@@ -4,6 +4,9 @@
      [pathnames.h session.c ssh.1 sshd.8 sshd_config ssh-keyscan.1]
      move ssh config files to /etc/ssh
  - (djm) Adjust portable Makefile.in tnd ssh-rand-helper.c o match
+   - deraadt@cvs.openbsd.org 2002/02/10 01:07:05
+     [readconf.h sshd.8]
+     more /etc/ssh; openbsd@davidkrause.com
 
 20020208
  - (djm) OpenBSD CVS Sync
@@ -7541,4 +7544,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1837 2002/02/10 07:32:28 djm Exp $
+$Id: ChangeLog,v 1.1838 2002/02/10 07:32:55 djm Exp $

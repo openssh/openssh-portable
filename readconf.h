@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: readconf.h,v 1.40 2001/10/01 21:51:16 markus Exp $"); */
+/* RCSID("$OpenBSD: readconf.h,v 1.41 2002/02/10 01:07:05 deraadt Exp $"); */
 
 #ifndef READCONF_H
 #define READCONF_H
@@ -81,7 +81,7 @@ typedef struct {
 	char   *user;		/* User to log in as. */
 	int     escape_char;	/* Escape character; -2 = none */
 
-	char   *system_hostfile;/* Path for /etc/ssh_known_hosts. */
+	char   *system_hostfile;/* Path for /etc/ssh/ssh_known_hosts. */
 	char   *user_hostfile;	/* Path for $HOME/.ssh/known_hosts. */
 	char   *system_hostfile2;
 	char   *user_hostfile2;
