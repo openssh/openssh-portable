@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.37 2002/04/07 17:08:54 stevesk Exp $
+# $Id: configure.ac,v 1.38 2002/04/07 18:12:04 stevesk Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -314,10 +314,10 @@ AC_ARG_WITH(libs,
 AC_CHECK_HEADERS(bstring.h crypt.h endian.h floatingpoint.h \
 	getopt.h glob.h lastlog.h limits.h login.h \
 	login_cap.h maillock.h netdb.h netgroup.h \
-	netinet/in_systm.h paths.h poll.h pty.h \
+	netinet/in_systm.h paths.h pty.h \
 	rpc/types.h security/pam_appl.h shadow.h stddef.h stdint.h \
 	strings.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h \
-	sys/mman.h sys/poll.h sys/select.h sys/stat.h \
+	sys/mman.h sys/select.h sys/stat.h \
 	sys/stropts.h sys/sysmacros.h sys/time.h \
 	sys/un.h time.h ttyent.h usersec.h \
 	util.h utime.h utmp.h utmpx.h)

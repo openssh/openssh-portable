@@ -5,6 +5,8 @@
    and no fd passing support.
  - (stevesk) HAVE_MMAP and HAVE_SYS_MMAN_H and use them in
    monitor_mm.c
+ - (stevesk) remove configure support for poll.h; it was removed
+   from sshd.c a long time ago.
 
 20020406
  - (djm) Typo in Suse SPEC file. Fix from Carsten Grohmann 
@@ -8195,4 +8197,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2036 2002/04/07 17:08:53 stevesk Exp $
+$Id: ChangeLog,v 1.2037 2002/04/07 18:12:03 stevesk Exp $
