@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.178 2003/10/11 08:24:08 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.179 2003/11/24 00:16:35 dtucker Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -539,8 +539,7 @@ It is possible to have multiple
 options (and multiple identities specified in
 configuration files).
 .It Fl k
-Disables forwarding of Kerberos tickets.
-This may also be specified on a per-host basis in the configuration file.
+Disables forwarding (delegation) of GSSAPI credentials to the server.
 .It Fl L Xo
 .Sm off
 .Ar port : host : hostport

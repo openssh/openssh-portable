@@ -14,6 +14,9 @@
      [scp.c]
      from portable: rename clashing variable limit-> limit_rate; ok markus@
      (RCS ID sync only)
+   - dtucker@cvs.openbsd.org 2003/11/24 00:16:35
+     [ssh.1 ssh.c]
+     Make ssh -k mean GSSAPIDelegateCredentials=no. Suggestion & ok markus@
 
 20031122
  - (dtucker) [channels.c] Make AIX write limit code clearer.  Suggested by djm@
@@ -1527,4 +1530,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3128 2003/11/24 02:09:27 djm Exp $
+$Id: ChangeLog,v 1.3129 2003/11/24 02:10:09 djm Exp $
