@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.162 2002/01/18 17:14:16 stevesk Exp $
+.\" $OpenBSD: sshd.8,v 1.163 2002/01/18 20:46:34 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -329,7 +329,7 @@ Specifies whether an AFS token may be forwarded to the server.
 Default is
 .Dq yes .
 .It Cm AllowGroups
-This keyword can be followed by a list of group names, separated
+This keyword can be followed by a list of group name patterns, separated
 by spaces.
 If specified, login is allowed only for users whose primary
 group or supplementary group list matches one of the patterns.
@@ -339,7 +339,7 @@ and
 can be used as
 wildcards in the patterns.
 Only group names are valid; a numerical group ID is not recognized.
-By default login is allowed regardless of the group list.
+By default, login is allowed for all groups.
 .Pp
 .It Cm AllowTcpForwarding
 Specifies whether TCP forwarding is permitted.
@@ -350,7 +350,7 @@ users are also denied shell access, as they can always install their
 own forwarders.
 .Pp
 .It Cm AllowUsers
-This keyword can be followed by a list of user names, separated
+This keyword can be followed by a list of user name patterns, separated
 by spaces.
 If specified, login is allowed only for users names that
 match one of the patterns.
@@ -360,7 +360,7 @@ and
 can be used as
 wildcards in the patterns.
 Only user names are valid; a numerical user ID is not recognized.
-By default login is allowed regardless of the user name.
+By default, login is allowed for all users.
 If the pattern takes the form USER@HOST then USER and HOST
 are separately checked, restricting logins to particular
 users from particular hosts.
@@ -435,20 +435,20 @@ The default value is 3. If
 is left at the default, unresponsive ssh clients
 will be disconnected after approximately 45 seconds.
 .It Cm DenyGroups
-This keyword can be followed by a number of group names, separated
+This keyword can be followed by a list of group name patterns, separated
 by spaces.
-Users whose primary group or supplementary group list matches
-one of the patterns aren't allowed to log in.
+Login is disallowed for users whose primary group or supplementary
+group list matches one of the patterns.
 .Ql \&*
 and
 .Ql ?
 can be used as
 wildcards in the patterns.
 Only group names are valid; a numerical group ID is not recognized.
-By default login is allowed regardless of the group list.
+By default, login is allowed for all groups.
 .Pp
 .It Cm DenyUsers
-This keyword can be followed by a number of user names, separated
+This keyword can be followed by a list of user name patterns, separated
 by spaces.
 Login is disallowed for user names that match one of the patterns.
 .Ql \&*
@@ -456,7 +456,7 @@ and
 .Ql ?
 can be used as wildcards in the patterns.
 Only user names are valid; a numerical user ID is not recognized.
-By default login is allowed regardless of the user name.
+By default, login is allowed for all users.
 .It Cm GatewayPorts
 Specifies whether remote hosts are allowed to connect to ports
 forwarded for the client.
