@@ -35,8 +35,6 @@ all logins, not just when using password authentication.
 OpenSSH depends on Zlib[2], OpenSSL[3] and optionally PAM[4] and
 Dante[6]. To build the GNOME[5] pass-phrase requester
 (--with-gnome-askpass), you will need the GNOME libraries installed.
-If you are building OpenSSH on a Unix which lacks a kernel random
-number pool (/dev/random), you will need to install EGD[1]. 
 
 There is now several mailing lists for this port of OpenSSH. Please
 refer to http://violet.ibs.com.au/openssh/list.html for details on how

@@ -6,7 +6,7 @@ You will need working installations of Zlib and OpenSSL.
 Zlib:
 http://www.cdrom.com/pub/infozip/zlib/
 
-OpenSSL:
+OpenSSL 0.9.5a or greater:
 http://www.openssl.org/
 
 RPMs of OpenSSL are available in the support/ directory of the OpenSSH 
@@ -30,9 +30,11 @@ passphrase requester. This is maintained separately at:
 http://www.ntrnet.net/~jmknoble/software/x11-ssh-askpass/index.html
 
 If you are planning to use OpenSSH on a Unix which lacks a Kernel random
-number generator (/dev/urandom), you will need to install the Entropy
+number generator (/dev/urandom), you may want to install the Entropy
 Gathering Daemon (or similar). You will also need to specify the 
---with-egd-pool option to ./configure.
+--with-egd-pool option to ./configure. OpenSSH 2.0 includes some 
+peliminary built-in randomness collection, but it is not as well 
+tested as EGD.
 
 EGD:
 http://www.lothar.com/tech/crypto/
@@ -96,7 +98,7 @@ random numbers (the default is /dev/urandom). Unless you are absolutly
 sure of what you are doing, it is best to leave this alone.
 
 --with-egd-pool=/some/file allows you to enable Entropy Gathering
-Daemon support and to specify a EGD pool socket. You will need to
+Daemon support and to specify a EGD pool socket. You may want to
 use this if your Unix does not support the /dev/urandom device (or
 similar). The file argument refers to the EGD pool file, not the 
 EGD program itself. Please refer to the EGD documentation.
