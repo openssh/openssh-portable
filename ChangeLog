@@ -1,3 +1,9 @@
+20020620
+ - (bal) OpenBSD CVS Sync
+   - todd@cvs.openbsd.org 2002/06/14 21:35:00
+     [monitor_wrap.c]
+     spelling; from Brian Poole <raj@cerias.purdue.edu>
+
 20020613
  - (bal) typo of setgroup for cygwin.  Patch by vinschen@redhat.com
 
@@ -925,4 +931,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2216 2002/06/13 21:34:57 mouring Exp $
+$Id: ChangeLog,v 1.2217 2002/06/20 23:53:53 mouring Exp $

@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor_wrap.c,v 1.8 2002/06/04 23:05:49 markus Exp $");
+RCSID("$OpenBSD: monitor_wrap.c,v 1.9 2002/06/14 21:35:00 todd Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dh.h>
@@ -425,7 +425,7 @@ mm_newkeys_from_blob(u_char *blob, int blen)
 	mac->enabled = buffer_get_int(&b);
 	mac->key = buffer_get_string(&b, &len);
 	if (len > mac->key_len)
-		fatal("%s: bad mac key lenght: %d > %d", __func__, len,
+		fatal("%s: bad mac key length: %d > %d", __func__, len,
 		    mac->key_len);
 	mac->key_len = len;
 
