@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.71 2001/08/02 16:14:05 jakob Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.72 2001/08/03 10:31:30 jakob Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.71 2001/08/02 16:14:05 jakob Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.72 2001/08/03 10:31:30 jakob Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -821,9 +821,13 @@ check_parent_exists(int sig)
 static void
 usage(void)
 {
-	fprintf(stderr, "ssh-agent version %s\n", SSH_VERSION);
-	fprintf(stderr, "Usage: %s [-c | -s] [-k] [-d] [command [args...]]\n",
+	fprintf(stderr, "Usage: %s [options] [command [args ...]]\n",
 	    __progname);
+	fprintf(stderr, "Options:\n");
+	fprintf(stderr, "  -c          Generate C-shell commands on stdout.\n");
+	fprintf(stderr, "  -s          Generate Bourne shell commands on stdout.\n");
+	fprintf(stderr, "  -k          Kill the current agent.\n");
+	fprintf(stderr, "  -d          Debug mode.\n");
 	exit(1);
 }
 

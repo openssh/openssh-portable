@@ -135,6 +135,9 @@
    - jakob@cvs.openbsd.org 2001/08/03 10:31:19
      [ssh-add.1]
      document smartcard options. ok markus@
+   - jakob@cvs.openbsd.org 2001/08/03 10:31:30
+     [ssh-add.c ssh-agent.c ssh-keyscan.c]
+     improve usage(). ok markus@
 
 20010803
  - (djm) Fix interrupted read in entropy gatherer. Spotted by markus@ on
@@ -6245,4 +6248,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1461 2001/08/06 22:03:08 mouring Exp $
+$Id: ChangeLog,v 1.1462 2001/08/06 22:06:35 mouring Exp $
