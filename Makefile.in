@@ -26,7 +26,7 @@ GNOME_LIBS=`gnome-config --libs gnome gnomeui`
 
 OBJS= atomicio.o authfd.o authfile.o auth-krb4.o auth-passwd.o \
   auth-rhosts.o auth-rh-rsa.o auth-rsa.o auth-skey.o bsd-daemon.o \
-  bsd-login.o bsd-mktemp.o bsd-snprintf.o bsd-strlcat.o bsd-strlcpy.o 
+  bsd-login.o bsd-mktemp.o bsd-snprintf.o bsd-strlcat.o bsd-strlcpy.o \
   bufaux.o buffer.o canohost.o channels.o cipher.o clientloop.o \
   compress.o crc32.o deattack.o helper.o helper.o hostfile.o \
   log-client.o login.o log-server.o match.o md5crypt.o mpaux.o \

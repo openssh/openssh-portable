@@ -16,6 +16,7 @@
      move checking of hostkey into own function.
    - [version.h]
      OpenSSH-1.2.1
+ - Clean up broken includes in pty.c
 
 19991211
  - Fix compilation on systems with AFS. Reported by 
