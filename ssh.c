@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.133 2001/08/01 22:03:33 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.134 2001/08/01 23:38:45 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -755,6 +755,16 @@ again:
 			}
 		}
 		xfree(sensitive_data.keys);
+	}
+	for (i = 0; i < options.num_identity_files; i++) {
+		if (options.identity_files[i]) {
+			xfree(options.identity_files[i]);
+			options.identity_files[i] = NULL;
+		}
+		if (options.identity_keys[i]) {
+			key_free(options.identity_keys[i]);
+			options.identity_keys[i] = NULL;
+		}
 	}
 
 	exit_status = compat20 ? ssh_session2() : ssh_session();

@@ -24,7 +24,7 @@
 
 #ifdef SMARTCARD
 #include "includes.h"
-RCSID("$OpenBSD: scard.c,v 1.11 2001/08/01 22:03:33 markus Exp $");
+RCSID("$OpenBSD: scard.c,v 1.12 2001/08/01 23:38:45 markus Exp $");
 
 #include <openssl/engine.h>
 #include <sectok.h>
@@ -262,6 +262,20 @@ err:
 	return (len >= 0 ? len : status);
 }
 
+/* called on free */
+
+static int (*orig_finish)(RSA *rsa) = NULL;
+
+static int
+sc_finish(RSA *rsa)
+{
+	if (orig_finish)
+		orig_finish(rsa);
+	sc_close();
+	return 1;
+}
+
+
 /* engine for overloading private key operations */
 
 static ENGINE *smart_engine = NULL;
@@ -291,13 +305,16 @@ sc_get_engine(void)
 	smart_rsa.rsa_priv_enc	= sc_private_encrypt;
 	smart_rsa.rsa_priv_dec	= sc_private_decrypt;
 
+	/* save original */
+	orig_finish		= def->finish;
+	smart_rsa.finish	= sc_finish;
+
 	/* just use the OpenSSL version */
 	smart_rsa.rsa_pub_enc   = def->rsa_pub_enc;
 	smart_rsa.rsa_pub_dec   = def->rsa_pub_dec;
 	smart_rsa.rsa_mod_exp	= def->rsa_mod_exp;
 	smart_rsa.bn_mod_exp	= def->bn_mod_exp;
 	smart_rsa.init		= def->init;
-	smart_rsa.finish	= def->finish;
 	smart_rsa.flags		= def->flags;
 	smart_rsa.app_data	= def->app_data;
 	smart_rsa.rsa_sign	= def->rsa_sign;
