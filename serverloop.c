@@ -99,9 +99,10 @@ sigchld_handler(int sig)
 			error("Strange, got SIGCHLD and wait returned pid %d but child is %d",
 			      wait_pid, child_pid);
 		if (WIFEXITED(child_wait_status) ||
-		    WIFSIGNALED(child_wait_status))
+		    WIFSIGNALED(child_wait_status)) {
 			child_terminated = 1;
 			child_has_selected = 0;
+		}
 	}
 	signal(SIGCHLD, sigchld_handler);
 	errno = save_errno;
@@ -112,6 +113,7 @@ sigchld_handler2(int sig)
 	int save_errno = errno;
 	debug("Received SIGCHLD.");
 	child_terminated = 1;
+	child_has_selected = 0;
 	errno = save_errno;
 }
 
@@ -678,6 +680,7 @@ server_loop2(void)
 			while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
 				session_close_by_pid(pid, status);
 			child_terminated = 0;
+			child_has_selected = 0;
 			signal(SIGCHLD, sigchld_handler2);
 		}
 		channel_after_select(&readset, &writeset);

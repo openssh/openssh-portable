@@ -67,6 +67,7 @@ Pekka Savola <pekkas@netcore.fi> - Bugfixes
 Peter Kocks <peter.kocks@baygate.com> - Makefile fixes
 Phil Hands <phil@hands.com> - Debian scripts, assorted patches
 Phil Karn <karn@ka9q.ampr.org> - Autoconf fixes
+Philippe WILLEM <Philippe.WILLEM@urssaf.fr> - Bugfixes
 Phill Camp <P.S.S.Camp@ukc.ac.uk> - login code fix
 Rip Loomis <loomisg@cist.saic.com> - Solaris package support, fixes
 SAKAI Kiyotaka <ksakai@kso.netwk.ntt-at.co.jp> - Multiple bugfixes
