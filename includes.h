@@ -45,8 +45,11 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #include <time.h>
 #include <dirent.h>
 
+#ifdef HAVE_LIMITS_H
+# include <limits.h>
+#endif
 #ifdef HAVE_GETOPT_H
-#include <getopt.h>
+# include <getopt.h>
 #endif
 #ifdef HAVE_BSTRING_H
 # include <bstring.h>

@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.234 2001/02/09 01:55:36 djm Exp $
+# $Id: configure.in,v 1.235 2001/02/12 07:29:45 mouring Exp $
 
 AC_INIT(ssh.c)
 
@@ -178,6 +178,13 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(USE_PIPES)
 	MANTYPE='$(CATMAN)'
 	mansubdir=cat
+	;;
+*-ncr-sysv*)
+	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
+	LDFLAGS="$LDFLAGS -L/usr/local/lib"
+	MANTYPE='$(CATMAN)'
+	mansubdir=cat
+	LIBS="$LIBS -lc89 -lnsl -lgen -lsocket"
 	;;
 *-sni-sysv*)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"

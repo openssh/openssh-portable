@@ -6,6 +6,7 @@
  - (djm) Clean up PCRE text in INSTALL
  - (djm) Fix OSF SIA auth NULL pointer deref. Report from Mike Battersby 
    <mib@unimelb.edu.au>
+ - (bal) NCR SVR4 compatiblity provide by Don Bragg <thewizarddon@yahoo.com>
 
 20010211
  - (bal) OpenBSD Sync
@@ -3902,4 +3903,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.747 2001/02/12 07:02:23 djm Exp $
+$Id: ChangeLog,v 1.748 2001/02/12 07:29:45 mouring Exp $
