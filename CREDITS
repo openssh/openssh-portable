@@ -33,6 +33,7 @@ Jim Knoble <jmknoble@pobox.com> - Many patches
 jonchen (email unknown) - the original author of PAM support of SSH
 Juergen Keil <jk@tools.de> - scp bugfixing
 Kees Cook <cook@cpoint.net> - scp fixes
+Kevin O'Connor <kevin_oconnor@standardandpoors.com> - RSAless operation
 Kiyokazu SUTO <suto@ks-and-ks.ne.jp> - Bugfixes
 Lutz Jaenicke <Lutz.Jaenicke@aet.TU-Cottbus.DE> - Bugfixes
 Marc G. Fournier <marc.fournier@acadiau.ca> - Solaris patches

@@ -389,9 +389,12 @@ void
 destroy_sensitive_data(void)
 {
 	/* Destroy the private and public keys.  They will no longer be needed. */
-	RSA_free(public_key);
-	RSA_free(sensitive_data.private_key);
-	RSA_free(sensitive_data.host_key);
+	if (public_key)
+		RSA_free(public_key);
+	if (sensitive_data.private_key)
+		RSA_free(sensitive_data.private_key);
+	if (sensitive_data.host_key)
+		RSA_free(sensitive_data.host_key);
 	if (sensitive_data.dsa_host_key != NULL)
 		key_free(sensitive_data.dsa_host_key);
 }

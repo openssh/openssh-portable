@@ -31,6 +31,7 @@
   - Solaris fixes
  - Checking for ssize_t and memmove. Based on patch from SAKAI Kiyotaka 
    <ksakai@kso.netwk.ntt-at.co.jp>
+ - RSAless operation patch from kevin_oconnor@standardandpoors.com
 
 20000513
  - Fix for non-recognised DSA keys from Arkadiusz Miskiewicz 
