@@ -70,7 +70,7 @@ extern ServerOptions options;
 #ifdef HAVE___PROGNAME
 extern char *__progname;
 #else /* HAVE___PROGNAME */
-const char *__progname = "sshd";
+static const char *__progname = "sshd";
 #endif /* HAVE___PROGNAME */
 
 extern int log_stderr;

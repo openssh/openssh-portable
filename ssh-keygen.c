@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: ssh-keygen.c,v 1.14 2000/04/29 13:57:12 damien Exp $");
+RCSID("$Id: ssh-keygen.c,v 1.15 2000/05/01 10:59:51 damien Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -66,7 +66,7 @@ int dsa_mode = 0;
 #ifdef HAVE___PROGNAME
 extern char *__progname;
 #else /* HAVE___PROGNAME */
-const char *__progname = "ssh-keygen";
+static const char *__progname = "ssh-keygen";
 #endif /* HAVE___PROGNAME */
 
 char hostname[MAXHOSTNAMELEN];

@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: ssh.c,v 1.28 2000/04/30 00:00:54 damien Exp $");
+RCSID("$Id: ssh.c,v 1.29 2000/05/01 10:59:51 damien Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/dsa.h>
@@ -34,7 +34,7 @@ RCSID("$Id: ssh.c,v 1.28 2000/04/30 00:00:54 damien Exp $");
 #ifdef HAVE___PROGNAME
 extern char *__progname;
 #else /* HAVE___PROGNAME */
-const char *__progname = "ssh";
+static const char *__progname = "ssh";
 #endif /* HAVE___PROGNAME */
 
 /* Flag indicating whether IPv4 or IPv6.  This can be set on the command line.

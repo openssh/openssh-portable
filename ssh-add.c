@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: ssh-add.c,v 1.17 2000/04/29 13:57:12 damien Exp $");
+RCSID("$Id: ssh-add.c,v 1.18 2000/05/01 10:59:50 damien Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -23,7 +23,7 @@ RCSID("$Id: ssh-add.c,v 1.17 2000/04/29 13:57:12 damien Exp $");
 #ifdef HAVE___PROGNAME
 extern char *__progname;
 #else /* HAVE___PROGNAME */
-const char *__progname = "ssh-add";
+static const char *__progname = "ssh-add";
 #endif /* HAVE___PROGNAME */
 
 void

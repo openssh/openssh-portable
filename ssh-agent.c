@@ -55,7 +55,7 @@ char socket_dir[1024];
 #ifdef HAVE___PROGNAME
 extern char *__progname;
 #else /* HAVE___PROGNAME */
-const char *__progname = "ssh-agent";
+static const char *__progname = "ssh-agent";
 #endif /* HAVE___PROGNAME */
 
 void
