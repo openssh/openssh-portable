@@ -160,7 +160,7 @@
 #include "xmalloc.h"
 #include "loginrec.h"
 
-RCSID("$Id: loginrec.c,v 1.16 2000/07/09 13:26:28 djm Exp $");
+RCSID("$Id: loginrec.c,v 1.17 2000/07/11 02:15:54 djm Exp $");
 
 /**
  ** prototypes for helper functions in this file
@@ -606,7 +606,7 @@ construct_utmp(struct logininfo *li,
 	 */
 
 	/* Use strncpy because we don't necessarily want null termination */
-	strncpy(ut->ut_user, li->username, MIN_SIZEOF(ut->ut_user, li->username));
+	strncpy(ut->ut_name, li->username, MIN_SIZEOF(ut->ut_name, li->username));
 # ifdef HAVE_HOST_IN_UTMP
 	strncpy(ut->ut_host, li->hostname, MIN_SIZEOF(ut->ut_host, li->hostname));
 # endif
@@ -670,7 +670,7 @@ construct_utmpx(struct logininfo *li, struct utmpx *utx)
 	 */
 
 	/* strncpy(): Don't necessarily want null termination */
-	strncpy(utx->ut_user, li->username, MIN_SIZEOF(utx->ut_user, li->username));
+	strncpy(utx->ut_name, li->username, MIN_SIZEOF(utx->ut_name, li->username));
 # ifdef HAVE_HOST_IN_UTMPX
 	strncpy(utx->ut_host, li->hostname, MIN_SIZEOF(utx->ut_host, li->hostname));
 # endif
@@ -730,12 +730,12 @@ utmp_write_direct(struct logininfo *li, struct utmp *ut)
 		/*
 		 * Prevent luser from zero'ing out ut_host.
 		 * If the new ut_line is empty but the old one is not
-		 * and ut_line and ut_user match, preserve the old ut_line.
+		 * and ut_line and ut_name match, preserve the old ut_line.
 		 */
 		if (atomicio(read, fd, &old_ut, sizeof(old_ut)) == sizeof(old_ut) && 
 			(ut->ut_host[0] == '\0') && (old_ut.ut_host[0] != '\0') && 
 			(strncmp(old_ut.ut_line, ut->ut_line, sizeof(ut->ut_line)) == 0) && 
-			(strncmp(old_ut.ut_user, ut->ut_user, sizeof(ut->ut_user)) == 0)) {
+			(strncmp(old_ut.ut_name, ut->ut_name, sizeof(ut->ut_name)) == 0)) {
 			(void)memcpy(ut->ut_host, old_ut.ut_host, sizeof(ut->ut_host));
 		}
 		
@@ -996,8 +996,8 @@ wtmp_write_entry(struct logininfo *li)
 static int
 wtmp_islogin(struct logininfo *li, struct utmp *ut)
 {
-	if (strncmp(li->username, ut->ut_user, 
-		MIN_SIZEOF(li->username, ut->ut_user)) == 0) {
+	if (strncmp(li->username, ut->ut_name, 
+		MIN_SIZEOF(li->username, ut->ut_name)) == 0) {
 # ifdef HAVE_TYPE_IN_UTMP
 		if (ut->ut_type & USER_PROCESS)
 			return 1;
@@ -1151,8 +1151,8 @@ wtmpx_write_entry(struct logininfo *li)
 static int
 wtmpx_islogin(struct logininfo *li, struct utmpx *utx)
 {
-	if ( strncmp(li->username, utx->ut_user,
-		MIN_SIZEOF(li->username, utx->ut_user)) == 0 ) {
+	if ( strncmp(li->username, utx->ut_name,
+		MIN_SIZEOF(li->username, utx->ut_name)) == 0 ) {
 # ifdef HAVE_TYPE_IN_UTMPX
 		if (utx->ut_type == USER_PROCESS)
 			return 1;

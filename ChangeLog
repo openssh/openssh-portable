@@ -4,6 +4,8 @@
  - (djm) ReliantUNIX support from Udo Schweigert <ust@cert.siemens.de>
  - (djm) NeXT: dirent structures to get scp working from Ben Lindstrom 
    <mouring@pconline.com>
+ - (djm) Fix broken inet_ntoa check and ut_user/ut_name confusion, report 
+   from Jim Watt <jimw@peisj.pebio.com>
 
 20000709
  - (djm) Only enable PAM_TTY kludge for Linux. Problem report from

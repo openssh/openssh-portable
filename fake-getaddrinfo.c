@@ -87,7 +87,7 @@ int getaddrinfo(const char *hostname, const char *servname,
 			return EAI_MEMORY;
 	}
 	
-	if (inet_aton(hostname, &in) != -1) {
+	if (inet_aton(hostname, &in)) {
 		if (NULL != (*res = malloc_ai(port, in.s_addr)))
 			return 0;
 		else
