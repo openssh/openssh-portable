@@ -27,6 +27,10 @@
    - markus@cvs.openbsd.org 2001/10/01 21:38:53
      [channels.c channels.h ssh.c sshd.c]
      remove ugliness; vp@drexel.edu via angelos
+   - markus@cvs.openbsd.org 2001/10/01 21:51:16
+     [readconf.c readconf.h ssh.1 sshconnect.c]
+     add NoHostAuthenticationForLocalhost; note that the hostkey is
+     now check for localhost, too.
 
 20011001
  - (stevesk) loginrec.c: fix type conversion problems exposed when using
@@ -6619,4 +6623,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1577 2001/10/03 17:34:59 mouring Exp $
+$Id: ChangeLog,v 1.1578 2001/10/03 17:39:38 mouring Exp $

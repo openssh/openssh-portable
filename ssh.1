@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.138 2001/09/19 19:24:19 stevesk Exp $
+.\" $OpenBSD: ssh.1,v 1.139 2001/10/01 21:51:16 markus Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -981,6 +981,16 @@ for data integrity protection.
 Multiple algorithms must be comma-separated.
 The default is
 .Dq hmac-md5,hmac-sha1,hmac-ripemd160,hmac-sha1-96,hmac-md5-96 .
+.It Cm NoHostAuthenticationForLocalhost
+This option can be used if the home directory is shared across machines.
+In this case localhost will refer to a different machine on each of
+the machines and the user will get many warnings about changed host keys.
+However, this option disables host authentication for localhost.
+The argument to this keyword must be
+.Dq yes
+or
+.Dq no .
+The default is to check the host key for localhost.
 .It Cm NumberOfPasswordPrompts
 Specifies the number of password prompts before giving up.
 The argument to this keyword must be an integer.
