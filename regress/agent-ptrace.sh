@@ -12,7 +12,9 @@ if have_prog uname ; then
 	esac
 fi
 
-if ! have_prog gdb ; then
+if have_prog gdb ; then
+	: ok
+else
 	echo "skipped (gdb not found)"
 	exit 0
 fi

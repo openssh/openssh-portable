@@ -1,3 +1,6 @@
+20030912
+ - (tim) [regress/agent-ptrace.sh] sh doesn't like "if ! shell_function; then".
+
 20030911
  - (dtucker) [configure.ac] Bug #588, #615: Move other libgen tests to after
    the dirname test, to allow a broken dirname to be detected correctly.
@@ -1070,4 +1073,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2982 2003/09/12 05:32:17 tim Exp $
+$Id: ChangeLog,v 1.2983 2003/09/12 18:20:32 tim Exp $
