@@ -1,3 +1,9 @@
+20010408
+ - OpenBSD CVS Sync
+   - stevesk@cvs.openbsd.org 2001/04/06 22:12:47
+     [hostfile.c]
+     unused; typo in comment
+
 20010407
  - (bal) CVS ID Resync of version.h
  - OpenBSD CVS Sync
@@ -4923,4 +4929,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1077 2001/04/07 01:14:38 mouring Exp $
+$Id: ChangeLog,v 1.1078 2001/04/07 17:23:43 mouring Exp $

@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: hostfile.c,v 1.24 2001/01/21 19:05:49 markus Exp $");
+RCSID("$OpenBSD: hostfile.c,v 1.25 2001/04/06 22:12:47 stevesk Exp $");
 
 #include "packet.h"
 #include "match.h"
@@ -111,7 +111,7 @@ check_host_in_hostfile(const char *filename, const char *host, Key *key,
 	FILE *f;
 	char line[8192];
 	int linenum = 0;
-	u_int kbits, hostlen;
+	u_int kbits;
 	char *cp, *cp2;
 	HostStatus end_return;
 
@@ -122,9 +122,6 @@ check_host_in_hostfile(const char *filename, const char *host, Key *key,
 	if (!f)
 		return HOST_NEW;
 
-	/* Cache the length of the host name. */
-	hostlen = strlen(host);
-
 	/*
 	 * Return value when the loop terminates.  This is set to
 	 * HOST_CHANGED if we have seen a different key for the host and have
@@ -132,7 +129,7 @@ check_host_in_hostfile(const char *filename, const char *host, Key *key,
 	 */
 	end_return = HOST_NEW;
 
-	/* Go trough the file. */
+	/* Go through the file. */
 	while (fgets(line, sizeof(line), f)) {
 		cp = line;
 		linenum++;
