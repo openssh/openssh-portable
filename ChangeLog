@@ -4,7 +4,9 @@
      [channels.c misc.c misc.h packet.c]
      add set_nodelay() to set TCP_NODELAY on a socket (prep for nagle tuning).
      no nagle changes just yet; ok djm@ markus@
-
+   - stevesk@cvs.openbsd.org 2002/01/24 21:13:23
+     [packet.c]
+     need misc.h for set_nodelay()
 
 20020130
  - (djm) Delay PRNG seeding until we need it in ssh-keygen, from markus@
@@ -7407,4 +7409,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1799 2002/02/05 00:52:13 djm Exp $
+$Id: ChangeLog,v 1.1800 2002/02/05 00:52:54 djm Exp $
