@@ -19,6 +19,9 @@
  - (dtucker) [uidswap.c] Don't test restoration of uid on Cygwin since the
    OS does not support permanently dropping privileges.  Patch from
    vinschen at redhat.com.
+ - (dtucker) [openbsd-compat/port-aix.c] Use correct include for xmalloc.h,
+   add canohost.h to stop warning.  Based on patch from openssh-unix-dev at
+   thewrittenword.com
 
 20030919
  - (djm) Bug #683: Remove reference to --with-ipv4-default from INSTALL;
@@ -1155,4 +1158,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3018 2003/09/22 02:54:37 dtucker Exp $
+$Id: ChangeLog,v 1.3019 2003/09/22 03:05:26 dtucker Exp $

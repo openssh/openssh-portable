@@ -27,11 +27,12 @@
 #include "ssh.h"
 #include "log.h"
 #include "servconf.h"
+#include "canohost.h"
+#include "xmalloc.h"
 
 #ifdef _AIX
 
 #include <uinfo.h>
-#include <../xmalloc.h>
 #include "port-aix.h"
 
 extern ServerOptions options;
