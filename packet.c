@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.71 2001/11/07 16:03:17 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.72 2001/11/10 13:37:20 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -1122,7 +1122,6 @@ packet_write_poll()
 			else
 				fatal("Write failed: %.100s", strerror(errno));
 		}
-debug("packet_write_poll: sent %d bytes", len);
 		buffer_consume(&output, len);
 	}
 }
