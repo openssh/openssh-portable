@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.56 2002/05/11 20:17:44 tim Exp $
+# $Id: configure.ac,v 1.57 2002/05/13 00:48:58 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -2011,6 +2011,19 @@ if test "$USES_LOGIN_CONF" != "yes" ; then
 	AC_SUBST(user_path)
 fi
 
+# Set superuser path separately to user path
+MD5_MSG="no" 
+AC_ARG_WITH(superuser-path,
+	[  --with-superuser-path=  Specify different path for super-user],
+	[
+		if test "x$withval" != "xno" ; then
+			AC_DEFINE_UNQUOTED(SUPERUSER_PATH, "$withval")
+			superuser_path=$withval
+		fi
+	]
+)
+
+
 # Whether to force IPv4 by default (needed on broken glibc Linux)
 IPV4_HACK_MSG="no" 
 AC_ARG_WITH(ipv4-default,
@@ -2351,6 +2364,7 @@ E=`eval echo ${libexecdir}/ssh-askpass` ; E=`eval echo ${E}`
 F=`eval echo ${mandir}/${mansubdir}X` ; F=`eval echo ${F}`
 G=`eval echo ${piddir}` ; G=`eval echo ${G}`
 H=`eval echo ${user_path}` ; H=`eval echo ${H}`
+I=`eval echo ${superuser_path}` ; I=`eval echo ${I}`
 
 echo ""
 echo "OpenSSH has been configured with the following options:"
@@ -2364,6 +2378,9 @@ if test "$USES_LOGIN_CONF" = "yes" ; then
 echo "        At runtime, sshd will use the path defined in /etc/login.conf"
 else
 echo "        sshd default user PATH: $H"
+fi
+if test ! -z "$superuser_path" ; then
+echo "      sshd superuser user PATH: $I"
 fi
 echo "                Manpage format: $MANTYPE"
 echo "                   PAM support: ${PAM_MSG}"

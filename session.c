@@ -871,7 +871,12 @@ do_setup_env(Session *s, const char *shell)
 		 * needed for loading shared libraries. So the path better
 		 * remains intact here.
 		 */
+#  ifdef SUPERUSER_PATH
+		child_set_env(&env, &envsize, "PATH", 
+		    s->pw->pw_uid == 0 ? SUPERUSER_PATH : _PATH_STDPATH);
+#  else 
 		child_set_env(&env, &envsize, "PATH", _PATH_STDPATH);
+#  endif /* SUPERUSER_PATH */
 # endif /* HAVE_CYGWIN */
 #endif /* HAVE_LOGIN_CAP */
 

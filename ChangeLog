@@ -1,3 +1,7 @@
+20020513
+ - (djm) Add --with-superuser-path=xxx configure option to specify what $PATH
+   the superuser receives.
+
 20020511
  - (tim) [configure.ac] applied a rework of djm's OpenSSL search cleanup patch.
    Now only searches system and /usr/local/ssl (OpenSSL's default install path)
@@ -567,4 +571,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2106 2002/05/11 22:30:04 tim Exp $
+$Id: ChangeLog,v 1.2107 2002/05/13 00:48:57 djm Exp $
