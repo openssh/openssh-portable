@@ -1130,12 +1130,10 @@ userauth_hostbased(Authctxt *authctxt)
 
 #if KRB5
 static int
-ssh_krb5_helper(krb5_data *ap)
+ssh_krb5_helper(krb5_data *ap, krb5_context *context)
 {
 	krb5_context xcontext = NULL;	/* XXX share with ssh1 */
 	krb5_auth_context xauth_context = NULL;
-
-	krb5_context *context;
 	krb5_auth_context *auth_context;
 	krb5_error_code problem;
 	const char *tkfile;
@@ -1191,8 +1189,6 @@ ssh_krb5_helper(krb5_data *ap)
 		krb5_cc_close(*context, ccache);
 	if (*auth_context)
 		krb5_auth_con_free(*context, *auth_context);
-	if (*context)
-		krb5_free_context(*context);
 	return (ret);
 }
 
@@ -1200,9 +1196,11 @@ int
 userauth_kerberos(Authctxt *authctxt)
 {
 	krb5_data ap;
+	krb5_context *context;
+	int ret = 0;
 
-	if (ssh_krb5_helper(&ap) == 0)
-		return (0);
+	if (ssh_krb5_helper(&ap, context) == 0)
+		goto out;
 
 	packet_start(SSH2_MSG_USERAUTH_REQUEST);
 	packet_put_cstring(authctxt->server_user);
@@ -1214,10 +1212,14 @@ userauth_kerberos(Authctxt *authctxt)
 #ifdef HEIMDAL
 	krb5_data_free(&ap);
 #else
-# warning "XXX - leaks ap data on MIT kerberos"
+	krb5_free_data_contents(*context, &ap);
 #endif
+	ret = 1;
 
-	return (1);
+out:
+	if (*context)
+		krb5_free_context(*context);
+	return ret;
 }
 #endif
 

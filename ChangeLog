@@ -72,6 +72,7 @@
    over usage of PAM. This allows non-root use of sshd when built with
    --with-pam
  - (djm) Die screaming if start_pam() is called when UsePAM=no
+ - (djm) Avoid KrbV leak for MIT Kerberos
 
 20030512
  - (djm) Redhat spec: Don't install profile.d scripts when not 
@@ -1459,4 +1460,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2695 2003/05/14 05:31:12 djm Exp $
+$Id: ChangeLog,v 1.2696 2003/05/14 09:23:56 djm Exp $
