@@ -23,6 +23,8 @@
      replace 4 clause BSD licensed progressmeter code with a replacement
      from Nils Nordman and myself; ok deraadt@
      (copied from OpenBSD an re-applied portable changes)
+ - (dtucker) [openbsd-compat/bsd-misc.c openbsd-compat/bsd-misc.h]
+   Add a tcgetpgrp function.
 
 20030730
  - (djm) [auth-pam.c] Don't use crappy APIs like sprintf. Thanks bal
@@ -761,4 +763,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2872 2003/08/02 13:28:38 dtucker Exp $
+$Id: ChangeLog,v 1.2873 2003/08/02 13:31:42 dtucker Exp $

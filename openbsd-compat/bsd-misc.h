@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: bsd-misc.h,v 1.8 2003/05/18 14:13:39 djm Exp $ */
+/* $Id: bsd-misc.h,v 1.9 2003/08/02 13:31:42 dtucker Exp $ */
 
 #ifndef _BSD_MISC_H
 #define _BSD_MISC_H
@@ -88,5 +88,9 @@ struct timespec {
 #endif
 int nanosleep(const struct timespec *, struct timespec *);
 #endif
+
+#ifndef HAVE_TCGETPGRP
+pid_t tcgetpgrp(int);
+#endif /* HAVE_TCGETPGRP */
 
 #endif /* _BSD_MISC_H */
