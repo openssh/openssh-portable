@@ -1,6 +1,7 @@
 20020522
  - (djm) Fix spelling mistakes, spotted by Solar Designer i
    <solar@openwall.com>
+ - Sync scard/ (not sure when it drifted)
  - (djm) OpenBSD CVS Sync:
    [auth.c]
    Fix typo/thinko.  Pass in as to auth_approval(), not NULL.
@@ -670,4 +671,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2140 2002/05/22 04:14:54 djm Exp $
+$Id: ChangeLog,v 1.2141 2002/05/22 04:24:01 djm Exp $
