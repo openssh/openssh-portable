@@ -3,6 +3,10 @@
    - stevesk@cvs.openbsd.org 2001/05/04 14:21:56
      [ssh.1 sshd.8]
      typos
+   - markus@cvs.openbsd.org 2001/05/04 14:34:34
+     [channels.c]
+     channel_new() reallocs channels[], we cannot use Channel *c after calling
+     channel_new(), XXX fix this in the future...
 
 20010504
  - OpenBSD CVS Sync
@@ -5333,4 +5337,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1197 2001/05/04 22:38:43 mouring Exp $
+$Id: ChangeLog,v 1.1198 2001/05/04 22:40:28 mouring Exp $

@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.111 2001/05/03 15:07:39 stevesk Exp $");
+RCSID("$OpenBSD: channels.c,v 1.112 2001/05/04 14:34:34 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -657,7 +657,7 @@ void
 channel_post_x11_listener(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	struct sockaddr addr;
-	int newsock, newch;
+	int newsock, newch, oldch;
 	socklen_t addrlen;
 	char buf[16384], *remote_ipaddr;
 	int remote_port;
@@ -675,10 +675,12 @@ channel_post_x11_listener(Channel *c, fd_set * readset, fd_set * writeset)
 		snprintf(buf, sizeof buf, "X11 connection from %.200s port %d",
 		    remote_ipaddr, remote_port);
 
+		oldch = c->self;
 		newch = channel_new("x11",
 		    SSH_CHANNEL_OPENING, newsock, newsock, -1,
 		    c->local_window_max, c->local_maxpacket,
 		    0, xstrdup(buf), 1);
+		c = channel_lookup(oldch);
 		if (compat20) {
 			packet_start(SSH2_MSG_CHANNEL_OPEN);
 			packet_put_cstring("x11");
@@ -762,7 +764,7 @@ channel_post_port_listener(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	Channel *nc;
 	struct sockaddr addr;
-	int newsock, newch, nextstate;
+	int newsock, newch, nextstate, oldch;
 	socklen_t addrlen;
 	char *rtype;
 
@@ -782,11 +784,13 @@ channel_post_port_listener(Channel *c, fd_set * readset, fd_set * writeset)
 			error("accept: %.100s", strerror(errno));
 			return;
 		}
+		oldch = c->self;
 		newch = channel_new(rtype,
 		    nextstate, newsock, newsock, -1,
 		    c->local_window_max, c->local_maxpacket,
 		    0, xstrdup(rtype), 1);
 
+		c = channel_lookup(oldch);
 		nc = channel_lookup(newch);
 		if (nc == NULL) {
 			error("xxx: no new channel:");
@@ -809,7 +813,7 @@ void
 channel_post_auth_listener(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	struct sockaddr addr;
-	int newsock, newch;
+	int newsock, newch, oldch;
 	socklen_t addrlen;
 
 	if (FD_ISSET(c->sock, readset)) {
@@ -819,10 +823,12 @@ channel_post_auth_listener(Channel *c, fd_set * readset, fd_set * writeset)
 			error("accept from auth socket: %.100s", strerror(errno));
 			return;
 		}
+		oldch = c->self;
 		newch = channel_new("accepted auth socket",
 		    SSH_CHANNEL_OPENING, newsock, newsock, -1,
 		    c->local_window_max, c->local_maxpacket,
 		    0, xstrdup("accepted auth socket"), 1);
+		c = channel_lookup(oldch);
 		if (compat20) {
 			packet_start(SSH2_MSG_CHANNEL_OPEN);
 			packet_put_cstring("auth-agent@openssh.com");
@@ -1138,6 +1144,7 @@ channel_handler(chan_fn *ftab[], fd_set * readset, fd_set * writeset)
 		if (ftab[c->type] == NULL)
 			continue;
 		(*ftab[c->type])(c, readset, writeset);
+		c = &channels[i]; /* XXX realloc */
 		if (chan_is_dead(c)) {
 			/*
 			 * we have to remove the fd's from the select mask
