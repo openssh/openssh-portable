@@ -28,6 +28,7 @@
   - (bal) removed news4-posix.h (now empty)
   - (bal) changed bsd-bindresvport.c and bsd-rresvport.c to use 'socklen_t'
     instead of 'int'
+ - (stevesk) sshd_config: sync
 
 20010108
  - (bal) Fixed another typo in cli.c
