@@ -151,10 +151,10 @@ fi
 AC_MSG_CHECKING([for OpenSSL/SSLeay directory])
 for ssldir in "" $tryssldir /usr /usr/local/openssl /usr/lib/openssl /usr/local/ssl /usr/lib/ssl /usr/local /usr/pkg /opt /opt/openssl ; do
 	if test ! -z "$ssldir" ; then
-		LIBS="$saved_LIBS -L$ssldir -lcrypto"
+		LIBS="$saved_LIBS -L$ssldir/lib -L$ssldir -lcrypto"
 		CFLAGS="$CFLAGS -I$ssldir/include"
 		if test "x$need_dash_r" = "x1" ; then
-			LIBS="$LIBS -R$ssldir/lib"
+			LIBS="$LIBS -R$ssldir/lib -L$ssldir"
 		fi
 	else
 		LIBS="$saved_LIBS -lcrypto"

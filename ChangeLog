@@ -3,6 +3,7 @@
  - OpenBSD CVS change
    [sshd.c]
     - disallow guessing of root password
+ - More configure fixes
 
 20000309
  - OpenBSD CVS updates to v1.2.3
