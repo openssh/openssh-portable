@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.180 2002/05/06 23:34:33 millert Exp $
+.\" $OpenBSD: sshd.8,v 1.181 2002/05/15 21:02:53 markus Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -852,7 +852,7 @@ another process will be created that has the privilege of the authenticated
 user.  The goal of privilege separation is to prevent privilege
 escalation by containing any corruption within the unprivileged processes.
 The default is
-.Dq yes .
+.Dq no .
 .It Cm VerifyReverseMapping
 Specifies whether
 .Nm
