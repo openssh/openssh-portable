@@ -1,4 +1,4 @@
-/*	$OpenBSD: auth2-gss.c,v 1.3 2003/09/01 20:44:54 markus Exp $	*/
+/*	$OpenBSD: auth2-gss.c,v 1.4 2003/10/21 09:50:06 markus Exp $	*/
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -79,6 +79,8 @@ userauth_gssapi(Authctxt *authctxt)
 			xfree(doid);
 
 		doid = packet_get_string(&len);
+		if (len <= 2)
+			packet_disconnect("Short OID received");
 
 		if (doid[0] != SSH_GSS_OIDTYPE || doid[1] != len-2) {
 			logit("Mechanism OID received using the old encoding form");
