@@ -42,7 +42,7 @@ Holger Trapp <Holger.Trapp@Informatik.TU-Chemnitz.DE> - KRB4/AFS config patch
 IWAMURO Motonori <iwa@mmp.fujitsu.co.jp> - bugfixes
 Jani Hakala <jahakala@cc.jyu.fi> - Patches
 Jarno Huuskonen <jhuuskon@hytti.uku.fi> - Bugfixes
-Jim Knoble <jmknoble@pobox.com> - Many patches
+Jim Knoble <jmknoble@jmknoble.cx> - Many patches
 Jonchen (email unknown) - the original author of PAM support of SSH
 Juergen Keil <jk@tools.de> - scp bugfixing
 KAMAHARA Junzo <kamahara@cc.kshosen.ac.jp> - Configure fixes

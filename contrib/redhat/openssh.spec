@@ -18,7 +18,7 @@ Packager: Damien Miller <djm@mindrot.org>
 URL: http://www.openssh.com/
 Source0: ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-%{oversion}.tar.gz
 %if ! %{no_x11_askpass}
-Source1: http://www.ntrnet.net/~jmknoble/software/x11-ssh-askpass/x11-ssh-askpass-%{aversion}.tar.gz 
+Source1: http://www.jmknoble.cx/software/x11-ssh-askpass/x11-ssh-askpass-%{aversion}.tar.gz 
 %endif
 Copyright: BSD
 Group: Applications/Internet
@@ -112,7 +112,7 @@ OpenSSH is OpenBSD's rework of the last free version of SSH, bringing it
 up to date in terms of security and features, as well as removing all 
 patented algorithms to separate libraries (OpenSSL).
 
-This package contains Jim Knoble's <jmknoble@pobox.com> X11 passphrase 
+This package contains Jim Knoble's <jmknoble@jmknoble.cx> X11 passphrase 
 dialog.
 
 %description askpass-gnome

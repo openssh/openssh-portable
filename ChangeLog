@@ -1405,7 +1405,7 @@
 
 20000620
  - (djm) Replace use of '-o' and '-a' logical operators in configure tests
-   with '||' and '&&'. As suggested by Jim Knoble <jmknoble@pint-stowp.cx>
+   with '||' and '&&'. As suggested by Jim Knoble <jmknoble@jmknoble.cx>
    to fix SCO Unixware problem reported by Gary E. Miller <gem@rellim.com>
  - (djm) Typo in loginrec.c
 
@@ -2022,7 +2022,7 @@
  - Clarified --with-default-path option.
  - Added -blibpath handling for AIX to work around stupid runtime linking.
    Problem elucidated by gshapiro@SENDMAIL.ORG by way of Jim Knoble
-   <jmknoble@pobox.com>
+   <jmknoble@jmknoble.cx>
  - Checks for 64 bit int types. Problem report from Mats Fredholm
    <matsf@init.se>
  - OpenBSD CVS updates:
@@ -2203,7 +2203,7 @@
  - NeXT keeps it lastlog in /usr/adm. Report from
    mouring@newton.pconline.com
  - Added note in UPGRADING re interop with commercial SSH using idea.
-   Report from Jim Knoble <jmknoble@pobox.com>
+   Report from Jim Knoble <jmknoble@jmknoble.cx>
  - Fix linking order for Kerberos/AFS. Fix from Holget Trapp
    <Holger.Trapp@Informatik.TU-Chemnitz.DE>
 
@@ -2216,9 +2216,9 @@
    <gem@rellim.com>
  - New URL for x11-ssh-askpass.
  - Fixpaths was missing /etc/ssh_known_hosts. Report from Jim Knoble
-   <jmknoble@pobox.com>
+   <jmknoble@jmknoble.cx>
  - Added 'DESTDIR' option to Makefile to ease package building. Patch from
-   Jim Knoble <jmknoble@pobox.com>
+   Jim Knoble <jmknoble@jmknoble.cx>
  - Updated RPM spec files to use DESTDIR
 
 20000124
@@ -2422,7 +2422,7 @@
  - Fill in ut_utaddr utmp field. Report from Benjamin Charron
    <iretd@bigfoot.com>
  - Really fix broken default path. Fix from Jim Knoble
-   <jmknoble@pobox.com>
+   <jmknoble@jmknoble.cx>
  - Remove test for quad_t. No longer needed.
  - Released 1.2.1pre24
 
@@ -2489,7 +2489,7 @@
 19991226
  - Enabled utmpx support by default for Solaris
  - Cleanup sshd.c PAM a little more
- - Revised RPM package to include Jim Knoble's <jmknoble@pobox.com>
+ - Revised RPM package to include Jim Knoble's <jmknoble@jmknoble.cx>
    X11 ssh-askpass program.
  - Disable logging of PAM success and failures, PAM is verbose enough.
    Unfortunatly there is currently no way to disable auth failure
@@ -2501,8 +2501,8 @@
      .Sh FILES, too
  - Released 1.2.1pre21
  - Fixed implicit '.' in default path, report from Jim Knoble
-   <jmknoble@pobox.com>
- - Redhat RPM spec fixes from Jim Knoble <jmknoble@pobox.com>
+   <jmknoble@jmknoble.cx>
+ - Redhat RPM spec fixes from Jim Knoble <jmknoble@jmknoble.cx>
 
 19991225
  - More fixes from Andre Lucas <andre.lucas@dial.pipex.com>
@@ -2602,7 +2602,7 @@
  - Compile fix from David Agraz <dagraz@jahoopa.com>
  - Avoid compiler warning in bsd-snprintf.c
  - Added pam_limits.so to default PAM config. Suggested by
-   Jim Knoble <jmknoble@pobox.com>
+   Jim Knoble <jmknoble@jmknoble.cx>
 
 19991209
  - Import of patch from Ben Taylor <bent@clark.net>:
@@ -2630,7 +2630,7 @@
    David Agraz <dagraz@jahoopa.com>
 
 19991207
- - sshd Redhat init script patch from Jim Knoble <jmknoble@pobox.com>
+ - sshd Redhat init script patch from Jim Knoble <jmknoble@jmknoble.cx>
    fixes compatability with 4.x and 5.x
  - Fixed default SSH_ASKPASS
  - Fix PAM account and session being called multiple times. Problem
@@ -2897,7 +2897,7 @@
  - Merged more Solaris compability from Marc G. Fournier
    <marc.fournier@acadiau.ca>
  - Wrote autoconf tests for __progname symbol
- - RPM spec file fixes from Jim Knoble <jmknoble@pobox.com>
+ - RPM spec file fixes from Jim Knoble <jmknoble@jmknoble.cx>
  - Released 1.2pre12
 
  - Another OpenBSD CVS update:
