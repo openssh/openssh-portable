@@ -25,6 +25,9 @@
    - markus@cvs.openbsd.org 2001/02/04 11:11:54
      [sftp-int.c]
      fix LCD
+   - markus@cvs.openbsd.org  2001/02/04 08:10:44
+     [ssh.1]
+     typo; dpo@club-internet.fr
 
 20010104
  - (bal) I think this is the last of the bsd-*.h that don't belong.
