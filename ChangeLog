@@ -121,6 +121,9 @@
      http://bugzilla.mindrot.org/show_bug.cgi?id=560
      Privsep child continues to run after monitor killed.
      Pass monitor signals through to child; Darren Tucker
+   - jakob@cvs.openbsd.org 2003/05/15 04:08:44
+     [readconf.c servconf.c]
+     disable kerberos when not supported. ok markus@
  - (djm) Make portable build with MIT krb5 (some issues remain)
  - (djm) Add new UsePAM configuration directive to allow runtime control
    over usage of PAM. This allows non-root use of sshd when built with
@@ -1516,4 +1519,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2716 2003/05/15 03:57:51 djm Exp $
+$Id: ChangeLog,v 1.2717 2003/05/15 04:15:23 djm Exp $

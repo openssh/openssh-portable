@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.108 2003/05/15 01:48:10 jakob Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.109 2003/05/15 04:08:44 jakob Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -844,11 +844,23 @@ fill_default_options(Options * options)
 	if (options->challenge_response_authentication == -1)
 		options->challenge_response_authentication = 1;
 	if (options->kerberos_authentication == -1)
+#if defined(KRB4) || defined(KRB5)
 		options->kerberos_authentication = 1;
+#else
+		options->kerberos_authentication = 0;
+#endif
 	if (options->kerberos_tgt_passing == -1)
+#if defined(KRB4) || defined(KRB5)
 		options->kerberos_tgt_passing = 1;
+#else
+		options->kerberos_tgt_passing = 0;
+#endif
 	if (options->afs_token_passing == -1)
+#if defined(AFS)
 		options->afs_token_passing = 1;
+#else
+		options->afs_token_passing = 0;
+#endif
 	if (options->password_authentication == -1)
 		options->password_authentication = 1;
 	if (options->kbd_interactive_authentication == -1)
