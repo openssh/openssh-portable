@@ -40,6 +40,10 @@
      [scp.c sftp.c ssh.c]
      allow usernames with embedded '@', e.g. scp user@vhost@realhost:file /tmp;
      http://bugzilla.mindrot.org/show_bug.cgi?id=447; ok mouring@, millert@
+   - stevesk@cvs.openbsd.org 2002/12/04 04:36:47
+     [session.c]
+     remove xauth entries before add; PR 2994 from janjaap@stack.nl.
+     ok markus@
 
 20021205
  - (djm) PERL-free fixpaths from stuge-openssh-unix-dev@cdy.org
@@ -875,4 +879,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2526 2002/12/23 02:14:51 mouring Exp $
+$Id: ChangeLog,v 1.2527 2002/12/23 02:15:57 mouring Exp $
