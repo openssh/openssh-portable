@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-glob.c,v 1.6 2001/06/23 15:12:20 itojun Exp $");
+RCSID("$OpenBSD: sftp-glob.c,v 1.7 2001/07/05 11:43:33 espie Exp $");
 
 #include "ssh.h"
 #include "buffer.h"
@@ -159,9 +159,9 @@ int
 remote_glob(int fd_in, int fd_out, const char *pattern, int flags,
     int (*errfunc)(const char *, int), glob_t *pglob)
 {
-	pglob->gl_opendir = (void*)fudge_opendir;
-	pglob->gl_readdir = (void*)fudge_readdir;
-	pglob->gl_closedir = (void*)fudge_closedir;
+	pglob->gl_opendir = fudge_opendir;
+	pglob->gl_readdir = (struct dirent *(*)(void *))fudge_readdir;
+	pglob->gl_closedir = (void (*)(void *))fudge_closedir;
 	pglob->gl_lstat = fudge_lstat;
 	pglob->gl_stat = fudge_stat;
 	
@@ -169,6 +169,6 @@ remote_glob(int fd_in, int fd_out, const char *pattern, int flags,
 	cur.fd_in = fd_in;
 	cur.fd_out = fd_out;
 
-	return(glob(pattern, flags | GLOB_ALTDIRFUNC, (void*)errfunc,
+	return(glob(pattern, flags | GLOB_ALTDIRFUNC, errfunc,
 	    pglob));
 }
