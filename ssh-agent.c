@@ -35,7 +35,7 @@
 
 #include "includes.h"
 #include "openbsd-compat/fake-queue.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.101 2002/08/22 19:27:53 stevesk Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.102 2002/08/22 20:57:19 stevesk Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -109,7 +109,6 @@ char *__progname;
 static void
 close_socket(SocketEntry *e)
 {
-	shutdown(e->fd, SHUT_RDWR);
 	close(e->fd);
 	e->fd = -1;
 	e->type = AUTH_UNUSED;
