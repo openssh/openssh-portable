@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.95 2001/02/17 23:48:48 deraadt Exp $
+.\" $OpenBSD: sshd.8,v 1.96 2001/02/22 21:57:27 markus Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -978,7 +978,7 @@ These files are consulted when using rhosts with RSA host
 authentication to check the public key of the host.
 The key must be listed in one of these files to be accepted.
 The client uses the same files
-to verify that the remote host is the one it intended to connect.
+to verify that it is connecting to the correct remote host.
 These files should be writable only by root/the owner.
 .Pa /etc/ssh_known_hosts
 should be world-readable, and

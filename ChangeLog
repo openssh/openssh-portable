@@ -28,6 +28,9 @@
    - deraadt@cvs.openbsd.org 2001/02/22 18:09:06
      [sshd_config]
      activate RSA 2 key
+   - markus@cvs.openbsd.org 2001/02/22 21:57:27
+     [ssh.1 sshd.8]
+     typos/grammar from matt@anzen.com
 
 20010304
  - (bal) Remove make-ssh-known-hosts.1 since it's no longer valid.
@@ -4220,4 +4223,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.860 2001/03/05 05:17:18 mouring Exp $
+$Id: ChangeLog,v 1.861 2001/03/05 05:49:29 mouring Exp $

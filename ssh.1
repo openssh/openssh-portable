@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.91 2001/02/11 12:59:25 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.92 2001/02/22 21:57:26 markus Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -274,7 +274,7 @@ On most systems, setting the escape character to
 will also make the session transparent even if a tty is used.
 .Pp
 The session terminates when the command or shell on the remote
-machine exists and all X11 and TCP/IP connections have been closed.
+machine exits and all X11 and TCP/IP connections have been closed.
 The exit status of the remote program is returned as the exit status
 of
 .Nm ssh .
@@ -322,7 +322,7 @@ command line or in a configuration file.
 Forwarding of arbitrary TCP/IP connections over the secure channel can
 be specified either on command line or in a configuration file.
 One possible application of TCP/IP forwarding is a secure connection to an
-electronic purse; another is going trough firewalls.
+electronic purse; another is going through firewalls.
 .Pp
 .Ss Server authentication
 .Pp
@@ -1196,7 +1196,7 @@ also used by rlogin and rsh, which makes using this file insecure.)
 Each line of the file contains a host name (in the canonical form
 returned by name servers), and then a user name on that host,
 separated by a space.
-One some machines this file may need to be
+On some machines this file may need to be
 world-readable if the user's home directory is on a NFS partition,
 because
 .Xr sshd 8
