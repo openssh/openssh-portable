@@ -1,4 +1,4 @@
-#	$OpenBSD: sshd_config,v 1.49 2002/03/21 20:51:12 markus Exp $
+#	$OpenBSD: sshd_config,v 1.50 2002/04/21 16:19:27 stevesk Exp $
 
 # This is the sshd server system-wide configuration file.  See sshd(8)
 # for more information.
@@ -65,8 +65,7 @@
 #KerberosOrLocalPasswd yes
 #KerberosTicketCleanup yes
 
-# AFSTokenPassing automatically enabled if k_hasafs() is true
-#AFSTokenPassing yes
+#AFSTokenPassing no
 
 # Kerberos TGT Passing only works with the AFS kaserver
 #KerberosTgtPassing no
