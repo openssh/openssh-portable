@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.61 2002/05/13 05:14:08 djm Exp $
+# $Id: configure.ac,v 1.62 2002/05/17 15:59:23 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -2023,7 +2023,6 @@ if test "$USES_LOGIN_CONF" != "yes" ; then
 fi
 
 # Set superuser path separately to user path
-MD5_MSG="no" 
 AC_ARG_WITH(superuser-path,
 	[  --with-superuser-path=  Specify different path for super-user],
 	[
