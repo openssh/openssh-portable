@@ -12,6 +12,9 @@
    - naddy@cvs.openbsd.org 2002/06/22 11:51:39
      [ssh.1]
      typo
+   - stevesk@cvs.openbsd.org 2002/06/22 16:32:54
+     [sshd.8]
+     add /var/empty in FILES section
 
 20020622
  - (djm) Update README.privsep; spotted by fries@
@@ -1021,4 +1024,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2247 2002/06/23 00:32:11 mouring Exp $
+$Id: ChangeLog,v 1.2248 2002/06/23 00:32:57 mouring Exp $
