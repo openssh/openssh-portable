@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.88 2001/12/20 22:50:24 djm Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.89 2001/12/21 12:17:33 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -406,14 +406,10 @@ process_output(fd_set * writeset)
 		if (len < 0 && (errno == EINTR || errno == EAGAIN)) {
 			/* do nothing */
 		} else if (len <= 0) {
-#ifdef USE_PIPES
-			close(fdin);
-#else
 			if (fdin != fdout)
 				close(fdin);
 			else
 				shutdown(fdin, SHUT_WR); /* We will no longer send. */
-#endif
 			fdin = -1;
 		} else {
 			/* Successful write. */
@@ -563,14 +559,10 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 		 * input data, cause a real eof by closing fdin.
 		 */
 		if (stdin_eof && fdin != -1 && buffer_len(&stdin_buffer) == 0) {
-#ifdef USE_PIPES
-			close(fdin);
-#else
 			if (fdin != fdout)
 				close(fdin);
 			else
 				shutdown(fdin, SHUT_WR); /* We will no longer send. */
-#endif
 			fdin = -1;
 		}
 		/* Make packets from buffered stderr data to send to the client. */
