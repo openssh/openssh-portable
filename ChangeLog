@@ -1,6 +1,8 @@
 20030908
  - (tim) [configure.ac openbsd-compat/getrrsetbyname.c] wrap _getshort and
    _getlong in #ifndef
+ - (tim) [configure.ac acconfig.h openbsd-compat/getrrsetbyname.c] test for
+   HEADER.ad in arpa/nameser.h
 
 20030907
  - (dtucker) [agent-ptrace.sh dynamic-forward.sh (all regress/)]
@@ -1041,4 +1043,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2970 2003/09/08 13:33:33 tim Exp $
+$Id: ChangeLog,v 1.2971 2003/09/08 21:35:16 tim Exp $

@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.164 2003/09/07 01:37:27 dtucker Exp $ */
+/* $Id: acconfig.h,v 1.165 2003/09/08 21:35:17 tim Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -417,6 +417,9 @@
 
 /* Define if getrrsetbyname() exists */
 #undef HAVE_GETRRSETBYNAME
+
+/* Define if HEADER.ad exists in arpa/nameser.h */
+#undef HAVE_HEADER_AD
 
 @BOTTOM@
 

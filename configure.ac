@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.146 2003/09/08 13:33:33 tim Exp $
+# $Id: configure.ac,v 1.147 2003/09/08 21:35:17 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -1913,6 +1913,9 @@ AC_ARG_WITH(dns,
 					AC_SEARCH_LIBS(res_query, resolv)
 					AC_SEARCH_LIBS(dn_expand, resolv)
 					AC_CHECK_FUNCS(_getshort _getlong)
+					AC_CHECK_MEMBER(HEADER.ad,
+						[AC_DEFINE(HAVE_HEADER_AD)],,
+						[#include <arpa/nameser.h>])
 				])
 		fi
 	]

@@ -243,9 +243,11 @@ getrrsetbyname(const char *hostname, unsigned int rdclass,
 	rrset->rri_ttl = response->answer->ttl;
 	rrset->rri_nrdatas = response->header.ancount;
 
+#ifdef HAVE_HEADER_AD
 	/* check for authenticated data */
 	if (response->header.ad == 1)
 		rrset->rri_flags |= RRSET_VALIDATED;
+#endif
 
 	/* copy name from answer section */
 	length = strlen(response->answer->name);
