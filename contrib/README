@@ -44,11 +44,11 @@ sshd.pam.freebsd:
 A PAM config file which works with FreeBSD's PAM port. Contributed by
 Dominik Brettnacher <domi@saargate.de>
 
-mdoc2man.pl:
+findssl.sh:
 
-Converts mdoc formated manpages into normal manpages.  This can be used
-on Solaris machines to provide manpages that are not preformated.
-Contributed by Mark D. Roth <roth@feep.net>
+Search for all instances of OpenSSL headers and libraries and print their 
+versions.  This is intended to help diagnose OpenSSH's "OpenSSL headers do not
+match your library" errors. 
 
 redhat:
 

@@ -1,5 +1,4 @@
 20040623
- - (bal) [Makefile.in] Remove opensshd.init on 'make distclean'
  - (dtucker) [auth1.c] Ensure do_pam_account is called for Protocol 1
    connections with empty passwords.  Patch from davidwu at nbttech.com,
    ok djm@
@@ -16,12 +15,14 @@
      Allow setting of port for regress from TEST_SSH_PORT variable; ok markus@
  - (dtucker) [cipher.c] encrypt->do_encrypt inside SSH_OLD_EVP to match
    -Wshadow change.
+ - (bal) [Makefile.in] Remove opensshd.init on 'make distclean'
  - (dtucker) [auth.c openbsd-compat/port-aix.c openbsd-compat/port-aix.h]
    Move loginrestrictions test to port-aix.c, replace with a generic hook.
  - (tim) [regress/try-ciphers.sh] "if ! some_command" is not portable.
+ - (bal) [contrib/README] Removed "mdoc2man.pl" reference and added
+   reference to "findssl.sh"
 
 20040622
- - (bal) [auth-passwd.c auth1.c] Clean up unused variables.
  - (dtucker) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2004/06/20 17:36:59
      [ssh.c]
@@ -69,6 +70,7 @@
      ok markus@
  - (dtucker) [monitor.c] Fix Portable-specific -Wshadow warnings on "socket".
  - (dtucker) [defines.h] Define __dead if not already defined.
+ - (bal) [auth-passwd.c auth1.c] Clean up unused variables.
 
 20040620
  - (tim) [configure.ac Makefile.in] Only change TEST_SHELL on broken platforms.
@@ -1391,4 +1393,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3440 2004/06/23 03:53:02 tim Exp $
+$Id: ChangeLog,v 1.3441 2004/06/23 04:04:45 mouring Exp $
