@@ -5,6 +5,9 @@
    - djm@cvs.openbsd.org 2004/02/17 07:17:29
      [sftp-glob.c sftp.c]
      Remove useless headers; ok deraadt@
+   - djm@cvs.openbsd.org 2004/02/17 11:03:08
+     [sftp.c]
+     sftp.c and sftp-int.c, together at last; ok markus@
 
 20040217
  - (djm) Simplify the license on code I have written. No code changes.
@@ -1874,4 +1877,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3235 2004/02/18 03:11:13 djm Exp $
+$Id: ChangeLog,v 1.3236 2004/02/18 03:30:55 djm Exp $
