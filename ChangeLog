@@ -8,6 +8,8 @@
    from OpenBSD.
  - (dtucker) [openbsd-compat/bsd-cygwin_util.c openbsd-compat/bsd-cygwin_util.h]
    Remove incorrect filenames from comments (file names are in Id tags).
+ - (dtucker) [session.c openbsd-compat/bsd-cygwin_util.h] Move Cygwin
+   specific defines and includes to bsd-cygwin_util.h.  Fixes build error too.
 
 20030802
  - (dtucker) [monitor.h monitor_wrap.h] Remove excess ident tags.
@@ -796,4 +798,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2883 2003/08/07 06:23:43 dtucker Exp $
+$Id: ChangeLog,v 1.2884 2003/08/07 06:28:16 dtucker Exp $

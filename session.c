@@ -58,12 +58,6 @@ RCSID("$OpenBSD: session.c,v 1.159 2003/07/22 13:35:22 markus Exp $");
 #include "session.h"
 #include "monitor_wrap.h"
 
-#ifdef HAVE_CYGWIN
-#include <windows.h>
-#include <sys/cygwin.h>
-#define is_winnt       (GetVersion() < 0x80000000)
-#endif
-
 /* func */
 
 Session *session_new(void);

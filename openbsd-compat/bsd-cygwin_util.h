@@ -1,4 +1,4 @@
-/* $Id: bsd-cygwin_util.h,v 1.9 2003/08/07 06:23:43 dtucker Exp $ */
+/* $Id: bsd-cygwin_util.h,v 1.10 2003/08/07 06:28:16 dtucker Exp $ */
 
 /*
  * Copyright (c) 2000, 2001, Corinna Vinschen <vinschen@cygnus.com>
@@ -34,6 +34,11 @@
 
 #ifdef HAVE_CYGWIN
 
+#undef ERROR
+#define is_winnt       (GetVersion() < 0x80000000)
+
+#include <windows.h>
+#include <sys/cygwin.h>
 #include <io.h>
 
 int binary_open(const char *, int , ...);
