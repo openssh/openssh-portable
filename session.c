@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.174 2004/05/09 01:19:28 djm Exp $");
+RCSID("$OpenBSD: session.c,v 1.175 2004/05/11 19:01:43 deraadt Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1824,9 +1824,8 @@ session_exec_req(Session *s)
 static int
 session_break_req(Session *s)
 {
-	u_int break_length;
 
-	break_length = packet_get_int();	/* ignored */
+	packet_get_int();	/* ignored */
 	packet_check_eom();
 
 	if (s->ttyfd == -1 ||

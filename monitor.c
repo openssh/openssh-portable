@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.56 2004/05/09 01:19:27 djm Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.57 2004/05/11 19:01:43 deraadt Exp $");
 
 #include <openssl/dh.h>
 
@@ -1479,7 +1479,7 @@ mm_answer_term(int socket, Buffer *req)
 	res = WIFEXITED(status) ? WEXITSTATUS(status) : 1;
 
 	/* Terminate process */
-	exit (res);
+	exit(res);
 }
 
 void

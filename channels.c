@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.200 2004/01/19 09:24:21 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.201 2004/05/11 19:01:43 deraadt Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1031,7 +1031,7 @@ channel_decode_socks5(Channel *c, fd_set * readset, fd_set * writeset)
 	buffer_get(&c->input, (char *)&dest_port, 2);
 	dest_addr[addrlen] = '\0';
 	if (s5_req.atyp == SSH_SOCKS5_DOMAIN)
-		strlcpy(c->path, dest_addr, sizeof(c->path));
+		strlcpy(c->path, (char *)dest_addr, sizeof(c->path));
 	else if (inet_ntop(af, dest_addr, c->path, sizeof(c->path)) == NULL)
 		return -1;
 	c->host_port = ntohs(dest_port);

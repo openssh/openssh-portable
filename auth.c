@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth.c,v 1.52 2004/05/08 00:01:37 deraadt Exp $");
+RCSID("$OpenBSD: auth.c,v 1.53 2004/05/11 19:01:43 deraadt Exp $");
 
 #ifdef HAVE_LOGIN_H
 #include <login.h>
@@ -562,8 +562,8 @@ fakepw(void)
 	fake.pw_passwd =
 	    "$2a$06$r3.juUaHZDlIbQaO2dS9FuYxL1W9M81R1Tc92PoSNmzvpEqLkLGrK";
 	fake.pw_gecos = "NOUSER";
-	fake.pw_uid = -1;
-	fake.pw_gid = -1;
+	fake.pw_uid = (uid_t)-1;
+	fake.pw_gid = (gid_t)-1;
 #ifdef HAVE_PW_CLASS_IN_PASSWD
 	fake.pw_class = "";
 #endif

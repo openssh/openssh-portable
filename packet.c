@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.112 2003/09/23 20:17:11 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.113 2004/05/11 19:01:43 deraadt Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -154,8 +154,10 @@ packet_set_connection(int fd_in, int fd_out)
 		fatal("packet_set_connection: cannot load cipher 'none'");
 	connection_in = fd_in;
 	connection_out = fd_out;
-	cipher_init(&send_context, none, "", 0, NULL, 0, CIPHER_ENCRYPT);
-	cipher_init(&receive_context, none, "", 0, NULL, 0, CIPHER_DECRYPT);
+	cipher_init(&send_context, none, (const u_char *)"",
+	    0, NULL, 0, CIPHER_ENCRYPT);
+	cipher_init(&receive_context, none, (const u_char *)"",
+	    0, NULL, 0, CIPHER_DECRYPT);
 	newkeys[MODE_IN] = newkeys[MODE_OUT] = NULL;
 	if (!initialized) {
 		initialized = 1;
@@ -1449,7 +1451,7 @@ packet_is_interactive(void)
 	return interactive_mode;
 }
 
-u_int
+int
 packet_set_maxsize(u_int s)
 {
 	static int called = 0;
@@ -1503,7 +1505,7 @@ packet_send_ignore(int nbytes)
 	}
 }
 
-#define MAX_PACKETS	(1<<31)
+#define MAX_PACKETS	(1U<<31)
 int
 packet_need_rekeying(void)
 {
