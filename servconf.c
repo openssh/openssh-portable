@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.133 2004/05/23 23:59:53 dtucker Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.134 2004/06/24 19:30:54 djm Exp $");
 
 #include "ssh.h"
 #include "log.h"
@@ -942,26 +942,50 @@ parse_flag:
 /* Reads the server configuration file. */
 
 void
-read_server_config(ServerOptions *options, const char *filename)
+load_server_config(const char *filename, Buffer *conf)
 {
-	int linenum, bad_options = 0;
-	char line[1024];
+	char line[1024], *cp;
 	FILE *f;
 
-	debug2("read_server_config: filename %s", filename);
-	f = fopen(filename, "r");
-	if (!f) {
+	debug2("%s: filename %s", __func__, filename);
+	if ((f = fopen(filename, "r")) == NULL) {
 		perror(filename);
 		exit(1);
 	}
-	linenum = 0;
+	buffer_clear(conf);
 	while (fgets(line, sizeof(line), f)) {
-		/* Update line number counter. */
-		linenum++;
-		if (process_server_config_line(options, line, filename, linenum) != 0)
+		/*
+		 * Trim out comments and strip whitespace
+		 * NB - preserve newlines, they are needed to reproduce 
+		 * line numbers later for error messages
+		 */
+		if ((cp = strchr(line, '#')) != NULL)
+			memcpy(cp, "\n", 2);
+		cp = line + strspn(line, " \t\r");
+
+		buffer_append(conf, cp, strlen(cp));
+	}
+	buffer_append(conf, "\0", 1);
+	fclose(f);
+	debug2("%s: done config len = %d", __func__, buffer_len(conf));
+}
+
+void
+parse_server_config(ServerOptions *options, const char *filename, Buffer *conf)
+{
+	int linenum, bad_options = 0;
+	char *cp, *cbuf;
+
+	debug2("%s: config %s len %d", __func__, filename, buffer_len(conf));
+
+	cbuf = xstrdup(buffer_ptr(conf));
+	linenum = 0;
+	while((cp = strsep(&cbuf, "\n")) != NULL) {
+		if (process_server_config_line(options, cp, filename,
+		    linenum++) != 0)
 			bad_options++;
 	}
-	fclose(f);
+	free(cbuf);
 	if (bad_options > 0)
 		fatal("%s: terminating, %d bad configuration options",
 		    filename, bad_options);

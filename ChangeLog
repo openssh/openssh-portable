@@ -1,3 +1,9 @@
+20040625
+ - (dtucker) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2004/06/24 19:30:54
+     [servconf.c servconf.h sshd.c]
+     re-exec sshd on accept(); initial work, final debugging and ok markus@
+
 20040623
  - (dtucker) [auth1.c] Ensure do_pam_account is called for Protocol 1
    connections with empty passwords.  Patch from davidwu at nbttech.com,
@@ -1399,4 +1405,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3443 2004/06/23 14:34:53 dtucker Exp $
+$Id: ChangeLog,v 1.3444 2004/06/25 03:33:20 dtucker Exp $

@@ -1,4 +1,4 @@
-/*	$OpenBSD: servconf.h,v 1.69 2004/05/23 23:59:53 dtucker Exp $	*/
+/*	$OpenBSD: servconf.h,v 1.70 2004/06/24 19:30:54 djm Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -15,6 +15,8 @@
 
 #ifndef SERVCONF_H
 #define SERVCONF_H
+
+#include "buffer.h"
 
 #define MAX_PORTS		256	/* Max # ports. */
 
@@ -134,9 +136,9 @@ typedef struct {
 }       ServerOptions;
 
 void	 initialize_server_options(ServerOptions *);
-void	 read_server_config(ServerOptions *, const char *);
 void	 fill_default_server_options(ServerOptions *);
 int	 process_server_config_line(ServerOptions *, char *, const char *, int);
-
+void	 load_server_config(const char *, Buffer *);
+void	 parse_server_config(ServerOptions *, const char *, Buffer *);
 
 #endif				/* SERVCONF_H */

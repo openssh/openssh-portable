@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.293 2004/06/14 01:44:39 djm Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.294 2004/06/24 19:30:54 djm Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -65,6 +65,7 @@ RCSID("$OpenBSD: sshd.c,v 1.293 2004/06/14 01:44:39 djm Exp $");
 #include "uidswap.h"
 #include "compat.h"
 #include "buffer.h"
+#include "bufaux.h"
 #include "cipher.h"
 #include "kex.h"
 #include "key.h"
@@ -76,6 +77,7 @@ RCSID("$OpenBSD: sshd.c,v 1.293 2004/06/14 01:44:39 djm Exp $");
 #include "canohost.h"
 #include "auth.h"
 #include "misc.h"
+#include "msg.h"
 #include "dispatch.h"
 #include "channels.h"
 #include "session.h"
@@ -136,6 +138,12 @@ int log_stderr = 0;
 /* Saved arguments to main(). */
 char **saved_argv;
 int saved_argc;
+
+/* re-exec */
+int rexeced_flag = 0;
+int rexec_flag = 1;
+int rexec_argc = 0;
+char **rexec_argv;
 
 /*
  * The sockets that the server is listening; this is used in the SIGHUP
@@ -771,6 +779,87 @@ usage(void)
 	exit(1);
 }
 
+static void
+send_rexec_state(int fd, Buffer *conf)
+{
+	Buffer m;
+
+	debug3("%s: entering fd = %d config len %d", __func__, fd,
+	    buffer_len(conf));
+
+	/*
+	 * Protocol from reexec master to child:
+	 *	string	configuration
+	 *	u_int	ephemeral_key_follows
+	 *	bignum	e		(only if ephemeral_key_follows == 1)
+	 *	bignum	n			"
+	 *	bignum	d			"
+	 *	bignum	iqmp			"
+	 *	bignum	p			"
+	 *	bignum	q			"
+	 */
+	buffer_init(&m);
+	buffer_put_cstring(&m, buffer_ptr(conf));
+
+	if (sensitive_data.server_key != NULL && 
+	    sensitive_data.server_key->type == KEY_RSA1) {
+		buffer_put_int(&m, 1);
+		buffer_put_bignum(&m, sensitive_data.server_key->rsa->e);
+		buffer_put_bignum(&m, sensitive_data.server_key->rsa->n);
+		buffer_put_bignum(&m, sensitive_data.server_key->rsa->d);
+		buffer_put_bignum(&m, sensitive_data.server_key->rsa->iqmp);
+		buffer_put_bignum(&m, sensitive_data.server_key->rsa->p);
+		buffer_put_bignum(&m, sensitive_data.server_key->rsa->q);
+	} else
+		buffer_put_int(&m, 0);
+
+	if (ssh_msg_send(fd, 0, &m) == -1)
+		fatal("%s: ssh_msg_send failed", __func__);
+
+	buffer_free(&m);
+
+	debug3("%s: done", __func__);
+}
+
+static void
+recv_rexec_state(int fd, Buffer *conf)
+{
+	Buffer m;
+	char *cp;
+	u_int len;
+
+	debug3("%s: entering fd = %d", __func__, fd);
+
+	buffer_init(&m);
+
+	if (ssh_msg_recv(fd, &m) == -1)
+		fatal("%s: ssh_msg_recv failed", __func__);
+	if (buffer_get_char(&m) != 0)
+		fatal("%s: rexec version mismatch", __func__);
+
+	cp = buffer_get_string(&m, &len);
+	if (conf != NULL)
+		buffer_append(conf, cp, len + 1);
+	xfree(cp);
+
+	if (buffer_get_int(&m)) {
+		if (sensitive_data.server_key != NULL)
+			key_free(sensitive_data.server_key);
+		sensitive_data.server_key = key_new_private(KEY_RSA1);
+		buffer_get_bignum(&m, sensitive_data.server_key->rsa->e);
+		buffer_get_bignum(&m, sensitive_data.server_key->rsa->n);
+		buffer_get_bignum(&m, sensitive_data.server_key->rsa->d);
+		buffer_get_bignum(&m, sensitive_data.server_key->rsa->iqmp);
+		buffer_get_bignum(&m, sensitive_data.server_key->rsa->p);
+		buffer_get_bignum(&m, sensitive_data.server_key->rsa->q);
+		rsa_generate_additional_parameters(
+		    sensitive_data.server_key->rsa);
+	}
+	buffer_free(&m);
+
+	debug3("%s: done", __func__);
+}
+
 /*
  * Main program for the daemon.
  */
@@ -791,11 +880,12 @@ main(int ac, char **av)
 	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
 	char *line;
 	int listen_sock, maxfd;
-	int startup_p[2];
+	int startup_p[2], config_s[2];
 	int startups = 0;
 	Key *key;
 	Authctxt *authctxt;
 	int ret, key_used = 0;
+	Buffer cfg;
 
 #ifdef HAVE_SECUREWARE
 	(void)set_auth_parameters(ac, av);
@@ -823,7 +913,7 @@ main(int ac, char **av)
 	initialize_server_options(&options);
 
 	/* Parse command-line arguments. */
-	while ((opt = getopt(ac, av, "f:p:b:k:h:g:u:o:dDeiqtQ46")) != -1) {
+	while ((opt = getopt(ac, av, "f:p:b:k:h:g:u:o:dDeiqrtQR46")) != -1) {
 		switch (opt) {
 		case '4':
 			IPv4or6 = AF_INET;
@@ -848,6 +938,13 @@ main(int ac, char **av)
 			log_stderr = 1;
 			break;
 		case 'i':
+			inetd_flag = 1;
+			break;
+		case 'r':
+			rexec_flag = 0;
+			break;
+		case 'R':
+			rexeced_flag = 1;
 			inetd_flag = 1;
 			break;
 		case 'Q':
@@ -913,6 +1010,13 @@ main(int ac, char **av)
 			break;
 		}
 	}
+	if (rexeced_flag || inetd_flag)
+		rexec_flag = 0;
+	if (rexec_flag && (av[0] == NULL || *av[0] != '/'))
+		fatal("sshd re-exec requires execution with an absolute path");
+	if (rexeced_flag)
+		closefrom(STDERR_FILENO + 3);
+
 	SSLeay_add_all_algorithms();
 	channel_set_af(IPv4or6);
 
@@ -943,8 +1047,23 @@ main(int ac, char **av)
 
 	seed_rng();
 
-	/* Read server configuration options from the configuration file. */
-	read_server_config(&options, config_file_name);
+	sensitive_data.server_key = NULL;
+	sensitive_data.ssh1_host_key = NULL;
+	sensitive_data.have_ssh1_key = 0;
+	sensitive_data.have_ssh2_key = 0;
+
+	/* Fetch our configuration */
+	buffer_init(&cfg);
+	if (rexeced_flag)
+		recv_rexec_state(STDERR_FILENO + 2, &cfg);
+	else
+		load_server_config(config_file_name, &cfg);
+
+	parse_server_config(&options,
+	    rexeced_flag ? "rexec" : config_file_name, &cfg);
+
+	if (!rexec_flag)
+		buffer_free(&cfg);
 
 	/* Fill in default values for those options not explicitly set. */
 	fill_default_server_options(&options);
@@ -962,10 +1081,6 @@ main(int ac, char **av)
 	    sizeof(Key *));
 	for (i = 0; i < options.num_host_key_files; i++)
 		sensitive_data.host_keys[i] = NULL;
-	sensitive_data.server_key = NULL;
-	sensitive_data.ssh1_host_key = NULL;
-	sensitive_data.have_ssh1_key = 0;
-	sensitive_data.have_ssh2_key = 0;
 
 	for (i = 0; i < options.num_host_key_files; i++) {
 		key = key_load_private(options.host_key_files[i], "", NULL);
@@ -1064,6 +1179,16 @@ main(int ac, char **av)
 	if (setgroups(0, NULL) < 0)
 		debug("setgroups() failed: %.200s", strerror(errno));
 
+	if (rexec_flag) {
+		rexec_argv = xmalloc(sizeof(char *) * (rexec_argc + 2));
+		for (i = 0; i < rexec_argc; i++) {
+			debug("rexec_argv[%d]='%s'", i, saved_argv[i]);
+			rexec_argv[i] = saved_argv[i];
+		}
+		rexec_argv[rexec_argc] = "-R";
+		rexec_argv[rexec_argc + 1] = NULL;
+	}
+
 	/* Initialize the log (it is reinitialized below in case we forked). */
 	if (debug_flag && !inetd_flag)
 		log_stderr = 1;
@@ -1105,19 +1230,34 @@ main(int ac, char **av)
 
 	/* Start listening for a socket, unless started from inetd. */
 	if (inetd_flag) {
-		int s1;
-		s1 = dup(0);	/* Make sure descriptors 0, 1, and 2 are in use. */
-		dup(s1);
-		sock_in = dup(0);
-		sock_out = dup(1);
+		int fd;
+
 		startup_pipe = -1;
+		if (rexeced_flag) {
+			close(STDERR_FILENO + 2);
+			sock_in = sock_out = dup(STDIN_FILENO);
+			if (!debug_flag) {
+				startup_pipe = dup(STDERR_FILENO + 1);
+				close(STDERR_FILENO + 1);
+			}
+		} else {
+			sock_in = dup(STDIN_FILENO);
+			sock_out = dup(STDOUT_FILENO);
+		}
 		/*
 		 * We intentionally do not close the descriptors 0, 1, and 2
-		 * as our code for setting the descriptors won\'t work if
+		 * as our code for setting the descriptors won't work if
 		 * ttyfd happens to be one of those.
 		 */
+		if ((fd = open(_PATH_DEVNULL, O_RDWR, 0)) != -1) {
+			dup2(fd, STDIN_FILENO);
+			dup2(fd, STDOUT_FILENO);
+			if (fd > STDOUT_FILENO)
+				close(fd);
+		}
 		debug("inetd sockets after dupping: %d, %d", sock_in, sock_out);
-		if (options.protocol & SSH_PROTO_1)
+		if ((options.protocol & SSH_PROTO_1) &&
+		    sensitive_data.server_key == NULL)
 			generate_ephemeral_server_key();
 	} else {
 		for (ai = options.listen_addrs; ai; ai = ai->ai_next) {
@@ -1297,6 +1437,16 @@ main(int ac, char **av)
 					continue;
 				}
 
+				if (rexec_flag && socketpair(AF_UNIX,
+				    SOCK_STREAM, 0, config_s) == -1) {
+					error("reexec socketpair: %s",
+					    strerror(errno));
+					close(newsock);
+					close(startup_p[0]);
+					close(startup_p[1]);
+					continue;
+				}
+
 				for (j = 0; j < options.max_startups; j++)
 					if (startup_pipes[j] == -1) {
 						startup_pipes[j] = startup_p[0];
@@ -1320,8 +1470,15 @@ main(int ac, char **av)
 					close_listen_socks();
 					sock_in = newsock;
 					sock_out = newsock;
+					close(startup_p[0]);
+					close(startup_p[1]);
 					startup_pipe = -1;
 					pid = getpid();
+					if (rexec_flag) {
+						send_rexec_state(config_s[0],
+						    &cfg);
+						close(config_s[0]);
+					}
 					break;
 				} else {
 					/*
@@ -1355,6 +1512,12 @@ main(int ac, char **av)
 
 				close(startup_p[1]);
 
+				if (rexec_flag) {
+					send_rexec_state(config_s[0], &cfg);
+					close(config_s[0]);
+					close(config_s[1]);
+				}
+
 				/* Mark that the key has been used (it was "given" to the child). */
 				if ((options.protocol & SSH_PROTO_1) &&
 				    key_used == 0) {
@@ -1377,6 +1540,40 @@ main(int ac, char **av)
 
 	/* This is the child processing a new connection. */
 	setproctitle("%s", "[accepted]");
+
+	if (rexec_flag) {
+		int fd;
+
+		debug("rexec newsock %d pipe %d sock %d", newsock, 
+		    startup_pipe, config_s[0]);
+		dup2(newsock, STDIN_FILENO);
+		dup2(STDIN_FILENO, STDOUT_FILENO);
+		if (startup_pipe == -1)
+			close(STDERR_FILENO + 1);
+		else
+			dup2(startup_pipe, STDERR_FILENO + 1);
+
+		dup2(config_s[1], STDERR_FILENO + 2);
+		close(config_s[1]);
+		execv(rexec_argv[0], rexec_argv);
+
+		/* Reexec has failed, fall back and continue */
+		error("rexec of %s failed: %s", rexec_argv[0], strerror(errno));
+		recv_rexec_state(STDERR_FILENO + 2, NULL);
+		log_init(__progname, options.log_level,
+		    options.log_facility, log_stderr);
+
+		/* Clean up fds */
+		close(config_s[1]);
+		close(STDERR_FILENO + 1);
+		close(STDERR_FILENO + 2);
+		if ((fd = open(_PATH_DEVNULL, O_RDWR, 0)) != -1) {
+			dup2(fd, STDIN_FILENO);
+			dup2(fd, STDOUT_FILENO);
+			if (fd > STDERR_FILENO)
+				close(fd);
+		}
+	}
 
 	/*
 	 * Create a new session and process group since the 4.4BSD
