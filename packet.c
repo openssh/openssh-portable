@@ -1259,9 +1259,9 @@ packet_set_interactive(int interactive)
 		 */
 #if defined(IP_TOS) && !defined(IP_TOS_IS_BROKEN)
 		if (packet_connection_is_ipv4()) {
-			if (setsockopt(connection_in, IPPROTO_IP, IP_TOS, 
+			if (setsockopt(connection_in, IPPROTO_IP, IP_TOS,
 			    (void *) &lowdelay, sizeof(lowdelay)) < 0)
-			        error("setsockopt IPTOS_LOWDELAY: %.100s", 
+				error("setsockopt IPTOS_LOWDELAY: %.100s",
 				    strerror(errno));
 		}
 #endif
