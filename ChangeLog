@@ -9,6 +9,9 @@
    - djm@cvs.openbsd.org 2004/03/30 12:41:56
      [sftp-client.c]
      sync comment with reality
+   - djm@cvs.openbsd.org 2004/03/31 21:58:47
+     [canohost.c]
+     don't skip ip options check when UseDNS=no; ok markus@ (ID sync only)
 
 20040418
  - (dtucker) [auth-pam.c] Log username and source host for failed PAM
@@ -994,4 +997,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3319 2004/04/19 12:10:52 dtucker Exp $
+$Id: ChangeLog,v 1.3320 2004/04/19 12:16:53 dtucker Exp $
