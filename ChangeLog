@@ -13,6 +13,8 @@
      [compat.c compat.h sshconnect.c]
      all known netscreen ssh versions, and older versions of OSU ssh cannot
      handle password padding (newer OSU is fixed)
+ - tim@mindrot.org 2001/03/10 16:33:42 [configure.in Makefile.in sshd_config]
+   make sure $bindir is in USER_PATH so scp will work
 
 20010310
  - OpenBSD CVS Sync
@@ -4484,4 +4486,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.937 2001/03/10 17:22:20 mouring Exp $
+$Id: ChangeLog,v 1.938 2001/03/11 00:52:25 tim Exp $
