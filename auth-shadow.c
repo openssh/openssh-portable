@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: auth-shadow.c,v 1.3 2004/02/11 07:48:52 dtucker Exp $");
+RCSID("$Id: auth-shadow.c,v 1.4 2004/02/21 22:43:15 dtucker Exp $");
 
 #if defined(USE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
 #include <shadow.h>
@@ -35,6 +35,32 @@ RCSID("$Id: auth-shadow.c,v 1.3 2004/02/11 07:48:52 dtucker Exp $");
 #define DAY	(24L * 60 * 60) /* 1 day in seconds */
 
 extern Buffer loginmsg;
+
+/*
+ * For the account and password expiration functions, we assume the expiry
+ * occurs the day after the day specified.
+ */
+
+/*
+ * Check if specified account is expired.  Returns 1 if account is expired,
+ * 0 otherwise.
+ */
+int
+auth_shadow_acctexpired(struct spwd *spw)
+{
+	time_t today;
+
+	today = time(NULL) / DAY;
+	debug3("%s: today %d sp_expire %d", __func__, (int)today,
+	    (int)spw->sp_expire);
+
+	if (spw->sp_expire != -1 && today > spw->sp_expire) {
+		logit("Account %.100s has expired", spw->sp_namp);
+		return 1;
+	}
+
+	return 0;
+}
 
 /*
  * Checks password expiry for platforms that use shadow passwd files.

@@ -28,9 +28,9 @@ RCSID("$OpenBSD: auth.c,v 1.51 2003/11/21 11:57:02 djm Exp $");
 #ifdef HAVE_LOGIN_H
 #include <login.h>
 #endif
-#if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
+#ifdef USE_SHADOW
 #include <shadow.h>
-#endif /* defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW) */
+#endif
 
 #ifdef HAVE_LIBGEN_H
 #include <libgen.h>
@@ -76,7 +76,7 @@ allowed_user(struct passwd * pw)
 	const char *hostname = NULL, *ipaddr = NULL, *passwd = NULL;
 	char *shell;
 	int i;
-#if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
+#ifdef USE_SHADOW
 	struct spwd *spw = NULL;
 #endif
 
@@ -84,34 +84,17 @@ allowed_user(struct passwd * pw)
 	if (!pw || !pw->pw_name)
 		return 0;
 
-#if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
+#ifdef USE_SHADOW
 	if (!options.use_pam)
 		spw = getspnam(pw->pw_name);
 #ifdef HAS_SHADOW_EXPIRE
-#define	DAY		(24L * 60 * 60) /* 1 day in seconds */
-	if (!options.use_pam && spw != NULL) {
-		int disabled = 0;
-		time_t today;
-
-		today = time(NULL) / DAY;
-		debug3("allowed_user: today %d sp_expire %d sp_lstchg %d"
-		    " sp_max %d", (int)today, (int)spw->sp_expire,
-		    (int)spw->sp_lstchg, (int)spw->sp_max);
-
-		/*
-		 * We assume account and password expiration occurs the
-		 * day after the day specified.
-		 */
-		if (spw->sp_expire != -1 && today > spw->sp_expire) {
-			logit("Account %.100s has expired", pw->pw_name);
-			return 0;
-		}
-	}
+	if (!options.use_pam && spw != NULL && auth_shadow_acctexpired(spw))
+		return 0;
 #endif /* HAS_SHADOW_EXPIRE */
-#endif /* defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW) */
+#endif /* USE_SHADOW */
 
 	/* grab passwd field for locked account check */
-#if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
+#ifdef USE_SHADOW
 	if (spw != NULL)
 		passwd = spw->sp_pwdp;
 #else
