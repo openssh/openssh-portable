@@ -1,3 +1,9 @@
+20010307
+ - (bal) OpenBSD CVS Sync
+   - deraadt@cvs.openbsd.org 2001/03/06 06:11:18
+     [ssh-keyscan.c]
+     appease gcc
+
 20010306
  - (bal) OpenBSD CVS Sync
    - deraadt@cvs.openbsd.org 2001/03/05 14:28:47
@@ -4411,4 +4417,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.918 2001/03/06 03:34:40 mouring Exp $
+$Id: ChangeLog,v 1.919 2001/03/07 01:23:30 mouring Exp $

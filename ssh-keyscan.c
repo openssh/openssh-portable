@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keyscan.c,v 1.21 2001/03/06 01:06:03 millert Exp $");
+RCSID("$OpenBSD: ssh-keyscan.c,v 1.22 2001/03/06 06:11:18 deraadt Exp $");
 
 #if defined(HAVE_SYS_QUEUE_H) && !defined(HAVE_BOGUS_SYS_QUEUE_H)
 #include <sys/queue.h>
@@ -413,7 +413,7 @@ congreet(int s)
 {
 	char buf[80], *cp;
 	size_t bufsiz;
-	int n;
+	int n = 0;
 	con *c = &fdcon[s];
 
 	bufsiz = sizeof(buf);
