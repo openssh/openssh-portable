@@ -1,5 +1,5 @@
 %define ver 3.6.1p2
-%define rel 2
+%define rel 3
 
 # OpenSSH privilege separation requires a user & group ID
 %define sshd_uid    74
@@ -26,9 +26,6 @@
 # Is this build for RHL 6.x?
 %define build6x 0
 
-# Disable IPv6 (avoids DNS hangs on some glibc versions)
-%define noip6 0
-
 # Do we want kerberos5 support (1=yes 0=no)
 %define kerberos5 1
 
@@ -43,7 +40,6 @@
 # If this is RHL 6.x, the default configuration has sysconfdir in /usr/etc.
 %if %{build6x}
 %define _sysconfdir /etc
-%define noip6 1
 %endif
 
 # Options for static OpenSSL link:
@@ -53,10 +49,6 @@
 # Options for Smartcard support: (needs libsectok and openssl-engine)
 # rpm -ba|--rebuild --define "smartcard 1"
 %{?smartcard:%define scard 1}
-
-# Option to disable ipv6
-# rpm -ba|--rebuild --define "noipv6 1"
-%{?noipv6:%define noip6 1}
 
 # Is this a build for the rescue CD (without PAM, with MD5)? (1=yes 0=no)
 %define rescue 0
@@ -195,9 +187,6 @@ CFLAGS="$RPM_OPT_FLAGS -Os"; export CFLAGS
 	--with-privsep-path=%{_var}/empty/sshd \
 %if %{scard}
 	--with-smartcard \
-%endif
-%if %{noip6}
-	--with-ipv4-default \
 %endif
 %if %{rescue}
 	--without-pam --with-md5-passwords \
@@ -402,6 +391,10 @@ fi
 %endif
 
 %changelog
+* Mon Jun 2 2003 Damien Miller <djm@mindrot.org>
+- Remove noip6 option. This may be controlled at run-time in client config 
+  file using new AddressFamily directive
+
 * Mon May 12 2003 Damien Miller <djm@mindrot.org>
 - Don't install profile.d scripts when not building with GNOME/GTK askpass
   (patch from bet@rahul.net)
