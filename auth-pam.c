@@ -47,7 +47,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.115 2004/09/11 12:17:26 dtucker Exp $");
+RCSID("$Id: auth-pam.c,v 1.116 2004/09/11 12:28:02 dtucker Exp $");
 
 #ifdef USE_PAM
 #if defined(HAVE_SECURITY_PAM_APPL_H)
@@ -490,6 +490,51 @@ sshpam_null_conv(int n, struct pam_message **msg,
 
 static struct pam_conv null_conv = { sshpam_null_conv, NULL };
 
+static int
+sshpam_store_conv(int n, struct pam_message **msg,
+    struct pam_response **resp, void *data)
+{
+	struct pam_response *reply;
+	int i;
+	size_t len;
+
+	debug3("PAM: %s called with %d messages", __func__, n);
+	*resp = NULL;
+
+	if (n <= 0 || n > PAM_MAX_NUM_MSG)
+		return (PAM_CONV_ERR);
+
+	if ((reply = malloc(n * sizeof(*reply))) == NULL)
+		return (PAM_CONV_ERR);
+	memset(reply, 0, n * sizeof(*reply));
+
+	for (i = 0; i < n; ++i) {
+		switch (PAM_MSG_MEMBER(msg, i, msg_style)) {
+		case PAM_ERROR_MSG:
+		case PAM_TEXT_INFO:
+			len = strlen(PAM_MSG_MEMBER(msg, i, msg));
+			buffer_append(&loginmsg, PAM_MSG_MEMBER(msg, i, msg), len);
+			buffer_append(&loginmsg, "\n", 1 );
+			reply[i].resp_retcode = PAM_SUCCESS;
+			break;
+		default:
+			goto fail;
+		}
+	}
+	*resp = reply;
+	return (PAM_SUCCESS);
+
+ fail:
+	for(i = 0; i < n; i++) {
+		if (reply[i].resp != NULL)
+			xfree(reply[i].resp);
+	}
+	xfree(reply);
+	return (PAM_CONV_ERR);
+}
+
+static struct pam_conv store_conv = { sshpam_store_conv, NULL };
+
 void
 sshpam_cleanup(void)
 {
@@ -893,51 +938,6 @@ do_pam_chauthtok(void)
 		fatal("PAM: pam_chauthtok(): %s",
 		    pam_strerror(sshpam_handle, sshpam_err));
 }
-
-static int
-sshpam_store_conv(int n, struct pam_message **msg,
-    struct pam_response **resp, void *data)
-{
-	struct pam_response *reply;
-	int i;
-	size_t len;
-
-	debug3("PAM: %s called with %d messages", __func__, n);
-	*resp = NULL;
-
-	if (n <= 0 || n > PAM_MAX_NUM_MSG)
-		return (PAM_CONV_ERR);
-
-	if ((reply = malloc(n * sizeof(*reply))) == NULL)
-		return (PAM_CONV_ERR);
-	memset(reply, 0, n * sizeof(*reply));
-
-	for (i = 0; i < n; ++i) {
-		switch (PAM_MSG_MEMBER(msg, i, msg_style)) {
-		case PAM_ERROR_MSG:
-		case PAM_TEXT_INFO:
-			len = strlen(PAM_MSG_MEMBER(msg, i, msg));
-			buffer_append(&loginmsg, PAM_MSG_MEMBER(msg, i, msg), len);
-			buffer_append(&loginmsg, "\n", 1 );
-			reply[i].resp_retcode = PAM_SUCCESS;
-			break;
-		default:
-			goto fail;
-		}
-	}
-	*resp = reply;
-	return (PAM_SUCCESS);
-
- fail:
-	for(i = 0; i < n; i++) {
-		if (reply[i].resp != NULL)
-			xfree(reply[i].resp);
-	}
-	xfree(reply);
-	return (PAM_CONV_ERR);
-}
-
-static struct pam_conv store_conv = { sshpam_store_conv, NULL };
 
 void
 do_pam_session(void)
