@@ -480,8 +480,6 @@ do_exec_no_pty(Session *s, const char *command, struct passwd * pw)
 	if (s == NULL)
 		fatal("do_exec_no_pty: no session");
 
-	signal(SIGPIPE, SIG_DFL);
-
 	session_proctitle(s);
 
 #ifdef USE_PAM
@@ -492,6 +490,8 @@ do_exec_no_pty(Session *s, const char *command, struct passwd * pw)
 	if ((pid = fork()) == 0) {
 		/* Child.  Reinitialize the log since the pid has changed. */
 		log_init(__progname, options.log_level, options.log_facility, log_stderr);
+
+		signal(SIGPIPE, SIG_DFL);
 
 		/*
 		 * Create a new session and process group since the 4.4BSD
@@ -605,6 +605,8 @@ do_exec_pty(Session *s, const char *command, struct passwd * pw)
 	if ((pid = fork()) == 0) {
 		/* Child.  Reinitialize the log because the pid has changed. */
 		log_init(__progname, options.log_level, options.log_facility, log_stderr);
+
+		signal(SIGPIPE, SIG_DFL);
 
 		/* Close the master side of the pseudo tty. */
 		close(ptyfd);

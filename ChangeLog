@@ -1,3 +1,7 @@
+20001213
+ - (djm) Make sure we reset the SIGPIPE disposition after we fork. Report
+   from Andreas M. Kirchwitz <amk@krell.zikzak.de>
+
 20001211
  - (bal) Applied patch to include ssh-keyscan into Redhat's package, and
    patch to install ssh-keyscan manpage.  Patch by Pekka Savola
