@@ -4,6 +4,10 @@
      [ssh.1]
      remove some unneccesary macros;
      do not mark up punctuation;
+   - jmc@cvs.openbsd.org 2005/03/01 14:55:23
+     [ssh_config.5]
+     do not mark up punctuation;
+     whitespace;
 
 20050301
  - (djm) OpenBSD CVS sync:
@@ -2223,4 +2227,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3676 2005/03/02 01:02:47 djm Exp $
+$Id: ChangeLog,v 1.3677 2005/03/02 01:03:05 djm Exp $
