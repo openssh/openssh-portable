@@ -5,6 +5,7 @@
      [version.h]
      3.9
  - (djm) Crank RPM spec version numbers
+ - (djm) Release 3.9p1
 
 20040816
  - (dtucker) [acconfig.h auth-pam.c configure.ac] Set real uid to non-root
@@ -1653,4 +1654,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3516 2004/08/17 12:49:12 djm Exp $
+$Id: ChangeLog,v 1.3517 2004/08/17 12:50:40 djm Exp $
