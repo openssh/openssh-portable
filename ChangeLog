@@ -1,3 +1,9 @@
+20020606
+ - (bal) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2002/05/15 21:56:38
+     [servconf.c sshd.8 sshd_config]
+     re-enable privsep and disable setuid for post-3.2.2
+
 20020604
  - (stevesk) [channels.c] bug #164 patch from YOSHIFUJI Hideaki (changed
    setsockopt from debug to error for now).
@@ -681,4 +687,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2143 2002/06/04 20:52:19 stevesk Exp $
+$Id: ChangeLog,v 1.2144 2002/06/06 19:47:11 mouring Exp $
