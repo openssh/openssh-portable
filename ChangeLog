@@ -25,6 +25,9 @@
    - markus@cvs.openbsd.org 2002/03/25 09:21:13
      [auth-rsa.c]
      return 0 (not NULL); tomh@po.crl.go.jp
+   - markus@cvs.openbsd.org 2002/03/25 09:25:06
+     [auth-rh-rsa.c]
+     rm bogus comment
 
 20020324
  - (stevesk) [session.c] disable LOGIN_NEEDS_TERM until we are sure
@@ -8039,4 +8042,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1985 2002/03/26 02:59:31 mouring Exp $
+$Id: ChangeLog,v 1.1986 2002/03/26 03:08:47 mouring Exp $

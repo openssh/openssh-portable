@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rh-rsa.c,v 1.33 2002/03/19 10:49:35 markus Exp $");
+RCSID("$OpenBSD: auth-rh-rsa.c,v 1.34 2002/03/25 09:25:06 markus Exp $");
 
 #include "packet.h"
 #include "uidswap.h"
@@ -29,11 +29,6 @@ RCSID("$OpenBSD: auth-rh-rsa.c,v 1.33 2002/03/19 10:49:35 markus Exp $");
 
 /* import */
 extern ServerOptions options;
-
-/*
- * Tries to authenticate the user using the .rhosts file and the host using
- * its host key.  Returns true if authentication succeeds.
- */
 
 int
 auth_rhosts_rsa_key_allowed(struct passwd *pw, char *cuser, char *chost,
