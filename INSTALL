@@ -9,8 +9,7 @@ http://www.freesoftware.com/pub/infozip/zlib/
 OpenSSL 0.9.5a or greater:
 http://www.openssl.org/
 
-RPMs of OpenSSL are available in the support/ directory of the OpenSSH 
-mirror site. OpenSSH requires OpenSSL version 0.9.5 or later.
+RPMs of OpenSSL are available at http://violet.ibs.com.au/openssh/files/support
 
 OpenSSH can utilise Pluggable Authentication Modules (PAM) if your system
 supports it. PAM is standard on Redhat and Debian Linux and on Solaris.

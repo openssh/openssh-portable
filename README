@@ -34,8 +34,7 @@ all logins, not just when using password authentication.
 OpenSSH depends on Zlib[2], OpenSSL[3] and optionally PAM[4].
 
 There is now several mailing lists for this port of OpenSSH. Please
-refer to http://violet.ibs.com.au/openssh/list.html for details on how
-to join.
+refer to http://www.openssh.com/list.html for details on how to join.
 
 Please send bug reports and patches to the mailing list
 openssh-unix-dev@mindrot.org. The list is currently open to posting by
