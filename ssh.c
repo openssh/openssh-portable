@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.98 2001/02/22 21:59:44 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.99 2001/03/01 02:29:04 deraadt Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -161,8 +161,8 @@ usage(void)
 #endif				/* AFS */
 	fprintf(stderr, "  -X          Enable X11 connection forwarding.\n");
 	fprintf(stderr, "  -x          Disable X11 connection forwarding.\n");
-	fprintf(stderr, "  -i file     Identity for public key authentication\n");
-	fprintf(stderr, "              (default: ~/.ssh/identity).\n");
+	fprintf(stderr, "  -i file     Identity for public key authentication "
+	    "(default: ~/.ssh/identity)\n");
 	fprintf(stderr, "  -t          Tty; allocate a tty even if command is given.\n");
 	fprintf(stderr, "  -T          Do not allocate a tty.\n");
 	fprintf(stderr, "  -v          Verbose; display verbose debugging messages.\n");
@@ -174,8 +174,7 @@ usage(void)
 	fprintf(stderr, "  -e char     Set escape character; ``none'' = disable (default: ~).\n");
 
 	fprintf(stderr, "  -c cipher   Select encryption algorithm: "
-			"``3des'', "
-			"``blowfish''\n");
+	    "``3des'', ``blowfish''\n");
 	fprintf(stderr, "  -p port     Connect to this port.  Server must be on the same port.\n");
 	fprintf(stderr, "  -L listen-port:host:port   Forward local port to remote address\n");
 	fprintf(stderr, "  -R listen-port:host:port   Forward remote port to local address\n");
