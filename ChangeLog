@@ -16,6 +16,9 @@
    - markus@cvs.openbsd.org 2003/09/23 20:41:11
      [channels.c channels.h clientloop.c]
      move client only agent code to clientloop.c
+   - markus@cvs.openbsd.org 2003/09/26 08:19:29
+     [sshd.c]
+     no need to set the listen sockets to non-block; ok deraadt@
 
 20030930
  - (bal) Fix issues in openbsd-compat/realpath.c
@@ -1251,4 +1254,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3047 2003/10/02 06:17:00 dtucker Exp $
+$Id: ChangeLog,v 1.3048 2003/10/02 06:18:22 dtucker Exp $
