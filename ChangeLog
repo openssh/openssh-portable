@@ -1,3 +1,6 @@
+20020626
+ - (stevesk) [monitor.c] remove duplicate proto15 dispatch entry for PAM
+
 20020625
  - (stevesk) [INSTALL acconfig.h configure.ac defines.h] remove --with-rsh
  - (stevesk) [README.privsep] minor updates
@@ -1096,4 +1099,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2272 2002/06/25 22:35:15 tim Exp $
+$Id: ChangeLog,v 1.2273 2002/06/25 22:43:19 stevesk Exp $

@@ -188,9 +188,6 @@ struct mon_table mon_dispatch_proto15[] = {
     {MONITOR_REQ_KEYALLOWED, MON_ISAUTH, mm_answer_keyallowed},
     {MONITOR_REQ_RSACHALLENGE, MON_ONCE, mm_answer_rsa_challenge},
     {MONITOR_REQ_RSARESPONSE, MON_ONCE|MON_AUTHDECIDE, mm_answer_rsa_response},
-#ifdef USE_PAM
-    {MONITOR_REQ_PAM_START, MON_ONCE, mm_answer_pam_start},
-#endif
 #ifdef BSD_AUTH
     {MONITOR_REQ_BSDAUTHQUERY, MON_ISAUTH, mm_answer_bsdauthquery},
     {MONITOR_REQ_BSDAUTHRESPOND, MON_AUTH,mm_answer_bsdauthrespond},
