@@ -6,6 +6,8 @@
      the ssh-rand-helper program. You can force the use of ssh-rand-helper
      using the --with-rand-helper configure argument
    - Simplify and clean up ssh-rand-helper configuration
+   - Add OpenSSL sanity check: verify that header version matches version
+     reported by library
  - (djm) Fix some bugs I introduced into ssh-rand-helper yesterday
 
 20020121
@@ -7154,4 +7156,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1723 2002/01/22 10:58:27 djm Exp $
+$Id: ChangeLog,v 1.1724 2002/01/22 11:16:03 djm Exp $
