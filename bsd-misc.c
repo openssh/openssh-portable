@@ -4,6 +4,7 @@
 **
 ** Damien Miller <djm@ibs.com.au>
 ** 
+** Copyright 1999 Damien Miller
 ** Copyright 1999 Internet Business Solutions
 **
 ** Permission is hereby granted, free of charge, to any person

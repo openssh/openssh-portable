@@ -2,21 +2,20 @@ This is the port of OpenBSD's excellent OpenSSH to Linux and other
 Unices.
 
 OpenSSH is based on the last free version of Tatu Ylonen's SSH with
-all patent-encumbered algorithms removed, all known security bugs
-fixed, new features reintroduced and many other clean-ups. More
-information about SSH itself can be found in the file README.Ylonen.
-OpenSSH has been created by Aaron Campbell, Bob Beck, Markus Friedl,
-Niels Provos, Theo de Raadt, and Dug Song. It has a homepage at
-http://www.openssh.com/
+all patent-encumbered algorithms removed (to external libraries), all
+known security bugs fixed, new features reintroduced and many other
+clean-ups. More information about SSH itself can be found in the file
+README.Ylonen. OpenSSH has been created by Aaron Campbell, Bob Beck,
+Markus Friedl, Niels Provos, Theo de Raadt, and Dug Song. It has a
+homepage at http://www.openssh.com/
 
 This port consists of the re-introduction of autoconf support, PAM
-support (for Linux and Solaris), EGD[1] support, and replacements
-for OpenBSD library functions that are (regrettably) absent from
-other unices. This port has been best tested on Linux, Solaris and
-HPUX, though support for AIX and Irix is underway. This version 
-actively tracks changes in the OpenBSD CVS repository. This port
-also has optional support for using the Dante SOCKS library[6],
-version 1.1.1pre1 or later.
+support (for Linux and Solaris), EGD[1] support, SOCKS support (using
+the Dante [6] libraries and replacements for OpenBSD library functions
+that are (regrettably) absent from other unices. This port has been
+best tested on Linux, Solaris, HPUX, NetBSD and Irix. Support for AIX,
+SCO, NeXT and other Unices is underway. This version actively tracks
+changes in the OpenBSD CVS repository.
 
 The PAM support is now more functional than the popular packages of
 commercial ssh-1.2.x. It checks "account" and "session" modules for
@@ -33,38 +32,30 @@ Dante[6]. To build the GNOME[5] pass-phrase requester
 If you are building OpenSSH on a Unix which lacks a kernel random
 number pool (/dev/random), you will need to install EGD[1]. 
 
-There is now a mailing list for this port of OpenSSH. To
-subscribe, send a message consisting of the word 'SUBSCRIBE' to
-openssh-unix-dev-request@mindrot.org. This mailing list is intended
-for developers who wish to improve on this port or extend it to other
-Unices.
+There is now several mailing lists for this port of OpenSSH. Please
+refer to http://violet.ibs.com.au/openssh/list.html for details on how
+to join.
 
-Please send bug reports to the mailing list, or to myself 
-(djm@ibs.com.au).
+Please send bug reports and patches to the mailing list
+openssh-unix-dev@mindrot.org. The list is currently open to posting by
+unsubscribed users.
 
 Please refer to the INSTALL document for information on how to install
-OpenSSH on your system.
-
-This patch is developed primarily on Linux, but I am including patches
-which improve compatability with other unices. The beginnings of
-Solaris support have already been included.
+OpenSSH on your system. The UPGRADING document details differences 
+between this port of OpenSSH and F-Secure SSH 1.x.
 
 Damien Miller <djm@ibs.com.au>
 Internet Business Solutions
 
-
 Miscellania - 
 
 This version of SSH is based upon code retrieved from the OpenBSD CVS
-repository on 1999-11-09 which in turn was based on the last free 
+repository which in turn was based on the last free 
 version of SSH released by Tatu Ylonen.
 
-Code in bsd-misc.[ch] and gnome-ssh-askpass.c is Copyright 1999 
-Internet Business Solutions and is released under a X11-style 
+Code in bsd-misc.[ch] and gnome-ssh-askpass.c is Copyright 1999 Damien
+Miller & Internet Business Solutions and is released under a X11-style
 license (see source files for details).
-
-(A)RC4 code in rc4.[ch] is Copyright 1999 Damien Miller. It too is
-under a X11-style license (see source file for details).
 
 References -
 
