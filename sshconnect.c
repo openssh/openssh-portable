@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: sshconnect.c,v 1.18 1999/12/13 23:47:16 damien Exp $");
+RCSID("$Id: sshconnect.c,v 1.19 1999/12/21 09:57:20 damien Exp $");
 
 #ifdef HAVE_OPENSSL
 #include <openssl/bn.h>
@@ -1246,7 +1246,7 @@ check_host_key(char *host,
 		}
 		/* The host key has changed. */
 		error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-		error("@       WARNING: HOST IDENTIFICATION HAS CHANGED!         @");
+		error("@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @");
 		error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 		error("IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!");
 		error("Someone could be eavesdropping on you right now (man-in-the-middle attack)!");

@@ -5,6 +5,9 @@
    - Ability to disable shadow passwords at configure time
    - Ability to disable lastlog support at configure time
    - Support for IP address in $DISPLAY
+ - OpenBSD CVS update:
+   - [sshconnect.c]
+   say "REMOTE HOST IDENTIFICATION HAS CHANGED"
 
 19991218
  - Redhat init script patch from Chun-Chung Chen 
