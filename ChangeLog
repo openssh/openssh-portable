@@ -1,3 +1,6 @@
+20010407
+ - (bal) CVS ID Resync of version.h
+ 
 20010406
  - (stevesk) logintest.c: fix for systems without __progname
  - (stevesk) Makefile.in: log.o is in libssh.a
@@ -4908,4 +4911,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1074 2001/04/06 01:58:37 stevesk Exp $
+$Id: ChangeLog,v 1.1075 2001/04/07 01:08:46 mouring Exp $
