@@ -39,6 +39,9 @@
    - markus@cvs.openbsd.org 2001/08/28 09:51:26
      [readconf.c]
      don't set DynamicForward unless Host matches
+   - markus@cvs.openbsd.org 2001/08/28 15:39:48
+     [ssh.1 ssh.c]
+     allow: ssh -F configfile host
 
 20010815
  - (bal) Fixed stray code in readconf.c that went in by mistake.
@@ -6362,4 +6365,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1496 2001/09/12 17:35:27 mouring Exp $
+$Id: ChangeLog,v 1.1497 2001/09/12 17:48:04 mouring Exp $

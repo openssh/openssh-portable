@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.138 2001/08/11 22:51:27 jakob Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.139 2001/08/28 15:39:48 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -118,6 +118,9 @@ int fork_after_authentication_flag = 0;
  */
 Options options;
 
+/* optional user configfile */
+char *config = NULL;
+
 /*
  * Name of the host we are connecting to.  This is the name given on the
  * command line, or the HostName specified for the user-supplied name in a
@@ -160,6 +163,8 @@ usage(void)
 	fprintf(stderr, "Options:\n");
 	fprintf(stderr, "  -l user     Log in using this user name.\n");
 	fprintf(stderr, "  -n          Redirect input from " _PATH_DEVNULL ".\n");
+	fprintf(stderr, "  -F config   Config file (default: ~/%s).\n",
+	     _PATH_SSH_USER_CONFFILE);
 	fprintf(stderr, "  -A          Enable authentication agent forwarding.\n");
 	fprintf(stderr, "  -a          Disable authentication agent forwarding (default).\n");
 #ifdef AFS
@@ -315,7 +320,7 @@ main(int ac, char **av)
 
 again:
 	while ((opt = getopt(ac, av,
-	    "1246ab:c:e:fgi:kl:m:no:p:qstvxACD:I:L:NPR:TVX")) != -1) {
+	    "1246ab:c:e:fgi:kl:m:no:p:qstvxACD:F:I:L:NPR:TVX")) != -1) {
 		switch (opt) {
 		case '1':
 			options.protocol = SSH_PROTO_1;
@@ -525,6 +530,9 @@ again:
 		case 'b':
 			options.bind_address = optarg;
 			break;
+		case 'F':
+			config = optarg;
+			break;
 		default:
 			usage();
 		}
@@ -609,12 +617,20 @@ again:
 	log_init(av[0], options.log_level == -1 ? SYSLOG_LEVEL_INFO : options.log_level,
 	    SYSLOG_FACILITY_USER, 1);
 
-	/* Read per-user configuration file. */
-	snprintf(buf, sizeof buf, "%.100s/%.100s", pw->pw_dir, _PATH_SSH_USER_CONFFILE);
-	read_config_file(buf, host, &options);
+	/*
+	 * Read per-user configuration file.  Ignore the system wide config
+	 * file if the user specifies a config file on the command line.
+	 */
+	if (config != NULL) {
+		read_config_file(config, host, &options);
+	} else  {
+		snprintf(buf, sizeof buf, "%.100s/%.100s", pw->pw_dir,
+		    _PATH_SSH_USER_CONFFILE);
 
-	/* Read systemwide configuration file. */
-	read_config_file(_PATH_HOST_CONFIG_FILE, host, &options);
+		/* Read systemwide configuration file. */
+		read_config_file(_PATH_HOST_CONFIG_FILE, host, &options);
+		read_config_file(buf, host, &options);
+	}
 
 	/* Fill configuration defaults. */
 	fill_default_options(&options);
