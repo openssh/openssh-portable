@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth.c,v 1.33 2002/02/28 19:36:28 stevesk Exp $");
+RCSID("$OpenBSD: auth.c,v 1.34 2002/02/28 20:56:00 stevesk Exp $");
 
 #ifdef HAVE_LOGIN_H
 #include <login.h>
@@ -104,17 +104,26 @@ allowed_user(struct passwd * pw)
 	shell = (pw->pw_shell[0] == '\0') ? _PATH_BSHELL : pw->pw_shell;
 
 	/* deny if shell does not exists or is not executable */
-	if (stat(shell, &st) != 0)
+	if (stat(shell, &st) != 0) {
+		log("User %.100s not allowed because shell %.100s does not exist",
+		    pw->pw_name, shell);
 		return 0;
-	if (!((st.st_mode & S_IFREG) && (st.st_mode & (S_IXOTH|S_IXUSR|S_IXGRP))))
+	}
+	if (!((st.st_mode & S_IFREG) && (st.st_mode & (S_IXOTH|S_IXUSR|S_IXGRP)))) {
+		log("User %.100s not allowed because shell %.100s is not executable",
+		    pw->pw_name, shell);
 		return 0;
+	}
 
 	/* Return false if user is listed in DenyUsers */
 	if (options.num_deny_users > 0) {
 		for (i = 0; i < options.num_deny_users; i++)
 			if (match_user(pw->pw_name, options.verify_reverse_mapping,
-			    options.deny_users[i]))
+			    options.deny_users[i])) {
+ 				log("User %.100s not allowed because listed in DenyUsers",
+ 				    pw->pw_name);
 				return 0;
+			}
 	}
 	/* Return false if AllowUsers isn't empty and user isn't listed there */
 	if (options.num_allow_users > 0) {
@@ -123,19 +132,27 @@ allowed_user(struct passwd * pw)
 			    options.allow_users[i]))
 				break;
 		/* i < options.num_allow_users iff we break for loop */
-		if (i >= options.num_allow_users)
+		if (i >= options.num_allow_users) {
+			log("User %.100s not allowed because not listed in AllowUsers",
+			    pw->pw_name);
 			return 0;
+		}
 	}
 	if (options.num_deny_groups > 0 || options.num_allow_groups > 0) {
 		/* Get the user's group access list (primary and supplementary) */
-		if (ga_init(pw->pw_name, pw->pw_gid) == 0)
+		if (ga_init(pw->pw_name, pw->pw_gid) == 0) {
+			log("User %.100s not allowed because not in any group",
+			    pw->pw_name);
 			return 0;
+		}
 
 		/* Return false if one of user's groups is listed in DenyGroups */
 		if (options.num_deny_groups > 0)
 			if (ga_match(options.deny_groups,
 			    options.num_deny_groups)) {
 				ga_free();
+				log("User %.100s not allowed because a group is listed in DenyGroups",
+				    pw->pw_name);
 				return 0;
 			}
 		/*
@@ -146,6 +163,8 @@ allowed_user(struct passwd * pw)
 			if (!ga_match(options.allow_groups,
 			    options.num_allow_groups)) {
 				ga_free();
+				log("User %.100s not allowed because none of user's groups are listed in AllowGroups",
+				    pw->pw_name);
 				return 0;
 			}
 		ga_free();
