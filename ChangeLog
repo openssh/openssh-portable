@@ -1,6 +1,7 @@
 20000408
  - Avoid some compiler warnings in fake-get*.c
  - Add IPTOS macros for systems which lack them
+ - Only set define entropy collection macros if they are found
 
 20000406
  - OpenBSD CVS update:
