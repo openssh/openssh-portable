@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.53 2001/04/18 22:03:44 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.54 2001/04/18 22:48:26 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -82,7 +82,7 @@ Authmethod	*authmethod_lookup(const char *name);
 char	*authmethods_get(void);
 int	user_key_allowed(struct passwd *pw, Key *key);
 int
-hostbased_key_allowed(struct passwd *pw, const char *cuser, const char *chost,
+hostbased_key_allowed(struct passwd *pw, const char *cuser, char *chost,
     Key *key);
 
 /* auth */
@@ -792,7 +792,7 @@ user_key_allowed(struct passwd *pw, Key *key)
 
 /* return 1 if given hostkey is allowed */
 int
-hostbased_key_allowed(struct passwd *pw, const char *cuser, const char *chost,
+hostbased_key_allowed(struct passwd *pw, const char *cuser, char *chost,
     Key *key)
 {
 	Key *found;
