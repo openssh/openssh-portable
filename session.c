@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.113 2001/12/19 15:43:11 stevesk Exp $");
+RCSID("$OpenBSD: session.c,v 1.114 2001/12/20 16:37:29 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -2066,7 +2066,7 @@ session_setup_x11fwd(Session *s)
 		return 0;
 	}
 	s->display_number = x11_create_display_inet(options.x11_display_offset,
-	    options.gateway_ports);
+	    options.gateway_ports, s->single_connection);
 	if (s->display_number == -1) {
 		debug("x11_create_display_inet failed.");
 		return 0;

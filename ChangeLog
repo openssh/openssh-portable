@@ -47,6 +47,10 @@
    - stevesk@cvs.openbsd.org 2001/12/19 17:16:13
      [authfile.c bufaux.c bufaux.h buffer.c buffer.h packet.c packet.h ssh.c]
      change the buffer/packet interface to use void* vs. char*; ok markus@
+   - markus@cvs.openbsd.org 2001/12/20 16:37:29
+     [channels.c channels.h session.c]
+     setup x11 listen socket for just one connect if the client requests so.
+     (v2 only, but the openssh client does not support this feature).
 
 20011219
  - (stevesk) OpenBSD CVS sync X11 localhost display
@@ -7075,4 +7079,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1703 2001/12/21 03:56:54 djm Exp $
+$Id: ChangeLog,v 1.1704 2001/12/21 03:58:35 djm Exp $

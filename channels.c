@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.148 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: channels.c,v 1.149 2001/12/20 16:37:29 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -263,6 +263,7 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 	c->cb_arg = NULL;
 	c->cb_event = 0;
 	c->force_drain = 0;
+	c->single_connection = 0;
 	c->detach_user = NULL;
 	c->input_filter = NULL;
 	debug("channel %d: new [%s]", found, remote_name);
@@ -1003,6 +1004,11 @@ channel_post_x11_listener(Channel *c, fd_set * readset, fd_set * writeset)
 		debug("X11 connection requested.");
 		addrlen = sizeof(addr);
 		newsock = accept(c->sock, &addr, &addrlen);
+		if (c->single_connection) {
+			debug("single_connection: closing X11 listener.");
+			channel_close_fd(&c->sock);
+			chan_mark_dead(c);
+		}
 		if (newsock < 0) {
 			error("accept: %.100s", strerror(errno));
 			return;
@@ -1029,8 +1035,8 @@ channel_post_x11_listener(Channel *c, fd_set * readset, fd_set * writeset)
 			packet_start(SSH2_MSG_CHANNEL_OPEN);
 			packet_put_cstring("x11");
 			packet_put_int(nc->self);
-			packet_put_int(c->local_window_max);
-			packet_put_int(c->local_maxpacket);
+			packet_put_int(nc->local_window_max);
+			packet_put_int(nc->local_maxpacket);
 			/* originator ipaddr and port */
 			packet_put_cstring(remote_ipaddr);
 			if (datafellows & SSH_BUG_X11FWD) {
@@ -2405,8 +2411,10 @@ channel_connect_to(const char *host, u_short port)
  * an error occurs.
  */
 int
-x11_create_display_inet(int x11_display_offset, int gateway_ports)
+x11_create_display_inet(int x11_display_offset, int gateway_ports,
+    int single_connection)
 {
+	Channel *nc = NULL;
 	int display_number, sock;
 	u_short port;
 	struct addrinfo hints, *ai, *aitop;
@@ -2482,10 +2490,12 @@ x11_create_display_inet(int x11_display_offset, int gateway_ports)
 	/* Allocate a channel for each socket. */
 	for (n = 0; n < num_socks; n++) {
 		sock = socks[n];
-		(void) channel_new("x11 listener",
+		nc = channel_new("x11 listener",
 		    SSH_CHANNEL_X11_LISTENER, sock, sock, -1,
 		    CHAN_X11_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT,
 		    0, xstrdup("X11 inet listener"), 1);
+		if (nc != NULL)
+			nc->single_connection = single_connection;
 	}
 
 	/* Return the display number for the DISPLAY environment variable. */
