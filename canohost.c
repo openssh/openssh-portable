@@ -159,6 +159,7 @@ get_remote_hostname(int socket, int use_dns)
 static void
 check_ip_options(int socket, char *ipaddr)
 {
+#ifdef IP_OPTIONS
 	u_char options[200];
 	char text[sizeof(options) * 3 + 1];
 	socklen_t option_size;
@@ -181,6 +182,7 @@ check_ip_options(int socket, char *ipaddr)
 		packet_disconnect("Connection from %.100s with IP options:%.800s",
 		    ipaddr, text);
 	}
+#endif /* IP_OPTIONS */
 }
 
 /*
