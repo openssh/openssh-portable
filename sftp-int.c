@@ -25,7 +25,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.57 2003/03/05 22:33:43 markus Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.58 2003/04/14 21:31:27 mouring Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -567,6 +567,7 @@ out:
 		xfree(abs_dst);
 	if (tmp_dst)
 		xfree(tmp_dst);
+	globfree(&g);
 	return(err);
 }
 
