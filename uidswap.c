@@ -30,10 +30,8 @@ RCSID("$OpenBSD: uidswap.c,v 1.12 2000/12/29 10:48:56 markus Exp $");
 /* Lets assume that posix saved ids also work with seteuid, even though that
    is not part of the posix specification. */
 #define SAVED_IDS_WORK_WITH_SETEUID
-
 /* Saved effective uid. */
 static uid_t saved_euid = 0;
-
 #endif /* _POSIX_SAVED_IDS */
 
 /*
