@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: servconf.h,v 1.48 2001/08/16 19:18:34 jakob Exp $"); */
+/* RCSID("$OpenBSD: servconf.h,v 1.49 2001/08/17 18:59:47 stevesk Exp $"); */
 
 #ifndef SERVCONF_H
 #define SERVCONF_H
@@ -121,9 +121,9 @@ typedef struct {
 					 * see if it's still there 
 					 */
 	int	client_alive_count_max;	/*
-					 *If the client is unresponsive
-					 * for this many intervals, above
-					 * diconnect the session 
+					 * If the client is unresponsive
+					 * for this many intervals above,
+					 * disconnect the session 
 					 */
 
 	char   *authorized_keys_file;	/* File containing public keys */
