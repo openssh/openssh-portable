@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: dh.c,v 1.8 2001/03/05 17:58:22 stevesk Exp $");
+RCSID("$OpenBSD: dh.c,v 1.9 2001/03/27 17:46:49 provos Exp $");
 
 #include "xmalloc.h"
 
@@ -69,6 +69,8 @@ parse_prime(int linenum, char *line, struct dhgroup *dhg)
 	if (cp == NULL || *strsize == '\0' ||
 	    (dhg->size = atoi(strsize)) == 0)
 		goto fail;
+	/* The whole group is one bit larger */
+	dhg->size++;
 	gen = strsep(&cp, " "); /* gen */
 	if (cp == NULL || *gen == '\0')
 		goto fail;
@@ -95,7 +97,7 @@ parse_prime(int linenum, char *line, struct dhgroup *dhg)
 }
 
 DH *
-choose_dh(int minbits)
+choose_dh(int min, int wantbits, int max)
 {
 	FILE *f;
 	char line[1024];
@@ -118,8 +120,11 @@ choose_dh(int minbits)
 		BN_free(dhg.g);
 		BN_free(dhg.p);
 
-		if ((dhg.size > minbits && dhg.size < best) ||
-		    (dhg.size > best && best < minbits)) {
+		if (dhg.size > max || dhg.size < min)
+			continue;
+
+		if ((dhg.size > wantbits && dhg.size < best) ||
+		    (dhg.size > best && best < wantbits)) {
 			best = dhg.size;
 			bestcount = 0;
 		}
@@ -129,8 +134,8 @@ choose_dh(int minbits)
 	fclose (f);
 
 	if (bestcount == 0) {
-		log("WARNING: no primes in %s, using old prime", _PATH_DH_PRIMES);
-		return (dh_new_group1());
+		log("WARNING: no suitable primes in %s", _PATH_DH_PRIMES);
+		return (NULL);
 	}
 
 	f = fopen(_PATH_DH_PRIMES, "r");
@@ -142,6 +147,8 @@ choose_dh(int minbits)
 	which = arc4random() % bestcount;
 	while (fgets(line, sizeof(line), f)) {
 		if (!parse_prime(linenum, line, &dhg))
+			continue;
+		if (dhg.size > max || dhg.size < min)
 			continue;
 		if (dhg.size != best)
 			continue;

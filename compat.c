@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: compat.c,v 1.41 2001/03/27 10:57:00 markus Exp $");
+RCSID("$OpenBSD: compat.c,v 1.42 2001/03/27 17:46:49 provos Exp $");
 
 #ifdef HAVE_LIBPCRE
 #  include <pcreposix.h>
@@ -68,10 +68,14 @@ compat_datafellows(const char *version)
 		int	bugs;
 	} check[] = {
 		{ "^OpenSSH[-_]2\\.[012]",
-					SSH_OLD_SESSIONID|SSH_BUG_BANNER },
-		{ "^OpenSSH_2\\.3\\.0", SSH_BUG_BANNER|SSH_BUG_BIGENDIANAES },
+					SSH_OLD_SESSIONID|SSH_BUG_BANNER|
+					SSH_OLD_DHGEX },
+		{ "^OpenSSH_2\\.3\\.0", SSH_BUG_BANNER|SSH_BUG_BIGENDIANAES|
+					SSH_OLD_DHGEX},
 		{ "^OpenSSH_2\\.5\\.[01]p1",
-					SSH_BUG_BIGENDIANAES },
+					SSH_BUG_BIGENDIANAES|SSH_OLD_DHGEX },
+		{ "^OpenSSH_2\\.5\\.[012]",
+					SSH_OLD_DHGEX },
 		{ "^OpenSSH",		0 },
 		{ "MindTerm",		0 },
 		{ "^2\\.1\\.0",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC|

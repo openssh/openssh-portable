@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.56 2001/03/26 08:07:09 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.57 2001/03/27 17:46:49 provos Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -46,6 +46,7 @@ RCSID("$OpenBSD: sshconnect2.c,v 1.56 2001/03/26 08:07:09 markus Exp $");
 #include "sshconnect.h"
 #include "authfile.h"
 #include "cli.h"
+#include "dh.h"
 #include "dispatch.h"
 #include "authfd.h"
 #include "log.h"
@@ -309,7 +310,7 @@ ssh_dhgex_client(Kex *kex, char *host, struct sockaddr *hostaddr,
 	int plen, dlen;
 	u_int klen, kout;
 	char *signature = NULL;
-	u_int slen, nbits;
+	u_int slen, nbits, min, max;
 	char *server_host_key_blob = NULL;
 	Key *server_host_key;
 	u_int sbloblen;
@@ -322,14 +323,31 @@ ssh_dhgex_client(Kex *kex, char *host, struct sockaddr *hostaddr,
 
 	nbits = dh_estimate(kex->we_need * 8);
 
-	debug("Sending SSH2_MSG_KEX_DH_GEX_REQUEST.");
-	packet_start(SSH2_MSG_KEX_DH_GEX_REQUEST);
-	packet_put_int(nbits);
+	if (datafellows & SSH_OLD_DHGEX) {
+		debug("Sending SSH2_MSG_KEX_DH_GEX_REQUEST_OLD.");
+
+		/* Old GEX request */
+		packet_start(SSH2_MSG_KEX_DH_GEX_REQUEST_OLD);
+		packet_put_int(nbits);
+		min = DH_GRP_MIN;
+		max = DH_GRP_MAX;
+	} else {
+		debug("Sending SSH2_MSG_KEX_DH_GEX_REQUEST.");
+
+		/* New GEX request */
+		min = DH_GRP_MIN;
+		max = MIN(DH_GRP_MAX, nbits * 1.25);
+
+		packet_start(SSH2_MSG_KEX_DH_GEX_REQUEST);
+		packet_put_int(min);
+		packet_put_int(nbits);
+		packet_put_int(max);
+	}
 	packet_send();
 	packet_write_wait();
 
 #ifdef DEBUG_KEXDH
-	fprintf(stderr, "\nnbits = %d", nbits);
+	fprintf(stderr, "\nmin = %d, nbits = %d, max = %d", min, nbits, max);
 #endif
 
 	debug("Wait SSH2_MSG_KEX_DH_GEX_GROUP.");
@@ -344,6 +362,11 @@ ssh_dhgex_client(Kex *kex, char *host, struct sockaddr *hostaddr,
 	if ((g = BN_new()) == NULL)
 		fatal("BN_new");
 	packet_get_bignum2(g, &dlen);
+
+	if (BN_num_bits(p) < min || BN_num_bits(p) > max)
+		fatal("DH_GEX group out of range: %d !< %d !< %d",
+		    min, BN_num_bits(p), max);
+
 	dh = dh_new_group(g, p);
 
 	dh_gen_key(dh, kex->we_need * 8);

@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.180 2001/03/27 10:34:08 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.181 2001/03/27 17:46:49 provos Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1614,7 +1614,7 @@ ssh_dhgex_server(Kex *kex, Buffer *client_kexinit, Buffer *server_kexinit)
 	int i;
 #endif
 	int payload_len, dlen;
-	int slen, nbits;
+	int slen, nbits, type, min, max;
 	u_char *signature = NULL;
 	u_char *server_host_key_blob = NULL;
 	u_int sbloblen;
@@ -1632,9 +1632,33 @@ ssh_dhgex_server(Kex *kex, Buffer *client_kexinit, Buffer *server_kexinit)
 
 /* KEXDHGEX */
 	debug("Wait SSH2_MSG_KEX_DH_GEX_REQUEST.");
-	packet_read_expect(&payload_len, SSH2_MSG_KEX_DH_GEX_REQUEST);
-	nbits = packet_get_int();
-	dh = choose_dh(nbits);
+	type = packet_read(&payload_len);
+	if (type != SSH2_MSG_KEX_DH_GEX_REQUEST_OLD &&
+	    type != SSH2_MSG_KEX_DH_GEX_REQUEST)
+		packet_disconnect("Protocol error: expected type %d or %d, got %d",
+		    SSH2_MSG_KEX_DH_GEX_REQUEST_OLD,
+		    SSH2_MSG_KEX_DH_GEX_REQUEST,
+		    type);
+	if (type == SSH2_MSG_KEX_DH_GEX_REQUEST_OLD) {
+		nbits = packet_get_int();
+		min = DH_GRP_MIN;
+		max = DH_GRP_MAX;
+	} else {
+		min = packet_get_int();
+		nbits = packet_get_int();
+		max = packet_get_int();
+
+		min = MAX(DH_GRP_MIN, min);
+		max = MIN(DH_GRP_MAX, max);
+	}
+
+	if (max < min || nbits < min || max < nbits)
+		fatal("DH_GEX_REQUEST, bad parameters: %d !< %d !< %d",
+		    min, nbits, max);
+
+	dh = choose_dh(min, nbits, max);
+	if (dh == NULL)
+		packet_disconnect("Protocol error: no matching DH grp found");
 
 	debug("Sending SSH2_MSG_KEX_DH_GEX_GROUP.");
 	packet_start(SSH2_MSG_KEX_DH_GEX_GROUP);
