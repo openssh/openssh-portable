@@ -82,6 +82,11 @@ log_init(char *av0, LogLevel level, SyslogFacility facility, int on_stderr)
 	case SYSLOG_FACILITY_AUTH:
 		log_facility = LOG_AUTH;
 		break;
+#ifdef LOG_AUTHPRIV
+	case SYSLOG_FACILITY_AUTHPRIV:
+		log_facility = LOG_AUTHPRIV;
+		break;
+#endif
 	case SYSLOG_FACILITY_LOCAL0:
 		log_facility = LOG_LOCAL0;
 		break;

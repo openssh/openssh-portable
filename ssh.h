@@ -20,6 +20,7 @@
 #include <netinet/in.h> /* For struct sockaddr_in */
 #include <pwd.h> /* For struct pw */
 #include <stdarg.h> /* For va_list */
+#include <syslog.h> /* For LOG_AUTH and friends */
 #include <sys/socket.h> /* For struct sockaddr_storage */
 #include "fake-socket.h" /* For struct sockaddr_storage */
 #ifdef HAVE_SYS_SELECT_H
@@ -427,6 +428,9 @@ typedef enum {
 	SYSLOG_FACILITY_DAEMON,
 	SYSLOG_FACILITY_USER,
 	SYSLOG_FACILITY_AUTH,
+#ifdef LOG_AUTHPRIV
+	SYSLOG_FACILITY_AUTHPRIV,
+#endif
 	SYSLOG_FACILITY_LOCAL0,
 	SYSLOG_FACILITY_LOCAL1,
 	SYSLOG_FACILITY_LOCAL2,

@@ -22,6 +22,7 @@
  - (djm) Patch from Pekka Savola <Pekka.Savola@netcore.fi> to include a few
    more manpage paths in fixpaths calls
  - (djm) Also add xauth path at Pekka's suggestion.
+ - (djm) Add Redhat RPM patch for AUTHPRIV SyslogFacility
 
 20001125
  - (djm) Give up privs when reading seed file

@@ -23,7 +23,7 @@ PrintMotd yes
 KeepAlive yes
 
 # Logging
-SyslogFacility AUTH
+SyslogFacility AUTHPRIV
 LogLevel INFO
 #obsoletes QuietMode and FascistLogging
 
