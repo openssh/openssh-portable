@@ -203,12 +203,12 @@ install -m644 contrib/redhat/sshd.pam $RPM_BUILD_ROOT/etc/pam.d/sshd
 install -m755 contrib/redhat/sshd.init $RPM_BUILD_ROOT/etc/rc.d/init.d/sshd
 
 %if ! %{no_x11_askpass}
-install -s x11-ssh-askpass-%{aversion}/x11-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/openssh/x11-ssh-askpass
-ln -s /usr/libexec/openssh/x11-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/openssh/ssh-askpass
+install -s x11-ssh-askpass-%{aversion}/x11-ssh-askpass $RPM_BUILD_ROOT%{_libexecdir}/openssh/x11-ssh-askpass
+ln -s /usr/libexec/openssh/x11-ssh-askpass $RPM_BUILD_ROOT%{_libexecdir}/openssh/ssh-askpass
 %endif
 
 %if ! %{no_gnome_askpass}
-install -s contrib/gnome-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/openssh/gnome-ssh-askpass
+install -s contrib/gnome-ssh-askpass $RPM_BUILD_ROOT%{_libexecdir}/openssh/gnome-ssh-askpass
 %endif
 
 perl -pi -e "s|$RPM_BUILD_ROOT||g" $RPM_BUILD_ROOT%{_mandir}/man*/*

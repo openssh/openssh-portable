@@ -1,3 +1,7 @@
+20010225
+ - (djm) Use %{_libexecdir} rather than hardcoded path in RPM specfile
+   Patch from Adrian Ho <lexfiend@usa.net>
+
 20010224
  - (bal) Missed part of the UNIX sockets patch.  Patch by Corinna 
    Vinschen <vinschen@redhat.com>
@@ -4120,4 +4124,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.819 2001/02/24 21:41:10 mouring Exp $
+$Id: ChangeLog,v 1.820 2001/02/24 22:36:29 djm Exp $
