@@ -12,6 +12,9 @@
    - markus@cvs.openbsd.org 2003/08/29 10:03:15
      [compat.c compat.h]
      SSH_BUG_K5USER is unused; ok henning@
+   - markus@cvs.openbsd.org 2003/08/29 10:04:36
+     [channels.c nchan.c]
+     be less chatty; debug -> debug2, cleanup; ok henning@
 
 20030829
  - (bal) openbsd-compat/ clean up.  Considate headers, add in Id on our
@@ -927,4 +930,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2922 2003/09/02 12:52:00 djm Exp $
+$Id: ChangeLog,v 1.2923 2003/09/02 12:52:31 djm Exp $

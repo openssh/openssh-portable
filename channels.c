@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.193 2003/07/02 14:51:16 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.194 2003/08/29 10:04:36 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -177,7 +177,7 @@ channel_register_fds(Channel *c, int rfd, int wfd, int efd,
 
 	/* XXX ugly hack: nonblock is only set by the server */
 	if (nonblock && isatty(c->rfd)) {
-		debug("channel %d: rfd %d isatty", c->self, c->rfd);
+		debug2("channel %d: rfd %d isatty", c->self, c->rfd);
 		c->isatty = 1;
 		if (!isatty(c->wfd)) {
 			error("channel %d: wfd %d is not a tty?",
@@ -304,7 +304,7 @@ channel_close_fd(int *fdp)
 static void
 channel_close_fds(Channel *c)
 {
-	debug3("channel_close_fds: channel %d: r %d w %d e %d",
+	debug3("channel %d: close_fds r %d w %d e %d",
 	    c->self, c->rfd, c->wfd, c->efd);
 
 	channel_close_fd(&c->sock);
@@ -324,11 +324,11 @@ channel_free(Channel *c)
 	for (n = 0, i = 0; i < channels_alloc; i++)
 		if (channels[i])
 			n++;
-	debug("channel_free: channel %d: %s, nchannels %d", c->self,
+	debug("channel %d: free: %s, nchannels %d", c->self,
 	    c->remote_name ? c->remote_name : "???", n);
 
 	s = channel_open_message();
-	debug3("channel_free: status: %s", s);
+	debug3("channel %d: status: %s", c->self, s);
 	xfree(s);
 
 	if (c->sock != -1)
@@ -596,7 +596,7 @@ channel_request_start(int id, char *service, int wantconfirm)
 		logit("channel_request_start: %d: unknown channel id", id);
 		return;
 	}
-	debug("channel %d: request %s", id, service) ;
+	debug2("channel %d: request %s", id, service) ;
 	packet_start(SSH2_MSG_CHANNEL_REQUEST);
 	packet_put_int(c->remote_id);
 	packet_put_cstring(service);
@@ -739,7 +739,7 @@ channel_pre_input_draining(Channel *c, fd_set * readset, fd_set * writeset)
 		packet_put_int(c->remote_id);
 		packet_send();
 		c->type = SSH_CHANNEL_CLOSED;
-		debug("channel %d: closing after input drain.", c->self);
+		debug2("channel %d: closing after input drain.", c->self);
 	}
 }
 
@@ -780,7 +780,7 @@ x11_open_helper(Buffer *b)
 		proto_len = ucp[6] + 256 * ucp[7];
 		data_len = ucp[8] + 256 * ucp[9];
 	} else {
-		debug("Initial X11 packet contains bad byte order byte: 0x%x",
+		debug2("Initial X11 packet contains bad byte order byte: 0x%x",
 		    ucp[0]);
 		return -1;
 	}
@@ -793,14 +793,14 @@ x11_open_helper(Buffer *b)
 	/* Check if authentication protocol matches. */
 	if (proto_len != strlen(x11_saved_proto) ||
 	    memcmp(ucp + 12, x11_saved_proto, proto_len) != 0) {
-		debug("X11 connection uses different authentication protocol.");
+		debug2("X11 connection uses different authentication protocol.");
 		return -1;
 	}
 	/* Check if authentication data matches our fake data. */
 	if (data_len != x11_fake_data_len ||
 	    memcmp(ucp + 12 + ((proto_len + 3) & ~3),
 		x11_fake_data, x11_fake_data_len) != 0) {
-		debug("X11 auth data does not match fake data.");
+		debug2("X11 auth data does not match fake data.");
 		return -1;
 	}
 	/* Check fake data length */
@@ -857,7 +857,7 @@ channel_pre_x11_open(Channel *c, fd_set * readset, fd_set * writeset)
 		channel_pre_open(c, readset, writeset);
 	} else if (ret == -1) {
 		logit("X11 connection rejected because of wrong authentication.");
-		debug("X11 rejected %d i%d/o%d", c->self, c->istate, c->ostate);
+		debug2("X11 rejected %d i%d/o%d", c->self, c->istate, c->ostate);
 		chan_read_failed(c);
 		buffer_clear(&c->input);
 		chan_ibuf_empty(c);
@@ -867,7 +867,7 @@ channel_pre_x11_open(Channel *c, fd_set * readset, fd_set * writeset)
 			chan_write_failed(c);
 		else
 			c->type = SSH_CHANNEL_OPEN;
-		debug("X11 closed %d i%d/o%d", c->self, c->istate, c->ostate);
+		debug2("X11 closed %d i%d/o%d", c->self, c->istate, c->ostate);
 	}
 }
 
@@ -925,7 +925,7 @@ channel_decode_socks4(Channel *c, fd_set * readset, fd_set * writeset)
 	strlcpy(c->path, host, sizeof(c->path));
 	c->host_port = ntohs(s4_req.dest_port);
 
-	debug("channel %d: dynamic request: socks4 host %s port %u command %u",
+	debug2("channel %d: dynamic request: socks4 host %s port %u command %u",
 	    c->self, host, c->host_port, s4_req.command);
 
 	if (s4_req.command != 1) {
@@ -1002,7 +1002,7 @@ channel_decode_socks5(Channel *c, fd_set * readset, fd_set * writeset)
 	if (s5_req.version != 0x05 ||
 	    s5_req.command != SSH_SOCKS5_CONNECT ||
 	    s5_req.reserved != 0x00) {
-		debug("channel %d: only socks5 connect supported", c->self);
+		debug2("channel %d: only socks5 connect supported", c->self);
 		return -1;
 	}
 	switch(s5_req.atyp){
@@ -1019,7 +1019,7 @@ channel_decode_socks5(Channel *c, fd_set * readset, fd_set * writeset)
 		af = AF_INET6;
 		break;
 	default:
-		debug("channel %d: bad socks5 atyp %d", c->self, s5_req.atyp);
+		debug2("channel %d: bad socks5 atyp %d", c->self, s5_req.atyp);
 		return -1;
 	}
 	if (have < 4 + addrlen + 2)
@@ -1036,7 +1036,7 @@ channel_decode_socks5(Channel *c, fd_set * readset, fd_set * writeset)
 		return -1;
 	c->host_port = ntohs(dest_port);
 	
-	debug("channel %d: dynamic request: socks5 host %s port %u command %u",
+	debug2("channel %d: dynamic request: socks5 host %s port %u command %u",
 	    c->self, c->path, c->host_port, s5_req.command);
 
 	s5_rsp.version = 0x05;
@@ -1111,7 +1111,7 @@ channel_post_x11_listener(Channel *c, fd_set * readset, fd_set * writeset)
 		addrlen = sizeof(addr);
 		newsock = accept(c->sock, &addr, &addrlen);
 		if (c->single_connection) {
-			debug("single_connection: closing X11 listener.");
+			debug2("single_connection: closing X11 listener.");
 			channel_close_fd(&c->sock);
 			chan_mark_dead(c);
 		}
@@ -1137,7 +1137,7 @@ channel_post_x11_listener(Channel *c, fd_set * readset, fd_set * writeset)
 			/* originator ipaddr and port */
 			packet_put_cstring(remote_ipaddr);
 			if (datafellows & SSH_BUG_X11FWD) {
-				debug("ssh2 x11 bug compat mode");
+				debug2("ssh2 x11 bug compat mode");
 			} else {
 				packet_put_int(remote_port);
 			}
@@ -1356,16 +1356,16 @@ channel_handle_rfd(Channel *c, fd_set * readset, fd_set * writeset)
 		if (len < 0 && (errno == EINTR || errno == EAGAIN))
 			return 1;
 		if (len <= 0) {
-			debug("channel %d: read<=0 rfd %d len %d",
+			debug2("channel %d: read<=0 rfd %d len %d",
 			    c->self, c->rfd, len);
 			if (c->type != SSH_CHANNEL_OPEN) {
-				debug("channel %d: not open", c->self);
+				debug2("channel %d: not open", c->self);
 				chan_mark_dead(c);
 				return -1;
 			} else if (compat13) {
 				buffer_clear(&c->output);
 				c->type = SSH_CHANNEL_INPUT_DRAINING;
-				debug("channel %d: input draining.", c->self);
+				debug2("channel %d: input draining.", c->self);
 			} else {
 				chan_read_failed(c);
 			}
@@ -1373,7 +1373,7 @@ channel_handle_rfd(Channel *c, fd_set * readset, fd_set * writeset)
 		}
 		if (c->input_filter != NULL) {
 			if (c->input_filter(c, buf, len) == -1) {
-				debug("channel %d: filter stops", c->self);
+				debug2("channel %d: filter stops", c->self);
 				chan_read_failed(c);
 			}
 		} else {
@@ -1406,12 +1406,12 @@ channel_handle_wfd(Channel *c, fd_set * readset, fd_set * writeset)
 			return 1;
 		if (len <= 0) {
 			if (c->type != SSH_CHANNEL_OPEN) {
-				debug("channel %d: not open", c->self);
+				debug2("channel %d: not open", c->self);
 				chan_mark_dead(c);
 				return -1;
 			} else if (compat13) {
 				buffer_clear(&c->output);
-				debug("channel %d: input draining.", c->self);
+				debug2("channel %d: input draining.", c->self);
 				c->type = SSH_CHANNEL_INPUT_DRAINING;
 			} else {
 				chan_write_failed(c);
@@ -1618,16 +1618,16 @@ channel_garbage_collect(Channel *c)
 	if (c->detach_user != NULL) {
 		if (!chan_is_dead(c, 0))
 			return;
-		debug("channel %d: gc: notify user", c->self);
+		debug2("channel %d: gc: notify user", c->self);
 		c->detach_user(c->self, NULL);
 		/* if we still have a callback */
 		if (c->detach_user != NULL)
 			return;
-		debug("channel %d: gc: user detached", c->self);
+		debug2("channel %d: gc: user detached", c->self);
 	}
 	if (!chan_is_dead(c, 1))
 		return;
-	debug("channel %d: garbage collecting", c->self);
+	debug2("channel %d: garbage collecting", c->self);
 	channel_free(c);
 }
 
@@ -2002,7 +2002,7 @@ channel_input_open_confirmation(int type, u_int32_t seq, void *ctxt)
 			c->confirm(c->self, NULL);
 			debug2("callback done");
 		}
-		debug("channel %d: open confirm rwindow %u rmax %u", c->self,
+		debug2("channel %d: open confirm rwindow %u rmax %u", c->self,
 		    c->remote_window, c->remote_maxpacket);
 	}
 	packet_check_eom();
@@ -2514,7 +2514,7 @@ x11_create_display_inet(int x11_display_offset, int x11_use_localhost,
 			}
 #endif
 			if (bind(sock, ai->ai_addr, ai->ai_addrlen) < 0) {
-				debug("bind port %d: %.100s", port, strerror(errno));
+				debug2("bind port %d: %.100s", port, strerror(errno));
 				close(sock);
 
 				if (ai->ai_next)
@@ -2663,12 +2663,12 @@ x11_connect_display(void)
 		/* Create a socket. */
 		sock = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
 		if (sock < 0) {
-			debug("socket: %.100s", strerror(errno));
+			debug2("socket: %.100s", strerror(errno));
 			continue;
 		}
 		/* Connect it to the display. */
 		if (connect(sock, ai->ai_addr, ai->ai_addrlen) < 0) {
-			debug("connect %.100s port %d: %.100s", buf,
+			debug2("connect %.100s port %d: %.100s", buf,
 			    6000 + display_number, strerror(errno));
 			close(sock);
 			continue;
