@@ -77,39 +77,40 @@ $(LIBOPENBSD_COMPAT_OBJS): config.h
 .c.o:
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
 
-libopenbsd-compat.a:
-	(cd openbsd-compat; make)
+LIBCOMPAT=openbsd-compat/libopenbsd-compat.a
+$(LIBCOMPAT): 
+	(cd `dirname $@`; make)
 
 libssh.a: $(LIBSSH_OBJS)
 	$(AR) rv $@ $(LIBSSH_OBJS)
 	$(RANLIB) $@
 
-ssh$(EXEEXT): libopenbsd-compat.a libssh.a $(SSHOBJS)
+ssh$(EXEEXT): $(LIBCOMPAT) libssh.a $(SSHOBJS)
 	$(LD) -o $@ $(SSHOBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
-sshd$(EXEEXT): libssh.a	libopenbsd-compat.a $(SSHDOBJS)
+sshd$(EXEEXT): libssh.a	$(LIBCOMPAT) $(SSHDOBJS)
 	$(LD) -o $@ $(SSHDOBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
-scp$(EXEEXT): libopenbsd-compat.a libssh.a scp.o log-client.o
+scp$(EXEEXT): $(LIBCOMPAT) libssh.a scp.o log-client.o
 	$(LD) -o $@ scp.o log-client.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
-ssh-add$(EXEEXT): libopenbsd-compat.a libssh.a ssh-add.o log-client.o
+ssh-add$(EXEEXT): $(LIBCOMPAT) libssh.a ssh-add.o log-client.o
 	$(LD) -o $@ ssh-add.o log-client.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
-ssh-agent$(EXEEXT): libopenbsd-compat.a libssh.a ssh-agent.o log-client.o
+ssh-agent$(EXEEXT): $(LIBCOMPAT) libssh.a ssh-agent.o log-client.o
 	$(LD) -o $@ ssh-agent.o log-client.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
-ssh-keygen$(EXEEXT): libopenbsd-compat.a libssh.a ssh-keygen.o log-client.o
+ssh-keygen$(EXEEXT): $(LIBCOMPAT) libssh.a ssh-keygen.o log-client.o
 	$(LD) -o $@ ssh-keygen.o log-client.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
-ssh-keyscan$(EXEEXT): libopenbsd-compat.a libssh.a log-client.o ssh-keyscan.o
+ssh-keyscan$(EXEEXT): $(LIBCOMPAT) libssh.a log-client.o ssh-keyscan.o
 	$(LD) -o $@ ssh-keyscan.o log-client.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
-sftp-server$(EXEEXT): libopenbsd-compat.a libssh.a sftp-server.o log-server.o
+sftp-server$(EXEEXT): $(LIBCOMPAT) libssh.a sftp-server.o log-server.o
 	$(LD) -o $@ sftp-server.o log-server.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
 # test driver for the loginrec code - not built by default
-logintest: logintest.o libopenbsd-compat.a libssh.a log-client.o loginrec.o
+logintest: logintest.o $(LIBCOMPAT) libssh.a log-client.o loginrec.o
 	$(LD) -o $@ logintest.o $(LDFLAGS) loginrec.o -lopenbsd-compat -lssh log-client.o $(LIBS)
 
 $(MANPAGES) $(CONFIGFILES)::
