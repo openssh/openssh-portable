@@ -105,7 +105,7 @@ restart:
 		goto restart;
 	}
 	/* Increase the size of the buffer and retry. */
-	
+
 	newlen = buffer->alloc + len + 32768;
 	if (newlen > 0xa00000)
 		fatal("buffer_append_space: alloc %u not supported",

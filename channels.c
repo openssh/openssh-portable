@@ -1035,7 +1035,7 @@ channel_decode_socks5(Channel *c, fd_set * readset, fd_set * writeset)
 	else if (inet_ntop(af, dest_addr, c->path, sizeof(c->path)) == NULL)
 		return -1;
 	c->host_port = ntohs(dest_port);
-	
+
 	debug2("channel %d: dynamic request: socks5 host %s port %u command %u",
 	    c->self, c->path, c->host_port, s5_req.command);
 

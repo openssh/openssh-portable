@@ -546,7 +546,7 @@ process_gssapi_token(void *ctxt, gss_buffer_t recv_tok)
 	gss_buffer_desc gssbuf, mic;
 	OM_uint32 status, ms, flags;
 	Buffer b;
-	
+
 	status = ssh_gssapi_init_ctx(gssctxt, options.gss_deleg_creds,
 	    recv_tok, &send_tok, &flags);
 
@@ -555,12 +555,12 @@ process_gssapi_token(void *ctxt, gss_buffer_t recv_tok)
 			packet_start(SSH2_MSG_USERAUTH_GSSAPI_ERRTOK);
 		else
 			packet_start(SSH2_MSG_USERAUTH_GSSAPI_TOKEN);
-			
+
 		packet_put_string(send_tok.value, send_tok.length);
 		packet_send();
 		gss_release_buffer(&ms, &send_tok);
 	}
-	
+
 	if (status == GSS_S_COMPLETE) {
 		/* send either complete or MIC, depending on mechanism */
 		if (!(flags & GSS_C_INTEG_FLAG)) {
@@ -572,21 +572,21 @@ process_gssapi_token(void *ctxt, gss_buffer_t recv_tok)
 
 			gssbuf.value = buffer_ptr(&b);
 			gssbuf.length = buffer_len(&b);
-			
+
 			status = ssh_gssapi_sign(gssctxt, &gssbuf, &mic);
-			
+
 			if (!GSS_ERROR(status)) {
 				packet_start(SSH2_MSG_USERAUTH_GSSAPI_MIC);
 				packet_put_string(mic.value, mic.length);
-				
+
 				packet_send();
 			}
-				
+
 			buffer_free(&b);
 			gss_release_buffer(&ms, &mic);
-		}	
+		}
 	}
-	
+
 	return status;
 }
 

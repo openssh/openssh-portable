@@ -151,7 +151,7 @@ qfileout(FILE * ofile, u_int32_t otype, u_int32_t otests, u_int32_t otries,
 
 	time(&time_now);
 	gtm = gmtime(&time_now);
-	
+
 	res = fprintf(ofile, "%04d%02d%02d%02d%02d%02d %u %u %u %u %x ",
 	    gtm->tm_year + 1900, gtm->tm_mon + 1, gtm->tm_mday,
 	    gtm->tm_hour, gtm->tm_min, gtm->tm_sec,
@@ -573,7 +573,7 @@ prime_test(FILE *in, FILE *out, u_int32_t trials,
 			    count_in);
 			continue;
 		}
-	
+
 		/*
 		 * q is possibly prime, so go ahead and really make sure
 		 * that p is prime. If it is, then we can go back and do

@@ -70,7 +70,7 @@ fudge_readdir(struct SFTP_OPENDIR *od)
 #ifdef __GNU_LIBRARY__
 	static int inum = 1;
 #endif /* __GNU_LIBRARY__ */
-	
+
 	if (od->dir[od->offset] == NULL)
 		return(NULL);
 

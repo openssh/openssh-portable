@@ -783,7 +783,7 @@ int
 mm_answer_pam_start(int socket, Buffer *m)
 {
 	char *user;
-	
+
 	if (!options.use_pam)
 		fatal("UsePAM not set, but ended up in %s anyway", __func__);
 
@@ -802,7 +802,7 @@ int
 mm_answer_pam_account(int socket, Buffer *m)
 {
 	u_int ret;
-	
+
 	if (!options.use_pam)
 		fatal("UsePAM not set, but ended up in %s anyway", __func__);
 
@@ -1798,25 +1798,25 @@ mm_answer_gss_checkmic(int socket, Buffer *m)
 	gss_buffer_desc gssbuf, mic;
 	OM_uint32 ret;
 	u_int len;
-	
+
 	gssbuf.value = buffer_get_string(m, &len);
 	gssbuf.length = len;
 	mic.value = buffer_get_string(m, &len);
 	mic.length = len;
-	
+
 	ret = ssh_gssapi_checkmic(gsscontext, &gssbuf, &mic);
-	
+
 	xfree(gssbuf.value);
 	xfree(mic.value);
-	
+
 	buffer_clear(m);
 	buffer_put_int(m, ret);
-	
+
 	mm_request_send(socket, MONITOR_ANS_GSSCHECKMIC, m);
-	
+
 	if (!GSS_ERROR(ret))
 		monitor_permit(mon_dispatch, MONITOR_REQ_GSSUSEROK, 1);
-	
+
 	return (0);
 }
 

@@ -189,7 +189,7 @@ sc_private_decrypt(int flen, u_char *from, u_char *to, RSA *rsa,
 	int r;
 
 	if (padding != RSA_PKCS1_PADDING)
-		return -1;	
+		return -1;
 	r = sc_prkey_op_init(rsa, &key_obj, SC_USAGE_DECRYPT);
 	if (r)
 		return -1;
@@ -325,7 +325,7 @@ static void
 convert_rsa_to_rsa1(Key * in, Key * out)
 {
 	struct sc_priv_data *priv;
-	
+
 	out->rsa->flags = in->rsa->flags;
 	out->flags = in->flags;
 	RSA_set_method(out->rsa, RSA_get_method(in->rsa));
@@ -349,7 +349,7 @@ sc_read_pubkey(Key * k, const struct sc_pkcs15_object *cert_obj)
 	EVP_PKEY *pubkey = NULL;
 	u8 *p;
 	char *tmp;
-	
+
 	debug("sc_read_pubkey() with cert id %02X", cinfo->id.value[0]);
 	r = sc_pkcs15_read_certificate(p15card, cinfo, &cert);
 	if (r) {
@@ -391,7 +391,7 @@ sc_read_pubkey(Key * k, const struct sc_pkcs15_object *cert_obj)
 	tmp = key_fingerprint(k, SSH_FP_MD5, SSH_FP_HEX);
 	debug("fingerprint %d %s", key_size(k), tmp);
 	xfree(tmp);
-	
+
 	return 0;
 err:
 	if (cert)

@@ -45,7 +45,7 @@
  * XXX: we should tell the child how many bytes we need.
  */
 
-RCSID("$Id: entropy.c,v 1.47 2003/11/21 12:48:55 djm Exp $");
+RCSID("$Id: entropy.c,v 1.48 2003/11/21 12:56:47 djm Exp $");
 
 #ifndef OPENSSL_PRNG_ONLY
 #define RANDOM_SEED_SIZE 48
@@ -93,7 +93,7 @@ seed_rng(void)
 			    (long int)original_uid, strerror(errno));
 			_exit(1);
 		}
-		
+
 		execl(SSH_RAND_HELPER, "ssh-rand-helper", NULL);
 		fprintf(stderr, "(rand child) Couldn't exec '%s': %s\n",
 		    SSH_RAND_HELPER, strerror(errno));

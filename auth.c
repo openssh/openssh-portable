@@ -597,7 +597,7 @@ fakepw(void)
 	memset(&fake, 0, sizeof(fake));
 	fake.pw_name = "NOUSER";
 	fake.pw_passwd =
-	    "$2a$06$r3.juUaHZDlIbQaO2dS9FuYxL1W9M81R1Tc92PoSNmzvpEqLkLGrK";	
+	    "$2a$06$r3.juUaHZDlIbQaO2dS9FuYxL1W9M81R1Tc92PoSNmzvpEqLkLGrK";
 	fake.pw_gecos = "NOUSER";
 	fake.pw_uid = -1;
 	fake.pw_gid = -1;

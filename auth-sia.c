@@ -100,7 +100,7 @@ session_setup_sia(struct passwd *pw, char *tty)
 	if (sia_ses_launch(sia_collect_trm, ent) != SIASUCCESS)
 		fatal("Couldn't launch session for %s from %s",
 		    pw->pw_name, host);
-	
+
 	sia_ses_release(&ent);
 
 	if (setreuid(geteuid(), geteuid()) < 0)

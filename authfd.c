@@ -607,7 +607,7 @@ ssh_update_card(AuthenticationConnection *auth, int add,
 	buffer_put_char(&msg, type);
 	buffer_put_cstring(&msg, reader_id);
 	buffer_put_cstring(&msg, pin);
-	
+
 	if (constrained) {
 		if (life != 0) {
 			buffer_put_char(&msg, SSH_AGENT_CONSTRAIN_LIFETIME);

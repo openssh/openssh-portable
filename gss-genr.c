@@ -253,14 +253,14 @@ ssh_gssapi_sign(Gssctxt *ctx, gss_buffer_t buffer, gss_buffer_t hash)
 	if ((ctx->major = gss_get_mic(&ctx->minor, ctx->context,
 	    GSS_C_QOP_DEFAULT, buffer, hash)))
 		ssh_gssapi_error(ctx);
-	
+
 	return (ctx->major);
 }
 
 void
 ssh_gssapi_buildmic(Buffer *b, const char *user, const char *service,
     const char *context)
-{	
+{
 	buffer_init(b);
 	buffer_put_string(b, session_id2, session_id2_len);
 	buffer_put_char(b, SSH2_MSG_USERAUTH_REQUEST);

@@ -720,7 +720,7 @@ mm_do_pam_account(void)
 	ret = buffer_get_int(&m);
 
 	buffer_free(&m);
-	
+
 	debug3("%s returning %d", __func__, ret);
 
 	return (ret);

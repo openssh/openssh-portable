@@ -390,7 +390,7 @@ get_pathname(const char **cpp, char **path)
 
  fail:
 	xfree(*path);
-	*path = NULL;	
+	*path = NULL;
 	return (-1);
 }
 
@@ -679,7 +679,7 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 
 	if (!(lflag & SHORT_VIEW)) {
 		int m = 0, width = 80;
-		struct winsize ws;	
+		struct winsize ws;
 
 		/* Count entries for sort and find longest filename */
 		for (i = 0; g.gl_pathv[i]; i++)
@@ -759,7 +759,7 @@ parse_args(const char **cpp, int *pflag, int *lflag, int *iflag,
 		*iflag = 1;
 		cp++;
 	}
-		
+
 	/* Figure out which command we have */
 	for (i = 0; cmds[i].c; i++) {
 		int cmdlen = strlen(cmds[i].c);

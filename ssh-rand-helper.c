@@ -39,7 +39,7 @@
 #include "pathnames.h"
 #include "log.h"
 
-RCSID("$Id: ssh-rand-helper.c,v 1.15 2003/11/21 12:48:56 djm Exp $");
+RCSID("$Id: ssh-rand-helper.c,v 1.16 2003/11/21 12:56:47 djm Exp $");
 
 /* Number of bytes we write out */
 #define OUTPUT_SEED_SIZE	48
@@ -779,7 +779,7 @@ main(int argc, char **argv)
 	/* Don't write binary data to a tty, unless we are forced to */
 	if (isatty(STDOUT_FILENO))
 		output_hex = 1;
-	
+
 	while ((ch = getopt(argc, argv, "vxXhb:")) != -1) {
 		switch (ch) {
 		case 'v':
@@ -806,7 +806,7 @@ main(int argc, char **argv)
 	}
 
 	log_init(argv[0], ll, SYSLOG_FACILITY_USER, 1);
-	
+
 #ifdef USE_SEED_FILES
 	prng_read_seedfile();
 #endif
@@ -816,7 +816,7 @@ main(int argc, char **argv)
 	/*
 	 * Seed the RNG from wherever we can
 	 */
-	
+
 	/* Take whatever is on the stack, but don't credit it */
 	RAND_add(buf, bytes, 0);
 
@@ -859,9 +859,9 @@ main(int argc, char **argv)
 		printf("\n");
 	} else
 		ret = atomicio(vwrite, STDOUT_FILENO, buf, bytes);
-		
+
 	memset(buf, '\0', bytes);
 	xfree(buf);
-	
+
 	return ret == bytes ? 0 : 1;
 }

@@ -907,7 +907,7 @@ bad:			run_err("%s: %s", np, strerror(errno));
 				cp += j;
 				statbytes += j;
 			} while (amt > 0);
-		
+
 			if (limitbw)
 				bwlimit(4096);
 

@@ -924,11 +924,11 @@ read_etc_default_login(char ***env, u_int *envsize, uid_t uid)
 		var = child_get_env(tmpenv, "PATH");
 	if (var != NULL)
 		child_set_env(env, envsize, "PATH", var);
-	
+
 	if ((var = child_get_env(tmpenv, "UMASK")) != NULL)
 		if (sscanf(var, "%5lo", &mask) == 1)
 			umask((mode_t)mask);
-	
+
 	for (i = 0; tmpenv[i] != NULL; i++)
 		xfree(tmpenv[i]);
 	xfree(tmpenv);
@@ -953,7 +953,7 @@ void copy_environment(char **source, char ***env, u_int *envsize)
 
 		debug3("Copy environment: %s=%s", var_name, var_val);
 		child_set_env(env, envsize, var_name, var_val);
-		
+
 		xfree(var_name);
 	}
 }
@@ -1096,7 +1096,7 @@ do_setup_env(Session *s, const char *shell)
 	 */
 	if (options.use_pam) {
 		char **p;
-		
+
 		p = fetch_pam_child_environment();
 		copy_environment(p, &env, &envsize);
 		free_pam_environment(p);
@@ -2033,13 +2033,13 @@ session_tty_list(void)
 	for (i = 0; i < MAX_SESSIONS; i++) {
 		Session *s = &sessions[i];
 		if (s->used && s->ttyfd != -1) {
-			
+
 			if (strncmp(s->tty, "/dev/", 5) != 0) {
 				cp = strrchr(s->tty, '/');
 				cp = (cp == NULL) ? s->tty : cp + 1;
 			} else
 				cp = s->tty + 5;
-			
+
 			if (buf[0] != '\0')
 				strlcat(buf, ",", sizeof buf);
 			strlcat(buf, cp, sizeof buf);

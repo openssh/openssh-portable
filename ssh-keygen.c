@@ -968,7 +968,7 @@ main(int ac, char **av)
 
 	if (do_gen_candidates) {
 		FILE *out = fopen(out_file, "w");
-		
+
 		if (out == NULL) {
 			error("Couldn't open modulus candidate file \"%s\": %s",
 			    out_file, strerror(errno));

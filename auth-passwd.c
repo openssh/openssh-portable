@@ -101,7 +101,7 @@ auth_password(Authctxt *authctxt, const char *password)
 			    (char *)get_canonical_hostname(options.use_dns);
 
 			authsuccess = 1;
-			aix_remove_embedded_newlines(authmsg);	
+			aix_remove_embedded_newlines(authmsg);
 
 			debug3("AIX/authenticate succeeded for user %s: %.100s",
 				pw->pw_name, authmsg);

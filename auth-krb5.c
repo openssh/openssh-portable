@@ -68,7 +68,7 @@ auth_krb5_password(Authctxt *authctxt, const char *password)
 	krb5_principal server;
 	char ccname[40];
 	int tmpfd;
-#endif	
+#endif
 	krb5_error_code problem;
 	krb5_ccache ccache = NULL;
 
@@ -97,10 +97,10 @@ auth_krb5_password(Authctxt *authctxt, const char *password)
 		goto out;
 
 	restore_uid();
-	
+
 	problem = krb5_verify_user(authctxt->krb5_ctx, authctxt->krb5_user,
 	    ccache, password, 1, NULL);
-	
+
 	temporarily_use_uid(authctxt->pw);
 
 	if (problem)
@@ -135,7 +135,7 @@ auth_krb5_password(Authctxt *authctxt, const char *password)
 	temporarily_use_uid(authctxt->pw);
 	if (problem)
 		goto out;
-	
+
 	if (!krb5_kuserok(authctxt->krb5_ctx, authctxt->krb5_user,
 			  authctxt->pw->pw_name)) {
 		problem = -1;
@@ -143,13 +143,13 @@ auth_krb5_password(Authctxt *authctxt, const char *password)
 	}
 
 	snprintf(ccname,sizeof(ccname),"FILE:/tmp/krb5cc_%d_XXXXXX",geteuid());
-	
+
 	if ((tmpfd = mkstemp(ccname+strlen("FILE:")))==-1) {
 		logit("mkstemp(): %.100s", strerror(errno));
 		problem = errno;
 		goto out;
 	}
-	
+
 	if (fchmod(tmpfd,S_IRUSR | S_IWUSR) == -1) {
 		logit("fchmod(): %.100s", strerror(errno));
 		close(tmpfd);
@@ -166,12 +166,12 @@ auth_krb5_password(Authctxt *authctxt, const char *password)
 				     authctxt->krb5_user);
 	if (problem)
 		goto out;
-				
+
 	problem= krb5_cc_store_cred(authctxt->krb5_ctx, authctxt->krb5_fwd_ccache,
 				 &creds);
 	if (problem)
 		goto out;
-#endif		
+#endif
 
 	authctxt->krb5_ticket_file = (char *)krb5_cc_get_name(authctxt->krb5_ctx, authctxt->krb5_fwd_ccache);
 
