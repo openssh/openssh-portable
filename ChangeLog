@@ -10,6 +10,7 @@
    say "REMOTE HOST IDENTIFICATION HAS CHANGED"
  - Fix DISABLE_SHADOW support
  - Allow MD5 passwords even if shadow passwords are disabled
+ - Release 1.2.1pre19
 
 19991218
  - Redhat init script patch from Chun-Chung Chen 
