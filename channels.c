@@ -1759,7 +1759,7 @@ x11_create_display_inet(int screen_number, int x11_display_offset)
 				continue;
 			sock = socket(ai->ai_family, SOCK_STREAM, 0);
 			if (sock < 0) {
-				if (errno != EINVAL) {
+				if ((errno != EINVAL) && (errno != EAFNOSUPPORT)) {
 					error("socket: %.100s", strerror(errno));
 					return NULL;
 				} else {
