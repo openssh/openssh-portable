@@ -39,3 +39,11 @@ enum
 #define SHUT_RDWR SHUT_RDWR
 };
 #endif
+
+#if !defined(u_int32_t) && defined(uint32_t)
+#define u_int32_t uint32_t
+#endif
+
+#if !defined(u_int16_t) && defined(uint16_t)
+#define u_int16_t uint16_t
+#endif

@@ -79,7 +79,7 @@ AC_ARG_WITH(random,
 	[  --with-random=FILE      read randomness from FILE (default /dev/urandom)],
 	[
 		RANDOM_POOL="$withval";
-		AC_DEFINE(RANDOM_POOL, "$RANDOM_POOL")
+		AC_DEFINE_UNQUOTED(RANDOM_POOL, "$RANDOM_POOL")
 	],
 	[
 		dnl Check for random device

@@ -1,3 +1,6 @@
+19991114
+ - Solaris compilation fixes (still imcomplete)
+
 19991113
  - Build patch from Niels Kristian Bech Jensen <nkbj@image.dk>
    - Don't install config files if they already exist
