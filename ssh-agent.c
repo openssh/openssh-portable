@@ -643,6 +643,8 @@ main(int ac, char **av)
 		signal(SIGALRM, check_parent_exists);
 		alarm(10);
 	}
+	signal(SIGHUP, cleanup_exit);
+	signal(SIGTERM, cleanup_exit);
 	signal(SIGINT, SIG_IGN);
 	signal(SIGPIPE, SIG_IGN);
 	while (1) {

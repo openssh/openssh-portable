@@ -1,3 +1,9 @@
+20000102
+ - Prevent multiple inclusion of config.h and defines.h. Suggested
+   by Andre Lucas <andre.lucas@dial.pipex.com>
+ - Properly clean up on exit of ssh-agent. Patch from Dean Gaudet
+   <dgaudet@arctic.org>
+
 19991231
  - Fix password support on systems with a mixture of shadowed and 
    non-shadowed passwords (e.g. NIS). Report and fix from 
@@ -17,8 +23,6 @@
 
  - Added support for directory-based lastlogs
  - Really fix typedefs, patch from Ben Taylor <bent@clark.net>
- - Prevent multiple inclusion of config.h and defines.h. Suggested
-   by Andre Lucas <andre.lucas@dial.pipex.com>
 
 19991230
  - OpenBSD CVS updates:
