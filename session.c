@@ -1050,7 +1050,7 @@ do_child(Session *s, const char *command)
 	if (options.use_login && command != NULL)
 		options.use_login = 0;
 
-#if !defined(USE_PAM) && !defined(HAVE_OSF_SIA)
+#if !defined(HAVE_OSF_SIA)
 	if (!options.use_login) {
 # ifdef HAVE_LOGIN_CAP
 		if (!login_getcapbool(lc, "ignorenologin", 0) && pw->pw_uid)
@@ -1068,7 +1068,7 @@ do_child(Session *s, const char *command)
 			exit(254);
 		}
 	}
-#endif /* USE_PAM || HAVE_OSF_SIA */
+#endif /* HAVE_OSF_SIA */
 
 	/* Set login name, uid, gid, and groups. */
 	/* Login(1) does this as well, and it needs uid 0 for the "-h"
