@@ -72,6 +72,17 @@ export SSH SSHD SSHAGENT SSHADD SSHKEYGEN SSHKEYSCAN SFTP SFTPSERVER
 #echo $SSH $SSHD $SSHAGENT $SSHADD $SSHKEYGEN $SSHKEYSCAN $SFTP $SFTPSERVER
 
 # helper
+echon()
+{
+       if [ "x`echo -n`" = "x" ]; then
+               echo -n "$@"
+       elif [ "x`echo '\c'`" = "x" ]; then
+               echo "$@\c"
+       else
+               fatal "Don't know how to echo without newline."
+       fi
+}
+
 cleanup ()
 {
 	if [ -f $PIDFILE ]; then
@@ -111,7 +122,7 @@ fail ()
 
 fatal ()
 {
-	echo -n "FATAL: "
+	echon "FATAL: "
 	fail "$@"
 	cleanup
 	exit $RESULT
@@ -169,7 +180,7 @@ for t in rsa rsa1; do
 
 	# known hosts file for client
 	(
-		echo -n 'localhost-with-alias,127.0.0.1,::1 '
+		echon 'localhost-with-alias,127.0.0.1,::1 '
 		cat $OBJ/$t.pub
 	) >> $OBJ/known_hosts
 

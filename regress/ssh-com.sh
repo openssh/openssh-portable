@@ -67,7 +67,7 @@ done
 
 # convert and append DSA hostkey
 (
-	echo -n 'ssh2-localhost-with-alias,127.0.0.1,::1 '
+	echon 'ssh2-localhost-with-alias,127.0.0.1,::1 '
 	${SSHKEYGEN} -if ${SRC}/dsa_ssh2.pub
 ) >> $OBJ/known_hosts
 
