@@ -29,7 +29,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.13 2001/03/14 08:57:14 markus Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.14 2001/03/16 08:16:17 djm Exp $");
 
 #include "ssh.h"
 #include "buffer.h"
@@ -180,7 +180,7 @@ get_handle(int fd, u_int expected_id, u_int *len)
 }
 
 Attrib *
-get_decode_stat(int fd, u_int expected_id)
+get_decode_stat(int fd, u_int expected_id, int quiet)
 {
 	Buffer msg;
 	u_int type, id;
@@ -198,7 +198,10 @@ get_decode_stat(int fd, u_int expected_id)
 	if (type == SSH2_FXP_STATUS) {
 		int status = buffer_get_int(&msg);
 
-		error("Couldn't stat remote file: %s", fx2txt(status));
+		if (quiet)
+			debug("Couldn't stat remote file: %s", fx2txt(status));
+		else
+			error("Couldn't stat remote file: %s", fx2txt(status));
 		return(NULL);
 	} else if (type != SSH2_FXP_ATTRS) {
 		fatal("Expected SSH2_FXP_ATTRS(%d) packet, got %d",
@@ -455,34 +458,33 @@ do_rmdir(int fd_in, int fd_out, char *path)
 }
 
 Attrib *
-do_stat(int fd_in, int fd_out, char *path)
+do_stat(int fd_in, int fd_out, char *path, int quiet)
 {
 	u_int id;
 
 	id = msg_id++;
 	send_string_request(fd_out, id, SSH2_FXP_STAT, path, strlen(path));
-	return(get_decode_stat(fd_in, id));
+	return(get_decode_stat(fd_in, id, quiet));
 }
 
 Attrib *
-do_lstat(int fd_in, int fd_out, char *path)
+do_lstat(int fd_in, int fd_out, char *path, int quiet)
 {
 	u_int id;
 
 	id = msg_id++;
 	send_string_request(fd_out, id, SSH2_FXP_LSTAT, path, strlen(path));
-	return(get_decode_stat(fd_in, id));
+	return(get_decode_stat(fd_in, id, quiet));
 }
 
 Attrib *
-do_fstat(int fd_in, int fd_out, char *handle,
-    u_int handle_len)
+do_fstat(int fd_in, int fd_out, char *handle, u_int handle_len, int quiet)
 {
 	u_int id;
 
 	id = msg_id++;
 	send_string_request(fd_out, id, SSH2_FXP_FSTAT, handle, handle_len);
-	return(get_decode_stat(fd_in, id));
+	return(get_decode_stat(fd_in, id, quiet));
 }
 
 int
@@ -677,7 +679,7 @@ do_download(int fd_in, int fd_out, char *remote_path, char *local_path,
 	Attrib junk, *a;
 	int status;
 
-	a = do_stat(fd_in, fd_out, remote_path);
+	a = do_stat(fd_in, fd_out, remote_path, 0);
 	if (a == NULL)
 		return(-1);
 
@@ -687,11 +689,17 @@ do_download(int fd_in, int fd_out, char *remote_path, char *local_path,
 	else
 		mode = 0666;
 
+	if ((a->flags & SSH2_FILEXFER_ATTR_PERMISSIONS) &&
+	    (a->perm & S_IFDIR)) {
+		error("Cannot download a directory: %s", remote_path);
+		return(-1);
+	}
+
 	local_fd = open(local_path, O_WRONLY | O_CREAT | O_TRUNC, mode);
 	if (local_fd == -1) {
 		error("Couldn't open local file \"%s\" for writing: %s",
 		    local_path, strerror(errno));
-		return(errno);
+		return(-1);
 	}
 
 	buffer_init(&msg);

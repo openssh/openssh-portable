@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-glob.c,v 1.1 2001/03/13 22:42:54 djm Exp $");
+RCSID("$OpenBSD: sftp-glob.c,v 1.2 2001/03/16 08:16:18 djm Exp $");
 
 #include "ssh.h"
 #include "buffer.h"
@@ -119,7 +119,7 @@ int fudge_lstat(const char *path, struct stat *st)
 {
 	Attrib *a;
 	
-	if (!(a = do_lstat(cur.fd_in, cur.fd_out, (char*)path)))
+	if (!(a = do_lstat(cur.fd_in, cur.fd_out, (char*)path, 0)))
 		return(-1);
 	
 	attrib_to_stat(a, st);
@@ -131,7 +131,7 @@ int fudge_stat(const char *path, struct stat *st)
 {
 	Attrib *a;
 	
-	if (!(a = do_stat(cur.fd_in, cur.fd_out, (char*)path)))
+	if (!(a = do_stat(cur.fd_in, cur.fd_out, (char*)path, 0)))
 		return(-1);
 	
 	attrib_to_stat(a, st);

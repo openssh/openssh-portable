@@ -8,6 +8,10 @@
    - markus@cvs.openbsd.org 2001/03/15 22:07:08
      [session.c]
      pass Session to do_child + KNF
+   - djm@cvs.openbsd.org 2001/03/16 08:16:18
+     [sftp-client.c sftp-client.h sftp-glob.c sftp-int.c]
+     Revise globbing for get/put to be more shell-like. In particular,
+     "get/put file* directory/" now works. ok markus@
 
 20010315
  - OpenBSD CVS Sync
@@ -4570,4 +4574,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.963 2001/03/17 00:32:57 mouring Exp $
+$Id: ChangeLog,v 1.964 2001/03/17 00:34:46 mouring Exp $

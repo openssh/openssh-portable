@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.h,v 1.3 2001/03/13 22:42:54 djm Exp $ */
+/* $OpenBSD: sftp-client.h,v 1.4 2001/03/16 08:16:18 djm Exp $ */
 
 /*
  * Copyright (c) 2001 Damien Miller.  All rights reserved.
@@ -62,14 +62,14 @@ int do_mkdir(int fd_in, int fd_out, char *path, Attrib *a);
 int do_rmdir(int fd_in, int fd_out, char *path);
 
 /* Get file attributes of 'path' (follows symlinks) */
-Attrib *do_stat(int fd_in, int fd_out, char *path);
+Attrib *do_stat(int fd_in, int fd_out, char *path, int quiet);
 
 /* Get file attributes of 'path' (does not follow symlinks) */
-Attrib *do_lstat(int fd_in, int fd_out, char *path);
+Attrib *do_lstat(int fd_in, int fd_out, char *path, int quiet);
 
 /* Get file attributes of open file 'handle' */
-Attrib *do_fstat(int fd_in, int fd_out, char *handle,
-    u_int handle_len);
+Attrib *do_fstat(int fd_in, int fd_out, char *handle, u_int handle_len, 
+    int quiet);
 
 /* Set file attributes of 'path' */
 int do_setstat(int fd_in, int fd_out, char *path, Attrib *a);

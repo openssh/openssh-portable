@@ -26,7 +26,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.28 2001/03/14 15:15:58 markus Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.29 2001/03/16 08:16:18 djm Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -195,18 +195,50 @@ local_do_ls(const char *args)
 }
 
 char *
+path_append(char *p1, char *p2)
+{
+	char *ret;
+
+	ret = xmalloc(strlen(p1) + strlen(p2) + 2);
+	strcpy(ret, p1);
+	strcat(ret, "/");
+	strcat(ret, p2);
+
+	return(ret);
+}
+
+char *
 make_absolute(char *p, char *pwd)
 {
-	char buf[2048];
+	char *abs;
 
 	/* Derelativise */
 	if (p && p[0] != '/') {
-		snprintf(buf, sizeof(buf), "%s/%s", pwd, p);
+		abs = path_append(pwd, p);
 		xfree(p);
-		p = xstrdup(buf);
+		return(abs);
+	} else
+		return(p);
+}
+
+int
+infer_path(const char *p, char **ifp)
+{
+	char *cp;
+
+	cp = strrchr(p, '/');
+	if (cp == NULL) {
+		*ifp = xstrdup(p);
+		return(0);
 	}
 
-	return(p);
+	if (!cp[1]) {
+		error("Invalid path");
+		return(-1);
+	}
+
+	*ifp = xstrdup(cp + 1);
+	return(0);
 }
 
 int
@@ -281,23 +313,182 @@ get_pathname(const char **cpp, char **path)
 }
 
 int
-infer_path(const char *p, char **ifp)
+is_dir(char *path)
 {
-	char *cp;
+	struct stat sb;
 
-	cp = strrchr(p, '/');
-	if (cp == NULL) {
-		*ifp = xstrdup(p);
+	/* XXX: report errors? */
+	if (stat(path, &sb) == -1)
 		return(0);
+
+	return(sb.st_mode & S_IFDIR);
+}
+
+int
+remote_is_dir(int in, int out, char *path)
+{
+	Attrib *a;
+
+	/* XXX: report errors? */
+	if ((a = do_stat(in, out, path, 1)) == NULL)
+		return(0);
+	if (!(a->flags & SSH2_FILEXFER_ATTR_PERMISSIONS))
+		return(0);
+	return(a->perm & S_IFDIR);
+}
+
+int
+process_get(int in, int out, char *src, char *dst, char *pwd, int pflag)
+{
+	char *abs_src = NULL;
+	char *abs_dst = NULL;
+	char *tmp;
+	glob_t g;
+	int err = 0;
+	int i;
+	
+	abs_src = xstrdup(src);
+	abs_src = make_absolute(abs_src, pwd);
+
+	memset(&g, '\0', sizeof(g));
+	debug3("Looking up %s", abs_src);
+	if (remote_glob(in, out, abs_src, 0, NULL, &g)) {
+		error("File \"%s\" not found.", abs_src);
+		err = -1;
+		goto out;
 	}
 
-	if (!cp[1]) {
-		error("Invalid path");
-		return(-1);
+	/* Only one match, dst may be file, directory or unspecified */
+	if (g.gl_pathv[0] && g.gl_matchc == 1) {
+		if (dst) {
+			/* If directory specified, append filename */
+			if (is_dir(dst)) {
+				if (infer_path(g.gl_pathv[0], &tmp)) {
+					err = 1;
+					goto out;
+				}
+				abs_dst = path_append(dst, tmp);
+				xfree(tmp);
+			} else
+				abs_dst = xstrdup(dst);
+		} else if (infer_path(g.gl_pathv[0], &abs_dst)) {
+			err = -1;
+			goto out;
+		}
+		printf("Fetching %s to %s\n", g.gl_pathv[0], abs_dst);
+		err = do_download(in, out, g.gl_pathv[0], abs_dst, pflag);
+		goto out;
 	}
 
-	*ifp = xstrdup(cp + 1);
-	return(0);
+	/* Multiple matches, dst may be directory or unspecified */
+	if (dst && !is_dir(dst)) {
+		error("Multiple files match, but \"%s\" is not a directory", 
+		    dst);
+		err = -1;
+		goto out;
+	}
+	
+	for(i = 0; g.gl_pathv[i]; i++) {
+		if (infer_path(g.gl_pathv[i], &tmp)) {
+			err = -1;
+			goto out;
+		}
+		if (dst) {
+			abs_dst = path_append(dst, tmp);
+			xfree(tmp);
+		} else
+			abs_dst = tmp;
+
+		printf("Fetching %s to %s\n", g.gl_pathv[i], abs_dst);
+		if (do_download(in, out, g.gl_pathv[i], abs_dst, pflag) == -1)
+			err = -1;
+		xfree(abs_dst);
+		abs_dst = NULL;
+	}
+
+out:
+	xfree(abs_src);
+	if (abs_dst)
+		xfree(abs_dst);
+	globfree(&g);
+	return(err);
+}
+
+int
+process_put(int in, int out, char *src, char *dst, char *pwd, int pflag)
+{
+	char *tmp_dst = NULL;
+	char *abs_dst = NULL;
+	char *tmp;
+	glob_t g;
+	int err = 0;
+	int i;
+
+	if (dst) {
+		tmp_dst = xstrdup(dst);
+		tmp_dst = make_absolute(tmp_dst, pwd);
+	}
+
+	memset(&g, '\0', sizeof(g));
+	debug3("Looking up %s", src);
+	if (glob(src, 0, NULL, &g)) {
+		error("File \"%s\" not found.", src);
+		err = -1;
+		goto out;
+	}
+
+	/* Only one match, dst may be file, directory or unspecified */
+	if (g.gl_pathv[0] && g.gl_matchc == 1) {
+		if (tmp_dst) {
+			/* If directory specified, append filename */
+			if (remote_is_dir(in, out, tmp_dst)) {
+				if (infer_path(g.gl_pathv[0], &tmp)) {
+					err = 1;
+					goto out;
+				}
+				abs_dst = path_append(tmp_dst, tmp);
+				xfree(tmp);
+			} else
+				abs_dst = xstrdup(tmp_dst);
+		} else if (infer_path(g.gl_pathv[0], &abs_dst)) {
+			err = -1;
+			goto out;
+		}
+		printf("Uploading %s to %s\n", g.gl_pathv[0], abs_dst);
+		err = do_upload(in, out, g.gl_pathv[0], abs_dst, pflag);
+		goto out;
+	}
+
+	/* Multiple matches, dst may be directory or unspecified */
+	if (tmp_dst && !remote_is_dir(in, out, tmp_dst)) {
+		error("Multiple files match, but \"%s\" is not a directory", 
+		    tmp_dst);
+		err = -1;
+		goto out;
+	}
+
+	for(i = 0; g.gl_pathv[i]; i++) {
+		if (infer_path(g.gl_pathv[i], &tmp)) {
+			err = -1;
+			goto out;
+		}
+		if (tmp_dst) {
+			abs_dst = path_append(tmp_dst, tmp);
+			xfree(tmp);
+		} else
+			abs_dst = make_absolute(tmp, pwd);
+
+		printf("Uploading %s to %s\n", g.gl_pathv[i], abs_dst);
+		if (do_upload(in, out, g.gl_pathv[i], abs_dst, pflag) == -1)
+			err = -1;
+	}
+
+out:
+	if (abs_dst)
+		xfree(abs_dst);
+	if (tmp_dst)
+		xfree(tmp_dst);
+	return(err);
 }
 
 int
@@ -459,66 +650,17 @@ parse_dispatch_command(int in, int out, const char *cmd, char **pwd)
 	path1 = path2 = NULL;
 	cmdnum = parse_args(&cmd, &pflag, &n_arg, &path1, &path2);
 
+	memset(&g, 0, sizeof(g));
+
 	/* Perform command */
 	switch (cmdnum) {
 	case -1:
 		break;
 	case I_GET:
-		memset(&g, 0, sizeof(g));
-		if (!remote_glob(in, out, path1, 0, NULL, &g)) {
-			if (path2) {
-				/* XXX: target should be directory */
-				error("You cannot specify a target when "
-				    "downloading multiple files");
-				err = -1;
-				break;
-			}
-			for(i = 0; g.gl_pathv[i]; i++) {
-				if (!infer_path(g.gl_pathv[i], &path2)) {
-					printf("Fetching %s\n", g.gl_pathv[i]);
-					if (do_download(in, out, g.gl_pathv[i],
-					    path2, pflag) == -1)
-						err = -1;
-					free(path2);
-					path2 = NULL;
-				} else
-					err = -1;
-			}
-		} else {
-			if (!path2 && infer_path(path1, &path2)) {
-				err = -1;
-				break;
-			}
-			err = do_download(in, out, path1, path2, pflag);
-		}
+		err = process_get(in, out, path1, path2, *pwd, pflag);
 		break;
 	case I_PUT:
-		if (!glob(path1, 0, NULL, &g)) {
-			if (path2) {
-				error("You cannot specify a target when "
-				    "uploading multiple files");
-				err = -1;
-				break;
-			}
-			for(i = 0; g.gl_pathv[i]; i++) {
-				if (!infer_path(g.gl_pathv[i], &path2)) {
-					path2 = make_absolute(path2, *pwd);
-					printf("Uploading %s\n", g.gl_pathv[i]);
-					if (do_upload(in, out, g.gl_pathv[i],
-					    path2, pflag) == -1)
-						err = -1;
-					free(path2);
-					path2 = NULL;
-				} else
-					err = -1;
-			}
-		} else {
-			if (!path2 && infer_path(path1, &path2)) {
-				err = -1;
-				break;
-			}
-			err = do_upload(in, out, path1, path2, pflag);
-		}
+		err = process_put(in, out, path1, path2, *pwd, pflag);
   		break;
   	case I_RENAME:
 		path1 = make_absolute(path1, *pwd);
@@ -561,7 +703,7 @@ parse_dispatch_command(int in, int out, const char *cmd, char **pwd)
 			err = 1;
 			break;
 		}
-		if ((aa = do_stat(in, out, tmp)) == NULL) {
+		if ((aa = do_stat(in, out, tmp, 0)) == NULL) {
 			xfree(tmp);
 			err = 1;
 			break;
@@ -592,7 +734,7 @@ parse_dispatch_command(int in, int out, const char *cmd, char **pwd)
 			break;
 		xfree(path1);
 		path1 = tmp;
-		if ((aa = do_stat(in, out, path1)) == NULL)
+		if ((aa = do_stat(in, out, path1, 0)) == NULL)
 			break;
 		if ((aa->flags & SSH2_FILEXFER_ATTR_PERMISSIONS) && 
 		    !S_ISDIR(aa->perm)) {
@@ -640,7 +782,7 @@ parse_dispatch_command(int in, int out, const char *cmd, char **pwd)
 		path1 = make_absolute(path1, *pwd);
 		remote_glob(in, out, path1, GLOB_NOCHECK, NULL, &g);
 		for(i = 0; g.gl_pathv[i]; i++) {
-			if (!(aa = do_stat(in, out, g.gl_pathv[i])))
+			if (!(aa = do_stat(in, out, g.gl_pathv[i], 0)))
 				continue;
 			if (!(aa->flags & SSH2_FILEXFER_ATTR_UIDGID)) {
 				error("Can't get current ownership of "
@@ -657,7 +799,7 @@ parse_dispatch_command(int in, int out, const char *cmd, char **pwd)
 		path1 = make_absolute(path1, *pwd);
 		remote_glob(in, out, path1, GLOB_NOCHECK, NULL, &g);
 		for(i = 0; g.gl_pathv[i]; i++) {
-			if (!(aa = do_stat(in, out, g.gl_pathv[i])))
+			if (!(aa = do_stat(in, out, g.gl_pathv[i], 0)))
 				continue;
 			if (!(aa->flags & SSH2_FILEXFER_ATTR_UIDGID)) {
 				error("Can't get current ownership of "
@@ -693,6 +835,8 @@ parse_dispatch_command(int in, int out, const char *cmd, char **pwd)
 		fatal("%d is not implemented", cmdnum);
 	}
 
+	if (g.gl_pathc)
+		globfree(&g);
 	if (path1)
 		xfree(path1);
 	if (path2)
