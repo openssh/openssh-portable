@@ -17,7 +17,7 @@
      rescinded 22 July 1999.  Proofed by myself and Theo.
  - (djm) Fix portable-specific uses of verify_reverse_mapping too
  - (djm) Sync openbsd-compat with OpenBSD CVS. 
-    - No more 4-term BSD licenses in our tree
+    - No more 4-term BSD licenses in linked code
  - (dtucker) [port-aix.c bsd-cray.c] Fix uses of verify_reverse_mapping.
 
 20030602
@@ -425,4 +425,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2769 2003/06/03 03:06:18 djm Exp $
+$Id: ChangeLog,v 1.2770 2003/06/03 03:09:16 djm Exp $
