@@ -1,3 +1,6 @@
+20030918
+ - (djm) Bug #652: Fix empty password auth
+
 20030917
  - (djm) Sync with V_3_7 branch
  - (djm) OpenBSD Sync
@@ -1115,4 +1118,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3000 2003/09/17 20:20:33 tim Exp $
+$Id: ChangeLog,v 1.3001 2003/09/18 08:25:46 djm Exp $
