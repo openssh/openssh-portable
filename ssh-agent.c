@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.62 2001/07/04 23:13:10 markus Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.63 2001/07/04 23:39:07 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.62 2001/07/04 23:13:10 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.63 2001/07/04 23:39:07 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -515,6 +515,7 @@ process_remove_smartcard_key(SocketEntry *e)
 	if ((k = sc_get_key(sc_reader_num)) == NULL) {
 		error("sc_get_pubkey failed");
 	} else {
+		k->type = KEY_RSA1;
 		private = lookup_private_key(k, &idx, 1);
 		if (private != NULL) {
 			Idtab *tab = idtab_lookup(1);
@@ -525,6 +526,7 @@ process_remove_smartcard_key(SocketEntry *e)
 			tab->nentries--;
 			success = 1;
 		}
+		k->type = KEY_RSA;
 		private = lookup_private_key(k, &idx, 2);
 		if (private != NULL) {
 			Idtab *tab = idtab_lookup(2);
@@ -536,7 +538,6 @@ process_remove_smartcard_key(SocketEntry *e)
 			success = 1;
 		}
 		key_free(k);
-		sc_close();
 	}
 
 	buffer_put_int(&e->output, 1);

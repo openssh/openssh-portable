@@ -10,6 +10,9 @@
    - markus@cvs.openbsd.org 2001/07/04 23:13:10
      [scard.c scard.h ssh-agent.c]
      handle card removal more gracefully, add sc_close() to scard.h
+   - markus@cvs.openbsd.org 2001/07/04 23:39:07
+     [ssh-agent.c]
+     for smartcards remove both RSA1/2 keys
 
 20010711
  - (djm) dirname(3) may modify its argument on glibc and other systems. 
@@ -5985,4 +5988,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1388 2001/07/14 02:13:26 djm Exp $
+$Id: ChangeLog,v 1.1389 2001/07/14 02:13:49 djm Exp $
