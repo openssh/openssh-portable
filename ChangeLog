@@ -4,6 +4,9 @@
      [sshd.c]
      fix broken fd handling in the re-exec fallback path, particularly when
      /dev/crypto is in use; ok deraadt@ markus@
+   - djm@cvs.openbsd.org 2004/06/25 23:21:38
+     [sftp.c]
+     bz #875: fix bad escape char error message; reported by f_mohr AT yahoo.de
 
 20040625
  - (dtucker) OpenBSD CVS Sync
@@ -1430,4 +1433,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3451 2004/06/25 22:16:31 djm Exp $
+$Id: ChangeLog,v 1.3452 2004/06/25 23:21:06 djm Exp $
