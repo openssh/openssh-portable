@@ -10,6 +10,9 @@
      [session.c ssh.c]
      don't limit xauth pathlen on client side and longer print length on
      server when debug; ok markus@
+   - deraadt@cvs.openbsd.org 2002/05/19 20:54:52
+     [log.h]
+     extra commas in enum not 100% portable
 
 20020604
  - (stevesk) [channels.c] bug #164 patch from YOSHIFUJI Hideaki (changed
@@ -694,4 +697,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2146 2002/06/06 19:49:54 mouring Exp $
+$Id: ChangeLog,v 1.2147 2002/06/06 19:51:06 mouring Exp $
