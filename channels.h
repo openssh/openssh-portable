@@ -10,7 +10,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 /*
- * Copyright (c) 1999, 2000, 2001 Markus Friedl.  All rights reserved.
+ * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -32,7 +32,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* RCSID("$OpenBSD: channels.h,v 1.58 2002/01/14 13:55:55 markus Exp $"); */
+/* RCSID("$OpenBSD: channels.h,v 1.59 2002/01/14 13:57:03 markus Exp $"); */
 
 #ifndef CHANNEL_H
 #define CHANNEL_H

@@ -179,6 +179,9 @@
    - markus@cvs.openbsd.org 2002/01/14 13:55:55
      [channels.c channels.h nchan.c]
      remove function pointers for events, remove chan_init*; ok provos@
+   - markus@cvs.openbsd.org 2002/01/14 13:57:03
+     [channels.h nchan.c]
+     (c) 2002
 
 20020121
  - (djm) Rework ssh-rand-helper:
@@ -7326,4 +7329,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1773 2002/01/22 12:28:45 djm Exp $
+$Id: ChangeLog,v 1.1774 2002/01/22 12:29:03 djm Exp $
