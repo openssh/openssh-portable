@@ -13,6 +13,10 @@
      [auth.c clientloop.c misc.h servconf.c ssh.c sshpty.h sshtty.c
      tildexpand.c], removed: sshtty.h tildexpand.h
      make two tiny header files go away; djm ok
+   - djm@cvs.openbsd.org 2004/05/08 00:21:31
+     [clientloop.c misc.h readpass.c scard.c ssh-add.c ssh-agent.c ssh-keygen.c
+     sshconnect.c sshconnect1.c sshconnect2.c] removed: readpass.h
+     kill a tiny header; ok deraadt@
 
 20040502
  - (dtucker) OpenBSD CVS Sync
@@ -1089,4 +1093,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3345 2004/05/13 06:06:46 dtucker Exp $
+$Id: ChangeLog,v 1.3346 2004/05/13 06:15:47 dtucker Exp $

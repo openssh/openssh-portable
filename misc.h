@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.h,v 1.13 2004/05/08 00:01:37 deraadt Exp $	*/
+/*	$OpenBSD: misc.h,v 1.14 2004/05/08 00:21:31 djm Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -11,6 +11,8 @@
  * incompatible with the protocol description in the RFC file, it must be
  * called by a name other than "ssh" or "Secure Shell".
  */
+
+/* misc.c */
 
 char	*chop(char *);
 char	*strdelim(char **);
@@ -32,4 +34,14 @@ struct arglist {
 };
 void	 addargs(arglist *, char *, ...) __attribute__((format(printf, 2, 3)));
 
+/* tildexpand.c */
+
 char	*tilde_expand_filename(const char *, uid_t);
+
+/* readpass.c */
+
+#define RP_ECHO			0x0001
+#define RP_ALLOW_STDIN		0x0002
+#define RP_ALLOW_EOF		0x0004
+
+char	*read_passphrase(const char *, int);

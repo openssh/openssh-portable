@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.113 2003/12/22 09:16:58 djm Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.114 2004/05/08 00:21:31 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -26,7 +26,7 @@ RCSID("$OpenBSD: ssh-keygen.c,v 1.113 2003/12/22 09:16:58 djm Exp $");
 #include "bufaux.h"
 #include "pathnames.h"
 #include "log.h"
-#include "readpass.h"
+#include "misc.h"
 #include "moduli.h"
 
 #ifdef SMARTCARD

@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.118 2004/05/08 00:01:37 deraadt Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.119 2004/05/08 00:21:31 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -81,7 +81,6 @@ RCSID("$OpenBSD: clientloop.c,v 1.118 2004/05/08 00:01:37 deraadt Exp $");
 #include "atomicio.h"
 #include "sshpty.h"
 #include "misc.h"
-#include "readpass.h"
 
 /* import options */
 extern Options options;
