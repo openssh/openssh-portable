@@ -13,6 +13,7 @@
    - markus@cvs.openbsd.org 2001/03/23 14:28:32
      [session.c sshd.c]
      ignore SIGPIPE, restore in child, fixes x11-fwd crashes; with djm@
+ - (djm) Pull out our own SIGPIPE hacks
 
 20010323
  - OpenBSD CVS Sync                             
@@ -4704,4 +4705,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1014 2001/03/24 00:43:26 mouring Exp $
+$Id: ChangeLog,v 1.1015 2001/03/24 04:39:38 djm Exp $

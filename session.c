@@ -496,8 +496,6 @@ do_exec_no_pty(Session *s, const char *command)
 		/* Child.  Reinitialize the log since the pid has changed. */
 		log_init(__progname, options.log_level, options.log_facility, log_stderr);
 
-		signal(SIGPIPE, SIG_DFL);
-
 		/*
 		 * Create a new session and process group since the 4.4BSD
 		 * setlogin() affects the entire process group.
@@ -612,8 +610,6 @@ do_exec_pty(Session *s, const char *command)
 	if ((pid = fork()) == 0) {
 		/* Child.  Reinitialize the log because the pid has changed. */
 		log_init(__progname, options.log_level, options.log_facility, log_stderr);
-
-		signal(SIGPIPE, SIG_DFL);
 
 		/* Close the master side of the pseudo tty. */
 		close(ptyfd);

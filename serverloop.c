@@ -420,7 +420,6 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 	child_pid = pid;
 	child_terminated = 0;
 	signal(SIGCHLD, sigchld_handler);
-	signal(SIGPIPE, SIG_IGN);
 
 	/* Initialize our global variables. */
 	fdin = fdin_arg;
@@ -655,7 +654,6 @@ server_loop2(void)
 	debug("Entering interactive session for SSH2.");
 
 	mysignal(SIGCHLD, sigchld_handler2);
-	signal(SIGPIPE, SIG_IGN);
 	child_terminated = 0;
 	connection_in = packet_get_connection_in();
 	connection_out = packet_get_connection_out();
