@@ -1,6 +1,6 @@
 20030504
- - (dtucker) Move #include of bsd-cygwin_util.h to openbsd-compat.h.  Patch from
-   vinschen@redhat.com.
+ - (dtucker) Bug #497: Move #include of bsd-cygwin_util.h to openbsd-compat.h.
+   Patch from vinschen@redhat.com.
 
 20030503
  - (dtucker) Add missing "void" to record_failed_login in bsd-cray.c.  Noted
@@ -1370,4 +1370,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2669 2003/05/04 00:41:20 dtucker Exp $
+$Id: ChangeLog,v 1.2670 2003/05/04 01:36:25 dtucker Exp $
