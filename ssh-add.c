@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.51 2002/03/19 10:49:35 markus Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.52 2002/03/21 10:21:20 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -310,6 +310,8 @@ main(int argc, char **argv)
 	if (argc == 0) {
 		char buf[MAXPATHLEN];
 		struct passwd *pw;
+		struct stat st;
+		int count = 0;
 
 		if ((pw = getpwuid(getuid())) == NULL) {
 			fprintf(stderr, "No user found with uid %u\n",
@@ -321,9 +323,15 @@ main(int argc, char **argv)
 		for(i = 0; default_files[i]; i++) {
 			snprintf(buf, sizeof(buf), "%s/%s", pw->pw_dir,
 			    default_files[i]);
+			if (stat(buf, &st) < 0)
+				continue;
 			if (do_file(ac, deleting, buf) == -1)
 				ret = 1;
+			else
+				count++;
 		}
+		if (count == 0)
+			ret = 1;
 	} else {
 		for(i = 0; i < argc; i++) {
 			if (do_file(ac, deleting, argv[i]) == -1)

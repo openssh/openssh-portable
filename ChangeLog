@@ -104,6 +104,9 @@
      [servconf.c servconf.h ssh.h sshd.c]
      for unprivileged user, group do:
      pw=getpwnam(SSH_PRIVSEP_USER); do_setusercontext(pw).  ok provos@
+   - stevesk@cvs.openbsd.org 2002/03/20 21:08:08
+     [sshd.c]
+     strerror() on chdir() fail; ok provos@
    - markus@cvs.openbsd.org 2002/03/21 10:21:20
      [ssh-add.c]
      ignore errors for nonexisting default keys in ssh-add,
@@ -7954,4 +7957,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1955 2002/03/22 03:14:45 mouring Exp $
+$Id: ChangeLog,v 1.1956 2002/03/22 03:21:16 mouring Exp $
