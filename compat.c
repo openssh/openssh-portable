@@ -31,11 +31,7 @@ RCSID("$OpenBSD: compat.c,v 1.34 2001/01/21 19:05:48 markus Exp $");
 #  ifdef HAVE_REGEX_H
 #    include <regex.h>
 #  else
-#    ifdef HAVE_REGCOMP
-#      include "fake-regex.h"
-#    else
-#      error "No regular expression library detected.  See INSTALL file."
-#    endif
+#    include "fake-regex.h"
 #  endif
 #endif /* HAVE_LIBPCRE */
 
