@@ -24,6 +24,8 @@
 /* Define if you *don't* want to use an external ssh-askpass */
 #undef DISABLE_EXTERNAL_ASKPASS
 
+@BOTTOM@
+
 /* ******************* Shouldn't need to edit below this line ************** */
 
 #ifndef SHUT_RDWR
