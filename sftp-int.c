@@ -25,7 +25,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.63 2003/10/07 07:04:16 djm Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.64 2003/11/08 19:17:29 jmc Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -50,7 +50,7 @@ extern int num_requests;
 /* This is set to 0 if the progressmeter is not desired. */
 int showprogress = 1;
 
-/* Seperators for interactive commands */
+/* Separators for interactive commands */
 #define WHITESPACE " \t\r\n"
 
 /* Define what type of ls view (0 - multi-column) */
