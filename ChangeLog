@@ -7,6 +7,7 @@
  - (tim) [configure.ac Makefile.in] Add support for "make package" ok djm@
  - (tim) [buildpkg.sh.in] New file. A more flexible version of
    contrib/solaris/buildpkg.sh used for "make package".
+ - (tim) [buildpkg.sh.in] Last minute fix didn't make it in the .in file.
 
 20040527
  - (dtucker) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec
@@ -1173,4 +1174,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3371 2004/05/31 04:38:51 tim Exp $
+$Id: ChangeLog,v 1.3372 2004/05/31 04:48:40 tim Exp $

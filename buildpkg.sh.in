@@ -547,4 +547,5 @@ echo | pkgtrans -os ${FAKE_ROOT} ${START}/$PKGNAME-$VERSION-$UNAME_S-$ARCH.pkg
 esac
 
 [ "${REMOVE_FAKE_ROOT_WHEN_DONE}" = yes ]  &&  rm -rf $FAKE_ROOT
+exit 0
 
