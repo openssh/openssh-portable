@@ -1,3 +1,8 @@
+20040212
+ - (tim) [Makefile.in regress/sftp-badcmds.sh regress/test-exec.sh]
+   Portablity fixes. Data sftp transfers needs to be world readable. Some
+   older shells hang on while loops when  doing sh -n some_script. OK dtucker@
+
 20040211
  - (dtucker) [auth-passwd.c auth-shadow.c] Only enable shadow expiry check
    if HAS_SHADOW_EXPIRY is set.
@@ -1845,4 +1850,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3226 2004/02/11 22:46:40 tim Exp $
+$Id: ChangeLog,v 1.3227 2004/02/12 15:17:10 tim Exp $

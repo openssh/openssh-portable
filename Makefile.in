@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.255 2004/02/10 02:01:14 dtucker Exp $
+# $Id: Makefile.in,v 1.256 2004/02/12 15:17:11 tim Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -375,6 +375,7 @@ tests:	$(TARGETS)
 	[ -d `pwd`/regress ]  ||  mkdir -p `pwd`/regress; \
 	[ -f `pwd`/regress/Makefile ]  || \
 	    ln -s $(srcdir)/regress/Makefile `pwd`/regress/Makefile ; \
+	TEST_SHELL="@TEST_MINUS_S_SH@"; \
 	TEST_SSH_SSH="$${BUILDDIR}/ssh"; \
 	TEST_SSH_SSHD="$${BUILDDIR}/sshd"; \
 	TEST_SSH_SSHAGENT="$${BUILDDIR}/ssh-agent"; \
@@ -390,6 +391,7 @@ tests:	$(TARGETS)
 		BUILDDIR="$${BUILDDIR}" \
 		OBJ="$${BUILDDIR}/regress/" \
 		PATH="$${BUILDDIR}:$${PATH}" \
+		TEST_SHELL="$${TEST_SHELL}" \
 		TEST_SSH_SSH="$${TEST_SSH_SSH}" \
 		TEST_SSH_SSHD="$${TEST_SSH_SSHD}" \
 		TEST_SSH_SSHAGENT="$${TEST_SSH_SSHAGENT}" \
