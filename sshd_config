@@ -1,4 +1,4 @@
-#	$OpenBSD: sshd_config,v 1.39 2001/05/20 17:20:36 markus Exp $
+#	$OpenBSD: sshd_config,v 1.40 2001/05/31 13:08:04 markus Exp $
 
 # This sshd was compiled with PATH=/usr/bin:/bin:/usr/sbin:/sbin
 
@@ -9,41 +9,43 @@ Port 22
 #Protocol 2,1
 #ListenAddress 0.0.0.0
 #ListenAddress ::
+
+# HostKey for protocol version 1
 HostKey /etc/ssh_host_key
+# HostKeys for protocol version 2
 HostKey /etc/ssh_host_rsa_key
 HostKey /etc/ssh_host_dsa_key
-ServerKeyBits 768
-LoginGraceTime 600
+
+# Lifetime and size of ephemeral version 1 server key
 KeyRegenerationInterval 3600
-PermitRootLogin yes
-#
-# Don't read ~/.rhosts and ~/.shosts files
-IgnoreRhosts yes
-# Uncomment if you don't trust ~/.ssh/known_hosts for RhostsRSAAuthentication
-#IgnoreUserKnownHosts yes
-StrictModes yes
-X11Forwarding no
-X11DisplayOffset 10
-PrintMotd yes
-#PrintLastLog no
-KeepAlive yes
+ServerKeyBits 768
 
 # Logging
 SyslogFacility AUTH
 LogLevel INFO
 #obsoletes QuietMode and FascistLogging
 
-RhostsAuthentication no
-#
-# For this to work you will also need host keys in /etc/ssh_known_hosts
-RhostsRSAAuthentication no
-# similar for protocol version 2
-HostbasedAuthentication no
-#
+# Authentication:
+
+LoginGraceTime 600
+PermitRootLogin yes
+StrictModes yes
+
 RSAAuthentication yes
 PubkeyAuthentication yes
 #AuthorizedKeysFile	%h/.ssh/authorized_keys
 #AuthorizedKeysFile2	%h/.ssh/authorized_keys2
+
+# rhosts authentication should not be used
+RhostsAuthentication no
+# Don't read the user's ~/.rhosts and ~/.shosts files
+IgnoreRhosts yes
+# For this to work you will also need host keys in /etc/ssh_known_hosts
+RhostsRSAAuthentication no
+# similar for protocol version 2
+HostbasedAuthentication no
+# Uncomment if you don't trust ~/.ssh/known_hosts for RhostsRSAAuthentication
+#IgnoreUserKnownHosts yes
 
 # To disable tunneled clear text passwords, change to no here!
 PasswordAuthentication yes
@@ -65,6 +67,11 @@ PermitEmptyPasswords no
 # Kerberos TGT Passing does only work with the AFS kaserver
 #KerberosTgtPassing yes
 
+X11Forwarding no
+X11DisplayOffset 10
+PrintMotd yes
+#PrintLastLog no
+KeepAlive yes
 #CheckMail yes
 #UseLogin no
 
