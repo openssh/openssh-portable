@@ -9,6 +9,9 @@
      [auth.h]
      remove kerberos support from ssh1, since it has been replaced with GSSAPI;
      but keep kerberos passwd auth for ssh1 and 2; ok djm, hin, henning, ...
+   - markus@cvs.openbsd.org 2003/09/02 16:40:29
+     [version.h]
+     enter 3.7
 
 20030902
  - (djm) OpenBSD CVS Sync
@@ -980,4 +983,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2939 2003/09/03 02:11:30 djm Exp $
+$Id: ChangeLog,v 1.2940 2003/09/03 02:12:54 djm Exp $
