@@ -167,7 +167,6 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 
 #include "version.h"
 #include "openbsd-compat/openbsd-compat.h"
-#include "openbsd-compat/bsd-cygwin_util.h"
 #include "openbsd-compat/bsd-nextstep.h"
 
 #include "entropy.h"
