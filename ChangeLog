@@ -1,4 +1,7 @@
 20000916
+ - (djm) Add Steve VanDevender's <stevev@darkwing.uoregon.edu> PAM 
+   password change patch.
+ - (djm) Bring licenses on my stuff in line with OpenBSD's
  - (djm) Cleanup auth-passwd.c and unify HP/UX authentication. Patch from
    Kevin Steves <stevesk@sweden.hp.com>
  - (djm) Shadow expiry check fix from Pavel Troller <patrol@omni.sinus.cz>

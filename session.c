@@ -729,6 +729,8 @@ do_login(Session *s)
 
 #ifdef USE_PAM
 	print_pam_messages();
+	/* If password change is needed, do it now. */
+	do_pam_chauthtok();
 #endif /* USE_PAM */
 #ifdef WITH_AIXAUTHENTICATE
 	if (aixloginmsg && *aixloginmsg)

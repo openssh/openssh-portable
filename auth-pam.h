@@ -11,5 +11,6 @@ int do_pam_account(char *username, char *remote_user);
 void do_pam_session(char *username, const char *ttyname);
 void do_pam_setcred();
 void print_pam_messages(void);
+void do_pam_chauthtok();
 
 #endif /* USE_PAM */
