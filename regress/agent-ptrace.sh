@@ -5,7 +5,7 @@ tid="disallow agent ptrace attach"
 
 if have_prog uname ; then
 	case `uname` in
-	Linux|HP-UX|SunOS|NetBSD|AIX|CYGWIN*)
+	CYGWIN*)
 		echo "skipped (not supported on this platform)"
 		exit 0
 		;;
@@ -17,6 +17,15 @@ if have_prog gdb ; then
 else
 	echo "skipped (gdb not found)"
 	exit 0
+fi
+
+if test -z "$SUDO" ; then
+	echo "skipped (SUDO not set)"
+	exit 0
+else
+	$SUDO chown root ${OBJ}${SSHAGENT}
+	$SUDO chgrp root ${OBJ}${SSHAGENT}
+	$SUDO chmod 2755 ${OBJ}${SSHAGENT}
 fi
 
 trace "start agent"
