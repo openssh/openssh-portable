@@ -31,11 +31,7 @@ RCSID("$OpenBSD: ssh-keyscan.c,v 1.43 2003/04/26 04:29:49 deraadt Exp $");
 
 /* Flag indicating whether IPv4 or IPv6.  This can be set on the command line.
    Default value is AF_UNSPEC means both IPv4 and IPv6. */
-#ifdef IPV4_DEFAULT
-int IPv4or6 = AF_INET;
-#else
 int IPv4or6 = AF_UNSPEC;
-#endif
 
 int ssh_port = SSH_DEFAULT_PORT;
 

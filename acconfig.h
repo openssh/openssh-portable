@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.153 2003/05/15 02:27:08 djm Exp $ */
+/* $Id: acconfig.h,v 1.154 2003/05/18 10:52:40 djm Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -294,9 +294,6 @@
 
 /* Specify location of ssh.pid */
 #undef _PATH_SSH_PIDDIR
-
-/* Use IPv4 for connection by default, IPv6 can still if explicity asked */
-#undef IPV4_DEFAULT
 
 /* getaddrinfo is broken (if present) */
 #undef BROKEN_GETADDRINFO

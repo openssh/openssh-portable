@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.121 2003/05/15 11:42:59 dtucker Exp $
+# $Id: configure.ac,v 1.122 2003/05/18 10:52:40 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -95,7 +95,6 @@ case "$host" in
 	AC_DEFINE(HAVE_CYGWIN)
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(DISABLE_SHADOW)
-	AC_DEFINE(IPV4_DEFAULT)
 	AC_DEFINE(IP_TOS_IS_BROKEN)
 	AC_DEFINE(NO_X11_UNIX_SOCKETS)
 	AC_DEFINE(NO_IPPORT_RESERVED_CONCEPT)
@@ -2249,18 +2248,6 @@ AC_ARG_WITH(superuser-path,
 )
 
 
-# Whether to force IPv4 by default (needed on broken glibc Linux)
-IPV4_HACK_MSG="no" 
-AC_ARG_WITH(ipv4-default,
-	[  --with-ipv4-default     Use IPv4 by connections unless '-6' specified],
-	[
-		if test "x$withval" != "xno" ; then	
-			AC_DEFINE(IPV4_DEFAULT)
-			IPV4_HACK_MSG="yes" 
-		fi
-	]
-)
-
 AC_MSG_CHECKING([if we need to convert IPv4 in IPv6-mapped addresses])
 IPV4_IN6_HACK_MSG="no" 
 AC_ARG_WITH(4in6,
@@ -2601,7 +2588,6 @@ echo "                     S/KEY support: $SKEY_MSG"
 echo "              TCP Wrappers support: $TCPW_MSG"
 echo "              MD5 password support: $MD5_MSG"
 echo "       IP address in \$DISPLAY hack: $DISPLAY_HACK_MSG"
-echo "          Use IPv4 by default hack: $IPV4_HACK_MSG"
 echo "           Translate v4 in v6 hack: $IPV4_IN6_HACK_MSG"
 echo "                  BSD Auth support: $BSD_AUTH_MSG"
 echo "              Random number source: $RAND_MSG"

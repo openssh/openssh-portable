@@ -112,11 +112,7 @@ char *config_file_name = _PATH_SERVER_CONFIG_FILE;
  * Flag indicating whether IPv4 or IPv6.  This can be set on the command line.
  * Default value is AF_UNSPEC means both IPv4 and IPv6.
  */
-#ifdef IPV4_DEFAULT
-int IPv4or6 = AF_INET;
-#else
 int IPv4or6 = AF_UNSPEC;
-#endif
 
 /*
  * Debug mode flag.  This can be set on the command line.  If debug
