@@ -32,7 +32,7 @@
    - Don't install config files if they already exist
    - Fix inclusion of additional preprocessor directives from acconfig.h
  - Removed redundant inclusions of config.h
- - Added 'Obseletes' lines to RPM spec file
+ - Added 'Obsoletes' lines to RPM spec file
  - Merged OpenBSD CVS changes:
    - [bufaux.c] save a view malloc/memcpy/memset/free's, ok niels
    - [scp.c] fix overflow reported by damien@ibs.com.au: off_t 
