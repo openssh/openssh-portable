@@ -146,6 +146,9 @@
    - markus@cvs.openbsd.org 2002/01/11 23:02:51
      [auth2-chall.c]
      use snprintf; mouring@
+   - markus@cvs.openbsd.org 2002/01/11 23:26:30
+     [auth-skey.c]
+     use snprintf; mouring@
 
 
 20020121
@@ -7294,4 +7297,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1764 2002/01/22 12:25:08 djm Exp $
+$Id: ChangeLog,v 1.1765 2002/01/22 12:25:30 djm Exp $
