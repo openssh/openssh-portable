@@ -1,4 +1,5 @@
 20010409
+ - (stevesk) configure.in: typo
  - OpenBSD CVS Sync
    - stevesk@cvs.openbsd.org 2001/04/08 16:01:36
      [sshd.8]
@@ -4964,4 +4965,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1085 2001/04/08 18:38:04 mouring Exp $
+$Id: ChangeLog,v 1.1086 2001/04/08 22:50:44 stevesk Exp $

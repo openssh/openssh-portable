@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.272 2001/04/05 17:15:08 stevesk Exp $
+# $Id: configure.in,v 1.273 2001/04/08 22:50:43 stevesk Exp $
 
 AC_INIT(ssh.c)
 
@@ -1926,7 +1926,7 @@ G=`eval echo ${piddir}` ; G=`eval echo ${G}`
 H=`eval echo ${user_path}` ; H=`eval echo ${H}`
 
 echo ""
-echo "OpenSSH configured has been configured with the following options."
+echo "OpenSSH has been configured with the following options:"
 echo "                 User binaries: $B"
 echo "               System binaries: $C"
 echo "           Configuration files: $D"
