@@ -9,6 +9,9 @@
 
 #include "includes.h"
 RCSID("$OpenBSD: session.c,v 1.20 2000/06/18 04:42:54 markus Exp $");
+#if defined(HAVE_USERSEC_H)
+#include <usersec.h>
+#endif
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -789,6 +792,57 @@ void do_pam_environment(char ***env, int *envsize)
 }
 #endif /* USE_PAM */
 
+#if defined(HAVE_GETUSERATTR)
+/*
+ * AIX-specific login initialisation
+ */
+void set_limit(char *user, char *soft, char *hard, int resource, int mult)
+{
+	struct rlimit rlim;
+	rlim_t tlim;
+	int mask;
+
+	getrlimit(resource, &rlim);
+
+	tlim = (rlim_t) 0;
+	if (getuserattr(user, soft, &tlim, SEC_INT) != -1 && tlim)
+		rlim.rlim_cur = tlim * mult;
+
+	tlim = (rlim_t) 0;
+	if (getuserattr(user, hard, &tlim, SEC_INT) != -1 && tlim)
+		rlim.rlim_max = tlim * mult;
+
+	if (rlim.rlim_cur > rlim.rlim_max)
+		rlim.rlim_max = rlim.rlim_cur;
+
+	if (setrlimit(resource, &rlim) != 0)
+		error("setrlimit(%.10s) failed: %.100s", soft, strerror(errno))
+}
+
+void set_limits_from_userattr(char *user)
+{
+	int mask;
+	char buf[16];
+
+	set_limit(user, S_UFSIZE, S_UFSIZE_HARD, RLIMIT_FSIZE, 512);
+	set_limit(user, S_UCPU, S_UCPU_HARD, RLIMIT_CPU, 1);
+	set_limit(user, S_UDATA, S_UDATA_HARD, RLIMIT_DATA, 512);
+	set_limit(user, S_USTACK, S_USTACK_HARD, RLIMIT_STACK, 512);
+	set_limit(user, S_URSS, S_URSS_HARD, RLIMIT_RSS, 512);
+	set_limit(user, S_UCORE, S_UCORE_HARD, RLIMIT_CORE, 512);
+#if defined(S_UNOFILE)
+	set_limit(user, S_UNOFILE, S_UNOFILE_HARD, RLIMIT_NOFILE, 1);
+#endif
+
+	if (getuserattr(user, S_UMASK, &mask, SEC_INT) != -1) {
+		/* Convert decimal to octal */
+		(void) snprintf(buf, sizeof(buf), "%d", mask);
+		if (sscanf(buf, "%o", &mask) == 1)
+			umask(mask);
+	}
+}
+#endif /* defined(HAVE_GETUSERATTR) */
+
 /*
  * Performs common processing for the child, such as setting up the
  * environment, closing extra file descriptors, setting the user and group
@@ -855,6 +909,10 @@ do_child(const char *command, struct passwd * pw, const char *term,
 		}
 #else /* HAVE_OSF_SIA */
 		if (getuid() == 0 || geteuid() == 0) {
+#if defined(HAVE_GETUSERATTR)
+			set_limits_from_userattr(pw->pw_name);
+#endif /* defined(HAVE_GETUSERATTR) */
+
 			if (setgid(pw->pw_gid) < 0) {
 				perror("setgid");
 				exit(1);

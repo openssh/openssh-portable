@@ -6,6 +6,9 @@
 
 @TOP@
 
+/* Define if you have the getuserattr function.  */
+#undef HAVE_GETUSERATTR
+
 /* Work around problematic Linux PAM modules handling of PAM_TTY */
 #undef PAM_TTY_KLUDGE
 
