@@ -3,6 +3,9 @@
    - itojun@cvs.openbsd.org 2002/03/08 06:10:16
      [sftp-client.c]
      printf type mismatch
+   - itojun@cvs.openbsd.org 2002/03/11 03:18:49
+     [sftp-client.c]
+     correct type mismatches (u_int64_t != unsigned long long)
 
 20020317
  - (tim) [configure.ac] Assume path given with --with-pid-dir=PATH is wanted,
@@ -7849,4 +7852,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1924 2002/03/22 01:00:57 mouring Exp $
+$Id: ChangeLog,v 1.1925 2002/03/22 01:03:15 mouring Exp $
