@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.296 2004/06/25 18:43:36 djm Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.297 2004/06/26 20:07:16 avsm Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -874,7 +874,8 @@ main(int ac, char **av)
 {
 	extern char *optarg;
 	extern int optind;
-	int opt, sock_in = 0, sock_out = 0, newsock, j, i, fdsetsz, on = 1;
+	int opt, j, i, fdsetsz, on = 1;
+	int sock_in = -1, sock_out = -1, newsock = -1;
 	pid_t pid;
 	socklen_t fromlen;
 	fd_set *fdset;
