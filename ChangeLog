@@ -1,3 +1,10 @@
+20040121
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2004/01/13 09:25:05
+     [sftp-int.c sftp.1 sftp.c]
+     Tidy sftp batchmode handling, eliminate junk to stderr (bugzilla #754) and
+     enable use of "-b -" to accept batchfile from stdin; ok markus@
+
 20040114
  - (dtucker) [auth-pam.c] Have monitor die if PAM authentication thread exits
    unexpectedly.  with & ok djm@
@@ -1666,4 +1673,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3169 2004/01/14 13:15:07 dtucker Exp $
+$Id: ChangeLog,v 1.3170 2004/01/20 23:58:47 djm Exp $
