@@ -22,7 +22,7 @@ Environment variables.
 
 SUDO: path to sudo command, if desired. Note that some systems (notably
 	systems using PAM) require sudo to execute some tests.
-TEST_SSH_TRACE: set yo "yes" for verbose output from tests 
+TEST_SSH_TRACE: set to "yes" for verbose output from tests 
 TEST_SSH_QUIET: set to "yes" to suppress non-fatal output.
 TEST_SSH_x: path to "ssh" command under test, where x=SSH,SSHD,SSHAGENT,SSHADD
 	SSHKEYGEN,SSHKEYSCAN,SFTP,SFTPSERVER
@@ -83,4 +83,4 @@ Failed tests can be difficult to diagnose. Suggestions:
 Known Issues.
 
 
-$Id: README.regress,v 1.1 2003/09/04 05:39:54 dtucker Exp $
+$Id: README.regress,v 1.2 2004/01/26 17:37:09 tim Exp $
