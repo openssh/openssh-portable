@@ -34,7 +34,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.84 2002/03/25 17:34:27 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.85 2002/04/02 11:49:39 markus Exp $");
 
 #if defined(HAVE_SYS_QUEUE_H) && !defined(HAVE_BOGUS_SYS_QUEUE_H)
 #include <sys/queue.h>
@@ -867,7 +867,7 @@ main(int ac, char **av)
 	if (ac > 0 && (c_flag || k_flag || s_flag || d_flag))
 		usage();
 
-	if (ac == 0 && !c_flag && !k_flag && !s_flag && !d_flag) {
+	if (ac == 0 && !c_flag && !s_flag) {
 		shell = getenv("SHELL");
 		if (shell != NULL && strncmp(shell + strlen(shell) - 3, "csh", 3) == 0)
 			c_flag = 1;

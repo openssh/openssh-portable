@@ -29,6 +29,10 @@
    - markus@cvs.openbsd.org 2002/04/01 22:07:17
      [sftp-client.c]
      fallback to stat if server does not support lstat
+   - markus@cvs.openbsd.org 2002/04/02 11:49:39
+     [ssh-agent.c]
+     check $SHELL for -k and -d, too;
+     http://bugzilla.mindrot.org/show_bug.cgi?id=199
 
 20020401
  - (stevesk) [monitor.c] PAM should work again; will *not* work with
@@ -8136,4 +8140,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2016 2002/04/02 21:00:31 mouring Exp $
+$Id: ChangeLog,v 1.2017 2002/04/02 21:03:51 mouring Exp $
