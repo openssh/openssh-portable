@@ -1,3 +1,9 @@
+20010120
+ - (bal) OpenBSD Resync
+   - markus@cvs.openbsd.org 2001/01/19 12:45:26
+     [ssh-chall.c servconf.c servconf.h ssh.h sshd.c]
+     only auth-chall.c needs #ifdef SKEY
+
 20010119
  - (djm) Update versions in RPM specfiles
  - (bal) OpenBSD Resync

@@ -322,7 +322,7 @@ do_authloop(Authctxt *authctxt)
 			fatal("INTERNAL ERROR: authenticated invalid user %s",
 			    authctxt->user);
 
-#ifdef HAVE_CYGWIN		/* ISSUE: Right place? */
+#ifdef HAVE_CYGWIN		
 		if (authenticated && 
 		    !check_nt_auth(type == SSH_CMSG_AUTH_PASSWORD,pw->pw_uid)) {
 			packet_disconnect("Authentication rejected for uid %d.",

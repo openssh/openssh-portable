@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.152 2001/01/18 16:20:22 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.153 2001/01/19 12:45:27 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -1250,10 +1250,8 @@ do_ssh1_kex(void)
 	if (options.afs_token_passing)
 		auth_mask |= 1 << SSH_PASS_AFS_TOKEN;
 #endif
-#ifdef SKEY
 	if (options.skey_authentication == 1)
 		auth_mask |= 1 << SSH_AUTH_TIS;
-#endif
 	if (options.password_authentication)
 		auth_mask |= 1 << SSH_AUTH_PASSWORD;
 	packet_put_int(auth_mask);
