@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.11 2002/05/15 15:47:49 mouring Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.12 2002/06/04 19:42:35 markus Exp $");
 
 #include <openssl/dh.h>
 
@@ -581,7 +581,8 @@ mm_answer_authpassword(int socket, Buffer *m)
 
 	passwd = buffer_get_string(m, &plen);
 	/* Only authenticate if the context is valid */
-	authenticated = authctxt->valid && auth_password(authctxt, passwd);
+	authenticated = options.password_authentication &&
+	    authctxt->valid && auth_password(authctxt, passwd);
 	memset(passwd, 0, strlen(passwd));
 	xfree(passwd);
 
@@ -642,7 +643,8 @@ mm_answer_bsdauthrespond(int socket, Buffer *m)
 		fatal("%s: no bsd auth session", __FUNCTION__);
 
 	response = buffer_get_string(m, NULL);
-	authok = auth_userresponse(authctxt->as, response, 0);
+	authok = options.challenge_response_authentication &&
+	    auth_userresponse(authctxt->as, response, 0);
 	authctxt->as = NULL;
 	debug3("%s: <%s> = <%d>", __FUNCTION__, response, authok);
 	xfree(response);
@@ -688,7 +690,8 @@ mm_answer_skeyrespond(int socket, Buffer *m)
 
 	response = buffer_get_string(m, NULL);
 
-	authok = (authctxt->valid &&
+	authok = (options.challenge_response_authentication &&
+	    authctxt->valid &&
 	    skey_haskey(authctxt->pw->pw_name) == 0 &&
 	    skey_passcheck(authctxt->pw->pw_name, response) != -1);
 
@@ -760,15 +763,18 @@ mm_answer_keyallowed(int socket, Buffer *m)
 	if (key != NULL && authctxt->pw != NULL) {
 		switch(type) {
 		case MM_USERKEY:
-			allowed = user_key_allowed(authctxt->pw, key);
+			allowed = options.pubkey_authentication &&
+			    user_key_allowed(authctxt->pw, key);
 			break;
 		case MM_HOSTKEY:
-			allowed = hostbased_key_allowed(authctxt->pw,
+			allowed = options.hostbased_authentication &&
+			    hostbased_key_allowed(authctxt->pw,
 			    cuser, chost, key);
 			break;
 		case MM_RSAHOSTKEY:
 			key->type = KEY_RSA1; /* XXX */
-			allowed = auth_rhosts_rsa_key_allowed(authctxt->pw,
+			allowed = options.rhosts_rsa_authentication &&
+			    auth_rhosts_rsa_key_allowed(authctxt->pw,
 			    cuser, chost, key);
 			break;
 		default:
@@ -958,7 +964,7 @@ mm_answer_keyverify(int socket, Buffer *m)
 	buffer_put_int(m, verified);
 	mm_request_send(socket, MONITOR_ANS_KEYVERIFY, m);
 
-	auth_method = "publickey";
+	auth_method = key_blobtype == MM_USERKEY ? "publickey" : "hostbased";
 
 	return (verified);
 }
@@ -1137,7 +1143,7 @@ mm_answer_rsa_keyallowed(int socket, Buffer *m)
 
 	debug3("%s entering", __FUNCTION__);
 
-	if (authctxt->valid) {
+	if (options.rsa_authentication && authctxt->valid) {
 		if ((client_n = BN_new()) == NULL)
 			fatal("%s: BN_new", __FUNCTION__);
 		buffer_get_bignum2(m, client_n);

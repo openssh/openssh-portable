@@ -84,6 +84,9 @@
      decriptor -> descriptor
      authentciated -> authenticated
      transmition -> transmission
+   - markus@cvs.openbsd.org 2002/06/04 19:42:35
+     [monitor.c]
+     only allow enabled authentication methods; ok provos@
 
 20020604
  - (stevesk) [channels.c] bug #164 patch from YOSHIFUJI Hideaki (changed
@@ -768,4 +771,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2166 2002/06/06 20:56:07 mouring Exp $
+$Id: ChangeLog,v 1.2167 2002/06/06 20:57:17 mouring Exp $
