@@ -27,6 +27,9 @@
    - markus@cvs.openbsd.org 2003/07/03 08:21:46
      [regress/dynamic-forward.sh]
      add socks5; speedup; reformat; based on patch from dtucker@zip.com.au
+   - markus@cvs.openbsd.org 2003/07/03 08:24:13
+     [regress/Makefile]
+     enable tests for dynamic fwd via socks (-D), uses nc(1)
 
 20030630
  - (djm) Search for support functions necessary to build our 
@@ -647,4 +650,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2842 2003/07/03 10:26:04 dtucker Exp $
+$Id: ChangeLog,v 1.2843 2003/07/03 10:27:55 dtucker Exp $
