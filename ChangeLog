@@ -32,6 +32,7 @@
      [version.h]
      3.6.1
  - (djm) Crank spec file versions
+ - (djm) Release 3.6.1p1
 
 20030326
  - (djm) OpenBSD CVS Sync
@@ -1294,4 +1295,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2647 2003/04/01 11:46:53 djm Exp $
+$Id: ChangeLog,v 1.2648 2003/04/01 11:47:16 djm Exp $
