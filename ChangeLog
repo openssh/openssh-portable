@@ -9,7 +9,7 @@
    - [regress/reconfigure/sh] Make path to sshd fully qualified if required.
    - [regress/rekey.sh] Remove dependence on /dev/zero (not all platforms have
      it).  The sparse file will take less disk space too.
-   - [regress/sftp-cmds.sh] Ensure file used for test are readable.
+   - [regress/sftp-cmds.sh] Ensure files used for test are readable.
    - [regress/stderr-after-eof.sh] Search for a usable checksum program.
    - [regress/sftp-badcmds.sh regress/sftp-cmds.sh regress/sftp.sh
      regress/ssh-com-client.sh regress/ssh-com-sftp.sh regress/stderr-data.sh
@@ -25,6 +25,8 @@
      use Strictmodes no, wait longer for sshd startup.
    - [regress/Makefile] Remove BSDisms.
    - [regress/README.regress] Add a basic readme.
+   - [Makefile.in regress/agent-getpeereid.sh] config.h is now in $BUILDDIR
+     not $OBJ.
 
 20030903
  - (djm) OpenBSD CVS Sync
@@ -1015,4 +1017,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2958 2003/09/04 05:39:54 dtucker Exp $
+$Id: ChangeLog,v 1.2959 2003/09/04 08:04:16 dtucker Exp $

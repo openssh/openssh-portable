@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.243 2003/09/04 03:41:06 dtucker Exp $
+# $Id: Makefile.in,v 1.244 2003/09/04 08:04:16 dtucker Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -383,6 +383,7 @@ tests:	$(TARGETS)
 	$(MAKE) \
 		.OBJDIR="$${BUILDDIR}/regress" \
 		.CURDIR="`pwd`" \
+		BUILDDIR="$${BUILDDIR}" \
 		OBJ="$${BUILDDIR}/regress" \
 		PATH="$${BUILDDIR}:$${PATH}" \
 		TEST_SSH_SSH="$${TEST_SSH_SSH}" \
