@@ -252,7 +252,7 @@ auth_log(Authctxt *authctxt, int authenticated, char *method, char *info)
 	    !authctxt->valid ||
 	    authctxt->failures >= AUTH_FAIL_LOG ||
 	    strcmp(method, "password") == 0)
-		authlog = log;
+		authlog = logit;
 
 	if (authctxt->postponed)
 		authmsg = "Postponed";

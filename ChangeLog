@@ -34,6 +34,7 @@
      [servconf.c]
      Don't include <krb.h> when compiling with Kerberos 5 support
    - (djm) Fix up missing include for packet.c
+   - (djm) Fix missed log => logit occurance (reference by function pointer)
 
 20030402
  - (bal) if IP_TOS is not found or broken don't try to compile in
@@ -1336,4 +1337,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2657 2003/04/09 11:07:14 djm Exp $
+$Id: ChangeLog,v 1.2658 2003/04/09 11:12:11 djm Exp $
