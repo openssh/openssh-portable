@@ -13,7 +13,7 @@
 #include "xmalloc.h"
 #include "servconf.h"
 
-RCSID("$Id: auth-pam.c,v 1.1 1999/12/30 04:11:25 damien Exp $");
+RCSID("$Id: auth-pam.c,v 1.2 2000/01/26 23:55:38 damien Exp $");
 
 /* Callbacks */
 static int pamconv(int num_msg, const struct pam_message **msg,
@@ -174,7 +174,7 @@ int do_pam_account(char *username, char *remote_user)
 }
 
 /* Do PAM-specific session initialisation */
-void do_pam_session(char *username, char *ttyname)
+void do_pam_session(char *username, const char *ttyname)
 {
 	int pam_retval;
 
