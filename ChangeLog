@@ -38,6 +38,9 @@
       monitor_wrap.c monitor_wrap.h scard.h session.h sftp-glob.c ssh.c
       sshconnect2.c sshd.c]
      minor KNF
+   - deraadt@cvs.openbsd.org 2002/07/01 16:15:25
+     [msg.c]
+     %u
 
 20020702
  - (djm) Use PAM_MSG_MEMBER for PAM_TEXT_INFO messages, use xmalloc & 
@@ -1246,4 +1249,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2325 2002/07/04 00:14:17 mouring Exp $
+$Id: ChangeLog,v 1.2326 2002/07/04 00:15:22 mouring Exp $
