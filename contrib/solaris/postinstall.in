@@ -89,6 +89,26 @@ if [ ! "${UPDATE}" = "1" ]; then
     else
         echo "Using existing DSA public/private host key pair for SSH-2."
     fi
+    if [ ! -f "${CONFDIR}/ssh_host_rsa_key" ]; then
+        echo "Creating new RSA public/private host key pair for SSH-2."
+        $INSTALLF $PKGINST ${CONFDIR}/ssh_host_rsa_key
+        $INSTALLF $PKGINST ${CONFDIR}/ssh_host_rsa_key.pub
+        ### If there is *anything* there then leave it, otherwise look
+        ### in some reasonable alternate locations before giving up.
+        ### It's worth spending some extra time looking for the old one
+        ### to avoid a bunch of "host identification has changed" warnings.
+        ### Note that some old keys from the commercial SSH2 might not
+        ### be compatible, but we don't test for that.
+        if [ -f "${PKG_INSTALL_ROOT}/etc/ssh_host_rsa_key" ]; then
+           mv ${PKG_INSTALL_ROOT}/etc/ssh_host_rsa_key ${CONFDIR}
+        elif [ -f "${PKG_INSTALL_ROOT}/usr/local/etc/ssh_host_rsa_key" ]; then
+           mv ${PKG_INSTALL_ROOT}/usr/local/etc/ssh_host_rsa_key ${CONFDIR}
+        else
+           ${DESTBIN}/ssh-keygen -t rsa -f ${CONFDIR}/ssh_host_rsa_key -N ''
+        fi
+    else
+        echo "Using existing RSA public/private host key pair for SSH-2."
+    fi
 else
     echo "Performing an \"update\" installation of OpenSSH."
     ### Okay, this part *is* an update install...so we need to ensure
@@ -177,6 +197,26 @@ else
         fi
     else
         echo "Using existing DSA public/private host key pair for SSH-2."
+    fi
+    if [ ! -f "${CONFDIR}/ssh_host_rsa_key" ]; then
+        echo "Creating new RSA public/private host key pair for SSH-2."
+        $INSTALLF $PKGINST ${CONFDIR}/ssh_host_rsa_key
+        $INSTALLF $PKGINST ${CONFDIR}/ssh_host_rsa_key.pub
+        ### If there is *anything* there then leave it, otherwise look
+        ### in some reasonable alternate locations before giving up.
+        ### It's worth spending some extra time looking for the old one
+        ### to avoid a bunch of "host identification has changed" warnings.
+        ### Note that some old keys from the commercial SSH2 might not
+        ### be compatible, but we don't test for that.
+        if [ -f "${PKG_INSTALL_ROOT}/etc/ssh_host_rsa_key" ]; then
+           mv ${PKG_INSTALL_ROOT}/etc/ssh_host_rsa_key ${CONFDIR}
+        elif [ -f "${PKG_INSTALL_ROOT}/usr/local/etc/ssh_host_rsa_key" ]; then
+           mv ${PKG_INSTALL_ROOT}/usr/local/etc/ssh_host_rsa_key ${CONFDIR}
+        else
+           ${DESTBIN}/ssh-keygen -d -f ${CONFDIR}/ssh_host_rsa_key -N ''
+        fi
+    else
+        echo "Using existing RSA public/private host key pair for SSH-2."
     fi
 fi
 

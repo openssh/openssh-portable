@@ -1,3 +1,7 @@
+20010512
+ - (bal) Patch to partial sync up contrib/solaris/ packaging software.
+   Patch by pete <ninjaz@webexpress.com>
+
 20010509
  - (bal) UseLogin patch for Solaris/UNICOS.  Patch by Wayne Davison
    <wayne@blorf.net>
@@ -5298,4 +5302,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1179.2.13 2001/05/09 00:39:18 mouring Exp $
+$Id: ChangeLog,v 1.1179.2.14 2001/05/12 16:52:37 mouring Exp $

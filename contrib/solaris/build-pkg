@@ -145,21 +145,28 @@ mkdir -p ${BUILDDIR}/man/man1
 mkdir -p ${BUILDDIR}/man/man8
 mkdir -p ${BUILDDIR}/etc
 mkdir -p ${BUILDDIR}/bin
+mkdir -p ${BUILDDIR}/libexec
 mkdir -p ${BUILDDIR}/sbin
 
 echo "Populating build directories..."
 cp -p ../../../sshd sbin
 cp -p ../../../ssh-keygen bin
+cp -p ../../../ssh-keyscan bin
 cp -p ../../../ssh bin
 cp -p ../../../ssh-add bin
 cp -p ../../../ssh-agent bin
 cp -p ../../../scp bin
-cp -p ../../../scp.1 man/man1/scp.1
-cp -p ../../../ssh-add.1 man/man1/ssh-add.1
-cp -p ../../../ssh-agent.1 man/man1/ssh-agent.1
-cp -p ../../../ssh-keygen.1 man/man1/ssh-keygen.1
-cp -p ../../../ssh.1 man/man1/ssh.1
-cp -p ../../../sshd.8 man/man8/sshd.8
+cp -p ../../../scp.1.out man/man1/scp.1
+cp -p ../../../sftp bin
+cp -p ../../../sftp.1.out man/man1/sftp.1
+cp -p ../../../sftp-server libexec/sftp-server
+cp -p ../../../sftp-server.8.out man/man8/sftp-server.8
+cp -p ../../../ssh-add.1.out man/man1/ssh-add.1
+cp -p ../../../ssh-agent.1.out man/man1/ssh-agent.1
+cp -p ../../../ssh-keygen.1.out man/man1/ssh-keygen.1
+cp -p ../../../ssh-keyscan.1.out man/man1/ssh-keyscan.1
+cp -p ../../../ssh.1.out man/man1/ssh.1
+cp -p ../../../sshd.8.out man/man8/sshd.8
 cp -p ../../../sshd_config.out etc/sshd_config.default 
 cp -p ../../../ssh_config.out etc/ssh_config.default
 cp -p ../../../ssh_prng_cmds etc/ssh_prng_cmds.default
@@ -182,8 +189,11 @@ ${STRIP} bin/ssh
 ${STRIP} bin/ssh-add
 ${STRIP} bin/ssh-agent
 ${STRIP} bin/ssh-keygen
+${STRIP} bin/ssh-keyscan
 ${STRIP} sbin/sshd
 ${STRIP} bin/scp
+${STRIP} bin/sftp
+${STRIP} libexec/sftp-server
 
 echo ""
 echo "Building Package"
