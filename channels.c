@@ -16,7 +16,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: channels.c,v 1.10 1999/12/07 04:38:32 damien Exp $");
+RCSID("$Id: channels.c,v 1.11 1999/12/07 05:47:28 damien Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -1178,7 +1178,7 @@ x11_create_display_inet(int screen_number)
 
 static
 int
-connect_local_xsocket(unsigned dnr)
+connect_local_xsocket(unsigned int dnr)
 {
 	static const char *const x_sockets[] = {
 		X_UNIX_PATH "%u",
