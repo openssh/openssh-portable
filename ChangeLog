@@ -26,6 +26,7 @@
    - markus@cvs.openbsd.org  2000/10/15 08:18:31
      [rijndael.c]
      typo
+ - Copy manpages back over from OpenBSD - too tedious to wade through diffs
 
 20001015
  - (djm) Fix ssh2 hang on background processes at logout.
