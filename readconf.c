@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.122 2003/10/08 15:21:24 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.123 2003/10/11 08:24:07 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -89,7 +89,7 @@ RCSID("$OpenBSD: readconf.c,v 1.122 2003/10/08 15:21:24 markus Exp $");
 
 typedef enum {
 	oBadOption,
-	oForwardAgent, oForwardX11, oGatewayPorts,
+	oForwardAgent, oForwardX11, oForwardX11Trusted, oGatewayPorts,
 	oPasswordAuthentication, oRSAAuthentication,
 	oChallengeResponseAuthentication, oXAuthLocation,
 	oIdentityFile, oHostName, oPort, oCipher, oRemoteForward, oLocalForward,
@@ -116,6 +116,7 @@ static struct {
 } keywords[] = {
 	{ "forwardagent", oForwardAgent },
 	{ "forwardx11", oForwardX11 },
+	{ "forwardx11trusted", oForwardX11Trusted },
 	{ "xauthlocation", oXAuthLocation },
 	{ "gatewayports", oGatewayPorts },
 	{ "useprivilegedport", oUsePrivilegedPort },
@@ -340,6 +341,10 @@ parse_flag:
 
 	case oForwardX11:
 		intptr = &options->forward_x11;
+		goto parse_flag;
+
+	case oForwardX11Trusted:
+		intptr = &options->forward_x11_trusted;
 		goto parse_flag;
 
 	case oGatewayPorts:
@@ -806,6 +811,7 @@ initialize_options(Options * options)
 	memset(options, 'X', sizeof(*options));
 	options->forward_agent = -1;
 	options->forward_x11 = -1;
+	options->forward_x11_trusted = -1;
 	options->xauth_location = NULL;
 	options->gateway_ports = -1;
 	options->use_privileged_port = -1;
@@ -872,6 +878,8 @@ fill_default_options(Options * options)
 		options->forward_agent = 0;
 	if (options->forward_x11 == -1)
 		options->forward_x11 = 0;
+	if (options->forward_x11_trusted == -1)
+		options->forward_x11_trusted = 0;
 	if (options->xauth_location == NULL)
 		options->xauth_location = _PATH_XAUTH;
 	if (options->gateway_ports == -1)

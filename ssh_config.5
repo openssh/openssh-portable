@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.21 2003/10/08 15:21:24 markus Exp $
+.\" $OpenBSD: ssh_config.5,v 1.22 2003/10/11 08:24:08 markus Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -306,9 +306,27 @@ The default is
 .Pp
 X11 forwarding should be enabled with caution.
 Users with the ability to bypass file permissions on the remote host
-(for the user's X authorization database)
+(for the user's X11 authorization database)
 can access the local X11 display through the forwarded connection.
-An attacker may then be able to perform activities such as keystroke monitoring.
+An attacker may then be able to perform activities such as keystroke monitoring
+if the
+.Cm ForwardX11Trusted
+option is also enabled.
+.It Cm ForwardX11Trusted
+If the this option is set to
+.Dq yes
+then remote X11 clients will have full access to the original X11 display.
+If this option is set to
+.Dq no
+then remote X11 clients will be considered untrusted and prevented
+from stealing or tampering with data belonging to trusted X11
+clients.
+.Pp
+The default is
+.Dq no .
+.Pp
+See the X11 SECURITY extension specification for full details on
+the restrictions imposed on untrusted clients.
 .It Cm GatewayPorts
 Specifies whether remote hosts are allowed to connect to local
 forwarded ports.
