@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: cipher.c,v 1.69 2004/06/21 17:36:31 avsm Exp $");
+RCSID("$OpenBSD: cipher.c,v 1.70 2004/07/11 17:48:47 deraadt Exp $");
 
 #include "xmalloc.h"
 #include "log.h"
@@ -76,19 +76,19 @@ struct Cipher {
 	u_int	key_len;
 	const EVP_CIPHER	*(*evptype)(void);
 } ciphers[] = {
-	{ "none", 		SSH_CIPHER_NONE, 8, 0, EVP_enc_null },
-	{ "des", 		SSH_CIPHER_DES, 8, 8, EVP_des_cbc },
-	{ "3des", 		SSH_CIPHER_3DES, 8, 16, evp_ssh1_3des },
-	{ "blowfish", 		SSH_CIPHER_BLOWFISH, 8, 32, evp_ssh1_bf },
+	{ "none",		SSH_CIPHER_NONE, 8, 0, EVP_enc_null },
+	{ "des",		SSH_CIPHER_DES, 8, 8, EVP_des_cbc },
+	{ "3des",		SSH_CIPHER_3DES, 8, 16, evp_ssh1_3des },
+	{ "blowfish",		SSH_CIPHER_BLOWFISH, 8, 32, evp_ssh1_bf },
 
-	{ "3des-cbc", 		SSH_CIPHER_SSH2, 8, 24, EVP_des_ede3_cbc },
-	{ "blowfish-cbc", 	SSH_CIPHER_SSH2, 8, 16, EVP_bf_cbc },
-	{ "cast128-cbc", 	SSH_CIPHER_SSH2, 8, 16, EVP_cast5_cbc },
-	{ "arcfour", 		SSH_CIPHER_SSH2, 8, 16, EVP_rc4 },
+	{ "3des-cbc",		SSH_CIPHER_SSH2, 8, 24, EVP_des_ede3_cbc },
+	{ "blowfish-cbc",	SSH_CIPHER_SSH2, 8, 16, EVP_bf_cbc },
+	{ "cast128-cbc",	SSH_CIPHER_SSH2, 8, 16, EVP_cast5_cbc },
+	{ "arcfour",		SSH_CIPHER_SSH2, 8, 16, EVP_rc4 },
 #if OPENSSL_VERSION_NUMBER < 0x00907000L
-	{ "aes128-cbc", 	SSH_CIPHER_SSH2, 16, 16, evp_rijndael },
-	{ "aes192-cbc", 	SSH_CIPHER_SSH2, 16, 24, evp_rijndael },
-	{ "aes256-cbc", 	SSH_CIPHER_SSH2, 16, 32, evp_rijndael },
+	{ "aes128-cbc",		SSH_CIPHER_SSH2, 16, 16, evp_rijndael },
+	{ "aes192-cbc",		SSH_CIPHER_SSH2, 16, 24, evp_rijndael },
+	{ "aes256-cbc",		SSH_CIPHER_SSH2, 16, 32, evp_rijndael },
 	{ "rijndael-cbc@lysator.liu.se",
 				SSH_CIPHER_SSH2, 16, 32, evp_rijndael },
 #else
@@ -99,9 +99,9 @@ struct Cipher {
 				SSH_CIPHER_SSH2, 16, 32, EVP_aes_256_cbc },
 #endif
 #if OPENSSL_VERSION_NUMBER >= 0x00905000L
-	{ "aes128-ctr", 	SSH_CIPHER_SSH2, 16, 16, evp_aes_128_ctr },
-	{ "aes192-ctr", 	SSH_CIPHER_SSH2, 16, 24, evp_aes_128_ctr },
-	{ "aes256-ctr", 	SSH_CIPHER_SSH2, 16, 32, evp_aes_128_ctr },
+	{ "aes128-ctr",		SSH_CIPHER_SSH2, 16, 16, evp_aes_128_ctr },
+	{ "aes192-ctr",		SSH_CIPHER_SSH2, 16, 24, evp_aes_128_ctr },
+	{ "aes256-ctr",		SSH_CIPHER_SSH2, 16, 32, evp_aes_128_ctr },
 #endif
 #if defined(EVP_CTRL_SET_ACSS_MODE)
 	{ "acss@openssh.org",	SSH_CIPHER_SSH2, 16, 5, EVP_acss },

@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.207 2004/06/21 17:36:31 avsm Exp $");
+RCSID("$OpenBSD: channels.c,v 1.208 2004/07/11 17:48:47 deraadt Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -737,7 +737,7 @@ channel_pre_open(Channel *c, fd_set * readset, fd_set * writeset)
 			FD_SET(c->efd, readset);
 	}
 	/* XXX: What about efd? races? */
-	if (compat20 && c->ctl_fd != -1 && 
+	if (compat20 && c->ctl_fd != -1 &&
 	    c->istate == CHAN_INPUT_OPEN && c->ostate == CHAN_OUTPUT_OPEN)
 		FD_SET(c->ctl_fd, readset);
 }
@@ -2277,7 +2277,7 @@ channel_cancel_rport_listener(const char *host, u_short port)
 
 		if (c != NULL && c->type == SSH_CHANNEL_RPORT_LISTENER &&
 		    strncmp(c->path, host, sizeof(c->path)) == 0 &&
-	    	    c->listening_port == port) {
+		    c->listening_port == port) {
 			debug2("%s: close clannel %d", __func__, i);
 			channel_free(c);
 			found = 1;
@@ -2364,10 +2364,9 @@ channel_request_remote_forwarding(u_short listen_port,
 }
 
 /*
- * Request cancellation of remote forwarding of connection host:port from 
+ * Request cancellation of remote forwarding of connection host:port from
  * local side.
  */
-
 void
 channel_request_rforward_cancel(u_short port)
 {
@@ -2378,7 +2377,7 @@ channel_request_rforward_cancel(u_short port)
 		return;
 
 	for (i = 0; i < num_permitted_opens; i++) {
-		if (permitted_opens[i].host_to_connect != NULL && 
+		if (permitted_opens[i].host_to_connect != NULL &&
 		    permitted_opens[i].listen_port == port)
 			break;
 	}

@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.222 2004/06/23 14:31:01 dtucker Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.223 2004/07/11 17:48:47 deraadt Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -551,7 +551,7 @@ again:
 		(void)read_config_file(buf, host, &options, 1);
 
 		/* Read systemwide configuration file after use config. */
-		(void)read_config_file(_PATH_HOST_CONFIG_FILE, host, 
+		(void)read_config_file(_PATH_HOST_CONFIG_FILE, host,
 		    &options, 0);
 	}
 
@@ -1250,7 +1250,7 @@ control_client(const char *path)
 	Buffer m;
 	char *cp;
 	extern char **environ;
-	
+
 	memset(&addr, '\0', sizeof(addr));
 	addr.sun_family = AF_UNIX;
 	addr_len = offsetof(struct sockaddr_un, sun_path) +
@@ -1291,13 +1291,13 @@ control_client(const char *path)
 
 	if (options.num_send_env == 0 || environ == NULL) {
 		buffer_put_int(&m, 0);
-	} else {	
+	} else {
 		/* Pass environment */
 		num_env = 0;
 		for (i = 0; environ[i] != NULL; i++)
 			if (env_permitted(environ[i]))
 				num_env++; /* Count */
-			
+
 		buffer_put_int(&m, num_env);
 
 		for (i = 0; environ[i] != NULL && num_env >= 0; i++)

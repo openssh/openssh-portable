@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.297 2004/06/26 20:07:16 avsm Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.298 2004/07/11 17:48:47 deraadt Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -803,7 +803,7 @@ send_rexec_state(int fd, Buffer *conf)
 	buffer_init(&m);
 	buffer_put_cstring(&m, buffer_ptr(conf));
 
-	if (sensitive_data.server_key != NULL && 
+	if (sensitive_data.server_key != NULL &&
 	    sensitive_data.server_key->type == KEY_RSA1) {
 		buffer_put_int(&m, 1);
 		buffer_put_bignum(&m, sensitive_data.server_key->rsa->e);
@@ -1896,7 +1896,7 @@ do_ssh1_kex(void)
 			    session_key + sizeof(session_key) - len);
 
 			derive_ssh1_session_id(
-			    sensitive_data.ssh1_host_key->rsa->n, 
+			    sensitive_data.ssh1_host_key->rsa->n,
 			    sensitive_data.server_key->rsa->n,
 			    cookie, session_id);
 			/*

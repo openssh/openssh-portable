@@ -20,7 +20,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.50 2004/06/03 12:22:20 pedro Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.51 2004/07/11 17:48:47 deraadt Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -821,7 +821,7 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 		u_int len;
 
 		/*
-		 * Simulate EOF on interrupt: stop sending new requests and 
+		 * Simulate EOF on interrupt: stop sending new requests and
 		 * allow outstanding requests to drain gracefully
 		 */
 		if (interrupted) {
@@ -1053,9 +1053,9 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 		int len;
 
 		/*
-		 * Can't use atomicio here because it returns 0 on EOF, 
+		 * Can't use atomicio here because it returns 0 on EOF,
 		 * thus losing the last block of the file.
-		 * Simulate an EOF on interrupt, allowing ACKs from the 
+		 * Simulate an EOF on interrupt, allowing ACKs from the
 		 * server to drain.
 		 */
 		if (interrupted)

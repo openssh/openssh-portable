@@ -1,4 +1,4 @@
-/*	$OpenBSD: readconf.h,v 1.63 2004/06/13 15:03:02 djm Exp $	*/
+/*	$OpenBSD: readconf.h,v 1.64 2004/07/11 17:48:47 deraadt Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -103,7 +103,7 @@ typedef struct {
 	int	rekey_limit;
 	int	no_host_authentication_for_localhost;
 	int	identities_only;
-	int	server_alive_interval; 
+	int	server_alive_interval;
 	int	server_alive_count_max;
 
 	int     num_send_env;

@@ -3,6 +3,13 @@
    ssh-keygen.c ssh-keyscan.c ssh-keysign.c ssh-rand-helper.c ssh.c sshd.c
    openbsd-compat/bsd-misc.c] Move "char *__progname" to bsd-misc.c.  Reduces
    diff vs OpenBSD; ok mouring@, tested by tim@ too.
+ - (dtucker) OpenBSD CVS Sync
+   - deraadt@cvs.openbsd.org 2004/07/11 17:48:47
+     [channels.c cipher.c clientloop.c clientloop.h compat.h moduli.c
+     readconf.c nchan.c pathnames.h progressmeter.c readconf.h servconf.c
+     session.c sftp-client.c sftp.c ssh-agent.1 ssh-keygen.c ssh.c ssh1.h
+     sshd.c ttymodes.h]
+     spaces
 
 20040711
  - (dtucker) [auth-pam.c] Check for zero from waitpid() too, which allows
@@ -1509,4 +1516,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3474 2004/07/17 04:07:42 dtucker Exp $
+$Id: ChangeLog,v 1.3475 2004/07/17 06:12:08 dtucker Exp $

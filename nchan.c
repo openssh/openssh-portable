@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: nchan.c,v 1.50 2004/06/21 17:36:31 avsm Exp $");
+RCSID("$OpenBSD: nchan.c,v 1.51 2004/07/11 17:48:47 deraadt Exp $");
 
 #include "ssh1.h"
 #include "ssh2.h"
@@ -42,15 +42,15 @@ RCSID("$OpenBSD: nchan.c,v 1.50 2004/06/21 17:36:31 avsm Exp $");
  * tear down of channels:
  *
  * 1.3:	strict request-ack-protocol:
- * 	CLOSE	->
- * 		<-  CLOSE_CONFIRM
+ *	CLOSE	->
+ *		<-  CLOSE_CONFIRM
  *
  * 1.5:	uses variations of:
- * 	IEOF	->
- * 		<-  OCLOSE
- * 		<-  IEOF
- * 	OCLOSE	->
- * 	i.e. both sides have to close the channel
+ *	IEOF	->
+ *		<-  OCLOSE
+ *		<-  IEOF
+ *	OCLOSE	->
+ *	i.e. both sides have to close the channel
  *
  * 2.0: the EOF messages are optional
  *

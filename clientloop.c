@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.128 2004/06/18 11:11:54 djm Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.129 2004/07/11 17:48:47 deraadt Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -402,7 +402,7 @@ client_wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp,
 
 	if (options.server_alive_interval == 0 || !compat20)
 		tvp = NULL;
-	else {  
+	else {
 		tv.tv_sec = options.server_alive_interval;
 		tv.tv_usec = 0;
 		tvp = &tv;
@@ -517,7 +517,7 @@ client_subsystem_reply(int type, u_int32_t seq, void *ctxt)
 {
 	int id;
 	Channel *c;
-	
+
 	id = packet_get_int();
 	packet_check_eom();
 
@@ -540,13 +540,13 @@ client_extra_session2_setup(int id, void *arg)
 	struct confirm_ctx *cctx = arg;
 	Channel *c;
 	int i;
-	
+
 	if (cctx == NULL)
 		fatal("%s: cctx == NULL", __func__);
 	if ((c = channel_lookup(id)) == NULL)
 		fatal("%s: no channel for id %d", __func__, id);
 
-	client_session2_setup(id, cctx->want_tty, cctx->want_subsys, 
+	client_session2_setup(id, cctx->want_tty, cctx->want_subsys,
 	    cctx->term, &cctx->tio, c->rfd, &cctx->cmd, cctx->env,
 	    client_subsystem_reply);
 
@@ -557,7 +557,7 @@ client_extra_session2_setup(int id, void *arg)
 		for (i = 0; cctx->env[i] != NULL; i++)
 			xfree(cctx->env[i]);
 		xfree(cctx->env);
-	}			
+	}
 	xfree(cctx);
 }
 
@@ -614,7 +614,7 @@ client_process_control(fd_set * readset)
 			 * Accept empty responses and responses consisting
 			 * of the word "yes" as affirmative.
 			 */
-			if (*p == '\0' || *p == '\n' || 
+			if (*p == '\0' || *p == '\n' ||
 			    strcasecmp(p, "yes") == 0)
 				allowed = 1;
 			xfree(p);
@@ -714,7 +714,7 @@ client_process_control(fd_set * readset)
 
 	set_nonblock(client_fd);
 
-	c = channel_new("session", SSH_CHANNEL_OPENING, 
+	c = channel_new("session", SSH_CHANNEL_OPENING,
 	    new_fd[0], new_fd[1], new_fd[2],
 	    CHAN_SES_WINDOW_DEFAULT, CHAN_SES_PACKET_DEFAULT,
 	    CHAN_EXTENDED_WRITE, "client-session", /*nonblock*/0);
@@ -1673,7 +1673,7 @@ client_input_global_request(int type, u_int32_t seq, void *ctxt)
 }
 
 void
-client_session2_setup(int id, int want_tty, int want_subsystem, 
+client_session2_setup(int id, int want_tty, int want_subsystem,
     const char *term, struct termios *tiop, int in_fd, Buffer *cmd, char **env,
     dispatch_fn *subsys_repl)
 {
