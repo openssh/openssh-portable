@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.135 2001/08/30 15:42:36 naddy Exp $
+.\" $OpenBSD: ssh.1,v 1.136 2001/08/30 16:04:35 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -943,9 +943,11 @@ or
 .Dq no .
 .It Cm LocalForward
 Specifies that a TCP/IP port on the local machine be forwarded over
-the secure channel to given host:port from the remote machine.
+the secure channel to the specified host and port from the remote machine.
 The first argument must be a port number, and the second must be
-host:port.
+.Ar host:port .
+IPv6 addresses can be specified with an alternative syntax:
+.Ar host/port .
 Multiple forwardings may be specified, and additional
 forwardings can be given on the command line.
 Only the superuser can forward privileged ports.
@@ -1037,9 +1039,11 @@ The default is
 This option applies to protocol version 2 only.
 .It Cm RemoteForward
 Specifies that a TCP/IP port on the remote machine be forwarded over
-the secure channel to given host:port from the local machine.
+the secure channel to the specified host and port from the local machine.
 The first argument must be a port number, and the second must be
-host:port.
+.Ar host:port .
+IPv6 addresses can be specified with an alternative syntax:
+.Ar host/port .
 Multiple forwardings may be specified, and additional
 forwardings can be given on the command line.
 Only the superuser can forward privileged ports.

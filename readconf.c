@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.87 2001/08/28 09:51:26 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.88 2001/08/30 16:04:35 stevesk Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -260,6 +260,7 @@ process_config_line(Options *options, const char *host,
 	char buf[256], *s, *string, **charptr, *endofnumber, *keyword, *arg;
 	int opcode, *intptr, value;
 	u_short fwd_port, fwd_host_port;
+	char sfwd_host_port[6];
 
 	s = line;
 	/* Get the keyword. (Each line is supposed to begin with a keyword). */
@@ -577,42 +578,34 @@ parse_int:
 			*intptr = (LogLevel) value;
 		break;
 
+	case oLocalForward:
 	case oRemoteForward:
 		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
-			fatal("%.200s line %d: Missing argument.", filename, linenum);
-		fwd_port = a2port(arg);
-		if (fwd_port == 0)
-			fatal("%.200s line %d: Badly formatted port number.",
-			      filename, linenum);
+			fatal("%.200s line %d: Missing port argument.",
+			    filename, linenum);
+		if ((fwd_port = a2port(arg)) == 0)
+			fatal("%.200s line %d: Bad listen port.",
+			    filename, linenum);
 		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing second argument.",
-			      filename, linenum);
-		if (sscanf(arg, "%255[^:]:%hu", buf, &fwd_host_port) != 2)
-			fatal("%.200s line %d: Badly formatted host:port.",
-			      filename, linenum);
-		if (*activep)
-			add_remote_forward(options, fwd_port, buf, fwd_host_port);
-		break;
-
-	case oLocalForward:
-		arg = strdelim(&s);
-		if (!arg || *arg == '\0')
-			fatal("%.200s line %d: Missing argument.", filename, linenum);
-		fwd_port = a2port(arg);
-		if (fwd_port == 0)
-			fatal("%.200s line %d: Badly formatted port number.",
-			      filename, linenum);
-		arg = strdelim(&s);
-		if (!arg || *arg == '\0')
-			fatal("%.200s line %d: Missing second argument.",
-			      filename, linenum);
-		if (sscanf(arg, "%255[^:]:%hu", buf, &fwd_host_port) != 2)
-			fatal("%.200s line %d: Badly formatted host:port.",
-			      filename, linenum);
-		if (*activep)
-			add_local_forward(options, fwd_port, buf, fwd_host_port);
+			    filename, linenum);
+		if (sscanf(arg, "%255[^:]:%5[0-9]", buf, sfwd_host_port) != 2 &&
+		    sscanf(arg, "%255[^/]/%5[0-9]", buf, sfwd_host_port) != 2)
+			fatal("%.200s line %d: Bad forwarding specification.",
+			    filename, linenum);
+		if ((fwd_host_port = a2port(sfwd_host_port)) == 0)
+			fatal("%.200s line %d: Bad forwarding port.",
+			    filename, linenum);
+		if (*activep) {
+			if (opcode == oLocalForward)
+				add_local_forward(options, fwd_port, buf,
+				    fwd_host_port);
+			else if (opcode == oRemoteForward)
+				add_remote_forward(options, fwd_port, buf,
+				    fwd_host_port);
+		}
 		break;
 
 	case oDynamicForward:

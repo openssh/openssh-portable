@@ -61,6 +61,11 @@
    - naddy@cvs.openbsd.org 2001/08/30 15:42:36
      [ssh.1]
      add -D to synopsis line; ok markus@
+   - stevesk@cvs.openbsd.org 2001/08/30 16:04:35
+     [readconf.c ssh.1]
+     validate ports for LocalForward/RemoteForward.
+     add host/port alternative syntax for IPv6 (like -L/-R).
+     ok markus@
 
 20010815
  - (bal) Fixed stray code in readconf.c that went in by mistake.
@@ -6384,4 +6389,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1503 2001/09/12 17:59:59 mouring Exp $
+$Id: ChangeLog,v 1.1504 2001/09/12 18:01:59 mouring Exp $
