@@ -19,6 +19,11 @@
    - stevesk@cvs.openbsd.org 2002/09/16 22:03:13
      [sshd.8]
      reference moduli(5) in FILES /etc/moduli.
+   - itojun@cvs.openbsd.org 2002/09/17 07:47:02
+     [channels.c]
+     don't quit while creating X11 listening socket.
+     http://mail-index.netbsd.org/current-users/2002/09/16/0005.html
+     got from portable.  markus ok
 
 20020912
  - (djm) Made GNOME askpass programs return non-zero if cancel button is 
@@ -669,4 +674,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2469 2002/09/19 01:51:53 djm Exp $
+$Id: ChangeLog,v 1.2470 2002/09/19 01:54:54 djm Exp $
