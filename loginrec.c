@@ -170,7 +170,7 @@
 #include "xmalloc.h"
 #include "loginrec.h"
 
-RCSID("$Id: loginrec.c,v 1.9 2000/06/20 03:49:11 djm Exp $");
+RCSID("$Id: loginrec.c,v 1.10 2000/06/26 23:40:06 djm Exp $");
 
 /**
  ** prototypes for helper functions in this file
@@ -198,15 +198,8 @@ int lastlog_get_entry(struct logininfo *li);
 int wtmp_get_entry(struct logininfo *li);
 int wtmpx_get_entry(struct logininfo *li);
 
-
-#ifdef MIN
-# undef MIN
-# define MIN(a,b) ( (a)<(b) ? (a) : (b) )
-#endif
-
 /* pick the shortest string */
 #define MIN_SIZEOF(s1,s2) ( sizeof(s1) < sizeof(s2) ? sizeof(s1) : sizeof(s2) )
-
 
 /**
  ** platform-independent login functions
@@ -303,7 +296,7 @@ login_get_lastlog(struct logininfo *li, const int uid)
 	pw = getpwuid(uid);
 	/* No MIN_SIZEOF here - we absolutely *must not* truncate the
          * username */
-	strlcpy(li->username, pw->pw_name, li->username);
+	strlcpy(li->username, pw->pw_name, sizeof(li->username));
 #endif
 	if (getlast_entry(li))
 		return li;
@@ -353,18 +346,27 @@ int
 login_init_entry(struct logininfo *li, int pid, const char *username, 
 		 const char *hostname, const char *line)
 {
+	struct passwd *pw;
+	
 	/* zero the structure */
 	memset(li, 0, sizeof(struct logininfo));
   
 	li->pid = pid;
+
 	/* set the line information */
 	if (line)
 		line_fullname(li->line, line, sizeof(li->line));
 
-	if (username)
+	if (username) {
 		strlcpy(li->username, username, sizeof(li->username));
+		pw = getpwnam(li->username);
+		if (pw == NULL)
+			fatal("login_init_entry: Cannot find user \"%s\"", li->username);
+		li->uid = pw->pw_uid;
+	}
 	if (hostname)
 		strlcpy(li->hostname, hostname, sizeof(li->hostname));
+
 	return 1;
 }
 
@@ -377,16 +379,12 @@ login_init_entry(struct logininfo *li, int pid, const char *username,
 void
 login_set_current_time(struct logininfo *li)
 {
-#ifdef HAVE_SYS_TIME_H
 	struct timeval tv;
 
 	gettimeofday(&tv, NULL);
-	li->tv_sec = tv.tv_sec ; li->tv_usec = tv.tv_usec;
-#else
-	time_t tm = time(0);
-
-	li->tv_sec = tm; li->tv_usec = 0;
-#endif
+	
+	li->tv_sec = tv.tv_sec;
+	li->tv_usec = tv.tv_usec;
 }
 
 
@@ -1394,17 +1392,17 @@ lastlog_openseek(struct logininfo *li, int *fd, int filemode)
 
 	type = lastlog_filetype(LASTLOG_FILE);
 	switch (type) {
-	case LL_FILE:
-		strlcpy(lastlog_file, LASTLOG_FILE, sizeof(lastlog_file));
-		break;
-	case LL_DIR:
-		snprintf(lastlog_file, sizeof(lastlog_file), "%s/%s",
-			 LASTLOG_FILE, li->username);
-		break;
-	default:
-		log("lastlog_openseek: %.100s is not a file or directory!",
-		    LASTLOG_FILE);
-		return 0;
+		case LL_FILE:
+			strlcpy(lastlog_file, LASTLOG_FILE, sizeof(lastlog_file));
+			break;
+		case LL_DIR:
+			snprintf(lastlog_file, sizeof(lastlog_file), "%s/%s",
+				 LASTLOG_FILE, li->username);
+			break;
+		default:
+			log("lastlog_openseek: %.100s is not a file or directory!",
+			    LASTLOG_FILE);
+			return 0;
 	} /* switch */
 
 	*fd = open(lastlog_file, filemode);
