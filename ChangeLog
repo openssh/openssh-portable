@@ -11,6 +11,10 @@
         The authenticity of host 'bla' can't be established.
      (protocol version 2 with pubkey authentication allows you to detect
      MITM attacks)
+   - mouring@cvs.openbsd.org 2002/07/25 01:16:59
+     [sftp.c]
+     FallBackToRsh does not exist anywhere else.  Remove it from here.
+     OK deraadt.
 
 20020730
  - (bal) [uidswap.c] SCO compile correction by gert@greenie.muc.de
@@ -1479,4 +1483,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2410 2002/08/01 01:21:56 mouring Exp $
+$Id: ChangeLog,v 1.2411 2002/08/01 01:25:00 mouring Exp $
