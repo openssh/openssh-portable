@@ -99,6 +99,9 @@
    - stevesk@cvs.openbsd.org 2001/06/28 19:57:35
      [ssh-keygen.c]
      '\0' terminated data[] is ok; ok markus@
+   - markus@cvs.openbsd.org 2001/06/29 07:06:34
+     [ssh-keygen.c]
+     new error handling for cyberflex_*
  
 20010629
  - (bal) Removed net_aton() since we don't use it any more
@@ -5926,4 +5929,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1367 2001/07/04 05:05:27 mouring Exp $
+$Id: ChangeLog,v 1.1368 2001/07/04 05:06:59 mouring Exp $

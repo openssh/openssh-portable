@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.69 2001/06/28 19:57:35 stevesk Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.70 2001/06/29 07:06:34 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -385,7 +385,7 @@ do_print_public(struct passwd *pw)
 	do { \
 		len = BN_num_bytes(prv->rsa->x); \
 		elements[i] = xmalloc(len); \
-error("#bytes %d", len); \
+		debug("#bytes %d", len); \
 		if (BN_bn2bin(prv->rsa->x, elements[i]) < 0) \
 			goto done; \
 	} while(0)
@@ -403,7 +403,7 @@ do_upload(struct passwd *pw, int reader)
         u_char atr[256];
 	u_char AUT0[] = {0xad, 0x9f, 0x61, 0xfe, 0xfa, 0x20, 0xce, 0x63};
 	int len, status = 1, i, fd = -1, ret;
-	int cla = 0x00;
+	int r1 = 0, r2 = 0, cla = 0x00;
 
 	if (!have_identity)
 		ask_filename(pw, "Enter file in which the key is");
@@ -427,12 +427,12 @@ do_upload(struct passwd *pw, int reader)
 	len = BN_num_bytes(prv->rsa->n);
         fd = scopen(reader, 0, NULL);
         if (fd < 0) {
-                error("scopen failed %d.", fd);
+                error("scopen failed");
 		goto done;
         }
         ret = screset(fd, atr, NULL);
         if (ret <= 0) {
-                error("screset failed.");
+                error("screset failed");
 		goto done;
         }
 	if ((cla = cyberflex_inq_class(fd)) < 0) {
@@ -445,12 +445,22 @@ do_upload(struct passwd *pw, int reader)
 	}
 	key_fid[0] = 0x00;
 	key_fid[1] = 0x12;
-	if (cyberflex_load_rsa_priv(fd, cla, key_fid, 5, 8*len, elements) < 0)
+	if (cyberflex_load_rsa_priv(fd, cla, key_fid, 5, 8*len, elements,
+	    &r1, &r2) < 0) {
+		error("cyberflex_load_rsa_priv failed: %s", get_r1r2s(r1, r1));
+		goto done;
+	}
+	if (r1 != 0x90 && r1 != 0x61)
 		goto done;
 	log("cyberflex_load_rsa_priv done");
 	key_fid[0] = 0x73;
 	key_fid[1] = 0x68;
-	if (cyberflex_load_rsa_pub(fd, cla, key_fid, len, elements[5]) < 0)
+	if (cyberflex_load_rsa_pub(fd, cla, key_fid, len, elements[5],
+	    &r1, &r2) < 0) {
+		error("cyberflex_load_rsa_pub failed: %s", get_r1r2s(r1, r1));
+		goto done;
+	}
+	if (r1 != 0x90 && r1 != 0x61)
 		goto done;
 	log("cyberflex_load_rsa_pub done");
 	status = 0;
