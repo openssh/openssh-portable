@@ -28,7 +28,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.40 2003/01/10 08:48:15 djm Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.41 2003/01/14 10:58:00 djm Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -767,8 +767,8 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 		mode = 0666;
 
 	if ((a->flags & SSH2_FILEXFER_ATTR_PERMISSIONS) &&
-	    (a->perm & S_IFDIR)) {
-		error("Cannot download a directory: %s", remote_path);
+	    (!S_ISREG(a->perm))) {
+		error("Cannot download non-regular file: %s", remote_path);
 		return(-1);
 	}
 
@@ -999,6 +999,11 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 	if (fstat(local_fd, &sb) == -1) {
 		error("Couldn't fstat local file \"%s\": %s",
 		    local_path, strerror(errno));
+		close(local_fd);
+		return(-1);
+	}
+	if (!S_ISREG(sb.st_mode)) {
+		error("%s is not a regular file", local_path);
 		close(local_fd);
 		return(-1);
 	}

@@ -14,6 +14,10 @@
      [sftp-int.c]
      make cmds[] array static to avoid conflict with BSDI libc.
      mindrot bug #466. Fix from mdev@idg.nl; ok markus@
+   - djm@cvs.openbsd.org 2003/01/14 10:58:00
+     [sftp-client.c sftp-int.c]
+     Don't try to upload or download non-regular files. Report from
+     apoloval@pantuflo.escet.urjc.es; ok markus@
 
 20030113
  - (djm) Rework openbsd-compat/setproctitle.c a bit: move emulation type
@@ -1017,4 +1021,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2571 2003/01/14 11:24:19 djm Exp $
+$Id: ChangeLog,v 1.2572 2003/01/14 11:24:47 djm Exp $

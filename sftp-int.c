@@ -25,7 +25,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.54 2003/01/13 11:04:04 djm Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.55 2003/01/14 10:58:00 djm Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -381,6 +381,17 @@ is_dir(char *path)
 }
 
 static int
+is_reg(char *path)
+{
+	struct stat sb;
+
+	if (stat(path, &sb) == -1)
+		fatal("stat %s: %s", path, strerror(errno));
+
+	return(S_ISREG(sb.st_mode));
+}
+
+static int
 remote_is_dir(struct sftp_conn *conn, char *path)
 {
 	Attrib *a;
@@ -494,6 +505,12 @@ process_put(struct sftp_conn *conn, char *src, char *dst, char *pwd, int pflag)
 
 	/* Only one match, dst may be file, directory or unspecified */
 	if (g.gl_pathv[0] && g.gl_matchc == 1) {
+		if (!is_reg(g.gl_pathv[i])) {
+			error("Can't upload %s: not a regular file",
+			    g.gl_pathv[0]);
+			err = 1;
+			goto out;
+		}
 		if (tmp_dst) {
 			/* If directory specified, append filename */
 			if (remote_is_dir(conn, tmp_dst)) {
@@ -525,6 +542,11 @@ process_put(struct sftp_conn *conn, char *src, char *dst, char *pwd, int pflag)
 	}
 
 	for (i = 0; g.gl_pathv[i]; i++) {
+		if (!is_reg(g.gl_pathv[i])) {
+			error("skipping non-regular file %s", 
+			    g.gl_pathv[i]);
+			continue;
+		}
 		if (infer_path(g.gl_pathv[i], &tmp)) {
 			err = -1;
 			goto out;
