@@ -1,3 +1,10 @@
+20010627
+ - (djm) Pull in fixes from -CURRENT: 
+   - (djm) Reintroduce pam_session call for non-pty sessions.
+   - (djm) Remove redundant and incorrect test for max auth attempts in 
+     PAM kbdint code. Based on fix from Matthew Melvin 
+    <matthewm@webcentral.com.au>
+
 20010617
  - (djm) Pull in small fix from -CURRENT for session.c:
     typo, use pid not s->pid, mstone@cs.loyola.edu
@@ -5318,4 +5325,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1179.2.18 2001/06/17 03:40:50 djm Exp $
+$Id: ChangeLog,v 1.1179.2.19 2001/06/27 06:46:02 djm Exp $
