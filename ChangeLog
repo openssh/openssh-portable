@@ -110,6 +110,9 @@
      [channels.c nchan.c]
      replace buffer_consume(b, buffer_len(b)) with buffer_clear(b); 
      ok provos@
+   - markus@cvs.openbsd.org 2002/01/10 11:13:29
+     [serverloop.c]
+     skip client_alive_check until there are channels; ok beck@
 
 
 20020121
@@ -7258,4 +7261,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1754 2002/01/22 12:21:15 djm Exp $
+$Id: ChangeLog,v 1.1755 2002/01/22 12:21:39 djm Exp $

@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.93 2001/12/28 15:06:00 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.94 2002/01/10 11:13:29 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -209,15 +209,21 @@ make_packets_from_stdout_data(void)
 static void
 client_alive_check(void)
 {
+	static int had_channel = 0;
 	int id;
+
+	id = channel_find_open();
+	if (id == -1) {
+		if (!had_channel)
+			return;
+		packet_disconnect("No open channels after timeout!");
+	}
+	had_channel = 1;
 
 	/* timeout, check to see how many we have had */
 	if (++client_alive_timeouts > options.client_alive_count_max)
 		packet_disconnect("Timeout, your session not responding.");
 
-	id = channel_find_open();
-	if (id == -1)
-		packet_disconnect("No open channels after timeout!");
 	/*
 	 * send a bogus channel request with "wantreply",
 	 * we should get back a failure
