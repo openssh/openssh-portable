@@ -5,6 +5,10 @@
    - [auth-rh-rsa.c] user/958: check ~/.ssh/known_hosts for rhosts-rsa, too
    - [ssh.1] user/958: check ~/.ssh/known_hosts for rhosts-rsa, too
    - [sshd.8] user/958: check ~/.ssh/known_hosts for rhosts-rsa, too
+ - Fix integer overflow which was messing up scp's progress bar for large 
+   file transfers. Fix submitted to OpenBSD developers.
+ - Released 1.2pre10
+
 19991110
  - Merged several minor fixed:
    - ssh-agent commandline parsing
