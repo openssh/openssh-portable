@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.134 2001/08/01 23:38:45 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.135 2001/08/02 15:32:10 jakob Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -169,6 +169,9 @@ usage(void)
 	fprintf(stderr, "  -x          Disable X11 connection forwarding (default).\n");
 	fprintf(stderr, "  -i file     Identity for public key authentication "
 	    "(default: ~/.ssh/identity)\n");
+#ifdef SMARTCARD
+	fprintf(stderr, "  -I reader   Set smartcard reader.\n");
+#endif /* SMARTCARD */
 	fprintf(stderr, "  -t          Tty; allocate a tty even if command is given.\n");
 	fprintf(stderr, "  -T          Do not allocate a tty.\n");
 	fprintf(stderr, "  -v          Verbose; display verbose debugging messages.\n");
