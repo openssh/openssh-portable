@@ -1,5 +1,6 @@
 20020723
  - (bal) [bsd-cray.c bsd-cray.h] Part 2 of Cray merger. 
+ - (bal) sync ID w/ ssh-agent.c
  - (bal) OpenBSD Sync
    - markus@cvs.openbsd.org 2002/07/19 15:43:33
      [log.c log.h session.c sshd.c]
@@ -1432,4 +1433,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2396 2002/07/23 21:03:02 mouring Exp $
+$Id: ChangeLog,v 1.2397 2002/07/23 21:05:17 mouring Exp $
