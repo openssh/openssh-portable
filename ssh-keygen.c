@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.119 2005/03/01 10:42:49 djm Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.120 2005/03/02 01:27:41 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -686,8 +686,15 @@ do_known_hosts(struct passwd *pw, const char *name)
 			} else if (hash_hosts) {
 				for(cp2 = strsep(&cp, ",");
 				    cp2 != NULL && *cp2 != '\0';
-				    cp2 = strsep(&cp, ","))
-					print_host(out, cp2, public, 1);
+				    cp2 = strsep(&cp, ",")) {
+					if (strcspn(cp2, "*?!") != strlen(cp2))
+						fprintf(stderr, "Warning: "
+						    "ignoring host name with "
+						    "metacharacters: %.64s\n",
+						    cp2);
+					else
+						print_host(out, cp2, public, 1);
+				}
 				has_unhashed = 1;
 			}
 		}

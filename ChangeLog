@@ -39,6 +39,9 @@
      [sshconnect.c]
      fix addition of new hashed hostnames when CheckHostIP=yes;
      found and ok dtucker@
+   - djm@cvs.openbsd.org 2005/03/02 01:27:41
+     [ssh-keygen.c]
+     ignore hostnames with metachars when hashing; ok deraadt@
 
 20050301
  - (djm) OpenBSD CVS sync:
@@ -2258,4 +2261,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3685 2005/03/02 01:06:51 djm Exp $
+$Id: ChangeLog,v 1.3686 2005/03/02 01:33:04 djm Exp $
