@@ -7,6 +7,9 @@
    - jmc@cvs.openbsd.org 2003/11/07 10:16:44
      [ssh-com.sh]
      adress -> address, and a few more; all from Jonathon Gray;
+   - djm@cvs.openbsd.org 2004/01/13 09:49:06
+     [sftp-batch.sh]
+     don't delete thyself when running without obj/ ; ok markus@
 
 20040128
  - (dtucker) [regress/README.regress] Add tcpwrappers issue, noted by tim@
@@ -1776,4 +1779,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3201 2004/01/30 02:00:29 dtucker Exp $
+$Id: ChangeLog,v 1.3202 2004/01/30 02:02:55 dtucker Exp $
