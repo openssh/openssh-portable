@@ -6,6 +6,10 @@
 
 @TOP@
 
+/* Define to a Set Process Title type if your system is */
+/* supported by bsd-setproctitle.c */
+#undef SPT_TYPE
+
 /* SCO workaround */
 #undef BROKEN_SYS_TERMIO_H
 

@@ -26,13 +26,6 @@
 #include "xmalloc.h"
 #include "ssh.h"
 
-#ifndef HAVE_SETPROCTITLE
-void setproctitle(const char *fmt, ...)
-{
-	/* FIXME */
-}
-#endif /* !HAVE_SETPROCTITLE */
-
 #ifndef HAVE_SETLOGIN
 int setlogin(const char *name)
 {
