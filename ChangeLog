@@ -1,3 +1,9 @@
+20020715
+ - (bal) OpenBSD CVS Sync
+   - itojun@cvs.openbsd.org 2002/07/12 13:29:09
+     [sshconnect.c]
+     print connect failure during debugging mode.
+
 20020714
  - (tim) [Makefile.in] replace "id sshd" with "sshd -t"
  - (bal/tim) [acconfig.h configure.ac monitor_mm.c servconf.c
@@ -1361,4 +1367,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2366 2002/07/14 22:50:51 tim Exp $
+$Id: ChangeLog,v 1.2367 2002/07/15 17:48:11 mouring Exp $
