@@ -36,6 +36,9 @@
      [auth2-none.c]
      check whether passwd auth is allowd, similar to proto 1; rob@pitman.co.za
      ok henning
+   - avsm@cvs.openbsd.org 2003/07/31 15:50:16
+     [atomicio.c]
+     correct comment: atomicio takes vwrite, not write; deraadt@ ok
 
  - (dtucker) [openbsd-compat/bsd-misc.c openbsd-compat/bsd-misc.h]
    Add a tcgetpgrp function.
@@ -778,4 +781,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2876 2003/08/02 14:05:01 dtucker Exp $
+$Id: ChangeLog,v 1.2877 2003/08/02 14:05:58 dtucker Exp $

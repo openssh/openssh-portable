@@ -24,12 +24,12 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: atomicio.c,v 1.11 2003/06/28 16:23:06 deraadt Exp $");
+RCSID("$OpenBSD: atomicio.c,v 1.12 2003/07/31 15:50:16 avsm Exp $");
 
 #include "atomicio.h"
 
 /*
- * ensure all of data on socket comes through. f==read || f==write
+ * ensure all of data on socket comes through. f==read || f==vwrite
  */
 ssize_t
 atomicio(f, fd, _s, n)
