@@ -14,6 +14,7 @@
  - Big manpage and config file cleanup from Andre Lucas
    <andre.lucas@dial.pipex.com>
    - Re-added latest (unmodified) OpenBSD manpages
+ - Doc updates
 
 20000119
  - SCO compile fixes from Gary E. Miller <gem@rellim.com>
