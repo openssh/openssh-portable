@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.276 2001/04/16 00:41:46 djm Exp $
+# $Id: configure.in,v 1.277 2001/04/17 17:57:11 mouring Exp $
 
 AC_INIT(ssh.c)
 
@@ -12,7 +12,7 @@ AC_PROG_CPP
 AC_PROG_RANLIB
 AC_PROG_INSTALL
 AC_PATH_PROG(AR, ar)
-AC_PATH_PROG(PERL, perl)
+AC_PATH_PROG(PERL, perl5 perl)
 AC_SUBST(PERL)
 AC_PATH_PROG(ENT, ent)
 AC_SUBST(ENT)

@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.169 2001/04/16 08:36:39 djm Exp $
+# $Id: Makefile.in,v 1.170 2001/04/17 17:57:11 mouring Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -49,7 +49,7 @@ SSHOBJS= ssh.o sshconnect.o sshconnect1.o sshconnect2.o sshtty.o readconf.o clie
 
 SSHDOBJS= sshd.o auth.o auth1.o auth2.o auth-chall.o auth2-chall.o auth-rhosts.o auth-options.o auth-krb4.o auth-pam.o auth2-pam.o auth-passwd.o auth-rsa.o auth-rh-rsa.o auth-sia.o sshpty.o sshlogin.o loginrec.o servconf.o serverloop.o md5crypt.o session.o groupaccess.o
 
-MANPAGES	= scp.1.out ssh-add.1.out ssh-agent.1.out ssh-keygen.1.out ssh-keyscan.1.out ssh.1.out sshd.8.out sftp-server.8.out sftp.1.out
+MANPAGES	= scp.1 ssh-add.1 ssh-agent.1 ssh-keygen.1 ssh-keyscan.1 ssh.1 sshd.8 sftp-server.8 sftp.1
 MANTYPE		= @MANTYPE@
 
 CONFIGFILES=sshd_config ssh_config primes
@@ -119,16 +119,16 @@ sftp$(EXEEXT): $(LIBCOMPAT) libssh.a sftp.o sftp-client.o sftp-int.o sftp-common
 logintest: logintest.o $(LIBCOMPAT) libssh.a loginrec.o
 	$(LD) -o $@ logintest.o $(LDFLAGS) loginrec.o -lopenbsd-compat -lssh $(LIBS)
 
-$(MANPAGES): %.out: %
+$(MANPAGES)::
 	if test "$(MANTYPE)" = "cat"; then \
-		manpage=`echo $< | sed 's/\.[1-9]$$/\.0/'`; \
+		manpage=`echo $@ | sed 's/\.[1-9]$$/\.0/'`; \
 	else \
-		manpage=$<; \
+		manpage=$@; \
 	fi; \
 	if test "$(MANTYPE)" = "man"; then \
-		$(FIXPATHSCMD) $(srcdir)/$${manpage} | $(PERL) $(srcdir)/mdoc2man.pl > $@; \
+		$(FIXPATHSCMD) $(srcdir)/$${manpage} | $(PERL) $(srcdir)/mdoc2man.pl > $@.out; \
 	else \
-		$(FIXPATHSCMD) $(srcdir)/$${manpage} > $@; \
+		$(FIXPATHSCMD) $(srcdir)/$${manpage} > $@.out; \
 	fi
 
 $(CONFIGFILES)::
@@ -148,15 +148,15 @@ mrproper: distclean
 veryclean: distclean
 	rm -f configure config.h.in *.0
 
-catman-do:
-	@for f in $(TROFFMAN) ; do \
-		base=`echo $$f | sed 's/\..*$$//'` ; \
-		echo "$$f -> $$base.0" ; \
-		nroff -mandoc $$f | cat -v | sed -e 's/.\^H//g' \
-			>$$base.0 ; \
-	done
+#catman-do:
+#	@for f in $(TROFFMAN) ; do \
+#		base=`echo $$f | sed 's/\..*$$//'` ; \
+#		echo "$$f -> $$base.0" ; \
+#		nroff -mandoc $$f | cat -v | sed -e 's/.\^H//g' \
+#			>$$base.0 ; \
+#	done
 
-distprep: catman-do
+distprep: #catman-do
 	autoreconf
 
 install: $(TARGETS) install-files host-key
