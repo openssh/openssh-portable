@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.34 2001/03/11 15:04:16 jakob Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.35 2001/03/11 22:33:23 markus Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -72,7 +72,9 @@
 .Op Fl f Ar keyfile
 .Nm ssh-keygen
 .Fl l
-.Op Fl v
+.Op Fl f Ar input_keyfile
+.Nm ssh-keygen
+.Fl B
 .Op Fl f Ar input_keyfile
 .Sh DESCRIPTION
 .Nm
@@ -167,14 +169,14 @@ or
 for protocol version 2.
 The default is
 .Dq rsa1 .
+.It Fl B
+Show the bubblebabble digest of specified private or public key file.
 .It Fl C Ar comment
 Provides the new comment.
 .It Fl N Ar new_passphrase
 Provides the new passphrase.
 .It Fl P Ar passphrase
 Provides the (old) passphrase.
-.It Fl v
-Print verbose information.
 .It Fl x
 This option will read a private
 OpenSSH DSA format file and print a SSH2-compatible public key to stdout.

@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.48 2001/03/11 16:39:03 deraadt Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.49 2001/03/11 22:33:24 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -46,6 +46,7 @@ int quiet = 0;
 
 /* Flag indicating that we just want to see the key fingerprint */
 int print_fingerprint = 0;
+int print_bubblebabble = 0;
 
 /* The identity file name, given on the command line or entered by the user. */
 char identity_file[1024];
@@ -64,7 +65,6 @@ char *identity_comment = NULL;
 int convert_to_ssh2 = 0;
 int convert_from_ssh2 = 0;
 int print_public = 0;
-int print_verbose = 0;
 
 /* default to RSA for SSH-1 */
 char *key_type_name = "rsa1";
@@ -326,12 +326,14 @@ do_print_public(struct passwd *pw)
 void
 do_fingerprint(struct passwd *pw)
 {
-
 	FILE *f;
 	Key *public;
-	char *comment = NULL, *cp, *ep, line[16*1024];
-	int i, skip = 0, num = 1, invalid = 1, success = 0;
+	char *comment = NULL, *cp, *ep, line[16*1024], *fp;
+	int i, skip = 0, num = 1, invalid = 1, success = 0, rep, type;
 	struct stat st;
+
+	type = print_bubblebabble ? SSH_FP_SHA1 : SSH_FP_MD5;
+	rep =  print_bubblebabble ? SSH_FP_BUBBLEBABBLE : SSH_FP_HEX;
 
 	if (!have_identity)
 		ask_filename(pw, "Enter file in which the key is");
@@ -351,26 +353,12 @@ do_fingerprint(struct passwd *pw)
 			debug("try_load_public_key KEY_UNSPEC failed");
 	}
 	if (success) {
-		char *digest_md5, *digest_bubblebabble;
-
-		digest_md5 = key_fingerprint_ex(public, SSH_FP_MD5, SSH_FP_HEX);
-		digest_bubblebabble = key_fingerprint_ex(public, SSH_FP_SHA1,
-		    SSH_FP_BUBBLEBABBLE);
-
-		if (print_verbose) {
-			printf("comment:      %s\n", comment);
-			printf("size:         %d\n", key_size(public));
-			printf("md5:          %s\n", digest_md5);
-			printf("bubblebabble: %s\n", digest_bubblebabble);
-		} else {
-			printf("%d %s %s\n", key_size(public), digest_md5, comment);
-		}
-
+		fp = key_fingerprint_ex(public, type, rep);
+		printf("%d %s %s\n", key_size(public),
+		    fp, comment);
 		key_free(public);
 		xfree(comment);
-		xfree(digest_md5);
-		xfree(digest_bubblebabble);
-
+		xfree(fp);
 		exit(0);
 	}
 
@@ -421,9 +409,10 @@ do_fingerprint(struct passwd *pw)
 				}
 			}
 			comment = *cp ? cp : comment;
-			printf("%d %s %s\n", key_size(public),
-			    key_fingerprint(public),
+			fp = key_fingerprint_ex(public, type, rep);
+			printf("%d %s %s\n", key_size(public), fp,
 			    comment ? comment : "no comment");
+			xfree(fp);
 			invalid = 0;
 		}
 		fclose(f);
@@ -664,7 +653,7 @@ main(int ac, char **av)
 		exit(1);
 	}
 
-	while ((opt = getopt(ac, av, "dqpclRxXyvb:f:t:P:N:C:")) != -1) {
+	while ((opt = getopt(ac, av, "dqpclBRxXyb:f:t:P:N:C:")) != -1) {
 		switch (opt) {
 		case 'b':
 			bits = atoi(optarg);
@@ -676,6 +665,10 @@ main(int ac, char **av)
 
 		case 'l':
 			print_fingerprint = 1;
+			break;
+
+		case 'B':
+			print_bubblebabble = 1;
 			break;
 
 		case 'p':
@@ -724,10 +717,6 @@ main(int ac, char **av)
 			print_public = 1;
 			break;
 
-		case 'v':
-			print_verbose = 1;
-			break;
-
 		case 'd':
 			key_type_name = "dsa";
 			break;
@@ -749,7 +738,7 @@ main(int ac, char **av)
 		printf("Can only have one of -p and -c.\n");
 		usage();
 	}
-	if (print_fingerprint)
+	if (print_fingerprint || print_bubblebabble)
 		do_fingerprint(pw);
 	if (change_passphrase)
 		do_change_passphrase(pw);
