@@ -12,6 +12,8 @@
  - (djm) Search for -lcrypt on FreeBSD too
  - (djm) fatal() on OpenSSL version mismatch
  - (djm) Move PAM init to after fork for non-Solaris derived PAMs
+ - (djm) Warning fix on entropy.c saved uid stuff. Patch from Mark Miller
+   <markm@swoon.net>
 
 20010226
  - (bal) Fixed bsd-snprinf.c so it now honors 'BROKEN_SNPRINTF' again.
@@ -4146,4 +4148,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.831 2001/02/26 22:28:23 djm Exp $
+$Id: ChangeLog,v 1.832 2001/02/26 22:47:16 djm Exp $
