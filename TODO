@@ -11,6 +11,12 @@ Programming:
 - Support 64bit ints on machines that lack 'long long' and u_intXX_t
   (tim@multitalents.net)
 
+- Linux hangs for 20 seconds when you do "sleep 20&exit".  All current
+  solutions break scp or leaves processes hanging around after the ssh
+  connection has ended.  It seems to be linked to two things.  One
+  select() under Linux is not as nice as others, and two the children
+  of the shell are not killed on exiting the shell.
+
 Documentation:
 - More and better
 
@@ -45,4 +51,3 @@ Packaging:
 
 - HP/UX: Provide DEPOT package scripts.
   (gilbert.r.loomis@saic.com)
- 
