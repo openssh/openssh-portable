@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.130 2003/06/30 09:21:36 djm Exp $
+# $Id: configure.ac,v 1.131 2003/07/07 09:44:01 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -674,7 +674,7 @@ AC_CHECK_FUNCS(\
 	arc4random __b64_ntop b64_ntop __b64_pton b64_pton basename \
 	bcopy bindresvport_sa clock fchmod fchown freeaddrinfo futimes \
 	gai_strerror getaddrinfo getcwd getgrouplist getnameinfo getopt \
-	getpeereid _getpty getrlimit getrusage getttyent glob inet_aton \
+	getpeereid _getpty getrlimit getttyent glob inet_aton \
 	inet_ntoa inet_ntop innetgr login_getcapbool md5_crypt memmove \
 	mkdtemp mmap ngetaddrinfo nsleep ogetaddrinfo openlog_r openpty \
 	pstat readpassphrase realpath recvmsg rresvport_af sendmsg \
@@ -688,8 +688,9 @@ AC_CHECK_FUNCS(\
 AC_SEARCH_LIBS(nanosleep, rt posix4, AC_DEFINE(HAVE_NANOSLEEP))
 AC_SEARCH_LIBS(basename, gen, AC_DEFINE(HAVE_BASENAME))
 
-dnl Make sure strsep prototype is defined before defining HAVE_STRSEP
+dnl Make sure prototypes are defined for these before using them.
 AC_CHECK_DECL(strsep, [AC_CHECK_FUNCS(strsep)])
+AC_CHECK_DECL(getrusage, [AC_CHECK_FUNCS(getrusage)])
 
 dnl IRIX and Solaris 2.5.1 have dirname() in libgen
 AC_CHECK_FUNCS(dirname, [AC_CHECK_HEADERS(libgen.h)] ,[
