@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.81 2001/07/23 09:06:28 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.82 2001/08/31 11:46:39 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -164,6 +164,8 @@ struct Authctxt {
 	/* hostbased */
 	Key **keys;
 	int nkeys;
+	/* kbd-interactive */
+	int info_req_seen;
 };
 struct Authmethod {
 	char	*name;		/* string to compare against server's list */
@@ -252,6 +254,7 @@ ssh_userauth2(const char *local_user, const char *server_user, char *host,
 		options.preferred_authentications = authmethods_get();
 
 	/* setup authentication context */
+	memset(&authctxt, 0, sizeof(authctxt));
 	authctxt.agent = ssh_get_authentication_connection();
 	authctxt.server_user = server_user;
 	authctxt.local_user = local_user;
@@ -262,6 +265,7 @@ ssh_userauth2(const char *local_user, const char *server_user, char *host,
 	authctxt.authlist = NULL;
 	authctxt.keys = keys;
 	authctxt.nkeys = nkeys;
+	authctxt.info_req_seen = 0;
 	if (authctxt.method == NULL)
 		fatal("ssh_userauth2: internal error: cannot send userauth none request");
 
@@ -739,6 +743,12 @@ userauth_kbdint(Authctxt *authctxt)
 
 	if (attempt++ >= options.number_of_password_prompts)
 		return 0;
+	/* disable if no SSH2_MSG_USERAUTH_INFO_REQUEST has been seen */
+	if (attempt > 1 && !authctxt->info_req_seen) {
+		debug3("userauth_kbdint: disable: no info_req_seen");
+		dispatch_set(SSH2_MSG_USERAUTH_INFO_REQUEST, NULL);
+		return 0;
+	}
 
 	debug2("userauth_kbdint");
 	packet_start(SSH2_MSG_USERAUTH_REQUEST);
@@ -769,6 +779,8 @@ input_userauth_info_req(int type, int plen, void *ctxt)
 
 	if (authctxt == NULL)
 		fatal("input_userauth_info_req: no authentication context");
+
+	authctxt->info_req_seen = 1;
 
 	name = packet_get_string(NULL);
 	inst = packet_get_string(NULL);

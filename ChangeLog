@@ -73,6 +73,10 @@
    - markus@cvs.openbsd.org 2001/08/30 22:22:32
      [ssh-keyscan.c]
      do not pass pointers to longjmp; fix from wayne@blorf.net
+   - markus@cvs.openbsd.org 2001/08/31 11:46:39
+     [sshconnect2.c]
+     disable kbd-interactive if we don't get 
+     SSH2_MSG_USERAUTH_INFO_REQUEST messages
 
 20010815
  - (bal) Fixed stray code in readconf.c that went in by mistake.
@@ -6396,4 +6400,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1506 2001/09/12 18:05:05 mouring Exp $
+$Id: ChangeLog,v 1.1507 2001/09/12 18:29:00 mouring Exp $
