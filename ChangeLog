@@ -1,3 +1,9 @@
+20030124
+ - (djm) OpenBSD CVS Sync
+   - jmc@cvs.openbsd.org 2003/01/23 08:58:47
+     [sshd_config.5]
+     typos; ok millert@
+
 20030123
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2003/01/23 00:03:00
@@ -1056,4 +1062,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2582 2003/01/23 06:41:20 djm Exp $
+$Id: ChangeLog,v 1.2583 2003/01/24 00:34:52 djm Exp $
