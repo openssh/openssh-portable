@@ -35,7 +35,7 @@
 
 #include "includes.h"
 #include "openbsd-compat/fake-queue.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.91 2002/06/11 05:46:20 mpech Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.92 2002/06/15 00:01:36 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -470,14 +470,12 @@ send:
 }
 
 static void
-process_lifetime_identity(SocketEntry *e, int version)
+process_contrain_identity(SocketEntry *e, int version)
 {
 	Key *key = NULL;
 	u_char *blob;
-	u_int blen, bits, death;
+	u_int blen, bits, death = 0;
 	int success = 0;
-
-	death = time(NULL) + buffer_get_int(&e->request);
 
 	switch (version) {
 	case 1:
@@ -493,9 +491,18 @@ process_lifetime_identity(SocketEntry *e, int version)
 		xfree(blob);
 		break;
 	}
+	while (buffer_len(&e->request)) {
+		switch (buffer_get_char(&e->request)) {
+		case SSH_AGENT_CONTRAIN_LIFETIME:
+			death = time(NULL) + buffer_get_int(&e->request);
+			break;
+		default:
+			break;
+		}
+	}
 	if (key != NULL) {
 		Identity *id = lookup_identity(key, version);
-		if (id != NULL && id->death == 0) {
+		if (id != NULL && id->death == 0 && death != 0) {
 			id->death = death;
 			success = 1;
 		}
@@ -707,8 +714,8 @@ process_message(SocketEntry *e)
 	case SSH_AGENTC_REMOVE_ALL_RSA_IDENTITIES:
 		process_remove_all_identities(e, 1);
 		break;
-	case SSH_AGENTC_LIFETIME_IDENTITY1:
-		process_lifetime_identity(e, 1);
+	case SSH_AGENTC_CONTRAIN_IDENTITY1:
+		process_contrain_identity(e, 1);
 		break;
 	/* ssh2 */
 	case SSH2_AGENTC_SIGN_REQUEST:
@@ -726,8 +733,8 @@ process_message(SocketEntry *e)
 	case SSH2_AGENTC_REMOVE_ALL_IDENTITIES:
 		process_remove_all_identities(e, 2);
 		break;
-	case SSH_AGENTC_LIFETIME_IDENTITY:
-		process_lifetime_identity(e, 2);
+	case SSH_AGENTC_CONTRAIN_IDENTITY:
+		process_contrain_identity(e, 2);
 		break;
 #ifdef SMARTCARD
 	case SSH_AGENTC_ADD_SMARTCARD_KEY:
