@@ -23,6 +23,7 @@
  - (djm) Configure glue for DNS support (code doesn't work in portable yet)
  - (djm) Import getrrsetbyname() function from OpenBSD libc (for DNS support)
  - (djm) Tidy Makefile clean targets
+ - (djm) Adapt README.dns for portable
 
 20030514
  - (djm) Bug #117: Don't lie to PAM about username
@@ -1498,4 +1499,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2708 2003/05/15 03:23:07 djm Exp $
+$Id: ChangeLog,v 1.2709 2003/05/15 03:23:36 djm Exp $

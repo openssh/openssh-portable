@@ -9,10 +9,7 @@ and DNSSEC is out of the scope of this document.
 
 (1) Enable DNS fingerprint support in OpenSSH
 
-Edit /usr/src/usr.bin/ssh/Makefile.inc and uncomment the line containing
-
-	CFLAGS+= -DDNS
-
+	configure --with-dns
 
 (2) Generate and publish the DNS RR
 
