@@ -15,6 +15,8 @@
      listen sock now.
    - [sshd.c]
      make that a fatal
+ - Applied patch from David Rankin <drankin@bohemians.lexington.ky.us>
+   to fix libwrap support on NetBSD
  - Released 1.2pre17
 
 19991208

@@ -276,9 +276,10 @@ AC_ARG_WITH(tcp-wrappers,
 	[  --with-tcp-wrappers     Enable tcpwrappers support],
 	[
 		AC_DEFINE(LIBWRAP)
-		LIBS="$LIBS -lwrap"
+		LIBWRAP="-lwrap"
 	]
 )
+AC_SUBST(LIBWRAP)
 
 dnl Check whether to enable MD5 passwords
 AC_ARG_WITH(md5-passwords,

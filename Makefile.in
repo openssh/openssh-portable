@@ -15,6 +15,7 @@ CFLAGS=@CFLAGS@ $(PATHS) @DEFS@
 EXTRA_TARGETS=@GNOME_ASKPASS@
 TARGETS=libssh.a ssh sshd ssh-add ssh-keygen ssh-agent scp $(EXTRA_TARGETS)
 LIBS=@LIBS@
+LIBWRAP=@LIBWRAP@
 AR=@AR@
 RANLIB=@RANLIB@
 INSTALL=@INSTALL@
@@ -48,7 +49,7 @@ ssh: ssh.o sshconnect.o log-client.o readconf.o clientloop.o libssh.a
 sshd:	sshd.o auth-rhosts.o auth-passwd.o auth-rsa.o auth-rh-rsa.o \
   pty.o log-server.o login.o servconf.o serverloop.o bsd-login.o \
   md5crypt.o libssh.a
-	$(CC) -o $@ $^ $(LFLAGS) $(LIBS) 
+	$(CC) -o $@ $^ $(LFLAGS) $(LIBS) $(LIBWRAP)
 
 scp:	scp.o libssh.a
 	$(CC) -o $@ $^ $(LFLAGS) $(LIBS) 
