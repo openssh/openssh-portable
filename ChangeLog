@@ -1,3 +1,8 @@
+20040623
+ - (dtucker) [auth1.c] Ensure do_pam_account is called for Protocol 1
+   connections with empty passwords.  Patch from davidwu at nbttech.com,
+   ok djm@
+
 20040622
  - (bal) [auth-passwd.c auth1.c] Clean up unused variables.
  - (dtucker) OpenBSD CVS Sync
@@ -1369,4 +1374,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3432 2004/06/22 05:06:46 dtucker Exp $
+$Id: ChangeLog,v 1.3433 2004/06/22 23:17:54 dtucker Exp $

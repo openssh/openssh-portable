@@ -79,8 +79,13 @@ do_authloop(Authctxt *authctxt)
 	    (!options.kerberos_authentication || options.kerberos_or_local_passwd) &&
 #endif
 	    PRIVSEP(auth_password(authctxt, ""))) {
-		auth_log(authctxt, 1, "without authentication", "");
-		return;
+#ifdef USE_PAM
+		if (options.use_pam && (PRIVSEP(do_pam_account())))
+#endif
+		{
+			auth_log(authctxt, 1, "without authentication", "");
+			return;
+		}
 	}
 
 	/* Indicate that authentication is needed. */
