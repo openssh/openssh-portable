@@ -113,6 +113,9 @@
    - deraadt@cvs.openbsd.org 2001/03/02 06:21:01
      [sshd.8]
      explain SIGHUP better
+   - deraadt@cvs.openbsd.org 2001/03/02 09:42:49
+     [sshd.8]
+     doc the dsa/rsa key pair files
 
 20010304
  - (bal) Remove make-ssh-known-hosts.1 since it's no longer valid.
@@ -4305,4 +4308,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.886 2001/03/05 06:55:18 mouring Exp $
+$Id: ChangeLog,v 1.887 2001/03/05 06:57:23 mouring Exp $

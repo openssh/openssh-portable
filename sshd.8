@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.97 2001/03/02 06:21:01 deraadt Exp $
+.\" $OpenBSD: sshd.8,v 1.98 2001/03/02 09:42:49 deraadt Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -927,22 +927,24 @@ Contains configuration data for
 .Nm sshd .
 This file should be writable by root only, but it is recommended
 (though not necessary) that it be world-readable.
-.It Pa /etc/ssh_host_key
-Contains the private part of the host key.
-This file should only be owned by root, readable only by root, and not
+.It Pa /etc/ssh_host_key, /etc/ssh_host_dsa_key, /etc/ssh_host_rsa_key
+These three files contain the private parts of the
+(SSH1, SSH2 DSA, and SSH2 RSA) host keys.
+These files should only be owned by root, readable only by root, and not
 accessible to others.
 Note that
 .Nm
 does not start if this file is group/world-accessible.
-.It Pa /etc/ssh_host_key.pub
-Contains the public part of the host key.
-This file should be world-readable but writable only by
+.It Pa /etc/ssh_host_key.pub, /etc/ssh_host_dsa_key.pub, /etc/ssh_host_rsa_key.pub
+There three files contain the public parts of the
+(SSH1, SSH2 DSA, and SSH2 RSA) host keys.
+These files should be world-readable but writable only by
 root.
-Its contents should match the private part.
-This file is not
-really used for anything; it is only provided for the convenience of
-the user so its contents can be copied to known hosts files.
-These two files are created using
+Their contents should match the respective private parts.
+These files are not
+really used for anything; they are provided for the convenience of
+the user so their contents can be copied to known hosts files.
+These files are created using
 .Xr ssh-keygen 1 .
 .It Pa /etc/primes
 Contains Diffie-Hellman groups used for the "Diffie-Hellman Group Exchange".
