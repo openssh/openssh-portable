@@ -1,5 +1,8 @@
 20010221
  - (bal) Removed -L/usr/ucblib -R/usr/ucblib for Solaris platform.
+ - (bal) Fixed OpenSSL rework to use $saved_*.  Patch by Tim Rice 
+   <tim@multitalents.net>
+
 20010220
  - (bal) Fix mixed up params to memmove() from Jan 5th in setenv.c and
    getcwd.c.
@@ -4080,4 +4083,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.806 2001/02/20 18:22:38 mouring Exp $
+$Id: ChangeLog,v 1.807 2001/02/21 02:35:37 mouring Exp $
