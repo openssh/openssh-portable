@@ -8,6 +8,7 @@
      Integers should not be printed with %s
  - EGD uses a socket, not a named pipe. Duh.
  - Fix includes in fingerprint.c
+ - Fix scp progress bar bug again.
 
 19991118
  - Merged OpenBSD CVS changes
