@@ -1,3 +1,7 @@
+20020702
+ - (djm) Use PAM_MSG_MEMBER for PAM_TEXT_INFO messages, use xmalloc & 
+   friends consistently. Spotted by Solar Designer <solar@openwall.com>
+
 20020629
  - (bal) fix to auth2-pam.c to swap fatal() arguments,  A bit of style
    clean up while I'm near it.
@@ -1201,4 +1205,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2312 2002/06/28 16:48:11 mouring Exp $
+$Id: ChangeLog,v 1.2313 2002/07/02 07:08:23 djm Exp $

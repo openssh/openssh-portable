@@ -36,7 +36,7 @@
 
 extern char *__progname;
 
-RCSID("$Id: auth-pam.c,v 1.46 2002/05/08 02:27:56 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.47 2002/07/02 07:08:24 djm Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now"
@@ -100,9 +100,7 @@ static int do_pam_conversation(int num_msg, const struct pam_message **msg,
 	char buf[1024];
 
 	/* PAM will free this later */
-	reply = malloc(num_msg * sizeof(*reply));
-	if (reply == NULL)
-		return PAM_CONV_ERR;
+	reply = xmalloc(num_msg * sizeof(*reply));
 
 	for (count = 0; count < num_msg; count++) {
 		if (pamstate == INITIAL_LOGIN) {
@@ -112,11 +110,11 @@ static int do_pam_conversation(int num_msg, const struct pam_message **msg,
 			 */
 			switch(PAM_MSG_MEMBER(msg, count, msg_style)) {
 			case PAM_PROMPT_ECHO_ON:
-				free(reply);
+				xfree(reply);
 				return PAM_CONV_ERR;
 			case PAM_PROMPT_ECHO_OFF:
 				if (__pampasswd == NULL) {
-					free(reply);
+					xfree(reply);
 					return PAM_CONV_ERR;
 				}
 				reply[count].resp = xstrdup(__pampasswd);
@@ -124,7 +122,7 @@ static int do_pam_conversation(int num_msg, const struct pam_message **msg,
 				break;
 			case PAM_ERROR_MSG:
 			case PAM_TEXT_INFO:
-				if ((*msg)[count].msg != NULL) {
+				if (PAM_MSG_MEMBER(msg, count, msg) != NULL) {
 					message_cat(&__pam_msg, 
 					    PAM_MSG_MEMBER(msg, count, msg));
 				}
@@ -132,7 +130,7 @@ static int do_pam_conversation(int num_msg, const struct pam_message **msg,
 				reply[count].resp_retcode = PAM_SUCCESS;
 				break;
 			default:
-				free(reply);
+				xfree(reply);
 				return PAM_CONV_ERR;
 			}
 		} else {
@@ -161,7 +159,7 @@ static int do_pam_conversation(int num_msg, const struct pam_message **msg,
 				reply[count].resp_retcode = PAM_SUCCESS;
 				break;
 			default:
-				free(reply);
+				xfree(reply);
 				return PAM_CONV_ERR;
 			}
 		}
