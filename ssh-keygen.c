@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.103 2003/04/08 20:21:29 itojun Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.104 2003/05/11 16:56:48 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -162,6 +162,10 @@ do_convert_to_ssh2(struct passwd *pw)
 			fprintf(stderr, "load failed\n");
 			exit(1);
 		}
+	}
+	if (k->type == KEY_RSA1) {
+		fprintf(stderr, "version 1 keys are not supported\n");
+		exit(1);
 	}
 	if (key_to_blob(k, &blob, &len) <= 0) {
 		fprintf(stderr, "key_to_blob failed\n");

@@ -36,6 +36,12 @@
      [sshd.8]
      fix invalid .Pf macro usage introduced in previous commit
      ok jmc@ mouring@
+   - markus@cvs.openbsd.org 2003/05/11 16:56:48
+     [authfile.c ssh-keygen.c]
+     change key_load_public to try to read a public from:
+     rsa1 private or rsa1 public and ssh2 keys.
+     this makes ssh-keygen -e fail for ssh1 keys more gracefully
+     for example; report from itojun (netbsd pr 20550).
 
 20030512
  - (djm) Redhat spec: Don't install profile.d scripts when not 
@@ -1423,4 +1429,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2686 2003/05/14 03:44:58 djm Exp $
+$Id: ChangeLog,v 1.2687 2003/05/14 03:45:22 djm Exp $
