@@ -21,6 +21,8 @@
    - [mpaux.c] clear temp buffer
    - [servconf.c] print _all_ bad options found in configfile
  - Make ssh-askpass support optional through autoconf
+ - Fix nasty division-by-zero error in scp.c
+ - Released 1.2pre11
 
 19991111
  - Added (untested) Entropy Gathering Daemon (EGD) support
