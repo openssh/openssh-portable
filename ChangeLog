@@ -1,3 +1,12 @@
+20001216
+ - (stevesk) OpenBSD CVS updates:
+   - markus@cvs.openbsd.org 2000/12/16 02:53:57
+     [scp.c]
+     allow + in usernames; request from Florian.Weimer@RUS.Uni-Stuttgart.DE
+   - markus@cvs.openbsd.org 2000/12/16 02:39:57
+     [scp.c]
+     unused; from stevesk@pobox.com
+
 20001215
  - (stevesk) Old OpenBSD patch wasn't completely applied:
    - markus@cvs.openbsd.org 2000/01/24 22:11:20
