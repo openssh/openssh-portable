@@ -4,6 +4,7 @@ sshd
 ssh-add
 ssh-keygen
 ssh-keyscan
+ssh-keysign
 ssh-agent
 sftp-server
 sftp
