@@ -1,6 +1,10 @@
 20020404
  - (stevesk) [auth-pam.c auth-pam.h auth-passwd.c auth-sia.c auth-sia.h
     auth1.c auth2.c] PAM, OSF_SIA password auth cleanup; from djm.
+ - (bal) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2002/04/03 09:26:11
+     [cipher.c myproposal.h]
+     re-add rijndael-cbc@lysator.liu.se for MacSSH; ash@lab.poc.net
 
 20020402
  - (bal) Hand Sync of scp.c (reverted to upstream code)
@@ -8151,4 +8155,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2021 2002/04/04 19:02:28 stevesk Exp $
+$Id: ChangeLog,v 1.2022 2002/04/04 22:10:38 mouring Exp $

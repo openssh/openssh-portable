@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: cipher.c,v 1.54 2002/03/19 10:49:35 markus Exp $");
+RCSID("$OpenBSD: cipher.c,v 1.55 2002/04/03 09:26:11 markus Exp $");
 
 #include "xmalloc.h"
 #include "log.h"
@@ -72,6 +72,8 @@ struct Cipher {
 	{ "aes128-cbc", 	SSH_CIPHER_SSH2, 16, 16, evp_rijndael },
 	{ "aes192-cbc", 	SSH_CIPHER_SSH2, 16, 24, evp_rijndael },
 	{ "aes256-cbc", 	SSH_CIPHER_SSH2, 16, 32, evp_rijndael },
+	{ "rijndael-cbc@lysator.liu.se",
+				SSH_CIPHER_SSH2, 16, 32, evp_rijndael },
 
 	{ NULL,			SSH_CIPHER_ILLEGAL, 0, 0, NULL }
 };
@@ -584,7 +586,7 @@ cipher_get_keyiv(CipherContext *cc, u_char *iv, u_int len)
 			fatal("%s: wrong iv length %d != %d", __FUNCTION__,
 			    evplen, len);
 
-		if (strncmp(c->name, "aes", 3) == 0) {
+		if (c->evptype == evp_rijndael) {
 			struct ssh_rijndael_ctx *aesc;
 
 			aesc = EVP_CIPHER_CTX_get_app_data(&cc->evp);
@@ -629,7 +631,7 @@ cipher_set_keyiv(CipherContext *cc, u_char *iv)
 		if (evplen == 0)
 			return;
 
-		if (strncmp(c->name, "aes", 3) == 0) {
+		if (c->evptype == evp_rijndael) {
 			struct ssh_rijndael_ctx *aesc;
 
 			aesc = EVP_CIPHER_CTX_get_app_data(&cc->evp);
