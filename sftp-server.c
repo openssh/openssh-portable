@@ -683,7 +683,7 @@ process_fsetstat(void)
 #ifdef HAVE_FCHMOD
 			ret = fchmod(fd, a->perm & 0777);
 #else
-			ret = chmod(name, a->perm & 077);
+			ret = chmod(name, a->perm & 0777);
 #endif
 			if (ret == -1)
 				status = errno_to_portable(errno);

@@ -7,6 +7,7 @@
  - (bal) #ifdef around S_IFSOCK if platform does not support it.
    patch by Tim Rice <tim@multitalents.net>
  - (bal) fake-regex.h cleanup based on Tim Rice's patch.
+ - (stevesk) sftp-server.c: fix chmod() mode mask
 
 20010123
  - (bal) regexp.h typo in configure.in.  Should have been regex.h
