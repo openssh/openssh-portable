@@ -29,6 +29,9 @@
    - dtucker@cvs.openbsd.org 2004/05/02 23:02:17
      [sftp.1]
      ConnectionTimeout -> ConnectTimeout here too, pointed out by jmc@
+   - dtucker@cvs.openbsd.org 2004/05/02 23:17:51
+     [scp.1]
+     ConnectionTimeout -> ConnectTimeout for scp.1 too.
 
 20040423
  - (dtucker) [configure.ac openbsd-compat/getrrsetbyname.c] Declare h_errno
@@ -1070,4 +1073,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3340 2004/05/02 23:13:15 dtucker Exp $
+$Id: ChangeLog,v 1.3341 2004/05/02 23:19:03 dtucker Exp $
