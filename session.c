@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.105 2001/10/09 19:32:49 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.106 2001/10/09 21:59:41 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1949,22 +1949,6 @@ session_close_by_pid(pid_t pid, int status)
 	session_close(s);
 }
 
-int
-session_have_children(void)
-{
-	int i;
-
-	for(i = 0; i < MAX_SESSIONS; i++) {
-		Session *s = &sessions[i];
-		if (s->used && s->pid != -1) {
-			debug("session_have_children: id %d pid %d", i, s->pid);
-			return 1;
-		}
-	}
-	debug("session_have_children: no more children");
-	return 0;
-}
-
 /*
  * this is called when a channel dies before
  * the session 'child' itself dies
@@ -1982,14 +1966,28 @@ session_close_by_channel(int id, void *arg)
 	s->chanid = -1;
 
 	debug("session_close_by_channel: channel %d kill %d", id, s->pid);
-	if (s->pid == 0) {
-		/* close session immediately */
-		session_close(s);
-	} else {
-		/* notify child, delay session cleanup */
-		if (kill(s->pid, (s->ttyfd == -1) ? SIGTERM : SIGHUP) < 0)
+	if (s->pid != 0) {
+		/* notify child */
+		if (kill(s->pid, SIGHUP) < 0)
 			error("session_close_by_channel: kill %d: %s",
 			    s->pid, strerror(errno));
+	}
+	session_close(s);
+}
+
+void
+session_close_all(void)
+{
+	int i;
+	for(i = 0; i < MAX_SESSIONS; i++) {
+		Session *s = &sessions[i];
+		if (s->used) {
+			if (s->chanid != -1) {
+				channel_cancel_cleanup(s->chanid);
+				s->chanid = -1;
+			}
+			session_close(s);
+		}
 	}
 }
 

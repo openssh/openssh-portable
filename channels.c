@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.138 2001/10/08 11:48:57 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.139 2001/10/09 21:59:41 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -357,22 +357,6 @@ channel_free_all(void)
 	for (i = 0; i < channels_alloc; i++)
 		if (channels[i] != NULL)
 			channel_free(channels[i]);
-}
-
-void
-channel_detach_all(void)
-{
-	int i;
-	Channel *c;
-
-	for (i = 0; i < channels_alloc; i++) {
-		c = channels[i];
-		if (c != NULL && c->detach_user != NULL) {
-			debug("channel_detach_all: channel %d", c->self);
-			c->detach_user(c->self, NULL);
-			c->detach_user = NULL;
-		}
-	}
 }
 
 /*

@@ -32,7 +32,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* RCSID("$OpenBSD: channels.h,v 1.48 2001/10/07 17:49:40 markus Exp $"); */
+/* RCSID("$OpenBSD: channels.h,v 1.49 2001/10/09 21:59:41 markus Exp $"); */
 
 #ifndef CHANNEL_H
 #define CHANNEL_H
@@ -143,7 +143,6 @@ Channel *channel_new(char *, int, int, int, int, int, int, int, char *, int);
 void	 channel_set_fds(int, int, int, int, int, int);
 void	 channel_free(Channel *);
 void	 channel_free_all(void);
-void	 channel_detach_all(void);
 void	 channel_stop_listening(void);
 
 void	 channel_send_open(int);
@@ -177,7 +176,6 @@ void     channel_output_poll(void);
 
 int      channel_not_very_much_buffered_data(void);
 void     channel_close_all(void);
-void     channel_free_all(void);
 int      channel_still_open(void);
 char	*channel_open_message(void);
 int	 channel_find_open(void);

@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.80 2001/10/09 19:51:18 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.81 2001/10/09 21:59:41 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -674,6 +674,7 @@ server_loop2(Authctxt *authctxt)
 	fd_set *readset = NULL, *writeset = NULL;
 	int rekeying = 0, max_fd, status, nalloc = 0;
 	pid_t pid;
+	sigset_t oset, nset;
 
 	debug("Entering interactive session for SSH2.");
 
@@ -696,12 +697,17 @@ server_loop2(Authctxt *authctxt)
 			channel_output_poll();
 		wait_until_can_do_something(&readset, &writeset, &max_fd,
 		    &nalloc, 0);
+
+		/* block SIGCHLD while we check for dead children */
+		sigemptyset(&nset);
+		sigaddset(&nset, SIGCHLD);
+		sigprocmask(SIG_BLOCK, &nset, &oset);
 		if (child_terminated) {
 			while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
 				session_close_by_pid(pid, status);
-			/* XXX race */
 			child_terminated = 0;
 		}
+		sigprocmask(SIG_SETMASK, &oset, NULL);
 		if (!rekeying)
 			channel_after_select(readset, writeset);
 		process_input(readset);
@@ -709,35 +715,21 @@ server_loop2(Authctxt *authctxt)
 			break;
 		process_output(writeset);
 	}
-	/* close all channels, no more reads and writes */
-	channel_close_all();
-
 	if (readset)
 		xfree(readset);
 	if (writeset)
 		xfree(writeset);
 
-	mysignal(SIGCHLD, SIG_DFL);
+	/* free all channels, no more reads and writes */
+	channel_free_all();
 
-	/* collect dead children */
+	/* collect remaining dead children, XXX not necessary? */
+	mysignal(SIGCHLD, SIG_DFL);
 	while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
 		session_close_by_pid(pid, status);
-	/*
-	 * there is a race between channel_detach_all() killing remaining
-	 * children and children dying before kill()
-	 */
-	channel_detach_all();
 
-	while (session_have_children()) {
-		pid = waitpid(-1, &status, 0);
-		if (pid > 0)
-			session_close_by_pid(pid, status);
-		else {
-			error("waitpid returned %d: %s", pid, strerror(errno));
-			break;
-		}
-	}
-	channel_free_all();
+	/* close remaining sessions, e.g remove wtmp entries */
+	session_close_all();
 }
 
 static void
