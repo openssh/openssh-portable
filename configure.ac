@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.154.2.13 2003/10/07 08:36:24 dtucker Exp $
+# $Id: configure.ac,v 1.154.2.14 2003/10/07 10:35:29 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -294,6 +294,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	# /usr/ucblib MUST NOT be searched on ReliantUNIX
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
+	AC_CHECK_LIB(dl, dlsym, ,)
 	IPADDR_IN_DISPLAY=yes
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(IP_TOS_IS_BROKEN)
