@@ -11,7 +11,7 @@
 
 #ifndef HAVE_PAM
 
-RCSID("$Id: auth-passwd.c,v 1.8 1999/12/06 00:47:28 damien Exp $");
+RCSID("$Id: auth-passwd.c,v 1.9 1999/12/16 04:10:45 damien Exp $");
 
 #include "packet.h"
 #include "ssh.h"
@@ -75,6 +75,10 @@ auth_password(struct passwd * pw, const char *password)
 
 	if ((spw->sp_namp == NULL) || (strcmp(pw->pw_name, spw->sp_namp) != 0))
 		fatal("Shadow lookup returned garbage.");
+
+	/* Check for users with no password. */
+	if (strcmp(password, "") == 0 && strcmp(spw->sp_pwdp, "") == 0)
+		return 1;
 
 	if (strlen(spw->sp_pwdp) < 3)
 		return(0);

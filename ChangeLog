@@ -7,6 +7,9 @@
      keysize warnings talk about identity files
    - [packet.c]
      "Connection closed by x.x.x.x": fatal() -> log()
+ - Correctly handle empty passwords in shadow file. Patch from: 
+   "Chris, the Young One" <cky@pobox.com>
+ - Released 1.2.1pre18
 
 19991215
  - Integrated patchs from Juergen Keil <jk@tools.de>
