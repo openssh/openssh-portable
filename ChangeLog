@@ -3,6 +3,10 @@
    - fgsch@cvs.openbsd.org 2003/01/10 23:23:24
      [sftp-int.c]
      typo; from Nils Nordman <nino at nforced dot com>.
+   - markus@cvs.openbsd.org 2003/01/11 18:29:43
+     [log.c]
+     set fatal_cleanups to NULL in fatal_remove_all_cleanups(); 
+     dtucker@zip.com.au
 
 20030113
  - (djm) Rework openbsd-compat/setproctitle.c a bit: move emulation type
@@ -1006,4 +1010,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2567 2003/01/14 11:22:11 djm Exp $
+$Id: ChangeLog,v 1.2568 2003/01/14 11:22:43 djm Exp $
