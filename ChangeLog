@@ -17,6 +17,9 @@
      make sure the signature has at least the expected length (don't
      insist on len == hlen + oidlen, since this breaks some smartcards)
      bugzilla #592; ok djm@
+   - markus@cvs.openbsd.org 2003/06/16 10:22:45
+     [ssh-add.c]
+     print out key comment on each prompt; make ssh-askpass more useable; ok djm@
 
 20030614
  - (djm) Update license on fake-rfc2553.[ch]; ok itojun@
@@ -532,4 +535,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2806 2003/06/18 10:29:01 djm Exp $
+$Id: ChangeLog,v 1.2807 2003/06/18 10:29:18 djm Exp $
