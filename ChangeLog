@@ -1,5 +1,6 @@
 20000926
  - (djm) Update X11-askpass to 1.0.2 in RPM spec file
+ - (djm) Define _REENTRANT
 
 20000924
  - (djm) Merged cleanup patch from Mark Miller <markm@swoon.net>

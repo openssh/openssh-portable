@@ -1,6 +1,11 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
+/* Some platforms need this for the _r() functions */
+#ifndef _REENTRANT
+# define _REENTRANT 1
+#endif
+
 /* Necessary headers */
 
 #include <sys/types.h> /* For [u]intxx_t */
