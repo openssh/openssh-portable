@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.64 2001/04/17 09:52:48 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.65 2001/04/20 07:17:51 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -566,6 +566,7 @@ process_escapes(Buffer *bin, Buffer *bout, Buffer *berr, char *buf, int len)
 "%c?\r\n\
 Supported escape sequences:\r\n\
 ~.  - terminate connection\r\n\
+~R - Request rekey (SSH protocol 2 only)\r\n\
 ~^Z - suspend ssh\r\n\
 ~#  - list forwarded connections\r\n\
 ~&  - background ssh (when waiting for connections to terminate)\r\n\

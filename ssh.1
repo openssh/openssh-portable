@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.103 2001/04/17 10:53:26 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.104 2001/04/20 07:17:51 djm Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -243,30 +243,7 @@ All communication with
 the remote command or shell will be automatically encrypted.
 .Pp
 If a pseudo-terminal has been allocated (normal login session), the
-user can disconnect with
-.Ic ~. ,
-and suspend
-.Nm
-with
-.Ic ~^Z .
-All forwarded connections can be listed with
-.Ic ~#
-and if
-the session blocks waiting for forwarded X11 or TCP/IP
-connections to terminate, it can be backgrounded with
-.Ic ~&
-(this should not be used while the user shell is active, as it can cause the
-shell to hang).
-All available escapes can be listed with
-.Ic ~? .
-.Pp
-A single tilde character can be sent as
-.Ic ~~
-(or by following the tilde by a character other than those described above).
-The escape character must always follow a newline to be interpreted as
-special.
-The escape character can be changed in configuration files
-or on the command line.
+user may use the escape characters noted below.
 .Pp
 If no pseudo tty has been allocated, the
 session is transparent and can be used to reliably transfer binary
@@ -280,6 +257,42 @@ machine exits and all X11 and TCP/IP connections have been closed.
 The exit status of the remote program is returned as the exit status
 of
 .Nm ssh .
+.Pp
+.Ss Escape Characters
+.Pp
+When a pseudo terminal has been requested, ssh supports a number of functions
+through the use of an escape charater. 
+.Pp
+A single tilde character can be sent as
+.Ic ~~
+(or by following the tilde by a character other than those described above).
+The escape character must always follow a newline to be interpreted as
+special.
+The escape character can be changed in configuration files using the
+.Cm EscapeChar
+configuration directive or on the command line by the 
+.Fl e
+option.
+.Pp
+The supported escapes (assuming the default
+.Ql ~ )
+are:
+.Bl -tag -width Ds
+.It Cm ~.
+Disconnect
+.It Cm ~^Z
+Background ssh
+.It Cm ~#
+List forwarded connections
+.It Cm ~&
+Background ssh at logout when waiting for forwarded connection / X11 sessions
+to terminate (this does not currently work for SSH protocol version 2)
+.It Cm ~?
+Display a list of escape characters
+.It Cm ~R
+Request rekeying of connection (only useful for SSH protocol version 2 and if
+the peer supports it)
+.El
 .Pp
 .Ss X11 and TCP forwarding
 .Pp

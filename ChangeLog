@@ -1,3 +1,10 @@
+20010421
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2001/04/20 07:17:51
+     [clientloop.c ssh.1]
+     Split out and improve escape character documentation, mention ~R in
+     ~? help text; ok markus@
+
 20010420
  - OpenBSD CVS Sync                         
    - ian@cvs.openbsd.org 2001/04/18 16:21:05
@@ -5187,4 +5194,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1147 2001/04/20 04:59:22 mouring Exp $
+$Id: ChangeLog,v 1.1148 2001/04/20 12:50:51 mouring Exp $
