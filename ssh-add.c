@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.34 2001/04/14 04:31:01 deraadt Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.35 2001/04/14 16:27:57 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -187,8 +187,7 @@ add_file(AuthenticationConnection *ac, const char *filename)
 				pass = ssh_askpass(askpass, msg);
 			}
 			if (strcmp(pass, "") == 0) {
-				xfree(pass);
-				pass = NULL;
+				clear_pass();
 				xfree(comment);
 				return;
 			}
