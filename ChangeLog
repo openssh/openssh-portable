@@ -1,3 +1,6 @@
+20010303
+ - Remove make-ssh-known-hosts.pl, ssh-keyscan is better.
+
 20010301
  - (djm) Properly add -lcrypt if needed. 
  - (djm) Force standard PAM conversation function in a few more places.
@@ -4175,4 +4178,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.845 2001/03/01 00:09:42 djm Exp $
+$Id: ChangeLog,v 1.846 2001/03/03 09:00:36 djm Exp $
