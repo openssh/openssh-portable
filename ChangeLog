@@ -100,6 +100,9 @@
    - stevesk@cvs.openbsd.org 2002/01/05 21:51:56
      [ssh.1 sshd.8]
      some missing and misplaced periods
+   - markus@cvs.openbsd.org 2002/01/09 13:49:27
+     [ssh-keygen.c]
+     append \n only for public keys
 
 
 20020121
@@ -7248,4 +7251,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1751 2002/01/22 12:19:55 djm Exp $
+$Id: ChangeLog,v 1.1752 2002/01/22 12:20:15 djm Exp $
