@@ -1,3 +1,9 @@
+20020304
+ - OpenBSD CVS Sync
+   - deraadt@cvs.openbsd.org 2002/02/26 18:52:32
+     [sftp.1]
+     Ic cannot have that many arguments; spotted by mouring@etoh.eviladmin.org
+
 20020226
  - (tim) Bug 12 [configure.ac] add sys/bitypes.h to int64_t tests
    based on patch by mooney@dogbert.cc.ndsu.nodak.edu (Tim Mooney)
@@ -7728,4 +7734,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1890 2002/02/27 06:12:34 tim Exp $
+$Id: ChangeLog,v 1.1891 2002/03/05 01:23:13 mouring Exp $
