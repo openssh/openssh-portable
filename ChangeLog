@@ -20,6 +20,9 @@
      [auth-krb5.c auth1.c hostfile.h monitor_wrap.c sftp-client.c sftp-int.c ssh-add.c ssh-rsa.c 
       sshconnect.c]
      KNF
+  - markus@cvs.openbsd.org 2002/11/21 23:04:33
+     [ssh.c]
+     debug->debug2
 
 20021205
  - (djm) PERL-free fixpaths from stuge-openssh-unix-dev@cdy.org
@@ -855,4 +858,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2520 2002/12/23 02:06:19 mouring Exp $
+$Id: ChangeLog,v 1.2521 2002/12/23 02:08:57 mouring Exp $
