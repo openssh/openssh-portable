@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.18 2001/01/21 19:05:49 markus Exp $");
+RCSID("$OpenBSD: kex.c,v 1.19 2001/02/04 15:32:23 stevesk Exp $");
 
 #include <openssl/crypto.h>
 #include <openssl/bio.h>

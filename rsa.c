@@ -60,7 +60,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: rsa.c,v 1.20 2001/01/29 19:47:30 markus Exp $");
+RCSID("$OpenBSD: rsa.c,v 1.21 2001/02/04 15:32:24 stevesk Exp $");
 
 #include "rsa.h"
 #include "log.h"

@@ -1,4 +1,4 @@
-/* $OpenBSD: cli.h,v 1.2 2000/10/16 09:38:44 djm Exp $ */
+/* $OpenBSD: cli.h,v 1.3 2001/01/16 23:58:09 deraadt Exp $ */
 
 #ifndef CLI_H
 #define CLI_H

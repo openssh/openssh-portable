@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: compat.c,v 1.33 2001/01/08 22:29:05 markus Exp $");
+RCSID("$OpenBSD: compat.c,v 1.34 2001/01/21 19:05:48 markus Exp $");
 
 #ifdef HAVE_LIBPCRE
 #  include <pcreposix.h>
