@@ -1317,7 +1317,7 @@ channel_stop_listening()
 		switch (channels[i].type) {
 		case SSH_CHANNEL_AUTH_SOCKET:
 			close(channels[i].sock);
-			remove(channels[i].path);
+			unlink(channels[i].path);
 			channel_free(i);
 			break;
 		case SSH_CHANNEL_PORT_LISTENER:
@@ -2139,7 +2139,7 @@ auth_get_socket_name()
 void
 cleanup_socket(void)
 {
-	remove(channel_forwarded_auth_socket_name);
+	unlink(channel_forwarded_auth_socket_name);
 	rmdir(channel_forwarded_auth_socket_dir);
 }
 

@@ -38,7 +38,6 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
-#include <termios.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>

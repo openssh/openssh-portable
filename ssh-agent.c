@@ -638,7 +638,7 @@ check_parent_exists(int sig)
 void
 cleanup_socket(void)
 {
-	remove(socket_name);
+	unlink(socket_name);
 	rmdir(socket_dir);
 }
 

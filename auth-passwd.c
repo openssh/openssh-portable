@@ -75,6 +75,11 @@ RCSID("$OpenBSD: auth-passwd.c,v 1.17 2000/09/07 20:27:49 deraadt Exp $");
 # include <hpsecurity.h>
 # include <prot.h>
 #endif
+#ifdef HAVE_SCO_PROTECTED_PW
+# include <sys/security.h>
+# include <sys/audit.h>
+# include <prot.h>
+#endif /* HAVE_SCO_PROTECTED_PW */
 #if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
 # include <shadow.h>
 #endif
@@ -108,6 +113,9 @@ auth_password(struct passwd * pw, const char *password)
 #ifdef __hpux
 	struct pr_passwd *spw;
 #endif
+#ifdef HAVE_SCO_PROTECTED_PW
+	struct pr_passwd *spw;
+#endif /* HAVE_SCO_PROTECTED_PW */
 #if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
 	struct spwd *spw;
 #endif
@@ -181,10 +189,18 @@ auth_password(struct passwd * pw, const char *password)
 	if (spw != NULL) 
 		pw_password = spw->sp_pwdp;
 #endif /* defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW) */
+
+#ifdef HAVE_SCO_PROTECTED_PW
+	spw = getprpwnam(pw->pw_name);
+	if (spw != NULL) 
+		pw_password = spw->ufld.fd_encrypt;
+#endif /* HAVE_SCO_PROTECTED_PW */
+
 #if defined(HAVE_GETPWANAM) && !defined(DISABLE_SHADOW)
 	if (issecure() && (spw = getpwanam(pw->pw_name)) != NULL)
 		pw_password = spw->pwa_passwd;
 #endif /* defined(HAVE_GETPWANAM) && !defined(DISABLE_SHADOW) */
+
 #if defined(__hpux)
 	if (iscomsec() && (spw = getprpwnam(pw->pw_name)) != NULL)
 		pw_password = spw->ufld.fd_encrypt;

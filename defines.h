@@ -11,10 +11,12 @@
 #include <sys/types.h> /* For [u]intxx_t */
 #include <sys/socket.h> /* For SHUT_XXXX */
 #include <sys/param.h> /* For MAXPATHLEN */
-#include <sys/un.h> /* For SUN_LEN */
 #include <netinet/in_systm.h> /* For typedefs */
 #include <netinet/in.h> /* For IPv6 macros */
 #include <netinet/ip.h> /* For IPTOS macros */
+#ifdef HAVE_SYS_UN_H
+# include <sys/un.h> /* For SUN_LEN */
+#endif
 #ifdef HAVE_SYS_BITYPES_H
 # include <sys/bitypes.h> /* For u_intXX_t */
 #endif 
@@ -44,6 +46,7 @@
 #endif
 
 #include <unistd.h> /* For STDIN_FILENO, etc */
+#include <termios.h> /* Struct winsize */
 
 /* Constants */
 
@@ -218,6 +221,23 @@ typedef int mode_t;
 #if !defined(HAVE_SS_FAMILY_IN_SS) && defined(HAVE___SS_FAMILY_IN_SS)
 # define ss_family __ss_family
 #endif /* !defined(HAVE_SS_FAMILY_IN_SS) && defined(HAVE_SA_FAMILY_IN_SS) */
+
+#ifndef HAVE_SYS_UN_H
+struct	sockaddr_un {
+	short	sun_family;		/* AF_UNIX */
+	char	sun_path[108];		/* path name (gag) */
+};
+#endif /* HAVE_SYS_UN_H */
+
+#if defined(BROKEN_SYS_TERMIO_H) && !defined(_STRUCT_WINSIZE)
+#define _STRUCT_WINSIZE
+struct winsize {
+      unsigned short ws_row;          /* rows, in characters */
+      unsigned short ws_col;          /* columns, in character */
+      unsigned short ws_xpixel;       /* horizontal size, pixels */
+      unsigned short ws_ypixel;       /* vertical size, pixels */
+};
+#endif
 
 /* Paths */
 

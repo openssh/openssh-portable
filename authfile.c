@@ -147,7 +147,7 @@ save_private_key_rsa(const char *filename, const char *passphrase,
 		      strerror(errno));
 		buffer_free(&encrypted);
 		close(fd);
-		remove(filename);
+		unlink(filename);
 		return 0;
 	}
 	close(fd);

@@ -244,7 +244,7 @@ main(int ac, char **av)
 	original_real_uid = getuid();
 	original_effective_uid = geteuid();
 
-#ifndef HAVE_CYGWIN
+#if !defined(HAVE_SETRLIMIT) || !defined(HAVE_CYGWIN)
 	/* If we are installed setuid root be careful to not drop core. */
 	if (original_real_uid != original_effective_uid) {
 		struct rlimit rlim;

@@ -80,7 +80,9 @@ RCSID("$OpenBSD: scp.c,v 1.40 2000/09/21 11:11:42 markus Exp $");
 #include "ssh.h"
 #include "xmalloc.h"
 
+#ifndef _PATH_CP
 #define _PATH_CP "cp"
+#endif
 
 /* For progressmeter() -- number of seconds before xfer considered "stalled" */
 #define STALLTIME	5
@@ -915,12 +917,20 @@ bad:			run_err("%s: %s", np, strerror(errno));
 #endif
 		if (pflag) {
 			if (exists || omode != mode)
+#ifdef HAVE_FCHMOD
 				if (fchmod(ofd, omode))
+#else /* HAVE_FCHMOD */
+				if (chmod(np, omode))
+#endif /* HAVE_FCHMOD */
 					run_err("%s: set mode: %s",
 						np, strerror(errno));
 		} else {
 			if (!exists && omode != mode)
+#ifdef HAVE_FCHMOD
 				if (fchmod(ofd, omode & ~mask))
+#else /* HAVE_FCHMOD */
+				if (chmod(np, omode & ~mask))
+#endif /* HAVE_FCHMOD */
 					run_err("%s: set mode: %s",
 						np, strerror(errno));
 		}
@@ -1086,6 +1096,7 @@ allocbuf(bp, fd, blksize)
 	int fd, blksize;
 {
 	size_t size;
+#ifdef HAVE_ST_BLKSIZE
 	struct stat stb;
 
 	if (fstat(fd, &stb) < 0) {
@@ -1097,6 +1108,9 @@ allocbuf(bp, fd, blksize)
 	else
 		size = blksize + (stb.st_blksize - blksize % stb.st_blksize) %
 		    stb.st_blksize;
+#else /* HAVE_ST_BLKSIZE */
+        size = blksize;
+#endif /* HAVE_ST_BLKSIZE */
 	if (bp->cnt >= size)
 		return (bp);
 	if (bp->buf == NULL)

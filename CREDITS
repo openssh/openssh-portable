@@ -62,13 +62,14 @@ Pavel Troller <patrol@omni.sinus.cz> - Bugfixes
 Pekka Savola <pekkas@netcore.fi> - Bugfixes
 Peter Kocks <peter.kocks@baygate.com> - Makefile fixes
 Phil Hands <phil@hands.com> - Debian scripts, assorted patches
-Phil Karn <karn@ka9q.ampr.org> - Autoconf fix
+Phil Karn <karn@ka9q.ampr.org> - Autoconf fixes
 Phill Camp <P.S.S.Camp@ukc.ac.uk> - login code fix
 Rip Loomis <loomisg@cist.saic.com> - Solaris package support, fixes
 SAKAI Kiyotaka <ksakai@kso.netwk.ntt-at.co.jp> - Multiple bugfixes
 Simon Wilkinson <sxw@dcs.ed.ac.uk> - PAM fixes
 Svante Signell <svante.signell@telia.com> - Bugfixes
 Thomas Neumann <tom@smart.ruhr.de> - Shadow passwords
+Tim Rice <tim@multitalents.net> - Portability & SCO fixes
 Tom Bertelson's <tbert@abac.com> - AIX auth fixes
 Tor-Ake Fransson <torake@hotmail.com> - AIX support
 Tudor Bosman <tudorb@jm.nu> - MD5 password support

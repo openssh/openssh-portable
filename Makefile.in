@@ -20,7 +20,7 @@ ASKPASS_PROGRAM=$(libexecdir)/ssh-askpass
 CC=@CC@
 LD=@LD@
 PATHS=-DETCDIR=\"$(sysconfdir)\" -DSSH_PROGRAM=\"$(SSH_PROGRAM)\" -DSSH_ASKPASS_DEFAULT=\"$(ASKPASS_PROGRAM)\"
-CFLAGS=@CFLAGS@ -I. -I$(srcdir) $(PATHS) @DEFS@
+CFLAGS=@CFLAGS@ $(PATHS) @DEFS@
 LIBS=@LIBS@
 AR=@AR@
 RANLIB=@RANLIB@
@@ -29,6 +29,7 @@ PERL=@PERL@
 ENT=@ENT@
 LDFLAGS=-L. @LDFLAGS@
 EXEEXT=@EXEEXT@
+SSH_MODE= @SSHMODE@
 
 INSTALL_SSH_PRNG_CMDS=@INSTALL_SSH_PRNG_CMDS@
 
@@ -121,13 +122,13 @@ distprep: catman-do
 install: manpages $(TARGETS) install-files host-key
 
 install-files:
-	./mkinstalldirs $(DESTDIR)$(bindir)
-	./mkinstalldirs $(DESTDIR)$(sbindir)
-	./mkinstalldirs $(DESTDIR)$(mandir)
-	./mkinstalldirs $(DESTDIR)$(mandir)/$(mansubdir)1
-	./mkinstalldirs $(DESTDIR)$(mandir)/$(mansubdir)8
-	./mkinstalldirs $(DESTDIR)$(libexecdir)
-	$(INSTALL) -m 4755 -s ssh $(DESTDIR)$(bindir)/ssh
+	$(srcdir)/mkinstalldirs $(DESTDIR)$(bindir)
+	$(srcdir)/mkinstalldirs $(DESTDIR)$(sbindir)
+	$(srcdir)/mkinstalldirs $(DESTDIR)$(mandir)
+	$(srcdir)/mkinstalldirs $(DESTDIR)$(mandir)/$(mansubdir)1
+	$(srcdir)/mkinstalldirs $(DESTDIR)$(mandir)/$(mansubdir)8
+	$(srcdir)/mkinstalldirs $(DESTDIR)$(libexecdir)
+	$(INSTALL) -m $(SSH_MODE) -s ssh $(DESTDIR)$(bindir)/ssh
 	$(INSTALL) -m 0755 -s scp $(DESTDIR)$(bindir)/scp
 	$(INSTALL) -m 0755 -s ssh-add $(DESTDIR)$(bindir)/ssh-add
 	$(INSTALL) -m 0755 -s ssh-agent $(DESTDIR)$(bindir)/ssh-agent
@@ -145,13 +146,14 @@ install-files:
 	ln -s ssh$(EXEEXT) $(DESTDIR)$(bindir)/slogin
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/slogin.1
 	ln -s ssh.1 $(DESTDIR)$(mandir)/$(mansubdir)1/slogin.1
+	@FILEPRIV@ -f dev,filesys,driver $(DESTDIR)$(bindir)/ssh $(DESTDIR)$(bindir)/slogin
 	if [ ! -f $(DESTDIR)$(sysconfdir)/ssh_config -a ! -f $(DESTDIR)$(sysconfdir)/sshd_config ]; then \
-		./mkinstalldirs $(DESTDIR)$(sysconfdir); \
+		$(srcdir)/mkinstalldirs $(DESTDIR)$(sysconfdir); \
 		$(INSTALL) -m 644 ssh_config.out $(DESTDIR)$(sysconfdir)/ssh_config; \
 		$(INSTALL) -m 644 sshd_config.out $(DESTDIR)$(sysconfdir)/sshd_config; \
 	fi
 	if [ -f ssh_prng_cmds -a ! -z "$(INSTALL_SSH_PRNG_CMDS)" ]; then \
-		$(PERL) fixprogs ssh_prng_cmds $(ENT); \
+		$(PERL) $(srcdir)/fixprogs ssh_prng_cmds $(ENT); \
 		$(INSTALL) -m 644 ssh_prng_cmds.out $(DESTDIR)$(sysconfdir)/ssh_prng_cmds; \
 	fi
 
@@ -160,18 +162,18 @@ host-key: ssh-keygen$(EXEEXT)
 		if [ -f "$(DESTDIR)$(sysconfdir)/ssh_host_key" ] ; then \
 			echo "$(DESTDIR)$(sysconfdir)/ssh_host_key already exists, skipping." ; \
 		else \
-			./ssh-keygen -b 1024 -f $(DESTDIR)$(sysconfdir)/ssh_host_key -N "" ; \
+			$(srcdir)/ssh-keygen -b 1024 -f $(DESTDIR)$(sysconfdir)/ssh_host_key -N "" ; \
 		fi ; \
 		if [ -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key ] ; then \
 			echo "$(DESTDIR)$(sysconfdir)/ssh_host_dsa_key already exists, skipping." ; \
 		else \
-			./ssh-keygen -d -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key -N "" ; \
+			$(srcdir)/ssh-keygen -d -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key -N "" ; \
 		fi ; \
 	fi ;
 
 host-key-force: ssh-keygen$(EXEEXT)
-	./ssh-keygen -b 1024 -f $(DESTDIR)$(sysconfdir)/ssh_host_key -N ""
-	./ssh-keygen -d -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key -N ""
+	$(srcdir)/ssh-keygen -b 1024 -f $(DESTDIR)$(sysconfdir)/ssh_host_key -N ""
+	$(srcdir)/ssh-keygen -d -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key -N ""
 
 uninstallall:	uninstall
 	-rm -f $(DESTDIR)$(sysconfdir)/ssh_config

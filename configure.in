@@ -13,6 +13,7 @@ AC_PATH_PROG(PERL, perl)
 AC_SUBST(PERL)
 AC_PATH_PROG(ENT, ent)
 AC_SUBST(ENT)
+AC_PATH_PROGS(FILEPRIV, filepriv, true, /sbin:/usr/sbin)
 
 # Use LOGIN_PROGRAM from environment if possible
 if test ! -z "$LOGIN_PROGRAM" ; then
@@ -35,6 +36,8 @@ AC_C_INLINE
 if test "$GCC" = "yes"; then 
 	CFLAGS="$CFLAGS -Wall"
 fi
+
+CFLAGS="$CFLAGS -I. -I${srcdir-.}"
 
 # Check for some target-specific stuff
 case "$host" in
@@ -159,6 +162,22 @@ case "$host" in
 	mansubdir=cat
 	LIBS="$LIBS -lgen -lnsl -lucb"
 	;;
+*-*-sysv4.2*)
+	CFLAGS="$CFLAGS -I/usr/local/include"
+	LDFLAGS="$LDFLAGS -L/usr/local/lib"
+	MANTYPE='$(CATMAN)'
+	mansubdir=cat
+	LIBS="$LIBS -lgen -lsocket -lnsl -lresolv"
+	enable_suid_ssh=no
+	;;
+*-*-sysv5*)
+	CFLAGS="$CFLAGS -I/usr/local/include"
+	LDFLAGS="$LDFLAGS -L/usr/local/lib"
+	MANTYPE='$(CATMAN)'
+	mansubdir=cat
+	LIBS="$LIBS -lgen -lsocket"
+	enable_suid_ssh=no
+	;;
 *-*-sysv*)
 	CFLAGS="$CFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
@@ -166,14 +185,28 @@ case "$host" in
 	mansubdir=cat
 	LIBS="$LIBS -lgen -lsocket"
 	;;
-*-*-sco3*)
+*-*-sco3.2v4*)
 	AC_DEFINE(USE_PIPES)
+	CFLAGS="$CFLAGS -Dftruncate=chsize -I/usr/local/include"
+	LDFLAGS="$LDFLAGS -L/usr/local/lib"
+	MANTYPE='$(CATMAN)'
+	mansubdir=cat
+	LIBS="$LIBS -lgen -lsocket -los -lprot -lx"
+	no_dev_ptmx=1
+	RANLIB=true
+	AC_DEFINE(BROKEN_SYS_TERMIO_H)
+	rsh_path="/usr/bin/rcmd"
+	AC_DEFINE(HAVE_SCO_PROTECTED_PW)
+	;;
+*-*-sco3.2v5*)
 	CFLAGS="$CFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	MANTYPE='$(CATMAN)'
 	mansubdir=cat
-	LIBS="$LIBS -lgen -lsocket"
+	LIBS="$LIBS -lgen -lsocket -lprot -lx"
 	no_dev_ptmx=1
+	rsh_path="/usr/bin/rcmd"
+	AC_DEFINE(HAVE_SCO_PROTECTED_PW)
 	;;
 *-dec-osf*)
 # This is untested
@@ -230,10 +263,10 @@ if test -z "$no_libnsl" ; then
 fi
 
 # Checks for header files.
-AC_CHECK_HEADERS(bstring.h endian.h floatingpoint.h getopt.h lastlog.h limits.h login.h login_cap.h maillock.h netdb.h netgroup.h netinet/in_systm.h paths.h poll.h pty.h shadow.h security/pam_appl.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h sys/poll.h sys/select.h sys/stat.h sys/stropts.h sys/sysmacros.h sys/time.h sys/ttcompat.h stddef.h time.h ttyent.h usersec.h util.h utmp.h utmpx.h)
+AC_CHECK_HEADERS(bstring.h endian.h floatingpoint.h getopt.h lastlog.h limits.h login.h login_cap.h maillock.h netdb.h netgroup.h netinet/in_systm.h paths.h poll.h pty.h shadow.h security/pam_appl.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h sys/poll.h sys/select.h sys/stat.h sys/stropts.h sys/sysmacros.h sys/time.h sys/ttcompat.h sys/un.h stddef.h time.h ttyent.h usersec.h util.h utmp.h utmpx.h)
 
 dnl    Checks for library functions.
-AC_CHECK_FUNCS(arc4random atexit b64_ntop bcopy bindresvport_af clock freeaddrinfo futimes gai_strerror getaddrinfo getnameinfo getrusage getttyent inet_aton inet_ntoa innetgr login_getcapbool md5_crypt memmove mkdtemp on_exit openpty rresvport_af setenv seteuid setlogin setproctitle setreuid sigaction sigvec snprintf strerror strlcat strlcpy strsep strtok_r vsnprintf vhangup _getpty __b64_ntop)
+AC_CHECK_FUNCS(arc4random atexit b64_ntop bcopy bindresvport_af clock fchmod freeaddrinfo futimes gai_strerror getaddrinfo getnameinfo getrusage getttyent inet_aton inet_ntoa innetgr login_getcapbool md5_crypt memmove mkdtemp on_exit openpty rresvport_af setenv seteuid setlogin setproctitle setreuid setrlimit sigaction sigvec snprintf strerror strlcat strlcpy strsep strtok_r vsnprintf vhangup _getpty __b64_ntop)
 dnl    Checks for time functions
 AC_CHECK_FUNCS(gettimeofday time)
 dnl    Checks for libutil functions
@@ -615,7 +648,17 @@ AC_CACHE_CHECK([for sa_family_t], ac_cv_have_sa_family_t, [
 		],
 		[ sa_family_t foo; foo = 1235; ],
 		[ ac_cv_have_sa_family_t="yes" ],
+		[ AC_TRY_COMPILE(
+		  [
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+		],
+		[ sa_family_t foo; foo = 1235; ],
+		[ ac_cv_have_sa_family_t="yes" ],
+
 		[ ac_cv_have_sa_family_t="no" ]
+	)]
 	)
 ])
 if test "x$ac_cv_have_sa_family_t" = "xyes" ; then
@@ -712,9 +755,7 @@ if test "x$ac_cv_have_struct_addrinfo" = "xyes" ; then
 	AC_DEFINE(HAVE_STRUCT_ADDRINFO)
 fi
 
-
-# Checks for structure members
-
+dnl Checks for structure members
 OSSH_CHECK_HEADER_FOR_FIELD(ut_host, utmp.h, HAVE_HOST_IN_UTMP)
 OSSH_CHECK_HEADER_FOR_FIELD(ut_host, utmpx.h, HAVE_HOST_IN_UTMPX)
 OSSH_CHECK_HEADER_FOR_FIELD(syslen, utmpx.h, HAVE_SYSLEN_IN_UTMPX)
@@ -732,6 +773,7 @@ OSSH_CHECK_HEADER_FOR_FIELD(ut_exit, utmp.h, HAVE_EXIT_IN_UTMP)
 OSSH_CHECK_HEADER_FOR_FIELD(ut_time, utmp.h, HAVE_TIME_IN_UTMP)
 OSSH_CHECK_HEADER_FOR_FIELD(ut_time, utmpx.h, HAVE_TIME_IN_UTMPX)
 OSSH_CHECK_HEADER_FOR_FIELD(ut_tv, utmpx.h, HAVE_TV_IN_UTMPX)
+AC_STRUCT_ST_BLKSIZE
 
 AC_CACHE_CHECK([for sun_len field in struct sockaddr_un],
 		ac_cv_have_sun_len_in_struct_sockaddr_un, [
@@ -855,7 +897,7 @@ AC_ARG_WITH(xauth,
 		fi
 	],
 	[
-		AC_PATH_PROG(xauth_path, xauth)
+		AC_PATH_PROG(xauth_path, xauth,,$PATH:/usr/X/bin:/usr/bin/X11:/usr/X11R6/bin:/usr/openwin/bin)
 		if (test ! -z "$xauth_path" && test -x "/usr/openwin/bin/xauth") ; then
 			xauth_path="/usr/openwin/bin/xauth"
 		fi
@@ -1142,7 +1184,7 @@ AC_ARG_WITH(default-path,
 	[  --with-default-path=PATH Specify default \$PATH environment for server],
 	[
 		if test "x$withval" != "xno" ; then	
-			AC_DEFINE_UNQUOTED(USER_PATH, "$withval")
+			user_path="$withval"
 			SERVER_PATH_MSG="$withval" 
 		fi
 	]
@@ -1183,6 +1225,25 @@ AC_ARG_WITH(4in6,
 	]
 )
 
+AC_MSG_CHECKING(whether to install ssh as suid root)
+AC_ARG_ENABLE(suid-ssh,
+[  --enable-suid-ssh       Install ssh as suid root (default)
+  --disable-suid-ssh      Install ssh without suid bit],
+[ case "$enableval" in
+  no)
+       AC_MSG_RESULT(no)
+       SSHMODE=0711
+       ;;
+  *)   AC_MSG_RESULT(yes)
+       SSHMODE=04711
+       ;;
+  esac ],
+  AC_MSG_RESULT(yes)
+  SSHMODE=04711
+)
+AC_SUBST(SSHMODE)
+
+
 # Where to place sshd.pid
 piddir=/var/run
 AC_ARG_WITH(pid-dir,
@@ -1193,6 +1254,14 @@ AC_ARG_WITH(pid-dir,
 		fi
 	]
 )
+
+# make sure the directory exists
+if test ! -d $piddir ; then	
+	piddir=`eval echo ${sysconfdir}`
+	case $piddir in
+ 		NONE/*) piddir=`echo $piddir | sed "s~NONE~$ac_default_prefix~"` ;;
+	esac
+fi
 
 AC_DEFINE_UNQUOTED(PIDDIR, "$piddir")
 AC_SUBST(piddir)

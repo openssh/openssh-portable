@@ -667,6 +667,10 @@ main(int ac, char **av)
 		}
 	}
 
+#ifdef HAVE_SCO_PROTECTED_PW
+	(void) set_auth_parameters(ac, av);
+#endif
+
 	/* Initialize the log (it is reinitialized below in case we forked). */
 	if (debug_flag && !inetd_flag)
 		log_stderr = 1;
