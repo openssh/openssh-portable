@@ -1,3 +1,6 @@
+20031218
+ - (dtucker) [configure.ac] Don't use setre[ug]id on DG-UX, from Tom Orban.
+
 20031217
  - (dtucker) [acconfig.h configure.ac uidswap.c] Bug #645: Check for
    setres[ug]id() present but not implemented (eg some Linux/glibc
@@ -1291,4 +1294,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2994.2.63 2003/12/17 07:54:53 dtucker Exp $
+$Id: ChangeLog,v 1.2994.2.64 2003/12/18 01:51:53 dtucker Exp $
