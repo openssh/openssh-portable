@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.24 2002/02/05 00:00:46 djm Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.25 2002/02/06 14:27:23 mpech Exp $");
 
 /* XXX: short-form remote directory listings (like 'ls -C') */
 
@@ -92,10 +92,12 @@ connect_to_server(char *path, char **args, int *in, int *out, pid_t *sshpid)
 static void
 usage(void)
 {
+	extern char *__progname;
+	
 	fprintf(stderr,
-	    "usage: sftp [-1Cv] [-b batchfile] [-F config] [-o option] [-s subsystem|path]\n"
-	    "            [-P direct server path] [-S program] \n"
-	    "            [-B buffer_size] [user@]host[:file [file]]\n");
+	    "usage: %s [-vC1] [-b batchfile] [-o option] [-s subsystem|path] [-B buffer_size]\n"
+	    "            [-F config] [-P direct server path] [-S program]\n"
+	    "            [user@]host[:file [file]]\n", __progname);
 	exit(1);
 }
 
