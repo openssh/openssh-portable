@@ -56,7 +56,7 @@ get_arg_max()
 #if 0
 static char sccsid[] = "@(#)glob.c	8.3 (Berkeley) 10/13/93";
 #else
-static char rcsid[] = "$OpenBSD: glob.c,v 1.10 2001/03/19 13:45:30 millert Exp $";
+static char rcsid[] = "$OpenBSD: glob.c,v 1.13 2001/03/28 08:00:00 deraadt Exp $";
 #endif
 #endif /* LIBC_SCCS and not lint */
 
@@ -137,13 +137,10 @@ typedef char Char;
 
 
 static int	 compare __P((const void *, const void *));
-static void	 g_Ctoc __P((const Char *, char *));
+static int	 g_Ctoc __P((const Char *, char *, char *));
 static int	 g_lstat __P((Char *, struct stat *, glob_t *));
 static DIR	*g_opendir __P((Char *, glob_t *));
 static Char	*g_strchr __P((Char *, int));
-#ifdef notdef
-static Char	*g_strcat __P((Char *, const Char *));
-#endif
 static int	 g_stat __P((Char *, struct stat *, glob_t *));
 static int	 glob0 __P((const Char *, glob_t *));
 static int	 glob1 __P((Char *, glob_t *, size_t *));
@@ -184,8 +181,8 @@ glob(pattern, flags, errfunc, pglob)
 	bufnext = patbuf;
 	bufend = bufnext + MAXPATHLEN;
 	if (flags & GLOB_NOESCAPE)
-	    while (bufnext < bufend && (c = *patnext++) != EOS)
-		    *bufnext++ = c;
+		while (bufnext < bufend && (c = *patnext++) != EOS)
+			*bufnext++ = c;
 	else {
 		/* Protect the quoted characters. */
 		while (bufnext < bufend && (c = *patnext++) != EOS)
@@ -279,7 +276,7 @@ static int globexp2(ptr, pattern, pglob, rv)
 		return 0;
 	}
 
-	for (i = 0, pl = pm = ptr; pm <= pe; pm++)
+	for (i = 0, pl = pm = ptr; pm <= pe; pm++) {
 		switch (*pm) {
 		case LBRACKET:
 			/* Ignore everything between [] */
@@ -300,8 +297,8 @@ static int globexp2(ptr, pattern, pglob, rv)
 
 		case RBRACE:
 			if (i) {
-			    i--;
-			    break;
+				i--;
+				break;
 			}
 			/* FALLTHROUGH */
 		case COMMA:
@@ -332,6 +329,7 @@ static int globexp2(ptr, pattern, pglob, rv)
 		default:
 			break;
 		}
+	}
 	*rv = 0;
 	return 0;
 }
@@ -464,7 +462,7 @@ glob0(pattern, pglob)
 			 * to avoid exponential behavior
 			 */
 			if (bufnext == patbuf || bufnext[-1] != M_ALL)
-			    *bufnext++ = M_ALL;
+				*bufnext++ = M_ALL;
 			break;
 		default:
 			*bufnext++ = CHAR(c);
@@ -546,8 +544,8 @@ glob2(pathbuf, pathend, pattern, pglob, limitp)
 				return(0);
 
 			if (((pglob->gl_flags & GLOB_MARK) &&
-			    pathend[-1] != SEP) && (S_ISDIR(sb.st_mode)
-			    || (S_ISLNK(sb.st_mode) &&
+			    pathend[-1] != SEP) && (S_ISDIR(sb.st_mode) ||
+			    (S_ISLNK(sb.st_mode) &&
 			    (g_stat(pathbuf, &sb, pglob) == 0) &&
 			    S_ISDIR(sb.st_mode)))) {
 				*pathend++ = SEP;
@@ -571,7 +569,8 @@ glob2(pathbuf, pathend, pattern, pglob, limitp)
 			pattern = p;
 			while (*pattern == SEP)
 				*pathend++ = *pattern++;
-		} else			/* Need expansion, recurse. */
+		} else
+			/* Need expansion, recurse. */
 			return(glob3(pathbuf, pathend, pattern, p, pglob,
 			    limitp));
 	}
@@ -603,10 +602,11 @@ glob3(pathbuf, pathend, pattern, restpattern, pglob, limitp)
 	if ((dirp = g_opendir(pathbuf, pglob)) == NULL) {
 		/* TODO: don't call for ENOENT or ENOTDIR? */
 		if (pglob->gl_errfunc) {
-			g_Ctoc(pathbuf, buf);
+			if (g_Ctoc(pathbuf, buf, buf+sizeof(buf)))
+				return(GLOB_ABORTED);
 			if (pglob->gl_errfunc(buf, errno) ||
 			    pglob->gl_flags & GLOB_ERR)
-				return (GLOB_ABORTED);
+				return(GLOB_ABORTED);
 		}
 		return(0);
 	}
@@ -695,7 +695,10 @@ globextend(path, pglob, limitp)
 	len = (size_t)(p - path);
 	*limitp += len;
 	if ((copy = malloc(len)) != NULL) {
-		g_Ctoc(path, copy);
+		if (g_Ctoc(path, copy, copy+len+1)) {
+			free(copy);
+			return(GLOB_NOSPACE);
+		}
 		pathv[pglob->gl_offs + pglob->gl_pathc++] = copy;
 	}
 	pathv[pglob->gl_offs + pglob->gl_pathc] = NULL;
@@ -730,7 +733,8 @@ match(name, pat, patend)
 			do
 			    if (match(name, pat, patend))
 				    return(1);
-			while (*name++ != EOS);
+			while (*name++ != EOS)
+				;
 			return(0);
 		case M_ONE:
 			if (*name++ == EOS)
@@ -788,8 +792,10 @@ g_opendir(str, pglob)
 
 	if (!*str)
 		strcpy(buf, ".");
-	else
-		g_Ctoc(str, buf);
+	else {
+		if (g_Ctoc(str, buf, buf+sizeof(buf)))
+			return(NULL);
+	}
 
 	if (pglob->gl_flags & GLOB_ALTDIRFUNC)
 		return((*pglob->gl_opendir)(buf));
@@ -805,7 +811,8 @@ g_lstat(fn, sb, pglob)
 {
 	char buf[MAXPATHLEN];
 
-	g_Ctoc(fn, buf);
+	if (g_Ctoc(fn, buf, buf+sizeof(buf)))
+		return(-1);
 	if (pglob->gl_flags & GLOB_ALTDIRFUNC)
 		return((*pglob->gl_lstat)(buf, sb));
 	return(lstat(buf, sb));
@@ -819,7 +826,8 @@ g_stat(fn, sb, pglob)
 {
 	char buf[MAXPATHLEN];
 
-	g_Ctoc(fn, buf);
+	if (g_Ctoc(fn, buf, buf+sizeof(buf)))
+		return(-1);
 	if (pglob->gl_flags & GLOB_ALTDIRFUNC)
 		return((*pglob->gl_stat)(buf, sb));
 	return(stat(buf, sb));
@@ -837,33 +845,18 @@ g_strchr(str, ch)
 	return (NULL);
 }
 
-#ifdef notdef
-static Char *
-g_strcat(dst, src)
-	Char *dst;
-	const Char* src;
-{
-	Char *sdst = dst;
-
-	while (*dst++)
-		continue;
-	--dst;
-	while((*dst++ = *src++) != EOS)
-		continue;
-
-	return (sdst);
-}
-#endif
-
-static void
-g_Ctoc(str, buf)
+static int
+g_Ctoc(str, buf, ebuf)
 	register const Char *str;
-	char *buf;
+	char *buf, *ebuf;
 {
 	register char *dc;
 
-	for (dc = buf; (*dc++ = *str++) != EOS;)
+	for (dc = buf; dc < ebuf && (*dc++ = *str++) != EOS;)
 		continue;
+	if (dc >= ebuf)
+		return (1);
+	return (0);
 }
 
 #ifdef DEBUG
