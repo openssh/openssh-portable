@@ -1,3 +1,8 @@
+20010214
+ - (djm) Don't try to close PAM session or delete credentials if the
+   session has not been open or credentials not set. Based on patch from 
+   Andrew Bartlett <abartlet@pcug.org.au>
+
 20010213
  - (djm) Only test -S potential EGD sockets if they exist and are readable.
  - (bal) Cleaned out bsd-snprintf.c.  VARARGS have been banished and
@@ -3913,4 +3918,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.754 2001/02/13 11:26:21 stevesk Exp $
+$Id: ChangeLog,v 1.755 2001/02/13 13:43:55 djm Exp $

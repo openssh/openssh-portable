@@ -33,7 +33,7 @@
 #include "canohost.h"
 #include "readpass.h"
 
-RCSID("$Id: auth-pam.c,v 1.27 2001/02/11 11:39:19 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.28 2001/02/13 13:43:56 djm Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now"
@@ -71,6 +71,10 @@ int do_pam_authenticate(int flags)
 	was_authenticated = (retval == PAM_SUCCESS);
 	return retval;
 }
+
+/* Remember what has been initialised */
+static int session_opened = 0;
+static int creds_set = 0;
 
 /*
  * PAM conversation function.
@@ -170,17 +174,21 @@ void pam_cleanup_proc(void *context)
 {
 	int pam_retval;
 
-	if (pamh) {
+	if (pamh && session_opened) {
 		pam_retval = pam_close_session(pamh, 0);
 		if (pam_retval != PAM_SUCCESS)
 			log("Cannot close PAM session[%d]: %.200s",
 			    pam_retval, PAM_STRERROR(pamh, pam_retval));
+	}
 
+	if (pamh && creds_set) {
 		pam_retval = pam_setcred(pamh, PAM_DELETE_CRED);
 		if (pam_retval != PAM_SUCCESS)
 			debug("Cannot delete credentials[%d]: %.200s", 
 			    pam_retval, PAM_STRERROR(pamh, pam_retval));
+	}
 
+	if (pamh) {
 		pam_retval = pam_end(pamh, pam_retval);
 		if (pam_retval != PAM_SUCCESS)
 			log("Cannot release PAM authentication[%d]: %.200s",
@@ -272,6 +280,7 @@ void do_pam_session(char *username, const char *ttyname)
 	if (pam_retval != PAM_SUCCESS)
 		fatal("PAM session setup failed[%d]: %.200s",
 		    pam_retval, PAM_STRERROR(pamh, pam_retval));
+	session_opened = 1;
 }
 
 /* Set PAM credentials */
@@ -288,7 +297,8 @@ void do_pam_setcred(void)
 		else
 			debug("PAM setcred failed[%d]: %.200s",
 			    pam_retval, PAM_STRERROR(pamh, pam_retval));
-	}
+	} else
+		creds_set = 1;
 }
 
 /* accessor function for file scope static variable */
