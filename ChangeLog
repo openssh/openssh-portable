@@ -63,7 +63,10 @@
  - (stevesk) auth-pam.c: use do_pam_authenticate(PAM_DISALLOW_NULL_AUTHTOK)
    if permit_empty_passwd == 0 so null password check cannot be bypassed.
    jayaraj@amritapuri.com OpenBSD bug 2168
-	
+   - markus@cvs.openbsd.org 2001/11/09 19:08:35
+     [sshd.c]
+     remove extra trailing dot from log message; pilot@naughty.monkey.org
+
 20011103
  - (tim) [ contrib/caldera/openssh.spec contrib/caldera/sshd.init] Updates 
    from Raymund Will <ray@caldera.de>
@@ -6867,4 +6870,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1651 2001/11/12 00:06:32 djm Exp $
+$Id: ChangeLog,v 1.1652 2001/11/12 00:06:54 djm Exp $

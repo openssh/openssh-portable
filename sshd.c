@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.207 2001/10/24 08:41:41 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.208 2001/11/09 19:08:35 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -337,7 +337,7 @@ sshd_exchange_identification(int sock_in, int sock_out)
 		/* Send our protocol version identification. */
 		if (atomicio(write, sock_out, server_version_string, strlen(server_version_string))
 		    != strlen(server_version_string)) {
-			log("Could not write ident string to %s.", get_remote_ipaddr());
+			log("Could not write ident string to %s", get_remote_ipaddr());
 			fatal_cleanup();
 		}
 
@@ -345,7 +345,7 @@ sshd_exchange_identification(int sock_in, int sock_out)
 		memset(buf, 0, sizeof(buf));
 		for (i = 0; i < sizeof(buf) - 1; i++) {
 			if (atomicio(read, sock_in, &buf[i], 1) != 1) {
-				log("Did not receive identification string from %s.",
+				log("Did not receive identification string from %s",
 				    get_remote_ipaddr());
 				fatal_cleanup();
 			}
