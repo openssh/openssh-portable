@@ -6,6 +6,7 @@
    - Simplify status line printing in scp
  - Added better test for inline functions compiler support from  
    Darren_Hall@progressive.com
+ - Released 1.2.1pre18
 
 19991214
  - OpenBSD CVS Changes
