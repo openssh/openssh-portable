@@ -8,6 +8,7 @@
    <oetiker@ee.ethz.ch>. Fix from Markus Friedl <markus@cvs.openbsd.org>
  - (djm) Add recent InitScripts as a RPM dependancy for openssh-server
    patch from Pekka Savola <pekkas@netcore.fi>
+ - (djm) Forgot to cvs add LICENSE file
  - (djm) CVS OpenBSD sync:
    - markus@cvs.openbsd.org  2000/09/26 13:59:59
      [clientloop.c]
