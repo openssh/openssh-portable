@@ -235,7 +235,8 @@ input_userauth_request(int type, int plen, void *ctxt)
 		authenticated = 0;
 
 #ifdef USE_PAM
-	if (authenticated && authctxt->user && !do_pam_account(authctxt->user, NULL))
+	if (authenticated && authctxt->user && !do_pam_account(authctxt->user,
+	    NULL))
 		authenticated = 0;
 #endif /* USE_PAM */
 
