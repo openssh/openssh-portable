@@ -185,6 +185,13 @@
    - markus@cvs.openbsd.org 2002/01/16 13:17:51
      [channels.c channels.h serverloop.c ssh.c]
      wrapper for channel_setup_fwd_listener
+   - stevesk@cvs.openbsd.org 2002/01/16 17:40:23
+     [sshd_config]
+     The stategy now used for options in the default sshd_config shipped
+     with OpenSSH is to specify options with their default value where
+     possible, but leave them commented.  Uncommented options change a
+     default value.  Subsystem is currently the only default option
+     changed.  ok markus@
 
 20020121
  - (djm) Rework ssh-rand-helper:
@@ -7332,4 +7339,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1775 2002/01/22 12:29:22 djm Exp $
+$Id: ChangeLog,v 1.1776 2002/01/22 12:32:07 djm Exp $
