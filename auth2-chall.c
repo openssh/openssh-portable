@@ -32,6 +32,10 @@ RCSID("$OpenBSD: auth2-chall.c,v 1.22 2005/01/19 13:11:47 dtucker Exp $");
 #include "xmalloc.h"
 #include "dispatch.h"
 #include "log.h"
+#include "servconf.h"
+
+/* import */
+extern ServerOptions options;
 
 static int auth2_challenge_start(Authctxt *);
 static int send_userauth_info_request(Authctxt *);
@@ -71,12 +75,32 @@ struct KbdintAuthctxt
 	u_int nreq;
 };
 
+#ifdef USE_PAM
+void
+remove_kbdint_device(const char *devname)
+{
+	int i, j;
+
+	for (i = 0; devices[i] != NULL; i++)
+		if (strcmp(devices[i]->name, devname) == 0) {
+			for (j = i; devices[j] != NULL; j++)
+				devices[j] = devices[j+1];
+			i--;
+		}
+}
+#endif
+
 static KbdintAuthctxt *
 kbdint_alloc(const char *devs)
 {
 	KbdintAuthctxt *kbdintctxt;
 	Buffer b;
 	int i;
+
+#ifdef USE_PAM
+	if (!options.use_pam)
+		remove_kbdint_device("pam");
+#endif
 
 	kbdintctxt = xmalloc(sizeof(KbdintAuthctxt));
 	if (strcmp(devs, "") == 0) {
