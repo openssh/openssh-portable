@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.99 2003/01/12 23:04:59 djm Exp $
+# $Id: configure.ac,v 1.100 2003/01/13 05:55:23 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -1937,6 +1937,17 @@ AC_ARG_WITH(xauth,
 		fi
 	]
 )
+
+STRIP_OPT=-s
+AC_ARG_ENABLE(strip,
+	[  --disable-strip         Disable calling strip(1) on install],
+	[
+		if test "x$enableval" = "xno" ; then
+			STRIP_OPT=
+		fi
+	]
+)
+AC_SUBST(STRIP_OPT)
 
 if test -z "$xauth_path" ; then
 	XAUTH_PATH="undefined"
