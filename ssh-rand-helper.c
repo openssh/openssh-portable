@@ -39,7 +39,7 @@
 #include "pathnames.h"
 #include "log.h"
 
-RCSID("$Id: ssh-rand-helper.c,v 1.20 2004/12/20 01:05:08 dtucker Exp $");
+RCSID("$Id: ssh-rand-helper.c,v 1.21 2005/02/16 02:02:45 djm Exp $");
 
 /* Number of bytes we write out */
 #define OUTPUT_SEED_SIZE	48
@@ -550,10 +550,11 @@ prng_check_seedfile(char *filename)
 void
 prng_write_seedfile(void)
 {
-	int fd;
+	int fd, save_errno;
 	unsigned char seed[SEED_FILE_SIZE];
-	char filename[MAXPATHLEN];
+	char filename[MAXPATHLEN], tmpseed[MAXPATHLEN];
 	struct passwd *pw;
+	mode_t old_umask;
 
 	pw = getpwuid(getuid());
 	if (pw == NULL)
@@ -568,7 +569,10 @@ prng_write_seedfile(void)
 	snprintf(filename, sizeof(filename), "%.512s/%s", pw->pw_dir,
 	    SSH_PRNG_SEED_FILE);
 
-	debug("writing PRNG seed to file %.100s", filename);
+	strlcpy(tmpseed, filename, sizeof(tmpseed));
+	if (strlcat(tmpseed, ".XXXXXXXXXX", sizeof(tmpseed)) >=
+	    sizeof(tmpseed))
+		fatal("PRNG seed filename too long");
 
 	if (RAND_bytes(seed, sizeof(seed)) <= 0)
 		fatal("PRNG seed extraction failed");
@@ -576,15 +580,31 @@ prng_write_seedfile(void)
 	/* Don't care if the seed doesn't exist */
 	prng_check_seedfile(filename);
 
-	if ((fd = open(filename, O_WRONLY|O_TRUNC|O_CREAT, 0600)) == -1) {
-		debug("WARNING: couldn't access PRNG seedfile %.100s "
-		    "(%.100s)", filename, strerror(errno));
+	old_umask = umask(0177);
+
+	if ((fd = mkstemp(tmpseed)) == -1) {
+		debug("WARNING: couldn't make temporary PRNG seedfile %.100s "
+		    "(%.100s)", tmpseed, strerror(errno));
 	} else {
-		if (atomicio(vwrite, fd, &seed, sizeof(seed)) < sizeof(seed))
+		debug("writing PRNG seed to file %.100s", tmpseed);
+		if (atomicio(vwrite, fd, &seed, sizeof(seed)) < sizeof(seed)) {
+			save_errno = errno;
+			close(fd);
+			unlink(tmpseed);
 			fatal("problem writing PRNG seedfile %.100s "
-			    "(%.100s)", filename, strerror(errno));
+			    "(%.100s)", filename, strerror(save_errno));
+		}
 		close(fd);
+		debug("moving temporary PRNG seed to file %.100s", filename);
+		if (rename(tmpseed, filename) == -1) {
+			save_errno = errno;
+			unlink(tmpseed);
+			fatal("problem renaming PRNG seedfile from %.100s "
+			    "to %.100s (%.100s)", tmpseed, filename, 
+			    strerror(save_errno));
+		}
 	}
+	umask(old_umask);
 }
 
 void

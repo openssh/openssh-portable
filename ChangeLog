@@ -1,3 +1,7 @@
+20050216
+ - (djm) write seed to temporary file and atomically rename into place; 
+   ok dtucker@
+
 20050215
  - (dtucker) [config.sh.in] Collect oslevel -r too.
  - (dtucker) [README.platform auth.c configure.ac loginrec.c
@@ -2131,4 +2135,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3653 2005/02/15 11:19:28 dtucker Exp $
+$Id: ChangeLog,v 1.3654 2005/02/16 02:02:45 djm Exp $
