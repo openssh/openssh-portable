@@ -6,6 +6,9 @@
 
 @TOP@
 
+/* Use PIPES instead of a socketpair() */
+#undef USE_PIPES
+
 /* Define if your snprintf is busted */
 #undef BROKEN_SNPRINTF
 

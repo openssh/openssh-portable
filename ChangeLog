@@ -3,6 +3,8 @@
    Aaron Hopkins <aaron@die.net>
  - (djm) Fix incorrect configure handling of --with-rsh-path option. Fix from
    Lutz Jaenicke <Lutz.Jaenicke@aet.TU-Cottbus.DE>
+ - (djm) Fixed undefined variables for OSF SIA. Report from 
+   Baars, Henk <Hendrik.Baars@nl.origin-it.com>
 
 20000702
  - (djm) Fix brace mismatch from Corinna Vinschen <vinschen@cygnus.com>

@@ -26,6 +26,10 @@ RCSID("$OpenBSD: auth1.c,v 1.2 2000/04/29 18:11:52 markus Exp $");
 /* import */
 extern ServerOptions options;
 extern char *forced_command;
+#ifdef HAVE_OSF_SIA
+extern int saved_argc;
+extern char **saved_argv;
+#endif /* HAVE_OSF_SIA */
 
 /*
  * convert ssh auth msg type into description
@@ -146,10 +150,6 @@ do_authloop(struct passwd * pw)
 	unsigned int ulen;
 	int type = 0;
 	void (*authlog) (const char *fmt,...) = verbose;
-#ifdef HAVE_OSF_SIA
-	extern int saved_argc;
-	extern char **saved_argv;
-#endif /* HAVE_OSF_SIA */
 
 	/* Indicate that authentication is needed. */
 	packet_start(SSH_SMSG_FAILURE);
