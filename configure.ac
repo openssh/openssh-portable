@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.115 2003/05/02 10:48:21 dtucker Exp $
+# $Id: configure.ac,v 1.116 2003/05/10 07:05:46 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -188,14 +188,55 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE(SETPROCTITLE_STRATEGY,PS_USE_CLOBBER_ARGV)
 	AC_DEFINE(SETPROCTITLE_PS_PADDING, '\0')
 	inet6_default_4in6=yes
-	AC_MSG_CHECKING(for broken cmsg_type)
+	# openpty can be in libutil, needed for controlling tty test
+	AC_SEARCH_LIBS(openpty, util)
+	# make sure that openpty does not reacquire controlling terminal
+	AC_MSG_CHECKING(if openpty correctly handles controlling tty)
+	AC_TRY_RUN(
+		[
+#include <stdio.h>
+#include <sys/fcntl.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+int
+main()
+{
+	pid_t pid;
+	int fd, ptyfd, ttyfd, status;
+
+	pid = fork();
+	if (pid < 0) {		/* failed */
+		exit(1);
+	} else if (pid > 0) {	/* parent */
+		waitpid(pid, &status, 0);
+		if (WIFEXITED(status)) 
+			exit(WEXITSTATUS(status));
+		else
+			exit(2);
+	} else {		/* child */
+		close(0); close(1); close(2);
+		setsid();
+		openpty(&ptyfd, &ttyfd, NULL, NULL, NULL);
+		fd = open("/dev/tty", O_RDWR | O_NOCTTY);
+		if (fd >= 0)
+			exit(3);	/* Acquired ctty: broken */
+		else
+			exit(0);	/* Did not acquire ctty: OK */
+	}
+}
+		],
+		[
+			AC_MSG_RESULT(yes)
+		],
+		[
+			AC_MSG_RESULT(no)
+			AC_DEFINE(SSHD_ACQUIRES_CTTY)
+		]
+	)
 	case `uname -r` in
-	2.0.*)
-		AC_MSG_RESULT(yes)
+	1.*|2.0.*)
 		AC_DEFINE(BROKEN_CMSG_TYPE)
-		;;
-	*)
-		AC_MSG_RESULT(no)
 		;;
 	esac
 	;;
@@ -230,7 +271,8 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(LOGIN_NEEDS_UTMPX)
 	AC_DEFINE(LOGIN_NEEDS_TERM)
 	AC_DEFINE(PAM_TTY_KLUDGE)
-	AC_DEFINE(STREAMS_PUSH_ACQUIRES_CTTY)
+	# Pushing STREAMS modules will cause sshd to acquire a controlling tty.
+	AC_DEFINE(SSHD_ACQUIRES_CTTY)
 	# hardwire lastlog location (can't detect it on some versions)
 	conf_lastlog_location="/var/adm/lastlog"
 	AC_MSG_CHECKING(for obsolete utmp and wtmp in solaris2.x)

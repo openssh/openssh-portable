@@ -1,6 +1,8 @@
 20030510
  - (dtucker) Bug #318: Create ssh_prng_cmds.out during "make" rather than
    "make install".  Patch by roth@feep.net.
+ - (dtucker) Bug #536: Test for and work around openpty/controlling tty
+   problem on Linux (fixes "could not set controlling tty" errors).
 
 20030504
  - (dtucker) Bug #497: Move #include of bsd-cygwin_util.h to openbsd-compat.h.
@@ -1374,4 +1376,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2671 2003/05/10 06:48:23 dtucker Exp $
+$Id: ChangeLog,v 1.2672 2003/05/10 07:05:46 dtucker Exp $

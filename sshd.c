@@ -1400,11 +1400,11 @@ main(int ac, char **av)
 	 * setlogin() affects the entire process group.  We don't
 	 * want the child to be able to affect the parent.
 	 */
-#if !defined(STREAMS_PUSH_ACQUIRES_CTTY)
+#if !defined(SSHD_ACQUIRES_CTTY)
 	/*
-	 * If setsid is called on Solaris, sshd will acquire the controlling
-	 * terminal while pushing STREAMS modules. This will prevent the
-	 * shell from acquiring it later.
+	 * If setsid is called, on some platforms sshd will later acquire a
+	 * controlling terminal which will result in "could not set
+	 * controlling tty" errors.
 	 */
 	if (!debug_flag && !inetd_flag && setsid() < 0)
 		error("setsid: %.100s", strerror(errno));

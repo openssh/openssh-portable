@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.150 2003/05/02 10:48:21 dtucker Exp $ */
+/* $Id: acconfig.h,v 1.151 2003/05/10 07:05:46 dtucker Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -374,8 +374,8 @@
 /* Some systems put this outside of libc */
 #undef HAVE_NANOSLEEP
 
-/* Pushing STREAMS modules incorrectly acquires a controlling TTY */
-#undef STREAMS_PUSH_ACQUIRES_CTTY
+/* Define if sshd somehow reacquires a controlling TTY after setsid() */
+#undef SSHD_ACQUIRES_CTTY
 
 /* Define if cmsg_type is not passed correctly */
 #undef BROKEN_CMSG_TYPE
