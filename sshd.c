@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.227 2002/02/24 16:09:52 stevesk Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.228 2002/02/27 21:23:13 stevesk Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -900,11 +900,11 @@ main(int ac, char **av)
 			 * close.
 			 */
 			setsockopt(listen_sock, SOL_SOCKET, SO_REUSEADDR,
-			    (void *) &on, sizeof(on));
+			    &on, sizeof(on));
 			linger.l_onoff = 1;
 			linger.l_linger = 5;
 			setsockopt(listen_sock, SOL_SOCKET, SO_LINGER,
-			    (void *) &linger, sizeof(linger));
+			    &linger, sizeof(linger));
 
 			debug("Bind to port %s on %s.", strport, ntop);
 
@@ -1150,11 +1150,11 @@ main(int ac, char **av)
 	/* setsockopt(sock_in, SOL_SOCKET, SO_REUSEADDR, (void *)&on, sizeof(on)); */
 	linger.l_onoff = 1;
 	linger.l_linger = 5;
-	setsockopt(sock_in, SOL_SOCKET, SO_LINGER, (void *) &linger, sizeof(linger));
+	setsockopt(sock_in, SOL_SOCKET, SO_LINGER, &linger, sizeof(linger));
 
 	/* Set keepalives if requested. */
 	if (options.keepalives &&
-	    setsockopt(sock_in, SOL_SOCKET, SO_KEEPALIVE, (void *)&on,
+	    setsockopt(sock_in, SOL_SOCKET, SO_KEEPALIVE, &on,
 	    sizeof(on)) < 0)
 		error("setsockopt SO_KEEPALIVE: %.100s", strerror(errno));
 

@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.169 2002/02/24 19:59:42 stevesk Exp $");
+RCSID("$OpenBSD: channels.c,v 1.170 2002/02/27 21:23:13 stevesk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1184,8 +1184,7 @@ channel_post_connecting(Channel *c, fd_set * readset, fd_set * writeset)
 	socklen_t sz = sizeof(err);
 
 	if (FD_ISSET(c->sock, writeset)) {
-		if (getsockopt(c->sock, SOL_SOCKET, SO_ERROR, (char *)&err,
-		    &sz) < 0) {
+		if (getsockopt(c->sock, SOL_SOCKET, SO_ERROR, &err, &sz) < 0) {
 			err = errno;
 			error("getsockopt SO_ERROR failed");
 		}
@@ -2036,10 +2035,10 @@ channel_setup_fwd_listener(int type, const char *listen_addr, u_short listen_por
 		 * Set socket options.  We would like the socket to disappear
 		 * as soon as it has been closed for whatever reason.
 		 */
-		setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void *)&on, sizeof(on));
+		setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 		linger.l_onoff = 1;
 		linger.l_linger = 5;
-		setsockopt(sock, SOL_SOCKET, SO_LINGER, (void *)&linger, sizeof(linger));
+		setsockopt(sock, SOL_SOCKET, SO_LINGER, &linger, sizeof(linger));
 		debug("Local forwarding listening on %s port %s.", ntop, strport);
 
 		/* Bind the socket to the address. */

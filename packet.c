@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.89 2002/02/24 16:58:32 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.90 2002/02/27 21:23:13 stevesk Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -1218,7 +1218,7 @@ packet_set_interactive(int interactive)
 #if defined(IP_TOS) && !defined(IP_TOS_IS_BROKEN)
 		if (packet_connection_is_ipv4()) {
 			if (setsockopt(connection_in, IPPROTO_IP, IP_TOS,
-			    (void *) &lowdelay, sizeof(lowdelay)) < 0)
+			    &lowdelay, sizeof(lowdelay)) < 0)
 				error("setsockopt IPTOS_LOWDELAY: %.100s",
 				    strerror(errno));
 		}
@@ -1230,7 +1230,7 @@ packet_set_interactive(int interactive)
 		 * IPTOS_THROUGHPUT.
 		 */
 #if defined(IP_TOS) && !defined(IP_TOS_IS_BROKEN)
-		if (setsockopt(connection_in, IPPROTO_IP, IP_TOS, (void *) &throughput,
+		if (setsockopt(connection_in, IPPROTO_IP, IP_TOS, &throughput,
 		    sizeof(throughput)) < 0)
 			error("setsockopt IPTOS_THROUGHPUT: %.100s", strerror(errno));
 #endif
