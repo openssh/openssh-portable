@@ -1,3 +1,8 @@
+20040527
+ - (dtucker) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec
+   contrib/README CREDITS INSTALL] Bug #873: Correct URLs for x11-ssh-askpass
+   and Jim Knoble's email address , from Jim himself.
+
 20040524
  - (dtucker) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2004/05/19 12:17:33
@@ -1158,4 +1163,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3367 2004/05/24 03:37:13 dtucker Exp $
+$Id: ChangeLog,v 1.3368 2004/05/26 23:59:31 dtucker Exp $

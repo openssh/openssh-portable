@@ -44,7 +44,7 @@ Holger Trapp <Holger.Trapp@Informatik.TU-Chemnitz.DE> - KRB4/AFS config patch
 IWAMURO Motonori <iwa@mmp.fujitsu.co.jp> - bugfixes
 Jani Hakala <jahakala@cc.jyu.fi> - Patches
 Jarno Huuskonen <jhuuskon@hytti.uku.fi> - Bugfixes
-Jim Knoble <jmknoble@jmknoble.cx> - Many patches
+Jim Knoble <jmknoble@pobox.com> - Many patches
 Jonchen (email unknown) - the original author of PAM support of SSH
 Juergen Keil <jk@tools.de> - scp bugfixing
 KAMAHARA Junzo <kamahara@cc.kshosen.ac.jp> - Configure fixes
@@ -98,5 +98,5 @@ Apologies to anyone I have missed.
 
 Damien Miller <djm@mindrot.org>
 
-$Id: CREDITS,v 1.78 2004/04/18 11:56:23 dtucker Exp $
+$Id: CREDITS,v 1.79 2004/05/26 23:59:31 dtucker Exp $
 
