@@ -10,9 +10,6 @@ Programming:
 	-lresolv -lkrb -lz -lnsl  -lutil -lcrypto -lkafs -lkrb -ldes
   fixing the problem.
 
-- Integrate contrib/mdoc2man.pl so platforms which only have the troff 
-  'an' macros can have readable manpages.
-
 - Write a test program that calls stat() to search for EGD/PRNGd socket
   rather than use the (non-portable) "test -S". 
 
@@ -50,14 +47,9 @@ Programming:
 
 - Build an automated test suite
 
-- Verify that It's safe to enable NGROUPS_MAX under NeXTStep for
-  groupaccess features. (mouring@eviladmin.org)
-
 - 64-bit builds on HP-UX 11.X (stevesk@pobox.com):
   - utmp/wtmp get corrupted (something in loginrec?)
   - can't build with PAM (no 64-bit libpam yet)
-
-- Modify rijndael to support Cray 64bit machines.
 
 Documentation:
 - More and better
@@ -91,4 +83,4 @@ Packaging:
 - HP-UX: Provide DEPOT package scripts.
   (gilbert.r.loomis@saic.com)
 
-$Id: TODO,v 1.43 2001/09/25 03:01:49 djm Exp $
+$Id: TODO,v 1.44 2001/10/08 02:53:55 mouring Exp $
