@@ -71,14 +71,14 @@ RCSID("$OpenBSD: auth-passwd.c,v 1.17 2000/09/07 20:27:49 deraadt Exp $");
 #ifdef WITH_AIXAUTHENTICATE
 # include <login.h>
 #endif
-#ifdef HAVE_HPUX_TRUSTED_SYSTEM_PW
+#ifdef __hpux
 # include <hpsecurity.h>
 # include <prot.h>
 #endif
-#ifdef HAVE_SHADOW_H
+#if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
 # include <shadow.h>
 #endif
-#ifdef HAVE_GETPWANAM
+#if defined(HAVE_GETPWANAM) && !defined(DISABLE_SHADOW)
 # include <sys/label.h>
 # include <sys/audit.h>
 # include <pwdadj.h>
@@ -105,10 +105,13 @@ auth_password(struct passwd * pw, const char *password)
 	char *encrypted_password;
 	char *pw_password;
 	char *salt;
-#ifdef HAVE_SHADOW_H
+#ifdef __hpux
+	struct pr_passwd *spw;
+#endif
+#if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
 	struct spwd *spw;
 #endif
-#ifdef HAVE_GETPWANAM
+#if defined(HAVE_GETPWANAM) && !defined(DISABLE_SHADOW)
 	struct passwd_adjunct *spw;
 #endif
 # ifdef HAVE_HPUX_TRUSTED_SYSTEM_PW
@@ -170,38 +173,29 @@ auth_password(struct passwd * pw, const char *password)
 	}
 #endif
 
-# ifdef HAVE_HPUX_TRUSTED_SYSTEM_PW
-	prpw = getprpwnam(pw->pw_name);
-	pw_password = prpw->ufld.fd_encrypt;
-#else
+
 	pw_password = pw->pw_passwd;
-#endif
 
-	/* Check for users with no password. */
-	if (strcmp(password, "") == 0 && strcmp(pw_password, "") == 0)
-		return 1;
-
+	/*
+	 * Various interfaces to shadow or protected password data
+	 */
 #if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
 	spw = getspnam(pw->pw_name);
 	if (spw != NULL) 
-	{
-		/* Check for users with no password. */
-		if (strcmp(password, "") == 0 && strcmp(spw->sp_pwdp, "") == 0)
-			return 1;
-
 		pw_password = spw->sp_pwdp;
-	}
 #endif /* defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW) */
 #if defined(HAVE_GETPWANAM) && !defined(DISABLE_SHADOW)
 	if (issecure() && (spw = getpwanam(pw->pw_name)) != NULL)
-	{
-		/* Check for users with no password. */
-		if (strcmp(password, "") == 0 && strcmp(spw->pwa_passwd, "") == 0)
-			return 1;
-
 		pw_password = spw->pwa_passwd;
-	}
 #endif /* defined(HAVE_GETPWANAM) && !defined(DISABLE_SHADOW) */
+#if defined(__hpux)
+	if (iscomsec() && (spw = getprpwnam(pw->pw_name)) != NULL)
+		pw_password = spw->ufld.fd_encrypt;
+#endif /* defined(__hpux) */
+
+	/* Check for users with no password. */
+	if ((password[0] == '\0') && (pw_password[0] == '\0'))
+		return 1;
 
 	if (pw_password[0] != '\0')
 		salt = pw_password;
@@ -214,11 +208,14 @@ auth_password(struct passwd * pw, const char *password)
 	else
 		encrypted_password = crypt(password, salt);
 #else /* HAVE_MD5_PASSWORDS */    
-# ifdef HAVE_HPUX_TRUSTED_SYSTEM_PW
-	encrypted_password = bigcrypt(password, salt);
+# ifdef __hpux
+	if (iscomsec())
+		encrypted_password = bigcrypt(password, salt);
+	else
+		encrypted_password = crypt(password, salt);
 # else
 	encrypted_password = crypt(password, salt);
-# endif /* HAVE_HPUX_TRUSTED_SYSTEM_PW */
+# endif /* __hpux */
 #endif /* HAVE_MD5_PASSWORDS */    
 
 	/* Authentication is accepted if the encrypted passwords are identical. */

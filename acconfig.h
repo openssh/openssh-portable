@@ -186,9 +186,6 @@
 /* Define if you want to use shadow password expire field */
 #undef HAS_SHADOW_EXPIRE
 
-/* Define if you want have trusted HPUX */
-#undef HAVE_HPUX_TRUSTED_SYSTEM_PW
-
 /* Define if you have Digital Unix Security Integration Architecture */
 #undef HAVE_OSF_SIA
 

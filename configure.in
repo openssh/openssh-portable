@@ -73,16 +73,8 @@ case "$host" in
 	CFLAGS="$CFLAGS -D_HPUX_SOURCE"
 	IPADDR_IN_DISPLAY=yes
 	AC_DEFINE(USE_PIPES)
-	AC_MSG_CHECKING(for HPUX trusted system password database)
-	if test -f /tcb/files/auth/system/default; then
-		AC_MSG_RESULT(yes)
-		AC_DEFINE(HAVE_HPUX_TRUSTED_SYSTEM_PW)
-		LIBS="$LIBS -lsec"
-		AC_MSG_WARN([This configuration is untested])
-	else
-		AC_MSG_RESULT(no)
-		AC_DEFINE(DISABLE_SHADOW)
-	fi
+	AC_DEFINE(DISABLE_SHADOW)
+	LIBS="$LIBS -lsec"
 	MANTYPE='$(CATMAN)'
 	mansubdir=cat
 	;;
@@ -90,16 +82,8 @@ case "$host" in
 	CFLAGS="$CFLAGS -D_HPUX_SOURCE"
 	IPADDR_IN_DISPLAY=yes
 	AC_DEFINE(USE_PIPES)
-	AC_MSG_CHECKING(for HPUX trusted system password database)
-	if test -f /tcb/files/auth/system/default; then
-		AC_MSG_RESULT(yes)
-		AC_DEFINE(HAVE_HPUX_TRUSTED_SYSTEM_PW)
-		LIBS="$LIBS -lsec"
-		AC_MSG_WARN([This configuration is untested])
-	else
-		AC_MSG_RESULT(no)
-		AC_DEFINE(DISABLE_SHADOW)
-	fi
+	AC_DEFINE(DISABLE_SHADOW)
+	LIBS="$LIBS -lsec"
 	MANTYPE='$(CATMAN)'
 	mansubdir=cat
 	;;
