@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.250 2001/02/21 02:35:37 mouring Exp $
+# $Id: configure.in,v 1.251 2001/02/23 05:05:53 mouring Exp $
 
 AC_INIT(ssh.c)
 
@@ -619,9 +619,9 @@ AC_CACHE_CHECK([for OpenSSL directory], ac_cv_openssldir, [
 			# Try to use $ssldir/include if it exists, otherwise 
 			# $ssldir
 			if test -d "$ssldir/include" ; then
-				CPPFLAGS="$CPPFLAGS -I$ssldir/include"
+				CPPFLAGS="$saved_CPPFLAGS -I$ssldir/include"
 			else
-				CPPFLAGS="$CPPFLAGS -I$ssldir"
+				CPPFLAGS="$saved_CPPFLAGS -I$ssldir"
 			fi
 		fi
 
@@ -681,9 +681,9 @@ if (test ! -z "$ac_cv_openssldir" && test "x$ac_cv_openssldir" != "x(system)") ;
 		# Try to use $ssldir/include if it exists, otherwise 
 		# $ssldir
 		if test -d "$ssldir/include" ; then
-			CPPFLAGS="$CPPFLAGS -I$ssldir/include"
+			CPPFLAGS="$saved_CPPFLAGS -I$ssldir/include"
 		else
-			CPPFLAGS="$CPPFLAGS -I$ssldir"
+			CPPFLAGS="$saved_CPPFLAGS -I$ssldir"
 		fi
 	fi
 fi
