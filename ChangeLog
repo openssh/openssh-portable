@@ -9,6 +9,9 @@
    - markus@cvs.openbsd.org 2003/12/09 17:29:04
      [sshd.c]
      fix -o and HUP; ok henning@
+   - markus@cvs.openbsd.org 2003/12/09 17:30:05
+     [ssh.c]
+     don't modify argv for ssh -o; similar to sshd.c 1.283
 
 20031209
  - (dtucker) OpenBSD CVS Sync
@@ -1578,4 +1581,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3141 2003/12/17 05:29:22 djm Exp $
+$Id: ChangeLog,v 1.3142 2003/12/17 05:30:06 djm Exp $

@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.204 2003/11/24 00:16:35 dtucker Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.205 2003/12/09 17:30:05 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -205,7 +205,7 @@ main(int ac, char **av)
 	int i, opt, exit_status;
 	u_short fwd_port, fwd_host_port;
 	char sfwd_port[6], sfwd_host_port[6];
-	char *p, *cp, buf[256];
+	char *p, *cp, *line, buf[256];
 	struct stat st;
 	struct passwd *pw;
 	int dummy;
@@ -464,9 +464,11 @@ again:
 			break;
 		case 'o':
 			dummy = 1;
+			line = xstrdup(optarg);
 			if (process_config_line(&options, host ? host : "",
-			    optarg, "command-line", 0, &dummy) != 0)
+			    line, "command-line", 0, &dummy) != 0)
 				exit(1);
+			xfree(line);
 			break;
 		case 's':
 			subsystem_flag = 1;
