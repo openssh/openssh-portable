@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.158 2002/01/16 13:17:51 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.159 2002/01/27 18:08:17 stevesk Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -793,14 +793,27 @@ x11_get_proto(char **_proto, char **_data)
 	static char proto[512], data[512];
 	FILE *f;
 	int got_data = 0, i;
+	char *display;
 
 	*_proto = proto;
 	*_data = data;
 	proto[0] = data[0] = '\0';
-	if (options.xauth_location) {
+	if (options.xauth_location && (display = getenv("DISPLAY"))) {
 		/* Try to get Xauthority information for the display. */
-		snprintf(line, sizeof line, "%.100s list %.200s 2>" _PATH_DEVNULL,
-		    options.xauth_location, getenv("DISPLAY"));
+		if (strncmp(display, "localhost:", 10) == 0)
+			/*
+			 * Handle FamilyLocal case where $DISPLAY does
+			 * not match an authorization entry.  For this we
+			 * just try "xauth list unix:displaynum.screennum".
+			 * XXX: "localhost" match to determine FamilyLocal
+			 *      is not perfect.
+			 */
+			snprintf(line, sizeof line, "%.100s list unix:%s 2>"
+			    _PATH_DEVNULL, options.xauth_location, display+10);
+		else
+			snprintf(line, sizeof line, "%.100s list %.200s 2>"
+			    _PATH_DEVNULL, options.xauth_location, display);
+		debug2("x11_get_proto %s", line);
 		f = popen(line, "r");
 		if (f && fgets(line, sizeof(line), f) &&
 		    sscanf(line, "%*s %511s %511s", proto, data) == 2)
