@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.56 2001/02/08 19:30:52 itojun Exp $");
+RCSID("$OpenBSD: scp.c,v 1.58 2001/02/10 15:14:11 danh Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -799,8 +799,10 @@ sink(argc, argv)
 				if (mkdir(np, mode | S_IRWXU) < 0)
 					goto bad;
 			}
-			vect[0] = np;
+			vect[0] = xstrdup(np);
 			sink(1, vect);
+			if (vect[0])
+				xfree(vect[0]);
 			if (setimes) {
 				setimes = 0;
 				if (utimes(np, tv) < 0)
