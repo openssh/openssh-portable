@@ -1,3 +1,6 @@
+20030602
+ - (djm) Fix segv from bad reordering in auth-pam.c
+
 20030530
  - (dtucker) Add missing semicolon in md5crypt.c, patch from openssh at
    roumenpetrov.info
@@ -1623,4 +1626,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2754 2003/05/30 07:43:42 dtucker Exp $
+$Id: ChangeLog,v 1.2755 2003/06/02 02:13:40 djm Exp $
