@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.20 2003/05/04 00:41:20 dtucker Exp $ */
+/* $Id: openbsd-compat.h,v 1.21 2003/05/15 02:27:08 djm Exp $ */
 
 #ifndef _OPENBSD_H
 #define _OPENBSD_H
@@ -28,6 +28,7 @@
 #include "readpassphrase.h"
 #include "getopt.h"
 #include "vis.h"
+#include "getrrsetbyname.h"
 
 /* Home grown routines */
 #include "bsd-arc4random.h"

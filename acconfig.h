@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.152 2003/05/15 00:53:49 djm Exp $ */
+/* $Id: acconfig.h,v 1.153 2003/05/15 02:27:08 djm Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -383,8 +383,8 @@
 /* Define if DNS support is to be activated */
 #undef DNS
 
-/* Define if -llwres is to be used */
-#undef LWRES
+/* Define if getrrsetbyname() exists */
+#undef HAVE_GETRRSETBYNAME
 
 @BOTTOM@
 

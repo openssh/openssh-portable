@@ -21,6 +21,7 @@
      always parse kerberos options. ok djm@ markus@
  - (djm) Always parse UsePAM
  - (djm) Configure glue for DNS support (code doesn't work in portable yet)
+ - (djm) Import getrrsetbyname() function from OpenBSD libc (for DNS support)
 
 20030514
  - (djm) Bug #117: Don't lie to PAM about username
@@ -1496,4 +1497,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2706 2003/05/15 02:05:28 djm Exp $
+$Id: ChangeLog,v 1.2707 2003/05/15 02:27:08 djm Exp $

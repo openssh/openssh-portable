@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.119 2003/05/15 01:12:19 djm Exp $
+# $Id: configure.ac,v 1.120 2003/05/15 02:27:08 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -1859,11 +1859,10 @@ AC_ARG_WITH(dns,
 	[  --with-dns              Support for fetching keys from DNS (experimental)],
 	[
 		if test "x$withval" != "xno" ; then
-			DNS_MSG="no (system lacks getrrsetbyname)"
-			AC_SEARCH_LIBS(getrrsetbyname, resolv, [
-				AC_DEFINE(DNS)
-				DNS_MSG="yes"
-			])
+			DNS_MSG="yes"
+			AC_DEFINE(DNS)
+			AC_SEARCH_LIBS(getrrsetbyname, resolv, 
+				[AC_DEFINE(HAVE_GETRRSETBYNAME)])
 		fi
 	]
 )
