@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.76 2000/06/17 20:30:10 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.77 2000/08/28 03:50:54 deraadt Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dsa.h>
@@ -193,8 +193,8 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 	int gaierr;
 	struct linger linger;
 
-	debug("ssh_connect: getuid %d geteuid %d anon %d",
-	      (int) getuid(), (int) geteuid(), anonymous);
+	debug("ssh_connect: getuid %u geteuid %u anon %d",
+	      (u_int) getuid(), (u_int) geteuid(), anonymous);
 
 	/* Get default port if port has not been set. */
 	if (port == 0) {
@@ -669,7 +669,7 @@ ssh_login(int host_key_valid, RSA *own_host_key, const char *orighost,
 	/* Get local user name.  Use it as server user if no user name was given. */
 	pw = getpwuid(original_real_uid);
 	if (!pw)
-		fatal("User id %d not found from user database.", original_real_uid);
+		fatal("User id %u not found from user database.", original_real_uid);
 	local_user = xstrdup(pw->pw_name);
 	server_user = options.user ? options.user : local_user;
 

@@ -465,6 +465,19 @@ AC_CHECK_SIZEOF(long int, 4)
 AC_CHECK_SIZEOF(long long int, 8)
 
 # More checks for data types
+AC_CACHE_CHECK([for u_int type], ac_cv_have_u_int, [
+	AC_TRY_COMPILE(
+		[ #include <sys/types.h> ], 
+		[ u_int a; a = 1;], 
+		[ ac_cv_have_u_int="yes" ],
+		[ ac_cv_have_u_int="no" ]
+	)
+])
+if test "x$ac_cv_have_u_int" = "xyes" ; then
+	AC_DEFINE(HAVE_U_INT)
+	have_u_int=1
+fi
+
 AC_CACHE_CHECK([for intXX_t types], ac_cv_have_intxx_t, [
 	AC_TRY_COMPILE(
 		[ #include <sys/types.h> ], 
@@ -490,7 +503,6 @@ if test "x$ac_cv_have_u_intxx_t" = "xyes" ; then
 	AC_DEFINE(HAVE_U_INTXX_T)
 	have_u_intxx_t=1
 fi
-
 
 if (test -z "$have_u_intxx_t" || test -z "$have_intxx_t" && \
            test "x$ac_cv_header_sys_bitypes_h" = "xyes")

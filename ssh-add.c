@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.19 2000/08/19 21:34:43 markus Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.20 2000/08/28 03:50:54 deraadt Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/rsa.h>
@@ -260,7 +260,8 @@ main(int argc, char **argv)
 	if (no_files) {
 		pw = getpwuid(getuid());
 		if (!pw) {
-			fprintf(stderr, "No user found with uid %d\n", (int) getuid());
+			fprintf(stderr, "No user found with uid %u\n",
+			    (u_int)getuid());
 			ssh_close_authentication_connection(ac);
 			exit(1);
 		}

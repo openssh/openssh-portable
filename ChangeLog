@@ -2,6 +2,37 @@
  - (djm) Fix ^C ignored issue on Solaris. Diagnosis from Gert 
    Doering <gert@greenie.muc.de>, John Horne <J.Horne@plymouth.ac.uk> and 
    Garrick James <garrick@james.net>
+ - More OpenBSD updates:
+   - deraadt@cvs.openbsd.org 2000/08/24 15:46:59
+     [scp.c]
+     off_t in sink, to fix files > 2GB, i think, test is still running ;-)
+   - deraadt@cvs.openbsd.org 2000/08/25 10:10:06
+     [session.c]
+     Wall
+   - markus@cvs.openbsd.org  2000/08/26 04:33:43
+     [compat.c]
+     ssh.com-2.3.0
+   - markus@cvs.openbsd.org  2000/08/27 12:18:05
+     [compat.c]
+     compatibility with future ssh.com versions
+   - deraadt@cvs.openbsd.org 2000/08/27 21:50:55
+     [auth-krb4.c session.c ssh-add.c sshconnect.c uidswap.c]
+     print uid/gid as unsigned
+   - markus@cvs.openbsd.org  2000/08/28 13:51:00
+     [ssh.c]
+     enable -n and -f for ssh2
+   - markus@cvs.openbsd.org  2000/08/28 14:19:53
+     [ssh.c]
+     allow combination of -N and -f
+   - markus@cvs.openbsd.org  2000/08/28 14:20:56
+     [util.c]
+     util.c
+   - markus@cvs.openbsd.org  2000/08/28 14:22:02
+     [util.c]
+     undo
+   - markus@cvs.openbsd.org  2000/08/28 14:23:38
+     [util.c]
+     don't complain if setting NONBLOCK fails with ENODEV
 
 20000823
  - (djm) Define USE_PIPES to avoid socketpair problems on HPUX 10 and SunOS 4

@@ -102,6 +102,11 @@ enum
 
 /* If sys/types.h does not supply intXX_t, supply them ourselves */
 /* (or die trying) */
+
+#ifndef HAVE_U_INT
+typedef unsigned int u_int;
+#endif
+
 #ifndef HAVE_INTXX_T
 # if (SIZEOF_CHAR == 1)
 typedef char int8_t;

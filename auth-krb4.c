@@ -9,7 +9,7 @@
 #include "ssh.h"
 #include "servconf.h"
 
-RCSID("$OpenBSD: auth-krb4.c,v 1.16 2000/08/02 17:27:04 provos Exp $");
+RCSID("$OpenBSD: auth-krb4.c,v 1.17 2000/08/28 03:50:54 deraadt Exp $");
 
 #ifdef KRB4
 char *ticket = NULL;
@@ -154,7 +154,7 @@ krb4_init(uid_t uid)
 		if (lstat("/ticket", &st) != -1)
 			tkt_root = "/ticket/";
 #endif /* AFS */
-		snprintf(ticket, MAXPATHLEN, "%s%d_%d", tkt_root, uid, getpid());
+		snprintf(ticket, MAXPATHLEN, "%s%u_%d", tkt_root, uid, getpid());
 		(void) krb_set_tkt_string(ticket);
 	}
 	/* Register ticket cleanup in case of fatal error. */

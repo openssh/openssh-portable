@@ -203,6 +203,7 @@
 #undef MAIL_DIRECTORY
 
 /* Data types */
+#undef HAVE_U_INT
 #undef HAVE_INTXX_T
 #undef HAVE_U_INTXX_T
 #undef HAVE_UINTXX_T
