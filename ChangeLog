@@ -1,3 +1,6 @@
+20010109
+ - (bal) Resync CVS ID of cli.c
+
 20010108
  - (bal) Fixed another typo in cli.c
  - (bal) OpenBSD Sync
