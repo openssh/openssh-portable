@@ -7,6 +7,7 @@
      [sftp-int.c]
      add version command
  - (stevesk) ssh-keyscan.c: specify "openbsd-compat/fake-queue.h"
+ - (bal) Cygwin README change by Corinna Vinschen <vinschen@redhat.com> 
 
 20010314
  - OpenBSD CVS Sync
@@ -4555,4 +4556,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.958 2001/03/14 21:26:27 mouring Exp $
+$Id: ChangeLog,v 1.959 2001/03/14 21:30:18 mouring Exp $
