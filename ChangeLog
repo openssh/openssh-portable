@@ -18,7 +18,8 @@
  - (djm) Tidy and trim TODO
  - (djm) Sync openbsd-compat/ with OpenBSD CVS head
  - (djm) Big KNF on openbsd-compat/
- - (djm) KNF on md5crypt.c
+ - (djm) KNF on md5crypt.[ch]
+ - (djm) KNF on auth-sia.[ch]
 
 20030517
  - (bal) strcat -> strlcat on openbsd-compat/realpath.c (rev 1.8 OpenBSD)
@@ -1574,4 +1575,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2740 2003/05/18 14:46:46 djm Exp $
+$Id: ChangeLog,v 1.2741 2003/05/18 14:50:02 djm Exp $
