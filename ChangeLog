@@ -1,3 +1,7 @@
+20020522
+ - (djm) Fix spelling mistakes, spotted by Solar Designer i
+   <solar@openwall.com>
+
 20020521
  - (stevesk) [sshd.c] bug 245; disable setsid() for now
  - (stevesk) [sshd.c] #ifndef HAVE_CYGWIN for setgroups()
@@ -660,4 +664,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2137 2002/05/21 17:59:14 stevesk Exp $
+$Id: ChangeLog,v 1.2138 2002/05/22 01:02:15 djm Exp $

@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.62 2002/05/17 15:59:23 tim Exp $
+# $Id: configure.ac,v 1.63 2002/05/22 01:02:15 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -1794,7 +1794,7 @@ AC_ARG_WITH(rsh,
 
 PRIVSEP_PATH=/var/empty
 AC_ARG_WITH(privsep-path,
-	[  --with-privsep-path=xxx Path for privilege seperation chroot ],
+	[  --with-privsep-path=xxx Path for privilege separation chroot ],
 	[
 		if test "x$withval" != "$no" ; then
 			PRIVSEP_PATH=$withval
