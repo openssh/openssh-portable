@@ -107,7 +107,7 @@ then
   echo
   echo "There are still ssh processes running. Please shut them down first."
   echo
-  #exit 1
+  exit 1
 fi
 
 # Check for ${SYSCONFDIR} directory
@@ -340,7 +340,7 @@ then
 	  if request "Shall this script create a local user 'sshd' on this machine?"
 	  then
 	    dos_var_empty=`cygpath -w /var/empty`
-	    net user sshd /add /fullname:"sshd privsep" "/HOMEDIR:$dos_var_empty" > /dev/null 2>&1 && sshd_in_sam=yes
+	    net user sshd /add /fullname:"sshd privsep" "/homedir:$dos_var_empty" /active:no > /dev/null 2>&1 && sshd_in_sam=yes
 	    if [ "$sshd_in_sam" != "yes" ]
 	    then
 	      echo "Warning: Creating the user 'sshd' failed!"
@@ -354,7 +354,7 @@ then
 	  echo "         Check your ${SYSCONFDIR}/sshd_config file!"
 	  privsep_used=no
 	else
-	  mkpasswd -l -u sshd >> ${SYSCONFDIR}/passwd
+	  mkpasswd -l -u sshd | sed -e 's/bash$/false/' >> ${SYSCONFDIR}/passwd
 	fi
       fi
     else
