@@ -1,5 +1,9 @@
 20010324
  - Fixed permissions ssh-keyscan.  Thanks to Christopher Linn <celinn@mtu.edu>.
+ - OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2001/03/23 13:10:57
+     [sftp-int.c]
+     fix put, upload to _absolute_ path, ok djm@
 
 20010322
  - (djm) Better AIX no tty fix, spotted by Gert Doering <gert@greenie.muc.de>
@@ -4663,4 +4667,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.991.2.7 2001/03/24 00:22:46 mouring Exp $
+$Id: ChangeLog,v 1.991.2.8 2001/03/24 04:45:42 mouring Exp $

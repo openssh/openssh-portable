@@ -26,7 +26,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.31 2001/03/16 13:44:24 markus Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.32 2001/03/23 13:10:57 markus Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -451,9 +451,12 @@ process_put(int in, int out, char *src, char *dst, char *pwd, int pflag)
 				xfree(tmp);
 			} else
 				abs_dst = xstrdup(tmp_dst);
-		} else if (infer_path(g.gl_pathv[0], &abs_dst)) {
-			err = -1;
-			goto out;
+		} else {
+			if (infer_path(g.gl_pathv[0], &abs_dst)) {
+				err = -1;
+				goto out;
+			}
+			abs_dst = make_absolute(abs_dst, pwd);
 		}
 		printf("Uploading %s to %s\n", g.gl_pathv[0], abs_dst);
 		err = do_upload(in, out, g.gl_pathv[0], abs_dst, pflag);
