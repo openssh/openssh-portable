@@ -786,7 +786,7 @@ mm_answer_skeyrespond(int sock, Buffer *m)
 
 #ifdef USE_PAM
 int
-mm_answer_pam_start(int socket, Buffer *m)
+mm_answer_pam_start(int sock, Buffer *m)
 {
 	if (!options.use_pam)
 		fatal("UsePAM not set, but ended up in %s anyway", __func__);
@@ -799,7 +799,7 @@ mm_answer_pam_start(int socket, Buffer *m)
 }
 
 int
-mm_answer_pam_account(int socket, Buffer *m)
+mm_answer_pam_account(int sock, Buffer *m)
 {
 	u_int ret;
 
@@ -810,7 +810,7 @@ mm_answer_pam_account(int socket, Buffer *m)
 
 	buffer_put_int(m, ret);
 
-	mm_request_send(socket, MONITOR_ANS_PAM_ACCOUNT, m);
+	mm_request_send(sock, MONITOR_ANS_PAM_ACCOUNT, m);
 
 	return (ret);
 }
@@ -819,7 +819,7 @@ static void *sshpam_ctxt, *sshpam_authok;
 extern KbdintDevice sshpam_device;
 
 int
-mm_answer_pam_init_ctx(int socket, Buffer *m)
+mm_answer_pam_init_ctx(int sock, Buffer *m)
 {
 
 	debug3("%s", __func__);
@@ -833,12 +833,12 @@ mm_answer_pam_init_ctx(int socket, Buffer *m)
 	} else {
 		buffer_put_int(m, 0);
 	}
-	mm_request_send(socket, MONITOR_ANS_PAM_INIT_CTX, m);
+	mm_request_send(sock, MONITOR_ANS_PAM_INIT_CTX, m);
 	return (0);
 }
 
 int
-mm_answer_pam_query(int socket, Buffer *m)
+mm_answer_pam_query(int sock, Buffer *m)
 {
 	char *name, *info, **prompts;
 	u_int num, *echo_on;
@@ -867,12 +867,12 @@ mm_answer_pam_query(int socket, Buffer *m)
 		xfree(prompts);
 	if (echo_on != NULL)
 		xfree(echo_on);
-	mm_request_send(socket, MONITOR_ANS_PAM_QUERY, m);
+	mm_request_send(sock, MONITOR_ANS_PAM_QUERY, m);
 	return (0);
 }
 
 int
-mm_answer_pam_respond(int socket, Buffer *m)
+mm_answer_pam_respond(int sock, Buffer *m)
 {
 	char **resp;
 	u_int num;
@@ -894,7 +894,7 @@ mm_answer_pam_respond(int socket, Buffer *m)
 	}
 	buffer_clear(m);
 	buffer_put_int(m, ret);
-	mm_request_send(socket, MONITOR_ANS_PAM_RESPOND, m);
+	mm_request_send(sock, MONITOR_ANS_PAM_RESPOND, m);
 	auth_method = "keyboard-interactive/pam";
 	if (ret == 0)
 		sshpam_authok = sshpam_ctxt;
@@ -902,13 +902,13 @@ mm_answer_pam_respond(int socket, Buffer *m)
 }
 
 int
-mm_answer_pam_free_ctx(int socket, Buffer *m)
+mm_answer_pam_free_ctx(int sock, Buffer *m)
 {
 
 	debug3("%s", __func__);
 	(sshpam_device.free_ctx)(sshpam_ctxt);
 	buffer_clear(m);
-	mm_request_send(socket, MONITOR_ANS_PAM_FREE_CTX, m);
+	mm_request_send(sock, MONITOR_ANS_PAM_FREE_CTX, m);
 	return (sshpam_authok == sshpam_ctxt);
 }
 #endif
