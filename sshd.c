@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.116 2000/05/17 08:20:16 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.117 2000/05/18 13:27:36 djm Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"

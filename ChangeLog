@@ -1,3 +1,6 @@
+20000520
+ - Xauth fix from Markus Friedl <markus.friedl@informatik.uni-erlangen.de>
+
 20000518
  - Include Andre Lucas' fixprogs script. Forgot to "cvs add" it yesterday
  - OpenBSD CVS updates:
