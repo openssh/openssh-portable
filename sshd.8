@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.153 2001/09/27 17:53:24 camield Exp $
+.\" $OpenBSD: sshd.8,v 1.154 2001/11/07 22:12:01 markus Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -402,11 +402,11 @@ reached while client alive messages are being sent,
 .Nm
 will disconnect the client, terminating the session. It is important
 to note that the use of client alive messages is very different from
-.Cm Keepalive
+.Cm KeepAlive
 (below). The client alive messages are sent through the
 encrypted channel and therefore will not be spoofable. The TCP keepalive
 option enabled by
-.Cm Keepalive
+.Cm KeepAlive
 is spoofable. The client alive mechanism is valuable when the client or
 server depend on knowing when a connection has become inactive.
 .Pp

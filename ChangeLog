@@ -33,6 +33,9 @@
    - markus@cvs.openbsd.org 2001/11/07 22:10:28
      [ssh-dss.c ssh-rsa.c]
      missing free and sync dss/rsa code.
+   - markus@cvs.openbsd.org 2001/11/07 22:12:01
+     [sshd.8]
+     s/Keepalive/KeepAlive/; from openbsd@davidkrause.com
 
 20011109
  - (stevesk) auth-pam.c: use do_pam_authenticate(PAM_DISALLOW_NULL_AUTHTOK)
@@ -6842,4 +6845,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1644 2001/11/12 00:03:35 djm Exp $
+$Id: ChangeLog,v 1.1645 2001/11/12 00:04:05 djm Exp $
