@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.149 2001/10/24 08:51:35 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.150 2001/11/30 20:39:28 stevesk Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -787,19 +787,23 @@ again:
 }
 
 static void
-x11_get_proto(char *proto, int proto_len, char *data, int data_len)
+x11_get_proto(char **_proto, char **_data)
 {
 	char line[512];
+	static char proto[512], data[512];
 	FILE *f;
 	int got_data = 0, i;
 
+	*_proto = proto;
+	*_data = data;
+	proto[0] = data[0] = '\0';
 	if (options.xauth_location) {
 		/* Try to get Xauthority information for the display. */
 		snprintf(line, sizeof line, "%.100s list %.200s 2>" _PATH_DEVNULL,
 		    options.xauth_location, getenv("DISPLAY"));
 		f = popen(line, "r");
 		if (f && fgets(line, sizeof(line), f) &&
-		    sscanf(line, "%*s %s %s", proto, data) == 2)
+		    sscanf(line, "%*s %511s %511s", proto, data) == 2)
 			got_data = 1;
 		if (f)
 			pclose(f);
@@ -815,11 +819,11 @@ x11_get_proto(char *proto, int proto_len, char *data, int data_len)
 	if (!got_data) {
 		u_int32_t rand = 0;
 
-		strlcpy(proto, "MIT-MAGIC-COOKIE-1", proto_len);
+		strlcpy(proto, "MIT-MAGIC-COOKIE-1", sizeof proto);
 		for (i = 0; i < 16; i++) {
 			if (i % 4 == 0)
 				rand = arc4random();
-			snprintf(data + 2 * i, data_len - 2 * i, "%02x", rand & 0xff);
+			snprintf(data + 2 * i, sizeof data - 2 * i, "%02x", rand & 0xff);
 			rand >>= 8;
 		}
 	}
@@ -943,9 +947,9 @@ ssh_session(void)
 	}
 	/* Request X11 forwarding if enabled and DISPLAY is set. */
 	if (options.forward_x11 && getenv("DISPLAY") != NULL) {
-		char proto[512], data[512];
+		char *proto, *data;
 		/* Get reasonable local authentication information. */
-		x11_get_proto(proto, sizeof proto, data, sizeof data);
+		x11_get_proto(&proto, &data);
 		/* Request forwarding with authentication spoofing. */
 		debug("Requesting X11 forwarding with authentication spoofing.");
 		x11_request_forwarding_with_spoofing(0, proto, data);
@@ -1059,9 +1063,9 @@ ssh_session2_setup(int id, void *arg)
 	}
 	if (options.forward_x11 &&
 	    getenv("DISPLAY") != NULL) {
-		char proto[512], data[512];
+		char *proto, *data;
 		/* Get reasonable local authentication information. */
-		x11_get_proto(proto, sizeof proto, data, sizeof data);
+		x11_get_proto(&proto, &data);
 		/* Request forwarding with authentication spoofing. */
 		debug("Requesting X11 forwarding with authentication spoofing.");
 		x11_request_forwarding_with_spoofing(id, proto, data);

@@ -40,6 +40,10 @@
      fix protocol error: send 'failed' message instead of a 2nd challenge
      (happens if the same key is in authorized_keys twice).
      reported Ralf_Meister@genua.de; ok djm@
+   - stevesk@cvs.openbsd.org 2001/11/30 20:39:28
+     [ssh.c]
+     sscanf() length dependencies are clearer now; can also shrink proto
+     and data if desired, but i have not done that.  ok markus@
 
 20011126
  - (tim) [contrib/cygwin/README, openbsd-compat/bsd-cygwin_util.c,
@@ -6962,4 +6966,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1678 2001/12/06 17:41:25 mouring Exp $
+$Id: ChangeLog,v 1.1679 2001/12/06 17:45:19 mouring Exp $
