@@ -1,4 +1,5 @@
 20030611
+ - (djm) Sync LICENSE against OpenBSD
  - (djm) OpenBSD CVS Sync
    - jmc@cvs.openbsd.org 2003/06/10 09:12:11
      [scp.1 sftp-server.8 ssh.1 ssh-add.1 ssh-agent.1 ssh_config.5]
@@ -506,4 +507,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2797 2003/06/11 12:06:33 djm Exp $
+$Id: ChangeLog,v 1.2798 2003/06/11 12:08:36 djm Exp $
