@@ -4,6 +4,7 @@
    s/BROKEN_FD_PASSING/DISABLE_FD_PASSING/
  - (tim) [contrib/cygwin/ssh-host-config] sshd account creation fixes
    patch from vinschen@redhat.com
+ - (bal) [realpath.c] Updated with OpenBSD tree.
 
 20020705
  - (tim) [configure.ac] AIX 4.2.1 has authenticate() in libs.
@@ -1287,4 +1288,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2340 2002/07/07 21:07:46 tim Exp $
+$Id: ChangeLog,v 1.2341 2002/07/07 22:07:10 mouring Exp $
