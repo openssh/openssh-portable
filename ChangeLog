@@ -1,3 +1,6 @@
+20040930
+ - (dtucker) [configure.ac] Set AC_PACKAGE_NAME.  ok djm@
+
 20040923
  - (dtucker) [openbsd-compat/bsd-snprintf.c] Previous change was off by one,
    which could have caused the justification to be wrong.  ok djm@
@@ -1754,4 +1757,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3555 2004/09/23 11:35:09 dtucker Exp $
+$Id: ChangeLog,v 1.3556 2004/09/30 11:17:08 dtucker Exp $

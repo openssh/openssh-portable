@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.230 2004/09/12 12:36:16 dtucker Exp $
+# $Id: configure.ac,v 1.231 2004/09/30 11:17:08 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -14,7 +14,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-AC_INIT
+AC_INIT(OpenSSH, Portable)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
