@@ -1,5 +1,9 @@
-20040315
+20040322
  - (djm) [sshd.c] Drop supplemental groups if started as root
+ - (djm) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2004/03/09 22:11:05
+     [ssh.c]
+     increase x11 cookie lifetime to 20 minutes; ok djm
 
 20040311
  - (djm) [configure.ac] Add standard license to configure.ac; ok ben, dtucker
@@ -901,4 +905,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3289 2004/03/21 22:29:57 djm Exp $
+$Id: ChangeLog,v 1.3290 2004/03/21 22:34:26 djm Exp $

@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.206 2003/12/16 15:49:51 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.207 2004/03/09 22:11:05 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -777,7 +777,7 @@ x11_get_proto(char **_proto, char **_data)
 				    xauthdir);
 				snprintf(cmd, sizeof(cmd),
 				    "%s -f %s generate %s " SSH_X11_PROTO
-				    " untrusted timeout 120 2>" _PATH_DEVNULL,
+				    " untrusted timeout 1200 2>" _PATH_DEVNULL,
 				    options.xauth_location, xauthfile, display);
 				debug2("x11_get_proto: %s", cmd);
 				if (system(cmd) == 0)
