@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.91 2001/11/12 18:17:07 markus Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.92 2001/11/17 19:14:34 stevesk Exp $");
 
 #if defined(KRB4) || defined(KRB5)
 #include <krb.h>
@@ -334,7 +334,7 @@ static struct {
 	{ "clientalivecountmax", sClientAliveCountMax },
 	{ "authorizedkeysfile", sAuthorizedKeysFile },
 	{ "authorizedkeysfile2", sAuthorizedKeysFile2 },
-	{ NULL, 0 }
+	{ NULL, sBadOption }
 };
 
 /*

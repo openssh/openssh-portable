@@ -6,6 +6,9 @@
    - markus@cvs.openbsd.org 2001/11/16 12:46:13
      [ssh-keyscan.c]
      handle empty lines instead of dumping core; report from sha@sha-1.net
+   - stevesk@cvs.openbsd.org 2001/11/17 19:14:34
+     [auth2.c auth.c readconf.c servconf.c ssh-agent.c ssh-keygen.c]
+     enum/int type cleanup where it made sense to do so; ok markus@
 
 20011126
  - (tim) [contrib/cygwin/README, openbsd-compat/bsd-cygwin_util.c,
@@ -6928,4 +6931,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1668 2001/12/06 16:28:19 mouring Exp $
+$Id: ChangeLog,v 1.1669 2001/12/06 16:32:47 mouring Exp $
