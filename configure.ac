@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.123 2003/05/19 23:24:42 djm Exp $
+# $Id: configure.ac,v 1.124 2003/05/30 07:43:42 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -298,6 +298,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	LIBS="$LIBS -lc89"
 	AC_DEFINE(USE_PIPES)
+	AC_DEFINE(SSHD_ACQUIRES_CTTY)
 	;;
 *-sni-sysv*)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
@@ -306,6 +307,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	IPADDR_IN_DISPLAY=yes
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(IP_TOS_IS_BROKEN)
+	AC_DEFINE(SSHD_ACQUIRES_CTTY)
 	# /usr/ucblib/libucb.a no longer needed on ReliantUNIX
 	# Attention: always take care to bind libsocket and libnsl before libc,
 	# otherwise you will find lots of "SIOCGPGRP errno 22" on syslog
