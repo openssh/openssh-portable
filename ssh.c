@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.115 2001/04/14 16:33:20 stevesk Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.116 2001/04/17 12:55:04 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -182,10 +182,6 @@ usage(void)
 	fprintf(stderr, "  -R listen-port:host:port   Forward remote port to local address\n");
 	fprintf(stderr, "              These cause %s to listen for connections on a port, and\n", __progname);
 	fprintf(stderr, "              forward them to the other side by connecting to host:port.\n");
-	fprintf(stderr, "  -D port     Dynamically forward local port to multiple remote addresses.\n");
-	fprintf(stderr, "              Allows %s to act as an application-layer proxy.\n",
-	    __progname);
-	fprintf(stderr, "              Protocols supported: SOCKS4, SOCKS5, HTTPS\n");
 	fprintf(stderr, "  -C          Enable compression.\n");
 	fprintf(stderr, "  -N          Do not execute a shell or command.\n");
 	fprintf(stderr, "  -g          Allow remote hosts to connect to forwarded ports.\n");

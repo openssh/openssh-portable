@@ -3,18 +3,23 @@
     and temporary commented out 'catman-do:' since it is broken.  Patches
     for the first two by Lutz Jaenicke <Lutz.Jaenicke@aet.TU-Cottbus.DE>
   - OpenBSD CVS Sync
-   - deraadt@cvs.openbsd.org 2001/04/16 08:26:04                         
-     [key.c]                                                             
-     better safe than sorry in later mods; yongari@kt-is.co.kr   
-   - markus@cvs.openbsd.org 2001/04/17 08:14:01                          
-     [sshconnect1.c]                                                     
-     check for key!=NULL, thanks to costa  
-   - markus@cvs.openbsd.org 2001/04/17 09:52:48                          
-     [clientloop.c]                                                      
+   - deraadt@cvs.openbsd.org 2001/04/16 08:26:04
+     [key.c]
+     better safe than sorry in later mods; yongari@kt-is.co.kr
+   - markus@cvs.openbsd.org 2001/04/17 08:14:01
+     [sshconnect1.c]
+     check for key!=NULL, thanks to costa
+   - markus@cvs.openbsd.org 2001/04/17 09:52:48
+     [clientloop.c]
      handle EINTR/EAGAIN on read; ok deraadt@
-   - markus@cvs.openbsd.org 2001/04/17 10:53:26                          
-     [key.c key.h readconf.c readconf.h ssh.1 sshconnect2.c]             
+   - markus@cvs.openbsd.org 2001/04/17 10:53:26
+     [key.c key.h readconf.c readconf.h ssh.1 sshconnect2.c]
      add HostKeyAlgorithms; based on patch from res@shore.net; ok provos@
+   - markus@cvs.openbsd.org 2001/04/17 12:55:04
+     [channels.c ssh.c]
+     undo socks5 and https support since they are not really used and
+     only bloat ssh.  remove -D from usage(), since '-D' is experimental.
+
 
 20010416
   - OpenBSD CVS Sync
@@ -5140,4 +5145,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1134 2001/04/17 18:11:36 mouring Exp $
+$Id: ChangeLog,v 1.1135 2001/04/17 18:14:34 mouring Exp $

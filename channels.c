@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.108 2001/04/14 16:17:14 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.109 2001/04/17 12:55:03 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -542,79 +542,12 @@ channel_pre_x11_open(Channel *c, fd_set * readset, fd_set * writeset)
 	}
 }
 
-
-int
-channel_decode_helper(Channel *c, int start, int lookfor)
-{
-	u_char *p;
-	int i, have;
-
-	p = buffer_ptr(&c->input);
-	have = buffer_len(&c->input);
-	debug2("channel %d: decode_helper: start %d have %d lookfor %d",
-	    c->self, start, have, lookfor);
-	if (have < start)
-		return 0;
-	for (i = start; i < have; i++) {
-		if (p[i] == lookfor) {
-			debug2("channel %d: decode_helper: matched at %d",
-			    c->self, i);
-			if (lookfor == '\0' ||
-			    (i+3 < have &&
-			    p[i+1] == '\n' &&
-			    p[i+2] == '\r' &&
-			    p[i+3] == '\n'))
-				return i;
-		}
-		if (i > 4096) {
-			/* the peer is probably sending garbage */
-			debug("channel %d: decode_helper: too long",
-			    c->self);
-			return -1;
-		}
-	}
-	return 0;	/* need more */
-}
-
-/* try to decode a http connect header */
-int
-channel_decode_https(Channel *c, fd_set * readset, fd_set * writeset)
-{
-	u_char *p, *host, *buf;
-	int port, ret;
-	char httpok[] = "HTTP/1.0 200\r\n\r\n";
-
-	debug2("channel %d: decode https connect", c->self);
-	ret = channel_decode_helper(c, strlen("connect "), '\r');
-	if (ret <= 0)
-		return ret;
-	p = buffer_ptr(&c->input);
-	buf = xmalloc(ret+1);
-	host = xmalloc(ret);
-	memcpy(buf, p, ret);
-	buf[ret] = '\0';
-	if (sscanf(buf, "CONNECT %[^:]:%u HTTP/", host, &port) != 2) {
-		debug("channel %d: cannot parse http header", c->self);
-		return -1;
-	}
-	debug("channel %d: dynamic request: https host %s port %u",
-	    c->self, host, port);
-	strlcpy(c->path, host, sizeof(c->path));
-	c->host_port = port;
-	xfree(host);
-	xfree(buf);
-	buffer_consume(&c->input, ret+4);
-	buffer_append(&c->output, httpok, strlen(httpok));
-
-	return 1;
-}
-
 /* try to decode a socks4 header */
 int
 channel_decode_socks4(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	u_char *p, *host;
-	int len, have, ret;
+	int len, have, i, found;
 	char username[256];	
 	struct {
 		u_int8_t version;
@@ -624,16 +557,33 @@ channel_decode_socks4(Channel *c, fd_set * readset, fd_set * writeset)
 	} s4_req, s4_rsp;
 
 	debug2("channel %d: decode socks4", c->self);
-	ret = channel_decode_helper(c, sizeof(s4_req), '\0');
-	if (ret <= 0)
-		return ret;
+
+	have = buffer_len(&c->input);
+	len = sizeof(s4_req);
+	if (have < len)
+		return 0;
+	p = buffer_ptr(&c->input);
+	for (found = 0, i = len; i < have; i++) {
+		if (p[i] == '\0') {
+			found = 1;
+			break;
+		}
+		if (i > 1024) {
+			/* the peer is probably sending garbage */
+			debug("channel %d: decode socks4: too long",
+			    c->self);
+			return -1;
+		}
+	}
+	if (!found)
+		return 0;
 	buffer_get(&c->input, (char *)&s4_req.version, 1);
 	buffer_get(&c->input, (char *)&s4_req.command, 1);
 	buffer_get(&c->input, (char *)&s4_req.dest_port, 2);
 	buffer_get(&c->input, (char *)&s4_req.dest_addr, 4);
+	have = buffer_len(&c->input);
 	p = buffer_ptr(&c->input);
 	len = strlen(p);
-	have = buffer_len(&c->input);
 	debug2("channel %d: decode socks4: user %s/%d", c->self, p, len);
 	if (len > have)
 		fatal("channel %d: decode socks4: len %d > have %d",
@@ -662,115 +612,6 @@ channel_decode_socks4(Channel *c, fd_set * readset, fd_set * writeset)
 	return 1;
 }
 
-/* try to decode a socks5 header */
-#define SSH_SOCKS5_AUTHDONE	0x1000
-#define SSH_SOCKS5_NOAUTH	0x00
-#define SSH_SOCKS5_IPV4		0x01
-#define SSH_SOCKS5_DOMAIN	0x03
-#define SSH_SOCKS5_IPV6		0x04
-#define SSH_SOCKS5_CONNECT	0x01
-#define SSH_SOCKS5_SUCCESS	0x00
-
-int
-channel_decode_socks5(Channel *c, fd_set * readset, fd_set * writeset)
-{
-	struct {
-		u_int8_t version;
-		u_int8_t command;
-		u_int8_t reserved;
-		u_int8_t atyp;
-	} s5_req, s5_rsp;
-	u_int16_t dest_port;
-	u_char *p, dest_addr[255+1];
-	int i, have, found, nmethods, addrlen, af;
-
-	debug2("channel %d: decode socks5", c->self);
-	p = buffer_ptr(&c->input);
-	if (p[0] != 0x05)
-		return -1;
-	have = buffer_len(&c->input);
-	if (!(c->flags & SSH_SOCKS5_AUTHDONE)) {
-		/* format: ver | nmethods | methods */
-		if (have < 2) 
-			return 0;
-		nmethods = p[1];
-		if (have < nmethods + 2)
-			return 0;
-		/* look for method: "NO AUTHENTICATION REQUIRED" */
-		for (found = 0, i = 2 ; i < nmethods + 2; i++) {
-			if (p[i] == SSH_SOCKS5_NOAUTH ) {
-				found = 1;
-				break;
-			}
-		}
-		if (!found) {
-			debug("channel %d: method SSH_SOCKS5_NOAUTH not found",
-			    c->self);
-			return -1;
-		}
-		buffer_consume(&c->input, nmethods + 2);
-		buffer_put_char(&c->output, 0x05);		/* version */
-		buffer_put_char(&c->output, SSH_SOCKS5_NOAUTH);	/* method */
-		FD_SET(c->sock, writeset);
-		c->flags |= SSH_SOCKS5_AUTHDONE;
-		debug2("channel %d: socks5 auth done", c->self);
-		return 0;				/* need more */
-	}
-	debug2("channel %d: socks5 post auth", c->self);
-	if (have < sizeof(s5_req)+1)
-		return 0;			/* need more */
-	memcpy((char *)&s5_req, p, sizeof(s5_req));
-	if (s5_req.version != 0x05 ||
-	    s5_req.command != SSH_SOCKS5_CONNECT ||
-	    s5_req.reserved != 0x00) {
-		debug("channel %d: only socks5 connect supported", c->self);
-		return -1;
-	}
-	switch(s5_req.atyp){
-	case SSH_SOCKS5_IPV4:
-		addrlen = 4;
-		af = AF_INET;
-		break;
-	case SSH_SOCKS5_DOMAIN:
-		addrlen = p[sizeof(s5_req)];
-		af = -1;
-		break;
-	case SSH_SOCKS5_IPV6:
-		addrlen = 16;
-		af = AF_INET6;
-		break;
-	default:
-		debug("channel %d: bad socks5 atyp %d", c->self, s5_req.atyp);
-		return -1;
-	}
-	if (have < 4 + addrlen + 2)
-		return 0;
-	buffer_consume(&c->input, sizeof(s5_req));
-	buffer_get(&c->input, (char *)&dest_addr, addrlen);
-	buffer_get(&c->input, (char *)&dest_port, 2);
-	dest_addr[addrlen] = '\0';
-	if (s5_req.atyp == SSH_SOCKS5_DOMAIN)
-		strlcpy(c->path, dest_addr, sizeof(c->path));
-	else if (inet_ntop(af, dest_addr, c->path, sizeof(c->path)) == NULL)
-		return -1;
-	c->host_port = ntohs(dest_port);
-	
-	debug("channel %d: dynamic request: socks5 host %s port %u command %u",
-	    c->self, c->path, c->host_port, s5_req.command);
-
-	s5_rsp.version = 0x05;
-	s5_rsp.command = SSH_SOCKS5_SUCCESS;
-	s5_rsp.reserved = 0;			/* ignored */
-	s5_rsp.atyp = SSH_SOCKS5_IPV4;
-	((struct in_addr *)&dest_addr)->s_addr = INADDR_ANY;
-	dest_port = 0;				/* ignored */
-
-	buffer_append(&c->output, (char *)&s5_rsp, sizeof(s5_rsp));
-	buffer_append(&c->output, (char *)&dest_addr, sizeof(struct in_addr));
-	buffer_append(&c->output, (char *)&dest_port, sizeof(dest_port));
-	return 1;
-}
-
 /* dynamic port forwarding */
 void
 channel_pre_dynamic(Channel *c, fd_set * readset, fd_set * writeset)
@@ -791,14 +632,8 @@ channel_pre_dynamic(Channel *c, fd_set * readset, fd_set * writeset)
 	/* try to guess the protocol */
 	p = buffer_ptr(&c->input);
 	switch (p[0]) {
-	case 'C':
-		ret = channel_decode_https(c, readset, writeset);
-		break;
 	case 0x04:
 		ret = channel_decode_socks4(c, readset, writeset);
-		break;
-	case 0x05:
-		ret = channel_decode_socks5(c, readset, writeset);
 		break;
 	default:
 		ret = -1;
