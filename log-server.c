@@ -15,12 +15,18 @@ to the system log.
 */
 
 #include "includes.h"
-RCSID("$Id: log-server.c,v 1.3 1999/11/15 04:25:10 damien Exp $");
+RCSID("$Id: log-server.c,v 1.4 1999/11/15 06:10:57 damien Exp $");
 
 #include <syslog.h>
 #include "packet.h"
 #include "xmalloc.h"
 #include "ssh.h"
+
+#ifdef HAVE___PROGNAME
+extern char *__progname;
+#else /* HAVE___PROGNAME */
+const char *__progname = "sshd";
+#endif /* HAVE___PROGNAME */
 
 static LogLevel log_level = SYSLOG_LEVEL_INFO;
 static int log_on_stderr = 0;
@@ -104,7 +110,6 @@ do_log(LogLevel level, const char *fmt, va_list args)
   char fmtbuf[MSGBUFSIZE];
   char *txt = NULL;
   int pri = LOG_INFO;
-  extern char *__progname;
 
   if (level > log_level)
     return;

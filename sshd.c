@@ -18,7 +18,7 @@ agent connections.
 */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.19 1999/11/15 04:40:55 damien Exp $");
+RCSID("$Id: sshd.c,v 1.20 1999/11/15 06:10:57 damien Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -31,6 +31,10 @@ RCSID("$Id: sshd.c,v 1.19 1999/11/15 04:40:55 damien Exp $");
 #include "servconf.h"
 #include "uidswap.h"
 #include "compat.h"
+
+#ifdef HAVE_MAILLOCK_H
+# include <maillock.h>
+#endif
 
 #ifdef LIBWRAP
 #include <tcpd.h>

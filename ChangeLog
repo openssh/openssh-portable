@@ -23,6 +23,9 @@
 	[sshconnect.c] disconnect if getpeername() fails
  - OpenBSD's changes to sshd.c broke the PAM stuff, re-merged it.
  - Various small cleanups to bring diff (against OpenBSD) size down.
+ - Merged more Solaris compability from Marc G. Fournier
+   <marc.fournier@acadiau.ca>
+ - Wrote autoconf tests for __progname symbol
 
 19991114
  - Solaris compilation fixes (still imcomplete)

@@ -18,7 +18,7 @@ Modified to work with SSL by Niels Provos <provos@citi.umich.edu> in Canada.
 */
 
 #include "includes.h"
-RCSID("$Id: ssh.c,v 1.8 1999/11/15 04:25:10 damien Exp $");
+RCSID("$Id: ssh.c,v 1.9 1999/11/15 06:10:57 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -27,6 +27,12 @@ RCSID("$Id: ssh.c,v 1.8 1999/11/15 04:25:10 damien Exp $");
 #include "authfd.h"
 #include "readconf.h"
 #include "uidswap.h"
+
+#ifdef HAVE___PROGNAME
+extern char *__progname;
+#else /* HAVE___PROGNAME */
+const char *__progname = "ssh";
+#endif /* HAVE___PROGNAME */
 
 /* Flag indicating whether debug mode is on.  This can be set on the
    command line. */
@@ -399,7 +405,6 @@ main(int ac, char **av)
 
   /* check if RSA support exists */
   if (rsa_alive() == 0) {
-    extern char *__progname;
 
     fprintf(stderr,
       "%s: no RSA support in libssl and libcrypto.  See ssl(8).\n",

@@ -55,14 +55,7 @@ AC_CHECK_LIB(dl, dlopen, , )
 AC_CHECK_LIB(pam, pam_authenticate, , )
 
 dnl Checks for header files.
-AC_CHECK_HEADERS(pty.h endian.h paths.h lastlog.h shadow.h netgroup.h)
-
-dnl Check for ut_host field in utmp
-AC_MSG_CHECKING([whether utmp.h has ut_host field])
-AC_EGREP_HEADER(ut_host, utmp.h, 
-	[AC_DEFINE(HAVE_HOST_IN_UTMP) AC_MSG_RESULT(yes); ], 
-	[AC_MSG_RESULT(no)]
-)
+AC_CHECK_HEADERS(pty.h endian.h paths.h lastlog.h shadow.h netgroup.h maillock.h)
 
 dnl Checks for library functions.
 AC_CHECK_FUNCS(openpty strlcpy mkdtemp arc4random setproctitle setlogin)
@@ -143,5 +136,34 @@ dnl Make sure we have random number support
 if test -z "$RANDOM_POOL" -a -z "$EGD_POOL"; then
 	AC_MSG_ERROR([No random device found, and no EGD random pool specified])
 fi
+
+dnl Check for ut_host field in utmp
+AC_MSG_CHECKING([whether utmp.h has ut_host field])
+AC_EGREP_HEADER(ut_host, utmp.h, 
+	[AC_DEFINE(HAVE_HOST_IN_UTMP) AC_MSG_RESULT(yes); ], 
+	[AC_MSG_RESULT(no)]
+)
+
+dnl Look for lastlog location
+AC_MSG_CHECKING([location of lastlog file])
+for lastlog in /var/log/lastlog /var/adm/lastlog /etc/security/lastlog ; do
+	if test -f $lastlog ; then
+		AC_MSG_RESULT($lastlog)
+		AC_DEFINE_UNQUOTED(LASTLOG_LOCATION, "$lastlog")
+		break
+	fi
+done
+
+AC_MSG_CHECKING([whether libc defines __progname])
+AC_TRY_LINK([], 
+	[extern char *__progname;], 
+	[
+		AC_DEFINE(HAVE___PROGNAME)
+		AC_MSG_RESULT(yes)
+	], 
+	[
+		AC_MSG_RESULT(no)
+	]
+)
 
 AC_OUTPUT(Makefile)

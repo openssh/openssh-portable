@@ -3,7 +3,10 @@
 /* SSL directory.  */
 #undef ssldir
 
-/* Random number pool  */
+/* Location of lastlog file */
+#undef LASTLOG_LOCATION
+
+/* Location of random number pool  */
 #undef RANDOM_POOL
 
 /* Are we using the Entropy gathering daemon */
@@ -21,8 +24,11 @@
 /* Define is libutil has login() function */
 #undef HAVE_LIBUTIL_LOGIN
 
-/* Define if you *don't* want to use an external ssh-askpass */
+/* Define if you want external askpass support */
 #undef USE_EXTERNAL_ASKPASS
+
+/* Define if libc defines __progname */
+#undef HAVE___PROGNAME
 
 @BOTTOM@
 
@@ -40,10 +46,45 @@ enum
 };
 #endif
 
+#include <sys/types.h> /* For u_intXX_t */
+#include <paths.h> /* For _PATH_XXX */
+
 #if !defined(u_int32_t) && defined(uint32_t)
 #define u_int32_t uint32_t
 #endif
 
 #if !defined(u_int16_t) && defined(uint16_t)
 #define u_int16_t uint16_t
+#endif
+
+#ifndef _PATH_LASTLOG
+# ifdef LASTLOG_LOCATION
+#  define _PATH_LASTLOG LASTLOG_LOCATION
+# endif
+#endif
+
+#ifndef _PATH_UTMP
+# ifdef UTMP_FILE
+#  define _PATH_UTMP UTMP_FILE
+# endif
+#endif
+
+#ifndef _PATH_WTMP
+# ifdef WTMP_FILE
+#  define _PATH_WTMP WTMP_FILE
+# endif
+#endif
+
+#ifndef _PATH_BSHELL
+# define _PATH_BSHELL "/bin/sh"
+#endif
+
+#ifndef _PATH_STDPATH
+# define _PATH_STDPATH "/usr/bin:/bin:/usr/sbin:/sbin:"
+#endif
+
+#ifndef _PATH_MAILDIR
+# ifdef MAILDIR
+#  define _PATH_MAILDIR MAILDIR
+# endif
 #endif

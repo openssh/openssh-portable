@@ -35,6 +35,12 @@ RCSID("$OpenBSD: ssh-agent.c,v 1.17 1999/11/02 19:42:36 markus Exp $");
 #include <ssl/md5.h>
 #endif
 
+#ifdef HAVE___PROGNAME
+extern char *__progname;
+#else /* HAVE___PROGNAME */
+const char *__progname = "ssh-agent";
+#endif /* HAVE___PROGNAME */
+
 typedef struct
 {
   int fd;
@@ -505,8 +511,6 @@ cleanup_exit(int i)
 void
 usage()
 {
-  extern char *__progname;
-
   fprintf(stderr, "ssh-agent version %s\n", SSH_VERSION);
   fprintf(stderr, "Usage: %s [-c | -s] [-k] [command {args...]]\n",
 	  __progname);
@@ -524,7 +528,6 @@ main(int ac, char **av)
 
   /* check if RSA support exists */
   if (rsa_alive() == 0) {
-    extern char *__progname;
     fprintf(stderr,
       "%s: no RSA support in libssl and libcrypto.  See ssl(8).\n",
       __progname);
