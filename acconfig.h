@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.148 2003/01/28 00:33:44 djm Exp $ */
+/* $Id: acconfig.h,v 1.149 2003/03/10 00:38:10 djm Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -373,6 +373,9 @@
 
 /* Some systems put this outside of libc */
 #undef HAVE_NANOSLEEP
+
+/* Pushing STREAMS modules incorrectly acquires a controlling TTY */
+#undef STREAMS_PUSH_ACQUIRES_CTTY
 
 @BOTTOM@
 
