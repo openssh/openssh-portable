@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: ssh.1.in,v 1.2 2000/01/14 04:45:51 damien Exp $
+.\" $Id: ssh.1.in,v 1.3 2000/01/20 11:44:09 damien Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSH 1
@@ -33,16 +33,16 @@
 .Op Fl p Ar port
 .Oo Fl L Xo
 .Sm off
-.Ar host :
 .Ar port :
+.Ar host :
 .Ar hostport
 .Sm on
 .Xc
 .Oc
 .Oo Fl R Xo
 .Sm off
-.Ar host :
 .Ar port :
+.Ar host :
 .Ar hostport
 .Sm on
 .Xc
@@ -302,6 +302,8 @@ wants it in the background.  This implies
 The recommended way to start X11 programs at a remote site is with
 something like
 .Ic ssh -f host xterm .
+.It Fl g
+Allows remote hosts to connect to local forwarded ports.
 .It Fl i Ar identity_file
 Selects the file from which the identity (private key) for 
 RSA authentication is read.  Default is 
@@ -312,8 +314,6 @@ multiple
 .Fl i
 options (and multiple identities specified in
 configuration files).
-.It Fl g
-Allows remote hosts to connect to local forwarded ports.
 .It Fl k
 Disables forwarding of Kerberos tickets and AFS tokens. This may
 also be specified on a per-host basis in the configuration file.
@@ -378,7 +378,9 @@ Enables X11 forwarding.
 .It Fl C
 Requests compression of all data (including stdin, stdout, stderr, and
 data for forwarded X11 and TCP/IP connections).  The compression
-algorithm is the same used by gzip, and the
+algorithm is the same used by
+.Xr gzip 1 ,
+and the
 .Dq level
 can be controlled by the
 .Cm CompressionLevel
@@ -486,6 +488,15 @@ user to supply the password.  The argument must be
 .Dq yes
 or
 .Dq no .
+.It Cm CheckHostIP
+If this flag is set to
+.Dq yes ,
+ssh will additionally check the host ip address in the
+.Pa known_hosts
+file. This allows ssh to detect if a host key changed due to DNS spoofing.
+If the option is set to
+.Dq no ,
+the check will not be executed.
 .It Cm Cipher
 Specifies the cipher to use for encrypting the session.  Currently,
 .Dq blowfish ,
@@ -502,7 +513,8 @@ or
 Specifies the compression level to use if compression is enable.  The
 argument must be an integer from 1 (fast) to 9 (slow, best).  The
 default level is 6, which is good for most applications.  The meaning
-of the values is the same as in GNU GZIP.
+of the values is the same as in
+.Xr gzip 1 .
 .It Cm ConnectionAttempts
 Specifies the number of tries (one per second) to make before falling
 back to rsh or exiting.  The argument must be an integer.  This may be
@@ -610,12 +622,6 @@ first argument must be a port number, and the second must be
 host:port.  Multiple forwardings may be specified, and additional
 forwardings can be given on the command line.  Only the root can
 forward privileged ports.
-.It Cm PasswordAuthentication
-Specifies whether to use password authentication.  The argument to
-this keyword must be
-.Dq yes
-or
-.Dq no .
 .It Cm LogLevel
 Gives the verbosity level that is used when logging messages from
 .Nm ssh .
@@ -625,6 +631,12 @@ The default is INFO.
 .It Cm NumberOfPasswordPrompts
 Specifies the number of password prompts before giving up. The
 argument to this keyword must be an integer. Default is 3.
+.It Cm PasswordAuthentication
+Specifies whether to use password authentication.  The argument to
+this keyword must be
+.Dq yes
+or
+.Dq no .
 .It Cm Port
 Specifies the port number to connect on the remote host.  Default is
 22.
@@ -689,15 +701,6 @@ or
 .Dq no .
 The default is
 .Dq no .
-.It Cm CheckHostIP
-If this flag is set to
-.Dq yes ,
-ssh will additionally check the host ip address in the
-.Pa known_hosts
-file. This allows ssh to detect if a host key changed due to DNS spoofing.
-If the option is set to
-.Dq no ,
-the check will not be executed.
 .It Cm StrictHostKeyChecking
 If this flag is set to
 .Dq yes , 
@@ -717,13 +720,6 @@ argument must be
 .Dq yes
 or
 .Dq no .
-.It Cm User
-Specifies the user to log in as.  This can be useful if you have a
-different user name in different machines.  This saves the trouble of
-having to remember to give the user name on the command line.
-.It Cm UserKnownHostsFile
-Specifies a file to use instead of
-.Pa $HOME/.ssh/known_hosts .
 .It Cm UsePrivilegedPort
 Specifies whether to use a privileged port for outgoing connections.
 The argument must be
@@ -738,6 +734,13 @@ turns off
 .Cm RhostsAuthentication
 and
 .Cm RhostsRSAAuthentication .
+.It Cm User
+Specifies the user to log in as.  This can be useful if you have a
+different user name in different machines.  This saves the trouble of
+having to remember to give the user name on the command line.
+.It Cm UserKnownHostsFile
+Specifies a file to use instead of
+.Pa $HOME/.ssh/known_hosts .
 .It Cm UseRsh
 Specifies that rlogin/rsh should be used for this host.  It is
 possible that the host does not at all support the

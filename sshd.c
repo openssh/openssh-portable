@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.51 2000/01/19 03:36:50 damien Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.79 2000/01/18 13:45:05 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -131,8 +131,8 @@ int received_sighup = 0;
 RSA *public_key;
 
 /* Prototypes for various functions defined later in this file. */
-void do_connection();
-void do_authentication(char *user);
+void do_ssh_kex();
+void do_authentication();
 void do_authloop(struct passwd * pw);
 void do_fake_authloop(char *user);
 void do_authenticated(struct passwd * pw);
@@ -835,11 +835,8 @@ main(int ac, char **av)
 		packet_disconnect("Your ssh version is too old and is no longer supported.  Please install a newer version.");
 
 	if (remote_major == 1 && remote_minor == 3) {
+		/* note that this disables agent-forwarding */
 		enable_compat13();
-		if (strcmp(remote_version, "OpenSSH-1.1") != 0) {
-			debug("Agent forwarding disabled, remote version is not compatible.");
-			no_agent_forwarding_flag = 1;
-		}
 	}
 	/*
 	 * Check that the connection comes from a privileged port.  Rhosts-
@@ -863,8 +860,11 @@ main(int ac, char **av)
 
 	packet_set_nonblocking();
 
-	/* Handle the connection. */
-	do_connection();
+	/* perform the key exchange */
+	do_ssh_kex();
+
+	/* authenticate user and start session */
+	do_authentication();
 
 #ifdef KRB4
 	/* Cleanup user's ticket cache file. */
@@ -888,20 +888,17 @@ main(int ac, char **av)
 }
 
 /*
- * Process an incoming connection.  Protocol version identifiers have already
- * been exchanged.  This sends server key and performs the key exchange.
- * Server and host keys will no longer be needed after this functions.
+ * SSH1 key exchange
  */
 void
-do_connection()
+do_ssh_kex()
 {
 	int i, len;
+	int plen, slen;
 	BIGNUM *session_key_int;
 	unsigned char session_key[SSH_SESSION_KEY_LENGTH];
-	unsigned char check_bytes[8];
-	char *user;
+	unsigned char cookie[8];
 	unsigned int cipher_type, auth_mask, protocol_flags;
-	int plen, slen, ulen;
 	u_int32_t rand = 0;
 
 	/*
@@ -916,7 +913,7 @@ do_connection()
 	for (i = 0; i < 8; i++) {
 		if (i % 4 == 0)
 			rand = arc4random();
-		check_bytes[i] = rand & 0xff;
+		cookie[i] = rand & 0xff;
 		rand >>= 8;
 	}
 
@@ -927,7 +924,7 @@ do_connection()
 	 */
 	packet_start(SSH_SMSG_PUBLIC_KEY);
 	for (i = 0; i < 8; i++)
-		packet_put_char(check_bytes[i]);
+		packet_put_char(cookie[i]);
 
 	/* Store our public server RSA key. */
 	packet_put_int(BN_num_bits(public_key->n));
@@ -990,7 +987,7 @@ do_connection()
 	/* Get check bytes from the packet.  These must match those we
 	   sent earlier with the public key packet. */
 	for (i = 0; i < 8; i++)
-		if (check_bytes[i] != packet_get_char())
+		if (cookie[i] != packet_get_char())
 			packet_disconnect("IP Spoofing check bytes do not match.");
 
 	debug("Encryption type: %.200s", cipher_name(cipher_type));
@@ -1038,9 +1035,14 @@ do_connection()
 				    sensitive_data.private_key);
 	}
 
-	compute_session_id(session_id, check_bytes,
+	compute_session_id(session_id, cookie,
 			   sensitive_data.host_key->n,
 			   sensitive_data.private_key->n);
+
+	/* Destroy the private and public keys.  They will no longer be needed. */
+	RSA_free(public_key);
+	RSA_free(sensitive_data.private_key);
+	RSA_free(sensitive_data.host_key);
 
 	/*
 	 * Extract session key from the decrypted integer.  The key is in the
@@ -1056,12 +1058,12 @@ do_connection()
 	memset(session_key, 0, sizeof(session_key));
 	BN_bn2bin(session_key_int, session_key + sizeof(session_key) - len);
 
+	/* Destroy the decrypted integer.  It is no longer needed. */
+	BN_clear_free(session_key_int);
+
 	/* Xor the first 16 bytes of the session key with the session id. */
 	for (i = 0; i < 16; i++)
 		session_key[i] ^= session_id[i];
-
-	/* Destroy the decrypted integer.  It is no longer needed. */
-	BN_clear_free(session_key_int);
 
 	/* Set the session key.  From this on all communications will be encrypted. */
 	packet_set_encryption_key(session_key, SSH_SESSION_KEY_LENGTH, cipher_type);
@@ -1075,23 +1077,8 @@ do_connection()
 	packet_start(SSH_SMSG_SUCCESS);
 	packet_send();
 	packet_write_wait();
-
-	/* Get the name of the user that we wish to log in as. */
-	packet_read_expect(&plen, SSH_CMSG_USER);
-
-	/* Get the user name. */
-	user = packet_get_string(&ulen);
-	packet_integrity_check(plen, (4 + ulen), SSH_CMSG_USER);
-
-	/* Destroy the private and public keys.  They will no longer be needed. */
-	RSA_free(public_key);
-	RSA_free(sensitive_data.private_key);
-	RSA_free(sensitive_data.host_key);
-
-	setproctitle("%s", user);
-	/* Do the authentication. */
-	do_authentication(user);
 }
+
 
 /*
  * Check if the user is allowed to log in via ssh. If user is listed in
@@ -1168,13 +1155,23 @@ allowed_user(struct passwd * pw)
 
 /*
  * Performs authentication of an incoming connection.  Session key has already
- * been exchanged and encryption is enabled.  User is the user name to log
- * in as (received from the client).
+ * been exchanged and encryption is enabled.
  */
 void
-do_authentication(char *user)
+do_authentication()
 {
 	struct passwd *pw, pwcopy;
+	int plen, ulen;
+	char *user;
+
+	/* Get the name of the user that we wish to log in as. */
+	packet_read_expect(&plen, SSH_CMSG_USER);
+
+	/* Get the user name. */
+	user = packet_get_string(&ulen);
+	packet_integrity_check(plen, (4 + ulen), SSH_CMSG_USER);
+
+	setproctitle("%s", user);
 
 #ifdef AFS
 	/* If machine has AFS, set process authentication group. */
@@ -1771,7 +1768,7 @@ do_authenticated(struct passwd * pw)
 #endif /* XAUTH_PATH */
 
 		case SSH_CMSG_AGENT_REQUEST_FORWARDING:
-			if (no_agent_forwarding_flag) {
+			if (no_agent_forwarding_flag || compat13) {
 				debug("Authentication agent forwarding not permitted for this authentication.");
 				goto fail;
 			}

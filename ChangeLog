@@ -1,5 +1,16 @@
 20000120
  - Don't use getaddrinfo on AIX
+ - Update to latest OpenBSD CVS:
+   - [auth-rsa.c]
+     - fix user/1056, sshd keeps restrictions; dbt@meat.net
+   - [sshconnect.c]
+     - disable agent fwding for proto 1.3, remove abuse of auth-rsa flags.
+     - destroy keys earlier
+     - split key exchange (kex) and user authentication (user-auth), ok: provos@
+   - [sshd.c]
+     - no need for poll.h; from bright@wintelcom.net
+     - disable agent fwding for proto 1.3, remove abuse of auth-rsa flags.
+     - split key exchange (kex) and user authentication (user-auth), ok: provos@
 
 20000119
  - SCO compile fixes from Gary E. Miller <gem@rellim.com>

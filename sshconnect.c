@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: sshconnect.c,v 1.22 2000/01/19 02:45:07 damien Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.53 2000/01/18 09:42:17 markus Exp $");
 
 #ifdef HAVE_OPENSSL
 #include <openssl/bn.h>
@@ -33,6 +33,9 @@ RCSID("$Id: sshconnect.c,v 1.22 2000/01/19 02:45:07 damien Exp $");
 
 /* Session id for the current session. */
 unsigned char session_id[16];
+
+/* authentications supported by server */
+unsigned int supported_authentications;
 
 extern Options options;
 extern char *__progname;
@@ -988,9 +991,8 @@ ssh_exchange_identification()
 	/* We speak 1.3, too. */
 	if (remote_major == 1 && remote_minor == 3) {
 		enable_compat13();
-		if (options.forward_agent && strcmp(remote_version, "OpenSSH-1.1") != 0) {
-			log("Agent forwarding disabled, remote version '%s' is not compatible.",
-			    remote_version);
+		if (options.forward_agent) {
+			log("Agent forwarding disabled for protocol 1.3");
 			options.forward_agent = 0;
 		}
 	}
@@ -1274,63 +1276,31 @@ check_host_key(char *host, struct sockaddr *hostaddr, RSA *host_key)
 }
 
 /*
- * Starts a dialog with the server, and authenticates the current user on the
- * server.  This does not need any extra privileges.  The basic connection
- * to the server must already have been established before this is called.
- * User is the remote user; if it is NULL, the current local user name will
- * be used.  Anonymous indicates that no rhosts authentication will be used.
- * If login fails, this function prints an error and never returns.
- * This function does not require super-user privileges.
+ * SSH1 key exchange
  */
 void
-ssh_login(int host_key_valid,
-	  RSA *own_host_key,
-	  const char *orighost,
-	  struct sockaddr *hostaddr,
-	  uid_t original_real_uid)
+ssh_kex(char *host, struct sockaddr *hostaddr)
 {
-	int i, type;
-	struct passwd *pw;
+	int i;
 	BIGNUM *key;
 	RSA *host_key;
 	RSA *public_key;
 	int bits, rbits;
 	unsigned char session_key[SSH_SESSION_KEY_LENGTH];
-	const char *server_user, *local_user;
-	char *host, *cp;
-	unsigned char check_bytes[8];
-	unsigned int supported_ciphers, supported_authentications;
+	unsigned char cookie[8];
+	unsigned int supported_ciphers;
 	unsigned int server_flags, client_flags;
 	int payload_len, clen, sum_len = 0;
 	u_int32_t rand = 0;
-
-	/* Convert the user-supplied hostname into all lowercase. */
-	host = xstrdup(orighost);
-	for (cp = host; *cp; cp++)
-		if (isupper(*cp))
-			*cp = tolower(*cp);
-
-	/* Exchange protocol version identification strings with the server. */
-	ssh_exchange_identification();
-
-	/* Put the connection into non-blocking mode. */
-	packet_set_nonblocking();
-
-	/* Get local user name.  Use it as server user if no user name was given. */
-	pw = getpwuid(original_real_uid);
-	if (!pw)
-		fatal("User id %d not found from user database.", original_real_uid);
-	local_user = xstrdup(pw->pw_name);
-	server_user = options.user ? options.user : local_user;
 
 	debug("Waiting for server public key.");
 
 	/* Wait for a public key packet from the server. */
 	packet_read_expect(&payload_len, SSH_SMSG_PUBLIC_KEY);
 
-	/* Get check bytes from the packet. */
+	/* Get cookie from the packet. */
 	for (i = 0; i < 8; i++)
-		check_bytes[i] = packet_get_char();
+		cookie[i] = packet_get_char();
 
 	/* Get the public key. */
 	public_key = RSA_new();
@@ -1383,7 +1353,7 @@ ssh_login(int host_key_valid,
 
 	client_flags = SSH_PROTOFLAG_SCREEN_NUMBER | SSH_PROTOFLAG_HOST_IN_FWD_OPEN;
 
-	compute_session_id(session_id, check_bytes, host_key->n, public_key->n);
+	compute_session_id(session_id, cookie, host_key->n, public_key->n);
 
 	/* Generate a session key. */
 	arc4random_stir();
@@ -1445,6 +1415,10 @@ ssh_login(int host_key_valid,
 		rsa_public_encrypt(key, key, public_key);
 	}
 
+	/* Destroy the public keys since we no longer need them. */
+	RSA_free(public_key);
+	RSA_free(host_key);
+
 	if (options.cipher == SSH_CIPHER_NOT_SET) {
 		if (cipher_mask() & supported_ciphers & (1 << ssh_cipher_default))
 			options.cipher = ssh_cipher_default;
@@ -1466,12 +1440,13 @@ ssh_login(int host_key_valid,
 	packet_start(SSH_CMSG_SESSION_KEY);
 	packet_put_char(options.cipher);
 
-	/* Send the check bytes back to the server. */
+	/* Send the cookie back to the server. */
 	for (i = 0; i < 8; i++)
-		packet_put_char(check_bytes[i]);
+		packet_put_char(cookie[i]);
 
-	/* Send the encrypted encryption key. */
+	/* Send and destroy the encrypted encryption key integer. */
 	packet_put_bignum(key);
+	BN_clear_free(key);
 
 	/* Send protocol flags. */
 	packet_put_int(client_flags);
@@ -1479,11 +1454,6 @@ ssh_login(int host_key_valid,
 	/* Send the packet now. */
 	packet_send();
 	packet_write_wait();
-
-	/* Destroy the session key integer and the public keys since we no longer need them. */
-	BN_clear_free(key);
-	RSA_free(public_key);
-	RSA_free(host_key);
 
 	debug("Sent encrypted session key.");
 
@@ -1500,6 +1470,26 @@ ssh_login(int host_key_valid,
 	packet_read_expect(&payload_len, SSH_SMSG_SUCCESS);
 
 	debug("Received encrypted confirmation.");
+}
+
+/*
+ * Authenticate user
+ */
+void
+ssh_userauth(int host_key_valid, RSA *own_host_key,
+    uid_t original_real_uid, char *host)
+{
+	int i, type;
+	int payload_len;
+	struct passwd *pw;
+	const char *server_user, *local_user;
+
+	/* Get local user name.  Use it as server user if no user name was given. */
+	pw = getpwuid(original_real_uid);
+	if (!pw)
+		fatal("User id %d not found from user database.", original_real_uid);
+	local_user = xstrdup(pw->pw_name);
+	server_user = options.user ? options.user : local_user;
 
 	/* Send the name of the user to log in as on the server. */
 	packet_start(SSH_CMSG_USER);
@@ -1617,4 +1607,38 @@ ssh_login(int host_key_valid,
 	/* All authentication methods have failed.  Exit with an error message. */
 	fatal("Permission denied.");
 	/* NOTREACHED */
+}
+
+/*
+ * Starts a dialog with the server, and authenticates the current user on the
+ * server.  This does not need any extra privileges.  The basic connection
+ * to the server must already have been established before this is called.
+ * If login fails, this function prints an error and never returns.
+ * This function does not require super-user privileges.
+ */
+void
+ssh_login(int host_key_valid, RSA *own_host_key, const char *orighost,
+    struct sockaddr *hostaddr, uid_t original_real_uid)
+{
+	char *host, *cp;
+
+	/* Convert the user-supplied hostname into all lowercase. */
+	host = xstrdup(orighost);
+	for (cp = host; *cp; cp++)
+		if (isupper(*cp))
+			*cp = tolower(*cp);
+
+	/* Exchange protocol version identification strings with the server. */
+	ssh_exchange_identification();
+
+	/* Put the connection into non-blocking mode. */
+	packet_set_nonblocking();
+
+	supported_authentications = 0;
+	/* key exchange */
+	ssh_kex(host, hostaddr);
+	if (supported_authentications == 0)
+		fatal("supported_authentications == 0.");
+	/* authenticate user */
+	ssh_userauth(host_key_valid, own_host_key, original_real_uid, host);
 }
