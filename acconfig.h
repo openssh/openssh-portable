@@ -42,6 +42,12 @@
 /* Define if you want TCP Wrappers support */
 #undef LIBWRAP
 
+/* Define if your libraries define login() */
+#undef HAVE_LOGIN
+
+/* Define if your libraries define daemon() */
+#undef HAVE_DAEMON
+
 @BOTTOM@
 
 /* ******************* Shouldn't need to edit below this line ************** */

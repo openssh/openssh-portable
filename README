@@ -10,9 +10,9 @@ Niels Provos, Theo de Raadt, and Dug Song. It has a homepage at
 http://www.openssh.com/
 
 This port consists of the re-introduction of autoconf support, PAM
-support (for Linux and Solaris), EGD[1] support, and replacements for
-OpenBSD library functions that are (regrettably) absent from most
-other unices. This patch has been best tested on Linux, though some 
+support (for Linux and Solaris), EGD[1] support, and replacements
+for OpenBSD library functions that are (regrettably) absent from
+other unices. This port has been best tested on Linux, though some
 Solaris support is beginning to filter in. This version actively
 tracks changes in the OpenBSD CVS repository.
 
@@ -22,8 +22,8 @@ all logins, not just when using password authentication.
 
 All new code is released under a XFree style license, which is very
 liberal. Please refer to the source files for details. The code in
-strlcpy.c and mktemp.c is from the OpenBSD project and has its own
-license (again, see source file for details).
+bsd-*.[ch] is from the OpenBSD project and has its own license (again,
+see the source files for details).
 
 OpenSSH depends on Zlib[2], OpenSSL[3] and optionally PAM[4]. To build
 the GNOME[5] pass-phrase requester (--with-gnome-askpass), you will
@@ -52,13 +52,14 @@ Credits -
 Aaron Campbell, Bob Beck, Markus Friedl, Niels Provos, 
 Theo de Raadt, and Dug Song - Creators of OpenSSH
 'jonchen' - the original author of PAM support of SSH
+Chip Salzenberg <chip@valinux.com> - Assorted patches
 Dan Brosemer <odin@linuxfreak.com> - Autoconf and build fixes & Debian scripts
-Nalin Dahyabhai <nalin.dahyabhai@pobox.com> - PAM environment patch
-Phil Hands <phil@hands.com> - Debian scripts, assorted patches
-Niels Kristian Bech Jensen <nkbj@image.dk> - Assorted patches
-Marc G. Fournier <marc.fournier@acadiau.ca> - Solaris patches
-Thomas Neumann <tom@smart.ruhr.de> - Shadow passwords
 Jim Knoble <jmknoble@pobox.com> - RPM spec file fixes
+Marc G. Fournier <marc.fournier@acadiau.ca> - Solaris patches
+Nalin Dahyabhai <nalin.dahyabhai@pobox.com> - PAM environment patch
+Niels Kristian Bech Jensen <nkbj@image.dk> - Assorted patches
+Phil Hands <phil@hands.com> - Debian scripts, assorted patches
+Thomas Neumann <tom@smart.ruhr.de> - Shadow passwords
 
 Miscellania - 
 

@@ -67,12 +67,12 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #endif
 #ifdef HAVE_LIBPAM
 # include <security/pam_appl.h>
-#endif /* HAVE_PAM */
+#endif
 
 #include "version.h"
 #include "helper.h"
-#include "mktemp.h"
-#include "strlcpy.h"
+#include "bsd-strlcpy.h"
+#include "bsd-mktemp.h"
 
 /* Define this to be the path of the xauth program. */
 #ifndef XAUTH_PATH

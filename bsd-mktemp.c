@@ -34,6 +34,10 @@
  * SUCH DAMAGE.
  */
 
+#include "config.h"
+
+#ifndef HAVE_MKDTEMP
+
 #if defined(LIBC_SCCS) && !defined(lint)
 static char rcsid[] = "$OpenBSD: mktemp.c,v 1.13 1998/06/30 23:03:13 deraadt Exp $";
 #endif /* LIBC_SCCS and not lint */
@@ -47,10 +51,7 @@ static char rcsid[] = "$OpenBSD: mktemp.c,v 1.13 1998/06/30 23:03:13 deraadt Exp
 #include <ctype.h>
 #include <unistd.h>
 
-#include "config.h"
 #include "helper.h"
-
-#ifndef HAVE_MKDTEMP
 
 static int _gettemp(char *, int *, int, int);
 

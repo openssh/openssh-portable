@@ -14,6 +14,9 @@
  - Added autoconf option to enable AFS support (untested)
  - Added autoconf option to enable S/Key support (untested)
  - Added autoconf option to enable TCP wrappers support (compiles OK)
+ - Renamed BSD helper function files to bsd-*
+ - Added tests for login and daemon and OpenBSD replacements for when they
+   are absent.
 
 19991118
  - Merged OpenBSD CVS changes

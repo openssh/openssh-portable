@@ -60,6 +60,16 @@ AC_CHECK_HEADERS(pty.h endian.h paths.h lastlog.h shadow.h netgroup.h maillock.h
 dnl Checks for library functions.
 AC_CHECK_FUNCS(openpty strlcpy mkdtemp arc4random setproctitle setlogin)
 
+AC_CHECK_FUNC(login, 
+	[AC_DEFINE(HAVE_LOGIN)],
+	[AC_CHECK_LIB(bsd, login, [LIBS="$LIBS -lbsd"; AC_DEFINE(HAVE_LOGIN)])]
+)
+
+AC_CHECK_FUNC(daemon, 
+	[AC_DEFINE(HAVE_DAEMON)],
+	[AC_CHECK_LIB(bsd, daemon, [LIBS="$LIBS -lbsd"; AC_DEFINE(HAVE_DAEMON)])]
+)
+
 dnl Check whether use wants to disable the external ssh-askpass
 INSTALL_ASKPASS="yes"
 AC_MSG_CHECKING([whether to enable external ssh-askpass support])
@@ -156,7 +166,7 @@ done
 
 AC_MSG_CHECKING([whether libc defines __progname])
 AC_TRY_LINK([], 
-	[extern char *__progname;], 
+	[extern char *__progname; printf("%s", __progname);], 
 	[
 		AC_DEFINE(HAVE___PROGNAME)
 		AC_MSG_RESULT(yes)

@@ -1,5 +1,5 @@
-#ifndef _MKTEMP_H
-#define _MKTEMP_H
+#ifndef _BSD_MKTEMP_H
+#define _BSD_MKTEMP_H
 
 #include "config.h"
 #ifndef HAVE_MKDTEMP
@@ -8,4 +8,4 @@ int mkstemp(char *path);
 char *mkdtemp(char *path);
 #endif /* !HAVE_MKDTEMP */
 
-#endif /* _MKTEMP_H */
+#endif /* _BSD_MKTEMP_H */

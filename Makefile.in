@@ -27,18 +27,18 @@ OBJS=	authfd.o authfile.o auth-passwd.o auth-rhosts.o auth-rh-rsa.o \
 		hostfile.o log-client.o login.o log-server.o match.o mpaux.o \
 		packet.o pty.o readconf.o readpass.o rsa.o servconf.o serverloop.o \
 		sshconnect.o tildexpand.o ttymodes.o uidswap.o xmalloc.o \
-		helper.o mktemp.o strlcpy.o rc4.o
+		helper.o bsd-mktemp.o bsd-strlcpy.o bsd-daemon.o bsd-login.o rc4.o
 
 all: $(OBJS) $(TARGETS)
 
-libssh.a: authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o cipher.o compat.o compress.o crc32.o deattack.o hostfile.o match.o mpaux.o nchan.o packet.o readpass.o rsa.o tildexpand.o ttymodes.o uidswap.o xmalloc.o helper.o rc4.o mktemp.o strlcpy.o log.o fingerprint.o
+libssh.a: authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o cipher.o compat.o compress.o crc32.o deattack.o hostfile.o match.o mpaux.o nchan.o packet.o readpass.o rsa.o tildexpand.o ttymodes.o uidswap.o xmalloc.o helper.o rc4.o bsd-mktemp.o bsd-strlcpy.o log.o fingerprint.o
 	$(AR) rv $@ $^
 	$(RANLIB) $@
 
 ssh: ssh.o sshconnect.o log-client.o readconf.o clientloop.o libssh.a
 	$(CC) -o $@ $^ $(LFLAGS) $(LIBS) 
 
-sshd:	sshd.o auth-rhosts.o auth-passwd.o auth-rsa.o auth-rh-rsa.o pty.o log-server.o login.o servconf.o serverloop.o libssh.a
+sshd:	sshd.o auth-rhosts.o auth-passwd.o auth-rsa.o auth-rh-rsa.o pty.o log-server.o login.o servconf.o serverloop.o bsd-login.o bsd-daemon.o libssh.a
 	$(CC) -o $@ $^ $(LFLAGS) $(LIBS) 
 
 scp:	scp.o libssh.a
