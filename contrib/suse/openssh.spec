@@ -168,7 +168,7 @@ fi
 %files
 %defattr(-,root,root)
 %doc ChangeLog OVERVIEW README* 
-%doc RFC.nroff TODO CREDITS LICENSE
+%doc RFC.nroff TODO CREDITS LICENCE
 %attr(0755,root,root) %dir /etc/ssh
 %attr(0644,root,root) %config /etc/ssh/ssh_config
 %attr(0600,root,root) %config /etc/ssh/sshd_config

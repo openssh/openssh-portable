@@ -1,3 +1,7 @@
+20020406
+ - (djm) Typo in Suse SPEC file. Fix from Carsten Grohmann 
+   <carsten.grohmann@dr-baldeweg.de>
+
 20020405
  - (bal) Patch for OpenSC SmartCard library; ok markus@; patch by
    Juha Yrjölä <jyrjola@cc.hut.fi>
@@ -8167,4 +8171,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2025 2002/04/05 22:18:48 mouring Exp $
+$Id: ChangeLog,v 1.2026 2002/04/06 01:12:52 djm Exp $
