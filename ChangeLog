@@ -82,6 +82,7 @@
  - (djm) Don't clobber ssh_prng_cmds on install
  - (stevesk) Include config.h in rijndael.c so we define intXX_t and
    u_intXX_t types on all platforms.
+ - (stevesk) rijndael.c: cleanup missing declaration warnings.
 
 20001007
  - (stevesk) Print PAM return value in PAM log messages to aid
