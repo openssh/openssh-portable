@@ -20,6 +20,9 @@
    - djm@cvs.openbsd.org 2004/03/03 09:31:20
      [sftp.c]
      Fix initialisation of progress meter; ok markus@
+   - markus@cvs.openbsd.org 2004/03/05 10:53:58
+     [readconf.c readconf.h scp.1 sftp.1 ssh.1 ssh_config.5 sshconnect2.c]
+     add IdentitiesOnly; ok djm@, pb@
 
 20040307
  - (tim) [regress/login-timeout.sh] fix building outside of source tree.
@@ -880,4 +883,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3282 2004/03/08 12:12:19 djm Exp $
+$Id: ChangeLog,v 1.3283 2004/03/08 12:12:36 djm Exp $
