@@ -13,6 +13,9 @@
    - dtucker@cvs.openbsd.org 2003/10/07 01:52:13
      [regress/Makefile regress/banner.sh]
      Test SSH2 banner.  ok markus@
+   - djm@cvs.openbsd.org 2003/10/07 07:04:52
+     [regress/sftp-cmds.sh]
+     more sftp quoting regress tests; ok markus
 
 20031007
  - (dtucker) [contrib/redhat/openssh.spec] Bug #714: Now that UsePAM is a
@@ -1231,4 +1234,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2994.2.46 2003/10/08 07:48:33 dtucker Exp $
+$Id: ChangeLog,v 1.2994.2.47 2003/10/08 07:53:02 dtucker Exp $
