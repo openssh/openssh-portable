@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.145 2002/01/29 23:50:37 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.146 2002/02/03 22:35:57 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -935,7 +935,7 @@ It is possible to have
 multiple identity files specified in configuration files; all these
 identities will be tried in sequence.
 .It Cm KeepAlive
-Specifies whether the system should send keepalive messages to the
+Specifies whether the system should send TCP keepalive messages to the
 other side.
 If they are sent, death of the connection or crash of one
 of the machines will be properly noticed.
@@ -950,8 +950,7 @@ if the network goes down or the remote host dies.
 This is important in scripts, and many users want it too.
 .Pp
 To disable keepalives, the value should be set to
-.Dq no
-in both the server and the client configuration files.
+.Dq no .
 .It Cm KerberosAuthentication
 Specifies whether Kerberos authentication will be used.
 The argument to this keyword must be

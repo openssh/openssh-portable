@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.165 2002/01/29 14:32:03 markus Exp $
+.\" $OpenBSD: sshd.8,v 1.166 2002/02/03 22:35:57 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -533,7 +533,7 @@ or
 The default is
 .Dq no .
 .It Cm KeepAlive
-Specifies whether the system should send keepalive messages to the
+Specifies whether the system should send TCP keepalive messages to the
 other side.
 If they are sent, death of the connection or crash of one
 of the machines will be properly noticed.
@@ -548,12 +548,11 @@ users and consuming server resources.
 The default is
 .Dq yes
 (to send keepalives), and the server will notice
-if the network goes down or the client host reboots.
+if the network goes down or the client host crashes.
 This avoids infinitely hanging sessions.
 .Pp
 To disable keepalives, the value should be set to
-.Dq no
-in both the server and the client configuration files.
+.Dq no .
 .It Cm KerberosAuthentication
 Specifies whether Kerberos authentication is allowed.
 This can be in the form of a Kerberos ticket, or if
