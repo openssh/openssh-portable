@@ -1,3 +1,7 @@
+20040308
+ - (dtucker) [sshd.c] Back out rev 1.270 as it caused problems on some
+   platforms (eg SCO, HP-UX) with logging in the wrong TZ.
+
 20040307
  - (tim) [regress/login-timeout.sh] fix building outside of source tree.
 
@@ -857,4 +861,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3277 2004/03/07 18:40:01 tim Exp $
+$Id: ChangeLog,v 1.3278 2004/03/08 11:13:12 dtucker Exp $

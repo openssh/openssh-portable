@@ -101,7 +101,6 @@ extern char *__progname;
 #else
 char *__progname;
 #endif
-extern char **environ;
 
 /* Server configuration options. */
 ServerOptions options;
@@ -1105,11 +1104,6 @@ main(int ac, char **av)
 	/* Chdir to the root directory so that the current disk can be
 	   unmounted if desired. */
 	chdir("/");
-
-#ifndef HAVE_CYGWIN
-	/* Clear environment */
-	environ[0] = NULL;
-#endif
 
 	/* ignore SIGPIPE */
 	signal(SIGPIPE, SIG_IGN);
