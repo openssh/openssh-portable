@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.106 2001/03/07 01:19:06 deraadt Exp $
+.\" $OpenBSD: sshd.8,v 1.107 2001/03/19 12:10:17 djm Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -852,6 +852,15 @@ Forbids authentication agent forwarding when this key is used for
 authentication.
 .It Cm no-pty
 Prevents tty allocation (a request to allocate a pty will fail).
+.It Cm permitopen="host:port"
+Limit local 
+.Li ``ssh -L''
+port-forwading such that it may only connect to the specified host and
+port. Multiple 
+.Cm permitopen
+options may be applied seperated by commas. No pattern matching is 
+performed on the specified hostnames, they must be literal domains or 
+addresses.
 .El
 .Ss Examples
 1024 33 12121.\|.\|.\|312314325 ylo@foo.bar
@@ -859,6 +868,8 @@ Prevents tty allocation (a request to allocate a pty will fail).
 from="*.niksula.hut.fi,!pc.niksula.hut.fi" 1024 35 23.\|.\|.\|2334 ylo@niksula
 .Pp
 command="dump /home",no-pty,no-port-forwarding 1024 33 23.\|.\|.\|2323 backup.hut.fi
+.Pp
+permitopen="10.2.1.55:80",permitopen="10.2.1.56:25" 1024 33 23.\|.\|.\|2323
 .Sh SSH_KNOWN_HOSTS FILE FORMAT
 The
 .Pa /etc/ssh_known_hosts ,

@@ -22,6 +22,7 @@
      specifically version match on ssh scanners.  do not log scan 
      information to the console
    - djm@cvs.openbsd.org      2001/03/19 12:10:17
+     [sshd.8]
      Document permitopen authorized_keys option; ok markus@
 
 20010318
@@ -4622,4 +4623,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.982 2001/03/19 12:16:08 djm Exp $
+$Id: ChangeLog,v 1.983 2001/03/19 12:16:14 djm Exp $
