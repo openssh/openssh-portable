@@ -11,7 +11,7 @@
 
 #ifndef HAVE_PAM
 
-RCSID("$Id: auth-passwd.c,v 1.9 1999/12/16 04:10:45 damien Exp $");
+RCSID("$Id: auth-passwd.c,v 1.10 1999/12/21 10:03:09 damien Exp $");
 
 #include "packet.h"
 #include "ssh.h"
@@ -68,7 +68,7 @@ auth_password(struct passwd * pw, const char *password)
 	if (strcmp(password, "") == 0 && strcmp(pw->pw_passwd, "") == 0)
 		return 1;
 
-#ifdef HAVE_SHADOW_H
+#if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
 	spw = getspnam(pw->pw_name);
 	if (spw == NULL)
 		return(0);
@@ -94,12 +94,22 @@ auth_password(struct passwd * pw, const char *password)
 #endif /* HAVE_MD5_PASSWORDS */    
 	/* Authentication is accepted if the encrypted passwords are identical. */
 	return (strcmp(encrypted_password, spw->sp_pwdp) == 0);
-#else /* !HAVE_SHADOW_H */
-	encrypted_password = crypt(password,
-	    (pw->pw_passwd[0] && pw->pw_passwd[1]) ? pw->pw_passwd : "xx");
+#else /* defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW) */
+
+	if (strlen(pw->pw_passwd) < 3)
+		return(0);
+
+#ifdef HAVE_MD5_PASSWORDS
+	if (is_md5_salt(pw->pw_passwd))
+		encrypted_password = md5_crypt(password, pw->pw_passwd);
+	else
+		encrypted_password = crypt(password, pw->pw_passwd);
+#else /* HAVE_MD5_PASSWORDS */    
+	encrypted_password = crypt(password, pw->pw_passwd);
+#endif /* HAVE_MD5_PASSWORDS */    
 
 	/* Authentication is accepted if the encrypted passwords are identical. */
 	return (strcmp(encrypted_password, pw->pw_passwd) == 0);
-#endif /* !HAVE_SHADOW_H */
+#endif /* defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW) */
 }
 #endif /* !HAVE_PAM */
