@@ -1,6 +1,9 @@
 20011025
  - (bal) Use VDISABLE if _POSIX_VDISABLE is set in readpassphrase.c.  Patch
    by todd@
+ - (tim) [configure.ac] Give path given in --with-xxx= for pcre,zlib, and
+	 tcp-wrappers precedence over system libraries and includes.
+	 Report from Dave Dykstra <dwd@bell-labs.com>
 
 20011024
  - (bal) Should be 3.0p1 not 3.0p2.  Corrected version.h already.
@@ -6760,4 +6763,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1617 2001/10/25 15:02:35 mouring Exp $
+$Id: ChangeLog,v 1.1618 2001/10/25 17:01:30 tim Exp $

@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.1 2001/10/25 04:15:26 tim Exp $
+# $Id: configure.ac,v 1.2 2001/10/25 17:01:31 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -324,21 +324,21 @@ AC_ARG_WITH(pcre,
 			if test "x$withval" != "xyes"; then
 				if test -d "$withval/lib"; then
 					if test -n "${need_dash_r}"; then
-						LDFLAGS="${LDFLAGS} -L$withval/lib -R$withval/lib"
+						LDFLAGS="-L${withval}/lib -R${withval}/lib ${LDFLAGS}"
 					else
-						LDFLAGS="${LDFLAGS} -L$withval/lib"
+						LDFLAGS="-L${withval}/lib ${LDFLAGS}"
 					fi
 				else
 					if test -n "${need_dash_r}"; then
-						LDFLAGS="${LDFLAGS} -L$withval -R$withval"
+						LDFLAGS="-L${withval} -R${withval} ${LDFLAGS}"
 					else
-						LDFLAGS="${LDFLAGS} -L$withval"
+						LDFLAGS="-L${withval} ${LDFLAGS}"
 					fi
 				fi
 				if test -d "$withval/include"; then
-					CPPFLAGS="${CPPFLAGS} -I$withval/include"
+					CPPFLAGS="-I${withval}/include ${CPPFLAGS}"
 				else
-					CPPFLAGS="${CPPFLAGS} -I$withval"
+					CPPFLAGS="-I${withval} ${CPPFLAGS}"
 				fi
 			fi
 
@@ -377,21 +377,21 @@ AC_ARG_WITH(zlib,
 	[
 		if test -d "$withval/lib"; then
 			if test -n "${need_dash_r}"; then
-				LDFLAGS="${LDFLAGS} -L$withval/lib -R$withval/lib"
+				LDFLAGS="-L${withval}/lib -R${withval}/lib ${LDFLAGS}"
 			else
-				LDFLAGS="${LDFLAGS} -L$withval/lib"
+				LDFLAGS="-L${withval}/lib ${LDFLAGS}"
 			fi
 		else
 			if test -n "${need_dash_r}"; then
-				LDFLAGS="${LDFLAGS} -L$withval -R$withval"
+				LDFLAGS="-L${withval} -R${withval} ${LDFLAGS}"
 			else
-				LDFLAGS="${LDFLAGS} -L$withval"
+				LDFLAGS="-L${withval} ${LDFLAGS}"
 			fi
 		fi
 		if test -d "$withval/include"; then
-			CPPFLAGS="${CPPFLAGS} -I$withval/include"
+			CPPFLAGS="-I${withval}/include ${CPPFLAGS}"
 		else
-			CPPFLAGS="${CPPFLAGS} -I$withval"
+			CPPFLAGS="-I${withval} ${CPPFLAGS}"
 		fi
 	]
 )
@@ -524,21 +524,21 @@ AC_ARG_WITH(tcp-wrappers,
 			if test -n "${withval}" -a "${withval}" != "yes"; then
 				if test -d "${withval}/lib"; then
 					if test -n "${need_dash_r}"; then
-						LDFLAGS="$LDFLAGS -L${withval}/lib -R${withval}/lib"
+						LDFLAGS="-L${withval}/lib -R${withval}/lib ${LDFLAGS}"
 					else
-						LDFLAGS="$LDFLAGS -L${withval}/lib"
+						LDFLAGS="-L${withval}/lib ${LDFLAGS}"
 					fi
 				else
 					if test -n "${need_dash_r}"; then
-						LDFLAGS="$LDFLAGS -L${withval} -R${withval}"
+						LDFLAGS="-L${withval} -R${withval} ${LDFLAGS}"
 					else
-						LDFLAGS="$LDFLAGS -L${withval}"
+						LDFLAGS="-L${withval} ${LDFLAGS}"
 					fi
 				fi
 				if test -d "${withval}/include"; then
-					CPPFLAGS="$CPPFLAGS -I${withval}/include"
+					CPPFLAGS="-I${withval}/include ${CPPFLAGS}"
 				else
-					CPPFLAGS="$CPPFLAGS -I${withval}"
+					CPPFLAGS="-I${withval} ${CPPFLAGS}"
 				fi
 			fi
 			LIBS="-lwrap $LIBS"
