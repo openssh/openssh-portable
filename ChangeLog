@@ -5,6 +5,8 @@
  - (dtucker) [configure.ac] Make configure error out if the user specifies
    --with-libedit but the required libs can't be found, rather than silently
    ignoring and continuing.  ok tim@
+ - (dtucker) [configure.ac openbsd-compat/port-aix.h] Prevent redefinitions
+   of setauthdb on AIX 5.3, reported by anders.liljegren at its.uu.se.
 
 20050317
  - (tim) [configure.ac] Bug 998. Make path for --with-opensc optional.
@@ -2380,4 +2382,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3726 2005/03/20 22:58:07 dtucker Exp $
+$Id: ChangeLog,v 1.3727 2005/03/21 11:46:34 dtucker Exp $
