@@ -2,6 +2,11 @@
  - Xauth fix from Markus Friedl <markus.friedl@informatik.uni-erlangen.de>
  - Don't touch utmp if USE_UTMPX defined
  - SunOS 4.x support from Todd C. Miller <Todd.Miller@courtesan.com>
+ - SIGCHLD fix for AIX and HPUX from Tom Bertelson <tbert@abac.com>
+ - HPUX and Configure fixes from Lutz Jaenicke 
+   <Lutz.Jaenicke@aet.TU-Cottbus.DE>
+ - Use mkinstalldirs script to make directories instead of non-portable 
+   "install -d". Suggested by Lutz Jaenicke <Lutz.Jaenicke@aet.TU-Cottbus.DE>
 
 20000518
  - Include Andre Lucas' fixprogs script. Forgot to "cvs add" it yesterday

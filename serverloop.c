@@ -85,7 +85,6 @@ sigchld_handler2(int sig)
 	int save_errno = errno;
 	debug("Received SIGCHLD.");
 	child_terminated = 1;
-	signal(SIGCHLD, sigchld_handler2);
 	errno = save_errno;
 }
 
@@ -650,6 +649,7 @@ server_loop2(void)
 			while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
 				session_close_by_pid(pid, status);
 			child_terminated = 0;
+			signal(SIGCHLD, sigchld_handler2);
 		}
 		channel_after_select(&readset, &writeset);
 		process_input(&readset);

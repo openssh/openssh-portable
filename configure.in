@@ -39,11 +39,9 @@ case "$host" in
 	;;
 *-*-hpux10*)
 	if test -z "$GCC"; then
-		CFLAGS="$CFLAGS -Aa"
+		CFLAGS="$CFLAGS -Ae"
 	fi
 	CFLAGS="$CFLAGS -D_HPUX_SOURCE"
-	CFLAGS="$CFLAGS -I/usr/local/include"
-	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	AC_DEFINE(IPADDR_IN_DISPLAY)
 	AC_DEFINE(USE_UTMPX)
 	AC_MSG_CHECKING(for HPUX trusted system password database)
@@ -64,8 +62,6 @@ case "$host" in
 		CFLAGS="$CFLAGS -Ae"
 	fi
 	CFLAGS="$CFLAGS -D_HPUX_SOURCE"
-	CFLAGS="$CFLAGS -I/usr/local/include"
-	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	AC_DEFINE(IPADDR_IN_DISPLAY)
 	AC_DEFINE(USE_UTMPX)
 	AC_MSG_CHECKING(for HPUX trusted system password database)
