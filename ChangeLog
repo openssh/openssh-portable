@@ -4,6 +4,8 @@
    from Holger Trapp <Holger.Trapp@Informatik.TU-Chemnitz.DE>
  - (djm) Work around Solaris' broken struct dirent. Diagnosis and suggested
    fix from Philippe Levan <levan@epix.net>
+ - (djm) Rework krbIV tests to get us closer to building on Redhat. Still
+   doesn't work because of conflicts between krbIV's and OpenSSL's des.h
 
 20010327
  - (djm) Reestablish PAM credentials (which can be supplemental group 
@@ -4685,4 +4687,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.991.2.13 2001/03/28 04:37:37 djm Exp $
+$Id: ChangeLog,v 1.991.2.14 2001/03/28 04:37:52 djm Exp $
