@@ -31,7 +31,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.84 2003/11/21 12:56:47 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.85 2003/12/18 04:34:32 dtucker Exp $");
 
 #ifdef USE_PAM
 #include <security/pam_appl.h>
@@ -53,6 +53,7 @@ RCSID("$Id: auth-pam.c,v 1.84 2003/11/21 12:56:47 djm Exp $");
 
 extern ServerOptions options;
 extern Buffer loginmsg;
+extern int compat20;
 
 #define __unused
 
@@ -118,6 +119,7 @@ static int sshpam_authenticated = 0;
 static int sshpam_new_authtok_reqd = 0;
 static int sshpam_session_open = 0;
 static int sshpam_cred_established = 0;
+static int sshpam_account_status = -1;
 static char **sshpam_env = NULL;
 
 struct pam_ctxt {
@@ -144,6 +146,21 @@ pam_getenvlist(pam_handle_t *pamh)
 }
 #endif
 
+void
+pam_password_change_required(int reqd)
+{
+	sshpam_new_authtok_reqd = reqd;
+	if (reqd) {
+		no_port_forwarding_flag |= 2;
+		no_agent_forwarding_flag |= 2;
+		no_x11_forwarding_flag |= 2;
+	} else {
+		no_port_forwarding_flag &= ~2;
+		no_agent_forwarding_flag &= ~2;
+		no_x11_forwarding_flag &= ~2;
+
+	}
+}
 /* Import regular and PAM environment from subprocess */
 static void
 import_environments(Buffer *b)
@@ -151,6 +168,10 @@ import_environments(Buffer *b)
 	char *env;
 	u_int i, num_env;
 	int err;
+
+	/* Import variables set by do_pam_account */
+	sshpam_account_status = buffer_get_int(b);
+	pam_password_change_required(buffer_get_int(b));
 
 	/* Import environment from subprocess */
 	num_env = buffer_get_int(b);
@@ -290,9 +311,26 @@ sshpam_thread(void *ctxtp)
 	sshpam_err = pam_authenticate(sshpam_handle, 0);
 	if (sshpam_err != PAM_SUCCESS)
 		goto auth_fail;
+
+	/* if (compat20) { */
+		if (!do_pam_account())
+			goto auth_fail;
+		if (sshpam_new_authtok_reqd) {
+			sshpam_err = pam_chauthtok(sshpam_handle,
+			    PAM_CHANGE_EXPIRED_AUTHTOK);
+			if (sshpam_err != PAM_SUCCESS)
+				goto auth_fail;
+			pam_password_change_required(0);
+		}
+	/* } */
+
 	buffer_put_cstring(&buffer, "OK");
 
 #ifndef USE_POSIX_THREADS
+	/* Export variables set by do_pam_account */
+	buffer_put_int(&buffer, sshpam_account_status);
+	buffer_put_int(&buffer, sshpam_new_authtok_reqd);
+
 	/* Export any environment strings set in child */
 	for(i = 0; environ[i] != NULL; i++)
 		; /* Count */
@@ -611,22 +649,22 @@ finish_pam(void)
 u_int
 do_pam_account(void)
 {
+	if (sshpam_account_status != -1)
+		return (sshpam_account_status);
+
 	sshpam_err = pam_acct_mgmt(sshpam_handle, 0);
 	debug3("%s: pam_acct_mgmt = %d", __func__, sshpam_err);
-
-	if (sshpam_err != PAM_SUCCESS && sshpam_err != PAM_NEW_AUTHTOK_REQD)
-		return (0);
-
-	if (sshpam_err == PAM_NEW_AUTHTOK_REQD) {
-		sshpam_new_authtok_reqd = 1;
-
-		/* Prevent forwardings until password changed */
-		no_port_forwarding_flag |= 2;
-		no_agent_forwarding_flag |= 2;
-		no_x11_forwarding_flag |= 2;
+	
+	if (sshpam_err != PAM_SUCCESS && sshpam_err != PAM_NEW_AUTHTOK_REQD) {
+		sshpam_account_status = 0;
+		return (sshpam_account_status);
 	}
 
-	return (1);
+	if (sshpam_err == PAM_NEW_AUTHTOK_REQD)
+		pam_password_change_required(1);
+
+	sshpam_account_status = 1;
+	return (sshpam_account_status);
 }
 
 void

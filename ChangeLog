@@ -1,5 +1,7 @@
 20031218
  - (dtucker) [configure.ac] Don't use setre[ug]id on DG-UX, from Tom Orban.
+ - (dtucker) [auth-pam.c] Do PAM chauthtok during SSH2 keyboard-interactive
+   authentication.  Partially fixes bug #423.  Feedback & ok djm@
 
 20031217
  - (djm) OpenBSD CVS Sync
@@ -1610,4 +1612,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3150 2003/12/18 01:52:19 dtucker Exp $
+$Id: ChangeLog,v 1.3151 2003/12/18 04:34:31 dtucker Exp $
