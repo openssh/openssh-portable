@@ -17,6 +17,9 @@
      [authfile.c cipher.c cipher.h kex.c kex.h packet.c]
      hide some more implementation details of cipher.[ch] and prepares for move
      to EVP, ok deraadt@
+   - stevesk@cvs.openbsd.org 2002/02/16 14:53:37
+     [ssh-keygen.1]
+     -t required now for key generation
 
 20020218
  - (tim) newer config.guess from ftp://ftp.gnu.org/gnu/config/config.guess
@@ -7614,4 +7617,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1858 2002/02/19 04:21:23 djm Exp $
+$Id: ChangeLog,v 1.1859 2002/02/19 04:22:07 djm Exp $
