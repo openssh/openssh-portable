@@ -1,3 +1,8 @@
+20000829
+ - (djm) Fix ^C ignored issue on Solaris. Diagnosis from Gert 
+   Doering <gert@greenie.muc.de>, John Horne <J.Horne@plymouth.ac.uk> and 
+   Garrick James <garrick@james.net>
+
 20000823
  - (djm) Define USE_PIPES to avoid socketpair problems on HPUX 10 and SunOS 4
    Avoids "scp never exits" problem. Reports from Lutz Jaenicke 

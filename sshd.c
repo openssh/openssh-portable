@@ -956,6 +956,7 @@ main(int ac, char **av)
 	signal(SIGTERM, SIG_DFL);
 	signal(SIGQUIT, SIG_DFL);
 	signal(SIGCHLD, SIG_DFL);
+	signal(SIGINT, SIG_DFL);
 
 	/*
 	 * Set socket options for the connection.  We want the socket to
