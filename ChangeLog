@@ -24,6 +24,7 @@
    - [regress/test-exec.sh] Use sudo, search for "whoami" equivalent, always
      use Strictmodes no, wait longer for sshd startup.
    - [regress/Makefile] Remove BSDisms.
+   - [regress/README.regress] Add a basic readme.
 
 20030903
  - (djm) OpenBSD CVS Sync
@@ -1014,4 +1015,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2957 2003/09/04 05:37:58 dtucker Exp $
+$Id: ChangeLog,v 1.2958 2003/09/04 05:39:54 dtucker Exp $
