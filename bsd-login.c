@@ -60,6 +60,7 @@ static char *rcsid = "$OpenBSD: login.c,v 1.5 1998/07/13 02:11:12 millert Exp $"
 #include <stdio.h>
 #include <string.h>
 
+#ifdef USER_PROCESS
 /*
  * find first matching slot in utmp, or "-1" for none
  *
@@ -95,6 +96,13 @@ struct utmp * utp;
 #endif
 	return(-1);
 }
+#else
+int find_tty_slot( utp )
+struct utmp * utp;
+{
+	return(ttyslot());
+}
+#endif
 
 #if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
 void

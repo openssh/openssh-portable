@@ -1,6 +1,7 @@
 20000520
  - Xauth fix from Markus Friedl <markus.friedl@informatik.uni-erlangen.de>
  - Don't touch utmp if USE_UTMPX defined
+ - SunOS 4.x support from Todd C. Miller <Todd.Miller@courtesan.com>
 
 20000518
  - Include Andre Lucas' fixprogs script. Forgot to "cvs add" it yesterday

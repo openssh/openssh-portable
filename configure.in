@@ -110,6 +110,10 @@ case "$host" in
 	need_dash_r=1
 	AC_DEFINE(USE_UTMPX)
 	;;
+*-*-sunos4*)
+	CFLAGS="$CFLAGS -DSUNOS4"
+	AC_CHECK_FUNCS(getpwanam)
+	;;
 *-*-sysv*)
 	CFLAGS="$CFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"

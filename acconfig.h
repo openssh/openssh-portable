@@ -102,6 +102,9 @@
 /* Define if you want have trusted HPUX */
 #undef HAVE_HPUX_TRUSTED_SYSTEM_PW
 
+/* Define if you have getpwanam(3) [SunOS 4.x] */
+#undef HAVE_GETPWANAM
+
 /* Defined if in_systm.h needs to be included with netinet/ip.h (HPUX - <sigh/>) */
 #undef NEED_IN_SYSTM_H
 
