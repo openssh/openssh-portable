@@ -1,3 +1,7 @@
+20040412
+ - (dtucker) [sshd_config.5] Add PermitRootLogin without-password warning
+   from bug #701 (text from jfh at cise.ufl.edu).
+
 20040408
  - (dtucker) [loginrec.c] Use UT_LINESIZE if available, prevents truncating
    pty name on Linux 2.6.x systems.  Patch from jpe at eisenmenger.org.
@@ -957,4 +961,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3307 2004/04/08 16:12:30 mouring Exp $
+$Id: ChangeLog,v 1.3308 2004/04/14 03:04:35 dtucker Exp $
