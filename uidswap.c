@@ -114,8 +114,8 @@ restore_uid(void)
 	if (!temporarily_use_uid_effective)
 		fatal("restore_uid: temporarily_use_uid not effective");
 
-	debug("restore_uid: %u/%u", (u_int)saved_euid, (u_int)saved_egid);
 #ifdef SAVED_IDS_WORK_WITH_SETEUID
+	debug("restore_uid: %u/%u", (u_int)saved_euid, (u_int)saved_egid);
 	/* Set the effective uid back to the saved privileged uid. */
 	if (seteuid(saved_euid) < 0)
 		fatal("seteuid %u: %.100s", (u_int)saved_euid, strerror(errno));
