@@ -45,7 +45,7 @@
  * XXX: we should tell the child how many bytes we need.
  */
 
-RCSID("$Id: entropy.c,v 1.40 2002/01/22 10:57:54 djm Exp $");
+RCSID("$Id: entropy.c,v 1.41 2002/03/11 00:16:35 stevesk Exp $");
 
 #ifndef OPENSSL_PRNG_ONLY
 #define RANDOM_SEED_SIZE 48
@@ -67,7 +67,7 @@ seed_rng(void)
 		return;
 	}
 
-	debug3("Seeing PRNG from %s", SSH_RAND_HELPER);
+	debug3("Seeding PRNG from %s", SSH_RAND_HELPER);
 
 	if ((devnull = open("/dev/null", O_RDWR)) == -1)
 		fatal("Couldn't open /dev/null: %s", strerror(errno));

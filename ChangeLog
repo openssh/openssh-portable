@@ -3,6 +3,7 @@
    accidentally committed.
  - (djm) Add Markus' patch for compat wih OpenSSL < 0.9.6. 
    Known issue: Blowfish for SSH1 does not work
+ - (stevesk) entropy.c: typo in debug message
 
 20020307
  - (djm) OpenBSD CVS Sync
@@ -7826,4 +7827,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1918 2002/03/10 23:51:17 djm Exp $
+$Id: ChangeLog,v 1.1919 2002/03/11 00:16:34 stevesk Exp $
