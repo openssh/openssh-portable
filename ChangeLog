@@ -5,6 +5,9 @@
    - fgsch@cvs.openbsd.org 2004/12/10 01:31:30
      [Makefile sftp-glob.sh]
      some globbing regress; prompted and ok djm@
+   - david@cvs.openbsd.org 2005/01/14 04:21:18
+     [Makefile test-exec.sh]
+     pass the SUDO make variable to the individual sh tests; ok dtucker@ markus@
 
 20050306
  - (dtucker) [monitor.c] Bug #125 comment #47: fix errors returned by monitor
@@ -2291,4 +2294,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3696 2005/03/07 07:25:53 dtucker Exp $
+$Id: ChangeLog,v 1.3697 2005/03/07 07:27:28 dtucker Exp $
