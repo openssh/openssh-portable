@@ -15,6 +15,9 @@
    - markus@cvs.openbsd.org 2001/04/11 10:59:01
      [ssh.c]
      use strtol() for ports, thanks jakob@
+   - markus@cvs.openbsd.org 2001/04/11 13:56:13
+     [channels.c ssh.c]
+     https-connect and socks5 support. i feel so bad.
 
 20010410
  - OpenBSD CVS Sync
@@ -5008,4 +5011,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1098 2001/04/11 23:06:28 mouring Exp $
+$Id: ChangeLog,v 1.1099 2001/04/11 23:08:17 mouring Exp $
