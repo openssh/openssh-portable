@@ -1,3 +1,7 @@
+20000122
+ - Fix compilation of bsd-snprintf.c on Solaris, fix from Ben Taylor
+   <bent@clark.net>
+
 20000120
  - Don't use getaddrinfo on AIX
  - Update to latest OpenBSD CVS:

@@ -44,7 +44,7 @@
 #include <setjmp.h>
 
 #ifndef roundup
-#define roundup (x, y) ((((x)+((y)-1))/(y))*(y))
+#define roundup(x, y) ((((x)+((y)-1))/(y))*(y))
 #endif
 
 static int pgsize;
