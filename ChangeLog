@@ -1,6 +1,7 @@
 19991218
  - Redhat init script patch from Chun-Chung Chen 
    <cjj@u.washington.edu>
+ - Avoid breakage on systems without IPv6 headers
 
 19991216
  - Makefile changes for Solaris from Peter Kocks 
