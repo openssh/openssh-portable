@@ -1,3 +1,9 @@
+200206027
+ - OpenBSD CVS Sync
+   - deraadt@cvs.openbsd.org 2002/06/26 14:49:36
+     [monitor.c]
+     correct %u
+
 20020626
  - (stevesk) [monitor.c] remove duplicate proto15 dispatch entry for PAM
  - (bal) OpenBSD CVS Sync
@@ -1169,4 +1175,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2302 2002/06/26 18:05:32 tim Exp $
+$Id: ChangeLog,v 1.2303 2002/06/27 00:12:57 mouring Exp $
