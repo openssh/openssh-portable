@@ -13,6 +13,9 @@
    - stevesk@cvs.openbsd.org 2002/07/21 18:32:20
      [auth-options.c]
      unneeded includes
+   - stevesk@cvs.openbsd.org 2002/07/21 18:34:43
+     [auth-options.h]
+     remove invalid comment
  
 20020722
  - (bal) AIX tty data limiting patch fix by leigh@solinno.co.uk
@@ -1436,4 +1439,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2398 2002/07/23 21:06:45 mouring Exp $
+$Id: ChangeLog,v 1.2399 2002/07/23 21:07:45 mouring Exp $
