@@ -28,6 +28,8 @@
    - markus@cvs.openbsd.org 2005/03/14 11:46:56
      [buffer.c buffer.h channels.c]
      limit input buffer size for channels; bugzilla #896; with and ok dtucker@
+ - (tim) [contrib/caldera/openssh.spec] links in rc?.d were getting trashed
+   with a rpm -F
 
 20050313
  - (dtucker) [contrib/cygwin/ssh-host-config] Makes the query for the
@@ -2362,4 +2364,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3719 2005/03/14 12:24:43 dtucker Exp $
+$Id: ChangeLog,v 1.3720 2005/03/15 01:24:51 tim Exp $

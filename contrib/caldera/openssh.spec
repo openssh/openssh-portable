@@ -21,8 +21,8 @@
   %define cvs		%{nil}
   %define release 	1
 %else
-  %define version 	3.9p1
-  %define cvs		cvs20011009
+  %define version 	4.0p1
+  %define cvs		cvs20050315
   %define release 	0r1
 %endif
 %define xsa		x11-ssh-askpass		
@@ -297,19 +297,13 @@ fi
 
 %PreUn server
 [ "$1" = 0 ] || exit 0
-
 ! %{SVIdir}/sshd status || %{SVIdir}/sshd stop
-: # to protect the rpm database
-
-
-%PostUn server
 if [ -x %{LSBinit}-remove ]; then
   %{LSBinit}-remove sshd
 else
   lisa --SysV-init remove sshd $1
 fi
 : # to protect the rpm database
-
 
 %Files 
 %defattr(-,root,root)
@@ -363,4 +357,4 @@ fi
 * Mon Jan 01 1998 ...
 Template Version: 1.31
 
-$Id: openssh.spec,v 1.52 2005/03/09 00:02:42 djm Exp $
+$Id: openssh.spec,v 1.53 2005/03/15 01:24:51 tim Exp $
