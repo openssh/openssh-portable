@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.148 2001/10/24 08:41:20 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.149 2001/10/24 08:51:35 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -751,6 +751,8 @@ again:
 	    tilde_expand_filename(options.system_hostfile2, original_real_uid);
 	options.user_hostfile2 =
 	    tilde_expand_filename(options.user_hostfile2, original_real_uid);
+
+	signal(SIGPIPE, SIG_IGN); /* ignore SIGPIPE early */
 
 	/* Log into the remote system.  This never returns if the login fails. */
 	ssh_login(sensitive_data.keys, sensitive_data.nkeys,
