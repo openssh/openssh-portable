@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.155 2001/02/18 19:13:33 mouring Exp $
+# $Id: Makefile.in,v 1.156 2001/03/05 08:16:54 mouring Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -46,9 +46,9 @@ TARGETS=ssh$(EXEEXT) sshd$(EXEEXT) ssh-add$(EXEEXT) ssh-keygen$(EXEEXT) ssh-keys
 
 LIBSSH_OBJS=atomicio.o authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o cipher.o cli.o compat.o compress.o crc32.o deattack.o dispatch.o mac.o hostfile.o key.o kex.o log.o match.o misc.o mpaux.o nchan.o packet.o radix.o rijndael.o entropy.o readpass.o rsa.o ssh-dss.o ssh-rsa.o tildexpand.o ttymodes.o uidswap.o uuencode.o xmalloc.o 
 
-SSHOBJS= ssh.o sshconnect.o sshconnect1.o sshconnect2.o log-client.o readconf.o clientloop.o
+SSHOBJS= ssh.o sshconnect.o sshconnect1.o sshconnect2.o readconf.o clientloop.o
 
-SSHDOBJS= sshd.o auth.o auth1.o auth2.o auth-chall.o auth2-chall.o auth-rhosts.o auth-options.o auth-krb4.o auth-pam.o auth2-pam.o auth-passwd.o auth-rsa.o auth-rh-rsa.o auth-sia.o dh.o sshpty.o log-server.o sshlogin.o loginrec.o servconf.o serverloop.o md5crypt.o session.o groupaccess.o
+SSHDOBJS= sshd.o auth.o auth1.o auth2.o auth-chall.o auth2-chall.o auth-rhosts.o auth-options.o auth-krb4.o auth-pam.o auth2-pam.o auth-passwd.o auth-rsa.o auth-rh-rsa.o auth-sia.o dh.o sshpty.o sshlogin.o loginrec.o servconf.o serverloop.o md5crypt.o session.o groupaccess.o
 
 TROFFMAN	= scp.1 ssh-add.1 ssh-agent.1 ssh-keygen.1 ssh-keyscan.1 ssh.1 sshd.8 sftp-server.8 sftp.1
 CATMAN		= scp.0 ssh-add.0 ssh-agent.0 ssh-keygen.0 ssh-keyscan.0 ssh.0 sshd.0 sftp-server.0 sftp.0
@@ -97,30 +97,30 @@ ssh$(EXEEXT): $(LIBCOMPAT) libssh.a $(SSHOBJS)
 sshd$(EXEEXT): libssh.a	$(LIBCOMPAT) $(SSHDOBJS)
 	$(LD) -o $@ $(SSHDOBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
-scp$(EXEEXT): $(LIBCOMPAT) libssh.a scp.o log-client.o
-	$(LD) -o $@ scp.o log-client.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
+scp$(EXEEXT): $(LIBCOMPAT) libssh.a scp.o log.o
+	$(LD) -o $@ scp.o log.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
-ssh-add$(EXEEXT): $(LIBCOMPAT) libssh.a ssh-add.o log-client.o
-	$(LD) -o $@ ssh-add.o log-client.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
+ssh-add$(EXEEXT): $(LIBCOMPAT) libssh.a ssh-add.o log.o
+	$(LD) -o $@ ssh-add.o log.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
-ssh-agent$(EXEEXT): $(LIBCOMPAT) libssh.a ssh-agent.o log-client.o
-	$(LD) -o $@ ssh-agent.o log-client.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
+ssh-agent$(EXEEXT): $(LIBCOMPAT) libssh.a ssh-agent.o log.o
+	$(LD) -o $@ ssh-agent.o log.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
-ssh-keygen$(EXEEXT): $(LIBCOMPAT) libssh.a ssh-keygen.o log-client.o
-	$(LD) -o $@ ssh-keygen.o log-client.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
+ssh-keygen$(EXEEXT): $(LIBCOMPAT) libssh.a ssh-keygen.o log.o
+	$(LD) -o $@ ssh-keygen.o log.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
-ssh-keyscan$(EXEEXT): $(LIBCOMPAT) libssh.a log-client.o ssh-keyscan.o
-	$(LD) -o $@ ssh-keyscan.o log-client.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
+ssh-keyscan$(EXEEXT): $(LIBCOMPAT) libssh.a log.o ssh-keyscan.o
+	$(LD) -o $@ ssh-keyscan.o log.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
-sftp-server$(EXEEXT): $(LIBCOMPAT) libssh.a sftp-server.o sftp-common.o log-server.o
-	$(LD) -o $@ sftp-server.o sftp-common.o log-server.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
+sftp-server$(EXEEXT): $(LIBCOMPAT) libssh.a sftp.o sftp-common.o log.o sftp-server.o
+	$(LD) -o $@ sftp-server.o sftp-common.o log.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
-sftp$(EXEEXT): $(LIBCOMPAT) libssh.a sftp.o sftp-client.o sftp-int.o sftp-common.o log-client.o
-	$(LD) -o $@ sftp.o sftp-client.o sftp-common.o sftp-int.o log-client.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
+sftp$(EXEEXT): $(LIBCOMPAT) libssh.a sftp.o sftp-client.o sftp-int.o sftp-common.o log.o
+	$(LD) -o $@ sftp.o sftp-client.o sftp-common.o sftp-int.o log.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
 # test driver for the loginrec code - not built by default
-logintest: logintest.o $(LIBCOMPAT) libssh.a log-client.o loginrec.o
-	$(LD) -o $@ logintest.o $(LDFLAGS) loginrec.o -lopenbsd-compat -lssh log-client.o $(LIBS)
+logintest: logintest.o $(LIBCOMPAT) libssh.a log.o loginrec.o
+	$(LD) -o $@ logintest.o $(LDFLAGS) loginrec.o -lopenbsd-compat -lssh log.o $(LIBS)
 
 $(MANPAGES) $(CONFIGFILES)::
 	$(FIXPATHSCMD) $(srcdir)/$@
