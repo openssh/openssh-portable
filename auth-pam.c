@@ -47,7 +47,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.110 2004/07/01 04:00:15 dtucker Exp $");
+RCSID("$Id: auth-pam.c,v 1.111 2004/07/11 06:54:08 dtucker Exp $");
 
 #ifdef USE_PAM
 #if defined(HAVE_SECURITY_PAM_APPL_H)
@@ -113,11 +113,11 @@ sshpam_sigchld_handler(int sig)
 	if (cleanup_ctxt == NULL)
 		return;	/* handler called after PAM cleanup, shouldn't happen */
 	if (waitpid(cleanup_ctxt->pam_thread, &sshpam_thread_status, WNOHANG)
-	     == -1) {
+	     <= 0) {
 		/* PAM thread has not exitted, privsep slave must have */
 		kill(cleanup_ctxt->pam_thread, SIGTERM);
 		if (waitpid(cleanup_ctxt->pam_thread, &sshpam_thread_status, 0)
-		    == -1)
+		    <= 0)
 			return; /* could not wait */
 	}
 	if (WIFSIGNALED(sshpam_thread_status) &&
