@@ -1,3 +1,6 @@
+20020720
+ - (stevesk) [ssh-keygen.c] bug #231: always init/seed_rng().
+
 20020719
  - (tim) [contrib/solaris/buildpkg.sh] create privsep user/group if needed.
    Patch by dtucker@zip.com.au
@@ -205,7 +208,7 @@
  - (bal) FreeBSD needs <sys/types.h> to detect if mmap() is supported.
    Bug #303
 
-200206027
+20020627
  - OpenBSD CVS Sync
    - deraadt@cvs.openbsd.org 2002/06/26 14:49:36
      [monitor.c]
@@ -1394,4 +1397,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2379 2002/07/19 19:41:10 tim Exp $
+$Id: ChangeLog,v 1.2380 2002/07/20 19:05:40 stevesk Exp $
