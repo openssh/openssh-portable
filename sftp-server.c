@@ -609,7 +609,11 @@ process_fsetstat(void)
 				status = errno_to_portable(errno);
 		}
 		if (a->flags & SSH2_FILEXFER_ATTR_UIDGID) {
+#ifdef HAVE_FCHOWN
 			ret = fchown(fd, a->uid, a->gid);
+#else
+			ret = chown(name, a->uid, a->gid);
+#endif
 			if (ret == -1)
 				status = errno_to_portable(errno);
 		}

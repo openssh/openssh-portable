@@ -3,6 +3,8 @@
  - (bal) Cleaned out bsd-snprintf.c.  VARARGS have been banished and
    I did a base KNF over the whe whole file to make it more acceptable.
    (backed out of original patch and removed it from ChangeLog)
+ - (bal) Use chown() if fchown() does not exist in ftp-server.c patch by
+   Tim Rice <tim@multitalents.net>
 
 20010212
  - (djm) Update Redhat specfile to allow --define "skip_x11_askpass 1", 
@@ -3910,4 +3912,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.752 2001/02/13 02:18:50 mouring Exp $
+$Id: ChangeLog,v 1.753 2001/02/13 02:40:56 mouring Exp $
