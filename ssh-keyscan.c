@@ -9,7 +9,7 @@
 #include "includes.h"
 RCSID("$OpenBSD: ssh-keyscan.c,v 1.40 2002/07/06 17:47:58 stevesk Exp $");
 
-#include "openbsd-compat/fake-queue.h"
+#include "openbsd-compat/sys-queue.h"
 
 #include <openssl/bn.h>
 

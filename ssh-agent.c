@@ -34,7 +34,7 @@
  */
 
 #include "includes.h"
-#include "openbsd-compat/fake-queue.h"
+#include "openbsd-compat/sys-queue.h"
 RCSID("$OpenBSD: ssh-agent.c,v 1.103 2002/09/10 20:24:47 markus Exp $");
 
 #include <openssl/evp.h>

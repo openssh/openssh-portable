@@ -1,3 +1,4 @@
+/*	$OpenBSD: tree.h,v 1.6 2002/06/11 22:09:52 provos Exp $	*/
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * All rights reserved.
@@ -113,48 +114,8 @@ struct {								\
 #define SPLAY_PROTOTYPE(name, type, field, cmp)				\
 void name##_SPLAY(struct name *, struct type *);			\
 void name##_SPLAY_MINMAX(struct name *, int);				\
-									\
-static __inline void							\
-name##_SPLAY_INSERT(struct name *head, struct type *elm)		\
-{									\
-    if (SPLAY_EMPTY(head)) {						\
-	    SPLAY_LEFT(elm, field) = SPLAY_RIGHT(elm, field) = NULL;	\
-    } else {								\
-	    int __comp;							\
-	    name##_SPLAY(head, elm);					\
-	    __comp = (cmp)(elm, (head)->sph_root);			\
-	    if(__comp < 0) {						\
-		    SPLAY_LEFT(elm, field) = SPLAY_LEFT((head)->sph_root, field);\
-		    SPLAY_RIGHT(elm, field) = (head)->sph_root;		\
-		    SPLAY_LEFT((head)->sph_root, field) = NULL;		\
-	    } else if (__comp > 0) {					\
-		    SPLAY_RIGHT(elm, field) = SPLAY_RIGHT((head)->sph_root, field);\
-		    SPLAY_LEFT(elm, field) = (head)->sph_root;		\
-		    SPLAY_RIGHT((head)->sph_root, field) = NULL;	\
-	    } else							\
-		    return;						\
-    }									\
-    (head)->sph_root = (elm);						\
-}									\
-									\
-static __inline void							\
-name##_SPLAY_REMOVE(struct name *head, struct type *elm)		\
-{									\
-	struct type *__tmp;						\
-	if (SPLAY_EMPTY(head))						\
-		return;							\
-	name##_SPLAY(head, elm);					\
-	if ((cmp)(elm, (head)->sph_root) == 0) {			\
-		if (SPLAY_LEFT((head)->sph_root, field) == NULL) {	\
-			(head)->sph_root = SPLAY_RIGHT((head)->sph_root, field);\
-		} else {						\
-			__tmp = SPLAY_RIGHT((head)->sph_root, field);	\
-			(head)->sph_root = SPLAY_LEFT((head)->sph_root, field);\
-			name##_SPLAY(head, elm);			\
-			SPLAY_RIGHT((head)->sph_root, field) = __tmp;	\
-		}							\
-	}								\
-}									\
+struct type *name##_SPLAY_INSERT(struct name *, struct type *);		\
+struct type *name##_SPLAY_REMOVE(struct name *, struct type *);		\
 									\
 /* Finds the node with the same key as elm */				\
 static __inline struct type *						\
@@ -193,7 +154,53 @@ name##_SPLAY_MIN_MAX(struct name *head, int val)			\
  * Moves node close to the key of elm to top
  */
 #define SPLAY_GENERATE(name, type, field, cmp)				\
-void name##_SPLAY(struct name *head, struct type *elm)			\
+struct type *								\
+name##_SPLAY_INSERT(struct name *head, struct type *elm)		\
+{									\
+    if (SPLAY_EMPTY(head)) {						\
+	    SPLAY_LEFT(elm, field) = SPLAY_RIGHT(elm, field) = NULL;	\
+    } else {								\
+	    int __comp;							\
+	    name##_SPLAY(head, elm);					\
+	    __comp = (cmp)(elm, (head)->sph_root);			\
+	    if(__comp < 0) {						\
+		    SPLAY_LEFT(elm, field) = SPLAY_LEFT((head)->sph_root, field);\
+		    SPLAY_RIGHT(elm, field) = (head)->sph_root;		\
+		    SPLAY_LEFT((head)->sph_root, field) = NULL;		\
+	    } else if (__comp > 0) {					\
+		    SPLAY_RIGHT(elm, field) = SPLAY_RIGHT((head)->sph_root, field);\
+		    SPLAY_LEFT(elm, field) = (head)->sph_root;		\
+		    SPLAY_RIGHT((head)->sph_root, field) = NULL;	\
+	    } else							\
+		    return ((head)->sph_root);				\
+    }									\
+    (head)->sph_root = (elm);						\
+    return (NULL);							\
+}									\
+									\
+struct type *								\
+name##_SPLAY_REMOVE(struct name *head, struct type *elm)		\
+{									\
+	struct type *__tmp;						\
+	if (SPLAY_EMPTY(head))						\
+		return (NULL);						\
+	name##_SPLAY(head, elm);					\
+	if ((cmp)(elm, (head)->sph_root) == 0) {			\
+		if (SPLAY_LEFT((head)->sph_root, field) == NULL) {	\
+			(head)->sph_root = SPLAY_RIGHT((head)->sph_root, field);\
+		} else {						\
+			__tmp = SPLAY_RIGHT((head)->sph_root, field);	\
+			(head)->sph_root = SPLAY_LEFT((head)->sph_root, field);\
+			name##_SPLAY(head, elm);			\
+			SPLAY_RIGHT((head)->sph_root, field) = __tmp;	\
+		}							\
+		return (elm);						\
+	}								\
+	return (NULL);							\
+}									\
+									\
+void									\
+name##_SPLAY(struct name *head, struct type *elm)			\
 {									\
 	struct type __node, *__left, *__right, *__tmp;			\
 	int __comp;							\
@@ -367,7 +374,7 @@ struct {								\
 #define RB_PROTOTYPE(name, type, field, cmp)				\
 void name##_RB_INSERT_COLOR(struct name *, struct type *);	\
 void name##_RB_REMOVE_COLOR(struct name *, struct type *, struct type *);\
-void name##_RB_REMOVE(struct name *, struct type *);			\
+struct type *name##_RB_REMOVE(struct name *, struct type *);		\
 struct type *name##_RB_INSERT(struct name *, struct type *);		\
 struct type *name##_RB_FIND(struct name *, struct type *);		\
 struct type *name##_RB_NEXT(struct name *, struct type *);		\
@@ -498,17 +505,17 @@ name##_RB_REMOVE_COLOR(struct name *head, struct type *parent, struct type *elm)
 		RB_COLOR(elm, field) = RB_BLACK;			\
 }									\
 									\
-void									\
+struct type *								\
 name##_RB_REMOVE(struct name *head, struct type *elm)			\
 {									\
-	struct type *child, *parent;					\
+	struct type *child, *parent, *old = elm;			\
 	int color;							\
 	if (RB_LEFT(elm, field) == NULL)				\
 		child = RB_RIGHT(elm, field);				\
 	else if (RB_RIGHT(elm, field) == NULL)				\
 		child = RB_LEFT(elm, field);				\
 	else {								\
-		struct type *old = elm, *left;				\
+		struct type *left;					\
 		elm = RB_RIGHT(elm, field);				\
 		while ((left = RB_LEFT(elm, field)))			\
 			elm = left;					\
@@ -562,6 +569,7 @@ name##_RB_REMOVE(struct name *head, struct type *elm)			\
 color:									\
 	if (color == RB_BLACK)						\
 		name##_RB_REMOVE_COLOR(head, parent, child);		\
+	return (old);							\
 }									\
 									\
 /* Inserts a node into the RB tree */					\
