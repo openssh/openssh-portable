@@ -4,6 +4,8 @@
    - [Makefile.in] Add "make tests" target and "make clean" hooks.
    - [regress/agent-getpeereid.sh] Skip test on platforms that don't support
      getpeereid.
+   - [regress/agent-ptrace.sh] Skip tests if platform doesn't support it or
+     gdb cannot be found.
 
 20030903
  - (djm) OpenBSD CVS Sync
@@ -994,4 +996,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2943 2003/09/04 03:49:30 dtucker Exp $
+$Id: ChangeLog,v 1.2944 2003/09/04 03:55:25 dtucker Exp $

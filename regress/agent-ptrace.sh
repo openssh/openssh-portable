@@ -3,6 +3,20 @@
 
 tid="disallow agent ptrace attach"
 
+if [ -x `which uname 2>&1` ]; then
+	case `uname` in
+	Linux|HP-UX|SunOS|NetBSD|AIX)
+		echo "skipped (not supported)"
+		exit 0
+		;;
+	esac
+fi
+
+if [ ! -x `which gdb 2>&1` ]; then
+	echo "skipped (gdb not found)"
+	exit 0
+fi
+
 trace "start agent"
 eval `${SSHAGENT} -s` > /dev/null
 r=$?
