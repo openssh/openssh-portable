@@ -50,8 +50,7 @@ Please refer to the INSTALL document for information on how to install
 OpenSSH on your system. The UPGRADING document details differences 
 between this port of OpenSSH and F-Secure SSH 1.x.
 
-Damien Miller <djm@ibs.com.au>
-Internet Business Solutions
+Damien Miller <djm@mindrot.org>
 
 Miscellania - 
 
