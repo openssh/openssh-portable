@@ -1,3 +1,7 @@
+20040630
+ - (dtucker) [auth-pam.c] Check for buggy PAM modules that return a NULL
+   appdata_ptr to the conversation function.  ok djm@
+
 20040627
  - (tim) update README files.
  - (dtucker) [mdoc2man.awk] Bug #883: correctly recognise .Pa and .Ev macros.
@@ -1443,4 +1447,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3457 2004/06/28 08:11:19 dtucker Exp $
+$Id: ChangeLog,v 1.3458 2004/06/30 10:34:31 dtucker Exp $

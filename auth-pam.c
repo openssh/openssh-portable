@@ -47,7 +47,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.107 2004/06/19 02:54:38 dtucker Exp $");
+RCSID("$Id: auth-pam.c,v 1.108 2004/06/30 10:34:32 dtucker Exp $");
 
 #ifdef USE_PAM
 #if defined(HAVE_SECURITY_PAM_APPL_H)
@@ -275,6 +275,10 @@ sshpam_thread_conv(int n, const struct pam_message **msg,
 	debug3("PAM: %s entering, %d messages", __func__, n);
 	*resp = NULL;
 
+	if (data == NULL) {
+		error("PAM: conversation function passed a null context");
+		return (PAM_CONV_ERR);
+	}
 	ctxt = data;
 	if (n <= 0 || n > PAM_MAX_NUM_MSG)
 		return (PAM_CONV_ERR);
