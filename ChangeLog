@@ -1,8 +1,11 @@
+20010304
+ - (bal) Remove make-ssh-known-hosts.1 since it's no longer valid.
+
 20010303
- - Remove make-ssh-known-hosts.pl, ssh-keyscan is better.
- - Document PAM ChallengeResponseAuthentication in sshd.8
- - Disable and comment ChallengeResponseAuthentication in sshd_config
- - Allow PRNGd entropy collection from localhost TCP socket. Replace
+ - (djm) Remove make-ssh-known-hosts.pl, ssh-keyscan is better.
+ - (djm) Document PAM ChallengeResponseAuthentication in sshd.8
+ - (djm) Disable and comment ChallengeResponseAuthentication in sshd_config
+ - (djm) Allow PRNGd entropy collection from localhost TCP socket. Replace
    "--with-egd-pool" configure option with "--with-prngd-socket" and 
    "--with-prngd-port" options. Debugged and improved by Lutz Jaenicke
    <Lutz.Jaenicke@aet.TU-Cottbus.DE>
@@ -4184,4 +4187,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.848 2001/03/03 13:29:20 djm Exp $
+$Id: ChangeLog,v 1.849 2001/03/03 21:37:50 mouring Exp $
