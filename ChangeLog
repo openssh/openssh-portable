@@ -1,3 +1,6 @@
+20031218
+ - (dtucker) [configure.ac] Don't use setre[ug]id on DG-UX, from Tom Orban.
+
 20031217
  - (djm) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2003/12/09 15:28:43
@@ -1607,4 +1610,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3149 2003/12/18 00:34:06 mouring Exp $
+$Id: ChangeLog,v 1.3150 2003/12/18 01:52:19 dtucker Exp $
