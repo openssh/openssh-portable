@@ -1,3 +1,6 @@
+20030730
+ - (djm) [auth-pam.c] Don't use crappy APIs like sprintf. Thanks bal
+
 20030726
  - (dtucker) [openbsd-compat/xcrypt.c] Fix typo: DISABLED_SHADOW ->
    DISABLE_SHADOW.  Fixes HP-UX compile error.
@@ -732,4 +735,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2866 2003/07/26 09:38:30 dtucker Exp $
+$Id: ChangeLog,v 1.2867 2003/07/30 04:53:11 djm Exp $
