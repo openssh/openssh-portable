@@ -1,3 +1,11 @@
+20020219
+ - (djm) OpenBSD CVS Sync
+   - mpech@cvs.openbsd.org 2002/02/13 08:33:47
+     [ssh-keyscan.1]
+     When you give command examples and etc., in a manual page prefix them with:     $ command
+     or
+     # command
+
 20020218
  - (tim) newer config.guess from ftp://ftp.gnu.org/gnu/config/config.guess
 
@@ -7594,4 +7602,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1854 2002/02/18 23:18:56 tim Exp $
+$Id: ChangeLog,v 1.1855 2002/02/19 04:19:42 djm Exp $

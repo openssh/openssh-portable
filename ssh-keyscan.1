@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keyscan.1,v 1.13 2002/02/09 17:37:34 deraadt Exp $
+.\"	$OpenBSD: ssh-keyscan.1,v 1.14 2002/02/13 08:33:47 mpech Exp $
 .\"
 .\" Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
 .\"
@@ -104,7 +104,7 @@ Print the
 host key for machine
 .Pa hostname :
 .Bd -literal
-ssh-keyscan hostname
+$ ssh-keyscan hostname
 .Ed
 .Pp
 Find all hosts from the file
@@ -112,7 +112,7 @@ Find all hosts from the file
 which have new or different keys from those in the sorted file
 .Pa ssh_known_hosts :
 .Bd -literal
-ssh-keyscan -t rsa,dsa -f ssh_hosts | \e\ 
+$ ssh-keyscan -t rsa,dsa -f ssh_hosts | \e\ 
 	sort -u - ssh_known_hosts | diff ssh_known_hosts -
 .Ed
 .Sh FILES
