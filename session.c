@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.62 2001/03/20 18:57:04 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.63 2001/03/20 19:21:21 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -124,8 +124,8 @@ Session *session_new(void);
 void	session_set_fds(Session *s, int fdin, int fdout, int fderr);
 void	session_pty_cleanup(Session *s);
 void	session_proctitle(Session *s);
-void	do_exec_pty(Session *s, const char *command, struct passwd * pw);
-void	do_exec_no_pty(Session *s, const char *command, struct passwd * pw);
+void	do_exec_pty(Session *s, const char *command);
+void	do_exec_no_pty(Session *s, const char *command);
 void	do_login(Session *s, const char *command);
 void	do_child(Session *s, const char *command);
 
@@ -421,9 +421,9 @@ do_authenticated(struct passwd * pw)
 				debug("Forced command '%.500s'", forced_command);
 			}
 			if (have_pty)
-				do_exec_pty(s, command, pw);
+				do_exec_pty(s, command);
 			else
-				do_exec_no_pty(s, command, pw);
+				do_exec_no_pty(s, command);
 
 			if (command != NULL)
 				xfree(command);
@@ -457,7 +457,7 @@ do_authenticated(struct passwd * pw)
  * setting up file descriptors and such.
  */
 void
-do_exec_no_pty(Session *s, const char *command, struct passwd * pw)
+do_exec_no_pty(Session *s, const char *command)
 {
 	int pid;
 
@@ -586,7 +586,7 @@ do_exec_no_pty(Session *s, const char *command, struct passwd * pw)
  * lastlog, and other such operations.
  */
 void
-do_exec_pty(Session *s, const char *command, struct passwd * pw)
+do_exec_pty(Session *s, const char *command)
 {
 	int fdout, ptyfd, ttyfd, ptymaster;
 	pid_t pid;
@@ -1661,7 +1661,7 @@ session_subsystem_req(Session *s)
 	for (i = 0; i < options.num_subsystems; i++) {
 		if(strcmp(subsys, options.subsystem_name[i]) == 0) {
 			debug("subsystem: exec() %s", options.subsystem_command[i]);
-			do_exec_no_pty(s, options.subsystem_command[i], s->pw);
+			do_exec_no_pty(s, options.subsystem_command[i]);
 			success = 1;
 		}
 	}
@@ -1737,9 +1737,9 @@ session_shell_req(Session *s)
 	packet_done();
 	s->extended = 1;
 	if (s->ttyfd == -1)
-		do_exec_no_pty(s, shell, s->pw);
+		do_exec_no_pty(s, shell);
 	else
-		do_exec_pty(s, shell, s->pw);
+		do_exec_pty(s, shell);
 	return 1;
 }
 
@@ -1756,9 +1756,9 @@ session_exec_req(Session *s)
 	}
 	s->extended = 1;
 	if (s->ttyfd == -1)
-		do_exec_no_pty(s, command, s->pw);
+		do_exec_no_pty(s, command);
 	else
-		do_exec_pty(s, command, s->pw);
+		do_exec_pty(s, command);
 	if (forced_command == NULL)
 		xfree(command);
 	return 1;

@@ -7,6 +7,9 @@
    - markus@cvs.openbsd.org 2001/03/20 19:10:16
      [readconf.c]
      default to SSH protocol version 2
+   - markus@cvs.openbsd.org 2001/03/20 19:21:21
+     [session.c]
+     remove unused arg
 
 20010321
  - (djm) Fix ttyname breakage for AIX and Tru64. Patch from Steve 
@@ -4666,4 +4669,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1002 2001/03/22 01:24:04 mouring Exp $
+$Id: ChangeLog,v 1.1003 2001/03/22 01:25:37 mouring Exp $
