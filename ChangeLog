@@ -1,3 +1,6 @@
+20040315
+ - (djm) [sshd.c] Drop supplemental groups if started as root
+
 20040311
  - (djm) [configure.ac] Add standard license to configure.ac; ok ben, dtucker
 
@@ -898,4 +901,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3288 2004/03/11 03:20:10 djm Exp $
+$Id: ChangeLog,v 1.3289 2004/03/21 22:29:57 djm Exp $

@@ -831,6 +831,9 @@ main(int ac, char **av)
 	av = saved_argv;
 #endif
 
+	if (geteuid() == 0 && setgroups(0, NULL) == -1)
+		debug("setgroups(): %.200s", strerror(errno));
+
 	/* Initialize configuration options to their default values. */
 	initialize_server_options(&options);
 
