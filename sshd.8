@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.175 2002/03/29 19:16:22 stevesk Exp $
+.\" $OpenBSD: sshd.8,v 1.176 2002/04/05 20:56:21 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -1324,13 +1324,17 @@ only by the user; it need not be readable by anyone else.
 .It Pa $HOME/.ssh/rc
 If this file exists, it is run with /bin/sh after reading the
 environment files but before starting the user's shell or command.
-If X11 spoofing is in use, this will receive the "proto cookie" pair in
-standard input (and
+It must not produce any output on stdout; stderr must be used
+instead.
+If X11 forwarding is in use, it will receive the "proto cookie" pair in
+its standard input (and
 .Ev DISPLAY
-in environment).
-This must call
+in its environment).
+The script must call
 .Xr xauth 1
-in that case.
+because
+.Nm
+will not run xauth automatically to add X11 cookies.
 .Pp
 The primary purpose of this file is to run any initialization routines
 which may be needed before the user's home directory becomes
@@ -1339,15 +1343,22 @@ accessible; AFS is a particular example of such an environment.
 This file will probably contain some initialization code followed by
 something similar to:
 .Bd -literal
-	if read proto cookie; then
-		echo add $DISPLAY $proto $cookie | xauth -q -
+if read proto cookie && [ -n "$DISPLAY" ]; then
+	if [ `echo $DISPLAY | cut -c1-10` = 'localhost:' ]; then
+		# X11UseLocalhost=yes
+		xauth add unix:`echo $DISPLAY |
+		    cut -c11-` $proto $cookie
+	else
+		# X11UseLocalhost=no
+		xauth add $DISPLAY $proto $cookie
 	fi
+fi
 .Ed
 .Pp
 If this file does not exist,
 .Pa /etc/ssh/sshrc
 is run, and if that
-does not exist either, xauth is used to store the cookie.
+does not exist either, xauth is used to add the cookie.
 .Pp
 This file should be writable only by the user, and need not be
 readable by anyone else.

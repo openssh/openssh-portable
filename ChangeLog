@@ -5,6 +5,10 @@
    support changes.
  - (bal) Too many <sys/queue.h> issues.  Remove all workarounds and
    using internal version only.
+ - (bal) OpenBSD CVS Sync
+   - stevesk@cvs.openbsd.org 2002/04/05 20:56:21
+     [sshd.8]
+     clarify sshrc some and handle X11UseLocalhost=yes; ok markus@
 
 20020404
  - (stevesk) [auth-pam.c auth-pam.h auth-passwd.c auth-sia.c auth-sia.h
@@ -8163,4 +8167,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2024 2002/04/05 20:23:35 mouring Exp $
+$Id: ChangeLog,v 1.2025 2002/04/05 22:18:48 mouring Exp $
