@@ -1,3 +1,6 @@
+20020425
+ - (stevesk) [defines.h] remove USE_TIMEVAL; unused
+
 20020424
  - (djm) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2002/04/23 12:54:10
@@ -503,4 +506,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2083 2002/04/23 23:49:09 djm Exp $
+$Id: ChangeLog,v 1.2084 2002/04/25 17:56:07 stevesk Exp $

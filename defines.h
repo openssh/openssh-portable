@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.88 2002/04/23 12:59:51 djm Exp $ */
+/* $Id: defines.h,v 1.89 2002/04/25 17:56:07 stevesk Exp $ */
 
 
 /* Constants */
@@ -535,11 +535,6 @@ struct winsize {
 /* I hope that the presence of LASTLOG_FILE is enough to detect this */
 #if defined(LASTLOG_FILE) && !defined(DISABLE_LASTLOG)
 #  define USE_LASTLOG
-#endif
-
-/* which type of time to use? (api.c) */
-#ifdef HAVE_SYS_TIME_H
-#  define USE_TIMEVAL
 #endif
 
 /** end of login recorder definitions */
