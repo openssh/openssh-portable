@@ -28,7 +28,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.37 2002/11/21 23:03:51 deraadt Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.38 2003/01/06 23:51:22 djm Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -758,7 +758,7 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 
 	/* XXX: should we preserve set[ug]id? */
 	if (a->flags & SSH2_FILEXFER_ATTR_PERMISSIONS)
-		mode = S_IWRITE | (a->perm & 0777);
+		mode = a->perm & 0777;
 	else
 		mode = 0666;
 
@@ -793,7 +793,8 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 		return(-1);
 	}
 
-	local_fd = open(local_path, O_WRONLY | O_CREAT | O_TRUNC, mode);
+	local_fd = open(local_path, O_WRONLY | O_CREAT | O_TRUNC, 
+	    mode | S_IWRITE);
 	if (local_fd == -1) {
 		error("Couldn't open local file \"%s\" for writing: %s",
 		    local_path, strerror(errno));

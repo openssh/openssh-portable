@@ -5,6 +5,10 @@
    - markus@cvs.openbsd.org 2003/01/01 18:08:52
      [channels.c]
      move big output buffer messages to debug2
+   - djm@cvs.openbsd.org 2003/01/06 23:51:22
+     [sftp-client.c]
+     Fix "get -p" download to not add user-write perm. mindrot bug #426
+     reported by gfernandez@livevault.com; ok markus@
 
 20030107
  - (djm) Bug #401: Work around Linux breakage with IPv6 mapped addresses. 
@@ -950,4 +954,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2551 2003/01/08 03:04:09 djm Exp $
+$Id: ChangeLog,v 1.2552 2003/01/08 03:04:53 djm Exp $
