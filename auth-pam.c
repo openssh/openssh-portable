@@ -47,7 +47,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.114 2004/08/16 13:12:06 dtucker Exp $");
+RCSID("$Id: auth-pam.c,v 1.115 2004/09/11 12:17:26 dtucker Exp $");
 
 #ifdef USE_PAM
 #if defined(HAVE_SECURITY_PAM_APPL_H)
@@ -949,10 +949,21 @@ do_pam_session(void)
 		fatal("PAM: failed to set PAM_CONV: %s",
 		    pam_strerror(sshpam_handle, sshpam_err));
 	sshpam_err = pam_open_session(sshpam_handle, 0);
-	if (sshpam_err != PAM_SUCCESS)
-		fatal("PAM: pam_open_session(): %s",
+	if (sshpam_err == PAM_SUCCESS)
+		sshpam_session_open = 1;
+	else {
+		sshpam_session_open = 0;
+		disable_forwarding();
+		error("PAM: pam_open_session(): %s",
 		    pam_strerror(sshpam_handle, sshpam_err));
-	sshpam_session_open = 1;
+	}
+
+}
+
+int
+is_pam_session_open(void)
+{
+	return sshpam_session_open;
 }
 
 /*

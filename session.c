@@ -1439,6 +1439,13 @@ do_child(Session *s, const char *command)
 #endif /* HAVE_OSF_SIA */
 	}
 
+#ifdef USE_PAM
+	if (options.use_pam && !is_pam_session_open()) {
+		display_loginmsg();
+		exit(254);
+	}
+#endif
+
 	/*
 	 * Get the shell from the password data.  An empty shell field is
 	 * legal, and means /bin/sh.

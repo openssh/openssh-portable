@@ -1,5 +1,8 @@
 20040911
  - (djm) [ssh-agent.c] unifdef some cygwin code; ok dtucker@
+ - (dtucker) [auth-pam.c auth-pam.h session.c] Bug #890: Send output from
+   failing PAM session modules to user then exit, similar to the way
+   /etc/nologin is handled.  ok djm@
 
 20040830
  - (dtucker) [session.c openbsd-compat/bsd-cygwin_util.{c,h}] Bug #915: only
@@ -1719,4 +1722,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3540 2004/09/11 05:18:05 djm Exp $
+$Id: ChangeLog,v 1.3541 2004/09/11 12:17:26 dtucker Exp $
