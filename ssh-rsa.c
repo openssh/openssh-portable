@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-rsa.c,v 1.12 2001/11/07 22:10:28 markus Exp $");
+RCSID("$OpenBSD: ssh-rsa.c,v 1.13 2001/11/10 13:22:42 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -54,7 +54,7 @@ ssh_rsa_sign(
 		error("ssh_rsa_sign: no RSA key");
 		return -1;
 	}
-        if (datafellows & SSH_BUG_SIGBLOB) {
+	if (datafellows & SSH_BUG_SIGBLOB) {
 		error("ssh_rsa_sign: SSH_BUG_SIGBLOB not supported");
 		return -1;
 	}
@@ -128,7 +128,7 @@ ssh_rsa_verify(
 		error("ssh_rsa_verify: no RSA key");
 		return -1;
 	}
-        if (datafellows & SSH_BUG_SIGBLOB) {
+	if (datafellows & SSH_BUG_SIGBLOB) {
 		error("ssh_rsa_verify: SSH_BUG_SIGBLOB not supported");
 		return -1;
 	}
