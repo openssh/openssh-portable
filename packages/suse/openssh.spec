@@ -1,6 +1,6 @@
 Summary: OpenSSH, a free Secure Shell (SSH) implementation
 Name: openssh
-Version: 1.2pre15
+Version: 1.2pre16
 Release: 1
 Source0: openssh-%{version}.tar.gz
 Copyright: BSD
@@ -8,13 +8,17 @@ Group: Applications/Internet
 BuildRoot: /tmp/openssh-%{version}-buildroot
 Obsoletes: ssh
 #
-# building prerequisites -- stuff for TCP Wrappers and Gnome
-# (This only works for RPM 2.95 and newer.)
+# (Build[ing] Prereq[uisites] only work for RPM 2.95 and newer.)
+# building prerequisites -- stuff for
+#   OpenSSL (openssl-devel),
+#   TCP Wrappers (nkitb),
+#   and Gnome (glibdev, gtkdev, and gnlibsd)
 #
-#BuildPrereq: nkitb
-#BuildPrereq: glibdev
-#BuildPrereq: gtkdev
-#BuildPrereq: gnlibsd
+BuildPrereq: openssl-devel
+BuildPrereq: nkitb
+BuildPrereq: glibdev
+BuildPrereq: gtkdev
+BuildPrereq: gnlibsd
 
 %package clients
 Summary: OpenSSH Secure Shell protocol clients
@@ -93,6 +97,16 @@ patented algorithms to seperate libraries (OpenSSL).
 This package contains the GNOME passphrase dialog.
 
 %changelog
+* Wed Nov 24 1999 Chris Saia <csaia@wtower.com>
+- Removed patches that included /etc/pam.d/sshd, /sbin/init.d/rc.sshd, and
+  /var/adm/fillup-templates/rc.config.sshd, since Damien merged these into
+  his released tarfile
+- Changed permissions on ssh_config in the install procedure to 644 from 600
+  even though it was correct in the %files section and thus right in the RPMs
+- Postinstall script for the server now only prints "Generating SSH host
+  key..." if we need to actually do this, in order to eliminate a confusing
+  message if an SSH host key is already in place
+- Marked all manual pages as %doc(umentation)
 * Mon Nov 22 1999 Chris Saia <csaia@wtower.com>
 - Added flag to configure daemon with TCP Wrappers support
 - Added building prerequisites (works in RPM 3.0 and newer)
@@ -121,39 +135,35 @@ This package contains the GNOME passphrase dialog.
 - Initial RPMification, based on Jan "Yenya" Kasprzak's <kas@fi.muni.cz> spec.
 
 %prep
-
 %setup
 
 %build
-
 CFLAGS="$RPM_OPT_FLAGS" \
-	./configure --prefix=/usr --sysconfdir=/etc/ssh --with-gnome-askpass --with-tcp-wrappers
-
+./configure --prefix=/usr --sysconfdir=/etc/ssh --with-gnome-askpass \
+            --with-tcp-wrappers
 make
 
 %install
 rm -rf $RPM_BUILD_ROOT
 make install prefix="$RPM_BUILD_ROOT/usr"
-
 install -d $RPM_BUILD_ROOT/etc/ssh/
 install -d $RPM_BUILD_ROOT/etc/pam.d/
 install -d $RPM_BUILD_ROOT/sbin/init.d/
-install -d $RPM_BUILD_ROOT/sbin/init.d/rc2.d/
-install -d $RPM_BUILD_ROOT/sbin/init.d/rc3.d/
+install -d $RPM_BUILD_ROOT/var/adm/fillup-templates
 install -m644 sshd.pam.generic $RPM_BUILD_ROOT/etc/pam.d/sshd
 install -m744 packages/suse/rc.sshd $RPM_BUILD_ROOT/sbin/init.d/sshd
-install -m600 ssh_config $RPM_BUILD_ROOT/etc/ssh/ssh_config
+install -m644 ssh_config $RPM_BUILD_ROOT/etc/ssh/ssh_config
 install -m600 sshd_config $RPM_BUILD_ROOT/etc/ssh/sshd_config
 ln -s ../../sbin/init.d/sshd $RPM_BUILD_ROOT/usr/sbin/rcsshd
-install -d $RPM_BUILD_ROOT/var/adm/fillup-templates
-cp packages/suse/rc.config.sshd $RPM_BUILD_ROOT/var/adm/fillup-templates
+install -m744 packages/suse/rc.config.sshd \
+   $RPM_BUILD_ROOT/var/adm/fillup-templates
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %post server
-if [ "$1" = 0 ]; then
-  echo "Creating SSH stop/start scripts in rc directories..."
+if [ "$1" = 1 ]; then
+  echo "Creating SSH stop/start scripts in the rc directories..."
   ln -s ../sshd /sbin/init.d/rc2.d/K20sshd
   ln -s ../sshd /sbin/init.d/rc2.d/S20sshd
   ln -s ../sshd /sbin/init.d/rc3.d/K20sshd
@@ -167,21 +177,22 @@ else
   echo "Update /etc/rc.config by hand from the following template file:"
   echo "  /var/adm/fillup-templates/rc.config.sshd"
 fi
-echo "Generating SSH host key..."
 if [ ! -f /etc/ssh/ssh_host_key -o ! -s /etc/ssh/ssh_host_key ]; then
+        echo "Generating SSH host key..."
 	/usr/bin/ssh-keygen -b 1024 -f /etc/ssh/ssh_host_key -N '' >&2
 fi
 if test -r /var/run/sshd.pid
 then
+        echo "Restarting the running SSH daemon..."
 	/usr/sbin/rcsshd restart >&2
 fi
 
 %preun server
 if [ "$1" = 0 ]
 then
-        echo "Stopping SSH..."
+        echo "Stopping the SSH daemon..."
 	/usr/sbin/rcsshd stop >&2
-	echo "Removing SSH stop/start scripts from rc directories..."
+	echo "Removing SSH stop/start scripts from the rc directories..."
         rm /sbin/init.d/rc2.d/K20sshd
         rm /sbin/init.d/rc2.d/S20sshd
         rm /sbin/init.d/rc3.d/K20sshd
@@ -194,8 +205,8 @@ fi
 %doc RFC.nroff TODO UPGRADING
 %attr(0755,root,root) /usr/bin/ssh-keygen
 %attr(0755,root,root) /usr/bin/scp
-%attr(0644,root,root) /usr/man/man1/ssh-keygen.1
-%attr(0644,root,root) /usr/man/man1/scp.1
+%attr(0644,root,root) %doc /usr/man/man1/ssh-keygen.1
+%attr(0644,root,root) %doc /usr/man/man1/scp.1
 %attr(0755,root,root) %dir /etc/ssh
 
 %files clients
@@ -203,19 +214,19 @@ fi
 %attr(4755,root,root) /usr/bin/ssh
 %attr(0755,root,root) /usr/bin/ssh-agent
 %attr(0755,root,root) /usr/bin/ssh-add
-%attr(0644,root,root) /usr/man/man1/ssh.1
-%attr(0644,root,root) /usr/man/man1/ssh-agent.1
-%attr(0644,root,root) /usr/man/man1/ssh-add.1
-%attr(0644,root,root) %config(noreplace) /etc/ssh/ssh_config
+%attr(0644,root,root) %doc /usr/man/man1/ssh.1
+%attr(0644,root,root) %doc /usr/man/man1/ssh-agent.1
+%attr(0644,root,root) %doc /usr/man/man1/ssh-add.1
+%attr(0644,root,root) %config /etc/ssh/ssh_config
 %attr(-,root,root) /usr/bin/slogin
-%attr(-,root,root) /usr/man/man1/slogin.1
+%attr(-,root,root) %doc /usr/man/man1/slogin.1
 
 %files server
 %defattr(-,root,root)
 %attr(0755,root,root) /usr/sbin/sshd
-%attr(0644,root,root) /usr/man/man8/sshd.8
-%attr(0600,root,root) %config(noreplace) /etc/ssh/sshd_config
-%attr(0644,root,root) %config(noreplace) /etc/pam.d/sshd
+%attr(0644,root,root) %doc /usr/man/man8/sshd.8
+%attr(0600,root,root) %config /etc/ssh/sshd_config
+%attr(0644,root,root) %config /etc/pam.d/sshd
 %attr(0755,root,root) %config /sbin/init.d/sshd
 %attr(-,root,root) /usr/sbin/rcsshd
 %attr(0644,root,root) /var/adm/fillup-templates/rc.config.sshd
