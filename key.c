@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: key.c,v 1.17 2001/02/04 15:32:24 stevesk Exp $");
+RCSID("$OpenBSD: key.c,v 1.18 2001/03/11 13:25:36 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -530,7 +530,7 @@ key_type_from_name(char *name)
 	} else if (strcmp(name, "ssh-dss") == 0){
 		return KEY_DSA;
 	}
-	debug("key_type_from_name: unknown key type '%s'", name);
+	debug2("key_type_from_name: unknown key type '%s'", name);
 	return KEY_UNSPEC;
 }
 

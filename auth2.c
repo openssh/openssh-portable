@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.45 2001/03/04 01:46:29 djm Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.46 2001/03/11 13:25:36 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -688,5 +688,7 @@ user_key_allowed(struct passwd *pw, Key *key)
 	restore_uid();
 	fclose(f);
 	key_free(found);
+	if (!found_key)
+		debug2("key not found");
 	return found_key;
 }
