@@ -17,6 +17,7 @@
    routines, originally reported by robvdwal at sara.nl.
  - (dtucker) [ssh.c] Prevent null pointer deref in port forwarding debug
    message on some platforms.  Patch from pete at seebeyond.com via djm.
+ - (dtucker) [monitor.c] Remaining part of fix for bug #1006.
 
 20050329
  - (dtucker) [contrib/aix/buildbff.sh] Bug #1005: Look up only the user we're
@@ -2407,4 +2408,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3733 2005/03/31 11:51:54 dtucker Exp $
+$Id: ChangeLog,v 1.3734 2005/03/31 13:52:04 dtucker Exp $

@@ -310,6 +310,8 @@ monitor_child_preauth(Authctxt *_authctxt, struct monitor *pmonitor)
 	authctxt = _authctxt;
 	memset(authctxt, 0, sizeof(*authctxt));
 
+	authctxt->loginmsg = &loginmsg;
+
 	if (compat20) {
 		mon_dispatch = mon_dispatch_proto20;
 
