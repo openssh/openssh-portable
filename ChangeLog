@@ -4,6 +4,7 @@
      [servconf.c sshd.8 sshd_config.5]
      default LoginGraceTime to 2m; 1m may be too short for slow systems.
      ok markus@
+ - (djm) Merge openssh-TODO.patch from Redhat (null) beta
 
 20020903
  - (djm) Patch from itojun@ for Darwin OS: test getaddrinfo, reorder libcrypt
@@ -1604,4 +1605,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2445 2002/09/05 04:35:14 djm Exp $
+$Id: ChangeLog,v 1.2446 2002/09/05 06:32:02 djm Exp $
