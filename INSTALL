@@ -139,6 +139,11 @@ $DISPLAY environment variable. Some broken systems need this.
 --with-default-path=PATH allows you to specify a default $PATH for sessions
 started by sshd.
 
+--with-pid-dir=PATH specifies the directory in which the ssh.pid file is
+created.
+
+--with-xauth=PATH specifies the location of the xauth binary
+
 --with-dante[=DIR] will enable Dante SOCKS library support. If the Dante
 libsocks library isn't installed in a library searched by the compiler,
 add the directory name as the option.

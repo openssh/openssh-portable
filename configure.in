@@ -24,8 +24,8 @@ AC_ARG_WITH(rsh,
 	]
 )
 
-AC_ARG_WITH(xauth-path,
-	[  --with-xauth-path=PATH  Specify path to xauth program ],
+AC_ARG_WITH(xauth,
+	[  --with-xauth=PATH       Specify path to xauth program ],
 	[
 		if test "x$withval" != "$xno" ; then
 			AC_DEFINE_UNQUOTED(XAUTH_PATH, "$withval")
@@ -647,6 +647,15 @@ AC_ARG_WITH(default-path,
 	[
 		if test "x$withval" != "xno" ; then	
 			AC_DEFINE_UNQUOTED(USER_PATH, "$withval")
+		fi
+	]
+)
+
+AC_ARG_WITH(pid-dir,
+	[  --with-pid-dir=PATH     Specify location of ssh.pid file],
+	[
+		if test "x$withval" != "xno" ; then	
+			AC_DEFINE_UNQUOTED(PID_DIR, "$withval")
 		fi
 	]
 )

@@ -132,6 +132,9 @@
 /* Specify default $PATH */
 #undef USER_PATH
 
+/* Specify location of ssh.pid */
+#undef PID_DIR
+
 @BOTTOM@
 
 /* ******************* Shouldn't need to edit below this line ************** */

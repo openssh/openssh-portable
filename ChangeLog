@@ -1,3 +1,8 @@
+20000116
+ - Renamed --with-xauth-path to --with-xauth
+ - Added --with-pid-dir option
+ - Released 1.2.1pre26
+
 20000115
  - Add --with-xauth-path configure directive and explicit test for
    /usr/openwin/bin/xauth for Solaris systems. Report from Anders 
