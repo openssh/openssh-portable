@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.125 2001/05/20 17:20:35 markus Exp $
+.\" $OpenBSD: sshd.8,v 1.126 2001/06/11 16:04:38 markus Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -341,7 +341,7 @@ set-up. The following tokens are defined; %% is replaces by a literal '%',
 %u is replaced by the username of that user.
 After expansion,
 .Cm AuthorizedKeysFile
-is taken to be an absolute path or one realtive to the user's home
+is taken to be an absolute path or one relative to the user's home
 directory.
 The default is
 .Dq .ssh/authorized_keys
@@ -355,7 +355,7 @@ set-up. The following tokens are defined; %% is replaces by a literal '%',
 %u is replaced by the username of that user.
 After expansion,
 .Cm AuthorizedKeysFile2
-is taken to be an absolute path or one realtive to the user's home
+is taken to be an absolute path or one relative to the user's home
 directory.
 The default is
 .Dq .ssh/authorized_keys2

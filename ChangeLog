@@ -8,6 +8,9 @@
    - markus@cvs.openbsd.org 2001/06/11 10:18:24
      [session.c]
      reset pointer to NULL after xfree(); report from solar@openwall.com
+   - markus@cvs.openbsd.org 2001/06/11 16:04:38
+     [sshd.8]
+     typo; bdubreuil@crrel.usace.army.mil
 
 20010611
  - (bal) NeXT/MacOS X lack libgen.h and dirname().  Patch by Mark Miller 
@@ -5613,4 +5616,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1279 2001/06/12 00:21:34 mouring Exp $
+$Id: ChangeLog,v 1.1280 2001/06/12 00:23:12 mouring Exp $
