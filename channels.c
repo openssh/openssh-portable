@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.178 2002/06/24 14:33:27 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.179 2002/06/26 08:55:02 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -229,6 +229,9 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 		/* There are no free slots.  Take last+1 slot and expand the array.  */
 		found = channels_alloc;
 		channels_alloc += 10;
+		if (channels_alloc > 10000)
+			fatal("channel_new: internal error: channels_alloc %d "
+			    "too big.", channels_alloc);
 		debug2("channel: expanding %d", channels_alloc);
 		channels = xrealloc(channels, channels_alloc * sizeof(Channel *));
 		for (i = found; i < channels_alloc; i++)

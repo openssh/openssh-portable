@@ -42,6 +42,9 @@
    - markus@cvs.openbsd.org 2002/06/26 08:54:18
      [buffer.c]
      limit append to 1MB and buffers to 10MB
+   - markus@cvs.openbsd.org 2002/06/26 08:55:02
+     [channels.c]
+     limit # of channels to 10000
 
 20020625
  - (stevesk) [INSTALL acconfig.h configure.ac defines.h] remove --with-rsh
@@ -1141,4 +1144,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2291 2002/06/26 09:14:25 djm Exp $
+$Id: ChangeLog,v 1.2292 2002/06/26 09:14:43 djm Exp $
