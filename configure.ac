@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.125 2003/06/03 00:14:28 djm Exp $
+# $Id: configure.ac,v 1.126 2003/06/04 23:53:31 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -439,7 +439,7 @@ AC_ARG_WITH(libs,
 )
 
 # Checks for header files.
-AC_CHECK_HEADERS(bstring.h crypt.h endian.h floatingpoint.h \
+AC_CHECK_HEADERS(bstring.h crypt.h endian.h features.h floatingpoint.h \
 	getopt.h glob.h ia.h lastlog.h libgen.h limits.h login.h \
 	login_cap.h maillock.h netdb.h netgroup.h \
 	netinet/in_systm.h paths.h pty.h readpassphrase.h \
@@ -659,17 +659,18 @@ AC_ARG_WITH(tcp-wrappers,
 
 dnl    Checks for library functions. Please keep in alphabetical order
 AC_CHECK_FUNCS(\
-	arc4random __b64_ntop b64_ntop __b64_pton b64_pton basename bcopy \
-	bindresvport_sa clock fchmod fchown freeaddrinfo futimes \
+	arc4random __b64_ntop b64_ntop __b64_pton b64_pton basename \
+	bcopy bindresvport_sa clock fchmod fchown freeaddrinfo futimes \
 	gai_strerror getaddrinfo getcwd getgrouplist getnameinfo getopt \
 	getpeereid _getpty getrlimit getrusage getttyent glob inet_aton \
 	inet_ntoa inet_ntop innetgr login_getcapbool md5_crypt memmove \
 	mkdtemp mmap ngetaddrinfo nsleep ogetaddrinfo openlog_r openpty \
 	pstat readpassphrase realpath recvmsg rresvport_af sendmsg \
 	setdtablesize setegid setenv seteuid setgroups setlogin setpcred \
-	setproctitle setresgid setreuid setrlimit setsid setvbuf sigaction \
-	sigvec snprintf socketpair strerror strlcat strlcpy strmode strnvis \
-	sysconf tcgetpgrp truncate utimes vhangup vsnprintf waitpid \
+	setproctitle setregid setresgid setresuid setreuid setrlimit \
+	setsid setvbuf sigaction sigvec snprintf socketpair strerror \
+	strlcat strlcpy strmode strnvis sysconf tcgetpgrp truncate utimes \
+	vhangup vsnprintf waitpid \
 )
 
 AC_SEARCH_LIBS(nanosleep, rt posix4, AC_DEFINE(HAVE_NANOSLEEP))

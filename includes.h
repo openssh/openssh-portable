@@ -68,6 +68,7 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #ifdef HAVE_NEXT
 #  include <libc.h>
 #endif
+#define __USE_GNU /* before unistd.h, activate extra prototypes for glibc */
 #include <unistd.h> /* For STDIN_FILENO, etc */
 #include <termios.h> /* Struct winsize */
 

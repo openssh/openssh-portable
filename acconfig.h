@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.155 2003/06/03 00:14:28 djm Exp $ */
+/* $Id: acconfig.h,v 1.156 2003/06/04 23:53:31 djm Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -7,6 +7,9 @@
 /* Please make your changes there */
 
 @TOP@
+
+/* Define if your platform breaks doing a seteuid before a setuid */
+#undef SETEUID_BREAKS_SETUID
 
 /* Define to a Set Process Title type if your system is */
 /* supported by bsd-setproctitle.c */
