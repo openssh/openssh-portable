@@ -98,7 +98,7 @@ then
   echo
   echo "There are still ssh processes running. Please shut them down first."
   echo
-  exit 1
+  #exit 1
 fi
 
 # Check for ${SYSCONFDIR} directory
@@ -234,9 +234,9 @@ then
 # Site-wide defaults for various options
 
 # Host *
-#   ForwardAgent yes
-#   ForwardX11 yes
-#   RhostsAuthentication yes
+#   ForwardAgent no
+#   ForwardX11 no
+#   RhostsAuthentication no
 #   RhostsRSAAuthentication yes
 #   RSAAuthentication yes
 #   PasswordAuthentication yes
@@ -244,22 +244,14 @@ then
 #   UseRsh no
 #   BatchMode no
 #   CheckHostIP yes
-#   StrictHostKeyChecking no
+#   StrictHostKeyChecking yes
+#   IdentityFile ~/.ssh/identity
+#   IdentityFile ~/.ssh/id_dsa
+#   IdentityFile ~/.ssh/id_rsa
 #   Port 22
 #   Protocol 2,1
-#   Cipher 3des
+#   Cipher blowfish
 #   EscapeChar ~
-
-# Be paranoid by default
-Host *
-        ForwardAgent no
-        ForwardX11 no
-        FallBackToRsh no
-
-# Try authentification with the following identities
-        IdentityFile ~/.ssh/identity
-        IdentityFile ~/.ssh/id_rsa
-        IdentityFile ~/.ssh/id_dsa
 EOF
   if [ "$port_number" != "22" ]
   then
@@ -288,60 +280,69 @@ if [ ! -f "${SYSCONFDIR}/sshd_config" ]
 then
   echo "Generating ${SYSCONFDIR}/sshd_config file"
   cat > ${SYSCONFDIR}/sshd_config << EOF
-# This is ssh server systemwide configuration file.
+# This is the sshd server system-wide configuration file.  See sshd(8)
+# for more information.
 
 Port $port_number
-#
-Protocol 2,1
-ListenAddress 0.0.0.0
+#Protocol 2,1
+#ListenAddress 0.0.0.0
 #ListenAddress ::
-#
-# Uncomment the following lines according to the used authentication
+
+# HostKey for protocol version 1
 HostKey /etc/ssh_host_key
+# HostKeys for protocol version 2
 HostKey /etc/ssh_host_rsa_key
 HostKey /etc/ssh_host_dsa_key
-ServerKeyBits 768
-LoginGraceTime 600
+
+# Lifetime and size of ephemeral version 1 server ke
 KeyRegenerationInterval 3600
-PermitRootLogin yes
-#
-# Don't read ~/.rhosts and ~/.shosts files
-IgnoreRhosts yes
-# Uncomment if you don't trust ~/.ssh/known_hosts for RhostsRSAAuthentication
-#IgnoreUserKnownHosts yes
-
-#
-# The following setting overrides permission checks on host key files
-# and directories. For security reasons set this to "yes" when running
-# NT/W2K, NTFS and CYGWIN=ntsec.
-StrictModes no
-
-X11Forwarding no
-X11DisplayOffset 10
-PrintMotd yes
-KeepAlive yes
+ServerKeyBits 768
 
 # Logging
 SyslogFacility AUTH
 LogLevel INFO
 #obsoletes QuietMode and FascistLogging
 
-RhostsAuthentication no
-#
-# For this to work you will also need host keys in /etc/ssh_known_hosts
-RhostsRSAAuthentication no
+# Authentication:
+
+LoginGraceTime 600
+PermitRootLogin yes
+# The following setting overrides permission checks on host key files
+# and directories. For security reasons set this to "yes" when running
+# NT/W2K, NTFS and CYGWIN=ntsec.
+StrictModes no
 
 RSAAuthentication yes
+PubkeyAuthentication yes
+#AuthorizedKeysFile     %h/.ssh/authorized_keys
 
+# rhosts authentication should not be used
+RhostsAuthentication no
+# Don't read ~/.rhosts and ~/.shosts files
+IgnoreRhosts yes
+# For this to work you will also need host keys in /etc/ssh_known_hosts
+RhostsRSAAuthentication no
+# similar for protocol version 2
+HostbasedAuthentication no
+# Uncomment if you don't trust ~/.ssh/known_hosts for RhostsRSAAuthentication
+#IgnoreUserKnownHosts yes
+
+# To disable tunneled clear text passwords, change to no here!
 PasswordAuthentication yes
 PermitEmptyPasswords no
 
-CheckMail no
-UseLogin no
+X11Forwarding no
+X11DisplayOffset 10
+PrintMotd yes
+#PrintLastLog no
+KeepAlive yes
+#UseLogin no
 
-#Uncomment if you want to enable sftp
-#Subsystem      sftp    /usr/sbin/sftp-server
 #MaxStartups 10:30:60
+#Banner /etc/issue.net
+#ReverseMappingCheck yes
+
+Subsystem      sftp    /usr/sbin/sftp-server
 EOF
 fi
 

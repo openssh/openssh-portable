@@ -1,5 +1,6 @@
 20011112
  - (djm) Makefile correctness fix from Mark D. Baushke <mdb@juniper.net>
+ - (djm) Cygwin config patch from Corinna Vinschen <vinschen@redhat.com>
 
 20011109
  - (stevesk) auth-pam.c: use do_pam_authenticate(PAM_DISALLOW_NULL_AUTHTOK)
@@ -6809,4 +6810,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1633 2001/11/11 23:34:22 djm Exp $
+$Id: ChangeLog,v 1.1634 2001/11/11 23:36:21 djm Exp $
