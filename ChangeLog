@@ -52,7 +52,10 @@
    - markus@cvs.openbsd.org 2002/02/15 23:11:26
      [session.c]
      split do_child(), ok mouring@
-
+   - markus@cvs.openbsd.org 2002/02/16 00:51:44
+     [session.c]
+     typo
+ - (bal) CVS ID sync since the last two patches were merged mistakenly
 
 20020218
  - (tim) newer config.guess from ftp://ftp.gnu.org/gnu/config/config.guess
@@ -7650,4 +7653,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1868 2002/02/19 21:50:43 mouring Exp $
+$Id: ChangeLog,v 1.1869 2002/02/19 21:58:19 mouring Exp $
