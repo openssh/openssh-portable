@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.51 2001/02/13 21:51:09 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.52 2001/02/28 08:45:39 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -279,10 +279,8 @@ client_check_initial_eof_on_stdin(void)
 			 */
 			if ((u_char) buf[0] == escape_char)
 				escape_pending = 1;
-			else {
+			else
 				buffer_append(&stdin_buffer, buf, 1);
-				stdin_bytes += 1;
-			}
 		}
 		leave_non_blocking();
 	}
@@ -310,6 +308,7 @@ client_make_packets_from_stdin_data(void)
 		packet_put_string(buffer_ptr(&stdin_buffer), len);
 		packet_send();
 		buffer_consume(&stdin_buffer, len);
+		stdin_bytes += len;
 		/* If we have a pending EOF, send it now. */
 		if (stdin_eof && buffer_len(&stdin_buffer) == 0) {
 			packet_start(SSH_CMSG_EOF);
@@ -420,7 +419,6 @@ client_wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp,
 		/* Note: we might still have data in the buffers. */
 		snprintf(buf, sizeof buf, "select: %s\r\n", strerror(errno));
 		buffer_append(&stderr_buffer, buf, strlen(buf));
-		stderr_bytes += strlen(buf);
 		quit_pending = 1;
 	}
 }
@@ -486,7 +484,6 @@ client_process_net_input(fd_set * readset)
 			snprintf(buf, sizeof buf, "Connection to %.300s closed by remote host.\r\n",
 				 host);
 			buffer_append(&stderr_buffer, buf, strlen(buf));
-			stderr_bytes += strlen(buf);
 			quit_pending = 1;
 			return;
 		}
@@ -502,7 +499,6 @@ client_process_net_input(fd_set * readset)
 			snprintf(buf, sizeof buf, "Read from remote host %.300s: %.100s\r\n",
 				 host, strerror(errno));
 			buffer_append(&stderr_buffer, buf, strlen(buf));
-			stderr_bytes += strlen(buf);
 			quit_pending = 1;
 			return;
 		}
@@ -536,7 +532,6 @@ process_escapes(Buffer *bin, Buffer *bout, Buffer *berr, char *buf, int len)
 				/* Terminate the connection. */
 				snprintf(string, sizeof string, "%c.\r\n", escape_char);
 				buffer_append(berr, string, strlen(string));
-				/*stderr_bytes += strlen(string); XXX*/
 
 				quit_pending = 1;
 				return -1;
@@ -546,7 +541,6 @@ process_escapes(Buffer *bin, Buffer *bout, Buffer *berr, char *buf, int len)
 				/* Print a message to that effect to the user. */
 				snprintf(string, sizeof string, "%c^Z [suspend ssh]\r\n", escape_char);
 				buffer_append(berr, string, strlen(string));
-				/*stderr_bytes += strlen(string); XXX*/
 
 				/* Restore terminal modes and suspend. */
 				client_suspend_self(bin, bout, berr);
@@ -656,7 +650,6 @@ Supported escape sequences:\r\n\
 void
 client_process_input(fd_set * readset)
 {
-	int ret;
 	int len;
 	char buf[8192];
 
@@ -673,7 +666,6 @@ client_process_input(fd_set * readset)
 			if (len < 0) {
 				snprintf(buf, sizeof buf, "read: %.100s\r\n", strerror(errno));
 				buffer_append(&stderr_buffer, buf, strlen(buf));
-				stderr_bytes += strlen(buf);
 			}
 			/* Mark that we have seen EOF. */
 			stdin_eof = 1;
@@ -694,16 +686,14 @@ client_process_input(fd_set * readset)
 			 * Just append the data to buffer.
 			 */
 			buffer_append(&stdin_buffer, buf, len);
-			stdin_bytes += len;
 		} else {
 			/*
 			 * Normal, successful read.  But we have an escape character
 			 * and have to process the characters one by one.
 			 */
-			ret = process_escapes(&stdin_buffer, &stdout_buffer, &stderr_buffer, buf, len);
-			if (ret == -1)
+			if (process_escapes(&stdin_buffer, &stdout_buffer,
+			    &stderr_buffer, buf, len) == -1)
 				return;
-			stdout_bytes += ret;
 		}
 	}
 }
@@ -729,13 +719,13 @@ client_process_output(fd_set * writeset)
 				 */
 				snprintf(buf, sizeof buf, "write stdout: %.50s\r\n", strerror(errno));
 				buffer_append(&stderr_buffer, buf, strlen(buf));
-				stderr_bytes += strlen(buf);
 				quit_pending = 1;
 				return;
 			}
 		}
 		/* Consume printed data from the buffer. */
 		buffer_consume(&stdout_buffer, len);
+		stdout_bytes += len; 
 	}
 	/* Write buffered output to stderr. */
 	if (FD_ISSET(fileno(stderr), writeset)) {
@@ -753,6 +743,7 @@ client_process_output(fd_set * writeset)
 		}
 		/* Consume printed characters from the buffer. */
 		buffer_consume(&stderr_buffer, len);
+		stderr_bytes += len; 
 	}
 }
 
@@ -939,7 +930,6 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 	if (have_pty && options.log_level != SYSLOG_LEVEL_QUIET) {
 		snprintf(buf, sizeof buf, "Connection to %.64s closed.\r\n", host);
 		buffer_append(&stderr_buffer, buf, strlen(buf));
-		stderr_bytes += strlen(buf);
 	}
 	/* Output any buffered data for stdout. */
 	while (buffer_len(&stdout_buffer) > 0) {
@@ -950,6 +940,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 			break;
 		}
 		buffer_consume(&stdout_buffer, len);
+		stdout_bytes += len; 
 	}
 
 	/* Output any buffered data for stderr. */
@@ -961,6 +952,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 			break;
 		}
 		buffer_consume(&stderr_buffer, len);
+		stderr_bytes += len; 
 	}
 
 	if (have_pty)
@@ -995,7 +987,6 @@ client_input_stdout_data(int type, int plen, void *ctxt)
 	char *data = packet_get_string(&data_len);
 	packet_integrity_check(plen, 4 + data_len, type);
 	buffer_append(&stdout_buffer, data, data_len);
-	stdout_bytes += data_len;
 	memset(data, 0, data_len);
 	xfree(data);
 }
@@ -1006,7 +997,6 @@ client_input_stderr_data(int type, int plen, void *ctxt)
 	char *data = packet_get_string(&data_len);
 	packet_integrity_check(plen, 4 + data_len, type);
 	buffer_append(&stderr_buffer, data, data_len);
-	stdout_bytes += data_len;
 	memset(data, 0, data_len);
 	xfree(data);
 }
