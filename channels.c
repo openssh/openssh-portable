@@ -39,14 +39,13 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.174 2002/06/09 13:32:01 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.175 2002/06/10 22:28:41 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
 #include "ssh2.h"
 #include "packet.h"
 #include "xmalloc.h"
-#include "uidswap.h"
 #include "log.h"
 #include "misc.h"
 #include "channels.h"
@@ -128,10 +127,6 @@ static u_int x11_fake_data_len;
 /* -- agent forwarding */
 
 #define	NUM_SOCKS	10
-
-/* Name and directory of socket for authentication agent forwarding. */
-static char *auth_sock_name = NULL;
-static char *auth_sock_dir = NULL;
 
 /* AF_UNSPEC or AF_INET or AF_INET6 */
 static int IPv4or6 = AF_UNSPEC;
@@ -2702,105 +2697,6 @@ auth_request_forwarding(void)
 	packet_start(SSH_CMSG_AGENT_REQUEST_FORWARDING);
 	packet_send();
 	packet_write_wait();
-}
-
-/*
- * Returns the name of the forwarded authentication socket.  Returns NULL if
- * there is no forwarded authentication socket.  The returned value points to
- * a static buffer.
- */
-
-char *
-auth_get_socket_name(void)
-{
-	return auth_sock_name;
-}
-
-/* removes the agent forwarding socket */
-
-void
-auth_sock_cleanup_proc(void *_pw)
-{
-	struct passwd *pw = _pw;
-
-	if (auth_sock_name) {
-		temporarily_use_uid(pw);
-		unlink(auth_sock_name);
-		rmdir(auth_sock_dir);
-		auth_sock_name = NULL;
-		restore_uid();
-	}
-}
-
-/*
- * This is called to process SSH_CMSG_AGENT_REQUEST_FORWARDING on the server.
- * This starts forwarding authentication requests.
- */
-
-int
-auth_input_request_forwarding(struct passwd * pw)
-{
-	Channel *nc;
-	int sock;
-	struct sockaddr_un sunaddr;
-
-	if (auth_get_socket_name() != NULL) {
-		error("authentication forwarding requested twice.");
-		return 0;
-	}
-
-	/* Temporarily drop privileged uid for mkdir/bind. */
-	temporarily_use_uid(pw);
-
-	/* Allocate a buffer for the socket name, and format the name. */
-	auth_sock_name = xmalloc(MAXPATHLEN);
-	auth_sock_dir = xmalloc(MAXPATHLEN);
-	strlcpy(auth_sock_dir, "/tmp/ssh-XXXXXXXX", MAXPATHLEN);
-
-	/* Create private directory for socket */
-	if (mkdtemp(auth_sock_dir) == NULL) {
-		packet_send_debug("Agent forwarding disabled: "
-		    "mkdtemp() failed: %.100s", strerror(errno));
-		restore_uid();
-		xfree(auth_sock_name);
-		xfree(auth_sock_dir);
-		auth_sock_name = NULL;
-		auth_sock_dir = NULL;
-		return 0;
-	}
-	snprintf(auth_sock_name, MAXPATHLEN, "%s/agent.%d",
-		 auth_sock_dir, (int) getpid());
-
-	/* delete agent socket on fatal() */
-	fatal_add_cleanup(auth_sock_cleanup_proc, pw);
-
-	/* Create the socket. */
-	sock = socket(AF_UNIX, SOCK_STREAM, 0);
-	if (sock < 0)
-		packet_disconnect("socket: %.100s", strerror(errno));
-
-	/* Bind it to the name. */
-	memset(&sunaddr, 0, sizeof(sunaddr));
-	sunaddr.sun_family = AF_UNIX;
-	strlcpy(sunaddr.sun_path, auth_sock_name, sizeof(sunaddr.sun_path));
-
-	if (bind(sock, (struct sockaddr *) & sunaddr, sizeof(sunaddr)) < 0)
-		packet_disconnect("bind: %.100s", strerror(errno));
-
-	/* Restore the privileged uid. */
-	restore_uid();
-
-	/* Start listening on the socket. */
-	if (listen(sock, 5) < 0)
-		packet_disconnect("listen: %.100s", strerror(errno));
-
-	/* Allocate a channel for the authentication agent socket. */
-	nc = channel_new("auth socket",
-	    SSH_CHANNEL_AUTH_SOCKET, sock, sock, -1,
-	    CHAN_X11_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT,
-	    0, xstrdup("auth socket"), 1);
-	strlcpy(nc->path, auth_sock_name, sizeof(nc->path));
-	return 1;
 }
 
 /* This is called to process an SSH_SMSG_AGENT_OPEN message. */

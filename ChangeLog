@@ -25,6 +25,10 @@
      [ssh_config]
      update defaults for RhostsRSAAuthentication and RhostsAuthentication
      here too (all options commented out with default value).
+   - markus@cvs.openbsd.org 2002/06/10 22:28:41
+     [channels.c channels.h session.c]
+     move creation of agent socket to session.c; no need for uidswapping
+     in channel.c.
 
 20020609
  - (bal) OpenBSD CVS Sync
@@ -890,4 +894,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2206 2002/06/11 15:55:01 mouring Exp $
+$Id: ChangeLog,v 1.2207 2002/06/11 15:59:02 mouring Exp $

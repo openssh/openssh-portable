@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.135 2002/05/16 22:09:59 stevesk Exp $");
+RCSID("$OpenBSD: session.c,v 1.136 2002/06/10 22:28:41 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -111,6 +111,93 @@ char *aixloginmsg;
 login_cap_t *lc;
 #endif
 
+/* Name and directory of socket for authentication agent forwarding. */
+static char *auth_sock_name = NULL;
+static char *auth_sock_dir = NULL;
+
+/* removes the agent forwarding socket */
+
+static void
+auth_sock_cleanup_proc(void *_pw)
+{
+	struct passwd *pw = _pw;
+
+	if (auth_sock_name != NULL) {
+		temporarily_use_uid(pw);
+		unlink(auth_sock_name);
+		rmdir(auth_sock_dir);
+		auth_sock_name = NULL;
+		restore_uid();
+	}
+}
+
+static int
+auth_input_request_forwarding(struct passwd * pw)
+{
+	Channel *nc;
+	int sock;
+	struct sockaddr_un sunaddr;
+
+	if (auth_sock_name != NULL) {
+		error("authentication forwarding requested twice.");
+		return 0;
+	}
+
+	/* Temporarily drop privileged uid for mkdir/bind. */
+	temporarily_use_uid(pw);
+
+	/* Allocate a buffer for the socket name, and format the name. */
+	auth_sock_name = xmalloc(MAXPATHLEN);
+	auth_sock_dir = xmalloc(MAXPATHLEN);
+	strlcpy(auth_sock_dir, "/tmp/ssh-XXXXXXXX", MAXPATHLEN);
+
+	/* Create private directory for socket */
+	if (mkdtemp(auth_sock_dir) == NULL) {
+		packet_send_debug("Agent forwarding disabled: "
+		    "mkdtemp() failed: %.100s", strerror(errno));
+		restore_uid();
+		xfree(auth_sock_name);
+		xfree(auth_sock_dir);
+		auth_sock_name = NULL;
+		auth_sock_dir = NULL;
+		return 0;
+	}
+	snprintf(auth_sock_name, MAXPATHLEN, "%s/agent.%d",
+		 auth_sock_dir, (int) getpid());
+
+	/* delete agent socket on fatal() */
+	fatal_add_cleanup(auth_sock_cleanup_proc, pw);
+
+	/* Create the socket. */
+	sock = socket(AF_UNIX, SOCK_STREAM, 0);
+	if (sock < 0)
+		packet_disconnect("socket: %.100s", strerror(errno));
+
+	/* Bind it to the name. */
+	memset(&sunaddr, 0, sizeof(sunaddr));
+	sunaddr.sun_family = AF_UNIX;
+	strlcpy(sunaddr.sun_path, auth_sock_name, sizeof(sunaddr.sun_path));
+
+	if (bind(sock, (struct sockaddr *) & sunaddr, sizeof(sunaddr)) < 0)
+		packet_disconnect("bind: %.100s", strerror(errno));
+
+	/* Restore the privileged uid. */
+	restore_uid();
+
+	/* Start listening on the socket. */
+	if (listen(sock, 5) < 0)
+		packet_disconnect("listen: %.100s", strerror(errno));
+
+	/* Allocate a channel for the authentication agent socket. */
+	nc = channel_new("auth socket",
+	    SSH_CHANNEL_AUTH_SOCKET, sock, sock, -1,
+	    CHAN_X11_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT,
+	    0, xstrdup("auth socket"), 1);
+	strlcpy(nc->path, auth_sock_name, sizeof(nc->path));
+	return 1;
+}
+
+
 void
 do_authenticated(Authctxt *authctxt)
 {
@@ -141,7 +228,7 @@ do_authenticated(Authctxt *authctxt)
 		do_authenticated1(authctxt);
 
 	/* remove agent socket */
-	if (auth_get_socket_name())
+	if (auth_sock_name != NULL)
 		auth_sock_cleanup_proc(authctxt->pw);
 #ifdef KRB4
 	if (options.kerberos_ticket_cleanup)
@@ -948,9 +1035,9 @@ do_setup_env(Session *s, const char *shell)
 	copy_environment(fetch_pam_environment(), &env, &envsize);
 #endif /* USE_PAM */
 
-	if (auth_get_socket_name() != NULL)
+	if (auth_sock_name != NULL)
 		child_set_env(&env, &envsize, SSH_AUTHSOCKET_ENV_NAME,
-		    auth_get_socket_name());
+		    auth_sock_name);
 
 	/* read $HOME/.ssh/environment. */
 	if (!options.use_login) {
