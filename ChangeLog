@@ -1,4 +1,7 @@
 20020506
+ - (djm) Unbreak auth-passwd.c for PAM and SIA
+
+20020506
  - (bal) Fixed auth-passwd.c to resolve PermitEmptyPassword issue
  
 20020501
@@ -528,4 +531,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2092 2002/05/06 23:06:08 mouring Exp $
+$Id: ChangeLog,v 1.2093 2002/05/08 02:18:26 djm Exp $

@@ -89,6 +89,7 @@ extern ServerOptions options;
 int
 auth_password(Authctxt *authctxt, const char *password)
 {
+	struct passwd * pw = authctxt->pw;
 #if defined(USE_PAM)
 	if (*pw->pw_passwd == '\0' && options.permit_empty_passwd == 0)
 		return 0;
@@ -98,7 +99,6 @@ auth_password(Authctxt *authctxt, const char *password)
 		return 0;
 	return auth_sia_password(authctxt, password);
 #else
-	struct passwd * pw = authctxt->pw;
 	char *encrypted_password;
 	char *pw_password;
 	char *salt;
