@@ -680,7 +680,7 @@ ls_file(char *name, struct stat *st)
 	}
 	if (sz == 0)
 		tbuf[0] = '\0';
-	snprintf(buf, sizeof buf, "%s %3d %-8.8s %-8.8s %8lld %s %s", mode,
+	snprintf(buf, sizeof buf, "%s %3d %-8.8s %-8.8s %8llu %s %s", mode,
 	    st->st_nlink, user, group, (long long)st->st_size, tbuf, name);
 	return xstrdup(buf);
 }

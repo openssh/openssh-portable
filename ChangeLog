@@ -61,6 +61,7 @@
  - (bal) fixed sftp-client.c.  Return 'status' instead of '0'  
    (from the OpenBSD tree)
  - (bal) Synced ssh.1 and sshd.8 w/ OpenBSD
+ - (bal) sftp-sever.c  '%8lld' to '%8llu' (OpenBSD Sync)
 
 20010210
  - (djm) Sync sftp and scp stuff from OpenBSD:
@@ -3844,4 +3845,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.728 2001/02/10 22:50:09 mouring Exp $
+$Id: ChangeLog,v 1.729 2001/02/10 23:00:22 mouring Exp $
