@@ -14,6 +14,7 @@
      history
  - (bal) Channels.c and Channels.h -- "Merge Functions, simplify" (draged 
    out of ssh Attic)
+ - (bal) nchan.c CVS ID Update.
 
 20010606
  - OpenBSD CVS Sync
@@ -5525,4 +5526,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1250 2001/06/09 00:41:05 mouring Exp $
+$Id: ChangeLog,v 1.1251 2001/06/09 00:44:44 mouring Exp $
