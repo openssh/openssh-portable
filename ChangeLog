@@ -42,6 +42,9 @@
      [ssh-agent.c]
      don't unlink agent socket when bind() fails, spotted by rich AT
      rich-paul.net, ok markus@
+   - markus@cvs.openbsd.org 2004/10/20 11:48:53
+     [packet.c ssh1.h]
+     disconnect for invalid (out of range) message types.
 
 20041102
  - (dtucker) [configure.ac includes.h] Bug #947: Fix compile error on HP-UX
@@ -1821,4 +1824,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3573 2004/11/05 09:26:49 dtucker Exp $
+$Id: ChangeLog,v 1.3574 2004/11/05 09:27:54 dtucker Exp $
