@@ -24,6 +24,9 @@
      [OVERVIEW auth-rsa.c auth1.c kex.c monitor.c session.c sshconnect1.c
      sshd.c] removed: mpaux.c mpaux.h
      kill some more tiny files; ok deraadt@
+   - djm@cvs.openbsd.org 2004/05/09 01:26:48
+     [kex.c]
+     don't overwrite what we are trying to compute
 
 20040502
  - (dtucker) OpenBSD CVS Sync
@@ -1100,4 +1103,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3348 2004/05/13 06:30:44 dtucker Exp $
+$Id: ChangeLog,v 1.3349 2004/05/13 06:31:48 dtucker Exp $

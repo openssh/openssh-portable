@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.57 2004/05/09 01:19:27 djm Exp $");
+RCSID("$OpenBSD: kex.c,v 1.58 2004/05/09 01:26:48 djm Exp $");
 
 #include <openssl/crypto.h>
 
@@ -504,7 +504,7 @@ derive_ssh1_session_id(BIGNUM *host_modulus, BIGNUM *server_modulus,
 
 	EVP_DigestUpdate(&md, cookie, 8);
 
-	EVP_DigestFinal(&md, id, NULL);
+	EVP_DigestFinal(&md, obuf, NULL);
 	memcpy(id, obuf, 16);
 
 	memset(nbuf, 0, sizeof(nbuf));
