@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.154 2003/09/16 01:52:19 dtucker Exp $
+# $Id: configure.ac,v 1.155 2003/09/16 05:40:49 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -2205,7 +2205,7 @@ AC_ARG_WITH(default-path,
 --with-default-path=PATH has no effect on this system.
 Edit /etc/login.conf instead.])
 		elif test "x$withval" != "xno" ; then	
-			if ! test -z "$external_path_file" ; then
+			if test ! -z "$external_path_file" ; then
 				AC_MSG_WARN([
 --with-default-path=PATH will only be used if PATH is not defined in
 $external_path_file .])
@@ -2217,7 +2217,7 @@ $external_path_file .])
 	[ if test "x$external_path_file" = "x/etc/login.conf" ; then
 		AC_MSG_WARN([Make sure the path to scp is in /etc/login.conf])
 	else
-		if ! test -z "$external_path_file" ; then
+		if test ! -z "$external_path_file" ; then
 			AC_MSG_WARN([
 If PATH is defined in $external_path_file, ensure the path to scp is included,
 otherwise scp will not work.])
@@ -2652,7 +2652,7 @@ echo "   At runtime, sshd will use the path defined in $external_path_file"
 echo "   Make sure the path to scp is present, otherwise scp will not work"
 else
 echo "            sshd default user PATH: $I"
-	if ! test -z "$external_path_file"; then
+	if test ! -z "$external_path_file"; then
 echo "   (If PATH is set in $external_path_file it will be used instead. If"
 echo "   used, ensure the path to scp is present, otherwise scp will not work.)"
 	fi

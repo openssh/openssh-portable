@@ -7,6 +7,7 @@
    - deraadt@cvs.openbsd.org 2003/09/16 03:03:47
      [buffer.c]
      do not expand buffer before attempting to reallocate it; markus ok
+ - (tim) [configure.ac] Fix portability issues.
 
 20030914
  - (dtucker) [Makefile regress/Makefile] Fix portability issues preventing
@@ -1103,4 +1104,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2994 2003/09/16 03:31:03 mouring Exp $
+$Id: ChangeLog,v 1.2995 2003/09/16 05:40:49 tim Exp $
