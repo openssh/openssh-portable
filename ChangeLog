@@ -26,6 +26,9 @@
   - markus@cvs.openssh.org 2001/02/13 22:49:40
     [auth1.c auth2.c]
     setproctitle(user) only if getpwnam succeeds
+  - markus@cvs.openbsd.org 2001/02/12 23:26:20
+    [sshd.c]
+    missing memset; from solar@openwall.com
 
 20010214
  - (djm) Don't try to close PAM session or delete credentials if the
@@ -3954,4 +3957,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.766 2001/02/15 03:14:11 mouring Exp $
+$Id: ChangeLog,v 1.767 2001/02/15 03:17:13 mouring Exp $
