@@ -41,10 +41,6 @@ RCSID("$OpenBSD: cipher.c,v 1.52 2002/02/18 13:05:32 markus Exp $");
 #include "log.h"
 #include "cipher.h"
 
-#if OPENSSL_VERSION_NUMBER <= 0x0090600fL
-#define EVP_CIPHER_CTX_get_app_data(e)          ((e)->app_data)
-#endif
- 
 #include <openssl/md5.h>
 #include "rijndael.h"
 
@@ -200,7 +196,6 @@ cipher_init(CipherContext *cc, Cipher *cipher,
 	type = (*cipher->evptype)();
 
 	EVP_CIPHER_CTX_init(&cc->evp);
-#if OPENSSL_VERSION_NUMBER > 0x0090600fL
 	if (EVP_CipherInit(&cc->evp, type, NULL, (u_char *)iv,
 	    (encrypt == CIPHER_ENCRYPT)) == 0)
 		fatal("cipher_init: EVP_CipherInit failed for %s",
@@ -215,10 +210,6 @@ cipher_init(CipherContext *cc, Cipher *cipher,
 	if (EVP_CipherInit(&cc->evp, NULL, (u_char *)key, NULL, -1) == 0)
 		fatal("cipher_init: EVP_CipherInit: set key failed for %s",
 		    cipher->name);
-#else
-	EVP_CipherInit(&cc->evp, type, (u_char *)key, (u_char *)iv,
-	    (encrypt == CIPHER_ENCRYPT));
-#endif
 }
 
 void
@@ -226,23 +217,15 @@ cipher_crypt(CipherContext *cc, u_char *dest, const u_char *src, u_int len)
 {
 	if (len % cc->cipher->block_size)
 		fatal("cipher_encrypt: bad plaintext length %d", len);
-#if OPENSSL_VERSION_NUMBER > 0x0090600fL
 	if (EVP_Cipher(&cc->evp, dest, (u_char *)src, len) == 0)
 		fatal("evp_crypt: EVP_Cipher failed");
-#else
-	EVP_Cipher(&cc->evp, dest, (u_char *)src, len);
-#endif
 }
 
 void
 cipher_cleanup(CipherContext *cc)
 {
-#if OPENSSL_VERSION_NUMBER > 0x0090600fL
 	if (EVP_CIPHER_CTX_cleanup(&cc->evp) == 0)
 		error("cipher_cleanup: EVP_CIPHER_CTX_cleanup failed");
-#else
-	EVP_CIPHER_CTX_cleanup(&cc->evp);
-#endif
 }
 
 /*
@@ -313,7 +296,6 @@ ssh1_3des_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 	EVP_CIPHER_CTX_init(&c->k1);
 	EVP_CIPHER_CTX_init(&c->k2);
 	EVP_CIPHER_CTX_init(&c->k3);
-#if OPENSSL_VERSION_NUMBER > 0x0090600fL
 	if (EVP_CipherInit(&c->k1, EVP_des_cbc(), k1, NULL, enc) == 0 ||
 	    EVP_CipherInit(&c->k2, EVP_des_cbc(), k2, NULL, !enc) == 0 ||
 	    EVP_CipherInit(&c->k3, EVP_des_cbc(), k3, NULL, enc) == 0) {
@@ -322,11 +304,6 @@ ssh1_3des_init(EVP_CIPHER_CTX *ctx, const u_char *key, const u_char *iv,
 		EVP_CIPHER_CTX_set_app_data(ctx, NULL);
 		return (0);
 	}
-#else
-	EVP_CipherInit(&c->k1, EVP_des_cbc(), k1, NULL, enc);
-	EVP_CipherInit(&c->k2, EVP_des_cbc(), k2, NULL, !enc);
-	EVP_CipherInit(&c->k3, EVP_des_cbc(), k3, NULL, enc);
-#endif
 	return (1);
 }
 static int
@@ -338,16 +315,10 @@ ssh1_3des_cbc(EVP_CIPHER_CTX *ctx, u_char *dest, const u_char *src, u_int len)
 		error("ssh1_3des_cbc: no context");
 		return (0);
 	}
-#if OPENSSL_VERSION_NUMBER > 0x0090600fL
 	if (EVP_Cipher(&c->k1, dest, (u_char *)src, len) == 0 ||
 	    EVP_Cipher(&c->k2, dest, dest, len) == 0 ||
 	    EVP_Cipher(&c->k3, dest, dest, len) == 0)
 		return (0);
-#else
-	EVP_Cipher(&c->k1, dest, (u_char *)src, len);
-	EVP_Cipher(&c->k2, dest, dest, len);
-	EVP_Cipher(&c->k3, dest, dest, len);
-#endif
 	return (1);
 }
 static int
@@ -375,9 +346,7 @@ evp_ssh1_3des(void)
 	ssh1_3des.init = ssh1_3des_init;
 	ssh1_3des.cleanup = ssh1_3des_cleanup;
 	ssh1_3des.do_cipher = ssh1_3des_cbc;
-#if OPENSSL_VERSION_NUMBER > 0x0090600fL
 	ssh1_3des.flags = EVP_CIPH_CBC_MODE | EVP_CIPH_VARIABLE_LENGTH;
-#endif
 	return (&ssh1_3des);
 }
 
@@ -525,9 +494,7 @@ evp_rijndael(void)
 	rijndal_cbc.init = ssh_rijndael_init;
 	rijndal_cbc.cleanup = ssh_rijndael_cleanup;
 	rijndal_cbc.do_cipher = ssh_rijndael_cbc;
-#if OPENSSL_VERSION_NUMBER > 0x0090600fL
 	rijndal_cbc.flags = EVP_CIPH_CBC_MODE | EVP_CIPH_VARIABLE_LENGTH |
 	    EVP_CIPH_ALWAYS_CALL_INIT;
-#endif
 	return (&rijndal_cbc);
 }
