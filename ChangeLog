@@ -6,6 +6,8 @@
  - (djm) Don't loop forever when changing password via PAM. Patch
    from Solar Designer <solar@openwall.com>
  - (djm) Generate config files before build
+ - (djm) Correctly handle SIA and AIX when no tty present. Spotted and
+   suggested fix from Mike Battersby <mib@unimelb.edu.au>
 
 20010320
  - (bal) glob.c update to added GLOB_LIMITS (OpenBSD CVS).
@@ -4654,4 +4656,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.997 2001/03/21 02:13:40 djm Exp $
+$Id: ChangeLog,v 1.998 2001/03/21 05:13:03 djm Exp $
