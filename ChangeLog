@@ -10,6 +10,13 @@
    - djm@cvs.openbsd.org 2004/11/29 07:41:24
      [sftp-client.h sftp.c]
      Some small fixes from moritz@jodeit.org. ok deraadt@
+   - jaredy@cvs.openbsd.org 2004/12/05 23:55:07
+     [sftp.1]
+     - explain that patterns can be used as arguments in get/put/ls/etc
+       commands (prodded by Michael Knudsen)
+     - describe ls flags as a list
+     - other minor improvements
+     ok jmc, djm
 
 20041203
  - (dtucker) OpenBSD CVS Sync
@@ -1883,4 +1890,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3588 2004/12/06 11:45:53 dtucker Exp $
+$Id: ChangeLog,v 1.3589 2004/12/06 11:46:45 dtucker Exp $
