@@ -59,7 +59,7 @@ AC_CHECK_HEADERS(pty.h endian.h paths.h lastlog.h)
 
 dnl Checks for library functions.
 AC_PROG_GCC_TRADITIONAL
-AC_CHECK_FUNCS(openpty strlcpy mkdtemp arc4random setproctitle)
+AC_CHECK_FUNCS(openpty strlcpy mkdtemp arc4random setproctitle setlogin)
 
 dnl Check for ut_host field in utmp
 AC_MSG_CHECKING([whether utmp.h has ut_host field])

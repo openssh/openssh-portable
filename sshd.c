@@ -18,7 +18,7 @@ agent connections.
 */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.14 1999/11/11 09:44:05 damien Exp $");
+RCSID("$Id: sshd.c,v 1.15 1999/11/11 21:49:09 damien Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -1025,7 +1025,7 @@ void do_connection(int privileged_port)
      key is in the highest bits. */
   BN_mask_bits(session_key_int, sizeof(session_key) * 8);
   len = BN_num_bytes(session_key_int);
-  if (len <= 0 || len > sizeof(session_key))
+  if (len < 0 || len > sizeof(session_key))
     fatal("do_connection: bad len: session_key_int %d > sizeof(session_key) %d",
 	  len, sizeof(session_key));
   memset(session_key, 0, sizeof(session_key));
@@ -1516,11 +1516,11 @@ do_authentication(char *user, int privileged_port)
 	packet_disconnect("Too many authentication failures for %.100s from %.200s", 
           pw->pw_name, get_canonical_hostname());
       }
-
       /* Send a message indicating that the authentication attempt failed. */
       packet_start(SSH_SMSG_FAILURE);
       packet_send();
       packet_write_wait();
+
     }
 
   /* Check if the user is logging in as root and root logins are disallowed. */
@@ -2296,7 +2296,13 @@ void do_child(const char *command, struct passwd *pw, const char *term,
       if (pw->pw_uid != 0)
 	exit(254);
     }
-#endif
+#endif /* HAVE_LIBPAM */
+
+#ifdef HAVE_SETLOGIN
+  /* Set login name in the kernel. */
+  if (setlogin(pw->pw_name) < 0)
+    error("setlogin failed: %s", strerror(errno));
+#endif /* HAVE_SETLOGIN */
 
   /* Set uid, gid, and groups. */
   /* Login(1) does this as well, and it needs uid 0 for the "-h" switch,
@@ -2403,10 +2409,10 @@ void do_child(const char *command, struct passwd *pw, const char *term,
 
 #ifdef KRB4
   {
-	 extern char *ticket;
-	 
-	 if (ticket)
-		child_set_env(&env, &envsize, "KRBTKFILE", ticket);
+    extern char *ticket;
+    
+    if (ticket)
+      child_set_env(&env, &envsize, "KRBTKFILE", ticket);
   }
 #endif /* KRB4 */
 
@@ -2440,7 +2446,7 @@ void do_child(const char *command, struct passwd *pw, const char *term,
   if (auth_get_socket_name() != NULL)
       child_set_env(&env, &envsize, SSH_AUTHSOCKET_ENV_NAME, 
 		    auth_get_socket_name());
-  
+
   /* Read $HOME/.ssh/environment. */
   if(!options.use_login) {
     snprintf(buf, sizeof buf, "%.200s/.ssh/environment", pw->pw_dir);
@@ -2578,7 +2584,6 @@ void do_child(const char *command, struct passwd *pw, const char *term,
             }
           }
         }
-
         /* Start the shell.  Set initial character to '-'. */
         buf[0] = '-';
         strncpy(buf + 1, cp, sizeof(buf) - 1);
