@@ -41,7 +41,7 @@
 # include <ssl/sha.h>
 #endif
 
-RCSID("$Id: entropy.c,v 1.1 2000/04/03 04:50:45 damien Exp $");
+RCSID("$Id: entropy.c,v 1.2 2000/04/03 05:07:32 damien Exp $");
 
 #ifdef EGD_SOCKET
 #ifndef offsetof
@@ -105,8 +105,6 @@ void get_random_bytes(unsigned char *buf, int len)
 			fatal("Couldn't open random pool \"%s\": %s", RANDOM_POOL, strerror(errno));
 	}
 	
-	verbose("randfd: %i", random_pool);
-
 	c = atomicio(read, random_pool, buf, len);
 	if (c <= 0)
 		fatal("Couldn't read from random pool \"%s\": %s", RANDOM_POOL, strerror(errno));
