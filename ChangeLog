@@ -1,3 +1,6 @@
+20040911
+ - (djm) [ssh-agent.c] unifdef some cygwin code; ok dtucker@
+
 20040830
  - (dtucker) [session.c openbsd-compat/bsd-cygwin_util.{c,h}] Bug #915: only
    copy required environment variables on Cygwin.  Patch from vinschen at
@@ -1716,4 +1719,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3539 2004/08/30 11:33:02 dtucker Exp $
+$Id: ChangeLog,v 1.3540 2004/09/11 05:18:05 djm Exp $
