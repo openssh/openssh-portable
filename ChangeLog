@@ -6,7 +6,9 @@
      [Makefile test-exec.sh]
      regress test for environment passing, SendEnv & AcceptEnv options;
      ok markus@
-
+   - dtucker@cvs.openbsd.org 2004/06/13 13:51:02
+     [Makefile test-exec.sh]
+     Add scp regression test; with & ok markus@
 
 20040615
  - (djm) OpenBSD CVS Sync
@@ -1232,4 +1234,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3389 2004/06/16 10:08:56 dtucker Exp $
+$Id: ChangeLog,v 1.3390 2004/06/16 10:15:59 dtucker Exp $

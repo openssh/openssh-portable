@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.16 2004/04/27 09:47:30 djm Exp $
+#	$OpenBSD: test-exec.sh,v 1.17 2004/06/13 13:51:02 dtucker Exp $
 #	Placed in the Public Domain.
 
 PORT=4242
@@ -47,6 +47,7 @@ SSHKEYGEN=ssh-keygen
 SSHKEYSCAN=ssh-keyscan
 SFTP=sftp
 SFTPSERVER=/usr/libexec/openssh/sftp-server
+SCP=scp
 
 if [ "x$TEST_SSH_SSH" != "x" ]; then
 	SSH="${TEST_SSH_SSH}"
@@ -72,10 +73,13 @@ fi
 if [ "x$TEST_SSH_SFTPSERVER" != "x" ]; then
 	SFTPSERVER="${TEST_SSH_SFTPSERVER}"
 fi
+if [ "x$TEST_SSH_SCP" != "x" ]; then
+	SCP="${TEST_SSH_SCP}"
+fi
 
 # these should be used in tests
-export SSH SSHD SSHAGENT SSHADD SSHKEYGEN SSHKEYSCAN SFTP SFTPSERVER
-#echo $SSH $SSHD $SSHAGENT $SSHADD $SSHKEYGEN $SSHKEYSCAN $SFTP $SFTPSERVER
+export SSH SSHD SSHAGENT SSHADD SSHKEYGEN SSHKEYSCAN SFTP SFTPSERVER SCP
+#echo $SSH $SSHD $SSHAGENT $SSHADD $SSHKEYGEN $SSHKEYSCAN $SFTP $SFTPSERVER $SCP
 
 # helper
 echon()
