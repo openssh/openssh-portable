@@ -71,9 +71,8 @@ case "$host" in
 	;;
 *-*-solaris*)
 	CFLAGS="$CFLAGS -I/usr/local/include"
-	LDFLAGS="$LDFLAGS -L/usr/local/lib -R/usr/local/lib"
+	LDFLAGS="$LDFLAGS -L/usr/local/lib -R/usr/local/lib -L/usr/ucblib -R/usr/ucblib"
 	need_dash_r=1
-	LDFLAGS="-L/usr/ucblib -R/usr/ucblib"
 	AC_DEFINE(USE_UTMPX)
 	;;
 *-*-sysv*)

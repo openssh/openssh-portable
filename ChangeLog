@@ -1,3 +1,7 @@
+20000316
+ - Fixed configure not passing LDFLAGS to Solaris. Report from David G. 
+   Hesprich <dghespri@sprintparanet.com>
+
 20000315
  - Fix broken CFLAGS handling during search for OpenSSL. Fixes va_list
    problems with gcc/Solaris.
