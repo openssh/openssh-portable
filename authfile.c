@@ -15,7 +15,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: authfile.c,v 1.6 1999/12/07 04:38:32 damien Exp $");
+RCSID("$Id: authfile.c,v 1.7 2000/03/02 12:57:18 damien Exp $");
 
 #ifdef HAVE_OPENSSL
 #include <openssl/bn.h>
@@ -228,7 +228,7 @@ load_private_key(const char *filename, const char *passphrase,
 
 	/* check owner and modes */
 	if (fstat(fd, &st) < 0 ||
-	    (st.st_uid != 0 && st.st_uid != getuid()) ||
+	    (st.st_uid != 0 && getuid() != 0 && st.st_uid != getuid()) ||
 	    (st.st_mode & 077) != 0) {
 		close(fd);
 		error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");

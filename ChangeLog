@@ -10,6 +10,8 @@
  - Warning was valid - possible race condition on PTYs. Avoided using 
    platform-specific code.
  - Document some common problems
+ - Allow root access to any key. Patch from 
+   markus.friedl@informatik.uni-erlangen.de
 
 20000207
  - Removed SOCKS code. Will support through a ProxyCommand.
