@@ -1,3 +1,7 @@
+19991208
+ - Compile fix for Solaris with /dev/ptmx from 
+   David Agraz <dagraz@jahoopa.com>
+
 19991207
  - sshd Redhat init script patch from Jim Knoble <jmknoble@pobox.com>
    fixes compatability with 4.x and 5.x
