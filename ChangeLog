@@ -13,6 +13,7 @@
    - markus@cvs.openbsd.org 2003/06/26 20:08:33
      [readconf.c]
      do not dump core for 'ssh -o proxycommand host'; ok deraadt@
+ - (dtucker) [regress/dynamic-forward.sh] Import new regression test.
 
 20030624
  - (dtucker) Have configure refer the user to config.log and
@@ -599,4 +600,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2827 2003/06/28 02:40:12 dtucker Exp $
+$Id: ChangeLog,v 1.2828 2003/06/28 02:42:09 dtucker Exp $
