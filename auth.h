@@ -21,7 +21,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $OpenBSD: auth.h,v 1.27 2002/02/16 21:27:53 millert Exp $
+ * $OpenBSD: auth.h,v 1.28 2002/02/17 19:42:32 millert Exp $
  */
 #ifndef AUTH_H
 #define AUTH_H
@@ -80,9 +80,8 @@ struct KbdintDevice
 {
 	const char *name;
 	void*	(*init_ctx)(Authctxt*);
-	int	(*query)	__P((void *ctx, char **name, char **infotxt,
-				u_int *numprompts, char ***prompts,
-				u_int **echo_on));
+	int	(*query)(void *ctx, char **name, char **infotxt,
+		    u_int *numprompts, char ***prompts, u_int **echo_on);
 	int	(*respond)(void *ctx, u_int numresp, char **responses);
 	void	(*free_ctx)(void *ctx);
 };

@@ -30,6 +30,10 @@
      some minor hand editing to make comments line up correctly.  Another 
      pass is forthcoming that handles the cases that could not be done 
      automatically.
+   - millert@cvs.openbsd.org 2002/02/17 19:42:32
+     [auth.h]
+     Manual cleanup of remaining userland __P use (excluding packages 
+     maintained outside the tree)
 
 20020218
  - (tim) newer config.guess from ftp://ftp.gnu.org/gnu/config/config.guess
@@ -7627,4 +7631,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1861 2002/02/19 04:24:43 djm Exp $
+$Id: ChangeLog,v 1.1862 2002/02/19 04:25:29 djm Exp $
