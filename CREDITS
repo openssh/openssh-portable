@@ -51,6 +51,7 @@ Thomas Neumann <tom@smart.ruhr.de> - Shadow passwords
 Tom Bertelson's <tbert@abac.com> - AIX auth fixes
 Tor-Ake Fransson <torake@hotmail.com> - AIX support
 Tudor Bosman <tudorb@jm.nu> - MD5 password support
+Zack Weinberg <zack@wolery.cumb.org> - GNOME askpass enhancement
 
 Apologies to anyone I have missed.
 

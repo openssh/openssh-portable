@@ -49,7 +49,22 @@
 #include <X11/Xlib.h>
 #include <gdk/gdkx.h>
 
-int passphrase_dialog(char **passphrase_p, char *message)
+void
+report_failed_grab (void)
+{
+	GtkWidget *err;
+
+	err = gnome_message_box_new("Could not grab keyboard or mouse.\n"
+		"A malicious client may be eavesdropping on your session.",
+				    GNOME_MESSAGE_BOX_ERROR, "EXIT", NULL);
+	gtk_window_set_position(GTK_WINDOW(err), GTK_WIN_POS_CENTER);
+	gtk_object_set(GTK_OBJECT(err), "type", GTK_WINDOW_POPUP, NULL);
+
+	gnome_dialog_run_and_close(GNOME_DIALOG(err));
+}
+
+void
+passphrase_dialog(char *message)
 {
 	char *passphrase;
 	int result;
@@ -80,41 +95,51 @@ int passphrase_dialog(char **passphrase_p, char *message)
 
 	/* Grab focus */
 	XGrabServer(GDK_DISPLAY());
-	gdk_pointer_grab(dialog->window, TRUE, 0, NULL, NULL, GDK_CURRENT_TIME);
-	gdk_keyboard_grab(dialog->window, FALSE, GDK_CURRENT_TIME);
+	if (gdk_pointer_grab(dialog->window, TRUE, 0,
+			     NULL, NULL, GDK_CURRENT_TIME))
+		goto nograb;
+	if (gdk_keyboard_grab(dialog->window, FALSE, GDK_CURRENT_TIME))
+		goto nograbkb;
 
 	/* Make <enter> close dialog */
 	gnome_dialog_editable_enters(GNOME_DIALOG(dialog), GTK_EDITABLE(entry));
 
 	/* Run dialog */
 	result = gnome_dialog_run(GNOME_DIALOG(dialog));
-		
+
 	/* Ungrab */
 	XUngrabServer(GDK_DISPLAY());
 	gdk_pointer_ungrab(GDK_CURRENT_TIME);
 	gdk_keyboard_ungrab(GDK_CURRENT_TIME);
 	gdk_flush();
 
+	/* Report passphrase if user selected OK */
 	passphrase = gtk_entry_get_text(GTK_ENTRY(entry));
-
-	/* Take copy of passphrase if user selected OK */
-	if (result == 0)	
-		*passphrase_p = strdup(passphrase);
-	else
-		*passphrase_p = NULL;
+	if (result == 0)
+		puts(passphrase);
 		
-	/* Zero existing passphrase */
+	/* Zero passphrase in memory */
 	memset(passphrase, '\0', strlen(passphrase));
 	gtk_entry_set_text(GTK_ENTRY(entry), passphrase);
 			
 	gnome_dialog_close(GNOME_DIALOG(dialog));
+	return;
 
- 	return (result == 0);
+	/* At least one grab failed - ungrab what we got, and report
+	   the failure to the user.  Note that XGrabServer() cannot
+	   fail.  */
+ nograbkb:
+	gdk_pointer_ungrab(GDK_CURRENT_TIME);
+ nograb:
+	XUngrabServer(GDK_DISPLAY());
+	gnome_dialog_close(GNOME_DIALOG(dialog));
+	
+	report_failed_grab();
 }
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
-	char *passphrase;
 	char *message;
 	
 	gnome_init("GNOME ssh-askpass", "0.1", argc, argv);
@@ -124,11 +149,7 @@ int main(int argc, char **argv)
 	else
 		message = "Enter your OpenSSH passphrase:";
 
-	if (passphrase_dialog(&passphrase, message))
-	{
-		puts(passphrase);
-		memset(passphrase, '\0', strlen(passphrase));
-	}
-	
+	setvbuf(stdout, 0, _IONBF, 0);
+	passphrase_dialog(message);
 	return 0;
 }
