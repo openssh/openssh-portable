@@ -29,8 +29,8 @@
 #include <openssl/evp.h>
 #include <openssl/x509.h>
 
-#include <opensc.h>
-#include <opensc-pkcs15.h>
+#include <opensc/opensc.h>
+#include <opensc/pkcs15.h>
 
 #include "key.h"
 #include "log.h"

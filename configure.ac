@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.40 2002/04/07 19:44:14 stevesk Exp $
+# $Id: configure.ac,v 1.41 2002/04/08 18:37:09 mouring Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -1730,9 +1730,9 @@ AC_ARG_WITH(opensc,
 					blibpath="$blibpath:${withval}"
 				fi
 			fi
-			AC_CHECK_HEADERS(opensc-pkcs15.h)
+			AC_CHECK_HEADERS(opensc/pkcs15.h)
 			if test "$ac_cv_header_opensc_pkcs15_h" != yes; then
-				AC_MSG_ERROR(Can't find opensc-pkcs15.h)
+				AC_MSG_ERROR(Can't find opensc/pkcs15.h)
 			fi
 			AC_CHECK_LIB(opensc, sc_pkcs15_bind)
 			if test "$ac_cv_lib_opensc_sc_pkcs15_bind" != yes; then

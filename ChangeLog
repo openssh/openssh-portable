@@ -1,3 +1,7 @@
+20020408
+ - (bal) Minor OpenSC updates.  Fix up header locations and update
+   README.smartcard provided by Juha Yrjölä <jyrjola@cc.hut.fi>
+
 20020407
  - (stevesk) HAVE_CONTROL_IN_MSGHDR; not used right now.
    Future: we may want to test if fd passing works correctly.
@@ -8199,4 +8203,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2039 2002/04/07 22:36:49 stevesk Exp $
+$Id: ChangeLog,v 1.2040 2002/04/08 18:37:07 mouring Exp $
