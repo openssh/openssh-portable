@@ -123,7 +123,7 @@ else
        instbackup ${CONFDIR} ssh_config
         NEWCONF=1
     fi
-    if [ ! -r "${CONFDIR}/ssh_config" ]; then
+    if [ ! -r "${CONFDIR}/sshd_config" ]; then
        instbackup ${CONFDIR} sshd_config
         NEWCONF=1
     fi

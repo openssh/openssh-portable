@@ -7,6 +7,7 @@
  - (stevesk) auth-pam.c: use PERMIT_NO_PASSWD
  - (bal) sys/queue.h is bogus for NCR platform.  Patch by Daniel Carroll 
    <dan@mesastate.edu>
+ - (bal) Fixed contrib/postinstall.in.  Patch by wsanders@wsanders.net
 
 20010422
  - OpenBSD CVS Sync
@@ -5235,4 +5236,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1164 2001/04/23 22:39:42 mouring Exp $
+$Id: ChangeLog,v 1.1165 2001/04/24 00:03:58 mouring Exp $
