@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sun May  7 00:14:37 1995 ylo
 .\"
-.\" $OpenBSD: scp.1,v 1.16 2001/08/08 07:16:58 deraadt Exp $
+.\" $OpenBSD: scp.1,v 1.17 2001/08/14 17:54:29 stevesk Exp $
 .\"
 .Dd September 25, 1999
 .Dt SCP 1
@@ -24,7 +24,7 @@
 .Op Fl P Ar port
 .Op Fl c Ar cipher
 .Op Fl i Ar identity_file
-.Op Fl o Ar option
+.Op Fl o Ar ssh_option
 .Sm off
 .Oo
 .Op Ar user@
@@ -107,13 +107,17 @@ to use for the encrypted connection.
 The program must understand
 .Xr ssh 1
 options.
-.It Fl o Ar option
-Can be used to give options in the format used in the config file.
-These options are passed directly to
-.Xr ssh 1 ,
-for instance
-.Fl o "Protocol=1"
-would force protocol 1.
+.It Fl o Ar ssh_option
+Can be used to pass options to
+.Nm ssh
+in the format used in the
+.Xr ssh 1
+configuration file. This is useful for specifying options
+for which there is no separate
+.Nm scp
+command-line flag.  For example, to force the use of protocol
+version 1 you may specify
+.Ic scp -oProtocol=1 .
 .It Fl 4
 Forces
 .Nm

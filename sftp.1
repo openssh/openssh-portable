@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.22 2001/08/14 09:23:02 markus Exp $
+.\" $OpenBSD: sftp.1,v 1.23 2001/08/14 17:54:29 stevesk Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -78,8 +78,16 @@ Enables compression (via ssh's
 .Fl C
 flag)
 .It Fl o Ar ssh_option
-Specify an option to be directly passed to
-.Xr ssh 1 .
+Can be used to pass options to
+.Nm ssh
+in the format used in the
+.Xr ssh 1
+configuration file. This is useful for specifying options
+for which there is no separate
+.Nm sftp
+command-line flag.  For example, to force the use of protocol
+version 1 you may specify
+.Ic sftp -oProtocol=1 .
 .It Fl v
 Raise logging level. This option is also passed to ssh.
 .El

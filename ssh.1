@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.126 2001/08/01 22:16:45 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.127 2001/08/14 17:54:29 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -492,10 +492,9 @@ Do not execute a remote command.
 This is useful if you just want to forward ports
 (protocol version 2 only).
 .It Fl o Ar option
-Can be used to give options in the format used in the config file.
+Can be used to give options in the format used in the configuration file.
 This is useful for specifying options for which there is no separate
 command-line flag.
-The option has the same format as a line in the configuration file.
 .It Fl p Ar port
 Port to connect to on the remote host.
 This can be specified on a
@@ -613,7 +612,8 @@ to use IPv6 addresses only.
 .El
 .Sh CONFIGURATION FILES
 .Nm
-obtains configuration data from the following sources (in this order):
+obtains configuration data from the following sources in
+the following order:
 command line options, user's configuration file
 .Pq Pa $HOME/.ssh/config ,
 and system-wide configuration file
@@ -638,6 +638,18 @@ are comments.
 .Pp
 Otherwise a line is of the format
 .Dq keyword arguments .
+Configuration options may be separated by whitespace or
+optional whitespace and exactly one
+.Ql = ;
+the latter format is useful to avoid the need to quote whitespace
+when specifying configuration options using the
+.Nm ssh ,
+.Nm scp
+and
+.Nm sftp
+.Fl o
+option.
+.Pp
 The possible
 keywords and their meanings are as follows (note that the
 configuration files are case-sensitive):
