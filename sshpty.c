@@ -168,27 +168,28 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
   	int highpty;
 
 #ifdef _SC_CRAY_NPTY
-  	highpty = sysconf(_SC_CRAY_NPTY);
-  	if (highpty == -1)
-	highpty = 128;
+	highpty = sysconf(_SC_CRAY_NPTY);
+	if (highpty == -1)
+		highpty = 128;
 #else
-  	highpty = 128;
+	highpty = 128;
 #endif
 
-  	for (i = 0; i < highpty; i++) {
-      		snprintf(buf, sizeof(buf), "/dev/pty/%03d", i);
-      		*ptyfd = open(buf, O_RDWR|O_NOCTTY);
-      		if (*ptyfd < 0) continue;
-      		snprintf(namebuf, namebuflen, "/dev/ttyp%03d", i);
-      		/* Open the slave side. */
-      		*ttyfd = open(namebuf, O_RDWR|O_NOCTTY);
-      		if (*ttyfd < 0) {
+	for (i = 0; i < highpty; i++) {
+		snprintf(buf, sizeof(buf), "/dev/pty/%03d", i);
+		*ptyfd = open(buf, O_RDWR|O_NOCTTY);
+		if (*ptyfd < 0)
+			continue;
+		snprintf(namebuf, namebuflen, "/dev/ttyp%03d", i);
+		/* Open the slave side. */
+		*ttyfd = open(namebuf, O_RDWR|O_NOCTTY);
+		if (*ttyfd < 0) {
 			error("%.100s: %.100s", namebuf, strerror(errno));
-          		close(*ptyfd);
-        	}
-      		return 1;
-    	}
-        return 0;
+			close(*ptyfd);
+		}
+		return 1;
+	}
+	return 0;
 #else
 	/* BSD-style pty code. */
 	char buf[64];
@@ -250,29 +251,25 @@ pty_make_controlling_tty(int *ttyfd, const char *ttyname)
 #ifdef _CRAY
 	int fd;
 
-       	if (setsid() < 0)
-                       error("setsid: %.100s", strerror(errno));
+	if (setsid() < 0)
+		error("setsid: %.100s", strerror(errno));
 
-       	fd = open(ttyname, O_RDWR|O_NOCTTY);
-       	if (fd >= 0) {
-                signal(SIGHUP, SIG_IGN);
-                ioctl(fd, TCVHUP, (char *)0);
-                 signal(SIGHUP, SIG_DFL);
-                setpgid(0,0);
-                close(fd);
+	fd = open(ttyname, O_RDWR|O_NOCTTY);
+	if (fd != -1) {
+		signal(SIGHUP, SIG_IGN);
+		ioctl(fd, TCVHUP, (char *)NULL);
+		signal(SIGHUP, SIG_DFL);
+		setpgid(0, 0);
+		close(fd);
 	} else {
-        	error("Failed to disconnect from controlling tty.");
+		error("Failed to disconnect from controlling tty.");
 	}
-      	 
 
-       	debug("Setting controlling tty using TCSETCTTY.\n");
-       	ioctl(*ttyfd, TCSETCTTY, NULL);
-
-       	fd = open("/dev/tty", O_RDWR);
-
-       	if (fd < 0)
-               error("%.100s: %.100s", ttyname, strerror(errno));
-
+	debug("Setting controlling tty using TCSETCTTY.");
+	ioctl(*ttyfd, TCSETCTTY, NULL);
+	fd = open("/dev/tty", O_RDWR);
+	if (fd < 0)
+		error("%.100s: %.100s", ttyname, strerror(errno));
 	close(*ttyfd);
        	*ttyfd = fd;
 #else
