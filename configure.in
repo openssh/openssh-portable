@@ -198,9 +198,14 @@ for ssldir in "" $tryssldir /usr/local/openssl /usr/lib/openssl /usr/local/ssl /
 				#include <openssl/bn.h>
 				#include <openssl/sha.h>
 				int main(void) 
-				{RSA *key; char seed[2048];memset(seed, 0, sizeof(seed));
-				RAND_seed(seed, sizeof(seed));key=RSA_generate_key(32,3,NULL,NULL);
-				return(key==NULL);}
+				{
+					RSA *key; char a[2048],b[2048];;
+					memset(a, 0, sizeof(a));memset(b, 0, sizeof(b));
+					RAND_seed(a, sizeof(a));
+					key=RSA_generate_key(32,3,NULL,NULL);
+					if (key==NULL) return(1);
+					return(-1==RSA_private_decrypt(RSA_size(key),a,b,key,RSA_NO_PADDING));
+				}
 			],
 			[
 				AC_DEFINE(HAVE_OPENSSL)
@@ -214,9 +219,14 @@ for ssldir in "" $tryssldir /usr/local/openssl /usr/lib/openssl /usr/local/ssl /
 				#include <ssl/bn.h>
 				#include <ssl/sha.h>
 				int main(void) 
-				{RSA *key; char seed[2048];memset(seed, 0, sizeof(seed));
-				RAND_seed(seed, sizeof(seed));key=RSA_generate_key(32,3,NULL,NULL);
-				return(key==NULL);}
+				{
+					RSA *key; char a[2048],b[2048];;
+					memset(a, 0, sizeof(a));memset(b, 0, sizeof(b));
+					RAND_seed(a, sizeof(a));
+					key=RSA_generate_key(32,3,NULL,NULL);
+					if (key==NULL) return(1);
+					return(-1==RSA_private_decrypt(RSA_size(key),a,b,key,RSA_NO_PADDING));
+				}
 			],
 			[
 				AC_DEFINE(HAVE_SSL)
