@@ -1,5 +1,5 @@
 # Version of OpenSSH
-%define oversion 1.2.3pre2
+%define oversion 1.2.3pre3
 
 # Version of ssh-askpass
 %define aversion 0.99
@@ -118,6 +118,9 @@ patented algorithms to seperate libraries (OpenSSL).
 This package contains the GNOME passphrase dialog.
 
 %changelog
+* Wed Mar 15 2000 Damien Miller <djm@ibs.com.au>
+- Updated for new location
+- Updated for new gnome-ssh-askpass build
 * Sun Dec 26 1999 Damien Miller <djm@mindrot.org>
 - Added Jim Knoble's <jmknoble@pobox.com> askpass
 * Mon Nov 15 1999 Damien Miller <djm@mindrot.org>
@@ -148,8 +151,7 @@ This package contains the GNOME passphrase dialog.
 
 CFLAGS="$RPM_OPT_FLAGS" \
 	./configure --prefix=/usr --sysconfdir=/etc/ssh \
-                    --with-gnome-askpass --with-tcp-wrappers \
-                    --with-ipv4-default
+               --with-tcp-wrappers --with-ipv4-default
 
 make
 
@@ -158,17 +160,25 @@ xmkmf -a
 make
 cd ..
 
+cd contrib
+gcc -Og `gnome-config --cflags gnome gnomeui` \
+        gnome-ssh-askpass.c -o gnome-ssh-askpass \
+        `gnome-config --libs gnome gnomeui`
+cd ..
+
 %install
 rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT/
 
 install -d $RPM_BUILD_ROOT/etc/pam.d/
 install -d $RPM_BUILD_ROOT/etc/rc.d/init.d
-install -m644 packages/redhat/sshd.pam $RPM_BUILD_ROOT/etc/pam.d/sshd
-install -m755 packages/redhat/sshd.init $RPM_BUILD_ROOT/etc/rc.d/init.d/sshd
+install -m644 contrib/redhat/sshd.pam $RPM_BUILD_ROOT/etc/pam.d/sshd
+install -m755 contrib/redhat/sshd.init $RPM_BUILD_ROOT/etc/rc.d/init.d/sshd
 
 install -s x11-ssh-askpass-%{aversion}/ssh-askpass $RPM_BUILD_ROOT/usr/libexec/ssh/x11-ssh-askpass
 ln -s /usr/libexec/ssh/x11-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/ssh/ssh-askpass
+
+install -s contrib/gnome-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/ssh/gnome-ssh-askpass
 
 %clean
 rm -rf $RPM_BUILD_ROOT

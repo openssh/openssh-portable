@@ -1,6 +1,6 @@
 Summary: OpenSSH, a free Secure Shell (SSH) implementation
 Name: openssh
-Version: 1.2.3pre2
+Version: 1.2.3pre3
 Release: 1
 Source0: openssh-%{version}.tar.gz
 Copyright: BSD
@@ -99,6 +99,9 @@ patented algorithms to seperate libraries (OpenSSL).
 This package contains the GNOME passphrase dialog.
 
 %changelog
+* Wed Mar 15 2000 Damien Miller <djm@ibs.com.au>
+- Updated for new location
+- Updated for new gnome-ssh-askpass build
 * Sun Dec 26 1999 Chris Saia <csaia@wtower.com>
 - Made symlink to gnome-ssh-askpass called ssh-askpass
 * Wed Nov 24 1999 Chris Saia <csaia@wtower.com>
@@ -148,6 +151,12 @@ CFLAGS="$RPM_OPT_FLAGS" \
             --with-tcp-wrappers --with-ipv4-default
 make
 
+cd contrib
+gcc -Og `gnome-config --cflags gnome gnomeui` \
+        gnome-ssh-askpass.c -o gnome-ssh-askpass \
+        `gnome-config --libs gnome gnomeui`
+cd ..
+
 %install
 rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT/
@@ -156,10 +165,11 @@ install -d $RPM_BUILD_ROOT/etc/pam.d/
 install -d $RPM_BUILD_ROOT/sbin/init.d/
 install -d $RPM_BUILD_ROOT/var/adm/fillup-templates
 install -m644 sshd.pam.generic $RPM_BUILD_ROOT/etc/pam.d/sshd
-install -m744 packages/suse/rc.sshd $RPM_BUILD_ROOT/sbin/init.d/sshd
+install -m744 contrib/suse/rc.sshd $RPM_BUILD_ROOT/sbin/init.d/sshd
 ln -s ../../sbin/init.d/sshd $RPM_BUILD_ROOT/usr/sbin/rcsshd
+install -s contrib/gnome-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/ssh/gnome-ssh-askpass
 ln -s gnome-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/ssh/ssh-askpass
-install -m744 packages/suse/rc.config.sshd \
+install -m744 contrib/suse/rc.config.sshd \
    $RPM_BUILD_ROOT/var/adm/fillup-templates
 
 %clean
