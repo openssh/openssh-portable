@@ -1,3 +1,8 @@
+20010327
+ - (djm) Reestablish PAM credentials (which can be supplemental group 
+   memberships) after initgroups() blows them away. Report and suggested
+   fix from Nalin Dahyabhai <nalin@redhat.com>
+
 20010324
  - Fixed permissions ssh-keyscan.  Thanks to Christopher Linn <celinn@mtu.edu>.
  - OpenBSD CVS Sync
@@ -4673,4 +4678,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.991.2.10 2001/03/24 04:53:32 mouring Exp $
+$Id: ChangeLog,v 1.991.2.11 2001/03/27 06:13:46 djm Exp $
