@@ -25,7 +25,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.66 2004/01/13 09:25:05 djm Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.67 2004/01/23 17:57:48 mouring Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -595,10 +595,16 @@ do_ls_dir(struct sftp_conn *conn, char *path, char *strip_path, int lflag)
 	if (!(lflag & SHORT_VIEW)) {
 		int m = 0, width = 80;
 		struct winsize ws;
+		char *tmp;
 
 		/* Count entries for sort and find longest filename */
 		for (n = 0; d[n] != NULL; n++)
 			m = MAX(m, strlen(d[n]->filename));
+
+		/* Add any subpath that also needs to be counted */
+		tmp = path_strip(path, strip_path);
+		m += strlen(tmp);
+		xfree(tmp);
 
 		if (ioctl(fileno(stdin), TIOCGWINSZ, &ws) != -1)
 			width = ws.ws_col;
@@ -606,6 +612,7 @@ do_ls_dir(struct sftp_conn *conn, char *path, char *strip_path, int lflag)
 		columns = width / (m + 2);
 		columns = MAX(columns, 1);
 		colspace = width / columns;
+		colspace = MIN(colspace, width);
 	}
 
 	qsort(d, n, sizeof(*d), sdirent_comp);

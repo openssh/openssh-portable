@@ -4,6 +4,10 @@
      [cipher.c]
      enable acss for ssh
      ok deraadt@ markus@
+   - mouring@cvs.openbsd.org 2004/01/23 17:57:48
+     [sftp-int.c]
+     Fix issue pointed out with ls not handling large directories 
+     with embeded paths correctly.  OK damien@
  - (djm) [acss.c acss.h cipher-acss.c] Portable support for ACSS 
    if libcrypto lacks it
 
@@ -1746,4 +1750,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3193 2004/01/27 10:19:21 djm Exp $
+$Id: ChangeLog,v 1.3194 2004/01/27 10:20:11 djm Exp $
