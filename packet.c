@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.98 2002/10/23 10:32:13 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.99 2002/11/04 10:09:51 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -1226,6 +1226,9 @@ packet_disconnect(const char *fmt,...)
 	vsnprintf(buf, sizeof(buf), fmt, args);
 	va_end(args);
 
+	/* Display the error locally */
+	log("Disconnecting: %.100s", buf);
+
 	/* Send the disconnect message to the other side, and wait for it to get sent. */
 	if (compat20) {
 		packet_start(SSH2_MSG_DISCONNECT);
@@ -1245,8 +1248,6 @@ packet_disconnect(const char *fmt,...)
 	/* Close the connection. */
 	packet_close();
 
-	/* Display the error locally and exit. */
-	log("Disconnecting: %.100s", buf);
 	fatal_cleanup();
 }
 
