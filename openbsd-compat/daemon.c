@@ -32,12 +32,11 @@
 #ifndef HAVE_DAEMON
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char rcsid[] = "$OpenBSD: daemon.c,v 1.3 2003/06/02 20:18:34 millert Exp $";
+static char rcsid[] = "$OpenBSD: daemon.c,v 1.5 2003/07/15 17:32:41 deraadt Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 int
-daemon(nochdir, noclose)
-	int nochdir, noclose;
+daemon(int nochdir, int noclose)
 {
 	int fd;
 

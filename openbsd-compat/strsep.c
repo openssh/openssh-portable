@@ -1,4 +1,4 @@
-/*	$OpenBSD: strsep.c,v 1.4 2003/06/02 20:18:38 millert Exp $	*/
+/*	$OpenBSD: strsep.c,v 1.5 2003/06/11 21:08:16 deraadt Exp $	*/
 
 /*-
  * Copyright (c) 1990, 1993
@@ -40,7 +40,7 @@
 #if 0
 static char sccsid[] = "@(#)strsep.c	8.1 (Berkeley) 6/4/93";
 #else
-static char *rcsid = "$OpenBSD: strsep.c,v 1.4 2003/06/02 20:18:38 millert Exp $";
+static char *rcsid = "$OpenBSD: strsep.c,v 1.5 2003/06/11 21:08:16 deraadt Exp $";
 #endif
 #endif /* LIBC_SCCS and not lint */
 
@@ -58,9 +58,9 @@ static char *rcsid = "$OpenBSD: strsep.c,v 1.4 2003/06/02 20:18:38 millert Exp $
 char *
 strsep(char **stringp, const char *delim)
 {
-	register char *s;
-	register const char *spanp;
-	register int c, sc;
+	char *s;
+	const char *spanp;
+	int c, sc;
 	char *tok;
 
 	if ((s = *stringp) == NULL)

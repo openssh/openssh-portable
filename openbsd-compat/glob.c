@@ -52,7 +52,7 @@ get_arg_max(void)
 #if 0
 static char sccsid[] = "@(#)glob.c	8.3 (Berkeley) 10/13/93";
 #else
-static char rcsid[] = "$OpenBSD: glob.c,v 1.21 2003/06/02 20:18:34 millert Exp $";
+static char rcsid[] = "$OpenBSD: glob.c,v 1.22 2003/06/25 21:16:47 deraadt Exp $";
 #endif
 #endif /* LIBC_SCCS and not lint */
 
@@ -611,7 +611,7 @@ glob3(pathbuf, pathbuf_last, pathend, pathend_last, pattern, pattern_last,
 	 * and dirent.h as taking pointers to differently typed opaque
 	 * structures.
 	 */
-	struct dirent *(*readdirfunc)();
+	struct dirent *(*readdirfunc)(void *);
 
 	if (pathend > pathend_last)
 		return (1);
@@ -636,7 +636,7 @@ glob3(pathbuf, pathbuf_last, pathend, pathend_last, pattern, pattern_last,
 	if (pglob->gl_flags & GLOB_ALTDIRFUNC)
 		readdirfunc = pglob->gl_readdir;
 	else
-		readdirfunc = readdir;
+		readdirfunc = (struct dirent *(*)(void *))readdir;
 	while ((dp = (*readdirfunc)(dirp))) {
 		register u_char *sc;
 		register Char *dc;
