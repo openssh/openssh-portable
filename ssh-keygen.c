@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.63 2001/06/23 15:12:20 itojun Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.64 2001/06/23 17:05:22 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -187,9 +187,11 @@ do_convert_private_ssh2_from_blob(char *blob, int blen)
 {
 	Buffer b;
 	Key *key = NULL;
-	int magic, rlen, ktype, i1, i2, i3, i4;
-	u_long e;
 	char *type, *cipher;
+	u_char *sig, data[10] = "abcde12345";
+	int magic, rlen, ktype, i1, i2, i3, i4;
+	u_int slen;
+	u_long e;
 
 	buffer_init(&b);
 	buffer_append(&b, blob, blen);
@@ -264,16 +266,11 @@ do_convert_private_ssh2_from_blob(char *blob, int blen)
 		error("do_convert_private_ssh2_from_blob: "
 		    "remaining bytes in key blob %d", rlen);
 	buffer_free(&b);
-#ifdef DEBUG_PK
-	{
-		u_int slen;
-		u_char *sig, data[10] = "abcde12345";
 
-		key_sign(key, &sig, &slen, data, sizeof(data));
-		key_verify(key, sig, slen, data, sizeof(data));
-		xfree(sig);
-	}
-#endif
+	/* try the key */
+	key_sign(key, &sig, &slen, data, sizeof(data));
+	key_verify(key, sig, slen, data, sizeof(data));
+	xfree(sig);
 	return key;
 }
 
@@ -312,6 +309,9 @@ do_convert_from_ssh2(struct passwd *pw)
 		    strstr(line, ": ") != NULL) {
 			if (strstr(line, SSH_COM_PRIVATE_BEGIN) != NULL)
 				private = 1;
+			if (strstr(line, " END ") != NULL) {
+				break;
+			}
 			/* fprintf(stderr, "ignore: %s", line); */
 			continue;
 		}

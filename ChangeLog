@@ -32,7 +32,7 @@
    - markus@cvs.openbsd.org 2001/06/22 22:21:20
      [sftp-server.c]
      allow long usernames/groups in readdir
-  - markus@cvs.openbsd.org 2001/06/22 23:35:21
+   - markus@cvs.openbsd.org 2001/06/22 23:35:21
      [ssh.c]
      don't overwrite argv (fixes ssh user@host in 'ps'), report by ericj@
    - deraadt@cvs.openbsd.org 2001/06/23 00:16:16
@@ -78,6 +78,10 @@
      more strict prototypes.  raise warning level in Makefile.inc.  
      markus ok'ed
      TODO; cleanup headers
+   - markus@cvs.openbsd.org 2001/06/23 17:05:22
+     [ssh-keygen.c]
+     fix import for (broken?) ssh.com/f-secure private keys
+     (i tested > 1000 RSA keys)
 
 20010622
  - (stevesk) handle systems without pw_expire and pw_change.
@@ -5762,4 +5766,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1315 2001/06/25 05:01:22 mouring Exp $
+$Id: ChangeLog,v 1.1316 2001/06/25 05:04:58 mouring Exp $
