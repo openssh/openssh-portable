@@ -1,5 +1,6 @@
 20020622
  - (djm) Update README.privsep; spotted by fries@
+ - (djm) Release 3.3p1
 
 20020621
  - (djm) Sync:
@@ -1003,4 +1004,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2239 2002/06/21 14:45:50 djm Exp $
+$Id: ChangeLog,v 1.2240 2002/06/21 15:44:45 djm Exp $
