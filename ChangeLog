@@ -21,6 +21,10 @@
    - dtucker@cvs.openbsd.org 2005/03/14 10:09:03
      [ssh-keygen.1]
      Correct description of -H (bz #997);  ok markus@, punctuation jmc@
+   - dtucker@cvs.openbsd.org 2005/03/14 11:44:42
+     [auth.c]
+     Populate host for log message for logins denied by AllowUsers and
+     DenyUsers (bz #999); ok markus@
 
 20050313
  - (dtucker) [contrib/cygwin/ssh-host-config] Makes the query for the
@@ -2355,4 +2359,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3716 2005/03/14 12:15:58 dtucker Exp $
+$Id: ChangeLog,v 1.3717 2005/03/14 12:17:27 dtucker Exp $
