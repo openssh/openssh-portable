@@ -37,7 +37,7 @@ Dan Brosemer <odin@linuxfreak.com> - Autoconf and build fixes
 Miscellania - 
 
 This version of SSH is based upon code retrieved from the OpenBSD CVS
-repository on 1999-10-26 patched by Damien Miller <djm@ibs.com.au>,
+repository on 1999-10-28 patched by Damien Miller <djm@ibs.com.au>,
 which in turn was based on the last free version of SSH released by
 Tatu Ylonen.
 

@@ -12,6 +12,7 @@
 
  - Imported latest OpenBSD CVS code
  - Updated README.openssh
+ - Released 1.2pre5
 
 19991027
  - Adapted PAM patch.
