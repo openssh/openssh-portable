@@ -86,6 +86,9 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #  include <sys/poll.h>
 # endif
 #endif
+#ifdef HAVE_SYS_SYSMACROS_H
+# include <sys/sysmacros.h>
+#endif
 
 #include "version.h"
 

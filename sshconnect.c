@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: sshconnect.c,v 1.21 2000/01/14 04:45:52 damien Exp $");
+RCSID("$Id: sshconnect.c,v 1.22 2000/01/19 02:45:07 damien Exp $");
 
 #ifdef HAVE_OPENSSL
 #include <openssl/bn.h>
@@ -1070,7 +1070,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, RSA *host_key)
 	HostStatus host_status;
 	HostStatus ip_status;
 	int local = 0, host_ip_differ = 0;
-	int sa_len;
+	int salen;
 	char ntop[NI_MAXHOST];
 
 	/*
@@ -1084,15 +1084,15 @@ check_host_key(char *host, struct sockaddr *hostaddr, RSA *host_key)
 	switch (hostaddr->sa_family) {
 	case AF_INET:
 		local = (ntohl(((struct sockaddr_in *)hostaddr)->sin_addr.s_addr) >> 24) == IN_LOOPBACKNET;
-		sa_len = sizeof(struct sockaddr_in);
+		salen = sizeof(struct sockaddr_in);
 		break;
 	case AF_INET6:
 		local = IN6_IS_ADDR_LOOPBACK(&(((struct sockaddr_in6 *)hostaddr)->sin6_addr));
-		sa_len = sizeof(struct sockaddr_in6);
+		salen = sizeof(struct sockaddr_in6);
 		break;
 	default:
 		local = 0;
-		sa_len = sizeof(struct sockaddr_storage);
+		salen = sizeof(struct sockaddr_storage);
 		break;
 	}
 	if (local) {
@@ -1108,7 +1108,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, RSA *host_key)
 		options.check_host_ip = 0;
 
 	if (options.check_host_ip) {
-		if (getnameinfo(hostaddr, sa_len, ntop, sizeof(ntop),
+		if (getnameinfo(hostaddr, salen, ntop, sizeof(ntop),
 		    NULL, 0, NI_NUMERICHOST) != 0)
 			fatal("check_host_key: getnameinfo failed");
 		ip = xstrdup(ntop);

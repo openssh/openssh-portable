@@ -61,18 +61,18 @@ rresvport_af(alport, af)
 	struct sockaddr *sa;
 	u_int16_t *portp;
 	int s;
-	int sa_len;
+	int salen;
 
 	bzero(&ss, sizeof ss);
 	sa = (struct sockaddr *)&ss;
 
 	switch (af) {
 	case AF_INET:
-		sa_len = sizeof(struct sockaddr_in);
+		salen = sizeof(struct sockaddr_in);
 		portp = &((struct sockaddr_in *)sa)->sin_port;
 		break;
 	case AF_INET6:
-		sa_len = sizeof(struct sockaddr_in6);
+		salen = sizeof(struct sockaddr_in6);
 		portp = &((struct sockaddr_in6 *)sa)->sin6_port;
 		break;
 	default:
@@ -87,7 +87,7 @@ rresvport_af(alport, af)
 
 	*portp = htons(*alport);
 	if (*alport < IPPORT_RESERVED - 1) {
-		if (bind(s, sa, sa_len) >= 0)
+		if (bind(s, sa, salen) >= 0)
 			return (s);
 		if (errno != EADDRINUSE) {
 			(void)close(s);
