@@ -18,6 +18,9 @@
    - markus@cvs.openbsd.org 2001/06/19 14:09:45
      [session.c sshd.8]
      disable x11-fwd if use_login is enabled; from lukem@wasabisystems.com
+   - markus@cvs.openbsd.org 2001/06/19 15:40:45
+     [session.c]
+     allocate and free at the same level.
 
 20010615
  - (stevesk) don't set SA_RESTART and set SIGCHLD to SIG_DFL
@@ -5670,4 +5673,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1294 2001/06/21 03:14:49 mouring Exp $
+$Id: ChangeLog,v 1.1295 2001/06/21 03:17:42 mouring Exp $
