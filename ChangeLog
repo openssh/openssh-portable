@@ -1,3 +1,7 @@
+20010208
+ - (djm) Don't delete external askpass program in make uninstall target.
+   Report and fix from Roumen Petrov <roumen.petrov@skalasoft.com>
+
 20010207
  - (bal) Save the whole path to AR in configure.  Some Solaris 2.7 installs
    seem lose track of it while in openbsd-compat/  (two confirmed reports)

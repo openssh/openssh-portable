@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.147 2001/02/04 13:54:23 djm Exp $
+# $Id: Makefile.in,v 1.148 2001/02/07 21:22:47 djm Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -262,4 +262,3 @@ uninstall:
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)8/sshd.8
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)8/sftp-server.8
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/slogin.1
-	-rm -f $(DESTDIR)${ASKPASS_PROGRAM}
