@@ -112,7 +112,9 @@ catman-do:
 			>$${f%%.[18]}.0 ; \
 	done
 
-install: manpages $(TARGETS)
+install: manpages $(TARGETS) install-files host-key
+
+install-files:
 	./mkinstalldirs $(DESTDIR)$(bindir)
 	./mkinstalldirs $(DESTDIR)$(sbindir)
 	./mkinstalldirs $(DESTDIR)$(mandir)
@@ -134,7 +136,6 @@ install: manpages $(TARGETS)
 	ln -s ssh $(DESTDIR)$(bindir)/slogin
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/slogin.1
 	ln -s ssh.1 $(DESTDIR)$(mandir)/$(mansubdir)1/slogin.1
-
 	if [ ! -f $(DESTDIR)$(sysconfdir)/ssh_config -a ! -f $(DESTDIR)$(sysconfdir)/sshd_config ]; then \
 		./mkinstalldirs $(DESTDIR)$(sysconfdir); \
 		$(INSTALL) -m 644 ssh_config.out $(DESTDIR)$(sysconfdir)/ssh_config; \
@@ -146,6 +147,18 @@ install: manpages $(TARGETS)
 	fi
 
 host-key: ssh-keygen
+	if [ -f "$(sysconfdir)/ssh_host_key" ] ; then \
+		echo "$(sysconfdir)/ssh_host_key already exists, skipping." ; \
+	else \
+		./ssh-keygen -b 1024 -f $(sysconfdir)/ssh_host_key -N "" ; \
+	fi ; \
+	if [ -f $(sysconfdir)/ssh_host_dsa_key ] ; then \
+		echo "$(sysconfdir)/ssh_host_dsa_key already exists, skipping." ; \
+	else \
+		./ssh-keygen -d -f $(sysconfdir)/ssh_host_dsa_key -N "" ; \
+	fi ;
+
+host-key-force: ssh-keygen
 	./ssh-keygen -b 1024 -f $(sysconfdir)/ssh_host_key -N ""
 	./ssh-keygen -d -f $(sysconfdir)/ssh_host_dsa_key -N ""
 

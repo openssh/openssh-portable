@@ -1,3 +1,8 @@
+20000622
+ - (djm) Automatically generate host key during "make install". Suggested
+   by Gary E. Miller <gem@rellim.com>
+ - (djm) Paranoia before kill() system call
+
 20000620
  - (djm) Replace use of '-o' and '-a' logical operators in configure tests
    with '||' and '&&'. As suggested by Jim Knoble <jmknoble@pint-stowp.cx> 
