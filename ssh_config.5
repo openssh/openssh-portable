@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.46 2005/03/01 14:55:23 jmc Exp $
+.\" $OpenBSD: ssh_config.5,v 1.47 2005/03/07 23:41:54 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -504,12 +504,12 @@ The first argument must be a port number, and the second must be
 .Xc .
 IPv6 addresses can be specified by enclosing addresses in square brackets or
 by using an alternative syntax:
-.Xo
 .Sm off
-.Oo Ar bind_address No / Oc
+.Xo
+.Op Ar bind_address No /
 .Ar host No / Ar port
-.Sm on
 .Xc .
+.Sm on
 Multiple forwardings may be specified, and additional forwardings can be
 given on the command line.
 Only the superuser can forward privileged ports.
@@ -641,12 +641,12 @@ The first argument must be a port number, and the second must be
 .Xc .
 IPv6 addresses can be specified by enclosing any addresses in square brackets
 or by using the alternative syntax:
-.Xo
 .Sm off
-.Oo Ar bind_address No / Oc
+.Xo
+.Op Ar bind_address No /
 .Ar host No / Ar port
-.Sm on
 .Xc .
+.Sm on
 Multiple forwardings may be specified, and additional
 forwardings can be given on the command line.
 Only the superuser can forward privileged ports.
