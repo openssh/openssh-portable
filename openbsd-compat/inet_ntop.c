@@ -104,7 +104,8 @@ inet_ntop4(src, dst, size)
 	static const char fmt[] = "%u.%u.%u.%u";
 	char tmp[sizeof "255.255.255.255"];
 
-	if (sprintf(tmp, fmt, src[0], src[1], src[2], src[3]) > size) {
+	if (snprintf(tmp, sizeof(tmp), fmt, src[0], src[1], src[2],
+	    src[3]) > size) {
 		errno = ENOSPC;
 		return (NULL);
 	}
@@ -190,7 +191,8 @@ inet_ntop6(src, dst, size)
 			tp += strlen(tp);
 			break;
 		}
-		tp += sprintf(tp, "%x", words[i]);
+		snprintf(tp, sizeof(tmp - (tp - tmp)), "%x", words[i]);
+		tp += strlen(tp);
 	}
 	/* Was it a trailing run of 0x00's? */
 	if (best.base != -1 && (best.base + best.len) == (IN6ADDRSZ / INT16SZ))
