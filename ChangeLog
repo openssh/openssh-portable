@@ -3,6 +3,8 @@
  - Explicitly seed OpenSSL's PRNG before checking rsa_alive()
  - Check for getpagesize in libucb.a if not found in libc. Fix for old
    Solaris from Andre Lucas <andre.lucas@dial.pipex.com>
+ - Check for libwrap if --with-tcp-wrappers option specified. Suggestion 
+   Mate Wierdl <mw@moni.msci.memphis.edu>
 
 20000303
  - Added "make host-key" target, Suggestion from Dominik Brettnacher

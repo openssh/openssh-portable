@@ -699,8 +699,25 @@ AC_ARG_WITH(tcp-wrappers,
 	[  --with-tcp-wrappers     Enable tcpwrappers support],
 	[
 		if test "x$withval" != "$xno" ; then
-			AC_DEFINE(LIBWRAP)
+			saved_LIBS="$LIBS"
 			LIBS="$LIBS -lwrap"
+			AC_MSG_CHECKING(for libwrap)
+			AC_TRY_LINK(
+				[
+					#include <tcpd.h>
+					int deny_severity = 0, allow_severity = 0;
+				],
+				[hosts_access(0);],
+				[
+					AC_MSG_RESULT(yes)
+					AC_DEFINE(LIBWRAP)
+				],
+				[
+					AC_MSG_RESULT(no)
+					AC_MSG_WARN([*** libwrap missing - tcpwrapper support disabled ***])
+					LIBS="$saved_LIBS"
+				]
+			)
 		fi
 	]
 )
