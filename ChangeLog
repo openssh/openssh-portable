@@ -6,6 +6,8 @@
    - markus@cvs.openbsd.org 2003/10/02 08:26:53
      [ssh-gss.h]
      missing $OpenBSD:; dtucker
+ - (tim) [contrib/caldera/openssh.spec] Remove obsolete --with-ipv4-default
+   option.
 
 20031002
  - OpenBSD CVS Sync
@@ -1277,4 +1279,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3055 2003/10/03 08:02:30 dtucker Exp $
+$Id: ChangeLog,v 1.3056 2003/10/04 05:30:23 tim Exp $
