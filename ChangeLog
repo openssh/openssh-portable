@@ -48,6 +48,9 @@
    - markus@cvs.openbsd.org 2002/06/26 08:58:26
      [session.c]
      limit # of env vars to 1000; ok deraadt/djm
+   - deraadt@cvs.openbsd.org 2002/06/26 13:20:57
+     [monitor.c]
+     be careful in mm_zalloc
  - (djm) Require krb5 devel for RPM build w/ KrbV 
  - (djm) Improve PAMAuthenticationViaKbdInt text from Nalin Dahyabhai 
    <nalin@redhat.com>
@@ -1150,4 +1153,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2295 2002/06/26 13:05:16 djm Exp $
+$Id: ChangeLog,v 1.2296 2002/06/26 13:27:11 djm Exp $

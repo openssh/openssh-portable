@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.17 2002/06/22 23:09:51 stevesk Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.18 2002/06/26 13:20:57 deraadt Exp $");
 
 #include <openssl/dh.h>
 
@@ -1453,9 +1453,13 @@ mm_get_keystate(struct monitor *pmonitor)
 void *
 mm_zalloc(struct mm_master *mm, u_int ncount, u_int size)
 {
+	int len = size * ncount;
 	void *address;
 
-	address = mm_malloc(mm, size * ncount);
+	if (len <= 0)
+		fatal("%s: mm_zalloc(%u, %u)", __func__, ncount, size);
+
+	address = mm_malloc(mm, len);
 
 	return (address);
 }
