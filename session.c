@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.79 2001/06/03 14:55:39 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.80 2001/06/04 21:59:43 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -132,7 +132,7 @@ void	do_pre_login(Session *s);
 void	do_child(Session *s, const char *command);
 void	do_motd(void);
 int	check_quietlogin(Session *s, const char *command);
-void	xauthfile_cleanup_proc(void *ignore);
+void	xauthfile_cleanup_proc(void *pw);
 
 void	do_authenticated1(Authctxt *authctxt);
 void	do_authenticated2(Authctxt *authctxt);
@@ -200,21 +200,23 @@ do_authenticated(Authctxt *authctxt)
 
 	/* remote user's local Xauthority file and agent socket */
 	if (xauthfile)
-		xauthfile_cleanup_proc(NULL);
+		xauthfile_cleanup_proc(authctxt->pw);
 	if (auth_get_socket_name())
-		auth_sock_cleanup_proc(NULL);
+		auth_sock_cleanup_proc(authctxt->pw);
 }
 
 /*
  * Remove local Xauthority file.
  */
 void
-xauthfile_cleanup_proc(void *ignore)
+xauthfile_cleanup_proc(void *_pw)
 {
-	debug("xauthfile_cleanup_proc called");
+	struct passwd *pw = _pw;
+	char *p;
 
+	debug("xauthfile_cleanup_proc called");
 	if (xauthfile != NULL) {
-		char *p;
+		temporarily_use_uid(pw);
 		unlink(xauthfile);
 		p = strrchr(xauthfile, '/');
 		if (p != NULL) {
@@ -223,6 +225,7 @@ xauthfile_cleanup_proc(void *ignore)
 		}
 		xfree(xauthfile);
 		xauthfile = NULL;
+		restore_uid();
 	}
 }
 
@@ -399,7 +402,7 @@ do_authenticated1(Authctxt *authctxt)
 			if (fd >= 0)
 				close(fd);
 			restore_uid();
-			fatal_add_cleanup(xauthfile_cleanup_proc, NULL);
+			fatal_add_cleanup(xauthfile_cleanup_proc, s->pw);
 			success = 1;
 			break;
 
@@ -1811,7 +1814,7 @@ session_x11_req(Session *s)
 	if (fd >= 0)
 		close(fd);
 	restore_uid();
-	fatal_add_cleanup(xauthfile_cleanup_proc, s);
+	fatal_add_cleanup(xauthfile_cleanup_proc, s->pw);
 	return 1;
 }
 
