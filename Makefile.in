@@ -76,7 +76,7 @@ install:
 	install -m644 -c sshd.8 $(mandir)/man8/sshd.8
 
 distclean: clean
-	rm -f Makefile config.h *~
+	rm -f Makefile config.h core configure *~
 	rm -rf bin
 
 mrproper: distclean

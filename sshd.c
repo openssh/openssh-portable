@@ -18,7 +18,7 @@ agent connections.
 */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.7 1999/10/29 00:21:15 damien Exp $");
+RCSID("$Id: sshd.c,v 1.8 1999/10/29 01:49:20 damien Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -188,40 +188,63 @@ static int pamconv(int num_msg, const struct pam_message **msg,
 
 void pam_cleanup_proc(void *context)
 {
-  int retval;
+  int pam_retval;
   
   if (pamh != NULL)
   {
-    retval = pam_close_session((pam_handle_t *)pamh, 0);
-	 
-    if (pam_end((pam_handle_t *)pamh, retval) != PAM_SUCCESS)
-      log("Cannot release PAM authentication.");
+    pam_retval = pam_close_session((pam_handle_t *)pamh, 0);
+    if (pam_retval != PAM_SUCCESS)
+    {
+      log("Cannot close PAM session: %.200s", 
+          pam_strerror((pam_handle_t *)pamh, pam_retval));
+    }
+     
+    pam_retval = pam_end((pam_handle_t *)pamh, pam_retval);
+    if (pam_retval != PAM_SUCCESS)
+    {
+      log("Cannot release PAM authentication: %.200s", 
+          pam_strerror((pam_handle_t *)pamh, pam_retval));
+    }
   }
 }
 
 void do_pam_account_and_session(const char *username, const char *password, const char *remote_user, const char *remote_host)
 {
-  if (remote_host && (PAM_SUCCESS != pam_set_item((pam_handle_t *)pamh, PAM_RHOST, remote_host)))
+  int pam_retval;
+  
+  if (remote_host != NULL)
   {
-    log("PAM setup failed.");
+    debug("PAM setting rhost to \"%.200s\"", remote_host);
+    pam_retval = pam_set_item((pam_handle_t *)pamh, PAM_RHOST, remote_host);
+    if (pam_retval != PAM_SUCCESS)
+    {
+      log("PAM set rhost failed: %.200s", pam_strerror((pam_handle_t *)pamh, pam_retval));
+	   eat_packets_and_disconnect(username);
+    }
+  }
+  
+  if (remote_user != NULL)
+  {
+    debug("PAM setting ruser to \"%.200s\"", remote_user);
+    pam_retval = pam_set_item((pam_handle_t *)pamh, PAM_RUSER, remote_user);
+    if (pam_retval != PAM_SUCCESS)
+    {
+      log("PAM set ruser failed: %.200s", pam_strerror((pam_handle_t *)pamh, pam_retval));
+	   eat_packets_and_disconnect(username);
+    }
+  }
+  
+  pam_retval = pam_acct_mgmt((pam_handle_t *)pamh, 0);
+  if (pam_retval != PAM_SUCCESS)
+  {
+    log("PAM rejected by account configuration: %.200s", pam_strerror((pam_handle_t *)pamh, pam_retval));
 	 eat_packets_and_disconnect(username);
   }
 
-  if (remote_user && (PAM_SUCCESS != pam_set_item((pam_handle_t *)pamh, PAM_RUSER, remote_user)))
+  pam_retval = pam_open_session((pam_handle_t *)pamh, 0);
+  if (pam_retval != PAM_SUCCESS)
   {
-    log("PAM setup failed.");
-	 eat_packets_and_disconnect(username);
-  }
-    
-  if (PAM_SUCCESS != pam_acct_mgmt((pam_handle_t *)pamh, 0))
-  {
-    log("PAM rejected by account configuration.");
-	 eat_packets_and_disconnect(username);
-  }
-
-  if (PAM_SUCCESS != pam_open_session((pam_handle_t *)pamh, 0))
-  {
-    log("PAM session setup failed.");
+    log("PAM session setup failed: %.200s", pam_strerror((pam_handle_t *)pamh, pam_retval));
 	 eat_packets_and_disconnect(username);
   }
 }
@@ -815,8 +838,10 @@ main(int ac, char **av)
     
     if (pamh != NULL)
     {
+	   debug("Closing PAM session.");
       retval = pam_close_session((pam_handle_t *)pamh, 0);
 
+	   debug("Terminating PAM library.");
       if (pam_end((pam_handle_t *)pamh, retval) != PAM_SUCCESS)
         log("Cannot release PAM authentication.");
 	 
@@ -1111,7 +1136,10 @@ do_authentication(char *user, int privileged_port)
   char *client_user = NULL;
   unsigned int client_host_key_bits;
   BIGNUM *client_host_key_e, *client_host_key_n;
-			 
+#ifdef HAVE_LIBPAM
+  int pam_retval;
+#endif /* HAVE_LIBPAM */
+  			 
 #ifdef AFS
   /* If machine has AFS, set process authentication group. */
   if (k_hasafs()) {
@@ -1136,15 +1164,14 @@ do_authentication(char *user, int privileged_port)
   pw = &pwcopy;
 
 #ifdef HAVE_LIBPAM
-  if (PAM_SUCCESS != pam_start("sshd", pw->pw_name, &conv, (pam_handle_t**)&pamh))
+  debug("Starting up PAM with username \"%.200s\"", pw->pw_name);
+  pam_retval = pam_start("sshd", pw->pw_name, &conv, (pam_handle_t**)&pamh);
+  if (pam_retval != PAM_SUCCESS)
   {
-    packet_start(SSH_SMSG_FAILURE);
-    packet_send();
-    packet_write_wait();
-    packet_disconnect("PAM initialisation failed.");
+    log("PAM initialisation failed: %.200s", pam_strerror((pam_handle_t *)pamh, pam_retval));
+    eat_packets_and_disconnect(user);
   }
-
-  fatal_add_cleanup(&pam_cleanup_proc, NULL); 
+ fatal_add_cleanup(&pam_cleanup_proc, NULL);
 #endif
 
   /* If we are not running as root, the user must have the same uid as the
@@ -1405,15 +1432,17 @@ do_authentication(char *user, int privileged_port)
 
 #ifdef HAVE_LIBPAM
           pampasswd = password;
-  
-          if (PAM_SUCCESS == pam_authenticate((pam_handle_t *)pamh, 0))
+          
+	  pam_retval = pam_authenticate((pam_handle_t *)pamh, 0);
+          if (pam_retval == PAM_SUCCESS)
           {
-            log("PAM Password authentication accepted for %.100s.", user);
+            log("PAM Password authentication accepted for \"%.100s\"", user);
             authenticated = 1;
             break;
           } else
 	  {
- 	    log("PAM Password authentication for %.100s failed.", user);
+ 	    log("PAM Password authentication for \"%.100s\" failed: %s", 
+	        user, pam_strerror((pam_handle_t *)pamh, pam_retval));
             break;
 	  }
 #else /* HAVE_LIBPAM */

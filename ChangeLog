@@ -3,6 +3,9 @@
  - Incorporated latest changes from OpenBSD's CVS
  - Integrated Makefile patch from  Niels Kristian Bech Jensen <nkbj@image.dk>
  - Integrated PAM env patch from Nalin Dahyabhai <nalin.dahyabhai@pobox.com>
+ - Make distclean now removed configure script
+ - Improved PAM logging
+ - Added some debug() calls for PAM
 
 19991028
  - Further PAM enhancements.
