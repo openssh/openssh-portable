@@ -694,6 +694,20 @@ if test "x$ac_cv_have_ssize_t" = "xyes" ; then
 	AC_DEFINE(HAVE_SSIZE_T)
 fi
 
+AC_CACHE_CHECK([for clock_t], ac_cv_have_clock_t, [
+	AC_TRY_COMPILE(
+		[
+#include <time.h>
+		],
+		[ clock_t foo; foo = 1235; ],
+		[ ac_cv_have_clock_t="yes" ],
+		[ ac_cv_have_clock_t="no" ]
+	)
+])
+if test "x$ac_cv_have_clock_t" = "xyes" ; then
+	AC_DEFINE(HAVE_CLOCK_T)
+fi
+
 AC_CACHE_CHECK([for sa_family_t], ac_cv_have_sa_family_t, [
 	AC_TRY_COMPILE(
 		[

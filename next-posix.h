@@ -30,9 +30,6 @@
 /* NeXT's readdir() is BSD (struct direct) not POSIX (struct dirent) */
 #define dirent direct
 
-/* FILE */
-#define O_NONBLOCK	00004	/* non-blocking open */
-
 /* Swap out NeXT's BSD wait() for a more POSIX complient one */
 pid_t posix_wait(int *status);
 #define wait(a) posix_wait(a)

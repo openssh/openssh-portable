@@ -47,6 +47,7 @@
 
 #include <unistd.h> /* For STDIN_FILENO, etc */
 #include <termios.h> /* Struct winsize */
+#include <fcntl.h> /* For O_NONBLOCK */
 
 /* Constants */
 
@@ -87,6 +88,10 @@ enum
 #ifndef STDERR_FILENO    
 # define STDERR_FILENO   2
 #endif                   
+
+#ifndef O_NONBLOCK	/* Non Blocking Open */
+# define O_NONBLOCK      00004 
+#endif
 
 #ifndef S_ISREG
 # define S_ISDIR(mode)	(((mode) & (_S_IFMT)) == (_S_IFDIR))
@@ -198,6 +203,11 @@ typedef unsigned int size_t;
 typedef int ssize_t;
 # define HAVE_SSIZE_T
 #endif /* HAVE_SSIZE_T */
+
+#ifndef HAVE_CLOCK_T
+typedef long clock_t;
+# define HAVE_CLOCK_T
+#endif; /* HAVE_CLOCK_T */
 
 #ifndef HAVE_SA_FAMILY_T
 typedef int sa_family_t;

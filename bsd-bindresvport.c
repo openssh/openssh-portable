@@ -62,7 +62,7 @@ bindresvport_af(sd, sa, af)
 	struct sockaddr_in6 *sin6;
 	u_int16_t *portp;
 	u_int16_t port;
-	int salen;
+	socklen_t salen;
 	int i;
 
 	if (sa == NULL) {

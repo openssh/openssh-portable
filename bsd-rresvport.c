@@ -59,7 +59,7 @@ rresvport_af(int *alport, sa_family_t af)
 	struct sockaddr *sa;
 	u_int16_t *portp;
 	int s;
-	int salen;
+	socklen_t salen;
 
 	memset(&ss, '\0', sizeof ss);
 	sa = (struct sockaddr *)&ss;

@@ -236,6 +236,7 @@
 #undef HAVE_SOCKLEN_T
 #undef HAVE_SIZE_T
 #undef HAVE_SSIZE_T
+#undef HAVE_CLOCK_T
 #undef HAVE_MODE_T
 #undef HAVE_PID_T
 #undef HAVE_SA_FAMILY_T
