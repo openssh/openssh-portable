@@ -4,6 +4,8 @@
      [ssh-keygen.c]
      enable 'ssh-keygen -l -f ~/.ssh/{authorized_keys,known_hosts}{,2}
  - (bal) Resynced CVS ID with OpenBSD for channel.c and uidswap.c
+ - (bal) if no MAXHOSTNAMELEN is defined.  Default to 64 character defination.
+   Suggested by Christian Kurz <shorty@debain.org>
 
 20001229
  - (bal) Fixed spelling of 'authorized_keys' in ssh-copy-id.1 by Christian 
