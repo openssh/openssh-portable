@@ -40,6 +40,7 @@
  - (djm) Import getrrsetbyname() function from OpenBSD libc (for DNS support)
  - (djm) Tidy Makefile clean targets
  - (djm) Adapt README.dns for portable
+ - (djm) Avoid uuencode.c warnings
 
 20030514
  - (djm) Bug #117: Don't lie to PAM about username
@@ -1515,4 +1516,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2715 2003/05/15 03:49:58 djm Exp $
+$Id: ChangeLog,v 1.2716 2003/05/15 03:57:51 djm Exp $
