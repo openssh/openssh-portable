@@ -137,6 +137,7 @@ void	do_authentication2(Authctxt *);
 
 void	auth_log(Authctxt *, int, char *, char *);
 void	userauth_finish(Authctxt *, int, char *);
+void	userauth_send_banner(const char *);
 int	auth_root_allowed(char *);
 
 char	*auth2_read_banner(void);

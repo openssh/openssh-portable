@@ -35,6 +35,7 @@ RCSID("$OpenBSD: auth2.c,v 1.107 2004/07/28 09:40:29 markus Exp $");
 #include "dispatch.h"
 #include "pathnames.h"
 #include "monitor_wrap.h"
+#include "buffer.h"
 
 #ifdef GSSAPI
 #include "ssh-gss.h"
@@ -44,6 +45,7 @@ RCSID("$OpenBSD: auth2.c,v 1.107 2004/07/28 09:40:29 markus Exp $");
 extern ServerOptions options;
 extern u_char *session_id2;
 extern u_int session_id2_len;
+extern Buffer loginmsg;
 
 /* methods */
 
@@ -216,8 +218,17 @@ userauth_finish(Authctxt *authctxt, int authenticated, char *method)
 		authenticated = 0;
 
 #ifdef USE_PAM
-	if (options.use_pam && authenticated && !PRIVSEP(do_pam_account()))
-		authenticated = 0;
+	if (options.use_pam && authenticated) {
+		if (!PRIVSEP(do_pam_account())) {
+			authenticated = 0;
+			/* if PAM returned a message, send it to the user */
+			if (buffer_len(&loginmsg) > 0) {
+				buffer_append(&loginmsg, "\0", 1);
+				userauth_send_banner(buffer_ptr(&loginmsg));
+				buffer_clear(&loginmsg);
+			}
+		}
+	}
 #endif
 
 #ifdef _UNICOS

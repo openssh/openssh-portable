@@ -6,6 +6,10 @@
  - (dtucker) [auth-pam.c] Relocate sshpam_store_conv(), no code change.
  - (djm) [auth2-kbdint.c auth2-none.c  auth2-passwd.c auth2-pubkey.c] 
    Make cygwin code more consistent with that which surrounds it
+ - (dtucker) [auth-pam.c auth.h auth2-none.c auth2.c monitor.c monitor_wrap.c]
+   Bug #892: Send messages from failing PAM account modules to the client via
+   SSH2_MSG_USERAUTH_BANNER messages.  Note that this will not happen with
+   SSH2 kbdint authentication, which need to be dealt with separately.  ok djm@
 
 20040830
  - (dtucker) [session.c openbsd-compat/bsd-cygwin_util.{c,h}] Bug #915: only
@@ -1725,4 +1729,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3543 2004/09/11 12:42:09 djm Exp $
+$Id: ChangeLog,v 1.3544 2004/09/11 13:07:03 dtucker Exp $

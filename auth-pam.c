@@ -47,7 +47,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.116 2004/09/11 12:28:02 dtucker Exp $");
+RCSID("$Id: auth-pam.c,v 1.117 2004/09/11 13:07:03 dtucker Exp $");
 
 #ifdef USE_PAM
 #if defined(HAVE_SECURITY_PAM_APPL_H)
@@ -572,7 +572,7 @@ sshpam_init(Authctxt *authctxt)
 	}
 	debug("PAM: initializing for \"%s\"", user);
 	sshpam_err =
-	    pam_start(SSHD_PAM_SERVICE, user, &null_conv, &sshpam_handle);
+	    pam_start(SSHD_PAM_SERVICE, user, &store_conv, &sshpam_handle);
 	sshpam_authctxt = authctxt;
 
 	if (sshpam_err != PAM_SUCCESS) {
@@ -804,11 +804,13 @@ finish_pam(void)
 u_int
 do_pam_account(void)
 {
+	debug("%s: called", __func__);
 	if (sshpam_account_status != -1)
 		return (sshpam_account_status);
 
 	sshpam_err = pam_acct_mgmt(sshpam_handle, 0);
-	debug3("PAM: %s pam_acct_mgmt = %d", __func__, sshpam_err);
+	debug3("PAM: %s pam_acct_mgmt = %d (%s)", __func__, sshpam_err,
+	    pam_strerror(sshpam_handle, sshpam_err));
 	
 	if (sshpam_err != PAM_SUCCESS && sshpam_err != PAM_NEW_AUTHTOK_REQD) {
 		sshpam_account_status = 0;
@@ -838,7 +840,7 @@ void
 do_pam_setcred(int init)
 {
 	sshpam_err = pam_set_item(sshpam_handle, PAM_CONV,
-	    (const void *)&null_conv);
+	    (const void *)&store_conv);
 	if (sshpam_err != PAM_SUCCESS)
 		fatal("PAM: failed to set PAM_CONV: %s",
 		    pam_strerror(sshpam_handle, sshpam_err));

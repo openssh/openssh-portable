@@ -72,6 +72,7 @@ extern struct monitor *pmonitor;
 extern Buffer input, output;
 extern Buffer loginmsg;
 extern ServerOptions options;
+extern Buffer loginmsg;
 
 int
 mm_is_monitor(void)
@@ -716,6 +717,7 @@ mm_do_pam_account(void)
 {
 	Buffer m;
 	u_int ret;
+	char *msg;
 
 	debug3("%s entering", __func__);
 	if (!options.use_pam)
@@ -727,6 +729,9 @@ mm_do_pam_account(void)
 	mm_request_receive_expect(pmonitor->m_recvfd,
 	    MONITOR_ANS_PAM_ACCOUNT, &m);
 	ret = buffer_get_int(&m);
+	msg = buffer_get_string(&m, NULL);
+	buffer_append(&loginmsg, msg, strlen(msg));
+	xfree(msg);
 
 	buffer_free(&m);
 
