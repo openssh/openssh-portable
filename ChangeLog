@@ -1,4 +1,8 @@
 20040719
+ - (djm) [log.c] bz #111: Escape more control characters when sending data 
+   to syslog; from peak AT argo.troja.mff.cuni.cz
+
+20040719
  - (djm) [openbsd-compat/bsd-arc4random.c] Discard early keystream, like OpenBSD
    ok dtucker@
  - (djm) [auth-pam.c] Avoid use of xstrdup and friends in conversation function,
@@ -1535,4 +1539,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3480 2004/07/19 17:19:26 tim Exp $
+$Id: ChangeLog,v 1.3481 2004/07/21 00:52:13 djm Exp $
