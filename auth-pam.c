@@ -648,6 +648,9 @@ free_pam_environment(char **env)
 {
 	char **envp;
 
+	if (env == NULL)
+		return;
+
 	for (envp = env; *envp; envp++)
 		xfree(*envp);
 	xfree(env);

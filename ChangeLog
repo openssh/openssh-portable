@@ -16,6 +16,8 @@
      Jean-Charles Longuet (jclonguet at free.fr); portable #207 ok markus@
  - (djm) Add warning for UsePAM when built without PAM support
  - (djm) A few type mismatch fixes from Bug #565
+ - (djm) Guard free_pam_environment against NULL argument. Works around
+   HP/UX PAM problems debugged by dtucker
 
 20030515
  - (djm) OpenBSD CVS Sync
@@ -1547,4 +1549,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2729 2003/05/16 05:51:44 djm Exp $
+$Id: ChangeLog,v 1.2730 2003/05/16 08:21:01 djm Exp $
