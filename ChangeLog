@@ -1,3 +1,7 @@
+20040921
+ - (dtucker) [openbsd-compat/bsd-snprintf.c] Check for max length too.
+   ok djm@
+
 20040912
  - (djm) [loginrec.c] Start KNF and tidy up of this long-neglected file.
    No change in resultant binary
@@ -1744,4 +1748,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3552 2004/09/12 12:36:15 dtucker Exp $
+$Id: ChangeLog,v 1.3553 2004/09/21 11:32:12 dtucker Exp $
