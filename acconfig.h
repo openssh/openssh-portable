@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.132 2002/04/23 13:09:19 djm Exp $ */
+/* $Id: acconfig.h,v 1.133 2002/04/23 20:11:13 stevesk Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -239,9 +239,6 @@
 
 /* Define if you have getpwanam(3) [SunOS 4.x] */
 #undef HAVE_GETPWANAM
-
-/* Defined if in_systm.h needs to be included with netinet/ip.h (HPUX - <sigh/>) */
-#undef NEED_IN_SYSTM_H
 
 /* Define if you have an old version of PAM which takes only one argument */
 /* to pam_strerror */
