@@ -14,6 +14,17 @@ AC_SUBST(PERL)
 AC_PATH_PROG(ENT, ent)
 AC_SUBST(ENT)
 
+# Use LOGIN_PROGRAM from environment if possible
+if test ! -z "$LOGIN_PROGRAM" ; then
+	AC_DEFINE_UNQUOTED(LOGIN_PROGRAM_FALLBACK, "$LOGIN_PROGRAM")
+else
+	# Search for login
+	AC_PATH_PROG(LOGIN_PROGRAM_FALLBACK, login)
+	if test ! -z "$LOGIN_PROGRAM_FALLBACK" ; then
+		AC_DEFINE_UNQUOTED(LOGIN_PROGRAM_FALLBACK, "$LOGIN_PROGRAM_FALLBACK")
+	fi
+fi
+
 if test -z "$LD" ; then
 	LD=$CC
 fi
@@ -225,18 +236,18 @@ if test -z "$no_libnsl" ; then
 fi
 
 # Checks for header files.
-AC_CHECK_HEADERS(bstring.h endian.h floatingpoint.h lastlog.h limits.h login.h maillock.h netdb.h netgroup.h netinet/in_systm.h paths.h poll.h pty.h shadow.h security/pam_appl.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h sys/poll.h sys/select.h sys/stat.h sys/stropts.h sys/sysmacros.h sys/time.h sys/ttcompat.h stddef.h time.h ttyent.h usersec.h util.h utmp.h utmpx.h)
+AC_CHECK_HEADERS(bstring.h endian.h floatingpoint.h lastlog.h limits.h login.h login_cap.h maillock.h netdb.h netgroup.h netinet/in_systm.h paths.h poll.h pty.h shadow.h security/pam_appl.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h sys/poll.h sys/select.h sys/stat.h sys/stropts.h sys/sysmacros.h sys/time.h sys/ttcompat.h stddef.h time.h ttyent.h usersec.h util.h utmp.h utmpx.h)
 
-# Checks for library functions.
-AC_CHECK_FUNCS(arc4random atexit b64_ntop bcopy bindresvport_af clock freeaddrinfo gai_strerror getaddrinfo getnameinfo getrusage getttyent inet_aton inet_ntoa innetgr md5_crypt memmove mkdtemp on_exit openpty rresvport_af setenv seteuid setlogin setproctitle setreuid sigaction sigvec snprintf strerror strlcat strlcpy strsep vsnprintf vhangup _getpty __b64_ntop)
-dnl    checks for time functions
+dnl    Checks for library functions.
+AC_CHECK_FUNCS(arc4random atexit b64_ntop bcopy bindresvport_af clock freeaddrinfo gai_strerror getaddrinfo getnameinfo getrusage getttyent inet_aton inet_ntoa innetgr login_getcapbool md5_crypt memmove mkdtemp on_exit openpty rresvport_af setenv seteuid setlogin setproctitle setreuid sigaction sigvec snprintf strerror strlcat strlcpy strsep vsnprintf vhangup _getpty __b64_ntop)
+dnl    Checks for time functions
 AC_CHECK_FUNCS(gettimeofday time)
-dnl    checks for libutil functions
+dnl    Checks for libutil functions
 AC_CHECK_FUNCS(login logout updwtmp logwtmp)
-dnl    checks for utmp functions
+dnl    Checks for utmp functions
 AC_CHECK_FUNCS(entutent getutent getutid getutline pututline setutent)
 AC_CHECK_FUNCS(utmpname)
-dnl    checks for utmpx functions
+dnl    Checks for utmpx functions
 AC_CHECK_FUNCS(entutxent getutxent getutxid getutxline pututxline )
 AC_CHECK_FUNCS(setutxent utmpxname)
 
@@ -734,6 +745,22 @@ AC_CACHE_CHECK([for __ss_family field in struct sockaddr_storage],
 ])
 if test "x$ac_cv_have___ss_family_in_struct_ss" = "xyes" ; then
 	AC_DEFINE(HAVE___SS_FAMILY_IN_SS)
+fi
+
+AC_CACHE_CHECK([for pw_class field in struct passwd],
+		ac_cv_have_pw_class_in_struct_passwd, [
+	AC_TRY_COMPILE(
+		[
+#include <sys/types.h>
+#include <pwd.h>
+		],
+		[ struct passwd p s; p.pw_class = NULL; ],
+		[ ac_cv_have_pw_class_in_struct_passwd="yes" ],
+		[ ac_cv_have_pw_class_in_struct_passwd="no" ]
+	)
+])
+if test "x$ac_cv_have_pw_class_in_struct_passwd" = "xyes" ; then
+	AC_DEFINE(HAVE_PW_CLASS_IN_PASSWD)
 fi
 
 

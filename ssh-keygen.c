@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.29 2000/07/15 04:01:37 djm Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.30 2000/08/19 21:34:43 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -16,7 +16,6 @@ RCSID("$OpenBSD: ssh-keygen.c,v 1.29 2000/07/15 04:01:37 djm Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
-#include "fingerprint.h"
 #include "key.h"
 #include "rsa.h"
 #include "dsa.h"
@@ -228,8 +227,9 @@ do_print_public(struct passwd *pw)
 void
 do_fingerprint(struct passwd *pw)
 {
+	/* XXX RSA1 only */
+
 	FILE *f;
-	BIGNUM *e, *n;
 	Key *public;
 	char *comment = NULL, *cp, *ep, line[16*1024];
 	int i, skip = 0, num = 1, invalid = 1;
@@ -249,13 +249,9 @@ do_fingerprint(struct passwd *pw)
 		key_free(public);
 		exit(0);
 	}
-	key_free(public);
 
-	/* XXX */
 	f = fopen(identity_file, "r");
 	if (f != NULL) {
-		n = BN_new();
-		e = BN_new();
 		while (fgets(line, sizeof(line), f)) {
 			i = strlen(line) - 1;
 			if (line[i] != '\n') {
@@ -290,18 +286,17 @@ do_fingerprint(struct passwd *pw)
 				*cp++ = '\0';
 			}
 			ep = cp;
-			if (auth_rsa_read_key(&cp, &ignore, e, n)) {
+			if (auth_rsa_read_key(&cp, &ignore, public->rsa->e, public->rsa->n)) {
 				invalid = 0;
 				comment = *cp ? cp : comment;
-				printf("%d %s %s\n", BN_num_bits(n),
-				    fingerprint(e, n),
+				printf("%d %s %s\n", key_size(public),
+				    key_fingerprint(public),
 				    comment ? comment : "no comment");
 			}
 		}
-		BN_free(e);
-		BN_free(n);
 		fclose(f);
 	}
+	key_free(public);
 	if (invalid) {
 		printf("%s is not a valid key file.\n", identity_file);
 		exit(1);

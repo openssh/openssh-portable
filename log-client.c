@@ -15,7 +15,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: log-client.c,v 1.9 2000/06/20 01:39:42 markus Exp $");
+RCSID("$OpenBSD: log-client.c,v 1.10 2000/08/19 02:57:33 deraadt Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -57,6 +57,5 @@ do_log(LogLevel level, const char *fmt, va_list args)
 	if (level == SYSLOG_LEVEL_DEBUG)
 		fprintf(stderr, "debug: ");
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, args);
-	fprintf(stderr, "%s", msgbuf);
-	fprintf(stderr, "\r\n");
+	fprintf(stderr, "%s\r\n", msgbuf);
 }

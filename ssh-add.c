@@ -4,18 +4,21 @@
  *                    All rights reserved
  * Created: Thu Apr  6 00:52:24 1995 ylo
  * Adds an identity to the authentication server, or removes an identity.
+ *
+ * SSH2 implementation,
+ * Copyright (c) 2000 Markus Friedl. All rights reserved.
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.18 2000/07/16 08:27:21 markus Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.19 2000/08/19 21:34:43 markus Exp $");
 
+#include <openssl/evp.h>
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
 
 #include "rsa.h"
 #include "ssh.h"
 #include "xmalloc.h"
-#include "fingerprint.h"
 #include "key.h"
 #include "authfd.h"
 #include "authfile.h"
@@ -37,7 +40,7 @@ delete_file(AuthenticationConnection *ac, const char *filename)
 		printf("Bad key file %s: %s\n", filename, strerror(errno));
 		return;
 	}
-	if (ssh_remove_identity(ac, public->rsa))
+	if (ssh_remove_identity(ac, public))
 		fprintf(stderr, "Identity removed: %s (%s)\n", filename, comment);
 	else
 		fprintf(stderr, "Could not remove identity: %s\n", filename);
@@ -45,11 +48,18 @@ delete_file(AuthenticationConnection *ac, const char *filename)
 	xfree(comment);
 }
 
+/* Send a request to remove all identities. */
 void
 delete_all(AuthenticationConnection *ac)
 {
-	/* Send a request to remove all identities. */
-	if (ssh_remove_all_identities(ac))
+	int success = 1;
+
+	if (!ssh_remove_all_identities(ac, 1))
+		success = 0;
+	/* ignore error-code for ssh2 */
+	ssh_remove_all_identities(ac, 2);
+
+	if (success)
 		fprintf(stderr, "All identities removed.\n");
 	else
 		fprintf(stderr, "Failed to remove all identitities.\n");
@@ -96,6 +106,7 @@ ssh_askpass(char *askpass, char *msg)
 void
 add_file(AuthenticationConnection *ac, const char *filename)
 {
+	struct stat st;
 	Key *public;
 	Key *private;
 	char *saved_comment, *comment, *askpass = NULL;
@@ -104,6 +115,10 @@ add_file(AuthenticationConnection *ac, const char *filename)
 	int interactive = isatty(STDIN_FILENO);
 	int type = KEY_RSA;
 
+	if (stat(filename, &st) < 0) {
+		perror(filename);
+		exit(1);
+	}
 	/*
 	 * try to load the public key. right now this only works for RSA,
 	 * since DSA keys are fully encrypted
@@ -154,54 +169,40 @@ add_file(AuthenticationConnection *ac, const char *filename)
 			strlcpy(msg, "Bad passphrase, try again", sizeof msg);
 		}
 	}
-	xfree(saved_comment);
-
-	if (ssh_add_identity(ac, private, comment))
-		fprintf(stderr, "Identity added: %s (%s)\n", filename, comment);
+	xfree(comment);
+	if (ssh_add_identity(ac, private, saved_comment))
+		fprintf(stderr, "Identity added: %s (%s)\n", filename, saved_comment);
 	else
 		fprintf(stderr, "Could not add identity: %s\n", filename);
 	key_free(private);
-	xfree(comment);
+	xfree(saved_comment);
 }
 
 void
 list_identities(AuthenticationConnection *ac, int fp)
 {
-	BIGNUM *e, *n;
-	int status;
+	Key *key;
 	char *comment;
-	int had_identities;
+	int had_identities = 0;
+	int version;
 
-	e = BN_new();
-	n = BN_new();
-	had_identities = 0;
-	for (status = ssh_get_first_identity(ac, e, n, &comment);
-	     status;
-	     status = ssh_get_next_identity(ac, e, n, &comment)) {
-		unsigned int bits = BN_num_bits(n);
-		had_identities = 1;
-		if (fp) {
-			printf("%d %s %s\n", bits, fingerprint(e, n), comment);
-		} else {
-			char *ebuf, *nbuf;
-			ebuf = BN_bn2dec(e);
-			if (ebuf == NULL) {
-				error("list_identities: BN_bn2dec(e) failed.");
+	for (version = 1; version <= 2; version++) {
+		for (key = ssh_get_first_identity(ac, &comment, version);
+		     key != NULL;
+		     key = ssh_get_next_identity(ac, &comment, version)) {
+			had_identities = 1;
+			if (fp) {
+				printf("%d %s %s\n",
+				    key_size(key), key_fingerprint(key), comment);
 			} else {
-				nbuf = BN_bn2dec(n);
-				if (nbuf == NULL) {
-					error("list_identities: BN_bn2dec(n) failed.");
-				} else {
-					printf("%d %s %s %s\n", bits, ebuf, nbuf, comment);
-					free(nbuf);
-				}
-				free(ebuf);
+				if (!key_write(key, stdout))
+					fprintf(stderr, "key_write failed");
+				fprintf(stdout, " %s\n", comment);
 			}
+			key_free(key);
+			xfree(comment);
 		}
-		xfree(comment);
 	}
-	BN_clear_free(e);
-	BN_clear_free(n);
 	if (!had_identities)
 		printf("The agent has no identities.\n");
 }
@@ -225,6 +226,8 @@ main(int argc, char **argv)
 			__progname);
 		exit(1);
 	}
+        SSLeay_add_all_algorithms();
+
 	/* At first, get a connection to the authentication agent. */
 	ac = ssh_get_authentication_connection();
 	if (ac == NULL) {

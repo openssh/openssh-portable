@@ -11,10 +11,13 @@
  *
  * Functions for connecting the local authentication agent.
  *
+ * SSH2 implementation,
+ * Copyright (c) 2000 Markus Friedl. All rights reserved.
+ *
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfd.c,v 1.24 2000/08/15 19:20:46 markus Exp $");
+RCSID("$OpenBSD: authfd.c,v 1.25 2000/08/19 21:34:42 markus Exp $");
 
 #include "ssh.h"
 #include "rsa.h"
@@ -29,6 +32,7 @@ RCSID("$OpenBSD: authfd.c,v 1.24 2000/08/15 19:20:46 markus Exp $");
 #include "key.h"
 #include "authfd.h"
 #include "kex.h"
+#include "dsa.h"
 
 /* helper */
 int	decode_reply(int type);
@@ -71,8 +75,7 @@ ssh_get_authentication_socket()
 }
 
 int
-ssh_request_reply(AuthenticationConnection *auth,
-    Buffer *request, Buffer *reply)
+ssh_request_reply(AuthenticationConnection *auth, Buffer *request, Buffer *reply)
 {
 	int l, len;
 	char buf[1024];
@@ -162,7 +165,6 @@ ssh_get_authentication_connection()
 
 	auth = xmalloc(sizeof(*auth));
 	auth->fd = sock;
-	buffer_init(&auth->packet);
 	buffer_init(&auth->identities);
 	auth->howmany = 0;
 
@@ -175,46 +177,57 @@ ssh_get_authentication_connection()
  */
 
 void
-ssh_close_authentication_connection(AuthenticationConnection *ac)
+ssh_close_authentication_connection(AuthenticationConnection *auth)
 {
-	buffer_free(&ac->packet);
-	buffer_free(&ac->identities);
-	close(ac->fd);
-	xfree(ac);
+	buffer_free(&auth->identities);
+	close(auth->fd);
+	xfree(auth);
 }
 
 /*
  * Returns the first authentication identity held by the agent.
- * Returns true if an identity is available, 0 otherwise.
- * The caller must initialize the integers before the call, and free the
- * comment after a successful call (before calling ssh_get_next_identity).
  */
 
-int
-ssh_get_first_identity(AuthenticationConnection *auth,
-    BIGNUM *e, BIGNUM *n, char **comment)
+Key *
+ssh_get_first_identity(AuthenticationConnection *auth, char **comment, int version)
 {
+	int type, code1 = 0, code2 = 0;
 	Buffer request;
-	int type;
+
+	switch(version){
+	case 1:
+		code1 = SSH_AGENTC_REQUEST_RSA_IDENTITIES;
+		code2 = SSH_AGENT_RSA_IDENTITIES_ANSWER;
+		break;
+	case 2:
+		code1 = SSH2_AGENTC_REQUEST_IDENTITIES;
+		code2 = SSH2_AGENT_IDENTITIES_ANSWER;
+		break;
+	default:
+		return NULL;
+	}
 
 	/*
 	 * Send a message to the agent requesting for a list of the
 	 * identities it can represent.
 	 */
 	buffer_init(&request);
-	buffer_put_char(&request, SSH_AGENTC_REQUEST_RSA_IDENTITIES);
+	buffer_put_char(&request, code1);
 
 	buffer_clear(&auth->identities);
 	if (ssh_request_reply(auth, &request, &auth->identities) == 0) {
 		buffer_free(&request);
-		return 0;
+		return NULL;
 	}
 	buffer_free(&request);
 
 	/* Get message type, and verify that we got a proper answer. */
 	type = buffer_get_char(&auth->identities);
-	if (type != SSH_AGENT_RSA_IDENTITIES_ANSWER)
+	if (type == SSH_AGENT_FAILURE) {
+		return NULL;
+	} else if (type != code2) {
 		fatal("Bad authentication reply message type: %d", type);
+	}
 
 	/* Get the number of entries in the response and check it for sanity. */
 	auth->howmany = buffer_get_int(&auth->identities);
@@ -223,43 +236,49 @@ ssh_get_first_identity(AuthenticationConnection *auth,
 		    auth->howmany);
 
 	/* Return the first entry (if any). */
-	return ssh_get_next_identity(auth, e, n, comment);
+	return ssh_get_next_identity(auth, comment, version);
 }
 
-/*
- * Returns the next authentication identity for the agent.  Other functions
- * can be called between this and ssh_get_first_identity or two calls of this
- * function.  This returns 0 if there are no more identities.  The caller
- * must free comment after a successful return.
- */
-
-int
-ssh_get_next_identity(AuthenticationConnection *auth,
-    BIGNUM *e, BIGNUM *n, char **comment)
+Key *
+ssh_get_next_identity(AuthenticationConnection *auth, char **comment, int version)
 {
 	unsigned int bits;
+	unsigned char *blob;
+	unsigned int blen;
+	Key *key = NULL;
 
 	/* Return failure if no more entries. */
 	if (auth->howmany <= 0)
-		return 0;
+		return NULL;
 
 	/*
 	 * Get the next entry from the packet.  These will abort with a fatal
 	 * error if the packet is too short or contains corrupt data.
 	 */
-	bits = buffer_get_int(&auth->identities);
-	buffer_get_bignum(&auth->identities, e);
-	buffer_get_bignum(&auth->identities, n);
-	*comment = buffer_get_string(&auth->identities, NULL);
-
-	if (bits != BN_num_bits(n))
-		log("Warning: identity keysize mismatch: actual %d, announced %u",
-		    BN_num_bits(n), bits);
-
+	switch(version){
+	case 1:
+		key = key_new(KEY_RSA);
+		bits = buffer_get_int(&auth->identities);
+		buffer_get_bignum(&auth->identities, key->rsa->e);
+		buffer_get_bignum(&auth->identities, key->rsa->n);
+		*comment = buffer_get_string(&auth->identities, NULL);
+		if (bits != BN_num_bits(key->rsa->n))
+			log("Warning: identity keysize mismatch: actual %d, announced %u",
+			    BN_num_bits(key->rsa->n), bits);
+		break;
+	case 2:
+		blob = buffer_get_string(&auth->identities, &blen);
+		*comment = buffer_get_string(&auth->identities, NULL);
+		key = dsa_key_from_blob(blob, blen);
+		xfree(blob);
+		break;
+	default:
+		return NULL;
+		break;
+	}
 	/* Decrement the number of remaining entries. */
 	auth->howmany--;
-
-	return 1;
+	return key;
 }
 
 /*
@@ -272,7 +291,7 @@ ssh_get_next_identity(AuthenticationConnection *auth,
 
 int
 ssh_decrypt_challenge(AuthenticationConnection *auth,
-    BIGNUM* e, BIGNUM *n, BIGNUM *challenge,
+    Key* key, BIGNUM *challenge,
     unsigned char session_id[16],
     unsigned int response_type,
     unsigned char response[16])
@@ -282,15 +301,17 @@ ssh_decrypt_challenge(AuthenticationConnection *auth,
 	int i;
 	int type;
 
-	if (response_type == 0)
-		fatal("Compatibility with ssh protocol version "
-		    "1.0 no longer supported.");
-
+	if (key->type != KEY_RSA)
+		return 0;
+	if (response_type == 0) {
+		log("Compatibility with ssh protocol version 1.0 no longer supported.");
+		return 0;
+	}
 	buffer_init(&buffer);
 	buffer_put_char(&buffer, SSH_AGENTC_RSA_CHALLENGE);
-	buffer_put_int(&buffer, BN_num_bits(n));
-	buffer_put_bignum(&buffer, e);
-	buffer_put_bignum(&buffer, n);
+	buffer_put_int(&buffer, BN_num_bits(key->rsa->n));
+	buffer_put_bignum(&buffer, key->rsa->e);
+	buffer_put_bignum(&buffer, key->rsa->n);
 	buffer_put_bignum(&buffer, challenge);
 	buffer_append(&buffer, (char *) session_id, 16);
 	buffer_put_int(&buffer, response_type);
@@ -316,6 +337,45 @@ ssh_decrypt_challenge(AuthenticationConnection *auth,
 	}
 	buffer_free(&buffer);
 	return success;
+}
+
+/* ask agent to sign data, returns -1 on error, 0 on success */
+int
+ssh_agent_sign(AuthenticationConnection *auth,
+    Key *key,
+    unsigned char **sigp, int *lenp,
+    unsigned char *data, int datalen)
+{
+	Buffer msg;
+	unsigned char *blob;
+	unsigned int blen;
+	int type;
+	int ret = -1;
+
+	if (dsa_make_key_blob(key, &blob, &blen) == 0)
+		return -1;
+
+	buffer_init(&msg);
+	buffer_put_char(&msg, SSH2_AGENTC_SIGN_REQUEST);
+	buffer_put_string(&msg, blob, blen);
+	buffer_put_string(&msg, data, datalen);
+	xfree(blob);
+
+	if (ssh_request_reply(auth, &msg, &msg) == 0) {
+		buffer_free(&msg);
+		return -1;
+	}
+	type = buffer_get_char(&msg);
+	if (type == SSH_AGENT_FAILURE) {
+		log("Agent admitted failure to sign using the key.");
+	} else if (type != SSH2_AGENT_SIGN_RESPONSE) {
+		fatal("Bad authentication response: %d", type);
+	} else {
+		ret = 0;
+		*sigp = buffer_get_string(&msg, lenp);
+	}
+	buffer_free(&msg);
+	return ret;
 }
 
 /* Encode key for a message to the agent. */
@@ -358,29 +418,29 @@ ssh_encode_identity_dsa(Buffer *b, DSA *key, const char *comment)
 int
 ssh_add_identity(AuthenticationConnection *auth, Key *key, const char *comment)
 {
-	Buffer buffer;
+	Buffer msg;
 	int type;
 
-	buffer_init(&buffer);
+	buffer_init(&msg);
 
 	switch (key->type) {
 	case KEY_RSA:
-		ssh_encode_identity_rsa(&buffer, key->rsa, comment);
+		ssh_encode_identity_rsa(&msg, key->rsa, comment);
 		break;
 	case KEY_DSA:
-		ssh_encode_identity_dsa(&buffer, key->dsa, comment);
+		ssh_encode_identity_dsa(&msg, key->dsa, comment);
 		break;
 	default:
-		buffer_free(&buffer);
+		buffer_free(&msg);
 		return 0;
 		break;
 	}
-	if (ssh_request_reply(auth, &buffer, &buffer) == 0) {
-		buffer_free(&buffer);
+	if (ssh_request_reply(auth, &msg, &msg) == 0) {
+		buffer_free(&msg);
 		return 0;
 	}
-	type = buffer_get_char(&buffer);
-	buffer_free(&buffer);
+	type = buffer_get_char(&msg);
+	buffer_free(&msg);
 	return decode_reply(type);
 }
 
@@ -390,23 +450,35 @@ ssh_add_identity(AuthenticationConnection *auth, Key *key, const char *comment)
  */
 
 int
-ssh_remove_identity(AuthenticationConnection *auth, RSA *key)
+ssh_remove_identity(AuthenticationConnection *auth, Key *key)
 {
-	Buffer buffer;
+	Buffer msg;
 	int type;
+	unsigned char *blob;
+	unsigned int blen;
 
-	buffer_init(&buffer);
-	buffer_put_char(&buffer, SSH_AGENTC_REMOVE_RSA_IDENTITY);
-	buffer_put_int(&buffer, BN_num_bits(key->n));
-	buffer_put_bignum(&buffer, key->e);
-	buffer_put_bignum(&buffer, key->n);
+	buffer_init(&msg);
 
-	if (ssh_request_reply(auth, &buffer, &buffer) == 0) {
-		buffer_free(&buffer);
+	if (key->type == KEY_RSA) {
+		buffer_put_char(&msg, SSH_AGENTC_REMOVE_RSA_IDENTITY);
+		buffer_put_int(&msg, BN_num_bits(key->rsa->n));
+		buffer_put_bignum(&msg, key->rsa->e);
+		buffer_put_bignum(&msg, key->rsa->n);
+	} else if (key->type == KEY_DSA) {
+		dsa_make_key_blob(key, &blob, &blen);
+		buffer_put_char(&msg, SSH2_AGENTC_REMOVE_IDENTITY);
+		buffer_put_string(&msg, blob, blen);
+		xfree(blob);
+	} else {
+		buffer_free(&msg);
 		return 0;
 	}
-	type = buffer_get_char(&buffer);
-	buffer_free(&buffer);
+	if (ssh_request_reply(auth, &msg, &msg) == 0) {
+		buffer_free(&msg);
+		return 0;
+	}
+	type = buffer_get_char(&msg);
+	buffer_free(&msg);
 	return decode_reply(type);
 }
 
@@ -416,20 +488,23 @@ ssh_remove_identity(AuthenticationConnection *auth, RSA *key)
  */
 
 int
-ssh_remove_all_identities(AuthenticationConnection *auth)
+ssh_remove_all_identities(AuthenticationConnection *auth, int version)
 {
-	Buffer buffer;
+	Buffer msg;
 	int type;
+	int code = (version==1) ?
+		SSH_AGENTC_REMOVE_ALL_RSA_IDENTITIES :
+		SSH2_AGENTC_REMOVE_ALL_IDENTITIES;
 
-	buffer_init(&buffer);
-	buffer_put_char(&buffer, SSH_AGENTC_REMOVE_ALL_RSA_IDENTITIES);
+	buffer_init(&msg);
+	buffer_put_char(&msg, code);
 
-	if (ssh_request_reply(auth, &buffer, &buffer) == 0) {
-		buffer_free(&buffer);
+	if (ssh_request_reply(auth, &msg, &msg) == 0) {
+		buffer_free(&msg);
 		return 0;
 	}
-	type = buffer_get_char(&buffer);
-	buffer_free(&buffer);
+	type = buffer_get_char(&msg);
+	buffer_free(&msg);
 	return decode_reply(type);
 }
 

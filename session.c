@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.25 2000/08/17 20:06:34 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.29 2000/08/21 16:23:31 millert Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -50,6 +50,10 @@ RCSID("$OpenBSD: session.c,v 1.25 2000/08/17 20:06:34 markus Exp $");
 # define S_URSS_HARD  S_URSS "_hard"
 # define S_UCORE_HARD  S_UCORE "_hard"
 # define S_UNOFILE_HARD	S_UNOFILE "_hard"
+#endif
+
+#ifdef HAVE_LOGIN_CAP
+#include <login_cap.h>
 #endif
 
 /* types */
@@ -116,6 +120,10 @@ Session	sessions[MAX_SESSIONS];
 /* AIX's lastlogin message, set in auth1.c */
 char *aixloginmsg;
 #endif /* WITH_AIXAUTHENTICATE */
+
+#ifdef HAVE_LOGIN_CAP
+static login_cap_t *lc;
+#endif
 
 /*
  * Remove local Xauthority file.
@@ -199,6 +207,13 @@ do_authenticated(struct passwd * pw)
 
 	s = session_new();
 	s->pw = pw;
+
+#ifdef HAVE_LOGIN_CAP
+	if ((lc = login_getclass(pw->pw_class)) == NULL) {
+		error("unable to get login class");
+		return;
+	}
+#endif
 
 	/*
 	 * We stay in this loop until the client requests to execute a shell
@@ -650,7 +665,11 @@ do_login(Session *s)
 
 	/* Done if .hushlogin exists. */
 	snprintf(buf, sizeof(buf), "%.200s/.hushlogin", pw->pw_dir);
+#ifdef HAVE_LOGIN_CAP
+	if (login_getcapbool(lc, "hushlogin", 0) || stat(buf, &st) >= 0)
+#else
 	if (stat(buf, &st) >= 0)
+#endif
 		return;
 
 #ifdef USE_PAM
@@ -677,7 +696,12 @@ do_login(Session *s)
 			printf("Last login: %s from %s\r\n", time_string, buf);
 	}
 	if (options.print_motd) {
+#ifdef HAVE_LOGIN_CAP
+		f = fopen(login_getcapstr(lc, "welcome", "/etc/motd",
+		    "/etc/motd"), "r");
+#else
 		f = fopen("/etc/motd", "r");
+#endif
 		if (f) {
 			while (fgets(buf, sizeof(buf), f))
 				fputs(buf, stdout);
@@ -887,10 +911,10 @@ do_child(const char *command, struct passwd * pw, const char *term,
 	 const char *display, const char *auth_proto,
 	 const char *auth_data, const char *ttyname)
 {
-	const char *shell, *cp = NULL;
+	const char *shell, *hostname, *cp = NULL;
 	char buf[256];
 	char cmd[1024];
-	FILE *f;
+	FILE *f = NULL;
 	unsigned int envsize, i;
 	char **env;
 	extern char **environ;
@@ -905,24 +929,26 @@ do_child(const char *command, struct passwd * pw, const char *term,
 		options.use_login = 0;
 
 #ifndef USE_PAM /* pam_nologin handles this */
-	f = fopen("/etc/nologin", "r");
-	if (f) {
-		/* /etc/nologin exists.  Print its contents and exit. */
-		while (fgets(buf, sizeof(buf), f))
-			fputs(buf, stderr);
-		fclose(f);
-		if (pw->pw_uid != 0)
+	if (!options.use_login) {
+# ifdef HAVE_LOGIN_CAP
+		if (!login_getcapbool(lc, "ignorenologin", 0) && pw->pw_uid)
+			f = fopen(login_getcapstr(lc, "nologin", _PATH_NOLOGIN,
+			    _PATH_NOLOGIN), "r");
+# else /* HAVE_LOGIN_CAP */
+		if (pw->pw_uid)
+			f = fopen(_PATH_NOLOGIN, "r");
+# endif /* HAVE_LOGIN_CAP */
+		if (f) {
+			/* /etc/nologin exists.  Print its contents and exit. */
+			while (fgets(buf, sizeof(buf), f))
+				fputs(buf, stderr);
+			fclose(f);
 			exit(254);
+		}
 	}
 #endif /* USE_PAM */
 
-#ifndef HAVE_OSF_SIA
-	/* Set login name in the kernel. */
-	if (setlogin(pw->pw_name) < 0)
-		error("setlogin failed: %s", strerror(errno));
-#endif
-
-	/* Set uid, gid, and groups. */
+	/* Set login name, uid, gid, and groups. */
 	/* Login(1) does this as well, and it needs uid 0 for the "-h"
 	   switch, so we let login(1) to this for us. */
 	if (!options.use_login) {
@@ -943,10 +969,18 @@ do_child(const char *command, struct passwd * pw, const char *term,
 		}
 #else /* HAVE_OSF_SIA */
 		if (getuid() == 0 || geteuid() == 0) {
-#if defined(HAVE_GETUSERATTR)
+# ifdef HAVE_GETUSERATTR
 			set_limits_from_userattr(pw->pw_name);
-#endif /* defined(HAVE_GETUSERATTR) */
-
+# endif /* HAVE_GETUSERATTR */
+# ifdef HAVE_LOGIN_CAP
+			if (setusercontext(lc, pw, pw->pw_uid,
+			    (LOGIN_SETALL & ~LOGIN_SETPATH)) < 0) {
+				perror("unable to set user context");
+				exit(1);
+			}
+# else /* HAVE_LOGIN_CAP */
+			if (setlogin(pw->pw_name) < 0)
+				error("setlogin failed: %s", strerror(errno));
 			if (setgid(pw->pw_gid) < 0) {
 				perror("setgid");
 				exit(1);
@@ -957,38 +991,39 @@ do_child(const char *command, struct passwd * pw, const char *term,
 				exit(1);
 			}
 			endgrent();
-
-#ifdef WITH_IRIX_ARRAY
+#  ifdef WITH_IRIX_ARRAY
 			/* initialize array session */
 			if (newarraysess() != 0)
 				fatal("Failed to set up new array session: %.100s",
 				      strerror(errno));
-#endif /* WITH_IRIX_ARRAY */
-
-#ifdef WITH_IRIX_PROJECT
+#  endif /* WITH_IRIX_ARRAY */
+#  ifdef WITH_IRIX_PROJECT
 			/* initialize irix project info */
 			if ((projid = getdfltprojuser(pw->pw_name)) == -1) {
 			  debug("Failed to get project id, using projid 0");
 			  projid = 0;
 			}
-			
 			if (setprid(projid))
 			  fatal("Failed to initialize project %d for %s: %.100s",
 				(int)projid, pw->pw_name, strerror(errno));
-#endif /* WITH_IRIX_PROJECT */
-
+#  endif /* WITH_IRIX_PROJECT */
 			/* Permanently switch to the desired uid. */
 			permanently_set_uid(pw->pw_uid);
+# endif /* HAVE_LOGIN_CAP */
 		}
+#endif /* HAVE_OSF_SIA */
+
 		if (getuid() != pw->pw_uid || geteuid() != pw->pw_uid)
 			fatal("Failed to set uids to %d.", (int) pw->pw_uid);
-#endif /* HAVE_OSF_SIA */
 	}
 	/*
 	 * Get the shell from the password data.  An empty shell field is
 	 * legal, and means /bin/sh.
 	 */
 	shell = (pw->pw_shell[0] == '\0') ? _PATH_BSHELL : pw->pw_shell;
+#ifdef HAVE_LOGIN_CAP
+	shell = login_getcapstr(lc, "shell", (char *)shell, (char *)shell);
+#endif
 
 #ifdef AFS
 	/* Try to get AFS tokens for the local cell. */
@@ -1012,7 +1047,12 @@ do_child(const char *command, struct passwd * pw, const char *term,
 		child_set_env(&env, &envsize, "USER", pw->pw_name);
 		child_set_env(&env, &envsize, "LOGNAME", pw->pw_name);
 		child_set_env(&env, &envsize, "HOME", pw->pw_dir);
+#ifdef HAVE_LOGIN_CAP
+		(void) setusercontext(lc, pw, pw->pw_uid, LOGIN_SETPATH);
+		child_set_env(&env, &envsize, "PATH", getenv("PATH"));
+#else
 		child_set_env(&env, &envsize, "PATH", _PATH_STDPATH);
+#endif
 
 		snprintf(buf, sizeof buf, "%.200s/%.50s",
 			 _PATH_MAILDIR, pw->pw_name);
@@ -1096,6 +1136,9 @@ do_child(const char *command, struct passwd * pw, const char *term,
 		for (i = 0; env[i]; i++)
 			fprintf(stderr, "  %.200s\n", env[i]);
 	}
+	/* we have to stash the hostname before we close our socket. */
+	if (options.use_login)
+		hostname = get_remote_name_or_ip();
 	/*
 	 * Close the connection descriptors; note that this is the child, and
 	 * the server will still have the socket open, and it is important
@@ -1132,9 +1175,14 @@ do_child(const char *command, struct passwd * pw, const char *term,
 		close(i);
 
 	/* Change current directory to the user\'s home directory. */
-	if (chdir(pw->pw_dir) < 0)
+	if (chdir(pw->pw_dir) < 0) {
 		fprintf(stderr, "Could not chdir to home directory %s: %s\n",
 			pw->pw_dir, strerror(errno));
+#ifdef HAVE_LOGIN_CAP
+		if (login_getcapbool(lc, "requirehome", 0))
+			exit(1);
+#endif
+	}
 
 	/*
 	 * Must take new environment into use so that .ssh/rc, /etc/sshrc and
@@ -1252,8 +1300,7 @@ do_child(const char *command, struct passwd * pw, const char *term,
 		} else {
 			/* Launch login(1). */
 
-			execl(LOGIN_PROGRAM, "login",
-			     "-h", get_remote_name_or_ip(),
+			execl(LOGIN_PROGRAM, "login", "-h", hostname,
 			     "-p", "-f", "--", pw->pw_name, NULL);
 
 			/* Login couldn't be executed, die. */
@@ -1790,6 +1837,8 @@ session_proctitle(Session *s)
 void
 do_authenticated2(void)
 {
+	struct passwd *pw;
+
 	/*
 	 * Cancel the alarm we set to limit the time taken for
 	 * authentication.
@@ -1799,6 +1848,13 @@ do_authenticated2(void)
 		close(startup_pipe);
 		startup_pipe = -1;
 	}
+#ifdef HAVE_LOGIN_CAP
+	pw = auth_get_user();
+	if ((lc = login_getclass(pw->pw_class)) == NULL) {
+		error("unable to get login class");
+		return;
+	}
+#endif
 	server_loop2();
 	if (xauthfile)
 		xauthfile_cleanup_proc(NULL);

@@ -41,7 +41,7 @@
 #include "dsa.h"
 #include "uuencode.h"
 
-RCSID("$OpenBSD: key.c,v 1.9 2000/06/22 23:55:00 djm Exp $");
+RCSID("$OpenBSD: key.c,v 1.10 2000/08/19 21:34:43 markus Exp $");
 
 #define SSH_DSS "ssh-dss"
 
@@ -334,4 +334,16 @@ key_type(Key *k)
 		break;
 	}
 	return "unknown";
+}
+unsigned int
+key_size(Key *k){
+	switch (k->type) {
+	case KEY_RSA:
+		return BN_num_bits(k->rsa->n);
+		break;
+	case KEY_DSA:
+		return BN_num_bits(k->dsa->p);
+		break;
+	}
+	return 0;
 }

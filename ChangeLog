@@ -3,6 +3,61 @@
    Avoids "scp never exits" problem. Reports from Lutz Jaenicke 
    <Lutz.Jaenicke@aet.TU-Cottbus.DE> and Tamito KAJIYAMA 
    <kajiyama@grad.sccs.chukyo-u.ac.jp>
+ - (djm) Pick up LOGIN_PROGRAM from environment or PATH if not set by headers
+ - (djm) OpenBSD CVS updates:
+   - deraadt@cvs.openbsd.org 2000/08/18 20:07:23
+     [ssh.c]
+     accept remsh as a valid name as well; roman@buildpoint.com
+   - deraadt@cvs.openbsd.org 2000/08/18 20:17:13
+     [deattack.c crc32.c packet.c]
+     rename crc32() to ssh_crc32() to avoid zlib name clash.  do not move to
+     libz crc32 function yet, because it has ugly "long"'s in it;
+     oneill@cs.sfu.ca
+   - deraadt@cvs.openbsd.org 2000/08/18 20:26:08
+     [scp.1 scp.c]
+     -S prog support; tv@debian.org
+   - deraadt@cvs.openbsd.org 2000/08/18 20:50:07
+     [scp.c]
+     knf
+   - deraadt@cvs.openbsd.org 2000/08/18 20:57:33
+     [log-client.c]
+     shorten
+   - markus@cvs.openbsd.org  2000/08/19 12:48:11
+     [channels.c channels.h clientloop.c ssh.c ssh.h]
+     support for ~. in ssh2
+   - deraadt@cvs.openbsd.org 2000/08/19 15:29:40
+     [crc32.h]
+     proper prototype
+   - markus@cvs.openbsd.org  2000/08/19 15:34:44
+     [authfd.c authfd.h key.c key.h ssh-add.1 ssh-add.c ssh-agent.1] 
+     [ssh-agent.c ssh-keygen.c sshconnect1.c sshconnect2.c Makefile] 
+     [fingerprint.c fingerprint.h]
+     add SSH2/DSA support to the agent and some other DSA related cleanups.
+     (note that we cannot talk to ssh.com's ssh2 agents)
+   - markus@cvs.openbsd.org  2000/08/19 15:55:52
+     [channels.c channels.h clientloop.c]
+     more ~ support for ssh2
+   - markus@cvs.openbsd.org  2000/08/19 16:21:19
+     [clientloop.c]
+     oops
+   - millert@cvs.openbsd.org 2000/08/20 12:25:53
+     [session.c]
+     We have to stash the result of get_remote_name_or_ip() before we
+     close our socket or getpeername() will get EBADF and the process
+     will exit.  Only a problem for "UseLogin yes".
+   - millert@cvs.openbsd.org 2000/08/20 12:30:59
+     [session.c]
+     Only check /etc/nologin if "UseLogin no" since login(1) may have its
+     own policy on determining who is allowed to login when /etc/nologin
+     is present.  Also use the _PATH_NOLOGIN define.
+   - millert@cvs.openbsd.org 2000/08/20 12:42:43
+     [auth1.c auth2.c session.c ssh.c]
+     Add calls to setusercontext() and login_get*().  We basically call
+     setusercontext() in most places where previously we did a setlogin().
+     Add default login.conf file and put root in the "daemon" login class.
+   - millert@cvs.openbsd.org 2000/08/21 10:23:31
+     [session.c]
+     Fix incorrect PATH setting; noted by Markus.
 
 20000818
  - (djm) OpenBSD CVS changes:

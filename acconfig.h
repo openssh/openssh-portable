@@ -6,6 +6,13 @@
 
 @TOP@
 
+/* If your header files don't define LOGIN_PROGRAM, then use this (detected) */
+/* from environment and PATH */
+#undef LOGIN_PROGRAM_FALLBACK
+
+/* Define if your password has a pw_class field */
+#undef HAVE_PW_CLASS_IN_PASSWD
+
 /* Define if your socketpair() has bugs */
 #undef USE_PIPES
 

@@ -246,7 +246,15 @@ typedef int mode_t;
 # endif /* RSH_PATH */
 #endif /* _PATH_RSH */
 
+#ifndef _PATH_NOLOGIN
+# define _PATH_NOLOGIN "/etc/nologin"
+#endif
+
 /* Macros */
+
+#if defined(HAVE_LOGIN_GETCAPBOOL) && defined(HAVE_LOGIN_CAP_H)
+# define HAVE_LOGIN_CAP
+#endif
 
 #ifndef MAX
 # define MAX(a,b) (((a)>(b))?(a):(b))

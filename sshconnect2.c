@@ -28,7 +28,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.16 2000/07/16 08:27:22 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.17 2000/08/19 21:34:44 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
@@ -54,6 +54,7 @@ RCSID("$OpenBSD: sshconnect2.c,v 1.16 2000/07/16 08:27:22 markus Exp $");
 #include "dsa.h"
 #include "sshconnect.h"
 #include "authfile.h"
+#include "authfd.h"
 
 /* import */
 extern char *client_version_string;
@@ -291,7 +292,7 @@ typedef int sign_fn(
     unsigned char **sigp, int *lenp,
     unsigned char *data, int datalen);
 
-void
+int
 ssh2_sign_and_send_pubkey(Key *k, sign_fn *do_sign,
     const char *server_user, const char *host, const char *service)
 {
@@ -299,6 +300,7 @@ ssh2_sign_and_send_pubkey(Key *k, sign_fn *do_sign,
 	unsigned char *blob, *signature;
 	int bloblen, slen;
 	int skip = 0;
+	int ret = -1;
 
 	dsa_make_key_blob(k, &blob, &bloblen);
 
@@ -323,8 +325,12 @@ ssh2_sign_and_send_pubkey(Key *k, sign_fn *do_sign,
 	buffer_put_string(&b, blob, bloblen);
 
 	/* generate signature */
-	do_sign(k, &signature, &slen, buffer_ptr(&b), buffer_len(&b));
-	key_free(k); /* XXX */
+	ret = do_sign(k, &signature, &slen, buffer_ptr(&b), buffer_len(&b));
+	if (ret == -1) {
+		xfree(blob);
+		buffer_free(&b);
+		return 0;
+	}
 #ifdef DEBUG_DSS
 	buffer_dump(&b);
 #endif
@@ -357,6 +363,8 @@ ssh2_sign_and_send_pubkey(Key *k, sign_fn *do_sign,
 	/* send */
 	packet_send();
 	packet_write_wait();
+
+	return 1;
 }
 
 int
@@ -364,6 +372,7 @@ ssh2_try_pubkey(char *filename,
     const char *server_user, const char *host, const char *service)
 {
 	Key *k;
+	int ret = 0;
 	struct stat st;
 
 	if (stat(filename, &st) != 0) {
@@ -389,13 +398,53 @@ ssh2_try_pubkey(char *filename,
 			return 0;
 		}
 	}
-	ssh2_sign_and_send_pubkey(k, dsa_sign, server_user, host, service);
-	return 1;
+	ret = ssh2_sign_and_send_pubkey(k, dsa_sign, server_user, host, service);
+	key_free(k);
+	return ret;
+}
+
+int agent_sign(
+    Key *key,
+    unsigned char **sigp, int *lenp,
+    unsigned char *data, int datalen)
+{
+	int ret = -1;
+	AuthenticationConnection *ac = ssh_get_authentication_connection();
+	if (ac != NULL) {
+		ret = ssh_agent_sign(ac, key, sigp, lenp, data, datalen);
+		ssh_close_authentication_connection(ac);
+	}
+	return ret;
+}
+
+int
+ssh2_try_agent(AuthenticationConnection *ac,
+    const char *server_user, const char *host, const char *service)
+{
+	static int called = 0;
+	char *comment;
+	Key *k;
+	int ret;
+
+	if (called == 0) {
+		k = ssh_get_first_identity(ac, &comment, 2);
+		called ++;
+	} else {
+		k = ssh_get_next_identity(ac, &comment, 2);
+	}
+	if (k == NULL)
+		return 0;
+	debug("trying DSA agent key %s", comment);
+	xfree(comment);
+	ret = ssh2_sign_and_send_pubkey(k, agent_sign, server_user, host, service);
+	key_free(k);
+	return ret;
 }
 
 void
 ssh_userauth2(const char *server_user, char *host)
 {
+	AuthenticationConnection *ac = ssh_get_authentication_connection();
 	int type;
 	int plen;
 	int sent;
@@ -450,12 +499,17 @@ ssh_userauth2(const char *server_user, char *host)
 			debug("partial success");
 		if (options.dsa_authentication &&
 		    strstr(auths, "publickey") != NULL) {
-			while (i < options.num_identity_files2) {
-				sent = ssh2_try_pubkey(
-				    options.identity_files2[i++],
+			if (ac != NULL)
+				sent = ssh2_try_agent(ac,
 				    server_user, host, service);
-				if (sent)
-					break;
+			if (!sent) {
+				while (i < options.num_identity_files2) {
+					sent = ssh2_try_pubkey(
+					    options.identity_files2[i++],
+					    server_user, host, service);
+					if (sent)
+						break;
+				}
 			}
 		}
 		if (!sent) {
@@ -469,6 +523,8 @@ ssh_userauth2(const char *server_user, char *host)
 			fatal("Permission denied (%s).", auths);
 		xfree(auths);
 	}
+	if (ac != NULL)
+		ssh_close_authentication_connection(ac);
 	packet_done();
 	debug("ssh-userauth2 successfull");
 }

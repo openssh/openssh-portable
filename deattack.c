@@ -1,5 +1,5 @@
 /*
- * $OpenBSD: deattack.c,v 1.7 2000/06/20 01:39:41 markus Exp $
+ * $OpenBSD: deattack.c,v 1.8 2000/08/19 02:17:12 deraadt Exp $
  * Cryptographic attack detector for ssh - source code
  *
  * Copyright (c) 1998 CORE SDI S.A., Buenos Aires, Argentina.
@@ -50,7 +50,7 @@ void
 crc_update(u_int32_t *a, u_int32_t b)
 {
 	b ^= *a;
-	*a = crc32((unsigned char *) &b, sizeof(b));
+	*a = ssh_crc32((unsigned char *) &b, sizeof(b));
 }
 
 /* detect if a block is used in a particular pattern */

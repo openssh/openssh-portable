@@ -9,7 +9,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.4 2000/07/16 08:27:22 markus Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.5 2000/08/19 21:34:44 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dsa.h>
@@ -44,27 +44,27 @@ extern char *__progname;
 int
 try_agent_authentication()
 {
-	int status, type;
+	int type;
 	char *comment;
 	AuthenticationConnection *auth;
 	unsigned char response[16];
 	unsigned int i;
-	BIGNUM *e, *n, *challenge;
+	int plen, clen;
+	Key *key;
+	BIGNUM *challenge;
 
 	/* Get connection to the agent. */
 	auth = ssh_get_authentication_connection();
 	if (!auth)
 		return 0;
 
-	e = BN_new();
-	n = BN_new();
 	challenge = BN_new();
+	key = key_new(KEY_RSA);
 
 	/* Loop through identities served by the agent. */
-	for (status = ssh_get_first_identity(auth, e, n, &comment);
-	     status;
-	     status = ssh_get_next_identity(auth, e, n, &comment)) {
-		int plen, clen;
+	for (key = ssh_get_first_identity(auth, &comment, 1);
+	     key != NULL;
+	     key = ssh_get_next_identity(auth, &comment, 1)) {
 
 		/* Try this identity. */
 		debug("Trying RSA authentication via agent with '%.100s'", comment);
@@ -72,7 +72,7 @@ try_agent_authentication()
 
 		/* Tell the server that we are willing to authenticate using this key. */
 		packet_start(SSH_CMSG_AUTH_RSA);
-		packet_put_bignum(n);
+		packet_put_bignum(key->rsa->n);
 		packet_send();
 		packet_write_wait();
 
@@ -83,6 +83,7 @@ try_agent_authentication()
 		   does not support RSA authentication. */
 		if (type == SSH_SMSG_FAILURE) {
 			debug("Server refused our key.");
+			key_free(key);
 			continue;
 		}
 		/* Otherwise it should have sent a challenge. */
@@ -97,13 +98,16 @@ try_agent_authentication()
 		debug("Received RSA challenge from server.");
 
 		/* Ask the agent to decrypt the challenge. */
-		if (!ssh_decrypt_challenge(auth, e, n, challenge,
-					   session_id, 1, response)) {
-			/* The agent failed to authenticate this identifier although it
-			   advertised it supports this.  Just return a wrong value. */
+		if (!ssh_decrypt_challenge(auth, key, challenge, session_id, 1, response)) {
+			/*
+			 * The agent failed to authenticate this identifier
+			 * although it advertised it supports this.  Just
+			 * return a wrong value.
+			 */
 			log("Authentication agent failed to decrypt challenge.");
 			memset(response, 0, sizeof(response));
 		}
+		key_free(key);
 		debug("Sending response to RSA challenge.");
 
 		/* Send the decrypted challenge back to the server. */
@@ -118,10 +122,8 @@ try_agent_authentication()
 
 		/* The server returns success if it accepted the authentication. */
 		if (type == SSH_SMSG_SUCCESS) {
-			debug("RSA authentication accepted by server.");
-			BN_clear_free(e);
-			BN_clear_free(n);
 			BN_clear_free(challenge);
+			debug("RSA authentication accepted by server.");
 			return 1;
 		}
 		/* Otherwise it should return failure. */
@@ -129,11 +131,7 @@ try_agent_authentication()
 			packet_disconnect("Protocol error waiting RSA auth response: %d",
 					  type);
 	}
-
-	BN_clear_free(e);
-	BN_clear_free(n);
 	BN_clear_free(challenge);
-
 	debug("RSA authentication using agent refused.");
 	return 0;
 }

@@ -17,7 +17,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.64 2000/07/16 08:27:21 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.66 2000/08/19 21:55:51 markus Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -244,6 +244,7 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 	c->cb_arg = NULL;
 	c->cb_event = 0;
 	c->dettach_user = NULL;
+	c->input_filter = NULL;
 	debug("channel %d: new [%s]", found, remote_name);
 	return found;
 }
@@ -665,7 +666,14 @@ channel_handle_rfd(Channel *c, fd_set * readset, fd_set * writeset)
 			}
 			return -1;
 		}
-		buffer_append(&c->input, buf, len);
+		if(c->input_filter != NULL) {
+			if (c->input_filter(c, buf, len) == -1) {
+				debug("filter stops channel %d", c->self);
+				chan_read_failed(c);
+			}
+		} else {
+			buffer_append(&c->input, buf, len);
+		}
 	}
 	return 1;
 }
@@ -2308,6 +2316,16 @@ channel_cancel_cleanup(int id)
 		return;
 	}
 	c->dettach_user = NULL;
+}
+void   
+channel_register_filter(int id, channel_filter_fn *fn)
+{
+	Channel *c = channel_lookup(id);
+	if (c == NULL) {
+		log("channel_register_filter: %d: bad id", id);
+		return;
+	}
+	c->input_filter = fn;
 }
 
 void

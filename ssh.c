@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.58 2000/07/16 08:27:22 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.61 2000/08/20 18:42:40 millert Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/dsa.h>
@@ -253,8 +253,8 @@ main(int ac, char **av)
 		cp = strrchr(av0, '/') + 1;
 	else
 		cp = av0;
-	if (strcmp(cp, "rsh") != 0 && strcmp(cp, "ssh") != 0 &&
-	    strcmp(cp, "rlogin") != 0 && strcmp(cp, "slogin") != 0)
+	if (strcmp(cp, "rsh") && strcmp(cp, "ssh") && strcmp(cp, "rlogin") &&
+	    strcmp(cp, "slogin") && strcmp(cp, "remsh"))
 		host = cp;
 
 	for (optind = 1; optind < ac; optind++) {
@@ -490,6 +490,9 @@ main(int ac, char **av)
 	pwcopy.pw_passwd = xstrdup(pw->pw_passwd);
 	pwcopy.pw_uid = pw->pw_uid;
 	pwcopy.pw_gid = pw->pw_gid;
+#ifdef HAVE_PW_CLASS_IN_PASSWD
+	pwcopy.pw_class = xstrdup(pw->pw_class);
+#endif
 	pwcopy.pw_dir = xstrdup(pw->pw_dir);
 	pwcopy.pw_shell = xstrdup(pw->pw_shell);
 	pw = &pwcopy;
@@ -871,7 +874,7 @@ ssh_session(void)
 	}
 
 	/* Enter the interactive session. */
-	return client_loop(have_tty, tty_flag ? options.escape_char : -1);
+	return client_loop(have_tty, tty_flag ? options.escape_char : -1, 0);
 }
 
 void
@@ -954,9 +957,16 @@ int
 ssh_session2(void)
 {
 	int window, packetmax, id;
-	int in  = dup(STDIN_FILENO);
-	int out = dup(STDOUT_FILENO);
-	int err = dup(STDERR_FILENO);
+	int in, out, err;
+
+	/* If requested, let ssh continue in the background. */
+	if (fork_after_authentication_flag)
+		if (daemon(1, 1) < 0)
+			fatal("daemon() failed: %.200s", strerror(errno));
+
+	in  = dup(STDIN_FILENO);
+	out = dup(STDOUT_FILENO);
+	err = dup(STDERR_FILENO);
 
 	if (in < 0 || out < 0 || err < 0)
 		fatal("dump in/out/err failed");
@@ -972,13 +982,13 @@ ssh_session2(void)
 		packetmax = window/2;
 	}
 
+/*XXX MAXPACK */
 	id = channel_new(
 	    "session", SSH_CHANNEL_OPENING, in, out, err,
 	    window, packetmax, CHAN_EXTENDED_WRITE, xstrdup("client-session"));
 
-
 	channel_open(id);
 	channel_register_callback(id, SSH2_MSG_CHANNEL_OPEN_CONFIRMATION, client_init, (void *)0);
 
-	return client_loop(tty_flag, tty_flag ? options.escape_char : -1);
+	return client_loop(tty_flag, tty_flag ? options.escape_char : -1, id);
 }

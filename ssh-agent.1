@@ -1,4 +1,4 @@
-.\" $OpenBSD: ssh-agent.1,v 1.13 2000/07/06 04:06:56 aaron Exp $
+.\" $OpenBSD: ssh-agent.1,v 1.14 2000/08/19 21:34:43 markus Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -27,14 +27,15 @@
 .Oc
 .Sh DESCRIPTION
 .Nm
-is a program to hold private keys used for RSA authentication.
+is a program to hold private keys used for public key authentication
+(RSA, DSA).
 The idea is that
 .Nm
 is started in the beginning of an X-session or a login session, and
 all other windows or programs are started as clients to the ssh-agent
 program.
 Through use of environment variables the agent can be located
-and automatically used for RSA authentication when logging in to other
+and automatically used for authentication when logging in to other
 machines using
 .Xr ssh 1 .
 .Pp
@@ -128,7 +129,9 @@ This file is not used by
 but is normally added to the agent using
 .Xr ssh-add 1
 at login time.
-.It Pa /tmp/ssh-XXXX/agent.<pid> ,
+.It Pa $HOME/.ssh/id_dsa
+Contains the DSA authentication identity of the user.
+.Pq Pa /tmp/ssh-XXXXXXXX/agent.<pid> ,
 Unix-domain sockets used to contain the connection to the
 authentication agent.
 These sockets should only be readable by the owner.

@@ -1,4 +1,4 @@
-/* RCSID("$OpenBSD: channels.h,v 1.14 2000/06/20 01:39:40 markus Exp $"); */
+/* RCSID("$OpenBSD: channels.h,v 1.16 2000/08/19 21:55:51 markus Exp $"); */
 
 #ifndef CHANNELS_H
 #define CHANNELS_H
@@ -21,9 +21,13 @@
  * Data structure for channel data.  This is iniailized in channel_allocate
  * and cleared in channel_free.
  */
-typedef void channel_callback_fn(int id, void *arg);
+struct Channel;
+typedef struct Channel Channel;
 
-typedef struct Channel {
+typedef void channel_callback_fn(int id, void *arg);
+typedef int channel_filter_fn(struct Channel *c, char *buf, int len);
+
+struct Channel {
 	int     type;		/* channel type/state */
 	int     self;		/* my own channel identifier */
 	int     remote_id;	/* channel identifier for remote peer */
@@ -61,7 +65,10 @@ typedef struct Channel {
 	void	*cb_arg;
 	int	cb_event;
 	channel_callback_fn	*dettach_user;
-}       Channel;
+
+	/* filter */
+	channel_filter_fn	*input_filter;
+};
 
 #define CHAN_EXTENDED_IGNORE		0
 #define CHAN_EXTENDED_READ		1
@@ -73,6 +80,7 @@ void	channel_request(int id, char *service, int wantconfirm);
 void	channel_request_start(int id, char *service, int wantconfirm);
 void	channel_register_callback(int id, int mtype, channel_callback_fn *fn, void *arg);
 void	channel_register_cleanup(int id, channel_callback_fn *fn);
+void	channel_register_filter(int id, channel_filter_fn *fn);
 void	channel_cancel_cleanup(int id);
 Channel	*channel_lookup(int id);
 

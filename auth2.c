@@ -27,7 +27,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.12 2000/07/07 03:55:03 todd Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.13 2000/08/20 18:42:40 millert Exp $");
 
 #include <openssl/dsa.h>
 #include <openssl/rsa.h>
@@ -411,6 +411,9 @@ auth_set_user(char *u, char *s)
 		copy->pw_passwd = xstrdup(pw->pw_passwd);
 		copy->pw_uid = pw->pw_uid;
 		copy->pw_gid = pw->pw_gid;
+#ifdef HAVE_PW_CLASS_IN_PASSWD
+		copy->pw_class = xstrdup(pw->pw_class);
+#endif
 		copy->pw_dir = xstrdup(pw->pw_dir);
 		copy->pw_shell = xstrdup(pw->pw_shell);
 		authctxt->valid = 1;

@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sun May  7 00:14:37 1995 ylo
 .\"
-.\" $Id: scp.1,v 1.8 2000/07/11 07:31:38 djm Exp $
+.\" $Id: scp.1,v 1.9 2000/08/23 00:46:24 djm Exp $
 .\"
 .Dd September 25, 1999
 .Dt SCP 1
@@ -68,6 +68,11 @@ This option is directly passed to
 .It Fl p
 Preserves modification times, access times, and modes from the
 original file.
+.It Fl S
+Name of program to use for the encrypted connection.
+The program must understand
+.Xr ssh 1
+options.
 .It Fl r
 Recursively copy entire directories.
 .It Fl v
@@ -98,6 +103,11 @@ because
 .Fl p
 is already reserved for preserving the times and modes of the file in
 .Xr rcp 1 .
+.It Fl S
+Name of program to use for the encrypted connection. The program must 
+understand
+.Xr ssh 1
+options.
 .It Fl 4
 Forces
 .Nm

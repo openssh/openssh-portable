@@ -13,7 +13,7 @@
  *
  */
 
-/* RCSID("$OpenBSD: ssh.h,v 1.48 2000/07/13 22:53:21 provos Exp $"); */
+/* RCSID("$OpenBSD: ssh.h,v 1.49 2000/08/19 18:48:11 markus Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -105,7 +105,11 @@
 #endif /* SSH_PROGRAM */
 
 #ifndef LOGIN_PROGRAM
-#define LOGIN_PROGRAM		"/usr/bin/login"
+# ifdef LOGIN_PROGRAM_FALLBACK
+#  define LOGIN_PROGRAM		LOGIN_PROGRAM_FALLBACK
+# else
+#  define LOGIN_PROGRAM		"/usr/bin/login"
+# endif
 #endif /* LOGIN_PROGRAM */
 
 #ifndef ASKPASS_PROGRAM
@@ -506,7 +510,7 @@ void    server_loop(pid_t pid, int fdin, int fdout, int fderr);
 void    server_loop2(void);
 
 /* Client side main loop for the interactive session. */
-int     client_loop(int have_pty, int escape_char);
+int     client_loop(int have_pty, int escape_char, int id);
 
 /* Linked list of custom environment strings (see auth-rsa.c). */
 struct envstring {
