@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.258 2002/09/13 19:23:09 stevesk Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.259 2002/09/25 15:19:02 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -304,7 +304,7 @@ grace_alarm_handler(int sig)
 	/* XXX no idea how fix this signal handler */
 
 	/* Log error and exit. */
-	fatal("Timeout before authentication for %s.", get_remote_ipaddr());
+	fatal("Timeout before authentication for %s", get_remote_ipaddr());
 }
 
 /*
