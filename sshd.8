@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.141 2001/08/16 20:14:57 stevesk Exp $
+.\" $OpenBSD: sshd.8,v 1.142 2001/08/21 21:47:42 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -346,7 +346,7 @@ Specifies the file that contains the public keys that can be used
 for user authentication.
 .Cm AuthorizedKeysFile
 may contain tokens of the form %T which are substituted during connection
-set-up. The following tokens are defined; %% is replaces by a literal '%',
+set-up. The following tokens are defined: %% is replaced by a literal '%',
 %h is replaced by the home directory of the user being authenticated and
 %u is replaced by the username of that user.
 After expansion,
