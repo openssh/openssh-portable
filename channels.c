@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.89 2001/02/04 15:32:23 stevesk Exp $");
+RCSID("$OpenBSD: channels.c,v 1.90 2001/02/08 21:58:28 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -2227,7 +2227,7 @@ x11_request_forwarding_with_spoofing(int client_session_id,
     const char *proto, const char *data)
 {
 	u_int data_len = (u_int) strlen(data) / 2;
-	u_int i, value;
+	u_int i, value, len;
 	char *new_data;
 	int screen_number;
 	const char *cp;
@@ -2265,9 +2265,11 @@ x11_request_forwarding_with_spoofing(int client_session_id,
 	x11_fake_data_len = data_len;
 
 	/* Convert the fake data into hex. */
-	new_data = xmalloc(2 * data_len + 1);
+	len = 2 * data_len + 1;
+	new_data = xmalloc(len);
 	for (i = 0; i < data_len; i++)
-		sprintf(new_data + 2 * i, "%02x", (u_char) x11_fake_data[i]);
+		snprintf(new_data + 2 * i, len - 2 * i,
+		    "%02x", (u_char) x11_fake_data[i]);
 
 	/* Send the request packet. */
 	if (compat20) {

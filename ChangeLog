@@ -46,7 +46,14 @@
    - markus@cvs.openbsd.org 2001/02/09 13:38:07
      [auth-options.c]
      reset options if no option is given; from han.holl@prismant.nl
-   instead of '0'  (from the OpenBSD tree)
+   - markus@cvs.openbsd.org 2001/02/08 21:58:28
+     [channels.c]
+     nuke sprintf, ok deraadt@
+   - markus@cvs.openbsd.org 2001/02/08 21:58:28
+     [channels.c]
+     nuke sprintf, ok deraadt@
+ - (bal) fixed sftp-client.c.  Return 'status' instead of '0'  
+   (from the OpenBSD tree)
  - (bal) Synced ssh.1 and sshd.8 w/ OpenBSD
 
 20010210
@@ -3831,4 +3838,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.725 2001/02/10 22:27:19 mouring Exp $
+$Id: ChangeLog,v 1.726 2001/02/10 22:33:19 mouring Exp $
