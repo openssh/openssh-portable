@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keyscan.1,v 1.6 2001/06/05 05:05:39 pvalchev Exp $
+.\"	$OpenBSD: ssh-keyscan.1,v 1.7 2001/06/22 10:17:51 mpech Exp $
 .\"
 .\" Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
 .\"
@@ -66,7 +66,6 @@ will read hosts or
 pairs from the standard input.
 .El
 .Sh EXAMPLES
-.Pp
 Print the host key for machine
 .Pa hostname :
 .Bd -literal
@@ -81,9 +80,7 @@ which have new or different keys from those in the sorted file
 $ ssh-keyscan -f ssh_hosts | sort -u - ssh_known_hosts | \e\ 
 	diff ssh_known_hosts -
 .Ed
-.Pp
 .Sh FILES
-.Pp
 .Pa Input format:
 1.2.3.4,1.2.4.4 name.my.domain,name,n.my.domain,n,1.2.3.4,1.2.4.4
 .Pp
@@ -99,5 +96,5 @@ key, and drops the connection as soon as it gets the key.
 .Sh SEE ALSO
 .Xr ssh 1 ,
 .Xr sshd 8
-.Sh AUTHOR
+.Sh AUTHORS
 David Mazieres <dm@lcs.mit.edu>
