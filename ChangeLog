@@ -39,6 +39,9 @@
          10m     10 minutes                                               
          1h30m   1 hour 30 minutes (90 minutes)                           
      ok markus@                                                           
+   - stevesk@cvs.openbsd.org 2001/05/19 19:57:09
+     [channels.c]                               
+     typo in error message                      
 
 20010528
  - (tim) [conifgure.in] add setvbuf test needed for sftp-int.c
@@ -5469,4 +5472,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1234 2001/06/05 19:59:08 mouring Exp $
+$Id: ChangeLog,v 1.1235 2001/06/05 20:01:39 mouring Exp $

@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.116 2001/05/16 22:09:20 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.117 2001/05/19 19:57:09 stevesk Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -1561,7 +1561,7 @@ reason2txt(int reason)
 	case SSH2_OPEN_RESOURCE_SHORTAGE:
 		return "resource shortage";
 	}
-	return "unkown reason";
+	return "unknown reason";
 }
 
 void
