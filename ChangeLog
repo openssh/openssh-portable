@@ -2,6 +2,8 @@
  - Integrated patchs from Juergen Keil <jk@tools.de>
    - Avoid void* pointer arithmatic
    - Use LDFLAGS correctly
+   - Fix SIGIO error in scp
+   - Simplify status line printing in scp
  - Added better test for inline functions compiler support from  
    Darren_Hall@progressive.com
 

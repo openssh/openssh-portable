@@ -45,7 +45,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: scp.c,v 1.12 1999/12/07 04:38:32 damien Exp $");
+RCSID("$Id: scp.c,v 1.13 1999/12/15 00:04:25 damien Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -548,7 +548,7 @@ next:			(void) close(fd);
 			if (haderr)
 				(void) write(remout, bp->buf, amt);
 			else {
-				result = write(remout, bp->buf, amt);
+				result = atomicio(write, remout, bp->buf, amt);
 				if (result != amt)
 					haderr = result >= 0 ? EIO : errno;
 				statbytes += result;
@@ -974,7 +974,7 @@ run_err(const char *fmt,...)
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	$Id: scp.c,v 1.12 1999/12/07 04:38:32 damien Exp $
+ *	$Id: scp.c,v 1.13 1999/12/15 00:04:25 damien Exp $
  */
 
 char *
@@ -1145,8 +1145,8 @@ progressmeter(int flag)
 		i++;
 		abbrevsize >>= 10;
 	}
-	snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf), " %5qd %c%c ",
-	     (quad_t) abbrevsize, prefixes[i], prefixes[i] == ' ' ? ' ' :
+	snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf), " %5d %c%c ",
+	     (int) abbrevsize, prefixes[i], prefixes[i] == ' ' ? ' ' :
 		 'B');
 
 	timersub(&now, &lastupdate, &wait);
@@ -1184,7 +1184,11 @@ progressmeter(int flag)
 	atomicio(write, fileno(stdout), buf, strlen(buf));
 
 	if (flag == -1) {
-		signal(SIGALRM, (void *) updateprogressmeter);
+		struct sigaction sa;
+		sa.sa_handler = updateprogressmeter;
+		sigemptyset(&sa.sa_mask);
+		sa.sa_flags = SA_RESTART;
+		sigaction(SIGALRM, &sa, NULL);
 		alarmtimer(1);
 	} else if (flag == 1) {
 		alarmtimer(0);
