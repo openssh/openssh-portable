@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.271 2001/03/28 11:05:27 djm Exp $
+# $Id: configure.in,v 1.272 2001/04/05 17:15:08 stevesk Exp $
 
 AC_INIT(ssh.c)
 
@@ -71,7 +71,6 @@ case "$host" in
 	AC_DEFINE(DISABLE_SHADOW)
 	AC_DEFINE(IPV4_DEFAULT)
 	AC_DEFINE(IP_TOS_IS_BROKEN)
-	AC_DEFINE(BROKEN_VHANGUP)
 	AC_DEFINE(NO_X11_UNIX_SOCKETS)
 	no_libsocket=1
 	no_libnsl=1

@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.109 2001/03/28 04:35:30 djm Exp $ */
+/* $Id: acconfig.h,v 1.110 2001/04/05 17:15:08 stevesk Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -283,9 +283,6 @@
 
 /* getaddrinfo is broken (if present) */
 #undef BROKEN_GETADDRINFO
-
-/* vhangup is broken (if present) */
-#undef BROKEN_VHANGUP
 
 /* Workaround more Linux IPv6 quirks */
 #undef DONT_TRY_OTHER_AF

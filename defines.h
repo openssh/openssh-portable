@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.61 2001/03/20 02:31:45 tim Exp $ */
+/* $Id: defines.h,v 1.62 2001/04/05 17:15:08 stevesk Exp $ */
 
 /* Some platforms need this for the _r() functions */
 #if !defined(_REENTRANT) && !defined(SNI)
@@ -421,9 +421,9 @@ struct winsize {
 # endif /* defined(HAVE_XATEXIT) */
 #endif /* !defined(HAVE_ATEXIT) && defined(HAVE_ON_EXIT) */
 
-#if defined(HAVE_VHANGUP) && !defined(BROKEN_VHANGUP)
+#if defined(HAVE_VHANGUP) && !defined(HAVE_DEV_PTMX)
 #  define USE_VHANGUP
-#endif /* defined(HAVE_VHANGUP) && !defined(BROKEN_VHANGUP) */
+#endif /* defined(HAVE_VHANGUP) && !defined(HAVE_DEV_PTMX) */
 
 #ifndef GETPGRP_VOID
 # define getpgrp() getpgrp(0)
