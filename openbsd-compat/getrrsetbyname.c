@@ -53,7 +53,7 @@
 
 #define ANSWER_BUFFER_SIZE 1024*64
 
-#if !HAVE_DECL_H_ERROR
+#if defined(HAVE_DECL_H_ERROR) && !HAVE_DECL_H_ERROR
 extern int h_errno;
 #endif
 
