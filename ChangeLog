@@ -12,7 +12,7 @@
  - Created contrib/ subdirectory. Included helpers from Phil Hands' 
    Debian package, README file and chroot patch from Ricardo Cerqueira
    <rmcc@clix.pt>
- - Moved gnome-ssh-askpass.c to contrib directory and reomved config 
+ - Moved gnome-ssh-askpass.c to contrib directory and removed config 
    option.
  - Slight cleanup to doc files
  - Configure fix from Bratislav ILICH <bilic@zepter.ru>
