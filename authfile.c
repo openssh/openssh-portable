@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfile.c,v 1.51 2002/11/15 10:03:09 fgsch Exp $");
+RCSID("$OpenBSD: authfile.c,v 1.52 2003/03/13 11:42:18 markus Exp $");
 
 #include <openssl/err.h>
 #include <openssl/evp.h>
@@ -421,6 +421,12 @@ key_load_private_rsa1(int fd, const char *filename, const char *passphrase,
 	rsa_generate_additional_parameters(prv->rsa);
 
 	buffer_free(&decrypted);
+
+	/* enable blinding */
+	if (RSA_blinding_on(prv->rsa, NULL) != 1) {
+		error("key_load_private_rsa1: RSA_blinding_on failed");
+		goto fail;
+	}
 	close(fd);
 	return prv;
 
@@ -460,6 +466,11 @@ key_load_private_pem(int fd, int type, const char *passphrase,
 #ifdef DEBUG_PK
 		RSA_print_fp(stderr, prv->rsa, 8);
 #endif
+		if (RSA_blinding_on(prv->rsa, NULL) != 1) {
+			error("key_load_private_pem: RSA_blinding_on failed");
+			key_free(prv);
+			prv = NULL;
+		}
 	} else if (pk->type == EVP_PKEY_DSA &&
 	    (type == KEY_UNSPEC||type==KEY_DSA)) {
 		prv = key_new(KEY_UNSPEC);
