@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.58 2004/07/21 10:33:31 djm Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.59 2004/07/28 09:40:29 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -71,7 +71,7 @@ do_authloop(Authctxt *authctxt)
 	int prev, type = 0;
 
 	debug("Attempting authentication for %s%.100s.",
-	    authctxt->valid ? "" : "illegal user ", authctxt->user);
+	    authctxt->valid ? "" : "invalid user ", authctxt->user);
 
 	/* If the user has no password, accept authentication immediately. */
 	if (options.password_authentication &&
@@ -302,7 +302,7 @@ do_authentication(Authctxt *authctxt)
 	if ((authctxt->pw = PRIVSEP(getpwnamallow(user))) != NULL)
 		authctxt->valid = 1;
 	else {
-		debug("do_authentication: illegal user %s", user);
+		debug("do_authentication: invalid user %s", user);
 		authctxt->pw = fakepw();
 	}
 

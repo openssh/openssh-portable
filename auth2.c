@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.106 2004/07/21 10:33:31 djm Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.107 2004/07/28 09:40:29 markus Exp $");
 
 #include "ssh2.h"
 #include "xmalloc.h"
@@ -159,7 +159,7 @@ input_userauth_request(int type, u_int32_t seq, void *ctxt)
 				PRIVSEP(start_pam(authctxt));
 #endif
 		} else {
-			logit("input_userauth_request: illegal user %s", user);
+			logit("input_userauth_request: invalid user %s", user);
 			authctxt->pw = fakepw();
 #ifdef USE_PAM
 			if (options.use_pam)

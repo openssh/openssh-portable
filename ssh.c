@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.223 2004/07/11 17:48:47 deraadt Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.224 2004/07/28 09:40:29 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -344,7 +344,7 @@ again:
 			if (ciphers_valid(optarg)) {
 				/* SSH2 only */
 				options.ciphers = xstrdup(optarg);
-				options.cipher = SSH_CIPHER_ILLEGAL;
+				options.cipher = SSH_CIPHER_INVALID;
 			} else {
 				/* SSH1 only */
 				options.cipher = cipher_number(optarg);

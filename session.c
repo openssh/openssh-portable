@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.179 2004/07/17 05:31:41 dtucker Exp $");
+RCSID("$OpenBSD: session.c,v 1.180 2004/07/28 09:40:29 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -264,7 +264,7 @@ do_authenticated1(Authctxt *authctxt)
 			compression_level = packet_get_int();
 			packet_check_eom();
 			if (compression_level < 1 || compression_level > 9) {
-				packet_send_debug("Received illegal compression level %d.",
+				packet_send_debug("Received invalid compression level %d.",
 				    compression_level);
 				break;
 			}
