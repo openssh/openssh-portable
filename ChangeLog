@@ -7,6 +7,9 @@
    - markus@cvs.openbsd.org 2002/02/11 16:15:46
      [sshconnect1.c]
      include md5.h, not evp.h
+   - markus@cvs.openbsd.org 2002/02/11 16:17:55
+     [sshd.c]
+     do not complain about port > 1024 if rhosts-auth is disabled
 
 20020210
  - (djm) OpenBSD CVS Sync
@@ -7554,4 +7557,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1840 2002/02/13 02:54:27 djm Exp $
+$Id: ChangeLog,v 1.1841 2002/02/13 02:54:44 djm Exp $

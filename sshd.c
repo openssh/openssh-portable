@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.224 2002/02/04 12:15:25 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.225 2002/02/11 16:17:55 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1207,8 +1207,9 @@ main(int ac, char **av)
 	 * machine, he can connect from any port.  So do not use these
 	 * authentication methods from machines that you do not trust.
 	 */
-	if (remote_port >= IPPORT_RESERVED ||
-	    remote_port < IPPORT_RESERVED / 2) {
+	if (options.rhosts_authentication &&
+	    (remote_port >= IPPORT_RESERVED ||
+	    remote_port < IPPORT_RESERVED / 2)) {
 		debug("Rhosts Authentication disabled, "
 		    "originating port %d not trusted.", remote_port);
 		options.rhosts_authentication = 0;
