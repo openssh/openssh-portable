@@ -42,6 +42,9 @@
    - stevesk@cvs.openbsd.org 2001/12/27 18:22:53
      [sshd.8]
      clarify -p; ok markus@
+   - markus@cvs.openbsd.org 2001/12/27 18:26:13
+     [authfile.c]
+     missing include
 
 20020121
  - (djm) Rework ssh-rand-helper:
@@ -7189,4 +7192,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1734 2002/01/22 12:09:41 djm Exp $
+$Id: ChangeLog,v 1.1735 2002/01/22 12:10:04 djm Exp $
