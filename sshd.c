@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.306 2005/01/17 22:48:39 dtucker Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.307 2005/01/21 08:32:02 otto Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1664,9 +1664,6 @@ main(int ac, char **av)
 
 	packet_set_nonblocking();
 
-	/* prepare buffers to collect authentication messages */
-	buffer_init(&loginmsg);
-
 	/* allocate authentication context */
 	authctxt = xmalloc(sizeof(*authctxt));
 	memset(authctxt, 0, sizeof(*authctxt));
@@ -1674,12 +1671,12 @@ main(int ac, char **av)
 	/* XXX global for cleanup, access from other modules */
 	the_authctxt = authctxt;
 
+	/* prepare buffer to collect messages to display to user after login */
+	buffer_init(&loginmsg);
+
 	if (use_privsep)
 		if (privsep_preauth(authctxt) == 1)
 			goto authenticated;
-
-	/* prepare buffer to collect messages to display to user after login */
-	buffer_init(&loginmsg);
 
 	/* perform the key exchange */
 	/* authenticate user and start session */

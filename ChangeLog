@@ -1,3 +1,11 @@
+20050124
+ - (dtucker) OpenBSD CVS Sync
+   - otto@cvs.openbsd.org 2005/01/21 08:32:02
+     [auth-passwd.c sshd.c]
+     Warn in advance for password and account expiry; initialize loginmsg
+     buffer earlier and clear it after privsep fork. ok and help dtucker@
+     markus@
+
 20050120
  - (dtucker) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2004/12/23 17:35:48
@@ -2015,4 +2023,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3620 2005/01/20 11:20:50 dtucker Exp $
+$Id: ChangeLog,v 1.3621 2005/01/24 10:55:49 dtucker Exp $
