@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.42 2001/06/26 04:59:59 markus Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.43 2001/06/27 06:26:36 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -201,20 +201,17 @@ usage(void)
 	printf("    -D            : delete all identities\n");
 	printf("    -s reader_num : add key in the smartcard in reader_num.\n");
 	printf("    -e reader_num : remove key in the smartcard in reader_num.\n");
-	exit (1);
 }
 
 int
 main(int argc, char **argv)
 {
+	extern char *optarg;
+	extern int optind;
 	AuthenticationConnection *ac = NULL;
 	struct passwd *pw;
 	char buf[1024];
-	int no_files = 1;
-	int i;
-	int deleting = 0;
-	int sc_mode = 0;
-	int sc_reader_num = 0;
+	int i, ch, deleting = 0, sc_reader_num = -1;
 
 	__progname = get_progname(argv[0]);
 	init_rng();
@@ -228,55 +225,40 @@ main(int argc, char **argv)
 		fprintf(stderr, "Could not open a connection to your authentication agent.\n");
 		exit(1);
 	}
-	for (i = 1; i < argc; i++) {
-		if ((strcmp(argv[i], "-l") == 0) ||
-		    (strcmp(argv[i], "-L") == 0)) {
-			list_identities(ac, argv[i][1] == 'l' ? 1 : 0);
-			/* Don't default-add/delete if -l. */
-			no_files = 0;
-			continue;
-		}
-		if (strcmp(argv[i], "-d") == 0) {
+        while ((ch = getopt(argc, argv, "lLdDe:s:")) != -1) {
+		switch (ch) {
+		case 'l':
+		case 'L':
+			list_identities(ac, ch == 'l' ? 1 : 0);
+			goto done;
+			break;
+		case 'd':
 			deleting = 1;
-			continue;
-		}
-		if (strcmp(argv[i], "-D") == 0) {
+			break;
+		case 'D':
 			delete_all(ac);
-			no_files = 0;
-			continue;
-		}
-		if (strcmp(argv[i], "-s") == 0) {
-			sc_mode = 1;
-			deleting = 0; 
-			i++;
-			if (i >= argc)
-				usage();
-			sc_reader_num = atoi(argv[i]);
-			continue; 
-		}
-		if (strcmp(argv[i], "-e") == 0) {
-			sc_mode = 1;
+			goto done;
+			break;
+		case 's':
+			sc_reader_num = atoi(optarg);
+			break;
+		case 'e':
 			deleting = 1; 
-			i++;
-			if (i >= argc)
-				usage();
-			sc_reader_num = atoi(argv[i]);
-			continue; 
+			sc_reader_num = atoi(optarg);
+			break;
+		default:
+			usage();
+			exit(1);
+			break;
 		}
-		if (sc_mode == 1)
-			update_card(ac, !deleting, sc_reader_num);
-		no_files = 0;
-		if (deleting)
-			delete_file(ac, argv[i]);
-		else
-			add_file(ac, argv[i]);
 	}
-	if (sc_mode == 1) {
+	argc -= optind;
+	argv += optind;
+	if (sc_reader_num != -1) {
 		update_card(ac, !deleting, sc_reader_num);
-		ssh_close_authentication_connection(ac);
-		exit(0);
+		goto done;
 	}
-	if (no_files) {
+	if (argc == 0) {
 		pw = getpwuid(getuid());
 		if (!pw) {
 			fprintf(stderr, "No user found with uid %u\n",
@@ -289,8 +271,17 @@ main(int argc, char **argv)
 			delete_file(ac, buf);
 		else
 			add_file(ac, buf);
+	} else {
+		for (i = 0; i < argc; i++) {
+			if (deleting)
+				delete_file(ac, argv[i]);
+			else
+				add_file(ac, argv[i]);
+		}
 	}
 	clear_pass();
+
+done:
 	ssh_close_authentication_connection(ac);
 	exit(0);
 }
