@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.154.2.10 2003/09/23 02:51:37 tim Exp $
+# $Id: configure.ac,v 1.154.2.11 2003/09/23 09:24:21 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -480,7 +480,7 @@ AC_CHECK_HEADERS(bstring.h crypt.h endian.h features.h floatingpoint.h \
 	sys/cdefs.h sys/mman.h sys/pstat.h sys/select.h sys/stat.h \
 	sys/stropts.h sys/sysmacros.h sys/time.h sys/timers.h \
 	sys/un.h time.h tmpdir.h ttyent.h usersec.h \
-	util.h utime.h utmp.h utmpx.h)
+	util.h utime.h utmp.h utmpx.h vis.h)
 
 # Checks for libraries.
 AC_CHECK_FUNC(yp_match, , AC_CHECK_LIB(nsl, yp_match))

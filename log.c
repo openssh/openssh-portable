@@ -40,6 +40,9 @@ RCSID("$OpenBSD: log.c,v 1.28 2003/05/24 09:02:22 djm Exp $");
 #include "xmalloc.h"
 
 #include <syslog.h>
+#if defined(HAVE_STRNVIS) && defined(HAVE_VIS_H)
+# include <vis.h>
+#endif
 
 static LogLevel log_level = SYSLOG_LEVEL_INFO;
 static int log_on_stderr = 1;

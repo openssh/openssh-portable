@@ -31,6 +31,10 @@ RCSID("$OpenBSD: cipher-aes.c,v 1.1 2003/05/15 03:08:29 markus Exp $");
 #include "xmalloc.h"
 #include "log.h"
 
+#if OPENSSL_VERSION_NUMBER < 0x00906000L
+#define SSH_OLD_EVP
+#endif
+
 #define RIJNDAEL_BLOCKSIZE 16
 struct ssh_rijndael_ctx
 {
