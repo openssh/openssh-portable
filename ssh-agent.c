@@ -35,7 +35,7 @@
 
 #include "includes.h"
 #include "openbsd-compat/fake-queue.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.96 2002/06/23 10:29:52 deraadt Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.97 2002/06/24 14:55:38 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -197,7 +197,7 @@ process_authentication_challenge1(SocketEntry *e)
 	if ((challenge = BN_new()) == NULL)
 		fatal("process_authentication_challenge1: BN_new failed");
 
-	buffer_get_int(&e->request);				/* ignored */
+	(void) buffer_get_int(&e->request);			/* ignored */
 	buffer_get_bignum(&e->request, key->rsa->e);
 	buffer_get_bignum(&e->request, key->rsa->n);
 	buffer_get_bignum(&e->request, challenge);
@@ -398,7 +398,7 @@ process_add_identity(SocketEntry *e, int version)
 	switch (version) {
 	case 1:
 		k = key_new_private(KEY_RSA1);
-		buffer_get_int(&e->request);			/* ignored */
+		(void) buffer_get_int(&e->request);		/* ignored */
 		buffer_get_bignum(&e->request, k->rsa->n);
 		buffer_get_bignum(&e->request, k->rsa->e);
 		buffer_get_bignum(&e->request, k->rsa->d);
