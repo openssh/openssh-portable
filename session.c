@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.6 2000/04/27 15:23:02 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.8 2000/04/29 16:06:08 markus Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -1354,6 +1354,8 @@ session_input_channel_req(int id, void *arg)
 	 */
 	if (c->type == SSH_CHANNEL_LARVAL) {
 		if (strcmp(rtype, "shell") == 0) {
+			packet_done();
+			s->extended = 1;
 			if (s->ttyfd == -1)
 				do_exec_no_pty(s, NULL, s->pw);
 			else
@@ -1362,7 +1364,6 @@ session_input_channel_req(int id, void *arg)
 		} else if (strcmp(rtype, "exec") == 0) {
 			char *command = packet_get_string(&len);
 			packet_done();
-			s->extended = 1;
 			s->extended = 1;
 			if (s->ttyfd == -1)
 				do_exec_no_pty(s, command, s->pw);
@@ -1550,6 +1551,6 @@ do_authenticated2(void)
 	 */
 	alarm(0);
 	server_loop2();
- 	if (xauthfile)
- 		xauthfile_cleanup_proc(NULL);
+	if (xauthfile)
+		xauthfile_cleanup_proc(NULL);
 }
