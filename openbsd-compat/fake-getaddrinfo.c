@@ -12,10 +12,10 @@
 #include "includes.h"
 #include "ssh.h"
 
-RCSID("$Id: fake-getaddrinfo.c,v 1.3 2003/02/05 23:50:42 djm Exp $");
+RCSID("$Id: fake-getaddrinfo.c,v 1.4 2003/02/24 01:35:09 djm Exp $");
 
 #ifndef HAVE_GAI_STRERROR
-const char *gai_strerror(int ecode)
+char *gai_strerror(int ecode)
 {
 	switch (ecode) {
 		case EAI_NODATA:
