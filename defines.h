@@ -98,13 +98,6 @@ typedef unsigned long long int u_int64_t;
 # endif
 #endif
 
-/* If quad_t is not supplied, then supply it now. We can rely on int64_t */
-/* being defined by the above */
-#ifndef HAVE_QUAD_T
-typedef int64_t quad_t;
-# define HAVE_QUAD_T
-#endif
-
 #ifndef HAVE_SOCKLEN_T
 typedef unsigned int socklen_t;
 # define HAVE_SOCKLEN_T

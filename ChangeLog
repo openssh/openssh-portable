@@ -12,6 +12,7 @@
    <iretd@bigfoot.com>
  - Really fix broken default path. Fix from Jim Knoble 
    <jmknoble@pobox.com>
+ - Remove test for quad_t. No longer needed.
 
 19991230
  - OpenBSD CVS updates:

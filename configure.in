@@ -138,17 +138,6 @@ AC_CHECK_SIZEOF(long int, 4)
 AC_CHECK_SIZEOF(long long int, 8)
 
 dnl More checks for data types
-AC_MSG_CHECKING([for quad_t])
-AC_TRY_COMPILE(
-	[#include <sys/types.h>], 
-	[quad_t a; a = 1235;], 
-	[
-		AC_DEFINE(HAVE_QUAD_T)
-		AC_MSG_RESULT(yes)
-	],
-	[AC_MSG_RESULT(no)]
-) 
-
 AC_MSG_CHECKING([for intXX_t types])
 AC_TRY_COMPILE(
 	[#include <sys/types.h>], 

@@ -117,7 +117,6 @@
 #undef MAIL_DIRECTORY
 
 /* Data types */
-#undef HAVE_QUAD_T
 #undef HAVE_INTXX_T
 #undef HAVE_U_INTXX_T
 #undef HAVE_UINTXX_T
