@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.31 2002/07/25 01:16:59 mouring Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.32 2002/11/27 17:53:35 markus Exp $");
 
 /* XXX: short-form remote directory listings (like 'ls -C') */
 
@@ -197,7 +197,7 @@ main(int argc, char **argv)
 			file1 = cp;
 		}
 
-		if ((host = strchr(userhost, '@')) == NULL)
+		if ((host = strrchr(userhost, '@')) == NULL)
 			host = userhost;
 		else {
 			*host++ = '\0';

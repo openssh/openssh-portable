@@ -36,6 +36,10 @@
    - stevesk@cvs.openbsd.org 2002/11/26 02:38:54
      [canohost.c]
      KNF, comment and error message repair; ok markus@
+   - markus@cvs.openbsd.org 2002/11/27 17:53:35
+     [scp.c sftp.c ssh.c]
+     allow usernames with embedded '@', e.g. scp user@vhost@realhost:file /tmp;
+     http://bugzilla.mindrot.org/show_bug.cgi?id=447; ok mouring@, millert@
 
 20021205
  - (djm) PERL-free fixpaths from stuge-openssh-unix-dev@cdy.org
@@ -871,4 +875,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2525 2002/12/23 02:13:37 mouring Exp $
+$Id: ChangeLog,v 1.2526 2002/12/23 02:14:51 mouring Exp $

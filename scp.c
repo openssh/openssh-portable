@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.93 2002/11/26 00:45:03 wcobb Exp $");
+RCSID("$OpenBSD: scp.c,v 1.94 2002/11/27 17:53:35 markus Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -370,7 +370,7 @@ toremote(targ, argc, argv)
 	if (*targ == 0)
 		targ = ".";
 
-	if ((thost = strchr(argv[argc - 1], '@'))) {
+	if ((thost = strrchr(argv[argc - 1], '@'))) {
 		/* user@host */
 		*thost++ = 0;
 		tuser = argv[argc - 1];
@@ -391,7 +391,7 @@ toremote(targ, argc, argv)
 			*src++ = 0;
 			if (*src == 0)
 				src = ".";
-			host = strchr(argv[i], '@');
+			host = strrchr(argv[i], '@');
 			len = strlen(ssh_program) + strlen(argv[i]) +
 			    strlen(src) + (tuser ? strlen(tuser) : 0) +
 			    strlen(thost) + strlen(targ) +
@@ -470,7 +470,7 @@ tolocal(argc, argv)
 		*src++ = 0;
 		if (*src == 0)
 			src = ".";
-		if ((host = strchr(argv[i], '@')) == NULL) {
+		if ((host = strrchr(argv[i], '@')) == NULL) {
 			host = argv[i];
 			suser = NULL;
 		} else {
@@ -1036,7 +1036,7 @@ okname(cp0)
 		if (c & 0200)
 			goto bad;
 		if (!isalpha(c) && !isdigit(c) &&
-		    c != '_' && c != '-' && c != '.' && c != '+')
+		    c != '@' && c != '_' && c != '-' && c != '.' && c != '+')
 			goto bad;
 	} while (*++cp);
 	return (1);
