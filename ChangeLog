@@ -4,6 +4,8 @@
      [channels.c monitor.c scp.c session.c sftp-client.c sftp-int.c]
      [sftp-server.c ssh-add.c sshconnect2.c]
      fix memory leaks; from dlheine@suif.Stanford.EDU/CLOUSEAU; ok djm@
+ - (djm) One more portable-specific one from dlheine@suif.Stanford.EDU/
+   CLOUSEAU
 
 20030225
  - (djm) Fix some compile errors spotted by dtucker and his fabulous 
@@ -1198,4 +1200,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2623 2003/03/10 00:21:17 djm Exp $
+$Id: ChangeLog,v 1.2624 2003/03/10 00:23:06 djm Exp $

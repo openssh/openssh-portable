@@ -163,7 +163,7 @@
 #include "log.h"
 #include "atomicio.h"
 
-RCSID("$Id: loginrec.c,v 1.46 2003/01/07 05:46:58 djm Exp $");
+RCSID("$Id: loginrec.c,v 1.47 2003/03/10 00:23:07 djm Exp $");
 
 #ifdef HAVE_UTIL_H
 #  include <util.h>
@@ -1345,6 +1345,7 @@ syslogin_perform_login(struct logininfo *li)
 	}
 	construct_utmp(li, ut);
 	login(ut);
+	free(ut);
 
 	return 1;
 }
