@@ -1,3 +1,7 @@
+20021004
+ - (bal) Disable post-authentication Privsep for OSF/1.  It conflicts with
+   SIA.
+
 20021003
  - (djm) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2002/10/01 20:34:12
@@ -757,4 +761,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2491.2.1 2002/10/03 05:45:53 djm Exp $
+$Id: ChangeLog,v 1.2491.2.2 2002/10/05 00:14:05 mouring Exp $
