@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.284 2001/05/08 20:33:06 mouring Exp $
+# $Id: configure.in,v 1.285 2001/05/08 20:42:28 mouring Exp $
 
 AC_INIT(ssh.c)
 
@@ -239,8 +239,18 @@ mips-sony-bsd|mips-sony-newsos4)
 	MANTYPE=man
 	;;
 *-dec-osf*)
-	if test ! -z "$USE_SIA" ; then
-		AC_MSG_CHECKING(for Digital Unix Security Integration Architecture)
+	AC_MSG_CHECKING(for Digital Unix SIA)
+	no_osfsia=""
+	AC_ARG_WITH(osfsia,
+		[  --with-osfsia           Enable Digital Unix SIA],
+		[
+			if test "x$withval" = "xno" ; then
+				AC_MSG_RESULT(disabled)
+				no_osfsia=1
+			fi
+		],
+	)
+	if test -z "$no_osfsia" ; then
 		if test -f /etc/sia/matrix.conf; then
 			AC_MSG_RESULT(yes)
 			AC_DEFINE(HAVE_OSF_SIA)

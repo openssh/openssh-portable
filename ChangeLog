@@ -13,6 +13,8 @@
      Use addargs() in sftp plus some clean up of addargs().  OK Markus
  - (bal) UseLogin patch for Solaris/UNICOS.  Patch by Wayne Davison 
    <wayne@blorf.net>
+ - (bal) ./configure support to disable SIA on OSF1.  Patch by
+   Chris Adams <cmadams@hiwaay.net>
 
 20010508
  - (bal) Fixed configure test for USE_SIA.  
@@ -5373,4 +5375,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1209 2001/05/08 20:33:05 mouring Exp $
+$Id: ChangeLog,v 1.1210 2001/05/08 20:42:28 mouring Exp $
