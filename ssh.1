@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.94 2001/03/05 15:56:16 deraadt Exp $
+.\" $OpenBSD: ssh.1,v 1.95 2001/03/05 17:40:48 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -750,8 +750,13 @@ or
 The default is
 .Dq no .
 .It Cm GlobalKnownHostsFile
-Specifies a file to use instead of
+Specifies a file to use for the protocol version 1 global
+host key database instead of
 .Pa /etc/ssh_known_hosts .
+.It Cm GlobalKnownHostsFile2
+Specifies a file to use for the protocol version 2 global
+host key database instead of
+.Pa /etc/ssh_known_hosts2 .
 .It Cm HostKeyAlias
 Specifies an alias that should be used instead of the
 real host name when looking up or saving the host key
@@ -999,8 +1004,13 @@ This can be useful if you have a different user name on different machines.
 This saves the trouble of
 having to remember to give the user name on the command line.
 .It Cm UserKnownHostsFile
-Specifies a file to use instead of
+Specifies a file to use for the protocol version 1 user
+host key database instead of
 .Pa $HOME/.ssh/known_hosts .
+.It Cm UserKnownHostsFile2
+Specifies a file to use for the protocol version 2 user
+host key database instead of
+.Pa $HOME/.ssh/known_hosts2 .
 .It Cm UseRsh
 Specifies that rlogin/rsh should be used for this host.
 It is possible that the host does not at all support the
@@ -1091,10 +1101,13 @@ and adds lines of the format
 to the environment.
 .Sh FILES
 .Bl -tag -width Ds
-.It Pa $HOME/.ssh/known_hosts
+.It Pa $HOME/.ssh/known_hosts, $HOME/.ssh/known_hosts2
 Records host keys for all hosts the user has logged into (that are not
 in
-.Pa /etc/ssh_known_hosts ) .
+.Pa /etc/ssh_known_hosts
+for protocol version 1 or
+.Pa /etc/ssh_known_hosts2
+for protocol version 2).
 See
 .Xr sshd 8 .
 .It Pa $HOME/.ssh/identity, $HOME/.ssh/id_dsa

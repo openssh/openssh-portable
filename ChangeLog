@@ -24,6 +24,9 @@
              P. C. van Oorschot and M. J. Wiener, On Diffie-Hellman key
              agreement with short exponents, In Advances in Cryptology
              - EUROCRYPT'96, LNCS 1070, Springer-Verlag, 1996, pp.332-343.
+   - stevesk@cvs.openbsd.org 2001/03/05 17:40:48
+     [ssh.1]
+     more ssh_known_hosts2 documentation; ok markus@
 
 20010305
  - (bal) CVS ID touch up on sshpty.[ch] and sshlogin.[ch]
@@ -4395,4 +4398,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.913 2001/03/06 01:09:20 mouring Exp $
+$Id: ChangeLog,v 1.914 2001/03/06 01:10:53 mouring Exp $
