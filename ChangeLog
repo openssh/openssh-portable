@@ -1,9 +1,9 @@
-20011126
- - (tim) [contrib/cygwin/README, openbsd-compat/bsd-cygwin_util.c,
-   openbsd-compat/bsd-cygwin_util.h, openbsd-compat/daemon.c]
-   Allow SSHD to install as service under WIndows 9x/Me
-   [configure.ac] Fix to allow linking against PCRE on Cygwin
-   Patches by Corinna Vinschen <vinschen@redhat.com>
+20011202
+ - (djm) Syn with OpenBSD OpenSSH-3.0.2
+   - markus@cvs.openbsd.org
+     [session.c sshd.8 version.h]
+     Don't allow authorized_keys specified environment variables when 
+     UseLogin in active
 
 20011115
  - (djm) Fix IPv4 default in ssh-keyscan. Spotted by Dan Astoorian 
@@ -6919,4 +6919,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1666 2001/11/27 01:19:43 tim Exp $
+$Id: ChangeLog,v 1.1665.4.1 2001/12/01 23:37:07 djm Exp $
