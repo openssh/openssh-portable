@@ -4,6 +4,8 @@
  - (djm) Replace "/bin/sh" with _PATH_BSHELL. Report from Corinna Vinschen
    <vinschen@cygnus.com>
  - (djm) Replace "/usr/bin/login" with LOGIN_PROGRAM
+ - (djm) Added check for broken snprintf() functions which do not correctly
+   terminate output string and attempt to use replacement.
 
 20000628
  - (djm) Fixes to lastlog code for Irix

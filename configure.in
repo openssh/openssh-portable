@@ -235,6 +235,23 @@ AC_CHECK_FUNC(getpagesize,
 	[AC_CHECK_LIB(ucb, getpagesize, [LIBS="$LIBS -lucb"; AC_DEFINE(HAVE_GETPAGESIZE)])]
 )
 
+# Check for broken snprintf
+if test "x$ac_cv_func_snprintf" = "xyes" ; then
+	AC_MSG_CHECKING([whether snprintf correctly terminates long strings])
+	AC_TRY_RUN(
+		[
+#include <stdio.h>
+int main(void){char b[5];snprintf(b,5,"123456789");return(b[4]!='\0');}
+		],
+		[AC_MSG_RESULT(yes)], 
+		[
+			AC_MSG_RESULT(no)
+			AC_DEFINE(BROKEN_SNPRINTF)
+			AC_MSG_WARN([****** Your snprintf() function is broken, complain to your vendor])
+		]
+	)
+fi
+
 PAM_MSG="no"
 AC_ARG_WITH(pam,
 	[  --without-pam           Disable PAM support ],

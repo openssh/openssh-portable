@@ -6,6 +6,9 @@
 
 @TOP@
 
+/* Define if your snprintf is busted */
+#undef BROKEN_SNPRINTF
+
 /* Define if you are on NeXT */
 #undef HAVE_NEXT
 

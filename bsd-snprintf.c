@@ -26,7 +26,7 @@
 
 #include "config.h"
 
-#if !defined(HAVE_SNPRINTF) || !defined(HAVE_VSNPRINTF)
+#if defined(BROKEN_SNPRINTF) || !defined(HAVE_SNPRINTF) || !defined(HAVE_VSNPRINTF)
 
 #include <sys/param.h>
 #include <sys/types.h>
@@ -120,7 +120,7 @@ mcleanup(str, n, p)
 	free(curobj);
 }
 
-#if !defined(HAVE_VSNPRINTF)
+#if !defined(HAVE_VSNPRINTF) || defined(BROKEN_SNPRINTF)
 int
 vsnprintf(str, n, fmt, ap)
 	char *str;
@@ -152,9 +152,9 @@ vsnprintf(str, n, fmt, ap)
 	(void) sigaction(SIGSEGV, &osa, NULL);
 	return (ret);
 }
-#endif /* !defined(HAVE_VSNPRINTF) */
+#endif /* !defined(HAVE_VSNPRINTF) || defined(BROKEN_SNPRINTF) */
 
-#if !defined(HAVE_SNPRINTF)
+#if !defined(HAVE_SNPRINTF) || defined(BROKEN_SNPRINTF)
 int
 #if __STDC__
 snprintf(char *str, size_t n, char const *fmt, ...)
@@ -176,6 +176,6 @@ snprintf(str, n, fmt, va_alist)
 	return (vsnprintf(str, n, fmt, ap));
 	va_end(ap);
 }
-#endif /* !defined(HAVE_SNPRINTF) */
+#endif /* !defined(HAVE_SNPRINTF) || defined(BROKEN_SNPRINTF) */
 
-#endif /* !defined(HAVE_SNPRINTF) || !defined(HAVE_VSNPRINTF) */
+#endif /* defined(BROKEN_SNPRINTF) || !defined(HAVE_SNPRINTF) || !defined(HAVE_VSNPRINTF) */
