@@ -17,44 +17,73 @@
 
 RETVAL=0
 
+# Some functions to make the below more readable
+KEYGEN=/usr/bin/ssh-keygen
+RSA_KEY=/etc/ssh/ssh_host_key
+DSA_KEY=/etc/ssh/ssh_host_dsa_key
+PID_FILE=/var/run/sshd.pid
+do_rsa_keygen() {
+	if $KEYGEN -R && ! test -f $RSA_KEY ; then
+		echo -n "Generating SSH RSA host key: "
+		if $KEYGEN -q -b 1024 -f $RSA_KEY -C '' -N '' >&/dev/null; then
+			success "RSA key generation"
+			echo
+		else
+			failure "RSA key generation"
+			echo
+			exit 1
+		fi
+	fi
+}
+do_dsa_keygen() {
+	if ! test -f $DSA_KEY ; then
+		echo -n "Generating SSH DSA host key: "
+		if $KEYGEN -q -d -b 1024 -f $DSA_KEY -C '' -N '' >&/dev/null; then
+			success "DSA key generation"
+			echo
+		else
+			failure "DSA key generation"
+			echo
+			exit 1
+		fi
+	fi
+}
+
 case "$1" in
-  start)
-	echo -n "Starting sshd: "
-	if [ ! -f /var/run/sshd.pid ] ; then
-	  case "`type -type success`" in
-	    function)
-	      /usr/sbin/sshd && success "sshd startup" || failure "sshd startup"
-	      RETVAL=$?
-	    ;;
-	    *)
-	      /usr/sbin/sshd && echo -n "sshd "
-	      RETVAL=$?
-	    ;;
-	  esac
-	  [ $RETVAL -eq 0 ] && touch /var/lock/subsys/sshd
-	fi
-	echo
-	;;
-  stop)
-	echo -n "Shutting down sshd: "
-	if [ -f /var/run/sshd.pid ] ; then
-		killproc sshd
-	fi
-	echo
-	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/sshd
-	;;
-  restart)
-        $0 stop
-        $0 start
-	RETVAL=$?
-        ;;
-  status)
-        status sshd
-	RETVAL=$?
-        ;;
-  *)
-	echo "Usage: sshd {start|stop|restart|status}"
-	exit 1
+	start)
+		# Create keys if necessary
+		do_rsa_keygen;
+		do_dsa_keygen;
+		
+		echo -n "Starting sshd: "
+		if [ ! -f $PID_FILE ] ; then
+			daemon sshd
+			RETVAL=$?
+			touch /var/lock/subsys/sshd
+		fi
+		echo
+		;;
+	stop)
+		echo -n "Shutting down sshd: "
+		if [ -f $PID_FILE ] ; then
+			killproc sshd
+			[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/sshd
+		fi
+		echo
+		;;
+	restart)
+		$0 stop
+		$0 start
+		RETVAL=$?
+		;;
+	status)
+		status sshd
+		RETVAL=$?
+		;;
+	*)
+		echo "Usage: sshd {start|stop|restart|status}"
+		exit 1
+		;;
 esac
 
 exit $RETVAL

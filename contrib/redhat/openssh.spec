@@ -1,5 +1,5 @@
 # Version of OpenSSH
-%define oversion 2.1.1p4
+%define oversion 2.1.1p5
 
 # Version of ssh-askpass
 %define aversion 1.0
@@ -14,9 +14,9 @@ Summary: OpenSSH free Secure Shell (SSH) implementation
 Name: openssh
 Version: %{oversion}
 Release: 1
-Packager: Damien Miller <djm@ibs.com.au>
+Packager: Damien Miller <djm@mindrot.org>
 URL: http://www.openssh.com/
-Source0: http://violet.ibs.com.au/openssh/files/openssh-%{oversion}.tar.gz
+Source0: ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-%{oversion}.tar.gz
 Source1: http://www.ntrnet.net/~jmknoble/software/x11-ssh-askpass/x11-ssh-askpass-%{aversion}.tar.gz
 Copyright: BSD
 Group: Applications/Internet
@@ -27,14 +27,14 @@ Requires: openssl >= 0.9.5a
 BuildPreReq: perl
 BuildPreReq: openssl-devel
 BuildPreReq: tcp_wrappers
-%if ! %{no_x11_askpass}
+%if ! %{no_gnome_askpass}
 BuildPreReq: gnome-libs-devel
 %endif
 
 %package clients
 Summary: OpenSSH Secure Shell protocol clients
 Requires: openssh
-Group: System Environment/Daemons
+Group: Applications/Internet
 Obsoletes: ssh-clients
 
 %package server
@@ -127,6 +127,9 @@ patented algorithms to seperate libraries (OpenSSL).
 This package contains the GNOME passphrase dialog.
 
 %changelog
+* Tue Aug 08 2000 Damien Miller <djm@mindrot.org>
+- Some surgery to sshd.init (generate keys at runtime)
+- Cleanup of groups and removal of keygen calls
 * Wed Jul 12 2000 Damien Miller <djm@mindrot.org>
 - Make building of X11-askpass and gnome-askpass optional
 * Mon Jun 12 2000 Damien Miller <djm@mindrot.org>
@@ -208,20 +211,12 @@ rm -rf $RPM_BUILD_ROOT
 
 %post server
 /sbin/chkconfig --add sshd
-if [ ! -f /etc/ssh/ssh_host_key -o ! -s /etc/ssh/ssh_host_key ]; then
-	/usr/bin/ssh-keygen -b 1024 -f /etc/ssh/ssh_host_key -N '' >&2
-fi
-if [ ! -f /etc/ssh/ssh_host_dsa_key -o ! -s /etc/ssh/ssh_host_dsa_key ]; then
-	/usr/bin/ssh-keygen -d -f /etc/ssh/ssh_host_dsa_key -N '' >&2
-fi
-if test -r /var/run/sshd.pid
-then
+if test -r /var/run/sshd.pid ; then
 	/etc/rc.d/init.d/sshd restart >&2
 fi
 
 %preun server
-if [ "$1" = 0 ]
-then
+if [ "$1" = 0 ] ; then
 	/etc/rc.d/init.d/sshd stop >&2
 	/sbin/chkconfig --del sshd
 fi
@@ -272,4 +267,3 @@ fi
 %defattr(-,root,root)
 %attr(0755,root,root) /usr/libexec/ssh/gnome-ssh-askpass
 %endif
-
