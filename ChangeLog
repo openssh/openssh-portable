@@ -1,3 +1,13 @@
+20001105
+ - (bal) Sync with OpenBSD:
+   - markus@cvs.openbsd.org 2000/10/31 9:31:58
+     [compat.c]
+     handle all old openssh versions
+   - markus@cvs.openbsd.org 2000/10/31 13:1853
+     [deattack.c]
+     so that large packets do not wrap "n"; from netbsd
+ - (bal) rijndel.c - fix up RCSID to match OpenBSD tree
+
 20001029
  - (stevesk) Fix typo in auth.c: USE_PAM not PAM
  - (stevesk) Create contrib/cygwin/ directory; patch from
