@@ -6,6 +6,11 @@
    - stevesk@cvs.openbsd.org 2001/03/08 20:44:48
      [sftp.1]
      spelling, cleanup; ok deraadt@
+   - markus@cvs.openbsd.org 2001/03/08 21:42:33
+     [compat.c compat.h readconf.h ssh.c sshconnect1.c sshconnect2.c]
+     implement client side of SSH2_MSG_USERAUTH_PK_OK (test public key ->
+     no need to do enter passphrase or do expensive sign operations if the
+     server does not accept key).
 
 20010308
  - OpenBSD CVS Sync
@@ -4452,4 +4457,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.929 2001/03/09 00:09:02 mouring Exp $
+$Id: ChangeLog,v 1.930 2001/03/09 00:12:22 mouring Exp $

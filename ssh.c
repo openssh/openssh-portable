@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.103 2001/03/04 17:42:28 millert Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.104 2001/03/08 21:42:32 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -233,7 +233,7 @@ rsh_connect(char *host, char *user, Buffer * command)
 
 int	ssh_session(void);
 int	ssh_session2(void);
-int	guess_identity_file_type(const char *filename);
+void	load_public_identity_files(void);
 
 /*
  * Main program for the ssh client.
@@ -678,15 +678,11 @@ main(int ac, char **av)
 		}
 		exit(1);
 	}
-	/* Expand ~ in options.identity_files, known host file names. */
-	/* XXX mem-leaks */
-	for (i = 0; i < options.num_identity_files; i++) {
-		options.identity_files[i] =
-		    tilde_expand_filename(options.identity_files[i], original_real_uid);
-		options.identity_files_type[i] = guess_identity_file_type(options.identity_files[i]);
-		debug("identity file %s type %d", options.identity_files[i],
-		    options.identity_files_type[i]);
-	}
+	/* load options.identity_files */
+	load_public_identity_files();
+
+	/* Expand ~ in known host file names. */
+	/* XXX mem-leaks: */
 	options.system_hostfile =
 	    tilde_expand_filename(options.system_hostfile, original_real_uid);
 	options.user_hostfile =
@@ -1094,4 +1090,32 @@ guess_identity_file_type(const char *filename)
 	}
 	key_free(public);
 	return type;
+}
+
+void
+load_public_identity_files(void)
+{
+	char *filename;
+	Key *public;
+	int i;
+
+	for (i = 0; i < options.num_identity_files; i++) {
+		filename = tilde_expand_filename(options.identity_files[i],
+		    original_real_uid);
+		public = key_new(KEY_RSA1);
+		if (!load_public_key(filename, public, NULL)) {
+			key_free(public);
+			public = key_new(KEY_UNSPEC);
+			if (!try_load_public_key(filename, public, NULL)) {
+				debug("unknown identity file %s", filename);
+				key_free(public);
+				public = NULL;
+			}
+		}
+		debug("identity file %s type %d", filename,
+		    public ? public->type : -1);
+		xfree(options.identity_files[i]);
+		options.identity_files[i] = filename;
+		options.identity_keys[i] = public;
+	}
 }
