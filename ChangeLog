@@ -9,6 +9,9 @@
      - kill whitespace at EOL
      - new sentence, new line
      ssh pages ok markus@
+   - deraadt@cvs.openbsd.org 2003/06/10 22:20:52
+     [packet.c progressmeter.c]
+     mostly ansi cleanup; pval ok
 
 
 20030609
@@ -493,4 +496,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2793 2003/06/11 12:04:39 djm Exp $
+$Id: ChangeLog,v 1.2794 2003/06/11 12:05:06 djm Exp $
