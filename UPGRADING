@@ -33,3 +33,15 @@ Commercial SSH controlled logging using the "QuietMode" and
 logging options "SyslogFacility" and "LogLevel". See the sshd manual
 page for details.
 
+4. Warning messages about key lengths
+
+Commercial SSH's ssh-keygen program contained a bug which caused it to
+occasionally generate RSA keys which had their Most Significant Bit
+(MSB) unset. Such keys were advertised as being full-length, but are
+actually only half as secure.
+
+OpenSSH will print warning messages when it encounters such keys. To
+rid yourself of these message, edit you known_hosts files and replace
+the incorrect key length (usually "1024") with the correct key length
+(usually "1023").
+

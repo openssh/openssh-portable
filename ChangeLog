@@ -25,6 +25,7 @@
    Niels Kristian Bech Jensen <nkbj@image.dk>
  - Solaris fixing, thanks to Ben Taylor <bent@clark.net>
  - Merged beginnings of AIX support from Tor-Ake Fransson <torake@hotmail.com>
+ - Release 1.2pre15
 
 19991124
  - Merged very large OpenBSD source code reformat
