@@ -1,3 +1,7 @@
+20030225
+ - (djm) Fix some compile errors spotted by dtucker and his fabulous 
+   tinderbox
+
 20030224
  - (djm) Tweak gnome-ssh-askpass2:
    - Retry kb and mouse grab a couple of times, so passphrase dialog doesn't 
@@ -1187,4 +1191,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2621 2003/02/24 04:45:42 djm Exp $
+$Id: ChangeLog,v 1.2622 2003/02/24 23:22:35 djm Exp $
