@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.99 2001/03/16 19:06:29 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.100 2001/04/04 20:25:35 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -1005,7 +1005,8 @@ channel_handler(chan_fn *ftab[], fd_set * readset, fd_set * writeset)
 }
 
 void
-channel_prepare_select(fd_set **readsetp, fd_set **writesetp, int *maxfdp)
+channel_prepare_select(fd_set **readsetp, fd_set **writesetp, int *maxfdp,
+    int rekeying)
 {
 	int n;
 	u_int sz;
@@ -1025,7 +1026,8 @@ channel_prepare_select(fd_set **readsetp, fd_set **writesetp, int *maxfdp)
 	memset(*readsetp, 0, sz);
 	memset(*writesetp, 0, sz);
 
-	channel_handler(channel_pre, *readsetp, *writesetp);
+	if (!rekeying)
+		channel_handler(channel_pre, *readsetp, *writesetp);
 }
 
 void

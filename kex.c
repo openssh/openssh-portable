@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.29 2001/04/04 14:34:58 markus Exp $");
+RCSID("$OpenBSD: kex.c,v 1.30 2001/04/04 20:25:37 markus Exp $");
 
 #include <openssl/crypto.h>
 
@@ -136,7 +136,7 @@ kex_finish(Kex *kex)
         debug("waiting for SSH2_MSG_NEWKEYS");
         packet_read_expect(&plen, SSH2_MSG_NEWKEYS);
 	debug("SSH2_MSG_NEWKEYS received");
-	kex->newkeys = 1;
+	kex->done = 1;
 	buffer_clear(&kex->peer);
 	/* buffer_clear(&kex->my); */
 	kex->flags &= ~KEX_INIT_SENT;
@@ -153,6 +153,7 @@ kex_send_kexinit(Kex *kex)
 		debug("KEX_INIT_SENT");
 		return;
 	}
+	kex->done = 0;
 	packet_start(SSH2_MSG_KEXINIT);
 	packet_put_raw(buffer_ptr(&kex->my), buffer_len(&kex->my));
 	packet_send();
@@ -187,7 +188,7 @@ kex_setup(char *proposal[PROPOSAL_MAX])
 	buffer_init(&kex->peer);
 	buffer_init(&kex->my);
 	kex_prop2buf(&kex->my, proposal);
-	kex->newkeys = 0;
+	kex->done = 0;
 
 	kex_send_kexinit(kex);					/* we start */
 	kex_clear_dispatch();
@@ -307,10 +308,11 @@ kex_choose_conf(Kex *kex)
 		sprop=peer;
 	}
 
+	/* Algorithm Negotiation */
 	for (mode = 0; mode < MODE_MAX; mode++) {
 		newkeys = xmalloc(sizeof(*newkeys));
 		memset(newkeys, 0, sizeof(*newkeys));
-		kex->keys[mode] = newkeys;
+		kex->newkeys[mode] = newkeys;
 		ctos = (!kex->server && mode == MODE_OUT) || (kex->server && mode == MODE_IN);
 		nenc  = ctos ? PROPOSAL_ENC_ALGS_CTOS  : PROPOSAL_ENC_ALGS_STOC;
 		nmac  = ctos ? PROPOSAL_MAC_ALGS_CTOS  : PROPOSAL_MAC_ALGS_STOC;
@@ -329,7 +331,7 @@ kex_choose_conf(Kex *kex)
 	    sprop[PROPOSAL_SERVER_HOST_KEY_ALGS]);
 	need = 0;
 	for (mode = 0; mode < MODE_MAX; mode++) {
-		newkeys = kex->keys[mode];
+		newkeys = kex->newkeys[mode];
 		if (need < newkeys->enc.cipher->key_len)
 			need = newkeys->enc.cipher->key_len;
 		if (need < newkeys->enc.cipher->block_size)
@@ -353,19 +355,24 @@ derive_key(Kex *kex, int id, int need, u_char *hash, BIGNUM *shared_secret)
 	char c = id;
 	int have;
 	int mdsz = evp_md->md_size;
-	u_char *digest = xmalloc(((need+mdsz-1)/mdsz)*mdsz);
+	u_char *digest = xmalloc(roundup(need, mdsz));
 
 	buffer_init(&b);
 	buffer_put_bignum2(&b, shared_secret);
 
+	/* K1 = HASH(K || H || "A" || session_id) */
 	EVP_DigestInit(&md, evp_md);
-	EVP_DigestUpdate(&md, buffer_ptr(&b), buffer_len(&b));	/* shared_secret K */
-	EVP_DigestUpdate(&md, hash, mdsz);		/* transport-06 */
-	EVP_DigestUpdate(&md, &c, 1);			/* key id */
+	EVP_DigestUpdate(&md, buffer_ptr(&b), buffer_len(&b));
+	EVP_DigestUpdate(&md, hash, mdsz);
+	EVP_DigestUpdate(&md, &c, 1);
 	EVP_DigestUpdate(&md, kex->session_id, kex->session_id_len);
 	EVP_DigestFinal(&md, digest, NULL);
 
-	/* expand */
+	/*
+	 * expand key:
+	 * Kn = HASH(K || H || K1 || K2 || ... || Kn-1)
+	 * Key = K1 || K2 || ... || Kn
+	 */
 	for (have = mdsz; need > have; have += mdsz) {
 		EVP_DigestInit(&md, evp_md);
 		EVP_DigestUpdate(&md, buffer_ptr(&b), buffer_len(&b));
@@ -381,13 +388,12 @@ derive_key(Kex *kex, int id, int need, u_char *hash, BIGNUM *shared_secret)
 	return digest;
 }
 
-Newkeys *x_newkeys[MODE_MAX];
+Newkeys *current_keys[MODE_MAX];
 
 #define NKEYS	6
 void
 kex_derive_keys(Kex *kex, u_char *hash, BIGNUM *shared_secret)
 {
-	Newkeys *newkeys;
 	u_char *keys[NKEYS];
 	int i, mode, ctos;
 
@@ -396,19 +402,23 @@ kex_derive_keys(Kex *kex, u_char *hash, BIGNUM *shared_secret)
 
 	debug("kex_derive_keys");
 	for (mode = 0; mode < MODE_MAX; mode++) {
-		newkeys = kex->keys[mode];
+		current_keys[mode] = kex->newkeys[mode];
+		kex->newkeys[mode] = NULL;
 		ctos = (!kex->server && mode == MODE_OUT) || (kex->server && mode == MODE_IN);
-		newkeys->enc.iv  = keys[ctos ? 0 : 1];
-		newkeys->enc.key = keys[ctos ? 2 : 3];
-		newkeys->mac.key = keys[ctos ? 4 : 5];
-		x_newkeys[mode] = newkeys;
+		current_keys[mode]->enc.iv  = keys[ctos ? 0 : 1];
+		current_keys[mode]->enc.key = keys[ctos ? 2 : 3];
+		current_keys[mode]->mac.key = keys[ctos ? 4 : 5];
 	}
 }
 
 Newkeys *
 kex_get_newkeys(int mode)
 {
-	return x_newkeys[mode];
+	Newkeys *ret;
+
+	ret = current_keys[mode];
+	current_keys[mode] = NULL;
+	return ret;
 }
 
 #if defined(DEBUG_KEX) || defined(DEBUG_KEXDH)

@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.55 2001/04/04 14:34:58 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.56 2001/04/04 20:25:37 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -127,6 +127,7 @@ static u_long stdin_bytes, stdout_bytes, stderr_bytes;
 static u_int buffer_high;/* Soft max buffer size. */
 static int connection_in;	/* Connection to server (input). */
 static int connection_out;	/* Connection to server (output). */
+static int need_rekeying;	/* Set to non-zero if rekeying is requested. */
 
 void	client_init_dispatch(void);
 int	session_ident = -1;
@@ -367,10 +368,10 @@ client_check_window_change(void)
 
 void
 client_wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp,
-    int *maxfdp)
+    int *maxfdp, int rekeying)
 {
 	/* Add any selections by the channel mechanism. */
-	channel_prepare_select(readsetp, writesetp, maxfdp);
+	channel_prepare_select(readsetp, writesetp, maxfdp, rekeying);
 
 	if (!compat20) {
 		/* Read from the connection, unless our buffers are full. */
@@ -553,8 +554,8 @@ process_escapes(Buffer *bin, Buffer *bout, Buffer *berr, char *buf, int len)
 				continue;
 
 			case 'R':
-				debug("Rekeying");
-				kex_send_kexinit(xxx_kex);
+				if (compat20)
+					need_rekeying = 1;
 				continue;
 
 			case '&':
@@ -794,9 +795,8 @@ int
 client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 {
 	fd_set *readset = NULL, *writeset = NULL;
-	int max_fd = 0;
 	double start_time, total_time;
-	int len;
+	int max_fd = 0, len, rekeying = 0;
 	char buf[100];
 
 	debug("Entering interactive session.");
@@ -858,45 +858,60 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 		/* Process buffered packets sent by the server. */
 		client_process_buffered_input_packets();
 
+		rekeying = (xxx_kex != NULL && !xxx_kex->done);
+
 		if (compat20 && !channel_still_open()) {
 			debug2("!channel_still_open.");
 			break;
 		}
 
-		/*
-		 * Make packets of buffered stdin data, and buffer them for
-		 * sending to the server.
-		 */
-		if (!compat20)
-			client_make_packets_from_stdin_data();
+		if (rekeying) {
+			debug("rekeying in progress");
+		} else {
+			/*
+			 * Make packets of buffered stdin data, and buffer
+			 * them for sending to the server.
+			 */
+			if (!compat20)
+				client_make_packets_from_stdin_data();
 
-		/*
-		 * Make packets from buffered channel data, and enqueue them
-		 * for sending to the server.
-		 */
-		if (packet_not_very_much_data_to_write())
-			channel_output_poll();
+			/*
+			 * Make packets from buffered channel data, and
+			 * enqueue them for sending to the server.
+			 */
+			if (packet_not_very_much_data_to_write())
+				channel_output_poll();
 
-		/*
-		 * Check if the window size has changed, and buffer a message
-		 * about it to the server if so.
-		 */
-		client_check_window_change();
+			/*
+			 * Check if the window size has changed, and buffer a
+			 * message about it to the server if so.
+			 */
+			client_check_window_change();
 
-		if (quit_pending)
-			break;
-
+			if (quit_pending)
+				break;
+		}
 		/*
 		 * Wait until we have something to do (something becomes
 		 * available on one of the descriptors).
 		 */
-		client_wait_until_can_do_something(&readset, &writeset, &max_fd);
+		client_wait_until_can_do_something(&readset, &writeset,
+		    &max_fd, rekeying);
 
 		if (quit_pending)
 			break;
 
-		/* Do channel operations. */
-		channel_after_select(readset, writeset);
+		/* Do channel operations unless rekeying in progress. */
+		if (!rekeying) {
+			channel_after_select(readset, writeset);
+
+			if (need_rekeying) {
+				debug("user requests rekeying");
+				xxx_kex->done = 0;
+				kex_send_kexinit(xxx_kex);
+				need_rekeying = 0;
+			}
+		}
 
 		/* Buffer input from the connection.  */
 		client_process_net_input(readset);

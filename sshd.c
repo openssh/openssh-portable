@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.189 2001/04/04 14:34:58 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.190 2001/04/04 20:25:38 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1437,7 +1437,7 @@ do_ssh2_kex(void)
 
 	xxx_kex = kex;
 
-	dispatch_run(DISPATCH_BLOCK, &kex->newkeys, kex);
+	dispatch_run(DISPATCH_BLOCK, &kex->done, kex);
 
 	session_id2 = kex->session_id;
 	session_id2_len = kex->session_id_len;

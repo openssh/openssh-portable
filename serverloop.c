@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.56 2001/04/04 14:34:58 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.57 2001/04/04 20:25:37 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -194,7 +194,7 @@ wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp, int *maxfdp,
 retry_select:
 
 	/* Allocate and update select() masks for channel descriptors. */
-	channel_prepare_select(readsetp, writesetp, maxfdp);
+	channel_prepare_select(readsetp, writesetp, maxfdp, 0);
 
 	if (compat20) {
 		/* wrong: bad condition XXX */
