@@ -18,7 +18,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: login.c,v 1.21 2000/01/29 09:55:10 damien Exp $");
+RCSID("$Id: login.c,v 1.22 2000/02/02 08:17:41 damien Exp $");
 
 #if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
 # include <utmpx.h>
@@ -255,7 +255,7 @@ record_login(int pid, const char *ttyname, const char *user, uid_t uid,
 		strncpy(ll.ll_line, ttyname + 5, sizeof(ll.ll_line));
 		strncpy(ll.ll_host, host, sizeof(ll.ll_host));
 #ifdef LASTLOG_IS_DIR
-		snprintf(buf, sizeof(buf), "%s/%s", lastlog, logname);
+		snprintf(buf, sizeof(buf), "%s/%s", lastlog, user);
 		fd = open(buf, O_RDWR);
 		if (fd >= 0) {
 #else /* LASTLOG_IS_DIR */
