@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.40 2000/11/14 23:48:55 markus Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.41 2000/11/30 18:33:05 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.40 2000/11/14 23:48:55 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.41 2000/11/30 18:33:05 markus Exp $");
 
 #include "ssh.h"
 #include "rsa.h"
@@ -674,6 +674,7 @@ main(int ac, char **av)
 	fd_set readset, writeset;
 	int sock, c_flag = 0, k_flag = 0, s_flag = 0, ch;
 	struct sockaddr_un sunaddr;
+	struct rlimit rlim;
 	pid_t pid;
 	char *shell, *format, *pidstr, pidstrbuf[1 + 3 * sizeof pid];
 	extern int optind;
@@ -804,6 +805,12 @@ main(int ac, char **av)
 	close(1);
 	close(2);
 
+	/* deny core dumps, since memory contains unencrypted private keys */
+	rlim.rlim_cur = rlim.rlim_max = 0;
+	if (setrlimit(RLIMIT_CORE, &rlim) < 0) {
+		perror("setrlimit rlimit_core failed");
+		cleanup_exit(1);
+	}
 	if (setsid() == -1) {
 		perror("setsid");
 		cleanup_exit(1);

@@ -1,3 +1,35 @@
+20001203
+- (bal) OpenBSD CVS updates:
+  - markus@cvs.openbsd.org 2000/11/30 22:54:31
+    [channels.c]
+    debug->warn if tried to do -R style fwd w/o client requesting this; 
+    ok neils@
+  - markus@cvs.openbsd.org 2000/11/29 20:39:17
+    [cipher.c]
+    des_cbc_encrypt -> des_ncbc_encrypt since it already updates the IV
+  - markus@cvs.openbsd.org 2000/11/30 18:33:05
+    [ssh-agent.c]
+    agents must not dump core, ok niels@
+  - markus@cvs.openbsd.org 2000/11/30 07:04:02 
+    [ssh.1]
+    T is for both protocols
+  - markus@cvs.openbsd.org 2000/12/01 00:00:51
+    [ssh.1]
+    typo; from green@FreeBSD.org
+  - markus@cvs.openbsd.org 2000/11/30 07:02:35
+    [ssh.c]
+    check -T before isatty()
+  - provos@cvs.openbsd.org 2000/11/29 13:51:27
+    [sshconnect.c]
+    show IP address and hostname when new key is encountered. okay markus@ 
+  - markus@cvs.openbsd.org 2000/11/30 22:53:35
+    [sshconnect.c]
+    disable agent/x11/port fwding if hostkey has changed; ok niels@
+  - marksu@cvs.openbsd.org 2000/11/29 21:11:59
+    [sshd.c]
+    sshd -D, startup w/o deamon(), for monitoring scripts or inittab;
+    from handler@sub-rosa.com and eric@urbanrange.com; ok niels@
+
 20001202
  - (bal) Backed out of part of Alain St-Denis' loginrec.c patch.
  - (bal) Irix need some sort of mansubdir, patch by Michael Stone 

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.68 2000/11/12 19:50:38 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.70 2000/12/01 00:00:51 markus Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -446,7 +446,7 @@ needs to ask for a password or passphrase; see also the
 option.)
 .It Fl N
 Do not execute a remote command.
-This is usefull if you just want to forward ports
+This is useful if you just want to forward ports
 (protocol version 2 only).
 .It Fl o Ar option
 Can be used to give options in the format used in the config file.
@@ -475,7 +475,7 @@ This can be used to execute arbitrary
 screen-based programs on a remote machine, which can be very useful,
 e.g., when implementing menu services.
 .It Fl T
-Disable pseudo-tty allocation (protocol version 2 only).
+Disable pseudo-tty allocation.
 .It Fl v
 Verbose mode.
 Causes
@@ -1236,7 +1236,7 @@ This version of OpenSSH
 .Bl -bullet
 .It
 has all components of a restrictive nature (i.e., patents, see
-.Xr crypto 3 )
+.Xr ssl 8 )
 directly removed from the source code; any licensed or patented components
 are chosen from
 external libraries.
@@ -1265,4 +1265,4 @@ The support for SSH protocol 2 was written by Markus Friedl.
 .Xr ssh-keygen 1 ,
 .Xr telnet 1 ,
 .Xr sshd 8 ,
-.Xr crypto 3
+.Xr ssl 8

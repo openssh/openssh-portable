@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.73 2000/11/06 23:04:55 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.74 2000/11/30 22:54:31 markus Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -1729,7 +1729,8 @@ channel_connect_by_listen_adress(u_short listen_port)
 			return channel_connect_to(
 			    permitted_opens[i].host_to_connect,
 			    permitted_opens[i].port_to_connect);
-	debug("channel_connect_by_listen_adress: unknown listen_port %d", listen_port);
+	error("WARNING: Server requests forwarding for unknown listen_port %d",
+	    listen_port);
 	return -1;
 }
 

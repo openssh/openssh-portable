@@ -2,6 +2,8 @@ Programming:
 - Replacement for setproctitle() - HP/UX support only currently
 
 - Improve PAM support (a pam_lastlog module will cause sshd to exit)
+  and maybe support alternate forms of authenications like OPIE via
+  pam?
 
 - Complete Tru64 SIA support
 
