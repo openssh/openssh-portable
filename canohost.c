@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: canohost.c,v 1.41 2004/07/21 11:51:29 djm Exp $");
+RCSID("$OpenBSD: canohost.c,v 1.42 2005/02/18 03:05:53 djm Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -231,6 +231,7 @@ get_socket_address(int sock, int remote, int flags)
 	struct sockaddr_storage addr;
 	socklen_t addrlen;
 	char ntop[NI_MAXHOST];
+	int r;
 
 	/* Get IP address of client. */
 	addrlen = sizeof(addr);
@@ -251,9 +252,10 @@ get_socket_address(int sock, int remote, int flags)
 		addrlen = sizeof(struct sockaddr_in6);
 
 	/* Get the address in ascii. */
-	if (getnameinfo((struct sockaddr *)&addr, addrlen, ntop, sizeof(ntop),
-	    NULL, 0, flags) != 0) {
-		error("get_socket_address: getnameinfo %d failed", flags);
+	if ((r = getnameinfo((struct sockaddr *)&addr, addrlen, ntop,
+	    sizeof(ntop), NULL, 0, flags)) != 0) {
+		error("get_socket_address: getnameinfo %d failed: %s", flags,
+		    r == EAI_SYSTEM ? strerror(errno) : gai_strerror(r));
 		return NULL;
 	}
 	return xstrdup(ntop);
@@ -329,6 +331,7 @@ get_sock_port(int sock, int local)
 	struct sockaddr_storage from;
 	socklen_t fromlen;
 	char strport[NI_MAXSERV];
+	int r;
 
 	/* Get IP address of client. */
 	fromlen = sizeof(from);
@@ -350,9 +353,10 @@ get_sock_port(int sock, int local)
 		fromlen = sizeof(struct sockaddr_in6);
 
 	/* Return port number. */
-	if (getnameinfo((struct sockaddr *)&from, fromlen, NULL, 0,
-	    strport, sizeof(strport), NI_NUMERICSERV) != 0)
-		fatal("get_sock_port: getnameinfo NI_NUMERICSERV failed");
+	if ((r = getnameinfo((struct sockaddr *)&from, fromlen, NULL, 0,
+	    strport, sizeof(strport), NI_NUMERICSERV)) != 0)
+		fatal("get_sock_port: getnameinfo NI_NUMERICSERV failed: %s",
+		    r == EAI_SYSTEM ? strerror(errno) : gai_strerror(r));
 	return atoi(strport);
 }
 
