@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.81 2001/09/17 20:50:22 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.82 2001/09/28 12:07:09 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -495,6 +495,14 @@ do_upload(struct passwd *pw, const char *sc_reader_id)
 	status = 0;
 	log("loading key done");
 done:
+
+	memset(elements[0], '\0', BN_num_bytes(prv->rsa->q));
+	memset(elements[1], '\0', BN_num_bytes(prv->rsa->p));
+	memset(elements[2], '\0', BN_num_bytes(prv->rsa->iqmp));
+	memset(elements[3], '\0', BN_num_bytes(prv->rsa->dmq1));
+	memset(elements[4], '\0', BN_num_bytes(prv->rsa->dmp1));
+	memset(elements[5], '\0', BN_num_bytes(prv->rsa->n));
+
 	if (prv)
 		key_free(prv);
 	for (i = 0; i < NUM_RSA_KEY_ELEMENTS; i++)

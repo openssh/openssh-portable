@@ -14,6 +14,9 @@
      [sshd.8]
      don't talk about compile-time options
      ok markus@
+   - djm@cvs.openbsd.org 2001/09/28 12:07:09
+     [ssh-keygen.c]
+     bzero private key after loading to smartcard; ok markus@
 
 20011001
  - (stevesk) loginrec.c: fix type conversion problems exposed when using
@@ -6606,4 +6609,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1573 2001/10/03 17:15:32 mouring Exp $
+$Id: ChangeLog,v 1.1574 2001/10/03 17:18:37 mouring Exp $
