@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.38 2005/01/08 00:41:19 jmc Exp $
+.\" $OpenBSD: sshd_config.5,v 1.39 2005/03/01 10:09:52 djm Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -256,12 +256,15 @@ This prevents other remote hosts from connecting to forwarded ports.
 .Cm GatewayPorts
 can be used to specify that
 .Nm sshd
-should bind remote port forwardings to the wildcard address,
-thus allowing remote hosts to connect to forwarded ports.
-The argument must be
+should allow remote port forwardings to bind to non-loopback addresses, thus
+allowing other hosts to connect.
+The argument may be
+.Dq no
+to force remote port forwardings to be available to the local host only,
 .Dq yes
-or
-.Dq no .
+to force remote port forwardings to bind to the wildcard address, or
+.Dq clientspecified
+to allow the client to select the address to which the forwarding is bound.
 The default is
 .Dq no .
 .It Cm GSSAPIAuthentication

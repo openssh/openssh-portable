@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.199 2004/11/07 17:42:36 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.200 2005/03/01 10:09:52 djm Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -53,13 +53,13 @@
 .Op Fl i Ar identity_file
 .Oo Fl L Xo
 .Sm off
+.Oo Ar bind_address : Oc
 .Ar port :
 .Ar host :
 .Ar hostport
 .Sm on
 .Xc
 .Oc
-.Ek
 .Op Fl l Ar login_name
 .Op Fl m Ar mac_spec
 .Op Fl O Ar ctl_cmd
@@ -69,6 +69,7 @@
 .Ek
 .Oo Fl R Xo
 .Sm off
+.Oo Ar bind_address : Oc
 .Ar port :
 .Ar host :
 .Ar hostport
@@ -570,6 +571,7 @@ configuration files).
 Disables forwarding (delegation) of GSSAPI credentials to the server.
 .It Fl L Xo
 .Sm off
+.Oo Ar bind_address : Oc
 .Ar port : host : hostport
 .Sm on
 .Xc
@@ -577,7 +579,9 @@ Specifies that the given port on the local (client) host is to be
 forwarded to the given host and port on the remote side.
 This works by allocating a socket to listen to
 .Ar port
-on the local side, and whenever a connection is made to this port, the
+on the local side, optionally bound to the specified
+.Ar bind_address .
+Whenever a connection is made to this port, the
 connection is forwarded over the secure channel, and a connection is
 made to
 .Ar host
@@ -585,14 +589,30 @@ port
 .Ar hostport
 from the remote machine.
 Port forwardings can also be specified in the configuration file.
-Only root can forward privileged ports.
 IPv6 addresses can be specified with an alternative syntax:
 .Sm off
 .Xo
+.Oo Ar bind_address / Oc
 .Ar port No / Ar host No /
-.Ar hostport .
+.Ar hostport
 .Xc
 .Sm on
+or by enclosing the address in square brackets.
+Only the superuser can forward privileged ports.
+By default, the local port is bound in accordance with the
+.Cm GatewayPorts
+setting.
+However, an explicit
+.Ar bind_address
+may be used to bind the connection to a specific address.
+The
+.Ar bind_address
+of
+.Dq localhost
+indicates that the listening port be bound for local use only, while an 
+empty address or 
+.Dq *
+indicates that the port should be available from all interfaces.
 .It Fl l Ar login_name
 Specifies the user to log in as on the remote machine.
 This also may be specified on a per-host basis in the configuration file.
@@ -724,6 +744,7 @@ Quiet mode.
 Causes all warning and diagnostic messages to be suppressed.
 .It Fl R Xo
 .Sm off
+.Oo Ar bind_address : Oc
 .Ar port : host : hostport
 .Sm on
 .Xc
@@ -738,16 +759,34 @@ made to
 port
 .Ar hostport
 from the local machine.
+.Pp
 Port forwardings can also be specified in the configuration file.
 Privileged ports can be forwarded only when
 logging in as root on the remote machine.
-IPv6 addresses can be specified with an alternative syntax:
-.Sm off
+IPv6 addresses can be specified by enclosing the address in square braces or
+using an alternative syntax:
 .Xo
-.Ar port No / Ar host No /
-.Ar hostport .
-.Xc
+.Sm off
+.Oo Ar bind_address / Oc
+.Ar host/port/hostport
 .Sm on
+.Xc .
+.Pp
+By default, the listening socket on the server will be bound to the loopback
+interface only.
+This may be overriden by specifying a
+.Ar bind_address .
+An empty 
+.Ar bind_address , 
+or the address
+.Ql *
+indicates that the remote socket should listen on all interfaces.
+Specifying a remote
+.Ar bind_address
+will only succeed if the server's 
+.Cm GatewayPorts 
+option is enabled (see
+.Xr sshd_config 5 ).
 .It Fl S Ar ctl_path
 Specifies the location of a control socket for connection sharing.
 Refer to the description of

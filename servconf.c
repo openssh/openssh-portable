@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.138 2004/12/23 23:11:00 djm Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.139 2005/03/01 10:09:52 djm Exp $");
 
 #include "ssh.h"
 #include "log.h"
@@ -440,6 +440,7 @@ process_server_config_line(ServerOptions *options, char *line,
 	char *cp, **charptr, *arg, *p;
 	int *intptr, value, i, n;
 	ServerOpCodes opcode;
+	u_short port;
 
 	cp = line;
 	arg = strdelim(&cp);
@@ -512,39 +513,21 @@ parse_time:
 
 	case sListenAddress:
 		arg = strdelim(&cp);
-		if (!arg || *arg == '\0' || strncmp(arg, "[]", 2) == 0)
-			fatal("%s line %d: missing inet addr.",
+		if (arg == NULL || *arg == '\0')
+			fatal("%s line %d: missing address",
 			    filename, linenum);
-		if (*arg == '[') {
-			if ((p = strchr(arg, ']')) == NULL)
-				fatal("%s line %d: bad ipv6 inet addr usage.",
-				    filename, linenum);
-			arg++;
-			memmove(p, p+1, strlen(p+1)+1);
-		} else if (((p = strchr(arg, ':')) == NULL) ||
-			    (strchr(p+1, ':') != NULL)) {
-			add_listen_addr(options, arg, 0);
-			break;
-		}
-		if (*p == ':') {
-			u_short port;
+		p = hpdelim(&arg);
+		if (p == NULL)
+			fatal("%s line %d: bad address:port usage",
+			    filename, linenum);
+		p = cleanhostname(p);
+		if (arg == NULL)
+			port = 0;
+		else if ((port = a2port(arg)) == 0)
+			fatal("%s line %d: bad port number", filename, linenum);
 
-			p++;
-			if (*p == '\0')
-				fatal("%s line %d: bad inet addr:port usage.",
-				    filename, linenum);
-			else {
-				*(p-1) = '\0';
-				if ((port = a2port(p)) == 0)
-					fatal("%s line %d: bad port number.",
-					    filename, linenum);
-				add_listen_addr(options, arg, port);
-			}
-		} else if (*p == '\0')
-			add_listen_addr(options, arg, 0);
-		else
-			fatal("%s line %d: bad inet addr usage.",
-			    filename, linenum);
+		add_listen_addr(options, p, port);
+
 		break;
 
 	case sAddressFamily:
@@ -742,7 +725,23 @@ parse_flag:
 
 	case sGatewayPorts:
 		intptr = &options->gateway_ports;
-		goto parse_flag;
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: missing yes/no/clientspecified "
+			    "argument.", filename, linenum);
+		value = 0;	/* silence compiler */
+		if (strcmp(arg, "clientspecified") == 0)
+			value = 2;
+		else if (strcmp(arg, "yes") == 0)
+			value = 1;
+		else if (strcmp(arg, "no") == 0)
+			value = 0;
+		else
+			fatal("%s line %d: Bad yes/no/clientspecified "
+			    "argument: %s", filename, linenum, arg);
+		if (*intptr == -1)
+			*intptr = value;
+		break;
 
 	case sUseDNS:
 		intptr = &options->use_dns;

@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.134 2004/11/07 00:01:46 djm Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.135 2005/03/01 10:09:52 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -763,11 +763,11 @@ static void
 process_cmdline(void)
 {
 	void (*handler)(int);
-	char *s, *cmd;
-	u_short fwd_port, fwd_host_port;
-	char buf[1024], sfwd_port[6], sfwd_host_port[6];
+	char *s, *cmd, *cancel_host;
 	int delete = 0;
 	int local = 0;
+	u_short cancel_port;
+	Forward fwd;
 
 	leave_raw_mode();
 	handler = signal(SIGINT, SIG_IGN);
@@ -813,37 +813,38 @@ process_cmdline(void)
 		s++;
 
 	if (delete) {
-		if (sscanf(s, "%5[0-9]", sfwd_host_port) != 1) {
-			logit("Bad forwarding specification.");
+		cancel_port = 0;
+		cancel_host = hpdelim(&s);	/* may be NULL */
+		if (s != NULL) {
+			cancel_port = a2port(s);
+			cancel_host = cleanhostname(cancel_host);
+		} else {
+			cancel_port = a2port(cancel_host);
+			cancel_host = NULL;
+		}
+		if (cancel_port == 0) {
+			logit("Bad forwarding close port");
 			goto out;
 		}
-		if ((fwd_host_port = a2port(sfwd_host_port)) == 0) {
-			logit("Bad forwarding port(s).");
-			goto out;
-		}
-		channel_request_rforward_cancel(fwd_host_port);
+		channel_request_rforward_cancel(cancel_host, cancel_port);
 	} else {
-		if (sscanf(s, "%5[0-9]:%255[^:]:%5[0-9]",
-		    sfwd_port, buf, sfwd_host_port) != 3 &&
-		    sscanf(s, "%5[0-9]/%255[^/]/%5[0-9]",
-		    sfwd_port, buf, sfwd_host_port) != 3) {
+		if (!parse_forward(&fwd, s)) {
 			logit("Bad forwarding specification.");
-			goto out;
-		}
-		if ((fwd_port = a2port(sfwd_port)) == 0 ||
-		    (fwd_host_port = a2port(sfwd_host_port)) == 0) {
-			logit("Bad forwarding port(s).");
 			goto out;
 		}
 		if (local) {
-			if (channel_setup_local_fwd_listener(fwd_port, buf,
-			    fwd_host_port, options.gateway_ports) < 0) {
+			if (channel_setup_local_fwd_listener(fwd.listen_host,
+			    fwd.listen_port, fwd.connect_host,
+			    fwd.connect_port, options.gateway_ports) < 0) {
 				logit("Port forwarding failed.");
 				goto out;
 			}
-		} else
-			channel_request_remote_forwarding(fwd_port, buf,
-			    fwd_host_port);
+		} else {
+			channel_request_remote_forwarding(fwd.listen_host,
+			    fwd.listen_port, fwd.connect_host,
+			    fwd.connect_port);
+		}
+
 		logit("Forwarding port.");
 	}
 

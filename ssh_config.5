@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.42 2005/02/28 00:54:10 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.43 2005/03/01 10:09:52 djm Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -480,12 +480,37 @@ The default is to use the server specified list.
 Specifies that a TCP/IP port on the local machine be forwarded over
 the secure channel to the specified host and port from the remote machine.
 The first argument must be a port number, and the second must be
-.Ar host:port .
-IPv6 addresses can be specified with an alternative syntax:
-.Ar host/port .
-Multiple forwardings may be specified, and additional
-forwardings can be given on the command line.
+.Xo
+.Sm off
+.Oo Ar bind_address : Oc
+.Ar host:port
+.Sm on
+.Xc .
+IPv6 addresses can be specified by enclosing addresses in square brackets or 
+by using an alternative syntax:
+.Xo
+.Sm off
+.Oo Ar bind_address / Oc
+.Ar host/port
+.Sm on
+.Xc .
+Multiple forwardings may be specified, and additional forwardings can be 
+given on the command line.
 Only the superuser can forward privileged ports.
+By default, the local port is bound in accordance with the
+.Cm GatewayPorts
+setting.
+However, an explicit
+.Ar bind_address
+may be used to bind the connection to a specific address.
+The
+.Ar bind_address
+of
+.Dq localhost
+indicates that the listening port be bound for local use only, while an 
+empty address or 
+.Dq *
+indicates that the port should be available from all interfaces.
 .It Cm LogLevel
 Gives the verbosity level that is used when logging messages from
 .Nm ssh .
@@ -592,12 +617,39 @@ This option applies to protocol version 2 only.
 Specifies that a TCP/IP port on the remote machine be forwarded over
 the secure channel to the specified host and port from the local machine.
 The first argument must be a port number, and the second must be
-.Ar host:port .
-IPv6 addresses can be specified with an alternative syntax:
-.Ar host/port .
+.Xo
+.Sm off
+.Oo Ar bind_address : Oc
+.Ar host:port
+.Sm on
+.Xc .
+IPv6 addresses can be specified by enclosing any addresses in square brackets
+or by using the alternative syntax:
+.Xo
+.Sm off
+.Oo Ar bind_address / Oc
+.Ar host/port
+.Sm on
+.Xc .
 Multiple forwardings may be specified, and additional
 forwardings can be given on the command line.
 Only the superuser can forward privileged ports.
+.Pp
+If the
+.Ar bind_address
+is not specified, the default is to only bind to loopback addresses.
+If the
+.Ar bind_address
+is
+.Ql *
+or an empty string, then the forwarding is requested to listen on all
+interfaces.
+Specifying a remote
+.Ar bind_address
+will only succeed if the server's 
+.Cm GatewayPorts 
+option is enabled (see
+.Xr sshd_config 5 ).
 .It Cm RhostsRSAAuthentication
 Specifies whether to try rhosts based authentication with RSA host
 authentication.

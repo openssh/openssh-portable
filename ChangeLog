@@ -19,6 +19,14 @@
      [ssh_config.5]
      bz#849: document timeout on untrusted x11 forwarding sessions. Reported by
      orion AT cora.nwra.com; ok markus@
+   - djm@cvs.openbsd.org 2005/03/01 10:09:52
+     [auth-options.c channels.c channels.h clientloop.c compat.c compat.h]
+     [misc.c misc.h readconf.c readconf.h servconf.c ssh.1 ssh.c ssh_config.5]
+     [sshd_config.5]
+     bz#413: allow optional specification of bind address for port forwardings.
+     Patch originally by Dan Astorian, but worked on by several people
+     Adds GatewayPorts=clientspecified option on server to allow remote 
+     forwards to bind to client-specified ports.
 
 20050226
  - (dtucker) [openbsd-compat/bsd-openpty.c openbsd-compat/inet_ntop.c]
@@ -2195,4 +2203,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3671 2005/03/01 10:17:31 djm Exp $
+$Id: ChangeLog,v 1.3672 2005/03/01 10:24:33 djm Exp $
