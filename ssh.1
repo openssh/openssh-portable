@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.148 2002/02/18 17:55:20 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.149 2002/03/21 15:17:26 jakob Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -297,6 +297,12 @@ Background ssh at logout when waiting for forwarded connection / X11 sessions
 to terminate
 .It Cm ~?
 Display a list of escape characters
+.It Cm ~C
+Open command line (only useful for adding port forwardings using the
+.Fl L
+and
+.Fl R
+options)
 .It Cm ~R
 Request rekeying of the connection (only useful for SSH protocol version 2
 and if the peer supports it)

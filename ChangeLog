@@ -111,6 +111,10 @@
      [ssh-add.c]
      ignore errors for nonexisting default keys in ssh-add,
      fixes http://bugzilla.mindrot.org/show_bug.cgi?id=158
+   - jakob@cvs.openbsd.org 2002/03/21 15:17:26
+     [clientloop.c ssh.1]
+     add built-in command line for adding new port forwardings on the fly.
+     based on a patch from brian wellington. ok markus@.
 
 20020317
  - (tim) [configure.ac] Assume path given with --with-pid-dir=PATH is wanted,
@@ -7957,4 +7961,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1956 2002/03/22 03:21:16 mouring Exp $
+$Id: ChangeLog,v 1.1957 2002/03/22 03:24:32 mouring Exp $
