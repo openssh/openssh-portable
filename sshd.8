@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.85 2001/01/28 10:37:25 markus Exp $
+.\" $OpenBSD: sshd.8,v 1.86 2001/01/28 20:43:25 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -515,14 +515,14 @@ the three colon separated values
 .Dq start:rate:full
 (e.g., "10:30:60").
 .Nm
-will refuse connection attempts with a probabillity of
+will refuse connection attempts with a probability of
 .Dq rate/100
 (30%)
 if there are currently
 .Dq start
 (10)
 unauthenticated connections.
-The probabillity increases linearly and all connection attempts
+The probability increases linearly and all connection attempts
 are refused if the number of unauthenticated connections reaches
 .Dq full
 (60).
