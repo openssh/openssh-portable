@@ -56,6 +56,7 @@
      missed Per Allansson (auth2-chall.c)
  - (bal) Cygwin special handling of empty passwords wrong.  Patch by
    vinschen@redhat.com
+ - (bal) Missed integrating ssh_config.5 and sshd_config.5
 
 20020613
  - (bal) typo of setgroup for cygwin.  Patch by vinschen@redhat.com
@@ -984,4 +985,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2232 2002/06/21 01:19:12 mouring Exp $
+$Id: ChangeLog,v 1.2233 2002/06/21 01:24:01 mouring Exp $
