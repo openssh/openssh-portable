@@ -1,3 +1,8 @@
+20010328
+ - (djm) Reorder tests and library inclusion for Krb4/AFS to try to 
+   resolve linking conflicts with libcrypto. Report and suggested fix 
+   from Holger Trapp <Holger.Trapp@Informatik.TU-Chemnitz.DE>
+
 20010327
  - (djm) Reestablish PAM credentials (which can be supplemental group 
    memberships) after initgroups() blows them away. Report and suggested
@@ -4678,4 +4683,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.991.2.11 2001/03/27 06:13:46 djm Exp $
+$Id: ChangeLog,v 1.991.2.12 2001/03/28 03:04:13 djm Exp $
