@@ -184,8 +184,10 @@ AC_TRY_COMPILE(
 
 AC_MSG_CHECKING([For socklen_t])
 AC_TRY_COMPILE(
-	[#include <sys/types.h>],
-	[#include <sys/socket.h>],
+	[
+		#include <sys/types.h>
+		#include <sys/socket.h>
+	],
 	[socklen_t foo; foo = 1235;],
 	[
 		AC_DEFINE(HAVE_SOCKLEN_T)
@@ -197,7 +199,6 @@ AC_TRY_COMPILE(
 AC_MSG_CHECKING([For size_t])
 AC_TRY_COMPILE(
 	[#include <sys/types.h>],
-	[#include <sys/socket.h>],
 	[size_t foo; foo = 1235;],
 	[
 		AC_DEFINE(HAVE_SIZE_T)

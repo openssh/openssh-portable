@@ -2,6 +2,8 @@
  - Fix password support on systems with a mixture of shadowed and 
    non-shadowed passwords (e.g. NIS). Report and fix from 
    HARUYAMA Seigo <haruyama@nt.phys.s.u-tokyo.ac.jp>
+ - Fix broken autoconf typedef detection. Report from Marc G. 
+   Fournier <marc.fournier@acadiau.ca>
 
 19991230
  - OpenBSD CVS updates:
