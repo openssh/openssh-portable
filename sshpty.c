@@ -186,6 +186,7 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 		if (*ttyfd < 0) {
 			error("%.100s: %.100s", namebuf, strerror(errno));
 			close(*ptyfd);
+			return 0;
 		}
 		return 1;
 	}

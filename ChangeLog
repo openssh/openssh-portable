@@ -1,6 +1,8 @@
 20010814
  - (stevesk) sshpty.c, cray.[ch]: whitespace, formatting and cleanup
    for some #ifdef _CRAY code; ok wendyp@cray.com
+ - (stevesk) sshpty.c: return 0 on error in cray pty code;
+   ok wendyp@cray.com
 
 20010812
  - (djm) Fix detection of long long int support. Based on patch from 
@@ -6282,4 +6284,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1471 2001/08/14 20:35:35 stevesk Exp $
+$Id: ChangeLog,v 1.1472 2001/08/14 20:41:34 stevesk Exp $
