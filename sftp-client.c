@@ -662,7 +662,11 @@ do_download(int fd_in, int fd_out, char *remote_path, char *local_path,
 	status = do_close(fd_in, fd_out, handle, handle_len);
 
 	/* Override umask and utimes if asked */
+#ifdef HAVE_FCHMOD
 	if (pflag && fchmod(local_fd, mode) == -1)
+#else 
+	if (pflag && chmod(local_path, mode) == -1)
+#endif /* HAVE_FCHMOD */
 		error("Couldn't set mode on \"%s\": %s", local_path,
 		    strerror(errno));
 	if (pflag && (a->flags & SSH2_FILEXFER_ATTR_ACMODTIME)) {
