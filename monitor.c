@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.14 2002/06/04 23:05:49 markus Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.15 2002/06/19 18:01:00 markus Exp $");
 
 #include <openssl/dh.h>
 
@@ -83,6 +83,8 @@ struct {
 	u_int ivinlen;
 	u_char *ivout;
 	u_int ivoutlen;
+	u_char *ssh1key;
+	u_int ssh1keylen;
 	int ssh1cipher;
 	int ssh1protoflags;
 	u_char *input;
@@ -1303,14 +1305,13 @@ monitor_apply_keystate(struct monitor *pmonitor)
 		set_newkeys(MODE_IN);
 		set_newkeys(MODE_OUT);
 	} else {
-		u_char key[SSH_SESSION_KEY_LENGTH];
-
-		memset(key, 'a', sizeof(key));
 		packet_set_protocol_flags(child_state.ssh1protoflags);
-		packet_set_encryption_key(key, SSH_SESSION_KEY_LENGTH,
-		    child_state.ssh1cipher);
+		packet_set_encryption_key(child_state.ssh1key,
+		    child_state.ssh1keylen, child_state.ssh1cipher);
+		xfree(child_state.ssh1key);
 	}
 
+	/* for rc4 and other stateful ciphers */
 	packet_set_keycontext(MODE_OUT, child_state.keyout);
 	xfree(child_state.keyout);
 	packet_set_keycontext(MODE_IN, child_state.keyin);
@@ -1396,6 +1397,8 @@ mm_get_keystate(struct monitor *pmonitor)
 	if (!compat20) {
 		child_state.ssh1protoflags = buffer_get_int(&m);
 		child_state.ssh1cipher = buffer_get_int(&m);
+		child_state.ssh1key = buffer_get_string(&m,
+		    &child_state.ssh1keylen);
 		child_state.ivout = buffer_get_string(&m,
 		    &child_state.ivoutlen);
 		child_state.ivin = buffer_get_string(&m, &child_state.ivinlen);

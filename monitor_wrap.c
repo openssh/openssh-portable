@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor_wrap.c,v 1.10 2002/06/19 00:27:55 deraadt Exp $");
+RCSID("$OpenBSD: monitor_wrap.c,v 1.11 2002/06/19 18:01:00 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dh.h>
@@ -520,13 +520,21 @@ mm_send_keystate(struct monitor *pmonitor)
 
 	if (!compat20) {
 		u_char iv[24];
-		int ivlen;
+		u_char *key;
+		u_int ivlen, keylen;
 
 		buffer_put_int(&m, packet_get_protocol_flags());
 
 		buffer_put_int(&m, packet_get_ssh1_cipher());
 
-		debug3("%s: Sending ssh1 IV", __func__);
+		debug3("%s: Sending ssh1 KEY+IV", __func__);
+		keylen = packet_get_encryption_key(NULL);
+		key = xmalloc(keylen+1);	/* add 1 if keylen == 0 */
+		keylen = packet_get_encryption_key(key);
+		buffer_put_string(&m, key, keylen);
+		memset(key, 0, keylen);
+		xfree(key);
+
 		ivlen = packet_get_keyiv_len(MODE_OUT);
 		packet_get_keyiv(MODE_OUT, iv, ivlen);
 		buffer_put_string(&m, iv, ivlen);

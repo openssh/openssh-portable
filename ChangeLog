@@ -30,6 +30,11 @@
       ssh-keysign.c ssh.1 sshconnect.c sshconnect.h sshconnect2.c ttymodes.c
       xmalloc.h]
      KNF done automatically while reading....
+   - markus@cvs.openbsd.org 2002/06/19 18:01:00
+     [cipher.c monitor.c monitor_wrap.c packet.c packet.h]
+     make the monitor sync the transfer ssh1 session key;
+     transfer keycontext only for RC4 (this is still depends on EVP
+     implementation details and is broken).
  - (bal) Cygwin special handling of empty passwords wrong.  Patch by
    vinschen@redhat.com
 
@@ -960,4 +965,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2225 2002/06/21 00:41:51 mouring Exp $
+$Id: ChangeLog,v 1.2226 2002/06/21 00:43:42 mouring Exp $

@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: cipher.c,v 1.58 2002/06/04 23:05:49 markus Exp $");
+RCSID("$OpenBSD: cipher.c,v 1.59 2002/06/19 18:01:00 markus Exp $");
 
 #include "xmalloc.h"
 #include "log.h"
@@ -689,28 +689,14 @@ int
 cipher_get_keycontext(CipherContext *cc, u_char *dat)
 {
 	Cipher *c = cc->cipher;
-	int plen;
+	int plen = 0;
 
-	if (c->number == SSH_CIPHER_3DES) {
-		struct ssh1_3des_ctx *desc;
-		desc = EVP_CIPHER_CTX_get_app_data(&cc->evp);
-		if (desc == NULL)
-			fatal("%s: no 3des context", __func__);
-		plen = EVP_X_STATE_LEN(desc->k1);
+	if (c->evptype == EVP_rc4) {
+		plen = EVP_X_STATE_LEN(cc->evp);
 		if (dat == NULL)
-			return (3*plen);
-		memcpy(dat, EVP_X_STATE(desc->k1), plen);
-		memcpy(dat + plen, EVP_X_STATE(desc->k2), plen);
-		memcpy(dat + 2*plen, EVP_X_STATE(desc->k3), plen);
-		return (3*plen);
+			return (plen);
+		memcpy(dat, EVP_X_STATE(cc->evp), plen);
 	}
-
-	/* Generic EVP */
-	plen = EVP_X_STATE_LEN(cc->evp);
-	if (dat == NULL)
-		return (plen);
-
-	memcpy(dat, EVP_X_STATE(cc->evp), plen);
 	return (plen);
 }
 
@@ -720,16 +706,7 @@ cipher_set_keycontext(CipherContext *cc, u_char *dat)
 	Cipher *c = cc->cipher;
 	int plen;
 
-	if (c->number == SSH_CIPHER_3DES) {
-		struct ssh1_3des_ctx *desc;
-		desc = EVP_CIPHER_CTX_get_app_data(&cc->evp);
-		if (desc == NULL)
-			fatal("%s: no 3des context", __func__);
-		plen = EVP_X_STATE_LEN(desc->k1);
-		memcpy(EVP_X_STATE(desc->k1), dat, plen);
-		memcpy(EVP_X_STATE(desc->k2), dat + plen, plen);
-		memcpy(EVP_X_STATE(desc->k3), dat + 2*plen, plen);
-	} else {
+	if (c->evptype == EVP_rc4) {
 		plen = EVP_X_STATE_LEN(cc->evp);
 		memcpy(EVP_X_STATE(cc->evp), dat, plen);
 	}
