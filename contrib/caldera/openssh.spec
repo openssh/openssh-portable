@@ -360,4 +360,4 @@ fi
 * Mon Jan 01 1998 ...
 Template Version: 1.31
 
-$Id: openssh.spec,v 1.40 2003/03/19 23:52:14 djm Exp $
+$Id: openssh.spec,v 1.39.2.1 2003/03/19 23:52:34 djm Exp $
