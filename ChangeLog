@@ -1,3 +1,7 @@
+20010102
+ - (bal) Makefile fix where sourcedir != builddir by Corinna Vinschen 
+   <vinschen@redhat.com>
+
 20010101
  - (bal) Minor fix to Makefile to stop rebuilding executables if no
    changes have occured to any of the supporting code.  Patch by

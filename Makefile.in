@@ -19,7 +19,7 @@ CC=@CC@
 LD=@LD@
 PATHS=-DETCDIR=\"$(sysconfdir)\" -D_PATH_SSH_PROGRAM=\"$(SSH_PROGRAM)\" -D_PATH_SSH_ASKPASS_DEFAULT=\"$(ASKPASS_PROGRAM)\"
 CFLAGS=@CFLAGS@
-CPPFLAGS=@CPPFLAGS@ -I. -Iopenbsd-compat/ -I$(srcdir) $(PATHS) @DEFS@
+CPPFLAGS=@CPPFLAGS@ -I. -I$(srcdir)/openbsd-compat -I$(srcdir) $(PATHS) @DEFS@
 LIBS=@LIBS@
 AR=@AR@
 RANLIB=@RANLIB@
