@@ -3,6 +3,9 @@
    - markus@cvs.openbsd.org 2001/06/16 08:49:38
      [misc.c]
      typo; dunlap@apl.washington.edu
+   - markus@cvs.openbsd.org 2001/06/16 08:50:39
+     [channels.h]
+     bad //-style comment; thx to stevev@darkwing.uoregon.edu
 
 20010615
  - (stevesk) don't set SA_RESTART and set SIGCHLD to SIG_DFL
@@ -5655,4 +5658,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1289 2001/06/21 03:04:37 mouring Exp $
+$Id: ChangeLog,v 1.1290 2001/06/21 03:07:27 mouring Exp $
