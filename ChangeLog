@@ -6,6 +6,9 @@
    breaks Solaris.
 	- (djm) Move PAM session setup back to before setuid to user.
 	  fixes problems on Solaris-drived PAMs.
+ - (stevesk) session.c: back out to where we were before:
+    - (djm) Move PAM session initialisation until after fork in sshd. Patch 
+      from Nalin Dahyabhai <nalin@redhat.com>
 
 20010220
  - (bal) Fix mixed up params to memmove() from Jan 5th in setenv.c and
@@ -4087,4 +4090,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.808 2001/02/21 05:53:33 mouring Exp $
+$Id: ChangeLog,v 1.809 2001/02/21 16:36:51 stevesk Exp $

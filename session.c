@@ -481,6 +481,10 @@ do_exec_no_pty(Session *s, const char *command, struct passwd * pw)
 
 	session_proctitle(s);
 
+#ifdef USE_PAM
+	do_pam_setcred();
+#endif /* USE_PAM */
+
 	/* Fork the child. */
 	if ((pid = fork()) == 0) {
 		/* Child.  Reinitialize the log since the pid has changed. */
@@ -592,6 +596,11 @@ do_exec_pty(Session *s, const char *command, struct passwd * pw)
 		fatal("do_exec_pty: no session");
 	ptyfd = s->ptyfd;
 	ttyfd = s->ttyfd;
+
+#ifdef USE_PAM
+	do_pam_session(pw->pw_name, s->tty);
+	do_pam_setcred();
+#endif /* USE_PAM */
 
 	/* Fork the child. */
 	if ((pid = fork()) == 0) {
@@ -1142,11 +1151,6 @@ do_child(const char *command, struct passwd * pw, const char *term,
 #ifdef HAVE_LOGIN_CAP
 	shell = login_getcapstr(lc, "shell", (char *)shell, (char *)shell);
 #endif
-
-#ifdef USE_PAM
-	do_pam_session(pw->pw_name, ttyname);
-	do_pam_setcred();
-#endif /* USE_PAM */
 
 #ifdef AFS
 	/* Try to get AFS tokens for the local cell. */
