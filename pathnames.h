@@ -150,6 +150,11 @@
 #define _PATH_PRIVSEP_CHROOT_DIR	"/var/empty"
 #endif
 
+/* for passwd change */
+#ifndef _PATH_PASSWD_PROG
+#define _PATH_PASSWD_PROG             "/usr/bin/passwd"
+#endif
+
 #ifndef _PATH_LS
 #define _PATH_LS			"ls"
 #endif

@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.171 2004/01/13 19:23:15 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.172 2004/01/30 09:48:57 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1304,6 +1304,22 @@ do_setusercontext(struct passwd *pw)
 }
 
 static void
+do_pwchange(Session *s)
+{
+	fprintf(stderr, "WARNING: Your password has expired.\n");
+	if (s->ttyfd != -1) {
+	    	fprintf(stderr,
+		    "You must change your password now and login again!\n");
+		execl(_PATH_PASSWD_PROG, "passwd", (char *)NULL);
+		perror("passwd");
+	} else {
+		fprintf(stderr,
+		    "Password change required but no TTY available.\n");
+	}
+	exit(1);
+}
+
+static void
 launch_login(struct passwd *pw, const char *hostname)
 {
 	/* Launch login(1). */
@@ -1324,6 +1340,40 @@ launch_login(struct passwd *pw, const char *hostname)
 	exit(1);
 }
 
+static void
+child_close_fds(void)
+{
+	int i;
+
+	if (packet_get_connection_in() == packet_get_connection_out())
+		close(packet_get_connection_in());
+	else {
+		close(packet_get_connection_in());
+		close(packet_get_connection_out());
+	}
+	/*
+	 * Close all descriptors related to channels.  They will still remain
+	 * open in the parent.
+	 */
+	/* XXX better use close-on-exec? -markus */
+	channel_close_all();
+
+	/*
+	 * Close any extra file descriptors.  Note that there may still be
+	 * descriptors left by system functions.  They will be closed later.
+	 */
+	endpwent();
+
+	/*
+	 * Close any extra open file descriptors so that we don\'t have them
+	 * hanging around in clients.  Note that we want to do this after
+	 * initgroups, because at least on Solaris 2.3 it leaves file
+	 * descriptors open.
+	 */
+	for (i = 3; i < 64; i++)
+		close(i);
+}
+
 /*
  * Performs common processing for the child, such as setting up the
  * environment, closing extra file descriptors, setting the user and group
@@ -1337,10 +1387,17 @@ do_child(Session *s, const char *command)
 	char *argv[10];
 	const char *shell, *shell0, *hostname = NULL;
 	struct passwd *pw = s->pw;
-	u_int i;
 
 	/* remove hostkey from the child's memory */
 	destroy_sensitive_data();
+
+	/* Force a password change */
+	if (s->authctxt->force_pwchange) {
+		do_setusercontext(pw);
+		child_close_fds();
+		do_pwchange(s);
+		exit(1);
+	}
 
 	/* login(1) is only called if we execute the login shell */
 	if (options.use_login && command != NULL)
@@ -1392,33 +1449,7 @@ do_child(Session *s, const char *command)
 	 * closed before building the environment, as we call
 	 * get_remote_ipaddr there.
 	 */
-	if (packet_get_connection_in() == packet_get_connection_out())
-		close(packet_get_connection_in());
-	else {
-		close(packet_get_connection_in());
-		close(packet_get_connection_out());
-	}
-	/*
-	 * Close all descriptors related to channels.  They will still remain
-	 * open in the parent.
-	 */
-	/* XXX better use close-on-exec? -markus */
-	channel_close_all();
-
-	/*
-	 * Close any extra file descriptors.  Note that there may still be
-	 * descriptors left by system functions.  They will be closed later.
-	 */
-	endpwent();
-
-	/*
-	 * Close any extra open file descriptors so that we don\'t have them
-	 * hanging around in clients.  Note that we want to do this after
-	 * initgroups, because at least on Solaris 2.3 it leaves file
-	 * descriptors open.
-	 */
-	for (i = 3; i < 64; i++)
-		close(i);
+	child_close_fds();
 
 	/*
 	 * Must take new environment into use so that .ssh/rc,

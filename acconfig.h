@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.172 2004/01/23 11:03:10 dtucker Exp $ */
+/* $Id: acconfig.h,v 1.173 2004/02/06 05:24:31 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -64,6 +64,9 @@
 /* If your header files don't define LOGIN_PROGRAM, then use this (detected) */
 /* from environment and PATH */
 #undef LOGIN_PROGRAM_FALLBACK
+
+/* Full path of your "passwd" program */
+#undef _PATH_PASSWD_PROG
 
 /* Define if your password has a pw_class field */
 #undef HAVE_PW_CLASS_IN_PASSWD

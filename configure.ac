@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.192 2004/02/06 04:59:06 dtucker Exp $
+# $Id: configure.ac,v 1.193 2004/02/06 05:24:31 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -40,6 +40,11 @@ else
 	if test ! -z "$LOGIN_PROGRAM_FALLBACK" ; then
 		AC_DEFINE_UNQUOTED(LOGIN_PROGRAM_FALLBACK, "$LOGIN_PROGRAM_FALLBACK")
 	fi
+fi
+
+AC_PATH_PROG(PATH_PASSWD_PROG, passwd)
+if test ! -z "$PATH_PASSWD_PROG" ; then
+	AC_DEFINE_UNQUOTED(_PATH_PASSWD_PROG, "$PATH_PASSWD_PROG")
 fi
 
 if test -z "$LD" ; then

@@ -52,6 +52,7 @@ struct Authctxt {
 	int		 valid;		/* user exists and is allowed to login */
 	int		 attempt;
 	int		 failures;
+	int		 force_pwchange;
 	char		*user;		/* username sent by the client */
 	char		*service;
 	struct passwd	*pw;		/* set if 'valid' */

@@ -42,11 +42,21 @@ RCSID("$OpenBSD: auth-passwd.c,v 1.30 2003/11/04 08:54:09 djm Exp $");
 #include "log.h"
 #include "servconf.h"
 #include "auth.h"
+#include "auth-options.h"
 #ifdef WITH_AIXAUTHENTICATE
 # include "canohost.h"
 #endif
 
 extern ServerOptions options;
+int sys_auth_passwd(Authctxt *, const char *);
+
+static void
+disable_forwarding(void)
+{
+	no_port_forwarding_flag = 1;
+	no_agent_forwarding_flag = 1;
+	no_x11_forwarding_flag = 1;
+}
 
 /*
  * Tries to authenticate the user using password.  Returns true if
@@ -66,17 +76,21 @@ auth_password(Authctxt *authctxt, const char *password)
 		return 0;
 
 #if defined(HAVE_OSF_SIA)
+	/*
+	 * XXX: any reason this is before krb?  could be moved to
+	 * sys_auth_passwd()?  -dt
+	 */
 	return auth_sia_password(authctxt, password) && ok;
-#else
-# ifdef KRB5
+#endif
+#ifdef KRB5
 	if (options.kerberos_authentication == 1) {
 		int ret = auth_krb5_password(authctxt, password);
 		if (ret == 1 || ret == 0)
 			return ret && ok;
 		/* Fall back to ordinary passwd authentication. */
 	}
-# endif
-# ifdef HAVE_CYGWIN
+#endif
+#ifdef HAVE_CYGWIN
 	if (is_winnt) {
 		HANDLE hToken = cygwin_logon_user(pw, password);
 
@@ -85,41 +99,57 @@ auth_password(Authctxt *authctxt, const char *password)
 		cygwin_set_impersonation_token(hToken);
 		return ok;
 	}
-# endif
-# ifdef WITH_AIXAUTHENTICATE
-	if (aix_authenticate(pw->pw_name, password,
-	    get_canonical_hostname(options.use_dns)) == 0)
-		return 0;
-	else
-		return ok;
-# endif
-# ifdef BSD_AUTH
-	if (auth_userokay(pw->pw_name, authctxt->style, "auth-ssh",
-	    (char *)password) == 0)
-		return 0;
-	else
-		return ok;
-# else
-	{
+#endif
+	return (sys_auth_passwd(authctxt, password) && ok);
+}
+
+#ifdef BSD_AUTH
+int
+sys_auth_passwd(Authctxt *authctxt, const char *password)
+{
+	struct passwd *pw = authctxt->pw;
+	auth_session_t *as;
+
+	as = auth_usercheck(pw->pw_name, authctxt->style, "auth-ssh",
+	    (char *)password);
+	if (auth_getstate(as) & AUTH_PWEXPIRED) {
+		auth_close(as);
+		disable_forwarding();
+		authctxt->force_pwchange = 1;
+		return (1);
+	} else {
+		return (auth_close(as));
+	}
+}
+#elif defined(WITH_AIXAUTHENTICATE)
+int
+sys_auth_passwd(Authctxt *authctxt, const char *password)
+{
+	return (aix_authenticate(authctxt->pw->pw_name, password,
+	    get_canonical_hostname(options.use_dns)));
+}
+#else
+int
+sys_auth_passwd(Authctxt *authctxt, const char *password)
+{
+	struct passwd *pw = authctxt->pw;
+	char *encrypted_password;
+
 	/* Just use the supplied fake password if authctxt is invalid */
 	char *pw_password = authctxt->valid ? shadow_pw(pw) : pw->pw_passwd;
 
 	/* Check for users with no password. */
 	if (strcmp(pw_password, "") == 0 && strcmp(password, "") == 0)
-		return ok;
-	else {
-		/* Encrypt the candidate password using the proper salt. */
-		char *encrypted_password = xcrypt(password,
-		    (pw_password[0] && pw_password[1]) ? pw_password : "xx");
+		return (1);
 
-		/*
-		 * Authentication is accepted if the encrypted passwords
-		 * are identical.
-		 */
-		return (strcmp(encrypted_password, pw_password) == 0) && ok;
-	}
+	/* Encrypt the candidate password using the proper salt. */
+	encrypted_password = xcrypt(password,
+	    (pw_password[0] && pw_password[1]) ? pw_password : "xx");
 
-	}
-# endif
-#endif /* !HAVE_OSF_SIA */
+	/*
+	 * Authentication is accepted if the encrypted passwords
+	 * are identical.
+	 */
+	return (strcmp(encrypted_password, pw_password) == 0);
 }
+#endif
