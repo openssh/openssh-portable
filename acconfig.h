@@ -27,6 +27,9 @@
 /* Define is utmpx.h has a ut_host field */
 #undef HAVE_HOST_IN_UTMPX
 
+/* Define if you want to use utmpx */
+#undef USE_UTMPX
+
 /* Define is libutil has login() function */
 #undef HAVE_LIBUTIL_LOGIN
 
@@ -91,7 +94,7 @@
 # include <utmp.h> /* For _PATH_XXX */
 #endif 
 
-#ifdef HAVE_UTMPX_H
+#if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
 # include <utmpx.h> /* For _PATH_XXX */
 #endif 
 
@@ -183,7 +186,7 @@ enum
 #endif
 
 /* Use utmpx if supported */
-#ifdef HAVE_UTMPX_H
+#if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
 # define UTMP_STR utmpx
 #else 
 # ifdef HAVE_UTMP_H
@@ -192,7 +195,7 @@ enum
 #endif
 
 #ifndef _PATH_UTMP
-# ifdef UTMPX_FILE
+# if defined(UTMPX_FILE) && defined(USE_UTMPX)
 #  define _PATH_UTMP UTMPX_FILE
 # else
 #  ifdef UTMP_FILE
@@ -204,7 +207,7 @@ enum
 #endif
 
 #ifndef _PATH_WTMP
-# ifdef WTMPX_FILE
+# if defined(WTMPX_FILE) && defined(USE_UTMPX)
 #  define _PATH_WTMP WTMPX_FILE
 # else
 #  ifdef WTMP_FILE

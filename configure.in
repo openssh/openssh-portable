@@ -290,6 +290,12 @@ AC_ARG_WITH(md5-passwords,
 	[AC_DEFINE(HAVE_MD5_PASSWORDS)]
 )
 
+dnl Check whether to enable utmpx support
+AC_ARG_WITH(utmpx,
+	[  --with-utmpx            Enable utmpx support],
+	[AC_DEFINE(USE_UTMPX)]
+)
+
 dnl Check for the path to xauth
 AC_PATH_PROG(xauth_path, xauth)
 AC_DEFINE_UNQUOTED(XAUTH_PATH, "$xauth_path")

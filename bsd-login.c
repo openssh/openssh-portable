@@ -45,7 +45,7 @@ static char *rcsid = "$OpenBSD: login.c,v 1.5 1998/07/13 02:11:12 millert Exp $"
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdlib.h>
-#ifdef HAVE_UTMPX_H
+#if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
 # include <utmpx.h>
 #endif
 #ifdef HAVE_UTMP_H
@@ -64,7 +64,7 @@ login(utp)
 
 #ifndef UT_LINESIZE
 # define UT_LINESIZE (sizeof(old_ut.ut_line))
-# ifdef HAVE_UTMPX_H
+# if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
 #  define UT_NAMESIZE (sizeof(old_ut.ut_user))
 # else
 #  define UT_NAMESIZE (sizeof(old_ut.ut_name))
@@ -72,7 +72,7 @@ login(utp)
 # ifdef HAVE_HOST_IN_UTMP
 #  define UT_HOSTSIZE (sizeof(old_ut.ut_host))
 # endif
-# ifdef HAVE_HOST_IN_UTMPX
+# if defined(HAVE_HOST_IN_UTMPX) && defined(USE_UTMPX)
 #  define UT_HOSTSIZE (sizeof(old_ut.ut_host))
 # endif
 #endif
