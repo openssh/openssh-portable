@@ -1,4 +1,5 @@
 20040623
+ - (bal) [Makefile.in] Remove opensshd.init on 'make distclean'
  - (dtucker) [auth1.c] Ensure do_pam_account is called for Protocol 1
    connections with empty passwords.  Patch from davidwu at nbttech.com,
    ok djm@
@@ -1387,4 +1388,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3437 2004/06/23 02:28:31 dtucker Exp $
+$Id: ChangeLog,v 1.3438 2004/06/23 03:21:54 mouring Exp $
