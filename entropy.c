@@ -39,7 +39,7 @@
 #include "pathnames.h"
 #include "log.h"
 
-RCSID("$Id: entropy.c,v 1.28 2001/02/18 04:28:12 djm Exp $");
+RCSID("$Id: entropy.c,v 1.29 2001/02/18 11:34:32 stevesk Exp $");
 
 #ifndef offsetof
 # define offsetof(type, member) ((size_t) &((type *)0)->member)
@@ -130,7 +130,7 @@ reopen:
 
 	rval = 1;
 done:
-	mysignal(SIG_PIPE, old_sigpipe);
+	mysignal(SIGPIPE, old_sigpipe);
 	if (fd != -1)
 		close(fd);
 	return(rval);
