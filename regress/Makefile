@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.20 2003/01/08 23:54:22 djm Exp $
+#	$OpenBSD: Makefile,v 1.21 2003/04/02 12:21:13 markus Exp $
 
 REGRESS_TARGETS=	t1 t2 t3 t4 t5 t6 t7
 
@@ -11,6 +11,7 @@ LTESTS= 	connect \
 		proto-mismatch \
 		exit-status \
 		transfer \
+		rekey \
 		stderr-data \
 		stderr-after-eof \
 		broken-pipe \
