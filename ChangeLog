@@ -24,6 +24,10 @@
      Without this, there is a race where the login name of an existing 
      connection, as returned by getlogin(), may be changed to the privsep 
      user (sshd).  markus@ OK
+   - markus@cvs.openbsd.org 2002/05/13 21:26:49
+     [auth-rhosts.c]
+     handle debug messages during rhosts-rsa and hostbased authentication; 
+     ok provos@
 
 20020514
  - (stevesk) [README.privsep] PAM+privsep works with Solaris 8.
@@ -628,4 +632,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2127 2002/05/15 16:17:56 mouring Exp $
+$Id: ChangeLog,v 1.2128 2002/05/15 16:19:37 mouring Exp $
