@@ -7,6 +7,9 @@
    - markus@cvs.openbsd.org 2001/03/23 12:02:49
      [auth1.c]
      authctxt is now passed to do_authenticated
+   - markus@cvs.openbsd.org 2001/03/23 13:10:57
+     [sftp-int.c]
+     fix put, upload to _absolute_ path, ok djm@
 
 20010323
  - OpenBSD CVS Sync                             
@@ -4698,4 +4701,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1012 2001/03/24 00:37:59 mouring Exp $
+$Id: ChangeLog,v 1.1013 2001/03/24 00:39:12 mouring Exp $
