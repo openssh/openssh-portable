@@ -121,6 +121,8 @@ do_authentication2(void)
 		options.kbd_interactive_authentication = 1;
 	if (options.pam_authentication_via_kbd_int)
 		options.kbd_interactive_authentication = 1;
+	if (use_privsep)
+		options.pam_authentication_via_kbd_int = 0;
 
 	dispatch_init(&dispatch_protocol_error);
 	dispatch_set(SSH2_MSG_SERVICE_REQUEST, &input_service_request);
