@@ -1,3 +1,12 @@
+20021222
+ - (bal) OpenBSD CVS Sync
+   - fgsch@cvs.openbsd.org 2002/11/15 10:03:09
+     [authfile.c]
+     lseek(2) may return -1 when getting the public/private key lenght.
+     Simplify the code and check for errors using fstat(2).
+
+     Problem reported by Mauricio Sanchez, markus@ ok.
+
 20021205
  - (djm) PERL-free fixpaths from stuge-openssh-unix-dev@cdy.org
 
@@ -832,4 +841,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2515 2002/12/05 09:59:33 djm Exp $
+$Id: ChangeLog,v 1.2516 2002/12/23 02:00:23 mouring Exp $
