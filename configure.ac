@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.148 2003/09/10 01:39:05 dtucker Exp $
+# $Id: configure.ac,v 1.149 2003/09/10 05:22:45 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -671,7 +671,7 @@ AC_CHECK_FUNCS(\
 	setdtablesize setegid setenv seteuid setgroups setlogin setpcred \
 	setproctitle setregid setresgid setresuid setreuid setrlimit \
 	setsid setvbuf sigaction sigvec snprintf socketpair strerror \
-	strlcat strlcpy strmode strnvis sysconf tcgetpgrp tcsendbreak \
+	strlcat strlcpy strmode strnvis sysconf tcgetpgrp \
 	truncate utimes vhangup vsnprintf waitpid \
 )
 
@@ -681,6 +681,13 @@ AC_SEARCH_LIBS(basename, gen, AC_DEFINE(HAVE_BASENAME))
 dnl Make sure prototypes are defined for these before using them.
 AC_CHECK_DECL(strsep, [AC_CHECK_FUNCS(strsep)])
 AC_CHECK_DECL(getrusage, [AC_CHECK_FUNCS(getrusage)])
+
+dnl tcsendbreak might be a macro
+AC_CHECK_DECL(tcsendbreak,
+	[AC_DEFINE(HAVE_TCSENDBREAK)],
+	[AC_CHECK_FUNCS(tcsendbreak)], 
+	[#include <termios.h>]
+)
 
 dnl IRIX and Solaris 2.5.1 have dirname() in libgen
 AC_CHECK_FUNCS(dirname, [AC_CHECK_HEADERS(libgen.h)] ,[
