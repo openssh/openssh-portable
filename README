@@ -8,8 +8,8 @@ information about SSH itself can be found in the file README.Ylonen.
 This port consists of the re-introduction of autoconf support, PAM
 support (for Linux and Solaris), EGD[1] support, and replacements for
 OpenBSD library functions that are (regrettably) absent from most
-other unices. The only well tested platform currently is Linux, though
-some Solaris support is beginning to filter in. This version actively
+other unices. This patch has been best tested on Linux, though some 
+Solaris support is beginning to filter in. This version actively
 tracks changes in the OpenBSD CVS repository.
 
 The PAM support is now more functional than the popular packages of
