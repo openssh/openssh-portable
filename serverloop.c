@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.55 2001/03/16 19:06:29 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.56 2001/04/04 14:34:58 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -53,8 +53,12 @@ RCSID("$OpenBSD: serverloop.c,v 1.55 2001/03/16 19:06:29 markus Exp $");
 #include "auth-options.h"
 #include "serverloop.h"
 #include "misc.h"
+#include "kex.h"
 
 extern ServerOptions options;
+
+/* XXX */
+extern Kex *xxx_kex;
 
 static Buffer stdin_buffer;	/* Buffer for stdin data. */
 static Buffer stdout_buffer;	/* Buffer for stdout data. */
@@ -391,7 +395,7 @@ drain_output(void)
 void
 process_buffered_input_packets(void)
 {
-	dispatch_run(DISPATCH_NONBLOCK, NULL, NULL);
+	dispatch_run(DISPATCH_NONBLOCK, NULL, compat20 ? xxx_kex : NULL);
 }
 
 /*
@@ -905,6 +909,9 @@ server_init_dispatch_20(void)
 	dispatch_set(SSH2_MSG_CHANNEL_REQUEST, &channel_input_channel_request);
 	dispatch_set(SSH2_MSG_CHANNEL_WINDOW_ADJUST, &channel_input_window_adjust);
 	dispatch_set(SSH2_MSG_GLOBAL_REQUEST, &server_input_global_request);
+
+	/* rekeying */
+	dispatch_set(SSH2_MSG_KEXINIT, &kex_input_kexinit);
 }
 void
 server_init_dispatch_13(void)

@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.54 2001/04/04 00:06:53 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.55 2001/04/04 14:34:58 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1205,10 +1205,7 @@ client_input_channel_req(int type, int plen, void *ctxt)
 void
 client_init_dispatch_20(void)
 {
-	int i;
-	/* dispatch_init(&dispatch_protocol_error); */
-	for (i = 50; i <= 254; i++)
-		dispatch_set(i, &dispatch_protocol_error);
+	dispatch_init(&dispatch_protocol_error);
 	dispatch_set(SSH2_MSG_CHANNEL_CLOSE, &channel_input_oclose);
 	dispatch_set(SSH2_MSG_CHANNEL_DATA, &channel_input_data);
 	dispatch_set(SSH2_MSG_CHANNEL_EOF, &channel_input_ieof);
@@ -1218,6 +1215,9 @@ client_init_dispatch_20(void)
 	dispatch_set(SSH2_MSG_CHANNEL_OPEN_FAILURE, &channel_input_open_failure);
 	dispatch_set(SSH2_MSG_CHANNEL_REQUEST, &client_input_channel_req);
 	dispatch_set(SSH2_MSG_CHANNEL_WINDOW_ADJUST, &channel_input_window_adjust);
+
+	/* rekeying */
+	dispatch_set(SSH2_MSG_KEXINIT, &kex_input_kexinit);
 }
 void
 client_init_dispatch_13(void)

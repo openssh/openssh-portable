@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.28 2001/04/04 09:48:34 markus Exp $");
+RCSID("$OpenBSD: kex.c,v 1.29 2001/04/04 14:34:58 markus Exp $");
 
 #include <openssl/crypto.h>
 
@@ -112,9 +112,21 @@ kex_protocol_error(int type, int plen, void *ctxt)
 }
 
 void
+kex_clear_dispatch(void)
+{
+	int i;
+
+	/* Numbers 30-49 are used for kex packets */
+	for (i = 30; i <= 49; i++)
+		dispatch_set(i, &kex_protocol_error);
+}
+
+void
 kex_finish(Kex *kex)
 {
-	int i, plen;
+	int plen;
+
+	kex_clear_dispatch();
 
 	packet_start(SSH2_MSG_NEWKEYS);
 	packet_send();
@@ -125,8 +137,6 @@ kex_finish(Kex *kex)
         packet_read_expect(&plen, SSH2_MSG_NEWKEYS);
 	debug("SSH2_MSG_NEWKEYS received");
 	kex->newkeys = 1;
-	for (i = 30; i <= 49; i++)
-		dispatch_set(i, &kex_protocol_error);
 	buffer_clear(&kex->peer);
 	/* buffer_clear(&kex->my); */
 	kex->flags &= ~KEX_INIT_SENT;
@@ -135,6 +145,10 @@ kex_finish(Kex *kex)
 void
 kex_send_kexinit(Kex *kex)
 {
+	if (kex == NULL) {
+		error("kex_send_kexinit: no kex, cannot rekey");
+		return;
+	}
 	if (kex->flags & KEX_INIT_SENT) {
 		debug("KEX_INIT_SENT");
 		return;
@@ -154,6 +168,8 @@ kex_input_kexinit(int type, int plen, void *ctxt)
 	Kex *kex = (Kex *)ctxt;
 
 	debug("SSH2_MSG_KEXINIT received");
+	if (kex == NULL)
+		fatal("kex_input_kexinit: no kex, cannot rekey");
 
 	ptr = packet_get_raw(&dlen);
 	buffer_append(&kex->peer, ptr, dlen);
@@ -165,7 +181,6 @@ Kex *
 kex_setup(char *proposal[PROPOSAL_MAX])
 {
 	Kex *kex;
-	int i;
 
 	kex = xmalloc(sizeof(*kex));
 	memset(kex, 0, sizeof(*kex));
@@ -175,11 +190,9 @@ kex_setup(char *proposal[PROPOSAL_MAX])
 	kex->newkeys = 0;
 
 	kex_send_kexinit(kex);					/* we start */
-	/* Numbers 30-49 are used for kex packets */
-	for (i = 30; i <= 49; i++)
-		dispatch_set(i, kex_protocol_error);
-
+	kex_clear_dispatch();
 	dispatch_set(SSH2_MSG_KEXINIT, &kex_input_kexinit);
+
 	return kex;
 }
 

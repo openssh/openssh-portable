@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.188 2001/04/04 09:48:35 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.189 2001/04/04 14:34:58 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -140,6 +140,9 @@ int num_listen_socks = 0;
  */
 char *client_version_string = NULL;
 char *server_version_string = NULL;
+
+/* for rekeying XXX fixme */
+Kex *xxx_kex;
 
 /*
  * Any really sensitive data in the application is contained in this
@@ -1425,13 +1428,15 @@ do_ssh2_kex(void)
 	}
 	myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = list_hostkey_types();
 
+	/* start key exchange */
 	kex = kex_setup(myproposal);
 	kex->server = 1;
 	kex->client_version_string=client_version_string;
 	kex->server_version_string=server_version_string;
 	kex->load_host_key=&get_hostkey_by_type;
 
-	/* start key exchange */
+	xxx_kex = kex;
+
 	dispatch_run(DISPATCH_BLOCK, &kex->newkeys, kex);
 
 	session_id2 = kex->session_id;
