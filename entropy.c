@@ -35,12 +35,29 @@
 #include <openssl/rand.h>
 #include <openssl/sha.h>
 
-RCSID("$Id: entropy.c,v 1.12 2000/05/31 01:24:34 damien Exp $");
+RCSID("$Id: entropy.c,v 1.13 2000/06/07 12:20:23 djm Exp $");
 
-#ifdef EGD_SOCKET
 #ifndef offsetof
 # define offsetof(type, member) ((size_t) &((type *)0)->member)
 #endif
+
+/* Print lots of detail */
+/* #define DEBUG_ENTROPY */
+
+/* Number of times to pass through command list gathering entropy */
+#define NUM_ENTROPY_RUNS	1
+
+/* Scale entropy estimates back by this amount on subsequent runs */
+#define SCALE_PER_RUN		10.0
+
+/* Minimum number of commands to be considered valid */
+#define MIN_ENTROPY_SOURCES 16
+
+#define WHITESPACE " \t\n"
+
+#if defined(EGD_SOCKET) || defined(RANDOM_POOL)
+
+#ifdef EGD_SOCKET
 /* Collect entropy from EGD */
 void get_random_bytes(unsigned char *buf, int len)
 {
@@ -57,7 +74,7 @@ void get_random_bytes(unsigned char *buf, int len)
 	if (sizeof(EGD_SOCKET) > sizeof(addr.sun_path))
 		fatal("Random pool path is too long");
 	
-	strcpy(addr.sun_path, EGD_SOCKET);
+	strlcpy(addr.sun_path, EGD_SOCKET, sizeof(addr.sun_path));
 	
 	addr_len = offsetof(struct sockaddr_un, sun_path) + sizeof(EGD_SOCKET);
 	
@@ -104,7 +121,23 @@ void get_random_bytes(unsigned char *buf, int len)
 #endif /* RANDOM_POOL */
 #endif /* EGD_SOCKET */
 
-#if !defined(EGD_SOCKET) && !defined(RANDOM_POOL)
+/*
+ * Seed OpenSSL's random number pool from Kernel random number generator
+ * or EGD
+ */
+void
+seed_rng(void)
+{
+	char buf[32];
+	
+	debug("Seeding random number generator");
+	get_random_bytes(buf, sizeof(buf));
+	RAND_add(buf, sizeof(buf), sizeof(buf));
+	memset(buf, '\0', sizeof(buf));
+}
+
+#else /* defined(EGD_SOCKET) || defined(RANDOM_POOL) */
+
 /* 
  * FIXME: proper entropy estimations. All current values are guesses
  * FIXME: (ATL) do estimates at compile time?
@@ -144,8 +177,6 @@ double hash_output_from_command(entropy_source_t *src, char *hash);
 
 /* this is initialised from a file, by prng_read_commands() */
 entropy_source_t *entropy_sources = NULL;
-#define MIN_ENTROPY_SOURCES 16
-
 
 double 
 stir_from_system(void)
@@ -184,11 +215,8 @@ stir_from_programs(void)
 	double total_entropy_estimate;
 	char hash[SHA_DIGEST_LENGTH];
 
-	/*
-	 * Run through list of programs twice to catch differences
-	 */
 	total_entropy_estimate = 0;
-	for(i = 0; i < 2; i++) {
+	for(i = 0; i < NUM_ENTROPY_RUNS; i++) {
 		c = 0;
 		while (entropy_sources[c].path != NULL) {
 
@@ -203,14 +231,13 @@ stir_from_programs(void)
 				if (entropy_estimate > SHA_DIGEST_LENGTH)
 					entropy_estimate = SHA_DIGEST_LENGTH;
 
- 			/* * Scale back estimates for subsequent passes through list */
-				entropy_estimate /= 10.0 * (i + 1.0);
+	 			/* Scale back estimates for subsequent passes through list */
+				entropy_estimate /= SCALE_PER_RUN * (i + 1.0);
 			
 				/* Stir it in */
 				RAND_add(hash, sizeof(hash), entropy_estimate);
 
-/* FIXME: turn this off later */
-#if 1
+#ifdef DEBUG_ENTROPY
 				debug("Got %0.2f bytes of entropy from '%s'", entropy_estimate, 
 					entropy_sources[c].cmdstring);
 #endif
@@ -223,8 +250,7 @@ stir_from_programs(void)
 				total_entropy_estimate += stir_rusage(RUSAGE_SELF, 0.1);
 				total_entropy_estimate += stir_rusage(RUSAGE_CHILDREN, 0.1);
 			} else {
-/* FIXME: turn this off later */
-#if 1
+#ifdef DEBUG_ENTROPY
 				debug("Command '%s' disabled (badness %d)",
 					entropy_sources[c].cmdstring, entropy_sources[c].badness);
 #endif
@@ -360,8 +386,7 @@ hash_output_from_command(entropy_source_t *src, char *hash)
 		int msec_remaining;
 
 		(void) gettimeofday(&tv_current, 0);
-		msec_elapsed = _get_timeval_msec_difference(
-			&tv_start, &tv_current);
+		msec_elapsed = _get_timeval_msec_difference(&tv_start, &tv_current);
 		if (msec_elapsed >= entropy_timeout_current) {
 			error_abort=1;
 			continue;
@@ -412,7 +437,9 @@ hash_output_from_command(entropy_source_t *src, char *hash)
 
 	close(p[0]);
 
+#ifdef DEBUG_ENTROPY
 	debug("Time elapsed: %d msec", msec_elapsed);
+#endif
 	
 	if (waitpid(pid, &status, 0) == -1) {
 	       debug("Couldn't wait for child '%s' completion: %s", src->cmdstring,
@@ -436,12 +463,14 @@ hash_output_from_command(entropy_source_t *src, char *hash)
 		if (WEXITSTATUS(status)==0) {
 			return(total_bytes_read);
 		} else {
-			debug("Exit status was %d", WEXITSTATUS(status));
+			debug("Command '%s' exit status was %d", src->cmdstring, 
+				WEXITSTATUS(status));
 			src->badness = src->sticky_badness = 128;
 			return (0.0);
 		}
 	} else if (WIFSIGNALED(status)) {
-		debug("Returned on uncaught signal %d !", status);
+		debug("Command '%s' returned on uncaught signal %d !", src->cmdstring, 
+			status);
 		src->badness = src->sticky_badness = 128;
 		return(0.0);
 	} else
@@ -571,20 +600,19 @@ prng_read_seedfile(void) {
 /*
  * entropy command initialisation functions
  */
-#define WHITESPACE " \t\n"
-
 int
 prng_read_commands(char *cmdfilename)
 {
 	FILE *f;
-	char line[1024];
-	char cmd[1024], path[256];
-	double est;
 	char *cp;
+	char line[1024];
+	char cmd[1024];
+	char path[256];
 	int linenum;
-	entropy_source_t *entcmd;
 	int num_cmds = 64;
 	int cur_cmd = 0;
+	double est;
+	entropy_source_t *entcmd;
 
 	f = fopen(cmdfilename, "r");
 	if (!f) {
@@ -592,12 +620,15 @@ prng_read_commands(char *cmdfilename)
 		    cmdfilename, strerror(errno));
 	}
 
-	linenum = 0;
-
 	entcmd = (entropy_source_t *)xmalloc(num_cmds * sizeof(entropy_source_t));
 	memset(entcmd, '\0', num_cmds * sizeof(entropy_source_t));
 
+	/* Read in file */
+	linenum = 0;
 	while (fgets(line, sizeof(line), f)) {
+		int arg;
+		char *argv;
+
 		linenum++;
 
 		/* skip leading whitespace, test for blank line or comment */
@@ -605,88 +636,90 @@ prng_read_commands(char *cmdfilename)
 		if ((*cp == 0) || (*cp == '#'))
 			continue; /* done with this line */
 
-		switch (*cp) {
-			int arg;
-			char *argv;
-
-		case '"':
-			/* first token, command args (incl. argv[0]) in double quotes */
-			cp = strtok(cp, "\"");
-			if (cp==NULL) {
-				error("missing or bad command string, %.100s line %d -- ignored",
-				      cmdfilename, linenum);
-				continue;
-			}
-			strncpy(cmd, cp, sizeof(cmd));
-			/* second token, full command path */
-			if ((cp = strtok(NULL, WHITESPACE)) == NULL) {
-				error("missing command path, %.100s line %d -- ignored",
-				      cmdfilename, linenum);
-				continue;
-			}
-			if (strncmp("undef", cp, 5)==0)   /* did configure mark this as dead? */
-				continue;
-
-			strncpy(path, cp, sizeof(path));			
-			/* third token, entropy rate estimate for this command */
-			if ( (cp = strtok(NULL, WHITESPACE)) == NULL) {
-				error("missing entropy estimate, %.100s line %d -- ignored",
-				      cmdfilename, linenum);
-				continue;
-			}
-			est = strtod(cp, &argv);/* FIXME: (ATL) no error checking here */
-
-			/* end of line */
-			if ((cp = strtok(NULL, WHITESPACE)) != NULL) {
-				error("garbage at end of line %d in %.100s -- ignored",
-				      linenum, cmdfilename);
-				continue;
-			}
-
-			/* save the command for debug messages */
-			entcmd[cur_cmd].cmdstring = (char*) xmalloc(strlen(cmd)+1);
-			strncpy(entcmd[cur_cmd].cmdstring, cmd, strlen(cmd)+1);
-			
-			/* split the command args */
-			cp = strtok(cmd, WHITESPACE);
-			arg = 0; argv = NULL;
-			do {
-				char *s = (char*)xmalloc(strlen(cp)+1);
-				strncpy(s, cp, strlen(cp)+1);
-				entcmd[cur_cmd].args[arg] = s;
-				arg++;
-			} while ((arg < 5) && (cp = strtok(NULL, WHITESPACE)));
-			if (strtok(NULL, WHITESPACE))
-				error("ignored extra command elements (max 5), %.100s line %d",
-				      cmdfilename, linenum);
-
-			/* copy the command path and rate estimate */
-			entcmd[cur_cmd].path = (char *)xmalloc(strlen(path)+1);
-			strncpy(entcmd[cur_cmd].path, path, strlen(path)+1);
-		        entcmd[cur_cmd].rate = est;
-			/* initialise other values */
-			entcmd[cur_cmd].sticky_badness = 1;
-
-			cur_cmd++;
-
-			/* If we've filled the array, reallocate it twice the size */
-			/* Do this now because even if this we're on the last command,
-			   we need another slot to mark the last entry */
-			if (cur_cmd == num_cmds) {
-				num_cmds *= 2;
-				entcmd = xrealloc(entcmd, num_cmds * sizeof(entropy_source_t));
-			}
-			break;
-
-		default:
+		/* First non-whitespace char should be double quote delimiting */
+		/* commandline */
+		if (*cp != '"') {
 			error("bad entropy command, %.100s line %d", cmdfilename,
 			     linenum);
 			continue;
+		}		
+
+		/* first token, command args (incl. argv[0]) in double quotes */
+		cp = strtok(cp, "\"");
+		if (cp == NULL) {
+			error("missing or bad command string, %.100s line %d -- ignored",
+			      cmdfilename, linenum);
+			continue;
+		}
+		strlcpy(cmd, cp, sizeof(cmd));
+		
+		/* second token, full command path */
+		if ((cp = strtok(NULL, WHITESPACE)) == NULL) {
+			error("missing command path, %.100s line %d -- ignored",
+			      cmdfilename, linenum);
+			continue;
+		}
+
+		/* did configure mark this as dead? */
+		if (strncmp("undef", cp, 5) == 0)
+			continue;
+
+		strlcpy(path, cp, sizeof(path));			
+
+		/* third token, entropy rate estimate for this command */
+		if ((cp = strtok(NULL, WHITESPACE)) == NULL) {
+			error("missing entropy estimate, %.100s line %d -- ignored",
+			      cmdfilename, linenum);
+			continue;
+		}
+		est = strtod(cp, &argv);
+
+		/* end of line */
+		if ((cp = strtok(NULL, WHITESPACE)) != NULL) {
+			error("garbage at end of line %d in %.100s -- ignored", linenum, 
+				cmdfilename);
+			continue;
+		}
+
+		/* save the command for debug messages */
+		entcmd[cur_cmd].cmdstring = xstrdup(cmd);
+			
+		/* split the command args */
+		cp = strtok(cmd, WHITESPACE);
+		arg = 0;
+		argv = NULL;
+		do {
+			char *s = (char*)xmalloc(strlen(cp) + 1);
+			strncpy(s, cp, strlen(cp) + 1);
+			entcmd[cur_cmd].args[arg] = s;
+			arg++;
+		} while ((arg < 5) && (cp = strtok(NULL, WHITESPACE)));
+		
+		if (strtok(NULL, WHITESPACE))
+			error("ignored extra command elements (max 5), %.100s line %d",
+			      cmdfilename, linenum);
+
+		/* Copy the command path and rate estimate */
+		entcmd[cur_cmd].path = xstrdup(path);
+		entcmd[cur_cmd].rate = est;
+
+		/* Initialise other values */
+		entcmd[cur_cmd].sticky_badness = 1;
+
+		cur_cmd++;
+
+		/* If we've filled the array, reallocate it twice the size */
+		/* Do this now because even if this we're on the last command,
+		   we need another slot to mark the last entry */
+		if (cur_cmd == num_cmds) {
+			num_cmds *= 2;
+			entcmd = xrealloc(entcmd, num_cmds * sizeof(entropy_source_t));
 		}
 	}
 
 	/* zero the last entry */
 	memset(&entcmd[cur_cmd], '\0', sizeof(entropy_source_t));
+
 	/* trim to size */
 	entropy_sources = xrealloc(entcmd, (cur_cmd+1) * sizeof(entropy_source_t));
 
@@ -694,28 +727,6 @@ prng_read_commands(char *cmdfilename)
 
 	return (cur_cmd >= MIN_ENTROPY_SOURCES);
 }
-
-
-#endif /* defined(EGD_SOCKET) || defined(RANDOM_POOL) */
-
-#if defined(EGD_SOCKET) || defined(RANDOM_POOL)
-
-/*
- * Seed OpenSSL's random number pool from Kernel random number generator
- * or EGD
- */
-void
-seed_rng(void)
-{
-	char buf[32];
-	
-	debug("Seeding random number generator");
-	get_random_bytes(buf, sizeof(buf));
-	RAND_add(buf, sizeof(buf), sizeof(buf));
-	memset(buf, '\0', sizeof(buf));
-}
-
-#else /* defined(EGD_SOCKET) || defined(RANDOM_POOL) */
 
 /*
  * Write a keyfile at exit

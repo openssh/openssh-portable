@@ -5,46 +5,46 @@
 # The "rate" represents the number of bits of usuable entropy per 
 # byte of command output. Be conservative.
 
-"ls -alni /var/log"			@PROG_LS@	0.002
-"ls -alni /var/adm"			@PROG_LS@	0.002
-"ls -alni /var/mail"			@PROG_LS@	0.002
-"ls -alni /var/spool/mail"		@PROG_LS@	0.002
-"ls -alni /proc"			@PROG_LS@	0.002
-"ls -alni /tmp"				@PROG_LS@	0.002
+"ls -alni /var/log"			@PROG_LS@	0.02
+"ls -alni /var/adm"			@PROG_LS@	0.02
+"ls -alni /var/mail"			@PROG_LS@	0.02
+"ls -alni /var/spool/mail"		@PROG_LS@	0.02
+"ls -alni /proc"			@PROG_LS@	0.02
+"ls -alni /tmp"				@PROG_LS@	0.02
 
-"netstat -an"				@PROG_NETSTAT@	0.005
-"netstat -in"				@PROG_NETSTAT@	0.010
-"netstat -rn"				@PROG_NETSTAT@	0.002
-"netstat -s"				@PROG_NETSTAT@	0.002
+"netstat -an"				@PROG_NETSTAT@	0.05
+"netstat -in"				@PROG_NETSTAT@	0.05
+"netstat -rn"				@PROG_NETSTAT@	0.02
+"netstat -s"				@PROG_NETSTAT@	0.02
 
-"arp -a -n"				@PROG_ARP@	0.002
+"arp -a -n"				@PROG_ARP@	0.02
 
-"ifconfig -a"				@PROG_IFCONFIG@	0.002
+"ifconfig -a"				@PROG_IFCONFIG@	0.02
 
-"ps laxww"				@PROG_PS@	0.003
-"ps -al"				@PROG_PS@	0.003
-"ps -efl"				@PROG_PS@	0.003
+"ps laxww"				@PROG_PS@	0.03
+"ps -al"				@PROG_PS@	0.03
+"ps -efl"				@PROG_PS@	0.03
 
-"w"					@PROG_W@	0.005
+"w"					@PROG_W@	0.05
 
-"who -i"				@PROG_WHO@	0.001
+"who -i"				@PROG_WHO@	0.01
 
-"last"					@PROG_LAST@	0.001
+"last"					@PROG_LAST@	0.01
 
-"lastlog"				@PROG_LASTLOG@	0.001
+"lastlog"				@PROG_LASTLOG@	0.01
 
-"df"					@PROG_DF@	0.010
-"df -i"					@PROG_DF@	0.010
+"df"					@PROG_DF@	0.01
+"df -i"					@PROG_DF@	0.01
 
-"vmstat"				@PROG_VMSTAT@	0.010
-"uptime"				@PROG_UPTIME@	0.001
+"vmstat"				@PROG_VMSTAT@	0.01
+"uptime"				@PROG_UPTIME@	0.01
 
-"ipcs -a"				@PROG_IPCS@	0.001
+"ipcs -a"				@PROG_IPCS@	0.01
 
-"tail -200 /var/log/messages"		@PROG_TAIL@	0.001
-"tail -200 /var/log/syslog"		@PROG_TAIL@	0.001
-"tail -200 /var/adm/messages"		@PROG_TAIL@	0.001
-"tail -200 /var/adm/syslog"		@PROG_TAIL@	0.001
-"tail -200 /var/adm/syslog/syslog.log"	@PROG_TAIL@	0.001
-"tail -200 /var/log/maillog"		@PROG_TAIL@	0.001
-"tail -200 /var/adm/maillog"		@PROG_TAIL@	0.001
+"tail -200 /var/log/messages"		@PROG_TAIL@	0.01
+"tail -200 /var/log/syslog"		@PROG_TAIL@	0.01
+"tail -200 /var/adm/messages"		@PROG_TAIL@	0.01
+"tail -200 /var/adm/syslog"		@PROG_TAIL@	0.01
+"tail -200 /var/adm/syslog/syslog.log"	@PROG_TAIL@	0.01
+"tail -200 /var/log/maillog"		@PROG_TAIL@	0.01
+"tail -200 /var/adm/maillog"		@PROG_TAIL@	0.01

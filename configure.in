@@ -1124,7 +1124,7 @@ fi
 
 
 # Change default command timeout for builtin PRNG
-entropy_timeout=100
+entropy_timeout=200
 AC_ARG_WITH(entropy-timeout,
 	[  --with-entropy-timeout  Specify entropy gathering command timeout (msec)],
 	[

@@ -1,4 +1,8 @@
 20000606
+ - (djm) Cleanup of entropy.c. Reorganised code, removed second pass through
+   list of commands (by default). Removed verbose debugging (by default).
+ - (djm) Increased command entropy estimates and default entropy collection 
+   timeout
  - (djm) Remove duplicate headers from loginrec.c
  - (djm) Don't add /usr/local/lib to library search path on Irix
  - (djm) Fix rsh path in RPMs. Report from Jason L Tibbitts III 
