@@ -170,7 +170,7 @@
 #include "xmalloc.h"
 #include "loginrec.h"
 
-RCSID("$Id: loginrec.c,v 1.7 2000/06/19 08:20:03 andre Exp $");
+RCSID("$Id: loginrec.c,v 1.8 2000/06/19 09:11:30 andre Exp $");
 
 /**
  ** prototypes for helper functions in this file
@@ -301,8 +301,9 @@ login_get_lastlog(struct logininfo *li, const int uid)
 	 * reliably search wtmp(x) for the last login (see
 	 * wtmp_get_entry().) */
 	pw = getpwuid(uid);
-	strlcpy(li->username, pw->pw_name, 
-		MIN_SIZEOF(li->username, pw->pw_name));
+	/* No MIN_SIZEOF here - we absolutely *must not* truncate the
+         * username */
+	strlcpy(li->username, pw->pw_name, li->username);
 #endif
 	if (getlast_entry(li))
 		return li;
