@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.247 2005/02/24 01:12:35 djm Exp $
+# $Id: configure.ac,v 1.248 2005/02/25 23:07:38 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -158,7 +158,6 @@ case "$host" in
 	AC_DEFINE(NO_X11_UNIX_SOCKETS)
 	AC_DEFINE(NO_IPPORT_RESERVED_CONCEPT)
 	AC_DEFINE(DISABLE_FD_PASSING)
-	AC_DEFINE(SETGROUPS_NOOP)
 	;;
 *-*-dgux*)
 	AC_DEFINE(IP_TOS_IS_BROKEN)
