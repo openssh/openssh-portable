@@ -881,7 +881,6 @@ void do_pam_environment(char ***env, int *envsize)
 }
 #endif /* USE_PAM */
 
-
 #ifdef HAVE_CYGWIN
 void copy_environment(char ***env, int *envsize)
 {
@@ -1117,6 +1116,12 @@ do_child(const char *command, struct passwd * pw, const char *term,
 # endif /* HAVE_LOGIN_CAP */
 		}
 #endif /* HAVE_OSF_SIA */
+
+#if defined(HAVE_GETLUID) && defined(HAVE_SETLUID)
+	/* Sets login uid for accounting */
+	if (getluid() == -1 && setluid(pw->pw_uid) == -1)
+		error("setluid: %s", strerror(errno));
+#endif /* defined(HAVE_GETLUID) && defined(HAVE_SETLUID) */
 
 #ifdef HAVE_CYGWIN
 		if (is_winnt)

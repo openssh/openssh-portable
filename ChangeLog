@@ -11,6 +11,8 @@
  - (djm) USE_PIPES for a few more sysv platforms
  - (djm) Cleanup configure.in a little
  - (djm) Ask users to check config.log when we can't find necessary libs
+ - (djm) Set "login ID" on systems with setluid. Only enabled for SCO
+   OpenServer for now. Based on patch from svaughan <svaughan@asterion.com>
 
 20010215
  - (djm) Move PAM session setup back to before setuid to user. Fixes 
@@ -3984,4 +3986,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.777 2001/02/16 01:05:39 djm Exp $
+$Id: ChangeLog,v 1.778 2001/02/16 01:12:41 djm Exp $
