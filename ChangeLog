@@ -3,6 +3,8 @@
    patch based on 2.5.2 version by djm.
  - (bal) Build manpages and config files once unless changed.  Patch by
    Carson Gaspar <carson@taltos.org>
+ - (bal) arpa/nameser.h does not exist on Cygwin.  Patch by Corinna 
+   Vinschen <vinschen@redhat.com>
 
 20010425
  - OpenBSD CVS Sync
@@ -5258,4 +5260,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1173 2001/04/27 00:31:07 mouring Exp $
+$Id: ChangeLog,v 1.1174 2001/04/27 00:34:44 mouring Exp $
