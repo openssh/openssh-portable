@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.47 2001/02/08 23:11:42 dugsong Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.48 2001/02/15 08:38:04 deraadt Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -340,7 +340,10 @@ process_output(fd_set * writeset)
 			/* Successful write. */
 			if (tcgetattr(fdin, &tio) == 0 &&
 			    !(tio.c_lflag & ECHO)) {
-				/* Simulate echo to reduce the impact of traffic analysis. */
+				/*
+				 * Simulate echo to reduce the impact of
+				 * traffic analysis
+				 */
 				packet_start(SSH_MSG_IGNORE);
 				memset(buffer_ptr(&stdin_buffer), 0, len);
 				packet_put_string(buffer_ptr(&stdin_buffer), len);

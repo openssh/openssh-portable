@@ -38,6 +38,10 @@
      ok markus@
  - (bal) replaced PATH_MAX in sftp-int.c w/ MAXPATHLEN.
  - (djm) Move to Jim's 1.2.0 X11 askpass program
+ - (stevesk) OpenBSD sync:
+   - deraadt@cvs.openbsd.org 2001/02/15 01:38:04
+     [serverloop.c]
+     indent
 
 20010214
  - (djm) Don't try to close PAM session or delete credentials if the
@@ -3966,4 +3970,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.771 2001/02/15 04:33:17 djm Exp $
+$Id: ChangeLog,v 1.772 2001/02/15 17:27:15 stevesk Exp $
