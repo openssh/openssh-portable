@@ -45,6 +45,10 @@
      Inquire Cyberflex class for 0xf0 cards
      change aid to conform to 7816-5
      remove gratuitous fid selects
+   - millert@cvs.openbsd.org 2001/07/27 14:50:45
+     [ssh.c]
+     If smart card support is compiled in and a smart card is being used
+     for authentication, make it the first method used.  markus@ OK
 
 20010803
  - (djm) Fix interrupted read in entropy gatherer. Spotted by markus@ on
@@ -6155,4 +6159,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1438 2001/08/06 21:10:52 mouring Exp $
+$Id: ChangeLog,v 1.1439 2001/08/06 21:12:42 mouring Exp $

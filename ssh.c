@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.130 2001/07/25 14:35:18 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.131 2001/07/27 14:50:45 millert Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -1153,9 +1153,42 @@ load_public_identity_files(void)
 {
 	char *filename;
 	Key *public;
-	int i;
+	int i = 0;
 
-	for (i = 0; i < options.num_identity_files; i++) {
+#ifdef SMARTCARD
+	if (sc_reader_num != -1 &&
+	    options.num_identity_files + 1 < SSH_MAX_IDENTITY_FILES &&
+	    (public = sc_get_key(sc_reader_num)) != NULL ) {
+		Key *new;
+
+		if (options.num_identity_files + 2 > SSH_MAX_IDENTITY_FILES)
+			options.num_identity_files = SSH_MAX_IDENTITY_FILES - 2;
+		memmove(&options.identity_files[2], &options.identity_files[0],
+		    sizeof(char *) * options.num_identity_files);
+		options.num_identity_files += 2;
+		i = 2;
+
+		/* XXX ssh1 vs ssh2 */
+		new = key_new(KEY_RSA);
+		new->flags = KEY_FLAG_EXT;
+		BN_copy(new->rsa->n, public->rsa->n);
+		BN_copy(new->rsa->e, public->rsa->e);
+		RSA_set_method(new->rsa, sc_get_engine());
+		options.identity_keys[0] = new;
+		options.identity_files[0] = xstrdup("smartcard rsa key");;
+
+		new = key_new(KEY_RSA1);
+		new->flags = KEY_FLAG_EXT;
+		BN_copy(new->rsa->n, public->rsa->n);
+		BN_copy(new->rsa->e, public->rsa->e);
+		RSA_set_method(new->rsa, sc_get_engine());
+		options.identity_keys[1] = new;
+		options.identity_files[1] = xstrdup("smartcard rsa1 key");
+
+		key_free(public);
+	}
+#endif
+	for (; i < options.num_identity_files; i++) {
 		filename = tilde_expand_filename(options.identity_files[i],
 		    original_real_uid);
 		public = key_load_public(filename, NULL);
@@ -1165,32 +1198,4 @@ load_public_identity_files(void)
 		options.identity_files[i] = filename;
 		options.identity_keys[i] = public;
 	}
-#ifdef SMARTCARD
-	if (sc_reader_num != -1 &&
-	    options.num_identity_files + 1 < SSH_MAX_IDENTITY_FILES &&
-	    (public = sc_get_key(sc_reader_num)) != NULL ) {
-		Key *new;
-
-		/* XXX ssh1 vs ssh2 */
-		new = key_new(KEY_RSA);
-		new->flags = KEY_FLAG_EXT;
-		BN_copy(new->rsa->n, public->rsa->n);
-		BN_copy(new->rsa->e, public->rsa->e);
-		RSA_set_method(new->rsa, sc_get_engine());
-		i = options.num_identity_files++;
-		options.identity_keys[i] = new;
-		options.identity_files[i] = xstrdup("smartcard rsa key");;
-
-		new = key_new(KEY_RSA1);
-		new->flags = KEY_FLAG_EXT;
-		BN_copy(new->rsa->n, public->rsa->n);
-		BN_copy(new->rsa->e, public->rsa->e);
-		RSA_set_method(new->rsa, sc_get_engine());
-		i = options.num_identity_files++;
-		options.identity_keys[i] = new;
-		options.identity_files[i] = xstrdup("smartcard rsa1 key");;
-
-		key_free(public);
-	}
-#endif
 }
