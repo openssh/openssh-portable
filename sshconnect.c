@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.134 2002/09/13 19:23:09 stevesk Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.135 2002/09/19 01:58:18 djm Exp $");
 
 #include <openssl/bn.h>
 
@@ -41,6 +41,7 @@ extern Options options;
 extern char *__progname;
 extern uid_t original_real_uid;
 extern uid_t original_effective_uid;
+extern pid_t proxy_command_pid;
 
 #ifndef INET6_ADDRSTRLEN		/* for non IPv6 machines */
 #define INET6_ADDRSTRLEN 46
@@ -64,9 +65,16 @@ ssh_proxy_connect(const char *host, u_short port, const char *proxy_command)
 	/* Convert the port number into a string. */
 	snprintf(strport, sizeof strport, "%hu", port);
 
-	/* Build the final command string in the buffer by making the
-	   appropriate substitutions to the given proxy command. */
+	/*
+	 * Build the final command string in the buffer by making the
+	 * appropriate substitutions to the given proxy command.
+	 *
+	 * Use "exec" to avoid "sh -c" processes on some platforms 
+	 * (e.g. Solaris)
+	 */
 	buffer_init(&command);
+	buffer_append(&command, "exec ", 5);
+
 	for (cp = proxy_command; *cp; cp++) {
 		if (cp[0] == '%' && cp[1] == '%') {
 			buffer_append(&command, "%", 1);
@@ -134,6 +142,8 @@ ssh_proxy_connect(const char *host, u_short port, const char *proxy_command)
 	/* Parent. */
 	if (pid < 0)
 		fatal("fork failed: %.100s", strerror(errno));
+	else
+		proxy_command_pid = pid; /* save pid to clean up later */
 
 	/* Close child side of the descriptors. */
 	close(pin[0]);

@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.185 2002/09/11 18:27:26 stevesk Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.186 2002/09/19 01:58:18 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -145,6 +145,9 @@ int subsystem_flag = 0;
 
 /* # of replies received for global requests */
 static int client_global_request_id = 0;
+
+/* pid of proxycommand child process */
+pid_t proxy_command_pid = 0;
 
 /* Prints a help message to the user.  This function never returns. */
 
@@ -722,6 +725,14 @@ again:
 
 	exit_status = compat20 ? ssh_session2() : ssh_session();
 	packet_close();
+
+	/*
+	 * Send SIGHUP to proxy command if used. We don't wait() in 
+	 * case it hangs and instead rely on init to reap the child
+	 */
+	if (proxy_command_pid > 1)
+		kill(proxy_command_pid, SIGHUP);
+
 	return exit_status;
 }
 
