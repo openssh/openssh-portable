@@ -1,4 +1,4 @@
-.\" $OpenBSD: ssh-keysign.8,v 1.1 2002/05/25 08:16:59 markus Exp $
+.\" $OpenBSD: ssh-keysign.8,v 1.2 2002/06/10 16:56:30 stevesk Exp $
 .\"
 .\" Copyright (c) 2002 Markus Friedl.  All rights reserved.
 .\"
@@ -29,16 +29,13 @@
 .Nm ssh-keysign
 .Nd ssh helper program for hostbased authentication
 .Sh SYNOPSIS
-.Nm ssh-keysign
+.Nm
 .Sh DESCRIPTION
 .Nm
 is used by
 .Xr ssh 1
-to access the local host keys during hostbased authentication with
-SSH protocol version 2.
-Since the host keys are readable only by root
-.Nm
-must be setuid root.
+to access the local host keys and generate the digital signature
+required during hostbased authentication with SSH protocol version 2.
 .Nm
 is not intended to be invoked by the user, but from
 .Xr ssh 1 .
@@ -47,8 +44,20 @@ See
 and
 .Xr sshd 8
 for more information about hostbased authentication.
+.Sh FILES
+.Bl -tag -width Ds
+.It Pa /etc/ssh/ssh_host_dsa_key, /etc/ssh/ssh_host_rsa_key
+These files contain the private parts of the host keys used to
+generate the digital signature.  They
+should be owned by root, readable only by root, and not
+accessible to others.
+Since they are readable only by root,
+.Nm
+must be set-uid root if hostbased authentication is used.
+.El
 .Sh SEE ALSO
 .Xr ssh 1 ,
+.Xr ssh-keygen 1 ,
 .Xr sshd 8
 .Sh AUTHORS
 Markus Friedl <markus@openbsd.org>

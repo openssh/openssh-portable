@@ -10,6 +10,9 @@
    - stevesk@cvs.openbsd.org 2002/06/10 16:53:06
      [auth-rsa.c ssh-rsa.c]
      display minimum RSA modulus in error(); ok markus@
+   - stevesk@cvs.openbsd.org 2002/06/10 16:56:30
+     [ssh-keysign.8]
+     merge in stuff from my man page; ok markus@
 
 20020609
  - (bal) OpenBSD CVS Sync
@@ -875,4 +878,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2202 2002/06/11 15:47:42 mouring Exp $
+$Id: ChangeLog,v 1.2203 2002/06/11 15:50:13 mouring Exp $
