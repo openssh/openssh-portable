@@ -3,6 +3,10 @@
    regress tests so newer versions of GNU head(1) behave themselves.  Patch
    by djm, so ok me.
  - (dtucker) [openbsd-compat/port-aix.c] Silence compiler warnings.
+ - (dtucker) [audit.c audit.h auth.c auth1.c auth2.c loginrec.c monitor.c
+   monitor_wrap.c monitor_wrap.h session.c sshd.c]: Prepend all of the audit
+   defines and enums with SSH_ to prevent namespace collisions on some
+   platforms (eg AIX).
 
 20050204
  - (dtucker) [monitor.c] Permit INVALID_USER audit events from slave too.
@@ -2082,4 +2086,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3638 2005/02/08 10:06:55 dtucker Exp $
+$Id: ChangeLog,v 1.3639 2005/02/08 10:52:47 dtucker Exp $

@@ -665,7 +665,7 @@ do_exec(Session *s, const char *command)
 		debug("Forced command '%.900s'", command);
 	}
 
-#ifdef AUDIT_EVENTS
+#ifdef SSH_AUDIT_EVENTS
 	if (command != NULL)
 		PRIVSEP(audit_run_command(command));
 	else if (s->ttyfd == -1) {
@@ -2333,8 +2333,8 @@ do_cleanup(Authctxt *authctxt)
 	}
 #endif
 
-#ifdef AUDIT_EVENTS
-	PRIVSEP(audit_event(CONNECTION_CLOSE));
+#ifdef SSH_AUDIT_EVENTS
+	PRIVSEP(audit_event(SSH_CONNECTION_CLOSE));
 #endif
 
 	/* remove agent socket */

@@ -1628,7 +1628,7 @@ main(int ac, char **av)
 	remote_port = get_remote_port();
 	remote_ip = get_remote_ipaddr();
 
-#ifdef AUDIT_EVENTS
+#ifdef SSH_AUDIT_EVENTS
 	audit_connection_from(remote_ip, remote_port);
 #endif
 #ifdef LIBWRAP
@@ -1700,8 +1700,8 @@ main(int ac, char **av)
 	}
 
  authenticated:
-#ifdef AUDIT_EVENTS
-	audit_event(AUTH_SUCCESS);
+#ifdef SSH_AUDIT_EVENTS
+	audit_event(SSH_AUTH_SUCCESS);
 #endif
 
 	/*
@@ -2017,10 +2017,10 @@ cleanup_exit(int i)
 {
 	if (the_authctxt)
 		do_cleanup(the_authctxt);
-#ifdef AUDIT_EVENTS
+#ifdef SSH_AUDIT_EVENTS
 	/* done after do_cleanup so it can cancel the PAM auth 'thread' */
 	if (!use_privsep || mm_is_monitor())
-		audit_event(CONNECTION_ABANDON);
+		audit_event(SSH_CONNECTION_ABANDON);
 #endif
 	_exit(i);
 }

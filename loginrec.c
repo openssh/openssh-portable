@@ -164,7 +164,7 @@
 # include <libutil.h>
 #endif
 
-RCSID("$Id: loginrec.c,v 1.64 2005/02/02 13:20:53 dtucker Exp $");
+RCSID("$Id: loginrec.c,v 1.65 2005/02/08 10:52:48 dtucker Exp $");
 
 /**
  ** prototypes for helper functions in this file
@@ -444,7 +444,7 @@ login_write(struct logininfo *li)
 	   !sys_auth_record_login(li->username,li->hostname,li->line))
 		logit("Writing login record failed for %s", li->username);
 #endif
-#ifdef AUDIT_EVENTS
+#ifdef SSH_AUDIT_EVENTS
 	if (li->type == LTYPE_LOGIN)
 		audit_session_open(li->line);
 	else if (li->type == LTYPE_LOGOUT)

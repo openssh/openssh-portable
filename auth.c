@@ -252,7 +252,7 @@ auth_log(Authctxt *authctxt, int authenticated, char *method, char *info)
 		record_failed_login(authctxt->user,
 		    get_canonical_hostname(options.use_dns), "ssh");
 #endif
-#ifdef AUDIT_EVENTS
+#ifdef SSH_AUDIT_EVENTS
 	if (authenticated == 0 && !authctxt->postponed) {
 		ssh_audit_event_t event;
 
@@ -265,15 +265,15 @@ auth_log(Authctxt *authctxt, int authenticated, char *method, char *info)
 		 */
 		event = audit_classify_auth(method);
 		switch(event) {
-		case AUTH_FAIL_NONE:
-		case AUTH_FAIL_PASSWD:
-		case AUTH_FAIL_KBDINT:
+		case SSH_AUTH_FAIL_NONE:
+		case SSH_AUTH_FAIL_PASSWD:
+		case SSH_AUTH_FAIL_KBDINT:
 			if (geteuid() == 0)
 				audit_event(event);
 			break;
-		case AUTH_FAIL_PUBKEY:
-		case AUTH_FAIL_HOSTBASED:
-		case AUTH_FAIL_GSSAPI:
+		case SSH_AUTH_FAIL_PUBKEY:
+		case SSH_AUTH_FAIL_HOSTBASED:
+		case SSH_AUTH_FAIL_GSSAPI:
 			/*
 			 * This is required to handle the case where privsep
 			 * is enabled but it's root logging in, since
@@ -515,9 +515,9 @@ getpwnamallow(const char *user)
 		record_failed_login(user,
 		    get_canonical_hostname(options.use_dns), "ssh");
 #endif
-#ifdef AUDIT_EVENTS
-		audit_event(INVALID_USER);
-#endif /* AUDIT_EVENTS */
+#ifdef SSH_AUDIT_EVENTS
+		audit_event(SSH_INVALID_USER);
+#endif /* SSH_AUDIT_EVENTS */
 		return (NULL);
 	}
 	if (!allowed_user(pw))

@@ -167,8 +167,8 @@ input_userauth_request(int type, u_int32_t seq, void *ctxt)
 			if (options.use_pam)
 				PRIVSEP(start_pam(authctxt));
 #endif
-#ifdef AUDIT_EVENTS
-			PRIVSEP(audit_event(INVALID_USER));
+#ifdef SSH_AUDIT_EVENTS
+			PRIVSEP(audit_event(SSH_INVALID_USER));
 #endif
 		}
 		setproctitle("%s%s", authctxt->valid ? user : "unknown",
@@ -219,8 +219,8 @@ userauth_finish(Authctxt *authctxt, int authenticated, char *method)
 	if (authenticated && authctxt->pw->pw_uid == 0 &&
 	    !auth_root_allowed(method)) {
 		authenticated = 0;
-#ifdef AUDIT_EVENTS
-		PRIVSEP(audit_event(LOGIN_ROOT_DENIED));
+#ifdef SSH_AUDIT_EVENTS
+		PRIVSEP(audit_event(SSH_LOGIN_ROOT_DENIED));
 #endif
 	}
 
@@ -263,8 +263,8 @@ userauth_finish(Authctxt *authctxt, int authenticated, char *method)
 		authctxt->success = 1;
 	} else {
 		if (authctxt->failures++ > options.max_authtries) {
-#ifdef AUDIT_EVENTS
-			PRIVSEP(audit_event(LOGIN_EXCEED_MAXTRIES));
+#ifdef SSH_AUDIT_EVENTS
+			PRIVSEP(audit_event(SSH_LOGIN_EXCEED_MAXTRIES));
 #endif
 			packet_disconnect(AUTH_FAIL_MSG, authctxt->user);
 		}

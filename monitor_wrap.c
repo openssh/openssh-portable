@@ -1103,7 +1103,7 @@ mm_auth_rsa_verify_response(Key *key, BIGNUM *p, u_char response[16])
 	return (success);
 }
 
-#ifdef AUDIT_EVENTS
+#ifdef SSH_AUDIT_EVENTS
 void
 mm_audit_event(ssh_audit_event_t event)
 {
@@ -1131,7 +1131,7 @@ mm_audit_run_command(const char *command)
 	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_AUDIT_COMMAND, &m);
 	buffer_free(&m);
 }
-#endif /* AUDIT_EVENTS */
+#endif /* SSH_AUDIT_EVENTS */
 
 #ifdef GSSAPI
 OM_uint32

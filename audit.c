@@ -1,4 +1,4 @@
-/* $Id: audit.c,v 1.1 2005/02/02 13:37:14 dtucker Exp $ */
+/* $Id: audit.c,v 1.2 2005/02/08 10:52:48 dtucker Exp $ */
 
 /*
  * Copyright (c) 2004, 2005 Darren Tucker.  All rights reserved.
@@ -26,7 +26,7 @@
 
 #include "includes.h"
 
-#ifdef AUDIT_EVENTS
+#ifdef SSH_AUDIT_EVENTS
 
 #include "audit.h"
 #include "log.h"
@@ -44,22 +44,22 @@ ssh_audit_event_t
 audit_classify_auth(const char *method)
 {
 	if (strcmp(method, "none") == 0)
-		return AUTH_FAIL_NONE;
+		return SSH_AUTH_FAIL_NONE;
 	else if (strcmp(method, "password") == 0)
-		return AUTH_FAIL_PASSWD;
+		return SSH_AUTH_FAIL_PASSWD;
 	else if (strcmp(method, "publickey") == 0 ||
 	    strcmp(method, "rsa") == 0)
-		return AUTH_FAIL_PUBKEY;
+		return SSH_AUTH_FAIL_PUBKEY;
 	else if (strncmp(method, "keyboard-interactive", 20) == 0 ||
 	    strcmp(method, "challenge-response") == 0)
-		return AUTH_FAIL_KBDINT;
+		return SSH_AUTH_FAIL_KBDINT;
 	else if (strcmp(method, "hostbased") == 0 ||
 	    strcmp(method, "rhosts-rsa") == 0)
-		return AUTH_FAIL_HOSTBASED;
+		return SSH_AUTH_FAIL_HOSTBASED;
 	else if (strcmp(method, "gssapi-with-mic") == 0)
-		return AUTH_FAIL_GSSAPI;
+		return SSH_AUTH_FAIL_GSSAPI;
 	else
-		return AUDIT_UNKNOWN;
+		return SSH_AUDIT_UNKNOWN;
 }
 
 /* helper to return supplied username */
@@ -84,32 +84,32 @@ audit_event_lookup(ssh_audit_event_t ev)
 		ssh_audit_event_t event;
 		const char *name;
 	} event_lookup[] = {
-		{LOGIN_EXCEED_MAXTRIES,	"LOGIN_EXCEED_MAXTRIES"},
-		{LOGIN_ROOT_DENIED,	"LOGIN_ROOT_DENIED"},
-		{AUTH_SUCCESS,		"AUTH_SUCCESS"},
-		{AUTH_FAIL_NONE,	"AUTH_FAIL_NONE"},
-		{AUTH_FAIL_PASSWD,	"AUTH_FAIL_PASSWD"},
-		{AUTH_FAIL_KBDINT,	"AUTH_FAIL_KBDINT"},
-		{AUTH_FAIL_PUBKEY,	"AUTH_FAIL_PUBKEY"},
-		{AUTH_FAIL_HOSTBASED,	"AUTH_FAIL_HOSTBASED"},
-		{AUTH_FAIL_GSSAPI,	"AUTH_FAIL_GSSAPI"},
-		{INVALID_USER,		"INVALID_USER"},
-		{NOLOGIN,		"NOLOGIN"},
-		{CONNECTION_CLOSE,	"CONNECTION_CLOSE"},
-		{CONNECTION_ABANDON,	"CONNECTION_ABANDON"},
-		{AUDIT_UNKNOWN,		"AUDIT_UNKNOWN"}
+		{SSH_LOGIN_EXCEED_MAXTRIES,	"LOGIN_EXCEED_MAXTRIES"},
+		{SSH_LOGIN_ROOT_DENIED,		"LOGIN_ROOT_DENIED"},
+		{SSH_AUTH_SUCCESS,		"AUTH_SUCCESS"},
+		{SSH_AUTH_FAIL_NONE,		"AUTH_FAIL_NONE"},
+		{SSH_AUTH_FAIL_PASSWD,		"AUTH_FAIL_PASSWD"},
+		{SSH_AUTH_FAIL_KBDINT,		"AUTH_FAIL_KBDINT"},
+		{SSH_AUTH_FAIL_PUBKEY,		"AUTH_FAIL_PUBKEY"},
+		{SSH_AUTH_FAIL_HOSTBASED,	"AUTH_FAIL_HOSTBASED"},
+		{SSH_AUTH_FAIL_GSSAPI,		"AUTH_FAIL_GSSAPI"},
+		{SSH_INVALID_USER,		"INVALID_USER"},
+		{SSH_NOLOGIN,			"NOLOGIN"},
+		{SSH_CONNECTION_CLOSE,		"CONNECTION_CLOSE"},
+		{SSH_CONNECTION_ABANDON,	"CONNECTION_ABANDON"},
+		{SSH_AUDIT_UNKNOWN,		"AUDIT_UNKNOWN"}
 	};
 
-	for (i = 0; event_lookup[i].event != AUDIT_UNKNOWN; i++)
+	for (i = 0; event_lookup[i].event != SSH_AUDIT_UNKNOWN; i++)
 		if (event_lookup[i].event == ev)
 			break;
 	return(event_lookup[i].name);
 }
 
-# ifndef CUSTOM_AUDIT_EVENTS
+# ifndef CUSTOM_SSH_AUDIT_EVENTS
 /*
  * Null implementations of audit functions.
- * These get used if AUDIT_EVENTS is defined but no audit module is enabled.
+ * These get used if SSH_AUDIT_EVENTS is defined but no audit module is enabled.
  */
 
 /*
@@ -177,5 +177,5 @@ audit_run_command(const char *command)
 	debug("audit run command euid %d user %s command '%.200s'", geteuid(),
 	    audit_username(), command);
 }
-# endif  /* !defined CUSTOM_AUDIT_EVENTS */
-#endif /* AUDIT_EVENTS */
+# endif  /* !defined CUSTOM_SSH_AUDIT_EVENTS */
+#endif /* SSH_AUDIT_EVENTS */

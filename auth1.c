@@ -249,8 +249,8 @@ do_authloop(Authctxt *authctxt)
 		if (authenticated && authctxt->pw->pw_uid == 0 &&
 		    !auth_root_allowed(get_authname(type))) {
 			authenticated = 0;
-# ifdef AUDIT_EVENTS
-			PRIVSEP(audit_event(LOGIN_ROOT_DENIED));
+# ifdef SSH_AUDIT_EVENTS
+			PRIVSEP(audit_event(SSH_LOGIN_ROOT_DENIED));
 # endif
 		}
 #endif
@@ -288,8 +288,8 @@ do_authloop(Authctxt *authctxt)
 			return;
 
 		if (authctxt->failures++ > options.max_authtries) {
-#ifdef AUDIT_EVENTS
-			PRIVSEP(audit_event(LOGIN_EXCEED_MAXTRIES));
+#ifdef SSH_AUDIT_EVENTS
+			PRIVSEP(audit_event(SSH_LOGIN_EXCEED_MAXTRIES));
 #endif
 			packet_disconnect(AUTH_FAIL_MSG, authctxt->user);
 		}
