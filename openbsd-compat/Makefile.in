@@ -21,7 +21,8 @@ COMPAT=bsd-arc4random.o bsd-cygwin_util.o bsd-misc.o bsd-nextstep.o bsd-snprintf
 
 all: libopenbsd-compat.a
 
-$(BSDCOMPAT): ../config.h
+$(COMPAT): ../config.h
+$(OPENBSD): ../config.h
 
 libopenbsd-compat.a:  $(COMPAT) $(OPENBSD)
 	$(AR) rv $@ $(COMPAT) $(OPENBSD)
