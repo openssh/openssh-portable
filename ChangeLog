@@ -1,3 +1,8 @@
+20030925
+ - (dtucker) [configure.ac openbsd-compat/xcrypt.c] Bug #633: Remove
+   DISABLE_SHADOW for HP-UX, use getspnam instead of getprpwnam.  Patch from
+   michael_steffens at hp.com, ok djm@
+
 20030924
  - (djm) Update version.h and spec files for HEAD
  - (dtucker) [configure.ac] IRIX5 needs the same setre[ug]id defines as IRIX6.
@@ -1223,4 +1228,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3041 2003/09/24 10:03:48 dtucker Exp $
+$Id: ChangeLog,v 1.3042 2003/09/25 10:18:33 dtucker Exp $
