@@ -38,6 +38,9 @@
    - djm@cvs.openbsd.org 2004/10/29 23:59:22
      [Makefile added brokenkeys.sh]
      regression test for handling of corrupt keys in authorized_keys file
+   - djm@cvs.openbsd.org 2004/11/07 00:32:41
+     [multiplex.sh]
+     regression tests for new multiplex commands
 
 20041203
  - (dtucker) OpenBSD CVS Sync
@@ -1911,4 +1914,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3595 2004/12/06 12:07:37 dtucker Exp $
+$Id: ChangeLog,v 1.3596 2004/12/06 12:12:15 dtucker Exp $
