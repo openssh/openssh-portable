@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.104 2003/01/28 00:33:44 djm Exp $
+# $Id: configure.ac,v 1.105 2003/02/01 04:43:34 mouring Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -388,7 +388,7 @@ AC_CHECK_HEADERS(bstring.h crypt.h endian.h floatingpoint.h \
 	rpc/types.h security/pam_appl.h shadow.h stddef.h stdint.h \
 	strings.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h \
 	sys/mman.h sys/pstat.h sys/select.h sys/stat.h \
-	sys/stropts.h sys/sysmacros.h sys/time.h \
+	sys/stropts.h sys/sysmacros.h sys/time.h sys/timers.h \
 	sys/un.h time.h tmpdir.h ttyent.h usersec.h \
 	util.h utime.h utmp.h utmpx.h)
 
@@ -604,8 +604,8 @@ AC_CHECK_FUNCS(arc4random b64_ntop bcopy bindresvport_sa \
 	clock fchmod fchown freeaddrinfo futimes gai_strerror \
 	getaddrinfo getcwd getgrouplist getnameinfo getopt getpeereid\
 	getrlimit getrusage getttyent glob inet_aton inet_ntoa \
-	inet_ntop innetgr login_getcapbool md5_crypt memmove \
-	mkdtemp mmap ngetaddrinfo openpty ogetaddrinfo pstat readpassphrase \
+	inet_ntop innetgr login_getcapbool md5_crypt memmove mkdtemp \
+	mmap ngetaddrinfo nsleep openpty ogetaddrinfo pstat readpassphrase \
 	realpath recvmsg rresvport_af sendmsg setdtablesize setegid \
 	setenv seteuid setgroups setlogin setproctitle setresgid setreuid \
 	setrlimit setsid setpcred setvbuf sigaction sigvec snprintf \
