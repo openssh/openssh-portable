@@ -28,6 +28,7 @@ RCSID("$OpenBSD: monitor_mm.c,v 1.7 2002/06/28 01:49:31 millert Exp $");
 
 #ifdef HAVE_SYS_MMAN_H
 #include <sys/mman.h>
+void *xmmap(size_t);
 #endif
 
 #include "ssh.h"

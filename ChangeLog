@@ -1,8 +1,12 @@
+20020718
+ - (tim) [defines.h] Bug 313 patch by dirk.meyer@dinoex.sub.org
+ - (tim) [monitor_mm.c] add missing declaration for xmmap(). Reported
+   by ayamura@ayamura.org
+
 20020717
  - (bal) aixbff package updated by dtucker@zip.com.au
  - (tim) [configure.ac] change how we do paths in AC_PATH_PROGS tests
    for autoconf 2.53. Based on a patch by jrj@purdue.edu
- - (tim) [defines.h] Bug 313 patch by dirk.meyer@dinoex.sub.org
 
 20020716
  - (tim) [contrib/solaris/opensshd.in] Only kill sshd if .pid file found
@@ -1383,4 +1387,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2374 2002/07/18 16:31:51 tim Exp $
+$Id: ChangeLog,v 1.2375 2002/07/18 18:34:29 tim Exp $
