@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.252 2002/06/28 10:08:25 deraadt Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.253 2002/06/28 23:05:06 deraadt Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -530,7 +530,7 @@ static void
 privsep_preauth_child(void)
 {
 	u_int32_t rand[256];
-	gid_t gidset[2];
+	gid_t gidset[1];
 	struct passwd *pw;
 	int i;
 
