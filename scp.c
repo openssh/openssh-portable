@@ -71,7 +71,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.103 2003/06/03 02:56:16 millert Exp $");
+RCSID("$OpenBSD: scp.c,v 1.104 2003/06/04 12:18:49 djm Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -202,9 +202,7 @@ void toremote(char *, int, char *[]);
 void usage(void);
 
 int
-main(argc, argv)
-	int argc;
-	char *argv[];
+main(int argc, char **argv)
 {
 	int ch, fflag, tflag, status;
 	double speed;
@@ -349,9 +347,7 @@ main(argc, argv)
 }
 
 void
-toremote(targ, argc, argv)
-	char *targ, *argv[];
-	int argc;
+toremote(char *targ, int argc, char **argv)
 {
 	int i, len;
 	char *bp, *host, *src, *suser, *thost, *tuser;
@@ -439,9 +435,7 @@ toremote(targ, argc, argv)
 }
 
 void
-tolocal(argc, argv)
-	int argc;
-	char *argv[];
+tolocal(int argc, char **argv)
 {
 	int i, len;
 	char *bp, *host, *src, *suser;
@@ -490,9 +484,7 @@ tolocal(argc, argv)
 }
 
 void
-source(argc, argv)
-	int argc;
-	char *argv[];
+source(int argc, char **argv)
 {
 	struct stat stb;
 	static BUF buffer;
@@ -600,9 +592,7 @@ next:			(void) close(fd);
 }
 
 void
-rsource(name, statp)
-	char *name;
-	struct stat *statp;
+rsource(char *name, struct stat *statp)
 {
 	DIR *dirp;
 	struct dirent *dp;
@@ -709,9 +699,7 @@ bwlimit(int amount)
 }
 
 void
-sink(argc, argv)
-	int argc;
-	char *argv[];
+sink(int argc, char **argv)
 {
 	static BUF buffer;
 	struct stat stb;
@@ -1050,8 +1038,7 @@ run_err(const char *fmt,...)
 }
 
 void
-verifydir(cp)
-	char *cp;
+verifydir(char *cp)
 {
 	struct stat stb;
 
@@ -1065,8 +1052,7 @@ verifydir(cp)
 }
 
 int
-okname(cp0)
-	char *cp0;
+okname(char *cp0)
 {
 	int c;
 	char *cp;
@@ -1096,9 +1082,7 @@ bad:	fprintf(stderr, "%s: invalid user name\n", cp0);
 }
 
 BUF *
-allocbuf(bp, fd, blksize)
-	BUF *bp;
-	int fd, blksize;
+allocbuf(BUF *bp, int fd, int blksize)
 {
 	size_t size;
 #ifdef HAVE_STRUCT_STAT_ST_BLKSIZE
@@ -1126,8 +1110,7 @@ allocbuf(bp, fd, blksize)
 }
 
 void
-lostconn(signo)
-	int signo;
+lostconn(int signo)
 {
 	if (!iamremote)
 		write(STDERR_FILENO, "lost connection\n", 16);

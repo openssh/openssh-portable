@@ -17,6 +17,9 @@
    - djm@cvs.openbsd.org 2003/06/04 12:03:59
      [serverloop.c]
      remove bitrotten commet; ok markus@
+   - djm@cvs.openbsd.org 2003/06/04 12:18:49
+     [scp.c]
+     ansify; ok markus@
  - (djm) Update to fix of bug #584: lock card before return. 
    From larsch@trustcenter.de
 
@@ -447,4 +450,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2777 2003/06/04 12:50:54 djm Exp $
+$Id: ChangeLog,v 1.2778 2003/06/04 12:51:08 djm Exp $
