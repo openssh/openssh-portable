@@ -125,6 +125,9 @@
    - markus@cvs.openbsd.org 2002/01/11 10:31:05
      [packet.c]
      handle received SSH2_MSG_UNIMPLEMENTED messages; ok djm@
+   - markus@cvs.openbsd.org 2002/01/11 13:36:43
+     [ssh2.h]
+     add defines for msg type ranges
 
 
 20020121
@@ -7273,4 +7276,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1759 2002/01/22 12:23:11 djm Exp $
+$Id: ChangeLog,v 1.1760 2002/01/22 12:23:41 djm Exp $
