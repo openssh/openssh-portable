@@ -5,6 +5,8 @@
      default LoginGraceTime to 2m; 1m may be too short for slow systems.
      ok markus@
  - (djm) Merge openssh-TODO.patch from Redhat (null) beta
+ - (djm) Add gnome-ssh-askpass2.c (gtk2) by merge with patch from 
+    Nalin Dahyabhai <nalin@redhat.com>
 
 20020903
  - (djm) Patch from itojun@ for Darwin OS: test getaddrinfo, reorder libcrypt
@@ -1605,4 +1607,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2446 2002/09/05 06:32:02 djm Exp $
+$Id: ChangeLog,v 1.2447 2002/09/05 06:46:24 djm Exp $
