@@ -1,4 +1,8 @@
 20030603
+ - (djm) Bug #573 - Remove unneeded Krb headers and compat goop. Patch from
+   simon@sxw.org.uk (Also matches a change in OpenBSD a while ago)
+
+20030603
  - (djm) Replace setproctitle replacement with code derived from 
    UCB sendmail
  - (djm) OpenBSD CVS Sync
@@ -425,4 +429,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2770 2003/06/03 03:09:16 djm Exp $
+$Id: ChangeLog,v 1.2771 2003/06/04 09:06:59 djm Exp $
