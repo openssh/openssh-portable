@@ -37,8 +37,13 @@ RCSID("$OpenBSD: monitor.c,v 1.55 2004/02/05 05:37:17 dtucker Exp $");
 #include "auth.h"
 #include "kex.h"
 #include "dh.h"
-#undef TARGET_OS_MAC	/* XXX Broken krb5 headers on Mac */
+#ifdef TARGET_OS_MAC	/* XXX Broken krb5 headers on Mac */
+#undef TARGET_OS_MAC
 #include "zlib.h"
+#define TARGET_OS_MAC 1
+#else
+#include "zlib.h"
+#endif
 #include "packet.h"
 #include "auth-options.h"
 #include "sshpty.h"

@@ -40,8 +40,13 @@ RCSID("$OpenBSD: monitor_wrap.c,v 1.35 2003/11/17 11:06:07 markus Exp $");
 #include "packet.h"
 #include "mac.h"
 #include "log.h"
-#undef TARGET_OS_MAC  /* XXX Broken krb5 headers on Mac */
+#ifdef TARGET_OS_MAC    /* XXX Broken krb5 headers on Mac */
+#undef TARGET_OS_MAC
 #include "zlib.h"
+#define TARGET_OS_MAC 1
+#else
+#include "zlib.h"
+#endif
 #include "monitor.h"
 #include "monitor_wrap.h"
 #include "xmalloc.h"
