@@ -1,4 +1,5 @@
 20020903
+ - (djm) Patch from itojun@ for Darwin OS: test getaddrinfo, reorder libcrypt
  - (djm) Fix Redhat RPM build dependancy test
  - (djm) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2002/08/12 10:46:35
@@ -1596,4 +1597,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2443 2002/09/04 07:19:04 djm Exp $
+$Id: ChangeLog,v 1.2444 2002/09/04 13:26:29 djm Exp $

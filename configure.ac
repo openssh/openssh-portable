@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.85 2002/08/14 01:52:11 tim Exp $
+# $Id: configure.ac,v 1.86 2002/09/04 13:26:30 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -98,7 +98,16 @@ case "$host" in
 	AC_DEFINE(IP_TOS_IS_BROKEN)
 	;;
 *-*-darwin*)
-	AC_DEFINE(BROKEN_GETADDRINFO)
+	AC_MSG_CHECKING(if we have working getaddrinfo)
+	AC_TRY_RUN([#include <mach-o/dyld.h>
+main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
+		exit(0);
+	else
+		exit(1);
+}], [AC_MSG_RESULT(working)],
+	[AC_MSG_RESULT(buggy)
+	AC_DEFINE(BROKEN_GETADDRINFO)],
+	[AC_MSG_RESULT(assume it is working)])
 	;;
 *-*-hpux10.26)
 	if test -z "$GCC"; then
@@ -175,6 +184,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	SONY=1
 	;;
 *-*-netbsd*)
+	check_for_libcrypt_before=1
 	need_dash_r=1
 	;;
 *-*-freebsd*)
@@ -716,6 +726,12 @@ if test "x$PAM_MSG" = "xyes" ; then
 			PAM_MSG="yes (old library)"
 		]
 	)
+fi
+
+# Some systems want crypt() from libcrypt, *not* the version in OpenSSL,
+# because the system crypt() is more featureful.
+if test "x$check_for_libcrypt_before" = "x1"; then
+	AC_CHECK_LIB(crypt, crypt)
 fi
 
 # Search for OpenSSL
