@@ -8,22 +8,42 @@ Copyright: BSD
 Group: Applications/Internet
 BuildRoot: /tmp/openssh-%{version}-buildroot
 Obsoletes: ssh
+
+%package clients
+Summary: OpenSSH Secure Shell protocol clients
+Requires: openssh
+Group: System Environment/Daemons
 Obsoletes: ssh-clients
-Obsoletes: ssh-extras
 
 %package server
-Summary: Secure Shell protocol server (sshd)
+Summary: OpenSSH Secure Shell protocol server (sshd)
 Requires: openssh chkconfig >= 0.9
 Group: System Environment/Daemons
 Obsoletes: ssh-server
 
 %package askpass
-Summary: GNOME passphrase dialog
+Summary: OpenSSH GNOME passphrase dialog
 Group: Applications/Internet
 Requires: openssh
+Obsoletes: ssh-extras
 Obsoletes: ssh-askpass
 
 %description
+Ssh (Secure Shell) a program for logging into a remote machine and for
+executing commands in a remote machine.  It is intended to replace
+rlogin and rsh, and provide secure encrypted communications between
+two untrusted hosts over an insecure network.  X11 connections and
+arbitrary TCP/IP ports can also be forwarded over the secure channel.
+
+OpenSSH is OpenBSD's rework of the last free version of SSH, bringing it
+up to date in terms of security and features, as well as removing all 
+patented algorithms to seperate libraries (OpenSSL).
+
+This package includes the core files necessary for both the OpenSSH
+client and server.  To make this package useful, you should also
+install openssh-clients, openssh-server, or both.
+
+%description clients
 Ssh (Secure Shell) a program for logging into a remote machine and for
 executing commands in a remote machine.  It is intended to replace
 rlogin and rsh, and provide secure encrypted communications between
@@ -48,9 +68,9 @@ OpenSSH is OpenBSD's rework of the last free version of SSH, bringing it
 up to date in terms of security and features, as well as removing all 
 patented algorithms to seperate libraries (OpenSSL).
 
-This package contains the secure shell daemon and its documentation.
-The sshd is the server part of the secure shell protocol and allows
-ssh clients to connect to your host.
+This package contains the secure shell daemon. The sshd is the server 
+part of the secure shell protocol and allows ssh clients to connect to 
+your host.
 
 %description askpass
 Ssh (Secure Shell) a program for logging into a remote machine and for
@@ -66,6 +86,8 @@ patented algorithms to seperate libraries (OpenSSL).
 This package contains the GNOME passphrase dialog.
 
 %changelog
+* Mon Nov 15 1999 Damien Miller <djm@mindrot.org>
+- Split subpackages further based on patch from jim knoble <jmknoble@pobox.com>
 * Sat Nov 13 1999 Damien Miller <djm@mindrot.org>
 - Added 'Obsoletes' directives
 * Tue Nov 09 1999 Damien Miller <djm@ibs.com.au>
@@ -131,19 +153,23 @@ fi
 %defattr(-,root,root)
 %doc COPYING.Ylonen ChangeLog ChangeLog.Ylonen OVERVIEW 
 %doc README README.Ylonen
+%attr(0755,root,root) /usr/bin/ssh-keygen
+%attr(0755,root,root) /usr/bin/scp
+%attr(0644,root,root) /usr/man/man1/ssh-keygen.1
+%attr(0644,root,root) /usr/man/man1/scp.1
+%attr(0755,root,root) %dir /etc/ssh
+
+%files clients
+%defattr(-,root,root)
 %attr(4755,root,root) /usr/bin/ssh
 %attr(0755,root,root) /usr/bin/ssh-agent
-%attr(0755,root,root) /usr/bin/ssh-keygen
 %attr(0755,root,root) /usr/bin/ssh-add
-%attr(0755,root,root) /usr/bin/scp
-%attr(-,root,root) /usr/bin/slogin
 %attr(0644,root,root) /usr/man/man1/ssh.1
 %attr(0644,root,root) /usr/man/man1/ssh-agent.1
-%attr(0644,root,root) /usr/man/man1/ssh-keygen.1
 %attr(0644,root,root) /usr/man/man1/ssh-add.1
-%attr(0644,root,root) /usr/man/man1/scp.1
-%attr(-,root,root) /usr/man/man1/slogin.1
 %attr(0644,root,root) %config /etc/ssh/ssh_config
+%attr(-,root,root) /usr/bin/slogin
+%attr(-,root,root) /usr/man/man1/slogin.1
 
 %files server
 %defattr(-,root,root)
@@ -156,3 +182,5 @@ fi
 %files askpass
 %defattr(-,root,root)
 %attr(0755,root,root) /usr/lib/ssh/ssh-askpass
+%attr(0755,root,root) %dir /usr/lib/ssh
+
