@@ -1,4 +1,4 @@
-/*	$OpenBSD: dns.c,v 1.5 2003/05/15 02:27:15 jakob Exp $	*/
+/*	$OpenBSD: dns.c,v 1.6 2003/06/11 10:18:47 jakob Exp $	*/
 
 /*
  * Copyright (c) 2003 Wesley Griffin. All rights reserved.
@@ -44,7 +44,7 @@
 #include "uuencode.h"
 
 extern char *__progname;
-RCSID("$OpenBSD: dns.c,v 1.5 2003/05/15 02:27:15 jakob Exp $");
+RCSID("$OpenBSD: dns.c,v 1.6 2003/06/11 10:18:47 jakob Exp $");
 
 #ifndef LWRES
 static const char *errset_text[] = {
@@ -221,13 +221,8 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
 
 				/* Matching algoritm and digest. */
 				freerrset(fingerprints);
-#ifdef DNSSEC
 				debug("matching host key fingerprint found in DNS");
 				return DNS_VERIFY_OK;
-#else
-				logit("Matching host key fingerprint found in DNS.");
-				return DNS_VERIFY_ERROR;
-#endif
 			} else {
 				/* Correct algorithm but bad digest */
 				debug("verify_hostkey_dns: failed");
