@@ -98,5 +98,7 @@ PrivSep Issues:
   + Issues with usrinfo()
 - OSF
   + SIA is broken
+- Cygwin
+  + Privsep for Pre-auth only (no fd passing)
 
-$Id: TODO,v 1.47 2002/06/25 02:28:22 mouring Exp $
+$Id: TODO,v 1.48 2002/06/25 14:01:55 mouring Exp $
