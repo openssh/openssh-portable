@@ -25,7 +25,6 @@
 #include "includes.h"
 
 #ifdef USE_PAM
-#include "ssh.h"
 #include "xmalloc.h"
 #include "log.h"
 #include "auth.h"
@@ -39,7 +38,7 @@ extern char *__progname;
 
 extern int use_privsep;
 
-RCSID("$Id: auth-pam.c,v 1.50 2002/07/21 22:49:47 stevesk Exp $");
+RCSID("$Id: auth-pam.c,v 1.51 2002/07/21 23:59:39 stevesk Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now."

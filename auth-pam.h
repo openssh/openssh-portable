@@ -1,4 +1,4 @@
-/* $Id: auth-pam.h,v 1.14 2002/07/21 23:20:07 stevesk Exp $ */
+/* $Id: auth-pam.h,v 1.15 2002/07/21 23:59:39 stevesk Exp $ */
 
 /*
  * Copyright (c) 2000 Damien Miller.  All rights reserved.
@@ -26,6 +26,10 @@
 
 #include "includes.h"
 #ifdef USE_PAM
+
+#if !defined(SSHD_PAM_SERVICE)
+# define SSHD_PAM_SERVICE		__progname
+#endif
 
 void start_pam(const char *user);
 void finish_pam(void);
