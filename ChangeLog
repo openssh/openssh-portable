@@ -37,6 +37,9 @@
    - stevesk@cvs.openbsd.org 2001/10/02 22:56:09
      [sshd.c]
      #include "channels.h" for channel_set_af()
+   - markus@cvs.openbsd.org 2001/10/03 10:01:20
+     [auth.c]
+     use realpath() for homedir, too. from jinmei@isl.rdc.toshiba.co.jp
 
 20011001
  - (stevesk) loginrec.c: fix type conversion problems exposed when using
@@ -6629,4 +6632,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1580 2001/10/03 17:46:39 mouring Exp $
+$Id: ChangeLog,v 1.1581 2001/10/03 17:55:26 mouring Exp $
