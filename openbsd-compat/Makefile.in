@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.9 2001/03/18 23:09:28 djm Exp $
+# $Id: Makefile.in,v 1.10 2001/04/12 21:35:53 mouring Exp $
 
 sysconfdir=@sysconfdir@
 piddir=@piddir@
@@ -16,7 +16,7 @@ RANLIB=@RANLIB@
 INSTALL=@INSTALL@
 LDFLAGS=-L. @LDFLAGS@
 
-OPENBSD=base64.o bindresvport.o daemon.o getcwd.o getgrouplist.o getusershell.o glob.o inet_aton.o inet_ntoa.o mktemp.o realpath.o rresvport.o setenv.o setproctitle.o sigact.o strlcat.o strlcpy.o strmode.o strsep.o strtok.o vis.o
+OPENBSD=base64.o bindresvport.o daemon.o getcwd.o getgrouplist.o getusershell.o glob.o inet_aton.o inet_ntoa.o inet_ntop.o mktemp.o realpath.o rresvport.o setenv.o setproctitle.o sigact.o strlcat.o strlcpy.o strmode.o strsep.o strtok.o vis.o
 
 COMPAT=bsd-arc4random.o bsd-cygwin_util.o bsd-misc.o bsd-nextstep.o bsd-snprintf.o bsd-waitpid.o fake-getaddrinfo.o fake-getnameinfo.o
 

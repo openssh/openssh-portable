@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.5 2001/03/18 23:09:28 djm Exp $ */
+/* $Id: openbsd-compat.h,v 1.6 2001/04/12 21:35:54 mouring Exp $ */
 
 #ifndef _OPENBSD_H
 #define _OPENBSD_H
@@ -19,6 +19,7 @@
 #include "sigact.h"
 #include "inet_aton.h"
 #include "inet_ntoa.h"
+#include "inet_ntop.h"
 #include "strsep.h"
 #include "strtok.h"
 #include "vis.h"
