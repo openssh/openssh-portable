@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.134 2002/03/29 18:59:31 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.135 2002/05/16 22:09:59 stevesk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1014,7 +1014,7 @@ do_rc_files(Session *s, const char *shell)
 		/* Add authority data to .Xauthority if appropriate. */
 		if (debug_flag) {
 			fprintf(stderr,
-			    "Running %.100s add "
+			    "Running %.500s add "
 			    "%.100s %.100s %.100s\n",
 			    options.xauth_location, s->auth_display,
 			    s->auth_proto, s->auth_data);
