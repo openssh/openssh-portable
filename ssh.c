@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.218 2004/06/18 10:40:19 djm Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.219 2004/06/18 10:55:43 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -160,8 +160,7 @@ usage(void)
 "usage: ssh [-1246AaCfghkMNnqsTtVvXxY] [-b bind_address] [-c cipher_spec]\n"
 "           [-D port] [-e escape_char] [-F configfile] [-i identity_file]\n"
 "           [-L port:host:hostport] [-l login_name] [-m mac_spec] [-o option]\n"
-"           [-p port] [-R port:host:hostport] [-S ctl_path]\n"
-"           [user@]hostname [command]\n"
+"           [-p port] [-R port:host:hostport] [-S ctl] [user@]hostname [command]\n"
 	);
 	exit(1);
 }
@@ -377,7 +376,8 @@ again:
 			}
 			break;
 		case 'M':
-			options.control_master = 1;
+			options.control_master =
+			    (options.control_master >= 1) ? 2 : 1;
 			break;
 		case 'p':
 			options.port = a2port(optarg);
@@ -451,8 +451,6 @@ again:
 			if (options.control_path != NULL)
 				free(options.control_path);
 			options.control_path = xstrdup(optarg);
-			if (options.control_master == -1)
-				options.control_master = 0;
 			break;
 		case 'b':
 			options.bind_address = optarg;
