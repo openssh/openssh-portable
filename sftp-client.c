@@ -28,7 +28,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.21 2002/02/12 12:32:27 djm Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.22 2002/02/12 12:44:46 djm Exp $");
 
 #if defined(HAVE_SYS_QUEUE_H) && !defined(HAVE_BOGUS_SYS_QUEUE_H)
 #include <sys/queue.h>
@@ -905,7 +905,7 @@ do_upload(int fd_in, int fd_out, char *local_path, char *remote_path,
     int pflag, size_t buflen, int num_requests)
 {
 	int local_fd, status;
-	u_int handle_len, id;
+	u_int handle_len, id, type;
 	u_int64_t offset;
 	char *handle, *data;
 	Buffer msg;
@@ -913,6 +913,16 @@ do_upload(int fd_in, int fd_out, char *local_path, char *remote_path,
 	Attrib a;
 	u_int32_t startid;
 	u_int32_t ackid;
+	struct outstanding_ack {
+		u_int id;
+		u_int len;
+		u_int64_t offset;
+		TAILQ_ENTRY(outstanding_ack) tq; 
+	};
+	TAILQ_HEAD(ackhead, outstanding_ack) acks;
+	struct outstanding_ack *ack;
+
+	TAILQ_INIT(&acks);
 
 	if ((local_fd = open(local_path, O_RDONLY, 0)) == -1) {
 		error("Couldn't open local file \"%s\" for reading: %s",
@@ -975,21 +985,49 @@ do_upload(int fd_in, int fd_out, char *local_path, char *remote_path,
 			    strerror(errno));
 
 		if (len != 0) {
+			ack = xmalloc(sizeof(*ack));
+			ack->id = ++id;
+			ack->offset = offset;
+			ack->len = len;
+			TAILQ_INSERT_TAIL(&acks, ack, tq);
+
 			buffer_clear(&msg);
 			buffer_put_char(&msg, SSH2_FXP_WRITE);
-			buffer_put_int(&msg, ++id);
+			buffer_put_int(&msg, ack->id);
 			buffer_put_string(&msg, handle, handle_len);
 			buffer_put_int64(&msg, offset);
 			buffer_put_string(&msg, data, len);
 			send_msg(fd_out, &msg);
 			debug3("Sent message SSH2_FXP_WRITE I:%d O:%llu S:%u",
 			       id, (u_int64_t)offset, len);
-		} else if ( id < ackid )
+		} else if (TAILQ_FIRST(&acks) == NULL)
 			break;
 
-		if (id == startid || len == 0 ||
-		    id - ackid >= num_requests) {
-			status = get_status(fd_in, ackid);
+		if (ack == NULL)
+			fatal("Unexpected ACK %u", id);
+
+		if (id == startid || len == 0 || id - ackid >= num_requests) {
+			buffer_clear(&msg);
+			get_msg(fd_in, &msg);
+			type = buffer_get_char(&msg);
+			id = buffer_get_int(&msg);
+
+			if (type != SSH2_FXP_STATUS)
+				fatal("Expected SSH2_FXP_STATUS(%d) packet, "
+				    "got %d", SSH2_FXP_STATUS, type);
+
+			status = buffer_get_int(&msg);
+			debug3("SSH2_FXP_STATUS %d", status);
+
+			/* Find the request in our queue */
+			for(ack = TAILQ_FIRST(&acks);
+			    ack != NULL && ack->id != id;
+			    ack = TAILQ_NEXT(ack, tq))
+				;
+			if (ack == NULL)
+				fatal("Can't find request for ID %d", id);
+			TAILQ_REMOVE(&acks, ack, tq);
+
 			if (status != SSH2_FX_OK) {
 				error("Couldn't write to remote file \"%s\": %s",
 				      remote_path, fx2txt(status));
@@ -997,9 +1035,10 @@ do_upload(int fd_in, int fd_out, char *local_path, char *remote_path,
 				close(local_fd);
 				goto done;
 			}
-			debug3("In write loop, got %d offset %llu", len,
-			       (u_int64_t)offset);
+			debug3("In write loop, ack for %u %d bytes at %llu", 
+			   ack->id, ack->len, ack->offset);
 			++ackid;
+			free(ack);
 		}
 
 		offset += len;
