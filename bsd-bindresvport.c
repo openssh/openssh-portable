@@ -84,17 +84,17 @@ bindresvport_af(sd, sa, af)
 	sa->sa_family = af;
 
 	if (*portp == 0)
-		*portp = (arc4random() % NPORTS) + STARTPORT;
+		*portp = (u_int16_t)(arc4random() % NPORTS) + STARTPORT;
 
 	for(i = 0; i < NPORTS; i++) {
 		error = bind(sd, sa, salen);
-
+		
 		/* Terminate on success */
 		if (error == 0)
 			break;
 			
 		/* Terminate on errors, except "address already in use" */
-		if ((error < 0) && ((errno != EADDRINUSE) || (errno != EINVAL)))
+		if ((error < 0) && !((errno == EADDRINUSE) || (errno == EINVAL)))
 			break;
 			
 		*portp = (i % NPORTS) + STARTPORT;
