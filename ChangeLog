@@ -36,6 +36,9 @@
    - markus@cvs.openbsd.org 2001/11/07 22:12:01
      [sshd.8]
      s/Keepalive/KeepAlive/; from openbsd@davidkrause.com
+   - markus@cvs.openbsd.org 2001/11/07 22:41:51
+     [auth2.c auth-rh-rsa.c]
+     unused includes
 
 20011109
  - (stevesk) auth-pam.c: use do_pam_authenticate(PAM_DISALLOW_NULL_AUTHTOK)
@@ -6845,4 +6848,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1645 2001/11/12 00:04:05 djm Exp $
+$Id: ChangeLog,v 1.1646 2001/11/12 00:04:28 djm Exp $
