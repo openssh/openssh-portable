@@ -23,12 +23,11 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.24 2001/03/28 21:59:40 provos Exp $");
+RCSID("$OpenBSD: kex.c,v 1.25 2001/03/29 21:17:39 markus Exp $");
 
 #include <openssl/crypto.h>
 #include <openssl/bio.h>
 #include <openssl/bn.h>
-#include <openssl/dh.h>
 #include <openssl/pem.h>
 
 #include "ssh2.h"
@@ -111,113 +110,6 @@ kex_exchange_kexinit(
 	debug("reserved: %d ", i);
 	packet_done();
 	debug("done");
-}
-
-/* diffie-hellman-group1-sha1 */
-
-int
-dh_pub_is_valid(DH *dh, BIGNUM *dh_pub)
-{
-	int i;
-	int n = BN_num_bits(dh_pub);
-	int bits_set = 0;
-
-	if (dh_pub->neg) {
-		log("invalid public DH value: negativ");
-		return 0;
-	}
-	for (i = 0; i <= n; i++)
-		if (BN_is_bit_set(dh_pub, i))
-			bits_set++;
-	debug("bits set: %d/%d", bits_set, BN_num_bits(dh->p));
-
-	/* if g==2 and bits_set==1 then computing log_g(dh_pub) is trivial */
-	if (bits_set > 1 && (BN_cmp(dh_pub, dh->p) == -1))
-		return 1;
-	log("invalid public DH value (%d/%d)", bits_set, BN_num_bits(dh->p));
-	return 0;
-}
-
-void
-dh_gen_key(DH *dh, int need)
-{
-	int i, bits_set = 0, tries = 0;
-
-	if (dh->p == NULL)
-		fatal("dh_gen_key: dh->p == NULL");
-	if (2*need >= BN_num_bits(dh->p))
-		fatal("dh_gen_key: group too small: %d (2*need %d)",
-		    BN_num_bits(dh->p), 2*need);
-	do {
-		if (dh->priv_key != NULL)
-			BN_free(dh->priv_key);
-		dh->priv_key = BN_new();
-		if (dh->priv_key == NULL)
-			fatal("dh_gen_key: BN_new failed");
-		/* generate a 2*need bits random private exponent */
-		if (!BN_rand(dh->priv_key, 2*need, 0, 0))
-			fatal("dh_gen_key: BN_rand failed");
-		if (DH_generate_key(dh) == 0)
-			fatal("DH_generate_key");
-		for (i = 0; i <= BN_num_bits(dh->priv_key); i++)
-			if (BN_is_bit_set(dh->priv_key, i))
-				bits_set++;
-		debug("dh_gen_key: priv key bits set: %d/%d",
-		    bits_set, BN_num_bits(dh->priv_key));
-		if (tries++ > 10)
-			fatal("dh_gen_key: too many bad keys: giving up");
-	} while (!dh_pub_is_valid(dh, dh->pub_key));
-}
-
-DH *
-dh_new_group_asc(const char *gen, const char *modulus)
-{
-	DH *dh;
-	int ret;
-
-	dh = DH_new();
-	if (dh == NULL)
-		fatal("DH_new");
-
-	if ((ret = BN_hex2bn(&dh->p, modulus)) < 0)
-		fatal("BN_hex2bn p");
-	if ((ret = BN_hex2bn(&dh->g, gen)) < 0)
-		fatal("BN_hex2bn g");
-
-	return (dh);
-}
-
-/*
- * This just returns the group, we still need to generate the exchange
- * value.
- */
-
-DH *
-dh_new_group(BIGNUM *gen, BIGNUM *modulus)
-{
-	DH *dh;
-
-	dh = DH_new();
-	if (dh == NULL)
-		fatal("DH_new");
-	dh->p = modulus;
-	dh->g = gen;
-
-	return (dh);
-}
-
-DH *
-dh_new_group1(void)
-{
-	static char *gen = "2", *group1 =
-	    "FFFFFFFF" "FFFFFFFF" "C90FDAA2" "2168C234" "C4C6628B" "80DC1CD1"
-	    "29024E08" "8A67CC74" "020BBEA6" "3B139B22" "514A0879" "8E3404DD"
-	    "EF9519B3" "CD3A431B" "302B0A6D" "F25F1437" "4FE1356D" "6D51C245"
-	    "E485B576" "625E7EC6" "F44C42E9" "A637ED6B" "0BFF5CB6" "F406B7ED"
-	    "EE386BFB" "5A899FA5" "AE9F2411" "7C4B1FE6" "49286651" "ECE65381"
-	    "FFFFFFFF" "FFFFFFFF";
-
-	return (dh_new_group_asc(gen, group1));
 }
 
 #ifdef DEBUG_KEX

@@ -1,4 +1,4 @@
-/*	$OpenBSD: kex.h,v 1.16 2001/03/28 21:59:40 provos Exp $	*/
+/*	$OpenBSD: kex.h,v 1.17 2001/03/29 21:17:40 markus Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -103,11 +103,6 @@ kex_choose_conf(char *cprop[PROPOSAL_MAX],
     char *sprop[PROPOSAL_MAX], int server);
 int	kex_derive_keys(Kex *k, u_char *hash, BIGNUM *shared_secret);
 void	packet_set_kex(Kex *k);
-int	dh_pub_is_valid(DH *dh, BIGNUM *dh_pub);
-DH	*dh_new_group_asc(const char *, const char *);
-DH	*dh_new_group(BIGNUM *, BIGNUM *);
-void	dh_gen_key(DH *, int);
-DH	*dh_new_group1(void);
 
 u_char *
 kex_hash(
