@@ -7,6 +7,17 @@
  - Irix uses preformatted manpages
  - Missing htons() in bsd-bindresvport.c, fix from Holger Trapp
    <Holger.Trapp@Informatik.TU-Chemnitz.DE>
+ - OpenBSD CVS updates:
+   - [packet.c]
+     use getpeername() in packet_connection_is_on_socket(), fixes sshd -i;
+     from Holger.Trapp@Informatik.TU-Chemnitz.DE
+   - [sshd.c]
+     log with level log() not fatal() if peer behaves badly.
+   - [readpass.c]
+     instead of blocking SIGINT, catch it ourselves, so that we can clean 
+     the tty modes up and kill ourselves -- instead of our process group 
+     leader (scp, cvs, ...) going away and leaving us in noecho mode.  
+     people with cbreak shells never even noticed..
 
 20000120
  - Don't use getaddrinfo on AIX

@@ -32,10 +32,18 @@
  */
 
 #include "includes.h"
-RCSID("$Id: readpass.c,v 1.4 1999/12/08 23:31:37 damien Exp $");
+RCSID("$Id: readpass.c,v 1.5 2000/01/22 08:47:21 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
+
+volatile int intr;
+
+void
+intcatch()
+{
+	intr = 1;
+}
 
 /*
  * Reads a passphrase from /dev/tty with echo turned off.  Returns the
@@ -48,6 +56,7 @@ read_passphrase(const char *prompt, int from_stdin)
 	char buf[1024], *p, ch;
 	struct termios tio, saved_tio;
 	sigset_t oset, nset;
+	struct sigaction sa, osa;
 	int input, output, echo = 0;
   
 	if (from_stdin) {
@@ -61,13 +70,17 @@ read_passphrase(const char *prompt, int from_stdin)
 
 	/* block signals, get terminal modes and turn off echo */
 	sigemptyset(&nset);
-	sigaddset(&nset, SIGINT);
 	sigaddset(&nset, SIGTSTP);
 	(void) sigprocmask(SIG_BLOCK, &nset, &oset);
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = intcatch;
+	(void) sigaction(SIGINT, &sa, &osa);
 
-	if (tcgetattr(input, &tio) == 0 && (tio.c_lflag & ECHO)) {
+	intr = 0;
+
+	if (tcgetattr(input, &saved_tio) == 0 && (saved_tio.c_lflag & ECHO)) {
 		echo = 1;
-		saved_tio = tio;
+		tio = saved_tio;
 		tio.c_lflag &= ~(ECHO | ECHOE | ECHOK | ECHONL);
 		(void) tcsetattr(input, TCSANOW, &tio);
 	}
@@ -75,16 +88,28 @@ read_passphrase(const char *prompt, int from_stdin)
 	fflush(stdout);
 
 	(void)write(output, prompt, strlen(prompt));
-	for (p = buf; read(input, &ch, 1) == 1 && ch != '\n';)
+	for (p = buf; read(input, &ch, 1) == 1 && ch != '\n';) {
+		if (intr)
+			break;
 		if (p < buf + sizeof(buf) - 1)
 			*p++ = ch;
+	}
 	*p = '\0';
-	(void)write(output, "\n", 1);
+	if (!intr)
+		(void)write(output, "\n", 1);
 
 	/* restore terminal modes and allow signals */
 	if (echo)
 		tcsetattr(input, TCSANOW, &saved_tio);
 	(void) sigprocmask(SIG_SETMASK, &oset, NULL);
+	(void) sigaction(SIGINT, &osa, NULL);
+
+	if (intr) {
+		kill(getpid(), SIGINT);
+		sigemptyset(&nset);
+		/* XXX tty has not neccessarily drained by now? */
+		sigsuspend(&nset);
+	}
 
 	if (!from_stdin)
 		(void)close(input);

@@ -15,7 +15,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: packet.c,v 1.9 2000/01/14 04:45:50 damien Exp $");
+RCSID("$Id: packet.c,v 1.10 2000/01/22 08:47:21 damien Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -117,11 +117,11 @@ packet_connection_is_on_socket()
 		return 1;
 	fromlen = sizeof(from);
 	memset(&from, 0, sizeof(from));
-	if (getpeername(connection_in, (struct sockaddr *) & from, &fromlen) < 0)
+	if (getpeername(connection_in, (struct sockaddr *)&from, &fromlen) < 0)
 		return 0;
 	tolen = sizeof(to);
 	memset(&to, 0, sizeof(to));
-	if (getsockname(connection_out, (struct sockaddr *)&to, &tolen) < 0)
+	if (getpeername(connection_out, (struct sockaddr *)&to, &tolen) < 0)
 		return 0;
 	if (fromlen != tolen || memcmp(&from, &to, fromlen) != 0)
 		return 0;

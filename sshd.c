@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.79 2000/01/18 13:45:05 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.80 2000/01/20 15:19:22 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -784,13 +784,17 @@ main(int ac, char **av)
 		/* Send our protocol version identification. */
 		snprintf(buf, sizeof buf, "SSH-%d.%d-%.100s\n",
 			 PROTOCOL_MAJOR, PROTOCOL_MINOR, SSH_VERSION);
-		if (atomicio(write, sock_out, buf, strlen(buf)) != strlen(buf))
-			fatal("Could not write ident string to %s.", remote_ip);
+		if (atomicio(write, sock_out, buf, strlen(buf)) != strlen(buf)) {
+			log("Could not write ident string to %s.", remote_ip);
+			fatal_cleanup();
+		}
 
 		/* Read other side\'s version identification. */
 		for (i = 0; i < sizeof(buf) - 1; i++) {
-			if (read(sock_in, &buf[i], 1) != 1)
-				fatal("Did not receive ident string from %s.", remote_ip);
+			if (read(sock_in, &buf[i], 1) != 1) {
+				log("Did not receive ident string from %s.", remote_ip);
+				fatal_cleanup();
+			}
 			if (buf[i] == '\r') {
 				buf[i] = '\n';
 				buf[i + 1] = 0;
@@ -816,8 +820,9 @@ main(int ac, char **av)
 		(void) atomicio(write, sock_out, s, strlen(s));
 		close(sock_in);
 		close(sock_out);
-		fatal("Bad protocol version identification '%.100s' from %s",
-		      buf, remote_ip);
+		log("Bad protocol version identification '%.100s' from %s",
+		    buf, remote_ip);
+		fatal_cleanup();
 	}
 	debug("Client protocol version %d.%d; client software version %.100s",
 	      remote_major, remote_minor, remote_version);
@@ -827,8 +832,9 @@ main(int ac, char **av)
 		(void) atomicio(write, sock_out, s, strlen(s));
 		close(sock_in);
 		close(sock_out);
-		fatal("Protocol major versions differ for %s: %d vs. %d",
-		      remote_ip, PROTOCOL_MAJOR, remote_major);
+		log("Protocol major versions differ for %s: %d vs. %d",
+		    remote_ip, PROTOCOL_MAJOR, remote_major);
+		fatal_cleanup();
 	}
 	/* Check that the client has sufficiently high software version. */
 	if (remote_major == 1 && remote_minor < 3)
