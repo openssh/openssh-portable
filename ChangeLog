@@ -1,3 +1,15 @@
+19991113
+ - Don't install config files if they already exist
+ - Fix inclusion of additional preprocessor directives from acconfig.h
+ - Removed redundant inclusions of config.h
+ - Added 'Obseletes' lines to RPM spec file
+ - Merged OpenBSD CVS changes:
+   - [bufaux.c] save a view malloc/memcpy/memset/free's, ok niels
+   - [scp.c] fix overflow reported by damien@ibs.com.au: off_t 
+     totalsize, ok niels,aaron
+ - Delay fork (-f option) in ssh until after port forwarded connections 
+   have been initialised. Patch from Jani Hakala <jahakala@cc.jyu.fi>
+
 19991112
  - Merged changes from OpenBSD CVS
    - [sshd.c] session_key_int may be zero
