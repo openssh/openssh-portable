@@ -1,3 +1,9 @@
+20010212
+ - (djm) Update Redhat specfile to allow --define "skip_x11_askpass 1", 
+   --define "skip_gnome_askpass 1", --define "rh7 1" and make the 
+   implicit rpm-3.0.5 dependancy explicit. Patch and suggestions from 
+   Pekka Savola <pekkas@netcore.fi>
+
 20010211
  - (bal) OpenBSD Sync
    - markus@cvs.openbsd.org 2001/02/07 22:35:46
@@ -3893,4 +3899,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.744 2001/02/11 18:49:23 stevesk Exp $
+$Id: ChangeLog,v 1.745 2001/02/11 22:34:17 djm Exp $

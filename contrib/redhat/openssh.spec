@@ -10,6 +10,18 @@
 # Do we want to disable building of gnome-askpass? (1=yes 0=no)
 %define no_gnome_askpass 0
 
+# Use Redhat 7.0 pam control file
+%define redhat7 0
+
+# Reserve options to override askpass settings with:
+# rpm -ba|--rebuild --define 'skip_xxx 1'
+%{?skip_x11_askpass:%define no_x11_askpass 1}
+%{?skip_gnome_askpass:%define no_gnome_askpass 1}
+
+# Options for Redhat version:
+# rpm -ba|--rebuild --define "rh7 1"
+%{?rh7:%define redhat7 1}
+
 Summary: OpenSSH free Secure Shell (SSH) implementation
 Name: openssh
 Version: %{oversion}
@@ -26,8 +38,10 @@ BuildRoot: /tmp/openssh-%{version}-buildroot
 Obsoletes: ssh
 PreReq: openssl >= 0.9.5a
 Requires: openssl >= 0.9.5a
+Requires: rpm >= 3.0.5
 BuildPreReq: perl, openssl-devel, tcp_wrappers
 BuildPreReq: /bin/login, /usr/bin/rsh, /usr/include/security/pam_appl.h
+BuildPreReq: rpm >= 3.0.5
 %if ! %{no_gnome_askpass}
 BuildPreReq: gnome-libs-devel
 %endif
@@ -175,7 +189,11 @@ rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/etc/pam.d/
 install -d $RPM_BUILD_ROOT/etc/rc.d/init.d
 install -d $RPM_BUILD_ROOT%{_libexecdir}/openssh
+%if %{redhat7}
 install -m644 contrib/redhat/sshd.pam $RPM_BUILD_ROOT/etc/pam.d/sshd
+%else
+install -m644 contrib/redhat/sshd.pam-7.x $RPM_BUILD_ROOT/etc/pam.d/sshd
+%endif
 install -m755 contrib/redhat/sshd.init $RPM_BUILD_ROOT/etc/rc.d/init.d/sshd
 
 %if ! %{no_x11_askpass}
