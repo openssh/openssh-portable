@@ -5,6 +5,8 @@
      IgnoreUserKnownHosts(default=no), used for RhostRSAAuth, ok 
      deraadt,millert
  - Brought default sshd_config more in line with OpenBSD's
+ - Grab server in gnome-ssh-askpass (Debian bug #49872)
+ - Released 1.2pre10
 
 19991111
  - Added (untested) Entropy Gathering Daemon (EGD) support

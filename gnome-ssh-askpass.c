@@ -37,6 +37,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <gnome.h>
+#include <X11/Xlib.h>
+#include <gdk/gdkx.h>
 
 int passphrase_dialog(char **passphrase_p, char *message)
 {
@@ -51,18 +53,36 @@ int passphrase_dialog(char **passphrase_p, char *message)
 	label = gtk_label_new(message);
 	gtk_box_pack_start(GTK_BOX(GNOME_DIALOG(dialog)->vbox), label, FALSE, 
 							 FALSE, 0);
-	gtk_widget_show(label);
 
 	entry = gtk_entry_new();
 	gtk_box_pack_start(GTK_BOX(GNOME_DIALOG(dialog)->vbox), entry, FALSE, 
 							 FALSE, 0);
 	gtk_entry_set_visibility(GTK_ENTRY(entry), FALSE);
 	gtk_widget_grab_focus(entry);
-	gtk_widget_show(entry);
+
+	/* Center window and prepare for grab */
+	gtk_object_set(GTK_OBJECT(dialog), "type", GTK_WINDOW_POPUP, NULL);
+	gnome_dialog_set_default(GNOME_DIALOG(dialog), 0);
+	gtk_window_set_position (GTK_WINDOW(dialog), GTK_WIN_POS_CENTER);
+	gtk_window_set_policy(GTK_WINDOW(dialog), FALSE, FALSE, TRUE);
+	gnome_dialog_close_hides(GNOME_DIALOG(dialog), TRUE);
+	gtk_container_set_border_width(GTK_CONTAINER(GNOME_DIALOG(dialog)->vbox), GNOME_PAD);
+	gtk_widget_show_all(dialog);
+
+	/* Grab focus */
+	XGrabServer(GDK_DISPLAY());
+	gdk_pointer_grab(dialog->window, TRUE, 0, NULL, NULL, GDK_CURRENT_TIME);
+	gdk_keyboard_grab(dialog->window, FALSE, GDK_CURRENT_TIME);
 
 	/* Run dialog */
 	result = gnome_dialog_run(GNOME_DIALOG(dialog));
 		
+	/* Ungrab */
+	XUngrabServer(GDK_DISPLAY());
+	gdk_pointer_ungrab(GDK_CURRENT_TIME);
+	gdk_keyboard_ungrab(GDK_CURRENT_TIME);
+	gdk_flush();
+
 	passphrase = gtk_entry_get_text(GTK_ENTRY(entry));
 
 	/* Take copy of passphrase if user selected OK */
