@@ -158,6 +158,7 @@ AC_ARG_WITH(ssl-dir,
 )
 
 saved_LIBS="$LIBS"
+saved_LDFLAGS="$LDFLAGS"
 saved_CFLAGS="$CFLAGS"
 if test "x$prefix" != "xNONE" ; then
 	tryssldir="$tryssldir $prefix"
@@ -165,19 +166,21 @@ fi
 AC_MSG_CHECKING([for OpenSSL/SSLeay directory])
 for ssldir in "" $tryssldir /usr/local/openssl /usr/lib/openssl /usr/local/ssl /usr/lib/ssl /usr/local /usr/pkg /opt /opt/openssl ; do
 	if test ! -z "$ssldir" ; then
-		LIBS="$saved_LIBS -L$ssldir/lib -L$ssldir -lcrypto"
-		CFLAGS="$CFLAGS -I$ssldir/include"
-		if test "x$need_dash_r" = "x1" ; then
-			LIBS="$LIBS -R$ssldir/lib -L$ssldir"
+		LDFLAGS="$saved_LDFLAGS -L$ssldir/lib -L$ssldir"
+		CFLAGS="$saved_CFLAGS -I$ssldir/include"
+		if test ! -z "$need_dash_r" ; then
+			LDFLAGS="$LDFLAGS -R$ssldir/lib -R$ssldir"
 		fi
 	else
-		LIBS="$saved_LIBS -lcrypto"
+		LDFLAGS="$saved_LDFLAGS"
 	fi
 
 	for WANTS_RSAREF in "" 1 ; do
 		
-		if test ! -z "$WANTS_RSAREF" ; then
-			LIBS="$LIBS -lRSAglue -lrsaref"
+		if test -z "$WANTS_RSAREF" ; then
+			LIBS="$saved_LIBS -lcrypto"
+		else
+			LIBS="$saved_LIBS -lcrypto -lRSAglue -lrsaref"
 		fi
 
 		AC_TRY_RUN(
@@ -225,15 +228,16 @@ fi
 if test -z "$ssldir" ; then
 	ssldir="(system)"
 else
-	CFLAGS="$CFLAGS -I$ssldir/include"
-	LDFLAGS="$LDFLAGS -L$ssldir/lib"
-	if test "x$need_dash_r" = "x1" ; then
-		LDFLAGS="$LDFLAGS -R$ssldir"
+	CFLAGS="$saved_CFLAGS -I$ssldir/include"
+	LDFLAGS="$saved_LDFLAGS -L$ssldir/lib -L$ssldir"
+	if test ! -z "$need_dash_r" ; then
+		LDFLAGS="$LDFLAGS -R$ssldir/lib -R$ssldir"
 	fi
 fi
-LIBS="$saved_LIBS -lcrypto"
-if test ! -z "$WANTS_RSAREF" ; then
-	LIBS="$LIBS -lRSAglue -lrsaref"
+if test -z "$WANTS_RSAREF" ; then
+	LIBS="$saved_LIBS -lcrypto"
+else
+	LIBS="$saved_LIBS -lcrypto -lRSAglue -lrsaref"
 fi
 AC_MSG_RESULT($ssldir)
 
