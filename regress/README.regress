@@ -27,6 +27,7 @@ TEST_SSH_QUIET: set to "yes" to suppress non-fatal output.
 TEST_SSH_x: path to "ssh" command under test, where x=SSH,SSHD,SSHAGENT,SSHADD
 	SSHKEYGEN,SSHKEYSCAN,SFTP,SFTPSERVER
 OBJ: used by test scripts to access build dir.
+TEST_SHELL: shell used for running the test scripts.
 
 
 Individual tests.
@@ -35,7 +36,8 @@ You can invoke test-exec.sh directly if you set up the path to find the
 binaries under test and the test scripts themselves, for example:
 
 $ cd regress
-$ PATH=`pwd`/..:$PATH:. sh test-exec.sh `pwd` agent-timeout.sh
+$ PATH=`pwd`/..:$PATH:. TEST_SHELL=/bin/sh sh test-exec.sh `pwd` \
+    agent-timeout.sh
 ok agent timeout test
 
 
@@ -94,4 +96,4 @@ Known Issues.
   unless ssh-rand-helper is in pre-installed (the path to
   ssh-rand-helper is hard coded).
 
-$Id: README.regress,v 1.4 2004/03/08 20:12:18 tim Exp $
+$Id: README.regress,v 1.5 2004/06/16 11:08:32 dtucker Exp $

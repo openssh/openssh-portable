@@ -1,8 +1,6 @@
 20040616
  - (dtucker) [openbsd-compat/port-aix.c] Expand whitespace -> tabs. No
    code changes.
- - (dtucker) [regress/test-exec.sh]
-   Move Portable-only StrictModes to top of list to make syncs easier.
  - (dtucker) OpenBSD CVS Sync regress/
    - djm@cvs.openbsd.org 2004/04/27 09:47:30
      [regress/Makefile regress/test-exec.sh, added regress/envpass.sh]
@@ -18,6 +16,10 @@
    - djm@cvs.openbsd.org 2004/06/13 15:16:54
      [regress/test-exec.sh]
      remove duplicate setting of $SCP; spotted by markus@
+ - (dtucker) [regress/test-exec.sh]
+   Move Portable-only StrictModes to top of list to make syncs easier.
+ - (dtucker) [regress/README.regress]
+   Add $TEST_SHELL to readme.
 
 20040615
  - (djm) OpenBSD CVS Sync
@@ -1243,4 +1245,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3394 2004/06/16 10:36:16 dtucker Exp $
+$Id: ChangeLog,v 1.3395 2004/06/16 11:08:32 dtucker Exp $
