@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.105 2001/04/30 11:18:52 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.106 2001/05/28 23:58:35 markus Exp $");
 
 #include <openssl/bn.h>
 
@@ -430,8 +430,6 @@ ssh_exchange_identification(void)
 		fatal("Protocol major versions differ: %d vs. %d",
 		    (options.protocol & SSH_PROTO_2) ? PROTOCOL_MAJOR_2 : PROTOCOL_MAJOR_1,
 		    remote_major);
-	if (compat20)
-		packet_set_ssh2_format();
 	/* Send our own protocol version identification. */
 	snprintf(buf, sizeof buf, "SSH-%d.%d-%.100s\n",
 	    compat20 ? PROTOCOL_MAJOR_2 : PROTOCOL_MAJOR_1,

@@ -72,6 +72,9 @@
    - markus@cvs.openbsd.org 2001/05/28 23:25:24 
      [channels.c]                               
      cleanup, typo                              
+   - markus@cvs.openbsd.org 2001/05/28 23:58:35
+     [packet.c packet.h sshconnect.c sshd.c]   
+     remove some lines, simplify.              
 
 20010528
  - (tim) [conifgure.in] add setvbuf test needed for sftp-int.c
@@ -5502,4 +5505,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1244 2001/06/05 20:56:47 mouring Exp $
+$Id: ChangeLog,v 1.1245 2001/06/05 21:09:18 mouring Exp $

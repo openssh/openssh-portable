@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.197 2001/05/19 19:43:57 stevesk Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.198 2001/05/28 23:58:35 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -435,8 +435,6 @@ sshd_exchange_identification(int sock_in, int sock_out)
 		    server_version_string, client_version_string);
 		fatal_cleanup();
 	}
-	if (compat20)
-		packet_set_ssh2_format();
 }
 
 
