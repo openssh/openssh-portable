@@ -26,6 +26,9 @@
      [ssh.1]
      ConnectionTimeout -> ConnectTimeout, from m.a.ellis at ncl.ac.uk via
      Debian.  ok djm@
+   - dtucker@cvs.openbsd.org 2004/05/02 23:02:17
+     [sftp.1]
+     ConnectionTimeout -> ConnectTimeout here too, pointed out by jmc@
 
 20040423
  - (dtucker) [configure.ac openbsd-compat/getrrsetbyname.c] Declare h_errno
@@ -1067,4 +1070,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3339 2004/05/02 12:15:52 dtucker Exp $
+$Id: ChangeLog,v 1.3340 2004/05/02 23:13:15 dtucker Exp $
