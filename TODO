@@ -2,7 +2,13 @@ Programming:
 - Grep for 'XXX' comments and fix
 
 - Link order is incorrect for some systems using Kerberos 4 and AFS. Result
-is multiple inclusion of DES symbols.
+  is multiple inclusion of DES symbols. Holger Trapp 
+  <holger.trapp@hrz.tu-chemnitz.de> reports that changing the configure
+  generated link order from:
+	-lresolv -lkrb -lz -lnsl  -lutil -lkafs -lkrb -ldes -lcrypto
+  to:
+	-lresolv -lkrb -lz -lnsl  -lutil -lcrypto -lkafs -lkrb -ldes
+  fixing the problem.
 
 - Integrate contrib/mdoc2man.pl so platforms which only have the troff 
   'an' macros can have readable manpages.
@@ -82,4 +88,4 @@ Packaging:
 - HP-UX: Provide DEPOT package scripts.
   (gilbert.r.loomis@saic.com)
 
-$Id: TODO,v 1.39 2001/03/21 00:12:55 djm Exp $
+$Id: TODO,v 1.40 2001/03/27 06:10:22 djm Exp $
