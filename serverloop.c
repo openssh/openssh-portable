@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.48 2001/02/15 08:38:04 deraadt Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.49 2001/02/15 23:19:59 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -339,7 +339,7 @@ process_output(fd_set * writeset)
 		} else {
 			/* Successful write. */
 			if (tcgetattr(fdin, &tio) == 0 &&
-			    !(tio.c_lflag & ECHO)) {
+			    !(tio.c_lflag & ECHO) && (tio.c_lflag & ICANON)) {
 				/*
 				 * Simulate echo to reduce the impact of
 				 * traffic analysis

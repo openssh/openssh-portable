@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshconnect.h,v 1.5 2001/01/29 01:58:18 niklas Exp $	*/
+/*	$OpenBSD: sshconnect.h,v 1.6 2001/02/15 23:19:59 markus Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -65,5 +65,7 @@ ssh_userauth(const char * local_user, const char * server_user, char *host,
 
 void	ssh_kex2(char *host, struct sockaddr *hostaddr);
 void	ssh_userauth2(const char *server_user, char *host);
+
+void	ssh_put_password(char *password);
 
 #endif

@@ -32,7 +32,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* RCSID("$OpenBSD: channels.h,v 1.26 2001/01/31 20:37:23 markus Exp $"); */
+/* RCSID("$OpenBSD: channels.h,v 1.27 2001/02/15 23:19:59 markus Exp $"); */
 
 #ifndef CHANNELS_H
 #define CHANNELS_H
@@ -75,6 +75,7 @@ struct Channel {
 	int     wfd;		/* write fd */
 	int     efd;		/* extended fd */
 	int     sock;		/* sock fd */
+	int     isatty;		/* rfd is a tty */
 	Buffer  input;		/* data read from socket, to be sent over
 				 * encrypted connection */
 	Buffer  output;		/* data received over encrypted connection for

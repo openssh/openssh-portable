@@ -13,6 +13,13 @@
  - (djm) Ask users to check config.log when we can't find necessary libs
  - (djm) Set "login ID" on systems with setluid. Only enabled for SCO
    OpenServer for now. Based on patch from svaughan <svaughan@asterion.com>
+ - (djm) OpenBSD CVS:
+   - markus@cvs.openbsd.org  2001/02/15 16:19:59
+     [channels.c channels.h serverloop.c sshconnect.c sshconnect.h]
+     [sshconnect1.c sshconnect2.c]
+     genericize password padding function for SSH1 and SSH2.
+     add stylized echo to 2, too.
+ - (djm) Add roundup() macro to defines.h
 
 20010215
  - (djm) Move PAM session setup back to before setuid to user. Fixes 
@@ -3986,4 +3993,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.778 2001/02/16 01:12:41 djm Exp $
+$Id: ChangeLog,v 1.779 2001/02/16 01:34:57 djm Exp $
