@@ -13,6 +13,9 @@
    - stevesk@cvs.openbsd.org 2002/03/24 17:27:03
      [kexgex.c]
      typo; ok markus@
+   - stevesk@cvs.openbsd.org 2002/03/24 17:53:16
+     [monitor_fdpass.c]
+     minor cleanup and more error checking; ok markus@
 
 20020324
  - (stevesk) [session.c] disable LOGIN_NEEDS_TERM until we are sure
@@ -8027,4 +8030,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1981 2002/03/26 02:20:06 mouring Exp $
+$Id: ChangeLog,v 1.1982 2002/03/26 02:36:29 mouring Exp $
