@@ -6,6 +6,9 @@
    - markus@cvs.openbsd.org 2001/03/19 17:07:23
      [auth.c readconf.c]
      undo /etc/shell and proto 2,1 change for openssh-2.5.2
+   - markus@cvs.openbsd.org 2001/03/19 17:12:10
+     [version.h]
+     version 2.5.2
 
 20010319
  - (djm) Seed PRNG at startup, rather than waiting for arc4random calls to 
@@ -4636,4 +4639,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.989 2001/03/19 22:15:57 djm Exp $
+$Id: ChangeLog,v 1.990 2001/03/19 22:16:34 djm Exp $
