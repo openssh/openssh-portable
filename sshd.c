@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.157 2001/01/22 23:06:40 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.158 2001/01/28 10:37:26 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -551,7 +551,6 @@ main(int ac, char **av)
 	int opt, sock_in = 0, sock_out = 0, newsock, j, i, fdsetsz, on = 1;
 	pid_t pid;
 	socklen_t fromlen;
-	int silent = 0;
 	fd_set *fdset;
 	struct sockaddr_storage from;
 	const char *remote_ip;
@@ -605,7 +604,7 @@ main(int ac, char **av)
 			inetd_flag = 1;
 			break;
 		case 'Q':
-			silent = 1;
+			/* ignored */
 			break;
 		case 'q':
 			options.log_level = SYSLOG_LEVEL_QUIET;
@@ -672,7 +671,7 @@ main(int ac, char **av)
 	log_init(__progname,
 	    options.log_level == -1 ? SYSLOG_LEVEL_INFO : options.log_level,
 	    options.log_facility == -1 ? SYSLOG_FACILITY_AUTH : options.log_facility,
-	    !silent && !inetd_flag);
+	    !inetd_flag);
 
 	/* Read server configuration options from the configuration file. */
 	read_server_config(&options, config_file_name);
@@ -725,8 +724,6 @@ main(int ac, char **av)
 		options.protocol &= ~SSH_PROTO_2;
 	}
 	if (! options.protocol & (SSH_PROTO_1|SSH_PROTO_2)) {
-		if (silent == 0)
-			fprintf(stderr, "sshd: no hostkeys available -- exiting.\n");
 		log("sshd: no hostkeys available -- exiting.\n");
 		exit(1);
 	}
