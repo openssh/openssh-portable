@@ -24,9 +24,8 @@
 
 #include "includes.h"
 #ifdef SMARTCARD
-RCSID("$OpenBSD: scard.c,v 1.23 2002/03/24 18:05:29 markus Exp $");
+RCSID("$OpenBSD: scard.c,v 1.24 2002/03/25 17:34:27 markus Exp $");
 
-#include <openssl/engine.h>
 #include <openssl/evp.h>
 #include <sectok.h>
 
@@ -36,13 +35,17 @@ RCSID("$OpenBSD: scard.c,v 1.23 2002/03/24 18:05:29 markus Exp $");
 #include "readpass.h"
 #include "scard.h"
 
-#ifdef OPENSSL_VERSION_NUMBER
-#if OPENSSL_VERSION_NUMBER >= 0x00907000L
-#define RSA_get_default_openssl_method RSA_get_default_method
-#define DSA_get_default_openssl_method DSA_get_default_method
-#define DH_get_default_openssl_method DH_get_default_method
-#define ENGINE_set_BN_mod_exp(x,y)
+#if OPENSSL_VERSION_NUMBER < 0x00907000L
+#define USE_ENGINE
+#define RSA_get_default_method RSA_get_default_openssl_method
+#else
 #endif
+
+#ifdef USE_ENGINE
+#include <openssl/engine.h>
+#define sc_get_rsa sc_get_engine
+#else
+#define sc_get_rsa sc_get_rsa_method
 #endif
 
 #define CLA_SSH 0x05
@@ -143,8 +146,7 @@ sc_read_pubkey(Key * k)
 	n = NULL;
 
 	if (sc_fd < 0) {
-		status = sc_init();
-		if (status < 0 )
+		if (sc_init() < 0)
 			goto err;
 	}
 
@@ -317,18 +319,13 @@ sc_finish(RSA *rsa)
 	return 1;
 }
 
-
 /* engine for overloading private key operations */
 
-static ENGINE *smart_engine = NULL;
-static RSA_METHOD smart_rsa;
-
-ENGINE *
-sc_get_engine(void)
+static RSA_METHOD *
+sc_get_rsa_method(void)
 {
-	const RSA_METHOD *def;
-
-	def = RSA_get_default_openssl_method();
+	static RSA_METHOD smart_rsa;
+	const RSA_METHOD *def = RSA_get_default_method();
 
 	/* use the OpenSSL version */
 	memcpy(&smart_rsa, def, sizeof(smart_rsa));
@@ -343,13 +340,22 @@ sc_get_engine(void)
 	orig_finish		= def->finish;
 	smart_rsa.finish	= sc_finish;
 
+	return &smart_rsa;
+}
+
+#ifdef USE_ENGINE
+static ENGINE *
+sc_get_engine(void)
+{
+	static ENGINE *smart_engine = NULL;
+
 	if ((smart_engine = ENGINE_new()) == NULL)
 		fatal("ENGINE_new failed");
 
 	ENGINE_set_id(smart_engine, "sectok");
 	ENGINE_set_name(smart_engine, "libsectok");
 
-	ENGINE_set_RSA(smart_engine, &smart_rsa);
+	ENGINE_set_RSA(smart_engine, sc_get_rsa_method());
 	ENGINE_set_DSA(smart_engine, DSA_get_default_openssl_method());
 	ENGINE_set_DH(smart_engine, DH_get_default_openssl_method());
 	ENGINE_set_RAND(smart_engine, RAND_SSLeay());
@@ -357,6 +363,7 @@ sc_get_engine(void)
 
 	return smart_engine;
 }
+#endif
 
 void
 sc_close(void)
@@ -367,11 +374,11 @@ sc_close(void)
 	}
 }
 
-Key *
-sc_get_key(const char *id, const char *pin)
+Key **
+sc_get_keys(const char *id, const char *pin)
 {
-	Key *k;
-	int status;
+	Key *k, *n, **keys;
+	int status, nkeys = 2;
 
 	if (sc_reader_id != NULL)
 		xfree(sc_reader_id);
@@ -395,7 +402,26 @@ sc_get_key(const char *id, const char *pin)
 		key_free(k);
 		return NULL;
 	}
-	return k;
+	keys = xmalloc((nkeys+1) * sizeof(Key *));
+
+	n = key_new(KEY_RSA1);
+	BN_copy(n->rsa->n, k->rsa->n);
+	BN_copy(n->rsa->e, k->rsa->e);
+	RSA_set_method(n->rsa, sc_get_rsa());
+	n->flags |= KEY_FLAG_EXT;
+	keys[0] = n;
+
+	n = key_new(KEY_RSA);
+	BN_copy(n->rsa->n, k->rsa->n);
+	BN_copy(n->rsa->e, k->rsa->e);
+	RSA_set_method(n->rsa, sc_get_rsa());
+	n->flags |= KEY_FLAG_EXT;
+	keys[1] = n;
+
+	keys[2] = NULL;
+
+	key_free(k);
+	return keys;
 }
 
 #define NUM_RSA_KEY_ELEMENTS 5+1

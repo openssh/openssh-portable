@@ -34,7 +34,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.83 2002/03/21 22:44:05 rees Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.84 2002/03/25 17:34:27 markus Exp $");
 
 #if defined(HAVE_SYS_QUEUE_H) && !defined(HAVE_BOGUS_SYS_QUEUE_H)
 #include <sys/queue.h>
@@ -57,7 +57,6 @@ RCSID("$OpenBSD: ssh-agent.c,v 1.83 2002/03/21 22:44:05 rees Exp $");
 #include "log.h"
 
 #ifdef SMARTCARD
-#include <openssl/engine.h>
 #include "scard.h"
 #endif
 
@@ -452,50 +451,39 @@ send:
 static void
 process_add_smartcard_key (SocketEntry *e)
 {
+	Identity *id;
 	Idtab *tab;
-	Key *n = NULL, *k = NULL;
+	Key **keys, *k;
 	char *sc_reader_id = NULL, *pin;
-	int success = 0;
+	int i, version, success = 0;
 
 	sc_reader_id = buffer_get_string(&e->input, NULL);
 	pin = buffer_get_string(&e->input, NULL);
-	k = sc_get_key(sc_reader_id, pin);
+	keys = sc_get_keys(sc_reader_id, pin);
 	xfree(sc_reader_id);
 	xfree(pin);
 
-	if (k == NULL) {
-		error("sc_get_pubkey failed");
+	if (keys == NULL || keys[0] == NULL) {
+		error("sc_get_keys failed");
 		goto send;
 	}
-	success = 1;
-
-	tab = idtab_lookup(1);
-	k->type = KEY_RSA1;
-	if (lookup_identity(k, 1) == NULL) {
-		Identity *id = xmalloc(sizeof(Identity));
-		n = key_new(KEY_RSA1);
-		BN_copy(n->rsa->n, k->rsa->n);
-		BN_copy(n->rsa->e, k->rsa->e);
-		RSA_set_method(n->rsa, sc_get_engine());
-		id->key = n;
-		id->comment = xstrdup("rsa1 smartcard");
-		TAILQ_INSERT_TAIL(&tab->idlist, id, next);
-		tab->nentries++;
+	for (i = 0; keys[i] != NULL; i++) {
+		k = keys[i];
+		version = k->type == KEY_RSA1 ? 1 : 2;
+		tab = idtab_lookup(version);
+		if (lookup_identity(k, version) == NULL) {
+			id = xmalloc(sizeof(Identity));
+			id->key = k;
+			id->comment = xstrdup("smartcard key");
+			TAILQ_INSERT_TAIL(&tab->idlist, id, next);
+			tab->nentries++;
+			success = 1;
+		} else {
+			key_free(k);
+		}
+		keys[i] = NULL;
 	}
-	k->type = KEY_RSA;
-	tab = idtab_lookup(2);
-	if (lookup_identity(k, 2) == NULL) {
-		Identity *id = xmalloc(sizeof(Identity));
-		n = key_new(KEY_RSA);
-		BN_copy(n->rsa->n, k->rsa->n);
-		BN_copy(n->rsa->e, k->rsa->e);
-		RSA_set_method(n->rsa, sc_get_engine());
-		id->key = n;
-		id->comment = xstrdup("rsa smartcard");
-		TAILQ_INSERT_TAIL(&tab->idlist, id, next);
-		tab->nentries++;
-	}
-	key_free(k);
+	xfree(keys);
 send:
 	buffer_put_int(&e->output, 1);
 	buffer_put_char(&e->output,
@@ -505,41 +493,37 @@ send:
 static void
 process_remove_smartcard_key(SocketEntry *e)
 {
-	Key *k = NULL;
-	int success = 0;
+	Identity *id;
+	Idtab *tab;
+	Key **keys, *k = NULL;
 	char *sc_reader_id = NULL, *pin;
+	int i, version, success = 0;
 
 	sc_reader_id = buffer_get_string(&e->input, NULL);
 	pin = buffer_get_string(&e->input, NULL);
-	k = sc_get_key(sc_reader_id, pin);
+	keys = sc_get_keys(sc_reader_id, pin);
 	xfree(sc_reader_id);
 	xfree(pin);
 
-	if (k == NULL) {
-		error("sc_get_pubkey failed");
-	} else {
-		Identity *id;
-		k->type = KEY_RSA1;
-		id = lookup_identity(k, 1);
-		if (id != NULL) {
-			Idtab *tab = idtab_lookup(1);
-			TAILQ_REMOVE(&tab->idlist, id, next);
-			free_identity(id);
+	if (keys == NULL || keys[0] == NULL) {
+		error("sc_get_keys failed");
+		goto send;
+	}
+	for (i = 0; keys[i] != NULL; i++) {
+		k = keys[i];
+		version = k->type == KEY_RSA1 ? 1 : 2;
+		if ((id = lookup_identity(k, version)) != NULL) {
+			tab = idtab_lookup(version);
+                        TAILQ_REMOVE(&tab->idlist, id, next);
 			tab->nentries--;
-			success = 1;
-		}
-		k->type = KEY_RSA;
-		id = lookup_identity(k, 2);
-		if (id != NULL) {
-			Idtab *tab = idtab_lookup(2);
-			TAILQ_REMOVE(&tab->idlist, id, next);
 			free_identity(id);
-			tab->nentries--;
 			success = 1;
 		}
 		key_free(k);
+		keys[i] = NULL;
 	}
-
+	xfree(keys);
+send:
 	buffer_put_int(&e->output, 1);
 	buffer_put_char(&e->output,
 	    success ? SSH_AGENT_SUCCESS : SSH_AGENT_FAILURE);

@@ -1,4 +1,4 @@
-/*	$OpenBSD: scard.h,v 1.9 2002/03/21 21:54:34 rees Exp $	*/
+/*	$OpenBSD: scard.h,v 1.10 2002/03/25 17:34:27 markus Exp $	*/
 
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
@@ -24,8 +24,6 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <openssl/engine.h>
-
 #ifndef SCARD_H
 #define SCARD_H
 
@@ -35,8 +33,7 @@
 #define SCARD_ERROR_NOCARD	-2
 #define SCARD_ERROR_APPLET	-3
 
-Key	*sc_get_key(const char*, const char*);
-ENGINE	*sc_get_engine(void);
+Key	**sc_get_keys(const char*, const char*);
 void	 sc_close(void);
 int	 sc_put_key(Key *, const char*);
 

@@ -28,6 +28,9 @@
    - markus@cvs.openbsd.org 2002/03/25 09:25:06
      [auth-rh-rsa.c]
      rm bogus comment
+   - markus@cvs.openbsd.org 2002/03/25 17:34:27
+     [scard.c scard.h ssh-agent.c ssh-keygen.c ssh.c]
+     change sc_get_key to sc_get_keys and hide smartcard details in scard.c
 
 20020324
  - (stevesk) [session.c] disable LOGIN_NEEDS_TERM until we are sure
@@ -8042,4 +8045,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1986 2002/03/26 03:08:47 mouring Exp $
+$Id: ChangeLog,v 1.1987 2002/03/26 03:17:42 mouring Exp $
