@@ -1,3 +1,6 @@
+20020725
+ - (djm) Remove some cruft from INSTALL
+
 20020723
  - (bal) [bsd-cray.c bsd-cray.h] Part 2 of Cray merger. 
  - (bal) sync ID w/ ssh-agent.c
@@ -1452,4 +1455,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2403 2002/07/23 21:29:49 mouring Exp $
+$Id: ChangeLog,v 1.2404 2002/07/25 04:36:24 djm Exp $
