@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.144 2002/07/14 20:36:50 tim Exp $ */
+/* $Id: acconfig.h,v 1.145 2002/09/26 00:38:48 tim Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -149,6 +149,9 @@
 
 /* Define if you don't want to use lastlog */
 #undef DISABLE_LASTLOG
+
+/* Define if you don't want to use lastlog in session.c */
+#undef NO_SSH_LASTLOG
 
 /* Define if you don't want to use utmp */
 #undef DISABLE_UTMP

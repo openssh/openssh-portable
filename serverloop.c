@@ -144,7 +144,9 @@ sigchld_handler(int sig)
 	int save_errno = errno;
 	debug("Received SIGCHLD.");
 	child_terminated = 1;
+#ifndef _UNICOS
 	mysignal(SIGCHLD, sigchld_handler);
+#endif
 	notify_parent();
 	errno = save_errno;
 }

@@ -1,5 +1,5 @@
 /* 
- * $Id: bsd-cray.c,v 1.7 2002/07/23 21:00:18 mouring Exp $
+ * $Id: bsd-cray.c,v 1.8 2002/09/26 00:38:51 tim Exp $
  *
  * bsd-cray.c
  *
@@ -34,7 +34,7 @@
  * on UNICOS systems.
  *
  */
-#if defined(_CRAY) && !defined(_CRAYSV2)
+#ifdef _UNICOS
 
 #include <udb.h>
 #include <tmpdir.h>

@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.88 2002/09/23 23:54:12 tim Exp $
+# $Id: configure.ac,v 1.89 2002/09/26 00:38:47 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -303,6 +303,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	no_libnsl=1
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(DISABLE_FD_PASSING)
+	AC_DEFINE(NO_SSH_LASTLOG)
 	LDFLAGS="$LDFLAGS -Wl,-Dmsglevel=334:fatal"
 	LIBS="$LIBS -lgen -lrsc -lshare -luex -lacm"
 	MANTYPE=cat
@@ -376,14 +377,14 @@ AC_ARG_WITH(libs,
 
 # Checks for header files.
 AC_CHECK_HEADERS(bstring.h crypt.h endian.h floatingpoint.h \
-	getopt.h glob.h lastlog.h limits.h login.h \
+	getopt.h glob.h ia.h lastlog.h limits.h login.h \
 	login_cap.h maillock.h netdb.h netgroup.h \
 	netinet/in_systm.h paths.h pty.h readpassphrase.h \
 	rpc/types.h security/pam_appl.h shadow.h stddef.h stdint.h \
 	strings.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h \
 	sys/mman.h sys/select.h sys/stat.h \
 	sys/stropts.h sys/sysmacros.h sys/time.h \
-	sys/un.h time.h ttyent.h usersec.h \
+	sys/un.h time.h tmpdir.h ttyent.h usersec.h \
 	util.h utime.h utmp.h utmpx.h)
 
 # Checks for libraries.

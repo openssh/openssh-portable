@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.95 2002/08/21 02:54:12 mouring Exp $ */
+/* $Id: defines.h,v 1.96 2002/09/26 00:38:48 tim Exp $ */
 
 
 /* Constants */
@@ -124,7 +124,7 @@ typedef char int8_t;
 # if (SIZEOF_SHORT_INT == 2)
 typedef short int int16_t;
 # else
-#  if defined(_CRAY) && !defined(_CRAYSV2)
+#  ifdef _UNICOS
 #   if (SIZEOF_SHORT_INT == 4)
 typedef short int16_t;
 #   else
@@ -132,16 +132,16 @@ typedef long  int16_t;
 #   endif
 #  else
 #   error "16 bit int type not found."
-#  endif /* _CRAY */
+#  endif /* _UNICOS */
 # endif
 # if (SIZEOF_INT == 4)
 typedef int int32_t;
 # else
-#  if defined(_CRAY) && !defined(_CRAYSV2)
+#  ifdef _UNICOS
 typedef long  int32_t;
 #  else
 #   error "32 bit int type not found."
-#  endif /* _CRAY */
+#  endif /* _UNICOS */
 # endif
 #endif
 
@@ -161,7 +161,7 @@ typedef unsigned char u_int8_t;
 #  if (SIZEOF_SHORT_INT == 2)
 typedef unsigned short int u_int16_t;
 #  else
-#   if defined(_CRAY) && !defined(_CRAYSV2)
+#   ifdef _UNICOS
 #    if (SIZEOF_SHORT_INT == 4)
 typedef unsigned short u_int16_t;
 #    else
@@ -174,7 +174,7 @@ typedef unsigned long  u_int16_t;
 #  if (SIZEOF_INT == 4)
 typedef unsigned int u_int32_t;
 #  else
-#   if defined(_CRAY) && !defined(_CRAYSV2)
+#   ifdef _UNICOS
 typedef unsigned long  u_int32_t;
 #   else
 #    error "32 bit int type not found."

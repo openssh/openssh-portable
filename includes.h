@@ -149,6 +149,14 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 # include <readpassphrase.h>
 #endif
 
+#ifdef HAVE_IA_H
+# include <ia.h>
+#endif
+
+#ifdef HAVE_TMPDIR_H
+# include <tmpdir.h>
+#endif
+
 #include <openssl/opensslv.h> /* For OPENSSL_VERSION_NUMBER */
 
 #include "defines.h"

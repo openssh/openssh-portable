@@ -512,10 +512,17 @@ do_exec_no_pty(Session *s, const char *command)
 			perror("dup2 stderr");
 #endif /* USE_PIPES */
 
+#ifdef _UNICOS
+		cray_init_job(s->pw); /* set up cray jid and tmpdir */
+#endif
+
 		/* Do processing for the child (exec command etc). */
 		do_child(s, command);
 		/* NOTREACHED */
 	}
+#ifdef _UNICOS
+	signal(WJSIGNAL, cray_job_termination_handler);
+#endif /* _UNICOS */
 #ifdef HAVE_CYGWIN
 	if (is_winnt)
 		cygwin_set_impersonation_token(INVALID_HANDLE_VALUE);
@@ -603,8 +610,12 @@ do_exec_pty(Session *s, const char *command)
 
 		/* record login, etc. similar to login(1) */
 #ifndef HAVE_OSF_SIA
-		if (!(options.use_login && command == NULL))
+		if (!(options.use_login && command == NULL)) {
+#ifdef _UNICOS
+			cray_init_job(s->pw); /* set up cray jid and tmpdir */
+#endif /* _UNICOS */
 			do_login(s, command);
+		}
 # ifdef LOGIN_NEEDS_UTMPX
 		else
 			do_pre_login(s);
@@ -615,6 +626,9 @@ do_exec_pty(Session *s, const char *command)
 		do_child(s, command);
 		/* NOTREACHED */
 	}
+#ifdef _UNICOS
+	signal(WJSIGNAL, cray_job_termination_handler);
+#endif /* _UNICOS */
 #ifdef HAVE_CYGWIN
 	if (is_winnt)
 		cygwin_set_impersonation_token(INVALID_HANDLE_VALUE);
@@ -755,6 +769,7 @@ do_login(Session *s, const char *command)
 		printf("%s\n", aixloginmsg);
 #endif /* WITH_AIXAUTHENTICATE */
 
+#ifndef NO_SSH_LASTLOG
 	if (options.print_lastlog && s->last_login_time != 0) {
 		time_string = ctime(&s->last_login_time);
 		if (strchr(time_string, '\n'))
@@ -765,6 +780,7 @@ do_login(Session *s, const char *command)
 			printf("Last login: %s from %s\r\n", time_string,
 			    s->hostname);
 	}
+#endif /* NO_SSH_LASTLOG */
 
 	do_motd();
 }
@@ -1024,6 +1040,11 @@ do_setup_env(Session *s, const char *shell)
 		child_set_env(&env, &envsize, "SSH_ORIGINAL_COMMAND",
 		    original_command);
 
+#ifdef _UNICOS
+	if (cray_tmpdir[0] != '\0')
+		child_set_env(&env, &envsize, "TMPDIR", cray_tmpdir);
+#endif /* _UNICOS */
+
 #ifdef _AIX
 	{
 		char *cp;
@@ -1274,6 +1295,10 @@ do_child(Session *s, const char *command)
 	/* login(1) is only called if we execute the login shell */
 	if (options.use_login && command != NULL)
 		options.use_login = 0;
+
+#ifdef _UNICOS
+	cray_setup(pw->pw_uid, pw->pw_name, command);
+#endif /* _UNICOS */
 
 	/*
 	 * Login(1) does this as well, and it needs uid 0 for the "-h"
