@@ -1,4 +1,4 @@
-/*	$OpenBSD: key.h,v 1.14 2001/06/26 06:32:54 itojun Exp $	*/
+/*	$OpenBSD: key.h,v 1.15 2001/06/26 17:27:23 markus Exp $	*/
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -52,25 +52,24 @@ struct Key {
 
 Key	*key_new(int);
 Key	*key_new_private(int);
-void	key_free(Key *);
-int	key_equal(Key *, Key *);
+void	 key_free(Key *);
+int	 key_equal(Key *, Key *);
 char	*key_fingerprint(Key *, enum fp_type, enum fp_rep);
 char	*key_type(Key *);
-int	key_write(Key *, FILE *);
-int	key_read(Key *, char **);
-u_int	key_size(Key *);
+int	 key_write(Key *, FILE *);
+int	 key_read(Key *, char **);
+u_int	 key_size(Key *);
 
 Key	*key_generate(int, u_int);
 Key	*key_from_private(Key *);
-int	key_type_from_name(char *);
+int	 key_type_from_name(char *);
 
 Key	*key_from_blob(char *, int);
-int	key_to_blob(Key *, u_char **, u_int *);
+int	 key_to_blob(Key *, u_char **, u_int *);
 char	*key_ssh_name(Key *);
-int	key_names_valid2(const char *);
+int	 key_names_valid2(const char *);
 
-int	key_sign(Key *, u_char **, int *, u_char *, int);
-
-int	key_verify(Key *, u_char *, int, u_char *, int);
+int	 key_sign(Key *, u_char **, int *, u_char *, int);
+int	 key_verify(Key *, u_char *, int, u_char *, int);
 
 #endif

@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: authfd.h,v 1.18 2001/06/26 06:32:47 itojun Exp $"); */
+/* RCSID("$OpenBSD: authfd.h,v 1.19 2001/06/26 17:27:22 markus Exp $"); */
 
 #ifndef AUTHFD_H
 #define AUTHFD_H
@@ -43,10 +43,9 @@
 #define SSH_AGENTC_REMOVE_SMARTCARD_KEY	        21
 
 /* additional error code for ssh.com's ssh-agent2 */
-#define SSH_COM_AGENT2_FAILURE                   102
+#define SSH_COM_AGENT2_FAILURE                  102
 
 #define	SSH_AGENT_OLD_SIGNATURE			0x01
-
 
 typedef struct {
 	int     fd;
@@ -54,85 +53,25 @@ typedef struct {
 	int     howmany;
 }       AuthenticationConnection;
 
-/* Returns the number of the authentication fd, or -1 if there is none. */
-int     ssh_get_authentication_socket(void);
+int      ssh_get_authentication_socket(void);
+void     ssh_close_authentication_socket(int);
 
-/*
- * This should be called for any descriptor returned by
- * ssh_get_authentication_socket().  Depending on the way the descriptor was
- * obtained, this may close the descriptor.
- */
-void    ssh_close_authentication_socket(int);
-
-/*
- * Opens and connects a private socket for communication with the
- * authentication agent.  Returns NULL if an error occurred and the
- * connection could not be opened.  The connection should be closed by the
- * caller by calling ssh_close_authentication_connection().
- */
 AuthenticationConnection *ssh_get_authentication_connection(void);
-
-/*
- * Closes the connection to the authentication agent and frees any associated
- * memory.
- */
-void    ssh_close_authentication_connection(AuthenticationConnection *);
-
-/*
- * Returns the number authentication identity held by the agent.
- */
-int	ssh_get_num_identities(AuthenticationConnection *, int);
-
-/*
- * Returns the first authentication identity held by the agent or NULL if
- * no identies are available. Caller must free comment and key.
- * Note that you cannot mix calls with different versions.
- */
+void     ssh_close_authentication_connection(AuthenticationConnection *);
+int	 ssh_get_num_identities(AuthenticationConnection *, int);
 Key	*ssh_get_first_identity(AuthenticationConnection *, char **, int);
-
-/*
- * Returns the next authentication identity for the agent.  Other functions
- * can be called between this and ssh_get_first_identity or two calls of this
- * function.  This returns NULL if there are no more identities.  The caller
- * must free key and comment after a successful return.
- */
 Key	*ssh_get_next_identity(AuthenticationConnection *, char **, int);
+int	 ssh_add_identity(AuthenticationConnection *, Key *, const char *);
+int      ssh_remove_identity(AuthenticationConnection *, Key *);
+int	 ssh_remove_all_identities(AuthenticationConnection *, int);
+int	 ssh_update_card(AuthenticationConnection *, int, int);
 
-/*
- * Requests the agent to decrypt the given challenge.  Returns true if the
- * agent claims it was able to decrypt it.
- */
 int
 ssh_decrypt_challenge(AuthenticationConnection *, Key *, BIGNUM *, u_char[16],
     u_int, u_char[16]);
 
-/* Requests the agent to sign data using key */
 int
-ssh_agent_sign(AuthenticationConnection *, Key *, u_char **, int *,
-    u_char *, int);
-
-/*
- * Adds an identity to the authentication server.  This call is not meant to
- * be used by normal applications.  This returns true if the identity was
- * successfully added.
- */
-int
-ssh_add_identity(AuthenticationConnection *, Key *, const char *);
-
-/*
- * Removes the identity from the authentication server.  This call is not
- * meant to be used by normal applications.  This returns true if the
- * identity was successfully added.
- */
-int     ssh_remove_identity(AuthenticationConnection *, Key *);
-
-/*
- * Removes all identities from the authentication agent.  This call is not
- * meant to be used by normal applications.  This returns true if the
- * operation was successful.
- */
-int	ssh_remove_all_identities(AuthenticationConnection *, int);
-
-int	ssh_update_card(AuthenticationConnection *, int, int);
+ssh_agent_sign(AuthenticationConnection *, Key *, u_char **, int *, u_char *,
+    int);
 
 #endif				/* AUTHFD_H */

@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: readconf.h,v 1.34 2001/06/26 16:15:24 dugsong Exp $"); */
+/* RCSID("$OpenBSD: readconf.h,v 1.35 2001/06/26 17:27:24 markus Exp $"); */
 
 #ifndef READCONF_H
 #define READCONF_H
@@ -102,48 +102,14 @@ typedef struct {
 }       Options;
 
 
-/*
- * Initializes options to special values that indicate that they have not yet
- * been set.  Read_config_file will only set options with this value. Options
- * are processed in the following order: command line, user config file,
- * system config file.  Last, fill_default_options is called.
- */
-void    initialize_options(Options *);
+void     initialize_options(Options *);
+void     fill_default_options(Options *);
+void	 read_config_file(const char *, const char *, Options *);
 
-/*
- * Called after processing other sources of option data, this fills those
- * options for which no value has been specified with their default values.
- */
-void    fill_default_options(Options *);
-
-/*
- * Processes a single option line as used in the configuration files. This
- * only sets those values that have not already been set. Returns 0 for legal
- * options
- */
 int
 process_config_line(Options *, const char *, char *, const char *, int, int *);
 
-/*
- * Reads the config file and modifies the options accordingly.  Options
- * should already be initialized before this call.  This never returns if
- * there is an error.  If the file does not exist, this returns immediately.
- */
-void
-read_config_file(const char *, const char *, Options *);
-
-/*
- * Adds a local TCP/IP port forward to options.  Never returns if there is an
- * error.
- */
-void
-add_local_forward(Options *, u_short, const char *, u_short);
-
-/*
- * Adds a remote TCP/IP port forward to options.  Never returns if there is
- * an error.
- */
-void
-add_remote_forward(Options *, u_short, const char *, u_short);
+void	 add_local_forward(Options *, u_short, const char *, u_short);
+void	 add_remote_forward(Options *, u_short, const char *, u_short);
 
 #endif				/* READCONF_H */

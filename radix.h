@@ -1,4 +1,4 @@
-/*	$OpenBSD: radix.h,v 1.3 2001/06/26 06:32:57 itojun Exp $	*/
+/*	$OpenBSD: radix.h,v 1.4 2001/06/26 17:27:24 markus Exp $	*/
 
 /*
  * Copyright (c) 1999 Dug Song.  All rights reserved.
@@ -24,5 +24,5 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-int     creds_to_radix(CREDENTIALS *, u_char *, size_t);
-int     radix_to_creds(const char *, CREDENTIALS *);
+int	 creds_to_radix(CREDENTIALS *, u_char *, size_t);
+int	 radix_to_creds(const char *, CREDENTIALS *);

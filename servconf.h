@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: servconf.h,v 1.46 2001/06/26 16:15:24 dugsong Exp $"); */
+/* RCSID("$OpenBSD: servconf.h,v 1.47 2001/06/26 17:27:24 markus Exp $"); */
 
 #ifndef SERVCONF_H
 #define SERVCONF_H
@@ -130,19 +130,9 @@ typedef struct {
 	char   *authorized_keys_file2;  /* File containing public SSH2 keys */
 	int	pam_authentication_via_kbd_int;
 }       ServerOptions;
-/*
- * Initializes the server options to special values that indicate that they
- * have not yet been set.
- */
-void    initialize_server_options(ServerOptions *);
 
-/*
- * Reads the server configuration file.  This only sets the values for those
- * options that have the special value indicating they have not been set.
- */
-void    read_server_config(ServerOptions *, const char *);
-
-/* Sets values for those values that have not yet been set. */
-void    fill_default_server_options(ServerOptions *);
+void	 initialize_server_options(ServerOptions *);
+void	 read_server_config(ServerOptions *, const char *);
+void	 fill_default_server_options(ServerOptions *);
 
 #endif				/* SERVCONF_H */

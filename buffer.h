@@ -11,56 +11,33 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: buffer.h,v 1.8 2001/06/26 06:32:48 itojun Exp $"); */
+/* RCSID("$OpenBSD: buffer.h,v 1.9 2001/06/26 17:27:23 markus Exp $"); */
 
 #ifndef BUFFER_H
 #define BUFFER_H
 
 typedef struct {
-	char   *buf;		/* Buffer for data. */
-	u_int alloc;	/* Number of bytes allocated for data. */
-	u_int offset;	/* Offset of first byte containing data. */
-	u_int end;	/* Offset of last byte containing data. */
+	char	*buf;		/* Buffer for data. */
+	u_int	 alloc;		/* Number of bytes allocated for data. */
+	u_int	 offset;	/* Offset of first byte containing data. */
+	u_int	 end;		/* Offset of last byte containing data. */
 }       Buffer;
-/* Initializes the buffer structure. */
-void    buffer_init(Buffer *);
 
-/* Frees any memory used for the buffer. */
-void    buffer_free(Buffer *);
+void	 buffer_init(Buffer *);
+void	 buffer_clear(Buffer *);
+void	 buffer_free(Buffer *);
 
-/* Clears any data from the buffer, making it empty.  This does not actually
-   zero the memory. */
-void    buffer_clear(Buffer *);
+u_int	 buffer_len(Buffer *);
+char	*buffer_ptr(Buffer *);
 
-/* Appends data to the buffer, expanding it if necessary. */
-void    buffer_append(Buffer *, const char *, u_int);
+void	 buffer_append(Buffer *, const char *, u_int);
+void	 buffer_append_space(Buffer *, char **, u_int);
 
-/*
- * Appends space to the buffer, expanding the buffer if necessary. This does
- * not actually copy the data into the buffer, but instead returns a pointer
- * to the allocated region.
- */
-void    buffer_append_space(Buffer *, char **, u_int);
+void	 buffer_get(Buffer *, char *, u_int);
 
-/* Returns the number of bytes of data in the buffer. */
-u_int buffer_len(Buffer *);
+void	 buffer_consume(Buffer *, u_int);
+void	 buffer_consume_end(Buffer *, u_int);
 
-/* Gets data from the beginning of the buffer. */
-void    buffer_get(Buffer *, char *, u_int);
-
-/* Consumes the given number of bytes from the beginning of the buffer. */
-void    buffer_consume(Buffer *, u_int);
-
-/* Consumes the given number of bytes from the end of the buffer. */
-void    buffer_consume_end(Buffer *, u_int);
-
-/* Returns a pointer to the first used byte in the buffer. */
-char   *buffer_ptr(Buffer *);
-
-/*
- * Dumps the contents of the buffer to stderr in hex.  This intended for
- * debugging purposes only.
- */
-void    buffer_dump(Buffer *);
+void     buffer_dump(Buffer *);
 
 #endif				/* BUFFER_H */

@@ -11,15 +11,11 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: crc32.h,v 1.11 2001/06/26 06:32:51 itojun Exp $"); */
+/* RCSID("$OpenBSD: crc32.h,v 1.12 2001/06/26 17:27:23 markus Exp $"); */
 
 #ifndef CRC32_H
 #define CRC32_H
 
-/*
- * This computes a 32 bit CRC of the data in the buffer, and returns the CRC.
- * The polynomial used is 0xedb88320.
- */
-u_int ssh_crc32(const u_char *, u_int);
+u_int	 ssh_crc32(const u_char *, u_int);
 
 #endif				/* CRC32_H */

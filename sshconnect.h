@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshconnect.h,v 1.11 2001/06/26 06:33:03 itojun Exp $	*/
+/*	$OpenBSD: sshconnect.h,v 1.12 2001/06/26 17:27:25 markus Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -33,14 +33,14 @@ ssh_connect(const char *, struct sockaddr_storage *, u_short, int,
 void
 ssh_login(Key **, int, const char *, struct sockaddr *, struct passwd *);
 
-int	verify_host_key(char *, struct sockaddr *, Key *);
+int	 verify_host_key(char *, struct sockaddr *, Key *);
 
-void	ssh_kex(char *, struct sockaddr *);
-void	ssh_kex2(char *, struct sockaddr *);
+void	 ssh_kex(char *, struct sockaddr *);
+void	 ssh_kex2(char *, struct sockaddr *);
 
-void	ssh_userauth1(const char *, const char *, char *, Key **, int);
-void	ssh_userauth2(const char *, const char *, char *, Key **, int);
+void	 ssh_userauth1(const char *, const char *, char *, Key **, int);
+void	 ssh_userauth2(const char *, const char *, char *, Key **, int);
 
-void	ssh_put_password(char *);
+void	 ssh_put_password(char *);
 
 #endif

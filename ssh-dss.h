@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-dss.h,v 1.4 2001/06/26 06:33:02 itojun Exp $	*/
+/*	$OpenBSD: ssh-dss.h,v 1.5 2001/06/26 17:27:25 markus Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -26,8 +26,7 @@
 #ifndef DSA_H
 #define DSA_H
 
-int	ssh_dss_sign(Key *, u_char **, int *, u_char *, int);
-
-int	ssh_dss_verify(Key *, u_char *, int, u_char *, int);
+int	 ssh_dss_sign(Key *, u_char **, int *, u_char *, int);
+int	 ssh_dss_verify(Key *, u_char *, int, u_char *, int);
 
 #endif

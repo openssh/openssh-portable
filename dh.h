@@ -1,4 +1,4 @@
-/*	$OpenBSD: dh.h,v 1.6 2001/06/26 06:32:52 itojun Exp $	*/
+/*	$OpenBSD: dh.h,v 1.7 2001/06/26 17:27:23 markus Exp $	*/
 
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
@@ -37,10 +37,10 @@ DH	*dh_new_group_asc(const char *, const char *);
 DH	*dh_new_group(BIGNUM *, BIGNUM *);
 DH	*dh_new_group1(void);
 
-void	dh_gen_key(DH *, int);
-int	dh_pub_is_valid(DH *, BIGNUM *);
+void	 dh_gen_key(DH *, int);
+int	 dh_pub_is_valid(DH *, BIGNUM *);
 
-int	dh_estimate(int);
+int	 dh_estimate(int);
 
 #define DH_GRP_MIN	1024
 #define DH_GRP_MAX	8192

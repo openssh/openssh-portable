@@ -21,7 +21,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $OpenBSD: auth.h,v 1.21 2001/06/26 16:15:23 dugsong Exp $
+ * $OpenBSD: auth.h,v 1.22 2001/06/26 17:27:22 markus Exp $
  */
 #ifndef AUTH_H
 #define AUTH_H
@@ -87,70 +87,29 @@ struct KbdintDevice
 	void	(*free_ctx)	__P((void *ctx));
 };
 
-/*
- * Tries to authenticate the user using the .rhosts file.  Returns true if
- * authentication succeeds.  If ignore_rhosts is non-zero, this will not
- * consider .rhosts and .shosts (/etc/hosts.equiv will still be used).
- */
 int     auth_rhosts(struct passwd *, const char *);
-
-/* extended interface similar to auth_rhosts() */
 int
 auth_rhosts2(struct passwd *, const char *, const char *, const char *);
 
-/*
- * Tries to authenticate the user using the .rhosts file and the host using
- * its host key.  Returns true if authentication succeeds.
- */
-int
-auth_rhosts_rsa(struct passwd *, const char *, RSA *);
-
-/*
- * Tries to authenticate the user using password.  Returns true if
- * authentication succeeds.
- */
-int     auth_password(Authctxt *, const char *);
-
-/*
- * Performs the RSA authentication dialog with the client.  This returns 0 if
- * the client could not be authenticated, and 1 if authentication was
- * successful.  This may exit if there is a serious protocol violation.
- */
-int     auth_rsa(struct passwd *, BIGNUM *);
-
-/*
- * Parses an RSA key (number of bits, e, n) from a string.  Moves the pointer
- * over the key.  Skips any whitespace at the beginning and at end.
- */
-int     auth_rsa_read_key(char **, u_int *, BIGNUM *, BIGNUM *);
-
-/*
- * Performs the RSA authentication challenge-response dialog with the client,
- * and returns true (non-zero) if the client gave the correct answer to our
- * challenge; returns zero if the client gives a wrong answer.
- */
-int     auth_rsa_challenge_dialog(RSA *);
+int	 auth_rhosts_rsa(struct passwd *, const char *, RSA *);
+int      auth_password(Authctxt *, const char *);
+int      auth_rsa(struct passwd *, BIGNUM *);
+int      auth_rsa_read_key(char **, u_int *, BIGNUM *, BIGNUM *);
+int      auth_rsa_challenge_dialog(RSA *);
 
 #ifdef KRB4
 #include <krb.h>
-/*
- * Performs Kerberos v4 mutual authentication with the client. This returns 0
- * if the client could not be authenticated, and 1 if authentication was
- * successful.  This may exit if there is a serious protocol violation.
- */
 int     auth_krb4(Authctxt *, KTEXT, char **);
 int	auth_krb4_password(Authctxt *, const char *);
 void    krb4_cleanup_proc(void *);
 
 #ifdef AFS
 #include <kafs.h>
-
-/* Accept passed Kerberos v4 ticket-granting ticket and AFS tokens. */
 int     auth_krb4_tgt(Authctxt *, const char *);
 int     auth_afs_token(Authctxt *, const char *);
-#endif				/* AFS */
+#endif /* AFS */
 
-#endif				/* KRB4 */
+#endif /* KRB4 */
 
 #ifdef KRB5
 int	auth_krb5(Authctxt *authctxt, krb5_data *auth, char **client);
@@ -179,16 +138,13 @@ int	verify_response(Authctxt *, const char *);
 
 struct passwd * auth_get_user(void);
 
-/* expand a filename - return buffer is allocated by xmalloc */
 char	*expand_filename(const char *, struct passwd *);
 char	*authorized_keys_file(struct passwd *);
 char	*authorized_keys_file2(struct passwd *);
 
-/* check a file and the path to it */
 int
 secure_filename(FILE *, const char *, struct passwd *, char *, size_t);
 
-/* helper for hostbased auth */
 HostStatus
 check_key_in_hostfiles(struct passwd *, Key *, const char *,
     const char *, const char *);

@@ -32,7 +32,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* RCSID("$OpenBSD: channels.h,v 1.41 2001/06/26 06:32:49 itojun Exp $"); */
+/* RCSID("$OpenBSD: channels.h,v 1.42 2001/06/26 17:27:23 markus Exp $"); */
 
 #ifndef CHANNEL_H
 #define CHANNEL_H
@@ -58,10 +58,6 @@
 
 #define SSH_CHANNEL_PATH_LEN		30
 
-/*
- * Data structure for channel data.  This is initialized in channel_new
- * and cleared in channel_free.
- */
 struct Channel;
 typedef struct Channel Channel;
 
@@ -139,86 +135,86 @@ struct Channel {
 #define CHAN_CLOSE_SENT			0x01
 #define CHAN_CLOSE_RCVD			0x02
 
-
 /* channel management */
 
 Channel	*channel_lookup(int);
 Channel *channel_new(char *, int, int, int, int, int, int, int, char *, int);
-void	channel_set_fds(int, int, int, int, int, int);
-void    channel_free(Channel *);
-void    channel_free_all(void);
+void	 channel_set_fds(int, int, int, int, int, int);
+void     channel_free(Channel *);
+void     channel_free_all(void);
 
-void	channel_send_open(int);
-void	channel_request(int, char *, int);
-void	channel_request_start(int, char *, int);
-void	channel_register_callback(int, int mtype, channel_callback_fn *, void *);
-void	channel_register_cleanup(int, channel_callback_fn *);
-void	channel_register_filter(int, channel_filter_fn *);
-void	channel_cancel_cleanup(int);
+void	 channel_send_open(int);
+void	 channel_request(int, char *, int);
+void	 channel_request_start(int, char *, int);
+void	 channel_register_callback(int, int mtype, channel_callback_fn *, void *);
+void	 channel_register_cleanup(int, channel_callback_fn *);
+void	 channel_register_filter(int, channel_filter_fn *);
+void	 channel_cancel_cleanup(int);
 
 /* protocol handler */
 
-void	channel_input_channel_request(int, int, void *);
-void	channel_input_close(int, int, void *);
-void	channel_input_close_confirmation(int, int, void *);
-void	channel_input_data(int, int, void *);
-void	channel_input_extended_data(int, int, void *);
-void	channel_input_ieof(int, int, void *);
-void	channel_input_oclose(int, int, void *);
-void	channel_input_open_confirmation(int, int, void *);
-void	channel_input_open_failure(int, int, void *);
-void	channel_input_port_open(int, int, void *);
-void	channel_input_window_adjust(int, int, void *);
+void	 channel_input_channel_request(int, int, void *);
+void	 channel_input_close(int, int, void *);
+void	 channel_input_close_confirmation(int, int, void *);
+void	 channel_input_data(int, int, void *);
+void	 channel_input_extended_data(int, int, void *);
+void	 channel_input_ieof(int, int, void *);
+void	 channel_input_oclose(int, int, void *);
+void	 channel_input_open_confirmation(int, int, void *);
+void	 channel_input_open_failure(int, int, void *);
+void	 channel_input_port_open(int, int, void *);
+void	 channel_input_window_adjust(int, int, void *);
 
 /* file descriptor handling (read/write) */
 
-void
-channel_prepare_select(fd_set **, fd_set **, int *, int);
-void    channel_after_select(fd_set *, fd_set *);
-void    channel_output_poll(void);
+void	 channel_prepare_select(fd_set **, fd_set **, int *, int);
+void     channel_after_select(fd_set *, fd_set *);
+void     channel_output_poll(void);
 
-int     channel_not_very_much_buffered_data(void);
-void    channel_close_all(void);
-void    channel_free_all(void);
-int     channel_still_open(void);
-char   *channel_open_message(void);
-int	channel_find_open(void);
+int      channel_not_very_much_buffered_data(void);
+void     channel_close_all(void);
+void     channel_free_all(void);
+int      channel_still_open(void);
+char	*channel_open_message(void);
+int	 channel_find_open(void);
 
 /* channel_tcpfwd.c */
-int
-channel_request_local_forwarding(u_short, const char *, u_short, int);
+void     channel_permit_all_opens(void);
+void	 channel_add_permitted_opens(char *, int);
+void	 channel_clear_permitted_opens(void);
+void     channel_input_port_forward_request(int, int);
+int	 channel_connect_to(const char *, u_short);
+int	 channel_connect_by_listen_adress(u_short);
+void	 channel_request_remote_forwarding(u_short, const char *, u_short);
+int	 channel_request_local_forwarding(u_short, const char *, u_short, int);
 int
 channel_request_forwarding(const char *, u_short, const char *, u_short, int,
     int);
-void
-channel_request_remote_forwarding(u_short, const char *, u_short);
-void    channel_permit_all_opens(void);
-void	channel_add_permitted_opens(char *, int);
-void	channel_clear_permitted_opens(void);
-void    channel_input_port_forward_request(int, int);
-int	channel_connect_to(const char *, u_short);
-int	channel_connect_by_listen_adress(u_short);
 
 /* x11 forwarding */
 
-int	x11_connect_display(void);
-char   *x11_create_display(int);
-char   *x11_create_display_inet(int, int);
-void    x11_input_open(int, int, void *);
-void    x11_request_forwarding(void);
-void
-x11_request_forwarding_with_spoofing(int, const char *, const char *);
-void	deny_input_open(int, int, void *);
+int	 x11_connect_display(void);
+char	*x11_create_display(int);
+char	*x11_create_display_inet(int, int);
+void     x11_input_open(int, int, void *);
+void     x11_request_forwarding(void);
+void	 x11_request_forwarding_with_spoofing(int, const char *, const char *);
+void	 deny_input_open(int, int, void *);
 
 /* agent forwarding */
 
-void    auth_request_forwarding(void);
-char   *auth_get_socket_name(void);
-void	auth_sock_cleanup_proc(void *);
-int     auth_input_request_forwarding(struct passwd *);
-void    auth_input_open_request(int, int, void *);
+void	 auth_request_forwarding(void);
+char	*auth_get_socket_name(void);
+void	 auth_sock_cleanup_proc(void *);
+int	 auth_input_request_forwarding(struct passwd *);
+void	 auth_input_open_request(int, int, void *);
 
 /* channel close */
+
+int	 chan_is_dead(Channel *);
+void	 chan_mark_dead(Channel *);
+void 	 chan_init_iostates(Channel *);
+void	 chan_init(void);
 
 typedef void    chan_event_fn(Channel *);
 
@@ -231,10 +227,5 @@ extern chan_event_fn	*chan_ibuf_empty;
 extern chan_event_fn	*chan_rcvd_ieof;
 extern chan_event_fn	*chan_write_failed;
 extern chan_event_fn	*chan_obuf_empty;
-
-int	chan_is_dead(Channel *);
-void	chan_mark_dead(Channel *);
-void    chan_init_iostates(Channel *);
-void	chan_init(void);
 
 #endif
