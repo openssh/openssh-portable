@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.214 2001/12/05 10:06:13 deraadt Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.215 2001/12/06 13:30:06 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -543,6 +543,31 @@ drop_connection(int startups)
 	return (r < p) ? 1 : 0;
 }
 
+static void
+usage(void)
+{
+	fprintf(stderr, "sshd version %s\n", SSH_VERSION);
+	fprintf(stderr, "Usage: %s [options]\n", __progname);
+	fprintf(stderr, "Options:\n");
+	fprintf(stderr, "  -f file    Configuration file (default %s)\n", _PATH_SERVER_CONFIG_FILE);
+	fprintf(stderr, "  -d         Debugging mode (multiple -d means more debugging)\n");
+	fprintf(stderr, "  -i         Started from inetd\n");
+	fprintf(stderr, "  -D         Do not fork into daemon mode\n");
+	fprintf(stderr, "  -t         Only test configuration file and keys\n");
+	fprintf(stderr, "  -q         Quiet (no logging)\n");
+	fprintf(stderr, "  -p port    Listen on the specified port (default: 22)\n");
+	fprintf(stderr, "  -k seconds Regenerate server key every this many seconds (default: 3600)\n");
+	fprintf(stderr, "  -g seconds Grace period for authentication (default: 600)\n");
+	fprintf(stderr, "  -b bits    Size of server RSA key (default: 768 bits)\n");
+	fprintf(stderr, "  -h file    File from which to read host key (default: %s)\n",
+	    _PATH_HOST_KEY_FILE);
+	fprintf(stderr, "  -u len     Maximum hostname length for utmp recording\n");
+	fprintf(stderr, "  -4         Use IPv4 only\n");
+	fprintf(stderr, "  -6         Use IPv6 only\n");
+	fprintf(stderr, "  -o option  Process the option as if it was read from a configuration file.\n");
+	exit(1);
+}
+
 /*
  * Main program for the daemon.
  */
@@ -579,7 +604,7 @@ main(int ac, char **av)
 	initialize_server_options(&options);
 
 	/* Parse command-line arguments. */
-	while ((opt = getopt(ac, av, "f:p:b:k:h:g:V:u:dDeiqtQ46")) != -1) {
+	while ((opt = getopt(ac, av, "f:p:b:k:h:g:V:u:o:dDeiqtQ46")) != -1) {
 		switch (opt) {
 		case '4':
 			IPv4or6 = AF_INET;
@@ -661,27 +686,15 @@ main(int ac, char **av)
 		case 'u':
 			utmp_len = atoi(optarg);
 			break;
+		case 'o':
+                        if (process_server_config_line(&options, optarg,
+			    "command-line", 0) != 0)
+                                exit(1);
+			break;
 		case '?':
 		default:
-			fprintf(stderr, "sshd version %s\n", SSH_VERSION);
-			fprintf(stderr, "Usage: %s [options]\n", __progname);
-			fprintf(stderr, "Options:\n");
-			fprintf(stderr, "  -f file    Configuration file (default %s)\n", _PATH_SERVER_CONFIG_FILE);
-			fprintf(stderr, "  -d         Debugging mode (multiple -d means more debugging)\n");
-			fprintf(stderr, "  -i         Started from inetd\n");
-			fprintf(stderr, "  -D         Do not fork into daemon mode\n");
-			fprintf(stderr, "  -t         Only test configuration file and keys\n");
-			fprintf(stderr, "  -q         Quiet (no logging)\n");
-			fprintf(stderr, "  -p port    Listen on the specified port (default: 22)\n");
-			fprintf(stderr, "  -k seconds Regenerate server key every this many seconds (default: 3600)\n");
-			fprintf(stderr, "  -g seconds Grace period for authentication (default: 600)\n");
-			fprintf(stderr, "  -b bits    Size of server RSA key (default: 768 bits)\n");
-			fprintf(stderr, "  -h file    File from which to read host key (default: %s)\n",
-			    _PATH_HOST_KEY_FILE);
-			fprintf(stderr, "  -u len     Maximum hostname length for utmp recording\n");
-			fprintf(stderr, "  -4         Use IPv4 only\n");
-			fprintf(stderr, "  -6         Use IPv6 only\n");
-			exit(1);
+			usage();
+			break;
 		}
 	}
 	SSLeay_add_all_algorithms();

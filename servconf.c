@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.93 2001/12/05 10:06:12 deraadt Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.94 2001/12/06 13:30:05 markus Exp $");
 
 #if defined(KRB4) || defined(KRB5)
 #include <krb.h>
@@ -261,7 +261,7 @@ typedef enum {
 	sBanner, sReverseMappingCheck, sHostbasedAuthentication,
 	sHostbasedUsesNameFromPacketOnly, sClientAliveInterval, 
 	sClientAliveCountMax, sAuthorizedKeysFile, sAuthorizedKeysFile2,
-	sDeprecated 
+	sDeprecated
 } ServerOpCodes;
 
 /* Textual representation of the tokens. */
@@ -392,6 +392,476 @@ add_one_listen_addr(ServerOptions *options, char *addr, u_short port)
 	options->listen_addrs = aitop;
 }
 
+int
+process_server_config_line(ServerOptions *options, char *line,
+    const char *filename, int linenum)
+{
+	char *cp, **charptr, *arg, *p;
+	int *intptr, value;
+	ServerOpCodes opcode;
+	int i, n;
+
+	cp = line;
+	arg = strdelim(&cp);
+	/* Ignore leading whitespace */
+	if (*arg == '\0')
+		arg = strdelim(&cp);
+	if (!arg || !*arg || *arg == '#')
+		return 0;
+	intptr = NULL;
+	charptr = NULL;
+	opcode = parse_token(arg, filename, linenum);
+	switch (opcode) {
+	/* Portable-specific options */
+	case sPAMAuthenticationViaKbdInt:
+		intptr = &options->pam_authentication_via_kbd_int;
+		goto parse_flag;
+
+	/* Standard Options */
+	case sBadOption:
+		return -1;
+	case sPort:
+		/* ignore ports from configfile if cmdline specifies ports */
+		if (options->ports_from_cmdline)
+			return 0;
+		if (options->listen_addrs != NULL)
+			fatal("%s line %d: ports must be specified before "
+			    "ListenAdress.", filename, linenum);
+		if (options->num_ports >= MAX_PORTS)
+			fatal("%s line %d: too many ports.",
+			    filename, linenum);
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: missing port number.",
+			    filename, linenum);
+		options->ports[options->num_ports++] = a2port(arg);
+		if (options->ports[options->num_ports-1] == 0)
+			fatal("%s line %d: Badly formatted port number.",
+			    filename, linenum);
+		break;
+
+	case sServerKeyBits:
+		intptr = &options->server_key_bits;
+parse_int:
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: missing integer value.",
+			    filename, linenum);
+		value = atoi(arg);
+		if (*intptr == -1)
+			*intptr = value;
+		break;
+
+	case sLoginGraceTime:
+		intptr = &options->login_grace_time;
+parse_time:
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: missing time value.",
+			    filename, linenum);
+		if ((value = convtime(arg)) == -1)
+			fatal("%s line %d: invalid time value.",
+			    filename, linenum);
+		if (*intptr == -1)
+			*intptr = value;
+		break;
+
+	case sKeyRegenerationTime:
+		intptr = &options->key_regeneration_time;
+		goto parse_time;
+
+	case sListenAddress:
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0' || strncmp(arg, "[]", 2) == 0)
+			fatal("%s line %d: missing inet addr.",
+			    filename, linenum);
+		if (*arg == '[') {
+			if ((p = strchr(arg, ']')) == NULL)
+				fatal("%s line %d: bad ipv6 inet addr usage.",
+				    filename, linenum);
+			arg++;
+			memmove(p, p+1, strlen(p+1)+1);
+		} else if (((p = strchr(arg, ':')) == NULL) ||
+			    (strchr(p+1, ':') != NULL)) {
+			add_listen_addr(options, arg, 0);
+			break;
+		}
+		if (*p == ':') {
+			u_short port;
+
+			p++;
+			if (*p == '\0')
+				fatal("%s line %d: bad inet addr:port usage.",
+				    filename, linenum);
+			else {
+				*(p-1) = '\0';
+				if ((port = a2port(p)) == 0)
+					fatal("%s line %d: bad port number.",
+					    filename, linenum);
+				add_listen_addr(options, arg, port);
+			}
+		} else if (*p == '\0')
+			add_listen_addr(options, arg, 0);
+		else
+			fatal("%s line %d: bad inet addr usage.",
+			    filename, linenum);
+		break;
+
+	case sHostKeyFile:
+		intptr = &options->num_host_key_files;
+		if (*intptr >= MAX_HOSTKEYS)
+			fatal("%s line %d: too many host keys specified (max %d).",
+			    filename, linenum, MAX_HOSTKEYS);
+		charptr = &options->host_key_files[*intptr];
+parse_filename:
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: missing file name.",
+			    filename, linenum);
+		if (*charptr == NULL) {
+			*charptr = tilde_expand_filename(arg, getuid());
+			/* increase optional counter */
+			if (intptr != NULL)
+				*intptr = *intptr + 1;
+		}
+		break;
+
+	case sPidFile:
+		charptr = &options->pid_file;
+		goto parse_filename;
+
+	case sPermitRootLogin:
+		intptr = &options->permit_root_login;
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: missing yes/"
+			    "without-password/forced-commands-only/no "
+			    "argument.", filename, linenum);
+		value = 0;	/* silence compiler */
+		if (strcmp(arg, "without-password") == 0)
+			value = PERMIT_NO_PASSWD;
+		else if (strcmp(arg, "forced-commands-only") == 0)
+			value = PERMIT_FORCED_ONLY;
+		else if (strcmp(arg, "yes") == 0)
+			value = PERMIT_YES;
+		else if (strcmp(arg, "no") == 0)
+			value = PERMIT_NO;
+		else
+			fatal("%s line %d: Bad yes/"
+			    "without-password/forced-commands-only/no "
+			    "argument: %s", filename, linenum, arg);
+		if (*intptr == -1)
+			*intptr = value;
+		break;
+
+	case sIgnoreRhosts:
+		intptr = &options->ignore_rhosts;
+parse_flag:
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: missing yes/no argument.",
+			    filename, linenum);
+		value = 0;	/* silence compiler */
+		if (strcmp(arg, "yes") == 0)
+			value = 1;
+		else if (strcmp(arg, "no") == 0)
+			value = 0;
+		else
+			fatal("%s line %d: Bad yes/no argument: %s",
+				filename, linenum, arg);
+		if (*intptr == -1)
+			*intptr = value;
+		break;
+
+	case sIgnoreUserKnownHosts:
+		intptr = &options->ignore_user_known_hosts;
+		goto parse_flag;
+
+	case sRhostsAuthentication:
+		intptr = &options->rhosts_authentication;
+		goto parse_flag;
+
+	case sRhostsRSAAuthentication:
+		intptr = &options->rhosts_rsa_authentication;
+		goto parse_flag;
+
+	case sHostbasedAuthentication:
+		intptr = &options->hostbased_authentication;
+		goto parse_flag;
+
+	case sHostbasedUsesNameFromPacketOnly:
+		intptr = &options->hostbased_uses_name_from_packet_only;
+		goto parse_flag;
+
+	case sRSAAuthentication:
+		intptr = &options->rsa_authentication;
+		goto parse_flag;
+
+	case sPubkeyAuthentication:
+		intptr = &options->pubkey_authentication;
+		goto parse_flag;
+#if defined(KRB4) || defined(KRB5)
+	case sKerberosAuthentication:
+		intptr = &options->kerberos_authentication;
+		goto parse_flag;
+
+	case sKerberosOrLocalPasswd:
+		intptr = &options->kerberos_or_local_passwd;
+		goto parse_flag;
+
+	case sKerberosTicketCleanup:
+		intptr = &options->kerberos_ticket_cleanup;
+		goto parse_flag;
+#endif
+#if defined(AFS) || defined(KRB5)
+	case sKerberosTgtPassing:
+		intptr = &options->kerberos_tgt_passing;
+		goto parse_flag;
+#endif
+#ifdef AFS
+	case sAFSTokenPassing:
+		intptr = &options->afs_token_passing;
+		goto parse_flag;
+#endif
+
+	case sPasswordAuthentication:
+		intptr = &options->password_authentication;
+		goto parse_flag;
+
+	case sKbdInteractiveAuthentication:
+		intptr = &options->kbd_interactive_authentication;
+		goto parse_flag;
+
+	case sChallengeResponseAuthentication:
+		intptr = &options->challenge_response_authentication;
+		goto parse_flag;
+
+	case sPrintMotd:
+		intptr = &options->print_motd;
+		goto parse_flag;
+
+	case sPrintLastLog:
+		intptr = &options->print_lastlog;
+		goto parse_flag;
+
+	case sX11Forwarding:
+		intptr = &options->x11_forwarding;
+		goto parse_flag;
+
+	case sX11DisplayOffset:
+		intptr = &options->x11_display_offset;
+		goto parse_int;
+
+	case sXAuthLocation:
+		charptr = &options->xauth_location;
+		goto parse_filename;
+
+	case sStrictModes:
+		intptr = &options->strict_modes;
+		goto parse_flag;
+
+	case sKeepAlives:
+		intptr = &options->keepalives;
+		goto parse_flag;
+
+	case sEmptyPasswd:
+		intptr = &options->permit_empty_passwd;
+		goto parse_flag;
+
+	case sUseLogin:
+		intptr = &options->use_login;
+		goto parse_flag;
+
+	case sGatewayPorts:
+		intptr = &options->gateway_ports;
+		goto parse_flag;
+
+	case sReverseMappingCheck:
+		intptr = &options->reverse_mapping_check;
+		goto parse_flag;
+
+	case sLogFacility:
+		intptr = (int *) &options->log_facility;
+		arg = strdelim(&cp);
+		value = log_facility_number(arg);
+		if (value == (SyslogFacility) - 1)
+			fatal("%.200s line %d: unsupported log facility '%s'",
+			    filename, linenum, arg ? arg : "<NONE>");
+		if (*intptr == -1)
+			*intptr = (SyslogFacility) value;
+		break;
+
+	case sLogLevel:
+		intptr = (int *) &options->log_level;
+		arg = strdelim(&cp);
+		value = log_level_number(arg);
+		if (value == (LogLevel) - 1)
+			fatal("%.200s line %d: unsupported log level '%s'",
+			    filename, linenum, arg ? arg : "<NONE>");
+		if (*intptr == -1)
+			*intptr = (LogLevel) value;
+		break;
+
+	case sAllowTcpForwarding:
+		intptr = &options->allow_tcp_forwarding;
+		goto parse_flag;
+
+	case sAllowUsers:
+		while ((arg = strdelim(&cp)) && *arg != '\0') {
+			if (options->num_allow_users >= MAX_ALLOW_USERS)
+				fatal("%s line %d: too many allow users.",
+				    filename, linenum);
+			options->allow_users[options->num_allow_users++] = xstrdup(arg);
+		}
+		break;
+
+	case sDenyUsers:
+		while ((arg = strdelim(&cp)) && *arg != '\0') {
+			if (options->num_deny_users >= MAX_DENY_USERS)
+				fatal( "%s line %d: too many deny users.",
+				    filename, linenum);
+			options->deny_users[options->num_deny_users++] = xstrdup(arg);
+		}
+		break;
+
+	case sAllowGroups:
+		while ((arg = strdelim(&cp)) && *arg != '\0') {
+			if (options->num_allow_groups >= MAX_ALLOW_GROUPS)
+				fatal("%s line %d: too many allow groups.",
+				    filename, linenum);
+			options->allow_groups[options->num_allow_groups++] = xstrdup(arg);
+		}
+		break;
+
+	case sDenyGroups:
+		while ((arg = strdelim(&cp)) && *arg != '\0') {
+			if (options->num_deny_groups >= MAX_DENY_GROUPS)
+				fatal("%s line %d: too many deny groups.",
+				    filename, linenum);
+			options->deny_groups[options->num_deny_groups++] = xstrdup(arg);
+		}
+		break;
+
+	case sCiphers:
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: Missing argument.", filename, linenum);
+		if (!ciphers_valid(arg))
+			fatal("%s line %d: Bad SSH2 cipher spec '%s'.",
+			    filename, linenum, arg ? arg : "<NONE>");
+		if (options->ciphers == NULL)
+			options->ciphers = xstrdup(arg);
+		break;
+
+	case sMacs:
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: Missing argument.", filename, linenum);
+		if (!mac_valid(arg))
+			fatal("%s line %d: Bad SSH2 mac spec '%s'.",
+			    filename, linenum, arg ? arg : "<NONE>");
+		if (options->macs == NULL)
+			options->macs = xstrdup(arg);
+		break;
+
+	case sProtocol:
+		intptr = &options->protocol;
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: Missing argument.", filename, linenum);
+		value = proto_spec(arg);
+		if (value == SSH_PROTO_UNKNOWN)
+			fatal("%s line %d: Bad protocol spec '%s'.",
+			      filename, linenum, arg ? arg : "<NONE>");
+		if (*intptr == SSH_PROTO_UNKNOWN)
+			*intptr = value;
+		break;
+
+	case sSubsystem:
+		if (options->num_subsystems >= MAX_SUBSYSTEMS) {
+			fatal("%s line %d: too many subsystems defined.",
+			      filename, linenum);
+		}
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: Missing subsystem name.",
+			      filename, linenum);
+		for (i = 0; i < options->num_subsystems; i++)
+			if (strcmp(arg, options->subsystem_name[i]) == 0)
+				fatal("%s line %d: Subsystem '%s' already defined.",
+				      filename, linenum, arg);
+		options->subsystem_name[options->num_subsystems] = xstrdup(arg);
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: Missing subsystem command.",
+			      filename, linenum);
+		options->subsystem_command[options->num_subsystems] = xstrdup(arg);
+		options->num_subsystems++;
+		break;
+
+	case sMaxStartups:
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: Missing MaxStartups spec.",
+			      filename, linenum);
+		if ((n = sscanf(arg, "%d:%d:%d",
+		    &options->max_startups_begin,
+		    &options->max_startups_rate,
+		    &options->max_startups)) == 3) {
+			if (options->max_startups_begin >
+			    options->max_startups ||
+			    options->max_startups_rate > 100 ||
+			    options->max_startups_rate < 1)
+				fatal("%s line %d: Illegal MaxStartups spec.",
+				    filename, linenum);
+		} else if (n != 1)
+			fatal("%s line %d: Illegal MaxStartups spec.",
+			    filename, linenum);
+		else
+			options->max_startups = options->max_startups_begin;
+		break;
+
+	case sBanner:
+		charptr = &options->banner;
+		goto parse_filename;
+	/*
+	 * These options can contain %X options expanded at
+	 * connect time, so that you can specify paths like:
+	 *
+	 * AuthorizedKeysFile	/etc/ssh_keys/%u
+	 */
+	case sAuthorizedKeysFile:
+	case sAuthorizedKeysFile2:
+		charptr = (opcode == sAuthorizedKeysFile ) ?
+		    &options->authorized_keys_file :
+		    &options->authorized_keys_file2;
+		goto parse_filename;
+
+	case sClientAliveInterval:
+		intptr = &options->client_alive_interval;
+		goto parse_time;
+
+	case sClientAliveCountMax:
+		intptr = &options->client_alive_count_max;
+		goto parse_int;
+
+	case sDeprecated:
+		log("%s line %d: Deprecated option %s",
+		    filename, linenum, arg);
+		while (arg)
+		    arg = strdelim(&cp);
+		break;
+
+	default:
+		fatal("%s line %d: Missing handler for opcode %s (%d)",
+		    filename, linenum, arg, opcode);
+	}
+	if ((arg = strdelim(&cp)) != NULL && *arg != '\0')
+		fatal("%s line %d: garbage at end of line; \"%.200s\".",
+		    filename, linenum, arg);
+	return 0;
+}
+
 /* Reads the server configuration file. */
 
 void
@@ -399,11 +869,8 @@ read_server_config(ServerOptions *options, const char *filename)
 {
 	FILE *f;
 	char line[1024];
-	char *cp, **charptr, *arg, *p;
-	int linenum, *intptr, value;
+	int linenum;
 	int bad_options = 0;
-	ServerOpCodes opcode;
-	int i, n;
 
 	f = fopen(filename, "r");
 	if (!f) {
@@ -412,467 +879,10 @@ read_server_config(ServerOptions *options, const char *filename)
 	}
 	linenum = 0;
 	while (fgets(line, sizeof(line), f)) {
+		/* Update line number counter. */
 		linenum++;
-		cp = line;
-		arg = strdelim(&cp);
-		/* Ignore leading whitespace */
-		if (*arg == '\0')
-			arg = strdelim(&cp);
-		if (!arg || !*arg || *arg == '#')
-			continue;
-		intptr = NULL;
-		charptr = NULL;
-		opcode = parse_token(arg, filename, linenum);
-		switch (opcode) {
-		case sBadOption:
+		if (process_server_config_line(options, line, filename, linenum) != 0)
 			bad_options++;
-			continue;
-
-		/* Portable-specific options */
-		case sPAMAuthenticationViaKbdInt:
-			intptr = &options->pam_authentication_via_kbd_int;
-			goto parse_flag;
-
-		/* Standard Options */
-		case sPort:
-			/* ignore ports from configfile if cmdline specifies ports */
-			if (options->ports_from_cmdline)
-				continue;
-			if (options->listen_addrs != NULL)
-				fatal("%s line %d: ports must be specified before "
-				    "ListenAdress.", filename, linenum);
-			if (options->num_ports >= MAX_PORTS)
-				fatal("%s line %d: too many ports.",
-				    filename, linenum);
-			arg = strdelim(&cp);
-			if (!arg || *arg == '\0')
-				fatal("%s line %d: missing port number.",
-				    filename, linenum);
-			options->ports[options->num_ports++] = a2port(arg);
-			if (options->ports[options->num_ports-1] == 0)
-				fatal("%s line %d: Badly formatted port number.",
-				    filename, linenum);
-			break;
-
-		case sServerKeyBits:
-			intptr = &options->server_key_bits;
-parse_int:
-			arg = strdelim(&cp);
-			if (!arg || *arg == '\0')
-				fatal("%s line %d: missing integer value.",
-				    filename, linenum);
-			value = atoi(arg);
-			if (*intptr == -1)
-				*intptr = value;
-			break;
-
-		case sLoginGraceTime:
-			intptr = &options->login_grace_time;
-parse_time:
-			arg = strdelim(&cp);
-			if (!arg || *arg == '\0')
-				fatal("%s line %d: missing time value.",
-				    filename, linenum);
-			if ((value = convtime(arg)) == -1)
-				fatal("%s line %d: invalid time value.",
-				    filename, linenum);
-			if (*intptr == -1)
-				*intptr = value;
-			break;
-
-		case sKeyRegenerationTime:
-			intptr = &options->key_regeneration_time;
-			goto parse_time;
-
-		case sListenAddress:
-			arg = strdelim(&cp);
-			if (!arg || *arg == '\0' || strncmp(arg, "[]", 2) == 0)
-				fatal("%s line %d: missing inet addr.",
-				    filename, linenum);
-			if (*arg == '[') {
-				if ((p = strchr(arg, ']')) == NULL)
-					fatal("%s line %d: bad ipv6 inet addr usage.",
-					    filename, linenum);
-				arg++;
-				memmove(p, p+1, strlen(p+1)+1);
-			} else if (((p = strchr(arg, ':')) == NULL) ||
-				    (strchr(p+1, ':') != NULL)) {
-				add_listen_addr(options, arg, 0);
-				break;
-			}
-			if (*p == ':') {
-				u_short port;
-
-				p++;
-				if (*p == '\0')
-					fatal("%s line %d: bad inet addr:port usage.",
-					    filename, linenum);
-				else {
-					*(p-1) = '\0';
-					if ((port = a2port(p)) == 0)
-						fatal("%s line %d: bad port number.",
-						    filename, linenum);
-					add_listen_addr(options, arg, port);
-				}
-			} else if (*p == '\0')
-				add_listen_addr(options, arg, 0);
-			else
-				fatal("%s line %d: bad inet addr usage.",
-				    filename, linenum);
-			break;
-
-		case sHostKeyFile:
-			intptr = &options->num_host_key_files;
-			if (*intptr >= MAX_HOSTKEYS)
-				fatal("%s line %d: too many host keys specified (max %d).",
-				    filename, linenum, MAX_HOSTKEYS);
-			charptr = &options->host_key_files[*intptr];
-parse_filename:
-			arg = strdelim(&cp);
-			if (!arg || *arg == '\0')
-				fatal("%s line %d: missing file name.",
-				    filename, linenum);
-			if (*charptr == NULL) {
-				*charptr = tilde_expand_filename(arg, getuid());
-				/* increase optional counter */
-				if (intptr != NULL)
-					*intptr = *intptr + 1;
-			}
-			break;
-
-		case sPidFile:
-			charptr = &options->pid_file;
-			goto parse_filename;
-
-		case sPermitRootLogin:
-			intptr = &options->permit_root_login;
-			arg = strdelim(&cp);
-			if (!arg || *arg == '\0')
-				fatal("%s line %d: missing yes/"
-				    "without-password/forced-commands-only/no "
-				    "argument.", filename, linenum);
-			value = 0;	/* silence compiler */
-			if (strcmp(arg, "without-password") == 0)
-				value = PERMIT_NO_PASSWD;
-			else if (strcmp(arg, "forced-commands-only") == 0)
-				value = PERMIT_FORCED_ONLY;
-			else if (strcmp(arg, "yes") == 0)
-				value = PERMIT_YES;
-			else if (strcmp(arg, "no") == 0)
-				value = PERMIT_NO;
-			else
-				fatal("%s line %d: Bad yes/"
-				    "without-password/forced-commands-only/no "
-				    "argument: %s", filename, linenum, arg);
-			if (*intptr == -1)
-				*intptr = value;
-			break;
-
-		case sIgnoreRhosts:
-			intptr = &options->ignore_rhosts;
-parse_flag:
-			arg = strdelim(&cp);
-			if (!arg || *arg == '\0')
-				fatal("%s line %d: missing yes/no argument.",
-				    filename, linenum);
-			value = 0;	/* silence compiler */
-			if (strcmp(arg, "yes") == 0)
-				value = 1;
-			else if (strcmp(arg, "no") == 0)
-				value = 0;
-			else
-				fatal("%s line %d: Bad yes/no argument: %s",
-					filename, linenum, arg);
-			if (*intptr == -1)
-				*intptr = value;
-			break;
-
-		case sIgnoreUserKnownHosts:
-			intptr = &options->ignore_user_known_hosts;
-			goto parse_flag;
-
-		case sRhostsAuthentication:
-			intptr = &options->rhosts_authentication;
-			goto parse_flag;
-
-		case sRhostsRSAAuthentication:
-			intptr = &options->rhosts_rsa_authentication;
-			goto parse_flag;
-
-		case sHostbasedAuthentication:
-			intptr = &options->hostbased_authentication;
-			goto parse_flag;
-
-		case sHostbasedUsesNameFromPacketOnly:
-			intptr = &options->hostbased_uses_name_from_packet_only;
-			goto parse_flag;
-
-		case sRSAAuthentication:
-			intptr = &options->rsa_authentication;
-			goto parse_flag;
-
-		case sPubkeyAuthentication:
-			intptr = &options->pubkey_authentication;
-			goto parse_flag;
-#if defined(KRB4) || defined(KRB5)
-		case sKerberosAuthentication:
-			intptr = &options->kerberos_authentication;
-			goto parse_flag;
-
-		case sKerberosOrLocalPasswd:
-			intptr = &options->kerberos_or_local_passwd;
-			goto parse_flag;
-
-		case sKerberosTicketCleanup:
-			intptr = &options->kerberos_ticket_cleanup;
-			goto parse_flag;
-#endif
-#if defined(AFS) || defined(KRB5)
-		case sKerberosTgtPassing:
-			intptr = &options->kerberos_tgt_passing;
-			goto parse_flag;
-#endif
-#ifdef AFS
-		case sAFSTokenPassing:
-			intptr = &options->afs_token_passing;
-			goto parse_flag;
-#endif
-
-		case sPasswordAuthentication:
-			intptr = &options->password_authentication;
-			goto parse_flag;
-
-		case sKbdInteractiveAuthentication:
-			intptr = &options->kbd_interactive_authentication;
-			goto parse_flag;
-
-		case sChallengeResponseAuthentication:
-			intptr = &options->challenge_response_authentication;
-			goto parse_flag;
-
-		case sPrintMotd:
-			intptr = &options->print_motd;
-			goto parse_flag;
-
-		case sPrintLastLog:
-			intptr = &options->print_lastlog;
-			goto parse_flag;
-
-		case sX11Forwarding:
-			intptr = &options->x11_forwarding;
-			goto parse_flag;
-
-		case sX11DisplayOffset:
-			intptr = &options->x11_display_offset;
-			goto parse_int;
-
-		case sXAuthLocation:
-			charptr = &options->xauth_location;
-			goto parse_filename;
-
-		case sStrictModes:
-			intptr = &options->strict_modes;
-			goto parse_flag;
-
-		case sKeepAlives:
-			intptr = &options->keepalives;
-			goto parse_flag;
-
-		case sEmptyPasswd:
-			intptr = &options->permit_empty_passwd;
-			goto parse_flag;
-
-		case sUseLogin:
-			intptr = &options->use_login;
-			goto parse_flag;
-
-		case sGatewayPorts:
-			intptr = &options->gateway_ports;
-			goto parse_flag;
-
-		case sReverseMappingCheck:
-			intptr = &options->reverse_mapping_check;
-			goto parse_flag;
-
-		case sLogFacility:
-			intptr = (int *) &options->log_facility;
-			arg = strdelim(&cp);
-			value = log_facility_number(arg);
-			if (value == (SyslogFacility) - 1)
-				fatal("%.200s line %d: unsupported log facility '%s'",
-				    filename, linenum, arg ? arg : "<NONE>");
-			if (*intptr == -1)
-				*intptr = (SyslogFacility) value;
-			break;
-
-		case sLogLevel:
-			intptr = (int *) &options->log_level;
-			arg = strdelim(&cp);
-			value = log_level_number(arg);
-			if (value == (LogLevel) - 1)
-				fatal("%.200s line %d: unsupported log level '%s'",
-				    filename, linenum, arg ? arg : "<NONE>");
-			if (*intptr == -1)
-				*intptr = (LogLevel) value;
-			break;
-
-		case sAllowTcpForwarding:
-			intptr = &options->allow_tcp_forwarding;
-			goto parse_flag;
-
-		case sAllowUsers:
-			while ((arg = strdelim(&cp)) && *arg != '\0') {
-				if (options->num_allow_users >= MAX_ALLOW_USERS)
-					fatal("%s line %d: too many allow users.",
-					    filename, linenum);
-				options->allow_users[options->num_allow_users++] = xstrdup(arg);
-			}
-			break;
-
-		case sDenyUsers:
-			while ((arg = strdelim(&cp)) && *arg != '\0') {
-				if (options->num_deny_users >= MAX_DENY_USERS)
-					fatal( "%s line %d: too many deny users.",
-					    filename, linenum);
-				options->deny_users[options->num_deny_users++] = xstrdup(arg);
-			}
-			break;
-
-		case sAllowGroups:
-			while ((arg = strdelim(&cp)) && *arg != '\0') {
-				if (options->num_allow_groups >= MAX_ALLOW_GROUPS)
-					fatal("%s line %d: too many allow groups.",
-					    filename, linenum);
-				options->allow_groups[options->num_allow_groups++] = xstrdup(arg);
-			}
-			break;
-
-		case sDenyGroups:
-			while ((arg = strdelim(&cp)) && *arg != '\0') {
-				if (options->num_deny_groups >= MAX_DENY_GROUPS)
-					fatal("%s line %d: too many deny groups.",
-					    filename, linenum);
-				options->deny_groups[options->num_deny_groups++] = xstrdup(arg);
-			}
-			break;
-
-		case sCiphers:
-			arg = strdelim(&cp);
-			if (!arg || *arg == '\0')
-				fatal("%s line %d: Missing argument.", filename, linenum);
-			if (!ciphers_valid(arg))
-				fatal("%s line %d: Bad SSH2 cipher spec '%s'.",
-				    filename, linenum, arg ? arg : "<NONE>");
-			if (options->ciphers == NULL)
-				options->ciphers = xstrdup(arg);
-			break;
-
-		case sMacs:
-			arg = strdelim(&cp);
-			if (!arg || *arg == '\0')
-				fatal("%s line %d: Missing argument.", filename, linenum);
-			if (!mac_valid(arg))
-				fatal("%s line %d: Bad SSH2 mac spec '%s'.",
-				    filename, linenum, arg ? arg : "<NONE>");
-			if (options->macs == NULL)
-				options->macs = xstrdup(arg);
-			break;
-
-		case sProtocol:
-			intptr = &options->protocol;
-			arg = strdelim(&cp);
-			if (!arg || *arg == '\0')
-				fatal("%s line %d: Missing argument.", filename, linenum);
-			value = proto_spec(arg);
-			if (value == SSH_PROTO_UNKNOWN)
-				fatal("%s line %d: Bad protocol spec '%s'.",
-				      filename, linenum, arg ? arg : "<NONE>");
-			if (*intptr == SSH_PROTO_UNKNOWN)
-				*intptr = value;
-			break;
-
-		case sSubsystem:
-			if (options->num_subsystems >= MAX_SUBSYSTEMS) {
-				fatal("%s line %d: too many subsystems defined.",
-				      filename, linenum);
-			}
-			arg = strdelim(&cp);
-			if (!arg || *arg == '\0')
-				fatal("%s line %d: Missing subsystem name.",
-				      filename, linenum);
-			for (i = 0; i < options->num_subsystems; i++)
-				if (strcmp(arg, options->subsystem_name[i]) == 0)
-					fatal("%s line %d: Subsystem '%s' already defined.",
-					      filename, linenum, arg);
-			options->subsystem_name[options->num_subsystems] = xstrdup(arg);
-			arg = strdelim(&cp);
-			if (!arg || *arg == '\0')
-				fatal("%s line %d: Missing subsystem command.",
-				      filename, linenum);
-			options->subsystem_command[options->num_subsystems] = xstrdup(arg);
-			options->num_subsystems++;
-			break;
-
-		case sMaxStartups:
-			arg = strdelim(&cp);
-			if (!arg || *arg == '\0')
-				fatal("%s line %d: Missing MaxStartups spec.",
-				      filename, linenum);
-			if ((n = sscanf(arg, "%d:%d:%d",
-			    &options->max_startups_begin,
-			    &options->max_startups_rate,
-			    &options->max_startups)) == 3) {
-				if (options->max_startups_begin >
-				    options->max_startups ||
-				    options->max_startups_rate > 100 ||
-				    options->max_startups_rate < 1)
-					fatal("%s line %d: Illegal MaxStartups spec.",
-					    filename, linenum);
-			} else if (n != 1)
-				fatal("%s line %d: Illegal MaxStartups spec.",
-				    filename, linenum);
-			else
-				options->max_startups = options->max_startups_begin;
-			break;
-
-		case sBanner:
-			charptr = &options->banner;
-			goto parse_filename;
-		/*
-		 * These options can contain %X options expanded at
-		 * connect time, so that you can specify paths like:
-		 *
-		 * AuthorizedKeysFile	/etc/ssh_keys/%u
-		 */
-		case sAuthorizedKeysFile:
-		case sAuthorizedKeysFile2:
-			charptr = (opcode == sAuthorizedKeysFile ) ?
-			    &options->authorized_keys_file :
-			    &options->authorized_keys_file2;
-			goto parse_filename;
-
-		case sClientAliveInterval:
-			intptr = &options->client_alive_interval;
-			goto parse_time;
-
-		case sClientAliveCountMax:
-			intptr = &options->client_alive_count_max;
-			goto parse_int;
-
-		case sDeprecated:
-			log("%s line %d: Deprecated option %s",
-			    filename, linenum, arg);
-			while (arg)
-			    arg = strdelim(&cp);
-			break;
-
-		default:
-			fatal("%s line %d: Missing handler for opcode %s (%d)",
-			    filename, linenum, arg, opcode);
-		}
-		if ((arg = strdelim(&cp)) != NULL && *arg != '\0')
-			fatal("%s line %d: garbage at end of line; \"%.200s\".",
-			    filename, linenum, arg);
 	}
 	fclose(f);
 	if (bad_options > 0)

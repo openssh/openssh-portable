@@ -68,6 +68,10 @@
    - markus@cvs.openbsd.org 2001/12/05 16:54:51
      [compat.c match.c match.h]
      make theo and djm happy: bye bye regexp
+   - markus@cvs.openbsd.org 2001/12/06 13:30:06
+     [servconf.c servconf.h sshd.8 sshd.c]
+     add -o to sshd, too. ok deraadt@
+ - (bal) Minor white space fix up in servconf.c
 
 20011126
  - (tim) [contrib/cygwin/README, openbsd-compat/bsd-cygwin_util.c,
@@ -6990,4 +6994,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1686 2001/12/06 18:06:05 mouring Exp $
+$Id: ChangeLog,v 1.1687 2001/12/06 18:22:17 mouring Exp $

@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: servconf.h,v 1.49 2001/08/17 18:59:47 stevesk Exp $"); */
+/* RCSID("$OpenBSD: servconf.h,v 1.50 2001/12/06 13:30:05 markus Exp $"); */
 
 #ifndef SERVCONF_H
 #define SERVCONF_H
@@ -135,5 +135,7 @@ typedef struct {
 void	 initialize_server_options(ServerOptions *);
 void	 read_server_config(ServerOptions *, const char *);
 void	 fill_default_server_options(ServerOptions *);
+int	 process_server_config_line(ServerOptions *, char *, const char *, int);
+
 
 #endif				/* SERVCONF_H */

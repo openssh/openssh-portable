@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.155 2001/12/01 21:41:48 markus Exp $
+.\" $OpenBSD: sshd.8,v 1.156 2001/12/06 13:30:06 markus Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -49,6 +49,7 @@
 .Op Fl g Ar login_grace_time
 .Op Fl h Ar host_key_file
 .Op Fl k Ar key_gen_time
+.Op Fl o Ar option
 .Op Fl p Ar port
 .Op Fl u Ar len
 .Sh DESCRIPTION
@@ -237,6 +238,10 @@ it becomes impossible to recover the key for decrypting intercepted
 communications even if the machine is cracked into or physically
 seized.
 A value of zero indicates that the key will never be regenerated.
+.It Fl o Ar option
+Can be used to give options in the format used in the configuration file.
+This is useful for specifying options for which there is no separate
+command-line flag.
 .It Fl p Ar port
 Specifies the port on which the server listens for connections
 (default 22).
