@@ -3,6 +3,7 @@
  - Restructured package-related files under packages/*
  - Added generic PAM config
  - Numerous little Solaris fixes
+ - Add recommendation to use GNU make to INSTALL document
 
 19991122
  - Make <enter> close gnome-ssh-askpass (Debian bug #50299)

@@ -29,6 +29,11 @@ Gathering Daemon (or similar). You will also need to specify the
 EGD:
 http://www.lothar.com/tech/crypto/
 
+GNU Make:
+ftp://ftp.gnu.org/gnu/make/
+
+OpenSSH has only been tested with GNU make. It may work with other
+'make' programs, but you are on your own.
 
 2. Building / Installation
 --------------------------
