@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.240 2005/02/10 11:28:55 dtucker Exp $
+# $Id: configure.ac,v 1.241 2005/02/11 05:11:49 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -766,8 +766,7 @@ fi
 # Check whether user wants S/Key support
 SKEY_MSG="no"
 AC_ARG_WITH(skey,
-	[  --with-skey[[=PATH]]      Enable S/Key support
-			    (optionally in PATH)],
+	[  --with-skey[[=PATH]]      Enable S/Key support (optionally in PATH)],
 	[
 		if test "x$withval" != "xno" ; then
 
@@ -808,8 +807,7 @@ int main() { char *ff = skey_keyinfo(""); ff=""; exit(0); }
 # Check whether user wants TCP wrappers support
 TCPW_MSG="no"
 AC_ARG_WITH(tcp-wrappers,
-	[  --with-tcp-wrappers[[=PATH]]      Enable tcpwrappers support
-			    (optionally in PATH)],
+	[  --with-tcp-wrappers[[=PATH]] Enable tcpwrappers support (optionally in PATH)],
 	[
 		if test "x$withval" != "xno" ; then
 			saved_LIBS="$LIBS"
@@ -865,7 +863,7 @@ AC_ARG_WITH(tcp-wrappers,
 # Check whether user wants libedit support
 LIBEDIT_MSG="no"
 AC_ARG_WITH(libedit,
-	[  --with-libedit[[=PATH]]      Enable libedit support for sftp],
+	[  --with-libedit[[=PATH]]   Enable libedit support for sftp],
 	[ if test "x$withval" != "xno" ; then
 		AC_CHECK_LIB(edit, el_init,
 			[ AC_DEFINE(USE_LIBEDIT, [], [Use libedit for sftp])
@@ -2583,7 +2581,7 @@ fi
 
 # check for /etc/default/login and use it if present.
 AC_ARG_ENABLE(etc-default-login,
-	[  --disable-etc-default-login       Disable using PATH from /etc/default/login [no]],
+	[  --disable-etc-default-login Disable using PATH from /etc/default/login [no]],
 	[ if test "x$enableval" = "xno"; then
 		AC_MSG_NOTICE([/etc/default/login handling disabled])
 		etc_default_login=no

@@ -1,3 +1,6 @@
+20050211
+ - (dtucker) [configure.ac] Tidy up configure --help output.
+
 20050210
  - (dtucker) [configure.ac] Bug #919: Provide visible feedback for the
    --disable-etc-default-login configure option.
@@ -2119,4 +2122,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3648 2005/02/10 11:28:54 dtucker Exp $
+$Id: ChangeLog,v 1.3649 2005/02/11 05:11:49 dtucker Exp $
