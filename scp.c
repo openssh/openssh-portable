@@ -82,6 +82,7 @@ RCSID("$OpenBSD: scp.c,v 1.67 2001/04/16 02:31:43 mouring Exp $");
 #include "pathnames.h"
 #include "log.h"
 #include "misc.h"
+#include "scp-common.h"
 
 #ifdef HAVE___PROGNAME
 extern char *__progname;

@@ -23,6 +23,8 @@
      [auth2.c]                                        
      use local variable, no function call needed.     
      (btw, hostbased works now with ssh.com >= 2.0.13)
+  - (bal) Put scp-common.h back into scp.c (it exists in the upstream
+    tree) pointed out by Tom Holroyd <tomh@po.crl.go.jp>
 
 20010418
   - OpenBSD CVS Sync                            
@@ -5185,4 +5187,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1146 2001/04/19 20:50:07 mouring Exp $
+$Id: ChangeLog,v 1.1147 2001/04/20 04:59:22 mouring Exp $
