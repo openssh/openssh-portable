@@ -1,5 +1,7 @@
 20000530
  - Define atexit for old Solaris
+ - Fix buffer overrun in login.c for systems which use syslen in utmpx.
+   patch from YOSHIFUJI Hideaki <yoshfuji@cerberus.nemoto.ecei.tohoku.ac.jp>
 
 20000520
  - Xauth fix from Markus Friedl <markus.friedl@informatik.uni-erlangen.de>
