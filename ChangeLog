@@ -1,6 +1,13 @@
 20030523
  - (djm) Use VIS_SAFE on logged strings rather than default strnvis 
    encoding (which encodes many more characters)
+ - OpenBSD CVS Sync
+   - jmc@cvs.openbsd.org 2003/05/20 12:03:35
+     [sftp.1]
+     - new sentence, new line
+     - added .Xr's
+     - typos
+     ok djm@
 
 20030520
  - (djm) OpenBSD CVS Sync
@@ -1589,4 +1596,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2745 2003/05/23 08:43:40 djm Exp $
+$Id: ChangeLog,v 1.2746 2003/05/23 08:44:04 djm Exp $
