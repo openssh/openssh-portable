@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-glob.c,v 1.12 2002/07/04 04:15:33 deraadt Exp $");
+RCSID("$OpenBSD: sftp-glob.c,v 1.13 2002/09/11 22:41:50 djm Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
@@ -105,25 +105,6 @@ fudge_closedir(struct SFTP_OPENDIR *od)
 {
 	free_sftp_dirents(od->dir);
 	xfree(od);
-}
-
-static void
-attrib_to_stat(Attrib *a, struct stat *st)
-{
-	memset(st, 0, sizeof(*st));
-
-	if (a->flags & SSH2_FILEXFER_ATTR_SIZE)
-		st->st_size = a->size;
-	if (a->flags & SSH2_FILEXFER_ATTR_UIDGID) {
-		st->st_uid = a->uid;
-		st->st_gid = a->gid;
-	}
-	if (a->flags & SSH2_FILEXFER_ATTR_PERMISSIONS)
-		st->st_mode = a->perm;
-	if (a->flags & SSH2_FILEXFER_ATTR_ACMODTIME) {
-		st->st_atime = a->atime;
-		st->st_mtime = a->mtime;
-	}
 }
 
 static int

@@ -22,6 +22,10 @@
      [authfd.c authfd.h ssh.c]
      don't connect to agent to test for presence if we've previously
      connected; ok markus@
+   - djm@cvs.openbsd.org 2002/09/11 22:41:50
+     [sftp.1 sftp-client.c sftp-client.h sftp-common.c sftp-common.h]
+     [sftp-glob.c sftp-glob.h sftp-int.c sftp-server.c]
+     support for short/long listings and globbing in "ls"; ok markus@
 
 20020911
  - (djm) Sync openbsd-compat with OpenBSD -current
@@ -1642,4 +1646,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2457 2002/09/11 23:52:46 djm Exp $
+$Id: ChangeLog,v 1.2458 2002/09/11 23:54:25 djm Exp $
