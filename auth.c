@@ -1,14 +1,4 @@
 /*
- * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
- *                    All rights reserved
- *
- * As far as I am concerned, the code I have written for this software
- * can be used freely for any purpose.  Any derived versions of this
- * software must be clearly marked as such, and if the derived work is
- * incompatible with the protocol description in the RFC file, it must be
- * called by a name other than "ssh" or "Secure Shell".
- *
- *
  * Copyright (c) 2000 Markus Friedl. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,19 +23,12 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth.c,v 1.12 2001/01/13 18:56:48 markus Exp $");
+RCSID("$OpenBSD: auth.c,v 1.13 2001/01/18 16:59:59 markus Exp $");
 
 #include "xmalloc.h"
-#include "rsa.h"
 #include "ssh.h"
-#include "pty.h"
-#include "packet.h"
-#include "buffer.h"
-#include "mpaux.h"
-#include "servconf.h"
-#include "compat.h"
-#include "channels.h"
 #include "match.h"
+#include "servconf.h"
 #include "groupaccess.h"
 #ifdef HAVE_LOGIN_H
 #include <login.h>
@@ -54,10 +37,8 @@ RCSID("$OpenBSD: auth.c,v 1.12 2001/01/13 18:56:48 markus Exp $");
 #include <shadow.h>
 #endif /* defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW) */
 
-#include "bufaux.h"
-#include "ssh2.h"
 #include "auth.h"
-#include "session.h"
+#include "auth-options.h"
 
 /* import */
 extern ServerOptions options;
@@ -178,4 +159,75 @@ allowed_user(struct passwd * pw)
 
 	/* We found no reason not to let this user try to log on... */
 	return 1;
+}
+
+Authctxt *
+authctxt_new(void)
+{
+        Authctxt *authctxt = xmalloc(sizeof(*authctxt));
+        memset(authctxt, 0, sizeof(*authctxt));
+        return authctxt;
+}
+
+struct passwd *
+pwcopy(struct passwd *pw)
+{
+	struct passwd *copy = xmalloc(sizeof(*copy));
+	memset(copy, 0, sizeof(*copy));
+	copy->pw_name = xstrdup(pw->pw_name);
+	copy->pw_passwd = xstrdup(pw->pw_passwd);
+	copy->pw_uid = pw->pw_uid;
+	copy->pw_gid = pw->pw_gid;
+#ifdef HAVE_PW_CLASS_IN_PASSWD
+	copy->pw_class = xstrdup(pw->pw_class);
+#endif
+	copy->pw_dir = xstrdup(pw->pw_dir);
+	copy->pw_shell = xstrdup(pw->pw_shell);
+	return copy;
+}
+
+void
+auth_log(Authctxt *authctxt, int authenticated, char *method, char *info)
+{
+	void (*authlog) (const char *fmt,...) = verbose;
+	char *authmsg;
+
+	/* Raise logging level */
+	if (authenticated == 1 ||
+	    !authctxt->valid ||
+	    authctxt->failures >= AUTH_FAIL_LOG ||
+	    strcmp(method, "password") == 0)
+		authlog = log;
+
+	if (authctxt->postponed)
+		authmsg = "Postponed";
+	else
+		authmsg = authenticated ? "Accepted" : "Failed";
+
+	authlog("%s %s for %s%.100s from %.200s port %d%s",
+	    authmsg,
+	    method,
+	    authctxt->valid ? "" : "illegal user ",
+	    authctxt->valid && authctxt->pw->pw_uid == 0 ? "ROOT" : authctxt->user,
+	    get_remote_ipaddr(),
+	    get_remote_port(),
+	    info);
+}
+
+/*
+ * Check if the user is logging in as root and root logins are disallowed.
+ * Note that root login is _allways_ allowed for forced commands.
+ */
+int
+auth_root_allowed(void)
+{
+	if (options.permit_root_login)
+		return 1;
+	if (forced_command) {
+		log("Root login accepted for forced command.");
+		return 1;
+	} else {
+		log("ROOT LOGIN REFUSED FROM %.200s", get_canonical_hostname());
+		return 0;
+	}
 }

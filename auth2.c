@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.25 2001/01/08 22:29:05 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.28 2001/01/18 17:00:00 markus Exp $");
 
 #ifdef HAVE_OSF_SIA
 # include <sia.h>
@@ -84,7 +84,6 @@ void	input_service_request(int type, int plen, void *ctxt);
 void	input_userauth_request(int type, int plen, void *ctxt);
 void	protocol_error(int type, int plen, void *ctxt);
 
-
 /* helper */
 Authmethod	*authmethod_lookup(const char *name);
 struct passwd	*pwcopy(struct passwd *pw);
@@ -121,22 +120,21 @@ Authmethod authmethods[] = {
 void
 do_authentication2()
 {
-	Authctxt *authctxt = xmalloc(sizeof(*authctxt));
-	memset(authctxt, 'a', sizeof(*authctxt));
-	authctxt->valid = 0;
-	authctxt->attempt = 0;
-	authctxt->failures = 0;
-	authctxt->success = 0;
+	Authctxt *authctxt = authctxt_new();
+
 	x_authctxt = authctxt;		/*XXX*/
 
-#ifdef KRB4
-	/* turn off kerberos, not supported by SSH2 */
-	options.kerberos_authentication = 0;
+#ifdef AFS
+	/* If machine has AFS, set process authentication group. */
+	if (k_hasafs()) {
+		k_setpag();
+		k_unlog();
+	}
 #endif
 	dispatch_init(&protocol_error);
 	dispatch_set(SSH2_MSG_SERVICE_REQUEST, &input_service_request);
 	dispatch_run(DISPATCH_BLOCK, &authctxt->success, authctxt);
-	do_authenticated2();
+	do_authenticated2(authctxt);
 }
 
 void
@@ -187,7 +185,7 @@ input_userauth_request(int type, int plen, void *ctxt)
 {
 	Authctxt *authctxt = ctxt;
 	Authmethod *m = NULL;
-	char *user, *service, *method;
+	char *user, *service, *method, *style = NULL;
 	int authenticated = 0;
 
 	if (authctxt == NULL)
@@ -198,6 +196,9 @@ input_userauth_request(int type, int plen, void *ctxt)
 	method = packet_get_string(NULL);
 	debug("userauth-request for user %s service %s method %s", user, service, method);
 	debug("attempt %d failures %d", authctxt->attempt, authctxt->failures);
+
+	if ((style = strchr(user, ':')) != NULL)
+		*style++ = 0;
 
 	if (authctxt->attempt++ == 0) {
 		/* setup auth context */
@@ -216,6 +217,7 @@ input_userauth_request(int type, int plen, void *ctxt)
 		}
 		authctxt->user = xstrdup(user);
 		authctxt->service = xstrdup(service);
+		authctxt->style = style ? xstrdup(style) : NULL; /* currently unused */
 	} else if (authctxt->valid) {
 		if (strcmp(user, authctxt->user) != 0 ||
 		    strcmp(service, authctxt->service) != 0) {
@@ -224,25 +226,23 @@ input_userauth_request(int type, int plen, void *ctxt)
 			authctxt->valid = 0;
 		}
 	}
+	/* reset state */
+	dispatch_set(SSH2_MSG_USERAUTH_INFO_RESPONSE, &protocol_error);
+	authctxt->postponed = 0;
 
+	/* try to authenticate user */
 	m = authmethod_lookup(method);
 	if (m != NULL) {
 		debug2("input_userauth_request: try method %s", method);
 		authenticated =	m->userauth(authctxt);
-	} else {
-		debug2("input_userauth_request: unsupported method %s", method);
 	}
-	if (!authctxt->valid && authenticated == 1) {
-		log("input_userauth_request: INTERNAL ERROR: authenticated invalid user %s service %s", user, method);
-		authenticated = 0;
-	}
+	if (!authctxt->valid && authenticated)
+		fatal("INTERNAL ERROR: authenticated invalid user %s",
+		    authctxt->user);
 
 	/* Special handling for root */
-	if (authenticated == 1 &&
-	    authctxt->valid && authctxt->pw->pw_uid == 0 && !options.permit_root_login) {
+	if (authenticated && authctxt->pw->pw_uid == 0 && !auth_root_allowed())
 		authenticated = 0;
-		log("ROOT LOGIN REFUSED FROM %.200s", get_canonical_hostname());
-	}
 
 #ifdef USE_PAM
 	if (authenticated && authctxt->user && !do_pam_account(authctxt->user, NULL))
@@ -250,8 +250,10 @@ input_userauth_request(int type, int plen, void *ctxt)
 #endif /* USE_PAM */
 
 	/* Log before sending the reply */
-	userauth_log(authctxt, authenticated, method);
-	userauth_reply(authctxt, authenticated);
+	auth_log(authctxt, authenticated, method, " ssh2");
+
+	if (!authctxt->postponed)
+		userauth_reply(authctxt, authenticated);
 
 	xfree(service);
 	xfree(user);
@@ -292,47 +294,13 @@ done:
 	return;
 }
 
-void
-userauth_log(Authctxt *authctxt, int authenticated, char *method)
-{
-	void (*authlog) (const char *fmt,...) = verbose;
-	char *user = NULL, *authmsg = NULL;
-
-	/* Raise logging level */
-	if (authenticated == 1 ||
-	    !authctxt->valid ||
-	    authctxt->failures >= AUTH_FAIL_LOG ||
-	    strcmp(method, "password") == 0)
-		authlog = log;
-
-	if (authenticated == 1) {
-		authmsg = "Accepted";
-	} else if (authenticated == 0) {
-		authmsg = "Failed";
-	} else {
-		authmsg = "Postponed";
-	}
-
-	if (authctxt->valid) {
-		user = authctxt->pw->pw_uid == 0 ? "ROOT" : authctxt->user;
-	} else {
-		user = "NOUSER";
-	}
-
-	authlog("%s %s for %.200s from %.200s port %d ssh2",
-	    authmsg,
-	    method,
-	    user,
-	    get_remote_ipaddr(),
-	    get_remote_port());
-}
-
 void   
 userauth_reply(Authctxt *authctxt, int authenticated)
 {
 	char *methods;
+
 	/* XXX todo: check if multiple auth methods are needed */
-	if (authenticated == 1) {
+	if (authenticated) {
 #ifdef WITH_AIXAUTHENTICATE
 		/* We don't have a pty yet, so just label the line as "ssh" */
 		if (loginsuccess(authctxt->user?authctxt->user:"NOUSER", 
@@ -346,9 +314,9 @@ userauth_reply(Authctxt *authctxt, int authenticated)
 		packet_write_wait();
 		/* now we can break out */
 		authctxt->success = 1;
-	} else if (authenticated == 0) {
-		if (authctxt->failures++ >= AUTH_FAIL_MAX)
-			packet_disconnect("too many failed userauth_requests");
+	} else {
+		if (authctxt->failures++ > AUTH_FAIL_MAX)
+                        packet_disconnect(AUTH_FAIL_MSG, authctxt->user);
 		methods = authmethods_get();
 		packet_start(SSH2_MSG_USERAUTH_FAILURE);
 		packet_put_cstring(methods);
@@ -356,8 +324,6 @@ userauth_reply(Authctxt *authctxt, int authenticated)
 		packet_send();
 		packet_write_wait();
 		xfree(methods);
-	} else {
-		/* do nothing, we did already send a reply */
 	}
 }
 
@@ -432,15 +398,12 @@ userauth_kbdint(Authctxt *authctxt)
 	packet_done();
 
 	debug("keyboard-interactive language %s devs %s", lang, devs);
+
+	authenticated = auth2_challenge(authctxt, devs);
+
 #ifdef USE_PAM
 	if (authenticated == 0)
 		authenticated = auth2_pam(authctxt);
-#endif
-#ifdef SKEY
-	/* XXX hardcoded, we should look at devs */
-	if (authenticated == 0)
-		if (options.skey_authentication != 0)
-			authenticated = auth2_skey(authctxt);
 #endif
 	xfree(lang);
 	xfree(devs);
@@ -731,21 +694,4 @@ user_key_allowed(struct passwd *pw, Key *key)
 	fclose(f);
 	key_free(found);
 	return found_key;
-}
-
-struct passwd *
-pwcopy(struct passwd *pw)
-{
-	struct passwd *copy = xmalloc(sizeof(*copy));
-	memset(copy, 0, sizeof(*copy));
-	copy->pw_name = xstrdup(pw->pw_name);
-	copy->pw_passwd = xstrdup(pw->pw_passwd);
-	copy->pw_uid = pw->pw_uid;
-	copy->pw_gid = pw->pw_gid;
-#ifdef HAVE_PW_CLASS_IN_PASSWD
-	copy->pw_class = xstrdup(pw->pw_class);
-#endif
-	copy->pw_dir = xstrdup(pw->pw_dir);
-	copy->pw_shell = xstrdup(pw->pw_shell);
-	return copy;
 }

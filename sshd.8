@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.81 2001/01/13 18:56:48 markus Exp $
+.\" $OpenBSD: sshd.8,v 1.82 2001/01/18 16:20:22 markus Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -499,8 +499,8 @@ The default is 600 (seconds).
 Gives the verbosity level that is used when logging messages from
 .Nm sshd .
 The possible values are:
-QUIET, FATAL, ERROR, NOTICE, VERBOSE and DEBUG.
-The default is NOTICE.
+QUIET, FATAL, ERROR, INFO, VERBOSE and DEBUG.
+The default is INFO.
 Logging with level DEBUG violates the privacy of users
 and is not recommended.
 .It Cm MaxStartups

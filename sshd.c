@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.150 2001/01/13 18:32:51 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.152 2001/01/18 16:20:22 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -153,10 +153,10 @@ struct {
 } sensitive_data;
 
 /*
- * Flag indicating whether the current session key has been used.  This flag
- * is set whenever the key is used, and cleared when the key is regenerated.
+ * Flag indicating whether the RSA server key needs to be regenerated.
+ * Is set in the SIGALRM handler and cleared when the key is regenerated.
  */
-int key_used = 0;
+int key_do_regen = 0;
 
 /* This is set to true when SIGHUP is received. */
 int received_sighup = 0;
@@ -266,7 +266,6 @@ grace_alarm_handler(int sig)
  * do anything with the private key or random state before forking.
  * Thus there should be no concurrency control/asynchronous execution
  * problems.
- * XXX calling log() is not safe from races.
  */
 void
 generate_empheral_server_key(void)
@@ -284,17 +283,9 @@ void
 key_regeneration_alarm(int sig)
 {
 	int save_errno = errno;
-
-	/* Check if we should generate a new key. */
-	if (key_used) {
-		/* This should really be done in the background. */
-		generate_empheral_server_key();
-		key_used = 0;
-	}
-	/* Reschedule the alarm. */
-	signal(SIGALRM, key_regeneration_alarm);
-	alarm(options.key_regeneration_time);
+	signal(SIGALRM, SIG_DFL);
 	errno = save_errno;
+	key_do_regen = 1;
 }
 
 void
@@ -568,6 +559,7 @@ main(int ac, char **av)
 	int listen_sock, maxfd;
 	int startup_p[2];
 	int startups = 0;
+	int ret, key_used = 0;
 
 	__progname = get_progname(av[0]);
 	init_rng();
@@ -674,7 +666,7 @@ main(int ac, char **av)
 	 * key (unless started from inetd)
 	 */
 	log_init(__progname,
-	    options.log_level == -1 ? SYSLOG_LEVEL_NOTICE : options.log_level,
+	    options.log_level == -1 ? SYSLOG_LEVEL_INFO : options.log_level,
 	    options.log_facility == -1 ? SYSLOG_FACILITY_AUTH : options.log_facility,
 	    !silent && !inetd_flag);
 
@@ -890,13 +882,8 @@ main(int ac, char **av)
 				fclose(f);
 			}
 		}
-		if (options.protocol & SSH_PROTO_1) {
+		if (options.protocol & SSH_PROTO_1)
 			generate_empheral_server_key();
-
-			/* Schedule server key regeneration alarm. */
-			signal(SIGALRM, key_regeneration_alarm);
-			alarm(options.key_regeneration_time);
-		}
 
 		/* Arrange to restart on SIGHUP.  The handler needs listen_sock. */
 		signal(SIGHUP, sighup_handler);
@@ -938,11 +925,17 @@ main(int ac, char **av)
 					FD_SET(startup_pipes[i], fdset);
 
 			/* Wait in select until there is a connection. */
-			if (select(maxfd+1, fdset, NULL, NULL, NULL) < 0) {
-				if (errno != EINTR)
-					error("select: %.100s", strerror(errno));
-				continue;
+			ret = select(maxfd+1, fdset, NULL, NULL, NULL);
+			if (ret < 0 && errno != EINTR)
+				error("select: %.100s", strerror(errno));
+			if (key_used && key_do_regen) {
+				generate_empheral_server_key();
+				key_used = 0;
+				key_do_regen = 0;
 			}
+			if (ret < 0)
+				continue;
+
 			for (i = 0; i < options.max_startups; i++)
 				if (startup_pipes[i] != -1 &&
 				    FD_ISSET(startup_pipes[i], fdset)) {
@@ -1042,7 +1035,13 @@ main(int ac, char **av)
 				close(startup_p[1]);
 
 				/* Mark that the key has been used (it was "given" to the child). */
-				key_used = 1;
+				if ((options.protocol & SSH_PROTO_1) &&
+				    key_used == 0) {
+					/* Schedule server key regeneration alarm. */
+					signal(SIGALRM, key_regeneration_alarm);
+					alarm(options.key_regeneration_time);
+					key_used = 1;
+				}
 
 				arc4random_stir();
 

@@ -12,7 +12,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: ssh.h,v 1.57 2001/01/07 11:28:06 markus Exp $"); */
+/* RCSID("$OpenBSD: ssh.h,v 1.58 2001/01/18 16:20:22 markus Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -445,7 +445,7 @@ typedef enum {
 	SYSLOG_LEVEL_QUIET,
 	SYSLOG_LEVEL_FATAL,
 	SYSLOG_LEVEL_ERROR,
-	SYSLOG_LEVEL_NOTICE,
+	SYSLOG_LEVEL_INFO,
 	SYSLOG_LEVEL_VERBOSE,
 	SYSLOG_LEVEL_DEBUG1,
 	SYSLOG_LEVEL_DEBUG2,

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.76 2001/01/07 11:28:06 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.77 2001/01/18 16:20:22 markus Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -814,8 +814,8 @@ Only the superuser can forward privileged ports.
 Gives the verbosity level that is used when logging messages from
 .Nm ssh .
 The possible values are:
-QUIET, FATAL, ERROR, NOTICE, VERBOSE and DEBUG.
-The default is NOTICE.
+QUIET, FATAL, ERROR, INFO, VERBOSE and DEBUG.
+The default is INFO.
 .It Cm NumberOfPasswordPrompts
 Specifies the number of password prompts before giving up.
 The argument to this keyword must be an integer.

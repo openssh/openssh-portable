@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000 Markus Friedl.  All rights reserved.
+ * Copyright (c) 2001 Markus Friedl. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -20,48 +20,42 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * $OpenBSD: auth.h,v 1.9 2001/01/18 16:59:59 markus Exp $
  */
-#ifndef AUTH_H
-#define AUTH_H
 
-typedef struct Authctxt Authctxt;
-struct Authctxt {
-	int success;
-	int postponed;
-	int valid;
-	int attempt;
-	int failures;
-	char *user;
-	char *service;
-	struct passwd *pw;
-	char *style;
-};
+#include "includes.h"
+RCSID("$OpenBSD: auth-chall.c,v 1.1 2001/01/18 17:12:43 markus Exp $");
 
-#include "auth-pam.h"
-#include "auth2-pam.h"
+#include "ssh.h"
+#include "auth.h"
 
-void	do_authentication(void);
-void	do_authentication2(void);
-
-Authctxt *authctxt_new(void);
-void	auth_log(Authctxt *authctxt, int authenticated, char *method, char *info);
-void	userauth_reply(Authctxt *authctxt, int authenticated);
-int	auth_root_allowed(void);
-
-int	auth2_challenge(Authctxt *authctxt, char *devs);
-
-int	allowed_user(struct passwd * pw);
-
-char	*get_challenge(Authctxt *authctxt, char *devs);
-int	verify_response(Authctxt *authctxt, char *response);
-
-struct passwd * auth_get_user(void);
-struct passwd * pwcopy(struct passwd *pw);
-
-#define AUTH_FAIL_MAX 6
-#define AUTH_FAIL_LOG (AUTH_FAIL_MAX/2)
-#define AUTH_FAIL_MSG "Too many authentication failures for %.100s"
-
+#ifdef SKEY
+char *
+get_challenge(Authctxt *authctxt, char *devs)
+{
+	static char challenge[1024];
+        struct skey skey;
+	if (skeychallenge(&skey, authctxt->user, challenge) == -1)
+		return NULL;
+	strlcat(challenge, "\nS/Key Password: ", sizeof challenge);
+	return challenge;
+}
+int
+verify_response(Authctxt *authctxt, char *response)
+{
+	return (authctxt->valid &&
+	    skey_haskey(authctxt->pw->pw_name) == 0 &&
+	    skey_passcheck(authctxt->pw->pw_name, response) != -1);
+}
+#else
+/* not available */
+char *
+get_challenge(Authctxt *authctxt, char *devs)
+{
+	return NULL;
+}
+int
+verify_response(Authctxt *authctxt, char *response)
+{
+	return 0;
+}
 #endif

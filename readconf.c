@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.53 2001/01/07 11:28:05 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.54 2001/01/18 16:20:22 markus Exp $");
 
 #include "ssh.h"
 #include "readconf.h"
@@ -804,7 +804,7 @@ fill_default_options(Options * options)
 	if (options->user_hostfile2 == NULL)
 		options->user_hostfile2 = SSH_USER_HOSTFILE2;
 	if (options->log_level == (LogLevel) - 1)
-		options->log_level = SYSLOG_LEVEL_NOTICE;
+		options->log_level = SYSLOG_LEVEL_INFO;
 	/* options->proxy_command should not be set by default */
 	/* options->user will be set in the main program if appropriate */
 	/* options->hostname will be set in the main program if appropriate */
