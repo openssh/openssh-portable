@@ -1,3 +1,6 @@
+20001106
+ - (djm) Use Jim's new 1.0.3 askpass in Redhat RPMs
+
 20001105
  - (bal) Sync with OpenBSD:
    - markus@cvs.openbsd.org 2000/10/31 9:31:58
