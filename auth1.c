@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.14 2001/01/22 23:06:39 markus Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.15 2001/02/07 22:35:45 markus Exp $");
 
 #ifdef HAVE_OSF_SIA
 # include <sia.h>
@@ -388,14 +388,6 @@ do_authentication()
 	authctxt->style = style;
 
 	setproctitle("%s", user);
-
-#ifdef AFS
-	/* If machine has AFS, set process authentication group. */
-	if (k_hasafs()) {
-		k_setpag();
-		k_unlog();
-	}
-#endif /* AFS */
 
 	/* Verify that the user is a valid user. */
 	pw = getpwnam(user);
