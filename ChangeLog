@@ -1,3 +1,6 @@
+20000324
+ - Released 1.2.3
+
 20000317
  - Clarified --with-default-path option.
  - Added -blibpath handling for AIX to work around stupid runtime linking.
