@@ -70,6 +70,9 @@
      [auth-options.c sshd.8]
      validate ports for permitopen key file option. add host/port
      alternative syntax for IPv6. ok markus@
+   - markus@cvs.openbsd.org 2001/08/30 22:22:32
+     [ssh-keyscan.c]
+     do not pass pointers to longjmp; fix from wayne@blorf.net
 
 20010815
  - (bal) Fixed stray code in readconf.c that went in by mistake.
@@ -6393,4 +6396,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1505 2001/09/12 18:03:31 mouring Exp $
+$Id: ChangeLog,v 1.1506 2001/09/12 18:05:05 mouring Exp $

@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keyscan.c,v 1.28 2001/08/27 22:02:13 danh Exp $");
+RCSID("$OpenBSD: ssh-keyscan.c,v 1.29 2001/08/30 22:22:32 markus Exp $");
 
 #if defined(HAVE_SYS_QUEUE_H) && !defined(HAVE_BOGUS_SYS_QUEUE_H)
 #include <sys/queue.h>
@@ -68,6 +68,7 @@ size_t read_wait_size;
 int ncon;
 int nonfatal_fatal = 0;
 jmp_buf kexjmp;
+Key *kexjmp_key;
 
 /*
  * Keep a connection structure for each file descriptor.  The state
@@ -322,7 +323,8 @@ keygrab_ssh1(con *c)
 static int
 hostjump(Key *hostkey)
 {
-	longjmp(kexjmp, (int)hostkey);
+	kexjmp_key = hostkey;
+	longjmp(kexjmp, 1);
 }
 
 static int
@@ -363,10 +365,8 @@ keygrab_ssh2(con *c)
 	xfree(c->c_kex);
 	c->c_kex = NULL;
 	packet_close();
-	if (j < 0)
-		j = 0;
 
-	return (Key*)(j);
+	return j < 0? NULL : kexjmp_key;
 }
 
 static void
