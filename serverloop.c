@@ -676,8 +676,6 @@ server_loop2(void)
 				session_close_by_pid(pid, status);
 			child_terminated = 0;
 			signal(SIGCHLD, sigchld_handler2);
-			if (used_sessions() == 0)
-				break;
 		}
 		channel_after_select(&readset, &writeset);
 		process_input(&readset);

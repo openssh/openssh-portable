@@ -1,5 +1,6 @@
 20001014
  - (djm) Don't accept PAM_PROMPT_ECHO_ON messages during initial auth
+ - (djm) Revert SSH2 serverloop hack, will find a better way.
 
 20001007
  - (stevesk) Print PAM return value in PAM log messages to aid

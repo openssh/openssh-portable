@@ -33,6 +33,5 @@ int	session_open(int id);
 void	session_input_channel_req(int id, void *arg);
 void	session_close_by_pid(pid_t pid, int status);
 void	session_close_by_channel(int id, void *arg);
-int	used_sessions(void);
 
 #endif
