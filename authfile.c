@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfile.c,v 1.34 2001/05/28 10:08:55 markus Exp $");
+RCSID("$OpenBSD: authfile.c,v 1.35 2001/05/29 12:31:27 markus Exp $");
 
 #include <openssl/err.h>
 #include <openssl/evp.h>
@@ -561,7 +561,7 @@ key_load_private(const char *filename, const char *passphrase,
 		prv = key_load_private_pem(fd, KEY_UNSPEC, passphrase, NULL);
 		/* use the filename as a comment for PEM */
 		if (commentp && prv)
-			commentp = xstrdup(filename);
+			*commentp = xstrdup(filename);
 	} else {
 		/* it's a SSH v1 key if the public key part is readable */
 		key_free(pub);
