@@ -108,8 +108,10 @@ struct Session {
 	int	row, col, xpixel, ypixel;
 	char	tty[TTYSZ];
 	/* X11 */
+	int	display_number;
 	char	*display;
 	int	screen;
+	char	*auth_display[2];
 	char	*auth_proto;
 	char	*auth_data;
 	int	single_connection;
@@ -1418,32 +1420,28 @@ do_child(Session *s, const char *command)
 				    _PATH_SSH_SYSTEM_RC);
 		} else if (do_xauth && options.xauth_location != NULL) {
 			/* Add authority data to .Xauthority if appropriate. */
-			char *screen = strchr(s->display, ':');
-
 			if (debug_flag) {
 				fprintf(stderr,
 				    "Running %.100s add "
 				    "%.100s %.100s %.100s\n",
-				    options.xauth_location, s->display,
+				    options.xauth_location, s->auth_display[0],
 				    s->auth_proto, s->auth_data);
-				if (screen != NULL)
+				if (s->auth_display[1])
 					fprintf(stderr,
-					    "Adding %.*s/unix%s %s %s\n",
-					    (int)(screen - s->display),
-					    s->display, screen,
+					    "add %.100s %.100s %.100s\n",
+					    s->auth_display[1],
 					    s->auth_proto, s->auth_data);
 			}
 			snprintf(cmd, sizeof cmd, "%s -q -",
 			    options.xauth_location);
 			f = popen(cmd, "w");
 			if (f) {
-				fprintf(f, "add %s %s %s\n", s->display,
-				    s->auth_proto, s->auth_data);
-				if (screen != NULL)
-					fprintf(f, "add %.*s/unix%s %s %s\n",
-					    (int)(screen - s->display),
-					    s->display, screen,
-					    s->auth_proto,
+				fprintf(f, "add %s %s %s\n",
+				    s->auth_display[0], s->auth_proto,
+				    s->auth_data);
+				if (s->auth_display[1])
+					fprintf(f, "add %s %s %s\n",
+					    s->auth_display[1], s->auth_proto,
 					    s->auth_data);
 				pclose(f);
 			} else {
@@ -1943,6 +1941,10 @@ session_close(Session *s)
 		xfree(s->term);
 	if (s->display)
 		xfree(s->display);
+	if (s->auth_display[0])
+		xfree(s->auth_display[0]);
+	if (s->auth_display[1])
+		xfree(s->auth_display[1]);
 	if (s->auth_data)
 		xfree(s->auth_data);
 	if (s->auth_proto)
@@ -2038,6 +2040,8 @@ int
 session_setup_x11fwd(Session *s)
 {
 	struct stat st;
+	char display[512], auth_display[512];
+	char hostname[MAXHOSTNAMELEN];
 
 	if (no_x11_forwarding_flag) {
 		packet_send_debug("X11 forwarding disabled in user configuration file.");
@@ -2061,11 +2065,68 @@ session_setup_x11fwd(Session *s)
 		debug("X11 display already set.");
 		return 0;
 	}
-	s->display = x11_create_display_inet(s->screen, options.x11_display_offset);
-	if (s->display == NULL) {
+	s->display_number = x11_create_display_inet(options.x11_display_offset,
+	    options.gateway_ports);
+	if (s->display_number == -1) {
 		debug("x11_create_display_inet failed.");
 		return 0;
 	}
+
+	/* Set up a suitable value for the DISPLAY variable. */
+	if (gethostname(hostname, sizeof(hostname)) < 0)
+		fatal("gethostname: %.100s", strerror(errno));
+	/*
+	 * auth_display must be used as the displayname when the
+	 * authorization entry is added with xauth(1).  This will be
+	 * different than the DISPLAY string for localhost displays.
+	 */
+	s->auth_display[1] = NULL;
+	if (!options.gateway_ports) {
+		struct utsname uts;
+
+		snprintf(display, sizeof display, "localhost:%d.%d",
+		    s->display_number, s->screen);
+		snprintf(auth_display, sizeof auth_display, "%.400s/unix:%d.%d",
+		    hostname, s->display_number, s->screen);
+		s->display = xstrdup(display);
+		s->auth_display[0] = xstrdup(auth_display);
+		/*
+		 * Xlib may use gethostbyname() or uname() hostname to
+		 * look up authorization data for FamilyLocal; see:
+		 * xc/lib/xtrans/Xtrans.c:TRANS(GetHostname)
+		 * We just add authorization entries with both
+		 * hostname and nodename if they are different.
+		 */
+		if (uname(&uts) == -1)
+			fatal("uname: %.100s", strerror(errno));
+		if (strcmp(hostname, uts.nodename) != 0) {
+			snprintf(auth_display, sizeof auth_display,
+			    "%.400s/unix:%d.%d", uts.nodename,
+			    s->display_number, s->screen);
+			s->auth_display[1] = xstrdup(auth_display);
+		}
+	} else {
+#ifdef IPADDR_IN_DISPLAY
+		struct hostent *he;
+		struct in_addr my_addr;
+
+		he = gethostbyname(hostname);
+		if (he == NULL) {
+			error("Can't get IP address for X11 DISPLAY.");
+			packet_send_debug("Can't get IP address for X11 DISPLAY.");
+			return 0;
+		}
+		memcpy(&my_addr, he->h_addr_list[0], sizeof(struct in_addr));
+		snprintf(display, sizeof display, "%.50s:%d.%d", inet_ntoa(my_addr),
+		    s->display_number, s->screen);
+#else
+		snprintf(display, sizeof display, "%.400s:%d.%d", hostname,
+		    s->display_number, s->screen);
+#endif
+		s->display = xstrdup(display);
+		s->auth_display[0] = xstrdup(display);
+	}
+
 	return 1;
 }
 

@@ -1,3 +1,19 @@
+20011219
+ - (stevesk) OpenBSD CVS sync X11 localhost display
+   - stevesk@cvs.openbsd.org 2001/11/29 14:10:51
+     [channels.h channels.c session.c]
+     sshd X11 fake server will now listen on localhost by default:
+     $ echo $DISPLAY
+     localhost:12.0
+     $ netstat -an|grep 6012
+     tcp        0      0  127.0.0.1.6012         *.*                    LISTEN
+     tcp6       0      0  ::1.6012               *.*                    LISTEN
+     sshd_config gatewayports=yes can be used to revert back to the old
+     behavior.  will control this with another option later.  ok markus@
+   - stevesk@cvs.openbsd.org 2001/12/19 08:43:11
+     [includes.h session.c]
+     handle utsname.nodename case for FamilyLocal X authorization; ok markus@
+	
 20011207
  - (bal) PCRE no longer required.  Banished from the source along with
    fake-regex.h
@@ -7009,4 +7025,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1691 2001/12/07 17:28:34 mouring Exp $
+$Id: ChangeLog,v 1.1692 2001/12/19 17:58:01 stevesk Exp $

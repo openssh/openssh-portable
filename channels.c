@@ -2400,19 +2400,17 @@ channel_connect_to(const char *host, u_short port)
 
 /*
  * Creates an internet domain socket for listening for X11 connections.
- * Returns a suitable value for the DISPLAY variable, or NULL if an error
- * occurs.
+ * Returns a suitable display number for the DISPLAY variable, or -1 if
+ * an error occurs.
  */
-char *
-x11_create_display_inet(int screen_number, int x11_display_offset)
+int
+x11_create_display_inet(int x11_display_offset, int gateway_ports)
 {
 	int display_number, sock;
 	u_short port;
 	struct addrinfo hints, *ai, *aitop;
 	char strport[NI_MAXSERV];
 	int gaierr, n, num_socks = 0, socks[NUM_SOCKS];
-	char display[512];
-	char hostname[MAXHOSTNAMELEN];
 
 	for (display_number = x11_display_offset;
 	     display_number < MAX_DISPLAYS;
@@ -2420,12 +2418,12 @@ x11_create_display_inet(int screen_number, int x11_display_offset)
 		port = 6000 + display_number;
 		memset(&hints, 0, sizeof(hints));
 		hints.ai_family = IPv4or6;
-		hints.ai_flags = AI_PASSIVE;		/* XXX loopback only ? */
+		hints.ai_flags = gateway_ports ? AI_PASSIVE : 0;
 		hints.ai_socktype = SOCK_STREAM;
 		snprintf(strport, sizeof strport, "%d", port);
 		if ((gaierr = getaddrinfo(NULL, strport, &hints, &aitop)) != 0) {
 			error("getaddrinfo: %.100s", gai_strerror(gaierr));
-			return NULL;
+			return -1;
 		}
 		for (ai = aitop; ai; ai = ai->ai_next) {
 			if (ai->ai_family != AF_INET && ai->ai_family != AF_INET6)
@@ -2434,7 +2432,7 @@ x11_create_display_inet(int screen_number, int x11_display_offset)
 			if (sock < 0) {
 				if ((errno != EINVAL) && (errno != EAFNOSUPPORT)) {
 					error("socket: %.100s", strerror(errno));
-					return NULL;
+					return -1;
 				} else {
 					debug("x11_create_display_inet: Socket family %d not supported",
 						 ai->ai_family);
@@ -2468,7 +2466,7 @@ x11_create_display_inet(int screen_number, int x11_display_offset)
 	}
 	if (display_number >= MAX_DISPLAYS) {
 		error("Failed to allocate internet-domain X11 display socket.");
-		return NULL;
+		return -1;
 	}
 	/* Start listening for connections on the socket. */
 	for (n = 0; n < num_socks; n++) {
@@ -2476,52 +2474,9 @@ x11_create_display_inet(int screen_number, int x11_display_offset)
 		if (listen(sock, 5) < 0) {
 			error("listen: %.100s", strerror(errno));
 			close(sock);
-			return NULL;
+			return -1;
 		}
 	}
-
-	/* Set up a suitable value for the DISPLAY variable. */
-	if (gethostname(hostname, sizeof(hostname)) < 0)
-		fatal("gethostname: %.100s", strerror(errno));
-
-#ifdef IPADDR_IN_DISPLAY
-	/*
-	 * HPUX detects the local hostname in the DISPLAY variable and tries
-	 * to set up a shared memory connection to the server, which it
-	 * incorrectly supposes to be local.
-	 *
-	 * The workaround - as used in later $$H and other programs - is
-	 * is to set display to the host's IP address.
-	 */
-	{
-		struct hostent *he;
-		struct in_addr my_addr;
-
-		he = gethostbyname(hostname);
-		if (he == NULL) {
-			error("[X11-broken-fwd-hostname-workaround] Could not get "
-				"IP address for hostname %s.", hostname);
-
-			packet_send_debug("[X11-broken-fwd-hostname-workaround]"
-				"Could not get IP address for hostname %s.", hostname);
-
-			shutdown(sock, SHUT_RDWR);
-			close(sock);
-
-			return NULL;
-		}
-
-		memcpy(&my_addr, he->h_addr_list[0], sizeof(struct in_addr));
-
-		/* Set DISPLAY to <ip address>:screen.display */
-		snprintf(display, sizeof(display), "%.50s:%d.%d", inet_ntoa(my_addr),
-			 display_number, screen_number);
-	}
-#else /* IPADDR_IN_DISPLAY */
-	/* Just set DISPLAY to hostname:screen.display */
-	snprintf(display, sizeof display, "%.400s:%d.%d", hostname,
-		 display_number, screen_number);
-#endif /* IPADDR_IN_DISPLAY */
 
 	/* Allocate a channel for each socket. */
 	for (n = 0; n < num_socks; n++) {
@@ -2532,8 +2487,8 @@ x11_create_display_inet(int screen_number, int x11_display_offset)
 		    0, xstrdup("X11 inet listener"), 1);
 	}
 
-	/* Return a suitable value for the DISPLAY environment variable. */
-	return xstrdup(display);
+	/* Return the display number for the DISPLAY environment variable. */
+	return display_number;
 }
 
 #ifndef X_UNIX_PATH
