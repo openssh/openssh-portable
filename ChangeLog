@@ -1,3 +1,10 @@
+20040420
+ - (djm) OpenBSD CVS Sync
+   - henning@cvs.openbsd.org 2004/04/08 16:08:21
+     [sshconnect2.c]
+     swap the last two parameters to TAILQ_FOREACH_REVERSE. matches what FreeBSD     and NetBSD do.
+     ok millert@ mcbride@ markus@ ho@, checked to not affect ports by naddy@
+
 20040419
  - (dtucker) OpenBSD CVS Sync
    - dtucker@cvs.openbsd.org 2004/02/29 22:04:45
@@ -1001,4 +1008,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3321 2004/04/19 13:50:16 dtucker Exp $
+$Id: ChangeLog,v 1.3322 2004/04/20 10:07:19 djm Exp $
