@@ -10,6 +10,8 @@
    on one by peak@argo.troja.mff.cuni.cz
  - (djm) Bug #111: Run syslog and stderr logging through strnvis to eliminate
    nasties. Report from peak@argo.troja.mff.cuni.cz
+ - (djm) Bug #178: On AIX /etc/nologin wasnt't shown to users. Fix from 
+   Ralf.Wenk@fh-karlsruhe.de and dtucker@zip.com.au
 
 20030103
  - (djm) Bug #461: ssh-copy-id fails with no arguments. Patch from 
@@ -938,4 +940,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2546 2003/01/07 06:04:18 djm Exp $
+$Id: ChangeLog,v 1.2547 2003/01/07 06:38:58 djm Exp $

@@ -218,6 +218,8 @@ allowed_user(struct passwd * pw)
 	 */
 	if ( (pw->pw_uid != 0) && (geteuid() == 0) &&
 	    loginrestrictions(pw->pw_name, S_RLOGIN, NULL, &loginmsg) != 0) {
+		int loginrestrict_errno = errno;
+
 		if (loginmsg && *loginmsg) {
 			/* Remove embedded newlines (if any) */
 			char *p;
@@ -227,9 +229,13 @@ allowed_user(struct passwd * pw)
 			}
 			/* Remove trailing newline */
 			*--p = '\0';
-			log("Login restricted for %s: %.100s", pw->pw_name, loginmsg);
+			log("Login restricted for %s: %.100s", pw->pw_name, 
+			    loginmsg);
 		}
-		return 0;
+		/* Don't fail if /etc/nologin  set */
+	    	if (!(loginrestrict_errno == EPERM && 
+		    stat(_PATH_NOLOGIN, &st) == 0))
+			return 0;
 	}
 #endif /* WITH_AIXAUTHENTICATE */
 

@@ -1194,6 +1194,7 @@ do_nologin(struct passwd *pw)
 		while (fgets(buf, sizeof(buf), f))
 			fputs(buf, stderr);
 		fclose(f);
+		fflush(NULL);
 		exit(254);
 	}
 }
