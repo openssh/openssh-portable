@@ -1,3 +1,7 @@
+20020813
+ - (tim) [configure.ac] Display OpenSSL header/library version.
+   Patch by dtucker@zip.com.au
+
 20020731
  - (bal) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2002/07/24 16:11:18
@@ -1490,4 +1494,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2413 2002/08/01 01:28:38 mouring Exp $
+$Id: ChangeLog,v 1.2414 2002/08/14 01:52:10 tim Exp $

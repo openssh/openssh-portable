@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.84 2002/07/23 00:00:06 mouring Exp $
+# $Id: configure.ac,v 1.85 2002/08/14 01:52:11 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -764,6 +764,70 @@ AC_TRY_LINK_FUNC(RAND_add, AC_DEFINE(HAVE_OPENSSL),
 	]
 )
 
+# Determine OpenSSL header version
+AC_MSG_CHECKING([OpenSSL header version])
+AC_TRY_RUN(
+	[
+#include <stdio.h>
+#include <string.h>
+#include <openssl/opensslv.h>
+#define DATA "conftest.sslincver"
+int main(void) {
+        FILE *fd;
+        int rc;
+
+        fd = fopen(DATA,"w");
+        if(fd == NULL)
+                exit(1);
+
+	if ((rc = fprintf(fd ,"%x (%s)\n", OPENSSL_VERSION_NUMBER, OPENSSL_VERSION_TEXT)) <0)
+		exit(1);
+
+	exit(0);
+}
+	],
+	[
+		ssl_header_ver=`cat conftest.sslincver`
+		AC_MSG_RESULT($ssl_header_ver)
+	],
+	[
+		AC_MSG_RESULT(not found)
+		AC_MSG_ERROR(OpenSSL version header not found.)
+	]
+)
+
+# Determine OpenSSL library version
+AC_MSG_CHECKING([OpenSSL library version])
+AC_TRY_RUN(
+	[
+#include <stdio.h>
+#include <string.h>
+#include <openssl/opensslv.h>
+#include <openssl/crypto.h>
+#define DATA "conftest.ssllibver"
+int main(void) {
+        FILE *fd;
+        int rc;
+
+        fd = fopen(DATA,"w");
+        if(fd == NULL)
+                exit(1);
+
+	if ((rc = fprintf(fd ,"%x (%s)\n", SSLeay(), SSLeay_version(SSLEAY_VERSION))) <0)
+		exit(1);
+
+	exit(0);
+}
+	],
+	[
+		ssl_library_ver=`cat conftest.ssllibver`
+		AC_MSG_RESULT($ssl_library_ver)
+	],
+	[
+		AC_MSG_RESULT(not found)
+		AC_MSG_ERROR(OpenSSL library not found.)
+	]
+)
 
 # Sanity check OpenSSL headers
 AC_MSG_CHECKING([whether OpenSSL's headers match the library])
