@@ -60,6 +60,9 @@
    - markus@cvs.openbsd.org 2001/06/23 05:26:02
      [key.c]
      handle sigature of size 0 (some broken clients send this).
+   - deraadt@cvs.openbsd.org 2001/06/23 05:57:09
+     [sftp.1 sftp-server.8 ssh-keygen.1]
+     ok, tmac is now fixed
 
 20010622
  - (stevesk) handle systems without pw_expire and pw_change.
@@ -5744,4 +5747,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1312 2001/06/25 04:42:20 mouring Exp $
+$Id: ChangeLog,v 1.1313 2001/06/25 04:45:33 mouring Exp $
