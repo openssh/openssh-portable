@@ -31,7 +31,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.72 2003/09/13 12:12:11 dtucker Exp $");
+RCSID("$Id: auth-pam.c,v 1.73 2003/09/16 21:24:25 djm Exp $");
 
 #ifdef USE_PAM
 #include <security/pam_appl.h>
@@ -672,17 +672,19 @@ do_pam_chauthtok(void)
 int
 do_pam_putenv(char *name, char *value) 
 {
-	char *compound;
 	int ret = 1;
-
 #ifdef HAVE_PAM_PUTENV	
-	compound = xmalloc(strlen(name)+strlen(value)+2);
-	if (compound) {
-		sprintf(compound,"%s=%s",name,value);
-		ret = pam_putenv(sshpam_handle,compound);
-		xfree(compound);
-	}
+	char *compound;
+	size_t len;
+
+	len = strlen(name) + strlen(value) + 2;
+	compound = xmalloc(len);
+
+	snprintf(compound, len, "%s=%s", name, value);
+	ret = pam_putenv(sshpam_handle, compound);
+	xfree(compound);
 #endif
+
 	return (ret);
 }
 
