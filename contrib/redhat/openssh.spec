@@ -357,7 +357,7 @@ fi
 %attr(-,root,root) %{_bindir}/slogin
 %attr(-,root,root) %{_mandir}/man1/slogin.1*
 %if ! %{rescue}
-%attr(0755,root,root) %{_bindir}/ssh-agent
+%attr(2755,root,nobody) %{_bindir}/ssh-agent
 %attr(0755,root,root) %{_bindir}/ssh-add
 %attr(0755,root,root) %{_bindir}/ssh-keyscan
 %attr(0755,root,root) %{_bindir}/sftp
@@ -400,6 +400,9 @@ fi
 %endif
 
 %changelog
+* Wed Oct 01 2002 Damien Miller <djm@mindrot.org>
+- Install ssh-agent setgid nobody to prevent ptrace() key theft attacks
+
 * Mon Sep 30 2002 Damien Miller <djm@mindrot.org>
 - Use contrib/ Makefile for building askpass programs
 
