@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.288 2004/03/03 06:47:52 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.289 2004/03/11 08:36:26 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -765,24 +765,10 @@ usage(void)
 {
 	fprintf(stderr, "sshd version %s, %s\n",
 	    SSH_VERSION, SSLeay_version(SSLEAY_VERSION));
-	fprintf(stderr, "Usage: %s [options]\n", __progname);
-	fprintf(stderr, "Options:\n");
-	fprintf(stderr, "  -f file    Configuration file (default %s)\n", _PATH_SERVER_CONFIG_FILE);
-	fprintf(stderr, "  -d         Debugging mode (multiple -d means more debugging)\n");
-	fprintf(stderr, "  -i         Started from inetd\n");
-	fprintf(stderr, "  -D         Do not fork into daemon mode\n");
-	fprintf(stderr, "  -t         Only test configuration file and keys\n");
-	fprintf(stderr, "  -q         Quiet (no logging)\n");
-	fprintf(stderr, "  -p port    Listen on the specified port (default: 22)\n");
-	fprintf(stderr, "  -k seconds Regenerate server key every this many seconds (default: 3600)\n");
-	fprintf(stderr, "  -g seconds Grace period for authentication (default: 600)\n");
-	fprintf(stderr, "  -b bits    Size of server RSA key (default: 768 bits)\n");
-	fprintf(stderr, "  -h file    File from which to read host key (default: %s)\n",
-	    _PATH_HOST_KEY_FILE);
-	fprintf(stderr, "  -u len     Maximum hostname length for utmp recording\n");
-	fprintf(stderr, "  -4         Use IPv4 only\n");
-	fprintf(stderr, "  -6         Use IPv6 only\n");
-	fprintf(stderr, "  -o option  Process the option as if it was read from a configuration file.\n");
+	fprintf(stderr,
+"usage: sshd [-46Ddeiqt] [-b bits] [-f config_file] [-g login_grace_time]\n"
+"            [-h host_key_file] [-k key_gen_time] [-o option] [-p port] [-u len]\n"
+	);
 	exit(1);
 }
 
