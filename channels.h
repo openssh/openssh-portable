@@ -32,7 +32,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* RCSID("$OpenBSD: channels.h,v 1.35 2001/05/31 10:30:15 markus Exp $"); */
+/* RCSID("$OpenBSD: channels.h,v 1.36 2001/06/03 14:55:39 markus Exp $"); */
 
 #ifndef CHANNEL_H
 #define CHANNEL_H
@@ -223,6 +223,7 @@ void	deny_input_open(int type, int plen, void *ctxt);
 
 void    auth_request_forwarding(void);
 char   *auth_get_socket_name(void);
+void	auth_sock_cleanup_proc(void *ignored);
 int     auth_input_request_forwarding(struct passwd * pw);
 void    auth_input_open_request(int type, int plen, void *ctxt);
 

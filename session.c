@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.78 2001/05/31 10:30:16 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.79 2001/06/03 14:55:39 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -132,6 +132,7 @@ void	do_pre_login(Session *s);
 void	do_child(Session *s, const char *command);
 void	do_motd(void);
 int	check_quietlogin(Session *s, const char *command);
+void	xauthfile_cleanup_proc(void *ignore);
 
 void	do_authenticated1(Authctxt *authctxt);
 void	do_authenticated2(Authctxt *authctxt);
@@ -196,6 +197,12 @@ do_authenticated(Authctxt *authctxt)
 		do_authenticated2(authctxt);
 	else
 		do_authenticated1(authctxt);
+
+	/* remote user's local Xauthority file and agent socket */
+	if (xauthfile)
+		xauthfile_cleanup_proc(NULL);
+	if (auth_get_socket_name())
+		auth_sock_cleanup_proc(NULL);
 }
 
 /*
@@ -446,9 +453,6 @@ do_authenticated1(Authctxt *authctxt)
 
 			if (command != NULL)
 				xfree(command);
-			/* Cleanup user's local Xauthority file. */
-			if (xauthfile)
-				xauthfile_cleanup_proc(NULL);
 			return;
 
 		default:
@@ -2105,6 +2109,4 @@ do_authenticated2(Authctxt *authctxt)
 {
 
 	server_loop2();
-	if (xauthfile)
-		xauthfile_cleanup_proc(NULL);
 }
