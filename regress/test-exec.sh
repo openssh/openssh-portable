@@ -3,6 +3,10 @@
 
 #SUDO=sudo
 
+# Unbreak GNU head(1)
+_POSIX2_VERSION=199209
+export _POSIX2_VERSION
+
 if [ ! -z "$TEST_SSH_PORT" ]; then
 	PORT="$TEST_SSH_PORT"
 else
