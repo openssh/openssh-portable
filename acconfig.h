@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.104 2001/02/26 09:49:59 djm Exp $ */
+/* $Id: acconfig.h,v 1.105 2001/02/26 21:39:07 djm Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -297,7 +297,7 @@
 #undef NO_X11_UNIX_SOCKETS
 
 /* Needed for SCO and NeXT */
-#undef SAVED_IDS_WORK_WITH_SETEUID
+#undef BROKEN_SAVED_UIDS
 
 @BOTTOM@
 

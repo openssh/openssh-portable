@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.254 2001/02/26 09:49:59 djm Exp $
+# $Id: configure.in,v 1.255 2001/02/26 21:39:07 djm Exp $
 
 AC_INIT(ssh.c)
 
@@ -144,6 +144,9 @@ mips-sony-bsd|mips-sony-newsos4)
 *-*-netbsd*)
 	need_dash_r=1
 	;;
+*-*-freebsd*)
+	check_for_libcrypt_later=1
+	;;
 *-next-*)
 	conf_lastlog_location="/usr/adm/lastlog"
 	conf_utmp_location=/etc/utmp
@@ -152,7 +155,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(HAVE_NEXT)
 	AC_DEFINE(BROKEN_REALPATH)
 	AC_DEFINE(USE_PIPES)
-	AC_DEFINE(SAVED_IDS_WORK_WITH_SETEUID)
+	AC_DEFINE(BROKEN_SAVED_UIDS)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	CFLAGS="$CFLAGS"
 	;;
@@ -239,7 +242,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(HAVE_SCO_PROTECTED_PW)
 	AC_DEFINE(DISABLE_SHADOW)
 	AC_DEFINE(HAVE_BOGUS_SYS_QUEUE_H)
-	AC_DEFINE(SAVED_IDS_WORK_WITH_SETEUID)
+	AC_DEFINE(BROKEN_SAVED_UIDS)
 	AC_CHECK_FUNCS(getluid setluid)
 	;;
 *-*-sco3.2v5*)
@@ -254,7 +257,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(HAVE_SCO_PROTECTED_PW)
 	AC_DEFINE(DISABLE_SHADOW)
 	AC_DEFINE(HAVE_BOGUS_SYS_QUEUE_H)
-	AC_DEFINE(SAVED_IDS_WORK_WITH_SETEUID)
+	AC_DEFINE(BROKEN_SAVED_UIDS)
 	AC_CHECK_FUNCS(getluid setluid)
 	;;
 *-dec-osf*)

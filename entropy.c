@@ -39,7 +39,7 @@
 #include "pathnames.h"
 #include "log.h"
 
-RCSID("$Id: entropy.c,v 1.30 2001/02/26 09:49:59 djm Exp $");
+RCSID("$Id: entropy.c,v 1.31 2001/02/26 21:39:07 djm Exp $");
 
 #ifndef offsetof
 # define offsetof(type, member) ((size_t) &((type *)0)->member)
@@ -61,6 +61,10 @@ RCSID("$Id: entropy.c,v 1.30 2001/02/26 09:49:59 djm Exp $");
 #endif
 #ifndef RUSAGE_CHILDREN
 # define RUSAGE_CHILDREN 0
+#endif
+
+#if defined(_POSIX_SAVED_IDS) && !defined(BROKEN_SAVED_UIDS)
+# define SAVED_IDS_WORK_WITH_SETEUID
 #endif
 
 #if defined(EGD_SOCKET) || defined(RANDOM_POOL)
