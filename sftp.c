@@ -16,7 +16,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.48 2004/06/03 12:22:20 pedro Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.49 2004/06/18 06:13:25 dtucker Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -1279,7 +1279,7 @@ connect_to_server(char *path, char **args, int *in, int *out)
 		 * kill it too
 		 */
 		signal(SIGINT, SIG_IGN);
-		execv(path, args);
+		execvp(path, args);
 		fprintf(stderr, "exec: %s: %s\n", path, strerror(errno));
 		_exit(1);
 	}

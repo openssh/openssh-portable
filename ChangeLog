@@ -16,6 +16,9 @@
    - djm@cvs.openbsd.org 2004/06/17 23:56:57
      [ssh.1 ssh.c]
      sync usage() and SYNPOSIS with connection sharing changes
+   - dtucker@cvs.openbsd.org 2004/06/18 06:13:25
+     [sftp.c]
+     Use execvp instead of execv so sftp -S ssh works.  "makes sense" markus@
 
 20040617
  - (dtucker) [regress/scp.sh] diff -N is not portable (but needed for some
@@ -1289,4 +1292,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3409 2004/06/18 06:22:39 dtucker Exp $
+$Id: ChangeLog,v 1.3410 2004/06/18 06:23:43 dtucker Exp $
