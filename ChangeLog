@@ -14,6 +14,9 @@
      [ssh-dss.c ssh-rsa.c]
      use static EVP_MAX_MD_SIZE buffers for EVP_DigestFinal; ok stevesk@
      don't use evp_md->md_size, it's not public.
+   - markus@cvs.openbsd.org 2002/01/25 22:07:40
+     [kex.c kexdh.c kexgex.c key.c mac.c]
+     use EVP_MD_size(evp_md) and not evp_md->md_size; ok steveks@
 
 20020130
  - (djm) Delay PRNG seeding until we need it in ssh-keygen, from markus@
@@ -7416,4 +7419,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1802 2002/02/05 00:53:43 djm Exp $
+$Id: ChangeLog,v 1.1803 2002/02/05 00:54:07 djm Exp $

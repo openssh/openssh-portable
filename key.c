@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: key.c,v 1.38 2001/12/27 18:22:16 markus Exp $");
+RCSID("$OpenBSD: key.c,v 1.39 2002/01/25 22:07:40 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -170,7 +170,7 @@ key_equal(Key *a, Key *b)
 }
 
 static u_char*
-key_fingerprint_raw(Key *k, enum fp_type dgst_type, size_t *dgst_raw_length)
+key_fingerprint_raw(Key *k, enum fp_type dgst_type, u_int *dgst_raw_length)
 {
 	EVP_MD *md = NULL;
 	EVP_MD_CTX ctx;
@@ -216,8 +216,7 @@ key_fingerprint_raw(Key *k, enum fp_type dgst_type, size_t *dgst_raw_length)
 		retval = xmalloc(EVP_MAX_MD_SIZE);
 		EVP_DigestInit(&ctx, md);
 		EVP_DigestUpdate(&ctx, blob, len);
-		EVP_DigestFinal(&ctx, retval, NULL);
-		*dgst_raw_length = md->md_size;
+		EVP_DigestFinal(&ctx, retval, dgst_raw_length);
 		memset(blob, 0, len);
 		xfree(blob);
 	} else {
@@ -227,7 +226,7 @@ key_fingerprint_raw(Key *k, enum fp_type dgst_type, size_t *dgst_raw_length)
 }
 
 static char*
-key_fingerprint_hex(u_char* dgst_raw, size_t dgst_raw_len)
+key_fingerprint_hex(u_char* dgst_raw, u_int dgst_raw_len)
 {
 	char *retval;
 	int i;
@@ -244,7 +243,7 @@ key_fingerprint_hex(u_char* dgst_raw, size_t dgst_raw_len)
 }
 
 static char*
-key_fingerprint_bubblebabble(u_char* dgst_raw, size_t dgst_raw_len)
+key_fingerprint_bubblebabble(u_char* dgst_raw, u_int dgst_raw_len)
 {
 	char vowels[] = { 'a', 'e', 'i', 'o', 'u', 'y' };
 	char consonants[] = { 'b', 'c', 'd', 'f', 'g', 'h', 'k', 'l', 'm',
@@ -295,7 +294,7 @@ key_fingerprint(Key *k, enum fp_type dgst_type, enum fp_rep dgst_rep)
 {
 	char *retval = NULL;
 	u_char *dgst_raw;
-	size_t dgst_raw_len;
+	u_int dgst_raw_len;
 
 	dgst_raw = key_fingerprint_raw(k, dgst_type, &dgst_raw_len);
 	if (!dgst_raw)

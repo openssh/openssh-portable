@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.42 2002/01/11 13:39:36 markus Exp $");
+RCSID("$OpenBSD: kex.c,v 1.43 2002/01/25 22:07:40 markus Exp $");
 
 #include <openssl/crypto.h>
 
@@ -363,7 +363,7 @@ derive_key(Kex *kex, int id, int need, u_char *hash, BIGNUM *shared_secret)
 	EVP_MD_CTX md;
 	char c = id;
 	int have;
-	int mdsz = evp_md->md_size;
+	int mdsz = EVP_MD_size(evp_md);
 	u_char *digest = xmalloc(roundup(need, mdsz));
 
 	buffer_init(&b);
