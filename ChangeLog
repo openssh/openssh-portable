@@ -1,6 +1,8 @@
 20010427
  - (bal) Fixed uidswap.c so it should work on non-posix complient systems.
    patch based on 2.5.2 version by djm.
+ - (bal) Build manpages and config files once unless changed.  Patch by
+   Carson Gaspar <carson@taltos.org>
 
 20010425
  - OpenBSD CVS Sync
@@ -5256,4 +5258,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1172 2001/04/26 23:03:37 mouring Exp $
+$Id: ChangeLog,v 1.1173 2001/04/27 00:31:07 mouring Exp $

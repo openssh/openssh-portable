@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.173 2001/04/21 21:31:53 tim Exp $
+# $Id: Makefile.in,v 1.174 2001/04/27 00:31:08 mouring Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -51,10 +51,12 @@ SSHOBJS= ssh.o sshconnect.o sshconnect1.o sshconnect2.o sshtty.o readconf.o clie
 
 SSHDOBJS= sshd.o auth.o auth1.o auth2.o auth-chall.o auth2-chall.o auth-rhosts.o auth-options.o auth-krb4.o auth-pam.o auth2-pam.o auth-passwd.o auth-rsa.o auth-rh-rsa.o auth-sia.o sshpty.o sshlogin.o loginrec.o servconf.o serverloop.o md5crypt.o session.o groupaccess.o
 
-MANPAGES	= scp.1 ssh-add.1 ssh-agent.1 ssh-keygen.1 ssh-keyscan.1 ssh.1 sshd.8 sftp-server.8 sftp.1
+MANPAGES	= scp.1.out ssh-add.1.out ssh-agent.1.out ssh-keygen.1.out ssh-keyscan.1.out ssh.1.out sshd.8.out sftp-server.8.out sftp.1.out
+MANPAGES_IN	= scp.1 ssh-add.1 ssh-agent.1 ssh-keygen.1 ssh-keyscan.1 ssh.1 sshd.8 sftp-server.8 sftp.1
 MANTYPE		= @MANTYPE@
 
-CONFIGFILES=sshd_config ssh_config primes
+CONFIGFILES=sshd_config.out ssh_config.out primes.out
+CONFIGFILES_IN=sshd_config ssh_config primes
 
 PATHSUBS	= \
 	-D/etc/ssh_config=$(sysconfdir)/ssh_config \
@@ -121,20 +123,21 @@ sftp$(EXEEXT): $(LIBCOMPAT) libssh.a sftp.o sftp-client.o sftp-int.o sftp-common
 logintest: logintest.o $(LIBCOMPAT) libssh.a loginrec.o
 	$(LD) -o $@ logintest.o $(LDFLAGS) loginrec.o -lopenbsd-compat -lssh $(LIBS)
 
-$(MANPAGES)::
+$(MANPAGES): $(MANPAGES_IN)
 	if test "$(MANTYPE)" = "cat"; then \
-		manpage=$(srcdir)/`echo $@ | sed 's/\.[1-9]$$/\.0/'`; \
+		manpage=$(srcdir)/`echo $@ | sed 's/\.[1-9]\.out$$/\.0/'`; \
 	else \
-		manpage=$(srcdir)/$@; \
+		manpage=$(srcdir)/`echo $@ | sed 's/\.out$$//'`; \
 	fi; \
 	if test "$(MANTYPE)" = "man"; then \
-		$(FIXPATHSCMD) $${manpage} | $(PERL) $(srcdir)/mdoc2man.pl > $@.out; \
+		$(FIXPATHSCMD) $${manpage} | $(PERL) $(srcdir)/mdoc2man.pl > $@; \
 	else \
-		$(FIXPATHSCMD) $${manpage} > $@.out; \
+		$(FIXPATHSCMD) $${manpage} > $@; \
 	fi
 
-$(CONFIGFILES)::
-	$(FIXPATHSCMD) $(srcdir)/$@ > $@.out
+$(CONFIGFILES): $(CONFIGFILES_IN)
+	conffile=`echo $@ | sed 's/.out$$//'`; \
+	$(FIXPATHSCMD) $(srcdir)/$${conffile} > $@
 
 clean:
 	(cd openbsd-compat; $(MAKE) clean)
@@ -151,7 +154,7 @@ veryclean: distclean
 	rm -f configure config.h.in *.0
 
 catman-do:
-	@for f in $(MANPAGES) ; do \
+	@for f in $(MANPAGES_IN) ; do \
 		base=`echo $$f | sed 's/\..*$$//'` ; \
 		echo "$$f -> $$base.0" ; \
 		nroff -mandoc $$f | cat -v | sed -e 's/.\^H//g' \
