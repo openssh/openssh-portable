@@ -1,6 +1,4 @@
 /*
- * cygwin_util.c
- *
  * Copyright (c) 2000, 2001, Corinna Vinschen <vinschen@cygnus.com>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +29,7 @@
 
 #include "includes.h"
 
-RCSID("$Id: bsd-cygwin_util.c,v 1.10 2003/05/18 14:13:39 djm Exp $");
+RCSID("$Id: bsd-cygwin_util.c,v 1.11 2003/08/07 06:23:43 dtucker Exp $");
 
 #ifdef HAVE_CYGWIN
 

@@ -1,8 +1,6 @@
-/* $Id: bsd-cygwin_util.h,v 1.8 2003/05/18 14:13:39 djm Exp $ */
+/* $Id: bsd-cygwin_util.h,v 1.9 2003/08/07 06:23:43 dtucker Exp $ */
 
 /*
- * cygwin_util.c
- *
  * Copyright (c) 2000, 2001, Corinna Vinschen <vinschen@cygnus.com>
  *
  * Redistribution and use in source and binary forms, with or without
