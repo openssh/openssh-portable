@@ -979,7 +979,13 @@ do_setup_env(Session *s, const char *shell)
 	 * The Windows environment contains some setting which are
 	 * important for a running system. They must not be dropped.
 	 */
-	copy_environment(environ, &env, &envsize);
+	{
+		char **p;
+
+		p = fetch_windows_environment();
+		copy_environment(p, &env, &envsize);
+		free_windows_environment(p);
+	}
 #endif
 
 #ifdef GSSAPI
