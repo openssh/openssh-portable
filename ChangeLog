@@ -87,6 +87,10 @@
    - jakob@cvs.openbsd.org 2001/07/31 12:53:34
      [scard.c]
      close smartcard connection if card is missing
+   - markus@cvs.openbsd.org 2001/08/01 22:03:33
+     [authfd.c authfd.h readconf.c readconf.h scard.c scard.h ssh-add.c 
+      ssh-agent.c ssh.c]
+     use strings instead of ints for smartcard reader ids
 
 20010803
  - (djm) Fix interrupted read in entropy gatherer. Spotted by markus@ on
@@ -6197,4 +6201,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1448 2001/08/06 21:33:44 mouring Exp $
+$Id: ChangeLog,v 1.1449 2001/08/06 21:35:51 mouring Exp $

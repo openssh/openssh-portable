@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.68 2001/07/20 14:46:11 markus Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.69 2001/08/01 22:03:33 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.68 2001/07/20 14:46:11 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.69 2001/08/01 22:03:33 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -451,12 +451,13 @@ process_add_smartcard_key (SocketEntry *e)
 {
 	Idtab *tab;
 	Key *n = NULL, *k = NULL;
+	char *sc_reader_id = NULL;
 	int success = 0;
-	int sc_reader_num = 0;
 	
-	sc_reader_num = buffer_get_int(&e->input);
+	sc_reader_id = buffer_get_string(&e->input, NULL);
+	k = sc_get_key(sc_reader_id);
+	xfree(sc_reader_id);
 
-	k = sc_get_key(sc_reader_num);
 	if (k == NULL) {
 		error("sc_get_pubkey failed");
 		goto send;
@@ -510,11 +511,13 @@ process_remove_smartcard_key(SocketEntry *e)
 	Key *k = NULL, *private;
 	int idx;
 	int success = 0;
-	int sc_reader_num = 0;
+	char *sc_reader_id = NULL;
 
-	sc_reader_num = buffer_get_int(&e->input);
+	sc_reader_id = buffer_get_string(&e->input, NULL);
+	k = sc_get_key(sc_reader_id);
+	xfree(sc_reader_id);
 
-	if ((k = sc_get_key(sc_reader_num)) == NULL) {
+	if (k == NULL) {
 		error("sc_get_pubkey failed");
 	} else {
 		k->type = KEY_RSA1;

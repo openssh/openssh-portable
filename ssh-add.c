@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.43 2001/06/27 06:26:36 markus Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.44 2001/08/01 22:03:33 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -150,13 +150,13 @@ add_file(AuthenticationConnection *ac, const char *filename)
 }
 
 static void
-update_card(AuthenticationConnection *ac, int add, int id)
+update_card(AuthenticationConnection *ac, int add, const char *id)
 {
 	if (ssh_update_card(ac, add, id))
-		fprintf(stderr, "Card %s: %d\n",
+		fprintf(stderr, "Card %s: %s\n",
 		     add ? "added" : "removed", id);
 	else
-		fprintf(stderr, "Could not %s card: %d\n",
+		fprintf(stderr, "Could not %s card: %s\n",
 		     add ? "add" : "remove", id);
 }
 
@@ -211,7 +211,8 @@ main(int argc, char **argv)
 	AuthenticationConnection *ac = NULL;
 	struct passwd *pw;
 	char buf[1024];
-	int i, ch, deleting = 0, sc_reader_num = -1;
+	char *sc_reader_id = NULL;
+	int i, ch, deleting = 0;
 
 	__progname = get_progname(argv[0]);
 	init_rng();
@@ -240,11 +241,11 @@ main(int argc, char **argv)
 			goto done;
 			break;
 		case 's':
-			sc_reader_num = atoi(optarg);
+			sc_reader_id = optarg;
 			break;
 		case 'e':
 			deleting = 1; 
-			sc_reader_num = atoi(optarg);
+			sc_reader_id = optarg;
 			break;
 		default:
 			usage();
@@ -254,8 +255,8 @@ main(int argc, char **argv)
 	}
 	argc -= optind;
 	argv += optind;
-	if (sc_reader_num != -1) {
-		update_card(ac, !deleting, sc_reader_num);
+	if (sc_reader_id != NULL) {
+		update_card(ac, !deleting, sc_reader_id);
 		goto done;
 	}
 	if (argc == 0) {

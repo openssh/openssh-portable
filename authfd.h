@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: authfd.h,v 1.19 2001/06/26 17:27:22 markus Exp $"); */
+/* RCSID("$OpenBSD: authfd.h,v 1.20 2001/08/01 22:03:33 markus Exp $"); */
 
 #ifndef AUTHFD_H
 #define AUTHFD_H
@@ -62,9 +62,9 @@ int	 ssh_get_num_identities(AuthenticationConnection *, int);
 Key	*ssh_get_first_identity(AuthenticationConnection *, char **, int);
 Key	*ssh_get_next_identity(AuthenticationConnection *, char **, int);
 int	 ssh_add_identity(AuthenticationConnection *, Key *, const char *);
-int      ssh_remove_identity(AuthenticationConnection *, Key *);
+int	 ssh_remove_identity(AuthenticationConnection *, Key *);
 int	 ssh_remove_all_identities(AuthenticationConnection *, int);
-int	 ssh_update_card(AuthenticationConnection *, int, int);
+int	 ssh_update_card(AuthenticationConnection *, int, const char *);
 
 int
 ssh_decrypt_challenge(AuthenticationConnection *, Key *, BIGNUM *, u_char[16],

@@ -24,7 +24,7 @@
 
 #ifdef SMARTCARD
 #include "includes.h"
-RCSID("$OpenBSD: scard.c,v 1.10 2001/07/31 12:53:34 jakob Exp $");
+RCSID("$OpenBSD: scard.c,v 1.11 2001/08/01 22:03:33 markus Exp $");
 
 #include <openssl/engine.h>
 #include <sectok.h>
@@ -43,7 +43,7 @@ RCSID("$OpenBSD: scard.c,v 1.10 2001/07/31 12:53:34 jakob Exp $");
 #define MAX_BUF_SIZE 256
 
 static int sc_fd = -1;
-static int sc_reader_num = -1;
+static char *sc_reader_id = NULL;
 static int cla = 0x00;	/* class */
 
 /* interface to libsectok */
@@ -56,14 +56,14 @@ sc_open(void)
 	if (sc_fd >= 0)
 		return sc_fd;
 
-	sc_fd = sectok_open(sc_reader_num, STONOWAIT, &sw);
+	sc_fd = sectok_friendly_open(sc_reader_id, STONOWAIT, &sw);
 	if (sc_fd < 0) {
 		error("sectok_open failed: %s", sectok_get_sw(sw));
 		return SCARD_ERROR_FAIL;
 	}
 	if (! sectok_cardpresent(sc_fd)) {
-		debug("smartcard in reader %d not present, skipping",
-		    sc_reader_num);
+		debug("smartcard in reader %s not present, skipping",
+		    sc_reader_id);
 		sc_close();
 		return SCARD_ERROR_NOCARD;
 	}
@@ -326,12 +326,15 @@ sc_close(void)
 }
 
 Key *
-sc_get_key(int num)
+sc_get_key(const char *id)
 {
 	Key *k;
 	int status;
 
-	sc_reader_num = num;
+	if (sc_reader_id != NULL)
+		xfree(sc_reader_id);
+	sc_reader_id = xstrdup(id);
+
 	k = key_new(KEY_RSA);
 	if (k == NULL) {
 		return NULL;

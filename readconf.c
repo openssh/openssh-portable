@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.85 2001/07/31 09:28:44 jakob Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.86 2001/08/01 22:03:33 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -470,8 +470,8 @@ parse_string:
 		goto parse_string;
 
 	case oSmartcardDevice:
-		intptr = &options->smartcard_device;
-		goto parse_int;
+		charptr = &options->smartcard_device;
+		goto parse_string;
 
 	case oProxyCommand:
 		charptr = &options->proxy_command;
@@ -777,7 +777,7 @@ initialize_options(Options * options)
 	options->log_level = (LogLevel) - 1;
 	options->preferred_authentications = NULL;
 	options->bind_address = NULL;
-	options->smartcard_device = -1;
+	options->smartcard_device = NULL;
 }
 
 /*
