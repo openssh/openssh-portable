@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.237 2005/02/02 12:30:25 dtucker Exp $
+# $Id: configure.ac,v 1.238 2005/02/09 11:12:31 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -1226,6 +1226,10 @@ AC_ARG_WITH(ssl-dir,
 	[  --with-ssl-dir=PATH     Specify path to OpenSSL installation ],
 	[
 		if test "x$withval" != "xno" ; then
+			case "$withval" in
+				# Relative paths
+				./*|../*)	withval="`pwd`/$withval"
+			esac
 			if test -d "$withval/lib"; then
 				if test -n "${need_dash_r}"; then
 					LDFLAGS="-L${withval}/lib -R${withval}/lib ${LDFLAGS}"
