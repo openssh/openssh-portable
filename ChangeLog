@@ -2,6 +2,7 @@
  - (bal) updated ssh.c to mirror minor getopts 'extern int' formating done
    by stevesk@
  - (bal) Removed 'extern int optopt;' since it is dead wood.
+ - (bal) Updated all *.specs for 2.9.9p1 and updated version.h
 
 20010923
  - (bal) OpenBSD CVS Sync
@@ -6562,4 +6563,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1558 2001/09/24 22:04:02 mouring Exp $
+$Id: ChangeLog,v 1.1559 2001/09/24 23:15:15 mouring Exp $
