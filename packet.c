@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.51 2001/02/12 22:56:09 deraadt Exp $");
+RCSID("$OpenBSD: packet.c,v 1.52 2001/02/27 10:35:27 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -586,7 +586,7 @@ packet_send2(void)
 			if (i % 4 == 0)
 				rand = arc4random();
 			cp[i] = rand & 0xff;
-			rand <<= 8;
+			rand >>= 8;
 		}
 	} else {
 		/* clear padding */
