@@ -19,6 +19,9 @@
      [progressmeter.c]
      pass file_size + 1 to snprintf: fixes printing of truncated
      file names; fix based on patch/report from sturm@;
+   - markus@cvs.openbsd.org 2003/08/31 12:14:22
+     [progressmeter.c]
+     do write to buf[-1]
 
 20030829
  - (bal) openbsd-compat/ clean up.  Considate headers, add in Id on our
@@ -934,4 +937,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2924 2003/09/02 12:53:01 djm Exp $
+$Id: ChangeLog,v 1.2925 2003/09/02 12:53:32 djm Exp $
