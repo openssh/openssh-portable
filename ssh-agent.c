@@ -35,7 +35,7 @@
 
 #include "includes.h"
 #include "openbsd-compat/sys-queue.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.106 2003/01/21 18:14:36 marc Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.107 2003/01/23 13:50:27 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -50,6 +50,8 @@ RCSID("$OpenBSD: ssh-agent.c,v 1.106 2003/01/21 18:14:36 marc Exp $");
 #include "authfd.h"
 #include "compat.h"
 #include "log.h"
+#include "readpass.h"
+#include "misc.h"
 
 #ifdef SMARTCARD
 #include "scard.h"
@@ -77,6 +79,7 @@ typedef struct identity {
 	Key *key;
 	char *comment;
 	u_int death;
+	u_int confirm;
 } Identity;
 
 typedef struct {
@@ -162,6 +165,30 @@ lookup_identity(Key *key, int version)
 	return (NULL);
 }
 
+/* Check confirmation of keysign request */
+static int
+confirm_key(Identity *id)
+{
+	char *p, prompt[1024];
+	int ret = -1;
+
+	p = key_fingerprint(id->key, SSH_FP_MD5, SSH_FP_HEX);
+	snprintf(prompt, sizeof(prompt), "Allow use of key %s?\n"
+	    "Key fingerprint %s.", id->comment, p);
+	xfree(p);
+	p = read_passphrase(prompt, RP_ALLOW_EOF);
+	if (p != NULL) {
+		/*
+		 * Accept empty responses and responses consisting 
+		 * of the word "yes" as affirmative.
+		 */
+		if (*p == '\0' || *p == '\n' || strcasecmp(p, "yes") == 0)
+			ret = 0;
+		xfree(p);
+	}
+	return (ret);
+}
+
 /* send list of supported public keys to 'client' */
 static void
 process_request_identities(SocketEntry *e, int version)
@@ -225,7 +252,7 @@ process_authentication_challenge1(SocketEntry *e)
 		goto failure;
 
 	id = lookup_identity(key, 1);
-	if (id != NULL) {
+	if (id != NULL && (!id->confirm || confirm_key(id) == 0)) {
 		Key *private = id->key;
 		/* Decrypt the challenge using the private key. */
 		if (rsa_private_decrypt(challenge, challenge, private->rsa) <= 0)
@@ -285,7 +312,7 @@ process_sign_request2(SocketEntry *e)
 	key = key_from_blob(blob, blen);
 	if (key != NULL) {
 		Identity *id = lookup_identity(key, 2);
-		if (id != NULL)
+		if (id != NULL && (!id->confirm || confirm_key(id) == 0))
 			ok = key_sign(id->key, &signature, &slen, data, dlen);
 	}
 	key_free(key);
@@ -405,7 +432,7 @@ static void
 process_add_identity(SocketEntry *e, int version)
 {
 	Idtab *tab = idtab_lookup(version);
-	int type, success = 0, death = 0;
+	int type, success = 0, death = 0, confirm = 0;
 	char *type_name, *comment;
 	Key *k = NULL;
 
@@ -467,6 +494,9 @@ process_add_identity(SocketEntry *e, int version)
 		case SSH_AGENT_CONSTRAIN_LIFETIME:
 			death = time(NULL) + buffer_get_int(&e->request);
 			break;
+		case SSH_AGENT_CONSTRAIN_CONFIRM:
+			confirm = 1;
+			break;
 		default:
 			break;
 		}
@@ -478,6 +508,7 @@ process_add_identity(SocketEntry *e, int version)
 		id->key = k;
 		id->comment = comment;
 		id->death = death;
+		id->confirm = confirm;
 		TAILQ_INSERT_TAIL(&tab->idlist, id, next);
 		/* Increment the number of identities. */
 		tab->nentries++;
@@ -562,6 +593,7 @@ process_add_smartcard_key (SocketEntry *e)
 			id->key = k;
 			id->comment = xstrdup("smartcard key");
 			id->death = 0;
+			id->confirm = 0;
 			TAILQ_INSERT_TAIL(&tab->idlist, id, next);
 			tab->nentries++;
 			success = 1;
@@ -942,7 +974,8 @@ usage(void)
 int
 main(int ac, char **av)
 {
-	int sock, c_flag = 0, d_flag = 0, k_flag = 0, s_flag = 0, ch, nalloc;
+	int c_flag = 0, d_flag = 0, k_flag = 0, s_flag = 0;
+	int sock, fd,  ch, nalloc;
 	char *shell, *format, *pidstr, *agentsocket = NULL;
 	fd_set *readsetp = NULL, *writesetp = NULL;
 	struct sockaddr_un sunaddr;
@@ -1128,9 +1161,14 @@ main(int ac, char **av)
 	}
 
 	(void)chdir("/");
-	close(0);
-	close(1);
-	close(2);
+	if ((fd = open(_PATH_DEVNULL, O_RDWR, 0)) != -1) {
+		/* XXX might close listen socket */
+		(void)dup2(fd, STDIN_FILENO);
+		(void)dup2(fd, STDOUT_FILENO);
+		(void)dup2(fd, STDERR_FILENO);
+		if (fd > 2)
+			close(fd);
+	}
 
 #ifdef HAVE_SETRLIMIT
 	/* deny core dumps, since memory contains unencrypted private keys */

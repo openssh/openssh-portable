@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.64 2002/11/21 23:03:51 deraadt Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.65 2003/01/23 13:50:27 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -69,6 +69,9 @@ static char *default_files[] = {
 
 /* Default lifetime (0 == forever) */
 static int lifetime = 0;
+
+/* User has to confirm key use */
+static int confirm = 0;
 
 /* we keep a cache of one passphrases */
 static char *pass = NULL;
@@ -165,12 +168,16 @@ add_file(AuthenticationConnection *ac, const char *filename)
 		}
 	}
 
-	if (ssh_add_identity_constrained(ac, private, comment, lifetime)) {
+ 	if (ssh_add_identity_constrained(ac, private, comment, lifetime,
+ 	    confirm)) {
 		fprintf(stderr, "Identity added: %s (%s)\n", filename, comment);
 		ret = 0;
 		if (lifetime != 0)
 			fprintf(stderr,
 			    "Lifetime set to %d seconds\n", lifetime);
+ 		if (confirm != 0)
+			fprintf(stderr,
+			    "The user has to confirm each use of the key\n");
 	} else if (ssh_add_identity(ac, private, comment)) {
 		fprintf(stderr, "Identity added: %s (%s)\n", filename, comment);
 		ret = 0;
@@ -292,6 +299,7 @@ usage(void)
 	fprintf(stderr, "  -x          Lock agent.\n");
 	fprintf(stderr, "  -X          Unlock agent.\n");
 	fprintf(stderr, "  -t life     Set lifetime (in seconds) when adding identities.\n");
+	fprintf(stderr, "  -c          Require confirmation to sign using identities\n");
 #ifdef SMARTCARD
 	fprintf(stderr, "  -s reader   Add key in smartcard reader.\n");
 	fprintf(stderr, "  -e reader   Remove key in smartcard reader.\n");
@@ -319,7 +327,7 @@ main(int argc, char **argv)
 		fprintf(stderr, "Could not open a connection to your authentication agent.\n");
 		exit(2);
 	}
-	while ((ch = getopt(argc, argv, "lLdDxXe:s:t:")) != -1) {
+	while ((ch = getopt(argc, argv, "lLcdDxXe:s:t:")) != -1) {
 		switch (ch) {
 		case 'l':
 		case 'L':
@@ -332,6 +340,9 @@ main(int argc, char **argv)
 			if (lock_agent(ac, ch == 'x' ? 1 : 0) == -1)
 				ret = 1;
 			goto done;
+			break;
+		case 'c':
+			confirm = 1;
 			break;
 		case 'd':
 			deleting = 1;

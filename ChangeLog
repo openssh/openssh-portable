@@ -3,6 +3,11 @@
    - jmc@cvs.openbsd.org 2003/01/23 08:58:47
      [sshd_config.5]
      typos; ok millert@
+   - markus@cvs.openbsd.org 2003/01/23 13:50:27
+     [authfd.c authfd.h readpass.c ssh-add.1 ssh-add.c ssh-agent.c]
+     ssh-add -c, prompt user for confirmation (using ssh-askpass) when
+     private agent key is used; with djm@; test by dugsong@, djm@; 
+     ok deraadt@
 
 20030123
  - (djm) OpenBSD CVS Sync
@@ -1062,4 +1067,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2583 2003/01/24 00:34:52 djm Exp $
+$Id: ChangeLog,v 1.2584 2003/01/24 00:36:23 djm Exp $
