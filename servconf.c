@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.47 2000/07/10 16:30:25 ho Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.49 2000/07/14 22:59:46 markus Exp $");
 
 #include "ssh.h"
 #include "servconf.h"
@@ -163,8 +163,6 @@ fill_default_server_options(ServerOptions *options)
 	if (options->max_startups == -1)
 		options->max_startups = 10;
 }
-
-#define WHITESPACE " \t\r\n="
 
 /* Keyword tokens. */
 typedef enum {
@@ -318,10 +316,13 @@ read_server_config(ServerOptions *options, const char *filename)
 	linenum = 0;
 	while (fgets(line, sizeof(line), f)) {
 		linenum++;
-		cp = line + strspn(line, WHITESPACE);
-		if (!*cp || *cp == '#')
+		cp = line;
+		arg = strdelim(&cp);
+		/* Ignore leading whitespace */
+		if (*arg == '\0')
+			arg = strdelim(&cp);
+		if (!*arg || *arg == '#')
 			continue;
-		arg = strsep(&cp, WHITESPACE);
 		opcode = parse_token(arg, filename, linenum);
 		switch (opcode) {
 		case sBadOption:
@@ -337,7 +338,7 @@ read_server_config(ServerOptions *options, const char *filename)
 			if (options->num_ports >= MAX_PORTS)
 				fatal("%s line %d: too many ports.\n",
 				    filename, linenum);
-			arg = strsep(&cp, WHITESPACE);
+			arg = strdelim(&cp);
 			if (!arg || *arg == '\0')
 				fatal("%s line %d: missing port number.\n",
 				    filename, linenum);
@@ -347,7 +348,7 @@ read_server_config(ServerOptions *options, const char *filename)
 		case sServerKeyBits:
 			intptr = &options->server_key_bits;
 parse_int:
-			arg = strsep(&cp, WHITESPACE);
+			arg = strdelim(&cp);
 			if (!arg || *arg == '\0') {
 				fprintf(stderr, "%s line %d: missing integer value.\n",
 					filename, linenum);
@@ -367,7 +368,7 @@ parse_int:
 			goto parse_int;
 
 		case sListenAddress:
-			arg = strsep(&cp, WHITESPACE);
+			arg = strdelim(&cp);
 			if (!arg || *arg == '\0')
 				fatal("%s line %d: missing inet addr.\n",
 				    filename, linenum);
@@ -379,7 +380,7 @@ parse_int:
 			charptr = (opcode == sHostKeyFile ) ?
 			    &options->host_key_file : &options->host_dsa_key_file;
 parse_filename:
-			arg = strsep(&cp, WHITESPACE);
+			arg = strdelim(&cp);
 			if (!arg || *arg == '\0') {
 				fprintf(stderr, "%s line %d: missing file name.\n",
 				    filename, linenum);
@@ -396,12 +397,12 @@ parse_filename:
 		case sRandomSeedFile:
 			fprintf(stderr, "%s line %d: \"randomseed\" option is obsolete.\n",
 				filename, linenum);
-			arg = strsep(&cp, WHITESPACE);
+			arg = strdelim(&cp);
 			break;
 
 		case sPermitRootLogin:
 			intptr = &options->permit_root_login;
-			arg = strsep(&cp, WHITESPACE);
+			arg = strdelim(&cp);
 			if (!arg || *arg == '\0') {
 				fprintf(stderr, "%s line %d: missing yes/without-password/no argument.\n",
 					filename, linenum);
@@ -425,7 +426,7 @@ parse_filename:
 		case sIgnoreRhosts:
 			intptr = &options->ignore_rhosts;
 parse_flag:
-			arg = strsep(&cp, WHITESPACE);
+			arg = strdelim(&cp);
 			if (!arg || *arg == '\0') {
 				fprintf(stderr, "%s line %d: missing yes/no argument.\n",
 					filename, linenum);
@@ -540,7 +541,7 @@ parse_flag:
 
 		case sLogFacility:
 			intptr = (int *) &options->log_facility;
-			arg = strsep(&cp, WHITESPACE);
+			arg = strdelim(&cp);
 			value = log_facility_number(arg);
 			if (value == (SyslogFacility) - 1)
 				fatal("%.200s line %d: unsupported log facility '%s'\n",
@@ -551,7 +552,7 @@ parse_flag:
 
 		case sLogLevel:
 			intptr = (int *) &options->log_level;
-			arg = strsep(&cp, WHITESPACE);
+			arg = strdelim(&cp);
 			value = log_level_number(arg);
 			if (value == (LogLevel) - 1)
 				fatal("%.200s line %d: unsupported log level '%s'\n",
@@ -561,7 +562,7 @@ parse_flag:
 			break;
 
 		case sAllowUsers:
-			while ((arg = strsep(&cp, WHITESPACE)) && *arg != '\0') {
+			while ((arg = strdelim(&cp)) && *arg != '\0') {
 				if (options->num_allow_users >= MAX_ALLOW_USERS)
 					fatal("%s line %d: too many allow users.\n",
 					    filename, linenum);
@@ -570,7 +571,7 @@ parse_flag:
 			break;
 
 		case sDenyUsers:
-			while ((arg = strsep(&cp, WHITESPACE)) && *arg != '\0') {
+			while ((arg = strdelim(&cp)) && *arg != '\0') {
 				if (options->num_deny_users >= MAX_DENY_USERS)
 					fatal( "%s line %d: too many deny users.\n",
 					    filename, linenum);
@@ -579,7 +580,7 @@ parse_flag:
 			break;
 
 		case sAllowGroups:
-			while ((arg = strsep(&cp, WHITESPACE)) && *arg != '\0') {
+			while ((arg = strdelim(&cp)) && *arg != '\0') {
 				if (options->num_allow_groups >= MAX_ALLOW_GROUPS)
 					fatal("%s line %d: too many allow groups.\n",
 					    filename, linenum);
@@ -588,7 +589,7 @@ parse_flag:
 			break;
 
 		case sDenyGroups:
-			while ((arg = strsep(&cp, WHITESPACE)) && *arg != '\0') {
+			while ((arg = strdelim(&cp)) && *arg != '\0') {
 				if (options->num_deny_groups >= MAX_DENY_GROUPS)
 					fatal("%s line %d: too many deny groups.\n",
 					    filename, linenum);
@@ -597,7 +598,7 @@ parse_flag:
 			break;
 
 		case sCiphers:
-			arg = strsep(&cp, WHITESPACE);
+			arg = strdelim(&cp);
 			if (!arg || *arg == '\0')
 				fatal("%s line %d: Missing argument.", filename, linenum);
 			if (!ciphers_valid(arg))
@@ -609,7 +610,7 @@ parse_flag:
 
 		case sProtocol:
 			intptr = &options->protocol;
-			arg = strsep(&cp, WHITESPACE);
+			arg = strdelim(&cp);
 			if (!arg || *arg == '\0')
 				fatal("%s line %d: Missing argument.", filename, linenum);
 			value = proto_spec(arg);
@@ -625,7 +626,7 @@ parse_flag:
 				fatal("%s line %d: too many subsystems defined.",
 				      filename, linenum);
 			}
-			arg = strsep(&cp, WHITESPACE);
+			arg = strdelim(&cp);
 			if (!arg || *arg == '\0')
 				fatal("%s line %d: Missing subsystem name.",
 				      filename, linenum);
@@ -634,7 +635,7 @@ parse_flag:
 					fatal("%s line %d: Subsystem '%s' already defined.",
 					      filename, linenum, arg);
 			options->subsystem_name[options->num_subsystems] = xstrdup(arg);
-			arg = strsep(&cp, WHITESPACE);
+			arg = strdelim(&cp);
 			if (!arg || *arg == '\0')
 				fatal("%s line %d: Missing subsystem command.",
 				      filename, linenum);
@@ -651,7 +652,7 @@ parse_flag:
 				filename, linenum, arg, opcode);
 			exit(1);
 		}
-		if ((arg = strsep(&cp, WHITESPACE)) != NULL && *arg != '\0') {
+		if ((arg = strdelim(&cp)) != NULL && *arg != '\0') {
 			fprintf(stderr, 
 				"%s line %d: garbage at end of line; \"%.200s\".\n",
 				filename, linenum, arg);

@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.41 2000/07/11 19:17:44 deraadt Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.43 2000/07/14 22:59:46 markus Exp $");
 
 #include "ssh.h"
 #include "cipher.h"
@@ -164,10 +164,6 @@ static struct {
 	{ NULL, 0 }
 };
 
-/* Characters considered whitespace in strsep calls. */
-#define WHITESPACE " \t\r\n="
-
-
 /*
  * Adds a local TCP/IP port forward to options.  Never returns if there is an
  * error.
@@ -241,13 +237,15 @@ process_config_line(Options *options, const char *host,
 	int opcode, *intptr, value;
 	u_short fwd_port, fwd_host_port;
 
-	/* Skip leading whitespace. */
-	s = line + strspn(line, WHITESPACE);
-	if (!*s || *s == '\n' || *s == '#')
+	s = line;
+	/* Get the keyword. (Each line is supposed to begin with a keyword). */
+	keyword = strdelim(&s);
+	/* Ignore leading whitespace. */
+	if (*keyword == '\0')
+		keyword = strdelim(&s);
+	if (!*keyword || *keyword == '\n' || *keyword == '#')
 		return 0;
 
-	/* Get the keyword. (Each line is supposed to begin with a keyword). */
-	keyword = strsep(&s, WHITESPACE);
 	opcode = parse_token(keyword, filename, linenum);
 
 	switch (opcode) {
@@ -258,7 +256,7 @@ process_config_line(Options *options, const char *host,
 	case oForwardAgent:
 		intptr = &options->forward_agent;
 parse_flag:
-		arg = strsep(&s, WHITESPACE);
+		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing yes/no argument.", filename, linenum);
 		value = 0;	/* To avoid compiler warning... */
@@ -344,7 +342,7 @@ parse_flag:
 
 	case oStrictHostKeyChecking:
 		intptr = &options->strict_host_key_checking;
-		arg = strsep(&s, WHITESPACE);
+		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing yes/no argument.",
 			      filename, linenum);
@@ -379,7 +377,7 @@ parse_flag:
 
 	case oIdentityFile:
 	case oIdentityFile2:
-		arg = strsep(&s, WHITESPACE);
+		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
 		if (*activep) {
@@ -404,7 +402,7 @@ parse_flag:
 	case oUser:
 		charptr = &options->user;
 parse_string:
-		arg = strsep(&s, WHITESPACE);
+		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
 		if (*activep && *charptr == NULL)
@@ -434,7 +432,7 @@ parse_string:
 	case oProxyCommand:
 		charptr = &options->proxy_command;
 		string = xstrdup("");
-		while ((arg = strsep(&s, WHITESPACE)) != NULL && *arg != '\0') {
+		while ((arg = strdelim(&s)) != NULL && *arg != '\0') {
 			string = xrealloc(string, strlen(string) + strlen(arg) + 2);
 			strcat(string, " ");
 			strcat(string, arg);
@@ -448,7 +446,7 @@ parse_string:
 	case oPort:
 		intptr = &options->port;
 parse_int:
-		arg = strsep(&s, WHITESPACE);
+		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
 		if (arg[0] < '0' || arg[0] > '9')
@@ -468,7 +466,7 @@ parse_int:
 
 	case oCipher:
 		intptr = &options->cipher;
-		arg = strsep(&s, WHITESPACE);
+		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
 		value = cipher_number(arg);
@@ -480,7 +478,7 @@ parse_int:
 		break;
 
 	case oCiphers:
-		arg = strsep(&s, WHITESPACE);
+		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
 		if (!ciphers_valid(arg))
@@ -492,7 +490,7 @@ parse_int:
 
 	case oProtocol:
 		intptr = &options->protocol;
-		arg = strsep(&s, WHITESPACE);
+		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
 		value = proto_spec(arg);
@@ -505,7 +503,7 @@ parse_int:
 
 	case oLogLevel:
 		intptr = (int *) &options->log_level;
-		arg = strsep(&s, WHITESPACE);
+		arg = strdelim(&s);
 		value = log_level_number(arg);
 		if (value == (LogLevel) - 1)
 			fatal("%.200s line %d: unsupported log level '%s'\n",
@@ -515,14 +513,14 @@ parse_int:
 		break;
 
 	case oRemoteForward:
-		arg = strsep(&s, WHITESPACE);
+		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
 		if (arg[0] < '0' || arg[0] > '9')
 			fatal("%.200s line %d: Badly formatted port number.",
 			      filename, linenum);
 		fwd_port = atoi(arg);
-		arg = strsep(&s, WHITESPACE);
+		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing second argument.",
 			      filename, linenum);
@@ -534,14 +532,14 @@ parse_int:
 		break;
 
 	case oLocalForward:
-		arg = strsep(&s, WHITESPACE);
+		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
 		if (arg[0] < '0' || arg[0] > '9')
 			fatal("%.200s line %d: Badly formatted port number.",
 			      filename, linenum);
 		fwd_port = atoi(arg);
-		arg = strsep(&s, WHITESPACE);
+		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing second argument.",
 			      filename, linenum);
@@ -554,18 +552,18 @@ parse_int:
 
 	case oHost:
 		*activep = 0;
-		while ((arg = strsep(&s, WHITESPACE)) != NULL && *arg != '\0')
+		while ((arg = strdelim(&s)) != NULL && *arg != '\0')
 			if (match_pattern(host, arg)) {
 				debug("Applying options for %.100s", arg);
 				*activep = 1;
 				break;
 			}
-		/* Avoid garbage check below, as strsep is done. */
+		/* Avoid garbage check below, as strdelim is done. */
 		return 0;
 
 	case oEscapeChar:
 		intptr = &options->escape_char;
-		arg = strsep(&s, WHITESPACE);
+		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
 		if (arg[0] == '^' && arg[2] == 0 &&
@@ -590,7 +588,7 @@ parse_int:
 	}
 
 	/* Check that there is no garbage at end of line. */
-	if ((arg = strsep(&s, WHITESPACE)) != NULL && *arg != '\0')
+	if ((arg = strdelim(&s)) != NULL && *arg != '\0')
 	{
 		fatal("%.200s line %d: garbage at end of line; \"%.200s\".",
 		      filename, linenum, arg);

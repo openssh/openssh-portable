@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.56 2000/06/20 01:39:44 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.57 2000/07/15 04:01:37 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/dsa.h>
@@ -622,7 +622,7 @@ main(int ac, char **av)
 	 */
 	snprintf(buf, sizeof buf, "%.100s/%.100s", pw->pw_dir, SSH_USER_DIR);
 	if (stat(buf, &st) < 0)
-		if (mkdir(buf, 0755) < 0)
+		if (mkdir(buf, 0700) < 0)
 			error("Could not create directory '%.200s'.", buf);
 
 	/* Check if the connection failed, and try "rsh" if appropriate. */

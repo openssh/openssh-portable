@@ -16,7 +16,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.27 2000/06/20 01:39:40 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.28 2000/07/13 23:14:08 provos Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -778,7 +778,7 @@ client_loop(int have_pty, int escape_char_arg)
 	if (have_pty)
 		enter_raw_mode();
 
-	/* Check if we should immediately send of on stdin. */
+	/* Check if we should immediately send eof on stdin. */
 	if (!compat20)
 		client_check_initial_eof_on_stdin();
 

@@ -13,7 +13,7 @@
  *
  */
 
-/* RCSID("$OpenBSD: ssh.h,v 1.47 2000/06/20 01:39:45 markus Exp $"); */
+/* RCSID("$OpenBSD: ssh.h,v 1.48 2000/07/13 22:53:21 provos Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -488,6 +488,9 @@ char   *tilde_expand_filename(const char *filename, uid_t my_uid);
 
 /* remove newline at end of string */
 char	*chop(char *s);
+
+/* return next token in configuration line */
+char	*strdelim(char **s);
 
 /* set filedescriptor to non-blocking */
 void	set_nonblock(int fd);

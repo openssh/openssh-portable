@@ -1,3 +1,22 @@
+20000713
+ - (djm) OpenBSD CVS updates
+   - provos@cvs.openbsd.org  2000/07/13 16:53:22
+     [aux.c readconf.c servconf.c ssh.h]
+     allow multiple whitespace but only one '=' between tokens, bug report from
+     Ralf S. Engelschall <rse@engelschall.com> but different fix. okay deraadt@
+   - provos@cvs.openbsd.org  2000/07/13 17:14:09
+     [clientloop.c]
+     typo; todd@fries.net
+   - provos@cvs.openbsd.org  2000/07/13 17:19:31
+     [scp.c]
+     close can fail on AFS, report error; from Greg Hudson <ghudson@mit.edu>
+   - markus@cvs.openbsd.org  2000/07/14 16:59:46
+     [readconf.c servconf.c]
+     allow leading whitespace. ok niels
+   - djm@cvs.openbsd.org     2000/07/14 22:01:38
+     [ssh-keygen.c ssh.c]
+     Always create ~/.ssh with mode 700; ok Markus
+
 20000712
  - (djm) Remove -lresolve for Reliant Unix
  - (djm) OpenBSD CVS Updates:
@@ -247,7 +266,7 @@
   - Don't try to retrieve lastlog from wtmp/wtmpx if DISABLE_LASTLOG is
      def'd
   - Set AIX to use preformatted manpages
-	
+   
 20000610
  - (djm) Minor doc tweaks
  - (djm) Fix for configure on bash2 from Jim Knoble <jmknoble@jmknoble.cx>
@@ -304,7 +323,7 @@
  - (andre) New login code
     - Remove bsd-login.[ch] and all the OpenBSD-derived code in login.c
     - Add loginrec.[ch], logintest.c and autoconf code
-	
+   
 20000531
  - Cleanup of auth.c, login.c and fake-*
  - Cleanup of auth-pam.c, save and print "account expired" error messages
@@ -366,9 +385,9 @@
   - Gives useful error message if PRNG initialisation fails
   - Reduced ssh startup delay
   - Measures cumulative command time rather than the time between reads
-	 after select()
+    after select()
   - 'fixprogs' perl script to eliminate non-working entropy commands, and
-	 optionally run 'ent' to measure command entropy
+    optionally run 'ent' to measure command entropy
  - Applied Tom Bertelson's <tbert@abac.com> AIX authentication fix
  - Avoid WCOREDUMP complation errors for systems that lack it
  - Avoid SIGCHLD warnings from entropy commands 
@@ -853,64 +872,64 @@
 
 20000309
  - OpenBSD CVS updates to v1.2.3
-	[ssh.h atomicio.c]
-	 - int atomicio -> ssize_t (for alpha). ok deraadt@
-	[auth-rsa.c]
-	 - delay MD5 computation until client sends response, free() early, cleanup.
-	[cipher.c]
-	 - void* -> unsigned char*, ok niels@
-	[hostfile.c]
-	 - remove unused variable 'len'. fix comments.
-	 - remove unused variable
-	[log-client.c log-server.c]
-	 - rename a cpp symbol, to avoid param.h collision
-	[packet.c]
-	 - missing xfree()
-	 - getsockname() requires initialized tolen; andy@guildsoftware.com
-	 - use getpeername() in packet_connection_is_on_socket(), fixes sshd -i;
-	from Holger.Trapp@Informatik.TU-Chemnitz.DE
-	[pty.c pty.h]
-	 - register cleanup for pty earlier. move code for pty-owner handling to 
-   	pty.c ok provos@, dugsong@
-	[readconf.c]
-	 - turn off x11-fwd for the client, too.
-	[rsa.c]
-	 - PKCS#1 padding
-	[scp.c]
-	 - allow '.' in usernames; from jedgar@fxp.org
-	[servconf.c]
-	 - typo: ignore_user_known_hosts int->flag; naddy@mips.rhein-neckar.de
-	 - sync with sshd_config
-	[ssh-keygen.c]
-	 - enable ssh-keygen -l -f ~/.ssh/known_hosts, ok deraadt@
-	[ssh.1]
-	 - Change invalid 'CHAT' loglevel to 'VERBOSE'
-	[ssh.c]
-	 - suppress AAAA query host when '-4' is used; from shin@nd.net.fujitsu.co.jp
-	 - turn off x11-fwd for the client, too.
-	[sshconnect.c]
-	 - missing xfree()
-	 - retry rresvport_af(), too. from sumikawa@ebina.hitachi.co.jp.
-	 - read error vs. "Connection closed by remote host"
-	[sshd.8]
-	 - ie. -> i.e.,
-	 - do not link to a commercial page..
-	 - sync with sshd_config
-	[sshd.c]
-	 - no need for poll.h; from bright@wintelcom.net
-	 - log with level log() not fatal() if peer behaves badly.
-	 - don't panic if client behaves strange. ok deraadt@
-	 - make no-port-forwarding for RSA keys deny both -L and -R style fwding
-	 - delay close() of pty until the pty has been chowned back to root
-	 - oops, fix comment, too.
-	 - missing xfree()
-	 - move XAUTHORITY to subdir. ok dugsong@. fixes debian bug #57907, too.
-   	(http://cgi.debian.org/cgi-bin/bugreport.cgi?archive=no&bug=57907)
-	 - register cleanup for pty earlier. move code for pty-owner handling to 
+   [ssh.h atomicio.c]
+    - int atomicio -> ssize_t (for alpha). ok deraadt@
+   [auth-rsa.c]
+    - delay MD5 computation until client sends response, free() early, cleanup.
+   [cipher.c]
+    - void* -> unsigned char*, ok niels@
+   [hostfile.c]
+    - remove unused variable 'len'. fix comments.
+    - remove unused variable
+   [log-client.c log-server.c]
+    - rename a cpp symbol, to avoid param.h collision
+   [packet.c]
+    - missing xfree()
+    - getsockname() requires initialized tolen; andy@guildsoftware.com
+    - use getpeername() in packet_connection_is_on_socket(), fixes sshd -i;
+   from Holger.Trapp@Informatik.TU-Chemnitz.DE
+   [pty.c pty.h]
+    - register cleanup for pty earlier. move code for pty-owner handling to 
       pty.c ok provos@, dugsong@
-	 - create x11 cookie file
-	 - fix pr 1113, fclose() -> pclose(), todo: remote popen()
-	 - version 1.2.3
+   [readconf.c]
+    - turn off x11-fwd for the client, too.
+   [rsa.c]
+    - PKCS#1 padding
+   [scp.c]
+    - allow '.' in usernames; from jedgar@fxp.org
+   [servconf.c]
+    - typo: ignore_user_known_hosts int->flag; naddy@mips.rhein-neckar.de
+    - sync with sshd_config
+   [ssh-keygen.c]
+    - enable ssh-keygen -l -f ~/.ssh/known_hosts, ok deraadt@
+   [ssh.1]
+    - Change invalid 'CHAT' loglevel to 'VERBOSE'
+   [ssh.c]
+    - suppress AAAA query host when '-4' is used; from shin@nd.net.fujitsu.co.jp
+    - turn off x11-fwd for the client, too.
+   [sshconnect.c]
+    - missing xfree()
+    - retry rresvport_af(), too. from sumikawa@ebina.hitachi.co.jp.
+    - read error vs. "Connection closed by remote host"
+   [sshd.8]
+    - ie. -> i.e.,
+    - do not link to a commercial page..
+    - sync with sshd_config
+   [sshd.c]
+    - no need for poll.h; from bright@wintelcom.net
+    - log with level log() not fatal() if peer behaves badly.
+    - don't panic if client behaves strange. ok deraadt@
+    - make no-port-forwarding for RSA keys deny both -L and -R style fwding
+    - delay close() of pty until the pty has been chowned back to root
+    - oops, fix comment, too.
+    - missing xfree()
+    - move XAUTHORITY to subdir. ok dugsong@. fixes debian bug #57907, too.
+      (http://cgi.debian.org/cgi-bin/bugreport.cgi?archive=no&bug=57907)
+    - register cleanup for pty earlier. move code for pty-owner handling to 
+      pty.c ok provos@, dugsong@
+    - create x11 cookie file
+    - fix pr 1113, fclose() -> pclose(), todo: remote popen()
+    - version 1.2.3
  - Cleaned up
  - Removed warning workaround for Linux and devpts filesystems (no longer 
    required after OpenBSD updates)
@@ -1656,21 +1675,21 @@
    modular. 
  - Revised autoconf support for enabling/disabling askpass support.
  - Merged more OpenBSD CVS changes:
-	[auth-krb4.c]
-	  - disconnect if getpeername() fails
-	  - missing xfree(*client)
-	[canohost.c]
-	  - disconnect if getpeername() fails
-	  - fix comment: we _do_ disconnect if ip-options are set
-	[sshd.c]
-	  - disconnect if getpeername() fails
-	  - move checking of remote port to central place
-	[auth-rhosts.c] move checking of remote port to central place
-	[log-server.c] avoid extra fd per sshd, from millert@
-	[readconf.c] print _all_ bad config-options in ssh(1), too
-	[readconf.h] print _all_ bad config-options in ssh(1), too
-	[ssh.c] print _all_ bad config-options in ssh(1), too
-	[sshconnect.c] disconnect if getpeername() fails
+   [auth-krb4.c]
+     - disconnect if getpeername() fails
+     - missing xfree(*client)
+   [canohost.c]
+     - disconnect if getpeername() fails
+     - fix comment: we _do_ disconnect if ip-options are set
+   [sshd.c]
+     - disconnect if getpeername() fails
+     - move checking of remote port to central place
+   [auth-rhosts.c] move checking of remote port to central place
+   [log-server.c] avoid extra fd per sshd, from millert@
+   [readconf.c] print _all_ bad config-options in ssh(1), too
+   [readconf.h] print _all_ bad config-options in ssh(1), too
+   [ssh.c] print _all_ bad config-options in ssh(1), too
+   [sshconnect.c] disconnect if getpeername() fails
  - OpenBSD's changes to sshd.c broke the PAM stuff, re-merged it.
  - Various small cleanups to bring diff (against OpenBSD) size down.
  - Merged more Solaris compability from Marc G. Fournier

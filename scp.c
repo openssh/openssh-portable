@@ -45,7 +45,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.32 2000/06/20 01:39:44 markus Exp $");
+RCSID("$OpenBSD: scp.c,v 1.33 2000/07/13 23:19:31 provos Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -889,7 +889,10 @@ bad:			run_err("%s: %s", np, strerror(errno));
 					run_err("%s: set mode: %s",
 						np, strerror(errno));
 		}
-		(void) close(ofd);
+		if (close(ofd) == -1) {
+			wrerr = YES;
+			wrerrno = errno;
+		}
 		(void) response();
 		if (setimes && wrerr == NO) {
 			setimes = 0;
@@ -1015,7 +1018,7 @@ run_err(const char *fmt,...)
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	$OpenBSD: scp.c,v 1.32 2000/06/20 01:39:44 markus Exp $
+ *	$OpenBSD: scp.c,v 1.33 2000/07/13 23:19:31 provos Exp $
  */
 
 char *

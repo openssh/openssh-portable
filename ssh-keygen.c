@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.28 2000/07/07 03:55:04 todd Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.29 2000/07/15 04:01:37 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -660,7 +660,7 @@ main(int ac, char **av)
 	snprintf(dotsshdir, sizeof dotsshdir, "%s/%s", pw->pw_dir, SSH_USER_DIR);
 	if (strstr(identity_file, dotsshdir) != NULL &&
 	    stat(dotsshdir, &st) < 0) {
-		if (mkdir(dotsshdir, 0755) < 0)
+		if (mkdir(dotsshdir, 0700) < 0)
 			error("Could not create directory '%s'.", dotsshdir);
 		else if (!quiet)
 			printf("Created directory '%s'.\n", dotsshdir);

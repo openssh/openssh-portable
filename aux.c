@@ -1,5 +1,5 @@
 #include "includes.h"
-RCSID("$OpenBSD: aux.c,v 1.3 2000/06/18 17:13:41 markus Exp $");
+RCSID("$OpenBSD: aux.c,v 1.4 2000/07/13 22:53:21 provos Exp $");
 
 #include "ssh.h"
 
@@ -38,4 +38,34 @@ set_nonblock(int fd)
 	val |= O_NONBLOCK;
 	if (fcntl(fd, F_SETFL, val) == -1)
 		error("fcntl(%d, F_SETFL, O_NONBLOCK): %s", fd, strerror(errno));
+}
+
+/* Characters considered whitespace in strsep calls. */
+#define WHITESPACE " \t\r\n"
+
+char *
+strdelim(char **s)
+{
+	char *old;
+	int wspace = 0;
+
+	if (*s == NULL)
+		return NULL;
+
+	old = *s;
+
+	*s = strpbrk(*s, WHITESPACE "=");
+	if (*s == NULL)
+		return (old);
+
+	/* Allow only one '=' to be skipped */
+	if (*s[0] == '=')
+		wspace = 1;
+	*s[0] = '\0';
+
+	*s += strspn(*s + 1, WHITESPACE) + 1;
+	if (*s[0] == '=' && !wspace)
+		*s += strspn(*s + 1, WHITESPACE) + 1;
+
+	return (old);
 }
