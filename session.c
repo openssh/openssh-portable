@@ -1103,7 +1103,7 @@ static void
 do_setusercontext(struct passwd *pw)
 {
 #ifdef HAVE_CYGWIN
-	if (iswinnt) {
+	if (is_winnt) {
 #else /* HAVE_CYGWIN */
 	if (getuid() == 0 || geteuid() == 0) {
 #endif /* HAVE_CYGWIN */

@@ -1,3 +1,6 @@
+20020221
+ - (bal) Minor session.c for cygwin.  mispelt 'is_winnt' variable.
+
 20020219
  - (djm) OpenBSD CVS Sync
    - mpech@cvs.openbsd.org 2002/02/13 08:33:47
@@ -7653,4 +7656,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1869 2002/02/19 21:58:19 mouring Exp $
+$Id: ChangeLog,v 1.1870 2002/02/21 15:37:02 mouring Exp $
