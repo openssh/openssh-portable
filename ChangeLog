@@ -28,6 +28,9 @@
    - dtucker@cvs.openbsd.org 2004/02/28 12:16:57
      [regress/dynamic-forward.sh]
      Make dynamic-forward understand nc's new output.  ok markus@
+   - dtucker@cvs.openbsd.org 2004/02/28 13:44:45
+     [regress/try-ciphers.sh]
+     Test acss too; ok markus@
 
 20040226
  - (bal) KNF our sshlogin.c even if the code looks nothing like upstream
@@ -833,4 +836,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3268 2004/02/29 09:37:06 dtucker Exp $
+$Id: ChangeLog,v 1.3269 2004/02/29 09:38:26 dtucker Exp $
