@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.218 2004/05/23 04:09:40 djm Exp $
+# $Id: configure.ac,v 1.219 2004/05/31 04:38:51 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -37,6 +37,13 @@ AC_PATH_PROG(TEST_MINUS_S_SH, bash)
 AC_PATH_PROG(TEST_MINUS_S_SH, ksh)
 AC_PATH_PROG(TEST_MINUS_S_SH, sh)
 AC_PATH_PROG(SH, sh)
+
+dnl for buildpkg.sh
+AC_PATH_PROG(PATH_GROUPADD_PROG, groupadd, groupadd,
+	[/usr/sbin${PATH_SEPARATOR}/etc])
+AC_PATH_PROG(PATH_USERADD_PROG, useradd, useradd,
+	[/usr/sbin${PATH_SEPARATOR}/etc])
+AC_CHECK_PROG(MAKE_PACKAGE_SUPPORTED, pkgmk, yes, no)
 
 # System features
 AC_SYS_LARGEFILE
@@ -2908,7 +2915,7 @@ if test "$ac_cv_lib_pam_pam_set_item" = yes ; then
 fi
 
 AC_EXEEXT
-AC_CONFIG_FILES([Makefile openbsd-compat/Makefile scard/Makefile ssh_prng_cmds])
+AC_CONFIG_FILES([Makefile buildpkg.sh openbsd-compat/Makefile scard/Makefile ssh_prng_cmds])
 AC_OUTPUT
 
 # Print summary of options
@@ -2972,6 +2979,10 @@ echo "      Linker flags: ${LDFLAGS}"
 echo "         Libraries: ${LIBWRAP} ${LIBPAM} ${LIBS}"
 
 echo ""
+
+if test "x$MAKE_PACKAGE_SUPPORTED" = "xyes" ; then
+	echo "SVR4 style packages are supported with \"make package\"\n"
+fi
 
 if test "x$PAM_MSG" = "xyes" ; then
 	echo "PAM is enabled. You may need to install a PAM control file "

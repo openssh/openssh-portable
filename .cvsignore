@@ -20,5 +20,6 @@ ssh_prng_cmds
 *.out
 *.0
 buildit.sh
+buildpkg.sh
 autom4te.cache
 ssh-rand-helper
