@@ -829,10 +829,9 @@ AC_CACHE_CHECK([for pw_class field in struct passwd],
 		ac_cv_have_pw_class_in_struct_passwd, [
 	AC_TRY_COMPILE(
 		[
-#include <sys/types.h>
 #include <pwd.h>
 		],
-		[ struct passwd p s; p.pw_class = NULL; ],
+		[ struct passwd p; p.pw_class = 0; ],
 		[ ac_cv_have_pw_class_in_struct_passwd="yes" ],
 		[ ac_cv_have_pw_class_in_struct_passwd="no" ]
 	)

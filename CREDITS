@@ -44,6 +44,7 @@ Jarno Huuskonen <jhuuskon@hytti.uku.fi> - Bugfixes
 Jim Knoble <jmknoble@pobox.com> - Many patches
 Jonchen (email unknown) - the original author of PAM support of SSH
 Juergen Keil <jk@tools.de> - scp bugfixing
+KAMAHARA Junzo <kamahara@cc.kshosen.ac.jp> - Configure fixes
 Kees Cook <cook@cpoint.net> - scp fixes
 Kenji Miyake <kenji@miyake.org> - Configure fixes
 Kevin O'Connor <kevin_oconnor@standardandpoors.com> - RSAless operation

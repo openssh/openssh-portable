@@ -244,7 +244,7 @@ do_authenticated(struct passwd * pw)
 	s = session_new();
 	s->pw = pw;
 
-#ifdef HAVE_LOGIN_CAP
+#if defined(HAVE_LOGIN_CAP) && defined(HAVE_PW_CLASS_IN_PASSWD)
 	if ((lc = login_getclass(pw->pw_class)) == NULL) {
 		error("unable to get login class");
 		return;
@@ -1966,7 +1966,7 @@ do_authenticated2(void)
 		close(startup_pipe);
 		startup_pipe = -1;
 	}
-#ifdef HAVE_LOGIN_CAP
+#if defined(HAVE_LOGIN_CAP) && defined(HAVE_PW_CLASS_IN_PASSWD)
 	pw = auth_get_user();
 	if ((lc = login_getclass(pw->pw_class)) == NULL) {
 		error("unable to get login class");
