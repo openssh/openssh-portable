@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.146 2002/02/03 22:35:57 stevesk Exp $
+.\" $OpenBSD: ssh.1,v 1.147 2002/02/09 17:37:34 deraadt Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -126,7 +126,7 @@ or
 .Pa /etc/shosts.equiv ,
 and if additionally the server can verify the client's
 host key (see
-.Pa /etc/ssh_known_hosts
+.Pa /etc/ssh/ssh_known_hosts
 and
 .Pa $HOME/.ssh/known_hosts
 in the
@@ -365,7 +365,7 @@ Host keys are stored in
 .Pa $HOME/.ssh/known_hosts
 in the user's home directory.
 Additionally, the file
-.Pa /etc/ssh_known_hosts
+.Pa /etc/ssh/ssh_known_hosts
 is automatically checked for known hosts.
 Any new hosts are automatically added to the user's file.
 If a host's identification
@@ -574,7 +574,7 @@ option below.
 Specifies an alternative per-user configuration file.
 If a configuration file is given on the command line,
 the system-wide configuration file
-.Pq Pa /etc/ssh_config
+.Pq Pa /etc/ssh/ssh_config
 will be ignored.
 The default for the per-user configuration file is
 .Pa $HOME/.ssh/config .
@@ -649,7 +649,7 @@ the following order:
 command line options, user's configuration file
 .Pq Pa $HOME/.ssh/config ,
 and system-wide configuration file
-.Pq Pa /etc/ssh_config .
+.Pq Pa /etc/ssh/ssh_config .
 For each parameter, the first obtained value
 will be used.
 The configuration files contain sections bracketed by
@@ -887,7 +887,7 @@ The default is
 .It Cm GlobalKnownHostsFile
 Specifies a file to use for the global
 host key database instead of
-.Pa /etc/ssh_known_hosts .
+.Pa /etc/ssh/ssh_known_hosts .
 .It Cm HostbasedAuthentication
 Specifies whether to try rhosts based authentication with public key
 authentication.
@@ -1145,7 +1145,7 @@ will never automatically add host keys to the
 file, and refuses to connect to hosts whose host key has changed.
 This provides maximum protection against trojan horse attacks,
 however, can be annoying when the
-.Pa /etc/ssh_known_hosts
+.Pa /etc/ssh/ssh_known_hosts
 file is poorly maintained, or connections to new hosts are
 frequently made.
 This option forces the user to manually
@@ -1313,7 +1313,7 @@ to the environment.
 .It Pa $HOME/.ssh/known_hosts
 Records host keys for all hosts the user has logged into that are not
 in
-.Pa /etc/ssh_known_hosts .
+.Pa /etc/ssh/ssh_known_hosts .
 See
 .Xr sshd 8 .
 .It Pa $HOME/.ssh/identity, $HOME/.ssh/id_dsa, $HOME/.ssh/id_rsa
@@ -1368,7 +1368,7 @@ In the simplest form the format is the same as the .pub
 identity files.
 This file is not highly sensitive, but the recommended
 permissions are read/write for the user, and not accessible by others.
-.It Pa /etc/ssh_known_hosts
+.It Pa /etc/ssh/ssh_known_hosts
 Systemwide list of known host keys.
 This file should be prepared by the
 system administrator to contain the public host keys of all machines in the
@@ -1391,13 +1391,13 @@ to verify the client host when logging in; other names are needed because
 does not convert the user-supplied name to a canonical name before
 checking the key, because someone with access to the name servers
 would then be able to fool host authentication.
-.It Pa /etc/ssh_config
+.It Pa /etc/ssh/ssh_config
 Systemwide configuration file.
 This file provides defaults for those
 values that are not specified in the user's configuration file, and
 for those users who do not have a configuration file.
 This file must be world-readable.
-.It Pa /etc/ssh_host_key, /etc/ssh_host_dsa_key, /etc/ssh_host_rsa_key
+.It Pa /etc/ssh/ssh_host_key, /etc/ssh/ssh_host_dsa_key, /etc/ssh/ssh_host_rsa_key
 These three files contain the private parts of the host keys
 and are used for
 .Cm RhostsRSAAuthentication
@@ -1432,7 +1432,7 @@ Note that by default
 will be installed so that it requires successful RSA host
 authentication before permitting \s+2.\s0rhosts authentication.
 If the server machine does not have the client's host key in
-.Pa /etc/ssh_known_hosts ,
+.Pa /etc/ssh/ssh_known_hosts ,
 it can be stored in
 .Pa $HOME/.ssh/known_hosts .
 The easiest way to do this is to
@@ -1469,7 +1469,7 @@ This file is processed exactly as
 This file may be useful to permit logins using
 .Nm
 but not using rsh/rlogin.
-.It Pa /etc/sshrc
+.It Pa /etc/ssh/sshrc
 Commands in this file are executed by
 .Nm
 when the user logs in just before the user's shell (or command) is started.

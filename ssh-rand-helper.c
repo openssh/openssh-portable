@@ -39,7 +39,7 @@
 #include "pathnames.h"
 #include "log.h"
 
-RCSID("$Id: ssh-rand-helper.c,v 1.4 2002/01/22 10:58:28 djm Exp $");
+RCSID("$Id: ssh-rand-helper.c,v 1.5 2002/02/10 07:32:30 djm Exp $");
 
 /* Number of bytes we write out */
 #define OUTPUT_SEED_SIZE	48
@@ -60,7 +60,7 @@ RCSID("$Id: ssh-rand-helper.c,v 1.4 2002/01/22 10:58:28 djm Exp $");
 
 /* Path to PRNG commands list */
 #ifndef SSH_PRNG_COMMAND_FILE
-# define SSH_PRNG_COMMAND_FILE   ETCDIR "/ssh_prng_cmds"
+# define SSH_PRNG_COMMAND_FILE   SSHDIR "/ssh_prng_cmds"
 #endif
 
 

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.166 2002/02/03 22:35:57 stevesk Exp $
+.\" $OpenBSD: sshd.8,v 1.167 2002/02/09 17:37:34 deraadt Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -198,7 +198,7 @@ will send the output to the standard error instead of the system log.
 .It Fl f Ar configuration_file
 Specifies the name of the configuration file.
 The default is
-.Pa /etc/sshd_config .
+.Pa /etc/ssh/sshd_config .
 .Nm
 refuses to start if there is no configuration file.
 .It Fl g Ar login_grace_time
@@ -214,11 +214,11 @@ This option must be given if
 is not run as root (as the normal
 host key files are normally not readable by anyone but root).
 The default is
-.Pa /etc/ssh_host_key
+.Pa /etc/ssh/ssh_host_key
 for protocol version 1, and
-.Pa /etc/ssh_host_rsa_key
+.Pa /etc/ssh/ssh_host_rsa_key
 and
-.Pa /etc/ssh_host_dsa_key
+.Pa /etc/ssh/ssh_host_dsa_key
 for protocol version 2.
 It is possible to have multiple host key files for
 the different protocol versions and host key algorithms.
@@ -311,7 +311,7 @@ to use IPv6 addresses only.
 .Sh CONFIGURATION FILE
 .Nm
 reads configuration data from
-.Pa /etc/sshd_config
+.Pa /etc/ssh/sshd_config
 (or the file specified with
 .Fl f
 on the command line).
@@ -488,11 +488,11 @@ The default is
 Specifies a file containing a private host key
 used by SSH.
 The default is
-.Pa /etc/ssh_host_key
+.Pa /etc/ssh/ssh_host_key
 for protocol version 1, and
-.Pa /etc/ssh_host_rsa_key
+.Pa /etc/ssh/ssh_host_rsa_key
 and
-.Pa /etc/ssh_host_dsa_key
+.Pa /etc/ssh/ssh_host_dsa_key
 for protocol version 2.
 Note that
 .Nm
@@ -1103,7 +1103,7 @@ command="dump /home",no-pty,no-port-forwarding 1024 33 23.\|.\|.\|2323 backup.hu
 permitopen="10.2.1.55:80",permitopen="10.2.1.56:25" 1024 33 23.\|.\|.\|2323
 .Sh SSH_KNOWN_HOSTS FILE FORMAT
 The
-.Pa /etc/ssh_known_hosts ,
+.Pa /etc/ssh/ssh_known_hosts ,
 and
 .Pa $HOME/.ssh/known_hosts
 files contain host public keys for all known hosts.
@@ -1128,7 +1128,7 @@ pattern on the line.
 .Pp
 Bits, exponent, and modulus are taken directly from the RSA host key; they
 can be obtained, e.g., from
-.Pa /etc/ssh_host_key.pub .
+.Pa /etc/ssh/ssh_host_key.pub .
 The optional comment field continues to the end of the line, and is not used.
 .Pp
 Lines starting with
@@ -1150,7 +1150,7 @@ Note that the lines in these files are typically hundreds of characters
 long, and you definitely don't want to type in the host keys by hand.
 Rather, generate them by a script
 or by taking
-.Pa /etc/ssh_host_key.pub
+.Pa /etc/ssh/ssh_host_key.pub
 and adding the host names at the front.
 .Ss Examples
 .Bd -literal
@@ -1159,19 +1159,19 @@ cvs.openbsd.org,199.185.137.3 ssh-rsa AAAA1234.....=
 .Ed
 .Sh FILES
 .Bl -tag -width Ds
-.It Pa /etc/sshd_config
+.It Pa /etc/ssh/sshd_config
 Contains configuration data for
 .Nm sshd .
 This file should be writable by root only, but it is recommended
 (though not necessary) that it be world-readable.
-.It Pa /etc/ssh_host_key, /etc/ssh_host_dsa_key, /etc/ssh_host_rsa_key
+.It Pa /etc/ssh/ssh_host_key, /etc/ssh/ssh_host_dsa_key, /etc/ssh/ssh_host_rsa_key
 These three files contain the private parts of the host keys.
 These files should only be owned by root, readable only by root, and not
 accessible to others.
 Note that
 .Nm
 does not start if this file is group/world-accessible.
-.It Pa /etc/ssh_host_key.pub, /etc/ssh_host_dsa_key.pub, /etc/ssh_host_rsa_key.pub
+.It Pa /etc/ssh/ssh_host_key.pub, /etc/ssh/ssh_host_dsa_key.pub, /etc/ssh/ssh_host_rsa_key.pub
 These three files contain the public parts of the host keys.
 These files should be world-readable but writable only by
 root.
@@ -1204,7 +1204,7 @@ and/or
 .Pa id_rsa.pub
 files into this file, as described in
 .Xr ssh-keygen 1 .
-.It Pa "/etc/ssh_known_hosts" and "$HOME/.ssh/known_hosts"
+.It Pa "/etc/ssh/ssh_known_hosts" and "$HOME/.ssh/known_hosts"
 These files are consulted when using rhosts with RSA host
 authentication or protocol version 2 hostbased authentication
 to check the public key of the host.
@@ -1212,7 +1212,7 @@ The key must be listed in one of these files to be accepted.
 The client uses the same files
 to verify that it is connecting to the correct remote host.
 These files should be writable only by root/the owner.
-.Pa /etc/ssh_known_hosts
+.Pa /etc/ssh/ssh_known_hosts
 should be world-readable, and
 .Pa $HOME/.ssh/known_hosts
 can but need not be world-readable.
@@ -1320,13 +1320,13 @@ something similar to:
 .Ed
 .Pp
 If this file does not exist,
-.Pa /etc/sshrc
+.Pa /etc/ssh/sshrc
 is run, and if that
 does not exist either, xauth is used to store the cookie.
 .Pp
 This file should be writable only by the user, and need not be
 readable by anyone else.
-.It Pa /etc/sshrc
+.It Pa /etc/ssh/sshrc
 Like
 .Pa $HOME/.ssh/rc .
 This can be used to specify

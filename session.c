@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.124 2002/02/06 14:37:22 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.125 2002/02/09 17:37:34 deraadt Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1324,8 +1324,8 @@ do_child(Session *s, const char *command)
 		close(i);
 
 	/*
-	 * Must take new environment into use so that .ssh/rc, /etc/sshrc and
-	 * xauth are run in the proper environment.
+	 * Must take new environment into use so that .ssh/rc,
+	 * /etc/ssh/sshrc and xauth are run in the proper environment.
 	 */
 	environ = env;
 
@@ -1352,8 +1352,8 @@ do_child(Session *s, const char *command)
 	}
 
 	/*
-	 * Run $HOME/.ssh/rc, /etc/sshrc, or xauth (whichever is found first
-	 * in this order).
+	 * Run $HOME/.ssh/rc, /etc/ssh/sshrc, or xauth (whichever is found
+	 * first in this order).
 	 */
 	if (!options.use_login) {
 		/* ignore _PATH_SSH_USER_RC for subsystems */

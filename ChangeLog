@@ -1,3 +1,10 @@
+20020210
+ - (djm) OpenBSD CVS Sync
+   - deraadt@cvs.openbsd.org 2002/02/09 17:37:34
+     [pathnames.h session.c ssh.1 sshd.8 sshd_config ssh-keyscan.1]
+     move ssh config files to /etc/ssh
+ - (djm) Adjust portable Makefile.in tnd ssh-rand-helper.c o match
+
 20020208
  - (djm) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2002/02/04 12:15:25
@@ -7534,4 +7541,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1836 2002/02/08 11:07:33 djm Exp $
+$Id: ChangeLog,v 1.1837 2002/02/10 07:32:28 djm Exp $

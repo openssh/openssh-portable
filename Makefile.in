@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.194 2002/01/23 23:26:44 stevesk Exp $
+# $Id: Makefile.in,v 1.195 2002/02/10 07:32:29 djm Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -19,7 +19,7 @@ SSH_PROGRAM=@bindir@/ssh
 ASKPASS_PROGRAM=$(libexecdir)/ssh-askpass
 SFTP_SERVER=$(libexecdir)/sftp-server
 
-PATHS= -DETCDIR=\"$(sysconfdir)\" \
+PATHS= -DSSHDIR=\"$(sysconfdir)\" \
 	-D_PATH_SSH_PROGRAM=\"$(SSH_PROGRAM)\" \
 	-D_PATH_SSH_ASKPASS_DEFAULT=\"$(ASKPASS_PROGRAM)\" \
 	-D_PATH_SFTP_SERVER=\"$(SFTP_SERVER)\" \
@@ -62,17 +62,17 @@ CONFIGFILES=sshd_config.out ssh_config.out moduli.out
 CONFIGFILES_IN=sshd_config ssh_config moduli
 
 PATHSUBS	= \
-	-D/etc/ssh_config=$(sysconfdir)/ssh_config \
-	-D/etc/ssh_known_hosts=$(sysconfdir)/ssh_known_hosts \
-	-D/etc/sshd_config=$(sysconfdir)/sshd_config \
+	-D/etc/ssh/ssh_config=$(sysconfdir)/ssh_config \
+	-D/etc/ssh/ssh_known_hosts=$(sysconfdir)/ssh_known_hosts \
+	-D/etc/ssh/sshd_config=$(sysconfdir)/sshd_config \
 	-D/usr/libexec=$(libexecdir) \
 	-D/etc/shosts.equiv=$(sysconfdir)/shosts.equiv \
-	-D/etc/ssh_host_key=$(sysconfdir)/ssh_host_key \
-	-D/etc/ssh_host_dsa_key=$(sysconfdir)/ssh_host_dsa_key \
-	-D/etc/ssh_host_rsa_key=$(sysconfdir)/ssh_host_rsa_key \
+	-D/etc/ssh/ssh_host_key=$(sysconfdir)/ssh_host_key \
+	-D/etc/ssh/ssh_host_dsa_key=$(sysconfdir)/ssh_host_dsa_key \
+	-D/etc/ssh/ssh_host_rsa_key=$(sysconfdir)/ssh_host_rsa_key \
 	-D/var/run/sshd.pid=$(piddir)/sshd.pid \
-	-D/etc/moduli=$(sysconfdir)/moduli \
-	-D/etc/sshrc=$(sysconfdir)/sshrc \
+	-D/etc/ssh/moduli=$(sysconfdir)/moduli \
+	-D/etc/ssh/sshrc=$(sysconfdir)/sshrc \
 	-D/usr/X11R6/bin/xauth=$(XAUTH_PATH) \
 	-D/usr/bin:/bin:/usr/sbin:/sbin=@user_path@
 
