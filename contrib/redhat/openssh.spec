@@ -199,8 +199,7 @@ CFLAGS="$RPM_OPT_FLAGS -Os"; export CFLAGS
 %endif
 %if %{kerberos5}
          --with-kerberos5=/usr/kerberos \
-%else
-
+%endif
 
 
 %if %{static_libcrypto}
