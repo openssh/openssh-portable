@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.81 2001/07/17 21:04:57 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.82 2001/09/17 20:52:47 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1111,6 +1111,7 @@ client_request_x11(const char *request_type, int rchan)
 		error("client_request_x11: channel_new failed");
 		close(sock);
 	}
+	c->force_drain = 1;
 	return c;
 }
 
@@ -1136,6 +1137,7 @@ client_request_agent(const char *request_type, int rchan)
 		error("client_request_agent: channel_new failed");
 		close(sock);
 	}
+	c->force_drain = 1;
 	return c;
 }
 

@@ -26,6 +26,10 @@
    - markus@cvs.openbsd.org 2001/09/17 20:50:22
      [key.c ssh-keygen.c]
      better error handling if you try to export a bad key to ssh.com
+   - markus@cvs.openbsd.org 2001/09/17 20:52:47
+     [channels.c channels.h clientloop.c]
+     try to fix agent-forwarding-backconnection-bug, as seen on HPUX, 
+     for example; with Lutz.Jaenicke@aet.TU-Cottbus.DE,
 
 20010917
  - (djm) x11-ssh-askpass-1.2.4 in RPM spec, revert workarounds
@@ -6486,4 +6490,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1536 2001/09/18 05:49:14 mouring Exp $
+$Id: ChangeLog,v 1.1537 2001/09/18 05:51:13 mouring Exp $

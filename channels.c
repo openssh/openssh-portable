@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.132 2001/07/17 21:04:56 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.133 2001/09/17 20:52:47 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -260,6 +260,7 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 	c->cb_fn = NULL;
 	c->cb_arg = NULL;
 	c->cb_event = 0;
+	c->force_drain = 0;
 	c->detach_user = NULL;
 	c->input_filter = NULL;
 	debug("channel %d: new [%s]", found, remote_name);
@@ -874,6 +875,9 @@ static void
 channel_pre_x11_open(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	int ret = x11_open_helper(&c->output);
+
+	/* c->force_drain = 1; */
+
 	if (ret == 1) {
 		c->type = SSH_CHANNEL_OPEN;
 		if (compat20)
@@ -1781,6 +1785,13 @@ channel_input_ieof(int type, int plen, void *ctxt)
 	if (c == NULL)
 		packet_disconnect("Received ieof for nonexistent channel %d.", id);
 	chan_rcvd_ieof(c);
+
+	/* XXX force input close */
+	if (c->force_drain) {
+		debug("channel %d: FORCE input drain", c->self);
+		c->istate = CHAN_INPUT_WAIT_DRAIN;
+	}
+
 }
 
 void
@@ -2669,6 +2680,7 @@ x11_input_open(int type, int plen, void *ctxt)
 			close(sock);
 		} else {
 			c->remote_id = remote_id;
+			c->force_drain = 1;
 		}
 	}
 	if (c == NULL) {
@@ -2931,6 +2943,7 @@ auth_input_open_request(int type, int plen, void *ctxt)
 			close(sock);
 		} else {
 			c->remote_id = remote_id;
+			c->force_drain = 1;
 		}
 	}
 	if (c == NULL) {
