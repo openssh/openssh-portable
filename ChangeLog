@@ -1,3 +1,6 @@
+20000913
+ - (djm) Fix server not exiting with jobs in background.
+
 20000905
  - (djm) Import OpenBSD CVS changes
    - markus@cvs.openbsd.org  2000/08/31 15:52:24
