@@ -1,5 +1,9 @@
 20020411
  - (stevesk) [auth-sia.c] cleanup
+ - (tim) [acconfig.h defines.h includes.h] put includes in includes.h and
+   defines in defines.h [rijndael.c openbsd-compat/fake-socket.h
+   openbsd-compat/inet_aton.c] include "includes.h" instead of "config.h"
+   ok stevesk@
 
 20020410
  - (stevesk) [configure.ac monitor.c] HAVE_SOCKETPAIR
@@ -8218,4 +8222,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2045 2002/04/11 20:39:40 stevesk Exp $
+$Id: ChangeLog,v 1.2046 2002/04/12 03:35:39 tim Exp $

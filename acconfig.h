@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.129 2002/04/07 19:22:54 stevesk Exp $ */
+/* $Id: acconfig.h,v 1.130 2002/04/12 03:35:40 tim Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -343,7 +343,5 @@
 @BOTTOM@
 
 /* ******************* Shouldn't need to edit below this line ************** */
-
-#include "defines.h"
 
 #endif /* _CONFIG_H */

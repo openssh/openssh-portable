@@ -21,21 +21,10 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 
 #include "config.h"
 
-#include "openbsd-compat/bsd-nextstep.h"
-
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/ioctl.h>
-#include <sys/wait.h>
-#include <sys/resource.h>
-
-#include <netinet/tcp.h>
-#include <arpa/inet.h>
-
 #include <stdio.h>
 #include <ctype.h>
 #include <errno.h>
-#include <fcntl.h>
+#include <fcntl.h> /* For O_NONBLOCK */
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
@@ -46,13 +35,10 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #include <dirent.h>
 
 #ifdef HAVE_LIMITS_H
-# include <limits.h>
+# include <limits.h> /* For PATH_MAX */
 #endif
 #ifdef HAVE_GETOPT_H
 # include <getopt.h>
-#endif
-#ifndef HAVE_GETOPT_OPTRESET
-#define getopt(ac, av, o)  BSDgetopt(ac, av, o)
 #endif
 #ifdef HAVE_BSTRING_H
 # include <bstring.h>
@@ -70,34 +56,102 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #ifdef HAVE_ENDIAN_H
 # include <endian.h>
 #endif
-#ifdef HAVE_SYS_SELECT_H
-# include <sys/select.h>
-#endif
-#ifdef HAVE_SYS_TIME_H
-# include <sys/time.h>
-#endif
-#ifdef HAVE_SYS_BSDTTY_H
-# include <sys/bsdtty.h>
-#endif
 #ifdef HAVE_TTYENT_H
 # include <ttyent.h>
-#endif
-#ifdef USE_PAM
-# include <security/pam_appl.h>
-#endif
-#ifdef HAVE_SYS_SYSMACROS_H
-# include <sys/sysmacros.h>
 #endif
 #ifdef HAVE_UTIME_H
 # include <utime.h>
 #endif
+#ifdef HAVE_MAILLOCK_H
+# include <maillock.h> /* For _PATH_MAILDIR */
+#endif
+#ifdef HAVE_NEXT
+#  include <libc.h>
+#endif
+#include <unistd.h> /* For STDIN_FILENO, etc */
+#include <termios.h> /* Struct winsize */
+
+/*
+ *-*-nto-qnx needs these headers for strcasecmp and LASTLOG_FILE respectively
+ */
+#ifdef HAVE_STRINGS_H
+# include <strings.h>
+#endif
+#ifdef HAVE_LOGIN_H
+# include <login.h>
+#endif
+
+#ifdef HAVE_UTMP_H
+#  include <utmp.h>
+#endif
+#ifdef HAVE_UTMPX_H
+#  ifdef HAVE_TV_IN_UTMPX
+#    include <sys/time.h>
+#  endif
+#  include <utmpx.h>
+#endif
+#ifdef HAVE_LASTLOG_H
+#  include <lastlog.h>
+#endif
+#ifdef HAVE_PATHS_H
+#  include <paths.h> /* For _PATH_XXX */
+#endif
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <sys/wait.h>
+#ifdef HAVE_SYS_TIME_H
+# include <sys/time.h> /* For timersub */
+#endif
+#include <sys/resource.h>
+#ifdef HAVE_SYS_SELECT_H
+# include <sys/select.h>
+#endif
+#ifdef HAVE_SYS_BSDTTY_H
+# include <sys/bsdtty.h>
+#endif
+#include <sys/param.h> /* For MAXPATHLEN and roundup() */
+#ifdef HAVE_SYS_UN_H
+# include <sys/un.h> /* For sockaddr_un */
+#endif
+#ifdef HAVE_SYS_BITYPES_H
+# include <sys/bitypes.h> /* For u_intXX_t */
+#endif
+#ifdef HAVE_SYS_CDEFS_H
+# include <sys/cdefs.h> /* For __P() */
+#endif
+#ifdef HAVE_SYS_STAT_H
+# include <sys/stat.h> /* For S_* constants and macros */
+#endif
+#ifdef HAVE_SYS_SYSMACROS_H
+# include <sys/sysmacros.h> /* For MIN, MAX, etc */
+#endif
+#ifdef HAVE_SYS_MMAN_H
+#include <sys/mman.h> /* for MAP_ANONYMOUS */
+#endif
+
+#include <netinet/in_systm.h> /* For typedefs */
+#include <netinet/in.h> /* For IPv6 macros */
+#include <netinet/ip.h> /* For IPTOS macros */
+#include <netinet/tcp.h>
+#include <arpa/inet.h>
+#ifdef HAVE_RPC_TYPES_H
+# include <rpc/types.h> /* For INADDR_LOOPBACK */
+#endif
+#ifdef USE_PAM
+# include <security/pam_appl.h>
+#endif
+
+#include <openssl/opensslv.h> /* For OPENSSL_VERSION_NUMBER */
+
+#include "defines.h"
+
 #include "version.h"
 #include "openbsd-compat/openbsd-compat.h"
 #include "openbsd-compat/bsd-cygwin_util.h"
-#include "entropy.h"
+#include "openbsd-compat/bsd-nextstep.h"
 
-#ifndef MAP_FAILED
-# define MAP_FAILED ((void *)-1)
-#endif
+#include "entropy.h"
 
 #endif /* INCLUDES_H */
