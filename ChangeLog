@@ -12,6 +12,9 @@
    - markus@cvs.openbsd.org 2002/06/08 05:40:01
      [readconf.c]
      just warn about Deprecated options for now
+   - markus@cvs.openbsd.org 2002/06/08 05:41:18
+     [ssh_config]
+     remove FallBackToRsh/UseRsh
 
 20020607
  - (bal) Removed --{enable/disable}-suid-ssh
@@ -843,4 +846,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2192 2002/06/09 20:04:50 mouring Exp $
+$Id: ChangeLog,v 1.2193 2002/06/09 20:05:35 mouring Exp $
