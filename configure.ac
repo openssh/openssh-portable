@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.157 2003/09/22 01:07:40 dtucker Exp $
+# $Id: configure.ac,v 1.158 2003/09/22 01:18:47 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -229,6 +229,11 @@ mips-sony-bsd|mips-sony-newsos4)
 	;;
 *-*-freebsd*)
 	check_for_libcrypt_later=1
+	;;
+*-*-bsdi*)
+	AC_DEFINE(SETEUID_BREAKS_SETUID)
+	AC_DEFINE(BROKEN_SETREUID)
+	AC_DEFINE(BROKEN_SETREGID)
 	;;
 *-next-*)
 	conf_lastlog_location="/usr/adm/lastlog"
