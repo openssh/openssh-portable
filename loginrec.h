@@ -35,7 +35,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-/* RCSID("$Id: loginrec.h,v 1.7 2003/06/03 02:18:50 djm Exp $"); */
+/* RCSID("$Id: loginrec.h,v 1.8 2005/01/20 11:07:30 dtucker Exp $"); */
 
 /**
  ** you should use the login_* calls to work around platform dependencies
@@ -62,7 +62,7 @@ union login_netinfo {
 /* string lengths - set very long */
 #define LINFO_PROGSIZE 64
 #define LINFO_LINESIZE 64
-#define LINFO_NAMESIZE 64
+#define LINFO_NAMESIZE 128
 #define LINFO_HOSTSIZE 256
 
 struct logininfo {

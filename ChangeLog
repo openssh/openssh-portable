@@ -38,6 +38,9 @@
  - (dtucker) [auth-pam.c] Bug #971: Prevent leaking information about user
    existence via keyboard-interactive/pam, in conjunction with previous
    auth2-chall.c change; with Colin Watson and djm.
+ - (dtucker) [loginrec.h] Bug #952: Increase size of username field to 128
+   bytes to prevent errors from login_init_entry() when the username is
+   exactly 64 bytes(!) long.  From brhamon at cisco.com, ok djm@
 
 20050118
  - (dtucker) [INSTALL Makefile.in configure.ac survey.sh.in] Implement
@@ -2010,4 +2013,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3618 2005/01/20 02:27:56 dtucker Exp $
+$Id: ChangeLog,v 1.3619 2005/01/20 11:07:29 dtucker Exp $
