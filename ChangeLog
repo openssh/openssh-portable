@@ -30,6 +30,9 @@
      netbsd
      - (djm) XXX - Performed locally using:
        "perl -p -i -e 's/(\s|^)log\(/$1logit\(/g' *.c *.h"
+   - hin@cvs.openbsd.org 2003/04/09 08:23:52
+     [servconf.c]
+     Don't include <krb.h> when compiling with Kerberos 5 support
    - (djm) Fix up missing include for packet.c
 
 20030402
@@ -1333,4 +1336,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2656 2003/04/09 11:05:52 djm Exp $
+$Id: ChangeLog,v 1.2657 2003/04/09 11:07:14 djm Exp $
