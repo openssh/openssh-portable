@@ -1,3 +1,7 @@
+20020705
+ - (tim) [configure.ac] AIX 4.2.1 has authenticate() in libs.
+   Reported by Darren Tucker <dtucker@zip.com.au>
+
 20020704
  - (bal) Limit data to TTY for AIX only (Newer versions can't handle the
    faster data rate)  Bug #124
@@ -1274,4 +1278,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2335 2002/07/04 19:33:49 mouring Exp $
+$Id: ChangeLog,v 1.2336 2002/07/05 14:12:33 tim Exp $
