@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.86 2002/04/12 03:35:40 tim Exp $ */
+/* $Id: defines.h,v 1.87 2002/04/23 10:23:00 djm Exp $ */
 
 
 /* Constants */
@@ -414,6 +414,10 @@ struct winsize {
 #endif
 
 /* Function replacement / compatibility hacks */
+
+#if !defined(HAVE_GETADDRINFO) && (defined(HAVE_OGETADDRINFO) || defined(HAVE_NGETADDRINFO))
+# define HAVE_GETADDRINFO
+#endif
 
 #ifndef HAVE_GETOPT_OPTRESET
 #define getopt(ac, av, o)  BSDgetopt(ac, av, o)

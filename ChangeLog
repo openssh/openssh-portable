@@ -1,3 +1,7 @@
+20020423
+ - (djm) Bug #222: Fix tests for getaddrinfo on OSF/1. Spotted by
+   Robert Urban <urban@spielwiese.de>
+
 20020421
  - (tim) [entropy.c.] Portability fix for SCO Unix 3.2v4.x (SCO OSR 3.0).
    entropy.c needs seteuid(getuid()) for the setuid(original_uid) to succeed.
@@ -8263,4 +8267,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2061 2002/04/21 18:26:10 tim Exp $
+$Id: ChangeLog,v 1.2062 2002/04/23 10:22:59 djm Exp $
