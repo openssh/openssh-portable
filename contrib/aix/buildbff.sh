@@ -1,6 +1,7 @@
 #!/bin/sh
 #
 # buildbff.sh: Create AIX SMIT-installable OpenSSH packages
+# $Id: buildbff.sh,v 1.6 2003/08/25 05:01:04 dtucker Exp $
 #
 # Author: Darren Tucker (dtucker at zip dot com dot au)
 # This file is placed in the public domain and comes with absolutely
@@ -14,9 +15,9 @@
 # 	create a "config.local" in your build directory or set
 #	environment variables to override these.
 #
-[ -z "$PERMIT_ROOT_LOGIN" ] || PERMIT_ROOT_LOGIN=no
-[ -z "$X11_FORWARDING" ] || X11_FORWARDING=no
-[ -z "$AIX_SRC" ] || AIX_SRC=no
+[ -z "$PERMIT_ROOT_LOGIN" ] && PERMIT_ROOT_LOGIN=no
+[ -z "$X11_FORWARDING" ] && X11_FORWARDING=no
+[ -z "$AIX_SRC" ] && AIX_SRC=no
 
 umask 022
 
@@ -31,7 +32,7 @@ else
 fi
 
 #
-# We still support running from contrib/aix, but this is depreciated
+# We still support running from contrib/aix, but this is deprecated
 #
 if pwd | egrep 'contrib/aix$'
 then
@@ -121,7 +122,7 @@ cp $srcdir/README* $objdir/$PKGDIR/
 # Extract common info requires for the 'info' part of the package.
 #	AIX requires 4-part version numbers
 #
-VERSION=`./ssh -V 2>&1 | sed -e 's/,.*//' | cut -f 2 -d _`
+VERSION=`./ssh -V 2>&1 | cut -f 1 -d , | cut -f 2 -d _`
 MAJOR=`echo $VERSION | cut -f 1 -d p | cut -f 1 -d .`
 MINOR=`echo $VERSION | cut -f 1 -d p | cut -f 2 -d .`
 PATCH=`echo $VERSION | cut -f 1 -d p | cut -f 3 -d .`
@@ -218,7 +219,7 @@ else
 	fi
 
 	# Create user if required
-	if cut -f1 -d: /etc/passwd | egrep '^'$SSH_PRIVSEP_USER'\$' >/dev/null
+	if lsuser ALL | cut -f1 -d: | egrep '^'$SSH_PRIVSEP_USER'\$' >/dev/null
 	then
 		echo "PrivSep user $SSH_PRIVSEP_USER already exists."
 	else

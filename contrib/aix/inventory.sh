@@ -1,6 +1,7 @@
 #!/bin/sh
 #
 # inventory.sh
+# $Id: inventory.sh,v 1.4 2003/08/25 05:01:04 dtucker Exp $
 #
 # Originally written by Ben Lindstrom, modified by Darren Tucker to use perl
 #
