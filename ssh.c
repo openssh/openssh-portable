@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.227 2004/09/15 00:46:01 deraadt Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.228 2004/09/23 13:00:04 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -1249,10 +1249,19 @@ static void
 control_client(const char *path)
 {
 	struct sockaddr_un addr;
-	int i, r, sock, exitval, num_env, addr_len;
+	int i, r, fd, sock, exitval, num_env, addr_len;
 	Buffer m;
 	char *cp;
 	extern char **environ;
+
+	if (stdin_null_flag) {
+		if ((fd = open(_PATH_DEVNULL, O_RDONLY)) == -1)
+			fatal("open(/dev/null): %s", strerror(errno));
+		if (dup2(fd, STDIN_FILENO) == -1)
+			fatal("dup2: %s", strerror(errno));
+		if (fd > STDERR_FILENO)
+			close(fd);
+	}
 
 	memset(&addr, '\0', sizeof(addr));
 	addr.sun_family = AF_UNIX;

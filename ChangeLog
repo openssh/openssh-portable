@@ -29,6 +29,9 @@
    - deraadt@cvs.openbsd.org 2004/09/15 18:46:04
      [scp.c]
      scratch that do { } while (0) wrapper in this case
+   - djm@cvs.openbsd.org 2004/09/23 13:00:04
+     [ssh.c]
+     correctly honour -n in multiplex client mode; spotted by sturm@ ok markus@
 
 20041102
  - (dtucker) [configure.ac includes.h] Bug #947: Fix compile error on HP-UX
@@ -1808,4 +1811,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3569 2004/11/05 09:10:02 dtucker Exp $
+$Id: ChangeLog,v 1.3570 2004/11/05 09:19:51 dtucker Exp $
