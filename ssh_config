@@ -28,3 +28,9 @@
 #   Port 22
 #   Cipher blowfish
 #   EscapeChar ~
+
+# Be paranoid by default
+Host *
+	ForwardAgent no
+	ForwardX11 no
+	FallBackToRsh no

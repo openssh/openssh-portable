@@ -3,58 +3,48 @@
 Port 22
 ListenAddress 0.0.0.0
 #ListenAddress ::
-HostKey @sysconfdir@/ssh_host_key
+HostKey /etc/ssh_host_key
 ServerKeyBits 768
 LoginGraceTime 600
 KeyRegenerationInterval 3600
 PermitRootLogin yes
+#
+# Don't read ~/.rhosts and ~/.shosts files
+IgnoreRhosts yes
+# Uncomment if you don't trust ~/.ssh/known_hosts for RhostsRSAAuthentication
+#IgnoreUserKnownHosts yes
 StrictModes yes
 X11Forwarding no
 X11DisplayOffset 10
 PrintMotd yes
 KeepAlive yes
-CheckMail no
-UseLogin no
 
-#
-# Loglevel replaces QuietMode and FascistLogging
-#
+# Logging
 SyslogFacility AUTH
 LogLevel INFO
+#obsoletes QuietMode and FascistLogging
 
-#
-# For this to work you will also need host keys in /etc/ssh/ssh_known_hosts
-#
-RhostsRSAAuthentication no
-
-#
-# Don't read ~/.rhosts and ~/.shosts files
-#
-IgnoreRhosts yes
 RhostsAuthentication no
-
 #
-# Uncomment if you don't trust ~/.ssh/known_hosts for RhostsRSAAuthentication
+# For this to work you will also need host keys in /etc/ssh_known_hosts
+RhostsRSAAuthentication no
 #
-#IgnoreUserKnownHosts yes
-
 RSAAuthentication yes
 
 # To disable tunneled clear text passwords, change to no here!
 PasswordAuthentication yes
 PermitEmptyPasswords no
-
-#
-# Uncomment to disable s/key passwords (must be compiled with s/key support)
-#
+# Uncomment to disable s/key passwords 
 #SkeyAuthentication no
 
-#
-# To change Kerberos options (must be compiled with Kerberos support)
-#
+# To change Kerberos options
 #KerberosAuthentication no
 #KerberosOrLocalPasswd yes
 #AFSTokenPassing no
 #KerberosTicketCleanup no
+
 # Kerberos TGT Passing does only work with the AFS kaserver
 #KerberosTgtPassing yes
+
+CheckMail no
+UseLogin no
