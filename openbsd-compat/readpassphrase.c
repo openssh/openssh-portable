@@ -136,7 +136,7 @@ restart:
 
 	/* Restore old terminal settings and signals. */
 	if (memcmp(&term, &oterm, sizeof(term)) != 0)
-		(void)tcsetattr(input, _T_FLUSH, &term);
+		(void)tcsetattr(input, _T_FLUSH, &oterm);
 	(void)sigaction(SIGINT, &saveint, NULL);
 	(void)sigaction(SIGHUP, &savehup, NULL);
 	(void)sigaction(SIGQUIT, &savequit, NULL);
@@ -179,6 +179,6 @@ getpass(const char *prompt)
 
 static void handler(int s)
 {
-
+fprintf(stderr, "COPPED A SGNAL\n");
 	signo = s;
 }
