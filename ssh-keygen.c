@@ -639,6 +639,7 @@ main(int ac, char **av)
 
 	__progname = get_progname(av[0]);
 	init_rng();
+	seed_rng();
 
 	SSLeay_add_all_algorithms();
 

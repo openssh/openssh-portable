@@ -40,7 +40,7 @@
 #include "pathnames.h"
 #include "log.h"
 
-RCSID("$Id: entropy.c,v 1.35 2001/03/03 13:29:21 djm Exp $");
+RCSID("$Id: entropy.c,v 1.36 2001/03/18 22:38:16 djm Exp $");
 
 #ifndef offsetof
 # define offsetof(type, member) ((size_t) &((type *)0)->member)
@@ -68,7 +68,8 @@ RCSID("$Id: entropy.c,v 1.35 2001/03/03 13:29:21 djm Exp $");
 # define SAVED_IDS_WORK_WITH_SETEUID
 #endif
 
-void check_openssl_version(void) 
+void
+check_openssl_version(void) 
 {
 	if (SSLeay() != OPENSSL_VERSION_NUMBER)
 		fatal("OpenSSL version mismatch. Built against %lx, you "
@@ -83,7 +84,8 @@ void check_openssl_version(void)
 
 #ifdef USE_PRNGD
 /* Collect entropy from PRNGD/EGD */
-int get_random_bytes(unsigned char *buf, int len)
+int
+get_random_bytes(unsigned char *buf, int len)
 {
 	int fd;
 	char msg[2];
@@ -180,7 +182,8 @@ done:
 #else /* !USE_PRNGD */
 #ifdef RANDOM_POOL
 /* Collect entropy from /dev/urandom or pipe */
-int get_random_bytes(unsigned char *buf, int len)
+int
+get_random_bytes(unsigned char *buf, int len)
 {
 	int random_pool;
 
@@ -226,7 +229,8 @@ seed_rng(void)
 	memset(buf, '\0', sizeof(buf));
 }
 
-void init_rng(void) 
+void
+init_rng(void) 
 {
 	check_openssl_version();
 }
@@ -403,8 +407,7 @@ stir_rusage(int who, double entropy_estimate)
 }
 
 
-static
-int
+static int
 _get_timeval_msec_difference(struct timeval *t1, struct timeval *t2) {
 	int secdiff, usecdiff;
 
@@ -842,8 +845,10 @@ seed_rng(void)
 	/* commands */
 	old_sigchld_handler = mysignal(SIGCHLD, SIG_DFL);
 
-	debug("Seeded RNG with %i bytes from programs", (int)stir_from_programs());
-	debug("Seeded RNG with %i bytes from system calls", (int)stir_from_system());
+	debug("Seeded RNG with %i bytes from programs", 
+	    (int)stir_from_programs());
+	debug("Seeded RNG with %i bytes from system calls", 
+	    (int)stir_from_system());
 
 	if (!RAND_status())
 		fatal("Not enough entropy in RNG");
@@ -854,7 +859,8 @@ seed_rng(void)
 		fatal("Couldn't initialise builtin random number generator -- exiting.");
 }
 
-void init_rng(void)
+void
+init_rng(void)
 {
 	int original_euid;
 

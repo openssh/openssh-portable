@@ -740,6 +740,7 @@ main(int ac, char **av)
 
 	__progname = get_progname(av[0]);
 	init_rng();
+	seed_rng();
 
 #ifdef __GNU_LIBRARY__
 	while ((ch = getopt(ac, av, "+cks")) != -1) {

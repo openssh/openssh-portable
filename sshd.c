@@ -687,6 +687,8 @@ main(int ac, char **av)
 	    options.log_facility == -1 ? SYSLOG_FACILITY_AUTH : options.log_facility,
 	    !inetd_flag);
 
+	seed_rng();
+
 	/* Read server configuration options from the configuration file. */
 	read_server_config(&options, config_file_name);
 

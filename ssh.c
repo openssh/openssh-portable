@@ -576,6 +576,8 @@ main(int ac, char **av)
 	/* reinit */
 	log_init(av[0], options.log_level, SYSLOG_FACILITY_USER, 1);
 
+	seed_rng();
+
 	if (options.user == NULL)
 		options.user = xstrdup(pw->pw_name);
 

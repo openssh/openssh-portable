@@ -1,3 +1,7 @@
+20010319
+ - (djm) Seed PRNG at startup, rather than waiting for arc4random calls to 
+   do it implicitly.
+
 20010318
  - (bal) Fixed scp type casing issue which causes "scp: protocol error: 
    size not delimited" fatal errors when tranfering.
@@ -4596,4 +4600,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.971 2001/03/18 02:43:16 tim Exp $
+$Id: ChangeLog,v 1.972 2001/03/18 22:38:15 djm Exp $
