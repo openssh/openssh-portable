@@ -39,14 +39,13 @@ mm_send_fd(int socket, int fd)
 	struct iovec vec;
 	char ch = '\0';
 	int n;
-#if !defined(HAVE_ACCRIGHTS_IN_MSGHDR) || \
-	(defined(HAVE_ACCRIGHTS_IN_MSGHDR) && defined(HAVE_CONTROL_IN_MSGHDR))
+#ifndef HAVE_ACCRIGHTS_IN_MSGHDR
 	char tmp[CMSG_SPACE(sizeof(int))];
 	struct cmsghdr *cmsg;
 #endif
 
 	memset(&msg, 0, sizeof(msg));
-#if defined(HAVE_ACCRIGHTS_IN_MSGHDR) && !defined(HAVE_CONTROL_IN_MSGHDR)
+#ifdef HAVE_ACCRIGHTS_IN_MSGHDR
 	msg.msg_accrights = (caddr_t)&fd;
 	msg.msg_accrightslen = sizeof(fd);
 #else
@@ -84,8 +83,7 @@ mm_receive_fd(int socket)
 	struct iovec vec;
 	char ch;
 	int fd, n;
-#if !defined(HAVE_ACCRIGHTS_IN_MSGHDR) || \
-	(defined(HAVE_ACCRIGHTS_IN_MSGHDR) && defined(HAVE_CONTROL_IN_MSGHDR))
+#ifndef HAVE_ACCRIGHTS_IN_MSGHDR
 	char tmp[CMSG_SPACE(sizeof(int))];
 	struct cmsghdr *cmsg;
 #endif
@@ -95,7 +93,7 @@ mm_receive_fd(int socket)
 	vec.iov_len = 1;
 	msg.msg_iov = &vec;
 	msg.msg_iovlen = 1;
-#if defined(HAVE_ACCRIGHTS_IN_MSGHDR) && !defined(HAVE_CONTROL_IN_MSGHDR)
+#ifdef HAVE_ACCRIGHTS_IN_MSGHDR
 	msg.msg_accrights = (caddr_t)&fd;
 	msg.msg_accrightslen = sizeof(fd);
 #else
@@ -109,7 +107,7 @@ mm_receive_fd(int socket)
 		fatal("%s: recvmsg: expected received 1 got %d",
 		    __FUNCTION__, n);
 
-#if defined(HAVE_ACCRIGHTS_IN_MSGHDR) && !defined(HAVE_CONTROL_IN_MSGHDR)
+#ifdef HAVE_ACCRIGHTS_IN_MSGHDR
 	if (msg.msg_accrightslen != sizeof(fd))
 		fatal("%s: no fd", __FUNCTION__);
 #else

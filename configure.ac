@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.63 2002/05/22 01:02:15 djm Exp $
+# $Id: configure.ac,v 1.64 2002/05/28 00:37:33 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -1499,15 +1499,23 @@ if test "x$ac_cv_have_pw_change_in_struct_passwd" = "xyes" ; then
 	AC_DEFINE(HAVE_PW_CHANGE_IN_PASSWD)
 fi
 
+dnl make sure we're using the real structure members and not defines
 AC_CACHE_CHECK([for msg_accrights field in struct msghdr],
 		ac_cv_have_accrights_in_msghdr, [
-	AC_TRY_COMPILE(
+	AC_TRY_RUN(
 		[
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/uio.h>
+int main() {
+#ifdef msg_accrights
+exit(1);
+#endif
+struct msghdr m;
+m.msg_accrights = 0;
+exit(0);
+}
 		],
-		[ struct msghdr m; m.msg_accrights = 0; ],
 		[ ac_cv_have_accrights_in_msghdr="yes" ],
 		[ ac_cv_have_accrights_in_msghdr="no" ]
 	)
@@ -1518,13 +1526,20 @@ fi
 
 AC_CACHE_CHECK([for msg_control field in struct msghdr],
 		ac_cv_have_control_in_msghdr, [
-	AC_TRY_COMPILE(
+	AC_TRY_RUN(
 		[
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/uio.h>
+int main() {
+#ifdef msg_control
+exit(1);
+#endif
+struct msghdr m;
+m.msg_control = 0;
+exit(0);
+}
 		],
-		[ struct msghdr m; m.msg_control = 0; ],
 		[ ac_cv_have_control_in_msghdr="yes" ],
 		[ ac_cv_have_control_in_msghdr="no" ]
 	)

@@ -1,3 +1,9 @@
+20020527
+ - (tim) [configure.ac.orig monitor_fdpass.c] Enahnce msghdr tests to address
+   build problem on Irix reported by Dave Love <d.love@dl.ac.uk>. Back out
+   last monitor_fdpass.c changes that are no longer needed with new tests.
+   Patch tested on Irix by Jan-Frode Myklebust <janfrode@parallab.uib.no>
+
 20020522
  - (djm) Fix spelling mistakes, spotted by Solar Designer i
    <solar@openwall.com>
@@ -671,4 +677,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2141 2002/05/22 04:24:01 djm Exp $
+$Id: ChangeLog,v 1.2142 2002/05/28 00:37:32 tim Exp $
