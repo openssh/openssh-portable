@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.75 2001/10/31 22:32:34 djm Exp $ */
+/* $Id: defines.h,v 1.76 2002/01/06 02:32:57 stevesk Exp $ */
 
 /* Necessary headers */
 
@@ -355,6 +355,16 @@ struct winsize {
 #ifdef XAUTH_PATH
 #define _PATH_XAUTH XAUTH_PATH
 #endif /* XAUTH_PATH */
+
+/* derived from XF4/xc/lib/dps/Xlibnet.h */
+#ifndef X_UNIX_PATH
+#ifdef __hpux
+#define X_UNIX_PATH "/usr/spool/sockets/X11/%u"
+#else
+#define X_UNIX_PATH "/tmp/.X11-unix/X%u"
+#endif
+#endif /* X_UNIX_PATH */
+#define _PATH_UNIX_X X_UNIX_PATH
 
 #ifndef _PATH_TTY
 # define _PATH_TTY "/dev/tty"
