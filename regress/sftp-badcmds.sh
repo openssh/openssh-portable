@@ -9,7 +9,7 @@ NONEXIST=/NONEXIST.$$
 COPY=${OBJ}/copy
 GLOBFILES=`(cd /bin;echo l*)`
 
-rm -rf ${COPY} ${COPY}.1 ${COPY}.2 ${COPY}.dd ${BATCH}.*
+rm -rf ${COPY} ${COPY}.1 ${COPY}.2 ${COPY}.dd
 
 rm -f ${COPY}
 verbose "$tid: get nonexistent"
@@ -73,6 +73,6 @@ verbose "$tid: glob put files to local file"
 echo "put /bin/l* $COPY" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 
 cmp ${DATA2} ${COPY} || fail "put successed when it should have failed"
 
-rm -rf ${COPY} ${COPY}.1 ${COPY}.2 ${COPY}.dd ${BATCH}.*
+rm -rf ${COPY} ${COPY}.1 ${COPY}.2 ${COPY}.dd
 
 

@@ -35,7 +35,7 @@ fi
 QUOTECOPY=${COPY}".\"blah\""
 QUOTECOPY_ARG=${COPY}'.\"blah\"'
 
-rm -rf ${COPY} ${COPY}.1 ${COPY}.2 ${COPY}.dd ${COPY}.dd2 ${BATCH}.*
+rm -rf ${COPY} ${COPY}.1 ${COPY}.2 ${COPY}.dd ${COPY}.dd2
 mkdir ${COPY}.dd
 
 verbose "$tid: lls"
@@ -190,6 +190,6 @@ verbose "$tid: lchdir"
 echo "lchdir ${COPY}.dd" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
 	|| fail "lchdir failed"
 
-rm -rf ${COPY} ${COPY}.1 ${COPY}.2 ${COPY}.dd ${COPY}.dd2 ${BATCH}.*
+rm -rf ${COPY} ${COPY}.1 ${COPY}.2 ${COPY}.dd ${COPY}.dd2
 
 
