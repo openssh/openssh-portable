@@ -11,6 +11,10 @@
      a UseDNS option, UseDNS is on by default and includes the
      VerifyReverseMapping check; with itojun@, provos@, jakob@ and deraadt@
      ok deraadt@, djm@
+   - millert@cvs.openbsd.org 2003/06/03 02:56:16
+     [scp.c]
+     Remove the advertising clause in the UCB license which Berkeley
+     rescinded 22 July 1999.  Proofed by myself and Theo.
  - (djm) Fix portable-specific uses of verify_reverse_mapping too
  - (djm) Sync openbsd-compat with OpenBSD CVS. 
     - No more 4-term BSD licenses in our tree
@@ -421,4 +425,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2768 2003/06/03 02:45:27 dtucker Exp $
+$Id: ChangeLog,v 1.2769 2003/06/03 03:06:18 djm Exp $
