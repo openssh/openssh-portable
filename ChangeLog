@@ -20,6 +20,9 @@
      [ssh.c tildexpand.c]
      fix more paths beginning with "//"; <bradshaw@staff.crosswalk.com>. 
      ok markus@
+   - stevesk@cvs.openbsd.org 2001/08/13 23:38:54
+     [scp.c]
+     don't need main prototype (also sync with rcp); ok markus@
 
 20010814
  - (stevesk) sshpty.c, cray.[ch]: whitespace, formatting and cleanup
@@ -6309,4 +6312,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1480 2001/08/15 23:19:21 mouring Exp $
+$Id: ChangeLog,v 1.1481 2001/08/15 23:21:01 mouring Exp $
