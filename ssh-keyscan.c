@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keyscan.c,v 1.17 2001/02/21 07:37:04 deraadt Exp $");
+RCSID("$OpenBSD: ssh-keyscan.c,v 1.18 2001/03/03 06:53:12 deraadt Exp $");
 
 #if defined(HAVE_SYS_QUEUE_H) && !defined(HAVE_BOGUS_SYS_QUEUE_H)
 #include <sys/queue.h>
@@ -26,6 +26,7 @@ RCSID("$OpenBSD: ssh-keyscan.c,v 1.17 2001/02/21 07:37:04 deraadt Exp $");
 #include "buffer.h"
 #include "bufaux.h"
 #include "log.h"
+#include "atomicio.h"
 
 static int argno = 1;		/* Number of argument currently being parsed */
 
@@ -37,7 +38,7 @@ int family = AF_UNSPEC;		/* IPv4, IPv6 or both */
 int timeout = 5;
 
 int maxfd;
-#define maxcon (maxfd - 10)
+#define MAXCON (maxfd - 10)
 
 #ifdef HAVE___PROGNAME
 extern char *__progname;
@@ -368,9 +369,9 @@ conalloc(char *iname, char *oname)
 void
 confree(int s)
 {
-	close(s);
 	if (s >= maxfd || fdcon[s].c_status == CS_UNUSED)
 		fatal("confree: attempt to free bad fdno %d", s);
+	close(s);
 	xfree(fdcon[s].c_namebase);
 	xfree(fdcon[s].c_output_name);
 	if (fdcon[s].c_status == CS_KEYS)
@@ -428,7 +429,7 @@ congreet(int s)
 	buf[n - 1] = '\0';
 	fprintf(stderr, "# %s %s\n", c->c_name, buf);
 	n = snprintf(buf, sizeof buf, "SSH-1.5-OpenSSH-keyscan\r\n");
-	if (write(s, buf, n) != n) {
+	if (atomicio(write, s, buf, n) != n) {
 		error("write (%s): %s", c->c_name, strerror(errno));
 		confree(s);
 		return;
@@ -488,9 +489,8 @@ conloop(void)
 	gettimeofday(&now, NULL);
 	c = tq.tqh_first;
 
-	if (c &&
-	    (c->c_tv.tv_sec > now.tv_sec ||
-	     (c->c_tv.tv_sec == now.tv_sec && c->c_tv.tv_usec > now.tv_usec))) {
+	if (c && (c->c_tv.tv_sec > now.tv_sec ||
+	    (c->c_tv.tv_sec == now.tv_sec && c->c_tv.tv_usec > now.tv_usec))) {
 		seltime = c->c_tv;
 		seltime.tv_sec -= now.tv_sec;
 		seltime.tv_usec -= now.tv_usec;
@@ -506,18 +506,19 @@ conloop(void)
 	    (errno == EAGAIN || errno == EINTR))
 		;
 
-	for (i = 0; i < maxfd; i++)
+	for (i = 0; i < maxfd; i++) {
 		if (FD_ISSET(i, &e)) {
 			error("%s: exception!", fdcon[i].c_name);
 			confree(i);
 		} else if (FD_ISSET(i, &r))
 			conread(i);
+	}
 
 	c = tq.tqh_first;
-	while (c &&
-	       (c->c_tv.tv_sec < now.tv_sec ||
-		(c->c_tv.tv_sec == now.tv_sec && c->c_tv.tv_usec < now.tv_usec))) {
+	while (c && (c->c_tv.tv_sec < now.tv_sec ||
+	    (c->c_tv.tv_sec == now.tv_sec && c->c_tv.tv_usec < now.tv_usec))) {
 		int s = c->c_fd;
+
 		c = c->c_link.tqe_next;
 		conrecycle(s);
 	}
@@ -540,6 +541,7 @@ nexthost(int argc, char **argv)
 				return (argv[argno++]);
 			} else if (!strncmp(argv[argno], "-f", 2)) {
 				char *fname;
+
 				if (argv[argno][2])
 					fname = &argv[argno++][2];
 				else if (++argno >= argc) {
@@ -551,9 +553,11 @@ nexthost(int argc, char **argv)
 					fname = NULL;
 				lb = Linebuf_alloc(fname, error);
 			} else
-				error("ignoring invalid/misplaced option `%s'", argv[argno++]);
+				error("ignoring invalid/misplaced option `%s'",
+				    argv[argno++]);
 		} else {
 			char *line;
+
 			line = Linebuf_getline(lb);
 			if (line)
 				return (line);
@@ -601,7 +605,7 @@ main(int argc, char **argv)
 		fatal("%s: fdlim_get: bad value", __progname);
 	if (maxfd > MAXMAXFD)
 		maxfd = MAXMAXFD;
-	if (maxcon <= 0)
+	if (MAXCON <= 0)
 		fatal("%s: not enough file descriptors", __progname);
 	if (maxfd > fdlim_get(0))
 		fdlim_set(maxfd);
@@ -609,7 +613,7 @@ main(int argc, char **argv)
 	memset(fdcon, 0, maxfd * sizeof(con));
 
 	do {
-		while (ncon < maxcon) {
+		while (ncon < MAXCON) {
 			char *name;
 
 			host = nexthost(argc, argv);
