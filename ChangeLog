@@ -7,6 +7,9 @@
  - (bal) Fixed NeXT's lack of CPPFLAGS honoring.  
  - (bal) ssh-keyscan.c: NeXT (and older BSDs) don't support getrlimit() w/ 
    'RLIMIT_NOFILE'
+ - (djm) Remove *.Ylonen files. They are no longer in the OpenBSD tree, 
+   the info in COPYING.Ylonen has been moved to the start of each 
+   SSH1-derived file and README.Ylonen is well out of date.
 
 20001223
  - (bal) Fixed Makefile.in to support recompile of all ssh and sshd objects

@@ -205,7 +205,7 @@ fi
 
 %files
 %defattr(-,root,root)
-%doc ChangeLog OVERVIEW COPYING.Ylonen README* INSTALL 
+%doc ChangeLog OVERVIEW README* INSTALL 
 %doc CREDITS LICENCE
 %attr(0755,root,root) %{_bindir}/ssh-keygen
 %attr(0755,root,root) %{_bindir}/scp

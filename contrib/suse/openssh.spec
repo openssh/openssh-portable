@@ -161,7 +161,7 @@ fi
 
 %files
 %defattr(-,root,root)
-%doc COPYING.Ylonen ChangeLog OVERVIEW README* 
+%doc ChangeLog OVERVIEW README* 
 %doc RFC.nroff TODO CREDITS LICENSE
 %attr(0755,root,root) %dir /etc/ssh
 %attr(0644,root,root) %config /etc/ssh/ssh_config
