@@ -26,7 +26,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.29 2001/03/16 08:16:18 djm Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.30 2001/03/16 09:55:53 markus Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -281,7 +281,7 @@ get_pathname(const char **cpp, char **path)
 	/* Check for quoted filenames */
 	if (*cp == '\"' || *cp == '\'') {
 		quot = *cp++;
-		
+
 		end = strchr(cp, quot);
 		if (end == NULL) {
 			error("Unterminated quote");
@@ -346,11 +346,11 @@ process_get(int in, int out, char *src, char *dst, char *pwd, int pflag)
 	glob_t g;
 	int err = 0;
 	int i;
-	
+
 	abs_src = xstrdup(src);
 	abs_src = make_absolute(abs_src, pwd);
 
-	memset(&g, '\0', sizeof(g));
+	memset(&g, 0, sizeof(g));
 	debug3("Looking up %s", abs_src);
 	if (remote_glob(in, out, abs_src, 0, NULL, &g)) {
 		error("File \"%s\" not found.", abs_src);
@@ -382,12 +382,12 @@ process_get(int in, int out, char *src, char *dst, char *pwd, int pflag)
 
 	/* Multiple matches, dst may be directory or unspecified */
 	if (dst && !is_dir(dst)) {
-		error("Multiple files match, but \"%s\" is not a directory", 
+		error("Multiple files match, but \"%s\" is not a directory",
 		    dst);
 		err = -1;
 		goto out;
 	}
-	
+
 	for(i = 0; g.gl_pathv[i]; i++) {
 		if (infer_path(g.gl_pathv[i], &tmp)) {
 			err = -1;
@@ -429,7 +429,7 @@ process_put(int in, int out, char *src, char *dst, char *pwd, int pflag)
 		tmp_dst = make_absolute(tmp_dst, pwd);
 	}
 
-	memset(&g, '\0', sizeof(g));
+	memset(&g, 0, sizeof(g));
 	debug3("Looking up %s", src);
 	if (glob(src, 0, NULL, &g)) {
 		error("File \"%s\" not found.", src);
@@ -461,7 +461,7 @@ process_put(int in, int out, char *src, char *dst, char *pwd, int pflag)
 
 	/* Multiple matches, dst may be directory or unspecified */
 	if (tmp_dst && !remote_is_dir(in, out, tmp_dst)) {
-		error("Multiple files match, but \"%s\" is not a directory", 
+		error("Multiple files match, but \"%s\" is not a directory",
 		    tmp_dst);
 		err = -1;
 		goto out;
@@ -736,7 +736,7 @@ parse_dispatch_command(int in, int out, const char *cmd, char **pwd)
 		path1 = tmp;
 		if ((aa = do_stat(in, out, path1, 0)) == NULL)
 			break;
-		if ((aa->flags & SSH2_FILEXFER_ATTR_PERMISSIONS) && 
+		if ((aa->flags & SSH2_FILEXFER_ATTR_PERMISSIONS) &&
 		    !S_ISDIR(aa->perm)) {
 			error("Can't ls: \"%s\" is not a directory", path1);
 			break;

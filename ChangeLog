@@ -12,6 +12,9 @@
      [sftp-client.c sftp-client.h sftp-glob.c sftp-int.c]
      Revise globbing for get/put to be more shell-like. In particular,
      "get/put file* directory/" now works. ok markus@
+   - markus@cvs.openbsd.org 2001/03/16 09:55:53
+     [sftp-int.c]
+     fix memset and whitespace
 
 20010315
  - OpenBSD CVS Sync
@@ -4574,4 +4577,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.964 2001/03/17 00:34:46 mouring Exp $
+$Id: ChangeLog,v 1.965 2001/03/17 00:36:17 mouring Exp $
