@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.64 2001/03/28 20:04:38 stevesk Exp $");
+RCSID("$OpenBSD: scp.c,v 1.65 2001/04/06 16:46:59 deraadt Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -500,10 +500,14 @@ source(argc, argv)
 	off_t i;
 	int amt, fd, haderr, indx, result;
 	char *last, *name, buf[2048];
+	int len;
 
 	for (indx = 0; indx < argc; ++indx) {
 		name = argv[indx];
 		statbytes = 0;
+		len = strlen(name);
+		while (len > 1 && name[len-1] == '/')
+			name[--len] = '\0';
 		if ((fd = open(name, O_RDONLY, 0)) < 0)
 			goto syserr;
 		if (fstat(fd, &stb) < 0) {

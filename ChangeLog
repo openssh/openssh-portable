@@ -9,6 +9,9 @@
      more useful.
      based on discussion with <mats@mindbright.se> long time ago
      and recent mail from <res@shore.net>
+   - deraadt@cvs.openbsd.org 2001/04/06 16:46:59
+     [scp.c]
+     remove trailing / from source paths; fixes pr#1756
  
 20010406
  - (stevesk) logintest.c: fix for systems without __progname
@@ -4920,4 +4923,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1076 2001/04/07 01:12:11 mouring Exp $
+$Id: ChangeLog,v 1.1077 2001/04/07 01:14:38 mouring Exp $
