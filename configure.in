@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.297 2001/06/28 23:27:38 mouring Exp $
+# $Id: configure.in,v 1.298 2001/06/29 12:32:31 mouring Exp $
 
 AC_INIT(ssh.c)
 
@@ -459,7 +459,7 @@ AC_ARG_WITH(tcp-wrappers,
 )
 
 dnl    Checks for library functions.
-AC_CHECK_FUNCS(arc4random atexit b64_ntop bcopy bindresvport_sa clock dirname fchown fchmod freeaddrinfo futimes gai_strerror getcwd getaddrinfo getgrouplist getnameinfo getrlimit getrusage getttyent glob inet_aton inet_ntoa innetgr login_getcapbool md5_crypt memmove mkdtemp on_exit openpty readpassphrase realpath rresvport_af setdtablesize setenv setegid seteuid setlogin setproctitle setresgid setreuid setrlimit setsid setvbuf sigaction sigvec snprintf strerror strlcat strlcpy strmode strsep sysconf tcgetpgrp utimes vsnprintf vhangup vis waitpid _getpty __b64_ntop)
+AC_CHECK_FUNCS(arc4random atexit b64_ntop bcopy bindresvport_sa clock dirname fchown fchmod freeaddrinfo futimes gai_strerror getcwd getaddrinfo getgrouplist getnameinfo getrlimit getrusage getttyent glob inet_ntoa innetgr login_getcapbool md5_crypt memmove mkdtemp on_exit openpty readpassphrase realpath rresvport_af setdtablesize setenv setegid seteuid setlogin setproctitle setresgid setreuid setrlimit setsid setvbuf sigaction sigvec snprintf strerror strlcat strlcpy strmode strsep sysconf tcgetpgrp utimes vsnprintf vhangup vis waitpid _getpty __b64_ntop)
 dnl    Checks for time functions
 AC_CHECK_FUNCS(gettimeofday time)
 dnl    Checks for libutil functions
