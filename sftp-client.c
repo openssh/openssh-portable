@@ -331,7 +331,7 @@ do_ls(int fd_in, int fd_out, char *path)
 				error("Couldn't read directory: %s",
 				    fx2txt(status));
 				do_close(fd_in, fd_out, handle, handle_len);
-				return(NULL);
+				return(0);
 			}
 		} else if (type != SSH2_FXP_NAME)
 			fatal("Expected SSH2_FXP_NAME(%d) packet, got %d",
