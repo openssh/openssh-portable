@@ -7,3 +7,17 @@
 - Replace the horror in acconfig.h which tries to comphensate for the 
   lack of u_intXX_t types. There must be a better way.
 
+- Hanging on logout:
+
+localhost$ ssh remotehost
+remotehost$ sleep 20 &
+remotehost$ logout
+(ssh hangs at logout for 20 seconds)
+
+Worse:
+
+localhost$ ssh root@remotehost
+remotehost# httpd
+remotehost# logout
+(ssh hangs at logout forever)
+

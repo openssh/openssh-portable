@@ -43,6 +43,12 @@
 /* Define is utmpx.h has a ut_host field */
 #undef HAVE_HOST_IN_UTMPX
 
+/* Define is utmp.h has a ut_addr field */
+#undef HAVE_ADDR_IN_UTMP
+
+/* Define is utmpx.h has a ut_addr field */
+#undef HAVE_ADDR_IN_UTMPX
+
 /* Define is utmpx.h has a syslen field */
 #undef HAVE_SYSLEN_IN_UTMPX
 

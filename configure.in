@@ -325,6 +325,16 @@ AC_EGREP_HEADER(ut_id, utmp.h,
 	[AC_DEFINE(HAVE_ID_IN_UTMP) AC_MSG_RESULT(yes); ], 
 	[AC_MSG_RESULT(no)]
 )
+AC_MSG_CHECKING([whether utmp.h has ut_addr field])
+AC_EGREP_HEADER(ut_addr, utmp.h, 
+	[AC_DEFINE(HAVE_ADDR_IN_UTMP) AC_MSG_RESULT(yes); ], 
+	[AC_MSG_RESULT(no)]
+)
+AC_MSG_CHECKING([whether utmpx.h has ut_addr field])
+AC_EGREP_HEADER(ut_addr, utmpx.h, 
+	[AC_DEFINE(HAVE_ADDR_IN_UTMP) AC_MSG_RESULT(yes); ], 
+	[AC_MSG_RESULT(no)]
+)
 
 dnl Look for lastlog location
 AC_ARG_WITH(lastlog,

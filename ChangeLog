@@ -8,6 +8,8 @@
    <Franz.Sirl-kernel@lauterbach.com>
  - Prevent typedefs from being compiled more than once. Report from 
    Marc G. Fournier <marc.fournier@acadiau.ca>
+ - Fill in ut_utaddr utmp field. Report from Benjamin Charron
+   <iretd@bigfoot.com>
 
 19991230
  - OpenBSD CVS updates:
