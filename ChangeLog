@@ -12,6 +12,9 @@
    - stevesk@cvs.openbsd.org 2001/01/28 22:27:05
      [authfile.c]
      spelling.  use sizeof vs. strlen().  ok markus@
+   - markus@cvs.openbsd.org 2001/01/28 10:15:34
+     [dispatch.c]
+     re-keying is not supported; ok deraadt@
 
 20010126
  - (bal) SSH_PROGRAM vs _PATH_SSH_PROGRAM fix pointed out by Roumen 

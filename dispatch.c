@@ -22,12 +22,14 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: dispatch.c,v 1.7 2001/01/21 19:05:49 markus Exp $");
+RCSID("$OpenBSD: dispatch.c,v 1.8 2001/01/28 10:15:34 markus Exp $");
 
 #include "ssh1.h"
+#include "ssh2.h"
 #include "log.h"
 #include "dispatch.h"
 #include "packet.h"
+#include "compat.h"
 
 #define DISPATCH_MIN	0
 #define DISPATCH_MAX	255
@@ -38,6 +40,8 @@ void
 dispatch_protocol_error(int type, int plen, void *ctxt)
 {
 	error("Hm, dispatch protocol error: type %d plen %d", type, plen);
+	if (compat20 && type == SSH2_MSG_KEXDH_INIT)
+		fatal("dispatch_protocol_error: rekeying is not supported");
 }
 void
 dispatch_init(dispatch_fn *dflt)
