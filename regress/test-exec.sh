@@ -160,6 +160,7 @@ trap fatal 3 2
 
 # create server config
 cat << EOF > $OBJ/sshd_config
+	StrictModes		no
 	Port			$PORT
 	ListenAddress		127.0.0.1
 	#ListenAddress		::1
@@ -169,7 +170,6 @@ cat << EOF > $OBJ/sshd_config
 	AcceptEnv		_XXX_TEST_*
 	AcceptEnv		_XXX_TEST
 	Subsystem	sftp	$SFTPSERVER
-	StrictModes		no
 EOF
 
 # server config for proxy connects
