@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.100 2002/06/19 00:27:55 deraadt Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.101 2002/11/07 22:08:07 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -114,6 +114,7 @@ typedef enum {
 	oDynamicForward, oPreferredAuthentications, oHostbasedAuthentication,
 	oHostKeyAlgorithms, oBindAddress, oSmartcardDevice,
 	oClearAllForwardings, oNoHostAuthenticationForLocalhost,
+	oEnableSSHKeysign,
 	oDeprecated
 } OpCodes;
 
@@ -185,6 +186,7 @@ static struct {
 	{ "bindaddress", oBindAddress },
 	{ "smartcarddevice", oSmartcardDevice },
 	{ "clearallforwardings", oClearAllForwardings },
+	{ "enablesshkeysign", oEnableSSHKeysign },
 	{ "nohostauthenticationforlocalhost", oNoHostAuthenticationForLocalhost },
 	{ NULL, oBadOption }
 };
@@ -669,6 +671,10 @@ parse_int:
 			*intptr = value;
 		break;
 
+	case oEnableSSHKeysign:
+		intptr = &options->enable_ssh_keysign;
+		goto parse_flag;
+
 	case oDeprecated:
 		debug("%s line %d: Deprecated option \"%s\"",
 		    filename, linenum, keyword);
@@ -792,6 +798,7 @@ initialize_options(Options * options)
 	options->preferred_authentications = NULL;
 	options->bind_address = NULL;
 	options->smartcard_device = NULL;
+	options->enable_ssh_keysign = - 1;
 	options->no_host_authentication_for_localhost = - 1;
 }
 
@@ -907,6 +914,8 @@ fill_default_options(Options * options)
 		clear_forwardings(options);
 	if (options->no_host_authentication_for_localhost == - 1)
 		options->no_host_authentication_for_localhost = 0;
+	if (options->enable_ssh_keysign == -1)
+		options->enable_ssh_keysign = 0;
 	/* options->proxy_command should not be set by default */
 	/* options->user will be set in the main program if appropriate */
 	/* options->hostname will be set in the main program if appropriate */

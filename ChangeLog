@@ -25,6 +25,13 @@
    - markus@cvs.openbsd.org 2002/11/07 16:28:47
      [sshd.c]
      log to stderr if -ie is given, bug #414, prj@po.cwru.edu
+   - markus@cvs.openbsd.org 2002/11/07 22:08:07
+     [readconf.c readconf.h ssh-keysign.8 ssh-keysign.c]
+     we cannot use HostbasedAuthentication for enabling ssh-keysign(8),
+     because HostbasedAuthentication might be enabled based on the
+     target host and ssh-keysign(8) does not know the remote hostname
+     and not trust ssh(1) about the hostname, so we add a new option
+     EnableSSHKeysign; ok djm@, report from zierke@informatik.uni-hamburg.de
 
 20021021
  - (djm) Bug #400: Kill ssh-rand-helper children on timeout, patch from 
@@ -802,4 +809,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2507 2002/11/09 15:50:03 mouring Exp $
+$Id: ChangeLog,v 1.2508 2002/11/09 15:52:31 mouring Exp $

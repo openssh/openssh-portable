@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keysign.c,v 1.7 2002/07/03 14:21:05 markus Exp $");
+RCSID("$OpenBSD: ssh-keysign.c,v 1.8 2002/11/07 22:08:07 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/rand.h>
@@ -168,8 +168,8 @@ main(int argc, char **argv)
 	initialize_options(&options);
 	(void)read_config_file(_PATH_HOST_CONFIG_FILE, "", &options);
 	fill_default_options(&options);
-	if (options.hostbased_authentication != 1)
-		fatal("Hostbased authentication not enabled in %s",
+	if (options.enable_ssh_keysign != 1)
+		fatal("ssh-keysign not enabled in %s",
 		    _PATH_HOST_CONFIG_FILE);
 
 	if (key_fd[0] == -1 && key_fd[1] == -1)
