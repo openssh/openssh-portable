@@ -318,11 +318,13 @@ sub ParseMacro # ($line)
 
 		if (/^Nm$/)
 		{
-			$name = shift @words
+			my $n = $name;
+			$n = shift @words
 				if (@words > 0);
+			$name = $n unless $name;
 			$retval .= ".br\n"
 				if ($synopsis);
-			$retval .= "\\fB$name\\fP";
+			$retval .= "\\fB$n\\fP";
 			$nospace = 1
 				if (! $nospace && $words[0] =~ m/^[\.,]/);
 			next;
