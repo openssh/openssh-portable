@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.129 2003/11/02 11:01:03 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.130 2003/11/14 13:19:09 markus Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -537,15 +537,44 @@ userauth_gssapi(Authctxt *authctxt)
 	return 1;
 }
 
+static OM_uint32
+process_gssapi_token(void *ctxt, gss_buffer_t recv_tok)
+{
+	Authctxt *authctxt = ctxt;
+	Gssctxt *gssctxt = authctxt->methoddata;
+	gss_buffer_desc send_tok = GSS_C_EMPTY_BUFFER;
+	OM_uint32 status, ms;
+	
+	status = ssh_gssapi_init_ctx(gssctxt, options.gss_deleg_creds,
+	    recv_tok, &send_tok, NULL);
+
+	if (send_tok.length > 0) {
+		if (GSS_ERROR(status))
+			packet_start(SSH2_MSG_USERAUTH_GSSAPI_ERRTOK);
+		else
+			packet_start(SSH2_MSG_USERAUTH_GSSAPI_TOKEN);
+			
+		packet_put_string(send_tok.value, send_tok.length);
+		packet_send();
+		gss_release_buffer(&ms, &send_tok);
+	}
+	
+	if (status == GSS_S_COMPLETE) {
+		/* If that succeeded, send a exchange complete message */
+		packet_start(SSH2_MSG_USERAUTH_GSSAPI_EXCHANGE_COMPLETE);
+		packet_send();
+	}
+	
+	return status;
+}
+
 void
 input_gssapi_response(int type, u_int32_t plen, void *ctxt)
 {
 	Authctxt *authctxt = ctxt;
 	Gssctxt *gssctxt;
-	OM_uint32 status, ms;
 	int oidlen;
 	char *oidv;
-	gss_buffer_desc send_tok = GSS_C_EMPTY_BUFFER;
 
 	if (authctxt == NULL)
 		fatal("input_gssapi_response: no authentication context");
@@ -557,9 +586,9 @@ input_gssapi_response(int type, u_int32_t plen, void *ctxt)
 	if (oidlen <= 2 ||
 	    oidv[0] != SSH_GSS_OIDTYPE ||
 	    oidv[1] != oidlen - 2) {
+		xfree(oidv);
 		debug("Badly encoded mechanism OID received");
 		userauth(authctxt, NULL);
-		xfree(oidv);
 		return;
 	}
 
@@ -570,75 +599,38 @@ input_gssapi_response(int type, u_int32_t plen, void *ctxt)
 
 	xfree(oidv);
 
-	status = ssh_gssapi_init_ctx(gssctxt, options.gss_deleg_creds,
-	    GSS_C_NO_BUFFER, &send_tok, NULL);
-	if (GSS_ERROR(status)) {
-		if (send_tok.length > 0) {
-			packet_start(SSH2_MSG_USERAUTH_GSSAPI_ERRTOK);
-			packet_put_string(send_tok.value, send_tok.length);
-			packet_send();
-			gss_release_buffer(&ms, &send_tok);
-		}
+	if (GSS_ERROR(process_gssapi_token(ctxt, GSS_C_NO_BUFFER))) {
 		/* Start again with next method on list */
 		debug("Trying to start again");
 		userauth(authctxt, NULL);
 		return;
 	}
-
-	/* We must have data to send */
-	packet_start(SSH2_MSG_USERAUTH_GSSAPI_TOKEN);
-	packet_put_string(send_tok.value, send_tok.length);
-	packet_send();
-	gss_release_buffer(&ms, &send_tok);
 }
 
 void
 input_gssapi_token(int type, u_int32_t plen, void *ctxt)
 {
 	Authctxt *authctxt = ctxt;
-	Gssctxt *gssctxt;
-	gss_buffer_desc send_tok = GSS_C_EMPTY_BUFFER;
 	gss_buffer_desc recv_tok;
-	OM_uint32 status, ms;
+	OM_uint32 status;
 	u_int slen;
 
 	if (authctxt == NULL)
 		fatal("input_gssapi_response: no authentication context");
-	gssctxt = authctxt->methoddata;
 
 	recv_tok.value = packet_get_string(&slen);
 	recv_tok.length = slen;	/* safe typecast */
 
 	packet_check_eom();
 
-	status = ssh_gssapi_init_ctx(gssctxt, options.gss_deleg_creds,
-	    &recv_tok, &send_tok, NULL);
+	status = process_gssapi_token(ctxt, &recv_tok);
 
 	xfree(recv_tok.value);
 
 	if (GSS_ERROR(status)) {
-		if (send_tok.length > 0) {
-			packet_start(SSH2_MSG_USERAUTH_GSSAPI_ERRTOK);
-			packet_put_string(send_tok.value, send_tok.length);
-			packet_send();
-			gss_release_buffer(&ms, &send_tok);
-		}
 		/* Start again with the next method in the list */
 		userauth(authctxt, NULL);
 		return;
-	}
-
-	if (send_tok.length > 0) {
-		packet_start(SSH2_MSG_USERAUTH_GSSAPI_TOKEN);
-		packet_put_string(send_tok.value, send_tok.length);
-		packet_send();
-		gss_release_buffer(&ms, &send_tok);
-	}
-
-	if (status == GSS_S_COMPLETE) {
-		/* If that succeeded, send a exchange complete message */
-		packet_start(SSH2_MSG_USERAUTH_GSSAPI_EXCHANGE_COMPLETE);
-		packet_send();
 	}
 }
 

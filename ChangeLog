@@ -37,6 +37,9 @@
    - jmc@cvs.openbsd.org 2003/11/12 20:14:51
      [ssh_config.5]
      make verb agree with subject, and kill some whitespace;
+   - markus@cvs.openbsd.org 2003/11/14 13:19:09
+     [sshconnect2.c]
+     cleanup and minor fixes for the client code; from Simon Wilkinson
 
 20031115
  - (dtucker) [regress/agent-ptrace.sh] Test for GDB output from Solaris and
@@ -1457,4 +1460,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3107 2003/11/17 10:19:49 djm Exp $
+$Id: ChangeLog,v 1.3108 2003/11/17 10:20:18 djm Exp $
