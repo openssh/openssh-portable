@@ -271,7 +271,7 @@ do_authloop(Authctxt *authctxt)
 				authenticated = 1;
 			}
 #else /* !USE_PAM && !HAVE_OSF_SIA */
- 			/* Try authentication with the password. */
+			/* Try authentication with the password. */
 			authenticated = auth_password(pw, password);
 #endif /* USE_PAM */
 
@@ -293,7 +293,6 @@ do_authloop(Authctxt *authctxt)
 				}
 			}
 			break;
-
 		case SSH_CMSG_AUTH_TIS_RESPONSE:
 			debug("rcvd SSH_CMSG_AUTH_TIS_RESPONSE");
 			if (options.challenge_reponse_authentication == 1) {
@@ -346,7 +345,7 @@ do_authloop(Authctxt *authctxt)
 		if (authenticated)
 			return;
 
-	if (authctxt->failures++ > AUTH_FAIL_MAX) {
+		if (authctxt->failures++ > AUTH_FAIL_MAX) {
 #ifdef WITH_AIXAUTHENTICATE 
 			loginfailed(user,get_canonical_hostname(),"ssh");
 #endif /* WITH_AIXAUTHENTICATE */
@@ -422,9 +421,9 @@ do_authentication()
 #endif
 
 	/*
-         * Loop until the user has been authenticated or the connection is
-         * closed, do_authloop() returns only if authentication is successful
-         */
+	 * Loop until the user has been authenticated or the connection is
+	 * closed, do_authloop() returns only if authentication is successful
+	 */
 	do_authloop(authctxt);
 
 	/* The user has been authenticated and accepted. */
