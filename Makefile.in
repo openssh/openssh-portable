@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.196 2002/02/26 16:40:49 tim Exp $
+# $Id: Makefile.in,v 1.197 2002/02/26 19:24:22 mouring Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -50,7 +50,7 @@ INSTALL_SSH_RAND_HELPER=@INSTALL_SSH_RAND_HELPER@
 
 TARGETS=ssh$(EXEEXT) sshd$(EXEEXT) ssh-add$(EXEEXT) ssh-keygen$(EXEEXT) ssh-keyscan${EXEEXT} ssh-agent$(EXEEXT) scp$(EXEEXT) ssh-rand-helper${EXEEXT} $(SFTP_PROGS)
 
-LIBSSH_OBJS=atomicio.o authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o cipher.o compat.o compress.o crc32.o deattack.o dh.o dispatch.o mac.o hostfile.o key.o kex.o kexdh.o kexgex.o log.o match.o misc.o mpaux.o nchan.o packet.o radix.o rijndael.o entropy.o readpass.o rsa.o scard.o ssh-dss.o ssh-rsa.o tildexpand.o ttymodes.o uidswap.o uuencode.o xmalloc.o 
+LIBSSH_OBJS=atomicio.o authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o cipher.o compat.o compress.o crc32.o deattack.o dh.o dispatch.o fatal.o mac.o hostfile.o key.o kex.o kexdh.o kexgex.o log.o match.o misc.o mpaux.o nchan.o packet.o radix.o rijndael.o entropy.o readpass.o rsa.o scard.o ssh-dss.o ssh-rsa.o tildexpand.o ttymodes.o uidswap.o uuencode.o xmalloc.o 
 
 SSHOBJS= ssh.o sshconnect.o sshconnect1.o sshconnect2.o sshtty.o readconf.o clientloop.o
 
