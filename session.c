@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.55 2001/02/08 19:30:52 itojun Exp $");
+RCSID("$OpenBSD: session.c,v 1.56 2001/02/16 14:03:43 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -343,12 +343,18 @@ do_authenticated(struct passwd * pw)
 
 			s->auth_proto = packet_get_string(&proto_len);
 			s->auth_data = packet_get_string(&data_len);
-			packet_integrity_check(plen, 4 + proto_len + 4 + data_len + 4, type);
 
-			if (packet_get_protocol_flags() & SSH_PROTOFLAG_SCREEN_NUMBER)
+			if (packet_get_protocol_flags() & SSH_PROTOFLAG_SCREEN_NUMBER) {
+				debug2("SSH_PROTOFLAG_SCREEN_NUMBER == true");
+				packet_integrity_check(plen,
+				    4 + proto_len + 4 + data_len + 4, type);
 				s->screen = packet_get_int();
-			else
+			} else {
+				debug2("SSH_PROTOFLAG_SCREEN_NUMBER == false");
+				packet_integrity_check(plen,
+				    4 + proto_len + 4 + data_len, type);
 				s->screen = 0;
+			}
 			s->display = x11_create_display_inet(s->screen, options.x11_display_offset);
 
 			if (s->display == NULL)
