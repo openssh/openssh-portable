@@ -1,5 +1,6 @@
 20001106
  - (djm) Use Jim's new 1.0.3 askpass in Redhat RPMs
+ - (djm) Manually fix up missed diff hunks (mainly RCS idents)
 
 20001105
  - (bal) Sync with OpenBSD:

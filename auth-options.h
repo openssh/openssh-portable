@@ -10,6 +10,9 @@
  * incompatible with the protocol description in the RFC file, it must be
  * called by a name other than "ssh" or "Secure Shell".
  */
+
+/* $OpenBSD: auth-options.h,v 1.5 2000/10/16 09:38:44 djm Exp $ */
+
 #ifndef AUTH_OPTIONS_H
 #define AUTH_OPTIONS_H
 /* Flags that may be set in authorized_keys options. */
