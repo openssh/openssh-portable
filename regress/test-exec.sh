@@ -1,8 +1,13 @@
 #	$OpenBSD: test-exec.sh,v 1.20 2004/06/22 22:45:52 dtucker Exp $
 #	Placed in the Public Domain.
 
-PORT=4242
 #SUDO=sudo
+
+if [ ! -z "$TEST_SSH_PORT" ]; then
+	PORT="$TEST_SSH_PORT"
+else
+	PORT=4242
+fi
 
 if [ -x /usr/ucb/whoami ]; then
 	USER=`/usr/ucb/whoami`
