@@ -25,7 +25,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.48 2002/09/11 22:41:50 djm Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.49 2002/09/12 00:13:06 djm Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -205,7 +205,6 @@ static char *
 path_strip(char *path, char *strip)
 {
 	size_t len;
-	char *ret;
 
 	if (strip == NULL)
 		return (xstrdup(path));

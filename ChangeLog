@@ -28,6 +28,9 @@
      [sftp.1 sftp-client.c sftp-client.h sftp-common.c sftp-common.h]
      [sftp-glob.c sftp-glob.h sftp-int.c sftp-server.c]
      support for short/long listings and globbing in "ls"; ok markus@
+   - djm@cvs.openbsd.org 2002/09/12 00:13:06
+     [sftp-int.c]
+     zap unused var introduced in last commit
 
 20020911
  - (djm) Sync openbsd-compat with OpenBSD -current
@@ -1648,4 +1651,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2459 2002/09/12 00:32:59 djm Exp $
+$Id: ChangeLog,v 1.2460 2002/09/12 00:34:13 djm Exp $
