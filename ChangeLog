@@ -219,6 +219,10 @@
      [cipher.c compat.c myproposal.h]
      remove "rijndael-*", just use "aes-" since this how rijndael is called
      in the drafts; ok stevesk@
+   - markus@cvs.openbsd.org 2002/01/21 23:27:10
+     [channels.c nchan.c]
+     cleanup channels faster if the are empty and we are in drain-state; 
+     ok deraadt@
 
 20020121
  - (djm) Rework ssh-rand-helper:
@@ -7366,4 +7370,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1784 2002/01/22 12:34:35 djm Exp $
+$Id: ChangeLog,v 1.1785 2002/01/22 12:34:52 djm Exp $
