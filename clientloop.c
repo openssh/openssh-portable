@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.112 2003/06/28 16:23:06 deraadt Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.113 2003/09/19 17:43:35 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -139,7 +139,6 @@ leave_non_blocking(void)
 	if (in_non_blocking_mode) {
 		(void) fcntl(fileno(stdin), F_SETFL, 0);
 		in_non_blocking_mode = 0;
-		fatal_remove_cleanup((void (*) (void *)) leave_non_blocking, NULL);
 	}
 }
 
@@ -150,7 +149,6 @@ enter_non_blocking(void)
 {
 	in_non_blocking_mode = 1;
 	(void) fcntl(fileno(stdin), F_SETFL, O_NONBLOCK);
-	fatal_add_cleanup((void (*) (void *)) leave_non_blocking, NULL);
 }
 
 /*
@@ -844,8 +842,7 @@ client_channel_closed(int id, void *arg)
 		    id, session_ident);
 	channel_cancel_cleanup(id);
 	session_closed = 1;
-	if (in_raw_mode())
-		leave_raw_mode();
+	leave_raw_mode();
 }
 
 /*
@@ -1034,11 +1031,8 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 	if (!isatty(fileno(stderr)))
 		unset_nonblock(fileno(stderr));
 
-	if (received_signal) {
-		if (in_non_blocking_mode)	/* XXX */
-			leave_non_blocking();
+	if (received_signal)
 		fatal("Killed by signal %d.", (int) received_signal);
-	}
 
 	/*
 	 * In interactive mode (with pseudo tty) display a message indicating
@@ -1386,4 +1380,18 @@ client_init_dispatch(void)
 		client_init_dispatch_13();
 	else
 		client_init_dispatch_15();
+}
+
+/* client specific fatal cleanup */
+void
+fatal(const char *fmt,...)
+{
+	va_list args;
+
+	va_start(args, fmt);
+	do_log(SYSLOG_LEVEL_FATAL, fmt, args);
+	va_end(args);
+	leave_raw_mode();
+	leave_non_blocking();
+	_exit(255);
 }
