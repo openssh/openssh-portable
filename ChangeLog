@@ -14,6 +14,9 @@
      OpenSSH_3.1
  - (djm) Update RPM spec files with new version number
  - (bal) Updated INSTALL to reflect 0.9.6 OpenSSL requirement
+ - (bal) Add in check for rpc/types.h since it is needed on
+   some platforms for INADDR_LOOPBACK.  We should retest
+   SCO 3 to see if this fixes their problem also.
 
 20020305
    - stevesk@cvs.openbsd.org 2002/03/02 09:34:42
@@ -7815,4 +7818,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1914 2002/03/07 17:49:39 mouring Exp $
+$Id: ChangeLog,v 1.1915 2002/03/08 03:11:07 mouring Exp $
