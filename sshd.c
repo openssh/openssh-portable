@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.191 2001/04/05 10:42:57 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.192 2001/04/11 16:25:30 lebel Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -565,7 +565,7 @@ main(int ac, char **av)
 	initialize_server_options(&options);
 
 	/* Parse command-line arguments. */
-	while ((opt = getopt(ac, av, "f:p:b:k:h:g:V:u:dDiqQ46")) != -1) {
+	while ((opt = getopt(ac, av, "f:p:b:k:h:g:V:u:dDeiqQ46")) != -1) {
 		switch (opt) {
 		case '4':
 			IPv4or6 = AF_INET;
@@ -589,6 +589,9 @@ main(int ac, char **av)
 			break;
 		case 'D':
 			no_daemon_flag = 1;
+			break;
+		case 'e':
+			log_stderr = 1;
 			break;
 		case 'i':
 			inetd_flag = 1;

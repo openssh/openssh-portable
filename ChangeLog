@@ -18,6 +18,12 @@
    - markus@cvs.openbsd.org 2001/04/11 13:56:13
      [channels.c ssh.c]
      https-connect and socks5 support. i feel so bad.
+   - lebel@cvs.openbsd.org 2001/04/11 16:25:30
+     [sshd.8 sshd.c]
+     implement the -e option into sshd:
+      -e      When this option is specified, sshd will send the output to the
+              standard error instead of the system log.
+     markus@ OK.
 
 20010410
  - OpenBSD CVS Sync
@@ -5011,4 +5017,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1099 2001/04/11 23:08:17 mouring Exp $
+$Id: ChangeLog,v 1.1100 2001/04/11 23:10:09 mouring Exp $
