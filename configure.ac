@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.134 2003/07/14 06:41:55 dtucker Exp $
+# $Id: configure.ac,v 1.135 2003/07/19 09:49:45 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -295,6 +295,10 @@ mips-sony-bsd|mips-sony-newsos4)
 		AC_DEFINE(DISABLE_WTMP)
 	else
 		AC_MSG_RESULT(no)
+	fi
+	sol2platform=`echo "$host"| sed -e 's/-solaris.*$//'`
+	if test "$sol2platform" -eq "i386-pc"; then
+		AC_DEFINE(BROKEN_ADDRINFO)
 	fi
 	;;
 *-*-sunos4*)
