@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.140 2002/06/25 03:22:04 mouring Exp $ */
+/* $Id: acconfig.h,v 1.141 2002/06/25 22:35:16 tim Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -357,6 +357,9 @@
 
 /* Define if you have the `mmap' function that supports MAP_ANON|SHARED */
 #undef HAVE_MMAP_ANON_SHARED
+
+/* Define if sendmsg()/recvmsg() has problems passing file descriptors */
+#undef BROKEN_FD_PASSING
 
 @BOTTOM@
 

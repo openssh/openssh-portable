@@ -9,6 +9,8 @@
  - (tim) [contrib/caldera/openssh.spec] Sync with Caldera
  - (bal) moved aix_usrinfo() and noted not setting real TTY.  Patch by
    dtucker@zip.com.au
+ - (tim) [acconfig.h configure.ac sshd.c] BROKEN_FD_PASSING fix from Markus
+   for Cygwin, Cray, & SCO
 
 20020624
  - OpenBSD CVS Sync
@@ -1094,4 +1096,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2271 2002/06/25 17:12:26 mouring Exp $
+$Id: ChangeLog,v 1.2272 2002/06/25 22:35:15 tim Exp $
