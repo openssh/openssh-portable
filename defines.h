@@ -30,6 +30,11 @@
 #ifdef HAVE_SYS_SYSMACROS_H
 # include <sys/sysmacros.h> /* For MIN, MAX, etc */
 #endif
+#ifdef HAVE_SYS_STAT_H
+# include <sys/stat.h> /* For S_* constants and macros */
+#endif
+
+#include <unistd.h> /* For STDIN_FILENO, etc */
 
 /* Constants */
 
@@ -60,6 +65,37 @@ enum
 #  define MAXPATHLEN 64 /* Should be safe */
 # endif /* PATH_MAX */
 #endif /* MAXPATHLEN */
+
+#ifndef STDIN_FILENO     
+# define STDIN_FILENO    0
+#endif                   
+#ifndef STDOUT_FILENO    
+# define STDOUT_FILENO   1
+#endif                   
+#ifndef STDERR_FILENO    
+# define STDERR_FILENO   2
+#endif                   
+
+#ifndef S_ISREG
+# define S_ISDIR(mode)	(((mode) & (_S_IFMT)) == (_S_IFDIR))
+# define S_ISREG(mode)	(((mode) & (_S_IFMT)) == (_S_IFREG))
+#endif /* S_ISREG */
+
+#ifndef S_IXUSR
+# define S_IXUSR			0000100	/* execute/search permission, */
+# define S_IXGRP			0000010	/* execute/search permission, */
+# define S_IXOTH			0000001	/* execute/search permission, */
+# define _S_IWUSR			0000200	/* write permission, */
+# define S_IWUSR			_S_IWUSR	/* write permission, owner */
+# define S_IWGRP			0000020	/* write permission, group */
+# define S_IWOTH			0000002	/* write permission, other */
+# define S_IRUSR			0000400	/* read permission, owner */
+# define S_IRGRP			0000040	/* read permission, group */
+# define S_IROTH			0000004	/* read permission, other */
+# define S_IRWXU			0000700	/* read, write, execute */
+# define S_IRWXG			0000070	/* read, write, execute */
+# define S_IRWXO			0000007	/* read, write, execute */
+#endif /* S_IXUSR */
 
 /* Types */
 
@@ -150,6 +186,16 @@ typedef unsigned int size_t;
 typedef int ssize_t;
 # define HAVE_SSIZE_T
 #endif /* HAVE_SSIZE_T */
+
+#ifndef HAVE_PID_T
+typedef int pid_t;
+# define HAVE_PID_T
+#endif /* HAVE_PID_T */
+
+#ifndef HAVE_MODE_T
+typedef int mode_t;
+# define HAVE_MODE_T
+#endif /* HAVE_MODE_T */
 
 #if !defined(HAVE_SS_FAMILY_IN_SS) && defined(HAVE___SS_FAMILY_IN_SS)
 # define ss_family __ss_family
@@ -326,6 +372,5 @@ typedef int ssize_t;
 #endif
 
 /** end of login recorder definitions */
-
 
 #endif /* _DEFINES_H */

@@ -36,7 +36,7 @@ TARGETS=ssh sshd ssh-add ssh-keygen ssh-agent scp $(EXTRA_TARGETS)
 
 LIBSSH_OBJS=atomicio.o authfd.o authfile.o aux.o bufaux.o buffer.o canohost.o channels.o cipher.o compat.o compress.o crc32.o deattack.o dispatch.o dsa.o fingerprint.o hmac.o hostfile.o key.o kex.o log.o match.o mpaux.o nchan.o packet.o radix.o entropy.o readpass.o rsa.o tildexpand.o ttymodes.o uidswap.o uuencode.o xmalloc.o 
 
-LIBOPENBSD_COMPAT_OBJS=bsd-base64.o bsd-bindresvport.o bsd-daemon.o bsd-misc.o bsd-mktemp.o bsd-rresvport.o bsd-setenv.o bsd-snprintf.o bsd-strlcat.o bsd-strlcpy.o fake-getaddrinfo.o fake-getnameinfo.o 
+LIBOPENBSD_COMPAT_OBJS=bsd-base64.o bsd-bindresvport.o bsd-daemon.o bsd-misc.o bsd-mktemp.o bsd-rresvport.o bsd-setenv.o bsd-snprintf.o bsd-strlcat.o bsd-strlcpy.o fake-getaddrinfo.o fake-getnameinfo.o next-posix.o
 
 SSHOBJS= ssh.o sshconnect.o sshconnect1.o sshconnect2.o log-client.o readconf.o clientloop.o
 

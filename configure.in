@@ -102,6 +102,17 @@ case "$host" in
 *-*-netbsd*)
 	need_dash_r=1
 	;;
+*-next-*)
+	# hardwire lastlog location (can't detect it on some versions)
+	conf_lastlog_location="/usr/adm/lastlog"
+	AC_DEFINE(HAVE_NEXT)
+	CFLAGS="$CFLAGS -I/usr/local/include"
+	MAIL=/usr/spool/mail
+	conf_utmp_location=/etc/utmp
+	AC_MSG_WARN([*** Tested: PA-RISC/m68k  Untested: Sparc/Intel])
+	AC_MSG_WARN([*** Expect 'scp' to fail!])
+	AC_MSG_WARN([*** Please report any problems, thanks])
+	;;
 *-*-solaris*)
 	CFLAGS="$CFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib -R/usr/local/lib -L/usr/ucblib -R/usr/ucblib"
@@ -178,7 +189,7 @@ if test -z "$no_libnsl" ; then
 fi
 
 # Checks for header files.
-AC_CHECK_HEADERS(bstring.h endian.h lastlog.h limits.h login.h maillock.h netdb.h netgroup.h netinet/in_systm.h paths.h poll.h pty.h shadow.h security/pam_appl.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h sys/poll.h sys/select.h sys/stropts.h sys/sysmacros.h sys/time.h sys/ttcompat.h stddef.h time.h util.h utmp.h utmpx.h)
+AC_CHECK_HEADERS(bstring.h endian.h lastlog.h limits.h login.h maillock.h netdb.h netgroup.h netinet/in_systm.h paths.h poll.h pty.h shadow.h security/pam_appl.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h sys/poll.h sys/select.h sys/stat.h sys/stropts.h sys/sysmacros.h sys/time.h sys/ttcompat.h stddef.h time.h util.h utmp.h utmpx.h)
 
 # Checks for library functions.
 AC_CHECK_FUNCS(arc4random atexit b64_ntop bcopy bindresvport_af clock freeaddrinfo gai_strerror getaddrinfo getnameinfo getrusage innetgr md5_crypt memmove mkdtemp on_exit openpty rresvport_af setenv seteuid setlogin setproctitle setreuid snprintf strlcat strlcpy vsnprintf vhangup _getpty __b64_ntop)
@@ -489,6 +500,34 @@ AC_CACHE_CHECK([for ssize_t], ac_cv_have_ssize_t, [
 ])
 if test "x$ac_cv_have_ssize_t" = "xyes" ; then
 	AC_DEFINE(HAVE_SSIZE_T)
+fi
+
+AC_CACHE_CHECK([for pid_t], ac_cv_have_pid_t, [
+	AC_TRY_COMPILE(
+		[
+#include <sys/types.h>
+		],
+		[ pid_t foo; foo = 1235; ],
+		[ ac_cv_have_pid_t="yes" ],
+		[ ac_cv_have_pid_t="no" ]
+	)
+])
+if test "x$ac_cv_have_pid_t" = "xyes" ; then
+	AC_DEFINE(HAVE_PID_T)
+fi
+
+AC_CACHE_CHECK([for mode_t], ac_cv_have_mode_t, [
+	AC_TRY_COMPILE(
+		[
+#include <sys/types.h>
+		],
+		[ mode_t foo; foo = 1235; ],
+		[ ac_cv_have_mode_t="yes" ],
+		[ ac_cv_have_mode_t="no" ]
+	)
+])
+if test "x$ac_cv_have_mode_t" = "xyes" ; then
+	AC_DEFINE(HAVE_MODE_T)
 fi
 
 

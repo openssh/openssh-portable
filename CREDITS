@@ -8,6 +8,7 @@ Andre Lucas <andre.lucas@dial.pipex.com> - new login code, many fixes
 Andrew McGill <andrewm@datrix.co.za> - SCO fixes
 Andy Sloane <andy@guildsoftware.com> - bugfixes
 Arkadiusz Miskiewicz <misiek@pld.org.pl> - IPv6 compat fixes
+Ben Lindstrom <mouring@pconline.com> - NeXT support
 Ben Taylor <bent@clark.net> - Solaris debugging and fixes
 Bratislav ILICH <bilic@zepter.ru> - Configure fix
 Chip Salzenberg <chip@valinux.com> - Assorted patches

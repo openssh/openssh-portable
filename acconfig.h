@@ -6,6 +6,9 @@
 
 @TOP@
 
+/* Define if you are on NeXT */
+#undef HAVE_NEXT
+
 /* Define if you want to disable PAM support */
 #undef DISABLE_PAM
 
@@ -153,6 +156,8 @@
 #undef HAVE_SOCKLEN_T
 #undef HAVE_SIZE_T
 #undef HAVE_SSIZE_T
+#undef HAVE_MODE_T
+#undef HAVE_PID_T
 #undef HAVE_STRUCT_SOCKADDR_STORAGE
 #undef HAVE_STRUCT_ADDRINFO
 #undef HAVE_STRUCT_IN6_ADDR

@@ -8,6 +8,7 @@
    Martin Petrak <petrak@spsknm.schools.sk>
  - (djm) Include sys/types.h when including netinet/in.h in configure tests.
    Patch from Jun-ichiro itojun Hagino <itojun@iijlab.net>
+ - (djm) Started merge of Ben Lindstrom's <mouring@pconline.com> NeXT support
  - OpenBSD CVS updates:
    - deraadt@cvs.openbsd.org 2000/06/17 09:58:46
      [channels.c]
