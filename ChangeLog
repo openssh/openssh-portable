@@ -40,6 +40,9 @@
    - markus@cvs.openbsd.org 2003/11/14 13:19:09
      [sshconnect2.c]
      cleanup and minor fixes for the client code; from Simon Wilkinson
+   - djm@cvs.openbsd.org 2003/11/17 09:45:39
+     [msg.c msg.h sshconnect2.c ssh-keysign.c]
+     return error on msg send/receive failure (rather than fatal); ok markus@
 
 20031115
  - (dtucker) [regress/agent-ptrace.sh] Test for GDB output from Solaris and
@@ -1460,4 +1463,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3108 2003/11/17 10:20:18 djm Exp $
+$Id: ChangeLog,v 1.3109 2003/11/17 10:20:47 djm Exp $

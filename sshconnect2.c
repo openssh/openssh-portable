@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.130 2003/11/14 13:19:09 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.131 2003/11/17 09:45:39 djm Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -1240,7 +1240,8 @@ ssh_keysign(Key *key, u_char **sigp, u_int *lenp,
 	buffer_init(&b);
 	buffer_put_int(&b, packet_get_connection_in()); /* send # of socket */
 	buffer_put_string(&b, data, datalen);
-	ssh_msg_send(to[1], version, &b);
+	if (ssh_msg_send(to[1], version, &b) == -1)
+		fatal("ssh_keysign: couldn't send request");
 
 	if (ssh_msg_recv(from[0], &b) < 0) {
 		error("ssh_keysign: no reply");
