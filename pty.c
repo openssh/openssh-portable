@@ -49,15 +49,19 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 {
 #if defined(HAVE_OPENPTY) || defined(BSD4_4)
 	/* openpty(3) exists in OSF/1 and some other os'es */
-	char buf[64];
+	char *name;
 	int i;
 
-	i = openpty(ptyfd, ttyfd, buf, NULL, NULL);
+	i = openpty(ptyfd, ttyfd, NULL, NULL, NULL);
 	if (i < 0) {
 		error("openpty: %.100s", strerror(errno));
 		return 0;
 	}
-	strlcpy(namebuf, buf, namebuflen);	/* possible truncation */
+	name = ttyname(*ttyfd);
+	if (!name)
+		fatal("openpty returns device for which ttyname fails.");
+
+	strlcpy(namebuf, name, namebuflen);	/* possible truncation */
 	return 1;
 #else /* HAVE_OPENPTY */
 #ifdef HAVE__GETPTY
