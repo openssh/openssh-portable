@@ -1,3 +1,7 @@
+20040701
+ - (dtucker) [session.c] Call display_loginmsg again after do_pam_session.
+   Ensures messages from PAM modules are displayed when privsep=no.
+
 20040630
  - (dtucker) [auth-pam.c] Check for buggy PAM modules that return a NULL
    appdata_ptr to the conversation function.  ok djm@
@@ -1465,4 +1469,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3463 2004/06/30 12:41:07 djm Exp $
+$Id: ChangeLog,v 1.3464 2004/06/30 23:48:29 dtucker Exp $

@@ -1431,6 +1431,13 @@ do_child(Session *s, const char *command)
 #else /* HAVE_OSF_SIA */
 		do_nologin(pw);
 		do_setusercontext(pw);
+		/*
+		 * PAM session modules in do_setusercontext may have
+		 * generated messages, so if this in an interactive
+		 * login then display them too.
+		 */
+		if (command == NULL)
+			display_loginmsg();
 #endif /* HAVE_OSF_SIA */
 	}
 
