@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.166 2002/02/05 14:32:55 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.167 2002/02/06 14:55:15 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1004,11 +1004,6 @@ channel_post_x11_listener(Channel *c, fd_set * readset, fd_set * writeset)
 		    SSH_CHANNEL_OPENING, newsock, newsock, -1,
 		    c->local_window_max, c->local_maxpacket,
 		    0, xstrdup(buf), 1);
-		if (nc == NULL) {
-			close(newsock);
-			xfree(remote_ipaddr);
-			return;
-		}
 		if (compat20) {
 			packet_start(SSH2_MSG_CHANNEL_OPEN);
 			packet_put_cstring("x11");
@@ -1126,11 +1121,6 @@ channel_post_port_listener(Channel *c, fd_set * readset, fd_set * writeset)
 		    nextstate, newsock, newsock, -1,
 		    c->local_window_max, c->local_maxpacket,
 		    0, xstrdup(rtype), 1);
-		if (nc == NULL) {
-			error("channel_post_port_listener: no new channel:");
-			close(newsock);
-			return;
-		}
 		nc->listening_port = c->listening_port;
 		nc->host_port = c->host_port;
 		strlcpy(nc->path, c->path, sizeof(nc->path));
@@ -1173,11 +1163,6 @@ channel_post_auth_listener(Channel *c, fd_set * readset, fd_set * writeset)
 		    SSH_CHANNEL_OPENING, newsock, newsock, -1,
 		    c->local_window_max, c->local_maxpacket,
 		    0, name, 1);
-		if (nc == NULL) {
-			error("channel_post_auth_listener: channel_new failed");
-			xfree(name);
-			close(newsock);
-		}
 		if (compat20) {
 			packet_start(SSH2_MSG_CHANNEL_OPEN);
 			packet_put_cstring("auth-agent@openssh.com");
@@ -1977,12 +1962,7 @@ channel_input_port_open(int type, u_int32_t seq, void *ctxt)
 		c = channel_new("connected socket",
 		    SSH_CHANNEL_CONNECTING, sock, sock, -1, 0, 0, 0,
 		    originator_string, 1);
-		if (c == NULL) {
-			error("channel_input_port_open: channel_new failed");
-			close(sock);
-		} else {
-			c->remote_id = remote_id;
-		}
+		c->remote_id = remote_id;
 	}
 	if (c == NULL) {
 		packet_start(SSH_MSG_CHANNEL_OPEN_FAILURE);
@@ -2083,11 +2063,6 @@ channel_setup_fwd_listener(int type, const char *listen_addr, u_short listen_por
 		c = channel_new("port listener", type, sock, sock, -1,
 		    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT,
 		    0, xstrdup("port listener"), 1);
-		if (c == NULL) {
-			error("channel_setup_fwd_listener: channel_new failed");
-			close(sock);
-			continue;
-		}
 		strlcpy(c->path, host, sizeof(c->path));
 		c->host_port = port_to_connect;
 		c->listening_port = listen_port;
@@ -2427,8 +2402,7 @@ x11_create_display_inet(int x11_display_offset, int x11_use_localhost,
 		    SSH_CHANNEL_X11_LISTENER, sock, sock, -1,
 		    CHAN_X11_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT,
 		    0, xstrdup("X11 inet listener"), 1);
-		if (nc != NULL)
-			nc->single_connection = single_connection;
+		nc->single_connection = single_connection;
 	}
 
 	/* Return the display number for the DISPLAY environment variable. */
@@ -2580,13 +2554,8 @@ x11_input_open(int type, u_int32_t seq, void *ctxt)
 		c = channel_new("connected x11 socket",
 		    SSH_CHANNEL_X11_OPEN, sock, sock, -1, 0, 0, 0,
 		    remote_host, 1);
-		if (c == NULL) {
-			error("x11_input_open: channel_new failed");
-			close(sock);
-		} else {
-			c->remote_id = remote_id;
-			c->force_drain = 1;
-		}
+		c->remote_id = remote_id;
+		c->force_drain = 1;
 	}
 	if (c == NULL) {
 		/* Send refusal to the remote host. */
@@ -2800,13 +2769,6 @@ auth_input_request_forwarding(struct passwd * pw)
 	    SSH_CHANNEL_AUTH_SOCKET, sock, sock, -1,
 	    CHAN_X11_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT,
 	    0, xstrdup("auth socket"), 1);
-	if (nc == NULL) {
-		error("auth_input_request_forwarding: channel_new failed");
-		auth_sock_cleanup_proc(pw);
-		fatal_remove_cleanup(auth_sock_cleanup_proc, pw);
-		close(sock);
-		return 0;
-	}
 	strlcpy(nc->path, auth_sock_name, sizeof(nc->path));
 	return 1;
 }
@@ -2840,14 +2802,8 @@ auth_input_open_request(int type, u_int32_t seq, void *ctxt)
 		name = xstrdup("authentication agent connection");
 		c = channel_new("", SSH_CHANNEL_OPEN, sock, sock,
 		    -1, 0, 0, 0, name, 1);
-		if (c == NULL) {
-			error("auth_input_open_request: channel_new failed");
-			xfree(name);
-			close(sock);
-		} else {
-			c->remote_id = remote_id;
-			c->force_drain = 1;
-		}
+		c->remote_id = remote_id;
+		c->force_drain = 1;
 	}
 	if (c == NULL) {
 		packet_start(SSH_MSG_CHANNEL_OPEN_FAILURE);

@@ -22,6 +22,9 @@
    - markus@cvs.openbsd.org 2002/02/06 14:37:22
      [session.c]
      minor KNF
+   - markus@cvs.openbsd.org 2002/02/06 14:55:16
+     [channels.c clientloop.c serverloop.c ssh.c]
+     channel_new never returns NULL, mouring@; ok djm@
 
 20020205
  - (djm) Cleanup after sync:
@@ -7528,4 +7531,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1834 2002/02/08 11:06:48 djm Exp $
+$Id: ChangeLog,v 1.1835 2002/02/08 11:07:16 djm Exp $

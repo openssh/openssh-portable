@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.97 2002/02/03 17:53:25 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.98 2002/02/06 14:55:16 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -870,10 +870,6 @@ server_request_direct_tcpip(char *ctype)
 	c = channel_new(ctype, SSH_CHANNEL_CONNECTING,
 	    sock, sock, -1, CHAN_TCP_WINDOW_DEFAULT,
 	    CHAN_TCP_PACKET_DEFAULT, 0, xstrdup("direct-tcpip"), 1);
-	if (c == NULL) {
-		error("server_request_direct_tcpip: channel_new failed");
-		close(sock);
-	}
 	return c;
 }
 
@@ -893,10 +889,6 @@ server_request_session(char *ctype)
 	c = channel_new(ctype, SSH_CHANNEL_LARVAL,
 	    -1, -1, -1, /*window size*/0, CHAN_SES_PACKET_DEFAULT,
 	    0, xstrdup("server-session"), 1);
-	if (c == NULL) {
-		error("server_request_session: channel_new failed");
-		return NULL;
-	}
 	if (session_open(xxx_authctxt, c->self) != 1) {
 		debug("session open failed, free channel %d", c->self);
 		channel_free(c);

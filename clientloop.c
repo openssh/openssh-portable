@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.95 2002/01/10 11:24:04 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.96 2002/02/06 14:55:15 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1072,10 +1072,6 @@ client_request_forwarded_tcpip(const char *request_type, int rchan)
 	    SSH_CHANNEL_CONNECTING, sock, sock, -1,
 	    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_WINDOW_DEFAULT, 0,
 	    xstrdup(originator_address), 1);
-	if (c == NULL) {
-		error("client_request_forwarded_tcpip: channel_new failed");
-		close(sock);
-	}
 	xfree(originator_address);
 	xfree(listen_address);
 	return c;
@@ -1113,10 +1109,6 @@ client_request_x11(const char *request_type, int rchan)
 	    SSH_CHANNEL_X11_OPEN, sock, sock, -1,
 	    CHAN_TCP_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT, 0,
 	    xstrdup("x11"), 1);
-	if (c == NULL) {
-		error("client_request_x11: channel_new failed");
-		close(sock);
-	}
 	c->force_drain = 1;
 	return c;
 }
@@ -1139,10 +1131,6 @@ client_request_agent(const char *request_type, int rchan)
 	    SSH_CHANNEL_OPEN, sock, sock, -1,
 	    CHAN_X11_WINDOW_DEFAULT, CHAN_TCP_WINDOW_DEFAULT, 0,
 	    xstrdup("authentication agent connection"), 1);
-	if (c == NULL) {
-		error("client_request_agent: channel_new failed");
-		close(sock);
-	}
 	c->force_drain = 1;
 	return c;
 }
