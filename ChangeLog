@@ -1,5 +1,9 @@
 20010406
  - (stevesk) logintest.c: fix for systems without __progname
+ - OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2001/04/05 10:00:06
+     [compat.c]
+     2.3.x does old  GEX, too; report jakob@
 
 20010405
  - OpenBSD CVS Sync                                              
@@ -4872,4 +4876,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1063 2001/04/05 23:05:22 stevesk Exp $
+$Id: ChangeLog,v 1.1064 2001/04/05 23:19:21 mouring Exp $
