@@ -1,4 +1,4 @@
-#	$OpenBSD: sshd_config,v 1.32 2001/02/06 22:07:50 deraadt Exp $
+#	$OpenBSD: sshd_config,v 1.33 2001/02/22 18:09:06 deraadt Exp $
 
 # This is the sshd server system-wide configuration file.  See sshd(8)
 # for more information.
@@ -9,7 +9,7 @@ Port 22
 #ListenAddress ::
 HostKey /etc/ssh_host_key
 HostKey /etc/ssh_host_dsa_key
-#HostKey /etc/ssh_host_rsa_key
+HostKey /etc/ssh_host_rsa_key
 ServerKeyBits 768
 LoginGraceTime 600
 KeyRegenerationInterval 3600
