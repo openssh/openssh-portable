@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.124 2001/06/07 20:23:05 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.125 2001/06/22 23:35:21 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -244,7 +244,7 @@ main(int ac, char **av)
 {
 	int i, opt, optind, exit_status, ok;
 	u_short fwd_port, fwd_host_port;
-	char *optarg, *cp, buf[256];
+	char *optarg, *p, *cp, buf[256];
 	struct stat st;
 	struct passwd *pw;
 	int dummy;
@@ -305,10 +305,12 @@ main(int ac, char **av)
 		if (av[optind][0] != '-') {
 			if (host)
 				break;
-			if ((cp = strchr(av[optind], '@'))) {
-				if(cp == av[optind])
+			if (strchr(av[optind], '@')) {
+				p = xstrdup(av[optind]);
+				cp = strchr(p, '@');
+				if(cp == NULL || cp == p)
 					usage();
-				options.user = av[optind];
+				options.user = p;
 				*cp = '\0';
 				host = ++cp;
 			} else
