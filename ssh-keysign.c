@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keysign.c,v 1.2 2002/05/31 10:30:33 markus Exp $");
+RCSID("$OpenBSD: ssh-keysign.c,v 1.3 2002/06/08 05:07:09 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -60,8 +60,12 @@ valid_request(struct passwd *pw, char *host, Key **ret, u_char *data,
 	buffer_init(&b);
 	buffer_append(&b, data, datalen);
  
-	/* session id */
-	buffer_skip_string(&b);
+	/* session id, currently limited to SHA1 (20 bytes) */
+	p = buffer_get_string(&b, &len);
+	if (len != 20)
+		fail++;
+	xfree(p);
+
 	if (buffer_get_char(&b) != SSH2_MSG_USERAUTH_REQUEST)
 		fail++;
 
