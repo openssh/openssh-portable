@@ -79,7 +79,7 @@ $(LIBOPENBSD_COMPAT_OBJS): config.h
 
 LIBCOMPAT=openbsd-compat/libopenbsd-compat.a
 $(LIBCOMPAT): 
-	(cd `dirname $@`; make)
+	(cd `dirname $@`; $(MAKE))
 
 libssh.a: $(LIBSSH_OBJS)
 	$(AR) rv $@ $(LIBSSH_OBJS)
@@ -117,12 +117,12 @@ $(MANPAGES) $(CONFIGFILES)::
 	$(FIXPATHSCMD) $(srcdir)/$@
 
 clean:
-	(cd openbsd-compat; make clean)
+	(cd openbsd-compat; $(MAKE) clean)
 	rm -f *.o *.a $(TARGETS) logintest config.cache config.log 
 	rm -f *.out core
 
 distclean: clean
-	(cd openbsd-compat; make distclean)
+	(cd openbsd-compat; $(MAKE) distclean)
 	rm -f Makefile config.h config.status ssh_prng_cmds *~
 
 mrproper: distclean

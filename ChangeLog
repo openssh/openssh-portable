@@ -1,6 +1,8 @@
 20010102
  - (bal) Makefile fix where sourcedir != builddir by Corinna Vinschen 
    <vinschen@redhat.com>
+ - (bal) Makefile fix to use $(MAKE) instead of 'make'  for platforms
+   that use 'gmake'.   Patch by Tim Rice <tim@multitalents.net>
 
 20010101
  - (bal) Minor fix to Makefile to stop rebuilding executables if no
