@@ -1159,8 +1159,6 @@ do_nologin(struct passwd *pw)
 void
 do_setusercontext(struct passwd *pw)
 {
-	char tty='\0';
-
 #ifdef HAVE_CYGWIN
 	if (is_winnt) {
 #else /* HAVE_CYGWIN */
@@ -1170,9 +1168,9 @@ do_setusercontext(struct passwd *pw)
 		setpcred(pw->pw_name);
 #endif /* HAVE_SETPCRED */
 #ifdef HAVE_LOGIN_CAP
-#ifdef __bsdi__
+# ifdef __bsdi__
 		setpgid(0, 0);
-#endif
+# endif
 		if (setusercontext(lc, pw, pw->pw_uid,
 		    (LOGIN_SETALL & ~LOGIN_SETPATH)) < 0) {
 			perror("unable to set user context");

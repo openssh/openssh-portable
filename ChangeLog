@@ -6,6 +6,8 @@
    - markus@cvs.openbsd.org 2002/07/12 15:50:17
      [cipher.c]
      EVP_CIPH_CUSTOM_IV for our own rijndael
+ - (bal) Remove unused tty defined in do_setusercontext() pointed out by
+   dtucker@zip.com.au plus a a more KNF since I am near it.
 
 20020714
  - (tim) [Makefile.in] replace "id sshd" with "sshd -t"
@@ -1370,4 +1372,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2368 2002/07/15 17:52:49 mouring Exp $
+$Id: ChangeLog,v 1.2369 2002/07/15 17:58:34 mouring Exp $
