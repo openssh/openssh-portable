@@ -322,6 +322,10 @@ typedef int mode_t;
 # define atexit(a) on_exit(a)
 #endif /* !defined(HAVE_ATEXIT) && defined(HAVE_ON_EXIT) */
 
+#if defined(HAVE_VHANGUP) && !defined(BROKEN_VHANGUP)
+#  define USE_VHANGUP
+#endif /* defined(HAVE_VHANGUP) && !defined(BROKEN_VHANGUP) */
+
 /**
  ** login recorder definitions
  **/

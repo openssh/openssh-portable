@@ -29,12 +29,13 @@ INSTALL=@INSTALL@
 PERL=@PERL@
 ENT=@ENT@
 LDFLAGS=-L. @LDFLAGS@
+EXEEXT=@EXEEXT@
 
 INSTALL_SSH_PRNG_CMDS=@INSTALL_SSH_PRNG_CMDS@
 
-TARGETS=ssh sshd ssh-add ssh-keygen ssh-agent scp sftp-server $(EXTRA_TARGETS)
+TARGETS=ssh$(EXEEXT) sshd$(EXEEXT) ssh-add$(EXEEXT) ssh-keygen$(EXEEXT) ssh-agent$(EXEEXT) scp$(EXEEXT) sftp-server$(EXEEXT) $(EXTRA_TARGETS)
 
-LIBSSH_OBJS=atomicio.o authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o cipher.o compat.o compress.o crc32.o deattack.o dispatch.o dsa.o hmac.o hostfile.o key.o kex.o log.o match.o mpaux.o nchan.o packet.o radix.o entropy.o readpass.o rsa.o tildexpand.o ttymodes.o uidswap.o util.o uuencode.o xmalloc.o 
+LIBSSH_OBJS=atomicio.o authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o cipher.o compat.o compress.o crc32.o cygwin_util.o deattack.o dispatch.o dsa.o hmac.o hostfile.o key.o kex.o log.o match.o mpaux.o nchan.o packet.o radix.o entropy.o readpass.o rsa.o tildexpand.o ttymodes.o uidswap.o util.o uuencode.o xmalloc.o 
 
 LIBOPENBSD_COMPAT_OBJS=bsd-arc4random.o bsd-base64.o bsd-bindresvport.o bsd-daemon.o bsd-inet_aton.o bsd-inet_ntoa.o bsd-misc.o bsd-mktemp.o bsd-rresvport.o bsd-setenv.o bsd-sigaction.o bsd-snprintf.o bsd-strlcat.o bsd-strlcpy.o bsd-strsep.o fake-getaddrinfo.o fake-getnameinfo.o next-posix.o
 
@@ -68,25 +69,25 @@ libssh.a: $(LIBSSH_OBJS)
 	$(AR) rv $@ $(LIBSSH_OBJS)
 	$(RANLIB) $@
 
-ssh: libopenbsd-compat.a libssh.a $(SSHOBJS)
+ssh$(EXEEXT): libopenbsd-compat.a libssh.a $(SSHOBJS)
 	$(LD) -o $@ $(SSHOBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
-sshd: libssh.a	libopenbsd-compat.a $(SSHDOBJS)
+sshd$(EXEEXT): libssh.a	libopenbsd-compat.a $(SSHDOBJS)
 	$(LD) -o $@ $(SSHDOBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
-scp: libopenbsd-compat.a libssh.a scp.o
+scp$(EXEEXT): libopenbsd-compat.a libssh.a scp.o
 	$(LD) -o $@ scp.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
-ssh-add: libopenbsd-compat.a libssh.a ssh-add.o log-client.o
+ssh-add$(EXEEXT): libopenbsd-compat.a libssh.a ssh-add.o log-client.o
 	$(LD) -o $@ ssh-add.o log-client.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
-ssh-agent: libopenbsd-compat.a libssh.a ssh-agent.o log-client.o
+ssh-agent$(EXEEXT): libopenbsd-compat.a libssh.a ssh-agent.o log-client.o
 	$(LD) -o $@ ssh-agent.o log-client.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
-ssh-keygen: libopenbsd-compat.a libssh.a ssh-keygen.o log-client.o
+ssh-keygen$(EXEEXT): libopenbsd-compat.a libssh.a ssh-keygen.o log-client.o
 	$(LD) -o $@ ssh-keygen.o log-client.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
-sftp-server: libopenbsd-compat.a libssh.a sftp-server.o log-server.o
+sftp-server$(EXEEXT): libopenbsd-compat.a libssh.a sftp-server.o log-server.o
 	$(LD) -o $@ sftp-server.o log-server.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
 # test driver for the loginrec code - not built by default
@@ -142,7 +143,7 @@ install-files:
 	$(INSTALL) -m 644 sshd.[08].out $(DESTDIR)$(mandir)/$(mansubdir)8/sshd.8
 	$(INSTALL) -m 644 sftp-server.[08].out $(DESTDIR)$(mandir)/$(mansubdir)8/sftp-server.8
 	-rm -f $(DESTDIR)$(bindir)/slogin
-	ln -s ssh $(DESTDIR)$(bindir)/slogin
+	ln -s ssh$(EXEEXT) $(DESTDIR)$(bindir)/slogin
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/slogin.1
 	ln -s ssh.1 $(DESTDIR)$(mandir)/$(mansubdir)1/slogin.1
 	if [ ! -f $(DESTDIR)$(sysconfdir)/ssh_config -a ! -f $(DESTDIR)$(sysconfdir)/sshd_config ]; then \
@@ -155,7 +156,7 @@ install-files:
 		$(INSTALL) -m 644 ssh_prng_cmds.out $(DESTDIR)$(sysconfdir)/ssh_prng_cmds; \
 	fi
 
-host-key: ssh-keygen
+host-key: ssh-keygen$(EXEEXT)
 	if [ -z "$(DESTDIR)" ] ; then \
 		if [ -f "$(DESTDIR)$(sysconfdir)/ssh_host_key" ] ; then \
 			echo "$(DESTDIR)$(sysconfdir)/ssh_host_key already exists, skipping." ; \
@@ -169,7 +170,7 @@ host-key: ssh-keygen
 		fi ; \
 	fi ;
 
-host-key-force: ssh-keygen
+host-key-force: ssh-keygen$(EXEEXT)
 	./ssh-keygen -b 1024 -f $(DESTDIR)$(sysconfdir)/ssh_host_key -N ""
 	./ssh-keygen -d -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key -N ""
 
@@ -186,12 +187,12 @@ uninstallall:	uninstall
 	-rmdir $(DESTDIR)$(libexecdir)
 
 uninstall: 
-	-rm -f $(DESTDIR)$(bindir)/ssh
-	-rm -f $(DESTDIR)$(bindir)/scp
-	-rm -f $(DESTDIR)$(bindir)/ssh-add
-	-rm -f $(DESTDIR)$(bindir)/ssh-agent
-	-rm -f $(DESTDIR)$(bindir)/ssh-keygen
-	-rm -f $(DESTDIR)$(sbindir)/sshd
+	-rm -f $(DESTDIR)$(bindir)/ssh$(EXEEXT)
+	-rm -f $(DESTDIR)$(bindir)/scp$(EXEEXT)
+	-rm -f $(DESTDIR)$(bindir)/ssh-add$(EXEEXT)
+	-rm -f $(DESTDIR)$(bindir)/ssh-agent$(EXEEXT)
+	-rm -f $(DESTDIR)$(bindir)/ssh-keygen$(EXEEXT)
+	-rm -f $(DESTDIR)$(sbindir)/sshd$(EXEEXT)
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/ssh.1
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/scp.1
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-add.1

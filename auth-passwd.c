@@ -37,6 +37,13 @@ RCSID("$OpenBSD: auth-passwd.c,v 1.16 2000/06/20 01:39:38 markus Exp $");
 # include "md5crypt.h"
 #endif /* defined(HAVE_MD5_PASSWORDS) && !defined(HAVE_MD5_CRYPT) */
 
+#ifdef HAVE_CYGWIN
+#undef ERROR
+#include <windows.h>
+#include <sys/cygwin.h>
+#define is_winnt       (GetVersion() < 0x80000000)
+#endif
+
 /*
  * Tries to authenticate the user using password.  Returns true if
  * authentication succeeds.
@@ -63,10 +70,30 @@ auth_password(struct passwd * pw, const char *password)
 	/* deny if no user. */
 	if (pw == NULL)
 		return 0;
+#ifndef HAVE_CYGWIN
 	if (pw->pw_uid == 0 && options.permit_root_login == 2)
 		return 0;
+#endif
+#ifdef HAVE_CYGWIN
+	/*
+	 * Empty password is only possible on NT if the user has _really_
+	 * an empty password and authentication is done, though.
+	 */
+        if (!is_winnt) 
+#endif
 	if (*password == '\0' && options.permit_empty_passwd == 0)
 		return 0;
+
+#ifdef HAVE_CYGWIN
+	if (is_winnt) {
+		HANDLE hToken = cygwin_logon_user(pw, password);
+
+		if (hToken == INVALID_HANDLE_VALUE)
+			return 0;
+		cygwin_set_impersonation_token(hToken);
+		return 1;
+	}
+#endif
 
 #ifdef SKEY
 	if (options.skey_authentication == 1) {

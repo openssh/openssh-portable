@@ -765,7 +765,7 @@ main(int ac, char **av)
 			 * fail if there already is a daemon, and this will
 			 * overwrite any old pid in the file.
 			 */
-			f = fopen(options.pid_file, "w");
+			f = fopen(options.pid_file, "wb");
 			if (f) {
 				fprintf(f, "%u\n", (unsigned int) getpid());
 				fclose(f);

@@ -243,7 +243,11 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 
 			/* Create a socket for connecting. */
 			sock = ssh_create_socket(original_real_uid,
+#ifdef HAVE_CYGWIN
+			    !anonymous && port < IPPORT_RESERVED,
+#else
 			    !anonymous && geteuid() == 0 && port < IPPORT_RESERVED,
+#endif
 			    ai->ai_family);
 			if (sock < 0)
 				continue;

@@ -161,7 +161,7 @@
 #include "xmalloc.h"
 #include "loginrec.h"
 
-RCSID("$Id: loginrec.c,v 1.22 2000/08/29 03:30:37 djm Exp $");
+RCSID("$Id: loginrec.c,v 1.23 2000/09/05 05:13:07 djm Exp $");
 
 /**
  ** prototypes for helper functions in this file
@@ -401,10 +401,12 @@ login_set_addr(struct logininfo *li, const struct sockaddr *sa,
 int
 login_write (struct logininfo *li)
 {
+#ifndef HAVE_CYGWIN
 	if ((int)geteuid() != 0) {
 	  log("Attempt to write login records by non-root user (aborting)");
 	  return 1;
 	}
+#endif
 
 	/* set the timestamp */
 	login_set_current_time(li);

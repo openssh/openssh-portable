@@ -1567,6 +1567,7 @@ channel_input_port_forward_request(int is_root, int gateway_ports)
 	hostname = packet_get_string(NULL);
 	host_port = packet_get_int();
 
+#ifndef HAVE_CYGWIN
 	/*
 	 * Check that an unprivileged user is not trying to forward a
 	 * privileged port.
@@ -1574,6 +1575,7 @@ channel_input_port_forward_request(int is_root, int gateway_ports)
 	if (port < IPPORT_RESERVED && !is_root)
 		packet_disconnect("Requested forwarding of port %d but user is not root.",
 				  port);
+#endif
 	/*
 	 * Initiate forwarding,
 	 */

@@ -21,6 +21,7 @@ Chris Saia <csaia@wtower.com> - SuSE packaging
 Chris, the Young One <cky@pobox.com> - Password auth fixes
 Christos Zoulas <christos@zoulas.com> - Autoconf fixes
 Chun-Chung Chen <cjj@u.washington.edu> - RPM fixes
+Corinna Vinschen <vinschen@cygnus.com> - Cygwin support
 Dan Brosemer <odin@linuxfreak.com> - Autoconf support, build fixes
 Darren Hall <dhall@virage.org> - AIX patches
 David Agraz <dagraz@jahoopa.com> - Build fixes

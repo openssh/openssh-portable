@@ -38,6 +38,8 @@
      [session.c]
      set SSH_ORIGINAL_COMMAND; from Leakin@dfw.nostrum.com, bet@rahul.net
  - (djm) Cleanup after import. Fix sftp-server compilation, Makefile
+ - (djm) Merge cygwin support from Corinna Vinschen <vinschen@cygnus.com>
+
 20000903
  - (djm) Fix Redhat init script
 

@@ -42,6 +42,11 @@
 static char rcsid[] = "$OpenBSD: mktemp.c,v 1.13 1998/06/30 23:03:13 deraadt Exp $";
 #endif /* LIBC_SCCS and not lint */
 
+#ifdef HAVE_CYGWIN
+#define open binary_open
+extern int binary_open();
+#endif
+
 static int _gettemp(char *, int *, int, int);
 
 int

@@ -43,6 +43,9 @@
 /* Define if your snprintf is busted */
 #undef BROKEN_SNPRINTF
 
+/* Define if you are on Cygwin */
+#undef HAVE_CYGWIN
+
 /* Define if you are on NeXT */
 #undef HAVE_NEXT
 
@@ -242,6 +245,9 @@
 
 /* getaddrinfo is broken (if present) */
 #undef BROKEN_GETADDRINFO
+
+/* vhangup is broken (if present) */
+#undef BROKEN_VHANGUP
 
 /* Workaround more Linux IPv6 quirks */
 #undef DONT_TRY_OTHER_AF

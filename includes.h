@@ -29,7 +29,9 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #include <sys/wait.h>
 #include <sys/resource.h>
 
+#ifndef HAVE_CYGWIN
 #include <netinet/tcp.h>
+#endif
 #include <arpa/inet.h>
 #include <netdb.h>
 
@@ -46,6 +48,9 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #include <grp.h>
 #include <time.h>
 #include <dirent.h>
+#ifdef HAVE_CYGWIN
+#include <getopt.h>
+#endif
 
 #ifdef HAVE_BSTRING_H
 # include <bstring.h>
@@ -109,5 +114,12 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
  * client program.  Socketpairs do not seem to work on all systems.
  */
 /* #define USE_PIPES 1 */
+
+#ifdef HAVE_CYGWIN
+#define open binary_open
+#define pipe binary_pipe
+extern int binary_open();
+extern int binary_pipe();
+#endif
 
 #endif				/* INCLUDES_H */

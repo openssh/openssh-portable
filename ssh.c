@@ -215,6 +215,7 @@ main(int ac, char **av)
 	original_real_uid = getuid();
 	original_effective_uid = geteuid();
 
+#ifndef HAVE_CYGWIN
 	/* If we are installed setuid root be careful to not drop core. */
 	if (original_real_uid != original_effective_uid) {
 		struct rlimit rlim;
@@ -222,6 +223,7 @@ main(int ac, char **av)
 		if (setrlimit(RLIMIT_CORE, &rlim) < 0)
 			fatal("setrlimit failed: %.100s", strerror(errno));
 	}
+#endif
 	/*
 	 * Use uid-swapping to give up root privileges for the duration of
 	 * option processing.  We will re-instantiate the rights when we are
@@ -253,8 +255,17 @@ main(int ac, char **av)
 		cp = strrchr(av0, '/') + 1;
 	else
 		cp = av0;
+#ifdef HAVE_CYGWIN
+	if (strcasecmp(cp, "rsh") && strcasecmp(cp, "ssh") &&
+	    strcasecmp(cp, "rlogin") && strcasecmp(cp, "slogin") &&
+	    strcasecmp(cp, "remsh") &&
+	    strcasecmp(cp, "rsh.exe") && strcasecmp(cp, "ssh.exe") &&
+	    strcasecmp(cp, "rlogin.exe") && strcasecmp(cp, "slogin.exe") &&
+	    strcasecmp(cp, "remsh.exe"))
+#else
 	if (strcmp(cp, "rsh") && strcmp(cp, "ssh") && strcmp(cp, "rlogin") &&
 	    strcmp(cp, "slogin") && strcmp(cp, "remsh"))
+#endif
 		host = cp;
 
 	for (optind = 1; optind < ac; optind++) {
@@ -551,7 +562,12 @@ main(int ac, char **av)
 		}
 	}
 	/* Disable rhosts authentication if not running as root. */
+#ifdef HAVE_CYGWIN
+	/* Ignore uid if running under Windows */
+	if (!options.use_privileged_port) {
+#else
 	if (original_effective_uid != 0 || !options.use_privileged_port) {
+#endif
 		options.rhosts_authentication = 0;
 		options.rhosts_rsa_authentication = 0;
 	}

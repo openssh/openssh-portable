@@ -23,6 +23,11 @@ RCSID("$OpenBSD: auth1.c,v 1.3 2000/08/20 18:42:40 millert Exp $");
 # include <siad.h>
 #endif
 
+#ifdef HAVE_CYGWIN
+#include <windows.h>
+#define is_winnt       (GetVersion() < 0x80000000)
+#endif
+
 /* import */
 extern ServerOptions options;
 extern char *forced_command;
@@ -371,6 +376,23 @@ do_authloop(struct passwd * pw)
 			break;
 		}
 
+#ifdef HAVE_CYGWIN
+		/*
+		 * The only authentication which is able to change the user
+		 * context on NT systems is the password authentication. So
+		 * we deny all requsts for changing the user context if another
+		 * authentication method is used.
+		 * This may change in future when a special openssh
+		 * subauthentication package is available.
+		 */
+		if (is_winnt && type != SSH_CMSG_AUTH_PASSWORD &&
+		    authenticated && geteuid() != pw->pw_uid) {
+			packet_disconnect("Authentication rejected for uid %d.",
+					  (int) pw->pw_uid);
+			authenticated = 0;
+		}
+#endif
+
 		/*
 		 * Check if the user is logging in as root and root logins
 		 * are disallowed.
@@ -491,12 +513,15 @@ do_authentication()
 	start_pam(pw);
 #endif
 
+#ifndef HAVE_CYGWIN
 	/*
 	 * If we are not running as root, the user must have the same uid as
 	 * the server.
+	 * Rule not valid on Windows systems.
 	 */
 	if (getuid() != 0 && pw->pw_uid != getuid())
 		packet_disconnect("Cannot change user when server not running as root.");
+#endif
 
 	debug("Attempting authentication for %.100s.", pw->pw_name);
 

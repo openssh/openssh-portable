@@ -51,6 +51,13 @@ daemon(nochdir, noclose)
 	case 0:
 		break;
 	default:
+#ifdef HAVE_CYGWIN
+		/*
+		 * This sleep avoids a race condition which kills the
+		 * child process if parent is started by a NT/W2K service.
+		 */
+		sleep(1);
+#endif
 		_exit(0);
 	}
 

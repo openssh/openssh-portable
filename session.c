@@ -41,6 +41,12 @@ RCSID("$OpenBSD: session.c,v 1.35 2000/09/04 19:07:21 markus Exp $");
 # include <siad.h>
 #endif
 
+#ifdef HAVE_CYGWIN
+#include <windows.h>
+#include <sys/cygwin.h>
+#define is_winnt       (GetVersion() < 0x80000000)
+#endif
+
 /* AIX limits */
 #if defined(HAVE_GETUSERATTR) && !defined(S_UFSIZE_HARD) && defined(S_UFSIZE)
 # define S_UFSIZE_HARD  S_UFSIZE "_hard"
@@ -503,6 +509,10 @@ do_exec_no_pty(Session *s, const char *command, struct passwd * pw)
 		do_child(command, pw, NULL, s->display, s->auth_proto, s->auth_data, NULL);
 		/* NOTREACHED */
 	}
+#ifdef HAVE_CYGWIN
+	if (is_winnt)
+		cygwin_set_impersonation_token(INVALID_HANDLE_VALUE);
+#endif
 	if (pid < 0)
 		packet_disconnect("fork failed: %.100s", strerror(errno));
 	s->pid = pid;
@@ -594,6 +604,10 @@ do_exec_pty(Session *s, const char *command, struct passwd * pw)
 		    s->auth_data, s->tty);
 		/* NOTREACHED */
 	}
+#ifdef HAVE_CYGWIN
+	if (is_winnt)
+		cygwin_set_impersonation_token(INVALID_HANDLE_VALUE);
+#endif
 	if (pid < 0)
 		packet_disconnect("fork failed: %.100s", strerror(errno));
 	s->pid = pid;
@@ -973,7 +987,11 @@ do_child(const char *command, struct passwd * pw, const char *term,
 			exit(1);
 		}
 #else /* HAVE_OSF_SIA */
+#ifdef HAVE_CYGWIN
+		if (is_winnt) {
+#else
 		if (getuid() == 0 || geteuid() == 0) {
+#endif
 # ifdef HAVE_GETUSERATTR
 			set_limits_from_userattr(pw->pw_name);
 # endif /* HAVE_GETUSERATTR */
@@ -1018,6 +1036,9 @@ do_child(const char *command, struct passwd * pw, const char *term,
 		}
 #endif /* HAVE_OSF_SIA */
 
+#ifdef HAVE_CYGWIN
+		if (is_winnt)
+#endif
 		if (getuid() != pw->pw_uid || geteuid() != pw->pw_uid)
 			fatal("Failed to set uids to %u.", (u_int) pw->pw_uid);
 	}
@@ -1047,6 +1068,22 @@ do_child(const char *command, struct passwd * pw, const char *term,
 	env = xmalloc(envsize * sizeof(char *));
 	env[0] = NULL;
 
+#ifdef HAVE_CYGWIN
+	/*
+	 * The Windows environment contains some setting which are
+	 * important for a running system. They must not be dropped.
+	 */
+	{
+		char **ep;
+		for (ep = environ; *ep; ++ep) {
+			char *esp = strchr(*ep, '=');
+			*esp = '\0';
+			child_set_env(&env, &envsize, *ep, esp + 1);
+			*esp = '=';
+		}
+	}
+#endif
+
 	if (!options.use_login) {
 		/* Set basic environment. */
 		child_set_env(&env, &envsize, "USER", pw->pw_name);
@@ -1056,7 +1093,15 @@ do_child(const char *command, struct passwd * pw, const char *term,
 		(void) setusercontext(lc, pw, pw->pw_uid, LOGIN_SETPATH);
 		child_set_env(&env, &envsize, "PATH", getenv("PATH"));
 #else
+#ifndef HAVE_CYGWIN
+		/*
+		 * There's no standard path on Windows. The path contains
+		 * important components pointing to the system directories,
+		 * needed for loading shared libraries. So the path better
+		 * remains intact here.
+		 */
 		child_set_env(&env, &envsize, "PATH", _PATH_STDPATH);
+#endif
 #endif
 
 		snprintf(buf, sizeof buf, "%.200s/%.50s",
@@ -1234,11 +1279,13 @@ do_child(const char *command, struct passwd * pw, const char *term,
 					    "Running %.100s add %.100s %.100s %.100s\n",
 					    options.xauth_location, display,
 					    auth_proto, auth_data);
+#ifndef HAVE_CYGWIN
 					if (screen != NULL)
 						fprintf(stderr,
 						    "Adding %.*s/unix%s %s %s\n",
 						    (int)(screen-display), display,
 						    screen, auth_proto, auth_data);
+#endif
 				}
 				snprintf(cmd, sizeof cmd, "%s -q -",
 				    options.xauth_location);
@@ -1246,10 +1293,12 @@ do_child(const char *command, struct passwd * pw, const char *term,
 				if (f) {
 					fprintf(f, "add %s %s %s\n", display,
 					    auth_proto, auth_data);
+#ifndef HAVE_CYGWIN
 					if (screen != NULL) 
 						fprintf(f, "add %.*s/unix%s %s %s\n",
 						    (int)(screen-display), display,
 						    screen, auth_proto, auth_data);
+#endif
 					pclose(f);
 				} else {
 					fprintf(stderr, "Could not run %s\n",

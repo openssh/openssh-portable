@@ -54,6 +54,18 @@ case "$host" in
 	MANTYPE='$(CATMAN)'
 	mansubdir=cat
 	;;
+*-*-cygwin*)
+	LIBS="$LIBS /usr/lib/textmode.o"
+	AC_DEFINE(HAVE_CYGWIN)
+	AC_DEFINE(DISABLE_PAM)
+	AC_DEFINE(DISABLE_SHADOW)
+	AC_DEFINE(IPV4_DEFAULT)
+	AC_DEFINE(IP_TOS_IS_BROKEN)
+	AC_DEFINE(BROKEN_VHANGUP)
+	no_pam=1
+	no_libsocket=1
+	no_libnsl=1
+	;;
 *-*-hpux10*)
 	if test -z "$GCC"; then
 		CFLAGS="$CFLAGS -Ae"
@@ -1399,6 +1411,8 @@ if test ! -z "$blibpath" ; then
 	LDFLAGS="$LDFLAGS -blibpath:$blibpath"
 	AC_MSG_WARN([Please check and edit -blibpath in LDFLAGS in Makefile])
 fi
+
+AC_EXEEXT
 
 AC_OUTPUT(Makefile ssh_prng_cmds)
 
