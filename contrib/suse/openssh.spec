@@ -152,7 +152,7 @@ CFLAGS="$RPM_OPT_FLAGS" \
 make
 
 cd contrib
-gcc -Og `gnome-config --cflags gnome gnomeui` \
+gcc -O -g `gnome-config --cflags gnome gnomeui` \
         gnome-ssh-askpass.c -o gnome-ssh-askpass \
         `gnome-config --libs gnome gnomeui`
 cd ..
