@@ -11,15 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.48 1999/12/28 23:25:41 damien Exp $");
-
-#ifdef HAVE_POLL_H
-# include <poll.h>
-#else /* HAVE_POLL_H */
-# ifdef HAVE_SYS_POLL_H
-#  include <sys/poll.h>
-# endif /* HAVE_SYS_POLL_H */
-#endif /* HAVE_POLL_H */
+RCSID("$Id: sshd.c,v 1.49 1999/12/30 04:08:44 damien Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -142,183 +134,6 @@ void do_exec_no_pty(const char *command, struct passwd * pw,
 void do_child(const char *command, struct passwd * pw, const char *term,
 	      const char *display, const char *auth_proto,
 	      const char *auth_data, const char *ttyname);
-
-#ifdef USE_PAM
-static int pamconv(int num_msg, const struct pam_message **msg,
-	  struct pam_response **resp, void *appdata_ptr);
-int do_pam_auth(const char *user, const char *password);
-void do_pam_account(char *username, char *remote_user);
-void do_pam_session(char *username, char *ttyname);
-void do_pam_setcred();
-void pam_cleanup_proc(void *context);
-
-static struct pam_conv conv = {
-	pamconv,
-	NULL
-};
-struct pam_handle_t *pamh = NULL;
-const char *pampasswd = NULL;
-char *pamconv_msg = NULL;
-
-static int pamconv(int num_msg, const struct pam_message **msg,
-	struct pam_response **resp, void *appdata_ptr)
-{
-	struct pam_response *reply;
-	int count;
-	size_t msg_len;
-	char *p;
-
-	/* PAM will free this later */
-	reply = malloc(num_msg * sizeof(*reply));
-	if (reply == NULL)
-		return PAM_CONV_ERR; 
-
-	for(count = 0; count < num_msg; count++) {
-		switch (msg[count]->msg_style) {
-			case PAM_PROMPT_ECHO_OFF:
-				if (pampasswd == NULL) {
-					free(reply);
-					return PAM_CONV_ERR;
-				}
-				reply[count].resp_retcode = PAM_SUCCESS;
-				reply[count].resp = xstrdup(pampasswd);
-				break;
-
-			case PAM_TEXT_INFO:
-				reply[count].resp_retcode = PAM_SUCCESS;
-				reply[count].resp = xstrdup("");
-
-				if (msg[count]->msg == NULL)
-					break;
-
-				debug("Adding PAM message: %s", msg[count]->msg);
-
-				msg_len = strlen(msg[count]->msg);
-				if (pamconv_msg) {
-					size_t n = strlen(pamconv_msg);
-					pamconv_msg = xrealloc(pamconv_msg, n + msg_len + 2);
-					p = pamconv_msg + n;
-				} else {
-					pamconv_msg = p = xmalloc(msg_len + 2);
-				}
-				memcpy(p, msg[count]->msg, msg_len);
-				p[msg_len] = '\n';
-				p[msg_len + 1] = '\0';
-				break;
-
-			case PAM_PROMPT_ECHO_ON:
-			case PAM_ERROR_MSG:
-			default:
-				free(reply);
-				return PAM_CONV_ERR;
-		}
-	}
-
-	*resp = reply;
-
-	return PAM_SUCCESS;
-}
-
-void pam_cleanup_proc(void *context)
-{
-	int pam_retval;
-
-	if (pamh != NULL)
-	{
-		pam_retval = pam_close_session((pam_handle_t *)pamh, 0);
-		if (pam_retval != PAM_SUCCESS) {
-			log("Cannot close PAM session: %.200s", 
-			PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
-		}
-
-		pam_retval = pam_setcred((pam_handle_t *)pamh, PAM_DELETE_CRED);
-		if (pam_retval != PAM_SUCCESS) {
-			log("Cannot delete credentials: %.200s", 
-			PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
-		}
-
-		pam_retval = pam_end((pam_handle_t *)pamh, pam_retval);
-		if (pam_retval != PAM_SUCCESS) {
-			log("Cannot release PAM authentication: %.200s", 
-			PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
-		}
-	}
-}
-
-int do_pam_auth(const char *user, const char *password)
-{
-	int pam_retval;
-	
-	if ((options.permit_empty_passwd == 0) && (password[0] == '\0'))
-		return 0;
-
-	pampasswd = password;
-	
-	pam_retval = pam_authenticate((pam_handle_t *)pamh, 0);
-	if (pam_retval == PAM_SUCCESS) {
-		debug("PAM Password authentication accepted for user \"%.100s\"", user);
-		return 1;
-	} else {
-		debug("PAM Password authentication for \"%.100s\" failed: %s", 
-			user, PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
-		return 0;
-	}
-}
-
-void do_pam_account(char *username, char *remote_user)
-{
-	int pam_retval;
-
-	debug("PAM setting rhost to \"%.200s\"", get_canonical_hostname());
-	pam_retval = pam_set_item((pam_handle_t *)pamh, PAM_RHOST, 
-		get_canonical_hostname());
-	if (pam_retval != PAM_SUCCESS) {
-		log("PAM set rhost failed: %.200s", PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
-		do_fake_authloop(username);
-	}
-
-	if (remote_user != NULL) {
-		debug("PAM setting ruser to \"%.200s\"", remote_user);
-		pam_retval = pam_set_item((pam_handle_t *)pamh, PAM_RUSER, remote_user);
-		if (pam_retval != PAM_SUCCESS) {
-			log("PAM set ruser failed: %.200s", PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
-			do_fake_authloop(username);
-		}
-	}
-
-	pam_retval = pam_acct_mgmt((pam_handle_t *)pamh, 0);
-	if (pam_retval != PAM_SUCCESS) {
-		log("PAM rejected by account configuration: %.200s", PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
-		do_fake_authloop(username);
-	}
-}
-
-void do_pam_session(char *username, char *ttyname)
-{
-	int pam_retval;
-
-	if (ttyname != NULL) {
-		debug("PAM setting tty to \"%.200s\"", ttyname);
-		pam_retval = pam_set_item((pam_handle_t *)pamh, PAM_TTY, ttyname);
-		if (pam_retval != PAM_SUCCESS)
-			fatal("PAM set tty failed: %.200s", PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
-	}
-
-	pam_retval = pam_open_session((pam_handle_t *)pamh, 0);
-	if (pam_retval != PAM_SUCCESS)
-		fatal("PAM session setup failed: %.200s", PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
-}
- 
-void do_pam_setcred()
-{
-	int pam_retval;
- 
-	debug("PAM establishing creds");
-	pam_retval = pam_setcred((pam_handle_t *)pamh, PAM_ESTABLISH_CRED);
-	if (pam_retval != PAM_SUCCESS)
-		fatal("PAM setcred failed: %.200s", PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
-}
-#endif /* USE_PAM */
 
 /*
  * Signal handler for SIGHUP.  Sshd execs itself when it receives SIGHUP;
@@ -973,20 +788,7 @@ main(int ac, char **av)
 	verbose("Closing connection to %.100s", remote_ip);
 
 #ifdef USE_PAM
-	{
-		int retval;
-
-		if (pamh != NULL) {
-			debug("Closing PAM session.");
-			retval = pam_close_session((pam_handle_t *)pamh, 0);
-
-			debug("Terminating PAM library.");
-			if (pam_end((pam_handle_t *)pamh, retval) != PAM_SUCCESS)
-				log("Cannot release PAM authentication.");
-
-			fatal_remove_cleanup(&pam_cleanup_proc, NULL);
-		}
-	}
+	finish_pam();
 #endif /* USE_PAM */
 
 	packet_close();
@@ -1306,17 +1108,7 @@ do_authentication(char *user)
 	pw = &pwcopy;
 
 #ifdef USE_PAM
-	{
-		int pam_retval;
-
-		debug("Starting up PAM with username \"%.200s\"", pw->pw_name);
-
-		pam_retval = pam_start("sshd", pw->pw_name, &conv, (pam_handle_t**)&pamh);
-		if (pam_retval != PAM_SUCCESS)
-			fatal("PAM initialisation failed: %.200s", PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
-
-		fatal_add_cleanup(&pam_cleanup_proc, NULL);
-	}
+	start_pam(pw);
 #endif
 
 	/*
@@ -1334,7 +1126,7 @@ do_authentication(char *user)
 	    (!options.kerberos_authentication || options.kerberos_or_local_passwd) &&
 #endif /* KRB4 */
 #ifdef USE_PAM
-	    do_pam_auth(pw->pw_name, "")) {
+	    auth_pam_password(pw, "")) {
 #else /* USE_PAM */
 	    auth_password(pw, "")) {
 #endif /* USE_PAM */
@@ -1477,9 +1269,6 @@ do_authloop(struct passwd * pw)
 			authenticated = auth_rhosts(pw, client_user);
 
 			snprintf(user, sizeof user, " ruser %s", client_user);
-#ifndef USE_PAM
-			xfree(client_user);
-#endif /* USE_PAM */
 			break;
 
 		case SSH_CMSG_AUTH_RHOSTS_RSA:
@@ -1512,9 +1301,6 @@ do_authloop(struct passwd * pw)
 			BN_clear_free(client_host_key_n);
 
 			snprintf(user, sizeof user, " ruser %s", client_user);
-#ifndef USE_PAM
-			xfree(client_user);
-#endif /* USE_PAM */
 			break;
 
 		case SSH_CMSG_AUTH_RSA:
@@ -1545,7 +1331,7 @@ do_authloop(struct passwd * pw)
 
 #ifdef USE_PAM
 			/* Do PAM auth with password */
-			authenticated = do_pam_auth(pw->pw_name, password);
+			authenticated = auth_pam_password(pw, password);
 #else /* USE_PAM */
 			/* Try authentication with the password. */
 			authenticated = auth_password(pw, password);
@@ -1615,29 +1401,24 @@ do_authloop(struct passwd * pw)
 			get_remote_port(),
 			user);
 
-#ifndef USE_PAM
-		if (authenticated)
+		if (authenticated) {
+#ifdef USE_PAM
+			if (!do_pam_account(pw->pw_name, client_user))
+			{
+				if (client_user != NULL)
+					xfree(client_user);
+
+				do_fake_authloop(pw->pw_name);
+			}
+#endif /* USE_PAM */
 			return;
+		}
+
+		if (client_user != NULL)
+			xfree(client_user);
 
 		if (attempt > AUTH_FAIL_MAX)
 			packet_disconnect(AUTH_FAIL_MSG, pw->pw_name);
-#else /* USE_PAM */
-		if (authenticated) {
-			do_pam_account(pw->pw_name, client_user);
-
-			if (client_user != NULL)
-				xfree(client_user);
-
-			return;
-		}
-
-		if (attempt > AUTH_FAIL_MAX) {
-			if (client_user != NULL)
-				xfree(client_user);
-
-			packet_disconnect(AUTH_FAIL_MSG, pw->pw_name);
-		}
-#endif /* USE_PAM */
 
 		/* Send a message indicating that the authentication attempt failed. */
 		packet_start(SSH_SMSG_FAILURE);
@@ -1672,8 +1453,10 @@ do_fake_authloop(char *user)
 	for (attempt = 1;; attempt++) {
 		/* Read a packet.  This will not return if the client disconnects. */
 		int plen;
+#ifndef SKEY
+		(void)packet_read(&plen);
+#else /* SKEY */
 		int type = packet_read(&plen);
-#ifdef SKEY
 		int dlen;
 		char *password, *skeyinfo;
 		/* Try to send a fake s/key challenge. */
@@ -1845,7 +1628,7 @@ do_authenticated(struct passwd * pw)
 
 #ifdef USE_PAM
 			/* do the pam_open_session since we have the pty */
-			do_pam_session(pw->pw_name,ttyname);
+			do_pam_session(pw->pw_name, ttyname);
 #endif /* USE_PAM */
 
 			break;
@@ -1925,7 +1708,7 @@ do_authenticated(struct passwd * pw)
 
 #ifdef USE_PAM
 			do_pam_setcred();
-#endif
+#endif /* USE_PAM */
 			if (forced_command != NULL)
 				goto do_forced_command;
 			debug("Forking shell.");
@@ -1943,7 +1726,7 @@ do_authenticated(struct passwd * pw)
 
 #ifdef USE_PAM
 			do_pam_setcred();
-#endif
+#endif /* USE_PAM */
 			if (forced_command != NULL)
 				goto do_forced_command;
 			/* Get command from the packet. */
@@ -2221,10 +2004,9 @@ do_exec_pty(const char *command, int ptyfd, int ttyfd,
 		quiet_login = stat(line, &st) >= 0;
 
 #ifdef USE_PAM
-		/* output the results of the pamconv() */
-		if (!quiet_login && pamconv_msg != NULL)
-			fprintf(stderr, pamconv_msg);
-#endif
+		if (!quiet_login)
+			print_pam_messages();
+#endif /* USE_PAM */
 
 		/*
 		 * If the user has logged in before, display the time of last
@@ -2389,6 +2171,39 @@ read_environment_file(char ***env, unsigned int *envsize,
 	fclose(f);
 }
 
+#ifdef USE_PAM
+/*
+ * Sets any environment variables which have been specified by PAM
+ */
+void do_pam_environment(char ***env, int *envsize)
+{
+	char *equals, var_name[512], var_val[512];
+	char **pam_env;
+	int i;
+
+	if ((pam_env = fetch_pam_environment()) == NULL)
+		return;
+	
+	for(i = 0; pam_env[i] != NULL; i++) {
+		if ((equals = strstr(pam_env[i], "=")) == NULL)
+			continue;
+			
+		if (strlen(pam_env[i]) < (sizeof(var_name) - 1))
+		{
+			memset(var_name, '\0', sizeof(var_name));
+			memset(var_val, '\0', sizeof(var_val));
+
+			strncpy(var_name, pam_env[i], equals - pam_env[i]);
+			strcpy(var_val, equals + 1);
+
+			debug("PAM environment: %s=%s", var_name, var_val);
+
+			child_set_env(env, envsize, var_name, var_val);
+		}
+	}
+}
+#endif /* USE_PAM */
+
 /*
  * Performs common processing for the child, such as setting up the
  * environment, closing extra file descriptors, setting the user and group
@@ -2421,11 +2236,9 @@ do_child(const char *command, struct passwd * pw, const char *term,
 	}
 #endif /* USE_PAM */
 
-#ifdef HAVE_SETLOGIN
 	/* Set login name in the kernel. */
 	if (setlogin(pw->pw_name) < 0)
 		error("setlogin failed: %s", strerror(errno));
-#endif /* HAVE_SETLOGIN */
 
 	/* Set uid, gid, and groups. */
 	/* Login(1) does this as well, and it needs uid 0 for the "-h"
@@ -2526,23 +2339,7 @@ do_child(const char *command, struct passwd * pw, const char *term,
 
 #ifdef USE_PAM
 	/* Pull in any environment variables that may have been set by PAM. */
-	{
-		char *equals, var_name[512], var_val[512];
-		char **pam_env = pam_getenvlist((pam_handle_t *)pamh);
-		int i;
-		for(i = 0; pam_env && pam_env[i]; i++) {
-			equals = strstr(pam_env[i], "=");
-			if ((strlen(pam_env[i]) < (sizeof(var_name) - 1)) && (equals != NULL))
-			{
-				debug("PAM environment: %s=%s", var_name, var_val);
-				memset(var_name, '\0', sizeof(var_name));
-				memset(var_val, '\0', sizeof(var_val));
-				strncpy(var_name, pam_env[i], equals - pam_env[i]);
-				strcpy(var_val, equals + 1);
-				child_set_env(&env, &envsize, var_name, var_val);
-			}
-		}
-	}
+	do_pam_environment(&env, &envsize);
 #endif /* USE_PAM */
 
 	if (xauthfile)

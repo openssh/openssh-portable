@@ -31,7 +31,7 @@ LDFLAGS=-L. @LDFLAGS@
 GNOME_CFLAGS=`gnome-config --cflags gnome gnomeui`
 GNOME_LIBS=`gnome-config --libs gnome gnomeui`
 
-OBJS= atomicio.o authfd.o authfile.o auth-krb4.o auth-passwd.o \
+OBJS= atomicio.o authfd.o authfile.o auth-krb4.o auth-passwd.o auth-pam.o \
   auth-rhosts.o auth-rh-rsa.o auth-rsa.o auth-skey.o bsd-daemon.o \
   bsd-login.o bsd-misc.o bsd-mktemp.o bsd-snprintf.o bsd-strlcat.o \
   bsd-strlcpy.o bufaux.o buffer.o canohost.o channels.o cipher.o \
@@ -48,6 +48,12 @@ LIBOBJS= atomicio.o authfd.o authfile.o bsd-daemon.o bsd-misc.o \
   packet.o radix.o readpass.o rsa.o tildexpand.o ttymodes.o uidswap.o \
   xmalloc.o 
 
+SSHOBJS= ssh.o sshconnect.o log-client.o readconf.o clientloop.o
+
+SSHDOBJS= sshd.o auth-rhosts.o auth-krb4.o auth-pam.o auth-passwd.o \
+  auth-rsa.o auth-rh-rsa.o pty.o log-server.o login.o servconf.o \
+  serverloop.o bsd-login.o md5crypt.o
+
 all: $(OBJS) $(TARGETS) manpages
 
 $(OBJS): config.h
@@ -58,16 +64,11 @@ libssh.a: $(LIBOBJS)
 	$(AR) rv $@ $(LIBOBJS)
 	$(RANLIB) $@
 
-ssh: ssh.o sshconnect.o log-client.o readconf.o clientloop.o libssh.a
-	$(CC) -o $@ ssh.o sshconnect.o log-client.o readconf.o \
-		clientloop.o $(LDFLAGS) -lssh $(LIBS)
+ssh: $(SSHOBJS) libssh.a
+	$(CC) -o $@ $(SSHOBJS) $(LDFLAGS) -lssh $(LIBS)
 
-sshd:	sshd.o auth-rhosts.o auth-krb4.o auth-passwd.o auth-rsa.o \
-  auth-rh-rsa.o pty.o log-server.o login.o servconf.o serverloop.o \
-  bsd-login.o md5crypt.o libssh.a
-	$(CC) -o $@ sshd.o auth-rhosts.o auth-krb4.o auth-passwd.o \
-	auth-rsa.o auth-rh-rsa.o pty.o log-server.o login.o servconf.o \
-	serverloop.o bsd-login.o md5crypt.o $(LDFLAGS) -lssh $(LIBS) $(LIBWRAP)
+sshd:	$(SSHDOBJS) libssh.a
+	$(CC) -o $@ $(SSHDOBJS) $(LDFLAGS) -lssh $(LIBS) $(LIBWRAP)
 
 scp:	scp.o libssh.a
 	$(CC) -o $@ scp.o $(LDFLAGS) -lssh $(LIBS) 

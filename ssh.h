@@ -13,7 +13,7 @@
  * 
  */
 
-/* RCSID("$Id: ssh.h,v 1.21 1999/12/21 13:12:39 damien Exp $"); */
+/* RCSID("$Id: ssh.h,v 1.22 1999/12/30 04:08:44 damien Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -740,5 +740,9 @@ int     radix_to_creds(const char *buf, CREDENTIALS * creds);
 char   *skey_fake_keyinfo(char *username);
 int	auth_skey_password(struct passwd * pw, const char *password);
 #endif				/* SKEY */
+
+#ifdef USE_PAM
+#include "auth-pam.h"
+#endif /* USE_PAM */
 
 #endif				/* SSH_H */

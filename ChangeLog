@@ -2,6 +2,9 @@
  - OpenBSD CVS updates:
    - [auth-passwd.c]
      check for NULL 1st
+ - Removed most of the pam code into its own file auth-pam.[ch]. This 
+   cleaned up sshd.c up significantly.
+ - Several other cleanups
 
 19991229
  - Applied another NetBSD portability patch from David Rankin 

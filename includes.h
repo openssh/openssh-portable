@@ -79,6 +79,13 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #ifdef USE_PAM
 # include <security/pam_appl.h>
 #endif
+#ifdef HAVE_POLL_H
+# include <poll.h>
+#else
+# ifdef HAVE_SYS_POLL_H
+#  include <sys/poll.h>
+# endif
+#endif
 
 #include "version.h"
 #include "bsd-misc.h"

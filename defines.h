@@ -226,11 +226,3 @@ typedef unsigned int size_t;
 # define PAM_STRERROR(a,b) pam_strerror((a),(b))
 #endif
 
-#if !defined(HAVE_SETEUID) && defined(HAVE_SETREUID)
-# define seteuid(a) setreuid(-1,a)
-#endif /* !defined(HAVE_SETEUID) && defined(HAVE_SETREUID) */
-
-#ifndef HAVE_INNETGR
-# define innetgr(a,b,c,d) (0)
-#endif /* HAVE_INNETGR */
-

@@ -51,4 +51,17 @@ void setproctitle(const char *fmt, ...);
 int setenv(const char *name, const char *value, int overwrite);
 #endif /* !HAVE_SETENV */
 
+#ifndef HAVE_SETLOGIN
+int setlogin(const char *name);
+#endif /* !HAVE_SETLOGIN */
+
+#ifndef HAVE_INNETGR
+int innetgr(const char *netgroup, const char *host, 
+            const char *user, const char *domain);
+#endif /* HAVE_INNETGR */
+
+#if !defined(HAVE_SETEUID) && defined(HAVE_SETREUID)
+int seteuid(uid_t euid);
+#endif /* !defined(HAVE_SETEUID) && defined(HAVE_SETREUID) */
+
 #endif /* _BSD_MISC_H */
