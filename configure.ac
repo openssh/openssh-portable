@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.180 2004/01/02 06:52:10 djm Exp $
+# $Id: configure.ac,v 1.181 2004/01/02 06:53:04 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -2727,7 +2727,6 @@ if test ! -z "$superuser_path" ; then
 echo "          sshd superuser user PATH: $J"
 fi
 echo "                    Manpage format: $MANTYPE"
-echo "                       DNS support: $DNS_MSG"
 echo "                       PAM support: $PAM_MSG"
 echo "                 KerberosV support: $KRB5_MSG"
 echo "                 Smartcard support: $SCARD_MSG"
