@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.169 2003/12/02 17:01:15 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.170 2003/12/23 16:12:10 jakob Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1414,6 +1414,32 @@ do_child(Session *s, const char *command)
 	 * /etc/ssh/sshrc and xauth are run in the proper environment.
 	 */
 	environ = env;
+
+#ifdef KRB5
+	/*
+	 * At this point, we check to see if AFS is active and if we have
+	 * a valid Kerberos 5 TGT. If so, it seems like a good idea to see
+	 * if we can (and need to) extend the ticket into an AFS token. If
+	 * we don't do this, we run into potential problems if the user's
+	 * home directory is in AFS and it's not world-readable.
+	 */
+
+	if (options.kerberos_get_afs_token && k_hasafs() &&
+	     (s->authctxt->krb5_ctx != NULL)) {
+		char cell[64];
+
+		debug("Getting AFS token");
+
+		k_setpag();
+
+		if (k_afs_cell_of_file(pw->pw_dir, cell, sizeof(cell)) == 0)
+			krb5_afslog(s->authctxt->krb5_ctx,
+			    s->authctxt->krb5_fwd_ccache, cell, NULL);
+
+		krb5_afslog_home(s->authctxt->krb5_ctx,
+		    s->authctxt->krb5_fwd_ccache, NULL, NULL, pw->pw_dir);
+	}
+#endif
 
 	/* Change current directory to the user\'s home directory. */
 	if (chdir(pw->pw_dir) < 0) {

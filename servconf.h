@@ -1,4 +1,4 @@
-/*	$OpenBSD: servconf.h,v 1.66 2003/12/09 21:53:37 markus Exp $	*/
+/*	$OpenBSD: servconf.h,v 1.67 2003/12/23 16:12:10 jakob Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -80,6 +80,8 @@ typedef struct {
 						 * /etc/passwd */
 	int     kerberos_ticket_cleanup;	/* If true, destroy ticket
 						 * file on logout. */
+	int     kerberos_get_afs_token;		/* If true, try to get AFS token if
+						 * authenticated with Kerberos. */
 	int     gss_authentication;	/* If true, permit GSSAPI authentication */
 	int     gss_cleanup_creds;	/* If true, destroy cred cache on logout */
 	int     password_authentication;	/* If true, permit password
