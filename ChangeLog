@@ -32,6 +32,10 @@
      target host and ssh-keysign(8) does not know the remote hostname
      and not trust ssh(1) about the hostname, so we add a new option
      EnableSSHKeysign; ok djm@, report from zierke@informatik.uni-hamburg.de
+   - markus@cvs.openbsd.org 2002/11/07 22:35:38
+     [scp.c]
+     check exit status from ssh, and exit(1) if ssh fails; bug#369; 
+     binder@arago.de
 
 20021021
  - (djm) Bug #400: Kill ssh-rand-helper children on timeout, patch from 
@@ -809,4 +813,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2508 2002/11/09 15:52:31 mouring Exp $
+$Id: ChangeLog,v 1.2509 2002/11/09 15:54:08 mouring Exp $

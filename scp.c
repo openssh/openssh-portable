@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.91 2002/06/19 00:27:55 deraadt Exp $");
+RCSID("$OpenBSD: scp.c,v 1.92 2002/11/07 22:35:38 markus Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -125,6 +125,9 @@ int showprogress = 1;
 /* This is the program to execute for the secured connection. ("ssh" or -S) */
 char *ssh_program = _PATH_SSH_PROGRAM;
 
+/* This is used to store the pid of ssh_program */
+pid_t do_cmd_pid;
+
 /*
  * This function executes the given command as the specified user on the
  * given host.  This returns < 0 if execution fails, and >= 0 otherwise. This
@@ -159,7 +162,8 @@ do_cmd(char *host, char *remuser, char *cmd, int *fdin, int *fdout, int argc)
 	close(reserved[1]);
 
 	/* For a child to execute the command on the remote host using ssh. */
-	if (fork() == 0)  {
+	do_cmd_pid = fork();
+	if (do_cmd_pid == 0) {
 		/* Child. */
 		close(pin[1]);
 		close(pout[0]);
@@ -177,6 +181,8 @@ do_cmd(char *host, char *remuser, char *cmd, int *fdin, int *fdout, int argc)
 		execvp(ssh_program, args.list);
 		perror(ssh_program);
 		exit(1);
+	} else if (do_cmd_pid == -1) {
+		fatal("fork: %s", strerror(errno));
 	}
 	/* Parent.  Close the other side, and return the local side. */
 	close(pin[0]);
@@ -219,7 +225,7 @@ main(argc, argv)
 	int argc;
 	char *argv[];
 {
-	int ch, fflag, tflag;
+	int ch, fflag, tflag, status;
 	char *targ;
 	extern char *optarg;
 	extern int optind;
@@ -317,6 +323,7 @@ main(argc, argv)
 		targetshouldbedirectory = 1;
 
 	remin = remout = -1;
+	do_cmd_pid = -1;
 	/* Command to be executed on remote system using "ssh". */
 	(void) snprintf(cmd, sizeof cmd, "scp%s%s%s%s",
 	    verbose_mode ? " -v" : "",
@@ -331,6 +338,22 @@ main(argc, argv)
 		tolocal(argc, argv);	/* Dest is local host. */
 		if (targetshouldbedirectory)
 			verifydir(argv[argc - 1]);
+	}
+	/*
+	 * Finally check the exit status of the ssh process, if one was forked
+	 * and no error has occured yet
+	 */
+	if (do_cmd_pid != -1 && errs == 0) {
+		if (remin != -1)
+		    (void) close(remin);
+		if (remout != -1)
+		    (void) close(remout);
+		if (waitpid(do_cmd_pid, &status, 0) == -1)
+			errs = 1;
+		else {
+			if (!WIFEXITED(status) || WEXITSTATUS(status) != 0)
+				errs = 1;
+		}
 	}
 	exit(errs != 0);
 }
