@@ -22,6 +22,9 @@
    - jakob@cvs.openbsd.org 2003/05/15 02:27:15
      [dns.c]
      add missing freerrset
+   - markus@cvs.openbsd.org 2003/05/15 03:08:29
+     [cipher.c cipher-bf1.c cipher-aes.c cipher-3des1.c]
+     split out custom EVP ciphers
  - (djm) Always parse UsePAM
  - (djm) Configure glue for DNS support (code doesn't work in portable yet)
  - (djm) Import getrrsetbyname() function from OpenBSD libc (for DNS support)
@@ -1502,4 +1505,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2710 2003/05/15 03:27:28 djm Exp $
+$Id: ChangeLog,v 1.2711 2003/05/15 03:37:19 djm Exp $
