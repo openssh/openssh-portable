@@ -101,11 +101,8 @@ name).
 
 There are a few other options to the configure script:
 
---with-pam enables PAM support.
-
---enable-gnome-askpass will build the GNOME passphrase dialog. You
-need a working installation of GNOME, including the development
-headers, for this to work.
+--with-pam enables PAM support. If PAM support is compiled in, it must
+also be enabled in sshd_config (refer to the UsePAM directive).
 
 --with-prngd-socket=/some/file allows you to enable EGD or PRNGD 
 support and to specify a PRNGd socket. Use this if your Unix lacks 
@@ -125,16 +122,6 @@ it if lastlog is installed in a different place.
 
 --with-osfsia, --without-osfsia will enable or disable OSF1's Security 
 Integration Architecture.  The default for OSF1 machines is enable.
-
---with-kerberos4=PATH will enable Kerberos IV support. You will need
-to have the Kerberos libraries and header files installed for this
-to work. Use the optional PATH argument to specify the root of your
-Kerberos installation.
-
---with-afs=PATH will enable AFS support. You will need to have the
-Kerberos IV and the AFS libraries and header files installed for this
-to work.  Use the optional PATH argument to specify the root of your
-AFS installation. AFS requires Kerberos support to be enabled.
 
 --with-skey=PATH will enable S/Key one time password support. You will 
 need the S/Key libraries and header files installed for this to work.
@@ -211,4 +198,4 @@ Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
 
 
-$Id: INSTALL,v 1.59 2003/09/22 03:28:36 dtucker Exp $
+$Id: INSTALL,v 1.60 2003/09/23 12:12:38 djm Exp $

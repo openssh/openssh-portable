@@ -87,9 +87,11 @@ struct Cipher {
 	{ "rijndael-cbc@lysator.liu.se",
 				SSH_CIPHER_SSH2, 16, 32, EVP_aes_256_cbc },
 #endif
+#if OPENSSL_VERSION_NUMBER >= 0x00906000L
 	{ "aes128-ctr", 	SSH_CIPHER_SSH2, 16, 16, evp_aes_128_ctr },
 	{ "aes192-ctr", 	SSH_CIPHER_SSH2, 16, 24, evp_aes_128_ctr },
 	{ "aes256-ctr", 	SSH_CIPHER_SSH2, 16, 32, evp_aes_128_ctr },
+#endif
 
 	{ NULL,			SSH_CIPHER_ILLEGAL, 0, 0, NULL }
 };

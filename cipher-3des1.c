@@ -29,6 +29,10 @@ RCSID("$OpenBSD: cipher-3des1.c,v 1.1 2003/05/15 03:08:29 markus Exp $");
 #include "xmalloc.h"
 #include "log.h"
 
+#if OPENSSL_VERSION_NUMBER < 0x00906000L
+#define SSH_OLD_EVP
+#endif
+
 /*
  * This is used by SSH1:
  *

@@ -74,6 +74,15 @@
  - (bal) "extration" -> "extraction" in ssh-rand-helper.c; repoted by john
 	on #unixhelp@efnet
  - (tim) [configure.ac] add --disable-etc-default-login option. ok djm
+ - (djm) Sync with V_3_7 branch:
+   - (djm) Fix SSH1 challenge kludge
+   - (djm) Bug #671: Fix builds on OpenBSD
+   - (djm) Bug #676: Fix PAM stack corruption
+   - (djm) Fix bad free() in PAM code
+   - (djm) Don't call pam_end before pam_init
+   - (djm) Enable build with old OpenSSL again
+   - (djm) Trim deprecated options from INSTALL. Mention UsePAM
+   - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
 20030919
  - (djm) Bug #683: Remove reference to --with-ipv4-default from INSTALL;
@@ -1210,4 +1219,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3038 2003/09/23 02:50:14 tim Exp $
+$Id: ChangeLog,v 1.3039 2003/09/23 12:12:38 djm Exp $

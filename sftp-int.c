@@ -351,6 +351,7 @@ get_pathname(const char **cpp, char **path)
 		for (i = j = 0; i <= strlen(cp); i++) {
 			if (cp[i] == quot) {	/* Found quote */
 				(*path)[j] = '\0';
+				i++;
 				break;
 			}
 			if (cp[i] == '\0') {	/* End of string */

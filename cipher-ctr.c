@@ -21,6 +21,10 @@ RCSID("$OpenBSD: cipher-ctr.c,v 1.2 2003/06/17 18:14:23 markus Exp $");
 #include "log.h"
 #include "xmalloc.h"
 
+#if OPENSSL_VERSION_NUMBER < 0x00906000L
+#define SSH_OLD_EVP
+#endif
+
 #if OPENSSL_VERSION_NUMBER < 0x00907000L
 #include "rijndael.h"
 #define AES_KEY rijndael_ctx
@@ -135,7 +139,9 @@ evp_aes_128_ctr(void)
 	aes_ctr.init = ssh_aes_ctr_init;
 	aes_ctr.cleanup = ssh_aes_ctr_cleanup;
 	aes_ctr.do_cipher = ssh_aes_ctr;
+#ifndef SSH_OLD_EVP
 	aes_ctr.flags = EVP_CIPH_CBC_MODE | EVP_CIPH_VARIABLE_LENGTH |
 	    EVP_CIPH_ALWAYS_CALL_INIT | EVP_CIPH_CUSTOM_IV;
+#endif
 	return (&aes_ctr);
 }

@@ -28,6 +28,11 @@ RCSID("$OpenBSD: cipher-bf1.c,v 1.1 2003/05/15 03:08:29 markus Exp $");
 #include <openssl/evp.h>
 #include "xmalloc.h"
 #include "log.h"
+
+#if OPENSSL_VERSION_NUMBER < 0x00906000L
+#define SSH_OLD_EVP
+#endif
+
 /*
  * SSH1 uses a variation on Blowfish, all bytes must be swapped before
  * and after encryption/decryption. Thus the swap_bytes stuff (yuk).

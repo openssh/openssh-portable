@@ -31,7 +31,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.73 2003/09/16 21:24:25 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.74 2003/09/23 12:12:38 djm Exp $");
 
 #ifdef USE_PAM
 #include <security/pam_appl.h>
@@ -111,12 +111,12 @@ pthread_join(sp_pthread_t thread, void **value __unused)
 #endif
 
 
-static pam_handle_t *sshpam_handle;
-static int sshpam_err;
-static int sshpam_authenticated;
-static int sshpam_new_authtok_reqd;
-static int sshpam_session_open;
-static int sshpam_cred_established;
+static pam_handle_t *sshpam_handle = NULL;
+static int sshpam_err = 0;
+static int sshpam_authenticated = 0;
+static int sshpam_new_authtok_reqd = 0;
+static int sshpam_session_open = 0;
+static int sshpam_cred_established = 0;
 
 struct pam_ctxt {
 	sp_pthread_t	 pam_thread;
@@ -136,42 +136,51 @@ sshpam_thread_conv(int n, const struct pam_message **msg,
 {
 	Buffer buffer;
 	struct pam_ctxt *ctxt;
+	struct pam_response *reply;
 	int i;
+
+	*resp = NULL;
 
 	ctxt = data;
 	if (n <= 0 || n > PAM_MAX_NUM_MSG)
 		return (PAM_CONV_ERR);
-	*resp = xmalloc(n * sizeof **resp);
+
+	if ((reply = malloc(n * sizeof(*reply))) == NULL)
+		return (PAM_CONV_ERR);
+	memset(reply, 0, n * sizeof(*reply));
+
 	buffer_init(&buffer);
 	for (i = 0; i < n; ++i) {
-		resp[i]->resp_retcode = 0;
-		resp[i]->resp = NULL;
 		switch (PAM_MSG_MEMBER(msg, i, msg_style)) {
 		case PAM_PROMPT_ECHO_OFF:
-			buffer_put_cstring(&buffer, PAM_MSG_MEMBER(msg, i, msg));
+			buffer_put_cstring(&buffer, 
+			    PAM_MSG_MEMBER(msg, i, msg));
 			ssh_msg_send(ctxt->pam_csock, 
 			    PAM_MSG_MEMBER(msg, i, msg_style), &buffer);
 			ssh_msg_recv(ctxt->pam_csock, &buffer);
 			if (buffer_get_char(&buffer) != PAM_AUTHTOK)
 				goto fail;
-			resp[i]->resp = buffer_get_string(&buffer, NULL);
+			reply[i].resp = buffer_get_string(&buffer, NULL);
 			break;
 		case PAM_PROMPT_ECHO_ON:
-			buffer_put_cstring(&buffer, PAM_MSG_MEMBER(msg, i, msg));
+			buffer_put_cstring(&buffer, 
+			    PAM_MSG_MEMBER(msg, i, msg));
 			ssh_msg_send(ctxt->pam_csock, 
 			    PAM_MSG_MEMBER(msg, i, msg_style), &buffer);
 			ssh_msg_recv(ctxt->pam_csock, &buffer);
 			if (buffer_get_char(&buffer) != PAM_AUTHTOK)
 				goto fail;
-			resp[i]->resp = buffer_get_string(&buffer, NULL);
+			reply[i].resp = buffer_get_string(&buffer, NULL);
 			break;
 		case PAM_ERROR_MSG:
-			buffer_put_cstring(&buffer, PAM_MSG_MEMBER(msg, i, msg));
+			buffer_put_cstring(&buffer, 
+			    PAM_MSG_MEMBER(msg, i, msg));
 			ssh_msg_send(ctxt->pam_csock, 
 			    PAM_MSG_MEMBER(msg, i, msg_style), &buffer);
 			break;
 		case PAM_TEXT_INFO:
-			buffer_put_cstring(&buffer, PAM_MSG_MEMBER(msg, i, msg));
+			buffer_put_cstring(&buffer, 
+			    PAM_MSG_MEMBER(msg, i, msg));
 			ssh_msg_send(ctxt->pam_csock, 
 			    PAM_MSG_MEMBER(msg, i, msg_style), &buffer);
 			break;
@@ -181,12 +190,15 @@ sshpam_thread_conv(int n, const struct pam_message **msg,
 		buffer_clear(&buffer);
 	}
 	buffer_free(&buffer);
+	*resp = reply;
 	return (PAM_SUCCESS);
+
  fail:
-	while (i)
-		xfree(resp[--i]);
-	xfree(*resp);
-	*resp = NULL;
+	for(i = 0; i < n; i++) {
+		if (reply[i].resp != NULL)
+			xfree(reply[i].resp);
+	}
+	xfree(reply);
 	buffer_free(&buffer);
 	return (PAM_CONV_ERR);
 }
@@ -258,6 +270,8 @@ sshpam_cleanup(void *arg)
 {
 	(void)arg;
 	debug("PAM: cleanup");
+	if (sshpam_handle == NULL)
+		return;
 	pam_set_item(sshpam_handle, PAM_CONV, (const void *)&null_conv);
 	if (sshpam_cred_established) {
 		pam_setcred(sshpam_handle, PAM_DELETE_CRED);
@@ -600,40 +614,50 @@ pam_chauthtok_conv(int n, const struct pam_message **msg,
     struct pam_response **resp, void *data)
 {
 	char input[PAM_MAX_MSG_SIZE];
+	struct pam_response *reply;
 	int i;
+
+	*resp = NULL;
 
 	if (n <= 0 || n > PAM_MAX_NUM_MSG)
 		return (PAM_CONV_ERR);
-	*resp = xmalloc(n * sizeof **resp);
+
+	if ((reply = malloc(n * sizeof(*reply))) == NULL)
+		return (PAM_CONV_ERR);
+	memset(reply, 0, n * sizeof(*reply));
+
 	for (i = 0; i < n; ++i) {
 		switch (PAM_MSG_MEMBER(msg, i, msg_style)) {
 		case PAM_PROMPT_ECHO_OFF:
-			resp[i]->resp =
+			reply[i].resp =
 			    read_passphrase(PAM_MSG_MEMBER(msg, i, msg), 
 			    RP_ALLOW_STDIN);
-			resp[i]->resp_retcode = PAM_SUCCESS;
+			reply[i].resp_retcode = PAM_SUCCESS;
 			break;
 		case PAM_PROMPT_ECHO_ON:
 			fputs(PAM_MSG_MEMBER(msg, i, msg), stderr);
 			fgets(input, sizeof input, stdin);
-			resp[i]->resp = xstrdup(input);
-			resp[i]->resp_retcode = PAM_SUCCESS;
+			reply[i].resp = xstrdup(input);
+			reply[i].resp_retcode = PAM_SUCCESS;
 			break;
 		case PAM_ERROR_MSG:
 		case PAM_TEXT_INFO:
 			fputs(PAM_MSG_MEMBER(msg, i, msg), stderr);
-			resp[i]->resp_retcode = PAM_SUCCESS;
+			reply[i].resp_retcode = PAM_SUCCESS;
 			break;
 		default:
 			goto fail;
 		}
 	}
+	*resp = reply;
 	return (PAM_SUCCESS);
+
  fail:
-	while (i)
-		xfree(resp[--i]);
-	xfree(*resp);
-	*resp = NULL;
+	for(i = 0; i < n; i++) {
+		if (reply[i].resp != NULL)
+			xfree(reply[i].resp);
+	}
+	xfree(reply);
 	return (PAM_CONV_ERR);
 }
 
