@@ -29,6 +29,8 @@ INSTALL=@INSTALL@
 PERL=@PERL@
 LDFLAGS=-L. @LDFLAGS@
 
+INSTALL_SSH_PRNG_CMDS=@INSTALL_SSH_PRNG_CMDS@
+
 TARGETS=ssh sshd ssh-add ssh-keygen ssh-agent scp $(EXTRA_TARGETS)
 
 LIBOBJS= atomicio.o authfd.o authfile.o bsd-bindresvport.o bsd-daemon.o bsd-misc.o bsd-mktemp.o bsd-rresvport.o bsd-setenv.o bsd-snprintf.o bsd-strlcat.o bsd-strlcpy.o bufaux.o buffer.o canohost.o channels.o cipher.o compat.o compress.o crc32.o deattack.o dispatch.o dsa.o fake-getaddrinfo.o fake-getnameinfo.o fingerprint.o hmac.o hostfile.o key.o kex.o log.o match.o mpaux.o nchan.o packet.o radix.o entropy.o readpass.o rsa.o tildexpand.o ttymodes.o uidswap.o uuencode.o xmalloc.o 
@@ -80,7 +82,7 @@ $(MANPAGES) $(CONFIGFILES)::
 
 clean:
 	rm -f *.o *.a $(TARGETS) config.status config.cache config.log 
-	rm -f *.out core
+	rm -f *.out ssh_prng_cmds core
 
 distclean: clean
 	rm -f Makefile config.h core *~
@@ -125,6 +127,9 @@ install: manpages $(TARGETS)
 		$(INSTALL) -m 644 ssh_config.out $(DESTDIR)$(sysconfdir)/ssh_config; \
 		$(INSTALL) -m 644 sshd_config.out $(DESTDIR)$(sysconfdir)/sshd_config; \
 	fi
+	if [ -f ssh_prng_cmds -a ! -z "$(INSTALL_SSH_PRNG_CMDS)" ]; then \
+		$(INSTALL) -m 644 ssh_prng_cmds $(DESTDIR)$(sysconfdir)/ssh_prng_cmds; \
+	fi
 
 host-key: ssh-keygen
 	./ssh-keygen -b 1024 -f $(sysconfdir)/ssh_host_key -N ''
@@ -132,6 +137,7 @@ host-key: ssh-keygen
 uninstallall:	uninstall
 	-rm -f $(DESTDIR)$(sysconfdir)/ssh_config
 	-rm -f $(DESTDIR)$(sysconfdir)/sshd_config
+	-rm -f $(DESTDIR)$(sysconfdir)/ssh_prng_cmds
 	-rmdir $(DESTDIR)$(sysconfdir)
 	-rmdir $(DESTDIR)$(bindir)
 	-rmdir $(DESTDIR)$(sbindir)

@@ -15,7 +15,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: log-server.c,v 1.9 2000/04/16 01:18:43 damien Exp $");
+RCSID("$Id: log-server.c,v 1.10 2000/05/01 23:56:42 damien Exp $");
 
 #include <syslog.h>
 #include "packet.h"
@@ -25,7 +25,7 @@ RCSID("$Id: log-server.c,v 1.9 2000/04/16 01:18:43 damien Exp $");
 #ifdef HAVE___PROGNAME
 extern char *__progname;
 #else /* HAVE___PROGNAME */
-const char *__progname = "sshd";
+static const char *__progname = "sshd";
 #endif /* HAVE___PROGNAME */
 
 static LogLevel log_level = SYSLOG_LEVEL_INFO;

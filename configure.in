@@ -637,66 +637,31 @@ AC_ARG_WITH(egd-pool,
 	]
 )
 
+# detect pathnames for entropy gathering commands, if we need them
+INSTALL_SSH_PRNG_CMDS=""
+rm -f prng_commands
 if test -z "$RANDOM_POOL" -a -z "$EGD_SOCKET" ; then
 	# Use these commands to collect entropy
-	AC_PATH_PROG(PROG_LS, ls)
-	AC_PATH_PROG(PROG_NETSTAT, netstat)
-	AC_PATH_PROG(PROG_ARP, arp)
-	AC_PATH_PROG(PROG_IFCONFIG, ifconfig)
-	AC_PATH_PROG(PROG_PS, ps)
-	AC_PATH_PROG(PROG_W, w)
-	AC_PATH_PROG(PROG_WHO, who)
-	AC_PATH_PROG(PROG_LAST, last)
-	AC_PATH_PROG(PROG_LASTLOG, lastlog)
-	AC_PATH_PROG(PROG_DF, df)
-	AC_PATH_PROG(PROG_VMSTAT, vmstat)
-	AC_PATH_PROG(PROG_UPTIME, uptime)
-	AC_PATH_PROG(PROG_IPCS, ipcs)
-	AC_PATH_PROG(PROG_TAIL, tail)
-	AC_PATH_PROG(PROG_LS, ls)
-	if test ! -z "$PROG_LS" ; then 
-		AC_DEFINE_UNQUOTED(PROG_LS, "$PROG_LS") 
-	fi
-	if test ! -z "$PROG_NETSTAT" ; then 
-		AC_DEFINE_UNQUOTED(PROG_NETSTAT, "$PROG_NETSTAT") 
-	fi
-	if test ! -z "$PROG_ARP" ; then 
-		AC_DEFINE_UNQUOTED(PROG_ARP, "$PROG_ARP") 
-	fi
-	if test ! -z "$PROG_IFCONFIG" ; then 
-		AC_DEFINE_UNQUOTED(PROG_IFCONFIG, "$PROG_IFCONFIG") 
-	fi
-	if test ! -z "$PROG_PS" ; then 
-		AC_DEFINE_UNQUOTED(PROG_PS, "$PROG_PS") 
-	fi
-	if test ! -z "$PROG_W" ; then 
-		AC_DEFINE_UNQUOTED(PROG_W, "$PROG_W") 
-	fi
-	if test ! -z "$PROG_WHO" ; then 
-		AC_DEFINE_UNQUOTED(PROG_WHO, "$PROG_WHO") 
-	fi
-	if test ! -z "$PROG_LAST" ; then 
-		AC_DEFINE_UNQUOTED(PROG_LAST, "$PROG_LAST") 
-	fi
-	if test ! -z "$PROG_LASTLOG" ; then 
-		AC_DEFINE_UNQUOTED(PROG_LASTLOG, "$PROG_LASTLOG") 
-	fi
-	if test ! -z "$PROG_DF" ; then 
-		AC_DEFINE_UNQUOTED(PROG_DF, "$PROG_DF") 
-	fi
-	if test ! -z "$PROG_VMSTAT" ; then 
-		AC_DEFINE_UNQUOTED(PROG_VMSTAT, "$PROG_VMSTAT") 
-	fi
-	if test ! -z "$PROG_UPTIME" ; then 
-		AC_DEFINE_UNQUOTED(PROG_UPTIME, "$PROG_UPTIME") 
-	fi
-	if test ! -z "$PROG_UPTIME" ; then
-		AC_DEFINE_UNQUOTED(PROG_UPTIME, "$PROG_UPTIME") 
-	fi
-	if test ! -z "$PROG_TAIL" ; then
-		AC_DEFINE_UNQUOTED(PROG_TAIL, "$PROG_TAIL") 
-	fi
+	AC_PATH_ENTROPY_PROG(PROG_LS, ls)
+	AC_PATH_ENTROPY_PROG(PROG_NETSTAT, netstat)
+	AC_PATH_ENTROPY_PROG(PROG_ARP, arp)
+	AC_PATH_ENTROPY_PROG(PROG_IFCONFIG, ifconfig)
+	AC_PATH_ENTROPY_PROG(PROG_PS, ps)
+	AC_PATH_ENTROPY_PROG(PROG_W, w)
+	AC_PATH_ENTROPY_PROG(PROG_WHO, who)
+	AC_PATH_ENTROPY_PROG(PROG_LAST, last)
+	AC_PATH_ENTROPY_PROG(PROG_LASTLOG, lastlog)
+	AC_PATH_ENTROPY_PROG(PROG_DF, df)
+	AC_PATH_ENTROPY_PROG(PROG_VMSTAT, vmstat)
+	AC_PATH_ENTROPY_PROG(PROG_UPTIME, uptime)
+	AC_PATH_ENTROPY_PROG(PROG_IPCS, ipcs)
+	AC_PATH_ENTROPY_PROG(PROG_TAIL, tail)
+	AC_PATH_ENTROPY_PROG(PROG_LS, ls)
+
+	INSTALL_SSH_PRNG_CMDS="yes"
 fi
+AC_SUBST(INSTALL_SSH_PRNG_CMDS)
+
 
 AC_ARG_WITH(catman,
 	[  --with-catman=man|cat   Install preformatted manpages[no]],
@@ -932,4 +897,6 @@ if test ! -z "$blibpath" ; then
 	AC_MSG_WARN([Please check and edit -blibpath in LDFLAGS in Makefile])
 fi
 
-AC_OUTPUT(Makefile)
+AC_OUTPUT(Makefile ssh_prng_cmds)
+
+

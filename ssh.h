@@ -13,7 +13,7 @@
  *
  */
 
-/* RCSID("$Id: ssh.h,v 1.36 2000/04/29 23:30:46 damien Exp $"); */
+/* RCSID("$Id: ssh.h,v 1.37 2000/05/01 23:56:42 damien Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -129,6 +129,9 @@
 #ifndef SSH_PRNG_SEED_FILE
 # define SSH_PRNG_SEED_FILE      SSH_USER_DIR"/prng_seed"
 #endif /* SSH_PRNG_SEED_FILE */
+#ifndef SSH_PRNG_COMMAND_FILE
+# define SSH_PRNG_COMMAND_FILE   ETCDIR "/ssh_prng_cmds"
+#endif /* SSH_PRNG_COMMAND_FILE */
 
 /*
  * Per-user file containing host keys of known hosts.  This file need not be

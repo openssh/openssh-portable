@@ -35,7 +35,7 @@
 #include <openssl/rand.h>
 #include <openssl/sha.h>
 
-RCSID("$Id: entropy.c,v 1.7 2000/05/01 14:03:56 damien Exp $");
+RCSID("$Id: entropy.c,v 1.8 2000/05/01 23:56:41 damien Exp $");
 
 #ifdef EGD_SOCKET
 #ifndef offsetof
@@ -111,8 +111,6 @@ void get_random_bytes(unsigned char *buf, int len)
  * FIXME: proper entropy estimations. All current values are guesses
  * FIXME: (ATL) do estimates at compile time?
  * FIXME: More entropy sources
- * FIXME: (ATL) bring in entropy sources from file
- * FIXME: (ATL) add heuristic to increase the timeout if needed
  */
 
 /* slow command timeouts (all in milliseconds) */
@@ -120,7 +118,8 @@ void get_random_bytes(unsigned char *buf, int len)
 static int entropy_timeout_current = ENTROPY_TIMEOUT_MSEC;
 
 static int prng_seed_loaded = 0;
-static int prng_seed_saved = 0;		
+static int prng_seed_saved = 0;
+static int prng_commands_loaded = 0;
 
 typedef struct
 {
@@ -131,9 +130,9 @@ typedef struct
 	/* Increases by factor of two each timeout */
 	unsigned int sticky_badness;
 	/* Path to executable */
-	const char *path;
+	char *path;
 	/* argv to pass to executable */
-	const char *args[5];
+	char *args[5];
 } entropy_source_t;
 
 double stir_from_system(void);
@@ -143,67 +142,10 @@ double stir_clock(double entropy_estimate);
 double stir_rusage(int who, double entropy_estimate);
 double hash_output_from_command(entropy_source_t *src, char *hash);
 
-entropy_source_t entropy_sources[] = {
-#ifdef PROG_LS
-	{ 0.002, 0, 1, PROG_LS,       { "ls", "-alni", "/var/log", NULL } },
-	{ 0.002, 0, 1, PROG_LS,       { "ls", "-alni", "/var/adm", NULL } },
-	{ 0.002, 0, 1, PROG_LS,       { "ls", "-alni", "/var/mail", NULL } },
-	{ 0.002, 0, 1, PROG_LS,       { "ls", "-alni", "/var/spool/mail", NULL } },
-	{ 0.002, 0, 1, PROG_LS,       { "ls", "-alni", "/proc", NULL } },
-	{ 0.002, 0, 1, PROG_LS,       { "ls", "-alni", "/tmp", NULL } },
-#endif
-#ifdef PROG_NETSTAT
-	{ 0.005, 0, 1, PROG_NETSTAT,  { "netstat","-an", NULL, NULL } },
-	{ 0.010, 0, 1, PROG_NETSTAT,  { "netstat","-in", NULL, NULL } },
-	{ 0.002, 0, 1, PROG_NETSTAT,  { "netstat","-rn", NULL, NULL } },
-	{ 0.002, 0, 1, PROG_NETSTAT,  { "netstat","-s", NULL, NULL } },
-#endif
-#ifdef PROG_ARP
-	{ 0.002, 0, 1, PROG_ARP,      { "arp","-a","-n", NULL } },
-#endif
-#ifdef PROG_IFCONFIG
-	{ 0.002, 0, 1, PROG_IFCONFIG, { "ifconfig", "-a", NULL, NULL } },
-#endif
-#ifdef PROG_PS
-	{ 0.003, 0, 1, PROG_PS,       { "ps", "laxww", NULL, NULL } },
-	{ 0.003, 0, 1, PROG_PS,       { "ps", "-al", NULL, NULL } },
-	{ 0.003, 0, 1, PROG_PS,       { "ps", "-efl", NULL, NULL } },
-#endif
-#ifdef PROG_W
-	{ 0.005, 0, 1, PROG_W,        { "w", NULL, NULL, NULL } },
-#endif
-#ifdef PROG_WHO
-	{ 0.001, 0, 1, PROG_WHO,      { "who","-i", NULL, NULL } },
-#endif
-#ifdef PROG_LAST
-	{ 0.001, 0, 1, PROG_LAST,     { "last", NULL, NULL, NULL } },
-#endif
-#ifdef PROG_LASTLOG
-	{ 0.001, 0, 1, PROG_LASTLOG,  { "lastlog", NULL, NULL, NULL } },
-#endif
-#ifdef PROG_DF
-	{ 0.010, 0, 1, PROG_DF,       { "df", NULL, NULL, NULL } },
-	{ 0.010, 0, 1, PROG_DF,       { "df", "-i", NULL, NULL } },
-#endif
-#ifdef PROG_VMSTAT
-	{ 0.010, 0, 1, PROG_VMSTAT,   { "vmstat", NULL, NULL, NULL } },
-#endif
-#ifdef PROG_UPTIME
-	{ 0.001, 0, 1, PROG_UPTIME,   { "uptime", NULL, NULL, NULL } },
-#endif
-#ifdef PROG_IPCS
-	{ 0.001, 0, 1, PROG_IPCS,     { "-a", NULL, NULL, NULL } },
-#endif
-#ifdef PROG_TAIL
-	{ 0.001, 0, 1, PROG_TAIL,     { "tail", "-200", "/var/log/messages", NULL, NULL } },
-	{ 0.001, 0, 1, PROG_TAIL,     { "tail", "-200", "/var/log/syslog", NULL, NULL } },
-	{ 0.001, 0, 1, PROG_TAIL,     { "tail", "-200", "/var/adm/messages", NULL, NULL } },
-	{ 0.001, 0, 1, PROG_TAIL,     { "tail", "-200", "/var/adm/syslog", NULL, NULL } },
-	{ 0.001, 0, 1, PROG_TAIL,     { "tail", "-200", "/var/log/maillog", NULL, NULL } },
-	{ 0.001, 0, 1, PROG_TAIL,     { "tail", "-200", "/var/adm/maillog", NULL, NULL } },
-#endif
-	{ 0.000, 0, 0, NULL,          { NULL, NULL, NULL, NULL, NULL } },
-};
+/* this is initialised from a file, by prng_read_commands() */
+entropy_source_t *entropy_sources = NULL;
+#define MIN_ENTROPY_SOURCES 16
+
 
 double 
 stir_from_system(void)
@@ -597,6 +539,131 @@ prng_read_seedfile(void) {
 	RAND_add(&seed, sizeof(seed), 0.0);
 }
 
+
+/*
+ * entropy command initialisation functions
+ */
+#define WHITESPACE " \t\n"
+
+int
+prng_read_commands(char *cmdfilename)
+{
+	FILE *f;
+	char line[1024];
+	char cmd[1024], path[256];
+	double est;
+	char *cp;
+	int linenum;
+	entropy_source_t *entcmd;
+	int num_cmds = 64;
+	int cur_cmd = 0;
+
+	f = fopen(cmdfilename, "r");
+	if (!f) {
+		fatal("couldn't read entropy commands file %.100s: %.100s",
+		    cmdfilename, strerror(errno));
+	}
+
+	linenum = 0;
+
+	entcmd = (entropy_source_t *)xmalloc(num_cmds * sizeof(entropy_source_t));
+	memset(entcmd, '\0', num_cmds * sizeof(entropy_source_t));
+
+	while (fgets(line, sizeof(line), f)) {
+		linenum++;
+
+		/* skip leading whitespace, test for blank line or comment */
+		cp = line + strspn(line, WHITESPACE);
+		if ((*cp == 0) || (*cp == '#'))
+			continue; /* done with this line */
+
+		switch (*cp) {
+			int arg;
+			char *argv;
+
+		case '"':
+			/* first token, command args (incl. argv[0]) in double quotes */
+			cp = strtok(cp, "\"");
+			if (cp==NULL) {
+				error("missing or bad command string, %.100s line %d -- ignored",
+				      cmdfilename, linenum);
+				continue;
+			}
+			strncpy(cmd, cp, sizeof(cmd));
+			/* second token, full command path */
+			if ((cp = strtok(NULL, WHITESPACE)) == NULL) {
+				error("missing command path, %.100s line %d -- ignored",
+				      cmdfilename, linenum);
+				continue;
+			}
+			if (strncmp("undef", cp, 5)==0)   /* did configure mark this as dead? */
+				continue;
+
+			strncpy(path, cp, sizeof(path));			
+			/* third token, entropy rate estimate for this command */
+			if ( (cp = strtok(NULL, WHITESPACE)) == NULL) {
+				error("missing entropy estimate, %.100s line %d -- ignored",
+				      cmdfilename, linenum);
+				continue;
+			}
+			est = strtod(cp, &argv);/* FIXME: (ATL) no error checking here */
+
+			/* end of line */
+			if ((cp = strtok(NULL, WHITESPACE)) != NULL) {
+				error("garbage at end of line %d in %.100s -- ignored",
+				      linenum, cmdfilename);
+				continue;
+			}
+
+			/* split the command args */
+			cp = strtok(cmd, WHITESPACE);
+			arg = 0; argv = NULL;
+			do {
+				char *s = (char*)xmalloc(strlen(cp)+1);
+				strncpy(s, cp, strlen(cp)+1);
+				entcmd[cur_cmd].args[arg] = s;
+				arg++;
+			} while ((arg < 5) && (cp = strtok(NULL, WHITESPACE)));
+			if (strtok(NULL, WHITESPACE))
+				error("ignored extra command elements (max 5), %.100s line %d",
+				      cmdfilename, linenum);
+
+			/* copy the command path and rate estimate */
+			entcmd[cur_cmd].path = (char *)xmalloc(strlen(path)+1);
+			strncpy(entcmd[cur_cmd].path, path, strlen(path)+1);
+		        entcmd[cur_cmd].rate = est;
+			/* initialise other values */
+			entcmd[cur_cmd].sticky_badness = 1;
+
+			cur_cmd++;
+
+			/* If we've filled the array, reallocate it twice the size */
+			/* Do this now because even if this we're on the last command,
+			   we need another slot to mark the last entry */
+			if (cur_cmd == num_cmds) {
+				num_cmds *= 2;
+				entcmd = xrealloc(entcmd, num_cmds * sizeof(entropy_source_t));
+			}
+			break;
+
+		default:
+			error("bad entropy command, %.100s line %d", cmdfilename,
+			     linenum);
+			continue;
+		}
+	}
+
+	/* zero the last entry */
+	memset(&entcmd[cur_cmd], '\0', sizeof(entropy_source_t));
+	/* trim to size */
+	entropy_sources = xrealloc(entcmd, (cur_cmd+1) * sizeof(entropy_source_t));
+
+	debug("loaded %d entropy commands from %.100s", cur_cmd, cmdfilename);
+
+	return (cur_cmd >= MIN_ENTROPY_SOURCES);
+}
+
+
 #endif /* defined(EGD_SOCKET) || defined(RANDOM_POOL) */
 
 #if defined(EGD_SOCKET) || defined(RANDOM_POOL)
@@ -634,6 +701,12 @@ prng_seed_cleanup(void *junk)
 void
 seed_rng(void)
 {
+	if (!prng_commands_loaded) {
+		if (!prng_read_commands(SSH_PRNG_COMMAND_FILE))
+			fatal("PRNG initialisation failed -- exiting.");
+		prng_commands_loaded = 1;
+	}
+
 	debug("Seeding random number generator.");
 	debug("OpenSSL random status is now %i\n", RAND_status());
 	debug("%i bytes from system calls", (int)stir_from_system());
