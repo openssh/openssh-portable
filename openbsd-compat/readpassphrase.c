@@ -165,7 +165,6 @@ restart:
 	errno = save_errno;
 	return(nr == -1 ? NULL : buf);
 }
-#endif /* HAVE_READPASSPHRASE */
   
 #if 0
 char *
@@ -179,6 +178,6 @@ getpass(const char *prompt)
 
 static void handler(int s)
 {
-
 	signo = s;
 }
+#endif /* HAVE_READPASSPHRASE */

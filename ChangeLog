@@ -1,5 +1,6 @@
 20020501
  - (djm) Import OpenBSD regression tests. Requires BSD make to run
+ - (djm) Fix readpassphase compilation for systems which have it
 
 20020429
  - (tim) [contrib/caldera/openssh.spec] update fixUP to reflect changes in
@@ -524,4 +525,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2090 2002/05/01 03:17:33 djm Exp $
+$Id: ChangeLog,v 1.2091 2002/05/01 12:00:22 djm Exp $
