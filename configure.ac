@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.129 2003/06/29 11:30:41 dtucker Exp $
+# $Id: configure.ac,v 1.130 2003/06/30 09:21:36 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -1876,7 +1876,12 @@ AC_ARG_WITH(dns,
 			DNS_MSG="yes"
 			AC_DEFINE(DNS)
 			AC_SEARCH_LIBS(getrrsetbyname, resolv, 
-				[AC_DEFINE(HAVE_GETRRSETBYNAME)])
+				[AC_DEFINE(HAVE_GETRRSETBYNAME)],
+				[
+					# Needed by our getrrsetbyname()
+					AC_SEARCH_LIBS(res_query, resolv)
+					AC_SEARCH_LIBS(dn_expand, resolv)
+				])
 		fi
 	]
 )
@@ -1913,7 +1918,7 @@ AC_ARG_WITH(kerberos5,
                         if test ! -z "$blibpath" ; then
                                 blibpath="$blibpath:${KRB5ROOT}/lib"
                         fi
-                        AC_CHECK_LIB(resolv, dn_expand, , )
+			AC_SEARCH_LIBS(dn_expand, resolv)
 
                         KRB5=yes
                 fi

@@ -1,3 +1,7 @@
+20030630
+ - (djm) Search for support functions necessary to build our 
+   getrrsetbyname() replacement. Patch from Roumen Petrov 
+
 20030629
  - (dtucker) [includes.h] Bug #602: move #include of netdb.h to after in.h
    (fixes compiler warnings on Solaris 2.5.1).
@@ -613,4 +617,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2834 2003/06/29 11:30:41 dtucker Exp $
+$Id: ChangeLog,v 1.2835 2003/06/30 09:21:36 djm Exp $
