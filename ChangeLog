@@ -51,6 +51,9 @@
    - markus@cvs.openbsd.org 2002/01/31 13:35:11
      [kexdh.c kexgex.c]
      cross check announced key type and type from key blob
+   - markus@cvs.openbsd.org 2002/01/31 15:00:05
+     [serverloop.c]
+     no need for WNOHANG; ok stevesk@
 
 20020130
  - (djm) Delay PRNG seeding until we need it in ssh-keygen, from markus@
@@ -7453,4 +7456,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1813 2002/02/05 01:19:52 djm Exp $
+$Id: ChangeLog,v 1.1814 2002/02/05 01:20:16 djm Exp $

@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.95 2002/01/16 13:17:51 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.96 2002/01/31 15:00:05 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -673,7 +673,7 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 	/* We no longer want our SIGCHLD handler to be called. */
 	mysignal(SIGCHLD, SIG_DFL);
 
-	wait_pid = waitpid(-1, &wait_status, child_terminated ? WNOHANG : 0);
+	wait_pid = waitpid(-1, &wait_status, 0);
 	if (wait_pid == -1)
 		packet_disconnect("wait: %.100s", strerror(errno));
 	else if (wait_pid != pid)
