@@ -124,6 +124,10 @@
    - deraadt@cvs.openbsd.org 2001/03/03 06:53:12
      [ssh-keyscan.c]
      standard theo sweep
+   - millert@cvs.openbsd.org 2001/03/03 21:19:41
+     [ssh-keyscan.c]
+     Dynamically allocate read_wait and its copies.  Since maxfd is
+     based on resource limits it is often (usually?) larger than FD_SETSIZE.
 
 20010304
  - (bal) Remove make-ssh-known-hosts.1 since it's no longer valid.
@@ -4316,4 +4320,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.889 2001/03/05 07:01:18 mouring Exp $
+$Id: ChangeLog,v 1.890 2001/03/05 07:04:38 mouring Exp $
