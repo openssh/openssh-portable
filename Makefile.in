@@ -48,7 +48,7 @@ MANPAGES	= @MANTYPE@
 
 CONFIGFILES=sshd_config ssh_config
 
-PATHSUBS	= -D/etc/ssh_config=$(sysconfdir)/ssh_config -D/etc/known_hosts=$(sysconfdir)/ssh_known_hosts -D/etc/sshd_config=$(sysconfdir)/sshd_config -D/usr/libexec=$(libexecdir) -D/etc/shosts.equiv=$(sysconfdir)/shosts.equiv -D/etc/ssh_host_key=$(sysconfdir)/ssh_host_key -D/var/run/sshd.pid=$(piddir)/sshd.pid
+PATHSUBS	= -D/etc/ssh_config=$(sysconfdir)/ssh_config -D/etc/ssh_known_hosts=$(sysconfdir)/ssh_known_hosts -D/etc/sshd_config=$(sysconfdir)/sshd_config -D/usr/libexec=$(libexecdir) -D/etc/shosts.equiv=$(sysconfdir)/shosts.equiv -D/etc/ssh_host_key=$(sysconfdir)/ssh_host_key -D/var/run/sshd.pid=$(piddir)/sshd.pid
 
 FIXPATHSCMD	= $(PERL) $(srcdir)/fixpaths $(PATHSUBS)
 

@@ -1,3 +1,7 @@
+20000920
+ - (djm) Fix bad path substitution. Report from Andrew Miner
+   <asminer@cs.iastate.edu>
+
 20000916
  - (djm) Fix SSL search order from Lutz Jaenicke 
    <Lutz.Jaenicke@aet.TU-Cottbus.DE>
