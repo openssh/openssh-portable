@@ -1,4 +1,4 @@
-/*	$OpenBSD: dns.c,v 1.6 2003/06/11 10:18:47 jakob Exp $	*/
+/*	$OpenBSD: dns.c,v 1.7 2003/10/14 19:42:10 jakob Exp $	*/
 
 /*
  * Copyright (c) 2003 Wesley Griffin. All rights reserved.
@@ -28,7 +28,6 @@
 
 #include "includes.h"
 
-#ifdef DNS
 #include <openssl/bn.h>
 #ifdef LWRES
 #include <lwres/netdb.h>
@@ -44,7 +43,7 @@
 #include "uuencode.h"
 
 extern char *__progname;
-RCSID("$OpenBSD: dns.c,v 1.6 2003/06/11 10:18:47 jakob Exp $");
+RCSID("$OpenBSD: dns.c,v 1.7 2003/10/14 19:42:10 jakob Exp $");
 
 #ifndef LWRES
 static const char *errset_text[] = {
@@ -286,5 +285,3 @@ export_dns_rr(const char *hostname, Key *key, FILE *f, int generic)
 
 	return success;
 }
-
-#endif /* DNS */

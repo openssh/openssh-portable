@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.109 2003/09/18 13:02:21 miod Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.110 2003/10/14 19:42:10 jakob Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -32,9 +32,7 @@ RCSID("$OpenBSD: ssh-keygen.c,v 1.109 2003/09/18 13:02:21 miod Exp $");
 #ifdef SMARTCARD
 #include "scard.h"
 #endif
-#ifdef DNS
 #include "dns.h"
-#endif
 
 /* Number of bits in the RSA/DSA key.  This value can be changed on the command line. */
 int bits = 1024;
@@ -625,7 +623,6 @@ do_change_passphrase(struct passwd *pw)
 	exit(0);
 }
 
-#ifdef DNS
 /*
  * Print the SSHFP RR.
  */
@@ -655,7 +652,6 @@ do_print_resource_record(struct passwd *pw, char *hostname)
 	printf("failed to read v2 public key from %s.\n", identity_file);
 	exit(1);
 }
-#endif /* DNS */
 
 /*
  * Change the comment of a private key file.
@@ -774,9 +770,7 @@ usage(void)
 	fprintf(stderr, "  -C comment  Provide new comment.\n");
 	fprintf(stderr, "  -N phrase   Provide new passphrase.\n");
 	fprintf(stderr, "  -P phrase   Provide old passphrase.\n");
-#ifdef DNS
 	fprintf(stderr, "  -r hostname Print DNS resource record.\n");
-#endif /* DNS */
 #ifdef SMARTCARD
 	fprintf(stderr, "  -D reader   Download public key from smartcard.\n");
 	fprintf(stderr, "  -U reader   Upload private key to smartcard.\n");
@@ -959,11 +953,7 @@ main(int ac, char **av)
 	if (print_public)
 		do_print_public(pw);
 	if (resource_record_hostname != NULL) {
-#ifdef DNS
 		do_print_resource_record(pw, resource_record_hostname);
-#else /* DNS */
-		fatal("no DNS support.");
-#endif /* DNS */
 	}
 	if (reader_id != NULL) {
 #ifdef SMARTCARD
