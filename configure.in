@@ -997,39 +997,39 @@ AC_SUBST(piddir)
 
 dnl allow user to disable some login recording features
 AC_ARG_ENABLE(lastlog,
-	[ --disable-lastlog        disable use of lastlog even if detected [no]],
+	[  --disable-lastlog       disable use of lastlog even if detected [no]],
 	[ AC_DEFINE(DISABLE_LASTLOG) ]
 )
 AC_ARG_ENABLE(utmp,
-	[ --disable-utmp           disable use of utmp even if detected [no]],
+	[  --disable-utmp          disable use of utmp even if detected [no]],
 	[ AC_DEFINE(DISABLE_UTMP) ]
 )
 AC_ARG_ENABLE(utmpx,
-	[ --disable-utmpx          disable use of utmpx even if detected [no]],
+	[  --disable-utmpx         disable use of utmpx even if detected [no]],
 	[ AC_DEFINE(DISABLE_UTMPX) ]
 )
 AC_ARG_ENABLE(wtmp,
-	[ --disable-wtmp           disable use of wtmp even if detected [no]],
+	[  --disable-wtmp          disable use of wtmp even if detected [no]],
 	[ AC_DEFINE(DISABLE_WTMP) ]
 )
 AC_ARG_ENABLE(wtmpx,
-	[ --disable-wtmpx          disable use of wtmpx even if detected [no]],
+	[  --disable-wtmpx         disable use of wtmpx even if detected [no]],
 	[ AC_DEFINE(DISABLE_WTMPX) ]
 )
 AC_ARG_ENABLE(libutil,
-	[ --disable-libutil        disable use of libutil (login() etc.) [no]],
+	[  --disable-libutil       disable use of libutil (login() etc.) [no]],
 	[ AC_DEFINE(DISABLE_LOGIN) ]
 )
 AC_ARG_ENABLE(pututline,
-	[ --disable-pututline      disable use of pututline() etc. ([uw]tmp) [no]],
+	[  --disable-pututline     disable use of pututline() etc. ([uw]tmp) [no]],
 	[ AC_DEFINE(DISABLE_PUTUTLINE) ]
 )
 AC_ARG_ENABLE(pututxline,
-	[ --disable-pututxline      disable use of pututxline() etc. ([uw]tmpx) [no]],
+	[  --disable-pututxline    disable use of pututxline() etc. ([uw]tmpx) [no]],
 	[ AC_DEFINE(DISABLE_PUTUTXLINE) ]
 )
 AC_ARG_WITH(lastlog,
-  [ --with-lastlog=FILE|DIR  specify lastlog location [common locations]],
+  [  --with-lastlog=FILE|DIR specify lastlog location [common locations]],
   [ conf_lastlog_location="$withval";  ],)
 
 dnl lastlog, [uw]tmpx? detection
