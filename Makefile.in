@@ -95,8 +95,8 @@ install: all
 	ln -s ssh.1 $(mandir)/man1/slogin.1
 
 	if [ ! -z "@GNOME_ASKPASS@" ] ; then \
-		$(INSTALL) -d $(libexecdir) ;
-		$(INSTALL) -d $(libexecdir)/ssh ;
+		$(INSTALL) -d $(libexecdir) ; \
+		$(INSTALL) -d $(libexecdir)/ssh ; \
 		$(INSTALL) -s @GNOME_ASKPASS@ ${ASKPASS_PROGRAM} ; \
 	fi
 
