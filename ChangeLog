@@ -1,3 +1,9 @@
+20010323
+ - OpenBSD CVS Sync                             
+   - deraadt@cvs.openbsd.org 2001/03/22 20:22:55
+     [sshd.c]                                   
+     do not place linefeeds in buffer           
+
 20010322
  - (djm) Better AIX no tty fix, spotted by Gert Doering <gert@greenie.muc.de>
  - (bal) version.c CVS ID resync
@@ -4682,4 +4688,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1008 2001/03/22 02:06:57 mouring Exp $
+$Id: ChangeLog,v 1.1009 2001/03/22 22:45:33 mouring Exp $

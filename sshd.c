@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.175 2001/03/18 23:30:55 deraadt Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.176 2001/03/22 20:22:55 deraadt Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -344,8 +344,7 @@ sshd_exchange_identification(int sock_in, int sock_out)
 				fatal_cleanup();
 			}
 			if (buf[i] == '\r') {
-				buf[i] = '\n';
-				buf[i + 1] = 0;
+				buf[i] = 0;
 				/* Kludge for F-Secure Macintosh < 1.0.2 */
 				if (i == 12 &&
 				    strncmp(buf, "SSH-1.5-W1.0", 12) == 0)
@@ -353,8 +352,7 @@ sshd_exchange_identification(int sock_in, int sock_out)
 				continue;
 			}
 			if (buf[i] == '\n') {
-				/* buf[i] == '\n' */
-				buf[i + 1] = 0;
+				buf[i] = 0;
 				break;
 			}
 		}
@@ -420,7 +418,6 @@ sshd_exchange_identification(int sock_in, int sock_out)
 		break;
 	}
 	chop(server_version_string);
-	chop(client_version_string);
 	debug("Local version string %.200s", server_version_string);
 
 	if (mismatch) {
