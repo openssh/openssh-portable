@@ -1,3 +1,5 @@
+/*	$OpenBSD: rijndael.c,v 1.12 2001/09/13 09:48:39 markus Exp $ */
+
 /**
  * rijndael-alg-fst.c
  *

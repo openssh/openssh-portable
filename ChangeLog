@@ -1,3 +1,9 @@
+20010914
+ - (bal) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2001/09/13
+     [rijndael.c rijndael.h]
+     missing $OpenBSD
+    
 20010913
  - (bal) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2001/08/23 11:31:59
@@ -6416,4 +6422,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1511 2001/09/14 02:47:33 mouring Exp $
+$Id: ChangeLog,v 1.1512 2001/09/14 23:09:29 mouring Exp $
