@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.35 2003/05/15 03:44:00 mouring Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.36 2003/06/04 12:41:22 djm Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -46,11 +46,21 @@ char *__progname;
 FILE* infile;
 size_t copy_buffer_len = 32768;
 size_t num_requests = 16;
+static pid_t sshpid = -1;
 
 extern int showprogress;
 
 static void
-connect_to_server(char *path, char **args, int *in, int *out, pid_t *sshpid)
+killchild(int signo)
+{
+	if (sshpid > 1)
+		kill(sshpid, signo);
+
+	_exit(1);
+}
+
+static void
+connect_to_server(char *path, char **args, int *in, int *out)
 {
 	int c_in, c_out;
 
@@ -72,9 +82,9 @@ connect_to_server(char *path, char **args, int *in, int *out, pid_t *sshpid)
 	c_in = c_out = inout[1];
 #endif /* USE_PIPES */
 
-	if ((*sshpid = fork()) == -1)
+	if ((sshpid = fork()) == -1)
 		fatal("fork: %s", strerror(errno));
-	else if (*sshpid == 0) {
+	else if (sshpid == 0) {
 		if ((dup2(c_in, STDIN_FILENO) == -1) ||
 		    (dup2(c_out, STDOUT_FILENO) == -1)) {
 			fprintf(stderr, "dup2: %s\n", strerror(errno));
@@ -89,6 +99,9 @@ connect_to_server(char *path, char **args, int *in, int *out, pid_t *sshpid)
 		exit(1);
 	}
 
+	signal(SIGTERM, killchild);
+	signal(SIGINT, killchild);
+	signal(SIGHUP, killchild);
 	close(c_in);
 	close(c_out);
 }
@@ -109,7 +122,6 @@ int
 main(int argc, char **argv)
 {
 	int in, out, ch, err;
-	pid_t sshpid;
 	char *host, *userhost, *cp, *file2;
 	int debug_level = 0, sshver = 2;
 	char *file1 = NULL, *sftp_server = NULL;
@@ -227,15 +239,13 @@ main(int argc, char **argv)
 		args.list[0] = ssh_program;
 
 		fprintf(stderr, "Connecting to %s...\n", host);
-		connect_to_server(ssh_program, args.list, &in, &out,
-		    &sshpid);
+		connect_to_server(ssh_program, args.list, &in, &out);
 	} else {
 		args.list = NULL;
 		addargs(&args, "sftp-server");
 
 		fprintf(stderr, "Attaching to %s...\n", sftp_direct);
-		connect_to_server(sftp_direct, args.list, &in, &out,
-		    &sshpid);
+		connect_to_server(sftp_direct, args.list, &in, &out);
 	}
 
 	err = interactive_loop(in, out, file1, file2);

@@ -24,6 +24,9 @@
      [scp.c]
      kill ssh process upon receipt of signal, bz #241.
      based on patch from esb AT hawaii.edu; ok markus@
+   - djm@cvs.openbsd.org 2003/06/04 12:41:22
+     [sftp.c]
+     kill ssh process on receipt of signal; ok markus@
  - (djm) Update to fix of bug #584: lock card before return. 
    From larsch@trustcenter.de
 
@@ -454,4 +457,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2779 2003/06/04 12:51:24 djm Exp $
+$Id: ChangeLog,v 1.2780 2003/06/04 12:51:38 djm Exp $
