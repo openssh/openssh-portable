@@ -247,7 +247,7 @@ AC_ARG_WITH(cflags,
 	]	
 )
 AC_ARG_WITH(ldflags,
-	[  --with-ldlags           Specify additional flags to pass to linker],
+	[  --with-ldflags          Specify additional flags to pass to linker],
 	[
 		if test "x$withval" != "xno" ; then
 			LDFLAGS="$LDFLAGS $withval"

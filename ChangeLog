@@ -8,6 +8,9 @@
  - (djm) Don't need X11-askpass in RPM spec file if building without it
    from Pekka Savola <pekkas@netcore.fi>
  - (djm) Release 2.3.0p1
+ - (bal) typo in configure.in in regards to --with-ldflags from Marko
+   Asplund <aspa@kronodoc.fi>
+ - (bal) fixed next-posix.h.  Forgot prototype of getppid().
 
 20001105
  - (bal) Sync with OpenBSD:

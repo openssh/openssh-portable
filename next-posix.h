@@ -37,6 +37,9 @@
 pid_t posix_wait(int *status);
 #define wait(a) posix_wait(a)
 
+/* #ifdef POSIX wrapped functions that need defining */
+pid_t getppid(void);
+
 /* TERMCAP */
 int tcgetattr(int fd, struct termios *t);
 int tcsetattr(int fd, int opt, const struct termios *t);
