@@ -114,6 +114,29 @@ authentication combined with RSA host
 authentication, RSA challenge-response authentication, or password
 based authentication.
 .Pp
+Regardless of the authentication type, the account is checked to
+ensure that it is accessible.  An account is not accessible if it is
+locked, listed in
+.Cm DenyUsers
+or its group is listed in
+.Cm DenyGroups
+\&.  The definition of a locked account is system dependant. Some platforms
+have their own account database (eg AIX) and some modify the passwd field (
+.Ql \&*LK\&*
+on Solaris,
+.Ql \&*
+on HP-UX, containing
+.Ql Nologin
+on Tru64 and a leading
+.Ql \&!!
+on Linux).  If there is a requirement to disable password authentication
+for the account while allowing still public-key, then the passwd field
+should be set to something other than these values (eg
+.Ql NP
+or
+.Ql \&*NP\&*
+).
+.Pp
 Rhosts authentication is normally disabled
 because it is fundamentally insecure, but can be enabled in the server
 configuration file if desired.

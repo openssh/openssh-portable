@@ -6,6 +6,8 @@
  - (bal) redo how we handle 'mysignal()'.  Move it to 
    openbsd-compat/bsd-misc.c, s/mysignal/signal/ and #define signal to
    be our 'mysignal' by default.  OK djm@
+ - (dtucker) [acconfig.h auth.c configure.ac sshd.8] Bug #422 again: deny
+   any access to locked accounts.  ok djm@
 
 20030822
  - (djm) s/get_progname/ssh_get_progname/g to avoid conflict with Heimdal 
@@ -860,4 +862,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2901 2003/08/25 01:16:21 mouring Exp $
+$Id: ChangeLog,v 1.2902 2003/08/25 01:51:19 dtucker Exp $

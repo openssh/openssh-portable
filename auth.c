@@ -73,23 +73,25 @@ int
 allowed_user(struct passwd * pw)
 {
 	struct stat st;
-	const char *hostname = NULL, *ipaddr = NULL;
+	const char *hostname = NULL, *ipaddr = NULL, *passwd;
 	char *shell;
 	int i;
-#if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW) && \
-    defined(HAS_SHADOW_EXPIRE)
-	struct spwd *spw;
-	time_t today;
+#if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
+	struct spwd *spw = NULL;
 #endif
 
 	/* Shouldn't be called if pw is NULL, but better safe than sorry... */
 	if (!pw || !pw->pw_name)
 		return 0;
 
-#if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW) && \
-    defined(HAS_SHADOW_EXPIRE)
+#if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
+	if (!options.use_pam)
+		spw = getspnam(pw->pw_name);
+#ifdef HAS_SHADOW_EXPIRE
 #define	DAY		(24L * 60 * 60) /* 1 day in seconds */
-	if (!options.use_pam && (spw = getspnam(pw->pw_name)) != NULL) {
+	if (!options.use_pam && spw != NULL) {
+		time_t today;
+
 		today = time(NULL) / DAY;
 		debug3("allowed_user: today %d sp_expire %d sp_lstchg %d"
 		    " sp_max %d", (int)today, (int)spw->sp_expire,
@@ -117,7 +119,40 @@ allowed_user(struct passwd * pw)
 			return 0;
 		}
 	}
+#endif /* HAS_SHADOW_EXPIRE */
+#endif /* defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW) */
+
+    	/* grab passwd field for locked account check */
+#if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
+	if (spw != NULL)
+		passwd = spw->sp_pwdp;
+#else
+	passwd = pw->pw_passwd;
 #endif
+
+	/* check for locked account */ 
+	if (passwd && *passwd) {
+		int locked = 0;
+
+#ifdef LOCKED_PASSWD_STRING
+		if (strcmp(passwd, LOCKED_PASSWD_STRING) == 0)
+			 locked = 1;
+#endif
+#ifdef LOCKED_PASSWD_PREFIX
+		if (strncmp(passwd, LOCKED_PASSWD_PREFIX,
+		    strlen(LOCKED_PASSWD_PREFIX)) == 0)
+			 locked = 1;
+#endif
+#ifdef LOCKED_PASSWD_SUBSTR
+		if (strstr(passwd, LOCKED_PASSWD_SUBSTR))
+			locked = 1;
+#endif
+		if (locked) {
+			logit("User %.100s not allowed because account is locked",
+			    pw->pw_name);
+			return 0;
+		}
+	}
 
 	/*
 	 * Get the shell from the password data.  An empty shell field is

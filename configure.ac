@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.140 2003/08/21 07:58:29 dtucker Exp $
+# $Id: configure.ac,v 1.141 2003/08/25 01:51:19 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -141,6 +141,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE(LOGIN_NEEDS_UTMPX)
 	AC_DEFINE(DISABLE_SHADOW)
 	AC_DEFINE(DISABLE_UTMP)
+	AC_DEFINE(LOCKED_PASSWD_STRING, "*")
 	AC_DEFINE(SPT_TYPE,SPT_PSTAT)
 	LIBS="$LIBS -lsec -lsecpw"
 	AC_CHECK_LIB(xnet, t_error, ,AC_MSG_ERROR([*** -lxnet needed on HP-UX - check config.log ***]))
@@ -157,6 +158,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE(LOGIN_NEEDS_UTMPX)
 	AC_DEFINE(DISABLE_SHADOW)
 	AC_DEFINE(DISABLE_UTMP)
+	AC_DEFINE(LOCKED_PASSWD_STRING, "*")
 	AC_DEFINE(SPT_TYPE,SPT_PSTAT)
 	LIBS="$LIBS -lsec"
 	AC_CHECK_LIB(xnet, t_error, ,AC_MSG_ERROR([*** -lxnet needed on HP-UX - check config.log ***]))
@@ -170,6 +172,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE(LOGIN_NEEDS_UTMPX)
 	AC_DEFINE(DISABLE_SHADOW)
 	AC_DEFINE(DISABLE_UTMP)
+	AC_DEFINE(LOCKED_PASSWD_STRING, "*")
 	AC_DEFINE(SPT_TYPE,SPT_PSTAT)
 	LIBS="$LIBS -lsec"
 	AC_CHECK_LIB(xnet, t_error, ,AC_MSG_ERROR([*** -lxnet needed on HP-UX - check config.log ***]))
@@ -180,6 +183,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	PATH="$PATH:/usr/etc"
 	AC_DEFINE(BROKEN_INET_NTOA)
 	AC_DEFINE(WITH_ABBREV_NO_TTY)
+	AC_DEFINE(LOCKED_PASSWD_STRING, "*LK*")
 	;;
 *-*-irix6*)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
@@ -191,6 +195,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_CHECK_FUNC(jlimit_startjob, [AC_DEFINE(WITH_IRIX_JOBS)])
 	AC_DEFINE(BROKEN_INET_NTOA)
 	AC_DEFINE(WITH_ABBREV_NO_TTY)
+	AC_DEFINE(LOCKED_PASSWD_STRING, "*LK*")
 	;;
 *-*-linux*)
 	no_dev_ptmx=1
@@ -198,6 +203,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	check_for_openpty_ctty_bug=1
 	AC_DEFINE(DONT_TRY_OTHER_AF)
 	AC_DEFINE(PAM_TTY_KLUDGE)
+	AC_DEFINE(LOCKED_PASSWD_PREFIX, "!!")
 	AC_DEFINE(SPT_TYPE,SPT_REUSEARGV)
 	inet6_default_4in6=yes
 	case `uname -r` in
@@ -237,6 +243,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(LOGIN_NEEDS_UTMPX)
 	AC_DEFINE(LOGIN_NEEDS_TERM)
 	AC_DEFINE(PAM_TTY_KLUDGE)
+	AC_DEFINE(LOCKED_PASSWD_STRING, "*LK*")
 	# Pushing STREAMS modules will cause sshd to acquire a controlling tty.
 	AC_DEFINE(SSHD_ACQUIRES_CTTY)
 	# hardwire lastlog location (can't detect it on some versions)
@@ -362,6 +369,7 @@ mips-sony-bsd|mips-sony-newsos4)
 		fi
 	fi
 	AC_DEFINE(DISABLE_FD_PASSING)
+	AC_DEFINE(LOCKED_PASSWD_SUBSTR, "Nologin")
 	;;
 
 *-*-nto-qnx)

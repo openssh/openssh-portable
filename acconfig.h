@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.160 2003/08/02 12:24:49 dtucker Exp $ */
+/* $Id: acconfig.h,v 1.161 2003/08/25 01:51:19 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -397,6 +397,11 @@
 
 /* Define if cmsg_type is not passed correctly */
 #undef BROKEN_CMSG_TYPE
+
+/* Strings used in /etc/passwd to denote locked account */
+#undef LOCKED_PASSWD_STRING
+#undef LOCKED_PASSWD_PREFIX
+#undef LOCKED_PASSWD_SUBSTR
 
 /* Define if DNS support is to be activated */
 #undef DNS
