@@ -57,6 +57,9 @@
    - markus@cvs.openbsd.org 2003/02/10 11:51:47
      [ssh-add.1]
      xref sshd_config.5 (not sshd.8); mark@summersault.com; bug #490
+   - markus@cvs.openbsd.org 2003/02/12 09:33:04
+     [key.c key.h ssh-dss.c ssh-rsa.c]
+     merge ssh-dss.h ssh-rsa.h into key.h; ok deraadt@
 
 20030211
  - (djm) Cygwin needs libcrypt too. Patch from vinschen@redhat.com
@@ -1157,4 +1160,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2609 2003/02/24 01:00:16 djm Exp $
+$Id: ChangeLog,v 1.2610 2003/02/24 01:01:40 djm Exp $

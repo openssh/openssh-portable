@@ -32,15 +32,13 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: key.c,v 1.50 2003/02/04 09:32:08 markus Exp $");
+RCSID("$OpenBSD: key.c,v 1.51 2003/02/12 09:33:04 markus Exp $");
 
 #include <openssl/evp.h>
 
 #include "xmalloc.h"
 #include "key.h"
 #include "rsa.h"
-#include "ssh-dss.h"
-#include "ssh-rsa.h"
 #include "uuencode.h"
 #include "buffer.h"
 #include "bufaux.h"
