@@ -1,4 +1,4 @@
-#	$OpenBSD: reconfigure.sh,v 1.1 2003/06/12 15:43:32 markus Exp $
+#	$OpenBSD: reconfigure.sh,v 1.2 2003/06/21 09:14:05 markus Exp $
 #	Placed in the Public Domain.
 
 tid="simple connect after reconfigure"
@@ -8,7 +8,7 @@ SSHD=/usr/sbin/sshd
 
 start_sshd
 
-kill -HUP `cat $PIDFILE`
+$SUDO kill -HUP `cat $PIDFILE`
 sleep 1
 
 trace "wait for sshd to restart"

@@ -1,3 +1,10 @@
+20030622
+ - (dtucker) OpenBSD CVS Sync (regress/)
+   - markus@cvs.openbsd.org 2003/06/21 09:14:05
+     [reconfigure.sh]
+     missing $SUDO; from dtucker@zip.com.au
+ - (dtucker) [regress/authorized_keys_root] Remove temp data file from CVS.
+
 20030618
  - (djm) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2003/06/12 07:57:38
@@ -560,4 +567,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2816 2003/06/18 12:45:34 dtucker Exp $
+$Id: ChangeLog,v 1.2817 2003/06/22 02:33:27 dtucker Exp $
