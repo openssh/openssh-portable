@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.47 2002/04/23 10:23:00 djm Exp $
+# $Id: configure.ac,v 1.48 2002/04/23 12:48:46 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -1719,33 +1719,22 @@ AC_ARG_WITH(sectok,
 
 # Check whether user wants OpenSC support
 AC_ARG_WITH(opensc,
-	[  --with-opensc           Enable smartcard support using OpenSC],
-	[
-		if test "x$withval" != "xno" ; then
-			if test "x$withval" != "xyes" ; then
-				CPPFLAGS="$CPPFLAGS -I${withval}"
-				LDFLAGS="$LDFLAGS -L${withval}"
-				if test ! -z "$need_dash_r" ; then
-					LDFLAGS="$LDFLAGS -R${withval}"
-				fi
-				if test ! -z "$blibpath" ; then
-					blibpath="$blibpath:${withval}"
-				fi
-			fi
-			AC_CHECK_HEADERS(opensc/pkcs15.h)
-			if test "$ac_cv_header_opensc_pkcs15_h" != yes; then
-				AC_MSG_ERROR(Can't find opensc/pkcs15.h)
-			fi
-			AC_CHECK_LIB(opensc, sc_pkcs15_bind)
-			if test "$ac_cv_lib_opensc_sc_pkcs15_bind" != yes; then
-				AC_MSG_ERROR(Can't find libopensc)
-			fi
-			AC_DEFINE(SMARTCARD)
-			AC_DEFINE(USE_OPENSC)
-			SCARD_MSG="yes, using OpenSC" 
-		fi
-	]
-)
+	AC_HELP_STRING([--with-opensc=PFX],
+		       [Enable smartcard support using OpenSC]),
+	opensc_config_prefix="$withval", opensc_config_prefix="")
+if test x$opensc_config_prefix != x ; then
+  OPENSC_CONFIG=$opensc_config_prefix/bin/opensc-config
+  AC_PATH_PROG(OPENSC_CONFIG, opensc-config, no)
+  if test "$OPENSC_CONFIG" != "no"; then
+    LIBOPENSC_CFLAGS=`$OPENSC_CONFIG --cflags`
+    LIBOPENSC_LIBS=`$OPENSC_CONFIG --libs`
+    CPPFLAGS="$CPPFLAGS $LIBOPENSC_CFLAGS"
+    LDFLAGS="$LDFLAGS $LIBOPENSC_LIBS"
+    AC_DEFINE(SMARTCARD)
+    AC_DEFINE(USE_OPENSC)
+    SCARD_MSG="yes, using OpenSC" 
+  fi
+fi
 
 # Check whether user wants Kerberos 5 support
 KRB5_MSG="no" 

@@ -1,30 +1,22 @@
 How to use smartcards with OpenSSH?
 
-OpenSSH contains experimental support for authentication using
-Cyberflex smartcards and TODOS card readers, in addition to the cards with
-PKCS #15 structure supported by OpenSC. 
+OpenSSH contains experimental support for authentication using Cyberflex
+smartcards and TODOS card readers, in addition to the cards with PKCS#15
+structure supported by OpenSC.
 
-WARNING: Smartcard support is still in development. Keyfile formats, etc
-are still subject to change.
+WARNING: Smartcard support is still in development.
+Keyfile formats, etc are still subject to change.
 
-To enable this you need to:
+To enable sectok support:
 
-(1) install sectok or OpenSC
+(1) install sectok:
 
-	Sources are instructions are available from
+	Sources and instructions are available from
 	http://www.citi.umich.edu/projects/smartcard/sectok.html
 
-	or
-
-	http://www.opensc.org/
-
-(2) enable SMARTCARD support in OpenSSH:
+(2) enable sectok support in OpenSSH:
 
 	$ ./configure --with-sectok[=/path/to/libsectok] [options]
-
-	or
-
-	$ ./configure --with-opensc[=/path/to/opensc] [options]
 
 (3) load the Java Cardlet to the Cyberflex card:
 
@@ -35,12 +27,11 @@ To enable this you need to:
 
 (4) load a RSA key to the card:
 
-	please don't use your production RSA keys, since
+	Please don't use your production RSA keys, since
 	with the current version of sectok/ssh-keygen
-	the private key file is still readable
+	the private key file is still readable.
 
-	$ ssh-keygen -f /path/to/rsakey -U 1
-	(where 1 is the reader number, you can also try 0)
+	$ ssh-keygen -f /path/to/rsakey -U <readernum, eg. 0>
 
 	In spite of the name, this does not generate a key.
 	It just loads an already existing key on to the card.
@@ -65,13 +56,30 @@ To enable this you need to:
 	wrong passphrase three times in a row, you will
 	destroy your card.
 
-(6) tell the ssh client to use the card reader:
+To enable OpenSC support:
 
-	$ ssh -I 1 otherhost
+(1) install OpenSC:
 
-(7) or tell the agent (don't forget to restart) to use the smartcard:
+	Sources and instructions are available from
+	http://www.opensc.org/
 
-	$ ssh-add -s 1
+(2) enable OpenSC support in OpenSSH:
+
+	$ ./configure --with-opensc[=/path/to/opensc] [options]
+
+(3) load a RSA key to the card:
+
+	Not supported yet.
+
+Common smartcard options:
+
+(1) tell the ssh client to use the card reader:
+
+	$ ssh -I <readernum, eg. 0> otherhost
+
+(2) or tell the agent (don't forget to restart) to use the smartcard:
+
+	$ ssh-add -s <readernum, eg. 0>
 
 -markus,
-Tue Jul 17 23:54:51 CEST 2001
+Sat Apr 13 13:48:10 EEST 2002

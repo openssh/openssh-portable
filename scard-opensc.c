@@ -173,7 +173,7 @@ sc_private_decrypt(int flen, u_char *from, u_char *to, RSA *rsa,
 	r = sc_prkey_op_init(rsa, &key_obj);
 	if (r)
 		return -1;
-	r = sc_pkcs15_decipher(p15card, key_obj, from, flen, to, flen);
+	r = sc_pkcs15_decipher(p15card, key_obj, 0, from, flen, to, flen);
 	sc_unlock(card);
 	if (r < 0) {
 		error("sc_pkcs15_decipher() failed: %s", sc_strerror(r));
