@@ -164,9 +164,10 @@ cray_retain_utmp(struct utmp *ut, int pid)
 		while (read(fd, (char *)&utmp, sizeof(utmp)) == sizeof(utmp)) {
 			if (pid == utmp.ut_pid) {
 				ut->ut_jid = utmp.ut_jid;
-				strncpy(ut->ut_tpath, utmp.ut_tpath, TPATHSIZ);
-				strncpy(ut->ut_host, utmp.ut_host, strlen(utmp.ut_host));
-				strncpy(ut->ut_name, utmp.ut_name, strlen(utmp.ut_name));
+				/* XXX: MIN_SIZEOF here? can this go in loginrec? */
+				strncpy(ut->ut_tpath, utmp.ut_tpath, sizeof(utmp.ut_tpath));
+				strncpy(ut->ut_host, utmp.ut_host, sizeof(utmp.ut_host));
+				strncpy(ut->ut_name, utmp.ut_name, sizeof(utmp.ut_name));
 				break;
 			}
 		}

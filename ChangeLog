@@ -3,6 +3,7 @@
    for some #ifdef _CRAY code; ok wendyp@cray.com
  - (stevesk) sshpty.c: return 0 on error in cray pty code;
    ok wendyp@cray.com
+ - (stevesk) bsd-cray.c: utmp strings are not C strings
 
 20010812
  - (djm) Fix detection of long long int support. Based on patch from 
@@ -6284,4 +6285,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1472 2001/08/14 20:41:34 stevesk Exp $
+$Id: ChangeLog,v 1.1473 2001/08/14 20:54:52 stevesk Exp $
