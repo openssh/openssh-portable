@@ -12,16 +12,14 @@ A particularly pernicious problem arises with DSA keys (used by the
 ssh2 protocol). Performing a DSA signature (which is required for
 authentication), entails the use of a 160 bit random number.  If an
 attacker can predict this number, then they can deduce your *private*
-key and impersonate you.
+key and impersonate you or your hosts.
 
 If you are using the builtin random number support (configure will
-tell you if this is the case), then read this document in its entirety
-and consider disabling ssh2 support (by adding "Protocol 1" to
-sshd_config and ssh_config).
+tell you if this is the case), then read this document in its entirety.
 
 Please also request that your OS vendor provides a kernel-based random
 number collector (/dev/random) in future versions of your operating
-systems.
+systems by default.
 
 On to the description...
 
@@ -40,9 +38,10 @@ the specified program.
 
 The random number code will also read and save a seed file to
 ~/.ssh/prng_seed. This contents of this file are added to the random
-number generator at startup.
+number generator at startup. The goal here is to maintain as much 
+randomness between sessions as possible.
 
-This approach presents two problems:
+The entropy collection code has two main problems:
 
 1. It is slow.
 
