@@ -16,6 +16,9 @@
    - avsm@cvs.openbsd.org 2004/06/26 20:07:16
      [sshd.c]
      initialise some fd variables to -1, djm@ ok
+   - djm@cvs.openbsd.org 2004/06/30 08:36:59
+     [session.c]
+     unbreak TTY break, diagnosed by darren AT dazwin.com; ok markus@
 
 20040627
  - (tim) update README files.
@@ -1462,4 +1465,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3462 2004/06/30 12:40:20 djm Exp $
+$Id: ChangeLog,v 1.3463 2004/06/30 12:41:07 djm Exp $

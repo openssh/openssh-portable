@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.176 2004/06/21 17:53:03 djm Exp $");
+RCSID("$OpenBSD: session.c,v 1.177 2004/06/30 08:36:59 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1920,15 +1920,16 @@ session_input_channel_req(Channel *c, const char *rtype)
 			success = session_auth_agent_req(s);
 		} else if (strcmp(rtype, "subsystem") == 0) {
 			success = session_subsystem_req(s);
-		} else if (strcmp(rtype, "break") == 0) {
-			success = session_break_req(s);
 		} else if (strcmp(rtype, "env") == 0) {
 			success = session_env_req(s);
 		}
 	}
 	if (strcmp(rtype, "window-change") == 0) {
 		success = session_window_change_req(s);
+	} else if (strcmp(rtype, "break") == 0) {
+		success = session_break_req(s);
 	}
+
 	return success;
 }
 
