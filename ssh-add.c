@@ -14,7 +14,7 @@ Adds an identity to the authentication server, or removes an identity.
 */
 
 #include "includes.h"
-RCSID("$Id: ssh-add.c,v 1.11 1999/11/22 07:11:23 damien Exp $");
+RCSID("$Id: ssh-add.c,v 1.12 1999/11/23 00:24:32 damien Exp $");
 
 #include "rsa.h"
 #include "ssh.h"
@@ -184,8 +184,6 @@ main(int argc, char **argv)
 
   /* check if RSA support exists */
   if (rsa_alive() == 0) {
-    extern char *__progname;
-
     fprintf(stderr,
       "%s: no RSA support in libssl and libcrypto.  See ssl(8).\n",
       __progname);

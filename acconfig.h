@@ -68,15 +68,23 @@
 
 /* ******************* Shouldn't need to edit below this line ************** */
 
-# include <sys/types.h> /* For u_intXX_t */
-# include <sys/socket.h> /* For SHUT_XXXX */
+#include <sys/types.h> /* For u_intXX_t */
+#include <sys/socket.h> /* For SHUT_XXXX */
 
 #ifdef HAVE_PATHS_H
 # include <paths.h> /* For _PATH_XXX */
 #endif 
 
+#ifdef HAVE_UTMP_H
+# include <utmp.h> /* For _PATH_XXX */
+#endif 
+
 #ifdef HAVE_SYS_TIME_H
 # include <sys/time.h> /* For timersub */
+#endif
+
+#ifdef HAVE_MAILLOCK_H
+#include <maillock.h>
 #endif
 
 #ifndef SHUT_RDWR
@@ -174,6 +182,10 @@ enum
 
 #ifndef _PATH_STDPATH
 # define _PATH_STDPATH "/usr/bin:/bin:/usr/sbin:/sbin:"
+#endif
+
+#ifndef _PATH_DEVNULL
+# define _PATH_DEVNULL "/dev/null"
 #endif
 
 #ifndef _PATH_MAILDIR
