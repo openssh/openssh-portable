@@ -1,3 +1,7 @@
+20031017
+ - (dtucker) [INSTALL] Note that --with-md5 is now required on platforms with
+   MD5 passwords even if PAM support is enabled.  From steev at detritus.net.
+
 20031015
  - (dtucker) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2003/10/11 08:26:43
@@ -1245,4 +1249,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2994.2.51 2003/10/15 16:23:18 tim Exp $
+$Id: ChangeLog,v 1.2994.2.52 2003/10/17 06:30:54 dtucker Exp $
