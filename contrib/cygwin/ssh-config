@@ -1,0 +1,324 @@
+#!/bin/sh
+#
+# ssh-config, Copyright 2000, Red Hat Inc.
+#
+# This file is part of the Cygwin port of OpenSSH.
+
+# set -x
+
+# Subdirectory where the new package is being installed
+PREFIX=/usr
+
+# Directory where the config files are stored
+SYSCONFDIR=/etc
+
+# Subdirectory where an old package might be installed
+OLDPREFIX=/usr/local
+OLDSYSCONFDIR=${OLDPREFIX}/etc
+
+request()
+{
+  answer=""
+  while [ "X${answer}" != "Xyes" -a "X${answer}" != "Xno" ]
+  do
+    echo -n "$1 (yes/no) "
+    read answer
+  done
+  if [ "X${answer}" = "Xyes" ]
+  then
+    return 0
+  else
+    return 1
+  fi
+}
+
+# Check for running ssh/sshd processes first. Refuse to do anything while
+# some ssh processes are still running
+
+if ps -ef | grep -v grep | grep -q ssh
+then
+  echo
+  echo "There are still ssh processes running. Please shut them down first."
+  echo
+  exit 1
+fi
+
+# Check for ${SYSCONFDIR} directory
+
+if [ -e "${SYSCONFDIR}" -a ! -d "${SYSCONFDIR}" ]
+then
+  echo
+  echo "${SYSCONFDIR} is existant but not a directory."
+  echo "Cannot create global configuration files."
+  echo
+  exit 1
+fi
+
+# Create it if necessary
+
+if [ ! -e "${SYSCONFDIR}" ]
+then
+  mkdir "${SYSCONFDIR}"
+  if [ ! -e "${SYSCONFDIR}" ]
+  then
+    echo
+    echo "Creating ${SYSCONFDIR} directory failed"
+    echo
+    exit 1
+  fi
+fi
+
+# Check for an old installation in ${OLDPREFIX} unless ${OLDPREFIX} isn't
+# the same as ${PREFIX}
+
+if [ "${OLDPREFIX}" != "${PREFIX}" ]
+then
+  if [ -f "${OLDPREFIX}/sbin/sshd" ]
+  then
+    echo
+    echo "You seem to have an older installation in ${OLDPREFIX}."
+    echo
+    # Check if old global configuration files exist
+    if [ -f "${OLDSYSCONFDIR}/ssh_host_key" ]
+    then
+      if request "Do you want to copy your config files to your new installation?"
+      then
+        cp -f ${OLDSYSCONFDIR}/ssh_host_key ${SYSCONFDIR}
+        cp -f ${OLDSYSCONFDIR}/ssh_host_key.pub ${SYSCONFDIR}
+        cp -f ${OLDSYSCONFDIR}/ssh_host_dsa_key ${SYSCONFDIR}
+        cp -f ${OLDSYSCONFDIR}/ssh_host_dsa_key.pub ${SYSCONFDIR}
+        cp -f ${OLDSYSCONFDIR}/ssh_config ${SYSCONFDIR}
+        cp -f ${OLDSYSCONFDIR}/sshd_config ${SYSCONFDIR}
+      fi
+    fi
+    if request "Do you want to erase your old installation?"
+    then
+      rm -f ${OLDPREFIX}/bin/ssh.exe
+      rm -f ${OLDPREFIX}/bin/ssh-config
+      rm -f ${OLDPREFIX}/bin/scp.exe
+      rm -f ${OLDPREFIX}/bin/ssh-add.exe
+      rm -f ${OLDPREFIX}/bin/ssh-agent.exe
+      rm -f ${OLDPREFIX}/bin/ssh-keygen.exe
+      rm -f ${OLDPREFIX}/bin/slogin
+      rm -f ${OLDSYSCONFDIR}/ssh_host_key
+      rm -f ${OLDSYSCONFDIR}/ssh_host_key.pub
+      rm -f ${OLDSYSCONFDIR}/ssh_host_dsa_key
+      rm -f ${OLDSYSCONFDIR}/ssh_host_dsa_key.pub
+      rm -f ${OLDSYSCONFDIR}/ssh_config
+      rm -f ${OLDSYSCONFDIR}/sshd_config
+      rm -f ${OLDPREFIX}/man/man1/ssh.1
+      rm -f ${OLDPREFIX}/man/man1/scp.1
+      rm -f ${OLDPREFIX}/man/man1/ssh-add.1
+      rm -f ${OLDPREFIX}/man/man1/ssh-agent.1
+      rm -f ${OLDPREFIX}/man/man1/ssh-keygen.1
+      rm -f ${OLDPREFIX}/man/man1/slogin.1
+      rm -f ${OLDPREFIX}/man/man8/sshd.8
+      rm -f ${OLDPREFIX}/sbin/sshd.exe
+      rm -f ${OLDPREFIX}/sbin/sftp-server.exe
+    fi
+  fi
+fi
+
+# First generate host keys if not already existing
+
+if [ ! -f "${SYSCONFDIR}/ssh_host_key" ]
+then
+  echo "Generating ${SYSCONFDIR}/ssh_host_key"
+  ssh-keygen -f ${SYSCONFDIR}/ssh_host_key -N ''
+fi
+
+if [ ! -f "${SYSCONFDIR}/ssh_host_dsa_key" ]
+then
+  echo "Generating ${SYSCONFDIR}/ssh_host_dsa_key"
+  ssh-keygen -d -f ${SYSCONFDIR}/ssh_host_dsa_key -N ''
+fi
+
+# Check if ssh_config exists. If yes, ask for overwriting
+
+if [ -f "${SYSCONFDIR}/ssh_config" ]
+then
+  if request "Overwrite existing ${SYSCONFDIR}/ssh_config file?"
+  then
+    rm -f "${SYSCONFDIR}/ssh_config"
+    if [ -f "${SYSCONFDIR}/ssh_config" ]
+    then
+      echo "Can't overwrite. ${SYSCONFDIR}/ssh_config is write protected."
+    fi
+  fi
+fi
+
+# Create default ssh_config from here script
+
+if [ ! -f "${SYSCONFDIR}/ssh_config" ]
+then
+  echo "Creating default ${SYSCONFDIR}/ssh_config file"
+  cat > ${SYSCONFDIR}/ssh_config << EOF
+# This is ssh client systemwide configuration file.  This file provides 
+# defaults for users, and the values can be changed in per-user configuration
+# files or on the command line.
+
+# Configuration data is parsed as follows:
+#  1. command line options
+#  2. user-specific file
+#  3. system-wide file
+# Any configuration value is only changed the first time it is set.
+# Thus, host-specific definitions should be at the beginning of the
+# configuration file, and defaults at the end.
+
+# Site-wide defaults for various options
+
+# Host *
+#   ForwardAgent yes
+#   ForwardX11 yes
+#   RhostsAuthentication yes
+#   RhostsRSAAuthentication yes
+#   RSAAuthentication yes
+#   PasswordAuthentication yes
+#   FallBackToRsh no
+#   UseRsh no
+#   BatchMode no
+#   CheckHostIP yes
+#   StrictHostKeyChecking no
+#   IdentityFile ~/.ssh/identity
+#   Port 22
+#   Protocol 2,1
+#   Cipher 3des
+#   EscapeChar ~
+
+# Be paranoid by default
+Host *
+        ForwardAgent no
+        ForwardX11 no
+        FallBackToRsh no
+EOF
+fi
+
+# Check if sshd_config exists. If yes, ask for overwriting
+
+if [ -f "${SYSCONFDIR}/sshd_config" ]
+then
+  if request "Overwrite existing ${SYSCONFDIR}/sshd_config file?"
+  then
+    rm -f "${SYSCONFDIR}/sshd_config"
+    if [ -f "${SYSCONFDIR}/sshd_config" ]
+    then
+      echo "Can't overwrite. ${SYSCONFDIR}/sshd_config is write protected."
+    fi
+  fi
+fi
+
+# Create default sshd_config from here script
+
+if [ ! -f "${SYSCONFDIR}/sshd_config" ]
+then
+  echo "Creating default ${SYSCONFDIR}/sshd_config file"
+  cat > ${SYSCONFDIR}/sshd_config << EOF
+# This is ssh server systemwide configuration file.
+
+Port 22
+#Protocol 2,1
+ListenAddress 0.0.0.0
+#ListenAddress ::
+#HostKey /etc/ssh_host_key
+ServerKeyBits 768
+LoginGraceTime 600
+KeyRegenerationInterval 3600
+PermitRootLogin yes
+#
+# Don't read ~/.rhosts and ~/.shosts files
+IgnoreRhosts yes
+# Uncomment if you don't trust ~/.ssh/known_hosts for RhostsRSAAuthentication
+#IgnoreUserKnownHosts yes
+StrictModes yes
+X11Forwarding no
+X11DisplayOffset 10
+PrintMotd yes
+KeepAlive yes
+
+# Logging
+SyslogFacility AUTH
+LogLevel INFO
+#obsoletes QuietMode and FascistLogging
+
+RhostsAuthentication no
+#
+# For this to work you will also need host keys in /etc/ssh_known_hosts
+RhostsRSAAuthentication no
+
+# To install for logon to different user accounts change to "no" here
+RSAAuthentication yes
+
+# To install for logon to different user accounts change to "yes" here
+PasswordAuthentication no
+
+PermitEmptyPasswords no
+
+CheckMail no
+UseLogin no
+
+#Uncomment if you want to enable sftp
+#Subsystem      sftp    /usr/sbin/sftp-server
+#MaxStartups 10:30:60
+EOF
+fi
+
+# Ask user if user identity should be generated
+
+if [ "X${HOME}" = "X" ]
+then
+  echo '$HOME is nonexistant. Cannot create user identity files.'
+  exit 1
+fi
+
+if [ ! -d "${HOME}" ]
+then
+  echo '$HOME is not a valid directory. Cannot create user identity files.'
+  exit 1
+fi
+
+# If HOME is the root dir, set HOME to empty string to avoid error messages
+# in subsequent parts of that script.
+if [ "X${HOME}" = "X/" ]
+then
+  HOME=''
+fi
+
+if [ -e "${HOME}/.ssh" -a ! -d "${HOME}/.ssh" ]
+then
+  echo '$HOME/.ssh is existant but not a directory. Cannot create user identity files.'
+  exit 1
+fi
+
+if [ ! -e "${HOME}/.ssh" ]
+then
+  mkdir "${HOME}/.ssh"
+  if [ ! -e "${HOME}/.ssh" ]
+  then
+    echo "Creating users ${HOME}/.ssh directory failed"
+    exit 1
+  fi
+fi
+
+if [ ! -f "${HOME}/.ssh/identity" ]
+then
+  if request "Shall I create an RSA identity file for you?"
+  then
+    echo "Generating ${HOME}/.ssh/identity"
+    ssh-keygen -f "${HOME}/.ssh/identity"
+  fi
+fi
+
+if [ ! -f "${HOME}/.ssh/id_dsa" ]
+then
+  if request "Shall I create an DSA identity file for you? (yes/no) "
+  then
+    echo "Generating ${HOME}/.ssh/id_dsa"
+    ssh-keygen -d -f "${HOME}/.ssh/id_dsa"
+  fi
+fi
+
+echo
+echo "Note: If you have used sshd as service or from inetd, don't forget to"
+echo "      change the path to sshd.exe in the service entry or in inetd.conf."
+echo
+echo "Configuration finished. Have fun!"
