@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.35 2002/04/06 23:52:04 mouring Exp $
+# $Id: configure.ac,v 1.36 2002/04/07 16:18:04 stevesk Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -1580,6 +1580,22 @@ AC_CACHE_CHECK([for msg_accrights field in struct msghdr],
 ])
 if test "x$ac_cv_have_accrights_in_msghdr" = "xyes" ; then
 	AC_DEFINE(HAVE_ACCRIGHTS_IN_MSGHDR)
+fi
+
+AC_CACHE_CHECK([for msg_control field in struct msghdr],
+		ac_cv_have_control_in_msghdr, [
+	AC_TRY_COMPILE(
+		[
+#include <sys/socket.h>
+#include <sys/uio.h>
+		],
+		[ struct msghdr m; m.msg_control = 0; ],
+		[ ac_cv_have_control_in_msghdr="yes" ],
+		[ ac_cv_have_control_in_msghdr="no" ]
+	)
+])
+if test "x$ac_cv_have_control_in_msghdr" = "xyes" ; then
+	AC_DEFINE(HAVE_CONTROL_IN_MSGHDR)
 fi
 
 AC_CACHE_CHECK([if libc defines __progname], ac_cv_libc_defines___progname, [

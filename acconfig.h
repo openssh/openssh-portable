@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.127 2002/04/06 23:52:04 mouring Exp $ */
+/* $Id: acconfig.h,v 1.128 2002/04/07 16:18:04 stevesk Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -33,6 +33,9 @@
 
 /* Define if your system uses access rights style file descriptor passing */
 #undef HAVE_ACCRIGHTS_IN_MSGHDR
+
+/* Define if your system uses ancillary data style file descriptor passing */
+#undef HAVE_CONTROL_IN_MSGHDR
 
 /* Define if you system's inet_ntoa is busted (e.g. Irix gcc issue) */
 #undef BROKEN_INET_NTOA
