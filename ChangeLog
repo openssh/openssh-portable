@@ -27,6 +27,10 @@
    <marc.fournier@acadiau.ca>
  - Wrote autoconf tests for __progname symbol
  - RPM spec file fixes from Jim Knoble <jmknoble@pobox.com>
+ - Released 1.2pre12
+
+ - Another OpenBSD CVS update:
+   - [ssh-keygen.1] fix .Xr
 
 19991114
  - Solaris compilation fixes (still imcomplete)
