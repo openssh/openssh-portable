@@ -107,6 +107,9 @@
      add -D readerid option (download, i.e. print public RSA key to stdout).
      check for card present when uploading keys.
      use strings instead of ints for smartcard reader ids, too.
+   - jakob@cvs.openbsd.org 2001/08/02 08:58:35
+     [ssh-keygen.c]
+     change -u (upload smartcard key) to -U. ok markus@
 
 20010803
  - (djm) Fix interrupted read in entropy gatherer. Spotted by markus@ on
@@ -6217,4 +6220,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1453 2001/08/06 21:44:05 mouring Exp $
+$Id: ChangeLog,v 1.1454 2001/08/06 21:46:54 mouring Exp $
