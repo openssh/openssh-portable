@@ -35,7 +35,7 @@
 
 #include "includes.h"
 #include "openbsd-compat/fake-queue.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.93 2002/06/15 00:07:38 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.94 2002/06/15 01:27:48 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -395,7 +395,7 @@ process_add_identity(SocketEntry *e, int version)
 	Key *k = NULL;
 	char *type_name;
 	char *comment;
-	int type, success = 0;
+	int type, success = 0, death = 0;
 	Idtab *tab = idtab_lookup(version);
 
 	switch (version) {
@@ -451,46 +451,6 @@ process_add_identity(SocketEntry *e, int version)
 		goto send;
 	}
 	success = 1;
-	if (lookup_identity(k, version) == NULL) {
-		Identity *id = xmalloc(sizeof(Identity));
-		id->key = k;
-		id->comment = comment;
-		id->death = 0;
-		TAILQ_INSERT_TAIL(&tab->idlist, id, next);
-		/* Increment the number of identities. */
-		tab->nentries++;
-	} else {
-		key_free(k);
-		xfree(comment);
-	}
-send:
-	buffer_put_int(&e->output, 1);
-	buffer_put_char(&e->output,
-	    success ? SSH_AGENT_SUCCESS : SSH_AGENT_FAILURE);
-}
-
-static void
-process_constrain_identity(SocketEntry *e, int version)
-{
-	Key *key = NULL;
-	u_char *blob;
-	u_int blen, bits, death = 0;
-	int success = 0;
-
-	switch (version) {
-	case 1:
-		key = key_new(KEY_RSA1);
-		bits = buffer_get_int(&e->request);
-		buffer_get_bignum(&e->request, key->rsa->e);
-		buffer_get_bignum(&e->request, key->rsa->n);
-
-		break;
-	case 2:
-		blob = buffer_get_string(&e->request, &blen);
-		key = key_from_blob(blob, blen);
-		xfree(blob);
-		break;
-	}
 	while (buffer_len(&e->request)) {
 		switch (buffer_get_char(&e->request)) {
 		case SSH_AGENT_CONSTRAIN_LIFETIME:
@@ -500,14 +460,19 @@ process_constrain_identity(SocketEntry *e, int version)
 			break;
 		}
 	}
-	if (key != NULL) {
-		Identity *id = lookup_identity(key, version);
-		if (id != NULL && id->death == 0 && death != 0) {
-			id->death = death;
-			success = 1;
-		}
-		key_free(key);
+	if (lookup_identity(k, version) == NULL) {
+		Identity *id = xmalloc(sizeof(Identity));
+		id->key = k;
+		id->comment = comment;
+		id->death = death;
+		TAILQ_INSERT_TAIL(&tab->idlist, id, next);
+		/* Increment the number of identities. */
+		tab->nentries++;
+	} else {
+		key_free(k);
+		xfree(comment);
 	}
+send:
 	buffer_put_int(&e->output, 1);
 	buffer_put_char(&e->output,
 	    success ? SSH_AGENT_SUCCESS : SSH_AGENT_FAILURE);
@@ -706,6 +671,7 @@ process_message(SocketEntry *e)
 		process_request_identities(e, 1);
 		break;
 	case SSH_AGENTC_ADD_RSA_IDENTITY:
+	case SSH_AGENTC_ADD_RSA_ID_CONSTRAINED:
 		process_add_identity(e, 1);
 		break;
 	case SSH_AGENTC_REMOVE_RSA_IDENTITY:
@@ -713,9 +679,6 @@ process_message(SocketEntry *e)
 		break;
 	case SSH_AGENTC_REMOVE_ALL_RSA_IDENTITIES:
 		process_remove_all_identities(e, 1);
-		break;
-	case SSH_AGENTC_CONSTRAIN_IDENTITY1:
-		process_constrain_identity(e, 1);
 		break;
 	/* ssh2 */
 	case SSH2_AGENTC_SIGN_REQUEST:
@@ -725,6 +688,7 @@ process_message(SocketEntry *e)
 		process_request_identities(e, 2);
 		break;
 	case SSH2_AGENTC_ADD_IDENTITY:
+	case SSH2_AGENTC_ADD_ID_CONSTRAINED:
 		process_add_identity(e, 2);
 		break;
 	case SSH2_AGENTC_REMOVE_IDENTITY:
@@ -732,9 +696,6 @@ process_message(SocketEntry *e)
 		break;
 	case SSH2_AGENTC_REMOVE_ALL_IDENTITIES:
 		process_remove_all_identities(e, 2);
-		break;
-	case SSH_AGENTC_CONSTRAIN_IDENTITY:
-		process_constrain_identity(e, 2);
 		break;
 #ifdef SMARTCARD
 	case SSH_AGENTC_ADD_SMARTCARD_KEY:

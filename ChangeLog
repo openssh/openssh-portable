@@ -12,6 +12,11 @@
    - markus@cvs.openbsd.org 2002/06/15 00:07:38
      [authfd.c authfd.h ssh-add.c ssh-agent.c]
      fix stupid typo
+  - markus@cvs.openbsd.org 2002/06/15 01:27:48
+     [authfd.c authfd.h ssh-add.c ssh-agent.c]
+     remove the CONSTRAIN_IDENTITY messages and introduce a new
+     ADD_ID message with contraints instead. contraints can be
+     only added together with the private key.
 
 20020613
  - (bal) typo of setgroup for cygwin.  Patch by vinschen@redhat.com
@@ -940,4 +945,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2220 2002/06/21 00:06:54 mouring Exp $
+$Id: ChangeLog,v 1.2221 2002/06/21 00:08:39 mouring Exp $

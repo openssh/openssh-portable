@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.59 2002/06/15 00:07:38 markus Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.60 2002/06/15 01:27:48 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -164,22 +164,18 @@ add_file(AuthenticationConnection *ac, const char *filename)
 			strlcpy(msg, "Bad passphrase, try again: ", sizeof msg);
 		}
 	}
-	if (ssh_add_identity(ac, private, comment)) {
+
+	if (ssh_add_identity_constrained(ac, private, comment, lifetime)) {
 		fprintf(stderr, "Identity added: %s (%s)\n", filename, comment);
 		ret = 0;
-	} else
+		if (lifetime != 0)
+                        fprintf(stderr,
+			    "Lifetime set to %d seconds\n", lifetime);
+	} else if (ssh_add_identity(ac, private, comment)) {
+		fprintf(stderr, "Identity added: %s (%s)\n", filename, comment);
+		ret = 0;
+	} else {
 		fprintf(stderr, "Could not add identity: %s\n", filename);
-
-	if (ret == 0 && lifetime != 0) {
-		if (ssh_constrain_identity(ac, private, lifetime)) {
-			fprintf(stderr,
-			    "Lifetime set to %d seconds for: %s (%s)\n",
-			    lifetime, filename, comment);
-		} else {
-			fprintf(stderr,
-			    "Could not set lifetime for identity: %s\n",
-			    filename);
-		}
 	}
 
 	xfree(comment);

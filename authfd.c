@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfd.c,v 1.53 2002/06/15 00:07:38 markus Exp $");
+RCSID("$OpenBSD: authfd.c,v 1.54 2002/06/15 01:27:48 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -439,8 +439,6 @@ ssh_agent_sign(AuthenticationConnection *auth,
 static void
 ssh_encode_identity_rsa1(Buffer *b, RSA *key, const char *comment)
 {
-	buffer_clear(b);
-	buffer_put_char(b, SSH_AGENTC_ADD_RSA_IDENTITY);
 	buffer_put_int(b, BN_num_bits(key->n));
 	buffer_put_bignum(b, key->n);
 	buffer_put_bignum(b, key->e);
@@ -455,8 +453,6 @@ ssh_encode_identity_rsa1(Buffer *b, RSA *key, const char *comment)
 static void
 ssh_encode_identity_ssh2(Buffer *b, Key *key, const char *comment)
 {
-	buffer_clear(b);
-	buffer_put_char(b, SSH2_AGENTC_ADD_IDENTITY);
 	buffer_put_cstring(b, key_ssh_name(key));
 	switch (key->type) {
 	case KEY_RSA:
@@ -484,25 +480,40 @@ ssh_encode_identity_ssh2(Buffer *b, Key *key, const char *comment)
  */
 
 int
-ssh_add_identity(AuthenticationConnection *auth, Key *key, const char *comment)
+ssh_add_identity_constrained(AuthenticationConnection *auth, Key *key,
+    const char *comment, u_int life)
 {
 	Buffer msg;
-	int type;
+	int type, constrained = (life != 0);
 
 	buffer_init(&msg);
 
 	switch (key->type) {
 	case KEY_RSA1:
+		type = constrained ?
+		    SSH_AGENTC_ADD_RSA_ID_CONSTRAINED :
+		    SSH_AGENTC_ADD_RSA_IDENTITY;
+		buffer_put_char(&msg, type);
 		ssh_encode_identity_rsa1(&msg, key->rsa, comment);
 		break;
 	case KEY_RSA:
 	case KEY_DSA:
+		type = constrained ?
+		    SSH2_AGENTC_ADD_ID_CONSTRAINED :
+		    SSH2_AGENTC_ADD_IDENTITY;
+		buffer_put_char(&msg, type);
 		ssh_encode_identity_ssh2(&msg, key, comment);
 		break;
 	default:
 		buffer_free(&msg);
 		return 0;
 		break;
+	}
+	if (constrained) {
+		if (life != 0) {
+			buffer_put_char(&msg, SSH_AGENT_CONSTRAIN_LIFETIME);
+			buffer_put_int(&msg, life);
+		}
 	}
 	if (ssh_request_reply(auth, &msg, &msg) == 0) {
 		buffer_free(&msg);
@@ -511,6 +522,12 @@ ssh_add_identity(AuthenticationConnection *auth, Key *key, const char *comment)
 	type = buffer_get_char(&msg);
 	buffer_free(&msg);
 	return decode_reply(type);
+}
+
+int
+ssh_add_identity(AuthenticationConnection *auth, Key *key, const char *comment)
+{
+	return ssh_add_identity_constrained(auth, key, comment, 0);
 }
 
 /*
@@ -542,42 +559,6 @@ ssh_remove_identity(AuthenticationConnection *auth, Key *key)
 		buffer_free(&msg);
 		return 0;
 	}
-	if (ssh_request_reply(auth, &msg, &msg) == 0) {
-		buffer_free(&msg);
-		return 0;
-	}
-	type = buffer_get_char(&msg);
-	buffer_free(&msg);
-	return decode_reply(type);
-}
-
-int
-ssh_constrain_identity(AuthenticationConnection *auth, Key *key, u_int life)
-{
-	Buffer msg;
-	int type;
-	u_char *blob;
-	u_int blen;
-
-	buffer_init(&msg);
-
-	if (key->type == KEY_RSA1) {
-		buffer_put_char(&msg, SSH_AGENTC_CONSTRAIN_IDENTITY1);
-		buffer_put_int(&msg, BN_num_bits(key->rsa->n));
-		buffer_put_bignum(&msg, key->rsa->e);
-		buffer_put_bignum(&msg, key->rsa->n);
-	} else if (key->type == KEY_DSA || key->type == KEY_RSA) {
-		key_to_blob(key, &blob, &blen);
-		buffer_put_char(&msg, SSH_AGENTC_CONSTRAIN_IDENTITY);
-		buffer_put_string(&msg, blob, blen);
-		xfree(blob);
-	} else {
-		buffer_free(&msg);
-		return 0;
-	}
-	buffer_put_char(&msg, SSH_AGENT_CONSTRAIN_LIFETIME);
-	buffer_put_int(&msg, life);
-
 	if (ssh_request_reply(auth, &msg, &msg) == 0) {
 		buffer_free(&msg);
 		return 0;
