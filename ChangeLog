@@ -48,6 +48,9 @@
    - markus@cvs.openbsd.org 2003/02/06 09:27:29
      [ssh.c ssh_config.5]
      support 'ProxyCommand none'; bugzilla #433; binder@arago.de; ok djm@
+   - markus@cvs.openbsd.org 2003/02/06 09:29:18
+     [sftp-server.c]
+     fix races in rename/symlink; from Tony Finch; ok djm@
 
 20030211
  - (djm) Cygwin needs libcrypt too. Patch from vinschen@redhat.com
@@ -1148,4 +1151,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2606 2003/02/24 00:57:32 djm Exp $
+$Id: ChangeLog,v 1.2607 2003/02/24 00:58:44 djm Exp $
