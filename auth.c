@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth.c,v 1.35 2002/03/01 13:12:10 markus Exp $");
+RCSID("$OpenBSD: auth.c,v 1.36 2002/03/15 11:00:38 itojun Exp $");
 
 #ifdef HAVE_LOGIN_H
 #include <login.h>
@@ -110,7 +110,8 @@ allowed_user(struct passwd * pw)
 		    pw->pw_name, shell);
 		return 0;
 	}
-	if (!((st.st_mode & S_IFREG) && (st.st_mode & (S_IXOTH|S_IXUSR|S_IXGRP)))) {
+	if (S_ISREG(st.st_mode) == 0 ||
+	    (st.st_mode & (S_IXOTH|S_IXUSR|S_IXGRP)) == 0) {
 		log("User %.100s not allowed because shell %.100s is not executable",
 		    pw->pw_name, shell);
 		return 0;

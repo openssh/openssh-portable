@@ -18,6 +18,9 @@
    - markus@cvs.openbsd.org 2002/03/14 16:56:33
      [auth-rh-rsa.c auth-rsa.c auth.h]
      split auth_rsa() for better readability and privsep; ok provos@
+   - itojun@cvs.openbsd.org 2002/03/15 11:00:38
+     [auth.c]
+     fix file type checking (use S_ISREG).  ok by markus
 
 20020317
  - (tim) [configure.ac] Assume path given with --with-pid-dir=PATH is wanted,
@@ -7864,4 +7867,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1929 2002/03/22 01:12:58 mouring Exp $
+$Id: ChangeLog,v 1.1930 2002/03/22 01:15:33 mouring Exp $
