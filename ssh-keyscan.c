@@ -13,7 +13,7 @@ RCSID("$OpenBSD: ssh-keyscan.c,v 1.11 2001/01/21 19:05:57 markus Exp $");
 #if defined(HAVE_SYS_QUEUE_H)  &&  !defined(HAVE_BOGUS_SYS_QUEUE_H)
 #include <sys/queue.h>
 #else
-#include "bsd-queue.h"
+#include "fake-queue.h"
 #endif
 #include <errno.h>
 

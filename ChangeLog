@@ -1,5 +1,7 @@
 20010103
  - (bal) Cygwin clean up by Corinna Vinschen <vinschen@redhat.com>
+ - (bal) renamed queue.h to fake-queue.h (even if it's an OpenBSD
+   based file) to ensure #include space does not get confused.
 
 20010102
  - (bal) Makefile fix where sourcedir != builddir by Corinna Vinschen 
