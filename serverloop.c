@@ -76,15 +76,10 @@ static int max_fd;		/* Max file descriptor number for select(). */
 /*
  * This SIGCHLD kludge is used to detect when the child exits.  The server
  * will exit after that, as soon as forwarded connections have terminated.
- *
- * After SIGCHLD child_has_selected is set to 1 after the first pass
- * through the wait_until_can_do_something() select(). This ensures
- * that the child's output gets a chance to drain before it is yanked.
  */
 
 static pid_t child_pid;			/* Pid of the child. */
 static volatile int child_terminated;	/* The child has terminated. */
-static volatile int child_has_selected; /* Child has had chance to drain. */
 static volatile int child_wait_status;	/* Status from wait(). */
 
 void	server_init_dispatch(void);
@@ -102,10 +97,8 @@ sigchld_handler(int sig)
 			error("Strange, got SIGCHLD and wait returned pid %d but child is %d",
 			      wait_pid, child_pid);
 		if (WIFEXITED(child_wait_status) ||
-		    WIFSIGNALED(child_wait_status)) {
+		    WIFSIGNALED(child_wait_status))
 			child_terminated = 1;
-			child_has_selected = 0;
-		}
 	}
 	signal(SIGCHLD, sigchld_handler);
 	errno = save_errno;
@@ -116,7 +109,7 @@ sigchld_handler2(int sig)
 	int save_errno = errno;
 	debug("Received SIGCHLD.");
 	child_terminated = 1;
-	child_has_selected = 0;
+	signal(SIGCHLD, sigchld_handler2);
 	errno = save_errno;
 }
 
@@ -268,9 +261,6 @@ retry_select:
 		else
 			goto retry_select;
 	}
-	
-	if (child_terminated)
-		child_has_selected = 1;
 }
 
 /*
@@ -422,7 +412,6 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 	/* Initialize the SIGCHLD kludge. */
 	child_pid = pid;
 	child_terminated = 0;
-	child_has_selected = 0;
 	signal(SIGCHLD, sigchld_handler);
 	signal(SIGPIPE, SIG_IGN);
 
@@ -528,11 +517,8 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 		 * descriptors, and we have no more data to send to the
 		 * client, and there is no pending buffered data.
 		 */
-		if (((fdout_eof && fderr_eof) || 
-		    (child_terminated && child_has_selected)) && 
-		    !packet_have_data_to_write() &&
-		    (buffer_len(&stdout_buffer) == 0) && 
-			 (buffer_len(&stderr_buffer) == 0)) {
+		if (fdout_eof && fderr_eof && !packet_have_data_to_write() &&
+		    buffer_len(&stdout_buffer) == 0 && buffer_len(&stderr_buffer) == 0) {
 			if (!channel_still_open())
 				break;
 			if (!waiting_termination) {
@@ -678,13 +664,10 @@ server_loop2(void)
 		if (packet_not_very_much_data_to_write())
 			channel_output_poll();
 		wait_until_can_do_something(&readset, &writeset, 0);
-		if (child_terminated && child_has_selected) {
-			/* XXX: race - assumes only one child has terminated */
+		if (child_terminated) {
 			while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
 				session_close_by_pid(pid, status);
 			child_terminated = 0;
-			child_has_selected = 0;
-			signal(SIGCHLD, sigchld_handler2);
 		}
 		channel_after_select(&readset, &writeset);
 		process_input(&readset);

@@ -1901,9 +1901,6 @@ session_exit_message(Session *s, int status)
 	 */
 	if (c->ostate != CHAN_OUTPUT_CLOSED)
 		chan_write_failed(c);
-	if (c->istate != CHAN_INPUT_CLOSED)
-		c->istate = CHAN_INPUT_WAIT_DRAIN;
-
 	s->chanid = -1;
 }
 

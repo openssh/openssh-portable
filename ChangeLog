@@ -1,5 +1,6 @@
 20001129
- - (djm) Fix(?) the ssh hang-on-logout/data-from-child race
+ - (djm) Back out all the serverloop.c hacks. sshd will now hang again
+   if there are background children with open fds.
  - (djm) bsd-rresvport.c bzero -> memset
  - (djm) Don't fail in defines.h on absence of 64 bit types (we will 
    still fail during compilation of sftp-server).
