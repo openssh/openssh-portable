@@ -1,5 +1,6 @@
 20010429
  - (bal) Updated INSTALL.  PCRE moved to a new place.
+ - (djm) Release OpenSSH-2.9p1
 
 20010427
  - (bal) Fixed uidswap.c so it should work on non-posix complient systems.
@@ -5270,4 +5271,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1179 2001/04/28 16:32:10 mouring Exp $
+$Id: ChangeLog,v 1.1180 2001/04/29 10:45:50 djm Exp $
