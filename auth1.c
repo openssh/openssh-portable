@@ -69,7 +69,6 @@ do_authloop(Authctxt *authctxt)
 	u_int dlen;
 	u_int ulen;
 	int prev, type = 0;
-	struct passwd *pw = authctxt->pw;
 
 	debug("Attempting authentication for %s%.100s.",
 	    authctxt->valid ? "" : "illegal user ", authctxt->user);
@@ -232,9 +231,10 @@ do_authloop(Authctxt *authctxt)
 
 #ifdef HAVE_CYGWIN
 		if (authenticated &&
-		    !check_nt_auth(type == SSH_CMSG_AUTH_PASSWORD, pw)) {
+		    !check_nt_auth(type == SSH_CMSG_AUTH_PASSWORD, 
+		    authctxt->pw)) {
 			packet_disconnect("Authentication rejected for uid %d.",
-			    pw == NULL ? -1 : pw->pw_uid);
+			    authctxt->pw == NULL ? -1 : authctxt->pw->pw_uid);
 			authenticated = 0;
 		}
 #else

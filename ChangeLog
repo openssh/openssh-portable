@@ -1,4 +1,5 @@
 20040622
+ - (bal) [auth-passwd.c auth1.c] Clean up unused variables.
  - (dtucker) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2004/06/20 17:36:59
      [ssh.c]
@@ -1361,4 +1362,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3429 2004/06/22 03:27:16 dtucker Exp $
+$Id: ChangeLog,v 1.3430 2004/06/22 03:37:11 mouring Exp $
