@@ -1,3 +1,31 @@
+20001222
+ - Updated RCSID for pty.c
+ - (bal) OpenBSD CVS Updates:
+  - markus@cvs.openbsd.org 2000/12/21 15:10:16
+    [auth-rh-rsa.c hostfile.c hostfile.h sshconnect.c]
+    print keyfile:line for changed hostkeys, for deraadt@, ok deraadt@
+  - markus@cvs.openbsd.org 2000/12/20 19:26:56
+    [authfile.c]
+    allow ssh -i userkey for root
+  - markus@cvs.openbsd.org 2000/12/20 19:37:21
+    [authfd.c authfd.h kex.c sshconnect2.c sshd.c uidswap.c uidswap.h]
+    fix prototypes; from stevesk@pobox.com
+  - markus@cvs.openbsd.org 2000/12/20 19:32:08
+    [sshd.c]
+    init pointer to NULL; report from Jan.Ivan@cern.ch
+  - markus@cvs.openbsd.org 2000/12/19 23:17:54
+    [auth-krb4.c auth-options.c auth-options.h auth-rhosts.c auth-rsa.c
+     auth1.c auth2-skey.c auth2.c authfd.c authfd.h authfile.c bufaux.c
+     bufaux.h buffer.c canohost.c channels.c clientloop.c compress.c
+     crc32.c deattack.c getput.h hmac.c hmac.h hostfile.c kex.c kex.h
+     key.c key.h log.c login.c match.c match.h mpaux.c mpaux.h packet.c
+     packet.h radix.c readconf.c rsa.c scp.c servconf.c servconf.h
+     serverloop.c session.c sftp-server.c ssh-agent.c ssh-dss.c ssh-dss.h
+     ssh-keygen.c ssh-keyscan.c ssh-rsa.c ssh-rsa.h ssh.c ssh.h  uuencode.c
+     uuencode.h sshconnect1.c sshconnect2.c sshd.c tildexpand.c]
+    replace 'unsigned bla' with 'u_bla' everywhere. also replace 'char
+    unsigned' with u_char.
+
 20001221
  - (stevesk) OpenBSD CVS updates:
    - markus@cvs.openbsd.org 2000/12/19 15:43:45

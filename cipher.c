@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: cipher.c,v 1.40 2000/12/09 13:41:52 markus Exp $");
+RCSID("$OpenBSD: cipher.c,v 1.41 2000/12/19 23:17:56 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -177,7 +177,7 @@ des3_ssh1_decrypt(CipherContext *cc, u_char *dest, const u_char *src,
 void
 blowfish_setkey(CipherContext *cc, const u_char *key, u_int keylen)
 {
-	BF_set_key(&cc->u.bf.key, keylen, (unsigned char *)key);
+	BF_set_key(&cc->u.bf.key, keylen, (u_char *)key);
 }
 void
 blowfish_setiv(CipherContext *cc, const u_char *iv, u_int ivlen)
@@ -207,7 +207,7 @@ blowfish_cbc_decrypt(CipherContext *cc, u_char *dest, const u_char *src,
  * and after encryption/decryption. Thus the swap_bytes stuff (yuk).
  */
 static void
-swap_bytes(const unsigned char *src, unsigned char *dst, int n)
+swap_bytes(const u_char *src, u_char *dst, int n)
 {
 	char c[4];
 
@@ -260,7 +260,7 @@ arcfour_crypt(CipherContext *cc, u_char *dest, const u_char *src, u_int len)
 void
 cast_setkey(CipherContext *cc, const u_char *key, u_int keylen)
 {
-	CAST_set_key(&cc->u.cast.key, keylen, (unsigned char *) key);
+	CAST_set_key(&cc->u.cast.key, keylen, (u_char *) key);
 }
 void
 cast_setiv(CipherContext *cc, const u_char *iv, u_int ivlen)
@@ -419,10 +419,10 @@ Cipher ciphers[] = {
 
 /*--*/
 
-unsigned int
+u_int
 cipher_mask_ssh1(int client)
 {
-	unsigned int mask = 0;
+	u_int mask = 0;
 	mask |= 1 << SSH_CIPHER_3DES;           /* Mandatory */
 	mask |= 1 << SSH_CIPHER_BLOWFISH;
 	if (client) {
@@ -541,7 +541,7 @@ cipher_set_key_string(CipherContext *cc, Cipher *cipher,
     const char *passphrase)
 {
 	MD5_CTX md;
-	unsigned char digest[16];
+	u_char digest[16];
 
 	MD5_Init(&md);
 	MD5_Update(&md, (const u_char *)passphrase, strlen(passphrase));

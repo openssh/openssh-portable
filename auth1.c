@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.7 2000/11/10 01:04:40 markus Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.8 2000/12/19 23:17:55 markus Exp $");
 
 #ifdef HAVE_OSF_SIA
 # include <sia.h>
@@ -81,14 +81,14 @@ do_authloop(struct passwd * pw, char *luser)
 {
 	int authenticated = 0;
 	int attempt = 0;
-	unsigned int bits;
+	u_int bits;
 	RSA *client_host_key;
 	BIGNUM *n;
 	char *client_user, *password;
 	char user[1024];
-	unsigned int dlen;
+	u_int dlen;
 	int plen, nlen, elen;
-	unsigned int ulen;
+	u_int ulen;
 	int type = 0;
 	void (*authlog) (const char *fmt,...) = verbose;
 
@@ -149,7 +149,7 @@ do_authloop(struct passwd * pw, char *luser)
 				/* Try Kerberos v4 authentication. */
 				KTEXT_ST auth;
 				char *tkt_user = NULL;
-				char *kdata = packet_get_string((unsigned int *) &auth.length);
+				char *kdata = packet_get_string((u_int *) &auth.length);
 				packet_integrity_check(plen, 4 + auth.length, type);
 
 				if (auth.length < MAX_KTXT_LEN)
@@ -394,7 +394,7 @@ do_authentication()
 {
 	struct passwd *pw, pwcopy;
 	int plen;
-	unsigned int ulen;
+	u_int ulen;
 	char *user;
 
 	/* Get the name of the user that we wish to log in as. */

@@ -21,8 +21,10 @@
 typedef enum {
 	HOST_OK, HOST_NEW, HOST_CHANGED
 }       HostStatus;
+
 HostStatus
-check_host_in_hostfile(const char *filename, const char *host, Key *key, Key *found);
+check_host_in_hostfile(const char *filename, const char *host, Key *key,
+    Key *found, int *line);
 
 /*
  * Appends an entry to the host file.  Returns false if the entry could not

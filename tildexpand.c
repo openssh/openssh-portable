@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: tildexpand.c,v 1.8 2000/09/07 20:27:55 deraadt Exp $");
+RCSID("$OpenBSD: tildexpand.c,v 1.9 2000/12/19 23:17:59 markus Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -24,7 +24,7 @@ char *
 tilde_expand_filename(const char *filename, uid_t my_uid)
 {
 	const char *cp;
-	unsigned int userlen;
+	u_int userlen;
 	char *expanded;
 	struct passwd *pw;
 	char user[100];

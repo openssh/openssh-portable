@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-rsa.c,v 1.1 2000/11/12 19:50:38 markus Exp $");
+RCSID("$OpenBSD: ssh-rsa.c,v 1.2 2000/12/19 23:17:58 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -44,13 +44,13 @@ RCSID("$OpenBSD: ssh-rsa.c,v 1.1 2000/11/12 19:50:38 markus Exp $");
 int
 ssh_rsa_sign(
     Key *key,
-    unsigned char **sigp, int *lenp,
-    unsigned char *data, int datalen)
+    u_char **sigp, int *lenp,
+    u_char *data, int datalen)
 {
 	EVP_MD *evp_md = EVP_sha1();
 	EVP_MD_CTX md;
-	unsigned char *digest, *sig, *ret;
-	unsigned int slen, dlen, len;
+	u_char *digest, *sig, *ret;
+	u_int slen, dlen, len;
 	int ok;
 	Buffer b;
 
@@ -109,15 +109,15 @@ ssh_rsa_sign(
 int
 ssh_rsa_verify(
     Key *key,
-    unsigned char *signature, int signaturelen,
-    unsigned char *data, int datalen)
+    u_char *signature, int signaturelen,
+    u_char *data, int datalen)
 {
 	Buffer b;
 	EVP_MD *evp_md = EVP_sha1();
 	EVP_MD_CTX md;
 	char *ktype;
-	unsigned char *sigblob, *digest;
-	unsigned int len, dlen;
+	u_char *sigblob, *digest;
+	u_int len, dlen;
 	int rlen;
 	int ret;
 
@@ -135,7 +135,7 @@ ssh_rsa_verify(
 		return -1;
 	}
 	xfree(ktype);
-	sigblob = (unsigned char *)buffer_get_string(&b, &len);
+	sigblob = (u_char *)buffer_get_string(&b, &len);
 	rlen = buffer_len(&b);
 	buffer_free(&b);
 	if(rlen != 0) {

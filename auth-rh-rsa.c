@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rh-rsa.c,v 1.18 2000/11/12 19:50:37 markus Exp $");
+RCSID("$OpenBSD: auth-rh-rsa.c,v 1.19 2000/12/21 15:10:16 markus Exp $");
 
 #include "packet.h"
 #include "ssh.h"
@@ -60,7 +60,7 @@ auth_rhosts_rsa(struct passwd *pw, const char *client_user, RSA *client_host_key
 
 	/* Check if we know the host and its host key. */
 	host_status = check_host_in_hostfile(SSH_SYSTEM_HOSTFILE, canonical_hostname,
-	    client_key, found);
+	    client_key, found, NULL);
 
 	/* Check user host file unless ignored. */
 	if (host_status != HOST_OK && !options.ignore_user_known_hosts) {
@@ -80,7 +80,7 @@ auth_rhosts_rsa(struct passwd *pw, const char *client_user, RSA *client_host_key
 			/* XXX race between stat and the following open() */
 			temporarily_use_uid(pw->pw_uid);
 			host_status = check_host_in_hostfile(user_hostfile, canonical_hostname,
-			    client_key, found);
+			    client_key, found, NULL);
 			restore_uid();
 		}
 		xfree(user_hostfile);

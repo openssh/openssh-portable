@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: canohost.c,v 1.16 2000/10/21 17:04:22 markus Exp $");
+RCSID("$OpenBSD: canohost.c,v 1.17 2000/12/19 23:17:55 markus Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -136,7 +136,7 @@ check_ip_options:
 	 */
 	/* IP options -- IPv4 only */
 	if (from.ss_family == AF_INET) {
-		unsigned char options[200], *ucp;
+		u_char options[200], *ucp;
 		char text[1024], *cp;
 		socklen_t option_size;
 		int ipproto;

@@ -47,24 +47,24 @@ int	key_write(Key *key, FILE *f);
 int	key_read(Key *key, char **cpp);
 u_int	key_size(Key *k);
 
-Key	*key_generate(int type, unsigned int bits);
+Key	*key_generate(int type, u_int bits);
 Key	*key_from_private(Key *k);
 int	key_type_from_name(char *name);
 
 Key	*key_from_blob(char *blob, int blen);
-int	key_to_blob(Key *key, unsigned char **blobp, unsigned int *lenp);
+int	key_to_blob(Key *key, u_char **blobp, u_int *lenp);
 char	*key_ssh_name(Key *k);
 
 int
 key_sign(
     Key *key,
-    unsigned char **sigp, int *lenp,
-    unsigned char *data, int datalen);
+    u_char **sigp, int *lenp,
+    u_char *data, int datalen);
 
 int
 key_verify(
     Key *key,
-    unsigned char *signature, int signaturelen,
-    unsigned char *data, int datalen);
+    u_char *signature, int signaturelen,
+    u_char *data, int datalen);
 
 #endif

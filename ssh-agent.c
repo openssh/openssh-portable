@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.44 2000/12/19 22:43:45 markus Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.45 2000/12/19 23:17:58 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.44 2000/12/19 22:43:45 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.45 2000/12/19 23:17:58 markus Exp $");
 
 #include "ssh.h"
 #include "rsa.h"
@@ -66,7 +66,7 @@ typedef struct {
 	Buffer output;
 } SocketEntry;
 
-unsigned int sockets_alloc = 0;
+u_int sockets_alloc = 0;
 SocketEntry *sockets = NULL;
 
 typedef struct {
@@ -151,8 +151,8 @@ process_request_identities(SocketEntry *e, int version)
 			buffer_put_bignum(&msg, id->key->rsa->e);
 			buffer_put_bignum(&msg, id->key->rsa->n);
 		} else {
-			unsigned char *blob;
-			unsigned int blen;
+			u_char *blob;
+			u_int blen;
 			key_to_blob(id->key, &blob, &blen);
 			buffer_put_string(&msg, blob, blen);
 			xfree(blob);
@@ -173,8 +173,8 @@ process_authentication_challenge1(SocketEntry *e)
 	int i, len;
 	Buffer msg;
 	MD5_CTX md;
-	unsigned char buf[32], mdbuf[16], session_id[16];
-	unsigned int response_type;
+	u_char buf[32], mdbuf[16], session_id[16];
+	u_int response_type;
 
 	buffer_init(&msg);
 	key = key_new(KEY_RSA1);
@@ -235,8 +235,8 @@ process_sign_request2(SocketEntry *e)
 {
 	extern int datafellows;
 	Key *key, *private;
-	unsigned char *blob, *data, *signature = NULL;
-	unsigned int blen, dlen, slen = 0;
+	u_char *blob, *data, *signature = NULL;
+	u_int blen, dlen, slen = 0;
 	int flags;
 	Buffer msg;
 	int ok = -1;
@@ -279,9 +279,9 @@ void
 process_remove_identity(SocketEntry *e, int version)
 {
 	Key *key = NULL, *private;
-	unsigned char *blob;
-	unsigned int blen;
-	unsigned int bits;
+	u_char *blob;
+	u_int blen;
+	u_int bits;
 	int success = 0;
 
 	switch(version){
@@ -339,7 +339,7 @@ process_remove_identity(SocketEntry *e, int version)
 void
 process_remove_all_identities(SocketEntry *e, int version)
 {
-	unsigned int i;
+	u_int i;
 	Idtab *tab = idtab_lookup(version);
 
 	/* Loop over all identities and clear the keys. */
@@ -463,12 +463,12 @@ send:
 void
 process_message(SocketEntry *e)
 {
-	unsigned int msg_len;
-	unsigned int type;
-	unsigned char *cp;
+	u_int msg_len;
+	u_int type;
+	u_char *cp;
 	if (buffer_len(&e->input) < 5)
 		return;		/* Incomplete message. */
-	cp = (unsigned char *) buffer_ptr(&e->input);
+	cp = (u_char *) buffer_ptr(&e->input);
 	msg_len = GET_32BIT(cp);
 	if (msg_len > 256 * 1024) {
 		shutdown(e->fd, SHUT_RDWR);
@@ -527,7 +527,7 @@ process_message(SocketEntry *e)
 void
 new_socket(int type, int fd)
 {
-	unsigned int i, old_alloc;
+	u_int i, old_alloc;
 	if (fcntl(fd, F_SETFL, O_NONBLOCK) < 0)
 		error("fcntl O_NONBLOCK: %s", strerror(errno));
 
@@ -559,7 +559,7 @@ new_socket(int type, int fd)
 void
 prepare_select(fd_set *readset, fd_set *writeset)
 {
-	unsigned int i;
+	u_int i;
 	for (i = 0; i < sockets_alloc; i++)
 		switch (sockets[i].type) {
 		case AUTH_SOCKET:
@@ -579,7 +579,7 @@ prepare_select(fd_set *readset, fd_set *writeset)
 void
 after_select(fd_set *readset, fd_set *writeset)
 {
-	unsigned int i;
+	u_int i;
 	int len, sock;
 	socklen_t slen;
 	char buf[1024];

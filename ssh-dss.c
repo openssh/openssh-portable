@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-dss.c,v 1.1 2000/11/12 19:50:38 markus Exp $");
+RCSID("$OpenBSD: ssh-dss.c,v 1.2 2000/12/19 23:17:58 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -44,18 +44,18 @@ RCSID("$OpenBSD: ssh-dss.c,v 1.1 2000/11/12 19:50:38 markus Exp $");
 int
 ssh_dss_sign(
     Key *key,
-    unsigned char **sigp, int *lenp,
-    unsigned char *data, int datalen)
+    u_char **sigp, int *lenp,
+    u_char *data, int datalen)
 {
-	unsigned char *digest;
-	unsigned char *ret;
+	u_char *digest;
+	u_char *ret;
 	DSA_SIG *sig;
 	EVP_MD *evp_md = EVP_sha1();
 	EVP_MD_CTX md;
-	unsigned int rlen;
-	unsigned int slen;
-	unsigned int len;
-	unsigned char sigblob[SIGBLOB_LEN];
+	u_int rlen;
+	u_int slen;
+	u_int len;
+	u_char sigblob[SIGBLOB_LEN];
 	Buffer b;
 
 	if (key == NULL || key->type != KEY_DSA || key->dsa == NULL) {
@@ -113,17 +113,17 @@ ssh_dss_sign(
 int
 ssh_dss_verify(
     Key *key,
-    unsigned char *signature, int signaturelen,
-    unsigned char *data, int datalen)
+    u_char *signature, int signaturelen,
+    u_char *data, int datalen)
 {
 	Buffer b;
-	unsigned char *digest;
+	u_char *digest;
 	DSA_SIG *sig;
 	EVP_MD *evp_md = EVP_sha1();
 	EVP_MD_CTX md;
-	unsigned char *sigblob;
+	u_char *sigblob;
 	char *txt;
-	unsigned int len, dlen;
+	u_int len, dlen;
 	int rlen;
 	int ret;
 
@@ -159,7 +159,7 @@ ssh_dss_verify(
 			buffer_free(&b);
 			return -1;
 		}
-		sigblob = (unsigned char *)buffer_get_string(&b, &len);
+		sigblob = (u_char *)buffer_get_string(&b, &len);
 		rlen = buffer_len(&b);
 		if(rlen != 0) {
 			error("remaining bytes in signature %d", rlen);

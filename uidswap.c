@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: uidswap.c,v 1.10 2000/12/17 09:33:40 markus Exp $");
+RCSID("$OpenBSD: uidswap.c,v 1.11 2000/12/20 19:37:22 markus Exp $");
 
 #include "ssh.h"
 #include "uidswap.h"
@@ -65,7 +65,7 @@ temporarily_use_uid(uid_t uid)
  * Restores to the original uid.
  */
 void
-restore_uid()
+restore_uid(void)
 {
 #ifdef SAVED_IDS_WORK_WITH_SETEUID
 	/* Set the effective uid back to the saved uid. */

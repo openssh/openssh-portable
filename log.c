@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: log.c,v 1.11 2000/09/30 16:27:43 markus Exp $");
+RCSID("$OpenBSD: log.c,v 1.12 2000/12/19 23:17:57 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -155,7 +155,7 @@ fatal_remove_cleanup(void (*proc) (void *context), void *context)
 		}
 	}
 	fatal("fatal_remove_cleanup: no such cleanup function: 0x%lx 0x%lx\n",
-	      (unsigned long) proc, (unsigned long) context);
+	      (u_long) proc, (u_long) context);
 }
 
 /* Cleanup and exit */
@@ -172,7 +172,7 @@ fatal_cleanup(void)
 	for (cu = fatal_cleanups; cu; cu = next_cu) {
 		next_cu = cu->next;
 		debug("Calling cleanup 0x%lx(0x%lx)",
-		      (unsigned long) cu->proc, (unsigned long) cu->context);
+		      (u_long) cu->proc, (u_long) cu->context);
 		(*cu->proc) (cu->context);
 	}
 	exit(255);

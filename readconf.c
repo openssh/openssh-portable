@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.50 2000/11/12 19:50:37 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.51 2000/12/19 23:17:57 markus Exp $");
 
 #include "ssh.h"
 #include "readconf.h"
@@ -215,7 +215,7 @@ add_remote_forward(Options *options, u_short port, const char *host,
 static OpCodes
 parse_token(const char *cp, const char *filename, int linenum)
 {
-	unsigned int i;
+	u_int i;
 
 	for (i = 0; keywords[i].name; i++)
 		if (strcasecmp(cp, keywords[i].name) == 0)
@@ -573,10 +573,10 @@ parse_int:
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
 		if (arg[0] == '^' && arg[2] == 0 &&
-		    (unsigned char) arg[1] >= 64 && (unsigned char) arg[1] < 128)
-			value = (unsigned char) arg[1] & 31;
+		    (u_char) arg[1] >= 64 && (u_char) arg[1] < 128)
+			value = (u_char) arg[1] & 31;
 		else if (strlen(arg) == 1)
-			value = (unsigned char) arg[0];
+			value = (u_char) arg[0];
 		else if (strcmp(arg, "none") == 0)
 			value = -2;
 		else {

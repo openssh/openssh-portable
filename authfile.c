@@ -131,8 +131,8 @@ save_private_key_rsa1(const char *filename, const char *passphrase,
 	buffer_append_space(&encrypted, &cp, buffer_len(&buffer));
 
 	cipher_set_key_string(&ciphercontext, cipher, passphrase);
-	cipher_encrypt(&ciphercontext, (unsigned char *) cp,
-	    (unsigned char *) buffer_ptr(&buffer), buffer_len(&buffer));
+	cipher_encrypt(&ciphercontext, (u_char *) cp,
+	    (u_char *) buffer_ptr(&buffer), buffer_len(&buffer));
 	memset(&ciphercontext, 0, sizeof(ciphercontext));
 
 	/* Destroy temporary data. */
@@ -258,7 +258,7 @@ load_public_key_rsa(const char *filename, RSA * pub, char **comment_return)
 	 * Make sure it begins with the id string.  Consume the id string
 	 * from the buffer.
 	 */
-	for (i = 0; i < (unsigned int) strlen(AUTHFILE_ID_STRING) + 1; i++)
+	for (i = 0; i < (u_int) strlen(AUTHFILE_ID_STRING) + 1; i++)
 		if (buffer_get_char(&buffer) != (u_char) AUTHFILE_ID_STRING[i]) {
 			debug3("Bad RSA1 key file %.200s.", filename);
 			buffer_free(&buffer);
@@ -348,7 +348,7 @@ load_private_key_rsa1(int fd, const char *filename,
 	 * Make sure it begins with the id string.  Consume the id string
 	 * from the buffer.
 	 */
-	for (i = 0; i < (unsigned int) strlen(AUTHFILE_ID_STRING) + 1; i++)
+	for (i = 0; i < (u_int) strlen(AUTHFILE_ID_STRING) + 1; i++)
 		if (buffer_get_char(&buffer) != (u_char) AUTHFILE_ID_STRING[i]) {
 			debug3("Bad RSA1 key file %.200s.", filename);
 			buffer_free(&buffer);
@@ -383,8 +383,8 @@ load_private_key_rsa1(int fd, const char *filename,
 
 	/* Rest of the buffer is encrypted.  Decrypt it using the passphrase. */
 	cipher_set_key_string(&ciphercontext, cipher, passphrase);
-	cipher_decrypt(&ciphercontext, (unsigned char *) cp,
-	    (unsigned char *) buffer_ptr(&buffer), buffer_len(&buffer));
+	cipher_decrypt(&ciphercontext, (u_char *) cp,
+	    (u_char *) buffer_ptr(&buffer), buffer_len(&buffer));
 	memset(&ciphercontext, 0, sizeof(ciphercontext));
 	buffer_free(&buffer);
 
@@ -508,7 +508,7 @@ load_private_key(const char *filename, const char *passphrase, Key *key,
 	if (check_ntsec(filename))
 #endif
 	if (fstat(fd, &st) < 0 ||
-	    (st.st_uid != 0 && st.st_uid != getuid()) ||
+	    (st.st_uid != 0 && getuid() != 0 && st.st_uid != getuid()) ||
 	    (st.st_mode & 077) != 0) {
 		close(fd);
 		error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");

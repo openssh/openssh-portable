@@ -24,11 +24,11 @@
 #ifndef HMAC_H
 #define HMAC_H
 
-unsigned char *
+u_char *
 hmac(
     EVP_MD *evp_md,
-    unsigned int seqno,
-    unsigned char *data, int datalen,
-    unsigned char *key, int len);
+    u_int seqno,
+    u_char *data, int datalen,
+    u_char *key, int len);
 
 #endif

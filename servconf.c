@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.54 2000/11/12 19:50:38 markus Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.55 2000/12/19 23:17:57 markus Exp $");
 
 #include "ssh.h"
 #include "servconf.h"
@@ -269,7 +269,7 @@ static ServerOpCodes
 parse_token(const char *cp, const char *filename,
 	    int linenum)
 {
-	unsigned int i;
+	u_int i;
 
 	for (i = 0; keywords[i].name; i++)
 		if (strcasecmp(cp, keywords[i].name) == 0)

@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.44 2000/11/14 23:44:19 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.45 2000/12/19 23:17:58 markus Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -137,7 +137,7 @@ extern ServerOptions options;
 extern char *__progname;
 extern int log_stderr;
 extern int debug_flag;
-extern unsigned int utmp_len;
+extern u_int utmp_len;
 
 extern int startup_pipe;
 
@@ -218,7 +218,7 @@ do_authenticated(struct passwd * pw)
 	char *command;
 	int n_bytes;
 	int plen;
-	unsigned int proto_len, data_len, dlen;
+	u_int proto_len, data_len, dlen;
 
 	/*
 	 * Cancel the alarm we set to limit the time taken for
@@ -783,10 +783,10 @@ do_login(Session *s, const char *command)
  * already exists, its value is overriden.
  */
 void
-child_set_env(char ***envp, unsigned int *envsizep, const char *name,
+child_set_env(char ***envp, u_int *envsizep, const char *name,
 	      const char *value)
 {
-	unsigned int i, namelen;
+	u_int i, namelen;
 	char **env;
 
 	/*
@@ -824,7 +824,7 @@ child_set_env(char ***envp, unsigned int *envsizep, const char *name,
  * and assignments of the form name=value.  No other forms are allowed.
  */
 void
-read_environment_file(char ***env, unsigned int *envsize,
+read_environment_file(char ***env, u_int *envsize,
 		      const char *filename)
 {
 	FILE *f;
@@ -1009,7 +1009,7 @@ do_child(const char *command, struct passwd * pw, const char *term,
 	char buf[256];
 	char cmd[1024];
 	FILE *f = NULL;
-	unsigned int envsize, i;
+	u_int envsize, i;
 	char **env;
 	extern char **environ;
 	struct stat st;
@@ -1579,7 +1579,7 @@ session_window_change_req(Session *s)
 int
 session_pty_req(Session *s)
 {
-	unsigned int len;
+	u_int len;
 	char *term_modes;	/* encoded terminal modes */
 
 	if (no_pty_flag)
@@ -1628,7 +1628,7 @@ session_pty_req(Session *s)
 int
 session_subsystem_req(Session *s)
 {
-	unsigned int len;
+	u_int len;
 	int success = 0;
 	char *subsys = packet_get_string(&len);
 	int i;
@@ -1724,7 +1724,7 @@ session_shell_req(Session *s)
 int
 session_exec_req(Session *s)
 {
-	unsigned int len;
+	u_int len;
 	char *command = packet_get_string(&len);
 	packet_done();
 	if (forced_command) {
@@ -1762,7 +1762,7 @@ session_auth_agent_req(Session *s)
 void
 session_input_channel_req(int id, void *arg)
 {
-	unsigned int len;
+	u_int len;
 	int reply;
 	int success = 0;
 	char *rtype;

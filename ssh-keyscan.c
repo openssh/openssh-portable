@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keyscan.c,v 1.5 2000/12/19 22:48:08 markus Exp $");
+RCSID("$OpenBSD: ssh-keyscan.c,v 1.6 2000/12/19 23:17:58 markus Exp $");
 
 #ifdef HAVE_SYS_QUEUE_H
 #include <sys/queue.h>
@@ -53,7 +53,7 @@ int ncon;
  * associated with file descriptor n is held in fdcon[n].
  */
 typedef struct Connection {
-	unsigned char c_status;	/* State of connection on this file desc. */
+	u_char c_status;	/* State of connection on this file desc. */
 #define CS_UNUSED 0		/* File descriptor unused */
 #define CS_CON 1		/* Waiting to connect/read greeting */
 #define CS_SIZE 2		/* Waiting to read initial packet size */
@@ -83,7 +83,7 @@ con *fdcon;
 
 typedef struct {
 	char *buf;
-	unsigned int size;
+	u_int size;
 	int lineno;
 	const char *filename;
 	FILE *stream;

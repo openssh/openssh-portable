@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.76 2000/12/19 22:43:44 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.77 2000/12/19 23:17:56 markus Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -95,14 +95,14 @@ char *x11_saved_proto = NULL;
 
 /* Saved X11 authentication data.  This is the real data. */
 char *x11_saved_data = NULL;
-unsigned int x11_saved_data_len = 0;
+u_int x11_saved_data_len = 0;
 
 /*
  * Fake X11 authentication data.  This is what the server will be sending us;
  * we should replace any occurrences of this by the real data.
  */
 char *x11_fake_data = NULL;
-unsigned int x11_fake_data_len;
+u_int x11_fake_data_len;
 
 /*
  * Data structure for storing which hosts are permitted for forward requests.
@@ -436,15 +436,15 @@ channel_pre_output_draining(Channel *c, fd_set * readset, fd_set * writeset)
 int
 x11_open_helper(Channel *c)
 {
-	unsigned char *ucp;
-	unsigned int proto_len, data_len;
+	u_char *ucp;
+	u_int proto_len, data_len;
 
 	/* Check if the fixed size part of the packet is in buffer. */
 	if (buffer_len(&c->output) < 12)
 		return 0;
 
 	/* Parse the lengths of variable-length fields. */
-	ucp = (unsigned char *) buffer_ptr(&c->output);
+	ucp = (u_char *) buffer_ptr(&c->output);
 	if (ucp[0] == 0x42) {	/* Byte order MSB first. */
 		proto_len = 256 * ucp[6] + ucp[7];
 		data_len = 256 * ucp[8] + ucp[9];
@@ -1066,7 +1066,7 @@ channel_input_data(int type, int plen, void *ctxt)
 {
 	int id;
 	char *data;
-	unsigned int data_len;
+	u_int data_len;
 	Channel *c;
 
 	/* Get the channel number and verify it. */
@@ -1112,7 +1112,7 @@ channel_input_extended_data(int type, int plen, void *ctxt)
 	int id;
 	int tcode;
 	char *data;
-	unsigned int data_len;
+	u_int data_len;
 	Channel *c;
 
 	/* Get the channel number and verify it. */
@@ -1155,7 +1155,7 @@ channel_input_extended_data(int type, int plen, void *ctxt)
 int
 channel_not_very_much_buffered_data()
 {
-	unsigned int i;
+	u_int i;
 	Channel *c;
 
 	for (i = 0; i < channels_alloc; i++) {
@@ -1423,7 +1423,7 @@ channel_max_fd()
 int
 channel_still_open()
 {
-	unsigned int i;
+	u_int i;
 	for (i = 0; i < channels_alloc; i++)
 		switch (channels[i].type) {
 		case SSH_CHANNEL_FREE:
@@ -1786,7 +1786,7 @@ channel_input_port_open(int type, int plen, void *ctxt)
 	u_short host_port;
 	char *host, *originator_string;
 	int remote_channel, sock = -1, newch, i, denied;
-	unsigned int host_len, originator_len;
+	u_int host_len, originator_len;
 
 	/* Get remote channel number. */
 	remote_channel = packet_get_int();
@@ -1996,7 +1996,7 @@ x11_create_display_inet(int screen_number, int x11_display_offset)
 
 static
 int
-connect_local_xsocket(unsigned int dnr)
+connect_local_xsocket(u_int dnr)
 {
 	static const char *const x_sockets[] = {
 		X_UNIX_PATH "%u",
@@ -2129,7 +2129,7 @@ x11_input_open(int type, int plen, void *ctxt)
 {
 	int remote_channel, sock = 0, newch;
 	char *remote_host;
-	unsigned int remote_len;
+	u_int remote_len;
 
 	/* Get remote channel number. */
 	remote_channel = packet_get_int();
@@ -2200,8 +2200,8 @@ void
 x11_request_forwarding_with_spoofing(int client_session_id,
     const char *proto, const char *data)
 {
-	unsigned int data_len = (unsigned int) strlen(data) / 2;
-	unsigned int i, value;
+	u_int data_len = (u_int) strlen(data) / 2;
+	u_int i, value;
 	char *new_data;
 	int screen_number;
 	const char *cp;
@@ -2241,7 +2241,7 @@ x11_request_forwarding_with_spoofing(int client_session_id,
 	/* Convert the fake data into hex. */
 	new_data = xmalloc(2 * data_len + 1);
 	for (i = 0; i < data_len; i++)
-		sprintf(new_data + 2 * i, "%02x", (unsigned char) x11_fake_data[i]);
+		sprintf(new_data + 2 * i, "%02x", (u_char) x11_fake_data[i]);
 
 	/* Send the request packet. */
 	if (compat20) {

@@ -60,7 +60,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: rsa.c,v 1.17 2000/11/12 19:50:37 markus Exp $");
+RCSID("$OpenBSD: rsa.c,v 1.18 2000/12/19 23:17:57 markus Exp $");
 
 #include "rsa.h"
 #include "ssh.h"
@@ -69,7 +69,7 @@ RCSID("$OpenBSD: rsa.c,v 1.17 2000/11/12 19:50:37 markus Exp $");
 void
 rsa_public_encrypt(BIGNUM *out, BIGNUM *in, RSA *key)
 {
-	unsigned char *inbuf, *outbuf;
+	u_char *inbuf, *outbuf;
 	int len, ilen, olen;
 
 	if (BN_num_bits(key->e) < 2 || !BN_is_odd(key->e))
@@ -97,7 +97,7 @@ rsa_public_encrypt(BIGNUM *out, BIGNUM *in, RSA *key)
 void
 rsa_private_decrypt(BIGNUM *out, BIGNUM *in, RSA *key)
 {
-	unsigned char *inbuf, *outbuf;
+	u_char *inbuf, *outbuf;
 	int len, ilen, olen;
 
 	olen = BN_num_bytes(key->n);

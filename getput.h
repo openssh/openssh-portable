@@ -11,20 +11,20 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: getput.h,v 1.5 2000/09/07 20:27:51 deraadt Exp $"); */
+/* RCSID("$OpenBSD: getput.h,v 1.6 2000/12/19 23:17:56 markus Exp $"); */
 
 #ifndef GETPUT_H
 #define GETPUT_H
 
 /*------------ macros for storing/extracting msb first words -------------*/
 
-#define GET_32BIT(cp) (((unsigned long)(unsigned char)(cp)[0] << 24) | \
-		       ((unsigned long)(unsigned char)(cp)[1] << 16) | \
-		       ((unsigned long)(unsigned char)(cp)[2] << 8) | \
-		       ((unsigned long)(unsigned char)(cp)[3]))
+#define GET_32BIT(cp) (((u_long)(u_char)(cp)[0] << 24) | \
+		       ((u_long)(u_char)(cp)[1] << 16) | \
+		       ((u_long)(u_char)(cp)[2] << 8) | \
+		       ((u_long)(u_char)(cp)[3]))
 
-#define GET_16BIT(cp) (((unsigned long)(unsigned char)(cp)[0] << 8) | \
-		       ((unsigned long)(unsigned char)(cp)[1]))
+#define GET_16BIT(cp) (((u_long)(u_char)(cp)[0] << 8) | \
+		       ((u_long)(u_char)(cp)[1]))
 
 #define PUT_32BIT(cp, value) do { \
   (cp)[0] = (value) >> 24; \
@@ -39,14 +39,14 @@
 /*------------ macros for storing/extracting lsb first words -------------*/
 
 #define GET_32BIT_LSB_FIRST(cp) \
-  (((unsigned long)(unsigned char)(cp)[0]) | \
-  ((unsigned long)(unsigned char)(cp)[1] << 8) | \
-  ((unsigned long)(unsigned char)(cp)[2] << 16) | \
-  ((unsigned long)(unsigned char)(cp)[3] << 24))
+  (((u_long)(u_char)(cp)[0]) | \
+  ((u_long)(u_char)(cp)[1] << 8) | \
+  ((u_long)(u_char)(cp)[2] << 16) | \
+  ((u_long)(u_char)(cp)[3] << 24))
 
 #define GET_16BIT_LSB_FIRST(cp) \
-  (((unsigned long)(unsigned char)(cp)[0]) | \
-  ((unsigned long)(unsigned char)(cp)[1] << 8))
+  (((u_long)(u_char)(cp)[0]) | \
+  ((u_long)(u_char)(cp)[1] << 8))
 
 #define PUT_32BIT_LSB_FIRST(cp, value) do { \
   (cp)[0] = (value); \

@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.35 2000/11/25 17:19:33 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.36 2000/12/19 23:17:58 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -137,7 +137,7 @@ do_convert_to_ssh2(struct passwd *pw)
 {
 	Key *k;
 	int len;
-	unsigned char *blob;
+	u_char *blob;
 	struct stat st;
 
 	if (!have_identity)
@@ -171,7 +171,7 @@ buffer_get_bignum_bits(Buffer *b, BIGNUM *value)
 	int bytes = (bits + 7) / 8;
 	if (buffer_len(b) < bytes)
 		fatal("buffer_get_bignum_bits: input buffer too small");
-	BN_bin2bn((unsigned char *)buffer_ptr(b), bytes, value);
+	BN_bin2bn((u_char *)buffer_ptr(b), bytes, value);
 	buffer_consume(b, bytes);
 }
 
@@ -275,7 +275,7 @@ do_convert_from_ssh2(struct passwd *pw)
 		*p = '\0';
 		strlcat(encoded, line, sizeof(encoded));
 	}
-	blen = uudecode(encoded, (unsigned char *)blob, sizeof(blob));
+	blen = uudecode(encoded, (u_char *)blob, sizeof(blob));
 	if (blen < 0) {
 		fprintf(stderr, "uudecode failed.\n");
 		exit(1);
@@ -332,7 +332,7 @@ do_fingerprint(struct passwd *pw)
 	Key *public;
 	char *comment = NULL, *cp, *ep, line[16*1024];
 	int i, skip = 0, num = 1, invalid = 1, success = 0;
-	unsigned int ignore;
+	u_int ignore;
 	struct stat st;
 
 	if (!have_identity)

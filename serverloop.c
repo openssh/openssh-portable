@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.36 2000/12/05 20:34:10 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.38 2000/12/19 23:17:58 markus Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -70,7 +70,7 @@ static int fdout_eof = 0;	/* EOF encountered reading from fdout. */
 static int fderr_eof = 0;	/* EOF encountered readung from fderr. */
 static int connection_in;	/* Connection to client (input). */
 static int connection_out;	/* Connection to client (output). */
-static unsigned int buffer_high;/* "Soft" max buffer size. */
+static u_int buffer_high;/* "Soft" max buffer size. */
 static int max_fd;		/* Max file descriptor number for select(). */
 
 /*
@@ -179,7 +179,7 @@ make_packets_from_stdout_data()
  */
 void
 wait_until_can_do_something(fd_set * readset, fd_set * writeset,
-			    unsigned int max_time_milliseconds)
+			    u_int max_time_milliseconds)
 {
 	struct timeval tv, *tvp;
 	int ret;
@@ -402,9 +402,9 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 	int wait_status;	/* Status returned by wait(). */
 	pid_t wait_pid;		/* pid returned by wait(). */
 	int waiting_termination = 0;	/* Have displayed waiting close message. */
-	unsigned int max_time_milliseconds;
-	unsigned int previous_stdout_buffer_bytes;
-	unsigned int stdout_buffer_bytes;
+	u_int max_time_milliseconds;
+	u_int previous_stdout_buffer_bytes;
+	u_int stdout_buffer_bytes;
 	int type;
 
 	debug("Entering interactive session.");
@@ -578,7 +578,7 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 
 	/* Wait for the child to exit.  Get its exit status. */
 	wait_pid = wait(&wait_status);
-	if (wait_pid < 0) {
+	if (wait_pid == -1) {
 		/*
 		 * It is possible that the wait was handled by SIGCHLD
 		 * handler.  This may result in either: this call
@@ -683,7 +683,7 @@ void
 server_input_stdin_data(int type, int plen, void *ctxt)
 {
 	char *data;
-	unsigned int data_len;
+	u_int data_len;
 
 	/* Stdin data from the client.  Append it to the buffer. */
 	/* Ignore any data if the client has closed stdin. */
@@ -789,7 +789,7 @@ server_input_channel_open(int type, int plen, void *ctxt)
 {
 	Channel *c = NULL;
 	char *ctype;
-	unsigned int len;
+	u_int len;
 	int rchan;
 	int rmaxpack;
 	int rwindow;

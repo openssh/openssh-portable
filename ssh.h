@@ -12,7 +12,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: ssh.h,v 1.55 2000/11/25 17:19:33 markus Exp $"); */
+/* RCSID("$OpenBSD: ssh.h,v 1.56 2000/12/19 23:17:58 markus Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -296,9 +296,9 @@
  * information is not available.  This must be called before record_login.
  * The host from which the user logged in is stored in buf.
  */
-unsigned long
+u_long
 get_last_login_time(uid_t uid, const char *logname,
-    char *buf, unsigned int bufsize);
+    char *buf, u_int bufsize);
 
 /*
  * Records that the user has logged in.  This does many things normally done
@@ -377,7 +377,7 @@ int     auth_rsa(struct passwd * pw, BIGNUM * client_n);
  * Parses an RSA key (number of bits, e, n) from a string.  Moves the pointer
  * over the key.  Skips any whitespace at the beginning and at end.
  */
-int     auth_rsa_read_key(char **cpp, unsigned int *bitsp, BIGNUM * e, BIGNUM * n);
+int     auth_rsa_read_key(char **cpp, u_int *bitsp, BIGNUM * e, BIGNUM * n);
 
 /*
  * Returns the name of the machine at the other end of the socket.  The
@@ -543,7 +543,7 @@ int	auth_krb4_password(struct passwd * pw, const char *password);
 int     auth_kerberos_tgt(struct passwd * pw, const char *string);
 int     auth_afs_token(struct passwd * pw, const char *token_string);
 
-int     creds_to_radix(CREDENTIALS * creds, unsigned char *buf, size_t buflen);
+int     creds_to_radix(CREDENTIALS * creds, u_char *buf, size_t buflen);
 int     radix_to_creds(const char *buf, CREDENTIALS * creds);
 #endif				/* AFS */
 

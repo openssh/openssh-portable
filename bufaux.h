@@ -10,7 +10,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: bufaux.h,v 1.8 2000/09/07 20:27:50 deraadt Exp $"); */
+/* RCSID("$OpenBSD: bufaux.h,v 1.9 2000/12/19 23:17:55 markus Exp $"); */
 
 #ifndef BUFAUX_H
 #define BUFAUX_H
@@ -29,10 +29,10 @@ int     buffer_get_bignum(Buffer * buffer, BIGNUM * value);
 int	buffer_get_bignum2(Buffer *buffer, BIGNUM * value);
 
 /* Returns an integer from the buffer (4 bytes, msb first). */
-unsigned int buffer_get_int(Buffer * buffer);
+u_int buffer_get_int(Buffer * buffer);
 
 /* Stores an integer in the buffer in 4 bytes, msb first. */
-void    buffer_put_int(Buffer * buffer, unsigned int value);
+void    buffer_put_int(Buffer * buffer, u_int value);
 
 /* Returns a character from the buffer (0 - 255). */
 int     buffer_get_char(Buffer * buffer);
@@ -48,10 +48,10 @@ void    buffer_put_char(Buffer * buffer, int value);
  * stored there.  A null character will be automatically appended to the
  * returned string, and is not counted in length.
  */
-char   *buffer_get_string(Buffer * buffer, unsigned int *length_ptr);
+char   *buffer_get_string(Buffer * buffer, u_int *length_ptr);
 
 /* Stores and arbitrary binary string in the buffer. */
-void    buffer_put_string(Buffer * buffer, const void *buf, unsigned int len);
+void    buffer_put_string(Buffer * buffer, const void *buf, u_int len);
 void	buffer_put_cstring(Buffer *buffer, const char *s);
 
 #endif				/* BUFAUX_H */

@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.12 2000/12/10 17:01:53 markus Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.13 2000/12/19 23:17:58 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dsa.h>
@@ -34,8 +34,8 @@ RCSID("$OpenBSD: sshconnect1.c,v 1.12 2000/12/10 17:01:53 markus Exp $");
 #include "authfile.h"
 
 /* Session id for the current session. */
-unsigned char session_id[16];
-unsigned int supported_authentications = 0;
+u_char session_id[16];
+u_int supported_authentications = 0;
 
 extern Options options;
 extern char *__progname;
@@ -50,8 +50,8 @@ try_agent_authentication()
 	int type;
 	char *comment;
 	AuthenticationConnection *auth;
-	unsigned char response[16];
-	unsigned int i;
+	u_char response[16];
+	u_int i;
 	int plen, clen;
 	Key *key;
 	BIGNUM *challenge;
@@ -146,7 +146,7 @@ try_agent_authentication()
 void
 respond_to_rsa_challenge(BIGNUM * challenge, RSA * prv)
 {
-	unsigned char buf[32], response[16];
+	u_char buf[32], response[16];
 	MD5_CTX md;
 	int i, len;
 
@@ -441,7 +441,7 @@ try_kerberos_authentication()
 		debug("Kerberos V4 authentication accepted.");
 
 		/* Get server's response. */
-		reply = packet_get_string((unsigned int *) &auth.length);
+		reply = packet_get_string((u_int *) &auth.length);
 		memcpy(auth.dat, reply, auth.length);
 		xfree(reply);
 
@@ -506,7 +506,7 @@ send_kerberos_tgt()
 		debug("Kerberos V4 ticket expired: %s", TKT_FILE);
 		return 0;
 	}
-	creds_to_radix(creds, (unsigned char *)buffer, sizeof buffer);
+	creds_to_radix(creds, (u_char *)buffer, sizeof buffer);
 	xfree(creds);
 
 	packet_start(SSH_CMSG_HAVE_KERBEROS_TGT);
@@ -545,10 +545,10 @@ send_afs_tokens(void)
 		p = buf;
 
 		/* Get secret token. */
-		memcpy(&creds.ticket_st.length, p, sizeof(unsigned int));
+		memcpy(&creds.ticket_st.length, p, sizeof(u_int));
 		if (creds.ticket_st.length > MAX_KTXT_LEN)
 			break;
-		p += sizeof(unsigned int);
+		p += sizeof(u_int);
 		memcpy(creds.ticket_st.dat, p, creds.ticket_st.length);
 		p += creds.ticket_st.length;
 
@@ -574,7 +574,7 @@ send_afs_tokens(void)
 		creds.pinst[0] = '\0';
 
 		/* Encode token, ship it off. */
-		if (creds_to_radix(&creds, (unsigned char*) buffer, sizeof buffer) <= 0)
+		if (creds_to_radix(&creds, (u_char*) buffer, sizeof buffer) <= 0)
 			break;
 		packet_start(SSH_CMSG_HAVE_AFS_TOKEN);
 		packet_put_string(buffer, strlen(buffer));
@@ -603,7 +603,7 @@ try_skey_authentication()
 {
 	int type, i;
 	int payload_len;
-	unsigned int clen;
+	u_int clen;
 	char prompt[1024];
 	char *challenge, *response;
 
@@ -702,10 +702,10 @@ ssh_kex(char *host, struct sockaddr *hostaddr)
 	Key k;
 	int bits, rbits;
 	int ssh_cipher_default = SSH_CIPHER_3DES;
-	unsigned char session_key[SSH_SESSION_KEY_LENGTH];
-	unsigned char cookie[8];
-	unsigned int supported_ciphers;
-	unsigned int server_flags, client_flags;
+	u_char session_key[SSH_SESSION_KEY_LENGTH];
+	u_char cookie[8];
+	u_int supported_ciphers;
+	u_int server_flags, client_flags;
 	int payload_len, clen, sum_len = 0;
 	u_int32_t rand = 0;
 

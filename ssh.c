@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.77 2000/12/12 23:11:48 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.78 2000/12/19 23:17:58 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/dsa.h>
@@ -400,10 +400,10 @@ main(int ac, char **av)
 			break;
 		case 'e':
 			if (optarg[0] == '^' && optarg[2] == 0 &&
-			    (unsigned char) optarg[1] >= 64 && (unsigned char) optarg[1] < 128)
-				options.escape_char = (unsigned char) optarg[1] & 31;
+			    (u_char) optarg[1] >= 64 && (u_char) optarg[1] < 128)
+				options.escape_char = (u_char) optarg[1] & 31;
 			else if (strlen(optarg) == 1)
-				options.escape_char = (unsigned char) optarg[0];
+				options.escape_char = (u_char) optarg[0];
 			else if (strcmp(optarg, "none") == 0)
 				options.escape_char = -2;
 			else {

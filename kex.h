@@ -62,15 +62,15 @@ struct Enc {
 	char		*name;
 	Cipher		*cipher;
 	int		enabled;
-	unsigned char	*key;
-	unsigned char	*iv;
+	u_char	*key;
+	u_char	*iv;
 };
 struct Mac {
 	char		*name;
 	int		enabled;
 	EVP_MD		*md;
 	int		mac_len;
-	unsigned char	*key;
+	u_char	*key;
 	int		key_len;
 };
 struct Comp {
@@ -97,15 +97,15 @@ kex_exchange_kexinit(
 Kex *
 kex_choose_conf(char *cprop[PROPOSAL_MAX],
     char *sprop[PROPOSAL_MAX], int server);
-int	kex_derive_keys(Kex *k, unsigned char *hash, BIGNUM *shared_secret);
+int	kex_derive_keys(Kex *k, u_char *hash, BIGNUM *shared_secret);
 void	packet_set_kex(Kex *k);
 int	dh_pub_is_valid(DH *dh, BIGNUM *dh_pub);
 DH	*dh_new_group_asc(const char *, const char *);
 DH	*dh_new_group(BIGNUM *, BIGNUM *);
-void	dh_gen_key();
-DH	*dh_new_group1();
+void	dh_gen_key(DH *);
+DH	*dh_new_group1(void);
 
-unsigned char *
+u_char *
 kex_hash(
     char *client_version_string,
     char *server_version_string,
@@ -116,7 +116,7 @@ kex_hash(
     BIGNUM *server_dh_pub,
     BIGNUM *shared_secret);
 
-unsigned char *
+u_char *
 kex_hash_gex(
     char *client_version_string,
     char *server_version_string,

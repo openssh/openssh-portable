@@ -25,14 +25,14 @@
 #include "includes.h"
 #include "uuencode.h"
 
-RCSID("$OpenBSD: radix.c,v 1.13 2000/09/07 20:27:52 deraadt Exp $");
+RCSID("$OpenBSD: radix.c,v 1.14 2000/12/19 23:17:57 markus Exp $");
 
 #ifdef AFS
 #include <krb.h>
 
-typedef unsigned char my_u_char;
-typedef unsigned int my_u_int32_t;
-typedef unsigned short my_u_short;
+typedef u_char my_u_char;
+typedef u_int my_u_int32_t;
+typedef u_short my_u_short;
 
 /* Nasty macros from BIND-4.9.2 */
 
@@ -89,7 +89,7 @@ typedef unsigned short my_u_short;
 
 
 int
-creds_to_radix(CREDENTIALS *creds, unsigned char *buf, size_t buflen)
+creds_to_radix(CREDENTIALS *creds, u_char *buf, size_t buflen)
 {
 	char *p, *s;
 	int len;
@@ -123,8 +123,8 @@ creds_to_radix(CREDENTIALS *creds, unsigned char *buf, size_t buflen)
 
 	PUTLONG(creds->issue_date, p);
 	{
-		unsigned int endTime;
-		endTime = (unsigned int) krb_life_to_time(creds->issue_date,
+		u_int endTime;
+		endTime = (u_int) krb_life_to_time(creds->issue_date,
 							  creds->lifetime);
 		PUTLONG(endTime, p);
 	}
@@ -139,7 +139,7 @@ creds_to_radix(CREDENTIALS *creds, unsigned char *buf, size_t buflen)
 	p += creds->ticket_st.length;
 	len = p - temp;
 
-	return (uuencode((unsigned char *)temp, len, (char *)buf, buflen));
+	return (uuencode((u_char *)temp, len, (char *)buf, buflen));
 }
 
 int
@@ -151,7 +151,7 @@ radix_to_creds(const char *buf, CREDENTIALS *creds)
 	char version;
 	char temp[2048];
 
-	len = uudecode(buf, (unsigned char *)temp, sizeof(temp));
+	len = uudecode(buf, (u_char *)temp, sizeof(temp));
 	if (len < 0)
 		return 0;
 
@@ -184,7 +184,7 @@ radix_to_creds(const char *buf, CREDENTIALS *creds)
 	GETLONG(creds->issue_date, p);
 	len -= 4;
 	{
-		unsigned int endTime;
+		u_int endTime;
 		GETLONG(endTime, p);
 		len -= 4;
 		creds->lifetime = krb_time_to_life(creds->issue_date, endTime);

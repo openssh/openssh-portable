@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.83 2000/11/30 22:53:35 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.85 2000/12/21 15:10:17 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dsa.h>
@@ -472,6 +472,8 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 	int local = 0, host_ip_differ = 0;
 	int salen;
 	char ntop[NI_MAXHOST];
+	int host_line = -1, ip_line = -1;
+	const char *host_file = NULL, *ip_file = NULL;
 
 	/*
 	 * Force accepting of the host key for loopback/localhost. The
@@ -508,11 +510,17 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 	if (options.proxy_command != NULL && options.check_host_ip)
 		options.check_host_ip = 0;
 
-  	if (getnameinfo(hostaddr, salen, ntop, sizeof(ntop),
-  			NULL, 0, NI_NUMERICHOST) != 0)
-  		fatal("check_host_key: getnameinfo failed");
-  	ip = xstrdup(ntop);
-  
+
+
+ 	if (options.proxy_command == NULL) {
+ 		if (getnameinfo(hostaddr, salen, ntop, sizeof(ntop),
+ 				NULL, 0, NI_NUMERICHOST) != 0)
+ 			fatal("check_host_key: getnameinfo failed");
+ 		ip = xstrdup(ntop);
+ 	} else {
+ 		ip = xstrdup("<no hostip for proxy command>");
+ 	}
+
 	/*
 	 * Store the host key from the known host file in here so that we can
 	 * compare it with the key for the IP address.
@@ -523,19 +531,25 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 	 * Check if the host key is present in the user\'s list of known
 	 * hosts or in the systemwide list.
 	 */
-	host_status = check_host_in_hostfile(user_hostfile, host, host_key, file_key);
-	if (host_status == HOST_NEW)
-		host_status = check_host_in_hostfile(system_hostfile, host, host_key, file_key);
+	host_file = user_hostfile;
+	host_status = check_host_in_hostfile(host_file, host, host_key, file_key, &host_line);
+	if (host_status == HOST_NEW) {
+		host_file = system_hostfile;
+		host_status = check_host_in_hostfile(host_file, host, host_key, file_key, &host_line);
+	}
 	/*
 	 * Also perform check for the ip address, skip the check if we are
 	 * localhost or the hostname was an ip address to begin with
 	 */
 	if (options.check_host_ip && !local && strcmp(host, ip)) {
 		Key *ip_key = key_new(host_key->type);
-		ip_status = check_host_in_hostfile(user_hostfile, ip, host_key, ip_key);
 
-		if (ip_status == HOST_NEW)
-			ip_status = check_host_in_hostfile(system_hostfile, ip, host_key, ip_key);
+		ip_file = user_hostfile;
+		ip_status = check_host_in_hostfile(ip_file, ip, host_key, ip_key, &ip_line);
+		if (ip_status == HOST_NEW) {
+			ip_file = system_hostfile;
+			ip_status = check_host_in_hostfile(ip_file, ip, host_key, ip_key, &ip_line);
+		}
 		if (host_status == HOST_CHANGED &&
 		    (ip_status != HOST_CHANGED || !key_equal(ip_key, file_key)))
 			host_ip_differ = 1;
@@ -551,6 +565,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 		/* The host is known and the key matches. */
 		debug("Host '%.200s' is known and matches the %s host key.",
 		    host, type);
+		debug("Found key in %s:%d", host_file, host_line);
 		if (options.check_host_ip) {
 			if (ip_status == HOST_NEW) {
 				if (!add_host_to_hostfile(user_hostfile, ip, host_key))
@@ -559,9 +574,13 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 				else
 					log("Warning: Permanently added the %s host key for IP address '%.30s' to the list of known hosts.",
 					    type, ip);
-			} else if (ip_status != HOST_OK)
+			} else if (ip_status != HOST_OK) {
 				log("Warning: the %s host key for '%.200s' differs from the key for the IP address '%.30s'",
 				    type, host, ip);
+				log("Found key in %s:%d", host_file, host_line);
+				if (ip_line != -1)
+					log("Offending key for IP in %s:%d", ip_file, ip_line);
+			}
 		}
 		break;
 	case HOST_NEW:
@@ -612,7 +631,9 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 			error("and the key for the according IP address %s", ip);
 			error("%s. This could either mean that", msg);
 			error("DNS SPOOFING is happening or the IP address for the host");
-			error("and its host key have changed at the same time");
+			error("and its host key have changed at the same time.");
+			if (ip_line != -1)
+				error("Offending key for IP in %s:%d", ip_file, ip_line);
 		}
 		/* The host key has changed. */
 		error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
@@ -624,6 +645,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 		error("Please contact your system administrator.");
 		error("Add correct host key in %.100s to get rid of this message.",
 		      user_hostfile);
+		error("Offending key in %s:%d", host_file, host_line);
 
 		/*
 		 * If strict host key checking is in use, the user will have

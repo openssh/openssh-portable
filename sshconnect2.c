@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.31 2000/12/15 17:30:14 provos Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.33 2000/12/20 19:37:22 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
@@ -63,7 +63,7 @@ extern Options options;
  * SSH2 key exchange
  */
 
-unsigned char *session_id2 = NULL;
+u_char *session_id2 = NULL;
 int session_id2_len = 0;
 
 void
@@ -151,17 +151,17 @@ ssh_dh1_client(Kex *kex, char *host, struct sockaddr *hostaddr,
 	int i;
 #endif
 	int plen, dlen;
-	unsigned int klen, kout;
+	u_int klen, kout;
 	char *signature = NULL;
-	unsigned int slen;
+	u_int slen;
 	char *server_host_key_blob = NULL;
 	Key *server_host_key;
-	unsigned int sbloblen;
+	u_int sbloblen;
 	DH *dh;
 	BIGNUM *dh_server_pub = 0;
 	BIGNUM *shared_secret = 0;
-	unsigned char *kbuf;
-	unsigned char *hash;
+	u_char *kbuf;
+	u_char *hash;
 
 	debug("Sending SSH2_MSG_KEXDH_INIT.");
 	/* generate and send 'e', client DH public key */
@@ -253,7 +253,7 @@ ssh_dh1_client(Kex *kex, char *host, struct sockaddr *hostaddr,
 		fprintf(stderr, "%02x", (hash[i])&0xff);
 	fprintf(stderr, "\n");
 #endif
-	if (key_verify(server_host_key, (unsigned char *)signature, slen, hash, 20) != 1)
+	if (key_verify(server_host_key, (u_char *)signature, slen, hash, 20) != 1)
 		fatal("key_verify failed for server_host_key");
 	key_free(server_host_key);
 
@@ -295,18 +295,18 @@ ssh_dhgex_client(Kex *kex, char *host, struct sockaddr *hostaddr,
 	int i;
 #endif
 	int plen, dlen;
-	unsigned int klen, kout;
+	u_int klen, kout;
 	char *signature = NULL;
-	unsigned int slen, nbits;
+	u_int slen, nbits;
 	char *server_host_key_blob = NULL;
 	Key *server_host_key;
-	unsigned int sbloblen;
+	u_int sbloblen;
 	DH *dh;
 	BIGNUM *dh_server_pub = 0;
 	BIGNUM *shared_secret = 0;
 	BIGNUM *p = 0, *g = 0;
-	unsigned char *kbuf;
-	unsigned char *hash;
+	u_char *kbuf;
+	u_char *hash;
 
 	nbits = dh_estimate(kex->enc[MODE_OUT].cipher->key_len * 8);
 
@@ -426,7 +426,7 @@ ssh_dhgex_client(Kex *kex, char *host, struct sockaddr *hostaddr,
 		fprintf(stderr, "%02x", (hash[i])&0xff);
 	fprintf(stderr, "\n");
 #endif
-	if (key_verify(server_host_key, (unsigned char *)signature, slen, hash, 20) != 1)
+	if (key_verify(server_host_key, (u_char *)signature, slen, hash, 20) != 1)
 		fatal("key_verify failed for server_host_key");
 	key_free(server_host_key);
 
@@ -448,7 +448,7 @@ typedef struct Authmethod Authmethod;
 
 typedef int sign_cb_fn(
     Authctxt *authctxt, Key *key,
-    unsigned char **sigp, int *lenp, unsigned char *data, int datalen);
+    u_char **sigp, int *lenp, u_char *data, int datalen);
 
 struct Authctxt {
 	const char *server_user;
@@ -475,7 +475,7 @@ int	userauth_pubkey(Authctxt *authctxt);
 int	userauth_passwd(Authctxt *authctxt);
 int	userauth_kbdint(Authctxt *authctxt);
 
-void	authmethod_clear();
+void	authmethod_clear(void);
 Authmethod *authmethod_get(char *authlist);
 Authmethod *authmethod_lookup(const char *name);
 
@@ -644,7 +644,7 @@ int
 sign_and_send_pubkey(Authctxt *authctxt, Key *k, sign_cb_fn *sign_callback)
 {
 	Buffer b;
-	unsigned char *blob, *signature;
+	u_char *blob, *signature;
 	int bloblen, slen;
 	int skip = 0;
 	int ret = -1;
@@ -725,8 +725,8 @@ sign_and_send_pubkey(Authctxt *authctxt, Key *k, sign_cb_fn *sign_callback)
 }
 
 /* sign callback */
-int key_sign_cb(Authctxt *authctxt, Key *key, unsigned char **sigp, int *lenp,
-    unsigned char *data, int datalen)
+int key_sign_cb(Authctxt *authctxt, Key *key, u_char **sigp, int *lenp,
+    u_char *data, int datalen)
 {
 	return key_sign(key, sigp, lenp, data, datalen);
 }
@@ -777,8 +777,8 @@ userauth_pubkey_identity(Authctxt *authctxt, char *filename)
 }
 
 /* sign callback */
-int agent_sign_cb(Authctxt *authctxt, Key *key, unsigned char **sigp, int *lenp,
-    unsigned char *data, int datalen)
+int agent_sign_cb(Authctxt *authctxt, Key *key, u_char **sigp, int *lenp,
+    u_char *data, int datalen)
 {
 	return ssh_agent_sign(authctxt->agent, key, sigp, lenp, data, datalen);
 }
@@ -869,7 +869,7 @@ input_userauth_info_req(int type, int plen, void *ctxt)
 	char *lang = NULL;
 	char *prompt = NULL;
 	char *response = NULL;
-	unsigned int num_prompts, i;
+	u_int num_prompts, i;
 	int echo = 0;
 
 	debug2("input_userauth_info_req");
@@ -933,7 +933,7 @@ static char *authlist_state = NULL;	 /* state variable for strtok_r() */
  * finished processing server list to free resources.
  */
 void
-authmethod_clear()
+authmethod_clear(void)
 {
 	if (authlist_current != NULL) {
 		xfree(authlist_current);

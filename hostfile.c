@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: hostfile.c,v 1.21 2000/11/12 19:50:37 markus Exp $");
+RCSID("$OpenBSD: hostfile.c,v 1.23 2000/12/21 15:10:16 markus Exp $");
 
 #include "packet.h"
 #include "match.h"
@@ -52,7 +52,7 @@ RCSID("$OpenBSD: hostfile.c,v 1.21 2000/11/12 19:50:37 markus Exp $");
  */
 
 int
-hostfile_read_key(char **cpp, unsigned int *bitsp, Key *ret)
+hostfile_read_key(char **cpp, u_int *bitsp, Key *ret)
 {
 	char *cp;
 
@@ -74,7 +74,7 @@ hostfile_read_key(char **cpp, unsigned int *bitsp, Key *ret)
 }
 
 int
-auth_rsa_read_key(char **cpp, unsigned int *bitsp, BIGNUM * e, BIGNUM * n)
+auth_rsa_read_key(char **cpp, u_int *bitsp, BIGNUM * e, BIGNUM * n)
 {
 	Key *k = key_new(KEY_RSA1);
 	int ret = hostfile_read_key(cpp, bitsp, k);
@@ -107,12 +107,13 @@ hostfile_check_key(int bits, Key *key, const char *host, const char *filename, i
  */
 
 HostStatus
-check_host_in_hostfile(const char *filename, const char *host, Key *key, Key *found)
+check_host_in_hostfile(const char *filename, const char *host, Key *key,
+    Key *found, int *numret)
 {
 	FILE *f;
 	char line[8192];
 	int linenum = 0;
-	unsigned int kbits, hostlen;
+	u_int kbits, hostlen;
 	char *cp, *cp2;
 	HostStatus end_return;
 
@@ -149,7 +150,7 @@ check_host_in_hostfile(const char *filename, const char *host, Key *key, Key *fo
 			;
 
 		/* Check if the host name matches. */
-		if (match_hostname(host, cp, (unsigned int) (cp2 - cp)) != 1)
+		if (match_hostname(host, cp, (u_int) (cp2 - cp)) != 1)
 			continue;
 
 		/* Got a match.  Skip host name. */
@@ -163,6 +164,9 @@ check_host_in_hostfile(const char *filename, const char *host, Key *key, Key *fo
 			continue;
 		if (!hostfile_check_key(kbits, found, host, filename, linenum))
 			continue;
+
+		if (numret != NULL)
+			*numret = linenum;
 
 		/* Check if the current key is the same as the given key. */
 		if (key_equal(key, found)) {

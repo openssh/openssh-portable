@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: hmac.c,v 1.4 2000/09/07 20:27:51 deraadt Exp $");
+RCSID("$OpenBSD: hmac.c,v 1.5 2000/12/19 23:17:56 markus Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -31,16 +31,16 @@ RCSID("$OpenBSD: hmac.c,v 1.4 2000/09/07 20:27:51 deraadt Exp $");
 
 #include <openssl/hmac.h>
 
-unsigned char *
+u_char *
 hmac(
     EVP_MD *evp_md,
-    unsigned int seqno,
-    unsigned char *data, int datalen,
-    unsigned char *key, int keylen)
+    u_int seqno,
+    u_char *data, int datalen,
+    u_char *key, int keylen)
 {
 	HMAC_CTX c;
-	static unsigned char m[EVP_MAX_MD_SIZE];
-	unsigned char b[4];
+	static u_char m[EVP_MAX_MD_SIZE];
+	u_char b[4];
 
 	if (key == NULL)
 		fatal("hmac: no key");

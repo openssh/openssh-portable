@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: servconf.h,v 1.31 2000/11/12 19:50:38 markus Exp $"); */
+/* RCSID("$OpenBSD: servconf.h,v 1.32 2000/12/19 23:17:58 markus Exp $"); */
 
 #ifndef SERVCONF_H
 #define SERVCONF_H
@@ -26,8 +26,8 @@
 #define MAX_HOSTKEYS		256	/* Max # hostkeys. */
 
 typedef struct {
-	unsigned int num_ports;
-	unsigned int ports_from_cmdline;
+	u_int num_ports;
+	u_int ports_from_cmdline;
 	u_short ports[MAX_PORTS];	/* Port number to listen on. */
 	char   *listen_addr;		/* Address on which the server listens. */
 	struct addrinfo *listen_addrs;	/* Addresses on which the server listens. */
@@ -88,16 +88,16 @@ typedef struct {
 					 * passwords. */
 	int     use_login;	/* If true, login(1) is used */
 	int	allow_tcp_forwarding;
-	unsigned int num_allow_users;
+	u_int num_allow_users;
 	char   *allow_users[MAX_ALLOW_USERS];
-	unsigned int num_deny_users;
+	u_int num_deny_users;
 	char   *deny_users[MAX_DENY_USERS];
-	unsigned int num_allow_groups;
+	u_int num_allow_groups;
 	char   *allow_groups[MAX_ALLOW_GROUPS];
-	unsigned int num_deny_groups;
+	u_int num_deny_groups;
 	char   *deny_groups[MAX_DENY_GROUPS];
 
-	unsigned int num_subsystems;
+	u_int num_subsystems;
 	char   *subsystem_name[MAX_SUBSYSTEMS];
 	char   *subsystem_command[MAX_SUBSYSTEMS];
 

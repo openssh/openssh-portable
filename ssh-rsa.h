@@ -27,13 +27,13 @@
 int
 ssh_rsa_sign(
     Key *key,
-    unsigned char **sigp, int *lenp,
-    unsigned char *data, int datalen);
+    u_char **sigp, int *lenp,
+    u_char *data, int datalen);
 
 int
 ssh_rsa_verify(
     Key *key,
-    unsigned char *signature, int signaturelen,
-    unsigned char *data, int datalen);
+    u_char *signature, int signaturelen,
+    u_char *data, int datalen);
 
 #endif

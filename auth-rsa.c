@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rsa.c,v 1.33 2000/11/14 23:42:40 markus Exp $");
+RCSID("$OpenBSD: auth-rsa.c,v 1.34 2000/12/19 23:17:55 markus Exp $");
 
 #include "rsa.h"
 #include "packet.h"
@@ -37,7 +37,7 @@ extern ServerOptions options;
  * Session identifier that is used to bind key exchange and authentication
  * responses to a particular session.
  */
-extern unsigned char session_id[16];
+extern u_char session_id[16];
 
 /*
  * The .ssh/authorized_keys file contains public keys, one per line, in the
@@ -60,9 +60,9 @@ auth_rsa_challenge_dialog(RSA *pk)
 {
 	BIGNUM *challenge, *encrypted_challenge;
 	BN_CTX *ctx;
-	unsigned char buf[32], mdbuf[16], response[16];
+	u_char buf[32], mdbuf[16], response[16];
 	MD5_CTX md;
-	unsigned int i;
+	u_int i;
 	int plen, len;
 
 	encrypted_challenge = BN_new();
@@ -122,9 +122,9 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 {
 	char line[8192], file[1024];
 	int authenticated;
-	unsigned int bits;
+	u_int bits;
 	FILE *f;
-	unsigned long linenum = 0;
+	u_long linenum = 0;
 	struct stat st;
 	RSA *pk;
 

@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: login.c,v 1.15 2000/09/07 20:27:52 deraadt Exp $");
+RCSID("$OpenBSD: login.c,v 1.16 2000/12/19 23:17:57 markus Exp $");
 
 #include "loginrec.h"
 
@@ -49,9 +49,9 @@ RCSID("$OpenBSD: login.c,v 1.15 2000/09/07 20:27:52 deraadt Exp $");
  * The host the user logged in from will be returned in buf.
  */
 
-unsigned long
+u_long
 get_last_login_time(uid_t uid, const char *logname,
-		    char *buf, unsigned int bufsize)
+		    char *buf, u_int bufsize)
 {
   struct logininfo li;
 

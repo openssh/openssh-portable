@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.14 2000/12/15 17:30:14 provos Exp $");
+RCSID("$OpenBSD: kex.c,v 1.16 2000/12/20 19:37:22 markus Exp $");
 
 #include "ssh.h"
 #include "ssh2.h"
@@ -51,7 +51,7 @@ Buffer *
 kex_init(char *myproposal[PROPOSAL_MAX])
 {
 	int first_kex_packet_follows = 0;
-	unsigned char cookie[KEX_COOKIE_LEN];
+	u_char cookie[KEX_COOKIE_LEN];
 	u_int32_t rand = 0;
 	int i;
 	Buffer *ki = xmalloc(sizeof(*ki));
@@ -190,7 +190,7 @@ dh_new_group(BIGNUM *gen, BIGNUM *modulus)
 }
 
 DH *
-dh_new_group1()
+dh_new_group1(void)
 {
 	static char *gen = "2", *group1 =
 	    "FFFFFFFF" "FFFFFFFF" "C90FDAA2" "2168C234" "C4C6628B" "80DC1CD1"
@@ -204,7 +204,7 @@ dh_new_group1()
 }
 
 void
-dump_digest(unsigned char *digest, int len)
+dump_digest(u_char *digest, int len)
 {
 	int i;
 	for (i = 0; i< len; i++){
@@ -215,7 +215,7 @@ dump_digest(unsigned char *digest, int len)
 	fprintf(stderr, "\n");
 }
 
-unsigned char *
+u_char *
 kex_hash(
     char *client_version_string,
     char *server_version_string,
@@ -227,7 +227,7 @@ kex_hash(
     BIGNUM *shared_secret)
 {
 	Buffer b;
-	static unsigned char digest[EVP_MAX_MD_SIZE];
+	static u_char digest[EVP_MAX_MD_SIZE];
 	EVP_MD *evp_md = EVP_sha1();
 	EVP_MD_CTX md;
 
@@ -264,7 +264,7 @@ kex_hash(
 	return digest;
 }
 
-unsigned char *
+u_char *
 kex_hash_gex(
     char *client_version_string,
     char *server_version_string,
@@ -277,7 +277,7 @@ kex_hash_gex(
     BIGNUM *shared_secret)
 {
 	Buffer b;
-	static unsigned char digest[EVP_MAX_MD_SIZE];
+	static u_char digest[EVP_MAX_MD_SIZE];
 	EVP_MD *evp_md = EVP_sha1();
 	EVP_MD_CTX md;
 
@@ -317,8 +317,8 @@ kex_hash_gex(
 	return digest;
 }
 
-unsigned char *
-derive_key(int id, int need, char unsigned *hash, BIGNUM *shared_secret)
+u_char *
+derive_key(int id, int need, u_char *hash, BIGNUM *shared_secret)
 {
 	Buffer b;
 	EVP_MD *evp_md = EVP_sha1();
@@ -326,7 +326,7 @@ derive_key(int id, int need, char unsigned *hash, BIGNUM *shared_secret)
 	char c = id;
 	int have;
 	int mdsz = evp_md->md_size;
-	unsigned char *digest = xmalloc(((need+mdsz-1)/mdsz)*mdsz);
+	u_char *digest = xmalloc(((need+mdsz-1)/mdsz)*mdsz);
 
 	buffer_init(&b);
 	buffer_put_bignum2(&b, shared_secret);
@@ -512,12 +512,12 @@ kex_choose_conf(char *cprop[PROPOSAL_MAX], char *sprop[PROPOSAL_MAX], int server
 }
 
 int
-kex_derive_keys(Kex *k, unsigned char *hash, BIGNUM *shared_secret)
+kex_derive_keys(Kex *k, u_char *hash, BIGNUM *shared_secret)
 {
 	int i;
 	int mode;
 	int ctos;
-	unsigned char *keys[NKEYS];
+	u_char *keys[NKEYS];
 
 	for (i = 0; i < NKEYS; i++)
 		keys[i] = derive_key('A'+i, k->we_need, hash, shared_secret);

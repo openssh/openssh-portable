@@ -23,7 +23,7 @@ void    temporarily_use_uid(uid_t uid);
  * Restores the original effective user id after temporarily_use_uid().
  * This should only be called while temporarily_use_uid is effective.
  */
-void    restore_uid();
+void    restore_uid(void);
 
 /*
  * Permanently sets all uids to the given uid.  This cannot be called while

@@ -46,7 +46,7 @@
 #include "buffer.h"
 #include "bufaux.h"
 
-RCSID("$OpenBSD: key.c,v 1.12 2000/11/12 19:50:37 markus Exp $");
+RCSID("$OpenBSD: key.c,v 1.13 2000/12/19 23:17:56 markus Exp $");
 
 Key *
 key_new(int type)
@@ -163,7 +163,7 @@ char *
 key_fingerprint(Key *k)
 {
 	static char retval[(EVP_MAX_MD_SIZE+1)*3];
-	unsigned char *blob = NULL;
+	u_char *blob = NULL;
 	int len = 0;
 	int nlen, elen;
 
@@ -190,7 +190,7 @@ key_fingerprint(Key *k)
 	}
 	if (blob != NULL) {
 		int i;
-		unsigned char digest[EVP_MAX_MD_SIZE];
+		u_char digest[EVP_MAX_MD_SIZE];
 		EVP_MD *md = EVP_md5();
 		EVP_MD_CTX ctx;
 		EVP_DigestInit(&ctx, md);
@@ -273,7 +273,7 @@ key_read(Key *ret, char **cpp)
 	char *cp, *space;
 	int len, n, type;
 	u_int bits;
-	unsigned char *blob;
+	u_char *blob;
 
 	cp = *cpp;
 
@@ -380,7 +380,7 @@ int
 key_write(Key *key, FILE *f)
 {
 	int success = 0;
-	unsigned int bits = 0;
+	u_int bits = 0;
 
 	if (key->type == KEY_RSA1 && key->rsa != NULL) {
 		/* size of modulus 'n' */
@@ -395,7 +395,7 @@ key_write(Key *key, FILE *f)
 	} else if ((key->type == KEY_DSA && key->dsa != NULL) ||
 	    (key->type == KEY_RSA && key->rsa != NULL)) {
 		int len, n;
-		unsigned char *blob, *uu;
+		u_char *blob, *uu;
 		key_to_blob(key, &blob, &len);
 		uu = xmalloc(2*len);
 		n = uuencode(blob, len, uu, 2*len);
@@ -452,7 +452,7 @@ key_size(Key *k){
 }
 
 RSA *
-rsa_generate_private_key(unsigned int bits)
+rsa_generate_private_key(u_int bits)
 {
         RSA *private;
         private = RSA_generate_key(bits, 35, NULL, NULL);
@@ -462,7 +462,7 @@ rsa_generate_private_key(unsigned int bits)
 }
 
 DSA*
-dsa_generate_private_key(unsigned int bits)
+dsa_generate_private_key(u_int bits)
 {
 	DSA *private = DSA_generate_parameters(bits, NULL, 0, NULL, NULL, NULL, NULL);
 	if (private == NULL)
@@ -475,7 +475,7 @@ dsa_generate_private_key(unsigned int bits)
 }
 
 Key *
-key_generate(int type, unsigned int bits)
+key_generate(int type, u_int bits)
 {
 	Key *k = key_new(KEY_UNSPEC);
 	switch (type) {
@@ -587,11 +587,11 @@ key_from_blob(char *blob, int blen)
 }
 
 int
-key_to_blob(Key *key, unsigned char **blobp, unsigned int *lenp)
+key_to_blob(Key *key, u_char **blobp, u_int *lenp)
 {
 	Buffer b;
 	int len;
-	unsigned char *buf;
+	u_char *buf;
 
 	if (key == NULL) {
 		error("key_to_blob: key == NULL");
@@ -630,8 +630,8 @@ key_to_blob(Key *key, unsigned char **blobp, unsigned int *lenp)
 int
 key_sign(
     Key *key,
-    unsigned char **sigp, int *lenp,
-    unsigned char *data, int datalen)
+    u_char **sigp, int *lenp,
+    u_char *data, int datalen)
 {
 	switch(key->type){
 	case KEY_DSA:
@@ -650,8 +650,8 @@ key_sign(
 int
 key_verify(
     Key *key,
-    unsigned char *signature, int signaturelen,
-    unsigned char *data, int datalen)
+    u_char *signature, int signaturelen,
+    u_char *data, int datalen)
 {
 	switch(key->type){
 	case KEY_DSA:

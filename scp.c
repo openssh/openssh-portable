@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.46 2000/12/16 09:53:57 markus Exp $");
+RCSID("$OpenBSD: scp.c,v 1.47 2000/12/19 23:17:57 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -115,7 +115,7 @@ void addargs(char *fmt, ...) __attribute__((format(printf, 1, 2)));
 static struct timeval start;
 
 /* Number of bytes of current file transferred so far. */
-volatile unsigned long statbytes;
+volatile u_long statbytes;
 
 /* Total size of current file. */
 off_t totalbytes = 0;
@@ -547,16 +547,16 @@ syserr:			run_err("%s: %s", name, strerror(errno));
 			 * versions expecting microseconds.
 			 */
 			(void) sprintf(buf, "T%lu 0 %lu 0\n",
-			    (unsigned long) stb.st_mtime,
-			    (unsigned long) stb.st_atime);
+			    (u_long) stb.st_mtime,
+			    (u_long) stb.st_atime);
 			(void) atomicio(write, remout, buf, strlen(buf));
 			if (response() < 0)
 				goto next;
 		}
 #define	FILEMODEMASK	(S_ISUID|S_ISGID|S_IRWXU|S_IRWXG|S_IRWXO)
 		sprintf(buf, "C%04o %lu %s\n",
-		    (unsigned int) (stb.st_mode & FILEMODEMASK),
-		    (unsigned long) stb.st_size, last);
+		    (u_int) (stb.st_mode & FILEMODEMASK),
+		    (u_long) stb.st_size, last);
 		if (verbose_mode) {
 			fprintf(stderr, "Sending file modes: %s", buf);
 			fflush(stderr);
@@ -624,8 +624,8 @@ rsource(name, statp)
 		last++;
 	if (pflag) {
 		(void) sprintf(path, "T%lu 0 %lu 0\n",
-		    (unsigned long) statp->st_mtime,
-		    (unsigned long) statp->st_atime);
+		    (u_long) statp->st_mtime,
+		    (u_long) statp->st_atime);
 		(void) atomicio(write, remout, path, strlen(path));
 		if (response() < 0) {
 			closedir(dirp);
@@ -633,7 +633,7 @@ rsource(name, statp)
 		}
 	}
 	(void) sprintf(path, "D%04o %d %.1024s\n",
-	    (unsigned int) (statp->st_mode & FILEMODEMASK), 0, last);
+	    (u_int) (statp->st_mode & FILEMODEMASK), 0, last);
 	if (verbose_mode)
 		fprintf(stderr, "Entering directory: %s", path);
 	(void) atomicio(write, remout, path, strlen(path));
