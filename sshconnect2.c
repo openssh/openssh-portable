@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.108 2002/11/21 22:45:31 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.109 2002/12/13 10:03:15 markus Exp $");
 
 #include "ssh.h"
 #include "ssh2.h"
@@ -236,7 +236,7 @@ ssh_userauth2(const char *local_user, const char *server_user, char *host,
 		debug2("service_accept: %s", reply);
 		xfree(reply);
 	} else {
-		debug("buggy server: service_accept w/o service");
+		debug2("buggy server: service_accept w/o service");
 	}
 	packet_check_eom();
 	debug("SSH2_MSG_SERVICE_ACCEPT received");
@@ -271,7 +271,7 @@ ssh_userauth2(const char *local_user, const char *server_user, char *host,
 	if (authctxt.agent != NULL)
 		ssh_close_authentication_connection(authctxt.agent);
 
-	debug("ssh-userauth2 successful: method %s", authctxt.method->name);
+	debug("Authentication succeeded (%s).", authctxt.method->name);
 }
 void
 userauth(Authctxt *authctxt, char *authlist)
@@ -345,7 +345,7 @@ input_userauth_failure(int type, u_int32_t seq, void *ctxt)
 
 	if (partial != 0)
 		log("Authenticated with partial success.");
-	debug("authentications that can continue: %s", authlist);
+	debug("Authentications that can continue: %s", authlist);
 
 	clear_auth_state(authctxt);
 	userauth(authctxt, authlist);
@@ -377,7 +377,7 @@ input_userauth_pk_ok(int type, u_int32_t seq, void *ctxt)
 	}
 	packet_check_eom();
 
-	debug("input_userauth_pk_ok: pkalg %s blen %u lastkey %p hint %d",
+	debug("Server accepts key: pkalg %s blen %u lastkey %p hint %d",
 	    pkalg, blen, authctxt->last_key, authctxt->last_key_hint);
 
 	do {
@@ -762,7 +762,7 @@ userauth_pubkey_agent(Authctxt *authctxt)
 	if (k == NULL) {
 		debug2("userauth_pubkey_agent: no more keys");
 	} else {
-		debug("userauth_pubkey_agent: testing agent key %s", comment);
+		debug("Offering agent key: %s", comment);
 		xfree(comment);
 		ret = send_pubkey_test(authctxt, k, agent_sign_cb, -1);
 		if (ret == 0)
@@ -790,7 +790,7 @@ userauth_pubkey(Authctxt *authctxt)
 		key = options.identity_keys[idx];
 		filename = options.identity_files[idx];
 		if (key == NULL) {
-			debug("try privkey: %s", filename);
+			debug("Trying private key: %s", filename);
 			key = load_identity_file(filename);
 			if (key != NULL) {
 				sent = sign_and_send_pubkey(authctxt, key,
@@ -798,7 +798,7 @@ userauth_pubkey(Authctxt *authctxt)
 				key_free(key);
 			}
 		} else if (key->type != KEY_RSA1) {
-			debug("try pubkey: %s", filename);
+			debug("Offering public key: %s", filename);
 			sent = send_pubkey_test(authctxt, key,
 			    identity_sign_cb, idx);
 		}
@@ -904,7 +904,7 @@ ssh_keysign(Key *key, u_char **sigp, u_int *lenp,
 	pid_t pid;
 	int to[2], from[2], status, version = 2;
 
-	debug("ssh_keysign called");
+	debug2("ssh_keysign called");
 
 	if (stat(_PATH_SSH_KEY_SIGN, &st) < 0) {
 		error("ssh_keysign: no installed: %s", strerror(errno));
@@ -993,7 +993,7 @@ userauth_hostbased(Authctxt *authctxt)
 		}
 	}
 	if (!found) {
-		debug("userauth_hostbased: no more client hostkeys");
+		debug("No more client hostkeys for hostbased authentication.");
 		return 0;
 	}
 	if (key_to_blob(private, &blob, &blen) == 0) {
@@ -1107,7 +1107,6 @@ static char *preferred = NULL;
 static Authmethod *
 authmethod_get(char *authlist)
 {
-
 	char *name = NULL;
 	u_int next;
 
@@ -1128,7 +1127,7 @@ authmethod_get(char *authlist)
 
 	for (;;) {
 		if ((name = match_list(preferred, supported, &next)) == NULL) {
-			debug("no more auth methods to try");
+			debug("No more authentication methods to try.");
 			current = NULL;
 			return NULL;
 		}
@@ -1138,7 +1137,7 @@ authmethod_get(char *authlist)
 		if ((current = authmethod_lookup(name)) != NULL &&
 		    authmethod_is_enabled(current)) {
 			debug3("authmethod_is_enabled %s", name);
-			debug("next auth method to try is %s", name);
+			debug("Next authentication method: %s", name);
 			return current;
 		}
 	}
