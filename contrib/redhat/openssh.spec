@@ -138,8 +138,9 @@ This package contains the GNOME passphrase dialog.
 
 %build
 
+%define _sysconfdir /etc/ssh
+
 %configure \
-	--sysconfdir=%{_sysconfdir}/ssh \
 	--libexecdir=%{_libexecdir}/openssh \
 	--with-tcp-wrappers \
 	--with-ipv4-default \

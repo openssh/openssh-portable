@@ -5,6 +5,8 @@
  - (djm) Fix vsprintf("%h") in bsd-snprintf.c, short int va_args are 
    promoted to type int. Report and fix from Dan Astoorian 
    <djast@cs.toronto.edu>
+ - (djm) Hardware sysconfdir in RPM spec files as some RPM versions get 
+   it wrong. Report from Bennett Todd <bet@rahul.net>
 
 20001110
  - (bal) Fixed dropped answer from skey_keyinfo() in auth1.c
