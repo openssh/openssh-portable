@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.84 2001/06/11 10:18:24 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.85 2001/06/12 10:58:29 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -121,7 +121,7 @@ struct Session {
 
 Session *session_new(void);
 void	session_set_fds(Session *s, int fdin, int fdout, int fderr);
-void	session_pty_cleanup(Session *s);
+void	session_pty_cleanup(void *session);
 void	session_proctitle(Session *s);
 int	session_setup_x11fwd(Session *s);
 void	session_close(Session *s);
@@ -232,27 +232,6 @@ xauthfile_cleanup_proc(void *_pw)
 }
 
 /*
- * Function to perform cleanup if we get aborted abnormally (e.g., due to a
- * dropped connection).
- */
-void
-pty_cleanup_proc(void *session)
-{
-	Session *s=session;
-	if (s == NULL)
-		fatal("pty_cleanup_proc: no session");
-	debug("pty_cleanup_proc: %s", s->tty);
-
-	if (s->pid != 0) {
-		/* Record that the user has logged out. */
-		record_logout(s->pid, s->tty);
-	}
-
-	/* Release the pseudo-tty. */
-	pty_release(s->tty);
-}
-
-/*
  * Prepares for an interactive session.  This is called after the user has
  * been successfully authenticated.  During this message exchange, pseudo
  * terminals are allocated, X11, TCP/IP, and authentication agent forwardings
@@ -311,7 +290,7 @@ do_authenticated1(Authctxt *authctxt)
 				error("Failed to allocate pty.");
 				break;
 			}
-			fatal_add_cleanup(pty_cleanup_proc, (void *)s);
+			fatal_add_cleanup(session_pty_cleanup, (void *)s);
 			pty_setowner(s->pw, s->tty);
 
 			/* Get TERM from the packet.  Note that the value may be of arbitrary length. */
@@ -1552,7 +1531,6 @@ session_new(void)
 		debug("session_new: init");
 		for(i = 0; i < MAX_SESSIONS; i++) {
 			sessions[i].used = 0;
-			sessions[i].self = i;
 		}
 		did_init = 1;
 	}
@@ -1564,6 +1542,7 @@ session_new(void)
 			s->ptyfd = -1;
 			s->ttyfd = -1;
 			s->used = 1;
+			s->self = i;
 			debug("session_new: session %d", i);
 			return s;
 		}
@@ -1680,7 +1659,7 @@ session_pty_req(Session *s)
 	 * Add a cleanup function to clear the utmp entry and record logout
 	 * time in case we call fatal() (e.g., the connection gets closed).
 	 */
-	fatal_add_cleanup(pty_cleanup_proc, (void *)s);
+	fatal_add_cleanup(session_pty_cleanup, (void *)s);
 	pty_setowner(s->pw, s->tty);
 	/* Get window size from the packet. */
 	pty_change_window_size(s->ptyfd, s->row, s->col, s->xpixel, s->ypixel);
@@ -1864,19 +1843,27 @@ session_set_fds(Session *s, int fdin, int fdout, int fderr)
 	    1);
 }
 
+/*
+ * Function to perform pty cleanup. Also called if we get aborted abnormally
+ * (e.g., due to a dropped connection).
+ */
 void
-session_pty_cleanup(Session *s)
+session_pty_cleanup(void *session)
 {
-	if (s == NULL || s->ttyfd == -1)
+	Session *s = session;
+
+	if (s == NULL) {
+		error("session_pty_cleanup: no session");
+		return;
+	}
+	if (s->ttyfd == -1)
 		return;
 
 	debug("session_pty_cleanup: session %d release %s", s->self, s->tty);
 
-	/* Cancel the cleanup function. */
-	fatal_remove_cleanup(pty_cleanup_proc, (void *)s);
-
 	/* Record that the user has logged out. */
-	record_logout(s->pid, s->tty);
+	if (s->pid != 0)
+		record_logout(s->pid, s->tty);
 
 	/* Release the pseudo-tty. */
 	pty_release(s->tty);
@@ -1898,7 +1885,7 @@ session_exit_message(Session *s, int status)
 		fatal("session_close: no session");
 	c = channel_lookup(s->chanid);
 	if (c == NULL)
-		fatal("session_close: session %d: no channel %d",
+		fatal("session_exit_message: session %d: no channel %d",
 		    s->self, s->chanid);
 	debug("session_exit_message: session %d channel %d pid %d",
 	    s->self, s->chanid, s->pid);
@@ -1940,9 +1927,13 @@ session_exit_message(Session *s, int status)
 }
 
 void
-session_free(Session *s)
+session_close(Session *s)
 {
-	debug("session_free: session %d pid %d", s->self, s->pid);
+	debug("session_close: session %d pid %d", s->self, s->pid);
+	if (s->ttyfd != -1) {
+		fatal_remove_cleanup(session_pty_cleanup, (void *)s);
+		session_pty_cleanup(s);
+	}
 	if (s->term)
 		xfree(s->term);
 	if (s->display)
@@ -1952,13 +1943,6 @@ session_free(Session *s)
 	if (s->auth_proto)
 		xfree(s->auth_proto);
 	s->used = 0;
-}
-
-void
-session_close(Session *s)
-{
-	session_pty_cleanup(s);
-	session_free(s);
 	session_proctitle(s);
 }
 
