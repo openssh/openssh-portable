@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.125 2003/10/07 01:47:27 dtucker Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.126 2003/10/07 21:58:28 deraadt Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -358,6 +358,7 @@ void
 input_userauth_banner(int type, u_int32_t seq, void *ctxt)
 {
 	char *msg, *lang;
+
 	debug3("input_userauth_banner");
 	msg = packet_get_string(NULL);
 	lang = packet_get_string(NULL);
@@ -373,10 +374,14 @@ input_userauth_success(int type, u_int32_t seq, void *ctxt)
 	Authctxt *authctxt = ctxt;
 	if (authctxt == NULL)
 		fatal("input_userauth_success: no authentication context");
-	if (authctxt->authlist)
+	if (authctxt->authlist) {
 		xfree(authctxt->authlist);
-	if (authctxt->methoddata)
+		authctxt->authlist = NULL;
+	}
+	if (authctxt->methoddata) {
 		xfree(authctxt->methoddata);
+		authctxt->methoddata = NULL;
+	}
 	authctxt->success = 1;			/* break out */
 }
 
@@ -609,7 +614,7 @@ input_gssapi_token(int type, u_int32_t plen, void *ctxt)
 
 	packet_check_eom();
 
-	status=ssh_gssapi_init_ctx(gssctxt, options.gss_deleg_creds,
+	status = ssh_gssapi_init_ctx(gssctxt, options.gss_deleg_creds,
 	    &recv_tok, &send_tok, NULL);
 
 	xfree(recv_tok.value);
