@@ -1,3 +1,7 @@
+20031007
+ - (dtucker) [contrib/redhat/openssh.spec] Bug #714: Now that UsePAM is a
+   run-time switch, always build --with-md5-passwords.
+
 20031003
  - (tim) [contrib/caldera/openssh.spec] Remove obsolete --with-ipv4-default
    option.
@@ -1207,4 +1211,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2994.2.39 2003/10/04 05:31:01 tim Exp $
+$Id: ChangeLog,v 1.2994.2.40 2003/10/07 07:40:14 dtucker Exp $
