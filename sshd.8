@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: sshd.8,v 1.4 1999/10/28 23:17:36 damien Exp $
+.\" $Id: sshd.8,v 1.5 1999/11/11 00:43:13 damien Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSHD 8
@@ -622,14 +622,11 @@ This file must be readable by root (which may on some machines imply
 it being world-readable if the user's home directory resides on an NFS
 volume).  It is recommended that it not be accessible by others.  The
 format of this file is described above.
-.It Pa /etc/ssh/ssh_known_hosts
+.It Pa "/etc/ssh/ssh_known_hosts" and "$HOME/.ssh/known_hosts"
 This file is consulted when using rhosts with RSA host
 authentication to check the public key of the host.  The key must be
-listed in this file to be accepted.
-.It Pa $HOME/.ssh/known_hosts
-The client uses this file
-and
-.Pa /etc/ssh/ssh_known_hosts
+listed in one of these files to be accepted.
+The client uses the same files
 to verify that the remote host is the one we intended to
 connect. These files should be writable only by root/the owner.
 .Pa /etc/ssh/ssh_known_hosts

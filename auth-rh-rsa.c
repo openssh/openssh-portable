@@ -15,7 +15,7 @@ authentication.
 */
 
 #include "includes.h"
-RCSID("$Id: auth-rh-rsa.c,v 1.1 1999/10/27 03:42:43 damien Exp $");
+RCSID("$Id: auth-rh-rsa.c,v 1.2 1999/11/11 00:43:13 damien Exp $");
 
 #include "packet.h"
 #include "ssh.h"
@@ -53,8 +53,31 @@ int auth_rhosts_rsa(struct passwd *pw, const char *client_user,
   host_status = check_host_in_hostfile(SSH_SYSTEM_HOSTFILE, canonical_hostname,
 				       client_host_key_bits, client_host_key_e,
 				       client_host_key_n, ke, kn);
+  /* Check user host file. */
+  if (host_status != HOST_OK) {
+    struct stat st;
+    char *user_hostfile = tilde_expand_filename(SSH_USER_HOSTFILE, pw->pw_uid);
+    /* Check file permissions of SSH_USER_HOSTFILE,
+       auth_rsa() did already check pw->pw_dir, but there is a race XXX */
+    if (strict_modes &&
+	(stat(user_hostfile, &st) == 0) &&
+	((st.st_uid != 0 && st.st_uid != pw->pw_uid) ||
+	(st.st_mode & 022) != 0)) {
+       log("Rhosts RSA authentication refused for %.100s: bad owner or modes for %.200s",
+	   pw->pw_name, user_hostfile);
+    } else {
+      /* XXX race between stat and the following open() */
+      temporarily_use_uid(pw->pw_uid);
+      host_status = check_host_in_hostfile(user_hostfile, canonical_hostname,
+					   client_host_key_bits, client_host_key_e,
+					   client_host_key_n, ke, kn);
+      restore_uid();
+    }
+    xfree(user_hostfile);
+  }
   BN_free(ke);
   BN_free(kn);
+
   if (host_status != HOST_OK) {
     /* The host key was not found. */
     debug("Rhosts with RSA host authentication denied: unknown or invalid host key");
