@@ -1,3 +1,17 @@
+20020731
+ - (bal) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2002/07/24 16:11:18
+     [hostfile.c hostfile.h sshconnect.c]
+     print out all known keys for a host if we get a unknown host key,
+     see discussion at http://marc.theaimsgroup.com/?t=101069210100016&r=1&w=4
+
+     the ssharp mitm tool attacks users in a similar way, so i'd like to
+     pointed out again:
+        A MITM attack is always possible if the ssh client prints:
+        The authenticity of host 'bla' can't be established.
+     (protocol version 2 with pubkey authentication allows you to detect
+     MITM attacks)
+
 20020730
  - (bal) [uidswap.c] SCO compile correction by gert@greenie.muc.de
 
@@ -1465,4 +1479,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2409 2002/07/30 19:32:07 mouring Exp $
+$Id: ChangeLog,v 1.2410 2002/08/01 01:21:56 mouring Exp $

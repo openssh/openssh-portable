@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.131 2002/07/12 13:29:09 itojun Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.132 2002/07/24 16:11:18 markus Exp $");
 
 #include <openssl/bn.h>
 
@@ -45,6 +45,8 @@ extern uid_t original_effective_uid;
 #ifndef INET6_ADDRSTRLEN		/* for non IPv6 machines */
 #define INET6_ADDRSTRLEN 46
 #endif
+
+static int show_other_keys(const char *, Key *);
 
 /*
  * Connect to the given ssh server using a proxy command.
@@ -494,7 +496,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 	int salen;
 	char ntop[NI_MAXHOST];
 	char msg[1024];
-	int len, host_line, ip_line;
+	int len, host_line, ip_line, has_keys;
 	const char *host_file = NULL, *ip_file = NULL;
 
 	/*
@@ -638,14 +640,19 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 			    "have requested strict checking.", type, host);
 			goto fail;
 		} else if (options.strict_host_key_checking == 2) {
+			has_keys = show_other_keys(host, host_key);
 			/* The default */
 			fp = key_fingerprint(host_key, SSH_FP_MD5, SSH_FP_HEX);
 			snprintf(msg, sizeof(msg),
 			    "The authenticity of host '%.200s (%s)' can't be "
-			    "established.\n"
+			    "established%s\n"
 			    "%s key fingerprint is %s.\n"
 			    "Are you sure you want to continue connecting "
-			    "(yes/no)? ", host, ip, type, fp);
+			    "(yes/no)? ",
+			     host, ip,
+			     has_keys ? ",\nbut keys of different type are already "
+			     "known for this host." : ".",
+			     type, fp);
 			xfree(fp);
 			if (!confirm(msg))
 				goto fail;
@@ -747,6 +754,9 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 		 * by that sentence, and ask the user if he/she whishes to
 		 * accept the authentication.
 		 */
+		break;
+	case HOST_FOUND:
+		fatal("internal error");
 		break;
 	}
 
@@ -858,4 +868,59 @@ ssh_put_password(char *password)
 	packet_put_string(padded, size);
 	memset(padded, 0, size);
 	xfree(padded);
+}
+
+static int
+show_key_from_file(const char *file, const char *host, int keytype)
+{
+	Key *found;
+	char *fp;
+	int line, ret;
+
+	found = key_new(keytype);
+	if ((ret = lookup_key_in_hostfile_by_type(file, host,
+	    keytype, found, &line))) {
+		fp = key_fingerprint(found, SSH_FP_MD5, SSH_FP_HEX);
+		log("WARNING: %s key found for host %s\n"
+		    "in file %s line %d with\n"
+		    "%s key fingerprint %s.",
+		    key_type(found), host, file, line,
+		    key_type(found), fp);
+		xfree(fp);
+	}
+	key_free(found);
+	return (ret);
+}
+
+/* print all known host keys for a given host, but skip keys of given type */
+static int
+show_other_keys(const char *host, Key *key)
+{
+	int type[] = { KEY_RSA1, KEY_RSA, KEY_DSA, -1};
+	int i, found = 0;
+
+	for (i = 0; type[i] != -1; i++) {
+		if (type[i] == key->type)
+			continue;
+		if (type[i] != KEY_RSA1 &&
+		    show_key_from_file(options.user_hostfile2, host, type[i])) {
+			found = 1;
+			continue;
+		}
+		if (type[i] != KEY_RSA1 &&
+		    show_key_from_file(options.system_hostfile2, host, type[i])) {
+			found = 1;
+			continue;
+		}
+		if (show_key_from_file(options.user_hostfile, host, type[i])) {
+			found = 1;
+			continue;
+		}
+		if (show_key_from_file(options.system_hostfile, host, type[i])) {
+			found = 1;
+			continue;
+		}
+		debug2("no key of type %d for host %s", type[i], host);
+	}
+	return (found);
 }
