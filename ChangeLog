@@ -4,6 +4,7 @@
  - (bal) openbsd-compat/Makefile minor fix.  Ensure dependancies are done
    right. 
  - (bal) Changed order of LIB="" in -with-skey due to library resolving.
+ - (bal) next-posix.h changed to bsd-nextstep.h
 
 20010103
  - (bal) Cygwin clean up by Corinna Vinschen <vinschen@redhat.com>

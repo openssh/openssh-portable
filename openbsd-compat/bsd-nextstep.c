@@ -25,7 +25,7 @@
 #ifdef HAVE_NEXT
 #include <errno.h>
 #include <sys/wait.h>
-#include "next-posix.h"
+#include "bsd-nextstep.h"
 
 pid_t 
 posix_wait(int *status)
