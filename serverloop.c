@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.99 2002/03/18 17:50:31 provos Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.100 2002/03/24 16:00:27 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -318,9 +318,6 @@ wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp, int *maxfdp,
 		tv.tv_usec = 1000 * (max_time_milliseconds % 1000);
 		tvp = &tv;
 	}
-	if (tvp!=NULL)
-		debug3("tvp!=NULL kid %d mili %d", (int) child_terminated,
-		    max_time_milliseconds);
 
 	/* Wait for something to happen, or the timeout to expire. */
 	ret = select((*maxfdp)+1, *readsetp, *writesetp, NULL, tvp);

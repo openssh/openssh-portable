@@ -4,7 +4,9 @@
    - stevesk@cvs.openbsd.org 2002/03/23 20:57:26
      [sshd.c]
      setproctitle() after preauth child; ok markus@
-
+   - markus@cvs.openbsd.org 2002/03/24 16:00:27
+     [serverloop.c]
+     remove unused debug
 
 20020324
  - (stevesk) [session.c] disable LOGIN_NEEDS_TERM until we are sure
@@ -8019,4 +8021,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1978 2002/03/26 01:53:03 mouring Exp $
+$Id: ChangeLog,v 1.1979 2002/03/26 02:01:30 mouring Exp $
