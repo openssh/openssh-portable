@@ -1,7 +1,6 @@
-/*	$OpenBSD: key.h,v 1.18 2002/02/24 19:14:59 markus Exp $	*/
-
 /*
- * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
+ * Copyright 2002 Niels Provos <provos@citi.umich.edu>
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,59 +22,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef KEY_H
-#define KEY_H
 
-#include <openssl/rsa.h>
-#include <openssl/dsa.h>
+#ifndef _MONITOR_H_
+#define _MONITOR_H_
 
-typedef struct Key Key;
-enum types {
-	KEY_RSA1,
-	KEY_RSA,
-	KEY_DSA,
-	KEY_UNSPEC
-};
-enum fp_type {
-	SSH_FP_SHA1,
-	SSH_FP_MD5
-};
-enum fp_rep {
-	SSH_FP_HEX,
-	SSH_FP_BUBBLEBABBLE
+enum monitor_reqtype {
+	MONITOR_REQ_MODULI, MONITOR_ANS_MODULI,
+	MONITOR_REQ_FREE, MONITOR_REQ_AUTHSERV,
+	MONITOR_REQ_SIGN, MONITOR_ANS_SIGN,
+	MONITOR_REQ_PWNAM, MONITOR_ANS_PWNAM,
+	MONITOR_REQ_AUTHPASSWORD, MONITOR_ANS_AUTHPASSWORD,
+	MONITOR_REQ_KEYALLOWED, MONITOR_ANS_KEYALLOWED,
+	MONITOR_REQ_KEYVERIFY, MONITOR_ANS_KEYVERIFY,
+	MONITOR_REQ_KEYEXPORT,
+	MONITOR_REQ_PTY, MONITOR_ANS_PTY,
+	MONITOR_REQ_TERM
 };
 
-/* key is stored in external hardware */
-#define KEY_FLAG_EXT		0x0001
-
-struct Key {
-	int	 type;
-	int	 flags;
-	RSA	*rsa;
-	DSA	*dsa;
+struct monitor_req {
+	enum monitor_reqtype type;
+	void *address;
+	size_t size;
 };
 
-Key	*key_new(int);
-Key	*key_new_private(int);
-void	 key_free(Key *);
-Key	*key_demote(Key *);
-int	 key_equal(Key *, Key *);
-char	*key_fingerprint(Key *, enum fp_type, enum fp_rep);
-char	*key_type(Key *);
-int	 key_write(Key *, FILE *);
-int	 key_read(Key *, char **);
-u_int	 key_size(Key *);
+void monitor_socketpair(int *pair);
 
-Key	*key_generate(int, u_int);
-Key	*key_from_private(Key *);
-int	 key_type_from_name(char *);
+struct Authctxt;
+struct Authctxt *monitor_child_preauth(int);
+void monitor_child_postauth(int);
 
-Key	*key_from_blob(u_char *, int);
-int	 key_to_blob(Key *, u_char **, u_int *);
-char	*key_ssh_name(Key *);
-int	 key_names_valid2(const char *);
+struct mon_table;
+int monitor_read(int, struct mon_table *);
 
-int	 key_sign(Key *, u_char **, u_int *, u_char *, u_int);
-int	 key_verify(Key *, u_char *, u_int, u_char *, u_int);
-
-#endif
+#endif /* _MONITOR_H_ */

@@ -26,8 +26,13 @@ RCSID("$OpenBSD: auth1.c,v 1.35 2002/02/03 17:53:25 markus Exp $");
 #include "session.h"
 #include "misc.h"
 #include "uidswap.h"
+#include "monitor.h"
+#include "monitor_wrap.h"
 
 /* import */
+extern int use_privsep;
+extern int mm_recvfd;
+
 extern ServerOptions options;
 
 /*
@@ -355,12 +360,13 @@ do_authloop(Authctxt *authctxt)
  * Performs authentication of an incoming connection.  Session key has already
  * been exchanged and encryption is enabled.
  */
-void
+Authctxt *
 do_authentication(void)
 {
 	Authctxt *authctxt;
-	struct passwd *pw;
+	struct passwd *pw = NULL, *pwent;
 	u_int ulen;
+	int allowed;
 	char *p, *user, *style = NULL;
 
 	/* Get the name of the user that we wish to log in as. */
@@ -382,17 +388,26 @@ do_authentication(void)
 	authctxt->style = style;
 
 	/* Verify that the user is a valid user. */
-	pw = getpwnam(user);
-	if (pw && allowed_user(pw)) {
+	if (!use_privsep) {
+		pwent = getpwnam(user);
+		allowed = pwent ? allowed_user(pwent) : 0;
+	} else
+		pwent = mm_getpwnamallow(mm_recvfd, user, &allowed);
+	if (pwent && allowed) {
 		authctxt->valid = 1;
-		pw = pwcopy(pw);
+		pw = pwcopy(pwent);
 	} else {
 		debug("do_authentication: illegal user %s", user);
 		pw = NULL;
 	}
+	/* Free memory */
+	if (use_privsep)
+		pwfree(pwent);
+
 	authctxt->pw = pw;
 
-	setproctitle("%s", pw ? user : "unknown");
+	setproctitle("%s%s", use_privsep ? " [net]" : "",
+	    pw ? user : "unknown");
 
 #ifdef USE_PAM
 	start_pam(pw == NULL ? "NOUSER" : user);
@@ -418,6 +433,5 @@ do_authentication(void)
 	packet_send();
 	packet_write_wait();
 
-	/* Perform session preparation. */
-	do_authenticated(authctxt);
+	return (authctxt);
 }

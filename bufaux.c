@@ -221,6 +221,8 @@ buffer_put_string(Buffer *buffer, const void *buf, u_int len)
 void
 buffer_put_cstring(Buffer *buffer, const char *s)
 {
+	if (s == NULL)
+		fatal("buffer_put_cstring: s == NULL");
 	buffer_put_string(buffer, s, strlen(s));
 }
 

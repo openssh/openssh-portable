@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.81 2002/03/08 03:11:08 mouring Exp $ */
+/* $Id: defines.h,v 1.81.2.1 2002/03/13 02:24:51 djm Exp $ */
 
 /* Necessary headers */
 
@@ -88,6 +88,14 @@ enum
 #  define MAXPATHLEN 64 /* Should be safe */
 # endif /* PATH_MAX */
 #endif /* MAXPATHLEN */
+
+#ifndef MAXLOGNAME
+# ifdef LOGIN_NAME_MAX
+#  define MAXLOGNAME LOGIN_NAME_MAX
+# else
+#  define MAXLOGNAME 64 /* XXX: arbitrary */
+# endif
+#endif
 
 #ifndef STDIN_FILENO
 # define STDIN_FILENO    0
