@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.37 2004/06/17 15:10:14 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.38 2004/06/26 09:11:14 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -244,18 +244,6 @@ Specifies the timeout (in seconds) used when connecting to the ssh
 server, instead of using the default system TCP timeout.
 This value is used only when the target is down or really unreachable,
 not when it refuses the connection.
-.It Cm DynamicForward
-Specifies that a TCP/IP port on the local machine be forwarded
-over the secure channel, and the application
-protocol is then used to determine where to connect to from the
-remote machine.
-The argument must be a port number.
-Currently the SOCKS4 and SOCKS5 protocols are supported, and
-.Nm ssh
-will act as a SOCKS server.
-Multiple forwardings may be specified, and
-additional forwardings can be given on the command line.
-Only the superuser can forward privileged ports.
 .It Cm ControlMaster
 Enables the sharing of multiple sessions over a single network connection.
 When set to
@@ -270,7 +258,7 @@ with
 .Cm ControlMaster
 set to
 .Dq no
-(the default.)
+(the default).
 These sessions will reuse the master instance's network connection rather
 than initiating new ones.
 Setting this to
@@ -281,12 +269,24 @@ to listen for control connections, but require confirmation using the
 .Ev SSH_ASKPASS
 program before they are accepted (see
 .Xr ssh-add 1
-for details)
+for details).
 .It Cm ControlPath
-Specify a the path to the control socket used for connection sharing.
+Specify the path to the control socket used for connection sharing.
 See
 .Cm ControlMaster
 above.
+.It Cm DynamicForward
+Specifies that a TCP/IP port on the local machine be forwarded
+over the secure channel, and the application
+protocol is then used to determine where to connect to from the
+remote machine.
+The argument must be a port number.
+Currently the SOCKS4 and SOCKS5 protocols are supported, and
+.Nm ssh
+will act as a SOCKS server.
+Multiple forwardings may be specified, and
+additional forwardings can be given on the command line.
+Only the superuser can forward privileged ports.
 .It Cm EnableSSHKeysign
 Setting this option to
 .Dq yes
