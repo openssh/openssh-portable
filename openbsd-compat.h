@@ -15,6 +15,7 @@
 #include "bsd-base64.h"
 #include "bsd-sigaction.h"
 #include "bsd-inet_aton.h"
+#include "bsd-strsep.h"
 
 /* rfc2553 socket API replacements */
 #include "fake-getaddrinfo.h"
