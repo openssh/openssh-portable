@@ -1,0 +1,44 @@
+This is a Linux port of OpenBSD's excellent OpenSSH. 
+
+OpenSSH is based on the last free version of Tatu Ylonen's SSH with all 
+patent-encumbered algorithms removed, all known security bugs fixed, new 
+features reintroduced and many other clean-ups.
+
+This Linux port basically consists of a few fixes to deal with the way that
+OpenSSL is usually installed on Linux systems, a few replacements for 
+OpenBSD library functions and the introduction of partial PAM support.
+
+The PAM support is less than optimal - it is only used when password 
+authentication is requested, so things like pam_limits will not apply if a
+user authenticates with a RSA key. OTOH this is exactly the level of support
+that the popular Linux SSH packages have. Perhaps a PAM hacker can rectify 
+this?
+
+All new code is released under a XFree style license, which is very liberal.
+This code is released with no warranties of any kind, neither I nor my 
+employer (Internet Business Solutions) will take any responsibility for 
+any loss, damage or liability arising from the use or abuse of this software.
+
+OpenSSH depends on Zlib, OpenSSL and PAM. Use the Makefile.GNU to build it.
+
+Damien Miller <djm@ibs.com.au>
+Internet Business Solutions
+
+
+Credits - 
+
+The OpenBSD team
+'jonchen' - the original author of PAM support of SSH
+
+Miscellania - 
+
+This version of SSH is based upon code retrieved from the OpenBSD CVS
+repository on 1999-10-26, which in turn was based on the last free 
+version of SSH released by Tatu Ylonen.
+
+Code in helper.[ch] is Copyright 1999 Internet Business Solutions and
+is released under a X11-style license (see source file for details).
+
+(A)RC4 code in rc4.[ch] is Copyright 1999 Damien Miller. It too is
+under a X11-style license (see source file for details).
+
