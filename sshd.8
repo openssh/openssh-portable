@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.137 2001/07/26 17:18:22 stevesk Exp $
+.\" $OpenBSD: sshd.8,v 1.138 2001/07/28 09:21:15 markus Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -130,7 +130,7 @@ into the machine).
 .Ss SSH protocol version 2
 .Pp
 Version 2 works similarly:
-Each host has a host-specific DSA key used to identify the host.
+Each host has a host-specific key (RSA or DSA) used to identify the host.
 However, when the daemon starts, it does not generate a server key.
 Forward security is provided through a Diffie-Hellman key agreement.
 This key agreement results in a shared session key.
@@ -340,8 +340,8 @@ are separately checked, allowing you to restrict logins to particular
 users from particular hosts.
 .Pp
 .It Cm AuthorizedKeysFile
-Specifies the file that contains the public RSA keys that can be used
-for RSA authentication in protocol version 1.
+Specifies the file that contains the public keys that can be used
+for user authentication.
 .Cm AuthorizedKeysFile
 may contain tokens of the form %T which are substituted during connection
 set-up. The following tokens are defined; %% is replaces by a literal '%',
