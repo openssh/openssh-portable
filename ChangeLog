@@ -16,6 +16,10 @@
      [ssh-agent.1]
      clarify/state that private keys are not exposed to clients using the 
      agent; ok markus@
+   - mpech@cvs.openbsd.org 2001/11/19 19:02:16
+     [deattack.c radix.c]
+     kill more registers
+     millert@ ok
 
 20011126
  - (tim) [contrib/cygwin/README, openbsd-compat/bsd-cygwin_util.c,
@@ -6938,4 +6942,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1671 2001/12/06 16:37:51 mouring Exp $
+$Id: ChangeLog,v 1.1672 2001/12/06 16:39:56 mouring Exp $
