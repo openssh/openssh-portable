@@ -38,7 +38,7 @@ extern char *__progname;
 
 extern int use_privsep;
 
-RCSID("$Id: auth-pam.c,v 1.56 2003/04/09 10:59:48 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.55.4.1 2003/04/29 09:12:08 djm Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now."
@@ -182,7 +182,7 @@ void do_pam_cleanup_proc(void *context)
 	if (__pamh && session_opened) {
 		pam_retval = pam_close_session(__pamh, 0);
 		if (pam_retval != PAM_SUCCESS)
-			logit("Cannot close PAM session[%d]: %.200s",
+			log("Cannot close PAM session[%d]: %.200s",
 			    pam_retval, PAM_STRERROR(__pamh, pam_retval));
 	}
 
@@ -196,12 +196,12 @@ void do_pam_cleanup_proc(void *context)
 	if (__pamh) {
 		pam_retval = pam_end(__pamh, pam_retval);
 		if (pam_retval != PAM_SUCCESS)
-			logit("Cannot release PAM authentication[%d]: %.200s",
+			log("Cannot release PAM authentication[%d]: %.200s",
 			    pam_retval, PAM_STRERROR(__pamh, pam_retval));
 	}
 }
 
-/* Attempt password authentation using PAM */
+/* Attempt password authentication using PAM */
 int auth_pam_password(Authctxt *authctxt, const char *password)
 {
 	extern ServerOptions options;
@@ -215,13 +215,13 @@ int auth_pam_password(Authctxt *authctxt, const char *password)
 	pamstate = INITIAL_LOGIN;
 	pam_retval = do_pam_authenticate(
 	    options.permit_empty_passwd == 0 ? PAM_DISALLOW_NULL_AUTHTOK : 0);
-	if (pam_retval == PAM_SUCCESS) {
-		debug("PAM Password authentication accepted for "
-		    "user \"%.100s\"", pw->pw_name);
+	if (pam_retval == PAM_SUCCESS && pw) {
+		debug("PAM password authentication accepted for "
+		    "%.100s", pw->pw_name);
 		return 1;
 	} else {
-		debug("PAM Password authentication for \"%.100s\" "
-		    "failed[%d]: %s", pw->pw_name, pam_retval, 
+		debug("PAM password authentication failed for "
+		    "%.100s: %s", pw ? pw->pw_name : "an illegal user",
 		    PAM_STRERROR(__pamh, pam_retval));
 		return 0;
 	}
@@ -261,7 +261,7 @@ int do_pam_account(char *username, char *remote_user)
 			break;
 #endif
 		default:
-			logit("PAM rejected by account configuration[%d]: "
+			log("PAM rejected by account configuration[%d]: "
 			    "%.200s", pam_retval, PAM_STRERROR(__pamh, 
 			    pam_retval));
 			return(0);

@@ -100,7 +100,7 @@ userauth_none(Authctxt *authctxt)
 	if (check_nt_auth(1, authctxt->pw) == 0)
 		return(0);
 #endif
-	return (authctxt->valid ? PRIVSEP(auth_password(authctxt, "")) : 0);
+	return PRIVSEP(auth_password(authctxt, "")) && authctxt->valid;
 }
 
 Authmethod method_none = {

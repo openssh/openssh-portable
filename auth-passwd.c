@@ -93,6 +93,7 @@ int
 auth_password(Authctxt *authctxt, const char *password)
 {
 	struct passwd * pw = authctxt->pw;
+	int ok = authctxt->valid;
 #if !defined(USE_PAM) && !defined(HAVE_OSF_SIA)
 	char *encrypted_password;
 	char *pw_password;
@@ -115,19 +116,23 @@ auth_password(Authctxt *authctxt, const char *password)
 
 	/* deny if no user. */
 	if (pw == NULL)
-		return 0;
+		ok = 0;
 #ifndef HAVE_CYGWIN
-       if (pw->pw_uid == 0 && options.permit_root_login != PERMIT_YES)
-		return 0;
+	if (pw && pw->pw_uid == 0 && options.permit_root_login != PERMIT_YES)
+		ok = 0;
 #endif
 	if (*password == '\0' && options.permit_empty_passwd == 0)
-		return 0;
+		ok = 0;
 
 #if defined(USE_PAM)
-	return auth_pam_password(authctxt, password);
+	return auth_pam_password(authctxt, password) && ok;
 #elif defined(HAVE_OSF_SIA)
+	if (!ok)
+		return 0;
 	return auth_sia_password(authctxt, password);
 #else
+	if (!ok)
+		return 0;
 # ifdef KRB5
 	if (options.kerberos_authentication == 1) {
 		int ret = auth_krb5_password(authctxt, password);

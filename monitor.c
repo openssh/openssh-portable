@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.37 2003/04/02 09:48:07 markus Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.36 2003/04/01 10:22:21 markus Exp $");
 
 #include <openssl/dh.h>
 
@@ -606,7 +606,7 @@ mm_answer_authpassword(int socket, Buffer *m)
 	passwd = buffer_get_string(m, &plen);
 	/* Only authenticate if the context is valid */
 	authenticated = options.password_authentication &&
-	    authctxt->valid && auth_password(authctxt, passwd);
+	    auth_password(authctxt, passwd) && authctxt->valid;
 	memset(passwd, 0, strlen(passwd));
 	xfree(passwd);
 
@@ -870,7 +870,7 @@ monitor_valid_userblob(u_char *data, u_int datalen)
 		fail++;
 	p = buffer_get_string(&b, NULL);
 	if (strcmp(authctxt->user, p) != 0) {
-		logit("wrong user name passed to monitor: expected %s != %.100s",
+		log("wrong user name passed to monitor: expected %s != %.100s",
 		    authctxt->user, p);
 		fail++;
 	}
@@ -918,7 +918,7 @@ monitor_valid_hostbasedblob(u_char *data, u_int datalen, char *cuser,
 		fail++;
 	p = buffer_get_string(&b, NULL);
 	if (strcmp(authctxt->user, p) != 0) {
-		logit("wrong user name passed to monitor: expected %s != %.100s",
+		log("wrong user name passed to monitor: expected %s != %.100s",
 		    authctxt->user, p);
 		fail++;
 	}
@@ -1497,8 +1497,6 @@ mm_get_keystate(struct monitor *pmonitor)
 	Buffer m;
 	u_char *blob, *p;
 	u_int bloblen, plen;
-	u_int32_t seqnr, packets;
-	u_int64_t blocks;
 
 	debug3("%s: Waiting for new keys", __func__);
 
@@ -1528,14 +1526,8 @@ mm_get_keystate(struct monitor *pmonitor)
 	xfree(blob);
 
 	/* Now get sequence numbers for the packets */
-	seqnr = buffer_get_int(&m);
-	blocks = buffer_get_int64(&m);
-	packets = buffer_get_int(&m);
-	packet_set_state(MODE_OUT, seqnr, blocks, packets);
-	seqnr = buffer_get_int(&m);
-	blocks = buffer_get_int64(&m);
-	packets = buffer_get_int(&m);
-	packet_set_state(MODE_IN, seqnr, blocks, packets);
+	packet_set_seqnr(MODE_OUT, buffer_get_int(&m));
+	packet_set_seqnr(MODE_IN, buffer_get_int(&m));
 
  skip:
 	/* Get the key context */
