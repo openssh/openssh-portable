@@ -42,6 +42,10 @@
    - markus@cvs.openbsd.org 2001/08/28 15:39:48
      [ssh.1 ssh.c]
      allow: ssh -F configfile host
+   - markus@cvs.openbsd.org 2001/08/29 20:44:03
+     [scp.c]
+     clear the malloc'd buffer, otherwise source() will leak malloc'd 
+     memory; ok theo@
 
 20010815
  - (bal) Fixed stray code in readconf.c that went in by mistake.
@@ -6365,4 +6369,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1497 2001/09/12 17:48:04 mouring Exp $
+$Id: ChangeLog,v 1.1498 2001/09/12 17:49:48 mouring Exp $
