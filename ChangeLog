@@ -1,3 +1,7 @@
+20030502
+ - (dtucker) Bug #544: ignore invalid cmsg_type on Linux 2.0 kernels,
+   privsep should now work.
+
 20030429
  - (djm) Add back radix.o (used by AFS support), after it went missing from
    Makefile many moons ago
@@ -1356,4 +1360,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2664 2003/04/29 13:22:40 djm Exp $
+$Id: ChangeLog,v 1.2665 2003/05/02 10:48:21 dtucker Exp $

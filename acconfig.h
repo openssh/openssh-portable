@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.149 2003/03/10 00:38:10 djm Exp $ */
+/* $Id: acconfig.h,v 1.150 2003/05/02 10:48:21 dtucker Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -376,6 +376,9 @@
 
 /* Pushing STREAMS modules incorrectly acquires a controlling TTY */
 #undef STREAMS_PUSH_ACQUIRES_CTTY
+
+/* Define if cmsg_type is not passed correctly */
+#undef BROKEN_CMSG_TYPE
 
 @BOTTOM@
 
