@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.47 2001/03/11 15:04:16 jakob Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.48 2001/03/11 16:39:03 deraadt Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -351,17 +351,16 @@ do_fingerprint(struct passwd *pw)
 			debug("try_load_public_key KEY_UNSPEC failed");
 	}
 	if (success) {
-		char *digest_md5, *digest_sha1, *digest_bubblebabble;
+		char *digest_md5, *digest_bubblebabble;
 
 		digest_md5 = key_fingerprint_ex(public, SSH_FP_MD5, SSH_FP_HEX);
-		digest_sha1 = key_fingerprint_ex(public, SSH_FP_SHA1, SSH_FP_HEX);
-		digest_bubblebabble = key_fingerprint_ex(public, SSH_FP_SHA1, SSH_FP_BUBBLEBABBLE);
+		digest_bubblebabble = key_fingerprint_ex(public, SSH_FP_SHA1,
+		    SSH_FP_BUBBLEBABBLE);
 
-		if(print_verbose) {
+		if (print_verbose) {
 			printf("comment:      %s\n", comment);
 			printf("size:         %d\n", key_size(public));
 			printf("md5:          %s\n", digest_md5);
-			printf("sha1:         %s\n", digest_sha1);
 			printf("bubblebabble: %s\n", digest_bubblebabble);
 		} else {
 			printf("%d %s %s\n", key_size(public), digest_md5, comment);
@@ -370,7 +369,6 @@ do_fingerprint(struct passwd *pw)
 		key_free(public);
 		xfree(comment);
 		xfree(digest_md5);
-		xfree(digest_sha1);
 		xfree(digest_bubblebabble);
 
 		exit(0);
