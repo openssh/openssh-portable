@@ -10,14 +10,13 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.55 2003/11/08 16:02:40 jakob Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.56 2004/05/09 01:19:27 djm Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
 #include "ssh1.h"
 #include "packet.h"
 #include "buffer.h"
-#include "mpaux.h"
 #include "log.h"
 #include "servconf.h"
 #include "compat.h"

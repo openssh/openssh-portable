@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.56 2003/11/21 11:57:03 djm Exp $");
+RCSID("$OpenBSD: kex.c,v 1.57 2004/05/09 01:19:27 djm Exp $");
 
 #include <openssl/crypto.h>
 
@@ -477,6 +477,39 @@ kex_get_newkeys(int mode)
 	ret = current_keys[mode];
 	current_keys[mode] = NULL;
 	return ret;
+}
+
+void
+derive_ssh1_session_id(BIGNUM *host_modulus, BIGNUM *server_modulus,
+    u_int8_t cookie[8], u_int8_t id[16])
+{
+	const EVP_MD *evp_md = EVP_md5();
+	EVP_MD_CTX md;
+	u_int8_t nbuf[2048], obuf[EVP_MAX_MD_SIZE];
+	int len;
+
+	EVP_DigestInit(&md, evp_md);
+
+	len = BN_num_bytes(host_modulus);
+	if (len < (512 / 8) || len > sizeof(nbuf))
+		fatal("%s: bad host modulus (len %d)", __func__, len);
+	BN_bn2bin(host_modulus, nbuf);
+	EVP_DigestUpdate(&md, nbuf, len);
+
+	len = BN_num_bytes(server_modulus);
+	if (len < (512 / 8) || len > sizeof(nbuf))
+		fatal("%s: bad server modulus (len %d)", __func__, len);
+	BN_bn2bin(server_modulus, nbuf);
+	EVP_DigestUpdate(&md, nbuf, len);
+
+	EVP_DigestUpdate(&md, cookie, 8);
+
+	EVP_DigestFinal(&md, id, NULL);
+	memcpy(id, obuf, 16);
+
+	memset(nbuf, 0, sizeof(nbuf));
+	memset(obuf, 0, sizeof(obuf));
+	memset(&md, 0, sizeof(md));
 }
 
 #if defined(DEBUG_KEX) || defined(DEBUG_KEXDH)

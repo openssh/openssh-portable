@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.55 2004/02/05 05:37:17 dtucker Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.56 2004/05/09 01:19:27 djm Exp $");
 
 #include <openssl/dh.h>
 
@@ -63,7 +63,6 @@ RCSID("$OpenBSD: monitor.c,v 1.55 2004/02/05 05:37:17 dtucker Exp $");
 #include "bufaux.h"
 #include "compat.h"
 #include "ssh2.h"
-#include "mpaux.h"
 
 #ifdef GSSAPI
 #include "ssh-gss.h"

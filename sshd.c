@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.290 2004/03/11 10:21:17 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.291 2004/05/09 01:19:28 djm Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -60,7 +60,6 @@ RCSID("$OpenBSD: sshd.c,v 1.290 2004/03/11 10:21:17 markus Exp $");
 #include "rsa.h"
 #include "sshpty.h"
 #include "packet.h"
-#include "mpaux.h"
 #include "log.h"
 #include "servconf.h"
 #include "uidswap.h"
@@ -1689,9 +1688,10 @@ do_ssh1_kex(void)
 			BN_bn2bin(session_key_int,
 			    session_key + sizeof(session_key) - len);
 
-			compute_session_id(session_id, cookie,
-			    sensitive_data.ssh1_host_key->rsa->n,
-			    sensitive_data.server_key->rsa->n);
+			derive_ssh1_session_id(
+			    sensitive_data.ssh1_host_key->rsa->n, 
+			    sensitive_data.server_key->rsa->n,
+			    cookie, session_id);
 			/*
 			 * Xor the first 16 bytes of the session key with the
 			 * session id.

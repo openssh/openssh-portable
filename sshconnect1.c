@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.57 2004/05/08 00:21:31 djm Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.58 2004/05/09 01:19:28 djm Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -24,7 +24,7 @@ RCSID("$OpenBSD: sshconnect1.c,v 1.57 2004/05/08 00:21:31 djm Exp $");
 #include "rsa.h"
 #include "buffer.h"
 #include "packet.h"
-#include "mpaux.h"
+#include "kex.h"
 #include "uidswap.h"
 #include "log.h"
 #include "readconf.h"
@@ -528,7 +528,7 @@ ssh_kex(char *host, struct sockaddr *hostaddr)
 
 	client_flags = SSH_PROTOFLAG_SCREEN_NUMBER | SSH_PROTOFLAG_HOST_IN_FWD_OPEN;
 
-	compute_session_id(session_id, cookie, host_key->rsa->n, server_key->rsa->n);
+	derive_ssh1_session_id(host_key->rsa->n, server_key->rsa->n, cookie, session_id);
 
 	/* Generate a session key. */
 	arc4random_stir();
