@@ -7,6 +7,9 @@
    - stevesk@cvs.openbsd.org 2002/01/24 21:13:23
      [packet.c]
      need misc.h for set_nodelay()
+   - markus@cvs.openbsd.org 2002/01/25 21:00:24
+     [sshconnect2.c]
+     unused include
 
 20020130
  - (djm) Delay PRNG seeding until we need it in ssh-keygen, from markus@
@@ -7409,4 +7412,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1800 2002/02/05 00:52:54 djm Exp $
+$Id: ChangeLog,v 1.1801 2002/02/05 00:53:15 djm Exp $
