@@ -124,7 +124,7 @@ typedef struct {
 					 * for this many intervals, above
 					 * diconnect the session 
 					 */
-
+	int	pam_authentication_via_kbd_int;
 }       ServerOptions;
 /*
  * Initializes the server options to special values that indicate that they

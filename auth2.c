@@ -127,6 +127,8 @@ do_authentication2()
 	/* challenge-reponse is implemented via keyboard interactive */
 	if (options.challenge_reponse_authentication)
 		options.kbd_interactive_authentication = 1;
+	if (options.pam_authentication_via_kbd_int)
+		options.kbd_interactive_authentication = 1;
 
 	dispatch_init(&protocol_error);
 	dispatch_set(SSH2_MSG_SERVICE_REQUEST, &input_service_request);
@@ -411,7 +413,7 @@ userauth_kbdint(Authctxt *authctxt)
 		authenticated = auth2_challenge(authctxt, devs);
 
 #ifdef USE_PAM
-	if (authenticated == 0)
+	if (authenticated == 0 && options.pam_authentication_via_kbd_int)
 		authenticated = auth2_pam(authctxt);
 #endif
 	xfree(lang);

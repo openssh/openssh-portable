@@ -46,10 +46,12 @@ RSAAuthentication yes
 PasswordAuthentication yes
 PermitEmptyPasswords no
 
-# Comment to enable s/key passwords or PAM interactive authentication
-# NB. Neither of these are compiled in by default. Please read the
-# notes in the sshd(8) manpage before enabling this on a PAM system.
-ChallengeResponseAuthentication no
+# Uncomment to disable s/key passwords 
+#ChallengeResponseAuthentication no
+
+# Uncomment to enable PAM keyboard-interactive authentication 
+# Warning: enabling this may bypass the setting of 'PasswordAuthentication'
+#PAMAuthenticationViaKbdInt yes
 
 # To change Kerberos options
 #KerberosAuthentication no

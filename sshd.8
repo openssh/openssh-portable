@@ -616,6 +616,14 @@ The probability increases linearly and all connection attempts
 are refused if the number of unauthenticated connections reaches
 .Dq full
 (60).
+.It Cm PAMAuthenticationViaKbdInt
+Specifies whether PAM challenge response authentication is allowed. This
+allows the use of most PAM challenge response authentication modules, but 
+it will allow password authentication regardless of whether 
+.Cm PasswordAuthentication
+is disabled.
+The default is
+.Dq no .
 .It Cm PasswordAuthentication
 Specifies whether password authentication is allowed.
 The default is

@@ -101,6 +101,7 @@ initialize_server_options(ServerOptions *options)
 	options->reverse_mapping_check = -1;
 	options->client_alive_interval = -1;
 	options->client_alive_count_max = -1;
+	options->pam_authentication_via_kbd_int = -1;
 }
 
 void
@@ -207,6 +208,8 @@ fill_default_server_options(ServerOptions *options)
 		options->client_alive_interval = 0;  
 	if (options->client_alive_count_max == -1)
 		options->client_alive_count_max = 3;
+	if (options->pam_authentication_via_kbd_int == -1)
+		options->pam_authentication_via_kbd_int = 0;
 }
 
 /* Keyword tokens. */
@@ -232,7 +235,7 @@ typedef enum {
 	sGatewayPorts, sPubkeyAuthentication, sXAuthLocation, sSubsystem, sMaxStartups,
 	sBanner, sReverseMappingCheck, sHostbasedAuthentication,
 	sHostbasedUsesNameFromPacketOnly, sClientAliveInterval, 
-	sClientAliveCountMax
+	sClientAliveCountMax, sPAMAuthenticationViaKbdInt
 } ServerOpCodes;
 
 /* Textual representation of the tokens. */
@@ -298,6 +301,7 @@ static struct {
 	{ "reversemappingcheck", sReverseMappingCheck },
 	{ "clientaliveinterval", sClientAliveInterval },
 	{ "clientalivecountmax", sClientAliveCountMax },
+	{ "PAMAuthenticationViaKbdInt", sPAMAuthenticationViaKbdInt },
 	{ NULL, 0 }
 };
 
@@ -794,6 +798,10 @@ parse_flag:
 		case sClientAliveCountMax:
 			intptr = &options->client_alive_count_max;
 			goto parse_int;
+		case sPAMAuthenticationViaKbdInt:
+			intptr = &options->pam_authentication_via_kbd_int;
+			goto parse_flag;
+
 		default:
 			fatal("%s line %d: Missing handler for opcode %s (%d)",
 			    filename, linenum, arg, opcode);

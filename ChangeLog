@@ -7,6 +7,9 @@
      [ssh-keygen.c]
      remove debug
  - (bal) Whitespace resync w/ OpenBSD for uidswap.c
+ - (djm) Add new server configuration directive 'PAMAuthenticationViaKbdInt'
+   (default: off), implies KbdInteractiveAuthentication. Suggestion from 
+   markus@
 
 20010424
  - OpenBSD CVS Sync
@@ -5246,4 +5249,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1168 2001/04/25 06:27:59 mouring Exp $
+$Id: ChangeLog,v 1.1169 2001/04/25 12:44:14 djm Exp $
