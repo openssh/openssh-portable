@@ -10,6 +10,11 @@
      strict_host_key_checking for host_status != HOST_CHANGED && 
      ip_status == HOST_CHANGED
  - (bal) authfile.c: Synced CVS ID tag 
+ - (bal) UnixWare 2.0 fixes by Tim Rice <tim@multitalents.net>
+ - (bal) Disable sftp-server if no 64bit int support exists.  Based on
+   patch by Tim Rice <tim@multitalents.net>
+ - (bal) Makefile.in changes to uninstall: target to remove sftp-server
+   and sftp-server.8 manpage.
 
 20010102
  - (bal) OpenBSD CVS Update
