@@ -20,7 +20,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.47 2004/03/03 09:30:42 djm Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.48 2004/03/30 12:41:56 djm Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -643,7 +643,7 @@ do_symlink(struct sftp_conn *conn, char *oldpath, char *newpath)
 
 	buffer_init(&msg);
 
-	/* Send rename request */
+	/* Send symlink request */
 	id = conn->msg_id++;
 	buffer_put_char(&msg, SSH2_FXP_SYMLINK);
 	buffer_put_int(&msg, id);
