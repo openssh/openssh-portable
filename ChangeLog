@@ -49,6 +49,9 @@
  - (djm) Avoid uuencode.c warnings
  - (djm) Enable UsePAM when built --with-pam
  - (djm) Only build getrrsetbyname replacement when using --with-dns
+ - (djm) Bug #529: sshd doesn't work correctly after SIGHUP (copy argv 
+         correctly)
+
 20030514
  - (djm) Bug #117: Don't lie to PAM about username
  - (djm) RCSID sync w/ OpenBSD
@@ -1523,4 +1526,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2720 2003/05/15 10:55:27 djm Exp $
+$Id: ChangeLog,v 1.2721 2003/05/15 11:29:10 djm Exp $
