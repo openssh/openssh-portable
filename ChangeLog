@@ -1,3 +1,6 @@
+20020514
+ - (stevesk) [README.privsep] PAM+privsep works with Solaris 8.
+
 20020513
  - (stevesk) add initial README.privsep
  - (stevesk) [configure.ac] nicer message: --with-privsep-user=user
@@ -579,4 +582,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2114 2002/05/13 05:22:21 djm Exp $
+$Id: ChangeLog,v 1.2115 2002/05/13 23:31:09 stevesk Exp $

@@ -31,8 +31,9 @@ privsep user and chroot directory:
 Privsep requires operating system support for file descriptor passing
 and mmap(MAP_ANON).
 
-PAM currently only works with privsep on Linux.  It does not function
-on Solaris or HP-UX.  PAMAuthenticationViaKbdInt does not function with
+PAM-enabled OpenSSH is known to function with privsep on Linux and
+Solaris 8.  It does not function on HP-UX with a trusted system
+configuration.  PAMAuthenticationViaKbdInt does not function with
 privsep.
 
 Note that for a normal interactive login with a shell, enabling privsep
@@ -50,4 +51,4 @@ process 1005 is the sshd process listening for new connections.
 process 6917 is the privileged monitor process, 6919 is the user owned
 sshd process and 6921 is the shell process.
 
-$Id: README.privsep,v 1.1 2002/05/13 03:57:04 stevesk Exp $
+$Id: README.privsep,v 1.2 2002/05/13 23:31:10 stevesk Exp $
