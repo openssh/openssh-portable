@@ -16,6 +16,9 @@
      [key.c monitor_wrap.c ssh-dss.c ssh-rsa.c]
      don't allocate, copy, and discard if there is not interested in the data; 
      ok deraadt@
+   - deraadt@cvs.openbsd.org 2002/07/06 01:00:49
+     [log.c]
+     KNF
 
 20020705
  - (tim) [configure.ac] AIX 4.2.1 has authenticate() in libs.
@@ -1299,4 +1302,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2344 2002/07/07 22:13:31 mouring Exp $
+$Id: ChangeLog,v 1.2345 2002/07/07 22:14:55 mouring Exp $
