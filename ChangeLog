@@ -1,3 +1,10 @@
+20020905 
+ - (djm) OpenBSD CVS Sync
+   - stevesk@cvs.openbsd.org 2002/09/04 18:52:42
+     [servconf.c sshd.8 sshd_config.5]
+     default LoginGraceTime to 2m; 1m may be too short for slow systems.
+     ok markus@
+
 20020903
  - (djm) Patch from itojun@ for Darwin OS: test getaddrinfo, reorder libcrypt
  - (djm) Fix Redhat RPM build dependancy test
@@ -1597,4 +1604,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2444 2002/09/04 13:26:29 djm Exp $
+$Id: ChangeLog,v 1.2445 2002/09/05 04:35:14 djm Exp $
