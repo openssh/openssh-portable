@@ -99,6 +99,9 @@
      [readpass.c readpass.h ssh-add.c sshconnect2.c ssh-keygen.c]
      switch to readpassphrase(3)
      2.7/8-stable needs readpassphrase.[ch] from libc
+   - markus@cvs.openbsd.org 2001/06/24 05:47:13
+     [sshconnect2.c]
+     oops, missing format string
 
 20010622
  - (stevesk) handle systems without pw_expire and pw_change.
@@ -5783,4 +5786,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1321 2001/06/25 05:20:31 mouring Exp $
+$Id: ChangeLog,v 1.1322 2001/06/25 05:22:53 mouring Exp $

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.77 2001/06/24 05:35:34 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.78 2001/06/24 05:47:13 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -769,9 +769,9 @@ input_userauth_info_req(int type, int plen, void *ctxt)
 	inst = packet_get_string(NULL);
 	lang = packet_get_string(NULL);
 	if (strlen(name) > 0)
-		log(name);
+		log("%s", name);
 	if (strlen(inst) > 0)
-		log(inst);
+		log("%s", inst);
 	xfree(name);
 	xfree(inst);
 	xfree(lang);
