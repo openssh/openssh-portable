@@ -1,4 +1,4 @@
-/*	$OpenBSD: readconf.h,v 1.62 2004/04/27 09:46:37 djm Exp $	*/
+/*	$OpenBSD: readconf.h,v 1.63 2004/06/13 15:03:02 djm Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -108,6 +108,9 @@ typedef struct {
 
 	int     num_send_env;
 	char   *send_env[MAX_SEND_ENV];
+
+	char	*control_path;
+	int	control_master;
 }       Options;
 
 

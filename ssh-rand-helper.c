@@ -39,7 +39,7 @@
 #include "pathnames.h"
 #include "log.h"
 
-RCSID("$Id: ssh-rand-helper.c,v 1.16 2003/11/21 12:56:47 djm Exp $");
+RCSID("$Id: ssh-rand-helper.c,v 1.17 2004/06/15 00:34:08 djm Exp $");
 
 /* Number of bytes we write out */
 #define OUTPUT_SEED_SIZE	48
@@ -67,10 +67,6 @@ RCSID("$Id: ssh-rand-helper.c,v 1.16 2003/11/21 12:56:47 djm Exp $");
 extern char *__progname;
 #else
 char *__progname;
-#endif
-
-#ifndef offsetof
-# define offsetof(type, member) ((size_t) &((type *)0)->member)
 #endif
 
 #define WHITESPACE " \t\n"

@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.203 2004/05/26 23:02:39 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.204 2004/06/13 15:03:02 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -172,6 +172,7 @@ channel_register_fds(Channel *c, int rfd, int wfd, int efd,
 	c->rfd = rfd;
 	c->wfd = wfd;
 	c->sock = (rfd == wfd) ? rfd : -1;
+	c->ctl_fd = -1; /* XXX: set elsewhere */
 	c->efd = efd;
 	c->extended_usage = extusage;
 
@@ -263,6 +264,7 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 	c->single_connection = 0;
 	c->detach_user = NULL;
 	c->confirm = NULL;
+	c->confirm_ctx = NULL;
 	c->input_filter = NULL;
 	debug("channel %d: new [%s]", found, remote_name);
 	return c;
@@ -304,10 +306,11 @@ channel_close_fd(int *fdp)
 static void
 channel_close_fds(Channel *c)
 {
-	debug3("channel %d: close_fds r %d w %d e %d",
-	    c->self, c->rfd, c->wfd, c->efd);
+	debug3("channel %d: close_fds r %d w %d e %d c %d",
+	    c->self, c->rfd, c->wfd, c->efd, c->ctl_fd);
 
 	channel_close_fd(&c->sock);
+	channel_close_fd(&c->ctl_fd);
 	channel_close_fd(&c->rfd);
 	channel_close_fd(&c->wfd);
 	channel_close_fd(&c->efd);
@@ -333,6 +336,8 @@ channel_free(Channel *c)
 
 	if (c->sock != -1)
 		shutdown(c->sock, SHUT_RDWR);
+	if (c->ctl_fd != -1)
+		shutdown(c->ctl_fd, SHUT_RDWR);
 	channel_close_fds(c);
 	buffer_free(&c->input);
 	buffer_free(&c->output);
@@ -550,12 +555,13 @@ channel_open_message(void)
 		case SSH_CHANNEL_X11_OPEN:
 		case SSH_CHANNEL_INPUT_DRAINING:
 		case SSH_CHANNEL_OUTPUT_DRAINING:
-			snprintf(buf, sizeof buf, "  #%d %.300s (t%d r%d i%d/%d o%d/%d fd %d/%d)\r\n",
+			snprintf(buf, sizeof buf,
+			    "  #%d %.300s (t%d r%d i%d/%d o%d/%d fd %d/%d cfd %d)\r\n",
 			    c->self, c->remote_name,
 			    c->type, c->remote_id,
 			    c->istate, buffer_len(&c->input),
 			    c->ostate, buffer_len(&c->output),
-			    c->rfd, c->wfd);
+			    c->rfd, c->wfd, c->ctl_fd);
 			buffer_append(&buffer, buf, strlen(buf));
 			continue;
 		default:
@@ -596,14 +602,14 @@ channel_request_start(int id, char *service, int wantconfirm)
 		logit("channel_request_start: %d: unknown channel id", id);
 		return;
 	}
-	debug2("channel %d: request %s", id, service) ;
+	debug2("channel %d: request %s confirm %d", id, service, wantconfirm);
 	packet_start(SSH2_MSG_CHANNEL_REQUEST);
 	packet_put_int(c->remote_id);
 	packet_put_cstring(service);
 	packet_put_char(wantconfirm);
 }
 void
-channel_register_confirm(int id, channel_callback_fn *fn)
+channel_register_confirm(int id, channel_callback_fn *fn, void *ctx)
 {
 	Channel *c = channel_lookup(id);
 
@@ -612,6 +618,7 @@ channel_register_confirm(int id, channel_callback_fn *fn)
 		return;
 	}
 	c->confirm = fn;
+	c->confirm_ctx = ctx;
 }
 void
 channel_register_cleanup(int id, channel_callback_fn *fn)
@@ -729,6 +736,10 @@ channel_pre_open(Channel *c, fd_set * readset, fd_set * writeset)
 		    buffer_len(&c->extended) < c->remote_window)
 			FD_SET(c->efd, readset);
 	}
+	/* XXX: What about efd? races? */
+	if (compat20 && c->ctl_fd != -1 && 
+	    c->istate == CHAN_INPUT_OPEN && c->ostate == CHAN_OUTPUT_OPEN)
+		FD_SET(c->ctl_fd, readset);
 }
 
 static void
@@ -1482,6 +1493,33 @@ channel_handle_efd(Channel *c, fd_set * readset, fd_set * writeset)
 	return 1;
 }
 static int
+channel_handle_ctl(Channel *c, fd_set * readset, fd_set * writeset)
+{
+	char buf[16];
+	int len;
+
+	/* Monitor control fd to detect if the slave client exits */
+	if (c->ctl_fd != -1 && FD_ISSET(c->ctl_fd, readset)) {
+		len = read(c->ctl_fd, buf, sizeof(buf));
+		if (len < 0 && (errno == EINTR || errno == EAGAIN))
+			return 1;
+		if (len <= 0) {
+			debug2("channel %d: ctl read<=0", c->self);
+			if (c->type != SSH_CHANNEL_OPEN) {
+				debug2("channel %d: not open", c->self);
+				chan_mark_dead(c);
+				return -1;
+			} else {
+				chan_read_failed(c);
+				chan_write_failed(c);
+			}
+			return -1;
+		} else
+			fatal("%s: unexpected data on ctl fd", __func__);
+	}
+	return 1;
+}
+static int
 channel_check_window(Channel *c)
 {
 	if (c->type == SSH_CHANNEL_OPEN &&
@@ -1511,6 +1549,7 @@ channel_post_open(Channel *c, fd_set * readset, fd_set * writeset)
 	if (!compat20)
 		return;
 	channel_handle_efd(c, readset, writeset);
+	channel_handle_ctl(c, readset, writeset);
 	channel_check_window(c);
 }
 
@@ -2011,7 +2050,7 @@ channel_input_open_confirmation(int type, u_int32_t seq, void *ctxt)
 		c->remote_maxpacket = packet_get_int();
 		if (c->confirm) {
 			debug2("callback start");
-			c->confirm(c->self, NULL);
+			c->confirm(c->self, c->confirm_ctx);
 			debug2("callback done");
 		}
 		debug2("channel %d: open confirm rwindow %u rmax %u", c->self,
@@ -2529,6 +2568,27 @@ channel_connect_to(const char *host, u_short port)
 		return -1;
 	}
 	return connect_to(host, port);
+}
+
+void
+channel_send_window_changes(void)
+{
+	int i;
+	struct winsize ws;
+
+	for (i = 0; i < channels_alloc; i++) {
+		if (channels[i] == NULL ||
+		    channels[i]->type != SSH_CHANNEL_OPEN)
+			continue;
+		if (ioctl(channels[i]->rfd, TIOCGWINSZ, &ws) < 0)
+			continue;
+		channel_request_start(i, "window-change", 0);
+		packet_put_int(ws.ws_col);
+		packet_put_int(ws.ws_row);
+		packet_put_int(ws.ws_xpixel);
+		packet_put_int(ws.ws_ypixel);
+		packet_send();
+	}
 }
 
 /* -- X11 forwarding */

@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.115 2004/04/14 07:24:30 dtucker Exp $ */
+/* $Id: defines.h,v 1.116 2004/06/15 00:34:08 djm Exp $ */
 
 
 /* Constants */
@@ -462,6 +462,9 @@ struct winsize {
 	 (struct cmsghdr *)NULL)
 #endif /* CMSG_FIRSTHDR */
 
+#ifndef offsetof
+# define offsetof(type, member) ((size_t) &((type *)0)->member)
+#endif
 
 /* Function replacement / compatibility hacks */
 

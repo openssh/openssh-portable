@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.213 2004/05/08 00:01:37 deraadt Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.214 2004/06/13 15:03:02 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -53,21 +53,24 @@ RCSID("$OpenBSD: ssh.c,v 1.213 2004/05/08 00:01:37 deraadt Exp $");
 #include "xmalloc.h"
 #include "packet.h"
 #include "buffer.h"
+#include "bufaux.h"
 #include "channels.h"
 #include "key.h"
 #include "authfd.h"
 #include "authfile.h"
 #include "pathnames.h"
+#include "dispatch.h"
 #include "clientloop.h"
 #include "log.h"
 #include "readconf.h"
 #include "sshconnect.h"
-#include "dispatch.h"
 #include "misc.h"
 #include "kex.h"
 #include "mac.h"
 #include "sshpty.h"
 #include "match.h"
+#include "msg.h"
+#include "monitor_fdpass.h"
 
 #ifdef SMARTCARD
 #include "scard.h"
@@ -141,6 +144,13 @@ static int client_global_request_id = 0;
 /* pid of proxycommand child process */
 pid_t proxy_command_pid = 0;
 
+/* fd to control socket */
+int control_fd = -1;
+
+/* Only used in control client mode */
+volatile sig_atomic_t control_client_terminate = 0;
+u_int control_server_pid = 0;
+
 /* Prints a help message to the user.  This function never returns. */
 
 static void
@@ -158,6 +168,7 @@ usage(void)
 static int ssh_session(void);
 static int ssh_session2(void);
 static void load_public_identity_files(void);
+static void control_client(const char *path);
 
 /*
  * Main program for the ssh client.
@@ -228,7 +239,7 @@ main(int ac, char **av)
 
 again:
 	while ((opt = getopt(ac, av,
-	    "1246ab:c:e:fgi:kl:m:no:p:qstvxACD:F:I:L:NPR:TVXY")) != -1) {
+	    "1246ab:c:e:fgi:kl:m:no:p:qstvxACD:F:I:L:MNPR:S:TVXY")) != -1) {
 		switch (opt) {
 		case '1':
 			options.protocol = SSH_PROTO_1;
@@ -364,6 +375,9 @@ again:
 				exit(1);
 			}
 			break;
+		case 'M':
+			options.control_master = 1;
+			break;
 		case 'p':
 			options.port = a2port(optarg);
 			if (options.port == 0) {
@@ -431,6 +445,13 @@ again:
 			break;
 		case 's':
 			subsystem_flag = 1;
+			break;
+		case 'S':
+			if (options.control_path != NULL)
+				free(options.control_path);
+			options.control_path = xstrdup(optarg);
+			if (options.control_master == -1)
+				options.control_master = 0;
 			break;
 		case 'b':
 			options.bind_address = optarg;
@@ -566,6 +587,13 @@ again:
 	    strcmp(options.proxy_command, "none") == 0)
 		options.proxy_command = NULL;
 
+	if (options.control_path != NULL) {
+		options.control_path = tilde_expand_filename(
+		   options.control_path, original_real_uid);
+	}
+	if (options.control_path != NULL && options.control_master == 0)
+		control_client(options.control_path); /* This doesn't return */
+
 	/* Open a connection to the remote host. */
 	if (ssh_connect(host, &hostaddr, options.port,
 	    options.address_family, options.connection_attempts,
@@ -677,6 +705,9 @@ again:
 
 	exit_status = compat20 ? ssh_session2() : ssh_session();
 	packet_close();
+
+	if (options.control_path != NULL && control_fd != -1)
+		unlink(options.control_path);
 
 	/*
 	 * Send SIGHUP to proxy command if used. We don't wait() in
@@ -974,7 +1005,7 @@ ssh_session(void)
 }
 
 static void
-client_subsystem_reply(int type, u_int32_t seq, void *ctxt)
+ssh_subsystem_reply(int type, u_int32_t seq, void *ctxt)
 {
 	int id, len;
 
@@ -1006,40 +1037,50 @@ client_global_request_reply_fwd(int type, u_int32_t seq, void *ctxt)
 		    options.remote_forwards[i].port);
 }
 
+static void
+ssh_control_listener(void)
+{
+	struct sockaddr_un addr;
+	mode_t old_umask;
+	
+	if (options.control_path == NULL || options.control_master != 1)
+		return;
+
+	memset(&addr, '\0', sizeof(addr));
+	addr.sun_family = AF_UNIX;
+	addr.sun_len = offsetof(struct sockaddr_un, sun_path) +
+	    strlen(options.control_path) + 1;
+
+	if (strlcpy(addr.sun_path, options.control_path,
+	    sizeof(addr.sun_path)) >= sizeof(addr.sun_path))
+		fatal("ControlPath too long");
+
+	if ((control_fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0)
+		fatal("%s socket(): %s\n", __func__, strerror(errno));
+
+	old_umask = umask(0177);
+	if (bind(control_fd, (struct sockaddr*)&addr, addr.sun_len) == -1) {
+		control_fd = -1;
+		if (errno == EINVAL)
+			fatal("ControlSocket %s already exists",
+			    options.control_path);
+		else
+			fatal("%s bind(): %s\n", __func__, strerror(errno));
+	}
+	umask(old_umask);
+
+	if (listen(control_fd, 64) == -1)
+		fatal("%s listen(): %s\n", __func__, strerror(errno));
+
+	set_nonblock(control_fd);
+}
+
 /* request pty/x11/agent/tcpfwd/shell for channel */
 static void
 ssh_session2_setup(int id, void *arg)
 {
-	int len;
-	int interactive = 0;
-	struct termios tio;
-
-	debug2("ssh_session2_setup: id %d", id);
-
-	if (tty_flag) {
-		struct winsize ws;
-		char *cp;
-		cp = getenv("TERM");
-		if (!cp)
-			cp = "";
-		/* Store window size in the packet. */
-		if (ioctl(fileno(stdin), TIOCGWINSZ, &ws) < 0)
-			memset(&ws, 0, sizeof(ws));
-
-		channel_request_start(id, "pty-req", 0);
-		packet_put_cstring(cp);
-		packet_put_int(ws.ws_col);
-		packet_put_int(ws.ws_row);
-		packet_put_int(ws.ws_xpixel);
-		packet_put_int(ws.ws_ypixel);
-		tio = get_saved_tio();
-		tty_make_modes(/*ignored*/ 0, &tio);
-		packet_send();
-		interactive = 1;
-		/* XXX wait for reply */
-	}
-	if (options.forward_x11 &&
-	    getenv("DISPLAY") != NULL) {
+	int interactive = tty_flag;
+	if (options.forward_x11 && getenv("DISPLAY") != NULL) {
 		char *proto, *data;
 		/* Get reasonable local authentication information. */
 		x11_get_proto(&proto, &data);
@@ -1057,65 +1098,8 @@ ssh_session2_setup(int id, void *arg)
 		packet_send();
 	}
 
-	/* Transfer any environment variables from client to server */
-	if (options.num_send_env != 0) {
-		int i, j, matched;
-		extern char **environ;
-		char *name, *val;
-
-		debug("Sending environment.");
-		for (i = 0; environ && environ[i] != NULL; i++) {
-			/* Split */
-			name = xstrdup(environ[i]);
-			if ((val = strchr(name, '=')) == NULL) {
-				free(name);
-				continue;
-			}
-			*val++ = '\0';
-
-			matched = 0;
-			for (j = 0; j < options.num_send_env; j++) {
-				if (match_pattern(name, options.send_env[j])) {
-					matched = 1;
-					break;
-				}
-			}
-			if (!matched) {
-				debug3("Ignored env %s", name);
-				free(name);
-				continue;
-			}
-
-			debug("Sending env %s = %s", name, val);
-			channel_request_start(id, "env", 0);
-			packet_put_cstring(name);
-			packet_put_cstring(val);
-			packet_send();
-			free(name);
-		}
-	}
-
-	len = buffer_len(&command);
-	if (len > 0) {
-		if (len > 900)
-			len = 900;
-		if (subsystem_flag) {
-			debug("Sending subsystem: %.*s", len, (u_char *)buffer_ptr(&command));
-			channel_request_start(id, "subsystem", /*want reply*/ 1);
-			/* register callback for reply */
-			/* XXX we assume that client_loop has already been called */
-			dispatch_set(SSH2_MSG_CHANNEL_FAILURE, &client_subsystem_reply);
-			dispatch_set(SSH2_MSG_CHANNEL_SUCCESS, &client_subsystem_reply);
-		} else {
-			debug("Sending command: %.*s", len, (u_char *)buffer_ptr(&command));
-			channel_request_start(id, "exec", 0);
-		}
-		packet_put_string(buffer_ptr(&command), buffer_len(&command));
-		packet_send();
-	} else {
-		channel_request_start(id, "shell", 0);
-		packet_send();
-	}
+	client_session2_setup(id, tty_flag, subsystem_flag, getenv("TERM"),
+	    NULL, fileno(stdin), &command, &ssh_subsystem_reply);
 
 	packet_set_interactive(interactive);
 }
@@ -1161,7 +1145,7 @@ ssh_session2_open(void)
 
 	channel_send_open(c->self);
 	if (!no_shell_flag)
-		channel_register_confirm(c->self, ssh_session2_setup);
+		channel_register_confirm(c->self, ssh_session2_setup, NULL);
 
 	return c->self;
 }
@@ -1173,6 +1157,7 @@ ssh_session2(void)
 
 	/* XXX should be pre-session */
 	ssh_init_forwarding();
+	ssh_control_listener();
 
 	if (!no_shell_flag || (datafellows & SSH_BUG_DUMMYCHAN))
 		id = ssh_session2_open();
@@ -1225,4 +1210,111 @@ load_public_identity_files(void)
 		options.identity_files[i] = filename;
 		options.identity_keys[i] = public;
 	}
+}
+
+static void
+control_client_sighandler(int signo)
+{
+	control_client_terminate = signo;
+}
+
+static void
+control_client_sigrelay(int signo)
+{
+	if (control_server_pid > 1)
+		kill(control_server_pid, signo);
+}
+
+static void
+control_client(const char *path)
+{
+	struct sockaddr_un addr;
+	int r, sock, exitval;
+	Buffer m;
+	char *cp;
+	
+	memset(&addr, '\0', sizeof(addr));
+	addr.sun_family = AF_UNIX;
+	addr.sun_len = offsetof(struct sockaddr_un, sun_path) +
+	    strlen(path) + 1;
+
+	if (strlcpy(addr.sun_path, path,
+	    sizeof(addr.sun_path)) >= sizeof(addr.sun_path))
+		fatal("ControlPath too long");
+
+	if ((sock = socket(PF_UNIX, SOCK_STREAM, 0)) < 0)
+		fatal("%s socket(): %s", __func__, strerror(errno));
+
+	if (connect(sock, (struct sockaddr*)&addr, addr.sun_len) == -1)
+		fatal("Couldn't connect to %s: %s", path, strerror(errno));
+
+	if ((cp = getenv("TERM")) == NULL)
+		cp = "";
+
+	signal(SIGINT, control_client_sighandler);
+	signal(SIGTERM, control_client_sighandler);
+	signal(SIGWINCH, control_client_sigrelay);
+
+	buffer_init(&m);
+
+	/* Get PID of controlee */
+	if (ssh_msg_recv(sock, &m) == -1)
+		fatal("%s: msg_recv", __func__);
+	if (buffer_get_char(&m) != 0)
+		fatal("%s: wrong version", __func__);
+	control_server_pid = buffer_get_int(&m);
+
+	/* XXX: env passing */
+
+	buffer_clear(&m);
+	buffer_put_int(&m, tty_flag);
+	buffer_put_int(&m, subsystem_flag);
+	buffer_put_cstring(&m, cp);
+
+	buffer_append(&command, "\0", 1);
+	buffer_put_cstring(&m, buffer_ptr(&command));
+
+	if (ssh_msg_send(sock, /* version */0, &m) == -1)
+		fatal("%s: msg_send", __func__);
+
+	mm_send_fd(sock, STDIN_FILENO);
+	mm_send_fd(sock, STDOUT_FILENO);
+	mm_send_fd(sock, STDERR_FILENO);
+
+	/* Wait for reply, so master has a chance to gather ttymodes */
+	buffer_clear(&m);
+	if (ssh_msg_recv(sock, &m) == -1)
+		fatal("%s: msg_recv", __func__);
+	if (buffer_get_char(&m) != 0)
+		fatal("%s: master returned error", __func__);
+	buffer_free(&m);
+
+	if (tty_flag)
+		enter_raw_mode();
+
+	/* Stick around until the controlee closes the client_fd */
+	exitval = 0;
+	for (;!control_client_terminate;) {
+		r = read(sock, &exitval, sizeof(exitval));
+		if (r == 0) {
+			debug2("Received EOF from master");
+			break;
+		}
+		if (r > 0)
+			debug2("Received exit status from master %d", exitval);
+		if (r == -1 && errno != EINTR)
+			fatal("%s: read %s", __func__, strerror(errno));
+	}
+
+	if (control_client_terminate)
+		debug2("Exiting on signal %d", control_client_terminate);
+
+	close(sock);
+
+	leave_raw_mode();
+
+	if (tty_flag && options.log_level != SYSLOG_LEVEL_QUIET)
+		fprintf(stderr, "Connection to master closed.\r\n");
+
+	exit(exitval);
 }

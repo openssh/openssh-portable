@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.189 2004/06/13 14:01:42 dtucker Exp $
+.\" $OpenBSD: ssh.1,v 1.190 2004/06/13 15:03:02 djm Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -43,7 +43,7 @@
 .Nd OpenSSH SSH client (remote login program)
 .Sh SYNOPSIS
 .Nm ssh
-.Op Fl 1246AaCfgkNnqsTtVvXxY
+.Op Fl 1246AaCfgkMNnqSsTtVvXxY
 .Op Fl b Ar bind_address
 .Op Fl c Ar cipher_spec
 .Op Fl D Ar port
@@ -605,6 +605,17 @@ be specified in order of preference.
 See the
 .Cm MACs
 keyword for more information.
+.It Fl M
+Places the
+.Nm
+client into
+.Dq master
+mode for connection sharing.
+Refer to the description of
+.Cm ControlMaster
+in
+.Xr ssh_config 5
+for details.
 .It Fl N
 Do not execute a remote command.
 This is useful for just forwarding ports
@@ -649,6 +660,8 @@ For full details of the options listed below, and their possible values, see
 .It CompressionLevel
 .It ConnectionAttempts
 .It ConnectTimeout
+.It ControlMaster
+.It ControlPath
 .It DynamicForward
 .It EscapeChar
 .It ForwardAgent
@@ -724,6 +737,15 @@ IPv6 addresses can be specified with an alternative syntax:
 .Ar hostport .
 .Xc
 .Sm on
+.It Fl S
+Places the
+.Nm
+client into slave mode for connection sharing.
+Refer to the description of
+.Cm ControlMaster
+in
+.Xr ssh_config 5
+for details.
 .It Fl s
 May be used to request invocation of a subsystem on the remote system.
 Subsystems are a feature of the SSH2 protocol which facilitate the use

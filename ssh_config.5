@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.35 2004/06/13 14:01:42 dtucker Exp $
+.\" $OpenBSD: ssh_config.5,v 1.36 2004/06/13 15:03:02 djm Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -256,6 +256,28 @@ will act as a SOCKS server.
 Multiple forwardings may be specified, and
 additional forwardings can be given on the command line.
 Only the superuser can forward privileged ports.
+.It Cm ControlMaster
+Enables the sharing of multiple sessions over a single network connection.
+When set to
+.Dq yes
+.Nm ssh
+will listen for connections on a control socket specified using the
+.Cm ControlPath
+argument.
+Additional sessions can connect to this socket using the same
+.Cm ControlPath
+with
+.Cm ControlMaster
+set to
+.Dq no
+(the default.)
+These sessions will reuse the master instance's network connection rather
+than initiating new ones.
+.It Cm ControlPath
+Specify a the path to the control socket used for connection sharing.
+See
+.Cm ControlMaster
+above.
 .It Cm EnableSSHKeysign
 Setting this option to
 .Dq yes

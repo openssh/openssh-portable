@@ -1,4 +1,4 @@
-/*	$OpenBSD: channels.h,v 1.72 2004/05/21 11:33:11 djm Exp $	*/
+/*	$OpenBSD: channels.h,v 1.73 2004/06/13 15:03:02 djm Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -76,6 +76,7 @@ struct Channel {
 	int     wfd;		/* write fd */
 	int     efd;		/* extended fd */
 	int     sock;		/* sock fd */
+	int     ctl_fd;		/* control fd (client sharing) */
 	int     isatty;		/* rfd is a tty */
 	int     wfd_isatty;	/* wfd is a tty */
 	int     force_drain;	/* force close on iEOF */
@@ -105,6 +106,7 @@ struct Channel {
 	/* callback */
 	channel_callback_fn	*confirm;
 	channel_callback_fn	*detach_user;
+	void			*confirm_ctx;
 
 	/* filter */
 	channel_filter_fn	*input_filter;
@@ -161,10 +163,11 @@ void	 channel_stop_listening(void);
 void	 channel_send_open(int);
 void	 channel_request_start(int, char *, int);
 void	 channel_register_cleanup(int, channel_callback_fn *);
-void	 channel_register_confirm(int, channel_callback_fn *);
+void	 channel_register_confirm(int, channel_callback_fn *, void *);
 void	 channel_register_filter(int, channel_filter_fn *);
 void	 channel_cancel_cleanup(int);
 int	 channel_close_fd(int *);
+void	 channel_send_window_changes(void);
 
 /* protocol handler */
 

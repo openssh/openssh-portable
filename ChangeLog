@@ -24,6 +24,11 @@
      [ssh.1 ssh_config.5 sshd_config.5]
      List supported ciphers in man pages, tidy up ssh -c;
      "looks fine" jmc@, ok markus@
+   - djm@cvs.openbsd.org 2004/06/13 15:03:02
+     [channels.c channels.h clientloop.c clientloop.h includes.h readconf.c] 
+     [readconf.h scp.1 sftp.1 ssh.1 ssh.c ssh_config.5]
+     implement session multiplexing in the client (the server has supported 
+     this since 2.0); ok markus@
 
 20040603
  - (dtucker) [auth-pam.c] Don't use pam_* namespace for sshd's PAM functions.
@@ -1208,4 +1213,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3381 2004/06/15 00:30:39 djm Exp $
+$Id: ChangeLog,v 1.3382 2004/06/15 00:34:08 djm Exp $
