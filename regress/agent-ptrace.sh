@@ -23,9 +23,9 @@ if test -z "$SUDO" ; then
 	echo "skipped (SUDO not set)"
 	exit 0
 else
-	$SUDO chown root ${OBJ}${SSHAGENT}
-	$SUDO chgrp root ${OBJ}${SSHAGENT}
-	$SUDO chmod 2755 ${OBJ}${SSHAGENT}
+	$SUDO chown root ${SSHAGENT}
+	$SUDO chgrp root ${SSHAGENT}
+	$SUDO chmod 2755 ${SSHAGENT}
 fi
 
 trace "start agent"
