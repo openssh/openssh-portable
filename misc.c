@@ -108,13 +108,13 @@ mysignal(int sig, mysig_t act)
 		memset(&sa, 0, sizeof(sa));
 		sigemptyset(&sa.sa_mask);
 		sa.sa_flags = 0;
-#ifdef SA_RESTART
 		if (sig == SIGCHLD)
+#if defined(SA_RESTART)
 			sa.sa_flags |= SA_RESTART;
-#endif
-#ifdef SA_INTERRUPT
-		if (sig == SIGCHLD)
+#elif defined(SA_INTERRUPT)
 			sa.sa_flags |= SA_INTERRUPT;
+#else
+			;
 #endif
 		sa.sa_handler = act;
 		if (sigaction(sig, &sa, NULL) == -1)
