@@ -20,6 +20,9 @@
      [deattack.c radix.c]
      kill more registers
      millert@ ok
+   - markus@cvs.openbsd.org 2001/11/21 15:51:24
+     [key.c]
+     mem leak
 
 20011126
  - (tim) [contrib/cygwin/README, openbsd-compat/bsd-cygwin_util.c,
@@ -6942,4 +6945,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1672 2001/12/06 16:39:56 mouring Exp $
+$Id: ChangeLog,v 1.1673 2001/12/06 16:41:41 mouring Exp $

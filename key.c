@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: key.c,v 1.33 2001/10/04 14:34:16 markus Exp $");
+RCSID("$OpenBSD: key.c,v 1.34 2001/11/21 15:51:24 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -420,14 +420,15 @@ key_read(Key *ret, char **cpp)
 		n = uudecode(cp, blob, len);
 		if (n < 0) {
 			error("key_read: uudecode %s failed", cp);
+			xfree(blob);
 			return -1;
 		}
 		k = key_from_blob(blob, n);
+		xfree(blob);
 		if (k == NULL) {
 			error("key_read: key_from_blob %s failed", cp);
 			return -1;
 		}
-		xfree(blob);
 		if (k->type != type) {
 			error("key_read: type mismatch: encoding error");
 			key_free(k);
@@ -454,9 +455,9 @@ key_read(Key *ret, char **cpp)
 #endif
 		}
 /*XXXX*/
+		key_free(k);
 		if (success != 1)
 			break;
-		key_free(k);
 		/* advance cp: skip whitespace and data */
 		while (*cp == ' ' || *cp == '\t')
 			cp++;
