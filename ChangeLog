@@ -35,6 +35,9 @@
      [sshd.8]
      remove unnecessary .Pp between .It;
      millert@ ok
+   - markus@cvs.openbsd.org 2001/06/26 05:50:11
+     [auth2.c]
+     new interface for secure_filename()
 
 20010629
  - (bal) Removed net_aton() since we don't use it any more
@@ -5862,4 +5865,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1354 2001/07/04 03:55:21 mouring Exp $
+$Id: ChangeLog,v 1.1355 2001/07/04 03:56:56 mouring Exp $

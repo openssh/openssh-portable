@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.67 2001/06/25 20:26:37 stevesk Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.68 2001/06/26 05:50:11 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -679,7 +679,7 @@ user_key_allowed2(struct passwd *pw, Key *key, char *file)
 		return 0;
 	}
 	if (options.strict_modes &&
-	    secure_filename(f, file, pw->pw_uid, line, sizeof(line)) != 0) {
+	    secure_filename(f, file, pw, line, sizeof(line)) != 0) {
 		fclose(f);
 		log("Authentication refused: %s", line);
 		restore_uid();
