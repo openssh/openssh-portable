@@ -1,3 +1,14 @@
+20031015
+ - (dtucker) OpenBSD CVS Sync
+   - jmc@cvs.openbsd.org 2003/10/08 08:27:36
+     [scp.1 scp.c sftp-server.8 sftp.1 sftp.c ssh.1 sshd.8]
+     scp and sftp: add options list and sort options. options list requested
+     by deraadt@
+     sshd: use same format as ssh
+     ssh: remove wrong option from list
+     sftp-server: Subsystem is documented in ssh_config(5), not sshd(8)
+     ok deraadt@ markus@
+
 20031009
  - (dtucker) [sshd_config.5] UsePAM defaults to "no".  ok djm@
 
@@ -1314,4 +1325,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3069 2003/10/09 04:13:53 dtucker Exp $
+$Id: ChangeLog,v 1.3070 2003/10/15 05:50:42 dtucker Exp $
