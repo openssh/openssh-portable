@@ -9,6 +9,9 @@
    - dtucker@cvs.openbsd.org 2004/05/27 00:50:13
      [readconf.c]
      Kill dead code after fatal(); ok djm@
+   - dtucker@cvs.openbsd.org 2004/06/01 14:20:45
+     [auth2-chall.c]
+     Remove redundant #include; ok markus@
 
 20040603
  - (dtucker) [auth-pam.c] Don't use pam_* namespace for sshd's PAM functions.
@@ -1193,4 +1196,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3377 2004/06/15 00:27:55 djm Exp $
+$Id: ChangeLog,v 1.3378 2004/06/15 00:28:24 djm Exp $
