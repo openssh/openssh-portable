@@ -68,6 +68,8 @@
  - (djm) Update spec files for release 
  - (djm) Fix int overflow in auth2-pam.c, similar to one discovered by ISS
  - (djm) Release 3.4p1
+ - (tim) [contrib/caldera/openssh.spec] remove 2 configure options I put in
+   by mistake
 
 20020625
  - (stevesk) [INSTALL acconfig.h configure.ac defines.h] remove --with-rsh
@@ -1167,4 +1169,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2301 2002/06/26 13:59:10 djm Exp $
+$Id: ChangeLog,v 1.2302 2002/06/26 18:05:32 tim Exp $

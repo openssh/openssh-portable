@@ -181,8 +181,6 @@ CFLAGS="$RPM_OPT_FLAGS" \
             --with-pam \
             --with-tcp-wrappers \
             --with-ipv4-default \
-	    --sysconfdir=%{_sysconfdir}/ssh \
-	    --libexecdir=%{_libexecdir}/openssh \
 	    --with-privsep-path=%{_var}/empty/sshd \
 	    #leave this line for easy edits.
 
@@ -355,4 +353,4 @@ fi
 * Mon Jan 01 1998 ...
 Template Version: 1.31
 
-$Id: openssh.spec,v 1.36 2002/06/26 13:57:13 djm Exp $
+$Id: openssh.spec,v 1.37 2002/06/26 18:05:33 tim Exp $
