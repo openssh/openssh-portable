@@ -10,6 +10,9 @@
      [bufaux.c]
      encode 0 correctly in buffer_put_bignum2; noted by Mikulas Patocka
      and drop support for negative BNs; ok otto@
+   - markus@cvs.openbsd.org 2004/02/23 15:16:46
+     [version.h]
+     enter 3.8
 
 20040223
  - (dtucker) [session.c] Bug #789: Only make setcred call for !privsep in the
@@ -1913,4 +1916,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3246 2004/02/23 22:21:41 dtucker Exp $
+$Id: ChangeLog,v 1.3247 2004/02/23 22:24:01 dtucker Exp $
