@@ -4,6 +4,7 @@
    - (djm) Remove redundant and incorrect test for max auth attempts in 
      PAM kbdint code. Based on fix from Matthew Melvin 
     <matthewm@webcentral.com.au>
+   - (markus) Unbreak -R forwarding for protocol 2
 
 20010617
  - (djm) Pull in small fix from -CURRENT for session.c:
@@ -5325,4 +5326,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1179.2.19 2001/06/27 06:46:02 djm Exp $
+$Id: ChangeLog,v 1.1179.2.20 2001/06/27 06:51:00 djm Exp $
