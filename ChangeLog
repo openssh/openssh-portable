@@ -8,6 +8,8 @@
    - djm@cvs.openbsd.org 2005/03/08 23:49:48
      [version.h]
      OpenSSH 4.0
+ - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec] 
+   [contrib/suse/openssh.spec] Update spec file versions
 
 20050307
  - (dtucker) [configure.ac] Disable gettext search when configuring with
@@ -2317,4 +2319,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3705 2005/03/09 00:00:42 djm Exp $
+$Id: ChangeLog,v 1.3706 2005/03/09 00:02:41 djm Exp $
