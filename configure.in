@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.281 2001/04/25 12:50:19 djm Exp $
+# $Id: configure.in,v 1.282 2001/04/26 04:40:28 tim Exp $
 
 AC_INIT(ssh.c)
 
@@ -221,6 +221,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(HAVE_BOGUS_SYS_QUEUE_H)
 	AC_DEFINE(BROKEN_SAVED_UIDS)
 	AC_CHECK_FUNCS(getluid setluid)
+	MANTYPE=man
 	;;
 *-*-sco3.2v5*)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
@@ -233,6 +234,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(DISABLE_SHADOW)
 	AC_DEFINE(HAVE_BOGUS_SYS_QUEUE_H)
 	AC_CHECK_FUNCS(getluid setluid)
+	MANTYPE=man
 	;;
 *-dec-osf*)
 	if test ! -z "USE_SIA" ; then
@@ -1413,7 +1415,7 @@ AC_ARG_WITH(catman,
 	]
 )
 if test -z "$MANTYPE"; then
-	AC_PATH_PROGS(NROFF, nroff awf, /bin/false)
+	AC_PATH_PROGS(NROFF, nroff awf, /bin/false, /usr/bin:/usr/ucb)
 	if ${NROFF} -mdoc ${srcdir}/ssh.1 >/dev/null 2>&1; then
 		MANTYPE=doc
 	elif ${NROFF} -man ${srcdir}/ssh.1 >/dev/null 2>&1; then
