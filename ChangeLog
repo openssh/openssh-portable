@@ -1,3 +1,8 @@
+20031217
+ - (dtucker) [acconfig.h configure.ac uidswap.c] Bug #645: Check for
+   setres[ug]id() present but not implemented (eg some Linux/glibc
+   combinations).
+
 20031208
  - (tim) [configure.ac] Bug 770. Fix --without-rpath.
 
@@ -1286,4 +1291,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2994.2.62 2003/12/08 20:36:57 tim Exp $
+$Id: ChangeLog,v 1.2994.2.63 2003/12/17 07:54:53 dtucker Exp $
