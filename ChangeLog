@@ -1,3 +1,14 @@
+20000618
+ - (djm) Add summary of configure options to end of ./configure run
+ - (djm) Not all systems define RUSAGE_SELF & RUSAGE_CHILDREN. Report from 
+   Michael Stone <mstone@cs.loyola.edu>
+ - (djm) rusage is a privileged operation on some Unices (incl. 
+   Solaris 2.5.1). Report from Paul D. Smith <pausmith@nortelnetworks.com>
+ - (djm) Avoid PAM failures when running without a TTY. Report from 
+   Martin Petrak <petrak@spsknm.schools.sk>
+ - (djm) Include sys/types.h when including netinet/in.h in configure tests.
+   Patch from Jun-ichiro itojun Hagino <itojun@iijlab.net>
+
 20000613
  - (djm) Fixes from Andrew McGill <andrewm@datrix.co.za>:
   - Platform define for SCO 3.x which breaks on /dev/ptmx

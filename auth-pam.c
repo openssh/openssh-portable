@@ -34,7 +34,7 @@
 #include "xmalloc.h"
 #include "servconf.h"
 
-RCSID("$Id: auth-pam.c,v 1.6 2000/06/12 06:38:54 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.7 2000/06/18 04:07:04 djm Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: You password has expired, please change it now"
@@ -246,6 +246,12 @@ void start_pam(struct passwd *pw)
 			PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
 	}
 	
+	pam_retval = pam_set_item((pam_handle_t *)pamh, PAM_TTY, "ssh");
+	if (pam_retval != PAM_SUCCESS) {
+		fatal("PAM set tty failed: %.200s", 
+			PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
+	}
+
 	fatal_add_cleanup(&pam_cleanup_proc, NULL);
 }
 

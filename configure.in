@@ -208,12 +208,14 @@ AC_CHECK_FUNC(getpagesize,
 	[AC_CHECK_LIB(ucb, getpagesize, [LIBS="$LIBS -lucb"; AC_DEFINE(HAVE_GETPAGESIZE)])]
 )
 
+PAM_MSG="no"
 AC_ARG_WITH(pam,
 	[  --without-pam           Disable PAM support ],
 	[
 		if test "x$withval" = "xno" ; then
 			no_pam=1
 			AC_DEFINE(DISABLE_PAM)
+			PAM_MSG="disabled"
 		fi
 	]
 )
@@ -222,6 +224,8 @@ if test -z "$no_pam" -a "x$ac_cv_header_security_pam_appl_h" = "xyes" ; then
 	LIBS="$LIBS -lpam"
 
 	AC_CHECK_FUNCS(pam_getenvlist)
+
+	PAM_MSG="yes"
 
 	# Check PAM strerror arguments (old PAM)
 	AC_MSG_CHECKING([whether pam_strerror takes only one argument])
@@ -235,6 +239,7 @@ if test -z "$no_pam" -a "x$ac_cv_header_security_pam_appl_h" = "xyes" ; then
 		[
 			AC_DEFINE(HAVE_OLD_PAM)
 			AC_MSG_RESULT(yes)
+			PAM_MSG="yes (old library)"
 		]
 	) 
 fi
@@ -353,13 +358,17 @@ done
 
 if test ! -z "$no_rsa" ; then
 	AC_MSG_RESULT(disabled)
+	RSA_MSG="disabled"
 else
 	if test -z "$rsa_works" ; then
 		AC_MSG_WARN([*** No RSA support found *** ])
+		RSA_MSG="no"
 	else
 		if test -z "$WANTS_RSAREF" ; then
 			AC_MSG_RESULT(yes)
+			RSA_MSG="yes"
 		else
+			RSA_MSG="yes (using RSAref)"
 			AC_MSG_RESULT(using RSAref)
 			LIBS="$saved_LIBS -lcrypto -lRSAglue -lrsaref"
 		fi
@@ -501,6 +510,7 @@ fi
 AC_CACHE_CHECK([for struct sockaddr_in6], ac_cv_have_struct_sockaddr_in6, [
 	AC_TRY_COMPILE(
 		[
+#include <sys/types.h>
 #include <netinet/in.h>
 		],
 		[ struct sockaddr_in6 s; s.sin6_family = 0; ],
@@ -515,6 +525,7 @@ fi
 AC_CACHE_CHECK([for struct in6_addr], ac_cv_have_struct_in6_addr, [
 	AC_TRY_COMPILE(
 		[
+#include <sys/types.h>
 #include <netinet/in.h>
 		],
 		[ struct in6_addr s; s.s6_addr[0] = 0; ],
@@ -562,8 +573,6 @@ OSSH_CHECK_HEADER_FOR_FIELD(ut_time, utmp.h, HAVE_TIME_IN_UTMP)
 OSSH_CHECK_HEADER_FOR_FIELD(ut_time, utmpx.h, HAVE_TIME_IN_UTMPX)
 OSSH_CHECK_HEADER_FOR_FIELD(ut_tv, utmpx.h, HAVE_TV_IN_UTMPX)
 
-
-
 AC_CACHE_CHECK([for ss_family field in struct sockaddr_storage],
 		ac_cv_have_ss_family_in_struct_ss, [
 	AC_TRY_COMPILE(
@@ -579,7 +588,6 @@ AC_CACHE_CHECK([for ss_family field in struct sockaddr_storage],
 if test "x$ac_cv_have_ss_family_in_struct_ss" = "xyes" ; then
 	AC_DEFINE(HAVE_SS_FAMILY_IN_SS)
 fi
-
 
 AC_CACHE_CHECK([for __ss_family field in struct sockaddr_storage],
 		ac_cv_have___ss_family_in_struct_ss, [
@@ -615,7 +623,7 @@ AC_ARG_WITH(rsh,
 	[  --with-rsh=PATH         Specify path to remote shell program ],
 	[
 		if test "x$withval" != "$no" ; then
-			AC_DEFINE_UNQUOTED(RSH_PATH, "$withval")
+			rsa_path=$withval
 		fi
 	],
 	[
@@ -627,7 +635,7 @@ AC_ARG_WITH(xauth,
 	[  --with-xauth=PATH       Specify path to xauth program ],
 	[
 		if test "x$withval" != "$xno" ; then
-			AC_DEFINE_UNQUOTED(XAUTH_PATH, "$withval")
+			xauth_path=$withval
 		fi
 	],
 	[
@@ -746,6 +754,7 @@ AC_SUBST(MANTYPE)
 AC_SUBST(mansubdir)
 
 # Check whether user wants Kerberos support
+KRB4_MSG="no" 
 AC_ARG_WITH(kerberos4,
 	[  --with-kerberos4=PATH   Enable Kerberos 4 support],
 	[
@@ -778,12 +787,14 @@ AC_ARG_WITH(kerberos4,
 			KLIBS="-lkrb -ldes"
 			AC_CHECK_LIB(resolv, dn_expand, , )
 			KRB4=yes
+			KRB4_MSG="yes" 
 			AC_DEFINE(KRB4)
 		fi
 	]
 )
 
 # Check whether user wants AFS support
+AFS_MSG="no" 
 AC_ARG_WITH(afs,
 	[  --with-afs=PATH         Enable AFS support],
 	[
@@ -803,23 +814,27 @@ AC_ARG_WITH(afs,
 				LIBS="$LIBS $AFS_LIBS"
 			fi
 			AC_DEFINE(AFS)
+			AFS_MSG="yes" 
 		fi
 	]
 )
 LIBS="$LIBS $KLIBS"
 
 # Check whether user wants S/Key support
+SKEY_MSG="no" 
 AC_ARG_WITH(skey,
 	[  --with-skey             Enable S/Key support],
 	[
 		if test "x$withval" != "xno" ; then
 			AC_DEFINE(SKEY)
 			LIBS="$LIBS -lskey"
+			SKEY_MSG="yes" 
 		fi
 	]
 )
 
 # Check whether user wants TCP wrappers support
+TCPW_MSG="no" 
 AC_ARG_WITH(tcp-wrappers,
 	[  --with-tcp-wrappers     Enable tcpwrappers support],
 	[
@@ -836,11 +851,10 @@ AC_ARG_WITH(tcp-wrappers,
 				[
 					AC_MSG_RESULT(yes)
 					AC_DEFINE(LIBWRAP)
+					TCPW_MSG="yes" 
 				],
 				[
-					AC_MSG_RESULT(no)
-					AC_MSG_WARN([*** libwrap missing - tcpwrapper support disabled ***])
-					LIBS="$saved_LIBS"
+					AC_MSG_ERROR([*** libwrap missing])
 				]
 			)
 		fi
@@ -848,11 +862,13 @@ AC_ARG_WITH(tcp-wrappers,
 )
 
 # Check whether to enable MD5 passwords
+MD5_MSG="no" 
 AC_ARG_WITH(md5-passwords,
 	[  --with-md5-passwords    Enable use of MD5 passwords],
 	[
 		if test "x$withval" != "xno" ; then
 			AC_DEFINE(HAVE_MD5_PASSWORDS)
+			MD5_MSG="yes" 
 		fi
 	]
 )
@@ -868,42 +884,50 @@ AC_ARG_WITH(shadow,
 )
 
 # Use ip address instead of hostname in $DISPLAY
+DISPLAY_HACK_MSG="no" 
 AC_ARG_WITH(ipaddr-display,
 	[  --with-ipaddr-display   Use ip address instead of hostname in \$DISPLAY],
 	[
 		if test "x$withval" = "xno" ; then	
 			AC_DEFINE(IPADDR_IN_DISPLAY)
+			DISPLAY_HACK_MSG="yes" 
 		fi
 	]
 )
 
 # Whether to mess with the default path
+SERVER_PATH_MSG="(default)" 
 AC_ARG_WITH(default-path,
 	[  --with-default-path=PATH Specify default \$PATH environment for server],
 	[
 		if test "x$withval" != "xno" ; then	
 			AC_DEFINE_UNQUOTED(USER_PATH, "$withval")
+			SERVER_PATH_MSG="$withval" 
 		fi
 	]
 )
 
 # Whether to force IPv4 by default (needed on broken glibc Linux)
+IPV4_HACK_MSG="no" 
 AC_ARG_WITH(ipv4-default,
 	[  --with-ipv4-default     Use IPv4 by connections unless '-6' specified],
 	[
 		if test "x$withval" != "xno" ; then	
 			AC_DEFINE(IPV4_DEFAULT)
+			IPV4_HACK_MSG="yes" 
 		fi
 	]
 )
 
 AC_MSG_CHECKING([if we need to convert IPv4 in IPv6-mapped addresses])
+IPV4_IN6_HACK_MSG="no" 
 AC_ARG_WITH(4in6,
 	[  --with-4in6             Check for and convert IPv4 in IPv6 mapped addresses],
 	[
 		if test "x$withval" != "xno" ; then
 			AC_MSG_RESULT(yes)
 			AC_DEFINE(IPV4_IN_IPV6)
+			IPV4_IN6_HACK_MSG="yes" 
 		else
 			AC_MSG_RESULT(no)
 		fi
@@ -911,6 +935,7 @@ AC_ARG_WITH(4in6,
 		if test "x$inet6_default_4in6" = "xyes"; then
 			AC_MSG_RESULT([yes (default)])
 			AC_DEFINE(IPV4_IN_IPV6)
+			IPV4_IN6_HACK_MSG="yes" 
 		else
 			AC_MSG_RESULT([no (default)])
 		fi
@@ -1161,4 +1186,58 @@ if test ! -z "$blibpath" ; then
 fi
 
 AC_OUTPUT(Makefile ssh_prng_cmds)
+
+# Print summary of options
+
+if test x$MANTYPE = x'$(CATMAN)' ; then
+	MAN_MSG=cat
+else 
+	MAN_MSG=man
+fi
+if test ! -z "$RANDOM_POOL" ; then
+	RAND_MSG="Device ($RANDOM_POOL)"
+else
+	if test ! -z "$EGD_SOCKET" ; then
+		RAND_MSG="EGD ($EGD_SOCKET)"
+	else
+		RAND_MSG="Builtin (timeout $entropy_timeout)"
+	fi
+fi
+
+# Someone please show me a better way :)
+A=`eval echo ${prefix}` ; A=`eval echo ${A}`
+B=`eval echo ${bindir}` ; B=`eval echo ${B}`
+C=`eval echo ${sbindir}` ; C=`eval echo ${C}`
+D=`eval echo ${sysconfdir}` ; D=`eval echo ${D}`
+E=`eval echo ${libexecdir}/ssh/ssh-askpass` ; E=`eval echo ${E}`
+F=`eval echo ${mandir}/${mansubdir}X` ; F=`eval echo ${F}`
+G=`eval echo ${piddir}` ; G=`eval echo ${G}`
+
+echo ""
+echo "OpenSSH configured has been configured with the following options."
+echo "                 User binaries: $B"
+echo "               System binaries: $C"
+echo "           Configuration files: $D"
+echo "               Askpass program: $E"
+echo "                  Manual pages: $F"
+echo "                      PID file: $G"
+echo "      Random number collection: $RAND_MSG"
+echo "                Manpage format: $MAN_MSG"
+echo "                   PAM support: ${PAM_MSG}"
+echo "            KerberosIV support: $KRB4_MSG"
+echo "                   AFS support: $AFS_MSG"
+echo "                 S/KEY support: $SKEY_MSG"
+echo "          TCP Wrappers support: $TCPW_MSG"
+echo "          MD5 password support: $MD5_MSG"
+echo "   IP address in \$DISPLAY hack: $DISPLAY_HACK_MSG"
+echo "      Use IPv4 by default hack: $IPV4_HACK_MSG"
+echo "       Translate v4 in v6 hack: $IPV4_IN6_HACK_MSG"
+
+echo ""
+
+echo "Compiler flags: ${CFLAGS}"
+echo "Linker flags: ${LDFLAGS}"
+echo "Libraries: ${LIBS}"
+
+echo ""
 
