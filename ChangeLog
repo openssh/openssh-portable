@@ -1,3 +1,7 @@
+20040310
+ - (dtucker) [openbsd-compat/fake-rfc2553.h] Bug #812: #undef getaddrinfo
+   before redefining it, silences warnings on Tru64.
+
 20040308
  - (dtucker) [sshd.c] Back out rev 1.270 as it caused problems on some
    platforms (eg SCO, HP-UX) with logging in the wrong TZ.  ok djm@
@@ -1953,4 +1957,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3257.2.7 2004/03/08 12:02:13 dtucker Exp $
+$Id: ChangeLog,v 1.3257.2.8 2004/03/10 10:05:42 dtucker Exp $
