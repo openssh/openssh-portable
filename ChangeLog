@@ -7,6 +7,8 @@
  - (dtucker) [configure.ac] Bug #748: Always define BROKEN_GETADDRINFO
    for HP-UX 11.11.  If there are known-good configs where this is not
    required, please report them.  ok djm@
+ - (dtucker) [sshd.c] Bug #757: Clear child's environment to prevent
+   accidentally inheriting from root's environment.  ok djm@
 
 20040129
  - (dtucker) OpenBSD CVS Sync regress/
@@ -1792,4 +1794,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3208 2004/02/06 04:59:06 dtucker Exp $
+$Id: ChangeLog,v 1.3209 2004/02/06 05:04:08 dtucker Exp $
