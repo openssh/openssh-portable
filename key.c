@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: key.c,v 1.25 2001/04/17 10:53:24 markus Exp $");
+RCSID("$OpenBSD: key.c,v 1.26 2001/06/23 05:26:02 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -768,6 +768,9 @@ key_verify(
     u_char *signature, int signaturelen,
     u_char *data, int datalen)
 {
+	if (signaturelen == 0)
+		return -1;
+
 	switch(key->type){
 	case KEY_DSA:
 		return ssh_dss_verify(key, signature, signaturelen, data, datalen);
