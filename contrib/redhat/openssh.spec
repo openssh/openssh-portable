@@ -1,5 +1,5 @@
 %define ver 3.6.1p2
-%define rel 1
+%define rel 2
 
 # OpenSSH privilege separation requires a user & group ID
 %define sshd_uid    74
@@ -274,9 +274,11 @@ install -s contrib/gnome-ssh-askpass $RPM_BUILD_ROOT%{_libexecdir}/openssh/gnome
 	 rm -f $RPM_BUILD_ROOT/usr/share/openssh/Ssh.bin
 %endif
 
+%if ! %{no_gnome_askpass}
 install -m 755 -d $RPM_BUILD_ROOT%{_sysconfdir}/profile.d/
 install -m 755 contrib/redhat/gnome-ssh-askpass.csh $RPM_BUILD_ROOT%{_sysconfdir}/profile.d/
 install -m 755 contrib/redhat/gnome-ssh-askpass.sh $RPM_BUILD_ROOT%{_sysconfdir}/profile.d/
+%endif
 
 perl -pi -e "s|$RPM_BUILD_ROOT||g" $RPM_BUILD_ROOT%{_mandir}/man*/*
 
@@ -400,6 +402,10 @@ fi
 %endif
 
 %changelog
+* Mon May 12 2003 Damien Miller <djm@mindrot.org>
+- Don't install profile.d scripts when not building with GNOME/GTK askpass
+  (patch from bet@rahul.net)
+
 * Wed Oct 01 2002 Damien Miller <djm@mindrot.org>
 - Install ssh-agent setgid nobody to prevent ptrace() key theft attacks
 
