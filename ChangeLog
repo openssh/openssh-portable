@@ -16,6 +16,12 @@
    - markus@cvs.openbsd.org 2001/07/04 23:49:27
      [ssh-agent.c]
      handle mutiple adds of the same smartcard key
+   - espie@cvs.openbsd.org 2001/07/05 11:43:33
+     [sftp-glob.c]
+     Directly cast to the right type. Ok markus@
+   - stevesk@cvs.openbsd.org 2001/07/05 20:32:47
+     [sshconnect1.c]
+     statement after label; ok dugsong@
 
 20010711
  - (djm) dirname(3) may modify its argument on glibc and other systems. 
@@ -5991,4 +5997,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1390 2001/07/14 02:14:27 djm Exp $
+$Id: ChangeLog,v 1.1391 2001/07/14 02:16:59 djm Exp $

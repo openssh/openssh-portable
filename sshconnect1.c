@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.38 2001/06/26 20:14:11 markus Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.39 2001/07/05 20:32:47 stevesk Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/evp.h>
@@ -1272,8 +1272,5 @@ ssh_userauth1(const char *local_user, const char *server_user, char *host,
 	}
 #endif /* AFS */
 
-/* give the compiler something to do for success: */
-#if !defined(KRB5) && !defined(AFS)
-	;
-#endif
+	return;	/* need statement after label */
 }
