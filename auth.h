@@ -34,6 +34,9 @@ struct Authctxt {
 	struct passwd *pw;
 };
 
+#include "auth-pam.h"
+#include "auth2-pam.h"
+
 void	do_authentication(void);
 void	do_authentication2(void);
 

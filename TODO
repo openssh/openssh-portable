@@ -19,6 +19,8 @@ Programming:
   select() under Linux is not as nice as others, and two the children
   of the shell are not killed on exiting the shell.
 
+- Build an automated test suite
+
 Documentation:
 - More and better
 

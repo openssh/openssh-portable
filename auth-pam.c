@@ -29,7 +29,7 @@
 #include "xmalloc.h"
 #include "servconf.h"
 
-RCSID("$Id: auth-pam.c,v 1.18 2000/10/14 15:08:49 stevesk Exp $");
+RCSID("$Id: auth-pam.c,v 1.19 2000/12/03 00:51:51 djm Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now"
@@ -50,10 +50,26 @@ static const char *pampasswd = NULL;
 static char *pam_msg = NULL;
 
 /* states for pamconv() */
-typedef enum { INITIAL_LOGIN, OTHER } pamstates;
-static pamstates pamstate = INITIAL_LOGIN;
+enum { INITIAL_LOGIN, OTHER } pamstate = INITIAL_LOGIN;
 /* remember whether pam_acct_mgmt() returned PAM_NEWAUTHTOK_REQD */
 static int password_change_required = 0;
+/* remember whether the last pam_authenticate() succeeded or not */
+static int was_authenticated = 0;
+
+/* accessor which allows us to switch conversation structs according to
+ * the authentication method being used */
+void pam_set_conv(struct pam_conv *conv)
+{
+	pam_set_item(pamh, PAM_CONV, conv);
+}
+
+/* start an authentication run */
+int do_pam_authenticate(int flags)
+{
+	int retval = pam_authenticate(pamh, flags);
+	was_authenticated = (retval == PAM_SUCCESS);
+	return retval;
+}
 
 /*
  * PAM conversation function.
@@ -163,6 +179,8 @@ int auth_pam_password(struct passwd *pw, const char *password)
 	extern ServerOptions options;
 	int pam_retval;
 
+	pam_set_conv(&conv);
+
 	/* deny if no user. */
 	if (pw == NULL)
 		return 0;
@@ -174,7 +192,7 @@ int auth_pam_password(struct passwd *pw, const char *password)
 	pampasswd = password;
 	
 	pamstate = INITIAL_LOGIN;
-	pam_retval = pam_authenticate(pamh, 0);
+	pam_retval = do_pam_authenticate(0);
 	if (pam_retval == PAM_SUCCESS) {
 		debug("PAM Password authentication accepted for user \"%.100s\"", 
 			pw->pw_name);
@@ -256,8 +274,13 @@ void do_pam_setcred(void)
 	debug("PAM establishing creds");
 	pam_retval = pam_setcred(pamh, PAM_ESTABLISH_CRED);
 	if (pam_retval != PAM_SUCCESS) {
-		fatal("PAM setcred failed[%d]: %.200s", 
-			pam_retval, PAM_STRERROR(pamh, pam_retval));
+		if(was_authenticated) {
+			fatal("PAM setcred failed[%d]: %.200s", 
+				pam_retval, PAM_STRERROR(pamh, pam_retval));
+		} else {
+			debug("PAM setcred failed[%d]: %.200s", 
+				pam_retval, PAM_STRERROR(pamh, pam_retval));
+		}
 	}
 }
 

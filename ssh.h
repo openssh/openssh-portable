@@ -558,8 +558,4 @@ int	auth_skey_password(struct passwd * pw, const char *password);
 /* AF_UNSPEC or AF_INET or AF_INET6 */
 extern int IPv4or6;
 
-#ifdef USE_PAM
-#include "auth-pam.h"
-#endif /* USE_PAM */
-
 #endif				/* SSH_H */

@@ -7,11 +7,13 @@ void start_pam(struct passwd *pw);
 void finish_pam(void);
 int auth_pam_password(struct passwd *pw, const char *password);
 char **fetch_pam_environment(void);
+int do_pam_authenticate(int flags);
 int do_pam_account(char *username, char *remote_user);
 void do_pam_session(char *username, const char *ttyname);
 void do_pam_setcred(void);
 void print_pam_messages(void);
 int pam_password_change_required(void);
 void do_pam_chauthtok(void);
+void pam_set_conv(struct pam_conv *);
 
 #endif /* USE_PAM */

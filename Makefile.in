@@ -42,7 +42,7 @@ LIBOPENBSD_COMPAT_OBJS=bsd-arc4random.o bsd-base64.o bsd-bindresvport.o bsd-daem
 
 SSHOBJS= ssh.o sshconnect.o sshconnect1.o sshconnect2.o log-client.o readconf.o clientloop.o
 
-SSHDOBJS= sshd.o auth.o auth1.o auth2.o auth-skey.o auth2-skey.o auth-rhosts.o auth-options.o auth-krb4.o auth-pam.o auth-passwd.o auth-rsa.o auth-rh-rsa.o dh.o pty.o log-server.o login.o loginrec.o servconf.o serverloop.o md5crypt.o session.o
+SSHDOBJS= sshd.o auth.o auth1.o auth2.o auth-skey.o auth2-skey.o auth-rhosts.o auth-options.o auth-krb4.o auth-pam.o auth2-pam.o auth-passwd.o auth-rsa.o auth-rh-rsa.o dh.o pty.o log-server.o login.o loginrec.o servconf.o serverloop.o md5crypt.o session.o
 
 TROFFMAN	= scp.1 ssh-add.1 ssh-agent.1 ssh-keygen.1 ssh.1 sshd.8 sftp-server.8
 CATMAN		= scp.0 ssh-add.0 ssh-agent.0 ssh-keygen.0 ssh.0 sshd.0 sftp-server.0

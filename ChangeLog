@@ -29,6 +29,9 @@
     [sshd.c]
     sshd -D, startup w/o deamon(), for monitoring scripts or inittab;
     from handler@sub-rosa.com and eric@urbanrange.com; ok niels@
+ - (djm) Added patch from Nalin Dahyabhai <nalin@redhat.com> to enable
+   PAM authentication using KbdInteractive.
+ - (djm) Added another TODO
 
 20001202
  - (bal) Backed out of part of Alain St-Denis' loginrec.c patch.

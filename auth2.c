@@ -400,10 +400,15 @@ userauth_kbdint(Authctxt *authctxt)
 	packet_done();
 
 	debug("keyboard-interactive language %s devs %s", lang, devs);
+#ifdef USE_PAM
+	if (authenticated == 0)
+		authenticated = auth2_pam(authctxt);
+#endif
 #ifdef SKEY
 	/* XXX hardcoded, we should look at devs */
-	if (options.skey_authentication != 0)
-		authenticated = auth2_skey(authctxt);
+	if (authenticated == 0)
+		if (options.skey_authentication != 0)
+			authenticated = auth2_skey(authctxt);
 #endif
 	xfree(lang);
 	xfree(devs);
