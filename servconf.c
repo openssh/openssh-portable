@@ -29,7 +29,6 @@ RCSID("$OpenBSD: servconf.c,v 1.63 2001/01/22 23:06:39 markus Exp $");
 #include "misc.h"
 #include "cipher.h"
 
-
 /* add listen address */
 void add_listen_addr(ServerOptions *options, char *addr);
 
