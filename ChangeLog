@@ -1,6 +1,5 @@
 19991119
  - Merged PAM buffer overrun patch from Chip Salzenberg <chip@valinux.com>
-   (off-by-one error - doesn't appear to be easily exploitable)
  - Merged OpenBSD CVS changes
    - [auth-rhosts.c auth-rsa.c ssh-agent.c sshconnect.c sshd.c]
      more %d vs. %s in fmt-strings
@@ -11,6 +10,10 @@
  - Fix scp progress bar bug again.
  - Move scp from ${libdir}/ssh to ${libexecdir}/ssh at request of 
    David Rankin <drankin@bohemians.lexington.ky.us>
+ - Added autoconf option to enable Kerberos 4 support (untested)
+ - Added autoconf option to enable AFS support (untested)
+ - Added autoconf option to enable S/Key support (untested)
+ - Added autoconf option to enable TCP wrappers support (compiles OK)
 
 19991118
  - Merged OpenBSD CVS changes

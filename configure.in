@@ -166,4 +166,41 @@ AC_TRY_LINK([],
 	]
 )
 
+dnl Check whether user wants Kerberos support
+AC_ARG_WITH(kerberos4,
+	[  --with-kerberos4        Enable Kerberos 4 support],
+	[
+		AC_DEFINE(KRB4)
+		LIBS="$LIBS -lkrb"
+		CFLAGS="$CFLAGS -I/usr/include/kerberosIV"
+	]
+)
+
+dnl Check whether user wants AFS support
+AC_ARG_WITH(kerberos4,
+	[  --with-afs              Enable AFS support],
+	[
+		AC_DEFINE(AFS)
+		LIBS="$LIBS -lkafs"
+	]
+)
+
+dnl Check whether user wants S/Key support
+AC_ARG_WITH(skey,
+	[  --with-skey             Enable S/Key support],
+	[
+		AC_DEFINE(SKEY)
+		LIBS="$LIBS -lskey"
+	]
+)
+
+dnl Check whether user wants TCP wrappers support
+AC_ARG_WITH(skey,
+	[  --with-tcp-wrappers     Enable tcpwrappers support],
+	[
+		AC_DEFINE(LIBWRAP)
+		LIBS="$LIBS -lwrap"
+	]
+)
+
 AC_OUTPUT(Makefile)

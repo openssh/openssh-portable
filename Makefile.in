@@ -22,10 +22,10 @@ GNOME_CFLAGS=`gnome-config --cflags gnome gnomeui`
 GNOME_LIBS=`gnome-config --libs gnome gnomeui`
 
 OBJS=	authfd.o authfile.o auth-passwd.o auth-rhosts.o auth-rh-rsa.o \
-		auth-rsa.o bufaux.o buffer.o canohost.o channels.o cipher.o \
-		clientloop.o compress.o crc32.o deattack.o helper.o hostfile.o \
-		log-client.o login.o log-server.o match.o mpaux.o packet.o pty.o \
-		readconf.o readpass.o rsa.o servconf.o serverloop.o \
+		auth-rsa.o auth-skey.o bufaux.o buffer.o canohost.o channels.o \
+		cipher.o clientloop.o compress.o crc32.o deattack.o helper.o \
+		hostfile.o log-client.o login.o log-server.o match.o mpaux.o \
+		packet.o pty.o readconf.o readpass.o rsa.o servconf.o serverloop.o \
 		sshconnect.o tildexpand.o ttymodes.o uidswap.o xmalloc.o \
 		helper.o mktemp.o strlcpy.o rc4.o
 

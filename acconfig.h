@@ -30,6 +30,18 @@
 /* Define if libc defines __progname */
 #undef HAVE___PROGNAME
 
+/* Define if you want Kerberos 4 support */
+#undef KRB4
+
+/* Define if you want AFS support */
+#undef AFS
+
+/* Define if you want S/Key support */
+#undef SKEY
+
+/* Define if you want TCP Wrappers support */
+#undef LIBWRAP
+
 @BOTTOM@
 
 /* ******************* Shouldn't need to edit below this line ************** */

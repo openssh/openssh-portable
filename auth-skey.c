@@ -1,3 +1,5 @@
+#ifdef SKEY
+
 #include "includes.h"
 RCSID("$Id: auth-skey.c,v 1.2 1999/10/16 20:57:52 deraadt Exp $");
 
@@ -147,3 +149,5 @@ skey_fake_keyinfo(char *username)
 	}
 	return skeyprompt;
 }
+
+#endif SKEY
