@@ -31,7 +31,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.80 2003/11/17 10:41:42 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.81 2003/11/18 01:42:08 dtucker Exp $");
 
 #ifdef USE_PAM
 #include <security/pam_appl.h>
@@ -52,6 +52,7 @@ RCSID("$Id: auth-pam.c,v 1.80 2003/11/17 10:41:42 djm Exp $");
 #include "auth-options.h"
 
 extern ServerOptions options;
+extern Buffer loginmsg;
 
 #define __unused
 
@@ -497,13 +498,9 @@ sshpam_query(void *ctx, char **name, char **info,
 		case PAM_AUTH_ERR:
 			if (**prompts != NULL) {
 				/* drain any accumulated messages */
-#if 0 /* XXX - not compatible with privsep */
-				packet_start(SSH2_MSG_USERAUTH_BANNER);
-				packet_put_cstring(**prompts);
-				packet_put_cstring("");
-				packet_send();
-				packet_write_wait();
-#endif
+				debug("PAM: %s", **prompts);
+				buffer_append(&loginmsg, **prompts,
+				    strlen(**prompts));
 				xfree(**prompts);
 				**prompts = NULL;
 			}
@@ -631,21 +628,6 @@ do_pam_account(void)
 }
 
 void
-do_pam_session(void)
-{
-	sshpam_err = pam_set_item(sshpam_handle, PAM_CONV, 
-	    (const void *)&null_conv);
-	if (sshpam_err != PAM_SUCCESS)
-		fatal("PAM: failed to set PAM_CONV: %s",
-		    pam_strerror(sshpam_handle, sshpam_err));
-	sshpam_err = pam_open_session(sshpam_handle, 0);
-	if (sshpam_err != PAM_SUCCESS)
-		fatal("PAM: pam_open_session(): %s",
-		    pam_strerror(sshpam_handle, sshpam_err));
-	sshpam_session_open = 1;
-}
-
-void
 do_pam_set_tty(const char *tty)
 {
 	if (tty != NULL) {
@@ -691,7 +673,7 @@ is_pam_password_change_required(void)
 }
 
 static int
-pam_chauthtok_conv(int n, const struct pam_message **msg,
+pam_tty_conv(int n, const struct pam_message **msg,
     struct pam_response **resp, void *data)
 {
 	char input[PAM_MAX_MSG_SIZE];
@@ -700,7 +682,7 @@ pam_chauthtok_conv(int n, const struct pam_message **msg,
 
 	*resp = NULL;
 
-	if (n <= 0 || n > PAM_MAX_NUM_MSG)
+	if (n <= 0 || n > PAM_MAX_NUM_MSG || !isatty(STDIN_FILENO))
 		return (PAM_CONV_ERR);
 
 	if ((reply = malloc(n * sizeof(*reply))) == NULL)
@@ -742,6 +724,8 @@ pam_chauthtok_conv(int n, const struct pam_message **msg,
 	return (PAM_CONV_ERR);
 }
 
+static struct pam_conv tty_conv = { pam_tty_conv, NULL };
+
 /*
  * XXX this should be done in the authentication phase, but ssh1 doesn't
  * support that
@@ -749,15 +733,10 @@ pam_chauthtok_conv(int n, const struct pam_message **msg,
 void
 do_pam_chauthtok(void)
 {
-	struct pam_conv pam_conv;
-
-	pam_conv.conv = pam_chauthtok_conv;
-	pam_conv.appdata_ptr = NULL;
-
 	if (use_privsep)
 		fatal("Password expired (unable to change with privsep)");
 	sshpam_err = pam_set_item(sshpam_handle, PAM_CONV,
-	    (const void *)&pam_conv);
+	    (const void *)&tty_conv);
 	if (sshpam_err != PAM_SUCCESS)
 		fatal("PAM: failed to set PAM_CONV: %s",
 		    pam_strerror(sshpam_handle, sshpam_err));
@@ -766,6 +745,21 @@ do_pam_chauthtok(void)
 	if (sshpam_err != PAM_SUCCESS)
 		fatal("PAM: pam_chauthtok(): %s",
 		    pam_strerror(sshpam_handle, sshpam_err));
+}
+
+void
+do_pam_session(void)
+{
+	sshpam_err = pam_set_item(sshpam_handle, PAM_CONV, 
+	    (const void *)&tty_conv);
+	if (sshpam_err != PAM_SUCCESS)
+		fatal("PAM: failed to set PAM_CONV: %s",
+		    pam_strerror(sshpam_handle, sshpam_err));
+	sshpam_err = pam_open_session(sshpam_handle, 0);
+	if (sshpam_err != PAM_SUCCESS)
+		fatal("PAM: pam_open_session(): %s",
+		    pam_strerror(sshpam_handle, sshpam_err));
+	sshpam_session_open = 1;
 }
 
 /* 
