@@ -1,29 +1,36 @@
-This is a Linux port of OpenBSD's excellent OpenSSH. 
+This is a Linux port of OpenBSD's excellent OpenSSH.
 
 OpenSSH is based on the last free version of Tatu Ylonen's SSH with
 all patent-encumbered algorithms removed, all known security bugs
 fixed, new features reintroduced and many other clean-ups.
 
-This Linux port basically consists of a few fixes to deal with the way
-that OpenSSL is usually installed on Linux systems, a few replacements
-for OpenBSD library functions and the introduction of PAM support. This
-version tracks changes made to the OpenBSD CVS version.
+This Linux port basically consists of a few fixes to deal with
+the way that OpenSSL is usually installed on Linux systems, a few
+replacements for OpenBSD library functions and the introduction of PAM
+support. This version tracks changes made to the OpenBSD CVS version.
 
 The PAM support is now more functional than the popular packages of
 commercial ssh-1.2.x. It checks "account" and "session" modules for
 all logins, not just when using password authentication. This code is
-very new and needs further testing. 
+very new and needs further testing.
 
 All new code is released under a XFree style license, which is very
-liberal.  This code is released with no warranties of any kind,
-neither I nor my employer (Internet Business Solutions) will take any
-responsibility for any loss, damage or liability arising from the use
-or abuse of this software. The code in strlcpy.c and mktemp.c is from
-the OpenBSD project and has its own license (see source file for 
-details). 
+liberal. Please refer to the source files for details. The code in
+strlcpy.c and mktemp.c is from the OpenBSD project and has its own
+license (again, see source file for details).
 
-OpenSSH depends on Zlib[1], OpenSSL[2] and optionally PAM[3].
-It now uses autoconf to build thanks to Dan Brosemer <odin@linuxfreak.com>
+OpenSSH depends on Zlib[1], OpenSSL[2] and optionally PAM[3]. To build
+the GNOME[1] passphrase requestor (--with-gnome-askpass), you will
+need the GNOME libraries installed.
+
+To build OpenSSH, use the configure script provided. For example:
+
+./configure --prefix=/opt/openssh
+make
+make install
+
+Will install the OpenSSH binaries in /opt/openssh/bin, the 
+configuration files in /opt/openssh/etc, and so forth.
 
 Damien Miller <djm@ibs.com.au>
 Internet Business Solutions

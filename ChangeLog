@@ -9,6 +9,7 @@
    - [sshconnect.c] warn if announced size of modulus 'n' != real size
  - Added GNOME passphrase requestor (use --with-gnome-askpass)
  - RPM build now creates subpackages
+ - Released 1.2pre9
 
 19991108
  - Removed debian/ directory. This is now being maintained separately.
