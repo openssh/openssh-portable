@@ -1473,7 +1473,11 @@ session_exit_message(Session *s, int status)
 		channel_request_start(s->chanid,
 		    "exit-signal", 0);
 		packet_put_int(WTERMSIG(status));
+#ifdef WCOREDUMP
 		packet_put_char(WCOREDUMP(status));
+#else /* WCOREDUMP */
+		packet_put_char(0);
+#endif /* WCOREDUMP */
 		packet_put_cstring("");
 		packet_put_cstring("");
 		packet_send();

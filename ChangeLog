@@ -10,6 +10,8 @@
   - 'fixprogs' perl script to eliminate non-working entropy commands, and
 	 optionally run 'ent' to measure command entropy
  - Applied Tom Bertelson's <tbert@abac.com> AIX authentication fix
+ - Avoid WCOREDUMP complation errors for systems that lack it
+ - Avoid SIGCHLD warnings from entropy commands 
 
 20000513
  - Fix for non-recognised DSA keys from Arkadiusz Miskiewicz 

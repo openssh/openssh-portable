@@ -35,7 +35,7 @@
 #include <openssl/rand.h>
 #include <openssl/sha.h>
 
-RCSID("$Id: entropy.c,v 1.10 2000/05/17 11:34:08 damien Exp $");
+RCSID("$Id: entropy.c,v 1.11 2000/05/17 12:08:30 damien Exp $");
 
 #ifdef EGD_SOCKET
 #ifndef offsetof
@@ -735,17 +735,25 @@ prng_seed_cleanup(void *junk)
 void
 seed_rng(void)
 {
+	void *old_sigchld_handler;
+	
 	if (!prng_commands_loaded) {
 		if (!prng_read_commands(SSH_PRNG_COMMAND_FILE))
 			fatal("PRNG initialisation failed -- exiting.");
 		prng_commands_loaded = 1;
 	}
 
+	/* Make sure some other sigchld handler doesn't reap our entropy */
+	/* commands */
+	old_sigchld_handler = signal(SIGCHLD, SIG_DFL);
+
 	debug("Seeding random number generator.");
 	debug("OpenSSL random status is now %i\n", RAND_status());
 	debug("%i bytes from system calls", (int)stir_from_system());
 	debug("%i bytes from programs", (int)stir_from_programs());
 	debug("OpenSSL random status is now %i\n", RAND_status());
+
+	signal(SIGCHLD, old_sigchld_handler);
 
 	if (!RAND_status())
 		fatal("Couldn't initialise builtin random number generator -- exiting.");
