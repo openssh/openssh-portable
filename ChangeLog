@@ -7,6 +7,9 @@
    - jmc@cvs.openbsd.org 2004/11/29 00:05:17
      [sftp.1]
      missing full stop;
+   - djm@cvs.openbsd.org 2004/11/29 07:41:24
+     [sftp-client.h sftp.c]
+     Some small fixes from moritz@jodeit.org. ok deraadt@
 
 20041203
  - (dtucker) OpenBSD CVS Sync
@@ -1880,4 +1883,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3587 2004/12/06 11:44:32 dtucker Exp $
+$Id: ChangeLog,v 1.3588 2004/12/06 11:45:53 dtucker Exp $

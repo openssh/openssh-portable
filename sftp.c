@@ -16,7 +16,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.58 2004/11/25 22:22:14 markus Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.59 2004/11/29 07:41:24 djm Exp $");
 
 #ifdef USE_LIBEDIT
 #include <histedit.h>
@@ -160,9 +160,11 @@ static void
 cmd_interrupt(int signo)
 {
 	const char msg[] = "\rInterrupt  \n";
+	int olderrno = errno;
 
 	write(STDERR_FILENO, msg, sizeof(msg) - 1);
 	interrupted = 1;
+	errno = olderrno;
 }
 
 static void
@@ -262,7 +264,7 @@ path_strip(char *path, char *strip)
 		return (xstrdup(path));
 
 	len = strlen(strip);
-	if (strip != NULL && strncmp(path, strip, len) == 0) {
+	if (strncmp(path, strip, len) == 0) {
 		if (strip[len - 1] != '/' && path[len] == '/')
 			len++;
 		return (xstrdup(path + len));
