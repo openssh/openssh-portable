@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.267 2001/03/18 23:09:28 djm Exp $
+# $Id: configure.in,v 1.268 2001/03/28 03:03:42 djm Exp $
 
 AC_INIT(ssh.c)
 
@@ -403,75 +403,6 @@ AC_EGREP_CPP(FOUNDIT,
                 AC_MSG_RESULT(no)
         ]
 )
-
-
-
-# Check whether user wants Kerberos support
-KRB4_MSG="no" 
-AC_ARG_WITH(kerberos4,
-	[  --with-kerberos4=PATH   Enable Kerberos 4 support],
-	[
-		if test "x$withval" != "xno" ; then
-	
-			if test "x$withval" != "xyes" ; then
-				CPPFLAGS="$CPPFLAGS -I${withval}/include"
-				LDFLAGS="$LDFLAGS -L${withval}/lib"
-				if test ! -z "$need_dash_r" ; then
-					LDFLAGS="$LDFLAGS -R${withval}/lib"
-				fi
-				if test ! -z "$blibpath" ; then
-					blibpath="$blibpath:${withval}/lib"
-				fi
-			else
-				if test -d /usr/include/kerberosIV ; then
-					CPPFLAGS="$CPPFLAGS -I/usr/include/kerberosIV"
-				fi
-			fi
-
-			AC_CHECK_HEADERS(krb.h)
-			AC_CHECK_LIB(krb, main)
-			if test "$ac_cv_header_krb_h" != yes; then
-				AC_MSG_WARN([Cannot find krb.h, build may fail])
-			fi
-			if test "$ac_cv_lib_krb_main" != yes; then
-				AC_MSG_WARN([Cannot find libkrb, build may fail])
-			fi
-
-			KLIBS="-lkrb -ldes"
-			AC_CHECK_LIB(resolv, dn_expand, , )
-			KRB4=yes
-			KRB4_MSG="yes" 
-			AC_DEFINE(KRB4)
-		fi
-	]
-)
-
-# Check whether user wants AFS support
-AFS_MSG="no" 
-AC_ARG_WITH(afs,
-	[  --with-afs=PATH         Enable AFS support],
-	[
-		if test "x$withval" != "xno" ; then
-
-			if test "x$withval" != "xyes" ; then
-				CPPFLAGS="$CPPFLAGS -I${withval}/include"
-				LDFLAGS="$LDFLAGS -L${withval}/lib"
-			fi
-
-			if test -z "$KRB4" ; then
-				AC_MSG_WARN([AFS requires Kerberos IV support, build may fail])
-			fi
-
-			LIBS="$LIBS -lkafs"
-			if test ! -z "$AFS_LIBS" ; then
-				LIBS="$LIBS $AFS_LIBS"
-			fi
-			AC_DEFINE(AFS)
-			AFS_MSG="yes" 
-		fi
-	]
-)
-LIBS="$LIBS $KLIBS"
 
 # Check whether user wants S/Key support
 SKEY_MSG="no" 
@@ -1246,6 +1177,73 @@ if test "x$ac_cv_libc_defines_sys_nerr" = "xyes" ; then
 	AC_DEFINE(HAVE_SYS_NERR)
 fi
 
+
+# Check whether user wants Kerberos support
+KRB4_MSG="no" 
+AC_ARG_WITH(kerberos4,
+	[  --with-kerberos4=PATH   Enable Kerberos 4 support],
+	[
+		if test "x$withval" != "xno" ; then
+	
+			if test "x$withval" != "xyes" ; then
+				CPPFLAGS="$CPPFLAGS -I${withval}/include"
+				LDFLAGS="$LDFLAGS -L${withval}/lib"
+				if test ! -z "$need_dash_r" ; then
+					LDFLAGS="$LDFLAGS -R${withval}/lib"
+				fi
+				if test ! -z "$blibpath" ; then
+					blibpath="$blibpath:${withval}/lib"
+				fi
+			else
+				if test -d /usr/include/kerberosIV ; then
+					CPPFLAGS="$CPPFLAGS -I/usr/include/kerberosIV"
+				fi
+			fi
+
+			AC_CHECK_HEADERS(krb.h)
+			AC_CHECK_LIB(krb, main)
+			if test "$ac_cv_header_krb_h" != yes; then
+				AC_MSG_WARN([Cannot find krb.h, build may fail])
+			fi
+			if test "$ac_cv_lib_krb_main" != yes; then
+				AC_MSG_WARN([Cannot find libkrb, build may fail])
+			fi
+
+			KLIBS="-lkrb -ldes"
+			AC_CHECK_LIB(resolv, dn_expand, , )
+			KRB4=yes
+			KRB4_MSG="yes" 
+			AC_DEFINE(KRB4)
+		fi
+	]
+)
+
+# Check whether user wants AFS support
+AFS_MSG="no" 
+AC_ARG_WITH(afs,
+	[  --with-afs=PATH         Enable AFS support],
+	[
+		if test "x$withval" != "xno" ; then
+
+			if test "x$withval" != "xyes" ; then
+				CPPFLAGS="$CPPFLAGS -I${withval}/include"
+				LDFLAGS="$LDFLAGS -L${withval}/lib"
+			fi
+
+			if test -z "$KRB4" ; then
+				AC_MSG_WARN([AFS requires Kerberos IV support, build may fail])
+			fi
+
+			LIBS="-lkafs $LIBS"
+			if test ! -z "$AFS_LIBS" ; then
+				LIBS="$LIBS $AFS_LIBS"
+			fi
+			AC_DEFINE(AFS)
+			AFS_MSG="yes" 
+		fi
+	]
+)
+LIBS="$LIBS $KLIBS"
 
 # Looking for programs, paths and files
 AC_ARG_WITH(rsh,
