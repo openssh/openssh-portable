@@ -1,3 +1,9 @@
+20010512
+ - OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2001/05/11 14:59:56
+     [clientloop.c misc.c misc.h]
+     add unset_nonblock for stdout/err flushing in client_loop().
+
 20010511
  - OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2001/05/09 22:51:57
@@ -5394,4 +5400,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1216 2001/05/10 23:26:11 mouring Exp $
+$Id: ChangeLog,v 1.1217 2001/05/12 00:08:37 mouring Exp $

@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.c,v 1.7 2001/05/08 19:45:24 mouring Exp $	*/
+/*	$OpenBSD: misc.c,v 1.8 2001/05/11 14:59:56 markus Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: misc.c,v 1.7 2001/05/08 19:45:24 mouring Exp $");
+RCSID("$OpenBSD: misc.c,v 1.8 2001/05/11 14:59:56 markus Exp $");
 
 #include "misc.h"
 #include "log.h"
@@ -50,17 +50,40 @@ void
 set_nonblock(int fd)
 {
 	int val;
+
 	val = fcntl(fd, F_GETFL, 0);
 	if (val < 0) {
 		error("fcntl(%d, F_GETFL, 0): %s", fd, strerror(errno));
 		return;
 	}
 	if (val & O_NONBLOCK) {
-		debug("fd %d IS O_NONBLOCK", fd);
+		debug2("fd %d is O_NONBLOCK", fd);
 		return;
 	}
 	debug("fd %d setting O_NONBLOCK", fd);
 	val |= O_NONBLOCK;
+	if (fcntl(fd, F_SETFL, val) == -1)
+		if (errno != ENODEV)
+			error("fcntl(%d, F_SETFL, O_NONBLOCK): %s",
+			    fd, strerror(errno));
+}
+
+void
+unset_nonblock(int fd)
+{
+	int val;
+
+	val = fcntl(fd, F_GETFL, 0);
+	if (val < 0) {
+		error("fcntl(%d, F_GETFL, 0): %s", fd, strerror(errno));
+		return;
+	}
+	if (!(val & O_NONBLOCK)) {
+		debug2("fd %d is not O_NONBLOCK", fd);
+		return;
+	}
+	debug("fd %d setting O_NONBLOCK", fd);
+	val &= ~O_NONBLOCK;
 	if (fcntl(fd, F_SETFL, val) == -1)
 		if (errno != ENODEV)
 			error("fcntl(%d, F_SETFL, O_NONBLOCK): %s",
