@@ -58,7 +58,7 @@ RCSID("$OpenBSD: nchan.c,v 1.31 2001/07/17 21:04:57 markus Exp $");
  * ssh-1.2.27 as an example.
  *
  */
- 
+
 /* functions manipulating channel states */
 /*
  * EVENTS update channel input/output states execute ACTIONS
@@ -541,7 +541,7 @@ chan_shutdown_read(Channel *c)
 			error("channel %d: chan_shutdown_read: "
 			    "shutdown() failed for fd%d [i%d o%d]: %.100s",
 			    c->self, c->sock, c->istate, c->ostate,
-                            strerror(errno));
+			    strerror(errno));
 	} else {
 		if (channel_close_fd(&c->rfd) < 0)
 			log("channel %d: chan_shutdown_read: "
