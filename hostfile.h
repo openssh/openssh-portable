@@ -1,4 +1,4 @@
-/*	$OpenBSD: hostfile.h,v 1.11 2002/07/24 16:11:18 markus Exp $	*/
+/*	$OpenBSD: hostfile.h,v 1.12 2002/09/08 20:24:08 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -15,7 +15,7 @@
 #define HOSTFILE_H
 
 typedef enum {
-	HOST_OK, HOST_NEW, HOST_CHANGED, HOST_FOUND,
+	HOST_OK, HOST_NEW, HOST_CHANGED, HOST_FOUND
 }       HostStatus;
 
 int	 hostfile_read_key(char **, u_int *, Key *);
