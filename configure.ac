@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.147 2003/09/08 21:35:17 tim Exp $
+# $Id: configure.ac,v 1.148 2003/09/10 01:39:05 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -339,6 +339,14 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(DISABLE_FD_PASSING)
 	LDFLAGS="$LDFLAGS"
 	LIBS="$LIBS -lgen -lrsc -lshare -luex -lacm"
+	MANTYPE=cat
+	;;
+*-*-unicosmp*)
+	AC_DEFINE(WITH_ABBREV_NO_TTY)
+	AC_DEFINE(USE_PIPES)
+	AC_DEFINE(DISABLE_FD_PASSING)
+	LDFLAGS="$LDFLAGS"
+	LIBS="$LIBS -lgen -lacid"
 	MANTYPE=cat
 	;;
 *-*-unicos*)

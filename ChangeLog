@@ -1,3 +1,7 @@
+20030910
+ - (dtucker) [configure.ac] Bug #636: Add support for Cray's new X1 machine.
+   Patch from wendyp at cray.com.
+
 20030909
  - (tim) [regress/Makefile] Fixes for building outside of a read-only
    source tree.
@@ -1052,4 +1056,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2975 2003/09/09 15:35:20 tim Exp $
+$Id: ChangeLog,v 1.2976 2003/09/10 01:39:05 dtucker Exp $
