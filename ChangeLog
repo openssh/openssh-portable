@@ -19,6 +19,7 @@
    - markus@cvs.openbsd.org 2003/11/02 11:01:03
      [auth2-gss.c compat.c compat.h sshconnect2.c]
      remove support for SSH_BUG_GSSAPI_BER; simon@sxw.org.uk
+ - (dtucker) [regress/agent-ptrace.sh] Use numeric uid and gid.
 
 20031021
  - (dtucker) [INSTALL] Some system crypt() functions support MD5 passwords
@@ -1393,4 +1394,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3091 2003/11/03 09:09:03 dtucker Exp $
+$Id: ChangeLog,v 1.3092 2003/11/03 11:52:52 dtucker Exp $
