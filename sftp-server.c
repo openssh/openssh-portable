@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: sftp-server.c,v 1.31 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: sftp-server.c,v 1.32 2001/12/29 21:56:01 stevesk Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
@@ -951,7 +951,7 @@ process(void)
 
 	if (buffer_len(&iqueue) < 5)
 		return;		/* Incomplete message. */
-	cp = (u_char *) buffer_ptr(&iqueue);
+	cp = buffer_ptr(&iqueue);
 	msg_len = GET_32BIT(cp);
 	if (msg_len > 256 * 1024) {
 		error("bad message ");

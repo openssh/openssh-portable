@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfile.c,v 1.44 2001/12/27 18:26:13 markus Exp $");
+RCSID("$OpenBSD: authfile.c,v 1.45 2001/12/29 21:56:01 stevesk Exp $");
 
 #include <openssl/err.h>
 #include <openssl/evp.h>
@@ -68,7 +68,7 @@ key_save_private_rsa1(Key *key, const char *filename, const char *passphrase,
     const char *comment)
 {
 	Buffer buffer, encrypted;
-	char buf[100], *cp;
+	u_char buf[100], *cp;
 	int fd, i;
 	CipherContext ciphercontext;
 	Cipher *cipher;
@@ -132,8 +132,8 @@ key_save_private_rsa1(Key *key, const char *filename, const char *passphrase,
 	cp = buffer_append_space(&encrypted, buffer_len(&buffer));
 
 	cipher_set_key_string(&ciphercontext, cipher, passphrase);
-	cipher_encrypt(&ciphercontext, (u_char *) cp,
-	    (u_char *) buffer_ptr(&buffer), buffer_len(&buffer));
+	cipher_encrypt(&ciphercontext, cp,
+	    buffer_ptr(&buffer), buffer_len(&buffer));
 	memset(&ciphercontext, 0, sizeof(ciphercontext));
 
 	/* Destroy temporary data. */
@@ -314,7 +314,7 @@ key_load_private_rsa1(int fd, const char *filename, const char *passphrase,
 	int i, check1, check2, cipher_type;
 	off_t len;
 	Buffer buffer, decrypted;
-	char *cp;
+	u_char *cp;
 	CipherContext ciphercontext;
 	Cipher *cipher;
 	Key *prv = NULL;
@@ -381,8 +381,8 @@ key_load_private_rsa1(int fd, const char *filename, const char *passphrase,
 
 	/* Rest of the buffer is encrypted.  Decrypt it using the passphrase. */
 	cipher_set_key_string(&ciphercontext, cipher, passphrase);
-	cipher_decrypt(&ciphercontext, (u_char *) cp,
-	    (u_char *) buffer_ptr(&buffer), buffer_len(&buffer));
+	cipher_decrypt(&ciphercontext, cp,
+	    buffer_ptr(&buffer), buffer_len(&buffer));
 	memset(&ciphercontext, 0, sizeof(ciphercontext));
 	buffer_free(&buffer);
 

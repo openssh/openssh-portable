@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.154 2001/12/28 15:06:00 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.155 2001/12/29 21:56:01 stevesk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -786,7 +786,7 @@ x11_open_helper(Buffer *b)
 		return 0;
 
 	/* Parse the lengths of variable-length fields. */
-	ucp = (u_char *) buffer_ptr(b);
+	ucp = buffer_ptr(b);
 	if (ucp[0] == 0x42) {	/* Byte order MSB first. */
 		proto_len = 256 * ucp[6] + ucp[7];
 		data_len = 256 * ucp[8] + ucp[9];

@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.88 2001/12/27 18:10:29 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.89 2001/12/29 21:56:01 stevesk Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -187,7 +187,7 @@ buffer_get_bignum_bits(Buffer *b, BIGNUM *value)
 	if (buffer_len(b) < bytes)
 		fatal("buffer_get_bignum_bits: input buffer too small: "
 		    "need %d have %d", bytes, buffer_len(b));
-	BN_bin2bn((u_char *)buffer_ptr(b), bytes, value);
+	BN_bin2bn(buffer_ptr(b), bytes, value);
 	buffer_consume(b, bytes);
 }
 

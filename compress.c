@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: compress.c,v 1.16 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: compress.c,v 1.17 2001/12/29 21:56:01 stevesk Exp $");
 
 #include "log.h"
 #include "buffer.h"
@@ -80,7 +80,7 @@ buffer_compress_uninit(void)
 void
 buffer_compress(Buffer * input_buffer, Buffer * output_buffer)
 {
-	char buf[4096];
+	u_char buf[4096];
 	int status;
 
 	/* This case is not handled below. */
@@ -88,13 +88,13 @@ buffer_compress(Buffer * input_buffer, Buffer * output_buffer)
 		return;
 
 	/* Input is the contents of the input buffer. */
-	outgoing_stream.next_in = (u_char *) buffer_ptr(input_buffer);
+	outgoing_stream.next_in = buffer_ptr(input_buffer);
 	outgoing_stream.avail_in = buffer_len(input_buffer);
 
 	/* Loop compressing until deflate() returns with avail_out != 0. */
 	do {
 		/* Set up fixed-size output buffer. */
-		outgoing_stream.next_out = (u_char *)buf;
+		outgoing_stream.next_out = buf;
 		outgoing_stream.avail_out = sizeof(buf);
 
 		/* Compress as much data into the buffer as possible. */
@@ -124,15 +124,15 @@ buffer_compress(Buffer * input_buffer, Buffer * output_buffer)
 void
 buffer_uncompress(Buffer * input_buffer, Buffer * output_buffer)
 {
-	char buf[4096];
+	u_char buf[4096];
 	int status;
 
-	incoming_stream.next_in = (u_char *) buffer_ptr(input_buffer);
+	incoming_stream.next_in = buffer_ptr(input_buffer);
 	incoming_stream.avail_in = buffer_len(input_buffer);
 
 	for (;;) {
 		/* Set up fixed-size output buffer. */
-		incoming_stream.next_out = (u_char *) buf;
+		incoming_stream.next_out = buf;
 		incoming_stream.avail_out = sizeof(buf);
 
 		status = inflate(&incoming_stream, Z_PARTIAL_FLUSH);

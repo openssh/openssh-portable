@@ -78,6 +78,10 @@
    - stevesk@cvs.openbsd.org 2001/12/28 22:37:48
      [ssh.1 sshd.8]
      document LogLevel DEBUG[123]; ok markus@
+   - stevesk@cvs.openbsd.org 2001/12/29 21:56:01
+     [authfile.c channels.c compress.c packet.c sftp-server.c]
+     [ssh-agent.c ssh-keygen.c]
+     remove unneeded casts and some char->u_char cleanup; ok markus@
 
 
 20020121
@@ -7226,4 +7230,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1745 2002/01/22 12:17:51 djm Exp $
+$Id: ChangeLog,v 1.1746 2002/01/22 12:18:15 djm Exp $
