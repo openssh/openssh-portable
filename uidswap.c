@@ -167,9 +167,9 @@ permanently_set_uid(struct passwd *pw)
 #if defined(HAVE_SETRESUID)
 	if (setresuid(pw->pw_uid, pw->pw_uid, pw->pw_uid) < 0)
 		fatal("setresuid %u: %.100s", (u_int)pw->pw_uid, strerror(errno));
-#elif defined(HAVE_SETRESUID)
-	if (setresuid(pw->pw_uid, pw->pw_uid, pw->pw_uid) < 0)
-		fatal("setresuid %u: %.100s", (u_int)pw->pw_uid, strerror(errno));
+#elif defined(HAVE_SETREUID)
+	if (setreuid(pw->pw_uid, pw->pw_uid) < 0)
+		fatal("setreuid %u: %.100s", (u_int)pw->pw_uid, strerror(errno));
 #else
 # ifndef SETEUID_BREAKS_SETUID
 	if (seteuid(pw->pw_uid) < 0)
@@ -182,7 +182,7 @@ permanently_set_uid(struct passwd *pw)
 	/* Try restoration of GID if changed (test clearing of saved gid) */
 	if (old_gid != pw->pw_gid && 
 	    (setgid(old_gid) != -1 || setegid(old_gid) != -1))
-		fatal("%s: was able to restore old [e]gid");
+		fatal("%s: was able to restore old [e]gid", __func__);
 
 	/* Verify GID drop was successful */
 	if (getgid() != pw->pw_gid || getegid() != pw->pw_gid) {
@@ -194,7 +194,7 @@ permanently_set_uid(struct passwd *pw)
 	/* Try restoration of UID if changed (test clearing of saved uid) */
 	if (old_uid != pw->pw_uid && 
 	    (setuid(old_uid) != -1 || seteuid(old_uid) != -1))
-		fatal("%s: was able to restore old [e]uid");
+		fatal("%s: was able to restore old [e]uid", __func__);
 
 	/* Verify UID drop was successful */
 	if (getuid() != pw->pw_uid || geteuid() != pw->pw_uid) {
