@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: rsa.h,v 1.10 2001/01/29 19:47:30 markus Exp $"); */
+/* RCSID("$OpenBSD: rsa.h,v 1.11 2001/03/26 23:23:24 markus Exp $"); */
 
 #ifndef RSA_H
 #define RSA_H
@@ -21,5 +21,7 @@
 
 void rsa_public_encrypt __P((BIGNUM * out, BIGNUM * in, RSA * prv));
 int rsa_private_decrypt __P((BIGNUM * out, BIGNUM * in, RSA * prv));
+
+void generate_additional_parameters __P((RSA *rsa));
 
 #endif				/* RSA_H */

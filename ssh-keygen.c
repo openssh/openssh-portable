@@ -12,13 +12,14 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.52 2001/03/26 08:07:09 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.53 2001/03/26 23:23:24 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 
 #include "xmalloc.h"
 #include "key.h"
+#include "rsa.h"
 #include "authfile.h"
 #include "uuencode.h"
 #include "buffer.h"
@@ -169,8 +170,10 @@ buffer_get_bignum_bits(Buffer *b, BIGNUM *value)
 {
 	int bits = buffer_get_int(b);
 	int bytes = (bits + 7) / 8;
+
 	if (buffer_len(b) < bytes)
-		fatal("buffer_get_bignum_bits: input buffer too small");
+		fatal("buffer_get_bignum_bits: input buffer too small: "
+		    "need %d have %d", bytes, buffer_len(b));
 	BN_bin2bn((u_char *)buffer_ptr(b), bytes, value);
 	buffer_consume(b, bytes);
 }
@@ -179,9 +182,8 @@ Key *
 do_convert_private_ssh2_from_blob(char *blob, int blen)
 {
 	Buffer b;
-	DSA *dsa;
 	Key *key = NULL;
-	int ignore, magic, rlen;
+	int ignore, magic, rlen, ktype;
 	char *type, *cipher;
 
 	buffer_init(&b);
@@ -199,33 +201,64 @@ do_convert_private_ssh2_from_blob(char *blob, int blen)
 	ignore = buffer_get_int(&b);
 	ignore = buffer_get_int(&b);
 	ignore = buffer_get_int(&b);
-	xfree(type);
 
 	if (strcmp(cipher, "none") != 0) {
 		error("unsupported cipher %s", cipher);
 		xfree(cipher);
 		buffer_free(&b);
+		xfree(type);
 		return NULL;
 	}
 	xfree(cipher);
 
-	key = key_new(KEY_DSA);
-	dsa = key->dsa;
-	dsa->priv_key = BN_new();
-	if (dsa->priv_key == NULL) {
-		error("alloc priv_key failed");
-		key_free(key);
+	if (strstr(type, "dsa")) {
+		ktype = KEY_DSA;
+	} else if (strstr(type, "rsa")) {
+		ktype = KEY_RSA;
+	} else {
+		xfree(type);
 		return NULL;
 	}
-	buffer_get_bignum_bits(&b, dsa->p);
-	buffer_get_bignum_bits(&b, dsa->g);
-	buffer_get_bignum_bits(&b, dsa->q);
-	buffer_get_bignum_bits(&b, dsa->pub_key);
-	buffer_get_bignum_bits(&b, dsa->priv_key);
+	key = key_new_private(ktype);
+	xfree(type);
+
+	switch (key->type) {
+	case KEY_DSA:
+		buffer_get_bignum_bits(&b, key->dsa->p);
+		buffer_get_bignum_bits(&b, key->dsa->g);
+		buffer_get_bignum_bits(&b, key->dsa->q);
+		buffer_get_bignum_bits(&b, key->dsa->pub_key);
+		buffer_get_bignum_bits(&b, key->dsa->priv_key);
+		break;
+	case KEY_RSA:
+		if (!BN_set_word(key->rsa->e, (u_long) buffer_get_char(&b))) {
+			buffer_free(&b);
+			key_free(key);
+			return NULL;
+		}
+		buffer_get_bignum_bits(&b, key->rsa->d);
+		buffer_get_bignum_bits(&b, key->rsa->n);
+		buffer_get_bignum_bits(&b, key->rsa->iqmp);
+		buffer_get_bignum_bits(&b, key->rsa->q);
+		buffer_get_bignum_bits(&b, key->rsa->p);
+		generate_additional_parameters(key->rsa);
+		break;
+	}
 	rlen = buffer_len(&b);
 	if(rlen != 0)
-		error("do_convert_private_ssh2_from_blob: remaining bytes in key blob %d", rlen);
+		error("do_convert_private_ssh2_from_blob: "
+		    "remaining bytes in key blob %d", rlen);
 	buffer_free(&b);
+#ifdef DEBUG_PK
+	{
+		u_int slen;
+		u_char *sig, data[10] = "abcde12345";
+
+		key_sign(key, &sig, &slen, data, sizeof data);
+		key_verify(key, sig, slen, data, sizeof data);
+		free(sig);
+	}
+#endif
 	return key;
 }
 
@@ -288,7 +321,9 @@ do_convert_from_ssh2(struct passwd *pw)
 		exit(1);
 	}
 	ok = private ?
-	    PEM_write_DSAPrivateKey(stdout, k->dsa, NULL, NULL, 0, NULL, NULL) :
+	    (k->type == KEY_DSA ?
+		 PEM_write_DSAPrivateKey(stdout, k->dsa, NULL, NULL, 0, NULL, NULL) :
+		 PEM_write_RSAPrivateKey(stdout, k->rsa, NULL, NULL, 0, NULL, NULL)) :
 	    key_write(k, stdout);
 	if (!ok) {
 		fprintf(stderr, "key write failed");

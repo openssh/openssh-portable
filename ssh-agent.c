@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.52 2001/03/06 00:33:04 deraadt Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.53 2001/03/26 23:23:24 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.52 2001/03/06 00:33:04 deraadt Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.53 2001/03/26 23:23:24 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -358,25 +358,6 @@ process_remove_all_identities(SocketEntry *e, int version)
 	buffer_put_int(&e->output, 1);
 	buffer_put_char(&e->output, SSH_AGENT_SUCCESS);
 	return;
-}
-
-void
-generate_additional_parameters(RSA *rsa)
-{
-	BIGNUM *aux;
-	BN_CTX *ctx;
-	/* Generate additional parameters */
-	aux = BN_new();
-	ctx = BN_CTX_new();
-
-	BN_sub(aux, rsa->q, BN_value_one());
-	BN_mod(rsa->dmq1, rsa->d, aux, ctx);
-
-	BN_sub(aux, rsa->p, BN_value_one());
-	BN_mod(rsa->dmp1, rsa->d, aux, ctx);
-
-	BN_clear_free(aux);
-	BN_CTX_free(ctx);
 }
 
 void
@@ -737,6 +718,8 @@ main(int ac, char **av)
 	char *shell, *format, *pidstr, pidstrbuf[1 + 3 * sizeof pid];
 	extern int optind;
 	fd_set *readsetp = NULL, *writesetp = NULL;
+
+	SSLeay_add_all_algorithms();
 
 	__progname = get_progname(av[0]);
 	init_rng();
