@@ -68,7 +68,7 @@
  * Name of the environment variable containing the pathname of the
  * authentication socket.
  */
-#define SSH_AGENTPID_ENV_NAME "SSH_AGENT_PID"
+#define SSH_AGENTPID_ENV_NAME	"SSH_AGENT_PID"
 
 /*
  * Name of the environment variable containing the pathname of the

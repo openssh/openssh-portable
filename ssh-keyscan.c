@@ -8,9 +8,9 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keyscan.c,v 1.11 2001/01/21 19:05:57 markus Exp $");
+RCSID("$OpenBSD: ssh-keyscan.c,v 1.12 2001/02/04 15:32:26 stevesk Exp $");
 
-#if defined(HAVE_SYS_QUEUE_H)  &&  !defined(HAVE_BOGUS_SYS_QUEUE_H)
+#if defined(HAVE_SYS_QUEUE_H) && !defined(HAVE_BOGUS_SYS_QUEUE_H)
 #include <sys/queue.h>
 #else
 #include "fake-queue.h"
@@ -212,7 +212,7 @@ fdlim_set(int lim)
 	if (setrlimit(RLIMIT_NOFILE, &rlfd) < 0)
 		return (-1);
 #elif defined (HAVE_SETDTABLESIZE)
-	setdtablesize (lim);
+	setdtablesize(lim);
 #endif
 	return (0);
 }
