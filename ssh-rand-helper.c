@@ -39,7 +39,7 @@
 #include "pathnames.h"
 #include "log.h"
 
-RCSID("$Id: ssh-rand-helper.c,v 1.5 2002/02/10 07:32:30 djm Exp $");
+RCSID("$Id: ssh-rand-helper.c,v 1.6 2002/04/14 09:27:13 djm Exp $");
 
 /* Number of bytes we write out */
 #define OUTPUT_SEED_SIZE	48
@@ -747,38 +747,88 @@ prng_read_commands(char *cmdfilename)
 	return cur_cmd < MIN_ENTROPY_SOURCES ? -1 : 0;
 }
 
+void
+usage(void)
+{
+	fprintf(stderr, "Usage: %s [options]\n", __progname);
+	fprintf(stderr, "  -v          Verbose; display verbose debugging messages.\n");
+	fprintf(stderr, "              Multiple -v increases verbosity.\n");
+	fprintf(stderr, "  -x          Force output in hexidecimal (for debugging)\n");
+	fprintf(stderr, "  -X          Force output in binary\n");
+	fprintf(stderr, "  -b bytes    Number of bytes to output (default %d)\n",
+	    OUTPUT_SEED_SIZE);
+}
+
 int 
 main(int argc, char **argv)
 {
-	unsigned char buf[OUTPUT_SEED_SIZE];
-	int ret;
+	unsigned char *buf;
+	int ret, ch, debug_level, output_hex, bytes;
+	extern char *optarg;
+	LogLevel ll;
 
 	__progname = get_progname(argv[0]);
-	/* XXX: need some debugging mode */
 	log_init(argv[0], SYSLOG_LEVEL_INFO, SYSLOG_FACILITY_USER, 1);
 
+	ll = SYSLOG_LEVEL_INFO;
+	debug_level = output_hex = 0;
+	bytes = OUTPUT_SEED_SIZE;
+
+	/* Don't write binary data to a tty, unless we are forced to */
+	if (isatty(STDOUT_FILENO))
+		output_hex = 1;
+	
+	while ((ch = getopt(argc, argv, "vxXhb:")) != -1) {
+		switch (ch) {
+		case 'v':
+			if (debug_level < 3)
+				ll = SYSLOG_LEVEL_DEBUG1 + debug_level++;
+			break;
+		case 'x':
+			output_hex = 1;
+			break;
+		case 'X':
+			output_hex = 0;
+			break;
+		case 'b':
+			if ((bytes = atoi(optarg)) <= 0)
+				fatal("Invalid number of output bytes");
+			break;
+		case 'h':
+			usage();
+			exit(0);
+		default:
+			error("Invalid commandline option");
+			usage();
+		}
+	}
+
+	log_init(argv[0], ll, SYSLOG_FACILITY_USER, 1);
+	
 #ifdef USE_SEED_FILES
 	prng_read_seedfile();
 #endif
+
+	buf = xmalloc(bytes);
 
 	/*
 	 * Seed the RNG from wherever we can
 	 */
 	 
 	/* Take whatever is on the stack, but don't credit it */
-	RAND_add(buf, sizeof(buf), 0);
+	RAND_add(buf, bytes, 0);
 
 	debug("Seeded RNG with %i bytes from system calls", 
 	    (int)stir_from_system());
 
 #ifdef PRNGD_PORT
-	if (get_random_bytes_prngd(buf, sizeof(buf), PRNGD_PORT, NULL) == -1)
+	if (get_random_bytes_prngd(buf, bytes, PRNGD_PORT, NULL) == -1)
 		fatal("Entropy collection failed");
-	RAND_add(buf, sizeof(buf), sizeof(buf));
+	RAND_add(buf, bytes, bytes);
 #elif defined(PRNGD_SOCKET)
-	if (get_random_bytes_prngd(buf, sizeof(buf), 0, PRNGD_SOCKET) == -1)
+	if (get_random_bytes_prngd(buf, bytes, 0, PRNGD_SOCKET) == -1)
 		fatal("Entropy collection failed");
-	RAND_add(buf, sizeof(buf), sizeof(buf));
+	RAND_add(buf, bytes, bytes);
 #else
 	/* Read in collection commands */
 	if (prng_read_commands(SSH_PRNG_COMMAND_FILE) == -1)
@@ -798,12 +848,18 @@ main(int argc, char **argv)
 	if (!RAND_status())
 		fatal("Not enough entropy in RNG");
 
-	RAND_bytes(buf, sizeof(buf));
+	RAND_bytes(buf, bytes);
 
-	ret = atomicio(write, STDOUT_FILENO, buf, sizeof(buf));
+	if (output_hex) {
+		for(ret = 0; ret < bytes; ret++)
+			printf("%02x", (unsigned char)(buf[ret]));
+		printf("\n");
+	} else
+		ret = atomicio(write, STDOUT_FILENO, buf, bytes);
 		
-	memset(buf, '\0', sizeof(buf));
+	memset(buf, '\0', bytes);
+	xfree(buf);
 	
-	return ret == sizeof(buf) ? 0 : 1;
+	return ret == bytes ? 0 : 1;
 }
 

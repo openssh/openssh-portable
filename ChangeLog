@@ -1,3 +1,9 @@
+20020414
+ - (djm) ssh-rand-helper improvements
+   - Add commandline debugging options
+   - Don't write binary data if stdout is a tty (use hex instead)
+   - Give it a manpage
+
 20020413
  - (djm) Add KrbV support patch from Simon Wilkinson <simon@sxw.org.uk>
 
@@ -8234,4 +8240,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2051 2002/04/13 01:04:40 djm Exp $
+$Id: ChangeLog,v 1.2052 2002/04/14 09:27:12 djm Exp $
