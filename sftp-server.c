@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: sftp-server.c,v 1.26 2001/05/12 19:53:13 markus Exp $");
+RCSID("$OpenBSD: sftp-server.c,v 1.27 2001/06/22 22:21:20 markus Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
@@ -692,7 +692,7 @@ process_opendir(void)
 char *
 ls_file(char *name, struct stat *st)
 {
-	int sz = 0;
+	int ulen, glen, sz = 0;
 	struct passwd *pw;
 	struct group *gr;
 	struct tm *ltime = localtime(&st->st_mtime);
@@ -720,8 +720,11 @@ ls_file(char *name, struct stat *st)
 	}
 	if (sz == 0)
 		tbuf[0] = '\0';
-	snprintf(buf, sizeof buf, "%s %3d %-8.8s %-8.8s %8llu %s %s", mode,
-	    st->st_nlink, user, group, (u_int64_t)st->st_size, tbuf, name);
+	ulen = MAX(strlen(user), 8);
+	glen = MAX(strlen(group), 8);
+	snprintf(buf, sizeof buf, "%s %3d %-*s %-*s %8llu %s %s", mode,
+	    st->st_nlink, ulen, user, glen, group,
+	    (u_int64_t)st->st_size, tbuf, name);
 	return xstrdup(buf);
 }
 

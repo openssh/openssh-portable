@@ -1,9 +1,9 @@
 20010525
  - OpenBSD CVS Sync
-    - markus@cvs.openbsd.org 2001/06/21 21:08:25
-      [session.c]
-      don't reset forced_command (we allow multiple login shells in
-      ssh2); dwd@bell-labs.com
+   - markus@cvs.openbsd.org 2001/06/21 21:08:25
+     [session.c]
+     don't reset forced_command (we allow multiple login shells in
+     ssh2); dwd@bell-labs.com
    - mpech@cvs.openbsd.org 2001/06/22 10:17:51
      [ssh.1 sshd.8 ssh-keyscan.1]
      o) .Sh AUTHOR -> .Sh AUTHORS;
@@ -29,6 +29,9 @@
      [dh.c]
      increase linebuffer to deal with larger moduli; use rewind instead of
      close/open
+   - markus@cvs.openbsd.org 2001/06/22 22:21:20
+     [sftp-server.c]
+     allow long usernames/groups in readdir
 
 20010622
  - (stevesk) handle systems without pw_expire and pw_change.
@@ -5713,4 +5716,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1303 2001/06/25 04:18:59 mouring Exp $
+$Id: ChangeLog,v 1.1304 2001/06/25 04:24:49 mouring Exp $
