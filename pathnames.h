@@ -1,4 +1,4 @@
-/*	$OpenBSD: pathnames.h,v 1.8 2001/06/22 21:55:49 markus Exp $	*/
+/*	$OpenBSD: pathnames.h,v 1.9 2001/06/23 02:34:30 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -25,6 +25,7 @@
  * world-readable.
  */
 #define _PATH_SSH_SYSTEM_HOSTFILE	ETCDIR "/ssh_known_hosts"
+/* backward compat for protocol 2 */
 #define _PATH_SSH_SYSTEM_HOSTFILE2	ETCDIR "/ssh_known_hosts2"
 
 /*
@@ -62,6 +63,7 @@
  * contain anything particularly secret.
  */
 #define _PATH_SSH_USER_HOSTFILE		"~/.ssh/known_hosts"
+/* backward compat for protocol 2 */
 #define _PATH_SSH_USER_HOSTFILE2	"~/.ssh/known_hosts2"
 
 /*

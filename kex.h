@@ -1,4 +1,4 @@
-/*	$OpenBSD: kex.h,v 1.22 2001/04/04 20:25:37 markus Exp $	*/
+/*	$OpenBSD: kex.h,v 1.23 2001/06/23 02:34:28 markus Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -107,7 +107,7 @@ struct Kex {
 	int	flags;
 	char	*client_version_string;
 	char	*server_version_string;
-	int	(*check_host_key)(Key *hostkey);
+	int	(*verify_host_key)(Key *hostkey);
 	Key	*(*load_host_key)(int type);
 };
 

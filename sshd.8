@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.130 2001/06/22 21:55:50 markus Exp $
+.\" $OpenBSD: sshd.8,v 1.131 2001/06/23 02:34:33 markus Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -1025,10 +1025,8 @@ permitopen="10.2.1.55:80",permitopen="10.2.1.56:25" 1024 33 23.\|.\|.\|2323
 .Sh SSH_KNOWN_HOSTS FILE FORMAT
 The
 .Pa /etc/ssh_known_hosts ,
-.Pa /etc/ssh_known_hosts2 ,
-.Pa $HOME/.ssh/known_hosts ,
 and
-.Pa $HOME/.ssh/known_hosts2
+.Pa $HOME/.ssh/known_hosts
 files contain host public keys for all known hosts.
 The global file should
 be prepared by the administrator (optional), and the per-user file is
@@ -1129,7 +1127,8 @@ files into this file, as described in
 .Xr ssh-keygen 1 .
 .It Pa "/etc/ssh_known_hosts" and "$HOME/.ssh/known_hosts"
 These files are consulted when using rhosts with RSA host
-authentication to check the public key of the host.
+authentication or protocol version 2 hostbased authentication
+to check the public key of the host.
 The key must be listed in one of these files to be accepted.
 The client uses the same files
 to verify that it is connecting to the correct remote host.
@@ -1137,17 +1136,6 @@ These files should be writable only by root/the owner.
 .Pa /etc/ssh_known_hosts
 should be world-readable, and
 .Pa $HOME/.ssh/known_hosts
-can but need not be world-readable.
-.It Pa "/etc/ssh_known_hosts2" and "$HOME/.ssh/known_hosts2"
-These files are consulted when using protocol version 2 hostbased
-authentication to check the public key of the host.
-The key must be listed in one of these files to be accepted.
-The client uses the same files
-to verify that it is connecting to the correct remote host.
-These files should be writable only by root/the owner.
-.Pa /etc/ssh_known_hosts2
-should be world-readable, and
-.Pa $HOME/.ssh/known_hosts2
 can but need not be world-readable.
 .It Pa /etc/nologin
 If this file exists,

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.115 2001/06/22 21:55:49 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.116 2001/06/23 02:34:31 markus Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -361,17 +361,12 @@ electronic purse; another is going through firewalls.
 .Nm
 automatically maintains and checks a database containing
 identifications for all hosts it has ever been used with.
-RSA host keys are stored in
+Host keys are stored in
 .Pa $HOME/.ssh/known_hosts
-and
-host keys used in the protocol version 2 are stored in
-.Pa $HOME/.ssh/known_hosts2
 in the user's home directory.
-Additionally, the files
+Additionally, the file
 .Pa /etc/ssh_known_hosts
-and
-.Pa /etc/ssh_known_hosts2
-are automatically checked for known hosts.
+is automatically checked for known hosts.
 Any new hosts are automatically added to the user's file.
 If a host's identification
 ever changes,
@@ -797,13 +792,9 @@ or
 The default is
 .Dq no .
 .It Cm GlobalKnownHostsFile
-Specifies a file to use for the protocol version 1 global
+Specifies a file to use for the global
 host key database instead of
 .Pa /etc/ssh_known_hosts .
-.It Cm GlobalKnownHostsFile2
-Specifies a file to use for the protocol version 2 global
-host key database instead of
-.Pa /etc/ssh_known_hosts2 .
 .It Cm HostbasedAuthentication
 Specifies whether to try rhosts based authentication with public key
 authentication.
@@ -1036,14 +1027,10 @@ If this flag is set to
 .Nm
 will never automatically add host keys to the
 .Pa $HOME/.ssh/known_hosts
-and
-.Pa $HOME/.ssh/known_hosts2
-files, and refuses to connect to hosts whose host key has changed.
+file, and refuses to connect to hosts whose host key has changed.
 This provides maximum protection against trojan horse attacks.
 However, it can be somewhat annoying if you don't have good
 .Pa /etc/ssh_known_hosts
-and
-.Pa /etc/ssh_known_hosts2
 files installed and frequently
 connect to new hosts.
 This option forces the user to manually
@@ -1090,13 +1077,9 @@ This can be useful if you have a different user name on different machines.
 This saves the trouble of
 having to remember to give the user name on the command line.
 .It Cm UserKnownHostsFile
-Specifies a file to use for the protocol version 1 user
+Specifies a file to use for the user
 host key database instead of
 .Pa $HOME/.ssh/known_hosts .
-.It Cm UserKnownHostsFile2
-Specifies a file to use for the protocol version 2 user
-host key database instead of
-.Pa $HOME/.ssh/known_hosts2 .
 .It Cm UseRsh
 Specifies that rlogin/rsh should be used for this host.
 It is possible that the host does not at all support the
@@ -1189,13 +1172,10 @@ and adds lines of the format
 to the environment.
 .Sh FILES
 .Bl -tag -width Ds
-.It Pa $HOME/.ssh/known_hosts, $HOME/.ssh/known_hosts2
+.It Pa $HOME/.ssh/known_hosts
 Records host keys for all hosts the user has logged into (that are not
 in
-.Pa /etc/ssh_known_hosts
-for protocol version 1 or
-.Pa /etc/ssh_known_hosts2
-for protocol version 2).
+.Pa /etc/ssh_known_hosts .
 See
 .Xr sshd 8 .
 .It Pa $HOME/.ssh/identity, $HOME/.ssh/id_dsa, $HOME/.ssh/id_rsa
@@ -1246,22 +1226,19 @@ Lists the public keys (RSA/DSA) that can be used for logging in as this user.
 The format of this file is described in the
 .Xr sshd 8
 manual page.
+In the simplest form the format is the same as the .pub
+identity files.
 This file is not highly sensitive, but the recommended
 permissions are read/write for the user, and not accessible by others.
-.It Pa /etc/ssh_known_hosts, /etc/ssh_known_hosts2
+.It Pa /etc/ssh_known_hosts
 Systemwide list of known host keys.
-.Pa /etc/ssh_known_hosts
-contains RSA and
-.Pa /etc/ssh_known_hosts2
-contains RSA or DSA keys for protocol version 2.
-These files should be prepared by the
+This file should be prepared by the
 system administrator to contain the public host keys of all machines in the
 organization.
 This file should be world-readable.
 This file contains
 public keys, one per line, in the following format (fields separated
-by spaces): system name, number of bits in modulus, public exponent,
-modulus, and optional comment field.
+by spaces): system name, public key and optional comment field.
 When different names are used
 for the same machine, all such names should be listed, separated by
 commas.

@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kexgex.c,v 1.6 2001/06/07 20:23:04 markus Exp $");
+RCSID("$OpenBSD: kexgex.c,v 1.7 2001/06/23 02:34:29 markus Exp $");
 
 #include <openssl/bn.h>
 
@@ -177,9 +177,10 @@ kexgex_client(Kex *kex)
 	if (server_host_key == NULL)
 		fatal("cannot decode server_host_key_blob");
 
-	if (kex->check_host_key == NULL)
-		fatal("cannot check server_host_key");
-	kex->check_host_key(server_host_key);
+	if (kex->verify_host_key == NULL)
+		fatal("cannot verify server_host_key");
+	if (kex->verify_host_key(server_host_key) == -1)
+		fatal("server_host_key verification failed");
 
 	/* DH paramter f, server public DH key */
 	dh_server_pub = BN_new();
