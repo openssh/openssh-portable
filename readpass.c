@@ -34,8 +34,6 @@
 #include "includes.h"
 RCSID("$OpenBSD: readpass.c,v 1.19 2001/06/24 05:35:33 markus Exp $");
 
-#include <readpassphrase.h>
-
 #include "xmalloc.h"
 #include "readpass.h"
 #include "pathnames.h"
