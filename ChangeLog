@@ -1,5 +1,7 @@
 20020506
  - (djm) Unbreak auth-passwd.c for PAM and SIA
+ - (djm) Unbreak PAM auth for protocol 1. Report from Pekka Savola 
+   <pekkas@netcore.fi>
 
 20020506
  - (bal) Fixed auth-passwd.c to resolve PermitEmptyPassword issue
@@ -531,4 +533,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2093 2002/05/08 02:18:26 djm Exp $
+$Id: ChangeLog,v 1.2094 2002/05/08 02:24:42 djm Exp $
