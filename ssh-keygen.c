@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.57 2001/04/22 13:25:37 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.58 2001/04/22 13:41:02 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -628,7 +628,7 @@ do_change_comment(struct passwd *pw)
 void
 usage(void)
 {
-	printf("Usage: %s [-lBpqxiec] [-t type] [-b bits] [-f file] [-C comment] "
+	printf("Usage: %s [-ceilpqyB] [-t type] [-b bits] [-f file] [-C comment] "
 	    "[-N new-pass] [-P pass]\n", __progname);
 	exit(1);
 }
