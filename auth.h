@@ -123,6 +123,7 @@ void	krb5_cleanup_proc(Authctxt *authctxt);
 #endif /* KRB5 */
 
 #if defined(USE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
+#include <shadow.h>
 int auth_shadow_acctexpired(struct spwd *);
 int auth_shadow_pwexpired(Authctxt *);
 #endif

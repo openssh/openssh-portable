@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: auth-shadow.c,v 1.4 2004/02/21 22:43:15 dtucker Exp $");
+RCSID("$Id: auth-shadow.c,v 1.5 2004/02/21 23:22:05 dtucker Exp $");
 
 #if defined(USE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
 #include <shadow.h>
@@ -49,14 +49,25 @@ int
 auth_shadow_acctexpired(struct spwd *spw)
 {
 	time_t today;
+	int daysleft;
+	char buf[256];
 
 	today = time(NULL) / DAY;
-	debug3("%s: today %d sp_expire %d", __func__, (int)today,
-	    (int)spw->sp_expire);
+	daysleft = spw->sp_expire - today;
+	debug3("%s: today %d sp_expire %d days left %d", __func__, (int)today,
+	    (int)spw->sp_expire, daysleft);
 
-	if (spw->sp_expire != -1 && today > spw->sp_expire) {
+	if (spw->sp_expire == -1) {
+		debug3("account expiration disabled");
+	} else if (daysleft < 0) {
 		logit("Account %.100s has expired", spw->sp_namp);
 		return 1;
+	} else if (daysleft <= spw->sp_warn) {
+		debug3("account will expire in %d days", daysleft);
+		snprintf(buf, sizeof(buf),
+		    "Your account will expire in %d day%s.\n", daysleft,
+		    daysleft == 1 ? "" : "s");
+		buffer_append(&loginmsg, buf, strlen(buf));
 	}
 
 	return 0;
@@ -71,9 +82,11 @@ auth_shadow_pwexpired(Authctxt *ctxt)
 {
 	struct spwd *spw = NULL;
 	const char *user = ctxt->pw->pw_name;
+	char buf[256];
 	time_t today;
+	int daysleft, disabled = 0;
 
-	if ((spw = getspnam(user)) == NULL) {
+	if ((spw = getspnam((char *)user)) == NULL) {
 		error("Could not get shadow information for %.100s", user);
 		return 0;
 	}
@@ -83,21 +96,38 @@ auth_shadow_pwexpired(Authctxt *ctxt)
 	    (int)spw->sp_lstchg, (int)spw->sp_max);
 
 #if defined(__hpux) && !defined(HAVE_SECUREWARE)
-	if (iscomsec() && spw->sp_min == 0 && spw->sp_max == 0 &&
-	    spw->sp_warn == 0)
-		return 0;	/* HP-UX Trusted Mode: expiry disabled */
+	if (iscomsec()) {
+		struct pr_passwd *pr;
+		       
+		pr = getprpwnam((char *)user);
+
+		/* Test for Trusted Mode expiry disabled */
+		if (pr != NULL && pr->ufld.fd_min == 0 &&
+		    pr->ufld.fd_lifetime == 0 && pr->ufld.fd_expire == 0 &&
+		    pr->ufld.fd_pw_expire_warning == 0 &&
+		    pr->ufld.fd_schange != 0)
+			disabled = 1;
+	}
 #endif
 
-	/* TODO: Add code to put expiry warnings into loginmsg */
-
-	if (spw->sp_lstchg == 0) {
+	/* TODO: check sp_inact */
+	daysleft = spw->sp_lstchg + spw->sp_max - today;
+	if (disabled) {
+		debug3("password expiration disabled");
+	} else if (spw->sp_lstchg == 0) {
 		logit("User %.100s password has expired (root forced)", user);
 		return 1;
-	}
-
-	if (spw->sp_max != -1 && today > spw->sp_lstchg + spw->sp_max) {
+	} else if (spw->sp_max == -1) {
+		debug3("password expiration disabled");
+	} else if (daysleft < 0) {
 		logit("User %.100s password has expired (password aged)", user);
 		return 1;
+	} else if (daysleft <= spw->sp_warn) {
+		debug3("password will expire in %d days", daysleft);
+		snprintf(buf, sizeof(buf),
+		    "Your password will expire in %d day%s.\n", daysleft,
+		    daysleft == 1 ? "" : "s");
+		buffer_append(&loginmsg, buf, strlen(buf));
 	}
 
 	return 0;
