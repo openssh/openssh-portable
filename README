@@ -2,6 +2,13 @@
 [ http://www.unixuser.org/%7Eharuyama/security/openssh/index.html
 [ Thanks to HARUYAMA Seigo <haruyama@nt.phys.s.u-tokyo.ac.jp>
 
+******* IMPORTANT
+* On systmes which lack a /dev/random driver, this port of
+* OpenSSH-1.2.2 was not correctly seeding OpenSSL's random number
+* pool. This resulted in lower quality RSA keys being generated. If
+* you generated host or user keys with v1.2.2, please generate new
+* ones using a more recent version.
+
 This is the port of OpenBSD's excellent OpenSSH to Linux and other
 Unices.
 
