@@ -18,7 +18,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: login.c,v 1.8 1999/12/21 00:18:08 damien Exp $");
+RCSID("$Id: login.c,v 1.9 1999/12/21 10:30:56 damien Exp $");
 
 #if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
 # include <utmpx.h>
@@ -152,7 +152,7 @@ record_login(int pid, const char *ttyname, const char *user, uid_t uid,
 
 	login(&u);
 
-#ifdef defined(HAVE_LASTLOG_H) && !defined(DISABLE_LASTLOG)
+#if defined(HAVE_LASTLOG_H) && !defined(DISABLE_LASTLOG)
 	lastlog = _PATH_LASTLOG;
 
 	/* Update lastlog unless actually recording a logout. */
