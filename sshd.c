@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.304 2004/09/25 03:45:14 djm Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.305 2004/12/23 23:11:00 djm Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -110,12 +110,6 @@ ServerOptions options;
 
 /* Name of the server configuration file. */
 char *config_file_name = _PATH_SERVER_CONFIG_FILE;
-
-/*
- * Flag indicating whether IPv4 or IPv6.  This can be set on the command line.
- * Default value is AF_UNSPEC means both IPv4 and IPv6.
- */
-int IPv4or6 = AF_UNSPEC;
 
 /*
  * Debug mode flag.  This can be set on the command line.  If debug
@@ -920,10 +914,10 @@ main(int ac, char **av)
 	while ((opt = getopt(ac, av, "f:p:b:k:h:g:u:o:dDeiqrtQR46")) != -1) {
 		switch (opt) {
 		case '4':
-			IPv4or6 = AF_INET;
+			options.address_family = AF_INET;
 			break;
 		case '6':
-			IPv4or6 = AF_INET6;
+			options.address_family = AF_INET6;
 			break;
 		case 'f':
 			config_file_name = optarg;
@@ -1024,7 +1018,6 @@ main(int ac, char **av)
 		closefrom(REEXEC_DEVCRYPTO_RESERVED_FD);
 
 	SSLeay_add_all_algorithms();
-	channel_set_af(IPv4or6);
 
 	/*
 	 * Force logging to stderr until we have loaded the private host
@@ -1073,6 +1066,9 @@ main(int ac, char **av)
 
 	/* Fill in default values for those options not explicitly set. */
 	fill_default_server_options(&options);
+
+	/* set default channel AF */
+	channel_set_af(options.address_family);
 
 	/* Check that there are no remaining arguments. */
 	if (optind < ac) {

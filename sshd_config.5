@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.36 2004/09/15 03:25:41 jaredy Exp $
+.\" $OpenBSD: sshd_config.5,v 1.37 2004/12/23 23:11:00 djm Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -83,6 +83,17 @@ Be warned that some environment variables could be used to bypass restricted
 user environments.
 For this reason, care should be taken in the use of this directive.
 The default is not to accept any environment variables.
+.It Cm AddressFamily
+Specifies which address family should be used by
+.Nm sshd .
+Valid arguments are
+.Dq any ,
+.Dq inet
+(use IPv4 only) or
+.Dq inet6
+(use IPv6 only).
+The default is
+.Dq any .
 .It Cm AllowGroups
 This keyword can be followed by a list of group name patterns, separated
 by spaces.

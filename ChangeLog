@@ -6,6 +6,10 @@
    - markus@cvs.openbsd.org 2004/12/23 17:38:07
      [ssh-keygen.c]
      leak; from mpech
+   - djm@cvs.openbsd.org 2004/12/23 23:11:00
+     [servconf.c servconf.h sshd.c sshd_config sshd_config.5]
+     bz #898: support AddressFamily in sshd_config. from
+     peak@argo.troja.mff.cuni.cz; ok deraadt@
 
 20050118
  - (dtucker) [INSTALL Makefile.in configure.ac survey.sh.in] Implement
@@ -1978,4 +1982,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3610 2005/01/19 23:56:31 dtucker Exp $
+$Id: ChangeLog,v 1.3611 2005/01/19 23:57:56 dtucker Exp $
