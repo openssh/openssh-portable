@@ -189,12 +189,12 @@ input_userauth_request(int type, u_int32_t seq, void *ctxt)
 			authctxt->valid = 1;
 			debug2("input_userauth_request: setting up authctxt for %s", user);
 #ifdef USE_PAM
-			start_pam(authctxt->pw->pw_name);
+			PRIVSEP(start_pam(authctxt->pw->pw_name));
 #endif
 		} else {
 			log("input_userauth_request: illegal user %s", user);
 #ifdef USE_PAM
-			start_pam("NOUSER");
+			PRIVSEP(start_pam("NOUSER"));
 #endif
 		}
 		setproctitle("%s%s", authctxt->pw ? user : "unknown",
@@ -242,8 +242,8 @@ userauth_finish(Authctxt *authctxt, int authenticated, char *method)
 		authenticated = 0;
 
 #ifdef USE_PAM
-	if (authenticated && authctxt->user && !do_pam_account(authctxt->user,
-	    NULL))
+	if (!use_privsep && authenticated && authctxt->user && 
+	    !do_pam_account(authctxt->user, NULL))
 		authenticated = 0;
 #endif /* USE_PAM */
 

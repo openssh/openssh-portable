@@ -1,6 +1,7 @@
 20020423
  - (djm) Bug #222: Fix tests for getaddrinfo on OSF/1. Spotted by
    Robert Urban <urban@spielwiese.de>
+ - (djm) Make privsep work with PAM (still experimental)
 
 20020421
  - (tim) [entropy.c.] Portability fix for SCO Unix 3.2v4.x (SCO OSR 3.0).
@@ -8267,4 +8268,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2062 2002/04/23 10:22:59 djm Exp $
+$Id: ChangeLog,v 1.2063 2002/04/23 10:28:48 djm Exp $

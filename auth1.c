@@ -306,7 +306,8 @@ do_authloop(Authctxt *authctxt)
 			authenticated = 0;
 #endif
 #ifdef USE_PAM
-		if (authenticated && !do_pam_account(pw->pw_name, client_user))
+		if (!use_privsep && authenticated && 
+		    !do_pam_account(pw->pw_name, client_user))
 			authenticated = 0;
 #endif
 
@@ -381,7 +382,7 @@ do_authentication(void)
 	    use_privsep ? " [net]" : "");
 
 #ifdef USE_PAM
-	start_pam(authctxt->pw == NULL ? "NOUSER" : user);
+	PRIVSEP(start_pam(authctxt->pw == NULL ? "NOUSER" : user));
 #endif
 
 	/*

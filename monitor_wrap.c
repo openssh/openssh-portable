@@ -623,6 +623,23 @@ mm_session_pty_cleanup2(void *session)
 	s->ttyfd = -1;
 }
 
+#ifdef USE_PAM
+void
+mm_start_pam(char *user)
+{
+	Buffer m;
+
+	debug3("%s entering", __FUNCTION__);
+
+	buffer_init(&m);
+	buffer_put_cstring(&m, user);
+
+	mm_request_send(monitor->m_recvfd, MONITOR_REQ_PAM_START, &m);
+
+	buffer_free(&m);
+}
+#endif /* USE_PAM */
+
 /* Request process termination */
 
 void
