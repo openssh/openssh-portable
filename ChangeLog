@@ -44,6 +44,9 @@
      [ssh.c]
      sscanf() length dependencies are clearer now; can also shrink proto
      and data if desired, but i have not done that.  ok markus@
+   - markus@cvs.openbsd.org 2001/12/01 21:41:48
+     [session.c sshd.8]
+     don't pass user defined variables to /usr/bin/login
 
 20011126
  - (tim) [contrib/cygwin/README, openbsd-compat/bsd-cygwin_util.c,
@@ -6966,4 +6969,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1679 2001/12/06 17:45:19 mouring Exp $
+$Id: ChangeLog,v 1.1680 2001/12/06 17:47:47 mouring Exp $
