@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.36 2002/04/07 16:18:04 stevesk Exp $
+# $Id: configure.ac,v 1.37 2002/04/07 17:08:54 stevesk Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -317,7 +317,7 @@ AC_CHECK_HEADERS(bstring.h crypt.h endian.h floatingpoint.h \
 	netinet/in_systm.h paths.h poll.h pty.h \
 	rpc/types.h security/pam_appl.h shadow.h stddef.h stdint.h \
 	strings.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h \
-	sys/poll.h sys/select.h sys/stat.h \
+	sys/mman.h sys/poll.h sys/select.h sys/stat.h \
 	sys/stropts.h sys/sysmacros.h sys/time.h \
 	sys/un.h time.h ttyent.h usersec.h \
 	util.h utime.h utmp.h utmpx.h)
@@ -534,7 +534,7 @@ AC_CHECK_FUNCS(arc4random b64_ntop bcopy bindresvport_sa \
 	getaddrinfo getcwd getgrouplist getnameinfo getopt \
 	getrlimit getrusage getttyent glob inet_aton inet_ntoa \
 	inet_ntop innetgr login_getcapbool md5_crypt memmove \
-	mkdtemp openpty readpassphrase realpath \
+	mkdtemp mmap openpty readpassphrase realpath \
 	rresvport_af setdtablesize setegid setenv seteuid \
 	setlogin setproctitle setresgid setreuid setrlimit \
 	setsid setvbuf sigaction sigvec snprintf strerror \

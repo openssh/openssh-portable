@@ -26,7 +26,9 @@
 #include "includes.h"
 RCSID("$OpenBSD: monitor_mm.c,v 1.4 2002/03/25 20:12:10 stevesk Exp $");
 
+#ifdef HAVE_SYS_MMAN_H
 #include <sys/mman.h>
+#endif
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -82,10 +84,15 @@ mm_create(struct mm_master *mmalloc, size_t size)
 	 */
 	mm->mmalloc = mmalloc;
 
+#ifdef HAVE_MMAP
 	address = mmap(NULL, size, PROT_WRITE|PROT_READ, MAP_ANON|MAP_SHARED,
 	    -1, 0);
 	if (address == MAP_FAILED)
 		fatal("mmap(%lu)", (u_long)size);
+#else
+	fatal("%s: UsePrivilegeSeparation=yes not supported",
+	    __FUNCTION__);
+#endif
 
 	mm->address = address;
 	mm->size = size;
