@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.234 2002/03/19 10:49:35 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.235 2002/03/20 19:12:25 stevesk Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -521,6 +521,7 @@ privsep_preauth_child(void)
 {
 	u_int32_t rand[256];
 	int i;
+	struct passwd *pw;
 
 	/* Enable challenge-response authentication for privilege separation */
 	privsep_challenge_enable();
@@ -532,6 +533,11 @@ privsep_preauth_child(void)
 	/* Demote the private keys to public keys. */
 	demote_sensitive_data();
 
+	if ((pw = getpwnam(SSH_PRIVSEP_USER)) == NULL)
+		fatal("%s: no user", SSH_PRIVSEP_USER);
+	memset(pw->pw_passwd, 0, strlen(pw->pw_passwd));
+	endpwent();
+
 	/* Change our root directory*/
 	if (chroot(_PATH_PRIVSEP_CHROOT_DIR) == -1)
 		fatal("chroot(\"%s\"): %s", _PATH_PRIVSEP_CHROOT_DIR,
@@ -540,10 +546,9 @@ privsep_preauth_child(void)
 		fatal("chdir(/)");
 
 	/* Drop our privileges */
-	setegid(options.unprivileged_group);
-	setgid(options.unprivileged_group);
-	seteuid(options.unprivileged_user);
-	setuid(options.unprivileged_user);
+	debug3("privsep user:group %u:%u", (u_int)pw->pw_uid,
+	    (u_int)pw->pw_gid);
+	do_setusercontext(pw);
 }
 
 static void

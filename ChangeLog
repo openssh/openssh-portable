@@ -100,6 +100,10 @@
    - markus@cvs.openbsd.org 2002/03/19 15:31:47
      [auth.c]
      check for NULL; from provos@
+   - stevesk@cvs.openbsd.org 2002/03/20 19:12:25
+     [servconf.c servconf.h ssh.h sshd.c]
+     for unprivileged user, group do:
+     pw=getpwnam(SSH_PRIVSEP_USER); do_setusercontext(pw).  ok provos@
 
 20020317
  - (tim) [configure.ac] Assume path given with --with-pid-dir=PATH is wanted,
@@ -7946,4 +7950,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1953 2002/03/22 03:08:30 mouring Exp $
+$Id: ChangeLog,v 1.1954 2002/03/22 03:11:49 mouring Exp $

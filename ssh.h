@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh.h,v 1.64 2002/03/04 17:27:39 stevesk Exp $	*/
+/*	$OpenBSD: ssh.h,v 1.65 2002/03/20 19:12:25 stevesk Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -98,5 +98,12 @@
 
 /* Used to identify ``EscapeChar none'' */
 #define SSH_ESCAPECHAR_NONE		-2
+
+/*
+ * unprivileged user when UsePrivilegeSeparation=yes;
+ * sshd will change its pivileges to this user and its
+ * primary group.
+ */
+#define SSH_PRIVSEP_USER		"nobody"
 
 #endif				/* SSH_H */
