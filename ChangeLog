@@ -2,6 +2,9 @@
  - (djm) Added /etc/primes for kex DH group neg, fixup Makefile.in and
    packaging files
  - (djm) Fix new Makefile.in warnings
+ - (djm) Fix vsprintf("%h") in bsd-snprintf.c, short int va_args are 
+   promoted to type int. Report and fix from Dan Astoorian 
+   <djast@cs.toronto.edu>
 
 20001110
  - (bal) Fixed dropped answer from skey_keyinfo() in auth1.c
