@@ -15,11 +15,14 @@ umask 022
 # configure --prefix=/var/tmp --with-privsep-path=/var/tmp/empty
 # and 
 # PKGNAME=tOpenSSH should allow testing a package without interfering
-# with a real OpenSSH package on a system.
+# with a real OpenSSH package on a system. This is not needed on systems
+# that support the -R option to pkgadd.
 #TEST_DIR=/var/tmp	# leave commented out for production build
 PKGNAME=OpenSSH
 SYSVINIT_NAME=opensshd
 MAKE=${MAKE:="make"}
+SSHDUID=67	# Default privsep uid
+SSHDGID=67	# Default privsep gid
 # uncomment these next two as needed
 #PERMIT_ROOT_LOGIN=no
 #X11_FORWARDING=yes
@@ -57,7 +60,7 @@ SYSTEM_DIR="/etc	\
 /var/tmp		\
 /tmp"
 
-# We may need to buiild as root so we make sure PATH is set up
+# We may need to build as root so we make sure PATH is set up
 # only set the path if it's not set already
 [ -d /usr/local/bin ]  &&  {
 	echo $PATH | grep ":/usr/local/bin"  > /dev/null 2>&1
@@ -227,7 +230,18 @@ fi
 
 installf -f ${PKGNAME}
 
-if egrep '^[ \t]*UsePrivilegeSeparation[ \t]+no' $sysconfdir/sshd_config >/dev/null
+# Use chroot to handle PKG_INSTALL_ROOT
+if [ ! -z "\${PKG_INSTALL_ROOT}" ]
+then
+	chroot="chroot \${PKG_INSTALL_ROOT}"
+fi
+# If this is a test build, we will skip the groupadd/useradd/passwd commands
+if [ ! -z "${TEST_DIR}" ]
+then
+	chroot=echo
+fi
+
+if egrep '^[ \t]*UsePrivilegeSeparation[ \t]+no' \${PKG_INSTALL_ROOT}/$sysconfdir/sshd_config >/dev/null
 then
         echo "UsePrivilegeSeparation disabled in config, not creating PrivSep user"
         echo "or group."
@@ -235,22 +249,36 @@ else
         echo "UsePrivilegeSeparation enabled in config (or defaulting to on)."
 
         # create group if required
-        if cut -f1 -d: /etc/group | egrep '^'$SSH_PRIVSEP_USER'\$' >/dev/null
+        if cut -f1 -d: \${PKG_INSTALL_ROOT}/etc/group | egrep '^'$SSH_PRIVSEP_USER'\$' >/dev/null
         then
                 echo "PrivSep group $SSH_PRIVSEP_USER already exists."
         else
+		# Use gid of 67 if possible
+		if cut -f3 -d: \${PKG_INSTALL_ROOT}/etc/group | egrep '^'$SSHDGID'\$' >/dev/null
+		then
+			:
+		else
+			sshdgid="-g $SSHDGID"
+		fi
                 echo "Creating PrivSep group $SSH_PRIVSEP_USER."
-                groupadd $SSH_PRIVSEP_USER
+                \$chroot /usr/sbin/groupadd \$sshdgid $SSH_PRIVSEP_USER
         fi
 
         # Create user if required
-        if cut -f1 -d: /etc/passwd | egrep '^'$SSH_PRIVSEP_USER'\$' >/dev/null
+        if cut -f1 -d: \${PKG_INSTALL_ROOT}/etc/passwd | egrep '^'$SSH_PRIVSEP_USER'\$' >/dev/null
         then
                 echo "PrivSep user $SSH_PRIVSEP_USER already exists."
         else
+		# Use uid of 67 if possible
+		if cut -f3 -d: \${PKG_INSTALL_ROOT}/etc/passwd | egrep '^'$SSHDGID'\$' >/dev/null
+		then
+			:
+		else
+			sshduid="-u $SSHDUID"
+		fi
                 echo "Creating PrivSep user $SSH_PRIVSEP_USER."
-                useradd -c 'SSHD PrivSep User' -s /bin/false -g $SSH_PRIVSEP_USER $SSH_PRIVSEP_USER
-		passwd -l $SSH_PRIVSEP_USER
+		\$chroot /usr/sbin/useradd -c 'SSHD PrivSep User' -s /bin/false -g $SSH_PRIVSEP_USER \$sshduid $SSH_PRIVSEP_USER
+		\$chroot /usr/bin/passwd -l $SSH_PRIVSEP_USER
         fi
 fi
 
