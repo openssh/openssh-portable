@@ -1,2 +1,0 @@
-# pre-removal script for OPENssh
-/etc/init.d/sshd stop

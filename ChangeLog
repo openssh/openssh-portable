@@ -18,6 +18,9 @@
  - (djm) "make veryclean" fix from Tom Holroyd <tomh@po.crl.go.jp>
  - (djm) Clean some autoconf-2.52 junk when doing "make distclean"
  - (djm) Cleanup sshpty.c a little
+ - (bal) First wave of contrib/solaris/ package upgrades.  Still more
+   work needs to be done, but it is a 190% better then the stuff we
+   had before!
 
 20011010
  - (djm) OpenBSD CVS Sync
@@ -6716,4 +6719,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1606 2001/10/12 09:15:48 djm Exp $
+$Id: ChangeLog,v 1.1607 2001/10/12 20:30:52 mouring Exp $
