@@ -1,6 +1,9 @@
 20040123 
  - (djm) Do pam_session processing for systems with HAVE_LOGIN_CAP; from 
    ralf.hack AT pipex.net; ok dtucker@
+ - (djm) Bug #776: Update contrib/redhat/openssh.spec to dynamically detect
+   Kerberos location (and thus work with Fedora Core 1);
+   from jason AT devrandom.org
 
 20040122
  - (dtucker) [configure.ac] Use krb5-config where available for Kerberos/
@@ -1713,4 +1716,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3181 2004/01/23 03:16:26 djm Exp $
+$Id: ChangeLog,v 1.3182 2004/01/23 05:30:03 djm Exp $

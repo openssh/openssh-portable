@@ -1,5 +1,5 @@
 %define ver 3.7.1p2
-%define rel 1
+%define rel 0.2004012300
 
 # OpenSSH privilege separation requires a user & group ID
 %define sshd_uid    74
@@ -181,6 +181,11 @@ environment.
 CFLAGS="$RPM_OPT_FLAGS -Os"; export CFLAGS
 %endif
 
+%if %{kerberos5}
+K5DIR=`rpm -ql krb5-devel | grep include/krb5.h | sed 's,\/include\/krb5.h,,'`
+echo K5DIR=$K5DIR
+%endif
+
 %configure \
 	--sysconfdir=%{_sysconfdir}/ssh \
 	--libexecdir=%{_libexecdir}/openssh \
@@ -200,7 +205,7 @@ CFLAGS="$RPM_OPT_FLAGS -Os"; export CFLAGS
 	--with-pam \
 %endif
 %if %{kerberos5}
-	 --with-kerberos5=/usr/kerberos \
+	 --with-kerberos5=$K5DIR \
 %endif
 
 
