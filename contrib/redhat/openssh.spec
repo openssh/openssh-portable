@@ -27,7 +27,7 @@ Requires: openssl >= 0.9.5a
 BuildPreReq: perl
 BuildPreReq: openssl-devel
 BuildPreReq: tcp_wrappers
-%if %{no_x11_askpass}
+%if ! %{no_x11_askpass}
 BuildPreReq: gnome-libs-devel
 %endif
 
