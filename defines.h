@@ -34,6 +34,9 @@
 #ifdef HAVE_SYS_STAT_H
 # include <sys/stat.h> /* For S_* constants and macros */
 #endif
+#ifdef HAVE_NEXT
+#  include <libc.h>
+#endif
 
 #include <unistd.h> /* For STDIN_FILENO, etc */
 

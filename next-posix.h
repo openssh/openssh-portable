@@ -7,7 +7,6 @@
 
 #ifdef HAVE_NEXT
 
-#include <libc.h>
 #include <sys/dir.h>
 
 /* readdir() returns struct direct (BSD) not struct dirent (POSIX) */
