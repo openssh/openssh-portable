@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.82 2002/07/19 19:41:11 tim Exp $
+# $Id: configure.ac,v 1.83 2002/07/22 23:34:25 mouring Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -279,13 +279,22 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_CHECK_FUNCS(getluid setluid)
 	MANTYPE=man
 	;;
+*-*-unicosmk*)
+	no_libsocket=1
+	no_libnsl=1
+	AC_DEFINE(USE_PIPES)
+	AC_DEFINE(DISABLE_FD_PASSING)
+	LDFLAGS="$LDFLAGS"
+	LIBS="$LIBS -lgen -lrsc -lshare -luex -lacm"
+	MANTYPE=cat
 *-*-unicos*)
 	no_libsocket=1
 	no_libnsl=1
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(DISABLE_FD_PASSING)
-	LDFLAGS="$LDFLAGS -Wl,-Dmsglevel=334:fatal,-L/usr/local/lib"
-	LIBS="$LIBS -lgen -lrsc"
+	LDFLAGS="$LDFLAGS -Wl,-Dmsglevel=334:fatal"
+	LIBS="$LIBS -lgen -lrsc -lshare -luex -lacm"
+	MANTYPE=cat
 	;;
 *-dec-osf*)
 	AC_MSG_CHECKING(for Digital Unix SIA)

@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.93 2002/07/18 16:31:52 tim Exp $ */
+/* $Id: defines.h,v 1.94 2002/07/22 23:34:25 mouring Exp $ */
 
 
 /* Constants */
@@ -124,7 +124,7 @@ typedef char int8_t;
 # if (SIZEOF_SHORT_INT == 2)
 typedef short int int16_t;
 # else
-#  ifdef _CRAY
+#  if defined(_CRAY) && !defined(_CRAYSV2)
 #   if (SIZEOF_SHORT_INT == 4)
 typedef short int16_t;
 #   else
@@ -137,7 +137,7 @@ typedef long  int16_t;
 # if (SIZEOF_INT == 4)
 typedef int int32_t;
 # else
-#  ifdef _CRAY
+#  if defined(_CRAY) && !defined(_CRAYSV2)
 typedef long  int32_t;
 #  else
 #   error "32 bit int type not found."
@@ -161,7 +161,7 @@ typedef unsigned char u_int8_t;
 #  if (SIZEOF_SHORT_INT == 2)
 typedef unsigned short int u_int16_t;
 #  else
-#   ifdef _CRAY
+#   if defined(_CRAY) && !defined(_CRAYSV2)
 #    if (SIZEOF_SHORT_INT == 4)
 typedef unsigned short u_int16_t;
 #    else
@@ -174,7 +174,7 @@ typedef unsigned long  u_int16_t;
 #  if (SIZEOF_INT == 4)
 typedef unsigned int u_int32_t;
 #  else
-#   ifdef _CRAY
+#   if defined(_CRAY) && !defined(_CRAYSV2)
 typedef unsigned long  u_int32_t;
 #   else
 #    error "32 bit int type not found."

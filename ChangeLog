@@ -1,6 +1,8 @@
 20020722
  - (bal) AIX tty data limiting patch fix by leigh@solinno.co.uk
  - (stevesk) [xmmap.c] missing prototype for fatal()
+ - (bal) [configure.ac defines.h loginrec.c sshd.c sshpty.c] Partial sync
+   with Cray (mostly #ifdef renaming).  Patch by wendyp@cray.com.
 
 20020721
  - (stevesk) [auth-pam.c] merge cosmetic changes from solar's
@@ -1412,4 +1414,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2388 2002/07/22 16:20:29 stevesk Exp $
+$Id: ChangeLog,v 1.2389 2002/07/22 23:34:25 mouring Exp $

@@ -162,7 +162,7 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 	}
 	return 1;
 #else /* HAVE_DEV_PTS_AND_PTC */
-#ifdef _CRAY
+#if defined(_CRAY) && !defined(_CRAYSV2)
 	char buf[64];
 	int i;
 	int highpty;
@@ -268,7 +268,7 @@ pty_make_controlling_tty(int *ttyfd, const char *ttyname)
 	void *old;
 #endif /* USE_VHANGUP */
 
-#ifdef _CRAY
+#if defined(_CRAY) && !defined(_CRAYSV2)
 	if (setsid() < 0)
 		error("setsid: %.100s", strerror(errno));
 
