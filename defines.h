@@ -7,11 +7,8 @@
 
 #include <sys/socket.h> /* For SHUT_XXXX */
 
+# include <netinet/in_systm.h> /* For typedefs */
 #include <netinet/in.h> /* For IPv6 macros */
-
-#ifdef NEED_IN_SYSTM_H
-#  include <netinet/in_systm.h>
-#endif
 #include <netinet/ip.h> /* For IPTOS macros */
 
 #ifdef HAVE_SYS_BITYPES_H

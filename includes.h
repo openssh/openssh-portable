@@ -30,10 +30,7 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #include <sys/un.h>
 #include <sys/resource.h>
 
-#include <netinet/in.h>
-#include <netinet/in_systm.h>
 #include <netinet/tcp.h>
-#include <netinet/ip.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 

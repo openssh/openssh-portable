@@ -35,7 +35,7 @@
 #include <openssl/rand.h>
 #include <openssl/sha.h>
 
-RCSID("$Id: entropy.c,v 1.6 2000/04/29 23:30:46 damien Exp $");
+RCSID("$Id: entropy.c,v 1.7 2000/05/01 14:03:56 damien Exp $");
 
 #ifdef EGD_SOCKET
 #ifndef offsetof
@@ -519,6 +519,8 @@ prng_write_seedfile(void) {
 	/* Don't bother if we have already saved a seed */
 	if (prng_seed_saved)
 		return;
+	
+	prng_seed_saved = 1;
 	
 	pw = getpwuid(getuid());
 	if (pw == NULL)
