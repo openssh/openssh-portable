@@ -9,6 +9,8 @@
    - markus@cvs.openbsd.org 2001/03/19 17:12:10
      [version.h]
      version 2.5.2
+ - (djm) Update RPM spec version
+ - (djm) Release 2.5.2p1
 
 20010319
  - (djm) Seed PRNG at startup, rather than waiting for arc4random calls to 
@@ -4639,4 +4641,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.990 2001/03/19 22:16:34 djm Exp $
+$Id: ChangeLog,v 1.991 2001/03/19 22:30:50 djm Exp $
