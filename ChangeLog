@@ -13,6 +13,7 @@
    - djm@cvs.openbsd.org     2001/01/29 05:36:11
      [ssh.1 ssh.c]
      Allow invocation of sybsystem by commandline (-s); ok markus@
+ - (stevesk) configure.in: remove duplicate PROG_LS
 
 20000129
  - (stevesk) sftp-server.c: use %lld vs. %qd
