@@ -186,7 +186,10 @@ mm_getpwnamallow(int socket, const char *login, int *allowed)
 	pw->pw_name = buffer_get_string(&m, NULL);
 	pw->pw_passwd = buffer_get_string(&m, NULL);
 	pw->pw_gecos = buffer_get_string(&m, NULL);
+#if defined(HAVE_PW_CLASS_IN_PASSWD)
+#error XXX - get an empty string instead to preserve protocol?
 	pw->pw_class = buffer_get_string(&m, NULL);
+#endif
 	pw->pw_dir = buffer_get_string(&m, NULL);
 	pw->pw_shell = buffer_get_string(&m, NULL);
 	buffer_free(&m);
@@ -200,7 +203,9 @@ pwfree(struct passwd *pw)
 	xfree(pw->pw_name);
 	xfree(pw->pw_passwd);
 	xfree(pw->pw_gecos);
+#if defined(HAVE_PW_CLASS_IN_PASSWD)
 	xfree(pw->pw_class);
+#endif
 	xfree(pw->pw_dir);
 	xfree(pw->pw_shell);
 	xfree(pw);

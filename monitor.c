@@ -366,7 +366,11 @@ mm_answer_pwnamallow(int socket, Buffer *m)
 	buffer_put_cstring(m, pwent->pw_name);
 	buffer_put_cstring(m, "*");
 	buffer_put_cstring(m, pwent->pw_gecos);
+#if defined(HAVE_PW_CLASS_IN_PASSWD)
 	buffer_put_cstring(m, pwent->pw_class);
+#else
+#warning XXX - put an empty string instead to preserve protocol?
+#endif
 	buffer_put_cstring(m, pwent->pw_dir);
 	buffer_put_cstring(m, pwent->pw_shell);
 
