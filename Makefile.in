@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.219 2002/07/07 20:30:46 tim Exp $
+# $Id: Makefile.in,v 1.220 2002/07/09 02:10:06 tim Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -247,9 +247,9 @@ install-files: scard-install
 	@NO_SFTP@$(INSTALL) -m 644 sftp-server.8.out $(DESTDIR)$(mandir)/$(mansubdir)8/sftp-server.8
 	$(INSTALL) -m 644 ssh-keysign.8.out $(DESTDIR)$(mandir)/$(mansubdir)8/ssh-keysign.8
 	-rm -f $(DESTDIR)$(bindir)/slogin
-	ln -s ssh$(EXEEXT) $(DESTDIR)$(bindir)/slogin
+	ln -s ./ssh$(EXEEXT) $(DESTDIR)$(bindir)/slogin
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/slogin.1
-	ln -s ssh.1 $(DESTDIR)$(mandir)/$(mansubdir)1/slogin.1
+	ln -s ./ssh.1 $(DESTDIR)$(mandir)/$(mansubdir)1/slogin.1
 	if [ ! -d $(DESTDIR)$(sysconfdir) ]; then \
 		$(srcdir)/mkinstalldirs $(DESTDIR)$(sysconfdir); \
 	fi
