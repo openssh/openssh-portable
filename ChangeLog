@@ -12,6 +12,9 @@
    - djm@cvs.openbsd.org 2001/04/11 07:06:22
      [sftp-int.c]
      'mget' and 'mput' aliases; ok markus@
+   - markus@cvs.openbsd.org 2001/04/11 10:59:01
+     [ssh.c]
+     use strtol() for ports, thanks jakob@
 
 20010410
  - OpenBSD CVS Sync
@@ -5005,4 +5008,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1097 2001/04/11 23:05:17 mouring Exp $
+$Id: ChangeLog,v 1.1098 2001/04/11 23:06:28 mouring Exp $
