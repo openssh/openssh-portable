@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.264 2003/04/08 20:21:29 itojun Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.265 2003/04/14 14:17:50 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1153,7 +1153,8 @@ main(int ac, char **av)
 				continue;
 			}
 			/* Create socket for listening. */
-			listen_sock = socket(ai->ai_family, SOCK_STREAM, 0);
+			listen_sock = socket(ai->ai_family, ai->ai_socktype,
+			    ai->ai_protocol);
 			if (listen_sock < 0) {
 				/* kernel may not support ipv6 */
 				verbose("socket: %.100s", strerror(errno));

@@ -15,6 +15,9 @@
    - naddy@cvs.openbsd.org 2003/04/12 11:40:15
      [ssh.1]
      document -V switch, fix wording; ok markus@
+   - markus@cvs.openbsd.org 2003/04/14 14:17:50
+     [channels.c sshconnect.c sshd.c ssh-keyscan.c]
+     avoid hardcoded SOCK_xx; with itojun@; should allow ssh over SCTP
 
 20030512
  - (djm) Redhat spec: Don't install profile.d scripts when not 
@@ -1402,4 +1405,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2681 2003/05/14 03:42:08 djm Exp $
+$Id: ChangeLog,v 1.2682 2003/05/14 03:42:23 djm Exp $
