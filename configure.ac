@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.202 2004/02/24 05:47:04 tim Exp $
+# $Id: configure.ac,v 1.203 2004/02/29 23:53:37 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -268,6 +268,9 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(BROKEN_SAVED_UIDS)
 	;;
 *-*-solaris*)
+	if test "x$withval" != "xno" ; then	
+		need_dash_r=1
+	fi
 	AC_DEFINE(PAM_SUN_CODEBASE)
 	AC_DEFINE(LOGIN_NEEDS_UTMPX)
 	AC_DEFINE(LOGIN_NEEDS_TERM)
