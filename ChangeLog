@@ -4,6 +4,9 @@
      [moduli.c ssh-keygen.1 ssh-keygen.c]
      tidy up moduli generation debugging, add -v (verbose/debug) option to
      ssh-keygen; ok markus@
+   - markus@cvs.openbsd.org 2003/12/22 20:29:55
+     [cipher-3des1.c]
+     EVP_CIPHER_CTX_cleanup() for the des contexts; pruiksma@freesurf.fr
 
 20031219
  - (dtucker) [defines.h] Bug #458: Define SIZE_T_MAX as UINT_MAX if we
@@ -1623,4 +1626,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3153 2003/12/31 00:34:51 dtucker Exp $
+$Id: ChangeLog,v 1.3154 2003/12/31 00:36:00 dtucker Exp $
