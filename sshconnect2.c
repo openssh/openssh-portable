@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.52 2001/03/10 12:48:27 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.53 2001/03/10 17:51:04 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -51,6 +51,7 @@ RCSID("$OpenBSD: sshconnect2.c,v 1.52 2001/03/10 12:48:27 markus Exp $");
 #include "log.h"
 #include "readconf.h"
 #include "readpass.h"
+#include "match.h"
 
 void ssh_dh1_client(Kex *, char *, struct sockaddr *, Buffer *, Buffer *);
 void ssh_dhgex_client(Kex *, char *, struct sockaddr *, Buffer *, Buffer *);
@@ -498,9 +499,9 @@ sign_and_send_pubkey(Authctxt *authctxt, Key *k,
     sign_cb_fn *sign_callback);
 void	clear_auth_state(Authctxt *authctxt);
 
-void	authmethod_clear(void);
 Authmethod *authmethod_get(char *authlist);
 Authmethod *authmethod_lookup(const char *name);
+char *authmethods_get(void);
 
 Authmethod authmethods[] = {
 	{"publickey",
@@ -551,6 +552,9 @@ ssh_userauth2(const char *server_user, char *host)
 	packet_done();
 	debug("got SSH2_MSG_SERVICE_ACCEPT");
 
+	if (options.preferred_authentications == NULL)
+		options.preferred_authentications = authmethods_get();
+
 	/* setup authentication context */
 	authctxt.agent = ssh_get_authentication_connection();
 	authctxt.server_user = server_user;
@@ -561,7 +565,6 @@ ssh_userauth2(const char *server_user, char *host)
 	authctxt.authlist = NULL;
 	if (authctxt.method == NULL)
 		fatal("ssh_userauth2: internal error: cannot send userauth none request");
-	authmethod_clear();
 
 	/* initial userauth request */
 	userauth_none(&authctxt);
@@ -1106,39 +1109,6 @@ input_userauth_info_req(int type, int plen, void *ctxt)
 
 /* find auth method */
 
-#define	DELIM	","
-
-static char *def_authlist = "publickey,password";
-static char *authlist_current = NULL;	 /* clean copy used for comparison */
-static char *authname_current = NULL;	 /* last used auth method */
-static char *authlist_working = NULL;	 /* copy that gets modified by strtok_r() */
-static char *authlist_state = NULL;	 /* state variable for strtok_r() */
-
-/*
- * Before starting to use a new authentication method list sent by the
- * server, reset internal variables.  This should also be called when
- * finished processing server list to free resources.
- */
-void
-authmethod_clear(void)
-{
-	if (authlist_current != NULL) {
-		xfree(authlist_current);
-		authlist_current = NULL;
-	}
-	if (authlist_working != NULL) {
-		xfree(authlist_working);
-		authlist_working = NULL;
-	}
-	if (authname_current != NULL) {
-		xfree(authname_current);
-		authname_current = NULL;
-	}
-	if (authlist_state != NULL)
-		authlist_state = NULL;
-	return;
-}
-
 /*
  * given auth method name, if configurable options permit this method fill
  * in auth_ident field and return true, otherwise return false.
@@ -1169,62 +1139,70 @@ authmethod_lookup(const char *name)
 	return NULL;
 }
 
+/* XXX internal state */
+static Authmethod *current = NULL;
+static char *supported = NULL;
+static char *preferred = NULL;
 /*
  * Given the authentication method list sent by the server, return the
  * next method we should try.  If the server initially sends a nil list,
- * use a built-in default list.  If the server sends a nil list after
- * previously sending a valid list, continue using the list originally
- * sent.
+ * use a built-in default list. 
  */
-
 Authmethod *
 authmethod_get(char *authlist)
 {
-	char *name = NULL, *authname_old;
-	Authmethod *method = NULL;
+
+	char *name = NULL;
+	int next;
 
 	/* Use a suitable default if we're passed a nil list.  */
 	if (authlist == NULL || strlen(authlist) == 0)
-		authlist = def_authlist;
+		authlist = options.preferred_authentications;
 
-	if (authlist_current == NULL || strcmp(authlist, authlist_current) != 0) {
-		/* start over if passed a different list */
-		debug3("start over, passed a different list");
-		authmethod_clear();
-		authlist_current = xstrdup(authlist);
-		authlist_working = xstrdup(authlist);
-		name = strtok_r(authlist_working, DELIM, &authlist_state);
-	} else {
-		/*
-		 * try to use previously used authentication method
-		 * or continue to use previously passed list
-		 */
-		name = (authname_current != NULL) ?
-		    authname_current : strtok_r(NULL, DELIM, &authlist_state);
-	}
+	if (supported == NULL || strcmp(authlist, supported) != 0) {
+		debug3("start over, passed a different list %s", authlist);
+		if (supported != NULL)
+			xfree(supported);
+		supported = xstrdup(authlist);
+		preferred = options.preferred_authentications;
+		debug3("preferred %s", preferred);
+		current = NULL;
+	} else if (current != NULL && authmethod_is_enabled(current))
+		return current;
 
-	while (name != NULL) {
-		debug3("authmethod_lookup %s", name);
-		method = authmethod_lookup(name);
-		if (method != NULL && authmethod_is_enabled(method)) {
-			debug3("authmethod_is_enabled %s", name);
-			break;
+	for (;;) {
+		if ((name = match_list(preferred, supported, &next)) == NULL) {
+			debug("no more auth methods to try");
+			current = NULL;
+			return NULL;
 		}
-		name = strtok_r(NULL, DELIM, &authlist_state);
-		method = NULL;
+		preferred += next;
+		debug3("authmethod_lookup %s", name);
+		debug3("remaining preferred: %s", preferred);
+		if ((current = authmethod_lookup(name)) != NULL &&
+		    authmethod_is_enabled(current)) {
+			debug3("authmethod_is_enabled %s", name);
+			debug("next auth method to try is %s", name);
+			return current;
+		}
 	}
+}
 
-	authname_old = authname_current;
-	if (method != NULL) {
-		debug("next auth method to try is %s", name);
-		authname_current = xstrdup(name);
-	} else {
-		debug("no more auth methods to try");
-		authname_current = NULL;
+
+#define	DELIM	","
+char *
+authmethods_get(void)
+{
+	Authmethod *method = NULL;
+	char buf[1024];
+
+	buf[0] = '\0';
+	for (method = authmethods; method->name != NULL; method++) {
+		if (authmethod_is_enabled(method)) {
+			if (buf[0] != '\0')
+				strlcat(buf, DELIM, sizeof buf);
+			strlcat(buf, method->name, sizeof buf);
+		}
 	}
-
-	if (authname_old != NULL)
-		xfree(authname_old);
-
-	return (method);
+	return xstrdup(buf);
 }

@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.66 2001/03/10 12:53:52 deraadt Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.67 2001/03/10 17:51:04 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -109,7 +109,8 @@ typedef enum {
 	oCompressionLevel, oKeepAlives, oNumberOfPasswordPrompts,
 	oUsePrivilegedPort, oLogLevel, oCiphers, oProtocol, oMacs,
 	oGlobalKnownHostsFile2, oUserKnownHostsFile2, oPubkeyAuthentication,
-	oKbdInteractiveAuthentication, oKbdInteractiveDevices, oHostKeyAlias
+	oKbdInteractiveAuthentication, oKbdInteractiveDevices, oHostKeyAlias,
+	oPreferredAuthentications
 } OpCodes;
 
 /* Textual representations of the tokens. */
@@ -171,6 +172,7 @@ static struct {
 	{ "keepalive", oKeepAlives },
 	{ "numberofpasswordprompts", oNumberOfPasswordPrompts },
 	{ "loglevel", oLogLevel },
+	{ "preferredauthentications", oPreferredAuthentications },
 	{ NULL, 0 }
 };
 
@@ -444,6 +446,10 @@ parse_string:
 
 	case oHostKeyAlias:
 		charptr = &options->host_key_alias;
+		goto parse_string;
+
+	case oPreferredAuthentications:
+		charptr = &options->preferred_authentications;
 		goto parse_string;
 
 	case oProxyCommand:
@@ -722,6 +728,7 @@ initialize_options(Options * options)
 	options->num_local_forwards = 0;
 	options->num_remote_forwards = 0;
 	options->log_level = (LogLevel) - 1;
+	options->preferred_authentications = NULL;
 }
 
 /*
@@ -837,4 +844,5 @@ fill_default_options(Options * options)
 	/* options->user will be set in the main program if appropriate */
 	/* options->hostname will be set in the main program if appropriate */
 	/* options->host_key_alias should not be set by default */
+	/* options->preferred_authentications will be set in ssh */
 }

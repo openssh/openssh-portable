@@ -1,4 +1,4 @@
-/*	$OpenBSD: match.h,v 1.6 2001/01/29 01:58:17 niklas Exp $	*/
+/*	$OpenBSD: match.h,v 1.7 2001/03/10 17:51:04 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -29,5 +29,11 @@ int     match_pattern(const char *s, const char *pattern);
  * a positive match, 0 if there is no match at all.
  */
 int     match_hostname(const char *host, const char *pattern, u_int len);
+
+/*
+ * Returns first item from client-list that is also supported by server-list,
+ * caller must xfree() returned string.
+ */
+char	*match_list(const char *client, const char *server, u_int *next);
 
 #endif

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.22 2001/03/05 17:17:20 markus Exp $");
+RCSID("$OpenBSD: kex.c,v 1.23 2001/03/10 17:51:04 markus Exp $");
 
 #include <openssl/crypto.h>
 #include <openssl/bio.h>
@@ -42,6 +42,7 @@ RCSID("$OpenBSD: kex.c,v 1.22 2001/03/05 17:17:20 markus Exp $");
 #include "key.h"
 #include "log.h"
 #include "mac.h"
+#include "match.h"
 
 #define KEX_COOKIE_LEN	16
 
@@ -372,49 +373,10 @@ derive_key(int id, int need, u_char *hash, BIGNUM *shared_secret)
 	return digest;
 }
 
-#define NKEYS	6
-
-#define	MAX_PROP	20
-#define	SEP	","
-
-char *
-get_match(char *client, char *server)
-{
-	char *sproposals[MAX_PROP];
-	char *c, *s, *p, *ret, *cp, *sp;
-	int i, j, nproposals;
-
-	c = cp = xstrdup(client);
-	s = sp = xstrdup(server);
-
-	for ((p = strsep(&sp, SEP)), i=0; p && *p != '\0';
-	     (p = strsep(&sp, SEP)), i++) {
-		if (i < MAX_PROP)
-			sproposals[i] = p;
-		else
-			break;
-	}
-	nproposals = i;
-
-	for ((p = strsep(&cp, SEP)), i=0; p && *p != '\0';
-	     (p = strsep(&cp, SEP)), i++) {
-		for (j = 0; j < nproposals; j++) {
-			if (strcmp(p, sproposals[j]) == 0) {
-				ret = xstrdup(p);
-				xfree(c);
-				xfree(s);
-				return ret;
-			}
-		}
-	}
-	xfree(c);
-	xfree(s);
-	return NULL;
-}
 void
 choose_enc(Enc *enc, char *client, char *server)
 {
-	char *name = get_match(client, server);
+	char *name = match_list(client, server, NULL);
 	if (name == NULL)
 		fatal("no matching cipher found: client %s server %s", client, server);
 	enc->cipher = cipher_by_name(name);
@@ -428,7 +390,7 @@ choose_enc(Enc *enc, char *client, char *server)
 void
 choose_mac(Mac *mac, char *client, char *server)
 {
-	char *name = get_match(client, server);
+	char *name = match_list(client, server, NULL);
 	if (name == NULL)
 		fatal("no matching mac found: client %s server %s", client, server);
 	if (mac_init(mac, name) < 0)
@@ -443,7 +405,7 @@ choose_mac(Mac *mac, char *client, char *server)
 void
 choose_comp(Comp *comp, char *client, char *server)
 {
-	char *name = get_match(client, server);
+	char *name = match_list(client, server, NULL);
 	if (name == NULL)
 		fatal("no matching comp found: client %s server %s", client, server);
 	if (strcmp(name, "zlib") == 0) {
@@ -458,7 +420,7 @@ choose_comp(Comp *comp, char *client, char *server)
 void
 choose_kex(Kex *k, char *client, char *server)
 {
-	k->name = get_match(client, server);
+	k->name = match_list(client, server, NULL);
 	if (k->name == NULL)
 		fatal("no kex alg");
 	if (strcmp(k->name, KEX_DH1) == 0) {
@@ -471,7 +433,7 @@ choose_kex(Kex *k, char *client, char *server)
 void
 choose_hostkeyalg(Kex *k, char *client, char *server)
 {
-	char *hostkeyalg = get_match(client, server);
+	char *hostkeyalg = match_list(client, server, NULL);
 	if (hostkeyalg == NULL)
 		fatal("no hostkey alg");
 	k->hostkey_type = key_type_from_name(hostkeyalg);
@@ -524,6 +486,7 @@ kex_choose_conf(char *cprop[PROPOSAL_MAX], char *sprop[PROPOSAL_MAX], int server
 	return k;
 }
 
+#define NKEYS	6
 int
 kex_derive_keys(Kex *k, u_char *hash, BIGNUM *shared_secret)
 {
