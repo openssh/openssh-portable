@@ -30,6 +30,7 @@
      [scp.1 sftp.1 ssh.1]
      consistent documentation and example of ``-o ssh_option'' for sftp and
      scp; document keyword=argument for ssh.
+ - (bal) QNX resync.   OK tim@
 
 20010814
  - (stevesk) sshpty.c, cray.[ch]: whitespace, formatting and cleanup
@@ -6319,4 +6320,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1483 2001/08/15 23:25:46 mouring Exp $
+$Id: ChangeLog,v 1.1484 2001/08/16 00:09:49 mouring Exp $

@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.113 2001/07/14 03:22:53 djm Exp $ */
+/* $Id: acconfig.h,v 1.114 2001/08/16 00:09:50 mouring Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -322,6 +322,15 @@
 
 /* Define if your getopt(3) defines and uses optreset */
 #undef HAVE_GETOPT_OPTRESET
+
+/* Define on *nto-qnx systems */
+#undef MISSING_NFDBITS
+
+/* Define on *nto-qnx systems */
+#undef MISSING_HOWMANY
+
+/* Define on *nto-qnx systems */
+#undef MISSING_FD_MASK
 
 @BOTTOM@
 
