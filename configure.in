@@ -287,4 +287,8 @@ AC_ARG_WITH(md5-passwords,
 	[AC_DEFINE(HAVE_MD5_PASSWORDS)]
 )
 
+dnl Check for the path to xauth
+AC_PATH_PROG(xauth_path, xauth)
+AC_DEFINE_UNQUOTED(XAUTH_PATH, "$xauth_path")
+
 AC_OUTPUT(Makefile)

@@ -101,30 +101,6 @@ mcleanup(str, n, p)
 	free(curobj);
 }
 
-#if !defined(HAVE_SNPRINTF)
-int
-#if __STDC__
-snprintf(char *str, size_t n, char const *fmt, ...)
-#else
-snprintf(str, n, fmt, va_alist)
-	char *str;
-	size_t n;
-	char *fmt;
-	va_dcl
-#endif
-{
-	va_list ap;
-#if __STDC__
-	va_start(ap, fmt);
-#else
-	va_start(ap);
-#endif
-
-	return (vsnprintf(str, n, fmt, ap));
-	va_end(ap);
-}
-#endif /* !defined(HAVE_SNPRINTF) */
-
 #if !defined(HAVE_VSNPRINTF)
 int
 vsnprintf(str, n, fmt, ap)
@@ -158,5 +134,29 @@ vsnprintf(str, n, fmt, ap)
 	return (ret);
 }
 #endif /* !defined(HAVE_VSNPRINTF) */
+
+#if !defined(HAVE_SNPRINTF)
+int
+#if __STDC__
+snprintf(char *str, size_t n, char const *fmt, ...)
+#else
+snprintf(str, n, fmt, va_alist)
+	char *str;
+	size_t n;
+	char *fmt;
+	va_dcl
+#endif
+{
+	va_list ap;
+#if __STDC__
+	va_start(ap, fmt);
+#else
+	va_start(ap);
+#endif
+
+	return (vsnprintf(str, n, fmt, ap));
+	va_end(ap);
+}
+#endif /* !defined(HAVE_SNPRINTF) */
 
 #endif /* !defined(HAVE_SNPRINTF) || !defined(HAVE_VSNPRINTF) */

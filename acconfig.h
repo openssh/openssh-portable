@@ -73,6 +73,9 @@
 /* Define if you have /dev/ptc */
 #undef HAVE_DEV_PTS_AND_PTC
 
+/* Path to xauth binary */
+#undef XAUTH_PATH
+
 @BOTTOM@
 
 /* ******************* Shouldn't need to edit below this line ************** */
@@ -258,3 +261,14 @@ enum
 # define __P(x) x
 #endif
 
+#ifdef __GNUC__
+#  if __GNUC__ < 2
+#    define INLINE inline
+#    define __attribute__(x)
+#  else
+#    define INLINE __inline__
+#  endif /* __GNUC__ < 2 */
+#else
+#  define __attribute__(x)
+#  define INLINE
+#endif /* __GNUC__ */

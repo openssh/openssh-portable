@@ -1,3 +1,16 @@
+19991211
+ - Fix compilation on systems with AFS. Reported by 
+   aloomis@glue.umd.edu
+ - Fix installation on Solaris. Reported by 
+   Gordon Rowell <gordonr@gormand.com.au>
+ - Fix gccisms (__attribute__ and inline). Report by edgy@us.ibm.com,
+   patch from Markus Friedl <markus.friedl@informatik.uni-erlangen.de>
+ - Auto-locate xauth. Patch from David Agraz <dagraz@jahoopa.com>
+ - Compile fix from David Agraz <dagraz@jahoopa.com>
+ - Avoid compiler warning in bsd-snprintf.c
+ - Added pam_limits.so to default PAM config. Suggested by 
+   Jim Knoble <jmknoble@pobox.com>
+
 19991209
  - Import of patch from Ben Taylor <bent@clark.net>:
    - Improved PAM support
