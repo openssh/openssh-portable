@@ -78,8 +78,7 @@ allowed_user(struct passwd * pw)
 #ifdef WITH_AIXAUTHENTICATE
 	char *loginmsg;
 #endif /* WITH_AIXAUTHENTICATE */
-#if !defined(USE_PAM) && defined(HAVE_SHADOW_H) && \
-    !defined(DISABLE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
+#if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
 	struct spwd *spw;
 #endif
 
@@ -87,38 +86,11 @@ allowed_user(struct passwd * pw)
 	if (!pw || !pw->pw_name)
 		return 0;
 
-#if !defined(USE_PAM) && defined(HAVE_SHADOW_H) && \
-    !defined(DISABLE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
-#define	DAY		(24L * 60 * 60) /* 1 day in seconds */
+	/* Grab the password for locked account checking */
+#if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
 	spw = getspnam(pw->pw_name);
-	if (spw != NULL) {
-		time_t today = time(NULL) / DAY;
-		debug3("allowed_user: today %d sp_expire %d sp_lstchg %d"
-		    " sp_max %d", (int)today, (int)spw->sp_expire,
-		    (int)spw->sp_lstchg, (int)spw->sp_max);
-
-		/*
-		 * We assume account and password expiration occurs the
-		 * day after the day specified.
-		 */
-		if (spw->sp_expire != -1 && today > spw->sp_expire) {
-			log("Account %.100s has expired", pw->pw_name);
-			return 0;
-		}
-
-		if (spw->sp_lstchg == 0) {
-			log("User %.100s password has expired (root forced)",
-			    pw->pw_name);
-			return 0;
-		}
-
-		if (spw->sp_max != -1 &&
-		    today > spw->sp_lstchg + spw->sp_max) {
-			log("User %.100s password has expired (password aged)",
-			    pw->pw_name);
-			return 0;
-		}
-	}
+	if (!spw)
+		return 0;
 	passwd = spw->sp_pwdp;
 #else
 	passwd = pw->pw_passwd;
@@ -130,6 +102,37 @@ allowed_user(struct passwd * pw)
 		    pw->pw_name);
 		return 0;
 	}
+
+#if !defined(USE_PAM) && defined(HAVE_SHADOW_H) && \
+    !defined(DISABLE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
+#define	DAY		(24L * 60 * 60) /* 1 day in seconds */
+	time_t today = time(NULL) / DAY;
+	debug3("allowed_user: today %d sp_expire %d sp_lstchg %d"
+	    " sp_max %d", (int)today, (int)spw->sp_expire,
+	    (int)spw->sp_lstchg, (int)spw->sp_max);
+
+	/*
+	 * We assume account and password expiration occurs the
+	 * day after the day specified.
+	 */
+	if (spw->sp_expire != -1 && today > spw->sp_expire) {
+		log("Account %.100s has expired", pw->pw_name);
+		return 0;
+	}
+
+	if (spw->sp_lstchg == 0) {
+		log("User %.100s password has expired (root forced)",
+		    pw->pw_name);
+		return 0;
+	}
+
+	if (spw->sp_max != -1 &&
+	    today > spw->sp_lstchg + spw->sp_max) {
+		log("User %.100s password has expired (password aged)",
+		    pw->pw_name);
+		return 0;
+	}
+#endif
 
 	/*
 	 * Get the shell from the password data.  An empty shell field is

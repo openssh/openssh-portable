@@ -12,6 +12,8 @@
    nasties. Report from peak@argo.troja.mff.cuni.cz
  - (djm) Bug #178: On AIX /etc/nologin wasnt't shown to users. Fix from 
    Ralf.Wenk@fh-karlsruhe.de and dtucker@zip.com.au
+ - (djm) Fix my fix of the fix for the Bug #442 for PAM case. Spotted by 
+   dtucker@zip.com.au. Reorder for clarity too.
 
 20030103
  - (djm) Bug #461: ssh-copy-id fails with no arguments. Patch from 
@@ -940,4 +942,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2547 2003/01/07 06:38:58 djm Exp $
+$Id: ChangeLog,v 1.2548 2003/01/07 12:55:59 djm Exp $
