@@ -45,7 +45,7 @@
 
 #include "includes.h"
 
-#ifndef HAVE_GETRRSETBYNAME
+#if defined(DNS) && !defined(HAVE_GETRRSETBYNAME)
 
 #include "getrrsetbyname.h"
 
@@ -564,4 +564,4 @@ count_dns_rr(struct dns_rr *p, u_int16_t class, u_int16_t type)
 	return (n);
 }
 
-#endif /* HAVE_GETRRSETBYNAME */
+#endif /* defined(DNS) && !defined(HAVE_GETRRSETBYNAME) */
