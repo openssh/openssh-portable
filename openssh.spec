@@ -91,7 +91,7 @@ fi
 %files
 %defattr(-,root,root)
 %doc COPYING.Ylonen ChangeLog ChangeLog.Ylonen OVERVIEW 
-%doc README README.openssh
+%doc README README.Ylonen
 %attr(0755,root,root) /usr/sbin/sshd
 %attr(0755,root,root) /usr/bin/ssh
 %attr(0755,root,root) /usr/bin/ssh-agent
