@@ -35,7 +35,7 @@
 #include <openssl/rand.h>
 #include <openssl/sha.h>
 
-RCSID("$Id: entropy.c,v 1.15 2000/06/26 03:01:33 djm Exp $");
+RCSID("$Id: entropy.c,v 1.16 2000/06/26 03:55:31 djm Exp $");
 
 #ifndef offsetof
 # define offsetof(type, member) ((size_t) &((type *)0)->member)
@@ -158,11 +158,13 @@ seed_rng(void)
 	
 	debug("Seeding random number generator");
 
-	if (!get_random_bytes(buf, sizeof(buf)) && !RAND_status())
-		fatal("Entropy collection failed and entropy exhausted");
-
-	RAND_add(buf, sizeof(buf), sizeof(buf));
-
+	if (!get_random_bytes(buf, sizeof(buf))) {
+		if (!RAND_status())
+			fatal("Entropy collection failed and entropy exhausted");
+	} else {
+		RAND_add(buf, sizeof(buf), sizeof(buf));
+	}
+	
 	memset(buf, '\0', sizeof(buf));
 }
 
