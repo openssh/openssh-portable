@@ -3,6 +3,7 @@
  - (djm) Remove redundant and incorrect test for max auth attempts in 
    PAM kbdint code. Based on fix from Matthew Melvin 
   <matthewm@webcentral.com.au>
+ - (djm) Rename sysconfdir/primes => sysconfdir/moduli
 
 20010625
  - OpenBSD CVS Sync
@@ -5797,4 +5798,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1327 2001/06/27 05:36:43 djm Exp $
+$Id: ChangeLog,v 1.1328 2001/06/27 07:07:16 djm Exp $

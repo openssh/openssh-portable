@@ -171,7 +171,7 @@ fi
 %attr(0755,root,root) %dir /etc/ssh
 %attr(0644,root,root) %config /etc/ssh/ssh_config
 %attr(0600,root,root) %config /etc/ssh/sshd_config
-%attr(0600,root,root) %config /etc/ssh/primes
+%attr(0600,root,root) %config /etc/ssh/moduli
 %attr(0644,root,root) %config /etc/pam.d/sshd
 %attr(0755,root,root) %config /sbin/init.d/sshd
 %attr(0755,root,root) /usr/bin/ssh-keygen
