@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-rsa.c,v 1.23 2002/07/04 10:41:47 markus Exp $");
+RCSID("$OpenBSD: ssh-rsa.c,v 1.24 2002/08/02 21:23:41 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -76,7 +76,7 @@ ssh_rsa_sign(Key *key, u_char **sigp, u_int *lenp,
 		return -1;
 	}
 	if (len < slen) {
-		int diff = slen - len;
+		u_int diff = slen - len;
 		debug("slen %u > len %u", slen, len);
 		memmove(sig + diff, sig, len);
 		memset(sig, 0, diff);
@@ -149,7 +149,7 @@ ssh_rsa_verify(Key *key, u_char *signature, u_int signaturelen,
 		xfree(sigblob);
 		return -1;
 	} else if (len < modlen) {
-		int diff = modlen - len;
+		u_int diff = modlen - len;
 		debug("ssh_rsa_verify: add padding: modlen %u > len %u",
 		    modlen, len);
 		sigblob = xrealloc(sigblob, modlen);
