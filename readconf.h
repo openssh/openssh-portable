@@ -13,7 +13,7 @@
  *
  */
 
-/* RCSID("$Id: readconf.h,v 1.10 2000/05/07 02:03:17 damien Exp $"); */
+/* RCSID("$Id: readconf.h,v 1.11 2000/05/09 01:03:01 damien Exp $"); */
 
 #ifndef READCONF_H
 #define READCONF_H
@@ -65,7 +65,7 @@ typedef struct {
 	int     number_of_password_prompts;	/* Max number of password
 						 * prompts. */
 	int     cipher;		/* Cipher to use. */
-	char   *ciphers;	/* Ciphers in order of preference. */
+	char   *ciphers;	/* SSH2 ciphers in order of preference. */
 	int	protocol;	/* Protocol in order of preference. */
 	char   *hostname;	/* Real host to connect. */
 	char   *proxy_command;	/* Proxy command for connecting the host. */

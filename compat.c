@@ -28,7 +28,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: compat.c,v 1.9 2000/04/29 13:57:10 damien Exp $");
+RCSID("$Id: compat.c,v 1.10 2000/05/09 01:03:00 damien Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -57,17 +57,20 @@ compat_datafellows(const char *version)
 {
 	int i;
 	size_t len;
-	static const char *check[] = {
-		"2.0.1",
-		"2.1.0",
-		NULL
+	struct {
+		char	*version;
+		int	bugs;
+	} check[] = {
+		{"2.1.0",	SSH_BUG_SIGBLOB|SSH_BUG_HMAC},
+		{"2.0.1",	SSH_BUG_SIGBLOB|SSH_BUG_HMAC|SSH_BUG_PUBKEYAUTH|SSH_BUG_X11FWD},
+		{NULL,		0}
 	};
-	for (i = 0; check[i]; i++) {
-		len = strlen(check[i]);
+	for (i = 0; check[i].version; i++) {
+		len = strlen(check[i].version);
 		if (strlen(version) >= len &&
-		   (strncmp(version, check[i], len) == 0)) {
+		   (strncmp(version, check[i].version, len) == 0)) {
 			verbose("datafellows: %.200s", version);
-			datafellows = 1;
+			datafellows = check[i].bugs;
 			return;
 		}
 	}

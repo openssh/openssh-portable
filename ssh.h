@@ -13,7 +13,7 @@
  *
  */
 
-/* RCSID("$Id: ssh.h,v 1.38 2000/05/07 02:03:19 damien Exp $"); */
+/* RCSID("$Id: ssh.h,v 1.39 2000/05/09 01:03:02 damien Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -30,6 +30,7 @@
 #include "cipher.h"
 
 /*
+ * XXX
  * The default cipher used if IDEA is not supported by the remote host. It is
  * recommended that this be one of the mandatory ciphers (DES, 3DES), though
  * that is not required.

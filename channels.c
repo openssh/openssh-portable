@@ -17,7 +17,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: channels.c,v 1.29 2000/05/07 02:03:15 damien Exp $");
+RCSID("$Id: channels.c,v 1.30 2000/05/09 01:02:59 damien Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -505,7 +505,10 @@ channel_pre_x11_open(Channel *c, fd_set * readset, fd_set * writeset)
 	int ret = x11_open_helper(c);
 	if (ret == 1) {
 		c->type = SSH_CHANNEL_OPEN;
-		channel_pre_open_15(c, readset, writeset);
+		if (compat20)
+			channel_pre_open_20(c, readset, writeset);
+		else
+			channel_pre_open_15(c, readset, writeset);
 	} else if (ret == -1) {
 		debug("X11 rejected %d i%d/o%d", c->self, c->istate, c->ostate);
 		chan_read_failed(c);	/** force close? */
@@ -549,7 +552,11 @@ channel_post_x11_listener(Channel *c, fd_set * readset, fd_set * writeset)
 			packet_put_int(c->local_maxpacket);
 			/* originator host and port */
 			packet_put_cstring(remote_hostname);
-			packet_put_int(remote_port);
+			if (datafellows & SSH_BUG_X11FWD) {
+				debug("ssh2 x11 bug compat mode");
+			} else {
+				packet_put_int(remote_port);
+			}
 			packet_send();
 		} else {
 			packet_start(SSH_SMSG_X11_OPEN);

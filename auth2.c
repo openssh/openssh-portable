@@ -27,7 +27,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.7 2000/05/06 17:45:36 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.8 2000/05/08 17:42:24 markus Exp $");
 
 #include <openssl/dsa.h>
 #include <openssl/rsa.h>
@@ -276,6 +276,10 @@ ssh2_auth_pubkey(struct passwd *pw, unsigned char *raw, unsigned int rlen)
 
 	if (options.dsa_authentication == 0) {
 		debug("pubkey auth disabled");
+		return 0;
+	}
+	if (datafellows & SSH_BUG_PUBKEYAUTH) {
+		log("bug compatibility with ssh-2.0.13 pubkey not implemented");
 		return 0;
 	}
 	have_sig = packet_get_char();

@@ -28,7 +28,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.8 2000/05/07 18:23:32 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.10 2000/05/08 17:42:25 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
@@ -96,13 +96,14 @@ ssh_kex2(char *host, struct sockaddr *hostaddr)
 	if (options.ciphers != NULL) {
 		myproposal[PROPOSAL_ENC_ALGS_CTOS] =
 		myproposal[PROPOSAL_ENC_ALGS_STOC] = options.ciphers;
-	} else if (
-	    options.cipher == SSH_CIPHER_ARCFOUR ||
-	    options.cipher == SSH_CIPHER_3DES_CBC ||
-	    options.cipher == SSH_CIPHER_CAST128_CBC ||
-	    options.cipher == SSH_CIPHER_BLOWFISH_CBC) {
+	} else if (options.cipher == SSH_CIPHER_3DES) {
 		myproposal[PROPOSAL_ENC_ALGS_CTOS] =
-		myproposal[PROPOSAL_ENC_ALGS_STOC] = cipher_name(options.cipher);
+		myproposal[PROPOSAL_ENC_ALGS_STOC] =
+		    cipher_name(SSH_CIPHER_3DES_CBC);
+	} else if (options.cipher == SSH_CIPHER_BLOWFISH) {
+		myproposal[PROPOSAL_ENC_ALGS_CTOS] =
+		myproposal[PROPOSAL_ENC_ALGS_STOC] =
+		    cipher_name(SSH_CIPHER_BLOWFISH_CBC);
 	}
 	if (options.compression) {
 		myproposal[PROPOSAL_COMP_ALGS_CTOS] = "zlib";
@@ -344,12 +345,14 @@ ssh2_try_pubkey(char *filename,
 	buffer_append(&b, session_id2, session_id2_len);
 	buffer_put_char(&b, SSH2_MSG_USERAUTH_REQUEST);
 	buffer_put_cstring(&b, server_user);
-	buffer_put_cstring(&b, service);
+	buffer_put_cstring(&b,
+	    datafellows & SSH_BUG_PUBKEYAUTH ?
+	    "ssh-userauth" :
+	    service);
 	buffer_put_cstring(&b, "publickey");
 	buffer_put_char(&b, 1);
 	buffer_put_cstring(&b, KEX_DSS); 
 	buffer_put_string(&b, blob, bloblen);
-	xfree(blob);
 
 	/* generate signature */
 	dsa_sign(k, &signature, &slen, buffer_ptr(&b), buffer_len(&b));
@@ -357,6 +360,19 @@ ssh2_try_pubkey(char *filename,
 #ifdef DEBUG_DSS
 	buffer_dump(&b);
 #endif
+	if (datafellows & SSH_BUG_PUBKEYAUTH) {
+		/* e.g. ssh-2.0.13: data-to-be-signed != data-on-the-wire */
+		buffer_clear(&b);
+		buffer_append(&b, session_id2, session_id2_len);
+		buffer_put_char(&b, SSH2_MSG_USERAUTH_REQUEST);
+		buffer_put_cstring(&b, server_user);
+		buffer_put_cstring(&b, service);
+		buffer_put_cstring(&b, "publickey");
+		buffer_put_char(&b, 1);
+		buffer_put_cstring(&b, KEX_DSS); 
+		buffer_put_string(&b, blob, bloblen);
+	}
+	xfree(blob);
 	/* append signature */
 	buffer_put_string(&b, signature, slen);
 	xfree(signature);

@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: sshd.8,v 1.21 2000/05/07 02:03:20 damien Exp $
+.\" $Id: sshd.8,v 1.22 2000/05/09 01:03:03 damien Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSHD 8
@@ -115,7 +115,7 @@ Blowfish, 3DES or CAST128 in CBC mode or Arcfour.
 The client selects the encryption algorithm
 to use from those offered by the server.
 Additionally, session integrity is provided
-through a crytographic message authentication code
+through a cryptographic message authentication code
 (hmac-sha1 or hmac-md5).
 .Pp
 Protocol version 2 provides a public key based
@@ -277,7 +277,7 @@ By default login is allowed regardless of the user name.
 Specifies the ciphers allowed for protocol version 2.
 Multiple ciphers must be comma-separated.
 The default is
-.Dq blowfish-cbc,3des-cbc,arcfour,cast128-cbc .
+.Dq 3des-cbc,blowfish-cbc,arcfour,cast128-cbc .
 .It Cm CheckMail
 Specifies whether
 .Nm
@@ -327,14 +327,14 @@ Specifies the file containing the private DSA host key (default
 used by SSH protocol 2.0.
 Note that
 .Nm
-disables protcol 2.0 if this file is group/world-accessible.
+disables protocol 2.0 if this file is group/world-accessible.
 .It Cm HostKey
 Specifies the file containing the private RSA host key (default
 .Pa /etc/ssh_host_key )
 used by SSH protocols 1.3 and 1.5.
 Note that
 .Nm
-disables protcols 1.3 and 1.5 if this file is group/world-accessible.
+disables protocols 1.3 and 1.5 if this file is group/world-accessible.
 .It Cm IgnoreRhosts
 Specifies that
 .Pa .rhosts
@@ -364,7 +364,7 @@ of the machines will be properly noticed.
 However, this means that
 connections will die if the route is down temporarily, and some people
 find it annoying.
-On the other hand, if keepalives are not send,
+On the other hand, if keepalives are not sent,
 sessions may hang indefinitely on the server, leaving
 .Dq ghost
 users and consuming server resources.
@@ -620,7 +620,7 @@ The
 .Pa $HOME/.ssh/authorized_keys
 file lists the RSA keys that are
 permitted for RSA authentication in SSH protocols 1.3 and 1.5
-Similarily, the
+Similarly, the
 .Pa $HOME/.ssh/authorized_keys2
 file lists the DSA keys that are
 permitted for DSA authentication in SSH protocol 2.0.
@@ -679,8 +679,8 @@ A quote may be included in the command by quoting it with a backslash.
 This option might be useful
 to restrict certain RSA keys to perform just a specific operation.
 An example might be a key that permits remote backups but nothing else.
-Notice that the client may specify TCP/IP and/or X11
-forwardings unless they are explicitly prohibited.
+Note that the client may specify TCP/IP and/or X11
+forwarding unless they are explicitly prohibited.
 .It Cm environment="NAME=value"
 Specifies that the string is to be added to the environment when
 logging in using this key.

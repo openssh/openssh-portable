@@ -28,7 +28,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: dsa.c,v 1.6 2000/05/04 22:37:59 markus Exp $");
+RCSID("$Id: dsa.c,v 1.7 2000/05/08 17:42:24 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -162,7 +162,7 @@ dsa_sign(
 	BN_bn2bin(sig->s, sigblob+ SIGBLOB_LEN - slen);
 	DSA_SIG_free(sig);
 
-	if (datafellows) {
+	if (datafellows & SSH_BUG_SIGBLOB) {
 		debug("datafellows");
 		ret = xmalloc(SIGBLOB_LEN);
 		memcpy(ret, sigblob, SIGBLOB_LEN);
@@ -209,15 +209,20 @@ dsa_verify(
 		return -1;
 	}
 
-	if (datafellows && signaturelen != SIGBLOB_LEN) {
-		log("heh? datafellows ssh2 complies with ietf-drafts????");
-		datafellows = 0;
+	if (!(datafellows & SSH_BUG_SIGBLOB) &&
+	    signaturelen == SIGBLOB_LEN) {
+		datafellows |= ~SSH_BUG_SIGBLOB;
+		log("autodetect SSH_BUG_SIGBLOB");
+	} else if ((datafellows & SSH_BUG_SIGBLOB) &&
+	    signaturelen != SIGBLOB_LEN) {
+		log("autoremove SSH_BUG_SIGBLOB");
+		datafellows &= ~SSH_BUG_SIGBLOB;
 	}
 
 	debug("len %d datafellows %d", signaturelen, datafellows);
 
 	/* fetch signature */
-	if (datafellows) {
+	if (datafellows & SSH_BUG_SIGBLOB) {
 		sigblob = signature;
 		len = signaturelen;
 	} else {
@@ -242,7 +247,8 @@ dsa_verify(
 	sig->s = BN_new();
 	BN_bin2bn(sigblob, INTBLOB_LEN, sig->r);
 	BN_bin2bn(sigblob+ INTBLOB_LEN, INTBLOB_LEN, sig->s);
-	if (!datafellows) {
+
+	if (!(datafellows & SSH_BUG_SIGBLOB)) {
 		memset(sigblob, 0, len);
 		xfree(sigblob);
 	}

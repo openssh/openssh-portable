@@ -1,3 +1,28 @@
+20000509
+ - OpenBSD CVS update
+  - markus@cvs.openbsd.org
+    [cipher.h myproposal.h readconf.c readconf.h servconf.c ssh.1 ssh.c]
+    [ssh.h sshconnect1.c sshconnect2.c sshd.8]
+    - complain about invalid ciphers in SSH1 (e.g. arcfour is SSH2 only)
+  - hugh@cvs.openbsd.org
+    [ssh.1]
+    - zap typo
+    [ssh-keygen.1]
+    - One last nit fix. (markus approved)
+    [sshd.8]
+    - some markus certified spelling adjustments
+  - markus@cvs.openbsd.org
+    [auth2.c channels.c clientloop.c compat compat.h dsa.c kex.c]
+    [sshconnect2.c ]
+    - bug compat w/ ssh-2.0.13 x11, split out bugs
+    [nchan.c]
+    - no drain if ibuf_empty, fixes x11fwd problems; tests by fries@
+    [ssh-keygen.c]
+    - handle escapes in real and original key format, ok millert@
+    [version.h]
+    - OpenSSH-2.1
+
+
 20000508
  - Makefile and RPM spec fixes
  - Generate DSA host keys during "make key" or RPM installs

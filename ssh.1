@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: ssh.1,v 1.24 2000/05/07 02:03:19 damien Exp $
+.\" $Id: ssh.1,v 1.25 2000/05/09 01:03:02 damien Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSH 1
@@ -25,7 +25,7 @@
 .Pp
 .Nm ssh
 .Op Fl afgknqtvxCPX246
-.Op Fl c Ar blowfish | 3des
+.Op Fl c Ar cipher_spec
 .Op Fl e Ar escape_char
 .Op Fl i Ar identity_file
 .Op Fl l Ar login_name
@@ -202,7 +202,7 @@ This protocol 2 implementation does not yet support Kerberos or
 S/Key authentication.
 .Pp
 Protocol 2 provides additional mechanisms for confidentiality
-(the traffic is encrypted using 3DES, blowfish, cast128 or arcfour)
+(the traffic is encrypted using 3DES, Blowfish, CAST128 or Arcfour)
 and integrity (hmac-sha1, hmac-md5).
 Note that protocol 1 lacks a strong mechanism for ensuring the
 integrity of the connection.
@@ -342,10 +342,15 @@ It is believed to be secure.
 (triple-des) is an encrypt-decrypt-encrypt triple with three different keys.
 It is presumably more secure than the
 .Ar des
-cipher which is no longer supported in ssh.
+cipher which is no longer supported in
+.Nm ssh .
 .Ar blowfish
 is a fast block cipher, it appears very secure and is much faster than
 .Ar 3des .
+.It Fl c Ar "3des-cbc,blowfish-cbc,arcfour,cast128-cbc"
+Additionally, for protocol version 2 a comma-separated list of ciphers can
+be specified in order of preference. Protocol version 2 supports
+3DES, Blowfish and CAST128 in CBC mode and Arcfour.
 .It Fl e Ar ch|^ch|none
 Sets the escape character for sessions with a pty (default:
 .Ql ~ ) .
@@ -601,7 +606,7 @@ Specifies the ciphers allowed for protocol version 2
 in order of preference.
 Multiple ciphers must be comma-separated.
 The default is
-.Dq blowfish-cbc,3des-cbc,arcfour,cast128-cbc .
+.Dq 3des-cbc,blowfish-cbc,arcfour,cast128-cbc .
 .It Cm Compression
 Specifies whether to use compression.
 The argument must be
@@ -785,7 +790,7 @@ The default is
 This means that
 .Nm
 tries version 1 and falls back to version 2
-if version 1 is no available.
+if version 1 is not available.
 .It Cm ProxyCommand
 Specifies the command to use to connect to the server.
 The command

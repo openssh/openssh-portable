@@ -9,7 +9,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.2 2000/05/04 22:38:00 markus Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.3 2000/05/08 17:12:16 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dsa.h>
@@ -832,13 +832,17 @@ ssh_kex(char *host, struct sockaddr *hostaddr)
 	RSA_free(public_key);
 	RSA_free(host_key);
 
-	if (options.cipher == SSH_CIPHER_NOT_SET) {
+	if (options.cipher == SSH_CIPHER_ILLEGAL) {
+		log("No valid SSH1 cipher, using %.100s instead.",
+		    cipher_name(SSH_FALLBACK_CIPHER));
+		options.cipher = SSH_FALLBACK_CIPHER;
+	} else if (options.cipher == SSH_CIPHER_NOT_SET) {
 		if (cipher_mask1() & supported_ciphers & (1 << ssh_cipher_default))
 			options.cipher = ssh_cipher_default;
 		else {
 			debug("Cipher %s not supported, using %.100s instead.",
-			      cipher_name(ssh_cipher_default),
-			      cipher_name(SSH_FALLBACK_CIPHER));
+			    cipher_name(ssh_cipher_default),
+			    cipher_name(SSH_FALLBACK_CIPHER));
 			options.cipher = SSH_FALLBACK_CIPHER;
 		}
 	}
