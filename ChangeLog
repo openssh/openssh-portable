@@ -24,6 +24,10 @@
    - markus@cvs.openbsd.org 2002/05/23 19:39:34
      [ssh.c]
      add comment about ssh-keysign
+   - markus@cvs.openbsd.org 2002/05/24 08:45:14
+     [sshconnect2.c]
+     stat ssh-keysign first, print error if stat fails;
+     some debug->error; fix comment
 
 20020604
  - (stevesk) [channels.c] bug #164 patch from YOSHIFUJI Hideaki (changed
@@ -708,4 +712,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2150 2002/06/06 19:58:27 mouring Exp $
+$Id: ChangeLog,v 1.2151 2002/06/06 19:59:29 mouring Exp $

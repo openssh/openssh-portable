@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.100 2002/05/23 19:24:30 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.101 2002/05/24 08:45:14 markus Exp $");
 
 #include "ssh.h"
 #include "ssh2.h"
@@ -900,11 +900,16 @@ ssh_keysign(
     u_char *data, u_int datalen)
 {
 	Buffer b;
+	struct stat st;
 	pid_t pid;
 	int to[2], from[2], status, version = 1;
 
 	debug("ssh_keysign called");
 
+	if (stat(_PATH_SSH_KEY_SIGN, &st) < 0) {
+		error("ssh_keysign: no installed: %s", strerror(errno));
+		return -1;
+	}
 	if (fflush(stdout) != 0)
 		error("ssh_keysign: fflush: %s", strerror(errno));
 	if (pipe(to) < 0) {
@@ -940,18 +945,10 @@ ssh_keysign(
 	msg_send(to[1], version, &b);
 
 	if (msg_recv(from[0], &b) < 0) {
-		debug("ssh_keysign: no reply");
+		error("ssh_keysign: no reply");
 		buffer_clear(&b);
 		return -1;
 	}
-	if (buffer_get_char(&b) != version) {
-		debug("ssh_keysign: bad version");
-		buffer_clear(&b);
-		return -1;
-	}
-	*sigp = buffer_get_string(&b, lenp);
-	buffer_clear(&b);
-
 	close(from[0]);
 	close(to[1]);
 
@@ -959,13 +956,17 @@ ssh_keysign(
                 if (errno != EINTR)
                         break;
 
+	if (buffer_get_char(&b) != version) {
+		error("ssh_keysign: bad version");
+		buffer_clear(&b);
+		return -1;
+	}
+	*sigp = buffer_get_string(&b, lenp);
+	buffer_clear(&b);
+
 	return 0;
 }
 
-/*
- * this will be move to an external program (ssh-keysign) ASAP. ssh-keysign
- * will be setuid-root and the sbit can be removed from /usr/bin/ssh.
- */
 int
 userauth_hostbased(Authctxt *authctxt)
 {
