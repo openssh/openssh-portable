@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.77 2001/04/30 11:18:51 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.78 2001/05/18 14:13:28 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -333,7 +333,7 @@ parse_flag:
 		goto parse_flag;
 
 	case oChallengeResponseAuthentication:
-		intptr = &options->challenge_reponse_authentication;
+		intptr = &options->challenge_response_authentication;
 		goto parse_flag;
 
 #ifdef KRB4
@@ -723,7 +723,7 @@ initialize_options(Options * options)
 	options->rhosts_authentication = -1;
 	options->rsa_authentication = -1;
 	options->pubkey_authentication = -1;
-	options->challenge_reponse_authentication = -1;
+	options->challenge_response_authentication = -1;
 #ifdef KRB4
 	options->kerberos_authentication = -1;
 #endif
@@ -797,8 +797,8 @@ fill_default_options(Options * options)
 		options->rsa_authentication = 1;
 	if (options->pubkey_authentication == -1)
 		options->pubkey_authentication = 1;
-	if (options->challenge_reponse_authentication == -1)
-		options->challenge_reponse_authentication = 0;
+	if (options->challenge_response_authentication == -1)
+		options->challenge_response_authentication = 0;
 #ifdef KRB4
 	if (options->kerberos_authentication == -1)
 		options->kerberos_authentication = 1;

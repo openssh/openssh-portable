@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.31 2001/04/17 08:14:01 markus Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.32 2001/05/18 14:13:29 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/evp.h>
@@ -616,7 +616,7 @@ send_afs_tokens(void)
  * Note that the client code is not tied to s/key or TIS.
  */
 int
-try_challenge_reponse_authentication(void)
+try_challenge_response_authentication(void)
 {
 	int type, i;
 	int payload_len;
@@ -1024,8 +1024,8 @@ ssh_userauth1(const char *local_user, const char *server_user, char *host,
 	}
 	/* Try challenge response authentication if the server supports it. */
 	if ((supported_authentications & (1 << SSH_AUTH_TIS)) &&
-	    options.challenge_reponse_authentication && !options.batch_mode) {
-		if (try_challenge_reponse_authentication())
+	    options.challenge_response_authentication && !options.batch_mode) {
+		if (try_challenge_response_authentication())
 			return;
 	}
 	/* Try password authentication if the server supports it. */

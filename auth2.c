@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.56 2001/04/19 00:05:11 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.57 2001/05/18 14:13:28 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -51,6 +51,7 @@ RCSID("$OpenBSD: auth2.c,v 1.56 2001/04/19 00:05:11 markus Exp $");
 #include "hostfile.h"
 #include "canohost.h"
 #include "tildexpand.h"
+#include "match.h"
 
 /* import */
 extern ServerOptions options;
@@ -125,7 +126,7 @@ do_authentication2()
 	x_authctxt = authctxt;		/*XXX*/
 
 	/* challenge-reponse is implemented via keyboard interactive */
-	if (options.challenge_reponse_authentication)
+	if (options.challenge_response_authentication)
 		options.kbd_interactive_authentication = 1;
 	if (options.pam_authentication_via_kbd_int)
 		options.kbd_interactive_authentication = 1;
@@ -400,24 +401,23 @@ int
 userauth_kbdint(Authctxt *authctxt)
 {
 	int authenticated = 0;
-	char *lang = NULL;
-	char *devs = NULL;
+	char *lang, *devs;
 
 	lang = packet_get_string(NULL);
 	devs = packet_get_string(NULL);
 	packet_done();
 
-	debug("keyboard-interactive language %s devs %s", lang, devs);
+	debug("keyboard-interactive devs %s", devs);
 
-	if (options.challenge_reponse_authentication)
+	if (options.challenge_response_authentication)
 		authenticated = auth2_challenge(authctxt, devs);
 
 #ifdef USE_PAM
 	if (authenticated == 0 && options.pam_authentication_via_kbd_int)
 		authenticated = auth2_pam(authctxt);
 #endif
-	xfree(lang);
 	xfree(devs);
+	xfree(lang);
 #ifdef HAVE_CYGWIN
 	if (check_nt_auth(0, authctxt->pw->pw_uid) == 0)
 		return(0);

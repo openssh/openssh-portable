@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.72 2001/04/18 23:43:26 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.73 2001/05/18 14:13:29 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -229,7 +229,7 @@ ssh_userauth2(const char *local_user, const char *server_user, char *host,
 	int type;
 	int plen;
 
-	if (options.challenge_reponse_authentication)
+	if (options.challenge_response_authentication)
 		options.kbd_interactive_authentication = 1;
 
 	debug("send SSH2_MSG_SERVICE_REQUEST");
@@ -787,6 +787,7 @@ input_userauth_info_req(int type, int plen, void *ctxt)
 	packet_start(SSH2_MSG_USERAUTH_INFO_RESPONSE);
 	packet_put_int(num_prompts);
 
+	debug2("input_userauth_info_req: num_prompts %d", num_prompts);
 	for (i = 0; i < num_prompts; i++) {
 		prompt = packet_get_string(NULL);
 		echo = packet_get_char();

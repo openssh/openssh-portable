@@ -21,7 +21,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $OpenBSD: auth.h,v 1.15 2001/04/12 19:15:24 markus Exp $
+ * $OpenBSD: auth.h,v 1.16 2001/05/18 14:13:28 markus Exp $
  */
 #ifndef AUTH_H
 #define AUTH_H
@@ -36,6 +36,8 @@
 #endif
 
 typedef struct Authctxt Authctxt;
+typedef struct KbdintDevice KbdintDevice;
+
 struct Authctxt {
 	int success;
 	int postponed;
@@ -46,9 +48,28 @@ struct Authctxt {
 	char *service;
 	struct passwd *pw;
 	char *style;
+	void *kbdintctxt;
 #ifdef BSD_AUTH
 	auth_session_t *as;
 #endif
+};
+
+/*
+ * Keyboard interactive device:
+ * init_ctx	returns: non NULL upon success 
+ * query	returns: 0 - success, otherwise failure 
+ * respond	returns: 0 - success, 1 - need further interaction,
+ *		otherwise - failure
+ */
+struct KbdintDevice
+{
+	const char *name;
+	void*	(*init_ctx)	__P((Authctxt*));
+	int	(*query)	__P((void *ctx, char **name, char **infotxt,
+				u_int *numprompts, char ***prompts,
+				u_int **echo_on));
+	int	(*respond)	__P((void *ctx, u_int numresp, char **responses));
+	void	(*free_ctx)	__P((void *ctx));
 };
 
 /*
@@ -133,8 +154,8 @@ int	auth2_challenge(Authctxt *authctxt, char *devs);
 
 int	allowed_user(struct passwd * pw);
 
-char	*get_challenge(Authctxt *authctxt, char *devs);
-int	verify_response(Authctxt *authctxt, char *response);
+char	*get_challenge(Authctxt *authctxt);
+int	verify_response(Authctxt *authctxt, const char *response);
 
 struct passwd * auth_get_user(void);
 

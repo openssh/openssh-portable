@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.79 2001/05/03 21:43:01 stevesk Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.80 2001/05/18 14:13:29 markus Exp $");
 
 #ifdef KRB4
 #include <krb.h>
@@ -81,7 +81,7 @@ initialize_server_options(ServerOptions *options)
 #endif
 	options->password_authentication = -1;
 	options->kbd_interactive_authentication = -1;
-	options->challenge_reponse_authentication = -1;
+	options->challenge_response_authentication = -1;
 	options->permit_empty_passwd = -1;
 	options->use_login = -1;
 	options->allow_tcp_forwarding = -1;
@@ -186,8 +186,8 @@ fill_default_server_options(ServerOptions *options)
 		options->password_authentication = 1;
 	if (options->kbd_interactive_authentication == -1)
 		options->kbd_interactive_authentication = 0;
-	if (options->challenge_reponse_authentication == -1)
-		options->challenge_reponse_authentication = 1;
+	if (options->challenge_response_authentication == -1)
+		options->challenge_response_authentication = 1;
 	if (options->permit_empty_passwd == -1)
 		options->permit_empty_passwd = 0;
 	if (options->use_login == -1)
@@ -603,7 +603,7 @@ parse_flag:
 			goto parse_flag;
 
 		case sChallengeResponseAuthentication:
-			intptr = &options->challenge_reponse_authentication;
+			intptr = &options->challenge_response_authentication;
 			goto parse_flag;
 
 		case sPrintMotd:
