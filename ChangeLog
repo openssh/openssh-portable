@@ -18,6 +18,7 @@
      some ClientAlive cleanup; ok markus@
  - (djm) Convert mandoc manpages to man automatically. Patch from Mark D.
    Roth <roth+openssh@feep.net>
+ - (bal) CVS ID fix up and slight manpage fix from OpenBSD tree.
 
 20010415
  - OpenBSD CVS Sync
@@ -5103,4 +5104,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1122 2001/04/16 02:03:49 mouring Exp $
+$Id: ChangeLog,v 1.1123 2001/04/16 02:11:52 mouring Exp $
