@@ -22,6 +22,9 @@
      [sshlogin.c]
      check that lseek went were we told it to; ok markus@
      (Id sync only, but similar changes are needed in loginrec.c)
+   - djm@cvs.openbsd.org 2004/08/11 12:01:16
+     [sshlogin.c]
+     make store_lastlog_message() static to appease -Wall; ok markus
 
 20040720
  - (djm) OpenBSD CVS Sync
@@ -1589,4 +1592,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3495 2004/08/12 12:49:00 dtucker Exp $
+$Id: ChangeLog,v 1.3496 2004/08/12 12:50:03 dtucker Exp $

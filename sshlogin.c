@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshlogin.c,v 1.11 2004/08/11 11:59:22 djm Exp $");
+RCSID("$OpenBSD: sshlogin.c,v 1.12 2004/08/11 12:01:16 djm Exp $");
 
 #include "loginrec.h"
 #include "log.h"
@@ -69,7 +69,7 @@ get_last_login_time(uid_t uid, const char *logname,
  * Generate and store last login message.  This must be done before
  * login_login() is called and lastlog is updated.
  */
-void
+static void
 store_lastlog_message(const char *user, uid_t uid)
 {
 	char *time_string, hostname[MAXHOSTNAMELEN] = "", buf[512];
