@@ -141,4 +141,4 @@
 
 #include "defines.h"
 
-#endif _CONFIG_H
+#endif /* _CONFIG_H */

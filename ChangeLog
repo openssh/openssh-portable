@@ -1,3 +1,6 @@
+20000119
+ - Compile fix from Darren_Hall@progressive.com
+
 20000118
  - Fixed --with-pid-dir option
  - Makefile fix from Gary E. Miller <gem@rellim.com>
