@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: nchan.c,v 1.38 2002/01/14 13:22:35 markus Exp $");
+RCSID("$OpenBSD: nchan.c,v 1.39 2002/01/14 13:34:07 markus Exp $");
 
 #include "ssh1.h"
 #include "ssh2.h"
@@ -159,8 +159,14 @@ chan_ibuf_empty1(Channel *c)
 	}
 	switch (c->istate) {
 	case CHAN_INPUT_WAIT_DRAIN:
-		chan_send_ieof1(c);
-		chan_set_istate(c, CHAN_INPUT_WAIT_OCLOSE);
+		if (compat20) {
+			if (!(c->flags & CHAN_CLOSE_SENT))
+				chan_send_eof2(c);
+			chan_set_istate(c, CHAN_INPUT_CLOSED);
+		} else {
+			chan_send_ieof1(c);
+			chan_set_istate(c, CHAN_INPUT_WAIT_OCLOSE);
+		}
 		break;
 	default:
 		error("channel %d: chan_ibuf_empty for istate %d",
@@ -218,7 +224,8 @@ chan_obuf_empty1(Channel *c)
 	switch (c->ostate) {
 	case CHAN_OUTPUT_WAIT_DRAIN:
 		chan_shutdown_write(c);
-		chan_send_oclose1(c);
+		if (!compat20)
+			chan_send_oclose1(c);
 		chan_set_ostate(c, CHAN_OUTPUT_CLOSED);
 		break;
 	default:
@@ -301,23 +308,7 @@ chan_rcvd_oclose2(Channel *c)
 static void
 chan_ibuf_empty2(Channel *c)
 {
-	debug("channel %d: ibuf empty", c->self);
-	if (buffer_len(&c->input)) {
-		error("channel %d: chan_ibuf_empty for non empty buffer",
-		    c->self);
-		return;
-	}
-	switch (c->istate) {
-	case CHAN_INPUT_WAIT_DRAIN:
-		if (!(c->flags & CHAN_CLOSE_SENT))
-			chan_send_eof2(c);
-		chan_set_istate(c, CHAN_INPUT_CLOSED);
-		break;
-	default:
-		error("channel %d: chan_ibuf_empty for istate %d",
-		    c->self, c->istate);
-		break;
-	}
+	chan_ibuf_empty1(c);
 }
 static void
 chan_rcvd_ieof2(Channel *c)
@@ -348,22 +339,7 @@ chan_write_failed2(Channel *c)
 static void
 chan_obuf_empty2(Channel *c)
 {
-	debug("channel %d: obuf empty", c->self);
-	if (buffer_len(&c->output)) {
-		error("channel %d: chan_obuf_empty for non empty buffer",
-		    c->self);
-		return;
-	}
-	switch (c->ostate) {
-	case CHAN_OUTPUT_WAIT_DRAIN:
-		chan_shutdown_write(c);
-		chan_set_ostate(c, CHAN_OUTPUT_CLOSED);
-		break;
-	default:
-		error("channel %d: chan_obuf_empty for ostate %d",
-		    c->self, c->ostate);
-		break;
-	}
+	chan_obuf_empty1(c);
 }
 static void
 chan_send_eof2(Channel *c)
