@@ -1,3 +1,6 @@
+20010327
+ - Attempt sync with sshlogin.c w/ OpenBSD (mainly CVS ID)
+
 20010324
  - Fixed permissions ssh-keyscan.  Thanks to Christopher Linn <celinn@mtu.edu>.
  - OpenBSD CVS Sync
@@ -4705,4 +4708,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1015 2001/03/24 04:39:38 djm Exp $
+$Id: ChangeLog,v 1.1016 2001/03/26 05:32:16 mouring Exp $
