@@ -45,6 +45,9 @@
    - markus@cvs.openbsd.org 2002/06/26 08:55:02
      [channels.c]
      limit # of channels to 10000
+   - markus@cvs.openbsd.org 2002/06/26 08:58:26
+     [session.c]
+     limit # of env vars to 1000; ok deraadt/djm
 
 20020625
  - (stevesk) [INSTALL acconfig.h configure.ac defines.h] remove --with-rsh
@@ -1144,4 +1147,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2292 2002/06/26 09:14:43 djm Exp $
+$Id: ChangeLog,v 1.2293 2002/06/26 09:15:07 djm Exp $

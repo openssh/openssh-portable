@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.140 2002/06/23 21:06:41 deraadt Exp $");
+RCSID("$OpenBSD: session.c,v 1.141 2002/06/26 08:58:26 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -849,6 +849,9 @@ child_set_env(char ***envp, u_int *envsizep, const char *name,
 	} else {
 		/* New variable.  Expand if necessary. */
 		if (i >= (*envsizep) - 1) {
+			if (*envsizep >= 1000)
+				fatal("child_set_env: too many env vars,"
+				    " skipping: %.100s", name);
 			(*envsizep) += 50;
 			env = (*envp) = xrealloc(env, (*envsizep) * sizeof(char *));
 		}
