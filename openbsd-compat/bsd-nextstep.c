@@ -22,7 +22,7 @@
 
 #include "includes.h"
 
-RCSID("$Id: bsd-nextstep.c,v 1.3 2001/02/09 01:55:36 djm Exp $");
+RCSID("$Id: bsd-nextstep.c,v 1.4 2001/03/26 05:35:34 mouring Exp $");
 
 #ifdef HAVE_NEXT
 #include <errno.h>
@@ -37,7 +37,8 @@ posix_wait(int *status)
 
 	#undef wait			/* Use NeXT's wait() function */
 	wait_pid = wait(&statusp);
-	status = (int *) statusp.w_status;
+	if (status)
+		*status = (int) statusp.w_status;
 
 	return wait_pid;
 }

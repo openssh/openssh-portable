@@ -22,7 +22,7 @@
 
 #include "includes.h"
 
-RCSID("$Id: bsd-waitpid.c,v 1.2 2001/02/09 01:55:36 djm Exp $");
+RCSID("$Id: bsd-waitpid.c,v 1.3 2001/03/26 05:35:34 mouring Exp $");
 
 #ifndef HAVE_WAITPID 
 #include <errno.h>
@@ -43,7 +43,9 @@ waitpid(int pid, int *stat_loc, int options)
 		pid = 0;   /* wait4() wants pid=0 for indiscriminate wait. */
 	}
         wait_pid = wait4(pid, &statusp, options, NULL);
-        stat_loc = (int *)statusp.w_status;            
+	if (stat_loc)
+        	*stat_loc = (int) statusp.w_status;            
+
         return wait_pid;                               
 }
 
