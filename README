@@ -56,7 +56,7 @@ version of SSH released by Tatu Ylonen.
 References -
 
 [1] http://www.lothar.com/tech/crypto/
-[2] http://www.cdrom.com/pub/infozip/zlib/
+[2] ftp://ftp.freesoftware.com/pub/infozip/zlib/
 [3] http://www.openssl.org/
 [4] http://www.kernel.org/pub/linux/libs/pam/ (PAM is standard on Solaris)
 
