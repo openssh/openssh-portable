@@ -29,7 +29,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.9 2001/02/10 00:41:46 djm Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.10 2001/02/14 09:46:03 djm Exp $");
 
 #include "ssh.h"
 #include "buffer.h"
@@ -577,20 +577,6 @@ do_download(int fd_in, int fd_out, char *remote_path, char *local_path,
 		return(errno);
 	}
 
-	/* Override umask and utimes if asked */
-	if (pflag && fchmod(local_fd, mode) == -1)
-		error("Couldn't set mode on \"%s\": %s", local_path,
-		    strerror(errno));
-	if (pflag && (a->flags & SSH2_FILEXFER_ATTR_ACMODTIME)) {
-		struct timeval tv;
-
-		tv.tv_sec = a->atime;
-		tv.tv_usec = a->mtime;
-		if (utimes(local_path, &tv) == -1)
-			error("Can't set times on \"%s\": %s", local_path,
-			    strerror(errno));
-	}
-
 	buffer_init(&msg);
 
 	/* Send open request */
@@ -675,6 +661,20 @@ do_download(int fd_in, int fd_out, char *remote_path, char *local_path,
 	}
 	status = do_close(fd_in, fd_out, handle, handle_len);
 
+	/* Override umask and utimes if asked */
+	if (pflag && fchmod(local_fd, mode) == -1)
+		error("Couldn't set mode on \"%s\": %s", local_path,
+		    strerror(errno));
+	if (pflag && (a->flags & SSH2_FILEXFER_ATTR_ACMODTIME)) {
+		struct timeval tv[2];
+		tv[0].tv_sec = a->atime;
+		tv[1].tv_sec = a->mtime;
+		tv[0].tv_usec = tv[1].tv_usec = 0;
+		if (utimes(local_path, tv) == -1)
+			error("Can't set times on \"%s\": %s", local_path,
+			    strerror(errno));
+	}
+
 done:
 	close(local_fd);
 	buffer_free(&msg);
@@ -735,10 +735,6 @@ do_upload(int fd_in, int fd_out, char *local_path, char *remote_path,
 		return(-1);
 	}
 
-	/* Override umask and utimes if asked */
-	if (pflag)
-		do_fsetstat(fd_in, fd_out, handle, handle_len, &a);
-
 	/* Read from local and write to remote */
 	offset = 0;
 	for(;;) {
@@ -791,6 +787,10 @@ do_upload(int fd_in, int fd_out, char *local_path, char *remote_path,
 		goto done;
 	}
 
+	/* Override umask and utimes if asked */
+	if (pflag)
+		do_fsetstat(fd_in, fd_out, handle, handle_len, &a);
+
 	status = do_close(fd_in, fd_out, handle, handle_len);
 
 done:
@@ -798,5 +798,3 @@ done:
 	buffer_free(&msg);
 	return status;
 }
-
-

@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.6 2001/02/10 00:45:52 djm Exp $
+.\" $OpenBSD: sftp.1,v 1.7 2001/02/14 09:46:03 djm Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller. All rights reserved.
 .\"
@@ -94,13 +94,20 @@ to
 must be a numeric UID.
 .It Ic help
 Display help text.
-.It Ic get Ar remote-path Op Ar local-path
+.It Xo Ic get
+.Op Ar flags
+.Ar remote-path
+.Op Ar local-path
+.Xc
 Retrieve the
 .Ar remote-path
 and store it on the local machine.
 If the local
 path name is not specified, it is given the same name it has on the 
-remote machine.
+remote machine. If the 
+.Fl P
+flag is specified, then the file's full permission and access time are
+copied too.
 .It Ic lls Op Ar ls-options Op Ar path
 Display local directory listing of either 
 .Ar path
@@ -124,11 +131,18 @@ Set local umask to
 .It Ic mkdir Ar path
 Create remote directory specified by
 .Ar path .
-.It Ic put Ar local-path Op Ar remote-path
+.It Xo Ic put
+.Op Ar flags
+.Ar local-path
+.Op Ar local-path
+.Xc
 Upload
 .Ar local-path
 and store it on the remote machine. If the remote path name is not specified, 
-it is given the same name it has on the local machine.
+it is given the same name it has on the local machine. If the 
+.Fl P
+flag is specified, then the file's full permission and access time are
+copied too.
 .It Ic pwd
 Display remote working directory.
 .It Ic exit

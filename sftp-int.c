@@ -28,7 +28,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.21 2001/02/12 20:53:33 stevesk Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.22 2001/02/14 09:46:03 djm Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -204,11 +204,12 @@ parse_getput_flags(const char **cpp, int *pflag)
 	/* Check for flags */
 	if (cp[0] == '-' && cp[1] && strchr(WHITESPACE, cp[2])) {
 		switch (cp[1]) {
+		case 'p':
 		case 'P':
 			*pflag = 1;
 			break;
 		default:
-			error("Invalid flag -%c", *cp);
+			error("Invalid flag -%c", cp[1]);
 			return(-1);
 		}
 		cp += 2;

@@ -32,6 +32,10 @@
   - stevesk@cvs.openbsd.org 2001/02/12 20:53:33
     [sftp-int.c]
     lumask now works with 1 numeric arg; ok markus@, djm@
+  - djm@cvs.openbsd.org 2001/02/14 9:46:03
+    [sftp-client.c sftp-int.c sftp.1]
+    Fix and document 'preserve modes & times' option ('-p' flag in sftp);
+    ok markus@
 
 20010214
  - (djm) Don't try to close PAM session or delete credentials if the
@@ -3960,4 +3964,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.768 2001/02/15 03:19:56 mouring Exp $
+$Id: ChangeLog,v 1.769 2001/02/15 03:22:45 mouring Exp $
