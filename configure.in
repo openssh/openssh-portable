@@ -155,7 +155,7 @@ for ssldir in "" $tryssldir /usr /usr/local/openssl /usr/lib/openssl /usr/local/
 		LIBS="$saved_LIBS -L$ssldir"
 		CFLAGS="$CFLAGS -I$ssldir/include"
 		if test "x$need_dash_r" = "x1" ; then
-			LIBS="$LIBS -R$ssldir"
+			LIBS="$LIBS -R$ssldir/lib"
 		fi
 	fi
 	LIBS="$LIBS -lcrypto"

@@ -1,3 +1,9 @@
+20000308
+ - Configure fix from Hiroshi Takekawa <takekawa@sr3.t.u-tokyo.ac.jp>
+
+20000307
+ - Released 1.2.2p1
+
 20000305
  - Fix DEC compile fix
  - Explicitly seed OpenSSL's PRNG before checking rsa_alive()
