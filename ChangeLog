@@ -12,6 +12,10 @@
      [clientloop.c ssh.c]
      cleanup multiplex control socket on SIGHUP too, spotted by sturm@
      ok markus@ deraadt@
+   - deraadt@cvs.openbsd.org 2004/09/15 00:46:01
+     [ssh.c]
+     /* fallthrough */ is something a programmer understands.  But
+     /* FALLTHROUGH */ is also understood by lint, so that is better.
 
 20041102
  - (dtucker) [configure.ac includes.h] Bug #947: Fix compile error on HP-UX
@@ -1791,4 +1795,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3565 2004/11/05 09:02:16 dtucker Exp $
+$Id: ChangeLog,v 1.3566 2004/11/05 09:05:32 dtucker Exp $
