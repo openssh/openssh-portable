@@ -1,6 +1,10 @@
 20010330
  - (djm) Another openbsd-compat/glob.c sync
  - (djm) Document default protocol order in config files
+ - (djm) Patch from OpenBSD CVS:
+   - stevesk@cvs.openbsd.org 2001/03/29 21:06:21
+     [sshconnect2.c sshd.c]
+     need to set both STOC and CTOS for SSH_BUG_BIGENDIANAES; ok markus@
 
 20010328
  - (djm) Reorder tests and library inclusion for Krb4/AFS to try to 
@@ -4692,4 +4696,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.991.2.17 2001/03/30 00:39:13 djm Exp $
+$Id: ChangeLog,v 1.991.2.18 2001/03/30 01:01:42 djm Exp $
