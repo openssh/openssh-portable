@@ -306,7 +306,7 @@ function add(str) {
       else if(optlist==3) {
 	add(".TP")
 	prenl++
-	if(match(words[w+1],"^Pa|Ev$")) {
+	if(match(words[w+1],"^Pa$|^Ev$")) {
 	  add(".B")
 	  w++
 	}
