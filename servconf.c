@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.68 2001/02/22 04:29:37 deraadt Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.69 2001/03/04 11:16:06 stevesk Exp $");
 
 #ifdef KRB4
 #include <krb.h>
@@ -209,7 +209,7 @@ typedef enum {
 	sChallengeResponseAuthentication,
 	sPasswordAuthentication, sKbdInteractiveAuthentication, sListenAddress,
 	sPrintMotd, sIgnoreRhosts, sX11Forwarding, sX11DisplayOffset,
-	sStrictModes, sEmptyPasswd, sRandomSeedFile, sKeepAlives, sCheckMail,
+	sStrictModes, sEmptyPasswd, sKeepAlives, sCheckMail,
 	sUseLogin, sAllowTcpForwarding,
 	sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
 	sIgnoreUserKnownHosts, sCiphers, sMacs, sProtocol, sPidFile,
@@ -261,7 +261,6 @@ static struct {
 	{ "strictmodes", sStrictModes },
 	{ "permitemptypasswords", sEmptyPasswd },
 	{ "uselogin", sUseLogin },
-	{ "randomseed", sRandomSeedFile },
 	{ "keepalive", sKeepAlives },
 	{ "allowtcpforwarding", sAllowTcpForwarding },
 	{ "allowusers", sAllowUsers },
@@ -438,12 +437,6 @@ parse_filename:
 		case sPidFile:
 			charptr = &options->pid_file;
 			goto parse_filename;
-
-		case sRandomSeedFile:
-			fprintf(stderr, "%s line %d: \"randomseed\" option is obsolete.\n",
-				filename, linenum);
-			arg = strdelim(&cp);
-			break;
 
 		case sPermitRootLogin:
 			intptr = &options->permit_root_login;
