@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor_wrap.c,v 1.29 2003/08/22 10:56:09 markus Exp $");
+RCSID("$OpenBSD: monitor_wrap.c,v 1.30 2003/08/24 17:36:52 deraadt Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dh.h>
@@ -1134,6 +1134,7 @@ mm_ssh_gssapi_accept_ctx(Gssctxt *ctx, gss_buffer_desc *in,
 {
 	Buffer m;
 	OM_uint32 major;
+	u_int len;
 
 	buffer_init(&m);
 	buffer_put_string(&m, in->value, in->length);
@@ -1142,7 +1143,8 @@ mm_ssh_gssapi_accept_ctx(Gssctxt *ctx, gss_buffer_desc *in,
 	mm_request_receive_expect(pmonitor->m_recvfd, MONITOR_ANS_GSSSTEP, &m);
 
 	major = buffer_get_int(&m);
-	out->value = buffer_get_string(&m, &out->length);
+	out->value = buffer_get_string(&m, &len);
+	out->length = len;
 	if (flags)
 		*flags = buffer_get_int(&m);
 

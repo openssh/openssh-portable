@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.122 2003/08/22 13:20:03 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.123 2003/08/24 17:36:52 deraadt Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -647,12 +647,14 @@ input_gssapi_errtok(int type, u_int32_t plen, void *ctxt)
 	gss_buffer_desc send_tok = GSS_C_EMPTY_BUFFER;
 	gss_buffer_desc recv_tok;
 	OM_uint32 status, ms;
+	u_int len;
 
 	if (authctxt == NULL)
 		fatal("input_gssapi_response: no authentication context");
 	gssctxt = authctxt->methoddata;
 
-	recv_tok.value = packet_get_string(&recv_tok.length);
+	recv_tok.value = packet_get_string(&len);
+	recv_tok.length = len;
 
 	packet_check_eom();
 
