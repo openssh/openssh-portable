@@ -202,7 +202,13 @@ allowed_user(struct passwd * pw)
 	}
 
 #ifdef WITH_AIXAUTHENTICATE
-	if (loginrestrictions(pw->pw_name, S_RLOGIN, NULL, &loginmsg) != 0) {
+	/*
+	 * Don't check loginrestrictions() for root account (use
+	 * PermitRootLogin to control logins via ssh), or if running as
+	 * non-root user (since loginrestrictions will always fail).
+	 */
+	if ( (pw->pw_uid != 0) && (geteuid() == 0) &&
+	    loginrestrictions(pw->pw_name, S_RLOGIN, NULL, &loginmsg) != 0) {
 		if (loginmsg && *loginmsg) {
 			/* Remove embedded newlines (if any) */
 			char *p;
