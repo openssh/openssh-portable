@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.46 2001/03/09 03:14:39 deraadt Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.47 2001/03/11 15:04:16 jakob Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -64,6 +64,7 @@ char *identity_comment = NULL;
 int convert_to_ssh2 = 0;
 int convert_from_ssh2 = 0;
 int print_public = 0;
+int print_verbose = 0;
 
 /* default to RSA for SSH-1 */
 char *key_type_name = "rsa1";
@@ -350,9 +351,28 @@ do_fingerprint(struct passwd *pw)
 			debug("try_load_public_key KEY_UNSPEC failed");
 	}
 	if (success) {
-		printf("%d %s %s\n", key_size(public), key_fingerprint(public), comment);
+		char *digest_md5, *digest_sha1, *digest_bubblebabble;
+
+		digest_md5 = key_fingerprint_ex(public, SSH_FP_MD5, SSH_FP_HEX);
+		digest_sha1 = key_fingerprint_ex(public, SSH_FP_SHA1, SSH_FP_HEX);
+		digest_bubblebabble = key_fingerprint_ex(public, SSH_FP_SHA1, SSH_FP_BUBBLEBABBLE);
+
+		if(print_verbose) {
+			printf("comment:      %s\n", comment);
+			printf("size:         %d\n", key_size(public));
+			printf("md5:          %s\n", digest_md5);
+			printf("sha1:         %s\n", digest_sha1);
+			printf("bubblebabble: %s\n", digest_bubblebabble);
+		} else {
+			printf("%d %s %s\n", key_size(public), digest_md5, comment);
+		}
+
 		key_free(public);
 		xfree(comment);
+		xfree(digest_md5);
+		xfree(digest_sha1);
+		xfree(digest_bubblebabble);
+
 		exit(0);
 	}
 
@@ -646,7 +666,7 @@ main(int ac, char **av)
 		exit(1);
 	}
 
-	while ((opt = getopt(ac, av, "dqpclRxXyb:f:t:P:N:C:")) != -1) {
+	while ((opt = getopt(ac, av, "dqpclRxXyvb:f:t:P:N:C:")) != -1) {
 		switch (opt) {
 		case 'b':
 			bits = atoi(optarg);
@@ -704,6 +724,10 @@ main(int ac, char **av)
 
 		case 'y':
 			print_public = 1;
+			break;
+
+		case 'v':
+			print_verbose = 1;
 			break;
 
 		case 'd':
