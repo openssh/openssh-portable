@@ -34,6 +34,8 @@
    files ending in .exe that aren't binaries; patch from vinschen at redhat.com.
  - (dtucker) [Makefile.in] Get regress/Makefile symlink right for out-of-tree
    builds too, from vinschen at redhat.com.
+ - (dtucker) [regress/agent-ptrace.sh] Skip ptrace test on OSF1/DUnix/Tru64
+   too; patch from cmadams at hiwaay.net.
 
 20040828
  - (dtucker) [openbsd-compat/mktemp.c] Remove superfluous Cygwin #ifdef; from
@@ -1701,4 +1703,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3533 2004/08/29 09:52:32 dtucker Exp $
+$Id: ChangeLog,v 1.3534 2004/08/29 10:33:07 dtucker Exp $
