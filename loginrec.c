@@ -143,7 +143,7 @@
  **   Solaris
  **   HP-UX 10.20 (gcc only)
  **   IRIX
- **	NeXT - M68k/HPPA (4.2/3.3)
+ **   NeXT - M68k/HPPA/Sparc (4.2/3.3)
  **
  ** Testing required: Please send reports!
  **   NetBSD
@@ -161,7 +161,11 @@
 #include "xmalloc.h"
 #include "loginrec.h"
 
-RCSID("$Id: loginrec.c,v 1.26 2000/09/30 10:34:44 djm Exp $");
+RCSID("$Id: loginrec.c,v 1.27 2000/11/10 03:28:31 mouring Exp $");
+
+#ifdef HAVE_UTIL_H
+#  include <util.h>
+#endif
 
 /**
  ** prototypes for helper functions in this file

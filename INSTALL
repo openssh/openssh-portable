@@ -52,7 +52,7 @@ http://www.sparc.spb.su/solaris/skey/
 
 If you wish to use --with-skey then you will need the above library
 installed.  No other current S/Key library is currently known to be
-supported. (If it fails to compile copy the sha1.h to the openssh directory
+supported. 
 
 2. Building / Installation
 --------------------------
