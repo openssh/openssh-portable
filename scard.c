@@ -24,7 +24,7 @@
 
 #include "includes.h"
 #ifdef SMARTCARD
-RCSID("$OpenBSD: scard.c,v 1.24 2002/03/25 17:34:27 markus Exp $");
+RCSID("$OpenBSD: scard.c,v 1.25 2002/03/26 18:46:59 rees Exp $");
 
 #include <openssl/evp.h>
 #include <sectok.h>
@@ -65,6 +65,7 @@ static int cla = 0x00;	/* class */
 
 static void sc_mk_digest(const char *pin, u_char *digest);
 static int get_AUT0(u_char *aut0);
+static int try_AUT0(void);
 
 /* interface to libsectok */
 
@@ -164,6 +165,12 @@ sc_read_pubkey(Key * k)
 	n = xmalloc(len);
 	/* get n */
 	sectok_apdu(sc_fd, CLA_SSH, INS_GET_PUBKEY, 0, 0, 0, NULL, len, n, &sw);
+
+	if (sw == 0x6982) {
+		if (try_AUT0() < 0)
+			goto err;
+		sectok_apdu(sc_fd, CLA_SSH, INS_GET_PUBKEY, 0, 0, 0, NULL, len, n, &sw);
+	}
 	if (!sectok_swOK(sw)) {
 		error("could not obtain public key: %s", sectok_get_sw(sw));
 		goto err;
@@ -192,32 +199,6 @@ err:
 		xfree(n);
 	sc_close();
 	return status;
-}
-
-static int
-try_AUT0(void)
-{
-	u_char aut0[EVP_MAX_MD_SIZE];
-
-	/* permission denied; try PIN if provided */
-	if (sc_pin && strlen(sc_pin) > 0) {
-		sc_mk_digest(sc_pin, aut0);
-		if (cyberflex_verify_AUT0(sc_fd, cla, aut0, 8) < 0) {
-			error("smartcard passphrase incorrect");
-			return (-1);
-		}
-	} else {
-		/* try default AUT0 key */
-		if (cyberflex_verify_AUT0(sc_fd, cla, DEFAUT0, 8) < 0) {
-			/* default AUT0 key failed; prompt for passphrase */
-			if (get_AUT0(aut0) < 0 ||
-			    cyberflex_verify_AUT0(sc_fd, cla, aut0, 8) < 0) {
-				error("smartcard passphrase incorrect");
-				return (-1);
-			}
-		}
-	}
-	return (0);
 }
 
 /* private key operations */
@@ -461,6 +442,32 @@ get_AUT0(u_char *aut0)
 	memset(pass, 0, strlen(pass));
 	xfree(pass);
 	return 0;
+}
+
+static int
+try_AUT0(void)
+{
+	u_char aut0[EVP_MAX_MD_SIZE];
+
+	/* permission denied; try PIN if provided */
+	if (sc_pin && strlen(sc_pin) > 0) {
+		sc_mk_digest(sc_pin, aut0);
+		if (cyberflex_verify_AUT0(sc_fd, cla, aut0, 8) < 0) {
+			error("smartcard passphrase incorrect");
+			return (-1);
+		}
+	} else {
+		/* try default AUT0 key */
+		if (cyberflex_verify_AUT0(sc_fd, cla, DEFAUT0, 8) < 0) {
+			/* default AUT0 key failed; prompt for passphrase */
+			if (get_AUT0(aut0) < 0 ||
+			    cyberflex_verify_AUT0(sc_fd, cla, aut0, 8) < 0) {
+				error("smartcard passphrase incorrect");
+				return (-1);
+			}
+		}
+	}
+	return (0);
 }
 
 int
