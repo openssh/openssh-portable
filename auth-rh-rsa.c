@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rh-rsa.c,v 1.24 2001/06/23 00:20:57 markus Exp $");
+RCSID("$OpenBSD: auth-rh-rsa.c,v 1.25 2001/06/23 03:04:42 markus Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -61,7 +61,7 @@ auth_rhosts_rsa(struct passwd *pw, const char *client_user, RSA *client_host_key
 
 	host_status = check_key_in_hostfiles(pw, client_key, canonical_hostname,
 	    _PATH_SSH_SYSTEM_HOSTFILE,
-	    options.ignore_user_known_hosts ? _PATH_SSH_USER_HOSTFILE : NULL);
+	    options.ignore_user_known_hosts ? NULL : _PATH_SSH_USER_HOSTFILE);
 
 	key_free(client_key);
 

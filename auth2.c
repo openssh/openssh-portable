@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.64 2001/06/23 00:20:58 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.65 2001/06/23 03:04:43 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -791,14 +791,14 @@ hostbased_key_allowed(struct passwd *pw, const char *cuser, char *chost,
 
 	host_status = check_key_in_hostfiles(pw, key, lookup,
 	    _PATH_SSH_SYSTEM_HOSTFILE,
-            options.ignore_user_known_hosts ? _PATH_SSH_USER_HOSTFILE : NULL);
+	    options.ignore_user_known_hosts ? NULL : _PATH_SSH_USER_HOSTFILE);
 
 	/* backward compat if no key has been found. */
 	if (host_status == HOST_NEW)
 		host_status = check_key_in_hostfiles(pw, key, lookup,
 		    _PATH_SSH_SYSTEM_HOSTFILE2,
-		    options.ignore_user_known_hosts ? _PATH_SSH_USER_HOSTFILE2 :
-		    NULL);
+		    options.ignore_user_known_hosts ? NULL :
+		    _PATH_SSH_USER_HOSTFILE2);
 
 	return (host_status == HOST_OK);
 }
