@@ -1,5 +1,6 @@
 19991111
  - Added (untested) Entropy Gathering Daemon (EGD) support
+ - Fixed fd leak
 
 19991110
  - Merged several minor fixed:
