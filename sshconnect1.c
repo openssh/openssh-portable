@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.11 2000/11/25 16:42:53 markus Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.12 2000/12/10 17:01:53 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dsa.h>
@@ -604,37 +604,41 @@ try_skey_authentication()
 	int type, i;
 	int payload_len;
 	unsigned int clen;
+	char prompt[1024];
 	char *challenge, *response;
 
 	debug("Doing skey authentication.");
 
-	/* request a challenge */
-	packet_start(SSH_CMSG_AUTH_TIS);
-	packet_send();
-	packet_write_wait();
-
-	type = packet_read(&payload_len);
-	if (type != SSH_SMSG_FAILURE &&
-	    type != SSH_SMSG_AUTH_TIS_CHALLENGE) {
-		packet_disconnect("Protocol error: got %d in response "
-				  "to skey-auth", type);
-	}
-	if (type != SSH_SMSG_AUTH_TIS_CHALLENGE) {
-		debug("No challenge for skey authentication.");
-		return 0;
-	}
-	challenge = packet_get_string(&clen);
-	packet_integrity_check(payload_len, (4 + clen), type);
-	if (options.cipher == SSH_CIPHER_NONE)
-		log("WARNING: Encryption is disabled! "
-		    "Reponse will be transmitted in clear text.");
-	fprintf(stderr, "%s\n", challenge);
-	xfree(challenge);
-	fflush(stderr);
 	for (i = 0; i < options.number_of_password_prompts; i++) {
+		/* request a challenge */
+		packet_start(SSH_CMSG_AUTH_TIS);
+		packet_send();
+		packet_write_wait();
+
+		type = packet_read(&payload_len);
+		if (type != SSH_SMSG_FAILURE &&
+		    type != SSH_SMSG_AUTH_TIS_CHALLENGE) {
+			packet_disconnect("Protocol error: got %d in response "
+			    "to skey-auth", type);
+		}
+		if (type != SSH_SMSG_AUTH_TIS_CHALLENGE) {
+			debug("No challenge for skey authentication.");
+			return 0;
+		}
+		challenge = packet_get_string(&clen);
+		packet_integrity_check(payload_len, (4 + clen), type);
+		snprintf(prompt, sizeof prompt, "%s\nResponse: ", challenge);
+		xfree(challenge);
 		if (i != 0)
 			error("Permission denied, please try again.");
-		response = read_passphrase("Response: ", 0);
+		if (options.cipher == SSH_CIPHER_NONE)
+			log("WARNING: Encryption is disabled! "
+			    "Reponse will be transmitted in clear text.");
+		response = read_passphrase(prompt, 0);
+		if (strcmp(response, "") == 0) {
+			xfree(response);
+			break;
+		}
 		packet_start(SSH_CMSG_AUTH_TIS_RESPONSE);
 		packet_put_string(response, strlen(response));
 		memset(response, 0, strlen(response));
@@ -646,7 +650,7 @@ try_skey_authentication()
 			return 1;
 		if (type != SSH_SMSG_FAILURE)
 			packet_disconnect("Protocol error: got %d in response "
-					  "to skey-auth-reponse", type);
+			    "to skey-auth-reponse", type);
 	}
 	/* failure */
 	return 0;

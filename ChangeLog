@@ -2,6 +2,11 @@
  - (bal) Applied patch to include ssh-keyscan into Redhat's package, and
    patch to install ssh-keyscan manpage.  Patch by Pekka Savola
    <pekka@netcore.fi>
+ - (bal) OpenbSD CVS update
+   - markus@cvs.openbsd.org 2000/12/10 17:01:53
+     [sshconnect1.c]
+     always request new challenge for skey/tis-auth, fixes interop with
+     other implementations; report from roth@feep.net
 
 20001210
  - (bal) OpenBSD CVS updates
