@@ -3,6 +3,8 @@
    from bug #701 (text from jfh at cise.ufl.edu).
  - (dtucker) [acconfig.h configure.ac defines.h] Bug #673: check for 4-arg
    skeychallenge(), eg on NetBSD.  ok mouring@
+ - (dtucker) [auth-skey.c defines.h monitor.c] Make skeychallenge explicitly
+   4-arg, with compatibility for 3-arg versions.  From djm@, ok me.
 
 20040408
  - (dtucker) [loginrec.c] Use UT_LINESIZE if available, prevents truncating
@@ -963,4 +965,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3309 2004/04/14 05:26:39 dtucker Exp $
+$Id: ChangeLog,v 1.3310 2004/04/14 07:24:30 dtucker Exp $

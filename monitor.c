@@ -744,7 +744,8 @@ mm_answer_skeyquery(int socket, Buffer *m)
 	char challenge[1024];
 	u_int success;
 
-	success = skeychallenge(&skey, authctxt->user, challenge) < 0 ? 0 : 1;
+	success = _compat_skeychallenge(&skey, authctxt->user, challenge,
+	    sizeof(challenge)) < 0 ? 0 : 1;
 
 	buffer_clear(m);
 	buffer_put_int(m, success);

@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.114 2004/04/14 05:26:39 dtucker Exp $ */
+/* $Id: defines.h,v 1.115 2004/04/14 07:24:30 dtucker Exp $ */
 
 
 /* Constants */
@@ -538,6 +538,12 @@ struct winsize {
 #  define krb5_get_err_text(context,code) error_message(code)
 #endif
 
+#if defined(SKEYCHALLENGE_4ARG)
+# define _compat_skeychallenge(a,b,c,d) skeychallenge(a,b,c,d)
+#else
+# define _compat_skeychallenge(a,b,c,d) skeychallenge(a,b,c)
+#endif
+
 /* Maximum number of file descriptors available */
 #ifdef HAVE_SYSCONF
 # define SSH_SYSFDMAX sysconf(_SC_OPEN_MAX)
@@ -545,11 +551,6 @@ struct winsize {
 # define SSH_SYSFDMAX 10000
 #endif
 
-
-/* Some platforms, eg NetBSD, have a 4th argument for skeychallenge() */
-#ifdef SKEYCHALLENGE_4ARG
-# define skeychallenge(a,b,c) skeychallenge((a), (b), (c), (sizeof(c)))
-#endif
 
 /*
  * Define this to use pipes instead of socketpairs for communicating with the
