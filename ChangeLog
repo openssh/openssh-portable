@@ -30,6 +30,9 @@
    - markus@cvs.openbsd.org 2003/04/02 12:21:13
      [Makefile]
      enable rekey test
+   - djm@cvs.openbsd.org 2003/04/04 09:34:22
+     [Makefile sftp-cmds.sh]
+     More regression tests, including recent directory rename bug; ok markus@
 
 20030614
  - (djm) Update license on fake-rfc2553.[ch]; ok itojun@
@@ -545,4 +548,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2811 2003/06/18 12:32:51 dtucker Exp $
+$Id: ChangeLog,v 1.2812 2003/06/18 12:35:11 dtucker Exp $

@@ -1,4 +1,4 @@
-#	$OpenBSD: sftp-cmds.sh,v 1.2 2003/01/10 07:52:41 djm Exp $
+#	$OpenBSD: sftp-cmds.sh,v 1.3 2003/04/04 09:34:22 djm Exp $
 #	Placed in the Public Domain.
 
 # XXX - TODO: 
@@ -11,7 +11,7 @@ tid="sftp commands"
 DATA=/bin/ls
 COPY=${OBJ}/copy
 
-rm -rf ${COPY} ${COPY}.1 ${COPY}.2 ${COPY}.dd ${BATCH}.*
+rm -rf ${COPY} ${COPY}.1 ${COPY}.2 ${COPY}.dd ${COPY}.dd2 ${BATCH}.*
 
 verbose "$tid: lls"
 echo "lls ${OBJ}" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
@@ -66,6 +66,13 @@ echo "rename $COPY ${COPY}.1" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
 test -f ${COPY}.1 || fail "missing file after rename"
 cmp $DATA ${COPY}.1 >/dev/null 2>&1 || fail "corrupted copy after rename"
 
+mkdir ${COPY}.dd
+verbose "$tid: rename directory"
+echo "rename ${COPY}.dd ${COPY}.dd2" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
+	|| fail "rename directory failed"
+test -d ${COPY}.dd && fail "oldname exists after rename directory"
+test -d ${COPY}.dd2 || fail "missing newname after rename directory"
+
 verbose "$tid: ln"
 echo "ln ${COPY}.1 ${COPY}.2" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 || fail "ln failed"
 test -L ${COPY}.2 || fail "missing file after ln"
@@ -95,6 +102,6 @@ verbose "$tid: lchdir"
 echo "lchdir ${COPY}.dd" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
 	|| fail "lchdir failed"
 
-rm -rf ${COPY} ${COPY}.1 ${COPY}.2 ${COPY}.dd ${BATCH}.*
+rm -rf ${COPY} ${COPY}.1 ${COPY}.2 ${COPY}.dd ${COPY}.dd2 ${BATCH}.*
 
 
