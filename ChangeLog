@@ -82,6 +82,9 @@
    - deraadt@cvs.openbsd.org 2001/02/28 17:52:54
      [misc.c]
      for completeness, copy pw_gecos too
+   - markus@cvs.openbsd.org 2001/02/28 21:21:41
+     [sshd.c]
+     generate a fake session id, too
 
 20010304
  - (bal) Remove make-ssh-known-hosts.1 since it's no longer valid.
@@ -4274,4 +4277,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.875 2001/03/05 06:22:01 mouring Exp $
+$Id: ChangeLog,v 1.876 2001/03/05 06:25:23 mouring Exp $

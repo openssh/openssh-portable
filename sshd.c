@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.169 2001/02/23 18:15:13 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.170 2001/02/28 21:21:41 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1397,6 +1397,8 @@ do_ssh1_kex(void)
 		MD5_Final(session_key + 16, &md);
 		memset(buf, 0, bytes);
 		xfree(buf);
+		for (i = 0; i < 16; i++)
+			session_id[i] = session_key[i] ^ session_key[i + 16];
 	}
 	/* Destroy the private and public keys.  They will no longer be needed. */
 	destroy_sensitive_data();
