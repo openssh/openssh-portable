@@ -1,3 +1,10 @@
+20040207
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2004/02/06 23:41:13
+     [cipher-ctr.c]
+     Use EVP_CIPHER_CTX_key_length for key length.  ok markus@
+     (This will fix builds with OpenSSL 0.9.5)
+
 20040206
  - (dtucker) [acss.c acss.h] Fix $Id tags.
  - (dtucker) [cipher-acss.c cipher.c] Enable acss only if building with
@@ -1811,4 +1818,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3215 2004/02/06 10:29:41 dtucker Exp $
+$Id: ChangeLog,v 1.3216 2004/02/06 23:41:48 dtucker Exp $
