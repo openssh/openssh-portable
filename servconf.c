@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.86 2001/06/26 17:41:49 dugsong Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.87 2001/07/08 15:23:38 stevesk Exp $");
 
 #ifdef KRB4
 #include <krb.h>
@@ -389,7 +389,7 @@ read_server_config(ServerOptions *options, const char *filename)
 	int linenum, *intptr, value;
 	int bad_options = 0;
 	ServerOpCodes opcode;
-	int i;
+	int i, n;
 
 	f = fopen(filename, "r");
 	if (!f) {
@@ -801,20 +801,22 @@ parse_flag:
 			if (!arg || *arg == '\0')
 				fatal("%s line %d: Missing MaxStartups spec.",
 				      filename, linenum);
-			if (sscanf(arg, "%d:%d:%d",
+			if ((n = sscanf(arg, "%d:%d:%d",
 			    &options->max_startups_begin,
 			    &options->max_startups_rate,
-			    &options->max_startups) == 3) {
+			    &options->max_startups)) == 3) {
 				if (options->max_startups_begin >
 				    options->max_startups ||
 				    options->max_startups_rate > 100 ||
 				    options->max_startups_rate < 1)
+					fatal("%s line %d: Illegal MaxStartups spec.",
+					    filename, linenum);
+			} else if (n != 1)
 				fatal("%s line %d: Illegal MaxStartups spec.",
-				      filename, linenum);
-				break;
-			}
-			intptr = &options->max_startups;
-			goto parse_int;
+				    filename, linenum);
+			else
+				options->max_startups = options->max_startups_begin;
+			break;
 
 		case sBanner:
 			charptr = &options->banner;
