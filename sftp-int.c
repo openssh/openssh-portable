@@ -26,7 +26,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.38 2001/07/09 07:04:53 deraadt Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.39 2001/07/31 12:42:50 jakob Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -204,7 +204,8 @@ path_append(char *p1, char *p2)
 
 	ret = xmalloc(len);
 	strlcpy(ret, p1, len);
-	strlcat(ret, "/", len);
+	if (strcmp(p1, "/") != 0) 
+		strlcat(ret, "/", len);
 	strlcat(ret, p2, len);
 
 	return(ret);
