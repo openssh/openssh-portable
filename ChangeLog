@@ -5,6 +5,8 @@
      document hostbased and other cleanup
  - (stevesk) start_pam() doesn't use DNS now for sshd -u0.
  - (stevesk) auth-pam.c: use PERMIT_NO_PASSWD
+ - (bal) sys/queue.h is bogus for NCR platform.  Patch by Daniel Carroll 
+   <dan@mesastate.edu>
 
 20010422
  - OpenBSD CVS Sync
@@ -5233,4 +5235,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1163 2001/04/23 18:38:37 stevesk Exp $
+$Id: ChangeLog,v 1.1164 2001/04/23 22:39:42 mouring Exp $
