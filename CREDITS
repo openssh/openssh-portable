@@ -8,6 +8,7 @@ Alexandre Oliva <oliva@lsd.ic.unicamp.br> - AIX fixes
 Andre Lucas <andre.lucas@dial.pipex.com> - new login code, many fixes
 Andreas Steinmetz <ast@domdv.de> - Shadow password expiry support
 Andrew McGill <andrewm@datrix.co.za> - SCO fixes
+Andrew Morgan <morgan@transmeta.com> - PAM bugfixes
 Andrew Stribblehill <a.d.stribblehill@durham.ac.uk> - Bugfixes
 Andy Sloane <andy@guildsoftware.com> - bugfixes
 Aran Cox <acox@cv.telegroup.com> - SCO bugfixes

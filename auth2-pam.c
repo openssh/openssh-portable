@@ -1,5 +1,5 @@
 #include "includes.h"
-RCSID("$Id: auth2-pam.c,v 1.1 2000/12/03 00:51:51 djm Exp $");
+RCSID("$Id: auth2-pam.c,v 1.2 2000/12/20 02:34:49 djm Exp $");
 
 #ifdef USE_PAM
 #include "ssh.h"
@@ -70,8 +70,8 @@ do_conversation2(int num_msg, const struct pam_message **msg,
 	packet_put_cstring("");				/* Instructions */
 	packet_put_cstring("");				/* Language */
 	for (i = 0, j = 0; i < num_msg; i++) {
-		if(((*msg)[i].msg_style == PAM_PROMPT_ECHO_ON) ||
-		   ((*msg)[i].msg_style == PAM_PROMPT_ECHO_OFF) ||
+		if((PAM_MSG_MEMBER(msg, i, msg_style) == PAM_PROMPT_ECHO_ON) ||
+		   (PAM_MSG_MEMBER(msg, i, msg_style) == PAM_PROMPT_ECHO_OFF) ||
 		   (i == num_msg - 1)) {
 			j++;
 		}
@@ -79,7 +79,7 @@ do_conversation2(int num_msg, const struct pam_message **msg,
 	packet_put_int(j);				/* Number of prompts. */
 	context_pam2.num_expected = j;
 	for (i = 0, j = 0; i < num_msg; i++) {
-		switch((*msg)[i].msg_style) {
+		switch(PAM_MSG_MEMBER(msg, i, msg_style)) {
 			case PAM_PROMPT_ECHO_ON:
 				echo = 1;
 				break;
@@ -91,18 +91,18 @@ do_conversation2(int num_msg, const struct pam_message **msg,
 				break;
 		}
 		if(text) {
-			tmp = xmalloc(strlen(text) + strlen((*msg)[i].msg) + 2);
+			tmp = xmalloc(strlen(text) + strlen(PAM_MSG_MEMBER(msg, i, msg)) + 2);
 			strcpy(tmp, text);
 			strcat(tmp, "\n");
-			strcat(tmp, (*msg)[i].msg);
+			strcat(tmp, PAM_MSG_MEMBER(msg, i, msg));
 			xfree(text);
 			text = tmp;
 			tmp = NULL;
 		} else {
-			text = xstrdup((*msg)[i].msg);
+			text = xstrdup(PAM_MSG_MEMBER(msg, i, msg));
 		}
-		if(((*msg)[i].msg_style == PAM_PROMPT_ECHO_ON) ||
-		   ((*msg)[i].msg_style == PAM_PROMPT_ECHO_OFF) ||
+		if((PAM_MSG_MEMBER(msg, i, msg_style) == PAM_PROMPT_ECHO_ON) ||
+		   (PAM_MSG_MEMBER(msg, i, msg_style) == PAM_PROMPT_ECHO_OFF) ||
 		   (i == num_msg - 1)) {
 			debug("sending prompt ssh-%d(pam-%d) = \"%s\"",
 			      j, i, text);

@@ -218,6 +218,10 @@
 /* to pam_strerror */
 #undef HAVE_OLD_PAM
 
+/* Define if you are using Solaris-derived PAM which passes pam_messages  */
+/* to the conversation function with an extra level of indirection */
+#undef PAM_SUN_CODEBASE
+ 
 /* Set this to your mail directory if you don't have maillock.h */
 #undef MAIL_DIRECTORY
 

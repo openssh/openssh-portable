@@ -340,6 +340,12 @@ struct winsize {
 # define PAM_STRERROR(a,b) pam_strerror((a),(b))
 #endif
 
+#ifdef PAM_SUN_CODEBASE
+# define PAM_MSG_MEMBER(msg, n, member) ((*(msg))[(n)].member)
+#else
+# define PAM_MSG_MEMBER(msg, n, member) ((msg)[(n)]->member)
+#endif
+
 #if defined(BROKEN_GETADDRINFO) && defined(HAVE_GETADDRINFO)
 # undef HAVE_GETADDRINFO
 #endif /* defined(BROKEN_GETADDRINFO) && defined(HAVE_GETADDRINFO) */

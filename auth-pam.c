@@ -29,7 +29,7 @@
 #include "xmalloc.h"
 #include "servconf.h"
 
-RCSID("$Id: auth-pam.c,v 1.19 2000/12/03 00:51:51 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.20 2000/12/20 02:34:49 djm Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now"
@@ -97,13 +97,13 @@ static int pamconv(int num_msg, const struct pam_message **msg,
 		return PAM_CONV_ERR; 
 
 	for (count = 0; count < num_msg; count++) {
-		switch ((*msg)[count].msg_style) {
+		switch(PAM_MSG_MEMBER(msg, count, msg_style)) {
 			case PAM_PROMPT_ECHO_ON:
 				if (pamstate == INITIAL_LOGIN) {
 					free(reply);
 					return PAM_CONV_ERR;
 				} else {
-					fputs((*msg)[count].msg, stderr);
+					fputs(PAM_MSG_MEMBER(msg, count, msg), stderr);
 					fgets(buf, sizeof(buf), stdin);
 					reply[count].resp = xstrdup(buf);
 					reply[count].resp_retcode = PAM_SUCCESS;
@@ -118,7 +118,7 @@ static int pamconv(int num_msg, const struct pam_message **msg,
 					reply[count].resp = xstrdup(pampasswd);
 				} else {
 					reply[count].resp = 
-						xstrdup(read_passphrase((*msg)[count].msg, 1));
+						xstrdup(read_passphrase(PAM_MSG_MEMBER(msg, count, msg), 1));
 				}
 				reply[count].resp_retcode = PAM_SUCCESS;
 				break;
@@ -126,9 +126,9 @@ static int pamconv(int num_msg, const struct pam_message **msg,
 			case PAM_TEXT_INFO:
 				if ((*msg)[count].msg != NULL) {
 					if (pamstate == INITIAL_LOGIN)
-						pam_msg_cat((*msg)[count].msg);
+						pam_msg_cat(PAM_MSG_MEMBER(msg, count, msg));
 					else {
-						fputs((*msg)[count].msg, stderr);
+						fputs(PAM_MSG_MEMBER(msg, count, msg), stderr);
 						fputs("\n", stderr);
 					}
 				}

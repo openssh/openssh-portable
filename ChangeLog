@@ -1,3 +1,8 @@
+20001220
+ - (djm) Workaround PAM inconsistencies between Solaris derived PAM code 
+   and Linux-PAM. Based on report and fix from Andrew Morgan
+   <morgan@transmeta.com>
+
 20001218
  - (stevesk) rsa.c: entropy.h not needed.
  - (bal) split CFLAGS into CFLAGS and CPPFLAGS in configure.in and Makefile.
