@@ -1,13 +1,24 @@
+19991226
+ - Enabled utmpx support by default for Solaris
+ - Cleanup sshd.c PAM a little more
+
 19991225
  - More fixes from Andre Lucas <andre.lucas@dial.pipex.com>
  - Cleanup of auth-passwd.c for shadow and MD5 passwords
  - Cleanup and bugfix of PAM authentication code
+ - Released 1.2.1pre20
+
+ - Merged fixes from Ben Taylor <bent@clark.net>
+ - Fixed configure support for PAM. Reported by Naz <96na@eng.cam.ac.uk>
+ - Disabled logging of PAM password authentication failures when password
+   is empty. (e.g start of authentication loop). Reported by Naz
+   <96na@eng.cam.ac.uk>)
 
 19991223
  - Merged later HPUX patch from Andre Lucas 
    <andre.lucas@dial.pipex.com>
  - Above patch included better utmpx support from Ben Taylor
-   <bent@clark.net>:
+   <bent@clark.net>
 
 19991222
  - Fix undefined fd_set type in ssh.h from Povl H. Pedersen 

@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.40 1999/12/24 23:11:29 damien Exp $");
+RCSID("$Id: sshd.c,v 1.41 1999/12/25 23:21:48 damien Exp $");
 
 #ifdef HAVE_POLL_H
 # include <poll.h>
@@ -249,8 +249,10 @@ int do_pam_auth(const char *user, const char *password)
 		log("PAM Password authentication accepted for user \"%.100s\"", user);
 		return 1;
 	} else {
-		log("PAM Password authentication for \"%.100s\" failed: %s", 
-			user, PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
+		/* Don't log failure for auth attempts with empty password */
+		if (password[0] != '\0')
+			log("PAM Password authentication for \"%.100s\" failed: %s", 
+				user, PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
 		return 0;
 	}
 }
@@ -1362,9 +1364,6 @@ do_authloop(struct passwd * pw)
 	int plen, dlen, nlen, ulen, elen;
 	int type = 0;
 	void (*authlog) (const char *fmt,...) = verbose;
-#ifdef HAVE_LIBPAM
-	int pam_retval;
-#endif /* HAVE_LIBPAM */
 
 	/* Indicate that authentication is needed. */
 	packet_start(SSH_SMSG_FAILURE);

@@ -222,6 +222,23 @@ enum
 # endif
 #endif
 
+#if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
+# ifndef _PATH_UTMPX
+#  ifdef UTMPX_FILE
+#   define _PATH_UTMPX UTMPX_FILE
+#  else
+#   define _PATH_UTMPX "/var/adm/utmpx"
+#  endif
+# endif
+# ifndef _PATH_WTMPX
+#  ifdef WTMPX_FILE
+#   define _PATH_WTMPX WTMPX_FILE
+#  else
+#   define _PATH_WTMPX "/var/adm/wtmp"
+#  endif
+# endif
+#endif
+
 #ifndef _PATH_BSHELL
 # define _PATH_BSHELL "/bin/sh"
 #endif

@@ -18,7 +18,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: login.c,v 1.11 1999/12/24 23:11:29 damien Exp $");
+RCSID("$Id: login.c,v 1.12 1999/12/25 23:21:48 damien Exp $");
 
 #if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
 # include <utmpx.h>
@@ -155,18 +155,19 @@ record_login(int pid, const char *ttyname, const char *user, uid_t uid,
 	strncpy(utx.ut_line, ttyname + 5, sizeof(utx.ut_line));
 	utx.ut_pid = (pid_t)pid;
 	utx.ut_tv.tv_sec = time(NULL);
- 	u.ut_type = (uid == -1)?DEAD_PROCESS:USER_PROCESS;
-#ifdef HAVE_HOST_IN_UTMPX
-#ifdef HAVE_SYSLEN_IN_UTMPX
+ 	utx.ut_type = (uid == -1)?DEAD_PROCESS:USER_PROCESS;
+# ifdef HAVE_HOST_IN_UTMPX
+#  ifdef HAVE_SYSLEN_IN_UTMPX
 	utx.ut_syslen = strlen(host);
-	strncpy(utx.ut_host, host, utx.ut_syslen );
-#else
+	strncpy(utx.ut_host, host, utx.ut_syslen);
+#  else
 	strncpy(utx.ut_host, host, sizeof(utx.ut_host));
-#endif /* HAVE_SYSLEN_IN_UTMPX */
-#endif
+#  endif /* HAVE_SYSLEN_IN_UTMPX */
+# endif
 #endif /* defined(HAVE_UTMPX_H) && defined(USE_UTMPX) */
 
-#if defined(HAVE_UTMPX_H) && defined(USE_UTMPX) && !defined(HAVE_LOGIN)
+/*#if defined(HAVE_UTMPX_H) && defined(USE_UTMPX) && !defined(HAVE_LOGIN)*/
+#if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
 	login(&u, &utx);
 #else /* defined(HAVE_UTMPX_H) && defined(USE_UTMPX) */
 	login(&u);

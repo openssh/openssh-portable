@@ -44,6 +44,10 @@ LIBOBJS= atomicio.o authfd.o authfile.o bsd-daemon.o bsd-mktemp.o \
 
 all: $(OBJS) $(TARGETS)
 
+$(OBJS): config.h
+
+$(LIBOBJS): config.h
+
 libssh.a: $(LIBOBJS)
 	$(AR) rv $@ $(LIBOBJS)
 	$(RANLIB) $@
