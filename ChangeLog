@@ -34,6 +34,7 @@
      keys for SSH2 and use the RSA keys for hostkeys or for user keys.
      SSH2 RSA or DSA keys are added to .ssh/authorised_keys2 as before.
  - (djm) Fix up Makefile and Redhat init script to create RSA host keys
+ - (djm) Change to interim version
 
 20001112
  - (bal) SCO Patch to add needed libraries for configure.in.  Patch by
