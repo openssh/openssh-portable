@@ -68,6 +68,9 @@
    - provos@cvs.openbsd.org 2002/03/18 17:53:08
      [sshd.8]
      credits for privsep
+   - provos@cvs.openbsd.org 2002/03/18 17:59:09
+     [sshd.8]
+     document UsePrivilegeSeparation
 
 20020317
  - (tim) [configure.ac] Assume path given with --with-pid-dir=PATH is wanted,
@@ -7914,4 +7917,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1944 2002/03/22 02:33:12 mouring Exp $
+$Id: ChangeLog,v 1.1945 2002/03/22 02:37:50 mouring Exp $

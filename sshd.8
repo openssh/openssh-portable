@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.171 2002/03/18 17:53:08 provos Exp $
+.\" $OpenBSD: sshd.8,v 1.172 2002/03/18 17:59:09 provos Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -839,7 +839,19 @@ will be disabled because
 .Xr login 1
 does not know how to handle
 .Xr xauth 1
-cookies.
+cookies.  If
+.Cm UsePrivilegeSeparation
+is specified, it will be disabled after authentication.
+.It Cm UsePrivilegeSeparation
+Specifies whether
+.Nm
+separated privileges by creating an unprivileged child process
+to deal with incoming network traffic.  After successful authentication,
+another process will be created that has the privilege of the authenticated
+user.  The goal of privilege separation is to prevent privilege
+escalation by containing any corruption within the unprivileged processes.
+The default is
+.Dq no .
 .It Cm VerifyReverseMapping
 Specifies whether
 .Nm
