@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.49 2001/09/05 06:23:07 deraadt Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.50 2001/10/25 21:14:32 markus Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -147,6 +147,7 @@ above that no longer improve security but make things slower.
 The default is 1024 bits.
 .It Fl c
 Requests changing the comment in the private and public key files.
+This operation is only supported for RSA1 keys.
 The program will prompt for the file containing the private keys, for
 the passphrase if the key has one, and for the new comment.
 .It Fl e
@@ -168,7 +169,11 @@ also reads the
 This option allows importing keys from several commercial
 SSH implementations.
 .It Fl l
-Show fingerprint of specified private or public key file.
+Show fingerprint of specified public key file.
+Private RSA1 keys are also supported.
+For RSA and DSA keys
+.Nm
+tries to find the matching public key file and prints its fingerprint.
 .It Fl p
 Requests changing the passphrase of a private key file instead of
 creating a new private key.
