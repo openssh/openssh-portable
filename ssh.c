@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.116 2001/04/17 12:55:04 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.117 2001/04/30 11:18:52 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -191,6 +191,7 @@ usage(void)
 	fprintf(stderr, "  -6          Use IPv6 only.\n");
 	fprintf(stderr, "  -o 'option' Process the option as if it was read from a configuration file.\n");
 	fprintf(stderr, "  -s          Invoke command (mandatory) as SSH2 subsystem.\n");
+	fprintf(stderr, "  -b          Local IP address.\n");
 	exit(1);
 }
 
@@ -318,7 +319,7 @@ main(int ac, char **av)
 		opt = av[optind][1];
 		if (!opt)
 			usage();
-		if (strchr("eilcmpLRDo", opt)) {   /* options with arguments */
+		if (strchr("eilcmpbLRDo", opt)) {   /* options with arguments */
 			optarg = av[optind] + 2;
 			if (strcmp(optarg, "") == 0) {
 				if (optind >= ac - 1)
@@ -516,6 +517,9 @@ main(int ac, char **av)
 			break;
 		case 's':
 			subsystem_flag = 1;
+			break;
+		case 'b':
+			options.bind_address = optarg;
 			break;
 		default:
 			usage();

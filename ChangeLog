@@ -1,3 +1,9 @@
+20010501
+ - OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2001/04/30 11:18:52
+     [readconf.c readconf.h ssh.1 ssh.c sshconnect.c]
+     implement 'ssh -b bind_address' like 'telnet -b'
+
 20010430
  - OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2001/04/29 18:32:52
@@ -5282,4 +5288,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1184 2001/04/30 03:55:37 djm Exp $
+$Id: ChangeLog,v 1.1185 2001/04/30 13:06:24 mouring Exp $

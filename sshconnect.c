@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.104 2001/04/12 19:15:25 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.105 2001/04/30 11:18:52 markus Exp $");
 
 #include <openssl/bn.h>
 
@@ -147,7 +147,8 @@ ssh_proxy_connect(const char *host, u_short port, struct passwd *pw,
 int
 ssh_create_socket(struct passwd *pw, int privileged, int family)
 {
-	int sock;
+	int sock, gaierr;
+	struct addrinfo hints, *res;
 
 	/*
 	 * If we are running as root and want to connect to a privileged
@@ -160,17 +161,40 @@ ssh_create_socket(struct passwd *pw, int privileged, int family)
 			error("rresvport: af=%d %.100s", family, strerror(errno));
 		else
 			debug("Allocated local port %d.", p);
-	} else {
-		/*
-		 * Just create an ordinary socket on arbitrary port.  We use
-		 * the user's uid to create the socket.
-		 */
-		temporarily_use_uid(pw);
-		sock = socket(family, SOCK_STREAM, 0);
-		if (sock < 0)
-			error("socket: %.100s", strerror(errno));
-		restore_uid();
+		return sock;
 	}
+	/*
+	 * Just create an ordinary socket on arbitrary port.  We use
+	 * the user's uid to create the socket.
+	 */
+	temporarily_use_uid(pw);
+	sock = socket(family, SOCK_STREAM, 0);
+	if (sock < 0)
+		error("socket: %.100s", strerror(errno));
+	restore_uid();
+
+	/* Bind the socket to an alternative local IP address */
+	if (options.bind_address == NULL)
+		return sock;
+
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = IPv4or6;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
+	gaierr = getaddrinfo(options.bind_address, "0", &hints, &res);
+	if (gaierr) {
+		error("getaddrinfo: %s: %s", options.bind_address,
+		    gai_strerror(gaierr));
+		close(sock);
+		return -1;
+	}
+	if (bind(sock, res->ai_addr, res->ai_addrlen) < 0) {
+		error("bind: %s: %s", options.bind_address, strerror(errno));
+		close(sock);
+		freeaddrinfo(res);
+		return -1;
+	}
+	freeaddrinfo(res);
 	return sock;
 }
 

@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.76 2001/04/17 10:53:25 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.77 2001/04/30 11:18:51 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -111,7 +111,7 @@ typedef enum {
 	oGlobalKnownHostsFile2, oUserKnownHostsFile2, oPubkeyAuthentication,
 	oKbdInteractiveAuthentication, oKbdInteractiveDevices, oHostKeyAlias,
 	oDynamicForward, oPreferredAuthentications, oHostbasedAuthentication,
-	oHostKeyAlgorithms
+	oHostKeyAlgorithms, oBindAddress
 } OpCodes;
 
 /* Textual representations of the tokens. */
@@ -177,6 +177,7 @@ static struct {
 	{ "dynamicforward", oDynamicForward },
 	{ "preferredauthentications", oPreferredAuthentications },
 	{ "hostkeyalgorithms", oHostKeyAlgorithms },
+	{ "bindaddress", oBindAddress },
 	{ NULL, 0 }
 };
 
@@ -457,6 +458,10 @@ parse_string:
 
 	case oPreferredAuthentications:
 		charptr = &options->preferred_authentications;
+		goto parse_string;
+
+	case oBindAddress:
+		charptr = &options->bind_address;
 		goto parse_string;
 
 	case oProxyCommand:
@@ -761,6 +766,7 @@ initialize_options(Options * options)
 	options->num_remote_forwards = 0;
 	options->log_level = (LogLevel) - 1;
 	options->preferred_authentications = NULL;
+	options->bind_address = NULL;
 }
 
 /*
