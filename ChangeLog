@@ -1,3 +1,7 @@
+20020704
+ - (bal) Limit data to TTY for AIX only (Newer versions can't handle the
+   faster data rate)  Bug #124
+ 
 20020703
  - (bal) Updated contrib/cygwin/  patch by vinschen@redhat.com 
  - (bal) minor correction to utimes() replacement.  Patch by
@@ -1267,4 +1271,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2332 2002/07/04 03:08:40 mouring Exp $
+$Id: ChangeLog,v 1.2333 2002/07/04 18:11:09 mouring Exp $
