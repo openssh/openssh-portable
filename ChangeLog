@@ -19,6 +19,9 @@
    - dtucker@cvs.openbsd.org 2004/06/16 13:15:09
      [regress/scp.sh]
      Make scp -r tests use diff -rN not cmp (which won't do dirs.  ok markus@
+   - dtucker@cvs.openbsd.org 2004/06/16 13:16:40
+     [multiplex.sh]
+     Silence multiplex sftp and scp tests.  ok markus@
  - (dtucker) [regress/test-exec.sh]
    Move Portable-only StrictModes to top of list to make syncs easier.
  - (dtucker) [regress/README.regress]
@@ -1248,4 +1251,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3396 2004/06/16 13:22:37 dtucker Exp $
+$Id: ChangeLog,v 1.3397 2004/06/16 13:23:50 dtucker Exp $

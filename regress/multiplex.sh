@@ -1,4 +1,4 @@
-#	$OpenBSD: multiplex.sh,v 1.1 2004/06/13 15:04:08 djm Exp $
+#	$OpenBSD: multiplex.sh,v 1.2 2004/06/16 13:16:40 dtucker Exp $
 #	Placed in the Public Domain.
 
 CTL=$OBJ/ctl-sock
@@ -23,13 +23,13 @@ cmp /bin/ls $OBJ/ls.copy		|| fail "corrupted copy of /bin/ls"
 rm -f $OBJ/ls.copy
 trace "sftp transfer over multiplexed connection and check result"
 echo "get /bin/ls $OBJ/ls.copy" | \
-	${SFTP} -oControlPath=$CTL otherhost
+	${SFTP} -oControlPath=$CTL otherhost >/dev/null 2>&1
 test -f $OBJ/ls.copy			|| fail "failed copy /bin/ls"
 cmp /bin/ls $OBJ/ls.copy		|| fail "corrupted copy of /bin/ls"
 
 rm -f $OBJ/ls.copy
 trace "scp transfer over multiplexed connection and check result"
-${SCP} -oControlPath=$CTL otherhost:/bin/ls $OBJ/ls.copy
+${SCP} -oControlPath=$CTL otherhost:/bin/ls $OBJ/ls.copy >/dev/null 2>&1
 test -f $OBJ/ls.copy			|| fail "failed copy /bin/ls"
 cmp /bin/ls $OBJ/ls.copy		|| fail "corrupted copy of /bin/ls"
 
