@@ -32,7 +32,7 @@
 #if !defined(HAVE_REALPATH) || defined(BROKEN_REALPATH)
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char *rcsid = "$OpenBSD: realpath..c,v 1.4 1998/05/18 09:55:19 deraadt Exp $";
+static char *rcsid = "$OpenBSD: realpath.c,v 1.5 2001/06/27 00:58:56 lebel Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <sys/param.h>
@@ -82,8 +82,7 @@ realpath(const char *path, char *resolved)
 	 *     if it is a directory, then change to that directory.
 	 * get the current directory name and append the basename.
 	 */
-	(void)strncpy(resolved, path, MAXPATHLEN - 1);
-	resolved[MAXPATHLEN - 1] = '\0';
+	strlcpy(resolved, path, MAXPATHLEN);
 loop:
 	q = strrchr(resolved, '/');
 	if (q != NULL) {
