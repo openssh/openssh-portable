@@ -212,7 +212,7 @@ update_progress_meter(int ignore)
 	if (can_output())
 		refresh_progress_meter();
 
-	mysignal(SIGALRM, update_progress_meter);
+	signal(SIGALRM, update_progress_meter);
 	alarm(UPDATE_INTERVAL);
 	errno = save_errno;
 }
@@ -243,7 +243,7 @@ start_progress_meter(char *f, off_t filesize, off_t *stat)
 	if (can_output())
 		refresh_progress_meter();
 
-	mysignal(SIGALRM, update_progress_meter);
+	signal(SIGALRM, update_progress_meter);
 	alarm(UPDATE_INTERVAL);
 }
 

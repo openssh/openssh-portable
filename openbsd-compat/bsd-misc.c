@@ -25,7 +25,7 @@
 #include "includes.h"
 #include "xmalloc.h"
 
-RCSID("$Id: bsd-misc.c,v 1.18 2003/08/21 23:34:42 djm Exp $");
+RCSID("$Id: bsd-misc.c,v 1.19 2003/08/25 01:16:21 mouring Exp $");
 
 /*
  * NB. duplicate __progname in case it is an alias for argv[0]
@@ -200,3 +200,29 @@ tcsendbreak(int fd, int duration)
 # endif
 }
 #endif /* HAVE_TCSENDBREAK */
+
+mysig_t
+mysignal(int sig, mysig_t act)
+{
+#ifdef HAVE_SIGACTION
+	struct sigaction sa, osa;
+
+	if (sigaction(sig, NULL, &osa) == -1)
+		return (mysig_t) -1;
+	if (osa.sa_handler != act) {
+		memset(&sa, 0, sizeof(sa));
+		sigemptyset(&sa.sa_mask);
+		sa.sa_flags = 0;
+#ifdef SA_INTERRUPT
+		if (sig == SIGALRM)
+			sa.sa_flags |= SA_INTERRUPT;
+#endif
+		sa.sa_handler = act;
+		if (sigaction(sig, &sa, NULL) == -1)
+			return (mysig_t) -1;
+	}
+	return (osa.sa_handler);
+#else
+	return (signal(sig, act));
+#endif
+}

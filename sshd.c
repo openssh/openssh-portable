@@ -1368,7 +1368,7 @@ main(int ac, char **av)
 				if ((options.protocol & SSH_PROTO_1) &&
 				    key_used == 0) {
 					/* Schedule server key regeneration alarm. */
-					mysignal(SIGALRM, key_regeneration_alarm);
+					signal(SIGALRM, key_regeneration_alarm);
 					alarm(options.key_regeneration_time);
 					key_used = 1;
 				}
@@ -1457,7 +1457,7 @@ main(int ac, char **av)
 	 * mode; it is just annoying to have the server exit just when you
 	 * are about to discover the bug.
 	 */
-	mysignal(SIGALRM, grace_alarm_handler);
+	signal(SIGALRM, grace_alarm_handler);
 	if (!debug_flag)
 		alarm(options.login_grace_time);
 

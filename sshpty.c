@@ -101,12 +101,12 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 		error("/dev/ptmx: %.100s", strerror(errno));
 		return 0;
 	}
-	old_signal = mysignal(SIGCHLD, SIG_DFL);
+	old_signal = signal(SIGCHLD, SIG_DFL);
 	if (grantpt(ptm) < 0) {
 		error("grantpt: %.100s", strerror(errno));
 		return 0;
 	}
-	mysignal(SIGCHLD, old_signal);
+	signal(SIGCHLD, old_signal);
 	if (unlockpt(ptm) < 0) {
 		error("unlockpt: %.100s", strerror(errno));
 		return 0;
@@ -274,9 +274,9 @@ pty_make_controlling_tty(int *ttyfd, const char *ttyname)
 
 	fd = open(ttyname, O_RDWR|O_NOCTTY);
 	if (fd != -1) {
-		mysignal(SIGHUP, SIG_IGN);
+		signal(SIGHUP, SIG_IGN);
 		ioctl(fd, TCVHUP, (char *)NULL);
-		mysignal(SIGHUP, SIG_DFL);
+		signal(SIGHUP, SIG_DFL);
 		setpgid(0, 0);
 		close(fd);
 	} else {
@@ -323,9 +323,9 @@ pty_make_controlling_tty(int *ttyfd, const char *ttyname)
 		error("SETPGRP %s",strerror(errno));
 #endif /* HAVE_NEWS4 */
 #ifdef USE_VHANGUP
-	old = mysignal(SIGHUP, SIG_IGN);
+	old = signal(SIGHUP, SIG_IGN);
 	vhangup();
-	mysignal(SIGHUP, old);
+	signal(SIGHUP, old);
 #endif /* USE_VHANGUP */
 	fd = open(ttyname, O_RDWR);
 	if (fd < 0) {

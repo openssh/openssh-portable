@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: bsd-misc.h,v 1.11 2003/08/21 23:34:42 djm Exp $ */
+/* $Id: bsd-misc.h,v 1.12 2003/08/25 01:16:22 mouring Exp $ */
 
 #ifndef _BSD_MISC_H
 #define _BSD_MISC_H
@@ -96,5 +96,11 @@ pid_t tcgetpgrp(int);
 #ifndef HAVE_TCSENDBREAK
 int tcsendbreak(int, int);
 #endif
+
+/* wrapper for signal interface */
+typedef void (*mysig_t)(int);
+mysig_t mysignal(int sig, mysig_t act);
+
+#define signal(a,b) mysignal(a,b)
 
 #endif /* _BSD_MISC_H */
