@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor_wrap.c,v 1.38 2004/07/03 11:02:25 dtucker Exp $");
+RCSID("$OpenBSD: monitor_wrap.c,v 1.39 2004/07/17 05:31:41 dtucker Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dh.h>
@@ -70,6 +70,7 @@ extern z_stream incoming_stream;
 extern z_stream outgoing_stream;
 extern struct monitor *pmonitor;
 extern Buffer input, output;
+extern Buffer loginmsg;
 extern ServerOptions options;
 
 int
@@ -642,7 +643,7 @@ int
 mm_pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 {
 	Buffer m;
-	char *p;
+	char *p, *msg;
 	int success = 0;
 
 	buffer_init(&m);
@@ -658,10 +659,14 @@ mm_pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 		return (0);
 	}
 	p = buffer_get_string(&m, NULL);
+	msg = buffer_get_string(&m, NULL);
 	buffer_free(&m);
 
 	strlcpy(namebuf, p, namebuflen); /* Possible truncation */
 	xfree(p);
+
+	buffer_append(&loginmsg, msg, strlen(msg));
+	xfree(msg);
 
 	*ptyfd = mm_receive_fd(pmonitor->m_recvfd);
 	*ttyfd = mm_receive_fd(pmonitor->m_recvfd);

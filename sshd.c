@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.298 2004/07/11 17:48:47 deraadt Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.299 2004/07/17 05:31:41 dtucker Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -215,6 +215,9 @@ Buffer loginmsg;
 
 /* global authentication context */
 Authctxt *the_authctxt = NULL;
+
+/* message to be displayed after login */
+Buffer loginmsg;
 
 /* Prototypes for various functions defined later in this file. */
 void destroy_sensitive_data(void);
@@ -1679,6 +1682,9 @@ main(int ac, char **av)
 	if (use_privsep)
 		if (privsep_preauth(authctxt) == 1)
 			goto authenticated;
+
+	/* prepare buffer to collect messages to display to user after login */
+	buffer_init(&loginmsg);
 
 	/* perform the key exchange */
 	/* authenticate user and start session */

@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.178 2004/07/11 17:48:47 deraadt Exp $");
+RCSID("$OpenBSD: session.c,v 1.179 2004/07/17 05:31:41 dtucker Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -196,12 +196,11 @@ auth_input_request_forwarding(struct passwd * pw)
 static void
 display_loginmsg(void)
 {
-	if (buffer_len(&loginmsg) > 0) {
-		buffer_append(&loginmsg, "\0", 1);
-		printf("%s\n", (char *)buffer_ptr(&loginmsg));
-		buffer_clear(&loginmsg);
-	}
-	fflush(stdout);
+        if (buffer_len(&loginmsg) > 0) {
+                buffer_append(&loginmsg, "\0", 1);
+                printf("%s", (char *)buffer_ptr(&loginmsg));
+                buffer_clear(&loginmsg);
+        }
 }
 
 void
@@ -676,14 +675,19 @@ do_exec(Session *s, const char *command)
 		do_exec_no_pty(s, command);
 
 	original_command = NULL;
-}
 
+	/*
+	 * Clear loginmsg: it's the child's responsibility to display
+	 * it to the user, otherwise multiple sessions may accumulate
+	 * multiple copies of the login messages.
+	 */
+	buffer_clear(&loginmsg);
+}
 
 /* administrative, login(1)-like work */
 void
 do_login(Session *s, const char *command)
 {
-	char *time_string;
 	socklen_t fromlen;
 	struct sockaddr_storage from;
 	struct passwd * pw = s->pw;
@@ -727,19 +731,6 @@ do_login(Session *s, const char *command)
 		return;
 
 	display_loginmsg();
-
-#ifndef NO_SSH_LASTLOG
-	if (options.print_lastlog && s->last_login_time != 0) {
-		time_string = ctime(&s->last_login_time);
-		if (strchr(time_string, '\n'))
-			*strchr(time_string, '\n') = 0;
-		if (strcmp(s->hostname, "") == 0)
-			printf("Last login: %s\r\n", time_string);
-		else
-			printf("Last login: %s from %s\r\n", time_string,
-			    s->hostname);
-	}
-#endif /* NO_SSH_LASTLOG */
 
 	do_motd();
 }
@@ -1318,6 +1309,7 @@ do_setusercontext(struct passwd *pw)
 static void
 do_pwchange(Session *s)
 {
+	fflush(NULL);
 	fprintf(stderr, "WARNING: Your password has expired.\n");
 	if (s->ttyfd != -1) {
 		fprintf(stderr,
@@ -1702,12 +1694,6 @@ session_pty_req(Session *s)
 	if (s->ttyfd != -1) {
 		packet_disconnect("Protocol error: you already have a pty.");
 		return 0;
-	}
-	/* Get the time and hostname when the user last logged in. */
-	if (options.print_lastlog) {
-		s->hostname[0] = '\0';
-		s->last_login_time = get_last_login_time(s->pw->pw_uid,
-		    s->pw->pw_name, s->hostname, sizeof(s->hostname));
 	}
 
 	s->term = packet_get_string(&len);

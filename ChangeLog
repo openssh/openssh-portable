@@ -15,6 +15,12 @@
      Fix incorrect macro, .I -> .Em
      From: Eric S. Raymond <esr at thyrsus dot com>
      ok jmc@
+   - dtucker@cvs.openbsd.org 2004/07/17 05:31:41
+     [monitor.c monitor_wrap.c session.c session.h sshd.c sshlogin.c]
+     Move "Last logged in at.." message generation to the monitor, right
+     before recording the new login.  Fixes missing lastlog message when
+     /var/log/lastlog is not world-readable and incorrect datestamp when
+     multiple sessions are used (bz #463);  much assistance & ok markus@
 
 20040711
  - (dtucker) [auth-pam.c] Check for zero from waitpid() too, which allows
@@ -1521,4 +1527,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3476 2004/07/17 06:13:15 dtucker Exp $
+$Id: ChangeLog,v 1.3477 2004/07/17 07:05:14 dtucker Exp $
