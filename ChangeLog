@@ -3,6 +3,9 @@
    - stevesk@cvs.openbsd.org 2001/03/08 18:47:12
      [auth1.c]
      unused; ok markus@
+   - stevesk@cvs.openbsd.org 2001/03/08 20:44:48
+     [sftp.1]
+     spelling, cleanup; ok deraadt@
 
 20010308
  - OpenBSD CVS Sync
@@ -4449,4 +4452,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.928 2001/03/08 20:37:22 mouring Exp $
+$Id: ChangeLog,v 1.929 2001/03/09 00:09:02 mouring Exp $

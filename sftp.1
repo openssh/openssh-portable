@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.12 2001/03/07 10:11:23 djm Exp $
+.\" $OpenBSD: sftp.1,v 1.13 2001/03/08 20:44:48 stevesk Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -52,15 +52,17 @@ The options are as follows:
 .Bl -tag -width Ds
 .It Fl b Ar batchfile
 Batch mode reads a series of commands from an input
-.Fn batchfile
+.Ar batchfile
 instead of
-.Fn stdin .
-Since it lacks user interaction it should be used in conjuction with a 
-non-interactive authentication.  Sftp will abort if any of the following 
+.Em stdin .
+Since it lacks user interaction it should be used in conjunction with
+non-interactive authentication.
+.Nm
+will abort if any of the following 
 commands fail: 
-.Pa get, put, rename, ln, rm, mkdir, chdir, lchdir
+.Ic get , put , rename , ln , rm , mkdir , chdir , lchdir
 and
-.Pa lmkdir.
+.Ic lmkdir .
 .It Fl C
 Enables compression (via ssh's 
 .Fl C
@@ -195,6 +197,7 @@ Synonym for help.
 Damien Miller <djm@mindrot.org>
 .Sh SEE ALSO
 .Xr ssh 1 ,
+.Xr sftp-server 8 ,
 .Xr ssh-add 1 ,
 .Xr ssh-keygen 1 ,
 .Xr sshd 8 ,
