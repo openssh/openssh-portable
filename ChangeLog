@@ -23,6 +23,16 @@
      replace 4 clause BSD licensed progressmeter code with a replacement
      from Nils Nordman and myself; ok deraadt@
      (copied from OpenBSD an re-applied portable changes)
+   - markus@cvs.openbsd.org 2003/07/29 18:26:46
+     [progressmeter.c]
+     fix length for "- stalled -" (included with previous import)
+   - markus@cvs.openbsd.org 2003/07/30 07:44:14
+     [progressmeter.c]
+     use only 4 digits in format_size (included with previous import)
+   - markus@cvs.openbsd.org 2003/07/30 07:53:27
+     [progressmeter.c]
+     whitespace (included with previous import)
+
  - (dtucker) [openbsd-compat/bsd-misc.c openbsd-compat/bsd-misc.h]
    Add a tcgetpgrp function.
  - (dtucker) [Makefile.in moduli.c moduli.h] Add new files and to Makefile.
@@ -764,4 +774,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2874 2003/08/02 13:51:38 dtucker Exp $
+$Id: ChangeLog,v 1.2875 2003/08/02 14:00:47 dtucker Exp $
