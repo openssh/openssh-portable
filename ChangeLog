@@ -15,6 +15,7 @@
    - markus@cvs.openbsd.org 2001/10/11 15:24:00
      [clientloop.c]
      clear select masks if we return before calling select().
+ - (djm) "make veryclean" fix from Tom Holroyd <tomh@po.crl.go.jp>
 
 20011010
  - (djm) OpenBSD CVS Sync
@@ -6713,4 +6714,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1603 2001/10/12 01:36:09 djm Exp $
+$Id: ChangeLog,v 1.1604 2001/10/12 02:04:04 djm Exp $

@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.186 2001/09/18 05:06:22 djm Exp $
+# $Id: Makefile.in,v 1.187 2001/10/12 02:04:05 djm Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -158,6 +158,7 @@ veryclean:
 	rm -f *.out core
 	rm -f Makefile config.h config.status ssh_prng_cmds *~
 	(cd openbsd-compat; $(MAKE) distclean)
+	(cd scard; $(MAKE) distclean)
 
 mrproper: distclean
 
