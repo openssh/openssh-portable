@@ -110,7 +110,8 @@ err:
 /* private key operations */
 
 static int
-sc_prkey_op_init(RSA *rsa, struct sc_pkcs15_object **key_obj_out)
+sc_prkey_op_init(RSA *rsa, struct sc_pkcs15_object **key_obj_out,
+	unsigned int usage)
 {
 	int r;
 	struct sc_priv_data *priv;
@@ -130,7 +131,8 @@ sc_prkey_op_init(RSA *rsa, struct sc_pkcs15_object **key_obj_out)
 			goto err;
 		}
 	}
-	r = sc_pkcs15_find_prkey_by_id(p15card, &priv->cert_id, &key_obj);
+	r = sc_pkcs15_find_prkey_by_id_usage(p15card, &priv->cert_id, 
+		usage, &key_obj);
 	if (r) {
 		error("Unable to find private key from SmartCard: %s",
 		      sc_strerror(r));
@@ -176,6 +178,9 @@ err:
 	return -1;
 }
 
+#define SC_USAGE_DECRYPT	SC_PKCS15_PRKEY_USAGE_DECRYPT | \
+				SC_PKCS15_PRKEY_USAGE_UNWRAP
+
 static int
 sc_private_decrypt(int flen, u_char *from, u_char *to, RSA *rsa,
     int padding)
@@ -185,7 +190,7 @@ sc_private_decrypt(int flen, u_char *from, u_char *to, RSA *rsa,
 
 	if (padding != RSA_PKCS1_PADDING)
 		return -1;	
-	r = sc_prkey_op_init(rsa, &key_obj);
+	r = sc_prkey_op_init(rsa, &key_obj, SC_USAGE_DECRYPT);
 	if (r)
 		return -1;
 	r = sc_pkcs15_decipher(p15card, key_obj, SC_ALGORITHM_RSA_PAD_PKCS1, 
@@ -201,6 +206,9 @@ err:
 	return -1;
 }
 
+#define SC_USAGE_SIGN 		SC_PKCS15_PRKEY_USAGE_SIGN | \
+				SC_PKCS15_PRKEY_USAGE_SIGNRECOVER
+
 static int
 sc_sign(int type, u_char *m, unsigned int m_len,
 	unsigned char *sigret, unsigned int *siglen, RSA *rsa)
@@ -209,7 +217,15 @@ sc_sign(int type, u_char *m, unsigned int m_len,
 	int r;
 	unsigned long flags = 0;
 
-	r = sc_prkey_op_init(rsa, &key_obj);
+	/* XXX: sc_prkey_op_init will search for a pkcs15 private
+	 * key object with the sign or signrecover usage flag set.
+	 * If the signing key has only the non-repudiation flag set
+	 * the key will be rejected as using a non-repudiation key
+	 * for authentication is not recommended. Note: This does not
+	 * prevent the use of a non-repudiation key for authentication
+	 * if the sign or signrecover flag is set as well. 
+	 */
+	r = sc_prkey_op_init(rsa, &key_obj, SC_USAGE_SIGN);
 	if (r)
 		return -1;
 	/* FIXME: length of sigret correct? */

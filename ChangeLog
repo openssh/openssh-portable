@@ -1,3 +1,7 @@
+20030825
+ - (djm) Bug #621: Select OpenSC keys by usage attributes. Patch from 
+   larsch@trustcenter.de
+
 20030822
  - (djm) s/get_progname/ssh_get_progname/g to avoid conflict with Heimdal 
    -lbroken; ok dtucker 
@@ -851,4 +855,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2898 2003/08/22 08:43:48 dtucker Exp $
+$Id: ChangeLog,v 1.2899 2003/08/25 00:58:26 djm Exp $
