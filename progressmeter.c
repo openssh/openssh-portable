@@ -60,11 +60,12 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: progressmeter.c,v 1.1 2003/01/10 08:19:07 fgsch Exp $");
+RCSID("$OpenBSD: progressmeter.c,v 1.2 2003/01/12 16:57:02 markus Exp $");
 
 #include <libgen.h>
 
 #include "atomicio.h"
+#include "progressmeter.h"
 
 /* Number of seconds before xfer considered "stalled". */
 #define STALLTIME	5
@@ -81,7 +82,7 @@ static int foregroundproc(void);
 static int get_tty_width(void);
 
 /* Visual statistics about files as they are transferred. */
-static void draw_progress_meter();
+static void draw_progress_meter(void);
 
 /* Time a transfer started. */
 static struct timeval start;
