@@ -17,6 +17,10 @@
      [auth2.c]
      fix typo
  - (djm) Update spec files
+ - (bal) OpenBSD sync:
+   - deraadt@cvs.openbsd.org 2001/02/08 14:38:54
+     [scp.c]
+     memory leak fix, and snprintf throughout
 
 20010208
  - (djm) Don't delete external askpass program in make uninstall target.
