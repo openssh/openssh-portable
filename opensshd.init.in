@@ -5,19 +5,19 @@
 
 umask 022
 
-CAT=/usr/bin/cat
-KILL=/usr/bin/kill
+CAT=@CAT@
+KILL=@KILL@
 
-prefix=%%openSSHDir%%
-etcdir=%%configDir%%
-piddir=%%pidDir%%
+prefix=@prefix@
+sysconfdir=@sysconfdir@
+piddir=@piddir@
 
 SSHD=$prefix/sbin/sshd
 PIDFILE=$piddir/sshd.pid
 SSH_KEYGEN=$prefix/bin/ssh-keygen
-HOST_KEY_RSA1=$etcdir/ssh_host_key
-HOST_KEY_DSA=$etcdir/ssh_host_dsa_key
-HOST_KEY_RSA=$etcdir/ssh_host_rsa_key
+HOST_KEY_RSA1=$sysconfdir/ssh_host_key
+HOST_KEY_DSA=$sysconfdir/ssh_host_dsa_key
+HOST_KEY_RSA=$sysconfdir/ssh_host_rsa_key
 
 
 checkkeys() {

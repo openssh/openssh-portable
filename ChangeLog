@@ -1,6 +1,9 @@
 20040619
  - (dtucker) [auth-pam.c] Don't use PAM namespace for
     pam_password_change_required either.
+ - (tim) [configure.ac buildpkg.sh.in contrib/solaris/README] move opensshd
+   init script to top level directory.  Add opensshd.init.in.
+   Remove contrib/solaris/buildpkg.sh, contrib/solaris/opensshd.in
 
 20040618
  - (djm) OpenBSD CVS Sync
@@ -1313,4 +1316,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3415 2004/06/19 02:54:38 dtucker Exp $
+$Id: ChangeLog,v 1.3416 2004/06/20 02:31:06 tim Exp $

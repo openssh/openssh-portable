@@ -43,7 +43,7 @@ PKG_POSTREMOVE_LOCAL=../pkg-postremove.local
 PKG_REQUEST_LOCAL=../pkg-request.local
 # end of sourced files
 #
-OPENSSHD_IN=@top_srcdir@/contrib/solaris/opensshd.in
+OPENSSHD=opensshd.init
 
 PATH_GROUPADD_PROG=@PATH_GROUPADD_PROG@
 PATH_USERADD_PROG=@PATH_USERADD_PROG@
@@ -168,11 +168,7 @@ fi
 ## Setup our run level stuff while we are at it.
 mkdir -p $FAKE_ROOT${TEST_DIR}/etc/init.d
 
-## setup our initscript correctly
-sed -e "s#%%configDir%%#${sysconfdir}#g" 	\
-    -e "s#%%openSSHDir%%#$prefix#g"		\
-    -e "s#%%pidDir%%#${piddir}#g"		\
-	${OPENSSHD_IN}	> $FAKE_ROOT${TEST_DIR}/etc/init.d/${SYSVINIT_NAME}
+cp ${OPENSSHD} $FAKE_ROOT${TEST_DIR}/etc/init.d/${SYSVINIT_NAME}
 chmod 744 $FAKE_ROOT${TEST_DIR}/etc/init.d/${SYSVINIT_NAME}
 
 [ "${PERMIT_ROOT_LOGIN}" = no ]  &&  \

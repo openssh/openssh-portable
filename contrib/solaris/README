@@ -12,8 +12,14 @@ Directions:
 
 1. make -F Makefile.in distprep  (Only if you are getting from the CVS tree)
 2. ./configure --with-pam [..any other options you want..]
-3. look at the top of contrib/solaris/buildpkg.sh for the configurable options.
-4. ./contrib/solaris/buildpkg.sh
+3. look at the top of buildpkg.sh for the configurable options and put
+   any changes you want in openssh-config.local. Additional customizations
+   can be done to the build process by creating one or more of the following
+   scripts that will be sourced by buildpkg.sh.
+	pkg_post_make_install_fixes.sh pkg-post-prototype-edit.sh
+	pkg-preinstall.local pkg-postinstall.local pkg-preremove.local
+	pkg-postremove.local pkg-request.local
+4. Run "make package"
 
 If all goes well you should have a solaris package ready to be installed.
 
