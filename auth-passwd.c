@@ -92,8 +92,8 @@ extern char *aixloginmsg;
 int
 auth_password(Authctxt *authctxt, const char *password)
 {
-#if !defined(USE_PAM) && !defined(HAVE_OSF_SIA)
 	struct passwd * pw = authctxt->pw;
+#if !defined(USE_PAM) && !defined(HAVE_OSF_SIA)
 	char *encrypted_password;
 	char *pw_password;
 	char *salt;
