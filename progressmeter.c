@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: progressmeter.c,v 1.15 2003/08/31 12:14:22 markus Exp $");
+RCSID("$OpenBSD: progressmeter.c,v 1.16 2003/09/23 20:18:52 markus Exp $");
 
 #include "progressmeter.h"
 #include "atomicio.h"
@@ -200,7 +200,7 @@ refresh_progress_meter(void)
 			strlcat(buf, "    ", win_size);
 	}
 
-	atomicio(vwrite, STDOUT_FILENO, buf, win_size);
+	atomicio(vwrite, STDOUT_FILENO, buf, win_size - 1);
 	last_update = now;
 }
 
