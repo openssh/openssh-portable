@@ -1,5 +1,7 @@
 20010227
- - (djm) 
+ - (djm) Fix up POSIX saved uid support. Report from Mark Miller 
+   <markm@swoon.net>
+ - (djm) Search for -lcrypt on FreeBSD too
 
 20010226
  - (bal) Applied shutdown() patch for sftp.c by  Corinna Vinschen 
@@ -4144,4 +4146,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.827 2001/02/26 21:39:08 djm Exp $
+$Id: ChangeLog,v 1.828 2001/02/26 22:05:38 djm Exp $
