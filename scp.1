@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sun May  7 00:14:37 1995 ylo
 .\"
-.\" $OpenBSD: scp.1,v 1.24 2003/01/23 14:06:15 markus Exp $
+.\" $OpenBSD: scp.1,v 1.25 2003/01/28 16:11:52 markus Exp $
 .\"
 .Dd September 25, 1999
 .Dt SCP 1
@@ -25,6 +25,7 @@
 .Op Fl P Ar port
 .Op Fl c Ar cipher
 .Op Fl i Ar identity_file
+.Op Fl l Ar limit
 .Op Fl o Ar ssh_option
 .Sm off
 .Oo
@@ -68,6 +69,8 @@ Selects the file from which the identity (private key) for RSA
 authentication is read.
 This option is directly passed to
 .Xr ssh 1 .
+.It Fl l Ar limit
+Limits the used bandwidth, specified in Kbit/s.
 .It Fl p
 Preserves modification times, access times, and modes from the
 original file.
