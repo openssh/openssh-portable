@@ -102,6 +102,8 @@
  - (bal) sftp-sever.c  '%8lld' to '%8llu' (OpenBSD Sync)
  - (bal) uuencode.c resync w/ OpenBSD tree, plus whitespace.
  - (bal) A bit more whitespace cleanup
+ - (djm) Set PAM_RHOST earlier, patch from Andrew Bartlett 
+   <abartlet@pcug.org.au>
 
 20010210
  - (djm) Sync sftp and scp stuff from OpenBSD:
@@ -3885,4 +3887,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.739 2001/02/11 00:00:24 mouring Exp $
+$Id: ChangeLog,v 1.740 2001/02/11 11:35:11 djm Exp $

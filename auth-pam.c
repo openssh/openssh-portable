@@ -33,7 +33,7 @@
 #include "canohost.h"
 #include "readpass.h"
 
-RCSID("$Id: auth-pam.c,v 1.25 2001/02/07 01:58:34 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.26 2001/02/11 11:35:12 djm Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now"
@@ -228,13 +228,6 @@ int do_pam_account(char *username, char *remote_user)
 
 	pam_set_conv(&conv);
 
-	debug("PAM setting rhost to \"%.200s\"",
-	    get_canonical_hostname(options.reverse_mapping_check));
-	pam_retval = pam_set_item(pamh, PAM_RHOST,
-		get_canonical_hostname(options.reverse_mapping_check));
-	if (pam_retval != PAM_SUCCESS)
-		fatal("PAM set rhost failed[%d]: %.200s", pam_retval,
-		    PAM_STRERROR(pamh, pam_retval));
 	if (remote_user) {
 		debug("PAM setting ruser to \"%.200s\"", remote_user);
 		pam_retval = pam_set_item(pamh, PAM_RUSER, remote_user);
@@ -347,6 +340,14 @@ void start_pam(const char *user)
 	if (pam_retval != PAM_SUCCESS)
 		fatal("PAM initialisation failed[%d]: %.200s",
 		    pam_retval, PAM_STRERROR(pamh, pam_retval));
+
+	debug("PAM setting rhost to \"%.200s\"",
+	    get_canonical_hostname(options.reverse_mapping_check));
+	pam_retval = pam_set_item(pamh, PAM_RHOST,
+		get_canonical_hostname(options.reverse_mapping_check));
+	if (pam_retval != PAM_SUCCESS)
+		fatal("PAM set rhost failed[%d]: %.200s", pam_retval,
+		    PAM_STRERROR(pamh, pam_retval));
 #ifdef PAM_TTY_KLUDGE
 	/*
 	 * Some PAM modules (e.g. pam_time) require a TTY to operate,
