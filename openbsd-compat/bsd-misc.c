@@ -17,7 +17,7 @@
 #include "includes.h"
 #include "xmalloc.h"
 
-RCSID("$Id: bsd-misc.c,v 1.21 2004/02/17 05:49:55 djm Exp $");
+RCSID("$Id: bsd-misc.c,v 1.22 2004/06/25 04:03:34 dtucker Exp $");
 
 /*
  * NB. duplicate __progname in case it is an alias for argv[0]
@@ -191,6 +191,22 @@ tcsendbreak(int fd, int duration)
 # endif
 }
 #endif /* HAVE_TCSENDBREAK */
+
+#ifndef HAVE_CLOSEFROM
+int
+closefrom(int fd)
+{
+	int i, result = 0, err = 0;
+
+	for (i = fd; i < 128; i++)
+		if (close(i) != 0) {
+			err = errno;
+			result = -1;
+		}
+	errno = err;
+	return result;
+}
+#endif /* HAVE_CLOSEFROM */
 
 mysig_t
 mysignal(int sig, mysig_t act)

@@ -1,4 +1,4 @@
-/* $Id: bsd-misc.h,v 1.15 2004/03/08 11:59:03 dtucker Exp $ */
+/* $Id: bsd-misc.h,v 1.16 2004/06/25 04:03:34 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2004 Damien Miller <djm@mindrot.org>
@@ -91,6 +91,10 @@ int tcsendbreak(int, int);
 
 #ifndef HAVE_UNSETENV
 void unsetenv(const char *);
+#endif
+
+#ifndef HAVE_CLOSEFROM
+int closefrom(int);
 #endif
 
 /* wrapper for signal interface */
