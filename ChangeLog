@@ -5,6 +5,7 @@
      Add a -t life option to ssh-agent that set the default lifetime.
      The default can still be overriden by using -t in ssh-add.
      OK markus@
+ - (djm) Reorganise PAM & SIA password handling to eliminate some common code
 
 20030120
  - (djm) Fix compilation for NetBSD from dtucker@zip.com.au
@@ -1048,4 +1049,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2579 2003/01/22 00:47:19 djm Exp $
+$Id: ChangeLog,v 1.2580 2003/01/22 04:42:26 djm Exp $

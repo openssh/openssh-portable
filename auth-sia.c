@@ -57,7 +57,7 @@ auth_sia_password(Authctxt *authctxt, char *pass)
 
 	host = get_canonical_hostname(options.verify_reverse_mapping);
 
-	if (!user || !pass || pass[0] == '\0')
+	if (pass[0] == '\0')
 		return(0);
 
 	if (sia_ses_init(&ent, saved_argc, saved_argv, host, user, NULL, 0,
