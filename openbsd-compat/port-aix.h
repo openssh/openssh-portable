@@ -1,4 +1,4 @@
-/* $Id: port-aix.h,v 1.14 2003/08/29 16:59:52 mouring Exp $ */
+/* $Id: port-aix.h,v 1.15 2003/09/19 10:43:38 dtucker Exp $ */
 
 /*
  *
@@ -30,10 +30,10 @@
 #ifdef WITH_AIXAUTHENTICATE
 # include <login.h>
 # include <userpw.h>
-# include <usersec.h>
-# ifdef HAVE_SYS_AUDIT_H
+# if defined(HAVE_SYS_AUDIT_H) && defined(AIX_LOGINFAILED_4ARG)
 #  include <sys/audit.h>
 # endif
+# include <usersec.h>
 #endif
 
 /* Some versions define r_type in the above headers, which causes a conflict */
