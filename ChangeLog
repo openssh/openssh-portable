@@ -26,6 +26,9 @@
    - stevesk@cvs.openbsd.org 2001/04/05 15:48:18
      [canohost.c canohost.h session.c]
      move get_remote_name_or_ip() to canohost.[ch]; for portable.  ok markus@
+   - markus@cvs.openbsd.org 2001/04/05 20:01:10
+     [clientloop.c]
+     for ~R print message if server does not support rekeying. (and fix ~R).
 
 20010405
  - OpenBSD CVS Sync                                              
@@ -4898,4 +4901,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1070 2001/04/05 23:32:17 mouring Exp $
+$Id: ChangeLog,v 1.1071 2001/04/05 23:34:29 mouring Exp $
