@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.110 2003/09/19 09:02:02 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.111 2003/09/19 11:33:09 markus Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -165,8 +165,6 @@ packet_set_connection(int fd_in, int fd_out)
 		buffer_init(&incoming_packet);
 		TAILQ_INIT(&outgoing);
 	}
-	/* Kludge: arrange the close function to be called from fatal(). */
-	fatal_add_cleanup((void (*) (void *)) packet_close, NULL);
 }
 
 /* Returns 1 if remote host is connected via socket, 0 if not. */
@@ -1338,7 +1336,6 @@ packet_disconnect(const char *fmt,...)
 
 	/* Close the connection. */
 	packet_close();
-
 	fatal_cleanup();
 }
 
