@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-dss.c,v 1.15 2002/06/23 03:30:17 deraadt Exp $");
+RCSID("$OpenBSD: ssh-dss.c,v 1.16 2002/07/04 04:15:33 deraadt Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/evp.h>
@@ -85,6 +85,8 @@ ssh_dss_sign(Key *key, u_char **sigp, u_int *lenp,
 			*lenp = SIGBLOB_LEN;
 		if (sigp != NULL)
 			*sigp = ret;
+		else
+			xfree(ret);
 	} else {
 		/* ietf-drafts */
 		buffer_init(&b);
@@ -98,6 +100,8 @@ ssh_dss_sign(Key *key, u_char **sigp, u_int *lenp,
 			*lenp = len;
 		if (sigp != NULL)
 			*sigp = ret;
+		else
+			xfree(ret);
 	}
 	return 0;
 }

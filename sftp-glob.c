@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-glob.c,v 1.11 2002/06/30 21:59:45 deraadt Exp $");
+RCSID("$OpenBSD: sftp-glob.c,v 1.12 2002/07/04 04:15:33 deraadt Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
@@ -51,8 +51,10 @@ fudge_opendir(const char *path)
 
 	r = xmalloc(sizeof(*r));
 
-	if (do_readdir(cur.conn, (char *)path, &r->dir))
+	if (do_readdir(cur.conn, (char *)path, &r->dir)) {
+		xfree(r);
 		return(NULL);
+	}
 
 	r->offset = 0;
 

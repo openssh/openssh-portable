@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: key.c,v 1.46 2002/06/30 21:59:45 deraadt Exp $");
+RCSID("$OpenBSD: key.c,v 1.47 2002/07/04 04:15:33 deraadt Exp $");
 
 #include <openssl/evp.h>
 
@@ -763,6 +763,8 @@ key_to_blob(Key *key, u_char **blobp, u_int *lenp)
 		*lenp = len;
 	if (blobp != NULL)
 		*blobp = buf;
+	else
+		xfree(buf);
 	return len;
 }
 

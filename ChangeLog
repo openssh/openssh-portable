@@ -5,6 +5,10 @@
  - (tim) [contrib/cygwin/ssh-host-config] sshd account creation fixes
    patch from vinschen@redhat.com
  - (bal) [realpath.c] Updated with OpenBSD tree.
+ - (bal) OpenBSD CVS Sync
+   - deraadt@cvs.openbsd.org 2002/07/04 04:15:33
+     [key.c monitor_wrap.c sftp-glob.c ssh-dss.c ssh-rsa.c]
+     patch memory leaks; grendel@zeitbombe.org
 
 20020705
  - (tim) [configure.ac] AIX 4.2.1 has authenticate() in libs.
@@ -1288,4 +1292,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2341 2002/07/07 22:07:10 mouring Exp $
+$Id: ChangeLog,v 1.2342 2002/07/07 22:10:15 mouring Exp $

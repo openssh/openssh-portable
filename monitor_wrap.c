@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor_wrap.c,v 1.14 2002/06/30 21:59:45 deraadt Exp $");
+RCSID("$OpenBSD: monitor_wrap.c,v 1.15 2002/07/04 04:15:33 deraadt Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dh.h>
@@ -492,6 +492,8 @@ mm_newkeys_to_blob(int mode, u_char **blobp, u_int *lenp)
 		*lenp = len;
 	if (blobp != NULL)
 		*blobp = buf;
+	else
+		xfree(blobp);
 	return len;
 }
 
