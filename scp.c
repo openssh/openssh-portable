@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.85 2001/10/01 08:06:28 markus Exp $");
+RCSID("$OpenBSD: scp.c,v 1.86 2001/12/05 03:56:39 itojun Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -930,7 +930,7 @@ screwup:
 }
 
 int
-response()
+response(void)
 {
 	char ch, *cp, resp, rbuf[2048];
 
@@ -963,7 +963,7 @@ response()
 }
 
 void
-usage()
+usage(void)
 {
 	(void) fprintf(stderr,
 	    "usage: scp [-pqrvBC46] [-F config] [-S ssh] [-P port] [-c cipher] [-i identity]\n"

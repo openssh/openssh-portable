@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.85 2001/11/07 16:03:17 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.86 2001/12/05 03:56:39 itojun Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -174,20 +174,20 @@ struct Authmethod {
 	int	*batch_flag;	/* flag in option struct that disables method */
 };
 
-void	input_userauth_success(int type, int plen, void *ctxt);
-void	input_userauth_failure(int type, int plen, void *ctxt);
-void	input_userauth_banner(int type, int plen, void *ctxt);
-void	input_userauth_error(int type, int plen, void *ctxt);
-void	input_userauth_info_req(int type, int plen, void *ctxt);
-void	input_userauth_pk_ok(int type, int plen, void *ctxt);
+void	input_userauth_success(int, int, void *);
+void	input_userauth_failure(int, int, void *);
+void	input_userauth_banner(int, int, void *);
+void	input_userauth_error(int, int, void *);
+void	input_userauth_info_req(int, int, void *);
+void	input_userauth_pk_ok(int, int, void *);
 
-int	userauth_none(Authctxt *authctxt);
-int	userauth_pubkey(Authctxt *authctxt);
-int	userauth_passwd(Authctxt *authctxt);
-int	userauth_kbdint(Authctxt *authctxt);
-int	userauth_hostbased(Authctxt *authctxt);
+int	userauth_none(Authctxt *);
+int	userauth_pubkey(Authctxt *);
+int	userauth_passwd(Authctxt *);
+int	userauth_kbdint(Authctxt *);
+int	userauth_hostbased(Authctxt *);
 
-void	userauth(Authctxt *authctxt, char *authlist);
+void	userauth(Authctxt *, char *);
 
 static int sign_and_send_pubkey(Authctxt *, Key *, sign_cb_fn *);
 static void clear_auth_state(Authctxt *);

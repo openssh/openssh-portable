@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.72 2001/11/10 13:37:20 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.73 2001/12/05 03:56:39 itojun Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -147,7 +147,7 @@ packet_set_connection(int fd_in, int fd_out)
 /* Returns 1 if remote host is connected via socket, 0 if not. */
 
 int
-packet_connection_is_on_socket()
+packet_connection_is_on_socket(void)
 {
 	struct sockaddr_storage from, to;
 	socklen_t fromlen, tolen;
@@ -173,7 +173,7 @@ packet_connection_is_on_socket()
 /* returns 1 if connection is via ipv4 */
 
 int
-packet_connection_is_ipv4()
+packet_connection_is_ipv4(void)
 {
 	struct sockaddr_storage to;
 	socklen_t tolen = sizeof(to);
@@ -189,7 +189,7 @@ packet_connection_is_ipv4()
 /* Sets the connection into non-blocking mode. */
 
 void
-packet_set_nonblocking()
+packet_set_nonblocking(void)
 {
 	/* Set the socket into non-blocking mode. */
 	if (fcntl(connection_in, F_SETFL, O_NONBLOCK) < 0)
@@ -204,7 +204,7 @@ packet_set_nonblocking()
 /* Returns the socket used for reading. */
 
 int
-packet_get_connection_in()
+packet_get_connection_in(void)
 {
 	return connection_in;
 }
@@ -212,7 +212,7 @@ packet_get_connection_in()
 /* Returns the descriptor used for writing. */
 
 int
-packet_get_connection_out()
+packet_get_connection_out(void)
 {
 	return connection_out;
 }
@@ -220,7 +220,7 @@ packet_get_connection_out()
 /* Closes the connection and clears and frees internal data structures. */
 
 void
-packet_close()
+packet_close(void)
 {
 	if (!initialized)
 		return;
@@ -253,7 +253,7 @@ packet_set_protocol_flags(u_int protocol_flags)
 /* Returns the remote protocol flags set earlier by the above function. */
 
 u_int
-packet_get_protocol_flags()
+packet_get_protocol_flags(void)
 {
 	return remote_protocol_flags;
 }
@@ -594,7 +594,7 @@ packet_send2(void)
 }
 
 void
-packet_send()
+packet_send(void)
 {
 	if (compat20)
 		packet_send2();
@@ -964,7 +964,7 @@ packet_process_incoming(const char *buf, u_int len)
 /* Returns a character from the packet. */
 
 u_int
-packet_get_char()
+packet_get_char(void)
 {
 	char ch;
 	buffer_get(&incoming_packet, &ch, 1);
@@ -974,7 +974,7 @@ packet_get_char()
 /* Returns an integer from the packet data. */
 
 u_int
-packet_get_int()
+packet_get_int(void)
 {
 	return buffer_get_int(&incoming_packet);
 }
@@ -1111,7 +1111,7 @@ packet_disconnect(const char *fmt,...)
 /* Checks if there is any buffered output, and tries to write some of the output. */
 
 void
-packet_write_poll()
+packet_write_poll(void)
 {
 	int len = buffer_len(&output);
 	if (len > 0) {
@@ -1132,7 +1132,7 @@ packet_write_poll()
  */
 
 void
-packet_write_wait()
+packet_write_wait(void)
 {
 	fd_set *setp;
 
@@ -1154,7 +1154,7 @@ packet_write_wait()
 /* Returns true if there is buffered data to write to the connection. */
 
 int
-packet_have_data_to_write()
+packet_have_data_to_write(void)
 {
 	return buffer_len(&output) != 0;
 }
@@ -1162,7 +1162,7 @@ packet_have_data_to_write()
 /* Returns true if there is not too much data to write to the connection. */
 
 int
-packet_not_very_much_data_to_write()
+packet_not_very_much_data_to_write(void)
 {
 	if (interactive_mode)
 		return buffer_len(&output) < 16384;
@@ -1227,7 +1227,7 @@ packet_set_interactive(int interactive)
 /* Returns true if the current connection is interactive. */
 
 int
-packet_is_interactive()
+packet_is_interactive(void)
 {
 	return interactive_mode;
 }

@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.140 2001/10/10 22:18:47 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.142 2001/12/05 03:56:39 itojun Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -361,7 +361,7 @@ channel_free_all(void)
  */
 
 void
-channel_close_all()
+channel_close_all(void)
 {
 	int i;
 
@@ -402,7 +402,7 @@ channel_stop_listening(void)
  */
 
 int
-channel_not_very_much_buffered_data()
+channel_not_very_much_buffered_data(void)
 {
 	u_int i;
 	Channel *c;
@@ -432,7 +432,7 @@ channel_not_very_much_buffered_data()
 /* Returns true if any channel is still open. */
 
 int
-channel_still_open()
+channel_still_open(void)
 {
 	int i;
 	Channel *c;
@@ -475,7 +475,7 @@ channel_still_open()
 /* Returns the id of an open channel suitable for keepaliving */
 
 int
-channel_find_open()
+channel_find_open(void)
 {
 	int i;
 	Channel *c;
@@ -520,7 +520,7 @@ channel_find_open()
  */
 
 char *
-channel_open_message()
+channel_open_message(void)
 {
 	Buffer buffer;
 	Channel *c;
@@ -1601,7 +1601,7 @@ channel_after_select(fd_set * readset, fd_set * writeset)
 /* If there is data to send to the connection, enqueue some of it now. */
 
 void
-channel_output_poll()
+channel_output_poll(void)
 {
 	int len, i;
 	Channel *c;
@@ -2271,7 +2271,7 @@ channel_input_port_forward_request(int is_root, int gateway_ports)
  * anyway, and the server has no way to know but to trust the client anyway.
  */
 void
-channel_permit_all_opens()
+channel_permit_all_opens(void)
 {
 	if (num_permitted_opens == 0)
 		all_opens_permitted = 1;
@@ -2811,7 +2811,7 @@ x11_request_forwarding_with_spoofing(int client_session_id,
 /* Sends a message to the server to request authentication fd forwarding. */
 
 void
-auth_request_forwarding()
+auth_request_forwarding(void)
 {
 	packet_start(SSH_CMSG_AGENT_REQUEST_FORWARDING);
 	packet_send();
@@ -2825,7 +2825,7 @@ auth_request_forwarding()
  */
 
 char *
-auth_get_socket_name()
+auth_get_socket_name(void)
 {
 	return auth_sock_name;
 }
