@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.294 2004/06/24 19:30:54 djm Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.295 2004/06/25 01:16:09 djm Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1620,7 +1620,7 @@ main(int ac, char **av)
 
 #ifdef LIBWRAP
 	/* Check whether logins are denied from this host. */
-	{
+	if (packet_connection_is_on_socket()) {
 		struct request_info req;
 
 		request_init(&req, RQ_DAEMON, __progname, RQ_FILE, sock_in, 0);
