@@ -1,3 +1,9 @@
+20000126
+ - Released 1.2.2 stable
+
+ - NeXT keeps it lastlog in /usr/adm. Report from 
+   mouring@newton.pconline.com
+
 20000125
  - Fix NULL pointer dereference in login.c. Fix from Andre Lucas 
    <andre.lucas@dial.pipex.com>
