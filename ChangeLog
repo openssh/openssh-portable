@@ -3,6 +3,10 @@
    - deraadt@cvs.openbsd.org 2005/03/31 18:39:21
      [scp.c]
      copy argv[] element instead of smashing the one that ps will see; ok otto
+   - djm@cvs.openbsd.org 2005/04/02 12:41:16
+     [scp.c]
+     since ssh has xstrdup, use it instead of strdup+test. unbreaks -Werror
+     build
 
 20050331
  - (dtucker) OpenBSD CVS Sync
@@ -2414,4 +2418,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3735 2005/04/03 00:16:11 djm Exp $
+$Id: ChangeLog,v 1.3736 2005/04/03 00:16:39 djm Exp $

@@ -71,7 +71,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.120 2005/03/31 18:39:21 deraadt Exp $");
+RCSID("$OpenBSD: scp.c,v 1.121 2005/04/02 12:41:16 djm Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -367,9 +367,7 @@ toremote(char *targ, int argc, char **argv)
 	if (*targ == 0)
 		targ = ".";
 
-	arg = strdup(argv[argc - 1]);
-	if (!arg)
-		err(1, "malloc");
+	arg = xstrdup(argv[argc - 1]);
 	if ((thost = strrchr(arg, '@'))) {
 		/* user@host */
 		*thost++ = 0;
