@@ -71,7 +71,7 @@
 
 # Set this to 'yes' to enable PAM keyboard-interactive authentication 
 # Warning: enabling this may bypass the setting of 'PasswordAuthentication'
-#PAMAuthenticationViaKbdInt yes
+#PAMAuthenticationViaKbdInt no
 
 #X11Forwarding no
 #X11DisplayOffset 10

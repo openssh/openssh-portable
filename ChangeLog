@@ -1,3 +1,7 @@
+20020628
+ - (stevesk) [sshd_config] PAMAuthenticationViaKbdInt no; commented
+   options should contain default value.  from solar.
+
 200206027
  - OpenBSD CVS Sync
    - deraadt@cvs.openbsd.org 2002/06/26 14:49:36
@@ -1187,4 +1191,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2307 2002/06/27 00:25:07 mouring Exp $
+$Id: ChangeLog,v 1.2308 2002/06/27 16:59:50 stevesk Exp $
