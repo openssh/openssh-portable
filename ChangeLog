@@ -3,6 +3,8 @@
    defines.h] Bug #125: Add *EXPERIMENTAL* BSM audit support.  Configure
    --with-audit=bsm to enable.  Patch originally from Sun Microsystems,
    parts by John R. Jackson.  ok djm@
+ - (dtucker) [configure.ac] Missing comma in AIX section, somehow causes
+   unrelated platforms to be configured incorrectly.
 
 20050216
  - (djm) write seed to temporary file and atomically rename into place; 
@@ -2154,4 +2156,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3660 2005/02/20 10:01:48 dtucker Exp $
+$Id: ChangeLog,v 1.3661 2005/02/20 12:27:11 dtucker Exp $

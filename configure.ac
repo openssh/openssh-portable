@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.245 2005/02/20 10:01:49 dtucker Exp $
+# $Id: configure.ac,v 1.246 2005/02/20 12:27:11 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -122,8 +122,8 @@ case "$host" in
 			])
 		])
 	dnl Check for various auth function declarations in headers.
-	AC_CHECK_DECLS([authenticate, loginrestrictions, loginsuccess, passwdexpired],,
-	    [#include <usersec.h>])
+	AC_CHECK_DECLS([authenticate, loginrestrictions, loginsuccess,
+	    passwdexpired], , , [#include <usersec.h>])
 	dnl Check if loginfailed is declared and takes 4 arguments (AIX >= 5.2)
 	AC_CHECK_DECLS(loginfailed,
 		 [AC_MSG_CHECKING(if loginfailed takes 4 arguments)
