@@ -1,3 +1,9 @@
+20020612
+ - (bal) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2002/06/11 23:03:54
+     [ssh.c]
+     remove unused cruft.
+
 20020611
  - (bal) ssh-agent.c RCSD fix (|unexpand already done)
  - (bal) OpenBSD CVS Sync
@@ -909,4 +915,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2211 2002/06/11 20:28:05 mouring Exp $
+$Id: ChangeLog,v 1.2212 2002/06/12 16:09:39 mouring Exp $
