@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.251 2002/06/25 18:51:04 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.252 2002/06/28 10:08:25 deraadt Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -906,6 +906,8 @@ main(int ac, char **av)
 			break;
 		case 'u':
 			utmp_len = atoi(optarg);
+			if (utmp_len < 0 || utmp_len > MAXHOSTNAMELEN)
+				usage();
 			break;
 		case 'o':
 			if (process_server_config_line(&options, optarg,

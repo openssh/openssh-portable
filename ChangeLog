@@ -24,6 +24,9 @@
    - deraadt@cvs.openbsd.org 2002/06/28 01:50:37
      [monitor_wrap.c]
      use ssize_t
+   - deraadt@cvs.openbsd.org 2002/06/28 10:08:25
+     [sshd.c]
+     range check -u option at invocation
 
 20020702
  - (djm) Use PAM_MSG_MEMBER for PAM_TEXT_INFO messages, use xmalloc & 
@@ -1232,4 +1235,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2321 2002/07/04 00:09:26 mouring Exp $
+$Id: ChangeLog,v 1.2322 2002/07/04 00:10:34 mouring Exp $
