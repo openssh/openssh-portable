@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.44 2003/06/24 08:23:46 markus Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.45 2003/07/22 13:35:22 markus Exp $");
 
 #include <openssl/dh.h>
 
@@ -124,9 +124,6 @@ int mm_answer_pam_respond(int, Buffer *);
 int mm_answer_pam_free_ctx(int, Buffer *);
 #endif
 
-#ifdef KRB4
-int mm_answer_krb4(int, Buffer *);
-#endif
 #ifdef KRB5
 int mm_answer_krb5(int, Buffer *);
 #endif
@@ -221,9 +218,6 @@ struct mon_table mon_dispatch_proto15[] = {
     {MONITOR_REQ_PAM_QUERY, MON_ISAUTH, mm_answer_pam_query},
     {MONITOR_REQ_PAM_RESPOND, MON_ISAUTH, mm_answer_pam_respond},
     {MONITOR_REQ_PAM_FREE_CTX, MON_ONCE|MON_AUTHDECIDE, mm_answer_pam_free_ctx},
-#endif
-#ifdef KRB4
-    {MONITOR_REQ_KRB4, MON_ONCE|MON_AUTH, mm_answer_krb4},
 #endif
 #ifdef KRB5
     {MONITOR_REQ_KRB5, MON_ONCE|MON_AUTH, mm_answer_krb5},
@@ -1427,52 +1421,6 @@ mm_answer_rsa_response(int socket, Buffer *m)
 
 	return (success);
 }
-
-#ifdef KRB4
-int
-mm_answer_krb4(int socket, Buffer *m)
-{
-	KTEXT_ST auth, reply;
-	char  *client, *p;
-	int success;
-	u_int alen;
-
-	reply.length = auth.length = 0;
- 
-	p = buffer_get_string(m, &alen);
-	if (alen >=  MAX_KTXT_LEN)
-		 fatal("%s: auth too large", __func__);
-	memcpy(auth.dat, p, alen);
-	auth.length = alen;
-	memset(p, 0, alen);
-	xfree(p);
-
-	success = options.kerberos_authentication &&
-	    authctxt->valid &&
-	    auth_krb4(authctxt, &auth, &client, &reply);
-
-	memset(auth.dat, 0, alen);
-	buffer_clear(m);
-	buffer_put_int(m, success);
-
-	if (success) {
-		buffer_put_cstring(m, client);
-		buffer_put_string(m, reply.dat, reply.length);
-		if (client)
-			xfree(client);
-		if (reply.length)
-			memset(reply.dat, 0, reply.length);
-	}
-
-	debug3("%s: sending result %d", __func__, success);
-	mm_request_send(socket, MONITOR_ANS_KRB4, m);
-
-	auth_method = "kerberos";
-
-	/* Causes monitor loop to terminate if authenticated */
-	return (success);
-}
-#endif
 
 #ifdef KRB5
 int

@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.159 2003/07/14 06:21:44 dtucker Exp $ */
+/* $Id: acconfig.h,v 1.160 2003/08/02 12:24:49 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -237,12 +237,6 @@
 
 /* Define this if you are using the Heimdal version of Kerberos V5 */
 #undef HEIMDAL
-
-/* Define if you want Kerberos 4 support */
-#undef KRB4
-
-/* Define if you want AFS support */
-#undef AFS
 
 /* Define if you want S/Key support */
 #undef SKEY

@@ -1,5 +1,14 @@
 20030802
  - (dtucker) [monitor.h monitor_wrap.h] Remove excess ident tags.
+ - (dtucker) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2003/07/22 13:35:22
+     [auth1.c auth.h auth-passwd.c monitor.c monitor.h monitor_wrap.c
+     monitor_wrap.h readconf.c readconf.h servconf.c servconf.h session.c ssh.1
+     ssh.c ssh_config.5 sshconnect1.c sshd.c sshd_config.5 ssh.h]
+     remove (already disabled) KRB4/AFS support, re-enable -k in ssh(1);
+     test+ok henning@
+ - (dtucker) [Makefile.in acconfig.h configure.ac] Remove KRB4/AFS support.
+ - (dtucker) [auth-krb4.c radix.c radix.h] Remove KRB4/AFS specific files.
 
 20030730
  - (djm) [auth-pam.c] Don't use crappy APIs like sprintf. Thanks bal
@@ -738,4 +747,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2868 2003/08/02 10:37:03 dtucker Exp $
+$Id: ChangeLog,v 1.2869 2003/08/02 12:24:49 dtucker Exp $

@@ -10,15 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.122 2003/06/02 09:17:34 markus Exp $");
-
-#if defined(KRB4)
-#include <krb.h>
-#endif
-
-#ifdef AFS
-#include <kafs.h>
-#endif
+RCSID("$OpenBSD: servconf.c,v 1.123 2003/07/22 13:35:22 markus Exp $");
 
 #include "ssh.h"
 #include "log.h"
@@ -82,7 +74,6 @@ initialize_server_options(ServerOptions *options)
 	options->kerberos_or_local_passwd = -1;
 	options->kerberos_ticket_cleanup = -1;
 	options->kerberos_tgt_passing = -1;
-	options->afs_token_passing = -1;
 	options->password_authentication = -1;
 	options->kbd_interactive_authentication = -1;
 	options->challenge_response_authentication = -1;
@@ -194,8 +185,6 @@ fill_default_server_options(ServerOptions *options)
 		options->kerberos_ticket_cleanup = 1;
 	if (options->kerberos_tgt_passing == -1)
 		options->kerberos_tgt_passing = 0;
-	if (options->afs_token_passing == -1)
-		options->afs_token_passing = 0;
 	if (options->password_authentication == -1)
 		options->password_authentication = 1;
 	if (options->kbd_interactive_authentication == -1)
@@ -261,7 +250,7 @@ typedef enum {
 	sPermitRootLogin, sLogFacility, sLogLevel,
 	sRhostsAuthentication, sRhostsRSAAuthentication, sRSAAuthentication,
 	sKerberosAuthentication, sKerberosOrLocalPasswd, sKerberosTicketCleanup,
-	sKerberosTgtPassing, sAFSTokenPassing, sChallengeResponseAuthentication,
+	sKerberosTgtPassing, sChallengeResponseAuthentication,
 	sPasswordAuthentication, sKbdInteractiveAuthentication, sListenAddress,
 	sPrintMotd, sPrintLastLog, sIgnoreRhosts,
 	sX11Forwarding, sX11DisplayOffset, sX11UseLocalhost,
@@ -306,7 +295,7 @@ static struct {
 	{ "rsaauthentication", sRSAAuthentication },
 	{ "pubkeyauthentication", sPubkeyAuthentication },
 	{ "dsaauthentication", sPubkeyAuthentication },			/* alias */
-#if defined(KRB4) || defined(KRB5)
+#ifdef KRB5
 	{ "kerberosauthentication", sKerberosAuthentication },
 	{ "kerberosorlocalpasswd", sKerberosOrLocalPasswd },
 	{ "kerberosticketcleanup", sKerberosTicketCleanup },
@@ -317,11 +306,7 @@ static struct {
 	{ "kerberosticketcleanup", sUnsupported },
 	{ "kerberostgtpassing", sUnsupported },
 #endif
-#if defined(AFS)
-	{ "afstokenpassing", sAFSTokenPassing },
-#else
 	{ "afstokenpassing", sUnsupported },
-#endif
 	{ "passwordauthentication", sPasswordAuthentication },
 	{ "kbdinteractiveauthentication", sKbdInteractiveAuthentication },
 	{ "challengeresponseauthentication", sChallengeResponseAuthentication },
@@ -642,10 +627,6 @@ parse_flag:
 
 	case sKerberosTgtPassing:
 		intptr = &options->kerberos_tgt_passing;
-		goto parse_flag;
-
-	case sAFSTokenPassing:
-		intptr = &options->afs_token_passing;
 		goto parse_flag;
 
 	case sPasswordAuthentication:

@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.114 2003/07/03 08:09:05 djm Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.115 2003/07/22 13:35:22 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -94,7 +94,7 @@ typedef enum {
 	oForwardAgent, oForwardX11, oGatewayPorts, oRhostsAuthentication,
 	oPasswordAuthentication, oRSAAuthentication,
 	oChallengeResponseAuthentication, oXAuthLocation,
-	oKerberosAuthentication, oKerberosTgtPassing, oAFSTokenPassing,
+	oKerberosAuthentication, oKerberosTgtPassing,
 	oIdentityFile, oHostName, oPort, oCipher, oRemoteForward, oLocalForward,
 	oUser, oHost, oEscapeChar, oRhostsRSAAuthentication, oProxyCommand,
 	oGlobalKnownHostsFile, oUserKnownHostsFile, oConnectionAttempts,
@@ -134,18 +134,14 @@ static struct {
 	{ "challengeresponseauthentication", oChallengeResponseAuthentication },
 	{ "skeyauthentication", oChallengeResponseAuthentication }, /* alias */
 	{ "tisauthentication", oChallengeResponseAuthentication },  /* alias */
-#if defined(KRB4) || defined(KRB5)
+#ifdef KRB5
 	{ "kerberosauthentication", oKerberosAuthentication },
 	{ "kerberostgtpassing", oKerberosTgtPassing },
 #else
 	{ "kerberosauthentication", oUnsupported },
 	{ "kerberostgtpassing", oUnsupported },
 #endif
-#if defined(AFS)
-	{ "afstokenpassing", oAFSTokenPassing },
-#else
 	{ "afstokenpassing", oUnsupported },
-#endif
 	{ "fallbacktorsh", oDeprecated },
 	{ "usersh", oDeprecated },
 	{ "identityfile", oIdentityFile },
@@ -397,10 +393,6 @@ parse_flag:
 
 	case oKerberosTgtPassing:
 		intptr = &options->kerberos_tgt_passing;
-		goto parse_flag;
-
-	case oAFSTokenPassing:
-		intptr = &options->afs_token_passing;
 		goto parse_flag;
 
 	case oBatchMode:
@@ -828,7 +820,6 @@ initialize_options(Options * options)
 	options->challenge_response_authentication = -1;
 	options->kerberos_authentication = -1;
 	options->kerberos_tgt_passing = -1;
-	options->afs_token_passing = -1;
 	options->password_authentication = -1;
 	options->kbd_interactive_authentication = -1;
 	options->kbd_interactive_devices = NULL;
@@ -905,8 +896,6 @@ fill_default_options(Options * options)
 		options->kerberos_authentication = 1;
 	if (options->kerberos_tgt_passing == -1)
 		options->kerberos_tgt_passing = 1;
-	if (options->afs_token_passing == -1)
-		options->afs_token_passing = 1;
 	if (options->password_authentication == -1)
 		options->password_authentication = 1;
 	if (options->kbd_interactive_authentication == -1)

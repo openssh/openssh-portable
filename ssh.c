@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.197 2003/07/16 10:34:53 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.198 2003/07/22 13:35:22 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -154,9 +154,7 @@ usage(void)
 	     _PATH_SSH_USER_CONFFILE);
 	fprintf(stderr, "  -A          Enable authentication agent forwarding.\n");
 	fprintf(stderr, "  -a          Disable authentication agent forwarding (default).\n");
-#ifdef AFS
-	fprintf(stderr, "  -k          Disable Kerberos ticket and AFS token forwarding.\n");
-#endif				/* AFS */
+	fprintf(stderr, "  -k          Disable Kerberos ticket forwarding.\n");
 	fprintf(stderr, "  -X          Enable X11 connection forwarding.\n");
 	fprintf(stderr, "  -x          Disable X11 connection forwarding (default).\n");
 	fprintf(stderr, "  -i file     Identity for public key authentication "
@@ -306,12 +304,9 @@ again:
 		case 'A':
 			options.forward_agent = 1;
 			break;
-#ifdef AFS
 		case 'k':
 			options.kerberos_tgt_passing = 0;
-			options.afs_token_passing = 0;
 			break;
-#endif
 		case 'i':
 			if (stat(optarg, &st) < 0) {
 				fprintf(stderr, "Warning: Identity file %s "

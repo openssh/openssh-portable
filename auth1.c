@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.48 2003/04/08 20:21:28 itojun Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.49 2003/07/22 13:35:22 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -49,7 +49,7 @@ get_authname(int type)
 	case SSH_CMSG_AUTH_TIS:
 	case SSH_CMSG_AUTH_TIS_RESPONSE:
 		return "challenge-response";
-#if defined(KRB4) || defined(KRB5)
+#ifdef KRB5
 	case SSH_CMSG_AUTH_KERBEROS:
 		return "kerberos";
 #endif
@@ -81,7 +81,7 @@ do_authloop(Authctxt *authctxt)
 
 	/* If the user has no password, accept authentication immediately. */
 	if (options.password_authentication &&
-#if defined(KRB4) || defined(KRB5)
+#ifdef KRB5
 	    (!options.kerberos_authentication || options.kerberos_or_local_passwd) &&
 #endif
 	    PRIVSEP(auth_password(authctxt, ""))) {
@@ -120,7 +120,7 @@ do_authloop(Authctxt *authctxt)
 		/* Process the packet. */
 		switch (type) {
 
-#if defined(KRB4) || defined(KRB5)
+#ifdef KRB5
 		case SSH_CMSG_AUTH_KERBEROS:
 			if (!options.kerberos_authentication) {
 				verbose("Kerberos authentication disabled.");
@@ -128,30 +128,7 @@ do_authloop(Authctxt *authctxt)
 				char *kdata = packet_get_string(&dlen);
 				packet_check_eom();
 
-				if (kdata[0] == 4) { /* KRB_PROT_VERSION */
-#ifdef KRB4
-					KTEXT_ST tkt, reply;
-					tkt.length = dlen;
-					if (tkt.length < MAX_KTXT_LEN)
-						memcpy(tkt.dat, kdata, tkt.length);
-
-					if (PRIVSEP(auth_krb4(authctxt, &tkt,
-					    &client_user, &reply))) {
-						authenticated = 1;
-						snprintf(info, sizeof(info),
-						    " tktuser %.100s",
-						    client_user);
-
-						packet_start(
-						    SSH_SMSG_AUTH_KERBEROS_RESPONSE);
-						packet_put_string((char *)
-						    reply.dat, reply.length);
-						packet_send();
-						packet_write_wait();
-					}
-#endif /* KRB4 */
-				} else {
-#ifdef KRB5
+				if (kdata[0] != 4) { /* KRB_PROT_VERSION */
 					krb5_data tkt, reply;
 					tkt.length = dlen;
 					tkt.data = kdata;
@@ -174,24 +151,14 @@ do_authloop(Authctxt *authctxt)
  						if (reply.length)
  							xfree(reply.data);
 					}
-#endif /* KRB5 */
 				}
 				xfree(kdata);
 			}
 			break;
-#endif /* KRB4 || KRB5 */
-
-#if defined(AFS) || defined(KRB5)
-			/* XXX - punt on backward compatibility here. */
 		case SSH_CMSG_HAVE_KERBEROS_TGT:
 			packet_send_debug("Kerberos TGT passing disabled before authentication.");
 			break;
-#ifdef AFS
-		case SSH_CMSG_HAVE_AFS_TOKEN:
-			packet_send_debug("AFS token passing disabled before authentication.");
-			break;
-#endif /* AFS */
-#endif /* AFS || KRB5 */
+#endif
 
 		case SSH_CMSG_AUTH_RHOSTS:
 			if (!options.rhosts_authentication) {

@@ -1,4 +1,4 @@
-/*	$OpenBSD: servconf.h,v 1.61 2003/06/02 09:17:34 markus Exp $	*/
+/*	$OpenBSD: servconf.h,v 1.62 2003/07/22 13:35:22 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -84,7 +84,6 @@ typedef struct {
 						 * file on logout. */
 	int     kerberos_tgt_passing;	/* If true, permit Kerberos TGT
 					 * passing. */
-	int     afs_token_passing;	/* If true, permit AFS token passing. */
 	int     password_authentication;	/* If true, permit password
 						 * authentication. */
 	int     kbd_interactive_authentication;	/* If true, permit */

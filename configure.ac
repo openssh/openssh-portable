@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.137 2003/07/23 04:33:10 dtucker Exp $
+# $Id: configure.ac,v 1.138 2003/08/02 12:24:49 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -54,7 +54,6 @@ fi
 # Check for some target-specific stuff
 case "$host" in
 *-*-aix*)
-	AFS_LIBS="-lld"
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	AC_MSG_CHECKING([how to specify blibpath for linker ($LD)]) 
@@ -1940,87 +1939,7 @@ AC_ARG_WITH(kerberos5,
                 fi
         ]
 )
-# Check whether user wants Kerberos 4 support
-KRB4_MSG="no" 
-AC_ARG_WITH(kerberos4,
-	[  --with-kerberos4=PATH   Enable Kerberos 4 support],
-	[
-		if test "x$withval" != "xno" ; then
-			if test "x$withval" != "xyes" ; then
-				CPPFLAGS="$CPPFLAGS -I${withval}/include"
-				LDFLAGS="$LDFLAGS -L${withval}/lib"
-				if test ! -z "$need_dash_r" ; then
-					LDFLAGS="$LDFLAGS -R${withval}/lib"
-				fi
-				if test ! -z "$blibpath" ; then
-					blibpath="$blibpath:${withval}/lib"
-				fi
-			else
-				if test -d /usr/include/kerberosIV ; then
-					CPPFLAGS="$CPPFLAGS -I/usr/include/kerberosIV"
-				fi
-			fi
-
-			AC_CHECK_HEADERS(krb.h)
-			if test "$ac_cv_header_krb_h" != yes; then
-				AC_MSG_WARN([Cannot find krb.h, build may fail])
-			fi
-			AC_CHECK_LIB(krb, main)
-			if test "$ac_cv_lib_krb_main" != yes; then
-				AC_CHECK_LIB(krb4, main)
-				if test "$ac_cv_lib_krb4_main" != yes; then
-					AC_MSG_WARN([Cannot find libkrb nor libkrb4, build may fail])
-				else
-					KLIBS="-lkrb4"
-				fi
-			else
-				KLIBS="-lkrb"
-			fi
-			AC_CHECK_LIB(des, des_cbc_encrypt)
-			if test "$ac_cv_lib_des_des_cbc_encrypt" != yes; then
-				AC_CHECK_LIB(des425, des_cbc_encrypt)
-				if test "$ac_cv_lib_des425_des_cbc_encrypt" != yes; then
-					AC_MSG_WARN([Cannot find libdes nor libdes425, build may fail])
-				else
-					KLIBS="-ldes425"
-				fi
-			else
-				KLIBS="-ldes"
-			fi
-			AC_CHECK_LIB(resolv, dn_expand, , )
-			KRB4=yes
-			KRB4_MSG="yes" 
-			AC_DEFINE(KRB4)
-		fi
-	]
-)
-
-# Check whether user wants AFS support
-AFS_MSG="no" 
-AC_ARG_WITH(afs,
-	[  --with-afs=PATH         Enable AFS support],
-	[
-		if test "x$withval" != "xno" ; then
-
-			if test "x$withval" != "xyes" ; then
-				CPPFLAGS="$CPPFLAGS -I${withval}/include"
-				LDFLAGS="$LDFLAGS -L${withval}/lib"
-			fi
-
-			if test -z "$KRB4" ; then
-				AC_MSG_WARN([AFS requires Kerberos IV support, build may fail])
-			fi
-
-			LIBS="-lkafs $LIBS"
-			if test ! -z "$AFS_LIBS" ; then
-				LIBS="$LIBS $AFS_LIBS"
-			fi
-			AC_DEFINE(AFS)
-			AFS_MSG="yes" 
-		fi
-	]
-)
-LIBS="$LIBS $KLIBS $K5LIBS"
+LIBS="$LIBS $K5LIBS"
 
 # Looking for programs, paths and files
 
@@ -2648,10 +2567,8 @@ fi
 echo "                    Manpage format: $MANTYPE"
 echo "                       DNS support: $DNS_MSG"
 echo "                       PAM support: $PAM_MSG"
-echo "                KerberosIV support: $KRB4_MSG"
 echo "                 KerberosV support: $KRB5_MSG"
 echo "                 Smartcard support: $SCARD_MSG"
-echo "                       AFS support: $AFS_MSG"
 echo "                     S/KEY support: $SKEY_MSG"
 echo "              TCP Wrappers support: $TCPW_MSG"
 echo "              MD5 password support: $MD5_MSG"

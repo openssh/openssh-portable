@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.15 2003/07/02 14:51:16 markus Exp $
+.\" $OpenBSD: ssh_config.5,v 1.16 2003/07/22 13:35:22 markus Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -123,13 +123,6 @@ Valid arguments are
 (Use IPv4 only) or
 .Dq inet6
 (Use IPv6 only.)
-.It Cm AFSTokenPassing
-Specifies whether to pass AFS tokens to remote host.
-The argument to this keyword must be
-.Dq yes
-or
-.Dq no .
-This option applies to protocol version 1 only.
 .It Cm BatchMode
 If set to
 .Dq yes ,
@@ -410,7 +403,6 @@ or
 .Dq no .
 .It Cm KerberosTgtPassing
 Specifies whether a Kerberos TGT will be forwarded to the server.
-This will only work if the Kerberos server is actually an AFS kaserver.
 The argument to this keyword must be
 .Dq yes
 or

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.20 2003/06/20 05:47:58 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.21 2003/07/22 13:35:22 markus Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -61,10 +61,6 @@ The possible
 keywords and their meanings are as follows (note that
 keywords are case-insensitive and arguments are case-sensitive):
 .Bl -tag -width Ds
-.It Cm AFSTokenPassing
-Specifies whether an AFS token may be forwarded to the server.
-Default is
-.Dq no .
 .It Cm AllowGroups
 This keyword can be followed by a list of group name patterns, separated
 by spaces.
@@ -327,8 +323,7 @@ Default is
 .It Cm KerberosTgtPassing
 Specifies whether a Kerberos TGT may be forwarded to the server.
 Default is
-.Dq no ,
-as this only works when the Kerberos KDC is actually an AFS kaserver.
+.Dq no .
 .It Cm KerberosTicketCleanup
 Specifies whether to automatically destroy the user's ticket cache
 file on logout.

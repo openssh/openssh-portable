@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.158 2003/06/02 09:17:34 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.159 2003/07/22 13:35:22 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -222,10 +222,6 @@ do_authenticated(Authctxt *authctxt)
 	/* remove agent socket */
 	if (auth_sock_name != NULL)
 		auth_sock_cleanup_proc(authctxt->pw);
-#ifdef KRB4
-	if (options.kerberos_ticket_cleanup)
-		krb4_cleanup_proc(authctxt);
-#endif
 #ifdef KRB5
 	if (options.kerberos_ticket_cleanup)
 		krb5_cleanup_proc(authctxt);
@@ -338,7 +334,7 @@ do_authenticated1(Authctxt *authctxt)
 				success = 1;
 			break;
 
-#if defined(AFS) || defined(KRB5)
+#ifdef KRB5
 		case SSH_CMSG_HAVE_KERBEROS_TGT:
 			if (!options.kerberos_tgt_passing) {
 				verbose("Kerberos TGT passing disabled.");
@@ -346,9 +342,8 @@ do_authenticated1(Authctxt *authctxt)
 				char *kdata = packet_get_string(&dlen);
 				packet_check_eom();
 
-				/* XXX - 0x41, see creds_to_radix version */
+				/* XXX - 0x41, used for AFS */
 				if (kdata[0] != 0x41) {
-#ifdef KRB5
 					krb5_data tgt;
 					tgt.data = kdata;
 					tgt.length = dlen;
@@ -357,38 +352,11 @@ do_authenticated1(Authctxt *authctxt)
 						success = 1;
 					else
 						verbose("Kerberos v5 TGT refused for %.100s", s->authctxt->user);
-#endif /* KRB5 */
-				} else {
-#ifdef AFS
-					if (auth_krb4_tgt(s->authctxt, kdata))
-						success = 1;
-					else
-						verbose("Kerberos v4 TGT refused for %.100s", s->authctxt->user);
-#endif /* AFS */
 				}
 				xfree(kdata);
 			}
 			break;
-#endif /* AFS || KRB5 */
-
-#ifdef AFS
-		case SSH_CMSG_HAVE_AFS_TOKEN:
-			if (!options.afs_token_passing || !k_hasafs()) {
-				verbose("AFS token passing disabled.");
-			} else {
-				/* Accept AFS token. */
-				char *token = packet_get_string(&dlen);
-				packet_check_eom();
-
-				if (auth_afs_token(s->authctxt, token))
-					success = 1;
-				else
-					verbose("AFS token refused for %.100s",
-					    s->authctxt->user);
-				xfree(token);
-			}
-			break;
-#endif /* AFS */
+#endif
 
 		case SSH_CMSG_EXEC_SHELL:
 		case SSH_CMSG_EXEC_CMD:
@@ -1066,11 +1034,6 @@ do_setup_env(Session *s, const char *shell)
 		read_environment_file(&env, &envsize, "/etc/environment");
 	}
 #endif
-#ifdef KRB4
-	if (s->authctxt->krb4_ticket_file)
-		child_set_env(&env, &envsize, "KRBTKFILE",
-		    s->authctxt->krb4_ticket_file);
-#endif
 #ifdef KRB5
 	if (s->authctxt->krb5_ticket_file)
 		child_set_env(&env, &envsize, "KRB5CCNAME",
@@ -1395,18 +1358,6 @@ do_child(Session *s, const char *command)
 	 * /etc/ssh/sshrc and xauth are run in the proper environment.
 	 */
 	environ = env;
-
-#ifdef AFS
-	/* Try to get AFS tokens for the local cell. */
-	if (k_hasafs()) {
-		char cell[64];
-
-		if (k_afs_cell_of_file(pw->pw_dir, cell, sizeof(cell)) == 0)
-			krb_afslog(cell, 0);
-
-		krb_afslog(0, 0);
-	}
-#endif /* AFS */
 
 	/* Change current directory to the user\'s home directory. */
 	if (chdir(pw->pw_dir) < 0) {
