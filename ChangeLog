@@ -1,3 +1,8 @@
+20040524
+ - (dtucker) [auth-pam.c] Bug #839: Ensure that pam authentication "thread"
+   is terminated if the privsep slave exits during keyboard-interactive
+   authentication.  ok djm@
+
 20040513
  - (dtucker) [configure.ac] Bug #867: Additional tests for res_query in
    libresolv, fixes problems detecting it on some platforms
@@ -994,4 +999,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3316.2.4 2004/05/13 01:56:40 dtucker Exp $
+$Id: ChangeLog,v 1.3316.2.5 2004/05/24 01:53:42 dtucker Exp $
