@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.214 2004/06/13 15:03:02 djm Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.215 2004/06/17 14:52:48 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -1080,6 +1080,8 @@ ssh_control_listener(void)
 static void
 ssh_session2_setup(int id, void *arg)
 {
+	extern char **environ;
+
 	int interactive = tty_flag;
 	if (options.forward_x11 && getenv("DISPLAY") != NULL) {
 		char *proto, *data;
@@ -1100,7 +1102,7 @@ ssh_session2_setup(int id, void *arg)
 	}
 
 	client_session2_setup(id, tty_flag, subsystem_flag, getenv("TERM"),
-	    NULL, fileno(stdin), &command, &ssh_subsystem_reply);
+	    NULL, fileno(stdin), &command, environ, &ssh_subsystem_reply);
 
 	packet_set_interactive(interactive);
 }
@@ -1230,9 +1232,10 @@ static void
 control_client(const char *path)
 {
 	struct sockaddr_un addr;
-	int r, sock, exitval, addr_len;
+	int i, r, sock, exitval, addr_len;
 	Buffer m;
 	char *cp;
+	extern char **environ;
 	
 	memset(&addr, '\0', sizeof(addr));
 	addr.sun_family = AF_UNIX;
@@ -1265,8 +1268,6 @@ control_client(const char *path)
 		fatal("%s: wrong version", __func__);
 	control_server_pid = buffer_get_int(&m);
 
-	/* XXX: env passing */
-
 	buffer_clear(&m);
 	buffer_put_int(&m, tty_flag);
 	buffer_put_int(&m, subsystem_flag);
@@ -1274,6 +1275,13 @@ control_client(const char *path)
 
 	buffer_append(&command, "\0", 1);
 	buffer_put_cstring(&m, buffer_ptr(&command));
+
+	/* Pass environment */
+	for (i = 0; environ != NULL && environ[i] != NULL; i++)
+		;
+	buffer_put_int(&m, i);
+	for (i = 0; environ != NULL && environ[i] != NULL; i++)
+		buffer_put_cstring(&m, environ[i]);
 
 	if (ssh_msg_send(sock, /* version */0, &m) == -1)
 		fatal("%s: msg_send", __func__);

@@ -1,3 +1,9 @@
+20040618
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2004/06/17 14:52:48
+     [clientloop.c clientloop.h ssh.c]
+     support environment passing over shared connections; ok markus@
+
 20040617
  - (dtucker) [regress/scp.sh] diff -N is not portable (but needed for some
    platforms), so test if diff understands it.  Pointed out by tim@, ok djm@
@@ -1270,4 +1276,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3404 2004/06/17 07:01:21 dtucker Exp $
+$Id: ChangeLog,v 1.3405 2004/06/17 15:17:29 djm Exp $

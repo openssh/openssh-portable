@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.125 2004/06/15 05:45:04 djm Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.126 2004/06/17 14:52:48 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -143,6 +143,7 @@ struct confirm_ctx {
 	Buffer cmd;
 	char *term;
 	struct termios tio;
+	char **env;
 };
 
 /*XXX*/
@@ -538,6 +539,7 @@ client_extra_session2_setup(int id, void *arg)
 {
 	struct confirm_ctx *cctx = arg;
 	Channel *c;
+	int i;
 	
 	if (cctx == NULL)
 		fatal("%s: cctx == NULL", __func__);
@@ -545,13 +547,18 @@ client_extra_session2_setup(int id, void *arg)
 		fatal("%s: no channel for id %d", __func__, id);
 
 	client_session2_setup(id, cctx->want_tty, cctx->want_subsys, 
-	    cctx->term, &cctx->tio, c->rfd, &cctx->cmd, 
+	    cctx->term, &cctx->tio, c->rfd, &cctx->cmd, cctx->env,
 	    client_subsystem_reply);
 	
 	c->confirm_ctx = NULL;
 	buffer_free(&cctx->cmd);
-	free(cctx->term);
-	free(cctx);
+	xfree(cctx->term);
+	if (cctx->env != NULL) {
+		for (i = 0; cctx->env[i] != NULL; i++)
+			xfree(cctx->env[i]);
+		xfree(cctx->env);
+	}			
+	xfree(cctx);
 }
 
 static void
@@ -559,12 +566,12 @@ client_process_control(fd_set * readset)
 {
 	Buffer m;
 	Channel *c;
-	int client_fd, new_fd[3], ver;
+	int client_fd, new_fd[3], ver, i;
 	socklen_t addrlen;
 	struct sockaddr_storage addr;
 	struct confirm_ctx *cctx;
 	char *cmd;
-	u_int len;
+	u_int len, env_len;
 	uid_t euid;
 	gid_t egid;
 
@@ -630,6 +637,16 @@ client_process_control(fd_set * readset)
 	cmd = buffer_get_string(&m, &len);
 	buffer_init(&cctx->cmd);
 	buffer_append(&cctx->cmd, cmd, strlen(cmd));
+
+	env_len = buffer_get_int(&m);
+	env_len = MIN(env_len, 4096);
+	debug3("%s: receiving %d env vars", __func__, env_len);
+	if (env_len != 0) {
+		cctx->env = xmalloc(sizeof(*cctx->env) * (env_len + 1));
+		for (i = 0; i < env_len; i++)
+			cctx->env[i] = buffer_get_string(&m, &len);
+		cctx->env[i] = NULL;
+	}
 
 	debug2("%s: accepted tty %d, subsys %d, cmd %s", __func__,
 	    cctx->want_tty, cctx->want_subsys, cmd);
@@ -1626,7 +1643,7 @@ client_input_global_request(int type, u_int32_t seq, void *ctxt)
 
 void
 client_session2_setup(int id, int want_tty, int want_subsystem, 
-    const char *term, struct termios *tiop, int in_fd, Buffer *cmd, 
+    const char *term, struct termios *tiop, int in_fd, Buffer *cmd, char **env,
     dispatch_fn *subsys_repl)
 {
 	int len;
@@ -1654,15 +1671,14 @@ client_session2_setup(int id, int want_tty, int want_subsystem,
 	}
 
 	/* Transfer any environment variables from client to server */
-	if (options.num_send_env != 0) {
+	if (options.num_send_env != 0 && env != NULL) {
 		int i, j, matched;
-		extern char **environ;
 		char *name, *val;
 
 		debug("Sending environment.");
-		for (i = 0; environ && environ[i] != NULL; i++) {
+		for (i = 0; env[i] != NULL; i++) {
 			/* Split */
-			name = xstrdup(environ[i]);
+			name = xstrdup(env[i]);
 			if ((val = strchr(name, '=')) == NULL) {
 				free(name);
 				continue;
