@@ -16,6 +16,9 @@
    - itojun@cvs.openbsd.org 2002/06/24 15:49:22
      [msg.c]
      printf type pedant
+   - deraadt@cvs.openbsd.org 2002/06/24 17:57:20
+     [sftp-server.c sshpty.c]
+     explicit (u_int) for uid and gid
 
 20020625
  - (stevesk) [INSTALL acconfig.h configure.ac defines.h] remove --with-rsh
@@ -1115,4 +1118,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2278 2002/06/25 23:20:18 mouring Exp $
+$Id: ChangeLog,v 1.2279 2002/06/25 23:21:41 mouring Exp $
