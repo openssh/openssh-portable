@@ -3,6 +3,8 @@
    <tim@multitalents.net> 
  - (Bal) Patch for lack of RA_RESTART in misc.c for mysignal by
    stevesk
+ - (djm) Fix my breaking of cygwin builds, Patch from Corinna Vinschen 
+   <vinschen@redhat.com> and myself.
 
 20010217
  - (bal) OpenBSD Sync:
@@ -4010,4 +4012,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.784 2001/02/17 16:51:07 mouring Exp $
+$Id: ChangeLog,v 1.785 2001/02/18 01:30:55 djm Exp $

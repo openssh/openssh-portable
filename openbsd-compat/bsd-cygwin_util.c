@@ -15,7 +15,7 @@
 
 #include "includes.h"
 
-RCSID("$Id: bsd-cygwin_util.c,v 1.2 2001/02/09 01:55:36 djm Exp $");
+RCSID("$Id: bsd-cygwin_util.c,v 1.3 2001/02/18 01:30:56 djm Exp $");
 
 #ifdef HAVE_CYGWIN
 
@@ -26,8 +26,21 @@ RCSID("$Id: bsd-cygwin_util.c,v 1.2 2001/02/09 01:55:36 djm Exp $");
 #include <windows.h>
 #define is_winnt       (GetVersion() < 0x80000000)
 
-int binary_open(const char *filename, int flags, mode_t mode)
+#if defined(open) && open == binary_open
+# undef open
+#endif
+#if defined(pipe) && open == binary_pipe
+# undef pipe
+#endif
+
+int binary_open(const char *filename, int flags, ...)
 {
+	va_list ap;
+	mode_t mode;
+	
+	va_start(ap, flags);
+	mode = va_arg(ap, mode_t);
+	va_end(ap);
 	return open(filename, flags | O_BINARY, mode);
 }
 
