@@ -2,6 +2,7 @@
  - (bal) Updated INSTALL.  PCRE moved to a new place.
  - (djm) Add Theo Schlossnagle's <jesus@omniti.com> SecurID patch to contrib/
  - (djm) Release 2.9p1
+ - (tim) New version of mdoc2man.pl from Mark D. Roth <roth+openssh@feep.net>
 
 20010427
  - (bal) Fixed uidswap.c so it should work on non-posix complient systems.
@@ -5272,4 +5273,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1179.2.3 2001/04/29 12:04:15 djm Exp $
+$Id: ChangeLog,v 1.1179.2.4 2001/04/30 01:04:21 tim Exp $
