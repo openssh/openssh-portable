@@ -2,7 +2,7 @@
 #define _DEFINES_H
 
 /* Some platforms need this for the _r() functions */
-#ifndef _REENTRANT
+#if !defined(_REENTRANT) && !defined(SNI)
 # define _REENTRANT 1
 #endif
 
