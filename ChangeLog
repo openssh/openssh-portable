@@ -3,6 +3,8 @@
    <marc.fournier@acadiau.ca>
  - Wrote autoconf tests for integer bit-types
  - Fixed enabling kerberos support
+ - Fix segfault in ssh-keygen caused by buffer overrun in filename 
+   handling.
 
 19991119
  - Merged PAM buffer overrun patch from Chip Salzenberg <chip@valinux.com>
