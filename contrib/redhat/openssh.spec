@@ -22,6 +22,8 @@
 # rpm -ba|--rebuild --define "rh7 1"
 %{?rh7:%define redhat7 1}
 
+%define exact_openssl_version   %(rpm -q openssl | cut -d - -f 2)
+
 Summary: OpenSSH free Secure Shell (SSH) implementation
 Name: openssh
 Version: %{oversion}
@@ -37,6 +39,7 @@ Group: Applications/Internet
 BuildRoot: /tmp/openssh-%{version}-buildroot
 Obsoletes: ssh
 PreReq: openssl >= 0.9.5a
+RreReq: openssl = %{exact_openssl_version}
 Requires: openssl >= 0.9.5a
 Requires: rpm >= 3.0.5
 BuildPreReq: perl, openssl-devel, tcp_wrappers

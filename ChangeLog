@@ -1,6 +1,8 @@
 20010223
  - (bal) Fix --define rh7 in openssh.spec file.  Patch by Steve Tell
    <tell@telltronics.org>
+ - (bal) Patch to force OpenSSH rpm to require the same version of OpenSSL
+   that it was compiled against.  Patch by Pekka Savola <pekkas@netcore.fi>
 
 20010222                                                             
  - (bal) Corrected SCO luid patch by svaughan <svaughan@asterion.com>
@@ -4102,4 +4104,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.813 2001/02/23 04:45:15 mouring Exp $
+$Id: ChangeLog,v 1.814 2001/02/23 04:55:46 mouring Exp $
