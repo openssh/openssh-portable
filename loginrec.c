@@ -158,7 +158,7 @@
 #include "log.h"
 #include "atomicio.h"
 
-RCSID("$Id: loginrec.c,v 1.54 2004/02/10 05:49:35 dtucker Exp $");
+RCSID("$Id: loginrec.c,v 1.55 2004/04/08 00:57:05 dtucker Exp $");
 
 #ifdef HAVE_UTIL_H
 #  include <util.h>
@@ -1354,7 +1354,11 @@ static int
 syslogin_perform_logout(struct logininfo *li)
 {
 # ifdef HAVE_LOGOUT
+# ifdef UT_LINESIZE
+	char line[UT_LINESIZE];
+# else
 	char line[8];
+# endif
 
 	(void)line_stripname(line, li->line, sizeof(line));
 
