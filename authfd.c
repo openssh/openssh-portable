@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfd.c,v 1.37 2001/03/04 17:42:27 millert Exp $");
+RCSID("$OpenBSD: authfd.c,v 1.38 2001/03/06 00:33:03 deraadt Exp $");
 
 #include <openssl/evp.h>
 
@@ -120,6 +120,8 @@ ssh_request_reply(AuthenticationConnection *auth, Buffer *request, Buffer *reply
 	len = 4;
 	while (len > 0) {
 		l = read(auth->fd, buf + 4 - len, len);
+		if (l == -1 && (errno == EAGAIN || errno == EINTR))
+			continue; 
 		if (l <= 0) {
 			error("Error reading response length from authentication socket.");
 			return 0;
@@ -139,6 +141,8 @@ ssh_request_reply(AuthenticationConnection *auth, Buffer *request, Buffer *reply
 		if (l > sizeof(buf))
 			l = sizeof(buf);
 		l = read(auth->fd, buf, l);
+		if (l == -1 && (errno == EAGAIN || errno == EINTR))
+			continue; 
 		if (l <= 0) {
 			error("Error reading response from authentication socket.");
 			return 0;

@@ -30,6 +30,9 @@
    - stevesk@cvs.openbsd.org 2001/03/05 17:58:22
      [dh.c]
      spelling
+   - deraadt@cvs.openbsd.org 2001/03/06 00:33:04
+     [authfd.c cli.c ssh-agent.c]
+     EINTR/EAGAIN handling is required in more cases
 
 20010305
  - (bal) CVS ID touch up on sshpty.[ch] and sshlogin.[ch]
@@ -4401,4 +4404,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.915 2001/03/06 01:13:06 mouring Exp $
+$Id: ChangeLog,v 1.916 2001/03/06 03:31:34 mouring Exp $
