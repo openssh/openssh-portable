@@ -6,6 +6,9 @@
  - (dtucker) [auth-pam.c] Bug #559 (last piece): Pass DISALLOW_NULL_AUTHTOK
    to pam_authenticate for challenge-response auth too.  Originally from
    fcusack at fcusack.com, ok djm@
+ - (tim) [buildpkg.sh.in] Add $REV to bump the package revision within
+   the same version. Handle the case where someone uses --with-privsep-user=
+   and the user name does not match the group name. ok dtucker@
 
 20040630
  - (dtucker) [auth-pam.c] Check for buggy PAM modules that return a NULL
@@ -1474,4 +1477,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3466 2004/07/01 04:00:14 dtucker Exp $
+$Id: ChangeLog,v 1.3467 2004/07/02 03:41:15 tim Exp $

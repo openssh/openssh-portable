@@ -21,6 +21,8 @@ REMOVE_FAKE_ROOT_WHEN_DONE=yes
 # that support the -R option to pkgadd.
 #TEST_DIR=/var/tmp	# leave commented out for production build
 PKGNAME=OpenSSH
+# revisions within the same version (REV=a)
+#REV=
 SYSVINIT_NAME=opensshd
 MAKE=${MAKE:="make"}
 SSHDUID=67	# Default privsep uid
@@ -206,7 +208,7 @@ NAME="OpenSSH Portable for ${UNAME_S}"
 DESC="Secure Shell remote access utility; replaces telnet and rlogin/rsh."
 VENDOR="OpenSSH Portable Team - http://www.openssh.com/portable.html"
 ARCH=$ARCH
-VERSION=$VERSION
+VERSION=$VERSION$REV
 CATEGORY="Security,application"
 BASEDIR=/
 CLASSES="none"
@@ -316,11 +318,27 @@ then
 else
 	echo "UsePrivilegeSeparation enabled in config (or defaulting to on)."
 
-	# create group if required
-	if cut -f1 -d: \${PKG_INSTALL_ROOT}/etc/group | egrep '^'$SSH_PRIVSEP_USER'\$' >/dev/null
+	# user required?
+	if cut -f1 -d: \${PKG_INSTALL_ROOT}/etc/passwd | egrep '^'$SSH_PRIVSEP_USER'\$' >/dev/null
 	then
-		echo "PrivSep group $SSH_PRIVSEP_USER already exists."
+		echo "PrivSep user $SSH_PRIVSEP_USER already exists."
+		SSH_PRIVSEP_GROUP=\`grep "^$SSH_PRIVSEP_USER:" \${PKG_INSTALL_ROOT}/etc/passwd | awk -F: '{print \$4}'\`
+		SSH_PRIVSEP_GROUP=\`grep ":\$SSH_PRIVSEP_GROUP:" \${PKG_INSTALL_ROOT}/etc/group | awk -F: '{print \$1}'\`
 	else
+		DO_PASSWD=yes
+	fi
+	[ -z "\$SSH_PRIVSEP_GROUP" ]  &&  SSH_PRIVSEP_GROUP=$SSH_PRIVSEP_USER
+
+	# group required?
+	if cut -f1 -d: \${PKG_INSTALL_ROOT}/etc/group | egrep '^'\$SSH_PRIVSEP_GROUP'\$' >/dev/null
+	then
+		echo "PrivSep group \$SSH_PRIVSEP_GROUP already exists."
+	else
+		DO_GROUP=yes
+	fi
+
+	# create group if required
+	[ "\$DO_GROUP" = yes ]  &&  {
 		# Use gid of 67 if possible
 		if cut -f3 -d: \${PKG_INSTALL_ROOT}/etc/group | egrep '^'$SSHDGID'\$' >/dev/null
 		then
@@ -328,15 +346,12 @@ else
 		else
 			sshdgid="-g $SSHDGID"
 		fi
-		echo "Creating PrivSep group $SSH_PRIVSEP_USER."
-		\$chroot ${PATH_GROUPADD_PROG} \$sshdgid $SSH_PRIVSEP_USER
-	fi
+		echo "Creating PrivSep group \$SSH_PRIVSEP_GROUP."
+		\$chroot ${PATH_GROUPADD_PROG} \$sshdgid \$SSH_PRIVSEP_GROUP
+	}
 
 	# Create user if required
-	if cut -f1 -d: \${PKG_INSTALL_ROOT}/etc/passwd | egrep '^'$SSH_PRIVSEP_USER'\$' >/dev/null
-	then
-		echo "PrivSep user $SSH_PRIVSEP_USER already exists."
-	else
+	[ "\$DO_PASSWD" = yes ]  &&  {
 		# Use uid of 67 if possible
 		if cut -f3 -d: \${PKG_INSTALL_ROOT}/etc/passwd | egrep '^'$SSHDGID'\$' >/dev/null
 		then
@@ -347,7 +362,7 @@ else
 		echo "Creating PrivSep user $SSH_PRIVSEP_USER."
 		\$chroot ${PATH_USERADD_PROG} -c 'SSHD PrivSep User' -s /bin/false -g $SSH_PRIVSEP_USER \$sshduid $SSH_PRIVSEP_USER
 		\$chroot ${PATH_PASSWD_PROG} -l $SSH_PRIVSEP_USER
-	fi
+	}
 fi
 
 [ "\${POST_INS_START}" = "yes" ]  &&  ${TEST_DIR}/etc/init.d/${SYSVINIT_NAME} start
@@ -526,7 +541,7 @@ cd ..
 
 echo "Building package.."
 pkgmk -d ${FAKE_ROOT} -f $FAKE_ROOT/prototype -o
-echo | pkgtrans -os ${FAKE_ROOT} ${START}/$PKGNAME-$VERSION-$UNAME_S-$ARCH.pkg
+echo | pkgtrans -os ${FAKE_ROOT} ${START}/$PKGNAME-$VERSION$REV-$UNAME_S-$ARCH.pkg
 	;;
 
 	justpkg.sh)
@@ -537,7 +552,7 @@ cat >> $FAKE_ROOT/pkginfo << _EOF
 PSTAMP="${UNAME_S} ${OS_VER} ${ARCH} `date '+%d%b%Y %H:%M'`"
 _EOF
 pkgmk -d ${FAKE_ROOT} -f $FAKE_ROOT/prototype -o
-echo | pkgtrans -os ${FAKE_ROOT} ${START}/$PKGNAME-$VERSION-$UNAME_S-$ARCH.pkg
+echo | pkgtrans -os ${FAKE_ROOT} ${START}/$PKGNAME-$VERSION$REV-$UNAME_S-$ARCH.pkg
 	;;
 
 esac
