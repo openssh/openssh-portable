@@ -18,6 +18,10 @@
    - dtucker@cvs.openbsd.org 2004/08/11 11:50:09
      [sshd.c]
      Don't try to close startup_pipe if it's not open; ok djm@
+   - djm@cvs.openbsd.org 2004/08/11 11:59:22
+     [sshlogin.c]
+     check that lseek went were we told it to; ok markus@
+     (Id sync only, but similar changes are needed in loginrec.c)
 
 20040720
  - (djm) OpenBSD CVS Sync
@@ -1585,4 +1589,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3494 2004/08/12 12:42:29 dtucker Exp $
+$Id: ChangeLog,v 1.3495 2004/08/12 12:49:00 dtucker Exp $
