@@ -87,4 +87,16 @@ Packaging:
 - HP-UX: Provide DEPOT package scripts.
   (gilbert.r.loomis@saic.com)
 
-$Id: TODO,v 1.46 2002/01/22 11:26:20 djm Exp $
+
+PrivSep Issues:
+- mmap() issues.
+  + No/broken MAP_ANON
+  + broken /dev/zero parse
+- PAM 
+  + See above PAM notes
+- AIX
+  + Issues with usrinfo()
+- OSF
+  + SIA is broken
+
+$Id: TODO,v 1.47 2002/06/25 02:28:22 mouring Exp $
