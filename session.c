@@ -1120,7 +1120,7 @@ launch_login(struct passwd *pw, const char *hostname)
 	/* Launch login(1). */
 
 	execl("/usr/bin/login", "login", "-h", hostname,
-#ifdef LOGIN_NEEDS_TERM
+#ifdef xxxLOGIN_NEEDS_TERM
                     (s->term ? s->term : "unknown"),
 #endif /* LOGIN_NEEDS_TERM */
 	    "-p", "-f", "--", pw->pw_name, (char *)NULL);

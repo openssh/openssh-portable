@@ -1,3 +1,8 @@
+20020324
+ - (stevesk) [session.c] disable LOGIN_NEEDS_TERM until we are sure
+   it can be removed. only used on solaris. will no longer compile with
+   privsep shuffling.
+
 20020322
  - (stevesk) HAVE_ACCRIGHTS_IN_MSGHDR configure support
  - (stevesk) [monitor.c monitor_wrap.c] #ifdef HAVE_PW_CLASS_IN_PASSWD
@@ -8006,4 +8011,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1975 2002/03/23 02:20:07 stevesk Exp $
+$Id: ChangeLog,v 1.1976 2002/03/24 23:19:55 stevesk Exp $
