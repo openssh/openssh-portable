@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.87 2002/04/23 10:23:00 djm Exp $ */
+/* $Id: defines.h,v 1.88 2002/04/23 12:59:51 djm Exp $ */
 
 
 /* Constants */
@@ -393,14 +393,11 @@ struct winsize {
 # define howmany(x,y)	(((x)+((y)-1))/(y))
 #endif
 
-#ifndef ALIGNBYTES
-#define ALIGNBYTES	(sizeof(int) - 1)
-#endif
-#ifndef ALIGN
-#define ALIGN(p)	(((u_int)(p) + ALIGNBYTES) &~ ALIGNBYTES)
+#ifndef OSSH_ALIGNBYTES
+#define OSSH_ALIGNBYTES	(sizeof(int) - 1)
 #endif
 #ifndef __CMSG_ALIGN
-#define	__CMSG_ALIGN(len)	ALIGN(len)
+#define	__CMSG_ALIGN(p) (((u_int)(p) + OSSH_ALIGNBYTES) &~ OSSH_ALIGNBYTES)
 #endif
 
 /* Length of the contents of a control message of length len */
