@@ -1,4 +1,7 @@
 20021015
+ - (bal) Fix bug id 383 and only call loginrestrict for AIX if not root.
+
+20021015
  - (tim) [contrib/caldera/openssh.spec] make ssh-agent setgid nobody
 
 20021004
@@ -764,4 +767,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2494 2002/10/15 20:16:55 tim Exp $
+$Id: ChangeLog,v 1.2495 2002/10/16 00:13:52 mouring Exp $
