@@ -8,6 +8,7 @@
  - (djm) Update RPM spec file: different superuser path, use
    /var/empty/sshd for privsep
  - (djm) Bug #234: missing readpassphrase declaration and defines
+ - (djm) Add INSTALL warning about SSH protocol 1 blowfish w/ OpenSSL < 0.9.6
 
 20020511
  - (tim) [configure.ac] applied a rework of djm's OpenSSL search cleanup patch.
@@ -578,4 +579,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2113 2002/05/13 05:14:08 djm Exp $
+$Id: ChangeLog,v 1.2114 2002/05/13 05:22:21 djm Exp $

@@ -9,6 +9,9 @@ http://www.gzip.org/zlib/
 OpenSSL 0.9.6 or greater:
 http://www.openssl.org/
 
+(OpenSSL 0.9.5a is partially supported, but some ciphers (SSH protocol 1 
+Blowfish included) do not work correctly.)
+
 RPMs of OpenSSL are available at http://violet.ibs.com.au/openssh/files/support.
 For Red Hat Linux 6.2, they have been released as errata.  RHL7 includes
 these.
@@ -223,4 +226,4 @@ Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
 
 
-$Id: INSTALL,v 1.52 2002/04/17 02:23:02 djm Exp $
+$Id: INSTALL,v 1.53 2002/05/13 05:22:21 djm Exp $
