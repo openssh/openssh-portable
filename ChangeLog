@@ -4,6 +4,10 @@
 	 Added openbsd-compat/bsd-cray.c.  Rest will be merged after
 	 approval.  Selective patches from William L. Jones 
 	 <jones@mail.utexas.edu> 
+ - OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2001/07/18 21:10:43
+     [sshpty.c]
+     pr #1946, allow sshd if /dev is readonly
 
 20010719
  - (tim) [configure.in] put inet_aton back in AC_CHECK_FUNCS.
@@ -6077,4 +6081,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1416 2001/07/22 19:32:00 mouring Exp $
+$Id: ChangeLog,v 1.1417 2001/07/22 20:36:57 mouring Exp $
