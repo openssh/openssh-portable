@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.40 2004/01/21 03:07:59 djm Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.41 2004/01/27 10:08:10 djm Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -212,11 +212,6 @@ main(int argc, char **argv)
 		userhost = xstrdup(argv[optind]);
 		file2 = argv[optind+1];
 
-		if ((cp = colon(userhost)) != NULL) {
-			*cp++ = '\0';
-			file1 = cp;
-		}
-
 		if ((host = strrchr(userhost, '@')) == NULL)
 			host = userhost;
 		else {
@@ -226,6 +221,11 @@ main(int argc, char **argv)
 				usage();
 			}
 			addargs(&args, "-l%s",userhost);
+		}
+
+		if ((cp = colon(host)) != NULL) {
+			*cp++ = '\0';
+			file1 = cp;
 		}
 
 		host = cleanhostname(host);

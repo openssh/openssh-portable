@@ -16,6 +16,10 @@
      [sshconnect.c]
      reset nonblocking flag after ConnectTimeout > 0 connect; (bugzilla #785)
      from jclonguet AT free.fr; ok millert@
+   - djm@cvs.openbsd.org 2004/01/27 10:08:10
+     [sftp.c]
+     reorder parsing so user:skey@host:file works (bugzilla #777)
+     patch from admorten AT umich.edu; ok markus@
  - (djm) [acss.c acss.h cipher-acss.c] Portable support for ACSS 
    if libcrypto lacks it
 
@@ -1758,4 +1762,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3196 2004/01/27 10:21:27 djm Exp $
+$Id: ChangeLog,v 1.3197 2004/01/27 10:22:00 djm Exp $
