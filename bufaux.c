@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: bufaux.c,v 1.25 2002/04/20 09:14:58 markus Exp $");
+RCSID("$OpenBSD: bufaux.c,v 1.26 2002/06/23 09:46:51 deraadt Exp $");
 
 #include <openssl/bn.h>
 #include "bufaux.h"
@@ -105,6 +105,7 @@ buffer_put_bignum2(Buffer *buffer, BIGNUM *value)
 	u_char *buf = xmalloc(bytes);
 	int oi;
 	int hasnohigh = 0;
+
 	buf[0] = '\0';
 	/* Get the value of in binary */
 	oi = BN_bn2bin(value, buf+1);
@@ -134,6 +135,7 @@ buffer_get_bignum2(Buffer *buffer, BIGNUM *value)
 	/**XXX should be two's-complement */
 	int len;
 	u_char *bin = buffer_get_string(buffer, (u_int *)&len);
+
 	BN_bin2bn(bin, len, value);
 	xfree(bin);
 }
@@ -145,6 +147,7 @@ u_short
 buffer_get_short(Buffer *buffer)
 {
 	u_char buf[2];
+
 	buffer_get(buffer, (char *) buf, 2);
 	return GET_16BIT(buf);
 }
@@ -153,6 +156,7 @@ u_int
 buffer_get_int(Buffer *buffer)
 {
 	u_char buf[4];
+
 	buffer_get(buffer, (char *) buf, 4);
 	return GET_32BIT(buf);
 }
@@ -162,6 +166,7 @@ u_int64_t
 buffer_get_int64(Buffer *buffer)
 {
 	u_char buf[8];
+
 	buffer_get(buffer, (char *) buf, 8);
 	return GET_64BIT(buf);
 }
@@ -174,6 +179,7 @@ void
 buffer_put_short(Buffer *buffer, u_short value)
 {
 	char buf[2];
+
 	PUT_16BIT(buf, value);
 	buffer_append(buffer, buf, 2);
 }
@@ -182,6 +188,7 @@ void
 buffer_put_int(Buffer *buffer, u_int value)
 {
 	char buf[4];
+
 	PUT_32BIT(buf, value);
 	buffer_append(buffer, buf, 4);
 }
@@ -191,6 +198,7 @@ void
 buffer_put_int64(Buffer *buffer, u_int64_t value)
 {
 	char buf[8];
+
 	PUT_64BIT(buf, value);
 	buffer_append(buffer, buf, 8);
 }
@@ -207,8 +215,9 @@ buffer_put_int64(Buffer *buffer, u_int64_t value)
 void *
 buffer_get_string(Buffer *buffer, u_int *length_ptr)
 {
-	u_int len;
 	u_char *value;
+	u_int len;
+
 	/* Get the length. */
 	len = buffer_get_int(buffer);
 	if (len > 256 * 1024)
@@ -249,6 +258,7 @@ int
 buffer_get_char(Buffer *buffer)
 {
 	char ch;
+
 	buffer_get(buffer, &ch, 1);
 	return (u_char) ch;
 }
@@ -260,5 +270,6 @@ void
 buffer_put_char(Buffer *buffer, int value)
 {
 	char ch = value;
+
 	buffer_append(buffer, &ch, 1);
 }
