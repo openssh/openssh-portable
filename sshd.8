@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.195 2003/04/30 01:16:20 mouring Exp $
+.\" $OpenBSD: sshd.8,v 1.196 2003/04/30 20:41:07 david Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -429,8 +429,7 @@ that option keywords are case-insensitive):
 Specifies that in addition to public key authentication, the canonical name
 of the remote host must be present in the comma-separated list of
 patterns
-.Pf ( 
-.Ql \&*
+.Pf ( Ql \&*
 and
 .Ql \&?
 serve as wildcards).
@@ -525,8 +524,8 @@ Each line in these files contains the following fields: hostnames,
 bits, exponent, modulus, comment.
 The fields are separated by spaces.
 .Pp
-Hostnames is a comma-separated list of patterns (
-.Ql \&* 
+Hostnames is a comma-separated list of patterns
+.Pf ( Ql \&* 
 and 
 .Ql \&? 
 act as

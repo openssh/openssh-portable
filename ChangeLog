@@ -32,6 +32,10 @@
      [sshd.8 sshd_config.5]
      Escape ?, * and ! in .Ql for nroff compatibility.  OpenSSH Portable 
      Bug #550 and * escaping suggested by jmc@.
+   - david@cvs.openbsd.org 2003/04/30 20:41:07
+     [sshd.8]
+     fix invalid .Pf macro usage introduced in previous commit
+     ok jmc@ mouring@
 
 20030512
  - (djm) Redhat spec: Don't install profile.d scripts when not 
@@ -1419,4 +1423,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2685 2003/05/14 03:44:42 djm Exp $
+$Id: ChangeLog,v 1.2686 2003/05/14 03:44:58 djm Exp $
