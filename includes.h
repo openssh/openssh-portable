@@ -98,9 +98,6 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #ifdef HAVE_UTIME_H
 # include <utime.h>
 #endif
-#ifdef HAVE_VIS_H
-# include <vis.h>
-#endif
 #include "version.h"
 #include "openbsd-compat/openbsd-compat.h"
 #include "openbsd-compat/bsd-cygwin_util.h"

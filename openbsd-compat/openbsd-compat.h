@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.13 2001/08/07 22:29:09 tim Exp $ */
+/* $Id: openbsd-compat.h,v 1.14 2001/09/20 02:07:51 mouring Exp $ */
 
 #ifndef _OPENBSD_H
 #define _OPENBSD_H
@@ -21,7 +21,6 @@
 #include "inet_ntoa.h"
 #include "inet_ntop.h"
 #include "strsep.h"
-#include "vis.h"
 #include "setproctitle.h"
 #include "getgrouplist.h"
 #include "glob.h"

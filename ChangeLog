@@ -1,5 +1,5 @@
 20010919
- - (bal) OpenbSD Sycn
+ - (bal) OpenBSD Sync
    - markus@cvs.openbsd.org 2001/09/19 10:08:51
      [sshd.8]
      command=xxx applies to subsystem now, too
@@ -22,6 +22,7 @@
    - stevesk@cvs.openbsd.org 2001/09/19 21:41:57
      [sshd.8]
      don't advertise -V in usage; ok markus@
+ - (bal) openbsd-compat/vis.[ch] is dead wood.  Removed.
 
 20010918
  - (djm) Configure support for smartcards. Based on Ben's work.
@@ -36,7 +37,7 @@
  - (stevesk) nchan.c: we use X/Open Sockets on HP-UX now so shutdown(2)
    returns ENOTCONN vs. EINVAL for socket not connected; remove EINVAL
    check. ok Lutz Jaenicke
- - OpenBSD CVS Sync
+ - (bal) OpenBSD CVS Sync
    - stevesk@cvs.openbsd.org 2001/09/17 17:57:57
      [scp.1 scp.c sftp.1 sftp.c]
      add -Fssh_config option; ok markus@
@@ -6529,4 +6530,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1547 2001/09/20 01:07:57 mouring Exp $
+$Id: ChangeLog,v 1.1548 2001/09/20 02:07:50 mouring Exp $
