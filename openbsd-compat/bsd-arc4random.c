@@ -25,7 +25,7 @@
 #include "includes.h"
 #include "log.h"
 
-RCSID("$Id: bsd-arc4random.c,v 1.4 2001/03/18 23:00:53 djm Exp $");
+RCSID("$Id: bsd-arc4random.c,v 1.5 2002/05/08 22:57:18 tim Exp $");
 
 #ifndef HAVE_ARC4RANDOM
 
@@ -48,7 +48,7 @@ unsigned int arc4random(void)
 	static int first_time = 1;
 
 	if (rc4_ready <= 0) {
-		if (!first_time)
+		if (first_time)
 			seed_rng();
 		first_time = 0;
 		arc4random_stir();

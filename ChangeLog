@@ -1,4 +1,8 @@
 20020507
+ - (tim) [openbsd-compat/bsd-arc4random.c] fix logic on when seed_rng() is
+   called. Report by Chris Maxwell <maxwell@cs.dal.ca>
+
+20020507
  - (tim) [configure.ac openbsd-compat/bsd-misc.c openbsd-compat/bsd-misc.h]
    Add truncate() emulation to address Bug 208
 
@@ -539,4 +543,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2096 2002/05/08 02:51:31 tim Exp $
+$Id: ChangeLog,v 1.2097 2002/05/08 22:57:18 tim Exp $
