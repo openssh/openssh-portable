@@ -1,3 +1,10 @@
+20031008
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2003/10/07 01:47:27
+     [sshconnect2.c]
+     Don't use logit for banner, since it truncates to MSGBUFSIZ; bz #668 & #707.
+     ok markus@
+
 20031007
  - (djm) Delete autom4te.cache after autoreconf
  - (dtucker) [auth-pam.c auth-pam.h session.c] Make PAM use the new static
@@ -1292,4 +1299,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3063 2003/10/07 10:35:57 dtucker Exp $
+$Id: ChangeLog,v 1.3064 2003/10/08 07:32:02 dtucker Exp $
