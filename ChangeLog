@@ -18,6 +18,11 @@
    - dtucker@cvs.openbsd.org 2005/02/08 22:24:57
      [sshd.c]
      Provide reason in error message if getnameinfo fails; ok markus@
+ - (dtucker) [auth-passwd.c openbsd-compat/port-aix.c] Don't call
+   disable_forwarding() from compat library. Prevent linker errrors trying
+   to resolve it for binaries other than sshd.  ok djm@
+
+   when 
 
 20050208
  - (dtucker) [regress/test-exec.sh] Bug #912: Set _POSIX2_VERSION for the
@@ -2107,4 +2112,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3644 2005/02/08 22:53:48 dtucker Exp $
+$Id: ChangeLog,v 1.3645 2005/02/09 06:08:23 dtucker Exp $

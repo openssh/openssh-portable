@@ -196,7 +196,6 @@ sys_auth_passwd(Authctxt *ctxt, const char *password)
 			break;
 		case 1: /* expired, password change required */
 			ctxt->force_pwchange = 1;
-			disable_forwarding();
 			break;
 		default: /* user can't change(2) or other error (-1) */
 			logit("Password can't be changed for user %s: %.100s",

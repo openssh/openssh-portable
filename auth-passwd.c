@@ -73,7 +73,7 @@ int
 auth_password(Authctxt *authctxt, const char *password)
 {
 	struct passwd * pw = authctxt->pw;
-	int ok = authctxt->valid;
+	int result, ok = authctxt->valid;
 #if defined(USE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
 	static int expire_checked = 0;
 #endif
@@ -110,14 +110,14 @@ auth_password(Authctxt *authctxt, const char *password)
 #if defined(USE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
 	if (!expire_checked) {
 		expire_checked = 1;
-		if (auth_shadow_pwexpired(authctxt)) {
-			disable_forwarding();
+		if (auth_shadow_pwexpired(authctxt))
 			authctxt->force_pwchange = 1;
-		}
 	}
 #endif
-		
-	return (sys_auth_passwd(authctxt, password) && ok);
+	result = sys_auth_passwd(authctxt, password);
+	if (authctxt->force_pwchange)
+		disable_forwarding();
+	return (result && ok);
 }
 
 #ifdef BSD_AUTH
