@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.45 2001/06/23 05:57:09 deraadt Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.46 2001/06/25 17:18:27 markus Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -210,7 +210,7 @@ used to encrypt the private part of this file using 3DES.
 This file is not automatically accessed by
 .Nm
 but it is offered as the default file for the private key.
-.Xr sshd 8
+.Xr ssh 1
 will read this file when a login attempt is made.
 .It Pa $HOME/.ssh/identity.pub
 Contains the protocol version 1 RSA public key for authentication.
@@ -228,7 +228,7 @@ used to encrypt the private part of this file using 3DES.
 This file is not automatically accessed by
 .Nm
 but it is offered as the default file for the private key.
-.Xr sshd 8
+.Xr ssh 1
 will read this file when a login attempt is made.
 .It Pa $HOME/.ssh/id_dsa.pub
 Contains the protocol version 2 DSA public key for authentication.
@@ -246,7 +246,7 @@ used to encrypt the private part of this file using 3DES.
 This file is not automatically accessed by
 .Nm
 but it is offered as the default file for the private key.
-.Xr sshd 8
+.Xr ssh 1
 will read this file when a login attempt is made.
 .It Pa $HOME/.ssh/id_rsa.pub
 Contains the protocol version 2 RSA public key for authentication.
