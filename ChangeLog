@@ -1,6 +1,8 @@
 20020910
  - (djm) Bug #365: Read /.ssh/environment properly under CygWin. 
    Patch from Mark Bradshaw <bradshaw@staff.crosswalk.com>
+ - (djm) Bug #138: Make protocol 1 blowfish work with old OpenSSL. 
+   Patch from Robert Halubek <rob@adso.com.pl>
 
 20020905 
  - (djm) OpenBSD CVS Sync
@@ -1612,4 +1614,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2449 2002/09/10 11:43:53 djm Exp $
+$Id: ChangeLog,v 1.2450 2002/09/10 12:26:17 djm Exp $
