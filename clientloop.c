@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.111 2003/05/14 22:24:42 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.112 2003/06/28 16:23:06 deraadt Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -395,9 +395,9 @@ client_suspend_self(Buffer *bin, Buffer *bout, Buffer *berr)
 
 	/* Flush stdout and stderr buffers. */
 	if (buffer_len(bout) > 0)
-		atomicio(write, fileno(stdout), buffer_ptr(bout), buffer_len(bout));
+		atomicio(vwrite, fileno(stdout), buffer_ptr(bout), buffer_len(bout));
 	if (buffer_len(berr) > 0)
-		atomicio(write, fileno(stderr), buffer_ptr(berr), buffer_len(berr));
+		atomicio(vwrite, fileno(stderr), buffer_ptr(berr), buffer_len(berr));
 
 	leave_raw_mode();
 

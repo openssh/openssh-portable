@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keyscan.c,v 1.43 2003/04/26 04:29:49 deraadt Exp $");
+RCSID("$OpenBSD: ssh-keyscan.c,v 1.44 2003/06/28 16:23:06 deraadt Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -541,7 +541,7 @@ congreet(int s)
 	n = snprintf(buf, sizeof buf, "SSH-%d.%d-OpenSSH-keyscan\r\n",
 	    c->c_keytype == KT_RSA1? PROTOCOL_MAJOR_1 : PROTOCOL_MAJOR_2,
 	    c->c_keytype == KT_RSA1? PROTOCOL_MINOR_1 : PROTOCOL_MINOR_2);
-	if (atomicio(write, s, buf, n) != n) {
+	if (atomicio(vwrite, s, buf, n) != n) {
 		error("write (%s): %s", c->c_name, strerror(errno));
 		confree(s);
 		return;

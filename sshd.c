@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.270 2003/06/28 07:48:10 djm Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.271 2003/06/28 16:23:06 deraadt Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -369,7 +369,7 @@ sshd_exchange_identification(int sock_in, int sock_out)
 
 	if (client_version_string == NULL) {
 		/* Send our protocol version identification. */
-		if (atomicio(write, sock_out, server_version_string,
+		if (atomicio(vwrite, sock_out, server_version_string,
 		    strlen(server_version_string))
 		    != strlen(server_version_string)) {
 			logit("Could not write ident string to %s", get_remote_ipaddr());
@@ -408,7 +408,7 @@ sshd_exchange_identification(int sock_in, int sock_out)
 	if (sscanf(client_version_string, "SSH-%d.%d-%[^\n]\n",
 	    &remote_major, &remote_minor, remote_version) != 3) {
 		s = "Protocol mismatch.\n";
-		(void) atomicio(write, sock_out, s, strlen(s));
+		(void) atomicio(vwrite, sock_out, s, strlen(s));
 		close(sock_in);
 		close(sock_out);
 		logit("Bad protocol version identification '%.100s' from %s",
@@ -469,7 +469,7 @@ sshd_exchange_identification(int sock_in, int sock_out)
 
 	if (mismatch) {
 		s = "Protocol major versions differ.\n";
-		(void) atomicio(write, sock_out, s, strlen(s));
+		(void) atomicio(vwrite, sock_out, s, strlen(s));
 		close(sock_in);
 		close(sock_out);
 		logit("Protocol major versions differ for %s: %.200s vs. %.200s",

@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.145 2003/06/11 10:16:16 jakob Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.146 2003/06/28 16:23:06 deraadt Exp $");
 
 #include <openssl/bn.h>
 
@@ -523,7 +523,7 @@ ssh_exchange_identification(void)
 	    compat20 ? PROTOCOL_MAJOR_2 : PROTOCOL_MAJOR_1,
 	    compat20 ? PROTOCOL_MINOR_2 : minor1,
 	    SSH_VERSION);
-	if (atomicio(write, connection_out, buf, strlen(buf)) != strlen(buf))
+	if (atomicio(vwrite, connection_out, buf, strlen(buf)) != strlen(buf))
 		fatal("write: %.100s", strerror(errno));
 	client_version_string = xstrdup(buf);
 	chop(client_version_string);

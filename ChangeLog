@@ -4,6 +4,11 @@
      [sshd.c]
      report pidfile creation errors, based on patch from Roumen Petrov;
      ok markus@
+   - deraadt@cvs.openbsd.org 2003/06/28 16:23:06
+     [atomicio.c atomicio.h authfd.c clientloop.c monitor_wrap.c msg.c
+     progressmeter.c scp.c sftp-client.c ssh-keyscan.c ssh.h sshconnect.c
+     sshd.c]
+     deal with typing of write vs read in atomicio
 
 20030630
  - (djm) Search for support functions necessary to build our 
@@ -624,4 +629,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2836 2003/07/03 03:40:44 dtucker Exp $
+$Id: ChangeLog,v 1.2837 2003/07/03 03:46:56 dtucker Exp $

@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfd.c,v 1.60 2003/06/11 11:18:38 djm Exp $");
+RCSID("$OpenBSD: authfd.c,v 1.61 2003/06/28 16:23:06 deraadt Exp $");
 
 #include <openssl/evp.h>
 
@@ -122,8 +122,8 @@ ssh_request_reply(AuthenticationConnection *auth, Buffer *request, Buffer *reply
 	PUT_32BIT(buf, len);
 
 	/* Send the length and then the packet to the agent. */
-	if (atomicio(write, auth->fd, buf, 4) != 4 ||
-	    atomicio(write, auth->fd, buffer_ptr(request),
+	if (atomicio(vwrite, auth->fd, buf, 4) != 4 ||
+	    atomicio(vwrite, auth->fd, buffer_ptr(request),
 	    buffer_len(request)) != buffer_len(request)) {
 		error("Error writing to authentication socket.");
 		return 0;

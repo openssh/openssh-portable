@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: atomicio.c,v 1.10 2001/05/08 22:48:07 markus Exp $");
+RCSID("$OpenBSD: atomicio.c,v 1.11 2003/06/28 16:23:06 deraadt Exp $");
 
 #include "atomicio.h"
 
@@ -33,7 +33,7 @@ RCSID("$OpenBSD: atomicio.c,v 1.10 2001/05/08 22:48:07 markus Exp $");
  */
 ssize_t
 atomicio(f, fd, _s, n)
-	ssize_t (*f) ();
+	ssize_t (*f) (int, void *, size_t);
 	int fd;
 	void *_s;
 	size_t n;

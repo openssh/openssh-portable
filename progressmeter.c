@@ -64,7 +64,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: progressmeter.c,v 1.7 2003/06/10 22:20:52 deraadt Exp $");
+RCSID("$OpenBSD: progressmeter.c,v 1.8 2003/06/28 16:23:06 deraadt Exp $");
 
 #ifdef HAVE_LIBGEN_H
 #include <libgen.h>
@@ -132,7 +132,7 @@ stop_progress_meter(void)
 	alarm(0);
 	draw_progress_meter();
 	if (foregroundproc() != 0)
-		atomicio(write, fileno(stdout), "\n", 1);
+		atomicio(vwrite, fileno(stdout), "\n", 1);
 }
 
 static void
@@ -255,7 +255,7 @@ draw_progress_meter(void)
 		    "%02d:%02d%s", i / 60, i % 60,
 		    (cursize != totalbytes) ? " ETA" : "    ");
 	}
-	atomicio(write, fileno(stdout), buf, strlen(buf));
+	atomicio(vwrite, fileno(stdout), buf, strlen(buf));
 }
 
 static int

@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor_wrap.c,v 1.26 2003/04/07 08:29:57 markus Exp $");
+RCSID("$OpenBSD: monitor_wrap.c,v 1.27 2003/06/28 16:23:06 deraadt Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dh.h>
@@ -72,9 +72,9 @@ mm_request_send(int socket, enum monitor_reqtype type, Buffer *m)
 
 	PUT_32BIT(buf, mlen + 1);
 	buf[4] = (u_char) type;		/* 1st byte of payload is mesg-type */
-	if (atomicio(write, socket, buf, sizeof(buf)) != sizeof(buf))
+	if (atomicio(vwrite, socket, buf, sizeof(buf)) != sizeof(buf))
 		fatal("%s: write", __func__);
-	if (atomicio(write, socket, buffer_ptr(m), mlen) != mlen)
+	if (atomicio(vwrite, socket, buffer_ptr(m), mlen) != mlen)
 		fatal("%s: write", __func__);
 }
 

@@ -71,7 +71,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.106 2003/06/12 15:34:09 nino Exp $");
+RCSID("$OpenBSD: scp.c,v 1.107 2003/06/28 16:23:06 deraadt Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -549,7 +549,7 @@ syserr:			run_err("%s: %s", name, strerror(errno));
 			(void) snprintf(buf, sizeof buf, "T%lu 0 %lu 0\n",
 			    (u_long) stb.st_mtime,
 			    (u_long) stb.st_atime);
-			(void) atomicio(write, remout, buf, strlen(buf));
+			(void) atomicio(vwrite, remout, buf, strlen(buf));
 			if (response() < 0)
 				goto next;
 		}
@@ -560,7 +560,7 @@ syserr:			run_err("%s: %s", name, strerror(errno));
 		if (verbose_mode) {
 			fprintf(stderr, "Sending file modes: %s", buf);
 		}
-		(void) atomicio(write, remout, buf, strlen(buf));
+		(void) atomicio(vwrite, remout, buf, strlen(buf));
 		if (response() < 0)
 			goto next;
 		if ((bp = allocbuf(&buffer, fd, 2048)) == NULL) {
@@ -580,9 +580,9 @@ next:			(void) close(fd);
 					haderr = result >= 0 ? EIO : errno;
 			}
 			if (haderr)
-				(void) atomicio(write, remout, bp->buf, amt);
+				(void) atomicio(vwrite, remout, bp->buf, amt);
 			else {
-				result = atomicio(write, remout, bp->buf, amt);
+				result = atomicio(vwrite, remout, bp->buf, amt);
 				if (result != amt)
 					haderr = result >= 0 ? EIO : errno;
 				statbytes += result;
@@ -596,7 +596,7 @@ next:			(void) close(fd);
 		if (close(fd) < 0 && !haderr)
 			haderr = errno;
 		if (!haderr)
-			(void) atomicio(write, remout, "", 1);
+			(void) atomicio(vwrite, remout, "", 1);
 		else
 			run_err("%s: %s", name, strerror(haderr));
 		(void) response();
@@ -623,7 +623,7 @@ rsource(char *name, struct stat *statp)
 		(void) snprintf(path, sizeof(path), "T%lu 0 %lu 0\n",
 		    (u_long) statp->st_mtime,
 		    (u_long) statp->st_atime);
-		(void) atomicio(write, remout, path, strlen(path));
+		(void) atomicio(vwrite, remout, path, strlen(path));
 		if (response() < 0) {
 			closedir(dirp);
 			return;
@@ -633,7 +633,7 @@ rsource(char *name, struct stat *statp)
 	    (u_int) (statp->st_mode & FILEMODEMASK), 0, last);
 	if (verbose_mode)
 		fprintf(stderr, "Entering directory: %s", path);
-	(void) atomicio(write, remout, path, strlen(path));
+	(void) atomicio(vwrite, remout, path, strlen(path));
 	if (response() < 0) {
 		closedir(dirp);
 		return;
@@ -652,7 +652,7 @@ rsource(char *name, struct stat *statp)
 		source(1, vect);
 	}
 	(void) closedir(dirp);
-	(void) atomicio(write, remout, "E\n", 2);
+	(void) atomicio(vwrite, remout, "E\n", 2);
 	(void) response();
 }
 
@@ -742,7 +742,7 @@ sink(int argc, char **argv)
 	if (targetshouldbedirectory)
 		verifydir(targ);
 
-	(void) atomicio(write, remout, "", 1);
+	(void) atomicio(vwrite, remout, "", 1);
 	if (stat(targ, &stb) == 0 && S_ISDIR(stb.st_mode))
 		targisdir = 1;
 	for (first = 1;; first = 0) {
@@ -760,7 +760,7 @@ sink(int argc, char **argv)
 
 		if (buf[0] == '\01' || buf[0] == '\02') {
 			if (iamremote == 0)
-				(void) atomicio(write, STDERR_FILENO,
+				(void) atomicio(vwrite, STDERR_FILENO,
 				    buf + 1, strlen(buf + 1));
 			if (buf[0] == '\02')
 				exit(1);
@@ -768,7 +768,7 @@ sink(int argc, char **argv)
 			continue;
 		}
 		if (buf[0] == 'E') {
-			(void) atomicio(write, remout, "", 1);
+			(void) atomicio(vwrite, remout, "", 1);
 			return;
 		}
 		if (ch == '\n')
@@ -790,7 +790,7 @@ sink(int argc, char **argv)
 			atime.tv_usec = strtol(cp, &cp, 10);
 			if (!cp || *cp++ != '\0')
 				SCREWUP("atime.usec not delimited");
-			(void) atomicio(write, remout, "", 1);
+			(void) atomicio(vwrite, remout, "", 1);
 			continue;
 		}
 		if (*cp != 'C' && *cp != 'D') {
@@ -875,7 +875,7 @@ sink(int argc, char **argv)
 bad:			run_err("%s: %s", np, strerror(errno));
 			continue;
 		}
-		(void) atomicio(write, remout, "", 1);
+		(void) atomicio(vwrite, remout, "", 1);
 		if ((bp = allocbuf(&buffer, ofd, 4096)) == NULL) {
 			(void) close(ofd);
 			continue;
@@ -912,7 +912,7 @@ bad:			run_err("%s: %s", np, strerror(errno));
 			if (count == bp->cnt) {
 				/* Keep reading so we stay sync'd up. */
 				if (wrerr == NO) {
-					j = atomicio(write, ofd, bp->buf, count);
+					j = atomicio(vwrite, ofd, bp->buf, count);
 					if (j != count) {
 						wrerr = YES;
 						wrerrno = j >= 0 ? EIO : errno;
@@ -925,7 +925,7 @@ bad:			run_err("%s: %s", np, strerror(errno));
 		if (showprogress)
 			stop_progress_meter();
 		if (count != 0 && wrerr == NO &&
-		    (j = atomicio(write, ofd, bp->buf, count)) != count) {
+		    (j = atomicio(vwrite, ofd, bp->buf, count)) != count) {
 			wrerr = YES;
 			wrerrno = j >= 0 ? EIO : errno;
 		}
@@ -970,7 +970,7 @@ bad:			run_err("%s: %s", np, strerror(errno));
 			run_err("%s: %s", np, strerror(wrerrno));
 			break;
 		case NO:
-			(void) atomicio(write, remout, "", 1);
+			(void) atomicio(vwrite, remout, "", 1);
 			break;
 		case DISPLAYED:
 			break;
@@ -1005,7 +1005,7 @@ response(void)
 		} while (cp < &rbuf[sizeof(rbuf) - 1] && ch != '\n');
 
 		if (!iamremote)
-			(void) atomicio(write, STDERR_FILENO, rbuf, cp - rbuf);
+			(void) atomicio(vwrite, STDERR_FILENO, rbuf, cp - rbuf);
 		++errs;
 		if (resp == 1)
 			return (-1);
