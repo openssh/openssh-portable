@@ -170,7 +170,7 @@
 #include "xmalloc.h"
 #include "loginrec.h"
 
-RCSID("$Id: loginrec.c,v 1.12 2000/06/27 14:50:50 djm Exp $");
+RCSID("$Id: loginrec.c,v 1.13 2000/07/01 03:17:42 djm Exp $");
 
 /**
  ** prototypes for helper functions in this file
@@ -535,11 +535,18 @@ line_abbrevname(char *dst, const char *src, int dstsize)
 	
 	memset(dst, '\0', dstsize);
 	
+	/* Always skip prefix if present */
+	if (strncmp(src, "/dev/", 5) == 0)
+		src += 5;
+		
 	len = strlen(src);
 
-	if (len <= 0) {
-		src += (len - dstsize);
-		strncpy(dst, src, dstsize); /* note: _don't_ change this to strlcpy */
+	if (len > 0) {
+		if (((int)len - dstsize) > 0)
+			src +=  ((int)len - dstsize);
+
+		/* note: _don't_ change this to strlcpy */
+		strncpy(dst, src, (size_t)dstsize); 
 	}
 	
 	return dst;
@@ -647,7 +654,9 @@ void
 construct_utmpx(struct logininfo *li, struct utmpx *utx)
 {
 	memset(utx, '\0', sizeof(struct utmpx));
+# ifdef HAVE_ID_IN_UTMPX
 	line_abbrevname(utx->ut_id, li->line, sizeof(utx->ut_id));
+# endif
 
 	/* this is done here to keep utmp constants out of loginrec.h */
 	switch (li->type) {
