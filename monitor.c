@@ -782,16 +782,10 @@ mm_answer_skeyrespond(int socket, Buffer *m)
 int
 mm_answer_pam_start(int socket, Buffer *m)
 {
-	char *user;
-
 	if (!options.use_pam)
 		fatal("UsePAM not set, but ended up in %s anyway", __func__);
 
-	user = buffer_get_string(m, NULL);
-
-	start_pam(user);
-
-	xfree(user);
+	start_pam(authctxt);
 
 	monitor_permit(mon_dispatch, MONITOR_REQ_PAM_ACCOUNT, 1);
 
