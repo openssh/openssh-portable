@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.223 2004/06/28 06:01:20 dtucker Exp $
+# $Id: configure.ac,v 1.224 2004/07/19 17:19:27 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -393,6 +393,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(BROKEN_SETREUID)
 	AC_DEFINE(BROKEN_SETREGID)
 	AC_DEFINE(WITH_ABBREV_NO_TTY)
+	AC_DEFINE(BROKEN_UPDWTMPX)
 	AC_CHECK_FUNCS(getluid setluid)
 	MANTYPE=man
 	TEST_SHELL=ksh

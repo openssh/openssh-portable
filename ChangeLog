@@ -3,6 +3,8 @@
    ok dtucker@
  - (djm) [auth-pam.c] Avoid use of xstrdup and friends in conversation function,
    instead return PAM_CONV_ERR, avoiding another path to fatal(); ok dtucker@
+ - (tim) [configure.ac] updwtmpx() on OpenServer seems to add duplicate entry.
+   Report by rac AT tenzing.org
 
 20040717
  - (dtucker) [logintest.c scp.c sftp-server.c sftp.c ssh-add.c ssh-agent.c
@@ -1533,4 +1535,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3479 2004/07/18 23:39:11 djm Exp $
+$Id: ChangeLog,v 1.3480 2004/07/19 17:19:26 tim Exp $
