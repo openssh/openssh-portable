@@ -1,4 +1,4 @@
-/* $OpenBSD: moduli.c,v 1.4 2003/12/09 13:52:55 dtucker Exp $ */
+/* $OpenBSD: moduli.c,v 1.5 2003/12/22 09:16:57 djm Exp $ */
 /*
  * Copyright 1994 Phil Karn <karn@qualcomm.com>
  * Copyright 1996-1998, 2003 William Allen Simpson <wsimpson@greendragon.com>
@@ -72,9 +72,10 @@
 #define QTEST_JACOBI            (0x08)
 #define QTEST_ELLIPTIC          (0x10)
 
-/* Size: decimal.
+/*
+ * Size: decimal.
  * Specifies the number of the most significant bit (0 to M).
- ** WARNING: internally, usually 1 to N.
+ * WARNING: internally, usually 1 to N.
  */
 #define QSIZE_MINIMUM           (511)
 
@@ -169,7 +170,7 @@ sieve_large(u_int32_t s)
 {
 	u_int32_t r, u;
 
-	debug2("sieve_large %u", s);
+	debug3("sieve_large %u", s);
 	largetries++;
 	/* r = largebase mod s */
 	r = BN_mod_word(largebase, s);
@@ -474,6 +475,7 @@ prime_test(FILE *in, FILE *out, u_int32_t trials,
 			debug2("%10u: known composite", count_in);
 			continue;
 		}
+
 		/* tries */
 		in_tries = strtoul(cp, &cp, 10);
 
@@ -498,12 +500,19 @@ prime_test(FILE *in, FILE *out, u_int32_t trials,
 			in_size += 1;
 			generator_known = 0;
 			break;
-		default:
+		case QTYPE_UNSTRUCTURED:
+		case QTYPE_SAFE:
+		case QTYPE_SCHNOOR:
+		case QTYPE_STRONG:
+		case QTYPE_UNKNOWN:
 			debug2("%10u: (%u)", count_in, in_type);
 			a = p;
 			BN_hex2bn(&a, cp);
 			/* q = (p-1) / 2 */
 			BN_rshift(q, p, 1);
+			break;
+		default:
+			debug2("Unknown prime type");
 			break;
 		}
 
@@ -524,6 +533,7 @@ prime_test(FILE *in, FILE *out, u_int32_t trials,
 			in_tries += trials;
 		else
 			in_tries = trials;
+
 		/*
 		 * guess unknown generator
 		 */
@@ -535,9 +545,8 @@ prime_test(FILE *in, FILE *out, u_int32_t trials,
 			else {
 				u_int32_t r = BN_mod_word(p, 10);
 
-				if (r == 3 || r == 7) {
+				if (r == 3 || r == 7)
 					generator_known = 5;
-				}
 			}
 		}
 		/*
@@ -569,7 +578,7 @@ prime_test(FILE *in, FILE *out, u_int32_t trials,
 		 * vast majority of composite q's.
 		 */
 		if (BN_is_prime(q, 1, NULL, ctx, NULL) <= 0) {
-			debug2("%10u: q failed first possible prime test",
+			debug("%10u: q failed first possible prime test",
 			    count_in);
 			continue;
 		}
@@ -582,7 +591,7 @@ prime_test(FILE *in, FILE *out, u_int32_t trials,
 		 * doesn't hurt to specify a high iteration count.
 		 */
 		if (!BN_is_prime(p, trials, NULL, ctx, NULL)) {
-			debug2("%10u: p is not prime", count_in);
+			debug("%10u: p is not prime", count_in);
 			continue;
 		}
 		debug("%10u: p is almost certainly prime", count_in);

@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.112 2003/11/23 23:18:45 djm Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.113 2003/12/22 09:16:58 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -797,6 +797,7 @@ main(int ac, char **av)
 	int opt, type, fd, download = 0, memory = 0;
 	int generator_wanted = 0, trials = 100;
 	int do_gen_candidates = 0, do_screen_candidates = 0;
+	int log_level = SYSLOG_LEVEL_INFO;
 	BIGNUM *start = NULL;
 	FILE *f;
 
@@ -823,7 +824,7 @@ main(int ac, char **av)
 	}
 
 	while ((opt = getopt(ac, av,
-	    "degiqpclBRxXyb:f:t:U:D:P:N:C:r:g:T:G:M:S:a:W:")) != -1) {
+	    "degiqpclBRvxXyb:f:t:U:D:P:N:C:r:g:T:G:M:S:a:W:")) != -1) {
 		switch (opt) {
 		case 'b':
 			bits = atoi(optarg);
@@ -891,6 +892,15 @@ main(int ac, char **av)
 		case 'U':
 			reader_id = optarg;
 			break;
+		case 'v':
+			if (log_level == SYSLOG_LEVEL_INFO)
+				log_level = SYSLOG_LEVEL_DEBUG1;
+			else {
+				if (log_level >= SYSLOG_LEVEL_DEBUG1 && 
+				    log_level < SYSLOG_LEVEL_DEBUG3)
+					log_level++;
+			}
+			break;
 		case 'r':
 			resource_record_hostname = optarg;
 			break;
@@ -932,6 +942,10 @@ main(int ac, char **av)
 			usage();
 		}
 	}
+
+	/* reinit */
+	log_init(av[0], log_level, SYSLOG_FACILITY_USER, 1);
+
 	if (optind < ac) {
 		printf("Too many arguments.\n");
 		usage();
