@@ -1,4 +1,6 @@
 20000916
+ - (djm) Use a real struct sockaddr inside the fake struct sockaddr_storage.
+   Patch from Larry Jones <larry.jones@sdrc.com>
  - (djm) Add Steve VanDevender's <stevev@darkwing.uoregon.edu> PAM 
    password change patch.
  - (djm) Bring licenses on my stuff in line with OpenBSD's

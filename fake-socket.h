@@ -6,17 +6,13 @@
 
 #ifndef HAVE_STRUCT_SOCKADDR_STORAGE
 # define	_SS_MAXSIZE	128	/* Implementation specific max size */
-# define	_SS_ALIGNSIZE	(sizeof(int))
-# define	_SS_PAD1SIZE	(_SS_ALIGNSIZE - sizeof(u_short))
-# define	_SS_PAD2SIZE	(_SS_MAXSIZE - (sizeof(u_short) + \
-					_SS_PAD1SIZE + _SS_ALIGNSIZE))
+# define       _SS_PADSIZE     (_SS_MAXSIZE - sizeof (struct sockaddr))
 
 struct sockaddr_storage {
-  u_short	ss_family;
-  char		__ss_pad1[_SS_PAD1SIZE];
-  int			__ss_align;
-  char		__ss_pad2[_SS_PAD2SIZE];
+	struct	sockaddr ss_sa;
+	char		__ss_pad2[_SS_PADSIZE];
 };
+# define ss_family ss_sa.sa_family
 #endif /* !HAVE_STRUCT_SOCKADDR_STORAGE */
 
 #ifndef IN6_IS_ADDR_LOOPBACK
