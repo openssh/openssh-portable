@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keyscan.c,v 1.49 2004/06/14 01:44:39 djm Exp $");
+RCSID("$OpenBSD: ssh-keyscan.c,v 1.50 2004/08/11 21:44:32 avsm Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -494,7 +494,7 @@ congreet(int s)
 
 	bufsiz = sizeof(buf);
 	cp = buf;
-	while (bufsiz-- && (n = read(s, cp, 1)) == 1 && *cp != '\n') {
+	while (bufsiz-- && (n = atomicio(read, s, cp, 1)) == 1 && *cp != '\n') {
 		if (*cp == '\r')
 			*cp = '\n';
 		cp++;
@@ -560,7 +560,7 @@ conread(int s)
 		congreet(s);
 		return;
 	}
-	n = read(s, c->c_data + c->c_off, c->c_len - c->c_off);
+	n = atomicio(read, s, c->c_data + c->c_off, c->c_len - c->c_off);
 	if (n < 0) {
 		error("read (%s): %s", c->c_name, strerror(errno));
 		confree(s);

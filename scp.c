@@ -71,7 +71,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.116 2004/07/08 12:47:21 dtucker Exp $");
+RCSID("$OpenBSD: scp.c,v 1.117 2004/08/11 21:44:32 avsm Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -898,11 +898,8 @@ bad:			run_err("%s: %s", np, strerror(errno));
 				amt = size - i;
 			count += amt;
 			do {
-				j = read(remin, cp, amt);
-				if (j == -1 && (errno == EINTR ||
-				    errno == EAGAIN)) {
-					continue;
-				} else if (j <= 0) {
+				j = atomicio(read, remin, cp, amt);
+				if (j <= 0) {
 					run_err("%s", j ? strerror(errno) :
 					    "dropped connection");
 					exit(1);
