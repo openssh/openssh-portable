@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.176 2003/12/08 20:35:59 tim Exp $
+# $Id: configure.ac,v 1.177 2003/12/17 07:53:26 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -778,6 +778,30 @@ AC_CHECK_DECL(tcsendbreak,
 	[AC_DEFINE(HAVE_TCSENDBREAK)],
 	[AC_CHECK_FUNCS(tcsendbreak)],
 	[#include <termios.h>]
+)
+
+dnl Some platorms have setresuid that isn't implemented
+AC_MSG_CHECKING(if setresuid seems to work)
+AC_TRY_RUN([
+#include <stdlib.h>
+#include <errno.h>
+int main(){errno=0; setresuid(0,0,0); if (errno==ENOSYS) exit(1); else exit(0);}
+	],
+	[AC_MSG_RESULT(yes)],
+	[AC_DEFINE(BROKEN_SETRESUID),
+	 AC_MSG_RESULT(not implemented)]
+)
+
+dnl Some platorms have setresgid that isn't implemented
+AC_MSG_CHECKING(if setresgid seems to work)
+AC_TRY_RUN([
+#include <stdlib.h>
+#include <errno.h>
+int main(){errno=0; setresgid(0,0,0); if (errno==ENOSYS) exit(1); else exit(0);}
+	],
+	[AC_MSG_RESULT(yes)],
+	[AC_DEFINE(BROKEN_SETRESGID)
+	 AC_MSG_RESULT(not implemented)]
 )
 
 dnl    Checks for time functions

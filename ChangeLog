@@ -33,6 +33,9 @@
      [dh.c]
      use <= instead of < in dh_estimate; ok provos/hshoexer; 
      do not return < DH_GRP_MIN
+ - (dtucker) [acconfig.h configure.ac uidswap.c] Bug #645: Check for
+   setres[ug]id() present but not implemented (eg some Linux/glibc
+   combinations).
 
 20031209
  - (dtucker) OpenBSD CVS Sync
@@ -1602,4 +1605,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3147 2003/12/17 05:33:53 djm Exp $
+$Id: ChangeLog,v 1.3148 2003/12/17 07:53:26 dtucker Exp $
