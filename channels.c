@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.176 2002/06/23 21:06:41 deraadt Exp $");
+RCSID("$OpenBSD: channels.c,v 1.177 2002/06/23 21:34:07 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1717,9 +1717,8 @@ void
 channel_input_extended_data(int type, u_int32_t seq, void *ctxt)
 {
 	int id;
-	int tcode;
 	char *data;
-	u_int data_len;
+	u_int data_len, tcode;
 	Channel *c;
 
 	/* Get the channel number and verify it. */

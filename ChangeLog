@@ -1,5 +1,9 @@
 20020626
  - (stevesk) [monitor.c] remove duplicate proto15 dispatch entry for PAM
+ - (bal) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2002/06/23 21:34:07
+     [channels.c]
+     tcode is u_int
 
 20020625
  - (stevesk) [INSTALL acconfig.h configure.ac defines.h] remove --with-rsh
@@ -1099,4 +1103,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2273 2002/06/25 22:43:19 stevesk Exp $
+$Id: ChangeLog,v 1.2274 2002/06/25 23:15:30 mouring Exp $
