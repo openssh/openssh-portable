@@ -35,6 +35,9 @@
    - djm@cvs.openbsd.org 2004/09/25 03:45:14
      [sshd.c]
      these printf args are no longer double; ok deraadt@ markus@
+   - djm@cvs.openbsd.org 2004/10/07 10:10:24
+     [scp.1 sftp.1 ssh.1 ssh_config.5]
+     document KbdInteractiveDevices; ok markus@
 
 20041102
  - (dtucker) [configure.ac includes.h] Bug #947: Fix compile error on HP-UX
@@ -1814,4 +1817,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3571 2004/11/05 09:20:59 dtucker Exp $
+$Id: ChangeLog,v 1.3572 2004/11/05 09:22:00 dtucker Exp $

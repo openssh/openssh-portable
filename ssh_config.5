@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.38 2004/06/26 09:11:14 jmc Exp $
+.\" $OpenBSD: ssh_config.5,v 1.39 2004/10/07 10:10:24 djm Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -467,6 +467,10 @@ This option is intented for situations where
 offers many different identities.
 The default is
 .Dq no .
+.It Cm KbdInteractiveDevices
+Specifies the list of methods to use in keyboard-interactive authentication.
+Multiple method names must be comma-separated.
+The default is to use the server specified list.
 .It Cm LocalForward
 Specifies that a TCP/IP port on the local machine be forwarded over
 the secure channel to the specified host and port from the remote machine.
