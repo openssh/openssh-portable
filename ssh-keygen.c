@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.76 2001/08/02 08:58:35 jakob Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.77 2001/08/02 15:06:52 jakob Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -792,8 +792,27 @@ do_change_comment(struct passwd *pw)
 static void
 usage(void)
 {
-	printf("Usage: %s [-ceilpqyB] [-t type] [-b bits] [-f file] [-C comment] "
-	    "[-N new-pass] [-P pass]\n", __progname);
+	fprintf(stderr, "Usage: %s [options]\n", __progname);
+	fprintf(stderr, "Options:\n");
+	fprintf(stderr, "  -b bits     Number of bits in the key to create.\n");
+	fprintf(stderr, "  -c          Change comment in private and public key files.\n");
+	fprintf(stderr, "  -e          Convert OpenSSH to IETF SECSH key file.\n");
+	fprintf(stderr, "  -f filename Filename of the key file.\n");
+	fprintf(stderr, "  -i          Convert IETF SECSH to OpenSSH key file.\n");
+	fprintf(stderr, "  -l          Show fingerprint of key file.\n");
+	fprintf(stderr, "  -p          Change passphrase of private key file.\n");
+	fprintf(stderr, "  -q          Quiet.\n");
+	fprintf(stderr, "  -y          Read private key file and print public key.\n");
+	fprintf(stderr, "  -t type     Specify type of key to create.\n");
+	fprintf(stderr, "  -B          Show bubblebabble digest of key file.\n");
+	fprintf(stderr, "  -C comment  Provide new comment.\n");
+	fprintf(stderr, "  -N phrase   Provide new passphrase.\n");
+	fprintf(stderr, "  -P phrase   Provide old passphrase.\n");
+#ifdef SMARTCARD
+	fprintf(stderr, "  -D reader   Download public key from smartcard.\n");
+	fprintf(stderr, "  -U reader   Upload private key to smartcard.\n");
+#endif /* SMARTCARD */
+
 	exit(1);
 }
 
