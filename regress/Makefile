@@ -47,7 +47,7 @@ CLEANFILES=	t2.out t6.out1 t6.out2 t7.out t7.out.pub copy.1 copy.2 \
 		rsa.pub rsa rsa1.pub rsa1 host.rsa host.rsa1 \
 		rsa-agent rsa-agent.pub rsa1-agent rsa1-agent.pub \
 		ls.copy banner.in banner.out empty.in \
-		scp-ssh-wrapper.exe \
+		scp-ssh-wrapper.scp \
 		remote_pid
 
 #LTESTS +=	ssh-com ssh-com-client ssh-com-keygen ssh-com-sftp
