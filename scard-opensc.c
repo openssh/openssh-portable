@@ -89,6 +89,12 @@ sc_init(void)
 	r = sc_establish_context(&ctx, "openssh");
 	if (r)
 		goto err;
+	if (sc_reader_id >= ctx->reader_count) {
+		r = SC_ERROR_NO_READERS_FOUND;
+		error("Illegal reader number %d (max %d)", sc_reader_id, 
+		    ctx->reader_count -1);
+		goto err;
+	}
 	r = sc_connect_card(ctx->reader[sc_reader_id], 0, &card);
 	if (r)
 		goto err;

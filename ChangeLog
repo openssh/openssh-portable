@@ -1,6 +1,8 @@
 20030628
  - (djm) Bug #591: use PKCS#15 private key label as a comment in case 
    of OpenSC. Report and patch from larsch@trustcenter.de
+ - (djm) Bug #593: Sanity check OpenSC card reader number; patch from 
+   aj@dungeon.inka.de
 
 20030628
  - (dtucker) OpenBSD CVS Sync
@@ -607,4 +609,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2830 2003/06/28 08:02:47 djm Exp $
+$Id: ChangeLog,v 1.2831 2003/06/28 08:08:16 djm Exp $
