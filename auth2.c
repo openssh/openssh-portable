@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.66 2001/06/23 15:12:17 itojun Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.67 2001/06/25 20:26:37 stevesk Exp $");
 
 #include <openssl/evp.h>
 
@@ -80,7 +80,7 @@ static void protocol_error(int, int, void *);
 
 /* helper */
 static Authmethod *authmethod_lookup(const char *);
-char *authmethods_get(void);
+static char *authmethods_get(void);
 static int user_key_allowed(struct passwd *, Key *);
 static int hostbased_key_allowed(struct passwd *, const char *, char *, Key *);
 
@@ -600,7 +600,7 @@ auth_get_user(void)
 
 #define	DELIM	","
 
-char *
+static char *
 authmethods_get(void)
 {
 	Authmethod *method = NULL;

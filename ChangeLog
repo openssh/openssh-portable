@@ -12,7 +12,10 @@
    - provos@cvs.openbsd.org 2001/06/25 17:54:47
      [auth.c auth.h auth-rsa.c]
      terminate secure_filename checking after checking homedir.  that way 
-     it
+     it works on AFS.  okay markus@
+   - stevesk@cvs.openbsd.org 2001/06/25 20:26:37
+     [auth2.c sshconnect2.c]
+     prototype cleanup; ok markus@
 
 20010629
  - (bal) Removed net_aton() since we don't use it any more
@@ -5840,4 +5843,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1347 2001/07/04 03:40:39 mouring Exp $
+$Id: ChangeLog,v 1.1348 2001/07/04 03:42:30 mouring Exp $
