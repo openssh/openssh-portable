@@ -1,3 +1,14 @@
+20030401
+ - (djm) OpenBSD CVS Sync
+   - jmc@cvs.openbsd.org 2003/03/28 10:11:43
+     [scp.1 sftp.1 ssh.1 ssh-add.1 ssh-agent.1 ssh_config.5 sshd_config.5]
+     [ssh-keygen.1 ssh-keyscan.1 ssh-keysign.8]
+     - killed whitespace
+     - new sentence new line
+     - .Bk for arguments
+     ok markus@
+
+
 20030326
  - (djm) OpenBSD CVS Sync
    - deraadt@cvs.openbsd.org 2003/03/26 04:02:51
@@ -1259,4 +1270,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2642 2003/03/26 05:01:11 djm Exp $
+$Id: ChangeLog,v 1.2643 2003/04/01 11:42:14 djm Exp $

@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-add.1,v 1.37 2003/02/10 11:51:47 markus Exp $
+.\"	$OpenBSD: ssh-add.1,v 1.38 2003/03/28 10:11:43 jmc Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -95,10 +95,11 @@ specified in
 .Xr sshd_config 5 .
 .It Fl c
 Indicates that added identities should be subject to confirmation before
-being used for authentication. Confirmation is performed by the 
+being used for authentication.
+Confirmation is performed by the
 .Ev SSH_ASKPASS
-program mentioned below. Successful confirmation is signaled by a zero
-exit status from the 
+program mentioned below.
+Successful confirmation is signaled by a zero exit status from the
 .Ev SSH_ASKPASS
 program, rather than text entered into the requester.
 .It Fl s Ar reader

@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sun May  7 00:14:37 1995 ylo
 .\"
-.\" $OpenBSD: scp.1,v 1.26 2003/01/28 17:24:51 stevesk Exp $
+.\" $OpenBSD: scp.1,v 1.27 2003/03/28 10:11:43 jmc Exp $
 .\"
 .Dd September 25, 1999
 .Dt SCP 1
@@ -19,6 +19,7 @@
 .Nd secure copy (remote file copy program)
 .Sh SYNOPSIS
 .Nm scp
+.Bk -words
 .Op Fl pqrvBC1246
 .Op Fl F Ar ssh_config
 .Op Fl S Ar program
@@ -40,6 +41,7 @@
 .Ar host2 No :
 .Oc Ar file2
 .Sm on
+.Ek
 .Sh DESCRIPTION
 .Nm
 copies files between hosts on a network.
