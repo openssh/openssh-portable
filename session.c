@@ -150,6 +150,8 @@ char *original_command = NULL;
 /* data */
 #define MAX_SESSIONS 10
 Session	sessions[MAX_SESSIONS];
+static int num_used_sessions;
+
 #ifdef WITH_AIXAUTHENTICATE
 /* AIX's lastlogin message, set in auth1.c */
 char *aixloginmsg;
@@ -1422,6 +1424,7 @@ session_new(void)
 			sessions[i].used = 0;
 			sessions[i].self = i;
 		}
+		num_used_sessions = 0;
 		did_init = 1;
 	}
 	for(i = 0; i < MAX_SESSIONS; i++) {
@@ -1440,7 +1443,8 @@ session_new(void)
 			s->auth_proto = NULL;
 			s->used = 1;
 			s->pw = NULL;
-			debug("session_new: session %d", i);
+			num_used_sessions++;
+			debug("session_new: session %d (%d used)", i, num_used_sessions);
 			return s;
 		}
 	}
@@ -1853,6 +1857,7 @@ session_close(Session *s)
 	session_pty_cleanup(s);
 	session_free(s);
 	session_proctitle(s);
+	num_used_sessions--;
 }
 
 void
@@ -1896,6 +1901,11 @@ session_close_by_channel(int id, void *arg)
 			error("session_close_by_channel: kill %d: %s",
 			    s->pid, strerror(errno));
 	}
+}
+
+int used_sessions(void)
+{
+	return(num_used_sessions);
 }
 
 char *

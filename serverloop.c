@@ -110,7 +110,6 @@ sigchld_handler2(int sig)
 	int save_errno = errno;
 	debug("Received SIGCHLD.");
 	child_terminated = 1;
-	child_has_selected = 0;
 	errno = save_errno;
 }
 
@@ -675,10 +674,10 @@ server_loop2(void)
 				session_close_by_pid(pid, status);
 			child_terminated = 0;
 			signal(SIGCHLD, sigchld_handler2);
+			if (used_sessions() == 0)
+				break;
 		}
 		channel_after_select(&readset, &writeset);
-		if (child_terminated && child_has_selected)
-			break;
 		process_input(&readset);
 		process_output(&writeset);
 	}
