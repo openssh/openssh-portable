@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.58 2001/04/04 09:48:34 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.59 2001/04/04 23:09:18 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -123,16 +123,6 @@ int use_ssh2_packet_format = 0;
 /* Session key information for Encryption and MAC */
 Newkeys *newkeys[MODE_MAX];
 
-void
-clear_enc_keys(Enc *enc, int len)
-{
-	memset(enc->iv,  0, len);
-	memset(enc->key, 0, len);
-	xfree(enc->iv);
-	xfree(enc->key);
-	enc->iv = NULL;
-	enc->key = NULL;
-}
 void
 packet_set_ssh2_format(void)
 {
@@ -524,8 +514,18 @@ set_newkeys(int mode)
 	cc = (mode == MODE_OUT) ? &send_context : &receive_context;
 	if (newkeys[mode] != NULL) {
 		debug("newkeys: rekeying");
-		memset(cc, 0, sizeof(*cc));
 		/* todo: free old keys, reset compression/cipher-ctxt; */
+		memset(cc, 0, sizeof(*cc));
+		enc  = &newkeys[mode]->enc;
+		mac  = &newkeys[mode]->mac;
+		comp = &newkeys[mode]->comp;
+                memset(mac->key, 0, mac->key_len);
+		xfree(enc->name);
+		xfree(enc->iv);
+		xfree(enc->key);
+		xfree(mac->name);
+		xfree(mac->key);
+		xfree(comp->name);
 		xfree(newkeys[mode]);
 	}
 	newkeys[mode] = kex_get_newkeys(mode);
@@ -539,7 +539,8 @@ set_newkeys(int mode)
 	DBG(debug("cipher_init_context: %d", mode));
 	cipher_init(cc, enc->cipher, enc->key, enc->cipher->key_len,
 	    enc->iv, enc->cipher->block_size);
-	clear_enc_keys(enc, enc->cipher->key_len);
+	memset(enc->iv,  0, enc->cipher->block_size);
+	memset(enc->key, 0, enc->cipher->key_len);
 	if (comp->type != 0 && comp->enabled == 0) {
 		comp->enabled = 1;
 		if (! packet_compression)

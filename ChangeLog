@@ -24,6 +24,10 @@
      [kex.c kexgex.c serverloop.c]
      parse full kexinit packet.
      make server-side more robust, too.
+   - markus@cvs.openbsd.org 2001/04/04 23:09:18
+     [dh.c kex.c packet.c]
+     clear+free keys,iv for rekeying.
+     + fix DH mem leaks. ok niels@
 
 20010404
  - OpenBSD CVS Sync
@@ -4863,4 +4867,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1060 2001/04/04 23:50:21 mouring Exp $
+$Id: ChangeLog,v 1.1061 2001/04/05 02:05:21 mouring Exp $

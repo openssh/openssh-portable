@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: dh.c,v 1.12 2001/04/03 19:53:29 markus Exp $");
+RCSID("$OpenBSD: dh.c,v 1.13 2001/04/04 23:09:17 markus Exp $");
 
 #include "xmalloc.h"
 
@@ -151,11 +151,9 @@ choose_dh(int min, int wantbits, int max)
 	while (fgets(line, sizeof(line), f)) {
 		if (!parse_prime(linenum, line, &dhg))
 			continue;
-		if (dhg.size > max || dhg.size < min)
-			continue;
-		if (dhg.size != best)
-			continue;
-		if (linenum++ != which) {
+		if ((dhg.size > max || dhg.size < min) ||
+		    dhg.size != best ||
+		    linenum++ != which) {
 			BN_free(dhg.g);
 			BN_free(dhg.p);
 			continue;
@@ -163,6 +161,9 @@ choose_dh(int min, int wantbits, int max)
 		break;
 	}
 	fclose(f);
+	if (linenum != which+1)
+		fatal("WARNING: line %d disappeared in %s, giving up",
+		    which, _PATH_DH_PRIMES);
 
 	return (dh_new_group(dhg.g, dhg.p));
 }
