@@ -4,6 +4,7 @@
  - (bal) Updated zlib's home.  Thanks to David Howe <DaveHowe@gmx.co.uk>.
  - (stevesk) remove _REENTRANT #define
  - (stevesk) session.c: use u_int for envsize
+ - (stevesk) remove cli.[ch]
 
 20010628
  - (djm) Sync openbsd-compat with -current libc
@@ -5823,4 +5824,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1343 2001/06/29 17:52:18 stevesk Exp $
+$Id: ChangeLog,v 1.1344 2001/06/29 19:51:48 stevesk Exp $
