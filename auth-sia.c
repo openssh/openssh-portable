@@ -2,11 +2,11 @@
 
 #ifdef HAVE_OSF_SIA
 #include "ssh.h"
+#include "auth.h"
 #include "auth-sia.h"
 #include "log.h"
 #include "servconf.h"
 #include "canohost.h"
-#include "auth.h"
 
 #include <sia.h>
 #include <siad.h>

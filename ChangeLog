@@ -1,3 +1,6 @@
+20020410
+ - (stevesk) [auth-sia.c] compile fix Chris Adams <cmadams@hiwaay.net>
+
 20020408
  - (bal) Minor OpenSC updates.  Fix up header locations and update
    README.smartcard provided by Juha Yrjölä <jyrjola@cc.hut.fi>
@@ -8203,4 +8206,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2040 2002/04/08 18:37:07 mouring Exp $
+$Id: ChangeLog,v 1.2041 2002/04/10 16:09:51 stevesk Exp $
