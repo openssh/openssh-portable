@@ -1,11 +1,26 @@
+20001210
+ - (bal) OpenBSD CVS updates
+   - markus@cvs.openbsd.org 2000/12/09 13:41:51 
+     [cipher.c cipher.h rijndael.c rijndael.h rijndael_boxes.h]
+     undo rijndael changes
+   - markus@cvs.openbsd.org 2000/12/09 13:48:31 
+     [rijndael.c]
+     fix byte order bug w/o introducing new implementation
+   - markus@cvs.openbsd.org 2000/12/09 14:08:27 
+     [sftp-server.c]
+     "" -> "." for realpath; from vinschen@redhat.com
+   - markus@cvs.openbsd.org 2000/12/09 14:06:54 
+     [ssh-agent.c]
+     extern int optind; from stevesk@sweden.hp.com
+
 20001209
- - (bal) OpenSSH CVS updates:
+ - (bal) OpenBSD CVS updates:
    - djm@cvs.openbsd.org 2000/12/07 4:24:59 
      [ssh.1]
      Typo fix from Wilfredo Sanchez <wsanchez@apple.com>; ok theo
 
 20001207
- - (bal) OpenSSH CVS updates:
+ - (bal) OpenBSD CVS updates:
    - markus@cvs.openbsd.org 2000/12/06 22:58:14 
      [compat.c compat.h packet.c]
      disable debug messages for ssh.com/f-secure 2.0.1x, 2.1.0
@@ -17,7 +32,7 @@
      new rijndael implementation. fixes endian bugs
 
 20001206
- - (bal) OpenSSH CVS updates:
+ - (bal) OpenBSD CVS updates:
    - markus@cvs.openbsd.org 2000/12/05 20:34:09
      [channels.c channels.h clientloop.c serverloop.c]
      async connects for -R/-L; ok deraadt@
@@ -32,7 +47,7 @@
      err(3) -> internal error(), from stevesk@sweden.hp.com
 
 20001205
- - (bal) OpenSSH CVS updates:
+ - (bal) OpenBSD CVS updates:
    - markus@cvs.openbsd.org 2000/12/04 19:24:02
      [ssh-keyscan.c ssh-keyscan.1]
      David Maziere's ssh-keyscan, ok niels@

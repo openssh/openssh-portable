@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: sftp-server.c,v 1.6 2000/09/07 20:27:53 deraadt Exp $");
+RCSID("$OpenBSD: sftp-server.c,v 1.7 2000/12/09 14:08:27 markus Exp $");
 
 #include "ssh.h"
 #include "buffer.h"
@@ -904,6 +904,10 @@ process_realpath(void)
 
 	id = get_int();
 	path = get_string(NULL);
+	if (path[0] == '\0') {
+		xfree(path);
+		path = xstrdup(".");
+	}
 	TRACE("realpath id %d path %s", id, path);
 	if (realpath(path, resolvedname) == NULL) {
 		send_status(id, errno_to_portable(errno));

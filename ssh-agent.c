@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.41 2000/11/30 18:33:05 markus Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.42 2000/12/09 14:06:54 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.41 2000/11/30 18:33:05 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.42 2000/12/09 14:06:54 markus Exp $");
 
 #include "ssh.h"
 #include "rsa.h"
