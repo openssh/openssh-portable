@@ -1,6 +1,9 @@
 20020415
  - (djm) Unbreak "make install". Fix from Darren Tucker <dtucker@zip.com.au>
  - (stevesk) bsd-cygwin_util.[ch] BSD license from Corinna Vinschen
+ - (tim) [configure.ac] add tests for recvmsg and sendmsg.
+   [monitor_fdpass.c] add checks for HAVE_SENDMSG and HAVE_RECVMSG for
+   systems that HAVE_ACCRIGHTS_IN_MSGHDR but no recvmsg or sendmsg.
 
 20020414
  - (djm) ssh-rand-helper improvements
@@ -8245,4 +8248,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2055 2002/04/15 22:00:51 stevesk Exp $
+$Id: ChangeLog,v 1.2056 2002/04/16 04:10:09 tim Exp $

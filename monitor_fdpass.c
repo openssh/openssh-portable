@@ -34,7 +34,7 @@ RCSID("$OpenBSD: monitor_fdpass.c,v 1.2 2002/03/24 17:53:16 stevesk Exp $");
 void
 mm_send_fd(int socket, int fd)
 {
-#if defined(HAVE_ACCRIGHTS_IN_MSGHDR) || defined(HAVE_CONTROL_IN_MSGHDR)
+#if defined(HAVE_SENDMSG) && (defined(HAVE_ACCRIGHTS_IN_MSGHDR) || defined(HAVE_CONTROL_IN_MSGHDR))
 	struct msghdr msg;
 	struct iovec vec;
 	char ch = '\0';
@@ -78,7 +78,7 @@ mm_send_fd(int socket, int fd)
 int
 mm_receive_fd(int socket)
 {
-#if defined(HAVE_ACCRIGHTS_IN_MSGHDR) || defined(HAVE_CONTROL_IN_MSGHDR)
+#if defined(HAVE_RECVMSG) && (defined(HAVE_ACCRIGHTS_IN_MSGHDR) || defined(HAVE_CONTROL_IN_MSGHDR))
 	struct msghdr msg;
 	struct iovec vec;
 	char ch;
