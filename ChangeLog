@@ -2,6 +2,8 @@
  - (djm) Better fix to aclocal tests from Garrick James <garrick@james.net>
  - (djm) Account expiry support from Andreas Steinmetz <ast@domdv.de>
  - (djm) Added password expiry checking (no password change support)
+ - (djm) Make EGD failures non-fatal if OpenSSL's entropy pool is still OK
+   based on patch from Lutz Jaenicke <Lutz.Jaenicke@aet.TU-Cottbus.DE>
  - OpenBSD CVS update
    - provos@cvs.openbsd.org  2000/06/25 14:17:58
      [channels.c]

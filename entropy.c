@@ -35,7 +35,7 @@
 #include <openssl/rand.h>
 #include <openssl/sha.h>
 
-RCSID("$Id: entropy.c,v 1.14 2000/06/18 04:07:04 djm Exp $");
+RCSID("$Id: entropy.c,v 1.15 2000/06/26 03:01:33 djm Exp $");
 
 #ifndef offsetof
 # define offsetof(type, member) ((size_t) &((type *)0)->member)
@@ -66,64 +66,83 @@ RCSID("$Id: entropy.c,v 1.14 2000/06/18 04:07:04 djm Exp $");
 
 #ifdef EGD_SOCKET
 /* Collect entropy from EGD */
-void get_random_bytes(unsigned char *buf, int len)
+int get_random_bytes(unsigned char *buf, int len)
 {
-	static int egd_socket = -1;
-	int c;
-	char egd_message[2] = { 0x02, 0x00 };
+	int fd;
+	char msg[2];
 	struct sockaddr_un addr;
 	int addr_len;
 
-	memset(&addr, '\0', sizeof(addr));
-	addr.sun_family = AF_UNIX;
-	
-	/* FIXME: compile time check? */
+	/* Sanity checks */
 	if (sizeof(EGD_SOCKET) > sizeof(addr.sun_path))
 		fatal("Random pool path is too long");
-	
-	strlcpy(addr.sun_path, EGD_SOCKET, sizeof(addr.sun_path));
-	
-	addr_len = offsetof(struct sockaddr_un, sun_path) + sizeof(EGD_SOCKET);
-	
-	if (egd_socket == -1) {
-		egd_socket = socket(AF_UNIX, SOCK_STREAM, 0);
-		if (egd_socket == -1)
-			fatal("Couldn't create AF_UNIX socket: %s", strerror(errno));
-		if (connect(egd_socket, (struct sockaddr*)&addr, addr_len) == -1)
-			fatal("Couldn't connect to EGD socket \"%s\": %s", addr.sun_path, strerror(errno));
-	}	
-
 	if (len > 255)
 		fatal("Too many bytes to read from EGD");
+
+	memset(&addr, '\0', sizeof(addr));
+	addr.sun_family = AF_UNIX;
+	strlcpy(addr.sun_path, EGD_SOCKET, sizeof(addr.sun_path));
+	addr_len = offsetof(struct sockaddr_un, sun_path) + sizeof(EGD_SOCKET);
 	
+	fd = socket(AF_UNIX, SOCK_STREAM, 0);
+	if (fd == -1) {
+		error("Couldn't create AF_UNIX socket: %s", strerror(errno));
+		return(0);
+	}
+
+	if (connect(fd, (struct sockaddr*)&addr, addr_len) == -1) {
+		error("Couldn't connect to EGD socket \"%s\": %s", 
+			addr.sun_path, strerror(errno));
+		close(fd);
+		return(0);
+	}
+
 	/* Send blocking read request to EGD */
-	egd_message[1] = len;
+	msg[0] = 0x02;
+	msg[1] = len;
 
-	c = atomicio(write, egd_socket, egd_message, sizeof(egd_message));
-	if (c == -1)
-		fatal("Couldn't write to EGD socket \"%s\": %s", EGD_SOCKET, strerror(errno));
+	if (atomicio(write, fd, msg, sizeof(msg)) != sizeof(msg)) {
+		error("Couldn't write to EGD socket \"%s\": %s", 
+			EGD_SOCKET, strerror(errno));
+		close(fd);
+		return(0);
+	}
 
-	c = atomicio(read, egd_socket, buf, len);
-	if (c <= 0)
-		fatal("Couldn't read from EGD socket \"%s\": %s", EGD_SOCKET, strerror(errno));
+	if (atomicio(read, fd, buf, len) != len) {
+		error("Couldn't read from EGD socket \"%s\": %s", 
+			EGD_SOCKET, strerror(errno));
+		close(fd);
+		return(0);
+	}
+	
+	close(fd);
+	
+	return(1);
 }
 #else /* !EGD_SOCKET */
 #ifdef RANDOM_POOL
 /* Collect entropy from /dev/urandom or pipe */
-void get_random_bytes(unsigned char *buf, int len)
+int get_random_bytes(unsigned char *buf, int len)
 {
-	static int random_pool = -1;
-	int c;
+	int random_pool;
 
+	random_pool = open(RANDOM_POOL, O_RDONLY);
 	if (random_pool == -1) {
-		random_pool = open(RANDOM_POOL, O_RDONLY);
-		if (random_pool == -1)
-			fatal("Couldn't open random pool \"%s\": %s", RANDOM_POOL, strerror(errno));
+		error("Couldn't open random pool \"%s\": %s", 
+			RANDOM_POOL, strerror(errno));
+		return(0);
 	}
 	
-	c = atomicio(read, random_pool, buf, len);
-	if (c <= 0)
-		fatal("Couldn't read from random pool \"%s\": %s", RANDOM_POOL, strerror(errno));
+	if (atomicio(read, random_pool, buf, len) != len) {
+		error("Couldn't read from random pool \"%s\": %s", 
+			RANDOM_POOL, strerror(errno));
+		close(random_pool);
+		return(0);
+	}
+	
+	close(random_pool);
+	
+	return(1);
 }
 #endif /* RANDOM_POOL */
 #endif /* EGD_SOCKET */
@@ -138,8 +157,12 @@ seed_rng(void)
 	char buf[32];
 	
 	debug("Seeding random number generator");
-	get_random_bytes(buf, sizeof(buf));
+
+	if (!get_random_bytes(buf, sizeof(buf)) && !RAND_status())
+		fatal("Entropy collection failed and entropy exhausted");
+
 	RAND_add(buf, sizeof(buf), sizeof(buf));
+
 	memset(buf, '\0', sizeof(buf));
 }
 
