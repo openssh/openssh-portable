@@ -364,6 +364,7 @@ do_exec_no_pty(Session *s, const char *command)
 	session_proctitle(s);
 
 #if defined(USE_PAM)
+	do_pam_session(s->pw->pw_name, NULL);
 	do_pam_setcred(1);
 #endif /* USE_PAM */
 
