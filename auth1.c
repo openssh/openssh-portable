@@ -310,7 +310,6 @@ do_authloop(struct passwd * pw)
 			authenticated = auth_pam_password(pw, password);
 #elif defined(HAVE_OSF_SIA)
 			/* Do SIA auth with password */
-			host = get_canonical_hostname();
 			if (sia_validate_user(NULL, saved_argc, saved_argv, 
 				get_canonical_hostname(), pw->pw_name, NULL, 0, 
 				NULL, password) == SIASUCCESS) {
@@ -505,7 +504,11 @@ do_authentication()
 #endif /* KRB4 */
 #ifdef USE_PAM
 	    auth_pam_password(pw, "")) {
-#else /* USE_PAM */
+#elif defined(HAVE_OSF_SIA)
+	    (sia_validate_user(NULL, saved_argc, saved_argv, 
+	    get_canonical_hostname(), pw->pw_name, NULL, 0, NULL, 
+	    "") == SIASUCCESS)) {
+#else /* !HAVE_OSF_SIA && !USE_PAM */
 	    auth_password(pw, "")) {
 #endif /* USE_PAM */
 		/* Authentication with empty password succeeded. */
