@@ -1,6 +1,7 @@
 19991113
- - Don't install config files if they already exist
- - Fix inclusion of additional preprocessor directives from acconfig.h
+ - Build patch from Niels Kristian Bech Jensen <nkbj@image.dk>
+   - Don't install config files if they already exist
+   - Fix inclusion of additional preprocessor directives from acconfig.h
  - Removed redundant inclusions of config.h
  - Added 'Obseletes' lines to RPM spec file
  - Merged OpenBSD CVS changes:
@@ -11,6 +12,9 @@
    have been initialised. Patch from Jani Hakala <jahakala@cc.jyu.fi>
  - Added shadow password patch from Thomas Neumann <tom@smart.ruhr.de>
  - Added ifdefs to auth-passwd.c to exclude it when PAM is enabled
+ - Tidied default config file some more
+ - Revised Redhat initscript to fix bug: sshd (re)start would fail
+   if executed from inside a ssh login.
 
 19991112
  - Merged changes from OpenBSD CVS

@@ -20,16 +20,17 @@ RETVAL=0
 case "$1" in
   start)
 	echo -n "Starting sshd: "
-        daemon /usr/sbin/sshd
-	RETVAL=$?
-	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/sshd
+	if [ ! -f /var/run/sshd.pid ] ; then
+   	/usr/sbin/sshd && success "sshd startup" || failure "sshd startup"
+		RETVAL=$?
+	fi
 	echo
 	;;
   stop)
 	echo -n "Shutting down sshd: "
-	killproc sshd
-	RETVAL=$?
-	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/sshd
+	if [ -f /var/run/sshd.pid ] ; then
+		killproc sshd
+	fi
 	echo
 	;;
   restart)

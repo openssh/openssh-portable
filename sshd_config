@@ -7,15 +7,6 @@ ServerKeyBits 768
 LoginGraceTime 600
 KeyRegenerationInterval 3600
 PermitRootLogin yes
-
-#
-# Loglevel replaces QuietMode and FascistLogging
-#
-SyslogFacility AUTH
-LogLevel INFO
-
-#
-# Don't read ~/.rhosts and ~/.shosts files
 StrictModes yes
 X11Forwarding no
 X11DisplayOffset 10
@@ -23,8 +14,12 @@ PrintMotd yes
 KeepAlive yes
 CheckMail no
 UseLogin no
+
+#
+# Loglevel replaces QuietMode and FascistLogging
+#
 SyslogFacility AUTH
-RhostsAuthentication no
+LogLevel INFO
 
 #
 # For this to work you will also need host keys in /etc/ssh/ssh_known_hosts
@@ -35,6 +30,7 @@ RhostsRSAAuthentication no
 # Don't read ~/.rhosts and ~/.shosts files
 #
 IgnoreRhosts yes
+RhostsAuthentication no
 
 #
 # Uncomment if you don't trust ~/.ssh/known_hosts for RhostsRSAAuthentication
