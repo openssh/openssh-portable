@@ -1,3 +1,8 @@
+20001002
+ - (djm) Fix USER_PATH, report from Kevin Steves <stevesk@sweden.hp.com>
+ - (djm) Add host system and CC to end-of-configure report. Suggested by
+   Lutz Jaenicke <Lutz.Jaenicke@aet.TU-Cottbus.DE>
+
 20000931
  - (djm) Cygwin fixes from Corinna Vinschen <vinschen@cygnus.com>
 

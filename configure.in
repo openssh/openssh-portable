@@ -1186,7 +1186,7 @@ AC_ARG_WITH(default-path,
 	[  --with-default-path=PATH Specify default \$PATH environment for server],
 	[
 		if test "x$withval" != "xno" ; then	
-			user_path="$withval"
+			AC_DEFINE_UNQUOTED(USER_PATH, "$withval")
 			SERVER_PATH_MSG="$withval" 
 		fi
 	]
@@ -1530,6 +1530,7 @@ G=`eval echo ${piddir}` ; G=`eval echo ${G}`
 echo ""
 echo "OpenSSH configured has been configured with the following options."
 echo "                 User binaries: $B"
+echo "                 User binaries: $B"
 echo "               System binaries: $C"
 echo "           Configuration files: $D"
 echo "               Askpass program: $E"
@@ -1549,9 +1550,11 @@ echo "       Translate v4 in v6 hack: $IPV4_IN6_HACK_MSG"
 
 echo ""
 
-echo "Compiler flags: ${CFLAGS}"
-echo "Linker flags: ${LDFLAGS}"
-echo "Libraries: ${LIBS}"
+echo "             Host: ${host}"
+echo "         Compiler: ${CC}"
+echo "   Compiler flags: ${CFLAGS}"
+echo "     Linker flags: ${LDFLAGS}"
+echo "        Libraries: ${LIBS}"
 
 echo ""
 
