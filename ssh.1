@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.90 2001/02/10 16:03:29 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.91 2001/02/11 12:59:25 markus Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -53,6 +53,7 @@
 .Op Fl e Ar escape_char
 .Op Fl i Ar identity_file
 .Op Fl l Ar login_name
+.Op Fl m Ar mac_spec
 .Op Fl o Ar option
 .Op Fl p Ar port
 .Oo Fl L Xo
@@ -425,6 +426,13 @@ This may also be specified on a per-host basis in the configuration file.
 .It Fl l Ar login_name
 Specifies the user to log in as on the remote machine.
 This also may be specified on a per-host basis in the configuration file.
+.It Fl m Ar mac_spec
+Additionally, for protocol version 2 a comma-separated list of MAC
+(message authentication code) algorithms can
+be specified in order of preference.
+See the
+.Cm MACs
+keyword for more information.
 .It Fl n
 Redirects stdin from
 .Pa /dev/null
@@ -814,6 +822,18 @@ Gives the verbosity level that is used when logging messages from
 The possible values are:
 QUIET, FATAL, ERROR, INFO, VERBOSE and DEBUG.
 The default is INFO.
+.It Cm MACs
+Specifies the MAC (message authentication code) algorithms 
+in order of preference.
+The MAC algorithm is used in protocol version 2
+for data integrity protection.
+Multiple algorithms must be comma-separated.
+The default is
+.Pp
+.Bd -literal
+  ``hmac-sha1,hmac-md5,hmac-ripemd160,hmac-ripemd160@openssh.com,
+    hmac-sha1-96,hmac-md5-96''
+.Ed
 .It Cm NumberOfPasswordPrompts
 Specifies the number of password prompts before giving up.
 The argument to this keyword must be an integer.

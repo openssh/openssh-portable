@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.61 2001/02/08 14:39:36 deraadt Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.62 2001/02/11 12:59:25 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -23,6 +23,8 @@ RCSID("$OpenBSD: readconf.c,v 1.61 2001/02/08 14:39:36 deraadt Exp $");
 #include "readconf.h"
 #include "match.h"
 #include "misc.h"
+#include "kex.h"
+#include "mac.h"
 
 /* Format of the configuration file:
 
@@ -105,7 +107,7 @@ typedef enum {
 	oGlobalKnownHostsFile, oUserKnownHostsFile, oConnectionAttempts,
 	oBatchMode, oCheckHostIP, oStrictHostKeyChecking, oCompression,
 	oCompressionLevel, oKeepAlives, oNumberOfPasswordPrompts,
-	oUsePrivilegedPort, oLogLevel, oCiphers, oProtocol,
+	oUsePrivilegedPort, oLogLevel, oCiphers, oProtocol, oMacs,
 	oGlobalKnownHostsFile2, oUserKnownHostsFile2, oPubkeyAuthentication,
 	oKbdInteractiveAuthentication, oKbdInteractiveDevices, oHostKeyAlias
 } OpCodes;
@@ -148,6 +150,7 @@ static struct {
 	{ "port", oPort },
 	{ "cipher", oCipher },
 	{ "ciphers", oCiphers },
+	{ "macs", oMacs },
 	{ "protocol", oProtocol },
 	{ "remoteforward", oRemoteForward },
 	{ "localforward", oLocalForward },
@@ -502,6 +505,17 @@ parse_int:
 			options->ciphers = xstrdup(arg);
 		break;
 
+	case oMacs:
+		arg = strdelim(&s);
+		if (!arg || *arg == '\0')
+			fatal("%.200s line %d: Missing argument.", filename, linenum);
+		if (!mac_valid(arg))
+			fatal("%.200s line %d: Bad SSH2 Mac spec '%s'.",
+			      filename, linenum, arg ? arg : "<NONE>");
+		if (*activep && options->macs == NULL)
+			options->macs = xstrdup(arg);
+		break;
+
 	case oProtocol:
 		intptr = &options->protocol;
 		arg = strdelim(&s);
@@ -693,6 +707,7 @@ initialize_options(Options * options)
 	options->number_of_password_prompts = -1;
 	options->cipher = -1;
 	options->ciphers = NULL;
+	options->macs = NULL;
 	options->protocol = SSH_PROTO_UNKNOWN;
 	options->num_identity_files = 0;
 	options->hostname = NULL;
@@ -781,6 +796,7 @@ fill_default_options(Options * options)
 	if (options->cipher == -1)
 		options->cipher = SSH_CIPHER_NOT_SET;
 	/* options->ciphers, default set in myproposals.h */
+	/* options->macs, default set in myproposals.h */
 	if (options->protocol == SSH_PROTO_UNKNOWN)
 		options->protocol = SSH_PROTO_1|SSH_PROTO_2|SSH_PROTO_1_PREFERRED;
 	if (options->num_identity_files == 0) {

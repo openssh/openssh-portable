@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.46 2001/02/10 12:09:21 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.47 2001/02/11 12:59:25 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -84,11 +84,15 @@ ssh_kex2(char *host, struct sockaddr *hostaddr)
 		myproposal[PROPOSAL_ENC_ALGS_STOC] = options.ciphers;
 	}
 	if (options.compression) {
-		myproposal[PROPOSAL_COMP_ALGS_CTOS] = "zlib";
+		myproposal[PROPOSAL_COMP_ALGS_CTOS] =
 		myproposal[PROPOSAL_COMP_ALGS_STOC] = "zlib";
 	} else {
-		myproposal[PROPOSAL_COMP_ALGS_CTOS] = "none";
+		myproposal[PROPOSAL_COMP_ALGS_CTOS] =
 		myproposal[PROPOSAL_COMP_ALGS_STOC] = "none";
+	}
+	if (options.macs != NULL) {
+		myproposal[PROPOSAL_MAC_ALGS_CTOS] =
+		myproposal[PROPOSAL_MAC_ALGS_STOC] = options.macs;
 	}
 
 	/* buffers with raw kexinit messages */

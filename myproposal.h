@@ -1,4 +1,4 @@
-/*	$OpenBSD: myproposal.h,v 1.10 2001/01/29 01:58:17 niklas Exp $	*/
+/*	$OpenBSD: myproposal.h,v 1.11 2001/02/11 12:59:24 markus Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -30,7 +30,10 @@
 	"aes128-cbc,aes192-cbc,aes256-cbc," \
 	"rijndael128-cbc,rijndael192-cbc,rijndael256-cbc," \
 	"rijndael-cbc@lysator.liu.se"
-#define	KEX_DEFAULT_MAC		"hmac-sha1,hmac-md5,hmac-ripemd160@openssh.com"
+#define	KEX_DEFAULT_MAC \
+	"hmac-sha1,hmac-md5,hmac-ripemd160," \
+	"hmac-ripemd160@openssh.com," \
+	"hmac-sha1-96,hmac-md5-96"
 #define	KEX_DEFAULT_COMP	"none,zlib"
 #define	KEX_DEFAULT_LANG	""
 

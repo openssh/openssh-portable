@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.49 2001/02/08 19:30:52 itojun Exp $");
+RCSID("$OpenBSD: packet.c,v 1.50 2001/02/11 12:59:25 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -54,12 +54,9 @@ RCSID("$OpenBSD: packet.c,v 1.49 2001/02/08 19:30:52 itojun Exp $");
 #include "ssh1.h"
 #include "ssh2.h"
 
-#include <openssl/bn.h>
-#include <openssl/dh.h>
-#include <openssl/hmac.h>
 #include "cipher.h"
 #include "kex.h"
-#include "hmac.h"
+#include "mac.h"
 #include "log.h"
 #include "canohost.h"
 
@@ -531,12 +528,12 @@ packet_send1(void)
 void
 packet_send2(void)
 {
+	static u_int32_t seqnr = 0;
 	u_char *macbuf = NULL;
 	char *cp;
 	u_int packet_length = 0;
 	u_int i, padlen, len;
 	u_int32_t rand = 0;
-	static u_int seqnr = 0;
 	int type;
 	Enc *enc   = NULL;
 	Mac *mac   = NULL;
@@ -604,11 +601,9 @@ packet_send2(void)
 
 	/* compute MAC over seqnr and packet(length fields, payload, padding) */
 	if (mac && mac->enabled) {
-		macbuf = hmac( mac->md, seqnr,
+		macbuf = mac_compute(mac, seqnr,
 		    (u_char *) buffer_ptr(&outgoing_packet),
-		    buffer_len(&outgoing_packet),
-		    mac->key, mac->key_len
-		);
+		    buffer_len(&outgoing_packet));
 		DBG(debug("done calc MAC out #%d", seqnr));
 	}
 	/* encrypt packet and append to output buffer. */
@@ -818,12 +813,12 @@ packet_read_poll1(int *payload_len_ptr)
 int
 packet_read_poll2(int *payload_len_ptr)
 {
+	static u_int32_t seqnr = 0;
+	static u_int packet_length = 0;
 	u_int padlen, need;
 	u_char buf[8], *macbuf;
 	u_char *ucp;
 	char *cp;
-	static u_int packet_length = 0;
-	static u_int seqnr = 0;
 	int type;
 	int maclen, block_size;
 	Enc *enc   = NULL;
@@ -883,11 +878,9 @@ packet_read_poll2(int *payload_len_ptr)
 	 * increment sequence number for incoming packet
 	 */
 	if (mac && mac->enabled) {
-		macbuf = hmac( mac->md, seqnr,
+		macbuf = mac_compute(mac, seqnr,
 		    (u_char *) buffer_ptr(&incoming_packet),
-		    buffer_len(&incoming_packet),
-		    mac->key, mac->key_len
-		);
+		    buffer_len(&incoming_packet));
 		if (memcmp(macbuf, buffer_ptr(&input), mac->mac_len) != 0)
 			packet_disconnect("Corrupted MAC on input.");
 		DBG(debug("MAC #%d ok", seqnr));

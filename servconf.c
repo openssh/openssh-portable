@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.65 2001/02/04 15:32:24 stevesk Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.66 2001/02/11 12:59:25 markus Exp $");
 
 #ifdef KRB4
 #include <krb.h>
@@ -28,6 +28,8 @@ RCSID("$OpenBSD: servconf.c,v 1.65 2001/02/04 15:32:24 stevesk Exp $");
 #include "tildexpand.h"
 #include "misc.h"
 #include "cipher.h"
+#include "kex.h"
+#include "mac.h"
 
 /* add listen address */
 void add_listen_addr(ServerOptions *options, char *addr);
@@ -85,6 +87,7 @@ initialize_server_options(ServerOptions *options)
 	options->num_allow_groups = 0;
 	options->num_deny_groups = 0;
 	options->ciphers = NULL;
+	options->macs = NULL;
 	options->protocol = SSH_PROTO_UNKNOWN;
 	options->gateway_ports = -1;
 	options->num_subsystems = 0;
@@ -209,7 +212,7 @@ typedef enum {
 	sStrictModes, sEmptyPasswd, sRandomSeedFile, sKeepAlives, sCheckMail,
 	sUseLogin, sAllowTcpForwarding,
 	sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
-	sIgnoreUserKnownHosts, sCiphers, sProtocol, sPidFile,
+	sIgnoreUserKnownHosts, sCiphers, sMacs, sProtocol, sPidFile,
 	sGatewayPorts, sPubkeyAuthentication, sXAuthLocation, sSubsystem, sMaxStartups,
 	sBanner, sReverseMappingCheck
 } ServerOpCodes;
@@ -266,6 +269,7 @@ static struct {
 	{ "allowgroups", sAllowGroups },
 	{ "denygroups", sDenyGroups },
 	{ "ciphers", sCiphers },
+	{ "macs", sMacs },
 	{ "protocol", sProtocol },
 	{ "gatewayports", sGatewayPorts },
 	{ "subsystem", sSubsystem },
@@ -656,6 +660,17 @@ parse_flag:
 				    filename, linenum, arg ? arg : "<NONE>");
 			if (options->ciphers == NULL)
 				options->ciphers = xstrdup(arg);
+			break;
+
+		case sMacs:
+			arg = strdelim(&cp);
+			if (!arg || *arg == '\0')
+				fatal("%s line %d: Missing argument.", filename, linenum);
+			if (!mac_valid(arg))
+				fatal("%s line %d: Bad SSH2 mac spec '%s'.",
+				    filename, linenum, arg ? arg : "<NONE>");
+			if (options->macs == NULL)
+				options->macs = xstrdup(arg);
 			break;
 
 		case sProtocol:

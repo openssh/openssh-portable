@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.94 2001/02/10 01:46:28 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.95 2001/02/11 12:59:25 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -65,6 +65,8 @@ RCSID("$OpenBSD: ssh.c,v 1.94 2001/02/10 01:46:28 markus Exp $");
 #include "tildexpand.h"
 #include "dispatch.h"
 #include "misc.h"
+#include "kex.h"
+#include "mac.h"
 
 #ifdef HAVE___PROGNAME
 extern char *__progname;
@@ -305,7 +307,7 @@ main(int ac, char **av)
 		opt = av[optind][1];
 		if (!opt)
 			usage();
-		if (strchr("eilcpLRo", opt)) {	/* options with arguments */
+		if (strchr("eilcmpLRo", opt)) {	/* options with arguments */
 			optarg = av[optind] + 2;
 			if (strcmp(optarg, "") == 0) {
 				if (optind >= ac - 1)
@@ -432,6 +434,14 @@ main(int ac, char **av)
 				} else {
 					options.ciphers = (char *)-1;
 				}
+			}
+			break;
+		case 'm':
+			if (mac_valid(optarg))
+				options.macs = xstrdup(optarg);
+			else {
+				fprintf(stderr, "Unknown mac type '%s'\n", optarg);
+				exit(1);
 			}
 			break;
 		case 'p':

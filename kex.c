@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.20 2001/02/08 19:30:51 itojun Exp $");
+RCSID("$OpenBSD: kex.c,v 1.21 2001/02/11 12:59:24 markus Exp $");
 
 #include <openssl/crypto.h>
 #include <openssl/bio.h>
@@ -41,6 +41,7 @@ RCSID("$OpenBSD: kex.c,v 1.20 2001/02/08 19:30:51 itojun Exp $");
 #include "kex.h"
 #include "key.h"
 #include "log.h"
+#include "mac.h"
 
 #define KEX_COOKIE_LEN	16
 
@@ -412,18 +413,12 @@ choose_mac(Mac *mac, char *client, char *server)
 	char *name = get_match(client, server);
 	if (name == NULL)
 		fatal("no matching mac found: client %s server %s", client, server);
-	if (strcmp(name, "hmac-md5") == 0) {
-		mac->md = EVP_md5();
-	} else if (strcmp(name, "hmac-sha1") == 0) {
-		mac->md = EVP_sha1();
-	} else if (strcmp(name, "hmac-ripemd160@openssh.com") == 0) {
-		mac->md = EVP_ripemd160();
-	} else {
+	if (mac_init(mac, name) < 0)
 		fatal("unsupported mac %s", name);
-	}
+	/* truncate the key */
+	if (datafellows & SSH_BUG_HMAC)
+		mac->key_len = 16;
 	mac->name = name;
-	mac->mac_len = mac->md->md_size;
-	mac->key_len = (datafellows & SSH_BUG_HMAC) ? 16 : mac->mac_len;
 	mac->key = NULL;
 	mac->enabled = 0;
 }

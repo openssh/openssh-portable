@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.165 2001/02/08 19:30:53 itojun Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.166 2001/02/11 12:59:25 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1411,6 +1411,10 @@ do_ssh2_kex(void)
 	if (options.ciphers != NULL) {
 		myproposal[PROPOSAL_ENC_ALGS_CTOS] =
 		myproposal[PROPOSAL_ENC_ALGS_STOC] = options.ciphers;
+	}
+	if (options.macs != NULL) {
+		myproposal[PROPOSAL_MAC_ALGS_CTOS] =
+		myproposal[PROPOSAL_MAC_ALGS_STOC] = options.macs;
 	}
 	myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] = list_hostkey_types();
 

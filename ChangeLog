@@ -7,6 +7,14 @@
    - markus@cvs.openbsd.org 2001/02/12 12:45:06
      [sshconnect1.c]
      fix xmalloc(0), ok dugsong@
+   - markus@cvs.openbsd.org 2001/02/11 12:59:25
+     [Makefile.in sshd.8 sshconnect2.c readconf.h readconf.c packet.c
+      sshd.c ssh.c ssh.1 servconf.h servconf.c myproposal.h kex.h kex.c]
+     1) clean up the MAC support for SSH-2
+     2) allow you to specify the MAC with 'ssh -m'
+     3) or the 'MACs' keyword in ssh(d)_config
+     4) add hmac-{md5,sha1}-96
+             ok stevesk@, provos@
 
 20010214
  - (djm) Don't try to close PAM session or delete credentials if the
@@ -3935,4 +3943,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.762 2001/02/15 02:36:46 mouring Exp $
+$Id: ChangeLog,v 1.763 2001/02/15 03:01:59 mouring Exp $

@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: servconf.h,v 1.36 2001/02/03 10:08:37 markus Exp $"); */
+/* RCSID("$OpenBSD: servconf.h,v 1.37 2001/02/11 12:59:25 markus Exp $"); */
 
 #ifndef SERVCONF_H
 #define SERVCONF_H
@@ -50,8 +50,9 @@ typedef struct {
 	char   *xauth_location;	/* Location of xauth program */
 	int     strict_modes;	/* If true, require string home dir modes. */
 	int     keepalives;	/* If true, set SO_KEEPALIVE. */
-	char   *ciphers;	/* Ciphers in order of preference. */
-	int	protocol;	/* Protocol in order of preference. */
+	char   *ciphers;	/* Supported SSH2 ciphers. */
+	char   *macs;		/* Supported SSH2 macs. */
+	int	protocol;	/* Supported protocol versions. */
 	int     gateway_ports;	/* If true, allow remote connects to forwarded ports. */
 	SyslogFacility log_facility;	/* Facility for system logging. */
 	LogLevel log_level;	/* Level for system logging. */
