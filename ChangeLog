@@ -1,3 +1,6 @@
+20011023
+ - (bal) Updated version to 3.0p1 in preparing for release.
+
 20011022
  - (djm) Fix fd leak in loginrec.c (ro fd to lastlog was left open).
    Report from Michal Zalewski <lcamtuf@coredump.cx>
@@ -6744,4 +6747,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1611 2001/10/22 06:49:22 djm Exp $
+$Id: ChangeLog,v 1.1612 2001/10/23 16:12:54 mouring Exp $
