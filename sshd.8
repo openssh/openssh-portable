@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.187 2002/08/02 16:00:07 marc Exp $
+.\" $OpenBSD: sshd.8,v 1.188 2002/08/12 17:30:35 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -351,9 +351,9 @@ Sets up basic environment.
 Reads
 .Pa $HOME/.ssh/environment
 if it exists and users are allowed to change their environment.
-See
+See the
 .Cm PermitUserEnvironment
-in
+option in
 .Xr sshd_config 5 .
 .It
 Changes to user's home directory.
@@ -462,6 +462,10 @@ logging in using this key.
 Environment variables set this way
 override other default environment values.
 Multiple options of this type are permitted.
+Environment processing is disabled by default and is
+controlled via the
+.Cm PermitUserEnvironment
+option.
 This option is automatically disabled if
 .Cm UseLogin
 is enabled.
@@ -702,6 +706,10 @@ It can only contain empty lines, comment lines (that start with
 and assignment lines of the form name=value.
 The file should be writable
 only by the user; it need not be readable by anyone else.
+Environment processing is disabled by default and is
+controlled via the
+.Cm PermitUserEnvironment
+option.
 .It Pa $HOME/.ssh/rc
 If this file exists, it is run with /bin/sh after reading the
 environment files but before starting the user's shell or command.
