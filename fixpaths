@@ -37,14 +37,13 @@ for $f (@ARGV) {
   $of = $2.".$ext"; 
 
   open(IN, "<$f")          || die ("$0: input file $f missing!\n");
-  if (open(OUT, ">$of")) {
-    while (<IN>) {
-      for $s (keys(%def)) {
-	s#$s#$def{$s}#;
-      } # for $s
-      print OUT;
-    } # while <IN>
-  } # if (outfile open)
+  open(OUT, ">$of")        || die ("$0: cannot create output file $of: $!\n");
+  while (<IN>) {
+    for $s (keys(%def)) {
+      s#$s#$def{$s}#;
+    } # for $s
+    print OUT;
+  } # while <IN>
 } # for $f
 
 exit 0;

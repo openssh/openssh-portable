@@ -1,7 +1,10 @@
 20001107
- - (bal) acconfig.in - removed the double "USE_PIPES" entry.
+ - (bal) acconfig.in - removed the double "USE_PIPES" entry. Patch by
+   Mark Miller <markm@swoon.net>
  - (bal) sshd.init files corrected to assign $? to RETVAL.  Patch by
    Jarno Huuskonen <jhuuskon@messi.uku.fi>
+ - (bal) fixpaths fixed to stop it from quitely failing. Patch by
+   Mark D. Roth <roth@feep.net>
 
 20001106
  - (djm) Use Jim's new 1.0.3 askpass in Redhat RPMs
