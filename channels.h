@@ -1,4 +1,4 @@
-/*	$OpenBSD: channels.h,v 1.69 2002/06/23 21:06:41 deraadt Exp $	*/
+/*	$OpenBSD: channels.h,v 1.70 2002/06/24 14:33:27 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -90,12 +90,12 @@ struct Channel {
 	int     host_port;	/* remote port to connect for forwards */
 	char   *remote_name;	/* remote hostname */
 
-	int	remote_window;
-	int	remote_maxpacket;
-	int	local_window;
-	int	local_window_max;
-	int	local_consumed;
-	int	local_maxpacket;
+	u_int	remote_window;
+	u_int	remote_maxpacket;
+	u_int	local_window;
+	u_int	local_window_max;
+	u_int	local_consumed;
+	u_int	local_maxpacket;
 	int     extended_usage;
 	int	single_connection;
 
@@ -151,7 +151,7 @@ struct Channel {
 /* channel management */
 
 Channel	*channel_lookup(int);
-Channel *channel_new(char *, int, int, int, int, int, int, int, char *, int);
+Channel *channel_new(char *, int, int, int, int, u_int, u_int, int, char *, int);
 void	 channel_set_fds(int, int, int, int, int, int, u_int);
 void	 channel_free(Channel *);
 void	 channel_free_all(void);

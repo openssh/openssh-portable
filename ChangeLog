@@ -7,6 +7,9 @@
    - markus@cvs.openbsd.org 2002/06/24 13:12:23
      [ssh-agent.1]
      the socket name contains ssh-agent's ppid; via mpech@ from form@
+   - markus@cvs.openbsd.org 2002/06/24 14:33:27
+     [channels.c channels.h clientloop.c serverloop.c]
+     move channel counter to u_int
 
 20020625
  - (stevesk) [INSTALL acconfig.h configure.ac defines.h] remove --with-rsh
@@ -1106,4 +1109,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2275 2002/06/25 23:16:31 mouring Exp $
+$Id: ChangeLog,v 1.2276 2002/06/25 23:17:36 mouring Exp $

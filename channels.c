@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.177 2002/06/23 21:34:07 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.178 2002/06/24 14:33:27 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -205,7 +205,7 @@ channel_register_fds(Channel *c, int rfd, int wfd, int efd,
 
 Channel *
 channel_new(char *ctype, int type, int rfd, int wfd, int efd,
-    int window, int maxpack, int extusage, char *remote_name, int nonblock)
+    u_int window, u_int maxpack, int extusage, char *remote_name, int nonblock)
 {
 	int i, found;
 	Channel *c;
@@ -1568,8 +1568,9 @@ channel_after_select(fd_set * readset, fd_set * writeset)
 void
 channel_output_poll(void)
 {
-	int len, i;
 	Channel *c;
+	int i;
+	u_int len;
 
 	for (i = 0; i < channels_alloc; i++) {
 		c = channels[i];
@@ -1647,7 +1648,7 @@ channel_output_poll(void)
 		    c->remote_window > 0 &&
 		    (len = buffer_len(&c->extended)) > 0 &&
 		    c->extended_usage == CHAN_EXTENDED_READ) {
-			debug2("channel %d: rwin %d elen %d euse %d",
+			debug2("channel %d: rwin %u elen %u euse %d",
 			    c->self, c->remote_window, buffer_len(&c->extended),
 			    c->extended_usage);
 			if (len > c->remote_window)
@@ -1873,7 +1874,7 @@ channel_input_open_confirmation(int type, u_int32_t seq, void *ctxt)
 			c->confirm(c->self, NULL);
 			debug2("callback done");
 		}
-		debug("channel %d: open confirm rwindow %d rmax %d", c->self,
+		debug("channel %d: open confirm rwindow %u rmax %u", c->self,
 		    c->remote_window, c->remote_maxpacket);
 	}
 	packet_check_eom();
@@ -1930,7 +1931,8 @@ void
 channel_input_window_adjust(int type, u_int32_t seq, void *ctxt)
 {
 	Channel *c;
-	int id, adjust;
+	int id;
+	u_int adjust;
 
 	if (!compat20)
 		return;
@@ -1946,7 +1948,7 @@ channel_input_window_adjust(int type, u_int32_t seq, void *ctxt)
 	}
 	adjust = packet_get_int();
 	packet_check_eom();
-	debug2("channel %d: rcvd adjust %d", id, adjust);
+	debug2("channel %d: rcvd adjust %u", id, adjust);
 	c->remote_window += adjust;
 }
 
