@@ -1093,9 +1093,9 @@ do_setup_env(Session *s, const char *shell)
 	}
 #endif
 #ifdef KRB5
-	if (s->authctxt->krb5_ticket_file)
+	if (s->authctxt->krb5_ccname)
 		child_set_env(&env, &envsize, "KRB5CCNAME",
-		    s->authctxt->krb5_ticket_file);
+		    s->authctxt->krb5_ccname);
 #endif
 #ifdef USE_PAM
 	/*
