@@ -6,6 +6,7 @@
    - markus@cvs.openbsd.org 2001/04/23 22:14:13
      [ssh-keygen.c]
      remove debug
+ - (bal) Whitespace resync w/ OpenBSD for uidswap.c
 
 20010424
  - OpenBSD CVS Sync
@@ -5245,4 +5246,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1167 2001/04/24 16:59:28 mouring Exp $
+$Id: ChangeLog,v 1.1168 2001/04/25 06:27:59 mouring Exp $

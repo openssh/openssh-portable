@@ -28,7 +28,7 @@ RCSID("$OpenBSD: uidswap.c,v 1.16 2001/04/20 16:32:22 markus Exp $");
 
 /* Lets assume that posix saved ids also work with seteuid, even though that
    is not part of the posix specification. */
- 
+
 /* Saved effective uid. */
 static int	privileged = 0;
 static int	temporarily_use_uid_effective = 0;
@@ -36,7 +36,7 @@ static uid_t	saved_euid = 0;
 static gid_t	saved_egid;
 static gid_t	saved_egroups[NGROUPS_MAX], user_groups[NGROUPS_MAX];
 static int	saved_egroupslen = -1, user_groupslen = -1;
-  
+
 /*
  * Temporarily changes to the given uid.  If the effective user
  * id is not root, this does nothing.  This call cannot be nested.
@@ -44,42 +44,42 @@ static int	saved_egroupslen = -1, user_groupslen = -1;
 void
 temporarily_use_uid(struct passwd *pw)
 {
- 	/* Save the current euid, and egroups. */
-  	saved_euid = geteuid();
- 	debug("temporarily_use_uid: %d/%d (e=%d)",
- 	    pw->pw_uid, pw->pw_gid, saved_euid);
- 	if (saved_euid != 0) {
- 		privileged = 0;
- 		return;
- 	}
- 	privileged = 1;
- 	temporarily_use_uid_effective = 1;
-	saved_egid = getegid();
-	saved_egroupslen = getgroups(NGROUPS_MAX, saved_egroups);
- 	if (saved_egroupslen < 0)
- 		fatal("getgroups: %.100s", strerror(errno));
- 
- 	/* set and save the user's groups */
- 	if (user_groupslen == -1) {
- 		if (initgroups(pw->pw_name, pw->pw_gid) < 0)
- 			fatal("initgroups: %s: %.100s", pw->pw_name,
- 			    strerror(errno));
- 		user_groupslen = getgroups(NGROUPS_MAX, user_groups);                           
- 		if (user_groupslen < 0)
- 			fatal("getgroups: %.100s", strerror(errno));
- 	}
-  	/* Set the effective uid to the given (unprivileged) uid. */
+	/* Save the current euid, and egroups. */
+	saved_euid = geteuid();
+	debug("temporarily_use_uid: %d/%d (e=%d)",
+	    pw->pw_uid, pw->pw_gid, saved_euid);
+	if (saved_euid != 0) {
+		privileged = 0;
+		return;
+	}
+	privileged = 1;
+	temporarily_use_uid_effective = 1;
+	saved_egid = getegid();                                                       
+	saved_egroupslen = getgroups(NGROUPS_MAX, saved_egroups);                           
+	if (saved_egroupslen < 0)
+		fatal("getgroups: %.100s", strerror(errno));
+
+	/* set and save the user's groups */
+	if (user_groupslen == -1) {
+		if (initgroups(pw->pw_name, pw->pw_gid) < 0)
+			fatal("initgroups: %s: %.100s", pw->pw_name,
+			    strerror(errno));
+		user_groupslen = getgroups(NGROUPS_MAX, user_groups);                           
+		if (user_groupslen < 0)
+			fatal("getgroups: %.100s", strerror(errno));
+	}
+	/* Set the effective uid to the given (unprivileged) uid. */
 	if (setgroups(user_groupslen, user_groups) < 0)
 		fatal("setgroups: %.100s", strerror(errno));
 	pw->pw_gid = pw->pw_gid;
 	if (setegid(pw->pw_gid) < 0)
- 		fatal("setegid %u: %.100s", (u_int) pw->pw_gid,
- 		    strerror(errno));
- 	if (seteuid(pw->pw_uid) == -1)
- 		fatal("seteuid %u: %.100s", (u_int) pw->pw_uid,
- 		    strerror(errno));
+		fatal("setegid %u: %.100s", (u_int) pw->pw_gid,
+		    strerror(errno));
+	if (seteuid(pw->pw_uid) == -1)
+		fatal("seteuid %u: %.100s", (u_int) pw->pw_uid,
+		    strerror(errno));
 }
-  
+
 /*
  * Restores to the original (privileged) uid.
  */
