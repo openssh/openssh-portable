@@ -714,6 +714,9 @@ main(int ac, char **av)
 #ifdef HAVE_SETRLIMIT
 	struct rlimit rlim;
 #endif
+#ifdef HAVE_CYGWIN
+	int prev_mask;
+#endif
 	pid_t pid;
 	char *shell, *format, *pidstr, pidstrbuf[1 + 3 * sizeof pid];
 	extern int optind;
@@ -805,10 +808,19 @@ main(int ac, char **av)
 	memset(&sunaddr, 0, sizeof(sunaddr));
 	sunaddr.sun_family = AF_UNIX;
 	strlcpy(sunaddr.sun_path, socket_name, sizeof(sunaddr.sun_path));
+#ifdef HAVE_CYGWIN
+	prev_mask = umask(0177);
+#endif
 	if (bind(sock, (struct sockaddr *) & sunaddr, sizeof(sunaddr)) < 0) {
 		perror("bind");
+#ifdef HAVE_CYGWIN
+		umask(prev_mask);
+#endif
 		cleanup_exit(1);
 	}
+#ifdef HAVE_CYGWIN
+	umask(prev_mask);
+#endif
 	if (listen(sock, 5) < 0) {
 		perror("listen");
 		cleanup_exit(1);

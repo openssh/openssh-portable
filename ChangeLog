@@ -10,6 +10,8 @@
      [servconf.c]
      remove "\n" from fatal()
  - (bal) Updated Cygwin README by Corinna Vinschen <vinschen@redhat.com>
+ - (bal) Avoid socket file security issues in ssh-agent for Cygwin.
+   Patch by Egor Duda <deo@logos-m.ru>
 
 20010503
  - OpenBSD CVS Sync
@@ -5321,4 +5323,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1194 2001/05/03 22:45:21 mouring Exp $
+$Id: ChangeLog,v 1.1195 2001/05/03 22:59:24 mouring Exp $
