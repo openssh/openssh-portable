@@ -14,6 +14,9 @@
      [sftp-client.c sftp-client.h sftp-common.c sftp-int.c sftp-server.c
       sftp.c]
      bunch of u_int vs int stuff
+   - deraadt@cvs.openbsd.org 2002/06/23 09:39:55
+     [ssh-keygen.c]
+     u_int stuff
 
 20020623
  - (stevesk) [configure.ac] bug #255 LOGIN_NEEDS_UTMPX for AIX.
@@ -1058,4 +1061,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2257 2002/06/23 21:27:18 mouring Exp $
+$Id: ChangeLog,v 1.2258 2002/06/23 21:28:13 mouring Exp $
