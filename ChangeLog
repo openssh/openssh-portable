@@ -45,6 +45,8 @@
      [uidswap.c]
      format spec change/casts and some KNF; ok markus@
 
+ - (bal) Corrected debug() in uidswap.c to match upstream.
+
 20020604
  - (stevesk) [channels.c] bug #164 patch from YOSHIFUJI Hideaki (changed
    setsockopt from debug to error for now).
@@ -728,4 +730,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2156 2002/06/06 20:38:49 mouring Exp $
+$Id: ChangeLog,v 1.2157 2002/06/06 20:42:04 mouring Exp $
