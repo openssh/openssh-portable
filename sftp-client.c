@@ -28,7 +28,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.30 2002/04/01 22:07:17 markus Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.31 2002/04/06 00:30:08 djm Exp $");
 
 #include "openbsd-compat/fake-queue.h"
 
@@ -1061,10 +1061,12 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 
 		if (id == startid || len == 0 ||
 		    id - ackid >= conn->num_requests) {
+		    	u_int r_id;
+
 			buffer_clear(&msg);
 			get_msg(conn->fd_in, &msg);
 			type = buffer_get_char(&msg);
-			id = buffer_get_int(&msg);
+			r_id = buffer_get_int(&msg);
 
 			if (type != SSH2_FXP_STATUS)
 				fatal("Expected SSH2_FXP_STATUS(%d) packet, "
@@ -1075,11 +1077,11 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 
 			/* Find the request in our queue */
 			for(ack = TAILQ_FIRST(&acks);
-			    ack != NULL && ack->id != id;
+			    ack != NULL && ack->id != r_id;
 			    ack = TAILQ_NEXT(ack, tq))
 				;
 			if (ack == NULL)
-				fatal("Can't find request for ID %d", id);
+				fatal("Can't find request for ID %d", r_id);
 			TAILQ_REMOVE(&acks, ack, tq);
 
 			if (status != SSH2_FX_OK) {

@@ -2,6 +2,12 @@
  - (djm) Typo in Suse SPEC file. Fix from Carsten Grohmann 
    <carsten.grohmann@dr-baldeweg.de>
  - (bal) Added MAP_FAILED to allow AIX and Trusted HP to compile.
+ - (bal) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2002/04/06 00:30:08
+     [sftp-client.c]
+     Fix occasional corruption on upload due to bad reuse of request id, spotted
+     by chombier@mac.com; ok markus@
+
 
 20020405
  - (bal) Patch for OpenSC SmartCard library; ok markus@; patch by
@@ -8172,4 +8178,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2027 2002/04/06 04:11:28 mouring Exp $
+$Id: ChangeLog,v 1.2028 2002/04/06 04:16:45 mouring Exp $
