@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.55 2002/05/08 23:04:14 tim Exp $
+# $Id: configure.ac,v 1.56 2002/05/11 20:17:44 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -703,169 +703,52 @@ if test "x$PAM_MSG" = "xyes" ; then
 	)
 fi
 
-# The big search for OpenSSL
+# Search for OpenSSL
+saved_CPPFLAGS="$CPPFLAGS"
+saved_LDFLAGS="$LDFLAGS"
 AC_ARG_WITH(ssl-dir,
 	[  --with-ssl-dir=PATH     Specify path to OpenSSL installation ],
 	[
 		if test "x$withval" != "xno" ; then
-			tryssldir=$withval
+			if test -d "$withval/lib"; then
+				if test -n "${need_dash_r}"; then
+					LDFLAGS="-L${withval}/lib -R${withval}/lib ${LDFLAGS}"
+				else
+					LDFLAGS="-L${withval}/lib ${LDFLAGS}"
+				fi
+			else
+				if test -n "${need_dash_r}"; then
+					LDFLAGS="-L${withval} -R${withval} ${LDFLAGS}"
+				else
+					LDFLAGS="-L${withval} ${LDFLAGS}"
+				fi
+			fi
+			if test -d "$withval/include"; then
+				CPPFLAGS="-I${withval}/include ${CPPFLAGS}"
+			else
+				CPPFLAGS="-I${withval} ${CPPFLAGS}"
+			fi
 		fi
 	]
 )
-
-saved_LIBS="$LIBS"
-saved_LDFLAGS="$LDFLAGS"
-saved_CPPFLAGS="$CPPFLAGS"
-if test "x$prefix" != "xNONE" ; then
-	tryssldir="$tryssldir $prefix"
-fi
-AC_CACHE_CHECK([for OpenSSL directory], ac_cv_openssldir, [
-	for ssldir in $tryssldir "" /usr/local/openssl /usr/lib/openssl /usr/local/ssl /usr/lib/ssl /usr/local /usr/pkg /opt /opt/openssl ; do
-		CPPFLAGS="$saved_CPPFLAGS"
-		LDFLAGS="$saved_LDFLAGS"
-		LIBS="$saved_LIBS -lcrypto"
-		
-		# Skip directories if they don't exist
-		if test ! -z "$ssldir" -a ! -d "$ssldir" ; then
-			continue;
-		fi
-		if test ! -z "$ssldir" -a "x$ssldir" != "x/usr"; then
-			# Try to use $ssldir/lib if it exists, otherwise 
-			# $ssldir
-			if test -d "$ssldir/lib" ; then
-				LDFLAGS="-L$ssldir/lib $saved_LDFLAGS"
-				if test ! -z "$need_dash_r" ; then
-					LDFLAGS="-R$ssldir/lib $LDFLAGS"
-				fi
-			else
-				LDFLAGS="-L$ssldir $saved_LDFLAGS"
-				if test ! -z "$need_dash_r" ; then
-					LDFLAGS="-R$ssldir $LDFLAGS"
-				fi
-			fi
-			# Try to use $ssldir/include if it exists, otherwise 
-			# $ssldir
-			if test -d "$ssldir/include" ; then
-				CPPFLAGS="-I$ssldir/include $saved_CPPFLAGS"
-			else
-				CPPFLAGS="-I$ssldir $saved_CPPFLAGS"
-			fi
-		fi
-
-		# Basic test to check for compatible version and correct linking
-		# *does not* test for RSA - that comes later.
-		AC_TRY_RUN(
-			[
-#include <string.h>
-#include <openssl/rand.h>
-int main(void) 
-{
-	char a[2048];
-	memset(a, 0, sizeof(a));
-	RAND_add(a, sizeof(a), sizeof(a));
-	return(RAND_status() <= 0);
-}
-			],
-			[
-				found_crypto=1
-				break;
-			], []
-		)
-
-		if test ! -z "$found_crypto" ; then
-			break;
-		fi
-	done
-
-	if test -z "$found_crypto" ; then
-		AC_MSG_ERROR([Could not find working OpenSSL library, please install or check config.log])	
-	fi
-	if test -z "$ssldir" ; then
-		ssldir="(system)"
-	fi
-
-	ac_cv_openssldir=$ssldir
-])
-
-if (test ! -z "$ac_cv_openssldir" && test "x$ac_cv_openssldir" != "x(system)") ; then
-	AC_DEFINE(HAVE_OPENSSL)
-	dnl Need to recover ssldir - test above runs in subshell
-	ssldir=$ac_cv_openssldir
-	if test ! -z "$ssldir" -a "x$ssldir" != "x/usr"; then
-		# Try to use $ssldir/lib if it exists, otherwise 
-		# $ssldir
-		if test -d "$ssldir/lib" ; then
-			LDFLAGS="-L$ssldir/lib $saved_LDFLAGS"
-			if test ! -z "$need_dash_r" ; then
-				LDFLAGS="-R$ssldir/lib $LDFLAGS"
-			fi
-		else
-			LDFLAGS="-L$ssldir $saved_LDFLAGS"
-			if test ! -z "$need_dash_r" ; then
-				LDFLAGS="-R$ssldir $LDFLAGS"
-			fi
-		fi
-		# Try to use $ssldir/include if it exists, otherwise 
-		# $ssldir
-		if test -d "$ssldir/include" ; then
-			CPPFLAGS="-I$ssldir/include $saved_CPPFLAGS"
-		else
-			CPPFLAGS="-I$ssldir $saved_CPPFLAGS"
-		fi
-	fi
-fi
-LIBS="$saved_LIBS -lcrypto"
-
-# Now test RSA support
-saved_LIBS="$LIBS"
-AC_MSG_CHECKING([for RSA support])
-for WANTS_RSAREF in "" 1 ; do
-	if test -z "$WANTS_RSAREF" ; then
-		LIBS="$saved_LIBS"
-	else
-		LIBS="$saved_LIBS -lRSAglue -lrsaref"
-	fi
-	AC_TRY_RUN([
-#include <string.h>
-#include <openssl/rand.h>
-#include <openssl/rsa.h>
-#include <openssl/bn.h>
-#include <openssl/sha.h>
-int main(void) 
-{
-	int num; RSA *key; static unsigned char p_in[] = "blahblah";
-	unsigned char c[256], p[256];
-	memset(c, 0, sizeof(c)); RAND_add(c, sizeof(c), sizeof(c));
-	if ((key=RSA_generate_key(512, 3, NULL, NULL))==NULL) return(1);
-	num = RSA_public_encrypt(sizeof(p_in) - 1, p_in, c, key, RSA_PKCS1_PADDING);
-	return(-1 == RSA_private_decrypt(num, c, p, key, RSA_PKCS1_PADDING));
-}
-	],
+LIBS="$LIBS -lcrypto"
+AC_TRY_LINK_FUNC(RAND_add, AC_DEFINE(HAVE_OPENSSL),
 	[
-		rsa_works=1
-		break;
-	], [])
-done
-LIBS="$saved_LIBS"
-
-if test ! -z "$no_rsa" ; then
-	AC_MSG_RESULT(disabled)
-	RSA_MSG="disabled"
-else
-	if test -z "$rsa_works" ; then
-		AC_MSG_WARN([*** No RSA support found *** ])
-		RSA_MSG="no"
-	else
-		if test -z "$WANTS_RSAREF" ; then
-			AC_MSG_RESULT(yes)
-			RSA_MSG="yes"
+		dnl Check default openssl install dir
+		if test -n "${need_dash_r}"; then
+			LDFLAGS="-L/usr/local/ssl/lib -R/usr/local/ssl/lib ${saved_LDFLAGS}"
 		else
-			RSA_MSG="yes (using RSAref)"
-			AC_MSG_RESULT(using RSAref)
-			LIBS="$LIBS -lcrypto -lRSAglue -lrsaref"
+			LDFLAGS="-L/usr/local/ssl/lib ${saved_LDFLAGS}"
 		fi
-	fi
-fi
+		CPPFLAGS="-I/usr/local/ssl/include ${saved_CPPFLAGS}"
+		AC_TRY_LINK_FUNC(RAND_add, AC_DEFINE(HAVE_OPENSSL),
+			[
+				AC_MSG_ERROR([*** Can't find recent OpenSSL libcrypto (see config.log for details) ***])
+			]
+		)
+	]
+)
+
 
 # Sanity check OpenSSL headers
 AC_MSG_CHECKING([whether OpenSSL's headers match the library])
