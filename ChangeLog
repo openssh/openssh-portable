@@ -6,6 +6,9 @@
    - markus@cvs.openbsd.org 2002/03/06 00:23:27
      [compat.c dh.c]
      undo
+   - markus@cvs.openbsd.org 2002/03/06 00:24:39
+     [compat.c]
+     compat.c
 
 20020305
    - stevesk@cvs.openbsd.org 2002/03/02 09:34:42
@@ -7807,4 +7810,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1910 2002/03/07 01:58:42 djm Exp $
+$Id: ChangeLog,v 1.1911 2002/03/07 01:59:02 djm Exp $

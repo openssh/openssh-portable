@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999, 2000, 2001 Markus Friedl.  All rights reserved.
+ * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: compat.c,v 1.60 2002/03/06 00:23:27 markus Exp $");
+RCSID("$OpenBSD: compat.c,v 1.61 2002/03/06 00:24:39 markus Exp $");
 
 #include "buffer.h"
 #include "packet.h"
@@ -73,8 +73,8 @@ compat_datafellows(const char *version)
 		{ "OpenSSH_2.5.0*,"
 		  "OpenSSH_2.5.1*,"
 		  "OpenSSH_2.5.2*",	SSH_OLD_DHGEX|SSH_BUG_NOREKEY },
-		{ "OpenSSH_2.5.3*",
-					SSH_BUG_NOREKEY },
+		{ "OpenSSH_2.5.3*",	SSH_BUG_NOREKEY },
+		{ "Sun_SSH_1.0*",	SSH_BUG_NOREKEY },
 		{ "OpenSSH*",		0 },
 		{ "*MindTerm*",		0 },
 		{ "2.1.0*",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
