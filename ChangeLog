@@ -88,6 +88,10 @@
    - stevesk@cvs.openbsd.org 2002/01/04 17:59:17
      [readconf.c servconf.c]
      remove #ifdef _PATH_XAUTH/#endif; ok markus@
+   - stevesk@cvs.openbsd.org 2002/01/04 18:14:16
+     [servconf.c sshd.8]
+     protocol 2 HostKey code default is now /etc/ssh_host_rsa_key and
+     /etc/ssh_host_dsa_key like we have in sshd_config.  ok markus@
 
 
 20020121
@@ -7236,4 +7240,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1748 2002/01/22 12:18:49 djm Exp $
+$Id: ChangeLog,v 1.1749 2002/01/22 12:19:11 djm Exp $

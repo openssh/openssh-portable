@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.96 2002/01/04 17:59:17 stevesk Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.97 2002/01/04 18:14:16 stevesk Exp $");
 
 #if defined(KRB4) || defined(KRB5)
 #include <krb.h>
@@ -124,9 +124,14 @@ fill_default_server_options(ServerOptions *options)
 	if (options->num_host_key_files == 0) {
 		/* fill default hostkeys for protocols */
 		if (options->protocol & SSH_PROTO_1)
-			options->host_key_files[options->num_host_key_files++] = _PATH_HOST_KEY_FILE;
-		if (options->protocol & SSH_PROTO_2)
-			options->host_key_files[options->num_host_key_files++] = _PATH_HOST_DSA_KEY_FILE;
+			options->host_key_files[options->num_host_key_files++] =
+			    _PATH_HOST_KEY_FILE;
+		if (options->protocol & SSH_PROTO_2) {
+			options->host_key_files[options->num_host_key_files++] =
+			    _PATH_HOST_RSA_KEY_FILE;
+			options->host_key_files[options->num_host_key_files++] =
+			    _PATH_HOST_DSA_KEY_FILE;
+		}
 	}
 	if (options->num_ports == 0)
 		options->ports[options->num_ports++] = SSH_DEFAULT_PORT;

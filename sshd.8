@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.159 2001/12/28 22:37:48 stevesk Exp $
+.\" $OpenBSD: sshd.8,v 1.160 2002/01/04 18:14:16 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -208,12 +208,18 @@ If the client fails to authenticate the user within
 this many seconds, the server disconnects and exits.
 A value of zero indicates no limit.
 .It Fl h Ar host_key_file
-Specifies the file from which the host key is read (default
-.Pa /etc/ssh_host_key ) .
+Specifies a file from which a host key is read.
 This option must be given if
 .Nm
 is not run as root (as the normal
-host file is normally not readable by anyone but root).
+host key files are normally not readable by anyone but root).
+The default is
+.Pa /etc/ssh_host_key
+for protocol version 1, and
+.Pa /etc/ssh_host_rsa_key
+and
+.Pa /etc/ssh_host_dsa_key
+for protocol version 2.
 It is possible to have multiple host key files for
 the different protocol versions and host key algorithms.
 .It Fl i
@@ -475,9 +481,15 @@ and applies to protocol version 2 only.
 The default is
 .Dq no .
 .It Cm HostKey
-Specifies the file containing the private host keys (default
-.Pa /etc/ssh_host_key )
-used by SSH protocol versions 1 and 2.
+Specifies a file containing a private host key
+used by SSH.
+The default is
+.Pa /etc/ssh_host_key
+for protocol version 1, and
+.Pa /etc/ssh_host_rsa_key
+and
+.Pa /etc/ssh_host_dsa_key
+for protocol version 2.
 Note that
 .Nm
 will refuse to use a file if it is group/world-accessible.
