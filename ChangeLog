@@ -14,7 +14,7 @@
    - [regress/sftp-badcmds.sh regress/sftp-cmds.sh regress/sftp.sh
      regress/ssh-com-client.sh regress/ssh-com-sftp.sh regress/stderr-data.sh
      regress/transfer.sh] Use ${EXEEXT} where appropriate.
-   - [regress/sftp.sh] Remove dependency on /dev/stdin.
+   - [regress/sftp.sh regress/ssh-com-sftp.sh] Remove dependency on /dev/stdin.
    - [regress/agent-ptrace.sh regress/agent-timeout.sh]
      "grep -q" -> "grep >/dev/null"
    - [regress/agent.sh regress/proto-version.sh regress/ssh-com.sh
@@ -1011,4 +1011,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2954 2003/09/04 05:24:50 dtucker Exp $
+$Id: ChangeLog,v 1.2955 2003/09/04 05:26:57 dtucker Exp $
