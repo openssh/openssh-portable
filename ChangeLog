@@ -5,6 +5,7 @@
    openbsd-compat/bsd-closefrom.c openbsd-compat/bsd-misc.c 
    openbsd-compat/bsd-misc.h openbsd-compat/openbsd-compat.h] Use smarter 
    closefrom() replacement from sudo; ok dtucker@
+ - (djm) [loginrec.c] Check that seek succeeded here too; ok dtucker
 
 20040814
  - (dtucker) [auth-krb5.c gss-serv-krb5.c openbsd-compat/xmmap.c]
@@ -1639,4 +1640,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3510 2004/08/15 08:40:59 djm Exp $
+$Id: ChangeLog,v 1.3511 2004/08/15 09:12:52 djm Exp $
