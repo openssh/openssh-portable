@@ -1,5 +1,5 @@
 /* 
- * $Id: bsd-cray.h,v 1.5 2002/09/26 00:38:51 tim Exp $
+ * $Id: bsd-cray.h,v 1.6 2003/01/27 21:15:11 mouring Exp $
  *
  * bsd-cray.h
  *
@@ -49,6 +49,8 @@ extern	char   cray_tmpdir[];			/* cray tmpdir */
 #ifndef MAXHOSTNAMELEN
 #define MAXHOSTNAMELEN  64
 #endif
+#include <sys/ttold.h>
+#define TIOCGPGRP (tIOC|20)
 #endif
 
 #endif /* _BSD_CRAY_H */

@@ -1,3 +1,8 @@
+200301027
+ - (bal) Bugzilla 477 patch by wendyp@cray.com.  Define TIOCGPGRP for
+   cray.  Also removed test for tcgetpgrp in configure.ac since it
+   is no longer used.
+
 20030124
  - (djm) OpenBSD CVS Sync
    - jmc@cvs.openbsd.org 2003/01/23 08:58:47
@@ -1074,4 +1079,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2587 2003/01/24 00:50:32 djm Exp $
+$Id: ChangeLog,v 1.2588 2003/01/27 21:15:10 mouring Exp $
