@@ -39,7 +39,7 @@ extern char *__progname;
 
 extern int use_privsep;
 
-RCSID("$Id: auth-pam.c,v 1.49 2002/07/21 17:57:01 stevesk Exp $");
+RCSID("$Id: auth-pam.c,v 1.50 2002/07/21 22:49:47 stevesk Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now."
@@ -51,7 +51,7 @@ static int do_pam_conversation(int num_msg, const struct pam_message **msg,
 
 /* module-local variables */
 static struct pam_conv conv = {
-	do_pam_conversation,
+	(int (*)())do_pam_conversation,
 	NULL
 };
 static char *__pam_msg = NULL;
