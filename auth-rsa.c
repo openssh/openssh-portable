@@ -17,7 +17,7 @@ validity of the host key.
 
 #include "config.h"
 #include "includes.h"
-RCSID("$Id: auth-rsa.c,v 1.2 1999/10/28 03:25:17 damien Exp $");
+RCSID("$Id: auth-rsa.c,v 1.3 1999/10/28 05:23:30 damien Exp $");
 
 #include "rsa.h"
 #include "packet.h"

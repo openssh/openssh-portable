@@ -16,7 +16,7 @@ precision integers.
 
 #include "config.h"
 #include "includes.h"
-RCSID("$Id: mpaux.c,v 1.2 1999/10/28 03:25:17 damien Exp $");
+RCSID("$Id: mpaux.c,v 1.3 1999/10/28 05:23:30 damien Exp $");
 
 #ifdef HAVE_OPENSSL
 #include <openssl/bn.h>

@@ -16,7 +16,7 @@ arbitrary tcp/ip connections, and the authentication agent connection.
 */
 
 #include "includes.h"
-RCSID("$Id: channels.c,v 1.1 1999/10/27 03:42:44 damien Exp $");
+RCSID("$Id: channels.c,v 1.2 1999/10/28 05:23:30 damien Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -108,7 +108,8 @@ void channel_permit_all_opens()
 
 int channel_allocate(int type, int sock, char *remote_name)
 {
-  int i, old_channels;
+  int i, found;
+  Channel *c;
 
   /* Update the maximum file descriptor value. */
   if (sock > channel_max_fd_value)
@@ -128,41 +129,38 @@ int channel_allocate(int type, int sock, char *remote_name)
     }
 
   /* Try to find a free slot where to put the new channel. */
-  for (i = 0; i < channels_alloc; i++)
+  for (found = -1, i = 0; i < channels_alloc; i++)
     if (channels[i].type == SSH_CHANNEL_FREE)
       {
-	/* Found a free slot.  Initialize the fields and return its number. */
-	buffer_init(&channels[i].input);
-	buffer_init(&channels[i].output);
-	channels[i].self = i;
-	channels[i].type = type;
-	channels[i].x11 = 0;
-	channels[i].sock = sock;
-	channels[i].remote_id = -1;
-	channels[i].remote_name = remote_name;
-        chan_init_iostates(&channels[i]);
-	return i;
+	/* Found a free slot. */
+	found = i;
+	break;
       }
 
-  /* There are no free slots.  Must expand the array. */
-  old_channels = channels_alloc;
-  channels_alloc += 10;
-  channels = xrealloc(channels, channels_alloc * sizeof(Channel));
-  for (i = old_channels; i < channels_alloc; i++)
-    channels[i].type = SSH_CHANNEL_FREE;
+  if (found == -1)
+    {
+      /* There are no free slots.  Take last+1 slot and expand the array.  */
+      found = channels_alloc;
+      channels_alloc += 10;
+      debug("channel: expanding %d", channels_alloc);
+      channels = xrealloc(channels, channels_alloc * sizeof(Channel));
+      for (i = found; i < channels_alloc; i++)
+        channels[i].type = SSH_CHANNEL_FREE;
+    }
 
-  /* We know that the next one after the old maximum channel number is now
-     available.  Initialize and return its number. */
-  buffer_init(&channels[old_channels].input);
-  buffer_init(&channels[old_channels].output);
-  channels[old_channels].self = old_channels;
-  channels[old_channels].type = type;
-  channels[old_channels].x11 = 0;
-  channels[old_channels].sock = sock;
-  channels[old_channels].remote_id = -1;
-  channels[old_channels].remote_name = remote_name;
-  chan_init_iostates(&channels[old_channels]);
-  return old_channels;
+  /* Initialize and return new channel number. */
+  c=&channels[found];
+  buffer_init(&c->input);
+  buffer_init(&c->output);
+  chan_init_iostates(c);
+  c->self = found;
+  c->type = type;
+  c->x11 = 0;
+  c->sock = sock;
+  c->remote_id = -1;
+  c->remote_name = remote_name;
+  debug("channel %d: new [%s]", found, remote_name);
+  return found;
 }
 
 /* Free the channel and close its socket. */
@@ -336,10 +334,10 @@ void channel_prepare_select(fd_set *readset, fd_set *writeset)
             packet_put_int(ch->remote_id);
             packet_send();
           }else{
-	    debug("X11 rejected %d 0x%x 0x%x", ch->self, ch->istate, ch->ostate);
+	    debug("X11 rejected %d i%d/o%d", ch->self, ch->istate, ch->ostate);
 	    chan_read_failed(ch);
 	    chan_write_failed(ch);
-	    debug("X11 rejected %d 0x%x 0x%x", ch->self, ch->istate, ch->ostate);
+	    debug("X11 rejected %d i%d/o%d", ch->self, ch->istate, ch->ostate);
 	  }
 	  break;
 
@@ -407,9 +405,9 @@ void channel_after_select(fd_set *readset, fd_set *writeset)
 		  break;
 		}
 	      remote_hostname = get_remote_hostname(newsock);
-	      snprintf(buf, sizeof buf, "port %d, connection from %.200s port %d",
-		      ch->listening_port, remote_hostname,
-		      get_peer_port(newsock));
+	      snprintf(buf, sizeof buf, "listen port %d:%.100s:%d, connect from %.200s:%d",
+		      ch->listening_port, ch->path, ch->host_port,
+		      remote_hostname, get_peer_port(newsock));
 	      xfree(remote_hostname);
 	      newch = channel_allocate(SSH_CHANNEL_OPENING, newsock, 
 				       xstrdup(buf));
@@ -830,8 +828,9 @@ char *channel_open_message()
       case SSH_CHANNEL_X11_OPEN:
       case SSH_CHANNEL_INPUT_DRAINING:
       case SSH_CHANNEL_OUTPUT_DRAINING:
-	snprintf(buf, sizeof buf, "  #%d/%d %.300s\r\n",
-		 c->self,c->type,c->remote_name);
+	snprintf(buf, sizeof buf, "  #%d %.300s (t%d r%d i%d o%d)\r\n",
+		 c->self,c->remote_name,
+		 c->type,c->remote_id, c->istate,c->ostate);
 	buffer_append(&buffer, buf, strlen(buf));
 	continue;
       default:

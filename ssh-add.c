@@ -14,7 +14,7 @@ Adds an identity to the authentication server, or removes an identity.
 */
 
 #include "includes.h"
-RCSID("$Id: ssh-add.c,v 1.1 1999/10/27 03:42:45 damien Exp $");
+RCSID("$Id: ssh-add.c,v 1.2 1999/10/28 05:23:30 damien Exp $");
 
 #include "rsa.h"
 #include "ssh.h"
@@ -22,11 +22,10 @@ RCSID("$Id: ssh-add.c,v 1.1 1999/10/27 03:42:45 damien Exp $");
 #include "authfd.h"
 
 void
-delete_file(const char *filename)
+delete_file(AuthenticationConnection *ac, const char *filename)
 {
   RSA *key;
   char *comment;
-  AuthenticationConnection *ac;
 
   key = RSA_new();
   if (!load_public_key(filename, key, &comment))
@@ -35,55 +34,29 @@ delete_file(const char *filename)
       return;
     }
 
-  /* Send the request to the authentication agent. */
-  ac = ssh_get_authentication_connection();
-  if (!ac)
-    {
-      fprintf(stderr,
-	      "Could not open a connection to your authentication agent.\n");
-      RSA_free(key);
-      xfree(comment);
-      return;
-    }
   if (ssh_remove_identity(ac, key))
     fprintf(stderr, "Identity removed: %s (%s)\n", filename, comment);
   else
     fprintf(stderr, "Could not remove identity: %s\n", filename);
   RSA_free(key);
   xfree(comment);
-  ssh_close_authentication_connection(ac);
 }
 
 void
-delete_all()
+delete_all(AuthenticationConnection *ac)
 {
-  AuthenticationConnection *ac;
-  
-  /* Get a connection to the agent. */
-  ac = ssh_get_authentication_connection();
-  if (!ac)
-    {
-      fprintf(stderr,
-	      "Could not open a connection to your authentication agent.\n");
-      return;
-    }
-
   /* Send a request to remove all identities. */
   if (ssh_remove_all_identities(ac))
     fprintf(stderr, "All identities removed.\n");
   else
     fprintf(stderr, "Failed to remove all identitities.\n");
-  
-  /* Close the connection to the agent. */
-  ssh_close_authentication_connection(ac);
 }
 
 void
-add_file(const char *filename)
+add_file(AuthenticationConnection *ac, const char *filename)
 {
   RSA *key;
   RSA *public_key;
-  AuthenticationConnection *ac;
   char *saved_comment, *comment, *pass;
   int first;
   
@@ -131,40 +104,22 @@ add_file(const char *filename)
 
   xfree(saved_comment);
 
-  /* Send the key to the authentication agent. */
-  ac = ssh_get_authentication_connection();
-  if (!ac)
-    {
-      fprintf(stderr,
-	      "Could not open a connection to your authentication agent.\n");
-      RSA_free(key);
-      xfree(comment);
-      return;
-    }
   if (ssh_add_identity(ac, key, comment))
     fprintf(stderr, "Identity added: %s (%s)\n", filename, comment);
   else
     fprintf(stderr, "Could not add identity: %s\n", filename);
   RSA_free(key);
   xfree(comment);
-  ssh_close_authentication_connection(ac);
 }
 
 void
-list_identities()
+list_identities(AuthenticationConnection *ac)
 {
-  AuthenticationConnection *ac;
   BIGNUM *e, *n;
   int bits, status;
   char *comment;
   int had_identities;
 
-  ac = ssh_get_authentication_connection();
-  if (!ac)
-    {
-      fprintf(stderr, "Could not connect to authentication server.\n");
-      return;
-    }
   e = BN_new();
   n = BN_new();
   had_identities = 0;
@@ -189,12 +144,12 @@ list_identities()
   BN_clear_free(n);
   if (!had_identities)
     printf("The agent has no identities.\n");
-  ssh_close_authentication_connection(ac);
 }
 
 int
-main(int ac, char **av)
+main(int argc, char **argv)
 {
+  AuthenticationConnection *ac = NULL;
   struct passwd *pw;
   char buf[1024];
   int no_files = 1;
@@ -211,30 +166,37 @@ main(int ac, char **av)
     exit(1);
   }
 
-  for (i = 1; i < ac; i++)
+  /* At first, get a connection to the authentication agent. */
+  ac = ssh_get_authentication_connection();
+  if (ac == NULL) {
+    fprintf(stderr, "Could not open a connection to your authentication agent.\n");
+    exit(1);
+  }
+
+  for (i = 1; i < argc; i++)
     {
-      if (strcmp(av[i], "-l") == 0)
+      if (strcmp(argv[i], "-l") == 0)
 	{
-	  list_identities();
+	  list_identities(ac);
 	  no_files = 0; /* Don't default-add/delete if -l. */
 	  continue;
 	}
-      if (strcmp(av[i], "-d") == 0)
+      if (strcmp(argv[i], "-d") == 0)
 	{
 	  deleting = 1;
 	  continue;
 	}
-      if (strcmp(av[i], "-D") == 0)
+      if (strcmp(argv[i], "-D") == 0)
 	{
-	  delete_all();
+	  delete_all(ac);
 	  no_files = 0;
 	  continue;
 	}
       no_files = 0;
       if (deleting)
-	delete_file(av[i]);
+	delete_file(ac, argv[i]);
       else
-	add_file(av[i]);
+	add_file(ac, argv[i]);
     }
   if (no_files)
     {
@@ -242,13 +204,15 @@ main(int ac, char **av)
       if (!pw)
 	{
 	  fprintf(stderr, "No user found with uid %d\n", (int)getuid());
+	  ssh_close_authentication_connection(ac);
 	  exit(1);
 	}
       snprintf(buf, sizeof buf, "%s/%s", pw->pw_dir, SSH_CLIENT_IDENTITY);
       if (deleting)
-	delete_file(buf);
+	delete_file(ac, buf);
       else
-	add_file(buf);
+	add_file(ac, buf);
     }
+  ssh_close_authentication_connection(ac);
   exit(0);
 }

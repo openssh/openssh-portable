@@ -18,7 +18,7 @@ Modified to work with SSL by Niels Provos <provos@citi.umich.edu> in Canada.
 */
 
 #include "includes.h"
-RCSID("$Id: ssh.c,v 1.2 1999/10/28 03:25:17 damien Exp $");
+RCSID("$Id: ssh.c,v 1.3 1999/10/28 05:23:30 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -157,8 +157,6 @@ rsh_connect(char *host, char *user, Buffer *command)
 }
 
 /* Main program for the ssh client. */
-
-uid_t original_real_uid;
 
 int
 main(int ac, char **av)
