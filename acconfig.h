@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.105 2001/02/26 21:39:07 djm Exp $ */
+/* $Id: acconfig.h,v 1.106 2001/03/03 13:29:21 djm Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -89,8 +89,11 @@
 /* Location of random number pool  */
 #undef RANDOM_POOL
 
-/* Location of EGD random number socket */
-#undef EGD_SOCKET
+/* Location of PRNGD/EGD random number socket */
+#undef PRNGD_SOCKET
+
+/* Port number of PRNGD/EGD random number socket */
+#undef PRNGD_PORT
 
 /* Builtin PRNG command timeout */
 #undef ENTROPY_TIMEOUT_MSEC

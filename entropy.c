@@ -40,7 +40,7 @@
 #include "pathnames.h"
 #include "log.h"
 
-RCSID("$Id: entropy.c,v 1.34 2001/02/27 00:00:52 djm Exp $");
+RCSID("$Id: entropy.c,v 1.35 2001/03/03 13:29:21 djm Exp $");
 
 #ifndef offsetof
 # define offsetof(type, member) ((size_t) &((type *)0)->member)
@@ -75,47 +75,76 @@ void check_openssl_version(void)
 		    "have %lx", OPENSSL_VERSION_NUMBER, SSLeay());
 }
 
+#if defined(PRNGD_SOCKET) || defined(PRNGD_PORT)
+# define USE_PRNGD
+#endif
 
-#if defined(EGD_SOCKET) || defined(RANDOM_POOL)
+#if defined(USE_PRNGD) || defined(RANDOM_POOL)
 
-#ifdef EGD_SOCKET
-/* Collect entropy from EGD */
+#ifdef USE_PRNGD
+/* Collect entropy from PRNGD/EGD */
 int get_random_bytes(unsigned char *buf, int len)
 {
 	int fd;
 	char msg[2];
+#ifdef PRNGD_PORT
+	struct sockaddr_in addr;
+#else
 	struct sockaddr_un addr;
+#endif
 	int addr_len, rval, errors;
 	mysig_t old_sigpipe;
 
+	memset(&addr, '\0', sizeof(addr));
+
+#ifdef PRNGD_PORT
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	addr.sin_port = htons(PRNGD_PORT);
+	addr_len = sizeof(struct sockaddr_in);
+#else /* use IP socket PRNGD_SOCKET instead */
 	/* Sanity checks */
-	if (sizeof(EGD_SOCKET) > sizeof(addr.sun_path))
+	if (sizeof(PRNGD_SOCKET) > sizeof(addr.sun_path))
 		fatal("Random pool path is too long");
 	if (len > 255)
-		fatal("Too many bytes to read from EGD");
+		fatal("Too many bytes to read from PRNGD");
 
-	memset(&addr, '\0', sizeof(addr));
 	addr.sun_family = AF_UNIX;
-	strlcpy(addr.sun_path, EGD_SOCKET, sizeof(addr.sun_path));
-	addr_len = offsetof(struct sockaddr_un, sun_path) + sizeof(EGD_SOCKET);
+	strlcpy(addr.sun_path, PRNGD_SOCKET, sizeof(addr.sun_path));
+	addr_len = offsetof(struct sockaddr_un, sun_path) +
+	    sizeof(PRNGD_SOCKET);
+#endif
 
 	old_sigpipe = mysignal(SIGPIPE, SIG_IGN);
 
 	errors = rval = 0;
 reopen:
-	fd = socket(AF_UNIX, SOCK_STREAM, 0);
+#ifdef PRNGD_PORT
+	fd = socket(addr.sin_family, SOCK_STREAM, 0);
+	if (fd == -1) {
+		error("Couldn't create AF_INET socket: %s", strerror(errno));
+		goto done;
+	}
+#else
+	fd = socket(addr.sun_family, SOCK_STREAM, 0);
 	if (fd == -1) {
 		error("Couldn't create AF_UNIX socket: %s", strerror(errno));
 		goto done;
 	}
+#endif
 
 	if (connect(fd, (struct sockaddr*)&addr, addr_len) == -1) {
-		error("Couldn't connect to EGD socket \"%s\": %s",
-			addr.sun_path, strerror(errno));
+#ifdef PRNGD_PORT
+		error("Couldn't connect to PRNGD port %d: %s",
+		    PRNGD_PORT, strerror(errno));
+#else
+		error("Couldn't connect to PRNGD socket \"%s\": %s",
+		    addr.sun_path, strerror(errno));
+#endif
 		goto done;
 	}
 
-	/* Send blocking read request to EGD */
+	/* Send blocking read request to PRNGD */
 	msg[0] = 0x02;
 	msg[1] = len;
 
@@ -125,8 +154,8 @@ reopen:
 			errors++;
 			goto reopen;
 		}
-		error("Couldn't write to EGD socket \"%s\": %s",
-			EGD_SOCKET, strerror(errno));
+		error("Couldn't write to PRNGD socket: %s",
+		    strerror(errno));
 		goto done;
 	}
 
@@ -136,8 +165,8 @@ reopen:
 			errors++;
 			goto reopen;
 		}
-		error("Couldn't read from EGD socket \"%s\": %s",
-			EGD_SOCKET, strerror(errno));
+		error("Couldn't read from PRNGD socket: %s",
+		    strerror(errno));
 		goto done;
 	}
 
@@ -148,7 +177,7 @@ done:
 		close(fd);
 	return(rval);
 }
-#else /* !EGD_SOCKET */
+#else /* !USE_PRNGD */
 #ifdef RANDOM_POOL
 /* Collect entropy from /dev/urandom or pipe */
 int get_random_bytes(unsigned char *buf, int len)
@@ -174,16 +203,16 @@ int get_random_bytes(unsigned char *buf, int len)
 	return(1);
 }
 #endif /* RANDOM_POOL */
-#endif /* EGD_SOCKET */
+#endif /* USE_PRNGD */
 
 /*
  * Seed OpenSSL's random number pool from Kernel random number generator
- * or EGD
+ * or PRNGD/EGD
  */
 void
 seed_rng(void)
 {
-	char buf[32];
+	unsigned char buf[32];
 
 	debug("Seeding random number generator");
 
@@ -202,7 +231,7 @@ void init_rng(void)
 	check_openssl_version();
 }
 
-#else /* defined(EGD_SOCKET) || defined(RANDOM_POOL) */
+#else /* defined(USE_PRNGD) || defined(RANDOM_POOL) */
 
 /*
  * FIXME: proper entropy estimations. All current values are guesses
@@ -877,4 +906,4 @@ void init_rng(void)
 	prng_initialised = 1;
 }
 
-#endif /* defined(EGD_SOCKET) || defined(RANDOM_POOL) */
+#endif /* defined(USE_PRNGD) || defined(RANDOM_POOL) */

@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.260 2001/02/28 22:16:12 djm Exp $
+# $Id: configure.in,v 1.261 2001/03/03 13:29:21 djm Exp $
 
 AC_INIT(ssh.c)
 
@@ -1266,13 +1266,24 @@ AC_ARG_WITH(random,
 	]
 )
 
-# Check for EGD pool file
-AC_ARG_WITH(egd-pool,
-	[  --with-egd-pool=FILE    read entropy from PRNGD/EGD socket FILE (default=/var/run/egd-pool)],
+# Check for PRNGD/EGD pool file
+AC_ARG_WITH(prngd-port,
+	[  --with-prngd-port=PORT  read entropy from PRNGD/EGD localhost:PORT],
+	[
+		if test ! -z "$withval" -a "x$withval" != "xno" ; then
+			PRNGD_PORT="$withval"
+			AC_DEFINE_UNQUOTED(PRNGD_PORT, $PRNGD_PORT)
+		fi
+	]
+)
+
+# Check for PRNGD/EGD pool file
+AC_ARG_WITH(prngd-socket,
+	[  --with-prngd-socket=FILE read entropy from PRNGD/EGD socket FILE (default=/var/run/egd-pool)],
 	[
 		if test "x$withval" != "xno" ; then
-			EGD_SOCKET="$withval";
-			AC_DEFINE_UNQUOTED(EGD_SOCKET, "$EGD_SOCKET")
+			PRNGD_SOCKET="$withval"
+			AC_DEFINE_UNQUOTED(PRNGD_SOCKET, "$PRNGD_SOCKET")
 		fi
 	],
 	[
@@ -1280,15 +1291,15 @@ AC_ARG_WITH(egd-pool,
 		if test -z "$RANDOM_POOL" ; then
 			AC_MSG_CHECKING(for PRNGD/EGD socket)
 			# Insert other locations here
-			for egdsock in /var/run/egd-pool /etc/entropy; do
-				if test -r $egdsock && $TEST_MINUS_S_SH -c "test -S $egdsock -o -p $egdsock" ; then
-					EGD_SOCKET="$egdsock"
-					AC_DEFINE_UNQUOTED(EGD_SOCKET, "$EGD_SOCKET")
+			for sock in /var/run/egd-pool /etc/entropy; do
+				if test -r $sock && $TEST_MINUS_S_SH -c "test -S $sock -o -p $sock" ; then
+					PRNGD_SOCKET="$sock"
+					AC_DEFINE_UNQUOTED(PRNGD_SOCKET, "$PRNGD_SOCKET")
 					break;
 				fi
 			done
-			if test ! -z "$EGD_SOCKET" ; then
-				AC_MSG_RESULT($EGD_SOCKET)
+			if test ! -z "$PRNGD_SOCKET" ; then
+				AC_MSG_RESULT($PRNGD_SOCKET)
 			else
 				AC_MSG_RESULT(not found)
 			fi
@@ -1300,7 +1311,7 @@ AC_ARG_WITH(egd-pool,
 # detect pathnames for entropy gathering commands, if we need them
 INSTALL_SSH_PRNG_CMDS=""
 rm -f prng_commands
-if (test -z "$RANDOM_POOL" && test -z "$EGD_SOCKET") ; then
+if (test -z "$RANDOM_POOL" && test -z "$PRNGD") ; then
 	# Use these commands to collect entropy
 	OSSH_PATH_ENTROPY_PROG(PROG_LS, ls)
 	OSSH_PATH_ENTROPY_PROG(PROG_NETSTAT, netstat)
@@ -1749,8 +1760,10 @@ fi
 if test ! -z "$RANDOM_POOL" ; then
 	RAND_MSG="Device ($RANDOM_POOL)"
 else
-	if test ! -z "$EGD_SOCKET" ; then
-		RAND_MSG="EGD/PRNGD ($EGD_SOCKET)"
+	if test ! -z "$PRNGD_PORT" ; then
+		RAND_MSG="PRNGD/EGD (port localhost:$PRNGD_PORT)"
+	elif test ! -z "$PRNGD_SOCKET" ; then
+		RAND_MSG="PRNGD/EGD (socket $PRNGD_SOCKET)"
 	else
 		RAND_MSG="Builtin (timeout $entropy_timeout)"
 		BUILTIN_RNG=1
