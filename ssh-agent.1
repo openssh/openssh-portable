@@ -1,4 +1,4 @@
-.\" $OpenBSD: ssh-agent.1,v 1.34 2002/06/22 16:45:29 stevesk Exp $
+.\" $OpenBSD: ssh-agent.1,v 1.35 2002/06/24 13:12:23 markus Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -69,7 +69,7 @@ The options are as follows:
 Bind the agent to the unix-domain socket
 .Ar bind_address .
 The default is
-.Pa /tmp/ssh-XXXXXXXX/agent.<pid> .
+.Pa /tmp/ssh-XXXXXXXX/agent.<ppid> .
 .It Fl c
 Generate C-shell commands on
 .Dv stdout .
@@ -163,7 +163,7 @@ Contains the protocol version 1 RSA authentication identity of the user.
 Contains the protocol version 2 DSA authentication identity of the user.
 .It Pa $HOME/.ssh/id_rsa
 Contains the protocol version 2 RSA authentication identity of the user.
-.It Pa /tmp/ssh-XXXXXXXX/agent.<pid>
+.It Pa /tmp/ssh-XXXXXXXX/agent.<ppid>
 Unix-domain sockets used to contain the connection to the
 authentication agent.
 These sockets should only be readable by the owner.
