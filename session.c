@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.66 2001/03/21 21:06:30 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.67 2001/03/23 14:28:32 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1427,6 +1427,10 @@ do_child(Session *s, const char *command)
 		else
 			cp = shell;
 	}
+
+	/* restore SIGPIPE for child */
+	signal(SIGPIPE,  SIG_DFL);
+
 	/*
 	 * If we have no command, execute the shell.  In this case, the shell
 	 * name to be passed in argv[0] is preceded by '-' to indicate that
