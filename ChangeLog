@@ -1,3 +1,6 @@
+20020413
+ - (djm) Add KrbV support patch from Simon Wilkinson <simon@sxw.org.uk>
+
 20020412
  - (stevesk) [auth-sia.[ch]] add BSD license from Chris Adams
  - (tim) [configure.ac] add <sys/types.h> to msghdr tests. Change -L
@@ -8231,4 +8234,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2050 2002/04/12 18:51:22 mouring Exp $
+$Id: ChangeLog,v 1.2051 2002/04/13 01:04:40 djm Exp $

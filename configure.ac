@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.43 2002/04/12 17:26:23 tim Exp $
+# $Id: configure.ac,v 1.44 2002/04/13 01:04:41 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -1747,7 +1747,45 @@ AC_ARG_WITH(opensc,
 	]
 )
 
-# Check whether user wants Kerberos support
+# Check whether user wants Kerberos 5 support
+KRB5_MSG="no" 
+AC_ARG_WITH(kerberos5,
+        [  --with-kerberos5=PATH   Enable Kerberos 5 support],
+        [
+                if test "x$withval" != "xno" ; then
+                        if test "x$withval" = "xyes" ; then
+                                KRB5ROOT="/usr/local"
+                        else
+                                KRB5ROOT=${withval}
+                        fi
+			CPPFLAGS="$CPPFLAGS -I${KRB5ROOT}/include"
+                        LDFLAGS="$LDFLAGS -L${KRB5ROOT}/lib"
+                        AC_DEFINE(KRB5)
+			KRB5_MSG="yes"
+                        AC_MSG_CHECKING(whether we are using Heimdal)
+                        AC_TRY_COMPILE([ #include <krb5.h> ],
+                                       [ char *tmp = heimdal_version; ],
+                                       [ AC_MSG_RESULT(yes)
+                                         AC_DEFINE(HEIMDAL)
+                                         K5LIBS="-lkrb5 -ldes -lcom_err -lasn1 -lroken"
+                                       ],
+                                       [ AC_MSG_RESULT(no)
+                                         K5LIBS="-lkrb5 -lk5crypto -lcom_err"
+                                       ]
+                        )
+                        if test ! -z "$need_dash_r" ; then
+                                LDFLAGS="$LDFLAGS -R${KRB5ROOT}/lib"
+                        fi
+                        if test ! -z "$blibpath" ; then
+                                blibpath="$blibpath:${KRB5ROOT}/lib"
+                        fi
+                        AC_CHECK_LIB(resolv, dn_expand, , )
+
+                        KRB5=yes
+                fi
+        ]
+)
+# Check whether user wants Kerberos 4 support
 KRB4_MSG="no" 
 AC_ARG_WITH(kerberos4,
 	[  --with-kerberos4=PATH   Enable Kerberos 4 support],
@@ -1827,7 +1865,7 @@ AC_ARG_WITH(afs,
 		fi
 	]
 )
-LIBS="$LIBS $KLIBS"
+LIBS="$LIBS $KLIBS $K5LIBS"
 
 # Looking for programs, paths and files
 AC_ARG_WITH(rsh,
@@ -2399,6 +2437,7 @@ echo "        sshd default user PATH: $H"
 echo "                Manpage format: $MANTYPE"
 echo "                   PAM support: ${PAM_MSG}"
 echo "            KerberosIV support: $KRB4_MSG"
+echo "             KerberosV support: $KRB5_MSG"
 echo "             Smartcard support: $SCARD_MSG"
 echo "                   AFS support: $AFS_MSG"
 echo "                 S/KEY support: $SKEY_MSG"

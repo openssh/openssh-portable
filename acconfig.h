@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.130 2002/04/12 03:35:40 tim Exp $ */
+/* $Id: acconfig.h,v 1.131 2002/04/13 01:04:41 djm Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -191,6 +191,12 @@
 
 /* Define if compiler implements __func__ */
 #undef HAVE___func__
+
+/* Define if you want Kerberos 5 support */
+#undef KRB5
+
+/* Define this if you are using the Heimdal version of Kerberos V5 */
+#undef HEIMDAL
 
 /* Define if you want Kerberos 4 support */
 #undef KRB4

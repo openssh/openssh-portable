@@ -12,8 +12,17 @@
 #include "includes.h"
 RCSID("$OpenBSD: servconf.c,v 1.105 2002/03/20 19:12:24 stevesk Exp $");
 
-#if defined(KRB4) || defined(KRB5)
+#if defined(KRB4)
 #include <krb.h>
+#endif
+#if defined(KRB5)
+#ifdef HEIMDAL
+#include <krb.h>
+#else
+/* Bodge - but then, so is using the kerberos IV KEYFILE to get a Kerberos V
+ * keytab */
+#define KEYFILE "/etc/krb5.keytab"
+#endif
 #endif
 #ifdef AFS
 #include <kafs.h>
