@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.251 2003/10/02 06:12:36 dtucker Exp $
+# $Id: Makefile.in,v 1.252 2003/10/07 00:18:22 djm Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -222,6 +222,7 @@ catman-do:
 
 distprep: catman-do
 	$(AUTORECONF)
+	-rm -rf autom4te.cache
 	(cd scard && $(MAKE) -f Makefile.in distprep)
 
 install: $(CONFIGFILES) ssh_prng_cmds.out $(MANPAGES) $(TARGETS) install-files host-key check-config

@@ -1,3 +1,6 @@
+20031007
+ - (djm) Delete autom4te.cache after autoreconf
+
 20031003
  - OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2003/10/02 10:41:59
@@ -1279,4 +1282,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3056 2003/10/04 05:30:23 tim Exp $
+$Id: ChangeLog,v 1.3057 2003/10/07 00:18:22 djm Exp $
