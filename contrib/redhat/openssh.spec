@@ -24,16 +24,15 @@ BuildRoot: /tmp/openssh-%{version}-buildroot
 Obsoletes: ssh
 PreReq: openssl >= 0.9.5a
 Requires: openssl >= 0.9.5a
-BuildPreReq: perl
-BuildPreReq: openssl-devel
-BuildPreReq: tcp_wrappers
+BuildPreReq: perl, openssl-devel, tcp_wrappers, gnome-libs-devel
+BuildPreReq: /bin/login, /usr/bin/rsh, /usr/include/security/pam_appl.h
 %if ! %{no_gnome_askpass}
 BuildPreReq: gnome-libs-devel
 %endif
 
 %package clients
 Summary: OpenSSH Secure Shell protocol clients
-Requires: openssh
+Requires: openssh = %{version}-%{release}
 Group: Applications/Internet
 Obsoletes: ssh-clients
 
@@ -41,19 +40,19 @@ Obsoletes: ssh-clients
 Summary: OpenSSH Secure Shell protocol server (sshd)
 Group: System Environment/Daemons
 Obsoletes: ssh-server
-PreReq: openssh chkconfig >= 0.9
+PreReq: openssh = %{version}-%{release}, chkconfig >= 0.9
 Requires: initscripts >= 4.16
 
 %package askpass
 Summary: OpenSSH X11 passphrase dialog
 Group: Applications/Internet
-Requires: openssh
+Requires: openssh = %{version}-%{release}
 Obsoletes: ssh-extras
 
 %package askpass-gnome
 Summary: OpenSSH GNOME passphrase dialog
 Group: Applications/Internet
-Requires: openssh
+Requires: openssh = %{version}-%{release}
 Obsoletes: ssh-extras
 
 %description
@@ -65,7 +64,7 @@ arbitrary TCP/IP ports can also be forwarded over the secure channel.
 
 OpenSSH is OpenBSD's rework of the last free version of SSH, bringing it
 up to date in terms of security and features, as well as removing all 
-patented algorithms to seperate libraries (OpenSSL).
+patented algorithms to separate libraries (OpenSSL).
 
 This package includes the core files necessary for both the OpenSSH
 client and server.  To make this package useful, you should also
@@ -80,7 +79,7 @@ arbitrary TCP/IP ports can also be forwarded over the secure channel.
 
 OpenSSH is OpenBSD's rework of the last free version of SSH, bringing it
 up to date in terms of security and features, as well as removing all 
-patented algorithms to seperate libraries (OpenSSL).
+patented algorithms to separate libraries (OpenSSL).
 
 This package includes the clients necessary to make encrypted connections
 to SSH servers.
@@ -94,7 +93,7 @@ arbitrary TCP/IP ports can also be forwarded over the secure channel.
 
 OpenSSH is OpenBSD's rework of the last free version of SSH, bringing it
 up to date in terms of security and features, as well as removing all 
-patented algorithms to seperate libraries (OpenSSL).
+patented algorithms to separate libraries (OpenSSL).
 
 This package contains the secure shell daemon. The sshd is the server 
 part of the secure shell protocol and allows ssh clients to connect to 
@@ -109,7 +108,7 @@ arbitrary TCP/IP ports can also be forwarded over the secure channel.
 
 OpenSSH is OpenBSD's rework of the last free version of SSH, bringing it
 up to date in terms of security and features, as well as removing all 
-patented algorithms to seperate libraries (OpenSSL).
+patented algorithms to separate libraries (OpenSSL).
 
 This package contains Jim Knoble's <jmknoble@pobox.com> X11 passphrase 
 dialog.
@@ -123,11 +122,134 @@ arbitrary TCP/IP ports can also be forwarded over the secure channel.
 
 OpenSSH is OpenBSD's rework of the last free version of SSH, bringing it
 up to date in terms of security and features, as well as removing all 
-patented algorithms to seperate libraries (OpenSSL).
+patented algorithms to separate libraries (OpenSSL).
 
 This package contains the GNOME passphrase dialog.
 
+%prep
+
+%setup -q -a 1
+
+%build
+
+%configure \
+	--sysconfdir=%{_sysconfdir}/ssh \
+	--libexecdir=%{_libexecdir}/openssh \
+	--with-tcp-wrappers \
+	--with-ipv4-default \
+	--with-rsh=/usr/bin/rsh \
+	--with-default-path=/usr/local/bin:/bin:/usr/bin:/usr/X11R6/bin
+
+make
+
+%if ! %{no_x11_askpass}
+pushd x11-ssh-askpass-%{aversion}
+xmkmf -a
+make
+popd
+%endif
+
+%if ! %{no_gnome_askpass}
+pushd contrib
+gcc -O -g `gnome-config --cflags gnome gnomeui` \
+        gnome-ssh-askpass.c -o gnome-ssh-askpass \
+        `gnome-config --libs gnome gnomeui`
+popd
+%endif
+
+%install
+rm -rf $RPM_BUILD_ROOT
+%{makeinstall} \
+	sysconfdir=$RPM_BUILD_ROOT%{_sysconfdir}/ssh \
+	libexecdir=$RPM_BUILD_ROOT%{_libexecdir}/openssh \
+	DESTDIR=/ # Hack to disable key generation
+
+
+install -d $RPM_BUILD_ROOT/etc/pam.d/
+install -d $RPM_BUILD_ROOT/etc/rc.d/init.d
+install -d $RPM_BUILD_ROOT%{_libexecdir}/openssh
+install -m644 contrib/redhat/sshd.pam $RPM_BUILD_ROOT/etc/pam.d/sshd
+install -m755 contrib/redhat/sshd.init $RPM_BUILD_ROOT/etc/rc.d/init.d/sshd
+
+%if ! %{no_x11_askpass}
+install -s x11-ssh-askpass-%{aversion}/x11-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/openssh/x11-ssh-askpass
+ln -s /usr/libexec/openssh/x11-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/openssh/ssh-askpass
+%endif
+
+%if ! %{no_gnome_askpass}
+install -s contrib/gnome-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/openssh/gnome-ssh-askpass
+%endif
+
+perl -pi -e "s|$RPM_BUILD_ROOT||g" $RPM_BUILD_ROOT%{_mandir}/man*/*
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%post server
+/sbin/chkconfig --add sshd
+if test -r /var/run/sshd.pid ; then
+	/etc/rc.d/init.d/sshd restart >&2
+fi
+
+%preun server
+if [ "$1" = 0 ] ; then
+	/etc/rc.d/init.d/sshd stop >&2
+	/sbin/chkconfig --del sshd
+fi
+
+%files
+%defattr(-,root,root)
+%doc ChangeLog OVERVIEW COPYING.Ylonen README* INSTALL 
+%doc CREDITS UPGRADING LICENCE
+%attr(0755,root,root) %{_bindir}/ssh-keygen
+%attr(0755,root,root) %{_bindir}/scp
+%attr(0644,root,root) %{_mandir}/man1/ssh-keygen.1*
+%attr(0644,root,root) %{_mandir}/man1/scp.1*
+%attr(0755,root,root) %dir %{_sysconfdir}/ssh
+%attr(0755,root,root) %dir %{_libexecdir}/openssh
+
+%files clients
+%defattr(-,root,root)
+%attr(4755,root,root) %{_bindir}/ssh
+%attr(0755,root,root) %{_bindir}/ssh-agent
+%attr(0755,root,root) %{_bindir}/ssh-add
+%attr(0644,root,root) %{_mandir}/man1/ssh.1*
+%attr(0644,root,root) %{_mandir}/man1/ssh-agent.1*
+%attr(0644,root,root) %{_mandir}/man1/ssh-add.1*
+%attr(0644,root,root) %config(noreplace) %{_sysconfdir}/ssh/ssh_config
+%attr(-,root,root) %{_bindir}/slogin
+%attr(-,root,root) %{_mandir}/man1/slogin.1*
+
+%files server
+%defattr(-,root,root)
+%attr(0755,root,root) %{_sbindir}/sshd
+%attr(0755,root,root) %{_libexecdir}/openssh/sftp-server
+%attr(0644,root,root) %{_mandir}/man8/sshd.8*
+%attr(0644,root,root) %{_mandir}/man8/sftp-server.8*
+%attr(0600,root,root) %config(noreplace) %{_sysconfdir}/ssh/sshd_config
+%attr(0600,root,root) %config(noreplace) /etc/pam.d/sshd
+%attr(0755,root,root) %config /etc/rc.d/init.d/sshd
+
+%if ! %{no_x11_askpass}
+%files askpass
+%defattr(-,root,root)
+%doc x11-ssh-askpass-%{aversion}/README
+%doc x11-ssh-askpass-%{aversion}/ChangeLog
+%doc x11-ssh-askpass-%{aversion}/SshAskpass*.ad
+%attr(0755,root,root) %{_libexecdir}/openssh/ssh-askpass
+%attr(0755,root,root) %{_libexecdir}/openssh/x11-ssh-askpass
+%endif
+
+%if ! %{no_gnome_askpass}
+%files askpass-gnome
+%defattr(-,root,root)
+%attr(0755,root,root) %{_libexecdir}/openssh/gnome-ssh-askpass
+%endif
+
 %changelog
+* Mon Oct 18 2000 Damien Miller <djm@mindrot.org>
+- Merge some of Nalin Dahyabhai <nalin@redhat.com> changes from the 
+  Redhat 7.0 spec file
 * Tue Sep 05 2000 Damien Miller <djm@mindrot.org>
 - Use RPM configure macro
 * Tue Aug 08 2000 Damien Miller <djm@mindrot.org>
@@ -162,111 +284,3 @@ This package contains the GNOME passphrase dialog.
 * Wed Oct 27 1999 Damien Miller <djm@ibs.com.au>
 - Initial RPMification, based on Jan "Yenya" Kasprzak's <kas@fi.muni.cz> spec.
 
-%prep
-
-%setup -q -a 1
-
-%build
-
-%configure --sysconfdir=/etc/ssh --libexecdir=/usr/libexec/openssh \
-	--with-tcp-wrappers --with-rsh=/usr/bin/rsh
-
-make
-
-%if ! %{no_x11_askpass}
-cd x11-ssh-askpass-%{aversion}
-xmkmf -a
-make
-cd ..
-%endif
-
-%if ! %{no_gnome_askpass}
-cd contrib
-gcc -O -g `gnome-config --cflags gnome gnomeui` \
-        gnome-ssh-askpass.c -o gnome-ssh-askpass \
-        `gnome-config --libs gnome gnomeui`
-cd ..
-%endif
-
-%install
-rm -rf $RPM_BUILD_ROOT
-make install DESTDIR=$RPM_BUILD_ROOT/
-
-install -d $RPM_BUILD_ROOT/etc/pam.d/
-install -d $RPM_BUILD_ROOT/etc/rc.d/init.d
-install -d $RPM_BUILD_ROOT/usr/libexec/openssh
-install -m644 contrib/redhat/sshd.pam $RPM_BUILD_ROOT/etc/pam.d/sshd
-install -m755 contrib/redhat/sshd.init $RPM_BUILD_ROOT/etc/rc.d/init.d/sshd
-
-%if ! %{no_x11_askpass}
-install -s x11-ssh-askpass-%{aversion}/x11-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/openssh/x11-ssh-askpass
-ln -s /usr/libexec/openssh/x11-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/openssh/ssh-askpass
-%endif
-
-%if ! %{no_gnome_askpass}
-install -s contrib/gnome-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/openssh/gnome-ssh-askpass
-%endif
-
-%clean
-rm -rf $RPM_BUILD_ROOT
-
-%post server
-/sbin/chkconfig --add sshd
-if test -r /var/run/sshd.pid ; then
-	/etc/rc.d/init.d/sshd restart >&2
-fi
-
-%preun server
-if [ "$1" = 0 ] ; then
-	/etc/rc.d/init.d/sshd stop >&2
-	/sbin/chkconfig --del sshd
-fi
-
-%files
-%defattr(-,root,root)
-%doc ChangeLog OVERVIEW COPYING.Ylonen README* INSTALL 
-%doc CREDITS UPGRADING LICENSE
-%attr(0755,root,root) /usr/bin/ssh-keygen
-%attr(0755,root,root) /usr/bin/scp
-%attr(0644,root,root) %{_mandir}/man1/ssh-keygen.1*
-%attr(0644,root,root) %{_mandir}/man1/scp.1*
-%attr(0755,root,root) %dir /etc/ssh
-%attr(0755,root,root) %dir /usr/libexec/openssh
-
-%files clients
-%defattr(-,root,root)
-%attr(4755,root,root) /usr/bin/ssh
-%attr(0755,root,root) /usr/bin/ssh-agent
-%attr(0755,root,root) /usr/bin/ssh-add
-%attr(0644,root,root) %{_mandir}/man1/ssh.1*
-%attr(0644,root,root) %{_mandir}/man1/ssh-agent.1*
-%attr(0644,root,root) %{_mandir}/man1/ssh-add.1*
-%attr(0644,root,root) %config(noreplace) /etc/ssh/ssh_config
-%attr(-,root,root) /usr/bin/slogin
-%attr(-,root,root) %{_mandir}/man1/slogin.1*
-
-%files server
-%defattr(-,root,root)
-%attr(0755,root,root) /usr/sbin/sshd
-%attr(0755,root,root) /usr/libexec/openssh/sftp-server
-%attr(0644,root,root) %{_mandir}/man8/sshd.8*
-%attr(0644,root,root) %{_mandir}/man8/sftp-server.8*
-%attr(0600,root,root) %config(noreplace) /etc/ssh/sshd_config
-%attr(0600,root,root) %config(noreplace) /etc/pam.d/sshd
-%attr(0755,root,root) %config /etc/rc.d/init.d/sshd
-
-%if ! %{no_x11_askpass}
-%files askpass
-%defattr(-,root,root)
-%doc x11-ssh-askpass-%{aversion}/README
-%doc x11-ssh-askpass-%{aversion}/ChangeLog
-%doc x11-ssh-askpass-%{aversion}/SshAskpass*.ad
-%attr(0755,root,root) /usr/libexec/openssh/ssh-askpass
-%attr(0755,root,root) /usr/libexec/openssh/x11-ssh-askpass
-%endif
-
-%if ! %{no_gnome_askpass}
-%files askpass-gnome
-%defattr(-,root,root)
-%attr(0755,root,root) /usr/libexec/openssh/gnome-ssh-askpass
-%endif

@@ -28,9 +28,11 @@
      typo
  - (djm) Copy manpages back over from OpenBSD - too tedious to wade 
    through diffs
- - Added condrestart to Redhat init script. Patch from Pekka Savola 
+ - (djm) Added condrestart to Redhat init script. Patch from Pekka Savola 
    <pekkas@netcore.fi>
- - Update version in Redhat spec file
+ - (djm) Update version in Redhat spec file
+ - (djm) Merge some of Nalin Dahyabhai <nalin@redhat.com> changes from the 
+   Redhat 7.0 spec file
 
 20001015
  - (djm) Fix ssh2 hang on background processes at logout.
