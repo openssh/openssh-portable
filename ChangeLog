@@ -32,7 +32,7 @@
      [sftp-int.c]
      Make put/get (globed and nonglobed) code more consistant. OK djm@
    - mouring@cvs.openbsd.org 2003/05/15 03:43:59
-     [sftp-int.c]
+     [sftp-int.c sftp.c]
      Teach ls how to display multiple column display and allow users 
      to return to single column format via 'ls -1'.  OK @djm
  - (djm) Always parse UsePAM
@@ -1515,4 +1515,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2714 2003/05/15 03:49:21 djm Exp $
+$Id: ChangeLog,v 1.2715 2003/05/15 03:49:58 djm Exp $
