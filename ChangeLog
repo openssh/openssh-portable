@@ -1,3 +1,9 @@
+20050220
+ - (dtucker) [LICENCE Makefile.in README.platform audit-bsm.c configure.ac
+   defines.h] Bug #125: Add *EXPERIMENTAL* BSM audit support.  Configure
+   --with-audit=bsm to enable.  Patch originally from Sun Microsystems,
+   parts by John R. Jackson.  ok djm@
+
 20050216
  - (djm) write seed to temporary file and atomically rename into place; 
    ok dtucker@
@@ -2148,4 +2154,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3659 2005/02/16 11:49:31 dtucker Exp $
+$Id: ChangeLog,v 1.3660 2005/02/20 10:01:48 dtucker Exp $
