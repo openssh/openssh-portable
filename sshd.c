@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.249 2002/06/23 03:30:17 deraadt Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.250 2002/06/23 10:29:52 deraadt Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -219,6 +219,7 @@ static void
 close_listen_socks(void)
 {
 	int i;
+
 	for (i = 0; i < num_listen_socks; i++)
 		close(listen_socks[i]);
 	num_listen_socks = -1;
@@ -228,6 +229,7 @@ static void
 close_startup_pipes(void)
 {
 	int i;
+
 	if (startup_pipes)
 		for (i = 0; i < options.max_startups; i++)
 			if (startup_pipes[i] != -1)
@@ -260,7 +262,8 @@ sighup_restart(void)
 	close_listen_socks();
 	close_startup_pipes();
 	execv(saved_argv[0], saved_argv);
-	log("RESTART FAILED: av[0]='%.100s', error: %.100s.", saved_argv[0], strerror(errno));
+	log("RESTART FAILED: av[0]='%.100s', error: %.100s.", saved_argv[0],
+	    strerror(errno));
 	exit(1);
 }
 
@@ -280,8 +283,8 @@ sigterm_handler(int sig)
 static void
 main_sigchld_handler(int sig)
 {
-	pid_t pid;
 	int save_errno = errno;
+	pid_t pid;
 	int status;
 
 	while ((pid = waitpid(-1, &status, WNOHANG)) > 0 ||
@@ -341,6 +344,7 @@ static void
 key_regeneration_alarm(int sig)
 {
 	int save_errno = errno;
+
 	signal(SIGALRM, SIG_DFL);
 	errno = save_errno;
 	key_do_regen = 1;
@@ -526,8 +530,8 @@ static void
 privsep_preauth_child(void)
 {
 	u_int32_t rand[256];
-	int i;
 	struct passwd *pw;
+	int i;
 
 	/* Enable challenge-response authentication for privilege separation */
 	privsep_challenge_enable();
@@ -683,6 +687,7 @@ Key *
 get_hostkey_by_type(int type)
 {
 	int i;
+
 	for (i = 0; i < options.num_host_key_files; i++) {
 		Key *key = sensitive_data.host_keys[i];
 		if (key != NULL && key->type == type)
@@ -703,6 +708,7 @@ int
 get_hostkey_index(Key *key)
 {
 	int i;
+
 	for (i = 0; i < options.num_host_key_files; i++) {
 		if (key == sensitive_data.host_keys[i])
 			return (i);
@@ -991,11 +997,13 @@ main(int ac, char **av)
 		 * hate software patents. I dont know if this can go? Niels
 		 */
 		if (options.server_key_bits >
-		    BN_num_bits(sensitive_data.ssh1_host_key->rsa->n) - SSH_KEY_BITS_RESERVED &&
-		    options.server_key_bits <
-		    BN_num_bits(sensitive_data.ssh1_host_key->rsa->n) + SSH_KEY_BITS_RESERVED) {
+		    BN_num_bits(sensitive_data.ssh1_host_key->rsa->n) -
+		    SSH_KEY_BITS_RESERVED && options.server_key_bits <
+		    BN_num_bits(sensitive_data.ssh1_host_key->rsa->n) +
+		    SSH_KEY_BITS_RESERVED) {
 			options.server_key_bits =
-			    BN_num_bits(sensitive_data.ssh1_host_key->rsa->n) + SSH_KEY_BITS_RESERVED;
+			    BN_num_bits(sensitive_data.ssh1_host_key->rsa->n) +
+			    SSH_KEY_BITS_RESERVED;
 			debug("Forcing server key to %d bits to make it differ from host key.",
 			    options.server_key_bits);
 		}

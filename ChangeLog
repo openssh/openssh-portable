@@ -20,6 +20,9 @@
    - deraadt@cvs.openbsd.org 2002/06/23 09:46:51
      [bufaux.c servconf.c]
      minor KNF.  things the fingers do while you read
+   - deraadt@cvs.openbsd.org 2002/06/23 10:29:52
+     [ssh-agent.c sshd.c]
+     some minor KNF and %u
 
 20020623
  - (stevesk) [configure.ac] bug #255 LOGIN_NEEDS_UTMPX for AIX.
@@ -1064,4 +1067,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2259 2002/06/23 21:29:23 mouring Exp $
+$Id: ChangeLog,v 1.2260 2002/06/23 21:38:49 mouring Exp $
