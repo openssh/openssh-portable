@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.206 2004/03/11 03:20:10 djm Exp $
+# $Id: configure.ac,v 1.207 2004/03/30 04:03:46 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -244,7 +244,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	check_for_openpty_ctty_bug=1
 	AC_DEFINE(DONT_TRY_OTHER_AF)
 	AC_DEFINE(PAM_TTY_KLUDGE)
-	AC_DEFINE(LOCKED_PASSWD_PREFIX, "!!")
+	AC_DEFINE(LOCKED_PASSWD_PREFIX, "!")
 	AC_DEFINE(SPT_TYPE,SPT_REUSEARGV)
 	inet6_default_4in6=yes
 	case `uname -r` in
