@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.65 2001/04/06 16:46:59 deraadt Exp $");
+RCSID("$OpenBSD: scp.c,v 1.66 2001/04/14 17:04:42 stevesk Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -677,9 +677,10 @@ sink(argc, argv)
 	off_t size;
 	int setimes, targisdir, wrerrno = 0;
 	char ch, *cp, *np, *targ, *why, *vect[1], buf[2048];
-	int dummy_usec;
 	struct timeval tv[2];
 
+#define	atime	tv[0]
+#define	mtime	tv[1]
 #define	SCREWUP(str)	{ why = str; goto screwup; }
 
 	setimes = targisdir = 0;
@@ -726,25 +727,21 @@ sink(argc, argv)
 		if (ch == '\n')
 			*--cp = 0;
 
-#define getnum(t) (t) = 0; \
-  while (*cp >= '0' && *cp <= '9') (t) = (t) * 10 + (*cp++ - '0');
 		cp = buf;
 		if (*cp == 'T') {
 			setimes++;
 			cp++;
-			getnum(tv[1].tv_sec);
-			if (*cp++ != ' ')
+			mtime.tv_sec = strtol(cp, &cp, 10);
+			if (!cp || *cp++ != ' ')
 				SCREWUP("mtime.sec not delimited");
-			getnum(dummy_usec);
-			tv[1].tv_usec = 0;
-			if (*cp++ != ' ')
+			mtime.tv_usec = strtol(cp, &cp, 10);
+			if (!cp || *cp++ != ' ')
 				SCREWUP("mtime.usec not delimited");
-			getnum(tv[0].tv_sec);
-			if (*cp++ != ' ')
+			atime.tv_sec = strtol(cp, &cp, 10);
+			if (!cp || *cp++ != ' ')
 				SCREWUP("atime.sec not delimited");
-			getnum(dummy_usec);
-			tv[0].tv_usec = 0;
-			if (*cp++ != '\0')
+			atime.tv_usec = strtol(cp, &cp, 10);
+			if (!cp || *cp++ != '\0')
 				SCREWUP("atime.usec not delimited");
 			(void) atomicio(write, remout, "", 1);
 			continue;

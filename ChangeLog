@@ -12,6 +12,9 @@
    - stevesk@cvs.openbsd.org 2001/04/14 16:33:20
      [clientloop.c packet.h session.c ssh.c ttymodes.c ttymodes.h]
      protocol 2 tty modes support; ok markus@
+   - stevesk@cvs.openbsd.org 2001/04/14 17:04:42
+     [scp.c]
+     'T' handling rcp/scp sync; ok markus@
 
 20010414
  - Sync with OpenBSD glob.c, strlcat.c and vis.c changes
@@ -5078,4 +5081,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1114 2001/04/14 23:13:02 mouring Exp $
+$Id: ChangeLog,v 1.1115 2001/04/14 23:14:22 mouring Exp $
