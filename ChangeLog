@@ -4,6 +4,9 @@
    - markus@cvs.openbsd.org 2001/03/23 13:10:57
      [sftp-int.c]
      fix put, upload to _absolute_ path, ok djm@
+   - deraadt@cvs.openbsd.org 2001/03/22 20:22:55
+     [sshd.c]
+     do not place linefeeds in buffer
 
 20010322
  - (djm) Better AIX no tty fix, spotted by Gert Doering <gert@greenie.muc.de>
@@ -4667,4 +4670,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.991.2.8 2001/03/24 04:45:42 mouring Exp $
+$Id: ChangeLog,v 1.991.2.9 2001/03/24 04:51:43 mouring Exp $
