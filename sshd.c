@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.168 2001/02/19 23:09:05 deraadt Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.169 2001/02/23 18:15:13 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -154,6 +154,7 @@ struct {
 	Key	**host_keys;		/* all private host keys */
 	int	have_ssh1_key;
 	int	have_ssh2_key;
+	u_char	ssh1_cookie[SSH_SESSION_KEY_LENGTH];
 } sensitive_data;
 
 /*
@@ -274,13 +275,23 @@ grace_alarm_handler(int sig)
 void
 generate_empheral_server_key(void)
 {
+	u_int32_t rand = 0;
+	int i;
+
 	log("Generating %s%d bit RSA key.", sensitive_data.server_key ? "new " : "",
 	    options.server_key_bits);
 	if (sensitive_data.server_key != NULL)
 		key_free(sensitive_data.server_key);
 	sensitive_data.server_key = key_generate(KEY_RSA1, options.server_key_bits);
-	arc4random_stir();
 	log("RSA key generation complete.");
+
+	for (i = 0; i < SSH_SESSION_KEY_LENGTH; i++) {
+		if (i % 4 == 0)
+			rand = arc4random();
+		sensitive_data.ssh1_cookie[i] = rand & 0xff;
+		rand >>= 8;
+	}
+	arc4random_stir();
 }
 
 void
@@ -438,6 +449,7 @@ destroy_sensitive_data(void)
 		}
 	}
 	sensitive_data.ssh1_host_key = NULL;
+	memset(sensitive_data.ssh1_cookie, 0, SSH_SESSION_KEY_LENGTH);
 }
 Key *
 load_private_key_autodetect(const char *filename)
@@ -1338,14 +1350,6 @@ do_ssh1_kex(void)
 		    sensitive_data.server_key->rsa) < 0)
 			rsafail++;
 	}
-
-	compute_session_id(session_id, cookie,
-	    sensitive_data.ssh1_host_key->rsa->n,
-	    sensitive_data.server_key->rsa->n);
-
-	/* Destroy the private and public keys.  They will no longer be needed. */
-	destroy_sensitive_data();
-
 	/*
 	 * Extract session key from the decrypted integer.  The key is in the
 	 * least significant 256 bits of the integer; the first byte of the
@@ -1363,23 +1367,42 @@ do_ssh1_kex(void)
 			memset(session_key, 0, sizeof(session_key));
 			BN_bn2bin(session_key_int,
 			    session_key + sizeof(session_key) - len);
+
+			compute_session_id(session_id, cookie,
+			    sensitive_data.ssh1_host_key->rsa->n,
+			    sensitive_data.server_key->rsa->n);
+			/*
+			 * Xor the first 16 bytes of the session key with the
+			 * session id.
+			 */
+			for (i = 0; i < 16; i++)
+				session_key[i] ^= session_id[i];
 		}
 	}
 	if (rsafail) {
+		int bytes = BN_num_bytes(session_key_int);
+		char *buf = xmalloc(bytes);
+		MD5_CTX md;
+
 		log("do_connection: generating a fake encryption key");
-		for (i = 0; i < SSH_SESSION_KEY_LENGTH; i++) {
-			if (i % 4 == 0)
-				rand = arc4random();
-			session_key[i] = rand & 0xff;
-			rand >>= 8;
-		}
+		BN_bn2bin(session_key_int, buf);
+		MD5_Init(&md);
+		MD5_Update(&md, buf, bytes);
+		MD5_Update(&md, sensitive_data.ssh1_cookie, SSH_SESSION_KEY_LENGTH);
+		MD5_Final(session_key, &md);
+		MD5_Init(&md);
+		MD5_Update(&md, session_key, 16);
+		MD5_Update(&md, buf, bytes);
+		MD5_Update(&md, sensitive_data.ssh1_cookie, SSH_SESSION_KEY_LENGTH);
+		MD5_Final(session_key + 16, &md);
+		memset(buf, 0, bytes);
+		xfree(buf);
 	}
+	/* Destroy the private and public keys.  They will no longer be needed. */
+	destroy_sensitive_data();
+
 	/* Destroy the decrypted integer.  It is no longer needed. */
 	BN_clear_free(session_key_int);
-
-	/* Xor the first 16 bytes of the session key with the session id. */
-	for (i = 0; i < 16; i++)
-		session_key[i] ^= session_id[i];
 
 	/* Set the session key.  From this on all communications will be encrypted. */
 	packet_set_encryption_key(session_key, SSH_SESSION_KEY_LENGTH, cipher_type);

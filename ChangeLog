@@ -37,6 +37,15 @@
    - markus@cvs.openbsd.org 2001/02/23 15:34:53
      [serverloop.c]
      debug2->3
+   - markus@cvs.openbsd.org 2001/02/23 18:15:13
+     [sshd.c]
+     the random session key depends now on the session_key_int
+     sent by the 'attacker'
+             dig1 = md5(cookie|session_key_int);
+             dig2 = md5(dig1|cookie|session_key_int);
+             fake_session_key = dig1|dig2;
+     this change is caused by a mail from anakin@pobox.com
+     patch based on discussions with my german advisor niels@openbsd.org
 
 20010304
  - (bal) Remove make-ssh-known-hosts.1 since it's no longer valid.
@@ -4229,4 +4238,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.863 2001/03/05 05:58:23 mouring Exp $
+$Id: ChangeLog,v 1.864 2001/03/05 06:00:29 mouring Exp $
