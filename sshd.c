@@ -8,10 +8,13 @@
  * information to/from the application to the user client over an encrypted
  * connection.  This can also handle forwarding of X11, TCP/IP, and authentication
  * agent connections.
+ *
+ * SSH2 implementation,
+ * Copyright (c) 2000 Markus Friedl. All rights reserved.
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.97 2000/04/04 21:37:27 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.99 2000/04/07 09:17:39 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -25,6 +28,7 @@ RCSID("$OpenBSD: sshd.c,v 1.97 2000/04/04 21:37:27 markus Exp $");
 #include "compat.h"
 #include "buffer.h"
 
+#include "ssh2.h"
 #ifdef HAVE_OPENSSL
 # include <openssl/dh.h>
 # include <openssl/bn.h>
@@ -39,9 +43,12 @@ RCSID("$OpenBSD: sshd.c,v 1.97 2000/04/04 21:37:27 markus Exp $");
 # include <ssl/dsa.h>
 # include <ssl/rsa.h>
 #endif
+#include "kex.h"
 #include "key.h"
+#include "dsa.h"
 
 #include "auth.h"
+#include "myproposal.h"
 
 #ifdef LIBWRAP
 #include <tcpd.h>
@@ -69,6 +76,9 @@ int IPv4or6 = AF_INET;
 #else
 int IPv4or6 = AF_UNSPEC;
 #endif
+
+/* Flag indicating whether SSH2 is enabled */
+int allow_ssh2 = 0;
 
 /*
  * Debug mode flag.  This can be set on the command line.  If debug
@@ -136,6 +146,7 @@ unsigned char session_id[16];
 
 /* Prototypes for various functions defined later in this file. */
 void do_ssh1_kex();
+void do_ssh2_kex();
 
 /*
  * Close all listening sockets
@@ -255,6 +266,21 @@ key_regeneration_alarm(int sig)
 	errno = save_errno;
 }
 
+char *
+chop(char *s)
+{
+        char *t = s;
+        while (*t) {
+                if(*t == '\n' || *t == '\r') {
+                        *t = '\0';
+                        return s;
+                }
+                t++;
+        }
+        return s;
+
+}
+
 void
 sshd_exchange_identification(int sock_in, int sock_out)
 {
@@ -265,7 +291,9 @@ sshd_exchange_identification(int sock_in, int sock_out)
 	char remote_version[256];	/* Must be at least as big as buf. */
 
 	snprintf(buf, sizeof buf, "SSH-%d.%d-%.100s\n",
-	    PROTOCOL_MAJOR, PROTOCOL_MINOR, SSH_VERSION);
+		 allow_ssh2 ? 1	 : PROTOCOL_MAJOR,
+		 allow_ssh2 ? 99 : PROTOCOL_MINOR,
+		 SSH_VERSION);
 	server_version_string = xstrdup(buf);
 
 	if (client_version_string == NULL) {
@@ -286,7 +314,7 @@ sshd_exchange_identification(int sock_in, int sock_out)
 				buf[i] = '\n';
 				buf[i + 1] = 0;
 				continue;
-				/*break; XXX eat \r */
+				//break;
 			}
 			if (buf[i] == '\n') {
 				/* buf[i] == '\n' */
@@ -315,6 +343,8 @@ sshd_exchange_identification(int sock_in, int sock_out)
 	debug("Client protocol version %d.%d; client software version %.100s",
 	      remote_major, remote_minor, remote_version);
 
+	compat_datafellows(remote_version);
+
 	switch(remote_major) {
 	case 1:
 		if (remote_minor < 3) {
@@ -324,7 +354,15 @@ sshd_exchange_identification(int sock_in, int sock_out)
 			/* note that this disables agent-forwarding */
 			enable_compat13();
 		}
-		break;
+		if (remote_minor != 99)
+		       break;
+		/* FALLTHROUGH */
+	case 2:
+		if (allow_ssh2) {
+			enable_compat20();
+			break;
+		}
+		/* FALLTHROUGH */
 	default: 
 		s = "Protocol major versions differ.\n";
 		(void) atomicio(write, sock_out, s, strlen(s));
@@ -335,6 +373,8 @@ sshd_exchange_identification(int sock_in, int sock_out)
 		fatal_cleanup();
 		break;
 	}
+	chop(server_version_string);
+	chop(client_version_string);
 }
 
 /*
@@ -370,8 +410,11 @@ main(int ac, char **av)
 	initialize_server_options(&options);
 
 	/* Parse command-line arguments. */
-	while ((opt = getopt(ac, av, "f:p:b:k:h:g:V:diqQ46")) != EOF) {
+	while ((opt = getopt(ac, av, "f:p:b:k:h:g:V:diqQ246")) != EOF) {
 		switch (opt) {
+		case '2':
+			allow_ssh2 = 1;
+			break;
 		case '4':
 			IPv4or6 = AF_INET;
 			break;
@@ -837,9 +880,14 @@ main(int ac, char **av)
 	packet_set_nonblocking();
 
 	/* perform the key exchange */
-	do_ssh1_kex();
 	/* authenticate user and start session */
-	do_authentication();
+	if (compat20) {
+		do_ssh2_kex();
+		do_authentication2();
+	} else {
+		do_ssh1_kex();
+		do_authentication();
+	}
 
 #ifdef KRB4
 	/* Cleanup user's ticket cache file. */
@@ -1048,4 +1096,182 @@ do_ssh1_kex()
 	packet_start(SSH_SMSG_SUCCESS);
 	packet_send();
 	packet_write_wait();
+}
+
+/*
+ * SSH2 key exchange: diffie-hellman-group1-sha1
+ */
+void
+do_ssh2_kex()
+{
+	Buffer *server_kexinit;
+	Buffer *client_kexinit;
+	int payload_len, dlen;
+	int slen;
+	unsigned int klen, kout;
+	char *ptr;
+	unsigned char *signature = NULL;
+	unsigned char *server_host_key_blob = NULL;
+	unsigned int sbloblen;
+	DH *dh;
+	BIGNUM *dh_client_pub = 0;
+	BIGNUM *shared_secret = 0;
+	int i;
+	unsigned char *kbuf;
+	unsigned char *hash;
+	Kex *kex;
+	Key *server_host_key;
+	char *cprop[PROPOSAL_MAX];
+	char *sprop[PROPOSAL_MAX];
+
+/* KEXINIT */
+
+	debug("Sending KEX init.");
+
+	for (i = 0; i < PROPOSAL_MAX; i++)
+		sprop[i] = xstrdup(myproposal[i]);
+	server_kexinit = kex_init(sprop);
+	packet_start(SSH2_MSG_KEXINIT);
+	packet_put_raw(buffer_ptr(server_kexinit), buffer_len(server_kexinit));	
+	packet_send();
+	packet_write_wait();
+
+	debug("done");
+
+	packet_read_expect(&payload_len, SSH2_MSG_KEXINIT);
+
+	/*
+	 * save raw KEXINIT payload in buffer. this is used during
+	 * computation of the session_id and the session keys.
+	 */
+	client_kexinit = xmalloc(sizeof(*client_kexinit));
+	buffer_init(client_kexinit);
+	ptr = packet_get_raw(&payload_len);
+	buffer_append(client_kexinit, ptr, payload_len);
+
+	/* skip cookie */
+	for (i = 0; i < 16; i++)
+		(void) packet_get_char();
+	/* save kex init proposal strings */
+	for (i = 0; i < PROPOSAL_MAX; i++) {
+		cprop[i] = packet_get_string(NULL);
+		debug("got kexinit string: %s", cprop[i]);
+	}
+
+	i = (int) packet_get_char();
+	debug("first kex follow == %d", i);
+	i = packet_get_int();
+	debug("reserved == %d", i);
+
+	debug("done read kexinit");
+	kex = kex_choose_conf(cprop, sprop, 1);
+
+/* KEXDH */
+
+	debug("Wait SSH2_MSG_KEXDH_INIT.");
+	packet_read_expect(&payload_len, SSH2_MSG_KEXDH_INIT);
+
+	/* key, cert */
+	dh_client_pub = BN_new();
+	if (dh_client_pub == NULL)
+		fatal("dh_client_pub == NULL");
+	packet_get_bignum2(dh_client_pub, &dlen);
+
+#ifdef DEBUG_KEXDH
+	fprintf(stderr, "\ndh_client_pub= ");
+	bignum_print(dh_client_pub);
+	fprintf(stderr, "\n");
+	debug("bits %d", BN_num_bits(dh_client_pub));
+#endif
+
+	/* generate DH key */
+	dh = new_dh_group1();			/* XXX depends on 'kex' */
+
+#ifdef DEBUG_KEXDH
+	fprintf(stderr, "\np= ");
+	bignum_print(dh->p);
+	fprintf(stderr, "\ng= ");
+	bignum_print(dh->g);
+	fprintf(stderr, "\npub= ");
+	bignum_print(dh->pub_key);
+	fprintf(stderr, "\n");
+#endif
+
+	klen = DH_size(dh);
+	kbuf = xmalloc(klen);
+	kout = DH_compute_key(kbuf, dh_client_pub, dh);
+
+#ifdef DEBUG_KEXDH
+	debug("shared secret: len %d/%d", klen, kout);
+	fprintf(stderr, "shared secret == ");
+	for (i = 0; i< kout; i++)
+		fprintf(stderr, "%02x", (kbuf[i])&0xff);
+	fprintf(stderr, "\n");
+#endif
+	shared_secret = BN_new();
+
+	BN_bin2bn(kbuf, kout, shared_secret);
+	memset(kbuf, 0, klen);
+	xfree(kbuf);
+
+	server_host_key = dsa_get_serverkey(options.dsa_key_file);
+	dsa_make_serverkey_blob(server_host_key, &server_host_key_blob, &sbloblen);
+
+	/* calc H */			/* XXX depends on 'kex' */
+	hash = kex_hash(
+	    client_version_string,
+	    server_version_string,
+	    buffer_ptr(client_kexinit), buffer_len(client_kexinit),
+	    buffer_ptr(server_kexinit), buffer_len(server_kexinit),
+	    (char *)server_host_key_blob, sbloblen,
+	    dh_client_pub,
+	    dh->pub_key,
+	    shared_secret
+	);
+	buffer_free(client_kexinit);
+	buffer_free(server_kexinit);
+	xfree(client_kexinit);
+	xfree(server_kexinit);
+#ifdef DEBUG_KEXDH
+        fprintf(stderr, "hash == ");
+        for (i = 0; i< 20; i++)
+                fprintf(stderr, "%02x", (hash[i])&0xff);
+        fprintf(stderr, "\n");
+#endif
+	/* sign H */
+	dsa_sign(server_host_key, &signature, &slen, hash, 20);
+		/* hashlen depends on KEX */
+	key_free(server_host_key);
+
+	/* send server hostkey, DH pubkey 'f' and singed H */
+	packet_start(SSH2_MSG_KEXDH_REPLY);
+	packet_put_string((char *)server_host_key_blob, sbloblen);
+	packet_put_bignum2(dh->pub_key);	// f
+	packet_put_string((char *)signature, slen);
+	packet_send();
+	packet_write_wait();
+
+	kex_derive_keys(kex, hash, shared_secret);
+	packet_set_kex(kex);
+
+	/* have keys, free DH */
+	DH_free(dh);
+
+	debug("send SSH2_MSG_NEWKEYS.");
+	packet_start(SSH2_MSG_NEWKEYS);
+	packet_send();
+	packet_write_wait();
+	debug("done: send SSH2_MSG_NEWKEYS.");
+
+	debug("Wait SSH2_MSG_NEWKEYS.");
+	packet_read_expect(&payload_len, SSH2_MSG_NEWKEYS);
+	debug("GOT SSH2_MSG_NEWKEYS.");
+
+	/* send 1st encrypted/maced/compressed message */
+	packet_start(SSH2_MSG_IGNORE);
+	packet_put_cstring("markus");
+	packet_send();
+	packet_write_wait();
+
+	debug("done: KEX2.");
 }

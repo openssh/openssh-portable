@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: servconf.c,v 1.9 2000/03/09 10:27:51 damien Exp $");
+RCSID("$Id: servconf.c,v 1.10 2000/04/12 08:45:06 damien Exp $");
 
 #include "ssh.h"
 #include "servconf.h"
@@ -31,6 +31,7 @@ initialize_server_options(ServerOptions *options)
 	options->ports_from_cmdline = 0;
 	options->listen_addrs = NULL;
 	options->host_key_file = NULL;
+	options->dsa_key_file = NULL;
 	options->server_key_bits = -1;
 	options->login_grace_time = -1;
 	options->key_regeneration_time = -1;
@@ -78,6 +79,8 @@ fill_default_server_options(ServerOptions *options)
 		add_listen_addr(options, NULL);
 	if (options->host_key_file == NULL)
 		options->host_key_file = HOST_KEY_FILE;
+	if (options->dsa_key_file == NULL)
+		options->dsa_key_file = DSA_KEY_FILE;
 	if (options->server_key_bits == -1)
 		options->server_key_bits = 768;
 	if (options->login_grace_time == -1)
@@ -159,7 +162,7 @@ typedef enum {
 	sPrintMotd, sIgnoreRhosts, sX11Forwarding, sX11DisplayOffset,
 	sStrictModes, sEmptyPasswd, sRandomSeedFile, sKeepAlives, sCheckMail,
 	sUseLogin, sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
-	sIgnoreUserKnownHosts
+	sIgnoreUserKnownHosts, sDSAKeyFile
 } ServerOpCodes;
 
 /* Textual representation of the tokens. */
@@ -169,6 +172,7 @@ static struct {
 } keywords[] = {
 	{ "port", sPort },
 	{ "hostkey", sHostKeyFile },
+	{ "dsakey", sDSAKeyFile },
 	{ "serverkeybits", sServerKeyBits },
 	{ "logingracetime", sLoginGraceTime },
 	{ "keyregenerationinterval", sKeyRegenerationTime },
@@ -338,7 +342,9 @@ parse_int:
 			break;
 
 		case sHostKeyFile:
-			charptr = &options->host_key_file;
+		case sDSAKeyFile:
+			charptr = (opcode == sHostKeyFile ) ?
+			    &options->host_key_file : &options->dsa_key_file;
 			cp = strtok(NULL, WHITESPACE);
 			if (!cp) {
 				fprintf(stderr, "%s line %d: missing file name.\n",

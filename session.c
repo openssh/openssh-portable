@@ -2,9 +2,13 @@
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
  */
+/*
+ * SSH2 support by Markus Friedl.
+ * Copyright (c) 2000 Markus Friedl. All rights reserved.
+ */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.1 2000/03/28 21:15:45 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.2 2000/04/06 08:55:22 markus Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -18,6 +22,10 @@ RCSID("$OpenBSD: session.c,v 1.1 2000/03/28 21:15:45 markus Exp $");
 #include "compat.h"
 #include "channels.h"
 #include "nchan.h"
+
+#include "bufaux.h"
+#include "ssh2.h"
+#include "auth.h"
 
 /* types */
 
@@ -448,9 +456,13 @@ do_exec_no_pty(Session *s, const char *command, struct passwd * pw)
 	close(pout[1]);
 	close(perr[1]);
 
-	/* Enter the interactive session. */
-	server_loop(pid, pin[1], pout[0], perr[0]);
-	/* server_loop has closed pin[1], pout[1], and perr[1]. */
+	if (compat20) {
+		session_set_fds(s, pin[1], pout[0], perr[0]);
+	} else {
+		/* Enter the interactive session. */
+		server_loop(pid, pin[1], pout[0], perr[0]);
+		/* server_loop has closed pin[1], pout[1], and perr[1]. */
+	}
 #else /* USE_PIPES */
 	/* We are the parent.  Close the child sides of the socket pairs. */
 	close(inout[0]);
@@ -460,8 +472,12 @@ do_exec_no_pty(Session *s, const char *command, struct passwd * pw)
 	 * Enter the interactive session.  Note: server_loop must be able to
 	 * handle the case that fdin and fdout are the same.
 	 */
-	server_loop(pid, inout[1], inout[1], err[1]);
-	/* server_loop has closed inout[1] and err[1]. */
+	if (compat20) {
+		session_set_fds(s, inout[1], inout[1], err[1]);
+	} else {
+		server_loop(pid, inout[1], inout[1], err[1]);
+		/* server_loop has closed inout[1] and err[1]. */
+	}
 #endif /* USE_PIPES */
 }
 
@@ -631,9 +647,13 @@ do_exec_pty(Session *s, const char *command, struct passwd * pw)
 	s->ptymaster = ptymaster;
 
 	/* Enter interactive session. */
-	server_loop(pid, ptyfd, fdout, -1);
-	/* server_loop _has_ closed ptyfd and fdout. */
-	session_pty_cleanup(s);
+	if (compat20) {
+		session_set_fds(s, ptyfd, fdout, -1);
+	} else {
+		server_loop(pid, ptyfd, fdout, -1);
+		/* server_loop _has_ closed ptyfd and fdout. */
+		session_pty_cleanup(s);
+	}
 }
 
 /*
@@ -1126,6 +1146,181 @@ session_dump(void)
 	}
 }
 
+int
+session_open(int chanid)
+{
+	Session *s = session_new();
+	debug("session_open: channel %d", chanid);
+	if (s == NULL) {
+		error("no more sessions");
+		return 0;
+	}
+	debug("session_open: session %d: link with channel %d", s->self, chanid);
+	s->chanid = chanid;
+	s->pw = auth_get_user();
+	if (s->pw == NULL)
+		fatal("no user for session %i channel %d",
+		    s->self, s->chanid);
+	return 1;
+}
+
+Session *
+session_by_channel(int id)
+{
+	int i;
+	for(i = 0; i < MAX_SESSIONS; i++) {
+		Session *s = &sessions[i];
+		if (s->used && s->chanid == id) {
+			debug("session_by_channel: session %d channel %d", i, id);
+			return s;
+		}
+	}
+	debug("session_by_channel: unknown channel %d", id);
+	session_dump();
+	return NULL;
+}
+
+Session *
+session_by_pid(pid_t pid)
+{
+	int i;
+	debug("session_by_pid: pid %d", pid);
+	for(i = 0; i < MAX_SESSIONS; i++) {
+		Session *s = &sessions[i];
+		if (s->used && s->pid == pid)
+			return s;
+	}
+	error("session_by_pid: unknown pid %d", pid);
+	session_dump();
+	return NULL;
+}
+
+int
+session_window_change_req(Session *s)
+{
+	s->col = packet_get_int();
+	s->row = packet_get_int();
+	s->xpixel = packet_get_int();
+	s->ypixel = packet_get_int();
+	pty_change_window_size(s->ptyfd, s->row, s->col, s->xpixel, s->ypixel);
+	return 1;
+}
+
+int
+session_pty_req(Session *s)
+{
+	unsigned int len;
+
+	if (s->ttyfd != -1)
+		return -1;
+	s->term = packet_get_string(&len);
+	s->col = packet_get_int();
+	s->row = packet_get_int();
+	s->xpixel = packet_get_int();
+	s->ypixel = packet_get_int();
+
+	if (strcmp(s->term, "") == 0) {
+		xfree(s->term);
+		s->term = NULL;
+	}
+	/* Allocate a pty and open it. */
+	if (!pty_allocate(&s->ptyfd, &s->ttyfd, s->tty, sizeof(s->tty))) {
+		xfree(s->term);
+		s->term = NULL;
+		s->ptyfd = -1;
+		s->ttyfd = -1;
+		error("session_pty_req: session %d alloc failed", s->self);
+		return -1;
+	}
+	debug("session_pty_req: session %d alloc %s", s->self, s->tty);
+	/*
+	 * Add a cleanup function to clear the utmp entry and record logout
+	 * time in case we call fatal() (e.g., the connection gets closed).
+	 */
+	fatal_add_cleanup(pty_cleanup_proc, (void *)s);
+	pty_setowner(s->pw, s->tty);
+	/* Get window size from the packet. */
+	pty_change_window_size(s->ptyfd, s->row, s->col, s->xpixel, s->ypixel);
+
+	return 1;
+}
+
+void
+session_input_channel_req(int id, void *arg)
+{
+	unsigned int len;
+	int reply;
+	int success = 0;
+	char *rtype;
+	Session *s;
+	Channel *c;
+
+	rtype = packet_get_string(&len);
+	reply = packet_get_char();
+
+	s = session_by_channel(id);
+	if (s == NULL)
+		fatal("session_input_channel_req: channel %d: no session", id);
+	c = channel_lookup(id);
+	if (c == NULL)
+		fatal("session_input_channel_req: channel %d: bad channel", id);
+
+	debug("session_input_channel_req: session %d channel %d request %s reply %d",
+	    s->self, id, rtype, reply);
+
+	/*
+	 * a session is in LARVAL state until a shell
+	 * or programm is executed
+	 */
+	if (c->type == SSH_CHANNEL_LARVAL) {
+		if (strcmp(rtype, "shell") == 0) {
+			if (s->ttyfd == -1)
+				do_exec_no_pty(s, NULL, s->pw);
+			else
+				do_exec_pty(s, NULL, s->pw);
+			success = 1;
+		} else if (strcmp(rtype, "exec") == 0) {
+			char *command = packet_get_string(&len);
+			if (s->ttyfd == -1)
+				do_exec_no_pty(s, command, s->pw);
+			else
+				do_exec_pty(s, command, s->pw);
+			xfree(command);
+			success = 1;
+		} else if (strcmp(rtype, "pty-req") == 0) {
+			if (session_pty_req(s) > 0)
+				success = 1;
+		}
+	}
+	if (strcmp(rtype, "window-change") == 0) {
+		success = session_window_change_req(s);
+	}
+
+	if (reply) {
+		packet_start(success ?
+		    SSH2_MSG_CHANNEL_SUCCESS : SSH2_MSG_CHANNEL_FAILURE);
+		packet_put_int(c->remote_id);
+		packet_send();
+	}
+	xfree(rtype);
+}
+
+void
+session_set_fds(Session *s, int fdin, int fdout, int fderr)
+{
+	if (!compat20)
+		fatal("session_set_fds: called for proto != 2.0");
+	/*
+	 * now that have a child and a pipe to the child,
+	 * we can activate our channel and register the fd's
+	 */
+	if (s->chanid == -1)
+		fatal("no channel for session %d", s->self);
+	channel_set_fds(s->chanid,
+	    fdout, fdin, fderr,
+	    fderr == -1 ? CHAN_EXTENDED_IGNORE : CHAN_EXTENDED_READ);
+}
+
 void
 session_pty_cleanup(Session *s)
 {
@@ -1150,4 +1345,119 @@ session_pty_cleanup(Session *s)
 	 */
 	if (close(s->ptymaster) < 0)
 		error("close(s->ptymaster): %s", strerror(errno));
+}
+
+void
+session_exit_message(Session *s, int status)
+{
+	Channel *c;
+	if (s == NULL)
+		fatal("session_close: no session");
+	c = channel_lookup(s->chanid);
+	if (c == NULL)
+		fatal("session_close: session %d: no channel %d",
+		    s->self, s->chanid);
+	debug("session_exit_message: session %d channel %d pid %d",
+	    s->self, s->chanid, s->pid);
+
+	if (WIFEXITED(status)) {
+		channel_request_start(s->chanid,
+		    "exit-status", 0);
+		packet_put_int(WEXITSTATUS(status));
+		packet_send();
+	} else if (WIFSIGNALED(status)) {
+		channel_request_start(s->chanid,
+		    "exit-signal", 0);
+		packet_put_int(WTERMSIG(status));
+		packet_put_char(WCOREDUMP(status));
+		packet_put_cstring("");
+		packet_put_cstring("");
+		packet_send();
+	} else {
+		/* Some weird exit cause.  Just exit. */
+		packet_disconnect("wait returned status %04x.", status);
+	}
+
+	/* disconnect channel */
+	debug("session_exit_message: release channel %d", s->chanid);
+	channel_cancel_cleanup(s->chanid);
+	if (c->istate == CHAN_INPUT_OPEN)
+		chan_read_failed(c);
+	chan_write_failed(c);
+	s->chanid = -1;
+}
+
+void
+session_free(Session *s)
+{
+	debug("session_free: session %d pid %d", s->self, s->pid);
+	if (s->term)
+		xfree(s->term);
+	if (s->display)
+		xfree(s->display);
+	if (s->auth_data)
+		xfree(s->auth_data);
+	if (s->auth_proto)
+		xfree(s->auth_proto);
+	s->used = 0;
+}
+
+void
+session_close(Session *s)
+{
+	session_pty_cleanup(s);
+	session_free(s);
+}
+
+void
+session_close_by_pid(pid_t pid, int status)
+{
+	Session *s = session_by_pid(pid);
+	if (s == NULL) {
+		debug("session_close_by_pid: no session for pid %d", s->pid);
+		return;
+	}
+	if (s->chanid != -1)
+		session_exit_message(s, status);
+	session_close(s);
+}
+
+/*
+ * this is called when a channel dies before
+ * the session 'child' itself dies
+ */
+void
+session_close_by_channel(int id, void *arg)
+{
+	Session *s = session_by_channel(id);
+	if (s == NULL) {
+		debug("session_close_by_channel: no session for channel %d", id);
+		return;
+	}
+	/* disconnect channel */
+	channel_cancel_cleanup(s->chanid);
+	s->chanid = -1;
+
+	debug("session_close_by_channel: channel %d kill %d", id, s->pid);
+	if (s->pid == 0) {
+		/* close session immediately */
+		session_close(s);
+	} else {
+		/* notify child, delay session cleanup */
+		if (kill(s->pid, (s->ttyfd == -1) ? SIGTERM : SIGHUP) < 0)
+			error("session_close_by_channel: kill %d: %s",
+			    s->pid, strerror(errno));
+	}
+}
+
+void
+do_authenticated2(void)
+{
+	/*
+	 * Cancel the alarm we set to limit the time taken for
+	 * authentication.
+	 */
+	alarm(0);
+	log("do_authenticated2");
+	server_loop2();
 }

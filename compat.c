@@ -28,7 +28,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: compat.c,v 1.5 2000/04/06 02:32:39 damien Exp $");
+RCSID("$Id: compat.c,v 1.6 2000/04/12 08:45:06 damien Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -58,9 +58,7 @@ compat_datafellows(const char *version)
 	size_t len;
 	static const char *check[] = {
 		"2.0.1",
-		"2.1.0.beta.9",
-		"2.1.0.pre.3",
-		"2.1.0.public.beta.1",
+		"2.1.0",
 		NULL
 	};
 	for (i = 0; check[i]; i++) {

@@ -1,10 +1,11 @@
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
+ * Copyright (c) 2000 Markus Friedl. All rights reserved.
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth.c,v 1.1 2000/03/28 21:15:45 markus Exp $");
+RCSID("$OpenBSD: auth.c,v 1.2 2000/04/06 08:55:22 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -15,11 +16,16 @@ RCSID("$OpenBSD: auth.c,v 1.1 2000/03/28 21:15:45 markus Exp $");
 #include "cipher.h"
 #include "mpaux.h"
 #include "servconf.h"
+#include "compat.h"
 #include "channels.h"
 #include "match.h"
 
+#include "bufaux.h"
+#include "ssh2.h"
+#include "auth.h"
 #include "session.h"
 #include "dispatch.h"
+
 
 /* import */
 extern ServerOptions options;
@@ -603,4 +609,184 @@ do_authentication()
 
 	/* Perform session preparation. */
 	do_authenticated(pw);
+}
+
+
+void input_service_request(int type, int plen);
+void input_userauth_request(int type, int plen);
+void ssh2_pty_cleanup(void);
+
+typedef struct Authctxt Authctxt;
+struct Authctxt {
+	char *user;
+	char *service;
+	struct passwd pw;
+	int valid;
+};
+static Authctxt	*authctxt = NULL;
+static int userauth_success = 0;
+
+struct passwd*
+auth_get_user(void)
+{
+	return (authctxt != NULL && authctxt->valid) ? &authctxt->pw : NULL;
+}
+struct passwd*
+auth_set_user(char *u, char *s)
+{
+	struct passwd *pw, *copy;
+
+	if (authctxt == NULL) {
+		authctxt = xmalloc(sizeof(*authctxt));
+		authctxt->valid = 0;
+		authctxt->user = xstrdup(u);
+		authctxt->service = xstrdup(s);
+		setproctitle("%s", u);
+		pw = getpwnam(u);
+		if (!pw || !allowed_user(pw)) {
+			log("auth_set_user: bad user %s", u);
+			return NULL;
+		}
+#ifdef USE_PAM
+		start_pam(pw);
+#endif
+		copy = &authctxt->pw;
+		memset(copy, 0, sizeof(*copy));
+		copy->pw_name = xstrdup(pw->pw_name);
+		copy->pw_passwd = xstrdup(pw->pw_passwd);
+		copy->pw_uid = pw->pw_uid;
+		copy->pw_gid = pw->pw_gid;
+		copy->pw_dir = xstrdup(pw->pw_dir);
+		copy->pw_shell = xstrdup(pw->pw_shell);
+		authctxt->valid = 1;
+	} else {
+		if (strcmp(u, authctxt->user) != 0 ||
+		    strcmp(s, authctxt->service) != 0) {
+			log("auth_set_user: missmatch: (%s,%s)!=(%s,%s)",
+			    u, s, authctxt->user, authctxt->service);
+			return NULL;
+		}
+	}
+	return auth_get_user();
+}
+
+static void
+protocol_error(int type, int plen)
+{
+	log("auth: protocol error: type %d plen %d", type, plen);
+	packet_start(SSH2_MSG_UNIMPLEMENTED);
+	packet_put_int(0);
+	packet_send();
+	packet_write_wait();
+}
+void
+input_service_request(int type, int plen)
+{
+	unsigned int len;
+	int accept = 0;
+	char *service = packet_get_string(&len);
+
+	if (strcmp(service, "ssh-userauth") == 0) {
+		if (!userauth_success) {
+			accept = 1;
+			/* now we can handle user-auth requests */
+			dispatch_set(SSH2_MSG_USERAUTH_REQUEST, &input_userauth_request);
+		}
+	}
+	/* XXX all other service requests are denied */
+
+	if (accept) {
+		packet_start(SSH2_MSG_SERVICE_ACCEPT);
+		packet_put_cstring(service);
+		packet_send();
+		packet_write_wait();
+	} else {
+		debug("bad service request %s", service);
+		packet_disconnect("bad service request %s", service);
+	}
+	xfree(service);
+}
+void
+input_userauth_request(int type, int plen)
+{
+	static int try = 0;
+	unsigned int len;
+	int c, authenticated = 0;
+	char *user, *service, *method;
+	struct passwd *pw;
+
+	if (++try == AUTH_FAIL_MAX)
+		packet_disconnect("too many failed userauth_requests");
+
+	user = packet_get_string(&len);
+	service = packet_get_string(&len);
+	method = packet_get_string(&len);
+	debug("userauth-request for user %s service %s method %s", user, service, method);
+
+	/* XXX we only allow the ssh-connection service */
+	pw = auth_set_user(user, service);
+	if (pw && strcmp(service, "ssh-connection")==0) {
+		if (strcmp(method, "none") == 0 && try == 1) {
+#ifdef USE_PAM
+			/* Do PAM auth with password */
+			authenticated = auth_pam_password(pw, "");
+#else /* USE_PAM */
+			/* Try authentication with the password. */
+			authenticated = auth_password(pw, "");
+#endif /* USE_PAM */
+		} else if (strcmp(method, "password") == 0) {
+			char *password;
+			c = packet_get_char();
+			if (c)
+				debug("password change not supported");
+			password = packet_get_string(&len);
+#ifdef USE_PAM
+			/* Do PAM auth with password */
+			authenticated = auth_pam_password(pw, password);
+#else /* USE_PAM */
+			/* Try authentication with the password. */
+			authenticated = auth_password(pw, password);
+#endif /* USE_PAM */
+			memset(password, 0, len);
+			xfree(password);
+		} else if (strcmp(method, "publickey") == 0) {
+			/* XXX TODO */
+			char *pkalg;
+			char *pkblob;
+			c = packet_get_char();
+			pkalg = packet_get_string(&len);
+			pkblob = packet_get_string(&len);
+			xfree(pkalg);
+			xfree(pkblob);
+		}
+	}
+	/* XXX check if other auth methods are needed */
+	if (authenticated) {
+		/* turn off userauth */
+		dispatch_set(SSH2_MSG_USERAUTH_REQUEST, &protocol_error);
+		/* success! */
+		packet_start(SSH2_MSG_USERAUTH_SUCCESS);
+		packet_send();
+		packet_write_wait();
+		log("userauth success for %s", user);
+		/* now we can break out */
+		userauth_success = 1;
+	} else {
+		packet_start(SSH2_MSG_USERAUTH_FAILURE);
+		packet_put_cstring("password");
+		packet_put_char(0);		/* partial success */
+		packet_send();
+		packet_write_wait();
+	}
+	xfree(service);
+	xfree(user);
+	xfree(method);
+}
+void 
+do_authentication2()
+{
+	dispatch_init(&protocol_error);
+	dispatch_set(SSH2_MSG_SERVICE_REQUEST, &input_service_request);
+	dispatch_run(DISPATCH_BLOCK, &userauth_success);
+	do_authenticated2();
 }

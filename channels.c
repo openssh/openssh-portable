@@ -17,7 +17,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: channels.c,v 1.22 2000/04/06 02:32:38 damien Exp $");
+RCSID("$Id: channels.c,v 1.23 2000/04/12 08:45:06 damien Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -674,7 +674,7 @@ channel_handle_efd(Channel *c, fd_set * readset, fd_set * writeset)
 int
 channel_check_window(Channel *c, fd_set * readset, fd_set * writeset)
 {
-	if (!(c->flags & CHAN_CLOSE_SENT) &&
+	if (!(c->flags & (CHAN_CLOSE_SENT|CHAN_CLOSE_RCVD)) &&
 	    c->local_window < c->local_window_max/2 &&
 	    c->local_consumed > 0) {
 		packet_start(SSH2_MSG_CHANNEL_WINDOW_ADJUST);
@@ -837,7 +837,8 @@ channel_output_poll()
 			    c->istate != CHAN_INPUT_WAIT_DRAIN)
 				continue;
 		}
-		if (compat20 && (c->flags & CHAN_CLOSE_SENT)) {
+		if (compat20 &&
+		    (c->flags & (CHAN_CLOSE_SENT|CHAN_CLOSE_RCVD))) {
 			debug("channel: %d: no data after CLOSE", c->self);
 			continue;
 		}

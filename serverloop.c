@@ -5,6 +5,10 @@
  * Created: Sun Sep 10 00:30:37 1995 ylo
  * Server main loop for handling the interactive session.
  */
+/*
+ * SSH2 support by Markus Friedl.
+ * Copyright (c) 2000 Markus Friedl. All rights reserved.
+ */
 
 #include "includes.h"
 #include "xmalloc.h"
@@ -16,6 +20,8 @@
 #include "channels.h"
 
 #include "compat.h"
+#include "ssh2.h"
+#include "session.h"
 #include "dispatch.h"
 
 static Buffer stdin_buffer;	/* Buffer for stdin data. */
@@ -70,6 +76,15 @@ sigchld_handler(int sig)
 			child_has_selected = 0;
 	}
 	signal(SIGCHLD, sigchld_handler);
+	errno = save_errno;
+}
+void 
+sigchld_handler2(int sig)
+{
+	int save_errno = errno;
+	debug("Received SIGCHLD.");
+	child_terminated = 1;
+	signal(SIGCHLD, sigchld_handler2);
 	errno = save_errno;
 }
 
@@ -154,15 +169,21 @@ retry_select:
 	 * Read packets from the client unless we have too much buffered
 	 * stdin or channel data.
 	 */
-	if (buffer_len(&stdin_buffer) < 4096 &&
-	    channel_not_very_much_buffered_data())
-		FD_SET(connection_in, readset);
+	if (compat20) {
+		// wrong: bad conditionXXX
+		if (channel_not_very_much_buffered_data())
+			FD_SET(connection_in, readset);
+	} else {
+		if (buffer_len(&stdin_buffer) < 4096 &&
+		    channel_not_very_much_buffered_data())
+			FD_SET(connection_in, readset);
+	}
 
 	/*
 	 * If there is not too much data already buffered going to the
 	 * client, try to get some more data from the program.
 	 */
-	if (packet_not_very_much_data_to_write()) {
+	if (!compat20 && packet_not_very_much_data_to_write()) {
 		if (!fdout_eof)
 			FD_SET(fdout, readset);
 		if (!fderr_eof)
@@ -182,7 +203,7 @@ retry_select:
 
 	/* If we have buffered data, try to write some of that data to the
 	   program. */
-	if (fdin != -1 && buffer_len(&stdin_buffer) > 0)
+	if (!compat20 && fdin != -1 && buffer_len(&stdin_buffer) > 0)
 		FD_SET(fdin, writeset);
 
 	/* Update the maximum descriptor number if appropriate. */
@@ -204,6 +225,8 @@ retry_select:
 		tv.tv_usec = 1000 * (max_time_milliseconds % 1000);
 		tvp = &tv;
 	}
+	if (tvp!=NULL)
+		debug("tvp!=NULL kid %d mili %d", child_terminated, max_time_milliseconds);
 
 	/* Wait for something to happen, or the timeout to expire. */
 	ret = select(max_fd + 1, readset, writeset, NULL, tvp);
@@ -250,6 +273,9 @@ process_input(fd_set * readset)
 		/* Buffer any received data. */
 		packet_process_incoming(buf, len);
 	}
+	if (compat20)
+		return;
+
 	/* Read and buffer any available stdout data from the program. */
 	if (!fdout_eof && FD_ISSET(fdout, readset)) {
 		len = read(fdout, buf, sizeof(buf));
@@ -279,7 +305,7 @@ process_output(fd_set * writeset)
 	int len;
 
 	/* Write buffered data to program stdin. */
-	if (fdin != -1 && FD_ISSET(fdin, writeset)) {
+	if (!compat20 && fdin != -1 && FD_ISSET(fdin, writeset)) {
 		len = write(fdin, buffer_ptr(&stdin_buffer),
 		    buffer_len(&stdin_buffer));
 		if (len <= 0) {
@@ -578,6 +604,51 @@ server_loop(int pid, int fdin_arg, int fdout_arg, int fderr_arg)
 	/* NOTREACHED */
 }
 
+void 
+server_loop2(void)
+{
+	fd_set readset, writeset;
+	int had_channel = 0;
+	int status;
+	pid_t pid;
+
+	debug("Entering interactive session for SSH2.");
+
+	signal(SIGCHLD, sigchld_handler2);
+	child_terminated = 0;
+	connection_in = packet_get_connection_in();
+	connection_out = packet_get_connection_out();
+	max_fd = connection_in;
+	if (connection_out > max_fd)
+		max_fd = connection_out;
+	server_init_dispatch();
+
+	for (;;) {
+		process_buffered_input_packets();
+		if (!had_channel && channel_still_open())
+			had_channel = 1;
+		if (had_channel && !channel_still_open()) {
+			debug("!channel_still_open.");
+			break;
+		}
+		if (packet_not_very_much_data_to_write())
+			channel_output_poll();
+		wait_until_can_do_something(&readset, &writeset, 0);
+		if (child_terminated) {
+			while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
+				session_close_by_pid(pid, status);
+			child_terminated = 0;
+		}
+		channel_after_select(&readset, &writeset);
+		process_input(&readset);
+		process_output(&writeset);
+	}
+	signal(SIGCHLD, SIG_DFL);
+	while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
+		session_close_by_pid(pid, status);
+	channel_stop_listening();
+}
+
 void
 server_input_stdin_data(int type, int plen)
 {
@@ -622,6 +693,111 @@ server_input_window_size(int type, int plen)
 		pty_change_window_size(fdin, row, col, xpixel, ypixel);
 }
 
+int
+input_direct_tcpip(void)
+{
+	int sock;
+	char *host, *originator;
+	int host_port, originator_port;
+
+	host = packet_get_string(NULL);
+	host_port = packet_get_int();
+	originator = packet_get_string(NULL);
+	originator_port = packet_get_int();
+	/* XXX check permission */
+	sock = channel_connect_to(host, host_port);
+	xfree(host);
+	xfree(originator);
+	if (sock < 0)
+		return -1;
+	return channel_new("direct-tcpip", SSH_CHANNEL_OPEN,
+	    sock, sock, -1, 4*1024, 32*1024, 0, xstrdup("direct-tcpip"));
+}
+
+void 
+server_input_channel_open(int type, int plen)
+{
+	Channel *c = NULL;
+	char *ctype;
+	int id;
+	unsigned int len;
+	int rchan;
+	int rmaxpack;
+	int rwindow;
+
+	ctype = packet_get_string(&len);
+	rchan = packet_get_int();
+	rwindow = packet_get_int();
+	rmaxpack = packet_get_int();
+
+	log("channel_input_open: ctype %s rchan %d win %d max %d",
+	    ctype, rchan, rwindow, rmaxpack);
+
+	if (strcmp(ctype, "session") == 0) {
+		debug("open session");
+		/*
+		 * A server session has no fd to read or write
+		 * until a CHANNEL_REQUEST for a shell is made,
+		 * so we set the type to SSH_CHANNEL_LARVAL.
+		 * Additionally, a callback for handling all
+		 * CHANNEL_REQUEST messages is registered.
+		 */
+		id = channel_new(ctype, SSH_CHANNEL_LARVAL,
+		    -1, -1, -1, 0, 32*1024, 0, xstrdup("server-session"));
+		if (session_open(id) == 1) {
+			channel_register_callback(id, SSH2_MSG_CHANNEL_REQUEST,
+			    session_input_channel_req, (void *)0);
+			channel_register_cleanup(id, session_close_by_channel);
+			c = channel_lookup(id);
+		} else {
+			debug("session open failed, free channel %d", id);
+			channel_free(id);
+		}
+	} else if (strcmp(ctype, "direct-tcpip") == 0) {
+		debug("open direct-tcpip");
+		id = input_direct_tcpip();
+		if (id >= 0)
+			c = channel_lookup(id);
+	}
+	if (c != NULL) {
+		debug("confirm %s", ctype);
+		c->remote_id = rchan;
+		c->remote_window = rwindow;
+		c->remote_maxpacket = rmaxpack;
+
+		packet_start(SSH2_MSG_CHANNEL_OPEN_CONFIRMATION);
+		packet_put_int(c->remote_id);
+		packet_put_int(c->self);
+		packet_put_int(c->local_window);
+		packet_put_int(c->local_maxpacket);
+		packet_send();
+	} else {
+		debug("failure %s", ctype);
+		packet_start(SSH2_MSG_CHANNEL_OPEN_FAILURE);
+		packet_put_int(rchan);
+		packet_put_int(SSH2_OPEN_ADMINISTRATIVELY_PROHIBITED);
+		packet_put_cstring("bla bla");
+		packet_put_cstring("");
+		packet_send();
+	}
+	xfree(ctype);
+}
+
+void 
+server_init_dispatch_20()
+{
+	debug("server_init_dispatch_20");
+	dispatch_init(&dispatch_protocol_error);
+	dispatch_set(SSH2_MSG_CHANNEL_CLOSE, &channel_input_oclose);
+	dispatch_set(SSH2_MSG_CHANNEL_DATA, &channel_input_data);
+	dispatch_set(SSH2_MSG_CHANNEL_EOF, &channel_input_ieof);
+	dispatch_set(SSH2_MSG_CHANNEL_EXTENDED_DATA, &channel_input_extended_data);
+	dispatch_set(SSH2_MSG_CHANNEL_OPEN, &server_input_channel_open);
+	dispatch_set(SSH2_MSG_CHANNEL_OPEN_CONFIRMATION, &channel_input_open_confirmation);
+	dispatch_set(SSH2_MSG_CHANNEL_OPEN_FAILURE, &channel_input_open_failure);
+	dispatch_set(SSH2_MSG_CHANNEL_REQUEST, &channel_input_channel_request);
+	dispatch_set(SSH2_MSG_CHANNEL_WINDOW_ADJUST, &channel_input_window_adjust);
+}
 void 
 server_init_dispatch_13()
 {
@@ -648,7 +824,9 @@ server_init_dispatch_15()
 void 
 server_init_dispatch()
 {
-	if (compat13)
+	if (compat20)
+		server_init_dispatch_20();
+	else if (compat13)
 		server_init_dispatch_13();
 	else
 		server_init_dispatch_15();

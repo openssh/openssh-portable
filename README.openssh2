@@ -1,0 +1,36 @@
+$Id: README.openssh2,v 1.2 2000/04/06 21:28:22 markus Exp $
+
+works:
+	secsh-transport: works w/o rekey
+		proposal exchange, i.e. different enc/mac/comp per direction
+		encryption: blowfish-cbc, 3des-cbc, arcfour, cast128-cbc
+		mac: hmac-md5, hmac-sha1, (hmac-ripemd160)
+		compression: zlib, none
+	secsh-userauth: passwd only
+	secsh-connection: pty+shell or command, flow control works (window adjust)
+		tcp-forwarding: -L works
+	dss: verification works,
+		key database in ~/.ssh/known_hosts with bits == 0 hack
+	dss: signature works, keygen w/ openssl:
+		$ umask 077
+		$ openssl dsaparam 1024 -out dsa1024.pem
+		$ openssl gendsa -out /etc/ssh_dsa_key dsa1024.pem -rand /dev/arandom
+		start sshd with '-2' flag
+	client interops w/ sshd2, lshd
+	server interops w/ ssh2, lsh, ssh.com's Windows client, SecureCRT
+	server supports multiple concurrent sessions (e.g. with SSH.com Windows client)
+todo:
+	re-keying
+	secsh-connection features:
+		 tcp-forwarding, agent-fwd, x11-fwd
+	auth other than passwd:
+		 pubkey, keyboard-interactive
+	config
+	server-auth w/ old host-keys
+	cleanup
+	advanced key storage?
+	keynote
+	sftp
+
+-markus
+$Date: 2000/04/06 21:28:22 $

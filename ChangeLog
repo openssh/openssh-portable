@@ -2,7 +2,15 @@
  - Avoid some compiler warnings in fake-get*.c
  - Add IPTOS macros for systems which lack them
  - Only set define entropy collection macros if they are found
-
+ - More large OpenBSD CVS updates:
+   - [auth.c auth.h servconf.c servconf.h serverloop.c session.c]
+     [session.h ssh.h sshd.c README.openssh2]
+     ssh2 server side, see README.openssh2; enable with 'sshd -2'
+   - [channels.c]
+     no adjust after close
+   - [sshd.c compat.c ]
+     interop w/ latest ssh.com windows client.
+  
 20000406
  - OpenBSD CVS update:
    - [channels.c]
