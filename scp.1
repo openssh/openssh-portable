@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sun May  7 00:14:37 1995 ylo
 .\"
-.\" $OpenBSD: scp.1,v 1.29 2003/10/08 08:27:36 jmc Exp $
+.\" $OpenBSD: scp.1,v 1.30 2003/10/13 08:22:25 markus Exp $
 .\"
 .Dd September 25, 1999
 .Dt SCP 1
@@ -124,16 +124,10 @@ For full details of the options listed below, and their possible values, see
 .It CheckHostIP
 .It Cipher
 .It Ciphers
-.It ClearAllForwardings
 .It Compression
 .It CompressionLevel
 .It ConnectionAttempts
 .It ConnectionTimeout
-.It DynamicForward
-.It EscapeChar
-.It ForwardAgent
-.It ForwardX11
-.It GatewayPorts
 .It GlobalKnownHostsFile
 .It GSSAPIAuthentication
 .It GSSAPIDelegateCredentials
@@ -144,7 +138,6 @@ For full details of the options listed below, and their possible values, see
 .It HostName
 .It IdentityFile
 .It KeepAlive
-.It LocalForward
 .It LogLevel
 .It MACs
 .It NoHostAuthenticationForLocalhost
@@ -155,7 +148,6 @@ For full details of the options listed below, and their possible values, see
 .It Protocol
 .It ProxyCommand
 .It PubkeyAuthentication
-.It RemoteForward
 .It RhostsRSAAuthentication
 .It RSAAuthentication
 .It SmartcardDevice
@@ -164,7 +156,6 @@ For full details of the options listed below, and their possible values, see
 .It User
 .It UserKnownHostsFile
 .It VerifyHostKeyDNS
-.It XAuthLocation
 .El
 .It Fl P Ar port
 Specifies the port to connect to on the remote host.

@@ -27,6 +27,9 @@
      note that EnableSSHKeySign should be in the non-hostspecific section;
      remove unnecessary .Pp;
      ok markus@
+   - markus@cvs.openbsd.org 2003/10/13 08:22:25
+     [scp.1 sftp.1]
+     don't refer to options related to forwarding; ok jmc@
 
 20031009
  - (dtucker) [sshd_config.5] UsePAM defaults to "no".  ok djm@
@@ -1344,4 +1347,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3075 2003/10/15 05:58:18 dtucker Exp $
+$Id: ChangeLog,v 1.3076 2003/10/15 05:59:26 dtucker Exp $
