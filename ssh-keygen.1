@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.30 2001/02/08 19:22:38 itojun Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.31 2001/02/22 06:43:55 deraadt Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -165,7 +165,12 @@ or
 .Dq dsa
 for protocol version 2.
 The default is
-.Dq rsa .
+.Dq rsa1 .
+.It Fl d
+Specifies
+.Dq dsa
+key type (shortcut for
+.Fl t Ar dsa)
 .It Fl C Ar comment
 Provides the new comment.
 .It Fl N Ar new_passphrase
