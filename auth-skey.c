@@ -42,8 +42,8 @@ auth_skey_password(struct passwd * pw, const char *password)
 	/* Fall back to ordinary passwd authentication. */
 	return -1;
 }
-  
-+ /* from %OpenBSD: skeylogin.c,v 1.32 1999/08/16 14:46:56 millert Exp % */
+
+/* from %OpenBSD: skeylogin.c,v 1.32 1999/08/16 14:46:56 millert Exp % */
 
 #define ROUND(x)   (((x)[0] << 24) + (((x)[1]) << 16) + (((x)[2]) << 8) + \
 		    ((x)[3]))
