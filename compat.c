@@ -31,7 +31,7 @@ RCSID("$OpenBSD: compat.c,v 1.38 2001/03/10 15:31:00 deraadt Exp $");
 #  ifdef HAVE_REGEX_H
 #    include <regex.h>
 #  else
-#    include "fake-regex.h"
+#    include "openbsd-compat/fake-regex.h"
 #  endif
 #endif /* HAVE_LIBPCRE */
 
