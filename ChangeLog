@@ -1,3 +1,7 @@
+20010528
+ - (tim) [conifgure.in] add setvbuf test needed for sftp-int.c
+   Patch by Corinna Vinschen <vinschen@redhat.com>
+
 20010512
  - (bal) Patch to partial sync up contrib/solaris/ packaging software.
    Patch by pete <ninjaz@webexpress.com>
@@ -5302,4 +5306,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1179.2.14 2001/05/12 16:52:37 mouring Exp $
+$Id: ChangeLog,v 1.1179.2.15 2001/05/28 17:21:43 tim Exp $
