@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.165 2001/04/04 17:39:20 mouring Exp $
+# $Id: Makefile.in,v 1.166 2001/04/06 01:58:37 stevesk Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -98,30 +98,30 @@ ssh$(EXEEXT): $(LIBCOMPAT) libssh.a $(SSHOBJS)
 sshd$(EXEEXT): libssh.a	$(LIBCOMPAT) $(SSHDOBJS)
 	$(LD) -o $@ $(SSHDOBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
-scp$(EXEEXT): $(LIBCOMPAT) libssh.a scp.o log.o
-	$(LD) -o $@ scp.o log.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
+scp$(EXEEXT): $(LIBCOMPAT) libssh.a scp.o
+	$(LD) -o $@ scp.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
-ssh-add$(EXEEXT): $(LIBCOMPAT) libssh.a ssh-add.o log.o
-	$(LD) -o $@ ssh-add.o log.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
+ssh-add$(EXEEXT): $(LIBCOMPAT) libssh.a ssh-add.o
+	$(LD) -o $@ ssh-add.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
-ssh-agent$(EXEEXT): $(LIBCOMPAT) libssh.a ssh-agent.o log.o
-	$(LD) -o $@ ssh-agent.o log.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
+ssh-agent$(EXEEXT): $(LIBCOMPAT) libssh.a ssh-agent.o
+	$(LD) -o $@ ssh-agent.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
-ssh-keygen$(EXEEXT): $(LIBCOMPAT) libssh.a ssh-keygen.o log.o
-	$(LD) -o $@ ssh-keygen.o log.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
+ssh-keygen$(EXEEXT): $(LIBCOMPAT) libssh.a ssh-keygen.o
+	$(LD) -o $@ ssh-keygen.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
-ssh-keyscan$(EXEEXT): $(LIBCOMPAT) libssh.a log.o ssh-keyscan.o
-	$(LD) -o $@ ssh-keyscan.o log.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
+ssh-keyscan$(EXEEXT): $(LIBCOMPAT) libssh.a ssh-keyscan.o
+	$(LD) -o $@ ssh-keyscan.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
-sftp-server$(EXEEXT): $(LIBCOMPAT) libssh.a sftp.o sftp-common.o log.o sftp-server.o
-	$(LD) -o $@ sftp-server.o sftp-common.o log.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
+sftp-server$(EXEEXT): $(LIBCOMPAT) libssh.a sftp.o sftp-common.o sftp-server.o
+	$(LD) -o $@ sftp-server.o sftp-common.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
 sftp$(EXEEXT): $(LIBCOMPAT) libssh.a sftp.o sftp-client.o sftp-int.o sftp-common.o sftp-glob.o
 	$(LD) -o $@ sftp.o sftp-client.o sftp-common.o sftp-int.o sftp-glob.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
 # test driver for the loginrec code - not built by default
-logintest: logintest.o $(LIBCOMPAT) libssh.a log.o loginrec.o
-	$(LD) -o $@ logintest.o $(LDFLAGS) loginrec.o -lopenbsd-compat -lssh log.o $(LIBS)
+logintest: logintest.o $(LIBCOMPAT) libssh.a loginrec.o
+	$(LD) -o $@ logintest.o $(LDFLAGS) loginrec.o -lopenbsd-compat -lssh $(LIBS)
 
 $(MANPAGES) $(CONFIGFILES)::
 	$(FIXPATHSCMD) $(srcdir)/$@
