@@ -1,3 +1,19 @@
+This patch from Theo Schlossnagle <jesus@omniti.com> adds SecurID 
+authentication support to portable OpenSSH. To apply, run the following 
+command from the source directory:
+
+patch -p1 < contrib/SecurID.diff
+
+You will need to re-run 'configure' if you have not already done so. Please
+refer to the README.SecurID (which will be created by the above command) for
+more information.
+
+The homepage for the latest version of this patch is:
+
+http://www.omniti.com/~jesus/projects/
+
+Please refer to the homepage first if you have any problems.
+
 diff -ruN openssh-2.9p1-orig/Makefile.in openssh-2.9p1/Makefile.in
 --- openssh-2.9p1-orig/Makefile.in	Fri Apr 27 10:31:08 2001
 +++ openssh-2.9p1/Makefile.in	Sun Apr 29 21:59:59 2001
