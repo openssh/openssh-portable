@@ -33,7 +33,7 @@
 #include "canohost.h"
 #include "readpass.h"
 
-RCSID("$Id: auth-pam.c,v 1.26 2001/02/11 11:35:12 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.27 2001/02/11 11:39:19 djm Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now"
@@ -224,7 +224,6 @@ int auth_pam_password(struct passwd *pw, const char *password)
 int do_pam_account(char *username, char *remote_user)
 {
 	int pam_retval;
-	extern ServerOptions options;
 
 	pam_set_conv(&conv);
 
@@ -332,6 +331,7 @@ void finish_pam(void)
 void start_pam(const char *user)
 {
 	int pam_retval;
+	extern ServerOptions options;
 
 	debug("Starting up PAM with username \"%.200s\"", user);
 
