@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.58 2001/03/19 01:56:14 djm Exp $ */
+/* $Id: defines.h,v 1.59 2001/03/19 02:27:26 tim Exp $ */
 
 /* Some platforms need this for the _r() functions */
 #if !defined(_REENTRANT) && !defined(SNI)
@@ -125,9 +125,6 @@ enum
 /* If sys/types.h does not supply intXX_t, supply them ourselves */
 /* (or die trying) */
 
-#ifdef SIZEOF_LONG_LONG_INT
-# define HAVE_LONG_LONG_INT
-#endif
 
 #ifndef HAVE_U_INT
 typedef unsigned int u_int;
@@ -202,6 +199,7 @@ typedef long int int64_t;
 #  if (SIZEOF_LONG_LONG_INT == 8)
 typedef long long int int64_t;
 #   define HAVE_INT64_T 1
+#   define HAVE_LONG_LONG_INT
 #  endif
 # endif
 #endif
