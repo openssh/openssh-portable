@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.56 2001/02/24 00:55:05 mouring Exp $ */
+/* $Id: defines.h,v 1.57 2001/03/18 23:09:28 djm Exp $ */
 
 /* Some platforms need this for the _r() functions */
 #if !defined(_REENTRANT) && !defined(SNI)
@@ -273,6 +273,12 @@ struct winsize {
 
 #ifndef _PATH_BSHELL
 # define _PATH_BSHELL "/bin/sh"
+#endif
+#ifndef _PATH_CSHELL
+# define _PATH_CSHELL "/bin/csh"
+#endif
+#ifndef _PATH_SHELLS
+# define _PATH_SHELLS "/etc/shells"
 #endif
 
 #ifdef USER_PATH

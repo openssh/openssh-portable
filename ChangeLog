@@ -1,6 +1,7 @@
 20010319
  - (djm) Seed PRNG at startup, rather than waiting for arc4random calls to 
    do it implicitly.
+ - (djm) Add getusershell() functions from OpenBSD CVS
 
 20010318
  - (bal) Fixed scp type casing issue which causes "scp: protocol error: 
@@ -4600,4 +4601,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.972 2001/03/18 22:38:15 djm Exp $
+$Id: ChangeLog,v 1.973 2001/03/18 23:09:27 djm Exp $
