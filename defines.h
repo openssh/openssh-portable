@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.112 2004/04/06 11:31:13 dtucker Exp $ */
+/* $Id: defines.h,v 1.113 2004/04/08 06:16:06 dtucker Exp $ */
 
 
 /* Constants */
@@ -613,6 +613,10 @@ struct winsize {
 #    define USE_WTMP
 #  endif
 
+#endif
+
+#ifndef UT_LINESIZE
+# define UT_LINESIZE 8
 #endif
 
 /* I hope that the presence of LASTLOG_FILE is enough to detect this */
