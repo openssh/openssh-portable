@@ -18,9 +18,6 @@
 #include <errno.h>
 #include <termios.h>
 #include <sys/wait.h>
-#ifdef HAVE_STDDEF_H
-#include <stddef.h>
-#endif
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -99,50 +96,9 @@ cfsetospeed(struct termios *t,int speed)
 }
 
 int
-cfsetispeed(struct termios *t, speed_t speed)
+cfsetispeed(struct termios *t, int speed)
 {
 	t->c_ispeed = speed;
 	return (0);
 }
-
-#if 0
-
-/*define sigset_t int*/
-
-/* This whole thing is insane.  It's purely wrong, but it's a first
-   go a it.  -bl */
-
-int sigemptyset(sigset_t *set)
-{
-	return 0;
-}
-
-int sigaddset(sigset_t *set, int signum)
-{
-	*set |=  (1 << (signum - 1));
-	return set;
-}
-
-int sigprocmask(int how, const sigset_t *set, sigset_t *oldset)
-{
-	switch(how) {
-		case SIG_BLOCK:
-			return  0;
-		case SIG_UNBLOCK:
-			return ( 0 & ~ *set);
-		default:
-			return 0;
-  }
-}
-
-int sigsuspend(const sigset_t *mask)
-{
-}
-
-int sigaction(int signum,const struct sigaction *act, struct sigaction *oldact) 
-{
-}
-
-#endif /* 0 */
-
 #endif /* HAVE_NEXT */

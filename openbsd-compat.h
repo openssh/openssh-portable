@@ -13,6 +13,7 @@
 #include "bsd-snprintf.h"
 #include "bsd-daemon.h"
 #include "bsd-base64.h"
+#include "bsd-sigaction.h"
 
 /* rfc2553 socket API replacements */
 #include "fake-getaddrinfo.h"

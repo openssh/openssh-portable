@@ -156,21 +156,11 @@
 
 #include "includes.h"
 
-#if HAVE_UTMP_H
-# include <utmp.h>
-#endif
-#if HAVE_UTMPX_H
-# include <utmpx.h>
-#endif
-#if HAVE_LASTLOG_H
-# include <lastlog.h>
-#endif
-
 #include "ssh.h"
 #include "xmalloc.h"
 #include "loginrec.h"
 
-RCSID("$Id: loginrec.c,v 1.15 2000/07/09 11:37:49 djm Exp $");
+RCSID("$Id: loginrec.c,v 1.16 2000/07/09 13:26:28 djm Exp $");
 
 /**
  ** prototypes for helper functions in this file
