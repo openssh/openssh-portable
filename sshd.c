@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.285 2004/02/05 05:37:17 dtucker Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.286 2004/02/23 12:02:33 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1151,6 +1151,11 @@ main(int ac, char **av)
 				verbose("socket: %.100s", strerror(errno));
 				continue;
 			}
+			if (fcntl(listen_sock, F_SETFL, O_NONBLOCK) < 0) {
+				error("listen_sock O_NONBLOCK: %s", strerror(errno));
+				close(listen_sock);
+				continue;
+			}
 			/*
 			 * Set socket options.
 			 * Allow local port reuse in TIME_WAIT.
@@ -1288,6 +1293,11 @@ main(int ac, char **av)
 				if (newsock < 0) {
 					if (errno != EINTR && errno != EWOULDBLOCK)
 						error("accept: %.100s", strerror(errno));
+					continue;
+				}
+				if (fcntl(newsock, F_SETFL, 0) < 0) {
+					error("newsock del O_NONBLOCK: %s", strerror(errno));
+					close(newsock);
 					continue;
 				}
 				if (drop_connection(startups) == 1) {

@@ -3,6 +3,9 @@
    - markus@cvs.openbsd.org 2004/02/19 21:15:04
      [sftp-server.c]
      switch to new license.template
+   - markus@cvs.openbsd.org 2004/02/23 12:02:33
+     [sshd.c]
+     backout revision 1.279; set listen socket to non-block; ok henning.
 
 20040223
  - (dtucker) [session.c] Bug #789: Only make setcred call for !privsep in the
@@ -1906,4 +1909,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3244 2004/02/23 22:19:15 dtucker Exp $
+$Id: ChangeLog,v 1.3245 2004/02/23 22:20:29 dtucker Exp $
