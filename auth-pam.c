@@ -29,7 +29,7 @@
 #include "xmalloc.h"
 #include "servconf.h"
 
-RCSID("$Id: auth-pam.c,v 1.17 2000/10/14 13:36:13 stevesk Exp $");
+RCSID("$Id: auth-pam.c,v 1.18 2000/10/14 15:08:49 stevesk Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now"
@@ -249,7 +249,7 @@ void do_pam_session(char *username, const char *ttyname)
 }
 
 /* Set PAM credentials */ 
-void do_pam_setcred()
+void do_pam_setcred(void)
 {
 	int pam_retval;
  
@@ -273,7 +273,7 @@ int pam_password_change_required(void)
  * session is established and the user's pty is connected to
  * stdin/stout/stderr.
  */
-void do_pam_chauthtok()
+void do_pam_chauthtok(void)
 {
 	int pam_retval;
 
