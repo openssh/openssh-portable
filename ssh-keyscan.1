@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keyscan.1,v 1.10 2001/08/05 23:18:20 markus Exp $
+.\"	$OpenBSD: ssh-keyscan.1,v 1.11 2001/08/23 18:08:59 stevesk Exp $
 .\"
 .\" Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
 .\"
@@ -43,7 +43,7 @@ The options are as follows:
 .Bl -tag -width Ds
 .It Fl p Ar port
 Port to connect to on the remote host.
-.It Fl T
+.It Fl T Ar timeout
 Set the timeout for connection attempts.  If
 .Pa timeout
 seconds have elapsed since a connection was initiated to a host or since the
@@ -51,7 +51,7 @@ last time anything was read from that host, then the connection is
 closed and the host in question considered unavailable.  Default is 5
 seconds.
 .It Fl t Ar type
-Specifies the type of the key to fetch from the following hosts.
+Specifies the type of the key to fetch from the scanned hosts.
 The possible values are
 .Dq rsa1
 for protocol version 1 and

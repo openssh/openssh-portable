@@ -29,6 +29,9 @@
    - stevesk@cvs.openbsd.org 2001/08/23 18:02:48
      [ssh-agent.1]
      fix usage; ok markus@
+   - stevesk@cvs.openbsd.org 2001/08/23 18:08:59
+     [ssh-add.1 ssh-keyscan.1]
+     minor cleanup
 
 20010815
  - (bal) Fixed stray code in readconf.c that went in by mistake.
@@ -6352,4 +6355,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1493 2001/09/12 17:02:49 mouring Exp $
+$Id: ChangeLog,v 1.1494 2001/09/12 17:06:13 mouring Exp $
