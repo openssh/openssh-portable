@@ -12,6 +12,9 @@
    - jmc@cvs.openbsd.org 2005/03/18 17:05:00
      [sshd_config.5]
      typo;
+ - (dtucker) [auth.h sshd.c openbsd-compat/port-aix.c] Bug #1006: fix bug in
+   handling of password expiry messages returned by AIX's authentication
+   routines, originally reported by robvdwal at sara.nl.
 
 20050329
  - (dtucker) [contrib/aix/buildbff.sh] Bug #1005: Look up only the user we're
@@ -2402,4 +2405,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3731 2005/03/31 11:33:50 dtucker Exp $
+$Id: ChangeLog,v 1.3732 2005/03/31 11:39:25 dtucker Exp $
