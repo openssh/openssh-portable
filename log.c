@@ -34,7 +34,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: log.c,v 1.21 2002/02/04 12:15:25 markus Exp $");
+RCSID("$OpenBSD: log.c,v 1.22 2002/02/22 12:20:34 markus Exp $");
 
 #include "log.h"
 #include "xmalloc.h"
@@ -88,8 +88,6 @@ static struct {
 	{ NULL,		SYSLOG_LEVEL_NOT_SET }
 };
 
-static void	 do_log(LogLevel level, const char *fmt, va_list args);
-
 SyslogFacility
 log_facility_number(char *name)
 {
@@ -110,17 +108,6 @@ log_level_number(char *name)
 			if (strcasecmp(log_levels[i].name, name) == 0)
 				return log_levels[i].val;
 	return SYSLOG_LEVEL_NOT_SET;
-}
-/* Fatal messages.  This function never returns. */
-
-void
-fatal(const char *fmt,...)
-{
-	va_list args;
-	va_start(args, fmt);
-	do_log(SYSLOG_LEVEL_FATAL, fmt, args);
-	va_end(args);
-	fatal_cleanup();
 }
 
 /* Error messages that should be logged. */
@@ -328,7 +315,7 @@ log_init(char *av0, LogLevel level, SyslogFacility facility, int on_stderr)
 
 #define MSGBUFSIZ 1024
 
-static void
+void
 do_log(LogLevel level, const char *fmt, va_list args)
 {
 	char msgbuf[MSGBUFSIZ];

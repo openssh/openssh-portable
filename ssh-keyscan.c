@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keyscan.c,v 1.33 2001/12/10 20:34:31 markus Exp $");
+RCSID("$OpenBSD: ssh-keyscan.c,v 1.34 2002/02/22 12:20:34 markus Exp $");
 
 #if defined(HAVE_SYS_QUEUE_H) && !defined(HAVE_BOGUS_SYS_QUEUE_H)
 #include <sys/queue.h>
@@ -660,11 +660,17 @@ do_host(char *host)
 	}
 }
 
-static void
-fatal_callback(void *arg)
+void
+fatal(const char *fmt,...)
 {
+	va_list args;
+	va_start(args, fmt);
+	do_log(SYSLOG_LEVEL_FATAL, fmt, args);
+	va_end(args);
 	if (nonfatal_fatal)
 		longjmp(kexjmp, -1);
+	else
+		fatal_cleanup();
 }
 
 static void
@@ -677,9 +683,9 @@ usage(void)
 	fprintf(stderr, "  -p port     Connect to the specified port.\n");
 	fprintf(stderr, "  -t keytype  Specify the host key type.\n");
 	fprintf(stderr, "  -T timeout  Set connection timeout.\n");
-        fprintf(stderr, "  -v          Verbose; display verbose debugging messages.\n");
-        fprintf(stderr, "  -4          Use IPv4 only.\n");
-        fprintf(stderr, "  -6          Use IPv6 only.\n");
+	fprintf(stderr, "  -v          Verbose; display verbose debugging messages.\n");
+	fprintf(stderr, "  -4          Use IPv4 only.\n");
+	fprintf(stderr, "  -6          Use IPv6 only.\n");
 	exit(1);
 }
 
@@ -766,7 +772,6 @@ main(int argc, char **argv)
 		usage();
 
 	log_init("ssh-keyscan", log_level, SYSLOG_FACILITY_USER, 1);
-	fatal_add_cleanup(fatal_callback, NULL);
 
 	maxfd = fdlim_get(1);
 	if (maxfd < 0)

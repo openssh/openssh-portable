@@ -20,6 +20,9 @@
      [auth-krb5.c]
      krb5_get_err_text() does not like context==NULL; he@nordu.net via google; 
      ok provos@
+   - markus@cvs.openbsd.org 2002/02/22 12:20:34
+     [log.c log.h ssh-keyscan.c]
+     overwrite fatal() in ssh-keyscan.c; fixes pr 2354; ok provos@
 
 20020225
  - (bal) Last AIX patch.  Moved aix_usrinfo() outside of do_setuserconext()
@@ -7693,4 +7696,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1878 2002/02/26 17:49:55 mouring Exp $
+$Id: ChangeLog,v 1.1879 2002/02/26 17:52:14 mouring Exp $
