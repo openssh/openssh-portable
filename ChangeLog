@@ -4,6 +4,8 @@
    on fix from HARUYAMA Seigo <haruyama@nt.phys.s.u-tokyo.ac.jp>
  - (djm) Use standard OpenSSL functions in auth-skey.c. Patch from
    Chris, the Young One <cky@pobox.com>
+ - (djm) Fix scp progress meter on really wide terminals. Based on patch 
+   from James H. Cloos Jr. <cloos@jhcloos.com>
 
 20000701
  - (djm) Fix Tru64 SIA problems reported by John P Speno <speno@isc.upenn.edu>
