@@ -8,7 +8,7 @@
    from Jim Watt <jimw@peisj.pebio.com>
  - (djm) Replaced bsd-snprintf.c with one from Mutt source tree, it is known
    to compile on more platforms (incl NeXT).
- - (djm) Added bsd-inet_aton for NeXT
+ - (djm) Added bsd-inet_aton and configure support for NeXT
 
 20000709
  - (djm) Only enable PAM_TTY kludge for Linux. Problem report from
