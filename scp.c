@@ -45,7 +45,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: scp.c,v 1.14 1999/12/16 02:05:17 damien Exp $");
+RCSID("$Id: scp.c,v 1.15 1999/12/30 22:16:40 damien Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -922,22 +922,24 @@ run_err(const char *fmt,...)
 {
 	static FILE *fp;
 	va_list ap;
-	va_start(ap, fmt);
 
 	++errs;
 	if (fp == NULL && !(fp = fdopen(remout, "w")))
 		return;
 	(void) fprintf(fp, "%c", 0x01);
 	(void) fprintf(fp, "scp: ");
+	va_start(ap, fmt);
 	(void) vfprintf(fp, fmt, ap);
+	va_end(ap);
 	(void) fprintf(fp, "\n");
 	(void) fflush(fp);
 
 	if (!iamremote) {
+		va_start(ap, fmt);
 		vfprintf(stderr, fmt, ap);
+		va_end(ap);
 		fprintf(stderr, "\n");
 	}
-	va_end(ap);
 }
 
 /* Stuff below is from BSD rcp util.c. */
@@ -974,7 +976,7 @@ run_err(const char *fmt,...)
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	$Id: scp.c,v 1.14 1999/12/16 02:05:17 damien Exp $
+ *	$Id: scp.c,v 1.15 1999/12/30 22:16:40 damien Exp $
  */
 
 char *

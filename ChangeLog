@@ -4,6 +4,8 @@
    HARUYAMA Seigo <haruyama@nt.phys.s.u-tokyo.ac.jp>
  - Fix broken autoconf typedef detection. Report from Marc G. 
    Fournier <marc.fournier@acadiau.ca>
+ - Fix occasional crash on LinuxPPC. Patch from Franz Sirl
+   <Franz.Sirl-kernel@lauterbach.com>
 
 19991230
  - OpenBSD CVS updates:
