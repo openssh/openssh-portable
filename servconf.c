@@ -257,7 +257,7 @@ fill_default_server_options(ServerOptions *options)
 	if (use_privsep == -1)
 		use_privsep = 1;
 
-#if !defined(HAVE_MMAP) || !defined(MAP_ANON)
+#if !defined(HAVE_MMAP_ANON_SHARED)
 	if (use_privsep && options->compression == 1) {
 		error("This platform does not support both privilege "
 		    "separation and compression");

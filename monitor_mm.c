@@ -84,13 +84,11 @@ mm_create(struct mm_master *mmalloc, size_t size)
 	 */
 	mm->mmalloc = mmalloc;
 
-#if  defined(HAVE_MMAP) && defined(MAP_ANON)
+#ifdef HAVE_MMAP_ANON_SHARED
 	address = mmap(NULL, size, PROT_WRITE|PROT_READ, MAP_ANON|MAP_SHARED,
 	    -1, 0);
-	if (address == MAP_FAILED)
-		fatal("mmap(%lu): %s", (u_long)size, strerror(errno));
 #else
-	fatal("%s: UsePrivilegeSeparation=yes not supported",
+	fatal("%s: UsePrivilegeSeparation=yes and Compression=yes not supported",
 	    __func__);
 #endif
 

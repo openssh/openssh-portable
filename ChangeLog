@@ -4,6 +4,8 @@
  - (djm) Create privsep directory and warn if privsep user is missing 
    during make install
  - (bal) Started list of PrivSep issues in TODO
+ - (bal) if mmap() is substandard, don't allow compression on server side.
+   Post 'event' we will add more options.
 
 20020624
  - OpenBSD CVS Sync
@@ -1089,4 +1091,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2268 2002/06/25 02:28:22 mouring Exp $
+$Id: ChangeLog,v 1.2269 2002/06/25 03:22:03 mouring Exp $
