@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.277 2001/04/17 17:57:11 mouring Exp $
+# $Id: configure.in,v 1.278 2001/04/18 18:04:23 mouring Exp $
 
 AC_INIT(ssh.c)
 
@@ -70,11 +70,9 @@ case "$host" in
 	AC_DEFINE(NO_X11_UNIX_SOCKETS)
 	no_libsocket=1
 	no_libnsl=1
-	MANTYPE=doc
 	;;
 *-*-dgux*)
 	AC_DEFINE(IP_TOS_IS_BROKEN)
-	MANTYPE=doc
 	;;
 *-*-hpux10*)
 	if test -z "$GCC"; then
@@ -124,7 +122,6 @@ case "$host" in
 	AC_DEFINE(DONT_TRY_OTHER_AF)
 	AC_DEFINE(PAM_TTY_KLUDGE)
 	inet6_default_4in6=yes
-	MANTYPE=doc
 	;;
 mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(HAVE_NEWS4)
@@ -132,15 +129,12 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_CHECK_LIB(iberty, xatexit, AC_DEFINE(HAVE_XATEXIT),
 		AC_MSG_ERROR([*** libiberty missing - please install first or check config.log ***])
         )
-	MANTYPE=doc
 	;;
 *-*-netbsd*)
 	need_dash_r=1
-	MANTYPE=doc
 	;;
 *-*-freebsd*)
 	check_for_libcrypt_later=1
-	MANTYPE=doc
 	;;
 *-next-*)
 	conf_lastlog_location="/usr/adm/lastlog"
@@ -153,7 +147,6 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(BROKEN_SAVED_UIDS)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	CFLAGS="$CFLAGS"
-	MANTYPE=doc
 	;;
 *-*-solaris*)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
@@ -1416,13 +1409,25 @@ AC_ARG_WITH(catman,
 			AC_MSG_ERROR(invalid man type: $withval)
 			;;
 		esac
-	], [
-		if test -z "$MANTYPE" ; then
-			MANTYPE=man
-		fi
 	]
 )
+if test -z "$MANTYPE"; then
+	AC_PATH_PROGS(NROFF, nroff awf, /bin/false, /usr/bin)
+	if ${NROFF} -mdoc ${srcdir}/ssh.1 >/dev/null 2>&1; then
+		MANTYPE=doc
+	elif ${NROFF} -man ${srcdir}/ssh.1 >/dev/null 2>&1; then
+		MANTYPE=man
+	else
+		MANTYPE=cat
+	fi
+fi
 AC_SUBST(MANTYPE)
+if test "$MANTYPE" = "doc"; then
+	mansubdir=man;
+else
+	mansubdir=$MANTYPE;
+fi
+AC_SUBST(mansubdir)
 
 # Check whether to enable MD5 passwords
 MD5_MSG="no" 
@@ -1896,7 +1901,7 @@ B=`eval echo ${bindir}` ; B=`eval echo ${B}`
 C=`eval echo ${sbindir}` ; C=`eval echo ${C}`
 D=`eval echo ${sysconfdir}` ; D=`eval echo ${D}`
 E=`eval echo ${libexecdir}/ssh-askpass` ; E=`eval echo ${E}`
-F=`eval echo ${mandir}` ; F=`eval echo ${F}`
+F=`eval echo ${mandir}/${mansubdir}X` ; F=`eval echo ${F}`
 G=`eval echo ${piddir}` ; G=`eval echo ${G}`
 H=`eval echo ${user_path}` ; H=`eval echo ${H}`
 

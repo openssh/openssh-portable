@@ -10,6 +10,8 @@
      debug->debug3
   - (bal) renabled 'catman-do:' and fixed it.  So now catman pages should
     be working again.
+  - (bal) Makfile day... Cleaned up multiple mantype support (Patch by
+    Mark D. Roth <roth+openssh@feep.net>), and fixed PIDDIR support.
 
 20010417
   - (bal) Add perl5 check for HP/UX, Removed GNUness from Makefile.in
@@ -5157,4 +5159,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1138 2001/04/18 15:46:01 mouring Exp $
+$Id: ChangeLog,v 1.1139 2001/04/18 18:04:21 mouring Exp $

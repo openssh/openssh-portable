@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.171 2001/04/18 15:46:03 mouring Exp $
+# $Id: Makefile.in,v 1.172 2001/04/18 18:04:22 mouring Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -6,6 +6,7 @@ bindir=@bindir@
 sbindir=@sbindir@
 libexecdir=@libexecdir@
 mandir=@mandir@
+mansubdir=@mansubdir@
 sysconfdir=@sysconfdir@
 piddir=@piddir@
 srcdir=@srcdir@
@@ -20,7 +21,8 @@ SFTP_SERVER=$(libexecdir)/sftp-server
 PATHS= -DETCDIR=\"$(sysconfdir)\" \
 	-D_PATH_SSH_PROGRAM=\"$(SSH_PROGRAM)\" \
 	-D_PATH_SSH_ASKPASS_DEFAULT=\"$(ASKPASS_PROGRAM)\" \
-	-D_PATH_SFTP_SERVER=\"$(SFTP_SERVER)\"
+	-D_PATH_SFTP_SERVER=\"$(SFTP_SERVER)\" \
+	-D_PATH_SSH_PIDDIR=\"$(piddir)\"
 
 CC=@CC@
 LD=@LD@
@@ -126,9 +128,9 @@ $(MANPAGES)::
 		manpage=$@; \
 	fi; \
 	if test "$(MANTYPE)" = "man"; then \
-		$(FIXPATHSCMD) $(srcdir)/$${manpage} | $(PERL) $(srcdir)/mdoc2man.pl > $@.out; \
+		$(FIXPATHSCMD) $${manpage} | $(PERL) $(srcdir)/mdoc2man.pl > $@.out; \
 	else \
-		$(FIXPATHSCMD) $(srcdir)/$${manpage} > $@.out; \
+		$(FIXPATHSCMD) $${manpage} > $@.out; \
 	fi
 
 $(CONFIGFILES)::
@@ -165,6 +167,8 @@ install-files:
 	$(srcdir)/mkinstalldirs $(DESTDIR)$(bindir)
 	$(srcdir)/mkinstalldirs $(DESTDIR)$(sbindir)
 	$(srcdir)/mkinstalldirs $(DESTDIR)$(mandir)
+	$(srcdir)/mkinstalldirs $(DESTDIR)$(mandir)/$(mansubdir)1
+	$(srcdir)/mkinstalldirs $(DESTDIR)$(mandir)/$(mansubdir)8
 	$(srcdir)/mkinstalldirs $(DESTDIR)$(libexecdir)
 	$(INSTALL) -m $(SSH_MODE) -s ssh $(DESTDIR)$(bindir)/ssh
 	$(INSTALL) -m 0755 -s scp $(DESTDIR)$(bindir)/scp
@@ -175,22 +179,15 @@ install-files:
 	$(INSTALL) -m 0755 -s sshd $(DESTDIR)$(sbindir)/sshd
 	@NO_SFTP@$(INSTALL) -m 0755 -s sftp $(DESTDIR)$(bindir)/sftp
 	@NO_SFTP@$(INSTALL) -m 0755 -s sftp-server $(DESTDIR)$(SFTP_SERVER)
-	if test "$(MANTYPE)" = "doc"; then \
-		mansubdir="man"; \
-	else \
-		mansubdir="$(MANTYPE)"; \
-	fi; \
-	$(srcdir)/mkinstalldirs $(DESTDIR)$(mandir)/$${mansubdir}1; \
-	$(srcdir)/mkinstalldirs $(DESTDIR)$(mandir)/$${mansubdir}8; \
-	$(INSTALL) -m 644 ssh.1.out $(DESTDIR)$(mandir)/$${mansubdir}1/ssh.1; \
-	$(INSTALL) -m 644 scp.1.out $(DESTDIR)$(mandir)/$${mansubdir}1/scp.1; \
-	$(INSTALL) -m 644 ssh-add.1.out $(DESTDIR)$(mandir)/$${mansubdir}1/ssh-add.1; \
-	$(INSTALL) -m 644 ssh-agent.1.out $(DESTDIR)$(mandir)/$${mansubdir}1/ssh-agent.1; \
-	$(INSTALL) -m 644 ssh-keygen.1.out $(DESTDIR)$(mandir)/$${mansubdir}1/ssh-keygen.1; \
-	$(INSTALL) -m 644 ssh-keyscan.1.out $(DESTDIR)$(mandir)/$${mansubdir}1/ssh-keyscan.1; \
-	$(INSTALL) -m 644 sshd.8.out $(DESTDIR)$(mandir)/$${mansubdir}8/sshd.8; \
-	@NO_SFTP@$(INSTALL) -m 644 sftp.1.out $(DESTDIR)$(mandir)/$${mansubdir}1/sftp.1; \
-	@NO_SFTP@$(INSTALL) -m 644 sftp-server.8.out $(DESTDIR)$(mandir)/$${mansubdir}8/sftp-server.8;
+	$(INSTALL) -m 644 ssh.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh.1
+	$(INSTALL) -m 644 scp.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/scp.1
+	$(INSTALL) -m 644 ssh-add.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-add.1
+	$(INSTALL) -m 644 ssh-agent.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-agent.1
+	$(INSTALL) -m 644 ssh-keygen.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-keygen.1
+	$(INSTALL) -m 644 ssh-keyscan.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-keyscan.1
+	$(INSTALL) -m 644 sshd.8.out $(DESTDIR)$(mandir)/$(mansubdir)8/sshd.8
+	@NO_SFTP@$(INSTALL) -m 644 sftp.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/sftp.1
+	@NO_SFTP@$(INSTALL) -m 644 sftp-server.8.out $(DESTDIR)$(mandir)/$(mansubdir)8/sftp-server.8
 	-rm -f $(DESTDIR)$(bindir)/slogin
 	ln -s ssh$(EXEEXT) $(DESTDIR)$(bindir)/slogin
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/slogin.1
