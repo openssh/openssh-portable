@@ -1,6 +1,9 @@
 20010219
  - (bal) Markus' blessing to rename login.[ch] -> sshlogin.[ch] and
    pty.[ch] -> sshpty.[ch]
+ - (djm) Rework search for OpenSSL location. Skip directories which don't
+   exist, don't add -L$ssldir/lib if it doesn't exist. Should help SCO
+   with its limit of 6 -L options.
 
 20010218
  - (bal) Patch for fix FCHMOD reference in ftp-client.c by Tim Rice 
@@ -4042,4 +4045,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.801 2001/02/18 19:13:33 mouring Exp $
+$Id: ChangeLog,v 1.802 2001/02/19 01:56:39 djm Exp $

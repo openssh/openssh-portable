@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.247 2001/02/18 06:01:00 djm Exp $
+# $Id: configure.in,v 1.248 2001/02/19 01:56:39 djm Exp $
 
 AC_INIT(ssh.c)
 
@@ -593,19 +593,37 @@ if test "x$prefix" != "xNONE" ; then
 	tryssldir="$tryssldir $prefix"
 fi
 AC_CACHE_CHECK([for OpenSSL directory], ac_cv_openssldir, [
-
 	for ssldir in $tryssldir "" /usr/local/openssl /usr/lib/openssl /usr/local/ssl /usr/lib/ssl /usr/local /usr/pkg /opt /opt/openssl ; do
-		if test ! -z "$ssldir" -a "x$ssldir" != "x/usr"; then
-			LDFLAGS="$saved_LDFLAGS -L$ssldir/lib -L$ssldir"
-			CPPFLAGS="$saved_CPPFLAGS -I$ssldir/include"
-			if test ! -z "$need_dash_r" ; then
-				LDFLAGS="$LDFLAGS -R$ssldir/lib -R$ssldir"
-			fi
-		else
-			LDFLAGS="$saved_LDFLAGS"
-		fi
-
+		CPPFLAGS="$saved_CPPFLAGS"
+		LDFLAGS="$saved_LDFLAGS"
 		LIBS="$saved_LIBS -lcrypto"
+		
+		# Skip directories if they don't exist
+		if test ! -z "$ssldir" -a ! -d "$ssldir" ; then
+			continue;
+		fi
+		if test ! -z "$ssldir" -a "x$ssldir" != "x/usr"; then
+			# Try to use $ssldir/lib if it exists, otherwise 
+			# $ssldir
+			if test -d "$ssldir/lib" ; then
+				LDFLAGS="$LDFLAGS -L$ssldir/lib"
+				if test ! -z "$need_dash_r" ; then
+					LDFLAGS="$LDFLAGS -R$ssldir/lib"
+				fi
+			else
+				LDFLAGS="$LDFLAGS -L$ssldir"
+				if test ! -z "$need_dash_r" ; then
+					LDFLAGS="$LDFLAGS -R$ssldir"
+				fi
+			fi
+			# Try to use $ssldir/include if it exists, otherwise 
+			# $ssldir
+			if test -d "$ssldir/include" ; then
+				CPPFLAGS="$CPPFLAGS -I$ssldir/include"
+			else
+				CPPFLAGS="$CPPFLAGS -I$ssldir"
+			fi
+		fi
 
 		# Basic test to check for compatible version and correct linking
 		# *does not* test for RSA - that comes later.
@@ -646,15 +664,26 @@ if (test ! -z "$ac_cv_openssldir" && test "x$ac_cv_openssldir" != "x(system)") ;
 	AC_DEFINE(HAVE_OPENSSL)
 	dnl Need to recover ssldir - test above runs in subshell
 	ssldir=$ac_cv_openssldir
-
 	if test ! -z "$ssldir" -a "x$ssldir" != "x/usr"; then
-		CPPFLAGS="$saved_CPPFLAGS -I$ssldir/include"
-		LDFLAGS="$saved_LDFLAGS -L$ssldir/lib -L$ssldir"
-		if test ! -z "$need_dash_r" ; then
-			LDFLAGS="$LDFLAGS -R$ssldir/lib -R$ssldir"
+		# Try to use $ssldir/lib if it exists, otherwise 
+		# $ssldir
+		if test -d "$ssldir/lib" ; then
+			LDFLAGS="$LDFLAGS -L$ssldir/lib"
+			if test ! -z "$need_dash_r" ; then
+				LDFLAGS="$LDFLAGS -R$ssldir/lib"
+			fi
+		else
+			LDFLAGS="$LDFLAGS -L$ssldir"
+			if test ! -z "$need_dash_r" ; then
+				LDFLAGS="$LDFLAGS -R$ssldir"
+			fi
 		fi
-		if test ! -z "$blibpath" ; then
-			blibpath="$blibpath:$ssldir:$ssldir/lib"
+		# Try to use $ssldir/include if it exists, otherwise 
+		# $ssldir
+		if test -d "$ssldir/include" ; then
+			CPPFLAGS="$CPPFLAGS -I$ssldir/include"
+		else
+			CPPFLAGS="$CPPFLAGS -I$ssldir"
 		fi
 	fi
 fi
