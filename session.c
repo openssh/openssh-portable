@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.165 2003/09/23 20:17:11 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.166 2003/10/14 19:54:39 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -144,7 +144,7 @@ auth_input_request_forwarding(struct passwd * pw)
 	/* Allocate a buffer for the socket name, and format the name. */
 	auth_sock_name = xmalloc(MAXPATHLEN);
 	auth_sock_dir = xmalloc(MAXPATHLEN);
-	strlcpy(auth_sock_dir, "/tmp/ssh-XXXXXXXX", MAXPATHLEN);
+	strlcpy(auth_sock_dir, "/tmp/ssh-XXXXXXXXXX", MAXPATHLEN);
 
 	/* Create private directory for socket */
 	if (mkdtemp(auth_sock_dir) == NULL) {
