@@ -139,7 +139,7 @@ int
 krb4_init(uid_t uid)
 {
 	static int cleanup_registered = 0;
-	char *tkt_root = TKT_ROOT;
+	const char *tkt_root = TKT_ROOT;
 	struct stat st;
 	int fd;
 

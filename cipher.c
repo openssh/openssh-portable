@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: cipher.c,v 1.13 2000/03/09 10:27:50 damien Exp $");
+RCSID("$Id: cipher.c,v 1.14 2000/03/26 03:04:52 damien Exp $");
 
 #include "ssh.h"
 #include "cipher.h"
@@ -108,18 +108,6 @@ swap_bytes(const unsigned char *src, unsigned char *dst_, int n)
 		t.c[0] = *src++;
 		*dst++ = t.i;
 	}
-}
-
-void (*cipher_attack_detected) (const char *fmt,...) = fatal;
-
-static inline void
-detect_cbc_attack(const unsigned char *src,
-		  unsigned int len)
-{
-	return;
-
-	log("CRC-32 CBC insertion attack detected");
-	cipher_attack_detected("CRC-32 CBC insertion attack detected");
 }
 
 /*
@@ -304,7 +292,6 @@ cipher_decrypt(CipherContext *context, unsigned char *dest,
 		break;
 
 	case SSH_CIPHER_3DES:
-		/* CRC-32 attack? */
 		SSH_3CBC_DECRYPT(context->u.des3.key1,
 				 context->u.des3.key2, &context->u.des3.iv2,
 				 context->u.des3.key3, &context->u.des3.iv3,
@@ -312,7 +299,6 @@ cipher_decrypt(CipherContext *context, unsigned char *dest,
 		break;
 
 	case SSH_CIPHER_BLOWFISH:
-		detect_cbc_attack(src, len);
 		swap_bytes(src, dest, len);
 		BF_cbc_encrypt((void *) dest, dest, len,
 			       &context->u.bf.key, context->u.bf.iv,

@@ -2,6 +2,20 @@
  - Better tests for OpenSSL w/ RSAref
  - Added replacement setenv() function from OpenBSD libc. Suggested by 
    Ben Lindstrom <mouring@pconline.com>
+ - OpenBSD CVS update
+   - [auth-krb4.c]
+     -Wall
+   - [auth-rh-rsa.c auth-rsa.c hostfile.c hostfile.h key.c key.h match.c]
+     [match.h ssh.c ssh.h sshconnect.c sshd.c]
+     initial support for DSA keys. ok deraadt@, niels@
+   - [cipher.c cipher.h]
+     remove unused cipher_attack_detected code
+   - [scp.1 ssh-add.1 ssh-agent.1 ssh-keygen.1 ssh.1 sshd.8]
+     Fix some formatting problems I missed before.
+   - [ssh.1 sshd.8]
+     fix spelling errors, From: FreeBSD
+   - [ssh.c]
+     switch to raw mode only if he _get_ a pty (not if we _want_ a pty).
 
 20000324
  - Released 1.2.3

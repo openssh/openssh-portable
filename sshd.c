@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.92 2000/03/16 20:56:15 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.94 2000/03/23 22:15:34 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -515,9 +515,6 @@ main(int ac, char **av)
 	/* Chdir to the root directory so that the current disk can be
 	   unmounted if desired. */
 	chdir("/");
-
-	/* Close connection cleanly after attack. */
-	cipher_attack_detected = packet_disconnect;
 
 	/* Start listening for a socket, unless started from inetd. */
 	if (inetd_flag) {
@@ -1301,7 +1298,7 @@ do_authloop(struct passwd * pw)
 {
 	int attempt = 0;
 	unsigned int bits;
-	BIGNUM *client_host_key_e, *client_host_key_n;
+	RSA *client_host_key;
 	BIGNUM *n;
 	char *client_user = NULL, *password = NULL;
 	char user[1024];
@@ -1417,21 +1414,24 @@ do_authloop(struct passwd * pw)
 			client_user = packet_get_string(&ulen);
 
 			/* Get the client host key. */
-			client_host_key_e = BN_new();
-			client_host_key_n = BN_new();
+			client_host_key = RSA_new();
+			if (client_host_key == NULL)
+				fatal("RSA_new failed");
+			client_host_key->e = BN_new();
+			client_host_key->n = BN_new();
+			if (client_host_key->e == NULL || client_host_key->n == NULL)
+				fatal("BN_new failed");
 			bits = packet_get_int();
-			packet_get_bignum(client_host_key_e, &elen);
-			packet_get_bignum(client_host_key_n, &nlen);
+			packet_get_bignum(client_host_key->e, &elen);
+			packet_get_bignum(client_host_key->n, &nlen);
 
-			if (bits != BN_num_bits(client_host_key_n))
+			if (bits != BN_num_bits(client_host_key->n))
 				error("Warning: keysize mismatch for client_host_key: "
-				      "actual %d, announced %d", BN_num_bits(client_host_key_n), bits);
+				      "actual %d, announced %d", BN_num_bits(client_host_key->n), bits);
 			packet_integrity_check(plen, (4 + ulen) + 4 + elen + nlen, type);
 
-			authenticated = auth_rhosts_rsa(pw, client_user,
-				   client_host_key_e, client_host_key_n);
-			BN_clear_free(client_host_key_e);
-			BN_clear_free(client_host_key_n);
+			authenticated = auth_rhosts_rsa(pw, client_user, client_host_key);
+			RSA_free(client_host_key);
 
 			snprintf(user, sizeof user, " ruser %s", client_user);
 			break;

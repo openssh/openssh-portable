@@ -31,7 +31,7 @@ LDFLAGS=-L. @LDFLAGS@
 
 TARGETS=ssh sshd ssh-add ssh-keygen ssh-agent scp $(EXTRA_TARGETS)
 
-LIBOBJS= atomicio.o authfd.o authfile.o bsd-bindresvport.o bsd-daemon.o bsd-misc.o bsd-mktemp.o bsd-rresvport.o bsd-setenv.o bsd-snprintf.o bsd-strlcat.o bsd-strlcpy.o bufaux.o buffer.o canohost.o channels.o cipher.o compat.o compress.o crc32.o deattack.o fake-getaddrinfo.o fake-getnameinfo.o fingerprint.o hostfile.o log.o match.o mpaux.o nchan.o packet.o radix.o random.o readpass.o rsa.o tildexpand.o ttymodes.o uidswap.o xmalloc.o 
+LIBOBJS= atomicio.o authfd.o authfile.o bsd-bindresvport.o bsd-daemon.o bsd-misc.o bsd-mktemp.o bsd-rresvport.o bsd-setenv.o bsd-snprintf.o bsd-strlcat.o bsd-strlcpy.o bufaux.o buffer.o canohost.o channels.o cipher.o compat.o compress.o crc32.o deattack.o fake-getaddrinfo.o fake-getnameinfo.o fingerprint.o hostfile.o key.o log.o match.o mpaux.o nchan.o packet.o radix.o random.o readpass.o rsa.o tildexpand.o ttymodes.o uidswap.o xmalloc.o 
 
 SSHOBJS= ssh.o sshconnect.o log-client.o readconf.o clientloop.o
 

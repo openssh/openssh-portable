@@ -11,7 +11,7 @@
  * 
  */
 
-/* RCSID("$Id: cipher.h,v 1.5 1999/11/25 00:54:58 damien Exp $"); */
+/* RCSID("$Id: cipher.h,v 1.6 2000/03/26 03:04:52 damien Exp $"); */
 
 #ifndef CIPHER_H
 #define CIPHER_H
@@ -95,11 +95,5 @@ cipher_encrypt(CipherContext * context, unsigned char *dest,
 void 
 cipher_decrypt(CipherContext * context, unsigned char *dest,
     const unsigned char *src, unsigned int len);
-
-/*
- * If and CRC-32 attack is detected this function is called. Defaults to
- * fatal, changed to packet_disconnect in sshd and ssh.
- */
-extern void (*cipher_attack_detected) (const char *fmt, ...);
 
 #endif				/* CIPHER_H */
