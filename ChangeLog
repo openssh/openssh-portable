@@ -1,5 +1,6 @@
 20011024
  - (bal) Should be 3.0p1 not 3.0p2.  Corrected version.h already.
+ - (tim) configure.in -> configure.ac
 
 20011023
  - (bal) Updated version to 3.0p1 in preparing for release.
@@ -6755,4 +6756,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1615 2001/10/24 21:06:07 mouring Exp $
+$Id: ChangeLog,v 1.1616 2001/10/25 04:15:26 tim Exp $

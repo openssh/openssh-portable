@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.317 2001/10/24 05:36:55 tim Exp $
+# $Id: configure.ac,v 1.1 2001/10/25 04:15:26 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -540,7 +540,6 @@ AC_ARG_WITH(tcp-wrappers,
 				else
 					CPPFLAGS="$CPPFLAGS -I${withval}"
 				fi
-					TCPW_MSG="yes"
 			fi
 			LIBS="-lwrap $LIBS"
 			AC_MSG_CHECKING(for libwrap)
