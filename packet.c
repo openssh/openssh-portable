@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.88 2002/02/14 23:41:01 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.89 2002/02/24 16:58:32 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -365,7 +365,7 @@ packet_put_bignum2(BIGNUM * value)
 static void
 packet_send1(void)
 {
-	char buf[8], *cp;
+	u_char buf[8], *cp;
 	int i, padding, len;
 	u_int checksum;
 	u_int32_t rand = 0;
@@ -496,9 +496,8 @@ static void
 packet_send2(void)
 {
 	static u_int32_t seqnr = 0;
-	u_char type, *ucp, *macbuf = NULL;
+	u_char type, *cp, *macbuf = NULL;
 	u_char padlen, pad;
-	char *cp;
 	u_int packet_length = 0;
 	u_int i, len;
 	u_int32_t rand = 0;
@@ -514,8 +513,8 @@ packet_send2(void)
 	}
 	block_size = enc ? enc->block_size : 8;
 
-	ucp = buffer_ptr(&outgoing_packet);
-	type = ucp[5];
+	cp = buffer_ptr(&outgoing_packet);
+	type = cp[5];
 
 #ifdef PACKET_DEBUG
 	fprintf(stderr, "plain:     ");
@@ -570,9 +569,9 @@ packet_send2(void)
 	}
 	/* packet_length includes payload, padding and padding length field */
 	packet_length = buffer_len(&outgoing_packet) - 4;
-	ucp = buffer_ptr(&outgoing_packet);
-	PUT_32BIT(ucp, packet_length);
-	ucp[4] = padlen;
+	cp = buffer_ptr(&outgoing_packet);
+	PUT_32BIT(cp, packet_length);
+	cp[4] = padlen;
 	DBG(debug("send: len %d (includes padlen %d)", packet_length+4, padlen));
 
 	/* compute MAC over seqnr and packet(length fields, payload, padding) */
@@ -709,16 +708,15 @@ static int
 packet_read_poll1(void)
 {
 	u_int len, padded_len;
-	u_char *ucp, type;
-	char *cp;
+	u_char *cp, type;
 	u_int checksum, stored_checksum;
 
 	/* Check if input size is less than minimum packet size. */
 	if (buffer_len(&input) < 4 + 8)
 		return SSH_MSG_NONE;
 	/* Get length of incoming packet. */
-	ucp = buffer_ptr(&input);
-	len = GET_32BIT(ucp);
+	cp = buffer_ptr(&input);
+	len = GET_32BIT(cp);
 	if (len < 1 + 2 + 2 || len > 256 * 1024)
 		packet_disconnect("Bad packet length %d.", len);
 	padded_len = (len + 8) & ~7;
@@ -765,8 +763,8 @@ packet_read_poll1(void)
 		packet_disconnect("packet_read_poll1: len %d != buffer_len %d.",
 		    len, buffer_len(&incoming_packet));
 
-	ucp = (u_char *)buffer_ptr(&incoming_packet) + len - 4;
-	stored_checksum = GET_32BIT(ucp);
+	cp = (u_char *)buffer_ptr(&incoming_packet) + len - 4;
+	stored_checksum = GET_32BIT(cp);
 	if (checksum != stored_checksum)
 		packet_disconnect("Corrupted check bytes on input.");
 	buffer_consume_end(&incoming_packet, 4);
@@ -788,8 +786,7 @@ packet_read_poll2(u_int32_t *seqnr_p)
 	static u_int32_t seqnr = 0;
 	static u_int packet_length = 0;
 	u_int padlen, need;
-	u_char *macbuf, *ucp, type;
-	char *cp;
+	u_char *macbuf, *cp, type;
 	int maclen, block_size;
 	Enc *enc   = NULL;
 	Mac *mac   = NULL;
@@ -814,8 +811,8 @@ packet_read_poll2(u_int32_t *seqnr_p)
 		cp = buffer_append_space(&incoming_packet, block_size);
 		cipher_crypt(&receive_context, cp, buffer_ptr(&input),
 		    block_size);
-		ucp = buffer_ptr(&incoming_packet);
-		packet_length = GET_32BIT(ucp);
+		cp = buffer_ptr(&incoming_packet);
+		packet_length = GET_32BIT(cp);
 		if (packet_length < 1 + 4 || packet_length > 256 * 1024) {
 			buffer_dump(&incoming_packet);
 			packet_disconnect("Bad packet length %d.", packet_length);
@@ -863,8 +860,7 @@ packet_read_poll2(u_int32_t *seqnr_p)
 
 	/* get padlen */
 	cp = buffer_ptr(&incoming_packet);
-	cp += 4;
-	padlen = (u_char) *cp;
+	padlen = cp[4];
 	DBG(debug("input: padlen %d", padlen));
 	if (padlen < 4)
 		packet_disconnect("Corrupted padlen %d on input.", padlen);

@@ -32,6 +32,9 @@
    - markus@cvs.openbsd.org 2002/02/24 16:57:19
      [sftp-client.c]
      early close(), missing free; ok stevesk@
+   - markus@cvs.openbsd.org 2002/02/24 16:58:32
+     [packet.c]
+     make 'cp' unsigned and merge with 'ucp'; ok stevesk@
 
 20020225
  - (bal) Last AIX patch.  Moved aix_usrinfo() outside of do_setuserconext()
@@ -7705,4 +7708,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1882 2002/02/26 18:02:43 mouring Exp $
+$Id: ChangeLog,v 1.1883 2002/02/26 18:04:38 mouring Exp $
