@@ -75,4 +75,10 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
    client program.  Socketpairs do not seem to work on all systems. */
 #define USE_PIPES 1
 
+#ifndef SHUT_RD
+#define SHUT_RD 0 
+#define SHUT_WR 1 
+#define SHUT_RDWR 2 
+#endif /* SHUT_RD */
+
 #endif /* INCLUDES_H */
