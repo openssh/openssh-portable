@@ -49,7 +49,7 @@ RCSID("$OpenBSD: readpass.c,v 1.12 2000/10/11 20:14:39 markus Exp $");
  * compatibility with existing code.
  */
 char *
-read_passphrase(char *prompt, int from_stdin)
+read_passphrase(const char *prompt, int from_stdin)
 {
 	return cli_read_passphrase(prompt, from_stdin, 0);
 }

@@ -9,7 +9,8 @@
  * of response depending on arg.  Tries to ensure that no other userland
  * buffer is storing the response.
  */
-char*	cli_read_passphrase(char* prompt, int from_stdin, int echo_enable);
+char*	cli_read_passphrase(const char* prompt, int from_stdin, 
+    int echo_enable);
 char*	cli_prompt(char* prompt, int echo_enable);
 void	cli_mesg(char* mesg);
 

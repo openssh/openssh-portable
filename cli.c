@@ -129,7 +129,7 @@ cli_read(char* buf, int size, int echo)
 }
 
 static int
-cli_write(char* buf, int size)
+cli_write(const char* buf, int size)
 {
 	int i, len, pos, ret = 0;
 	char *output, *p;
@@ -161,7 +161,7 @@ cli_write(char* buf, int size)
  * buffer is storing the response.
  */
 char*
-cli_read_passphrase(char* prompt, int from_stdin, int echo_enable)
+cli_read_passphrase(const char* prompt, int from_stdin, int echo_enable)
 {
 	char	buf[BUFSIZ];
 	char*	p;
