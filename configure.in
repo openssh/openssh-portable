@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.312 2001/09/20 02:07:51 mouring Exp $
+# $Id: configure.in,v 1.313 2001/09/20 19:43:41 stevesk Exp $
 
 AC_INIT(ssh.c)
 
@@ -1166,22 +1166,6 @@ OSSH_CHECK_HEADER_FOR_FIELD(ut_time, utmp.h, HAVE_TIME_IN_UTMP)
 OSSH_CHECK_HEADER_FOR_FIELD(ut_time, utmpx.h, HAVE_TIME_IN_UTMPX)
 OSSH_CHECK_HEADER_FOR_FIELD(ut_tv, utmpx.h, HAVE_TV_IN_UTMPX)
 AC_STRUCT_ST_BLKSIZE
-
-AC_CACHE_CHECK([for sun_len field in struct sockaddr_un],
-		ac_cv_have_sun_len_in_struct_sockaddr_un, [
-	AC_TRY_COMPILE(
-		[
-#include <sys/types.h>
-#include <sys/socket.h>
-		],
-		[ struct sockaddr_un s; s.sun_len = 1; ],
-		[ ac_cv_have_sun_len_in_struct_sockaddr_un="yes" ],
-		[ ac_cv_have_sun_len_in_struct_sockaddr_un="no" ],
-	)
-])
-if test "x$ac_cv_have_sun_len_in_struct_sockaddr_un" = "xyes" ; then
-	AC_DEFINE(HAVE_SUN_LEN_IN_SOCKADDR_UN)
-fi
 
 AC_CACHE_CHECK([for ss_family field in struct sockaddr_storage],
 		ac_cv_have_ss_family_in_struct_ss, [

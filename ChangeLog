@@ -1,5 +1,6 @@
 20010920
  - (tim) [scard/Makefile.in] Don't strip the Java binary
+ - (stevesk) sun_len, SUN_LEN() configure stuff no longer required
 
 20010919
  - (bal) OpenBSD Sync
@@ -6533,4 +6534,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1549 2001/09/20 18:39:35 tim Exp $
+$Id: ChangeLog,v 1.1550 2001/09/20 19:43:41 stevesk Exp $

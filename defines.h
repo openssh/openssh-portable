@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.71 2001/09/15 11:31:54 djm Exp $ */
+/* $Id: defines.h,v 1.72 2001/09/20 19:43:41 stevesk Exp $ */
 
 /* Necessary headers */
 
@@ -12,7 +12,7 @@
 #include <netinet/in.h> /* For IPv6 macros */
 #include <netinet/ip.h> /* For IPTOS macros */
 #ifdef HAVE_SYS_UN_H
-# include <sys/un.h> /* For SUN_LEN */
+# include <sys/un.h> /* For sockaddr_un */
 #endif
 #ifdef HAVE_SYS_BITYPES_H
 # include <sys/bitypes.h> /* For u_intXX_t */
@@ -404,11 +404,6 @@ struct winsize {
 #if !defined(__GNUC__) || (__GNUC__ < 2)
 # define __attribute__(x)
 #endif /* !defined(__GNUC__) || (__GNUC__ < 2) */
-
-#ifndef SUN_LEN
-#define SUN_LEN(su) \
-	(sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
-#endif /* SUN_LEN */
 
 /* *-*-nto-qnx doesn't define this macro in the system headers */
 #ifdef MISSING_HOWMANY
