@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.255 2005/03/20 22:55:17 dtucker Exp $
+# $Id: configure.ac,v 1.256 2005/03/20 22:58:08 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -850,13 +850,18 @@ LIBEDIT_MSG="no"
 AC_ARG_WITH(libedit,
 	[  --with-libedit[[=PATH]]   Enable libedit support for sftp],
 	[ if test "x$withval" != "xno" ; then
+		if test "x$withval" != "xyes"; then
+			CPPFLAGS="$CPPFLAGS -I$withval/include"
+			LDFLAGS="$LDFLAGS -L$withval/lib"
+		fi
 		AC_CHECK_LIB(edit, el_init,
 			[ AC_DEFINE(USE_LIBEDIT, [], [Use libedit for sftp])
 			  LIBEDIT="-ledit -lcurses"
 			  LIBEDIT_MSG="yes"
 			  AC_SUBST(LIBEDIT)
 			],
-			[], [-lcurses]
+			[ AC_MSG_ERROR(libedit not found) ],
+			[ -lcurses ]
 		)
 	fi ]
 )
