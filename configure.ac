@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.254 2005/03/18 00:52:21 tim Exp $
+# $Id: configure.ac,v 1.255 2005/03/20 22:55:17 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -587,10 +587,9 @@ AC_SEARCH_LIBS(basename, gen, AC_DEFINE(HAVE_BASENAME))
 dnl zlib is required
 AC_ARG_WITH(zlib,
 	[  --with-zlib=PATH        Use zlib in PATH],
-	[
-		if test "x$withval" = "xno" ; then
-			AC_MSG_ERROR([*** zlib is required ***])
-		fi
+	[ if test "x$withval" = "xno" ; then
+		AC_MSG_ERROR([*** zlib is required ***])
+	  elif test "x$withval" != "xyes"; then
 		if test -d "$withval/lib"; then
 			if test -n "${need_dash_r}"; then
 				LDFLAGS="-L${withval}/lib -R${withval}/lib ${LDFLAGS}"
@@ -609,7 +608,7 @@ AC_ARG_WITH(zlib,
 		else
 			CPPFLAGS="-I${withval} ${CPPFLAGS}"
 		fi
-	]
+	fi ]
 )
 
 AC_CHECK_LIB(z, deflate, ,
