@@ -1,3 +1,9 @@
+20030123
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2003/01/23 00:03:00
+     [auth1.c]
+     Don't log TIS auth response; "get rid of it" - markus@
+
 20030122
  - (djm) OpenBSD CVS Sync
    - marc@cvs.openbsd.org 2003/01/21 18:14:36
@@ -1050,4 +1056,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2581 2003/01/22 06:53:16 djm Exp $
+$Id: ChangeLog,v 1.2582 2003/01/23 06:41:20 djm Exp $
