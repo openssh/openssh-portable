@@ -1,3 +1,6 @@
+20020415
+ - (djm) Unbreak "make install". Fix from Darren Tucker <dtucker@zip.com.au>
+
 20020414
  - (djm) ssh-rand-helper improvements
    - Add commandline debugging options
@@ -8241,4 +8244,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2053 2002/04/14 13:16:04 djm Exp $
+$Id: ChangeLog,v 1.2054 2002/04/15 03:23:59 djm Exp $

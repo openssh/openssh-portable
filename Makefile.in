@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.203 2002/04/14 09:27:13 djm Exp $
+# $Id: Makefile.in,v 1.204 2002/04/15 03:24:00 djm Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -218,7 +218,7 @@ install-files: scard-install
 	$(INSTALL) -m 644 ssh-keyscan.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-keyscan.1
 	$(INSTALL) -m 644 sshd.8.out $(DESTDIR)$(mandir)/$(mansubdir)8/sshd.8
 	if [ ! -z "$(INSTALL_SSH_PRNG_CMDS)" ]; then \
-		$(INSTALL) -m 644 ssh-rand-helper.8.out $(DESTDIR)$(mandir)/$(mansubdir)8/ssh-rand-helper.8
+		$(INSTALL) -m 644 ssh-rand-helper.8.out $(DESTDIR)$(mandir)/$(mansubdir)8/ssh-rand-helper.8 ; \
 	fi
 	@NO_SFTP@$(INSTALL) -m 644 sftp.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/sftp.1
 	@NO_SFTP@$(INSTALL) -m 644 sftp-server.8.out $(DESTDIR)$(mandir)/$(mansubdir)8/sftp-server.8
