@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.192 2004/06/18 10:55:43 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.193 2004/06/26 09:03:21 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -46,11 +46,11 @@
 .Op Fl 1246AaCfgkMNnqsTtVvXxY
 .Op Fl b Ar bind_address
 .Op Fl c Ar cipher_spec
+.Bk -words
 .Op Fl D Ar port
 .Op Fl e Ar escape_char
 .Op Fl F Ar configfile
 .Op Fl i Ar identity_file
-.Bk -words
 .Oo Fl L Xo
 .Sm off
 .Ar port :
@@ -599,13 +599,6 @@ IPv6 addresses can be specified with an alternative syntax:
 .It Fl l Ar login_name
 Specifies the user to log in as on the remote machine.
 This also may be specified on a per-host basis in the configuration file.
-.It Fl m Ar mac_spec
-Additionally, for protocol version 2 a comma-separated list of MAC
-(message authentication code) algorithms can
-be specified in order of preference.
-See the
-.Cm MACs
-keyword for more information.
 .It Fl M
 Places the
 .Nm
@@ -617,6 +610,13 @@ Refer to the description of
 in
 .Xr ssh_config 5
 for details.
+.It Fl m Ar mac_spec
+Additionally, for protocol version 2 a comma-separated list of MAC
+(message authentication code) algorithms can
+be specified in order of preference.
+See the
+.Cm MACs
+keyword for more information.
 .It Fl N
 Do not execute a remote command.
 This is useful for just forwarding ports
@@ -739,7 +739,7 @@ IPv6 addresses can be specified with an alternative syntax:
 .Xc
 .Sm on
 .It Fl S Ar ctl
-Specifies the location of a control socket for for connection sharing.
+Specifies the location of a control socket for connection sharing.
 Refer to the description of
 .Cm ControlPath
 and

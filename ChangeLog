@@ -1,6 +1,12 @@
 20040630
  - (dtucker) [auth-pam.c] Check for buggy PAM modules that return a NULL
    appdata_ptr to the conversation function.  ok djm@
+ - (djm) OpenBSD CVS Sync
+   - jmc@cvs.openbsd.org 2004/06/26 09:03:21
+     [ssh.1]
+     - remove double word
+     - rearrange .Bk to keep SYNOPSIS nice
+     - -M before -m in options description
 
 20040627
  - (tim) update README files.
@@ -1447,4 +1453,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3458 2004/06/30 10:34:31 dtucker Exp $
+$Id: ChangeLog,v 1.3459 2004/06/30 12:37:57 djm Exp $
