@@ -58,6 +58,9 @@
      [clientloop.c serverloop.c]
      don't memset too much memory, ok millert@
      original patch from jlk@kamens.brookline.ma.us via nalin@redhat.com
+   - markus@cvs.openbsd.org 2001/11/10 13:19:45
+     [sshd.c]
+     cleanup libwrap support (remove bogus comment, bogus close(), add debug, etc).
 
 20011109
  - (stevesk) auth-pam.c: use do_pam_authenticate(PAM_DISALLOW_NULL_AUTHTOK)
@@ -6870,4 +6873,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1652 2001/11/12 00:06:54 djm Exp $
+$Id: ChangeLog,v 1.1653 2001/11/12 00:07:11 djm Exp $
