@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.110 2003/03/10 00:38:10 djm Exp $
+# $Id: configure.ac,v 1.111 2003/03/18 18:21:41 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -1482,6 +1482,8 @@ if test "x$ac_cv_have_struct_timeval" = "xyes" ; then
 	AC_DEFINE(HAVE_STRUCT_TIMEVAL)
 	have_struct_timeval=1
 fi
+
+AC_CHECK_TYPES(struct timespec)
 
 # If we don't have int64_t then we can't compile sftp-server.  So don't
 # even attempt to do it. 
