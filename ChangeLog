@@ -1,3 +1,7 @@
+20040711
+ - (dtucker) [auth-pam.c] Check for zero from waitpid() too, which allows
+   the monitor to properly clean up the PAM thread (Debian bug #252676).
+
 20040708
  - (dtucker) OpenBSD CVS Sync
    - dtucker@cvs.openbsd.org 2004/07/08 12:47:21
@@ -1011,4 +1015,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3316.2.7 2004/07/08 13:14:25 dtucker Exp $
+$Id: ChangeLog,v 1.3316.2.8 2004/07/11 06:52:47 dtucker Exp $
