@@ -1,3 +1,6 @@
+20000404
+ - Add tests for RAND_add function when searching for OpenSSL
+
 20000403
  - Wrote entropy collection routines for systems that lack /dev/random
    and EGD

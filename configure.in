@@ -231,7 +231,7 @@ for ssldir in "" $tryssldir /usr/local/openssl /usr/lib/openssl /usr/local/ssl /
 				{
 					RSA *key; char a[2048],b[2048];;
 					memset(a, 0, sizeof(a));memset(b, 0, sizeof(b));
-					RAND_seed(a, sizeof(a));
+					RAND_add(a, sizeof(a), sizeof(a));
 					key=RSA_generate_key(32,3,NULL,NULL);
 					if (key==NULL) return(1);
 					return(-1==RSA_private_decrypt(RSA_size(key),a,b,key,RSA_NO_PADDING));
