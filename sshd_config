@@ -1,4 +1,4 @@
-#	$OpenBSD: sshd_config,v 1.61 2003/06/20 05:48:21 djm Exp $
+#	$OpenBSD: sshd_config,v 1.62 2003/07/23 07:42:43 markus Exp $
 
 # This is the sshd server system-wide configuration file.  See
 # sshd_config(5) for more information.
@@ -63,10 +63,6 @@
 #KerberosAuthentication no
 #KerberosOrLocalPasswd yes
 #KerberosTicketCleanup yes
-
-#AFSTokenPassing no
-
-# Kerberos TGT Passing only works with the AFS kaserver
 #KerberosTgtPassing no
 
 # Set this to 'yes' to enable PAM authentication (via challenge-response)

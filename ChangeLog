@@ -9,6 +9,10 @@
      test+ok henning@
  - (dtucker) [Makefile.in acconfig.h configure.ac] Remove KRB4/AFS support.
  - (dtucker) [auth-krb4.c radix.c radix.h] Remove KRB4/AFS specific files.
+ - (dtucker) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2003/07/23 07:42:43
+     [sshd_config]
+     remove AFS; itojun@
 
 20030730
  - (djm) [auth-pam.c] Don't use crappy APIs like sprintf. Thanks bal
@@ -747,4 +751,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2869 2003/08/02 12:24:49 dtucker Exp $
+$Id: ChangeLog,v 1.2870 2003/08/02 12:31:45 dtucker Exp $
