@@ -3,6 +3,10 @@
    problems on Solaris-derived PAMs.
  - (djm) Clean up PAM namespace. Suggested by Darren Moffat
    <Darren.Moffat@eng.sun.com>
+ - (bal) Sync w/ OpenSSH for new release
+   - markus@cvs.openbsd.org 2001/02/12 12:45:06
+     [sshconnect1.c]
+     fix xmalloc(0), ok dugsong@
 
 20010214
  - (djm) Don't try to close PAM session or delete credentials if the
@@ -3931,4 +3935,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.761 2001/02/15 00:51:32 djm Exp $
+$Id: ChangeLog,v 1.762 2001/02/15 02:36:46 mouring Exp $
