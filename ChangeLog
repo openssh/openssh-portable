@@ -13,6 +13,12 @@
  - Really fix broken default path. Fix from Jim Knoble 
    <jmknoble@pobox.com>
  - Remove test for quad_t. No longer needed.
+ - Released 1.2.1pre24
+
+ - Added support for directory-based lastlogs
+ - Really fix typedefs, patch from Ben Taylor <bent@clark.net>
+ - Prevent multiple inclusion of config.h and defines.h. Suggested
+   by Andre Lucas <andre.lucas@dial.pipex.com>
 
 19991230
  - OpenBSD CVS updates:

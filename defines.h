@@ -1,3 +1,6 @@
+#ifndef _DEFINES_H
+#define _DEFINES_H
+
 /* Necessary headers */
 
 #include <sys/types.h> /* For u_intXX_t */
@@ -61,7 +64,7 @@ typedef long int int64_t;
 # else
 #  if (SIZEOF_LONG_LONG_INT == 8)
 typedef long long int int64_t;
-#   define HAVE_INTXX_T
+#   define HAVE_INTXX_T 1
 #  else
 #   error "64 bit int type not found."
 #  endif
@@ -74,6 +77,7 @@ typedef long long int int64_t;
 typedef uint16_t u_int16_t;
 typedef uint32_t u_int32_t;
 typedef  uint64_t u_int64_t;
+# define HAVE_U_INTXX_T 1
 # else
 #  if (SIZEOF_SHORT_INT == 2)
 typedef unsigned short int u_int16_t;
@@ -90,7 +94,7 @@ typedef unsigned long int u_int64_t;
 #  else
 #   if (SIZEOF_LONG_LONG_INT == 8)
 typedef unsigned long long int u_int64_t;
-#    define HAVE_U_INTXX_T
+#    define HAVE_U_INTXX_T 1
 #   else
 #    error "64 bit int type not found."
 #   endif
@@ -224,3 +228,4 @@ typedef unsigned int size_t;
 # define PAM_STRERROR(a,b) pam_strerror((a),(b))
 #endif
 
+#endif /* _DEFINES_H */

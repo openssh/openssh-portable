@@ -1,3 +1,6 @@
+#ifndef _CONFIG_H
+#define _CONFIG_H
+
 /* Generated automatically from acconfig.h by autoheader. */
 /* Please make your changes there */
 
@@ -143,3 +146,5 @@
 /* ******************* Shouldn't need to edit below this line ************** */
 
 #include "defines.h"
+
+#endif _CONFIG_H

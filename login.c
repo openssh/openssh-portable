@@ -18,7 +18,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: login.c,v 1.16 1999/12/30 22:42:24 damien Exp $");
+RCSID("$Id: login.c,v 1.17 2000/01/02 00:45:33 damien Exp $");
 
 #if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
 # include <utmpx.h>
@@ -57,14 +57,24 @@ get_last_login_time(uid_t uid, const char *logname,
 	struct lastlog ll;
 	char *lastlog;
 	int fd;
+#ifdef LASTLOG_IS_DIR
+	char buf[1024];
+#endif /* LASTLOG_IS_DIR */
 
 	lastlog = _PATH_LASTLOG;
 	buf[0] = '\0';
 
+#ifdef LASTLOG_IS_DIR
 	fd = open(lastlog, O_RDONLY);
 	if (fd < 0)
 		return 0;
 	lseek(fd, (off_t) ((long) uid * sizeof(ll)), SEEK_SET);
+#else /* LASTLOG_IS_DIR */
+	snprintf(buf, sizeof(buf), "%s/%s", lastlog, logname);
+	fd = open(buf, O_RDONLY);
+	if (fd < 0)
+		return 0;
+#endif /* LASTLOG_IS_DIR */
 	if (read(fd, &ll, sizeof(ll)) != sizeof(ll)) {
 		close(fd);
 		return 0;
@@ -132,6 +142,9 @@ record_login(int pid, const char *ttyname, const char *user, uid_t uid,
 #if defined(_PATH_LASTLOG) && !defined(DISABLE_LASTLOG)
 	struct lastlog ll;
 	char *lastlog;
+#ifdef LASTLOG_IS_DIR
+	char buf[1024];
+#endif /* LASTLOG_IS_DIR */
 #endif /* defined(_PATH_LASTLOG) && !defined(DISABLE_LASTLOG) */
 	struct utmp u;
 #if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
@@ -207,9 +220,15 @@ record_login(int pid, const char *ttyname, const char *user, uid_t uid,
 		ll.ll_time = time(NULL);
 		strncpy(ll.ll_line, ttyname + 5, sizeof(ll.ll_line));
 		strncpy(ll.ll_host, host, sizeof(ll.ll_host));
+#ifdef LASTLOG_IS_DIR
+		snprintf(buf, sizeof(buf), "%s/%s", lastlog, logname);
+		fd = open(buf, O_RDWR);
+		if (fd >= 0) {
+#else /* LASTLOG_IS_DIR */
 		fd = open(lastlog, O_RDWR);
 		if (fd >= 0) {
 			lseek(fd, (off_t) ((long) uid * sizeof(ll)), SEEK_SET);
+#endif /* LASTLOG_IS_DIR */
 			if (write(fd, &ll, sizeof(ll)) != sizeof(ll))
 				log("Could not write %.100s: %.100s", lastlog, strerror(errno));
 			close(fd);

@@ -354,8 +354,6 @@ AC_ARG_WITH(lastlog,
 			if test "x$gotlastlog" = "xdir" ; then
 				AC_MSG_RESULT(${lastlog}/)
 				AC_DEFINE(LASTLOG_IS_DIR)
-				AC_MSG_WARN([*** Directory-based lastlogs are not yet supported ***])
-				nolastlog=1
 			else
 				AC_MSG_RESULT($lastlog)
 				AC_DEFINE_UNQUOTED(LASTLOG_LOCATION, "$lastlog")

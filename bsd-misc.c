@@ -33,6 +33,8 @@
 **
 */
 
+#include "config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -47,7 +49,6 @@
 
 #include "xmalloc.h"
 #include "ssh.h"
-#include "config.h"
 #include "bsd-misc.h"
 
 #ifndef offsetof
