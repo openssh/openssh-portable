@@ -1,3 +1,7 @@
+20050306
+ - (dtucker) [monitor.c] Bug #125 comment #47: fix errors returned by monitor
+   when attempting to audit disconnect events.  Reported by Phil Dibowitz.
+
 20050305
  - (djm) [contrib/cygwin/README] Improve Cygwin build documentation. Patch 
    from vinschen at redhat.com
@@ -2277,4 +2281,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3691 2005/03/05 00:22:50 djm Exp $
+$Id: ChangeLog,v 1.3692 2005/03/06 11:31:35 dtucker Exp $
