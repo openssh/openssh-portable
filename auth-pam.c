@@ -31,7 +31,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.70 2003/09/02 13:18:53 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.71 2003/09/13 12:02:05 dtucker Exp $");
 
 #ifdef USE_PAM
 #include <security/pam_appl.h>
@@ -289,7 +289,8 @@ sshpam_init(const char *user)
 		sshpam_handle = NULL;
 	}
 	debug("PAM: initializing for \"%s\"", user);
-	sshpam_err = pam_start("sshd", user, &null_conv, &sshpam_handle);
+	sshpam_err =
+	    pam_start(SSHD_PAM_SERVICE, user, &null_conv, &sshpam_handle);
 	if (sshpam_err != PAM_SUCCESS) {
 		pam_end(sshpam_handle, sshpam_err);
 		sshpam_handle = NULL;

@@ -6,6 +6,8 @@
    registry other than "files" (eg LDAP, see bug #543).
  - (tim) [configure.ac] define WITH_ABBREV_NO_TTY for SCO.
    Report by Roger Cornelius.
+ - (dtucker) [auth-pam.c] Use SSHD_PAM_SERVICE for PAM service name, patch
+   from cjwatson at debian.org.
 
 20030912
  - (tim) [regress/agent-ptrace.sh] sh doesn't like "if ! shell_function; then".
@@ -1084,4 +1086,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2988 2003/09/13 01:15:15 tim Exp $
+$Id: ChangeLog,v 1.2989 2003/09/13 12:02:05 dtucker Exp $
