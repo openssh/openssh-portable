@@ -25,6 +25,9 @@
    - markus@cvs.openbsd.org 2001/06/26 04:59:59
      [authfd.c authfd.h ssh-add.c]
      initial support for smartcards in the agent
+   - markus@cvs.openbsd.org 2001/06/26 05:07:43
+     [ssh-agent.c]
+     update usage
 
 20010629
  - (bal) Removed net_aton() since we don't use it any more
@@ -5852,4 +5855,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1351 2001/07/04 03:50:02 mouring Exp $
+$Id: ChangeLog,v 1.1352 2001/07/04 03:51:35 mouring Exp $
