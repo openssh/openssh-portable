@@ -19,7 +19,10 @@
    - markus@cvs.openbsd.org 2002/07/22 11:03:06
      [session.c]
      fallback to _PATH_STDPATH on setusercontext+LOGIN_SETPATH errors;
- 
+   - stevesk@cvs.openbsd.org 2002/07/22 17:32:56
+     [monitor.c]
+     u_int here; ok provos@
+
 20020722
  - (bal) AIX tty data limiting patch fix by leigh@solinno.co.uk
  - (stevesk) [xmmap.c] missing prototype for fatal()
@@ -1442,4 +1445,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2400 2002/07/23 21:11:09 mouring Exp $
+$Id: ChangeLog,v 1.2401 2002/07/23 21:13:40 mouring Exp $
