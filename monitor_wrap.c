@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor_wrap.c,v 1.15 2002/07/04 04:15:33 deraadt Exp $");
+RCSID("$OpenBSD: monitor_wrap.c,v 1.16 2002/07/04 10:41:47 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dh.h>
@@ -446,7 +446,6 @@ mm_newkeys_to_blob(int mode, u_char **blobp, u_int *lenp)
 {
 	Buffer b;
 	int len;
-	u_char *buf;
 	Enc *enc;
 	Mac *mac;
 	Comp *comp;
@@ -484,16 +483,14 @@ mm_newkeys_to_blob(int mode, u_char **blobp, u_int *lenp)
 	buffer_put_cstring(&b, comp->name);
 
 	len = buffer_len(&b);
-	buf = xmalloc(len);
-	memcpy(buf, buffer_ptr(&b), len);
-	memset(buffer_ptr(&b), 0, len);
-	buffer_free(&b);
 	if (lenp != NULL)
 		*lenp = len;
-	if (blobp != NULL)
-		*blobp = buf;
-	else
-		xfree(blobp);
+	if (blobp != NULL) {
+		*blobp = xmalloc(len);
+		memcpy(*blobp, buffer_ptr(&b), len);
+	}
+	memset(buffer_ptr(&b), 0, len);
+	buffer_free(&b);
 	return len;
 }
 

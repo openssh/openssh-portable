@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: key.c,v 1.47 2002/07/04 04:15:33 deraadt Exp $");
+RCSID("$OpenBSD: key.c,v 1.48 2002/07/04 10:41:47 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -729,7 +729,6 @@ key_to_blob(Key *key, u_char **blobp, u_int *lenp)
 {
 	Buffer b;
 	int len;
-	u_char *buf;
 
 	if (key == NULL) {
 		error("key_to_blob: key == NULL");
@@ -755,16 +754,14 @@ key_to_blob(Key *key, u_char **blobp, u_int *lenp)
 		return 0;
 	}
 	len = buffer_len(&b);
-	buf = xmalloc(len);
-	memcpy(buf, buffer_ptr(&b), len);
-	memset(buffer_ptr(&b), 0, len);
-	buffer_free(&b);
 	if (lenp != NULL)
 		*lenp = len;
-	if (blobp != NULL)
-		*blobp = buf;
-	else
-		xfree(buf);
+	if (blobp != NULL) {
+		*blobp = xmalloc(len);
+		memcpy(*blobp, buffer_ptr(&b), len);
+	}
+	memset(buffer_ptr(&b), 0, len);
+	buffer_free(&b);
 	return len;
 }
 

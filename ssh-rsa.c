@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-rsa.c,v 1.22 2002/07/04 04:15:33 deraadt Exp $");
+RCSID("$OpenBSD: ssh-rsa.c,v 1.23 2002/07/04 10:41:47 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -44,7 +44,7 @@ ssh_rsa_sign(Key *key, u_char **sigp, u_int *lenp,
 {
 	const EVP_MD *evp_md;
 	EVP_MD_CTX md;
-	u_char digest[EVP_MAX_MD_SIZE], *sig, *ret;
+	u_char digest[EVP_MAX_MD_SIZE], *sig;
 	u_int slen, dlen, len;
 	int ok, nid;
 	Buffer b;
@@ -90,18 +90,16 @@ ssh_rsa_sign(Key *key, u_char **sigp, u_int *lenp,
 	buffer_put_cstring(&b, "ssh-rsa");
 	buffer_put_string(&b, sig, slen);
 	len = buffer_len(&b);
-	ret = xmalloc(len);
-	memcpy(ret, buffer_ptr(&b), len);
+	if (lenp != NULL)
+		*lenp = len;
+	if (sigp != NULL) {
+		*sigp = xmalloc(len);
+		memcpy(*sigp, buffer_ptr(&b), len);
+	}
 	buffer_free(&b);
 	memset(sig, 's', slen);
 	xfree(sig);
 
-	if (lenp != NULL)
-		*lenp = len;
-	if (sigp != NULL)
-		*sigp = ret;
-	else
-		xfree(ret);
 	return 0;
 }
 
