@@ -4,7 +4,7 @@
    cleanup functions.  With & ok djm@
 
 20031003
- - OpenBSD CVS Sync
+ - (dtucker) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2003/10/02 10:41:59
      [sshd.c]
      print openssl version, too, several requests; ok henning/djm.
@@ -15,7 +15,7 @@
    option.
 
 20031002
- - OpenBSD CVS Sync
+ - (dtucker) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2003/09/23 20:17:11
      [Makefile.in auth1.c auth2.c auth.c auth.h auth-krb5.c canohost.c
      cleanup.c clientloop.c fatal.c gss-serv.c log.c log.h monitor.c monitor.h
@@ -1284,4 +1284,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3058 2003/10/07 01:30:15 dtucker Exp $
+$Id: ChangeLog,v 1.3059 2003/10/07 01:31:22 dtucker Exp $
