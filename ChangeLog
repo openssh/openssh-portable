@@ -9,6 +9,9 @@
     - interop w/ SecureFX
  - Release 2.0.0beta2
 
+ - Configure caching and cleanup patch from Andre Lucas' 
+   <andre.lucas@dial.pipex.com>
+
 20000507
  - Remove references to SSLeay.
  - Big OpenBSD CVS update

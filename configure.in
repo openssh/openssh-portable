@@ -196,28 +196,29 @@ saved_CFLAGS="$CFLAGS"
 if test "x$prefix" != "xNONE" ; then
 	tryssldir="$tryssldir $prefix"
 fi
-AC_MSG_CHECKING([for OpenSSL directory])
-for ssldir in "" $tryssldir /usr/local/openssl /usr/lib/openssl /usr/local/ssl /usr/lib/ssl /usr/local /usr/pkg /opt /opt/openssl ; do
-	if test ! -z "$ssldir" ; then
-		LDFLAGS="$saved_LDFLAGS -L$ssldir/lib -L$ssldir"
-		CFLAGS="$saved_CFLAGS -I$ssldir/include"
-		if test ! -z "$need_dash_r" ; then
-			LDFLAGS="$LDFLAGS -R$ssldir/lib -R$ssldir"
-		fi
-	else
-		LDFLAGS="$saved_LDFLAGS"
-	fi
+AC_CACHE_CHECK([for OpenSSL directory], ac_cv_openssldir, [
 
-	for WANTS_RSAREF in "" 1 ; do
-		
-		if test -z "$WANTS_RSAREF" ; then
-			LIBS="$saved_LIBS -lcrypto"
+	for ssldir in "" $tryssldir /usr/local/openssl /usr/lib/openssl /usr/local/ssl /usr/lib/ssl /usr/local /usr/pkg /opt /opt/openssl ; do
+		if test ! -z "$ssldir" ; then
+			LDFLAGS="$saved_LDFLAGS -L$ssldir/lib -L$ssldir"
+			CFLAGS="$saved_CFLAGS -I$ssldir/include"
+			if test ! -z "$need_dash_r" ; then
+				LDFLAGS="$LDFLAGS -R$ssldir/lib -R$ssldir"
+			fi
 		else
-			LIBS="$saved_LIBS -lcrypto -lRSAglue -lrsaref"
+			LDFLAGS="$saved_LDFLAGS"
 		fi
 
-		AC_TRY_RUN(
-			[
+		for WANTS_RSAREF in "" 1 ; do
+		
+			if test -z "$WANTS_RSAREF" ; then
+				LIBS="$saved_LIBS -lcrypto"
+			else
+				LIBS="$saved_LIBS -lcrypto -lRSAglue -lrsaref"
+			fi
+
+			AC_TRY_RUN(
+				[
 #include <string.h>
 #include <openssl/rand.h>
 #include <openssl/rsa.h>
@@ -232,26 +233,33 @@ int main(void)
 	if (key==NULL) return(1);
 	return(-1==RSA_private_decrypt(RSA_size(key),a,b,key,RSA_NO_PADDING));
 }
-			],
-			[
-				AC_DEFINE(HAVE_OPENSSL)
-				found_crypto=1
-				break;
-			], []
-		)
+				],
+				[
+					found_crypto=1
+					break;
+				], []
+			)
+		done
+
+		if test ! -z "$found_crypto" ; then
+			break;
+		fi
 	done
 
-	if test ! -z "$found_crypto" ; then
-		break;
+	if test -z "$found_crypto" ; then
+		AC_MSG_ERROR([Could not find working SSLeay / OpenSSL libraries, please install])	
 	fi
-done
+	if test -z "$ssldir" ; then
+		ssldir="(system)"
+	fi
 
-if test -z "$found_crypto" ; then
-	AC_MSG_ERROR([Could not find working SSLeay / OpenSSL libraries, please install])	
-fi
-if test -z "$ssldir" ; then
-	ssldir="(system)"
-else
+	ac_cv_openssldir=$ssldir
+])
+
+if test ! -z "$ac_cv_openssldir" -a ! "x$ac_cv_openssldir" = "x(system)" ; then
+	AC_DEFINE(HAVE_OPENSSL)
+	dnl Need to recover ssldir - test above runs in subshell
+	ssldir=$ac_cv_openssldir
 	CFLAGS="$saved_CFLAGS -I$ssldir/include"
 	LDFLAGS="$saved_LDFLAGS -L$ssldir/lib -L$ssldir"
 	if test ! -z "$need_dash_r" ; then
@@ -266,7 +274,7 @@ if test -z "$WANTS_RSAREF" ; then
 else
 	LIBS="$saved_LIBS -lcrypto -lRSAglue -lrsaref"
 fi
-AC_MSG_RESULT($ssldir)
+
 
 # Checks for data types
 AC_CHECK_SIZEOF(char, 1)
@@ -276,36 +284,41 @@ AC_CHECK_SIZEOF(long int, 4)
 AC_CHECK_SIZEOF(long long int, 8)
 
 # More checks for data types
-AC_MSG_CHECKING([for intXX_t types])
-AC_TRY_COMPILE(
-	[#include <sys/types.h>], 
-	[int8_t a; int16_t b; int32_t c; a = b = c = 1;], 
-	[
-		AC_DEFINE(HAVE_INTXX_T)
-		AC_MSG_RESULT(yes)
-		have_intxx_t=1
-	],
-	[AC_MSG_RESULT(no)]
-) 
+AC_CACHE_CHECK([for intXX_t types], ac_cv_have_intxx_t, [
+	AC_TRY_COMPILE(
+		[ #include <sys/types.h> ], 
+		[ int8_t a; int16_t b; int32_t c; a = b = c = 1;], 
+		[ ac_cv_have_intxx_t="yes" ],
+		[ ac_cv_have_intxx_t="no" ]
+	)
+])
+if test "x$ac_cv_have_intxx_t" = "xyes" ; then
+	AC_DEFINE(HAVE_INTXX_T)
+	have_intxx_t=1
+fi
+	
+AC_CACHE_CHECK([for u_intXX_t types], ac_cv_have_u_intxx_t, [
+	AC_TRY_COMPILE(
+		[ #include <sys/types.h> ], 
+		[ u_int8_t a; u_int16_t b; u_int32_t c; a = b = c = 1;], 
+		[ ac_cv_have_u_intxx_t="yes" ],
+		[ ac_cv_have_u_intxx_t="no" ]
+	)
+])
+if test "x$ac_cv_have_u_intxx_t" = "xyes" ; then
+	AC_DEFINE(HAVE_U_INTXX_T)
+	have_u_intxx_t=1
+fi
 
-AC_MSG_CHECKING([for u_intXX_t types])
-AC_TRY_COMPILE(
-	[#include <sys/types.h>], 
-	[u_int8_t a; u_int16_t b; u_int32_t c; a = b = c = 1;], 
-	[
-		AC_DEFINE(HAVE_U_INTXX_T)
-		AC_MSG_RESULT(yes)
-		have_u_intxx_t=1
-	],
-	[AC_MSG_RESULT(no)]
-) 
 
 if test -z "$have_u_intxx_t" -o -z "$have_intxx_t" -a \
            "x$ac_cv_header_sys_bitypes_h" = "xyes"
 then
 	AC_MSG_CHECKING([for intXX_t and u_intXX_t types in sys/bitypes.h])
 	AC_TRY_COMPILE(
-		[#include <sys/bitypes.h>], 
+		[
+#include <sys/bitypes.h>
+		], 
 		[
 			int8_t a; int16_t b; int32_t c;
 			u_int8_t e; u_int16_t f; u_int32_t g;
@@ -321,189 +334,171 @@ then
 fi
 
 if test -z "$have_u_intxx_t" ; then
-	AC_MSG_CHECKING([for uintXX_t types])
-	AC_TRY_COMPILE(
-		[#include <sys/types.h>], 
-		[uint8_t a; uint16_t b; uint32_t c; a = b = c = 1;], 
-		[
-			AC_DEFINE(HAVE_UINTXX_T)
-			AC_MSG_RESULT(yes)
-		],
-		[AC_MSG_RESULT(no)]
-	) 
+	AC_CACHE_CHECK([for uintXX_t types], ac_cv_have_uintxx_t, [
+		AC_TRY_COMPILE(
+			[
+#include <sys/types.h>
+			], 
+			[ uint8_t a; uint16_t b; uint32_t c; a = b = c = 1; ], 
+			[ ac_cv_have_uintxx_t="yes" ],
+			[ ac_cv_have_uintxx_t="no" ]
+		)
+	])
+	if test "x$ac_cv_have_uintxx_t" = "xyes" ; then
+		AC_DEFINE(HAVE_UINTXX_T)
+	fi
 fi
 
-AC_MSG_CHECKING([for socklen_t])
-AC_TRY_COMPILE(
-	[
+AC_CACHE_CHECK([for socklen_t], ac_cv_have_socklen_t, [
+	AC_TRY_COMPILE(
+		[
 #include <sys/types.h>
 #include <sys/socket.h>
-	],
-	[socklen_t foo; foo = 1235;],
-	[
-		AC_DEFINE(HAVE_SOCKLEN_T)
-		AC_MSG_RESULT(yes)
-	],
-	[AC_MSG_RESULT(no)]
-)
+		],
+		[socklen_t foo; foo = 1235;],
+		[ ac_cv_have_socklen_t="yes" ],
+		[ ac_cv_have_socklen_t="no" ]
+	)
+])
+if test "x$ac_cv_have_socklen_t" = "xyes" ; then
+	AC_DEFINE(HAVE_SOCKLEN_T)
+fi
 
-AC_MSG_CHECKING([for size_t])
-AC_TRY_COMPILE(
-	[#include <sys/types.h>],
-	[size_t foo; foo = 1235;],
-	[
-		AC_DEFINE(HAVE_SIZE_T)
-		AC_MSG_RESULT(yes)
-	],
-	[AC_MSG_RESULT(no)]
-)
+AC_CACHE_CHECK([for size_t], ac_cv_have_size_t, [
+	AC_TRY_COMPILE(
+		[
+#include <sys/types.h>
+		],
+		[ size_t foo; foo = 1235; ],
+		[ ac_cv_have_size_t="yes" ],
+		[ ac_cv_have_size_t="no" ]
+	)
+])
+if test "x$ac_cv_have_size_t" = "xyes" ; then
+	AC_DEFINE(HAVE_SIZE_T)
+fi
 
-AC_MSG_CHECKING([for struct sockaddr_storage])
-AC_TRY_COMPILE(
-	[
+
+AC_CACHE_CHECK([for struct sockaddr_storage], ac_cv_have_struct_sockaddr_storage, [
+	AC_TRY_COMPILE(
+		[
 #include <sys/types.h>
 #include <sys/socket.h>
-	],
-	[struct sockaddr_storage s;],
-	[
-		AC_DEFINE(HAVE_STRUCT_SOCKADDR_STORAGE)
-		AC_MSG_RESULT(yes)
-	],
-	[AC_MSG_RESULT(no)]
-)
+		],
+		[ struct sockaddr_storage s; ],
+		[ ac_cv_have_struct_sockaddr_storage="yes" ],
+		[ ac_cv_have_struct_sockaddr_storage="no" ]
+	)
+])
+if test "x$ac_cv_have_struct_sockaddr_storage" = "xyes" ; then
+	AC_DEFINE(HAVE_STRUCT_SOCKADDR_STORAGE)
+fi
 
-AC_MSG_CHECKING([for struct sockaddr_in6])
-AC_TRY_COMPILE(
-	[#include <netinet/in.h>],
-	[struct sockaddr_in6 s; s.sin6_family = 0;],
-	[
-		AC_DEFINE(HAVE_STRUCT_SOCKADDR_IN6)
-		AC_MSG_RESULT(yes)
-	],
-	[AC_MSG_RESULT(no)]
-)
+AC_CACHE_CHECK([for struct sockaddr_in6], ac_cv_have_struct_sockaddr_in6, [
+	AC_TRY_COMPILE(
+		[
+#include <netinet/in.h>
+		],
+		[ struct sockaddr_in6 s; s.sin6_family = 0; ],
+		[ ac_cv_have_struct_sockaddr_in6="yes" ],
+		[ ac_cv_have_struct_sockaddr_in6="no" ]
+	)
+])
+if test "x$ac_cv_have_struct_sockaddr_in6" = "xyes" ; then
+	AC_DEFINE(HAVE_STRUCT_SOCKADDR_IN6)
+fi
 
-AC_MSG_CHECKING([for struct in6_addr])
-AC_TRY_COMPILE(
-	[#include <netinet/in.h>],
-	[struct in6_addr s; s.s6_addr[0] = 0;],
-	[
-		AC_DEFINE(HAVE_STRUCT_IN6_ADDR)
-		AC_MSG_RESULT(yes)
-	],
-	[AC_MSG_RESULT(no)]
-)
+AC_CACHE_CHECK([for struct in6_addr], ac_cv_have_struct_in6_addr, [
+	AC_TRY_COMPILE(
+		[
+#include <netinet/in.h>
+		],
+		[ struct in6_addr s; s.s6_addr[0] = 0; ],
+		[ ac_cv_have_struct_in6_addr="yes" ],
+		[ ac_cv_have_struct_in6_addr="no" ]
+	)
+])
+if test "x$ac_cv_have_struct_in6_addr" = "xyes" ; then
+	AC_DEFINE(HAVE_STRUCT_IN6_ADDR)
+fi
 
-AC_MSG_CHECKING([for struct addrinfo])
-AC_TRY_COMPILE(
-	[
+AC_CACHE_CHECK([for struct addrinfo], ac_cv_have_struct_addrinfo, [
+	AC_TRY_COMPILE(
+		[
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
-	],
-	[struct addrinfo s; s.ai_flags = AI_PASSIVE;],
-	[
-		AC_DEFINE(HAVE_STRUCT_ADDRINFO)
-		AC_MSG_RESULT(yes)
-	],
-	[AC_MSG_RESULT(no)]
-)
+		],
+		[ struct addrinfo s; s.ai_flags = AI_PASSIVE; ],
+		[ ac_cv_have_struct_addrinfo="yes" ],
+		[ ac_cv_have_struct_addrinfo="no" ]
+	)
+])
+if test "x$ac_cv_have_struct_addrinfo" = "xyes" ; then
+	AC_DEFINE(HAVE_STRUCT_ADDRINFO)
+fi
+
 
 # Checks for structure members
-AC_MSG_CHECKING([whether utmp.h has ut_host field])
-AC_EGREP_HEADER(ut_host, utmp.h, 
-	[AC_DEFINE(HAVE_HOST_IN_UTMP) AC_MSG_RESULT(yes); ], 
-	[AC_MSG_RESULT(no)]
-)
-AC_MSG_CHECKING([whether utmpx.h has ut_host field])
-AC_EGREP_HEADER(ut_host, utmpx.h, 
-	[AC_DEFINE(HAVE_HOST_IN_UTMPX) AC_MSG_RESULT(yes); ], 
-	[AC_MSG_RESULT(no)]
-)
-AC_MSG_CHECKING([whether utmpx.h has syslen field])
-AC_EGREP_HEADER(syslen, utmpx.h, 
-	[AC_DEFINE(HAVE_SYSLEN_IN_UTMPX) AC_MSG_RESULT(yes); ], 
-	[AC_MSG_RESULT(no)]
-)
-AC_MSG_CHECKING([whether utmp.h has ut_pid field])
-AC_EGREP_HEADER(ut_pid, utmp.h, 
-	[AC_DEFINE(HAVE_PID_IN_UTMP) AC_MSG_RESULT(yes); ], 
-	[AC_MSG_RESULT(no)]
-)
-AC_MSG_CHECKING([whether utmp.h has ut_type field])
-AC_EGREP_HEADER(ut_type, utmp.h, 
-	[AC_DEFINE(HAVE_TYPE_IN_UTMP) AC_MSG_RESULT(yes); ], 
-	[AC_MSG_RESULT(no)]
-)
-AC_MSG_CHECKING([whether utmp.h has ut_tv field])
-AC_EGREP_HEADER(ut_tv, utmp.h, 
-	[AC_DEFINE(HAVE_TV_IN_UTMP) AC_MSG_RESULT(yes); ], 
-	[AC_MSG_RESULT(no)]
-)
-AC_MSG_CHECKING([whether utmp.h has ut_id field])
-AC_EGREP_HEADER(ut_id, utmp.h, 
-	[AC_DEFINE(HAVE_ID_IN_UTMP) AC_MSG_RESULT(yes); ], 
-	[AC_MSG_RESULT(no)]
-)
-AC_MSG_CHECKING([whether utmp.h has ut_addr field])
-AC_EGREP_HEADER(ut_addr, utmp.h, 
-	[AC_DEFINE(HAVE_ADDR_IN_UTMP) AC_MSG_RESULT(yes); ], 
-	[AC_MSG_RESULT(no)]
-)
-AC_MSG_CHECKING([whether utmpx.h has ut_addr field])
-AC_EGREP_HEADER(ut_addr, utmpx.h, 
-	[AC_DEFINE(HAVE_ADDR_IN_UTMPX) AC_MSG_RESULT(yes); ], 
-	[AC_MSG_RESULT(no)]
-)
-AC_MSG_CHECKING([whether utmp.h has ut_addr_v6 field])
-AC_EGREP_HEADER(ut_addr_v6, utmp.h, 
-	[AC_DEFINE(HAVE_ADDR_V6_IN_UTMP) AC_MSG_RESULT(yes); ], 
-	[AC_MSG_RESULT(no)]
-)
-AC_MSG_CHECKING([whether utmpx.h has ut_addr_v6 field])
-AC_EGREP_HEADER(ut_addr_v6, utmpx.h, 
-	[AC_DEFINE(HAVE_ADDR_V6_IN_UTMPX) AC_MSG_RESULT(yes); ], 
-	[AC_MSG_RESULT(no)]
-)
 
-AC_MSG_CHECKING([whether struct sockaddr_storage has ss_family field])
-AC_TRY_COMPILE(
-	[
+OSSH_CHECK_HEADER_FOR_FIELD(ut_host, utmp.h, HAVE_HOST_IN_UTMP)
+OSSH_CHECK_HEADER_FOR_FIELD(ut_host, utmpx.h, HAVE_HOST_IN_UTMPX)
+OSSH_CHECK_HEADER_FOR_FIELD(syslen, utmpx.h, HAVE_SYSLEN_IN_UTMPX)
+OSSH_CHECK_HEADER_FOR_FIELD(ut_pid, utmp.h, HAVE_PID_IN_UTMP)
+OSSH_CHECK_HEADER_FOR_FIELD(ut_type, utmp.h, HAVE_TYPE_IN_UTMP)
+OSSH_CHECK_HEADER_FOR_FIELD(ut_tv, utmp.h, HAVE_TV_IN_UTMP)
+OSSH_CHECK_HEADER_FOR_FIELD(ut_id, utmp.h, HAVE_ID_IN_UTMP)
+OSSH_CHECK_HEADER_FOR_FIELD(ut_addr, utmp.h, HAVE_ADDR_IN_UTMP)
+OSSH_CHECK_HEADER_FOR_FIELD(ut_addr, utmpx.h, HAVE_ADDR_IN_UTMPX)
+OSSH_CHECK_HEADER_FOR_FIELD(ut_addr_v6, utmp.h, HAVE_ADDR_V6_IN_UTMP)
+OSSH_CHECK_HEADER_FOR_FIELD(ut_addr_v6, utmpx.h, HAVE_ADDR_V6_IN_UTMPX)
+
+
+AC_CACHE_CHECK([for ss_family field in struct sockaddr_storage],
+		ac_cv_have_ss_family_in_struct_ss, [
+	AC_TRY_COMPILE(
+		[
 #include <sys/types.h>
 #include <sys/socket.h>
-	],
-	[struct sockaddr_storage s; s.ss_family = 1;],
-	[
-		AC_DEFINE(HAVE_SS_FAMILY_IN_SS)
-		AC_MSG_RESULT(yes)
-	],
-	[AC_MSG_RESULT(no)]
-)
-AC_MSG_CHECKING([whether struct sockaddr_storage has __ss_family field])
-AC_TRY_COMPILE(
-	[
+		],
+		[ struct sockaddr_storage s; s.ss_family = 1; ],
+		[ ac_cv_have_ss_family_in_struct_ss="yes" ],
+		[ ac_cv_have_ss_family_in_struct_ss="no" ],
+	)
+])
+if test "x$ac_cv_have_ss_family_in_struct_ss" = "xyes" ; then
+	AC_DEFINE(HAVE_SS_FAMILY_IN_SS)
+fi
+
+
+AC_CACHE_CHECK([for __ss_family field in struct sockaddr_storage],
+		ac_cv_have___ss_family_in_struct_ss, [
+	AC_TRY_COMPILE(
+		[
 #include <sys/types.h>
 #include <sys/socket.h>
-	],
-	[struct sockaddr_storage s; s.__ss_family = 1;],
-	[
-		AC_DEFINE(HAVE___SS_FAMILY_IN_SS)
-		AC_MSG_RESULT(yes)
-	],
-	[AC_MSG_RESULT(no)]
-)
+		],
+		[ struct sockaddr_storage s; s.__ss_family = 1; ],
+		[ ac_cv_have___ss_family_in_struct_ss="yes" ],
+		[ ac_cv_have___ss_family_in_struct_ss="no" ]
+	)
+])
+if test "x$ac_cv_have___ss_family_in_struct_ss" = "xyes" ; then
+	AC_DEFINE(HAVE___SS_FAMILY_IN_SS)
+fi
 
-AC_MSG_CHECKING([whether libc defines __progname])
-AC_TRY_LINK([], 
-	[extern char *__progname; printf("%s", __progname);], 
-	[
-		AC_DEFINE(HAVE___PROGNAME)
-		AC_MSG_RESULT(yes)
-	], 
-	[
-		AC_MSG_RESULT(no)
-	]
-)
+
+AC_CACHE_CHECK([if libc defines __progname], ac_cv_libc_defines___progname, [
+	AC_TRY_LINK([], 
+		[ extern char *__progname; printf("%s", __progname); ], 
+		[ ac_cv_libc_defines___progname="yes" ],
+		[ ac_cv_libc_defines___progname="no" ]
+	)
+])
+if test "x$ac_cv_libc_defines___progname" = "xyes" ; then
+	AC_DEFINE(HAVE___PROGNAME)
+fi
+
 
 # Looking for programs, paths and files
 AC_ARG_WITH(rsh,
@@ -642,21 +637,21 @@ INSTALL_SSH_PRNG_CMDS=""
 rm -f prng_commands
 if test -z "$RANDOM_POOL" -a -z "$EGD_SOCKET" ; then
 	# Use these commands to collect entropy
-	AC_PATH_ENTROPY_PROG(PROG_LS, ls)
-	AC_PATH_ENTROPY_PROG(PROG_NETSTAT, netstat)
-	AC_PATH_ENTROPY_PROG(PROG_ARP, arp)
-	AC_PATH_ENTROPY_PROG(PROG_IFCONFIG, ifconfig)
-	AC_PATH_ENTROPY_PROG(PROG_PS, ps)
-	AC_PATH_ENTROPY_PROG(PROG_W, w)
-	AC_PATH_ENTROPY_PROG(PROG_WHO, who)
-	AC_PATH_ENTROPY_PROG(PROG_LAST, last)
-	AC_PATH_ENTROPY_PROG(PROG_LASTLOG, lastlog)
-	AC_PATH_ENTROPY_PROG(PROG_DF, df)
-	AC_PATH_ENTROPY_PROG(PROG_VMSTAT, vmstat)
-	AC_PATH_ENTROPY_PROG(PROG_UPTIME, uptime)
-	AC_PATH_ENTROPY_PROG(PROG_IPCS, ipcs)
-	AC_PATH_ENTROPY_PROG(PROG_TAIL, tail)
-	AC_PATH_ENTROPY_PROG(PROG_LS, ls)
+	OSSH_PATH_ENTROPY_PROG(PROG_LS, ls)
+	OSSH_PATH_ENTROPY_PROG(PROG_NETSTAT, netstat)
+	OSSH_PATH_ENTROPY_PROG(PROG_ARP, arp)
+	OSSH_PATH_ENTROPY_PROG(PROG_IFCONFIG, ifconfig)
+	OSSH_PATH_ENTROPY_PROG(PROG_PS, ps)
+	OSSH_PATH_ENTROPY_PROG(PROG_W, w)
+	OSSH_PATH_ENTROPY_PROG(PROG_WHO, who)
+	OSSH_PATH_ENTROPY_PROG(PROG_LAST, last)
+	OSSH_PATH_ENTROPY_PROG(PROG_LASTLOG, lastlog)
+	OSSH_PATH_ENTROPY_PROG(PROG_DF, df)
+	OSSH_PATH_ENTROPY_PROG(PROG_VMSTAT, vmstat)
+	OSSH_PATH_ENTROPY_PROG(PROG_UPTIME, uptime)
+	OSSH_PATH_ENTROPY_PROG(PROG_IPCS, ipcs)
+	OSSH_PATH_ENTROPY_PROG(PROG_TAIL, tail)
+	OSSH_PATH_ENTROPY_PROG(PROG_LS, ls)
 
 	INSTALL_SSH_PRNG_CMDS="yes"
 fi
@@ -844,7 +839,7 @@ AC_ARG_WITH(ipv4-default,
 	]
 )
 
-AC_MSG_CHECKING([to convert IPv4 in IPv6-mapped addresses])
+AC_MSG_CHECKING([if we need to convert IPv4 in IPv6-mapped addresses])
 AC_ARG_WITH(4in6,
 	[  --with-4in6             Check for and convert IPv4 in IPv6 mapped addresses],
 	[
