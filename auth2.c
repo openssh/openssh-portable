@@ -218,6 +218,12 @@ input_userauth_request(int type, int plen, void *ctxt)
 	/* reset state */
 	dispatch_set(SSH2_MSG_USERAUTH_INFO_RESPONSE, &protocol_error);
 	authctxt->postponed = 0;
+#ifdef BSD_AUTH
+	if (authctxt->as) {
+		auth_close(authctxt->as);
+		authctxt->as = NULL;
+	}
+#endif
 
 	/* try to authenticate user */
 	m = authmethod_lookup(method);
@@ -341,7 +347,7 @@ userauth_none(Authctxt *authctxt)
 #elif defined(HAVE_OSF_SIA)
 	return 0;
 #else /* !HAVE_OSF_SIA && !USE_PAM */
-	return auth_password(authctxt->pw, "");
+	return auth_password(authctxt, "");
 #endif /* USE_PAM */
 }
 
@@ -366,7 +372,7 @@ userauth_passwd(Authctxt *authctxt)
 #elif defined(HAVE_OSF_SIA)
 	    auth_sia_password(authctxt->user, password) == 1)
 #else /* !USE_PAM && !HAVE_OSF_SIA */
-	    auth_password(authctxt->pw, password) == 1)
+	    auth_password(authctxt, password) == 1)
 #endif /* USE_PAM */
 		authenticated = 1;
 	memset(password, 0, len);

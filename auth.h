@@ -28,6 +28,13 @@
 
 #include <openssl/rsa.h>
 
+#ifdef HAVE_LOGIN_CAP
+#include <login_cap.h>
+#endif
+#ifdef BSD_AUTH
+#include <bsd_auth.h>
+#endif
+
 typedef struct Authctxt Authctxt;
 struct Authctxt {
 	int success;
@@ -39,6 +46,9 @@ struct Authctxt {
 	char *service;
 	struct passwd *pw;
 	char *style;
+#ifdef BSD_AUTH
+	auth_session_t *as;
+#endif
 };
 
 /*
@@ -59,7 +69,7 @@ auth_rhosts_rsa(struct passwd * pw, const char *client_user, RSA* client_host_ke
  * Tries to authenticate the user using password.  Returns true if
  * authentication succeeds.
  */
-int     auth_password(struct passwd * pw, const char *password);
+int     auth_password(Authctxt *authctxt, const char *password);
 
 /*
  * Performs the RSA authentication dialog with the client.  This returns 0 if

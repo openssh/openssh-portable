@@ -89,10 +89,6 @@ RCSID("$OpenBSD: session.c,v 1.56 2001/02/16 14:03:43 markus Exp $");
 # define S_UNOFILE_HARD	S_UNOFILE "_hard"
 #endif
 
-#ifdef HAVE_LOGIN_CAP
-#include <login_cap.h>
-#endif
-
 /* types */
 
 #define TTYSZ 64
@@ -1071,6 +1067,13 @@ do_child(const char *command, struct passwd * pw, const char *term,
 				perror("unable to set user context");
 				exit(1);
 			}
+#ifdef BSD_AUTH
+			if (auth_approval(NULL, lc, pw->pw_name, "ssh") <= 0) {
+				error("approval failure for %s", pw->pw_name);
+				fprintf(stderr, "Approval failure");
+				exit(1);
+			}
+#endif
 # else /* HAVE_LOGIN_CAP */
 			if (setlogin(pw->pw_name) < 0)
 				error("setlogin failed: %s", strerror(errno));

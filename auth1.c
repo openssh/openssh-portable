@@ -92,7 +92,7 @@ do_authloop(Authctxt *authctxt)
 #elif defined(HAVE_OSF_SIA)
 	    0) {
 #else
-	    auth_password(pw, "")) {
+	    auth_password(authctxt, "")) {
 #endif
 		auth_log(authctxt, 1, "without authentication", "");
 		return;
@@ -262,7 +262,7 @@ do_authloop(Authctxt *authctxt)
 			    password);
 #else /* !USE_PAM && !HAVE_OSF_SIA */
 			/* Try authentication with the password. */
-			authenticated = auth_password(pw, password);
+			authenticated = auth_password(authctxt, password);
 #endif /* USE_PAM */
 
 			memset(password, 0, strlen(password));
@@ -303,6 +303,12 @@ do_authloop(Authctxt *authctxt)
 			log("Unknown message during authentication: type %d", type);
 			break;
 		}
+#ifdef BSD_AUTH
+		if (authctxt->as) {
+			auth_close(authctxt->as);
+			authctxt->as = NULL;
+		}
+#endif
 		if (!authctxt->valid && authenticated)
 			fatal("INTERNAL ERROR: authenticated invalid user %s",
 			    authctxt->user);

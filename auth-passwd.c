@@ -77,14 +77,17 @@ RCSID("$OpenBSD: auth-passwd.c,v 1.21 2001/02/12 16:16:23 markus Exp $");
 #define is_winnt       (GetVersion() < 0x80000000)
 #endif
 
+
+extern ServerOptions options;
+
 /*
  * Tries to authenticate the user using password.  Returns true if
  * authentication succeeds.
  */
 int
-auth_password(struct passwd * pw, const char *password)
+auth_password(Authctxt *authctxt, const char *password)
 {
-	extern ServerOptions options;
+	struct passwd * pw = authctxt->pw;
 	char *encrypted_password;
 	char *pw_password;
 	char *salt;
@@ -122,6 +125,13 @@ auth_password(struct passwd * pw, const char *password)
 #endif
 	if (*password == '\0' && options.permit_empty_passwd == 0)
 		return 0;
+#ifdef BSD_AUTH
+	if (auth_userokay(pw->pw_name, authctxt->style, "auth-ssh",
+	    (char *)password) == 0)
+		return 0;
+	else
+		return 1;
+#endif
 
 #ifdef HAVE_CYGWIN
 	if (is_winnt) {

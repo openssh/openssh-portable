@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.246 2001/02/18 04:29:29 djm Exp $
+# $Id: configure.in,v 1.247 2001/02/18 06:01:00 djm Exp $
 
 AC_INIT(ssh.c)
 
@@ -1411,6 +1411,17 @@ AC_ARG_WITH(4in6,
 	]
 )
 
+# Whether to enable BSD auth support
+AC_ARG_WITH(bsd-auth,
+	[  --with-bsd-auth         Enable BSD auth support],
+	[
+		if test "x$withval" != "xno" ; then	
+			AC_DEFINE(BSD_AUTH)
+			bsd_auth=yes
+		fi
+	]
+)
+
 AC_MSG_CHECKING(whether to install ssh as suid root)
 AC_ARG_ENABLE(suid-ssh,
 [  --enable-suid-ssh       Install ssh as suid root (default)
@@ -1739,6 +1750,10 @@ echo "   IP address in \$DISPLAY hack: $DISPLAY_HACK_MSG"
 echo "      Use IPv4 by default hack: $IPV4_HACK_MSG"
 echo "       Translate v4 in v6 hack: $IPV4_IN6_HACK_MSG"
 
+if test ! -z "$bsd_auth"; then
+	echo "              BSD Auth support: yes"
+fi
+
 echo ""
 
 echo "              Host: ${host}"
@@ -1769,3 +1784,4 @@ if test ! -z "$NO_SFTP"; then
 	echo "64bit integers."
 	echo ""
 fi
+
