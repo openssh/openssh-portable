@@ -122,7 +122,7 @@ setenv(name, value, rewrite)
 			    (cnt + 2)));
 			if (!P)
 				return (-1);
-			bcopy(environ, P, cnt * sizeof(char *));
+			memmove(environ, P, cnt * sizeof(char *));
 			environ = P;
 		}
 		environ[cnt + 1] = NULL;

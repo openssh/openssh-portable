@@ -1,5 +1,6 @@
 20010105
  - (bal) contrib/caldera/ provided by Tim Rice <tim@multitalents.net>
+ - (bal) bsd-getcwd.c and bsd-setenv.c changed from bcopy() to memmove()
 
 20010104
  - (djm) Fix memory leak on systems with BROKEN_GETADDRINFO. Based on
