@@ -1,6 +1,8 @@
 20010321
  - (djm) Fix ttyname breakage for AIX and Tru64. Patch from Steve 
    VanDevender <stevev@darkwing.uoregon.edu>
+ - (djm) Make sure pam_retval is initialised on call to pam_end. Patch
+   from Solar Designer <solar@openwall.com>
 
 20010320
  - (bal) glob.c update to added GLOB_LIMITS (OpenBSD CVS).
@@ -4649,4 +4651,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.994 2001/03/21 00:11:57 djm Exp $
+$Id: ChangeLog,v 1.995 2001/03/21 01:16:24 djm Exp $
