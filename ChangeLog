@@ -3,6 +3,10 @@
   [ssh-agent.c]
   - Fix memory leak per connection. Report from Andy Spiegl <Andy@Spiegl.de>
     via Debian bug #59926
+ - Define __progname in session.c if libc doesn't
+ - Remove indentation on autoconf #include statements to avoid bug in
+   DEC Tru64 compiler. Report and fix from David Del Piero 
+   <David.DelPiero@qed.qld.gov.au>
 
 20000420
  - Make fixpaths work with perl4, patch from Andre Lucas 

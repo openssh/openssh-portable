@@ -17,6 +17,7 @@ Chun-Chung Chen <cjj@u.washington.edu> - RPM fixes
 Dan Brosemer <odin@linuxfreak.com> - Autoconf support, build fixes
 Darren Hall <dhall@virage.org> - AIX patches
 David Agraz <dagraz@jahoopa.com> - Build fixes
+David Del Piero <David.DelPiero@qed.qld.gov.au> - bug fixes
 David Hesprich <darkgrue@gue-tech.org> - Configure fixes
 David Rankin <drankin@bohemians.lexington.ky.us> - libwrap, AIX, NetBSD fixes
 Gary E. Miller <gem@rellim.com> - SCO support

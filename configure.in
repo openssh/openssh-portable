@@ -144,8 +144,8 @@ if test -z "$no_pam" -a "x$ac_cv_header_security_pam_appl_h" = "xyes" ; then
 	AC_MSG_CHECKING([whether pam_strerror takes only one argument])
 	AC_TRY_COMPILE(
 		[
-			#include <stdlib.h>
-			#include <security/pam_appl.h>
+#include <stdlib.h>
+#include <security/pam_appl.h>
 		], 
 		[(void)pam_strerror((pam_handle_t *)NULL, -1);], 
 		[AC_MSG_RESULT(no)],
@@ -194,18 +194,18 @@ for ssldir in "" $tryssldir /usr/local/openssl /usr/lib/openssl /usr/local/ssl /
 
 		AC_TRY_RUN(
 			[
-				#include <openssl/rsa.h>
-				#include <openssl/bn.h>
-				#include <openssl/sha.h>
-				int main(void) 
-				{
-					RSA *key; char a[2048],b[2048];;
-					memset(a, 0, sizeof(a));memset(b, 0, sizeof(b));
-					RAND_add(a, sizeof(a), sizeof(a));
-					key=RSA_generate_key(32,3,NULL,NULL);
-					if (key==NULL) return(1);
-					return(-1==RSA_private_decrypt(RSA_size(key),a,b,key,RSA_NO_PADDING));
-				}
+#include <openssl/rsa.h>
+#include <openssl/bn.h>
+#include <openssl/sha.h>
+int main(void) 
+{
+	RSA *key; char a[2048],b[2048];;
+	memset(a, 0, sizeof(a));memset(b, 0, sizeof(b));
+	RAND_add(a, sizeof(a), sizeof(a));
+	key=RSA_generate_key(32,3,NULL,NULL);
+	if (key==NULL) return(1);
+	return(-1==RSA_private_decrypt(RSA_size(key),a,b,key,RSA_NO_PADDING));
+}
 			],
 			[
 				AC_DEFINE(HAVE_OPENSSL)
@@ -310,8 +310,8 @@ fi
 AC_MSG_CHECKING([for socklen_t])
 AC_TRY_COMPILE(
 	[
-		#include <sys/types.h>
-		#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 	],
 	[socklen_t foo; foo = 1235;],
 	[
@@ -335,8 +335,8 @@ AC_TRY_COMPILE(
 AC_MSG_CHECKING([for struct sockaddr_storage])
 AC_TRY_COMPILE(
 	[
-		#include <sys/types.h>
-		#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 	],
 	[struct sockaddr_storage s;],
 	[
@@ -371,9 +371,9 @@ AC_TRY_COMPILE(
 AC_MSG_CHECKING([for struct addrinfo])
 AC_TRY_COMPILE(
 	[
-		#include <sys/types.h>
-		#include <sys/socket.h>
-		#include <netdb.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
 	],
 	[struct addrinfo s; s.ai_flags = AI_PASSIVE;],
 	[
@@ -443,8 +443,8 @@ AC_EGREP_HEADER(ut_addr_v6, utmpx.h,
 AC_MSG_CHECKING([whether struct sockaddr_storage has ss_family field])
 AC_TRY_COMPILE(
 	[
-		#include <sys/types.h>
-		#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 	],
 	[struct sockaddr_storage s; s.ss_family = 1;],
 	[
@@ -456,8 +456,8 @@ AC_TRY_COMPILE(
 AC_MSG_CHECKING([whether struct sockaddr_storage has __ss_family field])
 AC_TRY_COMPILE(
 	[
-		#include <sys/types.h>
-		#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 	],
 	[struct sockaddr_storage s; s.__ss_family = 1;],
 	[
@@ -775,7 +775,7 @@ AC_ARG_WITH(tcp-wrappers,
 			AC_MSG_CHECKING(for libwrap)
 			AC_TRY_LINK(
 				[
-					#include <tcpd.h>
+#include <tcpd.h>
 					int deny_severity = 0, allow_severity = 0;
 				],
 				[hosts_access(0);],
