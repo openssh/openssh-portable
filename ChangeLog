@@ -4,6 +4,10 @@
    Suggested by Jason Mader <jason@ncac.gwu.edu>
  - (bal) White Space and #ifdef sync with OpenBSD
  - (bal) Add 'seed_rng()' to ssh-add.c
+ - OpenBSD CVS Sync
+   - stevesk@cvs.openbsd.org 2001/05/05 13:42:52
+     [sftp.1 ssh-add.1 ssh-keygen.1]
+     typos, grammar
 
 20010505
  - OpenBSD CVS Sync
@@ -5349,4 +5353,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1202 2001/05/06 02:57:20 mouring Exp $
+$Id: ChangeLog,v 1.1203 2001/05/06 03:01:02 mouring Exp $

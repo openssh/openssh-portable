@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.17 2001/04/22 13:32:27 markus Exp $
+.\" $OpenBSD: sftp.1,v 1.18 2001/05/05 13:42:51 stevesk Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -49,12 +49,12 @@ It may also use many features of ssh, such as public key authentication and
 compression.
 .Nm
 connects and logs into the specified
-.Ar hostname ,
+.Ar host ,
 then enters an interactive command mode.
 .Pp
-The second usage format will fetch files automaticly if a non-interactive 
-authentication is used, else it do so after an interactive authentication 
-is used.
+The second usage format will retrieve files automatically if a non-interactive 
+authentication method is used; otherwise it will do so after
+successful interactive authentication.
 .Pp
 The last usage format allows the sftp client to start in a remote directory.
 .Pp
