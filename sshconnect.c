@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.122 2002/06/09 04:33:27 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.123 2002/06/09 22:17:21 itojun Exp $");
 
 #include <openssl/bn.h>
 
@@ -44,11 +44,11 @@ extern char *__progname;
 #endif
 
 static const char *
-sockaddr_ntop(struct sockaddr *sa)
+sockaddr_ntop(struct sockaddr *sa, socklen_t salen)
 {
 	static char addrbuf[NI_MAXHOST];
 
-	if (getnameinfo(sa, sa->sa_len, addrbuf, sizeof(addrbuf), NULL, 0,
+	if (getnameinfo(sa, salen, addrbuf, sizeof(addrbuf), NULL, 0,
 	    NI_NUMERICHOST) != 0)
 		fatal("sockaddr_ntop: getnameinfo NI_NUMERICHOST failed");
 	return addrbuf;
@@ -322,8 +322,8 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 				if (errno == ECONNREFUSED)
 					full_failure = 0;
 				log("ssh: connect to address %s port %s: %s",
-				    sockaddr_ntop(ai->ai_addr), strport,
-				    strerror(errno));
+				    sockaddr_ntop(ai->ai_addr, ai->ai_addrlen),
+				    strport, strerror(errno));
 				restore_uid();
 				/*
 				 * Close the failed socket; there appear to

@@ -4,6 +4,9 @@
    - stevesk@cvs.openbsd.org 2002/06/09 22:15:15
      [ssh.1]
      update for no setuid root and ssh-keysign; ok deraadt@
+   - itojun@cvs.openbsd.org 2002/06/09 22:17:21
+     [sshconnect.c]
+     pass salen to sockaddr_ntop so that we are happy on linux/solaris
 
 20020609
  - (bal) OpenBSD CVS Sync
@@ -869,4 +872,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2200 2002/06/11 15:45:02 mouring Exp $
+$Id: ChangeLog,v 1.2201 2002/06/11 15:46:34 mouring Exp $
