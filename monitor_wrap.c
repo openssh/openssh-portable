@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor_wrap.c,v 1.21 2003/02/04 09:33:22 markus Exp $");
+RCSID("$OpenBSD: monitor_wrap.c,v 1.22 2003/02/16 17:30:33 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dh.h>
@@ -34,6 +34,7 @@ RCSID("$OpenBSD: monitor_wrap.c,v 1.21 2003/02/04 09:33:22 markus Exp $");
 #include "dh.h"
 #include "kex.h"
 #include "auth.h"
+#include "auth-options.h"
 #include "buffer.h"
 #include "bufaux.h"
 #include "packet.h"
@@ -312,7 +313,7 @@ mm_key_allowed(enum mm_keytype type, char *user, char *host, Key *key)
 	Buffer m;
 	u_char *blob;
 	u_int len;
-	int allowed = 0;
+	int allowed = 0, have_forced = 0;
 
 	debug3("%s entering", __func__);
 
@@ -333,6 +334,11 @@ mm_key_allowed(enum mm_keytype type, char *user, char *host, Key *key)
 	mm_request_receive_expect(pmonitor->m_recvfd, MONITOR_ANS_KEYALLOWED, &m);
 
 	allowed = buffer_get_int(&m);
+
+	/* fake forced command */
+	auth_clear_options();
+	have_forced = buffer_get_int(&m);
+	forced_command = have_forced ? xstrdup("true") : NULL;
 
 	/* Send potential debug messages */
 	mm_send_debug(&m);
@@ -853,7 +859,7 @@ mm_auth_rsa_key_allowed(struct passwd *pw, BIGNUM *client_n, Key **rkey)
 	Key *key;
 	u_char *blob;
 	u_int blen;
-	int allowed = 0;
+	int allowed = 0, have_forced = 0;
 
 	debug3("%s entering", __func__);
 
@@ -864,6 +870,11 @@ mm_auth_rsa_key_allowed(struct passwd *pw, BIGNUM *client_n, Key **rkey)
 	mm_request_receive_expect(pmonitor->m_recvfd, MONITOR_ANS_RSAKEYALLOWED, &m);
 
 	allowed = buffer_get_int(&m);
+
+	/* fake forced command */
+	auth_clear_options();
+	have_forced = buffer_get_int(&m);
+	forced_command = have_forced ? xstrdup("true") : NULL;
 
 	if (allowed && rkey != NULL) {
 		blob = buffer_get_string(&m, &blen);
