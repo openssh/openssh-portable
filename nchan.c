@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: nchan.c,v 1.34 2002/01/09 17:26:35 markus Exp $");
+RCSID("$OpenBSD: nchan.c,v 1.35 2002/01/10 12:38:26 markus Exp $");
 
 #include "ssh1.h"
 #include "ssh2.h"
@@ -123,12 +123,6 @@ chan_read_failed_12(Channel *c)
 		debug("channel %d: input open -> drain", c->self);
 		chan_shutdown_read(c);
 		c->istate = CHAN_INPUT_WAIT_DRAIN;
-#if 0
-		if (buffer_len(&c->input) == 0) {
-			debug("channel %d: input: no drain shortcut", c->self);
-			chan_ibuf_empty(c);
-		}
-#endif
 		break;
 	default:
 		error("channel %d: chan_read_failed for istate %d",

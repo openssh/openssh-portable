@@ -116,6 +116,9 @@
    - markus@cvs.openbsd.org 2002/01/10 11:24:04
      [clientloop.c]
      handle SSH2_MSG_GLOBAL_REQUEST (just reply with failure); ok djm@
+   - markus@cvs.openbsd.org 2002/01/10 12:38:26
+     [nchan.c]
+     remove dead code (skip drain)
 
 
 20020121
@@ -7264,4 +7267,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1756 2002/01/22 12:21:58 djm Exp $
+$Id: ChangeLog,v 1.1757 2002/01/22 12:22:20 djm Exp $
