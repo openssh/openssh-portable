@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.117 2001/06/23 17:48:19 itojun Exp $
+.\" $OpenBSD: ssh.1,v 1.118 2001/06/26 17:25:34 markus Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -1138,6 +1138,29 @@ Set to the default
 .Ev PATH ,
 as specified when compiling
 .Nm ssh .
+.It Ev SSH_ASKPASS
+If
+.Nm
+needs a passphrase, it will read the passphrase from the current
+terminal if it was run from a terminal.
+If
+.Nm
+does not have a terminal associated with it but
+.Ev DISPLAY
+and
+.Ev SSH_ASKPASS
+are set, it will execute the program specified by
+.Ev SSH_ASKPASS
+and open an X11 window to read the passphrase.
+This is particularly useful when calling
+.Nm
+from a
+.Pa .Xsession
+or related script.
+(Note that on some machines it
+may be necessary to redirect the input from
+.Pa /dev/null
+to make this work.)
 .It Ev SSH_AUTH_SOCK
 indicates the path of a unix-domain socket used to communicate with the
 agent.
