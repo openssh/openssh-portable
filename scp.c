@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.87 2002/03/30 17:45:46 deraadt Exp $");
+RCSID("$OpenBSD: scp.c,v 1.88 2002/04/06 18:24:09 mouring Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -774,7 +774,7 @@ sink(argc, argv)
 				cursize = need;
 			}
 			(void) snprintf(namebuf, need, "%s%s%s", targ,
-			    *targ ? "/" : "", cp);
+			    strcmp(targ, "/") ? "/" : "", cp);
 			np = namebuf;
 		} else
 			np = targ;
