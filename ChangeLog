@@ -1,3 +1,10 @@
+20010213
+ - (djm) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2002/02/11 16:10:15
+     [kex.c]
+     restore kexinit handler if we reset the dispatcher, this unbreaks
+     rekeying s/kex_clear_dispatch/kex_reset_dispatch/
+
 20020210
  - (djm) OpenBSD CVS Sync
    - deraadt@cvs.openbsd.org 2002/02/09 17:37:34
@@ -7544,4 +7551,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1838 2002/02/10 07:32:55 djm Exp $
+$Id: ChangeLog,v 1.1839 2002/02/13 02:54:06 djm Exp $

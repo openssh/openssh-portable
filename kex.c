@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.43 2002/01/25 22:07:40 markus Exp $");
+RCSID("$OpenBSD: kex.c,v 1.44 2002/02/11 16:10:15 markus Exp $");
 
 #include <openssl/crypto.h>
 
@@ -113,16 +113,17 @@ kex_protocol_error(int type, u_int32_t seq, void *ctxt)
 }
 
 static void
-kex_clear_dispatch(void)
+kex_reset_dispatch(void)
 {
 	dispatch_range(SSH2_MSG_TRANSPORT_MIN,
 	    SSH2_MSG_TRANSPORT_MAX, &kex_protocol_error);
+	dispatch_set(SSH2_MSG_KEXINIT, &kex_input_kexinit);
 }
 
 void
 kex_finish(Kex *kex)
 {
-	kex_clear_dispatch();
+	kex_reset_dispatch();
 
 	packet_start(SSH2_MSG_NEWKEYS);
 	packet_send();
@@ -200,8 +201,7 @@ kex_setup(char *proposal[PROPOSAL_MAX])
 	kex->done = 0;
 
 	kex_send_kexinit(kex);					/* we start */
-	kex_clear_dispatch();
-	dispatch_set(SSH2_MSG_KEXINIT, &kex_input_kexinit);
+	kex_reset_dispatch();
 
 	return kex;
 }
