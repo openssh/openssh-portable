@@ -10,6 +10,9 @@
  - (dtucker) [auth-pam.c auth-pam.h session.c] Bug #14: Use do_pwchange to
    change expired PAM passwords for SSHv1 connections without privsep.
    pam_chauthtok is still used when privsep is disabled.  ok djm@
+ - (dtucker) [openbsd-compat/port-aix.c openbsd-compat/port-aix.h] Move
+   include from port-aix.h to port-aix.c and remove unnecessary function
+   definition.  Fixes build errors on AIX.
 
 20040207
  - (dtucker) OpenBSD CVS Sync
@@ -1833,4 +1836,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3221 2004/02/10 02:23:28 dtucker Exp $
+$Id: ChangeLog,v 1.3222 2004/02/10 04:27:34 dtucker Exp $

@@ -24,6 +24,7 @@
  *
  */
 #include "includes.h"
+#include "auth.h"
 #include "ssh.h"
 #include "log.h"
 #include "servconf.h"
