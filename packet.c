@@ -989,7 +989,7 @@ packet_read_poll(int *payload_len_ptr)
 			default:
 				return type;
 				break;
-			}	
+			}
 		} else {
 			switch(type) {
 			case SSH_MSG_IGNORE:
@@ -1011,7 +1011,7 @@ packet_read_poll(int *payload_len_ptr)
 					DBG(debug("received packet type %d", type));
 				return type;
 				break;
-			}	
+			}
 		}
 	}
 }

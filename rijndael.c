@@ -54,7 +54,7 @@ void gen_tabs	__P((void));
 
 #define bswap(x)    ((rotl(x, 8) & 0x00ff00ff) | (rotr(x, 8) & 0xff00ff00))
 
-/* Extract byte from a 32 bit quantity (little endian notation)     */ 
+/* Extract byte from a 32 bit quantity (little endian notation)     */
 
 #define byte(x,n)   ((u1byte)((x) >> (8 * n)))
 
@@ -89,15 +89,15 @@ u4byte  tab_gen = 0;
 
 #define f_rn(bo, bi, n, k)                          \
     bo[n] =  ft_tab[0][byte(bi[n],0)] ^             \
-             ft_tab[1][byte(bi[(n + 1) & 3],1)] ^   \
-             ft_tab[2][byte(bi[(n + 2) & 3],2)] ^   \
-             ft_tab[3][byte(bi[(n + 3) & 3],3)] ^ *(k + n)
+	     ft_tab[1][byte(bi[(n + 1) & 3],1)] ^   \
+	     ft_tab[2][byte(bi[(n + 2) & 3],2)] ^   \
+	     ft_tab[3][byte(bi[(n + 3) & 3],3)] ^ *(k + n)
 
 #define i_rn(bo, bi, n, k)                          \
     bo[n] =  it_tab[0][byte(bi[n],0)] ^             \
-             it_tab[1][byte(bi[(n + 3) & 3],1)] ^   \
-             it_tab[2][byte(bi[(n + 2) & 3],2)] ^   \
-             it_tab[3][byte(bi[(n + 1) & 3],3)] ^ *(k + n)
+	     it_tab[1][byte(bi[(n + 3) & 3],1)] ^   \
+	     it_tab[2][byte(bi[(n + 2) & 3],2)] ^   \
+	     it_tab[3][byte(bi[(n + 1) & 3],3)] ^ *(k + n)
 
 #ifdef LARGE_TABLES
 
@@ -109,15 +109,15 @@ u4byte  tab_gen = 0;
 
 #define f_rl(bo, bi, n, k)                          \
     bo[n] =  fl_tab[0][byte(bi[n],0)] ^             \
-             fl_tab[1][byte(bi[(n + 1) & 3],1)] ^   \
-             fl_tab[2][byte(bi[(n + 2) & 3],2)] ^   \
-             fl_tab[3][byte(bi[(n + 3) & 3],3)] ^ *(k + n)
+	     fl_tab[1][byte(bi[(n + 1) & 3],1)] ^   \
+	     fl_tab[2][byte(bi[(n + 2) & 3],2)] ^   \
+	     fl_tab[3][byte(bi[(n + 3) & 3],3)] ^ *(k + n)
 
 #define i_rl(bo, bi, n, k)                          \
     bo[n] =  il_tab[0][byte(bi[n],0)] ^             \
-             il_tab[1][byte(bi[(n + 3) & 3],1)] ^   \
-             il_tab[2][byte(bi[(n + 2) & 3],2)] ^   \
-             il_tab[3][byte(bi[(n + 1) & 3],3)] ^ *(k + n)
+	     il_tab[1][byte(bi[(n + 3) & 3],1)] ^   \
+	     il_tab[2][byte(bi[(n + 2) & 3],2)] ^   \
+	     il_tab[3][byte(bi[(n + 1) & 3],3)] ^ *(k + n)
 
 #else
 
@@ -129,15 +129,15 @@ u4byte  tab_gen = 0;
 
 #define f_rl(bo, bi, n, k)                                      \
     bo[n] = (u4byte)sbx_tab[byte(bi[n],0)] ^                    \
-        rotl(((u4byte)sbx_tab[byte(bi[(n + 1) & 3],1)]),  8) ^  \
-        rotl(((u4byte)sbx_tab[byte(bi[(n + 2) & 3],2)]), 16) ^  \
-        rotl(((u4byte)sbx_tab[byte(bi[(n + 3) & 3],3)]), 24) ^ *(k + n)
+	rotl(((u4byte)sbx_tab[byte(bi[(n + 1) & 3],1)]),  8) ^  \
+	rotl(((u4byte)sbx_tab[byte(bi[(n + 2) & 3],2)]), 16) ^  \
+	rotl(((u4byte)sbx_tab[byte(bi[(n + 3) & 3],3)]), 24) ^ *(k + n)
 
 #define i_rl(bo, bi, n, k)                                      \
     bo[n] = (u4byte)isb_tab[byte(bi[n],0)] ^                    \
-        rotl(((u4byte)isb_tab[byte(bi[(n + 3) & 3],1)]),  8) ^  \
-        rotl(((u4byte)isb_tab[byte(bi[(n + 2) & 3],2)]), 16) ^  \
-        rotl(((u4byte)isb_tab[byte(bi[(n + 1) & 3],3)]), 24) ^ *(k + n)
+	rotl(((u4byte)isb_tab[byte(bi[(n + 3) & 3],1)]),  8) ^  \
+	rotl(((u4byte)isb_tab[byte(bi[(n + 2) & 3],2)]), 16) ^  \
+	rotl(((u4byte)isb_tab[byte(bi[(n + 1) & 3],3)]), 24) ^ *(k + n)
 
 #endif
 
@@ -160,7 +160,7 @@ gen_tabs(void)
 	log_tab[1] = 0; p = 1;
 
 	for(i = 0; i < 10; ++i) {
-		rco_tab[i] = p; 
+		rco_tab[i] = p;
 
 		p = (p << 1) ^ (p & 0x80 ? 0x1b : 0);
 	}
@@ -172,19 +172,19 @@ gen_tabs(void)
 	/* least significant end of a byte.                     */
 
 	for(i = 0; i < 256; ++i) {
-		p = (i ? pow_tab[255 - log_tab[i]] : 0); q = p; 
-		q = (q >> 7) | (q << 1); p ^= q; 
-		q = (q >> 7) | (q << 1); p ^= q; 
-		q = (q >> 7) | (q << 1); p ^= q; 
-		q = (q >> 7) | (q << 1); p ^= q ^ 0x63; 
+		p = (i ? pow_tab[255 - log_tab[i]] : 0); q = p;
+		q = (q >> 7) | (q << 1); p ^= q;
+		q = (q >> 7) | (q << 1); p ^= q;
+		q = (q >> 7) | (q << 1); p ^= q;
+		q = (q >> 7) | (q << 1); p ^= q ^ 0x63;
 		sbx_tab[i] = (u1byte)p; isb_tab[p] = (u1byte)i;
 	}
 
 	for(i = 0; i < 256; ++i) {
-		p = sbx_tab[i]; 
+		p = sbx_tab[i];
 
-#ifdef  LARGE_TABLES        
-        
+#ifdef  LARGE_TABLES
+
 		t = p; fl_tab[0][i] = t;
 		fl_tab[1][i] = rotl(t,  8);
 		fl_tab[2][i] = rotl(t, 16);
@@ -194,30 +194,30 @@ gen_tabs(void)
 			((u4byte)p <<  8) |
 			((u4byte)p << 16) |
 			((u4byte)ff_mult(3, p) << 24);
-        
+
 		ft_tab[0][i] = t;
 		ft_tab[1][i] = rotl(t,  8);
 		ft_tab[2][i] = rotl(t, 16);
 		ft_tab[3][i] = rotl(t, 24);
 
-		p = isb_tab[i]; 
+		p = isb_tab[i];
 
-#ifdef  LARGE_TABLES        
-        
-		t = p; il_tab[0][i] = t; 
-		il_tab[1][i] = rotl(t,  8); 
-		il_tab[2][i] = rotl(t, 16); 
+#ifdef  LARGE_TABLES
+
+		t = p; il_tab[0][i] = t;
+		il_tab[1][i] = rotl(t,  8);
+		il_tab[2][i] = rotl(t, 16);
 		il_tab[3][i] = rotl(t, 24);
-#endif 
+#endif
 		t = ((u4byte)ff_mult(14, p)) |
 			((u4byte)ff_mult( 9, p) <<  8) |
 			((u4byte)ff_mult(13, p) << 16) |
 			((u4byte)ff_mult(11, p) << 24);
-        
-		it_tab[0][i] = t; 
-		it_tab[1][i] = rotl(t,  8); 
-		it_tab[2][i] = rotl(t, 16); 
-		it_tab[3][i] = rotl(t, 24); 
+
+		it_tab[0][i] = t;
+		it_tab[1][i] = rotl(t,  8);
+		it_tab[2][i] = rotl(t, 16);
+		it_tab[3][i] = rotl(t, 24);
 	}
 
 	tab_gen = 1;
@@ -232,8 +232,8 @@ gen_tabs(void)
     t   = w ^ (x);          \
    (y)  = u ^ v ^ w;        \
    (y) ^= rotr(u ^ t,  8) ^ \
-          rotr(v ^ t, 16) ^ \
-          rotr(t,24)
+	  rotr(v ^ t, 16) ^ \
+	  rotr(t,24)
 
 /* initialise the key schedule from the user supplied key   */
 
@@ -271,7 +271,7 @@ gen_tabs(void)
 rijndael_ctx *
 rijndael_set_key(rijndael_ctx *ctx, const u4byte *in_key, const u4byte key_len,
 		 int encrypt)
-{  
+{
 	u4byte  i, t, u, v, w;
 	u4byte *e_key = ctx->e_key;
 	u4byte *d_key = ctx->d_key;
@@ -285,23 +285,23 @@ rijndael_set_key(rijndael_ctx *ctx, const u4byte *in_key, const u4byte key_len,
 
 	e_key[0] = io_swap(in_key[0]); e_key[1] = io_swap(in_key[1]);
 	e_key[2] = io_swap(in_key[2]); e_key[3] = io_swap(in_key[3]);
-	
+
 	switch(ctx->k_len) {
-        case 4: t = e_key[3];
-                for(i = 0; i < 10; ++i) 
+	case 4: t = e_key[3];
+		for(i = 0; i < 10; ++i)
 			loop4(i);
-                break;
+		break;
 
-        case 6: e_key[4] = io_swap(in_key[4]); t = e_key[5] = io_swap(in_key[5]);
-                for(i = 0; i < 8; ++i) 
+	case 6: e_key[4] = io_swap(in_key[4]); t = e_key[5] = io_swap(in_key[5]);
+		for(i = 0; i < 8; ++i)
 			loop6(i);
-                break;
+		break;
 
-        case 8: e_key[4] = io_swap(in_key[4]); e_key[5] = io_swap(in_key[5]);
-                e_key[6] = io_swap(in_key[6]); t = e_key[7] = io_swap(in_key[7]);
-                for(i = 0; i < 7; ++i) 
+	case 8: e_key[4] = io_swap(in_key[4]); e_key[5] = io_swap(in_key[5]);
+		e_key[6] = io_swap(in_key[6]); t = e_key[7] = io_swap(in_key[7]);
+		for(i = 0; i < 7; ++i)
 			loop8(i);
-                break;
+		break;
 	}
 
 	if (!encrypt) {
@@ -333,7 +333,7 @@ rijndael_set_key(rijndael_ctx *ctx, const u4byte *in_key, const u4byte key_len,
 
 void
 rijndael_encrypt(rijndael_ctx *ctx, const u4byte *in_blk, u4byte *out_blk)
-{   
+{
 	u4byte k_len = ctx->k_len;
 	u4byte *e_key = ctx->e_key;
 	u4byte  b0[4], b1[4], *kp;
@@ -380,7 +380,7 @@ rijndael_encrypt(rijndael_ctx *ctx, const u4byte *in_blk, u4byte *out_blk)
 
 void
 rijndael_decrypt(rijndael_ctx *ctx, const u4byte *in_blk, u4byte *out_blk)
-{  
+{
 	u4byte  b0[4], b1[4], *kp;
 	u4byte k_len = ctx->k_len;
 	u4byte *e_key = ctx->e_key;

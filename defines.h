@@ -19,13 +19,13 @@
 #endif
 #ifdef HAVE_SYS_BITYPES_H
 # include <sys/bitypes.h> /* For u_intXX_t */
-#endif 
+#endif
 #ifdef HAVE_PATHS_H
 # include <paths.h> /* For _PATH_XXX */
-#endif 
+#endif
 #ifdef HAVE_LIMITS_H
 # include <limits.h> /* For PATH_MAX */
-#endif 
+#endif
 #ifdef HAVE_SYS_TIME_H
 # include <sys/time.h> /* For timersub */
 #endif
@@ -34,7 +34,7 @@
 #endif
 #ifdef HAVE_SYS_CDEFS_H
 # include <sys/cdefs.h> /* For __P() */
-#endif 
+#endif
 #ifdef HAVE_SYS_SYSMACROS_H
 # include <sys/sysmacros.h> /* For MIN, MAX, etc */
 #endif
@@ -79,22 +79,22 @@ enum
 # endif /* PATH_MAX */
 #endif /* MAXPATHLEN */
 
-#ifndef STDIN_FILENO     
+#ifndef STDIN_FILENO
 # define STDIN_FILENO    0
-#endif                   
-#ifndef STDOUT_FILENO    
+#endif
+#ifndef STDOUT_FILENO
 # define STDOUT_FILENO   1
-#endif                   
-#ifndef STDERR_FILENO    
+#endif
+#ifndef STDERR_FILENO
 # define STDERR_FILENO   2
-#endif                   
+#endif
 
 #ifndef NGROUPS_MAX	/* Disable groupaccess if NGROUP_MAX is not set */
 #define NGROUPS_MAX 0
 #endif
 
 #ifndef O_NONBLOCK	/* Non Blocking Open */
-# define O_NONBLOCK      00004 
+# define O_NONBLOCK      00004
 #endif
 
 #ifndef S_ISREG
@@ -318,8 +318,8 @@ struct winsize {
       (result)->tv_sec = (a)->tv_sec - (b)->tv_sec;           \
       (result)->tv_usec = (a)->tv_usec - (b)->tv_usec;        \
       if ((result)->tv_usec < 0) {                            \
-         --(result)->tv_sec;                                  \
-         (result)->tv_usec += 1000000;                        \
+	 --(result)->tv_sec;                                  \
+	 (result)->tv_usec += 1000000;                        \
       }                                                       \
    } while (0)
 #endif
@@ -340,7 +340,7 @@ struct winsize {
 
 #ifndef SUN_LEN
 #define SUN_LEN(su) \
-        (sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
+	(sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
 #endif /* SUN_LEN */
 
 /* Function replacement / compatibility hacks */

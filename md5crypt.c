@@ -27,11 +27,11 @@ static unsigned char itoa64[] =		/* 0 ... 63 => ascii - 64 */
 	"./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 static char	*magic = "$1$";	/*
-                                 * This string is magic for
-                                 * this algorithm.  Having
-                                 * it this way, we can get
-                                 * get better later on
-                                 */
+				 * This string is magic for
+				 * this algorithm.  Having
+				 * it this way, we can get
+				 * get better later on
+				 */
 
 static void
 to64(char *s, unsigned long v, int n)
@@ -45,7 +45,7 @@ to64(char *s, unsigned long v, int n)
 int
 is_md5_salt(const char *salt)
 {
-        return (!strncmp(salt, magic, strlen(magic)));
+	return (!strncmp(salt, magic, strlen(magic)));
 }
 
 /*

@@ -222,7 +222,7 @@ do_init(int fd_in, int fd_out)
 
 	get_msg(fd_in, &msg);
 
- 	/* Expecting a VERSION reply */
+	/* Expecting a VERSION reply */
 	if ((type = buffer_get_char(&msg)) != SSH2_FXP_VERSION) {
 		error("Invalid packet back from SSH2_FXP_INIT (type %d)",
 		    type);

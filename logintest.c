@@ -27,7 +27,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/** 
+/**
  ** logintest.c:  simple test driver for platform-independent login recording
  **               and lastlog retrieval
  **/
@@ -48,7 +48,7 @@
 
 #include "loginrec.h"
 
-RCSID("$Id: logintest.c,v 1.6 2000/06/19 08:25:36 andre Exp $");
+RCSID("$Id: logintest.c,v 1.7 2001/02/05 12:42:18 stevesk Exp $");
 
 
 #define PAUSE_BEFORE_LOGOUT 3
@@ -74,10 +74,10 @@ dump_logininfo(struct logininfo *li, char *descname)
 	       "\t\t\tfamily\t%d\n\t\t}\n"
 	       "\t}\n"
 	       "}\n",
-	       descname, li->progname, li->type, 
+	       descname, li->progname, li->type,
 	       li->pid, li->uid, li->line,
-	       li->username, li->hostname, li->exit, 
-	       li->termination, li->tv_sec, li->tv_usec, 
+	       li->username, li->hostname, li->exit,
+	       li->termination, li->tv_sec, li->tv_usec,
 	       li->hostaddr.sa.sa_family);
 }
 
@@ -134,7 +134,7 @@ testAPI()
 
 	if (nologtest)
 		return 1;
-  
+
 	line_stripname(stripline, li1->line, sizeof(stripline));
 
 	printf("Performing an invalid login attempt (no type field)\n--\n");
@@ -159,11 +159,11 @@ testAPI()
 #endif
 	printf("--\n");
 	login_login(li1);
-  
+
 	snprintf(cmdstring, sizeof(cmdstring), "who | grep '%s '",
 		 stripline);
 	system(cmdstring);
-  
+
 	printf("--\nPausing for %d second(s)...\n", PAUSE_BEFORE_LOGOUT);
 	sleep(PAUSE_BEFORE_LOGOUT);
 
@@ -205,12 +205,12 @@ testAPI()
 #endif
 
 	printf("--\nThe output of 'last' shown next should have "
-	       "an entry for root \n  on %s for the time shown above:\n--\n", 
+	       "an entry for root \n  on %s for the time shown above:\n--\n",
 	       stripline);
 	snprintf(cmdstring, sizeof(cmdstring), "last | grep '%s ' | head -3",
 		 stripline);
 	system(cmdstring);
-	     
+
 	printf("--\nEnd of login test.\n");
 
 	login_free_entry(li1);
@@ -255,9 +255,9 @@ testOutput()
 /* show which options got compiled in */
 void
 showOptions(void)
-{  
+{
 	printf("**\n** Compile-time options\n**\n");
-  
+
 	printf("login recording methods selected:\n");
 #ifdef USE_LOGIN
 	printf("\tUSE_LOGIN\n");
@@ -293,17 +293,17 @@ main(int argc, char *argv[])
 		else if (strncmp(argv[1], "-v", 3) == 0)
 			be_verbose=1;
 	}
-      
+
 	if (!compile_opts_only) {
 		if (be_verbose && !testOutput())
 			return 1;
-    
+
 		if (!testAPI())
 			return 1;
 	}
 
 	showOptions();
-  
+
 	return 0;
 } /* main() */
 

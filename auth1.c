@@ -265,8 +265,8 @@ do_authloop(Authctxt *authctxt)
 			authenticated = auth_pam_password(pw, password);
 #elif defined(HAVE_OSF_SIA)
 			/* Do SIA auth with password */
-			if (sia_validate_user(NULL, saved_argc, saved_argv, 
-			    get_canonical_hostname(options.reverse_mapping_check), 
+			if (sia_validate_user(NULL, saved_argc, saved_argv,
+			    get_canonical_hostname(options.reverse_mapping_check),
 			    pw->pw_name, NULL, 0, NULL, password) == SIASUCCESS) {
 				authenticated = 1;
 			}
@@ -317,8 +317,8 @@ do_authloop(Authctxt *authctxt)
 			fatal("INTERNAL ERROR: authenticated invalid user %s",
 			    authctxt->user);
 
-#ifdef HAVE_CYGWIN		
-		if (authenticated && 
+#ifdef HAVE_CYGWIN
+		if (authenticated &&
 		    !check_nt_auth(type == SSH_CMSG_AUTH_PASSWORD,pw->pw_uid)) {
 			packet_disconnect("Authentication rejected for uid %d.",
 			(int)pw->pw_uid);
@@ -329,7 +329,7 @@ do_authloop(Authctxt *authctxt)
 		if (authenticated && authctxt->pw->pw_uid == 0 && !auth_root_allowed())
 			authenticated = 0;
 #endif
-#ifdef USE_PAM			
+#ifdef USE_PAM
 		if (authenticated && !do_pam_account(pw->pw_name, client_user))
 			authenticated = 0;
 #endif
@@ -346,9 +346,9 @@ do_authloop(Authctxt *authctxt)
 			return;
 
 		if (authctxt->failures++ > AUTH_FAIL_MAX) {
-#ifdef WITH_AIXAUTHENTICATE 
-			loginfailed(authctxt->user, 
-			    get_canonical_hostname(options.reverse_mapping_check), 
+#ifdef WITH_AIXAUTHENTICATE
+			loginfailed(authctxt->user,
+			    get_canonical_hostname(options.reverse_mapping_check),
 			    "ssh");
 #endif /* WITH_AIXAUTHENTICATE */
 			packet_disconnect(AUTH_FAIL_MSG, authctxt->user);
@@ -435,7 +435,7 @@ do_authentication()
 
 #ifdef WITH_AIXAUTHENTICATE
 	/* We don't have a pty yet, so just label the line as "ssh" */
-	if (loginsuccess(authctxt->user, 
+	if (loginsuccess(authctxt->user,
 	    get_canonical_hostname(options.reverse_mapping_check),
 	    "ssh", &aixloginmsg) < 0)
 		aixloginmsg = NULL;

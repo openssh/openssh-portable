@@ -266,7 +266,7 @@ cast_setkey(CipherContext *cc, const u_char *key, u_int keylen)
 void
 cast_setiv(CipherContext *cc, const u_char *iv, u_int ivlen)
 {
-	if (iv == NULL) 
+	if (iv == NULL)
 		fatal("no IV for %s.", cc->cipher->name);
 	memcpy(cc->u.cast.iv, (char *)iv, 8);
 }
@@ -295,7 +295,7 @@ rijndael_setkey(CipherContext *cc, const u_char *key, u_int keylen)
 void
 rijndael_setiv(CipherContext *cc, const u_char *iv, u_int ivlen)
 {
-	if (iv == NULL) 
+	if (iv == NULL)
 		fatal("no IV for %s.", cc->cipher->name);
 	memcpy((u_char *)cc->u.rijndael.iv, iv, RIJNDAEL_BLOCKSIZE);
 }
@@ -415,7 +415,7 @@ Cipher ciphers[] = {
 		SSH_CIPHER_SSH2, 16, 32,
 		rijndael_setkey, rijndael_setiv,
 		rijndael_cbc_encrypt, rijndael_cbc_decrypt },
-        { NULL, SSH_CIPHER_ILLEGAL, 0, 0, NULL, NULL, NULL, NULL }
+	{ NULL, SSH_CIPHER_ILLEGAL, 0, 0, NULL, NULL, NULL, NULL }
 };
 
 /*--*/

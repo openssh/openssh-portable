@@ -253,7 +253,7 @@ main(int argc, char **argv)
 	__progname = get_progname(argv[0]);
 	init_rng();
 
-        SSLeay_add_all_algorithms();
+	SSLeay_add_all_algorithms();
 
 	/* At first, get a connection to the authentication agent. */
 	ac = ssh_get_authentication_connection();

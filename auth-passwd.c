@@ -118,7 +118,7 @@ auth_password(struct passwd * pw, const char *password)
 	 * Empty password is only possible on NT if the user has _really_
 	 * an empty password and authentication is done, though.
 	 */
-        if (!is_winnt) 
+	if (!is_winnt)
 #endif
 	if (*password == '\0' && options.permit_empty_passwd == 0)
 		return 0;
@@ -155,13 +155,13 @@ auth_password(struct passwd * pw, const char *password)
 	 */
 #if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
 	spw = getspnam(pw->pw_name);
-	if (spw != NULL) 
+	if (spw != NULL)
 		pw_password = spw->sp_pwdp;
 #endif /* defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW) */
 
 #ifdef HAVE_SCO_PROTECTED_PW
 	spw = getprpwnam(pw->pw_name);
-	if (spw != NULL) 
+	if (spw != NULL)
 		pw_password = spw->ufld.fd_encrypt;
 #endif /* HAVE_SCO_PROTECTED_PW */
 
@@ -189,7 +189,7 @@ auth_password(struct passwd * pw, const char *password)
 		encrypted_password = md5_crypt(password, salt);
 	else
 		encrypted_password = crypt(password, salt);
-#else /* HAVE_MD5_PASSWORDS */    
+#else /* HAVE_MD5_PASSWORDS */
 # ifdef __hpux
 	if (iscomsec())
 		encrypted_password = bigcrypt(password, salt);
@@ -198,7 +198,7 @@ auth_password(struct passwd * pw, const char *password)
 # else
 	encrypted_password = crypt(password, salt);
 # endif /* __hpux */
-#endif /* HAVE_MD5_PASSWORDS */    
+#endif /* HAVE_MD5_PASSWORDS */
 
 	/* Authentication is accepted if the encrypted passwords are identical. */
 	return (strcmp(encrypted_password, pw_password) == 0);

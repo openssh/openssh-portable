@@ -203,7 +203,7 @@ input_userauth_request(int type, int plen, void *ctxt)
 	if ((style = strchr(user, ':')) != NULL)
 		*style++ = 0;
 
-	if (authctxt->attempt++ == 0) { 
+	if (authctxt->attempt++ == 0) {
 		/* setup auth context */
 		struct passwd *pw = NULL;
 		setproctitle("%s", user);
@@ -300,7 +300,7 @@ done:
 	return;
 }
 
-void   
+void
 userauth_reply(Authctxt *authctxt, int authenticated)
 {
 	char *methods;
@@ -309,8 +309,8 @@ userauth_reply(Authctxt *authctxt, int authenticated)
 	if (authenticated) {
 #ifdef WITH_AIXAUTHENTICATE
 		/* We don't have a pty yet, so just label the line as "ssh" */
-		if (loginsuccess(authctxt->user?authctxt->user:"NOUSER", 
-		    get_canonical_hostname(options.reverse_mapping_check), 
+		if (loginsuccess(authctxt->user?authctxt->user:"NOUSER",
+		    get_canonical_hostname(options.reverse_mapping_check),
 		    "ssh", &aixloginmsg) < 0)
 			aixloginmsg = NULL;
 #endif /* WITH_AIXAUTHENTICATE */
@@ -323,7 +323,7 @@ userauth_reply(Authctxt *authctxt, int authenticated)
 		authctxt->success = 1;
 	} else {
 		if (authctxt->failures++ > AUTH_FAIL_MAX)
-                        packet_disconnect(AUTH_FAIL_MSG, authctxt->user);
+			packet_disconnect(AUTH_FAIL_MSG, authctxt->user);
 		methods = authmethods_get();
 		packet_start(SSH2_MSG_USERAUTH_FAILURE);
 		packet_put_cstring(methods);
@@ -342,11 +342,11 @@ userauth_none(Authctxt *authctxt)
 	if (m != NULL)
 		m->enabled = NULL;
 	packet_done();
-        userauth_banner();
+	userauth_banner();
 
 	if (authctxt->valid == 0)
 		return(0);
-		
+
 #ifdef HAVE_CYGWIN
 	if (check_nt_auth(1, authctxt->pw->pw_uid) == 0)
 		return(0);
@@ -354,9 +354,9 @@ userauth_none(Authctxt *authctxt)
 #ifdef USE_PAM
 	return auth_pam_password(authctxt->pw, "");
 #elif defined(HAVE_OSF_SIA)
-	return (sia_validate_user(NULL, saved_argc, saved_argv, 
-	    get_canonical_hostname(options.reverse_mapping_check), 
-	    authctxt->user?authctxt->user:"NOUSER", NULL, 0, 
+	return (sia_validate_user(NULL, saved_argc, saved_argv,
+	    get_canonical_hostname(options.reverse_mapping_check),
+	    authctxt->user?authctxt->user:"NOUSER", NULL, 0,
 	    NULL, "") == SIASUCCESS);
 #else /* !HAVE_OSF_SIA && !USE_PAM */
 	return auth_password(authctxt->pw, "");
@@ -382,9 +382,9 @@ userauth_passwd(Authctxt *authctxt)
 #ifdef USE_PAM
 	    auth_pam_password(authctxt->pw, password) == 1)
 #elif defined(HAVE_OSF_SIA)
-	    sia_validate_user(NULL, saved_argc, saved_argv, 
-	    get_canonical_hostname(options.reverse_mapping_check), 
-	    authctxt->user?authctxt->user:"NOUSER", NULL, 0, NULL, 
+	    sia_validate_user(NULL, saved_argc, saved_argv,
+	    get_canonical_hostname(options.reverse_mapping_check),
+	    authctxt->user?authctxt->user:"NOUSER", NULL, 0, NULL,
 	    password) == SIASUCCESS)
 #else /* !USE_PAM && !HAVE_OSF_SIA */
 	    auth_password(authctxt->pw, password) == 1)

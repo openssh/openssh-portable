@@ -62,7 +62,7 @@ RCSID("$OpenBSD: session.c,v 1.52 2001/02/03 10:08:37 markus Exp $");
 #endif /* WITH_IRIX_PROJECT */
 #ifdef WITH_IRIX_JOBS
 #include <sys/resource.h>
-#endif 
+#endif
 #ifdef WITH_IRIX_AUDIT
 #include <sat.h>
 #endif /* WITH_IRIX_AUDIT */
@@ -150,7 +150,7 @@ extern int startup_pipe;
 static char *xauthfile;
 
 /* original command from peer. */
-char *original_command = NULL; 
+char *original_command = NULL;
 
 /* data */
 #define MAX_SESSIONS 10
@@ -874,11 +874,11 @@ void do_pam_environment(char ***env, int *envsize)
 
 	if ((pam_env = fetch_pam_environment()) == NULL)
 		return;
-	
+
 	for(i = 0; pam_env[i] != NULL; i++) {
 		if ((equals = strstr(pam_env[i], "=")) == NULL)
 			continue;
-			
+
 		if (strlen(pam_env[i]) < (sizeof(var_name) - 1)) {
 			memset(var_name, '\0', sizeof(var_name));
 			memset(var_val, '\0', sizeof(var_val));
@@ -904,7 +904,7 @@ void copy_environment(char ***env, int *envsize)
 	for(i = 0; environ[i] != NULL; i++) {
 		if ((equals = strstr(environ[i], "=")) == NULL)
 			continue;
-			
+
 		if (strlen(environ[i]) < (sizeof(var_name) - 1)) {
 			memset(var_name, '\0', sizeof(var_name));
 			memset(var_val, '\0', sizeof(var_val));
@@ -1106,7 +1106,7 @@ do_child(const char *command, struct passwd * pw, const char *term,
 			if (jid == -1) {
 				fatal("Failed to create job container: %.100s",
 				      strerror(errno));
-                        }
+			}
 #  endif /* WITH_IRIX_JOBS */
 #  ifdef WITH_IRIX_ARRAY
 			/* initialize array session */
@@ -1384,7 +1384,7 @@ do_child(const char *command, struct passwd * pw, const char *term,
 					fprintf(f, "add %s %s %s\n", display,
 					    auth_proto, auth_data);
 #ifndef HAVE_CYGWIN /* Unix sockets are not supported */
-					if (screen != NULL) 
+					if (screen != NULL)
 						fprintf(f, "add %.*s/unix%s %s %s\n",
 						    (int)(screen-display), display,
 						    screen, auth_proto, auth_data);
@@ -1968,7 +1968,7 @@ session_close_by_channel(int id, void *arg)
 		session_close(s);
 	} else {
 		/* notify child, delay session cleanup */
-		if (s->pid <= 1) 
+		if (s->pid <= 1)
 			fatal("session_close_by_channel: Unsafe s->pid = %d", s->pid);
 		if (kill(s->pid, (s->ttyfd == -1) ? SIGTERM : SIGHUP) < 0)
 			error("session_close_by_channel: kill %d: %s",

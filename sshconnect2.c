@@ -145,7 +145,7 @@ ssh_kex2(char *host, struct sockaddr *hostaddr)
 /* diffie-hellman-group1-sha1 */
 
 void
-ssh_dh1_client(Kex *kex, char *host, struct sockaddr *hostaddr, 
+ssh_dh1_client(Kex *kex, char *host, struct sockaddr *hostaddr,
 	       Buffer *client_kexinit, Buffer *server_kexinit)
 {
 #ifdef DEBUG_KEXDH
@@ -281,7 +281,7 @@ ssh_dh1_client(Kex *kex, char *host, struct sockaddr *hostaddr,
 int
 dh_estimate(int bits)
 {
-	
+
 	if (bits < 64)
 		return (512);	/* O(2**63) */
 	if (bits < 128)
@@ -416,7 +416,7 @@ ssh_dhgex_client(Kex *kex, char *host, struct sockaddr *hostaddr,
 	    buffer_ptr(client_kexinit), buffer_len(client_kexinit),
 	    buffer_ptr(server_kexinit), buffer_len(server_kexinit),
 	    server_host_key_blob, sbloblen,
-	    nbits, dh->p, dh->g, 
+	    nbits, dh->p, dh->g,
 	    dh->pub_key,
 	    dh_server_pub,
 	    shared_secret
@@ -608,7 +608,7 @@ input_userauth_failure(int type, int plen, void *ctxt)
 	for (;;) {
 		method = authmethod_get(authlist);
 		if (method == NULL)
-                        fatal("Unable to find an authentication method");
+			fatal("Unable to find an authentication method");
 		authctxt->method = method;
 		if (method->userauth(authctxt) != 0) {
 			debug2("we sent a %s packet, wait for reply", method->name);
@@ -617,7 +617,7 @@ input_userauth_failure(int type, int plen, void *ctxt)
 			debug2("we did not send a packet, disable method");
 			method->enabled = NULL;
 		}
-	}	
+	}
 	xfree(authlist);
 }
 
@@ -683,7 +683,7 @@ sign_and_send_pubkey(Authctxt *authctxt, Key *k, sign_cb_fn *sign_callback)
 	buffer_init(&b);
 	if (datafellows & SSH_OLD_SESSIONID) {
 		buffer_append(&b, session_id2, session_id2_len);
-		skip = session_id2_len; 
+		skip = session_id2_len;
 	} else {
 		buffer_put_string(&b, session_id2, session_id2_len);
 		skip = buffer_len(&b);
@@ -699,7 +699,7 @@ sign_and_send_pubkey(Authctxt *authctxt, Key *k, sign_cb_fn *sign_callback)
 	} else {
 		buffer_put_cstring(&b, authctxt->method->name);
 		buffer_put_char(&b, have_sig);
-		buffer_put_cstring(&b, key_ssh_name(k)); 
+		buffer_put_cstring(&b, key_ssh_name(k));
 	}
 	buffer_put_string(&b, blob, bloblen);
 
@@ -722,7 +722,7 @@ sign_and_send_pubkey(Authctxt *authctxt, Key *k, sign_cb_fn *sign_callback)
 		buffer_put_cstring(&b, authctxt->method->name);
 		buffer_put_char(&b, have_sig);
 		if (!(datafellows & SSH_BUG_PKAUTH))
-			buffer_put_cstring(&b, key_ssh_name(k)); 
+			buffer_put_cstring(&b, key_ssh_name(k));
 		buffer_put_string(&b, blob, bloblen);
 	}
 	xfree(blob);
@@ -1011,14 +1011,14 @@ authmethod_lookup(const char *name)
  * use a built-in default list.  If the server sends a nil list after
  * previously sending a valid list, continue using the list originally
  * sent.
- */ 
+ */
 
 Authmethod *
 authmethod_get(char *authlist)
 {
 	char *name = NULL, *authname_old;
 	Authmethod *method = NULL;
-	
+
 	/* Use a suitable default if we're passed a nil list.  */
 	if (authlist == NULL || strlen(authlist) == 0)
 		authlist = def_authlist;

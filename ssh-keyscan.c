@@ -509,7 +509,7 @@ conloop(void)
 	c = tq.tqh_first;
 	while (c &&
 	       (c->c_tv.tv_sec < now.tv_sec ||
-	        (c->c_tv.tv_sec == now.tv_sec && c->c_tv.tv_usec < now.tv_usec))) {
+		(c->c_tv.tv_sec == now.tv_sec && c->c_tv.tv_usec < now.tv_usec))) {
 		int s = c->c_fd;
 		c = c->c_link.tqe_next;
 		conrecycle(s);

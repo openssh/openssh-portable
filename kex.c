@@ -79,7 +79,7 @@ kex_exchange_kexinit(
 
 	debug("send KEXINIT");
 	packet_start(SSH2_MSG_KEXINIT);
-	packet_put_raw(buffer_ptr(my_kexinit), buffer_len(my_kexinit));	
+	packet_put_raw(buffer_ptr(my_kexinit), buffer_len(my_kexinit));
 	packet_send();
 	packet_write_wait();
 	debug("done");
@@ -244,7 +244,7 @@ kex_hash(
 	buffer_put_bignum2(&b, client_dh_pub);
 	buffer_put_bignum2(&b, server_dh_pub);
 	buffer_put_bignum2(&b, shared_secret);
-	
+
 #ifdef DEBUG_KEX
 	buffer_dump(&b);
 #endif
@@ -297,7 +297,7 @@ kex_hash_gex(
 	buffer_put_bignum2(&b, client_dh_pub);
 	buffer_put_bignum2(&b, server_dh_pub);
 	buffer_put_bignum2(&b, shared_secret);
-	
+
 #ifdef DEBUG_KEX
 	buffer_dump(&b);
 #endif
@@ -366,7 +366,7 @@ get_match(char *client, char *server)
 	c = cp = xstrdup(client);
 	s = sp = xstrdup(server);
 
-	for ((p = strsep(&sp, SEP)), i=0; p && *p != '\0'; 
+	for ((p = strsep(&sp, SEP)), i=0; p && *p != '\0';
 	     (p = strsep(&sp, SEP)), i++) {
 		if (i < MAX_PROP)
 			sproposals[i] = p;
@@ -375,7 +375,7 @@ get_match(char *client, char *server)
 	}
 	nproposals = i;
 
-	for ((p = strsep(&cp, SEP)), i=0; p && *p != '\0'; 
+	for ((p = strsep(&cp, SEP)), i=0; p && *p != '\0';
 	     (p = strsep(&cp, SEP)), i++) {
 		for (j = 0; j < nproposals; j++) {
 			if (strcmp(p, sproposals[j]) == 0) {

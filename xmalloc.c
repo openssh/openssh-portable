@@ -4,7 +4,7 @@
  *                    All rights reserved
  * Versions of malloc and friends that check their results, and never return
  * failure (they call fatal if they encounter an error).
- * 
+ *
  * As far as I am concerned, the code I have written for this software
  * can be used freely for any purpose.  Any derived versions of this
  * software must be clearly marked as such, and if the derived work is

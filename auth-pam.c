@@ -32,7 +32,7 @@
 #include "canohost.h"
 #include "readpass.h"
 
-RCSID("$Id: auth-pam.c,v 1.23 2001/02/04 12:20:19 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.24 2001/02/05 12:42:17 stevesk Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now"
@@ -97,7 +97,7 @@ static int pamconv(int num_msg, const struct pam_message **msg,
 	/* PAM will free this later */
 	reply = malloc(num_msg * sizeof(*reply));
 	if (reply == NULL)
-		return PAM_CONV_ERR; 
+		return PAM_CONV_ERR;
 
 	for (count = 0; count < num_msg; count++) {
 		switch(PAM_MSG_MEMBER(msg, count, msg_style)) {
@@ -120,7 +120,7 @@ static int pamconv(int num_msg, const struct pam_message **msg,
 					}
 					reply[count].resp = xstrdup(pampasswd);
 				} else {
-					reply[count].resp = 
+					reply[count].resp =
 						xstrdup(read_passphrase(PAM_MSG_MEMBER(msg, count, msg), 1));
 				}
 				reply[count].resp_retcode = PAM_SUCCESS;
@@ -158,19 +158,19 @@ void pam_cleanup_proc(void *context)
 	{
 		pam_retval = pam_close_session(pamh, 0);
 		if (pam_retval != PAM_SUCCESS) {
-			log("Cannot close PAM session[%d]: %.200s", 
+			log("Cannot close PAM session[%d]: %.200s",
 				pam_retval, PAM_STRERROR(pamh, pam_retval));
 		}
 
 		pam_retval = pam_setcred(pamh, PAM_DELETE_CRED);
 		if (pam_retval != PAM_SUCCESS) {
-			debug("Cannot delete credentials[%d]: %.200s", 
+			debug("Cannot delete credentials[%d]: %.200s",
 				pam_retval, PAM_STRERROR(pamh, pam_retval));
 		}
 
 		pam_retval = pam_end(pamh, pam_retval);
 		if (pam_retval != PAM_SUCCESS) {
-			log("Cannot release PAM authentication[%d]: %.200s", 
+			log("Cannot release PAM authentication[%d]: %.200s",
 				pam_retval, PAM_STRERROR(pamh, pam_retval));
 		}
 	}
@@ -193,15 +193,15 @@ int auth_pam_password(struct passwd *pw, const char *password)
 		return 0;
 
 	pampasswd = password;
-	
+
 	pamstate = INITIAL_LOGIN;
 	pam_retval = do_pam_authenticate(0);
 	if (pam_retval == PAM_SUCCESS) {
-		debug("PAM Password authentication accepted for user \"%.100s\"", 
+		debug("PAM Password authentication accepted for user \"%.100s\"",
 			pw->pw_name);
 		return 1;
 	} else {
-		debug("PAM Password authentication for \"%.100s\" failed[%d]: %s", 
+		debug("PAM Password authentication for \"%.100s\" failed[%d]: %s",
 			pw->pw_name, pam_retval, PAM_STRERROR(pamh, pam_retval));
 		return 0;
 	}
@@ -212,13 +212,13 @@ int do_pam_account(char *username, char *remote_user)
 {
 	int pam_retval;
 	extern ServerOptions options;
-	
-	debug("PAM setting rhost to \"%.200s\"", 
+
+	debug("PAM setting rhost to \"%.200s\"",
 	    get_canonical_hostname(options.reverse_mapping_check));
-	pam_retval = pam_set_item(pamh, PAM_RHOST, 
+	pam_retval = pam_set_item(pamh, PAM_RHOST,
 		get_canonical_hostname(options.reverse_mapping_check));
 	if (pam_retval != PAM_SUCCESS) {
-		fatal("PAM set rhost failed[%d]: %.200s", 
+		fatal("PAM set rhost failed[%d]: %.200s",
 			pam_retval, PAM_STRERROR(pamh, pam_retval));
 	}
 
@@ -226,7 +226,7 @@ int do_pam_account(char *username, char *remote_user)
 		debug("PAM setting ruser to \"%.200s\"", remote_user);
 		pam_retval = pam_set_item(pamh, PAM_RUSER, remote_user);
 		if (pam_retval != PAM_SUCCESS) {
-			fatal("PAM set ruser failed[%d]: %.200s", 
+			fatal("PAM set ruser failed[%d]: %.200s",
 				pam_retval, PAM_STRERROR(pamh, pam_retval));
 		}
 	}
@@ -242,11 +242,11 @@ int do_pam_account(char *username, char *remote_user)
 			password_change_required = 1;
 			break;
 		default:
-			log("PAM rejected by account configuration[%d]: %.200s", 
+			log("PAM rejected by account configuration[%d]: %.200s",
 				pam_retval, PAM_STRERROR(pamh, pam_retval));
 			return(0);
 	}
-	
+
 	return(1);
 }
 
@@ -259,31 +259,31 @@ void do_pam_session(char *username, const char *ttyname)
 		debug("PAM setting tty to \"%.200s\"", ttyname);
 		pam_retval = pam_set_item(pamh, PAM_TTY, ttyname);
 		if (pam_retval != PAM_SUCCESS) {
-			fatal("PAM set tty failed[%d]: %.200s", 
+			fatal("PAM set tty failed[%d]: %.200s",
 				pam_retval, PAM_STRERROR(pamh, pam_retval));
 		}
 	}
 
 	pam_retval = pam_open_session(pamh, 0);
 	if (pam_retval != PAM_SUCCESS) {
-		fatal("PAM session setup failed[%d]: %.200s", 
+		fatal("PAM session setup failed[%d]: %.200s",
 			pam_retval, PAM_STRERROR(pamh, pam_retval));
 	}
 }
 
-/* Set PAM credentials */ 
+/* Set PAM credentials */
 void do_pam_setcred(void)
 {
 	int pam_retval;
- 
+
 	debug("PAM establishing creds");
 	pam_retval = pam_setcred(pamh, PAM_ESTABLISH_CRED);
 	if (pam_retval != PAM_SUCCESS) {
 		if(was_authenticated) {
-			fatal("PAM setcred failed[%d]: %.200s", 
+			fatal("PAM setcred failed[%d]: %.200s",
 				pam_retval, PAM_STRERROR(pamh, pam_retval));
 		} else {
-			debug("PAM setcred failed[%d]: %.200s", 
+			debug("PAM setcred failed[%d]: %.200s",
 				pam_retval, PAM_STRERROR(pamh, pam_retval));
 		}
 	}
@@ -295,7 +295,7 @@ int pam_password_change_required(void)
 	return password_change_required;
 }
 
-/* 
+/*
  * Have user change authentication token if pam_acct_mgmt() indicated
  * it was expired.  This needs to be called after an interactive
  * session is established and the user's pty is connected to
@@ -313,7 +313,7 @@ void do_pam_chauthtok(void)
 		do {
 			pam_retval = pam_chauthtok(pamh, PAM_CHANGE_EXPIRED_AUTHTOK);
 			if (pam_retval != PAM_SUCCESS) {
-				log("PAM pam_chauthtok failed[%d]: %.200s", 
+				log("PAM pam_chauthtok failed[%d]: %.200s",
 					pam_retval, PAM_STRERROR(pamh, pam_retval));
 			}
 		} while (pam_retval != PAM_SUCCESS);
@@ -337,21 +337,21 @@ void start_pam(const char *user)
 	pam_retval = pam_start(SSHD_PAM_SERVICE, user, &conv, &pamh);
 
 	if (pam_retval != PAM_SUCCESS) {
-		fatal("PAM initialisation failed[%d]: %.200s", 
+		fatal("PAM initialisation failed[%d]: %.200s",
 			pam_retval, PAM_STRERROR(pamh, pam_retval));
 	}
 
 #ifdef PAM_TTY_KLUDGE
 	/*
 	 * Some PAM modules (e.g. pam_time) require a TTY to operate,
-	 * and will fail in various stupid ways if they don't get one. 
+	 * and will fail in various stupid ways if they don't get one.
 	 * sshd doesn't set the tty until too late in the auth process and may
 	 * not even need one (for tty-less connections)
-	 * Kludge: Set a fake PAM_TTY 
+	 * Kludge: Set a fake PAM_TTY
 	 */
 	pam_retval = pam_set_item(pamh, PAM_TTY, "ssh");
 	if (pam_retval != PAM_SUCCESS) {
-		fatal("PAM set tty failed[%d]: %.200s", 
+		fatal("PAM set tty failed[%d]: %.200s",
 			pam_retval, PAM_STRERROR(pamh, pam_retval));
 	}
 #endif /* PAM_TTY_KLUDGE */
@@ -383,9 +383,9 @@ void pam_msg_cat(const char *msg)
 	char *p;
 	size_t new_msg_len;
 	size_t pam_msg_len;
-	
+
 	new_msg_len = strlen(msg);
-	
+
 	if (pam_msg) {
 		pam_msg_len = strlen(pam_msg);
 		pam_msg = xrealloc(pam_msg, new_msg_len + pam_msg_len + 2);

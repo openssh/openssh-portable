@@ -481,7 +481,7 @@ chan_shutdown_read(Channel *c)
 		return;
 	debug("channel %d: close_read", c->self);
 	if (c->sock != -1) {
-		/* 
+		/*
 		 * shutdown(sock, SHUT_READ) may return ENOTCONN if the
 		 * write side has been closed already. (bug on Linux)
 		 */

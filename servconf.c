@@ -222,7 +222,7 @@ static struct {
 	{ "port", sPort },
 	{ "hostkey", sHostKeyFile },
 	{ "hostdsakey", sHostKeyFile },					/* alias */
- 	{ "pidfile", sPidFile },
+	{ "pidfile", sPidFile },
 	{ "serverkeybits", sServerKeyBits },
 	{ "logingracetime", sLoginGraceTime },
 	{ "keyregenerationinterval", sKeyRegenerationTime },
@@ -560,7 +560,7 @@ parse_flag:
 		case sXAuthLocation:
 			charptr = &options->xauth_location;
 			goto parse_filename;
-			
+
 		case sStrictModes:
 			intptr = &options->strict_modes;
 			goto parse_flag;
@@ -716,14 +716,14 @@ parse_flag:
 		case sBanner:
 			charptr = &options->banner;
 			goto parse_filename;
-			
+
 		default:
 			fprintf(stderr, "%s line %d: Missing handler for opcode %s (%d)\n",
 				filename, linenum, arg, opcode);
 			exit(1);
 		}
 		if ((arg = strdelim(&cp)) != NULL && *arg != '\0') {
-			fprintf(stderr, 
+			fprintf(stderr,
 				"%s line %d: garbage at end of line; \"%.200s\".\n",
 				filename, linenum, arg);
 			exit(1);

@@ -50,13 +50,13 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #endif
 #ifdef HAVE_BSTRING_H
 # include <bstring.h>
-#endif 
+#endif
 #ifdef HAVE_NETGROUP_H
 # include <netgroup.h>
-#endif 
+#endif
 #if defined(HAVE_NETDB_H)
 # include <netdb.h>
-#endif 
+#endif
 #ifdef HAVE_ENDIAN_H
 # include <endian.h>
 #endif

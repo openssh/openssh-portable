@@ -130,10 +130,10 @@ local_do_shell(const char *args)
 	int ret, status;
 	char *shell;
 	pid_t pid;
-	
+
 	if (!*args)
 		args = NULL;
-	
+
 	if ((shell = getenv("SHELL")) == NULL)
 		shell = _PATH_BSHELL;
 
@@ -149,7 +149,7 @@ local_do_shell(const char *args)
 			debug3("Executing %s", shell);
 			ret = execl(shell, shell, NULL);
 		}
-		fprintf(stderr, "Couldn't execute \"%s\": %s\n", shell, 
+		fprintf(stderr, "Couldn't execute \"%s\": %s\n", shell,
 		    strerror(errno));
 		_exit(1);
 	}
@@ -161,7 +161,7 @@ local_do_shell(const char *args)
 		error("Shell exited with status %d", WEXITSTATUS(status));
 }
 
-void 
+void
 local_do_ls(const char *args)
 {
 	if (!args || !*args)
@@ -367,7 +367,7 @@ parse_args(const char **cpp, int *pflag, unsigned long *n_arg,
 		if (get_pathname(&cp, path1))
 			return(-1);
 		if (*path1 == NULL) {
-			error("You must specify a path after a %s command.", 
+			error("You must specify a path after a %s command.",
 			    cmd);
 			return(-1);
 		}
@@ -403,7 +403,7 @@ parse_args(const char **cpp, int *pflag, unsigned long *n_arg,
 		if (get_pathname(&cp, path1))
 			return(-1);
 		if (*path1 == NULL) {
-			error("You must specify a path after a %s command.", 
+			error("You must specify a path after a %s command.",
 			    cmd);
 			return(-1);
 		}

@@ -8,7 +8,7 @@
  * software must be clearly marked as such, and if the derived work is
  * incompatible with the protocol description in the RFC file, it must be
  * called by a name other than "ssh" or "Secure Shell".
- * 
+ *
  *
  * Copyright (c) 1999 Niels Provos.  All rights reserved.
  *

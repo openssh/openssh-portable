@@ -185,7 +185,7 @@ ssh_dss_verify(
 		memset(sigblob, 0, len);
 		xfree(sigblob);
 	}
-	
+
 	/* sha1 the data */
 	dlen = evp_md->md_size;
 	digest = xmalloc(dlen);

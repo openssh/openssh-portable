@@ -176,8 +176,8 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 			*ptyfd = open(buf, O_RDWR | O_NOCTTY);
 			if (*ptyfd < 0)
 				continue;
-		}	
-			
+		}
+
 		/* Open the slave side. */
 		*ttyfd = open(namebuf, O_RDWR | O_NOCTTY);
 		if (*ttyfd < 0) {
@@ -315,11 +315,11 @@ pty_setowner(struct passwd *pw, const char *ttyname)
 		if (chown(ttyname, pw->pw_uid, gid) < 0) {
 			if (errno == EROFS && st.st_uid == pw->pw_uid)
 				error("chown(%.100s, %d, %d) failed: %.100s",
-				      ttyname, pw->pw_uid, gid, 
+				      ttyname, pw->pw_uid, gid,
 				      strerror(errno));
 			else
 				fatal("chown(%.100s, %d, %d) failed: %.100s",
-				      ttyname, pw->pw_uid, gid, 
+				      ttyname, pw->pw_uid, gid,
 				      strerror(errno));
 		}
 	}

@@ -30,7 +30,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/** 
+/**
  ** loginrec.h:  platform-independent login recording and lastlog retrieval
  **/
 
@@ -40,7 +40,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-/* RCSID("$Id: loginrec.h,v 1.4 2000/06/27 01:18:27 djm Exp $"); */
+/* RCSID("$Id: loginrec.h,v 1.5 2001/02/05 12:42:18 stevesk Exp $"); */
 
 /**
  ** you should use the login_* calls to work around platform dependencies
@@ -86,7 +86,7 @@ struct logininfo {
 	 * use time_t's value as tv_sec and set tv_usec to 0
 	 */
 	unsigned int tv_sec;
-	unsigned int tv_usec;                   
+	unsigned int tv_usec;
 	union login_netinfo hostaddr;       /* caller's host address(es) */
 }; /* struct logininfo */
 
@@ -102,7 +102,7 @@ struct logininfo *login_alloc_entry(int pid, const char *username,
 /* free a structure */
 void login_free_entry(struct logininfo *li);
 /* fill out a pre-allocated structure with useful information */
-int login_init_entry(struct logininfo *li, int pid, const char *username, 
+int login_init_entry(struct logininfo *li, int pid, const char *username,
 		     const char *hostname, const char *line);
 /* place the current time in a logininfo struct */
 void login_set_current_time(struct logininfo *li);

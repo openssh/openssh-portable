@@ -72,7 +72,7 @@ dispatch_run(int mode, int *done, void *ctxt)
 		if (type > 0 && type < DISPATCH_MAX && dispatch[type] != NULL)
 			(*dispatch[type])(type, plen, ctxt);
 		else
-			packet_disconnect("protocol error: rcvd type %d", type);	
+			packet_disconnect("protocol error: rcvd type %d", type);
 		if (done != NULL && *done)
 			return;
 	}

@@ -56,7 +56,7 @@ get_remote_hostname(int socket, int reverse_mapping_check)
 			port = from6->sin6_port;
 
 			memset(&from, 0, sizeof(from));
-			
+
 			from4->sin_family = AF_INET;
 			memcpy(&from4->sin_addr, &addr, sizeof(addr));
 			from4->sin_port = port;

@@ -452,11 +452,11 @@ key_size(Key *k){
 RSA *
 rsa_generate_private_key(u_int bits)
 {
-        RSA *private;
-        private = RSA_generate_key(bits, 35, NULL, NULL);
-        if (private == NULL)
-                fatal("rsa_generate_private_key: key generation failed.");
-        return private;
+	RSA *private;
+	private = RSA_generate_key(bits, 35, NULL, NULL);
+	if (private == NULL)
+		fatal("rsa_generate_private_key: key generation failed.");
+	return private;
 }
 
 DSA*
@@ -466,9 +466,9 @@ dsa_generate_private_key(u_int bits)
 	if (private == NULL)
 		fatal("dsa_generate_private_key: DSA_generate_parameters failed");
 	if (!DSA_generate_key(private))
-                fatal("dsa_generate_private_key: DSA_generate_key failed.");
-        if (private == NULL)
-                fatal("dsa_generate_private_key: NULL.");
+		fatal("dsa_generate_private_key: DSA_generate_key failed.");
+	if (private == NULL)
+		fatal("dsa_generate_private_key: NULL.");
 	return private;
 }
 
@@ -477,7 +477,7 @@ key_generate(int type, u_int bits)
 {
 	Key *k = key_new(KEY_UNSPEC);
 	switch (type) {
-        case KEY_DSA:
+	case KEY_DSA:
 		k->dsa = dsa_generate_private_key(bits);
 		break;
 	case KEY_RSA:
@@ -485,9 +485,9 @@ key_generate(int type, u_int bits)
 		k->rsa = rsa_generate_private_key(bits);
 		break;
 	default:
-                fatal("key_generate: unknown type %d", type);
+		fatal("key_generate: unknown type %d", type);
 	}
-        k->type = type;
+	k->type = type;
 	return k;
 }
 
@@ -496,7 +496,7 @@ key_from_private(Key *k)
 {
 	Key *n = NULL;
 	switch (k->type) {
-        case KEY_DSA:
+	case KEY_DSA:
 		n = key_new(k->type);
 		BN_copy(n->dsa->p, k->dsa->p);
 		BN_copy(n->dsa->q, k->dsa->q);
@@ -510,7 +510,7 @@ key_from_private(Key *k)
 		BN_copy(n->rsa->e, k->rsa->e);
 		break;
 	default:
-                fatal("key_from_private: unknown type %d", k->type);
+		fatal("key_from_private: unknown type %d", k->type);
 		break;
 	}
 	return n;

@@ -1,7 +1,11 @@
 20010105
- - (bal) Disable groupaccess by setting NGROUP_MAX to 0 for platforms
+ - (bal) Disable groupaccess by setting NGROUPS_MAX to 0 for platforms
    that don't have NGROUPS_MAX.
  - (bal) AIX patch for auth1.c by William L. Jones <jones@hpc.utexas.edu>
+ - (stevesk) OpenBSD sync:
+   - stevesk@cvs.openbsd.org 2001/02/04 08:32:27
+     [many files; did this manually to our top-level source dir]
+     unexpand and remove end-of-line whitespace; ok markus@
 
 20010104
  - (bal) I think this is the last of the bsd-*.h that don't belong.

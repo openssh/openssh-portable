@@ -54,7 +54,7 @@ enum kex_exchange {
 	DH_GRP1_SHA1,
 	DH_GEX_SHA1
 };
-		
+
 typedef struct Kex Kex;
 typedef struct Mac Mac;
 typedef struct Comp Comp;

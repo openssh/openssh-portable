@@ -308,7 +308,7 @@ main(argc, argv)
 	remin = STDIN_FILENO;
 	remout = STDOUT_FILENO;
 
-	if (fflag) {	
+	if (fflag) {
 		/* Follow "protocol", send data. */
 		(void) response();
 		source(argc, argv);
@@ -1060,7 +1060,7 @@ allocbuf(bp, fd, blksize)
 		size = blksize + (stb.st_blksize - blksize % stb.st_blksize) %
 		    stb.st_blksize;
 #else /* HAVE_ST_BLKSIZE */
-        size = blksize;
+	size = blksize;
 #endif /* HAVE_ST_BLKSIZE */
 	if (bp->cnt >= size)
 		return (bp);

@@ -558,7 +558,7 @@ ssh_remove_all_identities(AuthenticationConnection *auth, int version)
 	return decode_reply(type);
 }
 
-int 
+int
 decode_reply(int type)
 {
 	switch (type) {
