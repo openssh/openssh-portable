@@ -1,5 +1,5 @@
 README for OpenSSH HP-UX contrib files
-Kevin Steves <stevesk@sweden.hp.com>
+Kevin Steves <stevesk@pobox.com>
 
 sshd:		configuration file for sshd.rc
 sshd.rc:	SSH startup script
