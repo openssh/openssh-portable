@@ -17,7 +17,9 @@
  - (djm) Fix PAM fix
  - (djm) Remove 'noreplace' flag from sshd_config in RPM spec files. This
    change is being made as 2.5.x configfiles are not back-compatible with
-  2.3.x.
+   2.3.x.
+ - (djm) Avoid warnings for missing broken IP_TOS. Patch from Mark Miller
+   <markm@swoon.net>
 
 20010226
  - (bal) Fixed bsd-snprinf.c so it now honors 'BROKEN_SNPRINTF' again.
@@ -4152,4 +4154,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.834 2001/02/26 23:53:00 djm Exp $
+$Id: ChangeLog,v 1.835 2001/02/27 03:03:37 djm Exp $

@@ -1232,8 +1232,10 @@ void
 packet_set_interactive(int interactive)
 {
 	static int called = 0;
+#if defined(IP_TOS) && !defined(IP_TOS_IS_BROKEN)
 	int lowdelay = IPTOS_LOWDELAY;
 	int throughput = IPTOS_THROUGHPUT;
+#endif
 	int on = 1;
 
 	if (called)
