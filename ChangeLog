@@ -15,7 +15,14 @@
       [channels.c clientloop.c]
       SSH_CMSG_MAX_PACKET_SIZE, some clients use this, some need this, niels@
       [hope this time my ISP stays alive during commit]
-
+    - [OVERVIEW README] typos; green@freebsd
+    - [ssh-keygen.c]
+      replace xstrdup+strcat with strlcat+fixed buffer, fixes OF (bad me)
+      exit if writing the key fails (no infinit loop)
+      print usage() everytime we get bad options
+    - [ssh-keygen.c] overflow, djm@mindrot.org
+    - [sshd.c] fix sigchld race; cjc5@po.cwru.edu
+      
 19991120
  - Merged more Solaris support from Marc G. Fournier 
    <marc.fournier@acadiau.ca>
