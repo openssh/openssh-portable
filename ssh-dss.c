@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-dss.c,v 1.9 2001/11/07 22:10:28 markus Exp $");
+RCSID("$OpenBSD: ssh-dss.c,v 1.10 2001/12/05 10:06:12 deraadt Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/evp.h>
@@ -145,7 +145,7 @@ ssh_dss_verify(
 		sigblob = buffer_get_string(&b, &len);
 		rlen = buffer_len(&b);
 		buffer_free(&b);
-		if(rlen != 0) {
+		if (rlen != 0) {
 			error("ssh_dss_verify: "
 			    "remaining bytes in signature %d", rlen);
 			xfree(sigblob);

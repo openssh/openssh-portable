@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: compat.c,v 1.53 2001/09/20 13:50:40 markus Exp $");
+RCSID("$OpenBSD: compat.c,v 1.54 2001/12/05 10:06:12 deraadt Exp $");
 
 #ifdef HAVE_LIBPCRE
 #  include <pcreposix.h>
@@ -159,7 +159,7 @@ proto_spec(const char *spec)
 		return ret;
 	q = s = xstrdup(spec);
 	for ((p = strsep(&q, SEP)); p && *p != '\0'; (p = strsep(&q, SEP))) {
-		switch(atoi(p)) {
+		switch (atoi(p)) {
 		case 1:
 			if (ret == SSH_PROTO_UNKNOWN)
 				ret |= SSH_PROTO_1_PREFERRED;
@@ -191,7 +191,7 @@ compat_cipher_proposal(char *cipher_prop)
 	fix_ciphers = xmalloc(len);
 	*fix_ciphers = '\0';
 	tmp = orig_prop = xstrdup(cipher_prop);
-	while((cp = strsep(&tmp, ",")) != NULL) {
+	while ((cp = strsep(&tmp, ",")) != NULL) {
 		if (strncmp(cp, "aes", 3) && strncmp(cp, "rijndael", 8)) {
 			if (*fix_ciphers)
 				strlcat(fix_ciphers, ",", len);

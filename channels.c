@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.142 2001/12/05 03:56:39 itojun Exp $");
+RCSID("$OpenBSD: channels.c,v 1.143 2001/12/05 10:06:12 deraadt Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1277,7 +1277,7 @@ channel_handle_rfd(Channel *c, fd_set * readset, fd_set * writeset)
 			}
 			return -1;
 		}
-		if(c->input_filter != NULL) {
+		if (c->input_filter != NULL) {
 			if (c->input_filter(c, buf, len) == -1) {
 				debug("channel %d: filter stops", c->self);
 				chan_read_failed(c);
@@ -1725,7 +1725,7 @@ channel_input_data(int type, int plen, void *ctxt)
 	data = packet_get_string(&data_len);
 	packet_done();
 
-	if (compat20){
+	if (compat20) {
 		if (data_len > c->local_maxpacket) {
 			log("channel %d: rcvd big packet %d, maxpack %d",
 			    c->self, data_len, c->local_maxpacket);
@@ -1909,7 +1909,7 @@ channel_input_open_confirmation(int type, int plen, void *ctxt)
 static char *
 reason2txt(int reason)
 {
-	switch(reason) {
+	switch (reason) {
 	case SSH2_OPEN_ADMINISTRATIVELY_PROHIBITED:
 		return "administratively prohibited";
 	case SSH2_OPEN_CONNECT_FAILED:
@@ -2719,7 +2719,7 @@ void
 deny_input_open(int type, int plen, void *ctxt)
 {
 	int rchan = packet_get_int();
-	switch(type){
+	switch (type) {
 	case SSH_SMSG_AGENT_OPEN:
 		error("Warning: ssh server tried agent forwarding.");
 		break;

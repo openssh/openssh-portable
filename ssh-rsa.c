@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-rsa.c,v 1.13 2001/11/10 13:22:42 markus Exp $");
+RCSID("$OpenBSD: ssh-rsa.c,v 1.14 2001/12/05 10:06:12 deraadt Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -150,7 +150,7 @@ ssh_rsa_verify(
 	sigblob = buffer_get_string(&b, &len);
 	rlen = buffer_len(&b);
 	buffer_free(&b);
-	if(rlen != 0) {
+	if (rlen != 0) {
 		error("ssh_rsa_verify: remaining bytes in signature %d", rlen);
 		xfree(sigblob);
 		return -1;

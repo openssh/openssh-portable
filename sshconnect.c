@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.115 2001/10/08 19:05:05 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.116 2001/12/05 10:06:13 deraadt Exp $");
 
 #include <openssl/bn.h>
 
@@ -49,15 +49,15 @@ sockaddr_ntop(struct sockaddr *sa)
 	static char addrbuf[INET6_ADDRSTRLEN];
 
 	switch (sa->sa_family) {
-		case AF_INET:
-			addr = &((struct sockaddr_in *)sa)->sin_addr;
-			break;
-		case AF_INET6:
-			addr = &((struct sockaddr_in6 *)sa)->sin6_addr;
-			break;
-		default:
-			/* This case should be protected against elsewhere */
-			abort();
+	case AF_INET:
+		addr = &((struct sockaddr_in *)sa)->sin_addr;
+		break;
+	case AF_INET6:
+		addr = &((struct sockaddr_in6 *)sa)->sin6_addr;
+		break;
+	default:
+		/* This case should be protected against elsewhere */
+		abort();	/* XXX abort is bad -- do something else */
 	}
 	inet_ntop(sa->sa_family, addr, addrbuf, sizeof(addrbuf));
 	return addrbuf;
@@ -434,7 +434,7 @@ ssh_exchange_identification(void)
 	compat_datafellows(remote_version);
 	mismatch = 0;
 
-	switch(remote_major) {
+	switch (remote_major) {
 	case 1:
 		if (remote_minor == 99 &&
 		    (options.protocol & SSH_PROTO_2) &&

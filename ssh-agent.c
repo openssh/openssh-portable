@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.73 2001/11/17 19:14:34 stevesk Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.74 2001/12/05 10:06:12 deraadt Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.73 2001/11/17 19:14:34 stevesk Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.74 2001/12/05 10:06:12 deraadt Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -109,7 +109,7 @@ static void
 idtab_init(void)
 {
 	int i;
-	for (i = 0; i <=2; i++){
+	for (i = 0; i <=2; i++) {
 		idtable[i].identities = NULL;
 		idtable[i].nentries = 0;
 	}
@@ -293,7 +293,7 @@ process_remove_identity(SocketEntry *e, int version)
 	u_int bits;
 	int success = 0;
 
-	switch(version){
+	switch (version) {
 	case 1:
 		key = key_new(KEY_RSA1);
 		bits = buffer_get_int(&e->input);
@@ -395,7 +395,7 @@ process_add_identity(SocketEntry *e, int version)
 		type_name = buffer_get_string(&e->input, NULL);
 		type = key_type_from_name(type_name);
 		xfree(type_name);
-		switch(type) {
+		switch (type) {
 		case KEY_DSA:
 			k = key_new_private(type);
 			buffer_get_bignum2(&e->input, k->dsa->p);

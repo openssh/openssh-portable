@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.36 2001/06/25 08:25:37 markus Exp $");
+RCSID("$OpenBSD: kex.c,v 1.37 2001/12/05 10:06:12 deraadt Exp $");
 
 #include <openssl/crypto.h>
 
@@ -219,7 +219,7 @@ kex_kexinit_finish(Kex *kex)
 
 	kex_choose_conf(kex);
 
-	switch(kex->kex_type) {
+	switch (kex->kex_type) {
 	case DH_GRP1_SHA1:
 		kexdh(kex);
 		break;
@@ -444,7 +444,7 @@ dump_digest(char *msg, u_char *digest, int len)
 	int i;
 
 	fprintf(stderr, "%s\n", msg);
-	for (i = 0; i< len; i++){
+	for (i = 0; i< len; i++) {
 		fprintf(stderr, "%02x", digest[i]);
 		if (i%32 == 31)
 			fprintf(stderr, "\n");

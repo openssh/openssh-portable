@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: key.c,v 1.34 2001/11/21 15:51:24 markus Exp $");
+RCSID("$OpenBSD: key.c,v 1.35 2001/12/05 10:06:12 deraadt Exp $");
 
 #include <openssl/evp.h>
 
@@ -285,7 +285,7 @@ key_fingerprint(Key *k, enum fp_type dgst_type, enum fp_rep dgst_rep)
 	dgst_raw = key_fingerprint_raw(k, dgst_type, &dgst_raw_len);
 	if (!dgst_raw)
 		fatal("key_fingerprint: null from key_fingerprint_raw()");
-	switch(dgst_rep) {
+	switch (dgst_rep) {
 	case SSH_FP_HEX:
 		retval = key_fingerprint_hex(dgst_raw, dgst_raw_len);
 		break;
@@ -371,7 +371,7 @@ key_read(Key *ret, char **cpp)
 
 	cp = *cpp;
 
-	switch(ret->type) {
+	switch (ret->type) {
 	case KEY_RSA1:
 		/* Get number of bits. */
 		if (*cp < '0' || *cp > '9')
@@ -533,7 +533,8 @@ key_ssh_name(Key *k)
 	return "ssh-unknown";
 }
 u_int
-key_size(Key *k){
+key_size(Key *k)
+{
 	switch (k->type) {
 	case KEY_RSA1:
 	case KEY_RSA:
@@ -616,15 +617,15 @@ key_from_private(Key *k)
 int
 key_type_from_name(char *name)
 {
-	if (strcmp(name, "rsa1") == 0){
+	if (strcmp(name, "rsa1") == 0) {
 		return KEY_RSA1;
-	} else if (strcmp(name, "rsa") == 0){
+	} else if (strcmp(name, "rsa") == 0) {
 		return KEY_RSA;
-	} else if (strcmp(name, "dsa") == 0){
+	} else if (strcmp(name, "dsa") == 0) {
 		return KEY_DSA;
-	} else if (strcmp(name, "ssh-rsa") == 0){
+	} else if (strcmp(name, "ssh-rsa") == 0) {
 		return KEY_RSA;
-	} else if (strcmp(name, "ssh-dss") == 0){
+	} else if (strcmp(name, "ssh-dss") == 0) {
 		return KEY_DSA;
 	}
 	debug2("key_type_from_name: unknown key type '%s'", name);
@@ -669,7 +670,7 @@ key_from_blob(u_char *blob, int blen)
 	ktype = buffer_get_string(&b, NULL);
 	type = key_type_from_name(ktype);
 
-	switch(type){
+	switch (type) {
 	case KEY_RSA:
 		key = key_new(type);
 		buffer_get_bignum2(&b, key->rsa->e);
@@ -715,7 +716,7 @@ key_to_blob(Key *key, u_char **blobp, u_int *lenp)
 		return 0;
 	}
 	buffer_init(&b);
-	switch(key->type){
+	switch (key->type) {
 	case KEY_DSA:
 		buffer_put_cstring(&b, key_ssh_name(key));
 		buffer_put_bignum2(&b, key->dsa->p);
@@ -751,7 +752,7 @@ key_sign(
     u_char **sigp, int *lenp,
     u_char *data, int datalen)
 {
-	switch(key->type){
+	switch (key->type) {
 	case KEY_DSA:
 		return ssh_dss_sign(key, sigp, lenp, data, datalen);
 		break;
@@ -774,7 +775,7 @@ key_verify(
 	if (signaturelen == 0)
 		return -1;
 
-	switch(key->type){
+	switch (key->type) {
 	case KEY_DSA:
 		return ssh_dss_verify(key, signature, signaturelen, data, datalen);
 		break;

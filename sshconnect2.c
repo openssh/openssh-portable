@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.86 2001/12/05 03:56:39 itojun Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.87 2001/12/05 10:06:13 deraadt Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -407,7 +407,7 @@ input_userauth_pk_ok(int type, int plen, void *ctxt)
 		}
 		sent = sign_and_send_pubkey(authctxt, key,
 		   authctxt->last_key_sign);
-	} while(0);
+	} while (0);
 
 	if (key != NULL)
 		key_free(key);
@@ -446,7 +446,7 @@ userauth_passwd(Authctxt *authctxt)
 	if (attempt++ >= options.number_of_password_prompts)
 		return 0;
 
-	if(attempt != 1)
+	if (attempt != 1)
 		error("Permission denied, please try again.");
 
 	snprintf(prompt, sizeof(prompt), "%.30s@%.128s's password: ",
@@ -710,7 +710,7 @@ userauth_pubkey(Authctxt *authctxt)
 	if (authctxt->agent != NULL) {
 		do {
 			sent = userauth_pubkey_agent(authctxt);
-		} while(!sent && authctxt->agent->howmany > 0);
+		} while (!sent && authctxt->agent->howmany > 0);
 	}
 	while (!sent && idx < options.num_identity_files) {
 		key = options.identity_keys[idx];
