@@ -4,6 +4,7 @@
    Garrick James <garrick@james.net>
  - (djm) Check for SCO pty naming style (ptyp%d/ttyp%d). Based on fix from
    Bastian Trompetter <btrompetter@firemail.de>
+ - (djm) NeXT tweaks from Ben Lindstrom <mouring@pconline.com>
  - More OpenBSD updates:
    - deraadt@cvs.openbsd.org 2000/08/24 15:46:59
      [scp.c]

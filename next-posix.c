@@ -1,26 +1,7 @@
 #include "config.h"
 
 #ifdef HAVE_NEXT
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <errno.h>
-#include <unistd.h>
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
-#include <sys/fcntl.h>
-#include <sys/ioctl.h>
-#include <sys/time.h>
-#include <sys/file.h>
-#include <errno.h>
-#include <termios.h>
-#include <sys/wait.h>
-
-#include "xmalloc.h"
-#include "ssh.h"
 #include "next-posix.h"
 
 int

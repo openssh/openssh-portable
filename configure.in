@@ -122,15 +122,13 @@ case "$host" in
 	need_dash_r=1
 	;;
 *-next-*)
-	# hardwire lastlog location (can't detect it on some versions)
 	conf_lastlog_location="/usr/adm/lastlog"
-        conf_utmp_location=/etc/utmp
+	conf_utmp_location=/etc/utmp
+	conf_wtmp_location=/usr/adm/wtmp
+	MAIL=/usr/spool/mail
 	AC_DEFINE(HAVE_NEXT)
 	CFLAGS="$CFLAGS -I/usr/local/include"
-	MAIL=/usr/spool/mail
 	AC_MSG_WARN([*** Tested: PA-RISC/m68k  Untested: Sparc/Intel])
-	AC_MSG_WARN([*** Expect 'scp' to fail!])
-	AC_MSG_WARN([*** Please report any problems, thanks])
 	;;
 *-*-solaris*)
 	CFLAGS="$CFLAGS -I/usr/local/include"

@@ -132,25 +132,26 @@
 
 /**
  ** TODO:
- **   homegrown ttyslot()q
+ **   homegrown ttyslot()
  **   test, test, test
  **
  ** Platform status:
  ** ----------------
  **
  ** Known good:
- **   Linux (Redhat 6.2, need more variants)
+ **   Linux (Redhat 6.2, Debian)
+ **   Solaris
  **   HP-UX 10.20 (gcc only)
  **   IRIX
+ **	NeXT - M68k/HPPA (4.2/3.3)
  **
  ** Testing required: Please send reports!
- **   Solaris
  **   NetBSD
  **   HP-UX 11
  **   AIX
  **
  ** Platforms with known problems:
- **   NeXT
+ **   Some variants of Slackware Linux
  **
  **/
 
@@ -160,7 +161,7 @@
 #include "xmalloc.h"
 #include "loginrec.h"
 
-RCSID("$Id: loginrec.c,v 1.21 2000/08/18 04:08:38 djm Exp $");
+RCSID("$Id: loginrec.c,v 1.22 2000/08/29 03:30:37 djm Exp $");
 
 /**
  ** prototypes for helper functions in this file
@@ -724,7 +725,7 @@ utmp_write_direct(struct logininfo *li, struct utmp *ut)
 
 	/* FIXME: (ATL) ttyslot() needs local implementation */
 
-#if defined(SUNOS4) && defined(HAVE_GETTTYENT)
+#if defined(HAVE_GETTTYENT)
 	register struct ttyent *ty;
 
 	tty=0;
@@ -745,7 +746,7 @@ utmp_write_direct(struct logininfo *li, struct utmp *ut)
 
 	tty = ttyslot(); /* seems only to work for /dev/ttyp? style names */
 
-#endif /* SUNOS4 && HAVE_GETTTYENT */
+#endif /* HAVE_GETTTYENT */
 
 	if (tty > 0 && (fd = open(UTMP_FILE, O_RDWR|O_CREAT, 0644)) >= 0) {
 		(void)lseek(fd, (off_t)(tty * sizeof(struct utmp)), SEEK_SET);

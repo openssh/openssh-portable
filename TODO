@@ -9,10 +9,6 @@
 
 - Cleanup configure.in
 
-- Next now has sigaction() based on sigvec().  But it sill does not
-  seem to act correctly.  Ctrl-C and Ctrl-Z don't return echo to the
-  underlying shell.
-
 - utmp/wtmp logging does not work on NeXT
 
 - Complete Tru64 SIA support
