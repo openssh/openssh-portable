@@ -64,6 +64,16 @@ install -m644 openssh-agent.1 $RPM_BUILD_ROOT/usr/man/man1
 install -m644 openssh-add.1 $RPM_BUILD_ROOT/usr/man/man1
 install -m644 openssh-keygen.1 $RPM_BUILD_ROOT/usr/man/man1
 
+# Install compatibility symlinks
+cd $RPM_BUILD_ROOT/usr/sbin
+ln -s opensshd sshd
+cd $RPM_BUILD_ROOT/usr/bin
+ln -s openssh ssh
+ln -s openscp scp
+ln -s openssh-agent ssh-agent
+ln -s openssh-add ssh-add
+ln -s openssh-keygen ssh-keygen
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
@@ -94,6 +104,14 @@ fi
 %attr(0755,root,root) /usr/bin/openssh-keygen
 %attr(0755,root,root) /usr/bin/openssh-add
 %attr(0755,root,root) /usr/bin/openscp
+
+# Symlinks
+%attr(0755,root,root) /usr/sbin/sshd
+%attr(0755,root,root) /usr/bin/ssh
+%attr(0755,root,root) /usr/bin/ssh-agent
+%attr(0755,root,root) /usr/bin/ssh-keygen
+%attr(0755,root,root) /usr/bin/ssh-add
+%attr(0755,root,root) /usr/bin/scp
 
 %attr(0755,root,root) /usr/man/man8/opensshd.8
 %attr(0755,root,root) /usr/man/man1/openssh.1
