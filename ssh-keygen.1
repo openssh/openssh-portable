@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 23:55:14 1995 ylo
 .\"
-.\" $Id: ssh-keygen.1,v 1.11 2000/04/13 02:26:37 damien Exp $
+.\" $Id: ssh-keygen.1,v 1.12 2000/04/20 13:27:27 damien Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSH-KEYGEN 1
@@ -142,8 +142,7 @@ newer versions bore successively more restrictive licenses.
 This version of OpenSSH
 .Bl -bullet
 .It
-has all components of a restrictive nature (i.e., patents, see
-.Xr ssl 8 )
+has all components of a restrictive nature (i.e., patents)
 directly removed from the source code; any licensed or patented components
 are chosen from
 external libraries.
@@ -157,13 +156,8 @@ authentication and ticket passing.
 supports one-time password authentication with
 .Xr skey 1 .
 .El
-.Pp
-The libraries described in
-.Xr ssl 8
-are required for proper operation.
 .Sh SEE ALSO
 .Xr ssh 1 ,
 .Xr ssh-add 1 ,
 .Xr ssh-agent 1 ,
 .Xr sshd 8 ,
-.Xr ssl 8

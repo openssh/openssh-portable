@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: sshd.8,v 1.17 2000/04/13 02:26:38 damien Exp $
+.\" $Id: sshd.8,v 1.18 2000/04/20 13:27:27 damien Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSHD 8
@@ -872,8 +872,7 @@ more restrictive licenses, and thus demand for a free version was born.
 This version of OpenSSH
 .Bl -bullet
 .It
-has all components of a restrictive nature (i.e., patents, see
-.Xr ssl 8 )
+has all components of a restrictive nature (i.e., patents)
 directly removed from the source code; any licensed or patented components
 are chosen from
 external libraries.
@@ -888,16 +887,11 @@ authentication and ticket passing.
 supports one-time password authentication with
 .Xr skey 1 .
 .El
-.Pp
-The libraries described in
-.Xr ssl 8
-are required for proper operation.
 .Sh SEE ALSO
 .Xr scp 1 ,
 .Xr ssh 1 ,
 .Xr ssh-add 1 ,
 .Xr ssh-agent 1 ,
 .Xr ssh-keygen 1 ,
-.Xr ssl 8 ,
 .Xr rlogin 1 ,
 .Xr rsh 1
