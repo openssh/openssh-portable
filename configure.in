@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.270 2001/03/28 04:37:06 djm Exp $
+# $Id: configure.in,v 1.271 2001/03/28 11:05:27 djm Exp $
 
 AC_INIT(ssh.c)
 
@@ -595,22 +595,22 @@ AC_CACHE_CHECK([for OpenSSL directory], ac_cv_openssldir, [
 			# Try to use $ssldir/lib if it exists, otherwise 
 			# $ssldir
 			if test -d "$ssldir/lib" ; then
-				LDFLAGS="$saved_LDFLAGS -L$ssldir/lib"
+				LDFLAGS="-L$ssldir/lib $saved_LDFLAGS"
 				if test ! -z "$need_dash_r" ; then
-					LDFLAGS="$LDFLAGS -R$ssldir/lib"
+					LDFLAGS="-R$ssldir/lib $LDFLAGS"
 				fi
 			else
-				LDFLAGS="$saved_LDFLAGS -L$ssldir"
+				LDFLAGS="-L$ssldir $saved_LDFLAGS"
 				if test ! -z "$need_dash_r" ; then
-					LDFLAGS="$LDFLAGS -R$ssldir"
+					LDFLAGS="-R$ssldir $LDFLAGS"
 				fi
 			fi
 			# Try to use $ssldir/include if it exists, otherwise 
 			# $ssldir
 			if test -d "$ssldir/include" ; then
-				CPPFLAGS="$saved_CPPFLAGS -I$ssldir/include"
+				CPPFLAGS="-I$ssldir/include $saved_CPPFLAGS"
 			else
-				CPPFLAGS="$saved_CPPFLAGS -I$ssldir"
+				CPPFLAGS="-I$ssldir $saved_CPPFLAGS"
 			fi
 		fi
 
@@ -657,22 +657,22 @@ if (test ! -z "$ac_cv_openssldir" && test "x$ac_cv_openssldir" != "x(system)") ;
 		# Try to use $ssldir/lib if it exists, otherwise 
 		# $ssldir
 		if test -d "$ssldir/lib" ; then
-			LDFLAGS="$saved_LDFLAGS -L$ssldir/lib"
+			LDFLAGS="-L$ssldir/lib $saved_LDFLAGS"
 			if test ! -z "$need_dash_r" ; then
-				LDFLAGS="$LDFLAGS -R$ssldir/lib"
+				LDFLAGS="-R$ssldir/lib $LDFLAGS"
 			fi
 		else
-			LDFLAGS="$saved_LDFLAGS -L$ssldir"
+			LDFLAGS="-L$ssldir $saved_LDFLAGS"
 			if test ! -z "$need_dash_r" ; then
-				LDFLAGS="$LDFLAGS -R$ssldir"
+				LDFLAGS="-R$ssldir $LDFLAGS"
 			fi
 		fi
 		# Try to use $ssldir/include if it exists, otherwise 
 		# $ssldir
 		if test -d "$ssldir/include" ; then
-			CPPFLAGS="$saved_CPPFLAGS -I$ssldir/include"
+			CPPFLAGS="-I$ssldir/include $saved_CPPFLAGS"
 		else
-			CPPFLAGS="$saved_CPPFLAGS -I$ssldir"
+			CPPFLAGS="-I$ssldir $saved_CPPFLAGS"
 		fi
 	fi
 fi
