@@ -1,3 +1,6 @@
+20020714
+ - (tim) [Makefile.in] replace "id sshd" with "sshd -t"
+
 20020712
  - (tim) [Makefile.in] quiet down install-files: and check-user:
  - (tim) [configure.ac] remove unused filepriv line
@@ -1349,4 +1352,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2361 2002/07/13 01:11:24 tim Exp $
+$Id: ChangeLog,v 1.2362 2002/07/14 17:02:20 tim Exp $
