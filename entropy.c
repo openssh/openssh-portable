@@ -33,12 +33,13 @@
 #endif /* HAVE_FLOATINGPOINT_H */
 
 #include "ssh.h"
+#include "misc.h"
 #include "xmalloc.h"
 #include "atomicio.h"
 #include "pathnames.h"
 #include "log.h"
 
-RCSID("$Id: entropy.c,v 1.27 2001/02/18 01:44:29 djm Exp $");
+RCSID("$Id: entropy.c,v 1.28 2001/02/18 04:28:12 djm Exp $");
 
 #ifndef offsetof
 # define offsetof(type, member) ((size_t) &((type *)0)->member)
@@ -72,7 +73,7 @@ int get_random_bytes(unsigned char *buf, int len)
 	char msg[2];
 	struct sockaddr_un addr;
 	int addr_len, rval, errors;
-	struct sigaction nsa, osa;
+	mysig_t old_sigpipe;
 
 	/* Sanity checks */
 	if (sizeof(EGD_SOCKET) > sizeof(addr.sun_path))
@@ -85,9 +86,7 @@ int get_random_bytes(unsigned char *buf, int len)
 	strlcpy(addr.sun_path, EGD_SOCKET, sizeof(addr.sun_path));
 	addr_len = offsetof(struct sockaddr_un, sun_path) + sizeof(EGD_SOCKET);
 
-	memset(&nsa, 0, sizeof(nsa));
-	nsa.sa_handler = SIG_IGN;
-	(void) sigaction(SIGPIPE, &nsa, &osa);
+	old_sigpipe = mysignal(SIGPIPE, SIG_IGN);
 
 	errors = rval = 0;
 reopen:
@@ -131,7 +130,7 @@ reopen:
 
 	rval = 1;
 done:
-	(void) sigaction(SIGPIPE, &osa, NULL);
+	mysignal(SIG_PIPE, old_sigpipe);
 	if (fd != -1)
 		close(fd);
 	return(rval);
@@ -790,14 +789,14 @@ prng_seed_cleanup(void *junk)
 void
 seed_rng(void)
 {
-	void *old_sigchld_handler;
+	mysig_t old_sigchld_handler;
 
 	if (!prng_initialised)
 		fatal("RNG not initialised");
 
 	/* Make sure some other sigchld handler doesn't reap our entropy */
 	/* commands */
-	old_sigchld_handler = signal(SIGCHLD, SIG_DFL);
+	old_sigchld_handler = mysignal(SIGCHLD, SIG_DFL);
 
 	debug("Seeded RNG with %i bytes from programs", (int)stir_from_programs());
 	debug("Seeded RNG with %i bytes from system calls", (int)stir_from_system());
@@ -805,7 +804,7 @@ seed_rng(void)
 	if (!RAND_status())
 		fatal("Not enough entropy in RNG");
 
-	signal(SIGCHLD, old_sigchld_handler);
+	mysignal(SIGCHLD, old_sigchld_handler);
 
 	if (!RAND_status())
 		fatal("Couldn't initialise builtin random number generator -- exiting.");

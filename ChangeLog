@@ -23,6 +23,7 @@
  - (stevesk) scp.c: use mysignal() for updateprogressmeter() handler.
  - (djm) SA_INTERRUPT is the converse of SA_RESTART, apply it only for 
    SIGALRM.
+ - (djm) Move entropy.c over to mysignal()
 
 20010217
  - (bal) OpenBSD Sync:
@@ -4030,4 +4031,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.795 2001/02/18 04:18:43 djm Exp $
+$Id: ChangeLog,v 1.796 2001/02/18 04:28:11 djm Exp $
