@@ -25,7 +25,7 @@
 
 #ifndef _MM_H_
 #define _MM_H_
-#include <sys/tree.h>
+#include "openbsd-compat/tree.h"
 
 struct mm_share {
 	RB_ENTRY(mm_share) next;

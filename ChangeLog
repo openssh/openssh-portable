@@ -1,3 +1,6 @@
+20020325
+ - (stevesk) import OpenBSD <sys/tree.h> as "openbsd-compat/tree.h"
+
 20020324
  - (stevesk) [session.c] disable LOGIN_NEEDS_TERM until we are sure
    it can be removed. only used on solaris. will no longer compile with
@@ -8011,4 +8014,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1976 2002/03/24 23:19:55 stevesk Exp $
+$Id: ChangeLog,v 1.1977 2002/03/26 00:12:49 stevesk Exp $
