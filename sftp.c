@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.20 2001/09/17 20:38:09 stevesk Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.21 2001/09/19 19:24:19 stevesk Exp $");
 
 /* XXX: commandline mode */
 /* XXX: short-form remote directory listings (like 'ls -C') */
@@ -118,6 +118,7 @@ main(int argc, char **argv)
 	addargs(&args, "-oFallBackToRsh no");
 	addargs(&args, "-oForwardX11 no");
 	addargs(&args, "-oForwardAgent no");
+	addargs(&args, "-oClearAllForwardings yes");
 	ll = SYSLOG_LEVEL_INFO;
 	infile = stdin;		/* Read from STDIN unless changed by -b */
 

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.137 2001/09/05 06:23:07 deraadt Exp $
+.\" $OpenBSD: ssh.1,v 1.138 2001/09/19 19:24:19 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -767,6 +767,22 @@ The default is
   ``aes128-cbc,3des-cbc,blowfish-cbc,cast128-cbc,arcfour,
     aes192-cbc,aes256-cbc''
 .Ed
+.It Cm ClearAllForwardings
+Specifies that all local, remote and dynamic port forwardings
+specified in the configuration files or on the command line be
+cleared.  This option is primarily useful when used from the
+.Nm
+command line to clear port forwardings set in
+configuration files, and is automatically set by
+.Xr scp 1
+and
+.Xr sftp 1 .
+The argument must be
+.Dq yes
+or
+.Dq no .
+The default is
+.Dq no .
 .It Cm Compression
 Specifies whether to use compression.
 The argument must be

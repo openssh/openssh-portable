@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.83 2001/09/17 17:57:56 stevesk Exp $");
+RCSID("$OpenBSD: scp.c,v 1.84 2001/09/19 19:24:19 stevesk Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -239,6 +239,7 @@ main(argc, argv)
 	addargs(&args, "-x");
 	addargs(&args, "-oForwardAgent no");
 	addargs(&args, "-oFallBackToRsh no");
+	addargs(&args, "-oClearAllForwardings yes");
 
 	fflag = tflag = 0;
 	while ((ch = getopt(argc, argv, "dfprtvBCc:i:P:q46S:o:F:")) != -1)
@@ -371,13 +372,17 @@ toremote(targ, argc, argv)
 	for (i = 0; i < argc - 1; i++) {
 		src = colon(argv[i]);
 		if (src) {	/* remote to remote */
+			static char *ssh_options =
+			    "-x -o'FallBackToRsh no' "
+			    "-o'ClearAllForwardings yes'";
 			*src++ = 0;
 			if (*src == 0)
 				src = ".";
 			host = strchr(argv[i], '@');
 			len = strlen(ssh_program) + strlen(argv[i]) +
 			    strlen(src) + (tuser ? strlen(tuser) : 0) +
-			    strlen(thost) + strlen(targ) + CMDNEEDS + 32;
+			    strlen(thost) + strlen(targ) +
+			    strlen(ssh_options) + CMDNEEDS + 20;
 			bp = xmalloc(len);
 			if (host) {
 				*host++ = 0;
@@ -388,19 +393,19 @@ toremote(targ, argc, argv)
 				else if (!okname(suser))
 					continue;
 				snprintf(bp, len,
-				    "%s%s -x -o'FallBackToRsh no' -n "
+				    "%s%s %s -n "
 				    "-l %s %s %s %s '%s%s%s:%s'",
 				    ssh_program, verbose_mode ? " -v" : "",
-				    suser, host, cmd, src,
+				    ssh_options, suser, host, cmd, src,
 				    tuser ? tuser : "", tuser ? "@" : "",
 				    thost, targ);
 			} else {
 				host = cleanhostname(argv[i]);
 				snprintf(bp, len,
-				    "exec %s%s -x -o'FallBackToRsh no' -n %s "
+				    "exec %s%s %s -n %s "
 				    "%s %s '%s%s%s:%s'",
 				    ssh_program, verbose_mode ? " -v" : "",
-				    host, cmd, src,
+				    ssh_options, host, cmd, src,
 				    tuser ? tuser : "", tuser ? "@" : "",
 				    thost, targ);
 			}

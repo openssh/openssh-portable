@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.89 2001/09/03 20:58:33 stevesk Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.90 2001/09/19 19:24:18 stevesk Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -114,7 +114,8 @@ typedef enum {
 	oGlobalKnownHostsFile2, oUserKnownHostsFile2, oPubkeyAuthentication,
 	oKbdInteractiveAuthentication, oKbdInteractiveDevices, oHostKeyAlias,
 	oDynamicForward, oPreferredAuthentications, oHostbasedAuthentication,
-	oHostKeyAlgorithms, oBindAddress, oSmartcardDevice
+	oHostKeyAlgorithms, oBindAddress, oSmartcardDevice,
+	oClearAllForwardings
 } OpCodes;
 
 /* Textual representations of the tokens. */
@@ -184,6 +185,7 @@ static struct {
 	{ "hostkeyalgorithms", oHostKeyAlgorithms },
 	{ "bindaddress", oBindAddress },
 	{ "smartcarddevice", oSmartcardDevice },
+	{ "clearallforwardings", oClearAllForwardings }, 
 	{ NULL, 0 }
 };
 
@@ -227,6 +229,19 @@ add_remote_forward(Options *options, u_short port, const char *host,
 	fwd->port = port;
 	fwd->host = xstrdup(host);
 	fwd->host_port = host_port;
+}
+
+static void
+clear_forwardings(Options *options)
+{
+	int i;
+
+	for (i = 0; i < options->num_local_forwards; i++)
+		xfree(options->local_forwards[i].host);
+	options->num_local_forwards = 0;
+	for (i = 0; i < options->num_remote_forwards; i++)
+		xfree(options->remote_forwards[i].host);
+	options->num_remote_forwards = 0;
 }
 
 /*
@@ -621,6 +636,10 @@ parse_int:
 			add_local_forward(options, fwd_port, "socks4", 0);
 		break;
 
+	case oClearAllForwardings:
+		intptr = &options->clear_forwardings;
+		goto parse_flag;
+
 	case oHost:
 		*activep = 0;
 		while ((arg = strdelim(&s)) != NULL && *arg != '\0')
@@ -769,6 +788,7 @@ initialize_options(Options * options)
 	options->user_hostfile2 = NULL;
 	options->num_local_forwards = 0;
 	options->num_remote_forwards = 0;
+	options->clear_forwardings = -1;
 	options->log_level = (LogLevel) - 1;
 	options->preferred_authentications = NULL;
 	options->bind_address = NULL;
@@ -889,6 +909,8 @@ fill_default_options(Options * options)
 		options->user_hostfile2 = _PATH_SSH_USER_HOSTFILE2;
 	if (options->log_level == (LogLevel) - 1)
 		options->log_level = SYSLOG_LEVEL_INFO;
+	if (options->clear_forwardings == 1)
+		clear_forwardings(options);
 	/* options->proxy_command should not be set by default */
 	/* options->user will be set in the main program if appropriate */
 	/* options->hostname will be set in the main program if appropriate */
