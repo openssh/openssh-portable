@@ -115,6 +115,9 @@
      [clientloop.c ssh.1]
      add built-in command line for adding new port forwardings on the fly.
      based on a patch from brian wellington. ok markus@.
+   - markus@cvs.openbsd.org 2002/03/21 16:38:06
+     [scard.c]
+     make compile w/ openssl 0.9.7
 
 20020317
  - (tim) [configure.ac] Assume path given with --with-pid-dir=PATH is wanted,
@@ -7961,4 +7964,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1957 2002/03/22 03:24:32 mouring Exp $
+$Id: ChangeLog,v 1.1958 2002/03/22 03:28:11 mouring Exp $

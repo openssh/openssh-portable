@@ -24,7 +24,7 @@
 
 #include "includes.h"
 #ifdef SMARTCARD
-RCSID("$OpenBSD: scard.c,v 1.17 2001/12/27 18:22:16 markus Exp $");
+RCSID("$OpenBSD: scard.c,v 1.18 2002/03/21 16:38:06 markus Exp $");
 
 #include <openssl/engine.h>
 #include <sectok.h>
@@ -33,6 +33,15 @@ RCSID("$OpenBSD: scard.c,v 1.17 2001/12/27 18:22:16 markus Exp $");
 #include "log.h"
 #include "xmalloc.h"
 #include "scard.h"
+
+#ifdef OPENSSL_VERSION_NUMBER
+#if OPENSSL_VERSION_NUMBER >= 0x00907000L
+#define RSA_get_default_openssl_method RSA_get_default_method
+#define DSA_get_default_openssl_method DSA_get_default_method
+#define DH_get_default_openssl_method DH_get_default_method
+#define ENGINE_set_BN_mod_exp(x,y)
+#endif
+#endif
 
 #define CLA_SSH 0x05
 #define INS_DECRYPT 0x10
@@ -178,7 +187,8 @@ err:
 /* private key operations */
 
 static int
-sc_private_decrypt(int flen, u_char *from, u_char *to, RSA *rsa, int padding)
+sc_private_decrypt(int flen, const u_char *from, u_char *to, RSA *rsa,
+    int padding)
 {
 	u_char *padded = NULL;
 	int sw, len, olen, status = -1;
@@ -197,7 +207,8 @@ sc_private_decrypt(int flen, u_char *from, u_char *to, RSA *rsa, int padding)
 	len = BN_num_bytes(rsa->n);
 	padded = xmalloc(len);
 
-	sectok_apdu(sc_fd, CLA_SSH, INS_DECRYPT, 0, 0, len, from, 0, NULL, &sw);
+	sectok_apdu(sc_fd, CLA_SSH, INS_DECRYPT, 0, 0, len, (u_char *)from,
+	    0, NULL, &sw);
 	if (!sectok_swOK(sw)) {
 		error("sc_private_decrypt: INS_DECRYPT failed: %s",
 		    sectok_get_sw(sw));
@@ -220,7 +231,8 @@ err:
 }
 
 static int
-sc_private_encrypt(int flen, u_char *from, u_char *to, RSA *rsa, int padding)
+sc_private_encrypt(int flen, const u_char *from, u_char *to, RSA *rsa,
+    int padding)
 {
 	u_char *padded = NULL;
 	int sw, len, status = -1;
@@ -238,7 +250,7 @@ sc_private_encrypt(int flen, u_char *from, u_char *to, RSA *rsa, int padding)
 	len = BN_num_bytes(rsa->n);
 	padded = xmalloc(len);
 
-	if (RSA_padding_add_PKCS1_type_1(padded, len, from, flen) <= 0) {
+	if (RSA_padding_add_PKCS1_type_1(padded, len, (u_char *)from, flen) <= 0) {
 		error("RSA_padding_add_PKCS1_type_1 failed");
 		goto err;
 	}
@@ -279,27 +291,19 @@ sc_finish(RSA *rsa)
 /* engine for overloading private key operations */
 
 static ENGINE *smart_engine = NULL;
-static RSA_METHOD smart_rsa =
-{
-	"sectok",
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	0,
-	NULL,
-};
+static RSA_METHOD smart_rsa;
 
 ENGINE *
 sc_get_engine(void)
 {
-	RSA_METHOD *def;
+	const RSA_METHOD *def;
 
 	def = RSA_get_default_openssl_method();
+
+	/* use the OpenSSL version */
+	memcpy(&smart_rsa, def, sizeof(smart_rsa));
+
+	smart_rsa.name		= "sectok";
 
 	/* overload */
 	smart_rsa.rsa_priv_enc	= sc_private_encrypt;
@@ -309,22 +313,12 @@ sc_get_engine(void)
 	orig_finish		= def->finish;
 	smart_rsa.finish	= sc_finish;
 
-	/* just use the OpenSSL version */
-	smart_rsa.rsa_pub_enc   = def->rsa_pub_enc;
-	smart_rsa.rsa_pub_dec   = def->rsa_pub_dec;
-	smart_rsa.rsa_mod_exp	= def->rsa_mod_exp;
-	smart_rsa.bn_mod_exp	= def->bn_mod_exp;
-	smart_rsa.init		= def->init;
-	smart_rsa.flags		= def->flags;
-	smart_rsa.app_data	= def->app_data;
-	smart_rsa.rsa_sign	= def->rsa_sign;
-	smart_rsa.rsa_verify	= def->rsa_verify;
-
 	if ((smart_engine = ENGINE_new()) == NULL)
 		fatal("ENGINE_new failed");
 
 	ENGINE_set_id(smart_engine, "sectok");
 	ENGINE_set_name(smart_engine, "libsectok");
+
 	ENGINE_set_RSA(smart_engine, &smart_rsa);
 	ENGINE_set_DSA(smart_engine, DSA_get_default_openssl_method());
 	ENGINE_set_DH(smart_engine, DH_get_default_openssl_method());
