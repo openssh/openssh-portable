@@ -6,8 +6,14 @@
 
 @TOP@
 
+/* Define if you system's inet_ntoa is busted (e.g. Irix gcc issue) */
+#undef BROKEN_INET_NTOA
+
 /* Define if your system defines sys_errlist[] */
 #undef HAVE_SYS_ERRLIST
+
+/* Define if your system defines sys_nerr */
+#undef HAVE_SYS_NERR
 
 /* Define if your system choked on IP TOS setting */
 #undef IP_TOS_IS_BROKEN

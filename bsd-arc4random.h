@@ -27,48 +27,14 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "includes.h"
-#include "xmalloc.h"
-#include "ssh.h"
+#ifndef _BSD_ARC4RANDOM_H
+#define _BSD_ARC4RANDOM_H
 
-#ifndef HAVE_SETPROCTITLE
-void setproctitle(const char *fmt, ...)
-{
-	/* FIXME */
-}
-#endif /* !HAVE_SETPROCTITLE */
+#include "config.h"
 
-#ifndef HAVE_SETLOGIN
-int setlogin(const char *name)
-{
-	return(0);
-}
-#endif /* !HAVE_SETLOGIN */
+#ifndef HAVE_ARC4RANDOM
+unsigned int arc4random(void);
+void arc4random_stir(void);
+#endif /* !HAVE_ARC4RANDOM */
 
-#ifndef HAVE_INNETGR
-int innetgr(const char *netgroup, const char *host, 
-            const char *user, const char *domain)
-{
-	return(0);
-}
-#endif /* HAVE_INNETGR */
-
-#if !defined(HAVE_SETEUID) && defined(HAVE_SETREUID)
-int seteuid(uid_t euid)
-{
-	return(setreuid(-1,euid));
-}
-#endif /* !defined(HAVE_SETEUID) && defined(HAVE_SETREUID) */
-
-#if !defined(HAVE_STRERROR) && defined(HAVE_SYS_ERRLIST) && defined(HAVE_SYS_NERR)
-const char *strerror(int e)
-{
-	extern int sys_nerr;
-	extern char *sys_errlist[];
-	
-	if ((e >= 0) || (e < sys_nerr))
-		return("unlisted error");
-	else
-		return(sys_errlist[e]);
-}
-#endif
+#endif /* _BSD_ARC4RANDOM_H */

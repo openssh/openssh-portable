@@ -1,3 +1,10 @@
+20000816
+ - (djm) Replacement for inet_ntoa for Irix (which breaks on gcc)
+ - (djm) Fix strerror replacement for old SunOS. Based on patch from 
+   Charles Levert <charles@comm.polymtl.ca>
+ - (djm) Seperate arc4random into seperate file and use OpenSSL's RC4 
+   implementation.
+
 20000815
  - (djm) More SunOS 4.1.x fixes from Nate Itkin <nitkin@europa.com>
  - (djm) Avoid failures on Irix when ssh is not setuid. Fix from

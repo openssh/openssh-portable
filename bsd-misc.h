@@ -32,11 +32,6 @@
 
 #include "config.h"
 
-#ifndef HAVE_ARC4RANDOM
-unsigned int arc4random(void);
-void arc4random_stir(void);
-#endif /* !HAVE_ARC4RANDOM */
-
 #ifndef HAVE_SETPROCTITLE
 void setproctitle(const char *fmt, ...);
 #endif /* !HAVE_SETPROCTITLE */
@@ -58,8 +53,8 @@ int innetgr(const char *netgroup, const char *host,
 int seteuid(uid_t euid);
 #endif /* !defined(HAVE_SETEUID) && defined(HAVE_SETREUID) */
 
-#if !defined(HAVE_STRERROR) && defined(HAVE_SYS_ERRLIST)
-const char *strerror(void);
-#endif /* !defined(HAVE_STRERROR) && defined(HAVE_SYS_ERRLIST) */
+#if !defined(HAVE_STRERROR) && defined(HAVE_SYS_ERRLIST) && defined(HAVE_SYS_NERR)
+const char *strerror(int e);
+#endif 
 
 #endif /* _BSD_MISC_H */

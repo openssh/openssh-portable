@@ -28,47 +28,37 @@
  */
 
 #include "includes.h"
-#include "xmalloc.h"
-#include "ssh.h"
+#include <openssl/rand.h>
+#include <openssl/rc4.h>
 
-#ifndef HAVE_SETPROCTITLE
-void setproctitle(const char *fmt, ...)
-{
-	/* FIXME */
-}
-#endif /* !HAVE_SETPROCTITLE */
+#ifndef HAVE_ARC4RANDOM
 
-#ifndef HAVE_SETLOGIN
-int setlogin(const char *name)
-{
-	return(0);
-}
-#endif /* !HAVE_SETLOGIN */
+static int rc4_ready = 0;
+static RC4_KEY rc4;
 
-#ifndef HAVE_INNETGR
-int innetgr(const char *netgroup, const char *host, 
-            const char *user, const char *domain)
+unsigned int arc4random(void)
 {
-	return(0);
-}
-#endif /* HAVE_INNETGR */
+	unsigned int r = 0;
 
-#if !defined(HAVE_SETEUID) && defined(HAVE_SETREUID)
-int seteuid(uid_t euid)
-{
-	return(setreuid(-1,euid));
-}
-#endif /* !defined(HAVE_SETEUID) && defined(HAVE_SETREUID) */
-
-#if !defined(HAVE_STRERROR) && defined(HAVE_SYS_ERRLIST) && defined(HAVE_SYS_NERR)
-const char *strerror(int e)
-{
-	extern int sys_nerr;
-	extern char *sys_errlist[];
+	if (!rc4_ready)
+		arc4random_stir();
 	
-	if ((e >= 0) || (e < sys_nerr))
-		return("unlisted error");
-	else
-		return(sys_errlist[e]);
+	RC4(&rc4, sizeof(r), (unsigned char *)&r, (unsigned char *)&r);
+	
+	return(r);
 }
-#endif
+
+void arc4random_stir(void)
+{
+	unsigned char rand_buf[32];
+	
+	memset(&rc4, 0, sizeof(rc4));
+
+	seed_rng();
+	RAND_bytes(rand_buf, sizeof(rand_buf));
+	
+	RC4_set_key(&rc4, sizeof(rand_buf), rand_buf);
+
+	memset(rand_buf, 0, sizeof(rand_buf));
+}
+#endif /* !HAVE_ARC4RANDOM */

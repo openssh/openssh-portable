@@ -4,6 +4,7 @@
 #include "config.h"
 
 /* BSD function replacements */
+#include "bsd-arc4random.h"
 #include "bsd-bindresvport.h"
 #include "bsd-rresvport.h"
 #include "bsd-misc.h"
@@ -15,6 +16,7 @@
 #include "bsd-base64.h"
 #include "bsd-sigaction.h"
 #include "bsd-inet_aton.h"
+#include "bsd-inet_ntoa.h"
 #include "bsd-strsep.h"
 
 /* rfc2553 socket API replacements */
