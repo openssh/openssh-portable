@@ -13,6 +13,10 @@
    - itojun@cvs.openbsd.org 2002/05/13 02:37:39
      [auth-skey.c auth2.c]
      less warnings.  skey_{respond,query} are public (in auth.h)
+   - markus@cvs.openbsd.org 2002/05/13 20:44:58
+     [auth-options.c auth.c auth.h]
+     move the packet_send_debug handling from auth-options.c to auth.c; 
+     ok provos@
 
 20020514
  - (stevesk) [README.privsep] PAM+privsep works with Solaris 8.
@@ -617,4 +621,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2125 2002/05/15 16:14:36 mouring Exp $
+$Id: ChangeLog,v 1.2126 2002/05/15 16:16:14 mouring Exp $
