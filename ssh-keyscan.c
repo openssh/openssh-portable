@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keyscan.c,v 1.15 2001/02/09 09:04:59 itojun Exp $");
+RCSID("$OpenBSD: ssh-keyscan.c,v 1.16 2001/02/12 22:56:10 deraadt Exp $");
 
 #if defined(HAVE_SYS_QUEUE_H) && !defined(HAVE_BOGUS_SYS_QUEUE_H)
 #include <sys/queue.h>
@@ -498,7 +498,10 @@ conloop(void)
 		seltime.tv_sec = seltime.tv_usec = 0;
 
 	r = e = read_wait;
-	select(maxfd, &r, NULL, &e, &seltime);
+	while (select(maxfd, &r, NULL, &e, &seltime) == -1 &&
+	    (errno == EAGAIN || errno == EINTR))
+		;
+
 	for (i = 0; i < maxfd; i++)
 		if (FD_ISSET(i, &e)) {
 			error("%s: exception!", fdcon[i].c_name);

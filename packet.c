@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.50 2001/02/11 12:59:25 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.51 2001/02/12 22:56:09 deraadt Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -688,7 +688,9 @@ packet_read(int *payload_len_ptr)
 		FD_SET(connection_in, &set);
 
 		/* Wait for some data to arrive. */
-		select(connection_in + 1, &set, NULL, NULL, NULL);
+		while (select(connection_in + 1, &set, NULL, NULL, NULL) == -1 &&
+		    (errno == EAGAIN || errno == EINTR))
+			;
 
 		/* Read data from the socket. */
 		len = read(connection_in, buf, sizeof(buf));
@@ -1195,9 +1197,12 @@ packet_write_wait()
 	packet_write_poll();
 	while (packet_have_data_to_write()) {
 		fd_set set;
+
 		FD_ZERO(&set);
 		FD_SET(connection_out, &set);
-		select(connection_out + 1, NULL, &set, NULL, NULL);
+		while (select(connection_out + 1, NULL, &set, NULL, NULL) == -1 &&
+		    (errno == EAGAIN || errno == EINTR))
+			;
 		packet_write_poll();
 	}
 }
