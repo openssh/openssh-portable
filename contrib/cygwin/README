@@ -118,10 +118,12 @@ some options:
 
 usage: ssh-host-config [OPTION]...
 Options:
-    --debug      -d        Enable shell's debug output.
-    --yes        -y        Answer all questions with "yes" automatically.
-    --no         -n        Answer all questions with "no" automatically.
-    --port       -p <n>    sshd listens on port n.
+    --debug  -d            Enable shell's debug output.
+    --yes    -y            Answer all questions with "yes" automatically.
+    --no     -n            Answer all questions with "no" automatically.
+    --cygwin -c <options>  Use "options" as value for CYGWIN environment var.
+    --port   -p <n>        sshd listens on port n.
+    --pwd    -w <passwd>   Use "pwd" as password for user 'sshd_server'.
 
 Additionally ssh-host-config now asks if it should install sshd as a
 service when running under NT/W2K. This requires cygrunsrv installed.

@@ -6,6 +6,8 @@
    from jason AT devrandom.org
  - (dtucker) [configure.ac] Bug #788: Test for zlib.h presence and for
    zlib >= 1.1.4.  Partly from jbasney at ncsa.uiuc.edu.  ok djm@
+ - (dtucker) [contrib/cygwin/README] Document new ssh-host-config options.
+   Patch from vinschen at redhat.com.
 
 20040122
  - (dtucker) [configure.ac] Use krb5-config where available for Kerberos/
@@ -1718,4 +1720,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3183 2004/01/23 06:13:33 dtucker Exp $
+$Id: ChangeLog,v 1.3184 2004/01/23 10:35:44 dtucker Exp $
