@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.110 2001/04/08 16:01:36 stevesk Exp $
+.\" $OpenBSD: sshd.8,v 1.111 2001/04/08 23:28:27 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -882,10 +882,10 @@ Prevents tty allocation (a request to allocate a pty will fail).
 .It Cm permitopen="host:port"
 Limit local 
 .Li ``ssh -L''
-port-forwading such that it may only connect to the specified host and
+port forwarding such that it may only connect to the specified host and
 port. Multiple 
 .Cm permitopen
-options may be applied seperated by commas. No pattern matching is 
+options may be applied separated by commas. No pattern matching is 
 performed on the specified hostnames, they must be literal domains or 
 addresses.
 .El
