@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.148 2001/02/07 21:22:47 djm Exp $
+# $Id: Makefile.in,v 1.149 2001/02/07 23:07:09 djm Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -110,9 +110,8 @@ ssh-keyscan$(EXEEXT): $(LIBCOMPAT) libssh.a log-client.o ssh-keyscan.o
 sftp-server$(EXEEXT): $(LIBCOMPAT) libssh.a sftp-server.o sftp-common.o log-server.o
 	$(LD) -o $@ sftp-server.o sftp-common.o log-server.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
-# XXX: need to -lssh twice here!
 sftp$(EXEEXT): $(LIBCOMPAT) libssh.a sftp.o sftp-client.o sftp-int.o sftp-common.o log-client.o
-	$(LD) -o $@ sftp.o sftp-client.o sftp-common.o sftp-int.o log-client.o $(LDFLAGS) -lssh -lopenbsd-compat -lssh $(LIBS)
+	$(LD) -o $@ sftp.o sftp-client.o sftp-common.o sftp-int.o log-client.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
 # test driver for the loginrec code - not built by default
 logintest: logintest.o $(LIBCOMPAT) libssh.a log-client.o loginrec.o

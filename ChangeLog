@@ -1,6 +1,9 @@
 20010208
  - (djm) Don't delete external askpass program in make uninstall target.
    Report and fix from Roumen Petrov <roumen.petrov@skalasoft.com>
+ - (djm) Fix linking of sftp, don't need arc4random any more.
+ - (djm) Try to use shell that supports "test -S" for EGD socket search.
+   Based on patch from Tim Rice <tim@multitalents.net>
 
 20010207
  - (bal) Save the whole path to AR in configure.  Some Solaris 2.7 installs

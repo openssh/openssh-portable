@@ -14,6 +14,9 @@ AC_SUBST(PERL)
 AC_PATH_PROG(ENT, ent)
 AC_SUBST(ENT)
 AC_PATH_PROGS(FILEPRIV, filepriv, true, /sbin:/usr/sbin)
+AC_PATH_PROG(TEST_MINUS_S_SH, bash)
+AC_PATH_PROG(TEST_MINUS_S_SH, ksh)
+AC_PATH_PROG(TEST_MINUS_S_SH, sh)
 
 if test -z "$AR" ; then
 	AC_MSG_ERROR([*** 'ar' missing, please install or fix your \$PATH ***])
@@ -1079,14 +1082,18 @@ AC_ARG_WITH(egd-pool,
 		if test -z "$RANDOM_POOL" ; then
 			AC_MSG_CHECKING(for PRNGD/EGD socket)
 			# Insert other locations here
-			for egdsock in /var/run/egd-pool /etc/entropy ; do
-				if test -S $egdsock ; then
+			for egdsock in /var/run/egd-pool /etc/entropy /tmp/entropy ; do
+				if $TEST_MINUS_S_SH -c "test -S $egdsock -o -p $egdsock" ; then
 					EGD_SOCKET="$egdsock"
 					AC_DEFINE_UNQUOTED(EGD_SOCKET, "$EGD_SOCKET")
-					AC_MSG_RESULT($egdsock)
 					break;
 				fi
 			done
+			if test -x "$EGD_SOCKET" ; then
+				AC_MSG_RESULT($EGD_SOCKET)
+			else
+				AC_MSG_RESULT(not found)
+			fi
 		fi
 	]
 )
