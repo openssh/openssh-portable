@@ -31,7 +31,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.89 2004/01/13 11:35:59 dtucker Exp $");
+RCSID("$Id: auth-pam.c,v 1.90 2004/01/14 11:14:05 dtucker Exp $");
 
 #ifdef USE_PAM
 #if defined(HAVE_SECURITY_PAM_APPL_H)
@@ -86,6 +86,23 @@ static struct pam_ctxt *cleanup_ctxt;
  * Simulate threads with processes.
  */
 
+static int sshpam_thread_status = -1;
+static mysig_t sshpam_oldsig;
+
+static void 
+sshpam_sigchld_handler(int sig)
+{
+	if (waitpid(cleanup_ctxt->pam_thread, &sshpam_thread_status, 0) == -1)
+		return;	/* couldn't wait for process */
+	if (WIFSIGNALED(sshpam_thread_status) &&
+	    WTERMSIG(sshpam_thread_status) == SIGTERM)
+		return;	/* terminated by pthread_cancel */
+	if (!WIFEXITED(sshpam_thread_status))
+		fatal("PAM: authentication thread exited unexpectedly");
+	if (WEXITSTATUS(sshpam_thread_status) != 0)
+		fatal("PAM: authentication thread exited uncleanly");
+}
+
 static void
 pthread_exit(void *value __unused)
 {
@@ -107,6 +124,7 @@ pthread_create(sp_pthread_t *thread, const void *attr __unused,
 		_exit(1);
 	default:
 		*thread = pid;
+		sshpam_oldsig = signal(SIGCHLD, sshpam_sigchld_handler);
 		return (0);
 	}
 }
@@ -122,6 +140,9 @@ pthread_join(sp_pthread_t thread, void **value __unused)
 {
 	int status;
 
+	if (sshpam_thread_status != -1)
+		return (sshpam_thread_status);
+	signal(SIGCHLD, sshpam_oldsig);
 	waitpid(thread, &status, 0);
 	return (status);
 }

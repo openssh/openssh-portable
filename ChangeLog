@@ -1,3 +1,7 @@
+20040114
+ - (dtucker) [auth-pam.c] Have monitor die if PAM authentication thread exits
+   unexpectedly.  with & ok djm@
+
 20040113
  - (dtucker) [auth-pam.c] Relocate struct pam_ctxt and prototypes.  No
    functional changes.
@@ -1659,4 +1663,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3166 2004/01/13 11:35:58 dtucker Exp $
+$Id: ChangeLog,v 1.3167 2004/01/14 11:14:04 dtucker Exp $
