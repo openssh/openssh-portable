@@ -6,6 +6,10 @@
    - markus@cvs.openbsd.org 2003/09/18 07:54:48
      [buffer.c]
      protect against double free; #660;  zardoz at users.sf.net
+   - markus@cvs.openbsd.org 2003/09/18 08:49:45
+     [deattack.c misc.c session.c ssh-agent.c]
+     more buffer allocation fixes; from Solar Designer; CAN-2003-0682;
+     ok millert@
 
 20030922
  - (dtucker) [Makefile.in] Bug #644: Fix "make clean" for out-of-tree
@@ -1171,4 +1175,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2994.2.29 2003/09/23 08:55:43 dtucker Exp $
+$Id: ChangeLog,v 1.2994.2.30 2003/09/23 08:59:08 dtucker Exp $

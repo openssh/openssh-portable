@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.163 2003/08/31 13:29:05 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.164 2003/09/18 08:49:45 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -798,8 +798,9 @@ void
 child_set_env(char ***envp, u_int *envsizep, const char *name,
 	const char *value)
 {
-	u_int i, namelen;
 	char **env;
+	u_int envsize;
+	u_int i, namelen;
 
 	/*
 	 * If we're passed an uninitialized list, allocate a single null
@@ -826,12 +827,13 @@ child_set_env(char ***envp, u_int *envsizep, const char *name,
 		xfree(env[i]);
 	} else {
 		/* New variable.  Expand if necessary. */
-		if (i >= (*envsizep) - 1) {
-			if (*envsizep >= 1000)
-				fatal("child_set_env: too many env vars,"
-				    " skipping: %.100s", name);
-			(*envsizep) += 50;
-			env = (*envp) = xrealloc(env, (*envsizep) * sizeof(char *));
+		envsize = *envsizep;
+		if (i >= envsize - 1) {
+			if (envsize >= 1000)
+				fatal("child_set_env: too many env vars");
+			envsize += 50;
+			env = (*envp) = xrealloc(env, envsize * sizeof(char *));
+			*envsizep = envsize;
 		}
 		/* Need to set the NULL pointer at end of array beyond the new slot. */
 		env[i + 1] = NULL;
