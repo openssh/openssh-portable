@@ -165,6 +165,9 @@
      log functions should not be passed strings that end in newline as they
      get passed on to syslog() and when logging to stderr, do_log() appends
      its own newline.
+   - deraadt@cvs.openbsd.org 2001/03/04 18:21:28
+     [sshd.8]
+     list SSH2 ciphers
 
 20010304
  - (bal) Remove make-ssh-known-hosts.1 since it's no longer valid.
@@ -4357,4 +4360,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.902 2001/03/05 07:47:23 mouring Exp $
+$Id: ChangeLog,v 1.903 2001/03/05 07:48:45 mouring Exp $

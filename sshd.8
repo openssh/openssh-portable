@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.102 2001/03/04 12:54:04 stevesk Exp $
+.\" $OpenBSD: sshd.8,v 1.103 2001/03/04 18:21:28 deraadt Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -134,9 +134,8 @@ Each host has a host-specific DSA key used to identify the host.
 However, when the daemon starts, it does not generate a server key.
 Forward security is provided through a Diffie-Hellman key agreement.
 This key agreement results in a shared session key.
-The rest of the session is encrypted
-using a symmetric cipher, currently
-Blowfish, 3DES or CAST128 in CBC mode or Arcfour.
+The rest of the session is encrypted using a symmetric cipher, currently
+Blowfish, 3DES, CAST128, Arcfour, 128 bit AES, or 256 bit AES.
 The client selects the encryption algorithm
 to use from those offered by the server.
 Additionally, session integrity is provided
