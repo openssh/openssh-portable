@@ -48,6 +48,7 @@
      [channels.c channels.h serverloop.c session.c session.h]
      simplify session close: no more delayed session_close, no more 
      blocking wait() calls.
+ - (bal) removed two unsed headers in openbsd-compat/bsd-misc.c 
 
 20011007
  - (bal) ssh-copy-id corrected permissions for .ssh/ and authorized_keys.
@@ -6693,4 +6694,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1598 2001/10/10 05:14:37 djm Exp $
+$Id: ChangeLog,v 1.1599 2001/10/10 20:38:55 mouring Exp $
