@@ -1,5 +1,7 @@
 20000807
  - (djm) Set 0755 on binaries during install. 
+ - (djm) Suppress error messages on channel close shutdown() failurs
+   works around Linux bug. Patch from Zack Weinberg <zack@wolery.cumb.org>
 
 20000725
  - (djm) Fix autoconf typo: HAVE_BINRESVPORT_AF -> HAVE_BINDRESVPORT_AF
