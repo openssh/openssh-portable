@@ -27,6 +27,9 @@
      [ssh-keyscan.c]
      explicitly initialise remote_major and remote_minor.
      from cjwatson AT debian.org; ok markus@
+   - dtucker@cvs.openbsd.org 2004/03/08 10:18:57
+     [sshd_config.5]
+     Document KerberosGetAFSToken;  ok markus@
 
 20040307
  - (tim) [regress/login-timeout.sh] fix building outside of source tree.
@@ -887,4 +890,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3284 2004/03/08 12:13:00 djm Exp $
+$Id: ChangeLog,v 1.3285 2004/03/08 12:13:15 djm Exp $
