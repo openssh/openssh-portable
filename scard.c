@@ -24,7 +24,7 @@
 
 #include "includes.h"
 #ifdef SMARTCARD
-RCSID("$OpenBSD: scard.c,v 1.21 2002/03/21 18:08:15 rees Exp $");
+RCSID("$OpenBSD: scard.c,v 1.22 2002/03/21 21:54:34 rees Exp $");
 
 #include <openssl/engine.h>
 #include <openssl/evp.h>
@@ -33,8 +33,8 @@ RCSID("$OpenBSD: scard.c,v 1.21 2002/03/21 18:08:15 rees Exp $");
 #include "key.h"
 #include "log.h"
 #include "xmalloc.h"
-#include "scard.h"
 #include "readpass.h"
+#include "scard.h"
 
 #ifdef OPENSSL_VERSION_NUMBER
 #if OPENSSL_VERSION_NUMBER >= 0x00907000L
@@ -53,9 +53,15 @@ RCSID("$OpenBSD: scard.c,v 1.21 2002/03/21 18:08:15 rees Exp $");
 
 #define MAX_BUF_SIZE 256
 
+u_char DEFAUT0[] = {0xad, 0x9f, 0x61, 0xfe, 0xfa, 0x20, 0xce, 0x63};
+
 static int sc_fd = -1;
 static char *sc_reader_id = NULL;
+static char *sc_pin = NULL;
 static int cla = 0x00;	/* class */
+
+static void sc_mk_digest(const char *pin, u_char *digest);
+static int get_AUT0(u_char *aut0);
 
 /* interface to libsectok */
 
@@ -193,6 +199,7 @@ sc_private_decrypt(int flen, u_char *from, u_char *to, RSA *rsa,
     int padding)
 {
 	u_char *padded = NULL;
+	u_char aut0[EVP_MAX_MD_SIZE];
 	int sw, len, olen, status = -1;
 
 	debug("sc_private_decrypt called");
@@ -209,17 +216,31 @@ sc_private_decrypt(int flen, u_char *from, u_char *to, RSA *rsa,
 	len = BN_num_bytes(rsa->n);
 	padded = xmalloc(len);
 
-	sectok_apdu(sc_fd, CLA_SSH, INS_DECRYPT, 0, 0, len, (u_char *)from,
-	    0, NULL, &sw);
+	sectok_apdu(sc_fd, CLA_SSH, INS_DECRYPT, 0, 0, len, from, len, padded, &sw);
+
+	if (sw == 0x6982) {
+		/* permission denied; try PIN if provided */
+		if (sc_pin && strlen(sc_pin) > 0) {
+			sc_mk_digest(sc_pin, aut0);
+			if (cyberflex_verify_AUT0(sc_fd, cla, aut0, 8) < 0) {
+				error("smartcard passphrase incorrect");
+				goto err;
+			}
+		} else {
+			/* try default AUT0 key */
+			if (cyberflex_verify_AUT0(sc_fd, cla, DEFAUT0, 8) < 0) {
+				/* default AUT0 key failed; prompt for passphrase */
+				if (get_AUT0(aut0) < 0 ||
+				    cyberflex_verify_AUT0(sc_fd, cla, aut0, 8) < 0) {
+					error("smartcard passphrase incorrect");
+					goto err;
+				}
+			}
+		}
+		sectok_apdu(sc_fd, CLA_SSH, INS_DECRYPT, 0, 0, len, from, len, padded, &sw);
+	}
 	if (!sectok_swOK(sw)) {
 		error("sc_private_decrypt: INS_DECRYPT failed: %s",
-		    sectok_get_sw(sw));
-		goto err;
-	}
-	sectok_apdu(sc_fd, CLA_SSH, INS_GET_RESPONSE, 0, 0, 0, NULL,
-	    len, padded, &sw);
-	if (!sectok_swOK(sw)) {
-		error("sc_private_decrypt: INS_GET_RESPONSE failed: %s",
 		    sectok_get_sw(sw));
 		goto err;
 	}
@@ -256,16 +277,9 @@ sc_private_encrypt(int flen, u_char *from, u_char *to, RSA *rsa,
 		error("RSA_padding_add_PKCS1_type_1 failed");
 		goto err;
 	}
-	sectok_apdu(sc_fd, CLA_SSH, INS_DECRYPT, 0, 0, len, padded, 0, NULL, &sw);
+	sectok_apdu(sc_fd, CLA_SSH, INS_DECRYPT, 0, 0, len, padded, len, to, &sw);
 	if (!sectok_swOK(sw)) {
 		error("sc_private_decrypt: INS_DECRYPT failed: %s",
-		    sectok_get_sw(sw));
-		goto err;
-	}
-	sectok_apdu(sc_fd, CLA_SSH, INS_GET_RESPONSE, 0, 0, 0, NULL,
-	    len, to, &sw);
-	if (!sectok_swOK(sw)) {
-		error("sc_private_decrypt: INS_GET_RESPONSE failed: %s",
 		    sectok_get_sw(sw));
 		goto err;
 	}
@@ -340,7 +354,7 @@ sc_close(void)
 }
 
 Key *
-sc_get_key(const char *id)
+sc_get_key(const char *id, const char *pin)
 {
 	Key *k;
 	int status;
@@ -348,6 +362,10 @@ sc_get_key(const char *id)
 	if (sc_reader_id != NULL)
 		xfree(sc_reader_id);
 	sc_reader_id = xstrdup(id);
+
+	if (sc_pin != NULL)
+		xfree(sc_pin);
+	sc_pin = (pin == NULL) ? NULL : xstrdup(pin);
 
 	k = key_new(KEY_RSA);
 	if (k == NULL) {
@@ -376,19 +394,30 @@ sc_get_key(const char *id)
 			goto done; \
 	} while (0)
 
-static int
-get_AUT0(char *aut0)
+static void
+sc_mk_digest(const char *pin, u_char *digest)
 {
 	const EVP_MD *evp_md = EVP_sha1();
 	EVP_MD_CTX md;
+
+	EVP_DigestInit(&md, evp_md);
+	EVP_DigestUpdate(&md, pin, strlen(pin));
+	EVP_DigestFinal(&md, digest, NULL);
+}
+
+static int
+get_AUT0(u_char *aut0)
+{
 	char *pass;
 
 	pass = read_passphrase("Enter passphrase for smartcard: ", RP_ALLOW_STDIN);
 	if (pass == NULL)
 		return -1;
-	EVP_DigestInit(&md, evp_md);
-	EVP_DigestUpdate(&md, pass, strlen(pass));
-	EVP_DigestFinal(&md, aut0, NULL);
+	if (!strcmp(pass, "-")) {
+		memcpy(aut0, DEFAUT0, sizeof DEFAUT0);
+		return 0;
+	}
+	sc_mk_digest(pass, aut0);
 	memset(pass, 0, strlen(pass));
 	xfree(pass);
 	return 0;
@@ -399,7 +428,6 @@ sc_put_key(Key *prv, const char *id)
 {
 	u_char *elements[NUM_RSA_KEY_ELEMENTS];
 	u_char key_fid[2];
-	u_char DEFAUT0[] = {0xad, 0x9f, 0x61, 0xfe, 0xfa, 0x20, 0xce, 0x63};
 	u_char AUT0[EVP_MAX_MD_SIZE];
 	int len, status = -1, i, fd = -1, ret;
 	int sw = 0, cla = 0x00;
@@ -436,10 +464,12 @@ sc_put_key(Key *prv, const char *id)
 	if (cyberflex_verify_AUT0(fd, cla, AUT0, sizeof(DEFAUT0)) < 0) {
 		if (get_AUT0(AUT0) < 0 ||
 		    cyberflex_verify_AUT0(fd, cla, AUT0, sizeof(DEFAUT0)) < 0) {
-			error("cyberflex_verify_AUT0 failed");
+			memset(AUT0, 0, sizeof(DEFAUT0));
+			error("smartcard passphrase incorrect");
 			goto done;
 		}
 	}
+	memset(AUT0, 0, sizeof(DEFAUT0));
 	key_fid[0] = 0x00;
 	key_fid[1] = 0x12;
 	if (cyberflex_load_rsa_priv(fd, cla, key_fid, 5, 8*len, elements,
