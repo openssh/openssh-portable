@@ -35,9 +35,9 @@
 static char rcsid[] = "$OpenBSD: vis.c,v 1.5 2000/07/19 15:25:13 deraadt Exp $";
 #endif /* LIBC_SCCS and not lint */
 
-#ifndef HAVE_VIS
-
 #include "includes.h"
+
+#ifndef HAVE_VIS
 
 #define	isoctal(c)	(((u_char)(c)) >= '0' && ((u_char)(c)) <= '7')
 

@@ -1,3 +1,7 @@
+20010209
+ - (bal) patch to vis.c to deal with HAVE_VIS right by Robert Mooney 
+   <rjmooney@mediaone.net>
+
 20010208
  - (djm) Don't delete external askpass program in make uninstall target.
    Report and fix from Roumen Petrov <roumen.petrov@skalasoft.com>
