@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.60 2001/04/23 22:14:13 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.61 2001/05/25 14:37:32 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -113,14 +113,17 @@ ask_filename(struct passwd *pw, const char *prompt)
 }
 
 Key *
-try_load_pem_key(char *filename)
+load_identity(char *filename)
 {
 	char *pass;
 	Key *prv;
 
 	prv = key_load_private(filename, "", NULL);
 	if (prv == NULL) {
-		pass = read_passphrase("Enter passphrase: ", 1);
+		if (identity_passphrase)
+			pass = xstrdup(identity_passphrase);
+		else
+			pass = read_passphrase("Enter passphrase: ", 1);
 		prv = key_load_private(filename, pass, NULL);
 		memset(pass, 0, strlen(pass));
 		xfree(pass);
@@ -148,7 +151,7 @@ do_convert_to_ssh2(struct passwd *pw)
 		exit(1);
 	}
 	if ((k = key_load_public(identity_file, NULL)) == NULL) {
-		if ((k = try_load_pem_key(identity_file)) == NULL) {
+		if ((k = load_identity(identity_file)) == NULL) {
 			fprintf(stderr, "load failed\n");
 			exit(1);
 		}
@@ -348,7 +351,7 @@ do_print_public(struct passwd *pw)
 		perror(identity_file);
 		exit(1);
 	}
-	prv = try_load_pem_key(identity_file);
+	prv = load_identity(identity_file);
 	if (prv == NULL) {
 		fprintf(stderr, "load failed\n");
 		exit(1);
