@@ -25,7 +25,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.60 2003/05/15 03:43:59 mouring Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.61 2003/07/19 00:45:53 djm Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -332,7 +332,7 @@ get_pathname(const char **cpp, char **path)
 {
 	const char *cp = *cpp, *end;
 	char quot;
-	int i;
+	int i, j;
 
 	cp += strspn(cp, WHITESPACE);
 	if (!*cp) {
@@ -341,37 +341,54 @@ get_pathname(const char **cpp, char **path)
 		return (0);
 	}
 
+	*path = xmalloc(strlen(cp) + 1);
+
 	/* Check for quoted filenames */
 	if (*cp == '\"' || *cp == '\'') {
 		quot = *cp++;
 
-		end = strchr(cp, quot);
-		if (end == NULL) {
-			error("Unterminated quote");
-			goto fail;
+		/* Search for terminating quote, unescape some chars */
+		for (i = j = 0; i <= strlen(cp); i++) {
+			if (cp[i] == quot) {	/* Found quote */
+				(*path)[j] = '\0';
+				break;
+			}
+			if (cp[i] == '\0') {	/* End of string */
+				error("Unterminated quote");
+				goto fail;
+			}
+			if (cp[i] == '\\') {	/* Escaped characters */
+				i++;
+				if (cp[i] != '\'' && cp[i] != '\"' && 
+				    cp[i] != '\\') {
+					error("Bad escaped character '\%c'",
+					    cp[i]);
+					goto fail;
+				}
+			}
+			(*path)[j++] = cp[i];
 		}
-		if (cp == end) {
+
+		if (j == 0) {
 			error("Empty quotes");
 			goto fail;
 		}
-		*cpp = end + 1 + strspn(end + 1, WHITESPACE);
+		*cpp = cp + i + strspn(cp + i, WHITESPACE);
 	} else {
 		/* Read to end of filename */
 		end = strpbrk(cp, WHITESPACE);
 		if (end == NULL)
 			end = strchr(cp, '\0');
 		*cpp = end + strspn(end, WHITESPACE);
+
+		memcpy(*path, cp, end - cp);
+		(*path)[end - cp] = '\0';
 	}
-
-	i = end - cp;
-
-	*path = xmalloc(i + 1);
-	memcpy(*path, cp, i);
-	(*path)[i] = '\0';
-	return(0);
+	return (0);
 
  fail:
-	*path = NULL;
+ 	xfree(*path);
+	*path = NULL;	
 	return (-1);
 }
 
