@@ -1209,8 +1209,7 @@ do_setusercontext(struct passwd *pw)
 		irix_setusercontext(pw);
 #  endif /* defined(WITH_IRIX_PROJECT) || defined(WITH_IRIX_JOBS) || defined(WITH_IRIX_ARRAY) */
 # ifdef _AIX
-		/* XXX: Disable tty setting.  Enabled if required later */
-		aix_usrinfo(pw, &tty, -1);
+		aix_usrinfo(pw);
 # endif /* _AIX */
 		/* Permanently switch to the desired uid. */
 		permanently_set_uid(pw);
