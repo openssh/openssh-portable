@@ -427,9 +427,9 @@ again:
 
 		case 'L':
 		case 'R':
-			if (sscanf(optarg, "%5[0-9]:%255[^:]:%5[0-9]",
+			if (sscanf(optarg, "%5[0123456789]:%255[^:]:%5[0123456789]",
 			    sfwd_port, buf, sfwd_host_port) != 3 &&
-			    sscanf(optarg, "%5[0-9]/%255[^/]/%5[0-9]",
+			    sscanf(optarg, "%5[0123456789]/%255[^/]/%5[0123456789]",
 			    sfwd_port, buf, sfwd_host_port) != 3) {
 				fprintf(stderr,
 				    "Bad forwarding specification '%s'\n",

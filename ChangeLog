@@ -84,6 +84,7 @@
  - (djm) Die screaming if start_pam() is called when UsePAM=no
  - (djm) Avoid KrbV leak for MIT Kerberos
  - (dtucker) Set ai_socktype and ai_protocol in fake-getaddrinfo.c. ok djm@
+ - (djm) Bug #258: sscanf("[0-9]") -> sscanf("[0123456789]") for portability
 
 20030512
  - (djm) Redhat spec: Don't install profile.d scripts when not 
@@ -1471,4 +1472,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2699 2003/05/14 11:48:51 dtucker Exp $
+$Id: ChangeLog,v 1.2700 2003/05/14 12:33:58 djm Exp $
