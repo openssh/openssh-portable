@@ -88,7 +88,7 @@ mm_create(struct mm_master *mmalloc, size_t size)
 	address = mmap(NULL, size, PROT_WRITE|PROT_READ, MAP_ANON|MAP_SHARED,
 	    -1, 0);
 	if (address == MAP_FAILED)
-		fatal("mmap(%lu): %s", (u_long)size, strerror(errnor));
+		fatal("mmap(%lu): %s", (u_long)size, strerror(errno));
 #else
 	fatal("%s: UsePrivilegeSeparation=yes not supported",
 	    __func__);
@@ -132,7 +132,7 @@ mm_destroy(struct mm_master *mm)
 
 #ifdef HAVE_MMAP
 	if (munmap(mm->address, mm->size) == -1)
-		fatal("munmap(%p, %lu): %s", mm->address, (u_long)mm->size
+		fatal("munmap(%p, %lu): %s", mm->address, (u_long)mm->size,
 		    strerror(errno));
 #else
 	fatal("%s: UsePrivilegeSeparation=yes not supported",
