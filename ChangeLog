@@ -13,6 +13,9 @@
    - markus@cvs.openbsd.org 2003/05/14 22:24:42
      [clientloop.c session.c ssh.1]
      allow to send a BREAK to the remote system; ok various
+   - markus@cvs.openbsd.org 2003/05/15 00:28:28
+     [sshconnect2.c]
+     cleanup unregister of per-method packet handlers; ok djm@
  - (djm) Configure glue for DNS support (code doesn't work in portable yet)
 
 20030514
@@ -1489,4 +1492,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2704 2003/05/15 00:53:49 djm Exp $
+$Id: ChangeLog,v 1.2705 2003/05/15 02:01:28 djm Exp $

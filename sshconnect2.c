@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.118 2003/05/14 02:15:47 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.119 2003/05/15 00:28:28 markus Exp $");
 
 #ifdef KRB5
 #include <krb5.h>
@@ -204,7 +204,6 @@ int	userauth_kerberos(Authctxt *);
 void	userauth(Authctxt *, char *);
 
 static int sign_and_send_pubkey(Authctxt *, Identity *);
-static void clear_auth_state(Authctxt *);
 static void pubkey_prepare(Authctxt *);
 static void pubkey_cleanup(Authctxt *);
 static Key *load_identity_file(char *);
@@ -299,8 +298,11 @@ ssh_userauth2(const char *local_user, const char *server_user, char *host,
 	dispatch_run(DISPATCH_BLOCK, &authctxt.success, &authctxt);	/* loop until success */
 
 	pubkey_cleanup(&authctxt);
+	dispatch_range(SSH2_MSG_USERAUTH_MIN, SSH2_MSG_USERAUTH_MAX, NULL);
+
 	debug("Authentication succeeded (%s).", authctxt.method->name);
 }
+
 void
 userauth(Authctxt *authctxt, char *authlist)
 {
@@ -316,6 +318,12 @@ userauth(Authctxt *authctxt, char *authlist)
 		if (method == NULL)
 			fatal("Permission denied (%s).", authlist);
 		authctxt->method = method;
+
+		/* reset the per method handler */
+		dispatch_range(SSH2_MSG_USERAUTH_PER_METHOD_MIN,
+		    SSH2_MSG_USERAUTH_PER_METHOD_MAX, NULL);
+
+		/* and try new method */
 		if (method->userauth(authctxt) != 0) {
 			debug2("we sent a %s packet, wait for reply", method->name);
 			break;
@@ -353,7 +361,6 @@ input_userauth_success(int type, u_int32_t seq, void *ctxt)
 		fatal("input_userauth_success: no authentication context");
 	if (authctxt->authlist)
 		xfree(authctxt->authlist);
-	clear_auth_state(authctxt);
 	authctxt->success = 1;			/* break out */
 }
 
@@ -375,7 +382,6 @@ input_userauth_failure(int type, u_int32_t seq, void *ctxt)
 		logit("Authenticated with partial success.");
 	debug("Authentications that can continue: %s", authlist);
 
-	clear_auth_state(authctxt);
 	userauth(authctxt, authlist);
 }
 void
@@ -437,10 +443,6 @@ done:
 		key_free(key);
 	xfree(pkalg);
 	xfree(pkblob);
-
-	/* unregister */
-	clear_auth_state(authctxt);
-	dispatch_set(SSH2_MSG_USERAUTH_PK_OK, NULL);
 
 	/* try another method if we did not send a packet */
 	if (sent == 0)
@@ -556,13 +558,6 @@ input_userauth_passwd_changereq(int type, u_int32_t seqnr, void *ctxt)
 
 	dispatch_set(SSH2_MSG_USERAUTH_PASSWD_CHANGEREQ,
 	    &input_userauth_passwd_changereq);
-}
-
-static void
-clear_auth_state(Authctxt *authctxt)
-{
-	/* XXX clear authentication state */
-	dispatch_set(SSH2_MSG_USERAUTH_PASSWD_CHANGEREQ, NULL);
 }
 
 static int
