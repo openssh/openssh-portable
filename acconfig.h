@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.128 2002/04/07 16:18:04 stevesk Exp $ */
+/* $Id: acconfig.h,v 1.129 2002/04/07 19:22:54 stevesk Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -99,6 +99,9 @@
 
 /* Builtin PRNG command timeout */
 #undef ENTROPY_TIMEOUT_MSEC
+
+/* non-privileged user for privilege separation */
+#undef SSH_PRIVSEP_USER
 
 /* Define if you want to install preformatted manpages.*/
 #undef MANTYPE

@@ -7,6 +7,7 @@
    monitor_mm.c
  - (stevesk) remove configure support for poll.h; it was removed
    from sshd.c a long time ago.
+ - (stevesk) --with-privsep-user; default sshd
 
 20020406
  - (djm) Typo in Suse SPEC file. Fix from Carsten Grohmann 
@@ -8197,4 +8198,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2037 2002/04/07 18:12:03 stevesk Exp $
+$Id: ChangeLog,v 1.2038 2002/04/07 19:22:55 stevesk Exp $

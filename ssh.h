@@ -104,7 +104,9 @@
  * sshd will change its pivileges to this user and its
  * primary group.
  */
+#ifndef SSH_PRIVSEP_USER
 #define SSH_PRIVSEP_USER		"nobody"
+#endif
 
 /* Minimum modulus size (n) for RSA keys. */
 #define SSH_RSA_MINIMUM_MODULUS_SIZE	768
