@@ -72,7 +72,9 @@ control file as "/etc/pam.d/sshd" (or wherever your system
 prefers to keep them). A generic PAM configuration is included as
 "contrib/sshd.pam.generic", you may need to edit it before using it on
 your system. If you are using a recent version of Redhat Linux, the
-config file in contrib/redhat/sshd.pam should be more useful.
+config file in contrib/redhat/sshd.pam should be more useful. 
+Failure to install a valid PAM file may result in an inability to
+use password authentication.
 
 There are a few other options to the configure script:
 
@@ -166,9 +168,10 @@ The default configuration should be instantly usable, though you should
 review it to ensure that it matches your security requirements.
 
 To generate a host key, run "make host-key". Alternately you can do so
-manually using the following command: 
+manually using the following commands: 
 
-/usr/bin/ssh-keygen -b 1024 -f /etc/ssh/ssh_host_key -N ''
+    ssh-keygen -b 1024 -f /etc/ssh/ssh_host_key -N ""
+    ssh-keygen -d -f /etc/ssh/ssh_host_dsa_key -N ""
 
 Replacing /etc/ssh with the correct path to the configuration directory.
 (${prefix}/etc or whatever you specified with --sysconfdir during 

@@ -1,3 +1,6 @@
+20000610
+ - (djm) Minor doc tweaks
+
 20000609
  - (djm) Patch from Kenji Miyake <kenji@miyake.org> to disable utmp usage
    (in favour of utmpx) on Solaris 8
