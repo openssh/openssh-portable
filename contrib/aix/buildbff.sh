@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # buildbff.sh: Create AIX SMIT-installable OpenSSH packages
-# $Id: buildbff.sh,v 1.7 2003/11/21 12:48:56 djm Exp $
+# $Id: buildbff.sh,v 1.8 2005/03/29 13:24:12 dtucker Exp $
 #
 # Author: Darren Tucker (dtucker at zip dot com dot au)
 # This file is placed in the public domain and comes with absolutely
@@ -219,7 +219,7 @@ else
 	fi
 
 	# Create user if required
-	if lsuser ALL | cut -f1 -d: | egrep '^'$SSH_PRIVSEP_USER'\$' >/dev/null
+	if lsuser "$SSH_PRIVSEP_USER" >/dev/null
 	then
 		echo "PrivSep user $SSH_PRIVSEP_USER already exists."
 	else

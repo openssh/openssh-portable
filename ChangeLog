@@ -1,3 +1,8 @@
+20050329
+ - (dtucker) [contrib/aix/buildbff.sh] Bug #1005: Look up only the user we're
+   interested in which is much faster in large (eg LDAP or NIS) environments.
+   Patch from dleonard at vintela.com.
+
 20050321
  - (dtucker) [configure.ac] Prevent configure --with-zlib from adding -Iyes
    and -Lyes to CFLAGS and LIBS.  Pointed out by peter at slagheap.net,
@@ -2382,4 +2387,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3727 2005/03/21 11:46:34 dtucker Exp $
+$Id: ChangeLog,v 1.3728 2005/03/29 13:24:12 dtucker Exp $
