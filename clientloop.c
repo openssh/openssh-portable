@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.63 2001/04/15 17:16:00 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.64 2001/04/17 09:52:48 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -625,6 +625,8 @@ client_process_input(fd_set * readset)
 	if (FD_ISSET(fileno(stdin), readset)) {
 		/* Read as much as possible. */
 		len = read(fileno(stdin), buf, sizeof(buf));
+		if (len < 0 && (errno == EAGAIN || errno == EINTR))
+			return;		/* we'll try again later */
 		if (len <= 0) {
 			/*
 			 * Received EOF or error.  They are treated
@@ -678,7 +680,7 @@ client_process_output(fd_set * writeset)
 		len = write(fileno(stdout), buffer_ptr(&stdout_buffer),
 		    buffer_len(&stdout_buffer));
 		if (len <= 0) {
-			if (errno == EAGAIN)
+			if (errno == EINTR || errno == EAGAIN)
 				len = 0;
 			else {
 				/*
@@ -701,7 +703,7 @@ client_process_output(fd_set * writeset)
 		len = write(fileno(stderr), buffer_ptr(&stderr_buffer),
 		    buffer_len(&stderr_buffer));
 		if (len <= 0) {
-			if (errno == EAGAIN)
+			if (errno == EINTR || errno == EAGAIN)
 				len = 0;
 			else {
 				/* EOF or error, but can't even print error message. */
