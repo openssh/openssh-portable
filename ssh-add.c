@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.48 2001/12/21 10:06:43 djm Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.49 2001/12/24 07:29:43 deraadt Exp $");
 
 #include <openssl/evp.h>
 
@@ -322,7 +322,7 @@ main(int argc, char **argv)
 		}
 	} else {
 		for(i = 0; i < argc; i++) {
-			if (do_file(ac, deleting, argv[1]) == -1)
+			if (do_file(ac, deleting, argv[i]) == -1)
 				ret = 1;
 		}
 	}
