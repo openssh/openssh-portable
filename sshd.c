@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.240 2002/04/23 22:16:29 djm Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.241 2002/05/13 15:53:19 millert Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1330,6 +1330,14 @@ main(int ac, char **av)
 	}
 
 	/* This is the child processing a new connection. */
+
+	/*
+	 * Create a new session and process group since the 4.4BSD
+	 * setlogin() affects the entire process group.  We don't
+	 * want the child to be able to affect the parent.
+	 */
+	if (setsid() < 0)
+		error("setsid: %.100s", strerror(errno));
 
 	/*
 	 * Disable the key regeneration alarm.  We will not regenerate the

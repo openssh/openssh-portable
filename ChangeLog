@@ -17,6 +17,13 @@
      [auth-options.c auth.c auth.h]
      move the packet_send_debug handling from auth-options.c to auth.c; 
      ok provos@
+   - millert@cvs.openbsd.org 2002/05/13 15:53:19
+     [sshd.c]
+     Call setsid() in the child after sshd accepts the connection and forks.
+     This is needed for privsep which calls setlogin() when it changes uids.
+     Without this, there is a race where the login name of an existing 
+     connection, as returned by getlogin(), may be changed to the privsep 
+     user (sshd).  markus@ OK
 
 20020514
  - (stevesk) [README.privsep] PAM+privsep works with Solaris 8.
@@ -621,4 +628,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2126 2002/05/15 16:16:14 mouring Exp $
+$Id: ChangeLog,v 1.2127 2002/05/15 16:17:56 mouring Exp $
