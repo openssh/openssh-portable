@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keyscan.c,v 1.34 2002/02/22 12:20:34 markus Exp $");
+RCSID("$OpenBSD: ssh-keyscan.c,v 1.35 2002/03/04 18:30:23 stevesk Exp $");
 
 #if defined(HAVE_SYS_QUEUE_H) && !defined(HAVE_BOGUS_SYS_QUEUE_H)
 #include <sys/queue.h>
@@ -508,6 +508,11 @@ congreet(int s)
 	if (n < 0) {
 		if (errno != ECONNREFUSED)
 			error("read (%s): %s", c->c_name, strerror(errno));
+		conrecycle(s);
+		return;
+	}
+	if (n == 0) {
+		error("%s: Connection closed by remote host", c->c_name);
 		conrecycle(s);
 		return;
 	}
