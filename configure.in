@@ -29,6 +29,9 @@ case "$host" in
 	AFS_LIBS="-lld"
 	CFLAGS="$CFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
+	if test "$LD" != "gcc" -a -z "$blibpath"; then
+		blibpath="/usr/lib:/lib:/usr/local/lib"
+	fi
 	AC_DEFINE(BROKEN_GETADDRINFO)
 	;;
 *-*-hpux10*)
@@ -238,6 +241,9 @@ else
 	LDFLAGS="$saved_LDFLAGS -L$ssldir/lib -L$ssldir"
 	if test ! -z "$need_dash_r" ; then
 		LDFLAGS="$LDFLAGS -R$ssldir/lib -R$ssldir"
+	fi
+	if test ! -z "$blibpath" ; then
+		blibpath="$blibpath:$ssldir:$ssldir/lib"
 	fi
 fi
 if test -z "$WANTS_RSAREF" ; then
@@ -646,6 +652,12 @@ AC_ARG_WITH(kerberos4,
 			if test "x$withval" != "$xyes" ; then
 				CFLAGS="$CFLAGS -I${withval}/include"
 				LDFLAGS="$LDFLAGS -L${withval}/lib"
+				if test ! -z "$need_dash_r" ; then
+					LDFLAGS="$LDFLAGS -R${withval}/lib"
+				fi
+				if test ! -z "$blibpath" ; then
+					blibpath="$blibpath:${withval}/lib"
+				fi
 			else
 				if test -d /usr/include/kerberosIV ; then
 					CFLAGS="$CFLAGS -I/usr/include/kerberosIV"
@@ -825,5 +837,10 @@ AC_ARG_WITH(pid-dir,
 )
 AC_DEFINE_UNQUOTED(PIDDIR, "$piddir")
 AC_SUBST(piddir)
+
+if test ! -z "$blibpath" ; then
+	LDFLAGS="$LDFLAGS -blibpath:$blibpath"
+	AC_MSG_WARN([Please check and edit -blibpath in LDFLAGS in Makefile])
+fi
 
 AC_OUTPUT(Makefile)

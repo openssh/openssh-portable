@@ -124,5 +124,9 @@ either internally or through RSAref.
 
 scp must be in the default PATH on both the client and the server. You may
 need to use the --with-default-path option to specify a custom path to
-search on the server.
+search on the server. This option replaces the default path, so you need
+to specify all the current directories on your path as well as where you
+have installed scp. For example: 
+
+./configure --with-default-path=/bin:/usr/bin:/usr/local/bin:/path/to/scp
 

@@ -132,7 +132,7 @@ some platforms.
 $DISPLAY environment variable. Some broken systems need this.
 
 --with-default-path=PATH allows you to specify a default $PATH for sessions
-started by sshd.
+started by sshd. This replaces the standard path entirely.
 
 --with-pid-dir=PATH specifies the directory in which the ssh.pid file is
 created.

@@ -1,3 +1,9 @@
+20000317
+ - Clarified --with-default-path option.
+ - Added -blibpath handling for AIX to work around stupid runtime linking.
+   Problem elucidated by gshapiro@SENDMAIL.ORG by way of Jim Knoble
+   <jmknoble@pobox.com>
+
 20000316
  - Fixed configure not passing LDFLAGS to Solaris. Report from David G. 
    Hesprich <dghespri@sprintparanet.com>
