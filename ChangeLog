@@ -57,6 +57,7 @@
      globally. based on discussions with deraadt, itojun and sommerfeld; 
      ok itojun@
  - (bal) Failed password attempts don't increment counter on AIX. Bug #145
+ - (bal) Missed Makefile.in change.  keysign needs readconf.o
   
 20020702
  - (djm) Use PAM_MSG_MEMBER for PAM_TEXT_INFO messages, use xmalloc & 
@@ -1265,4 +1266,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2330 2002/07/04 00:27:21 mouring Exp $
+$Id: ChangeLog,v 1.2331 2002/07/04 03:07:15 mouring Exp $

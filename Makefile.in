@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.217 2002/06/25 23:45:42 tim Exp $
+# $Id: Makefile.in,v 1.218 2002/07/04 03:07:15 mouring Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -129,7 +129,7 @@ ssh-keygen$(EXEEXT): $(LIBCOMPAT) libssh.a ssh-keygen.o
 	$(LD) -o $@ ssh-keygen.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
 ssh-keysign$(EXEEXT): $(LIBCOMPAT) libssh.a ssh-keysign.o
-	$(LD) -o $@ ssh-keysign.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
+	$(LD) -o $@ ssh-keysign.o readconf.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
 ssh-keyscan$(EXEEXT): $(LIBCOMPAT) libssh.a ssh-keyscan.o
 	$(LD) -o $@ ssh-keyscan.o $(LDFLAGS) -lssh -lopenbsd-compat -lssh $(LIBS) 
