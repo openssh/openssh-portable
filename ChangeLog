@@ -3,6 +3,12 @@
    - markus@cvs.openbsd.org 2000/12/06 22:58:14 
      [compat.c compat.h packet.c]
      disable debug messages for ssh.com/f-secure 2.0.1x, 2.1.0
+   - markus@cvs.openbsd.org 2000/12/06 23:10:39
+     [rijndael.c]
+     unexpand(1)
+   - markus@cvs.openbsd.org 2000/12/06 23:05:43 
+     [cipher.c cipher.h rijndael.c rijndael.h rijndael_boxes.h]
+     new rijndael implementation. fixes endian bugs
 
 20001206
  - (bal) OpenSSH CVS updates:

@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* RCSID("$OpenBSD: cipher.h,v 1.22 2000/10/13 18:59:14 markus Exp $"); */
+/* RCSID("$OpenBSD: cipher.h,v 1.23 2000/12/06 23:05:42 markus Exp $"); */
 
 #ifndef CIPHER_H
 #define CIPHER_H
@@ -41,7 +41,9 @@
 #include <openssl/blowfish.h>
 #include <openssl/rc4.h>
 #include <openssl/cast.h>
+
 #include "rijndael.h"
+
 /*
  * Cipher types for SSH-1.  New types can be added, but old types should not
  * be removed for compatibility.  The maximum allowed value is 31.
@@ -84,9 +86,9 @@ struct CipherContext {
 			u_char iv[8];
 		} cast;
 		struct {
-			u4byte iv[4];
-			rijndael_ctx enc;
-			rijndael_ctx dec;
+			u_char iv[16];
+			rijndael_key enc;
+			rijndael_key dec;
 		} rijndael;
 		RC4_KEY rc4;
 	}       u;
