@@ -3,6 +3,9 @@
    - markus@cvs.openbsd.org 2001/09/23 11:09:13
      [authfile.c]
      relax permission check for private key files.
+   - markus@cvs.openbsd.org 2001/09/23 09:58:13
+     [LICENCE]
+     new rijndael implementation
 
 20010920
  - (tim) [scard/Makefile.in] Don't strip the Java binary
@@ -6554,4 +6557,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1555 2001/09/23 13:54:57 mouring Exp $
+$Id: ChangeLog,v 1.1556 2001/09/23 13:58:38 mouring Exp $
