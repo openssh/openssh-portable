@@ -26,6 +26,9 @@
      [ssh.c]
      sync usage() w/ man SYNOPSIS;
      ok markus@
+   - jmc@cvs.openbsd.org 2005/03/01 17:32:19
+     [ssh-add.1]
+     sort options;
 
 20050301
  - (djm) OpenBSD CVS sync:
@@ -2245,4 +2248,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3682 2005/03/02 01:04:32 djm Exp $
+$Id: ChangeLog,v 1.3683 2005/03/02 01:04:50 djm Exp $
