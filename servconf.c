@@ -270,10 +270,11 @@ static struct {
 } keywords[] = {
 	/* Portable-specific options */
 #ifdef USE_PAM
-	{ "UsePAM", sUsePAM },
+	{ "usepam", sUsePAM },
 #else
-	{ "UsePAM", sUnsupported },
+	{ "usepam", sUnsupported },
 #endif
+	{ "pamauthenticationviakbdint", sDeprecated },
 	/* Standard Options */
 	{ "port", sPort },
 	{ "hostkey", sHostKeyFile },
