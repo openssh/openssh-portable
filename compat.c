@@ -29,8 +29,8 @@ RCSID("$OpenBSD: compat.c,v 1.25 2000/10/14 12:16:56 markus Exp $");
 #include "packet.h"
 #include "xmalloc.h"
 #include "compat.h"
-#ifdef HAVE_LIBRX
-#  include <rxposix.h>
+#ifdef HAVE_LIBPCRE
+#  include <pcreposix.h>
 #else /* Use native regex libraries */
 #  include <regex.h>
 #endif /* HAVE_LIBRX */

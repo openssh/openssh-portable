@@ -354,6 +354,10 @@ struct winsize {
 
 #if !defined(HAVE_ATEXIT) && defined(HAVE_ON_EXIT)
 # define atexit(a) on_exit(a)
+#else
+# if defined(HAVE_XATEXIT)
+#  define atexit(a) xatexit(a)
+# endif /* defined(HAVE_XATEXIT) */
 #endif /* !defined(HAVE_ATEXIT) && defined(HAVE_ON_EXIT) */
 
 #if defined(HAVE_VHANGUP) && !defined(BROKEN_VHANGUP)

@@ -20,6 +20,7 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #include "config.h"
 
 #include "next-posix.h"
+#include "news4-posix.h"
 
 #include <sys/types.h>
 #include <sys/socket.h>

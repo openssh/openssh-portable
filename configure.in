@@ -119,6 +119,13 @@ case "$host" in
 	AC_DEFINE(PAM_TTY_KLUDGE)
 	inet6_default_4in6=yes
 	;;
+mips-sony-bsd|mips-sony-newsos4)
+	AC_DEFINE(HAVE_NEWS4)
+	SONY=1
+	AC_CHECK_LIB(iberty, xatexit, AC_DEFINE(HAVE_XATEXIT),
+		AC_MSG_ERROR([*** libiberty missing - please install first ***])
+        )
+	;;
 *-*-netbsd*)
 	need_dash_r=1
 	;;
@@ -257,7 +264,8 @@ AC_ARG_WITH(libs,
 # Checks for libraries.
 AC_CHECK_LIB(z, deflate, ,AC_MSG_ERROR([*** zlib missing - please install first ***]))
 AC_CHECK_LIB(util, login, AC_DEFINE(HAVE_LIBUTIL_LOGIN) LIBS="$LIBS -lutil")
-AC_CHECK_LIB(rx, regcomp, AC_DEFINE(HAVE_LIBRX) LIBS="$LIBS -lrx")
+AC_CHECK_LIB(pcre, pcre_info, 
+	AC_DEFINE(HAVE_LIBPCRE) LIBS="$LIBS -lpcreposix -lpcre")
 
 if test -z "$no_libsocket" ; then
 	AC_CHECK_LIB(nsl, yp_match, , )
@@ -488,6 +496,11 @@ else
 			LIBS="$saved_LIBS -lcrypto -lRSAglue -lrsaref"
 		fi
 	fi
+fi
+
+# Cheap hack to ensure NEWS-OS libraries are arranged right.
+if test ! -z "$SONY" ; then
+  LIBS="$LIBS -liberty";
 fi
 
 # Checks for data types

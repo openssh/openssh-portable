@@ -4,6 +4,9 @@
  - (djm) Don't rely on atomicio's retval to determine length of askpass
    supplied passphrase. Problem report from Lutz Jaenicke
    <Lutz.Jaenicke@aet.TU-Cottbus.DE>
+ - (bal) Changed from GNU rx to PCRE on suggestion from djm.
+ - (bal) Integrated Sony NEWS-OS patches from NAKAJI Hirouyuki 
+   <nakaji@tutrp.tut.ac.jp>
 
 20001016
  - (djm) Sync with OpenBSD:

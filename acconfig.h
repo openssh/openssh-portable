@@ -52,14 +52,17 @@
 /* Define if you are on Cygwin */
 #undef HAVE_CYGWIN
 
-/* Define if you lack native POSIX regex and you are using GNU rx library */
-#undef HAVE_LIBRX
+/* Define if you lack native POSIX regex and you are using PCRE */
+#undef HAVE_LIBPCRE
 
 /* Define if you have a broken realpath. */
 #undef BROKEN_REALPATH
 
 /* Define if you are on NeXT */
 #undef HAVE_NEXT
+
+/* Define if you are on NEWS-OS */
+#undef HAVE_NEWS4
 
 /* Define if you want to disable PAM support */
 #undef DISABLE_PAM
@@ -253,6 +256,9 @@
 
 /* Use IPv4 for connection by default, IPv6 can still if explicity asked */
 #undef IPV4_DEFAULT
+
+/* If you have no atexit() but xatexit(), and want to use xatexit() */
+#undef HAVE_XATEXIT
 
 /* getaddrinfo is broken (if present) */
 #undef BROKEN_GETADDRINFO
