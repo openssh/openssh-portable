@@ -12,6 +12,8 @@
      pedantic: signed vs. unsigned, void*-arithm, etc
    - [ssh.1 sshd.8]
      Various cleanups and standardizations.
+ - Runtime error fix for HPUX from Otmar Stahl 
+   <O.Stahl@lsw.uni-heidelberg.de>
 
 20000316
  - Fixed configure not passing LDFLAGS to Solaris. Report from David G. 

@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: pty.c,v 1.16 2000/03/09 11:31:13 damien Exp $");
+RCSID("$Id: pty.c,v 1.17 2000/03/17 12:58:59 damien Exp $");
 
 #ifdef HAVE_UTIL_H
 # include <util.h>
@@ -123,8 +123,10 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 		error("ioctl I_PUSH ptem: %.100s", strerror(errno));
 	if (ioctl(*ttyfd, I_PUSH, "ldterm") < 0)
 		error("ioctl I_PUSH ldterm: %.100s", strerror(errno));
+#ifndef _HPUX_SOURCE
 	if (ioctl(*ttyfd, I_PUSH, "ttcompat") < 0)
 		error("ioctl I_PUSH ttcompat: %.100s", strerror(errno));
+#endif
 	return 1;
 #else /* HAVE_DEV_PTMX */
 #ifdef HAVE_DEV_PTS_AND_PTC
