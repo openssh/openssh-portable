@@ -1,5 +1,6 @@
 20050211
  - (dtucker) [configure.ac] Tidy up configure --help output.
+ - (dtucker) [openbsd-compat/fake-rfc2553.h] We now need EAI_SYSTEM too.
 
 20050210
  - (dtucker) [configure.ac] Bug #919: Provide visible feedback for the
@@ -2122,4 +2123,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3649 2005/02/11 05:11:49 dtucker Exp $
+$Id: ChangeLog,v 1.3650 2005/02/11 07:32:13 dtucker Exp $
