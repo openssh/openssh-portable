@@ -113,6 +113,9 @@
    - jakob@cvs.openbsd.org 2001/08/02 15:06:52
      [ssh-keygen.c]
      more verbose usage(). ok markus@
+   - jakob@cvs.openbsd.org 2001/08/02 15:07:23
+     [ssh-keygen.1]
+     document smartcard upload/download. ok markus@
 
 20010803
  - (djm) Fix interrupted read in entropy gatherer. Spotted by markus@ on
@@ -6223,4 +6226,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1455 2001/08/06 21:49:06 mouring Exp $
+$Id: ChangeLog,v 1.1456 2001/08/06 21:51:34 mouring Exp $

@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.47 2001/07/23 14:14:18 aaron Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.48 2001/08/02 15:07:23 jakob Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -76,6 +76,11 @@
 .Nm ssh-keygen
 .Fl B
 .Op Fl f Ar input_keyfile
+.Nm ssh-keygen
+.Fl D Ar reader
+.Nm ssh-keygen
+.Fl U Ar reader
+.Op Fl f Ar input_keyfile
 .Sh DESCRIPTION
 .Nm
 generates, manages and converts authentication keys for
@@ -151,7 +156,7 @@ print the key in a
 to stdout.
 This option allows exporting keys for use by several commercial
 SSH implementations.
-.It Fl f
+.It Fl f Ar filename
 Specifies the filename of the key file.
 .It Fl i
 This option will read an unencrypted private (or public) key file
@@ -194,10 +199,16 @@ The default is
 Show the bubblebabble digest of specified private or public key file.
 .It Fl C Ar comment
 Provides the new comment.
+.It Fl D Ar reader
+Download the RSA public key stored in the smartcard in
+.Ar reader .
 .It Fl N Ar new_passphrase
 Provides the new passphrase.
 .It Fl P Ar passphrase
 Provides the (old) passphrase.
+.It Fl U Ar reader
+Upload an existing RSA private key into the smartcard in
+.Ar reader .
 .El
 .Sh FILES
 .Bl -tag -width Ds
