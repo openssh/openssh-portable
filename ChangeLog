@@ -3,6 +3,9 @@
    Dave Dykstra <dwd@bell-labs.com>
  - (stevesk) fix --with-zlib=
  - (djm) Use case statements in autoconf to clean up some tests
+ - (bal) reverted out of 5/2001 change to atexit().  I assume I
+   did it to handle SonyOS.  If that is the case than we will
+   do a special case for them.
 
 20020122
  - (djm) autoconf hacking:
@@ -7384,4 +7387,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1792 2002/01/23 00:20:59 djm Exp $
+$Id: ChangeLog,v 1.1793 2002/01/23 06:54:30 mouring Exp $
