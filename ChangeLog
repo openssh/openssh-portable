@@ -6,6 +6,9 @@
      based on a diff from markus;
      problem report from ponraj;
      ok dtucker@ markus@ deraadt@
+   - markus@cvs.openbsd.org 2005/03/16 21:17:39
+     [version.h]
+     4.1
 
 20050329
  - (dtucker) [contrib/aix/buildbff.sh] Bug #1005: Look up only the user we're
@@ -2396,4 +2399,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3729 2005/03/31 11:31:10 dtucker Exp $
+$Id: ChangeLog,v 1.3730 2005/03/31 11:31:54 dtucker Exp $
