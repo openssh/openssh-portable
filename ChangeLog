@@ -8,6 +8,9 @@
    - markus@cvs.openbsd.org 2002/03/26 11:37:05
      [ssh.c]
      update Copyright
+   - markus@cvs.openbsd.org 2002/03/26 15:23:40
+     [bufaux.c]
+     do not talk about packets in bufaux
 
 20020325
  - (stevesk) import OpenBSD <sys/tree.h> as "openbsd-compat/tree.h"
@@ -8071,4 +8074,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1994 2002/03/27 17:20:38 mouring Exp $
+$Id: ChangeLog,v 1.1995 2002/03/27 17:23:44 mouring Exp $
