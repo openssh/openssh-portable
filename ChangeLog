@@ -10,6 +10,9 @@
    - deraadt@cvs.openbsd.org 2003/10/07 21:58:28
      [sshconnect2.c]
      set ptr to NULL after free
+   - dtucker@cvs.openbsd.org 2003/10/07 01:52:13
+     [regress/Makefile regress/banner.sh]
+     Test SSH2 banner.  ok markus@
 
 20031007
  - (djm) Delete autom4te.cache after autoreconf
@@ -1305,4 +1308,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3066 2003/10/08 07:37:58 dtucker Exp $
+$Id: ChangeLog,v 1.3067 2003/10/08 07:47:19 dtucker Exp $
