@@ -28,6 +28,9 @@
    - fgsch@cvs.openbsd.org 2001/07/09 05:58:47
      [ssh.c]
      Use getopt(3); markus@ ok.
+   - deraadt@cvs.openbsd.org 2001/07/09 07:04:53
+     [session.c sftp-int.c]
+     correct type on last arg to execl(); nordin@cse.ogi.edu
 
 20010711
  - (djm) dirname(3) may modify its argument on glibc and other systems. 
@@ -6003,4 +6006,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1393 2001/07/14 02:18:10 djm Exp $
+$Id: ChangeLog,v 1.1394 2001/07/14 02:19:36 djm Exp $
