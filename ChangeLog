@@ -1,7 +1,8 @@
 20000807
- - (djm) Set 0755 on binaries during install. 
+ - (djm) Set 0755 on binaries during install. Report from Lutz Jaenicke
  - (djm) Suppress error messages on channel close shutdown() failurs
    works around Linux bug. Patch from Zack Weinberg <zack@wolery.cumb.org>
+ - (djm) Add some more entropy collection commands from Lutz Jaenicke
 
 20000725
  - (djm) Fix autoconf typo: HAVE_BINRESVPORT_AF -> HAVE_BINDRESVPORT_AF

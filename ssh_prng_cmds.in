@@ -8,9 +8,12 @@
 "ls -alni /var/log"			@PROG_LS@	0.02
 "ls -alni /var/adm"			@PROG_LS@	0.02
 "ls -alni /var/mail"			@PROG_LS@	0.02
+"ls -alni /var/adm/syslog"		@PROG_LS@	0.02
 "ls -alni /var/spool/mail"		@PROG_LS@	0.02
 "ls -alni /proc"			@PROG_LS@	0.02
 "ls -alni /tmp"				@PROG_LS@	0.02
+"ls -alni /var/tmp"			@PROG_LS@	0.02
+"ls -alni /usr/tmp"			@PROG_LS@	0.02
 
 "netstat -an"				@PROG_NETSTAT@	0.05
 "netstat -in"				@PROG_NETSTAT@	0.05
@@ -49,3 +52,5 @@
 "tail -200 /var/adm/syslog/syslog.log"	@PROG_TAIL@	0.01
 "tail -200 /var/log/maillog"		@PROG_TAIL@	0.01
 "tail -200 /var/adm/maillog"		@PROG_TAIL@	0.01
+"tail -200 /var/adm/syslog/mail.log"	@PROG_TAIL@	0.01
+
