@@ -32,6 +32,10 @@
      [ssh.1 ssh.c]
      trim synopsis for -S, allow -S and -oControlMaster, -MM means 'ask';
      ok djm
+   - djm@cvs.openbsd.org 2004/06/18 11:11:54
+     [channels.c clientloop.c]
+     Don't explode in clientloop when we receive a bogus channel id, but
+     also don't generate them to begin with; ok markus@
 
 20040617
  - (dtucker) [regress/scp.sh] diff -N is not portable (but needed for some
@@ -1305,4 +1309,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3413 2004/06/18 12:21:55 djm Exp $
+$Id: ChangeLog,v 1.3414 2004/06/18 12:23:22 djm Exp $

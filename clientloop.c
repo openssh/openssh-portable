@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.127 2004/06/17 15:10:13 djm Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.128 2004/06/18 11:11:54 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1626,8 +1626,9 @@ client_input_channel_req(int type, u_int32_t seq, void *ctxt)
 	debug("client_input_channel_req: channel %d rtype %s reply %d",
 	    id, rtype, reply);
 
-	c = channel_lookup(id);
-	if (c == NULL) {
+	if (id == -1) {
+		error("client_input_channel_req: request for channel -1");
+	} else if ((c = channel_lookup(id)) == NULL) {
 		error("client_input_channel_req: channel %d: unknown channel", id);
 	} else if (strcmp(rtype, "exit-status") == 0) {
 		exitval = packet_get_int();
@@ -1646,7 +1647,7 @@ client_input_channel_req(int type, u_int32_t seq, void *ctxt)
 	if (reply) {
 		packet_start(success ?
 		    SSH2_MSG_CHANNEL_SUCCESS : SSH2_MSG_CHANNEL_FAILURE);
-		packet_put_int(c->remote_id);
+		packet_put_int(id);
 		packet_send();
 	}
 	xfree(rtype);
