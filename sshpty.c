@@ -20,6 +20,7 @@ RCSID("$OpenBSD: sshpty.c,v 1.1 2001/03/04 01:46:30 djm Exp $");
 
 #include "sshpty.h"
 #include "log.h"
+#include "misc.h"
 
 /* Pty allocated with _getpty gets broken if we do I_PUSH:es to it. */
 #if defined(HAVE__GETPTY) || defined(HAVE_OPENPTY)
@@ -93,16 +94,19 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 	 */
 	int ptm;
 	char *pts;
+	mysig_t old_signal;
 
 	ptm = open("/dev/ptmx", O_RDWR | O_NOCTTY);
 	if (ptm < 0) {
 		error("/dev/ptmx: %.100s", strerror(errno));
 		return 0;
 	}
+	old_signal = mysignal(SIGCHLD, SIG_DFL);
 	if (grantpt(ptm) < 0) {
 		error("grantpt: %.100s", strerror(errno));
 		return 0;
 	}
+	mysignal(SIGCHLD, old_signal);
 	if (unlockpt(ptm) < 0) {
 		error("unlockpt: %.100s", strerror(errno));
 		return 0;
