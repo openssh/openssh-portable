@@ -867,13 +867,39 @@ void do_pam_environment(char ***env, int *envsize)
 			strncpy(var_name, pam_env[i], equals - pam_env[i]);
 			strcpy(var_val, equals + 1);
 
-			debug("PAM environment: %s=%s", var_name, var_val);
+			debug3("PAM environment: %s=%s", var_name, var_val);
 
 			child_set_env(env, envsize, var_name, var_val);
 		}
 	}
 }
 #endif /* USE_PAM */
+
+
+#ifdef HAVE_CYGWIN
+void copy_environment(char ***env, int *envsize)
+{
+	char *equals, var_name[512], var_val[512];
+	int i;
+
+	for(i = 0; environ[i] != NULL; i++) {
+		if ((equals = strstr(environ[i], "=")) == NULL)
+			continue;
+			
+		if (strlen(environ[i]) < (sizeof(var_name) - 1)) {
+			memset(var_name, '\0', sizeof(var_name));
+			memset(var_val, '\0', sizeof(var_val));
+
+			strncpy(var_name, environ[i], equals - environ[i]);
+			strcpy(var_val, equals + 1);
+
+			debug3("Copy environment: %s=%s", var_name, var_val);
+
+			child_set_env(env, envsize, var_name, var_val);
+		}
+	}
+}
+#endif
 
 #if defined(HAVE_GETUSERATTR)
 /*
@@ -1107,15 +1133,7 @@ do_child(const char *command, struct passwd * pw, const char *term,
 	 * The Windows environment contains some setting which are
 	 * important for a running system. They must not be dropped.
 	 */
-	{
-		char **ep;
-		for (ep = environ; *ep; ++ep) {
-			char *esp = strchr(*ep, '=');
-			*esp = '\0';
-			child_set_env(&env, &envsize, *ep, esp + 1);
-			*esp = '=';
-		}
-	}
+	copy_environment(&env, &envsize);
 #endif
 
 	if (!options.use_login) {
@@ -1126,8 +1144,8 @@ do_child(const char *command, struct passwd * pw, const char *term,
 #ifdef HAVE_LOGIN_CAP
 		(void) setusercontext(lc, pw, pw->pw_uid, LOGIN_SETPATH);
 		child_set_env(&env, &envsize, "PATH", getenv("PATH"));
-#else
-#ifndef HAVE_CYGWIN
+#else /* HAVE_LOGIN_CAP */
+# ifndef HAVE_CYGWIN
 		/*
 		 * There's no standard path on Windows. The path contains
 		 * important components pointing to the system directories,
@@ -1135,8 +1153,8 @@ do_child(const char *command, struct passwd * pw, const char *term,
 		 * remains intact here.
 		 */
 		child_set_env(&env, &envsize, "PATH", _PATH_STDPATH);
-#endif
-#endif
+# endif /* HAVE_CYGWIN */
+#endif /* HAVE_LOGIN_CAP */
 
 		snprintf(buf, sizeof buf, "%.200s/%.50s",
 			 _PATH_MAILDIR, pw->pw_name);
@@ -1178,15 +1196,11 @@ do_child(const char *command, struct passwd * pw, const char *term,
 		    original_command);
 
 #ifdef _AIX
-	{
-           char *authstate,*krb5cc;
-
-	   if ((authstate = getenv("AUTHSTATE")) != NULL)
-		 child_set_env(&env,&envsize,"AUTHSTATE",authstate);
-
-	   if ((krb5cc = getenv("KRB5CCNAME")) != NULL)
-		 child_set_env(&env,&envsize,"KRB5CCNAME",krb5cc);
-	}
+	if ((cp = getenv("AUTHSTATE")) != NULL)
+		child_set_env(&env, &envsize, "AUTHSTATE", cp);
+	if ((cp = getenv("KRB5CCNAME")) != NULL)
+		child_set_env(&env, &envsize, "KRB5CCNAME", cp);
+	read_environment_file(&env, &envsize, "/etc/environment");
 #endif
 
 #ifdef KRB4
@@ -1202,8 +1216,6 @@ do_child(const char *command, struct passwd * pw, const char *term,
 	/* Pull in any environment variables that may have been set by PAM. */
 	do_pam_environment(&env, &envsize);
 #endif /* USE_PAM */
-
-	read_environment_file(&env,&envsize,"/etc/environment");
 
 	if (xauthfile)
 		child_set_env(&env, &envsize, "XAUTHORITY", xauthfile);
@@ -1313,13 +1325,11 @@ do_child(const char *command, struct passwd * pw, const char *term,
 					    "Running %.100s add %.100s %.100s %.100s\n",
 					    options.xauth_location, display,
 					    auth_proto, auth_data);
-#ifndef HAVE_CYGWIN
 					if (screen != NULL)
 						fprintf(stderr,
 						    "Adding %.*s/unix%s %s %s\n",
 						    (int)(screen-display), display,
 						    screen, auth_proto, auth_data);
-#endif
 				}
 				snprintf(cmd, sizeof cmd, "%s -q -",
 				    options.xauth_location);
@@ -1327,12 +1337,10 @@ do_child(const char *command, struct passwd * pw, const char *term,
 				if (f) {
 					fprintf(f, "add %s %s %s\n", display,
 					    auth_proto, auth_data);
-#ifndef HAVE_CYGWIN
 					if (screen != NULL) 
 						fprintf(f, "add %.*s/unix%s %s %s\n",
 						    (int)(screen-display), display,
 						    screen, auth_proto, auth_data);
-#endif
 					pclose(f);
 				} else {
 					fprintf(stderr, "Could not run %s\n",

@@ -35,14 +35,11 @@
 # include <floatingpoint.h>
 #endif /* HAVE_FLOATINGPOINT_H */
 
-RCSID("$Id: entropy.c,v 1.19 2000/09/16 05:09:28 djm Exp $");
+RCSID("$Id: entropy.c,v 1.20 2000/09/29 01:12:36 djm Exp $");
 
 #ifndef offsetof
 # define offsetof(type, member) ((size_t) &((type *)0)->member)
 #endif
-
-/* Print lots of detail */
-/* #define DEBUG_ENTROPY */
 
 /* Number of times to pass through command list gathering entropy */
 #define NUM_ENTROPY_RUNS	1
@@ -272,10 +269,8 @@ stir_from_programs(void)
 				/* Stir it in */
 				RAND_add(hash, sizeof(hash), entropy_estimate);
 
-#ifdef DEBUG_ENTROPY
-				debug("Got %0.2f bytes of entropy from '%s'", entropy_estimate, 
+				debug3("Got %0.2f bytes of entropy from '%s'", entropy_estimate, 
 					entropy_sources[c].cmdstring);
-#endif
 
 				total_entropy_estimate += entropy_estimate;
 
@@ -285,10 +280,8 @@ stir_from_programs(void)
 				total_entropy_estimate += stir_rusage(RUSAGE_SELF, 0.1);
 				total_entropy_estimate += stir_rusage(RUSAGE_CHILDREN, 0.1);
 			} else {
-#ifdef DEBUG_ENTROPY
-				debug("Command '%s' disabled (badness %d)",
+				debug2("Command '%s' disabled (badness %d)",
 					entropy_sources[c].cmdstring, entropy_sources[c].badness);
-#endif
 
 				if (entropy_sources[c].badness > 0)
 					entropy_sources[c].badness--;
@@ -373,6 +366,8 @@ hash_output_from_command(entropy_source_t *src, char *hash)
 	int total_bytes_read;
 	SHA_CTX sha;
 	
+	debug3("Reading output from \'%s\'", src->cmdstring);
+
 	if (devnull == -1) {
 		devnull = open("/dev/null", O_RDWR);
 		if (devnull == -1)
@@ -470,12 +465,10 @@ hash_output_from_command(entropy_source_t *src, char *hash)
 
 	close(p[0]);
 
-#ifdef DEBUG_ENTROPY
-	debug("Time elapsed: %d msec", msec_elapsed);
-#endif
+	debug3("Time elapsed: %d msec", msec_elapsed);
 	
 	if (waitpid(pid, &status, 0) == -1) {
-	       debug("Couldn't wait for child '%s' completion: %s", src->cmdstring,
+	       error("Couldn't wait for child '%s' completion: %s", src->cmdstring,
 		     strerror(errno));
 		return(0.0);
 	}
@@ -486,7 +479,7 @@ hash_output_from_command(entropy_source_t *src, char *hash)
 		/* closing p[0] on timeout causes the entropy command to
 		 * SIGPIPE. Take whatever output we got, and mark this command
 		 * as slow */
-		debug("Command '%s' timed out", src->cmdstring);
+		debug2("Command '%s' timed out", src->cmdstring);
 		src->sticky_badness *= 2;
 		src->badness = src->sticky_badness;
 		return(total_bytes_read);
@@ -496,13 +489,13 @@ hash_output_from_command(entropy_source_t *src, char *hash)
 		if (WEXITSTATUS(status)==0) {
 			return(total_bytes_read);
 		} else {
-			debug("Command '%s' exit status was %d", src->cmdstring, 
+			debug2("Command '%s' exit status was %d", src->cmdstring, 
 				WEXITSTATUS(status));
 			src->badness = src->sticky_badness = 128;
 			return (0.0);
 		}
 	} else if (WIFSIGNALED(status)) {
-		debug("Command '%s' returned on uncaught signal %d !", src->cmdstring, 
+		debug2("Command '%s' returned on uncaught signal %d !", src->cmdstring, 
 			status);
 		src->badness = src->sticky_badness = 128;
 		return(0.0);

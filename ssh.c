@@ -485,10 +485,10 @@ main(int ac, char **av)
 	if (!host)
 		usage();
 
+	SSLeay_add_all_algorithms();
+
 	/* Initialize the command to execute on remote host. */
 	buffer_init(&command);
-
-	SSLeay_add_all_algorithms();
 
 	/*
 	 * Save the command to execute on the remote host in a buffer. There

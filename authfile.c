@@ -479,9 +479,9 @@ load_private_key(const char *filename, const char *passphrase, Key *key,
 	if (fd < 0)
 		return 0;
 
-	/* check owner and modes.  */
+	/* check owner and modes */
 #ifdef HAVE_CYGWIN
-        if (check_ntsec(filename))
+	if (check_ntsec(filename))
 #endif
 	if (fstat(fd, &st) < 0 ||
 	    (st.st_uid != 0 && st.st_uid != getuid()) ||

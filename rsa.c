@@ -83,21 +83,6 @@ rsa_alive()
 }
 
 /*
- * Key generation progress meter callback
- */
-void
-keygen_progress(int p, int n, void *arg)
-{
-	const char progress_chars[] = ".o+O?";
-
-	if ((p < 0) || (p > (sizeof(progress_chars) - 2)))
-		p = sizeof(progress_chars) - 2;
-
-	putchar(progress_chars[p]);
-	fflush(stdout);
-}
-
-/*
  * Generates RSA public and private keys.  This initializes the data
  * structures; they should be freed with rsa_clear_private_key and
  * rsa_clear_public_key.
@@ -113,11 +98,8 @@ rsa_generate_key(RSA *prv, RSA *pub, unsigned int bits)
 	if (rsa_verbose) {
 		printf("Generating RSA keys:  ");
 		fflush(stdout);
-		key = RSA_generate_key(bits, 35, keygen_progress, NULL);
-		printf("\n");
-	} else {
-		key = RSA_generate_key(bits, 35, NULL, NULL);
 	}
+	key = RSA_generate_key(bits, 35, NULL, NULL);
 	if (key == NULL)
 		fatal("rsa_generate_key: key generation failed.");
 

@@ -1763,7 +1763,8 @@ x11_create_display_inet(int screen_number, int x11_display_offset)
 					error("socket: %.100s", strerror(errno));
 					return NULL;
 				} else {
-					debug("Socket family %d not supported [X11 disp create]", ai->ai_family);
+					debug("x11_create_display_inet: Socket family %d not supported",
+						 ai->ai_family);
 					continue;
 				}
 			}
