@@ -32,7 +32,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* RCSID("$OpenBSD: channels.h,v 1.57 2002/01/13 21:31:20 markus Exp $"); */
+/* RCSID("$OpenBSD: channels.h,v 1.58 2002/01/14 13:55:55 markus Exp $"); */
 
 #ifndef CHANNEL_H
 #define CHANNEL_H
@@ -215,19 +215,15 @@ void	 auth_input_open_request(int, u_int32_t, void *);
 
 int	 chan_is_dead(Channel *, int);
 void	 chan_mark_dead(Channel *);
-void 	 chan_init_iostates(Channel *);
-void	 chan_init(void);
 
-typedef void    chan_event_fn(Channel *);
+/* channel events */
 
-/* for the input state */
-extern chan_event_fn	*chan_rcvd_oclose;
-extern chan_event_fn	*chan_read_failed;
-extern chan_event_fn	*chan_ibuf_empty;
+void	 chan_rcvd_oclose(Channel *);
+void	 chan_read_failed(Channel *);
+void	 chan_ibuf_empty(Channel *);
 
-/* for the output state */
-extern chan_event_fn	*chan_rcvd_ieof;
-extern chan_event_fn	*chan_write_failed;
-extern chan_event_fn	*chan_obuf_empty;
+void	 chan_rcvd_ieof(Channel *);
+void	 chan_write_failed(Channel *);
+void	 chan_obuf_empty(Channel *);
 
 #endif

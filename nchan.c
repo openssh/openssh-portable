@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: nchan.c,v 1.41 2002/01/14 13:41:13 markus Exp $");
+RCSID("$OpenBSD: nchan.c,v 1.42 2002/01/14 13:55:55 markus Exp $");
 
 #include "ssh1.h"
 #include "ssh2.h"
@@ -63,14 +63,6 @@ RCSID("$OpenBSD: nchan.c,v 1.41 2002/01/14 13:41:13 markus Exp $");
 /*
  * EVENTS update channel input/output states execute ACTIONS
  */
-/* events concerning the INPUT from socket for channel (istate) */
-chan_event_fn *chan_rcvd_oclose			= NULL;
-chan_event_fn *chan_read_failed			= NULL;
-chan_event_fn *chan_ibuf_empty			= NULL;
-/* events concerning the OUTPUT from channel for socket (ostate) */
-chan_event_fn *chan_rcvd_ieof			= NULL;
-chan_event_fn *chan_write_failed		= NULL;
-chan_event_fn *chan_obuf_empty			= NULL;
 /*
  * ACTIONS: should never update the channel states
  */
@@ -133,8 +125,8 @@ chan_rcvd_oclose1(Channel *c)
 		return;
 	}
 }
-static void
-chan_read_failed_12(Channel *c)
+void
+chan_read_failed(Channel *c)
 {
 	debug("channel %d: read failed", c->self);
 	switch (c->istate) {
@@ -148,8 +140,8 @@ chan_read_failed_12(Channel *c)
 		break;
 	}
 }
-static void
-chan_ibuf_empty1(Channel *c)
+void
+chan_ibuf_empty(Channel *c)
 {
 	debug("channel %d: ibuf empty", c->self);
 	if (buffer_len(&c->input)) {
@@ -212,8 +204,8 @@ chan_write_failed1(Channel *c)
 		break;
 	}
 }
-static void
-chan_obuf_empty1(Channel *c)
+void
+chan_obuf_empty(Channel *c)
 {
 	debug("channel %d: obuf empty", c->self);
 	if (buffer_len(&c->output)) {
@@ -307,11 +299,6 @@ chan_rcvd_close2(Channel *c)
 	}
 }
 static void
-chan_ibuf_empty2(Channel *c)
-{
-	chan_ibuf_empty1(c);
-}
-static void
 chan_rcvd_eof2(Channel *c)
 {
 	debug("channel %d: rcvd eof", c->self);
@@ -333,11 +320,6 @@ chan_write_failed2(Channel *c)
 		    c->self, c->ostate);
 		break;
 	}
-}
-static void
-chan_obuf_empty2(Channel *c)
-{
-	chan_obuf_empty1(c);
 }
 static void
 chan_send_eof2(Channel *c)
@@ -374,6 +356,31 @@ chan_send_close2(Channel *c)
 }
 
 /* shared */
+
+void
+chan_rcvd_ieof(Channel *c)
+{
+	if (compat20)
+		chan_rcvd_eof2(c);
+	else
+		chan_rcvd_ieof1(c);
+}
+void
+chan_rcvd_oclose(Channel *c)
+{
+	if (compat20)
+		chan_rcvd_close2(c);
+	else
+		chan_rcvd_oclose1(c);
+}
+void
+chan_write_failed(Channel *c)
+{
+	if (compat20)
+		chan_write_failed2(c);
+	else
+		chan_write_failed1(c);
+}
 
 void
 chan_mark_dead(Channel *c)
@@ -429,37 +436,6 @@ chan_is_dead(Channel *c, int send)
 		}
 	}
 	return 0;
-}
-
-void
-chan_init_iostates(Channel *c)
-{
-	c->ostate = CHAN_OUTPUT_OPEN;
-	c->istate = CHAN_INPUT_OPEN;
-	c->flags = 0;
-}
-
-/* init */
-void
-chan_init(void)
-{
-	if (compat20) {
-		chan_rcvd_oclose		= chan_rcvd_close2;
-		chan_read_failed		= chan_read_failed_12;
-		chan_ibuf_empty			= chan_ibuf_empty2;
-
-		chan_rcvd_ieof			= chan_rcvd_eof2;
-		chan_write_failed		= chan_write_failed2;
-		chan_obuf_empty			= chan_obuf_empty2;
-	} else {
-		chan_rcvd_oclose		= chan_rcvd_oclose1;
-		chan_read_failed		= chan_read_failed_12;
-		chan_ibuf_empty			= chan_ibuf_empty1;
-
-		chan_rcvd_ieof			= chan_rcvd_ieof1;
-		chan_write_failed		= chan_write_failed1;
-		chan_obuf_empty			= chan_obuf_empty1;
-	}
 }
 
 /* helper */

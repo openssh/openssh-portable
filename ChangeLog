@@ -176,6 +176,9 @@
    - markus@cvs.openbsd.org 2002/01/14 13:41:13
      [nchan.c]
      remove duplicated code; ok provos@
+   - markus@cvs.openbsd.org 2002/01/14 13:55:55
+     [channels.c channels.h nchan.c]
+     remove function pointers for events, remove chan_init*; ok provos@
 
 20020121
  - (djm) Rework ssh-rand-helper:
@@ -7323,4 +7326,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1772 2002/01/22 12:28:28 djm Exp $
+$Id: ChangeLog,v 1.1773 2002/01/22 12:28:45 djm Exp $

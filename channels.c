@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.158 2002/01/09 17:26:35 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.159 2002/01/14 13:55:55 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -217,7 +217,6 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 
 	/* Do initial allocation if this is the first call. */
 	if (channels_alloc == 0) {
-		chan_init();
 		channels_alloc = 10;
 		channels = xmalloc(channels_alloc * sizeof(Channel *));
 		for (i = 0; i < channels_alloc; i++)
@@ -246,7 +245,9 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 	buffer_init(&c->input);
 	buffer_init(&c->output);
 	buffer_init(&c->extended);
-	chan_init_iostates(c);
+	c->ostate = CHAN_OUTPUT_OPEN;
+	c->istate = CHAN_INPUT_OPEN;
+	c->flags = 0;
 	channel_register_fds(c, rfd, wfd, efd, extusage, nonblock);
 	c->self = found;
 	c->type = type;
