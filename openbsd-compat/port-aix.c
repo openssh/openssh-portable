@@ -24,11 +24,16 @@
  *
  */
 #include "includes.h"
+#include "ssh.h"
+#include "log.h"
+#include "servconf.h"
 
 #ifdef _AIX
 
 #include <uinfo.h>
 #include <../xmalloc.h>
+
+extern ServerOptions options;
 
 /*
  * AIX has a "usrinfo" area where logname and other stuff is stored - 
@@ -52,5 +57,16 @@ aix_usrinfo(struct passwd *pw)
 	xfree(cp);
 }
 
+# ifdef CUSTOM_FAILED_LOGIN
+/*
+ * record_failed_login: generic "login failed" interface function
+ */
+void
+record_failed_login(const char *user, const char *ttyname)
+{
+	loginfailed(user,
+	    get_canonical_hostname(options.verify_reverse_mapping), ttyname);
+}
+# endif /* CUSTOM_FAILED_LOGIN */
 #endif /* _AIX */
 

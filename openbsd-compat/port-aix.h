@@ -36,5 +36,10 @@
 # include <sys/timers.h>
 #endif
 
+#ifdef WITH_AIXAUTHENTICATE
+# define CUSTOM_FAILED_LOGIN 1
+void record_failed_login(const char *user, const char *ttyname);
+#endif
+
 void aix_usrinfo(struct passwd *pw);
 #endif /* _AIX */

@@ -268,13 +268,10 @@ auth_log(Authctxt *authctxt, int authenticated, char *method, char *info)
 	    get_remote_port(),
 	    info);
 
-#ifdef WITH_AIXAUTHENTICATE
+#ifdef CUSTOM_FAILED_LOGIN
 	if (authenticated == 0 && strcmp(method, "password") == 0)
-	    loginfailed(authctxt->user,
-		get_canonical_hostname(options.verify_reverse_mapping),
-		"ssh");
-#endif /* WITH_AIXAUTHENTICATE */
-
+		record_failed_login(authctxt->user, "ssh");
+#endif
 }
 
 /*
@@ -496,10 +493,8 @@ getpwnamallow(const char *user)
 	if (pw == NULL) {
 		logit("Illegal user %.100s from %.100s",
 		    user, get_remote_ipaddr());
-#ifdef WITH_AIXAUTHENTICATE
-		loginfailed(user,
-		    get_canonical_hostname(options.verify_reverse_mapping),
-		    "ssh");
+#ifdef CUSTOM_FAILED_LOGIN
+		record_failed_login(user, "ssh");
 #endif
 		return (NULL);
 	}

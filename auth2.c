@@ -240,10 +240,6 @@ userauth_finish(Authctxt *authctxt, int authenticated, char *method)
 	} else {
 		if (authctxt->failures++ > AUTH_FAIL_MAX)
 			packet_disconnect(AUTH_FAIL_MSG, authctxt->user);
-#ifdef _UNICOS
-		if (strcmp(method, "password") == 0)
-			cray_login_failure(authctxt->user, IA_UDBERR);
-#endif /* _UNICOS */
 		methods = authmethods_get();
 		packet_start(SSH2_MSG_USERAUTH_FAILURE);
 		packet_put_cstring(methods);

@@ -311,8 +311,6 @@ do_authloop(Authctxt *authctxt)
 			    authctxt->user);
 
 #ifdef _UNICOS
-		if (type == SSH_CMSG_AUTH_PASSWORD && !authenticated)
-			cray_login_failure(authctxt->user, IA_UDBERR);
 		if (authenticated && cray_access_denied(authctxt->user)) {
 			authenticated = 0;
 			fatal("Access denied for user %s.",authctxt->user);
