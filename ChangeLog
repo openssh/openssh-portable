@@ -12,6 +12,9 @@
    - deraadt@cvs.openbsd.org 2002/06/27 10:35:47
      [auth2-none.c monitor.c sftp-client.c]
      use xfree()
+   - stevesk@cvs.openbsd.org 2002/06/27 19:49:08
+     [ssh-keyscan.c]
+     use convtime(); ok markus@
 
 20020702
  - (djm) Use PAM_MSG_MEMBER for PAM_TEXT_INFO messages, use xmalloc & 
@@ -1220,4 +1223,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2318 2002/07/04 00:06:15 mouring Exp $
+$Id: ChangeLog,v 1.2319 2002/07/04 00:07:13 mouring Exp $

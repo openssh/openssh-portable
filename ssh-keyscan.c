@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keyscan.c,v 1.37 2002/06/27 08:49:44 markus Exp $");
+RCSID("$OpenBSD: ssh-keyscan.c,v 1.38 2002/06/27 19:49:08 stevesk Exp $");
 
 #include "openbsd-compat/fake-queue.h"
 
@@ -718,9 +718,11 @@ main(int argc, char **argv)
 			}
 			break;
 		case 'T':
-			timeout = atoi(optarg);
-			if (timeout <= 0)
+			timeout = convtime(optarg);
+			if (timeout == -1 || timeout == 0) {
+				fprintf(stderr, "Bad timeout '%s'\n", optarg);
 				usage();
+			}
 			break;
 		case 'v':
 			if (!debug_flag) {
