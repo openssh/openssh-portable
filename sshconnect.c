@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.135 2002/09/19 01:58:18 djm Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.136 2002/11/21 22:45:31 markus Exp $");
 
 #include <openssl/bn.h>
 
@@ -247,7 +247,7 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 	 */
 	int full_failure = 1;
 
-	debug("ssh_connect: needpriv %d", needpriv);
+	debug2("ssh_connect: needpriv %d", needpriv);
 
 	/* Get default port if port has not been set. */
 	if (port == 0) {

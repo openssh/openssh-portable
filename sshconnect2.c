@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.107 2002/07/01 19:48:46 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.108 2002/11/21 22:45:31 markus Exp $");
 
 #include "ssh.h"
 #include "ssh2.h"
@@ -128,7 +128,6 @@ ssh_kex2(char *host, struct sockaddr *hostaddr)
 	packet_send();
 	packet_write_wait();
 #endif
-	debug("done: ssh_kex2.");
 }
 
 /*
@@ -224,24 +223,23 @@ ssh_userauth2(const char *local_user, const char *server_user, char *host,
 	if (options.challenge_response_authentication)
 		options.kbd_interactive_authentication = 1;
 
-	debug("send SSH2_MSG_SERVICE_REQUEST");
 	packet_start(SSH2_MSG_SERVICE_REQUEST);
 	packet_put_cstring("ssh-userauth");
 	packet_send();
+	debug("SSH2_MSG_SERVICE_REQUEST sent");
 	packet_write_wait();
 	type = packet_read();
-	if (type != SSH2_MSG_SERVICE_ACCEPT) {
-		fatal("denied SSH2_MSG_SERVICE_ACCEPT: %d", type);
-	}
+	if (type != SSH2_MSG_SERVICE_ACCEPT)
+		fatal("Server denied authentication request: %d", type);
 	if (packet_remaining() > 0) {
 		char *reply = packet_get_string(NULL);
-		debug("service_accept: %s", reply);
+		debug2("service_accept: %s", reply);
 		xfree(reply);
 	} else {
 		debug("buggy server: service_accept w/o service");
 	}
 	packet_check_eom();
-	debug("got SSH2_MSG_SERVICE_ACCEPT");
+	debug("SSH2_MSG_SERVICE_ACCEPT received");
 
 	if (options.preferred_authentications == NULL)
 		options.preferred_authentications = authmethods_get();

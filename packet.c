@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.99 2002/11/04 10:09:51 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.100 2002/11/21 22:45:31 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -564,7 +564,7 @@ set_newkeys(int mode)
 	CipherContext *cc;
 	int encrypt;
 
-	debug("newkeys: mode %d", mode);
+	debug2("set_newkeys: mode %d", mode);
 
 	if (mode == MODE_OUT) {
 		cc = &send_context;
@@ -574,7 +574,7 @@ set_newkeys(int mode)
 		encrypt = CIPHER_DECRYPT;
 	}
 	if (newkeys[mode] != NULL) {
-		debug("newkeys: rekeying");
+		debug("set_newkeys: rekeying");
 		cipher_cleanup(cc);
 		enc  = &newkeys[mode]->enc;
 		mac  = &newkeys[mode]->mac;

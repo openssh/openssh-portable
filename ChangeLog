@@ -13,6 +13,9 @@
    - markus@cvs.openbsd.org 2002/11/21 22:22:50
      [dh.c]
      debug->debug2
+   - markus@cvs.openbsd.org 2002/11/21 22:45:31
+     [cipher.c kex.c packet.c sshconnect.c sshconnect2.c]
+     debug->debug2, unify debug messages
 
 20021205
  - (djm) PERL-free fixpaths from stuge-openssh-unix-dev@cdy.org
@@ -848,4 +851,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2518 2002/12/23 02:03:02 mouring Exp $
+$Id: ChangeLog,v 1.2519 2002/12/23 02:04:22 mouring Exp $
