@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.202 2001/06/26 16:15:25 dugsong Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.203 2001/07/26 17:18:22 stevesk Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -112,6 +112,9 @@ int IPv4or6 = AF_UNSPEC;
  * the first connection.
  */
 int debug_flag = 0;
+
+/* Flag indicating that the daemon should only test the configuration and keys. */
+int test_flag = 0;
 
 /* Flag indicating that the daemon is being started from inetd. */
 int inetd_flag = 0;
@@ -560,7 +563,7 @@ main(int ac, char **av)
 	initialize_server_options(&options);
 
 	/* Parse command-line arguments. */
-	while ((opt = getopt(ac, av, "f:p:b:k:h:g:V:u:dDeiqQ46")) != -1) {
+	while ((opt = getopt(ac, av, "f:p:b:k:h:g:V:u:dDeiqtQ46")) != -1) {
 		switch (opt) {
 		case '4':
 			IPv4or6 = AF_INET;
@@ -636,6 +639,9 @@ main(int ac, char **av)
 			/* only makes sense with inetd_flag, i.e. no listen() */
 			inetd_flag = 1;
 			break;
+		case 't':
+			test_flag = 1;
+			break;
 		case 'u':
 			utmp_len = atoi(optarg);
 			break;
@@ -648,6 +654,7 @@ main(int ac, char **av)
 			fprintf(stderr, "  -d         Debugging mode (multiple -d means more debugging)\n");
 			fprintf(stderr, "  -i         Started from inetd\n");
 			fprintf(stderr, "  -D         Do not fork into daemon mode\n");
+			fprintf(stderr, "  -t         Only test configuration file and keys\n");
 			fprintf(stderr, "  -q         Quiet (no logging)\n");
 			fprintf(stderr, "  -p port    Listen on the specified port (default: 22)\n");
 			fprintf(stderr, "  -k seconds Regenerate server key every this many seconds (default: 3600)\n");
@@ -754,6 +761,10 @@ main(int ac, char **av)
 			    options.server_key_bits);
 		}
 	}
+
+	/* Configuration looks good, so exit if in test mode. */
+	if (test_flag)
+		exit(0);
 
 #ifdef HAVE_SCO_PROTECTED_PW
 	(void) set_auth_parameters(ac, av);

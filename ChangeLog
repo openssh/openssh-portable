@@ -36,6 +36,10 @@
      [readconf.c ssh.1 ssh.c sshconnect.c]
      cleanup connect(); connection_attempts 4 -> 1; from 
      eivind@freebsd.org
+   - stevesk@cvs.openbsd.org 2001/07/26 17:18:22
+     [sshd.8 sshd.c]
+     add -t option to test configuration file and keys; pekkas@netcore.fi
+     ok markus@
 
 20010803
  - (djm) Fix interrupted read in entropy gatherer. Spotted by markus@ on
@@ -6146,4 +6150,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1436 2001/08/06 21:07:11 mouring Exp $
+$Id: ChangeLog,v 1.1437 2001/08/06 21:09:07 mouring Exp $

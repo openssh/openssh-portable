@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.136 2001/07/22 22:24:16 markus Exp $
+.\" $OpenBSD: sshd.8,v 1.137 2001/07/26 17:18:22 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -247,6 +247,12 @@ Quiet mode.
 Nothing is sent to the system log.
 Normally the beginning,
 authentication, and termination of each connection is logged.
+.It Fl t
+Test mode.
+Only check the validity of the configuration file and sanity of the keys.
+This is useful for updating 
+.Nm
+reliably as configuration options may change.
 .It Fl u Ar len
 This option is used to specify the size of the field
 in the
