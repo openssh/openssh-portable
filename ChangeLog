@@ -42,6 +42,9 @@
      [monitor.c session.c sshlogin.c sshlogin.h]
      pass addrlen with sockaddr *; from Hajimu UMEMOTO <ume@FreeBSD.org>
      NOTE: there are also p-specific parts to this patch. ok markus@
+   - stevesk@cvs.openbsd.org 2002/08/29 16:02:54
+     [ssh.1 ssh.c]
+     deprecate -P as UsePrivilegedPort defaults to no now; ok markus@
 
 20020820
  - OpenBSD CVS Sync
@@ -1583,4 +1586,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2438 2002/09/04 06:45:09 djm Exp $
+$Id: ChangeLog,v 1.2439 2002/09/04 06:46:06 djm Exp $

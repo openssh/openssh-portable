@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.182 2002/07/19 17:42:40 stevesk Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.183 2002/08/29 16:02:54 stevesk Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -174,7 +174,6 @@ usage(void)
 	fprintf(stderr, "  -v          Verbose; display verbose debugging messages.\n");
 	fprintf(stderr, "              Multiple -v increases verbosity.\n");
 	fprintf(stderr, "  -V          Display version number only.\n");
-	fprintf(stderr, "  -P          Don't allocate a privileged port.\n");
 	fprintf(stderr, "  -q          Quiet; don't display any warning messages.\n");
 	fprintf(stderr, "  -f          Fork into background after authentication.\n");
 	fprintf(stderr, "  -e char     Set escape character; ``none'' = disable (default: ~).\n");
@@ -303,7 +302,7 @@ again:
 		case 'g':
 			options.gateway_ports = 1;
 			break;
-		case 'P':
+		case 'P':	/* deprecated */
 			options.use_privileged_port = 0;
 			break;
 		case 'a':

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.163 2002/08/17 23:07:14 stevesk Exp $
+.\" $OpenBSD: ssh.1,v 1.164 2002/08/29 16:02:54 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -48,7 +48,7 @@
 .Op Ar command
 .Pp
 .Nm ssh
-.Op Fl afgknqstvxACNPTX1246
+.Op Fl afgknqstvxACNTX1246
 .Op Fl b Ar bind_address
 .Op Fl c Ar cipher_spec
 .Op Fl e Ar escape_char
@@ -523,15 +523,6 @@ command-line flag.
 Port to connect to on the remote host.
 This can be specified on a
 per-host basis in the configuration file.
-.It Fl P
-Use a non-privileged port for outgoing connections.
-This can be used if a firewall does
-not permit connections from privileged ports.
-Note that this option turns off
-.Cm RhostsAuthentication
-and
-.Cm RhostsRSAAuthentication
-for older servers.
 .It Fl q
 Quiet mode.
 Causes all warning and diagnostic messages to be suppressed.
