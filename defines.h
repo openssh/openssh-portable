@@ -281,11 +281,11 @@ typedef int ssize_t;
 #  define WTMP_FILE _PATH_WTMP
 #endif
 /* pick up the user's location for lastlog if given */
-#ifdef CONF_LASTLOG_FILE
-#  define LASTLOG_FILE CONF_LASTLOG_FILE
-#endif
 #if !defined(LASTLOG_FILE) && defined(_PATH_LASTLOG)
 #  define LASTLOG_FILE _PATH_LASTLOG
+#endif
+#if !defined(LASTLOG_FILE) && defined(CONF_LASTLOG_FILE)
+#  define LASTLOG_FILE CONF_LASTLOG_FILE
 #endif
 
 
