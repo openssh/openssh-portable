@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.26 2003/11/21 11:57:03 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.27 2003/12/09 21:53:37 markus Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -156,12 +156,12 @@ If this threshold is reached while client alive messages are being sent,
 will disconnect the client, terminating the session.
 It is important to note that the use of client alive messages is very
 different from
-.Cm KeepAlive
+.Cm TCPKeepAlive
 (below).
 The client alive messages are sent through the encrypted channel
 and therefore will not be spoofable.
 The TCP keepalive option enabled by
-.Cm KeepAlive
+.Cm TCPKeepAlive
 is spoofable.
 The client alive mechanism is valuable when the client or
 server depend on knowing when a connection has become inactive.
@@ -291,27 +291,6 @@ during
 or
 .Cm HostbasedAuthentication .
 The default is
-.Dq no .
-.It Cm KeepAlive
-Specifies whether the system should send TCP keepalive messages to the
-other side.
-If they are sent, death of the connection or crash of one
-of the machines will be properly noticed.
-However, this means that
-connections will die if the route is down temporarily, and some people
-find it annoying.
-On the other hand, if keepalives are not sent,
-sessions may hang indefinitely on the server, leaving
-.Dq ghost
-users and consuming server resources.
-.Pp
-The default is
-.Dq yes
-(to send keepalives), and the server will notice
-if the network goes down or the client host crashes.
-This avoids infinitely hanging sessions.
-.Pp
-To disable keepalives, the value should be set to
 .Dq no .
 .It Cm KerberosAuthentication
 Specifies whether the password provided by the user for
@@ -580,6 +559,27 @@ Gives the facility code that is used when logging messages from
 The possible values are: DAEMON, USER, AUTH, LOCAL0, LOCAL1, LOCAL2,
 LOCAL3, LOCAL4, LOCAL5, LOCAL6, LOCAL7.
 The default is AUTH.
+.It Cm TCPKeepAlive
+Specifies whether the system should send TCP keepalive messages to the
+other side.
+If they are sent, death of the connection or crash of one
+of the machines will be properly noticed.
+However, this means that
+connections will die if the route is down temporarily, and some people
+find it annoying.
+On the other hand, if TCP keepalives are not sent,
+sessions may hang indefinitely on the server, leaving
+.Dq ghost
+users and consuming server resources.
+.Pp
+The default is
+.Dq yes
+(to send TCP keepalive messages), and the server will notice
+if the network goes down or the client host crashes.
+This avoids infinitely hanging sessions.
+.Pp
+To disable TCP keepalive messages, the value should be set to
+.Dq no .
 .It Cm UseDNS
 Specifies whether
 .Nm sshd

@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.125 2003/11/12 16:39:58 jakob Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.126 2003/12/09 21:53:36 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -78,7 +78,7 @@ RCSID("$OpenBSD: readconf.c,v 1.125 2003/11/12 16:39:58 jakob Exp $");
      RSAAuthentication yes
      RhostsRSAAuthentication yes
      StrictHostKeyChecking yes
-     KeepAlives no
+     TcpKeepAlive no
      IdentityFile ~/.ssh/identity
      Port 22
      EscapeChar ~
@@ -96,7 +96,7 @@ typedef enum {
 	oUser, oHost, oEscapeChar, oRhostsRSAAuthentication, oProxyCommand,
 	oGlobalKnownHostsFile, oUserKnownHostsFile, oConnectionAttempts,
 	oBatchMode, oCheckHostIP, oStrictHostKeyChecking, oCompression,
-	oCompressionLevel, oKeepAlives, oNumberOfPasswordPrompts,
+	oCompressionLevel, oTCPKeepAlive, oNumberOfPasswordPrompts,
 	oUsePrivilegedPort, oLogLevel, oCiphers, oProtocol, oMacs,
 	oGlobalKnownHostsFile2, oUserKnownHostsFile2, oPubkeyAuthentication,
 	oKbdInteractiveAuthentication, oKbdInteractiveDevices, oHostKeyAlias,
@@ -169,7 +169,8 @@ static struct {
 	{ "stricthostkeychecking", oStrictHostKeyChecking },
 	{ "compression", oCompression },
 	{ "compressionlevel", oCompressionLevel },
-	{ "keepalive", oKeepAlives },
+	{ "tcpkeepalive", oTCPKeepAlive },
+	{ "keepalive", oTCPKeepAlive },				/* obsolete */
 	{ "numberofpasswordprompts", oNumberOfPasswordPrompts },
 	{ "loglevel", oLogLevel },
 	{ "dynamicforward", oDynamicForward },
@@ -427,8 +428,8 @@ parse_yesnoask:
 		intptr = &options->compression;
 		goto parse_flag;
 
-	case oKeepAlives:
-		intptr = &options->keepalives;
+	case oTCPKeepAlive:
+		intptr = &options->tcp_keep_alive;
 		goto parse_flag;
 
 	case oNoHostAuthenticationForLocalhost:
@@ -826,7 +827,7 @@ initialize_options(Options * options)
 	options->check_host_ip = -1;
 	options->strict_host_key_checking = -1;
 	options->compression = -1;
-	options->keepalives = -1;
+	options->tcp_keep_alive = -1;
 	options->compression_level = -1;
 	options->port = -1;
 	options->address_family = -1;
@@ -909,8 +910,8 @@ fill_default_options(Options * options)
 		options->strict_host_key_checking = 2;	/* 2 is default */
 	if (options->compression == -1)
 		options->compression = 0;
-	if (options->keepalives == -1)
-		options->keepalives = 1;
+	if (options->tcp_keep_alive == -1)
+		options->tcp_keep_alive = 1;
 	if (options->compression_level == -1)
 		options->compression_level = 6;
 	if (options->port == -1)

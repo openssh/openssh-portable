@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.128 2003/09/29 20:19:57 markus Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.129 2003/12/09 21:53:36 markus Exp $");
 
 #include "ssh.h"
 #include "log.h"
@@ -61,7 +61,7 @@ initialize_server_options(ServerOptions *options)
 	options->x11_use_localhost = -1;
 	options->xauth_location = NULL;
 	options->strict_modes = -1;
-	options->keepalives = -1;
+	options->tcp_keep_alive = -1;
 	options->log_facility = SYSLOG_FACILITY_NOT_SET;
 	options->log_level = SYSLOG_LEVEL_NOT_SET;
 	options->rhosts_rsa_authentication = -1;
@@ -159,8 +159,8 @@ fill_default_server_options(ServerOptions *options)
 		options->xauth_location = _PATH_XAUTH;
 	if (options->strict_modes == -1)
 		options->strict_modes = 1;
-	if (options->keepalives == -1)
-		options->keepalives = 1;
+	if (options->tcp_keep_alive == -1)
+		options->tcp_keep_alive = 1;
 	if (options->log_facility == SYSLOG_FACILITY_NOT_SET)
 		options->log_facility = SYSLOG_FACILITY_AUTH;
 	if (options->log_level == SYSLOG_LEVEL_NOT_SET)
@@ -254,7 +254,7 @@ typedef enum {
 	sPasswordAuthentication, sKbdInteractiveAuthentication, sListenAddress,
 	sPrintMotd, sPrintLastLog, sIgnoreRhosts,
 	sX11Forwarding, sX11DisplayOffset, sX11UseLocalhost,
-	sStrictModes, sEmptyPasswd, sKeepAlives,
+	sStrictModes, sEmptyPasswd, sTCPKeepAlive,
 	sPermitUserEnvironment, sUseLogin, sAllowTcpForwarding, sCompression,
 	sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
 	sIgnoreUserKnownHosts, sCiphers, sMacs, sProtocol, sPidFile,
@@ -334,7 +334,8 @@ static struct {
 	{ "permituserenvironment", sPermitUserEnvironment },
 	{ "uselogin", sUseLogin },
 	{ "compression", sCompression },
-	{ "keepalive", sKeepAlives },
+	{ "tcpkeepalive", sTCPKeepAlive },
+	{ "keepalive", sTCPKeepAlive },				/* obsolete alias */
 	{ "allowtcpforwarding", sAllowTcpForwarding },
 	{ "allowusers", sAllowUsers },
 	{ "denyusers", sDenyUsers },
@@ -677,8 +678,8 @@ parse_flag:
 		intptr = &options->strict_modes;
 		goto parse_flag;
 
-	case sKeepAlives:
-		intptr = &options->keepalives;
+	case sTCPKeepAlive:
+		intptr = &options->tcp_keep_alive;
 		goto parse_flag;
 
 	case sEmptyPasswd:

@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.283 2003/12/09 17:29:04 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.284 2003/12/09 21:53:37 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1398,8 +1398,8 @@ main(int ac, char **av)
 	signal(SIGCHLD, SIG_DFL);
 	signal(SIGINT, SIG_DFL);
 
-	/* Set keepalives if requested. */
-	if (options.keepalives &&
+	/* Set SO_KEEPALIVE if requested. */
+	if (options.tcp_keep_alive &&
 	    setsockopt(sock_in, SOL_SOCKET, SO_KEEPALIVE, &on,
 	    sizeof(on)) < 0)
 		error("setsockopt SO_KEEPALIVE: %.100s", strerror(errno));

@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sun May  7 00:14:37 1995 ylo
 .\"
-.\" $OpenBSD: scp.1,v 1.30 2003/10/13 08:22:25 markus Exp $
+.\" $OpenBSD: scp.1,v 1.31 2003/12/09 21:53:36 markus Exp $
 .\"
 .Dd September 25, 1999
 .Dt SCP 1
@@ -137,7 +137,6 @@ For full details of the options listed below, and their possible values, see
 .It HostKeyAlias
 .It HostName
 .It IdentityFile
-.It KeepAlive
 .It LogLevel
 .It MACs
 .It NoHostAuthenticationForLocalhost
@@ -152,6 +151,7 @@ For full details of the options listed below, and their possible values, see
 .It RSAAuthentication
 .It SmartcardDevice
 .It StrictHostKeyChecking
+.It TCPKeepAlive
 .It UsePrivilegedPort
 .It User
 .It UserKnownHostsFile

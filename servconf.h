@@ -1,4 +1,4 @@
-/*	$OpenBSD: servconf.h,v 1.65 2003/09/01 18:15:50 markus Exp $	*/
+/*	$OpenBSD: servconf.h,v 1.66 2003/12/09 21:53:37 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -58,7 +58,7 @@ typedef struct {
 	int     x11_use_localhost;	/* If true, use localhost for fake X11 server. */
 	char   *xauth_location;	/* Location of xauth program */
 	int     strict_modes;	/* If true, require string home dir modes. */
-	int     keepalives;	/* If true, set SO_KEEPALIVE. */
+	int     tcp_keep_alive;	/* If true, set SO_KEEPALIVE. */
 	char   *ciphers;	/* Supported SSH2 ciphers. */
 	char   *macs;		/* Supported SSH2 macs. */
 	int	protocol;	/* Supported protocol versions. */

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.25 2003/11/12 20:14:51 jmc Exp $
+.\" $OpenBSD: ssh_config.5,v 1.26 2003/12/09 21:53:37 markus Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -408,23 +408,6 @@ syntax to refer to a user's home directory.
 It is possible to have
 multiple identity files specified in configuration files; all these
 identities will be tried in sequence.
-.It Cm KeepAlive
-Specifies whether the system should send TCP keepalive messages to the
-other side.
-If they are sent, death of the connection or crash of one
-of the machines will be properly noticed.
-However, this means that
-connections will die if the route is down temporarily, and some people
-find it annoying.
-.Pp
-The default is
-.Dq yes
-(to send keepalives), and the client will notice
-if the network goes down or the remote host dies.
-This is important in scripts, and many users want it too.
-.Pp
-To disable keepalives, the value should be set to
-.Dq no .
 .It Cm LocalForward
 Specifies that a TCP/IP port on the local machine be forwarded over
 the secure channel to the specified host and port from the remote machine.
@@ -613,6 +596,23 @@ or
 .Dq ask .
 The default is
 .Dq ask .
+.It Cm TCPKeepAlive
+Specifies whether the system should send TCP keepalive messages to the
+other side.
+If they are sent, death of the connection or crash of one
+of the machines will be properly noticed.
+However, this means that
+connections will die if the route is down temporarily, and some people
+find it annoying.
+.Pp
+The default is
+.Dq yes
+(to send TCP keepalive messages), and the client will notice
+if the network goes down or the remote host dies.
+This is important in scripts, and many users want it too.
+.Pp
+To disable TCP keepalive messages, the value should be set to
+.Dq no .
 .It Cm UsePrivilegedPort
 Specifies whether to use a privileged port for outgoing connections.
 The argument must be

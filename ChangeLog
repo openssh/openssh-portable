@@ -12,6 +12,11 @@
    - markus@cvs.openbsd.org 2003/12/09 17:30:05
      [ssh.c]
      don't modify argv for ssh -o; similar to sshd.c 1.283
+   - markus@cvs.openbsd.org 2003/12/09 21:53:37
+     [readconf.c readconf.h scp.1 servconf.c servconf.h sftp.1 ssh.1]
+     [ssh_config.5 sshconnect.c sshd.c sshd_config.5]
+     rename keepalive to tcpkeepalive; the old name causes too much
+     confusion; ok djm, dtucker; with help from jmc@
 
 20031209
  - (dtucker) OpenBSD CVS Sync
@@ -1581,4 +1586,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3142 2003/12/17 05:30:06 djm Exp $
+$Id: ChangeLog,v 1.3143 2003/12/17 05:31:10 djm Exp $
