@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.28 2002/03/30 18:51:15 markus Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.29 2002/04/02 17:37:48 markus Exp $");
 
 /* XXX: short-form remote directory listings (like 'ls -C') */
 
@@ -181,6 +181,8 @@ main(int argc, char **argv)
 		}
 	}
 
+	log_init(argv[0], ll, SYSLOG_FACILITY_USER, 1);
+
 	if (sftp_direct == NULL) {
 		if (optind == argc || argc > (optind + 2))
 			usage();
@@ -210,7 +212,6 @@ main(int argc, char **argv)
 			usage();
 		}
 
-		log_init(argv[0], ll, SYSLOG_FACILITY_USER, 1);
 		addargs(&args, "-oProtocol %d", sshver);
 
 		/* no subsystem if the server-spec contains a '/' */

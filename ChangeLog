@@ -33,6 +33,9 @@
      [ssh-agent.c]
      check $SHELL for -k and -d, too;
      http://bugzilla.mindrot.org/show_bug.cgi?id=199
+   - markus@cvs.openbsd.org 2002/04/02 17:37:48
+     [sftp.c]
+     always call log_init()
 
 20020401
  - (stevesk) [monitor.c] PAM should work again; will *not* work with
@@ -8140,4 +8143,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2017 2002/04/02 21:03:51 mouring Exp $
+$Id: ChangeLog,v 1.2018 2002/04/02 21:06:18 mouring Exp $
