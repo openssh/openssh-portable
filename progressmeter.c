@@ -62,7 +62,9 @@
 #include "includes.h"
 RCSID("$OpenBSD: progressmeter.c,v 1.2 2003/01/12 16:57:02 markus Exp $");
 
+#ifdef HAVE_LIBGEN_H
 #include <libgen.h>
+#endif
 
 #include "atomicio.h"
 #include "progressmeter.h"
@@ -147,8 +149,13 @@ foregroundproc(void)
 	if (pgrp == -1)
 		pgrp = getpgrp();
 
+#ifdef HAVE_TCGETPGRP
+        return ((ctty_pgrp = tcgetpgrp(STDOUT_FILENO)) != -1 &&
+	                ctty_pgrp == pgrp);
+#else
 	return ((ioctl(STDOUT_FILENO, TIOCGPGRP, &ctty_pgrp) != -1 &&
 		 ctty_pgrp == pgrp));
+#endif
 }
 
 static void

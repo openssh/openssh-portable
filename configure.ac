@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.106 2003/02/10 23:04:03 djm Exp $
+# $Id: configure.ac,v 1.107 2003/02/24 01:47:16 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -383,7 +383,7 @@ AC_ARG_WITH(libs,
 
 # Checks for header files.
 AC_CHECK_HEADERS(bstring.h crypt.h endian.h floatingpoint.h \
-	getopt.h glob.h ia.h lastlog.h limits.h login.h \
+	getopt.h glob.h ia.h lastlog.h libgen.h limits.h login.h \
 	login_cap.h maillock.h netdb.h netgroup.h \
 	netinet/in_systm.h paths.h pty.h readpassphrase.h \
 	rpc/types.h security/pam_appl.h shadow.h stddef.h stdint.h \
@@ -610,7 +610,7 @@ AC_CHECK_FUNCS(arc4random b64_ntop bcopy bindresvport_sa \
 	realpath recvmsg rresvport_af sendmsg setdtablesize setegid \
 	setenv seteuid setgroups setlogin setproctitle setresgid setreuid \
 	setrlimit setsid setpcred setvbuf sigaction sigvec snprintf \
-	socketpair strerror strlcat strlcpy strmode strnvis sysconf \
+	socketpair strerror strlcat strlcpy strmode strnvis sysconf tcgetpgrp \
 	truncate utimes vhangup vsnprintf waitpid __b64_ntop _getpty)
 
 AC_SEARCH_LIBS(nanosleep, rt posix4, AC_DEFINE(HAVE_NANOSLEEP))

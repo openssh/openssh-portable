@@ -81,6 +81,7 @@
  - (djm) Add new object files to Makefile and reorder
  - (djm) Bug #501: gai_strerror should return char*; 
    fix from dtucker@zip.com.au
+ - (djm) Most of Bug #499: Cygwin compile fixes for new progressmeter
 
 20030211
  - (djm) Cygwin needs libcrypt too. Patch from vinschen@redhat.com
@@ -1181,4 +1182,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2617 2003/02/24 01:35:08 djm Exp $
+$Id: ChangeLog,v 1.2618 2003/02/24 01:47:15 djm Exp $
