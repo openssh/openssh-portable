@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.253 2003/11/21 12:48:55 djm Exp $
+# $Id: Makefile.in,v 1.254 2004/01/27 10:19:22 djm Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -61,12 +61,13 @@ INSTALL_SSH_RAND_HELPER=@INSTALL_SSH_RAND_HELPER@
 
 TARGETS=ssh$(EXEEXT) sshd$(EXEEXT) ssh-add$(EXEEXT) ssh-keygen$(EXEEXT) ssh-keyscan${EXEEXT} ssh-keysign${EXEEXT} ssh-agent$(EXEEXT) scp$(EXEEXT) ssh-rand-helper${EXEEXT} sftp-server$(EXEEXT) sftp$(EXEEXT)
 
-LIBSSH_OBJS=authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o \
-	cipher.o cipher-aes.o cipher-bf1.o cipher-ctr.o cipher-3des1.o \
-	cleanup.o compat.o compress.o crc32.o deattack.o fatal.o \
-	hostfile.o log.o match.o moduli.o mpaux.o nchan.o packet.o \
-	readpass.o rsa.o tildexpand.o ttymodes.o xmalloc.o atomicio.o \
-	key.o dispatch.o kex.o mac.o uuencode.o misc.o \
+LIBSSH_OBJS=acss.o authfd.o authfile.o bufaux.o buffer.o \
+	canohost.o channels.o cipher.o cipher-acss.o cipher-aes.o \
+	cipher-bf1.o cipher-ctr.o cipher-3des1.o cleanup.o \
+	compat.o compress.o crc32.o deattack.o fatal.o hostfile.o \
+	log.o match.o moduli.o mpaux.o nchan.o packet.o \
+	readpass.o rsa.o tildexpand.o ttymodes.o xmalloc.o \
+	atomicio.o key.o dispatch.o kex.o mac.o uuencode.o misc.o \
 	rijndael.o ssh-dss.o ssh-rsa.o dh.o kexdh.o kexgex.o \
 	kexdhc.o kexgexc.o scard.o msg.o progressmeter.o dns.o \
 	entropy.o scard-opensc.o gss-genr.o

@@ -1,3 +1,12 @@
+20040127
+ - (djm) OpenBSD CVS Sync
+   - hshoexer@cvs.openbsd.org 2004/01/23 17:06:03
+     [cipher.c]
+     enable acss for ssh
+     ok deraadt@ markus@
+ - (djm) [acss.c acss.h cipher-acss.c] Portable support for ACSS 
+   if libcrypto lacks it
+
 20040126
  - (tim) Typo in regress/README.regress
  - (tim) [regress/test-exec.sh] RhostsAuthentication is deprecated.
@@ -1737,4 +1746,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3192 2004/01/27 05:40:35 tim Exp $
+$Id: ChangeLog,v 1.3193 2004/01/27 10:19:21 djm Exp $
