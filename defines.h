@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.104 2003/11/21 12:48:55 djm Exp $ */
+/* $Id: defines.h,v 1.105 2003/11/24 02:07:46 djm Exp $ */
 
 
 /* Constants */
@@ -528,6 +528,14 @@ struct winsize {
 #if defined(KRB5) && !defined(HEIMDAL)
 #  define krb5_get_err_text(context,code) error_message(code)
 #endif
+
+/* Maximum number of file descriptors available */
+#ifdef HAVE_SYSCONF
+# define SSH_SYSFDMAX sysconf(_SC_OPEN_MAX)
+#else
+# define SSH_SYSFDMAX 10000
+#endif
+
 
 /*
  * Define this to use pipes instead of socketpairs for communicating with the

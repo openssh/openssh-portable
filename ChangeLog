@@ -1,6 +1,11 @@
 20031123
  - (djm) [canohost.c] Move IPv4inV6 mapped address normalisation to its own
    function and call it unconditionally
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2003/11/23 23:17:34
+     [ssh-keyscan.c]
+     from portable - use sysconf to detect fd limit; ok markus@
+     (tidy diff by adding SSH_SSFDMAX macro to defines.h)
 
 20031122
  - (dtucker) [channels.c] Make AIX write limit code clearer.  Suggested by djm@
@@ -1514,4 +1519,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3126 2003/11/24 01:57:25 djm Exp $
+$Id: ChangeLog,v 1.3127 2003/11/24 02:07:45 djm Exp $

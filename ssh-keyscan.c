@@ -214,13 +214,11 @@ fdlim_get(int hard)
 	if (getrlimit(RLIMIT_NOFILE, &rlfd) < 0)
 		return (-1);
 	if ((hard ? rlfd.rlim_max : rlfd.rlim_cur) == RLIM_INFINITY)
-		return 10000;
+		return SSH_SYSFDMAX;
 	else
 		return hard ? rlfd.rlim_max : rlfd.rlim_cur;
-#elif defined (HAVE_SYSCONF)
-	return sysconf (_SC_OPEN_MAX);
 #else
-	return 10000;
+	return SSH_SYSFDMAX;
 #endif
 }
 
