@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.131 2004/09/07 23:41:30 djm Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.132 2004/10/29 21:47:15 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -432,8 +432,6 @@ client_wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp,
 static void
 client_suspend_self(Buffer *bin, Buffer *bout, Buffer *berr)
 {
-	struct winsize oldws, newws;
-
 	/* Flush stdout and stderr buffers. */
 	if (buffer_len(bout) > 0)
 		atomicio(vwrite, fileno(stdout), buffer_ptr(bout), buffer_len(bout));
@@ -450,19 +448,11 @@ client_suspend_self(Buffer *bin, Buffer *bout, Buffer *berr)
 	buffer_free(bout);
 	buffer_free(berr);
 
-	/* Save old window size. */
-	ioctl(fileno(stdin), TIOCGWINSZ, &oldws);
-
 	/* Send the suspend signal to the program itself. */
 	kill(getpid(), SIGTSTP);
 
-	/* Check if the window size has changed. */
-	if (ioctl(fileno(stdin), TIOCGWINSZ, &newws) >= 0 &&
-	    (oldws.ws_row != newws.ws_row ||
-	    oldws.ws_col != newws.ws_col ||
-	    oldws.ws_xpixel != newws.ws_xpixel ||
-	    oldws.ws_ypixel != newws.ws_ypixel))
-		received_window_change_signal = 1;
+	/* Reset window sizes in case they have changed */
+	received_window_change_signal = 1;
 
 	/* OK, we have been continued by the user. Reinitialize buffers. */
 	buffer_init(bin);
@@ -1204,8 +1194,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 		signal(SIGQUIT, signal_handler);
 	if (signal(SIGTERM, SIG_IGN) != SIG_IGN)
 		signal(SIGTERM, signal_handler);
-	if (have_pty)
-		signal(SIGWINCH, window_change_handler);
+	signal(SIGWINCH, window_change_handler);
 
 	if (have_pty)
 		enter_raw_mode();
@@ -1313,8 +1302,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 	/* Terminate the session. */
 
 	/* Stop watching for window change. */
-	if (have_pty)
-		signal(SIGWINCH, SIG_DFL);
+	signal(SIGWINCH, SIG_DFL);
 
 	channel_free_all();
 
@@ -1681,8 +1669,12 @@ client_session2_setup(int id, int want_tty, int want_subsystem,
     dispatch_fn *subsys_repl)
 {
 	int len;
+	Channel *c = NULL;
 
 	debug2("%s: id %d", __func__, id);
+
+	if ((c = channel_lookup(id)) == NULL)
+		fatal("client_session2_setup: channel %d: unknown channel", id);
 
 	if (want_tty) {
 		struct winsize ws;
@@ -1702,6 +1694,7 @@ client_session2_setup(int id, int want_tty, int want_subsystem,
 		tty_make_modes(-1, tiop != NULL ? tiop : &tio);
 		packet_send();
 		/* XXX wait for reply */
+		c->client_tty = 1;
 	}
 
 	/* Transfer any environment variables from client to server */

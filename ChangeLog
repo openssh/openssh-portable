@@ -45,6 +45,12 @@
    - markus@cvs.openbsd.org 2004/10/20 11:48:53
      [packet.c ssh1.h]
      disconnect for invalid (out of range) message types.
+   - djm@cvs.openbsd.org 2004/10/29 21:47:15
+     [channels.c channels.h clientloop.c]
+     fix some window size change bugs for multiplexed connections: windows sizes
+     were not being updated if they had changed after ~^Z suspends and SIGWINCH
+     was not being processed unless the first connection had requested a tty;
+     ok markus
 
 20041102
  - (dtucker) [configure.ac includes.h] Bug #947: Fix compile error on HP-UX
@@ -1824,4 +1830,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3574 2004/11/05 09:27:54 dtucker Exp $
+$Id: ChangeLog,v 1.3575 2004/11/05 09:35:44 dtucker Exp $

@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.210 2004/08/23 11:48:47 djm Exp $");
+RCSID("$OpenBSD: channels.c,v 1.211 2004/10/29 21:47:15 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -2577,7 +2577,7 @@ channel_send_window_changes(void)
 	struct winsize ws;
 
 	for (i = 0; i < channels_alloc; i++) {
-		if (channels[i] == NULL ||
+		if (channels[i] == NULL || !channels[i]->client_tty || 
 		    channels[i]->type != SSH_CHANNEL_OPEN)
 			continue;
 		if (ioctl(channels[i]->rfd, TIOCGWINSZ, &ws) < 0)

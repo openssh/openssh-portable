@@ -1,4 +1,4 @@
-/*	$OpenBSD: channels.h,v 1.74 2004/08/11 21:43:04 avsm Exp $	*/
+/*	$OpenBSD: channels.h,v 1.75 2004/10/29 21:47:15 djm Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -79,6 +79,7 @@ struct Channel {
 	int     ctl_fd;		/* control fd (client sharing) */
 	int     isatty;		/* rfd is a tty */
 	int     wfd_isatty;	/* wfd is a tty */
+	int	client_tty;	/* (client) TTY has been requested */
 	int     force_drain;	/* force close on iEOF */
 	int     delayed;		/* fdset hack */
 	Buffer  input;		/* data read from socket, to be sent over
