@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth.c,v 1.45 2002/09/20 18:41:29 stevesk Exp $");
+RCSID("$OpenBSD: auth.c,v 1.46 2002/11/04 10:07:53 markus Exp $");
 
 #ifdef HAVE_LOGIN_H
 #include <login.h>
@@ -423,6 +423,7 @@ secure_filename(FILE *f, const char *file, struct passwd *pw,
 	uid_t uid = pw->pw_uid;
 	char buf[MAXPATHLEN], homedir[MAXPATHLEN];
 	char *cp;
+	int comparehome = 0;
 	struct stat st;
 
 	if (realpath(file, buf) == NULL) {
@@ -430,11 +431,8 @@ secure_filename(FILE *f, const char *file, struct passwd *pw,
 		    strerror(errno));
 		return -1;
 	}
-	if (realpath(pw->pw_dir, homedir) == NULL) {
-		snprintf(err, errlen, "realpath %s failed: %s", pw->pw_dir,
-		    strerror(errno));
-		return -1;
-	}
+	if (realpath(pw->pw_dir, homedir) != NULL)
+		comparehome = 1;
 
 	/* check the open file to avoid races */
 	if (fstat(fileno(f), &st) < 0 ||
@@ -463,7 +461,7 @@ secure_filename(FILE *f, const char *file, struct passwd *pw,
 		}
 
 		/* If are passed the homedir then we can stop */
-		if (strcmp(homedir, buf) == 0) {
+		if (comparehome && strcmp(homedir, buf) == 0) {
 			debug3("secure_filename: terminating check at '%s'",
 			    buf);
 			break;
