@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.16 2002/01/23 00:21:01 djm Exp $
+# $Id: configure.ac,v 1.17 2002/01/31 06:14:03 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -884,8 +884,8 @@ if test ! -z "$OPENSSL_SEEDS_ITSELF" -a -z "$USE_RAND_HELPER" ; then
 	AC_DEFINE(OPENSSL_PRNG_ONLY)
 	RAND_MSG="OpenSSL internal ONLY"
 	INSTALL_SSH_RAND_HELPER=""
-elif test ! -z "$OPENSSL_SEEDS_ITSELF" -a ! -z "$USE_RAND_HELPER" ; then
-	# OpenSSL with fallback to rand helper
+elif test ! -z "$USE_RAND_HELPER" ; then
+	# install rand helper
 	RAND_MSG="ssh-rand-helper"
 	INSTALL_SSH_RAND_HELPER="yes"
 fi
