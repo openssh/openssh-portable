@@ -28,6 +28,8 @@
    - markus@cvs.openbsd.org 2003/09/29 20:19:57
      [servconf.c sshd_config]
      GSSAPICleanupCreds -> GSSAPICleanupCredentials
+ - (dtucker) [configure.ac] Don't set DISABLE_SHADOW when configuring
+   --with-pam.  ok djm@
 
 20030930
  - (bal) Fix issues in openbsd-compat/realpath.c
@@ -1263,4 +1265,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3050 2003/10/02 06:20:54 dtucker Exp $
+$Id: ChangeLog,v 1.3051 2003/10/02 06:26:34 dtucker Exp $

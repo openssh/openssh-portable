@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.168 2003/09/25 10:18:34 dtucker Exp $
+# $Id: configure.ac,v 1.169 2003/10/02 06:26:34 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -897,7 +897,6 @@ AC_ARG_WITH(pam,
 			AC_CHECK_FUNCS(pam_getenvlist)
 			AC_CHECK_FUNCS(pam_putenv)
 
-			disable_shadow=yes
 			PAM_MSG="yes"
 
 			AC_DEFINE(USE_PAM)
