@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.30 1999/11/24 13:26:23 damien Exp $");
+RCSID("$Id: sshd.c,v 1.31 1999/11/24 23:42:08 damien Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -143,7 +143,7 @@ const char *pampasswd = NULL;
 char *pamconv_msg = NULL;
 
 static int pamconv(int num_msg, const struct pam_message **msg,
-						 struct pam_response **resp, void *appdata_ptr)
+	struct pam_response **resp, void *appdata_ptr)
 {
 	struct pam_response *reply;
 	int count;
