@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.75 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: packet.c,v 1.76 2001/12/19 17:16:13 stevesk Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -329,7 +329,7 @@ packet_put_int(u_int value)
 	buffer_put_int(&outgoing_packet, value);
 }
 void
-packet_put_string(const char *buf, u_int len)
+packet_put_string(const void *buf, u_int len)
 {
 	buffer_put_string(&outgoing_packet, buf, len);
 }
@@ -339,7 +339,7 @@ packet_put_cstring(const char *str)
 	buffer_put_cstring(&outgoing_packet, str);
 }
 void
-packet_put_raw(const char *buf, u_int len)
+packet_put_raw(const void *buf, u_int len)
 {
 	buffer_append(&outgoing_packet, buf, len);
 }
@@ -412,7 +412,7 @@ packet_send1(void)
 	/* Append to output. */
 	PUT_32BIT(buf, len);
 	buffer_append(&output, buf, 4);
-	buffer_append_space(&output, &cp, buffer_len(&outgoing_packet));
+	cp = buffer_append_space(&output, buffer_len(&outgoing_packet));
 	cipher_encrypt(&send_context, cp, buffer_ptr(&outgoing_packet),
 	    buffer_len(&outgoing_packet));
 
@@ -546,7 +546,7 @@ packet_send2(void)
 		padlen += pad;
 		extra_pad = 0;
 	}
-	buffer_append_space(&outgoing_packet, &cp, padlen);
+	cp = buffer_append_space(&outgoing_packet, padlen);
 	if (enc && enc->cipher->number != SSH_CIPHER_NONE) {
 		/* random padding */
 		for (i = 0; i < padlen; i++) {
@@ -574,7 +574,7 @@ packet_send2(void)
 		DBG(debug("done calc MAC out #%d", seqnr));
 	}
 	/* encrypt packet and append to output buffer. */
-	buffer_append_space(&output, &cp, buffer_len(&outgoing_packet));
+	cp = buffer_append_space(&output, buffer_len(&outgoing_packet));
 	cipher_encrypt(&send_context, cp, buffer_ptr(&outgoing_packet),
 	    buffer_len(&outgoing_packet));
 	/* append unencrypted MAC */
@@ -734,7 +734,7 @@ packet_read_poll1(int *payload_len_ptr)
 
 	/* Decrypt data to incoming_packet. */
 	buffer_clear(&incoming_packet);
-	buffer_append_space(&incoming_packet, &cp, padded_len);
+	cp = buffer_append_space(&incoming_packet, padded_len);
 	cipher_decrypt(&receive_context, cp, buffer_ptr(&input), padded_len);
 
 	buffer_consume(&input, padded_len);
@@ -803,7 +803,7 @@ packet_read_poll2(int *payload_len_ptr)
 		if (buffer_len(&input) < block_size)
 			return SSH_MSG_NONE;
 		buffer_clear(&incoming_packet);
-		buffer_append_space(&incoming_packet, &cp, block_size);
+		cp = buffer_append_space(&incoming_packet, block_size);
 		cipher_decrypt(&receive_context, cp, buffer_ptr(&input),
 		    block_size);
 		ucp = (u_char *) buffer_ptr(&incoming_packet);
@@ -832,7 +832,7 @@ packet_read_poll2(int *payload_len_ptr)
 	fprintf(stderr, "read_poll enc/full: ");
 	buffer_dump(&input);
 #endif
-	buffer_append_space(&incoming_packet, &cp, need);
+	cp = buffer_append_space(&incoming_packet, need);
 	cipher_decrypt(&receive_context, cp, buffer_ptr(&input), need);
 	buffer_consume(&input, need);
 	/*
@@ -852,7 +852,8 @@ packet_read_poll2(int *payload_len_ptr)
 		log("incoming seqnr wraps around");
 
 	/* get padlen */
-	cp = buffer_ptr(&incoming_packet) + 4;
+	cp = buffer_ptr(&incoming_packet);
+	cp += 4;
 	padlen = (u_char) *cp;
 	DBG(debug("input: padlen %d", padlen));
 	if (padlen < 4)
@@ -996,7 +997,7 @@ packet_get_bignum2(BIGNUM * value, int *length_ptr)
 	*length_ptr = buffer_get_bignum2(&incoming_packet, value);
 }
 
-char *
+void *
 packet_get_raw(int *length_ptr)
 {
 	int bytes = buffer_len(&incoming_packet);
@@ -1018,7 +1019,7 @@ packet_remaining(void)
  * integer into which the length of the string is stored.
  */
 
-char *
+void *
 packet_get_string(u_int *length_ptr)
 {
 	return buffer_get_string(&incoming_packet, length_ptr);

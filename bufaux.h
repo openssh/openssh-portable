@@ -10,7 +10,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: bufaux.h,v 1.13 2001/06/26 17:27:22 markus Exp $"); */
+/* RCSID("$OpenBSD: bufaux.h,v 1.14 2001/12/19 17:16:13 stevesk Exp $"); */
 
 #ifndef BUFAUX_H
 #define BUFAUX_H
@@ -36,7 +36,7 @@ int     buffer_get_char(Buffer *);
 
 void    buffer_put_char(Buffer *, int);
 
-char   *buffer_get_string(Buffer *, u_int *);
+void   *buffer_get_string(Buffer *, u_int *);
 
 void    buffer_put_string(Buffer *, const void *, u_int);
 void	buffer_put_cstring(Buffer *, const char *);

@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.151 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.152 2001/12/19 17:16:13 stevesk Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -997,7 +997,7 @@ ssh_session(void)
 		int len = buffer_len(&command);
 		if (len > 900)
 			len = 900;
-		debug("Sending command: %.*s", len, buffer_ptr(&command));
+		debug("Sending command: %.*s", len, (u_char *)buffer_ptr(&command));
 		packet_start(SSH_CMSG_EXEC_CMD);
 		packet_put_string(buffer_ptr(&command), buffer_len(&command));
 		packet_send();
@@ -1026,7 +1026,7 @@ client_subsystem_reply(int type, int plen, void *ctxt)
 	packet_done();
 	if (type == SSH2_MSG_CHANNEL_FAILURE)
 		fatal("Request for subsystem '%.*s' failed on channel %d",
-		    len, buffer_ptr(&command), id);
+		    len, (u_char *)buffer_ptr(&command), id);
 }
 
 /* request pty/x11/agent/tcpfwd/shell for channel */
@@ -1085,14 +1085,14 @@ ssh_session2_setup(int id, void *arg)
 		if (len > 900)
 			len = 900;
 		if (subsystem_flag) {
-			debug("Sending subsystem: %.*s", len, buffer_ptr(&command));
+			debug("Sending subsystem: %.*s", len, (u_char *)buffer_ptr(&command));
 			channel_request_start(id, "subsystem", /*want reply*/ 1);
 			/* register callback for reply */
 			/* XXX we asume that client_loop has already been called */
 			dispatch_set(SSH2_MSG_CHANNEL_FAILURE, &client_subsystem_reply);
 			dispatch_set(SSH2_MSG_CHANNEL_SUCCESS, &client_subsystem_reply);
 		} else {
-			debug("Sending command: %.*s", len, buffer_ptr(&command));
+			debug("Sending command: %.*s", len, (u_char *)buffer_ptr(&command));
 			channel_request_start(id, "exec", 0);
 		}
 		packet_put_string(buffer_ptr(&command), buffer_len(&command));

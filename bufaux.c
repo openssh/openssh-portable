@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: bufaux.c,v 1.19 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: bufaux.c,v 1.20 2001/12/19 17:16:13 stevesk Exp $");
 
 #include <openssl/bn.h>
 #include "bufaux.h"
@@ -191,11 +191,11 @@ buffer_put_int64(Buffer *buffer, u_int64_t value)
  * will be stored there.  A null character will be automatically appended
  * to the returned string, and is not counted in length.
  */
-char *
+void *
 buffer_get_string(Buffer *buffer, u_int *length_ptr)
 {
 	u_int len;
-	char *value;
+	u_char *value;
 	/* Get the length. */
 	len = buffer_get_int(buffer);
 	if (len > 256 * 1024)

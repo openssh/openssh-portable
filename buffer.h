@@ -11,13 +11,13 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: buffer.h,v 1.9 2001/06/26 17:27:23 markus Exp $"); */
+/* RCSID("$OpenBSD: buffer.h,v 1.10 2001/12/19 17:16:13 stevesk Exp $"); */
 
 #ifndef BUFFER_H
 #define BUFFER_H
 
 typedef struct {
-	char	*buf;		/* Buffer for data. */
+	u_char	*buf;		/* Buffer for data. */
 	u_int	 alloc;		/* Number of bytes allocated for data. */
 	u_int	 offset;	/* Offset of first byte containing data. */
 	u_int	 end;		/* Offset of last byte containing data. */
@@ -28,12 +28,12 @@ void	 buffer_clear(Buffer *);
 void	 buffer_free(Buffer *);
 
 u_int	 buffer_len(Buffer *);
-char	*buffer_ptr(Buffer *);
+void	*buffer_ptr(Buffer *);
 
-void	 buffer_append(Buffer *, const char *, u_int);
-void	 buffer_append_space(Buffer *, char **, u_int);
+void	 buffer_append(Buffer *, const void *, u_int);
+void	*buffer_append_space(Buffer *, u_int);
 
-void	 buffer_get(Buffer *, char *, u_int);
+void	 buffer_get(Buffer *, void *, u_int);
 
 void	 buffer_consume(Buffer *, u_int);
 void	 buffer_consume_end(Buffer *, u_int);

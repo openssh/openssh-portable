@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfile.c,v 1.41 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: authfile.c,v 1.42 2001/12/19 17:16:13 stevesk Exp $");
 
 #include <openssl/err.h>
 #include <openssl/evp.h>
@@ -128,7 +128,7 @@ key_save_private_rsa1(Key *key, const char *filename, const char *passphrase,
 	buffer_put_cstring(&encrypted, comment);
 
 	/* Allocate space for the private part of the key in the buffer. */
-	buffer_append_space(&encrypted, &cp, buffer_len(&buffer));
+	cp = buffer_append_space(&encrypted, buffer_len(&buffer));
 
 	cipher_set_key_string(&ciphercontext, cipher, passphrase);
 	cipher_encrypt(&ciphercontext, (u_char *) cp,
@@ -239,7 +239,7 @@ key_load_public_rsa1(int fd, const char *filename, char **commentp)
 	lseek(fd, (off_t) 0, SEEK_SET);
 
 	buffer_init(&buffer);
-	buffer_append_space(&buffer, &cp, len);
+	cp = buffer_append_space(&buffer, len);
 
 	if (read(fd, cp, (size_t) len) != (size_t) len) {
 		debug("Read from key file %.200s failed: %.100s", filename,
@@ -324,7 +324,7 @@ key_load_private_rsa1(int fd, const char *filename, const char *passphrase,
 	lseek(fd, (off_t) 0, SEEK_SET);
 
 	buffer_init(&buffer);
-	buffer_append_space(&buffer, &cp, len);
+	cp = buffer_append_space(&buffer, len);
 
 	if (read(fd, cp, (size_t) len) != (size_t) len) {
 		debug("Read from key file %.200s failed: %.100s", filename,
@@ -378,7 +378,7 @@ key_load_private_rsa1(int fd, const char *filename, const char *passphrase,
 	}
 	/* Initialize space for decrypted data. */
 	buffer_init(&decrypted);
-	buffer_append_space(&decrypted, &cp, buffer_len(&buffer));
+	cp = buffer_append_space(&decrypted, buffer_len(&buffer));
 
 	/* Rest of the buffer is encrypted.  Decrypt it using the passphrase. */
 	cipher_set_key_string(&ciphercontext, cipher, passphrase);

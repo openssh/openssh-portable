@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: packet.h,v 1.26 2001/11/07 16:03:17 markus Exp $"); */
+/* RCSID("$OpenBSD: packet.h,v 1.27 2001/12/19 17:16:13 stevesk Exp $"); */
 
 #ifndef PACKET_H
 #define PACKET_H
@@ -35,9 +35,9 @@ void     packet_put_char(int ch);
 void     packet_put_int(u_int value);
 void     packet_put_bignum(BIGNUM * value);
 void     packet_put_bignum2(BIGNUM * value);
-void     packet_put_string(const char *buf, u_int len);
+void     packet_put_string(const void *buf, u_int len);
 void     packet_put_cstring(const char *str);
-void     packet_put_raw(const char *buf, u_int len);
+void     packet_put_raw(const void *buf, u_int len);
 void     packet_send(void);
 
 int      packet_read(int *payload_len_ptr);
@@ -49,8 +49,8 @@ u_int	 packet_get_char(void);
 u_int	 packet_get_int(void);
 void     packet_get_bignum(BIGNUM * value, int *length_ptr);
 void     packet_get_bignum2(BIGNUM * value, int *length_ptr);
-char	*packet_get_raw(int *length_ptr);
-char    *packet_get_string(u_int *length_ptr);
+void	*packet_get_raw(int *length_ptr);
+void	*packet_get_string(u_int *length_ptr);
 void     packet_disconnect(const char *fmt,...) __attribute__((format(printf, 1, 2)));
 void     packet_send_debug(const char *fmt,...) __attribute__((format(printf, 1, 2)));
 
