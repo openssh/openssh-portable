@@ -6,6 +6,8 @@
  - Use preformatted manpages on SCO, report from Gary E. Miller 
    <gem@rellim.com>
  - New URL for x11-ssh-askpass.
+ - Fixpaths was missing /etc/ssh_known_hosts. Report from Jim Knoble 
+   <jmknoble@pobox.com>
 
 20000124
  - Pick up version 1.2.2 from OpenBSD CVS (no changes, just version number
