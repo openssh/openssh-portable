@@ -1,3 +1,7 @@
+20040310
+ - (dtucker) [openbsd-compat/fake-rfc2553.h] Bug #812: #undef getaddrinfo
+   before redefining it, silences warnings on Tru64.
+
 20040308
  - (dtucker) [sshd.c] Back out rev 1.270 as it caused problems on some
    platforms (eg SCO, HP-UX) with logging in the wrong TZ.  ok djm@
@@ -891,4 +895,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3286 2004/03/08 20:12:18 tim Exp $
+$Id: ChangeLog,v 1.3287 2004/03/10 10:06:32 dtucker Exp $
