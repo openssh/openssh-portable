@@ -31,7 +31,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.76 2003/10/09 04:20:15 dtucker Exp $");
+RCSID("$Id: auth-pam.c,v 1.77 2003/11/13 00:21:32 dtucker Exp $");
 
 #ifdef USE_PAM
 #include <security/pam_appl.h>
@@ -636,14 +636,14 @@ pam_chauthtok_conv(int n, const struct pam_message **msg,
 			reply[i].resp_retcode = PAM_SUCCESS;
 			break;
 		case PAM_PROMPT_ECHO_ON:
-			fputs(PAM_MSG_MEMBER(msg, i, msg), stderr);
+			fprintf(stderr, "%s\n", PAM_MSG_MEMBER(msg, i, msg));
 			fgets(input, sizeof input, stdin);
 			reply[i].resp = xstrdup(input);
 			reply[i].resp_retcode = PAM_SUCCESS;
 			break;
 		case PAM_ERROR_MSG:
 		case PAM_TEXT_INFO:
-			fputs(PAM_MSG_MEMBER(msg, i, msg), stderr);
+			fprintf(stderr, "%s\n", PAM_MSG_MEMBER(msg, i, msg));
 			reply[i].resp_retcode = PAM_SUCCESS;
 			break;
 		default:

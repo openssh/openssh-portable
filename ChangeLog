@@ -1,3 +1,7 @@
+20031113
+ - (dtucker) [auth-pam.c] Append newlines to lines output by the
+   pam_chauthtok_conv().
+
 20031106
  - (djm) Clarify UsePAM consequences a little more
 
@@ -1397,4 +1401,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3093 2003/11/06 09:27:51 djm Exp $
+$Id: ChangeLog,v 1.3094 2003/11/13 00:21:31 dtucker Exp $
