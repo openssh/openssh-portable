@@ -24,7 +24,7 @@
 
 #include "includes.h"
 #ifdef SMARTCARD
-RCSID("$OpenBSD: scard.c,v 1.22 2002/03/21 21:54:34 rees Exp $");
+RCSID("$OpenBSD: scard.c,v 1.23 2002/03/24 18:05:29 markus Exp $");
 
 #include <openssl/engine.h>
 #include <openssl/evp.h>
@@ -192,6 +192,32 @@ err:
 	return status;
 }
 
+static int
+try_AUT0(void)
+{
+	u_char aut0[EVP_MAX_MD_SIZE];
+
+	/* permission denied; try PIN if provided */
+	if (sc_pin && strlen(sc_pin) > 0) {
+		sc_mk_digest(sc_pin, aut0);
+		if (cyberflex_verify_AUT0(sc_fd, cla, aut0, 8) < 0) {
+			error("smartcard passphrase incorrect");
+			return (-1);
+		}
+	} else {
+		/* try default AUT0 key */
+		if (cyberflex_verify_AUT0(sc_fd, cla, DEFAUT0, 8) < 0) {
+			/* default AUT0 key failed; prompt for passphrase */
+			if (get_AUT0(aut0) < 0 ||
+			    cyberflex_verify_AUT0(sc_fd, cla, aut0, 8) < 0) {
+				error("smartcard passphrase incorrect");
+				return (-1);
+			}
+		}
+	}
+	return (0);
+}
+
 /* private key operations */
 
 static int
@@ -199,7 +225,6 @@ sc_private_decrypt(int flen, u_char *from, u_char *to, RSA *rsa,
     int padding)
 {
 	u_char *padded = NULL;
-	u_char aut0[EVP_MAX_MD_SIZE];
 	int sw, len, olen, status = -1;
 
 	debug("sc_private_decrypt called");
@@ -219,24 +244,8 @@ sc_private_decrypt(int flen, u_char *from, u_char *to, RSA *rsa,
 	sectok_apdu(sc_fd, CLA_SSH, INS_DECRYPT, 0, 0, len, from, len, padded, &sw);
 
 	if (sw == 0x6982) {
-		/* permission denied; try PIN if provided */
-		if (sc_pin && strlen(sc_pin) > 0) {
-			sc_mk_digest(sc_pin, aut0);
-			if (cyberflex_verify_AUT0(sc_fd, cla, aut0, 8) < 0) {
-				error("smartcard passphrase incorrect");
-				goto err;
-			}
-		} else {
-			/* try default AUT0 key */
-			if (cyberflex_verify_AUT0(sc_fd, cla, DEFAUT0, 8) < 0) {
-				/* default AUT0 key failed; prompt for passphrase */
-				if (get_AUT0(aut0) < 0 ||
-				    cyberflex_verify_AUT0(sc_fd, cla, aut0, 8) < 0) {
-					error("smartcard passphrase incorrect");
-					goto err;
-				}
-			}
-		}
+		if (try_AUT0() < 0)
+			goto err;
 		sectok_apdu(sc_fd, CLA_SSH, INS_DECRYPT, 0, 0, len, from, len, padded, &sw);
 	}
 	if (!sectok_swOK(sw)) {
@@ -278,8 +287,13 @@ sc_private_encrypt(int flen, u_char *from, u_char *to, RSA *rsa,
 		goto err;
 	}
 	sectok_apdu(sc_fd, CLA_SSH, INS_DECRYPT, 0, 0, len, padded, len, to, &sw);
+	if (sw == 0x6982) {
+		if (try_AUT0() < 0)
+			goto err;
+		sectok_apdu(sc_fd, CLA_SSH, INS_DECRYPT, 0, 0, len, padded, len, to, &sw);
+	}
 	if (!sectok_swOK(sw)) {
-		error("sc_private_decrypt: INS_DECRYPT failed: %s",
+		error("sc_private_encrypt: INS_DECRYPT failed: %s",
 		    sectok_get_sw(sw));
 		goto err;
 	}
