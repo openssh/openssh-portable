@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.200 2004/02/22 00:37:48 dtucker Exp $
+# $Id: configure.ac,v 1.201 2004/02/23 23:37:33 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -2084,18 +2084,15 @@ AC_ARG_WITH(kerberos5,
 			AC_MSG_CHECKING(for gssapi support)
 			if $KRB5CONF | grep gssapi >/dev/null ; then
 				AC_MSG_RESULT(yes)
-				K5CFLAGS="`$KRB5CONF --cflags gssapi`"
-				dnl  m4 quadragraphs: "sed 's/-l[^ ]* //g'"
-				K5LDFLAGS="`$KRB5CONF --libs gssapi | sed 's/-l@<:@^ @:>@* //g'`"
-				K5LIBS="`$KRB5CONF --libs gssapi | sed 's/-L@<:@^ @:>@* //g'`"
+				AC_DEFINE(GSSAPI)
+				k5confopts=gssapi
 			else
 				AC_MSG_RESULT(no)
-				K5CFLAGS="`$KRB5CONF --cflags`"
-				K5LDFLAGS="`$KRB5CONF --libs | sed 's/-l@<:@^ @:>@* //g'`"
-				K5LIBS="`$KRB5CONF --libs | sed 's/-L@<:@^ @:>@* //g'`"
+				k5confopts=""
 			fi
+			K5CFLAGS="`$KRB5CONF --cflags $k5confopts`"
+			K5LIBS="`$KRB5CONF --libs $k5confopts`"
 			CPPFLAGS="$CPPFLAGS $K5CFLAGS"
-			LDFLAGS="$LDFLAGS $K5LDFLAGS"
 			AC_MSG_CHECKING(whether we are using Heimdal)
 			AC_TRY_COMPILE([ #include <krb5.h> ],
 				       [ char *tmp = heimdal_version; ],
@@ -2152,14 +2149,16 @@ AC_ARG_WITH(kerberos5,
 		if test ! -z "$blibpath" ; then
 			blibpath="$blibpath:${KRB5ROOT}/lib"
 		fi
-	fi ]
-	AC_SEARCH_LIBS(k_hasafs, kafs,
-		[ AC_DEFINE(USE_AFS)
-		  K5LIBS="-lkafs $K5LIBS"
-		]
-	)
+	fi
+
+	AC_CHECK_HEADERS(gssapi.h gssapi/gssapi.h)
+	AC_CHECK_HEADERS(gssapi_krb5.h gssapi/gssapi_krb5.h)
+	AC_CHECK_HEADERS(gssapi_generic.h gssapi/gssapi_generic.h)
+
+	LIBS="$LIBS $K5LIBS"
+	AC_SEARCH_LIBS(k_hasafs, kafs, AC_DEFINE(USE_AFS))
+	]
 )
-LIBS="$LIBS $K5LIBS"
 
 # Looking for programs, paths and files
 

@@ -30,11 +30,19 @@
 
 #include "buffer.h"
 
+#ifdef HAVE_GSSAPI_H
 #include <gssapi.h>
+#elif defined(HAVE_GSSAPI_GSSAPI_H)
+#include <gssapi/gssapi.h>
+#endif
 
 #ifdef KRB5
-#ifndef HEIMDAL
-#include <gssapi_generic.h>
+# ifndef HEIMDAL
+#  ifdef HAVE_GSSAPI_GENERIC_H
+#   include <gssapi_generic.h>
+#  elif defined(HAVE_GSSAPI_GSSAPI_GENERIC_H)
+#   include <gssapi/gssapi_generic.h>
+#  endif
 
 /* MIT Kerberos doesn't seem to define GSS_NT_HOSTBASED_SERVICE */
 

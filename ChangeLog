@@ -13,6 +13,9 @@
    - markus@cvs.openbsd.org 2004/02/23 15:16:46
      [version.h]
      enter 3.8
+ - (dtucker) [configure.ac gss-serv-krb5.c ssh-gss.h] Define GSSAPI when found
+   with krb5-config, hunt down gssapi.h and friends.  Based partially on patch
+   from deengert at anl.gov.
 
 20040223
  - (dtucker) [session.c] Bug #789: Only make setcred call for !privsep in the
@@ -1916,4 +1919,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3247 2004/02/23 22:24:01 dtucker Exp $
+$Id: ChangeLog,v 1.3248 2004/02/23 23:37:33 dtucker Exp $
