@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.134 2001/09/17 21:04:01 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.135 2001/10/01 21:38:53 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -133,7 +133,7 @@ static char *auth_sock_name = NULL;
 static char *auth_sock_dir = NULL;
 
 /* AF_UNSPEC or AF_INET or AF_INET6 */
-extern int IPv4or6;
+static int IPv4or6 = AF_UNSPEC;
 
 /* helper */
 static void port_open_helper(Channel *c, char *rtype);
@@ -2036,6 +2036,12 @@ channel_input_port_open(int type, int plen, void *ctxt)
 
 
 /* -- tcp forwarding */
+
+void
+channel_set_af(int af)
+{
+	IPv4or6 = af;
+}
 
 /*
  * Initiate forwarding of connections to local port "port" through the secure

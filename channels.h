@@ -32,7 +32,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* RCSID("$OpenBSD: channels.h,v 1.46 2001/09/17 20:52:47 markus Exp $"); */
+/* RCSID("$OpenBSD: channels.h,v 1.47 2001/10/01 21:38:53 markus Exp $"); */
 
 #ifndef CHANNEL_H
 #define CHANNEL_H
@@ -182,7 +182,8 @@ int      channel_still_open(void);
 char	*channel_open_message(void);
 int	 channel_find_open(void);
 
-/* channel_tcpfwd.c */
+/* tcp forwarding */
+void	 channel_set_af(int af);
 void     channel_permit_all_opens(void);
 void	 channel_add_permitted_opens(char *, int);
 void	 channel_clear_permitted_opens(void);
