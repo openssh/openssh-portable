@@ -1,6 +1,12 @@
 20040222
  - (dtucker) [auth-shadow.c auth.c auth.h] Move shadow account expiry test
    to auth-shadow.c, no functional change.  ok djm@
+ - (dtucker) [auth-shadow.c auth.h] Provide warnings of impending account or
+   password expiry.  ok djm@
+ - (dtucker) [auth-passwd.c] Only check password expiry once.  Prevents
+   multiple warnings if a wrong password is entered.
+ - (dtucker) [configure.ac] Apply krb5-config --libs fix to non-gssapi path
+   too.
 
 20040220
  - (djm) [openbsd-compat/setproctitle.c] fix comments; from grange@
@@ -1890,4 +1896,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3241 2004/02/21 22:43:15 dtucker Exp $
+$Id: ChangeLog,v 1.3242 2004/02/22 00:55:07 dtucker Exp $
