@@ -6,6 +6,7 @@
  - (dtucker) [regress/sftp-batch.sh] Make temporary batch file name more
    distinctive, so "rm ${BATCH}.*" doesn't match the script itself.
  - (dtucker) [regress/sftp-cmds.sh] Skip quoted file test on Cygwin.
+ - (dtucker) openbsd-compat/xcrypt.c] #elsif -> #elif
 
 20030906
  - (dtucker) [acconfig.h configure.ac uidswap.c] Prefer setuid/setgid on AIX.
@@ -1033,4 +1034,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2966 2003/09/06 23:32:58 dtucker Exp $
+$Id: ChangeLog,v 1.2967 2003/09/06 23:43:42 dtucker Exp $

@@ -65,12 +65,12 @@ xcrypt(const char *password, const char *salt)
                 crypted = md5_crypt(password, salt);
         else
                 crypted = crypt(password, salt);
-# elsif defined(__hpux) && !defined(HAVE_SECUREWARE)
+# elif defined(__hpux) && !defined(HAVE_SECUREWARE)
 	if (iscomsec())
                 crypted = bigcrypt(password, salt);
         else
                 crypted = crypt(password, salt);
-# elsif defined(HAVE_SECUREWARE)
+# elif defined(HAVE_SECUREWARE)
         crypted = bigcrypt(password, salt);
 # else
         crypted = crypt(password, salt);
@@ -99,12 +99,12 @@ shadow_pw(struct passwd *pw)
 	struct passwd_adjunct *spw;
 	if (issecure() && (spw = getpwanam(pw->pw_name)) != NULL)
 		pw_password = spw->pwa_passwd;
-# elsif defined(HAVE_SECUREWARE)
+# elif defined(HAVE_SECUREWARE)
 	struct pr_passwd *spw = getprpwnam(pw->pw_name);
 
 	if (spw != NULL)
 		pw_password = spw->ufld.fd_encrypt;
-# elsif defined(__hpux) && !defined(HAVE_SECUREWARE)
+# elif defined(__hpux) && !defined(HAVE_SECUREWARE)
 	struct pr_passwd *spw;
         if (iscomsec() && (spw = getprpwnam(pw->pw_name)) != NULL)
                 pw_password = spw->ufld.fd_encrypt;
