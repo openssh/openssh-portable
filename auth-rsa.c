@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rsa.c,v 1.55 2002/03/29 19:18:33 stevesk Exp $");
+RCSID("$OpenBSD: auth-rsa.c,v 1.56 2002/06/10 16:53:06 stevesk Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/md5.h>
@@ -81,8 +81,8 @@ auth_rsa_verify_response(Key *key, BIGNUM *challenge, u_char response[16])
 
 	/* don't allow short keys */
 	if (BN_num_bits(key->rsa->n) < SSH_RSA_MINIMUM_MODULUS_SIZE) {
-		error("auth_rsa_verify_response: n too small: %d bits",
-		    BN_num_bits(key->rsa->n));
+		error("auth_rsa_verify_response: RSA modulus too small: %d < minimum %d bits",
+		    BN_num_bits(key->rsa->n), SSH_RSA_MINIMUM_MODULUS_SIZE);
 		return (0);
 	}
 

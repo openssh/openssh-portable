@@ -7,6 +7,9 @@
    - itojun@cvs.openbsd.org 2002/06/09 22:17:21
      [sshconnect.c]
      pass salen to sockaddr_ntop so that we are happy on linux/solaris
+   - stevesk@cvs.openbsd.org 2002/06/10 16:53:06
+     [auth-rsa.c ssh-rsa.c]
+     display minimum RSA modulus in error(); ok markus@
 
 20020609
  - (bal) OpenBSD CVS Sync
@@ -872,4 +875,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2201 2002/06/11 15:46:34 mouring Exp $
+$Id: ChangeLog,v 1.2202 2002/06/11 15:47:42 mouring Exp $
