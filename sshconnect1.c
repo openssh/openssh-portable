@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.35 2001/06/23 15:12:21 itojun Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.36 2001/06/23 22:37:46 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/evp.h>
@@ -204,11 +204,9 @@ static int
 try_rsa_authentication(const char *authfile)
 {
 	BIGNUM *challenge;
-	Key *public;
-	Key *private;
-	char *passphrase, *comment;
-	int type, i;
-	int plen, clen;
+	Key *public, *private;
+	char buf[300], *passphrase, *comment;
+	int i, type, quit, plen, clen;
 
 	/* Try to load identification for the authentication key. */
 	/* XXKEYLOAD */
@@ -257,44 +255,45 @@ try_rsa_authentication(const char *authfile)
 	 * fails, ask for a passphrase.
 	 */
 	private = key_load_private_type(KEY_RSA1, authfile, "", NULL);
-	if (private == NULL) {
-		char buf[300];
-		snprintf(buf, sizeof buf, "Enter passphrase for RSA key '%.100s': ",
-		    comment);
-		if (!options.batch_mode)
+	if (private == NULL && !options.batch_mode) {
+		snprintf(buf, sizeof(buf),
+		    "Enter passphrase for RSA key '%.100s': ", comment);
+		for (i = 0; i < options.number_of_password_prompts; i++) {
 			passphrase = read_passphrase(buf, 0);
-		else {
-			debug("Will not query passphrase for %.100s in batch mode.",
-			      comment);
-			passphrase = xstrdup("");
-		}
-
-		/* Load the authentication file using the pasphrase. */
-		private = key_load_private_type(KEY_RSA1, authfile, passphrase, NULL);
-		if (private == NULL) {
+			if (strcmp(passphrase, "") != 0) {
+				private = key_load_private_type(KEY_RSA1,
+				    authfile, passphrase, NULL);
+				quit = 0;
+			} else {
+				debug2("no passphrase given, try next key");
+				quit = 1;
+			}
 			memset(passphrase, 0, strlen(passphrase));
 			xfree(passphrase);
-			error("Bad passphrase.");
-
-			/* Send a dummy response packet to avoid protocol error. */
-			packet_start(SSH_CMSG_AUTH_RSA_RESPONSE);
-			for (i = 0; i < 16; i++)
-				packet_put_char(0);
-			packet_send();
-			packet_write_wait();
-
-			/* Expect the server to reject it... */
-			packet_read_expect(&plen, SSH_SMSG_FAILURE);
-			xfree(comment);
-			BN_clear_free(challenge);
-			return 0;
+			if (private != NULL || quit)
+				break;
+			debug2("bad passphrase given, try again...");
 		}
-		/* Destroy the passphrase. */
-		memset(passphrase, 0, strlen(passphrase));
-		xfree(passphrase);
 	}
 	/* We no longer need the comment. */
 	xfree(comment);
+
+	if (private == NULL) {
+		if (!options.batch_mode)
+			error("Bad passphrase.");
+
+		/* Send a dummy response packet to avoid protocol error. */
+		packet_start(SSH_CMSG_AUTH_RSA_RESPONSE);
+		for (i = 0; i < 16; i++)
+			packet_put_char(0);
+		packet_send();
+		packet_write_wait();
+
+		/* Expect the server to reject it... */
+		packet_read_expect(&plen, SSH_SMSG_FAILURE);
+		BN_clear_free(challenge);
+		return 0;
+	}
 
 	/* Compute and send a response to the challenge. */
 	respond_to_rsa_challenge(challenge, private->rsa);

@@ -88,6 +88,10 @@
    - markus@cvs.openbsd.org 2001/06/23 19:12:43
      [sshd.c]
      pidfile/sigterm race; bbraun@synack.net
+   - markus@cvs.openbsd.org 2001/06/23 22:37:46
+     [sshconnect1.c]
+     consistent with ssh2: skip key if empty passphrase is entered,
+     retry num_of_passwd_prompt times if passphrase is wrong. ok fgsch@
 
 20010622
  - (stevesk) handle systems without pw_expire and pw_change.
@@ -5772,4 +5776,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1318 2001/06/25 05:10:20 mouring Exp $
+$Id: ChangeLog,v 1.1319 2001/06/25 05:16:02 mouring Exp $
