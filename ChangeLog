@@ -16,6 +16,7 @@
    - markus@cvs.openbsd.org  2001/02/08 11:12:30
      [auth2.c]
      fix typo
+ - (djm) Update spec files
 
 20010208
  - (djm) Don't delete external askpass program in make uninstall target.
