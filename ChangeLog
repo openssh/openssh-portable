@@ -23,6 +23,9 @@
    to resolve it for binaries other than sshd.  ok djm@
  - (dtucker) [configure.ac] Bug #854: prepend pwd to relative --with-ssl-dir
    paths.  ok djm@
+ - (dtucker) [configure.ac session.c] Some platforms (eg some SCO) require
+   the username to be passed to the passwd command when changing expired
+   passwords.  ok djm@
 
 20050208
  - (dtucker) [regress/test-exec.sh] Bug #912: Set _POSIX2_VERSION for the
@@ -2112,4 +2115,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3646 2005/02/09 11:12:30 dtucker Exp $
+$Id: ChangeLog,v 1.3647 2005/02/09 11:17:28 dtucker Exp $
