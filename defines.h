@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.82 2002/03/22 18:19:54 stevesk Exp $ */
+/* $Id: defines.h,v 1.83 2002/03/22 20:53:32 stevesk Exp $ */
 
 /* Necessary headers */
 
@@ -438,6 +438,26 @@ struct winsize {
 /* *-*-nto-qnx doesn't define this macro in the system headers */
 #ifdef MISSING_HOWMANY
 # define howmany(x,y)	(((x)+((y)-1))/(y))
+#endif
+
+#ifndef ALIGNBYTES
+#define ALIGNBYTES	(sizeof(int) - 1)
+#endif
+#ifndef ALIGN
+#define ALIGN(p)	(((u_int)(p) + ALIGNBYTES) &~ ALIGNBYTES)
+#endif
+#ifndef __CMSG_ALIGN
+#define	__CMSG_ALIGN(len)	ALIGN(len)
+#endif
+
+/* Length of the contents of a control message of length len */
+#ifndef CMSG_LEN
+#define	CMSG_LEN(len)	(__CMSG_ALIGN(sizeof(struct cmsghdr)) + (len))
+#endif
+
+/* Length of the space taken up by a padded control message of length len */
+#ifndef CMSG_SPACE
+#define	CMSG_SPACE(len)	(__CMSG_ALIGN(sizeof(struct cmsghdr)) + __CMSG_ALIGN(len))
 #endif
 
 /* Function replacement / compatibility hacks */
