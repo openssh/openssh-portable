@@ -167,6 +167,7 @@ EXTRA_OPTS=""
 	--with-pam \
 	--with-tcp-wrappers \
 	--with-rsh=/usr/bin/rsh \
+	--with-kerberos5=/usr/kerberos \
 	--with-default-path=/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin \
 	$EXTRA_OPTS
 
