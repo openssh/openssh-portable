@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.198 2004/02/12 17:27:21 tim Exp $
+# $Id: configure.ac,v 1.199 2004/02/18 00:21:12 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -2085,9 +2085,9 @@ AC_ARG_WITH(kerberos5,
 			if $KRB5CONF | grep gssapi >/dev/null ; then
 				AC_MSG_RESULT(yes)
 				K5CFLAGS="`$KRB5CONF --cflags gssapi`"
-				dnl  m4 quadragraphs: "sed 's/-l[^- ]*//g'"
-				K5LDFLAGS="`$KRB5CONF --libs gssapi | sed 's/-l@<:@^- @:>@*//g'`"
-				K5LIBS="`$KRB5CONF --libs gssapi | sed 's/-L@<:@^- @:>@*//g'`"
+				dnl  m4 quadragraphs: "sed 's/-l[^ ]* //g'"
+				K5LDFLAGS="`$KRB5CONF --libs gssapi | sed 's/-l@<:@^ @:>@* //g'`"
+				K5LIBS="`$KRB5CONF --libs gssapi | sed 's/-L@<:@^ @:>@* //g'`"
 			else
 				AC_MSG_RESULT(no)
 				K5CFLAGS="`$KRB5CONF --cflags`"

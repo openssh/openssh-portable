@@ -1,3 +1,7 @@
+20040218
+ - (dtucker) [configure.ac] Handle case where krb5-config --libs returns a
+   path with a "-" in it.  From Sergio.Gelato at astro.su.se.
+
 20040217
  - (djm) Simplify the license on code I have written. No code changes.
  - (djm) OpenBSD CVS Sync
@@ -1866,4 +1870,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3233 2004/02/17 12:20:07 dtucker Exp $
+$Id: ChangeLog,v 1.3234 2004/02/18 00:21:12 dtucker Exp $
