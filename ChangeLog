@@ -10,6 +10,9 @@
    - jmc@cvs.openbsd.org 2004/06/26 09:11:14
      [ssh_config.5]
      punctuation and grammar fixes. also, keep the options in order.
+   - jmc@cvs.openbsd.org 2004/06/26 09:14:40
+     [sshd_config.5]
+     new sentence, new line;
 
 20040627
  - (tim) update README files.
@@ -1456,4 +1459,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3460 2004/06/30 12:38:52 djm Exp $
+$Id: ChangeLog,v 1.3461 2004/06/30 12:39:34 djm Exp $
