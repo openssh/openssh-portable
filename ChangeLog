@@ -1,3 +1,7 @@
+20020629
+ - (bal) fix to auth2-pam.c to swap fatal() arguments,  A bit of style
+   clean up while I'm near it.
+
 20020628
  - (stevesk) [sshd_config] PAMAuthenticationViaKbdInt no; commented
    options should contain default value.  from solar.
@@ -1197,4 +1201,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2311 2002/06/28 00:37:33 mouring Exp $
+$Id: ChangeLog,v 1.2312 2002/06/28 16:48:11 mouring Exp $
