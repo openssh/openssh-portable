@@ -49,6 +49,8 @@
 #include "dispatch.h"
 #include "auth-options.h"
 
+extern ServerOptions options;
+
 static Buffer stdin_buffer;	/* Buffer for stdin data. */
 static Buffer stdout_buffer;	/* Buffer for stdout data. */
 static Buffer stderr_buffer;	/* Buffer for stderr data. */
@@ -749,7 +751,7 @@ input_direct_tcpip(void)
 	   originator, originator_port, target, target_port);
 
 	/* XXX check permission */
-	if (no_port_forwarding_flag) {
+	if (no_port_forwarding_flag || !options.allow_tcp_forwarding) {
 		xfree(target);
 		xfree(originator);
 		return -1;

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.19 2000/10/11 20:27:23 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.20 2000/10/14 12:16:56 markus Exp $");
 
 #ifdef HAVE_OSF_SIA
 # include <sia.h>
@@ -442,10 +442,10 @@ userauth_pubkey(Authctxt *authctxt)
 			sig = packet_get_string(&slen);
 			packet_done();
 			buffer_init(&b);
-			if (datafellows & SSH_COMPAT_SESSIONID_ENCODING) {
-				buffer_put_string(&b, session_id2, session_id2_len);
-			} else {
+			if (datafellows & SSH_OLD_SESSIONID) {
 				buffer_append(&b, session_id2, session_id2_len);
+			} else {
+				buffer_put_string(&b, session_id2, session_id2_len);
 			}
 			/* reconstruct packet */
 			buffer_put_char(&b, SSH2_MSG_USERAUTH_REQUEST);

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.25 2000/10/12 09:59:19 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.26 2000/10/14 12:16:56 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
@@ -657,12 +657,12 @@ sign_and_send_pubkey(Authctxt *authctxt, Key *k, sign_cb_fn *sign_callback)
 
 	/* data to be signed */
 	buffer_init(&b);
-	if (datafellows & SSH_COMPAT_SESSIONID_ENCODING) {
-		buffer_put_string(&b, session_id2, session_id2_len);
-		skip = buffer_len(&b);
-	} else {
+	if (datafellows & SSH_OLD_SESSIONID) {
 		buffer_append(&b, session_id2, session_id2_len);
 		skip = session_id2_len; 
+	} else {
+		buffer_put_string(&b, session_id2, session_id2_len);
+		skip = buffer_len(&b);
 	}
 	buffer_put_char(&b, SSH2_MSG_USERAUTH_REQUEST);
 	buffer_put_cstring(&b, authctxt->server_user);

@@ -627,7 +627,8 @@ If the option is set to
 .Dq no ,
 the check will not be executed.
 .It Cm Cipher
-Specifies the cipher to use for encrypting the session.
+Specifies the cipher to use for encrypting the session
+in protocol version 1
 Currently,
 .Dq blowfish ,
 and
@@ -640,7 +641,7 @@ Specifies the ciphers allowed for protocol version 2
 in order of preference.
 Multiple ciphers must be comma-separated.
 The default is
-.Dq 3des-cbc,blowfish-cbc,arcfour,cast128-cbc .
+.Dq 3des-cbc,blowfish-cbc,cast128-cbc,arcfour .
 .It Cm Compression
 Specifies whether to use compression.
 The argument must be

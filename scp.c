@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.41 2000/10/11 20:03:27 markus Exp $");
+RCSID("$OpenBSD: scp.c,v 1.42 2000/10/14 10:07:21 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -266,13 +266,13 @@ main(argc, argv)
 		case 'o':
 		case 'c':
 		case 'i':
-			addargs("-%c %s", ch, optarg);
+			addargs("-%c%s", ch, optarg);
 			break;
 		case 'P':
-			addargs("-p %s", optarg);
+			addargs("-p%s", optarg);
 			break;
 		case 'B':
-			addargs("-o Batchmode yes");
+			addargs("-oBatchmode yes");
 			break;
 		case 'p':
 			pflag = 1;

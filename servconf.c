@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.52 2000/10/11 20:14:39 markus Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.53 2000/10/14 12:12:09 markus Exp $");
 
 #include "ssh.h"
 #include "servconf.h"
@@ -67,6 +67,7 @@ initialize_server_options(ServerOptions *options)
 #endif
 	options->permit_empty_passwd = -1;
 	options->use_login = -1;
+	options->allow_tcp_forwarding = -1;
 	options->num_allow_users = 0;
 	options->num_deny_users = 0;
 	options->num_allow_groups = 0;
@@ -159,6 +160,8 @@ fill_default_server_options(ServerOptions *options)
 		options->permit_empty_passwd = 0;
 	if (options->use_login == -1)
 		options->use_login = 0;
+	if (options->allow_tcp_forwarding == -1)
+		options->allow_tcp_forwarding = 1;
 	if (options->protocol == SSH_PROTO_UNKNOWN)
 		options->protocol = SSH_PROTO_1|SSH_PROTO_2;
 	if (options->gateway_ports == -1)
@@ -189,7 +192,8 @@ typedef enum {
 	sPasswordAuthentication, sKbdInteractiveAuthentication, sListenAddress,
 	sPrintMotd, sIgnoreRhosts, sX11Forwarding, sX11DisplayOffset,
 	sStrictModes, sEmptyPasswd, sRandomSeedFile, sKeepAlives, sCheckMail,
-	sUseLogin, sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
+	sUseLogin, sAllowTcpForwarding,
+	sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
 	sIgnoreUserKnownHosts, sHostDSAKeyFile, sCiphers, sProtocol, sPidFile,
 	sGatewayPorts, sDSAAuthentication, sXAuthLocation, sSubsystem, sMaxStartups
 } ServerOpCodes;
@@ -240,6 +244,7 @@ static struct {
 	{ "uselogin", sUseLogin },
 	{ "randomseed", sRandomSeedFile },
 	{ "keepalive", sKeepAlives },
+	{ "allowtcpforwarding", sAllowTcpForwarding },
 	{ "allowusers", sAllowUsers },
 	{ "denyusers", sDenyUsers },
 	{ "allowgroups", sAllowGroups },
@@ -572,6 +577,10 @@ parse_flag:
 			if (*intptr == -1)
 				*intptr = (LogLevel) value;
 			break;
+
+		case sAllowTcpForwarding:
+			intptr = &options->allow_tcp_forwarding;
+			goto parse_flag;
 
 		case sAllowUsers:
 			while ((arg = strdelim(&cp)) && *arg != '\0') {

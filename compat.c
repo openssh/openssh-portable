@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: compat.c,v 1.24 2000/10/10 20:20:45 markus Exp $");
+RCSID("$OpenBSD: compat.c,v 1.25 2000/10/14 12:16:56 markus Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -62,13 +62,18 @@ compat_datafellows(const char *version)
 		char	*pat;
 		int	bugs;
 	} check[] = {
-		{"^.*MindTerm",		0},
-		{"^2\\.1\\.0 ",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC},
-		{"^2\\.0\\.",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC|SSH_BUG_PUBKEYAUTH|SSH_BUG_X11FWD},
-		{"^2\\.[23]\\.0 ",	SSH_BUG_HMAC|SSH_COMPAT_SESSIONID_ENCODING},
-		{"^2\\.[2-9]\\.",	SSH_COMPAT_SESSIONID_ENCODING},
-		{"^2\\.",		SSH_BUG_HMAC|SSH_COMPAT_SESSIONID_ENCODING},
-		{NULL,			0}
+		{ "^OpenSSH-2\\.[01]",	SSH_OLD_SESSIONID },
+		{ "^OpenSSH_2\\.2",	SSH_OLD_SESSIONID },
+		{ "MindTerm",		0 },
+		{ "^2\\.1\\.0 ",	SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
+					SSH_OLD_SESSIONID },
+		{ "^2\\.0\\.",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
+					SSH_OLD_SESSIONID|
+					SSH_BUG_PUBKEYAUTH|SSH_BUG_X11FWD },
+		{ "^2\\.[23]\\.0 ",	SSH_BUG_HMAC},
+		{ "^2\\.[2-9]\\.",	0 },
+		{ "^2\\.",		SSH_BUG_HMAC},		/* XXX fallback */
+		{ NULL,			0 }
 	};
 	/* process table, return first match */
 	for (i = 0; check[i].pat; i++) {

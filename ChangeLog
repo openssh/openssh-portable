@@ -1,3 +1,32 @@
+20001016
+ - (djm) Sync with OpenBSD:
+   - markus@cvs.openbsd.org  2000/10/14 04:01:15
+     [cipher.c]
+     debug3
+   - markus@cvs.openbsd.org  2000/10/14 04:07:23
+     [scp.c]
+     remove spaces from arguments; from djm@mindrot.org
+   - markus@cvs.openbsd.org  2000/10/14 06:09:46
+     [ssh.1]
+     Cipher is for SSH-1 only
+   - markus@cvs.openbsd.org  2000/10/14 06:12:09
+     [servconf.c servconf.h serverloop.c session.c sshd.8]
+     AllowTcpForwarding; from naddy@
+   - markus@cvs.openbsd.org  2000/10/14 06:16:56
+     [auth2.c compat.c compat.h sshconnect2.c version.h]
+     OpenSSH_2.3; note that is is not complete, but the version number 
+     needs to be changed for interoperability reasons
+   - markus@cvs.openbsd.org  2000/10/14 06:19:45
+     [auth-rsa.c]
+     do not send RSA challenge if key is not allowed by key-options; from
+     eivind@ThinkSec.com
+   - markus@cvs.openbsd.org  2000/10/15 08:14:01
+     [rijndael.c session.c]
+     typos; from stevesk@sweden.hp.com
+   - markus@cvs.openbsd.org  2000/10/15 08:18:31
+     [rijndael.c]
+     typo
+
 20001015
  - (djm) Fix ssh2 hang on background processes at logout.
 

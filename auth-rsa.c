@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rsa.c,v 1.31 2000/10/11 19:59:52 markus Exp $");
+RCSID("$OpenBSD: auth-rsa.c,v 1.32 2000/10/14 12:19:45 markus Exp $");
 
 #include "rsa.h"
 #include "packet.h"
@@ -231,6 +231,12 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 			}
 		} else
 			options = NULL;
+		/*
+		 * If our options do not allow this key to be used,
+		 * do not send challenge.
+		 */
+		if (!auth_parse_options(pw, options, linenum))
+			continue;
 
 		/* Parse the key from the line. */
 		if (!auth_rsa_read_key(&cp, &bits, pk->e, pk->n)) {
@@ -269,9 +275,8 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 		 * Break out of the loop if authentication was successful;
 		 * otherwise continue searching.
 		 */
-		authenticated = auth_parse_options(pw, options, linenum);
-		if (authenticated)
-			break;
+		authenticated = 1;
+		break;
 	}
 
 	/* Restore the privileged uid. */

@@ -303,6 +303,14 @@ wildcards in the patterns.
 Only group names are valid; a numerical group ID isn't recognized.
 By default login is allowed regardless of the primary group.
 .Pp
+.It Cm AllowTcpForwarding
+Specifies whether TCP forwarding is permitted.
+The default is
+.Dq yes .
+Note that disabling TCP forwarding does not improve security unless
+users are also denied shell access, as they can always install their
+own forwarders.
+.Pp
 .It Cm AllowUsers
 This keyword can be followed by a number of user names, separated
 by spaces.
