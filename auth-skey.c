@@ -1,9 +1,11 @@
 #include "includes.h"
 
 #ifdef SKEY
-RCSID("$Id: auth-skey.c,v 1.3 1999/11/23 22:25:52 markus Exp $");
+RCSID("$Id: auth-skey.c,v 1.4 1999/12/01 16:54:35 markus Exp $");
 
 #include "ssh.h"
+#include "packet.h"
+
 #ifdef HAVE_OPENSSL
 #include <openssl/sha1.h>
 #endif
@@ -13,6 +15,35 @@ RCSID("$Id: auth-skey.c,v 1.3 1999/11/23 22:25:52 markus Exp $");
 
 /* from %OpenBSD: skeylogin.c,v 1.32 1999/08/16 14:46:56 millert Exp % */
 
+/* 
+ * try skey authentication,
+ * return 1 on success, 0 on failure, -1 if skey is not available 
+ */
+
+int 
+auth_skey_password(struct passwd * pw, const char *password)
+{
+	if (strncasecmp(password, "s/key", 5) == 0) {
+		char *skeyinfo = skey_keyinfo(pw->pw_name);
+		if (skeyinfo == NULL) {
+			debug("generating fake skeyinfo for %.100s.",
+			    pw->pw_name);
+			skeyinfo = skey_fake_keyinfo(pw->pw_name);
+		}
+		if (skeyinfo != NULL)
+			packet_send_debug(skeyinfo);
+		/* Try again. */
+		return 0;
+	} else if (skey_haskey(pw->pw_name) == 0 &&
+		   skey_passcheck(pw->pw_name, (char *) password) != -1) {
+		/* Authentication succeeded. */
+		return 1;
+	}
+	/* Fall back to ordinary passwd authentication. */
+	return -1;
+}
+  
++ /* from %OpenBSD: skeylogin.c,v 1.32 1999/08/16 14:46:56 millert Exp % */
 
 #define ROUND(x)   (((x)[0] << 24) + (((x)[1]) << 16) + (((x)[2]) << 8) + \
 		    ((x)[3]))

@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: readconf.c,v 1.6 1999/11/25 00:54:59 damien Exp $");
+RCSID("$Id: readconf.c,v 1.7 1999/12/06 00:47:29 damien Exp $");
 
 #include "ssh.h"
 #include "cipher.h"
@@ -164,13 +164,11 @@ static struct {
  */
 
 void 
-add_local_forward(Options *options, int port, const char *host,
-		  int host_port)
+add_local_forward(Options *options, u_short port, const char *host,
+		  u_short host_port)
 {
 	Forward *fwd;
 	extern uid_t original_real_uid;
-	if ((port & 0xffff) != port)
-		fatal("Requested forwarding of nonexistent port %d.", port);
 	if (port < IPPORT_RESERVED && original_real_uid != 0)
 		fatal("Privileged ports can only be forwarded by root.\n");
 	if (options->num_local_forwards >= SSH_MAX_FORWARDS_PER_DIRECTION)
@@ -187,8 +185,8 @@ add_local_forward(Options *options, int port, const char *host,
  */
 
 void 
-add_remote_forward(Options *options, int port, const char *host,
-		   int host_port)
+add_remote_forward(Options *options, u_short port, const char *host,
+		   u_short host_port)
 {
 	Forward *fwd;
 	if (options->num_remote_forwards >= SSH_MAX_FORWARDS_PER_DIRECTION)
@@ -230,7 +228,8 @@ process_config_line(Options *options, const char *host,
 		    int *activep)
 {
 	char buf[256], *cp, *string, **charptr, *cp2;
-	int opcode, *intptr, value, fwd_port, fwd_host_port;
+	int opcode, *intptr, value;
+	u_short fwd_port, fwd_host_port;
 
 	/* Skip leading whitespace. */
 	cp = line + strspn(line, WHITESPACE);
@@ -467,7 +466,7 @@ parse_int:
 		if (!cp)
 			fatal("%.200s line %d: Missing second argument.",
 			      filename, linenum);
-		if (sscanf(cp, "%255[^:]:%d", buf, &fwd_host_port) != 2)
+		if (sscanf(cp, "%255[^:]:%hu", buf, &fwd_host_port) != 2)
 			fatal("%.200s line %d: Badly formatted host:port.",
 			      filename, linenum);
 		if (*activep)
@@ -486,7 +485,7 @@ parse_int:
 		if (!cp)
 			fatal("%.200s line %d: Missing second argument.",
 			      filename, linenum);
-		if (sscanf(cp, "%255[^:]:%d", buf, &fwd_host_port) != 2)
+		if (sscanf(cp, "%255[^:]:%hu", buf, &fwd_host_port) != 2)
 			fatal("%.200s line %d: Badly formatted host:port.",
 			      filename, linenum);
 		if (*activep)

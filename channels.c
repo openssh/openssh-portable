@@ -16,7 +16,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: channels.c,v 1.8 1999/11/25 00:54:58 damien Exp $");
+RCSID("$Id: channels.c,v 1.9 1999/12/06 00:47:29 damien Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -82,7 +82,7 @@ unsigned int x11_fake_data_len;
  */
 typedef struct {
 	char *host;		/* Host name. */
-	int port;		/* Port number. */
+	u_short port;		/* Port number. */
 } ForwardPermission;
 
 /* List of all permitted host/port pairs to connect. */
@@ -876,8 +876,8 @@ channel_open_message()
  */
 
 void 
-channel_request_local_forwarding(int port, const char *host,
-				 int host_port)
+channel_request_local_forwarding(u_short port, const char *host,
+				 u_short host_port)
 {
 	int ch, sock, on = 1;
 	struct sockaddr_in sin;
@@ -932,8 +932,8 @@ channel_request_local_forwarding(int port, const char *host,
  */
 
 void 
-channel_request_remote_forwarding(int port, const char *host,
-				  int remote_port)
+channel_request_remote_forwarding(u_short port, const char *host,
+				  u_short remote_port)
 {
 	int payload_len;
 	/* Record locally that connection to this host/port is permitted. */
@@ -968,17 +968,13 @@ channel_request_remote_forwarding(int port, const char *host,
 void 
 channel_input_port_forward_request(int is_root)
 {
-	int port, host_port;
+	u_short port, host_port;
 	char *hostname;
 
 	/* Get arguments from the packet. */
 	port = packet_get_int();
 	hostname = packet_get_string(NULL);
 	host_port = packet_get_int();
-
-	/* Port numbers are 16 bit quantities. */
-	if ((port & 0xffff) != port)
-		packet_disconnect("Requested forwarding of nonexistent port %d.", port);
 
 	/*
 	 * Check that an unprivileged user is not trying to forward a
@@ -1004,7 +1000,8 @@ channel_input_port_forward_request(int is_root)
 void 
 channel_input_port_open(int payload_len)
 {
-	int remote_channel, sock, newch, host_port, i;
+	int remote_channel, sock, newch, i;
+	u_short host_port;
 	struct sockaddr_in sin;
 	char *host, *originator_string;
 	struct hostent *hp;
@@ -1122,7 +1119,8 @@ char *
 x11_create_display_inet(int screen_number)
 {
 	extern ServerOptions options;
-	int display_number, port, sock;
+	int display_number, sock;
+	u_short port;
 	struct sockaddr_in sin;
 	char buf[512];
 	char hostname[MAXHOSTNAMELEN];

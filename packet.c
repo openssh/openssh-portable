@@ -15,7 +15,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: packet.c,v 1.6 1999/11/25 00:54:59 damien Exp $");
+RCSID("$Id: packet.c,v 1.7 1999/12/06 00:47:29 damien Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -530,8 +530,10 @@ restart:
 	*payload_len_ptr = buffer_len(&incoming_packet);
 
 	/* Handle disconnect message. */
-	if ((unsigned char) buf[0] == SSH_MSG_DISCONNECT)
-		fatal("Received disconnect: %.900s", packet_get_string(NULL));
+	if ((unsigned char) buf[0] == SSH_MSG_DISCONNECT) {
+		log("Received disconnect: %.900s", packet_get_string(NULL));
+		fatal_cleanup();
+	}	
 
 	/* Ignore ignore messages. */
 	if ((unsigned char) buf[0] == SSH_MSG_IGNORE)
@@ -662,7 +664,8 @@ packet_disconnect(const char *fmt,...)
 	packet_close();
 
 	/* Display the error locally and exit. */
-	fatal("Disconnecting: %.100s", buf);
+	log("Disconnecting: %.100s", buf);
+	fatal_cleanup();
 }
 
 /* Checks if there is any buffered output, and tries to write some of the output. */

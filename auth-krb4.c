@@ -7,9 +7,122 @@
 #include "packet.h"
 #include "xmalloc.h"
 #include "ssh.h"
+#include "servconf.h"
 
 #ifdef KRB4
 char *ticket = NULL;
+
+extern ServerOptions options;
+
+/*
+ * try krb4 authentication,
+ * return 1 on success, 0 on failure, -1 if krb4 is not available
+ */
+
+int 
+auth_krb4_password(struct passwd * pw, const char *password)
+{
+	AUTH_DAT adata;
+	KTEXT_ST tkt;
+	struct hostent *hp;
+	unsigned long faddr;
+	char localhost[MAXHOSTNAMELEN];
+	char phost[INST_SZ];
+	char realm[REALM_SZ];
+	int r;
+
+	/*
+	 * Try Kerberos password authentication only for non-root
+	 * users and only if Kerberos is installed.
+	 */
+	if (pw->pw_uid != 0 && krb_get_lrealm(realm, 1) == KSUCCESS) {
+
+		/* Set up our ticket file. */
+		if (!krb4_init(pw->pw_uid)) {
+			log("Couldn't initialize Kerberos ticket file for %s!",
+			    pw->pw_name);
+			goto kerberos_auth_failure;
+		}
+		/* Try to get TGT using our password. */
+		r = krb_get_pw_in_tkt((char *) pw->pw_name, "",
+		    realm, "krbtgt", realm,
+		    DEFAULT_TKT_LIFE, (char *) password);
+		if (r != INTK_OK) {
+			packet_send_debug("Kerberos V4 password "
+			    "authentication for %s failed: %s",
+			    pw->pw_name, krb_err_txt[r]);
+			goto kerberos_auth_failure;
+		}
+		/* Successful authentication. */
+		chown(tkt_string(), pw->pw_uid, pw->pw_gid);
+
+		/*
+		 * Now that we have a TGT, try to get a local
+		 * "rcmd" ticket to ensure that we are not talking
+		 * to a bogus Kerberos server.
+		 */
+		(void) gethostname(localhost, sizeof(localhost));
+		(void) strlcpy(phost, (char *) krb_get_phost(localhost),
+		    INST_SZ);
+		r = krb_mk_req(&tkt, KRB4_SERVICE_NAME, phost, realm, 33);
+
+		if (r == KSUCCESS) {
+			if (!(hp = gethostbyname(localhost))) {
+				log("Couldn't get local host address!");
+				goto kerberos_auth_failure;
+			}
+			memmove((void *) &faddr, (void *) hp->h_addr,
+			    sizeof(faddr));
+
+			/* Verify our "rcmd" ticket. */
+			r = krb_rd_req(&tkt, KRB4_SERVICE_NAME, phost,
+			    faddr, &adata, "");
+			if (r == RD_AP_UNDEC) {
+				/*
+				 * Probably didn't have a srvtab on
+				 * localhost. Allow login.
+				 */
+				log("Kerberos V4 TGT for %s unverifiable, "
+				    "no srvtab installed? krb_rd_req: %s",
+				    pw->pw_name, krb_err_txt[r]);
+			} else if (r != KSUCCESS) {
+				log("Kerberos V4 %s ticket unverifiable: %s",
+				    KRB4_SERVICE_NAME, krb_err_txt[r]);
+				goto kerberos_auth_failure;
+			}
+		} else if (r == KDC_PR_UNKNOWN) {
+			/*
+			 * Allow login if no rcmd service exists, but
+			 * log the error.
+			 */
+			log("Kerberos V4 TGT for %s unverifiable: %s; %s.%s "
+			    "not registered, or srvtab is wrong?", pw->pw_name,
+			krb_err_txt[r], KRB4_SERVICE_NAME, phost);
+		} else {
+			/*
+			 * TGT is bad, forget it. Possibly spoofed!
+			 */
+			packet_send_debug("WARNING: Kerberos V4 TGT "
+			    "possibly spoofed for %s: %s",
+			    pw->pw_name, krb_err_txt[r]);
+			goto kerberos_auth_failure;
+		}
+
+		/* Authentication succeeded. */
+		return 1;
+
+kerberos_auth_failure:
+		krb4_cleanup_proc(NULL);
+
+		if (!options.kerberos_or_local_passwd)
+			return 0;
+	} else {
+		/* Logging in as root or no local Kerberos realm. */
+		packet_send_debug("Unable to authenticate to Kerberos.");
+	}
+	/* Fall back to ordinary passwd authentication. */
+	return -1;
+}
 
 void
 krb4_cleanup_proc(void *ignore)

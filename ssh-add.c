@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: ssh-add.c,v 1.15 1999/11/25 01:31:26 damien Exp $");
+RCSID("$Id: ssh-add.c,v 1.16 1999/12/06 00:47:29 damien Exp $");
 
 #include "rsa.h"
 #include "ssh.h"
@@ -106,8 +106,12 @@ add_file(AuthenticationConnection *ac, const char *filename)
 	}
 	RSA_free(public_key);
 
-	if (!interactive && getenv("DISPLAY"))
-		askpass = getenv("SSH_ASKPASS");
+	if (!interactive && getenv("DISPLAY")) {
+		if (getenv(SSH_ASKPASS_ENV))
+			askpass = getenv(SSH_ASKPASS_ENV);
+		else
+			askpass = SSH_ASKPASS_DEFAULT;
+	}
 
 	/* At first, try empty passphrase */
 	success = load_private_key(filename, "", key, &comment);

@@ -1,5 +1,29 @@
 19991204
  - Small cleanup of PAM code in sshd.c
+ - Merged OpenBSD CVS changes:
+   - [auth-krb4.c auth-passwd.c auth-skey.c ssh.h]
+     move skey-auth from auth-passwd.c to auth-skey.c, same for krb4
+   - [auth-rsa.c]
+     warn only about mismatch if key is _used_
+     warn about keysize-mismatch with log() not error()
+     channels.c readconf.c readconf.h ssh.c ssh.h sshconnect.c
+     ports are u_short
+   - [hostfile.c]
+     indent, shorter warning
+   - [nchan.c]
+     use error() for internal errors
+   - [packet.c]
+     set loglevel for SSH_MSG_DISCONNECT to log(), not fatal()
+     serverloop.c
+     indent
+   - [ssh-add.1 ssh-add.c ssh.h]
+     document $SSH_ASKPASS, reasonable default
+   - [ssh.1]
+     CheckHostIP is not available for connects via proxy command
+   - [sshconnect.c]
+     typo
+     easier to read client code for passwd and skey auth
+     turn of checkhostip for proxy connects, since we don't know the remote ip
 
 19991126
  - Add definition for __P()

@@ -13,7 +13,7 @@
  * 
  */
 
-/* RCSID("$Id: readconf.h,v 1.5 1999/11/25 00:54:59 damien Exp $"); */
+/* RCSID("$Id: readconf.h,v 1.6 1999/12/06 00:47:29 damien Exp $"); */
 
 #ifndef READCONF_H
 #define READCONF_H
@@ -21,9 +21,9 @@
 /* Data structure for representing a forwarding request. */
 
 typedef struct {
-	int     port;		/* Port to forward. */
-	char   *host;		/* Host to connect. */
-	int     host_port;	/* Port to connect on host. */
+	u_short	  port;		/* Port to forward. */
+	char	 *host;		/* Host to connect. */
+	u_short	  host_port;	/* Port to connect on host. */
 }       Forward;
 /* Data structure for representing option data. */
 
@@ -123,15 +123,15 @@ read_config_file(const char *filename, const char *host,
  * error.
  */
 void 
-add_local_forward(Options * options, int port, const char *host,
-    int host_port);
+add_local_forward(Options * options, u_short port, const char *host,
+    u_short host_port);
 
 /*
  * Adds a remote TCP/IP port forward to options.  Never returns if there is
  * an error.
  */
 void 
-add_remote_forward(Options * options, int port, const char *host,
-    int host_port);
+add_remote_forward(Options * options, u_short port, const char *host,
+    u_short host_port);
 
 #endif				/* READCONF_H */

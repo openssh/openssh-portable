@@ -13,7 +13,7 @@
  * 
  */
 
-/* RCSID("$Id: ssh.h,v 1.16 1999/11/25 00:54:59 damien Exp $"); */
+/* RCSID("$Id: ssh.h,v 1.17 1999/12/06 00:47:29 damien Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -170,6 +170,13 @@
 #define SSH_AGENTPID_ENV_NAME	"SSH_AGENT_PID"
 
 /*
+ * Default path to ssh-askpass used by ssh-add,
+ * environment variable for overwriting the default location
+ */
+#define SSH_ASKPASS_DEFAULT	"/usr/X11R6/bin/ssh-askpass"
+#define SSH_ASKPASS_ENV		"SSH_ASKPASS"
+
+/*
  * Force host key length and server key length to differ by at least this
  * many bits.  This is to make double encryption with rsaref work.
  */
@@ -294,7 +301,7 @@ void    record_logout(int pid, const char *ttyname);
  */
 int 
 ssh_connect(const char *host, struct sockaddr_in * hostaddr,
-    int port, int connection_attempts,
+    u_short port, int connection_attempts,
     int anonymous, uid_t original_real_uid,
     const char *proxy_command);
 
@@ -579,8 +586,8 @@ char   *channel_open_message(void);
  * error.
  */
 void 
-channel_request_local_forwarding(int port, const char *host,
-    int remote_port);
+channel_request_local_forwarding(u_short port, const char *host,
+    u_short remote_port);
 
 /*
  * Initiate forwarding of connections to port "port" on remote host through
@@ -589,8 +596,8 @@ channel_request_local_forwarding(int port, const char *host,
  * permitted.
  */
 void 
-channel_request_remote_forwarding(int port, const char *host,
-    int remote_port);
+channel_request_remote_forwarding(u_short port, const char *host,
+    u_short remote_port);
 
 /*
  * Permits opening to any host/port in SSH_MSG_PORT_OPEN.  This is usually
@@ -704,6 +711,7 @@ struct envstring {
 int     auth_krb4(const char *server_user, KTEXT auth, char **client);
 int     krb4_init(uid_t uid);
 void    krb4_cleanup_proc(void *ignore);
+int	auth_krb4_password(struct passwd * pw, const char *password);
 
 #ifdef AFS
 #include <kafs.h>
@@ -721,6 +729,7 @@ int     radix_to_creds(const char *buf, CREDENTIALS * creds);
 #ifdef SKEY
 #include <skey.h>
 char   *skey_fake_keyinfo(char *username);
+int	auth_skey_password(struct passwd * pw, const char *password);
 #endif				/* SKEY */
 
 #endif				/* SSH_H */

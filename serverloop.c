@@ -609,7 +609,7 @@ quit:
 		/* Check if it matches the process we forked. */
 		if (wait_pid != pid)
 			error("Strange, wait returned pid %d, expected %d",
-			    wait_pid, pid);
+			       wait_pid, pid);
 	}
 
 	/* We no longer want our SIGCHLD handler to be called. */

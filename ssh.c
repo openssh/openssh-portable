@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: ssh.c,v 1.12 1999/11/25 00:54:59 damien Exp $");
+RCSID("$Id: ssh.c,v 1.13 1999/12/06 00:47:29 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -162,8 +162,8 @@ rsh_connect(char *host, char *user, Buffer * command)
 int
 main(int ac, char **av)
 {
-	int i, opt, optind, type, exit_status, ok, fwd_port, fwd_host_port,
-	 authfd;
+	int i, opt, optind, type, exit_status, ok, authfd;
+	u_short fwd_port, fwd_host_port;
 	char *optarg, *cp, buf[256];
 	Buffer command;
 	struct winsize ws;
@@ -340,10 +340,6 @@ main(int ac, char **av)
 
 		case 'p':
 			options.port = atoi(optarg);
-			if (options.port < 1 || options.port > 65535) {
-				fprintf(stderr, "Bad port %s.\n", optarg);
-				exit(1);
-			}
 			break;
 
 		case 'l':
@@ -351,7 +347,7 @@ main(int ac, char **av)
 			break;
 
 		case 'R':
-			if (sscanf(optarg, "%d:%255[^:]:%d", &fwd_port, buf,
+			if (sscanf(optarg, "%hu:%255[^:]:%hu", &fwd_port, buf,
 				   &fwd_host_port) != 3) {
 				fprintf(stderr, "Bad forwarding specification '%s'.\n", optarg);
 				usage();
@@ -361,7 +357,7 @@ main(int ac, char **av)
 			break;
 
 		case 'L':
-			if (sscanf(optarg, "%d:%255[^:]:%d", &fwd_port, buf,
+			if (sscanf(optarg, "%hu:%255[^:]:%hu", &fwd_port, buf,
 				   &fwd_host_port) != 3) {
 				fprintf(stderr, "Bad forwarding specification '%s'.\n", optarg);
 				usage();
@@ -561,7 +557,7 @@ main(int ac, char **av)
 	/* Check if the connection failed, and try "rsh" if appropriate. */
 	if (!ok) {
 		if (options.port != 0)
-			log("Secure connection to %.100s on port %d refused%.100s.",
+			log("Secure connection to %.100s on port %hu refused%.100s.",
 			    host, options.port,
 			    options.fallback_to_rsh ? "; reverting to insecure method" : "");
 		else

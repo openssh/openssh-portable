@@ -28,7 +28,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: nchan.c,v 1.3 1999/11/25 00:54:59 damien Exp $");
+RCSID("$Id: nchan.c,v 1.4 1999/12/06 00:47:29 damien Exp $");
 
 #include "ssh.h"
 
@@ -65,7 +65,7 @@ chan_rcvd_oclose(Channel *c)
 		chan_delele_if_full_closed(c);
 		break;
 	default:
-		debug("protocol error: chan_rcvd_oclose %d for istate %d", c->self, c->istate);
+		error("protocol error: chan_rcvd_oclose %d for istate %d", c->self, c->istate);
 		break;
 	}
 }
@@ -79,7 +79,7 @@ chan_read_failed(Channel *c)
 		c->istate = CHAN_INPUT_WAIT_DRAIN;
 		break;
 	default:
-		debug("internal error: we do not read, but chan_read_failed %d for istate %d",
+		error("internal error: we do not read, but chan_read_failed %d for istate %d",
 		      c->self, c->istate);
 		break;
 	}
@@ -88,7 +88,7 @@ void
 chan_ibuf_empty(Channel *c)
 {
 	if (buffer_len(&c->input)) {
-		debug("internal error: chan_ibuf_empty %d for non empty buffer", c->self);
+		error("internal error: chan_ibuf_empty %d for non empty buffer", c->self);
 		return;
 	}
 	switch (c->istate) {
@@ -98,7 +98,7 @@ chan_ibuf_empty(Channel *c)
 		c->istate = CHAN_INPUT_WAIT_OCLOSE;
 		break;
 	default:
-		debug("internal error: chan_ibuf_empty %d for istate %d", c->self, c->istate);
+		error("internal error: chan_ibuf_empty %d for istate %d", c->self, c->istate);
 		break;
 	}
 }
@@ -118,7 +118,7 @@ chan_rcvd_ieof(Channel *c)
 		chan_delele_if_full_closed(c);
 		break;
 	default:
-		debug("protocol error: chan_rcvd_ieof %d for ostate %d", c->self, c->ostate);
+		error("protocol error: chan_rcvd_ieof %d for ostate %d", c->self, c->ostate);
 		break;
 	}
 }
@@ -138,7 +138,7 @@ chan_write_failed(Channel *c)
 		chan_delele_if_full_closed(c);
 		break;
 	default:
-		debug("internal error: chan_write_failed %d for ostate %d", c->self, c->ostate);
+		error("internal error: chan_write_failed %d for ostate %d", c->self, c->ostate);
 		break;
 	}
 }
@@ -157,7 +157,7 @@ chan_obuf_empty(Channel *c)
 		chan_delele_if_full_closed(c);
 		break;
 	default:
-		debug("internal error: chan_obuf_empty %d for ostate %d", c->self, c->ostate);
+		error("internal error: chan_obuf_empty %d for ostate %d", c->self, c->ostate);
 		break;
 	}
 }
@@ -176,7 +176,7 @@ chan_send_ieof(Channel *c)
 		packet_send();
 		break;
 	default:
-		debug("internal error: channel %d: cannot send IEOF for istate %d", c->self, c->istate);
+		error("internal error: channel %d: cannot send IEOF for istate %d", c->self, c->istate);
 		break;
 	}
 }
@@ -193,7 +193,7 @@ chan_send_oclose(Channel *c)
 		packet_send();
 		break;
 	default:
-		debug("internal error: channel %d: cannot send OCLOSE for ostate %d", c->self, c->istate);
+		error("internal error: channel %d: cannot send OCLOSE for ostate %d", c->self, c->istate);
 		break;
 	}
 }

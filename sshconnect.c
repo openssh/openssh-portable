@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: sshconnect.c,v 1.15 1999/11/25 00:54:59 damien Exp $");
+RCSID("$Id: sshconnect.c,v 1.16 1999/12/06 00:47:29 damien Exp $");
 
 #ifdef HAVE_OPENSSL
 #include <openssl/bn.h>
@@ -34,11 +34,13 @@ RCSID("$Id: sshconnect.c,v 1.15 1999/11/25 00:54:59 damien Exp $");
 /* Session id for the current session. */
 unsigned char session_id[16];
 
+extern Options options;
+
 /*
  * Connect to the given ssh server using a proxy command.
  */
 int
-ssh_proxy_connect(const char *host, int port, uid_t original_real_uid,
+ssh_proxy_connect(const char *host, u_short port, uid_t original_real_uid,
 		  const char *proxy_command)
 {
 	Buffer command;
@@ -49,7 +51,7 @@ ssh_proxy_connect(const char *host, int port, uid_t original_real_uid,
 	char portstring[100];
 
 	/* Convert the port number into a string. */
-	snprintf(portstring, sizeof portstring, "%d", port);
+	snprintf(portstring, sizeof portstring, "%hu", port);
 
 	/* Build the final command string in the buffer by making the
 	   appropriate substitutions to the given proxy command. */
@@ -177,7 +179,7 @@ ssh_create_socket(uid_t original_real_uid, int privileged)
  */
 int
 ssh_connect(const char *host, struct sockaddr_in * hostaddr,
-	    int port, int connection_attempts,
+	    u_short port, int connection_attempts,
 	    int anonymous, uid_t original_real_uid,
 	    const char *proxy_command)
 {
@@ -476,9 +478,8 @@ respond_to_rsa_challenge(BIGNUM * challenge, RSA * prv)
  * the user using it.
  */
 int
-try_rsa_authentication(struct passwd * pw, const char *authfile)
+try_rsa_authentication(const char *authfile)
 {
-	extern Options options;
 	BIGNUM *challenge;
 	RSA *private_key;
 	RSA *public_key;
@@ -490,7 +491,8 @@ try_rsa_authentication(struct passwd * pw, const char *authfile)
 	public_key = RSA_new();
 	if (!load_public_key(authfile, public_key, &comment)) {
 		RSA_free(public_key);
-		return 0;	/* Could not load it.  Fail. */
+		/* Could not load it.  Fail. */
+		return 0;
 	}
 	debug("Trying RSA authentication with key '%.100s'", comment);
 
@@ -513,8 +515,7 @@ try_rsa_authentication(struct passwd * pw, const char *authfile)
 	if (type == SSH_SMSG_FAILURE) {
 		debug("Server refused our key.");
 		xfree(comment);
-		return 0;	/* Server refuses to authenticate with
-				   this key. */
+		return 0;
 	}
 	/* Otherwise, the server should respond with a challenge. */
 	if (type != SSH_SMSG_AUTH_RSA_CHALLENGE)
@@ -885,6 +886,93 @@ send_afs_tokens(void)
 #endif /* AFS */
 
 /*
+ * Tries to authenticate with any string-based challenge/response system.
+ * Note that the client code is not tied to s/key or TIS.
+ */
+int
+try_skey_authentication()
+{
+	int type, i, payload_len;
+	char *challenge, *response;
+
+	debug("Doing skey authentication.");
+
+	/* request a challenge */
+	packet_start(SSH_CMSG_AUTH_TIS);
+	packet_send();
+	packet_write_wait();
+
+	type = packet_read(&payload_len);
+	if (type != SSH_SMSG_FAILURE &&
+	    type != SSH_SMSG_AUTH_TIS_CHALLENGE) {
+		packet_disconnect("Protocol error: got %d in response "
+				  "to skey-auth", type);
+	}
+	if (type != SSH_SMSG_AUTH_TIS_CHALLENGE) {
+		debug("No challenge for skey authentication.");
+		return 0;
+	}
+	challenge = packet_get_string(&payload_len);
+	if (options.cipher == SSH_CIPHER_NONE)
+		log("WARNING: Encryption is disabled! "
+		    "Reponse will be transmitted in clear text.");
+	fprintf(stderr, "%s\n", challenge);
+	fflush(stderr);
+	for (i = 0; i < options.number_of_password_prompts; i++) {
+		if (i != 0)
+			error("Permission denied, please try again.");
+		response = read_passphrase("Response: ", 0);
+		packet_start(SSH_CMSG_AUTH_TIS_RESPONSE);
+		packet_put_string(response, strlen(response));
+		memset(response, 0, strlen(response));
+		xfree(response);
+		packet_send();
+		packet_write_wait();
+		type = packet_read(&payload_len);
+		if (type == SSH_SMSG_SUCCESS)
+			return 1;
+		if (type != SSH_SMSG_FAILURE)
+			packet_disconnect("Protocol error: got %d in response "
+					  "to skey-auth-reponse", type);
+	}
+	/* failure */
+	return 0;
+}
+
+/*
+ * Tries to authenticate with plain passwd authentication.
+ */
+int
+try_password_authentication(char *prompt)
+{
+	int type, i, payload_len;
+	char *password;
+
+	debug("Doing password authentication.");
+	if (options.cipher == SSH_CIPHER_NONE)
+		log("WARNING: Encryption is disabled! Password will be transmitted in clear text.");
+	for (i = 0; i < options.number_of_password_prompts; i++) {
+		if (i != 0)
+			error("Permission denied, please try again.");
+		password = read_passphrase(prompt, 0);
+		packet_start(SSH_CMSG_AUTH_PASSWORD);
+		packet_put_string(password, strlen(password));
+		memset(password, 0, strlen(password));
+		xfree(password);
+		packet_send();
+		packet_write_wait();
+
+		type = packet_read(&payload_len);
+		if (type == SSH_SMSG_SUCCESS)
+			return 1;
+		if (type != SSH_SMSG_FAILURE)
+			packet_disconnect("Protocol error: got %d in response to passwd auth", type);
+	}
+	/* failure */
+	return 0;
+}
+
+/*
  * Waits for the server identification string, and sends our own
  * identification string.
  */
@@ -895,7 +983,6 @@ ssh_exchange_identification()
 	int remote_major, remote_minor, i;
 	int connection_in = packet_get_connection_in();
 	int connection_out = packet_get_connection_out();
-	extern Options options;
 
 	/* Read other side\'s version identification. */
 	for (i = 0; i < sizeof(buf) - 1; i++) {
@@ -1015,9 +1102,7 @@ ssh_login(int host_key_valid,
 	  struct sockaddr_in *hostaddr,
 	  uid_t original_real_uid)
 {
-	extern Options options;
 	int i, type;
-	char *password;
 	struct passwd *pw;
 	BIGNUM *key;
 	RSA *host_key, *file_key;
@@ -1035,6 +1120,13 @@ ssh_login(int host_key_valid,
 	int local = (ntohl(hostaddr->sin_addr.s_addr) >> 24) == IN_LOOPBACKNET;
 	int payload_len, clen, sum_len = 0;
 	u_int32_t rand = 0;
+
+	/*
+	 * Turn off check_host_ip for proxy connects, since
+	 * we don't have the remote ip-address
+	 */
+	if (options.proxy_command != NULL && options.check_host_ip)
+		options.check_host_ip = 0;
 
 	if (options.check_host_ip)
 		ip = xstrdup(inet_ntoa(hostaddr->sin_addr));
@@ -1494,80 +1586,23 @@ ssh_login(int host_key_valid,
 
 		/* Try RSA authentication for each identity. */
 		for (i = 0; i < options.num_identity_files; i++)
-			if (try_rsa_authentication(pw, options.identity_files[i]))
+			if (try_rsa_authentication(options.identity_files[i]))
 				return;
 	}
 	/* Try skey authentication if the server supports it. */
 	if ((supported_authentications & (1 << SSH_AUTH_TIS)) &&
 	    options.skey_authentication && !options.batch_mode) {
-		debug("Doing skey authentication.");
-
-		/* request a challenge */
-		packet_start(SSH_CMSG_AUTH_TIS);
-		packet_send();
-		packet_write_wait();
-
-		type = packet_read(&payload_len);
-		if (type != SSH_SMSG_FAILURE &&
-		    type != SSH_SMSG_AUTH_TIS_CHALLENGE) {
-			packet_disconnect("Protocol error: got %d in response "
-					  "to skey auth", type);
-		}
-		if (type != SSH_SMSG_AUTH_TIS_CHALLENGE) {
-			debug("No challenge for skey authentication.");
-		} else {
-			char *challenge, *response;
-			challenge = packet_get_string(&payload_len);
-			if (options.cipher == SSH_CIPHER_NONE)
-				log("WARNING: Encryption is disabled! "
-				    "Reponse will be transmitted in clear text.");
-			fprintf(stderr, "%s\n", challenge);
-			fflush(stderr);
-			for (i = 0; i < options.number_of_password_prompts; i++) {
-				if (i != 0)
-					error("Permission denied, please try again.");
-				response = read_passphrase("Response: ", 0);
-				packet_start(SSH_CMSG_AUTH_TIS_RESPONSE);
-				packet_put_string(response, strlen(response));
-				memset(response, 0, strlen(response));
-				xfree(response);
-				packet_send();
-				packet_write_wait();
-				type = packet_read(&payload_len);
-				if (type == SSH_SMSG_SUCCESS)
-					return;
-				if (type != SSH_SMSG_FAILURE)
-					packet_disconnect("Protocol error: got %d in response "
-						   	  "to skey auth", type);
-			}
-		}
+		if (try_skey_authentication())
+			return;
 	}
 	/* Try password authentication if the server supports it. */
 	if ((supported_authentications & (1 << SSH_AUTH_PASSWORD)) &&
 	    options.password_authentication && !options.batch_mode) {
 		char prompt[80];
-		snprintf(prompt, sizeof(prompt), "%.30s@%.30s's password: ",
+		snprintf(prompt, sizeof(prompt), "%.30s@%.40s's password: ",
 			 server_user, host);
-		debug("Doing password authentication.");
-		if (options.cipher == SSH_CIPHER_NONE)
-			log("WARNING: Encryption is disabled! Password will be transmitted in clear text.");
-		for (i = 0; i < options.number_of_password_prompts; i++) {
-			if (i != 0)
-				error("Permission denied, please try again.");
-			password = read_passphrase(prompt, 0);
-			packet_start(SSH_CMSG_AUTH_PASSWORD);
-			packet_put_string(password, strlen(password));
-			memset(password, 0, strlen(password));
-			xfree(password);
-			packet_send();
-			packet_write_wait();
-
-			type = packet_read(&payload_len);
-			if (type == SSH_SMSG_SUCCESS)
-				return;
-			if (type != SSH_SMSG_FAILURE)
-				packet_disconnect("Protocol error: got %d in response to passwd auth", type);
-		}
+		if (try_password_authentication(prompt))
+			return;
 	}
 	/* All authentication methods have failed.  Exit with an error message. */
 	fatal("Permission denied.");
