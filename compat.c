@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: compat.c,v 1.31 2000/12/06 22:58:14 markus Exp $");
+RCSID("$OpenBSD: compat.c,v 1.32 2000/12/09 23:51:11 provos Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -92,7 +92,7 @@ compat_datafellows(const char *version)
 		ret = regexec(&reg, version, 0, NULL, 0);
 		regfree(&reg);
 		if (ret == 0) {
-			debug("match: %s pat %s\n", version, check[i].pat);
+			debug("match: %s pat %s", version, check[i].pat);
 			datafellows = check[i].bugs;
 			return;
 		}

@@ -12,6 +12,9 @@
    - markus@cvs.openbsd.org 2000/12/09 14:06:54 
      [ssh-agent.c]
      extern int optind; from stevesk@sweden.hp.com
+   - provos@cvs.openbsd.org 2000/12/09 23:51:11
+     [compat.c]
+     remove unnecessary '\n'
 
 20001209
  - (bal) OpenBSD CVS updates:
