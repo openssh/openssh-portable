@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.41 2003/03/28 10:11:43 jmc Exp $
+.\" $OpenBSD: sftp.1,v 1.42 2003/05/14 01:00:44 djm Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -29,7 +29,7 @@
 .Nm sftp
 .Nd Secure file transfer program
 .Sh SYNOPSIS
-.Nm sftp
+.Nm
 .Bk -words
 .Op Fl vC1
 .Op Fl b Ar batchfile
@@ -42,14 +42,17 @@
 .Op Fl S Ar program
 .Ar host
 .Ek
-.Nm sftp
+.Nm
 .Oo Oo Ar user Ns No @ Oc Ns
 .Ar host Ns Oo : Ns Ar file Oo
 .Ar file Oc Oc Oc
-.Nm sftp
+.Nm
 .Oo Oo Ar user Ns No @ Oc Ns
 .Ar host Ns Oo : Ns Ar dir Ns
 .Oo Ar / Oc Oc Oc
+.Nm
+.Fl b Ar batchfile
+.Oo Ar user Ns No @ Oc Ns Ar host Ns
 .Sh DESCRIPTION
 .Nm
 is an interactive file transfer program, similar to
@@ -68,8 +71,17 @@ The second usage format will retrieve files automatically if a non-interactive
 authentication method is used; otherwise it will do so after
 successful interactive authentication.
 .Pp
-The last usage format allows the sftp client to start in a remote directory.
+The third usage format allows the sftp client to start in a remote directory.
 .Pp
+The final usage form allows for automated sessions using the 
+.Fl b
+option. In such cases, it is usually necessary to configure public key
+authentication to obviate the need to enter a password at connection 
+time (see 
+.Xr sshd 8
+and 
+.Xr ssh-keygen 1
+for details.)
 The options are as follows:
 .Bl -tag -width Ds
 .It Fl b Ar batchfile
@@ -281,8 +293,6 @@ Escape to local shell.
 .It Ic ?
 Synonym for help.
 .El
-.Sh AUTHORS
-Damien Miller <djm@mindrot.org>
 .Sh SEE ALSO
 .Xr scp 1 ,
 .Xr ssh 1 ,
