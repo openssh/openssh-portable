@@ -52,6 +52,13 @@ static char *rcsid = "$OpenBSD: realpath..c,v 1.4 1998/05/18 09:55:19 deraadt Ex
 #endif
 
 /*
+ * MAXSYMLINKS
+ */
+#ifndef MAXSYMLINKS
+#define MAXSYMLINKS 5
+#endif
+
+/*
  * char *realpath(const char *path, char resolved_path[MAXPATHLEN]);
  *
  * Find the real name of path, by removing all ".", ".." and symlink

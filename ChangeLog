@@ -1,3 +1,9 @@
+20001116
+ - (bal) Added in MAXSYMLINK test in bsd-realpath.c.  Required for some SCO
+   releases.
+ - (bal) Make builds work outside of source tree.  Patch by Mark D. Roth
+   <roth@feep.net>
+
 20001113
  - (djm) Add pointer to http://www.imasy.or.jp/~gotoh/connect.c to 
    contrib/README

@@ -179,24 +179,24 @@ host-key: ssh-keygen$(EXEEXT)
 		if [ -f "$(DESTDIR)$(sysconfdir)/ssh_host_key" ] ; then \
 			echo "$(DESTDIR)$(sysconfdir)/ssh_host_key already exists, skipping." ; \
 		else \
-			$(srcdir)/ssh-keygen -t rsa1 -f $(DESTDIR)$(sysconfdir)/ssh_host_key -N "" ; \
+			./ssh-keygen -t rsa1 -f $(DESTDIR)$(sysconfdir)/ssh_host_key -N "" ; \
 		fi ; \
 		if [ -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key ] ; then \
 			echo "$(DESTDIR)$(sysconfdir)/ssh_host_dsa_key already exists, skipping." ; \
 		else \
-			$(srcdir)/ssh-keygen -t dsa -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key -N "" ; \
+			./ssh-keygen -t dsa -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key -N "" ; \
 		fi ; \
 		if [ -f $(DESTDIR)$(sysconfdir)/ssh_host_rsa_key ] ; then \
 			echo "$(DESTDIR)$(sysconfdir)/ssh_host_rsa_key already exists, skipping." ; \
 		else \
-			$(srcdir)/ssh-keygen -t rsa -f $(DESTDIR)$(sysconfdir)/ssh_host_rsa_key -N "" ; \
+			./ssh-keygen -t rsa -f $(DESTDIR)$(sysconfdir)/ssh_host_rsa_key -N "" ; \
 		fi ; \
 	fi ;
 
 host-key-force: ssh-keygen$(EXEEXT)
-	$(srcdir)/ssh-keygen -t rsa1 -f $(DESTDIR)$(sysconfdir)/ssh_host_key -N ""
-	$(srcdir)/ssh-keygen -t dsa -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key -N ""
-	$(srcdir)/ssh-keygen -t rsa -f $(DESTDIR)$(sysconfdir)/ssh_host_rsa_key -N ""
+	./ssh-keygen -t rsa1 -f $(DESTDIR)$(sysconfdir)/ssh_host_key -N ""
+	./ssh-keygen -t dsa -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key -N ""
+	./ssh-keygen -t rsa -f $(DESTDIR)$(sysconfdir)/ssh_host_rsa_key -N ""
 
 uninstallall:	uninstall
 	-rm -f $(DESTDIR)$(sysconfdir)/ssh_config
