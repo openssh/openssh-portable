@@ -1,6 +1,7 @@
 20001111
  - (djm) Added /etc/primes for kex DH group neg, fixup Makefile.in and
    packaging files
+ - (djm) Fix new Makefile.in warnings
 
 20001110
  - (bal) Fixed dropped answer from skey_keyinfo() in auth1.c

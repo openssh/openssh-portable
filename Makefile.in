@@ -152,26 +152,26 @@ install-files:
 	fi
 	if [ ! -f $(DESTDIR)$(sysconfdir)/ssh_config ]; then \
 		$(INSTALL) -m 644 ssh_config.out $(DESTDIR)$(sysconfdir)/ssh_config; \
-	else \
-		echo "$(DESTDIR)$(sysconfdir)/ssh_config already exists, install will not overwrite" \
+	else ;\
+		echo "$(DESTDIR)$(sysconfdir)/ssh_config already exists, install will not overwrite" ;\
 	fi
 	if [ ! -f $(DESTDIR)$(sysconfdir)/sshd_config ]; then \
 		$(INSTALL) -m 644 sshd_config.out $(DESTDIR)$(sysconfdir)/sshd_config; \
-	else \
-		echo "$(DESTDIR)$(sysconfdir)/sshd_config already exists, install will not overwrite" \
+	else ;\
+		echo "$(DESTDIR)$(sysconfdir)/sshd_config already exists, install will not overwrite" ;\
 	fi
 	if [ -f ssh_prng_cmds -a ! -z "$(INSTALL_SSH_PRNG_CMDS)" ]; then \
 		$(PERL) $(srcdir)/fixprogs ssh_prng_cmds $(ENT); \
 		if [ ! -f $(DESTDIR)$(sysconfdir)/ssh_prng_cmds ] ; then \
 			$(INSTALL) -m 644 ssh_prng_cmds.out $(DESTDIR)$(sysconfdir)/ssh_prng_cmds; \
-		else \
-			echo "$(DESTDIR)$(sysconfdir)/ssh_prng_cmds already exists, install will not overwrite" \
+		else ;\
+			echo "$(DESTDIR)$(sysconfdir)/ssh_prng_cmds already exists, install will not overwrite" ;\
 		fi ; \
 	fi
 	if [ ! -f $(DESTDIR)$(sysconfdir)/primes ]; then \
 		$(INSTALL) -m 644 primes $(DESTDIR)$(sysconfdir)/primes; \
-	else \
-		echo "$(DESTDIR)$(sysconfdir)/primes already exists, install will not overwrite" \
+	else ;\
+		echo "$(DESTDIR)$(sysconfdir)/primes already exists, install will not overwrite" ;\
 	fi
 
 host-key: ssh-keygen$(EXEEXT)
