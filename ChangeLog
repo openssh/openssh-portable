@@ -1,3 +1,9 @@
+20010450
+ - OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2001/04/29 18:32:52
+     [serverloop.c]
+     fix whitespace
+
 20010429
  - (bal) Updated INSTALL.  PCRE moved to a new place.
  - (djm) Release OpenSSH-2.9p1
@@ -5271,4 +5277,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1180 2001/04/29 10:45:50 djm Exp $
+$Id: ChangeLog,v 1.1181 2001/04/29 19:49:14 mouring Exp $
