@@ -1,5 +1,8 @@
 20011003
  - (bal) CVS ID fix up in version.h
+ - markus@cvs.openbsd.org 2001/09/27 11:58:16
+   [compress.c]
+   mem leak; chombier@mac.com
 
 20011001
  - (stevesk) loginrec.c: fix type conversion problems exposed when using
@@ -6592,4 +6595,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1569 2001/10/03 17:03:54 mouring Exp $
+$Id: ChangeLog,v 1.1570 2001/10/03 17:07:47 mouring Exp $
