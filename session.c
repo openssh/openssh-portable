@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.110 2001/12/01 21:41:48 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.111 2001/12/06 18:09:23 stevesk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1473,8 +1473,7 @@ do_child(Session *s, const char *command)
 
 			/* Start the shell.  Set initial character to '-'. */
 			buf[0] = '-';
-			strncpy(buf + 1, cp, sizeof(buf) - 1);
-			buf[sizeof(buf) - 1] = 0;
+			strlcpy(buf + 1, cp, sizeof(buf) - 1);
 
 			/* Execute the shell. */
 			argv[0] = buf;

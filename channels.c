@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.144 2001/12/06 18:02:32 stevesk Exp $");
+RCSID("$OpenBSD: channels.c,v 1.145 2001/12/06 18:09:23 stevesk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -2609,8 +2609,7 @@ x11_connect_display(void)
 	 * Connect to an inet socket.  The DISPLAY value is supposedly
 	 * hostname:d[.s], where hostname may also be numeric IP address.
 	 */
-	strncpy(buf, display, sizeof(buf));
-	buf[sizeof(buf) - 1] = 0;
+	strlcpy(buf, display, sizeof(buf));
 	cp = strchr(buf, ':');
 	if (!cp) {
 		error("Could not find ':' in DISPLAY: %.100s", display);
@@ -2893,8 +2892,7 @@ auth_input_request_forwarding(struct passwd * pw)
 	/* Bind it to the name. */
 	memset(&sunaddr, 0, sizeof(sunaddr));
 	sunaddr.sun_family = AF_UNIX;
-	strncpy(sunaddr.sun_path, auth_sock_name,
-		sizeof(sunaddr.sun_path));
+	strlcpy(sunaddr.sun_path, auth_sock_name, sizeof(sunaddr.sun_path));
 
 	if (bind(sock, (struct sockaddr *) & sunaddr, sizeof(sunaddr)) < 0)
 		packet_disconnect("bind: %.100s", strerror(errno));

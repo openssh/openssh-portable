@@ -5,6 +5,9 @@
    - stevesk@cvs.openbsd.org 2001/12/06 18:02:32
      [channels.c sshconnect.c]
      shutdown(sock, SHUT_RDWR) not needed here; ok markus@
+   - stevesk@cvs.openbsd.org 2001/12/06 18:09:23
+     [channels.c session.c]
+     strncpy->strlcpy.  remaining strncpy's are necessary.  ok markus@
 
 20011206
  - (bal) OpenBSD CVS Sync
@@ -7002,4 +7005,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1689 2001/12/07 17:24:49 mouring Exp $
+$Id: ChangeLog,v 1.1690 2001/12/07 17:26:48 mouring Exp $
