@@ -17,6 +17,20 @@ do
 	fi
 done
 
+if [ -x "`which uname 2>&1`" ]
+then
+	case `uname` in
+	CYGWIN*)
+		os=cygwin
+		;;
+	*)
+		os=`uname`
+		;;
+	esac
+else
+	os="unknown"
+fi
+
 # Path with embedded quote
 QUOTECOPY=${COPY}".\"blah\""
 QUOTECOPY_ARG=${COPY}'.\"blah\"'
@@ -99,11 +113,13 @@ echo "put $DATA $COPY" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
 	|| fail "put failed"
 cmp $DATA ${COPY} || fail "corrupted copy after put"
 
+if [ "$os" != "cygwin" ]; then
 rm -f ${QUOTECOPY}
 verbose "$tid: put filename with quotes"
 echo "put $DATA \"$QUOTECOPY_ARG\"" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
 	|| fail "put failed"
 cmp $DATA ${QUOTECOPY} || fail "corrupted copy after put with quotes"
+fi
 
 rm -f ${COPY}.dd/*
 verbose "$tid: put to directory"
