@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.164 2001/03/30 00:55:20 djm Exp $
+# $Id: Makefile.in,v 1.165 2001/04/04 17:39:20 mouring Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -44,7 +44,7 @@ INSTALL_SSH_PRNG_CMDS=@INSTALL_SSH_PRNG_CMDS@
 
 TARGETS=ssh$(EXEEXT) sshd$(EXEEXT) ssh-add$(EXEEXT) ssh-keygen$(EXEEXT) ssh-keyscan${EXEEXT} ssh-agent$(EXEEXT) scp$(EXEEXT) $(SFTP_PROGS)
 
-LIBSSH_OBJS=atomicio.o authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o cipher.o cli.o compat.o compress.o crc32.o deattack.o dh.o dispatch.o mac.o hostfile.o key.o kex.o log.o match.o misc.o mpaux.o nchan.o packet.o radix.o rijndael.o entropy.o readpass.o rsa.o ssh-dss.o ssh-rsa.o tildexpand.o ttymodes.o uidswap.o uuencode.o xmalloc.o 
+LIBSSH_OBJS=atomicio.o authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o cipher.o cli.o compat.o compress.o crc32.o deattack.o dh.o dispatch.o mac.o hostfile.o key.o kex.o kexdh.o kexgex.o log.o match.o misc.o mpaux.o nchan.o packet.o radix.o rijndael.o entropy.o readpass.o rsa.o ssh-dss.o ssh-rsa.o tildexpand.o ttymodes.o uidswap.o uuencode.o xmalloc.o 
 
 SSHOBJS= ssh.o sshconnect.o sshconnect1.o sshconnect2.o readconf.o clientloop.o
 
