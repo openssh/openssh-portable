@@ -720,6 +720,17 @@ do_login(Session *s)
 	record_login(pid, s->tty, pw->pw_name, pw->pw_uid,
 	    get_remote_name_or_ip(), (struct sockaddr *)&from);
 
+#ifdef USE_PAM
+	/*
+	 * If password change is needed, do it now.
+	 * This needs to occur before the ~/.hushlogin check.
+	 */
+	if (pam_password_change_required()) {
+		print_pam_messages();
+		do_pam_chauthtok();
+	}
+#endif
+
 	/* Done if .hushlogin exists. */
 	snprintf(buf, sizeof(buf), "%.200s/.hushlogin", pw->pw_dir);
 #ifdef HAVE_LOGIN_CAP
@@ -730,9 +741,8 @@ do_login(Session *s)
 		return;
 
 #ifdef USE_PAM
-	print_pam_messages();
-	/* If password change is needed, do it now. */
-	do_pam_chauthtok();
+	if (!pam_password_change_required())
+		print_pam_messages();
 #endif /* USE_PAM */
 #ifdef WITH_AIXAUTHENTICATE
 	if (aixloginmsg && *aixloginmsg)

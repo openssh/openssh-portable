@@ -29,7 +29,7 @@
 #include "xmalloc.h"
 #include "servconf.h"
 
-RCSID("$Id: auth-pam.c,v 1.16 2000/10/14 05:23:11 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.17 2000/10/14 13:36:13 stevesk Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now"
@@ -259,6 +259,12 @@ void do_pam_setcred()
 		fatal("PAM setcred failed[%d]: %.200s", 
 			pam_retval, PAM_STRERROR(pamh, pam_retval));
 	}
+}
+
+/* accessor function for file scope static variable */
+int pam_password_change_required(void)
+{
+	return password_change_required;
 }
 
 /* 
