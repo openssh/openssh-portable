@@ -27,6 +27,22 @@
    - markus@cvs.openbsd.org 2001/02/10 1:46:28
      [ssh.c]
      remove mapping of argv[0] -> hostname
+   - markus@cvs.openbsd.org 2001/02/06 22:26:17
+     [sshconnect2.c]
+     do not ask for passphrase in batch mode; report from ejb@ql.org
+   - itojun@cvs.opebsd.org 2001/02/08 10:47:05
+     [sshconnect2.c]
+     %.30s is too short for IPv6 numeric address.  use %.128s for now.  
+     markus ok
+   - markus@cvs.openbsd.org 2001/02/09 12:28:35
+     [sshconnect2.c]
+     do not free twice, thanks to /etc/malloc.conf
+   - markus@cvs.openbsd.org 2001/02/09 17:10:53
+     [sshconnect2.c]
+     partial success: debug->log; "Permission denied" if no more auth methods
+   - markus@cvs.openbsd.org 2001/02/10 12:09:21
+     [sshconnect2.c]
+     remove some lines
  - (bal) Minor correction to sftp-client.c I made.  Should return 'status'
    instead of '0'  (from the OpenBSD tree)
  - (bal) Synced ssh.1 w/ OpenBSD
@@ -3813,4 +3829,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.722 2001/02/10 22:11:13 mouring Exp $
+$Id: ChangeLog,v 1.723 2001/02/10 22:16:41 mouring Exp $

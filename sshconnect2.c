@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.41 2001/02/04 15:32:26 stevesk Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.46 2001/02/10 12:09:21 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -601,13 +601,13 @@ input_userauth_failure(int type, int plen, void *ctxt)
 	packet_done();
 
 	if (partial != 0)
-		debug("partial success");
+		log("Authenticated with partial success.");
 	debug("authentications that can continue: %s", authlist);
 
 	for (;;) {
 		method = authmethod_get(authlist);
 		if (method == NULL)
-			fatal("Unable to find an authentication method");
+			fatal("Permission denied (%s).", authlist);
 		authctxt->method = method;
 		if (method->userauth(authctxt) != 0) {
 			debug2("we sent a %s packet, wait for reply", method->name);
@@ -646,7 +646,7 @@ userauth_passwd(Authctxt *authctxt)
 	if(attempt != 1)
 		error("Permission denied, please try again.");
 
-	snprintf(prompt, sizeof(prompt), "%.30s@%.40s's password: ",
+	snprintf(prompt, sizeof(prompt), "%.30s@%.128s's password: ",
 	    authctxt->server_user, authctxt->host);
 	password = read_passphrase(prompt, 0);
 	packet_start(SSH2_MSG_USERAUTH_REQUEST);
@@ -757,8 +757,10 @@ int
 userauth_pubkey_identity(Authctxt *authctxt, char *filename)
 {
 	Key *k;
-	int i, ret, try_next;
+	int i, ret, try_next, success = 0;
 	struct stat st;
+	char *passphrase;
+	char prompt[300];
 
 	if (stat(filename, &st) != 0) {
 		debug("key does not exist: %s", filename);
@@ -768,9 +770,10 @@ userauth_pubkey_identity(Authctxt *authctxt, char *filename)
 
 	k = key_new(KEY_UNSPEC);
 	if (!load_private_key(filename, "", k, NULL)) {
-		int success = 0;
-		char *passphrase;
-		char prompt[300];
+		if (options.batch_mode) {
+			key_free(k);
+			return 0;
+		}
 		snprintf(prompt, sizeof prompt,
 		     "Enter passphrase for key '%.100s': ", filename);
 		for (i = 0; i < options.number_of_password_prompts; i++) {
@@ -879,18 +882,13 @@ userauth_kbdint(Authctxt *authctxt)
 }
 
 /*
- * parse SSH2_MSG_USERAUTH_INFO_REQUEST, prompt user and send
- * SSH2_MSG_USERAUTH_INFO_RESPONSE
+ * parse INFO_REQUEST, prompt user and send INFO_RESPONSE
  */
 void
 input_userauth_info_req(int type, int plen, void *ctxt)
 {
 	Authctxt *authctxt = ctxt;
-	char *name = NULL;
-	char *inst = NULL;
-	char *lang = NULL;
-	char *prompt = NULL;
-	char *response = NULL;
+	char *name, *inst, *lang, *prompt, *response;
 	u_int num_prompts, i;
 	int echo = 0;
 
@@ -902,15 +900,13 @@ input_userauth_info_req(int type, int plen, void *ctxt)
 	name = packet_get_string(NULL);
 	inst = packet_get_string(NULL);
 	lang = packet_get_string(NULL);
-
 	if (strlen(name) > 0)
 		cli_mesg(name);
-	xfree(name);
-
 	if (strlen(inst) > 0)
 		cli_mesg(inst);
+	xfree(name);
 	xfree(inst);
-	xfree(lang); 				/* unused */
+	xfree(lang);
 
 	num_prompts = packet_get_int();
 	/*
@@ -967,7 +963,7 @@ authmethod_clear(void)
 	}
 	if (authname_current != NULL) {
 		xfree(authname_current);
-		authlist_state = NULL;
+		authname_current = NULL;
 	}
 	if (authlist_state != NULL)
 		authlist_state = NULL;
