@@ -28,6 +28,9 @@
      [compat.c compat.h kex.c]
      bugfix causes stalled connections for ssh.com < 3.0; noticed by ho@; 
      tested by ho@ and myself
+   - markus@cvs.openbsd.org 2003/04/01 10:56:46
+     [version.h]
+     3.6.1
 
 20030326
  - (djm) OpenBSD CVS Sync
@@ -1290,4 +1293,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2645 2003/04/01 11:44:37 djm Exp $
+$Id: ChangeLog,v 1.2646 2003/04/01 11:45:26 djm Exp $
