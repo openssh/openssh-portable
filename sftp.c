@@ -16,7 +16,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.42 2004/02/17 05:39:51 djm Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.43 2004/02/17 07:17:29 djm Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -27,7 +27,8 @@ RCSID("$OpenBSD: sftp.c,v 1.42 2004/02/17 05:39:51 djm Exp $");
 #include "sftp.h"
 #include "sftp-common.h"
 #include "sftp-client.h"
-#include "sftp-int.h"
+
+int interactive_loop(int, int, char *, char *); /* sftp-int.c */
 
 #ifdef HAVE___PROGNAME
 extern char *__progname;

@@ -15,7 +15,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-glob.c,v 1.14 2004/02/17 05:39:51 djm Exp $");
+RCSID("$OpenBSD: sftp-glob.c,v 1.15 2004/02/17 07:17:29 djm Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
@@ -25,7 +25,9 @@ RCSID("$OpenBSD: sftp-glob.c,v 1.14 2004/02/17 05:39:51 djm Exp $");
 #include "sftp.h"
 #include "sftp-common.h"
 #include "sftp-client.h"
-#include "sftp-glob.h"
+
+int remote_glob(struct sftp_conn *, const char *, int,
+    int (*)(const char *, int), glob_t *);
 
 struct SFTP_OPENDIR {
 	SFTP_DIRENT **dir;
