@@ -1,3 +1,7 @@
+20020418
+ - (djm) Avoid SIGCHLD breakage when run from rsync. Fix from 
+   Sturle Sunde <sturle.sunde@usit.uio.no>
+
 20020417
  - (djm) Tell users to configure /dev/random support into OpenSSL in INSTALL
  - (djm) Fix .Nm in mdoc2man.pl from pspencer@fields.utoronto.ca
@@ -8254,4 +8258,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2059 2002/04/18 04:19:14 tim Exp $
+$Id: ChangeLog,v 1.2060 2002/04/18 12:53:22 djm Exp $
