@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-options.c,v 1.30 2005/03/10 22:01:05 deraadt Exp $");
+RCSID("$OpenBSD: auth-options.c,v 1.31 2005/03/10 22:40:38 deraadt Exp $");
 
 #include "xmalloc.h"
 #include "match.h"
@@ -247,7 +247,7 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 			host = hpdelim(&p);
 			if (host == NULL || strlen(host) >= NI_MAXHOST) {
 				debug("%.100s, line %lu: Bad permitopen "
-				    "specification <%.100s>", file, linenum, 
+				    "specification <%.100s>", file, linenum,
 				    patterns);
 				auth_debug_add("%.100s, line %lu: "
 				    "Bad permitopen specification", file,
