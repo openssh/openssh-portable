@@ -33,7 +33,7 @@
 #include "canohost.h"
 #include "readpass.h"
 
-RCSID("$Id: auth-pam.c,v 1.31 2001/02/28 22:18:58 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.31.2.1 2001/03/21 02:12:13 djm Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now"
@@ -172,7 +172,7 @@ static int do_pam_conversation(int num_msg, const struct pam_message **msg,
 /* Called at exit to cleanly shutdown PAM */
 void do_pam_cleanup_proc(void *context)
 {
-	int pam_retval;
+	int pam_retval = PAM_SUCCESS;
 
 	if (__pamh && session_opened) {
 		pam_retval = pam_close_session(__pamh, 0);
@@ -326,14 +326,10 @@ void do_pam_chauthtok(void)
 
 	if (password_change_required) {
 		pamstate = OTHER;
-		/* XXX: should we really loop forever? */
-		do {
-			pam_retval = pam_chauthtok(__pamh, 
-			    PAM_CHANGE_EXPIRED_AUTHTOK);
-			if (pam_retval != PAM_SUCCESS)
-				log("PAM pam_chauthtok failed[%d]: %.200s",
-				    pam_retval, PAM_STRERROR(__pamh, pam_retval));
-		} while (pam_retval != PAM_SUCCESS);
+		pam_retval = pam_chauthtok(__pamh, PAM_CHANGE_EXPIRED_AUTHTOK);
+		if (pam_retval != PAM_SUCCESS)
+			fatal("PAM pam_chauthtok failed[%d]: %.200s",
+			    pam_retval, PAM_STRERROR(__pamh, pam_retval));
 	}
 }
 
