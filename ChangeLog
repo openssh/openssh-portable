@@ -36,6 +36,10 @@
    - djm@cvs.openbsd.org 2005/03/01 10:41:28
      [ssh-keyscan.1 ssh-keyscan.c]
      option to hash hostnames output by ssh-keyscan; ok markus@ deraadt@
+   - djm@cvs.openbsd.org 2005/03/01 10:42:49
+     [ssh-keygen.1 ssh-keygen.c ssh_config.5]
+     add tools for managing known_hosts files with hashed hostnames, including
+     hashing existing files and deleting hosts by name; ok markus@ deraadt@
 
 20050226
  - (dtucker) [openbsd-compat/bsd-openpty.c openbsd-compat/inet_ntop.c]
@@ -2212,4 +2216,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3674 2005/03/01 10:48:03 djm Exp $
+$Id: ChangeLog,v 1.3675 2005/03/01 10:48:35 djm Exp $
