@@ -17,6 +17,9 @@
      [sftp-client.c]
      Don't print duplicate messages when progressmeter is off
      Spotted by job317 AT mailvault.com; ok markus@
+   - djm@cvs.openbsd.org 2004/03/03 09:31:20
+     [sftp.c]
+     Fix initialisation of progress meter; ok markus@
 
 20040307
  - (tim) [regress/login-timeout.sh] fix building outside of source tree.
@@ -877,4 +880,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3281 2004/03/08 12:12:02 djm Exp $
+$Id: ChangeLog,v 1.3282 2004/03/08 12:12:19 djm Exp $
