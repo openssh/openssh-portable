@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: nchan.c,v 1.23 2001/02/28 08:54:55 markus Exp $");
+RCSID("$OpenBSD: nchan.c,v 1.24 2001/05/04 23:47:34 markus Exp $");
 
 #include "ssh1.h"
 #include "ssh2.h"
@@ -391,9 +391,17 @@ chan_send_close2(Channel *c)
 
 /* shared */
 
+void
+chan_mark_dead(Channel *c)
+{
+	c->flags |= CHAN_DEAD;
+}
+
 int
 chan_is_dead(Channel *c)
 {
+	if (c->flags & CHAN_DEAD)
+		return 1;
 	if (c->istate != CHAN_INPUT_CLOSED || c->ostate != CHAN_OUTPUT_CLOSED)
 		return 0;
 	if (!compat20) {

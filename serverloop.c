@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.63 2001/04/29 19:16:52 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.64 2001/05/04 23:47:34 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -801,7 +801,8 @@ server_input_window_size(int type, int plen, void *ctxt)
 Channel *
 server_request_direct_tcpip(char *ctype)
 {
-	int sock, newch;
+	Channel *c;
+	int sock;
 	char *target, *originator;
 	int target_port, originator_port;
 
@@ -820,16 +821,20 @@ server_request_direct_tcpip(char *ctype)
 	xfree(originator);
 	if (sock < 0)
 		return NULL;
-	newch = channel_new(ctype, SSH_CHANNEL_CONNECTING,
+	c = channel_new(ctype, SSH_CHANNEL_CONNECTING,
 	    sock, sock, -1, CHAN_TCP_WINDOW_DEFAULT,
 	    CHAN_TCP_PACKET_DEFAULT, 0, xstrdup("direct-tcpip"), 1);
-	return (newch >= 0) ? channel_lookup(newch) : NULL;
+	if (c == NULL) {
+		error("server_request_direct_tcpip: channel_new failed");
+		close(sock);
+	}
+	return c;
 }
 
 Channel *
 server_request_session(char *ctype)
 {
-	int newch;
+	Channel *c;
 
 	debug("input_session_request");
 	packet_done();
@@ -839,19 +844,22 @@ server_request_session(char *ctype)
 	 * SSH_CHANNEL_LARVAL.  Additionally, a callback for handling all
 	 * CHANNEL_REQUEST messages is registered.
 	 */
-	newch = channel_new(ctype, SSH_CHANNEL_LARVAL,
-	    -1, -1, -1, 0, CHAN_SES_PACKET_DEFAULT,
+	c = channel_new(ctype, SSH_CHANNEL_LARVAL,
+	    -1, -1, -1, /*window size*/0, CHAN_SES_PACKET_DEFAULT,
 	    0, xstrdup("server-session"), 1);
-	if (session_open(newch) == 1) {
-		channel_register_callback(newch, SSH2_MSG_CHANNEL_REQUEST,
-		    session_input_channel_req, (void *)0);
-		channel_register_cleanup(newch, session_close_by_channel);
-		return channel_lookup(newch);
-	} else {
-		debug("session open failed, free channel %d", newch);
-		channel_free(newch);
+	if (c == NULL) {
+		error("server_request_session: channel_new failed");
+		return NULL;
 	}
-	return NULL;
+	if (session_open(c->self) != 1) {
+		debug("session open failed, free channel %d", c->self);
+		channel_free(c);
+		return NULL;
+	}
+	channel_register_callback(c->self, SSH2_MSG_CHANNEL_REQUEST,
+	    session_input_channel_req, (void *)0);
+	channel_register_cleanup(c->self, session_close_by_channel);
+	return c;
 }
 
 void

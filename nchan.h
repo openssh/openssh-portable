@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* RCSID("$OpenBSD: nchan.h,v 1.10 2001/02/28 08:54:55 markus Exp $"); */
+/* RCSID("$OpenBSD: nchan.h,v 1.11 2001/05/04 23:47:34 markus Exp $"); */
 
 #ifndef NCHAN_H
 #define NCHAN_H
@@ -69,6 +69,7 @@
 
 #define CHAN_CLOSE_SENT			0x01
 #define CHAN_CLOSE_RCVD			0x02
+#define CHAN_DEAD			0x04
 
 
 /* Channel EVENTS */
@@ -85,6 +86,7 @@ extern chan_event_fn	*chan_write_failed;
 extern chan_event_fn	*chan_obuf_empty;
 
 int chan_is_dead(Channel * c);
+void chan_mark_dead(Channel * c);
 
 void    chan_init_iostates(Channel * c);
 void	chan_init(void);

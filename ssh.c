@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.117 2001/04/30 11:18:52 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.118 2001/05/04 23:47:34 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -1058,8 +1058,8 @@ ssh_session2_callback(int id, void *arg)
 int
 ssh_session2_command(void)
 {
-	int id, window, packetmax;
-	int in, out, err;
+	Channel *c;
+	int window, packetmax, in, out, err;
 
 	if (stdin_null_flag) {
 		in = open(_PATH_DEVNULL, O_RDONLY);
@@ -1086,18 +1086,20 @@ ssh_session2_command(void)
 		window *= 2;
 		packetmax *=2;
 	}
-	id = channel_new(
+	c = channel_new(
 	    "session", SSH_CHANNEL_OPENING, in, out, err,
 	    window, packetmax, CHAN_EXTENDED_WRITE,
 	    xstrdup("client-session"), /*nonblock*/0);
+	if (c == NULL)
+		fatal("ssh_session2_command: channel_new failed");
 
-debug("channel_new: %d", id);
+	debug3("ssh_session2_command: channel_new: %d", c->self);
 
-	channel_open(id);
-	channel_register_callback(id, SSH2_MSG_CHANNEL_OPEN_CONFIRMATION,
+	channel_open(c->self);
+	channel_register_callback(c->self, SSH2_MSG_CHANNEL_OPEN_CONFIRMATION,
 	     ssh_session2_callback, (void *)0);
 
-	return id;
+	return c->self;
 }
 
 int
