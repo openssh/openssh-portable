@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.198 2004/11/07 00:01:46 djm Exp $
+.\" $OpenBSD: ssh.1,v 1.199 2004/11/07 17:42:36 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -614,18 +614,6 @@ be specified in order of preference.
 See the
 .Cm MACs
 keyword for more information.
-.It Fl O Ar ctl_cmd
-Control an active connection multiplexing master process.
-When the
-.Fl O
-option is specified, the 
-.Ar ctl_cmd
-argument is interpreted and passed to the master process.
-Valid commands are:
-.Dq check
-(check that the master process is running) and 
-.Dq exit
-(request the master to exit).
 .It Fl N
 Do not execute a remote command.
 This is useful for just forwarding ports
@@ -650,6 +638,18 @@ program will be put in the background.
 needs to ask for a password or passphrase; see also the
 .Fl f
 option.)
+.It Fl O Ar ctl_cmd
+Control an active connection multiplexing master process.
+When the
+.Fl O
+option is specified, the
+.Ar ctl_cmd
+argument is interpreted and passed to the master process.
+Valid commands are:
+.Dq check
+(check that the master process is running) and
+.Dq exit
+(request the master to exit).
 .It Fl o Ar option
 Can be used to give options in the format used in the configuration file.
 This is useful for specifying options for which there is no separate

@@ -1,3 +1,9 @@
+20041203
+ - (dtucker) OpenBSD CVS Sync
+   - jmc@cvs.openbsd.org 2004/11/07 17:42:36
+     [ssh.1]
+     options sort, and whitespace;
+
 20041107
  - (dtucker) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2004/11/05 12:19:56
@@ -1854,4 +1860,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3581 2004/11/07 09:14:34 dtucker Exp $
+$Id: ChangeLog,v 1.3582 2004/12/03 03:08:45 dtucker Exp $
