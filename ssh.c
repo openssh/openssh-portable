@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.180 2002/06/30 21:59:45 deraadt Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.181 2002/07/03 14:21:05 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -649,7 +649,8 @@ again:
 		    _PATH_HOST_RSA_KEY_FILE, "", NULL);
 		PRIV_END;
 
-		if (sensitive_data.keys[0] == NULL &&
+		if (options.hostbased_authentication == 1 &&
+		    sensitive_data.keys[0] == NULL &&
 		    sensitive_data.keys[1] == NULL &&
 		    sensitive_data.keys[2] == NULL) {
 			sensitive_data.keys[1] = key_load_public(

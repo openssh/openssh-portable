@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keysign.c,v 1.6 2002/07/03 09:55:38 markus Exp $");
+RCSID("$OpenBSD: ssh-keysign.c,v 1.7 2002/07/03 14:21:05 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/rand.h>
@@ -30,6 +30,7 @@ RCSID("$OpenBSD: ssh-keysign.c,v 1.6 2002/07/03 09:55:38 markus Exp $");
 
 #include "log.h"
 #include "key.h"
+#include "ssh.h"
 #include "ssh2.h"
 #include "misc.h"
 #include "xmalloc.h"
@@ -39,6 +40,9 @@ RCSID("$OpenBSD: ssh-keysign.c,v 1.6 2002/07/03 09:55:38 markus Exp $");
 #include "msg.h"
 #include "canohost.h"
 #include "pathnames.h"
+#include "readconf.h"
+
+uid_t original_real_uid;	/* XXX readconf.c needs this */
 
 #ifdef HAVE___PROGNAME
 extern char *__progname;
@@ -136,6 +140,7 @@ int
 main(int argc, char **argv)
 {
 	Buffer b;
+	Options options;
 	Key *keys[2], *key;
 	struct passwd *pw;
 	int key_fd[2], i, found, version = 2, fd;
@@ -157,6 +162,15 @@ main(int argc, char **argv)
 #ifdef DEBUG_SSH_KEYSIGN
 	log_init("ssh-keysign", SYSLOG_LEVEL_DEBUG3, SYSLOG_FACILITY_AUTH, 0);
 #endif
+
+	/* verify that ssh-keysign is enabled by the admin */
+	original_real_uid = getuid();	/* XXX readconf.c needs this */
+	initialize_options(&options);
+	(void)read_config_file(_PATH_HOST_CONFIG_FILE, "", &options);
+	fill_default_options(&options);
+	if (options.hostbased_authentication != 1)
+		fatal("Hostbased authentication not enabled in %s",
+		    _PATH_HOST_CONFIG_FILE);
 
 	if (key_fd[0] == -1 && key_fd[1] == -1)
 		fatal("could not open any host key");

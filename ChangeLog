@@ -50,6 +50,12 @@
      use RSA_blinding_on() for rsa hostkeys (suggested by Bill Sommerfeld)
      in order to avoid a possible Kocher timing attack pointed out by Charles
      Hannum; ok provos@
+   - markus@cvs.openbsd.org 2002/07/03 14:21:05
+     [ssh-keysign.8 ssh-keysign.c ssh.c ssh_config]
+     re-enable ssh-keysign's sbit, but make ssh-keysign read 
+     /etc/ssh/ssh_config and exit if HostbasedAuthentication is disabled 
+     globally. based on discussions with deraadt, itojun and sommerfeld; 
+     ok itojun@
 
 20020702
  - (djm) Use PAM_MSG_MEMBER for PAM_TEXT_INFO messages, use xmalloc & 
@@ -1258,4 +1264,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2328 2002/07/04 00:17:33 mouring Exp $
+$Id: ChangeLog,v 1.2329 2002/07/04 00:19:40 mouring Exp $
