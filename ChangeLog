@@ -37,6 +37,9 @@
    - markus@cvs.openbsd.org 2001/10/09 10:12:08
      [session.c]
      chdir $HOME after krb_afslog(); from bbense@networking.stanford.edu
+   - markus@cvs.openbsd.org 2001/10/09 19:32:49
+     [session.c]
+     stat subsystem command before calling do_exec, and return error to client.
 
 20011007
  - (bal) ssh-copy-id corrected permissions for .ssh/ and authorized_keys.
@@ -6682,4 +6685,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1595 2001/10/10 05:07:44 djm Exp $
+$Id: ChangeLog,v 1.1596 2001/10/10 05:08:06 djm Exp $

@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.104 2001/10/09 10:12:08 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.105 2001/10/09 19:32:49 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1672,25 +1672,33 @@ session_pty_req(Session *s)
 static int
 session_subsystem_req(Session *s)
 {
+	struct stat st;
 	u_int len;
 	int success = 0;
-	char *subsys = packet_get_string(&len);
+	char *cmd, *subsys = packet_get_string(&len);
 	int i;
 
 	packet_done();
 	log("subsystem request for %s", subsys);
 
 	for (i = 0; i < options.num_subsystems; i++) {
-		if(strcmp(subsys, options.subsystem_name[i]) == 0) {
-			debug("subsystem: exec() %s", options.subsystem_command[i]);
+		if (strcmp(subsys, options.subsystem_name[i]) == 0) {
+			cmd = options.subsystem_command[i];
+			if (stat(cmd, &st) < 0) {
+				error("subsystem: cannot stat %s: %s", cmd,
+				    strerror(errno));
+				break;
+			}
+			debug("subsystem: exec() %s", cmd);
 			s->is_subsystem = 1;
-			do_exec(s, options.subsystem_command[i]);
+			do_exec(s, cmd);
 			success = 1;
 		}
 	}
 
 	if (!success)
-		log("subsystem request for %s failed, subsystem not found", subsys);
+		log("subsystem request for %s failed, subsystem not found",
+		    subsys);
 
 	xfree(subsys);
 	return success;
