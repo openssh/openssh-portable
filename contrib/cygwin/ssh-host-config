@@ -18,6 +18,11 @@ progname=$0
 auto_answer=""
 port_number=22
 
+privsep_configured=no
+privsep_used=yes
+sshd_in_passwd=no
+sshd_in_sam=no
+
 request()
 {
   if [ "${auto_answer}" = "yes" ]
@@ -90,6 +95,10 @@ do
   esac
 done
 
+# Check if running on NT
+_sys="`uname -a`"
+_nt=`expr "$_sys" : "CYGWIN_NT"`
+
 # Check for running ssh/sshd processes first. Refuse to do anything while
 # some ssh processes are still running
 
@@ -123,6 +132,38 @@ then
     echo "Creating ${SYSCONFDIR} directory failed"
     echo
     exit 1
+  fi
+fi
+
+# Create /var/log and /var/log/lastlog if not already existing
+
+if [ -f /var/log ]
+then
+  echo "Creating /var/log failed\!"
+else
+  if [ ! -d /var/log ]
+  then
+    mkdir -p /var/log
+  fi
+  if [ -d /var/log/lastlog ]
+  then
+    echo "Creating /var/log/lastlog failed\!"
+  elif [ ! -f /var/log/lastlog ]
+  then
+    cat /dev/null > /var/log/lastlog
+  fi
+fi
+
+# Create /var/empty file used as chroot jail for privilege separation
+if [ -f /var/empty ]
+then
+  echo "Creating /var/empty failed\!"
+else
+  mkdir -p /var/empty
+  # On NT change ownership of that dir to user "system"
+  if [ $_nt -gt 0 ]
+  then
+    chown system.system /var/empty
   fi
 fi
 
@@ -219,9 +260,10 @@ if [ ! -f "${SYSCONFDIR}/ssh_config" ]
 then
   echo "Generating ${SYSCONFDIR}/ssh_config file"
   cat > ${SYSCONFDIR}/ssh_config << EOF
-# This is ssh client systemwide configuration file.  This file provides 
-# defaults for users, and the values can be changed in per-user configuration
-# files or on the command line.
+# This is the ssh client system-wide configuration file.  See
+# ssh_config(5) for more information.  This file provides defaults for
+# users, and the values can be changed in per-user configuration files
+# or on the command line.
 
 # Configuration data is parsed as follows:
 #  1. command line options
@@ -237,20 +279,19 @@ then
 #   ForwardAgent no
 #   ForwardX11 no
 #   RhostsAuthentication no
-#   RhostsRSAAuthentication yes
+#   RhostsRSAAuthentication no
 #   RSAAuthentication yes
 #   PasswordAuthentication yes
-#   FallBackToRsh no
-#   UseRsh no
 #   BatchMode no
 #   CheckHostIP yes
-#   StrictHostKeyChecking yes
+#   StrictHostKeyChecking ask
 #   IdentityFile ~/.ssh/identity
 #   IdentityFile ~/.ssh/id_dsa
 #   IdentityFile ~/.ssh/id_rsa
 #   Port 22
 #   Protocol 2,1
-#   Cipher blowfish
+#   Cipher 3des
+#   Ciphers aes128-cbc,3des-cbc,blowfish-cbc,cast128-cbc,arcfour,aes192-cbc,aes256-cbc
 #   EscapeChar ~
 EOF
   if [ "$port_number" != "22" ]
@@ -271,17 +312,75 @@ then
     then
       echo "Can't overwrite. ${SYSCONFDIR}/sshd_config is write protected."
     fi
+  else
+    grep -q UsePrivilegeSeparation ${SYSCONFDIR}/sshd_config && privsep_configured=yes
   fi
 fi
 
-# Create default sshd_config from here script
+# Prior to creating or modifying sshd_config, care for privilege separation
+
+if [ "$privsep_configured" != "yes" ]
+then
+  if [ $_nt -gt 0 ]
+  then
+    echo "Privilege separation is set to yes by default since OpenSSH 3.3."
+    echo "However, this requires a non-privileged account called 'sshd'."
+    echo "For more info on privilege separation read /usr/doc/openssh/README.privsep."
+    echo
+    if request "Shall privilege separation be used?"
+    then
+      privsep_used=yes
+      grep -q '^sshd:' ${SYSCONFDIR}/passwd && sshd_in_passwd=yes
+      net user sshd >/dev/null 2>&1 && sshd_in_sam=yes
+      if [ "$sshd_in_passwd" != "yes" ]
+      then
+        if [ "$sshd_in_sam" != "yes" ]
+	then
+	  echo "Warning: The following function requires administrator privileges!"
+	  if request "Shall this script create a local user 'sshd' on this machine?"
+	  then
+	    dos_var_empty=`cygpath -w /var/empty`
+	    net user sshd /add /fullname:"sshd privsep" "/HOMEDIR:$dos_var_empty" > /dev/null 2>&1 && sshd_in_sam=yes
+	    if [ "$sshd_in_sam" != "yes" ]
+	    then
+	      echo "Warning: Creating the user 'sshd' failed!"
+	    fi
+	  fi
+	fi
+	if [ "$sshd_in_sam" != "yes" ]
+	then
+	  echo "Warning: Can't create user 'sshd' in ${SYSCONFDIR}/passwd!"
+	  echo "         Privilege separation set to 'no' again!"
+	  echo "         Check your ${SYSCONFDIR}/sshd_config file!"
+	  privsep_used=no
+	else
+	  mkpasswd -l -u sshd >> ${SYSCONFDIR}/passwd
+	fi
+      fi
+    else
+      privsep_used=no
+    fi
+  else
+    # On 9x don't use privilege separation.  Since security isn't
+    # available it just adds useless addtional processes.
+    privsep_used=no
+  fi
+fi
+
+# Create default sshd_config from here script or modify to add the
+# missing privsep configuration option
 
 if [ ! -f "${SYSCONFDIR}/sshd_config" ]
 then
   echo "Generating ${SYSCONFDIR}/sshd_config file"
   cat > ${SYSCONFDIR}/sshd_config << EOF
-# This is the sshd server system-wide configuration file.  See sshd(8)
-# for more information.
+# This is the sshd server system-wide configuration file.  See
+# sshd_config(5) for more information.
+
+# The strategy used for options in the default sshd_config shipped with
+# OpenSSH is to specify options with their default value where
+# possible, but leave them commented.  Uncommented options change a
+# default value.
 
 Port $port_number
 #Protocol 2,1
@@ -289,66 +388,77 @@ Port $port_number
 #ListenAddress ::
 
 # HostKey for protocol version 1
-HostKey /etc/ssh_host_key
+#HostKey ${SYSCONFDIR}/ssh_host_key
 # HostKeys for protocol version 2
-HostKey /etc/ssh_host_rsa_key
-HostKey /etc/ssh_host_dsa_key
+#HostKey ${SYSCONFDIR}/ssh_host_rsa_key
+#HostKey ${SYSCONFDIR}/ssh_host_dsa_key
 
 # Lifetime and size of ephemeral version 1 server ke
-KeyRegenerationInterval 3600
-ServerKeyBits 768
+#KeyRegenerationInterval 3600
+#ServerKeyBits 768
 
 # Logging
-SyslogFacility AUTH
-LogLevel INFO
 #obsoletes QuietMode and FascistLogging
+#SyslogFacility AUTH
+#LogLevel INFO
 
 # Authentication:
 
-LoginGraceTime 600
-PermitRootLogin yes
+#LoginGraceTime 600
+#PermitRootLogin yes
 # The following setting overrides permission checks on host key files
 # and directories. For security reasons set this to "yes" when running
 # NT/W2K, NTFS and CYGWIN=ntsec.
 StrictModes no
 
-RSAAuthentication yes
-PubkeyAuthentication yes
+#RSAAuthentication yes
+#PubkeyAuthentication yes
 #AuthorizedKeysFile     %h/.ssh/authorized_keys
 
 # rhosts authentication should not be used
-RhostsAuthentication no
+#RhostsAuthentication no
 # Don't read ~/.rhosts and ~/.shosts files
-IgnoreRhosts yes
-# For this to work you will also need host keys in /etc/ssh_known_hosts
-RhostsRSAAuthentication no
+#IgnoreRhosts yes
+# For this to work you will also need host keys in ${SYSCONFDIR}/ssh_known_hosts
+#RhostsRSAAuthentication no
 # similar for protocol version 2
-HostbasedAuthentication no
-# Uncomment if you don't trust ~/.ssh/known_hosts for RhostsRSAAuthentication
-#IgnoreUserKnownHosts yes
+#HostbasedAuthentication no
+# Change to yes if you don't trust ~/.ssh/known_hosts for
+# RhostsRSAAuthentication and HostbasedAuthentication
+#IgnoreUserKnownHosts no
 
 # To disable tunneled clear text passwords, change to no here!
-PasswordAuthentication yes
-PermitEmptyPasswords no
+#PasswordAuthentication yes
+#PermitEmptyPasswords no
 
-X11Forwarding no
-X11DisplayOffset 10
-PrintMotd yes
-#PrintLastLog no
-KeepAlive yes
+# Change to no to disable s/key passwords
+#ChallengeResponseAuthentication yes
+
+#X11Forwarding no
+#X11DisplayOffset 10
+#X11UseLocalhost yes
+#PrintMotd yes
+#PrintLastLog yes
+#KeepAlive yes
 #UseLogin no
+UsePrivilegeSeparation $privsep_used
+#Compression yes
 
-#MaxStartups 10:30:60
-#Banner /etc/issue.net
-#ReverseMappingCheck yes
+#MaxStartups 10
+# no default banner path
+#Banner /some/path
+#VerifyReverseMapping no
 
+# override default of no subsystems
 Subsystem      sftp    /usr/sbin/sftp-server
 EOF
+elif [ "$privsep_configured" != "yes" ]
+then
+  echo >> ${SYSCONFDIR}/sshd_config
+  echo "UsePrivilegeSeparation $privsep_used" >> ${SYSCONFDIR}/sshd_config
 fi
 
 # Care for services file
-_sys="`uname -a`"
-_nt=`expr "$_sys" : "CYGWIN_NT"`
 if [ $_nt -gt 0 ]
 then
   _wservices="${SYSTEMROOT}\\system32\\drivers\\etc\\services"
@@ -403,8 +513,8 @@ umount "${_services}"
 umount "${_serv_tmp}"
 
 # Care for inetd.conf file
-_inetcnf="/etc/inetd.conf"
-_inetcnf_tmp="/etc/inetd.conf.$$"
+_inetcnf="${SYSCONFDIR}/inetd.conf"
+_inetcnf_tmp="${SYSCONFDIR}/inetd.conf.$$"
 
 if [ -f "${_inetcnf}" ]
 then
@@ -442,25 +552,6 @@ then
   fi
 fi
 
-# Create /var/log and /var/log/lastlog if not already existing
-
-if [ -f /var/log ]
-then
-  echo "Creating /var/log failed\!"
-else
-  if [ ! -d /var/log ]
-  then
-    mkdir /var/log
-  fi
-  if [ -d /var/log/lastlog ]
-  then
-    echo "Creating /var/log/lastlog failed\!"
-  elif [ ! -f /var/log/lastlog ]
-  then
-    cat /dev/null > /var/log/lastlog
-  fi
-fi
-
 # On NT ask if sshd should be installed as service
 if [ $_nt -gt 0 ]
 then
@@ -477,7 +568,7 @@ then
     [ -z "${_cygwin}" ] && _cygwin="binmode ntsec tty"
     if cygrunsrv -I sshd -d "CYGWIN sshd" -p /usr/sbin/sshd -a -D -e "CYGWIN=${_cygwin}"
     then
-      chown system /etc/ssh*
+      chown system /${SYSCONFDIR}/ssh*
       echo
       echo "The service has been installed under LocalSystem account."
     fi

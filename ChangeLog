@@ -1,3 +1,6 @@
+20020703
+ - (bal) Updated contrib/cygwin/  patch by vinschen@redhat.com 
+
 20020702
  - (djm) Use PAM_MSG_MEMBER for PAM_TEXT_INFO messages, use xmalloc & 
    friends consistently. Spotted by Solar Designer <solar@openwall.com>
@@ -1205,4 +1208,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2313 2002/07/02 07:08:23 djm Exp $
+$Id: ChangeLog,v 1.2314 2002/07/03 23:33:19 mouring Exp $
