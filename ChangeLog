@@ -31,6 +31,9 @@
      [auth.c auth2-none.c authfile.c channels.c monitor.c monitor_mm.c
      packet.c packet.h progressmeter.c session.c openbsd-compat/xmmap.c]
      improve some code lint did not like; djm millert ok
+   - dtucker@cvs.openbsd.org 2004/05/13 02:47:50
+     [ssh-agent.1]
+     Add examples to ssh-agent.1, bz#481 from Ralf Hauser; ok deraadt@
 
 20040502
  - (dtucker) OpenBSD CVS Sync
@@ -1107,4 +1110,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3350 2004/05/13 06:39:33 dtucker Exp $
+$Id: ChangeLog,v 1.3351 2004/05/13 06:45:46 dtucker Exp $
