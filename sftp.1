@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.21 2001/06/23 17:48:18 itojun Exp $
+.\" $OpenBSD: sftp.1,v 1.22 2001/08/14 09:23:02 markus Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -91,6 +91,8 @@ understands a set of commands similar to those of
 Commands are case insensitive and pathnames may be enclosed in quotes if they
 contain spaces.
 .Bl -tag -width Ds
+.It Ic bye
+Quit sftp.
 .It Ic cd Ar path
 Change remote directory to
 .Ar path .
