@@ -162,7 +162,7 @@ input_userauth_request(int type, u_int32_t seq, void *ctxt)
 		} else {
 			logit("input_userauth_request: illegal user %s", user);
 #ifdef USE_PAM
-			PRIVSEP(start_pam("NOUSER"));
+			PRIVSEP(start_pam(user));
 #endif
 		}
 		setproctitle("%s%s", authctxt->pw ? user : "unknown",

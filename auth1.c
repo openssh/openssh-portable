@@ -413,7 +413,7 @@ do_authentication(void)
 	    use_privsep ? " [net]" : "");
 
 #ifdef USE_PAM
-	PRIVSEP(start_pam(authctxt->pw == NULL ? "NOUSER" : user));
+	PRIVSEP(start_pam(user));
 #endif
 
 	/*

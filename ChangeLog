@@ -1,3 +1,6 @@
+20030514
+ - (djm) Bug #117: Don't lie to PAM about username
+
 20030512
  - (djm) Redhat spec: Don't install profile.d scripts when not 
    building with GNOME/GTK askpass (patch from bet@rahul.net)
@@ -1384,4 +1387,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2675 2003/05/12 08:15:49 djm Exp $
+$Id: ChangeLog,v 1.2676 2003/05/14 00:27:09 djm Exp $
