@@ -1,3 +1,7 @@
+19991126
+ - Add definition for __P()
+ - Added [v]snprintf() replacement for systems that lack it
+
 19991125
  - More reformatting merged from OpenBSD CVS
  - Merged OpenBSD CVS changes:

@@ -221,3 +221,7 @@ enum
 #else
 # define PAM_STRERROR(a,b) pam_strerror((a),(b))
 #endif
+
+#ifndef __P
+# define __P(x) x
+#endif

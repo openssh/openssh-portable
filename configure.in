@@ -59,7 +59,7 @@ dnl Checks for header files.
 AC_CHECK_HEADERS(endian.h lastlog.h login.h maillock.h netgroup.h paths.h pty.h shadow.h util.h utmp.h sys/select.h sys/time.h)
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS(arc4random mkdtemp openpty setenv setlogin setproctitle strlcat strlcpy)
+AC_CHECK_FUNCS(arc4random mkdtemp openpty setenv setlogin setproctitle snprintf strlcat strlcpy vsnprintf)
 
 AC_CHECK_FUNC(login, 
 	[AC_DEFINE(HAVE_LOGIN)],
