@@ -193,7 +193,8 @@ input_userauth_request(int type, int plen, void *ctxt)
 		fatal("input_userauth_request: no authctxt");
 	if (authctxt->attempt++ >= AUTH_FAIL_MAX) {
 #ifdef WITH_AIXAUTHENTICATE 
-		loginfailed(authctxt->pw->pw_name, get_canonical_hostname(), "ssh");
+		loginfailed(authctxt->user?authctxt->user:"NOUSER", 
+			get_canonical_hostname(), "ssh");
 #endif /* WITH_AIXAUTHENTICATE */
 		packet_disconnect("too many failed userauth_requests");
 	}
@@ -250,7 +251,7 @@ input_userauth_request(int type, int plen, void *ctxt)
 	}
 
 #ifdef USE_PAM
-	if (authenticated && !do_pam_account(authctxt->pw->pw_name, NULL))
+	if (authenticated && authctxt->user && !do_pam_account(authctxt->user, NULL))
 		authenticated = 0;
 #endif /* USE_PAM */
 
@@ -306,8 +307,8 @@ userauth_reply(Authctxt *authctxt, int authenticated)
 	if (authenticated == 1) {
 #ifdef WITH_AIXAUTHENTICATE
 		/* We don't have a pty yet, so just label the line as "ssh" */
-		if (loginsuccess(authctxt->pw->pw_name, get_canonical_hostname(), 
-			"ssh", &aixloginmsg) < 0)
+		if (loginsuccess(authctxt->user?authctxt->user:"NOUSER", 
+			get_canonical_hostname(), "ssh", &aixloginmsg) < 0)
 			aixloginmsg = NULL;
 #endif /* WITH_AIXAUTHENTICATE */
 		/* turn off userauth */
@@ -350,8 +351,8 @@ userauth_none(Authctxt *authctxt)
 	return auth_pam_password(authctxt->pw, "");
 #elif defined(HAVE_OSF_SIA)
 	return (sia_validate_user(NULL, saved_argc, saved_argv, 
-		get_canonical_hostname(), authctxt->pw->pw_name, NULL, 
-		0, NULL, "") == SIASUCCESS);
+		get_canonical_hostname(), authctxt->user?authctxt->user:"NOUSER", 
+			NULL, 0, NULL, "") == SIASUCCESS);
 #else /* !HAVE_OSF_SIA && !USE_PAM */
 	return auth_password(authctxt->pw, "");
 #endif /* USE_PAM */
@@ -377,8 +378,8 @@ userauth_passwd(Authctxt *authctxt)
 	    auth_pam_password(authctxt->pw, password) == 1)
 #elif defined(HAVE_OSF_SIA)
 	    sia_validate_user(NULL, saved_argc, saved_argv, 
-		 	get_canonical_hostname(), authctxt->pw->pw_name, NULL, 0, 
-			NULL, password) == SIASUCCESS)
+		 	get_canonical_hostname(), authctxt->user?authctxt->user:"NOUSER", 
+			NULL, 0, NULL, password) == SIASUCCESS)
 #else /* !USE_PAM && !HAVE_OSF_SIA */
 	    auth_password(authctxt->pw, password) == 1)
 #endif /* USE_PAM */

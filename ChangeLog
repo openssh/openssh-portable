@@ -2,6 +2,8 @@
  - (djm) fix select hack in serverloop.c from Philippe WILLEM 
    <Philippe.WILLEM@urssaf.fr>
  - (djm) Fix mangled AIXAUTHENTICATE code
+ - (djm) authctxt->pw may be NULL. Fix from Markus Friedl 
+   <markus.friedl@informatik.uni-erlangen.de>
  - (djm) Sync with OpenBSD:
    - markus@cvs.openbsd.org  2000/10/16 15:46:32
      [ssh.1]
