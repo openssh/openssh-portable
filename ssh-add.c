@@ -194,6 +194,7 @@ main(int argc, char **argv)
 
 	__progname = get_progname(argv[0]);
 	init_rng();
+	seed_rng();
 
 	SSLeay_add_all_algorithms();
 
