@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.226 2004/08/16 13:12:06 dtucker Exp $
+# $Id: configure.ac,v 1.227 2004/08/29 07:04:50 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -525,9 +525,16 @@ AC_CHECK_HEADERS(bstring.h crypt.h dirent.h endian.h features.h \
 	rpc/types.h security/pam_appl.h shadow.h stddef.h stdint.h \
 	strings.h sys/dir.h sys/strtio.h sys/audit.h sys/bitypes.h \
 	sys/bsdtty.h sys/cdefs.h sys/mman.h sys/ndir.h sys/prctl.h \
-	sys/pstat.h sys/ptms.h sys/select.h sys/stat.h sys/stream.h \
+	sys/pstat.h sys/select.h sys/stat.h sys/stream.h \
 	sys/stropts.h sys/sysmacros.h sys/time.h sys/timers.h sys/un.h \
 	time.h tmpdir.h ttyent.h usersec.h util.h utime.h utmp.h utmpx.h vis.h)
+
+# sys/ptms.h requires sys/stream.h to be included first on Solaris
+AC_CHECK_HEADERS(sys/ptms.h, [], [], [
+#ifdef HAVE_SYS_STREAM_H
+# include <sys/stream.h>
+#endif
+])
 
 # Checks for libraries.
 AC_CHECK_FUNC(yp_match, , AC_CHECK_LIB(nsl, yp_match))
