@@ -210,13 +210,6 @@ do_authenticated(Authctxt *authctxt)
 		close(startup_pipe);
 		startup_pipe = -1;
 	}
-#ifdef WITH_AIXAUTHENTICATE
-	/* We don't have a pty yet, so just label the line as "ssh" */
-	if (loginsuccess(authctxt->user,
-	    get_canonical_hostname(options.verify_reverse_mapping),
-	    "ssh", &aixloginmsg) < 0)
-		aixloginmsg = NULL;
-#endif /* WITH_AIXAUTHENTICATE */
 
 	/* setup the channel layer */
 	if (!no_port_forwarding_flag && options.allow_tcp_forwarding)

@@ -1,3 +1,7 @@
+20020925
+ - (bal) Fix issue where successfull login does not clear failure counts
+   in AIX.  Patch by dtucker@zip.com.au ok by djm
+
 20020923
  - (djm) OpenBSD CVS Sync
    - stevesk@cvs.openbsd.org 2002/09/23 20:46:27
@@ -715,4 +719,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2480 2002/09/25 02:20:52 djm Exp $
+$Id: ChangeLog,v 1.2481 2002/09/25 23:14:14 mouring Exp $
