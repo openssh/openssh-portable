@@ -55,6 +55,7 @@ case "$host" in
 	;;
 *-*-linux*)
 	no_dev_ptmx=1
+	need_pty_removed_on_close=1
 	;;
 *-*-netbsd*)
 	need_dash_r=1
@@ -518,9 +519,27 @@ if test ! -z "$nolastlog" ; then
 fi
 
 if test -z "$no_dev_ptmx" ; then
-	AC_CHECK_FILE("/dev/ptmx", AC_DEFINE_UNQUOTED(HAVE_DEV_PTMX))
+	AC_CHECK_FILE("/dev/ptmx", 
+		[
+			AC_DEFINE_UNQUOTED(HAVE_DEV_PTMX)
+			have_dev_ptmx=1
+		]
+	)
 fi
-AC_CHECK_FILE("/dev/ptc", AC_DEFINE_UNQUOTED(HAVE_DEV_PTS_AND_PTC))
+AC_CHECK_FILE("/dev/ptc", 
+	[
+		AC_DEFINE_UNQUOTED(HAVE_DEV_PTS_AND_PTC)
+		have_dev_ptc=1
+	]
+)
+
+# Some systems (defined in platform-specific code above) automagically remove
+# Unix98 ptys when they are closed
+if test "x$ac_cv_func_openpty" = "xyes" -o "x$have_dev_ptmx" = "x1" -o "x$have_dev_ptc" = "x1" ; then
+	if test "x$need_pty_removed_on_close" = "x1" ; then
+		AC_DEFINE(PTY_REMOVED_ON_CLOSE)
+	fi
+fi
 
 # Options from here on. Some of these are preset by platform above
 

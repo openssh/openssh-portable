@@ -103,3 +103,20 @@ use the 'idea' cipher attempts to connect to an OpenSSH server. To rectify
 this, select a different cipher in ssh_config or ~/.ssh/config (3des for 
 security or blowfish for speed).
 
+10. "can't locate module net-pf-10" messages in log under Linux
+
+The Linux kernel is looking (via modprobe) for protocol family 10 (IPv6).
+Either 1. load the appropriate kernel module, 2. enter the correct alias
+in /etc/modules.conf or 3. disable IPv6 in /etc/modules.conf.
+
+For some silly reason /etc/modules.conf may also be named /etc/conf.modules
+
+11. Password authentication doesn't work on Slackware 7.0
+
+Configure OpenSSH with --with-md5-passwords
+
+12. ./configure or sshd complain about lack of RSA support
+
+Ensure that your OpenSSL libraries have been built to include RSA support
+either internally or through RSAref.
+
