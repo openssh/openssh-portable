@@ -1057,9 +1057,9 @@ do_child(const char *command, struct passwd * pw, const char *term,
 	if (!options.use_login) {
 		if (stat(SSH_USER_RC, &st) >= 0) {
 			if (debug_flag)
-				fprintf(stderr, "Running /bin/sh %s\n", SSH_USER_RC);
+				fprintf(stderr, "Running "_PATH_BSHELL" %s\n", SSH_USER_RC);
 
-			f = popen("/bin/sh " SSH_USER_RC, "w");
+			f = popen(_PATH_BSHELL " " SSH_USER_RC, "w");
 			if (f) {
 				if (auth_proto != NULL && auth_data != NULL)
 					fprintf(f, "%s %s\n", auth_proto, auth_data);
@@ -1068,9 +1068,9 @@ do_child(const char *command, struct passwd * pw, const char *term,
 				fprintf(stderr, "Could not run %s\n", SSH_USER_RC);
 		} else if (stat(SSH_SYSTEM_RC, &st) >= 0) {
 			if (debug_flag)
-				fprintf(stderr, "Running /bin/sh %s\n", SSH_SYSTEM_RC);
+				fprintf(stderr, "Running "_PATH_BSHELL" %s\n", SSH_SYSTEM_RC);
 
-			f = popen("/bin/sh " SSH_SYSTEM_RC, "w");
+			f = popen(_PATH_BSHELL " " SSH_SYSTEM_RC, "w");
 			if (f) {
 				if (auth_proto != NULL && auth_data != NULL)
 					fprintf(f, "%s %s\n", auth_proto, auth_data);
@@ -1160,7 +1160,7 @@ do_child(const char *command, struct passwd * pw, const char *term,
 		} else {
 			/* Launch login(1). */
 
-			execl("/usr/bin/login", "login", "-h", get_remote_ipaddr(),
+			execl(LOGIN_PROGRAM, "login", "-h", get_remote_ipaddr(),
 			      "-p", "-f", "--", pw->pw_name, NULL);
 
 			/* Login couldn't be executed, die. */
