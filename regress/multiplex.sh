@@ -5,6 +5,12 @@ CTL=$OBJ/ctl-sock
 
 tid="connection multiplexing"
 
+if grep "#define.*DISABLE_FD_PASSING" ${BUILDDIR}/config.h >/dev/null 2>&1
+then
+	echo "skipped (not supported on this platform)"
+	exit 0
+fi
+
 DATA=/bin/ls${EXEEXT}
 COPY=$OBJ/ls.copy
 

@@ -25,6 +25,8 @@
      ok markus@
  - (dtucker) [configure.ac] Include sys/stream.h in sys/ptms.h header check,
    fixes configure warning on Solaris reported by wknox at mitre.org.
+ - (dtucker) [regress/multiplex.sh] Skip test on platforms that do not
+   support FD passing since multiplex requires it.  Noted by tim@
 
 20040828
  - (dtucker) [openbsd-compat/mktemp.c] Remove superfluous Cygwin #ifdef; from
@@ -1692,4 +1694,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3529 2004/08/29 07:04:50 dtucker Exp $
+$Id: ChangeLog,v 1.3530 2004/08/29 07:09:34 dtucker Exp $
