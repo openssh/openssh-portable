@@ -87,6 +87,7 @@
    (from the OpenBSD tree)
  - (bal) Synced ssh.1, ssh-add.1 and sshd.8 w/ OpenBSD
  - (bal) sftp-sever.c  '%8lld' to '%8llu' (OpenBSD Sync)
+ - (bal) uuencode.c resync w/ OpenBSD tree, plus whitespace.
 
 20010210
  - (djm) Sync sftp and scp stuff from OpenBSD:
@@ -3870,4 +3871,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.734 2001/02/10 23:26:35 mouring Exp $
+$Id: ChangeLog,v 1.735 2001/02/10 23:30:16 mouring Exp $

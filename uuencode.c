@@ -1,4 +1,4 @@
-/*    $OpenBSD: uuencode.c,v 1.10 2001/02/08 19:30:53 itojun Exp $    */
+/*     $OpenBSD: uuencode.c,v 1.10 2001/02/08 19:30:53 itojun Exp $    */
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -26,6 +26,7 @@
 
 #include "includes.h"
 #include "xmalloc.h"
+#include "uuencode.h"
 
 RCSID("$OpenBSD: uuencode.c,v 1.10 2001/02/08 19:30:53 itojun Exp $");
 
@@ -61,6 +62,7 @@ dump_base64(FILE *fp, u_char *data, int len)
 {
 	u_char *buf = xmalloc(2*len);
 	int i, n;
+
 	n = uuencode(data, len, buf, 2*len);
 	for (i = 0; i < n; i++) {
 		fprintf(fp, "%c", buf[i]);
