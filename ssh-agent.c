@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.61 2001/07/04 22:47:19 markus Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.62 2001/07/04 23:13:10 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.61 2001/07/04 22:47:19 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.62 2001/07/04 23:13:10 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -536,6 +536,7 @@ process_remove_smartcard_key(SocketEntry *e)
 			success = 1;
 		}
 		key_free(k);
+		sc_close();
 	}
 
 	buffer_put_int(&e->output, 1);

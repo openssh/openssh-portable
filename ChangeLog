@@ -7,6 +7,9 @@
    - markus@cvs.openbsd.org 2001/07/04 22:47:19
      [ssh-agent.c]
      ignore SIGPIPE when debugging, too
+   - markus@cvs.openbsd.org 2001/07/04 23:13:10
+     [scard.c scard.h ssh-agent.c]
+     handle card removal more gracefully, add sc_close() to scard.h
 
 20010711
  - (djm) dirname(3) may modify its argument on glibc and other systems. 
@@ -5982,4 +5985,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1387 2001/07/14 02:12:55 djm Exp $
+$Id: ChangeLog,v 1.1388 2001/07/14 02:13:26 djm Exp $

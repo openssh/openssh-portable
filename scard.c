@@ -24,7 +24,7 @@
 
 #ifdef SMARTCARD
 #include "includes.h"
-RCSID("$OpenBSD: scard.c,v 1.4 2001/07/02 22:40:17 markus Exp $");
+RCSID("$OpenBSD: scard.c,v 1.5 2001/07/04 23:13:09 markus Exp $");
 
 #include <openssl/engine.h>
 #include <sectok.h>
@@ -43,31 +43,31 @@ RCSID("$OpenBSD: scard.c,v 1.4 2001/07/02 22:40:17 markus Exp $");
 #define MAX_BUF_SIZE 256
 
 static int sc_fd = -1;
-static int sc_reader_num = 0;
+static int sc_reader_num = -1;
 static int cla = 0x00;	/* class */
 
 /* interface to libsectok */
 
 static int 
-sc_open(int num)
+sc_open(void)
 {
 	u_char atr[256];
 	int sw;
 
 	if (sc_fd >= 0)
 		return sc_fd;
-	sc_reader_num = num;
 
-	sc_fd = sectok_open(sc_reader_num, 0, NULL);
+	sc_fd = sectok_open(sc_reader_num, 0, &sw);
 	if (sc_fd < 0) {
-		error("sectok_open failed %d", sc_fd);
-		return sc_fd;
+		error("sectok_open failed: %s", sectok_get_sw(sw));
+		return -1;
 	}
 	if (sectok_reset(sc_fd, 0, atr, &sw) <= 0) {
 		error("sectok_reset failed: %s", sectok_get_sw(sw));
 		sc_fd = -1;
 		return sc_fd;
 	}
+
 	debug("sc_open ok %d", sc_fd);
 	return sc_fd;
 }
@@ -85,10 +85,12 @@ sc_enable_applet(void)
 	if (sectok_selectfile(sc_fd, cla, root_fid, &sw) < 0) {
 		error("sectok_selectfile root_fid failed: %s",
 		    sectok_get_sw(sw));
+		sc_close();
 		return -1;
 	}
 	if (sectok_selectfile(sc_fd, cla, contID, &sw) < 0) {
 		error("sectok_selectfile failed: %s", sectok_get_sw(sw));
+		sc_close();
 		return -1;
 	}
 	/* send appled id */
@@ -98,6 +100,21 @@ sc_enable_applet(void)
 	sectok_apdu(sc_fd, cla, 0xa4, 0x04, 0, aid_len, aid, 0, NULL, &sw);
 	if (!sectok_swOK(sw)) {
 		error("sectok_apdu failed: %s", sectok_get_sw(sw));
+		sc_close();
+		return -1;
+	}
+	return 0;
+}
+
+static int 
+sc_init(void)
+{
+	if (sc_open() < 0) {
+		error("sc_open failed");
+		return -1;
+	}
+	if (sc_enable_applet() < 0) {
+		error("sc_enable_applet failed");
 		return -1;
 	}
 	return 0;
@@ -112,11 +129,16 @@ sc_read_pubkey(Key * k)
 
 	len = sw = 0;
 
+	if (sc_fd < 0)
+		if (sc_init() < 0)
+			return -1;
+
 	/* get key size */
 	sectok_apdu(sc_fd, CLA_SSH, INS_GET_KEYLENGTH, 0, 0, 0, NULL,
 	     sizeof(buf), buf, &sw);
 	if (!sectok_swOK(sw)) {
 		error("could not obtain key length: %s", sectok_get_sw(sw));
+		sc_close();
 		return -1;
 	}
 	len = (buf[0] << 8) | buf[1];
@@ -136,6 +158,7 @@ sc_read_pubkey(Key * k)
 	if (BN_bin2bn(n, len, k->rsa->n) == NULL) {
 		error("c_read_pubkey: BN_bin2bn failed");
 		xfree(n);
+		sc_close();
 		return -1;
 	}
 	xfree(n);
@@ -164,6 +187,9 @@ sc_private_decrypt(int flen, u_char *from, u_char *to, RSA *rsa, int padding)
 	debug("sc_private_decrypt called");
 
 	olen = len = sw = 0;
+	if (sc_fd < 0)
+		if (sc_init() < 0)
+			goto err;
 	if (padding != RSA_PKCS1_PADDING)
 		goto err;
 
@@ -174,6 +200,7 @@ sc_private_decrypt(int flen, u_char *from, u_char *to, RSA *rsa, int padding)
 	if (!sectok_swOK(sw)) {
 		error("sc_private_decrypt: INS_DECRYPT failed: %s",
 		    sectok_get_sw(sw));
+		sc_close();
 		goto err;
 	}
 	sectok_apdu(sc_fd, CLA_SSH, INS_GET_RESPONSE, 0, 0, 0, NULL,
@@ -181,6 +208,7 @@ sc_private_decrypt(int flen, u_char *from, u_char *to, RSA *rsa, int padding)
 	if (!sectok_swOK(sw)) {
 		error("sc_private_decrypt: INS_GET_RESPONSE failed: %s",
 		    sectok_get_sw(sw));
+		sc_close();
 		goto err;
 	}
 	olen = RSA_padding_check_PKCS1_type_2(to, len, padded + 1, len - 1,
@@ -198,6 +226,9 @@ sc_private_encrypt(int flen, u_char *from, u_char *to, RSA *rsa, int padding)
 	int sw, len;
 
 	len = sw = 0;
+	if (sc_fd < 0)
+		if (sc_init() < 0)
+			goto err;
 	if (padding != RSA_PKCS1_PADDING)
 		goto err;
 
@@ -213,6 +244,7 @@ sc_private_encrypt(int flen, u_char *from, u_char *to, RSA *rsa, int padding)
 	if (!sectok_swOK(sw)) {
 		error("sc_private_decrypt: INS_DECRYPT failed: %s",
 		    sectok_get_sw(sw));
+		sc_close();
 		goto err;
 	}
 	sectok_apdu(sc_fd, CLA_SSH, INS_GET_RESPONSE, 0, 0, 0, NULL,
@@ -220,6 +252,7 @@ sc_private_encrypt(int flen, u_char *from, u_char *to, RSA *rsa, int padding)
 	if (!sectok_swOK(sw)) {
 		error("sc_private_decrypt: INS_GET_RESPONSE failed: %s",
 		    sectok_get_sw(sw));
+		sc_close();
 		goto err;
 	}
 err:
@@ -282,19 +315,21 @@ sc_get_engine(void)
 	return smart_engine;
 }
 
+void
+sc_close(void)
+{
+	if (sc_fd >= 0) {
+		sectok_close(sc_fd);
+		sc_fd = -1;
+	}
+}
+
 Key *
-sc_get_key(int sc_reader_num)
+sc_get_key(int num)
 {
 	Key *k;
 
-	if (sc_open(sc_reader_num) < 0) {
-		error("sc_open failed");
-		return NULL;
-	}
-	if (sc_enable_applet() < 0) {
-		error("sc_enable_applet failed");
-		return NULL;
-	}
+	sc_reader_num = num;
 	k = key_new(KEY_RSA);
 	if (k == NULL) {
 		return NULL;
@@ -305,5 +340,6 @@ sc_get_key(int sc_reader_num)
 		return NULL;
 	}
 	return k;
+	sc_close();
 }
 #endif
