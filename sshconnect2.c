@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.70 2001/04/17 10:53:26 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.71 2001/04/18 22:03:45 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -816,14 +816,17 @@ userauth_hostbased(Authctxt *authctxt)
 	u_char *signature, *blob;
 	char *chost, *pkalg, *p;
 	u_int blen, slen;
-	int ok, i, found = 0;
+	int ok, i, len, found = 0;
 
 	p = get_local_name(packet_get_connection_in());
 	if (p == NULL) {
 		error("userauth_hostbased: cannot get local ipaddr/name");
 		return 0;
 	}
-	chost = xstrdup(p);
+	len = strlen(p) + 2;
+	chost = xmalloc(len);
+	strlcpy(chost, p, len);
+	strlcat(chost, ".", len);
 	debug2("userauth_hostbased: chost %s", chost);
 	/* check for a useful key */
 	for (i = 0; i < authctxt->nkeys; i++) {

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.52 2001/04/12 19:15:24 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.53 2001/04/18 22:03:44 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -799,19 +799,23 @@ hostbased_key_allowed(struct passwd *pw, const char *cuser, const char *chost,
 	const char *resolvedname, *ipaddr, *lookup;
 	struct stat st;
 	char *user_hostfile;
-	int host_status;
+	int host_status, len;
 
 	resolvedname = get_canonical_hostname(options.reverse_mapping_check);
 	ipaddr = get_remote_ipaddr();
 
-	debug2("userauth_hostbased: resolvedname %s ipaddr %s",
-	    resolvedname, ipaddr);
+	debug2("userauth_hostbased: chost %s resolvedname %s ipaddr %s",
+	    chost, resolvedname, ipaddr);
 
 	if (options.hostbased_uses_name_from_packet_only) {
 		if (auth_rhosts2(pw, cuser, chost, chost) == 0)
 			return 0;
 		lookup = chost;
 	} else {
+		if (((len = strlen(chost)) > 0) && chost[len - 1] == '.') {
+			debug2("stripping trailing dot from chost %s", chost);
+			chost[len - 1] = '\0';
+		}
 		if (strcasecmp(resolvedname, chost) != 0)
 			log("userauth_hostbased mismatch: "
 			    "client sends %s, but we resolve %s to %s",
