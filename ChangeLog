@@ -44,6 +44,10 @@
      [session.c]
      remove xauth entries before add; PR 2994 from janjaap@stack.nl.
      ok markus@
+   - markus@cvs.openbsd.org 2002/12/05 11:08:35
+     [scp.c]
+     use roundup() similar to rcp/util.c and avoid problems with strange
+     filesystem block sizes, noted by tjr@freebsd.org; ok djm@
 
 20021205
  - (djm) PERL-free fixpaths from stuge-openssh-unix-dev@cdy.org
@@ -879,4 +883,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2527 2002/12/23 02:15:57 mouring Exp $
+$Id: ChangeLog,v 1.2528 2002/12/23 02:22:09 mouring Exp $
