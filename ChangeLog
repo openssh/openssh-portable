@@ -16,6 +16,9 @@
    - stevesk@cvs.openbsd.org 2001/08/22 16:21:21
      [ssh.1]
      hostname not optional; ok markus@
+   - stevesk@cvs.openbsd.org 2001/08/22 16:30:02
+     [sshd.8]
+     no rexd; ok markus@
 
 20010815
  - (bal) Fixed stray code in readconf.c that went in by mistake.
@@ -6339,4 +6342,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1489 2001/09/12 16:43:26 mouring Exp $
+$Id: ChangeLog,v 1.1490 2001/09/12 16:46:08 mouring Exp $
