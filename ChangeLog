@@ -6,6 +6,9 @@
    - markus@cvs.openbsd.org 2001/03/14 15:15:58
      [sftp-int.c]
      add version command
+   - deraadt@cvs.openbsd.org 2001/03/14 22:50:25
+     [sftp-server.c]
+     note no getopt()
  - (stevesk) ssh-keyscan.c: specify "openbsd-compat/fake-queue.h"
  - (bal) Cygwin README change by Corinna Vinschen <vinschen@redhat.com> 
 
@@ -4556,4 +4559,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.959 2001/03/14 21:30:18 mouring Exp $
+$Id: ChangeLog,v 1.960 2001/03/15 00:09:15 mouring Exp $

@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: sftp-server.c,v 1.23 2001/03/07 10:11:23 djm Exp $");
+RCSID("$OpenBSD: sftp-server.c,v 1.24 2001/03/14 22:50:25 deraadt Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
@@ -1030,6 +1030,8 @@ main(int ac, char **av)
 	fd_set *rset, *wset;
 	int in, out, max;
 	ssize_t len, olen, set_size;
+
+	/* XXX should use getopt */
 
 	__progname = get_progname(av[0]);
 	handle_init();
