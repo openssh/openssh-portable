@@ -6,6 +6,9 @@
    - stevesk@cvs.openbsd.org 2001/04/08 23:28:27
      [sshd.8]
      spelling
+   - stevesk@cvs.openbsd.org 2001/04/09 00:42:05
+     [sftp.1]
+     spelling
 
 20010409
  - (stevesk) use setresgid() for setegid() if needed
@@ -4975,4 +4978,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1089 2001/04/10 02:41:56 mouring Exp $
+$Id: ChangeLog,v 1.1090 2001/04/10 02:43:57 mouring Exp $
