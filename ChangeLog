@@ -35,6 +35,9 @@
      [auth.h auth2.c auth2-hostbased.c auth2-kbdint.c auth2-none.c
       auth2-passwd.c auth2-pubkey.c Makefile.in]
      split auth2.c into one file per method; ok provos@/deraadt@
+   - stevesk@cvs.openbsd.org 2002/05/26 20:35:10
+     [ssh.1]
+     sort ChallengeResponseAuthentication; ok markus@
 
 20020604
  - (stevesk) [channels.c] bug #164 patch from YOSHIFUJI Hideaki (changed
@@ -719,4 +722,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2153 2002/06/06 20:27:55 mouring Exp $
+$Id: ChangeLog,v 1.2154 2002/06/06 20:30:28 mouring Exp $

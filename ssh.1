@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.151 2002/05/06 23:34:33 millert Exp $
+.\" $OpenBSD: ssh.1,v 1.152 2002/05/26 20:35:10 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -735,6 +735,14 @@ Note that this option does not work if
 .Cm UsePrivilegedPort
 is set to
 .Dq yes .
+.It Cm ChallengeResponseAuthentication
+Specifies whether to use challenge response authentication.
+The argument to this keyword must be
+.Dq yes
+or
+.Dq no .
+The default is
+.Dq yes .
 .It Cm CheckHostIP
 If this flag is set to
 .Dq yes ,
@@ -1126,14 +1134,6 @@ running.
 The default is
 .Dq yes .
 Note that this option applies to protocol version 1 only.
-.It Cm ChallengeResponseAuthentication
-Specifies whether to use challenge response authentication.
-The argument to this keyword must be
-.Dq yes
-or
-.Dq no .
-The default is
-.Dq yes .
 .It Cm SmartcardDevice
 Specifies which smartcard device to use. The argument to this keyword is
 the device
