@@ -116,6 +116,11 @@
    - deraadt@cvs.openbsd.org 2001/03/02 09:42:49
      [sshd.8]
      doc the dsa/rsa key pair files
+   - deraadt@cvs.openbsd.org 2001/03/02 18:54:31
+     [atomicio.c atomicio.h auth-chall.c auth.c auth2-chall.c crc32.h
+      scp.c serverloop.c session.c sftp-server.8 sftp.1 ssh-add.1 ssh-add.c
+      ssh-agent.1 ssh-agent.c ssh-keygen.1 ssh.1 sshd.8]
+     make copyright lines the same format
 
 20010304
  - (bal) Remove make-ssh-known-hosts.1 since it's no longer valid.
@@ -4308,4 +4313,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.887 2001/03/05 06:57:23 mouring Exp $
+$Id: ChangeLog,v 1.888 2001/03/05 06:59:27 mouring Exp $

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000 Markus Friedl. All rights reserved.
+ * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth.c,v 1.18 2001/02/22 21:59:43 markus Exp $");
+RCSID("$OpenBSD: auth.c,v 1.19 2001/03/02 18:54:31 deraadt Exp $");
 
 #ifdef HAVE_LOGIN_H
 #include <login.h>
