@@ -79,7 +79,7 @@ $(LIBOPENBSD_COMPAT_OBJS): config.h
 
 LIBCOMPAT=openbsd-compat/libopenbsd-compat.a
 $(LIBCOMPAT): 
-	(cd `dirname $@`; $(MAKE))
+	(cd openbsd-compat; $(MAKE))
 
 libssh.a: $(LIBSSH_OBJS)
 	$(AR) rv $@ $(LIBSSH_OBJS)
