@@ -24,7 +24,8 @@
 
 #include "includes.h"
 #ifdef SMARTCARD
-RCSID("$OpenBSD: scard.c,v 1.20 2002/03/21 16:57:15 markus Exp $");
+RCSID("$OpenBSD: scard.c,v 1.21 2002/03/21 18:08:15 rees Exp $");
+
 #include <openssl/engine.h>
 #include <openssl/evp.h>
 #include <sectok.h>
@@ -413,14 +414,13 @@ sc_put_key(Key *prv, const char *id)
 	COPY_RSA_KEY(dmp1, 4);
 	COPY_RSA_KEY(n, 5);
 	len = BN_num_bytes(prv->rsa->n);
-	fd = sectok_friendly_open(sc_reader_id, STONOWAIT, &sw);
+	fd = sectok_friendly_open(id, STONOWAIT, &sw);
 	if (fd < 0) {
 		error("sectok_open failed: %s", sectok_get_sw(sw));
 		goto done;
 	}
 	if (! sectok_cardpresent(fd)) {
-		error("smartcard in reader %s not present",
-		    sc_reader_id);
+		error("smartcard in reader %s not present", id);
 		goto done;
 	}
 	ret = sectok_reset(fd, 0, NULL, &sw);
