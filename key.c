@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: key.c,v 1.40 2002/02/24 19:14:59 markus Exp $");
+RCSID("$OpenBSD: key.c,v 1.41 2002/02/28 15:46:33 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -172,7 +172,7 @@ key_equal(Key *a, Key *b)
 static u_char*
 key_fingerprint_raw(Key *k, enum fp_type dgst_type, u_int *dgst_raw_length)
 {
-	EVP_MD *md = NULL;
+	const EVP_MD *md = NULL;
 	EVP_MD_CTX ctx;
 	u_char *blob = NULL;
 	u_char *retval = NULL;

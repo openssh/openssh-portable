@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-dss.c,v 1.13 2002/02/24 19:14:59 markus Exp $");
+RCSID("$OpenBSD: ssh-dss.c,v 1.14 2002/02/28 15:46:33 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/evp.h>
@@ -46,7 +46,7 @@ ssh_dss_sign(
     u_char *data, u_int datalen)
 {
 	DSA_SIG *sig;
-	EVP_MD *evp_md = EVP_sha1();
+	const EVP_MD *evp_md = EVP_sha1();
 	EVP_MD_CTX md;
 	u_char *ret, digest[EVP_MAX_MD_SIZE], sigblob[SIGBLOB_LEN];
 	u_int rlen, slen, len, dlen;
@@ -110,7 +110,7 @@ ssh_dss_verify(
     u_char *data, u_int datalen)
 {
 	DSA_SIG *sig;
-	EVP_MD *evp_md = EVP_sha1();
+	const EVP_MD *evp_md = EVP_sha1();
 	EVP_MD_CTX md;
 	u_char digest[EVP_MAX_MD_SIZE], *sigblob;
 	u_int len, dlen;

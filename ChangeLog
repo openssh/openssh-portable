@@ -17,6 +17,9 @@
    - stevesk@cvs.openbsd.org 2002/02/27 21:23:13
      [canohost.c channels.c packet.c sshd.c]
      remove unneeded casts in [gs]etsockopt(); ok markus@
+   - markus@cvs.openbsd.org 2002/02/28 15:46:33
+     [authfile.c kex.c kexdh.c kexgex.c key.c ssh-dss.c]
+     add some const EVP_MD for openssl-0.9.7
 
 20020226
  - (tim) Bug 12 [configure.ac] add sys/bitypes.h to int64_t tests
@@ -7748,4 +7751,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1895 2002/03/05 01:31:28 mouring Exp $
+$Id: ChangeLog,v 1.1896 2002/03/05 01:33:36 mouring Exp $

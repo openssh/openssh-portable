@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kexgex.c,v 1.19 2002/02/24 19:14:59 markus Exp $");
+RCSID("$OpenBSD: kexgex.c,v 1.20 2002/02/28 15:46:33 markus Exp $");
 
 #include <openssl/bn.h>
 
@@ -53,7 +53,7 @@ kexgex_hash(
 {
 	Buffer b;
 	static u_char digest[EVP_MAX_MD_SIZE];
-	EVP_MD *evp_md = EVP_sha1();
+	const EVP_MD *evp_md = EVP_sha1();
 	EVP_MD_CTX md;
 
 	buffer_init(&b);
