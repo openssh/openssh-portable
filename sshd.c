@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.235 2002/03/20 19:12:25 stevesk Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.236 2002/03/20 21:08:08 stevesk Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -543,7 +543,7 @@ privsep_preauth_child(void)
 		fatal("chroot(\"%s\"): %s", _PATH_PRIVSEP_CHROOT_DIR,
 		    strerror(errno));
 	if (chdir("/") == -1)
-		fatal("chdir(/)");
+		fatal("chdir(\"/\"): %s", strerror(errno));
 
 	/* Drop our privileges */
 	debug3("privsep user:group %u:%u", (u_int)pw->pw_uid,
