@@ -4,6 +4,8 @@
  - Released 1.2.1pre26
 
  - Compilation fix from Kiyokazu SUTO <suto@ks-and-ks.ne.jp>
+ - Fixed broken bugfix for /dev/ptmx on Linux systems which lack 
+   openpty(). Report from Kiyokazu SUTO <suto@ks-and-ks.ne.jp>
 
 20000115
  - Add --with-xauth-path configure directive and explicit test for

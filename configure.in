@@ -507,7 +507,7 @@ AC_ARG_WITH(dante,
 	]
 )
 
-if test ! -z "$no_dev_ptmx" ; then
+if test -z "$no_dev_ptmx" ; then
 	AC_CHECK_FILE("/dev/ptmx", AC_DEFINE_UNQUOTED(HAVE_DEV_PTMX))
 fi
 AC_CHECK_FILE("/dev/ptc", AC_DEFINE_UNQUOTED(HAVE_DEV_PTS_AND_PTC))
