@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.90 2000/03/06 20:29:04 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.91 2000/03/09 19:31:47 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -1275,14 +1275,6 @@ do_authentication()
 		do_authloop(pw);
 	}
 
-	/* Check if the user is logging in as root and root logins are disallowed. */
-	if (pw->pw_uid == 0 && !options.permit_root_login) {
-		if (forced_command)
-			log("Root login accepted for forced command.");
-		else
-			packet_disconnect("ROOT LOGIN REFUSED FROM %.200s",
-					  get_canonical_hostname());
-	}
 	/* The user has been authenticated and accepted. */
 #ifdef WITH_AIXAUTHENTICATE
 	loginsuccess(user,get_canonical_hostname(),"ssh",&loginmsg);
@@ -1523,6 +1515,21 @@ do_authloop(struct passwd * pw)
 			 */
 			log("Unknown message during authentication: type %d", type);
 			break;
+		}
+
+		/*
+		 * Check if the user is logging in as root and root logins
+		 * are disallowed.
+		 * Note that root login is allowed for forced commands.
+		 */
+		if (authenticated && pw->pw_uid == 0 && !options.permit_root_login) {
+			if (forced_command) {
+				log("Root login accepted for forced command.");
+			} else {
+				authenticated = 0;
+				log("ROOT LOGIN REFUSED FROM %.200s",
+				    get_canonical_hostname());
+			}
 		}
 
 		/* Raise logging level */
