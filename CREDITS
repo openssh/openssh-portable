@@ -9,6 +9,7 @@ Chip Salzenberg <chip@valinux.com> - Assorted patches
 Chris Saia <csaia@wtower.com> - SuSE packaging
 "Chris, the Young One" <cky@pobox.com> - Password auth fixes
 Chun-Chung Chen <cjj@u.washington.edu> - RPM fixes
+Darren Hall <dhall@virage.org> - AIX patches
 Dan Brosemer <odin@linuxfreak.com> - Autoconf support, build fixes
 David Agraz <dagraz@jahoopa.com> - Build fixes
 David Rankin <drankin@bohemians.lexington.ky.us> - libwrap fixes

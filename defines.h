@@ -1,3 +1,5 @@
+/* Necessary headers */
+
 #include <sys/types.h> /* For u_intXX_t */
 #include <sys/socket.h> /* For SHUT_XXXX */
 
@@ -25,6 +27,8 @@
 # include <sys/cdefs.h> /* For __P() */
 #endif 
 
+/* Constants */
+
 #ifndef SHUT_RDWR
 enum
 {
@@ -37,24 +41,26 @@ enum
 # define SHUT_RDWR SHUT_RDWR
 #endif
 
+/* Types */
+
 /* If sys/types.h does not supply intXX_t, supply them ourselves */
 /* (or die trying) */
 #ifndef HAVE_INTXX_T
 # if (SIZEOF_SHORT_INT == 2)
-#  define int16_t short int
+typedef short int int16_t;
 # else
 #  error "16 bit int type not found."
 # endif
 # if (SIZEOF_INT == 4)
-#  define int32_t int
+typedef int int32_t;
 # else
 #  error "32 bit int type not found."
 # endif
 # if (SIZEOF_LONG_INT == 8)
-#  define int64_t long int
+typedef long int int64_t;
 # else
 #  if (SIZEOF_LONG_LONG_INT == 8)
-#   define int64_t long long int
+typedef long long int int64_t;
 #  else
 #   error "64 bit int type not found."
 #  endif
@@ -64,25 +70,25 @@ enum
 /* If sys/types.h does not supply u_intXX_t, supply them ourselves */
 #ifndef HAVE_U_INTXX_T
 # ifdef HAVE_UINTXX_T
-#  define u_int16_t uint16_t
-#  define u_int32_t uint32_t
-#  define u_int64_t uint64_t
+typedef uint16_t u_int16_t;
+typedef uint32_t u_int32_t;
+typedef  uint64_t u_int64_t;
 # else
 #  if (SIZEOF_SHORT_INT == 2)
-#   define u_int16_t unsigned short int
+typedef unsigned short int u_int16_t;
 #  else
 #   error "16 bit int type not found."
 #  endif
 #  if (SIZEOF_INT == 4)
-#   define u_int32_t unsigned int
+typedef unsigned int u_int32_t;
 #  else
 #   error "32 bit int type not found."
 #  endif
 #  if (SIZEOF_LONG_INT == 8)
-#   define u_int64_t unsigned long int
+typedef unsigned long int u_int64_t;
 #  else
 #   if (SIZEOF_LONG_LONG_INT == 8)
-#    define u_int64_t unsigned long long int
+typedef unsigned long long int u_int64_t;
 #   else
 #    error "64 bit int type not found."
 #   endif
@@ -93,8 +99,14 @@ enum
 /* If quad_t is not supplied, then supply it now. We can rely on int64_t */
 /* being defined by the above */
 #ifndef HAVE_QUAD_T
-# define quad_t int64_t
+typedef int64_t quad_t;
 #endif
+
+#ifndef HAVE_SOCKLEN_T
+typedef unsigned int socklen_t;
+#endif /* HAVE_SOCKLEN_T */
+
+/* Paths */
 
 /* If _PATH_LASTLOG is not defined by system headers, set it to the */
 /* lastlog file detected by autoconf */
@@ -164,6 +176,14 @@ enum
 # define _PATH_MAILDIR MAILDIR
 #endif /* !defined(_PATH_MAILDIR) && defined(MAILDIR) */
 
+#ifndef _PATH_RSH
+# ifdef RSH_PATH
+#  define _PATH_RSH RSH_PATH
+# endif /* RSH_PATH */
+#endif /* _PATH_RSH */
+
+/* Macros */
+
 #ifndef MAX
 # define MAX(a,b) (((a)>(b))?(a):(b))
 # define MIN(a,b) (((a)<(b))?(a):(b))
@@ -181,13 +201,6 @@ enum
    } while (0)
 #endif
 
-/* In older versions of libpam, pam_strerror takes a single argument */
-#ifdef HAVE_OLD_PAM
-# define PAM_STRERROR(a,b) pam_strerror((b))
-#else
-# define PAM_STRERROR(a,b) pam_strerror((a),(b))
-#endif
-
 #ifndef __P
 # define __P(x) x
 #endif
@@ -196,6 +209,19 @@ enum
 #  define __attribute__(x)
 #endif /* !defined(__GNUC__) || (__GNUC__ < 2) */
 
+#if defined(HAVE_SECURITY_PAM_APPL_H) && !defined(DISABLE_PAM)
+# define USE_PAM
+#endif /* defined(HAVE_SECURITY_PAM_APPL_H) && !defined(DISABLE_PAM) */
+
+/* Function replacement / compatibility hacks */
+
+/* In older versions of libpam, pam_strerror takes a single argument */
+#ifdef HAVE_OLD_PAM
+# define PAM_STRERROR(a,b) pam_strerror((b))
+#else
+# define PAM_STRERROR(a,b) pam_strerror((a),(b))
+#endif
+
 #if !defined(HAVE_SETEUID) && defined(HAVE_SETREUID)
 # define seteuid(a) setreuid(-1,a)
 #endif /* !defined(HAVE_SETEUID) && defined(HAVE_SETREUID) */
@@ -203,14 +229,4 @@ enum
 #ifndef HAVE_INNETGR
 # define innetgr(a,b,c,d) (0)
 #endif /* HAVE_INNETGR */
-
-#ifndef _PATH_RSH
-# ifdef RSH_PATH
-#  define _PATH_RSH RSH_PATH
-# endif /* RSH_PATH */
-#endif /* _PATH_RSH */
-
-#if defined(HAVE_SECURITY_PAM_APPL_H) && !defined(DISABLE_PAM)
-# define USE_PAM
-#endif /* defined(HAVE_SECURITY_PAM_APPL_H) && !defined(DISABLE_PAM) */
 

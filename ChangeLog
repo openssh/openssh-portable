@@ -5,6 +5,8 @@
  - Fully set ut_tv if present in utmp or utmpx
  - Portability fixes for Irix 5.3 (now compiles OK!)
  - autoconf and other misc cleanups
+ - Merged AIX patch from Darren Hall <dhall@virage.org>
+ - Cleaned up defines.h
 
 19991227
  - Automatically correct paths in manpages and configuration files. Patch

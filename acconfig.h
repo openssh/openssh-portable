@@ -105,6 +105,7 @@
 #undef HAVE_INTXX_T
 #undef HAVE_U_INTXX_T
 #undef HAVE_UINTXX_T
+#undef HAVE_SOCKLEN_T
 
 /* Define if you have /dev/ptmx */
 #undef HAVE_DEV_PTMX
