@@ -12,6 +12,9 @@
      [multiplex.sh test-exec.sh sshd-log-wrapper.sh]
      Add optional capability to log output from regress commands; ok markus@
      Use with: make TEST_SSH_LOGFILE=/tmp/regress.log
+   - djm@cvs.openbsd.org 2005/02/27 23:13:36
+     [login-timeout.sh]
+     avoid nameservice lookups in regress test; ok dtucker@
 
 20050306
  - (dtucker) [monitor.c] Bug #125 comment #47: fix errors returned by monitor
@@ -2298,4 +2301,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3698 2005/03/07 07:33:02 dtucker Exp $
+$Id: ChangeLog,v 1.3699 2005/03/07 07:34:04 dtucker Exp $
