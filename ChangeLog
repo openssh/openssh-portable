@@ -3,7 +3,8 @@
    builds.  Portability corrections from tim@.
  - (dtucker) [configure.ac] Bug #655: uid swapping issues on Mac OS X.
    Patch from max at quendi.de.
- - (dtucker) [configure.ac] Bug #657: uid swappping issues on BSDi.
+ - (dtucker) [configure.ac] Bug #657: uid swapping issues on BSDi.
+ - (dtucker) [configure.ac] Bug #653: uid swapping issues on Tru64.
 
 20030919
  - (djm) Bug #683: Remove reference to --with-ipv4-default from INSTALL;
@@ -1140,4 +1141,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3012 2003/09/22 01:18:47 dtucker Exp $
+$Id: ChangeLog,v 1.3013 2003/09/22 01:26:16 dtucker Exp $
