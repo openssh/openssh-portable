@@ -29,7 +29,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.12 2001/03/13 22:42:54 djm Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.13 2001/03/14 08:57:14 markus Exp $");
 
 #include "ssh.h"
 #include "buffer.h"
@@ -281,7 +281,7 @@ do_lsreaddir(int fd_in, int fd_out, char *path, int printflag,
     SFTP_DIRENT ***dir)
 {
 	Buffer msg;
-	u_int type, id, handle_len, i, expected_id, ents;
+	u_int type, id, handle_len, i, expected_id, ents = 0;
 	char *handle;
 
 	id = msg_id++;

@@ -1,3 +1,9 @@
+20010315
+ - OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2001/03/14 08:57:14
+     [sftp-client.c]
+     Wall
+
 20010314
  - OpenBSD CVS Sync
   - markus@cvs.openbsd.org 2001/03/13 17:34:42
@@ -4545,4 +4551,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.955 2001/03/14 00:39:45 djm Exp $
+$Id: ChangeLog,v 1.956 2001/03/14 15:16:34 mouring Exp $
