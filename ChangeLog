@@ -1,3 +1,6 @@
+20001014
+ - (djm) Don't accept PAM_PROMPT_ECHO_ON messages during initial auth
+
 20001007
  - (stevesk) Print PAM return value in PAM log messages to aid
    with debugging.
