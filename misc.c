@@ -112,6 +112,10 @@ mysignal(int sig, mysig_t act)
 		if (sig == SIGCHLD)
 			sa.sa_flags |= SA_RESTART;
 #endif
+#ifdef SA_INTERRUPT
+		if (sig == SIGCHLD)
+			sa.sa_flags |= SA_INTERRUPT;
+#endif
 		sa.sa_handler = act;
 		if (sigaction(sig, &sa, NULL) == -1)
 			return (mysig_t) -1;

@@ -1224,8 +1224,12 @@ progressmeter(int flag)
 		struct sigaction sa;
 		sa.sa_handler = updateprogressmeter;
 		sigemptyset((sigset_t *)&sa.sa_mask);
+		sa.sa_flags = 0;
 #ifdef SA_RESTART
-		sa.sa_flags = SA_RESTART;
+		sa.sa_flags |= SA_RESTART;
+#endif
+#ifdef SA_INTERRUPT
+		sa.sa_flags |= SA_INTERRUPT;
 #endif
 		sigaction(SIGALRM, &sa, NULL);
 		alarmtimer(1);

@@ -15,6 +15,8 @@
  - (djm) Swapped tests for no_libsocket and no_libnsl in configure.in. 
    Patch from Marek Michalkiewicz <marekm@amelek.gda.pl>
  - (djm) Doc fixes from Pekka Savola <pekkas@netcore.fi>
+ - (djm) Use SA_INTERRUPT along SA_RESTART if present (equivalent for 
+   SunOS)
 
 20010217
  - (bal) OpenBSD Sync:
@@ -4022,4 +4024,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.790 2001/02/18 01:58:24 djm Exp $
+$Id: ChangeLog,v 1.791 2001/02/18 02:05:52 djm Exp $
