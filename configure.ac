@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.111 2003/03/18 18:21:41 tim Exp $
+# $Id: configure.ac,v 1.112 2003/03/21 00:34:34 mouring Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -1485,12 +1485,14 @@ fi
 
 AC_CHECK_TYPES(struct timespec)
 
-# If we don't have int64_t then we can't compile sftp-server.  So don't
-# even attempt to do it. 
+# We need int64_t or else certian parts of the compile will fail.
 if test "x$ac_cv_have_int64_t" = "xno" -a \
 	"x$ac_cv_sizeof_long_int" != "x8" -a \
 	"x$ac_cv_sizeof_long_long_int" = "x0" ; then
-	NO_SFTP='#'
+	echo "OpenSSH requires int64_t support.  Contact your vendor or install"
+	echo "an alternative compiler (I.E., GCC) before continuing."
+	echo ""
+	exit 1;
 else
 dnl test snprintf (broken on SCO w/gcc)
 	AC_TRY_RUN(
@@ -1520,7 +1522,6 @@ main() { exit(0); }
 		], [ true ], [ AC_DEFINE(BROKEN_SNPRINTF) ]
 	)
 fi
-AC_SUBST(NO_SFTP)
 
 dnl Checks for structure members
 OSSH_CHECK_HEADER_FOR_FIELD(ut_host, utmp.h, HAVE_HOST_IN_UTMP)
@@ -2552,12 +2553,6 @@ if test "x$PAM_MSG" = "xyes" ; then
 	echo "for sshd, otherwise password authentication may fail. "
 	echo "Example PAM control files can be found in the contrib/ " 
 	echo "subdirectory"
-	echo ""
-fi
-
-if test ! -z "$NO_SFTP"; then
-	echo "sftp-server will be disabled.  Your compiler does not "
-	echo "support 64bit integers."
 	echo ""
 fi
 

@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.227 2003/02/24 23:22:36 djm Exp $
+# $Id: Makefile.in,v 1.228 2003/03/21 00:34:34 mouring Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -58,9 +58,7 @@ EXEEXT=@EXEEXT@
 INSTALL_SSH_PRNG_CMDS=@INSTALL_SSH_PRNG_CMDS@
 INSTALL_SSH_RAND_HELPER=@INSTALL_SSH_RAND_HELPER@
 
-@NO_SFTP@SFTP_PROGS=sftp-server$(EXEEXT) sftp$(EXEEXT)
-
-TARGETS=ssh$(EXEEXT) sshd$(EXEEXT) ssh-add$(EXEEXT) ssh-keygen$(EXEEXT) ssh-keyscan${EXEEXT} ssh-keysign${EXEEXT} ssh-agent$(EXEEXT) scp$(EXEEXT) ssh-rand-helper${EXEEXT} $(SFTP_PROGS)
+TARGETS=ssh$(EXEEXT) sshd$(EXEEXT) ssh-add$(EXEEXT) ssh-keygen$(EXEEXT) ssh-keyscan${EXEEXT} ssh-keysign${EXEEXT} ssh-agent$(EXEEXT) scp$(EXEEXT) ssh-rand-helper${EXEEXT} sftp-server$(EXEEXT) sftp$(EXEEXT)
 
 LIBSSH_OBJS=authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o \
 	cipher.o compat.o compress.o crc32.o deattack.o fatal.o \
@@ -247,8 +245,8 @@ install-files: scard-install
 		$(INSTALL) -m 0755 $(STRIP_OPT) ssh-rand-helper $(DESTDIR)$(libexecdir)/ssh-rand-helper ; \
 	fi
 	$(INSTALL) -m 4711 $(STRIP_OPT) ssh-keysign $(DESTDIR)$(SSH_KEYSIGN)
-	@NO_SFTP@$(INSTALL) -m 0755 $(STRIP_OPT) sftp $(DESTDIR)$(bindir)/sftp
-	@NO_SFTP@$(INSTALL) -m 0755 $(STRIP_OPT) sftp-server $(DESTDIR)$(SFTP_SERVER)
+	$(INSTALL) -m 0755 $(STRIP_OPT) sftp $(DESTDIR)$(bindir)/sftp
+	$(INSTALL) -m 0755 $(STRIP_OPT) sftp-server $(DESTDIR)$(SFTP_SERVER)
 	$(INSTALL) -m 644 ssh.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh.1
 	$(INSTALL) -m 644 scp.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/scp.1
 	$(INSTALL) -m 644 ssh-add.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-add.1
@@ -261,8 +259,8 @@ install-files: scard-install
 	if [ ! -z "$(INSTALL_SSH_RAND_HELPER)" ]; then \
 		$(INSTALL) -m 644 ssh-rand-helper.8.out $(DESTDIR)$(mandir)/$(mansubdir)8/ssh-rand-helper.8 ; \
 	fi
-	@NO_SFTP@$(INSTALL) -m 644 sftp.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/sftp.1
-	@NO_SFTP@$(INSTALL) -m 644 sftp-server.8.out $(DESTDIR)$(mandir)/$(mansubdir)8/sftp-server.8
+	$(INSTALL) -m 644 sftp.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/sftp.1
+	$(INSTALL) -m 644 sftp-server.8.out $(DESTDIR)$(mandir)/$(mansubdir)8/sftp-server.8
 	$(INSTALL) -m 644 ssh-keysign.8.out $(DESTDIR)$(mandir)/$(mansubdir)8/ssh-keysign.8
 	-rm -f $(DESTDIR)$(bindir)/slogin
 	ln -s ./ssh$(EXEEXT) $(DESTDIR)$(bindir)/slogin

@@ -6,6 +6,7 @@
    - markus@cvs.openbsd.org 2003/03/17 11:43:47
      [version.h]
      enter 3.6
+ - (bal) The days of lack of int64_t support are over.  Sorry kids.
 
 20030318
  - (tim) [configure.ac openbsd-compat/bsd-misc.c openbsd-compat/bsd-misc.h]
@@ -1231,4 +1232,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2633 2003/03/19 23:11:34 djm Exp $
+$Id: ChangeLog,v 1.2634 2003/03/21 00:34:34 mouring Exp $
