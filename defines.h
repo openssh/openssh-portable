@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.65 2001/05/17 03:40:05 mouring Exp $ */
+/* $Id: defines.h,v 1.66 2001/06/10 17:35:46 mouring Exp $ */
 
 /* Some platforms need this for the _r() functions */
 #if !defined(_REENTRANT) && !defined(SNI)
@@ -199,6 +199,7 @@ typedef unsigned long  u_int32_t;
 #   endif
 #  endif
 # endif
+#define __BIT_TYPES_DEFINED__
 #endif
 
 /* 64-bit types */
