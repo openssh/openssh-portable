@@ -15,12 +15,6 @@ supports it. PAM is standard on Redhat and Debian Linux and on Solaris.
 PAM:
 http://www.kernel.org/pub/linux/libs/pam/
 
-Dante:
-http://www.inet.no/dante
-
-OpenSSH can also use the Dante SOCKS libraries, version 1.1.1pre1 or higher,
-if you have them installed on your system. 
-
 If you wish to build the GNOME passphrase requester, you will need the GNOME
 libraries and headers.
 
@@ -144,10 +138,6 @@ started by sshd.
 created.
 
 --with-xauth=PATH specifies the location of the xauth binary
-
---with-dante[=DIR] will enable Dante SOCKS library support. If the Dante
-libsocks library isn't installed in a library searched by the compiler,
-add the directory name as the option.
 
 --with-ipv4-default instructs OpenSSH to use IPv4 by default for new
 connections. Normally OpenSSH will try attempt to lookup both IPv6 and

@@ -1,4 +1,13 @@
 /*
+   Compile with:
+
+   cc `gnome-config --cflags gnome gnomeui` \
+     gnome-ssh-askpass.c -o gnome-ssh-askpass \
+     `gnome-config --libs gnome gnomeui`
+
+*/
+
+/*
 **
 ** GNOME ssh passphrase requestor
 **

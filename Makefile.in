@@ -21,16 +21,12 @@ ASKPASS_PROGRAM=$(ASKPASS_LOCATION)/ssh-askpass
 CC=@CC@
 PATHS=-DETCDIR=\"$(sysconfdir)\" -DSSH_PROGRAM=\"$(SSH_PROGRAM)\" -DSSH_ASKPASS_DEFAULT=\"$(ASKPASS_PROGRAM)\"
 CFLAGS=@CFLAGS@ $(PATHS) @DEFS@
-EXTRA_TARGETS=@GNOME_ASKPASS@
 LIBS=@LIBS@
 AR=@AR@
 RANLIB=@RANLIB@
 INSTALL=@INSTALL@
 PERL=@PERL@
 LDFLAGS=-L. @LDFLAGS@
-
-GNOME_CFLAGS=`gnome-config --cflags gnome gnomeui`
-GNOME_LIBS=`gnome-config --libs gnome gnomeui`
 
 TARGETS=ssh sshd ssh-add ssh-keygen ssh-agent scp $(EXTRA_TARGETS)
 
@@ -76,9 +72,6 @@ ssh-agent: libssh.a ssh-agent.o log-client.o
 ssh-keygen: libssh.a ssh-keygen.o log-client.o
 	$(CC) -o $@ ssh-keygen.o log-client.o $(LDFLAGS) -lssh $(LIBS) 
 
-gnome-ssh-askpass: gnome-ssh-askpass.c
-	$(CC) $(CFLAGS) $(GNOME_CFLAGS) -o $@ gnome-ssh-askpass.c $(GNOME_LIBS)
-
 $(MANPAGES) $(CONFIGFILES)::
 	$(FIXPATHSCMD) $(srcdir)/$@
 
@@ -123,12 +116,6 @@ install: $(TARGETS)
 	ln -s ssh $(DESTDIR)$(bindir)/slogin
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/slogin.1
 	ln -s ssh.1 $(DESTDIR)$(mandir)/$(mansubdir)1/slogin.1
-
-	if [ ! -z "@GNOME_ASKPASS@" ] ; then \
-		$(INSTALL) -d $(DESTDIR)$(libexecdir) ; \
-		$(INSTALL) -d $(DESTDIR)$(libexecdir)/ssh ; \
-		$(INSTALL) -s @GNOME_ASKPASS@ $(DESTDIR)${ASKPASS_LOCATION} ; \
-	fi
 
 	if [ ! -f $(DESTDIR)$(sysconfdir)/ssh_config -a ! -f $(DESTDIR)$(sysconfdir)/sshd_config ]; then \
 		$(INSTALL) -d $(DESTDIR)$(sysconfdir); \

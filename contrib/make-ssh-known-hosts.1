@@ -1,0 +1,432 @@
+.\" -*- nroff -*-
+.\" ----------------------------------------------------------------------
+.\" make-ssh-known-hosts.1 -- Make ssh-known-hosts file
+.\" Copyright (c) 1995 Tero Kivinen
+.\" All Rights Reserved.
+.\"
+.\" Make-ssh-known-hosts is distributed in the hope that it will be
+.\" useful, but WITHOUT ANY WARRANTY.  No author or distributor accepts
+.\" responsibility to anyone for the consequences of using it or for
+.\" whether it serves any particular purpose or works at all, unless he
+.\" says so in writing.  Refer to the General Public License for full
+.\" details.
+.\"
+.\" Everyone is granted permission to copy, modify and redistribute
+.\" make-ssh-known-hosts, but only under the conditions described in
+.\" the General Public License.  A copy of this license is supposed to
+.\" have been given to you along with make-ssh-known-hosts so you can
+.\" know your rights and responsibilities.  It should be in a file named
+.\" COPYING.  Among other things, the copyright notice and this notice
+.\" must be preserved on all copies.
+.\" ----------------------------------------------------------------------
+.\"       Program: make-ssh-known-hosts.1
+.\"	  $Source: /var/cvs/openssh/contrib/Attic/make-ssh-known-hosts.1,v $
+.\"	  Author : $Author: damien $
+.\"
+.\"	  (C) Tero Kivinen 1995 <Tero.Kivinen@hut.fi>
+.\"
+.\"	  Creation          : 03:51 Jun 28 1995 kivinen
+.\"	  Last Modification : 03:44 Jun 28 1995 kivinen
+.\"	  Last check in     : $Date: 2000/03/15 01:13:03 $
+.\"	  Revision number   : $Revision: 1.1 $
+.\"	  State             : $State: Exp $
+.\"	  Version	    : 1.1
+.\"
+.\"	  Description       : Manual page for make-ssh-known-hosts.pl
+.\"
+.\"	  $Log: make-ssh-known-hosts.1,v $
+.\"	  Revision 1.1  2000/03/15 01:13:03  damien
+.\"	   - Created contrib/ subdirectory. Included helpers from Phil Hands'
+.\"	     Debian package, README file and chroot patch from Ricardo Cerqueira
+.\"	     <rmcc@clix.pt>
+.\"	   - Moved gnome-ssh-askpass.c to contrib directory and reomved config
+.\"	     option.
+.\"	   - Slight cleanup to doc files
+.\"	
+.\"	  Revision 1.4  1998/07/08 00:40:14  kivinen
+.\"	  	Changed to do similar commercial #ifdef processing than other
+.\"	  	files.
+.\"
+.\"	  Revision 1.3  1998/06/11 00:07:21  kivinen
+.\"	  	Fixed comment characters.
+.\"
+.\" Revision 1.2  1997/04/27  21:48:28  kivinen
+.\" 	Added F-SECURE stuff.
+.\"
+.\"	  Revision 1.1.1.1  1996/02/18 21:38:13  ylo
+.\"	  	Imported ssh-1.2.13.
+.\"
+.\" Revision 1.5  1995/10/02  01:23:23  ylo
+.\" 	Make substitutions by configure.
+.\"
+.\" Revision 1.4  1995/08/31  09:21:35  ylo
+.\" 	Minor cleanup.
+.\"
+.\" Revision 1.3  1995/08/29  22:37:10  ylo
+.\" 	Minor cleanup.
+.\"
+.\" Revision 1.2  1995/07/15  13:26:11  ylo
+.\" 	Changes from kivinen.
+.\"
+.\" Revision 1.1.1.1  1995/07/12  22:41:05  ylo
+.\" Imported ssh-1.0.0.
+.\"
+.\"
+.\"
+.\" If you have any useful modifications or extensions please send them to
+.\" Tero.Kivinen@hut.fi
+.\"
+.\"
+.\"
+.\"
+.\"
+.\" #ifndef F_SECURE_COMMERCIAL
+.TH MAKE-SSH-KNOWN-HOSTS 1 "November 8, 1995" "SSH TOOLS" "SSH TOOLS"
+.\" #endif F_SECURE_COMMERCIAL
+.SH NAME
+make-ssh-known-hosts \- make ssh_known_hosts file from DNS data
+.SH SYNOPSIS
+.na
+.TP
+.B make-ssh-known-hosts
+.RB "[\|" "\-\-initialdns "\c
+.I initial_dns\c
+\|]
+.br
+.RB "[\|" "\-\-server "\c
+.I domain_name_server\c
+\|]
+.br
+.RB "[\|" "\-\-subdomains "\c
+.I comma_separated_list_of_subdomains\c
+\|]
+.br
+.RB "[\|" "\-\-debug "\c
+.I debug_level\c
+\|]
+.br
+.RB "[\|" "\-\-timeout "\c
+.I ssh_exec_timeout\c
+\|]
+.br
+.RB "[\|" "\-\-pingtimeout "\c
+.I ping_timeout\c
+\|]
+.br
+.RB "[\|" "\-\-passwordtimeout "\c
+.I timeout_when_asking_password\c
+\|]
+.br
+.RB "[\|" "\-\-notrustdaemon" "\|]"
+.br
+.RB "[\|" "\-\-norecursive" "\|]"
+.br
+.RB "[\|" "\-\-domainnamesplit" "\|]"
+.br
+.RB "[\|" "\-\-silent" "\|]"
+.br
+.RB "[\|" "\-\-keyscan" "\|]"
+.br
+.RB "[\|" "\-\-nslookup "\c
+.I path_to_nslookup_program\c
+\|]
+.br
+.RB "[\|" "\-\-ssh "\c
+.I path_to_ssh_program\c
+\|]
+.br
+.IR "domain_name " "[\|" "take_regexp " "[\|" "remove_regexp"\|]\|]"
+
+.SH DESCRIPTION
+.LP
+.B make-ssh-known-hosts
+is a perl5 script that helps create the
+.I /etc/ssh_known_hosts
+file, which is used by
+.B ssh
+to contain the host keys of all publicly known hosts.  
+.B Ssh
+does not normally permit login using rhosts or /etc/hosts.equiv
+authentication unless the server knows the client's host key.  In
+addition, the host keys are used to prevent man-in-the-middle attacks.
+.LP
+In addition to
+.IR /etc/ssh_known_hosts ",
+.B ssh
+also uses the
+.I $HOME/.ssh/known_hosts
+file.  This file, however, is intended to contain only those hosts
+that the particular user needs but are not in the global file.  It is
+intended that the
+.I /etc/ssh_known_hosts
+file be maintained by the system administration, and periodically
+updated to contain the host keys for any new hosts.
+.LP
+The
+.B make-ssh-known-hosts
+program finds all the hosts in a domain by making a DNS query to the
+master domain name server of the domain. The master domain name server
+is located by searching for the SOA record of the domain from the initial
+domain name server (which can be specified with the
+.B \-\-initialdns
+option). The master domain name server can also be given directly with
+the
+.B \-\-server
+option.
+.LP
+After getting the hostname list
+.B make-ssh-known-hosts
+tries to get the public key from every host in the domain. It first
+tries to connect ssh port to check check if the host is alive, and if
+so, it tries to run the command
+.B cat /etc/ssh_host_key.pub
+on the remote machine using
+.BR ssh ".
+If the command succeeds, it knows the remote machine has
+.B ssh
+installed properly, and it then extracts the public key from the
+output, and prints the
+.B /etc/ssh_known_hosts
+entry for it to 
+.BR STDOUT ". Because
+.B make-ssh-known-hosts
+is usually run before
+remote machines have /etc/ssh_known_hosts file you may have to use
+RSA-authentication to allow access to hosts. 
+.LP
+If the command fails for some reason, it checks if the
+.B ssh
+client still got the public key from the remote host in the initial dialog,
+and if so, it will print a proper entry, and if
+.B \-\-notrustdaemon
+option is given comment it out.
+.LP
+.I Domain_name
+is the domain name for which the file is to be generated. By default 
+.B make-ssh-known-hosts
+extracts also all subdomains of domain. Many sites will want to
+include several domains in their
+.I /etc/ssh_known_hosts
+file.  The entries for each domain should be extracted separately by
+running
+.B make-ssh-known-hosts
+once for each domain.  The results should then be combined to create
+the final file.
+.LP
+.I Take_regexp
+is a perl regular expression that matches the hosts to be taken from the
+domain. The data matched contains all the DNS records in the form "\|\c
+.B fieldname=value\c
+\|". The fields are separated with newline, and the perl match is made in
+multiline mode and it is case insensetive. The multiline mode means
+that you can use a regexp like "\|\c
+.B ^wks=.*telnet.*$\c
+\|" to match all hosts that have WKS (well known services) field that
+contains value "telnet".
+.LP
+.I Remove_regexp
+is similar but those hosts that match the regexp are not added (it can
+be used for example to filter out PCs and Macs using the hinfo field: "\|\c
+.B ^hinfo=.*(mac|pc)\c
+\|").
+
+.SH OPTIONS
+.TP
+.BI "\-\-initialdns " "initial_dns"\c
+.TP
+.BI "\-i " "initial_dns"\c
+\&Set the initial domain name server used to query the SOA record of the
+domain.
+
+.TP
+.BI "\-\-server " "domain_name_server"\c
+.TP
+.BI "\-se " "domain_name_server"\c
+\&Set the master domain name server of the domain. This host is used
+to query the DNS list of the domain.
+
+.TP
+.BI "\-\-subdomains " "subdomainlist"\c
+.TP
+.BI "\-su " "subdomainlist"\c
+\&Comma separated list of subdomains that are added to hostnames. For
+example, if subdomainlist is "\|\c
+.I ,foo, foo.bar, foo.bar.zappa, foo.bar.zappa.hut.fi\c
+\|" then when host foobar is added to
+.B /etc/ssh_known_hosts
+file it has aliases "\|\c
+.I foobar, foobar.foo, foobar.foo.bar, foobar.foo.bar.zappa, foobar.foo.bar.zappa.hut.fi\c
+\|". The default action is to take all subparts of the host but the
+second last on a host by host basis.  (The last element is usually the
+country code, and something like 
+.I foobar.foo.bar.zappa.hut 
+would not make sense.)
+
+.TP
+.BI "\-\-debug " "debug_level"\c
+.TP
+.BI "\-de " "debug_level"\c
+\&Set the debug level. Default is 5, bigger values give more output.
+Using a big value (like 999) will print lots of debugging output.
+
+.TP
+.BI "\-\-timeout " "ssh_exec_timeout"\c
+.TP
+.BI "\-ti " "ssh_exec_timeout"\c
+\&Timeout when executing
+.B ssh
+command.  The default is 60 seconds.
+
+.TP
+.BI "\-\-pingtimeout " "ping_timeout"\c
+.TP
+.BI "\-pi " "ping_timeout"\c
+\&Timeout when trying to ping the ssh port.  The default is 3 seconds.
+
+.TP
+.BI "\-\-passwordtimeout " "timeout_when_asking_password"\c
+.TP
+.BI "\-pa " "timeout_when_asking_password"\c
+\&Timeout when asking password for ssh command. Default is that no
+passwords are queried. Use value 0 to have no timeout for password queries.
+
+.TP
+.BI "\-\-notrustdaemon"\c
+.TP
+.BI "\-notr"\c
+\&If the
+.B ssh
+command fails, use the public key stored in the local known hosts file
+and trust it is the correct key for the host. If this option is not
+given such entries are commented out in the generated
+.B /etc/ssh_known_hosts
+file.
+
+.TP
+.BI "\-\-norecursive"\c
+.TP
+.BI "\-nor"\c
+\&Tell
+.B make-ssh-known-hosts
+that it should only extract keys for the given domain, and not to be
+recursive. 
+
+.TP
+.BI "\-\-domainnamesplit"\c
+.TP
+.BI "\-do"\c
+\&Split the domainname to get the list of subdomains. Use this option
+if you don't want hostname to splitted to pieces automatically.
+Default splitting is done host by host basis. If the domain is
+zappa.hut.fi, and the host name is foo.bar then default action adds
+entries "\|\c
+.I foo, foo.bar, foo.bar.zappa, foo.bar.zappa.hut.fi\c
+\|" and this options adds entries "\|\c
+.I foo.bar, foo.bar.zappa, foo.bar.zappa.hut.fi\c
+\|").
+
+.TP
+.BI "\-\-silent"\c
+.TP
+.BI "\-si"\c
+\&Be silent.
+
+.TP
+.BI "\-\-keyscan"\c
+.TP
+.BI "\-k"\c
+\&Output list of all hosts in format "ipaddr1,ipaddr2,...ipaddrn
+hostname.domain.co,hostname,ipaddr1,ipaddr2,all_other_hostname_entries".
+The output of this can be feeded to ssh-keyscan to fetch keys.
+
+.TP
+.BI "\-\-nslookup " "path_to_nslookup_program"\c
+.TP
+.BI "\-n " "path_to_nslookup_program"\c
+\&Path to the
+.B nslookup
+program. 
+
+.TP
+.BI "\-\-ssh " "path_to_ssh_program"\c
+.TP
+.BI "\-ss " "path_to_ssh_program"\c
+\&Path to the
+.B ssh
+program, including all options.
+
+.SH EXAMPLES
+.LP
+The following command:
+.IP
+.B example# make-ssh-known-hosts cs.hut.fi > \c
+.B /etc/ssh_known_hosts
+.LP
+finds all public keys of the hosts in
+.B cs.hut.fi
+domain and put them to
+.B /etc/ssh_known_hosts
+file splitting domain names on a per host basis.
+.LP
+The command
+.IP
+.B example% make-ssh-known-hosts hut.fi '^wks=.*ssh' > \c
+.B hut-hosts
+.LP
+finds all hosts in
+.B hut.fi
+domain, and its subdomains having own name server (cs.hut.fi,
+tf.hut.fi, tky.hut.fi) that have ssh service and puts their public key
+to hut-hosts file. This would require that the domain name server of
+hut.fi would define all hosts running ssh to have entry ssh in their
+WKS record. Because nobody yet adds ssh to WKS, it would be better to
+use command
+.IP
+.B example% make-ssh-known-hosts hut.fi '^wks=.*telnet' > \c
+.B hut-hosts
+.LP
+that would take those host having telnet service. This uses default
+subdomain list.
+
+.LP
+The command:
+.IP
+.B example% make-ssh-known-hosts hut.fi 'dipoli.hut.fi' '^hinfo=.*(mac|pc)' > \c
+.B dipoli-hosts
+.LP
+finds all hosts in hut.fi domain that are in dipoli.hut.fi subdomain
+(note dipoli.hut.fi does not have own name server so its entries are
+in hut.fi-server) and that are not Mac or PC.
+
+.SH FILES
+.ta 3i
+/etc/ssh_known_hosts	Global host public key list
+
+.SH "SEE ALSO"
+.BR ssh (1),
+.BR sshd (8),
+.BR ssh-keygen (1),
+.BR ping (8),
+.BR nslookup (8),
+.BR perl (1),
+.BR perlre (1)
+
+.SH AUTHOR
+Tero Kivinen <kivinen@hut.fi>
+
+.SH COPYING
+.LP
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+.LP
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+.LP
+Permission is granted to copy and distribute translations of this
+manual into another language, under the above conditions for modified
+versions, except that this permission notice may be included in
+translations approved by the the author instead of in the original
+English.

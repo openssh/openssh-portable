@@ -577,25 +577,6 @@ AC_CHECK_FILE("/dev/ptc",
 
 # Options from here on. Some of these are preset by platform above
 
-# Check whether user wants GNOME ssh-askpass
-AC_MSG_CHECKING([whether to build GNOME ssh-askpass])
-AC_ARG_WITH(gnome-askpass,
-	[  --with-gnome-askpass    Build the GNOME passphrase requester (default=no)],
-	[
-		if test "x$withval" = "xno" ; then
-			GNOME_ASKPASS="";
-		else
-			GNOME_ASKPASS="gnome-ssh-askpass";
-		fi
-	])
-AC_SUBST(GNOME_ASKPASS)
-
-if test -z "$GNOME_ASKPASS" ; then
-	AC_MSG_RESULT(no)
-else
-	AC_MSG_RESULT(yes)
-fi
-
 # Check for user-specified random device, otherwise check /dev/urandom
 AC_ARG_WITH(random,
 	[  --with-random=FILE      read randomness from FILE (default=/dev/urandom)],

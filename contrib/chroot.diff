@@ -1,0 +1,134 @@
+From: Ricardo Cerqueira <rmcc@clix.pt>
+
+A patch to cause sshd to chroot when it encounters the magic token
+'/./' in a users home directory. The directory portion before the
+token is the directory to chroot() to, the portion after the
+token is the user's home directory relative to the new root.
+
+
+
+diff -ruN openssh-1.2.3pre2-orig/acconfig.h openssh-1.2.3pre2/acconfig.h
+--- openssh-1.2.3pre2-orig/acconfig.h	Sat Mar 11 20:45:40 2000
++++ openssh-1.2.3pre2/acconfig.h	Wed Mar 15 11:44:33 2000
+@@ -159,6 +159,9 @@
+ /* Detect IPv4 in IPv6 mapped addresses and treat as IPv4 */
+ #undef IPV4_IN_IPV6
+ 
++/* Define if you want to enable chrooted users */
++#undef CHROOT
++
+ @BOTTOM@
+ 
+ /* ******************* Shouldn't need to edit below this line ************** */
+diff -ruN openssh-1.2.3pre2-orig/config.h.in openssh-1.2.3pre2/config.h.in
+--- openssh-1.2.3pre2-orig/config.h.in	Wed Mar 15 11:51:02 2000
++++ openssh-1.2.3pre2/config.h.in	Wed Mar 15 11:46:33 2000
+@@ -140,6 +140,9 @@
+ /* Detect IPv4 in IPv6 mapped addresses and treat as IPv4 */
+ #undef IPV4_IN_IPV6
+ 
++/* Define if you want to enable chrooted users */
++#undef CHROOT
++
+ /* The number of bytes in a char.  */
+ #undef SIZEOF_CHAR
+ 
+diff -ruN openssh-1.2.3pre2-orig/configure openssh-1.2.3pre2/configure
+--- openssh-1.2.3pre2-orig/configure	Wed Mar 15 11:51:03 2000
++++ openssh-1.2.3pre2/configure	Wed Mar 15 11:46:34 2000
+@@ -52,6 +52,8 @@
+ ac_help="$ac_help
+   --with-4in6             Check for and convert IPv4 in IPv6 mapped addresses"
+ ac_help="$ac_help
++  --with-chroot           Enable chroot using /./ directory token"
++ac_help="$ac_help
+   --with-pid-dir=PATH     Specify location of ssh.pid file"
+ 
+ # Initialize some variables set by options.
+@@ -3605,6 +3607,22 @@
+ 
+ 		else
+ 			echo "$ac_t""no (default)" 1>&6
++		fi
++	
++
++fi
++
++
++# Whether to enable the magic chroot token
++# Check whether --with-chroot or --without-chroot was given.
++if test "${with_chroot+set}" = set; then
++  withval="$with_chroot"
++  
++		if test "x$withval" != "xno" ; then	
++			cat >> confdefs.h <<\EOF
++#define CHROOT 1
++EOF
++
+ 		fi
+ 	
+ 
+diff -ruN openssh-1.2.3pre2-orig/configure.in openssh-1.2.3pre2/configure.in
+--- openssh-1.2.3pre2-orig/configure.in	Sat Mar 11 20:45:41 2000
++++ openssh-1.2.3pre2/configure.in	Wed Mar 15 11:46:04 2000
+@@ -810,6 +810,16 @@
+ 	]
+ )
+ 
++# Whether to enable the magic chroot token
++AC_ARG_WITH(chroot,
++	[  --with-chroot           Enable chroot using /./ directory token],
++	[
++		if test "x$withval" != "xno" ; then	
++			AC_DEFINE(CHROOT)
++		fi
++	]
++)
++
+ # Where to place sshd.pid
+ piddir=/var/run
+ AC_ARG_WITH(pid-dir,
+diff -ruN openssh-1.2.3pre2-orig/sshd.c openssh-1.2.3pre2/sshd.c
+--- openssh-1.2.3pre2-orig/sshd.c	Sat Mar 11 11:58:29 2000
++++ openssh-1.2.3pre2/sshd.c	Wed Mar 15 11:43:38 2000
+@@ -2365,6 +2365,10 @@
+ 	extern char **environ;
+ 	struct stat st;
+ 	char *argv[10];
++#ifdef CHROOT /* patch by rmcc */
++        char *user_dir;
++        char *new_root;
++#endif /* CHROOT */
+ 
+ #ifndef USE_PAM /* pam_nologin handles this */
+ 	/* Check /etc/nologin. */
+@@ -2422,6 +2426,29 @@
+ 		krb_afslog(0, 0);
+ 	}
+ #endif /* AFS */
++
++#ifdef CHROOT /* patch by rmcc */
++
++        user_dir = xstrdup(pw->pw_dir);
++        new_root = user_dir;                                  
++
++        while((new_root = strchr(new_root, '.')) != NULL){
++          new_root--;
++          if(strncmp(new_root, "/./", 3) == 0){
++            *new_root = 0;
++            new_root += 2;
++            if(chroot(user_dir) != 0){
++              printf("Couldn't chroot!\n");
++              exit(1);
++            }
++            pw->pw_dir = new_root;
++            break;
++          }
++          new_root +=2;
++        }
++
++
++#endif /* CHROOT */
+ 
+ 	/* Initialize the environment. */
+ 	envsize = 100;

@@ -1,0 +1,49 @@
+Other patches and addons for OpenSSH. Please send submissions to 
+djm@ibs.com.au
+
+In this directory
+-----------------
+
+chroot.diff:
+
+Ricardo Cerqueira's <rmcc@clix.pt> patch to enable chrooting using the
+wu-ftpd style magic home directories (containing '/./'). More details in
+the head of the patch itself.
+
+make-ssh-known-hosts:
+
+Tero Kivinen's <Tero.Kivinen@hut.fi> PERL script to generate
+ssh_known_hosts files by trawling tjhrough the DNS. More details in the
+manpage.
+
+ssh-copy-id:
+
+Phil Hands' <phil@hands.com> shell script to automate the process of adding
+your public key to a remote machine's ~/.ssh/authorized_keys file.
+
+gnome-ssh-askpass:
+
+A GNOME passphrase requester of my own creation. Compilation instructions
+are in the top of the file.
+
+Externally maintained
+---------------------
+
+liblogin:
+
+liblogin is Andre Lucas' cross platform login library. It handles all the 
+yucky details of wtmp, utmp and lastlog (which every OS vendor has
+seen fit to implement differently) in one clean library.
+
+OpenSSH will require liblogin in the near future, but for now it is 
+recommended for users with login logging problems or curiosity.
+
+http://dspace.dial.pipex.com/andre.lucas/liblogin.html
+
+X11 SSH Askpass:
+
+Jim Knoble <jmknoble@pobox.com> has written an excellent X11
+passphrase requester. This is highly recommended:
+
+http://www.ntrnet.net/~jmknoble/software/x11-ssh-askpass/index.html
+
