@@ -6,6 +6,8 @@
  - (djm) Ignore SIGPIPEs from serverloop to child. Fixes crashes with
    very short lived X connections. Bug report from Tobias Oetiker 
    <oetiker@ee.ethz.ch>. Fix from Markus Friedl <markus@cvs.openbsd.org>
+ - (djm) Add recent InitScripts as a RPM dependancy for openssh-server
+   patch from Pekka Savola <pekkas@netcore.fi>
  - (djm) CVS OpenBSD sync:
    - markus@cvs.openbsd.org  2000/09/26 13:59:59
      [clientloop.c]

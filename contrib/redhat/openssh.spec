@@ -42,6 +42,7 @@ Summary: OpenSSH Secure Shell protocol server (sshd)
 Group: System Environment/Daemons
 Obsoletes: ssh-server
 PreReq: openssh chkconfig >= 0.9
+Requires: initscripts >= 4.16
 
 %package askpass
 Summary: OpenSSH X11 passphrase dialog
