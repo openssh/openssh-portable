@@ -36,10 +36,10 @@
 
 extern char *__progname;
 
-RCSID("$Id: auth-pam.c,v 1.47 2002/07/02 07:08:24 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.48 2002/07/21 17:26:54 stevesk Exp $");
 
 #define NEW_AUTHTOK_MSG \
-	"Warning: Your password has expired, please change it now"
+	"Warning: Your password has expired, please change it now."
 
 static int do_pam_conversation(int num_msg, const struct pam_message **msg,
 	struct pam_response **resp, void *appdata_ptr);
@@ -55,7 +55,7 @@ static const char *__pampasswd = NULL;
 
 /* states for do_pam_conversation() */
 enum { INITIAL_LOGIN, OTHER } pamstate = INITIAL_LOGIN;
-/* remember whether pam_acct_mgmt() returned PAM_NEWAUTHTOK_REQD */
+/* remember whether pam_acct_mgmt() returned PAM_NEW_AUTHTOK_REQD */
 static int password_change_required = 0;
 /* remember whether the last pam_authenticate() succeeded or not */
 static int was_authenticated = 0;
@@ -326,7 +326,7 @@ int is_pam_password_change_required(void)
  * Have user change authentication token if pam_acct_mgmt() indicated
  * it was expired.  This needs to be called after an interactive
  * session is established and the user's pty is connected to
- * stdin/stout/stderr.
+ * stdin/stdout/stderr.
  */
 void do_pam_chauthtok(void)
 {

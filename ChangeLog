@@ -1,3 +1,7 @@
+20020721
+ - (stevesk) [auth-pam.c] merge cosmetic changes from solar's
+   openssh-3.4p1-owl-password-changing.diff
+
 20020720
  - (stevesk) [ssh-keygen.c] bug #231: always init/seed_rng().
 
@@ -1397,4 +1401,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2380 2002/07/20 19:05:40 stevesk Exp $
+$Id: ChangeLog,v 1.2381 2002/07/21 17:26:54 stevesk Exp $
