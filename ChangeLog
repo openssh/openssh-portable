@@ -1,4 +1,10 @@
-20011123
+20011103
+ - (tim) [ contrib/caldera/openssh.spec contrib/caldera/sshd.init] Updates 
+   from Raymund Will <ray@caldera.de>
+   [acconfig.h configure.in] Clean up login checks.
+   Problem reported by Jim Knoble <jmknoble@pobox.com>
+
+20011101
  - (djm) Compat define for OpenSSL < 0.9.6 (No OPENSSL_free)
 
 20011031
@@ -6795,4 +6801,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1630 2001/10/31 22:32:34 djm Exp $
+$Id: ChangeLog,v 1.1631 2001/11/03 19:09:32 tim Exp $

@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.118 2001/10/22 00:53:59 tim Exp $ */
+/* $Id: acconfig.h,v 1.119 2001/11/03 19:09:33 tim Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -177,9 +177,6 @@
 
 /* Define if you want to specify the path to your wtmpx file */
 #undef CONF_WTMPX_FILE
-
-/* Define is libutil has login() function */
-#undef HAVE_LIBUTIL_LOGIN
 
 /* Define if you want external askpass support */
 #undef USE_EXTERNAL_ASKPASS

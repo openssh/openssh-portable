@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.3 2001/10/27 17:45:37 tim Exp $
+# $Id: configure.ac,v 1.4 2001/11/03 19:09:33 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -370,9 +370,6 @@ fi
 
 AC_CHECK_FUNC(getspnam, ,
 	AC_CHECK_LIB(gen, getspnam, LIBS="$LIBS -lgen"))
-AC_CHECK_FUNC(login, ,
-	AC_CHECK_LIB(util, login,
-		AC_DEFINE(HAVE_LIBUTIL_LOGIN) LIBS="$LIBS -lutil"))
 
 dnl zlib is required
 AC_ARG_WITH(zlib,
@@ -425,6 +422,11 @@ AC_CHECK_FUNC(strcasecmp,
 AC_CHECK_FUNC(utimes, 
 	[], [ AC_CHECK_LIB(c89, utimes, LIBS="$LIBS -lc89") ]
 )
+
+dnl    Checks for libutil functions
+AC_CHECK_HEADERS(libutil.h)
+AC_SEARCH_LIBS(login, util bsd, [AC_DEFINE(HAVE_LOGIN)])
+AC_CHECK_FUNCS(logout updwtmp logwtmp)
 
 AC_FUNC_STRFTIME
 
@@ -617,9 +619,6 @@ int main(int argc, char **argv) {
 
 dnl    Checks for time functions
 AC_CHECK_FUNCS(gettimeofday time)
-dnl    Checks for libutil functions
-AC_CHECK_HEADERS(libutil.h)
-AC_CHECK_FUNCS(login logout updwtmp logwtmp)
 dnl    Checks for utmp functions
 AC_CHECK_FUNCS(endutent getutent getutid getutline pututline setutent)
 AC_CHECK_FUNCS(utmpname)
@@ -630,11 +629,6 @@ AC_CHECK_FUNCS(setutxent utmpxname)
 AC_CHECK_FUNC(getuserattr, 
 	[AC_DEFINE(HAVE_GETUSERATTR)],
 	[AC_CHECK_LIB(s, getuserattr, [LIBS="$LIBS -ls"; AC_DEFINE(HAVE_GETUSERATTR)])]
-)
-
-AC_CHECK_FUNC(login, 
-	[AC_DEFINE(HAVE_LOGIN)],
-	[AC_CHECK_LIB(bsd, login, [LIBS="$LIBS -lbsd"; AC_DEFINE(HAVE_LOGIN)])]
 )
 
 AC_CHECK_FUNC(daemon, 
