@@ -23,8 +23,8 @@ if test -z "$SUDO" ; then
 	echo "skipped (SUDO not set)"
 	exit 0
 else
-	$SUDO chown root ${SSHAGENT}
-	$SUDO chgrp root ${SSHAGENT}
+	$SUDO chown 0 ${SSHAGENT}
+	$SUDO chgrp 0 ${SSHAGENT}
 	$SUDO chmod 2755 ${SSHAGENT}
 fi
 
