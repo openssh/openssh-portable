@@ -1,5 +1,6 @@
 20010305
  - (bal) CVS ID touch up on sshpty.[ch] and sshlogin.[ch]
+ - (bal) CVS ID touch up on sftp-int.c 
  - (bal) OpenBSD CVS Sync
    - deraadt@cvs.openbsd.org 2001/02/17 23:48:48
      [sshd.8]
@@ -4287,4 +4288,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.879 2001/03/05 06:33:23 mouring Exp $
+$Id: ChangeLog,v 1.880 2001/03/05 06:35:29 mouring Exp $
