@@ -11,6 +11,9 @@
    - jmc@cvs.openbsd.org 2003/05/20 12:09:31
      [ssh.1 ssh_config.5 sshd.8 sshd_config.5 ssh-keygen.1]
      new sentence, new line
+   - djm@cvs.openbsd.org 2003/05/23 08:29:30
+     [sshconnect.c]
+     fix leak; ok markus@
 
 20030520
  - (djm) OpenBSD CVS Sync
@@ -1599,4 +1602,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2747 2003/05/23 08:44:23 djm Exp $
+$Id: ChangeLog,v 1.2748 2003/05/23 08:44:41 djm Exp $

@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.141 2003/05/15 14:55:25 djm Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.142 2003/05/23 08:29:30 djm Exp $");
 
 #include <openssl/bn.h>
 
@@ -225,7 +225,7 @@ timeout_connect(int sockfd, const struct sockaddr *serv_addr,
 	fd_set *fdset;
 	struct timeval tv;
 	socklen_t optlen;
-	int fdsetsz, optval, rc;
+	int fdsetsz, optval, rc, result = -1;
 
 	if (timeout <= 0)
 		return (connect(sockfd, serv_addr, addrlen));
@@ -257,11 +257,11 @@ timeout_connect(int sockfd, const struct sockaddr *serv_addr,
 	case 0:
 		/* Timed out */
 		errno = ETIMEDOUT;
-		return (-1);
+		break;
 	case -1:
 		/* Select error */
 	    	debug("select: %s", strerror(errno));
-		return (-1);
+		break;
 	case 1:
 		/* Completed or failed */
 		optval = 0;
@@ -269,18 +269,20 @@ timeout_connect(int sockfd, const struct sockaddr *serv_addr,
 		if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &optval, 
 		    &optlen) == -1)
 		    	debug("getsockopt: %s", strerror(errno));
-			return (-1);
+			break;
 		if (optval != 0) {
 			errno = optval;
-			return (-1);
+			break;
 		}
+		result = 0;
 		break;
 	default:
 		/* Should not occur */
 		fatal("Bogus return (%d) from select()", rc);
 	}
 
-	return (0);
+	xfree(fdset);
+	return (result);
 }
 
 /*
