@@ -1,6 +1,8 @@
 20030919
  - (djm) Bug #683: Remove reference to --with-ipv4-default from INSTALL;
    djast AT cs.toronto.edu
+ - (djm) Bug #661: Remove duplicate check for basename; from 
+   bugzilla-openssh AT thewrittenword.com
 
 20030918
  - (djm) Bug #652: Fix empty password auth
@@ -1122,4 +1124,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3002 2003/09/19 06:30:14 djm Exp $
+$Id: ChangeLog,v 1.3003 2003/09/19 06:41:01 djm Exp $
