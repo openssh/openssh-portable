@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: key.c,v 1.36 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: key.c,v 1.37 2001/12/25 18:49:56 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -63,6 +63,8 @@ key_new(int type)
 		rsa = RSA_new();
 		rsa->n = BN_new();
 		rsa->e = BN_new();
+		if (rsa == NULL || rsa->n == NULL || rsa->e == NULL)
+			fatal("key_new: malloc failure");
 		k->rsa = rsa;
 		break;
 	case KEY_DSA:
@@ -71,6 +73,9 @@ key_new(int type)
 		dsa->q = BN_new();
 		dsa->g = BN_new();
 		dsa->pub_key = BN_new();
+		if (dsa == NULL || dsa->p == NULL || dsa->q == NULL ||
+		    dsa->g == NULL || dsa->pub_key == NULL)
+			fatal("key_new: malloc failure");
 		k->dsa = dsa;
 		break;
 	case KEY_UNSPEC:
