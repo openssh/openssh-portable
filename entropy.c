@@ -35,7 +35,7 @@
 # include <floatingpoint.h>
 #endif /* HAVE_FLOATINGPOINT_H */
 
-RCSID("$Id: entropy.c,v 1.21 2000/10/16 09:13:43 djm Exp $");
+RCSID("$Id: entropy.c,v 1.22 2000/11/24 23:09:32 djm Exp $");
 
 #ifndef offsetof
 # define offsetof(type, member) ((size_t) &((type *)0)->member)
@@ -798,7 +798,10 @@ seed_rng(void)
 
 void init_rng(void) 
 {
+	int original_euid;
+	
 	original_uid = getuid();
+	original_euid = geteuid();
 
 	/* Read in collection commands */
 	if (!prng_read_commands(SSH_PRNG_COMMAND_FILE))
@@ -806,7 +809,16 @@ void init_rng(void)
 
 	/* Set ourselves up to save a seed upon exit */
 	prng_seed_saved = 0;		
+
+	/* Give up privs while reading seed file */
+	if ((original_uid != original_euid) && (seteuid(original_uid) == -1))
+		fatal("Couldn't give up privileges");
+	
 	prng_read_seedfile();
+
+	if ((original_uid != original_euid) && (seteuid(original_euid) == -1))
+		fatal("Couldn't restore privileges");
+
 	fatal_add_cleanup(prng_seed_cleanup, NULL);
 	atexit(prng_write_seedfile);
 
