@@ -30,7 +30,6 @@
 #include "includes.h"
 RCSID("$Id: fingerprint.c,v 1.4 1999/11/24 16:15:25 markus Exp $");
 
-
 #include "ssh.h"
 #include "xmalloc.h"
 #ifdef HAVE_OPENSSL

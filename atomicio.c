@@ -23,9 +23,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #include "includes.h"
-RCSID("$Id: atomicio.c,v 1.4 1999/12/07 06:00:20 damien Exp $");
+RCSID("$Id: atomicio.c,v 1.5 1999/12/07 06:01:13 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
