@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.101 2003/01/16 23:31:38 djm Exp $
+# $Id: configure.ac,v 1.102 2003/01/20 04:20:25 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -283,6 +283,9 @@ mips-sony-bsd|mips-sony-newsos4)
 	do_sco3_extra_lib_check=yes
 	;;
 *-*-sco3.2v5*)
+	if test -z "$GCC"; then
+		CFLAGS="$CFLAGS -belf"
+	fi
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	LIBS="$LIBS -lprot -lx -ltinfo -lm"
