@@ -96,3 +96,11 @@ with the --with-ipv4-default configure option. This instructs OpenSSH to
 use IPv4-only address resolution. (IPv6 lookups may still be made by 
 specifying the -6 option).
 
+10. Logins from commercial ssh generate the error "Selected cipher type 
+    idea not supported by server"
+
+This error is generated when a commercial ssh which has been configured to
+use the 'idea' cipher attempts to connect to an OpenSSH server. To rectify 
+this, select a different cipher in ssh_config or ~/.ssh/config (3des for 
+security or blowfish for speed).
+

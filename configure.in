@@ -630,7 +630,7 @@ AC_ARG_WITH(kerberos4,
 				AC_MSG_WARN([Cannot find libkrb, build may fail])
 			fi
 
-			LIBS="$LIBS -lkrb -ldes"
+			KLIBS="-lkrb -ldes"
 			AC_CHECK_LIB(resolv, dn_expand, , )
 			KRB4=yes
 			AC_DEFINE(KRB4)
@@ -661,6 +661,7 @@ AC_ARG_WITH(afs,
 		fi
 	]
 )
+LIBS="$LIBS $KLIBS"
 
 dnl Check whether user wants S/Key support
 AC_ARG_WITH(skey,

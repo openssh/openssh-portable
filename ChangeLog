@@ -3,6 +3,10 @@
 
  - NeXT keeps it lastlog in /usr/adm. Report from 
    mouring@newton.pconline.com
+ - Added note in UPGRADING re interop with commercial SSH using idea. 
+   Report from Jim Knoble <jmknoble@pobox.com>
+ - Fix linking order for Kerberos/AFS. Fix from Holget Trapp
+   <Holger.Trapp@Informatik.TU-Chemnitz.DE>
 
 20000125
  - Fix NULL pointer dereference in login.c. Fix from Andre Lucas 
