@@ -1,3 +1,7 @@
+20031115
+ - (dtucker) [regress/agent-ptrace.sh] Test for GDB output from Solaris and
+   HP-UX, skip test on AIX.
+
 20031113
  - (dtucker) [sshd_config] Clarify UsePAM consequences a little more, from
    current.
@@ -1279,4 +1283,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2994.2.60 2003/11/13 08:53:16 dtucker Exp $
+$Id: ChangeLog,v 1.2994.2.61 2003/11/15 01:14:10 dtucker Exp $
