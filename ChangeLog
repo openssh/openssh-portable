@@ -4,6 +4,10 @@
  - (bal) Added DG/UX case and set that they have a broken IPTOS.
  - (djm) Mini-configure reorder patch from Tim Rice <tim@multitalents.net>
    Fixes linking on SCO.
+ - (djm) Make gnome-ssh-askpass handle multi-line prompts. Patch from 
+   Nalin Dahyabhai <nalin@redhat.com>
+ - (djm) BSD license for gnome-ssh-askpass (was X11)
+ - (djm) KNF on gnome-ssh-askpass
 
 20010215
  - (djm) Move PAM session setup back to before setuid to user. Fixes 
@@ -3977,4 +3981,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.775 2001/02/15 23:18:12 djm Exp $
+$Id: ChangeLog,v 1.776 2001/02/16 00:18:58 djm Exp $

@@ -1,46 +1,35 @@
 /*
-   Compile with:
-
-   cc `gnome-config --cflags gnome gnomeui` \
-     gnome-ssh-askpass.c -o gnome-ssh-askpass \
-     `gnome-config --libs gnome gnomeui`
-
-*/
+ * Copyright (c) 2000 Damien Miller.  All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
 /*
-**
-** GNOME ssh passphrase requestor
-**
-** Damien Miller <djm@ibs.com.au>
-** 
-** Copyright 1999 Internet Business Solutions
-**
-** Permission is hereby granted, free of charge, to any person
-** obtaining a copy of this software and associated documentation
-** files (the "Software"), to deal in the Software without
-** restriction, including without limitation the rights to use, copy,
-** modify, merge, publish, distribute, sublicense, and/or sell copies
-** of the Software, and to permit persons to whom the Software is
-** furnished to do so, subject to the following conditions:
-**
-** The above copyright notice and this permission notice shall be
-** included in all copies or substantial portions of the Software.
-**
-** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-** KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-** WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
-** AND NONINFRINGEMENT.  IN NO EVENT SHALL DAMIEN MILLER OR INTERNET
-** BUSINESS SOLUTIONS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-** LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-** ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
-** OR OTHER DEALINGS IN THE SOFTWARE.
-**
-** Except as contained in this notice, the name of Internet Business
-** Solutions shall not be used in advertising or otherwise to promote
-** the sale, use or other dealings in this Software without prior
-** written authorization from Internet Business Solutions.
-**
-*/
+ * Compile with:
+ *
+ * cc `gnome-config --cflags gnome gnomeui` \
+ *    gnome-ssh-askpass.c -o gnome-ssh-askpass \
+ *    `gnome-config --libs gnome gnomeui`
+ *
+ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -67,20 +56,25 @@ void
 passphrase_dialog(char *message)
 {
 	char *passphrase;
-	int result;
+	char **messages;
+	int result, i;
 	
 	GtkWidget *dialog, *entry, *label;
 
-	dialog = gnome_dialog_new("OpenSSH", GNOME_STOCK_BUTTON_OK, 
-									  GNOME_STOCK_BUTTON_CANCEL, NULL);
+	dialog = gnome_dialog_new("OpenSSH", GNOME_STOCK_BUTTON_OK,
+	    GNOME_STOCK_BUTTON_CANCEL, NULL);
 
-	label = gtk_label_new(message);
-	gtk_box_pack_start(GTK_BOX(GNOME_DIALOG(dialog)->vbox), label, FALSE, 
-							 FALSE, 0);
+	messages = g_strsplit(message, "\\n", 0);
+	if (messages)
+		for(i = 0; messages[i]; i++) {
+			label = gtk_label_new(messages[i]);
+			gtk_box_pack_start(GTK_BOX(GNOME_DIALOG(dialog)->vbox),
+			    label, FALSE, FALSE, 0);
+		}
 
 	entry = gtk_entry_new();
 	gtk_box_pack_start(GTK_BOX(GNOME_DIALOG(dialog)->vbox), entry, FALSE, 
-							 FALSE, 0);
+	    FALSE, 0);
 	gtk_entry_set_visibility(GTK_ENTRY(entry), FALSE);
 	gtk_widget_grab_focus(entry);
 
@@ -90,13 +84,14 @@ passphrase_dialog(char *message)
 	gtk_window_set_position (GTK_WINDOW(dialog), GTK_WIN_POS_CENTER);
 	gtk_window_set_policy(GTK_WINDOW(dialog), FALSE, FALSE, TRUE);
 	gnome_dialog_close_hides(GNOME_DIALOG(dialog), TRUE);
-	gtk_container_set_border_width(GTK_CONTAINER(GNOME_DIALOG(dialog)->vbox), GNOME_PAD);
+	gtk_container_set_border_width(GTK_CONTAINER(GNOME_DIALOG(dialog)->vbox),
+	    GNOME_PAD);
 	gtk_widget_show_all(dialog);
 
 	/* Grab focus */
 	XGrabServer(GDK_DISPLAY());
-	if (gdk_pointer_grab(dialog->window, TRUE, 0,
-			     NULL, NULL, GDK_CURRENT_TIME))
+	if (gdk_pointer_grab(dialog->window, TRUE, 0, NULL, NULL, 
+	    GDK_CURRENT_TIME))
 		goto nograb;
 	if (gdk_keyboard_grab(dialog->window, FALSE, GDK_CURRENT_TIME))
 		goto nograbkb;
