@@ -1,6 +1,10 @@
 20020710
  - (tim) [contrib/cygwin/ssh-host-config] explicitely sets the permissions
    on /var/empty to 755 Patch by vinschen@redhat.com
+ - (bal) OpenBSD CVS Sync
+   - itojun@cvs.openbsd.org 2002/07/09 11:56:50
+     [sshconnect.c]
+     silently try next address on connect(2).  markus ok
 
 20020709
  - (bal) NO_IPPORT_RESERVED_CONCEPT used instead of CYGWIN so other platforms
@@ -1324,4 +1328,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2353 2002/07/10 14:40:11 tim Exp $
+$Id: ChangeLog,v 1.2354 2002/07/11 03:54:43 mouring Exp $

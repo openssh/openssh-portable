@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.127 2002/06/27 08:49:44 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.128 2002/07/09 11:56:50 itojun Exp $");
 
 #include <openssl/bn.h>
 
@@ -307,9 +307,11 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 			} else {
 				if (errno == ECONNREFUSED)
 					full_failure = 0;
+#if 0
 				log("ssh: connect to address %s port %s: %s",
 				    sockaddr_ntop(ai->ai_addr, ai->ai_addrlen),
 				    strport, strerror(errno));
+#endif
 				/*
 				 * Close the failed socket; there appear to
 				 * be some problems when reusing a socket for
