@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.261 2004/06/23 03:21:54 mouring Exp $
+# $Id: Makefile.in,v 1.262 2004/08/15 07:23:34 dtucker Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -67,7 +67,7 @@ LIBSSH_OBJS=acss.o authfd.o authfile.o bufaux.o buffer.o \
 	compat.o compress.o crc32.o deattack.o fatal.o hostfile.o \
 	log.o match.o moduli.o mpaux.o nchan.o packet.o \
 	readpass.o rsa.o tildexpand.o ttymodes.o xmalloc.o \
-	atomicio.o key.o dispatch.o kex.o mac.o uuencode.o misc.o \
+	atomicio.o key.o dispatch.o kex.o mac.o uidswap.c uuencode.o misc.o \
 	monitor_fdpass.o rijndael.o ssh-dss.o ssh-rsa.o dh.o kexdh.o \
 	kexgex.o kexdhc.o kexgexc.o scard.o msg.o progressmeter.o dns.o \
 	entropy.o scard-opensc.o gss-genr.o
@@ -76,7 +76,7 @@ SSHOBJS= ssh.o readconf.o clientloop.o sshtty.o \
 	sshconnect.o sshconnect1.o sshconnect2.o
 
 SSHDOBJS=sshd.o auth-rhosts.o auth-passwd.o auth-rsa.o auth-rh-rsa.o \
-	sshpty.o sshlogin.o servconf.o serverloop.o uidswap.o \
+	sshpty.o sshlogin.o servconf.o serverloop.o \
 	auth.o auth1.o auth2.o auth-options.o session.o \
 	auth-chall.o auth2-chall.o groupaccess.o \
 	auth-skey.o auth-bsdauth.o auth2-hostbased.o auth2-kbdint.o \
