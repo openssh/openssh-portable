@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.157 2001/03/09 19:48:37 mouring Exp $
+# $Id: Makefile.in,v 1.158 2001/03/10 21:50:46 tim Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -68,7 +68,8 @@ PATHSUBS	= \
 	-D/var/run/sshd.pid=$(piddir)/sshd.pid \
 	-D/etc/primes=$(sysconfdir)/primes \
 	-D/etc/sshrc=$(sysconfdir)/sshrc \
-	-D/usr/X11R6/bin/xauth=$(XAUTH_PATH)
+	-D/usr/X11R6/bin/xauth=$(XAUTH_PATH) \
+	-D/usr/bin:/bin:/usr/sbin:/sbin=@user_path@
 
 FIXPATHSCMD	= $(PERL) $(srcdir)/fixpaths $(PATHSUBS)
 

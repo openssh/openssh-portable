@@ -1,5 +1,7 @@
 #	$OpenBSD: sshd_config,v 1.34 2001/02/24 10:37:26 deraadt Exp $
 
+# This sshd was compiled with PATH=/usr/bin:/bin:/usr/sbin:/sbin
+
 # This is the sshd server system-wide configuration file.  See sshd(8)
 # for more information.
 

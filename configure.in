@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.262 2001/03/08 18:26:57 stevesk Exp $
+# $Id: configure.in,v 1.263 2001/03/10 21:50:45 tim Exp $
 
 AC_INIT(ssh.c)
 
@@ -1418,11 +1418,65 @@ AC_ARG_WITH(default-path,
 	[  --with-default-path=PATH Specify default \$PATH environment for server],
 	[
 		if test "x$withval" != "xno" ; then	
-			AC_DEFINE_UNQUOTED(USER_PATH, "$withval")
+			user_path="$withval"
 			SERVER_PATH_MSG="$withval" 
+		fi
+	],
+	[
+	AC_TRY_RUN(
+		[
+/* find out what STDPATH is */
+#include <stdio.h>
+#include "config.h"
+#ifdef HAVE_PATHS_H
+# include <paths.h>
+#endif
+#ifndef _PATH_STDPATH
+# define _PATH_STDPATH "/usr/bin:/bin:/usr/sbin:/sbin"
+#endif
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#define DATA "conftest.stdpath"
+
+main()
+{
+	FILE *fd;
+	int rc;
+	
+	fd = fopen(DATA,"w");
+	if(fd == NULL)
+		exit(1);
+	
+	if ((rc = fprintf(fd,"%s", _PATH_STDPATH)) < 0)
+		exit(1);
+
+	exit(0);
+}
+		], [ user_path=`cat conftest.stdpath` ],
+		[ user_path="/usr/bin:/bin:/usr/sbin:/sbin" ],
+		[ user_path="/usr/bin:/bin:/usr/sbin:/sbin" ]
+	)
+# make sure $bindir is in USER_PATH so scp will work
+		t_bindir=`eval echo ${bindir}`
+		case $t_bindir in
+			NONE/*) t_bindir=`echo $t_bindir | sed "s~NONE~$prefix~"` ;;
+		esac
+		case $t_bindir in
+			NONE/*) t_bindir=`echo $t_bindir | sed "s~NONE~$ac_default_prefix~"` ;;
+		esac
+		echo $user_path | grep ":$t_bindir"  > /dev/null 2>&1
+		if test $? -ne 0  ; then
+			echo $user_path | grep "^$t_bindir"  > /dev/null 2>&1
+			if test $? -ne 0  ; then
+				user_path=$user_path:$t_bindir
+				AC_MSG_RESULT(Adding $t_bindir to USER_PATH so scp will work)
+			fi
 		fi
 	]
 )
+AC_DEFINE_UNQUOTED(USER_PATH, "$user_path")
+AC_SUBST(user_path)
 
 # Whether to force IPv4 by default (needed on broken glibc Linux)
 IPV4_HACK_MSG="no" 
@@ -1779,6 +1833,7 @@ D=`eval echo ${sysconfdir}` ; D=`eval echo ${D}`
 E=`eval echo ${libexecdir}/ssh-askpass` ; E=`eval echo ${E}`
 F=`eval echo ${mandir}/${mansubdir}X` ; F=`eval echo ${F}`
 G=`eval echo ${piddir}` ; G=`eval echo ${G}`
+H=`eval echo ${user_path}` ; H=`eval echo ${H}`
 
 echo ""
 echo "OpenSSH configured has been configured with the following options."
@@ -1788,6 +1843,7 @@ echo "           Configuration files: $D"
 echo "               Askpass program: $E"
 echo "                  Manual pages: $F"
 echo "                      PID file: $G"
+echo "        sshd default user PATH: $H"
 echo "      Random number collection: $RAND_MSG"
 echo "                Manpage format: $MAN_MSG"
 echo "                   PAM support: ${PAM_MSG}"
