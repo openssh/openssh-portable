@@ -1,6 +1,8 @@
 20031007
  - (dtucker) [contrib/redhat/openssh.spec] Bug #714: Now that UsePAM is a
    run-time switch, always build --with-md5-passwords.
+ - (dtucker) [configure.ac] Bug #715: Set BROKEN_SETREUID and BROKEN_SETREGID
+   on Reliant Unix.  Patch from Robert.Dahlem at siemens.com.
 
 20031003
  - (tim) [contrib/caldera/openssh.spec] Remove obsolete --with-ipv4-default
@@ -1211,4 +1213,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2994.2.40 2003/10/07 07:40:14 dtucker Exp $
+$Id: ChangeLog,v 1.2994.2.41 2003/10/07 08:36:23 dtucker Exp $
