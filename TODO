@@ -13,6 +13,4 @@
   seem to act correctly.  Ctrl-C and Ctrl-Z don't return echo to the
   underlying shell.
 
-- scp is broken under NeXT, and will need some TLC to be portable to
-  such an old platform. "struct dirent" does not exist, and under
-  next those functions take a single integer input.
+- utmp/wtmp logging does not work on NeXT

@@ -54,7 +54,8 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #ifdef HAVE_NETGROUP_H
 # include <netgroup.h>
 #endif 
-#ifdef HAVE_NETDB_H
+#if defined(HAVE_NETDB_H) && !defined(HAVE_NEXT)
+/* Next includes this as part of another header */
 # include <netdb.h>
 #endif 
 #ifdef HAVE_ENDIAN_H
