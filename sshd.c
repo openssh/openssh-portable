@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.113 2000/05/01 20:34:51 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.115 2000/05/03 10:21:49 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -562,8 +562,9 @@ main(int ac, char **av)
 	}
 	if (options.protocol & SSH_PROTO_2) {
 		sensitive_data.dsa_host_key = key_new(KEY_DSA);
-		if (!load_private_key(options.dsa_key_file, "", sensitive_data.dsa_host_key, NULL)) {
-			error("Could not load DSA host key: %.200s", options.dsa_key_file);
+		if (!load_private_key(options.host_dsa_key_file, "", sensitive_data.dsa_host_key, NULL)) {
+
+			error("Could not load DSA host key: %.200s", options.host_dsa_key_file);
 			log("Disabling protocol version 2");
 			options.protocol &= ~SSH_PROTO_2;
 		}
@@ -1320,7 +1321,7 @@ do_ssh2_kex()
 	/* send server hostkey, DH pubkey 'f' and singed H */
 	packet_start(SSH2_MSG_KEXDH_REPLY);
 	packet_put_string((char *)server_host_key_blob, sbloblen);
-	packet_put_bignum2(dh->pub_key);	// f
+	packet_put_bignum2(dh->pub_key);	/* f */
 	packet_put_string((char *)signature, slen);
 	packet_send();
 	xfree(signature);

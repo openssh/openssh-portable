@@ -45,7 +45,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: scp.c,v 1.21 2000/05/01 11:10:33 damien Exp $");
+RCSID("$Id: scp.c,v 1.22 2000/05/07 02:03:17 damien Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -573,7 +573,7 @@ next:			(void) close(fd);
 			if (i + amt > stb.st_size)
 				amt = stb.st_size - i;
 			if (!haderr) {
-				result = read(fd, bp->buf, amt);
+				result = atomicio(read, fd, bp->buf, amt);
 				if (result != amt)
 					haderr = result >= 0 ? EIO : errno;
 			}
@@ -692,12 +692,12 @@ sink(argc, argv)
 		targisdir = 1;
 	for (first = 1;; first = 0) {
 		cp = buf;
-		if (read(remin, cp, 1) <= 0)
+		if (atomicio(read, remin, cp, 1) <= 0)
 			return;
 		if (*cp++ == '\n')
 			SCREWUP("unexpected <newline>");
 		do {
-			if (read(remin, &ch, sizeof(ch)) != sizeof(ch))
+			if (atomicio(read, remin, &ch, sizeof(ch)) != sizeof(ch))
 				SCREWUP("lost connection");
 			*cp++ = ch;
 		} while (cp < &buf[sizeof(buf) - 1] && ch != '\n');
@@ -835,7 +835,7 @@ bad:			run_err("%s: %s", np, strerror(errno));
 				amt = size - i;
 			count += amt;
 			do {
-				j = read(remin, cp, amt);
+				j = atomicio(read, remin, cp, amt);
 				if (j <= 0) {
 					run_err("%s", j ? strerror(errno) :
 						"dropped connection");
@@ -848,7 +848,7 @@ bad:			run_err("%s: %s", np, strerror(errno));
 			if (count == bp->cnt) {
 				/* Keep reading so we stay sync'd up. */
 				if (wrerr == NO) {
-					j = write(ofd, bp->buf, count);
+					j = atomicio(write, ofd, bp->buf, count);
 					if (j != count) {
 						wrerr = YES;
 						wrerrno = j >= 0 ? EIO : errno;
@@ -861,7 +861,7 @@ bad:			run_err("%s: %s", np, strerror(errno));
 		if (showprogress)
 			progressmeter(1);
 		if (count != 0 && wrerr == NO &&
-		    (j = write(ofd, bp->buf, count)) != count) {
+		    (j = atomicio(write, ofd, bp->buf, count)) != count) {
 			wrerr = YES;
 			wrerrno = j >= 0 ? EIO : errno;
 		}
@@ -913,7 +913,7 @@ response()
 {
 	char ch, *cp, resp, rbuf[2048];
 
-	if (read(remin, &resp, sizeof(resp)) != sizeof(resp))
+	if (atomicio(read, remin, &resp, sizeof(resp)) != sizeof(resp))
 		lostconn(0);
 
 	cp = rbuf;
@@ -926,7 +926,7 @@ response()
 	case 1:		/* error, followed by error msg */
 	case 2:		/* fatal error, "" */
 		do {
-			if (read(remin, &ch, sizeof(ch)) != sizeof(ch))
+			if (atomicio(read, remin, &ch, sizeof(ch)) != sizeof(ch))
 				lostconn(0);
 			*cp++ = ch;
 		} while (cp < &rbuf[sizeof(rbuf) - 1] && ch != '\n');
@@ -1008,7 +1008,7 @@ run_err(const char *fmt,...)
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	$Id: scp.c,v 1.21 2000/05/01 11:10:33 damien Exp $
+ *	$Id: scp.c,v 1.22 2000/05/07 02:03:17 damien Exp $
  */
 
 char *

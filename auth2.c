@@ -27,7 +27,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.5 2000/05/01 23:13:39 djm Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.7 2000/05/06 17:45:36 markus Exp $");
 
 #include <openssl/dsa.h>
 #include <openssl/rsa.h>
@@ -188,9 +188,29 @@ input_userauth_request(int type, int plen)
 			authenticated = 0;
 #endif /* USE_PAM */
 
-	/* XXX todo: check if multiple auth methods are needed */
+	/* Raise logging level */
+	if (authenticated == 1 ||
+	    attempt == AUTH_FAIL_LOG ||
+	    strcmp(method, "password") == 0)
+		authlog = log;
+
+	/* Log before sending the reply */
 	if (authenticated == 1) {
 		authmsg = "Accepted";
+	} else if (authenticated == 0) {
+		authmsg = "Failed";
+	} else {
+		authmsg = "Postponed";
+	}
+	authlog("%s %s for %.200s from %.200s port %d ssh2",
+		authmsg,
+		method,
+		pw && pw->pw_uid == 0 ? "ROOT" : user,
+		get_remote_ipaddr(),
+		get_remote_port());
+
+	/* XXX todo: check if multiple auth methods are needed */
+	if (authenticated == 1) {
 		/* turn off userauth */
 		dispatch_set(SSH2_MSG_USERAUTH_REQUEST, &protocol_error);
 		packet_start(SSH2_MSG_USERAUTH_SUCCESS);
@@ -199,27 +219,12 @@ input_userauth_request(int type, int plen)
 		/* now we can break out */
 		userauth_success = 1;
 	} else if (authenticated == 0) {
-		authmsg = "Failed";
 		packet_start(SSH2_MSG_USERAUTH_FAILURE);
 		packet_put_cstring("publickey,password");	/* XXX dynamic */
 		packet_put_char(0);				/* XXX partial success, unused */
 		packet_send();
 		packet_write_wait();
-	} else {
-		authmsg = "Postponed";
 	}
-	/* Raise logging level */
-	if (authenticated == 1||
-	    attempt == AUTH_FAIL_LOG ||
-	    strcmp(method, "password") == 0)
-		authlog = log;
-
-	authlog("%s %s for %.200s from %.200s port %d ssh2",
-		authmsg,
-		method,
-		pw && pw->pw_uid == 0 ? "ROOT" : user,
-		get_remote_ipaddr(),
-		get_remote_port());
 
 	xfree(service);
 	xfree(user);
@@ -269,7 +274,7 @@ ssh2_auth_pubkey(struct passwd *pw, unsigned char *raw, unsigned int rlen)
 	int have_sig;
 	int authenticated = 0;
 
-	if (options.rsa_authentication == 0) {
+	if (options.dsa_authentication == 0) {
 		debug("pubkey auth disabled");
 		return 0;
 	}
@@ -306,6 +311,13 @@ ssh2_auth_pubkey(struct passwd *pw, unsigned char *raw, unsigned int rlen)
 			debug("test key...");
 			/* test whether pkalg/pkblob are acceptable */
 			/* XXX fake reply and always send PK_OK ? */
+			/*
+			 * XXX this allows testing whether a user is allowed
+			 * to login: if you happen to have a valid pubkey this
+			 * message is sent. the message is NEVER sent at all
+			 * if a user is not allowed to login. is this an
+			 * issue? -markus
+			 */
 			if (user_dsa_key_allowed(pw, key)) {
 				packet_start(SSH2_MSG_USERAUTH_PK_OK);
 				packet_put_string(pkalg, alen);

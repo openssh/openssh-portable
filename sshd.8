@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: sshd.8,v 1.20 2000/05/01 23:23:46 damien Exp $
+.\" $Id: sshd.8,v 1.21 2000/05/07 02:03:20 damien Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSHD 8
@@ -46,9 +46,14 @@ daemon for each incoming connection.
 The forked daemons handle
 key exchange, encryption, authentication, command execution,
 and data exchange.
-.Pp
+This implementation of
+.Nm
+supports both SSH protocol version 1 and 2 simultaneously.
 .Nm
 works as follows.
+.Pp
+.Ss SSH protocol version 1
+.Pp
 Each host has a host-specific RSA key
 (normally 1024 bits) used to identify the host.
 Additionally, when
@@ -59,7 +64,7 @@ is never stored on disk.
 Whenever a client connects the daemon responds with its public
 host and server keys.
 The client compares the
-host key against its own database to verify that it has not changed.
+RSA host key against its own database to verify that it has not changed.
 The client then generates a 256 bit random number.
 It encrypts this
 random number using both the host key and the server key, and sends
@@ -96,6 +101,28 @@ are disabled (thus completely disabling
 and
 .Xr rsh 1
 into the machine).
+.Pp
+.Ss SSH protocol version 2
+.Pp
+Version 2 works similar:
+Each host has a host-specific DSA key used to identify the host.
+However, when the daemon starts, it does not generate a server key.
+Forward security is provided through a Diffie-Hellman key agreement.
+This key agreement results in a shared session key.
+The rest of the session is encrypted
+using a symmetric cipher, currently
+Blowfish, 3DES or CAST128 in CBC mode or Arcfour.
+The client selects the encryption algorithm
+to use from those offered by the server.
+Additionally, session integrity is provided
+through a crytographic message authentication code
+(hmac-sha1 or hmac-md5).
+.Pp
+Protocol version 2 provides a public key based
+user authentication method (DSAAuthentication)
+and conventional password authentication.
+.Pp
+.Ss Command execution and data forwarding
 .Pp
 If the client successfully authenticates itself, a dialog for
 preparing the session is entered.
@@ -148,7 +175,7 @@ If the client fails to authenticate the user within
 this many seconds, the server disconnects and exits.
 A value of zero indicates no limit.
 .It Fl h Ar host_key_file
-Specifies the file from which the host key is read (default
+Specifies the file from which the RSA host key is read (default
 .Pa /etc/ssh_host_key ) .
 This option must be given if
 .Nm
@@ -280,12 +307,34 @@ and
 can be used as wildcards in the patterns.
 Only user names are valid, a numerical user ID isn't recognized.
 By default login is allowed regardless of the user name.
-.It Cm HostKey
-Specifies the file containing the private host key (default
-.Pa /etc/ssh_host_key ) .
+.It Cm DSAAuthentication
+Specifies whether DSA authentication is allowed.
+The default is
+.Dq yes .
+Note that this option applies to protocol version 2 only.
+.It Cm GatewayPorts
+Specifies whether remote hosts are allowed to connect to ports
+forwarded for the client.
+The argument must be
+.Dq yes
+or
+.Dq no .
+The default is
+.Dq no .
+.It Cm HostDsaKey
+Specifies the file containing the private DSA host key (default
+.Pa /etc/ssh_host_dsa_key )
+used by SSH protocol 2.0.
 Note that
 .Nm
-does not start if this file is group/world-accessible.
+disables protcol 2.0 if this file is group/world-accessible.
+.It Cm HostKey
+Specifies the file containing the private RSA host key (default
+.Pa /etc/ssh_host_key )
+used by SSH protocols 1.3 and 1.5.
+Note that
+.Nm
+disables protcols 1.3 and 1.5 if this file is group/world-accessible.
 .It Cm IgnoreRhosts
 Specifies that
 .Pa .rhosts
@@ -390,6 +439,7 @@ and is not recommended.
 Specifies whether password authentication is allowed.
 The default is
 .Dq yes .
+Note that this option applies to both protocol version 1 and 2.
 .It Cm PermitEmptyPasswords
 When password authentication is allowed, it specifies whether the
 server allows login to accounts with empty password strings.
@@ -471,6 +521,7 @@ The default is
 Specifies whether pure RSA authentication is allowed.
 The default is
 .Dq yes .
+Note that this option applies to protocol version 1 only.
 .It Cm ServerKeyBits
 Defines the number of bits in the server key.
 The minimum value is 512, and the default is 768.
@@ -568,7 +619,11 @@ Runs user's shell or command.
 The
 .Pa $HOME/.ssh/authorized_keys
 file lists the RSA keys that are
-permitted for RSA authentication.
+permitted for RSA authentication in SSH protocols 1.3 and 1.5
+Similarily, the
+.Pa $HOME/.ssh/authorized_keys2
+file lists the DSA keys that are
+permitted for DSA authentication in SSH protocol 2.0.
 Each line of the file contains one
 key (empty lines and lines starting with a
 .Ql #
@@ -655,9 +710,11 @@ from="*.niksula.hut.fi,!pc.niksula.hut.fi" 1024 35 23.\|.\|.\|2334 ylo@niksula
 command="dump /home",no-pty,no-port-forwarding 1024 33 23.\|.\|.\|2323 backup.hut.fi
 .Sh SSH_KNOWN_HOSTS FILE FORMAT
 The
-.Pa /etc/ssh_known_hosts
+.Pa /etc/ssh_known_hosts ,
+.Pa /etc/ssh_known_hosts2 ,
+.Pa $HOME/.ssh/known_hosts ,
 and
-.Pa $HOME/.ssh/known_hosts
+.Pa $HOME/.ssh/known_hosts2
 files contain host public keys for all known hosts.
 The global file should
 be prepared by the administrator (optional), and the per-user file is
@@ -678,7 +735,7 @@ to indicate negation: if the host name matches a negated
 pattern, it is not accepted (by that line) even if it matched another
 pattern on the line.
 .Pp
-Bits, exponent, and modulus are taken directly from the host key; they
+Bits, exponent, and modulus are taken directly from the RSA host key; they
 can be obtained, e.g., from
 .Pa /etc/ssh_host_key.pub .
 The optional comment field continues to the end of the line, and is not used.
@@ -744,6 +801,21 @@ it being world-readable if the user's home directory resides on an NFS
 volume).
 It is recommended that it not be accessible by others.
 The format of this file is described above.
+Users will place the contents of their
+.Pa identity.pub
+files into this file, as described in
+.Xr ssh-keygen 1 .
+.It Pa $HOME/.ssh/authorized_keys2
+Lists the DSA keys that can be used to log into the user's account.
+This file must be readable by root (which may on some machines imply
+it being world-readable if the user's home directory resides on an NFS
+volume).
+It is recommended that it not be accessible by others.
+The format of this file is described above.
+Users will place the contents of their
+.Pa id_dsa.pub
+files into this file, as described in
+.Xr ssh-keygen 1 .
 .It Pa "/etc/ssh_known_hosts" and "$HOME/.ssh/known_hosts"
 These files are consulted when using rhosts with RSA host
 authentication to check the public key of the host.
@@ -875,6 +947,7 @@ but with bugs removed and newer features re-added.
 Rapidly after the
 1.2.12 release, newer versions of the original ssh bore successively
 more restrictive licenses, and thus demand for a free version was born.
+.Pp
 This version of OpenSSH
 .Bl -bullet
 .It
@@ -883,8 +956,8 @@ directly removed from the source code; any licensed or patented components
 are chosen from
 external libraries.
 .It
-has been updated to support ssh protocol 1.5, making it compatible with
-all other ssh protocol 1 clients and servers.
+has been updated to support SSH protocol 1.5 and 2, making it compatible with
+all other SSH clients and servers.
 .It
 contains added support for
 .Xr kerberos 8
@@ -893,6 +966,11 @@ authentication and ticket passing.
 supports one-time password authentication with
 .Xr skey 1 .
 .El
+.Pp
+OpenSSH has been created by Aaron Campbell, Bob Beck, Markus Friedl,
+Niels Provos, Theo de Raadt, and Dug Song.
+.Pp
+The support for SSH protocol 2 was written by Markus Friedl.
 .Sh SEE ALSO
 .Xr scp 1 ,
 .Xr ssh 1 ,

@@ -28,7 +28,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: dsa.c,v 1.5 2000/04/26 20:56:29 markus Exp $");
+RCSID("$Id: dsa.c,v 1.6 2000/05/04 22:37:59 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -63,7 +63,7 @@ dsa_key_from_blob(
 	Key *key;
 
 #ifdef DEBUG_DSS
-	dump_base64(blob, blen);
+	dump_base64(stderr, blob, blen);
 #endif
 	/* fetch & parse DSA/DSS pubkey */
 	key = key_new(KEY_DSA);

@@ -16,7 +16,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: clientloop.c,v 1.13 2000/04/30 00:00:54 damien Exp $");
+RCSID("$Id: clientloop.c,v 1.14 2000/05/07 02:03:16 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -971,7 +971,7 @@ client_input_channel_open(int type, int plen)
 	rwindow = packet_get_int();
 	rmaxpack = packet_get_int();
 
-	log("server_input_open: ctype %s rchan %d win %d max %d",
+	debug("client_input_channel_open: ctype %s rchan %d win %d max %d",
 	    ctype, rchan, rwindow, rmaxpack);
 
 	if (strcmp(ctype, "x11") == 0) {
@@ -1077,7 +1077,7 @@ client_input_channel_req(int id, void *arg)
 	rtype = packet_get_string(&len);
 	reply = packet_get_char();
 
-	debug("session_input_channel_req: rtype %s reply %d", rtype, reply);
+	debug("client_input_channel_req: rtype %s reply %d", rtype, reply);
 
 	c = channel_lookup(id);
 	if (c == NULL)

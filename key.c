@@ -255,6 +255,10 @@ key_read(Key *ret, char **cpp)
 		len = 2*strlen(cp);
 		blob = xmalloc(len);
 		n = uudecode(cp, blob, len);
+		if (n < 0) {
+			error("uudecode %s failed", cp);
+			return 0;
+		}
 		k = dsa_key_from_blob(blob, n);
 		if (k == NULL)
 			 return 0;
@@ -297,11 +301,26 @@ key_write(Key *key, FILE *f)
 		unsigned char *blob, *uu;
 		dsa_make_key_blob(key, &blob, &len);
 		uu = xmalloc(2*len);
-		n = uuencode(blob, len, uu);
-		fprintf(f, "%s %s", SSH_DSS, uu);
+		n = uuencode(blob, len, uu, 2*len);
+		if (n > 0) {
+			fprintf(f, "%s %s", SSH_DSS, uu);
+			success = 1;
+		}
 		xfree(blob);
 		xfree(uu);
-		success = 1;
 	}
 	return success;
+}
+char *
+key_type(Key *k)
+{
+	switch (k->type) {
+	case KEY_RSA:
+		return "RSA";
+		break;
+	case KEY_DSA:
+		return "DSA";
+		break;
+	}
+	return "unknown";
 }

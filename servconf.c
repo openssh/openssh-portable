@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: servconf.c,v 1.14 2000/05/01 23:23:45 damien Exp $");
+RCSID("$Id: servconf.c,v 1.15 2000/05/07 02:03:18 damien Exp $");
 
 #include "ssh.h"
 #include "servconf.h"
@@ -32,7 +32,7 @@ initialize_server_options(ServerOptions *options)
 	options->ports_from_cmdline = 0;
 	options->listen_addrs = NULL;
 	options->host_key_file = NULL;
-	options->dsa_key_file = NULL;
+	options->host_dsa_key_file = NULL;
 	options->pid_file = NULL;
 	options->server_key_bits = -1;
 	options->login_grace_time = -1;
@@ -51,6 +51,7 @@ initialize_server_options(ServerOptions *options)
 	options->rhosts_authentication = -1;
 	options->rhosts_rsa_authentication = -1;
 	options->rsa_authentication = -1;
+	options->dsa_authentication = -1;
 #ifdef KRB4
 	options->kerberos_authentication = -1;
 	options->kerberos_or_local_passwd = -1;
@@ -72,6 +73,7 @@ initialize_server_options(ServerOptions *options)
 	options->num_deny_groups = 0;
 	options->ciphers = NULL;
 	options->protocol = SSH_PROTO_UNKNOWN;
+	options->gateway_ports = -1;
 }
 
 void
@@ -83,8 +85,8 @@ fill_default_server_options(ServerOptions *options)
 		add_listen_addr(options, NULL);
 	if (options->host_key_file == NULL)
 		options->host_key_file = HOST_KEY_FILE;
-	if (options->dsa_key_file == NULL)
-		options->dsa_key_file = DSA_KEY_FILE;
+	if (options->host_dsa_key_file == NULL)
+		options->host_dsa_key_file = HOST_DSA_KEY_FILE;
 	if (options->pid_file == NULL)
 		options->pid_file = SSH_DAEMON_PID_FILE;
 	if (options->server_key_bits == -1)
@@ -121,6 +123,8 @@ fill_default_server_options(ServerOptions *options)
 		options->rhosts_rsa_authentication = 0;
 	if (options->rsa_authentication == -1)
 		options->rsa_authentication = 1;
+	if (options->dsa_authentication == -1)
+		options->dsa_authentication = 1;
 #ifdef KRB4
 	if (options->kerberos_authentication == -1)
 		options->kerberos_authentication = (access(KEYFILE, R_OK) == 0);
@@ -147,6 +151,8 @@ fill_default_server_options(ServerOptions *options)
 		options->use_login = 0;
 	if (options->protocol == SSH_PROTO_UNKNOWN)
 		options->protocol = SSH_PROTO_1|SSH_PROTO_2;
+	if (options->gateway_ports == -1)
+		options->gateway_ports = 0;
 }
 
 #define WHITESPACE " \t\r\n"
@@ -170,7 +176,8 @@ typedef enum {
 	sPrintMotd, sIgnoreRhosts, sX11Forwarding, sX11DisplayOffset,
 	sStrictModes, sEmptyPasswd, sRandomSeedFile, sKeepAlives, sCheckMail,
 	sUseLogin, sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
-	sIgnoreUserKnownHosts, sDSAKeyFile, sCiphers, sProtocol, sPidFile
+	sIgnoreUserKnownHosts, sHostDSAKeyFile, sCiphers, sProtocol, sPidFile,
+	sGatewayPorts, sDSAAuthentication
 } ServerOpCodes;
 
 /* Textual representation of the tokens. */
@@ -180,7 +187,7 @@ static struct {
 } keywords[] = {
 	{ "port", sPort },
 	{ "hostkey", sHostKeyFile },
-	{ "dsakey", sDSAKeyFile },
+	{ "hostdsakey", sHostDSAKeyFile },
  	{ "pidfile", sPidFile },
 	{ "serverkeybits", sServerKeyBits },
 	{ "logingracetime", sLoginGraceTime },
@@ -191,6 +198,7 @@ static struct {
 	{ "rhostsauthentication", sRhostsAuthentication },
 	{ "rhostsrsaauthentication", sRhostsRSAAuthentication },
 	{ "rsaauthentication", sRSAAuthentication },
+	{ "dsaauthentication", sDSAAuthentication },
 #ifdef KRB4
 	{ "kerberosauthentication", sKerberosAuthentication },
 	{ "kerberosorlocalpasswd", sKerberosOrLocalPasswd },
@@ -222,6 +230,7 @@ static struct {
 	{ "denygroups", sDenyGroups },
 	{ "ciphers", sCiphers },
 	{ "protocol", sProtocol },
+	{ "gatewayports", sGatewayPorts },
 	{ NULL, 0 }
 };
 
@@ -353,9 +362,9 @@ parse_int:
 			break;
 
 		case sHostKeyFile:
-		case sDSAKeyFile:
+		case sHostDSAKeyFile:
 			charptr = (opcode == sHostKeyFile ) ?
-			    &options->host_key_file : &options->dsa_key_file;
+			    &options->host_key_file : &options->host_dsa_key_file;
 			cp = strtok(NULL, WHITESPACE);
 			if (!cp) {
 				fprintf(stderr, "%s line %d: missing file name.\n",
@@ -445,6 +454,10 @@ parse_flag:
 			intptr = &options->rsa_authentication;
 			goto parse_flag;
 
+		case sDSAAuthentication:
+			intptr = &options->dsa_authentication;
+			goto parse_flag;
+
 #ifdef KRB4
 		case sKerberosAuthentication:
 			intptr = &options->kerberos_authentication;
@@ -509,6 +522,10 @@ parse_flag:
 
 		case sUseLogin:
 			intptr = &options->use_login;
+			goto parse_flag;
+
+		case sGatewayPorts:
+			intptr = &options->gateway_ports;
 			goto parse_flag;
 
 		case sLogFacility:

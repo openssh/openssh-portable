@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: readconf.c,v 1.12 2000/04/29 13:57:11 damien Exp $");
+RCSID("$Id: readconf.c,v 1.13 2000/05/07 02:03:17 damien Exp $");
 
 #include "ssh.h"
 #include "cipher.h"
@@ -105,7 +105,7 @@ typedef enum {
 	oBatchMode, oCheckHostIP, oStrictHostKeyChecking, oCompression,
 	oCompressionLevel, oKeepAlives, oNumberOfPasswordPrompts, oTISAuthentication,
 	oUsePrivilegedPort, oLogLevel, oCiphers, oProtocol, oIdentityFile2,
-	oGlobalKnownHostsFile2, oUserKnownHostsFile2
+	oGlobalKnownHostsFile2, oUserKnownHostsFile2, oDSAAuthentication
 } OpCodes;
 
 /* Textual representations of the tokens. */
@@ -121,6 +121,7 @@ static struct {
 	{ "rhostsauthentication", oRhostsAuthentication },
 	{ "passwordauthentication", oPasswordAuthentication },
 	{ "rsaauthentication", oRSAAuthentication },
+	{ "dsaauthentication", oDSAAuthentication },
 	{ "skeyauthentication", oSkeyAuthentication },
 #ifdef KRB4
 	{ "kerberosauthentication", oKerberosAuthentication },
@@ -288,6 +289,10 @@ parse_flag:
 
 	case oPasswordAuthentication:
 		intptr = &options->password_authentication;
+		goto parse_flag;
+
+	case oDSAAuthentication:
+		intptr = &options->dsa_authentication;
 		goto parse_flag;
 
 	case oRSAAuthentication:
@@ -637,6 +642,7 @@ initialize_options(Options * options)
 	options->use_privileged_port = -1;
 	options->rhosts_authentication = -1;
 	options->rsa_authentication = -1;
+	options->dsa_authentication = -1;
 	options->skey_authentication = -1;
 #ifdef KRB4
 	options->kerberos_authentication = -1;
@@ -696,6 +702,8 @@ fill_default_options(Options * options)
 		options->rhosts_authentication = 1;
 	if (options->rsa_authentication == -1)
 		options->rsa_authentication = 1;
+	if (options->dsa_authentication == -1)
+		options->dsa_authentication = 1;
 	if (options->skey_authentication == -1)
 		options->skey_authentication = 0;
 #ifdef KRB4
@@ -745,14 +753,12 @@ fill_default_options(Options * options)
 		sprintf(options->identity_files[0], "~/%.100s", SSH_CLIENT_IDENTITY);
 		options->num_identity_files = 1;
 	}
-#if 0
 	if (options->num_identity_files2 == 0) {
 		options->identity_files2[0] =
-			xmalloc(2 + strlen(SSH2_CLIENT_IDENTITY) + 1);
-		sprintf(options->identity_files2[0], "~/%.100s", SSH2_CLIENT_IDENTITY);
+			xmalloc(2 + strlen(SSH_CLIENT_ID_DSA) + 1);
+		sprintf(options->identity_files2[0], "~/%.100s", SSH_CLIENT_ID_DSA);
 		options->num_identity_files2 = 1;
 	}
-#endif
 	if (options->escape_char == -1)
 		options->escape_char = '~';
 	if (options->system_hostfile == NULL)

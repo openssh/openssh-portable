@@ -69,7 +69,7 @@ typedef unsigned short my_u_short;
 
 
 int
-creds_to_radix(CREDENTIALS *creds, unsigned char *buf)
+creds_to_radix(CREDENTIALS *creds, unsigned char *buf, size_t buflen)
 {
 	char *p, *s;
 	int len;
@@ -119,7 +119,7 @@ creds_to_radix(CREDENTIALS *creds, unsigned char *buf)
 	p += creds->ticket_st.length;
 	len = p - temp;
 
-	return (uuencode((unsigned char *)temp, len, (char *)buf));
+	return (uuencode((unsigned char *)temp, len, (char *)buf, buflen));
 }
 
 int
@@ -131,7 +131,8 @@ radix_to_creds(const char *buf, CREDENTIALS *creds)
 	char version;
 	char temp[2048];
 
-	if (!(len = uudecode(buf, (unsigned char *)temp, sizeof(temp))))
+	len = uudecode(buf, (unsigned char *)temp, sizeof(temp));
+	if (len < 0)
 		return 0;
 
 	p = temp;

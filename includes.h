@@ -99,6 +99,7 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #include "bsd-snprintf.h"
 #include "bsd-daemon.h"
 #include "bsd-login.h"
+#include "bsd-base64.h"
 
 /* rfc2553 socket API replacements */
 #include "fake-getaddrinfo.h"

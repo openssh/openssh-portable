@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.71 2000/04/26 21:28:33 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.72 2000/05/04 09:50:22 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dsa.h>
@@ -465,6 +465,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 	const char *user_hostfile, const char *system_hostfile)
 {
 	Key *file_key;
+	char *type = key_type(host_key);
 	char *ip = NULL;
 	char hostline[1000], *hostp;
 	HostStatus host_status;
@@ -551,18 +552,19 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 	switch (host_status) {
 	case HOST_OK:
 		/* The host is known and the key matches. */
-		debug("Host '%.200s' is known and matches the host key.", host);
+		debug("Host '%.200s' is known and matches the %s host key.",
+		    host, type);
 		if (options.check_host_ip) {
 			if (ip_status == HOST_NEW) {
 				if (!add_host_to_hostfile(user_hostfile, ip, host_key))
-					log("Failed to add the host key for IP address '%.30s' to the list of known hosts (%.30s).",
-					    ip, user_hostfile);
+					log("Failed to add the %s host key for IP address '%.30s' to the list of known hosts (%.30s).",
+					    type, ip, user_hostfile);
 				else
-					log("Warning: Permanently added host key for IP address '%.30s' to the list of known hosts.",
-					    ip);
+					log("Warning: Permanently added the %s host key for IP address '%.30s' to the list of known hosts.",
+					    type, ip);
 			} else if (ip_status != HOST_OK)
-				log("Warning: the host key for '%.200s' differs from the key for the IP address '%.30s'",
-				    host, ip);
+				log("Warning: the %s host key for '%.200s' differs from the key for the IP address '%.30s'",
+				    type, host, ip);
 		}
 		break;
 	case HOST_NEW:
@@ -570,16 +572,16 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 		if (options.strict_host_key_checking == 1) {
 			/* User has requested strict host key checking.  We will not add the host key
 			   automatically.  The only alternative left is to abort. */
-			fatal("No host key is known for %.200s and you have requested strict checking.", host);
+			fatal("No %s host key is known for %.200s and you have requested strict checking.", type, host);
 		} else if (options.strict_host_key_checking == 2) {
 			/* The default */
 			char prompt[1024];
 			char *fp = key_fingerprint(host_key);
 			snprintf(prompt, sizeof(prompt),
 			    "The authenticity of host '%.200s' can't be established.\n"
-			    "Key fingerprint is %s.\n"
+			    "%s key fingerprint is %s.\n"
 			    "Are you sure you want to continue connecting (yes/no)? ",
-			    host, fp);
+			    host, type, fp);
 			if (!read_yes_or_no(prompt, -1))
 				fatal("Aborted by user!\n");
 		}
@@ -594,8 +596,8 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 			log("Failed to add the host to the list of known hosts (%.500s).",
 			    user_hostfile);
 		else
-			log("Warning: Permanently added '%.200s' to the list of known hosts.",
-			    hostp);
+			log("Warning: Permanently added '%.200s' (%s) to the list of known hosts.",
+			    hostp, type);
 		break;
 	case HOST_CHANGED:
 		if (options.check_host_ip && host_ip_differ) {
@@ -609,7 +611,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 			error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 			error("@       WARNING: POSSIBLE DNS SPOOFING DETECTED!          @");
 			error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-			error("The host key for %s has changed,", host);
+			error("The %s host key for %s has changed,", type, host);
 			error("and the key for the according IP address %s", ip);
 			error("%s. This could either mean that", msg);
 			error("DNS SPOOFING is happening or the IP address for the host");
@@ -621,7 +623,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 		error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 		error("IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!");
 		error("Someone could be eavesdropping on you right now (man-in-the-middle attack)!");
-		error("It is also possible that the host key has just been changed.");
+		error("It is also possible that the %s host key has just been changed.", type);
 		error("Please contact your system administrator.");
 		error("Add correct host key in %.100s to get rid of this message.",
 		      user_hostfile);
@@ -631,7 +633,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 		 * to edit the key manually and we can only abort.
 		 */
 		if (options.strict_host_key_checking)
-			fatal("Host key for %.200s has changed and you have requested strict checking.", host);
+			fatal("%s host key for %.200s has changed and you have requested strict checking.", type, host);
 
 		/*
 		 * If strict host key checking has not been requested, allow

@@ -1,4 +1,4 @@
-/* RCSID("$Id: channels.h,v 1.8 2000/04/30 00:00:54 damien Exp $"); */
+/* RCSID("$Id: channels.h,v 1.9 2000/05/07 02:03:15 damien Exp $"); */
 
 #ifndef CHANNELS_H
 #define CHANNELS_H
@@ -56,7 +56,7 @@ typedef struct Channel {
 
 	char   *ctype;		/* type */
 
-	// callback
+	/* callback */
 	channel_callback_fn	*cb_fn;
 	void	*cb_arg;
 	int	cb_event;
@@ -175,7 +175,7 @@ void    channel_permit_all_opens(void);
  * listening for the port, and sends back a success reply (or disconnect
  * message if there was an error).  This never returns if there was an error.
  */
-void    channel_input_port_forward_request(int is_root);
+void    channel_input_port_forward_request(int is_root, int gateway_ports);
 
 /*
  * Creates a port for X11 connections, and starts listening for it. Returns

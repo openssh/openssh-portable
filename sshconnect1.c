@@ -9,7 +9,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.1 2000/04/26 21:28:33 markus Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.2 2000/05/04 22:38:00 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dsa.h>
@@ -505,7 +505,7 @@ send_kerberos_tgt()
 		debug("Kerberos V4 ticket expired: %s", TKT_FILE);
 		return 0;
 	}
-	creds_to_radix(creds, (unsigned char *)buffer);
+	creds_to_radix(creds, (unsigned char *)buffer, sizeof buffer);
 	xfree(creds);
 
 	packet_start(SSH_CMSG_HAVE_KERBEROS_TGT);
@@ -573,7 +573,7 @@ send_afs_tokens(void)
 		creds.pinst[0] = '\0';
 
 		/* Encode token, ship it off. */
-		if (!creds_to_radix(&creds, (unsigned char*) buffer))
+		if (creds_to_radix(&creds, (unsigned char*) buffer, sizeof buffer) <= 0)
 			break;
 		packet_start(SSH_CMSG_HAVE_AFS_TOKEN);
 		packet_put_string(buffer, strlen(buffer));

@@ -171,7 +171,7 @@ retry_select:
 	 * stdin or channel data.
 	 */
 	if (compat20) {
-		// wrong: bad conditionXXX
+		/* wrong: bad condition XXX */
 		if (channel_not_very_much_buffered_data())
 			FD_SET(connection_in, readset);
 	} else {

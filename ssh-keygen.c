@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: ssh-keygen.c,v 1.16 2000/05/01 11:10:34 damien Exp $");
+RCSID("$Id: ssh-keygen.c,v 1.17 2000/05/07 02:03:19 damien Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -76,7 +76,8 @@ ask_filename(struct passwd *pw, const char *prompt)
 {
 	char buf[1024];
 	snprintf(identity_file, sizeof(identity_file), "%s/%s",
-		 pw->pw_dir, SSH_CLIENT_IDENTITY);
+	    pw->pw_dir,
+	    dsa_mode ? SSH_CLIENT_ID_DSA: SSH_CLIENT_IDENTITY);
 	printf("%s (%s): ", prompt, identity_file);
 	fflush(stdout);
 	if (fgets(buf, sizeof(buf), stdin) == NULL)
@@ -491,8 +492,7 @@ do_change_comment(struct passwd *pw)
 void
 usage(void)
 {
-	printf("ssh-keygen version %s\n", SSH_VERSION);
-	printf("Usage: %s [-b bits] [-c] [-d] [-f file] [-l] [-p] [-q] [-x] [-y] [-C comment] [-N new-pass] [-P pass] [-X]\n", __progname);
+	printf("Usage: %s [-lpqxXydc] [-b bits] [-f file] [-C comment] [-N new-pass] [-P pass]\n", __progname);
 	exit(1);
 }
 

@@ -17,7 +17,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: packet.c,v 1.21 2000/05/01 11:10:33 damien Exp $");
+RCSID("$Id: packet.c,v 1.22 2000/05/07 02:03:17 damien Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -465,7 +465,7 @@ packet_send1()
 	/* Compute packet length without padding (add checksum, remove padding). */
 	len = buffer_len(&outgoing_packet) + 4 - 8;
 
-	/* Insert padding. */
+	/* Insert padding. Initialized to zero in packet_start1() */
 	padding = 8 - len % 8;
 	if (cipher_type != SSH_CIPHER_NONE) {
 		cp = buffer_ptr(&outgoing_packet);
@@ -569,12 +569,16 @@ packet_send2()
 		padlen += block_size;
 	buffer_append_space(&outgoing_packet, &cp, padlen);
 	if (enc && enc->type != SSH_CIPHER_NONE) {
+		/* random padding */
 		for (i = 0; i < padlen; i++) {
 			if (i % 4 == 0)
 				rand = arc4random();
 			cp[i] = rand & 0xff;
 			rand <<= 8;
 		}
+	} else {
+		/* clear padding */
+		memset(cp, 0, padlen);
 	}
 	/* packet_length includes payload, padding and padding length field */
 	packet_length = buffer_len(&outgoing_packet) - 4;
@@ -657,10 +661,11 @@ packet_read(int *payload_len_ptr)
 	for (;;) {
 		/* Try to read a packet from the buffer. */
 		type = packet_read_poll(payload_len_ptr);
-		if (type == SSH_SMSG_SUCCESS
+		if (!use_ssh2_packet_format && (
+		    type == SSH_SMSG_SUCCESS
 		    || type == SSH_SMSG_FAILURE
 		    || type == SSH_CMSG_EOF
-		    || type == SSH_CMSG_EXIT_CONFIRMATION)
+		    || type == SSH_CMSG_EXIT_CONFIRMATION))
 			packet_integrity_check(*payload_len_ptr, 0, type);
 		/* If we got a packet, return it. */
 		if (type != SSH_MSG_NONE)

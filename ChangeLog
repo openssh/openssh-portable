@@ -1,3 +1,70 @@
+20000507
+ - Remove references to SSLeay.
+ - Big OpenBSD CVS update
+  - markus@cvs.openbsd.org
+    [clientloop.c]
+    - typo
+    [session.c]
+    - update proctitle on pty alloc/dealloc, e.g. w/ windows client
+    [session.c]
+    - update proctitle for proto 1, too
+    [channels.h nchan.c serverloop.c session.c sshd.c]
+    - use c-style comments
+  - deraadt@cvs.openbsd.org
+    [scp.c]
+    - more atomicio
+  - markus@cvs.openbsd.org 
+    [channels.c]
+    - set O_NONBLOCK
+    [ssh.1]
+    - update AUTHOR
+    [readconf.c ssh-keygen.c ssh.h]
+    - default DSA key file ~/.ssh/id_dsa
+    [clientloop.c]
+    - typo, rm verbose debug
+  - deraadt@cvs.openbsd.org
+    [ssh-keygen.1]
+    - document DSA use of ssh-keygen
+    [sshd.8]
+    - a start at describing what i understand of the DSA side
+    [ssh-keygen.1]
+    - document -X and -x
+    [ssh-keygen.c]
+    - simplify usage
+  - markus@cvs.openbsd.org 
+    [sshd.8]
+    - there is no rhosts_dsa
+    [ssh-keygen.1]
+    - document -y, update -X,-x
+    [nchan.c]
+    - fix close for non-open ssh1 channels
+    [servconf.c servconf.h ssh.h sshd.8 sshd.c ]
+    - s/DsaKey/HostDSAKey/, document option
+    [sshconnect2.c]
+    - respect number_of_password_prompts
+    [channels.c channels.h servconf.c servconf.h session.c sshd.8]
+    - GatewayPorts for sshd, ok deraadt@
+    [ssh-add.1 ssh-agent.1 ssh.1]
+    - more doc on: DSA, id_dsa, known_hosts2, authorized_keys2
+    [ssh.1]
+    - more info on proto 2
+    [sshd.8]
+    - sync AUTHOR w/ ssh.1
+    [key.c key.h sshconnect.c]
+    - print key type when talking about host keys
+    [packet.c]
+    - clear padding in ssh2
+    [dsa.c key.c radix.c ssh.h sshconnect1.c uuencode.c uuencode.h]
+    - replace broken uuencode w/ libc b64_ntop
+    [auth2.c]
+    - log failure before sending the reply
+    [key.c radix.c uuencode.c]
+    - remote trailing comments before calling __b64_pton
+    [auth2.c readconf.c readconf.h servconf.c servconf.h ssh.1]
+    [sshconnect2.c sshd.8]
+    - add DSAAuthetication option to ssh/sshd, document SSH2 in sshd.8
+ - Bring in b64_ntop and b64_pton from OpenBSD libc (bsd-base64.[ch])
+
 20000502
  - OpenBSD CVS update
    [channels.c]

@@ -13,7 +13,7 @@
  *
  */
 
-/* RCSID("$Id: ssh.h,v 1.37 2000/05/01 23:56:42 damien Exp $"); */
+/* RCSID("$Id: ssh.h,v 1.38 2000/05/07 02:03:19 damien Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -97,7 +97,7 @@
 #define HOST_KEY_FILE		ETCDIR "/ssh_host_key"
 #define SERVER_CONFIG_FILE	ETCDIR "/sshd_config"
 #define HOST_CONFIG_FILE	ETCDIR "/ssh_config"
-#define DSA_KEY_FILE		ETCDIR "/ssh_host_dsa_key"
+#define HOST_DSA_KEY_FILE	ETCDIR "/ssh_host_dsa_key"
 
 #ifndef SSH_PROGRAM
 #define SSH_PROGRAM			"/usr/bin/ssh"
@@ -146,6 +146,7 @@
  * file should only be readable by the user him/herself.
  */
 #define SSH_CLIENT_IDENTITY	".ssh/identity"
+#define SSH_CLIENT_ID_DSA	".ssh/id_dsa"
 
 /*
  * Configuration file in user\'s home directory.  This file need not be
@@ -527,7 +528,7 @@ int	auth_krb4_password(struct passwd * pw, const char *password);
 int     auth_kerberos_tgt(struct passwd * pw, const char *string);
 int     auth_afs_token(struct passwd * pw, const char *token_string);
 
-int     creds_to_radix(CREDENTIALS * creds, unsigned char *buf);
+int     creds_to_radix(CREDENTIALS * creds, unsigned char *buf, size_t buflen);
 int     radix_to_creds(const char *buf, CREDENTIALS * creds);
 #endif				/* AFS */
 
