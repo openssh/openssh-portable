@@ -13,7 +13,7 @@
  * 
 */
 
-/* RCSID("$Id: rsa.h,v 1.5 1999/11/25 00:54:59 damien Exp $"); */
+/* RCSID("$Id: rsa.h,v 1.6 2000/01/29 09:40:22 damien Exp $"); */
 
 #ifndef RSA_H
 #define RSA_H
@@ -23,11 +23,13 @@
 #ifdef HAVE_OPENSSL
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
+#include <openssl/rand.h>
 #endif
 
 #ifdef HAVE_SSL
 #include <ssl/bn.h>
 #include <ssl/rsa.h>
+#include <ssl/rand.h>
 #endif
 
 /* Calls SSL RSA_generate_key, only copies to prv and pub */

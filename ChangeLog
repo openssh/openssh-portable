@@ -1,3 +1,7 @@
+20000127
+ - Seed OpenSSL's random number generator before generating RSA keypairs
+ - Split random collector into seperate file
+
 20000126
  - Released 1.2.2 stable
 
