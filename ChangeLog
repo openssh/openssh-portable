@@ -1,6 +1,10 @@
 20001213
  - (djm) Make sure we reset the SIGPIPE disposition after we fork. Report
    from Andreas M. Kirchwitz <amk@krell.zikzak.de>
+ - (stevesk) OpenSSH CVS update:
+   - markus@cvs.openbsd.org 2000/12/12 15:30:02
+     [ssh-keyscan.c ssh.c sshd.c]
+     consistently use __progname; from stevesk@pobox.com	
 
 20001211
  - (bal) Applied patch to include ssh-keyscan into Redhat's package, and

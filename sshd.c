@@ -117,9 +117,6 @@ int no_daemon_flag = 0;
 /* debug goes to stderr unless inetd_flag is set */
 int log_stderr = 0;
 
-/* argv[0] without path. */
-char *av0;
-
 /* Saved arguments to main(). */
 char **saved_argv;
 int saved_argc;
@@ -215,7 +212,7 @@ sighup_restart()
 	log("Received SIGHUP; restarting.");
 	close_listen_socks();
 	execv(saved_argv[0], saved_argv);
-	log("RESTART FAILED: av0='%s', error: %s.", av0, strerror(errno));
+	log("RESTART FAILED: av[0]='%.100s', error: %.100s.", saved_argv[0], strerror(errno));
 	exit(1);
 }
 
@@ -574,13 +571,9 @@ main(int ac, char **av)
 	__progname = get_progname(av[0]);
 	init_rng();
 
-	/* Save argv[0]. */
+	/* Save argv. */
 	saved_argc = ac;
 	saved_argv = av;
-	if (strchr(av[0], '/'))
-		av0 = strrchr(av[0], '/') + 1;
-	else
-		av0 = av[0];
 
 	/* Initialize configuration options to their default values. */
 	initialize_server_options(&options);
@@ -655,7 +648,7 @@ main(int ac, char **av)
 		case '?':
 		default:
 			fprintf(stderr, "sshd version %s\n", SSH_VERSION);
-			fprintf(stderr, "Usage: %s [options]\n", av0);
+			fprintf(stderr, "Usage: %s [options]\n", __progname);
 			fprintf(stderr, "Options:\n");
 			fprintf(stderr, "  -f file    Configuration file (default %s)\n", SERVER_CONFIG_FILE);
 			fprintf(stderr, "  -d         Debugging mode (multiple -d means more debugging)\n");
@@ -678,7 +671,7 @@ main(int ac, char **av)
 	 * Force logging to stderr until we have loaded the private host
 	 * key (unless started from inetd)
 	 */
-	log_init(av0,
+	log_init(__progname,
 	    options.log_level == -1 ? SYSLOG_LEVEL_INFO : options.log_level,
 	    options.log_facility == -1 ? SYSLOG_FACILITY_AUTH : options.log_facility,
 	    !silent && !inetd_flag);
@@ -768,7 +761,7 @@ main(int ac, char **av)
 	/* Initialize the log (it is reinitialized below in case we forked). */
 	if (debug_flag && !inetd_flag)
 		log_stderr = 1;
-	log_init(av0, options.log_level, options.log_facility, log_stderr);
+	log_init(__progname, options.log_level, options.log_facility, log_stderr);
 
 	/*
 	 * If not in debugging mode, and not started from inetd, disconnect
@@ -792,7 +785,7 @@ main(int ac, char **av)
 #endif /* TIOCNOTTY */
 	}
 	/* Reinitialize the log (because of the fork above). */
-	log_init(av0, options.log_level, options.log_facility, log_stderr);
+	log_init(__progname, options.log_level, options.log_facility, log_stderr);
 
 	/* Initialize the random number generator. */
 	arc4random_stir();
@@ -1031,7 +1024,7 @@ main(int ac, char **av)
 						close_listen_socks();
 						sock_in = newsock;
 						sock_out = newsock;
-						log_init(av0, options.log_level, options.log_facility, log_stderr);
+						log_init(__progname, options.log_level, options.log_facility, log_stderr);
 						break;
 					}
 				}
@@ -1098,7 +1091,7 @@ main(int ac, char **av)
 	{
 		struct request_info req;
 
-		request_init(&req, RQ_DAEMON, av0, RQ_FILE, sock_in, NULL);
+		request_init(&req, RQ_DAEMON, __progname, RQ_FILE, sock_in, NULL);
 		fromhost(&req);
 
 		if (!hosts_access(&req)) {

@@ -121,9 +121,6 @@ struct sockaddr_storage hostaddr;
  */
 volatile int received_window_change_signal = 0;
 
-/* Value of argv[0] (set in the main program). */
-char *av0;
-
 /* Flag indicating whether we have a valid host private key loaded. */
 int host_private_key_loaded = 0;
 
@@ -141,7 +138,7 @@ Buffer command;
 void
 usage()
 {
-	fprintf(stderr, "Usage: %s [options] host [command]\n", av0);
+	fprintf(stderr, "Usage: %s [options] host [command]\n", __progname);
 	fprintf(stderr, "Options:\n");
 	fprintf(stderr, "  -l user     Log in using this user name.\n");
 	fprintf(stderr, "  -n          Redirect input from /dev/null.\n");
@@ -169,7 +166,7 @@ usage()
 	fprintf(stderr, "  -p port     Connect to this port.  Server must be on the same port.\n");
 	fprintf(stderr, "  -L listen-port:host:port   Forward local port to remote address\n");
 	fprintf(stderr, "  -R listen-port:host:port   Forward remote port to local address\n");
-	fprintf(stderr, "              These cause %s to listen for connections on a port, and\n", av0);
+	fprintf(stderr, "              These cause %s to listen for connections on a port, and\n", __progname);
 	fprintf(stderr, "              forward them to the other side by connecting to host:port.\n");
 	fprintf(stderr, "  -C          Enable compression.\n");
 	fprintf(stderr, "  -N          Do not execute a shell or command.\n");
@@ -273,9 +270,6 @@ main(int ac, char **av)
 	 */
 	umask(022);
 
-	/* Save our own name. */
-	av0 = av[0];
-
 	/* Initialize option structure to indicate that no values have been set. */
 	initialize_options(&options);
 
@@ -283,10 +277,7 @@ main(int ac, char **av)
 	host = NULL;
 
 	/* If program name is not one of the standard names, use it as host name. */
-	if (strchr(av0, '/'))
-		cp = strrchr(av0, '/') + 1;
-	else
-		cp = av0;
+	cp = __progname;
 #ifdef HAVE_CYGWIN
 	if (strcasecmp(cp, "rsh") && strcasecmp(cp, "ssh") &&
 	    strcasecmp(cp, "rlogin") && strcasecmp(cp, "slogin") &&

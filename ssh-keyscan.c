@@ -40,7 +40,11 @@ int timeout = 5;
 int maxfd;
 #define maxcon (maxfd - 10)
 
-char *prog;
+#ifdef HAVE___PROGNAME
+extern char *__progname;
+#else
+char *__progname;
+#endif
 fd_set read_wait;
 int ncon;
 
@@ -544,7 +548,7 @@ nexthost(int argc, char **argv)
 static void
 usage(void)
 {
-	fatal("usage: %s [-t timeout] { [--] host | -f file } ...\n", prog);
+	fatal("usage: %s [-t timeout] { [--] host | -f file } ...\n", __progname);
 	return;
 }
 
@@ -553,12 +557,8 @@ main(int argc, char **argv)
 {
 	char *host = NULL;
 
+	__progname = get_progname(argv[0]);
 	TAILQ_INIT(&tq);
-
-	if ((prog = strrchr(argv[0], '/')))
-		prog++;
-	else
-		prog = argv[0];
 
 	if (argc <= argno)
 		usage();
@@ -580,11 +580,11 @@ main(int argc, char **argv)
 
 	maxfd = fdlim_get(1);
 	if (maxfd < 0)
-		fatal("%s: fdlim_get: bad value\n", prog);
+		fatal("%s: fdlim_get: bad value\n", __progname);
 	if (maxfd > MAXMAXFD)
 		maxfd = MAXMAXFD;
 	if (maxcon <= 0)
-		fatal("%s: not enough file descriptors\n", prog);
+		fatal("%s: not enough file descriptors\n", __progname);
 	if (maxfd > fdlim_get(0))
 		fdlim_set(maxfd);
 	fdcon = xmalloc(maxfd * sizeof(con));
