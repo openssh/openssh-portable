@@ -678,7 +678,7 @@ main(int ac, char **av)
 	pid_t pid;
 	char *shell, *format, *pidstr, pidstrbuf[1 + 3 * sizeof pid];
 	extern int optind;
-	
+
 	__progname = get_progname(av[0]);
 	init_rng();
 	
