@@ -45,6 +45,9 @@
    - markus@cvs.openbsd.org 2002/01/29 22:46:41
      [session.c]
      don't depend on servconf.c; ok djm@
+   - markus@cvs.openbsd.org 2002/01/29 23:50:37
+     [scp.1 ssh.1]
+     mention exit status; ok stevesk@
 
 20020130
  - (djm) Delay PRNG seeding until we need it in ssh-keygen, from markus@
@@ -7447,4 +7450,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1811 2002/02/05 01:15:07 djm Exp $
+$Id: ChangeLog,v 1.1812 2002/02/05 01:16:15 djm Exp $

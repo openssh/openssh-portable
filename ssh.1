@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.144 2002/01/16 17:42:33 stevesk Exp $
+.\" $OpenBSD: ssh.1,v 1.145 2002/01/29 23:50:37 markus Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -207,8 +207,8 @@ the password cannot be seen by someone listening on the network.
 .Pp
 .Ss SSH protocol version 2
 .Pp
-When a user connects using the protocol version 2
-different authentication methods are available.
+When a user connects using protocol version 2
+similar authentication methods are available.
 Using the default values for
 .Cm PreferredAuthentications ,
 the client will try to authenticate first using the hostbased method;
@@ -1490,6 +1490,10 @@ Contains additional definitions for environment variables, see section
 .Sx ENVIRONMENT
 above.
 .El
+.Sh DIAGNOSTICS
+.Nm
+exits with the exit status of the remote command or with 255
+if an error occurred.
 .Sh AUTHORS
 OpenSSH is a derivative of the original and free
 ssh 1.2.12 release by Tatu Ylonen.
