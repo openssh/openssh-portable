@@ -1,6 +1,13 @@
 20030110
  - (djm) Enable new setproctitle emulation for Linux, AIX and HP/UX. More 
    systems may be added later.
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2003/01/08 23:53:26
+     [sftp.1 sftp.c sftp-int.c sftp-int.h]
+     Cleanup error handling for batchmode
+     Allow blank lines and comments in input
+     Ability to suppress abort on error in batchmode ("-put blah")
+     Fixes mindrot bug #452; markus@ ok
 
 20030108
  - (djm) Sync openbsd-compat/ with OpenBSD -current
@@ -969,4 +976,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2558 2003/01/09 22:53:12 djm Exp $
+$Id: ChangeLog,v 1.2559 2003/01/10 10:40:00 djm Exp $

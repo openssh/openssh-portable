@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.38 2003/01/07 23:42:54 fgsch Exp $
+.\" $OpenBSD: sftp.1,v 1.39 2003/01/08 23:53:26 djm Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -77,9 +77,16 @@ non-interactive authentication.
 will abort if any of the following
 commands fail:
 .Ic get , put , rename , ln ,
-.Ic rm , mkdir , chdir , lchdir
+.Ic rm , mkdir , chdir , ls , 
+.Ic lchdir , chmod , chown , chgrp , lpwd
 and
 .Ic lmkdir .
+Termination on error can be suppressed on a command by command basis by 
+prefixing the command with a 
+.Ic '-' 
+character (For example,
+.Ic -rm /tmp/blah*
+).
 .It Fl o Ar ssh_option
 Can be used to pass options to
 .Nm ssh

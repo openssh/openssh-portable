@@ -25,7 +25,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.50 2002/11/21 23:03:51 deraadt Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.51 2003/01/08 23:53:26 djm Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -666,7 +666,7 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 }
 
 static int
-parse_args(const char **cpp, int *pflag, int *lflag,
+parse_args(const char **cpp, int *pflag, int *lflag, int *iflag,
     unsigned long *n_arg, char **path1, char **path2)
 {
 	const char *cmd, *cp = *cpp;
@@ -678,10 +678,17 @@ parse_args(const char **cpp, int *pflag, int *lflag,
 	/* Skip leading whitespace */
 	cp = cp + strspn(cp, WHITESPACE);
 
-	/* Ignore blank lines */
-	if (!*cp)
-		return(-1);
+	/* Ignore blank lines and lines which begin with comment '#' char */
+	if (*cp == '\0' || *cp == '#')
+		return (0);
 
+	/* Check for leading '-' (disable error processing) */
+	*iflag = 0;
+	if (*cp == '-') {
+		*iflag = 1;
+		cp++;
+	}
+		
 	/* Figure out which command we have */
 	for (i = 0; cmds[i].c; i++) {
 		int cmdlen = strlen(cmds[i].c);
@@ -703,7 +710,7 @@ parse_args(const char **cpp, int *pflag, int *lflag,
 		cmdnum = I_SHELL;
 	} else if (cmdnum == -1) {
 		error("Invalid command.");
-		return(-1);
+		return (-1);
 	}
 
 	/* Get arguments and parse flags */
@@ -813,10 +820,11 @@ parse_args(const char **cpp, int *pflag, int *lflag,
 }
 
 static int
-parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd)
+parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
+    int err_abort)
 {
 	char *path1, *path2, *tmp;
-	int pflag, lflag, cmdnum, i;
+	int pflag, lflag, iflag, cmdnum, i;
 	unsigned long n_arg;
 	Attrib a, *aa;
 	char path_buf[MAXPATHLEN];
@@ -824,14 +832,22 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd)
 	glob_t g;
 
 	path1 = path2 = NULL;
-	cmdnum = parse_args(&cmd, &pflag, &lflag, &n_arg,
+	cmdnum = parse_args(&cmd, &pflag, &lflag, &iflag, &n_arg,
 	    &path1, &path2);
+
+	if (iflag != 0)
+		err_abort = 0;
 
 	memset(&g, 0, sizeof(g));
 
 	/* Perform command */
 	switch (cmdnum) {
+	case 0:
+		/* Blank line */
+		break;
 	case -1:
+		/* Unrecognized command */
+		err = -1;
 		break;
 	case I_GET:
 		err = process_get(conn, path1, path2, *pwd, pflag);
@@ -853,8 +869,9 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd)
 		remote_glob(conn, path1, GLOB_NOCHECK, NULL, &g);
 		for (i = 0; g.gl_pathv[i]; i++) {
 			printf("Removing %s\n", g.gl_pathv[i]);
-			if (do_rm(conn, g.gl_pathv[i]) == -1)
-				err = -1;
+			err = do_rm(conn, g.gl_pathv[i]);
+			if (err != 0 && err_abort)
+				break;
 		}
 		break;
 	case I_MKDIR:
@@ -907,8 +924,7 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd)
 			tmp = *pwd;
 
 		path1 = make_absolute(path1, *pwd);
-
-		do_globbed_ls(conn, path1, tmp, lflag);
+		err = do_globbed_ls(conn, path1, tmp, lflag);
 		break;
 	case I_LCHDIR:
 		if (chdir(path1) == -1) {
@@ -942,56 +958,57 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd)
 		remote_glob(conn, path1, GLOB_NOCHECK, NULL, &g);
 		for (i = 0; g.gl_pathv[i]; i++) {
 			printf("Changing mode on %s\n", g.gl_pathv[i]);
-			do_setstat(conn, g.gl_pathv[i], &a);
+			err = do_setstat(conn, g.gl_pathv[i], &a);
+			if (err != 0 && err_abort)
+				break;
 		}
 		break;
 	case I_CHOWN:
-		path1 = make_absolute(path1, *pwd);
-		remote_glob(conn, path1, GLOB_NOCHECK, NULL, &g);
-		for (i = 0; g.gl_pathv[i]; i++) {
-			if (!(aa = do_stat(conn, g.gl_pathv[i], 0)))
-				continue;
-			if (!(aa->flags & SSH2_FILEXFER_ATTR_UIDGID)) {
-				error("Can't get current ownership of "
-				    "remote file \"%s\"", g.gl_pathv[i]);
-				continue;
-			}
-			printf("Changing owner on %s\n", g.gl_pathv[i]);
-			aa->flags &= SSH2_FILEXFER_ATTR_UIDGID;
-			aa->uid = n_arg;
-			do_setstat(conn, g.gl_pathv[i], aa);
-		}
-		break;
 	case I_CHGRP:
 		path1 = make_absolute(path1, *pwd);
 		remote_glob(conn, path1, GLOB_NOCHECK, NULL, &g);
 		for (i = 0; g.gl_pathv[i]; i++) {
-			if (!(aa = do_stat(conn, g.gl_pathv[i], 0)))
-				continue;
+			if (!(aa = do_stat(conn, g.gl_pathv[i], 0))) {
+				if (err != 0 && err_abort)
+					break;
+				else
+					continue;
+			}
 			if (!(aa->flags & SSH2_FILEXFER_ATTR_UIDGID)) {
 				error("Can't get current ownership of "
 				    "remote file \"%s\"", g.gl_pathv[i]);
-				continue;
+				if (err != 0 && err_abort)
+					break;
+				else
+					continue;
 			}
-			printf("Changing group on %s\n", g.gl_pathv[i]);
 			aa->flags &= SSH2_FILEXFER_ATTR_UIDGID;
-			aa->gid = n_arg;
-			do_setstat(conn, g.gl_pathv[i], aa);
+			if (cmdnum == I_CHOWN) {
+				printf("Changing owner on %s\n", g.gl_pathv[i]);
+				aa->uid = n_arg;
+			} else {
+				printf("Changing group on %s\n", g.gl_pathv[i]);
+				aa->gid = n_arg;
+			}
+			err = do_setstat(conn, g.gl_pathv[i], aa);
+			if (err != 0 && err_abort)
+				break;
 		}
 		break;
 	case I_PWD:
 		printf("Remote working directory: %s\n", *pwd);
 		break;
 	case I_LPWD:
-		if (!getcwd(path_buf, sizeof(path_buf)))
-			error("Couldn't get local cwd: %s",
-			    strerror(errno));
-		else
-			printf("Local working directory: %s\n",
-			    path_buf);
+		if (!getcwd(path_buf, sizeof(path_buf))) {
+			error("Couldn't get local cwd: %s", strerror(errno));
+			err = -1;
+			break;
+		}
+		printf("Local working directory: %s\n", path_buf);
 		break;
 	case I_QUIT:
-		return(-1);
+		/* Processed below */
+		break;
 	case I_HELP:
 		help();
 		break;
@@ -1009,20 +1026,23 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd)
 	if (path2)
 		xfree(path2);
 
-	/* If an error occurs in batch mode we should abort. */
-	if (infile != stdin && err > 0)
-		return -1;
+	/* If an unignored error occurs in batch mode we should abort. */
+	if (err_abort && err != 0)
+		return (-1);
+	else if (cmdnum == I_QUIT)
+		return (1);
 
-	return(0);
+	return (0);
 }
 
-void
+int
 interactive_loop(int fd_in, int fd_out, char *file1, char *file2)
 {
 	char *pwd;
 	char *dir = NULL;
 	char cmd[2048];
 	struct sftp_conn *conn;
+	int err;
 
 	conn = do_init(fd_in, fd_out, copy_buffer_len, num_requests);
 	if (conn == NULL)
@@ -1039,7 +1059,8 @@ interactive_loop(int fd_in, int fd_out, char *file1, char *file2)
 		if (remote_is_dir(conn, dir) && file2 == NULL) {
 			printf("Changing to: %s\n", dir);
 			snprintf(cmd, sizeof cmd, "cd \"%s\"", dir);
-			parse_dispatch_command(conn, cmd, &pwd);
+			if (parse_dispatch_command(conn, cmd, &pwd, 1) != 0)
+				return (-1);
 		} else {
 			if (file2 == NULL)
 				snprintf(cmd, sizeof cmd, "get %s", dir);
@@ -1047,12 +1068,13 @@ interactive_loop(int fd_in, int fd_out, char *file1, char *file2)
 				snprintf(cmd, sizeof cmd, "get %s %s", dir,
 				    file2);
 
-			parse_dispatch_command(conn, cmd, &pwd);
+			err = parse_dispatch_command(conn, cmd, &pwd, 1);
 			xfree(dir);
-			return;
+			return (err);
 		}
 		xfree(dir);
 	}
+
 #if HAVE_SETVBUF
 	setvbuf(stdout, NULL, _IOLBF, 0);
 	setvbuf(infile, NULL, _IOLBF, 0);
@@ -1061,6 +1083,7 @@ interactive_loop(int fd_in, int fd_out, char *file1, char *file2)
 	setlinebuf(infile);
 #endif
 
+	err = 0;
 	for (;;) {
 		char *cp;
 
@@ -1077,8 +1100,13 @@ interactive_loop(int fd_in, int fd_out, char *file1, char *file2)
 		if (cp)
 			*cp = '\0';
 
-		if (parse_dispatch_command(conn, cmd, &pwd))
+		err = parse_dispatch_command(conn, cmd, &pwd, infile != stdin);
+		if (err != 0)
 			break;
 	}
 	xfree(pwd);
+
+	/* err == 1 signifies normal "quit" exit */
+	return (err >= 0 ? 0 : -1);
 }
+

@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.32 2002/11/27 17:53:35 markus Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.33 2003/01/08 23:53:26 djm Exp $");
 
 /* XXX: short-form remote directory listings (like 'ls -C') */
 
@@ -108,7 +108,7 @@ usage(void)
 int
 main(int argc, char **argv)
 {
-	int in, out, ch;
+	int in, out, ch, err;
 	pid_t sshpid;
 	char *host, *userhost, *cp, *file2;
 	int debug_level = 0, sshver = 2;
@@ -237,7 +237,7 @@ main(int argc, char **argv)
 		    &sshpid);
 	}
 
-	interactive_loop(in, out, file1, file2);
+	err = interactive_loop(in, out, file1, file2);
 
 #if !defined(USE_PIPES)
 	shutdown(in, SHUT_RDWR);
@@ -254,5 +254,5 @@ main(int argc, char **argv)
 			fatal("Couldn't wait for ssh process: %s",
 			    strerror(errno));
 
-	exit(0);
+	exit(err == 0 ? 0 : 1);
 }
