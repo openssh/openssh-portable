@@ -23,7 +23,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: auth2-chall.c,v 1.14 2002/01/11 20:14:11 markus Exp $");
+RCSID("$OpenBSD: auth2-chall.c,v 1.15 2002/01/11 23:02:51 markus Exp $");
 
 #include "ssh2.h"
 #include "auth.h"
@@ -291,9 +291,8 @@ input_userauth_info_response(int type, u_int32_t seq, void *ctxt)
 	len = strlen("keyboard-interactive") + 2 +
 		strlen(kbdintctxt->device->name);
 	method = xmalloc(len);
-	strlcpy(method, "keyboard-interactive", len);
-	strlcat(method, "/", len);
-	strlcat(method, kbdintctxt->device->name, len);
+	snprintf(method, len, "keyboard-interactive/%s",
+	    kbdintctxt->device->name);
 
 	if (!authctxt->postponed) {
 		if (authenticated) {
