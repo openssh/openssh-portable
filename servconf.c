@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.90 2001/11/11 13:02:31 markus Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.91 2001/11/12 18:17:07 markus Exp $");
 
 #if defined(KRB4) || defined(KRB5)
 #include <krb.h>
@@ -220,8 +220,6 @@ fill_default_server_options(ServerOptions *options)
 		options->client_alive_interval = 0;  
 	if (options->client_alive_count_max == -1)
 		options->client_alive_count_max = 3;
-	if (options->authorized_keys_file == NULL)
-		options->authorized_keys_file = _PATH_SSH_USER_PERMITTED_KEYS;
 	if (options->authorized_keys_file2 == NULL) {
 		/* authorized_keys_file2 falls back to authorized_keys_file */
 		if (options->authorized_keys_file != NULL)
