@@ -223,6 +223,9 @@ fi
 
 %files askpass
 %defattr(-,root,root)
+%doc x11-ssh-askpass-%{aversion}/README
+%doc x11-ssh-askpass-%{aversion}/ChangeLog
+%doc x11-ssh-askpass-%{aversion}/SshAskpass*.ad
 %attr(0755,root,root) /usr/libexec/ssh/ssh-askpass
 %attr(0755,root,root) /usr/libexec/ssh/x11-ssh-askpass
 
