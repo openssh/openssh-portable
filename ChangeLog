@@ -1,3 +1,7 @@
+20001017
+ - (djm) Add -lregex to cywin libs from Corinna Vinschen
+   <vinschen@cygnus.com>
+
 20001016
  - (djm) Sync with OpenBSD:
    - markus@cvs.openbsd.org  2000/10/14 04:01:15

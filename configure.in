@@ -58,7 +58,7 @@ case "$host" in
 	mansubdir=cat
 	;;
 *-*-cygwin*)
-	LIBS="$LIBS /usr/lib/textmode.o"
+	LIBS="$LIBS -lregex /usr/lib/textmode.o"
 	AC_DEFINE(HAVE_CYGWIN)
 	AC_DEFINE(DISABLE_PAM)
 	AC_DEFINE(DISABLE_SHADOW)
