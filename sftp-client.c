@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001,2002 Damien Miller.  All rights reserved.
+ * Copyright (c) 2001-2003 Damien Miller.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -28,7 +28,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.39 2003/01/10 08:19:07 fgsch Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.40 2003/01/10 08:48:15 djm Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -49,6 +49,9 @@ extern int showprogress;
 /* Minimum amount of data to read at at time */
 #define MIN_READ_SIZE	512
 
+/* Maximum packet size */
+#define MAX_MSG_LENGTH	(256 * 1024)
+
 struct sftp_conn {
 	int fd_in;
 	int fd_out;
@@ -61,48 +64,45 @@ struct sftp_conn {
 static void
 send_msg(int fd, Buffer *m)
 {
-	int mlen = buffer_len(m);
-	int len;
-	Buffer oqueue;
+	u_char mlen[4];
 
-	buffer_init(&oqueue);
-	buffer_put_int(&oqueue, mlen);
-	buffer_append(&oqueue, buffer_ptr(m), mlen);
-	buffer_consume(m, mlen);
+	if (buffer_len(m) > MAX_MSG_LENGTH)
+		fatal("Outbound message too long %u", buffer_len(m));
 
-	len = atomicio(write, fd, buffer_ptr(&oqueue), buffer_len(&oqueue));
-	if (len <= 0)
+	/* Send length first */
+	PUT_32BIT(mlen, buffer_len(m));
+	if (atomicio(write, fd, mlen, sizeof(mlen)) <= 0)
 		fatal("Couldn't send packet: %s", strerror(errno));
 
-	buffer_free(&oqueue);
+	if (atomicio(write, fd, buffer_ptr(m), buffer_len(m)) <= 0)
+		fatal("Couldn't send packet: %s", strerror(errno));
+
+	buffer_clear(m);
 }
 
 static void
 get_msg(int fd, Buffer *m)
 {
-	u_int len, msg_len;
-	unsigned char buf[4096];
+	ssize_t len;
+	u_int msg_len;
 
-	len = atomicio(read, fd, buf, 4);
+	buffer_append_space(m, 4);
+	len = atomicio(read, fd, buffer_ptr(m), 4);
 	if (len == 0)
 		fatal("Connection closed");
 	else if (len == -1)
 		fatal("Couldn't read packet: %s", strerror(errno));
 
-	msg_len = GET_32BIT(buf);
-	if (msg_len > 256 * 1024)
+	msg_len = buffer_get_int(m);
+	if (msg_len > MAX_MSG_LENGTH)
 		fatal("Received message too long %u", msg_len);
 
-	while (msg_len) {
-		len = atomicio(read, fd, buf, MIN(msg_len, sizeof(buf)));
-		if (len == 0)
-			fatal("Connection closed");
-		else if (len == -1)
-			fatal("Couldn't read packet: %s", strerror(errno));
-
-		msg_len -= len;
-		buffer_append(m, buf, len);
-	}
+	buffer_append_space(m, msg_len);
+	len = atomicio(read, fd, buffer_ptr(m), msg_len);
+	if (len == 0)
+		fatal("Connection closed");
+	else if (len == -1)
+		fatal("Read packet: %s", strerror(errno));
 }
 
 static void

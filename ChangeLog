@@ -13,6 +13,10 @@
      sftp progress meter support.
      original diffs by Nils Nordman <nino at nforced dot com> via 
      markus@, merged to -current by me, djm@ ok.
+   - djm@cvs.openbsd.org 2003/01/10 08:48:15
+     [sftp-client.c]
+     Simplify and avoid redundancy in packet send and receive 
+     functions; ok fgs@
 
 20030108
  - (djm) Sync openbsd-compat/ with OpenBSD -current
@@ -981,4 +985,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2560 2003/01/10 10:43:24 djm Exp $
+$Id: ChangeLog,v 1.2561 2003/01/10 10:43:58 djm Exp $
