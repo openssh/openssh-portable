@@ -1,3 +1,6 @@
+20010305
+ - (bal) CVS ID touch up on sshpty.[ch] and sshlogin.[ch]
+
 20010304
  - (bal) Remove make-ssh-known-hosts.1 since it's no longer valid.
  - (bal) Updated contrib/README to remove 'make-ssh-known-hosts' and
@@ -4189,4 +4192,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.850 2001/03/03 21:43:19 mouring Exp $
+$Id: ChangeLog,v 1.851 2001/03/05 03:53:02 mouring Exp $

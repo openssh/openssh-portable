@@ -1,4 +1,4 @@
-/*	$OpenBSD: login.h,v 1.2 2001/01/29 01:58:16 niklas Exp $	*/
+/*      $OpenBSD: sshlogin.h,v 1.1 2001/03/04 01:46:30 djm Exp $        */
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>

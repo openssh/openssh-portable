@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: login.c,v 1.17 2001/01/21 19:05:51 markus Exp $");
+RCSID("$OpenBSD: sshlogin.c,v 1.1 2001/03/04 01:46:30 djm Exp $");
 
 #include "loginrec.h"
 
