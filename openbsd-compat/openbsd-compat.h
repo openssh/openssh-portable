@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.2 2001/02/09 01:55:36 djm Exp $ */
+/* $Id: openbsd-compat.h,v 1.3 2001/02/24 00:24:20 mouring Exp $ */
 
 #ifndef _OPENBSD_H
 #define _OPENBSD_H
@@ -16,7 +16,7 @@
 #include "mktemp.h"
 #include "daemon.h"
 #include "base64.h"
-#include "sigaction.h"
+#include "sigact.h"
 #include "inet_aton.h"
 #include "inet_ntoa.h"
 #include "strsep.h"
