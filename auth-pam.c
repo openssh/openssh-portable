@@ -35,7 +35,7 @@
 
 extern char *__progname;
 
-RCSID("$Id: auth-pam.c,v 1.40 2001/10/28 17:32:38 stevesk Exp $");
+RCSID("$Id: auth-pam.c,v 1.41 2001/11/09 20:22:17 stevesk Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now"
@@ -217,7 +217,8 @@ int auth_pam_password(struct passwd *pw, const char *password)
 	__pampasswd = password;
 
 	pamstate = INITIAL_LOGIN;
-	pam_retval = do_pam_authenticate(0);
+	pam_retval = do_pam_authenticate(
+	    options.permit_empty_passwd == 0 ? PAM_DISALLOW_NULL_AUTHTOK : 0);
 	if (pam_retval == PAM_SUCCESS) {
 		debug("PAM Password authentication accepted for "
 		    "user \"%.100s\"", pw->pw_name);
