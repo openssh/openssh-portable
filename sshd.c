@@ -18,7 +18,7 @@ agent connections.
 */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.6 1999/10/28 23:57:31 damien Exp $");
+RCSID("$Id: sshd.c,v 1.7 1999/10/29 00:21:15 damien Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -2333,7 +2333,7 @@ void do_child(const char *command, struct passwd *pw, const char *term,
   {
     char *equal_sign, var_name[256], var_val[256];
     long this_var;
-    char **pam_env = pam_getenvlist(pamh);
+    char **pam_env = pam_getenvlist((pam_handle_t *)pamh);
     for(this_var = 0; pam_env && pam_env[this_var]; this_var++)
       {
         if(strlen(pam_env[this_var]) < sizeof(var_name))
