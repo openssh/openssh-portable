@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.26 2002/03/17 20:17:35 tim Exp $
+# $Id: configure.ac,v 1.27 2002/03/22 17:23:26 stevesk Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -1574,6 +1574,22 @@ AC_CACHE_CHECK([for pw_change field in struct passwd],
 ])
 if test "x$ac_cv_have_pw_change_in_struct_passwd" = "xyes" ; then
 	AC_DEFINE(HAVE_PW_CHANGE_IN_PASSWD)
+fi
+
+AC_CACHE_CHECK([for msg_accrights field in struct msghdr],
+		ac_cv_have_accrights_in_msghdr, [
+	AC_TRY_COMPILE(
+		[
+#include <sys/socket.h>
+#include <sys/uio.h>
+		],
+		[ struct msghdr m; m.msg_accrights = 0; ],
+		[ ac_cv_have_accrights_in_msghdr="yes" ],
+		[ ac_cv_have_accrights_in_msghdr="no" ]
+	)
+])
+if test "x$ac_cv_have_accrights_in_msghdr" = "xyes" ; then
+	AC_DEFINE(HAVE_ACCRIGHTS_IN_MSGHDR)
 fi
 
 AC_CACHE_CHECK([if libc defines __progname], ac_cv_libc_defines___progname, [

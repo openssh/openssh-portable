@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.122 2002/02/26 16:40:49 tim Exp $ */
+/* $Id: acconfig.h,v 1.123 2002/03/22 17:23:26 stevesk Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -31,6 +31,9 @@
 
 /* Define if your password has a pw_change field */
 #undef HAVE_PW_CHANGE_IN_PASSWD
+
+/* Define if your system uses access rights style file descriptor passing */
+#undef HAVE_ACCRIGHTS_IN_MSGHDR
 
 /* Define if you system's inet_ntoa is busted (e.g. Irix gcc issue) */
 #undef BROKEN_INET_NTOA

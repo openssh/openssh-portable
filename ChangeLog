@@ -1,3 +1,6 @@
+20020322
+ - (stevesk) HAVE_ACCRIGHTS_IN_MSGHDR configure support
+
 20020321
  - (bal) OpenBSD CVS Sync
    - itojun@cvs.openbsd.org 2002/03/08 06:10:16
@@ -7991,4 +7994,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1966 2002/03/22 03:53:00 mouring Exp $
+$Id: ChangeLog,v 1.1967 2002/03/22 17:23:25 stevesk Exp $
