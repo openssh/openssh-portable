@@ -48,6 +48,9 @@
      [scp.c]
      use roundup() similar to rcp/util.c and avoid problems with strange
      filesystem block sizes, noted by tjr@freebsd.org; ok djm@
+  - djm@cvs.openbsd.org 2002/12/06 05:20:02
+     [sftp.1]
+     Fix cut'n'paste error, spotted by matthias.riese@b-novative.de; ok deraadt@
 
 20021205
  - (djm) PERL-free fixpaths from stuge-openssh-unix-dev@cdy.org
@@ -883,4 +886,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2528 2002/12/23 02:22:09 mouring Exp $
+$Id: ChangeLog,v 1.2529 2002/12/23 02:23:37 mouring Exp $
