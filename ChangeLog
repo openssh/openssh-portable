@@ -6,6 +6,7 @@
      The default can still be overriden by using -t in ssh-add.
      OK markus@
  - (djm) Reorganise PAM & SIA password handling to eliminate some common code
+ - (djm) Sync regress with OpenBSD -current
 
 20030120
  - (djm) Fix compilation for NetBSD from dtucker@zip.com.au
@@ -1049,4 +1050,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2580 2003/01/22 04:42:26 djm Exp $
+$Id: ChangeLog,v 1.2581 2003/01/22 06:53:16 djm Exp $
