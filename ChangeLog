@@ -1,3 +1,6 @@
+20040307
+ - (tim) [regress/login-timeout.sh] fix building outside of source tree.
+
 20040304
  - (dtucker) [auth-pam.c] Don't try to export PAM when compiled with
    -DUSE_POSIX_THREADS.  From antoine.verheijen at ualbert ca.  ok djm@
@@ -854,4 +857,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3276 2004/03/04 11:59:36 dtucker Exp $
+$Id: ChangeLog,v 1.3277 2004/03/07 18:40:01 tim Exp $

@@ -18,7 +18,7 @@ fi
 kill `cat $PIDFILE`
 
 trace "test login grace without privsep"
-echo "UsePrivilegeSeparation no" >>sshd_config
+echo "UsePrivilegeSeparation no" >> $OBJ/sshd_config
 start_sshd
 
 (echo SSH-2.0-fake; sleep 60) | telnet localhost ${PORT} >/dev/null 2>&1 & 
