@@ -18,6 +18,16 @@ X11_FORWARDING=no
 
 umask 022
 
+startdir=`pwd`
+
+# Path to inventory.sh: same place as buildbff.sh
+if  echo $0 | egrep '^/'
+then
+	inventory=`dirname $0`/inventory.sh		# absolute path
+else
+	inventory=`pwd`/`dirname $0`/inventory.sh	# relative path
+fi
+
 #
 # We still support running from contrib/aix, but this is depreciated
 #
@@ -44,14 +54,6 @@ fi
 objdir=`pwd`
 PKGNAME=openssh
 PKGDIR=package
-
-# Path to inventory.sh: same place as buildbff.sh
-if  echo $0 | egrep '^/'
-then
-	inventory=`dirname $0`/inventory.sh		# absolute path
-else
-	inventory=`pwd`/`dirname $0`/inventory.sh	# relative path
-fi
 
 #
 # Collect local configuration settings to override defaults
@@ -328,15 +330,10 @@ rm -f $PKGNAME-$VERSION.bff
 ) | backup  -i -q -f ../$PKGNAME-$VERSION.bff $filelist
 
 #
-# Move package into final location
+# Move package into final location and clean up
 #
-if [ "$contribaix" = "1" ]
-then
-	mv ../$PKGNAME-$VERSION.bff $objdir/contrib/aix
-else
-	mv ../$PKGNAME-$VERSION.bff $objdir
-fi
-
+mv ../$PKGNAME-$VERSION.bff $startdir
+cd $startdir
 rm -rf $objdir/$PKGDIR
 
 echo $0: done.

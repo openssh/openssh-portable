@@ -1,3 +1,6 @@
+20020717
+ - (bal) aixbff package updated by dtucker@zip.com.au
+
 20020716
  - (tim) [contrib/solaris/opensshd.in] Only kill sshd if .pid file found
 
@@ -1377,4 +1380,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2371 2002/07/16 21:24:38 tim Exp $
+$Id: ChangeLog,v 1.2372 2002/07/18 01:04:50 mouring Exp $
