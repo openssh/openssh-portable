@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.106 2001/04/05 21:05:24 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.107 2001/04/06 21:00:13 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -265,6 +265,15 @@ main(int ac, char **av)
 			fatal("setrlimit failed: %.100s", strerror(errno));
 	}
 #endif
+	/* Get user data. */
+	pw = getpwuid(original_real_uid);
+	if (!pw) {
+		log("You don't exist, go away!");
+		exit(1);
+	}
+	/* Take a copy of the returned structure. */
+	pw = pwcopy(pw);
+
 	/*
 	 * Use uid-swapping to give up root privileges for the duration of
 	 * option processing.  We will re-instantiate the rights when we are
@@ -272,7 +281,7 @@ main(int ac, char **av)
 	 * them when the port has been created (actually, when the connection
 	 * has been made, as we may need to create the port several times).
 	 */
-	temporarily_use_uid(original_real_uid);
+	temporarily_use_uid(pw);
 
 	/*
 	 * Set our umask to something reasonable, as some files are created
@@ -545,15 +554,6 @@ main(int ac, char **av)
 		tty_flag = 0;
 	}
 
-	/* Get user data. */
-	pw = getpwuid(original_real_uid);
-	if (!pw) {
-		log("You don't exist, go away!");
-		exit(1);
-	}
-	/* Take a copy of the returned structure. */
-	pw = pwcopy(pw);
-
 	/*
 	 * Initialize "log" output.  Since we are the client all output
 	 * actually goes to stderr.
@@ -592,6 +592,7 @@ main(int ac, char **av)
 		    "originating port will not be trusted.");
 		options.rhosts_authentication = 0;
 	}
+
 	/*
 	 * If using rsh has been selected, exec it now (without trying
 	 * anything else).  Note that we must release privileges first.
@@ -604,7 +605,7 @@ main(int ac, char **av)
 		restore_uid();
 
 		/* Switch to the original uid permanently. */
-		permanently_set_uid(original_real_uid);
+		permanently_set_uid(pw);
 
 		/* Execute rsh. */
 		rsh_connect(host, options.user, &command);
@@ -618,8 +619,7 @@ main(int ac, char **av)
 	ok = ssh_connect(host, &hostaddr, options.port,
 	    options.connection_attempts,
 	    original_effective_uid != 0 || !options.use_privileged_port,
-	    original_real_uid,
-	    options.proxy_command);
+	    pw, options.proxy_command);
 
 	/*
 	 * If we successfully made the connection, load the host private key
@@ -646,7 +646,7 @@ main(int ac, char **av)
 	 * process, read the private hostkey and impersonate the host.
 	 * OpenBSD does not allow ptracing of setuid processes.
 	 */
-	permanently_set_uid(original_real_uid);
+	permanently_set_uid(pw);
 
 	/*
 	 * Now that we are back to our own permissions, create ~/.ssh
@@ -688,8 +688,7 @@ main(int ac, char **av)
 	    tilde_expand_filename(options.user_hostfile2, original_real_uid);
 
 	/* Log into the remote system.  This never returns if the login fails. */
-	ssh_login(host_private_key, host, (struct sockaddr *)&hostaddr,
-	    original_real_uid);
+	ssh_login(host_private_key, host, (struct sockaddr *)&hostaddr, pw);
 
 	/* We no longer need the host private key.  Clear it now. */
 	if (host_private_key != NULL)

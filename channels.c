@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.101 2001/04/05 10:42:48 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.102 2001/04/06 21:00:10 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -2410,7 +2410,7 @@ auth_input_request_forwarding(struct passwd * pw)
 		fatal("Protocol error: authentication forwarding requested twice.");
 
 	/* Temporarily drop privileged uid for mkdir/bind. */
-	temporarily_use_uid(pw->pw_uid);
+	temporarily_use_uid(pw);
 
 	/* Allocate a buffer for the socket name, and format the name. */
 	channel_forwarded_auth_socket_name = xmalloc(MAX_SOCKET_NAME);

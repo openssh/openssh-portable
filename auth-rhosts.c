@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rhosts.c,v 1.21 2001/02/08 19:30:51 itojun Exp $");
+RCSID("$OpenBSD: auth-rhosts.c,v 1.22 2001/04/06 21:00:06 markus Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -161,7 +161,7 @@ auth_rhosts(struct passwd *pw, const char *client_user)
 	if (pw == NULL)
 		return 0;
 	/* Switch to the user's uid. */
-	temporarily_use_uid(pw->pw_uid);
+	temporarily_use_uid(pw);
 	/*
 	 * Quick check: if the user has no .shosts or .rhosts files, return
 	 * failure immediately without doing costly lookups from name
@@ -223,7 +223,7 @@ auth_rhosts(struct passwd *pw, const char *client_user)
 		return 0;
 	}
 	/* Temporarily use the user's uid. */
-	temporarily_use_uid(pw->pw_uid);
+	temporarily_use_uid(pw);
 
 	/* Check all .rhosts files (currently .shosts and .rhosts). */
 	for (rhosts_file_index = 0; rhosts_files[rhosts_file_index];

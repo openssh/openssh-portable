@@ -9,6 +9,12 @@
    - markus@cvs.openbsd.org 2001/04/08 11:27:33
      [clientloop.c]
      leave_raw_mode if ssh2 "session" is closed
+   - markus@cvs.openbsd.org 2001/04/06 21:00:17
+     [auth-rh-rsa.c auth-rhosts.c auth-rsa.c auth2.c channels.c session.c
+      ssh.c sshconnect.c sshconnect.h uidswap.c uidswap.h]
+     do gid/groups-swap in addition to uid-swap, should help if /home/group
+     is chmod 750 + chgrp grp /home/group/, work be deraadt and me, thanks
+     to olar@openwall.com is comments.  we had many requests for this.
 
 20010408
  - OpenBSD CVS Sync
@@ -4949,4 +4955,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1082 2001/04/08 18:07:22 mouring Exp $
+$Id: ChangeLog,v 1.1083 2001/04/08 18:26:59 mouring Exp $

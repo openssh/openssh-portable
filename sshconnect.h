@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshconnect.h,v 1.7 2001/03/26 08:07:09 markus Exp $	*/
+/*	$OpenBSD: sshconnect.h,v 1.8 2001/04/06 21:00:15 markus Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -37,7 +37,7 @@
 int
 ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
     u_short port, int connection_attempts,
-    int anonymous, uid_t original_real_uid,
+    int anonymous, struct passwd *pw,
     const char *proxy_command);
 
 /*
@@ -51,7 +51,7 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 
 void
 ssh_login(Key *host_key, const char *host,
-    struct sockaddr * hostaddr, uid_t original_real_uid);
+    struct sockaddr * hostaddr, struct passwd *pw);
 
 
 void
