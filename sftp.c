@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.7 2001/02/08 00:04:52 markus Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.8 2001/02/28 05:36:28 deraadt Exp $");
 
 /* XXX: commandline mode */
 /* XXX: copy between two remote hosts (commandline) */
@@ -253,11 +253,6 @@ main(int argc, char **argv)
 
 	close(in);
 	close(out);
-
-#if !defined(HAVE_CYGWIN)
-	if (kill(sshpid, SIGHUP) == -1)
-		fatal("Couldn't terminate ssh process: %s", strerror(errno));
-#endif
 
 	if (waitpid(sshpid, NULL, 0) == -1)
 		fatal("Couldn't wait for ssh process: %s", strerror(errno));

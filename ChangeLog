@@ -61,6 +61,10 @@
    - deraadt@cvs.openbsd.org 2001/02/28 05:34:28
      [misc.c]
      pull in protos
+   - deraadt@cvs.openbsd.org 2001/02/28 05:36:28
+     [sftp.c]
+     do not kill the subprocess on termination (we will see if this helps
+     things or hurts things)
 
 20010304
  - (bal) Remove make-ssh-known-hosts.1 since it's no longer valid.
@@ -4253,4 +4257,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.869 2001/03/05 06:09:31 mouring Exp $
+$Id: ChangeLog,v 1.870 2001/03/05 06:12:01 mouring Exp $
