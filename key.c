@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: key.c,v 1.53 2003/06/24 08:23:46 markus Exp $");
+RCSID("$OpenBSD: key.c,v 1.54 2003/07/09 13:58:19 avsm Exp $");
 
 #include <openssl/evp.h>
 
@@ -236,8 +236,10 @@ key_fingerprint_hex(u_char *dgst_raw, u_int dgst_raw_len)
 	for (i = 0; i < dgst_raw_len; i++) {
 		char hex[4];
 		snprintf(hex, sizeof(hex), "%02x:", dgst_raw[i]);
-		strlcat(retval, hex, dgst_raw_len * 3);
+		strlcat(retval, hex, dgst_raw_len * 3 + 1);
 	}
+
+	/* Remove the trailing ':' character */
 	retval[(dgst_raw_len * 3) - 1] = '\0';
 	return retval;
 }
