@@ -55,4 +55,5 @@ PAM likes to log all authentication events, this one included.
 
 If it annoys you too much, set "PermitEmptyPasswords no" in 
 sshd_config. This will quiet the error message at the expense of
-disabling logins to accounts with no password set.
+disabling logins to accounts with no password set. This is the 
+default if you use the supplied sshd_config file.
