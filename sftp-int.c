@@ -28,7 +28,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.24 2001/03/04 17:42:28 millert Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.25 2001/03/06 06:11:44 deraadt Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -39,6 +39,8 @@ RCSID("$OpenBSD: sftp-int.c,v 1.24 2001/03/04 17:42:28 millert Exp $");
 #include "sftp-common.h"
 #include "sftp-client.h"
 #include "sftp-int.h"
+
+extern FILE* infile;
 
 /* Seperators for interactive commands */
 #define WHITESPACE " \t\r\n"
@@ -444,6 +446,7 @@ parse_dispatch_command(int in, int out, const char *cmd, char **pwd)
 	unsigned long n_arg;
 	Attrib a, *aa;
 	char path_buf[MAXPATHLEN];
+	int err = 0;
 
 	path1 = path2 = NULL;
 	cmdnum = parse_args(&cmd, &pflag, &n_arg, &path1, &path2);
@@ -454,49 +457,54 @@ parse_dispatch_command(int in, int out, const char *cmd, char **pwd)
 		break;
 	case I_GET:
 		path1 = make_absolute(path1, *pwd);
-		do_download(in, out, path1, path2, pflag);
+		err = do_download(in, out, path1, path2, pflag);
 		break;
 	case I_PUT:
 		path2 = make_absolute(path2, *pwd);
-		do_upload(in, out, path1, path2, pflag);
+		err = do_upload(in, out, path1, path2, pflag);
 		break;
 	case I_RENAME:
 		path1 = make_absolute(path1, *pwd);
 		path2 = make_absolute(path2, *pwd);
-		do_rename(in, out, path1, path2);
+		err = do_rename(in, out, path1, path2);
 		break;
 	case I_RM:
 		path1 = make_absolute(path1, *pwd);
-		do_rm(in, out, path1);
+		err = do_rm(in, out, path1);
 		break;
 	case I_MKDIR:
 		path1 = make_absolute(path1, *pwd);
 		attrib_clear(&a);
 		a.flags |= SSH2_FILEXFER_ATTR_PERMISSIONS;
 		a.perm = 0777;
-		do_mkdir(in, out, path1, &a);
+		err = do_mkdir(in, out, path1, &a);
 		break;
 	case I_RMDIR:
 		path1 = make_absolute(path1, *pwd);
-		do_rmdir(in, out, path1);
+		err = do_rmdir(in, out, path1);
 		break;
 	case I_CHDIR:
 		path1 = make_absolute(path1, *pwd);
-		if ((tmp = do_realpath(in, out, path1)) == NULL)
+		if ((tmp = do_realpath(in, out, path1)) == NULL) {
+			err = 1;
 			break;
+		}
 		if ((aa = do_stat(in, out, tmp)) == NULL) {
 			xfree(tmp);
+			err = 1;
 			break;
 		}
 		if (!(aa->flags & SSH2_FILEXFER_ATTR_PERMISSIONS)) {
 			error("Can't change directory: Can't check target");
 			xfree(tmp);
+			err = 1;
 			break;
 		}
 		if (!S_ISDIR(aa->perm)) {
 			error("Can't change directory: \"%s\" is not "
 			    "a directory", tmp);
 			xfree(tmp);
+			err = 1;
 			break;
 		}
 		xfree(*pwd);
@@ -522,14 +530,18 @@ parse_dispatch_command(int in, int out, const char *cmd, char **pwd)
 		do_ls(in, out, path1);
 		break;
 	case I_LCHDIR:
-		if (chdir(path1) == -1)
+		if (chdir(path1) == -1) {
 			error("Couldn't change local directory to "
 			    "\"%s\": %s", path1, strerror(errno));
+			err = 1;
+		}
 		break;
 	case I_LMKDIR:
-		if (mkdir(path1, 0777) == -1)
+		if (mkdir(path1, 0777) == -1) {
 			error("Couldn't create local directory "
 			    "\"%s\": %s", path1, strerror(errno));
+			err = 1;
+		}
 		break;
 	case I_LLS:
 		local_do_ls(cmd);
@@ -598,6 +610,11 @@ parse_dispatch_command(int in, int out, const char *cmd, char **pwd)
 		xfree(path1);
 	if (path2)
 		xfree(path2);
+
+	/* If an error occurs in batch mode we should abort. */
+	if (infile != stdin && err > 0)
+		return -1;
+
 	return(0);
 }
 
@@ -612,7 +629,7 @@ interactive_loop(int fd_in, int fd_out)
 		fatal("Need cwd");
 
 	setvbuf(stdout, NULL, _IOLBF, 0);
-	setvbuf(stdin, NULL, _IOLBF, 0);
+	setvbuf(infile, NULL, _IOLBF, 0);
 
 	for(;;) {
 		char *cp;
@@ -620,13 +637,16 @@ interactive_loop(int fd_in, int fd_out)
 		printf("sftp> ");
 
 		/* XXX: use libedit */
-		if (fgets(cmd, sizeof(cmd), stdin) == NULL) {
+		if (fgets(cmd, sizeof(cmd), infile) == NULL) {
 			printf("\n");
 			break;
-		}
+		} else if (infile != stdin) /* Bluff typing */
+			printf("%s", cmd);
+
 		cp = strrchr(cmd, '\n');
 		if (cp)
 			*cp = '\0';
+
 		if (parse_dispatch_command(fd_in, fd_out, cmd, &pwd))
 			break;
 	}

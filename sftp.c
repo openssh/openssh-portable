@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.9 2001/03/03 23:52:22 markus Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.10 2001/03/06 06:11:44 deraadt Exp $");
 
 /* XXX: commandline mode */
 /* XXX: copy between two remote hosts (commandline) */
@@ -49,6 +49,7 @@ char *__progname;
 int use_ssh1 = 0;
 char *ssh_program = _PATH_SSH_PROGRAM;
 char *sftp_server = NULL;
+FILE* infile;
 
 void
 connect_to_server(char **args, int *in, int *out, pid_t *sshpid)
@@ -146,7 +147,7 @@ make_ssh_args(char *add_arg)
 void
 usage(void)
 {
-	fprintf(stderr, "usage: sftp [-1vC] [-osshopt=value] [user@]host\n");
+	fprintf(stderr, "usage: sftp [-1vC] [-b batchfile] [-osshopt=value] [user@]host\n");
 	exit(1);
 }
 
@@ -161,9 +162,10 @@ main(int argc, char **argv)
 	extern char *optarg;
 
 	__progname = get_progname(argv[0]);
+	infile = stdin;         /* Read from STDIN unless changed by -b */
 	debug_level = compress_flag = 0;
 
-	while ((ch = getopt(argc, argv, "1hvCo:s:S:")) != -1) {
+	while ((ch = getopt(argc, argv, "1hvCo:s:S:b:")) != -1) {
 		switch (ch) {
 		case 'C':
 			compress_flag = 1;
@@ -185,6 +187,14 @@ main(int argc, char **argv)
 			break;
 		case 'S':
 			ssh_program = optarg;
+			break;
+		case 'b':
+			if (infile == stdin) {
+				infile = fopen(optarg, "r");
+				if (infile == NULL) 
+					fatal("%s (%s).", strerror(errno), optarg);
+			} else 
+				fatal("Filename already specified.");
 			break;
 		case 'h':
 		default:
@@ -257,6 +267,8 @@ main(int argc, char **argv)
 
 	close(in);
 	close(out);
+	if (infile != stdin)
+		fclose(infile);
 
 	if (waitpid(sshpid, NULL, 0) == -1)
 		fatal("Couldn't wait for ssh process: %s", strerror(errno));

@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.9 2001/03/02 18:54:31 deraadt Exp $
+.\" $OpenBSD: sftp.1,v 1.10 2001/03/06 06:11:44 deraadt Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -31,6 +31,7 @@
 .Sh SYNOPSIS
 .Nm sftp
 .Op Fl vC
+.Op Fl b Ar batchfile
 .Op Fl o Ar ssh_option
 .Op Ar hostname | user@hostname
 .Sh DESCRIPTION
@@ -55,6 +56,17 @@ Raise logging level. This option is also passed to ssh.
 Enables compression (via ssh's 
 .Fl C
 flag)
+.It Fl b Ar batchfile
+Batch mode reads a series of commands from an input
+.Fn batchfile
+instead of
+.Fn stdin .
+Since it lacks user interaction it should be used in conjuction with a 
+non-interactive authentication.  Sftp will abort if any of the following 
+commands fail: 
+.Pa get, put, rename, rm, mkdir, chdir, lchdir
+and
+.Pa lmkdir.
 .It Fl o Ar ssh_option
 Specify an option to be directly passed to
 .Xr ssh 1 .
