@@ -1,22 +1,27 @@
 Summary: OpenSSH free Secure Shell (SSH) implementation
 Name: openssh
-Version: 1.2pre11
+Version: 1.2pre12
 Release: 1
 Packager: Damien Miller <djm@ibs.com.au>
 Source0: openssh-%{version}.tar.gz
 Copyright: BSD
 Group: Applications/Internet
 BuildRoot: /tmp/openssh-%{version}-buildroot
+Obseletes: ssh
+Obseletes: ssh-clients
+Obseletes: ssh-extras
 
 %package server
 Summary: Secure Shell protocol server (sshd)
 Requires: openssh chkconfig >= 0.9
 Group: System Environment/Daemons
+Obseletes: ssh-server
 
 %package askpass
 Summary: GNOME passphrase dialog
 Group: Applications/Internet
 Requires: openssh
+Obseletes: ssh-askpass
 
 %description
 Ssh (Secure Shell) a program for logging into a remote machine and for
@@ -61,6 +66,8 @@ patented algorithms to seperate libraries (OpenSSL).
 This package contains the GNOME passphrase dialog.
 
 %changelog
+* Sat Nov 13 1999 Damien Miller <djm@mindrot.org>
+- Added 'Obseletes' directives
 * Tue Nov 09 1999 Damien Miller <djm@ibs.com.au>
 - Use make install
 - Subpackages
