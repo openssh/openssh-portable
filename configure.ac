@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.72 2002/06/25 22:35:16 tim Exp $
+# $Id: configure.ac,v 1.73 2002/06/28 00:37:33 mouring Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -582,6 +582,7 @@ AC_MSG_CHECKING([for mmap anon shared])
 AC_TRY_RUN(
 	[
 #include <stdio.h>
+#include <sys/types.h>
 #include <sys/mman.h>
 #if !defined(MAP_ANON) && defined(MAP_ANONYMOUS)
 #define MAP_ANON MAP_ANONYMOUS
