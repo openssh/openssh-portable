@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.21 2003/07/22 13:35:22 markus Exp $
+.\" $OpenBSD: sshd_config.5,v 1.22 2003/08/13 08:46:31 markus Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -260,7 +260,6 @@ Specifies that
 and
 .Pa .shosts
 files will not be used in
-.Cm RhostsAuthentication ,
 .Cm RhostsRSAAuthentication
 or
 .Cm HostbasedAuthentication .
@@ -529,10 +528,6 @@ Specifies whether public key authentication is allowed.
 The default is
 .Dq yes .
 Note that this option applies to protocol version 2 only.
-.It Cm RhostsAuthentication
-Specifies whether authentication using rhosts or /etc/hosts.equiv
-files is sufficient.
-Normally, this method should not be permitted because it is insecure.
 .Cm RhostsRSAAuthentication
 should be used
 instead, because it performs RSA-based host authentication in addition

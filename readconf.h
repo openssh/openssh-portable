@@ -1,4 +1,4 @@
-/*	$OpenBSD: readconf.h,v 1.52 2003/07/22 13:35:22 markus Exp $	*/
+/*	$OpenBSD: readconf.h,v 1.53 2003/08/13 08:46:30 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -33,7 +33,6 @@ typedef struct {
 	char   *xauth_location;	/* Location for xauth program */
 	int     gateway_ports;	/* Allow remote connects to forwarded ports. */
 	int     use_privileged_port;	/* Don't use privileged port if false. */
-	int     rhosts_authentication;	/* Try rhosts authentication. */
 	int     rhosts_rsa_authentication;	/* Try rhosts with RSA
 						 * authentication. */
 	int     rsa_authentication;	/* Try RSA authentication. */

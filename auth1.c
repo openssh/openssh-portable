@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.49 2003/07/22 13:35:22 markus Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.50 2003/08/13 08:46:30 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -159,26 +159,6 @@ do_authloop(Authctxt *authctxt)
 			packet_send_debug("Kerberos TGT passing disabled before authentication.");
 			break;
 #endif
-
-		case SSH_CMSG_AUTH_RHOSTS:
-			if (!options.rhosts_authentication) {
-				verbose("Rhosts authentication disabled.");
-				break;
-			}
-			/*
-			 * Get client user name.  Note that we just have to
-			 * trust the client; this is one reason why rhosts
-			 * authentication is insecure. (Another is
-			 * IP-spoofing on a local network.)
-			 */
-			client_user = packet_get_string(&ulen);
-			packet_check_eom();
-
-			/* Try to authenticate using /etc/hosts.equiv and .rhosts. */
-			authenticated = auth_rhosts(pw, client_user);
-
-			snprintf(info, sizeof info, " ruser %.100s", client_user);
-			break;
 
 		case SSH_CMSG_AUTH_RHOSTS_RSA:
 			if (!options.rhosts_rsa_authentication) {

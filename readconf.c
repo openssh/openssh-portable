@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.115 2003/07/22 13:35:22 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.116 2003/08/13 08:46:30 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -57,7 +57,6 @@ RCSID("$OpenBSD: readconf.c,v 1.115 2003/07/22 13:35:22 markus Exp $");
    Host fascist.blob.com
      Port 23123
      User tylonen
-     RhostsAuthentication no
      PasswordAuthentication no
 
    Host puukko.hut.fi
@@ -75,7 +74,6 @@ RCSID("$OpenBSD: readconf.c,v 1.115 2003/07/22 13:35:22 markus Exp $");
    Host *
      ForwardAgent no
      ForwardX11 no
-     RhostsAuthentication yes
      PasswordAuthentication yes
      RSAAuthentication yes
      RhostsRSAAuthentication yes
@@ -91,7 +89,7 @@ RCSID("$OpenBSD: readconf.c,v 1.115 2003/07/22 13:35:22 markus Exp $");
 
 typedef enum {
 	oBadOption,
-	oForwardAgent, oForwardX11, oGatewayPorts, oRhostsAuthentication,
+	oForwardAgent, oForwardX11, oGatewayPorts,
 	oPasswordAuthentication, oRSAAuthentication,
 	oChallengeResponseAuthentication, oXAuthLocation,
 	oKerberosAuthentication, oKerberosTgtPassing,
@@ -122,7 +120,7 @@ static struct {
 	{ "xauthlocation", oXAuthLocation },
 	{ "gatewayports", oGatewayPorts },
 	{ "useprivilegedport", oUsePrivilegedPort },
-	{ "rhostsauthentication", oRhostsAuthentication },
+	{ "rhostsauthentication", oDeprecated },
 	{ "passwordauthentication", oPasswordAuthentication },
 	{ "kbdinteractiveauthentication", oKbdInteractiveAuthentication },
 	{ "kbdinteractivedevices", oKbdInteractiveDevices },
@@ -349,10 +347,6 @@ parse_flag:
 
 	case oUsePrivilegedPort:
 		intptr = &options->use_privileged_port;
-		goto parse_flag;
-
-	case oRhostsAuthentication:
-		intptr = &options->rhosts_authentication;
 		goto parse_flag;
 
 	case oPasswordAuthentication:
@@ -814,7 +808,6 @@ initialize_options(Options * options)
 	options->xauth_location = NULL;
 	options->gateway_ports = -1;
 	options->use_privileged_port = -1;
-	options->rhosts_authentication = -1;
 	options->rsa_authentication = -1;
 	options->pubkey_authentication = -1;
 	options->challenge_response_authentication = -1;
@@ -884,8 +877,6 @@ fill_default_options(Options * options)
 		options->gateway_ports = 0;
 	if (options->use_privileged_port == -1)
 		options->use_privileged_port = 0;
-	if (options->rhosts_authentication == -1)
-		options->rhosts_authentication = 0;
 	if (options->rsa_authentication == -1)
 		options->rsa_authentication = 1;
 	if (options->pubkey_authentication == -1)

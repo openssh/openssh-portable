@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.274 2003/07/22 13:35:22 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.275 2003/08/13 08:46:31 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1462,20 +1462,7 @@ main(int ac, char **av)
 		alarm(options.login_grace_time);
 
 	sshd_exchange_identification(sock_in, sock_out);
-	/*
-	 * Check that the connection comes from a privileged port.
-	 * Rhosts-Authentication only makes sense from privileged
-	 * programs.  Of course, if the intruder has root access on his local
-	 * machine, he can connect from any port.  So do not use these
-	 * authentication methods from machines that you do not trust.
-	 */
-	if (options.rhosts_authentication &&
-	    (remote_port >= IPPORT_RESERVED ||
-	    remote_port < IPPORT_RESERVED / 2)) {
-		debug("Rhosts Authentication disabled, "
-		    "originating port %d not trusted.", remote_port);
-		options.rhosts_authentication = 0;
-	}
+
 #ifdef KRB5
 	if (!packet_connection_is_ipv4() &&
 	    options.kerberos_authentication) {
@@ -1643,8 +1630,6 @@ do_ssh1_kex(void)
 
 	/* Declare supported authentication types. */
 	auth_mask = 0;
-	if (options.rhosts_authentication)
-		auth_mask |= 1 << SSH_AUTH_RHOSTS;
 	if (options.rhosts_rsa_authentication)
 		auth_mask |= 1 << SSH_AUTH_RHOSTS_RSA;
 	if (options.rsa_authentication)

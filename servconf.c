@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.123 2003/07/22 13:35:22 markus Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.124 2003/08/13 08:46:30 markus Exp $");
 
 #include "ssh.h"
 #include "log.h"
@@ -64,7 +64,6 @@ initialize_server_options(ServerOptions *options)
 	options->keepalives = -1;
 	options->log_facility = SYSLOG_FACILITY_NOT_SET;
 	options->log_level = SYSLOG_LEVEL_NOT_SET;
-	options->rhosts_authentication = -1;
 	options->rhosts_rsa_authentication = -1;
 	options->hostbased_authentication = -1;
 	options->hostbased_uses_name_from_packet_only = -1;
@@ -165,8 +164,6 @@ fill_default_server_options(ServerOptions *options)
 		options->log_facility = SYSLOG_FACILITY_AUTH;
 	if (options->log_level == SYSLOG_LEVEL_NOT_SET)
 		options->log_level = SYSLOG_LEVEL_INFO;
-	if (options->rhosts_authentication == -1)
-		options->rhosts_authentication = 0;
 	if (options->rhosts_rsa_authentication == -1)
 		options->rhosts_rsa_authentication = 0;
 	if (options->hostbased_authentication == -1)
@@ -248,7 +245,7 @@ typedef enum {
 	/* Standard Options */
 	sPort, sHostKeyFile, sServerKeyBits, sLoginGraceTime, sKeyRegenerationTime,
 	sPermitRootLogin, sLogFacility, sLogLevel,
-	sRhostsAuthentication, sRhostsRSAAuthentication, sRSAAuthentication,
+	sRhostsRSAAuthentication, sRSAAuthentication,
 	sKerberosAuthentication, sKerberosOrLocalPasswd, sKerberosTicketCleanup,
 	sKerberosTgtPassing, sChallengeResponseAuthentication,
 	sPasswordAuthentication, sKbdInteractiveAuthentication, sListenAddress,
@@ -288,7 +285,7 @@ static struct {
 	{ "permitrootlogin", sPermitRootLogin },
 	{ "syslogfacility", sLogFacility },
 	{ "loglevel", sLogLevel },
-	{ "rhostsauthentication", sRhostsAuthentication },
+	{ "rhostsauthentication", sDeprecated },
 	{ "rhostsrsaauthentication", sRhostsRSAAuthentication },
 	{ "hostbasedauthentication", sHostbasedAuthentication },
 	{ "hostbasedusesnamefrompacketonly", sHostbasedUsesNameFromPacketOnly },
@@ -587,10 +584,6 @@ parse_flag:
 
 	case sIgnoreUserKnownHosts:
 		intptr = &options->ignore_user_known_hosts;
-		goto parse_flag;
-
-	case sRhostsAuthentication:
-		intptr = &options->rhosts_authentication;
 		goto parse_flag;
 
 	case sRhostsRSAAuthentication:

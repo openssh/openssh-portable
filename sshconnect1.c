@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.54 2003/07/22 13:35:22 markus Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.55 2003/08/13 08:46:31 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -931,26 +931,6 @@ ssh_userauth1(const char *local_user, const char *server_user, char *host,
 	}
 #endif /* KRB5 */
 
-	/*
-	 * Use rhosts authentication if running in privileged socket and we
-	 * do not wish to remain anonymous.
-	 */
-	if ((supported_authentications & (1 << SSH_AUTH_RHOSTS)) &&
-	    options.rhosts_authentication) {
-		debug("Trying rhosts authentication.");
-		packet_start(SSH_CMSG_AUTH_RHOSTS);
-		packet_put_cstring(local_user);
-		packet_send();
-		packet_write_wait();
-
-		/* The server should respond with success or failure. */
-		type = packet_read();
-		if (type == SSH_SMSG_SUCCESS)
-			goto success;
-		if (type != SSH_SMSG_FAILURE)
-			packet_disconnect("Protocol error: got %d in response to rhosts auth",
-					  type);
-	}
 	/*
 	 * Try .rhosts or /etc/hosts.equiv authentication with RSA host
 	 * authentication.

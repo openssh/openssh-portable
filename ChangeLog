@@ -5,6 +5,11 @@
      [session.c]
      use more portable tcsendbreak(3) and ignore break_length;
      ok deraadt, millert
+   - markus@cvs.openbsd.org 2003/08/13 08:46:31
+     [auth1.c readconf.c readconf.h servconf.c servconf.h ssh.c ssh_config
+     ssh_config.5 sshconnect1.c sshd.8 sshd.c sshd_config sshd_config.5]
+     remove RhostsAuthentication; suggested by djm@ before; ok djm@, deraadt@,
+     fgsch@, miod@, henning@, jakob@ and others
 
 20030811
  - (dtucker) OpenBSD CVS Sync
@@ -823,4 +828,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2890 2003/08/13 10:31:05 dtucker Exp $
+$Id: ChangeLog,v 1.2891 2003/08/13 10:37:05 dtucker Exp $

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.16 2003/07/22 13:35:22 markus Exp $
+.\" $OpenBSD: ssh_config.5,v 1.17 2003/08/13 08:46:31 markus Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -529,26 +529,6 @@ IPv6 addresses can be specified with an alternative syntax:
 Multiple forwardings may be specified, and additional
 forwardings can be given on the command line.
 Only the superuser can forward privileged ports.
-.It Cm RhostsAuthentication
-Specifies whether to try rhosts based authentication.
-Note that this
-declaration only affects the client side and has no effect whatsoever
-on security.
-Most servers do not permit RhostsAuthentication because it
-is not secure (see
-.Cm RhostsRSAAuthentication ) .
-The argument to this keyword must be
-.Dq yes
-or
-.Dq no .
-The default is
-.Dq no .
-This option applies to protocol version 1 only and requires
-.Nm ssh
-to be setuid root and
-.Cm UsePrivilegedPort
-to be set to
-.Dq yes .
 .It Cm RhostsRSAAuthentication
 Specifies whether to try rhosts based authentication with RSA host
 authentication.
@@ -629,11 +609,9 @@ If set to
 must be setuid root.
 Note that this option must be set to
 .Dq yes
-if
-.Cm RhostsAuthentication
-and
+for
 .Cm RhostsRSAAuthentication
-authentications are needed with older servers.
+with older servers.
 .It Cm User
 Specifies the user to log in as.
 This can be useful when a different user name is used on different machines.

@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.198 2003/07/22 13:35:22 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.199 2003/08/13 08:46:30 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -600,19 +600,7 @@ again:
 	    strcmp(options.proxy_command, "none") == 0)
 		options.proxy_command = NULL;
 
-	/* Disable rhosts authentication if not running as root. */
-#ifdef HAVE_CYGWIN
-	/* Ignore uid if running under Windows */
-	if (!options.use_privileged_port) {
-#else
-	if (original_effective_uid != 0 || !options.use_privileged_port) {
-#endif
-		debug("Rhosts Authentication disabled, "
-		    "originating port will not be trusted.");
-		options.rhosts_authentication = 0;
-	}
 	/* Open a connection to the remote host. */
-
 	if (ssh_connect(host, &hostaddr, options.port,
 	    options.address_family, options.connection_attempts,
 #ifdef HAVE_CYGWIN

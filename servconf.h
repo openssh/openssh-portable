@@ -1,4 +1,4 @@
-/*	$OpenBSD: servconf.h,v 1.62 2003/07/22 13:35:22 markus Exp $	*/
+/*	$OpenBSD: servconf.h,v 1.63 2003/08/13 08:46:30 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -65,8 +65,6 @@ typedef struct {
 	int     gateway_ports;	/* If true, allow remote connects to forwarded ports. */
 	SyslogFacility log_facility;	/* Facility for system logging. */
 	LogLevel log_level;	/* Level for system logging. */
-	int     rhosts_authentication;	/* If true, permit rhosts
-					 * authentication. */
 	int     rhosts_rsa_authentication;	/* If true, permit rhosts RSA
 						 * authentication. */
 	int     hostbased_authentication;	/* If true, permit ssh2 hostbased auth */
