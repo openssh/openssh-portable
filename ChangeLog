@@ -43,6 +43,8 @@
    - djm@cvs.openbsd.org 2003/11/17 09:45:39
      [msg.c msg.h sshconnect2.c ssh-keysign.c]
      return error on msg send/receive failure (rather than fatal); ok markus@
+ - (djm) Bug #632: Don't call pam_end indirectly from within kbd-int
+   conversation function
 
 20031115
  - (dtucker) [regress/agent-ptrace.sh] Test for GDB output from Solaris and
@@ -1463,4 +1465,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3109 2003/11/17 10:20:47 djm Exp $
+$Id: ChangeLog,v 1.3110 2003/11/17 10:27:55 djm Exp $
