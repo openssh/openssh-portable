@@ -1237,7 +1237,7 @@ packet_set_interactive(int interactive, int keepalives)
 		 * Set IP options for an interactive connection.  Use
 		 * IPTOS_LOWDELAY and TCP_NODELAY.
 		 */
-#ifdef IP_TOS
+#if defined(IP_TOS) && !defined(IP_TOS_IS_BROKEN)
 		int lowdelay = IPTOS_LOWDELAY;
 		if (setsockopt(connection_in, IPPROTO_IP, IP_TOS, (void *) &lowdelay,
 		    sizeof(lowdelay)) < 0)
@@ -1251,7 +1251,7 @@ packet_set_interactive(int interactive, int keepalives)
 		 * Set IP options for a non-interactive connection.  Use
 		 * IPTOS_THROUGHPUT.
 		 */
-#ifdef IP_TOS
+#if defined(IP_TOS) && !defined(IP_TOS_IS_BROKEN)
 		int throughput = IPTOS_THROUGHPUT;
 		if (setsockopt(connection_in, IPPROTO_IP, IP_TOS, (void *) &throughput,
 		    sizeof(throughput)) < 0)

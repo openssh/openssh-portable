@@ -6,6 +6,9 @@
 
 @TOP@
 
+/* Define if your system choked on IP TOS setting */
+#undef IP_TOS_IS_BROKEN
+
 /* Define if you have the getuserattr function.  */
 #undef HAVE_GETUSERATTR
 

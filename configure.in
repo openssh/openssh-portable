@@ -138,6 +138,14 @@ case "$host" in
 	CFLAGS="$CFLAGS -DSUNOS4"
 	AC_CHECK_FUNCS(getpwanam)
 	;;
+*-sni-sysv*)
+	CFLAGS="$CFLAGS -I/usr/local/include"
+	LDFLAGS="$LDFLAGS -L/usr/local/lib -L/usr/ucblib"
+	MANTYPE='$(CATMAN)'
+	AC_DEFINE(IP_TOS_IS_BROKEN)
+	mansubdir=cat
+	LIBS="$LIBS -lgen -lnsl -lsocket -lucb"
+	;;
 *-*-sysv*)
 	CFLAGS="$CFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"

@@ -1,6 +1,7 @@
 20000711
  - (djm) Fixup for AIX getuserattr() support from Tom Bertelson
    <tbert@abac.com>
+ - (djm) ReliantUNIX support from Udo Schweigert <ust@cert.siemens.de>
 
 20000709
  - (djm) Only enable PAM_TTY kludge for Linux. Problem report from
