@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001 Damien Miller.  All rights reserved.
+ * Copyright (c) 2001,2002 Damien Miller.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-glob.c,v 1.9 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: sftp-glob.c,v 1.10 2002/02/13 00:59:23 djm Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
@@ -41,8 +41,7 @@ struct SFTP_OPENDIR {
 };
 
 static struct {
-	int fd_in;
-	int fd_out;
+	struct sftp_conn *conn;
 } cur;
 
 static void *
@@ -52,7 +51,7 @@ fudge_opendir(const char *path)
 
 	r = xmalloc(sizeof(*r));
 
-	if (do_readdir(cur.fd_in, cur.fd_out, (char*)path, &r->dir))
+	if (do_readdir(cur.conn, (char*)path, &r->dir))
 		return(NULL);
 
 	r->offset = 0;
@@ -130,7 +129,7 @@ fudge_lstat(const char *path, struct stat *st)
 {
 	Attrib *a;
 
-	if (!(a = do_lstat(cur.fd_in, cur.fd_out, (char*)path, 0)))
+	if (!(a = do_lstat(cur.conn, (char*)path, 0)))
 		return(-1);
 
 	attrib_to_stat(a, st);
@@ -143,7 +142,7 @@ fudge_stat(const char *path, struct stat *st)
 {
 	Attrib *a;
 
-	if (!(a = do_stat(cur.fd_in, cur.fd_out, (char*)path, 0)))
+	if (!(a = do_stat(cur.conn, (char*)path, 0)))
 		return(-1);
 
 	attrib_to_stat(a, st);
@@ -152,7 +151,7 @@ fudge_stat(const char *path, struct stat *st)
 }
 
 int
-remote_glob(int fd_in, int fd_out, const char *pattern, int flags,
+remote_glob(struct sftp_conn *conn, const char *pattern, int flags,
     int (*errfunc)(const char *, int), glob_t *pglob)
 {
 	pglob->gl_opendir = fudge_opendir;
@@ -162,9 +161,7 @@ remote_glob(int fd_in, int fd_out, const char *pattern, int flags,
 	pglob->gl_stat = fudge_stat;
 
 	memset(&cur, 0, sizeof(cur));
-	cur.fd_in = fd_in;
-	cur.fd_out = fd_out;
+	cur.conn = conn;
 
-	return(glob(pattern, flags | GLOB_ALTDIRFUNC, errfunc,
-	    pglob));
+	return(glob(pattern, flags | GLOB_ALTDIRFUNC, errfunc, pglob));
 }

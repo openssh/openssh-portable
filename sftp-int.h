@@ -1,7 +1,7 @@
-/* $OpenBSD: sftp-int.h,v 1.4 2001/06/26 17:27:25 markus Exp $ */
+/* $OpenBSD: sftp-int.h,v 1.5 2002/02/13 00:59:23 djm Exp $ */
 
 /*
- * Copyright (c) 2001 Damien Miller.  All rights reserved.
+ * Copyright (c) 2001,2002 Damien Miller.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
