@@ -2,6 +2,8 @@
  - (dtucker) [acss.c acss.h] Fix $Id tags.
  - (dtucker) [cipher-acss.c cipher.c] Enable acss only if building with
    OpenSSL >= 0.9.7.  ok djm@
+ - (dtucker) [session.c] Bug #789: Do not call do_pam_setcred as a non-root
+   user, since some modules might fail due to lack of privilege.  ok djm@
 
 20040129
  - (dtucker) OpenBSD CVS Sync regress/
@@ -1787,4 +1789,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3206 2004/02/06 04:26:10 dtucker Exp $
+$Id: ChangeLog,v 1.3207 2004/02/06 04:30:50 dtucker Exp $

@@ -519,7 +519,8 @@ do_exec_pty(Session *s, const char *command)
 #if defined(USE_PAM)
 	if (options.use_pam) {
 		do_pam_set_tty(s->tty);
-		do_pam_setcred(1);
+		if (!use_privsep)
+			do_pam_setcred(1);
 	}
 #endif
 
