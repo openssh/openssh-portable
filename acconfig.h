@@ -252,6 +252,9 @@
 #undef HAVE_SS_FAMILY_IN_SS
 #undef HAVE___SS_FAMILY_IN_SS
 
+/* Define if you have a regcomp() function */
+#undef HAVE_REGCOMP
+
 /* Define if you have /dev/ptmx */
 #undef HAVE_DEV_PTMX
 

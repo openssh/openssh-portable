@@ -32,7 +32,15 @@ RCSID("$OpenBSD: compat.c,v 1.33 2001/01/08 22:29:05 markus Exp $");
 #ifdef HAVE_LIBPCRE
 #  include <pcreposix.h>
 #else /* Use native regex libraries */
-#  include <regex.h>
+#  ifdef HAVE_REGEX_H
+#    include <regex.h>
+#  else
+#    ifdef HAVE_REGCOMP
+#      include "fake-regex.h"
+#    else
+#      error "No regular libraries detected.  See INSTALL file."
+#    endif
+#  endif
 #endif /* HAVE_LIBPCRE */
 
 int compat13 = 0;

@@ -3,6 +3,9 @@
    - markus@cvs.openbsd.org 2001/01/19 12:45:26
      [ssh-chall.c servconf.c servconf.h ssh.h sshd.c]
      only auth-chall.c needs #ifdef SKEY
+ - (bal) Slight auth2-pam.c clean up.
+ - (bal) Includes a fake-regexp.h to be only used if regcomp() is found,
+   but no 'regexp.h' found (SCO OpenServer 3 lacks the header).
 
 20010119
  - (djm) Update versions in RPM specfiles
