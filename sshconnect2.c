@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.96 2002/02/24 19:14:59 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.97 2002/02/25 16:33:27 markus Exp $");
 
 #include "ssh.h"
 #include "ssh2.h"
@@ -567,7 +567,7 @@ send_pubkey_test(Authctxt *authctxt, Key *k, sign_cb_fn *sign_callback,
     int hint)
 {
 	u_char *blob;
-	int bloblen, have_sig = 0;
+	u_int bloblen, have_sig = 0;
 
 	debug3("send_pubkey_test");
 
@@ -956,7 +956,7 @@ authmethod_get(char *authlist)
 {
 
 	char *name = NULL;
-	int next;
+	u_int next;
 
 	/* Use a suitable default if we're passed a nil list.  */
 	if (authlist == NULL || strlen(authlist) == 0)
