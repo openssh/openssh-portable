@@ -1,3 +1,6 @@
+20010324
+ - Fixed permissions ssh-keyscan.  Thanks to Christopher Linn <celinn@mtu.edu>.
+
 20010322
  - (djm) Better AIX no tty fix, spotted by Gert Doering <gert@greenie.muc.de>
  - (djm) Released 2.5.2p2
@@ -4660,4 +4663,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.991.2.6 2001/03/22 05:04:12 djm Exp $
+$Id: ChangeLog,v 1.991.2.7 2001/03/24 00:22:46 mouring Exp $
