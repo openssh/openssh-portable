@@ -158,7 +158,7 @@
 #include "log.h"
 #include "atomicio.h"
 
-RCSID("$Id: loginrec.c,v 1.56 2004/04/08 06:16:06 dtucker Exp $");
+RCSID("$Id: loginrec.c,v 1.57 2004/08/14 14:09:11 dtucker Exp $");
 
 #ifdef HAVE_UTIL_H
 #  include <util.h>
@@ -434,6 +434,11 @@ login_write (struct logininfo *li)
 #endif
 #ifdef USE_WTMPX
 	wtmpx_write_entry(li);
+#endif
+#ifdef CUSTOM_SYS_AUTH_RECORD_LOGIN
+	if (li->type == LTYPE_LOGIN && 
+	   !sys_auth_record_login(li->username,li->hostname,li->line))
+		logit("Writing login record failed for %s", li->username);
 #endif
 	return 0;
 }

@@ -101,7 +101,7 @@ aix_remove_embedded_newlines(char *p)
 int
 sys_auth_passwd(Authctxt *ctxt, const char *password)
 {
-	char *authmsg = NULL, *host, *msg, *name = ctxt->pw->pw_name;
+	char *authmsg = NULL, *msg, *name = ctxt->pw->pw_name;
 	int authsuccess = 0, expired, reenter, result;
 
 	do {
@@ -115,20 +115,11 @@ sys_auth_passwd(Authctxt *ctxt, const char *password)
 	if (result == 0) {
 		authsuccess = 1;
 
-		host = (char *)get_canonical_hostname(options.use_dns);
-
 	       	/*
 		 * Record successful login.  We don't have a pty yet, so just
 		 * label the line as "ssh"
 		 */
 		aix_setauthdb(name);
-	       	if (loginsuccess((char *)name, (char *)host, "ssh", &msg) == 0) {
-			if (msg != NULL) {
-				debug("%s: msg %s", __func__, msg);
-				buffer_append(&loginmsg, msg, strlen(msg));
-				xfree(msg);
-			}
-		}
 
 		/*
 		 * Check if the user's password is expired.
@@ -206,6 +197,25 @@ sys_auth_allowed_user(struct passwd *pw)
 		logit("Login restricted for %s: %.100s", pw->pw_name, msg);
 	xfree(msg);
 	return permitted;
+}
+
+int
+sys_auth_record_login(const char *user, const char *host, const char *ttynm)
+{
+	char *msg;
+	int success = 0;
+
+	aix_setauthdb(user);
+	if (loginsuccess((char *)user, host, ttynm, &msg) == 0) {
+		success = 1;
+		if (msg != NULL) {
+			debug("AIX/loginsuccess: msg %s", __func__, msg);
+			buffer_append(&loginmsg, msg, strlen(msg));
+			xfree(msg);
+		}
+	}
+	aix_restoreauthdb();
+	return (success);
 }
 
 #  ifdef CUSTOM_FAILED_LOGIN

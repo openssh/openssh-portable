@@ -3,6 +3,9 @@
    Explicitly set umask for mkstemp; ok djm@
  - (dtucker) [includes.h] Undef _INCLUDE__STDC__ on HP-UX, otherwise
    prot.h and shadow.h provide conflicting declarations of getspnam.  ok djm@
+ - (dtucker) [loginrec.c openbsd-compat/port-aix.c openbsd-compat/port-aix.h]
+   Plug AIX login recording into login_write so logins will be recorded for
+   all auth types.
 
 20040813
  - (dtucker) [openbsd-compat/bsd-misc.c] Typo in #ifdef; from vinschen at
@@ -1628,4 +1631,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3507 2004/08/14 14:01:48 dtucker Exp $
+$Id: ChangeLog,v 1.3508 2004/08/14 14:09:11 dtucker Exp $
