@@ -129,6 +129,14 @@ case "$host" in
 	mansubdir=cat
 	LIBS="$LIBS -lgen -lsocket"
 	;;
+*-*-sco3*)
+	CFLAGS="$CFLAGS -I/usr/local/include"
+	LDFLAGS="$LDFLAGS -L/usr/local/lib"
+	MANTYPE='$(CATMAN)'
+	mansubdir=cat
+	LIBS="$LIBS -lgen -lsocket"
+	no_dev_ptmx=1
+	;;
 esac
 
 # Allow user to specify flags
@@ -170,7 +178,7 @@ if test -z "$no_libnsl" ; then
 fi
 
 # Checks for header files.
-AC_CHECK_HEADERS(bstring.h endian.h lastlog.h login.h maillock.h netdb.h netgroup.h netinet/in_systm.h paths.h poll.h pty.h shadow.h security/pam_appl.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h sys/poll.h sys/select.h sys/stropts.h sys/sysmacros.h sys/time.h sys/ttcompat.h stddef.h time.h util.h utmp.h utmpx.h)
+AC_CHECK_HEADERS(bstring.h endian.h lastlog.h limits.h login.h maillock.h netdb.h netgroup.h netinet/in_systm.h paths.h poll.h pty.h shadow.h security/pam_appl.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h sys/poll.h sys/select.h sys/stropts.h sys/sysmacros.h sys/time.h sys/ttcompat.h stddef.h time.h util.h utmp.h utmpx.h)
 
 # Checks for library functions.
 AC_CHECK_FUNCS(arc4random atexit b64_ntop bcopy bindresvport_af clock freeaddrinfo gai_strerror getaddrinfo getnameinfo getrusage innetgr md5_crypt memmove mkdtemp on_exit openpty rresvport_af setenv seteuid setlogin setproctitle setreuid snprintf strlcat strlcpy vsnprintf vhangup _getpty __b64_ntop)

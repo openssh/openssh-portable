@@ -4,33 +4,29 @@
 /* Necessary headers */
 
 #include <sys/types.h> /* For [u]intxx_t */
-
 #include <sys/socket.h> /* For SHUT_XXXX */
-
-# include <netinet/in_systm.h> /* For typedefs */
+#include <sys/param.h> /* For MAXPATHLEN */
+#include <netinet/in_systm.h> /* For typedefs */
 #include <netinet/in.h> /* For IPv6 macros */
 #include <netinet/ip.h> /* For IPTOS macros */
-
 #ifdef HAVE_SYS_BITYPES_H
 # include <sys/bitypes.h> /* For u_intXX_t */
 #endif 
-
 #ifdef HAVE_PATHS_H
 # include <paths.h> /* For _PATH_XXX */
 #endif 
-
+#ifdef HAVE_LIMITS_H
+# include <limits.h> /* For PATH_MAX */
+#endif 
 #ifdef HAVE_SYS_TIME_H
 # include <sys/time.h> /* For timersub */
 #endif
-
 #ifdef HAVE_MAILLOCK_H
 # include <maillock.h> /* For _PATH_MAILDIR */
 #endif
-
 #ifdef HAVE_SYS_CDEFS_H
 # include <sys/cdefs.h> /* For __P() */
 #endif 
-
 #ifdef HAVE_SYS_SYSMACROS_H
 # include <sys/sysmacros.h> /* For MIN, MAX, etc */
 #endif
@@ -56,6 +52,14 @@ enum
 # define IPTOS_LOWCOST           0x02
 # define IPTOS_MINCOST           IPTOS_LOWCOST
 #endif /* IPTOS_LOWDELAY */
+
+#ifndef MAXPATHLEN
+# ifdef PATH_MAX
+#  define MAXPATHLEN PATH_MAX
+# else /* PATH_MAX */
+#  define MAXPATHLEN 64 /* Should be safe */
+# endif /* PATH_MAX */
+#endif /* MAXPATHLEN */
 
 /* Types */
 

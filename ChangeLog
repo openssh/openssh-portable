@@ -1,3 +1,8 @@
+20000613
+ - (djm) Fixes from Andrew McGill <andrewm@datrix.co.za>:
+  - Platform define for SCO 3.x which breaks on /dev/ptmx
+  - Detect and try to fix missing MAXPATHLEN
+
 20000612
  - (djm) Glob manpages in RPM spec files to catch compressed files
  - (djm) Full license in auth-pam.c

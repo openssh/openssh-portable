@@ -23,7 +23,6 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <sys/param.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -57,9 +56,6 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #endif 
 #ifdef HAVE_NETDB_H
 # include <netdb.h>
-#endif 
-#ifdef HAVE_PATHS_H
-# include <paths.h>
 #endif 
 #ifdef HAVE_ENDIAN_H
 # include <endian.h>
