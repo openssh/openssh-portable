@@ -1,3 +1,7 @@
+20030706
+ - (dtucker) [ssh-rand-helper.c loginrec.c]
+   Apply atomicio typing change to these too.
+
 20030703
  - (dtucker) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2003/06/28 07:48:10
@@ -654,4 +658,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2844 2003/07/03 10:37:47 dtucker Exp $
+$Id: ChangeLog,v 1.2845 2003/07/06 05:20:46 dtucker Exp $

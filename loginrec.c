@@ -158,7 +158,7 @@
 #include "log.h"
 #include "atomicio.h"
 
-RCSID("$Id: loginrec.c,v 1.51 2003/05/10 13:42:12 djm Exp $");
+RCSID("$Id: loginrec.c,v 1.52 2003/07/06 05:20:46 dtucker Exp $");
 
 #ifdef HAVE_UTIL_H
 #  include <util.h>
@@ -837,7 +837,7 @@ utmp_write_direct(struct logininfo *li, struct utmp *ut)
 		}
 
 		(void)lseek(fd, (off_t)(tty * sizeof(struct utmp)), SEEK_SET);
-		if (atomicio(write, fd, ut, sizeof(*ut)) != sizeof(*ut))
+		if (atomicio(vwrite, fd, ut, sizeof(*ut)) != sizeof(*ut))
 			logit("utmp_write_direct: error writing %s: %s",
 			    UTMP_FILE, strerror(errno));
 
@@ -1026,7 +1026,7 @@ wtmp_write(struct logininfo *li, struct utmp *ut)
 		return 0;
 	}
 	if (fstat(fd, &buf) == 0)
-		if (atomicio(write, fd, ut, sizeof(*ut)) != sizeof(*ut)) {
+		if (atomicio(vwrite, fd, ut, sizeof(*ut)) != sizeof(*ut)) {
 			ftruncate(fd, buf.st_size);
 			logit("wtmp_write: problem writing %s: %s",
 			    WTMP_FILE, strerror(errno));
@@ -1193,7 +1193,7 @@ wtmpx_write(struct logininfo *li, struct utmpx *utx)
 	}
 
 	if (fstat(fd, &buf) == 0)
-		if (atomicio(write, fd, utx, sizeof(*utx)) != sizeof(*utx)) {
+		if (atomicio(vwrite, fd, utx, sizeof(*utx)) != sizeof(*utx)) {
 			ftruncate(fd, buf.st_size);
 			logit("wtmpx_write: problem writing %s: %s",
 			    WTMPX_FILE, strerror(errno));
@@ -1482,7 +1482,7 @@ lastlog_perform_login(struct logininfo *li)
 		return(0);
 
 	/* write the entry */
-	if (atomicio(write, fd, &last, sizeof(last)) != sizeof(last)) {
+	if (atomicio(vwrite, fd, &last, sizeof(last)) != sizeof(last)) {
 		close(fd);
 		logit("lastlog_write_filemode: Error writing to %s: %s",
 		    LASTLOG_FILE, strerror(errno));
