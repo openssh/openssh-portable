@@ -6,6 +6,8 @@
    <mouring@pconline.com>
  - (djm) Fix broken inet_ntoa check and ut_user/ut_name confusion, report 
    from Jim Watt <jimw@peisj.pebio.com>
+ - (djm) Replaced bsd-snprintf.c with one from Mutt source tree, it is known
+   to compile on more platforms (incl NeXT).
 
 20000709
  - (djm) Only enable PAM_TTY kludge for Linux. Problem report from
