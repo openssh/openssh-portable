@@ -1,3 +1,8 @@
+20040423
+ - (dtucker) [configure.ac openbsd-compat/getrrsetbyname.c] Declare h_errno
+   as extern int if not already declared.  Fixes compile errors on old SCO
+   platforms.  ok tim@
+
 20040418
  - (dtucker) [auth-pam.c] Log username and source host for failed PAM
    authentication attempts.  With & ok djm@
@@ -983,4 +988,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3316.2.1 2004/04/18 12:51:12 djm Exp $
+$Id: ChangeLog,v 1.3316.2.2 2004/04/23 08:50:52 dtucker Exp $

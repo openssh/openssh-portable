@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.214 2004/04/17 03:03:07 tim Exp $
+# $Id: configure.ac,v 1.214.2.1 2004/04/23 08:50:53 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -859,6 +859,8 @@ AC_CHECK_DECL(tcsendbreak,
 	[AC_CHECK_FUNCS(tcsendbreak)],
 	[#include <termios.h>]
 )
+
+AC_CHECK_DECLS(h_errno, , ,[#include <netdb.h>])
 
 AC_CHECK_FUNCS(setresuid, [
 	dnl Some platorms have setresuid that isn't implemented, test for this
