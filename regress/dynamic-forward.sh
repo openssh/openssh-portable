@@ -44,4 +44,7 @@ for p in 1 2; do
 	else
 		fail "no pid file: $OBJ/remote_pid"
 	fi
+
+	# Must allow time for connection tear-down
+	sleep 2
 done
