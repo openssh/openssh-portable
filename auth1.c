@@ -290,6 +290,12 @@ do_authloop(Authctxt *authctxt)
 			authenticated = 0;
 #endif
 
+#ifdef USE_PAM
+		if (options.use_pam && authenticated && 
+		    !PRIVSEP(do_pam_account()))
+			authenticated = 0;
+#endif
+
 		/* Log before sending the reply */
 		auth_log(authctxt, authenticated, get_authname(type), info);
 

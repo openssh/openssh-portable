@@ -57,6 +57,7 @@ BIGNUM *mm_auth_rsa_generate_challenge(Key *);
 
 #ifdef USE_PAM
 void mm_start_pam(char *);
+u_int mm_do_pam_account(void);
 void *mm_sshpam_init_ctx(struct Authctxt *);
 int mm_sshpam_query(void *, char **, char **, u_int *, char ***, u_int **);
 int mm_sshpam_respond(void *, u_int, char **);

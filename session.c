@@ -719,6 +719,7 @@ do_login(Session *s, const char *command)
 	if (options.use_pam && is_pam_password_change_required()) {
 		print_pam_messages();
 		do_pam_chauthtok();
+		/* XXX - signal [net] parent to enable forwardings */
 	}
 #endif
 

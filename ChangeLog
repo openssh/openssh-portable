@@ -8,6 +8,8 @@
    be our 'mysignal' by default.  OK djm@
  - (dtucker) [acconfig.h auth.c configure.ac sshd.8] Bug #422 again: deny
    any access to locked accounts.  ok djm@
+ - (djm) Bug #564: Perform PAM account checks for all authentications when
+   UsePAM=yes; ok dtucker
 
 20030822
  - (djm) s/get_progname/ssh_get_progname/g to avoid conflict with Heimdal 
@@ -862,4 +864,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2902 2003/08/25 01:51:19 dtucker Exp $
+$Id: ChangeLog,v 1.2903 2003/08/25 03:08:49 djm Exp $

@@ -118,6 +118,7 @@ int mm_answer_sessid(int, Buffer *);
 
 #ifdef USE_PAM
 int mm_answer_pam_start(int, Buffer *);
+int mm_answer_pam_account(int, Buffer *);
 int mm_answer_pam_init_ctx(int, Buffer *);
 int mm_answer_pam_query(int, Buffer *);
 int mm_answer_pam_respond(int, Buffer *);
@@ -165,6 +166,7 @@ struct mon_table mon_dispatch_proto20[] = {
     {MONITOR_REQ_AUTHPASSWORD, MON_AUTH, mm_answer_authpassword},
 #ifdef USE_PAM
     {MONITOR_REQ_PAM_START, MON_ONCE, mm_answer_pam_start},
+    {MONITOR_REQ_PAM_ACCOUNT, 0, mm_answer_pam_account},
     {MONITOR_REQ_PAM_INIT_CTX, MON_ISAUTH, mm_answer_pam_init_ctx},
     {MONITOR_REQ_PAM_QUERY, MON_ISAUTH, mm_answer_pam_query},
     {MONITOR_REQ_PAM_RESPOND, MON_ISAUTH, mm_answer_pam_respond},
@@ -214,6 +216,7 @@ struct mon_table mon_dispatch_proto15[] = {
 #endif
 #ifdef USE_PAM
     {MONITOR_REQ_PAM_START, MON_ONCE, mm_answer_pam_start},
+    {MONITOR_REQ_PAM_ACCOUNT, 0, mm_answer_pam_account},
     {MONITOR_REQ_PAM_INIT_CTX, MON_ISAUTH, mm_answer_pam_init_ctx},
     {MONITOR_REQ_PAM_QUERY, MON_ISAUTH, mm_answer_pam_query},
     {MONITOR_REQ_PAM_RESPOND, MON_ISAUTH, mm_answer_pam_respond},
@@ -295,6 +298,18 @@ monitor_child_preauth(struct monitor *pmonitor)
 			if (authctxt->pw->pw_uid == 0 &&
 			    !auth_root_allowed(auth_method))
 				authenticated = 0;
+#ifdef USE_PAM
+			/* PAM needs to perform account checks after auth */
+			if (options.use_pam) {
+				Buffer m;
+
+				buffer_init(&m);
+				mm_request_receive_expect(pmonitor->m_sendfd, 
+				    MONITOR_REQ_PAM_ACCOUNT, &m);
+				authenticated = mm_answer_pam_account(pmonitor->m_sendfd, &m);
+				buffer_free(&m);
+			}
+#endif
 		}
 
 		if (ent->flags & MON_AUTHDECIDE) {
@@ -771,7 +786,26 @@ mm_answer_pam_start(int socket, Buffer *m)
 
 	xfree(user);
 
+	monitor_permit(mon_dispatch, MONITOR_REQ_PAM_ACCOUNT, 1);
+
 	return (0);
+}
+
+int
+mm_answer_pam_account(int socket, Buffer *m)
+{
+	u_int ret;
+	
+	if (!options.use_pam)
+		fatal("UsePAM not set, but ended up in %s anyway", __func__);
+
+	ret = do_pam_account();
+
+	buffer_put_int(m, ret);
+
+	mm_request_send(socket, MONITOR_ANS_PAM_ACCOUNT, m);
+
+	return (ret);
 }
 
 static void *sshpam_ctxt, *sshpam_authok;

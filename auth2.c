@@ -213,6 +213,11 @@ userauth_finish(Authctxt *authctxt, int authenticated, char *method)
 	    !auth_root_allowed(method))
 		authenticated = 0;
 
+#ifdef USE_PAM
+	if (options.use_pam && authenticated && !PRIVSEP(do_pam_account()))
+		authenticated = 0;
+#endif
+
 #ifdef _UNICOS
 	if (authenticated && cray_access_denied(authctxt->user)) {
 		authenticated = 0;

@@ -682,6 +682,30 @@ mm_start_pam(char *user)
 	buffer_free(&m);
 }
 
+u_int
+mm_do_pam_account(void)
+{
+	Buffer m;
+	u_int ret;
+
+	debug3("%s entering", __func__);
+	if (!options.use_pam)
+		fatal("UsePAM=no, but ended up in %s anyway", __func__);
+
+	buffer_init(&m);
+	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_PAM_ACCOUNT, &m);
+
+	mm_request_receive_expect(pmonitor->m_recvfd, 
+	    MONITOR_ANS_PAM_ACCOUNT, &m);
+	ret = buffer_get_int(&m);
+
+	buffer_free(&m);
+	
+	debug3("%s returning %d", __func__, ret);
+
+	return (ret);
+}
+
 void *
 mm_sshpam_init_ctx(Authctxt *authctxt)
 {

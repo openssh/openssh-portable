@@ -31,7 +31,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.66 2003/08/08 03:43:37 dtucker Exp $");
+RCSID("$Id: auth-pam.c,v 1.67 2003/08/25 03:08:49 djm Exp $");
 
 #ifdef USE_PAM
 #include <security/pam_appl.h>
@@ -49,6 +49,7 @@ RCSID("$Id: auth-pam.c,v 1.66 2003/08/08 03:43:37 dtucker Exp $");
 #include "servconf.h"
 #include "ssh2.h"
 #include "xmalloc.h"
+#include "auth-options.h"
 
 extern ServerOptions options;
 
@@ -130,10 +131,8 @@ static void sshpam_free_ctx(void *);
  * Conversation function for authentication thread.
  */
 static int
-sshpam_thread_conv(int n,
-	 const struct pam_message **msg,
-	 struct pam_response **resp,
-	 void *data)
+sshpam_thread_conv(int n, const struct pam_message **msg,
+    struct pam_response **resp, void *data)
 {
 	Buffer buffer;
 	struct pam_ctxt *ctxt;
@@ -216,9 +215,6 @@ sshpam_thread(void *ctxtp)
 	sshpam_err = pam_authenticate(sshpam_handle, 0);
 	if (sshpam_err != PAM_SUCCESS)
 		goto auth_fail;
-	sshpam_err = pam_acct_mgmt(sshpam_handle, 0);
-	if (sshpam_err != PAM_SUCCESS && sshpam_err != PAM_NEW_AUTHTOK_REQD)
-		goto auth_fail;
 	buffer_put_cstring(&buffer, "OK");
 	ssh_msg_send(ctxt->pam_csock, sshpam_err, &buffer);
 	buffer_free(&buffer);
@@ -246,12 +242,9 @@ sshpam_thread_cleanup(void *ctxtp)
 }
 
 static int
-sshpam_null_conv(int n,
-	 const struct pam_message **msg,
-	 struct pam_response **resp,
-	 void *data)
+sshpam_null_conv(int n, const struct pam_message **msg,
+    struct pam_response **resp, void *data)
 {
-
 	return (PAM_CONV_ERR);
 }
 
@@ -303,7 +296,7 @@ sshpam_init(const char *user)
 	debug("PAM: setting PAM_RHOST to \"%s\"", pam_rhost);
 	sshpam_err = pam_set_item(sshpam_handle, PAM_RHOST, pam_rhost);
 	if (sshpam_err != PAM_SUCCESS) {
-	pam_end(sshpam_handle, sshpam_err);
+		pam_end(sshpam_handle, sshpam_err);
 		sshpam_handle = NULL;
 		return (-1);
 	}
@@ -403,9 +396,6 @@ sshpam_query(void *ctx, char **name, char **info,
 			plen += snprintf(**prompts + plen, len, "%s", msg);
 			xfree(msg);
 			break;
-		case PAM_NEW_AUTHTOK_REQD:
-			sshpam_new_authtok_reqd = 1;
-			/* FALLTHROUGH */
 		case PAM_SUCCESS:
 		case PAM_AUTH_ERR:
 			if (**prompts != NULL) {
@@ -519,10 +509,24 @@ finish_pam(void)
 	sshpam_cleanup(NULL);
 }
 
-int
-do_pam_account(const char *user, const char *ruser)
+u_int
+do_pam_account(void)
 {
-	/* XXX */
+	sshpam_err = pam_acct_mgmt(sshpam_handle, 0);
+	debug3("%s: pam_acct_mgmt = %d", __func__, sshpam_err);
+	
+	if (sshpam_err != PAM_SUCCESS && sshpam_err != PAM_NEW_AUTHTOK_REQD)
+		return (0);
+
+	if (sshpam_err == PAM_NEW_AUTHTOK_REQD) {
+		sshpam_new_authtok_reqd = 1;
+
+		/* Prevent forwardings until password changed */
+		no_port_forwarding_flag |= 2;
+		no_agent_forwarding_flag |= 2;
+		no_x11_forwarding_flag |= 2;
+	}
+
 	return (1);
 }
 
@@ -582,10 +586,8 @@ is_pam_password_change_required(void)
 }
 
 static int
-pam_chauthtok_conv(int n,
-	 const struct pam_message **msg,
-	 struct pam_response **resp,
-	 void *data)
+pam_chauthtok_conv(int n, const struct pam_message **msg,
+    struct pam_response **resp, void *data)
 {
 	char input[PAM_MAX_MSG_SIZE];
 	int i;
@@ -635,7 +637,7 @@ do_pam_chauthtok(void)
 	struct pam_conv pam_conv = { pam_chauthtok_conv, NULL };
 
 	if (use_privsep)
-		fatal("PAM: chauthtok not supprted with privsep");
+		fatal("Password expired (unable to change with privsep)");
 	sshpam_err = pam_set_item(sshpam_handle, PAM_CONV,
 	    (const void *)&pam_conv);
 	if (sshpam_err != PAM_SUCCESS)
