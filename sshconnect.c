@@ -265,7 +265,7 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 			temporarily_use_uid(original_real_uid);
 			if (connect(sock, ai->ai_addr, ai->ai_addrlen) >= 0) {
 				/* Successful connection. */
-				memcpy(hostaddr, ai->ai_addr, ai->ai_addrlen);
+				memcpy(hostaddr, ai->ai_addr, ai->ai_addrlen); 
 				restore_uid();
 				break;
 			} else {
@@ -596,10 +596,10 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 		debug("Found key in %s:%d", host_file, host_line);
 		if (options.check_host_ip && ip_status == HOST_NEW) {
 			if (!add_host_to_hostfile(user_hostfile, ip, host_key))
-				log("Failed to add the %s host key for IP address '%.30s' to the list of known hosts (%.30s).",
+				log("Failed to add the %s host key for IP address '%.128s' to the list of known hosts (%.30s).",
 				    type, ip, user_hostfile);
 			else
-				log("Warning: Permanently added the %s host key for IP address '%.30s' to the list of known hosts.",
+				log("Warning: Permanently added the %s host key for IP address '%.128s' to the list of known hosts.",
 				    type, ip);
 		}
 		break;
@@ -709,7 +709,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 	if (options.check_host_ip && host_status != HOST_CHANGED &&
 	    ip_status == HOST_CHANGED) {
 		log("Warning: the %s host key for '%.200s' "
-		    "differs from the key for the IP address '%.30s'",
+		    "differs from the key for the IP address '%.128s'",
 		    type, host, ip);
 		if (host_status == HOST_OK)
 			log("Matching host key in %s:%d", host_file, host_line);

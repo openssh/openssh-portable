@@ -31,7 +31,7 @@
      [sshconnect2.c]
      do not ask for passphrase in batch mode; report from ejb@ql.org
    - itojun@cvs.opebsd.org 2001/02/08 10:47:05
-     [sshconnect1.c sshconnect2.c]
+     [sshconnect.c sshconnect1.c sshconnect2.c]
      %.30s is too short for IPv6 numeric address.  use %.128s for now.  
      markus ok
    - markus@cvs.openbsd.org 2001/02/09 12:28:35
@@ -3887,4 +3887,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.740 2001/02/11 11:35:11 djm Exp $
+$Id: ChangeLog,v 1.741 2001/02/11 13:56:43 stevesk Exp $
