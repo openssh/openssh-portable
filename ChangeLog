@@ -1,6 +1,8 @@
 20031113
  - (dtucker) [sshd_config] Clarify UsePAM consequences a little more, from
    current.
+ - (dtucker) [auth-pam.c] Append newlines to lines output by the
+   pam_chauthtok_conv().
 
 20031103
  - (dtucker) [contrib/cygwin/ssh-host-config] Ensure entries in /etc/services
@@ -1265,4 +1267,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2994.2.57 2003/11/12 23:55:12 dtucker Exp $
+$Id: ChangeLog,v 1.2994.2.58 2003/11/13 00:22:44 dtucker Exp $
