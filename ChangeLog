@@ -1,3 +1,7 @@
+20021021
+ - (djm) Kill ssh-rand-helper children on timeout, patch from 
+   dtucker@zip.com.au
+
 20021015
  - (bal) Fix bug id 383 and only call loginrestrict for AIX if not root.
  - (bal) More advanced strsep test by Darren Tucker <dtucker@zip.com.au>
@@ -768,4 +772,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2496 2002/10/16 00:24:03 mouring Exp $
+$Id: ChangeLog,v 1.2497 2002/10/21 00:13:35 djm Exp $

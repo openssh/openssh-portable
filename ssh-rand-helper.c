@@ -39,7 +39,7 @@
 #include "pathnames.h"
 #include "log.h"
 
-RCSID("$Id: ssh-rand-helper.c,v 1.8 2002/07/28 20:42:24 stevesk Exp $");
+RCSID("$Id: ssh-rand-helper.c,v 1.9 2002/10/21 00:13:37 djm Exp $");
 
 /* Number of bytes we write out */
 #define OUTPUT_SEED_SIZE	48
@@ -355,6 +355,7 @@ hash_command_output(entropy_cmd_t *src, unsigned char *hash)
 		case 0:
 			/* timer expired */
 			error_abort = 1;
+			kill(pid, SIGINT);
 			break;
 		case 1:
 			/* command input */
