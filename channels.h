@@ -1,4 +1,4 @@
-/*	$OpenBSD: channels.h,v 1.66 2002/03/25 21:13:51 markus Exp $	*/
+/*	$OpenBSD: channels.h,v 1.67 2002/03/26 22:50:39 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -145,7 +145,7 @@ struct Channel {
 	buffer_len(&c->extended) > 0))
 #define CHANNEL_EFD_OUTPUT_ACTIVE(c) \
 	(compat20 && c->extended_usage == CHAN_EXTENDED_WRITE && \
-	((c->efd != -1 && !(c->flags & CHAN_EOF_RCVD)) || \
+	((c->efd != -1 && !(c->flags & (CHAN_EOF_RCVD|CHAN_CLOSE_RCVD))) || \
 	buffer_len(&c->extended) > 0))
 
 /* channel management */
