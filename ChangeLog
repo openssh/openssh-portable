@@ -1,3 +1,6 @@
+20010117
+ - (djm) Only write random seed file at exit
+
 20010115
  - (bal) sftp-server.c change to use chmod() if fchmod() does not exist.
  - (bal) utimes() support via utime() interface on machine that lack utimes().

@@ -35,7 +35,7 @@
 # include <floatingpoint.h>
 #endif /* HAVE_FLOATINGPOINT_H */
 
-RCSID("$Id: entropy.c,v 1.22 2000/11/24 23:09:32 djm Exp $");
+RCSID("$Id: entropy.c,v 1.23 2001/01/16 22:37:15 djm Exp $");
 
 #ifndef offsetof
 # define offsetof(type, member) ((size_t) &((type *)0)->member)
@@ -601,12 +601,7 @@ prng_read_seedfile(void) {
 	debug("loading PRNG seed from file %.100s", filename);
 
 	if (!prng_check_seedfile(filename)) {
-		verbose("Random seed file not found, creating new");
-		prng_write_seedfile();
-		
-		/* Reseed immediatly */
-		(void)stir_from_system();
-		(void)stir_from_programs();
+		verbose("Random seed file not found or not valid, ignoring.");
 		return;
 	}
 
