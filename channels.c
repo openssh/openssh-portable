@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.100 2001/04/04 20:25:35 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.101 2001/04/05 10:42:48 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -1793,7 +1793,7 @@ channel_permit_all_opens()
 		all_opens_permitted = 1;
 }
 
-void 
+void
 channel_add_permitted_opens(char *host, int port)
 {
 	if (num_permitted_opens >= SSH_MAX_FORWARDS_PER_DIRECTION)
@@ -1807,7 +1807,7 @@ channel_add_permitted_opens(char *host, int port)
 	all_opens_permitted = 0;
 }
 
-void 
+void
 channel_clear_permitted_opens(void)
 {
 	int i;

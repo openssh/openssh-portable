@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.60 2001/04/05 10:39:03 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.61 2001/04/05 10:42:51 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -529,7 +529,7 @@ set_newkeys(int mode)
 		enc  = &newkeys[mode]->enc;
 		mac  = &newkeys[mode]->mac;
 		comp = &newkeys[mode]->comp;
-                memset(mac->key, 0, mac->key_len);
+		memset(mac->key, 0, mac->key_len);
 		xfree(enc->name);
 		xfree(enc->iv);
 		xfree(enc->key);
@@ -1329,10 +1329,10 @@ packet_set_maxsize(int s)
 
 /*
  * 9.2.  Ignored Data Message
- * 
+ *
  *   byte      SSH_MSG_IGNORE
  *   string    data
- * 
+ *
  * All implementations MUST understand (and ignore) this message at any
  * time (after receiving the protocol version). No implementation is
  * required to send them. This message can be used as an additional

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.66 2001/04/04 20:25:38 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.67 2001/04/05 10:42:56 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -642,7 +642,7 @@ int agent_sign_cb(Authctxt *authctxt, Key *key, u_char **sigp, int *lenp,
 int key_sign_cb(Authctxt *authctxt, Key *key, u_char **sigp, int *lenp,
     u_char *data, int datalen)
 {
-        return key_sign(key, sigp, lenp, data, datalen);
+	return key_sign(key, sigp, lenp, data, datalen);
 }
 
 int
@@ -825,7 +825,7 @@ static char *preferred = NULL;
 /*
  * Given the authentication method list sent by the server, return the
  * next method we should try.  If the server initially sends a nil list,
- * use a built-in default list. 
+ * use a built-in default list.
  */
 Authmethod *
 authmethod_get(char *authlist)

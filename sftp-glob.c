@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-glob.c,v 1.3 2001/04/03 13:56:11 stevesk Exp $");
+RCSID("$OpenBSD: sftp-glob.c,v 1.4 2001/04/05 10:42:53 markus Exp $");
 
 #include "ssh.h"
 #include "buffer.h"
@@ -84,7 +84,7 @@ struct dirent *fudge_readdir(struct SFTP_OPENDIR *od)
 #ifdef BROKEN_ONE_BYTE_DIRENT_D_NAME
 	strlcpy(ret->d_name, od->dir[od->offset++]->filename, MAXPATHLEN);
 #else
-	strlcpy(ret->d_name, od->dir[od->offset++]->filename, 
+	strlcpy(ret->d_name, od->dir[od->offset++]->filename,
 	    sizeof(ret->d_name));
 #endif
 #ifdef __GNU_LIBRARY__
@@ -150,7 +150,7 @@ int fudge_stat(const char *path, struct stat *st)
 }
 
 int
-remote_glob(int fd_in, int fd_out, const char *pattern, int flags, 
+remote_glob(int fd_in, int fd_out, const char *pattern, int flags,
     const int (*errfunc)(const char *, int), glob_t *pglob)
 {
 	pglob->gl_opendir = (void*)fudge_opendir;
@@ -163,6 +163,6 @@ remote_glob(int fd_in, int fd_out, const char *pattern, int flags,
 	cur.fd_in = fd_in;
 	cur.fd_out = fd_out;
 
-	return(glob(pattern, flags | GLOB_ALTDIRFUNC, (void*)errfunc, 
+	return(glob(pattern, flags | GLOB_ALTDIRFUNC, (void*)errfunc,
 	    pglob));
 }

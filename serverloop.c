@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.58 2001/04/04 22:04:35 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.59 2001/04/05 10:42:51 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -667,7 +667,7 @@ server_loop2(void)
 	for (;;) {
 		process_buffered_input_packets();
 
-                rekeying = (xxx_kex != NULL && !xxx_kex->done);
+		rekeying = (xxx_kex != NULL && !xxx_kex->done);
 
 		if (!had_channel && channel_still_open())
 			had_channel = 1;

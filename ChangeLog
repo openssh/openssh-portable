@@ -11,6 +11,12 @@
      [version.h]
      temporary version 2.5.4 (supports rekeying).
      this is not an official release.
+   - markus@cvs.openbsd.org 2001/04/05 10:42:57
+     [auth-chall.c authfd.c channels.c clientloop.c kex.c kexgex.c key.c 
+      mac.c packet.c serverloop.c sftp-client.c sftp-client.h sftp-glob.c 
+      sftp-glob.h sftp-int.c sftp-server.c sftp.c ssh-keygen.c sshconnect.c 
+      sshconnect2.c sshd.c]
+     fix whitespace: unexpand + trailing spaces.
 
 20010405
  - OpenBSD CVS Sync                                              
@@ -4883,4 +4889,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1066 2001/04/05 23:22:25 mouring Exp $
+$Id: ChangeLog,v 1.1067 2001/04/05 23:26:32 mouring Exp $

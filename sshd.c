@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.190 2001/04/04 20:25:38 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.191 2001/04/05 10:42:57 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -282,11 +282,11 @@ generate_ephemeral_server_key(void)
 	u_int32_t rand = 0;
 	int i;
 
-	verbose("Generating %s%d bit RSA key.", 
+	verbose("Generating %s%d bit RSA key.",
 	    sensitive_data.server_key ? "new " : "", options.server_key_bits);
 	if (sensitive_data.server_key != NULL)
 		key_free(sensitive_data.server_key);
-	sensitive_data.server_key = key_generate(KEY_RSA1, 
+	sensitive_data.server_key = key_generate(KEY_RSA1,
 	    options.server_key_bits);
 	verbose("RSA key generation complete.");
 
@@ -341,7 +341,7 @@ sshd_exchange_identification(int sock_in, int sock_out)
 		}
 
 		/* Read other side's version identification. */
-		memset(buf, 0, sizeof(buf)); 
+		memset(buf, 0, sizeof(buf));
 		for (i = 0; i < sizeof(buf) - 1; i++) {
 			if (atomicio(read, sock_in, &buf[i], 1) != 1) {
 				log("Did not receive identification string from %s.",

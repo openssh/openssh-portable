@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.32 2001/04/04 23:09:18 markus Exp $");
+RCSID("$OpenBSD: kex.c,v 1.33 2001/04/05 10:42:50 markus Exp $");
 
 #include <openssl/crypto.h>
 
@@ -108,7 +108,7 @@ kex_prop_free(char **proposal)
 void
 kex_protocol_error(int type, int plen, void *ctxt)
 {
-        error("Hm, kex protocol error: type %d plen %d", type, plen);
+	error("Hm, kex protocol error: type %d plen %d", type, plen);
 }
 
 void
@@ -133,8 +133,8 @@ kex_finish(Kex *kex)
 	/* packet_write_wait(); */
 	debug("SSH2_MSG_NEWKEYS sent");
 
-        debug("waiting for SSH2_MSG_NEWKEYS");
-        packet_read_expect(&plen, SSH2_MSG_NEWKEYS);
+	debug("waiting for SSH2_MSG_NEWKEYS");
+	packet_read_expect(&plen, SSH2_MSG_NEWKEYS);
 	debug("SSH2_MSG_NEWKEYS received");
 
 	kex->done = 1;

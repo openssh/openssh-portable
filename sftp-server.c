@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: sftp-server.c,v 1.24 2001/03/14 22:50:25 deraadt Exp $");
+RCSID("$OpenBSD: sftp-server.c,v 1.25 2001/04/05 10:42:53 markus Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
@@ -288,7 +288,7 @@ send_status(u_int32_t id, u_int32_t error)
 	buffer_put_int(&msg, id);
 	buffer_put_int(&msg, error);
 	if (version >= 3) {
-		buffer_put_cstring(&msg, 
+		buffer_put_cstring(&msg,
 		    status_messages[MIN(error,SSH2_FX_MAX)]);
 		buffer_put_cstring(&msg, "");
 	}

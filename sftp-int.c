@@ -26,7 +26,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.32 2001/03/23 13:10:57 markus Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.33 2001/04/05 10:42:53 markus Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -665,8 +665,8 @@ parse_dispatch_command(int in, int out, const char *cmd, char **pwd)
 		break;
 	case I_PUT:
 		err = process_put(in, out, path1, path2, *pwd, pflag);
-  		break;
-  	case I_RENAME:
+		break;
+	case I_RENAME:
 		path1 = make_absolute(path1, *pwd);
 		path2 = make_absolute(path2, *pwd);
 		err = do_rename(in, out, path1, path2);

@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kexgex.c,v 1.4 2001/04/04 22:04:35 markus Exp $");
+RCSID("$OpenBSD: kexgex.c,v 1.5 2001/04/05 10:42:50 markus Exp $");
 
 #include <openssl/bn.h>
 
@@ -69,7 +69,7 @@ kexgex_hash(
 	buffer_append(&b, skexinit, skexinitlen);
 
 	buffer_put_string(&b, serverhostkeyblob, sbloblen);
-	if (min == -1 || max == -1) 
+	if (min == -1 || max == -1)
 		buffer_put_int(&b, wantbits);
 	else {
 		buffer_put_int(&b, min);
@@ -205,7 +205,7 @@ kexgex_client(Kex *kex)
 	kbuf = xmalloc(klen);
 	kout = DH_compute_key(kbuf, dh_server_pub, dh);
 #ifdef DEBUG_KEXDH
-        dump_digest("shared secret", kbuf, kout);
+	dump_digest("shared secret", kbuf, kout);
 #endif
 	shared_secret = BN_new();
 	BN_bin2bn(kbuf, kout, shared_secret);
@@ -339,7 +339,7 @@ kexgex_server(Kex *kex)
 	kbuf = xmalloc(klen);
 	kout = DH_compute_key(kbuf, dh_client_pub, dh);
 #ifdef DEBUG_KEXDH
-        dump_digest("shared secret", kbuf, kout);
+	dump_digest("shared secret", kbuf, kout);
 #endif
 	shared_secret = BN_new();
 	BN_bin2bn(kbuf, kout, shared_secret);

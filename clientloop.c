@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.56 2001/04/04 20:25:37 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.57 2001/04/05 10:42:49 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -735,7 +735,7 @@ client_process_output(fd_set * writeset)
 		}
 		/* Consume printed data from the buffer. */
 		buffer_consume(&stdout_buffer, len);
-		stdout_bytes += len; 
+		stdout_bytes += len;
 	}
 	/* Write buffered output to stderr. */
 	if (FD_ISSET(fileno(stderr), writeset)) {
@@ -753,7 +753,7 @@ client_process_output(fd_set * writeset)
 		}
 		/* Consume printed characters from the buffer. */
 		buffer_consume(&stderr_buffer, len);
-		stderr_bytes += len; 
+		stderr_bytes += len;
 	}
 }
 
@@ -964,7 +964,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 			break;
 		}
 		buffer_consume(&stdout_buffer, len);
-		stdout_bytes += len; 
+		stdout_bytes += len;
 	}
 
 	/* Output any buffered data for stderr. */
@@ -976,7 +976,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 			break;
 		}
 		buffer_consume(&stderr_buffer, len);
-		stderr_bytes += len; 
+		stderr_bytes += len;
 	}
 
 	if (have_pty)

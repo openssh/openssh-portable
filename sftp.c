@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.11 2001/03/07 10:11:23 djm Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.12 2001/04/05 10:42:54 markus Exp $");
 
 /* XXX: commandline mode */
 /* XXX: copy between two remote hosts (commandline) */
@@ -191,9 +191,9 @@ main(int argc, char **argv)
 		case 'b':
 			if (infile == stdin) {
 				infile = fopen(optarg, "r");
-				if (infile == NULL) 
+				if (infile == NULL)
 					fatal("%s (%s).", strerror(errno), optarg);
-			} else 
+			} else
 				fatal("Filename already specified.");
 			break;
 		case 'h':

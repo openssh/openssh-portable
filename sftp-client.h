@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.h,v 1.4 2001/03/16 08:16:18 djm Exp $ */
+/* $OpenBSD: sftp-client.h,v 1.5 2001/04/05 10:42:52 markus Exp $ */
 
 /*
  * Copyright (c) 2001 Damien Miller.  All rights reserved.
@@ -34,8 +34,8 @@ struct SFTP_DIRENT {
 	Attrib a;
 };
 
-/* 
- * Initialiase a SSH filexfer connection. Returns -1 on error or 
+/*
+ * Initialiase a SSH filexfer connection. Returns -1 on error or
  * protocol version on success.
  */
 int do_init(int fd_in, int fd_out);
@@ -68,7 +68,7 @@ Attrib *do_stat(int fd_in, int fd_out, char *path, int quiet);
 Attrib *do_lstat(int fd_in, int fd_out, char *path, int quiet);
 
 /* Get file attributes of open file 'handle' */
-Attrib *do_fstat(int fd_in, int fd_out, char *handle, u_int handle_len, 
+Attrib *do_fstat(int fd_in, int fd_out, char *handle, u_int handle_len,
     int quiet);
 
 /* Set file attributes of 'path' */
