@@ -4,7 +4,6 @@
 #include "config.h"
 
 #include <sys/types.h> /* For size_t */
-#include <varargs.h> /* For va_list */
 
 #ifndef HAVE_SNPRINTF
 int snprintf(char *str, size_t n, char const *fmt, ...);

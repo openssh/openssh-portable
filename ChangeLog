@@ -1,3 +1,6 @@
+20000305
+ - Fix DEC compile fix
+
 20000303
  - Added "make host-key" target, Suggestion from Dominik Brettnacher
  <domi@saargate.de>
