@@ -962,7 +962,7 @@ check_parent_exists(int sig)
 		/* printf("Parent has died - Authentication agent exiting.\n"); */
 		cleanup_handler(sig); /* safe */
 	}
-	signal(SIGALRM, check_parent_exists);
+	mysignal(SIGALRM, check_parent_exists);
 	alarm(10);
 	errno = save_errno;
 }
@@ -1194,7 +1194,7 @@ skip:
 	fatal_add_cleanup(cleanup_socket, NULL);
 	new_socket(AUTH_SOCKET, sock);
 	if (ac > 0) {
-		signal(SIGALRM, check_parent_exists);
+		mysignal(SIGALRM, check_parent_exists);
 		alarm(10);
 	}
 	idtab_init();

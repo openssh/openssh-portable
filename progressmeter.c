@@ -72,6 +72,7 @@ RCSID("$OpenBSD: progressmeter.c,v 1.6 2003/04/07 21:58:05 millert Exp $");
 
 #include "atomicio.h"
 #include "progressmeter.h"
+#include "misc.h"
 
 /* Number of seconds before xfer considered "stalled". */
 #define STALLTIME	5
@@ -121,7 +122,7 @@ start_progress_meter(char *file, off_t filesize, off_t *counter)
 	lastsize = 0;
 
 	draw_progress_meter();
-	signal(SIGALRM, update_progress_meter);
+	mysignal(SIGALRM, update_progress_meter);
 	alarm(PROGRESSTIME);
 }
 
@@ -140,7 +141,7 @@ update_progress_meter(int ignore)
 	int save_errno = errno;
 
 	draw_progress_meter();
-	signal(SIGALRM, update_progress_meter);
+	mysignal(SIGALRM, update_progress_meter);
 	alarm(PROGRESSTIME);
 	errno = save_errno;
 }
