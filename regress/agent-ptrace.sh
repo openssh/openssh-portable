@@ -30,7 +30,7 @@ EOF
 	if [ $? -ne 0 ]; then
 		fail "gdb failed: exit code $?"
 	fi
-	grep -q 'ptrace: Operation not permitted.' ${OBJ}/gdb.out
+	grep 'ptrace: Operation not permitted.' >/dev/null ${OBJ}/gdb.out
 	r=$?
 	rm -f ${OBJ}/gdb.out
 	if [ $r -ne 0 ]; then

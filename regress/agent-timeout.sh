@@ -26,7 +26,7 @@ else
 	trace "sleeping 2*${TIMEOUT} seconds"
 	sleep ${TIMEOUT}
 	sleep ${TIMEOUT}
-	${SSHADD} -l 2> /dev/null | grep -q 'The agent has no identities.'
+	${SSHADD} -l 2> /dev/null | grep 'The agent has no identities.' >/dev/null
 	if [ $? -ne 0 ]; then
 		fail "ssh-add -l still returns keys after timeout"
 	fi
