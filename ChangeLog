@@ -29,6 +29,10 @@
      [readconf.h scp.1 sftp.1 ssh.1 ssh.c ssh_config.5]
      implement session multiplexing in the client (the server has supported 
      this since 2.0); ok markus@
+   - djm@cvs.openbsd.org 2004/06/14 01:44:39
+     [channels.c clientloop.c misc.c misc.h packet.c ssh-agent.c ssh-keyscan.c]
+     [sshd.c]
+     set_nonblock() instead of fnctl(...,O_NONBLOCK); "looks sane" deraadt@
 
 20040603
  - (dtucker) [auth-pam.c] Don't use pam_* namespace for sshd's PAM functions.
@@ -1213,4 +1217,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3382 2004/06/15 00:34:08 djm Exp $
+$Id: ChangeLog,v 1.3383 2004/06/15 00:35:30 djm Exp $

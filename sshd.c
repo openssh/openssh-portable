@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.292 2004/06/13 12:53:24 djm Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.293 2004/06/14 01:44:39 djm Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1140,8 +1140,7 @@ main(int ac, char **av)
 				verbose("socket: %.100s", strerror(errno));
 				continue;
 			}
-			if (fcntl(listen_sock, F_SETFL, O_NONBLOCK) < 0) {
-				error("listen_sock O_NONBLOCK: %s", strerror(errno));
+			if (set_nonblock(listen_sock) == -1) {
 				close(listen_sock);
 				continue;
 			}
@@ -1284,8 +1283,7 @@ main(int ac, char **av)
 						error("accept: %.100s", strerror(errno));
 					continue;
 				}
-				if (fcntl(newsock, F_SETFL, 0) < 0) {
-					error("newsock del O_NONBLOCK: %s", strerror(errno));
+				if (unset_nonblock(newsock) == -1) {
 					close(newsock);
 					continue;
 				}

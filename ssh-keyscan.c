@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keyscan.c,v 1.48 2004/06/13 12:53:24 djm Exp $");
+RCSID("$OpenBSD: ssh-keyscan.c,v 1.49 2004/06/14 01:44:39 djm Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -397,8 +397,8 @@ tcpconnect(char *host)
 			error("socket: %s", strerror(errno));
 			continue;
 		}
-		if (fcntl(s, F_SETFL, O_NONBLOCK) < 0)
-			fatal("F_SETFL: %s", strerror(errno));
+		if (set_nonblock(s) == -1)
+			fatal("%s: set_nonblock(%d)", __func__, s);
 		if (connect(s, ai->ai_addr, ai->ai_addrlen) < 0 &&
 		    errno != EINPROGRESS)
 			error("connect (`%s'): %s", host, strerror(errno));

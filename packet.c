@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.113 2004/05/11 19:01:43 deraadt Exp $");
+RCSID("$OpenBSD: packet.c,v 1.114 2004/06/14 01:44:39 djm Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -319,13 +319,10 @@ void
 packet_set_nonblocking(void)
 {
 	/* Set the socket into non-blocking mode. */
-	if (fcntl(connection_in, F_SETFL, O_NONBLOCK) < 0)
-		error("fcntl O_NONBLOCK: %.100s", strerror(errno));
+	set_nonblock(connection_in);
 
-	if (connection_out != connection_in) {
-		if (fcntl(connection_out, F_SETFL, O_NONBLOCK) < 0)
-			error("fcntl O_NONBLOCK: %.100s", strerror(errno));
-	}
+	if (connection_out != connection_in)
+		set_nonblock(connection_out);
 }
 
 /* Returns the socket used for reading. */

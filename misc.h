@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.h,v 1.14 2004/05/08 00:21:31 djm Exp $	*/
+/*	$OpenBSD: misc.h,v 1.15 2004/06/14 01:44:39 djm Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -16,8 +16,8 @@
 
 char	*chop(char *);
 char	*strdelim(char **);
-void	 set_nonblock(int);
-void	 unset_nonblock(int);
+int	 set_nonblock(int);
+int	 unset_nonblock(int);
 void	 set_nodelay(int);
 int	 a2port(const char *);
 char	*cleanhostname(char *);

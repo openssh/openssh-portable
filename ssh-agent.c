@@ -35,7 +35,7 @@
 
 #include "includes.h"
 #include "openbsd-compat/sys-queue.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.118 2004/05/08 00:21:31 djm Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.119 2004/06/14 01:44:39 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -789,8 +789,7 @@ new_socket(sock_type type, int fd)
 {
 	u_int i, old_alloc, new_alloc;
 
-	if (fcntl(fd, F_SETFL, O_NONBLOCK) < 0)
-		error("fcntl O_NONBLOCK: %s", strerror(errno));
+	set_nonblock(fd);
 
 	if (fd > max_fd)
 		max_fd = fd;
