@@ -1,3 +1,6 @@
+19991119
+ - Merged PAM buffer overrun patch from Chip Salzenberg <chip@valinux.com>
+
 19991118
  - Merged OpenBSD CVS changes
    - [scp.c] foregroundproc() in scp

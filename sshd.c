@@ -18,7 +18,7 @@ agent connections.
 */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.23 1999/11/17 22:28:11 damien Exp $");
+RCSID("$Id: sshd.c,v 1.24 1999/11/18 20:56:21 damien Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -152,8 +152,10 @@ char *pamconv_msg = NULL;
 static int pamconv(int num_msg, const struct pam_message **msg,
                    struct pam_response **resp, void *appdata_ptr)
 {
-  int count = 0;
-  struct pam_response *reply = NULL;
+  struct pam_response *reply;
+  int count;
+  size_t msg_len;
+  char *p;
 
   /* PAM will free this later */
   reply = malloc(num_msg * sizeof(*reply));
@@ -178,25 +180,22 @@ static int pamconv(int num_msg, const struct pam_message **msg,
         reply[count].resp_retcode = PAM_SUCCESS;
         reply[count].resp = xstrdup("");
 	
-	if (msg[count]->msg == NULL) break;
+	if (msg[count]->msg == NULL)
+	    break;
 	debug("Adding PAM message: %s", msg[count]->msg);
-	if (pamconv_msg == NULL)
+
+	msg_len = strlen(msg[count]->msg);
+	if (pamconv_msg)
 	{
-	  pamconv_msg = malloc(strlen(msg[count]->msg) + 2);
-	  
-	  if (pamconv_msg == NULL)
-	    return PAM_CONV_ERR;
-	    
-	  strncpy(pamconv_msg, msg[count]->msg, strlen(msg[count]->msg));
-	  pamconv_msg[strlen(msg[count]->msg)] = '\n';
-	  pamconv_msg[strlen(msg[count]->msg) + 1] = '\0';
-	} else
-	{
-	  pamconv_msg = realloc(pamconv_msg, strlen(pamconv_msg) + strlen(msg[count]->msg) + 2);
-	  strncat(pamconv_msg, msg[count]->msg, strlen(msg[count]->msg));
-	  pamconv_msg[strlen(pamconv_msg)] = '\n';
-	  pamconv_msg[strlen(pamconv_msg) + 1] = '\0';
+	  size_t n = strlen(pamconv_msg);
+	  pamconv_msg = xrealloc(pamconv_msg, n + msg_len + 2);
+	  p = pamconv_msg + n;
 	}
+	else
+	  pamconv_msg = p = xmalloc(msg_len + 2);
+	memcpy(p, msg[count]->msg, msg_len);
+	p[msg_len] = '\n';
+	p[msg_len + 1] = '\0';
         break;
 
       case PAM_PROMPT_ECHO_ON:
