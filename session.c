@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.63 2001/03/20 19:21:21 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.64 2001/03/20 19:35:29 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -100,7 +100,6 @@ typedef struct Session Session;
 struct Session {
 	int	used;
 	int	self;
-	int	extended;
 	struct	passwd *pw;
 	pid_t	pid;
 	/* tty */
@@ -116,6 +115,7 @@ struct Session {
 	int	single_connection;
 	/* proto 2 */
 	int	chanid;
+	int	is_subsystem;
 };
 
 /* func */
@@ -555,11 +555,11 @@ do_exec_no_pty(Session *s, const char *command)
 	close(perr[1]);
 
 	if (compat20) {
-		session_set_fds(s, pin[1], pout[0], s->extended ? perr[0] : -1);
+		session_set_fds(s, pin[1], pout[0], s->is_subsystem ? -1 : perr[0]);
 	} else {
 		/* Enter the interactive session. */
 		server_loop(pid, pin[1], pout[0], perr[0]);
-		/* server_loop has closed pin[1], pout[1], and perr[1]. */
+		/* server_loop has closed pin[1], pout[0], and perr[0]. */
 	}
 #else /* USE_PIPES */
 	/* We are the parent.  Close the child sides of the socket pairs. */
@@ -571,7 +571,7 @@ do_exec_no_pty(Session *s, const char *command)
 	 * handle the case that fdin and fdout are the same.
 	 */
 	if (compat20) {
-		session_set_fds(s, inout[1], inout[1], s->extended ? err[1] : -1);
+		session_set_fds(s, inout[1], inout[1], s->is_subsystem ? -1 : err[1]);
 	} else {
 		server_loop(pid, inout[1], inout[1], err[1]);
 		/* server_loop has closed inout[1] and err[1]. */
@@ -1504,7 +1504,7 @@ session_new(void)
 		Session *s = &sessions[i];
 		if (! s->used) {
 			s->pid = 0;
-			s->extended = 0;
+			s->is_subsystem = 0;
 			s->chanid = -1;
 			s->ptyfd = -1;
 			s->ttyfd = -1;
@@ -1661,6 +1661,7 @@ session_subsystem_req(Session *s)
 	for (i = 0; i < options.num_subsystems; i++) {
 		if(strcmp(subsys, options.subsystem_name[i]) == 0) {
 			debug("subsystem: exec() %s", options.subsystem_command[i]);
+			s->is_subsystem = 1;
 			do_exec_no_pty(s, options.subsystem_command[i]);
 			success = 1;
 		}
@@ -1735,7 +1736,6 @@ session_shell_req(Session *s)
 	/* if forced_command == NULL, the shell is execed */
 	char *shell = forced_command;
 	packet_done();
-	s->extended = 1;
 	if (s->ttyfd == -1)
 		do_exec_no_pty(s, shell);
 	else
@@ -1754,7 +1754,6 @@ session_exec_req(Session *s)
 		command = forced_command;
 		debug("Forced command '%.500s'", forced_command);
 	}
-	s->extended = 1;
 	if (s->ttyfd == -1)
 		do_exec_no_pty(s, command);
 	else
@@ -1805,8 +1804,8 @@ session_input_channel_req(int id, void *arg)
 	    s->self, id, rtype, reply);
 
 	/*
-	 * a session is in LARVAL state until a shell
-	 * or programm is executed
+	 * a session is in LARVAL state until a shell, a command
+	 * or a subsystem is executed
 	 */
 	if (c->type == SSH_CHANNEL_LARVAL) {
 		if (strcmp(rtype, "shell") == 0) {
