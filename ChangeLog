@@ -56,6 +56,9 @@
    - provos@cvs.openbsd.org 2002/03/18 17:25:29
      [bufaux.c bufaux.h]
      buffer_skip_string and extra sanity checking; needed by ssh-privsep
+   - provos@cvs.openbsd.org 2002/03/18 17:31:54
+     [compress.c]
+     export compression streams for ssh-privsep
 
 20020317
  - (tim) [configure.ac] Assume path given with --with-pid-dir=PATH is wanted,
@@ -7902,4 +7905,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1941 2002/03/22 01:47:52 mouring Exp $
+$Id: ChangeLog,v 1.1942 2002/03/22 01:51:24 mouring Exp $
