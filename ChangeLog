@@ -1,3 +1,7 @@
+20030919
+ - (djm) Bug #683: Remove reference to --with-ipv4-default from INSTALL;
+   djast AT cs.toronto.edu
+
 20030918
  - (djm) Bug #652: Fix empty password auth
 
@@ -1118,4 +1122,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2994.2.7 2003/09/18 08:26:48 djm Exp $
+$Id: ChangeLog,v 1.2994.2.8 2003/09/19 06:31:31 djm Exp $
