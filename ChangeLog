@@ -3,6 +3,7 @@
    - deraadt@cvs.openbsd.org 2003/05/18 23:22:01
      [log.c]
      use syslog_r() in a signal handler called place; markus ok
+ - (djm) Configure logic to detect syslog_r and friends
 
 20030519
  - (djm) Sync auth-pam.h with what we actually implement
@@ -1584,4 +1585,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2743 2003/05/19 23:24:17 djm Exp $
+$Id: ChangeLog,v 1.2744 2003/05/19 23:24:42 djm Exp $

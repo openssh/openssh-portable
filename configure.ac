@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.122 2003/05/18 10:52:40 djm Exp $
+# $Id: configure.ac,v 1.123 2003/05/19 23:24:42 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -664,11 +664,11 @@ AC_CHECK_FUNCS(\
 	gai_strerror getaddrinfo getcwd getgrouplist getnameinfo getopt \
 	getpeereid _getpty getrlimit getrusage getttyent glob inet_aton \
 	inet_ntoa inet_ntop innetgr login_getcapbool md5_crypt memmove \
-	mkdtemp mmap ngetaddrinfo nsleep ogetaddrinfo openpty pstat \
-	readpassphrase realpath recvmsg rresvport_af sendmsg setdtablesize \
-	setegid setenv seteuid setgroups setlogin setpcred setproctitle \
-	setresgid setreuid setrlimit setsid setvbuf sigaction sigvec \
-	snprintf socketpair strerror strlcat strlcpy strmode strnvis \
+	mkdtemp mmap ngetaddrinfo nsleep ogetaddrinfo openlog_r openpty \
+	pstat readpassphrase realpath recvmsg rresvport_af sendmsg \
+	setdtablesize setegid setenv seteuid setgroups setlogin setpcred \
+	setproctitle setresgid setreuid setrlimit setsid setvbuf sigaction \
+	sigvec snprintf socketpair strerror strlcat strlcpy strmode strnvis \
 	sysconf tcgetpgrp truncate utimes vhangup vsnprintf waitpid \
 )
 
