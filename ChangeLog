@@ -1,3 +1,6 @@
+20000903
+ - (djm) Fix Redhat init script
+
 20000901
  - (djm) Pick up Jim's new X11-askpass
  - (djm) Release 2.2.0p1

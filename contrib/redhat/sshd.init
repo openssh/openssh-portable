@@ -57,9 +57,14 @@ case "$1" in
 		
 		echo -n "Starting sshd: "
 		if [ ! -f $PID_FILE ] ; then
-			daemon sshd
+			sshd
 			RETVAL=$?
-			touch /var/lock/subsys/sshd
+			if [ "$RETVAL" = "0" ] ; then
+				success "sshd startup"
+				touch /var/lock/subsys/sshd
+			else
+				failure "sshd startup"
+			fi
 		fi
 		echo
 		;;
