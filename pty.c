@@ -117,12 +117,15 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 		return 0;
 	}
 #ifndef HAVE_CYGWIN
-	/* Push the appropriate streams modules, as described in Solaris pts(7). */
+	/*
+	 * Push the appropriate streams modules, as described in Solaris pts(7).
+	 * HP-UX pts(7) doesn't have ttcompat module.
+	 */
 	if (ioctl(*ttyfd, I_PUSH, "ptem") < 0)
 		error("ioctl I_PUSH ptem: %.100s", strerror(errno));
 	if (ioctl(*ttyfd, I_PUSH, "ldterm") < 0)
 		error("ioctl I_PUSH ldterm: %.100s", strerror(errno));
-#ifndef _HPUX_SOURCE
+#ifndef __hpux
 	if (ioctl(*ttyfd, I_PUSH, "ttcompat") < 0)
 		error("ioctl I_PUSH ttcompat: %.100s", strerror(errno));
 #endif

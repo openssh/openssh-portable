@@ -10,6 +10,7 @@
  - (bal) auth2-skey.c - Checked in.  Missing from portable tree.
  - (bal) Reworked NEWS-OS and NeXT ports to extract waitpid() and
    setsid() into more common files
+ - (stevesk) pty.c: use __hpux to identify HP-UX.
 
 20001029
  - (stevesk) Fix typo in auth.c: USE_PAM not PAM
