@@ -1,6 +1,6 @@
 Summary: OpenSSH, a free Secure Shell (SSH) implementation
 Name: openssh
-Version: 1.2.1pre21
+Version: 1.2.1pre22
 Release: 1
 Source0: openssh-%{version}.tar.gz
 Copyright: BSD
@@ -203,7 +203,7 @@ fi
 %files
 %defattr(-,root,root)
 %doc COPYING.Ylonen ChangeLog OVERVIEW README README.Ylonen 
-%doc RFC.nroff TODO UPGRADING
+%doc RFC.nroff TODO UPGRADING CREDITS
 %attr(0755,root,root) /usr/bin/ssh-keygen
 %attr(0755,root,root) /usr/bin/scp
 %attr(0644,root,root) %doc /usr/man/man1/ssh-keygen.1

@@ -1,0 +1,27 @@
+Tatu Ylonen <ylo@cs.hut.fi> - Creator of SSH
+
+Aaron Campbell, Bob Beck, Markus Friedl, Niels Provos, 
+Theo de Raadt, and Dug Song - Creators of OpenSSH
+
+Andre Lucas <andre.lucas@dial.pipex.com> - Many portability fixes
+Ben Taylor <bent@clark.net> - Solaris debugging and fixes
+Chip Salzenberg <chip@valinux.com> - Assorted patches
+Chris Saia <csaia@wtower.com> - SuSE packaging
+"Chris, the Young One" <cky@pobox.com> - Password auth fixes
+Chun-Chung Chen <cjj@u.washington.edu> - RPM fixes
+Dan Brosemer <odin@linuxfreak.com> - Autoconf support, build fixes
+David Agraz <dagraz@jahoopa.com> - Build fixes
+David Rankin <drankin@bohemians.lexington.ky.us> - libwrap fixes
+Jani Hakala <jahakala@cc.jyu.fi> - Patches
+Jim Knoble <jmknoble@pobox.com> - Many patches
+'jonchen' - the original author of PAM support of SSH
+Juergen Keil <jk@tools.de> - scp bugfixing
+Kees Cook <cook@cpoint.net> - scp fixes
+Marc G. Fournier <marc.fournier@acadiau.ca> - Solaris patches
+Nalin Dahyabhai <nalin.dahyabhai@pobox.com> - PAM environment patch
+Niels Kristian Bech Jensen <nkbj@image.dk> - Assorted patches
+Peter Kocks <peter.kocks@baygate.com> - Makefile fixes
+Phil Hands <phil@hands.com> - Debian scripts, assorted patches
+Thomas Neumann <tom@smart.ruhr.de> - Shadow passwords
+Tor-Ake Fransson <torake@hotmail.com> - AIX support
+Tudor Bosman <tudorb@jm.nu> - MD5 password support

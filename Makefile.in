@@ -6,9 +6,14 @@ libexecdir=@libexecdir@
 mandir=@mandir@
 sysconfdir=@sysconfdir@
 
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+VPATH=@srcdir@
+
 SSH_PROGRAM=@bindir@/ssh
 ASKPASS_LOCATION=@libexecdir@/ssh
 ASKPASS_PROGRAM=$(ASKPASS_LOCATION)/ssh-askpass
+FIXPATHS=@top_srcdir@/fixpaths
 
 CC=@CC@
 PATHS=-DETCDIR=\"$(sysconfdir)\" -DSSH_PROGRAM=\"$(SSH_PROGRAM)\" -DSSH_ASKPASS_DEFAULT=\"$(ASKPASS_PROGRAM)\"
@@ -43,7 +48,7 @@ LIBOBJS= atomicio.o authfd.o authfile.o bsd-daemon.o bsd-mktemp.o \
   radix.o readpass.o rsa.o tildexpand.o ttymodes.o uidswap.o \
   xmalloc.o 
 
-all: $(OBJS) $(TARGETS)
+all: $(OBJS) $(TARGETS) manpages
 
 $(OBJS): config.h
 
@@ -80,7 +85,12 @@ gnome-ssh-askpass: gnome-ssh-askpass.c
 	$(CC) $(CFLAGS) $(GNOME_CFLAGS) -o $@ gnome-ssh-askpass.c $(GNOME_LIBS)
 
 clean:
-	rm -f *.o core $(TARGETS) config.status config.cache config.log
+	rm -f $(OBJS) $(TARGETS) config.status config.cache config.log core \
+		*.1 *.8 sshd_config ssh_config
+
+manpages:
+	$(FIXPATHS) -Dsysconfdir=${sysconfdir} $(srcdir)/*.1.in $(srcdir)/*.8.in \
+		$(srcdir)/ssh_config.in $(srcdir)/sshd_config.in
 
 install: all
 	$(INSTALL) -d $(bindir)

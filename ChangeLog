@@ -1,3 +1,8 @@
+19991227
+ - Automatically correct paths in manpages and configuration files. Patch
+   and script from Andre Lucas <andre.lucas@dial.pipex.com>
+ - Removed credits from README to CREDITS file, updated.
+
 19991226
  - Enabled utmpx support by default for Solaris
  - Cleanup sshd.c PAM a little more

@@ -50,22 +50,6 @@ Solaris support have already been included.
 Damien Miller <djm@ibs.com.au>
 Internet Business Solutions
 
-Credits - 
-
-Aaron Campbell, Bob Beck, Markus Friedl, Niels Provos, 
-Theo de Raadt, and Dug Song - Creators of OpenSSH
-'jonchen' - the original author of PAM support of SSH
-Ben Taylor <bent@clark.net> - Solaris debugging and fixes
-Chip Salzenberg <chip@valinux.com> - Assorted patches
-Chris Saia <csaia@wtower.com> - SuSE packaging
-Dan Brosemer <odin@linuxfreak.com> - Autoconf and build fixes & Debian scripts
-Jim Knoble <jmknoble@pobox.com> - RPM spec file fixes
-Marc G. Fournier <marc.fournier@acadiau.ca> - Solaris patches
-Nalin Dahyabhai <nalin.dahyabhai@pobox.com> - PAM environment patch
-Niels Kristian Bech Jensen <nkbj@image.dk> - Assorted patches
-Phil Hands <phil@hands.com> - Debian scripts, assorted patches
-Thomas Neumann <tom@smart.ruhr.de> - Shadow passwords
-Tudor Bosman <tudorb@jm.nu> - MD5 password support
 
 Miscellania - 
 

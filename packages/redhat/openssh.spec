@@ -1,5 +1,5 @@
 # Version of OpenSSH
-%define oversion 1.2.1pre21
+%define oversion 1.2.1pre22
 
 # Version of ssh-askpass
 %define aversion 0.99
@@ -16,6 +16,7 @@ Group: Applications/Internet
 BuildRoot: /tmp/openssh-%{version}-buildroot
 Obsoletes: ssh
 Requires: openssl
+BuildPreReq: perl
 BuildPreReq: openssl-devel
 BuildPreReq: tcp_wrappers
 BuildPreReq: gnome-libs-devel
@@ -192,7 +193,8 @@ fi
 
 %files
 %defattr(-,root,root)
-%doc ChangeLog OVERVIEW COPYING.Ylonen README README.Ylonen INSTALL UPGRADING
+%doc ChangeLog OVERVIEW COPYING.Ylonen README README.Ylonen INSTALL 
+%doc CREDITS UPGRADING
 %attr(0755,root,root) /usr/bin/ssh-keygen
 %attr(0755,root,root) /usr/bin/scp
 %attr(0644,root,root) /usr/man/man1/ssh-keygen.1
