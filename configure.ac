@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.39 2002/04/07 19:22:54 stevesk Exp $
+# $Id: configure.ac,v 1.40 2002/04/07 19:44:14 stevesk Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -1004,7 +1004,7 @@ AC_ARG_WITH(privsep-user,
 		fi
 	]	
 )
-AC_DEFINE_UNQUOTED(SSH_PRIVSEP_USER, $ssh_privsep_user)
+AC_DEFINE_UNQUOTED(SSH_PRIVSEP_USER, "$ssh_privsep_user")
 
 # We do this little dance with the search path to insure
 # that programs that we select for use by installed programs
