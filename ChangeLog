@@ -26,6 +26,9 @@
    - deraadt@cvs.openbsd.org 2002/06/23 20:39:45
      [session.c]
      compression_level is u_int
+   - deraadt@cvs.openbsd.org 2002/06/23 21:06:13
+     [sshpty.c]
+     KNF
 
 20020623
  - (stevesk) [configure.ac] bug #255 LOGIN_NEEDS_UTMPX for AIX.
@@ -1070,4 +1073,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2261 2002/06/23 21:40:16 mouring Exp $
+$Id: ChangeLog,v 1.2262 2002/06/23 21:42:50 mouring Exp $
