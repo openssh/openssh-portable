@@ -6,6 +6,8 @@
    run-time switch, always build --with-md5-passwords.
  - (dtucker) [configure.ac openbsd-compat/Makefile.in openbsd-compat/strtoul.c]
    Bug #670: add strtoul() to openbsd-compat for platforms lacking it.  ok djm@
+ - (dtucker) [configure.ac] Bug #715: Set BROKEN_SETREUID and BROKEN_SETREGID
+   on Reliant Unix.  Patch from Robert.Dahlem at siemens.com.
 
 20031003
  - (dtucker) OpenBSD CVS Sync
@@ -1288,4 +1290,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3061 2003/10/07 07:49:56 dtucker Exp $
+$Id: ChangeLog,v 1.3062 2003/10/07 08:37:11 dtucker Exp $
