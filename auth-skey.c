@@ -7,10 +7,10 @@ RCSID("$Id: auth-skey.c,v 1.5 1999/12/06 19:04:57 deraadt Exp $");
 #include "packet.h"
 
 #ifdef HAVE_OPENSSL
-#include <openssl/sha1.h>
+#include <openssl/sha.h>
 #endif
 #ifdef HAVE_SSL
-#include <ssl/sha1.h>
+#include <ssl/sha.h>
 #endif
 
 /* from %OpenBSD: skeylogin.c,v 1.32 1999/08/16 14:46:56 millert Exp % */
@@ -79,8 +79,9 @@ skey_fake_keyinfo(char *username)
 	static char skeyprompt[SKEY_MAX_CHALLENGE+1];
 	char *secret = NULL;
 	size_t secretlen = 0;
-	SHA1_CTX ctx;
+	SHA_CTX ctx;
 	char *p, *u;
+	char md[SHA_DIGEST_LENGTH];
 
 	/*
 	 * Base first 4 chars of seed on hostname.
@@ -97,10 +98,15 @@ skey_fake_keyinfo(char *username)
 	pbuf[4] = '\0';
 
 	/* Hash the username if possible */
-	if ((up = SHA1Data(username, strlen(username), NULL)) != NULL) {
+	up = malloc(SHA_DIGEST_LENGTH);
+	if (up != NULL) {
 		struct stat sb;
 		time_t t;
 		int fd;
+
+		SHA1_Init(&ctx);
+		SHA1_Update(&ctx, username, strlen(username));
+		SHA1_End(&ctx, up);
 
 		/* Collapse the hash */
 		ptr = hash_collapse(up);
@@ -131,18 +137,18 @@ skey_fake_keyinfo(char *username)
 	/* Put that in your pipe and smoke it */
 	if (flg == 0) {
 		/* Hash secret value with username */
-		SHA1Init(&ctx);
-		SHA1Update(&ctx, secret, secretlen);
-		SHA1Update(&ctx, username, strlen(username));
-		SHA1End(&ctx, up);
+		SHA1_Init(&ctx);
+		SHA1_Update(&ctx, secret, secretlen);
+		SHA1_Update(&ctx, username, strlen(username));
+		SHA1_End(&ctx, up);
 		
 		/* Zero out */
 		memset(secret, 0, secretlen);
 
 		/* Now hash the hash */
-		SHA1Init(&ctx);
-		SHA1Update(&ctx, up, strlen(up));
-		SHA1End(&ctx, up);
+		SHA1_Init(&ctx);
+		SHA1_Update(&ctx, up, strlen(up));
+		SHA1_End(&ctx, up);
 		
 		ptr = hash_collapse(up + 4);
 		
@@ -155,7 +161,7 @@ skey_fake_keyinfo(char *username)
 		/* Sequence number */
 		ptr = ((up[2] + up[3]) % 99) + 1;
 
-		memset(up, 0, 20); /* SHA1 specific */
+		memset(up, 0, SHA_DIGEST_LENGTH); /* SHA1 specific */
 		free(up);
 
 		(void)snprintf(skeyprompt, sizeof skeyprompt,

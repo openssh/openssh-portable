@@ -1,7 +1,11 @@
+20000110
+ - Fixes to auth-skey to enable it to use the standard OpenSSL libraries
+
 20000107
  - New config.sub and config.guess to fix problems on SCO. Supplied
    by Gary E. Miller <gem@rellim.com>
  - SCO build fix from Gary E. Miller <gem@rellim.com>
+ - Released 1.2.1pre25
 
 20000106
  - Documentation update & cleanup
