@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.67 2001/03/10 17:51:04 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.68 2001/03/19 17:07:23 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -805,7 +805,7 @@ fill_default_options(Options * options)
 	/* options->ciphers, default set in myproposals.h */
 	/* options->macs, default set in myproposals.h */
 	if (options->protocol == SSH_PROTO_UNKNOWN)
-		options->protocol = SSH_PROTO_1|SSH_PROTO_2;
+		options->protocol = SSH_PROTO_1|SSH_PROTO_2|SSH_PROTO_1_PREFERRED;
 	if (options->num_identity_files == 0) {
 		if (options->protocol & SSH_PROTO_1) {
 			len = 2 + strlen(_PATH_SSH_CLIENT_IDENTITY) + 1;
