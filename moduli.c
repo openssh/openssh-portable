@@ -1,4 +1,4 @@
-/* $OpenBSD: moduli.c,v 1.6 2004/04/22 11:56:57 djm Exp $ */
+/* $OpenBSD: moduli.c,v 1.7 2004/05/09 00:06:47 djm Exp $ */
 /*
  * Copyright 1994 Phil Karn <karn@qualcomm.com>
  * Copyright 1996-1998, 2003 William Allen Simpson <wsimpson@greendragon.com>
@@ -38,7 +38,6 @@
  */
 
 #include "includes.h"
-#include "moduli.h"
 #include "xmalloc.h"
 #include "log.h"
 
@@ -91,6 +90,19 @@
 #define SHIFT_MEGAWORD  (SHIFT_MEGABYTE-SHIFT_BYTE)
 
 /*
+ * Using virtual memory can cause thrashing.  This should be the largest
+ * number that is supported without a large amount of disk activity --
+ * that would increase the run time from hours to days or weeks!
+ */
+#define LARGE_MINIMUM   (8UL)	/* megabytes */
+
+/*
+ * Do not increase this number beyond the unsigned integer bit size.
+ * Due to a multiple of 4, it must be LESS than 128 (yielding 2**30 bits).
+ */
+#define LARGE_MAXIMUM   (127UL)	/* megabytes */
+
+/*
  * Constant: when used with 32-bit integers, the largest sieve prime
  * has to be less than 2**32.
  */
@@ -113,6 +125,9 @@
 /*
  * Prime testing defines
  */
+
+/* Minimum number of primality tests to perform */
+#define TRIAL_MINIMUM           (4)
 
 /*
  * Sieving data (XXX - move to struct)
@@ -234,6 +249,13 @@ gen_candidates(FILE *out, int memory, int power, BIGNUM *start)
 	int i, ret = 0;
 
 	largememory = memory;
+
+	if (memory != 0 &&
+	   (memory < LARGE_MINIMUM || memory > LARGE_MAXIMUM)) {
+		error("Invalid memory amount (min %ld, max %ld)",
+		    LARGE_MINIMUM, LARGE_MAXIMUM);
+		return (-1);
+	}
 
 	/*
 	 * Set power to the length in bits of the prime to be generated.
@@ -430,8 +452,7 @@ gen_candidates(FILE *out, int memory, int power, BIGNUM *start)
  * The result is a list of so-call "safe" primes
  */
 int
-prime_test(FILE *in, FILE *out, u_int32_t trials,
-    u_int32_t generator_wanted)
+prime_test(FILE *in, FILE *out, u_int32_t trials, u_int32_t generator_wanted)
 {
 	BIGNUM *q, *p, *a;
 	BN_CTX *ctx;
@@ -440,6 +461,11 @@ prime_test(FILE *in, FILE *out, u_int32_t trials,
 	u_int32_t generator_known, in_tests, in_tries, in_type, in_size;
 	time_t time_start, time_stop;
 	int res;
+
+	if (trials < TRIAL_MINIMUM) {
+		error("Minimum primality trials is %d", TRIAL_MINIMUM);
+		return (-1);
+	}
 
 	time(&time_start);
 

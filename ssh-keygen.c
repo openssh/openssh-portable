@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.114 2004/05/08 00:21:31 djm Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.115 2004/05/09 00:06:47 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -27,7 +27,6 @@ RCSID("$OpenBSD: ssh-keygen.c,v 1.114 2004/05/08 00:21:31 djm Exp $");
 #include "pathnames.h"
 #include "log.h"
 #include "misc.h"
-#include "moduli.h"
 
 #ifdef SMARTCARD
 #include "scard.h"
@@ -84,6 +83,10 @@ char *__progname;
 #endif
 
 char hostname[MAXHOSTNAMELEN];
+
+/* moduli.c */
+int gen_candidates(FILE *, int, int, BIGNUM *);
+int prime_test(FILE *, FILE *, u_int32_t, u_int32_t);
 
 static void
 ask_filename(struct passwd *pw, const char *prompt)
@@ -911,18 +914,9 @@ main(int ac, char **av)
 			break;
 		case 'a':
 			trials = atoi(optarg);
-			if (trials < TRIAL_MINIMUM) {
-				fatal("Minimum primality trials is %d",
-				    TRIAL_MINIMUM);
-			}
 			break;
 		case 'M':
 			memory = atoi(optarg);
-			if (memory != 0 &&
-			   (memory < LARGE_MINIMUM || memory > LARGE_MAXIMUM)) {
-				fatal("Invalid memory amount (min %ld, max %ld)",
-				    LARGE_MINIMUM, LARGE_MAXIMUM);
-			}
 			break;
 		case 'G':
 			do_gen_candidates = 1;
