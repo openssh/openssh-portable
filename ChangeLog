@@ -2,6 +2,8 @@
  - Applied another NetBSD portability patch from David Rankin 
    <drankin@bohemians.lexington.ky.us>
  - Fix --with-default-path option.
+ - Autodetect perl, patch from David Rankin 
+   <drankin@bohemians.lexington.ky.us>
 
 19991228
  - Replacement for getpagesize() for systems which lack it

@@ -25,6 +25,7 @@ LIBWRAP=@LIBWRAP@
 AR=@AR@
 RANLIB=@RANLIB@
 INSTALL=@INSTALL@
+PERL=@PERL@
 LDFLAGS=-L. @LDFLAGS@
 
 GNOME_CFLAGS=`gnome-config --cflags gnome gnomeui`
@@ -89,7 +90,7 @@ clean:
 		*.1 *.8 sshd_config ssh_config
 
 manpages:
-	$(FIXPATHS) -Dsysconfdir=${sysconfdir} $(srcdir)/*.1.in $(srcdir)/*.8.in \
+	$(PERL) $(FIXPATHS) -Dsysconfdir=${sysconfdir} $(srcdir)/*.1.in $(srcdir)/*.8.in \
 		$(srcdir)/ssh_config.in $(srcdir)/sshd_config.in
 
 install: all
