@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.12 2002/09/04 18:52:42 stevesk Exp $
+.\" $OpenBSD: sshd_config.5,v 1.13 2002/09/16 20:12:11 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -630,10 +630,35 @@ from interfering with real X11 servers.
 The default is 10.
 .It Cm X11Forwarding
 Specifies whether X11 forwarding is permitted.
+The argument must be
+.Dq yes
+or
+.Dq no .
 The default is
 .Dq no .
-Note that disabling X11 forwarding does not improve security in any
-way, as users can always install their own forwarders.
+.Pp
+When X11 forwarding is enabled, there may be additional exposure to
+the server and to client displays if the
+.Nm sshd
+proxy display is configured to listen on the wildcard address (see
+.Cm X11UseLocalhost
+below), however this is not the default.
+Additionally, the authentication spoofing and authentication data
+verification and substitution occur on the client side.
+The security risk of using X11 forwarding is that the client's X11
+display server may be exposed to attack when the ssh client requests
+forwarding (see the warnings for
+.Cm ForwardX11
+in
+.Xr ssh_config 5 ).
+A system administrator may have a stance in which they want to
+protect clients that may expose themselves to attack by unwittingly
+requesting X11 forwarding, which can warrant a
+.Dq no
+setting.
+.Pp
+Note that disabling X11 forwarding does not prevent users from
+forwarding X11 traffic, as users can always install their own forwarders.
 X11 forwarding is automatically disabled if
 .Cm UseLogin
 is enabled.
