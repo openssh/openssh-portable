@@ -1,11 +1,25 @@
-%define use-stable	1
-%if %{use-stable}
+
+# Some of this will need re-evaluation post-LSB.  The SVIdir is there
+# because the link appeared broken.  The rest is for easy compilation,
+# the tradeoff open to discussion.  (LC957)
+
+%define	SVIdir		/etc/rc.d/init.d
+%{!?_defaultdocdir:%define	_defaultdocdir	%{_prefix}/share/doc/packages}
+%{!?SVIcdir:%define		SVIcdir		/etc/sysconfig/daemons}
+
+%define _mandir		%{_prefix}/share/man/en
+%define _sysconfdir	/etc/ssh
+%define	_libexecdir	%{_libdir}/ssh
+
+#old cvs stuff.  please update before use.  may be deprecated.
+%define use_stable	1
+%if %{use_stable}
   %define version 	3.2.3p1
   %define cvs		%{nil}
-  %define release 	1
+  %define release 	2
 %else
-  %define version 	3.2.3
-  %define cvs		cvs20020515
+  %define version 	2.9.9p2
+  %define cvs		cvs20011009
   %define release 	0r1
 %endif
 %define xsa		x11-ssh-askpass		
@@ -17,6 +31,12 @@ Release     	: %{release}
 Group       	: System/Network
 
 Summary     	: OpenSSH free Secure Shell (SSH) implementation.
+Summary(de) 	: OpenSSH - freie Implementation der Secure Shell (SSH).
+Summary(es) 	: OpenSSH implementación libre de Secure Shell (SSH).
+Summary(fr) 	: Implémentation libre du shell sécurisé OpenSSH (SSH).
+Summary(it) 	: Implementazione gratuita OpenSSH della Secure Shell.
+Summary(pt) 	: Implementação livre OpenSSH do protocolo 'Secure Shell' (SSH).
+Summary(pt_BR) 	: Implementação livre OpenSSH do protocolo Secure Shell (SSH).
 
 Copyright   	: BSD
 Packager    	: Raymund Will <ray@caldera.de>
@@ -24,140 +44,219 @@ URL         	: http://www.openssh.com/
 
 Obsoletes   	: ssh, ssh-clients, openssh-clients
 
-BuildRoot   	: /tmp/%{Name}-%{Version}
+BuildRoot   	: /tmp/%{name}-%{version}
+BuildRequires	: XFree86-imake
 
-# %{use-stable}==1:	ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable
-# %{use-stable}==0:	:pserver:cvs@bass.directhit.com:/cvs/openssh_cvs
-Source0: see-above:/.../openssh-%{Version}.tar.gz
-%if %{use-stable}
-Source1: see-above:/.../openssh-%{Version}.tar.gz.sig
+# %{use_stable}==1:	ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable
+# %{use_stable}==0:	:pserver:cvs@bass.directhit.com:/cvs/openssh_cvs
+Source0: see-above:/.../openssh-%{version}.tar.gz
+%if %{use_stable}
+Source1: see-above:/.../openssh-%{version}.tar.gz.sig
 %endif
 Source2: http://www.ntrnet.net/~jmknoble/software/%{xsa}/%{askpass}.tar.gz
 Source3: http://www.openssh.com/faq.html
 
-
 %Package server
 Group       	: System/Network
-Requires    	: openssh = %{Version}
+Requires    	: openssh = %{version}
 Obsoletes   	: ssh-server
 
 Summary     	: OpenSSH Secure Shell protocol server (sshd).
+Summary(de) 	: OpenSSH Secure Shell Protocol-Server (sshd).
+Summary(es) 	: Servidor del protocolo OpenSSH Secure Shell (sshd).
+Summary(fr) 	: Serveur de protocole du shell sécurisé OpenSSH (sshd).
+Summary(it) 	: Server OpenSSH per il protocollo Secure Shell (sshd).
+Summary(pt) 	: Servidor do protocolo 'Secure Shell' OpenSSH (sshd).
+Summary(pt_BR) 	: Servidor do protocolo Secure Shell OpenSSH (sshd).
 
 
 %Package askpass
 Group       	: System/Network
-Requires    	: openssh = %{Version}
+Requires    	: openssh = %{version}
 URL       	: http://www.ntrnet.net/~jmknoble/software/x11-ssh-askpass/
 Obsoletes   	: ssh-extras
 
 Summary     	: OpenSSH X11 pass-phrase dialog.
+Summary(de) 	: OpenSSH X11 Passwort-Dialog.
+Summary(es) 	: Aplicación de petición de frase clave OpenSSH X11.
+Summary(fr) 	: Dialogue pass-phrase X11 d'OpenSSH.
+Summary(it) 	: Finestra di dialogo X11 per la frase segreta di OpenSSH.
+Summary(pt) 	: Diálogo de pedido de senha para X11 do OpenSSH.
+Summary(pt_BR) 	: Diálogo de pedido de senha para X11 do OpenSSH.
+
+
+%Description
+OpenSSH (Secure Shell) provides access to a remote system. It replaces
+telnet, rlogin,  rexec, and rsh, and provides secure encrypted 
+communications between two untrusted hosts over an insecure network.  
+X11 connections and arbitrary TCP/IP ports can also be forwarded over 
+the secure channel.
+
+%Description -l de
+OpenSSH (Secure Shell) stellt den Zugang zu anderen Rechnern her. Es ersetzt
+telnet, rlogin, rexec und rsh und stellt eine sichere, verschlüsselte
+Verbindung zwischen zwei nicht vertrauenswürdigen Hosts über eine unsicheres
+Netzwerk her. X11 Verbindungen und beliebige andere TCP/IP Ports können ebenso
+über den sicheren Channel weitergeleitet werden.
+
+%Description -l es
+OpenSSH (Secure Shell) proporciona acceso a sistemas remotos. Reemplaza a
+telnet, rlogin, rexec, y rsh, y proporciona comunicaciones seguras encriptadas
+entre dos equipos entre los que no se ha establecido confianza a través de una
+red insegura. Las conexiones X11 y puertos TCP/IP arbitrarios también pueden
+ser canalizadas sobre el canal seguro.
+
+%Description -l fr
+OpenSSH (Secure Shell) fournit un accès à un système distant. Il remplace
+telnet, rlogin, rexec et rsh, tout en assurant des communications cryptées
+securisées entre deux hôtes non fiabilisés sur un réseau non sécurisé. Des
+connexions X11 et des ports TCP/IP arbitraires peuvent également être
+transmis sur le canal sécurisé.
+
+%Description -l it
+OpenSSH (Secure Shell) fornisce l'accesso ad un sistema remoto.
+Sostituisce telnet, rlogin, rexec, e rsh, e fornisce comunicazioni sicure
+e crittate tra due host non fidati su una rete non sicura. Le connessioni
+X11 ad una porta TCP/IP arbitraria possono essere inoltrate attraverso
+un canale sicuro.
+
+%Description -l pt
+OpenSSH (Secure Shell) fornece acesso a um sistema remoto. Substitui o
+telnet, rlogin, rexec, e o rsh e fornece comunicações seguras e cifradas
+entre duas máquinas sem confiança mútua sobre uma rede insegura.
+Ligações X11 e portos TCP/IP arbitrários também poder ser reenviados
+pelo canal seguro.
+
+%Description -l pt_BR
+O OpenSSH (Secure Shell) fornece acesso a um sistema remoto. Substitui o
+telnet, rlogin, rexec, e o rsh e fornece comunicações seguras e criptografadas
+entre duas máquinas sem confiança mútua sobre uma rede insegura.
+Ligações X11 e portas TCP/IP arbitrárias também podem ser reenviadas
+pelo canal seguro.
+
+%Description server
+This package installs the sshd, the server portion of OpenSSH. 
+
+%Description -l de server
+Dieses Paket installiert den sshd, den Server-Teil der OpenSSH.
+
+%Description -l es server
+Este paquete instala sshd, la parte servidor de OpenSSH.
+
+%Description -l fr server
+Ce paquetage installe le 'sshd', partie serveur de OpenSSH.
+
+%Description -l it server
+Questo pacchetto installa sshd, il server di OpenSSH.
+
+%Description -l pt server
+Este pacote intala o sshd, o servidor do OpenSSH.
+
+%Description -l pt_BR server
+Este pacote intala o sshd, o servidor do OpenSSH.
+
+%Description askpass
+This package contains an X11-based pass-phrase dialog used per
+default by ssh-add(1). It is based on %{askpass}
+by Jim Knoble <jmknoble@pobox.com>.
 
 
 %Prep
-%setup %([ -z "%{cvs}" ] || echo "-n %{Name}_cvs") -a2
-
-%if ! %{use-stable}
+%setup %([ -z "%{cvs}" ] || echo "-n %{name}_cvs") -a2
+%if ! %{use_stable}
   autoreconf
 %endif
 
 
 %Build
 CFLAGS="$RPM_OPT_FLAGS" \
-./configure \
-            --prefix=/usr \
-            --sysconfdir=/etc/ssh \
-            --libexecdir=/usr/lib/ssh \
+%configure \
             --with-pam \
             --with-tcp-wrappers \
             --with-ipv4-default \
+	    #leave this line for easy edits.
 
-make
+%__make CFLAGS="$RPM_OPT_FLAGS"
 
 cd %{askpass}
-./configure
+%configure \
+	    #leave this line for easy edits.
+
 xmkmf
-make includes
-make
+%__make includes
+%__make
 
 
 %Install
-%{mkDESTDIR}
+[ %{buildroot} != "/" ] && rm -rf %{buildroot}
 
-make DESTDIR="$DESTDIR" install
-
-make -C %{askpass} BINDIR="/usr/lib/ssh" install
+%makeinstall
+%makeinstall -C %{askpass} \
+    BINDIR=%{_libexecdir} \
+    MANPATH=%{_mandir} \
+    DESTDIR=%{buildroot}
 
 # OpenLinux specific configuration
-mkdir -p $DESTDIR/{etc/pam.d,%{SVIcdir},%{SVIdir}}
+mkdir -p %{buildroot}{/etc/pam.d,%{SVIcdir},%{SVIdir}}
 
 # enabling X11 forwarding on the server is convenient and okay,
-# on the client side we consider it a potential security risk!
-%{fixUP} -vT  $DESTDIR/etc/ssh/sshd_config -e '
-   s/#X11Forwarding no/X11Forwarding yes/i'
+# on the client side it's a potential security risk!
+%__perl -pi -e 's:X11Forwarding no:X11Forwarding yes:g' \
+    %{buildroot}%{_sysconfdir}/sshd_config
 
-install -m644 contrib/caldera/sshd.pam $DESTDIR/etc/pam.d/sshd
-# FIXME: disabled, find out why this doesn't work with NIS
-%{fixUP} -vT $DESTDIR/etc/pam.d/sshd -e 's/^(.*pam_limits.*)$/#$1/'
+install -m644 contrib/caldera/sshd.pam %{buildroot}/etc/pam.d/sshd
+# FIXME: disabled, find out why this doesn't work with nis
+%__perl -pi -e 's:(.*pam_limits.*):#$1:' \
+    %{buildroot}/etc/pam.d/sshd
 
-install -m 0755 contrib/caldera/sshd.init $DESTDIR%{SVIdir}/sshd
-%{fixUP} -vT $DESTDIR/%{SVIdir} -e 's:\@SVIdir\@:%{SVIdir}: +
-   s:\@sysconfdir\@:/etc/ssh:'
+install -m 0755 contrib/caldera/sshd.init %{buildroot}%{SVIdir}/sshd
 
-cat <<-EoD > $DESTDIR%{SVIcdir}/sshd
+# the last one is needless, but more future-proof
+find %{buildroot}%{SVIdir} -type f -exec \
+    %__perl -pi -e 's:\@SVIdir\@:%{SVIdir}:g;\
+		    s:\@sysconfdir\@:%{_sysconfdir}:g; \
+		    s:/usr/sbin:%{_sbindir}:g'\
+    \{\} \;
+
+cat <<-EoD > %{buildroot}%{SVIcdir}/sshd
 	IDENT=sshd
 	DESCRIPTIVE="OpenSSH secure shell daemon"
 	# This service will be marked as 'skipped' on boot if there
-	# is no host key. Use ssh-host-keygen to generate one.
+	# is no host key. Use ssh-host-keygen to generate one
 	ONBOOT="yes"
 	OPTIONS=""
 EoD
 
-SKG=$DESTDIR/usr/sbin/ssh-host-keygen
+SKG=%{buildroot}%{_sbindir}/ssh-host-keygen
 install -m 0755 contrib/caldera/ssh-host-keygen $SKG
-%{fixUP} -T $SKG -e 's:\@sysconfdir\@:/etc/ssh: +
-   s:\@sshkeygen\@:/usr/bin/ssh-keygen:'
+# Fix up some path names in the keygen toy^Hol
+    %__perl -pi -e 's:\@sysconfdir\@:%{_sysconfdir}:g; \
+		    s:\@sshkeygen\@:%{_bindir}/ssh-keygen:g' \
+	%{buildroot}%{_sbindir}/ssh-host-keygen
 
-
+# This looks terrible.  Expect it to change.
 # install remaining docs
-DocD="$DESTDIR%{_defaultdocdir}/%{Name}-%{Version}"; mkdir -p $DocD/00-LEGAL
-cp -a LICENCE $DocD/00-LEGAL
-cp -a CREDITS ChangeLog OVERVIEW README* TODO  $DocD
-install -p -m 0444 -o 0 -g 0 %{SOURCE3}  $DocD/faq.html
+DocD="%{buildroot}%{_defaultdocdir}/%{name}-%{version}"
 mkdir -p $DocD/%{askpass}
+cp -a CREDITS ChangeLog LICENCE OVERVIEW README* TODO  $DocD
+install -p -m 0444 %{SOURCE3}  $DocD/faq.html
 cp -a %{askpass}/{README,ChangeLog,TODO,SshAskpass*.ad}  $DocD/%{askpass}
+%if %{use_stable}
+  cp -p %{askpass}/%{xsa}.man $DocD/%{askpass}/%{xsa}.1
+%else
+  cp -p %{askpass}/%{xsa}.man %{buildroot}%{_mandir}man1/%{xsa}.1
+  ln -s  %{xsa}.1 %{buildroot}%{_mandir}man1/ssh-askpass.1
+%endif
 
-cp -p %{askpass}/%{xsa}.man $DESTDIR/usr/man/man1/%{xsa}.1
-ln -s  %{xsa}.1 $DESTDIR/usr/man/man1/ssh-askpass.1
-
-%{fixManPages}
-
-
-# generate file lists
-%{mkLists} -c %{Name}
-%{mkLists} -d %{Name} << 'EOF'
-/etc/ssh				base
-^/etc/					IGNORED
-%{_defaultdocdir}/$			IGNORED
-askpass					askpass
-*					default
-EOF
-%{mkLists} -a -f %{Name} << 'EOF'
-^/etc					*		prefix(%%config)
-/usr/X11R6/lib/X11/app-defaults 	IGNORED
-Ssh.bin 				IGNORED		# for now
-[Aa]skpass				askpass
-%{_defaultdocdir}/%{Name}-%{Version}/	base
-ssh-keygen				base
-moduli					server
-sshd					server
-sftp-server				server
-.*					base
-EOF
+find %{buildroot}%{_mandir} -type f -not -name	'*.gz' -print0 | xargs -0r %__gzip -9nf
+rm %{buildroot}%{_mandir}/man1/slogin.1 && \
+    ln -s %{_mandir}/man1/ssh.1.gz \
+    %{buildroot}%{_mandir}/man1/slogin.1.gz
 
 
 %Clean
-%{rmDESTDIR}
-
+#%{rmDESTDIR}
+[ %{buildroot} != "/" ] && rm -rf %{buildroot}
 
 %Post
 # Generate host key when none is present to get up and running,
@@ -194,34 +293,44 @@ fi
 : # to protect the rpm database
 
 
-%Files -f files-%{Name}-base
+%Files 
 %defattr(-,root,root)
-
-
-%Files server -f files-%{Name}-server
+%dir %{_sysconfdir}
+%config %{_sysconfdir}/ssh_config
+%{_bindir}/*
+%dir %{_libexecdir}
+%{_sbindir}/ssh-host-keygen
+%dir %{_defaultdocdir}/%{name}-%{version}
+%{_defaultdocdir}/%{name}-%{version}/CREDITS
+%{_defaultdocdir}/%{name}-%{version}/ChangeLog
+%{_defaultdocdir}/%{name}-%{version}/LICENCE
+%{_defaultdocdir}/%{name}-%{version}/OVERVIEW
+%{_defaultdocdir}/%{name}-%{version}/README*
+%{_defaultdocdir}/%{name}-%{version}/TODO
+%{_defaultdocdir}/%{name}-%{version}/faq.html
+%{_mandir}/man1/*
+ 
+%Files server
 %defattr(-,root,root)
-
-
-%Files askpass -f files-%{Name}-askpass
+%config %{SVIdir}/sshd
+%config /etc/pam.d/sshd
+%config %{_sysconfdir}/moduli
+%config %{_sysconfdir}/sshd_config
+%config %{SVIcdir}/sshd
+%{_libexecdir}/sftp-server
+%{_sbindir}/sshd
+%{_mandir}/man8/sftp-server.8.gz
+%{_mandir}/man8/sshd.8.gz
+ 
+%Files askpass
 %defattr(-,root,root)
-
-
-%Description
-OpenSSH (Secure Shell) provides access to a remote system. It replaces
-telnet, rlogin,  rexec, and rsh, and provides secure encrypted 
-communications between two untrusted hosts over an insecure network.  
-X11 connections and arbitrary TCP/IP ports can also be forwarded over 
-the secure channel.
-
-%Description server
-This package installs the sshd, the server portion of OpenSSH. 
-
-%Description askpass
-This package contains an X11-based pass-phrase dialog used per
-default by ssh-add(1). It is based on %{askpass}
-by Jim Knoble <jmknoble@pobox.com>.
+%{_libexecdir}/ssh-askpass
+%{_libexecdir}/x11-ssh-askpass
+%{_defaultdocdir}/%{name}-%{version}/%{askpass}
+ 
 
 %ChangeLog
 * Mon Jan 01 1998 ...
+Template Version: 1.31
 
-$Id: openssh.spec,v 1.33 2002/05/22 04:14:55 djm Exp $
+$Id: openssh.spec,v 1.34 2002/06/25 17:07:26 tim Exp $

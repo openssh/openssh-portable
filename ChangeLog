@@ -6,6 +6,7 @@
  - (bal) Started list of PrivSep issues in TODO
  - (bal) if mmap() is substandard, don't allow compression on server side.
    Post 'event' we will add more options.
+ - (tim) [contrib/caldera/openssh.spec] Sync with Caldera
 
 20020624
  - OpenBSD CVS Sync
@@ -1091,4 +1092,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2269 2002/06/25 03:22:03 mouring Exp $
+$Id: ChangeLog,v 1.2270 2002/06/25 17:07:25 tim Exp $
