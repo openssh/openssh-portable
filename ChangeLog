@@ -13,6 +13,9 @@
    Reported by Doug Manton <dmanton@emea.att.com>
  - (djm) Bug #222: Fix tests for getaddrinfo on OSF/1. Spotted by
    Robert Urban <urban@spielwiese.de>
+ - (djm) Bug #206 - blibpath isn't always needed for AIX ld, avoid 
+   sizeof(long long int) == 4 breakage. Patch from Matthew Clarke
+   <Matthew_Clarke@mindlink.bc.ca>
  - (djm) Make privsep work with PAM (still experimental)
  - (djm) OpenBSD CVS Sync
    - deraadt@cvs.openbsd.org 2002/04/20 09:02:03
@@ -485,4 +488,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2076 2002/04/23 13:09:19 djm Exp $
+$Id: ChangeLog,v 1.2077 2002/04/23 13:22:25 djm Exp $

@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.50 2002/04/23 13:09:19 djm Exp $
+# $Id: configure.ac,v 1.51 2002/04/23 13:22:25 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -57,7 +57,18 @@ case "$host" in
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	if (test "$LD" != "gcc" && test -z "$blibpath"); then
-		blibpath="/usr/lib:/lib:/usr/local/lib"
+		AC_MSG_CHECKING([if linkage editor ($LD) accepts -blibpath])
+		saved_LDFLAGS="$LDFLAGS"
+		LDFLAGS="$LDFLAGS -blibpath:/usr/lib:/lib:/usr/local/lib"
+		AC_TRY_LINK([],
+			[],
+			[
+				AC_MSG_RESULT(yes)
+				blibpath="/usr/lib:/lib:/usr/local/lib"
+			],
+			[ AC_MSG_RESULT(no) ]
+		)
+		LDFLAGS="$saved_LDFLAGS"
 	fi
 	AC_CHECK_FUNC(authenticate, [AC_DEFINE(WITH_AIXAUTHENTICATE)])
 	AC_DEFINE(BROKEN_GETADDRINFO)
@@ -1070,6 +1081,11 @@ AC_CHECK_SIZEOF(short int, 2)
 AC_CHECK_SIZEOF(int, 4)
 AC_CHECK_SIZEOF(long int, 4)
 AC_CHECK_SIZEOF(long long int, 8)
+
+# Sanity check long long for some platforms (AIX)
+if test "x$ac_cv_sizeof_long_long_int" = "x4" ; then
+	ac_cv_sizeof_long_long_int=0
+fi
 
 # More checks for data types
 AC_CACHE_CHECK([for u_int type], ac_cv_have_u_int, [
