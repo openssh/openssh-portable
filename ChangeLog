@@ -18,6 +18,9 @@
      sshpty.c]
      make ssh -Wshadow clean, no functional changes
      markus@ ok
+   - djm@cvs.openbsd.org 2004/06/21 17:53:03
+     [session.c]
+     fix fd leak for multiple subsystem connections; with markus@
 
 20040620
  - (tim) [configure.ac Makefile.in] Only change TEST_SHELL on broken platforms.
@@ -1340,4 +1343,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3421 2004/06/22 02:56:01 dtucker Exp $
+$Id: ChangeLog,v 1.3422 2004/06/22 02:57:08 dtucker Exp $

@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.175 2004/05/11 19:01:43 deraadt Exp $");
+RCSID("$OpenBSD: session.c,v 1.176 2004/06/21 17:53:03 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -481,7 +481,11 @@ do_exec_no_pty(Session *s, const char *command)
 	close(perr[1]);
 
 	if (compat20) {
-		session_set_fds(s, pin[1], pout[0], s->is_subsystem ? -1 : perr[0]);
+		if (s->is_subsystem) {
+			close(perr[0]);
+			perr[0] = -1;
+		}
+		session_set_fds(s, pin[1], pout[0], perr[0]);
 	} else {
 		/* Enter the interactive session. */
 		server_loop(pid, pin[1], pout[0], perr[0]);
