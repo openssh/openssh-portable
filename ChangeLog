@@ -92,6 +92,11 @@
      [servconf.c sshd.8]
      protocol 2 HostKey code default is now /etc/ssh_host_rsa_key and
      /etc/ssh_host_dsa_key like we have in sshd_config.  ok markus@
+   - markus@cvs.openbsd.org 2002/01/05 10:43:40
+     [channels.c]
+     fix hanging x11 channels for rejected cookies (e.g. 
+     XAUTHORITY=/dev/null xbiff) bug #36, based on patch from
+     djast@cs.toronto.edu
 
 
 20020121
@@ -7240,4 +7245,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1749 2002/01/22 12:19:11 djm Exp $
+$Id: ChangeLog,v 1.1750 2002/01/22 12:19:38 djm Exp $

@@ -13,7 +13,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  *
  * SSH2 support added by Markus Friedl.
- * Copyright (c) 1999, 2000, 2001 Markus Friedl.  All rights reserved.
+ * Copyright (c) 1999, 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  * Copyright (c) 1999 Dug Song.  All rights reserved.
  * Copyright (c) 1999 Theo de Raadt.  All rights reserved.
  *
@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.155 2001/12/29 21:56:01 stevesk Exp $");
+RCSID("$OpenBSD: channels.c,v 1.156 2002/01/05 10:43:40 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -872,9 +872,17 @@ channel_pre_x11_open(Channel *c, fd_set * readset, fd_set * writeset)
 		else
 			channel_pre_open_15(c, readset, writeset);
 	} else if (ret == -1) {
+		log("X11 connection rejected because of wrong authentication.");
 		debug("X11 rejected %d i%d/o%d", c->self, c->istate, c->ostate);
-		chan_read_failed(c);	/** force close? */
-		chan_write_failed(c);
+		chan_read_failed(c);
+		buffer_clear(&c->input);
+		chan_ibuf_empty(c);
+		buffer_clear(&c->output);
+		/* for proto v1, the peer will send an IEOF */
+		if (compat20)
+			chan_write_failed(c);
+		else
+			c->type = SSH_CHANNEL_OPEN;
 		debug("X11 closed %d i%d/o%d", c->self, c->istate, c->ostate);
 	}
 }
@@ -1807,7 +1815,7 @@ channel_input_ieof(int type, u_int32_t seq, void *ctxt)
 	chan_rcvd_ieof(c);
 
 	/* XXX force input close */
-	if (c->force_drain) {
+	if (c->force_drain && c->istate == CHAN_INPUT_OPEN) {
 		debug("channel %d: FORCE input drain", c->self);
 		c->istate = CHAN_INPUT_WAIT_DRAIN;
 	}
