@@ -64,9 +64,11 @@ strmode(mode, p)
 	case S_IFLNK:			/* symbolic link */
 		*p++ = 'l';
 		break;
+#ifdef S_IFSOCK
 	case S_IFSOCK:			/* socket */
 		*p++ = 's';
 		break;
+#endif
 #ifdef S_IFIFO
 	case S_IFIFO:			/* fifo */
 		*p++ = 'p';

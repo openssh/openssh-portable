@@ -3,7 +3,10 @@
    - markus@cvs.openbsd.org 2001/01/23 10:45:10
      [ssh.h]
      nuke comment            
- - (bal) no 64bit support patch from  Tim Rice <tim@multitalents.net>
+ - (bal) no 64bit support patch from Tim Rice <tim@multitalents.net>
+ - (bal) #ifdef around S_IFSOCK if platform does not support it.
+   patch by Tim Rice <tim@multitalents.net>
+ - (bal) fake-regex.h cleanup based on Tim Rice's patch.
 
 20010123
  - (bal) regexp.h typo in configure.in.  Should have been regex.h
