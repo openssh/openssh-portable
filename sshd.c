@@ -827,9 +827,17 @@ main(int ac, char **av)
 	__progname = get_progname(av[0]);
 	init_rng();
 
-	/* Save argv. */
+	/* Save argv. Duplicate so setproctitle emulation doesn't clobber it */
 	saved_argc = ac;
 	saved_argv = av;
+	saved_argv = xmalloc(sizeof(*saved_argv) * ac);
+	for (i = 0; i < ac; i++)
+		saved_argv[i] = xstrdup(av[i]);
+
+#ifndef HAVE_SETPROCTITLE
+	/* Prepare for later setproctitle emulation */
+	compat_init_setproctitle(ac, av);
+#endif
 
 	/* Initialize configuration options to their default values. */
 	initialize_server_options(&options);
