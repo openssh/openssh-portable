@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.19 2002/06/26 14:49:36 deraadt Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.20 2002/06/27 09:08:00 deraadt Exp $");
 
 #include <openssl/dh.h>
 
@@ -1456,7 +1456,7 @@ mm_zalloc(struct mm_master *mm, u_int ncount, u_int size)
 	int len = size * ncount;
 	void *address;
 
-	if (len <= 0)
+	if (len <= 0 || size > 65535 || ncount > 65535)
 		fatal("%s: mm_zalloc(%u, %u)", __func__, ncount, size);
 
 	address = mm_malloc(mm, len);
