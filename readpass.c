@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: readpass.c,v 1.2 1999/11/24 13:26:22 damien Exp $");
+RCSID("$Id: readpass.c,v 1.3 1999/11/25 00:54:59 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -38,10 +38,12 @@ intr_handler(int sig)
 	kill(getpid(), sig);
 }
 
-/* Reads a passphrase from /dev/tty with echo turned off.  Returns the
-   passphrase (allocated with xmalloc).  Exits if EOF is encountered.
-   The passphrase if read from stdin if from_stdin is true (as is the
-   case with ssh-keygen).  */
+/*
+ * Reads a passphrase from /dev/tty with echo turned off.  Returns the
+ * passphrase (allocated with xmalloc).  Exits if EOF is encountered. The
+ * passphrase if read from stdin if from_stdin is true (as is the case with
+ * ssh-keygen).
+ */
 
 char *
 read_passphrase(const char *prompt, int from_stdin)
@@ -53,8 +55,10 @@ read_passphrase(const char *prompt, int from_stdin)
 	if (from_stdin)
 		f = stdin;
 	else {
-		/* Read the passphrase from /dev/tty to make it possible
-		   to ask it even when stdin has been redirected. */
+		/*
+		 * Read the passphrase from /dev/tty to make it possible to
+		 * ask it even when stdin has been redirected.
+		 */
 		f = fopen("/dev/tty", "r");
 		if (!f) {
 			/* No controlling terminal and no DISPLAY.  Nowhere to read. */
@@ -101,8 +105,10 @@ read_passphrase(const char *prompt, int from_stdin)
 		*strchr(buf, '\n') = 0;
 	/* Allocate a copy of the passphrase. */
 	cp = xstrdup(buf);
-	/* Clear the buffer so we don\'t leave copies of the passphrase
-	   laying around. */
+	/*
+	 * Clear the buffer so we don\'t leave copies of the passphrase
+	 * laying around.
+	 */
 	memset(buf, 0, sizeof(buf));
 	/* Print a newline since the prompt probably didn\'t have one. */
 	fprintf(stderr, "\n");

@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.22 1999/11/24 00:26:03 deraadt Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.23 1999/11/24 19:53:51 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -9,7 +9,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.22 1999/11/24 00:26:03 deraadt Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.23 1999/11/24 19:53:51 markus Exp $");
 
 #include "ssh.h"
 #include "rsa.h"
@@ -189,10 +189,12 @@ process_remove_identity(SocketEntry *e)
 	/* Check if we have the key. */
 	for (i = 0; i < num_identities; i++)
 		if (BN_cmp(identities[i].key->n, n) == 0) {
-			/* We have this key.  Free the old key.  Since we
-			   don\'t want to leave empty slots in the middle
-			   of the array, we actually free the key there
-			   and copy data from the last entry. */
+			/*
+			 * We have this key.  Free the old key.  Since we
+			 * don\'t want to leave empty slots in the middle of
+			 * the array, we actually free the key there and copy
+			 * data from the last entry.
+			 */
 			RSA_free(identities[i].key);
 			xfree(identities[i].comment);
 			if (i < num_identities - 1)
@@ -291,8 +293,10 @@ process_add_identity(SocketEntry *e)
 	/* Check if we already have the key. */
 	for (i = 0; i < num_identities; i++)
 		if (BN_cmp(identities[i].key->n, k->n) == 0) {
-			/* We already have this key.  Clear and free the
-			   new data and return success. */
+			/*
+			 * We already have this key.  Clear and free the new
+			 * data and return success.
+			 */
 			RSA_free(k);
 			xfree(identities[num_identities].comment);
 
@@ -511,11 +515,7 @@ main(int ac, char **av)
 			__progname);
 		exit(1);
 	}
-#if defined(__GNU_LIBRARY__)
-	while ((ch = getopt(ac, av, "+cks")) != -1) {
-#else 
 	while ((ch = getopt(ac, av, "cks")) != -1) {
-#endif /* defined(__GNU_LIBRARY__) */
 		switch (ch) {
 		case 'c':
 			if (s_flag)
@@ -579,8 +579,10 @@ main(int ac, char **av)
 	snprintf(socket_name, sizeof socket_name, "%s/agent.%d", socket_dir,
 		 parent_pid);
 
-	/* Create socket early so it will exist before command gets run
-	   from the parent.  */
+	/*
+	 * Create socket early so it will exist before command gets run from
+	 * the parent.
+	 */
 	sock = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (sock < 0) {
 		perror("socket");
@@ -597,9 +599,10 @@ main(int ac, char **av)
 		perror("listen");
 		cleanup_exit(1);
 	}
-	/* Fork, and have the parent execute the command, if any, or
-	   present the socket data.  The child continues as the
-	   authentication agent. */
+	/*
+	 * Fork, and have the parent execute the command, if any, or present
+	 * the socket data.  The child continues as the authentication agent.
+	 */
 	pid = fork();
 	if (pid == -1) {
 		perror("fork");

@@ -16,7 +16,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: auth-rsa.c,v 1.9 1999/11/24 13:26:21 damien Exp $");
+RCSID("$Id: auth-rsa.c,v 1.10 1999/11/25 00:54:57 damien Exp $");
 
 #include "rsa.h"
 #include "packet.h"
@@ -43,22 +43,27 @@ extern int no_pty_flag;
 extern char *forced_command;
 extern struct envstring *custom_environment;
 
-/* Session identifier that is used to bind key exchange and authentication
-   responses to a particular session. */
+/*
+ * Session identifier that is used to bind key exchange and authentication
+ * responses to a particular session.
+ */
 extern unsigned char session_id[16];
 
-/* The .ssh/authorized_keys file contains public keys, one per line, in the
-   following format:
-     options bits e n comment
-   where bits, e and n are decimal numbers,
-   and comment is any string of characters up to newline.  The maximum
-   length of a line is 8000 characters.  See the documentation for a
-   description of the options.
-*/
+/*
+ * The .ssh/authorized_keys file contains public keys, one per line, in the
+ * following format:
+ *   options bits e n comment
+ * where bits, e and n are decimal numbers,
+ * and comment is any string of characters up to newline.  The maximum
+ * length of a line is 8000 characters.  See the documentation for a
+ * description of the options.
+ */
 
-/* Performs the RSA authentication challenge-response dialog with the client,
-   and returns true (non-zero) if the client gave the correct answer to
-   our challenge; returns zero if the client gives a wrong answer. */
+/*
+ * Performs the RSA authentication challenge-response dialog with the client,
+ * and returns true (non-zero) if the client gave the correct answer to
+ * our challenge; returns zero if the client gives a wrong answer.
+ */
 
 int
 auth_rsa_challenge_dialog(BIGNUM *e, BIGNUM *n)
@@ -128,9 +133,11 @@ auth_rsa_challenge_dialog(BIGNUM *e, BIGNUM *n)
 	return 1;
 }
 
-/* Performs the RSA authentication dialog with the client.  This returns
-   0 if the client could not be authenticated, and 1 if authentication was
-   successful.  This may exit if there is a serious protocol violation. */
+/*
+ * Performs the RSA authentication dialog with the client.  This returns
+ * 0 if the client could not be authenticated, and 1 if authentication was
+ * successful.  This may exit if there is a serious protocol violation.
+ */
 
 int
 auth_rsa(struct passwd *pw, BIGNUM *client_n)
@@ -204,30 +211,32 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 	/* Flag indicating whether authentication has succeeded. */
 	authenticated = 0;
 
-	/* Initialize mp-int variables. */
 	e = BN_new();
 	n = BN_new();
 
-	/* Go though the accepted keys, looking for the current key.  If
-	   found, perform a challenge-response dialog to verify that the
-	   user really has the corresponding private key. */
+	/*
+	 * Go though the accepted keys, looking for the current key.  If
+	 * found, perform a challenge-response dialog to verify that the
+	 * user really has the corresponding private key.
+	 */
 	while (fgets(line, sizeof(line), f)) {
 		char *cp;
 		char *options;
 
 		linenum++;
 
-		/* Skip leading whitespace. */
-		for (cp = line; *cp == ' ' || *cp == '\t'; cp++);
-
-		/* Skip empty and comment lines. */
+		/* Skip leading whitespace, empty and comment lines. */
+		for (cp = line; *cp == ' ' || *cp == '\t'; cp++)
+			;
 		if (!*cp || *cp == '\n' || *cp == '#')
 			continue;
 
-		/* Check if there are options for this key, and if so,
-		   save their starting address and skip the option part
-		   for now.  If there are no options, set the starting
-		   address to NULL. */
+		/*
+		 * Check if there are options for this key, and if so,
+		 * save their starting address and skip the option part
+		 * for now.  If there are no options, set the starting
+		 * address to NULL.
+		 */
 		if (*cp < '0' || *cp > '9') {
 			int quoted = 0;
 			options = cp;
@@ -258,7 +267,7 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 
 		/* Check if the we have found the desired key (identified by its modulus). */
 		if (BN_cmp(n, client_n) != 0)
-			continue;	/* Wrong key. */
+			continue;
 
 		/* We have found the desired key. */
 
@@ -269,10 +278,12 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 			packet_send_debug("Wrong response to RSA authentication challenge.");
 			continue;
 		}
-		/* Correct response.  The client has been successfully
-		   authenticated. Note that we have not yet processed the
-		   options; this will be reset if the options cause the
-		   authentication to be rejected. */
+		/*
+		 * Correct response.  The client has been successfully
+		 * authenticated. Note that we have not yet processed the
+		 * options; this will be reset if the options cause the
+		 * authentication to be rejected.
+		 */
 		authenticated = 1;
 
 		/* RSA part of authentication was accepted.  Now process the options. */
@@ -412,7 +423,6 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 					goto next_option;
 				}
 		bad_option:
-				/* Unknown option. */
 				log("Bad options in %.100s file, line %lu: %.50s",
 				    SSH_USER_PERMITTED_KEYS, linenum, options);
 				packet_send_debug("Bad options in %.100s file, line %lu: %.50s",
@@ -421,12 +431,14 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 				break;
 
 		next_option:
-				/* Skip the comma, and move to the next option
-				   (or break out if there are no more). */
+				/*
+				 * Skip the comma, and move to the next option
+				 * (or break out if there are no more).
+				 */
 				if (!*options)
 					fatal("Bugs in auth-rsa.c option processing.");
 				if (*options == ' ' || *options == '\t')
-					break;	/* End of options. */
+					break;		/* End of options. */
 				if (*options != ',')
 					goto bad_option;
 				options++;
@@ -434,8 +446,10 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 				continue;
 			}
 		}
-		/* Break out of the loop if authentication was successful;
-		   otherwise continue searching. */
+		/*
+		 * Break out of the loop if authentication was successful;
+		 * otherwise continue searching.
+		 */
 		if (authenticated)
 			break;
 	}
@@ -446,7 +460,6 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 	/* Close the file. */
 	fclose(f);
 
-	/* Clear any mp-int variables. */
 	BN_clear_free(n);
 	BN_clear_free(e);
 

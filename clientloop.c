@@ -15,7 +15,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: clientloop.c,v 1.5 1999/11/24 13:26:22 damien Exp $");
+RCSID("$Id: clientloop.c,v 1.6 1999/11/25 00:54:58 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -27,22 +27,28 @@ RCSID("$Id: clientloop.c,v 1.5 1999/11/24 13:26:22 damien Exp $");
 /* Flag indicating that stdin should be redirected from /dev/null. */
 extern int stdin_null_flag;
 
-/* Name of the host we are connecting to.  This is the name given on the
-   command line, or the HostName specified for the user-supplied name
-   in a configuration file. */
+/*
+ * Name of the host we are connecting to.  This is the name given on the
+ * command line, or the HostName specified for the user-supplied name in a
+ * configuration file.
+ */
 extern char *host;
 
-/* Flag to indicate that we have received a window change signal which has
-   not yet been processed.  This will cause a message indicating the new
-   window size to be sent to the server a little later.  This is volatile
-   because this is updated in a signal handler. */
+/*
+ * Flag to indicate that we have received a window change signal which has
+ * not yet been processed.  This will cause a message indicating the new
+ * window size to be sent to the server a little later.  This is volatile
+ * because this is updated in a signal handler.
+ */
 static volatile int received_window_change_signal = 0;
 
 /* Terminal modes, as saved by enter_raw_mode. */
 static struct termios saved_tio;
 
-/* Flag indicating whether we are in raw mode.  This is used by enter_raw_mode
-   and leave_raw_mode. */
+/*
+ * Flag indicating whether we are in raw mode.  This is used by
+ * enter_raw_mode and leave_raw_mode.
+ */
 static int in_raw_mode = 0;
 
 /* Flag indicating whether the user\'s terminal is in non-blocking mode. */
@@ -64,8 +70,7 @@ static unsigned long stdin_bytes, stdout_bytes, stderr_bytes;
 static int quit_pending;	/* Set to non-zero to quit the client loop. */
 static int escape_char;		/* Escape character. */
 
-/* Returns the user\'s terminal to normal mode if it had been put in raw
-   mode. */
+/* Returns the user\'s terminal to normal mode if it had been put in raw mode. */
 
 void 
 leave_raw_mode()
@@ -127,8 +132,10 @@ enter_non_blocking()
 	fatal_add_cleanup((void (*) (void *)) leave_non_blocking, NULL);
 }
 
-/* Signal handler for the window change signal (SIGWINCH).  This just
-   sets a flag indicating that the window has changed. */
+/*
+ * Signal handler for the window change signal (SIGWINCH).  This just sets a
+ * flag indicating that the window has changed.
+ */
 
 void 
 window_change_handler(int sig)
@@ -137,8 +144,10 @@ window_change_handler(int sig)
 	signal(SIGWINCH, window_change_handler);
 }
 
-/* Signal handler for signals that cause the program to terminate.  These
-   signals must be trapped to restore terminal modes. */
+/*
+ * Signal handler for signals that cause the program to terminate.  These
+ * signals must be trapped to restore terminal modes.
+ */
 
 void 
 signal_handler(int sig)
@@ -152,8 +161,10 @@ signal_handler(int sig)
 	fatal("Killed by signal %d.", sig);
 }
 
-/* Returns current time in seconds from Jan 1, 1970 with the maximum available
-   resolution. */
+/*
+ * Returns current time in seconds from Jan 1, 1970 with the maximum
+ * available resolution.
+ */
 
 double 
 get_current_time()
@@ -163,9 +174,11 @@ get_current_time()
 	return (double) tv.tv_sec + (double) tv.tv_usec / 1000000.0;
 }
 
-/* This is called when the interactive is entered.  This checks if there
-   is an EOF coming on stdin.  We must check this explicitly, as select()
-   does not appear to wake up when redirecting from /dev/null. */
+/*
+ * This is called when the interactive is entered.  This checks if there is
+ * an EOF coming on stdin.  We must check this explicitly, as select() does
+ * not appear to wake up when redirecting from /dev/null.
+ */
 
 void 
 client_check_initial_eof_on_stdin()
@@ -173,13 +186,14 @@ client_check_initial_eof_on_stdin()
 	int len;
 	char buf[1];
 
-	/* If standard input is to be "redirected from /dev/null", we
-	   simply mark that we have seen an EOF and send an EOF message to
-	   the server. Otherwise, we try to read a single character; it
-	   appears that for some files, such /dev/null, select() never
-	   wakes up for read for this descriptor, which means that we
-	   never get EOF.  This way we will get the EOF if stdin comes
-	   from /dev/null or similar. */
+	/*
+	 * If standard input is to be "redirected from /dev/null", we simply
+	 * mark that we have seen an EOF and send an EOF message to the
+	 * server. Otherwise, we try to read a single character; it appears
+	 * that for some files, such /dev/null, select() never wakes up for
+	 * read for this descriptor, which means that we never get EOF.  This
+	 * way we will get the EOF if stdin comes from /dev/null or similar.
+	 */
 	if (stdin_null_flag) {
 		/* Fake EOF on stdin. */
 		debug("Sending eof.");
@@ -187,22 +201,22 @@ client_check_initial_eof_on_stdin()
 		packet_start(SSH_CMSG_EOF);
 		packet_send();
 	} else {
-		/* Enter non-blocking mode for stdin. */
 		enter_non_blocking();
 
 		/* Check for immediate EOF on stdin. */
 		len = read(fileno(stdin), buf, 1);
 		if (len == 0) {
-			/* EOF.  Record that we have seen it and send EOF
-			   to server. */
+			/* EOF.  Record that we have seen it and send EOF to server. */
 			debug("Sending eof.");
 			stdin_eof = 1;
 			packet_start(SSH_CMSG_EOF);
 			packet_send();
 		} else if (len > 0) {
-			/* Got data.  We must store the data in the
-			   buffer, and also process it as an escape
-			   character if appropriate. */
+			/*
+			 * Got data.  We must store the data in the buffer,
+			 * and also process it as an escape character if
+			 * appropriate.
+			 */
 			if ((unsigned char) buf[0] == escape_char)
 				escape_pending = 1;
 			else {
@@ -210,13 +224,14 @@ client_check_initial_eof_on_stdin()
 				stdin_bytes += 1;
 			}
 		}
-		/* Leave non-blocking mode. */
 		leave_non_blocking();
 	}
 }
 
-/* Get packets from the connection input buffer, and process them as long
-   as there are packets available. */
+/*
+ * Get packets from the connection input buffer, and process them as long as
+ * there are packets available.
+ */
 
 void 
 client_process_buffered_input_packets()
@@ -255,8 +270,10 @@ client_process_buffered_input_packets()
 			/* Acknowledge the exit. */
 			packet_start(SSH_CMSG_EXIT_CONFIRMATION);
 			packet_send();
-			/* Must wait for packet to be sent since we are
-			   exiting the loop. */
+			/*
+			 * Must wait for packet to be sent since we are
+			 * exiting the loop.
+			 */
 			packet_write_wait();
 			/* Flag that we want to exit. */
 			quit_pending = 1;
@@ -300,20 +317,24 @@ client_process_buffered_input_packets()
 			break;
 
 		default:
-			/* Any unknown packets received during the actual
-			   session cause the session to terminate.  This
-			   is intended to make debugging easier since no
-			   confirmations are sent.  Any compatible
-			   protocol extensions must be negotiated during
-			   the preparatory phase. */
+			/*
+			 * Any unknown packets received during the actual
+			 * session cause the session to terminate.  This is
+			 * intended to make debugging easier since no
+			 * confirmations are sent.  Any compatible protocol
+			 * extensions must be negotiated during the
+			 * preparatory phase.
+			 */
 			packet_disconnect("Protocol error during session: type %d",
 					  type);
 		}
 	}
 }
 
-/* Make packets from buffered stdin data, and buffer them for sending to
-   the connection. */
+/*
+ * Make packets from buffered stdin data, and buffer them for sending to the
+ * connection.
+ */
 
 void 
 client_make_packets_from_stdin_data()
@@ -339,10 +360,12 @@ client_make_packets_from_stdin_data()
 	}
 }
 
-/* Checks if the client window has changed, and sends a packet about it to
-   the server if so.  The actual change is detected elsewhere (by a software
-   interrupt on Unix); this just checks the flag and sends a message if
-   appropriate. */
+/*
+ * Checks if the client window has changed, and sends a packet about it to
+ * the server if so.  The actual change is detected elsewhere (by a software
+ * interrupt on Unix); this just checks the flag and sends a message if
+ * appropriate.
+ */
 
 void 
 client_check_window_change()
@@ -367,8 +390,10 @@ client_check_window_change()
 	}
 }
 
-/* Waits until the client can do something (some data becomes available on
-   one of the file descriptors). */
+/*
+ * Waits until the client can do something (some data becomes available on
+ * one of the file descriptors).
+ */
 
 void 
 client_wait_until_can_do_something(fd_set * readset, fd_set * writeset)
@@ -382,8 +407,10 @@ client_wait_until_can_do_something(fd_set * readset, fd_set * writeset)
 	    channel_not_very_much_buffered_data())
 		FD_SET(connection_in, readset);
 
-	/* Read from stdin, unless we have seen EOF or have very much
-	   buffered data to send to the server. */
+	/*
+	 * Read from stdin, unless we have seen EOF or have very much
+	 * buffered data to send to the server.
+	 */
 	if (!stdin_eof && packet_not_very_much_data_to_write())
 		FD_SET(fileno(stdin), readset);
 
@@ -408,13 +435,14 @@ client_wait_until_can_do_something(fd_set * readset, fd_set * writeset)
 	if (channel_max_fd() > max_fd)
 		max_fd = channel_max_fd();
 
-	/* Wait for something to happen.  This will suspend the process
-	   until some selected descriptor can be read, written, or has
-	   some other event pending. 
-	   Note: if you want to implement SSH_MSG_IGNORE messages to fool
-	   traffic analysis, this might be the place to do it:
-	   just have a random timeout for the select, and send a random
-	   SSH_MSG_IGNORE packet when the timeout expires. */
+	/*
+	 * Wait for something to happen.  This will suspend the process until
+	 * some selected descriptor can be read, written, or has some other
+	 * event pending. Note: if you want to implement SSH_MSG_IGNORE
+	 * messages to fool traffic analysis, this might be the place to do
+	 * it: just have a random timeout for the select, and send a random
+	 * SSH_MSG_IGNORE packet when the timeout expires.
+	 */
 
 	if (select(max_fd + 1, readset, writeset, NULL, NULL) < 0) {
 		char buf[100];
@@ -446,11 +474,12 @@ client_suspend_self()
 		      buffer_ptr(&stderr_buffer),
 		      buffer_len(&stderr_buffer));
 
-	/* Leave raw mode. */
 	leave_raw_mode();
 
-	/* Free (and clear) the buffer to reduce the amount of data that
-	   gets written to swap. */
+	/*
+	 * Free (and clear) the buffer to reduce the amount of data that gets
+	 * written to swap.
+	 */
 	buffer_free(&stdin_buffer);
 	buffer_free(&stdout_buffer);
 	buffer_free(&stderr_buffer);
@@ -474,7 +503,6 @@ client_suspend_self()
 	buffer_init(&stdout_buffer);
 	buffer_init(&stderr_buffer);
 
-	/* Re-enter raw mode. */
 	enter_raw_mode();
 }
 
@@ -484,8 +512,10 @@ client_process_input(fd_set * readset)
 	int len, pid;
 	char buf[8192], *s;
 
-	/* Read input from the server, and add any such data to the buffer
-	   of the packet subsystem. */
+	/*
+	 * Read input from the server, and add any such data to the buffer of
+	 * the packet subsystem.
+	 */
 	if (FD_ISSET(connection_in, readset)) {
 		/* Read as much as possible. */
 		len = read(connection_in, buf, sizeof(buf));
@@ -498,9 +528,10 @@ client_process_input(fd_set * readset)
 			quit_pending = 1;
 			return;
 		}
-		/* There is a kernel bug on Solaris that causes select to
-		   sometimes wake up even though there is no data
-		   available. */
+		/*
+		 * There is a kernel bug on Solaris that causes select to
+		 * sometimes wake up even though there is no data available.
+		 */
 		if (len < 0 && errno == EAGAIN)
 			len = 0;
 
@@ -520,9 +551,11 @@ client_process_input(fd_set * readset)
 		/* Read as much as possible. */
 		len = read(fileno(stdin), buf, sizeof(buf));
 		if (len <= 0) {
-			/* Received EOF or error.  They are treated
-			   similarly, except that an error message is
-			   printed if it was an error condition. */
+			/*
+			 * Received EOF or error.  They are treated
+			 * similarly, except that an error message is printed
+			 * if it was an error condition.
+			 */
 			if (len < 0) {
 				snprintf(buf, sizeof buf, "read: %.100s\r\n", strerror(errno));
 				buffer_append(&stderr_buffer, buf, strlen(buf));
@@ -530,32 +563,35 @@ client_process_input(fd_set * readset)
 			}
 			/* Mark that we have seen EOF. */
 			stdin_eof = 1;
-			/* Send an EOF message to the server unless there
-			   is data in the buffer.  If there is data in the
-			   buffer, no message will be sent now.  Code
-			   elsewhere will send the EOF when the buffer
-			   becomes empty if stdin_eof is set. */
+			/*
+			 * Send an EOF message to the server unless there is
+			 * data in the buffer.  If there is data in the
+			 * buffer, no message will be sent now.  Code
+			 * elsewhere will send the EOF when the buffer
+			 * becomes empty if stdin_eof is set.
+			 */
 			if (buffer_len(&stdin_buffer) == 0) {
 				packet_start(SSH_CMSG_EOF);
 				packet_send();
 			}
 		} else if (escape_char == -1) {
-			/* Normal successful read, and no escape
-			   character.  Just append the data to buffer. */
+			/*
+			 * Normal successful read, and no escape character.
+			 * Just append the data to buffer.
+			 */
 			buffer_append(&stdin_buffer, buf, len);
 			stdin_bytes += len;
 		} else {
-			/* Normal, successful read.  But we have an escape
-			   character and have to process the characters
-			   one by one. */
+			/*
+			 * Normal, successful read.  But we have an escape character
+			 * and have to process the characters one by one.
+			 */
 			unsigned int i;
 			for (i = 0; i < len; i++) {
 				unsigned char ch;
 				/* Get one character at a time. */
 				ch = buf[i];
 
-				/* Check if we have a pending escape
-				   character. */
 				if (escape_pending) {
 					/* We have previously seen an escape character. */
 					/* Clear the flag now. */
@@ -584,12 +620,16 @@ client_process_input(fd_set * readset)
 						continue;
 
 					case '&':
-						/* Detach the program (continue to serve connections,
-						   but put in background and no more new connections). */
+						/*
+						 * Detach the program (continue to serve connections,
+						 * but put in background and no more new connections).
+						 */
 						if (!stdin_eof) {
-							/* Sending SSH_CMSG_EOF alone does not always appear
-							   to be enough.  So we try to send an EOF character
-							   first. */
+							/*
+							 * Sending SSH_CMSG_EOF alone does not always appear
+							 * to be enough.  So we try to send an EOF character
+							 * first.
+							 */
 							packet_start(SSH_CMSG_STDIN_DATA);
 							packet_put_string("\004", 1);
 							packet_send();
@@ -646,22 +686,28 @@ Supported escape sequences:\r\n\
 
 					default:
 						if (ch != escape_char) {
-							/* Escape character followed by non-special character.
-							   Append both to the input buffer. */
+							/*
+							 * Escape character followed by non-special character.
+							 * Append both to the input buffer.
+							 */
 							buf[0] = escape_char;
 							buf[1] = ch;
 							buffer_append(&stdin_buffer, buf, 2);
 							stdin_bytes += 2;
 							continue;
 						}
-						/* Note that escape character typed twice
-						   falls through here; the latter gets processed
-						   as a normal character below. */
+						/*
+						 * Note that escape character typed twice
+						 * falls through here; the latter gets processed
+						 * as a normal character below.
+						 */
 						break;
 					}
 				} else {
-					/* The previous character was not an escape char. Check if this
-					   is an escape. */
+					/*
+					 * The previous character was not an escape char. Check if this
+					 * is an escape.
+					 */
 					if (last_was_cr && ch == escape_char) {
 						/* It is. Set the flag and continue to next character. */
 						escape_pending = 1;
@@ -669,8 +715,10 @@ Supported escape sequences:\r\n\
 					}
 				}
 
-				/* Normal character.  Record whether it was a newline, and append it to the
-				   buffer. */
+				/*
+				 * Normal character.  Record whether it was a newline,
+				 * and append it to the buffer.
+				 */
 				last_was_cr = (ch == '\r' || ch == '\n');
 				buf[0] = ch;
 				buffer_append(&stdin_buffer, buf, 1);
@@ -696,8 +744,10 @@ client_process_output(fd_set * writeset)
 			if (errno == EAGAIN)
 				len = 0;
 			else {
-				/* An error or EOF was encountered.  Put
-				   an error message to stderr buffer. */
+				/*
+				 * An error or EOF was encountered.  Put an
+				 * error message to stderr buffer.
+				 */
 				snprintf(buf, sizeof buf, "write stdout: %.50s\r\n", strerror(errno));
 				buffer_append(&stderr_buffer, buf, strlen(buf));
 				stderr_bytes += strlen(buf);
@@ -717,8 +767,7 @@ client_process_output(fd_set * writeset)
 			if (errno == EAGAIN)
 				len = 0;
 			else {
-				/* EOF or error, but can't even print
-				   error message. */
+				/* EOF or error, but can't even print error message. */
 				quit_pending = 1;
 				return;
 			}
@@ -728,11 +777,12 @@ client_process_output(fd_set * writeset)
 	}
 }
 
-/* Implements the interactive session with the server.  This is called
-   after the user has been authenticated, and a command has been
-   started on the remote host.  If escape_char != -1, it is the character
-   used as an escape character for terminating or suspending the
-   session. */
+/*
+ * Implements the interactive session with the server.  This is called after
+ * the user has been authenticated, and a command has been started on the
+ * remote host.  If escape_char != -1, it is the character used as an escape
+ * character for terminating or suspending the session.
+ */
 
 int 
 client_loop(int have_pty, int escape_char_arg)
@@ -776,7 +826,6 @@ client_loop(int have_pty, int escape_char_arg)
 	if (have_pty)
 		signal(SIGWINCH, window_change_handler);
 
-	/* Enter raw mode if have a pseudo terminal. */
 	if (have_pty)
 		enter_raw_mode();
 
@@ -787,27 +836,35 @@ client_loop(int have_pty, int escape_char_arg)
 	while (!quit_pending) {
 		fd_set readset, writeset;
 
-		/* Precess buffered packets sent by the server. */
+		/* Process buffered packets sent by the server. */
 		client_process_buffered_input_packets();
 
-		/* Make packets of buffered stdin data, and buffer them
-		   for sending to the server. */
+		/*
+		 * Make packets of buffered stdin data, and buffer them for
+		 * sending to the server.
+		 */
 		client_make_packets_from_stdin_data();
 
-		/* Make packets from buffered channel data, and buffer
-		   them for sending to the server. */
+		/*
+		 * Make packets from buffered channel data, and buffer them
+		 * for sending to the server.
+		 */
 		if (packet_not_very_much_data_to_write())
 			channel_output_poll();
 
-		/* Check if the window size has changed, and buffer a
-		   message about it to the server if so. */
+		/*
+		 * Check if the window size has changed, and buffer a message
+		 * about it to the server if so.
+		 */
 		client_check_window_change();
 
 		if (quit_pending)
 			break;
 
-		/* Wait until we have something to do (something becomes
-		   available on one of the descriptors). */
+		/*
+		 * Wait until we have something to do (something becomes
+		 * available on one of the descriptors).
+		 */
 		client_wait_until_can_do_something(&readset, &writeset);
 
 		if (quit_pending)
@@ -816,16 +873,19 @@ client_loop(int have_pty, int escape_char_arg)
 		/* Do channel operations. */
 		channel_after_select(&readset, &writeset);
 
-		/* Process input from the connection and from stdin.
-		   Buffer any data that is available. */
+		/*
+		 * Process input from the connection and from stdin. Buffer
+		 * any data that is available.
+		 */
 		client_process_input(&readset);
 
-		/* Process output to stdout and stderr.   Output to the
-		   connection is processed elsewhere (above). */
+		/*
+		 * Process output to stdout and stderr.   Output to the
+		 * connection is processed elsewhere (above).
+		 */
 		client_process_output(&writeset);
 
-		/* Send as much buffered packet data as possible to the
-		   sender. */
+		/* Send as much buffered packet data as possible to the sender. */
 		if (FD_ISSET(connection_out, &writeset))
 			packet_write_poll();
 	}
@@ -839,8 +899,10 @@ client_loop(int have_pty, int escape_char_arg)
 	/* Stop listening for connections. */
 	channel_stop_listening();
 
-	/* In interactive mode (with pseudo tty) display a message
-	   indicating that the connection has been closed. */
+	/*
+	 * In interactive mode (with pseudo tty) display a message indicating
+	 * that the connection has been closed.
+	 */
 	if (have_pty && options.log_level != SYSLOG_LEVEL_QUIET) {
 		snprintf(buf, sizeof buf, "Connection to %.64s closed.\r\n", host);
 		buffer_append(&stderr_buffer, buf, strlen(buf));
@@ -868,7 +930,6 @@ client_loop(int have_pty, int escape_char_arg)
 		buffer_consume(&stderr_buffer, len);
 	}
 
-	/* Leave raw mode. */
 	if (have_pty)
 		leave_raw_mode();
 

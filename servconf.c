@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: servconf.c,v 1.6 1999/11/24 13:26:22 damien Exp $");
+RCSID("$Id: servconf.c,v 1.7 1999/11/25 00:54:59 damien Exp $");
 
 #include "ssh.h"
 #include "servconf.h"
@@ -212,8 +212,10 @@ static struct {
 	{ NULL, 0 }
 };
 
-/* Returns the number of the token pointed to by cp of length len.
-   Never returns if the token is not known. */
+/*
+ * Returns the number of the token pointed to by cp of length len. Never
+ * returns if the token is not known.
+ */
 
 static ServerOpCodes 
 parse_token(const char *cp, const char *filename,
@@ -222,7 +224,7 @@ parse_token(const char *cp, const char *filename,
 	unsigned int i;
 
 	for (i = 0; keywords[i].name; i++)
-		if (strcmp(cp, keywords[i].name) == 0)
+		if (strcasecmp(cp, keywords[i].name) == 0)
 			return keywords[i].opcode;
 
 	fprintf(stderr, "%s: line %d: Bad configuration option: %s\n",
@@ -254,13 +256,6 @@ read_server_config(ServerOptions *options, const char *filename)
 		if (!*cp || *cp == '#')
 			continue;
 		cp = strtok(cp, WHITESPACE);
-		{
-			char *t = cp;
-			for (; *t != 0; t++)
-				if ('A' <= *t && *t <= 'Z')
-					*t = *t - 'A' + 'a';	/* tolower */
-
-		}
 		opcode = parse_token(cp, filename, linenum);
 		switch (opcode) {
 		case sBadOption:

@@ -87,8 +87,10 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #define _PATH_RSH "/usr/bin/rsh"
 #endif /* _PATH_RSH */
 
-/* Define this to use pipes instead of socketpairs for communicating with the
-   client program.  Socketpairs do not seem to work on all systems. */
+/*
+ * Define this to use pipes instead of socketpairs for communicating with the
+ * client program.  Socketpairs do not seem to work on all systems.
+ */
 #define USE_PIPES 1
 
 #endif				/* INCLUDES_H */

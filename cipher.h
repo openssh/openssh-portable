@@ -11,7 +11,7 @@
  * 
  */
 
-/* RCSID("$Id: cipher.h,v 1.4 1999/11/24 13:26:22 damien Exp $"); */
+/* RCSID("$Id: cipher.h,v 1.5 1999/11/25 00:54:58 damien Exp $"); */
 
 #ifndef CIPHER_H
 #define CIPHER_H
@@ -54,26 +54,34 @@ typedef struct {
 		}       bf;
 	}       u;
 }       CipherContext;
-/* Returns a bit mask indicating which ciphers are supported by this
-   implementation.  The bit mask has the corresponding bit set of each
-   supported cipher. */
+/*
+ * Returns a bit mask indicating which ciphers are supported by this
+ * implementation.  The bit mask has the corresponding bit set of each
+ * supported cipher.
+ */
 unsigned int cipher_mask();
 
 /* Returns the name of the cipher. */
 const char *cipher_name(int cipher);
 
-/* Parses the name of the cipher.  Returns the number of the corresponding
-   cipher, or -1 on error. */
+/*
+ * Parses the name of the cipher.  Returns the number of the corresponding
+ * cipher, or -1 on error.
+ */
 int     cipher_number(const char *name);
 
-/* Selects the cipher to use and sets the key.  If for_encryption is true,
-   the key is setup for encryption; otherwise it is setup for decryption. */
+/*
+ * Selects the cipher to use and sets the key.  If for_encryption is true,
+ * the key is setup for encryption; otherwise it is setup for decryption.
+ */
 void 
 cipher_set_key(CipherContext * context, int cipher,
     const unsigned char *key, int keylen, int for_encryption);
 
-/* Sets key for the cipher by computing the MD5 checksum of the passphrase,
-   and using the resulting 16 bytes as the key. */
+/*
+ * Sets key for the cipher by computing the MD5 checksum of the passphrase,
+ * and using the resulting 16 bytes as the key.
+ */
 void 
 cipher_set_key_string(CipherContext * context, int cipher,
     const char *passphrase, int for_encryption);
@@ -88,8 +96,10 @@ void
 cipher_decrypt(CipherContext * context, unsigned char *dest,
     const unsigned char *src, unsigned int len);
 
-/* If and CRC-32 attack is detected this function is called. Defaults
- * to fatal, changed to packet_disconnect in sshd and ssh. */
-extern void (*cipher_attack_detected) (const char *fmt,...);
+/*
+ * If and CRC-32 attack is detected this function is called. Defaults to
+ * fatal, changed to packet_disconnect in sshd and ssh.
+ */
+extern void (*cipher_attack_detected) (const char *fmt, ...);
 
 #endif				/* CIPHER_H */

@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: cipher.c,v 1.7 1999/11/24 13:26:22 damien Exp $");
+RCSID("$Id: cipher.c,v 1.8 1999/11/25 00:54:58 damien Exp $");
 
 #include "ssh.h"
 #include "cipher.h"
@@ -121,8 +121,10 @@ detect_cbc_attack(const unsigned char *src,
 	cipher_attack_detected("CRC-32 CBC insertion attack detected");
 }
 
-/* Names of all encryption algorithms.  These must match the numbers defined
-   int cipher.h. */
+/*
+ * Names of all encryption algorithms.
+ * These must match the numbers defined in cipher.h.
+ */
 static char *cipher_names[] =
 {
 	"none",
@@ -134,9 +136,11 @@ static char *cipher_names[] =
 	"blowfish"
 };
 
-/* Returns a bit mask indicating which ciphers are supported by this
-   implementation.  The bit mask has the corresponding bit set of each
-   supported cipher. */
+/*
+ * Returns a bit mask indicating which ciphers are supported by this
+ * implementation.  The bit mask has the corresponding bit set of each
+ * supported cipher.
+ */
 
 unsigned int 
 cipher_mask()
@@ -158,8 +162,10 @@ cipher_name(int cipher)
 	return cipher_names[cipher];
 }
 
-/* Parses the name of the cipher.  Returns the number of the corresponding
-   cipher, or -1 on error. */
+/*
+ * Parses the name of the cipher.  Returns the number of the corresponding
+ * cipher, or -1 on error.
+ */
 
 int
 cipher_number(const char *name)
@@ -172,8 +178,10 @@ cipher_number(const char *name)
 	return -1;
 }
 
-/* Selects the cipher, and keys if by computing the MD5 checksum of the
-   passphrase and using the resulting 16 bytes as the key. */
+/*
+ * Selects the cipher, and keys if by computing the MD5 checksum of the
+ * passphrase and using the resulting 16 bytes as the key.
+ */
 
 void 
 cipher_set_key_string(CipherContext *context, int cipher,
@@ -211,15 +219,18 @@ cipher_set_key(CipherContext *context, int cipher,
 	/* Initialize the initialization vector. */
 	switch (cipher) {
 	case SSH_CIPHER_NONE:
-		/* Has to stay for authfile saving of private key with
-		   no passphrase */
+		/*
+		 * Has to stay for authfile saving of private key with no
+		 * passphrase
+		 */
 		break;
 
 	case SSH_CIPHER_3DES:
-		/* Note: the least significant bit of each byte of key is
-		   parity, and must be ignored by the implementation.  16
-		   bytes of key are used (first and last keys are the
-		   same). */
+		/*
+		 * Note: the least significant bit of each byte of key is
+		 * parity, and must be ignored by the implementation.  16
+		 * bytes of key are used (first and last keys are the same).
+		 */
 		if (keylen < 16)
 			error("Key length %d is insufficient for 3DES.", keylen);
 		des_set_key((void *) padded, context->u.des3.key1);

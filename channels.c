@@ -16,7 +16,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: channels.c,v 1.7 1999/11/24 13:26:22 damien Exp $");
+RCSID("$Id: channels.c,v 1.8 1999/11/25 00:54:58 damien Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -37,17 +37,23 @@ RCSID("$Id: channels.c,v 1.7 1999/11/24 13:26:22 damien Exp $");
 /* Max len of agent socket */
 #define MAX_SOCKET_NAME 100
 
-/* Pointer to an array containing all allocated channels.  The array is
-   dynamically extended as needed. */
+/*
+ * Pointer to an array containing all allocated channels.  The array is
+ * dynamically extended as needed.
+ */
 static Channel *channels = NULL;
 
-/* Size of the channel array.  All slots of the array must always be
-   initialized (at least the type field); unused slots are marked with
-   type SSH_CHANNEL_FREE. */
+/*
+ * Size of the channel array.  All slots of the array must always be
+ * initialized (at least the type field); unused slots are marked with type
+ * SSH_CHANNEL_FREE.
+ */
 static int channels_alloc = 0;
 
-/* Maximum file descriptor value used in any of the channels.  This is updated
-   in channel_allocate. */
+/*
+ * Maximum file descriptor value used in any of the channels.  This is
+ * updated in channel_allocate.
+ */
 static int channel_max_fd_value = 0;
 
 /* Name and directory of socket for authentication agent forwarding. */
@@ -61,15 +67,19 @@ char *x11_saved_proto = NULL;
 char *x11_saved_data = NULL;
 unsigned int x11_saved_data_len = 0;
 
-/* Fake X11 authentication data.  This is what the server will be sending
-   us; we should replace any occurrences of this by the real data. */
+/*
+ * Fake X11 authentication data.  This is what the server will be sending us;
+ * we should replace any occurrences of this by the real data.
+ */
 char *x11_fake_data = NULL;
 unsigned int x11_fake_data_len;
 
-/* Data structure for storing which hosts are permitted for forward requests.
-   The local sides of any remote forwards are stored in this array to prevent
-   a corrupt remote server from accessing arbitrary TCP/IP ports on our
-   local network (which might be behind a firewall). */
+/*
+ * Data structure for storing which hosts are permitted for forward requests.
+ * The local sides of any remote forwards are stored in this array to prevent
+ * a corrupt remote server from accessing arbitrary TCP/IP ports on our local
+ * network (which might be behind a firewall).
+ */
 typedef struct {
 	char *host;		/* Host name. */
 	int port;		/* Port number. */
@@ -79,9 +89,11 @@ typedef struct {
 static ForwardPermission permitted_opens[SSH_MAX_FORWARDS_PER_DIRECTION];
 /* Number of permitted host/port pairs in the array. */
 static int num_permitted_opens = 0;
-/* If this is true, all opens are permitted.  This is the case on the
-   server on which we have to trust the client anyway, and the user could
-   do anything after logging in anyway. */
+/*
+ * If this is true, all opens are permitted.  This is the case on the server
+ * on which we have to trust the client anyway, and the user could do
+ * anything after logging in anyway.
+ */
 static int all_opens_permitted = 0;
 
 /* This is set to true if both sides support SSH_PROTOFLAG_HOST_IN_FWD_OPEN. */
@@ -95,9 +107,11 @@ channel_set_options(int hostname_in_open)
 	have_hostname_in_open = hostname_in_open;
 }
 
-/* Permits opening to any host/port in SSH_MSG_PORT_OPEN.  This is usually
-   called by the server, because the user could connect to any port anyway,
-   and the server has no way to know but to trust the client anyway. */
+/*
+ * Permits opening to any host/port in SSH_MSG_PORT_OPEN.  This is usually
+ * called by the server, because the user could connect to any port anyway,
+ * and the server has no way to know but to trust the client anyway.
+ */
 
 void 
 channel_permit_all_opens()
@@ -105,8 +119,10 @@ channel_permit_all_opens()
 	all_opens_permitted = 1;
 }
 
-/* Allocate a new channel object and set its type and socket.
-   This will cause remote_name to be freed. */
+/*
+ * Allocate a new channel object and set its type and socket. This will cause
+ * remote_name to be freed.
+ */
 
 int 
 channel_allocate(int type, int sock, char *remote_name)
@@ -117,6 +133,7 @@ channel_allocate(int type, int sock, char *remote_name)
 	/* Update the maximum file descriptor value. */
 	if (sock > channel_max_fd_value)
 		channel_max_fd_value = sock;
+	/* XXX set close-on-exec -markus */
 
 	/* Do initial allocation if this is the first call. */
 	if (channels_alloc == 0) {
@@ -124,9 +141,10 @@ channel_allocate(int type, int sock, char *remote_name)
 		channels = xmalloc(channels_alloc * sizeof(Channel));
 		for (i = 0; i < channels_alloc; i++)
 			channels[i].type = SSH_CHANNEL_FREE;
-
-		/* Kludge: arrange a call to channel_stop_listening if we
-		   terminate with fatal(). */
+		/*
+		 * Kludge: arrange a call to channel_stop_listening if we
+		 * terminate with fatal().
+		 */
 		fatal_add_cleanup((void (*) (void *)) channel_stop_listening, NULL);
 	}
 	/* Try to find a free slot where to put the new channel. */
@@ -137,8 +155,7 @@ channel_allocate(int type, int sock, char *remote_name)
 			break;
 		}
 	if (found == -1) {
-		/* There are no free slots.  Take last+1 slot and expand
-		   the array.  */
+		/* There are no free slots.  Take last+1 slot and expand the array.  */
 		found = channels_alloc;
 		channels_alloc += 10;
 		debug("channel: expanding %d", channels_alloc);
@@ -181,8 +198,10 @@ channel_free(int channel)
 	}
 }
 
-/* This is called just before select() to add any bits relevant to
-   channels in the select bitmasks. */
+/*
+ * This is called just before select() to add any bits relevant to channels
+ * in the select bitmasks.
+ */
 
 void 
 channel_prepare_select(fd_set * readset, fd_set * writeset)
@@ -248,15 +267,16 @@ redo:
 			break;
 
 		case SSH_CHANNEL_X11_OPEN:
-			/* This is a special state for X11 authentication
-			   spoofing.  An opened X11 connection (when
-			   authentication spoofing is being done) remains
-			   in this state until the first packet has been
-			   completely read.  The authentication data in
-			   that packet is then substituted by the real
-			   data if it matches the fake data, and the
-			   channel is put into normal mode. */
-
+			/*
+			 * This is a special state for X11 authentication
+			 * spoofing.  An opened X11 connection (when
+			 * authentication spoofing is being done) remains in
+			 * this state until the first packet has been
+			 * completely read.  The authentication data in that
+			 * packet is then substituted by the real data if it
+			 * matches the fake data, and the channel is put into
+			 * normal mode.
+			 */
 			/* Check if the fixed size part of the packet is in buffer. */
 			if (buffer_len(&ch->output) < 12)
 				break;
@@ -303,9 +323,11 @@ redo:
 				ch->type = SSH_CHANNEL_OPEN;
 				goto reject;
 			}
-			/* Received authentication protocol and data match
-			   our fake data. Substitute the fake data with
-			   real data. */
+			/*
+			 * Received authentication protocol and data match
+			 * our fake data. Substitute the fake data with real
+			 * data.
+			 */
 			memcpy(ucp + 12 + ((proto_len + 3) & ~3),
 			       x11_saved_data, x11_saved_data_len);
 
@@ -314,8 +336,10 @@ redo:
 			goto redo;
 
 	reject:
-			/* We have received an X11 connection that has bad
-			   authentication information. */
+			/*
+			 * We have received an X11 connection that has bad
+			 * authentication information.
+			 */
 			log("X11 connection rejected because of wrong authentication.\r\n");
 			buffer_clear(&ch->input);
 			buffer_clear(&ch->output);
@@ -341,8 +365,10 @@ redo:
 	}
 }
 
-/* After select, perform any appropriate operations for channels which
-   have events pending. */
+/*
+ * After select, perform any appropriate operations for channels which have
+ * events pending.
+ */
 
 void 
 channel_after_select(fd_set * readset, fd_set * writeset)
@@ -381,8 +407,10 @@ channel_after_select(fd_set * readset, fd_set * writeset)
 			break;
 
 		case SSH_CHANNEL_PORT_LISTENER:
-			/* This socket is listening for connections to a
-			   forwarded TCP/IP port. */
+			/*
+			 * This socket is listening for connections to a
+			 * forwarded TCP/IP port.
+			 */
 			if (FD_ISSET(ch->sock, readset)) {
 				debug("Connection to port %d forwarding to %.100s:%d requested.",
 				      ch->listening_port, ch->path, ch->host_port);
@@ -410,8 +438,10 @@ channel_after_select(fd_set * readset, fd_set * writeset)
 			break;
 
 		case SSH_CHANNEL_AUTH_SOCKET:
-			/* This is the authentication agent socket
-			   listening for connections from clients. */
+			/*
+			 * This is the authentication agent socket listening
+			 * for connections from clients.
+			 */
 			if (FD_ISSET(ch->sock, readset)) {
 				int nchan;
 				len = sizeof(addr);
@@ -429,13 +459,16 @@ channel_after_select(fd_set * readset, fd_set * writeset)
 			break;
 
 		case SSH_CHANNEL_OPEN:
-			/* This is an open two-way communication channel.
-			   It is not of interest to us at this point what
-			   kind of data is being transmitted. */
+			/*
+			 * This is an open two-way communication channel. It
+			 * is not of interest to us at this point what kind
+			 * of data is being transmitted.
+			 */
 
-			/* Read available incoming data and append it to
-			   buffer; shutdown socket, if read or write
-			   failes */
+			/*
+			 * Read available incoming data and append it to
+			 * buffer; shutdown socket, if read or write failes
+			 */
 			if (FD_ISSET(ch->sock, readset)) {
 				len = read(ch->sock, buf, sizeof(buf));
 				if (len <= 0) {
@@ -500,8 +533,7 @@ channel_output_poll()
 
 	for (i = 0; i < channels_alloc; i++) {
 		ch = &channels[i];
-		/* We are only interested in channels that can have
-		   buffered incoming data. */
+		/* We are only interested in channels that can have buffered incoming data. */
 		if (ch->type != SSH_CHANNEL_OPEN &&
 		    ch->type != SSH_CHANNEL_INPUT_DRAINING)
 			continue;
@@ -509,8 +541,7 @@ channel_output_poll()
 		/* Get the amount of buffered data for this channel. */
 		len = buffer_len(&ch->input);
 		if (len > 0) {
-			/* Send some data for the other side over the
-			   secure connection. */
+			/* Send some data for the other side over the secure connection. */
 			if (packet_is_interactive()) {
 				if (len > 1024)
 					len = 512;
@@ -527,17 +558,20 @@ channel_output_poll()
 		} else if (ch->istate == CHAN_INPUT_WAIT_DRAIN) {
 			if (compat13)
 				fatal("cannot happen: istate == INPUT_WAIT_DRAIN for proto 1.3");
-			/* input-buffer is empty and read-socket shutdown:
-			   tell peer, that we will not send more data:
-			   send IEOF */
+			/*
+			 * input-buffer is empty and read-socket shutdown:
+			 * tell peer, that we will not send more data: send IEOF
+			 */
 			chan_ibuf_empty(ch);
 		}
 	}
 }
 
-/* This is called when a packet of type CHANNEL_DATA has just been received.
-   The message type has already been consumed, but channel number and data
-   is still there. */
+/*
+ * This is called when a packet of type CHANNEL_DATA has just been received.
+ * The message type has already been consumed, but channel number and data is
+ * still there.
+ */
 
 void 
 channel_input_data(int payload_len)
@@ -564,8 +598,10 @@ channel_input_data(int payload_len)
 	xfree(data);
 }
 
-/* Returns true if no channel has too much buffered data, and false if
-   one or more channel is overfull. */
+/*
+ * Returns true if no channel has too much buffered data, and false if one or
+ * more channel is overfull.
+ */
 
 int 
 channel_not_very_much_buffered_data()
@@ -615,20 +651,27 @@ channel_input_close()
 		chan_rcvd_ieof(&channels[channel]);
 		return;
 	}
-	/* Send a confirmation that we have closed the channel and no more
-	   data is coming for it. */
+
+	/*
+	 * Send a confirmation that we have closed the channel and no more
+	 * data is coming for it.
+	 */
 	packet_start(SSH_MSG_CHANNEL_CLOSE_CONFIRMATION);
 	packet_put_int(channels[channel].remote_id);
 	packet_send();
 
-	/* If the channel is in closed state, we have sent a close
-	   request, and the other side will eventually respond with a
-	   confirmation.  Thus, we cannot free the channel here, because
-	   then there would be no-one to receive the confirmation.  The
-	   channel gets freed when the confirmation arrives. */
+	/*
+	 * If the channel is in closed state, we have sent a close request,
+	 * and the other side will eventually respond with a confirmation.
+	 * Thus, we cannot free the channel here, because then there would be
+	 * no-one to receive the confirmation.  The channel gets freed when
+	 * the confirmation arrives.
+	 */
 	if (channels[channel].type != SSH_CHANNEL_CLOSED) {
-		/* Not a closed channel - mark it as draining, which will
-		   cause it to be freed later. */
+		/*
+		 * Not a closed channel - mark it as draining, which will
+		 * cause it to be freed later.
+		 */
 		buffer_consume(&channels[channel].input,
 			       buffer_len(&channels[channel].input));
 		channels[channel].type = SSH_CHANNEL_OUTPUT_DRAINING;
@@ -678,8 +721,7 @@ channel_input_open_confirmation()
 	/* Get remote side's id for this channel. */
 	remote_channel = packet_get_int();
 
-	/* Record the remote channel number and mark that the channel is
-	   now open. */
+	/* Record the remote channel number and mark that the channel is now open. */
 	channels[channel].remote_id = remote_channel;
 	channels[channel].type = SSH_CHANNEL_OPEN;
 }
@@ -702,8 +744,10 @@ channel_input_open_failure()
 	channel_free(channel);
 }
 
-/* Stops listening for channels, and removes any unix domain sockets that
-   we might have. */
+/*
+ * Stops listening for channels, and removes any unix domain sockets that we
+ * might have.
+ */
 
 void 
 channel_stop_listening()
@@ -727,8 +771,10 @@ channel_stop_listening()
 	}
 }
 
-/* Closes the sockets of all channels.  This is used to close extra file
-   descriptors after a fork. */
+/*
+ * Closes the sockets of all channels.  This is used to close extra file
+ * descriptors after a fork.
+ */
 
 void 
 channel_close_all()
@@ -778,9 +824,11 @@ channel_still_open()
 	return 0;
 }
 
-/* Returns a message describing the currently open forwarded
-   connections, suitable for sending to the client.  The message
-   contains crlf pairs for newlines. */
+/*
+ * Returns a message describing the currently open forwarded connections,
+ * suitable for sending to the client.  The message contains crlf pairs for
+ * newlines.
+ */
 
 char *
 channel_open_message()
@@ -822,16 +870,19 @@ channel_open_message()
 	return cp;
 }
 
-/* Initiate forwarding of connections to local port "port" through the secure
-   channel to host:port from remote side. */
+/*
+ * Initiate forwarding of connections to local port "port" through the secure
+ * channel to host:port from remote side.
+ */
 
 void 
 channel_request_local_forwarding(int port, const char *host,
 				 int host_port)
 {
-	int ch, sock;
+	int ch, sock, on = 1;
 	struct sockaddr_in sin;
 	extern Options options;
+	struct linger linger;
 
 	if (strlen(host) > sizeof(channels[0].path) - 1)
 		packet_disconnect("Forward host name too long.");
@@ -850,6 +901,15 @@ channel_request_local_forwarding(int port, const char *host,
 		sin.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 	sin.sin_port = htons(port);
 
+	/*
+	 * Set socket options.  We would like the socket to disappear as soon
+	 * as it has been closed for whatever reason.
+	 */
+	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void *)&on, sizeof(on));
+	linger.l_onoff = 1;
+	linger.l_linger = 5;
+	setsockopt(sock, SOL_SOCKET, SO_LINGER, (void *) &linger, sizeof(linger));
+
 	/* Bind the socket to the address. */
 	if (bind(sock, (struct sockaddr *) & sin, sizeof(sin)) < 0)
 		packet_disconnect("bind: %.100s", strerror(errno));
@@ -866,8 +926,10 @@ channel_request_local_forwarding(int port, const char *host,
 	channels[ch].listening_port = port;
 }
 
-/* Initiate forwarding of connections to port "port" on remote host through
-   the secure channel to host:port from local side. */
+/*
+ * Initiate forwarding of connections to port "port" on remote host through
+ * the secure channel to host:port from local side.
+ */
 
 void 
 channel_request_remote_forwarding(int port, const char *host,
@@ -890,15 +952,18 @@ channel_request_remote_forwarding(int port, const char *host,
 	packet_send();
 	packet_write_wait();
 
-	/* Wait for response from the remote side.  It will send a
-	   disconnect message on failure, and we will never see it here. */
+	/*
+	 * Wait for response from the remote side.  It will send a disconnect
+	 * message on failure, and we will never see it here.
+	 */
 	packet_read_expect(&payload_len, SSH_SMSG_SUCCESS);
 }
 
-/* This is called after receiving CHANNEL_FORWARDING_REQUEST.  This initates
-   listening for the port, and sends back a success reply (or disconnect
-   message if there was an error).  This never returns if there was an
-   error. */
+/*
+ * This is called after receiving CHANNEL_FORWARDING_REQUEST.  This initates
+ * listening for the port, and sends back a success reply (or disconnect
+ * message if there was an error).  This never returns if there was an error.
+ */
 
 void 
 channel_input_port_forward_request(int is_root)
@@ -915,8 +980,10 @@ channel_input_port_forward_request(int is_root)
 	if ((port & 0xffff) != port)
 		packet_disconnect("Requested forwarding of nonexistent port %d.", port);
 
-	/* Check that an unprivileged user is not trying to forward a
-	   privileged port. */
+	/*
+	 * Check that an unprivileged user is not trying to forward a
+	 * privileged port.
+	 */
 	if (port < IPPORT_RESERVED && !is_root)
 		packet_disconnect("Requested forwarding of port %d but user is not root.",
 				  port);
@@ -928,9 +995,11 @@ channel_input_port_forward_request(int is_root)
 	xfree(hostname);
 }
 
-/* This is called after receiving PORT_OPEN message.  This attempts to connect
-   to the given host:port, and sends back CHANNEL_OPEN_CONFIRMATION or
-   CHANNEL_OPEN_FAILURE. */
+/*
+ * This is called after receiving PORT_OPEN message.  This attempts to
+ * connect to the given host:port, and sends back CHANNEL_OPEN_CONFIRMATION
+ * or CHANNEL_OPEN_FAILURE.
+ */
 
 void 
 channel_input_port_open(int payload_len)
@@ -951,13 +1020,16 @@ channel_input_port_open(int payload_len)
 	host_port = packet_get_int();
 
 	/* Get remote originator name. */
-	if (have_hostname_in_open)
+	if (have_hostname_in_open) {
 		originator_string = packet_get_string(&originator_len);
-	else
+		originator_len += 4;	/* size of packet_int */
+	} else {
 		originator_string = xstrdup("unknown (remote did not supply name)");
+		originator_len = 0;	/* no originator supplied */
+	}
 
 	packet_integrity_check(payload_len,
-			       4 + 4 + host_len + 4 + 4 + originator_len,
+			       4 + 4 + host_len + 4 + originator_len,
 			       SSH_MSG_PORT_OPEN);
 
 	/* Check if opening that port is permitted. */
@@ -1040,9 +1112,11 @@ fail:
 	packet_send();
 }
 
-/* Creates an internet domain socket for listening for X11 connections.
-   Returns a suitable value for the DISPLAY variable, or NULL if an error
-   occurs. */
+/*
+ * Creates an internet domain socket for listening for X11 connections.
+ * Returns a suitable value for the DISPLAY variable, or NULL if an error
+ * occurs.
+ */
 
 char *
 x11_create_display_inet(int screen_number)
@@ -1134,9 +1208,11 @@ connect_local_xsocket(unsigned dnr)
 }
 
 
-/* This is called when SSH_SMSG_X11_OPEN is received.  The packet contains
-   the remote channel number.  We should do whatever we want, and respond
-   with either SSH_MSG_OPEN_CONFIRMATION or SSH_MSG_OPEN_FAILURE. */
+/*
+ * This is called when SSH_SMSG_X11_OPEN is received.  The packet contains
+ * the remote channel number.  We should do whatever we want, and respond
+ * with either SSH_MSG_OPEN_CONFIRMATION or SSH_MSG_OPEN_FAILURE.
+ */
 
 void 
 x11_input_open(int payload_len)
@@ -1152,13 +1228,16 @@ x11_input_open(int payload_len)
 	remote_channel = packet_get_int();
 
 	/* Get remote originator name. */
-	if (have_hostname_in_open)
+	if (have_hostname_in_open) {
 		remote_host = packet_get_string(&remote_len);
-	else
+		remote_len += 4;
+	} else {
 		remote_host = xstrdup("unknown (remote did not supply name)");
+		remote_len = 0;
+	}
 
 	debug("Received X11 open request.");
-	packet_integrity_check(payload_len, 4 + 4 + remote_len, SSH_SMSG_X11_OPEN);
+	packet_integrity_check(payload_len, 4 + remote_len, SSH_SMSG_X11_OPEN);
 
 	/* Try to open a socket for the local X server. */
 	display = getenv("DISPLAY");
@@ -1166,11 +1245,15 @@ x11_input_open(int payload_len)
 		error("DISPLAY not set.");
 		goto fail;
 	}
-	/* Now we decode the value of the DISPLAY variable and make a
-	   connection to the real X server. */
+	/*
+	 * Now we decode the value of the DISPLAY variable and make a
+	 * connection to the real X server.
+	 */
 
-	/* Check if it is a unix domain socket.  Unix domain displays are
-	   in one of the following formats: unix:d[.s], :d[.s], ::d[.s] */
+	/*
+	 * Check if it is a unix domain socket.  Unix domain displays are in
+	 * one of the following formats: unix:d[.s], :d[.s], ::d[.s]
+	 */
 	if (strncmp(display, "unix:", 5) == 0 ||
 	    display[0] == ':') {
 		/* Connect to the unix domain socket. */
@@ -1187,8 +1270,10 @@ x11_input_open(int payload_len)
 		/* OK, we now have a connection to the display. */
 		goto success;
 	}
-	/* Connect to an inet socket.  The DISPLAY value is supposedly
-	   hostname:d[.s], where hostname may also be numeric IP address. */
+	/*
+	 * Connect to an inet socket.  The DISPLAY value is supposedly
+	 * hostname:d[.s], where hostname may also be numeric IP address.
+	 */
 	strncpy(buf, display, sizeof(buf));
 	buf[sizeof(buf) - 1] = 0;
 	cp = strchr(buf, ':');
@@ -1197,8 +1282,7 @@ x11_input_open(int payload_len)
 		goto fail;
 	}
 	*cp = 0;
-	/* buf now contains the host name.  But first we parse the display
-	   number. */
+	/* buf now contains the host name.  But first we parse the display number. */
 	if (sscanf(cp + 1, "%d", &display_number) != 1) {
 		error("Could not parse display number from DISPLAY: %.100s",
 		      display);
@@ -1267,8 +1351,10 @@ fail:
 	packet_send();
 }
 
-/* Requests forwarding of X11 connections, generates fake authentication
-   data, and enables authentication spoofing. */
+/*
+ * Requests forwarding of X11 connections, generates fake authentication
+ * data, and enables authentication spoofing.
+ */
 
 void 
 x11_request_forwarding_with_spoofing(const char *proto, const char *data)
@@ -1293,8 +1379,10 @@ x11_request_forwarding_with_spoofing(const char *proto, const char *data)
 	/* Save protocol name. */
 	x11_saved_proto = xstrdup(proto);
 
-	/* Extract real authentication data and generate fake data of the
-	   same length. */
+	/*
+	 * Extract real authentication data and generate fake data of the
+	 * same length.
+	 */
 	x11_saved_data = xmalloc(data_len);
 	x11_fake_data = xmalloc(data_len);
 	for (i = 0; i < data_len; i++) {
@@ -1334,9 +1422,11 @@ auth_request_forwarding()
 	packet_write_wait();
 }
 
-/* Returns the name of the forwarded authentication socket.  Returns NULL
-   if there is no forwarded authentication socket.  The returned value
-   points to a static buffer. */
+/*
+ * Returns the name of the forwarded authentication socket.  Returns NULL if
+ * there is no forwarded authentication socket.  The returned value points to
+ * a static buffer.
+ */
 
 char *
 auth_get_socket_name()
@@ -1353,8 +1443,10 @@ cleanup_socket(void)
 	rmdir(channel_forwarded_auth_socket_dir);
 }
 
-/* This if called to process SSH_CMSG_AGENT_REQUEST_FORWARDING on the server.
-   This starts forwarding authentication requests. */
+/*
+ * This if called to process SSH_CMSG_AGENT_REQUEST_FORWARDING on the server.
+ * This starts forwarding authentication requests.
+ */
 
 void 
 auth_input_request_forwarding(struct passwd * pw)
@@ -1422,14 +1514,18 @@ auth_input_open_request()
 	/* Read the remote channel number from the message. */
 	remch = packet_get_int();
 
-	/* Get a connection to the local authentication agent (this may
-	   again get forwarded). */
+	/*
+	 * Get a connection to the local authentication agent (this may again
+	 * get forwarded).
+	 */
 	sock = ssh_get_authentication_socket();
 
-	/* If we could not connect the agent, send an error message back
-	   to the server. This should never happen unless the agent dies,
-	   because authentication forwarding is only enabled if we have an
-	   agent. */
+	/*
+	 * If we could not connect the agent, send an error message back to
+	 * the server. This should never happen unless the agent dies,
+	 * because authentication forwarding is only enabled if we have an
+	 * agent.
+	 */
 	if (sock < 0) {
 		packet_start(SSH_MSG_CHANNEL_OPEN_FAILURE);
 		packet_put_int(remch);
@@ -1438,9 +1534,11 @@ auth_input_open_request()
 	}
 	debug("Forwarding authentication connection.");
 
-	/* Dummy host name.  This will be freed when the channel is freed;
-	   it will still be valid in the packet_put_string below since the
-	   channel cannot yet be freed at that point. */
+	/*
+	 * Dummy host name.  This will be freed when the channel is freed; it
+	 * will still be valid in the packet_put_string below since the
+	 * channel cannot yet be freed at that point.
+	 */
 	dummyname = xstrdup("authentication agent connection");
 
 	newch = channel_allocate(SSH_CHANNEL_OPEN, sock, dummyname);

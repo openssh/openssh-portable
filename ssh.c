@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: ssh.c,v 1.11 1999/11/24 13:26:23 damien Exp $");
+RCSID("$Id: ssh.c,v 1.12 1999/11/25 00:54:59 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -30,35 +30,43 @@ const char *__progname = "ssh";
 /* Flag indicating whether debug mode is on.  This can be set on the command line. */
 int debug_flag = 0;
 
-/* Flag indicating whether to allocate a pseudo tty.  This can be set on the command
-   line, and is automatically set if no command is given on the command line. */
 int tty_flag = 0;
 
-/* Flag indicating that nothing should be read from stdin.  This can be set
-   on the command line. */
+/*
+ * Flag indicating that nothing should be read from stdin.  This can be set
+ * on the command line.
+ */
 int stdin_null_flag = 0;
 
-/* Flag indicating that ssh should fork after authentication.  This is useful
-   so that the pasphrase can be entered manually, and then ssh goes to the
-   background. */
+/*
+ * Flag indicating that ssh should fork after authentication.  This is useful
+ * so that the pasphrase can be entered manually, and then ssh goes to the
+ * background.
+ */
 int fork_after_authentication_flag = 0;
 
-/* General data structure for command line options and options configurable
-   in configuration files.  See readconf.h. */
+/*
+ * General data structure for command line options and options configurable
+ * in configuration files.  See readconf.h.
+ */
 Options options;
 
-/* Name of the host we are connecting to.  This is the name given on the
-   command line, or the HostName specified for the user-supplied name
-   in a configuration file. */
+/*
+ * Name of the host we are connecting to.  This is the name given on the
+ * command line, or the HostName specified for the user-supplied name in a
+ * configuration file.
+ */
 char *host;
 
 /* socket address the host resolves to */
 struct sockaddr_in hostaddr;
 
-/* Flag to indicate that we have received a window change signal which has
-   not yet been processed.  This will cause a message indicating the new
-   window size to be sent to the server a little later.  This is volatile
-   because this is updated in a signal handler. */
+/*
+ * Flag to indicate that we have received a window change signal which has
+ * not yet been processed.  This will cause a message indicating the new
+ * window size to be sent to the server a little later.  This is volatile
+ * because this is updated in a signal handler.
+ */
 volatile int received_window_change_signal = 0;
 
 /* Value of argv[0] (set in the main program). */
@@ -165,8 +173,10 @@ main(int ac, char **av)
 	uid_t original_effective_uid;
 	int plen;
 
-	/* Save the original real uid.  It will be needed later
-	   (uid-swapping may clobber the real uid).  */
+	/*
+	 * Save the original real uid.  It will be needed later (uid-swapping
+	 * may clobber the real uid).
+	 */
 	original_real_uid = getuid();
 	original_effective_uid = geteuid();
 
@@ -177,18 +187,21 @@ main(int ac, char **av)
 		if (setrlimit(RLIMIT_CORE, &rlim) < 0)
 			fatal("setrlimit failed: %.100s", strerror(errno));
 	}
-	/* Use uid-swapping to give up root privileges for the duration of
-	   option processing.  We will re-instantiate the rights when we
-	   are ready to create the privileged port, and will permanently
-	   drop them when the port has been created (actually, when the
-	   connection has been made, as we may need to create the port
-	   several times). */
+	/*
+	 * Use uid-swapping to give up root privileges for the duration of
+	 * option processing.  We will re-instantiate the rights when we are
+	 * ready to create the privileged port, and will permanently drop
+	 * them when the port has been created (actually, when the connection
+	 * has been made, as we may need to create the port several times).
+	 */
 	temporarily_use_uid(original_real_uid);
 
-	/* Set our umask to something reasonable, as some files are
-	   created with the default umask.  This will make them
-	   world-readable but writable only by the owner, which is ok for
-	   all files for which we don't set the modes explicitly. */
+	/*
+	 * Set our umask to something reasonable, as some files are created
+	 * with the default umask.  This will make them world-readable but
+	 * writable only by the owner, which is ok for all files for which we
+	 * don't set the modes explicitly.
+	 */
 	umask(022);
 
 	/* Save our own name. */
@@ -387,10 +400,11 @@ main(int ac, char **av)
 	/* Initialize the command to execute on remote host. */
 	buffer_init(&command);
 
-	/* Save the command to execute on the remote host in a buffer.
-	   There is no limit on the length of the command, except by the
-	   maximum packet size.  Also sets the tty flag if there is no
-	   command. */
+	/*
+	 * Save the command to execute on the remote host in a buffer. There
+	 * is no limit on the length of the command, except by the maximum
+	 * packet size.  Also sets the tty flag if there is no command.
+	 */
 	if (optind == ac) {
 		/* No command specified - execute shell on a tty. */
 		tty_flag = 1;
@@ -474,11 +488,15 @@ main(int ac, char **av)
 		options.rhosts_authentication = 0;
 		options.rhosts_rsa_authentication = 0;
 	}
-	/* If using rsh has been selected, exec it now (without trying
-	   anything else).  Note that we must release privileges first. */
+	/*
+	 * If using rsh has been selected, exec it now (without trying
+	 * anything else).  Note that we must release privileges first.
+	 */
 	if (options.use_rsh) {
-		/* Restore our superuser privileges.  This must be done
-		   before permanently setting the uid. */
+		/*
+		 * Restore our superuser privileges.  This must be done
+		 * before permanently setting the uid.
+		 */
 		restore_uid();
 
 		/* Switch to the original uid permanently. */
@@ -491,8 +509,10 @@ main(int ac, char **av)
 	/* Restore our superuser privileges. */
 	restore_uid();
 
-	/* Open a connection to the remote host.  This needs root
-	   privileges if rhosts_{rsa_}authentication is enabled. */
+	/*
+	 * Open a connection to the remote host.  This needs root privileges
+	 * if rhosts_{rsa_}authentication is enabled.
+	 */
 
 	ok = ssh_connect(host, &hostaddr, options.port,
 			 options.connection_attempts,
@@ -501,31 +521,38 @@ main(int ac, char **av)
 			 original_real_uid,
 			 options.proxy_command);
 
-	/* If we successfully made the connection, load the host private
-	   key in case we will need it later for combined rsa-rhosts
-	   authentication. This must be done before releasing extra
-	   privileges, because the file is only readable by root. */
+	/*
+	 * If we successfully made the connection, load the host private key
+	 * in case we will need it later for combined rsa-rhosts
+	 * authentication. This must be done before releasing extra
+	 * privileges, because the file is only readable by root.
+	 */
 	if (ok) {
 		host_private_key = RSA_new();
 		if (load_private_key(HOST_KEY_FILE, "", host_private_key, NULL))
 			host_private_key_loaded = 1;
 	}
-	/* Get rid of any extra privileges that we may have.  We will no
-	   longer need them.  Also, extra privileges could make it very
-	   hard to read identity files and other non-world-readable files
-	   from the user's home directory if it happens to be on a NFS
-	   volume where root is mapped to nobody. */
+	/*
+	 * Get rid of any extra privileges that we may have.  We will no
+	 * longer need them.  Also, extra privileges could make it very hard
+	 * to read identity files and other non-world-readable files from the
+	 * user's home directory if it happens to be on a NFS volume where
+	 * root is mapped to nobody.
+	 */
 
-	/* Note that some legacy systems need to postpone the following
-	   call to permanently_set_uid() until the private hostkey is
-	   destroyed with RSA_free().  Otherwise the calling user could
-	   ptrace() the process, read the private hostkey and impersonate
-	   the host.  OpenBSD does not allow ptracing of setuid processes. */
-
+	/*
+	 * Note that some legacy systems need to postpone the following call
+	 * to permanently_set_uid() until the private hostkey is destroyed
+	 * with RSA_free().  Otherwise the calling user could ptrace() the
+	 * process, read the private hostkey and impersonate the host.
+	 * OpenBSD does not allow ptracing of setuid processes.
+	 */
 	permanently_set_uid(original_real_uid);
 
-	/* Now that we are back to our own permissions, create ~/.ssh
-	   directory if it doesn\'t already exist. */
+	/*
+	 * Now that we are back to our own permissions, create ~/.ssh
+	 * directory if it doesn\'t already exist.
+	 */
 	snprintf(buf, sizeof buf, "%.100s/%.100s", pw->pw_dir, SSH_USER_DIR);
 	if (stat(buf, &st) < 0)
 		if (mkdir(buf, 0755) < 0)
@@ -569,15 +596,6 @@ main(int ac, char **av)
 	/* Close connection cleanly after attack. */
 	cipher_attack_detected = packet_disconnect;
 
-	/* If requested, fork and let ssh continue in the background. */
-	if (fork_after_authentication_flag) {
-		int ret = fork();
-		if (ret == -1)
-			fatal("fork failed: %.100s", strerror(errno));
-		if (ret != 0)
-			exit(0);
-		setsid();
-	}
 	/* Enable compression if requested. */
 	if (options.compression) {
 		debug("Requesting compression at level %d.", options.compression_level);
@@ -653,12 +671,14 @@ main(int ac, char **av)
 		if (f)
 			pclose(f);
 #endif /* XAUTH_PATH */
-		/* If we didn't get authentication data, just make up some
-		   data.  The forwarding code will check the validity of
-		   the response anyway, and substitute this data.  The X11
-		   server, however, will ignore this fake data and use
-		   whatever authentication mechanisms it was using
-		   otherwise for the local connection. */
+		/*
+		 * If we didn't get authentication data, just make up some
+		 * data.  The forwarding code will check the validity of the
+		 * response anyway, and substitute this data.  The X11
+		 * server, however, will ignore this fake data and use
+		 * whatever authentication mechanisms it was using otherwise
+		 * for the local connection.
+		 */
 		if (!got_data) {
 			u_int32_t rand = 0;
 
@@ -670,8 +690,10 @@ main(int ac, char **av)
 				rand >>= 8;
 			}
 		}
-		/* Got local authentication reasonable information.
-		   Request forwarding with authentication spoofing. */
+		/*
+		 * Got local authentication reasonable information. Request
+		 * forwarding with authentication spoofing.
+		 */
 		debug("Requesting X11 forwarding with authentication spoofing.");
 		x11_request_forwarding_with_spoofing(proto, data);
 
@@ -728,8 +750,15 @@ main(int ac, char **av)
 				   		  options.remote_forwards[i].host_port);
 	}
 
-	/* If a command was specified on the command line, execute the
-	   command now. Otherwise request the server to start a shell. */
+	/* If requested, let ssh continue in the background. */
+	if (fork_after_authentication_flag) 
+		if (daemon(1, 1) < 0)
+			fatal("daemon() failed: %.200s", strerror(errno));
+
+	/*
+	 * If a command was specified on the command line, execute the
+	 * command now. Otherwise request the server to start a shell.
+	 */
 	if (buffer_len(&command) > 0) {
 		int len = buffer_len(&command);
 		if (len > 900)

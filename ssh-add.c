@@ -7,17 +7,13 @@
  */
 
 #include "includes.h"
-RCSID("$Id: ssh-add.c,v 1.13 1999/11/24 13:26:22 damien Exp $");
+RCSID("$Id: ssh-add.c,v 1.14 1999/11/25 00:54:59 damien Exp $");
 
 #include "rsa.h"
 #include "ssh.h"
 #include "xmalloc.h"
 #include "authfd.h"
 #include "fingerprint.h"
-
-#ifdef USE_EXTERNAL_ASKPASS
-int askpass(const char *filename, RSA *key, const char *saved_comment, char **comment);
-#endif /* USE_EXTERNAL_ASKPASS */
 
 #ifdef HAVE___PROGNAME
 extern char *__progname;
@@ -54,13 +50,53 @@ delete_all(AuthenticationConnection *ac)
 		fprintf(stderr, "Failed to remove all identitities.\n");
 }
 
+char *
+ssh_askpass(char *askpass, char *msg)
+{
+	pid_t pid;
+	size_t len;
+	char *nl, *pass;
+	int p[2], status;
+	char buf[1024];
+
+	if (askpass == NULL)
+		fatal("internal error: askpass undefined");
+	if (pipe(p) < 0)
+		fatal("ssh_askpass: pipe: %s", strerror(errno));
+	if ((pid = fork()) < 0)
+		fatal("ssh_askpass: fork: %s", strerror(errno));
+	if (pid == 0) {
+		close(p[0]);
+		if (dup2(p[1], STDOUT_FILENO) < 0)
+			fatal("ssh_askpass: dup2: %s", strerror(errno));
+		execlp(askpass, askpass, msg, (char *) 0);
+		fatal("ssh_askpass: exec(%s): %s", askpass, strerror(errno));
+	}
+	close(p[1]);
+	len = read(p[0], buf, sizeof buf);
+	close(p[0]);
+	while (waitpid(pid, &status, 0) < 0)
+		if (errno != EINTR)
+			break;
+	if (len <= 1)
+		return xstrdup("");
+	nl = strchr(buf, '\n');
+	if (nl)
+		*nl = '\0';
+	pass = xstrdup(buf);
+	memset(buf, 0, sizeof(buf));
+	return pass;
+}
+
 void
 add_file(AuthenticationConnection *ac, const char *filename)
 {
 	RSA *key;
 	RSA *public_key;
-	char *saved_comment, *comment;
+	char *saved_comment, *comment, *askpass = NULL;
+	char buf[1024], msg[1024];
 	int success;
+	int interactive = isatty(STDIN_FILENO);
 
 	key = RSA_new();
 	public_key = RSA_new();
@@ -70,29 +106,26 @@ add_file(AuthenticationConnection *ac, const char *filename)
 	}
 	RSA_free(public_key);
 
+	if (!interactive && getenv("DISPLAY"))
+		askpass = getenv("SSH_ASKPASS");
+
 	/* At first, try empty passphrase */
 	success = load_private_key(filename, "", key, &comment);
 	if (!success) {
-		printf("Need passphrase for %s (%s).\n", filename, saved_comment);
-		if (!isatty(STDIN_FILENO)) {
-#ifdef USE_EXTERNAL_ASKPASS
-			int prompts = 3;
-			while (prompts && !success) {
-				success = askpass(filename, key, saved_comment, &comment);
-				prompts--;
-			}
-			if (!success) {
-				xfree(saved_comment);
-				return;
-			}
-#else /* !USE_EXTERNAL_ASKPASS */
-		xfree(saved_comment);
-		return;
-#endif /* USE_EXTERNAL_ASKPASS */
+		printf("Need passphrase for %.200s\n", filename);
+		if (!interactive && askpass == NULL) {
+			xfree(saved_comment);
+			return;
 		}
-
-		while (!success) {
-			char *pass = read_passphrase("Enter passphrase: ", 1);
+		snprintf(msg, sizeof msg, "Enter passphrase for %.200s", saved_comment);
+		for (;;) {
+			char *pass;
+			if (interactive) {
+				snprintf(buf, sizeof buf, "%s: ", msg);
+				pass = read_passphrase(buf, 1);
+			} else {
+				pass = ssh_askpass(askpass, msg);
+			}
 			if (strcmp(pass, "") == 0) {
 				xfree(pass);
 				xfree(saved_comment);
@@ -103,7 +136,7 @@ add_file(AuthenticationConnection *ac, const char *filename)
 			xfree(pass);
 			if (success)
 				break;
-			printf("Bad passphrase.\n");
+			strlcpy(msg, "Bad passphrase, try again", sizeof msg);
 		}
 	}
 	xfree(saved_comment);
@@ -222,85 +255,3 @@ main(int argc, char **argv)
 	ssh_close_authentication_connection(ac);
 	exit(0);
 }
-
-#ifdef USE_EXTERNAL_ASKPASS
-int askpass(const char *filename, RSA *key, const char *saved_comment, char **comment)
-{
-	int pipes[2];
-	char buf[1024];
-	int tmp;
-	pid_t child;
-	FILE *pipef;
-
-	/* Check that we are X11-capable */
-	if (getenv("DISPLAY") == NULL)
-		exit(1);
-
-	if (pipe(pipes) == -1) {
-		fprintf(stderr, "Creating pipes failed: %s\n", strerror(errno));
-		exit(1);
-	}
-
-	if (fflush(NULL) == EOF) {
-		fprintf(stderr, "Cannot flush buffers: %s\n", strerror(errno));
-		exit(1);
-	}
-
-	child = fork();
-	if (child == -1) {
-		fprintf(stderr, "Cannot fork: %s\n", strerror(errno));
-		exit(1);
-	}
-
-	if (child == 0) {
-	/* In child */
-
-	close(pipes[0]);
-	if (dup2(pipes[1], 1) ==-1) {
-		fprintf(stderr, "dup2 failed: %s\n", strerror(errno));
-		exit(1);
-	}
-
-	tmp = snprintf(buf, sizeof(buf), "Need passphrase for %s", saved_comment);
-	/* skip the prompt if it won't fit */
-	if ((tmp < 0) || (tmp >= sizeof(buf)))
-		tmp = execlp(ASKPASS_PROGRAM, "ssh-askpass", 0);
-	else
-		tmp = execlp(ASKPASS_PROGRAM, "ssh-askpass", buf, 0);
-
-	/* Shouldn't get this far */ 	
-		fprintf(stderr, "Executing ssh-askpass failed: %s\n", strerror(errno));
-		exit(1);
-	} 
-
-	/* In parent */
-	close(pipes[1]);
-
-	if ((pipef = fdopen(pipes[0], "r")) == NULL) {
-		fprintf(stderr, "fdopen failed: %s\n", strerror(errno));
-		exit(1);
-	}
-
-	/* Read passphrase back from child, abort if none presented */
-	if(fgets(buf, sizeof(buf), pipef) == NULL)
-		exit(1);
-
-	fclose(pipef);
-
-	if (strchr(buf, '\n'))
-	*strchr(buf, '\n') = 0;
-
-	if (waitpid(child, NULL, 0) == -1) {
-		fprintf(stderr, "Waiting for child failed: %s\n",
-		strerror(errno));
-		exit(1);
-	}
-
-	/* Try password as it was presented */
-	tmp = load_private_key(filename, buf, key, comment);
-
-	memset(buf, 0, sizeof(buf));
-
-	return(tmp);  
-}
-#endif /* USE_EXTERNAL_ASKPASS */

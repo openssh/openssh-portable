@@ -13,13 +13,15 @@
  * 
  */
 
-/* RCSID("$Id: crc32.h,v 1.2 1999/11/24 13:26:22 damien Exp $"); */
+/* RCSID("$Id: crc32.h,v 1.3 1999/11/25 00:54:59 damien Exp $"); */
 
 #ifndef CRC32_H
 #define CRC32_H
 
-/* This computes a 32 bit CRC of the data in the buffer, and returns the
-   CRC.  The polynomial used is 0xedb88320. */
+/*
+ * This computes a 32 bit CRC of the data in the buffer, and returns the CRC.
+ * The polynomial used is 0xedb88320.
+ */
 unsigned int crc32(const unsigned char *buf, unsigned int len);
 
 #endif				/* CRC32_H */

@@ -1,29 +1,26 @@
-/* RCSID("$Id: channels.h,v 1.3 1999/11/24 13:26:22 damien Exp $"); */
+/* RCSID("$Id: channels.h,v 1.4 1999/11/25 00:54:58 damien Exp $"); */
 
 #ifndef CHANNELS_H
 #define CHANNELS_H
 
 /* Definitions for channel types. */
-#define SSH_CHANNEL_FREE		0	/* This channel is free
-						 * (unused). */
-#define SSH_CHANNEL_X11_LISTENER	1	/* Listening for inet X11
-						 * conn. */
+#define SSH_CHANNEL_FREE		0	/* This channel is free (unused). */
+#define SSH_CHANNEL_X11_LISTENER	1	/* Listening for inet X11 conn. */
 #define SSH_CHANNEL_PORT_LISTENER	2	/* Listening on a port. */
 #define SSH_CHANNEL_OPENING		3	/* waiting for confirmation */
 #define SSH_CHANNEL_OPEN		4	/* normal open two-way channel */
-#define SSH_CHANNEL_CLOSED		5	/* waiting for close
-						 * confirmation */
-/*	SSH_CHANNEL_AUTH_FD		6    authentication fd */
+#define SSH_CHANNEL_CLOSED		5	/* waiting for close confirmation */
+/*	SSH_CHANNEL_AUTH_FD		6    	   authentication fd */
 #define SSH_CHANNEL_AUTH_SOCKET		7	/* authentication socket */
-/*	SSH_CHANNEL_AUTH_SOCKET_FD	8    connection to auth socket */
+/*	SSH_CHANNEL_AUTH_SOCKET_FD	8    	   connection to auth socket */
 #define SSH_CHANNEL_X11_OPEN		9	/* reading first X11 packet */
-#define SSH_CHANNEL_INPUT_DRAINING	10	/* sending remaining data to
-						 * conn */
-#define SSH_CHANNEL_OUTPUT_DRAINING	11	/* sending remaining data to
-						 * app */
+#define SSH_CHANNEL_INPUT_DRAINING	10	/* sending remaining data to conn */
+#define SSH_CHANNEL_OUTPUT_DRAINING	11	/* sending remaining data to app */
 
-/* Data structure for channel data.  This is iniailized in channel_allocate
-   and cleared in channel_free. */
+/*
+ * Data structure for channel data.  This is iniailized in channel_allocate
+ * and cleared in channel_free.
+ */
 
 typedef struct Channel {
 	int     type;		/* channel type/state */

@@ -74,9 +74,11 @@ uudecode(const char *bufcoded, unsigned char *bufplain, int outbufsize)
 	while (*bufcoded == ' ' || *bufcoded == '\t')
 		bufcoded++;
 
-	/* Figure out how many characters are in the input buffer. If this
-	   would decode into more bytes than would fit into the output
-	   buffer, adjust the number of input bytes downwards. */
+	/*
+	 * Figure out how many characters are in the input buffer. If this
+	 * would decode into more bytes than would fit into the output
+	 * buffer, adjust the number of input bytes downwards.
+	 */
 	bufin = bufcoded;
 	while (DEC(*(bufin++)) <= MAXVAL);
 	nprbytes = bufin - bufcoded - 1;

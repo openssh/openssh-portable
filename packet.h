@@ -13,7 +13,7 @@
  * 
  */
 
-/* RCSID("$Id: packet.h,v 1.6 1999/11/24 13:26:22 damien Exp $"); */
+/* RCSID("$Id: packet.h,v 1.7 1999/11/25 00:54:59 damien Exp $"); */
 
 #ifndef PACKET_H
 #define PACKET_H
@@ -27,10 +27,11 @@
 #include <ssl/bn.h>
 #endif
 
-/* Sets the socket used for communication.  Disables encryption until
-   packet_set_encryption_key is called.  It is permissible that fd_in
-   and fd_out are the same descriptor; in that case it is assumed to
-   be a socket. */
+/*
+ * Sets the socket used for communication.  Disables encryption until
+ * packet_set_encryption_key is called.  It is permissible that fd_in and
+ * fd_out are the same descriptor; in that case it is assumed to be a socket.
+ */
 void    packet_set_connection(int fd_in, int fd_out);
 
 /* Puts the connection file descriptors into non-blocking mode. */
@@ -42,20 +43,25 @@ int     packet_get_connection_in(void);
 /* Returns the file descriptor used for output. */
 int     packet_get_connection_out(void);
 
-/* Closes the connection (both descriptors) and clears and frees
-   internal data structures. */
+/*
+ * Closes the connection (both descriptors) and clears and frees internal
+ * data structures.
+ */
 void    packet_close(void);
 
-/* Causes any further packets to be encrypted using the given key.  The same
-   key is used for both sending and reception.  However, both directions
-   are encrypted independently of each other.  Cipher types are
-   defined in ssh.h. */
+/*
+ * Causes any further packets to be encrypted using the given key.  The same
+ * key is used for both sending and reception.  However, both directions are
+ * encrypted independently of each other.  Cipher types are defined in ssh.h.
+ */
 void 
 packet_set_encryption_key(const unsigned char *key, unsigned int keylen,
     int cipher_type);
 
-/* Sets remote side protocol flags for the current connection.  This can
-   be called at any time. */
+/*
+ * Sets remote side protocol flags for the current connection.  This can be
+ * called at any time.
+ */
 void    packet_set_protocol_flags(unsigned int flags);
 
 /* Returns the remote protocol flags set earlier by the above function. */
@@ -64,8 +70,10 @@ unsigned int packet_get_protocol_flags(void);
 /* Enables compression in both directions starting from the next packet. */
 void    packet_start_compression(int level);
 
-/* Informs that the current session is interactive.  Sets IP flags for optimal
-   performance in interactive use. */
+/*
+ * Informs that the current session is interactive.  Sets IP flags for
+ * optimal performance in interactive use.
+ */
 void    packet_set_interactive(int interactive, int keepalives);
 
 /* Returns true if the current connection is interactive. */
@@ -86,28 +94,35 @@ void    packet_put_bignum(BIGNUM * value);
 /* Appends a string to packet data. */
 void    packet_put_string(const char *buf, unsigned int len);
 
-/* Finalizes and sends the packet.  If the encryption key has been set,
-   encrypts the packet before sending. */
+/*
+ * Finalizes and sends the packet.  If the encryption key has been set,
+ * encrypts the packet before sending.
+ */
 void    packet_send(void);
 
 /* Waits until a packet has been received, and returns its type. */
 int     packet_read(int *payload_len_ptr);
 
-/* Waits until a packet has been received, verifies that its type matches
-   that given, and gives a fatal error and exits if there is a mismatch. */
+/*
+ * Waits until a packet has been received, verifies that its type matches
+ * that given, and gives a fatal error and exits if there is a mismatch.
+ */
 void    packet_read_expect(int *payload_len_ptr, int type);
 
-/* Checks if a full packet is available in the data received so far via
-   packet_process_incoming.  If so, reads the packet; otherwise returns
-   SSH_MSG_NONE.  This does not wait for data from the connection.
-
-   SSH_MSG_DISCONNECT is handled specially here.  Also,
-   SSH_MSG_IGNORE messages are skipped by this function and are never returned
-   to higher levels. */
+/*
+ * Checks if a full packet is available in the data received so far via
+ * packet_process_incoming.  If so, reads the packet; otherwise returns
+ * SSH_MSG_NONE.  This does not wait for data from the connection.
+ * SSH_MSG_DISCONNECT is handled specially here.  Also, SSH_MSG_IGNORE
+ * messages are skipped by this function and are never returned to higher
+ * levels.
+ */
 int     packet_read_poll(int *packet_len_ptr);
 
-/* Buffers the given amount of input characters.  This is intended to be
-   used together with packet_read_poll. */
+/*
+ * Buffers the given amount of input characters.  This is intended to be used
+ * together with packet_read_poll.
+ */
 void    packet_process_incoming(const char *buf, unsigned int len);
 
 /* Returns a character (0-255) from the packet data. */
@@ -116,34 +131,41 @@ unsigned int packet_get_char(void);
 /* Returns an integer from the packet data. */
 unsigned int packet_get_int(void);
 
-/* Returns an arbitrary precision integer from the packet data.  The integer
-   must have been initialized before this call. */
+/*
+ * Returns an arbitrary precision integer from the packet data.  The integer
+ * must have been initialized before this call.
+ */
 void    packet_get_bignum(BIGNUM * value, int *length_ptr);
 
-/* Returns a string from the packet data.  The string is allocated using
-   xmalloc; it is the responsibility of the calling program to free it when
-   no longer needed.  The length_ptr argument may be NULL, or point to an
-   integer into which the length of the string is stored. */
+/*
+ * Returns a string from the packet data.  The string is allocated using
+ * xmalloc; it is the responsibility of the calling program to free it when
+ * no longer needed.  The length_ptr argument may be NULL, or point to an
+ * integer into which the length of the string is stored.
+ */
 char   *packet_get_string(unsigned int *length_ptr);
 
-/* Logs the error in syslog using LOG_INFO, constructs and sends a disconnect
-   packet, closes the connection, and exits.  This function never returns.
-   The error message should not contain a newline.  The total length of the
-   message must not exceed 1024 bytes. */
+/*
+ * Logs the error in syslog using LOG_INFO, constructs and sends a disconnect
+ * packet, closes the connection, and exits.  This function never returns.
+ * The error message should not contain a newline.  The total length of the
+ * message must not exceed 1024 bytes.
+ */
 void    packet_disconnect(const char *fmt,...);
 
-/* Sends a diagnostic message to the other side.  This message
-   can be sent at any time (but not while constructing another message).
-   The message is printed immediately, but only if the client is being
-   executed in verbose mode.  These messages are primarily intended to
-   ease debugging authentication problems.  The total length of the message
-   must not exceed 1024 bytes.  This will automatically call
-   packet_write_wait.  If the remote side protocol flags do not indicate
-   that it supports SSH_MSG_DEBUG, this will do nothing. */
+/*
+ * Sends a diagnostic message to the other side.  This message can be sent at
+ * any time (but not while constructing another message). The message is
+ * printed immediately, but only if the client is being executed in verbose
+ * mode.  These messages are primarily intended to ease debugging
+ * authentication problems.  The total length of the message must not exceed
+ * 1024 bytes.  This will automatically call packet_write_wait.  If the
+ * remote side protocol flags do not indicate that it supports SSH_MSG_DEBUG,
+ * this will do nothing.
+ */
 void    packet_send_debug(const char *fmt,...);
 
-/* Checks if there is any buffered output, and tries to write some of the
-   output. */
+/* Checks if there is any buffered output, and tries to write some of the output. */
 void    packet_write_poll(void);
 
 /* Waits until all pending output data has been written. */

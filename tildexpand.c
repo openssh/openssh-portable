@@ -6,7 +6,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: tildexpand.c,v 1.2 1999/11/24 13:26:23 damien Exp $");
+RCSID("$Id: tildexpand.c,v 1.3 1999/11/25 00:54:59 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -38,7 +38,7 @@ tilde_expand_filename(const char *filename, uid_t my_uid)
 	else
 		userlen = strlen(filename);	/* Nothing after username. */
 	if (userlen == 0)
-		pw = getpwuid(my_uid);	/* Own home directory. */
+		pw = getpwuid(my_uid);		/* Own home directory. */
 	else {
 		/* Tilde refers to someone elses home directory. */
 		if (userlen > sizeof(user) - 1)
@@ -47,12 +47,12 @@ tilde_expand_filename(const char *filename, uid_t my_uid)
 		user[userlen] = 0;
 		pw = getpwnam(user);
 	}
-	/* Check that we found the user. */
 	if (!pw)
 		fatal("Unknown user %100s.", user);
 
 	/* If referring to someones home directory, return it now. */
-	if (!cp) {		/* Only home directory specified */
+	if (!cp) {
+		/* Only home directory specified */
 		return xstrdup(pw->pw_dir);
 	}
 	/* Build a path combining the specified directory and path. */

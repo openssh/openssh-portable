@@ -14,12 +14,14 @@
  */
 
 #include "includes.h"
-RCSID("$Id: match.c,v 1.2 1999/11/24 13:26:22 damien Exp $");
+RCSID("$Id: match.c,v 1.3 1999/11/25 00:54:59 damien Exp $");
 
 #include "ssh.h"
 
-/* Returns true if the given string matches the pattern (which may contain
-   ? and * as wildcards), and zero if it does not match. */
+/*
+ * Returns true if the given string matches the pattern (which may contain ?
+ * and * as wildcards), and zero if it does not match.
+ */
 
 int 
 match_pattern(const char *s, const char *pattern)
@@ -29,7 +31,6 @@ match_pattern(const char *s, const char *pattern)
 		if (!*pattern)
 			return !*s;
 
-		/* Process '*'. */
 		if (*pattern == '*') {
 			/* Skip the asterisk. */
 			pattern++;
@@ -40,9 +41,11 @@ match_pattern(const char *s, const char *pattern)
 
 			/* If next character in pattern is known, optimize. */
 			if (*pattern != '?' && *pattern != '*') {
-				/* Look instances of the next character in
-				   pattern, and try to match starting from
-				   those. */
+				/*
+				 * Look instances of the next character in
+				 * pattern, and try to match starting from
+				 * those.
+				 */
 				for (; *s; s++)
 					if (*s == *pattern &&
 					    match_pattern(s + 1, pattern + 1))
@@ -50,26 +53,28 @@ match_pattern(const char *s, const char *pattern)
 				/* Failed. */
 				return 0;
 			}
-			/* Move ahead one character at a time and try to
-			   match at each position. */
+			/*
+			 * Move ahead one character at a time and try to
+			 * match at each position.
+			 */
 			for (; *s; s++)
 				if (match_pattern(s, pattern))
 					return 1;
 			/* Failed. */
 			return 0;
 		}
-		/* There must be at least one more character in the
-		   string.  If we are at the end, fail. */
+		/*
+		 * There must be at least one more character in the string.
+		 * If we are at the end, fail.
+		 */
 		if (!*s)
 			return 0;
 
-		/* Check if the next character of the string is
-		   acceptable. */
+		/* Check if the next character of the string is acceptable. */
 		if (*pattern != '?' && *pattern != *s)
 			return 0;
 
-		/* Move to the next character, both in string and in
-		   pattern. */
+		/* Move to the next character, both in string and in pattern. */
 		s++;
 		pattern++;
 	}

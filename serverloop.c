@@ -33,8 +33,10 @@ static int connection_out;	/* Connection to client (output). */
 static unsigned int buffer_high;/* "Soft" max buffer size. */
 static int max_fd;		/* Max file descriptor number for select(). */
 
-/* This SIGCHLD kludge is used to detect when the child exits.  The server
-   will exit after that, as soon as forwarded connections have terminated. */
+/*
+ * This SIGCHLD kludge is used to detect when the child exits.  The server
+ * will exit after that, as soon as forwarded connections have terminated.
+ */
 
 static int child_pid;			/* Pid of the child. */
 static volatile int child_terminated;	/* The child has terminated. */
@@ -87,9 +89,11 @@ process_buffered_input_packets()
 			break;
 
 		case SSH_CMSG_EOF:
-			/* Eof from the client.  The stdin descriptor to
-			   the program will be closed when all buffered
-			   data has drained. */
+			/*
+			 * Eof from the client.  The stdin descriptor to the
+			 * program will be closed when all buffered data has
+			 * drained.
+			 */
 			debug("EOF received for stdin.");
 			packet_integrity_check(payload_len, 0, type);
 			stdin_eof = 1;
@@ -140,13 +144,15 @@ process_buffered_input_packets()
 			break;
 
 		default:
-			/* In this phase, any unexpected messages cause a
-			   protocol error.  This is to ease debugging;
-			   also, since no confirmations are sent messages,
-			   unprocessed unknown messages could cause
-			   strange problems.  Any compatible protocol
-			   extensions must be negotiated before entering
-			   the interactive session. */
+			/*
+			 * In this phase, any unexpected messages cause a
+			 * protocol error.  This is to ease debugging; also,
+			 * since no confirmations are sent messages,
+			 * unprocessed unknown messages could cause strange
+			 * problems.  Any compatible protocol extensions must
+			 * be negotiated before entering the interactive
+			 * session.
+			 */
 			packet_disconnect("Protocol error during session: type %d",
 					  type);
 		}
@@ -230,14 +236,18 @@ retry_select:
 	/* Initialize select() masks. */
 	FD_ZERO(readset);
 
-	/* Read packets from the client unless we have too much buffered
-	   stdin or channel data. */
+	/*
+	 * Read packets from the client unless we have too much buffered
+	 * stdin or channel data.
+	 */
 	if (buffer_len(&stdin_buffer) < 4096 &&
 	    channel_not_very_much_buffered_data())
 		FD_SET(connection_in, readset);
 
-	/* If there is not too much data already buffered going to the
-	   client, try to get some more data from the program. */
+	/*
+	 * If there is not too much data already buffered going to the
+	 * client, try to get some more data from the program.
+	 */
 	if (packet_not_very_much_data_to_write()) {
 		if (!fdout_eof)
 			FD_SET(fdout, readset);
@@ -249,8 +259,10 @@ retry_select:
 	/* Set masks for channel descriptors. */
 	channel_prepare_select(readset, writeset);
 
-	/* If we have buffered packet data going to the client, mark that
-	   descriptor. */
+	/*
+	 * If we have buffered packet data going to the client, mark that
+	 * descriptor.
+	 */
 	if (packet_have_data_to_write())
 		FD_SET(connection_out, writeset);
 
@@ -263,8 +275,10 @@ retry_select:
 	if (channel_max_fd() > max_fd)
 		max_fd = channel_max_fd();
 
-	/* If child has terminated and there is enough buffer space to
-	   read from it, then read as much as is available and exit. */
+	/*
+	 * If child has terminated and there is enough buffer space to read
+	 * from it, then read as much as is available and exit.
+	 */
 	if (child_terminated && packet_not_very_much_data_to_write())
 		if (max_time_milliseconds == 0)
 			max_time_milliseconds = 100;
@@ -305,9 +319,10 @@ process_input(fd_set * readset)
 			verbose("Connection closed by remote host.");
 			fatal_cleanup();
 		}
-		/* There is a kernel bug on Solaris that causes select to
-		   sometimes wake up even though there is no data
-		   available. */
+		/*
+		 * There is a kernel bug on Solaris that causes select to
+		 * sometimes wake up even though there is no data available.
+		 */
 		if (len < 0 && errno == EAGAIN)
 			len = 0;
 
@@ -456,11 +471,12 @@ server_loop(int pid, int fdin_arg, int fdout_arg, int fderr_arg)
 	buffer_init(&stdout_buffer);
 	buffer_init(&stderr_buffer);
 
-	/* If we have no separate fderr (which is the case when we have a
-	   pty - there we cannot make difference between data sent to
-	   stdout and stderr), indicate that we have seen an EOF from
-	   stderr.  This way we don\'t need to check the descriptor
-	   everywhere. */
+	/*
+	 * If we have no separate fderr (which is the case when we have a pty
+	 * - there we cannot make difference between data sent to stdout and
+	 * stderr), indicate that we have seen an EOF from stderr.  This way
+	 * we don\'t need to check the descriptor everywhere.
+	 */
 	if (fderr == -1)
 		fderr_eof = 1;
 
@@ -471,8 +487,10 @@ server_loop(int pid, int fdin_arg, int fdout_arg, int fderr_arg)
 		/* Process buffered packets from the client. */
 		process_buffered_input_packets();
 
-		/* If we have received eof, and there is no more pending
-		   input data, cause a real eof by closing fdin. */
+		/*
+		 * If we have received eof, and there is no more pending
+		 * input data, cause a real eof by closing fdin.
+		 */
 		if (stdin_eof && fdin != -1 && buffer_len(&stdin_buffer) == 0) {
 #ifdef USE_PIPES
 			close(fdin);
@@ -484,16 +502,16 @@ server_loop(int pid, int fdin_arg, int fdout_arg, int fderr_arg)
 #endif
 			fdin = -1;
 		}
-		/* Make packets from buffered stderr data to send to the
-		   client. */
+		/* Make packets from buffered stderr data to send to the client. */
 		make_packets_from_stderr_data();
 
-		/* Make packets from buffered stdout data to send to the
-		   client. If there is very little to send, this arranges
-		   to not send them now, but to wait a short while to see
-		   if we are getting more data. This is necessary, as some
-		   systems wake up readers from a pty after each separate
-		   character. */
+		/*
+		 * Make packets from buffered stdout data to send to the
+		 * client. If there is very little to send, this arranges to
+		 * not send them now, but to wait a short while to see if we
+		 * are getting more data. This is necessary, as some systems
+		 * wake up readers from a pty after each separate character.
+		 */
 		max_time_milliseconds = 0;
 		stdout_buffer_bytes = buffer_len(&stdout_buffer);
 		if (stdout_buffer_bytes != 0 && stdout_buffer_bytes < 256 &&
@@ -510,9 +528,11 @@ server_loop(int pid, int fdin_arg, int fdout_arg, int fderr_arg)
 		if (packet_not_very_much_data_to_write())
 			channel_output_poll();
 
-		/* Bail out of the loop if the program has closed its
-		   output descriptors, and we have no more data to send to
-		   the client, and there is no pending buffered data. */
+		/*
+		 * Bail out of the loop if the program has closed its output
+		 * descriptors, and we have no more data to send to the
+		 * client, and there is no pending buffered data.
+		 */
 		if (fdout_eof && fderr_eof && !packet_have_data_to_write() &&
 		    buffer_len(&stdout_buffer) == 0 && buffer_len(&stderr_buffer) == 0) {
 			if (!channel_still_open())
@@ -604,11 +624,13 @@ quit:
 		packet_send();
 		packet_write_wait();
 
-		/* Wait for exit confirmation.  Note that there might be
-		   other packets coming before it; however, the program
-		   has already died so we just ignore them.  The client is
-		   supposed to respond with the confirmation when it
-		   receives the exit status. */
+		/*
+		 * Wait for exit confirmation.  Note that there might be
+		 * other packets coming before it; however, the program has
+		 * already died so we just ignore them.  The client is
+		 * supposed to respond with the confirmation when it receives
+		 * the exit status.
+		 */
 		do {
 			int plen;
 			type = packet_read(&plen);

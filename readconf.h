@@ -13,7 +13,7 @@
  * 
  */
 
-/* RCSID("$Id: readconf.h,v 1.4 1999/11/24 13:26:22 damien Exp $"); */
+/* RCSID("$Id: readconf.h,v 1.5 1999/11/25 00:54:59 damien Exp $"); */
 
 #ifndef READCONF_H
 #define READCONF_H
@@ -85,42 +85,53 @@ typedef struct {
 }       Options;
 
 
-/* Initializes options to special values that indicate that they have not
-   yet been set.  Read_config_file will only set options with this value.
-   Options are processed in the following order: command line, user config
-   file, system config file.  Last, fill_default_options is called. */
+/*
+ * Initializes options to special values that indicate that they have not yet
+ * been set.  Read_config_file will only set options with this value. Options
+ * are processed in the following order: command line, user config file,
+ * system config file.  Last, fill_default_options is called.
+ */
 void    initialize_options(Options * options);
 
-/* Called after processing other sources of option data, this fills those
-   options for which no value has been specified with their default values. */
+/*
+ * Called after processing other sources of option data, this fills those
+ * options for which no value has been specified with their default values.
+ */
 void    fill_default_options(Options * options);
 
-/* Processes a single option line as used in the configuration files.
-   This only sets those values that have not already been set.
-   Returns 0 for legal options */
+/*
+ * Processes a single option line as used in the configuration files. This
+ * only sets those values that have not already been set. Returns 0 for legal
+ * options
+ */
 int 
 process_config_line(Options * options, const char *host,
     char *line, const char *filename, int linenum,
     int *activep);
 
-/* Reads the config file and modifies the options accordingly.  Options should
-   already be initialized before this call.  This never returns if there
-   is an error.  If the file does not exist, this returns immediately. */
+/*
+ * Reads the config file and modifies the options accordingly.  Options
+ * should already be initialized before this call.  This never returns if
+ * there is an error.  If the file does not exist, this returns immediately.
+ */
 void 
 read_config_file(const char *filename, const char *host,
     Options * options);
 
-/* Adds a local TCP/IP port forward to options.  Never returns if there
-   is an error. */
+/*
+ * Adds a local TCP/IP port forward to options.  Never returns if there is an
+ * error.
+ */
 void 
 add_local_forward(Options * options, int port, const char *host,
     int host_port);
 
-/* Adds a remote TCP/IP port forward to options.  Never returns if there
-   is an error. */
+/*
+ * Adds a remote TCP/IP port forward to options.  Never returns if there is
+ * an error.
+ */
 void 
 add_remote_forward(Options * options, int port, const char *host,
     int host_port);
-
 
 #endif				/* READCONF_H */

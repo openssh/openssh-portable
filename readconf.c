@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: readconf.c,v 1.5 1999/11/24 13:26:22 damien Exp $");
+RCSID("$Id: readconf.c,v 1.6 1999/11/25 00:54:59 damien Exp $");
 
 #include "ssh.h"
 #include "cipher.h"
@@ -158,8 +158,10 @@ static struct {
 #define WHITESPACE " \t\r\n"
 
 
-/* Adds a local TCP/IP port forward to options.  Never returns if there
-   is an error. */
+/*
+ * Adds a local TCP/IP port forward to options.  Never returns if there is an
+ * error.
+ */
 
 void 
 add_local_forward(Options *options, int port, const char *host,
@@ -179,8 +181,10 @@ add_local_forward(Options *options, int port, const char *host,
 	fwd->host_port = host_port;
 }
 
-/* Adds a remote TCP/IP port forward to options.  Never returns if there
-   is an error. */
+/*
+ * Adds a remote TCP/IP port forward to options.  Never returns if there is
+ * an error.
+ */
 
 void 
 add_remote_forward(Options *options, int port, const char *host,
@@ -196,8 +200,10 @@ add_remote_forward(Options *options, int port, const char *host,
 	fwd->host_port = host_port;
 }
 
-/* Returns the number of the token pointed to by cp of length len.
-   Never returns if the token is not known. */
+/*
+ * Returns the number of the token pointed to by cp of length len. Never
+ * returns if the token is not known.
+ */
 
 static OpCodes 
 parse_token(const char *cp, const char *filename, int linenum)
@@ -205,7 +211,7 @@ parse_token(const char *cp, const char *filename, int linenum)
 	unsigned int i;
 
 	for (i = 0; keywords[i].name; i++)
-		if (strcmp(cp, keywords[i].name) == 0)
+		if (strcasecmp(cp, keywords[i].name) == 0)
 			return keywords[i].opcode;
 
 	fprintf(stderr, "%s: line %d: Bad configuration option: %s\n",
@@ -213,15 +219,17 @@ parse_token(const char *cp, const char *filename, int linenum)
 	return oBadOption;
 }
 
-/* Processes a single option line as used in the configuration files.
-   This only sets those values that have not already been set. */
+/*
+ * Processes a single option line as used in the configuration files. This
+ * only sets those values that have not already been set.
+ */
 
 int
 process_config_line(Options *options, const char *host,
 		    char *line, const char *filename, int linenum,
 		    int *activep)
 {
-	char buf[256], *cp, *string, **charptr;
+	char buf[256], *cp, *string, **charptr, *cp2;
 	int opcode, *intptr, value, fwd_port, fwd_host_port;
 
 	/* Skip leading whitespace. */
@@ -229,21 +237,14 @@ process_config_line(Options *options, const char *host,
 	if (!*cp || *cp == '\n' || *cp == '#')
 		return 0;
 
-	/* Get the keyword. (Each line is supposed to begin with a
-	   keyword). */
+	/* Get the keyword. (Each line is supposed to begin with a keyword). */
 	cp = strtok(cp, WHITESPACE);
-	{
-		char *t = cp;
-		for (; *t != 0; t++)
-			if ('A' <= *t && *t <= 'Z')
-				*t = *t - 'A' + 'a';	/* tolower */
-
-	}
 	opcode = parse_token(cp, filename, linenum);
 
 	switch (opcode) {
 	case oBadOption:
-		return -1;	/* don't panic, but count bad options */
+		/* don't panic, but count bad options */
+		return -1;
 		/* NOTREACHED */
 	case oForwardAgent:
 		intptr = &options->forward_agent;
@@ -419,17 +420,11 @@ parse_int:
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
 		if (cp[0] < '0' || cp[0] > '9')
 			fatal("%.200s line %d: Bad number.", filename, linenum);
-#if 0
-		value = atoi(cp);
-#else
-		{
-			char *ptr;
-			value = strtol(cp, &ptr, 0);	/* Octal, decimal, or
-							   hex format? */
-			if (cp == ptr)
-				fatal("%.200s line %d: Bad number.", filename, linenum);
-		}
-#endif
+
+		/* Octal, decimal, or hex format? */
+		value = strtol(cp, &cp2, 0);
+		if (cp == cp2)
+			fatal("%.200s line %d: Bad number.", filename, linenum);
 		if (*activep && *intptr == -1)
 			*intptr = value;
 		break;
@@ -506,8 +501,7 @@ parse_int:
 				*activep = 1;
 				break;
 			}
-		/* Avoid garbage check below, as strtok already returned
-		   NULL. */
+		/* Avoid garbage check below, as strtok already returned NULL. */
 		return 0;
 
 	case oEscapeChar:
@@ -544,9 +538,11 @@ parse_int:
 }
 
 
-/* Reads the config file and modifies the options accordingly.  Options should
-   already be initialized before this call.  This never returns if there
-   is an error.  If the file does not exist, this returns immediately. */
+/*
+ * Reads the config file and modifies the options accordingly.  Options
+ * should already be initialized before this call.  This never returns if
+ * there is an error.  If the file does not exist, this returns immediately.
+ */
 
 void 
 read_config_file(const char *filename, const char *host, Options *options)
@@ -563,8 +559,10 @@ read_config_file(const char *filename, const char *host, Options *options)
 
 	debug("Reading configuration data %.200s", filename);
 
-	/* Mark that we are now processing the options.  This flag is
-	   turned on/off by Host specifications. */
+	/*
+	 * Mark that we are now processing the options.  This flag is turned
+	 * on/off by Host specifications.
+	 */
 	active = 1;
 	linenum = 0;
 	while (fgets(line, sizeof(line), f)) {
@@ -579,10 +577,12 @@ read_config_file(const char *filename, const char *host, Options *options)
 		      filename, bad_options);
 }
 
-/* Initializes options to special values that indicate that they have not
-   yet been set.  Read_config_file will only set options with this value.
-   Options are processed in the following order: command line, user config
-   file, system config file.  Last, fill_default_options is called. */
+/*
+ * Initializes options to special values that indicate that they have not yet
+ * been set.  Read_config_file will only set options with this value. Options
+ * are processed in the following order: command line, user config file,
+ * system config file.  Last, fill_default_options is called.
+ */
 
 void 
 initialize_options(Options * options)
@@ -628,8 +628,10 @@ initialize_options(Options * options)
 	options->log_level = (LogLevel) - 1;
 }
 
-/* Called after processing other sources of option data, this fills those
-   options for which no value has been specified with their default values. */
+/*
+ * Called after processing other sources of option data, this fills those
+ * options for which no value has been specified with their default values.
+ */
 
 void 
 fill_default_options(Options * options)

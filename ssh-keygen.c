@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: ssh-keygen.c,v 1.9 1999/11/24 13:26:23 damien Exp $");
+RCSID("$Id: ssh-keygen.c,v 1.10 1999/11/25 00:54:59 damien Exp $");
 
 #include "rsa.h"
 #include "ssh.h"
@@ -20,16 +20,19 @@ RSA *private_key;
 /* Generated public key. */
 RSA *public_key;
 
-/* Number of bits in the RSA key.  This value can be changed on the command
-   line. */
+/* Number of bits in the RSA key.  This value can be changed on the command line. */
 int bits = 1024;
 
-/* Flag indicating that we just want to change the passphrase.  This can be
-   set on the command line. */
+/*
+ * Flag indicating that we just want to change the passphrase.  This can be
+ * set on the command line.
+ */
 int change_passphrase = 0;
 
-/* Flag indicating that we just want to change the comment.  This can be set
-   on the command line. */
+/*
+ * Flag indicating that we just want to change the comment.  This can be set
+ * on the command line.
+ */
 int change_comment = 0;
 
 int quiet = 0;
@@ -136,13 +139,10 @@ do_change_passphrase(struct passwd *pw)
 
 	if (!have_identity)
 		ask_filename(pw, "Enter file in which the key is");
-	/* Check if the file exists. */
 	if (stat(identity_file, &st) < 0) {
 		perror(identity_file);
 		exit(1);
 	}
-	/* Try to load the public key from the file the verify that it is
-	   readable and of the proper format. */
 	public_key = RSA_new();
 	if (!load_public_key(identity_file, public_key, NULL)) {
 		printf("%s is not a valid key file.\n", identity_file);
@@ -154,19 +154,16 @@ do_change_passphrase(struct passwd *pw)
 	/* Try to load the file with empty passphrase. */
 	private_key = RSA_new();
 	if (!load_private_key(identity_file, "", private_key, &comment)) {
-		/* Read passphrase from the user. */
 		if (identity_passphrase)
 			old_passphrase = xstrdup(identity_passphrase);
 		else
 			old_passphrase = read_passphrase("Enter old passphrase: ", 1);
-		/* Try to load using the passphrase. */
 		if (!load_private_key(identity_file, old_passphrase, private_key, &comment)) {
 			memset(old_passphrase, 0, strlen(old_passphrase));
 			xfree(old_passphrase);
 			printf("Bad passphrase.\n");
 			exit(1);
 		}
-		/* Destroy the passphrase. */
 		memset(old_passphrase, 0, strlen(old_passphrase));
 		xfree(old_passphrase);
 	}
@@ -230,24 +227,24 @@ do_change_comment(struct passwd *pw)
 
 	if (!have_identity)
 		ask_filename(pw, "Enter file in which the key is");
-	/* Check if the file exists. */
 	if (stat(identity_file, &st) < 0) {
 		perror(identity_file);
 		exit(1);
 	}
-	/* Try to load the public key from the file the verify that it is
-	   readable and of the proper format. */
+	/*
+	 * Try to load the public key from the file the verify that it is
+	 * readable and of the proper format.
+	 */
 	public_key = RSA_new();
 	if (!load_public_key(identity_file, public_key, NULL)) {
 		printf("%s is not a valid key file.\n", identity_file);
 		exit(1);
 	}
 	private_key = RSA_new();
-	/* Try to load the file with empty passphrase. */
+
 	if (load_private_key(identity_file, "", private_key, &comment))
 		passphrase = xstrdup("");
 	else {
-		/* Read passphrase from the user. */
 		if (identity_passphrase)
 			passphrase = xstrdup(identity_passphrase);
 		else if (identity_new_passphrase)
@@ -274,7 +271,6 @@ do_change_comment(struct passwd *pw)
 			RSA_free(private_key);
 			exit(1);
 		}
-		/* Remove terminating newline from comment. */
 		if (strchr(new_comment, '\n'))
 			*strchr(new_comment, '\n') = 0;
 	}
@@ -289,13 +285,10 @@ do_change_comment(struct passwd *pw)
 		xfree(comment);
 		exit(1);
 	}
-	/* Destroy the passphrase and the private key in memory. */
 	memset(passphrase, 0, strlen(passphrase));
 	xfree(passphrase);
 	RSA_free(private_key);
 
-	/* Save the public key in text format in a file with the same name
-	   but .pub appended. */
 	strlcat(identity_file, ".pub", sizeof(identity_file));
 	f = fopen(identity_file, "w");
 	if (!f) {
@@ -343,21 +336,18 @@ main(int ac, char **av)
 
 	/* check if RSA support exists */
 	if (rsa_alive() == 0) {
-		extern char *__progname;
-
 		fprintf(stderr,
 			"%s: no RSA support in libssl and libcrypto.  See ssl(8).\n",
 			__progname);
 		exit(1);
 	}
-	/* Get user\'s passwd structure.  We need this for the home
-	   directory. */
+	/* we need this for the home * directory.  */
 	pw = getpwuid(getuid());
 	if (!pw) {
 		printf("You don't exist, go away!\n");
 		exit(1);
 	}
-	/* Parse command line arguments. */
+
 	while ((opt = getopt(ac, av, "qpclb:f:P:N:C:")) != EOF) {
 		switch (opt) {
 		case 'b':
@@ -416,14 +406,8 @@ main(int ac, char **av)
 	}
 	if (print_fingerprint)
 		do_fingerprint(pw);
-
-	/* If the user requested to change the passphrase, do it now.
-	   This function never returns. */
 	if (change_passphrase)
 		do_change_passphrase(pw);
-
-	/* If the user requested to change the comment, do it now.  This
-	   function never returns. */
 	if (change_comment)
 		do_change_comment(pw);
 
@@ -484,11 +468,10 @@ passphrase_again:
 		xfree(passphrase2);
 	}
 
-	/* Create default commend field for the passphrase.  The user can
-	   later edit this field. */
 	if (identity_comment) {
 		strlcpy(comment, identity_comment, sizeof(comment));
 	} else {
+	  	/* Create default commend field for the passphrase. */
 		if (gethostname(hostname, sizeof(hostname)) < 0) {
 			perror("gethostname");
 			exit(1);
@@ -515,8 +498,6 @@ passphrase_again:
 	if (!quiet)
 		printf("Your identification has been saved in %s.\n", identity_file);
 
-	/* Save the public key in text format in a file with the same name
-	   but .pub appended. */
 	strlcat(identity_file, ".pub", sizeof(identity_file));
 	f = fopen(identity_file, "w");
 	if (!f) {

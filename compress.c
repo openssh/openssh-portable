@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: compress.c,v 1.2 1999/11/24 13:26:22 damien Exp $");
+RCSID("$Id: compress.c,v 1.3 1999/11/25 00:54:59 damien Exp $");
 
 #include "ssh.h"
 #include "buffer.h"
@@ -23,8 +23,10 @@ RCSID("$Id: compress.c,v 1.2 1999/11/24 13:26:22 damien Exp $");
 static z_stream incoming_stream;
 static z_stream outgoing_stream;
 
-/* Initializes compression; level is compression level from 1 to 9
-   (as in gzip). */
+/*
+ * Initializes compression; level is compression level from 1 to 9
+ * (as in gzip).
+ */
 
 void 
 buffer_compress_init(int level)
@@ -53,13 +55,14 @@ buffer_compress_uninit()
 	deflateEnd(&outgoing_stream);
 }
 
-/* Compresses the contents of input_buffer into output_buffer.  All
-   packets compressed using this function will form a single
-   compressed data stream; however, data will be flushed at the end of
-   every call so that each output_buffer can be decompressed
-   independently (but in the appropriate order since they together
-   form a single compression stream) by the receiver.  This appends
-   the compressed data to the output buffer. */
+/*
+ * Compresses the contents of input_buffer into output_buffer.  All packets
+ * compressed using this function will form a single compressed data stream;
+ * however, data will be flushed at the end of every call so that each
+ * output_buffer can be decompressed independently (but in the appropriate
+ * order since they together form a single compression stream) by the
+ * receiver.  This appends the compressed data to the output buffer.
+ */
 
 void 
 buffer_compress(Buffer * input_buffer, Buffer * output_buffer)
@@ -106,13 +109,14 @@ buffer_compress(Buffer * input_buffer, Buffer * output_buffer)
 	while (outgoing_stream.avail_out == 0);
 }
 
-/* Uncompresses the contents of input_buffer into output_buffer.  All
-   packets uncompressed using this function will form a single
-   compressed data stream; however, data will be flushed at the end of
-   every call so that each output_buffer.  This must be called for the
-   same size units that the buffer_compress was called, and in the
-   same order that buffers compressed with that.  This appends the
-   uncompressed data to the output buffer. */
+/*
+ * Uncompresses the contents of input_buffer into output_buffer.  All packets
+ * uncompressed using this function will form a single compressed data
+ * stream; however, data will be flushed at the end of every call so that
+ * each output_buffer.  This must be called for the same size units that the
+ * buffer_compress was called, and in the same order that buffers compressed
+ * with that.  This appends the uncompressed data to the output buffer.
+ */
 
 void 
 buffer_uncompress(Buffer * input_buffer, Buffer * output_buffer)
@@ -145,9 +149,11 @@ buffer_uncompress(Buffer * input_buffer, Buffer * output_buffer)
 			fatal("buffer_uncompress: inflate returned Z_STREAM_ERROR");
 			/* NOTREACHED */
 		case Z_BUF_ERROR:
-			/* Comments in zlib.h say that we should keep
-			   calling inflate() until we get an error.  This
-			   appears to be the error that we get. */
+			/*
+			 * Comments in zlib.h say that we should keep calling
+			 * inflate() until we get an error.  This appears to
+			 * be the error that we get.
+			 */
 			return;
 		case Z_MEM_ERROR:
 			fatal("buffer_uncompress: inflate returned Z_MEM_ERROR");

@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: buffer.c,v 1.2 1999/11/24 13:26:22 damien Exp $");
+RCSID("$Id: buffer.c,v 1.3 1999/11/25 00:54:58 damien Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -40,8 +40,10 @@ buffer_free(Buffer *buffer)
 	xfree(buffer->buf);
 }
 
-/* Clears any data from the buffer, making it empty.  This does not actually
-   zero the memory. */
+/*
+ * Clears any data from the buffer, making it empty.  This does not actually
+ * zero the memory.
+ */
 
 void 
 buffer_clear(Buffer *buffer)
@@ -60,9 +62,11 @@ buffer_append(Buffer *buffer, const char *data, unsigned int len)
 	memcpy(cp, data, len);
 }
 
-/* Appends space to the buffer, expanding the buffer if necessary.
-   This does not actually copy the data into the buffer, but instead
-   returns a pointer to the allocated region. */
+/*
+ * Appends space to the buffer, expanding the buffer if necessary. This does
+ * not actually copy the data into the buffer, but instead returns a pointer
+ * to the allocated region.
+ */
 
 void 
 buffer_append_space(Buffer *buffer, char **datap, unsigned int len)
@@ -79,8 +83,10 @@ restart:
 		buffer->end += len;
 		return;
 	}
-	/* If the buffer is quite empty, but all data is at the end, move
-	   the data to the beginning and retry. */
+	/*
+	 * If the buffer is quite empty, but all data is at the end, move the
+	 * data to the beginning and retry.
+	 */
 	if (buffer->offset > buffer->alloc / 2) {
 		memmove(buffer->buf, buffer->buf + buffer->offset,
 			buffer->end - buffer->offset);

@@ -15,7 +15,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: auth-rh-rsa.c,v 1.6 1999/11/24 13:26:21 damien Exp $");
+RCSID("$Id: auth-rh-rsa.c,v 1.7 1999/11/25 00:54:57 damien Exp $");
 
 #include "packet.h"
 #include "ssh.h"
@@ -23,8 +23,10 @@ RCSID("$Id: auth-rh-rsa.c,v 1.6 1999/11/24 13:26:21 damien Exp $");
 #include "uidswap.h"
 #include "servconf.h"
 
-/* Tries to authenticate the user using the .rhosts file and the host using
-   its host key.  Returns true if authentication succeeds. */
+/*
+ * Tries to authenticate the user using the .rhosts file and the host using
+ * its host key.  Returns true if authentication succeeds.
+ */
 
 int 
 auth_rhosts_rsa(struct passwd *pw, const char *client_user,
@@ -57,8 +59,10 @@ auth_rhosts_rsa(struct passwd *pw, const char *client_user,
 	if (host_status != HOST_OK && !options.ignore_user_known_hosts) {
 		struct stat st;
 		char *user_hostfile = tilde_expand_filename(SSH_USER_HOSTFILE, pw->pw_uid);
-		/* Check file permissions of SSH_USER_HOSTFILE, auth_rsa()
-		   did already check pw->pw_dir, but there is a race XXX */
+		/*
+		 * Check file permissions of SSH_USER_HOSTFILE, auth_rsa()
+		 * did already check pw->pw_dir, but there is a race XXX
+		 */
 		if (options.strict_modes &&
 		    (stat(user_hostfile, &st) == 0) &&
 		    ((st.st_uid != 0 && st.st_uid != pw->pw_uid) ||
@@ -91,8 +95,10 @@ auth_rhosts_rsa(struct passwd *pw, const char *client_user,
 		    canonical_hostname);
 		return 0;
 	}
-	/* We have authenticated the user using .rhosts or /etc/hosts.equiv, and the host using RSA.
-	   We accept the authentication. */
+	/*
+	 * We have authenticated the user using .rhosts or /etc/hosts.equiv,
+	 * and the host using RSA. We accept the authentication.
+	 */
 
 	verbose("Rhosts with RSA host authentication accepted for %.100s, %.100s on %.700s.",
 		pw->pw_name, client_user, canonical_hostname);

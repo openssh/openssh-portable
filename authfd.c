@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: authfd.c,v 1.7 1999/11/24 13:26:21 damien Exp $");
+RCSID("$Id: authfd.c,v 1.8 1999/11/25 00:54:57 damien Exp $");
 
 #include "ssh.h"
 #include "rsa.h"
@@ -63,9 +63,11 @@ ssh_get_authentication_socket()
 	return sock;
 }
 
-/* Closes the agent socket if it should be closed (depends on how it was
-   obtained).  The argument must have been returned by
-   ssh_get_authentication_socket(). */
+/*
+ * Closes the agent socket if it should be closed (depends on how it was
+ * obtained).  The argument must have been returned by
+ * ssh_get_authentication_socket().
+ */
 
 void 
 ssh_close_authentication_socket(int sock)
@@ -74,11 +76,13 @@ ssh_close_authentication_socket(int sock)
 		close(sock);
 }
 
-/* Opens and connects a private socket for communication with the
-   authentication agent.  Returns the file descriptor (which must be
-   shut down and closed by the caller when no longer needed).
-   Returns NULL if an error occurred and the connection could not be
-   opened. */
+/*
+ * Opens and connects a private socket for communication with the
+ * authentication agent.  Returns the file descriptor (which must be
+ * shut down and closed by the caller when no longer needed).
+ * Returns NULL if an error occurred and the connection could not be
+ * opened.
+ */
 
 AuthenticationConnection *
 ssh_get_authentication_connection()
@@ -88,12 +92,13 @@ ssh_get_authentication_connection()
 
 	sock = ssh_get_authentication_socket();
 
-	/* Fail if we couldn't obtain a connection.  This happens if we
-	   exited due to a timeout. */
+	/*
+	 * Fail if we couldn't obtain a connection.  This happens if we
+	 * exited due to a timeout.
+	 */
 	if (sock < 0)
 		return NULL;
 
-	/* Applocate the connection structure and initialize it. */
 	auth = xmalloc(sizeof(*auth));
 	auth->fd = sock;
 	buffer_init(&auth->packet);
@@ -103,8 +108,10 @@ ssh_get_authentication_connection()
 	return auth;
 }
 
-/* Closes the connection to the authentication agent and frees any associated
-   memory. */
+/*
+ * Closes the connection to the authentication agent and frees any associated
+ * memory.
+ */
 
 void 
 ssh_close_authentication_connection(AuthenticationConnection *ac)
@@ -115,10 +122,12 @@ ssh_close_authentication_connection(AuthenticationConnection *ac)
 	xfree(ac);
 }
 
-/* Returns the first authentication identity held by the agent.
-   Returns true if an identity is available, 0 otherwise.
-   The caller must initialize the integers before the call, and free the
-   comment after a successful call (before calling ssh_get_next_identity). */
+/*
+ * Returns the first authentication identity held by the agent.
+ * Returns true if an identity is available, 0 otherwise.
+ * The caller must initialize the integers before the call, and free the
+ * comment after a successful call (before calling ssh_get_next_identity).
+ */
 
 int
 ssh_get_first_identity(AuthenticationConnection *auth,
@@ -127,8 +136,10 @@ ssh_get_first_identity(AuthenticationConnection *auth,
 	unsigned char msg[8192];
 	int len, l;
 
-	/* Send a message to the agent requesting for a list of the
-	   identities it can represent. */
+	/*
+	 * Send a message to the agent requesting for a list of the
+	 * identities it can represent.
+	 */
 	msg[0] = 0;
 	msg[1] = 0;
 	msg[2] = 0;
@@ -149,8 +160,10 @@ ssh_get_first_identity(AuthenticationConnection *auth,
 		len -= l;
 	}
 
-	/* Extract the length, and check it for sanity.  (We cannot trust
-	   authentication agents). */
+	/*
+	 * Extract the length, and check it for sanity.  (We cannot trust
+	 * authentication agents).
+	 */
 	len = GET_32BIT(msg);
 	if (len < 1 || len > 256 * 1024)
 		fatal("Authentication reply message too long: %d\n", len);
@@ -182,10 +195,12 @@ ssh_get_first_identity(AuthenticationConnection *auth,
 	return ssh_get_next_identity(auth, e, n, comment);
 }
 
-/* Returns the next authentication identity for the agent.  Other functions
-   can be called between this and ssh_get_first_identity or two calls of this
-   function.  This returns 0 if there are no more identities.  The caller
-   must free comment after a successful return. */
+/*
+ * Returns the next authentication identity for the agent.  Other functions
+ * can be called between this and ssh_get_first_identity or two calls of this
+ * function.  This returns 0 if there are no more identities.  The caller
+ * must free comment after a successful return.
+ */
 
 int
 ssh_get_next_identity(AuthenticationConnection *auth,
@@ -197,8 +212,10 @@ ssh_get_next_identity(AuthenticationConnection *auth,
 	if (auth->howmany <= 0)
 		return 0;
 
-	/* Get the next entry from the packet.  These will abort with a
-	   fatal error if the packet is too short or contains corrupt data. */
+	/*
+	 * Get the next entry from the packet.  These will abort with a fatal
+	 * error if the packet is too short or contains corrupt data.
+	 */
 	bits = buffer_get_int(&auth->identities);
 	buffer_get_bignum(&auth->identities, e);
 	buffer_get_bignum(&auth->identities, n);
@@ -214,11 +231,13 @@ ssh_get_next_identity(AuthenticationConnection *auth,
 	return 1;
 }
 
-/* Generates a random challenge, sends it to the agent, and waits for response
-   from the agent.  Returns true (non-zero) if the agent gave the correct
-   answer, zero otherwise.  Response type selects the style of response
-   desired, with 0 corresponding to protocol version 1.0 (no longer supported)
-   and 1 corresponding to protocol version 1.1. */
+/*
+ * Generates a random challenge, sends it to the agent, and waits for
+ * response from the agent.  Returns true (non-zero) if the agent gave the
+ * correct answer, zero otherwise.  Response type selects the style of
+ * response desired, with 0 corresponding to protocol version 1.0 (no longer
+ * supported) and 1 corresponding to protocol version 1.1.
+ */
 
 int
 ssh_decrypt_challenge(AuthenticationConnection *auth,
@@ -259,8 +278,10 @@ error_cleanup:
 		buffer_free(&buffer);
 		return 0;
 	}
-	/* Wait for response from the agent.  First read the length of the
-	   response packet. */
+	/*
+	 * Wait for response from the agent.  First read the length of the
+	 * response packet.
+	 */
 	len = 4;
 	while (len > 0) {
 		l = read(auth->fd, buf + 4 - len, len);
@@ -303,8 +324,10 @@ error_cleanup:
 	if (buf[0] != SSH_AGENT_RSA_RESPONSE)
 		fatal("Bad authentication response: %d", buf[0]);
 
-	/* Get the response from the packet.  This will abort with a fatal
-	   error if the packet is corrupt. */
+	/*
+	 * Get the response from the packet.  This will abort with a fatal
+	 * error if the packet is corrupt.
+	 */
 	for (i = 0; i < 16; i++)
 		response[i] = buffer_get_char(&buffer);
 
@@ -315,8 +338,10 @@ error_cleanup:
 	return 1;
 }
 
-/* Adds an identity to the authentication server.  This call is not meant to
-   be used by normal applications. */
+/*
+ * Adds an identity to the authentication server.  This call is not meant to
+ * be used by normal applications.
+ */
 
 int 
 ssh_add_identity(AuthenticationConnection *auth,
@@ -401,8 +426,10 @@ error_cleanup:
 	return 0;
 }
 
-/* Removes an identity from the authentication server.  This call is not meant
-   to be used by normal applications. */
+/*
+ * Removes an identity from the authentication server.  This call is not
+ * meant to be used by normal applications.
+ */
 
 int 
 ssh_remove_identity(AuthenticationConnection *auth, RSA *key)
@@ -431,8 +458,10 @@ error_cleanup:
 		buffer_free(&buffer);
 		return 0;
 	}
-	/* Wait for response from the agent.  First read the length of the
-	   response packet. */
+	/*
+	 * Wait for response from the agent.  First read the length of the
+	 * response packet.
+	 */
 	len = 4;
 	while (len > 0) {
 		l = read(auth->fd, buf + 4 - len, len);
@@ -480,8 +509,10 @@ error_cleanup:
 	return 0;
 }
 
-/* Removes all identities from the agent.  This call is not meant
-   to be used by normal applications. */
+/*
+ * Removes all identities from the agent.  This call is not meant to be used
+ * by normal applications.
+ */
 
 int 
 ssh_remove_all_identities(AuthenticationConnection *auth)
@@ -499,8 +530,10 @@ ssh_remove_all_identities(AuthenticationConnection *auth)
 		error("Error writing to authentication socket.");
 		return 0;
 	}
-	/* Wait for response from the agent.  First read the length of the
-	   response packet. */
+	/*
+	 * Wait for response from the agent.  First read the length of the
+	 * response packet.
+	 */
 	len = 4;
 	while (len > 0) {
 		l = read(auth->fd, buf + 4 - len, len);

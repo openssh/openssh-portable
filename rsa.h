@@ -13,7 +13,7 @@
  * 
 */
 
-/* RCSID("$Id: rsa.h,v 1.4 1999/11/24 13:26:22 damien Exp $"); */
+/* RCSID("$Id: rsa.h,v 1.5 1999/11/25 00:54:59 damien Exp $"); */
 
 #ifndef RSA_H
 #define RSA_H
@@ -33,8 +33,10 @@
 /* Calls SSL RSA_generate_key, only copies to prv and pub */
 void    rsa_generate_key(RSA * prv, RSA * pub, unsigned int bits);
 
-/* Indicates whether the rsa module is permitted to show messages on
-   the terminal. */
+/*
+ * Indicates whether the rsa module is permitted to show messages on the
+ * terminal.
+ */
 void rsa_set_verbose __P((int verbose));
 
 int rsa_alive __P((void));

@@ -13,7 +13,7 @@
  * 
  */
 
-/* RCSID("$Id: buffer.h,v 1.2 1999/11/24 13:26:22 damien Exp $"); */
+/* RCSID("$Id: buffer.h,v 1.3 1999/11/25 00:54:58 damien Exp $"); */
 
 #ifndef BUFFER_H
 #define BUFFER_H
@@ -37,9 +37,11 @@ void    buffer_clear(Buffer * buffer);
 /* Appends data to the buffer, expanding it if necessary. */
 void    buffer_append(Buffer * buffer, const char *data, unsigned int len);
 
-/* Appends space to the buffer, expanding the buffer if necessary.
-   This does not actually copy the data into the buffer, but instead
-   returns a pointer to the allocated region. */
+/*
+ * Appends space to the buffer, expanding the buffer if necessary. This does
+ * not actually copy the data into the buffer, but instead returns a pointer
+ * to the allocated region.
+ */
 void    buffer_append_space(Buffer * buffer, char **datap, unsigned int len);
 
 /* Returns the number of bytes of data in the buffer. */
@@ -57,8 +59,10 @@ void    buffer_consume_end(Buffer * buffer, unsigned int bytes);
 /* Returns a pointer to the first used byte in the buffer. */
 char   *buffer_ptr(Buffer * buffer);
 
-/* Dumps the contents of the buffer to stderr in hex.  This intended for
-   debugging purposes only. */
+/*
+ * Dumps the contents of the buffer to stderr in hex.  This intended for
+ * debugging purposes only.
+ */
 void    buffer_dump(Buffer * buffer);
 
 #endif				/* BUFFER_H */

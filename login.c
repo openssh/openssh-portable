@@ -18,7 +18,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: login.c,v 1.3 1999/11/24 13:26:22 damien Exp $");
+RCSID("$Id: login.c,v 1.4 1999/11/25 00:54:59 damien Exp $");
 
 #include <utmp.h>
 #include "ssh.h"
@@ -30,12 +30,16 @@ RCSID("$Id: login.c,v 1.3 1999/11/24 13:26:22 damien Exp $");
 # include <lastlog.h>
 #endif
 
-/* Returns the time when the user last logged in.  Returns 0 if the
-   information is not available.  This must be called before record_login.
-   The host the user logged in from will be returned in buf. */
+/*
+ * Returns the time when the user last logged in.  Returns 0 if the
+ * information is not available.  This must be called before record_login.
+ * The host the user logged in from will be returned in buf.
+ */
 
-/* Returns the time when the user last logged in (or 0 if no previous login
-   is found).  The name of the host used last time is returned in buf. */
+/*
+ * Returns the time when the user last logged in (or 0 if no previous login
+ * is found).  The name of the host used last time is returned in buf.
+ */
 
 unsigned long 
 get_last_login_time(uid_t uid, const char *logname,
@@ -64,8 +68,10 @@ get_last_login_time(uid_t uid, const char *logname,
 	return ll.ll_time;
 }
 
-/* Records that the user has logged in.  I these parts of operating systems
-   were more standardized. */
+/*
+ * Records that the user has logged in.  I these parts of operating systems
+ * were more standardized.
+ */
 
 void 
 record_login(int pid, const char *ttyname, const char *user, uid_t uid,
@@ -95,9 +101,10 @@ record_login(int pid, const char *ttyname, const char *user, uid_t uid,
 
 	/* Update lastlog unless actually recording a logout. */
 	if (strcmp(user, "") != 0) {
-		/* It is safer to bzero the lastlog structure first
-		   because some systems might have some extra fields in it
-		   (e.g. SGI) */
+		/*
+		 * It is safer to bzero the lastlog structure first because
+		 * some systems might have some extra fields in it (e.g. SGI)
+		 */
 		memset(&ll, 0, sizeof(ll));
 
 		/* Update lastlog. */

@@ -11,7 +11,7 @@
 
 #ifndef HAVE_PAM
 
-RCSID("$Id: auth-passwd.c,v 1.6 1999/11/24 13:26:21 damien Exp $");
+RCSID("$Id: auth-passwd.c,v 1.7 1999/11/25 00:54:57 damien Exp $");
 
 #include "packet.h"
 #include "ssh.h"
@@ -39,14 +39,10 @@ auth_password(struct passwd * pw, const char *password)
 	struct spwd *spw;
 #endif
 
-	if (pw->pw_uid == 0 && options.permit_root_login == 2) {
-		/* Server does not permit root login with password */
+	if (pw->pw_uid == 0 && options.permit_root_login == 2)
 		return 0;
-	}
-	if (*password == '\0' && options.permit_empty_passwd == 0) {
-		/* Server does not permit empty password login */
+	if (*password == '\0' && options.permit_empty_passwd == 0)
 		return 0;
-	}
 	/* deny if no user. */
 	if (pw == NULL)
 		return 0;
@@ -74,8 +70,10 @@ auth_password(struct passwd * pw, const char *password)
 #endif
 
 #if defined(KRB4)
-	/* Support for Kerberos v4 authentication - Dug Song
-	   <dugsong@UMICH.EDU> */
+	/*
+	 * Support for Kerberos v4 authentication
+	 * - Dug Song <dugsong@UMICH.EDU>
+	 */
 	if (options.kerberos_authentication) {
 		AUTH_DAT adata;
 		KTEXT_ST tkt;
@@ -86,8 +84,10 @@ auth_password(struct passwd * pw, const char *password)
 		char realm[REALM_SZ];
 		int r;
 
-		/* Try Kerberos password authentication only for non-root
-		   users and only if Kerberos is installed. */
+		/*
+		 * Try Kerberos password authentication only for non-root
+		 * users and only if Kerberos is installed.
+		 */
 		if (pw->pw_uid != 0 && krb_get_lrealm(realm, 1) == KSUCCESS) {
 
 			/* Set up our ticket file. */
@@ -144,14 +144,17 @@ auth_password(struct passwd * pw, const char *password)
 					goto kerberos_auth_failure;
 				}
 			} else if (r == KDC_PR_UNKNOWN) {
-				/* Allow login if no rcmd service exists,
-				   but log the error. */
+				/*
+				 * Allow login if no rcmd service exists, but
+				 * log the error.
+				 */
 				log("Kerberos V4 TGT for %s unverifiable: %s; %s.%s "
 				    "not registered, or srvtab is wrong?", pw->pw_name,
 				krb_err_txt[r], KRB4_SERVICE_NAME, phost);
 			} else {
-				/* TGT is bad, forget it. Possibly
-				   spoofed! */
+				/*
+				 * TGT is bad, forget it. Possibly spoofed!
+				 */
 				packet_send_debug("WARNING: Kerberos V4 TGT "
 				    "possibly spoofed for %s: %s",
 				    pw->pw_name, krb_err_txt[r]);
@@ -175,11 +178,8 @@ auth_password(struct passwd * pw, const char *password)
 #endif				/* KRB4 */
 
 	/* Check for users with no password. */
-	if (strcmp(password, "") == 0 && strcmp(pw->pw_passwd, "") == 0) {
-		packet_send_debug("Login permitted without a password "
-		    "because the account has no password.");
+	if (strcmp(password, "") == 0 && strcmp(pw->pw_passwd, "") == 0)
 		return 1;
-	}
 
 #ifdef HAVE_SHADOW_H
 	spw = getspnam(pw->pw_name);

@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: sshconnect.c,v 1.14 1999/11/24 13:26:23 damien Exp $");
+RCSID("$Id: sshconnect.c,v 1.15 1999/11/25 00:54:59 damien Exp $");
 
 #ifdef HAVE_OPENSSL
 #include <openssl/bn.h>
@@ -142,8 +142,10 @@ ssh_create_socket(uid_t original_real_uid, int privileged)
 {
 	int sock;
 
-	/* If we are running as root and want to connect to a privileged
-	   port, bind our own socket to a privileged port. */
+	/*
+	 * If we are running as root and want to connect to a privileged
+	 * port, bind our own socket to a privileged port.
+	 */
 	if (privileged) {
 		int p = IPPORT_RESERVED - 1;
 
@@ -227,9 +229,11 @@ ssh_connect(const char *host, struct sockaddr_in * hostaddr,
 					  !anonymous && geteuid() == 0 &&
 						 port < IPPORT_RESERVED);
 
-			/* Connect to the host.  We use the user's uid in
-			   the hope that it will help with the problems of
-			   tcp_wrappers showing the remote uid as root. */
+			/*
+			 * Connect to the host.  We use the user's uid in the
+			 * hope that it will help with the problems of
+			 * tcp_wrappers showing the remote uid as root.
+			 */
 			temporarily_use_uid(original_real_uid);
 			if (connect(sock, (struct sockaddr *) hostaddr, sizeof(*hostaddr))
 			    >= 0) {
@@ -270,8 +274,12 @@ ssh_connect(const char *host, struct sockaddr_in * hostaddr,
 					  !anonymous && geteuid() == 0 &&
 						 port < IPPORT_RESERVED);
 
-				/* Connect to the host.  We use the user's uid in the hope that
-				   it will help with tcp_wrappers showing the remote uid as root. */
+				/*
+				 * Connect to the host.  We use the user's
+				 * uid in the hope that it will help with
+				 * tcp_wrappers showing the remote uid as
+				 * root.
+				 */
 				temporarily_use_uid(original_real_uid);
 				if (connect(sock, (struct sockaddr *) hostaddr,
 					    sizeof(*hostaddr)) >= 0) {
@@ -282,8 +290,12 @@ ssh_connect(const char *host, struct sockaddr_in * hostaddr,
 				debug("connect: %.100s", strerror(errno));
 				restore_uid();
 
-				/* Close the failed socket; there appear to be some problems when
-				   reusing a socket for which connect() has already returned an error. */
+				/*
+				 * Close the failed socket; there appear to
+				 * be some problems when reusing a socket for
+				 * which connect() has already returned an
+				 * error.
+				 */
 				shutdown(sock, SHUT_RDWR);
 				close(sock);
 			}
@@ -300,10 +312,11 @@ ssh_connect(const char *host, struct sockaddr_in * hostaddr,
 
 	debug("Connection established.");
 
-	/* Set socket options.  We would like the socket to disappear as
-	   soon as it has been closed for whatever reason. */
-	/* setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void *)&on,
-	   sizeof(on)); */
+	/*
+	 * Set socket options.  We would like the socket to disappear as soon
+	 * as it has been closed for whatever reason.
+	 */
+	/* setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void *)&on, sizeof(on)); */
 	setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (void *) &on, sizeof(on));
 	linger.l_onoff = 1;
 	linger.l_linger = 5;
@@ -493,8 +506,10 @@ try_rsa_authentication(struct passwd * pw, const char *authfile)
 	/* Wait for server's response. */
 	type = packet_read(&plen);
 
-	/* The server responds with failure if it doesn\'t like our key or
-	   doesn\'t support RSA authentication. */
+	/*
+	 * The server responds with failure if it doesn\'t like our key or
+	 * doesn\'t support RSA authentication.
+	 */
 	if (type == SSH_SMSG_FAILURE) {
 		debug("Server refused our key.");
 		xfree(comment);
@@ -514,8 +529,10 @@ try_rsa_authentication(struct passwd * pw, const char *authfile)
 	debug("Received RSA challenge from server.");
 
 	private_key = RSA_new();
-	/* Load the private key.  Try first with empty passphrase; if it
-	   fails, ask for a passphrase. */
+	/*
+	 * Load the private key.  Try first with empty passphrase; if it
+	 * fails, ask for a passphrase.
+	 */
 	if (!load_private_key(authfile, "", private_key, NULL)) {
 		char buf[300];
 		snprintf(buf, sizeof buf, "Enter passphrase for RSA key '%.100s': ",
@@ -720,9 +737,11 @@ try_kerberos_authentication()
 
 		packet_integrity_check(plen, 4 + auth.length, type);
 
-		/* If his response isn't properly encrypted with the
-		   session key, and the decrypted checksum fails to match,
-		   he's bogus. Bail out. */
+		/*
+		 * If his response isn't properly encrypted with the session
+		 * key, and the decrypted checksum fails to match, he's
+		 * bogus. Bail out.
+		 */
 		r = krb_rd_priv(auth.dat, auth.length, schedule, &cred.session,
 				&foreign, &local, &msg_data);
 		if (r != KSUCCESS) {
@@ -894,8 +913,10 @@ ssh_exchange_identification()
 	}
 	buf[sizeof(buf) - 1] = 0;
 
-	/* Check that the versions match.  In future this might accept
-	   several versions and set appropriate flags to handle them. */
+	/*
+	 * Check that the versions match.  In future this might accept
+	 * several versions and set appropriate flags to handle them.
+	 */
 	if (sscanf(buf, "SSH-%d.%d-%[^\n]\n", &remote_major, &remote_minor,
 		   remote_version) != 3)
 		fatal("Bad remote protocol version identification: '%.100s'", buf);
@@ -916,9 +937,11 @@ ssh_exchange_identification()
 		}
 	}
 #if 0
-	/* Removed for now, to permit compatibility with latter versions.
-	   The server will reject our version and disconnect if it doesn't
-	   support it. */
+	/*
+	 * Removed for now, to permit compatibility with latter versions. The
+	 * server will reject our version and disconnect if it doesn't
+	 * support it.
+	 */
 	if (remote_major != PROTOCOL_MAJOR)
 		fatal("Protocol major versions differ: %d vs. %d",
 		      PROTOCOL_MAJOR, remote_major);
@@ -1086,10 +1109,7 @@ ssh_login(int host_key_valid,
 	protocol_flags = packet_get_int();
 	packet_set_protocol_flags(protocol_flags);
 
-	/* Get supported cipher types. */
 	supported_ciphers = packet_get_int();
-
-	/* Get supported authentication types. */
 	supported_authentications = packet_get_int();
 
 	debug("Received server public key (%d bits) and host key (%d bits).",
@@ -1099,11 +1119,12 @@ ssh_login(int host_key_valid,
 			       8 + 4 + sum_len + 0 + 4 + 0 + 0 + 4 + 4 + 4,
 			       SSH_SMSG_PUBLIC_KEY);
 
-	/* Compute the session id. */
 	compute_session_id(session_id, check_bytes, host_key->n, public_key->n);
 
-	/* Check if the host key is present in the user\'s list of known
-	   hosts or in the systemwide list. */
+	/*
+	 * Check if the host key is present in the user\'s list of known
+	 * hosts or in the systemwide list.
+	 */
 	host_status = check_host_in_hostfile(options.user_hostfile, host,
 					     host_key->e, host_key->n,
 					     file_key->e, file_key->n);
@@ -1111,18 +1132,22 @@ ssh_login(int host_key_valid,
 		host_status = check_host_in_hostfile(options.system_hostfile, host,
 						host_key->e, host_key->n,
 					       file_key->e, file_key->n);
-	/* Force accepting of the host key for localhost and 127.0.0.1.
-	   The problem is that if the home directory is NFS-mounted to
-	   multiple machines, localhost will refer to a different machine
-	   in each of them, and the user will get bogus HOST_CHANGED
-	   warnings.  This essentially disables host authentication for
-	   localhost; however, this is probably not a real problem. */
+	/*
+	 * Force accepting of the host key for localhost and 127.0.0.1. The
+	 * problem is that if the home directory is NFS-mounted to multiple
+	 * machines, localhost will refer to a different machine in each of
+	 * them, and the user will get bogus HOST_CHANGED warnings.  This
+	 * essentially disables host authentication for localhost; however,
+	 * this is probably not a real problem.
+	 */
 	if (local) {
 		debug("Forcing accepting of host key for localhost.");
 		host_status = HOST_OK;
 	}
-	/* Also perform check for the ip address, skip the check if we are
-	   localhost or the hostname was an ip address to begin with */
+	/*
+	 * Also perform check for the ip address, skip the check if we are
+	 * localhost or the hostname was an ip address to begin with
+	 */
 	if (options.check_host_ip && !local && strcmp(host, ip)) {
 		RSA *ip_key = RSA_new();
 		ip_key->n = BN_new();
@@ -1226,13 +1251,18 @@ ssh_login(int host_key_valid,
 		error("Add correct host key in %.100s to get rid of this message.",
 		      options.user_hostfile);
 
-		/* If strict host key checking is in use, the user will
-		   have to edit the key manually and we can only abort. */
+		/*
+		 * If strict host key checking is in use, the user will have
+		 * to edit the key manually and we can only abort.
+		 */
 		if (options.strict_host_key_checking)
 			fatal("Host key for %.200s has changed and you have requested strict checking.", host);
 
-		/* If strict host key checking has not been requested, allow the connection
-		   but without password authentication or agent forwarding. */
+		/*
+		 * If strict host key checking has not been requested, allow
+		 * the connection but without password authentication or
+		 * agent forwarding.
+		 */
 		if (options.password_authentication) {
 			error("Password authentication is disabled to avoid trojan horses.");
 			options.password_authentication = 0;
@@ -1241,11 +1271,13 @@ ssh_login(int host_key_valid,
 			error("Agent forwarding is disabled to avoid trojan horses.");
 			options.forward_agent = 0;
 		}
-		/* XXX Should permit the user to change to use the new id.
-		   This could be done by converting the host key to an
-		   identifying sentence, tell that the host identifies
-		   itself by that sentence, and ask the user if he/she
-		   whishes to accept the authentication. */
+		/*
+		 * XXX Should permit the user to change to use the new id.
+		 * This could be done by converting the host key to an
+		 * identifying sentence, tell that the host identifies itself
+		 * by that sentence, and ask the user if he/she whishes to
+		 * accept the authentication.
+		 */
 		break;
 	}
 
@@ -1255,9 +1287,11 @@ ssh_login(int host_key_valid,
 	/* Generate a session key. */
 	arc4random_stir();
 
-	/* Generate an encryption key for the session.   The key is a 256
-	   bit random number, interpreted as a 32-byte key, with the least
-	   significant 8 bits being the first byte of the key. */
+	/*
+	 * Generate an encryption key for the session.   The key is a 256 bit
+	 * random number, interpreted as a 32-byte key, with the least
+	 * significant 8 bits being the first byte of the key.
+	 */
 	for (i = 0; i < 32; i++) {
 		if (i % 4 == 0)
 			rand = arc4random();
@@ -1265,9 +1299,11 @@ ssh_login(int host_key_valid,
 		rand >>= 8;
 	}
 
-	/* According to the protocol spec, the first byte of the session
-	   key is the highest byte of the integer.  The session key is
-	   xored with the first 16 bytes of the session id. */
+	/*
+	 * According to the protocol spec, the first byte of the session key
+	 * is the highest byte of the integer.  The session key is xored with
+	 * the first 16 bytes of the session id.
+	 */
 	key = BN_new();
 	BN_set_word(key, 0);
 	for (i = 0; i < SSH_SESSION_KEY_LENGTH; i++) {
@@ -1278,8 +1314,10 @@ ssh_login(int host_key_valid,
 			BN_add_word(key, session_key[i]);
 	}
 
-	/* Encrypt the integer using the public key and host key of the
-	   server (key with smaller modulus first). */
+	/*
+	 * Encrypt the integer using the public key and host key of the
+	 * server (key with smaller modulus first).
+	 */
 	if (BN_cmp(public_key->n, host_key->n) < 0) {
 		/* Public key has smaller modulus. */
 		if (BN_num_bits(host_key->n) <
@@ -1354,8 +1392,10 @@ ssh_login(int host_key_valid,
 	/* We will no longer need the session key here.  Destroy any extra copies. */
 	memset(session_key, 0, sizeof(session_key));
 
-	/* Expect a success message from the server.  Note that this
-	   message will be received in encrypted form. */
+	/*
+	 * Expect a success message from the server.  Note that this message
+	 * will be received in encrypted form.
+	 */
 	packet_read_expect(&payload_len, SSH_SMSG_SUCCESS);
 
 	debug("Received encrypted confirmation.");
@@ -1366,9 +1406,11 @@ ssh_login(int host_key_valid,
 	packet_send();
 	packet_write_wait();
 
-	/* The server should respond with success if no authentication is
-	   needed (the user has no password).  Otherwise the server
-	   responds with failure. */
+	/*
+	 * The server should respond with success if no authentication is
+	 * needed (the user has no password).  Otherwise the server responds
+	 * with failure.
+	 */
 	type = packet_read(&payload_len);
 
 	/* check whether the connection was accepted without authentication. */
@@ -1410,8 +1452,10 @@ ssh_login(int host_key_valid,
 	}
 #endif /* KRB4 */
 
-	/* Use rhosts authentication if running in privileged socket and
-	   we do not wish to remain anonymous. */
+	/*
+	 * Use rhosts authentication if running in privileged socket and we
+	 * do not wish to remain anonymous.
+	 */
 	if ((supported_authentications & (1 << SSH_AUTH_RHOSTS)) &&
 	    options.rhosts_authentication) {
 		debug("Trying rhosts authentication.");
@@ -1428,8 +1472,10 @@ ssh_login(int host_key_valid,
 			packet_disconnect("Protocol error: got %d in response to rhosts auth",
 					  type);
 	}
-	/* Try .rhosts or /etc/hosts.equiv authentication with RSA host
-	   authentication. */
+	/*
+	 * Try .rhosts or /etc/hosts.equiv authentication with RSA host
+	 * authentication.
+	 */
 	if ((supported_authentications & (1 << SSH_AUTH_RHOSTS_RSA)) &&
 	    options.rhosts_rsa_authentication && host_key_valid) {
 		if (try_rhosts_rsa_authentication(local_user, own_host_key))
@@ -1438,10 +1484,11 @@ ssh_login(int host_key_valid,
 	/* Try RSA authentication if the server supports it. */
 	if ((supported_authentications & (1 << SSH_AUTH_RSA)) &&
 	    options.rsa_authentication) {
-		/* Try RSA authentication using the authentication agent.
-		   The agent is tried first because no passphrase is
-		   needed for it, whereas identity files may require
-		   passphrases. */
+		/*
+		 * Try RSA authentication using the authentication agent. The
+		 * agent is tried first because no passphrase is needed for
+		 * it, whereas identity files may require passphrases.
+		 */
 		if (try_agent_authentication())
 			return;
 

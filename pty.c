@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: pty.c,v 1.4 1999/11/24 13:26:22 damien Exp $");
+RCSID("$Id: pty.c,v 1.5 1999/11/25 00:54:59 damien Exp $");
 
 #include "pty.h"
 #include "ssh.h"
@@ -32,10 +32,12 @@ RCSID("$Id: pty.c,v 1.4 1999/11/24 13:26:22 damien Exp $");
 #define O_NOCTTY 0
 #endif
 
-/* Allocates and opens a pty.  Returns 0 if no pty could be allocated,
-   or nonzero if a pty was successfully allocated.  On success, open file
-   descriptors for the pty and tty sides and the name of the tty side are
-   returned (the buffer must be able to hold at least 64 characters). */
+/*
+ * Allocates and opens a pty.  Returns 0 if no pty could be allocated, or
+ * nonzero if a pty was successfully allocated.  On success, open file
+ * descriptors for the pty and tty sides and the name of the tty side are
+ * returned (the buffer must be able to hold at least 64 characters).
+ */
 
 int 
 pty_allocate(int *ptyfd, int *ttyfd, char *namebuf)
@@ -52,8 +54,10 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf)
 	return 1;
 #else /* HAVE_OPENPTY */
 #ifdef HAVE__GETPTY
-	/* _getpty(3) exists in SGI Irix 4.x, 5.x & 6.x -- it generates
-	   more pty's automagically when needed */
+	/*
+	 * _getpty(3) exists in SGI Irix 4.x, 5.x & 6.x -- it generates more
+	 * pty's automagically when needed
+	 */
 	char *slave;
 
 	slave = _getpty(ptyfd, O_RDWR, 0622, 0);
@@ -72,8 +76,10 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf)
 	return 1;
 #else /* HAVE__GETPTY */
 #ifdef HAVE_DEV_PTMX
-	/* This code is used e.g. on Solaris 2.x.  (Note that Solaris 2.3
-	   also has bsd-style ptys, but they simply do not work.) */
+	/*
+	 * This code is used e.g. on Solaris 2.x.  (Note that Solaris 2.3
+	 * also has bsd-style ptys, but they simply do not work.)
+	 */
 	int ptm;
 	char *pts;
 
@@ -103,8 +109,7 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf)
 		close(*ptyfd);
 		return 0;
 	}
-	/* Push the appropriate streams modules, as described in Solaris
-	   pts(7). */
+	/* Push the appropriate streams modules, as described in Solaris pts(7). */
 	if (ioctl(*ttyfd, I_PUSH, "ptem") < 0)
 		error("ioctl I_PUSH ptem: %.100s", strerror(errno));
 	if (ioctl(*ttyfd, I_PUSH, "ldterm") < 0)
@@ -138,8 +143,7 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf)
 	/* BSD-style pty code. */
 	char buf[64];
 	int i;
-	const char *ptymajors =
-	"pqrstuvwxyzabcdefghijklmnoABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	const char *ptymajors = "pqrstuvwxyzabcdefghijklmnoABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	const char *ptyminors = "0123456789abcdef";
 	int num_minors = strlen(ptyminors);
 	int num_ptys = strlen(ptymajors) * num_minors;
@@ -198,8 +202,10 @@ pty_make_controlling_tty(int *ttyfd, const char *ttyname)
 	if (setsid() < 0)
 		error("setsid: %.100s", strerror(errno));
 
-	/* Verify that we are successfully disconnected from the
-	   controlling tty. */
+	/*
+	 * Verify that we are successfully disconnected from the controlling
+	 * tty.
+	 */
 	fd = open("/dev/tty", O_RDWR | O_NOCTTY);
 	if (fd >= 0) {
 		error("Failed to disconnect from controlling tty.");
@@ -208,9 +214,11 @@ pty_make_controlling_tty(int *ttyfd, const char *ttyname)
 	/* Make it our controlling tty. */
 #ifdef TIOCSCTTY
 	debug("Setting controlling tty using TIOCSCTTY.");
-	/* We ignore errors from this, because HPSUX defines TIOCSCTTY,
-	   but returns EINVAL with these arguments, and there is
-	   absolutely no documentation. */
+	/*
+	 * We ignore errors from this, because HPSUX defines TIOCSCTTY, but
+	 * returns EINVAL with these arguments, and there is absolutely no
+	 * documentation.
+	 */
 	ioctl(*ttyfd, TIOCSCTTY, NULL);
 #endif /* TIOCSCTTY */
 	fd = open(ttyname, O_RDWR);

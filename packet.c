@@ -15,7 +15,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: packet.c,v 1.5 1999/11/24 13:26:22 damien Exp $");
+RCSID("$Id: packet.c,v 1.6 1999/11/25 00:54:59 damien Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -29,15 +29,19 @@ RCSID("$Id: packet.c,v 1.5 1999/11/24 13:26:22 damien Exp $");
 #include "compress.h"
 #include "deattack.h"
 
-/* This variable contains the file descriptors used for communicating with
-   the other side.  connection_in is used for reading; connection_out
-   for writing.  These can be the same descriptor, in which case it is
-   assumed to be a socket. */
+/*
+ * This variable contains the file descriptors used for communicating with
+ * the other side.  connection_in is used for reading; connection_out for
+ * writing.  These can be the same descriptor, in which case it is assumed to
+ * be a socket.
+ */
 static int connection_in = -1;
 static int connection_out = -1;
 
-/* Cipher type.  This value is only used to determine whether to pad the
-   packets with zeroes or random data. */
+/*
+ * Cipher type.  This value is only used to determine whether to pad the
+ * packets with zeroes or random data.
+ */
 static int cipher_type = SSH_CIPHER_NONE;
 
 /* Protocol flags for the remote side. */
@@ -76,8 +80,10 @@ static int initialized = 0;
 /* Set to true if the connection is interactive. */
 static int interactive_mode = 0;
 
-/* Sets the descriptors used for communication.  Disables encryption until
-   packet_set_encryption_key is called. */
+/*
+ * Sets the descriptors used for communication.  Disables encryption until
+ * packet_set_encryption_key is called.
+ */
 
 void
 packet_set_connection(int fd_in, int fd_out)
@@ -171,8 +177,10 @@ packet_get_protocol_flags()
 	return remote_protocol_flags;
 }
 
-/* Starts packet compression from the next packet on in both directions.
-   Level is compression level 1 (fastest) - 9 (slow, best) as in gzip. */
+/*
+ * Starts packet compression from the next packet on in both directions.
+ * Level is compression level 1 (fastest) - 9 (slow, best) as in gzip.
+ */
 
 void
 packet_start_compression(int level)
@@ -184,8 +192,10 @@ packet_start_compression(int level)
 	buffer_compress_init(level);
 }
 
-/* Encrypts the given number of bytes, copying from src to dest.
-   bytes is known to be a multiple of 8. */
+/*
+ * Encrypts the given number of bytes, copying from src to dest. bytes is
+ * known to be a multiple of 8.
+ */
 
 void
 packet_encrypt(CipherContext * cc, void *dest, void *src,
@@ -194,8 +204,10 @@ packet_encrypt(CipherContext * cc, void *dest, void *src,
 	cipher_encrypt(cc, dest, src, bytes);
 }
 
-/* Decrypts the given number of bytes, copying from src to dest.
-   bytes is known to be a multiple of 8. */
+/*
+ * Decrypts the given number of bytes, copying from src to dest. bytes is
+ * known to be a multiple of 8.
+ */
 
 void
 packet_decrypt(CipherContext * cc, void *dest, void *src,
@@ -206,8 +218,10 @@ packet_decrypt(CipherContext * cc, void *dest, void *src,
 	if ((bytes % 8) != 0)
 		fatal("packet_decrypt: bad ciphertext length %d", bytes);
 
-	/* Cryptographic attack detector for ssh - Modifications for packet.c
-          (C)1998 CORE-SDI, Buenos Aires Argentina Ariel Futoransky(futo@core-sdi.com) */
+	/*
+	 * Cryptographic attack detector for ssh - Modifications for packet.c
+	 * (C)1998 CORE-SDI, Buenos Aires Argentina Ariel Futoransky(futo@core-sdi.com)
+	 */
 
 	switch (cc->type) {
 	case SSH_CIPHER_NONE:
@@ -224,9 +238,11 @@ packet_decrypt(CipherContext * cc, void *dest, void *src,
 	cipher_decrypt(cc, dest, src, bytes);
 }
 
-/* Causes any further packets to be encrypted using the given key.  The same
-   key is used for both sending and reception.  However, both directions
-   are encrypted independently of each other. */
+/*
+ * Causes any further packets to be encrypted using the given key.  The same
+ * key is used for both sending and reception.  However, both directions are
+ * encrypted independently of each other.
+ */
 
 void
 packet_set_encryption_key(const unsigned char *key, unsigned int keylen,
@@ -283,8 +299,10 @@ packet_put_bignum(BIGNUM * value)
 	buffer_put_bignum(&outgoing_packet, value);
 }
 
-/* Finalizes and sends the packet.  If the encryption key has been set,
-   encrypts the packet before sending. */
+/*
+ * Finalizes and sends the packet.  If the encryption key has been set,
+ * encrypts the packet before sending.
+ */
 
 void
 packet_send()
@@ -294,8 +312,10 @@ packet_send()
 	unsigned int checksum;
 	u_int32_t rand = 0;
 
-	/* If using packet compression, compress the payload of the
-	   outgoing packet. */
+	/*
+	 * If using packet compression, compress the payload of the outgoing
+	 * packet.
+	 */
 	if (packet_compression) {
 		buffer_clear(&compression_buffer);
 		/* Skip padding. */
@@ -348,14 +368,18 @@ packet_send()
 
 	buffer_clear(&outgoing_packet);
 
-	/* Note that the packet is now only buffered in output.  It won\'t
-	   be actually sent until packet_write_wait or packet_write_poll
-	   is called. */
+	/*
+	 * Note that the packet is now only buffered in output.  It won\'t be
+	 * actually sent until packet_write_wait or packet_write_poll is
+	 * called.
+	 */
 }
 
-/* Waits until a packet has been received, and returns its type.  Note that
-   no other data is processed until this returns, so this function should
-   not be used during the interactive session. */
+/*
+ * Waits until a packet has been received, and returns its type.  Note that
+ * no other data is processed until this returns, so this function should not
+ * be used during the interactive session.
+ */
 
 int
 packet_read(int *payload_len_ptr)
@@ -379,12 +403,16 @@ packet_read(int *payload_len_ptr)
 		/* If we got a packet, return it. */
 		if (type != SSH_MSG_NONE)
 			return type;
-		/* Otherwise, wait for some data to arrive, add it to the
-		   buffer, and try again. */
+		/*
+		 * Otherwise, wait for some data to arrive, add it to the
+		 * buffer, and try again.
+		 */
 		FD_ZERO(&set);
 		FD_SET(connection_in, &set);
+
 		/* Wait for some data to arrive. */
 		select(connection_in + 1, &set, NULL, NULL, NULL);
+
 		/* Read data from the socket. */
 		len = read(connection_in, buf, sizeof(buf));
 		if (len == 0)
@@ -397,8 +425,10 @@ packet_read(int *payload_len_ptr)
 	/* NOTREACHED */
 }
 
-/* Waits until a packet has been received, verifies that its type matches
-   that given, and gives a fatal error and exits if there is a mismatch. */
+/*
+ * Waits until a packet has been received, verifies that its type matches
+ * that given, and gives a fatal error and exits if there is a mismatch.
+ */
 
 void
 packet_read_expect(int *payload_len_ptr, int expected_type)
@@ -516,8 +546,10 @@ restart:
 	return (unsigned char) buf[0];
 }
 
-/* Buffers the given amount of input characters.  This is intended to be
-   used together with packet_read_poll. */
+/*
+ * Buffers the given amount of input characters.  This is intended to be used
+ * together with packet_read_poll.
+ */
 
 void
 packet_process_incoming(const char *buf, unsigned int len)
@@ -543,8 +575,10 @@ packet_get_int()
 	return buffer_get_int(&incoming_packet);
 }
 
-/* Returns an arbitrary precision integer from the packet data.  The integer
-   must have been initialized before this call. */
+/*
+ * Returns an arbitrary precision integer from the packet data.  The integer
+ * must have been initialized before this call.
+ */
 
 void
 packet_get_bignum(BIGNUM * value, int *length_ptr)
@@ -552,25 +586,27 @@ packet_get_bignum(BIGNUM * value, int *length_ptr)
 	*length_ptr = buffer_get_bignum(&incoming_packet, value);
 }
 
-/* Returns a string from the packet data.  The string is allocated using
-   xmalloc; it is the responsibility of the calling program to free it when
-   no longer needed.  The length_ptr argument may be NULL, or point to an
-   integer into which the length of the string is stored. */
+/*
+ * Returns a string from the packet data.  The string is allocated using
+ * xmalloc; it is the responsibility of the calling program to free it when
+ * no longer needed.  The length_ptr argument may be NULL, or point to an
+ * integer into which the length of the string is stored.
+ */
 
-char
-*
+char *
 packet_get_string(unsigned int *length_ptr)
 {
 	return buffer_get_string(&incoming_packet, length_ptr);
 }
 
-/* Sends a diagnostic message from the server to the client.  This message
-   can be sent at any time (but not while constructing another message).
-   The message is printed immediately, but only if the client is being
-   executed in verbose mode.  These messages are primarily intended to
-   ease debugging authentication problems.   The length of the formatted
-   message must not exceed 1024 bytes.  This will automatically call
-   packet_write_wait. */
+/*
+ * Sends a diagnostic message from the server to the client.  This message
+ * can be sent at any time (but not while constructing another message). The
+ * message is printed immediately, but only if the client is being executed
+ * in verbose mode.  These messages are primarily intended to ease debugging
+ * authentication problems.   The length of the formatted message must not
+ * exceed 1024 bytes.  This will automatically call packet_write_wait.
+ */
 
 void
 packet_send_debug(const char *fmt,...)
@@ -588,10 +624,12 @@ packet_send_debug(const char *fmt,...)
 	packet_write_wait();
 }
 
-/* Logs the error plus constructs and sends a disconnect
-   packet, closes the connection, and exits.  This function never returns.
-   The error message should not contain a newline.  The length of the
-   formatted message must not exceed 1024 bytes. */
+/*
+ * Logs the error plus constructs and sends a disconnect packet, closes the
+ * connection, and exits.  This function never returns. The error message
+ * should not contain a newline.  The length of the formatted message must
+ * not exceed 1024 bytes.
+ */
 
 void
 packet_disconnect(const char *fmt,...)
@@ -603,8 +641,10 @@ packet_disconnect(const char *fmt,...)
 		fatal("packet_disconnect called recursively.");
 	disconnecting = 1;
 
-	/* Format the message.  Note that the caller must make sure the
-	   message is of limited size. */
+	/*
+	 * Format the message.  Note that the caller must make sure the
+	 * message is of limited size.
+	 */
 	va_start(args, fmt);
 	vsnprintf(buf, sizeof(buf), fmt, args);
 	va_end(args);
@@ -625,8 +665,7 @@ packet_disconnect(const char *fmt,...)
 	fatal("Disconnecting: %.100s", buf);
 }
 
-/* Checks if there is any buffered output, and tries to write some of the
-   output. */
+/* Checks if there is any buffered output, and tries to write some of the output. */
 
 void
 packet_write_poll()
@@ -644,8 +683,10 @@ packet_write_poll()
 	}
 }
 
-/* Calls packet_write_poll repeatedly until all pending output data has
-   been written. */
+/*
+ * Calls packet_write_poll repeatedly until all pending output data has been
+ * written.
+ */
 
 void
 packet_write_wait()
@@ -689,8 +730,10 @@ packet_set_interactive(int interactive, int keepalives)
 	/* Record that we are in interactive mode. */
 	interactive_mode = interactive;
 
-	/* Only set socket options if using a socket (as indicated by the
-	   descriptors being the same). */
+	/*
+	 * Only set socket options if using a socket (as indicated by the
+	 * descriptors being the same).
+	 */
 	if (connection_in != connection_out)
 		return;
 
@@ -701,8 +744,10 @@ packet_set_interactive(int interactive, int keepalives)
 			error("setsockopt SO_KEEPALIVE: %.100s", strerror(errno));
 	}
 	if (interactive) {
-		/* Set IP options for an interactive connection.  Use
-		   IPTOS_LOWDELAY and TCP_NODELAY. */
+		/*
+		 * Set IP options for an interactive connection.  Use
+		 * IPTOS_LOWDELAY and TCP_NODELAY.
+		 */
 		int lowdelay = IPTOS_LOWDELAY;
 		if (setsockopt(connection_in, IPPROTO_IP, IP_TOS, (void *) &lowdelay,
 			       sizeof(lowdelay)) < 0)
@@ -711,8 +756,10 @@ packet_set_interactive(int interactive, int keepalives)
 			       sizeof(on)) < 0)
 			error("setsockopt TCP_NODELAY: %.100s", strerror(errno));
 	} else {
-		/* Set IP options for a non-interactive connection.  Use
-		   IPTOS_THROUGHPUT. */
+		/*
+		 * Set IP options for a non-interactive connection.  Use
+		 * IPTOS_THROUGHPUT.
+		 */
 		int throughput = IPTOS_THROUGHPUT;
 		if (setsockopt(connection_in, IPPROTO_IP, IP_TOS, (void *) &throughput,
 			       sizeof(throughput)) < 0)

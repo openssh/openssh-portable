@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: uidswap.c,v 1.2 1999/11/24 13:26:23 damien Exp $");
+RCSID("$Id: uidswap.c,v 1.3 1999/11/25 00:55:00 damien Exp $");
 
 #include "ssh.h"
 #include "uidswap.h"
@@ -66,10 +66,11 @@ restore_uid()
 	if (seteuid(saved_euid) < 0)
 		debug("seteuid %d: %.100s", (int) saved_euid, strerror(errno));
 #else /* SAVED_IDS_WORK_WITH_SETEUID */
-	/* We are unable to restore the real uid to its unprivileged
-	   value. */
-	/* Propagate the real uid (usually more privileged) to effective
-	   uid as well. */
+	/*
+	 * We are unable to restore the real uid to its unprivileged value.
+	 * Propagate the real uid (usually more privileged) to effective uid
+	 * as well.
+	 */
 	setuid(getuid());
 #endif /* SAVED_IDS_WORK_WITH_SETEUID */
 }
