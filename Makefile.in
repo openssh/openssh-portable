@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.181 2001/07/04 05:40:20 mouring Exp $
+# $Id: Makefile.in,v 1.182 2001/07/14 03:07:43 djm Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -140,18 +140,24 @@ $(CONFIGFILES): $(CONFIGFILES_IN)
 	$(FIXPATHSCMD) $(srcdir)/$${conffile} > $@
 
 clean:
-	(cd openbsd-compat; $(MAKE) clean)
 	rm -f *.o *.a $(TARGETS) logintest config.cache config.log 
 	rm -f *.out core
+	(cd openbsd-compat; $(MAKE) clean)
 
-distclean: clean
-	(cd openbsd-compat; $(MAKE) distclean)
+distclean:
+	rm -f *.o *.a $(TARGETS) logintest config.cache config.log 
+	rm -f *.out core
 	rm -f Makefile config.h config.status ssh_prng_cmds *~
+	(cd openbsd-compat; $(MAKE) distclean)
+
+veryclean:
+	rm -f configure config.h.in *.0
+	rm -f *.o *.a $(TARGETS) logintest config.cache config.log 
+	rm -f *.out core
+	rm -f Makefile config.h config.status ssh_prng_cmds *~
+	(cd openbsd-compat; $(MAKE) distclean)
 
 mrproper: distclean
-
-veryclean: distclean
-	rm -f configure config.h.in *.0
 
 catman-do:
 	@for f in $(MANPAGES_IN) ; do \

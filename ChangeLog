@@ -47,6 +47,8 @@
      [auth.c]
      no need to call dirname(pw->pw_dir).
      note that dirname(3) modifies its argument on some systems.
+ - (djm) Reorder Makefile.in so clean targets work a little better when
+   run directly from Makefile.in
 
 20010711
  - (djm) dirname(3) may modify its argument on glibc and other systems. 
@@ -6022,4 +6024,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1397 2001/07/14 02:21:34 djm Exp $
+$Id: ChangeLog,v 1.1398 2001/07/14 03:07:44 djm Exp $
