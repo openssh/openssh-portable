@@ -83,6 +83,9 @@
    - markus@cvs.openbsd.org 2001/06/27 02:12:54
      [serverloop.c serverloop.h session.c session.h]
      quick hack to make ssh2 work again.
+   - markus@cvs.openbsd.org 2001/06/27 04:48:53
+     [auth.c match.c sshd.8]
+     tridge@samba.org
  
 20010629
  - (bal) Removed net_aton() since we don't use it any more
@@ -5910,4 +5913,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1362 2001/07/04 04:53:53 mouring Exp $
+$Id: ChangeLog,v 1.1363 2001/07/04 04:56:44 mouring Exp $

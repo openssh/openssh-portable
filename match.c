@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: match.c,v 1.13 2001/06/24 05:25:10 markus Exp $");
+RCSID("$OpenBSD: match.c,v 1.14 2001/06/27 04:48:53 markus Exp $");
 
 #include "match.h"
 #include "xmalloc.h"
@@ -182,6 +182,30 @@ match_host_and_ip(const char *host, const char *ipaddr,
 	if (mhost == 0 && mip == 0)
 		return 0;
 	return 1;
+}
+
+/*
+ * match user, user@host_or_ip, user@host_or_ip_list against pattern
+ */
+int
+match_user(const char *user, const char *host, const char *ipaddr,
+    const char *pattern)
+{
+	char *p, *pat;
+	int ret;
+
+	if ((p = strchr(pattern,'@')) == NULL)
+		return match_pattern(user, pattern);
+
+	pat = xstrdup(pattern);
+	p = strchr(pat, '@');
+	*p++ = '\0';
+
+	if ((ret = match_pattern(user, pat)) == 1)
+		ret = match_host_and_ip(host, ipaddr, p);
+	xfree(pat);
+
+	return ret;
 }
 
 /*
