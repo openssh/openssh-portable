@@ -49,6 +49,9 @@ daemon(nochdir, noclose)
 	case -1:
 		return (-1);
 	case 0:
+#ifdef HAVE_CYGWIN
+		register_9x_service();
+#endif
 		break;
 	default:
 #ifdef HAVE_CYGWIN

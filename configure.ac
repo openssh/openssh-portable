@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.4 2001/11/03 19:09:33 tim Exp $
+# $Id: configure.ac,v 1.5 2001/11/27 01:19:43 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -65,7 +65,7 @@ case "$host" in
 	AC_DEFINE(DISABLE_LASTLOG)
 	;;
 *-*-cygwin*)
-	LIBS="$LIBS -lregex /usr/lib/textmode.o"
+	LIBS="$LIBS /usr/lib/textmode.o"
 	AC_DEFINE(HAVE_CYGWIN)
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(DISABLE_SHADOW)
@@ -401,18 +401,43 @@ AC_CHECK_LIB(z, deflate, ,AC_MSG_ERROR([*** zlib missing - please install first 
 # We don't want to check if we did an pcre override.
 if test -z "$no_comp_check" ; then
 	AC_CHECK_FUNC(regcomp, 
-		[ AC_DEFINE(HAVE_REGCOMP)],
 		[
-			AC_CHECK_LIB(pcre, pcre_info, 
-			[
-				AC_DEFINE(HAVE_LIBPCRE)
-				LIBS="$LIBS -lpcreposix -lpcre"
-			],
-			[
-				AC_MSG_ERROR([*** No regex library found.])
-			])
+			AC_CHECK_FUNC(regsub, 
+				[
+					has_regcomp=no
+				],
+				[
+					AC_DEFINE(HAVE_REGCOMP)
+					has_regcomp=yes
+				]
+			)
+		],
+		[
+			has_regcomp=no
 		]
 	)
+	# Either regcomp wasn't defined or regsub is defined (which means
+	# that the libc regex is probably an old non-POSIX implementation. 
+	# Now check for -lregex and -lpcreposix to find some usable regex
+	# implementation.
+	if test "$has_regcomp" = "no" ; then
+		AC_CHECK_LIB(regex, regcomp,
+			[
+				AC_DEFINE(HAVE_REGCOMP)
+				LIBS="$LIBS -lregex"
+			],
+			[
+				AC_CHECK_LIB(pcre, pcre_info, 
+				[
+					AC_DEFINE(HAVE_LIBPCRE)
+					LIBS="$LIBS -lpcreposix -lpcre"
+				],
+				[
+					AC_MSG_ERROR([*** No regex library found.])
+				])
+			]
+		)
+	fi
 fi
 
 dnl UnixWare 2.x

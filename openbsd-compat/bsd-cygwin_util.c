@@ -15,7 +15,7 @@
 
 #include "includes.h"
 
-RCSID("$Id: bsd-cygwin_util.c,v 1.5 2001/07/18 16:19:49 mouring Exp $");
+RCSID("$Id: bsd-cygwin_util.c,v 1.6 2001/11/27 01:19:44 tim Exp $");
 
 #ifdef HAVE_CYGWIN
 
@@ -137,6 +137,28 @@ int check_ntsec(const char *filename)
 		return allow_ntsec;
 
 	return 0;
+}
+
+void register_9x_service(void)
+{
+        HINSTANCE kerneldll;
+        DWORD (*RegisterServiceProcess)(DWORD, DWORD);
+
+	/* The service register mechanism in 9x/Me is pretty different from
+	 * NT/2K/XP.  In NT/2K/XP we're using a special service starter
+	 * application to register and control sshd as service.  This method
+	 * doesn't play nicely with 9x/Me.  For that reason we register here
+	 * as service when running under 9x/Me.  This function is only called
+	 * by the child sshd when it's going to daemonize.
+	 */
+	if (is_winnt)
+		return;
+	if (! (kerneldll = LoadLibrary("KERNEL32.DLL")))
+		return;
+	if (! (RegisterServiceProcess = (DWORD (*)(DWORD, DWORD))
+			  GetProcAddress(kerneldll, "RegisterServiceProcess")))
+		return;
+	RegisterServiceProcess(0, 1);
 }
 
 #endif /* HAVE_CYGWIN */

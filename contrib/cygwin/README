@@ -1,6 +1,14 @@
 This package is the actual port of OpenSSH to Cygwin 1.3.
 
 ===========================================================================
+Important change since 3.0.1p1-2:
+
+This version introduces the ability to register sshd as service on
+Windows 9x/Me systems.  This is done only when the options -D and/or
+-d are not given.
+===========================================================================
+
+===========================================================================
 Important change since 2.9p2:
 
 Since Cygwin is able to switch user context without password beginning
@@ -162,12 +170,10 @@ configure are used for the Cygwin binary distribution:
 
 	--prefix=/usr \
 	--sysconfdir=/etc \
-	--libexecdir='${exec_prefix}/sbin \
-	--with-pcre
+	--libexecdir='${exec_prefix}/sbin'
 
 You must have installed the zlib, openssl and regex packages to
-be able to build OpenSSH! The `--with-pcre' option requires
-the installation of the pcre package.
+be able to build OpenSSH!
 
 Please send requests, error reports etc. to cygwin@cygwin.com.
 
