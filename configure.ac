@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.241 2005/02/11 05:11:49 dtucker Exp $
+# $Id: configure.ac,v 1.242 2005/02/15 10:45:57 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -135,7 +135,7 @@ case "$host" in
 		[#include <usersec.h>]
 	)
 	AC_CHECK_FUNCS(setauthdb)
-	AC_DEFINE(BROKEN_GETADDRINFO)
+	check_for_aix_broken_getaddrinfo=1
 	AC_DEFINE(BROKEN_REALPATH)
 	AC_DEFINE(SETEUID_BREAKS_SETUID)
 	AC_DEFINE(BROKEN_SETREUID)
@@ -1138,6 +1138,64 @@ main(void)
 		],
 		[
 			AC_MSG_RESULT(yes)
+		],
+		[
+			AC_MSG_RESULT(no)
+			AC_DEFINE(BROKEN_GETADDRINFO)
+		]
+	)
+fi
+
+if test "x$ac_cv_func_getaddrinfo" = "xyes" -a "x$check_for_aix_broken_getaddrinfo" = "x1"; then
+	AC_MSG_CHECKING(if getaddrinfo seems to work)
+	AC_TRY_RUN(
+		[
+#include <stdio.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <errno.h>
+#include <netinet/in.h>
+
+#define TEST_PORT "2222"
+
+int
+main(void)
+{
+	int err, sock;
+	struct addrinfo *gai_ai, *ai, hints;
+	char ntop[NI_MAXHOST], strport[NI_MAXSERV], *name = NULL;
+
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = PF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
+
+	err = getaddrinfo(name, TEST_PORT, &hints, &gai_ai);
+	if (err != 0) {
+		fprintf(stderr, "getaddrinfo failed (%s)", gai_strerror(err));
+		exit(1);
+	}
+
+	for (ai = gai_ai; ai != NULL; ai = ai->ai_next) {
+		if (ai->ai_family != AF_INET && ai->ai_family != AF_INET6)
+			continue;
+
+		err = getnameinfo(ai->ai_addr, ai->ai_addrlen, ntop,
+		    sizeof(ntop), strport, sizeof(strport),
+		    NI_NUMERICHOST|NI_NUMERICSERV);
+
+		if (ai->ai_family == AF_INET && err != 0) {
+			perror("getnameinfo");
+			exit(2);
+		}
+	}
+	exit(0);
+}
+		],
+		[
+			AC_MSG_RESULT(yes)
+			AC_DEFINE(AIX_GETNAMEINFO_HACK, [],
+[Define if you have a getaddrinfo that fails for the all-zeros IPv6 address])
 		],
 		[
 			AC_MSG_RESULT(no)

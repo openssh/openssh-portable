@@ -34,13 +34,12 @@
 #ifdef _AIX
 
 #include <uinfo.h>
+#include <sys/socket.h>
 #include "port-aix.h"
 
 /* These should be in the system headers but are not. */
 int usrinfo(int, char *, int);
 int setauthdb(const char *, char *);
-
-extern Buffer loginmsg;
 
 # ifdef HAVE_SETAUTHDB
 static char old_registry[REGISTRY_SIZE] = "";
@@ -156,7 +155,7 @@ aix_valid_authentications(const char *user)
  * returns 0.
  */
 int
-sys_auth_passwd(Authctxt *ctxt, const char *password)
+sys_auth_passwd(Authctxt *ctxt, const char *password, Buffer *loginmsg)
 {
 	char *authmsg = NULL, *msg, *name = ctxt->pw->pw_name;
 	int authsuccess = 0, expired, reenter, result;
@@ -186,7 +185,7 @@ sys_auth_passwd(Authctxt *ctxt, const char *password)
 		 */
 		expired = passwdexpired(name, &msg);
 		if (msg && *msg) {
-			buffer_append(&loginmsg, msg, strlen(msg));
+			buffer_append(loginmsg, msg, strlen(msg));
 			aix_remove_embedded_newlines(msg);
 		}
 		debug3("AIX/passwdexpired returned %d msg %.100s", expired, msg);
@@ -219,7 +218,7 @@ sys_auth_passwd(Authctxt *ctxt, const char *password)
  * Returns 1 if login is allowed, 0 if not allowed.
  */
 int
-sys_auth_allowed_user(struct passwd *pw)
+sys_auth_allowed_user(struct passwd *pw, Buffer *loginmsg)
 {
 	char *msg = NULL;
 	int result, permitted = 0;
@@ -246,7 +245,7 @@ sys_auth_allowed_user(struct passwd *pw)
 	if (result == -1 && errno == EPERM && stat(_PATH_NOLOGIN, &st) == 0)
 		permitted = 1;
 	else if (msg != NULL)
-		buffer_append(&loginmsg, msg, strlen(msg));
+		buffer_append(loginmsg, msg, strlen(msg));
 	if (msg == NULL)
 		msg = xstrdup("(none)");
 	aix_remove_embedded_newlines(msg);
@@ -259,7 +258,8 @@ sys_auth_allowed_user(struct passwd *pw)
 }
 
 int
-sys_auth_record_login(const char *user, const char *host, const char *ttynm)
+sys_auth_record_login(const char *user, const char *host, const char *ttynm,
+    Buffer *loginmsg)
 {
 	char *msg;
 	int success = 0;
@@ -269,7 +269,7 @@ sys_auth_record_login(const char *user, const char *host, const char *ttynm)
 		success = 1;
 		if (msg != NULL) {
 			debug("AIX/loginsuccess: msg %s", msg);
-			buffer_append(&loginmsg, msg, strlen(msg));
+			buffer_append(loginmsg, msg, strlen(msg));
 			xfree(msg);
 		}
 	}
@@ -348,5 +348,34 @@ aix_restoreauthdb(void)
 }
 
 # endif /* WITH_AIXAUTHENTICATE */
+
+# if defined(AIX_GETNAMEINFO_HACK) && !defined(BROKEN_ADDRINFO)
+# undef getnameinfo
+/*
+ * For some reason, AIX's getnameinfo will refuse to resolve the all-zeros
+ * IPv6 address into its textual representation ("::"), so we wrap it
+ * with a function that will.
+ */
+int
+sshaix_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
+    size_t hostlen, char *serv, size_t servlen, int flags)
+{
+	struct sockaddr_in6 *sa6;
+	u_int32_t *a6;
+
+	if (flags & (NI_NUMERICHOST|NI_NUMERICSERV) &&
+	    sa->sa_family == AF_INET6) {
+		sa6 = (struct sockaddr_in6 *)sa;
+		a6 = sa6->sin6_addr.u6_addr.u6_addr32;
+
+		if (a6[0] == 0 && a6[1] == 0 && a6[2] == 0 && a6[3] == 0) {
+			strlcpy(host, "::", hostlen);
+			snprintf(serv, servlen, "%d", sa6->sin6_port);
+			return 0;
+		}
+	}
+	return getnameinfo(sa, salen, host, hostlen, serv, servlen, flags);
+}
+# endif /* AIX_GETNAMEINFO_HACK */
 
 #endif /* _AIX */

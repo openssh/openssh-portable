@@ -164,7 +164,7 @@
 # include <libutil.h>
 #endif
 
-RCSID("$Id: loginrec.c,v 1.65 2005/02/08 10:52:48 dtucker Exp $");
+RCSID("$Id: loginrec.c,v 1.66 2005/02/15 10:45:57 dtucker Exp $");
 
 /**
  ** prototypes for helper functions in this file
@@ -191,6 +191,8 @@ int getlast_entry(struct logininfo *li);
 int lastlog_get_entry(struct logininfo *li);
 int wtmp_get_entry(struct logininfo *li);
 int wtmpx_get_entry(struct logininfo *li);
+
+extern Buffer loginmsg;
 
 /* pick the shortest string */
 #define MIN_SIZEOF(s1,s2) (sizeof(s1) < sizeof(s2) ? sizeof(s1) : sizeof(s2))
@@ -441,7 +443,7 @@ login_write(struct logininfo *li)
 #endif
 #ifdef CUSTOM_SYS_AUTH_RECORD_LOGIN
 	if (li->type == LTYPE_LOGIN && 
-	   !sys_auth_record_login(li->username,li->hostname,li->line))
+	   !sys_auth_record_login(li->username,li->hostname,li->line, &loginmsg))
 		logit("Writing login record failed for %s", li->username);
 #endif
 #ifdef SSH_AUDIT_EVENTS

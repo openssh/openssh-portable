@@ -1,4 +1,4 @@
-/* $Id: port-aix.h,v 1.22 2005/02/02 06:10:11 dtucker Exp $ */
+/* $Id: port-aix.h,v 1.23 2005/02/15 10:45:58 dtucker Exp $ */
 
 /*
  *
@@ -27,6 +27,10 @@
 
 #ifdef _AIX
 
+#ifdef HAVE_SYS_SOCKET_H
+# include <sys/socket.h>
+#endif
+
 #ifdef WITH_AIXAUTHENTICATE
 # include <login.h>
 # include <userpw.h>
@@ -35,6 +39,8 @@
 # endif
 # include <usersec.h>
 #endif
+
+#include "buffer.h"
 
 /* Some versions define r_type in the above headers, which causes a conflict */
 #ifdef r_type
@@ -64,13 +70,23 @@ void aix_usrinfo(struct passwd *);
 #ifdef WITH_AIXAUTHENTICATE
 # define CUSTOM_SYS_AUTH_PASSWD 1
 # define CUSTOM_SYS_AUTH_ALLOWED_USER 1
-int sys_auth_allowed_user(struct passwd *);
+int sys_auth_allowed_user(struct passwd *, Buffer *);
 # define CUSTOM_SYS_AUTH_RECORD_LOGIN 1
-int sys_auth_record_login(const char *, const char *, const char *);
+int sys_auth_record_login(const char *, const char *, const char *, Buffer *);
 # define CUSTOM_FAILED_LOGIN 1
 #endif
 
 void aix_setauthdb(const char *);
 void aix_restoreauthdb(void);
 void aix_remove_embedded_newlines(char *);
+
+#if defined(AIX_GETNAMEINFO_HACK) && !defined(BROKEN_GETADDRINFO)
+# ifdef getnameinfo
+#  undef getnameinfo
+# endif
+int sshaix_getnameinfo(const struct sockaddr *, size_t, char *, size_t,
+    char *, size_t, int);
+# define getnameinfo(a,b,c,d,e,f,g) (sshaix_getnameinfo(a,b,c,d,e,f,g))
+#endif
+
 #endif /* _AIX */

@@ -209,7 +209,7 @@ allowed_user(struct passwd * pw)
 	}
 
 #ifdef CUSTOM_SYS_AUTH_ALLOWED_USER
-	if (!sys_auth_allowed_user(pw))
+	if (!sys_auth_allowed_user(pw, &loginmsg))
 		return 0;
 #endif
 
