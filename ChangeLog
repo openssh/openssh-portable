@@ -12,6 +12,8 @@
  - (dtucker) [defines.h] Bug #336: Add CMSG_DATA and CMSG_FIRSTHDR macros if
    not already defined (eg Linux with some versions of libc5), based on those
    from OpenBSD.
+ - (dtucker) [configure.ac monitor_fdpass.c] Bug #544: ignore invalid cmsg_type
+   on Linux 1.x and 2.0 kernels, privsep should now work.
 
 20030429
  - (djm) Add back radix.o (used by AFS support), after it went missing from
@@ -1317,4 +1319,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2648.2.6 2003/08/21 07:08:43 dtucker Exp $
+$Id: ChangeLog,v 1.2648.2.7 2003/08/21 07:38:20 dtucker Exp $

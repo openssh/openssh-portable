@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.113.2.2 2003/08/21 06:16:21 dtucker Exp $
+# $Id: configure.ac,v 1.113.2.3 2003/08/21 07:38:20 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -188,6 +188,10 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE(SETPROCTITLE_STRATEGY,PS_USE_CLOBBER_ARGV)
 	AC_DEFINE(SETPROCTITLE_PS_PADDING, '\0')
 	inet6_default_4in6=yes
+	case `uname -r` in
+	1.*|2.0.*)
+		AC_DEFINE(BROKEN_CMSG_TYPE)
+	esac
 	;;
 mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(HAVE_NEWS4)
