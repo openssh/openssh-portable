@@ -1,3 +1,7 @@
+20010223
+ - (bal) Fix --define rh7 in openssh.spec file.  Patch by Steve Tell
+   <tell@telltronics.org>
+
 20010222                                                             
  - (bal) Corrected SCO luid patch by svaughan <svaughan@asterion.com>
  - (bal) Added mdoc2man.pl from Mark Roth <roth@feep.net>
@@ -4098,4 +4102,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.812 2001/02/22 21:23:21 stevesk Exp $
+$Id: ChangeLog,v 1.813 2001/02/23 04:45:15 mouring Exp $
