@@ -18,7 +18,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: login.c,v 1.12 1999/12/25 23:21:48 damien Exp $");
+RCSID("$Id: login.c,v 1.13 1999/12/27 00:33:56 damien Exp $");
 
 #if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
 # include <utmpx.h>
@@ -141,6 +141,7 @@ record_login(int pid, const char *ttyname, const char *user, uid_t uid,
 	/* Construct an utmp/wtmp entry. */
 	memset(&u, 0, sizeof(u));
 	strncpy(u.ut_line, ttyname + 5, sizeof(u.ut_line));
+	strncpy(u.ut_id, ttyname + 8, sizeof(u.ut_id));
 	u.ut_pid = (pid_t)pid;
 	u.ut_time = time(NULL);
 	strncpy(u.ut_name, user, sizeof(u.ut_name));
@@ -153,6 +154,7 @@ record_login(int pid, const char *ttyname, const char *user, uid_t uid,
 	memset(&utx, 0, sizeof(utx));
 	strncpy(utx.ut_user, user, sizeof(utx.ut_name));
 	strncpy(utx.ut_line, ttyname + 5, sizeof(utx.ut_line));
+	strncpy(utx.ut_id, ttyname + 8, sizeof(utx.ut_id));
 	utx.ut_pid = (pid_t)pid;
 	utx.ut_tv.tv_sec = time(NULL);
  	utx.ut_type = (uid == -1)?DEAD_PROCESS:USER_PROCESS;
