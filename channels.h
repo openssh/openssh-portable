@@ -32,7 +32,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* RCSID("$OpenBSD: channels.h,v 1.61 2002/02/03 17:55:55 markus Exp $"); */
+/* RCSID("$OpenBSD: channels.h,v 1.62 2002/02/03 17:58:21 markus Exp $"); */
 
 #ifndef CHANNEL_H
 #define CHANNEL_H
@@ -101,9 +101,7 @@ struct Channel {
 	char   *ctype;		/* type */
 
 	/* callback */
-	channel_callback_fn	*cb_fn;
-	void	*cb_arg;
-	int	cb_event;
+	channel_callback_fn	*confirm;
 	channel_callback_fn	*detach_user;
 
 	/* filter */
@@ -149,8 +147,8 @@ void	 channel_stop_listening(void);
 void	 channel_send_open(int);
 void	 channel_request(int, char *, int);
 void	 channel_request_start(int, char *, int);
-void	 channel_register_callback(int, int mtype, channel_callback_fn *, void *);
 void	 channel_register_cleanup(int, channel_callback_fn *);
+void	 channel_register_confirm(int, channel_callback_fn *);
 void	 channel_register_filter(int, channel_filter_fn *);
 void	 channel_cancel_cleanup(int);
 int	 channel_close_fd(int *);

@@ -64,6 +64,11 @@
    - markus@cvs.openbsd.org 2002/02/03 17:55:55
      [channels.c channels.h]
      remove unused channel_input_channel_request
+   - markus@cvs.openbsd.org 2002/02/03 17:58:21
+     [channels.c channels.h ssh.c]
+     generic callbacks are not really used, remove and
+     add a callback for msg of type SSH2_MSG_CHANNEL_OPEN_CONFIRMATION
+     ok djm@
 
 20020130
  - (djm) Delay PRNG seeding until we need it in ssh-keygen, from markus@
@@ -7466,4 +7471,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1816 2002/02/05 01:22:08 djm Exp $
+$Id: ChangeLog,v 1.1817 2002/02/05 01:23:08 djm Exp $

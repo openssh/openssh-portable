@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.159 2002/01/27 18:08:17 stevesk Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.160 2002/02/03 17:58:21 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -1161,9 +1161,7 @@ ssh_session2_open(void)
 
 	channel_send_open(c->self);
 	if (!no_shell_flag)
-		channel_register_callback(c->self,
-		    SSH2_MSG_CHANNEL_OPEN_CONFIRMATION,
-		    ssh_session2_setup, (void *)0);
+		channel_register_confirm(c->self, ssh_session2_setup);
 
 	return c->self;
 }

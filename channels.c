@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.164 2002/02/03 17:55:55 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.165 2002/02/03 17:58:21 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -260,12 +260,10 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 	c->remote_name = remote_name;
 	c->remote_window = 0;
 	c->remote_maxpacket = 0;
-	c->cb_fn = NULL;
-	c->cb_arg = NULL;
-	c->cb_event = 0;
 	c->force_drain = 0;
 	c->single_connection = 0;
 	c->detach_user = NULL;
+	c->confirm = NULL;
 	c->input_filter = NULL;
 	debug("channel %d: new [%s]", found, remote_name);
 	return c;
@@ -610,16 +608,14 @@ channel_request_start(int id, char *service, int wantconfirm)
 	packet_put_char(wantconfirm);
 }
 void
-channel_register_callback(int id, int mtype, channel_callback_fn *fn, void *arg)
+channel_register_confirm(int id, channel_callback_fn *fn)
 {
 	Channel *c = channel_lookup(id);
 	if (c == NULL) {
-		log("channel_register_callback: %d: bad id", id);
+		log("channel_register_comfirm: %d: bad id", id);
 		return;
 	}
-	c->cb_event = mtype;
-	c->cb_fn = fn;
-	c->cb_arg = arg;
+	c->confirm = fn;
 }
 void
 channel_register_cleanup(int id, channel_callback_fn *fn)
@@ -1882,9 +1878,9 @@ channel_input_open_confirmation(int type, u_int32_t seq, void *ctxt)
 	if (compat20) {
 		c->remote_window = packet_get_int();
 		c->remote_maxpacket = packet_get_int();
-		if (c->cb_fn != NULL && c->cb_event == type) {
+		if (c->confirm) {
 			debug2("callback start");
-			c->cb_fn(c->self, c->cb_arg);
+			c->confirm(c->self, NULL);
 			debug2("callback done");
 		}
 		debug("channel %d: open confirm rwindow %d rmax %d", c->self,
