@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.83 2001/01/24 21:03:50 stevesk Exp $");
+RCSID("$OpenBSD: channels.c,v 1.84 2001/01/29 16:55:36 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -84,7 +84,7 @@ static int channels_alloc = 0;
  * Maximum file descriptor value used in any of the channels.  This is
  * updated in channel_allocate.
  */
-static int channel_max_fd_value = 0;
+static int channel_max_fd = 0;
 
 /* Name and directory of socket for authentication agent forwarding. */
 static char *channel_forwarded_auth_socket_name = NULL;
@@ -181,12 +181,10 @@ channel_register_fds(Channel *c, int rfd, int wfd, int efd,
     int extusage, int nonblock)
 {
 	/* Update the maximum file descriptor value. */
-	if (rfd > channel_max_fd_value)
-		channel_max_fd_value = rfd;
-	if (wfd > channel_max_fd_value)
-		channel_max_fd_value = wfd;
-	if (efd > channel_max_fd_value)
-		channel_max_fd_value = efd;
+	channel_max_fd = MAX(channel_max_fd, rfd);
+	channel_max_fd = MAX(channel_max_fd, wfd);
+	channel_max_fd = MAX(channel_max_fd, efd);
+
 	/* XXX set close-on-exec -markus */
 
 	c->rfd = rfd;
@@ -965,9 +963,27 @@ channel_handler(chan_fn *ftab[], fd_set * readset, fd_set * writeset)
 }
 
 void
-channel_prepare_select(fd_set * readset, fd_set * writeset)
+channel_prepare_select(fd_set **readsetp, fd_set **writesetp, int *maxfdp)
 {
-	channel_handler(channel_pre, readset, writeset);
+	int n;
+	u_int sz;
+
+	n = MAX(*maxfdp, channel_max_fd);
+
+	sz = howmany(n+1, NFDBITS) * sizeof(fd_mask);
+	if (*readsetp == NULL || n > *maxfdp) {
+		if (*readsetp)
+			xfree(*readsetp);
+		if (*writesetp)
+			xfree(*writesetp);
+		*readsetp = xmalloc(sz);
+		*writesetp = xmalloc(sz);
+		*maxfdp = n;
+	}
+	memset(*readsetp, 0, sz);
+	memset(*writesetp, 0, sz);
+
+	channel_handler(channel_pre, *readsetp, *writesetp);
 }
 
 void
@@ -976,7 +992,7 @@ channel_after_select(fd_set * readset, fd_set * writeset)
 	channel_handler(channel_post, readset, writeset);
 }
 
-/* If there is data to send to the connection, send some of it now. */
+/* If there is data to send to the connection, enqueue some of it now. */
 
 void
 channel_output_poll()
@@ -1415,14 +1431,6 @@ channel_close_all()
 	for (i = 0; i < channels_alloc; i++)
 		if (channels[i].type != SSH_CHANNEL_FREE)
 			channel_close_fds(&channels[i]);
-}
-
-/* Returns the maximum file descriptor number used by the channels. */
-
-int
-channel_max_fd()
-{
-	return channel_max_fd_value;
 }
 
 /* Returns true if any channel is still open. */

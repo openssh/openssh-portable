@@ -32,7 +32,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* RCSID("$OpenBSD: channels.h,v 1.24 2000/12/05 20:34:10 markus Exp $"); */
+/* RCSID("$OpenBSD: channels.h,v 1.25 2001/01/29 16:55:36 markus Exp $"); */
 
 #ifndef CHANNELS_H
 #define CHANNELS_H
@@ -163,8 +163,12 @@ int     channel_allocate(int type, int sock, char *remote_name);
 /* Free the channel and close its socket. */
 void    channel_free(int channel);
 
-/* Add any bits relevant to channels in select bitmasks. */
-void    channel_prepare_select(fd_set * readset, fd_set * writeset);
+/*
+ * Allocate/update select bitmasks and add any bits relevant to channels in
+ * select bitmasks.
+ */
+void
+channel_prepare_select(fd_set **readsetp, fd_set **writesetp, int *maxfdp);
 
 /*
  * After select, perform any appropriate operations for channels which have
@@ -187,9 +191,6 @@ void    channel_stop_listening(void);
  * descriptors after a fork.
  */
 void    channel_close_all(void);
-
-/* Returns the maximum file descriptor number used by the channels. */
-int     channel_max_fd(void);
 
 /* Returns true if there is still an open channel over the connection. */
 int     channel_still_open(void);

@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.45 2001/01/21 19:05:47 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.46 2001/01/29 16:55:36 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -124,7 +124,6 @@ static Buffer stdout_buffer;	/* Buffer for stdout data. */
 static Buffer stderr_buffer;	/* Buffer for stderr data. */
 static u_long stdin_bytes, stdout_bytes, stderr_bytes;
 static u_int buffer_high;/* Soft max buffer size. */
-static int max_fd;		/* Maximum file descriptor number in select(). */
 static int connection_in;	/* Connection to server (input). */
 static int connection_out;	/* Connection to server (output). */
 
@@ -365,45 +364,37 @@ client_check_window_change()
  */
 
 void
-client_wait_until_can_do_something(fd_set * readset, fd_set * writeset)
+client_wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp,
+    int *maxfdp)
 {
-	/* Initialize select masks. */
-	FD_ZERO(readset);
-	FD_ZERO(writeset);
+	/* Add any selections by the channel mechanism. */
+	channel_prepare_select(readsetp, writesetp, maxfdp);
 
 	if (!compat20) {
 		/* Read from the connection, unless our buffers are full. */
 		if (buffer_len(&stdout_buffer) < buffer_high &&
 		    buffer_len(&stderr_buffer) < buffer_high &&
 		    channel_not_very_much_buffered_data())
-			FD_SET(connection_in, readset);
+			FD_SET(connection_in, *readsetp);
 		/*
 		 * Read from stdin, unless we have seen EOF or have very much
 		 * buffered data to send to the server.
 		 */
 		if (!stdin_eof && packet_not_very_much_data_to_write())
-			FD_SET(fileno(stdin), readset);
+			FD_SET(fileno(stdin), *readsetp);
 
 		/* Select stdout/stderr if have data in buffer. */
 		if (buffer_len(&stdout_buffer) > 0)
-			FD_SET(fileno(stdout), writeset);
+			FD_SET(fileno(stdout), *writesetp);
 		if (buffer_len(&stderr_buffer) > 0)
-			FD_SET(fileno(stderr), writeset);
+			FD_SET(fileno(stderr), *writesetp);
 	} else {
-		FD_SET(connection_in, readset);
+		FD_SET(connection_in, *readsetp);
 	}
-
-	/* Add any selections by the channel mechanism. */
-	channel_prepare_select(readset, writeset);
 
 	/* Select server connection if have data to write to the server. */
 	if (packet_have_data_to_write())
-		FD_SET(connection_out, writeset);
-
-/* move UP XXX */
-	/* Update maximum file descriptor number, if appropriate. */
-	if (channel_max_fd() > max_fd)
-		max_fd = channel_max_fd();
+		FD_SET(connection_out, *writesetp);
 
 	/*
 	 * Wait for something to happen.  This will suspend the process until
@@ -414,11 +405,8 @@ client_wait_until_can_do_something(fd_set * readset, fd_set * writeset)
 	 * SSH_MSG_IGNORE packet when the timeout expires.
 	 */
 
-	if (select(max_fd + 1, readset, writeset, NULL, NULL) < 0) {
+	if (select((*maxfdp)+1, *readsetp, *writesetp, NULL, NULL) < 0) {
 		char buf[100];
-		/* Some systems fail to clear these automatically. */
-		FD_ZERO(readset);
-		FD_ZERO(writeset);
 		if (errno == EINTR)
 			return;
 		/* Note: we might still have data in the buffers. */
@@ -797,6 +785,8 @@ simple_escape_filter(Channel *c, char *buf, int len)
 int
 client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 {
+	fd_set *readset = NULL, *writeset = NULL;
+	int max_fd = 0;
 	double start_time, total_time;
 	int len;
 	char buf[100];
@@ -813,9 +803,13 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 	buffer_high = 64 * 1024;
 	connection_in = packet_get_connection_in();
 	connection_out = packet_get_connection_out();
-	max_fd = connection_in;
-	if (connection_out > max_fd)
-		max_fd = connection_out;
+	max_fd = MAX(connection_in, connection_out);
+
+	if (!compat20) {
+		max_fd = MAX(max_fd, fileno(stdin));
+		max_fd = MAX(max_fd, fileno(stdout));
+		max_fd = MAX(max_fd, fileno(stderr));
+	}
 	stdin_bytes = 0;
 	stdout_bytes = 0;
 	stderr_bytes = 0;
@@ -849,7 +843,6 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 
 	/* Main loop of the client for the interactive session mode. */
 	while (!quit_pending) {
-		fd_set readset, writeset;
 
 		/* Process buffered packets sent by the server. */
 		client_process_buffered_input_packets();
@@ -867,7 +860,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 			client_make_packets_from_stdin_data();
 
 		/*
-		 * Make packets from buffered channel data, and buffer them
+		 * Make packets from buffered channel data, and enqueue them
 		 * for sending to the server.
 		 */
 		if (packet_not_very_much_data_to_write())
@@ -886,34 +879,38 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 		 * Wait until we have something to do (something becomes
 		 * available on one of the descriptors).
 		 */
-		client_wait_until_can_do_something(&readset, &writeset);
+		client_wait_until_can_do_something(&readset, &writeset, &max_fd);
 
 		if (quit_pending)
 			break;
 
 		/* Do channel operations. */
-		channel_after_select(&readset, &writeset);
+		channel_after_select(readset, writeset);
 
 		/* Buffer input from the connection.  */
-		client_process_net_input(&readset);
+		client_process_net_input(readset);
 
 		if (quit_pending)
 			break;
 
 		if (!compat20) {
 			/* Buffer data from stdin */
-			client_process_input(&readset);
+			client_process_input(readset);
 			/*
 			 * Process output to stdout and stderr.  Output to
 			 * the connection is processed elsewhere (above).
 			 */
-			client_process_output(&writeset);
+			client_process_output(writeset);
 		}
 
 		/* Send as much buffered packet data as possible to the sender. */
-		if (FD_ISSET(connection_out, &writeset))
+		if (FD_ISSET(connection_out, writeset))
 			packet_write_poll();
 	}
+	if (readset)
+		xfree(readset);
+	if (writeset)
+		xfree(writeset);
 
 	/* Terminate the session. */
 

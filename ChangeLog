@@ -1,3 +1,9 @@
+20000130
+ - (djm) OpenBSD CVS Sync:
+   - markus@cvs.openbsd.org  2001/01/29 09:55:37
+     [channels.c channels.h clientloop.c serverloop.c]
+     fix select overflow; ok deraadt@ and stevesk@
+
 20000129
  - (stevesk) sftp-server.c: use %lld vs. %qd
 

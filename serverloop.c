@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.42 2001/01/21 19:05:55 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.43 2001/01/29 16:55:37 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -73,7 +73,6 @@ static int fderr_eof = 0;	/* EOF encountered readung from fderr. */
 static int connection_in;	/* Connection to client (input). */
 static int connection_out;	/* Connection to client (output). */
 static u_int buffer_high;/* "Soft" max buffer size. */
-static int max_fd;		/* Max file descriptor number for select(). */
 
 /*
  * This SIGCHLD kludge is used to detect when the child exits.  The server
@@ -180,8 +179,8 @@ make_packets_from_stdout_data()
  * for the duration of the wait (0 = infinite).
  */
 void
-wait_until_can_do_something(fd_set * readset, fd_set * writeset,
-			    u_int max_time_milliseconds)
+wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp, int *maxfdp,
+    u_int max_time_milliseconds)
 {
 	struct timeval tv, *tvp;
 	int ret;
@@ -189,14 +188,13 @@ wait_until_can_do_something(fd_set * readset, fd_set * writeset,
 	/* When select fails we restart from here. */
 retry_select:
 
-	/* Initialize select() masks. */
-	FD_ZERO(readset);
-	FD_ZERO(writeset);
+	/* Allocate and update select() masks for channel descriptors. */
+	channel_prepare_select(readsetp, writesetp, maxfdp);
 
 	if (compat20) {
 		/* wrong: bad condition XXX */
 		if (channel_not_very_much_buffered_data())
-			FD_SET(connection_in, readset);
+			FD_SET(connection_in, *readsetp);
 	} else {
 		/*
 		 * Read packets from the client unless we have too much
@@ -204,37 +202,31 @@ retry_select:
 		 */
 		if (buffer_len(&stdin_buffer) < buffer_high &&
 		    channel_not_very_much_buffered_data())
-			FD_SET(connection_in, readset);
+			FD_SET(connection_in, *readsetp);
 		/*
 		 * If there is not too much data already buffered going to
 		 * the client, try to get some more data from the program.
 		 */
 		if (packet_not_very_much_data_to_write()) {
 			if (!fdout_eof)
-				FD_SET(fdout, readset);
+				FD_SET(fdout, *readsetp);
 			if (!fderr_eof)
-				FD_SET(fderr, readset);
+				FD_SET(fderr, *readsetp);
 		}
 		/*
 		 * If we have buffered data, try to write some of that data
 		 * to the program.
 		 */
 		if (fdin != -1 && buffer_len(&stdin_buffer) > 0)
-			FD_SET(fdin, writeset);
+			FD_SET(fdin, *writesetp);
 	}
-	/* Set masks for channel descriptors. */
-	channel_prepare_select(readset, writeset);
 
 	/*
 	 * If we have buffered packet data going to the client, mark that
 	 * descriptor.
 	 */
 	if (packet_have_data_to_write())
-		FD_SET(connection_out, writeset);
-
-	/* Update the maximum descriptor number if appropriate. */
-	if (channel_max_fd() > max_fd)
-		max_fd = channel_max_fd();
+		FD_SET(connection_out, *writesetp);
 
 	/*
 	 * If child has terminated and there is enough buffer space to read
@@ -255,7 +247,7 @@ retry_select:
 		debug2("tvp!=NULL kid %d mili %d", child_terminated, max_time_milliseconds);
 
 	/* Wait for something to happen, or the timeout to expire. */
-	ret = select(max_fd + 1, readset, writeset, NULL, tvp);
+	ret = select((*maxfdp)+1, *readsetp, *writesetp, NULL, tvp);
 
 	if (ret < 0) {
 		if (errno != EINTR)
@@ -400,7 +392,8 @@ process_buffered_input_packets()
 void
 server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 {
-	fd_set readset, writeset;
+	fd_set *readset = NULL, *writeset = NULL;
+	int max_fd;
 	int wait_status;	/* Status returned by wait(). */
 	pid_t wait_pid;		/* pid returned by wait(). */
 	int waiting_termination = 0;	/* Have displayed waiting close message. */
@@ -441,15 +434,11 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 		buffer_high = 64 * 1024;
 
 	/* Initialize max_fd to the maximum of the known file descriptors. */
-	max_fd = fdin;
-	if (fdout > max_fd)
-		max_fd = fdout;
-	if (fderr != -1 && fderr > max_fd)
-		max_fd = fderr;
-	if (connection_in > max_fd)
-		max_fd = connection_in;
-	if (connection_out > max_fd)
-		max_fd = connection_out;
+	max_fd = MAX(fdin, fdout);
+	if (fderr != -1)
+		max_fd = MAX(max_fd, fderr);
+	max_fd = MAX(max_fd, connection_in);
+	max_fd = MAX(max_fd, connection_out);
 
 	/* Initialize Initialize buffers. */
 	buffer_init(&stdin_buffer);
@@ -536,18 +525,22 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 			}
 		}
 		/* Sleep in select() until we can do something. */
-		wait_until_can_do_something(&readset, &writeset,
-					    max_time_milliseconds);
+		wait_until_can_do_something(&readset, &writeset, &max_fd,
+		    max_time_milliseconds);
 
 		/* Process any channel events. */
-		channel_after_select(&readset, &writeset);
+		channel_after_select(readset, writeset);
 
 		/* Process input from the client and from program stdout/stderr. */
-		process_input(&readset);
+		process_input(readset);
 
 		/* Process output to the client and to program stdin. */
-		process_output(&writeset);
+		process_output(writeset);
 	}
+	if (readset)
+		xfree(readset);
+	if (writeset)
+		xfree(writeset);
 
 	/* Cleanup and termination code. */
 
@@ -638,7 +631,8 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 void
 server_loop2(void)
 {
-	fd_set readset, writeset;
+	fd_set *readset = NULL, *writeset = NULL;
+	int max_fd;
 	int had_channel = 0;
 	int status;
 	pid_t pid;
@@ -650,9 +644,9 @@ server_loop2(void)
 	child_terminated = 0;
 	connection_in = packet_get_connection_in();
 	connection_out = packet_get_connection_out();
-	max_fd = connection_in;
-	if (connection_out > max_fd)
-		max_fd = connection_out;
+
+	max_fd = MAX(connection_in, connection_out);
+
 	server_init_dispatch();
 
 	for (;;) {
@@ -665,16 +659,21 @@ server_loop2(void)
 		}
 		if (packet_not_very_much_data_to_write())
 			channel_output_poll();
-		wait_until_can_do_something(&readset, &writeset, 0);
+		wait_until_can_do_something(&readset, &writeset, &max_fd, 0);
 		if (child_terminated) {
 			while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
 				session_close_by_pid(pid, status);
 			child_terminated = 0;
 		}
-		channel_after_select(&readset, &writeset);
-		process_input(&readset);
-		process_output(&writeset);
+		channel_after_select(readset, writeset);
+		process_input(readset);
+		process_output(writeset);
 	}
+	if (readset)
+		xfree(readset);
+	if (writeset)
+		xfree(writeset);
+
 	signal(SIGCHLD, SIG_DFL);
 	while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
 		session_close_by_pid(pid, status);
