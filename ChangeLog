@@ -7,6 +7,9 @@
    - jakob@cvs.openbsd.org 2003/11/03 09:09:41
      [sshconnect.c]
      move changed key warning into warn_changed_key(). ok markus@
+   - jakob@cvs.openbsd.org 2003/11/03 09:37:32
+     [sshconnect.c]
+     do not free static type pointer in warn_changed_key()
 
 20031115
  - (dtucker) [regress/agent-ptrace.sh] Test for GDB output from Solaris and
@@ -1427,4 +1430,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3099 2003/11/17 10:10:47 djm Exp $
+$Id: ChangeLog,v 1.3100 2003/11/17 10:11:15 djm Exp $

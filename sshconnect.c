@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.150 2003/11/03 09:09:41 jakob Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.151 2003/11/03 09:37:32 jakob Exp $");
 
 #include <openssl/bn.h>
 
@@ -1041,7 +1041,7 @@ static void
 warn_changed_key(Key *host_key)
 {
 	char *fp;
-	char *type = key_type(host_key);
+	const char *type = key_type(host_key);
 
 	fp = key_fingerprint(host_key, SSH_FP_MD5, SSH_FP_HEX);
 
@@ -1056,5 +1056,4 @@ warn_changed_key(Key *host_key)
 	error("Please contact your system administrator.");
 
 	xfree(fp);
-	xfree(type);
 }
