@@ -59,7 +59,7 @@ dnl Checks for header files.
 AC_CHECK_HEADERS(endian.h lastlog.h login.h maillock.h netgroup.h paths.h pty.h shadow.h util.h utmp.h sys/select.h sys/time.h)
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS(arc4random mkdtemp openpty setenv setlogin setproctitle snprintf strlcat strlcpy vsnprintf)
+AC_CHECK_FUNCS(arc4random mkdtemp openpty _getpty setenv setlogin setproctitle snprintf strlcat strlcpy vsnprintf)
 
 AC_CHECK_FUNC(login, 
 	[AC_DEFINE(HAVE_LOGIN)],
@@ -220,6 +220,9 @@ else
 	AC_MSG_RESULT($lastlog)
 	AC_DEFINE_UNQUOTED(LASTLOG_LOCATION, "$lastlog")
 fi	
+
+AC_CHECK_FILE("/dev/ptmx", AC_DEFINE_UNQUOTED(HAVE_DEV_PTMX))
+AC_CHECK_FILE("/dev/ptc", AC_DEFINE_UNQUOTED(HAVE_DEV_PTS_AND_PTC))
 
 AC_MSG_CHECKING([whether libc defines __progname])
 AC_TRY_LINK([], 

@@ -15,7 +15,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: clientloop.c,v 1.6 1999/11/25 00:54:58 damien Exp $");
+RCSID("$Id: clientloop.c,v 1.7 1999/12/07 04:38:32 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -466,13 +466,11 @@ client_suspend_self()
 
 	/* Flush stdout and stderr buffers. */
 	if (buffer_len(&stdout_buffer) > 0)
-		write(fileno(stdout),
-		      buffer_ptr(&stdout_buffer),
-		      buffer_len(&stdout_buffer));
+		atomicio(write, fileno(stdout), buffer_ptr(&stdout_buffer),
+		    buffer_len(&stdout_buffer));
 	if (buffer_len(&stderr_buffer) > 0)
-		write(fileno(stderr),
-		      buffer_ptr(&stderr_buffer),
-		      buffer_len(&stderr_buffer));
+		atomicio(write, fileno(stderr), buffer_ptr(&stderr_buffer),
+		    buffer_len(&stderr_buffer));
 
 	leave_raw_mode();
 
@@ -739,7 +737,7 @@ client_process_output(fd_set * writeset)
 	if (FD_ISSET(fileno(stdout), writeset)) {
 		/* Write as much data as possible. */
 		len = write(fileno(stdout), buffer_ptr(&stdout_buffer),
-			    buffer_len(&stdout_buffer));
+		    buffer_len(&stdout_buffer));
 		if (len <= 0) {
 			if (errno == EAGAIN)
 				len = 0;
@@ -762,7 +760,7 @@ client_process_output(fd_set * writeset)
 	if (FD_ISSET(fileno(stderr), writeset)) {
 		/* Write as much data as possible. */
 		len = write(fileno(stderr), buffer_ptr(&stderr_buffer),
-			    buffer_len(&stderr_buffer));
+		    buffer_len(&stderr_buffer));
 		if (len <= 0) {
 			if (errno == EAGAIN)
 				len = 0;
@@ -911,7 +909,7 @@ client_loop(int have_pty, int escape_char_arg)
 	/* Output any buffered data for stdout. */
 	while (buffer_len(&stdout_buffer) > 0) {
 		len = write(fileno(stdout), buffer_ptr(&stdout_buffer),
-			    buffer_len(&stdout_buffer));
+		    buffer_len(&stdout_buffer));
 		if (len <= 0) {
 			error("Write failed flushing stdout buffer.");
 			break;
@@ -922,7 +920,7 @@ client_loop(int have_pty, int escape_char_arg)
 	/* Output any buffered data for stderr. */
 	while (buffer_len(&stderr_buffer) > 0) {
 		len = write(fileno(stderr), buffer_ptr(&stderr_buffer),
-			    buffer_len(&stderr_buffer));
+		    buffer_len(&stderr_buffer));
 		if (len <= 0) {
 			error("Write failed flushing stderr buffer.");
 			break;

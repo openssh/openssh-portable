@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: pty.c,v 1.5 1999/11/25 00:54:59 damien Exp $");
+RCSID("$Id: pty.c,v 1.6 1999/12/07 04:38:32 damien Exp $");
 
 #include "pty.h"
 #include "ssh.h"
@@ -40,17 +40,19 @@ RCSID("$Id: pty.c,v 1.5 1999/11/25 00:54:59 damien Exp $");
  */
 
 int 
-pty_allocate(int *ptyfd, int *ttyfd, char *namebuf)
+pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 {
-#ifdef HAVE_OPENPTY
+#if defined(HAVE_OPENPTY) || defined(BSD4_4)
 	/* openpty(3) exists in OSF/1 and some other os'es */
+	char buf[64];
 	int i;
 
-	i = openpty(ptyfd, ttyfd, namebuf, NULL, NULL);
+	i = openpty(ptyfd, ttyfd, buf, NULL, NULL);
 	if (i < 0) {
 		error("openpty: %.100s", strerror(errno));
 		return 0;
 	}
+	strlcpy(namebuf, buf, namebuflen);	/* possible truncation */
 	return 1;
 #else /* HAVE_OPENPTY */
 #ifdef HAVE__GETPTY
@@ -65,7 +67,7 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf)
 		error("_getpty: %.100s", strerror(errno));
 		return 0;
 	}
-	strcpy(namebuf, slave);
+	strlcpy(namebuf, slave, namebuflen);
 	/* Open the slave side. */
 	*ttyfd = open(namebuf, O_RDWR | O_NOCTTY);
 	if (*ttyfd < 0) {
@@ -99,7 +101,7 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf)
 	pts = ptsname(ptm);
 	if (pts == NULL)
 		error("Slave pty side name could not be obtained.");
-	strcpy(namebuf, pts);
+	strlcpy(namebuf, pts, namebuflen);
 	*ptyfd = ptm;
 
 	/* Open the slave side. */
@@ -130,7 +132,7 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf)
 	name = ttyname(*ptyfd);
 	if (!name)
 		fatal("Open of /dev/ptc returns device for which ttyname fails.");
-	strcpy(namebuf, name);
+	strlcpy(namebuf, name, namebuflen);
 	*ttyfd = open(name, O_RDWR | O_NOCTTY);
 	if (*ttyfd < 0) {
 		error("Could not open pty slave side %.100s: %.100s",
@@ -154,8 +156,8 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf)
 		*ptyfd = open(buf, O_RDWR | O_NOCTTY);
 		if (*ptyfd < 0)
 			continue;
-		snprintf(namebuf, sizeof buf, "/dev/tty%c%c", ptymajors[i / num_minors],
-			 ptyminors[i % num_minors]);
+		snprintf(namebuf, sizeof namebuflen, "/dev/tty%c%c",
+		    ptymajors[i / num_minors], ptyminors[i % num_minors]);
 
 		/* Open the slave side. */
 		*ttyfd = open(namebuf, O_RDWR | O_NOCTTY);

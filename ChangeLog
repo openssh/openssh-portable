@@ -4,6 +4,24 @@
  - Fixed default SSH_ASKPASS
  - Fix PAM account and session being called multiple times. Problem 
    reported by Adrian Baugh <adrian@merlin.keble.ox.ac.uk>
+ - Merged more OpenBSD changes:
+   - [atomicio.c authfd.c scp.c serverloop.c ssh.h sshconnect.c sshd.c]
+     move atomicio into it's own file.  wrap all socket write()s which 
+     were doing write(sock, buf, len) != len, with atomicio() calls.
+   - [auth-skey.c]
+     fd leak
+   - [authfile.c]
+     properly name fd variable
+   - [channels.c]
+     display great hatred towards strcpy
+   - [pty.c pty.h sshd.c]
+     use openpty() if it exists (it does on BSD4_4)
+   - [tildexpand.c]
+     check for ~ expansion past MAXPATHLEN
+ - Modified helper.c to use new atomicio function.
+ - Reformat Makefile a little
+ - Moved RC4 routines from rc4.[ch] into helper.c
+ - Added autoconf code to detect /dev/ptmx (Solaris) and /dev/ptc (AIX)
 
 19991204
  - Small cleanup of PAM code in sshd.c

@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: sshconnect.c,v 1.16 1999/12/06 00:47:29 damien Exp $");
+RCSID("$Id: sshconnect.c,v 1.17 1999/12/07 04:38:32 damien Exp $");
 
 #ifdef HAVE_OPENSSL
 #include <openssl/bn.h>
@@ -537,7 +537,7 @@ try_rsa_authentication(const char *authfile)
 	if (!load_private_key(authfile, "", private_key, NULL)) {
 		char buf[300];
 		snprintf(buf, sizeof buf, "Enter passphrase for RSA key '%.100s': ",
-			 comment);
+		    comment);
 		if (!options.batch_mode)
 			passphrase = read_passphrase(buf, 0);
 		else {
@@ -1036,8 +1036,8 @@ ssh_exchange_identification()
 
 	/* Send our own protocol version identification. */
 	snprintf(buf, sizeof buf, "SSH-%d.%d-%.100s\n",
-		 PROTOCOL_MAJOR, PROTOCOL_MINOR, SSH_VERSION);
-	if (write(connection_out, buf, strlen(buf)) != strlen(buf))
+	    PROTOCOL_MAJOR, PROTOCOL_MINOR, SSH_VERSION);
+	if (atomicio(write, connection_out, buf, strlen(buf)) != strlen(buf))
 		fatal("write: %.100s", strerror(errno));
 }
 
@@ -1292,10 +1292,10 @@ ssh_login(int host_key_valid,
 			char prompt[1024];
 			char *fp = fingerprint(host_key->e, host_key->n);
 			snprintf(prompt, sizeof(prompt),
-				 "The authenticity of host '%.200s' can't be established.\n"
-				 "Key fingerprint is %d %s.\n"
-				 "Are you sure you want to continue connecting (yes/no)? ",
-			         host, BN_num_bits(host_key->n), fp);
+			    "The authenticity of host '%.200s' can't be established.\n"
+			    "Key fingerprint is %d %s.\n"
+			    "Are you sure you want to continue connecting (yes/no)? ",
+			    host, BN_num_bits(host_key->n), fp);
 			if (!read_yes_or_no(prompt, -1))
 				fatal("Aborted by user!\n");
 		}
@@ -1599,8 +1599,9 @@ ssh_login(int host_key_valid,
 	if ((supported_authentications & (1 << SSH_AUTH_PASSWORD)) &&
 	    options.password_authentication && !options.batch_mode) {
 		char prompt[80];
+
 		snprintf(prompt, sizeof(prompt), "%.30s@%.40s's password: ",
-			 server_user, host);
+		    server_user, host);
 		if (try_password_authentication(prompt))
 			return;
 	}

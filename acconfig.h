@@ -64,6 +64,12 @@
 #undef HAVE_U_INTXX_T
 #undef HAVE_UINTXX_T
 
+/* Define if you have /dev/ptmx */
+#undef HAVE_DEV_PTMX
+
+/* Define if you have /dev/ptc */
+#undef HAVE_DEV_PTS_AND_PTC
+
 @BOTTOM@
 
 /* ******************* Shouldn't need to edit below this line ************** */

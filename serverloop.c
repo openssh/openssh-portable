@@ -170,7 +170,7 @@ make_packets_from_stderr_data()
 
 	/* Send buffered stderr data to the client. */
 	while (buffer_len(&stderr_buffer) > 0 &&
-	       packet_not_very_much_data_to_write()) {
+	    packet_not_very_much_data_to_write()) {
 		len = buffer_len(&stderr_buffer);
 		if (packet_is_interactive()) {
 			if (len > 512)
@@ -199,7 +199,7 @@ make_packets_from_stdout_data()
 
 	/* Send buffered stdout data to the client. */
 	while (buffer_len(&stdout_buffer) > 0 &&
-	       packet_not_very_much_data_to_write()) {
+	    packet_not_very_much_data_to_write()) {
 		len = buffer_len(&stdout_buffer);
 		if (packet_is_interactive()) {
 			if (len > 512)
@@ -364,7 +364,7 @@ process_output(fd_set * writeset)
 	/* Write buffered data to program stdin. */
 	if (fdin != -1 && FD_ISSET(fdin, writeset)) {
 		len = write(fdin, buffer_ptr(&stdin_buffer),
-			    buffer_len(&stdin_buffer));
+		    buffer_len(&stdin_buffer));
 		if (len <= 0) {
 #ifdef USE_PIPES
 			close(fdin);

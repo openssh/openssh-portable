@@ -1,7 +1,7 @@
 #include "includes.h"
 
 #ifdef SKEY
-RCSID("$Id: auth-skey.c,v 1.4 1999/12/01 16:54:35 markus Exp $");
+RCSID("$Id: auth-skey.c,v 1.5 1999/12/06 19:04:57 deraadt Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -114,6 +114,7 @@ skey_fake_keyinfo(char *username)
 		    SEEK_SET) != -1 && read(fd, hseed,
 		    SKEY_MAX_SEED_LEN) == SKEY_MAX_SEED_LEN) {
 			close(fd);
+			fd = -1;
 			secret = hseed;
 			secretlen = SKEY_MAX_SEED_LEN;
 			flg = 0;
@@ -123,6 +124,8 @@ skey_fake_keyinfo(char *username)
 			secretlen = strlen(secret);
 			flg = 0;
 		}
+		if (fd != -1)
+			close(fd);
 	}
 
 	/* Put that in your pipe and smoke it */

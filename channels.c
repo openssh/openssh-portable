@@ -16,7 +16,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: channels.c,v 1.9 1999/12/06 00:47:29 damien Exp $");
+RCSID("$Id: channels.c,v 1.10 1999/12/07 04:38:32 damien Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -921,7 +921,7 @@ channel_request_local_forwarding(u_short port, const char *host,
 	/* Allocate a channel number for the socket. */
 	ch = channel_allocate(SSH_CHANNEL_PORT_LISTENER, sock,
 			      xstrdup("port listener"));
-	strcpy(channels[ch].path, host);
+	strlcpy(channels[ch].path, host, sizeof(channels[ch].path));
 	channels[ch].host_port = host_port;
 	channels[ch].listening_port = port;
 }
@@ -1498,7 +1498,8 @@ auth_input_request_forwarding(struct passwd * pw)
 	/* Allocate a channel for the authentication agent socket. */
 	newch = channel_allocate(SSH_CHANNEL_AUTH_SOCKET, sock,
 				 xstrdup("auth socket"));
-	strcpy(channels[newch].path, channel_forwarded_auth_socket_name);
+	strlcpy(channels[newch].path, channel_forwarded_auth_socket_name,
+	    sizeof(channels[newch].path));
 }
 
 /* This is called to process an SSH_SMSG_AGENT_OPEN message. */

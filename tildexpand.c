@@ -6,7 +6,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: tildexpand.c,v 1.3 1999/11/25 00:54:59 damien Exp $");
+RCSID("$Id: tildexpand.c,v 1.4 1999/12/07 04:38:32 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -23,6 +23,7 @@ tilde_expand_filename(const char *filename, uid_t my_uid)
 	char *expanded;
 	struct passwd *pw;
 	char user[100];
+	int len;
 
 	/* Return immediately if no tilde. */
 	if (filename[0] != '~')
@@ -56,7 +57,10 @@ tilde_expand_filename(const char *filename, uid_t my_uid)
 		return xstrdup(pw->pw_dir);
 	}
 	/* Build a path combining the specified directory and path. */
-	expanded = xmalloc(strlen(pw->pw_dir) + strlen(cp + 1) + 2);
-	sprintf(expanded, "%s/%s", pw->pw_dir, cp + 1);
+	len = strlen(pw->pw_dir) + strlen(cp + 1) + 2;
+	if (len > MAXPATHLEN)
+		fatal("Home directory too long (%d > %d", len-1, MAXPATHLEN-1);
+	expanded = xmalloc(len);
+	snprintf(expanded, len, "%s/%s", pw->pw_dir, cp + 1);
 	return expanded;
 }

@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: authfd.c,v 1.8 1999/11/25 00:54:57 damien Exp $");
+RCSID("$Id: authfd.c,v 1.9 1999/12/07 04:38:32 damien Exp $");
 
 #include "ssh.h"
 #include "rsa.h"
@@ -145,7 +145,7 @@ ssh_get_first_identity(AuthenticationConnection *auth,
 	msg[2] = 0;
 	msg[3] = 1;
 	msg[4] = SSH_AGENTC_REQUEST_RSA_IDENTITIES;
-	if (write(auth->fd, msg, 5) != 5) {
+	if (atomicio(write, auth->fd, msg, 5) != 5) {
 		error("write auth->fd: %.100s", strerror(errno));
 		return 0;
 	}
@@ -270,9 +270,9 @@ ssh_decrypt_challenge(AuthenticationConnection *auth,
 	PUT_32BIT(buf, len);
 
 	/* Send the length and then the packet to the agent. */
-	if (write(auth->fd, buf, 4) != 4 ||
-	    write(auth->fd, buffer_ptr(&buffer), buffer_len(&buffer)) !=
-	    buffer_len(&buffer)) {
+	if (atomicio(write, auth->fd, buf, 4) != 4 ||
+	    atomicio(write, auth->fd, buffer_ptr(&buffer),
+	    buffer_len(&buffer)) != buffer_len(&buffer)) {
 		error("Error writing to authentication socket.");
 error_cleanup:
 		buffer_free(&buffer);
@@ -369,9 +369,9 @@ ssh_add_identity(AuthenticationConnection *auth,
 	PUT_32BIT(buf, len);
 
 	/* Send the length and then the packet to the agent. */
-	if (write(auth->fd, buf, 4) != 4 ||
-	    write(auth->fd, buffer_ptr(&buffer), buffer_len(&buffer)) !=
-	    buffer_len(&buffer)) {
+	if (atomicio(write, auth->fd, buf, 4) != 4 ||
+	    atomicio(write, auth->fd, buffer_ptr(&buffer),
+	    buffer_len(&buffer)) != buffer_len(&buffer)) {
 		error("Error writing to authentication socket.");
 error_cleanup:
 		buffer_free(&buffer);
@@ -450,9 +450,9 @@ ssh_remove_identity(AuthenticationConnection *auth, RSA *key)
 	PUT_32BIT(buf, len);
 
 	/* Send the length and then the packet to the agent. */
-	if (write(auth->fd, buf, 4) != 4 ||
-	    write(auth->fd, buffer_ptr(&buffer), buffer_len(&buffer)) !=
-	    buffer_len(&buffer)) {
+	if (atomicio(write, auth->fd, buf, 4) != 4 ||
+	    atomicio(write, auth->fd, buffer_ptr(&buffer),
+	    buffer_len(&buffer)) != buffer_len(&buffer)) {
 		error("Error writing to authentication socket.");
 error_cleanup:
 		buffer_free(&buffer);
@@ -526,7 +526,7 @@ ssh_remove_all_identities(AuthenticationConnection *auth)
 	buf[4] = SSH_AGENTC_REMOVE_ALL_RSA_IDENTITIES;
 
 	/* Send the length and then the packet to the agent. */
-	if (write(auth->fd, buf, 5) != 5) {
+	if (atomicio(write, auth->fd, buf, 5) != 5) {
 		error("Error writing to authentication socket.");
 		return 0;
 	}

@@ -13,7 +13,7 @@
  * 
  */
 
-/* RCSID("$Id: ssh.h,v 1.18 1999/12/07 03:54:53 damien Exp $"); */
+/* RCSID("$Id: ssh.h,v 1.19 1999/12/07 04:38:32 damien Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -702,9 +702,14 @@ struct envstring {
 	struct envstring *next;
 	char   *s;
 };
+
+/*
+ * Ensure all of data on socket comes through. f==read || f==write
+ */
+int	atomicio(int (*f)(), int fd, void *s, size_t n);
+
 #ifdef KRB4
 #include <krb.h>
-
 /*
  * Performs Kerberos v4 mutual authentication with the client. This returns 0
  * if the client could not be authenticated, and 1 if authentication was
