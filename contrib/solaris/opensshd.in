@@ -9,14 +9,14 @@ EGREP=/usr/bin/egrep
 KILL=/usr/bin/kill
 PS=/usr/bin/ps
 
-PREFIX=%%openSSHDir%%
-ETCDIR=%%configDir%%
+prefix=%%openSSHDir%%
+etcdir=%%configDir%%
 
-SSHD=$PREFIX/sbin/sshd
-SSH_KEYGEN=$PREFIX/bin/ssh-keygen
-HOST_KEY_RSA1=$ETCDIR/ssh_host_key
-HOST_KEY_DSA=$ETCDIR/ssh_host_dsa_key
-HOST_KEY_RSA=$ETCDIR/ssh_host_rsa_key
+SSHD=$prefix/sbin/sshd
+SSH_KEYGEN=$prefix/bin/ssh-keygen
+HOST_KEY_RSA1=$etcdir/ssh_host_key
+HOST_KEY_DSA=$etcdir/ssh_host_dsa_key
+HOST_KEY_RSA=$etcdir/ssh_host_rsa_key
 
 killproc() {
    _procname=$1
