@@ -42,6 +42,9 @@
      rsa1 private or rsa1 public and ssh2 keys.
      this makes ssh-keygen -e fail for ssh1 keys more gracefully
      for example; report from itojun (netbsd pr 20550).
+   - markus@cvs.openbsd.org 2003/05/11 20:30:25
+     [channels.c clientloop.c serverloop.c session.c ssh.c]
+     make channel_new() strdup the 'remote_name' (not the caller); ok theo
 
 20030512
  - (djm) Redhat spec: Don't install profile.d scripts when not 
@@ -1429,4 +1432,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2687 2003/05/14 03:45:22 djm Exp $
+$Id: ChangeLog,v 1.2688 2003/05/14 03:45:42 djm Exp $

@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.191 2003/04/08 20:21:29 itojun Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.192 2003/05/11 20:30:25 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -1132,7 +1132,7 @@ ssh_session2_open(void)
 	c = channel_new(
 	    "session", SSH_CHANNEL_OPENING, in, out, err,
 	    window, packetmax, CHAN_EXTENDED_WRITE,
-	    xstrdup("client-session"), /*nonblock*/0);
+	    "client-session", /*nonblock*/0);
 
 	debug3("ssh_session2_open: channel_new: %d", c->self);
 

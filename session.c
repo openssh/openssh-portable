@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.155 2003/04/08 20:21:29 itojun Exp $");
+RCSID("$OpenBSD: session.c,v 1.156 2003/05/11 20:30:25 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -192,7 +192,7 @@ auth_input_request_forwarding(struct passwd * pw)
 	nc = channel_new("auth socket",
 	    SSH_CHANNEL_AUTH_SOCKET, sock, sock, -1,
 	    CHAN_X11_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT,
-	    0, xstrdup("auth socket"), 1);
+	    0, "auth socket", 1);
 	strlcpy(nc->path, auth_sock_name, sizeof(nc->path));
 	return 1;
 }

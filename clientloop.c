@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.109 2003/04/08 20:21:28 itojun Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.110 2003/05/11 20:30:24 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1145,7 +1145,7 @@ client_request_forwarded_tcpip(const char *request_type, int rchan)
 	c = channel_new("forwarded-tcpip",
 	    SSH_CHANNEL_CONNECTING, sock, sock, -1,
 	    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_WINDOW_DEFAULT, 0,
-	    xstrdup(originator_address), 1);
+	    originator_address, 1);
 	xfree(originator_address);
 	xfree(listen_address);
 	return c;
@@ -1181,8 +1181,7 @@ client_request_x11(const char *request_type, int rchan)
 		return NULL;
 	c = channel_new("x11",
 	    SSH_CHANNEL_X11_OPEN, sock, sock, -1,
-	    CHAN_TCP_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT, 0,
-	    xstrdup("x11"), 1);
+	    CHAN_TCP_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT, 0, "x11", 1);
 	c->force_drain = 1;
 	return c;
 }
@@ -1204,7 +1203,7 @@ client_request_agent(const char *request_type, int rchan)
 	c = channel_new("authentication agent connection",
 	    SSH_CHANNEL_OPEN, sock, sock, -1,
 	    CHAN_X11_WINDOW_DEFAULT, CHAN_TCP_WINDOW_DEFAULT, 0,
-	    xstrdup("authentication agent connection"), 1);
+	    "authentication agent connection", 1);
 	c->force_drain = 1;
 	return c;
 }
