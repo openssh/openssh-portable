@@ -65,6 +65,7 @@ int getaddrinfo(const char *hostname, const char *servname,
 {
 	struct addrinfo *cur, *prev = NULL;
 	struct hostent *hp;
+	struct in_addr in;
 	int i, port;
 
 	if (servname)
@@ -86,8 +87,8 @@ int getaddrinfo(const char *hostname, const char *servname,
 			return EAI_MEMORY;
 	}
 	
-	if (inet_addr(hostname) != -1) {
-		if (NULL != (*res = malloc_ai(port, inet_addr(hostname))))
+	if (inet_aton(hostname, &in) != -1) {
+		if (NULL != (*res = malloc_ai(port, in.s_addr)))
 			return 0;
 		else
 			return EAI_MEMORY;
