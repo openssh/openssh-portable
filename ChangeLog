@@ -1,6 +1,9 @@
 20040418
  - (dtucker) [auth-pam.c] Log username and source host for failed PAM
    authentication attempts.  With & ok djm@
+ - (djm) [openbsd-compat/bsd-cygwin_util.c] Recent versions of Cygwin allow
+   change of user context without a password, so relax auth method 
+   restrictions; from vinschen AT redhat.com; ok dtucker@
 
 20040416
  - (dtucker) [regress/sftp-cmds.sh] Skip quoting test on Cygwin, since
@@ -979,4 +982,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3315 2004/04/18 01:00:26 dtucker Exp $
+$Id: ChangeLog,v 1.3316 2004/04/18 11:15:43 djm Exp $
