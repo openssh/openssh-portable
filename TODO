@@ -50,11 +50,6 @@ Clean up configure/makefiles:
 - Consider splitting the u_intXX_t test for sys/bitype.h  into seperate test
   to allow people to (right/wrongfully) link against Bind directly.
 
-- Move all "openbsd-compat" files to it's own directory.  Consider doing the 
-  same with libssh. I don't think we need to split ssh, sshd, etc into their 
-  own directory.
-  (mouring@eviladmin.org)
-
 Packaging:
 - Solaris: Update packaging scripts and build new sysv startup scripts
   (gilbert.r.loomis@saic.com)
