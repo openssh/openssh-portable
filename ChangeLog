@@ -1,3 +1,6 @@
+20020506
+ - (bal) Fixed auth-passwd.c to resolve PermitEmptyPassword issue
+ 
 20020501
  - (djm) Import OpenBSD regression tests. Requires BSD make to run
  - (djm) Fix readpassphase compilation for systems which have it
@@ -525,4 +528,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2091 2002/05/01 12:00:22 djm Exp $
+$Id: ChangeLog,v 1.2092 2002/05/06 23:06:08 mouring Exp $
