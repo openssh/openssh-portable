@@ -1,3 +1,9 @@
+20010412
+ - OpenBSD CVS Sync                            
+   - markus@cvs.openbsd.org 2001/04/10 07:46:58
+     [channels.c]                              
+     cleanup socks4 handling                   
+
 20010410
  - OpenBSD CVS Sync
    - deraadt@cvs.openbsd.org 2001/04/08 20:52:55
@@ -4990,4 +4996,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1093 2001/04/10 02:48:50 mouring Exp $
+$Id: ChangeLog,v 1.1094 2001/04/11 15:57:50 mouring Exp $

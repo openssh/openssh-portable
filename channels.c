@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.103 2001/04/07 08:55:17 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.104 2001/04/10 07:46:58 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -542,88 +542,142 @@ channel_pre_x11_open(Channel *c, fd_set * readset, fd_set * writeset)
 	}
 }
 
-#define SSH_SOCKS_HEAD 1+1+2+4
 
-void
-channel_pre_dynamic(Channel *c, fd_set * readset, fd_set * writeset)
+int
+channel_decode_helper(Channel *c, int start, int lookfor)
+{
+	u_char *p;
+	int i, have;
+
+	p = buffer_ptr(&c->input);
+	have = buffer_len(&c->input);
+	debug2("channel %d: decode_helper: start %d have %d lookfor %d",
+	    c->self, start, have, lookfor);
+	if (have < start)
+		return 0;
+	for (i = start; i < have; i++) {
+		if (p[i] == lookfor) {
+			debug2("channel %d: decode_helper: matched at %d",
+			    c->self, i);
+			if (lookfor == '\0' ||
+			    (i+3 < have &&
+			    p[i+1] == '\n' &&
+			    p[i+2] == '\r' &&
+			    p[i+3] == '\n'))
+				return i;
+		}
+		if (i > 4096) {
+			/* the peer is probably sending garbage */
+			debug("channel %d: decode_helper: too long",
+			    c->self);
+			return -1;
+		}
+	}
+	return 0;	/* need more */
+}
+
+/* try to decode a socks4 header */
+int
+channel_decode_socks4(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	u_char *p, *host;
-	int len, i, done, have;
-	char username[256];
+	int len, have, ret;
+	char username[256];	
 	struct {
 		u_int8_t version;
 		u_int8_t command;
 		u_int16_t dest_port;
-		struct in_addr dest_ip;
+		struct in_addr dest_addr;
 	} s4_req, s4_rsp;
 
-	have = buffer_len(&c->input);
-
-	debug("channel %d: pre_dynamic have: %d", c->self, have);
-	/*buffer_dump(&c->input);*/
-
-	/* Check if the fixed size part of the packet is in buffer. */
-	if (have < SSH_SOCKS_HEAD + 1) {
-		/* need more */
-		FD_SET(c->sock, readset);
-		return;
-	}
-	/* Check for end of username */
-	p = buffer_ptr(&c->input);
-	done = 0;
-	for (i = SSH_SOCKS_HEAD; i < have; i++) {
-		if (p[i] == '\0') {
-			done = 1;
-			break;
-		}
-	}
-	if (!done) {
-		/* need more */
-		FD_SET(c->sock, readset);
-		return;
-	}
+	debug2("channel %d: decode socks4", c->self);
+	ret = channel_decode_helper(c, sizeof(s4_req), '\0');
+	if (ret <= 0)
+		return ret;
 	buffer_get(&c->input, (char *)&s4_req.version, 1);
 	buffer_get(&c->input, (char *)&s4_req.command, 1);
 	buffer_get(&c->input, (char *)&s4_req.dest_port, 2);
-	buffer_get(&c->input, (char *)&s4_req.dest_ip, 4);
+	buffer_get(&c->input, (char *)&s4_req.dest_addr, 4);
 	p = buffer_ptr(&c->input);
 	len = strlen(p);
 	have = buffer_len(&c->input);
-	debug2("channel %d: pre_dynamic user: %s/%d", c->self, p, len);
+	debug2("channel %d: pre_dynamic: user %s/%d", c->self, p, len);
 	if (len > have)
-		fatal("channel %d: pre_dynamic: len %d > have %d",
+		fatal("channel %d: decode socks4: len %d > have %d",
 		    c->self, len, have);
 	strlcpy(username, p, sizeof(username));
 	buffer_consume(&c->input, len);
 	buffer_consume(&c->input, 1);		/* trailing '\0' */
 
-	host = inet_ntoa(s4_req.dest_ip);
+	host = inet_ntoa(s4_req.dest_addr);
 	strlcpy(c->path, host, sizeof(c->path));
 	c->host_port = ntohs(s4_req.dest_port);
 	
-	debug("channel %d: dynamic request received: "
+	debug("channel %d: dynamic request: "
 	    "socks%x://%s@%s:%u/command?%u",
 	    c->self, s4_req.version, username, host, c->host_port,
 	    s4_req.command);
 
-	if ((s4_req.version != 4) || (s4_req.command != 1)) {
-		debug("channel %d: cannot handle: socks VN %d CN %d",
-		    c->self, s4_req.version, s4_req.command);
-		channel_free(c->self);
-		return;
+	if (s4_req.command != 1) {
+		debug("channel %d: cannot handle: socks4 cn %d",
+		    c->self, s4_req.command);
+		return -1;
 	}
-
-	s4_rsp.version = 0;			/* VN: version of reply code */
-	s4_rsp.command = 90;			/* CD: request granted */
+	s4_rsp.version = 0;			/* vn: 0 for reply */
+	s4_rsp.command = 90;			/* cd: req granted */
 	s4_rsp.dest_port = 0;			/* ignored */
-	s4_rsp.dest_ip.s_addr = INADDR_ANY;	/* ignored */
+	s4_rsp.dest_addr.s_addr = INADDR_ANY;	/* ignored */
 	buffer_append(&c->output, (char *)&s4_rsp, sizeof(s4_rsp));
-
-	/* switch to next state */
-	c->type = SSH_CHANNEL_OPENING;
-	port_open_helper(c, "direct-tcpip");
+	return 1;
 }
 
+/* dynamic port forwarding */
+void
+channel_pre_dynamic(Channel *c, fd_set * readset, fd_set * writeset)
+{
+	u_char *p;
+	int have, ret;
+
+	have = buffer_len(&c->input);
+
+	debug2("channel %d: pre_dynamic: have %d", c->self, have);
+	buffer_dump(&c->input);
+	/* check if the fixed size part of the packet is in buffer. */
+	if (have < 4) {
+		/* need more */
+		FD_SET(c->sock, readset);
+		return;
+	}
+	/* try to guess the protocol */
+	p = buffer_ptr(&c->input);
+	switch (p[0]) {
+	case 0x04:
+		ret = channel_decode_socks4(c, readset, writeset);
+		break;
+#if 0
+	case 'C':
+		ret = channel_decode_https(c, readset, writeset);
+		break;
+	case 0x05:
+		ret = channel_decode_socks5(c, readset, writeset);
+		break;
+#endif
+	default:
+		ret = -1;
+		break;
+	}
+	if (ret < 0) {
+		channel_free(c->self);
+	} else if (ret == 0) {
+		debug2("channel %d: pre_dynamic: need more", c->self);
+		/* need more */
+		FD_SET(c->sock, readset);
+	} else {
+		/* switch to the next state */
+		c->type = SSH_CHANNEL_OPENING;
+		port_open_helper(c, "direct-tcpip");
+	}
+}
 
 /* This is our fake X11 server socket. */
 void
@@ -846,16 +900,11 @@ channel_handle_rfd(Channel *c, fd_set * readset, fd_set * writeset)
 		if (len <= 0) {
 			debug("channel %d: read<=0 rfd %d len %d",
 			    c->self, c->rfd, len);
-			if (c->type == SSH_CHANNEL_DYNAMIC) {
-				/*
-				 * we are not yet connected to a remote peer,
-				 * so the connection-close protocol won't work
-				 */
-				debug("channel %d: dynamic: closed", c->self);
+			if (c->type != SSH_CHANNEL_OPEN) {
+				debug("channel %d: not open", c->self);
 				channel_free(c->self);
 				return -1;
-			}
-			if (compat13) {
+			} else if (compat13) {
 				buffer_consume(&c->output, buffer_len(&c->output));
 				c->type = SSH_CHANNEL_INPUT_DRAINING;
 				debug("Channel %d status set to input draining.", c->self);
@@ -890,7 +939,11 @@ channel_handle_wfd(Channel *c, fd_set * readset, fd_set * writeset)
 		if (len < 0 && (errno == EINTR || errno == EAGAIN))
 			return 1;
 		if (len <= 0) {
-			if (compat13) {
+			if (c->type != SSH_CHANNEL_OPEN) {
+				debug("channel %d: not open", c->self);
+				channel_free(c->self);
+				return -1;
+			} else if (compat13) {
 				buffer_consume(&c->output, buffer_len(&c->output));
 				debug("Channel %d status set to input draining.", c->self);
 				c->type = SSH_CHANNEL_INPUT_DRAINING;
@@ -967,7 +1020,8 @@ channel_handle_efd(Channel *c, fd_set * readset, fd_set * writeset)
 int
 channel_check_window(Channel *c)
 {
-	if (!(c->flags & (CHAN_CLOSE_SENT|CHAN_CLOSE_RCVD)) &&
+	if (c->type == SSH_CHANNEL_OPEN &&
+	    !(c->flags & (CHAN_CLOSE_SENT|CHAN_CLOSE_RCVD)) &&
 	    c->local_window < c->local_window_max/2 &&
 	    c->local_consumed > 0) {
 		packet_start(SSH2_MSG_CHANNEL_WINDOW_ADJUST);
@@ -1016,12 +1070,6 @@ channel_post_output_drain_13(Channel *c, fd_set * readset, fd_set * writeset)
 }
 
 void
-channel_post_dynamic(Channel *c, fd_set * readset, fd_set * writeset)
-{
-	channel_handle_rfd(c, readset, writeset);
-}
-
-void
 channel_handler_init_20(void)
 {
 	channel_pre[SSH_CHANNEL_OPEN] =			&channel_pre_open_20;
@@ -1039,7 +1087,7 @@ channel_handler_init_20(void)
 	channel_post[SSH_CHANNEL_X11_LISTENER] =	&channel_post_x11_listener;
 	channel_post[SSH_CHANNEL_AUTH_SOCKET] =		&channel_post_auth_listener;
 	channel_post[SSH_CHANNEL_CONNECTING] =		&channel_post_connecting;
-	channel_post[SSH_CHANNEL_DYNAMIC] =		&channel_post_dynamic;
+	channel_post[SSH_CHANNEL_DYNAMIC] =		&channel_post_open_2;
 }
 
 void
@@ -1061,7 +1109,7 @@ channel_handler_init_13(void)
 	channel_post[SSH_CHANNEL_AUTH_SOCKET] =		&channel_post_auth_listener;
 	channel_post[SSH_CHANNEL_OUTPUT_DRAINING] =	&channel_post_output_drain_13;
 	channel_post[SSH_CHANNEL_CONNECTING] =		&channel_post_connecting;
-	channel_post[SSH_CHANNEL_DYNAMIC] =		&channel_post_dynamic;
+	channel_post[SSH_CHANNEL_DYNAMIC] =		&channel_post_open_1;
 }
 
 void
@@ -1080,7 +1128,7 @@ channel_handler_init_15(void)
 	channel_post[SSH_CHANNEL_AUTH_SOCKET] =		&channel_post_auth_listener;
 	channel_post[SSH_CHANNEL_OPEN] =		&channel_post_open_1;
 	channel_post[SSH_CHANNEL_CONNECTING] =		&channel_post_connecting;
-	channel_post[SSH_CHANNEL_DYNAMIC] =		&channel_post_dynamic;
+	channel_post[SSH_CHANNEL_DYNAMIC] =		&channel_post_open_1;
 }
 
 void
