@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.285 2001/05/08 20:42:28 mouring Exp $
+# $Id: configure.in,v 1.286 2001/05/17 03:32:51 mouring Exp $
 
 AC_INIT(ssh.c)
 
@@ -64,6 +64,7 @@ case "$host" in
 *-*-cygwin*)
 	LIBS="$LIBS -lregex /usr/lib/textmode.o"
 	AC_DEFINE(HAVE_CYGWIN)
+	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(DISABLE_SHADOW)
 	AC_DEFINE(IPV4_DEFAULT)
 	AC_DEFINE(IP_TOS_IS_BROKEN)
