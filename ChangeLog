@@ -7,6 +7,7 @@
  - (djm) Add --with-privsep-path configure option
  - (djm) Update RPM spec file: different superuser path, use
    /var/empty/sshd for privsep
+ - (djm) Bug #234: missing readpassphrase declaration and defines
 
 20020511
  - (tim) [configure.ac] applied a rework of djm's OpenSSL search cleanup patch.
@@ -577,4 +578,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2112 2002/05/13 03:57:04 stevesk Exp $
+$Id: ChangeLog,v 1.2113 2002/05/13 05:14:08 djm Exp $

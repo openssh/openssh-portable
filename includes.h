@@ -142,6 +142,9 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #ifdef USE_PAM
 # include <security/pam_appl.h>
 #endif
+#ifdef HAVE_READPASSPHRASE_H
+# include <readpassphrase.h>
+#endif
 
 #include <openssl/opensslv.h> /* For OPENSSL_VERSION_NUMBER */
 
