@@ -56,11 +56,11 @@ References -
 [0] http://www.openssh.com/faq.html
 [1] http://www.lothar.com/tech/crypto/
 [2] http://www.aet.tu-cottbus.de/personen/jaenicke/postfix_tls/prngd.html
-[3] ftp://ftp.freesoftware.com/pub/infozip/zlib/
+[3] http://www.gzip.org/pub/zlib/
 [4] http://www.openssl.org/
 [5] http://www.kernel.org/pub/linux/libs/pam/ (PAM is standard on Solaris
     and HP-UX 11)
 [6] http://www.openbsd.org/cgi-bin/man.cgi?query=style&sektion=9
 [7] http://www.openssh.com/faq.html
 
-$Id: README,v 1.47 2001/02/24 09:00:23 stevesk Exp $
+$Id: README,v 1.48 2001/10/26 15:36:06 mouring Exp $
