@@ -121,6 +121,9 @@
    - markus@cvs.openbsd.org 2001/07/02 22:29:20
      [readpass.c]
      do not return NULL, use "" instead.
+   - markus@cvs.openbsd.org 2001/07/02 22:40:18
+     [ssh-keygen.c]
+     update for sectok.h interface changes.
  
 20010629
  - (bal) Removed net_aton() since we don't use it any more
@@ -5948,4 +5951,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1374 2001/07/04 05:19:27 mouring Exp $
+$Id: ChangeLog,v 1.1375 2001/07/04 05:24:27 mouring Exp $

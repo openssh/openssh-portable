@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.71 2001/06/29 07:11:01 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.72 2001/07/02 22:40:18 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -400,10 +400,10 @@ do_upload(struct passwd *pw, int reader)
 	struct stat st;
 	u_char *elements[NUM_RSA_KEY_ELEMENTS];
 	u_char key_fid[2];
-        u_char atr[256];
+	u_char atr[256];
 	u_char AUT0[] = {0xad, 0x9f, 0x61, 0xfe, 0xfa, 0x20, 0xce, 0x63};
 	int len, status = 1, i, fd = -1, ret;
-	int r1 = 0, r2 = 0, cla = 0x00;
+	int sw = 0, cla = 0x00;
 
 	for (i = 0; i < NUM_RSA_KEY_ELEMENTS; i++)
 		elements[i] = NULL;
@@ -425,16 +425,16 @@ do_upload(struct passwd *pw, int reader)
 	COPY_RSA_KEY(dmp1, 4);
 	COPY_RSA_KEY(n, 5);
 	len = BN_num_bytes(prv->rsa->n);
-        fd = scopen(reader, 0, NULL);
-        if (fd < 0) {
-                error("scopen failed");
+	fd = sectok_open(reader, 0, NULL);
+	if (fd < 0) {
+		error("sectok_open failed");
 		goto done;
-        }
-        ret = screset(fd, atr, NULL);
-        if (ret <= 0) {
-                error("screset failed");
+	}
+	ret = sectok_reset(fd, 0, atr, &sw);
+	if (ret <= 0) {
+		error("sectok_reset failed");
 		goto done;
-        }
+	}
 	if ((cla = cyberflex_inq_class(fd)) < 0) {
 		error("cyberflex_inq_class failed");
 		goto done;
@@ -446,21 +446,21 @@ do_upload(struct passwd *pw, int reader)
 	key_fid[0] = 0x00;
 	key_fid[1] = 0x12;
 	if (cyberflex_load_rsa_priv(fd, cla, key_fid, 5, 8*len, elements,
-	    &r1, &r2) < 0) {
-		error("cyberflex_load_rsa_priv failed: %s", get_r1r2s(r1, r1));
+	    &sw) < 0) {
+		error("cyberflex_load_rsa_priv failed: %s", sectok_get_sw(sw));
 		goto done;
 	}
-	if (r1 != 0x90 && r1 != 0x61)
+	if (!sectok_swOK(sw))
 		goto done;
 	log("cyberflex_load_rsa_priv done");
 	key_fid[0] = 0x73;
 	key_fid[1] = 0x68;
 	if (cyberflex_load_rsa_pub(fd, cla, key_fid, len, elements[5],
-	    &r1, &r2) < 0) {
-		error("cyberflex_load_rsa_pub failed: %s", get_r1r2s(r1, r1));
+	    &sw) < 0) {
+		error("cyberflex_load_rsa_pub failed: %s", sectok_get_sw(sw));
 		goto done;
 	}
-	if (r1 != 0x90 && r1 != 0x61)
+	if (!sectok_swOK(sw))
 		goto done;
 	log("cyberflex_load_rsa_pub done");
 	status = 0;
@@ -469,9 +469,10 @@ done:
 	if (prv)
 		key_free(prv);
 	for (i = 0; i < NUM_RSA_KEY_ELEMENTS; i++)
-		xfree(elements[i]);
+		if (elements[i])
+			xfree(elements[i]);
 	if (fd != -1)
-		scclose(fd);
+		sectok_close(fd);
 	exit(status);
 #endif
 }
