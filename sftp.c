@@ -16,7 +16,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.60 2004/12/10 03:10:42 fgsch Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.61 2005/01/24 10:22:06 dtucker Exp $");
 
 #ifdef USE_LIBEDIT
 #include <histedit.h>
@@ -150,8 +150,10 @@ int interactive_loop(int fd_in, int fd_out, char *file1, char *file2);
 static void
 killchild(int signo)
 {
-	if (sshpid > 1)
+	if (sshpid > 1) {
 		kill(sshpid, SIGTERM);
+		waitpid(sshpid, NULL, 0);
+	}
 
 	_exit(1);
 }

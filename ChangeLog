@@ -12,6 +12,13 @@
    - djm@cvs.openbsd.org 2005/01/23 10:18:12
      [cipher.c]
      config option "Ciphers" should be case-sensitive; ok dtucker@
+   - dtucker@cvs.openbsd.org 2005/01/24 10:22:06
+     [scp.c sftp.c]
+     Have scp and sftp wait for the spawned ssh to exit before they exit
+     themselves.  This prevents ssh from being unable to restore terminal
+     modes (not normally a problem on OpenBSD but common with -Portable
+     on POSIX platforms).  From peak at argo.troja.mff.cuni.cz (bz#950);
+     ok djm@ markus@
 
 20050120
  - (dtucker) OpenBSD CVS Sync
@@ -2030,4 +2037,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3623 2005/01/24 10:57:11 dtucker Exp $
+$Id: ChangeLog,v 1.3624 2005/01/24 10:57:40 dtucker Exp $

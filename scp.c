@@ -71,7 +71,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.118 2004/09/15 18:46:04 deraadt Exp $");
+RCSID("$OpenBSD: scp.c,v 1.119 2005/01/24 10:22:06 dtucker Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -108,8 +108,10 @@ pid_t do_cmd_pid = -1;
 static void
 killchild(int signo)
 {
-	if (do_cmd_pid > 1)
+	if (do_cmd_pid > 1) {
 		kill(do_cmd_pid, signo);
+		waitpid(do_cmd_pid, NULL, 0);
+	}
 
 	_exit(1);
 }
