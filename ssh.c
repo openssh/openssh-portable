@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.57 2000/07/15 04:01:37 djm Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.58 2000/07/16 08:27:22 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/dsa.h>
@@ -21,7 +21,6 @@ RCSID("$OpenBSD: ssh.c,v 1.57 2000/07/15 04:01:37 djm Exp $");
 #include "ssh.h"
 #include "packet.h"
 #include "buffer.h"
-#include "authfd.h"
 #include "readconf.h"
 #include "uidswap.h"
 
@@ -29,6 +28,7 @@ RCSID("$OpenBSD: ssh.c,v 1.57 2000/07/15 04:01:37 djm Exp $");
 #include "compat.h"
 #include "channels.h"
 #include "key.h"
+#include "authfd.h"
 #include "authfile.h"
 
 #ifdef HAVE___PROGNAME

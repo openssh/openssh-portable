@@ -13,7 +13,7 @@
  *
  */
 
-/* RCSID("$OpenBSD: authfd.h,v 1.8 2000/06/20 01:39:38 markus Exp $"); */
+/* RCSID("$OpenBSD: authfd.h,v 1.9 2000/07/16 08:27:21 markus Exp $"); */
 
 #ifndef AUTHFD_H
 #define AUTHFD_H
@@ -30,6 +30,16 @@
 #define SSH_AGENTC_ADD_RSA_IDENTITY		7
 #define SSH_AGENTC_REMOVE_RSA_IDENTITY		8
 #define SSH_AGENTC_REMOVE_ALL_RSA_IDENTITIES	9
+
+#define SSH2_AGENTC_REQUEST_IDENTITIES		11
+#define SSH2_AGENT_IDENTITIES_ANSWER		12
+#define SSH2_AGENTC_SIGN_REQUEST		13
+#define SSH2_AGENT_SIGN_RESPONSE		14
+#define SSH2_AGENT_FAILURE			SSH_AGENT_FAILURE
+#define SSH2_AGENT_SUCCESS			SSH_AGENT_SUCCESS
+#define SSH2_AGENTC_ADD_IDENTITY		17
+#define SSH2_AGENTC_REMOVE_IDENTITY		18
+#define SSH2_AGENTC_REMOVE_ALL_IDENTITIES	19
 
 typedef struct {
 	int     fd;
@@ -96,7 +106,7 @@ ssh_decrypt_challenge(AuthenticationConnection * auth,
  * successfully added.
  */
 int
-ssh_add_identity(AuthenticationConnection * connection, RSA * key,
+ssh_add_identity(AuthenticationConnection * connection, Key *key,
     const char *comment);
 
 /*

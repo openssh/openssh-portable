@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.17 2000/06/20 01:39:44 markus Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.18 2000/07/16 08:27:21 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -15,9 +15,9 @@ RCSID("$OpenBSD: ssh-add.c,v 1.17 2000/06/20 01:39:44 markus Exp $");
 #include "rsa.h"
 #include "ssh.h"
 #include "xmalloc.h"
-#include "authfd.h"
 #include "fingerprint.h"
 #include "key.h"
+#include "authfd.h"
 #include "authfile.h"
 
 #ifdef HAVE___PROGNAME
@@ -102,11 +102,17 @@ add_file(AuthenticationConnection *ac, const char *filename)
 	char buf[1024], msg[1024];
 	int success;
 	int interactive = isatty(STDIN_FILENO);
+	int type = KEY_RSA;
 
+	/*
+	 * try to load the public key. right now this only works for RSA,
+	 * since DSA keys are fully encrypted
+	 */
 	public = key_new(KEY_RSA);
 	if (!load_public_key(filename, public, &saved_comment)) {
-		printf("Bad key file %s: %s\n", filename, strerror(errno));
-		return;
+		/* ok, so we will asume this is a DSA key */
+		type = KEY_DSA;
+		saved_comment = xstrdup(filename);
 	}
 	key_free(public);
 
@@ -118,7 +124,7 @@ add_file(AuthenticationConnection *ac, const char *filename)
 	}
 
 	/* At first, try empty passphrase */
-	private = key_new(KEY_RSA);
+	private = key_new(type);
 	success = load_private_key(filename, "", private, &comment);
 	if (!success) {
 		printf("Need passphrase for %.200s\n", filename);
@@ -150,7 +156,7 @@ add_file(AuthenticationConnection *ac, const char *filename)
 	}
 	xfree(saved_comment);
 
-	if (ssh_add_identity(ac, private->rsa, comment))
+	if (ssh_add_identity(ac, private, comment))
 		fprintf(stderr, "Identity added: %s (%s)\n", filename, comment);
 	else
 		fprintf(stderr, "Could not add identity: %s\n", filename);

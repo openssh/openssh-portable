@@ -1,8 +1,24 @@
+20000721
+ - (djm) OpenBSD CVS updates:
+   - markus@cvs.openbsd.org  2000/07/16 02:27:22
+     [authfd.c authfd.h channels.c clientloop.c ssh-add.c ssh-agent.c ssh.c]
+     [sshconnect1.c sshconnect2.c]
+     make ssh-add accept dsa keys (the agent does not)
+   - djm@cvs.openbsd.org     2000/07/17 19:25:02
+     [sshd.c]
+     Another closing of stdin; ok deraadt
+   - markus@cvs.openbsd.org  2000/07/19 18:33:12
+     [dsa.c]
+     missing free, reorder
+   - markus@cvs.openbsd.org  2000/07/20 16:23:14
+     [ssh-keygen.1]
+     document input and output files
+
 20000720
- - Spec file fix from Petr Novotny <Petr.Novotny@antek.cz>
+ - (djm) Spec file fix from Petr Novotny <Petr.Novotny@antek.cz>
 
 20000716
- - Release 2.1.1p4
+ - (djm) Release 2.1.1p4
 
 20000715
  - (djm) OpenBSD CVS updates

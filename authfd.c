@@ -14,17 +14,21 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfd.c,v 1.21 2000/06/26 09:22:29 markus Exp $");
+RCSID("$OpenBSD: authfd.c,v 1.22 2000/07/16 08:27:20 markus Exp $");
 
 #include "ssh.h"
 #include "rsa.h"
-#include "authfd.h"
 #include "buffer.h"
 #include "bufaux.h"
 #include "xmalloc.h"
 #include "getput.h"
 
 #include <openssl/rsa.h>
+#include <openssl/dsa.h>
+#include <openssl/evp.h>
+#include "key.h"
+#include "authfd.h"
+#include "kex.h"
 
 /* helper */
 int ssh_agent_get_reply(AuthenticationConnection *auth);
@@ -138,10 +142,7 @@ ssh_get_first_identity(AuthenticationConnection *auth,
 	 * Send a message to the agent requesting for a list of the
 	 * identities it can represent.
 	 */
-	msg[0] = 0;
-	msg[1] = 0;
-	msg[2] = 0;
-	msg[3] = 1;
+	PUT_32BIT(msg, 1);
 	msg[4] = SSH_AGENTC_REQUEST_RSA_IDENTITIES;
 	if (atomicio(write, auth->fd, msg, 5) != 5) {
 		error("write auth->fd: %.100s", strerror(errno));
@@ -336,31 +337,64 @@ error_cleanup:
 	return 1;
 }
 
+/* Encode key for a message to the agent. */
+
+void
+ssh_encode_identity_rsa(Buffer *b, RSA *key, const char *comment)
+{
+	buffer_clear(b);
+	buffer_put_char(b, SSH_AGENTC_ADD_RSA_IDENTITY);
+	buffer_put_int(b, BN_num_bits(key->n));
+	buffer_put_bignum(b, key->n);
+	buffer_put_bignum(b, key->e);
+	buffer_put_bignum(b, key->d);
+	/* To keep within the protocol: p < q for ssh. in SSL p > q */
+	buffer_put_bignum(b, key->iqmp);	/* ssh key->u */
+	buffer_put_bignum(b, key->q);	/* ssh key->p, SSL key->q */
+	buffer_put_bignum(b, key->p);	/* ssh key->q, SSL key->p */
+	buffer_put_string(b, comment, strlen(comment));
+}
+
+void
+ssh_encode_identity_dsa(Buffer *b, DSA *key, const char *comment)
+{
+	buffer_clear(b);
+	buffer_put_char(b, SSH2_AGENTC_ADD_IDENTITY);
+	buffer_put_cstring(b, KEX_DSS);
+	buffer_put_bignum2(b, key->p);
+	buffer_put_bignum2(b, key->q);
+	buffer_put_bignum2(b, key->g);
+	buffer_put_bignum2(b, key->pub_key);
+	buffer_put_bignum2(b, key->priv_key);
+	buffer_put_string(b, comment, strlen(comment));
+}
+
 /*
  * Adds an identity to the authentication server.  This call is not meant to
  * be used by normal applications.
  */
 
 int
-ssh_add_identity(AuthenticationConnection *auth,
-		 RSA * key, const char *comment)
+ssh_add_identity(AuthenticationConnection *auth, Key *key, const char *comment)
 {
 	Buffer buffer;
 	unsigned char buf[8192];
 	int len;
 
-	/* Format a message to the agent. */
 	buffer_init(&buffer);
-	buffer_put_char(&buffer, SSH_AGENTC_ADD_RSA_IDENTITY);
-	buffer_put_int(&buffer, BN_num_bits(key->n));
-	buffer_put_bignum(&buffer, key->n);
-	buffer_put_bignum(&buffer, key->e);
-	buffer_put_bignum(&buffer, key->d);
-	/* To keep within the protocol: p < q for ssh. in SSL p > q */
-	buffer_put_bignum(&buffer, key->iqmp);	/* ssh key->u */
-	buffer_put_bignum(&buffer, key->q);	/* ssh key->p, SSL key->q */
-	buffer_put_bignum(&buffer, key->p);	/* ssh key->q, SSL key->p */
-	buffer_put_string(&buffer, comment, strlen(comment));
+
+	switch (key->type) {
+	case KEY_RSA:
+		ssh_encode_identity_rsa(&buffer, key->rsa, comment);
+		break;
+	case KEY_DSA:
+		ssh_encode_identity_dsa(&buffer, key->dsa, comment);
+		break;
+	default:
+		buffer_free(&buffer);
+		return 0;
+		break;
+	}
 
 	/* Get the length of the message, and format it in the buffer. */
 	len = buffer_len(&buffer);
@@ -487,6 +521,7 @@ ssh_agent_get_reply(AuthenticationConnection *auth)
 	buffer_free(&buffer);
 	switch (type) {
 	case SSH_AGENT_FAILURE:
+log("SSH_AGENT_FAILURE");
 		return 0;
 	case SSH_AGENT_SUCCESS:
 		return 1;

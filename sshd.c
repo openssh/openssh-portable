@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.122 2000/07/11 08:11:34 deraadt Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.123 2000/07/18 01:25:01 djm Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -642,6 +642,7 @@ main(int ac, char **av)
 		s2 = dup(s1);
 		sock_in = dup(0);
 		sock_out = dup(1);
+		startup_pipe = -1;
 		/*
 		 * We intentionally do not close the descriptors 0, 1, and 2
 		 * as our code for setting the descriptors won\'t work if

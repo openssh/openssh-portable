@@ -28,7 +28,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.15 2000/06/21 16:46:10 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.16 2000/07/16 08:27:22 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
@@ -286,40 +286,20 @@ ssh2_try_passwd(const char *server_user, const char *host, const char *service)
 	return 1;
 }
 
-int
-ssh2_try_pubkey(char *filename,
+typedef int sign_fn(
+    Key *key,
+    unsigned char **sigp, int *lenp,
+    unsigned char *data, int datalen);
+
+void
+ssh2_sign_and_send_pubkey(Key *k, sign_fn *do_sign,
     const char *server_user, const char *host, const char *service)
 {
 	Buffer b;
-	Key *k;
 	unsigned char *blob, *signature;
 	int bloblen, slen;
-	struct stat st;
 	int skip = 0;
 
-	if (stat(filename, &st) != 0) {
-		debug("key does not exist: %s", filename);
-		return 0;
-	}
-	debug("try pubkey: %s", filename);
-
-	k = key_new(KEY_DSA);
-	if (!load_private_key(filename, "", k, NULL)) {
-		int success = 0;
-		char *passphrase;
-		char prompt[300];
-		snprintf(prompt, sizeof prompt,
-		     "Enter passphrase for DSA key '%.100s': ",
-		     filename);
-		passphrase = read_passphrase(prompt, 0);
-		success = load_private_key(filename, passphrase, k, NULL);
-		memset(passphrase, 0, strlen(passphrase));
-		xfree(passphrase);
-		if (!success) {
-			key_free(k);
-			return 0;
-		}
-	}
 	dsa_make_key_blob(k, &blob, &bloblen);
 
 	/* data to be signed */
@@ -343,8 +323,8 @@ ssh2_try_pubkey(char *filename,
 	buffer_put_string(&b, blob, bloblen);
 
 	/* generate signature */
-	dsa_sign(k, &signature, &slen, buffer_ptr(&b), buffer_len(&b));
-	key_free(k);
+	do_sign(k, &signature, &slen, buffer_ptr(&b), buffer_len(&b));
+	key_free(k); /* XXX */
 #ifdef DEBUG_DSS
 	buffer_dump(&b);
 #endif
@@ -377,6 +357,39 @@ ssh2_try_pubkey(char *filename,
 	/* send */
 	packet_send();
 	packet_write_wait();
+}
+
+int
+ssh2_try_pubkey(char *filename,
+    const char *server_user, const char *host, const char *service)
+{
+	Key *k;
+	struct stat st;
+
+	if (stat(filename, &st) != 0) {
+		debug("key does not exist: %s", filename);
+		return 0;
+	}
+	debug("try pubkey: %s", filename);
+
+	k = key_new(KEY_DSA);
+	if (!load_private_key(filename, "", k, NULL)) {
+		int success = 0;
+		char *passphrase;
+		char prompt[300];
+		snprintf(prompt, sizeof prompt,
+		     "Enter passphrase for DSA key '%.100s': ",
+		     filename);
+		passphrase = read_passphrase(prompt, 0);
+		success = load_private_key(filename, passphrase, k, NULL);
+		memset(passphrase, 0, strlen(passphrase));
+		xfree(passphrase);
+		if (!success) {
+			key_free(k);
+			return 0;
+		}
+	}
+	ssh2_sign_and_send_pubkey(k, dsa_sign, server_user, host, service);
 	return 1;
 }
 

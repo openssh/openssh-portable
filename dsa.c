@@ -28,7 +28,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: dsa.c,v 1.9 2000/06/20 01:39:41 markus Exp $");
+RCSID("$OpenBSD: dsa.c,v 1.10 2000/07/20 00:33:12 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -53,8 +53,7 @@ RCSID("$OpenBSD: dsa.c,v 1.9 2000/06/20 01:39:41 markus Exp $");
 #define SIGBLOB_LEN	(2*INTBLOB_LEN)
 
 Key *
-dsa_key_from_blob(
-    char *blob, int blen)
+dsa_key_from_blob(char *blob, int blen)
 {
 	Buffer b;
 	char *ktype;
@@ -66,16 +65,17 @@ dsa_key_from_blob(
 	dump_base64(stderr, blob, blen);
 #endif
 	/* fetch & parse DSA/DSS pubkey */
-	key = key_new(KEY_DSA);
-	dsa = key->dsa;
 	buffer_init(&b);
 	buffer_append(&b, blob, blen);
 	ktype = buffer_get_string(&b, NULL);
 	if (strcmp(KEX_DSS, ktype) != 0) {
 		error("dsa_key_from_blob: cannot handle type %s", ktype);
-		key_free(key);
+		buffer_free(&b);
+		xfree(ktype);
 		return NULL;
 	}
+	key = key_new(KEY_DSA);
+	dsa = key->dsa;
 	buffer_get_bignum2(&b, dsa->p);
 	buffer_get_bignum2(&b, dsa->q);
 	buffer_get_bignum2(&b, dsa->g);
@@ -84,8 +84,8 @@ dsa_key_from_blob(
 	if(rlen != 0)
 		error("dsa_key_from_blob: remaining bytes in key blob %d", rlen);
 	buffer_free(&b);
+	xfree(ktype);
 
-	debug("keytype %s", ktype);
 #ifdef DEBUG_DSS
 	DSA_print_fp(stderr, dsa, 8);
 #endif
