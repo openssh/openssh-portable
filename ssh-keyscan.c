@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keyscan.c,v 1.4 2000/12/13 23:26:53 markus Exp $");
+RCSID("$OpenBSD: ssh-keyscan.c,v 1.5 2000/12/19 22:48:08 markus Exp $");
 
 #ifdef HAVE_SYS_QUEUE_H
 #include <sys/queue.h>

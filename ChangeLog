@@ -1,3 +1,15 @@
+20001221
+ - (stevesk) OpenBSD CVS updates:
+   - markus@cvs.openbsd.org 2000/12/19 15:43:45
+     [authfile.c channels.c sftp-server.c ssh-agent.c]
+     remove() -> unlink() for consistency
+   - markus@cvs.openbsd.org 2000/12/19 15:48:09
+     [ssh-keyscan.c]
+     replace <ssl/x.h> with <openssl/x.h>
+   - markus@cvs.openbsd.org 2000/12/17 02:33:40
+     [uidswap.c]
+     typo; from wsanchez@apple.com
+	
 20001220
  - (djm) Workaround PAM inconsistencies between Solaris derived PAM code 
    and Linux-PAM. Based on report and fix from Andrew Morgan

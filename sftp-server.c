@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: sftp-server.c,v 1.7 2000/12/09 14:08:27 markus Exp $");
+RCSID("$OpenBSD: sftp-server.c,v 1.8 2000/12/19 22:43:44 markus Exp $");
 
 #include "ssh.h"
 #include "buffer.h"
@@ -854,7 +854,7 @@ process_remove(void)
 	id = get_int();
 	name = get_string(NULL);
 	TRACE("remove id %d name %s", id, name);
-	ret = remove(name);
+	ret = unlink(name);
 	status = (ret == -1) ? errno_to_portable(errno) : SSH_FX_OK;
 	send_status(id, status);
 	xfree(name);
