@@ -23,6 +23,9 @@
   - markus@cvs.openbsd.org 2002/11/21 23:04:33
      [ssh.c]
      debug->debug2
+  - stevesk@cvs.openbsd.org 2002/11/24 21:46:24
+     [ssh-keysign.8]
+     typo: "the the"
 
 20021205
  - (djm) PERL-free fixpaths from stuge-openssh-unix-dev@cdy.org
@@ -858,4 +861,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2521 2002/12/23 02:08:57 mouring Exp $
+$Id: ChangeLog,v 1.2522 2002/12/23 02:09:59 mouring Exp $
