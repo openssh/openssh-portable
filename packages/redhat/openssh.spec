@@ -103,7 +103,7 @@ patented algorithms to seperate libraries (OpenSSL).
 This package contains Jim Knoble's <jmknoble@pobox.com> X11 passphrase 
 dialog.
 
-%description askpass
+%description askpass-gnome
 Ssh (Secure Shell) a program for logging into a remote machine and for
 executing commands in a remote machine.  It is intended to replace
 rlogin and rsh, and provide secure encrypted communications between
