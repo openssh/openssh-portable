@@ -6,6 +6,7 @@
    - markus@cvs.openbsd.org 2002/10/01 13:24:50
      [version.h]
      OpenSSH 3.5
+ - (djm) Bump RPM spec version numbers
 
 20020930
  - (djm) Tidy contrib/, add Makefile for GNOME passphrase dialogs, 
@@ -755,4 +756,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2490 2002/10/03 01:55:37 djm Exp $
+$Id: ChangeLog,v 1.2491 2002/10/03 01:56:58 djm Exp $
