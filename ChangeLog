@@ -3,8 +3,6 @@
    of OpenSC. Report and patch from larsch@trustcenter.de
  - (djm) Bug #593: Sanity check OpenSC card reader number; patch from 
    aj@dungeon.inka.de
-
-20030628
  - (dtucker) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2003/06/23 09:02:44
      [ssh_config.5]
@@ -609,4 +607,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2831 2003/06/28 08:08:16 djm Exp $
+$Id: ChangeLog,v 1.2832 2003/06/29 11:20:04 dtucker Exp $
