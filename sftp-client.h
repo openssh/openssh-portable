@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.h,v 1.1 2001/02/04 11:11:54 djm Exp $ */
+/* $OpenBSD: sftp-client.h,v 1.2 2001/03/07 10:11:23 djm Exp $ */
 
 /*
  * Copyright (c) 2001 Damien Miller.  All rights reserved.
@@ -26,7 +26,10 @@
 
 /* Client side of SSH2 filexfer protocol */
 
-/* Initialiase a SSH filexfer connection */
+/* 
+ * Initialiase a SSH filexfer connection. Returns -1 on error or 
+ * protocol version on success.
+ */
 int do_init(int fd_in, int fd_out);
 
 /* Close file referred to by 'handle' */
@@ -66,6 +69,12 @@ char *do_realpath(int fd_in, int fd_out, char *path);
 
 /* Rename 'oldpath' to 'newpath' */
 int do_rename(int fd_in, int fd_out, char *oldpath, char *newpath);
+
+/* Rename 'oldpath' to 'newpath' */
+int do_symlink(int fd_in, int fd_out, char *oldpath, char *newpath);
+
+/* Return target of symlink 'path' - caller must free result */
+char *do_readlink(int fd_in, int fd_out, char *path);
 
 /* XXX: add callbacks to do_download/do_upload so we can do progress meter */
 

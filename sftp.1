@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.11 2001/03/06 15:10:42 deraadt Exp $
+.\" $OpenBSD: sftp.1,v 1.12 2001/03/07 10:11:23 djm Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -58,7 +58,7 @@ instead of
 Since it lacks user interaction it should be used in conjuction with a 
 non-interactive authentication.  Sftp will abort if any of the following 
 commands fail: 
-.Pa get, put, rename, rm, mkdir, chdir, lchdir
+.Pa get, put, rename, ln, rm, mkdir, chdir, lchdir
 and
 .Pa lmkdir.
 .It Fl C
@@ -131,6 +131,11 @@ is not specified.
 .It Ic lmkdir Ar path
 Create local directory specified by
 .Ar path .
+.It Ic ln Ar oldpath Ar newpath
+Create a symbolic link from 
+.Ar oldpath
+to
+.Ar newpath .
 .It Ic lpwd
 Print local working directory.
 .It Ic ls Op Ar path
@@ -152,8 +157,8 @@ Create remote directory specified by
 .Xc
 Upload
 .Ar local-path
-and store it on the remote machine. If the remote path name is not specified, 
-it is given the same name it has on the local machine. If the 
+and store it on the remote machine. If the remote path name is not 
+specified, it is given the same name it has on the local machine. If the 
 .Fl P
 flag is specified, then the file's full permission and access time are
 copied too.
@@ -172,6 +177,11 @@ Remove remote directory specified by
 .It Ic rm Ar path
 Delete remote file specified by
 .Ar path .
+.It Ic symlink Ar oldpath Ar newpath
+Create a symbolic link from 
+.Ar oldpath
+to
+.Ar newpath .
 .It Ic ! Ar command
 Execute 
 .Ar command

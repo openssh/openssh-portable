@@ -1,4 +1,4 @@
-/*	$OpenBSD: sftp.h,v 1.2 2001/01/29 01:58:18 niklas Exp $	*/
+/*	$OpenBSD: sftp.h,v 1.3 2001/03/07 10:11:23 djm Exp $	*/
 
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
@@ -25,11 +25,11 @@
  */
 
 /*
- * draft-ietf-secsh-filexfer-00.txt
+ * draft-ietf-secsh-filexfer-01.txt
  */
 
 /* version */
-#define	SSH2_FILEXFER_VERSION		2
+#define	SSH2_FILEXFER_VERSION		3
 
 /* client to server */
 #define SSH2_FXP_INIT			1
@@ -49,6 +49,8 @@
 #define SSH2_FXP_REALPATH		16
 #define SSH2_FXP_STAT			17
 #define SSH2_FXP_RENAME			18
+#define SSH2_FXP_READLINK		19
+#define SSH2_FXP_SYMLINK		20
 
 /* server to client */
 #define SSH2_FXP_VERSION		2
@@ -86,3 +88,4 @@
 #define SSH2_FX_NO_CONNECTION		6
 #define SSH2_FX_CONNECTION_LOST		7
 #define SSH2_FX_OP_UNSUPPORTED		8
+#define SSH2_FX_MAX			8

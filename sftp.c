@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.10 2001/03/06 06:11:44 deraadt Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.11 2001/03/07 10:11:23 djm Exp $");
 
 /* XXX: commandline mode */
 /* XXX: copy between two remote hosts (commandline) */
@@ -255,8 +255,6 @@ main(int argc, char **argv)
 	fprintf(stderr, "Connecting to %s...\n", host);
 
 	connect_to_server(make_ssh_args(NULL), &in, &out, &sshpid);
-
-	do_init(in, out);
 
 	interactive_loop(in, out);
 

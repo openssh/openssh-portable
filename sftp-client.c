@@ -29,7 +29,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.10 2001/02/14 09:46:03 djm Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.11 2001/03/07 10:11:22 djm Exp $");
 
 #include "ssh.h"
 #include "buffer.h"
@@ -247,7 +247,8 @@ do_init(int fd_in, int fd_out)
 	}
 
 	buffer_free(&msg);
-	return(0);
+
+	return(version);
 }
 
 int
@@ -483,8 +484,7 @@ do_realpath(int fd_in, int fd_out, char *path)
 	Attrib *a;
 
 	expected_id = id = msg_id++;
-	send_string_request(fd_out, id, SSH2_FXP_REALPATH, path,
-	    strlen(path));
+	send_string_request(fd_out, id, SSH2_FXP_REALPATH, path, strlen(path));
 
 	buffer_init(&msg);
 
@@ -546,6 +546,79 @@ do_rename(int fd_in, int fd_out, char *oldpath, char *newpath)
 		    fx2txt(status));
 
 	return(status);
+}
+
+int
+do_symlink(int fd_in, int fd_out, char *oldpath, char *newpath)
+{
+	Buffer msg;
+	u_int status, id;
+
+	buffer_init(&msg);
+
+	/* Send rename request */
+	id = msg_id++;
+	buffer_put_char(&msg, SSH2_FXP_SYMLINK);
+	buffer_put_int(&msg, id);
+	buffer_put_cstring(&msg, oldpath);
+	buffer_put_cstring(&msg, newpath);
+	send_msg(fd_out, &msg);
+	debug3("Sent message SSH2_FXP_SYMLINK \"%s\" -> \"%s\"", oldpath,
+	    newpath);
+	buffer_free(&msg);
+
+	status = get_status(fd_in, id);
+	if (status != SSH2_FX_OK)
+		error("Couldn't rename file \"%s\" to \"%s\": %s", oldpath, newpath,
+		    fx2txt(status));
+
+	return(status);
+}
+
+char *
+do_readlink(int fd_in, int fd_out, char *path)
+{
+	Buffer msg;
+	u_int type, expected_id, count, id;
+	char *filename, *longname;
+	Attrib *a;
+
+	expected_id = id = msg_id++;
+	send_string_request(fd_out, id, SSH2_FXP_READLINK, path, strlen(path));
+
+	buffer_init(&msg);
+
+	get_msg(fd_in, &msg);
+	type = buffer_get_char(&msg);
+	id = buffer_get_int(&msg);
+
+	if (id != expected_id)
+		fatal("ID mismatch (%d != %d)", id, expected_id);
+
+	if (type == SSH2_FXP_STATUS) {
+		u_int status = buffer_get_int(&msg);
+
+		error("Couldn't readlink: %s", fx2txt(status));
+		return(NULL);
+	} else if (type != SSH2_FXP_NAME)
+		fatal("Expected SSH2_FXP_NAME(%d) packet, got %d",
+		    SSH2_FXP_NAME, type);
+
+	count = buffer_get_int(&msg);
+	if (count != 1)
+		fatal("Got multiple names (%d) from SSH_FXP_READLINK", count);
+
+	filename = buffer_get_string(&msg, NULL);
+	longname = buffer_get_string(&msg, NULL);
+	a = decode_attrib(&msg);
+
+	debug3("SSH_FXP_READLINK %s -> %s", path, filename);
+
+	xfree(longname);
+
+	buffer_free(&msg);
+
+	return(filename);
 }
 
 int

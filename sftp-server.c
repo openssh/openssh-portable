@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: sftp-server.c,v 1.22 2001/03/03 22:07:50 deraadt Exp $");
+RCSID("$OpenBSD: sftp-server.c,v 1.23 2001/03/07 10:11:23 djm Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
@@ -48,6 +48,9 @@ char *__progname;
 /* input and output queue */
 Buffer iqueue;
 Buffer oqueue;
+
+/* Version of client */
+int version;
 
 /* portable attibutes, etc. */
 
@@ -266,12 +269,29 @@ void
 send_status(u_int32_t id, u_int32_t error)
 {
 	Buffer msg;
+	const char *status_messages[] = {
+		"Success",			/* SSH_FX_OK */
+		"End of file",			/* SSH_FX_EOF */
+		"No such file",			/* SSH_FX_NO_SUCH_FILE */
+		"Permission denied",		/* SSH_FX_PERMISSION_DENIED */
+		"Failure",			/* SSH_FX_FAILURE */
+		"Bad message",			/* SSH_FX_BAD_MESSAGE */
+		"No connection",		/* SSH_FX_NO_CONNECTION */
+		"Connection lost",		/* SSH_FX_CONNECTION_LOST */
+		"Operation unsupported",	/* SSH_FX_OP_UNSUPPORTED */
+		"Unknown error"			/* Others */
+	};
 
 	TRACE("sent status id %d error %d", id, error);
 	buffer_init(&msg);
 	buffer_put_char(&msg, SSH2_FXP_STATUS);
 	buffer_put_int(&msg, id);
 	buffer_put_int(&msg, error);
+	if (version >= 3) {
+		buffer_put_cstring(&msg, 
+		    status_messages[MIN(error,SSH2_FX_MAX)]);
+		buffer_put_cstring(&msg, "");
+	}
 	send_msg(&msg);
 	buffer_free(&msg);
 }
@@ -347,8 +367,8 @@ void
 process_init(void)
 {
 	Buffer msg;
-	int version = buffer_get_int(&iqueue);
 
+	version = buffer_get_int(&iqueue);
 	TRACE("client version %d", version);
 	buffer_init(&msg);
 	buffer_put_char(&msg, SSH2_FXP_VERSION);
@@ -860,6 +880,51 @@ process_rename(void)
 }
 
 void
+process_readlink(void)
+{
+	u_int32_t id;
+	char link[MAXPATHLEN];
+	char *path;
+
+	id = get_int();
+	path = get_string(NULL);
+	TRACE("readlink id %d path %s", id, path);
+	if (readlink(path, link, sizeof(link) - 1) == -1)
+		send_status(id, errno_to_portable(errno));
+	else {
+		Stat s;
+		
+		link[sizeof(link) - 1] = '\0';
+		attrib_clear(&s.attrib);
+		s.name = s.long_name = link;
+		send_names(id, 1, &s);
+	}
+	xfree(path);
+}
+
+void
+process_symlink(void)
+{
+	u_int32_t id;
+	struct stat st;
+	char *oldpath, *newpath;
+	int ret, status = SSH2_FX_FAILURE;
+
+	id = get_int();
+	oldpath = get_string(NULL);
+	newpath = get_string(NULL);
+	TRACE("symlink id %d old %s new %s", id, oldpath, newpath);
+	/* fail if 'newpath' exists */
+	if (stat(newpath, &st) == -1) {
+		ret = symlink(oldpath, newpath);
+		status = (ret == -1) ? errno_to_portable(errno) : SSH2_FX_OK;
+	}
+	send_status(id, status);
+	xfree(oldpath);
+	xfree(newpath);
+}
+
+void
 process_extended(void)
 {
 	u_int32_t id;
@@ -943,6 +1008,12 @@ process(void)
 		break;
 	case SSH2_FXP_RENAME:
 		process_rename();
+		break;
+	case SSH2_FXP_READLINK:
+		process_readlink();
+		break;
+	case SSH2_FXP_SYMLINK:
+		process_symlink();
 		break;
 	case SSH2_FXP_EXTENDED:
 		process_extended();

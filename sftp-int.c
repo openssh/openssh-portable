@@ -28,7 +28,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.25 2001/03/06 06:11:44 deraadt Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.26 2001/03/07 10:11:23 djm Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -40,7 +40,11 @@ RCSID("$OpenBSD: sftp-int.c,v 1.25 2001/03/06 06:11:44 deraadt Exp $");
 #include "sftp-client.h"
 #include "sftp-int.h"
 
-extern FILE* infile;
+/* File to read commands from */
+extern FILE *infile;
+
+/* Version of server we are speaking to */
+int version;
 
 /* Seperators for interactive commands */
 #define WHITESPACE " \t\r\n"
@@ -66,6 +70,7 @@ extern FILE* infile;
 #define I_RM		18
 #define I_RMDIR		19
 #define I_SHELL		20
+#define I_SYMLINK	21
 
 struct CMD {
 	const char *c;
@@ -86,6 +91,7 @@ const struct CMD cmds[] = {
 	{ "lchdir",	I_LCHDIR },
 	{ "lls",	I_LLS },
 	{ "lmkdir",	I_LMKDIR },
+	{ "ln",		I_SYMLINK },
 	{ "lpwd",	I_LPWD },
 	{ "ls",		I_LS },
 	{ "lumask",	I_LUMASK },
@@ -96,6 +102,7 @@ const struct CMD cmds[] = {
 	{ "rename",	I_RENAME },
 	{ "rm",		I_RM },
 	{ "rmdir",	I_RMDIR },
+	{ "symlink",	I_SYMLINK },
 	{ "!",		I_SHELL },
 	{ "?",		I_HELP },
 	{ NULL,			-1}
@@ -113,6 +120,7 @@ help(void)
 	printf("help                          Display this help text\n");
 	printf("get remote-path [local-path]  Download file\n");
 	printf("lls [ls-options [path]]       Display local directory listing\n");
+	printf("ln oldpath newpath            Symlink remote file\n");
 	printf("lmkdir path                   Create local directory\n");
 	printf("lpwd                          Print local working directory\n");
 	printf("ls [path]                     Display remote directory listing\n");
@@ -125,6 +133,7 @@ help(void)
 	printf("rename oldpath newpath        Rename remote file\n");
 	printf("rmdir path                    Remove remote directory\n");
 	printf("rm path                       Delete remote file\n");
+	printf("symlink oldpath newpath       Symlink remote file\n");
 	printf("!command                      Execute 'command' in local shell\n");
 	printf("!                             Escape to local shell\n");
 	printf("?                             Synonym for help\n");
@@ -356,7 +365,7 @@ parse_args(const char **cpp, int *pflag, unsigned long *n_arg,
 			return(-1);
 		break;
 	case I_RENAME:
-		/* Get first pathname (mandatory) */
+	case I_SYMLINK:
 		if (get_pathname(&cp, path1))
 			return(-1);
 		if (get_pathname(&cp, path2))
@@ -467,6 +476,16 @@ parse_dispatch_command(int in, int out, const char *cmd, char **pwd)
 		path1 = make_absolute(path1, *pwd);
 		path2 = make_absolute(path2, *pwd);
 		err = do_rename(in, out, path1, path2);
+		break;
+	case I_SYMLINK:
+		if (version < 3) {
+			error("The server (version %d) does not support "
+			    "this operation", version);
+			err = -1;
+		} else {
+			path2 = make_absolute(path2, *pwd);
+			err = do_symlink(in, out, path1, path2);
+		}
 		break;
 	case I_RM:
 		path1 = make_absolute(path1, *pwd);
@@ -623,6 +642,10 @@ interactive_loop(int fd_in, int fd_out)
 {
 	char *pwd;
 	char cmd[2048];
+
+	version = do_init(fd_in, fd_out);
+	if (version == -1)
+		fatal("Couldn't initialise connection to server");
 
 	pwd = do_realpath(fd_in, fd_out, ".");
 	if (pwd == NULL)
