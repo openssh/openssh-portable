@@ -35,7 +35,7 @@
 */
 
 #include "includes.h"
-RCSID("$Id: rsa.c,v 1.7 2000/01/29 09:40:22 damien Exp $");
+RCSID("$Id: rsa.c,v 1.8 2000/03/05 05:10:46 damien Exp $");
 
 #include "rsa.h"
 #include "ssh.h"
@@ -49,6 +49,7 @@ rsa_alive()
 {
 	RSA *key;
 
+	seed_rng();
 	key = RSA_generate_key(32, 3, NULL, NULL);
 	if (key == NULL)
 		return (0);
@@ -77,7 +78,7 @@ keygen_progress(int p, int n, void *arg)
 void
 seed_rng()
 {
-	char buf[32];
+	char buf[64];
 
 	get_random_bytes(buf, sizeof(buf));
 	RAND_seed(buf, sizeof(buf));

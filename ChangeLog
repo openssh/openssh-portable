@@ -1,5 +1,6 @@
 20000305
  - Fix DEC compile fix
+ - Explicitly seed OpenSSL's PRNG before checking rsa_alive()
 
 20000303
  - Added "make host-key" target, Suggestion from Dominik Brettnacher
