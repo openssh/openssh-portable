@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.99 2001/03/01 02:29:04 deraadt Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.100 2001/03/01 22:46:37 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -936,7 +936,8 @@ client_subsystem_reply(int type, int plen, void *ctxt)
 
 	id = packet_get_int();
 	len = buffer_len(&command);
-	len = MAX(len, 900);
+	if (len > 900)
+		len = 900;
 	packet_done();
 	if (type == SSH2_MSG_CHANNEL_FAILURE)
 		fatal("Request for subsystem '%.*s' failed on channel %d",
@@ -1009,7 +1010,7 @@ ssh_session2_callback(int id, void *arg)
 			debug("Sending command: %.*s", len, buffer_ptr(&command));
 			channel_request_start(id, "exec", 0);
 		}
-		packet_put_string(buffer_ptr(&command), len);
+		packet_put_string(buffer_ptr(&command), buffer_len(&command));
 		packet_send();
 	} else {
 		channel_request(id, "shell", 0);
