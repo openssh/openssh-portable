@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.313 2001/09/20 19:43:41 stevesk Exp $
+# $Id: configure.in,v 1.314 2001/09/25 06:39:35 djm Exp $
 
 AC_INIT(ssh.c)
 
@@ -20,6 +20,9 @@ AC_PATH_PROGS(FILEPRIV, filepriv, true, /sbin:/usr/sbin)
 AC_PATH_PROG(TEST_MINUS_S_SH, bash)
 AC_PATH_PROG(TEST_MINUS_S_SH, ksh)
 AC_PATH_PROG(TEST_MINUS_S_SH, sh)
+
+# System features
+AC_SYS_LARGEFILE
 
 if test -z "$AR" ; then
 	AC_MSG_ERROR([*** 'ar' missing, please install or fix your \$PATH ***])
