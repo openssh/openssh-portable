@@ -1,19 +1,36 @@
+# Version of OpenSSH
+%define oversion 1.2.1pre21
+
+# Version of ssh-askpass
+%define aversion 0.99
+
+# Define if you want to build x11-ssh-askpass
+#%define BUILD_X11_ASKPASS
+
+# Define if you want to build gnome-askpass
+#%define BUILD_GNOME_ASKPASS
+
 Summary: OpenSSH free Secure Shell (SSH) implementation
 Name: openssh
-Version: 1.2.1pre21
+Version: %{oversion}
 Release: 1
 Packager: Damien Miller <djm@ibs.com.au>
-Source0: openssh-%{version}.tar.gz
+Source0: http://violet.ibs.com.au/openssh/files/openssh-%{oversion}.tar.gz
+%ifdef BUILD_X11_ASKPASS
+Source1: http://www.pobox.com/~jmknoble/jmk/x11-ssh-askpass-%{aversion}.tar.gz
+%endif
 Copyright: BSD
 Group: Applications/Internet
 BuildRoot: /tmp/openssh-%{version}-buildroot
 Obsoletes: ssh
-Requires: openssl >= 0.9.4
-PreReq: openssl >= 0.9.4
-BuildPreReq: openssl >= 0.9.4
-BuildPreReq: openssl-devel >= 0.9.4
+Requires: openssl
+PreReq: openssl
+BuildPreReq: openssl-devel
 BuildPreReq: tcp_wrappers
-BuildPreReq: gnome-libs
+
+%ifdef BUILD_GNOME_ASKPASS
+BuildPreReq: gnome-libs-devel
+%endif
 
 %package clients
 Summary: OpenSSH Secure Shell protocol clients
@@ -27,12 +44,21 @@ Requires: openssh chkconfig >= 0.9
 Group: System Environment/Daemons
 Obsoletes: ssh-server
 
+%ifdef BUILD_X11_ASKPASS
 %package askpass
+Summary: OpenSSH X11 passphrase dialog
+Group: Applications/Internet
+Requires: openssh
+Obsoletes: ssh-extras
+%endif
+
+%ifdef BUILD_GNOME_ASKPASS
+%package askpass-gnome
 Summary: OpenSSH GNOME passphrase dialog
 Group: Applications/Internet
 Requires: openssh
 Obsoletes: ssh-extras
-Obsoletes: ssh-askpass
+%endif
 
 %description
 Ssh (Secure Shell) a program for logging into a remote machine and for
@@ -78,6 +104,25 @@ This package contains the secure shell daemon. The sshd is the server
 part of the secure shell protocol and allows ssh clients to connect to 
 your host.
 
+%ifdef BUILD_X11_ASKPASS
+%package askpass-gnome
+%description askpass
+Ssh (Secure Shell) a program for logging into a remote machine and for
+executing commands in a remote machine.  It is intended to replace
+rlogin and rsh, and provide secure encrypted communications between
+two untrusted hosts over an insecure network.  X11 connections and
+arbitrary TCP/IP ports can also be forwarded over the secure channel.
+
+OpenSSH is OpenBSD's rework of the last free version of SSH, bringing it
+up to date in terms of security and features, as well as removing all 
+patented algorithms to seperate libraries (OpenSSL).
+
+This package contains Jim Knoble's <jmknoble@pobox.com> X11 passphrase 
+dialog.
+%endif
+
+%ifdef BUILD_GNOME_ASKPASS
+%package askpass-gnome
 %description askpass
 Ssh (Secure Shell) a program for logging into a remote machine and for
 executing commands in a remote machine.  It is intended to replace
@@ -90,8 +135,12 @@ up to date in terms of security and features, as well as removing all
 patented algorithms to seperate libraries (OpenSSL).
 
 This package contains the GNOME passphrase dialog.
+%endif
 
 %changelog
+* Sun Dec 26 1999 Damien Miller <djm@mindrot.org>
+- Added Jim Knoble's <jmknoble@pobox.com> askpass
+- Made subpackage building conditional
 * Mon Nov 15 1999 Damien Miller <djm@mindrot.org>
 - Split subpackages further based on patch from jim knoble <jmknoble@pobox.com>
 * Sat Nov 13 1999 Damien Miller <djm@mindrot.org>
@@ -114,15 +163,31 @@ This package contains the GNOME passphrase dialog.
 
 %prep
 
-%setup -q
+%ifdef BUILD_X11_ASKPASS
+%setup -a 1
+%else
+%setup
+%endif
 
 %build
 
+%ifdef BUILD_GNOME_ASKPASS
 CFLAGS="$RPM_OPT_FLAGS" \
 	./configure --prefix=/usr --sysconfdir=/etc/ssh \
                     --with-gnome-askpass --with-tcp-wrappers
+%else
+CFLAGS="$RPM_OPT_FLAGS" \
+	./configure --prefix=/usr --sysconfdir=/etc/ssh --with-tcp-wrappers
+%endif
 
 make
+
+%ifdef BUILD_X11_ASKPASS
+cd x11-ssh-askpass-%{aversion}
+xmkmf -a
+make
+cd ..
+%endif
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -135,6 +200,11 @@ install -m644 packages/redhat/sshd.pam $RPM_BUILD_ROOT/etc/pam.d/sshd
 install -m755 packages/redhat/sshd.init $RPM_BUILD_ROOT/etc/rc.d/init.d/sshd
 install -m600 ssh_config $RPM_BUILD_ROOT/etc/ssh/ssh_config
 install -m600 sshd_config $RPM_BUILD_ROOT/etc/ssh/sshd_config
+
+%ifdef BUILD_X11_ASKPASS
+install -s x11-ssh-askpass-%{aversion}/ssh-askpass $RPM_BUILD_ROOT/usr/libexec/ssh/x11-ssh-askpass
+ln -s /usr/libexec/ssh/x11-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/ssh/ssh-askpass
+%endif
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -176,6 +246,7 @@ fi
 %attr(0644,root,root) %config(noreplace) /etc/ssh/ssh_config
 %attr(-,root,root) /usr/bin/slogin
 %attr(-,root,root) /usr/man/man1/slogin.1
+%attr(0755,root,root) %dir /usr/libexec/ssh
 
 %files server
 %defattr(-,root,root)
@@ -185,8 +256,15 @@ fi
 %attr(0600,root,root) %config(noreplace) /etc/pam.d/sshd
 %attr(0755,root,root) %config /etc/rc.d/init.d/sshd
 
+%ifdef BUILD_X11_ASKPASS
 %files askpass
 %defattr(-,root,root)
 %attr(0755,root,root) /usr/libexec/ssh/ssh-askpass
-%attr(0755,root,root) %dir /usr/libexec/ssh
+%attr(0755,root,root) /usr/libexec/ssh/x11-ssh-askpass
+%endif
 
+%ifdef BUILD_GNOME_ASKPASS
+%files askpass-gnome
+%defattr(-,root,root)
+%attr(0755,root,root) /usr/libexec/ssh/gnome-ssh-askpass
+%endif

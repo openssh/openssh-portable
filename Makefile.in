@@ -7,7 +7,8 @@ mandir=@mandir@
 sysconfdir=@sysconfdir@
 
 SSH_PROGRAM=@bindir@/ssh
-ASKPASS_PROGRAM=@libexecdir@/ssh/ssh-askpass
+ASKPASS_LOCATION=@libexecdir@/ssh
+ASKPASS_PROGRAM=$(ASKPASS_LOCATION)/ssh-askpass
 
 CC=@CC@
 PATHS=-DETCDIR=\"$(sysconfdir)\" -DSSH_PROGRAM=\"$(SSH_PROGRAM)\" -DSSH_ASKPASS_DEFAULT=\"$(ASKPASS_PROGRAM)\"
@@ -107,7 +108,7 @@ install: all
 	if [ ! -z "@GNOME_ASKPASS@" ] ; then \
 		$(INSTALL) -d $(libexecdir) ; \
 		$(INSTALL) -d $(libexecdir)/ssh ; \
-		$(INSTALL) -s @GNOME_ASKPASS@ ${ASKPASS_PROGRAM} ; \
+		$(INSTALL) -s @GNOME_ASKPASS@ ${ASKPASS_LOCATION} ; \
 	fi
 
 	if [ ! -f $(sysconfdir)/ssh_config -a ! -f $(sysconfdir)/sshd_config ]; then \
