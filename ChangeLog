@@ -1,3 +1,7 @@
+20031021
+ - (dtucker) [INSTALL] Some system crypt() functions support MD5 passwords
+   directly.  Noted by Darren.Moffat at sun.com.
+
 20031017
  - (dtucker) [INSTALL] Note that --with-md5 is now required on platforms with
    MD5 passwords even if PAM support is enabled.  From steev at detritus.net.
@@ -1365,4 +1369,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3083 2003/10/17 06:32:11 dtucker Exp $
+$Id: ChangeLog,v 1.3084 2003/10/21 02:41:14 dtucker Exp $

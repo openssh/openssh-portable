@@ -130,8 +130,9 @@ need the S/Key libraries and header files installed for this to work.
 support. You will need libwrap.a and tcpd.h installed.
 
 --with-md5-passwords will enable the use of MD5 passwords. Enable this
-if your operating system uses MD5 passwords.  The resulting binary will
-support both MD5 and traditional crypt type passwords.
+if your operating system uses MD5 passwords and the system crypt() does
+not support them directly (see the crypt(3/3c) man page). If enabled, the
+resulting binary will support both MD5 and traditional crypt passwords.
 
 --with-utmpx enables utmpx support. utmpx support is automatic for 
 some platforms.
@@ -199,4 +200,4 @@ Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
 
 
-$Id: INSTALL,v 1.61 2003/10/17 06:32:11 dtucker Exp $
+$Id: INSTALL,v 1.62 2003/10/21 02:41:14 dtucker Exp $
