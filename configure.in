@@ -1522,7 +1522,7 @@ A=`eval echo ${prefix}` ; A=`eval echo ${A}`
 B=`eval echo ${bindir}` ; B=`eval echo ${B}`
 C=`eval echo ${sbindir}` ; C=`eval echo ${C}`
 D=`eval echo ${sysconfdir}` ; D=`eval echo ${D}`
-E=`eval echo ${libexecdir}/ssh/ssh-askpass` ; E=`eval echo ${E}`
+E=`eval echo ${libexecdir}/ssh-askpass` ; E=`eval echo ${E}`
 F=`eval echo ${mandir}/${mansubdir}X` ; F=`eval echo ${F}`
 G=`eval echo ${piddir}` ; G=`eval echo ${G}`
 

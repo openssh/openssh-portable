@@ -85,6 +85,8 @@
  - (stevesk) rijndael.c: cleanup missing declaration warnings.
  - (stevesk) ~/.hushlogin shouldn't cause required password change to
    be bypassed.
+ - (stevesk) Display correct path to ssh-askpass in configure output.
+   Report from Lutz Jaenicke.
 
 20001007
  - (stevesk) Print PAM return value in PAM log messages to aid
