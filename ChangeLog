@@ -1,3 +1,7 @@
+20040113
+ - (dtucker) [auth-pam.c] Relocate struct pam_ctxt and prototypes.  No
+   functional changes.
+
 20040108
  - (dtucker) [auth-pam.c defines.h] Bug #783: move __unused to defines.h and
    only define if not already.  From des at freebsd.org.
@@ -1655,4 +1659,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3165 2004/01/08 13:19:25 dtucker Exp $
+$Id: ChangeLog,v 1.3166 2004/01/13 11:35:58 dtucker Exp $
