@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.94 2002/01/25 21:00:24 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.95 2002/02/03 17:59:23 markus Exp $");
 
 #include "ssh.h"
 #include "ssh2.h"
@@ -353,7 +353,7 @@ input_userauth_pk_ok(int type, u_int32_t seq, void *ctxt)
 	Authctxt *authctxt = ctxt;
 	Key *key = NULL;
 	Buffer b;
-	int alen, blen, sent = 0;
+	int pktype, alen, blen, sent = 0;
 	char *pkalg, *pkblob, *fp;
 
 	if (authctxt == NULL)
@@ -381,12 +381,18 @@ input_userauth_pk_ok(int type, u_int32_t seq, void *ctxt)
 			debug("no last key or no sign cb");
 			break;
 		}
-		if (key_type_from_name(pkalg) == KEY_UNSPEC) {
+		if ((pktype = key_type_from_name(pkalg)) == KEY_UNSPEC) {
 			debug("unknown pkalg %s", pkalg);
 			break;
 		}
 		if ((key = key_from_blob(pkblob, blen)) == NULL) {
 			debug("no key from blob. pkalg %s", pkalg);
+			break;
+		}
+		if (key->type != pktype) { 
+			error("input_userauth_pk_ok: type mismatch "
+			    "for decoded key (received %d, expected %d)",
+			     key->type, pktype);
 			break;
 		}
 		fp = key_fingerprint(key, SSH_FP_MD5, SSH_FP_HEX);

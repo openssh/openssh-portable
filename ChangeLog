@@ -69,6 +69,9 @@
      generic callbacks are not really used, remove and
      add a callback for msg of type SSH2_MSG_CHANNEL_OPEN_CONFIRMATION
      ok djm@
+   - markus@cvs.openbsd.org 2002/02/03 17:59:23
+     [sshconnect2.c]
+     more cross checking if announced vs. used key type; ok stevesk@
 
 20020130
  - (djm) Delay PRNG seeding until we need it in ssh-keygen, from markus@
@@ -7471,4 +7474,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1817 2002/02/05 01:23:08 djm Exp $
+$Id: ChangeLog,v 1.1818 2002/02/05 01:23:32 djm Exp $
