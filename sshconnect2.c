@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.57 2001/03/27 17:46:49 provos Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.58 2001/03/28 21:59:40 provos Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -440,6 +440,12 @@ ssh_dhgex_client(Kex *kex, char *host, struct sockaddr *hostaddr,
 	memset(kbuf, 0, klen);
 	xfree(kbuf);
 
+	if (datafellows & SSH_OLD_DHGEX) {
+		/* These values are not included in the hash */
+		min = -1;
+		max = -1;
+	}
+
 	/* calc and verify H */
 	hash = kex_hash_gex(
 	    client_version_string,
@@ -447,7 +453,8 @@ ssh_dhgex_client(Kex *kex, char *host, struct sockaddr *hostaddr,
 	    buffer_ptr(client_kexinit), buffer_len(client_kexinit),
 	    buffer_ptr(server_kexinit), buffer_len(server_kexinit),
 	    server_host_key_blob, sbloblen,
-	    nbits, dh->p, dh->g,
+	    min, nbits, max,
+	    dh->p, dh->g,
 	    dh->pub_key,
 	    dh_server_pub,
 	    shared_secret

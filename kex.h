@@ -1,4 +1,4 @@
-/*	$OpenBSD: kex.h,v 1.15 2001/03/05 17:17:20 markus Exp $	*/
+/*	$OpenBSD: kex.h,v 1.16 2001/03/28 21:59:40 provos Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -127,7 +127,8 @@ kex_hash_gex(
     char *ckexinit, int ckexinitlen,
     char *skexinit, int skexinitlen,
     char *serverhostkeyblob, int sbloblen,
-    int minbits, BIGNUM *prime, BIGNUM *gen,
+    int min, int wantbits, int max,
+    BIGNUM *prime, BIGNUM *gen,
     BIGNUM *client_dh_pub,
     BIGNUM *server_dh_pub,
     BIGNUM *shared_secret);

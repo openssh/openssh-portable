@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.182 2001/03/28 20:50:45 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.183 2001/03/28 21:59:41 provos Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1720,6 +1720,12 @@ ssh_dhgex_server(Kex *kex, Buffer *client_kexinit, Buffer *server_kexinit)
 	/* XXX precompute? */
 	key_to_blob(hostkey, &server_host_key_blob, &sbloblen);
 
+	if (type == SSH2_MSG_KEX_DH_GEX_REQUEST_OLD) {
+		/* These values are not included in the hash */
+		min = -1;
+		max = -1;
+	}
+
 	/* calc H */			/* XXX depends on 'kex' */
 	hash = kex_hash_gex(
 	    client_version_string,
@@ -1727,7 +1733,8 @@ ssh_dhgex_server(Kex *kex, Buffer *client_kexinit, Buffer *server_kexinit)
 	    buffer_ptr(client_kexinit), buffer_len(client_kexinit),
 	    buffer_ptr(server_kexinit), buffer_len(server_kexinit),
 	    (char *)server_host_key_blob, sbloblen,
-	    nbits, dh->p, dh->g,
+	    min, nbits, max,
+	    dh->p, dh->g,
 	    dh_client_pub,
 	    dh->pub_key,
 	    shared_secret

@@ -1,5 +1,9 @@
 20010330
  - (djm) Another openbsd-compat/glob.c sync
+ - (djm) OpenBSD CVS Sync
+   - provos@cvs.openbsd.org 2001/03/28 21:59:41
+     [kex.c kex.h sshconnect2.c sshd.c]
+     forgot to include min and max params in hash, okay markus@
 
 20010329
  - OpenBSD CVS Sync
@@ -4770,4 +4774,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1035 2001/03/30 00:23:17 djm Exp $
+$Id: ChangeLog,v 1.1036 2001/03/30 00:47:14 djm Exp $

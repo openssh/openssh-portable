@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.23 2001/03/10 17:51:04 markus Exp $");
+RCSID("$OpenBSD: kex.c,v 1.24 2001/03/28 21:59:40 provos Exp $");
 
 #include <openssl/crypto.h>
 #include <openssl/bio.h>
@@ -290,7 +290,7 @@ kex_hash_gex(
     char *ckexinit, int ckexinitlen,
     char *skexinit, int skexinitlen,
     char *serverhostkeyblob, int sbloblen,
-    int minbits, BIGNUM *prime, BIGNUM *gen,
+    int min, int wantbits, int max, BIGNUM *prime, BIGNUM *gen,
     BIGNUM *client_dh_pub,
     BIGNUM *server_dh_pub,
     BIGNUM *shared_secret)
@@ -313,7 +313,13 @@ kex_hash_gex(
 	buffer_append(&b, skexinit, skexinitlen);
 
 	buffer_put_string(&b, serverhostkeyblob, sbloblen);
-	buffer_put_int(&b, minbits);
+	if (min == -1 || max == -1) 
+		buffer_put_int(&b, wantbits);
+	else {
+		buffer_put_int(&b, min);
+		buffer_put_int(&b, wantbits);
+		buffer_put_int(&b, max);
+	}
 	buffer_put_bignum2(&b, prime);
 	buffer_put_bignum2(&b, gen);
 	buffer_put_bignum2(&b, client_dh_pub);
