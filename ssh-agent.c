@@ -35,7 +35,7 @@
 
 #include "includes.h"
 #include "openbsd-compat/fake-queue.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.100 2002/08/21 20:10:28 stevesk Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.101 2002/08/22 19:27:53 stevesk Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -105,6 +105,18 @@ extern char *__progname;
 #else
 char *__progname;
 #endif
+
+static void
+close_socket(SocketEntry *e)
+{
+	shutdown(e->fd, SHUT_RDWR);
+	close(e->fd);
+	e->fd = -1;
+	e->type = AUTH_UNUSED;
+	buffer_free(&e->input);
+	buffer_free(&e->output);
+	buffer_free(&e->request);
+}
 
 static void
 idtab_init(void)
@@ -617,13 +629,7 @@ process_message(SocketEntry *e)
 	cp = buffer_ptr(&e->input);
 	msg_len = GET_32BIT(cp);
 	if (msg_len > 256 * 1024) {
-		shutdown(e->fd, SHUT_RDWR);
-		close(e->fd);
-		e->fd = -1;
-		e->type = AUTH_UNUSED;
-		buffer_free(&e->input);
-		buffer_free(&e->output);
-		buffer_free(&e->request);
+		close_socket(e);
 		return;
 	}
 	if (buffer_len(&e->input) < msg_len + 4)
@@ -836,13 +842,7 @@ after_select(fd_set *readset, fd_set *writeset)
 					break;
 				} while (1);
 				if (len <= 0) {
-					shutdown(sockets[i].fd, SHUT_RDWR);
-					close(sockets[i].fd);
-					sockets[i].fd = -1;
-					sockets[i].type = AUTH_UNUSED;
-					buffer_free(&sockets[i].input);
-					buffer_free(&sockets[i].output);
-					buffer_free(&sockets[i].request);
+					close_socket(&sockets[i]);
 					break;
 				}
 				buffer_consume(&sockets[i].output, len);
@@ -856,13 +856,7 @@ after_select(fd_set *readset, fd_set *writeset)
 					break;
 				} while (1);
 				if (len <= 0) {
-					shutdown(sockets[i].fd, SHUT_RDWR);
-					close(sockets[i].fd);
-					sockets[i].fd = -1;
-					sockets[i].type = AUTH_UNUSED;
-					buffer_free(&sockets[i].input);
-					buffer_free(&sockets[i].output);
-					buffer_free(&sockets[i].request);
+					close_socket(&sockets[i]);
 					break;
 				}
 				buffer_append(&sockets[i].input, buf, len);
