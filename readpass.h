@@ -1,4 +1,4 @@
-/*	$OpenBSD: readpass.h,v 1.2 2001/01/29 01:58:17 niklas Exp $	*/
+/*	$OpenBSD: readpass.h,v 1.3 2001/05/06 17:52:08 mouring Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>

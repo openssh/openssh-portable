@@ -1,4 +1,4 @@
-/*	$OpenBSD: cli.c,v 1.11 2001/03/06 00:33:04 deraadt Exp $	*/
+/*	$OpenBSD: cli.c,v 1.12 2001/05/06 17:52:07 mouring Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: cli.c,v 1.11 2001/03/06 00:33:04 deraadt Exp $");
+RCSID("$OpenBSD: cli.c,v 1.12 2001/05/06 17:52:07 mouring Exp $");
 
 #include "xmalloc.h"
 #include "log.h"
