@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.42 1999/12/26 02:31:06 damien Exp $");
+RCSID("$Id: sshd.c,v 1.43 1999/12/26 03:04:33 damien Exp $");
 
 #ifdef HAVE_POLL_H
 # include <poll.h>
@@ -146,7 +146,7 @@ void do_child(const char *command, struct passwd * pw, const char *term,
 #ifdef HAVE_LIBPAM
 static int pamconv(int num_msg, const struct pam_message **msg,
 	  struct pam_response **resp, void *appdata_ptr);
-int do_pam_auth(const char *user, const char *password, int quiet);
+int do_pam_auth(const char *user, const char *password);
 void do_pam_account(char *username, char *remote_user);
 void do_pam_session(char *username, char *ttyname);
 void pam_cleanup_proc(void *context);
@@ -238,20 +238,19 @@ void pam_cleanup_proc(void *context)
 	}
 }
 
-int do_pam_auth(const char *user, const char *password, int quiet)
+int do_pam_auth(const char *user, const char *password)
 {
 	int pam_retval;
 	
 	pampasswd = password;
 	
-	pam_retval = pam_authenticate((pam_handle_t *)pamh, quiet?PAM_SILENT:0);
+	pam_retval = pam_authenticate((pam_handle_t *)pamh, 0);
 	if (pam_retval == PAM_SUCCESS) {
-		log("PAM Password authentication accepted for user \"%.100s\"", user);
+		debug("PAM Password authentication accepted for user \"%.100s\"", user);
 		return 1;
 	} else {
-		if (!quiet)
-			log("PAM Password authentication for \"%.100s\" failed: %s", 
-				user, PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
+		debug("PAM Password authentication for \"%.100s\" failed: %s", 
+			user, PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
 		return 0;
 	}
 }
@@ -1312,7 +1311,7 @@ do_authentication(char *user)
 	    (!options.kerberos_authentication || options.kerberos_or_local_passwd) &&
 #endif /* KRB4 */
 #ifdef HAVE_LIBPAM
-	    do_pam_auth(pw->pw_name, "", 1)) {
+	    do_pam_auth(pw->pw_name, "")) {
 #else /* HAVE_LIBPAM */
 	    auth_password(pw, "")) {
 #endif /* HAVE_LIBPAM */
@@ -1523,7 +1522,7 @@ do_authloop(struct passwd * pw)
 
 #ifdef HAVE_LIBPAM
 			/* Do PAM auth with password */
-			authenticated = do_pam_auth(pw->pw_name, password, 0);
+			authenticated = do_pam_auth(pw->pw_name, password);
 #else /* HAVE_LIBPAM */
 			/* Try authentication with the password. */
 			authenticated = auth_password(pw, password);

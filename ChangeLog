@@ -3,6 +3,10 @@
  - Cleanup sshd.c PAM a little more
  - Revised RPM package to include Jim Knoble's <jmknoble@pobox.com>
    X11 ssh-askpass program.
+ - Disable logging of PAM success and failures, PAM is verbose enough.
+   Unfortunatly there is currently no way to disable auth failure 
+   messages. Mention this in UPGRADING file and sent message to PAM 
+   developers
 
 19991225
  - More fixes from Andre Lucas <andre.lucas@dial.pipex.com>

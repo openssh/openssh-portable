@@ -45,3 +45,11 @@ rid yourself of these message, edit you known_hosts files and replace
 the incorrect key length (usually "1024") with the correct key length
 (usually "1023").
 
+5. Spurious PAM authentication messages in logfiles
+
+OpenSSH will generate spurious authentication failures at every login, 
+similar to "authentication failure; (uid=0) -> root for sshd service".
+These are generated because OpenSSH first tries to determine whether a
+user needs authentication to login (e.g. empty password). Unfortunatly
+PAM likes to log all authentication events, this one included.
+
