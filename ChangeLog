@@ -28,6 +28,7 @@
  - (djm) Update RPM specs for new sftp binary
  - (djm) Update several bits for new optional reverse lookup stuff. I 
    think I got them all.
+ - (djm) Makefile.in fixes
 
 20010103
  - (bal) Cygwin clean up by Corinna Vinschen <vinschen@redhat.com>
