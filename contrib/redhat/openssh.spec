@@ -190,11 +190,12 @@ CFLAGS="$RPM_OPT_FLAGS -Os"; export CFLAGS
 	--with-default-path=/usr/local/bin:/bin:/usr/bin \
 	--with-superuser-path=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin \
 	--with-privsep-path=%{_var}/empty/sshd \
+	--with-md5-passwords \
 %if %{scard}
 	--with-smartcard \
 %endif
 %if %{rescue}
-	--without-pam --with-md5-passwords \
+	--without-pam \
 %else
 	--with-pam \
 %endif

@@ -2,6 +2,8 @@
  - (djm) Delete autom4te.cache after autoreconf
  - (dtucker) [auth-pam.c auth-pam.h session.c] Make PAM use the new static
    cleanup functions.  With & ok djm@
+ - (dtucker) [contrib/redhat/openssh.spec] Bug #714: Now that UsePAM is a
+   run-time switch, always build --with-md5-passwords.
 
 20031003
  - (dtucker) OpenBSD CVS Sync
@@ -1284,4 +1286,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3059 2003/10/07 01:31:22 dtucker Exp $
+$Id: ChangeLog,v 1.3060 2003/10/07 07:40:56 dtucker Exp $
