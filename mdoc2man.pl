@@ -40,18 +40,28 @@ use strict;
 
 my ($name, $date, $id);
 my ($line);
-my ($optlist, $nospace, $enum, $synopsis);
+my ($optlist, $oldoptlist, $nospace, $enum, $synopsis);
+my ($reference, $block, $ext, $extopt, $literal);
+my (@refauthors, $reftitle, $refissue, $refdate, $refopt);
 
 
-$optlist = 0;		### 1 = bullet, 2 = enum, 3 = tag
+$optlist = 0;		### 1 = bullet, 2 = enum, 3 = tag, 4 = item
+$oldoptlist = 0;
 $nospace = 0;
 $synopsis = 0;
+$reference = 0;
+$block = 0;
+$ext = 0;
+$extopt = 0;
+$literal = 0;
 
 while ($line = <STDIN>)
 {
 	if ($line !~ /^\./)
 	{
 		print $line;
+		print ".br\n"
+			if ($literal);
 		next;
 	}
 
@@ -70,13 +80,12 @@ while ($line = <STDIN>)
 sub ParseMacro # ($line)
 {
 	my ($line) = @_;
-	my (@words, $retval, $option, $parens, $arg);
+	my (@words, $retval, $option, $parens);
 
 	@words = split(/\s+/, $line);
 	$retval = '';
 	$option = 0;
 	$parens = 0;
-	$arg = 0;
 
 #	print('@words = ', scalar(@words), ': ', join(' ', @words), "\n");
 
@@ -85,9 +94,39 @@ sub ParseMacro # ($line)
 #		print "WORD: $_\n";
 
 		next
-			if (/^(Li|Pf|X[oc])$/);
+			if (/^(Li|Pf)$/);
 
-		if (/^Ns/)
+		if (/^Xo$/)
+		{
+			$ext = 1;
+			$retval .= ' '
+				if ($retval ne '' && $retval !~ m/[\n ]$/);
+			next;
+		}
+
+		if (/^Xc$/)
+		{
+			$ext = 0;
+			$retval .= "\n"
+				if (! $extopt);
+			last;
+		}
+
+		if (/^Bd$/)
+		{
+			$literal = 1
+				if ($words[0] eq '-literal');
+			$retval .= "\n";
+			last;
+		}
+
+		if (/^Ed$/)
+		{
+			$literal = 0;
+			last;
+		}
+
+		if (/^Ns$/)
 		{
 			$nospace = 1
 				if (! $nospace);
@@ -95,24 +134,56 @@ sub ParseMacro # ($line)
 			next;
 		}
 
-		if (/^No/)
+		if (/^No$/)
 		{
 			$retval =~ s/ $//;
 			$retval .= shift @words;
 			next;
 		}
 
-		if (/^Dq$/) {
-			$retval .= '``' . (shift @words) . '\'\'';
+		if (/^Dq$/)
+		{
+			$retval .= '``';
+			do
+			{
+				$retval .= (shift @words) . ' ';
+			}
+			while (@words > 0 && $words[0] !~ m/^[\.,]/);
+			$retval =~ s/ $//;
+			$retval .= '\'\'';
 			$nospace = 1
 				if (! $nospace && $words[0] =~ m/^[\.,]/);
 			next;
 		}
 
-		if (/^(Sq|Ql)$/) {
+		if (/^(Sq|Ql)$/)
+		{
 			$retval .= '`' . (shift @words) . '\'';
 			$nospace = 1
 				if (! $nospace && $words[0] =~ m/^[\.,]/);
+			next;
+		}
+
+#		if (/^Ic$/)
+#		{
+#			$retval .= '\\fB' . shift(@words) . '\\fP';
+#			next;
+#		}
+
+		if (/^Oo$/)
+		{
+#			$retval .= "[\\c\n";
+			$extopt = 1;
+			$nospace = 1
+				if (! $nospace);
+			$retval .= '[';
+			next;
+		}
+
+		if (/^Oc$/)
+		{
+			$extopt = 0;
+			$retval .= ']';
 			next;
 		}
 
@@ -121,17 +192,20 @@ sub ParseMacro # ($line)
 		$nospace = 0
 			if ($nospace == 1);
 
-		if (/^Dd$/) {
+		if (/^Dd$/)
+		{
 			$date = join(' ', @words);
 			return undef;
 		}
 
-		if (/^Dt$/) {
+		if (/^Dt$/)
+		{
 			$id = join(' ', @words);
 			return undef;
 		}
 
-		if (/^Os$/) {
+		if (/^Os$/)
+		{
 			$retval .= '.TH '
 				. $id
 				. " \"$date\" \""
@@ -140,7 +214,8 @@ sub ParseMacro # ($line)
 			last;
 		}
 
-		if (/^Sh$/) {
+		if (/^Sh$/)
+		{
 			$retval .= '.SH';
 			if ($words[0] eq 'SYNOPSIS')
 			{
@@ -153,113 +228,213 @@ sub ParseMacro # ($line)
 			next;
 		}
 
-		if (/^Xr$/) {
+		if (/^Xr$/)
+		{
 			$retval .= '\\fB' . (shift @words) .
-				'\\fR(' . (shift @words) . ')'
+				'\\fP(' . (shift @words) . ')'
 				. (shift @words);
 			last;
 		}
 
-		if (/^Nm$/) {
+		if (/^Rs/)
+		{
+			@refauthors = ();
+			$reftitle = '';
+			$refissue = '';
+			$refdate = '';
+			$refopt = '';
+			$reference = 1;
+			last;
+		}
+
+		if (/^Re/)
+		{
+			$retval .= "\n";
+
+			# authors
+			while (scalar(@refauthors) > 1)
+			{
+				$retval .= shift(@refauthors) . ', ';
+			}
+			$retval .= 'and '
+				if ($retval ne '');
+			$retval .= shift(@refauthors);
+			
+			# title 
+			$retval .= ', \\fI' . $reftitle . '\\fP';
+
+			# issue
+			$retval .= ', ' . $refissue
+				if ($refissue ne '');
+
+			# date
+			$retval .= ', ' . $refdate
+				if ($refdate ne '');
+
+			# optional info
+			$retval .= ', ' . $refopt
+				if ($refopt ne '');
+
+			$retval .= ".\n";
+
+			$reference = 0;
+			last;
+		}
+
+		if ($reference)
+		{
+			if (/^%A$/)
+			{
+				unshift(@refauthors, join(' ', @words));
+				last;
+			}
+
+			if (/^%T$/)
+			{
+				$reftitle = join(' ', @words);
+				$reftitle =~ s/^"//;
+				$reftitle =~ s/"$//;
+				last;
+			}
+
+			if (/^%N$/)
+			{
+				$refissue = join(' ', @words);
+				last;
+			}
+
+			if (/^%D$/)
+			{
+				$refdate = join(' ', @words);
+				last;
+			}
+
+			if (/^%O$/)
+			{
+				$refopt = join(' ', @words);
+				last;
+			}
+		}
+
+		if (/^Nm$/)
+		{
 			$name = shift @words
 				if (@words > 0);
 			$retval .= ".br\n"
 				if ($synopsis);
-			$retval .= "\\fB$name\\fR";
+			$retval .= "\\fB$name\\fP";
 			$nospace = 1
 				if (! $nospace && $words[0] =~ m/^[\.,]/);
 			next;
 		}
 
-		if (/^Nd$/) {
+		if (/^Nd$/)
+		{
 			$retval .= '\\-';
 			next;
 		}
 
-		if (/^Fl$/) {
-			$retval .= '\\fB\\-' . (shift @words) . '\\fR';
+		if (/^Fl$/)
+		{
+			$retval .= '\\fB\\-' . (shift @words) . '\\fP';
 			$nospace = 1
 				if (! $nospace && $words[0] =~ m/^[\.,]/);
 			next;
 		}
 
-		if (/^Ar$/) {
+		if (/^Ar$/)
+		{
 			$retval .= '\\fI';
 			if (! defined $words[0])
 			{
-				$retval .= 'file ...\\fR';
+				$retval .= 'file ...\\fP';
 			}
-			$arg = 1;
+			else
+			{
+				$retval .= shift(@words) . '\\fP';
+				while ($words[0] eq '|')
+				{
+					$retval .= ' ' . shift(@words);
+					$retval .= ' \\fI' . shift(@words);
+					$retval .= '\\fP';
+				}
+			}
 			$nospace = 1
-				if (! $nospace);
+				if (! $nospace && $words[0] =~ m/^[\.,]/);
 			next;
 		}
 
-		if (/^Cm$/) {
-			$retval .= '\\fB' . (shift @words) . '\\fR';
+		if (/^Cm$/)
+		{
+			$retval .= '\\fB' . (shift @words) . '\\fP';
+			while ($words[0] =~ m/^[\.,:)]$/)
+			{
+				$retval .= shift(@words);
+			}
 			next;
 		}
 
-		if (/^Op$/) {
+		if (/^Op$/)
+		{
 			$option = 1;
 			$nospace = 1
 				if (! $nospace);
 			$retval .= '[';
+#			my $tmp = pop(@words);
+#			$tmp .= ']';
+#			push(@words, $tmp);
 			next;
 		}
 
-		if (/^Oo$/) {
-			$retval .= "[\\c\n";
+		if (/^Pp$/)
+		{
+			$retval .= "\n";
 			next;
 		}
 
-		if (/^Oc$/) {
-			$retval .= ']';
-			next;
-		}
-
-		if (/^Pp$/) {
-			if ($optlist) {
-				$retval .= "\n";
-			} else {
-				$retval .= '.LP';
-			}
-			next;
-		}
-
-		if (/^Ss$/) {
+		if (/^Ss$/)
+		{
 			$retval .= '.SS';
 			next;
 		}
 
-		if (/^Pa$/ && ! $option) {
+		if (/^Pa$/ && ! $option)
+		{
 			$retval .= '\\fI';
 			$retval .= '\\&'
 				if ($words[0] =~ m/^\./);
-			$retval .= (shift @words) . '\\fR';
-			$nospace = 1
-				if (! $nospace && $words[0] =~ m/^[\.,]/);
+			$retval .= (shift @words) . '\\fP';
+			while ($words[0] =~ m/^[\.,:;)]$/)
+			{
+				$retval .= shift(@words);
+			}
+#			$nospace = 1
+#				if (! $nospace && $words[0] =~ m/^[\.,:)]/);
 			next;
 		}
 
-		if (/^Dv$/) {
+		if (/^Dv$/)
+		{
 			$retval .= '.BR';
 			next;
 		}
 
-		if (/^(Em|Ev)$/) {
+		if (/^(Em|Ev)$/)
+		{
 			$retval .= '.IR';
 			next;
 		}
 
-		if (/^Pq$/) {
+		if (/^Pq$/)
+		{
 			$retval .= '(';
 			$nospace = 1;
 			$parens = 1;
 			next;
 		}
 
-		if (/^(S[xy])$/) {
+		if (/^(S[xy])$/)
+		{
 			$retval .= '.B ' . join(' ', @words);
 			last;
 		}
@@ -270,48 +445,83 @@ sub ParseMacro # ($line)
 			while (defined $words[0]
 				&& $words[0] !~ m/^[\.,]/)
 			{
-				$retval .= shift @words;
+				if ($words[0] eq 'Op')
+				{
+					shift(@words);
+					$retval .= '[';
+					my $tmp = pop(@words);
+					$tmp .= ']';
+					push(@words, $tmp);
+					next;
+				}
+				if ($words[0] eq 'Ar')
+				{
+					shift @words;
+					$retval .= '\\fI';
+					$retval .= shift @words;
+					$retval .= '\\fP';
+				}
+				else
+				{
+					$retval .= shift @words;
+				}
 				$retval .= ' '
 					if (! $nospace);
 			}
 			$retval =~ s/ $//;
-			$retval .= '\\fR';
+			$retval .= '\\fP';
 			$retval .= shift @words
 				if (defined $words[0]);
 			last;
 		}
 
-		if (/^Bl$/) {
-			if ($words[0] eq '-bullet') {
+		if (/^Bl$/)
+		{
+			$oldoptlist = $optlist;
+			if ($words[0] eq '-bullet')
+			{
 				$optlist = 1;
-			} elsif ($words[0] eq '-enum') {
+			}
+			elsif ($words[0] eq '-enum')
+			{
 				$optlist = 2;
 				$enum = 0;
-			} elsif ($words[0] eq '-tag') {
+			}
+			elsif ($words[0] eq '-tag')
+			{
 				$optlist = 3;
+			}
+			elsif ($words[0] eq '-item')
+			{
+				$optlist = 4;
 			}
 			last;
 		}
 
-		if (/^El$/) {
-			$optlist = 0;
+		if (/^El$/)
+		{
+			$optlist = $oldoptlist;
 			next;
 		}
 
-		if ($optlist && /^It$/) {
-			if ($optlist == 1) {
+		if ($optlist && /^It$/)
+		{
+			if ($optlist == 1)
+			{
 				# bullets
 				$retval .= '.IP \\(bu';
 				next;
 			}
 
-			if ($optlist == 2) {
+			if ($optlist == 2)
+			{
 				# enum
 				$retval .= '.IP ' . (++$enum) . '.';
 				next;
 			}
 
-			if ($optlist == 3) {
+			if ($optlist == 3)
+			{
 				# tags
 				$retval .= ".TP\n";
 				if ($words[0] =~ m/^(Pa|Ev)$/)
@@ -322,14 +532,25 @@ sub ParseMacro # ($line)
 				next;
 			}
 
+			if ($optlist == 4)
+			{
+				# item
+				$retval .= ".IP\n";
+				next;
+			}
+
 			next;
 		}
 
-		if (/^Sm$/) {
-			if ($words[0] eq 'off') {
+		if (/^Sm$/)
+		{
+			if ($words[0] eq 'off')
+			{
 				$nospace = 2;
-			} elsif ($words[0] eq 'on') {
-				$retval .= "\n";
+			}
+			elsif ($words[0] eq 'on')
+			{
+#				$retval .= "\n";
 				$nospace = 0;
 			}
 			shift @words;
@@ -343,7 +564,7 @@ sub ParseMacro # ($line)
 		if ($retval eq '.');
 
 	$retval =~ s/^\.([^a-zA-Z])/$1/;
-	$retval =~ s/ $//;
+#	$retval =~ s/ $//;
 
 	$retval .= ')'
 		if ($parens == 1);
@@ -351,14 +572,19 @@ sub ParseMacro # ($line)
 	$retval .= ']'
 		if ($option == 1);
 
-	$retval .= '\\fR'
-		if ($arg);
+#	$retval .= ' '
+#		if ($nospace && $retval ne '' && $retval !~ m/\n$/);
 
-	$retval .= '\\c'
-		if ($nospace && $retval ne '' && $retval !~ m/\n$/);
+#	$retval .= ' '
+#		if ($extended && $retval !~ m/ $/);
+
+	$retval .= ' '
+		if ($ext && ! $extopt && $retval !~ m/ $/);
 
 	$retval .= "\n"
-		if ($retval ne '' && $retval !~ m/\n$/);
+		if (! $ext && ! $extopt && $retval ne '' && $retval !~ m/\n$/);
 
 	return $retval;
 }
+
+
