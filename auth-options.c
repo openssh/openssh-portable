@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-options.c,v 1.13 2001/02/09 13:38:07 markus Exp $");
+RCSID("$OpenBSD: auth-options.c,v 1.14 2001/03/13 17:34:42 markus Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -118,7 +118,9 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 				    file, linenum);
 				packet_send_debug("%.100s, line %lu: missing end quote",
 				    file, linenum);
-				continue;
+				xfree(forced_command);
+				forced_command = NULL;
+				goto bad_option;
 			}
 			forced_command[i] = 0;
 			packet_send_debug("Forced command: %.900s", forced_command);
@@ -148,7 +150,8 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 				    file, linenum);
 				packet_send_debug("%.100s, line %lu: missing end quote",
 				    file, linenum);
-				continue;
+				xfree(s);
+				goto bad_option;
 			}
 			s[i] = 0;
 			packet_send_debug("Adding to environment: %.900s", s);
@@ -185,7 +188,8 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 				    file, linenum);
 				packet_send_debug("%.100s, line %lu: missing end quote",
 				    file, linenum);
-				continue;
+				xfree(patterns);
+				goto bad_option;
 			}
 			patterns[i] = 0;
 			opts++;

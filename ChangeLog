@@ -1,3 +1,9 @@
+20010314
+ - OpenBSD CVS Sync
+  - markus@cvs.openbsd.org 2001/03/13 17:34:42
+    [auth-options.c]
+    missing xfree, deny key on parse error; ok stevesk@
+
 20010313
  - OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2001/03/12 22:02:02
@@ -4531,4 +4537,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.951 2001/03/13 04:57:58 mouring Exp $
+$Id: ChangeLog,v 1.952 2001/03/13 23:15:20 djm Exp $
