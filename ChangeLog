@@ -1,3 +1,6 @@
+20000129
+ - (stevesk) sftp-server.c: use %lld vs. %qd
+
 20010128
  - (bal) Put USE_PIPES back into sco3.2v5
  - (bal) OpenBSD Sync
