@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.39 2002/03/19 14:27:39 markus Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.40 2002/04/10 08:21:47 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -345,7 +345,7 @@ do_authentication(void)
 {
 	Authctxt *authctxt;
 	u_int ulen;
-	char *p, *user, *style = NULL;
+	char *user, *style = NULL;
 
 	/* Get the name of the user that we wish to log in as. */
 	packet_read_expect(SSH_CMSG_USER);
@@ -357,9 +357,15 @@ do_authentication(void)
 	if ((style = strchr(user, ':')) != NULL)
 		*style++ = '\0';
 
+#ifdef KRB5
 	/* XXX - SSH.com Kerberos v5 braindeath. */
-	if ((p = strchr(user, '@')) != NULL)
-		*p = '\0';
+	if ((datafellows & SSH_BUG_K5USER) &&
+	    options.kerberos_authentication) {
+		char *p;
+		if ((p = strchr(user, '@')) != NULL)
+			*p = '\0';
+	}
+#endif
 
 	authctxt = authctxt_new();
 	authctxt->user = user;
