@@ -1,5 +1,5 @@
 # Version of OpenSSH
-%define oversion 2.3.0p1
+%define oversion 2.3.0p2
 
 # Version of ssh-askpass
 %define aversion 1.0.3
@@ -212,6 +212,7 @@ fi
 %attr(0644,root,root) %{_mandir}/man1/ssh-keygen.1*
 %attr(0644,root,root) %{_mandir}/man1/scp.1*
 %attr(0755,root,root) %dir %{_sysconfdir}/ssh
+%attr(0600,root,root) %config(noreplace) %{_sysconfdir}/ssh/primes
 %attr(0755,root,root) %dir %{_libexecdir}/openssh
 
 %files clients

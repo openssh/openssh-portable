@@ -46,6 +46,7 @@ if [ ! "${UPDATE}" = "1" ]; then
     instbackup ${CONFDIR} ssh_prng_cmds
     instbackup ${CONFDIR} ssh_config
     instbackup ${CONFDIR} sshd_config
+    instbackup ${CONFDIR} primes
 
     ### If no existing sshd_config and host key, then create
     if [ ! -f "${CONFDIR}/ssh_host_key" ]; then
@@ -124,6 +125,10 @@ else
     fi
     if [ ! -r "${CONFDIR}/ssh_config" ]; then
        instbackup ${CONFDIR} sshd_config
+        NEWCONF=1
+    fi
+    if [ ! -r "${CONFDIR}/primes" ]; then
+       instbackup ${CONFDIR} primes
         NEWCONF=1
     fi
     if [ $NEWCONF -eq 0 ]; then

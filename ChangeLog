@@ -1,3 +1,7 @@
+20001111
+ - (djm) Added /etc/primes for kex DH group neg, fixup Makefile.in and
+   packaging files
+
 20001110
  - (bal) Fixed dropped answer from skey_keyinfo() in auth1.c
  - (bal) Changed from --with-skey to --with-skey=PATH in configure.in

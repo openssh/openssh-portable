@@ -15,6 +15,7 @@ d none etc 0755 root sys
 f none etc/sshd_config.default 0644 root sys
 f none etc/ssh_config.default 0644 root sys
 f none etc/ssh_prng_cmds.default 0644 root sys
+f none etc/primes.default 0644 root sys
 f none etc/sshd-initscript 0755 root sys
 d none bin 0755 root sys
 f none bin/ssh-keygen 0755 root sys

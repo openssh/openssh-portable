@@ -163,6 +163,7 @@ cp -p ../../../sshd.8 man/man8/sshd.8
 cp -p ../../../sshd_config.out etc/sshd_config.default 
 cp -p ../../../ssh_config.out etc/ssh_config.default
 cp -p ../../../ssh_prng_cmds etc/ssh_prng_cmds.default
+cp -p ../../../primes etc/primes.default
 
 # One of the annoying things about the Solaris packaging process is that
 # there's no simple way to prototype on the fly--so make sure you edit
