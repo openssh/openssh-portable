@@ -940,7 +940,7 @@ ssh_session2_callback(int id, void *arg)
 	int len;
 	int interactive = 0;
 
-	debug("client_init id %d arg %d", id, (int)arg);
+	debug("client_init id %d arg %ld", id, (long)arg);
 
 	if (no_shell_flag)
 		goto done;

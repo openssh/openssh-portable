@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.159 2001/01/29 19:47:31 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.163 2001/02/04 23:56:23 deraadt Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -723,7 +723,7 @@ main(int ac, char **av)
 		log("Disabling protocol version 2. Could not load host key");
 		options.protocol &= ~SSH_PROTO_2;
 	}
-	if (! options.protocol & (SSH_PROTO_1|SSH_PROTO_2)) {
+	if (!(options.protocol & (SSH_PROTO_1|SSH_PROTO_2))) {
 		log("sshd: no hostkeys available -- exiting.\n");
 		exit(1);
 	}
@@ -1348,7 +1348,7 @@ do_ssh1_kex(void)
 		if (len < 0 || len > sizeof(session_key)) {
 			error("do_connection: bad session key len from %s: "
 			    "session_key_int %d > sizeof(session_key) %d",
-			    get_remote_ipaddr(), len, sizeof(session_key));
+			    get_remote_ipaddr(), len, (int)sizeof(session_key));
 			rsafail++;
 		} else {
 			memset(session_key, 0, sizeof(session_key));
