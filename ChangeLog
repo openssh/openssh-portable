@@ -36,6 +36,9 @@
      ssize_t args use "%ld" and cast to (long)
      size_t args use "%lu" and cast to (u_long)
      ok markus@ and thanks millert@
+   - markus@cvs.openbsd.org 2002/03/25 21:04:02
+     [ssh.c]
+     simplify num_identity_files handling
 
 20020324
  - (stevesk) [session.c] disable LOGIN_NEEDS_TERM until we are sure
@@ -8050,4 +8053,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1988 2002/03/26 03:20:45 mouring Exp $
+$Id: ChangeLog,v 1.1989 2002/03/26 03:23:00 mouring Exp $
