@@ -1,4 +1,4 @@
-/*	$OpenBSD: glob.h,v 1.4 1998/01/31 17:06:26 millert Exp $	*/
+/*	$OpenBSD: glob.h,v 1.5 2001/03/18 17:18:58 deraadt Exp $	*/
 /*	$NetBSD: glob.h,v 1.5 1994/10/26 00:55:56 cgd Exp $	*/
 
 /*
@@ -82,6 +82,7 @@ typedef struct {
 #define	GLOB_QUOTE	0x0400	/* Quote special chars with \. */
 #define	GLOB_TILDE	0x0800	/* Expand tilde names from the passwd file. */
 #define	GLOB_NOESCAPE	0x1000	/* Disable backslash escaping. */
+#define GLOB_LIMIT	0x2000	/* Limit pattern match output to ARG_MAX */
 
 /* Error values returned by glob(3) */
 #define	GLOB_NOSPACE	(-1)	/* Malloc call failed. */

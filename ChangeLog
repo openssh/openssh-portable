@@ -1,6 +1,7 @@
 20010320
  - (bal) glob.c update to added GLOB_LIMITS (OpenBSD CVS).
  - (bal) glob.c update to set gl_pathv to NULL (OpenBSD CVS).
+ - (bal) Oops.  Missed globc.h change (OpenBSD CVS).
 
 20010319
  - (djm) Seed PRNG at startup, rather than waiting for arc4random calls to 
@@ -4631,4 +4632,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.987 2001/03/19 19:00:09 mouring Exp $
+$Id: ChangeLog,v 1.988 2001/03/19 21:29:30 mouring Exp $
