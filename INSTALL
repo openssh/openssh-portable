@@ -155,6 +155,9 @@ IPv4 addresses. On Linux/glibc-2.1.2 this causes long delays in name
 resolution. If this option is specified, you can still attempt to 
 connect to IPv6 addresses using the command line option '-6'.
 
+--with-ssl-dir=DIR allows you to specify where your OpenSSL libraries
+are installed.
+
 If you need to pass special options to the compiler or linker, you
 can specify these as enviornment variables before running ./configure.
 For example:

@@ -46,14 +46,21 @@ if test ! -z "$rsh_path" ; then
 	AC_DEFINE_UNQUOTED(RSH_PATH, "$rsh_path")
 fi
 
-dnl Checks for compiler characteristics
 if test "$GCC" = "yes"; then CFLAGS="$CFLAGS -Wall"; fi
 
 AC_C_INLINE
 
-dnl Check for OpenSSL/SSLeay directories.
+AC_ARG_WITH(ssl-dir,
+	[  --with-ssl-dir=PATH     Specify path to OpenSSL installation ],
+	[
+		if test "x$withval" != "$xno" ; then
+			ssldir=$withval
+		fi
+	]
+)
+
 AC_MSG_CHECKING([for OpenSSL/SSLeay directory])
-for ssldir in $prefix /usr /usr/local/openssl /usr/lib/openssl /usr/local/ssl /usr/lib/ssl /usr/local $prefix /usr/pkg ; do
+for ssldir in $ssldir $prefix /usr /usr/local/openssl /usr/lib/openssl /usr/local/ssl /usr/lib/ssl /usr/local $prefix /usr/pkg ; do
 	if test -f "$ssldir/include/openssl/crypto.h"; then
 		AC_DEFINE(HAVE_OPENSSL)
 		GOT_SSL="yes"

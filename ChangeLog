@@ -1,5 +1,6 @@
 20000203
  - Fixed SEGVs in authloop, fix from vbzoli@hbrt.hu
+ - Add --with-ssl-dir option
 
 20000202
  - Fix lastlog code for directory based lastlogs. Fix from Josh Durham 
