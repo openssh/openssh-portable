@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.15 2001/04/16 02:31:44 mouring Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.16 2001/05/03 23:09:53 mouring Exp $");
 
 /* XXX: commandline mode */
 /* XXX: short-form remote directory listings (like 'ls -C') */
@@ -33,6 +33,7 @@ RCSID("$OpenBSD: sftp.c,v 1.15 2001/04/16 02:31:44 mouring Exp $");
 #include "xmalloc.h"
 #include "log.h"
 #include "pathnames.h"
+#include "misc.h"
 
 #include "sftp.h"
 #include "sftp-common.h"
@@ -44,8 +45,6 @@ extern char *__progname;
 #else
 char *__progname;
 #endif
-
-#include "scp-common.h"
 
 int use_ssh1 = 0;
 char *ssh_program = _PATH_SSH_PROGRAM;

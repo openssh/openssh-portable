@@ -75,14 +75,13 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.68 2001/04/22 12:34:05 markus Exp $");
+RCSID("$OpenBSD: scp.c,v 1.69 2001/05/03 23:09:53 mouring Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
 #include "pathnames.h"
 #include "log.h"
 #include "misc.h"
-#include "scp-common.h"
 
 #ifdef HAVE___PROGNAME
 extern char *__progname;

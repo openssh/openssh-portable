@@ -9,6 +9,10 @@
    - stevesk@cvs.openbsd.org 2001/05/03 21:43:01
      [servconf.c]
      remove "\n" from fatal()
+   - mouring@cvs.openbsd.org 2001/05/03 23:09:53
+     [misc.c misc.h scp.c sftp.c]
+     Move colon() and cleanhost() to misc.c where I should I have put it in
+     the first place
  - (bal) Updated Cygwin README by Corinna Vinschen <vinschen@redhat.com>
  - (bal) Avoid socket file security issues in ssh-agent for Cygwin.
    Patch by Egor Duda <deo@logos-m.ru>
@@ -5323,4 +5327,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1195 2001/05/03 22:59:24 mouring Exp $
+$Id: ChangeLog,v 1.1196 2001/05/03 23:39:53 mouring Exp $

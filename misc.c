@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.c,v 1.5 2001/04/12 20:09:37 stevesk Exp $	*/
+/*	$OpenBSD: misc.c,v 1.6 2001/05/03 23:09:52 mouring Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: misc.c,v 1.5 2001/04/12 20:09:37 stevesk Exp $");
+RCSID("$OpenBSD: misc.c,v 1.6 2001/05/03 23:09:52 mouring Exp $");
 
 #include "misc.h"
 #include "log.h"
@@ -129,6 +129,39 @@ int a2port(const char *s)
 		return 0;
 
 	return port;
+}
+
+char *
+cleanhostname(char *host)
+{
+	if (*host == '[' && host[strlen(host) - 1] == ']') {
+		host[strlen(host) - 1] = '\0';
+		return (host + 1);
+	} else
+		return host;
+}
+
+char *
+colon(char *cp)
+{
+	int flag = 0;
+
+	if (*cp == ':')		/* Leading colon is part of file name. */
+		return (0);
+	if (*cp == '[')
+		flag = 1;
+
+	for (; *cp; ++cp) {
+		if (*cp == '@' && *(cp+1) == '[')
+			flag = 1;
+		if (*cp == ']' && *(cp+1) == ':' && flag)
+			return (cp+1);
+		if (*cp == ':' && !flag)
+			return (cp);
+		if (*cp == '/')
+			return (0);
+	}
+	return (0);
 }
 
 mysig_t
