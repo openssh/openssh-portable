@@ -12,6 +12,7 @@
    - markus@cvs.openbsd.org 2002/03/06 00:25:55
      [version.h]
      OpenSSH_3.1
+ - (djm) Update RPM spec files with new version number
 
 20020305
    - stevesk@cvs.openbsd.org 2002/03/02 09:34:42
@@ -7813,4 +7814,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1912 2002/03/07 02:02:19 djm Exp $
+$Id: ChangeLog,v 1.1913 2002/03/07 02:04:37 djm Exp $
