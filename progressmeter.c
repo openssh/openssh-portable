@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: progressmeter.c,v 1.16 2003/09/23 20:18:52 markus Exp $");
+RCSID("$OpenBSD: progressmeter.c,v 1.17 2003/11/20 11:39:28 markus Exp $");
 
 #include "progressmeter.h"
 #include "atomicio.h"
@@ -80,7 +80,7 @@ format_rate(char *buf, int size, off_t bytes)
 		bytes = (bytes + 512) / 1024;
 	}
 	snprintf(buf, size, "%3lld.%1lld%c%s",
-	    (int64_t) bytes / 100,
+	    (int64_t) (bytes + 5) / 100,
 	    (int64_t) (bytes + 5) / 10 % 10,
 	    unit[i],
 	    i ? "B" : " ");

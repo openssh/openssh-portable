@@ -1,3 +1,9 @@
+20031121
+ - (djm) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2003/11/20 11:39:28
+     [progressmeter.c]
+     fix rounding errors; from andreas@
+
 20031118
  - (djm) Fix early exit for root auth success when UsePAM=yes and 
    PermitRootLogin=no
@@ -1488,4 +1494,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3117 2003/11/18 11:01:48 djm Exp $
+$Id: ChangeLog,v 1.3118 2003/11/21 12:09:10 djm Exp $
