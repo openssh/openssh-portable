@@ -1,4 +1,4 @@
-#	$OpenBSD: dynamic-forward.sh,v 1.3 2004/02/28 12:16:57 dtucker Exp $
+#	$OpenBSD: dynamic-forward.sh,v 1.4 2004/06/22 22:55:56 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="dynamic forwarding"
