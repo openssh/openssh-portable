@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.137 2002/06/11 05:46:20 mpech Exp $");
+RCSID("$OpenBSD: session.c,v 1.138 2002/06/20 23:05:55 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -277,6 +277,10 @@ do_authenticated1(Authctxt *authctxt)
 			if (compression_level < 1 || compression_level > 9) {
 				packet_send_debug("Received illegal compression level %d.",
 				    compression_level);
+				break;
+			}
+			if (!options.compression) {
+				debug2("compression disabled");
 				break;
 			}
 			/* Enable compression after we have responded with SUCCESS. */
