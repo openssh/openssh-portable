@@ -21,11 +21,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $OpenBSD: auth.h,v 1.17 2001/05/20 17:20:35 markus Exp $
+ * $OpenBSD: auth.h,v 1.18 2001/06/23 00:20:58 markus Exp $
  */
 #ifndef AUTH_H
 #define AUTH_H
 
+#include "key.h"
+#include "hostfile.h"
 #include <openssl/rsa.h>
 
 #ifdef HAVE_LOGIN_CAP
@@ -159,7 +161,6 @@ int	verify_response(Authctxt *authctxt, const char *response);
 
 struct passwd * auth_get_user(void);
 
-
 /* expand a filename - return buffer is allocated by xmalloc */
 char	*expand_filename(const char *template, struct passwd *pw);
 char	*authorized_keys_file(struct passwd *pw);
@@ -168,6 +169,11 @@ char	*authorized_keys_file2(struct passwd *pw);
 /* check a file and the path to it */
 int
 secure_filename(FILE *f, const char *file, uid_t u, char *err, size_t errlen);
+
+/* helper for hostbased auth */
+HostStatus
+check_key_in_hostfiles(struct passwd *pw, Key *key, const char *host,
+    const char *sysfile, const char *userfile);
 
 #define AUTH_FAIL_MAX 6
 #define AUTH_FAIL_LOG (AUTH_FAIL_MAX/2)

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth.c,v 1.23 2001/05/24 11:12:42 markus Exp $");
+RCSID("$OpenBSD: auth.c,v 1.24 2001/06/23 00:20:57 markus Exp $");
 
 #ifdef HAVE_LOGIN_H
 #include <login.h>
@@ -46,6 +46,8 @@ RCSID("$OpenBSD: auth.c,v 1.23 2001/05/24 11:12:42 markus Exp $");
 #include "canohost.h"
 #include "buffer.h"
 #include "bufaux.h"
+#include "uidswap.h"
+#include "tildexpand.h"
 
 /* import */
 extern ServerOptions options;
@@ -296,6 +298,45 @@ authorized_keys_file2(struct passwd *pw)
 {
 	return expand_filename(options.authorized_keys_file2, pw);
 }
+
+/* return ok if key exists in sysfile or userfile */
+HostStatus
+check_key_in_hostfiles(struct passwd *pw, Key *key, const char *host,
+    const char *sysfile, const char *userfile)
+{
+	Key *found;
+	char *user_hostfile;
+	struct stat st;
+	int host_status;
+
+	/* Check if we know the host and its host key. */
+	found = key_new(key->type);
+	host_status = check_host_in_hostfile(sysfile, host, key, found, NULL);
+
+	if (host_status != HOST_OK && userfile != NULL) {
+		user_hostfile = tilde_expand_filename(userfile, pw->pw_uid);
+		if (options.strict_modes &&
+		    (stat(user_hostfile, &st) == 0) &&
+		    ((st.st_uid != 0 && st.st_uid != pw->pw_uid) ||
+		     (st.st_mode & 022) != 0)) {
+			log("Authentication refused for %.100s: "
+			    "bad owner or modes for %.200s",
+			    pw->pw_name, user_hostfile);
+		} else {
+			temporarily_use_uid(pw);
+			host_status = check_host_in_hostfile(user_hostfile,
+			    host, key, found, NULL);
+			restore_uid();
+		}
+		xfree(user_hostfile);
+	}
+	key_free(found);
+
+	debug2("check_key_in_hostfiles: key %s for %s", host_status == HOST_OK ?
+	    "ok" : "not found", host);
+	return host_status;
+}
+
 
 /*
  * Check a given file for security. This is defined as all components

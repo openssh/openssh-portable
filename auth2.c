@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.63 2001/06/22 21:55:49 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.64 2001/06/23 00:20:58 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -761,10 +761,7 @@ int
 hostbased_key_allowed(struct passwd *pw, const char *cuser, char *chost,
     Key *key)
 {
-	Key *found;
 	const char *resolvedname, *ipaddr, *lookup;
-	struct stat st;
-	char *user_hostfile;
 	int host_status, len;
 
 	resolvedname = get_canonical_hostname(options.reverse_mapping_check);
@@ -792,32 +789,17 @@ hostbased_key_allowed(struct passwd *pw, const char *cuser, char *chost,
 	}
 	debug2("userauth_hostbased: access allowed by auth_rhosts2");
 
-	/* XXX this is copied from auth-rh-rsa.c and should be shared */
-	found = key_new(key->type);
-	host_status = check_host_in_hostfile(_PATH_SSH_SYSTEM_HOSTFILE2, lookup,
-	    key, found, NULL);
+	host_status = check_key_in_hostfiles(pw, key, lookup,
+	    _PATH_SSH_SYSTEM_HOSTFILE,
+            options.ignore_user_known_hosts ? _PATH_SSH_USER_HOSTFILE : NULL);
 
-	if (host_status != HOST_OK && !options.ignore_user_known_hosts) {
-		user_hostfile = tilde_expand_filename(_PATH_SSH_USER_HOSTFILE2,
-		    pw->pw_uid);
-		if (options.strict_modes &&
-		    (stat(user_hostfile, &st) == 0) &&
-		    ((st.st_uid != 0 && st.st_uid != pw->pw_uid) ||
-		     (st.st_mode & 022) != 0)) {
-			log("Hostbased authentication refused for %.100s: "
-			    "bad owner or modes for %.200s",
-			    pw->pw_name, user_hostfile);
-		} else {
-			temporarily_use_uid(pw);
-			host_status = check_host_in_hostfile(user_hostfile,
-			    lookup, key, found, NULL);
-			restore_uid();
-		}
-		xfree(user_hostfile);
-	}
-	key_free(found);
+	/* backward compat if no key has been found. */
+	if (host_status == HOST_NEW)
+		host_status = check_key_in_hostfiles(pw, key, lookup,
+		    _PATH_SSH_SYSTEM_HOSTFILE2,
+		    options.ignore_user_known_hosts ? _PATH_SSH_USER_HOSTFILE2 :
+		    NULL);
 
-	debug2("userauth_hostbased: key %s for %s", host_status == HOST_OK ?
-	    "ok" : "not found", lookup);
 	return (host_status == HOST_OK);
 }
+
