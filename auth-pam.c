@@ -31,7 +31,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.82 2003/11/18 01:45:36 dtucker Exp $");
+RCSID("$Id: auth-pam.c,v 1.83 2003/11/21 12:48:55 djm Exp $");
 
 #ifdef USE_PAM
 #include <security/pam_appl.h>
@@ -59,11 +59,11 @@ extern Buffer loginmsg;
 #ifdef USE_POSIX_THREADS
 #include <pthread.h>
 /*
- * Avoid namespace clash when *not* using pthreads for systems *with* 
- * pthreads, which unconditionally define pthread_t via sys/types.h 
+ * Avoid namespace clash when *not* using pthreads for systems *with*
+ * pthreads, which unconditionally define pthread_t via sys/types.h
  * (e.g. Linux)
  */
-typedef pthread_t sp_pthread_t; 
+typedef pthread_t sp_pthread_t;
 #else
 /*
  * Simulate threads with processes.
@@ -136,7 +136,7 @@ static char **
 pam_getenvlist(pam_handle_t *pamh)
 {
 	/*
-	 * XXX - If necessary, we can still support envrionment passing 
+	 * XXX - If necessary, we can still support envrionment passing
 	 * for platforms without pam_getenvlist by searching for known
 	 * env vars (e.g. KRB5CCNAME) from the PAM environment.
 	 */
@@ -203,21 +203,21 @@ sshpam_thread_conv(int n, const struct pam_message **msg,
 	for (i = 0; i < n; ++i) {
 		switch (PAM_MSG_MEMBER(msg, i, msg_style)) {
 		case PAM_PROMPT_ECHO_OFF:
-			buffer_put_cstring(&buffer, 
+			buffer_put_cstring(&buffer,
 			    PAM_MSG_MEMBER(msg, i, msg));
-			if (ssh_msg_send(ctxt->pam_csock, 
+			if (ssh_msg_send(ctxt->pam_csock,
 			    PAM_MSG_MEMBER(msg, i, msg_style), &buffer) == -1)
 				goto fail;
-			if (ssh_msg_recv(ctxt->pam_csock, &buffer) == -1) 
+			if (ssh_msg_recv(ctxt->pam_csock, &buffer) == -1)
 				goto fail;
 			if (buffer_get_char(&buffer) != PAM_AUTHTOK)
 				goto fail;
 			reply[i].resp = buffer_get_string(&buffer, NULL);
 			break;
 		case PAM_PROMPT_ECHO_ON:
-			buffer_put_cstring(&buffer, 
+			buffer_put_cstring(&buffer,
 			    PAM_MSG_MEMBER(msg, i, msg));
-			if (ssh_msg_send(ctxt->pam_csock, 
+			if (ssh_msg_send(ctxt->pam_csock,
 			    PAM_MSG_MEMBER(msg, i, msg_style), &buffer) == -1)
 				goto fail;
 			if (ssh_msg_recv(ctxt->pam_csock, &buffer) == -1)
@@ -227,16 +227,16 @@ sshpam_thread_conv(int n, const struct pam_message **msg,
 			reply[i].resp = buffer_get_string(&buffer, NULL);
 			break;
 		case PAM_ERROR_MSG:
-			buffer_put_cstring(&buffer, 
+			buffer_put_cstring(&buffer,
 			    PAM_MSG_MEMBER(msg, i, msg));
-			if (ssh_msg_send(ctxt->pam_csock, 
+			if (ssh_msg_send(ctxt->pam_csock,
 			    PAM_MSG_MEMBER(msg, i, msg_style), &buffer) == -1)
 				goto fail;
 			break;
 		case PAM_TEXT_INFO:
-			buffer_put_cstring(&buffer, 
+			buffer_put_cstring(&buffer,
 			    PAM_MSG_MEMBER(msg, i, msg));
-			if (ssh_msg_send(ctxt->pam_csock, 
+			if (ssh_msg_send(ctxt->pam_csock,
 			    PAM_MSG_MEMBER(msg, i, msg_style), &buffer) == -1)
 				goto fail;
 			break;
@@ -402,11 +402,11 @@ sshpam_init(const char *user)
 		return (-1);
 	}
 #ifdef PAM_TTY_KLUDGE
-        /*
-         * Some silly PAM modules (e.g. pam_time) require a TTY to operate.
-         * sshd doesn't set the tty until too late in the auth process and 
+	/*
+	 * Some silly PAM modules (e.g. pam_time) require a TTY to operate.
+	 * sshd doesn't set the tty until too late in the auth process and
 	 * may not even set one (for tty-less connections)
-         */
+	 */
 	debug("PAM: setting PAM_TTY to \"ssh\"");
 	sshpam_err = pam_set_item(sshpam_handle, PAM_TTY, "ssh");
 	if (sshpam_err != PAM_SUCCESS) {
@@ -695,7 +695,7 @@ pam_tty_conv(int n, const struct pam_message **msg,
 		switch (PAM_MSG_MEMBER(msg, i, msg_style)) {
 		case PAM_PROMPT_ECHO_OFF:
 			reply[i].resp =
-			    read_passphrase(PAM_MSG_MEMBER(msg, i, msg), 
+			    read_passphrase(PAM_MSG_MEMBER(msg, i, msg),
 			    RP_ALLOW_STDIN);
 			reply[i].resp_retcode = PAM_SUCCESS;
 			break;
@@ -752,7 +752,7 @@ do_pam_chauthtok(void)
 void
 do_pam_session(void)
 {
-	sshpam_err = pam_set_item(sshpam_handle, PAM_CONV, 
+	sshpam_err = pam_set_item(sshpam_handle, PAM_CONV,
 	    (const void *)&tty_conv);
 	if (sshpam_err != PAM_SUCCESS)
 		fatal("PAM: failed to set PAM_CONV: %s",
@@ -764,13 +764,13 @@ do_pam_session(void)
 	sshpam_session_open = 1;
 }
 
-/* 
+/*
  * Set a PAM environment string. We need to do this so that the session
  * modules can handle things like Kerberos/GSI credentials that appear
  * during the ssh authentication process.
  */
 int
-do_pam_putenv(char *name, char *value) 
+do_pam_putenv(char *name, char *value)
 {
 	int ret = 1;
 #ifdef HAVE_PAM_PUTENV	

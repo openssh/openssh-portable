@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.202 2003/10/11 08:24:08 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.203 2003/11/21 11:57:03 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -221,7 +221,7 @@ main(int ac, char **av)
 	 */
 	original_real_uid = getuid();
 	original_effective_uid = geteuid();
- 
+
 	/*
 	 * Use uid-swapping to give up root privileges for the duration of
 	 * option processing.  We will re-instantiate the rights when we are
@@ -717,7 +717,7 @@ again:
 	packet_close();
 
 	/*
-	 * Send SIGHUP to proxy command if used. We don't wait() in 
+	 * Send SIGHUP to proxy command if used. We don't wait() in
 	 * case it hangs and instead rely on init to reap the child
 	 */
 	if (proxy_command_pid > 1)

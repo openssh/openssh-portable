@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.197 2003/09/23 20:41:11 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.198 2003/11/21 11:57:03 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -970,7 +970,7 @@ channel_decode_socks5(Channel *c, fd_set * readset, fd_set * writeset)
 	have = buffer_len(&c->input);
 	if (!(c->flags & SSH_SOCKS5_AUTHDONE)) {
 		/* format: ver | nmethods | methods */
-		if (have < 2) 
+		if (have < 2)
 			return 0;
 		nmethods = p[1];
 		if (have < nmethods + 2)
@@ -1397,7 +1397,7 @@ channel_handle_wfd(Channel *c, fd_set * readset, fd_set * writeset)
 		data = buffer_ptr(&c->output);
 		dlen = buffer_len(&c->output);
 #ifdef _AIX
-		/* XXX: Later AIX versions can't push as much data to tty */ 
+		/* XXX: Later AIX versions can't push as much data to tty */
 		if (compat20 && c->wfd_isatty && dlen > 8*1024)
 			dlen = 8*1024;
 #endif

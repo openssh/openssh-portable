@@ -1,4 +1,4 @@
-/*	$OpenBSD: readconf.h,v 1.56 2003/10/11 08:24:08 markus Exp $	*/
+/*	$OpenBSD: readconf.h,v 1.57 2003/11/21 11:57:03 djm Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -61,7 +61,7 @@ typedef struct {
 	int     connection_attempts;	/* Max attempts (seconds) before
 					 * giving up */
 	int     connection_timeout;	/* Max time (seconds) before
-				 	 * aborting connection attempt */
+					 * aborting connection attempt */
 	int     number_of_password_prompts;	/* Max number of password
 						 * prompts. */
 	int     cipher;		/* Cipher to use. */

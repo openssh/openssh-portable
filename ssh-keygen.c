@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.110 2003/10/14 19:42:10 jakob Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.111 2003/11/21 11:57:03 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -902,13 +902,13 @@ main(int ac, char **av)
 		case 'a':
 			trials = atoi(optarg);
 			if (trials < TRIAL_MINIMUM) {
-				fatal("Minimum primality trials is %d", 
+				fatal("Minimum primality trials is %d",
 				    TRIAL_MINIMUM);
 			}
 			break;
 		case 'M':
 			memory = atoi(optarg);
-			if (memory != 0 && 
+			if (memory != 0 &&
 			   (memory < LARGE_MINIMUM || memory > LARGE_MAXIMUM)) {
 				fatal("Invalid memory amount (min %ld, max %ld)",
 				    LARGE_MINIMUM, LARGE_MAXIMUM);
@@ -987,7 +987,7 @@ main(int ac, char **av)
 		if (have_identity && strcmp(identity_file, "-") != 0) {
 			if ((in = fopen(identity_file, "r")) == NULL) {
 				fatal("Couldn't open modulus candidate "
-				    "file \"%s\": %s", identity_file, 
+				    "file \"%s\": %s", identity_file,
 				    strerror(errno));
 			}
 		} else

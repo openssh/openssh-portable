@@ -200,7 +200,7 @@ CFLAGS="$RPM_OPT_FLAGS -Os"; export CFLAGS
 	--with-pam \
 %endif
 %if %{kerberos5}
-         --with-kerberos5=/usr/kerberos \
+	 --with-kerberos5=/usr/kerberos \
 %endif
 
 
@@ -398,7 +398,7 @@ fi
 
 %changelog
 * Mon Jun 2 2003 Damien Miller <djm@mindrot.org>
-- Remove noip6 option. This may be controlled at run-time in client config 
+- Remove noip6 option. This may be controlled at run-time in client config
   file using new AddressFamily directive
 
 * Mon May 12 2003 Damien Miller <djm@mindrot.org>
@@ -558,7 +558,7 @@ fi
 
 * Sun Apr  8 2001 Preston Brown <pbrown@redhat.com>
 - remove explicit openssl requirement, fixes builddistro issue
-- make initscript stop() function wait until sshd really dead to avoid 
+- make initscript stop() function wait until sshd really dead to avoid
   races in condrestart
 
 * Mon Apr  2 2001 Nalin Dahyabhai <nalin@redhat.com>

@@ -304,7 +304,7 @@ packet_connection_is_ipv4(void)
 	if (to.ss_family == AF_INET)
 		return 1;
 #ifdef IPV4_IN_IPV6
-	if (to.ss_family == AF_INET6 && 
+	if (to.ss_family == AF_INET6 &&
 	    IN6_IS_ADDR_V4MAPPED(&((struct sockaddr_in6 *)&to)->sin6_addr))
 		return 1;
 #endif

@@ -180,28 +180,28 @@ permanently_set_uid(struct passwd *pw)
 #endif
 
 	/* Try restoration of GID if changed (test clearing of saved gid) */
-	if (old_gid != pw->pw_gid && 
+	if (old_gid != pw->pw_gid &&
 	    (setgid(old_gid) != -1 || setegid(old_gid) != -1))
 		fatal("%s: was able to restore old [e]gid", __func__);
 
 	/* Verify GID drop was successful */
 	if (getgid() != pw->pw_gid || getegid() != pw->pw_gid) {
-		fatal("%s: egid incorrect gid:%u egid:%u (should be %u)", 
-		    __func__, (u_int)getgid(), (u_int)getegid(), 
+		fatal("%s: egid incorrect gid:%u egid:%u (should be %u)",
+		    __func__, (u_int)getgid(), (u_int)getegid(),
 		    (u_int)pw->pw_gid);
 	}
 
 #ifndef HAVE_CYGWIN
 	/* Try restoration of UID if changed (test clearing of saved uid) */
-	if (old_uid != pw->pw_uid && 
+	if (old_uid != pw->pw_uid &&
 	    (setuid(old_uid) != -1 || seteuid(old_uid) != -1))
 		fatal("%s: was able to restore old [e]uid", __func__);
 #endif
 
 	/* Verify UID drop was successful */
 	if (getuid() != pw->pw_uid || geteuid() != pw->pw_uid) {
-		fatal("%s: euid incorrect uid:%u euid:%u (should be %u)", 
-		    __func__, (u_int)getuid(), (u_int)geteuid(), 
+		fatal("%s: euid incorrect uid:%u euid:%u (should be %u)",
+		    __func__, (u_int)getuid(), (u_int)geteuid(),
 		    (u_int)pw->pw_uid);
 	}
 }

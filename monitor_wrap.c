@@ -715,7 +715,7 @@ mm_do_pam_account(void)
 	buffer_init(&m);
 	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_PAM_ACCOUNT, &m);
 
-	mm_request_receive_expect(pmonitor->m_recvfd, 
+	mm_request_receive_expect(pmonitor->m_recvfd,
 	    MONITOR_ANS_PAM_ACCOUNT, &m);
 	ret = buffer_get_int(&m);
 

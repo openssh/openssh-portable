@@ -1,12 +1,12 @@
 #!/bin/sh
 #
 # buildbff.sh: Create AIX SMIT-installable OpenSSH packages
-# $Id: buildbff.sh,v 1.6 2003/08/25 05:01:04 dtucker Exp $
+# $Id: buildbff.sh,v 1.7 2003/11/21 12:48:56 djm Exp $
 #
 # Author: Darren Tucker (dtucker at zip dot com dot au)
 # This file is placed in the public domain and comes with absolutely
 # no warranty.
-# 
+#
 # Based originally on Ben Lindstrom's buildpkg.sh for Solaris
 #
 
@@ -45,7 +45,7 @@ fi
 if [ ! -f Makefile ]
 then
 	echo "Makefile not found (did you run configure?)"
-	exit 1 
+	exit 1
 fi
 
 #
@@ -96,12 +96,12 @@ then
 	PRIVSEP_PATH=/var/empty
 fi
 
-# Clean package build directory 
+# Clean package build directory
 rm -rf $objdir/$PKGDIR
 FAKE_ROOT=$objdir/$PKGDIR/root
 mkdir -p $FAKE_ROOT
 
-# Start by faking root install 
+# Start by faking root install
 echo "Faking root install..."
 cd $objdir
 make install-nokeys DESTDIR=$FAKE_ROOT
@@ -136,15 +136,15 @@ echo "Building BFF for $PKGNAME $VERSION (package version $BFFVERSION)"
 #
 # Set ssh and sshd parameters as per config.local
 #
-if [ "${PERMIT_ROOT_LOGIN}" = no ] 
+if [ "${PERMIT_ROOT_LOGIN}" = no ]
 then
-        perl -p -i -e "s/#PermitRootLogin yes/PermitRootLogin no/" \
-                $FAKE_ROOT/${sysconfdir}/sshd_config
+	perl -p -i -e "s/#PermitRootLogin yes/PermitRootLogin no/" \
+		$FAKE_ROOT/${sysconfdir}/sshd_config
 fi
 if [ "${X11_FORWARDING}" = yes ]
 then
-        perl -p -i -e "s/#X11Forwarding no/X11Forwarding yes/" \
-                $FAKE_ROOT/${sysconfdir}/sshd_config
+	perl -p -i -e "s/#X11Forwarding no/X11Forwarding yes/" \
+		$FAKE_ROOT/${sysconfdir}/sshd_config
 fi
 
 
@@ -190,13 +190,13 @@ cat <<EOF >>../openssh.post_i
 echo Creating configs from defaults if necessary.
 for cfgfile in ssh_config sshd_config ssh_prng_cmds
 do
-        if [ ! -f $sysconfdir/\$cfgfile ]
-        then
-                echo "Creating \$cfgfile from default"
-                cp $sysconfdir/\$cfgfile.default $sysconfdir/\$cfgfile
-        else
-                echo "\$cfgfile already exists."
-        fi
+	if [ ! -f $sysconfdir/\$cfgfile ]
+	then
+		echo "Creating \$cfgfile from default"
+		cp $sysconfdir/\$cfgfile.default $sysconfdir/\$cfgfile
+	else
+		echo "\$cfgfile already exists."
+	fi
 done
 echo
 
@@ -244,19 +244,19 @@ echo
 # Generate keys unless they already exist
 echo Creating host keys if required.
 if [ -f "$sysconfdir/ssh_host_key" ] ; then
-        echo "$sysconfdir/ssh_host_key already exists, skipping."
+	echo "$sysconfdir/ssh_host_key already exists, skipping."
 else
-        $bindir/ssh-keygen -t rsa1 -f $sysconfdir/ssh_host_key -N ""
+	$bindir/ssh-keygen -t rsa1 -f $sysconfdir/ssh_host_key -N ""
 fi
 if [ -f $sysconfdir/ssh_host_dsa_key ] ; then
-        echo "$sysconfdir/ssh_host_dsa_key already exists, skipping."
+	echo "$sysconfdir/ssh_host_dsa_key already exists, skipping."
 else
-        $bindir/ssh-keygen -t dsa -f $sysconfdir/ssh_host_dsa_key -N ""
+	$bindir/ssh-keygen -t dsa -f $sysconfdir/ssh_host_dsa_key -N ""
 fi
 if [ -f $sysconfdir/ssh_host_rsa_key ] ; then
-        echo "$sysconfdir/ssh_host_rsa_key already exists, skipping."
-else 
-        $bindir/ssh-keygen -t rsa -f $sysconfdir/ssh_host_rsa_key -N ""
+	echo "$sysconfdir/ssh_host_rsa_key already exists, skipping."
+else
+	$bindir/ssh-keygen -t rsa -f $sysconfdir/ssh_host_rsa_key -N ""
 fi
 echo
 
@@ -369,7 +369,7 @@ echo Creating $PKGNAME-$VERSION.bff with backup...
 rm -f $PKGNAME-$VERSION.bff
 (
 	echo "./lpp_name"
-	find . ! -name lpp_name -a ! -name . -print 
+	find . ! -name lpp_name -a ! -name . -print
 ) | backup  -i -q -f ../$PKGNAME-$VERSION.bff $filelist
 
 #

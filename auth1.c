@@ -246,7 +246,7 @@ do_authloop(Authctxt *authctxt)
 #endif
 
 #ifdef USE_PAM
-		if (options.use_pam && authenticated && 
+		if (options.use_pam && authenticated &&
 		    !PRIVSEP(do_pam_account()))
 			authenticated = 0;
 #endif

@@ -343,7 +343,7 @@ pty_make_controlling_tty(int *ttyfd, const char *ttyname)
 	if (fd < 0)
 		error("open /dev/tty failed - could not set controlling tty: %.100s",
 		    strerror(errno));
-	else 
+	else
 		close(fd);
 #endif /* _UNICOS */
 }

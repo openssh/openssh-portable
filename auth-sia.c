@@ -83,7 +83,7 @@ session_setup_sia(struct passwd *pw, char *tty)
 
 	host = get_canonical_hostname(options.use_dns);
 
-	if (sia_ses_init(&ent, saved_argc, saved_argv, host, pw->pw_name, 
+	if (sia_ses_init(&ent, saved_argc, saved_argv, host, pw->pw_name,
 	    tty, 0, NULL) != SIASUCCESS)
 		fatal("sia_ses_init failed");
 

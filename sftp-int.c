@@ -25,7 +25,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.64 2003/11/08 19:17:29 jmc Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.65 2003/11/21 11:57:03 djm Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -361,7 +361,7 @@ get_pathname(const char **cpp, char **path)
 			}
 			if (cp[i] == '\\') {	/* Escaped characters */
 				i++;
-				if (cp[i] != '\'' && cp[i] != '\"' && 
+				if (cp[i] != '\'' && cp[i] != '\"' &&
 				    cp[i] != '\\') {
 					error("Bad escaped character '\%c'",
 					    cp[i]);
@@ -389,7 +389,7 @@ get_pathname(const char **cpp, char **path)
 	return (0);
 
  fail:
- 	xfree(*path);
+	xfree(*path);
 	*path = NULL;	
 	return (-1);
 }
@@ -530,7 +530,7 @@ process_put(struct sftp_conn *conn, char *src, char *dst, char *pwd, int pflag)
 
 	for (i = 0; g.gl_pathv[i]; i++) {
 		if (!is_reg(g.gl_pathv[i])) {
-			error("skipping non-regular file %s", 
+			error("skipping non-regular file %s",
 			    g.gl_pathv[i]);
 			continue;
 		}
@@ -598,7 +598,7 @@ do_ls_dir(struct sftp_conn *conn, char *path, char *strip_path, int lflag)
 		for (n = 0; d[n] != NULL; n++)
 			m = MAX(m, strlen(d[n]->filename));
 
-		if (ioctl(fileno(stdin), TIOCGWINSZ, &ws) != -1) 
+		if (ioctl(fileno(stdin), TIOCGWINSZ, &ws) != -1)
 			width = ws.ws_col;
 
 		columns = width / (m + 2);
@@ -668,7 +668,7 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 	    strncmp(path, g.gl_pathv[0], strlen(g.gl_pathv[0]) - 1) == 0) {
 		if ((a = do_lstat(conn, path, 1)) == NULL) {
 			globfree(&g);
-	    		return (-1);
+			return (-1);
 		}
 		if ((a->flags & SSH2_FILEXFER_ATTR_PERMISSIONS) &&
 		    S_ISDIR(a->perm)) {
@@ -682,7 +682,7 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 		struct winsize ws;	
 
 		/* Count entries for sort and find longest filename */
- 		for (i = 0; g.gl_pathv[i]; i++)
+		for (i = 0; g.gl_pathv[i]; i++)
 			m = MAX(m, strlen(g.gl_pathv[i]));
 
 		if (ioctl(fileno(stdin), TIOCGWINSZ, &ws) != -1)

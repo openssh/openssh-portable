@@ -35,7 +35,7 @@
 
 #include "includes.h"
 #include "openbsd-compat/sys-queue.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.115 2003/10/14 19:54:39 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.116 2003/11/21 11:57:03 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -179,7 +179,7 @@ confirm_key(Identity *id)
 	p = read_passphrase(prompt, RP_ALLOW_EOF);
 	if (p != NULL) {
 		/*
-		 * Accept empty responses and responses consisting 
+		 * Accept empty responses and responses consisting
 		 * of the word "yes" as affirmative.
 		 */
 		if (*p == '\0' || *p == '\n' || strcasecmp(p, "yes") == 0)

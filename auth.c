@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth.c,v 1.50 2003/09/23 20:17:11 markus Exp $");
+RCSID("$OpenBSD: auth.c,v 1.51 2003/11/21 11:57:02 djm Exp $");
 
 #ifdef HAVE_LOGIN_H
 #include <login.h>
@@ -129,7 +129,7 @@ allowed_user(struct passwd * pw)
 #endif /* HAS_SHADOW_EXPIRE */
 #endif /* defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW) */
 
-    	/* grab passwd field for locked account check */
+	/* grab passwd field for locked account check */
 #if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
 	if (spw != NULL)
 		passwd = spw->sp_pwdp;
@@ -137,7 +137,7 @@ allowed_user(struct passwd * pw)
 	passwd = pw->pw_passwd;
 #endif
 
-	/* check for locked account */ 
+	/* check for locked account */
 	if (!options.use_pam && passwd && *passwd) {
 		int locked = 0;
 
@@ -249,7 +249,7 @@ allowed_user(struct passwd * pw)
 	if ((pw->pw_uid != 0) && (geteuid() == 0)) {
 		char *msg;
 
-	   	if (loginrestrictions(pw->pw_name, S_RLOGIN, NULL, &msg) != 0) {
+		if (loginrestrictions(pw->pw_name, S_RLOGIN, NULL, &msg) != 0) {
 			int loginrestrict_errno = errno;
 
 			if (msg && *msg) {
@@ -259,7 +259,7 @@ allowed_user(struct passwd * pw)
 				    pw->pw_name, msg);
 			}
 			/* Don't fail if /etc/nologin  set */
-		    	if (!(loginrestrict_errno == EPERM && 
+			if (!(loginrestrict_errno == EPERM &&
 			    stat(_PATH_NOLOGIN, &st) == 0))
 				return 0;
 		}

@@ -97,7 +97,7 @@ auth_password(Authctxt *authctxt, const char *password)
 		if (authenticate(pw->pw_name, password, &reenter,
 		    &authmsg) == 0 && ok) {
 			char *msg;
-			char *host = 
+			char *host =
 			    (char *)get_canonical_hostname(options.use_dns);
 
 			authsuccess = 1;
@@ -106,13 +106,13 @@ auth_password(Authctxt *authctxt, const char *password)
 			debug3("AIX/authenticate succeeded for user %s: %.100s",
 				pw->pw_name, authmsg);
 
-	        	/* No pty yet, so just label the line as "ssh" */
+			/* No pty yet, so just label the line as "ssh" */
 			aix_setauthdb(authctxt->user);
-	        	if (loginsuccess(authctxt->user, host, "ssh", 
+			if (loginsuccess(authctxt->user, host, "ssh",
 			    &msg) == 0) {
 				if (msg != NULL) {
 					debug("%s: msg %s", __func__, msg);
-					buffer_append(&loginmsg, msg, 
+					buffer_append(&loginmsg, msg,
 					    strlen(msg));
 					xfree(msg);
 				}

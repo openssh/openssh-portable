@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.167 2003/11/04 08:54:09 djm Exp $");
+RCSID("$OpenBSD: session.c,v 1.168 2003/11/21 11:57:03 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -980,7 +980,7 @@ do_setup_env(Session *s, const char *shell)
 #endif
 
 #ifdef GSSAPI
-	/* Allow any GSSAPI methods that we've used to alter 
+	/* Allow any GSSAPI methods that we've used to alter
 	 * the childs environment as they see fit
 	 */
 	ssh_gssapi_do_child(&env, &envsize);
@@ -1012,7 +1012,7 @@ do_setup_env(Session *s, const char *shell)
 		path = child_get_env(env, "PATH");
 #  endif /* HAVE_ETC_DEFAULT_LOGIN */
 		if (path == NULL || *path == '\0') {
-			child_set_env(&env, &envsize, "PATH", 
+			child_set_env(&env, &envsize, "PATH",
 			    s->pw->pw_uid == 0 ?
 				SUPERUSER_PATH : _PATH_STDPATH);
 		}
@@ -1266,7 +1266,7 @@ do_setusercontext(struct passwd *pw)
 		endgrent();
 # ifdef USE_PAM
 		/*
-		 * PAM credentials may take the form of supplementary groups. 
+		 * PAM credentials may take the form of supplementary groups.
 		 * These will have been wiped by the above initgroups() call.
 		 * Reestablish them here.
 		 */

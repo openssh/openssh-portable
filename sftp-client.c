@@ -28,7 +28,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.44 2003/06/28 16:23:06 deraadt Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.45 2003/11/21 11:57:03 djm Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -798,7 +798,7 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 		return(-1);
 	}
 
-	local_fd = open(local_path, O_WRONLY | O_CREAT | O_TRUNC, 
+	local_fd = open(local_path, O_WRONLY | O_CREAT | O_TRUNC,
 	    mode | S_IWRITE);
 	if (local_fd == -1) {
 		error("Couldn't open local file \"%s\" for writing: %s",
@@ -946,7 +946,7 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 		/* Override umask and utimes if asked */
 #ifdef HAVE_FCHMOD
 		if (pflag && fchmod(local_fd, mode) == -1)
-#else 
+#else
 		if (pflag && chmod(local_path, mode) == -1)
 #endif /* HAVE_FCHMOD */
 			error("Couldn't set mode on \"%s\": %s", local_path,

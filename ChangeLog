@@ -3,6 +3,10 @@
    - markus@cvs.openbsd.org 2003/11/20 11:39:28
      [progressmeter.c]
      fix rounding errors; from andreas@
+   - djm@cvs.openbsd.org 2003/11/21 11:57:03
+     [everything]
+     unexpand and delete whitespace at EOL; ok markus@
+     (done locally and RCS IDs synced)
 
 20031118
  - (djm) Fix early exit for root auth success when UsePAM=yes and 
@@ -1494,4 +1498,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3118 2003/11/21 12:09:10 djm Exp $
+$Id: ChangeLog,v 1.3119 2003/11/21 12:48:55 djm Exp $

@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.103 2003/09/16 01:52:19 dtucker Exp $ */
+/* $Id: defines.h,v 1.104 2003/11/21 12:48:55 djm Exp $ */
 
 
 /* Constants */
@@ -84,7 +84,7 @@ enum
 # define S_ISDIR(mode)	(((mode) & (_S_IFMT)) == (_S_IFDIR))
 #endif /* S_ISDIR */
 
-#ifndef S_ISREG 
+#ifndef S_ISREG
 # define S_ISREG(mode)	(((mode) & (_S_IFMT)) == (_S_IFREG))
 #endif /* S_ISREG */
 

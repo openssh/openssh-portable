@@ -1055,8 +1055,8 @@ main(int ac, char **av)
 	/*
 	 * Clear out any supplemental groups we may have inherited.  This
 	 * prevents inadvertent creation of files with bad modes (in the
-	 * portable version at least, it's certainly possible for PAM 
-	 * to create a file, and we can't control the code in every 
+	 * portable version at least, it's certainly possible for PAM
+	 * to create a file, and we can't control the code in every
 	 * module which might be used).
 	 */
 	if (setgroups(0, NULL) < 0)
@@ -1446,7 +1446,7 @@ main(int ac, char **av)
 
 	packet_set_nonblocking();
 
-        /* prepare buffers to collect authentication messages */
+	/* prepare buffers to collect authentication messages */
 	buffer_init(&loginmsg);
 
 	/* allocate authentication context */

@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfd.c,v 1.62 2003/09/18 13:02:21 miod Exp $");
+RCSID("$OpenBSD: authfd.c,v 1.63 2003/11/21 11:57:03 djm Exp $");
 
 #include <openssl/evp.h>
 
@@ -590,7 +590,7 @@ ssh_remove_identity(AuthenticationConnection *auth, Key *key)
 }
 
 int
-ssh_update_card(AuthenticationConnection *auth, int add, 
+ssh_update_card(AuthenticationConnection *auth, int add,
     const char *reader_id, const char *pin, u_int life, u_int confirm)
 {
 	Buffer msg;

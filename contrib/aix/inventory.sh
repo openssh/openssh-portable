@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # inventory.sh
-# $Id: inventory.sh,v 1.5 2003/08/26 03:43:13 dtucker Exp $
+# $Id: inventory.sh,v 1.6 2003/11/21 12:48:56 djm Exp $
 #
 # Originally written by Ben Lindstrom, modified by Darren Tucker to use perl
 # This file is placed into the public domain.
@@ -59,5 +59,5 @@ find . ! -name . -print | perl -ne '{
 	} elsif ( -d $_ ) {
 		# Entry is Directory
 		print "\ttype=DIRECTORY\n";
-	} 
+	}
 }'

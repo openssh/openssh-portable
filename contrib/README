@@ -1,4 +1,4 @@
-Other patches and addons for OpenSSH. Please send submissions to 
+Other patches and addons for OpenSSH. Please send submissions to
 djm@mindrot.org
 
 Externally maintained
@@ -7,7 +7,7 @@ Externally maintained
 SSH Proxy Command -- connect.c
 
 Shun-ichi GOTO <gotoh@imasy.or.jp> has written a very useful ProxyCommand
-which allows the use of outbound SSH from behind a SOCKS4, SOCKS5 or 
+which allows the use of outbound SSH from behind a SOCKS4, SOCKS5 or
 https CONNECT style proxy server. His page for connect.c has extensive
 documentation on its use as well as compiled versions for Win32.
 
@@ -47,7 +47,7 @@ Dominik Brettnacher <domi@saargate.de>
 mdoc2man.pl:
 
 Converts mdoc formated manpages into normal manpages.  This can be used
-on Solaris machines to provide manpages that are not preformated. 
+on Solaris machines to provide manpages that are not preformated.
 Contributed by Mark D. Roth <roth@feep.net>
 
 redhat:

@@ -25,7 +25,7 @@ Important note for Windows 2003 Server users:
 ---------------------------------------------
 
 2003 Server has a funny new feature.  When starting services under SYSTEM
-account, these services have nearly all user rights which SYSTEM holds... 
+account, these services have nearly all user rights which SYSTEM holds...
 except for the "Create a token object" right, which is needed to allow
 public key authentication :-(
 
@@ -103,7 +103,7 @@ features of the FAT/FAT32 filesystems.
 
 If you are installing OpenSSH the first time, you can generate global config
 files and server keys by running
-   
+
    /usr/bin/ssh-host-config
 
 Note that this binary archive doesn't contain default config files in /etc.

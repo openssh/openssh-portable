@@ -158,7 +158,7 @@
 #include "log.h"
 #include "atomicio.h"
 
-RCSID("$Id: loginrec.c,v 1.52 2003/07/06 05:20:46 dtucker Exp $");
+RCSID("$Id: loginrec.c,v 1.53 2003/11/21 12:48:55 djm Exp $");
 
 #ifdef HAVE_UTIL_H
 #  include <util.h>
@@ -442,7 +442,7 @@ login_write (struct logininfo *li)
 int
 login_utmp_only(struct logininfo *li)
 {
-	li->type = LTYPE_LOGIN; 
+	li->type = LTYPE_LOGIN;
 	login_set_current_time(li);
 # ifdef USE_UTMP
 	utmp_write_entry(li);
@@ -1534,7 +1534,7 @@ lastlog_get_entry(struct logininfo *li)
 		lastlog_populate_entry(li, &last);
 		return (1);
 	case -1:
-		error("%s: Error reading from %s: %s", __func__, 
+		error("%s: Error reading from %s: %s", __func__,
 		    LASTLOG_FILE, strerror(errno));
 		return (0);
 	default:

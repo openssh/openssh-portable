@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.53 2003/11/18 10:53:07 djm Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.54 2003/11/21 11:57:03 djm Exp $");
 
 #include <openssl/dh.h>
 
@@ -313,7 +313,7 @@ monitor_child_preauth(Authctxt *_authctxt, struct monitor *pmonitor)
 				Buffer m;
 
 				buffer_init(&m);
-				mm_request_receive_expect(pmonitor->m_sendfd, 
+				mm_request_receive_expect(pmonitor->m_sendfd,
 				    MONITOR_REQ_PAM_ACCOUNT, &m);
 				authenticated = mm_answer_pam_account(pmonitor->m_sendfd, &m);
 				buffer_free(&m);

@@ -263,7 +263,7 @@ then
       net user sshd >/dev/null 2>&1 && sshd_in_sam=yes
       if [ "${sshd_in_passwd}" != "yes" ]
       then
-        if [ "${sshd_in_sam}" != "yes" ]
+	if [ "${sshd_in_sam}" != "yes" ]
 	then
 	  echo "Warning: The following function requires administrator privileges!"
 	  if request "Should this script create a local user 'sshd' on this machine?"
@@ -339,13 +339,13 @@ if [ `grep -q 'sshd[ \t][ \t]*22' "${_services}"; echo $?` -eq 0 ]
 then
   grep -v 'sshd[ \t][ \t]*22' "${_services}" > "${_serv_tmp}"
   if [ -f "${_serv_tmp}" ]
-  then 
+  then
     if mv "${_serv_tmp}" "${_services}"
     then
       echo "Removing sshd from ${_wservices}"
     else
       echo "Removing sshd from ${_wservices} failed!"
-    fi 
+    fi
     rm -f "${_serv_tmp}"
   else
     echo "Removing sshd from ${_wservices} failed!"
@@ -388,9 +388,9 @@ then
     then
       if mv "${_inetcnf_tmp}" "${_inetcnf}"
       then
-        echo "Removed sshd from ${_inetcnf}"
+	echo "Removed sshd from ${_inetcnf}"
       else
-        echo "Removing sshd from ${_inetcnf} failed!"
+	echo "Removing sshd from ${_inetcnf} failed!"
       fi
       rm -f "${_inetcnf_tmp}"
     else
@@ -462,7 +462,7 @@ then
 	    do
 	      if [ -n "${password_value}" ]
 	      then
-	        _password="${password_value}"
+		_password="${password_value}"
 		# Allow to ask for password if first try fails
 		password_value=""
 	      else
@@ -541,7 +541,7 @@ then
       fi
       if [ -n "${cygwin_value}" ]
       then
-        _cygwin="${cygwin_value}"
+	_cygwin="${cygwin_value}"
       else
 	echo
 	echo "Which value should the environment variable CYGWIN have when"
@@ -574,9 +574,9 @@ then
     then
       if [ $_nt2003 -gt 0 -a "${sshd_server_in_sam}" = "yes" ]
       then
-        _user="sshd_server"
+	_user="sshd_server"
       else
-        _user="system"
+	_user="system"
       fi
       chown "${_user}" ${SYSCONFDIR}/ssh*
       chown "${_user}".544 ${LOCALSTATEDIR}/empty

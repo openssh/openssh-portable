@@ -89,7 +89,7 @@ fudge_readdir(struct SFTP_OPENDIR *od)
 #ifdef __GNU_LIBRARY__
 	/*
 	 * Idiot glibc uses extensions to struct dirent for readdir with
-	 * ALTDIRFUNCs. Not that this is documented anywhere but the 
+	 * ALTDIRFUNCs. Not that this is documented anywhere but the
 	 * source... Fake an inode number to appease it.
 	 */
 	ret->d_ino = inum++;

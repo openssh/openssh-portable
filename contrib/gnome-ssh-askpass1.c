@@ -23,14 +23,14 @@
  */
 
 /*
- * This is a simple GNOME SSH passphrase grabber. To use it, set the 
- * environment variable SSH_ASKPASS to point to the location of 
- * gnome-ssh-askpass before calling "ssh-add < /dev/null". 
+ * This is a simple GNOME SSH passphrase grabber. To use it, set the
+ * environment variable SSH_ASKPASS to point to the location of
+ * gnome-ssh-askpass before calling "ssh-add < /dev/null".
  *
  * There is only two run-time options: if you set the environment variable
  * "GNOME_SSH_ASKPASS_GRAB_SERVER=true" then gnome-ssh-askpass will grab
- * the X server. If you set "GNOME_SSH_ASKPASS_GRAB_POINTER=true", then the 
- * pointer will be grabbed too. These may have some benefit to security if 
+ * the X server. If you set "GNOME_SSH_ASKPASS_GRAB_POINTER=true", then the
+ * pointer will be grabbed too. These may have some benefit to security if
  * you don't trust your X server. We grab the keyboard always.
  */
 
@@ -87,7 +87,7 @@ passphrase_dialog(char *message)
 		}
 
 	entry = gtk_entry_new();
-	gtk_box_pack_start(GTK_BOX(GNOME_DIALOG(dialog)->vbox), entry, FALSE, 
+	gtk_box_pack_start(GTK_BOX(GNOME_DIALOG(dialog)->vbox), entry, FALSE,
 	    FALSE, 0);
 	gtk_entry_set_visibility(GTK_ENTRY(entry), FALSE);
 	gtk_widget_grab_focus(entry);
@@ -105,7 +105,7 @@ passphrase_dialog(char *message)
 	/* Grab focus */
 	if (grab_server)
 		XGrabServer(GDK_DISPLAY());
-	if (grab_pointer && gdk_pointer_grab(dialog->window, TRUE, 0, 
+	if (grab_pointer && gdk_pointer_grab(dialog->window, TRUE, 0,
 	    NULL, NULL, GDK_CURRENT_TIME))
 		goto nograb;
 	if (gdk_keyboard_grab(dialog->window, FALSE, GDK_CURRENT_TIME))

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.132 2003/11/17 11:06:07 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.133 2003/11/21 11:57:03 djm Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -476,7 +476,7 @@ done:
 }
 
 #ifdef GSSAPI
-int 
+int
 userauth_gssapi(Authctxt *authctxt)
 {
 	Gssctxt *gssctxt = NULL;
@@ -584,7 +584,7 @@ process_gssapi_token(void *ctxt, gss_buffer_t recv_tok)
 				
 			buffer_free(&b);
 			gss_release_buffer(&ms, &mic);
-		}	   
+		}	
 	}
 	
 	return status;
@@ -1033,7 +1033,7 @@ pubkey_prepare(Authctxt *authctxt)
 		    key = ssh_get_next_identity(ac, &comment, 2)) {
 			found = 0;
 			TAILQ_FOREACH(id, &files, next) {
-				/* agent keys from the config file are preferred */ 
+				/* agent keys from the config file are preferred */
 				if (key_equal(key, id->key)) {
 					key_free(key);
 					xfree(comment);

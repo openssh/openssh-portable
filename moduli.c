@@ -1,4 +1,4 @@
-/* $OpenBSD: moduli.c,v 1.1 2003/07/28 09:49:56 djm Exp $ */
+/* $OpenBSD: moduli.c,v 1.2 2003/11/21 11:57:03 djm Exp $ */
 /*
  * Copyright 1994 Phil Karn <karn@qualcomm.com>
  * Copyright 1996-1998, 2003 William Allen Simpson <wsimpson@greendragon.com>
@@ -46,7 +46,7 @@
 
 
 /*
- * Debugging defines 
+ * Debugging defines
  */
 
 /* define DEBUG_LARGE 1 */
@@ -244,9 +244,9 @@ gen_candidates(FILE *out, int memory, int power, BIGNUM *start)
 	largememory = memory;
 
 	/*
-         * Set power to the length in bits of the prime to be generated.
-         * This is changed to 1 less than the desired safe prime moduli p.
-         */
+	 * Set power to the length in bits of the prime to be generated.
+	 * This is changed to 1 less than the desired safe prime moduli p.
+	 */
 	if (power > TEST_MAXIMUM) {
 		error("Too many bits: %u > %lu", power, TEST_MAXIMUM);
 		return (-1);
@@ -257,16 +257,16 @@ gen_candidates(FILE *out, int memory, int power, BIGNUM *start)
 	power--; /* decrement before squaring */
 
 	/*
-         * The density of ordinary primes is on the order of 1/bits, so the
-         * density of safe primes should be about (1/bits)**2. Set test range
-         * to something well above bits**2 to be reasonably sure (but not
-         * guaranteed) of catching at least one safe prime.
+	 * The density of ordinary primes is on the order of 1/bits, so the
+	 * density of safe primes should be about (1/bits)**2. Set test range
+	 * to something well above bits**2 to be reasonably sure (but not
+	 * guaranteed) of catching at least one safe prime.
 	 */
 	largewords = ((power * power) >> (SHIFT_WORD - TEST_POWER));
 
 	/*
-         * Need idea of how much memory is available. We don't have to use all
-         * of it.
+	 * Need idea of how much memory is available. We don't have to use all
+	 * of it.
 	 */
 	if (largememory > LARGE_MAXIMUM) {
 		logit("Limited memory: %u MB; limit %lu MB",
@@ -315,8 +315,8 @@ gen_candidates(FILE *out, int memory, int power, BIGNUM *start)
 	q = BN_new();
 
 	/*
-         * Generate random starting point for subprime search, or use
-         * specified parameter.
+	 * Generate random starting point for subprime search, or use
+	 * specified parameter.
 	 */
 	largebase = BN_new();
 	if (start == NULL)
@@ -329,13 +329,13 @@ gen_candidates(FILE *out, int memory, int power, BIGNUM *start)
 
 	time(&time_start);
 
-	logit("%.24s Sieve next %u plus %u-bit", ctime(&time_start), 
+	logit("%.24s Sieve next %u plus %u-bit", ctime(&time_start),
 	    largenumbers, power);
 	debug2("start point: 0x%s", BN_bn2hex(largebase));
 
 	/*
-         * TinySieve
-         */
+	 * TinySieve
+	 */
 	for (i = 0; i < tinybits; i++) {
 		if (BIT_TEST(TinySieve, i))
 			continue; /* 2*i+3 is composite */
@@ -351,9 +351,9 @@ gen_candidates(FILE *out, int memory, int power, BIGNUM *start)
 	}
 
 	/*
-         * Start the small block search at the next possible prime. To avoid
-         * fencepost errors, the last pass is skipped.
-         */
+	 * Start the small block search at the next possible prime. To avoid
+	 * fencepost errors, the last pass is skipped.
+	 */
 	for (smallbase = TINY_NUMBER + 3;
 	     smallbase < (SMALL_MAXIMUM - TINY_NUMBER);
 	     smallbase += TINY_NUMBER) {
@@ -386,8 +386,8 @@ gen_candidates(FILE *out, int memory, int power, BIGNUM *start)
 		}
 
 		/*
-                 * SmallSieve
-                 */
+		 * SmallSieve
+		 */
 		for (i = 0; i < smallbits; i++) {
 			if (BIT_TEST(SmallSieve, i))
 				continue; /* 2*i+smallbase is composite */
@@ -438,7 +438,7 @@ gen_candidates(FILE *out, int memory, int power, BIGNUM *start)
  * The result is a list of so-call "safe" primes
  */
 int
-prime_test(FILE *in, FILE *out, u_int32_t trials, 
+prime_test(FILE *in, FILE *out, u_int32_t trials,
     u_int32_t generator_wanted)
 {
 	BIGNUM *q, *p, *a;
@@ -562,10 +562,10 @@ prime_test(FILE *in, FILE *out, u_int32_t trials,
 		count_possible++;
 
 		/*
-		 * The (1/4)^N performance bound on Miller-Rabin is 
-		 * extremely pessimistic, so don't spend a lot of time 
-		 * really verifying that q is prime until after we know 
-		 * that p is also prime. A single pass will weed out the 
+		 * The (1/4)^N performance bound on Miller-Rabin is
+		 * extremely pessimistic, so don't spend a lot of time
+		 * really verifying that q is prime until after we know
+		 * that p is also prime. A single pass will weed out the
 		 * vast majority of composite q's.
 		 */
 		if (BN_is_prime(q, 1, NULL, ctx, NULL) <= 0) {
@@ -575,9 +575,9 @@ prime_test(FILE *in, FILE *out, u_int32_t trials,
 		}
 	
 		/*
-		 * q is possibly prime, so go ahead and really make sure 
-		 * that p is prime. If it is, then we can go back and do 
-		 * the same for q. If p is composite, chances are that 
+		 * q is possibly prime, so go ahead and really make sure
+		 * that p is prime. If it is, then we can go back and do
+		 * the same for q. If p is composite, chances are that
 		 * will show up on the first Rabin-Miller iteration so it
 		 * doesn't hurt to specify a high iteration count.
 		 */
@@ -594,7 +594,7 @@ prime_test(FILE *in, FILE *out, u_int32_t trials,
 		}
 		debug("%10u: q is almost certainly prime", count_in);
 
-		if (qfileout(out, QTYPE_SAFE, (in_tests | QTEST_MILLER_RABIN), 
+		if (qfileout(out, QTYPE_SAFE, (in_tests | QTEST_MILLER_RABIN),
 		    in_tries, in_size, generator_known, p)) {
 			res = -1;
 			break;
@@ -610,7 +610,7 @@ prime_test(FILE *in, FILE *out, u_int32_t trials,
 	BN_CTX_free(ctx);
 
 	logit("%.24s Found %u safe primes of %u candidates in %ld seconds",
-	    ctime(&time_stop), count_out, count_possible, 
+	    ctime(&time_stop), count_out, count_possible,
 	    (long) (time_stop - time_start));
 
 	return (res);

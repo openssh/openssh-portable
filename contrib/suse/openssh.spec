@@ -30,7 +30,7 @@ two untrusted hosts over an insecure network.  X11 connections and
 arbitrary TCP/IP ports can also be forwarded over the secure channel.
 
 OpenSSH is OpenBSD's rework of the last free version of SSH, bringing it
-up to date in terms of security and features, as well as removing all 
+up to date in terms of security and features, as well as removing all
 patented algorithms to seperate libraries (OpenSSL).
 
 This package includes all files necessary for both the OpenSSH
@@ -100,8 +100,8 @@ make
 
 cd contrib
 gcc -O -g `gnome-config --cflags gnome gnomeui` \
-        gnome-ssh-askpass.c -o gnome-ssh-askpass \
-        `gnome-config --libs gnome gnomeui`
+	gnome-ssh-askpass.c -o gnome-ssh-askpass \
+	`gnome-config --libs gnome gnomeui`
 cd ..
 
 %install
@@ -140,34 +140,34 @@ else
   echo "  /var/adm/fillup-templates/rc.config.sshd"
 fi
 if [ ! -f /etc/ssh/ssh_host_key -o ! -s /etc/ssh/ssh_host_key ]; then
-        echo "Generating SSH host key..."
+	echo "Generating SSH host key..."
 	/usr/bin/ssh-keygen -b 1024 -f /etc/ssh/ssh_host_key -N '' >&2
 fi
 if [ ! -f /etc/ssh/ssh_host_dsa_key -o ! -s /etc/ssh/ssh_host_dsa_key ]; then
-        echo "Generating SSH DSA host key..."
+	echo "Generating SSH DSA host key..."
 	/usr/bin/ssh-keygen -d -f /etc/ssh/ssh_host_dsa_key -N '' >&2
 fi
 if test -r /var/run/sshd.pid
 then
-        echo "Restarting the running SSH daemon..."
+	echo "Restarting the running SSH daemon..."
 	/usr/sbin/rcsshd restart >&2
 fi
 
 %preun
 if [ "$1" = 0 ]
 then
-        echo "Stopping the SSH daemon..."
+	echo "Stopping the SSH daemon..."
 	/usr/sbin/rcsshd stop >&2
 	echo "Removing SSH stop/start scripts from the rc directories..."
-        rm /sbin/init.d/rc2.d/K20sshd
-        rm /sbin/init.d/rc2.d/S20sshd
-        rm /sbin/init.d/rc3.d/K20sshd
-        rm /sbin/init.d/rc3.d/S20sshd
+	rm /sbin/init.d/rc2.d/K20sshd
+	rm /sbin/init.d/rc2.d/S20sshd
+	rm /sbin/init.d/rc3.d/K20sshd
+	rm /sbin/init.d/rc3.d/S20sshd
 fi
 
 %files
 %defattr(-,root,root)
-%doc ChangeLog OVERVIEW README* 
+%doc ChangeLog OVERVIEW README*
 %doc RFC.nroff TODO CREDITS LICENCE
 %attr(0755,root,root) %dir /etc/ssh
 %attr(0644,root,root) %config /etc/ssh/ssh_config

@@ -84,7 +84,7 @@ verify_response(Authctxt *authctxt, const char *response)
 		if ((device->query(authctxt->kbdintctxt, &name, &info,
 		    &numprompts, &prompts, &echo_on)) != 0)
 			break;
-		if (numprompts == 0 && 
+		if (numprompts == 0 &&
 		    device->respond(authctxt->kbdintctxt, 0, resp) == 0)
 			authenticated = 1;
 

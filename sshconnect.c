@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.153 2003/11/12 16:39:58 jakob Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.154 2003/11/21 11:57:03 djm Exp $");
 
 #include <openssl/bn.h>
 
@@ -74,7 +74,7 @@ ssh_proxy_connect(const char *host, u_short port, const char *proxy_command)
 	 * Build the final command string in the buffer by making the
 	 * appropriate substitutions to the given proxy command.
 	 *
-	 * Use "exec" to avoid "sh -c" processes on some platforms 
+	 * Use "exec" to avoid "sh -c" processes on some platforms
 	 * (e.g. Solaris)
 	 */
 	buffer_init(&command);
@@ -261,15 +261,15 @@ timeout_connect(int sockfd, const struct sockaddr *serv_addr,
 		break;
 	case -1:
 		/* Select error */
-	    	debug("select: %s", strerror(errno));
+		debug("select: %s", strerror(errno));
 		break;
 	case 1:
 		/* Completed or failed */
 		optval = 0;
 		optlen = sizeof(optval);
-		if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &optval, 
+		if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &optval,
 		    &optlen) == -1) {
-		    	debug("getsockopt: %s", strerror(errno));
+			debug("getsockopt: %s", strerror(errno));
 			break;
 		}
 		if (optval != 0) {
