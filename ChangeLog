@@ -4,7 +4,9 @@
  - (djm) Patch from Michael Stone <mstone@cs.loyola.edu> to add support for
    Irix 6.x array sessions, project id's, and system audit trail id.
  - (djm) Added 'distprep' make target to simplify packaging
-
+ - (djm) Added patch from Chris Adams <cmadams@hiwaay.net> to add OSF SIA 
+   support. Enable using "USE_SIA=1 ./configure [options]"
+   
 20000627
  - (djm) Fixes to login code - not setting li->uid, cleanups
  - (djm) Formatting

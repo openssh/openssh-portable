@@ -88,6 +88,7 @@ char *av0;
 
 /* Saved arguments to main(). */
 char **saved_argv;
+int saved_argc;
 
 /*
  * The sockets that the server is listening; this is used in the SIGHUP
@@ -422,6 +423,7 @@ main(int ac, char **av)
 	int listen_sock, maxfd;
 
 	/* Save argv[0]. */
+	saved_argc = ac;
 	saved_argv = av;
 	if (strchr(av[0], '/'))
 		av0 = strrchr(av[0], '/') + 1;

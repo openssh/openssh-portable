@@ -56,6 +56,11 @@ RCSID("$OpenBSD: auth2.c,v 1.11 2000/06/19 00:50:11 markus Exp $");
 #include "uidswap.h"
 #include "auth-options.h"
 
+#ifdef HAVE_OSF_SIA
+# include <sia.h>
+# include <siad.h>
+#endif
+
 /* import */
 extern ServerOptions options;
 extern unsigned char *session_id2;
@@ -244,10 +249,20 @@ input_userauth_request(int type, int plen)
 int
 ssh2_auth_none(struct passwd *pw)
 {
+#ifdef HAVE_OSF_SIA
+	extern int saved_argc;
+	extern char **saved_argv;
+#endif
+
 	packet_done();
+
 #ifdef USE_PAM
 	return auth_pam_password(pw, "");
-#else /* USE_PAM */
+#elif defined(HAVE_OSF_SIA)
+	return(sia_validate_user(NULL, saved_argc, saved_argv, 
+		get_canonical_hostname(), pw->pw_name, NULL, 0, NULL, 
+		"") == SIASUCCESS);
+#else /* !HAVE_OSF_SIA && !USE_PAM */
 	return auth_password(pw, "");
 #endif /* USE_PAM */
 }
@@ -258,6 +273,10 @@ ssh2_auth_password(struct passwd *pw)
 	int authenticated = 0;
 	int change;
 	unsigned int len;
+#ifdef HAVE_OSF_SIA
+	extern int saved_argc;
+	extern char **saved_argv;
+#endif
 	change = packet_get_char();
 	if (change)
 		log("password change not supported");
@@ -266,7 +285,11 @@ ssh2_auth_password(struct passwd *pw)
 	if (options.password_authentication &&
 #ifdef USE_PAM
 	    auth_pam_password(pw, password) == 1)
-#else /* USE_PAM */
+#elif defined(HAVE_OSF_SIA)
+	    sia_validate_user(NULL, saved_argc, saved_argv, 
+		 	get_canonical_hostname(), pw->pw_name, NULL, 0, 
+			NULL, password) == SIASUCCESS)
+#else /* !USE_PAM && !HAVE_OSF_SIA */
 	    auth_password(pw, password) == 1)
 #endif /* USE_PAM */
 		authenticated = 1;

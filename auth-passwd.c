@@ -9,9 +9,9 @@
 
 #include "includes.h"
 
-#ifndef USE_PAM
-
 RCSID("$OpenBSD: auth-passwd.c,v 1.16 2000/06/20 01:39:38 markus Exp $");
+
+#if !defined(USE_PAM) && !defined(HAVE_OSF_SIA)
 
 #include "packet.h"
 #include "ssh.h"
@@ -139,4 +139,4 @@ auth_password(struct passwd * pw, const char *password)
 	/* Authentication is accepted if the encrypted passwords are identical. */
 	return (strcmp(encrypted_password, pw_password) == 0);
 }
-#endif /* !USE_PAM */
+#endif /* !USE_PAM && !HAVE_OSF_SIA */

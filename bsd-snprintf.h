@@ -10,7 +10,7 @@ int snprintf(char *str, size_t n, char const *fmt, ...);
 #endif /* !HAVE_SNPRINTF */
 
 #ifndef HAVE_VSNPRINTF
-int vsnprintf(char *str, size_t n, char *fmt, va_list *ap);
+int vsnprintf(char *str, size_t n, char *fmt, va_list ap);
 #endif /* !HAVE_SNPRINTF */
 
 

@@ -32,6 +32,11 @@ RCSID("$OpenBSD: session.c,v 1.20 2000/06/18 04:42:54 markus Exp $");
 #include <proj.h>
 #endif /* WITH_IRIX_PROJECT */
 
+#ifdef HAVE_OSF_SIA
+# include <sia.h>
+# include <siad.h>
+#endif
+
 /* types */
 
 #define TTYSZ 64
@@ -823,14 +828,32 @@ do_child(const char *command, struct passwd * pw, const char *term,
 	}
 #endif /* USE_PAM */
 
+#ifndef HAVE_OSF_SIA
 	/* Set login name in the kernel. */
 	if (setlogin(pw->pw_name) < 0)
 		error("setlogin failed: %s", strerror(errno));
+#endif
 
 	/* Set uid, gid, and groups. */
 	/* Login(1) does this as well, and it needs uid 0 for the "-h"
 	   switch, so we let login(1) to this for us. */
 	if (!options.use_login) {
+#ifdef HAVE_OSF_SIA
+		extern char **saved_argv;
+		extern int saved_argc;
+		char *host = get_canonical_hostname ();
+
+		if (sia_become_user(NULL, saved_argc, saved_argv, host,
+		    pw->pw_name, ttyname, 0, NULL, NULL, SIA_BEU_SETLUID) !=
+		    SIASUCCESS) {
+			perror("sia_become_user");
+			exit(1);
+		}
+		if (setreuid(geteuid(), geteuid()) < 0) {
+			perror("setreuid");
+			exit(1);
+		}
+#else /* HAVE_OSF_SIA */
 		if (getuid() == 0 || geteuid() == 0) {
 			if (setgid(pw->pw_gid) < 0) {
 				perror("setgid");
@@ -867,6 +890,7 @@ do_child(const char *command, struct passwd * pw, const char *term,
 		}
 		if (getuid() != pw->pw_uid || geteuid() != pw->pw_uid)
 			fatal("Failed to set uids to %d.", (int) pw->pw_uid);
+#endif /* HAVE_OSF_SIA */
 	}
 	/*
 	 * Get the shell from the password data.  An empty shell field is

@@ -148,6 +148,9 @@
 /* Define if you want have trusted HPUX */
 #undef HAVE_HPUX_TRUSTED_SYSTEM_PW
 
+/* Define if you have Digital Unix Security Integration Architecture */
+#undef HAVE_OSF_SIA
+
 /* Define if you have getpwanam(3) [SunOS 4.x] */
 #undef HAVE_GETPWANAM
 

@@ -18,6 +18,11 @@ RCSID("$OpenBSD: auth1.c,v 1.2 2000/04/29 18:11:52 markus Exp $");
 #include "auth.h"
 #include "session.h"
 
+#ifdef HAVE_OSF_SIA
+# include <sia.h>
+# include <siad.h>
+#endif
+
 /* import */
 extern ServerOptions options;
 extern char *forced_command;
@@ -141,6 +146,10 @@ do_authloop(struct passwd * pw)
 	unsigned int ulen;
 	int type = 0;
 	void (*authlog) (const char *fmt,...) = verbose;
+#ifdef HAVE_OSF_SIA
+	extern int saved_argc;
+	extern char **saved_argv;
+#endif /* HAVE_OSF_SIA */
 
 	/* Indicate that authentication is needed. */
 	packet_start(SSH_SMSG_FAILURE);
@@ -299,7 +308,15 @@ do_authloop(struct passwd * pw)
 #ifdef USE_PAM
 			/* Do PAM auth with password */
 			authenticated = auth_pam_password(pw, password);
-#else /* USE_PAM */
+#elif defined(HAVE_OSF_SIA)
+			/* Do SIA auth with password */
+			host = get_canonical_hostname();
+			if (sia_validate_user(NULL, saved_argc, saved_argv, 
+				get_canonical_hostname(), pw->pw_name, NULL, 0, 
+				NULL, password) == SIASUCCESS) {
+				authenticated = 1;
+			}
+#else /* !USE_PAM && !HAVE_OSF_SIA */
 			/* Try authentication with the password. */
 			authenticated = auth_password(pw, password);
 #endif /* USE_PAM */
