@@ -2,6 +2,8 @@
  - (djm) Merge Cygwin copy_environment with do_pam_environment, removing 
    fixed env var size limit in the process. Report from Corinna Vinschen 
    <vinschen@redhat.com>
+ - (stevesk) defines.h: use "/var/spool/sockets/X11/%u" for HP-UX.  does
+   not depend on transition links.  from Lutz Jaenicke.
 
 20020106
  - (stevesk) defines.h: determine _PATH_UNIX_X; currently "/tmp/.X11-unix/X%u"
@@ -7131,4 +7133,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1718 2002/01/07 23:59:32 djm Exp $
+$Id: ChangeLog,v 1.1719 2002/01/08 21:59:06 stevesk Exp $

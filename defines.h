@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.76 2002/01/06 02:32:57 stevesk Exp $ */
+/* $Id: defines.h,v 1.77 2002/01/08 21:59:07 stevesk Exp $ */
 
 /* Necessary headers */
 
@@ -358,11 +358,11 @@ struct winsize {
 
 /* derived from XF4/xc/lib/dps/Xlibnet.h */
 #ifndef X_UNIX_PATH
-#ifdef __hpux
-#define X_UNIX_PATH "/usr/spool/sockets/X11/%u"
-#else
-#define X_UNIX_PATH "/tmp/.X11-unix/X%u"
-#endif
+#  ifdef __hpux
+#    define X_UNIX_PATH "/var/spool/sockets/X11/%u"
+#  else
+#    define X_UNIX_PATH "/tmp/.X11-unix/X%u"
+#  endif
 #endif /* X_UNIX_PATH */
 #define _PATH_UNIX_X X_UNIX_PATH
 
