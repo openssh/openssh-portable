@@ -31,7 +31,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.81 2003/11/18 01:42:08 dtucker Exp $");
+RCSID("$Id: auth-pam.c,v 1.82 2003/11/18 01:45:36 dtucker Exp $");
 
 #ifdef USE_PAM
 #include <security/pam_appl.h>
@@ -167,11 +167,13 @@ import_environments(Buffer *b)
 	for(i = 0; i < num_env; i++) {
 		env = buffer_get_string(b, NULL);
 
+#ifdef HAVE_PAM_PUTENV
 		/* Errors are not fatal here */
 		if ((err = pam_putenv(sshpam_handle, env)) != PAM_SUCCESS) {
 			error("PAM: pam_putenv: %s",
 			    pam_strerror(sshpam_handle, sshpam_err));
 		}
+#endif
 	}
 }
 
