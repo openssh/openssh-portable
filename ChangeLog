@@ -453,14 +453,14 @@
      missing xfree; from vaughan99@yahoo.com
  - (bal) Resynced CVS ID with OpenBSD for channel.c and uidswap.c
  - (bal) if no MAXHOSTNAMELEN is defined.  Default to 64 character defination.
-   Suggested by Christian Kurz <shorty@debain.org>
+   Suggested by Christian Kurz <shorty@debian.org>
  - (bal) Add in '.c.o' section to Makefile.in to address make programs that
     don't honor CPPFLAGS by default.  Suggested by Lutz Jaenicke 
     <Lutz.Jaenicke@aet.TU-Cottbus.DE>
 
 20001229
  - (bal) Fixed spelling of 'authorized_keys' in ssh-copy-id.1 by Christian 
-   Kurz <shorty@debain.org>
+   Kurz <shorty@debian.org>
  - (bal) OpenBSD CVS Update
    - markus@cvs.openbsd.org 2000/12/28 14:25:51
      [auth.h auth2.c]
