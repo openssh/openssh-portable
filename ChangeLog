@@ -13,6 +13,9 @@
      [uidswap.c]
      permanently_set_uid is a noop if user is not privilegued;
      fixes bug on solaris; from sbi@uchicago.edu
+   - markus@cvs.openbsd.org 2001/08/08 21:34:19
+     [uidswap.c]
+     undo last change; does not work for sshd
 
 20010814
  - (stevesk) sshpty.c, cray.[ch]: whitespace, formatting and cleanup
@@ -6302,4 +6305,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1478 2001/08/15 23:14:49 mouring Exp $
+$Id: ChangeLog,v 1.1479 2001/08/15 23:17:22 mouring Exp $
