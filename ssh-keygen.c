@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.59 2001/04/23 21:57:07 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.60 2001/04/23 22:14:13 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -298,12 +298,12 @@ do_convert_from_ssh2(struct passwd *pw)
 		    strstr(line, ": ") != NULL) {
 			if (strstr(line, SSH_COM_PRIVATE_BEGIN) != NULL)
 				private = 1;
-			fprintf(stderr, "ignore: %s", line);
+			/* fprintf(stderr, "ignore: %s", line); */
 			continue;
 		}
 		if (escaped) {
 			escaped--;
-			fprintf(stderr, "escaped: %s", line);
+			/* fprintf(stderr, "escaped: %s", line); */
 			continue;
 		}
 		*p = '\0';
