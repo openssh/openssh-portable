@@ -18,7 +18,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: login.c,v 1.23 2000/04/16 01:18:43 damien Exp $");
+RCSID("$Id: login.c,v 1.24 2000/04/19 21:42:22 damien Exp $");
 
 #if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
 # include <utmpx.h>
@@ -136,7 +136,7 @@ get_last_login_time(uid_t uid, const char *logname,
  */
 
 void
-record_login(int pid, const char *ttyname, const char *user, uid_t uid,
+record_login(pid_t pid, const char *ttyname, const char *user, uid_t uid,
 	     const char *host, struct sockaddr * addr)
 {
 #if defined(_PATH_LASTLOG) && !defined(DISABLE_LASTLOG)
@@ -274,7 +274,7 @@ record_login(int pid, const char *ttyname, const char *user, uid_t uid,
 /* Records that the user has logged out. */
 
 void
-record_logout(int pid, const char *ttyname)
+record_logout(pid_t pid, const char *ttyname)
 {
 #ifdef HAVE_LIBUTIL_LOGIN
 	const char *line = ttyname + 5;	/* /dev/ttyq8 -> ttyq8 */

@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.28 2000/04/14 10:30:33 markus Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.29 2000/04/19 07:05:49 deraadt Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -9,7 +9,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.28 2000/04/14 10:30:33 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.29 2000/04/19 07:05:49 deraadt Exp $");
 
 #include "ssh.h"
 #include "rsa.h"
@@ -46,7 +46,7 @@ Identity *identities = NULL;
 int max_fd = 0;
 
 /* pid of shell == parent of agent */
-int parent_pid = -1;
+pid_t parent_pid = -1;
 
 /* pathname and directory for AUTH_SOCKET */
 char socket_name[1024];
@@ -464,7 +464,7 @@ after_select(fd_set *readset, fd_set *writeset)
 void
 check_parent_exists(int sig)
 {
-	if (kill(parent_pid, 0) < 0) {
+	if (parent_pid != -1 && kill(parent_pid, 0) < 0) {
 		/* printf("Parent has died - Authentication agent exiting.\n"); */
 		exit(1);
 	}
@@ -550,6 +550,7 @@ main(int ac, char **av)
 		}
 		pid = atoi(pidstr);
 		if (pid < 1) {	/* XXX PID_MAX check too */
+		/* Yes, PID_MAX check please */
 			fprintf(stderr, "%s=\"%s\", which is not a good PID\n",
 				SSH_AGENTPID_ENV_NAME, pidstr);
 			exit(1);

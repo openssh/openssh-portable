@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.106 2000/04/17 12:31:47 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.107 2000/04/19 07:05:50 deraadt Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -396,7 +396,8 @@ main(int ac, char **av)
 {
 	extern char *optarg;
 	extern int optind;
-	int opt, sock_in = 0, sock_out = 0, newsock, i, fdsetsz, pid, on = 1;
+	int opt, sock_in = 0, sock_out = 0, newsock, i, fdsetsz, on = 1;
+	pid_t pid;
 	socklen_t fromlen;
 	int silentrsa = 0;
 	fd_set *fdset;

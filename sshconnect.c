@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.68 2000/04/14 10:30:33 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.69 2000/04/19 07:05:50 deraadt Exp $");
 
 #include <openssl/bn.h>
 #include "xmalloc.h"
@@ -62,7 +62,7 @@ ssh_proxy_connect(const char *host, u_short port, uid_t original_real_uid,
 	const char *cp;
 	char *command_string;
 	int pin[2], pout[2];
-	int pid;
+	pid_t pid;
 	char strport[NI_MAXSERV];
 
 	/* Convert the port number into a string. */

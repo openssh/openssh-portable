@@ -1,6 +1,12 @@
 20000420
  - Make fixpaths work with perl4, patch from Andre Lucas 
    <andre.lucas@dial.pipex.com>
+ - Sync with OpenBSD CVS:
+  [clientloop.c login.c serverloop.c ssh-agent.c ssh.h sshconnect.c sshd.c]
+  - pid_t
+  [session.c]
+  - remove bogus chan_read_failed. this could cause data
+    corruption (missing data) at end of a SSH2 session.
 
 20000419
  - OpenBSD CVS updates

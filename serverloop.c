@@ -52,7 +52,7 @@ static int max_fd;		/* Max file descriptor number for select(). */
  * that the child's output gets a chance to drain before it is yanked.
  */
 
-static int child_pid;			/* Pid of the child. */
+static pid_t child_pid;			/* Pid of the child. */
 static volatile int child_terminated;	/* The child has terminated. */
 static volatile int child_has_selected; /* Child has had chance to drain. */
 static volatile int child_wait_status;	/* Status from wait(). */
@@ -63,7 +63,8 @@ void
 sigchld_handler(int sig)
 {
 	int save_errno = errno;
-	int wait_pid;
+	pid_t wait_pid;
+
 	debug("Received SIGCHLD.");
 	wait_pid = wait((int *) &child_wait_status);
 	if (wait_pid != -1) {
@@ -373,9 +374,10 @@ process_buffered_input_packets()
  * child program).
  */
 void
-server_loop(int pid, int fdin_arg, int fdout_arg, int fderr_arg)
+server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 {
-	int wait_status, wait_pid;	/* Status and pid returned by wait(). */
+	int wait_status;	/* Status returned by wait(). */
+	pid_t wait_pid;		/* pid returned by wait(). */
 	int waiting_termination = 0;	/* Have displayed waiting close message. */
 	unsigned int max_time_milliseconds;
 	unsigned int previous_stdout_buffer_bytes;

@@ -13,7 +13,7 @@
  *
  */
 
-/* RCSID("$Id: ssh.h,v 1.32 2000/04/16 01:18:47 damien Exp $"); */
+/* RCSID("$Id: ssh.h,v 1.33 2000/04/19 21:42:22 damien Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -288,14 +288,14 @@ get_last_login_time(uid_t uid, const char *logname,
  * by login(1).
  */
 void
-record_login(int pid, const char *ttyname, const char *user, uid_t uid,
+record_login(pid_t pid, const char *ttyname, const char *user, uid_t uid,
     const char *host, struct sockaddr *addr);
 
 /*
  * Records that the user has logged out.  This does many thigs normally done
  * by login(1) or init.
  */
-void    record_logout(int pid, const char *ttyname);
+void    record_logout(pid_t pid, const char *ttyname);
 
 /*------------ definitions for sshconnect.c ----------*/
 
@@ -504,7 +504,7 @@ char   *tilde_expand_filename(const char *filename, uid_t my_uid);
  * (of the child program), and reads from stdout and stderr (of the child
  * program).
  */
-void    server_loop(int pid, int fdin, int fdout, int fderr);
+void    server_loop(pid_t pid, int fdin, int fdout, int fderr);
 void    server_loop2(void);
 
 /* Client side main loop for the interactive session. */

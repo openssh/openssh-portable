@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.4 2000/04/14 10:30:33 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.5 2000/04/19 09:24:39 markus Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -1388,8 +1388,12 @@ session_exit_message(Session *s, int status)
 	/* disconnect channel */
 	debug("session_exit_message: release channel %d", s->chanid);
 	channel_cancel_cleanup(s->chanid);
-	if (c->istate == CHAN_INPUT_OPEN)
-		chan_read_failed(c);
+	/*
+	 * emulate a write failure with 'chan_write_failed', nobody will be
+	 * interested in data we write.
+	 * Note that we must not call 'chan_read_failed', since there could
+	 * be some more data waiting in the pipe.
+	 */
 	chan_write_failed(c);
 	s->chanid = -1;
 }
