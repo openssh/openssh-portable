@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.109 2001/06/23 15:12:21 itojun Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.110 2001/07/25 14:35:18 markus Exp $");
 
 #include <openssl/bn.h>
 
@@ -40,6 +40,27 @@ extern char *__progname;
 
 /* AF_UNSPEC or AF_INET or AF_INET6 */
 extern int IPv4or6;
+
+static const char *
+sockaddr_ntop(struct sockaddr *sa)
+{
+	void *addr;
+	static char addrbuf[INET6_ADDRSTRLEN];
+
+	switch (sa->sa_family) {
+		case AF_INET:
+			addr = &((struct sockaddr_in *)sa)->sin_addr;
+			break;
+		case AF_INET6:
+			addr = &((struct sockaddr_in6 *)sa)->sin6_addr;
+			break;
+		default:
+			/* This case should be protected against elsewhere */
+			abort();
+	}
+	inet_ntop(sa->sa_family, addr, addrbuf, sizeof(addrbuf));
+	return addrbuf;
+}
 
 /*
  * Connect to the given ssh server using a proxy command.
@@ -138,7 +159,8 @@ ssh_proxy_connect(const char *host, u_short port, struct passwd *pw,
 	/* Set the connection file descriptors. */
 	packet_set_connection(pout[0], pin[1]);
 
-	return 1;
+	/* Indicate OK return */
+	return 0;
 }
 
 /*
@@ -208,6 +230,12 @@ ssh_create_socket(struct passwd *pw, int privileged, int family)
  * second).  If proxy_command is non-NULL, it specifies the command (with %h
  * and %p substituted for host and port, respectively) to use to contact
  * the daemon.
+ * Return values:
+ *    0 for OK
+ *    ECONNREFUSED if we got a "Connection Refused" by the peer on any address
+ *    ECONNABORTED if we failed without a "Connection refused"
+ * Suitable error messages for the connection failure will already have been
+ * printed.
  */
 int
 ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
@@ -222,6 +250,12 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 	struct addrinfo hints, *ai, *aitop;
 	struct linger linger;
 	struct servent *sp;
+	/*
+	 * Did we get only other errors than "Connection refused" (which
+	 * should block fallback to rsh and similar), or did we get at least
+	 * one "Connection refused"?
+	 */
+	int full_failure = 1;
 
 	debug("ssh_connect: getuid %u geteuid %u anon %d",
 	      (u_int) getuid(), (u_int) geteuid(), anonymous);
@@ -252,8 +286,8 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 	 * Try to connect several times.  On some machines, the first time
 	 * will sometimes fail.  In general socket code appears to behave
 	 * quite magically on many machines.
-	 */
-	for (attempt = 0; attempt < connection_attempts; attempt++) {
+		 */
+	for (attempt = 0; ;) {
 		if (attempt > 0)
 			debug("Trying again...");
 
@@ -280,6 +314,7 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 #endif
 			    ai->ai_family);
 			if (sock < 0)
+				/* Any error is already output */
 				continue;
 
 			/* Connect to the host.  We use the user's uid in the
@@ -293,7 +328,11 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 				restore_uid();
 				break;
 			} else {
-				debug("connect: %.100s", strerror(errno));
+				if (errno == ECONNREFUSED)
+					full_failure = 0;
+				log("ssh: connect to address %s port %s: %s",
+				    sockaddr_ntop(ai->ai_addr), strport,
+				    strerror(errno));
 				restore_uid();
 				/*
 				 * Close the failed socket; there appear to
@@ -308,6 +347,9 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 		if (ai)
 			break;	/* Successful connection. */
 
+		attempt++;
+		if (attempt >= connection_attempts)
+			break;
 		/* Sleep a moment before retrying. */
 		sleep(1);
 	}
@@ -316,7 +358,7 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 
 	/* Return failure if we didn't get a successful connection. */
 	if (attempt >= connection_attempts)
-		return 0;
+		return full_failure ? ECONNABORTED : ECONNREFUSED;
 
 	debug("Connection established.");
 
@@ -338,7 +380,7 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 	/* Set the connection. */
 	packet_set_connection(sock, sock);
 
-	return 1;
+	return 0;
 }
 
 /*

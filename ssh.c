@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.129 2001/07/11 16:29:59 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.130 2001/07/25 14:35:18 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -252,7 +252,7 @@ static void load_public_identity_files(void);
 int
 main(int ac, char **av)
 {
-	int i, opt, exit_status, ok;
+	int i, opt, exit_status, cerr;
 	u_short fwd_port, fwd_host_port;
 	char *p, *cp, buf[256];
 	struct stat st;
@@ -666,7 +666,7 @@ again:
 
 	/* Open a connection to the remote host. */
 
-	ok = ssh_connect(host, &hostaddr, options.port,
+	cerr = ssh_connect(host, &hostaddr, options.port,
 	    options.connection_attempts,
 	    original_effective_uid != 0 || !options.use_privileged_port,
 	    pw, options.proxy_command);
@@ -679,7 +679,7 @@ again:
 	 */
 	sensitive_data.nkeys = 0;
 	sensitive_data.keys = NULL;
-	if (ok && (options.rhosts_rsa_authentication ||
+	if (!cerr && (options.rhosts_rsa_authentication ||
 	    options.hostbased_authentication)) {
 		sensitive_data.nkeys = 3;
 		sensitive_data.keys = xmalloc(sensitive_data.nkeys*sizeof(Key));
@@ -717,20 +717,19 @@ again:
 			error("Could not create directory '%.200s'.", buf);
 
 	/* Check if the connection failed, and try "rsh" if appropriate. */
-	if (!ok) {
+	if (cerr) {
+		if (!options.fallback_to_rsh)
+			exit(1);
 		if (options.port != 0)
-			log("Secure connection to %.100s on port %hu refused%.100s.",
-			    host, options.port,
-			    options.fallback_to_rsh ? "; reverting to insecure method" : "");
+			log("Secure connection to %.100s on port %hu refused; "
+			    "reverting to insecure method",
+			    host, options.port);
 		else
-			log("Secure connection to %.100s refused%.100s.", host,
-			    options.fallback_to_rsh ? "; reverting to insecure method" : "");
+			log("Secure connection to %.100s refused; "
+			    "reverting to insecure method.", host);
 
-		if (options.fallback_to_rsh) {
-			rsh_connect(host, options.user, &command);
-			fatal("rsh_connect returned");
-		}
-		exit(1);
+		rsh_connect(host, options.user, &command);
+		fatal("rsh_connect returned");
 	}
 	/* load options.identity_files */
 	load_public_identity_files();
