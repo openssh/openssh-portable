@@ -3,6 +3,11 @@
    - markus@cvs.openbsd.org 2002/09/08 20:24:08
      [hostfile.h]
      no comma at end of enumerator list
+   - itojun@cvs.openbsd.org 2002/09/09 06:48:06
+     [auth1.c auth.h auth-krb5.c monitor.c monitor.h]
+     [monitor_wrap.c monitor_wrap.h]
+     kerberos support for privsep.  confirmed to work by lha@stacken.kth.se
+     patch from markus
 
 20020911
  - (djm) Sync openbsd-compat with OpenBSD -current
@@ -1623,4 +1628,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2452 2002/09/11 23:43:56 djm Exp $
+$Id: ChangeLog,v 1.2453 2002/09/11 23:47:29 djm Exp $

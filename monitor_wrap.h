@@ -1,4 +1,4 @@
-/*	$OpenBSD: monitor_wrap.h,v 1.6 2002/06/30 21:59:45 deraadt Exp $	*/
+/*	$OpenBSD: monitor_wrap.h,v 1.7 2002/09/09 06:48:06 itojun Exp $	*/
 
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
@@ -82,6 +82,13 @@ int mm_bsdauth_respond(void *, u_int, char **);
 /* skey */
 int mm_skey_query(void *, char **, char **, u_int *, char ***, u_int **);
 int mm_skey_respond(void *, u_int, char **);
+
+/* auth_krb5 */
+#ifdef KRB5
+/* auth and reply are really krb5_data objects, but we don't want to
+ * include all of the krb5 headers here */
+int mm_auth_krb5(void *authctxt, void *auth, char **client, void *reply);
+#endif
 
 /* zlib allocation hooks */
 
