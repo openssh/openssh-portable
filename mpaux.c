@@ -15,7 +15,7 @@
 */
 
 #include "includes.h"
-RCSID("$Id: mpaux.c,v 1.9 2000/04/01 01:09:24 damien Exp $");
+RCSID("$Id: mpaux.c,v 1.10 2000/04/13 02:26:36 damien Exp $");
 
 #include "getput.h"
 #include "xmalloc.h"

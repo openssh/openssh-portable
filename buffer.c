@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: buffer.c,v 1.3 1999/11/25 00:54:58 damien Exp $");
+RCSID("$Id: buffer.c,v 1.4 2000/04/13 02:26:36 damien Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -114,7 +114,7 @@ void
 buffer_get(Buffer *buffer, char *buf, unsigned int len)
 {
 	if (len > buffer->end - buffer->offset)
-		fatal("buffer_get trying to get more bytes than in buffer");
+		fatal("buffer_get: trying to get more bytes than in buffer");
 	memcpy(buf, buffer->buf + buffer->offset, len);
 	buffer->offset += len;
 }
@@ -125,7 +125,7 @@ void
 buffer_consume(Buffer *buffer, unsigned int bytes)
 {
 	if (bytes > buffer->end - buffer->offset)
-		fatal("buffer_get trying to get more bytes than in buffer");
+		fatal("buffer_consume: trying to get more bytes than in buffer");
 	buffer->offset += bytes;
 }
 
@@ -135,7 +135,7 @@ void
 buffer_consume_end(Buffer *buffer, unsigned int bytes)
 {
 	if (bytes > buffer->end - buffer->offset)
-		fatal("buffer_get trying to get more bytes than in buffer");
+		fatal("buffer_consume_end: trying to get more bytes than in buffer");
 	buffer->end -= bytes;
 }
 

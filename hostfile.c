@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: hostfile.c,v 1.14 2000/03/23 22:15:33 markus Exp $");
+RCSID("$OpenBSD: hostfile.c,v 1.15 2000/04/12 09:39:10 markus Exp $");
 
 #ifdef HAVE_OPENSSL
 #include <openssl/bn.h>

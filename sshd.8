@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: sshd.8,v 1.16 2000/04/01 01:09:27 damien Exp $
+.\" $Id: sshd.8,v 1.17 2000/04/13 02:26:38 damien Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSHD 8
@@ -27,9 +27,9 @@
 .Op Fl k Ar key_gen_time
 .Op Fl p Ar port
 .Op Fl V Ar client_protocol_id
-.Sh DESCRIPTION 
+.Sh DESCRIPTION
 .Nm
-(Secure Shell Daemon) is the daemon program for 
+(Secure Shell Daemon) is the daemon program for
 .Xr ssh 1 .
 Together these programs replace rlogin and rsh programs, and
 provide secure encrypted communications between two untrusted hosts
@@ -39,7 +39,7 @@ install and use as possible.
 .Pp
 .Nm
 is the daemon that listens for connections from clients.
-It is normally started at boot from 
+It is normally started at boot from
 .Pa /etc/rc .
 It forks a new
 daemon for each incoming connection.
@@ -157,7 +157,7 @@ host file is normally not readable by anyone but root).
 .It Fl i
 Specifies that
 .Nm
-is being run from inetd. 
+is being run from inetd.
 .Nm
 is normally not run
 from inetd because it needs to generate the server key before it can
@@ -204,7 +204,7 @@ to use IPv6 addresses only.
 .El
 .Sh CONFIGURATION FILE
 .Nm
-reads configuration data from 
+reads configuration data from
 .Pa /etc/sshd_config
 (or the file specified with
 .Fl f
@@ -246,6 +246,11 @@ wildcards in the patterns.
 Only user names are valid, a numerical user ID isn't recognized.
 By default login is allowed regardless of the user name.
 .Pp
+.It Cm Ciphers
+Specifies the ciphers allowed for protocol version 2.
+Multiple ciphers must be comma-separated.
+The default is
+.Dq blowfish-cbc,3des-cbc,arcfour,cast128-cbc .
 .It Cm CheckMail
 Specifies whether
 .Nm
@@ -284,14 +289,14 @@ does not start if this file is group/world-accessible.
 .It Cm IgnoreRhosts
 Specifies that
 .Pa .rhosts
-and 
+and
 .Pa .shosts
 files will not be used in authentication.
 .Pa /etc/hosts.equiv
 and
-.Pa /etc/shosts.equiv 
+.Pa /etc/shosts.equiv
 are still used.
-The default is 
+The default is
 .Dq yes .
 .It Cm IgnoreUserKnownHosts
 Specifies whether
@@ -342,7 +347,7 @@ Default is
 .Dq yes .
 .It Cm KerberosTgtPassing
 Specifies whether a Kerberos TGT may be forwarded to the server.
-Default is 
+Default is
 .Dq no ,
 as this only works when the Kerberos KDC is actually an AFS kaserver.
 .It Cm KerberosTicketCleanup
@@ -419,7 +424,7 @@ Multiple options of this type are permitted.
 .It Cm PrintMotd
 Specifies whether
 .Nm
-should print 
+should print
 .Pa /etc/motd
 when a user logs in interactively.
 (On some systems it is also printed by the shell,
@@ -427,6 +432,17 @@ when a user logs in interactively.
 or equivalent.)
 The default is
 .Dq yes .
+.It Cm Protocol
+Specifies the protocol versions
+.Nm
+should support.
+The possible values are
+.Dq 1
+and
+.Dq 2 .
+Multiple versions must be comma-separated.
+The default is
+.Dq 1 .
 .It Cm RandomSeed
 Obsolete.
 Random number generation uses other techniques.
@@ -454,7 +470,7 @@ Defines the number of bits in the server key.
 The minimum value is 512, and the default is 768.
 .It Cm SkeyAuthentication
 Specifies whether
-.Xr skey 1 
+.Xr skey 1
 authentication is allowed.
 The default is
 .Dq yes .
@@ -504,12 +520,12 @@ does the following:
 .Bl -enum -offset indent
 .It
 If the login is on a tty, and no command has been specified,
-prints last login time and 
+prints last login time and
 .Pa /etc/motd
 (unless prevented in the configuration file or by
 .Pa $HOME/.hushlogin ;
 see the
-.Sx FILES 
+.Sx FILES
 section).
 .It
 If the login is on a tty, records login time.
@@ -543,7 +559,7 @@ authentication protocol and cookie in standard input.
 Runs user's shell or command.
 .El
 .Sh AUTHORIZED_KEYS FILE FORMAT
-The 
+The
 .Pa $HOME/.ssh/authorized_keys
 file lists the RSA keys that are
 permitted for RSA authentication.
@@ -632,9 +648,9 @@ from="*.niksula.hut.fi,!pc.niksula.hut.fi" 1024 35 23.\|.\|.\|2334 ylo@niksula
 .Pp
 command="dump /home",no-pty,no-port-forwarding 1024 33 23.\|.\|.\|2323 backup.hut.fi
 .Sh SSH_KNOWN_HOSTS FILE FORMAT
-The 
+The
 .Pa /etc/ssh_known_hosts
-and 
+and
 .Pa $HOME/.ssh/known_hosts
 files contain host public keys for all known hosts.
 The global file should
@@ -679,7 +695,7 @@ accepted if valid information can be found from either file.
 Note that the lines in these files are typically hundreds of characters
 long, and you definitely don't want to type in the host keys by hand.
 Rather, generate them by a script
-or by taking 
+or by taking
 .Pa /etc/ssh_host_key.pub
 and adding the host names at the front.
 .Ss Examples
@@ -734,7 +750,7 @@ should be world-readable, and
 .Pa $HOME/.ssh/known_hosts
 can but need not be world-readable.
 .It Pa /etc/nologin
-If this file exists, 
+If this file exists,
 .Nm
 refuses to let anyone except root log in.
 The contents of the file
@@ -865,7 +881,7 @@ external libraries.
 has been updated to support ssh protocol 1.5, making it compatible with
 all other ssh protocol 1 clients and servers.
 .It
-contains added support for 
+contains added support for
 .Xr kerberos 8
 authentication and ticket passing.
 .It

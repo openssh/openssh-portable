@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: authfd.c,v 1.10 1999/12/16 02:18:04 damien Exp $");
+RCSID("$Id: authfd.c,v 1.11 2000/04/13 02:26:35 damien Exp $");
 
 #include "ssh.h"
 #include "rsa.h"

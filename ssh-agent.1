@@ -1,4 +1,4 @@
-.\" $OpenBSD: ssh-agent.1,v 1.10 2000/03/23 21:10:10 aaron Exp $
+.\" $OpenBSD: ssh-agent.1,v 1.11 2000/04/12 21:47:50 aaron Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -18,14 +18,14 @@
 .Nm ssh-agent
 .Nd authentication agent
 .Sh SYNOPSIS
-.Nm ssh-agent 
+.Nm ssh-agent
 .Op Fl c Li | Fl s
 .Op Fl k
 .Oo
 .Ar command
 .Op Ar args ...
 .Oc
-.Sh DESCRIPTION 
+.Sh DESCRIPTION
 .Nm
 is a program to hold authentication private keys.
 The idea is that
@@ -64,12 +64,12 @@ When the command dies, so does the agent.
 The agent initially does not have any private keys.
 Keys are added using
 .Xr ssh-add 1 .
-When executed without arguments, 
+When executed without arguments,
 .Xr ssh-add 1
-adds the 
+adds the
 .Pa $HOME/.ssh/identity
 file.
-If the identity has a passphrase, 
+If the identity has a passphrase,
 .Xr ssh-add 1
 asks for the passphrase (using a small X11 application if running
 under X11, or from the terminal if running without X).
@@ -152,7 +152,7 @@ external libraries.
 .It
 has been updated to support ssh protocol 1.5.
 .It
-contains added support for 
+contains added support for
 .Xr kerberos 8
 authentication and ticket passing.
 .It

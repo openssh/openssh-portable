@@ -15,7 +15,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: auth-rh-rsa.c,v 1.8 2000/03/26 03:04:52 damien Exp $");
+RCSID("$Id: auth-rh-rsa.c,v 1.9 2000/04/13 02:26:35 damien Exp $");
 
 #ifdef HAVE_OPENSSL
 #include <openssl/bn.h>

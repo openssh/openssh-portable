@@ -13,7 +13,7 @@
  * 
  */
 
-/* RCSID("$Id: packet.h,v 1.12 2000/04/06 02:32:40 damien Exp $"); */
+/* RCSID("$Id: packet.h,v 1.13 2000/04/13 02:26:37 damien Exp $"); */
 
 #ifndef PACKET_H
 #define PACKET_H

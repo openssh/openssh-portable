@@ -17,7 +17,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: packet.c,v 1.16 2000/04/06 02:32:40 damien Exp $");
+RCSID("$Id: packet.c,v 1.17 2000/04/13 02:26:37 damien Exp $");
 
 #ifdef HAVE_OPENSSL
 # include <openssl/bn.h>

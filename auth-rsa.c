@@ -16,7 +16,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: auth-rsa.c,v 1.14 2000/03/26 03:04:52 damien Exp $");
+RCSID("$Id: auth-rsa.c,v 1.15 2000/04/13 02:26:35 damien Exp $");
 
 #include "rsa.h"
 #include "packet.h"

@@ -11,7 +11,7 @@
  * 
  */
 
-/* RCSID("$Id: cipher.h,v 1.9 2000/04/12 10:17:39 damien Exp $"); */
+/* RCSID("$Id: cipher.h,v 1.10 2000/04/13 02:26:36 damien Exp $"); */
 
 #ifndef CIPHER_H
 #define CIPHER_H
