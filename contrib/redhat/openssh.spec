@@ -1,5 +1,5 @@
 # Version of OpenSSH
-%define oversion 2.9p1
+%define oversion 2.9p2
 
 # Version of ssh-askpass
 %define aversion 1.2.0
