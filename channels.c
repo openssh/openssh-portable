@@ -1934,7 +1934,6 @@ x11_create_display_inet(int screen_number, int x11_display_offset)
 	}
 
 	/* Set up a suitable value for the DISPLAY variable. */
-
 	if (gethostname(hostname, sizeof(hostname)) < 0)
 		fatal("gethostname: %.100s", strerror(errno));
 
@@ -1969,12 +1968,12 @@ x11_create_display_inet(int screen_number, int x11_display_offset)
 
 		/* Set DISPLAY to <ip address>:screen.display */
 		snprintf(display, sizeof(display), "%.50s:%d.%d", inet_ntoa(my_addr), 
-			display_number, screen_number);
+			 display_number, screen_number);
 	}
 #else /* IPADDR_IN_DISPLAY */
 	/* Just set DISPLAY to hostname:screen.display */
 	snprintf(display, sizeof display, "%.400s:%d.%d", hostname,
-		display_number, screen_number);
+		 display_number, screen_number);
 #endif /* IPADDR_IN_DISPLAY */
 
 	/* Allocate a channel for each socket. */
