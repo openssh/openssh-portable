@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.45 2001/08/03 10:31:30 jakob Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.46 2001/10/02 08:38:50 djm Exp $");
 
 #include <openssl/evp.h>
 
@@ -70,53 +70,61 @@ clear_pass(void)
 	}
 }
 
-static void
+static int
 delete_file(AuthenticationConnection *ac, const char *filename)
 {
 	Key *public;
 	char *comment = NULL;
+	int ret = -1;
 
 	public = key_load_public(filename, &comment);
 	if (public == NULL) {
 		printf("Bad key file %s\n", filename);
-		return;
+		return -1;
 	}
-	if (ssh_remove_identity(ac, public))
+	if (ssh_remove_identity(ac, public)) {
 		fprintf(stderr, "Identity removed: %s (%s)\n", filename, comment);
-	else
+		ret = 0;
+	} else
 		fprintf(stderr, "Could not remove identity: %s\n", filename);
+
 	key_free(public);
 	xfree(comment);
+	
+	return ret;
 }
 
 /* Send a request to remove all identities. */
-static void
+static int
 delete_all(AuthenticationConnection *ac)
 {
-	int success = 1;
+	int ret = -1;
 
-	if (!ssh_remove_all_identities(ac, 1))
-		success = 0;
+	if (ssh_remove_all_identities(ac, 1))
+		ret = 0;
 	/* ignore error-code for ssh2 */
 	ssh_remove_all_identities(ac, 2);
 
-	if (success)
+	if (ret == 0)
 		fprintf(stderr, "All identities removed.\n");
 	else
 		fprintf(stderr, "Failed to remove all identities.\n");
+
+	return ret;
 }
 
-static void
+static int
 add_file(AuthenticationConnection *ac, const char *filename)
 {
 	struct stat st;
 	Key *private;
 	char *comment = NULL;
 	char msg[1024];
+	int ret = -1;
 
 	if (stat(filename, &st) < 0) {
 		perror(filename);
-		exit(1);
+		return -1;
 	}
 	/* At first, try empty passphrase */
 	private = key_load_private(filename, "", &comment);
@@ -135,7 +143,7 @@ add_file(AuthenticationConnection *ac, const char *filename)
 			if (strcmp(pass, "") == 0) {
 				clear_pass();
 				xfree(comment);
-				return;
+				return -1;
 			}
 			private = key_load_private(filename, pass, &comment);
 			if (private != NULL)
@@ -144,23 +152,30 @@ add_file(AuthenticationConnection *ac, const char *filename)
 			strlcpy(msg, "Bad passphrase, try again: ", sizeof msg);
 		}
 	}
-	if (ssh_add_identity(ac, private, comment))
+	if (ssh_add_identity(ac, private, comment)) {
 		fprintf(stderr, "Identity added: %s (%s)\n", filename, comment);
-	else
+		ret = 0;
+	} else
 		fprintf(stderr, "Could not add identity: %s\n", filename);
+
 	xfree(comment);
 	key_free(private);
+	
+	return ret;
 }
 
-static void
+static int
 update_card(AuthenticationConnection *ac, int add, const char *id)
 {
-	if (ssh_update_card(ac, add, id))
+	if (ssh_update_card(ac, add, id)) {
 		fprintf(stderr, "Card %s: %s\n",
 		     add ? "added" : "removed", id);
-	else
+		return 0;
+	} else {
 		fprintf(stderr, "Could not %s card: %s\n",
 		     add ? "add" : "remove", id);
+		return -1;
+	}
 }
 
 static void
@@ -219,7 +234,7 @@ main(int argc, char **argv)
 	struct passwd *pw;
 	char buf[1024];
 	char *sc_reader_id = NULL;
-	int i, ch, deleting = 0;
+	int i, ch, deleting = 0, ret = 0;
 
 	__progname = get_progname(argv[0]);
 	init_rng();
@@ -244,7 +259,8 @@ main(int argc, char **argv)
 			deleting = 1;
 			break;
 		case 'D':
-			delete_all(ac);
+			if (delete_all(ac) == -1)
+				ret = 1;
 			goto done;
 			break;
 		case 's':
@@ -256,14 +272,15 @@ main(int argc, char **argv)
 			break;
 		default:
 			usage();
-			exit(1);
-			break;
+			ret = 1;
+			goto done;
 		}
 	}
 	argc -= optind;
 	argv += optind;
 	if (sc_reader_id != NULL) {
-		update_card(ac, !deleting, sc_reader_id);
+		if (update_card(ac, !deleting, sc_reader_id) == -1)
+			ret = 1;
 		goto done;
 	}
 	if (argc == 0) {
@@ -271,25 +288,31 @@ main(int argc, char **argv)
 		if (!pw) {
 			fprintf(stderr, "No user found with uid %u\n",
 			    (u_int)getuid());
-			ssh_close_authentication_connection(ac);
-			exit(1);
+			ret = 1;
+			goto done;
 		}
 		snprintf(buf, sizeof buf, "%s/%s", pw->pw_dir, _PATH_SSH_CLIENT_IDENTITY);
-		if (deleting)
-			delete_file(ac, buf);
-		else
-			add_file(ac, buf);
+		if (deleting) {
+			if (delete_file(ac, buf) == -1)
+				ret = 1;
+		} else {
+			if (add_file(ac, buf) == -1)
+				ret = 1;
+		}
 	} else {
 		for (i = 0; i < argc; i++) {
-			if (deleting)
-				delete_file(ac, argv[i]);
-			else
-				add_file(ac, argv[i]);
+			if (deleting) {
+				if (delete_file(ac, argv[i]) == -1)
+					ret = 1;
+			} else {
+				if (add_file(ac, argv[i]) == -1)
+					ret = 1;
+			}
 		}
 	}
 	clear_pass();
 
 done:
 	ssh_close_authentication_connection(ac);
-	exit(0);
+	return ret;
 }
