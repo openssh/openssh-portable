@@ -2,6 +2,9 @@
  - (tim) [configure.ac] applied a rework of djm's OpenSSL search cleanup patch.
    Now only searches system and /usr/local/ssl (OpenSSL's default install path)
    Others must use --with-ssl-dir=....
+ - (tim) [monitor_fdpass.c] fix for systems that have both
+   HAVE_ACCRIGHTS_IN_MSGHDR and HAVE_CONTROL_IN_MSGHDR. Ie. sys/socket.h has
+   #define msg_accrights msg_control
 
 20020510
  - (stevesk) [auth.c] Shadow account and expiration cleanup.  Now
@@ -564,4 +567,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2105 2002/05/11 20:17:42 tim Exp $
+$Id: ChangeLog,v 1.2106 2002/05/11 22:30:04 tim Exp $
