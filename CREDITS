@@ -12,7 +12,7 @@ Andrew Stribblehill <a.d.stribblehill@durham.ac.uk> - Bugfixes
 Andy Sloane <andy@guildsoftware.com> - bugfixes
 Aran Cox <acox@cv.telegroup.com> - SCO bugfixes
 Arkadiusz Miskiewicz <misiek@pld.org.pl> - IPv6 compat fixes
-Ben Lindstrom <mouring@pconline.com> - NeXT support
+Ben Lindstrom <mouring@eviladmin.org> - NeXT support
 Ben Taylor <bent@clark.net> - Solaris debugging and fixes
 Bratislav ILICH <bilic@zepter.ru> - Configure fix
 Charles Levert <charles@comm.polymtl.ca> - SunOS 4 & bug fixes

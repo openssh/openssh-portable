@@ -1,3 +1,8 @@
+20001202
+ - (bal) Backed out of part of Alain St-Denis' loginrec.c patch.
+ - (bal) Irix need some sort of mansubdir, patch by Michael Stone 
+   <mstone@cs.loyola.edu>
+
 20001129
  - (djm) Back out all the serverloop.c hacks. sshd will now hang again
    if there are background children with open fds.

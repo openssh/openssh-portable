@@ -119,6 +119,7 @@ case "$host" in
 	no_libsocket=1
 	no_libnsl=1
 	AC_DEFINE(BROKEN_INET_NTOA)
+	mansubdir=man
 	;;
 *-*-linux*)
 	no_dev_ptmx=1

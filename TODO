@@ -39,8 +39,6 @@ Clean up configure/makefiles:
   own directory.
   (mouring@eviladmin.org)
 
-- Fix up manpages to provide right paths to sshd_config, ssh_config, etc.
-
 Packaging:
 - Solaris: Update packaging scripts and build new sysv startup scripts
   (gilbert.r.loomis@saic.com)

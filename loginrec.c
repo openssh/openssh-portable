@@ -161,7 +161,7 @@
 #include "xmalloc.h"
 #include "loginrec.h"
 
-RCSID("$Id: loginrec.c,v 1.27 2000/11/10 03:28:31 mouring Exp $");
+RCSID("$Id: loginrec.c,v 1.28 2000/12/01 21:19:51 mouring Exp $");
 
 #ifdef HAVE_UTIL_H
 #  include <util.h>
@@ -512,13 +512,8 @@ char *
 line_stripname(char *dst, const char *src, int dstsize)
 {
 	memset(dst, '\0', dstsize);
-#ifdef sgi
-	if (strncmp(src, "/dev/tty", 8) == 0)
-		strlcpy(dst, src + 8, dstsize);
-#else
 	if (strncmp(src, "/dev/", 5) == 0)
 		strlcpy(dst, src + 5, dstsize);
-#endif
 	else
 		strlcpy(dst, src, dstsize);
 	return dst;
