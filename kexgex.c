@@ -38,12 +38,6 @@ RCSID("$OpenBSD: kexgex.c,v 1.20 2002/02/28 15:46:33 markus Exp $");
 #include "dh.h"
 #include "ssh2.h"
 #include "compat.h"
-#include "monitor.h"
-#include "monitor_wrap.h"
-
-/* Imports */
-extern int use_privsep;
-extern int mm_recvfd;
 
 static u_char *
 kexgex_hash(
@@ -302,11 +296,7 @@ kexgex_server(Kex *kex)
 		fatal("DH_GEX_REQUEST, bad parameters: %d !< %d !< %d",
 		    min, nbits, max);
 
-	/* Contact privileged parent */
-	if (use_privsep)
-		dh = mm_choose_dh(mm_recvfd, min, nbits, max);
-	else
-		dh = choose_dh(min, nbits, max);
+	dh = choose_dh(min, nbits, max);
 	if (dh == NULL)
 		packet_disconnect("Protocol error: no matching DH grp found");
 
@@ -389,11 +379,7 @@ kexgex_server(Kex *kex)
 
 	/* sign H */
 	/* XXX hashlen depends on KEX */
-	if (use_privsep)
-		mm_key_sign(mm_recvfd, kex->host_key_index(server_host_key),
-		    &signature, &slen, hash, 20);
-	else
-		key_sign(server_host_key, &signature, &slen, hash, 20);
+	key_sign(server_host_key, &signature, &slen, hash, 20);
 
 	/* destroy_sensitive_data(); */
 
@@ -404,7 +390,6 @@ kexgex_server(Kex *kex)
 	packet_put_bignum2(dh->pub_key);	/* f */
 	packet_put_string(signature, slen);
 	packet_send();
-
 	xfree(signature);
 	xfree(server_host_key_blob);
 	/* have keys, free DH */

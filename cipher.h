@@ -81,6 +81,4 @@ void	 cipher_cleanup(CipherContext *);
 void	 cipher_set_key_string(CipherContext *, Cipher *, const char *, int);
 u_int	 cipher_blocksize(Cipher *);
 u_int	 cipher_keylen(Cipher *);
-
-void	 cipher_get_keyiv(CipherContext *, u_char *, u_int);
 #endif				/* CIPHER_H */

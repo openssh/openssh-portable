@@ -58,7 +58,6 @@ struct Key {
 Key	*key_new(int);
 Key	*key_new_private(int);
 void	 key_free(Key *);
-Key	*key_demote(Key *);
 int	 key_equal(Key *, Key *);
 char	*key_fingerprint(Key *, enum fp_type, enum fp_rep);
 char	*key_type(Key *);

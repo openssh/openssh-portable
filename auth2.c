@@ -51,13 +51,8 @@ RCSID("$OpenBSD: auth2.c,v 1.85 2002/02/24 19:14:59 markus Exp $");
 #include "hostfile.h"
 #include "canohost.h"
 #include "match.h"
-#include "monitor.h"
-#include "monitor_wrap.h"
 
 /* import */
-extern int use_privsep;
-extern int mm_recvfd;
-
 extern ServerOptions options;
 extern u_char *session_id2;
 extern int session_id2_len;
@@ -80,8 +75,8 @@ static void input_userauth_request(int, u_int32_t, void *);
 /* helper */
 static Authmethod *authmethod_lookup(const char *);
 static char *authmethods_get(void);
-int user_key_allowed(struct passwd *, Key *);
-int hostbased_key_allowed(struct passwd *, const char *, char *, Key *);
+static int user_key_allowed(struct passwd *, Key *);
+static int hostbased_key_allowed(struct passwd *, const char *, char *, Key *);
 
 /* auth */
 static void userauth_banner(void);
@@ -114,7 +109,7 @@ Authmethod authmethods[] = {
  * loop until authctxt->success == TRUE
  */
 
-Authctxt *
+void
 do_authentication2(void)
 {
 	Authctxt *authctxt = authctxt_new();
@@ -130,8 +125,7 @@ do_authentication2(void)
 	dispatch_init(&dispatch_protocol_error);
 	dispatch_set(SSH2_MSG_SERVICE_REQUEST, &input_service_request);
 	dispatch_run(DISPATCH_BLOCK, &authctxt->success, authctxt);
-
-	return(authctxt);
+	do_authenticated(authctxt);
 }
 
 static void
@@ -188,15 +182,10 @@ input_userauth_request(int type, u_int32_t seq, void *ctxt)
 		*style++ = 0;
 
 	if (authctxt->attempt++ == 0) {
-  		/* setup auth context */
-		int allowed;
+		/* setup auth context */
 		struct passwd *pw = NULL;
-		if (!use_privsep) {
-			pw = getpwnam(user);
-			allowed = pw ? allowed_user(pw) : 0;
-		} else
-			pw = mm_getpwnamallow(mm_recvfd, user, &allowed);
-		if (pw && allowed && strcmp(service, "ssh-connection")==0) {
+		pw = getpwnam(user);
+		if (pw && allowed_user(pw) && strcmp(service, "ssh-connection")==0) {
 			authctxt->pw = pwcopy(pw);
 			authctxt->valid = 1;
 			debug2("input_userauth_request: setting up authctxt for %s", user);
@@ -209,18 +198,10 @@ input_userauth_request(int type, u_int32_t seq, void *ctxt)
 			start_pam("NOUSER");
 #endif
 		}
-		/* Free memory */
-		if (use_privsep)
-			pwfree(pw);
-
-		setproctitle("%s%s", use_privsep ? " [net]" : "",
-		    pw ? user : "unknown");
+		setproctitle("%s", pw ? user : "unknown");
 		authctxt->user = xstrdup(user);
 		authctxt->service = xstrdup(service);
 		authctxt->style = style ? xstrdup(style) : NULL;
-
-		if (use_privsep)
-			mm_inform_authserv(mm_recvfd, service, style);
 	} else if (strcmp(user, authctxt->user) != 0 ||
 	    strcmp(service, authctxt->service) != 0) {
 		packet_disconnect("Change of username or service not allowed: "
@@ -332,8 +313,6 @@ done:
 static int
 userauth_none(Authctxt *authctxt)
 {
-	int res = 0;
-
 	/* disable method "none", only allowed one time */
 	Authmethod *m = authmethod_lookup("none");
 	if (m != NULL)
@@ -343,16 +322,18 @@ userauth_none(Authctxt *authctxt)
 
 	if (authctxt->valid == 0)
 		return(0);
-	if (!authctxt->valid)
-		return (0);
-	if (use_privsep)
-#if defined(USE_PAM) || defined(HAVE_OSF_SIA)
-#error NOT IMPLEMENTED FOR PRIVSEP
+
+#ifdef HAVE_CYGWIN
+	if (check_nt_auth(1, authctxt->pw) == 0)
+		return(0);
 #endif
-		res = mm_auth_password(mm_recvfd, "");
-	else
-		res = auth_password(authctxt, "");
-	return (res);
+#ifdef USE_PAM
+	return auth_pam_password(authctxt->pw, "");
+#elif defined(HAVE_OSF_SIA)
+	return 0;
+#else /* !HAVE_OSF_SIA && !USE_PAM */
+	return auth_password(authctxt, "");
+#endif /* USE_PAM */
 }
 
 static int
@@ -367,16 +348,18 @@ userauth_passwd(Authctxt *authctxt)
 		log("password change not supported");
 	password = packet_get_string(&len);
 	packet_check_eom();
-
-#if defined(HAVE_CYGWIN) || defined(USE_PAM) || defined(HAVE_OSF_SIA)
-#error NOT IMPLEMENTED FOR PRIVSEP
+	if (authctxt->valid &&
+#ifdef HAVE_CYGWIN
+	    check_nt_auth(1, authctxt->pw) &&
 #endif
-	if (authctxt->valid) {
-		if (use_privsep)
-			authenticated = mm_auth_password(mm_recvfd, password);
-		else
-			authenticated = auth_password(authctxt, password);
-	}
+#ifdef USE_PAM
+	    auth_pam_password(authctxt->pw, password) == 1)
+#elif defined(HAVE_OSF_SIA)
+	    auth_sia_password(authctxt->user, password) == 1)
+#else /* !USE_PAM && !HAVE_OSF_SIA */
+	    auth_password(authctxt, password) == 1)
+#endif /* USE_PAM */
+		authenticated = 1;
 	memset(password, 0, len);
 	xfree(password);
 	return authenticated;
@@ -484,23 +467,12 @@ userauth_pubkey(Authctxt *authctxt)
 		buffer_dump(&b);
 #endif
 		/* test for correct signature */
-		authenticated = 0;
-		if (use_privsep) {
-			if (mm_user_key_allowed(mm_recvfd, key) &&
-			    mm_key_verify(mm_recvfd,
-				MM_USERKEY, NULL, NULL,	key, sig, slen,
-				buffer_ptr(&b), buffer_len(&b)) == 1)
-				authenticated = 1;
-		} else {
-			if (user_key_allowed(authctxt->pw, key) &&
-			    key_verify(key, sig, slen, buffer_ptr(&b),
-				buffer_len(&b)) == 1)
-				authenticated = 1;
-		}
+		if (user_key_allowed(authctxt->pw, key) &&
+		    key_verify(key, sig, slen, buffer_ptr(&b), buffer_len(&b)) == 1)
+			authenticated = 1;
 		buffer_clear(&b);
 		xfree(sig);
 	} else {
-		int res = 0;
 		debug("test whether pkalg/pkblob are acceptable");
 		packet_check_eom();
 
@@ -512,11 +484,7 @@ userauth_pubkey(Authctxt *authctxt)
 		 * if a user is not allowed to login. is this an
 		 * issue? -markus
 		 */
-		if (use_privsep)
-			res = mm_user_key_allowed(mm_recvfd, key);
-		else
-			res = user_key_allowed(authctxt->pw, key);
-		if (res) {
+		if (user_key_allowed(authctxt->pw, key)) {
 			packet_start(SSH2_MSG_USERAUTH_PK_OK);
 			packet_put_string(pkalg, alen);
 			packet_put_string(pkblob, blen);
@@ -604,18 +572,9 @@ userauth_hostbased(Authctxt *authctxt)
 	buffer_dump(&b);
 #endif
 	/* test for allowed key and correct signature */
-	authenticated = 0;
-	if (use_privsep) {
-		if (mm_hostbased_key_allowed(mm_recvfd, cuser, chost, key) &&
-		    mm_key_verify(mm_recvfd, MM_HOSTKEY, cuser, chost, key,
-			sig, slen, buffer_ptr(&b), buffer_len(&b)) == 1)
-			authenticated = 1;
-	} else {
-		if (hostbased_key_allowed(authctxt->pw, cuser, chost, key) &&
-		    key_verify(key, sig, slen, buffer_ptr(&b),
-			buffer_len(&b)) == 1)
-			authenticated = 1;
-	}
+	if (hostbased_key_allowed(authctxt->pw, cuser, chost, key) &&
+	    key_verify(key, sig, slen, buffer_ptr(&b), buffer_len(&b)) == 1)
+		authenticated = 1;
 
 	buffer_clear(&b);
 done:
@@ -771,7 +730,7 @@ user_key_allowed2(struct passwd *pw, Key *key, char *file)
 }
 
 /* check whether given key is in .ssh/authorized_keys* */
-int
+static int
 user_key_allowed(struct passwd *pw, Key *key)
 {
 	int success;
@@ -791,7 +750,7 @@ user_key_allowed(struct passwd *pw, Key *key)
 }
 
 /* return 1 if given hostkey is allowed */
-int
+static int
 hostbased_key_allowed(struct passwd *pw, const char *cuser, char *chost,
     Key *key)
 {

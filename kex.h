@@ -111,7 +111,6 @@ struct Kex {
 	char	*server_version_string;
 	int	(*verify_host_key)(Key *);
 	Key	*(*load_host_key)(int);
-	int	(*host_key_index)(Key *);
 };
 
 Kex	*kex_setup(char *[PROPOSAL_MAX]);

@@ -43,10 +43,6 @@ RCSID("$OpenBSD: kex.c,v 1.47 2002/02/28 15:46:33 markus Exp $");
 
 #define KEX_COOKIE_LEN	16
 
-/* Use privilege separation for sshd */
-int use_privsep;
-int mm_recvfd;
-
 /* prototype */
 static void kex_kexinit_finish(Kex *);
 static void kex_choose_conf(Kex *);

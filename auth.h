@@ -121,8 +121,8 @@ void	krb5_cleanup_proc(void *authctxt);
 #include "auth-pam.h"
 #include "auth2-pam.h"
 
-Authctxt *do_authentication(void);
-Authctxt *do_authentication2(void);
+void	do_authentication(void);
+void	do_authentication2(void);
 
 Authctxt *authctxt_new(void);
 void	auth_log(Authctxt *, int, char *, char *);

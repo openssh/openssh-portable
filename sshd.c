@@ -72,11 +72,6 @@ RCSID("$OpenBSD: sshd.c,v 1.228 2002/02/27 21:23:13 stevesk Exp $");
 #include "misc.h"
 #include "dispatch.h"
 #include "channels.h"
-#include "session.h"
-#include "monitor_mm.h"
-#include "monitor.h"
-#include "monitor_wrap.h"
-#include "monitor_fdpass.h"
 
 #ifdef LIBWRAP
 #include <tcpd.h>
@@ -194,20 +189,8 @@ u_int utmp_len = MAXHOSTNAMELEN;
 int *startup_pipes = NULL;
 int startup_pipe;		/* in child */
 
-/* variables used for privilege separation */
-#define MM_MEMSIZE	65536
-struct mm_master *mm_zback;
-struct mm_master *mm_zlib;
-
-extern int use_privsep;
-/* Socket for the child to receive a fd */
-extern int mm_recvfd;
-/* Socket for the parent to send a fd */
-int mm_sendfd;
-
 /* Prototypes for various functions defined later in this file. */
 void destroy_sensitive_data(void);
-void demote_sensitive_data(void);
 
 static void do_ssh1_kex(void);
 static void do_ssh2_kex(void);
@@ -494,69 +477,6 @@ destroy_sensitive_data(void)
 	memset(sensitive_data.ssh1_cookie, 0, SSH_SESSION_KEY_LENGTH);
 }
 
-/* Demote private to public keys for network child */
-void
-demote_sensitive_data(void)
-{
-	Key *tmp;
-	int i;
-
-	if (sensitive_data.server_key) {
-		tmp = key_demote(sensitive_data.server_key);
-		key_free(sensitive_data.server_key);
-		sensitive_data.server_key = tmp;
-	}
-	for (i = 0; i < options.num_host_key_files; i++) {
-		if (sensitive_data.host_keys[i]) {
-			tmp = key_demote(sensitive_data.host_keys[i]);
-			key_free(sensitive_data.host_keys[i]);
-			sensitive_data.host_keys[i] = tmp;
-		}
-	}
-
-	/* We do not clear ssh1_host key and cookie.  XXX - Okay Niels? */
-}
-
-void
-privsep_postauth(Authctxt *authctxt)
-{
-	pid_t pid;
-
-	if (0) {
-		/* File descriptor passing is broken */
-		mm_apply_keystate(mm_zlib);
-		use_privsep = 0;
-		return;
-	}
-
-	pid = fork();
-	if (pid == -1)
-		fatal("fork of unprivileged child failed");
-	else if (pid != 0) {
-		debug2("User child is on pid %d", pid);
-		close(mm_recvfd);
-		monitor_child_postauth(mm_sendfd);
-
-		/* Teardown? */
-		exit(0);
-	}
-
-	close(mm_sendfd);
-
-	/* Demote the private keys to public keys. */
-	demote_sensitive_data();
-
-	/* Drop privileges */
-	if (seteuid(authctxt->pw->pw_uid) == -1)
-		fatal("%s: seteuid", __FUNCTION__);
-	if (setuid(authctxt->pw->pw_uid) == -1)
-		fatal("%s: setuid", __FUNCTION__);
-
-	/* It is safe now to apply the key state */
-	mm_apply_keystate(mm_zlib);
-}
-
-
 static char *
 list_hostkey_types(void)
 {
@@ -596,25 +516,6 @@ get_hostkey_by_type(int type)
 			return key;
 	}
 	return NULL;
-}
-
-Key *
-get_hostkey_by_index(int ind)
-{
-	if (ind < 0 || ind >= options.num_host_key_files)
-		return (NULL);
-	return (sensitive_data.host_keys[ind]);
-}
-
-int
-get_hostkey_index(Key *key)
-{
-	int i;
-	for (i = 0; i < options.num_host_key_files; i++) {
-		if (key == sensitive_data.host_keys[i])
-			return (i);
-	}
-	return (-1);
 }
 
 /*
@@ -693,8 +594,6 @@ main(int ac, char **av)
 	int listen_sock, maxfd;
 	int startup_p[2];
 	int startups = 0;
-	Authctxt *authctxt;
-	int sp[2];
 	Key *key;
 	int ret, key_used = 0;
 
@@ -1332,84 +1231,23 @@ main(int ac, char **av)
 
 	packet_set_nonblocking();
 
-	if (!use_privsep)
-		goto skip_privilegeseparation;
-		
-	/* Set up unprivileged child process to deal with network data */
-	monitor_socketpair(sp);
-	mm_recvfd = sp[0];
-	mm_sendfd = sp[1];
-
-	/* Used to share zlib space across processes */
-	mm_zback = mm_create(NULL, MM_MEMSIZE);
-	mm_zlib = mm_create(mm_zback, 20 * MM_MEMSIZE);
-
-	/* Compression needs to share state across borders */
-	mm_init_compression(mm_zlib);
-
-	pid = fork();
-	if (pid == -1)
-		fatal("fork of unprivileged child failed");
-	else if (pid != 0) {
-		debug2("Network child is on pid %d", pid);
-		authctxt = monitor_child_preauth(mm_sendfd);
-
-		/* The member allocation is not visible, so sync it */
-		mm_share_sync(&mm_zlib, &mm_zback);
-		goto authenticated;
-	} else {
-		/* Demote the private keys to public keys. */
-		demote_sensitive_data();
-
-		/* Change our root directory - /var/empty is standard*/
-		if (chroot("/var/empty") == -1)
-			fatal("chroot(/var/empty)");
-		if (chdir("/") == -1)
-			fatal("chdir(/)");
-		
-		/* Drop our privileges */
-		seteuid(32767); /* XXX - Niels */
-		setuid(32767);
-	}		
-
- skip_privilegeseparation:
-
 	/* perform the key exchange */
 	/* authenticate user and start session */
 	if (compat20) {
 		do_ssh2_kex();
-		authctxt = do_authentication2();
-		if (use_privsep)
-			mm_send_keystate(mm_recvfd);
+		do_authentication2();
 	} else {
 		do_ssh1_kex();
-		authctxt = do_authentication();
+		do_authentication();
 	}
-
-	/* If we use privilege separation, the unprivileged child exits */
-	if (use_privsep)
-		exit(0);
-
- authenticated:
-	/* 
-	 * In privilege separation, we fork another child and prepare
-	 * file descriptor passing.
-	 */
-	if (use_privsep)
-		privsep_postauth(authctxt);
-
-	/* Perform session preparation. */
-	do_authenticated(authctxt);
+	/* The connection has been terminated. */
+	verbose("Closing connection to %.100s", remote_ip);
 
 #ifdef USE_PAM
 	finish_pam();
 #endif /* USE_PAM */
 
 	packet_close();
-
-	if (use_privsep)
-		mm_terminate(mm_recvfd);
-
 	exit(0);
 }
 
@@ -1615,6 +1453,8 @@ do_ssh1_kex(void)
 		for (i = 0; i < 16; i++)
 			session_id[i] = session_key[i] ^ session_key[i + 16];
 	}
+	/* Destroy the private and public keys.  They will no longer be needed. */
+	destroy_sensitive_data();
 
 	/* Destroy the decrypted integer.  It is no longer needed. */
 	BN_clear_free(session_key_int);
@@ -1662,7 +1502,6 @@ do_ssh2_kex(void)
 	kex->client_version_string=client_version_string;
 	kex->server_version_string=server_version_string;
 	kex->load_host_key=&get_hostkey_by_type;
-	kex->host_key_index=&get_hostkey_index;
 
 	xxx_kex = kex;
 

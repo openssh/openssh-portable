@@ -19,8 +19,8 @@ RCSID("$OpenBSD: compress.c,v 1.17 2001/12/29 21:56:01 stevesk Exp $");
 #include "zlib.h"
 #include "compress.h"
 
-z_stream incoming_stream;
-z_stream outgoing_stream;
+static z_stream incoming_stream;
+static z_stream outgoing_stream;
 static int compress_init_send_called = 0;
 static int compress_init_recv_called = 0;
 

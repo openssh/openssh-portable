@@ -56,13 +56,6 @@ void	*packet_get_string(u_int *length_ptr);
 void     packet_disconnect(const char *fmt,...) __attribute__((format(printf, 1, 2)));
 void     packet_send_debug(const char *fmt,...) __attribute__((format(printf, 1, 2)));
 
-void	 set_newkeys(int mode);
-void	 packet_get_keyiv(int, u_char *, u_int);
-int	 packet_get_keycontext(int, u_char *);
-void	 packet_set_keycontext(int, u_char *);
-u_int32_t packet_get_seqnr(int);
-void	 packet_set_seqnr(int, u_int32_t);
-
 void     packet_write_poll(void);
 void     packet_write_wait(void);
 int      packet_have_data_to_write(void);
