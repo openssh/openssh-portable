@@ -53,7 +53,6 @@ Programming:
 
 - 64-bit builds on HP-UX 11.X (stevesk@pobox.com):
   - utmp/wtmp get corrupted (something in loginrec?)
-  - no 64-bit vhangup(); ptmx systems shouldn't need this
   - can't build with PAM (no 64-bit libpam yet)
 
 Documentation:
@@ -88,4 +87,4 @@ Packaging:
 - HP-UX: Provide DEPOT package scripts.
   (gilbert.r.loomis@saic.com)
 
-$Id: TODO,v 1.40 2001/03/27 06:10:22 djm Exp $
+$Id: TODO,v 1.41 2001/06/15 04:23:13 stevesk Exp $
