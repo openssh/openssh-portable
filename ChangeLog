@@ -4,6 +4,8 @@
      [sftp-server.c]
      one last fix to the tree: race fix broke stuff; pr 3169; 
      srp@srparish.net, help from djm
+ - (djm) Fix getpeerid support for 64 bit BE systems. From 
+    Arnd Bergmann <arndb@de.ibm.com>
  - Release 3.6p1
 
 20030324
@@ -1254,4 +1256,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2633.2.7 2003/03/26 04:59:47 djm Exp $
+$Id: ChangeLog,v 1.2633.2.8 2003/03/26 05:02:47 djm Exp $

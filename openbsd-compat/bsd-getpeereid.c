@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$Id: bsd-getpeereid.c,v 1.1 2002/09/12 00:33:02 djm Exp $");
+RCSID("$Id: bsd-getpeereid.c,v 1.1.4.1 2003/03/26 05:02:47 djm Exp $");
 
 #if !defined(HAVE_GETPEEREID)
 
@@ -33,7 +33,7 @@ int
 getpeereid(int s, uid_t *euid, gid_t *gid)
 {
 	struct ucred cred;
-	size_t len = sizeof(cred);
+	socklen_t len = sizeof(cred);
 
 	if (getsockopt(s, SOL_SOCKET, SO_PEERCRED, &cred, &len) < 0)
 		return (-1);
