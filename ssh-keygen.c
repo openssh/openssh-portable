@@ -947,12 +947,10 @@ main(int ac, char **av)
 		do_fingerprint(pw);
 	if (change_passphrase)
 		do_change_passphrase(pw);
-	if (change_comment)
-		do_change_comment(pw);
 	if (convert_to_ssh2)
 		do_convert_to_ssh2(pw);
-	if (convert_from_ssh2)
-		do_convert_from_ssh2(pw);
+	if (change_comment)
+		do_change_comment(pw);
 	if (print_public)
 		do_print_public(pw);
 	if (reader_id != NULL) {
@@ -969,6 +967,9 @@ main(int ac, char **av)
 	init_rng();
 	seed_rng();
 	arc4random_stir();
+
+	if (convert_from_ssh2)
+		do_convert_from_ssh2(pw);
 
 	if (key_type_name == NULL) {
 		printf("You must specify a key type (-t).\n");
