@@ -1,14 +1,14 @@
-/* $Id: getopt.h,v 1.3 2001/09/17 21:34:34 tim Exp $ */
+/* $Id: getopt.h,v 1.4 2001/09/18 05:05:21 djm Exp $ */
 
-#ifndef _GETOPT_H
-#define _GETOPT_H
+#ifndef _BSDGETOPT_H
+#define _BSDGETOPT_H
 
 #include "config.h"
 
-#ifndef HAVE_GETOPT_H
+#if !defined(HAVE_GETOPT) || !defined(HAVE_GETOPT_OPTRESET)
 
 int BSDgetopt(int argc, char * const *argv, const char *opts);
 
 #endif
 
-#endif /* _GETOPT_H */
+#endif /* _BSDGETOPT_H */
