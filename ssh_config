@@ -31,6 +31,6 @@
 #   IdentityFile ~/.ssh/id_rsa1
 #   IdentityFile ~/.ssh/id_rsa2
 #   Port 22
-#   Protocol 2,1
+#   Protocol 1,2
 #   Cipher blowfish
 #   EscapeChar ~

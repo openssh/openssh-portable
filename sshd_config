@@ -6,7 +6,7 @@
 # for more information.
 
 Port 22
-#Protocol 2,1
+#Protocol 1,2
 #ListenAddress 0.0.0.0
 #ListenAddress ::
 HostKey /etc/ssh_host_key
