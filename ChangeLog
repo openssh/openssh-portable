@@ -1,3 +1,7 @@
+20040523
+ - (djm) Explain consequences of UsePAM=yes a little better in sshd_config;
+   ok dtucker@
+
 20040513
  - (dtucker) [configure.ac] Bug #867: Additional tests for res_query in
    libresolv, fixes problems detecting it on some platforms
@@ -1118,4 +1122,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3355 2004/05/13 10:24:10 dtucker Exp $
+$Id: ChangeLog,v 1.3356 2004/05/23 01:47:58 djm Exp $
