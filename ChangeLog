@@ -5,6 +5,10 @@
      [log.c log.h session.c sshd.c]
      remove fatal cleanups after fork; based on discussions with and code
      from solar.
+   - stevesk@cvs.openbsd.org 2002/07/19 17:42:40
+     [ssh.c]
+     display a warning from ssh when XAuthLocation does not exist or xauth
+     returned no authentication data. ok markus@
  
 20020722
  - (bal) AIX tty data limiting patch fix by leigh@solinno.co.uk
@@ -1428,4 +1432,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2395 2002/07/23 21:01:56 mouring Exp $
+$Id: ChangeLog,v 1.2396 2002/07/23 21:03:02 mouring Exp $

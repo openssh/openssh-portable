@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.181 2002/07/03 14:21:05 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.182 2002/07/19 17:42:40 stevesk Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -734,11 +734,19 @@ x11_get_proto(char **_proto, char **_data)
 	FILE *f;
 	int got_data = 0, i;
 	char *display;
+	struct stat st;
 
 	*_proto = proto;
 	*_data = data;
 	proto[0] = data[0] = '\0';
-	if (options.xauth_location && (display = getenv("DISPLAY"))) {
+	if (!options.xauth_location ||
+	    (stat(options.xauth_location, &st) == -1)) {
+		debug("No xauth program.");
+	} else {
+		if ((display = getenv("DISPLAY")) == NULL) {
+			debug("x11_get_proto: DISPLAY not set");
+			return;
+		}
 		/* Try to get Xauthority information for the display. */
 		if (strncmp(display, "localhost:", 10) == 0)
 			/*
@@ -753,7 +761,7 @@ x11_get_proto(char **_proto, char **_data)
 		else
 			snprintf(line, sizeof line, "%s list %.200s 2>"
 			    _PATH_DEVNULL, options.xauth_location, display);
-		debug2("x11_get_proto %s", line);
+		debug2("x11_get_proto: %s", line);
 		f = popen(line, "r");
 		if (f && fgets(line, sizeof(line), f) &&
 		    sscanf(line, "%*s %511s %511s", proto, data) == 2)
@@ -772,6 +780,7 @@ x11_get_proto(char **_proto, char **_data)
 	if (!got_data) {
 		u_int32_t rand = 0;
 
+		log("Warning: No xauth data; using fake authentication data for X11 forwarding.");
 		strlcpy(proto, "MIT-MAGIC-COOKIE-1", sizeof proto);
 		for (i = 0; i < 16; i++) {
 			if (i % 4 == 0)
