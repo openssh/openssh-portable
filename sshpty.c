@@ -249,17 +249,20 @@ pty_release(const char *ttyname)
 void
 pty_make_controlling_tty(int *ttyfd, const char *ttyname)
 {
-#ifdef _CRAY
 	int fd;
+#ifdef USE_VHANGUP
+	void *old;
+#endif /* USE_VHANGUP */
 
+#ifdef _CRAY
 	if (setsid() < 0)
 		error("setsid: %.100s", strerror(errno));
 
 	fd = open(ttyname, O_RDWR|O_NOCTTY);
 	if (fd != -1) {
-		signal(SIGHUP, SIG_IGN);
+		mysignal(SIGHUP, SIG_IGN);
 		ioctl(fd, TCVHUP, (char *)NULL);
-		signal(SIGHUP, SIG_DFL);
+		mysignal(SIGHUP, SIG_DFL);
 		setpgid(0, 0);
 		close(fd);
 	} else {
@@ -273,11 +276,7 @@ pty_make_controlling_tty(int *ttyfd, const char *ttyname)
 		error("%.100s: %.100s", ttyname, strerror(errno));
 	close(*ttyfd);
        	*ttyfd = fd;
-#else
-	int fd;
-#ifdef USE_VHANGUP
-	void *old;
-#endif /* USE_VHANGUP */
+#else /* _CRAY */
 
 	/* First disconnect from the old controlling tty. */
 #ifdef TIOCNOTTY
@@ -310,9 +309,9 @@ pty_make_controlling_tty(int *ttyfd, const char *ttyname)
 		error("SETPGRP %s",strerror(errno));
 #endif /* HAVE_NEWS4 */
 #ifdef USE_VHANGUP
-	old = signal(SIGHUP, SIG_IGN);
+	old = mysignal(SIGHUP, SIG_IGN);
 	vhangup();
-	signal(SIGHUP, old);
+	mysignal(SIGHUP, old);
 #endif /* USE_VHANGUP */
 	fd = open(ttyname, O_RDWR);
 	if (fd < 0) {
@@ -333,7 +332,7 @@ pty_make_controlling_tty(int *ttyfd, const char *ttyname)
 	else {
 		close(fd);
 	}
-#endif
+#endif /* _CRAY */
 }
 
 /* Changes the window size associated with the pty. */
