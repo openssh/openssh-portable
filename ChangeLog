@@ -30,6 +30,11 @@
      behaviour for bsdauth is maintained by checking authctxt->valid in the
      bsdauth driver.  Note that any third-party kbdint drivers will now need
      to be able to handle responses for invalid logins.  ok markus@
+   - djm@cvs.openbsd.org 2004/12/22 02:13:19
+     [cipher-ctr.c cipher.c]
+     remove fallback AES support for old OpenSSL, as OpenBSD has had it for
+     many years now; ok deraadt@
+     (Id sync only: Portable will continue to support older OpenSSLs)
  - (dtucker) [auth-pam.c] Bug #971: Prevent leaking information about user
    existence via keyboard-interactive/pam, in conjunction with previous
    auth2-chall.c change; with Colin Watson and djm.
@@ -2005,4 +2010,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3617 2005/01/20 01:43:38 dtucker Exp $
+$Id: ChangeLog,v 1.3618 2005/01/20 02:27:56 dtucker Exp $
