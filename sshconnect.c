@@ -116,8 +116,8 @@ ssh_proxy_connect(const char *host, u_short port, uid_t original_real_uid,
 
 		/* Execute the proxy command.  Note that we gave up any
 		   extra privileges above. */
-		execv(_PATH_BSHELL, argv);
-		perror(_PATH_BSHELL);
+		execv(argv[0], argv);
+		perror(argv[0]);
 		exit(1);
 	}
 	/* Parent. */
