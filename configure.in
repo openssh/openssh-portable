@@ -169,6 +169,7 @@ case "$host" in
 	LIBS="$LIBS -lgen -lsocket"
 	;;
 *-*-sco3*)
+	AC_DEFINE(USE_PIPES)
 	CFLAGS="$CFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	MANTYPE='$(CATMAN)'

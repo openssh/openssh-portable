@@ -1,3 +1,7 @@
+20000831
+ - (djm) Workaround SIGPIPE problems on SCO. Fix from Aran Cox 
+   <acox@cv.telegroup.com>
+
 20000830
  - (djm) Compile warning fixes from Mark Miller <markm@swoon.net>
  - (djm) Periodically rekey arc4random

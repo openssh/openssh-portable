@@ -9,6 +9,7 @@ Andreas Steinmetz <ast@domdv.de> - Shadow password expiry support
 Andrew McGill <andrewm@datrix.co.za> - SCO fixes
 Andrew Stribblehill <a.d.stribblehill@durham.ac.uk> - Bugfixes
 Andy Sloane <andy@guildsoftware.com> - bugfixes
+Aran Cox <acox@cv.telegroup.com> - SCO bugfixes
 Arkadiusz Miskiewicz <misiek@pld.org.pl> - IPv6 compat fixes
 Ben Lindstrom <mouring@pconline.com> - NeXT support
 Ben Taylor <bent@clark.net> - Solaris debugging and fixes
