@@ -2,6 +2,9 @@
  - (djm) Added WARNING.RNG file and modified configure to ask users of the
    builtin entropy code to read it.
  - (djm) Prefer builtin regex to PCRE.
+ - (bal) Added USE_PIPS defined to NeXT configure.in since scp hangs randomly.
+ - (bal) Apply fixes to configure.in pointed out by Pavel Roskin
+   <proski@gnu.org>
 
 20001020
  - (djm) Don't define _REENTRANT for SNI/Reliant Unix

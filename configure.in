@@ -138,6 +138,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	MAIL=/usr/spool/mail
 	AC_DEFINE(HAVE_NEXT)
 	AC_DEFINE(BROKEN_REALPATH)
+	AC_DEFINE(USE_PIPES)
 	CFLAGS="$CFLAGS -I/usr/local/include"
 	;;
 *-*-solaris*)
@@ -916,7 +917,7 @@ AC_ARG_WITH(rsh,
 AC_ARG_WITH(xauth,
 	[  --with-xauth=PATH       Specify path to xauth program ],
 	[
-		if test "x$withval" != "$xno" ; then
+		if test "x$withval" != "xno" ; then
 			xauth_path=$withval
 		fi
 	],
@@ -1082,7 +1083,7 @@ AC_ARG_WITH(afs,
 	[
 		if test "x$withval" != "xno" ; then
 
-			if test "x$withval" != "$xyes" ; then
+			if test "x$withval" != "xyes" ; then
 				CFLAGS="$CFLAGS -I${withval}/include"
 				LFLAGS="$LFLAGS -L${withval}/lib"
 			fi
