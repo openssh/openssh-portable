@@ -41,6 +41,9 @@
    - djm@cvs.openbsd.org 2004/11/07 00:32:41
      [multiplex.sh]
      regression tests for new multiplex commands
+   - dtucker@cvs.openbsd.org 2004/11/25 09:39:27
+     [test-exec.sh]
+     Remove obsolete RhostsAuthentication from test config; ok markus@
 
 20041203
  - (dtucker) OpenBSD CVS Sync
@@ -1914,4 +1917,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3596 2004/12/06 12:12:15 dtucker Exp $
+$Id: ChangeLog,v 1.3597 2004/12/06 12:13:50 dtucker Exp $
