@@ -23,13 +23,15 @@
  */
 
 #include "includes.h"
+#include "log.h"
 
-RCSID("$Id: bsd-arc4random.c,v 1.3 2001/03/18 22:38:16 djm Exp $");
+RCSID("$Id: bsd-arc4random.c,v 1.4 2001/03/18 23:00:53 djm Exp $");
 
 #ifndef HAVE_ARC4RANDOM
 
 #include <openssl/rand.h>
 #include <openssl/rc4.h>
+#include <openssl/err.h>
 
 /* Size of key to use */
 #define SEED_SIZE 20
