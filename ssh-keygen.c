@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.105 2003/05/14 18:16:20 jakob Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.106 2003/05/15 03:10:52 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -30,6 +30,9 @@ RCSID("$OpenBSD: ssh-keygen.c,v 1.105 2003/05/14 18:16:20 jakob Exp $");
 
 #ifdef SMARTCARD
 #include "scard.h"
+#endif
+#ifdef DNS
+#include "dns.h"
 #endif
 
 /* Number of bits in the RSA/DSA key.  This value can be changed on the command line. */

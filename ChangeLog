@@ -25,6 +25,9 @@
    - markus@cvs.openbsd.org 2003/05/15 03:08:29
      [cipher.c cipher-bf1.c cipher-aes.c cipher-3des1.c]
      split out custom EVP ciphers
+   - djm@cvs.openbsd.org 2003/05/15 03:10:52
+     [ssh-keygen.c]
+     avoid warning; ok jakob@
  - (djm) Always parse UsePAM
  - (djm) Configure glue for DNS support (code doesn't work in portable yet)
  - (djm) Import getrrsetbyname() function from OpenBSD libc (for DNS support)
@@ -1505,4 +1508,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2711 2003/05/15 03:37:19 djm Exp $
+$Id: ChangeLog,v 1.2712 2003/05/15 03:37:43 djm Exp $
