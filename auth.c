@@ -73,7 +73,7 @@ int
 allowed_user(struct passwd * pw)
 {
 	struct stat st;
-	const char *hostname = NULL, *ipaddr = NULL, *passwd;
+	const char *hostname = NULL, *ipaddr = NULL, *passwd = NULL;
 	char *shell;
 	int i;
 #if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
@@ -131,7 +131,7 @@ allowed_user(struct passwd * pw)
 #endif
 
 	/* check for locked account */ 
-	if (passwd && *passwd) {
+	if (!options.use_pam && passwd && *passwd) {
 		int locked = 0;
 
 #ifdef LOCKED_PASSWD_STRING

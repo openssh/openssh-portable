@@ -35,6 +35,7 @@
  - (dtucker) [Makefile.in] Remove auth2-krb5.
  - (dtucker) [contrib/aix/inventory.sh] Add public domain notice.  ok mouring@
    (the original author)
+ - (dtucker) [auth.c] Do not check for locked accounts when PAM is enabled.
 
 20030825
  - (djm) Bug #621: Select OpenSC keys by usage attributes. Patch from 
@@ -907,4 +908,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2916 2003/08/26 03:43:12 dtucker Exp $
+$Id: ChangeLog,v 1.2917 2003/08/26 04:22:12 dtucker Exp $
