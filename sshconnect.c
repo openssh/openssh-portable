@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.98 2001/03/04 17:42:28 millert Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.99 2001/03/10 15:31:00 deraadt Exp $");
 
 #include <openssl/bn.h>
 
@@ -777,6 +777,10 @@ ssh_put_password(char *password)
 	int size;
 	char *padded;
 
+	if (datafellows & SSH_BUG_PASSWORDPAD) {
+		packet_put_string(password, strlen(password));
+		return;
+	}
 	size = roundup(strlen(password) + 1, 32);
 	padded = xmalloc(size);
 	memset(padded, 0, size);

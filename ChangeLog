@@ -9,6 +9,10 @@
    - stevesk@cvs.openbsd.org 2001/03/10 15:02:05
      [ttymodes.c ttymodes.h]
      remove unused sgtty macros; ok markus@
+   - deraadt@cvs.openbsd.org 2001/03/10 15:31:00
+     [compat.c compat.h sshconnect.c]
+     all known netscreen ssh versions, and older versions of OSU ssh cannot
+     handle password padding (newer OSU is fixed)
 
 20010310
  - OpenBSD CVS Sync
@@ -4480,4 +4484,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.936 2001/03/10 17:17:28 mouring Exp $
+$Id: ChangeLog,v 1.937 2001/03/10 17:22:20 mouring Exp $
