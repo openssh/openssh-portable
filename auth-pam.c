@@ -31,7 +31,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.77 2003/11/13 00:21:32 dtucker Exp $");
+RCSID("$Id: auth-pam.c,v 1.78 2003/11/13 08:52:31 dtucker Exp $");
 
 #ifdef USE_PAM
 #include <security/pam_appl.h>
@@ -412,9 +412,9 @@ sshpam_query(void *ctx, char **name, char **info,
 		case PAM_ERROR_MSG:
 		case PAM_TEXT_INFO:
 			/* accumulate messages */
-			len = plen + strlen(msg) + 1;
+			len = plen + strlen(msg) + 2;
 			**prompts = xrealloc(**prompts, len);
-			plen += snprintf(**prompts + plen, len, "%s", msg);
+			plen += snprintf(**prompts + plen, len, "%s\n", msg);
 			xfree(msg);
 			break;
 		case PAM_SUCCESS:

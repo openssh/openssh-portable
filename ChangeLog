@@ -11,6 +11,8 @@
    - Create configs from skeletons in /etc/defaults/etc.
    - Use /bin/bash, allows reading user input with readline support.
    - Remove really old configs from /usr/local.
+ - (dtucker) [auth-pam.c] Add newline to accumulated PAM_TEXT_INFO and
+   PAM_ERROR_MSG messages.
 
 20031106
  - (djm) Clarify UsePAM consequences a little more
@@ -1411,4 +1413,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3095 2003/11/13 00:28:49 dtucker Exp $
+$Id: ChangeLog,v 1.3096 2003/11/13 08:52:31 dtucker Exp $
