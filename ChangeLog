@@ -1,6 +1,8 @@
 20011229
  - (djm) Apply Cygwin pointer deref fix from Corinna Vinschen 
    <vinschen@redhat.com> Could be abused to guess valid usernames
+ - (djm) Typo in contrib/cygwin/README Fix from Corinna Vinschen
+   <vinschen@redhat.com>
 
 20011228
  - (djm) Remove recommendation to use GNU make, we should support most
@@ -7112,4 +7114,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1710 2001/12/29 03:08:28 djm Exp $
+$Id: ChangeLog,v 1.1711 2001/12/29 03:10:09 djm Exp $

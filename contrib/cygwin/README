@@ -83,12 +83,12 @@ If you start sshd as deamon via cygrunsrv.exe you MUST give the
 If starting via inetd, copy sshd to eg. /usr/sbin/in.sshd and add the
 following line to your inetd.conf file:
 
-sshd stream tcp nowait root /usr/sbin/in.sshd sshd -i
+ssh stream tcp nowait root /usr/sbin/in.sshd sshd -i
 
 Moreover you'll have to add the following line to your
 ${SYSTEMROOT}/system32/drivers/etc/services file:
 
-   sshd         22/tcp          #SSH daemon
+   ssh         22/tcp          #SSH daemon
 
 ===========================================================================
 The following restrictions only apply to Cygwin versions up to 1.3.1
