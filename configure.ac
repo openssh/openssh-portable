@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.239 2005/02/09 11:17:28 dtucker Exp $
+# $Id: configure.ac,v 1.240 2005/02/10 11:28:55 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -2583,18 +2583,26 @@ fi
 
 # check for /etc/default/login and use it if present.
 AC_ARG_ENABLE(etc-default-login,
-	[  --disable-etc-default-login       Disable using PATH from /etc/default/login [no]],,
-	[ AC_CHECK_FILE("/etc/default/login",
-	    [ external_path_file=/etc/default/login ])
+	[  --disable-etc-default-login       Disable using PATH from /etc/default/login [no]],
+	[ if test "x$enableval" = "xno"; then
+		AC_MSG_NOTICE([/etc/default/login handling disabled])
+		etc_default_login=no
+	  else
+		etc_default_login=yes
+	  fi ],
+	[ etc_default_login=yes ]
+)
 
+if test "x$etc_default_login" != "xno"; then
+	AC_CHECK_FILE("/etc/default/login",
+	    [ external_path_file=/etc/default/login ])
 	if test ! -z "$cross_compiling" && test "x$cross_compiling" = "xyes";
 	then
 		AC_MSG_WARN([cross compiling: Disabling /etc/default/login test])
 	elif test "x$external_path_file" = "x/etc/default/login"; then
 		AC_DEFINE(HAVE_ETC_DEFAULT_LOGIN)
 	fi
-	]
-)
+fi
 
 dnl BSD systems use /etc/login.conf so --with-default-path= has no effect
 if test $ac_cv_func_login_getcapbool = "yes" -a \
