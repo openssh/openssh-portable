@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.31 2002/04/05 16:11:46 mouring Exp $
+# $Id: configure.ac,v 1.32 2002/04/05 20:23:37 mouring Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -63,7 +63,6 @@ case "$host" in
 	AC_DEFINE(BROKEN_GETADDRINFO)
 	dnl AIX handles lastlog as part of its login message
 	AC_DEFINE(DISABLE_LASTLOG)
-	AC_DEFINE(HAVE_BOGUS_SYS_QUEUE_H)
 	;;
 *-*-cygwin*)
 	LIBS="$LIBS /usr/lib/textmode.o"
@@ -123,7 +122,6 @@ case "$host" in
 	check_for_libcrypt_later=1
 	AC_DEFINE(DONT_TRY_OTHER_AF)
 	AC_DEFINE(PAM_TTY_KLUDGE)
-	AC_DEFINE(HAVE_BOGUS_SYS_QUEUE_H)
 	inet6_default_4in6=yes
 	;;
 mips-sony-bsd|mips-sony-newsos4)
@@ -175,7 +173,6 @@ mips-sony-bsd|mips-sony-newsos4)
 	CPPFLAGS="$CPPFLAGS -DSUNOS4"
 	AC_CHECK_FUNCS(getpwanam)
 	AC_DEFINE(PAM_SUN_CODEBASE)
-	AC_DEFINE(HAVE_BOGUS_SYS_QUEUE_H)
 	conf_utmp_location=/etc/utmp
 	conf_wtmp_location=/var/adm/wtmp
 	conf_lastlog_location=/var/adm/lastlog
@@ -185,7 +182,6 @@ mips-sony-bsd|mips-sony-newsos4)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	LIBS="$LIBS -lc89"
-	AC_DEFINE(HAVE_BOGUS_SYS_QUEUE_H)
 	AC_DEFINE(USE_PIPES)
 	;;
 *-sni-sysv*)
@@ -195,7 +191,6 @@ mips-sony-bsd|mips-sony-newsos4)
 	IPADDR_IN_DISPLAY=yes
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(IP_TOS_IS_BROKEN)
-	AC_DEFINE(HAVE_BOGUS_SYS_QUEUE_H)
 	# /usr/ucblib/libucb.a no longer needed on ReliantUNIX
 	# Attention: always take care to bind libsocket and libnsl before libc,
 	# otherwise you will find lots of "SIOCGPGRP errno 22" on syslog
@@ -227,7 +222,6 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(HAVE_SCO_PROTECTED_PW)
 	AC_DEFINE(DISABLE_SHADOW)
-	AC_DEFINE(HAVE_BOGUS_SYS_QUEUE_H)
 	AC_DEFINE(BROKEN_SAVED_UIDS)
 	AC_CHECK_FUNCS(getluid setluid)
 	MANTYPE=man
@@ -242,7 +236,6 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(HAVE_SCO_PROTECTED_PW)
 	AC_DEFINE(DISABLE_SHADOW)
-	AC_DEFINE(HAVE_BOGUS_SYS_QUEUE_H)
 	AC_CHECK_FUNCS(getluid setluid)
 	MANTYPE=man
 	;;
@@ -327,7 +320,7 @@ AC_CHECK_HEADERS(bstring.h crypt.h endian.h floatingpoint.h \
 	netinet/in_systm.h paths.h poll.h pty.h \
 	rpc/types.h security/pam_appl.h shadow.h stddef.h stdint.h \
 	strings.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h \
-	sys/poll.h sys/queue.h sys/select.h sys/stat.h \
+	sys/poll.h sys/select.h sys/stat.h \
 	sys/stropts.h sys/sysmacros.h sys/time.h \
 	sys/un.h time.h ttyent.h usersec.h \
 	util.h utime.h utmp.h utmpx.h)

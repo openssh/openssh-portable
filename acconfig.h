@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.125 2002/04/05 16:11:46 mouring Exp $ */
+/* $Id: acconfig.h,v 1.126 2002/04/05 20:23:37 mouring Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -14,7 +14,6 @@
 
 /* SCO workaround */
 #undef BROKEN_SYS_TERMIO_H
-#undef HAVE_BOGUS_SYS_QUEUE_H
 
 /* Define if you have SCO protected password database */
 #undef HAVE_SCO_PROTECTED_PW

@@ -30,11 +30,7 @@
 #include "includes.h"
 RCSID("$OpenBSD: sftp-client.c,v 1.30 2002/04/01 22:07:17 markus Exp $");
 
-#if defined(HAVE_SYS_QUEUE_H) && !defined(HAVE_BOGUS_SYS_QUEUE_H)
-#include <sys/queue.h>
-#else
 #include "openbsd-compat/fake-queue.h"
-#endif
 
 #include "buffer.h"
 #include "bufaux.h"
