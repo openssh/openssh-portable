@@ -97,6 +97,8 @@ patented algorithms to seperate libraries (OpenSSL).
 This package contains the GNOME passphrase dialog.
 
 %changelog
+* Sun Dec 26 1999 Chris Saia <csaia@wtower.com>
+- Made symlink to gnome-ssh-askpass called ssh-askpass
 * Wed Nov 24 1999 Chris Saia <csaia@wtower.com>
 - Removed patches that included /etc/pam.d/sshd, /sbin/init.d/rc.sshd, and
   /var/adm/fillup-templates/rc.config.sshd, since Damien merged these into
@@ -156,6 +158,7 @@ install -m744 packages/suse/rc.sshd $RPM_BUILD_ROOT/sbin/init.d/sshd
 install -m644 ssh_config $RPM_BUILD_ROOT/etc/ssh/ssh_config
 install -m600 sshd_config $RPM_BUILD_ROOT/etc/ssh/sshd_config
 ln -s ../../sbin/init.d/sshd $RPM_BUILD_ROOT/usr/sbin/rcsshd
+ln -s gnome-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/ssh/ssh-askpass
 install -m744 packages/suse/rc.config.sshd \
    $RPM_BUILD_ROOT/var/adm/fillup-templates
 
@@ -236,4 +239,5 @@ fi
 %defattr(-,root,root)
 %attr(0755,root,root) %dir /usr/libexec/ssh
 %attr(0755,root,root) /usr/libexec/ssh/ssh-askpass
+%attr(0755,root,root) /usr/libexec/ssh/gnome-ssh-askpass
 
