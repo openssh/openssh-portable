@@ -21,6 +21,10 @@
      [readconf.c ssh.1]
      change RhostsRSAAuthentication and RhostsAuthentication default to no
      since ssh is no longer setuid root by default; ok markus@
+   - stevesk@cvs.openbsd.org 2002/06/10 21:21:10
+     [ssh_config]
+     update defaults for RhostsRSAAuthentication and RhostsAuthentication
+     here too (all options commented out with default value).
 
 20020609
  - (bal) OpenBSD CVS Sync
@@ -886,4 +890,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2205 2002/06/11 15:53:05 mouring Exp $
+$Id: ChangeLog,v 1.2206 2002/06/11 15:55:01 mouring Exp $
