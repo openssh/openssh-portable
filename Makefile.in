@@ -169,7 +169,7 @@ install-files:
 		fi ; \
 	fi
 	if [ ! -f $(DESTDIR)$(sysconfdir)/primes ]; then \
-		$(INSTALL) -m 644 primes $(DESTDIR)$(sysconfdir)/primes; \
+		$(INSTALL) -m 644 primes.out $(DESTDIR)$(sysconfdir)/primes; \
 	else \
 		echo "$(DESTDIR)$(sysconfdir)/primes already exists, install will not overwrite"; \
 	fi
