@@ -24,6 +24,9 @@
  - (djm) SA_INTERRUPT is the converse of SA_RESTART, apply it only for 
    SIGALRM.
  - (djm) Move entropy.c over to mysignal()
+ - (djm) SunOS 4.x also needs to define HAVE_BOGUS_SYS_QUEUE_H as it has 
+   a <sys/queue.h> that lacks the TAILQ_* macros. Patch from Todd C. 
+   Miller <Todd.Miller@courtesan.com>
 
 20010217
  - (bal) OpenBSD Sync:
@@ -4031,4 +4034,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.796 2001/02/18 04:28:11 djm Exp $
+$Id: ChangeLog,v 1.797 2001/02/18 04:29:28 djm Exp $

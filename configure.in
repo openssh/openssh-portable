@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.245 2001/02/18 02:07:07 djm Exp $
+# $Id: configure.in,v 1.246 2001/02/18 04:29:29 djm Exp $
 
 AC_INIT(ssh.c)
 
@@ -175,6 +175,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	CPPFLAGS="$CPPFLAGS -DSUNOS4"
 	AC_CHECK_FUNCS(getpwanam)
 	AC_DEFINE(PAM_SUN_CODEBASE)
+	AC_DEFINE(HAVE_BOGUS_SYS_QUEUE_H)
 	conf_utmp_location=/etc/utmp
 	conf_wtmp_location=/var/adm/wtmp
 	conf_lastlog_location=/var/adm/lastlog
