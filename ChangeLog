@@ -33,6 +33,7 @@
      'monitor' variable clashes with at least one lame platform (NeXT).  i
      Renamed to 'pmonitor'.  provos@
  - (bal) Fixed up PAM case.  I think.
+ - (bal) Clarified openbsd-compat/*-cray.* Licence provided by Wendy
 
 20020514
  - (stevesk) [README.privsep] PAM+privsep works with Solaris 8.
@@ -637,4 +638,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2129 2002/05/15 16:25:01 mouring Exp $
+$Id: ChangeLog,v 1.2130 2002/05/15 16:39:51 mouring Exp $
