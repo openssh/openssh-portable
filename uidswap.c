@@ -90,7 +90,7 @@ permanently_set_uid(uid_t uid)
 	if (sysconf(_SC_AUDIT)) {
 		debug("Setting sat id to %d", (int) uid);
 		if (satsetid(uid))
-			fatal("error setting satid: %.100s", strerror(errno));
+			debug("error setting satid: %.100s", strerror(errno));
 	}
 #endif /* WITH_IRIX_AUDIT */
 

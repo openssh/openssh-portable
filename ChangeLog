@@ -1,5 +1,7 @@
 20000815
  - (djm) More SunOS 4.1.x fixes from Nate Itkin <nitkin@europa.com>
+ - (djm) Avoid failures on Irix when ssh is not setuid. Fix from
+   Michael Stone <mstone@cs.loyola.edu>
 
 20000813
  - (djm) Add $(srcdir) to includes when compiling (for VPATH). Report from
