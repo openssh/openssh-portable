@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.203 2001/07/26 17:18:22 stevesk Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.204 2001/08/23 17:59:31 camield Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1138,7 +1138,7 @@ main(int ac, char **av)
 	{
 		struct request_info req;
 
-		request_init(&req, RQ_DAEMON, __progname, RQ_FILE, sock_in, NULL);
+		request_init(&req, RQ_DAEMON, __progname, RQ_FILE, sock_in, 0);
 		fromhost(&req);
 
 		if (!hosts_access(&req)) {
