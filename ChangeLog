@@ -1,3 +1,12 @@
+20001223
+ - (bal) Fixed Makefile.in to support recompile of all ssh and sshd objects
+   if a change to config.h has occurred.  Suggested by Gert Doering
+   <gert@greenie.muc.de>
+ - (bal) OpenBSD CVS Update:
+   - markus@cvs.openbsd.org 2000/12/22 16:49:40
+     [ssh-keygen.c]
+     fix ssh-keygen -x -t type > file; from Roumen.Petrov@skalasoft.com
+
 20001222
  - Updated RCSID for pty.c
  - (bal) OpenBSD CVS Updates:
