@@ -1,0 +1,82 @@
+/*
+ * Author: Theo Schlossnagle <jesus@omniti.com>
+ * Copyright (c) 2000,2001 Theo Schlossnagle <jesus@omniti.com>
+ *                    All rights reserved
+ * Created: September 21, 2000
+ * License: OpenSSH License.  See the license for OpenSSH for more details.
+ *
+ * March 19, 2001:
+ * Updated to 2.5.2p1 -- jesus@omniti.com
+ *
+ * December 20, 2000:
+ * Updated to 2.3.0p1 -- jesus@omniti.com
+ *
+ * Jan 9th, 2001:
+ * Added SecurIDUsersFile, SecurIDIgnoreShell, AllowNonSecurID directives
+ * to the sshd_config file.  These parameters are documented in the man page.
+ * This provides a more logical seperationg between fail-through due to system
+ * failure and fall-through by configuration. (fall-through vs. fail-through)
+ *   -- jesus@omniti.com
+ */
+
+Seems like a few people are interested.  So here is the patch.
+
+This has only been tested on UNICIES that support PAM.  There is untested
+(only 5 lines) code in auth-passwd.c that should provide the same
+functionality for normal (non-PAM) password verifications.
+
+The patch is logical quite small, the physical patch bulky because it contains
+all the line number changes in "configure" after running autoconf on the
+modified configure.in file (in which I changed maybe 10 lines -- Yuk.)
+
+The sshd man page has been patched too :-)  Read it for the two new options
+relating to SecurID.
+
+How it works:
+
+0) apply patch ;-)
+1) copy sdi headers (in SecurID example directory) into either a standard
+include place (like /usr/local/include) or into the openssh source tree
+or add the --with-cflags=-I/path/to/ace/examples (where the include files are)
+2) copy the sdiclient.a file (same dir) into the openssh source tree.
+
+Make sure that /var/ace contains your sdconf.rec, etc.  If you installed
+SecurID client or server on a machine it should be this way already.  If you
+used a non-standard install location do a "ln -s /path/to/ace/data /var/ace"
+
+3) add --with-securid --with-pam to the configure flags.  This module rides on
+the PAM authentication mechanism.
+
+It will trigger if a user has a shell in /etc/passwd that ends with "sdshell"
+and it snags your shell the same way sdshell does.  Users with other shells
+will log in as if SecurID didn't exist.
+
+Done:
+  o Normal passcode verification
+  o Enter next token for verification
+    (use ssh -v to see the *useful* debgging messages)
+
+ssh -v will let you know if:
+ o your code was accepted.
+ o your code was rejected.
+ o you are required to wait for the next token and enter that.
+
+TODO:
+  o Handle PIN creation and changing (as their are by default three log in
+attempts, it should be straight forward to integrate in these additions --
+both of these operations require exactly three user inputs.)
+  o Add sshd_config parameter to specify the VAR_ACE location (forced to
+/var/ace OR VAR_ACE environment variable now.)
+  o Make autoconf find the headers in logical places and add a long-option to
+give it a hint.  I am an "autoconf idiot"... The small changes I made were
+challenging enough :) 
+
+
+DISCLAIMER:
+  I works for me (yes, in production).  If you get locked out of a production
+system becuase you replaced your sshd with this one, feeling really dumb is
+YOUR responsibility NOT mine.  It is not my fault :-D
+
+Hope this is useful! scp (and all other tools that can use ssh like rsync and
+cvs) will work now!!!! Hooray!
+
