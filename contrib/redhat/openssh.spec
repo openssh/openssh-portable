@@ -13,6 +13,9 @@
 # Do we want to link against a static libcrypto? (1=yes 0=no)
 %define static_libcrypto 0
 
+# Do we want smartcard support (1=yes 0=no)
+%define scard 0
+
 # Use Redhat 7.0 pam control file
 %define redhat7 0
 
@@ -28,6 +31,10 @@
 # Options for static OpenSSL link:
 # rpm -ba|--rebuild --define "static_openssl 1"
 %{?static_openssl:%define static_libcrypto 1}
+
+# Options for Smartcard support: (needs libsectok and openssl-engine)
+# rpm -ba|--rebuild --define "smartcard 1"
+%{?smartcard:%define scard 1}
 
 %define exact_openssl_version   %(rpm -q openssl | cut -d - -f 2)
 
@@ -137,6 +144,12 @@ GNOME GUI desktop environment.
 
 %define _sysconfdir /etc/ssh
 
+EXTRA_OPTS=""
+
+%if %{smartcard}
+	EXTRA_OPTS="$EXTRA_OPTS --with-smartcard"
+%endif
+
 %configure \
 	--libexecdir=%{_libexecdir}/openssh \
 	--datadir=%{_datadir}/openssh \
@@ -144,7 +157,8 @@ GNOME GUI desktop environment.
 	--with-tcp-wrappers \
 	--with-ipv4-default \
 	--with-rsh=/usr/bin/rsh \
-	--with-default-path=/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin
+	--with-default-path=/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin \
+	$EXTRA_OPTS
 
 %if %{static_libcrypto}
 perl -pi -e "s|-lcrypto|/usr/lib/libcrypto.a|g" Makefile
@@ -223,8 +237,10 @@ fi
 %attr(0755,root,root) %dir %{_sysconfdir}
 %attr(0600,root,root) %config(noreplace) %{_sysconfdir}/moduli
 %attr(0755,root,root) %dir %{_libexecdir}/openssh
+%if %{smartcard}
 %attr(0755,root,root) %dir %{_datadir}/openssh
 %attr(0644,root,root) %{_datadir}/openssh/Ssh.bin
+%endif
 
 %files clients
 %defattr(-,root,root)
