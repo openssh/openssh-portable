@@ -28,7 +28,7 @@
 
 #include <sys/dir.h>
 
-/* NeXT's Readdir() is BSD (struct direct) not POSIX (struct dirent) */
+/* NeXT's readdir() is BSD (struct direct) not POSIX (struct dirent) */
 #define dirent direct
 
 /* FILE */
@@ -48,7 +48,7 @@
 #define WCOREFLAG	0x80
 #define WCOREDUMP(w) 	((_W_INT(w)) & WCOREFLAG)
 
-/* Swap out the next 'BSDish' wait() for a more POSIX complient one */
+/* Swap out NeXT's BSD wait() for a more POSIX complient one */
 pid_t posix_wait(int *status);
 #define wait(a) posix_wait(a)
 
@@ -63,6 +63,6 @@ int tcsetpgrp(int fd, pid_t pgrp);
 speed_t cfgetospeed(const struct termios *t);
 speed_t cfgetispeed(const struct termios *t);
 int cfsetospeed(struct termios *t, int speed);
-
+int cfsetispeed(struct termios *t, int speed);
 #endif /* HAVE_NEXT */
 #endif /* _NEXT_POSIX_H */

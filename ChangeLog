@@ -3,6 +3,7 @@
  - (stevesk) Create contrib/cygwin/ directory; patch from
    Corinna Vinschen <vinschen@redhat.com>
  - (bal) Resolved more $xno and $xyes issues in configure.in
+ - (bal) next-posix.h - spelling and forgot a prototype
 
 20001028
  - (djm) fix select hack in serverloop.c from Philippe WILLEM 
