@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.14 2003/06/23 09:02:44 markus Exp $
+.\" $OpenBSD: ssh_config.5,v 1.15 2003/07/02 14:51:16 markus Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -246,9 +246,9 @@ over the secure channel, and the application
 protocol is then used to determine where to connect to from the
 remote machine.
 The argument must be a port number.
-Currently the SOCKS4 protocol is supported, and
+Currently the SOCKS4 and SOCKS5 protocols are supported, and
 .Nm ssh
-will act as a SOCKS4 server.
+will act as a SOCKS server.
 Multiple forwardings may be specified, and
 additional forwardings can be given on the command line.
 Only the superuser can forward privileged ports.

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.173 2003/06/10 09:12:11 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.174 2003/07/02 14:51:16 markus Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -649,9 +649,9 @@ on the local side, and whenever a connection is made to this port, the
 connection is forwarded over the secure channel, and the application
 protocol is then used to determine where to connect to from the
 remote machine.
-Currently the SOCKS4 protocol is supported, and
+Currently the SOCKS4 and SOCKS5 protocols are supported, and
 .Nm
-will act as a SOCKS4 server.
+will act as a SOCKS server.
 Only root can forward privileged ports.
 Dynamic port forwardings can also be specified in the configuration file.
 .It Fl 1

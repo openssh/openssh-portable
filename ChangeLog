@@ -15,6 +15,11 @@
    - markus@cvs.openbsd.org 2003/07/02 12:56:34
      [channels.c]
      deny dynamic forwarding with -R for v1, too; ok djm@
+   - markus@cvs.openbsd.org 2003/07/02 14:51:16
+     [channels.c ssh.1 ssh_config.5]
+     (re)add socks5 suppport to -D; ok djm@
+     now ssh(1) can act both as a socks 4 and socks 5 server and
+     dynamically forward ports.
 
 20030630
  - (djm) Search for support functions necessary to build our 
@@ -635,4 +640,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2839 2003/07/03 03:52:04 dtucker Exp $
+$Id: ChangeLog,v 1.2840 2003/07/03 03:55:19 dtucker Exp $
