@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.110 2001/04/29 19:16:52 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.111 2001/05/03 15:07:39 stevesk Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -848,7 +848,7 @@ channel_post_connecting(Channel *c, fd_set * readset, fd_set * writeset)
 			debug("getsockopt SO_ERROR failed");
 		} else {
 			if (err == 0) {
-				debug("channel %d: connected)", c->self);
+				debug("channel %d: connected", c->self);
 			} else {
 				debug("channel %d: not connected: %s",
 				    c->self, strerror(err));
