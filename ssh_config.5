@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.24 2003/11/12 16:39:58 jakob Exp $
+.\" $OpenBSD: ssh_config.5,v 1.25 2003/11/12 20:14:51 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -644,7 +644,7 @@ Specifies whether to verify the remote key using DNS and SSHFP resource
 records.
 If this option is set to
 .Dq yes ,
-the client will implicitly trust keys that matches a secure fingerprint
+the client will implicitly trust keys that match a secure fingerprint
 from DNS.
 Insecure fingerprints will be handled as if this option was set to
 .Dq ask .
@@ -657,8 +657,8 @@ option.
 The argument must be
 .Dq yes ,
 .Dq no
-or  
-.Dq ask  .
+or
+.Dq ask .
 The default is
 .Dq no .
 Note that this option applies to protocol version 2 only.
