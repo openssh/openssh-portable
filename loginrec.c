@@ -1,5 +1,8 @@
 /*
  * Copyright (c) 2000 Andre Lucas.  All rights reserved.
+ * Portions copyright (c) 1998 Todd C. Miller
+ * Portions copyright (c) 1996 Jason Downs
+ * Portions copyright (c) 1996 Theo de Raadt
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,9 +34,106 @@
  ** loginrec.c:  platform-independent login recording and lastlog retrieval
  **/
 
+/*
+  The new login code explained
+  ============================
+
+  This code attempts to provide a common interface to login recording
+  (utmp and friends) and last login time retrieval.
+
+  Its primary means of achieving this is to use 'struct logininfo', a
+  union of all the useful fields in the various different types of
+  system login record structures one finds on UNIX variants.
+
+  We depend on autoconf to define which recording methods are to be
+  used, and which fields are contained in the relevant data structures
+  on the local system. Many C preprocessor symbols affect which code
+  gets compiled here.
+
+  The code is designed to make it easy to modify a particular
+  recording method, without affecting other methods nor requiring so
+  many nested conditional compilation blocks as were commonplace in
+  the old code.
+
+  For login recording, we try to use the local system's libraries as
+  these are clearly most likely to work correctly. For utmp systems
+  this usually means login() and logout() or setutent() etc., probably
+  in libutil, along with logwtmp() etc. On these systems, we fall back
+  to writing the files directly if we have to, though this method
+  requires very thorough testing so we do not corrupt local auditing
+  information. These files and their access methods are very system
+  specific indeed.
+  
+  For utmpx systems, the corresponding library functions are
+  setutxent() etc. To the author's knowledge, all utmpx systems have
+  these library functions and so no direct write is attempted. If such
+  a system exists and needs support, direct analogues of the [uw]tmp
+  code should suffice.
+
+  Retrieving the time of last login ('lastlog') is in some ways even
+  more problemmatic than login recording. Some systems provide a
+  simple table of all users which we seek based on uid and retrieve a
+  relatively standard structure. Others record the same information in
+  a directory with a separate file, and others don't record the
+  information separately at all. For systems in the latter category,
+  we look backwards in the wtmp or wtmpx file for the last login entry
+  for our user. Naturally this is slower and on busy systems could
+  incur a significant performance penalty.
+
+  Calling the new code
+  --------------------
+  
+  In OpenSSH all login recording and retrieval is performed in
+  login.c. Here you'll find working examples. Also, in the logintest.c
+  program there are more examples.
+
+  Internal handler calling method
+  -------------------------------
+  
+  When a call is made to login_login() or login_logout(), both
+  routines set a struct logininfo flag defining which action (log in,
+  or log out) is to be taken. They both then call login_write(), which
+  calls whichever of the many structure-specific handlers autoconf
+  selects for the local system.
+
+  The handlers themselves handle system data structure specifics. Both
+  struct utmp and struct utmpx have utility functions (see
+  construct_utmp*()) to try to make it simpler to add extra systems
+  that introduce new features to either structure.
+
+  While it may seem terribly wasteful to replicate so much similar
+  code for each method, experience has shown that maintaining code to
+  write both struct utmp and utmpx in one function, whilst maintaining
+  support for all systems whether they have library support or not, is
+  a difficult and time-consuming task.
+
+  Lastlog support proceeds similarly. Functions login_get_lastlog()
+  (and its OpenSSH-tuned friend login_get_lastlog_time()) call
+  getlast_entry(), which tries one of three methods to find the last
+  login time. It uses local system lastlog support if it can,
+  otherwise it tries wtmp or wtmpx before giving up and returning 0,
+  meaning "tilt".
+
+  Maintenance
+  -----------
+
+  In many cases it's possible to tweak autoconf to select the correct
+  methods for a particular platform, either by improving the detection
+  code (best), or by presetting DISABLE_<method> or CONF_<method>_FILE
+  symbols for the platform.
+
+  Use logintest to check which symbols are defined before modifying
+  configure.in and loginrec.c. (You have to build logintest yourself
+  with 'make logintest' as it's not built by default.)
+
+  Otherwise, patches to the specific method(s) are very helpful!
+  
+*/
+
 /**
  ** TODO:
- **   sockaddr_* stuff isn't finished
+ **   homegrown ttyslot()q
+ **   test, test, test
  **
  ** Platform status:
  ** ----------------
@@ -66,19 +166,28 @@
 #include <stdio.h>
 #include <errno.h>
 #ifdef HAVE_PWD_H
-# include <pwd.h>
+#  include <pwd.h>
 #endif
 #ifdef HAVE_SYS_TIME_H
 #  include <sys/time.h>
 #else
 #  include <time.h>
 #endif
+#if HAVE_UTMP_H
+# include <utmp.h>
+#endif
+#if HAVE_UTMPX_H
+# include <utmpx.h>
+#endif
+#if HAVE_LASTLOG_H
+# include <lastlog.h>
+#endif
 
 #include "ssh.h"
 #include "xmalloc.h"
 #include "loginrec.h"
 
-RCSID("$Id: loginrec.c,v 1.2 2000/06/03 16:18:19 andre Exp $");
+RCSID("$Id: loginrec.c,v 1.3 2000/06/04 17:07:49 andre Exp $");
 
 
 /**
@@ -86,13 +195,11 @@ RCSID("$Id: loginrec.c,v 1.2 2000/06/03 16:18:19 andre Exp $");
  **/
 
 #if HAVE_UTMP_H
-# include <utmp.h>
 void set_utmp_time(struct logininfo *li, struct utmp *ut);
 void construct_utmp(struct logininfo *li, struct utmp *ut);
 #endif
 
 #ifdef HAVE_UTMPX_H
-# include <utmpx.h>
 void set_utmpx_time(struct logininfo *li, struct utmpx *ut);
 void construct_utmpx(struct logininfo *li, struct utmpx *ut);
 #endif
@@ -114,169 +221,128 @@ int wtmpx_get_entry(struct logininfo *li);
  ** platform-independent login functions
  **/
 
+/* Record a login */
+int
+login_login (struct logininfo *li)
+{
+	li->type = LTYPE_LOGIN;
+	return login_write(li);
+}
+
+
+/* Record a logout */
+int
+login_logout(struct logininfo *li)
+{
+	li->type = LTYPE_LOGOUT;
+	return login_write(li);
+}
+
+
+/* Retrieve the last login time for a user (or fake on from wtmp/wtmpx) */
+unsigned int
+login_get_lastlog_time(const int uid)
+{
+	struct logininfo li;
+
+	login_get_lastlog(&li, uid);
+	return li.tv_sec;
+}
+
+/* Retrieve a lastlog entry (or fake one from wtmp/wtmpx) */
+struct logininfo *
+login_get_lastlog(struct logininfo *li, const int uid)
+{
+	memset(li, '\0', sizeof(struct logininfo));
+	li->uid = uid;
+	if (getlast_entry(li))
+		return li;
+	else
+		return 0;
+}
+
+
 /* login_alloc_entry()    - allocate and initialise a logininfo */
-struct logininfo *login_alloc_entry(int pid, const char *username,
-				       const char *hostname,
-				       const char *line) {
+struct
+logininfo *login_alloc_entry(int pid, const char *username,
+			     const char *hostname, const char *line)
+{
 	struct logininfo *newli;
 
 	newli = (struct logininfo *) xmalloc (sizeof(struct logininfo));
-
-	if (login_init_entry(newli, pid, username, hostname, line))
-		return newli;
-	else
-		return 0;     /* fail */
-} /* login_alloc_entry() */
+	(void)login_init_entry(newli, pid, username, hostname, line);
+	return newli;
+}
 
 
-/* login_free_entry()    - free struct memory (duh) */
-void login_free_entry(struct logininfo *li) {
-	if (li && (li->line[0] != '\0'))
-		free ((void *)li);
-	else
-	  log("login_free_entry: attempt to free invalid entry (warning)");
-} /* login_free_entry() */
+/* login_free_entry()    - free struct memory (trivial) */
+void
+login_free_entry(struct logininfo *li)
+{
+	xfree(li);
+}
+
 
 /* login_init_entry()   - initialise a struct logininfo */
-int login_init_entry(struct logininfo *li,
-			int pid, const char *username, 
-			const char *hostname, const char *line) {
-
+int
+login_init_entry(struct logininfo *li, int pid, const char *username, 
+		 const char *hostname, const char *line)
+{
 	/* zero the structure */
 	memset(li, 0, sizeof(struct logininfo));
   
-	/* progname should be set outside this call */
-	/* type stays null by default */
-	login_set_pid(li, pid);
+	li->pid = pid;
 	/* set the line information */
-	login_set_line(li, line);
-	login_set_username(li, username);
-	login_set_hostname(li, hostname);
-	/* exit status and termination stay null by default */
-	login_set_current_time(li);
-	/* sockaddr_* stuff must be set separately (for now) */
-	return 1;
-} /* login_init_entry() */
-
-
-void
-login_set_progname(struct logininfo *li, const char *progname) {
-	memset(li->progname, '\0', sizeof(li->progname));
-	if (progname)
-		strlcpy(li->progname, progname, sizeof(li->progname));
-	else
-		li->progname[0] = '\0';   /* set to null */
-}
-
-void
-login_set_type(struct logininfo *li, int type) {
-	li->type = type;
-}
-
-void
-login_set_pid(struct logininfo *li, int pid) {
-	if (!pid)
-		li->pid = (int)getpid();
-	else
-		li->pid = pid;
-}
-
-void
-login_set_uid(struct logininfo *li, int uid) {
-	struct passwd *pw;
-
-	li->uid = uid;
-	/* now update the username */
-	pw = getpwuid(uid);
-	strlcpy(li->username, pw->pw_name, sizeof(li->username));
-}
-
-void
-login_set_line(struct logininfo *li, const char *line) {
-	if (line) {
-		/* canonical form is the full name, i.e. including '/dev' */
+	if (line)
 		line_fullname(li->line, line, sizeof(li->line));
-	} else
-		li->line[0] = '\0';
-}
 
-void
-login_set_username(struct logininfo *li, const char *username) {
-	struct passwd *pw;
-
-	if (!username) {
-		li->username[0] = '\0';
-		li->uid = -1;  /* hmm... */
-	} else {
+	if (username)
 		strlcpy(li->username, username, sizeof(li->username));
-		/* now update the uid */
-		pw = getpwnam(username);
-		li->uid = pw->pw_uid;
-	}
-}
-
-
-void
-login_set_hostname(struct logininfo *li, const char *hostname) {
-	if (hostname) { /* can be null */
+	if (hostname)
 		strlcpy(li->hostname, hostname, sizeof(li->hostname));
-	} 
+	return 1;
 }
 
 
 void
-login_set_exitstatus(struct logininfo *li,
-			  int exit, int termination) {
-	/* FIXME: (ATL) And? */
-}
-
-
-/* tv_usec should be null on systems without struct timeval */
-void
-login_set_time(struct logininfo *li,
-		    unsigned int tv_sec, unsigned int tv_usec) {
-	li->tv_sec = tv_sec;
-	li->tv_usec = tv_usec;
-}
-
-
-void
-login_set_current_time(struct logininfo *li) {
+login_set_current_time(struct logininfo *li)
+{
 #ifdef HAVE_SYS_TIME_H
 	struct timeval tv;
 
 	gettimeofday(&tv, NULL);
 	li->tv_sec = tv.tv_sec ; li->tv_usec = tv.tv_usec;
 #else
-	time_t t = time(0);
-  
-	li->tv_sec = t; li->tv_usec = 0;
+	time_t tm = time(0);
+
+	li->tv_sec = tm; li->tv_usec = 0;
 #endif
 }
 
+
+/* copy a sockaddr_* into our logininfo */
 void
-login_set_ip4(struct logininfo *li,
-		      const struct sockaddr_in *sa_in4) {
-	memcpy((void *)&(li->hostaddr.sa_in4), (const void *)sa_in4,
-	       sizeof(struct sockaddr_in));
+login_set_addr(struct logininfo *li, const struct sockaddr *sa,
+	       const unsigned int sa_size)
+{
+	unsigned int bufsize = sa_size;
+
+	/* make sure we don't overrun our union */
+	if (sizeof(li->hostaddr) < sa_size)
+		bufsize = sizeof(li->hostaddr);
+
+	memcpy((void *)&(li->hostaddr.sa), (const void *)sa, bufsize);
 }
 
-#ifdef HAVE_IP6
-void
-login_set_ip6(struct logininfo *li,
-		      const struct sockaddr_in6 *sa_in6) {
-	memcpy((void *)&(li->hostaddr.sa_in4), (const void *)sa_in6,
-	       sizeof(struct sockaddr_in6));
-}
-#endif
 
-/*
- * record the entry
- */
+/**
+ ** login_write: Call low-level recording functions based on autoconf
+ ** results
+ **/
 
 int
-login_write (struct logininfo *li) {
-  
+login_write (struct logininfo *li)
+{
 	if ((int)geteuid() != 0) {
 	  log("Attempt to write login records by non-root user (aborting)");
 	  return 1;
@@ -306,97 +372,75 @@ login_write (struct logininfo *li) {
 	return 0;
 }
 
-int
-login_login (struct logininfo *li) {
-	li->type = LTYPE_LOGIN;
-	return login_write(li);
-}
-
-int
-login_logout(struct logininfo *li) {
-	li->type = LTYPE_LOGOUT;
-	return login_write(li);
-}
-
-int
-login_log_entry(struct logininfo *li) {
-	return login_write(li);
-}
-
-
-unsigned int
-login_getlasttime_name(const char *username) {
-	struct logininfo li;
-
-	memset(&li, '\0', sizeof(li));
-	login_set_username(&li, username);
-	if (getlast_entry(&li))
-		return li.tv_sec;
-	else
-		return 0;
-} /* login_getlasttime_name() */
-
-
-unsigned int
-login_getlasttime_uid(const int uid) {
-	struct logininfo li;
-
-	memset(&li, '\0', sizeof(li));
-	login_set_uid(&li, uid);
-	if (getlast_entry(&li))
-		return li.tv_sec;
-	else
-		return 0;
-} /* login_getlasttime_uid() */
-
-
-struct logininfo *
-login_getlastentry_name(struct logininfo *li,
-					  const char *username) {
-	login_set_username(li, username);
-	if (getlast_entry(li))
-		return li;
-	else
-		return 0;
-} /* login_getlastentry_name() */
-
-struct logininfo *
-login_getlastentry_uid(struct logininfo *li,
-		       const int uid) {
-	login_set_uid(li, uid);
-	if (getlast_entry(li))
-		return li;
-	else
-		return 0;
-} /* login_getlastentry_uid() */
-
 
 /**
- ** 'line' string utility functions
+ ** getlast_entry: Call low-level functions to retrieve the last login
+ **                time.
  **/
 
+/* take the uid in li and return the last login time */
+int
+getlast_entry(struct logininfo *li)
+{
+#ifdef USE_LASTLOG
+	if (lastlog_get_entry(li))
+		return 1;
+	else
+		return 0;
+#else
+	/* !USE_LASTLOG */
+
+	/* Try to retrieve the last login time from wtmp */
+#  if defined(USE_WTMP) && (defined(HAVE_TIME_IN_UTMP) || defined(HAVE_TV_IN_UTMP))
+	/* retrieve last login time from utmp */
+	if (wtmp_get_entry(li))
+		return 1;
+	else
+		return 0;
+#  else
+
+	/* If wtmp isn't available, try wtmpx */
+
+#    if defined(USE_WTMPX) && (defined(HAVE_TIME_IN_UTMPX) || defined(HAVE_TV_IN_UTMPX))
+	/* retrieve last login time from utmpx */
+	if (wtmpx_get_entry(li))
+		return 1;
+	else
+		return 0;
+#    else
+
+	/* Give up: No means of retrieving last login time */
+	return 0;
+#    endif
+#  endif
+#endif
+/* USE_LASTLOG */
+}
+
+
+
 /*
- * process the 'line' string into three forms:
+ * 'line' string utility functions
+ *
+ * These functions process the 'line' string into one of three forms:
+ *
  * 1. The full filename (including '/dev')
  * 2. The stripped name (excluding '/dev')
- * 3. The abbreviated name (e.g. /dev/ttyp00
+ * 3. The abbreviated name (e.g. /dev/ttyp00 -> yp00
+ *                               /dev/pts/1  -> ts/1 )
  *
  * Form 3 is used on some systems to identify a .tmp.? entry when
  * attempting to remove it. Typically both addition and removal is
- * performed by one application - say, sshd - so as long as the
- * choice uniquely identifies a terminal and is the same at login and
- * logout time, we're in good shape.
- *
- * NOTE: None of these calls actually allocate any memory -
- *       since their target is probably a structure, they don't
- *       need to.
+ * performed by one application - say, sshd - so as long as the choice
+ * uniquely identifies a terminal it's ok.
  */
 
 
-/* add the leading '/dev/' if it doesn't exist
- * make sure dst has enough space, if not just copy src (ugh) */
+/* line_fullname(): add the leading '/dev/' if it doesn't exist make
+ * sure dst has enough space, if not just copy src (ugh) */
 char *
-line_fullname(char *dst, const char *src, int dstsize) {
+line_fullname(char *dst, const char *src, int dstsize)
+{
 	memset(dst, '\0', dstsize);
 	if ((strncmp(src, "/dev/", 5) == 0) || (dstsize < (strlen(src) + 5)))
 		strlcpy(dst, src, dstsize);
@@ -407,50 +451,48 @@ line_fullname(char *dst, const char *src, int dstsize) {
 	return dst;
 }
 
-/* strip the leading '/dev' if it exists, return dst */
+
+/* line_stripname(): strip the leading '/dev' if it exists, return dst */
 char *
-line_stripname(char *dst, const char *src, int dstsize) {
+line_stripname(char *dst, const char *src, int dstsize)
+{
 	memset(dst, '\0', dstsize);
 	if (strncmp(src, "/dev/", 5) == 0)
 		strlcpy(dst, &src[5], dstsize);
 	else
 		strlcpy(dst, src, dstsize);
 	return dst;
-} /* stripdev() */
+}
+
   
-/* return the abbreviated (usually four-character) form *
- * simple algorithm for making name:
- * - first character is 'L' (arbitrary - 'lib(L)ogin' :-) )
- * - remaining n characters are last n characters of line
- * This is good for up to 999 ptys, I hope that's enough...
- */
+/* line_abbrevname(): Return the abbreviated (usually four-character)
+ * form of the line (Just use the last <dstsize> characters of the
+ * full name.)
+ *
+ * NOTE: use strncpy because we do NOT necessarily want zero
+ * termination */
 char *
 line_abbrevname(char *dst, const char *src, int dstsize) {
 	memset(dst, '\0', dstsize);
-	dst[0]='L';
-	strlcpy(dst+1, &src[strlen(src)-(dstsize)], dstsize);
+	src += (strlen(src) - dstsize);
+	strncpy(dst, src, dstsize); /* note: _don't_ change this to strlcpy */
 	return dst;
 }
 
 
 /**
  ** utmp utility functions
+ **
+ ** These functions manipulate struct utmp, taking system differences
+ ** into account.
  **/
 
 #if defined(USE_UTMP) || defined (USE_WTMP) || defined (USE_LOGIN)
 
-#ifdef HAVE_UTMP_H
-#  include <utmp.h>
-#endif
-#ifdef USE_TIMEVAL
-#  include <sys/time.h>
-#else
-#  include <time.h>
-#endif
-
 /* build the utmp structure */
 void
-set_utmp_time(struct logininfo *li, struct utmp *ut) {
+set_utmp_time(struct logininfo *li, struct utmp *ut)
+{
 #ifdef HAVE_TV_IN_UTMP
 	ut->ut_tv.tv_sec = li->tv_sec;
 	ut->ut_tv.tv_usec = li->tv_usec;
@@ -461,17 +503,18 @@ set_utmp_time(struct logininfo *li, struct utmp *ut) {
 #endif
 }
 
+
 void
 construct_utmp(struct logininfo *li,
-		    struct utmp *ut) {
+		    struct utmp *ut)
+{
 	memset(ut, '\0', sizeof(struct utmp));
-
 #ifdef HAVE_ID_IN_UTMP
 	line_abbrevname(ut->ut_id, li->line, sizeof(ut->ut_id));
 #endif
 
 #ifdef HAVE_TYPE_IN_UTMP
-	/* this is done here to keep utmp constants out of login.h */
+	/* This is done here to keep utmp constants out of login.h */
 	switch (li->type) {
 	case LTYPE_LOGIN:
 		ut->ut_type = USER_PROCESS;
@@ -492,32 +535,30 @@ construct_utmp(struct logininfo *li,
 	strlcpy(ut->ut_host, li->hostname, sizeof(ut->ut_host));
 #endif
 #ifdef HAVE_ADDR_IN_UTMP
-	/* !!! not supported yet (can't see its big use either) */
-#endif
-  
-} /* construct_utmp() */
+	/* this is just a 32-bit IP address */
+	if (li->hostaddr.sa.sa_family == AF_INET)
+		ut->ut_addr = li->hostaddr.sa_in.sin_addr.s_addr;
+#endif 
+}
 
 #endif
 /* USE_UTMP || USE_WTMP || USE_LOGIN */
 
+
+
 /**
  ** utmpx utility functions
+ **
+ ** These functions manipulate struct utmpx, accounting for system
+ ** variations.
  **/
 
 #if defined(USE_UTMPX) || defined (USE_WTMPX)
 
-#ifdef HAVE_UTMPX_H
-#  include <utmpx.h>
-#endif
-#ifdef USE_TIMEVAL
-#  include <sys/time.h>
-#else
-#  include <time.h>
-#endif
-
 /* build the utmpx structure */
 void
-set_utmpx_time(struct logininfo *li, struct utmpx *utx) {
+set_utmpx_time(struct logininfo *li, struct utmpx *utx)
+{
 #ifdef HAVE_TV_IN_UTMPX
 	utx->ut_tv.tv_sec = li->tv_sec;
 	utx->ut_tv.tv_usec = li->tv_usec;
@@ -528,11 +569,11 @@ set_utmpx_time(struct logininfo *li, struct utmpx *utx) {
 #endif
 }
 
-void
-construct_utmpx(struct logininfo *li,
-		     struct utmpx *utx) {
-	memset(utx, '\0', sizeof(struct utmpx));
 
+void
+construct_utmpx(struct logininfo *li, struct utmpx *utx)
+{
+	memset(utx, '\0', sizeof(struct utmpx));
 	line_abbrevname(utx->ut_id, li->line, sizeof(utx->ut_id));
 
 	/* this is done here to keep utmp constants out of loginrec.h */
@@ -544,7 +585,6 @@ construct_utmpx(struct logininfo *li,
 		utx->ut_type = DEAD_PROCESS;
 		break;
 	}
-
 	utx->ut_pid = li->pid;
 	line_stripname(utx->ut_line, li->line, sizeof(utx->ut_line));
 	strlcpy(utx->ut_name, li->username, sizeof(utx->ut_name));
@@ -553,13 +593,13 @@ construct_utmpx(struct logininfo *li,
 	strlcpy(utx->ut_host, li->hostname, sizeof(utx->ut_host));
 #endif
 #ifdef HAVE_ADDR_IN_UTMPX
-	/* !!! not supported yet (some issues with types of addresses) */
+	/* FIXME: (ATL) not supported yet */
 #endif
 #ifdef HAVE_SYSLEN_IN_UTMPX  
 	/* this is safe because of the extra nulls in logininfo */
 	utx->ut_syslen = strlen(li->hostname);
 #endif
-} /* construct_utmpx() */
+}
 
 #endif
 /* USE_UTMPX || USE_WTMPX */
@@ -567,14 +607,12 @@ construct_utmpx(struct logininfo *li,
 
 
 /**
- ** utmp functions
+ ** Low-level utmp functions
  **/
 
 /* FIXME: (ATL) utmp_write_direct needs testing */
 
 #ifdef USE_UTMP
-
-#include <utmp.h>
 
 /* if we can, use pututline() etc. */
 #if !defined(DISABLE_PUTUTLINE) && defined(HAVE_SETUTENT) && \
@@ -586,8 +624,8 @@ construct_utmpx(struct logininfo *li,
 /* write a utmp entry with the system's help (pututline() and pals) */
 #ifdef UTMP_USE_LIBRARY
 static int
-utmp_write_library(struct logininfo *li, struct utmp *ut) {
-
+utmp_write_library(struct logininfo *li, struct utmp *ut)
+{
 	setutent();
 	pututline(ut);
 
@@ -595,15 +633,15 @@ utmp_write_library(struct logininfo *li, struct utmp *ut) {
 	endutent();
 #endif
 	return 1;
-} /* utmp_write_library() */
+}
 
 #else
 
 /* write a utmp entry direct to the file */
-/* This code is a slightly modification of code in OpenBSD's login.c
- *  (in libutil) and so is subject to the OpenBSD Licensing terms. */
+/* This is a slightly modification of code in OpenBSD's login.c */
 static int
-utmp_write_direct(struct logininfo *li, struct utmp *ut) {
+utmp_write_direct(struct logininfo *li, struct utmp *ut)
+{
 	struct utmp old_ut;
 	register int fd;
 	int tty;
@@ -633,17 +671,16 @@ utmp_write_direct(struct logininfo *li, struct utmp *ut) {
 		return 1;
 	} else
 		return 0;
-} /* utmp_write_direct() */
-
+}
 #endif /* UTMP_USE_LIBRARY */
 
 
 static int
-utmp_perform_login(struct logininfo *li) {
+utmp_perform_login(struct logininfo *li)
+{
 	struct utmp ut;
 
 	construct_utmp(li, &ut);
-
 #ifdef UTMP_USE_LIBRARY
 	if (!utmp_write_library(li, &ut)) {
 	  log("utmp_perform_login: utmp_write_library() failed");
@@ -656,11 +693,12 @@ utmp_perform_login(struct logininfo *li) {
 	}
 #endif
 	return 1;
-} /* utmp_perform_login() */
+}
 
 
 static int
-utmp_perform_logout(struct logininfo *li) {
+utmp_perform_logout(struct logininfo *li)
+{
 	struct utmp ut;
 
 	memset(&ut, '\0', sizeof(ut));
@@ -681,12 +719,12 @@ utmp_perform_logout(struct logininfo *li) {
 #endif
 
 	return 1;
-} /* utmp_perform_logout() */
+}
 
 
 int
-utmp_write_entry(struct logininfo *li) {
-
+utmp_write_entry(struct logininfo *li)
+{
 	switch(li->type) {
 	case LTYPE_LOGIN:
 		return utmp_perform_login(li);
@@ -698,7 +736,7 @@ utmp_write_entry(struct logininfo *li) {
 		log("utmp_write_entry: invalid type field");
 		return 0;
 	}
-} /* utmp_write_entry() */
+}
 
 
 #endif
@@ -706,13 +744,11 @@ utmp_write_entry(struct logininfo *li) {
 
 
 /**
- ** utmpx functions
+ ** Low-level utmpx functions
  **/
 
 /* not much point if we don't want utmpx entries */
 #ifdef USE_UTMPX
-
-#include <utmpx.h>
 
 /* if we have the wherewithall, use pututxline etc. */
 #if !defined(DISABLE_PUTUTXLINE) && defined(HAVE_SETUTXENT) \
@@ -724,8 +760,8 @@ utmp_write_entry(struct logininfo *li) {
 /* write a utmpx entry with the system's help (pututxline() and pals) */
 #ifdef UTMPX_USE_LIBRARY
 static int
-utmpx_write_library(struct logininfo *li, struct utmpx *utx) {
-
+utmpx_write_library(struct logininfo *li, struct utmpx *utx)
+{
 	setutxent();
 	pututxline(utx);
 
@@ -733,7 +769,7 @@ utmpx_write_library(struct logininfo *li, struct utmpx *utx) {
 	endutxent();
 #endif
 	return 1;
-} /* utmpx_write_library() */
+}
 
 #else
 /* UTMPX_USE_LIBRARY */
@@ -741,21 +777,21 @@ utmpx_write_library(struct logininfo *li, struct utmpx *utx) {
 
 /* write a utmp entry direct to the file */
 static int
-utmpx_write_direct(struct logininfo *li, struct utmpx *utx) {
-  
+utmpx_write_direct(struct logininfo *li, struct utmpx *utx)
+{  
 	log("utmpx_write_direct: not implemented!");
 	return 0;
- } /* utmpx_write_direct() */
+}
 
 #endif
 /* UTMPX_USE_LIBRARY */
 
 static int
-utmpx_perform_login(struct logininfo *li) {
+utmpx_perform_login(struct logininfo *li)
+{
 	struct utmpx utx;
 
 	construct_utmpx(li, &utx);
-
 #ifdef UTMPX_USE_LIBRARY
 	if (!utmpx_write_library(li, &utx)) {
 		log("utmpx_perform_login: utmp_write_library() failed");
@@ -768,11 +804,12 @@ utmpx_perform_login(struct logininfo *li) {
 	}
 #endif
 	return 1;
-} /* utmpx_perform_login() */
+}
 
 
 static int
-utmpx_perform_logout(struct logininfo *li) {
+utmpx_perform_logout(struct logininfo *li)
+{
 	struct utmpx utx;
 
 	memset(&utx, '\0', sizeof(utx));
@@ -790,14 +827,13 @@ utmpx_perform_logout(struct logininfo *li) {
 #else
 	utmpx_write_direct(li, &utx);
 #endif
-
 	return 1;
-} /* utmpx_perform_logout() */
+}
 
 
 int
-utmpx_write_entry(struct logininfo *li) {
-
+utmpx_write_entry(struct logininfo *li)
+{
 	switch(li->type) {
 	case LTYPE_LOGIN:
 		return utmpx_perform_login(li);
@@ -807,7 +843,7 @@ utmpx_write_entry(struct logininfo *li) {
 		log("utmpx_write_entry: invalid type field");
 		return 0;
 	}
-} /* utmpx_write_entry() */
+}
 
 
 #endif
@@ -815,18 +851,16 @@ utmpx_write_entry(struct logininfo *li) {
 
 
 /**
- ** wtmp functions
+ ** Low-level wtmp functions
  **/
 
 #ifdef USE_WTMP 
 
-# include <utmp.h>
-
 /* write a wtmp entry direct to the end of the file */
-/* This code is a slight modification of code in OpenBSD's logwtmp.c
- * (in libutil) and so is subject to the OpenBSD licensing terms */
+/* This is a slight modification of code in OpenBSD's logwtmp.c */
 static int
-wtmp_write(struct logininfo *li, struct utmp *ut) {
+wtmp_write(struct logininfo *li, struct utmp *ut)
+{
 	struct stat buf;
 	int fd, ret = 1;
 
@@ -835,8 +869,7 @@ wtmp_write(struct logininfo *li, struct utmp *ut) {
 		    WTMP_FILE, strerror(errno));
 		return 0;
 	}
-  
-	if (fstat(fd, &buf) == 0) 
+  	if (fstat(fd, &buf) == 0) 
 		if (write(fd, (char *)ut, sizeof(struct utmp)) != 
 		    sizeof(struct utmp)) {
 			ftruncate(fd, buf.st_size);
@@ -845,23 +878,22 @@ wtmp_write(struct logininfo *li, struct utmp *ut) {
 			ret = 0;
 		}
 	(void)close(fd);
-
 	return ret;
-} /* wtmp_write() */
-
+}
 
 
 static int
-wtmp_perform_login(struct logininfo *li) {
+wtmp_perform_login(struct logininfo *li){
 	struct utmp ut;
 
 	construct_utmp(li, &ut);
 	return wtmp_write(li, &ut);
-} /* wtmp_perform_login() */
+}
 
 
 static int
-wtmp_perform_logout(struct logininfo *li) {
+wtmp_perform_logout(struct logininfo *li)
+{
 	struct utmp ut;
 
 	construct_utmp(li, &ut);
@@ -877,12 +909,12 @@ wtmp_perform_logout(struct logininfo *li) {
 	memset(&(ut.ut_addr), '\0', sizeof(ut.ut_addr));
 #endif
 	return wtmp_write(li, &ut);
-} /* wtmp_perform_logout() */
+}
 
 
 int
-wtmp_write_entry(struct logininfo *li) {
-
+wtmp_write_entry(struct logininfo *li)
+{
 	switch(li->type) {
 	case LTYPE_LOGIN:
 		return wtmp_perform_login(li);
@@ -892,12 +924,12 @@ wtmp_write_entry(struct logininfo *li) {
 		log("wtmp_write_entry: invalid type field");
 		return 0;
 	}
-} /* wtmp_write_entry() */
-
+}
 
 
 int
-wtmp_get_entry(struct logininfo *li) {
+wtmp_get_entry(struct logininfo *li)
+{
 	struct stat st;
 	struct utmp ut;
 	int fd;
@@ -907,14 +939,12 @@ wtmp_get_entry(struct logininfo *li) {
 		    WTMP_FILE, strerror(errno));
 		return 0;
 	}
-  
-	if (fstat(fd, &st) != 0) {
+  	if (fstat(fd, &st) != 0) {
 		log("wtmp_get_entry: couldn't stat %s: %s",
 		    WTMP_FILE, strerror(errno));
 		close(fd);
 		return 0;
 	}
-
 	(void)lseek(fd, (off_t)(0-sizeof(struct utmp)), SEEK_END);
 
 	do {
@@ -924,7 +954,6 @@ wtmp_get_entry(struct logininfo *li) {
 			close (fd);
 			return 0;
 		}
-
 		/* Logouts are recorded as a blank username on a particular line.
 		 * So, we just need to find the username in struct utmp */
 		if ( strncmp(li->username, ut.ut_user, 8) == 0 ) {
@@ -948,7 +977,7 @@ wtmp_get_entry(struct logininfo *li) {
 	} while (li->tv_sec == 0);
       
 	return 1;
-} /* wtmp_get_entry() */
+}
 
 
 #endif
@@ -956,18 +985,16 @@ wtmp_get_entry(struct logininfo *li) {
 
 
 /**
- ** wtmpx functions
+ ** Low-level wtmpx functions
  **/
 
 #ifdef USE_WTMPX
 
-# include <utmpx.h>
-
 /* write a wtmpx entry direct to the end of the file */
-/* This code is a slight modification of code in OpenBSD's logwtmp.c
- * (in libutil) and so is subject to the OpenBSD licensing terms */
+/* This is a slight modification of code in OpenBSD's logwtmp.c */
 static int
-wtmpx_write(struct logininfo *li, struct utmpx *utx) {
+wtmpx_write(struct logininfo *li, struct utmpx *utx)
+{
 	struct stat buf;
 	int fd, ret = 1;
 
@@ -988,21 +1015,22 @@ wtmpx_write(struct logininfo *li, struct utmpx *utx) {
 	(void)close(fd);
 
 	return ret;
-} /* wtmpx_write() */
-
+}
 
 
 static int
-wtmpx_perform_login(struct logininfo *li) {
+wtmpx_perform_login(struct logininfo *li)
+{
 	struct utmpx utx;
 
 	construct_utmpx(li, &utx);
 	return wtmpx_write(li, &utx);
-} /* wtmpx_perform_login() */
+}
 
 
 static int
-wtmpx_perform_logout(struct logininfo *li) {
+wtmpx_perform_logout(struct logininfo *li)
+{
 	struct utmpx utx;
 
 	construct_utmpx(li, &utx);
@@ -1019,12 +1047,12 @@ wtmpx_perform_logout(struct logininfo *li) {
 #endif
 	return wtmpx_write(li, &utx);
 
-} /* wtmpx_perform_logout() */
+}
 
 
 int
-wtmpx_write_entry(struct logininfo *li) {
-
+wtmpx_write_entry(struct logininfo *li)
+{
 	switch(li->type) {
 	case LTYPE_LOGIN:
 		return wtmpx_perform_login(li);
@@ -1034,12 +1062,12 @@ wtmpx_write_entry(struct logininfo *li) {
 		log("wtmpx_write_entry: invalid type field");
 		return 0;
 	}
-} /* wtmpx_write_entry() */
-
+}
 
 
 int
-wtmpx_get_entry(struct logininfo *li) {
+wtmpx_get_entry(struct logininfo *li)
+{
 	struct stat st;
 	struct utmpx utx;
 	int fd;
@@ -1049,14 +1077,12 @@ wtmpx_get_entry(struct logininfo *li) {
 		    WTMPX_FILE, strerror(errno));
 		return 0;
 	}
-  
-	if (fstat(fd, &st) != 0) {
+  	if (fstat(fd, &st) != 0) {
 		log("wtmpx_get_entry: couldn't stat %s: %s",
 		    WTMP_FILE, strerror(errno));
 		close(fd);
 		return 0;
 	}
-
 	(void)lseek(fd, (off_t)(0-sizeof(struct utmpx)), SEEK_END);
 
 	do {
@@ -1066,7 +1092,6 @@ wtmpx_get_entry(struct logininfo *li) {
 			close (fd);
 			return 0;
 		}
-
 		/* Logouts are recorded as a blank username on a particular line.
 		 * So, we just need to find the username in struct utmpx */
 		if ( strncmp(li->username, utx.ut_user, 8) == 0 ) {
@@ -1089,8 +1114,7 @@ wtmpx_get_entry(struct logininfo *li) {
 		}
 	} while (li->tv_sec == 0);
 	return 1;
-} /* wtmpx_get_entry() */
-
+}
 
 
 #endif
@@ -1099,25 +1123,14 @@ wtmpx_get_entry(struct logininfo *li) {
 
 
 /**
- ** libutil login() functions
+ ** Low-level libutil login() functions
  **/
 
 #ifdef USE_LOGIN
 
-#ifdef HAVE_UTMP_H
-#  include <utmp.h>
-#endif
-#ifdef HAVE_UTIL_H
-#  include <util.h>
-#endif
-#ifdef USE_TIMEVAL
-#  include <sys/time.h>
-#else
-#  include <time.h>
-#endif
-
 static int
-syslogin_perform_login(struct logininfo *li) {
+syslogin_perform_login(struct logininfo *li)
+{
 	struct utmp *ut;
 
 	if (! (ut = (struct utmp *)malloc(sizeof(struct utmp)))) {
@@ -1128,11 +1141,12 @@ syslogin_perform_login(struct logininfo *li) {
 	login(ut);
 
 	return 1;
-} /* syslogin_perform_login() */
+}
+
 
 static int
-syslogin_perform_logout(struct logininfo *li) {
-
+syslogin_perform_logout(struct logininfo *li)
+{
 #ifdef HAVE_LOGOUT
 	char line[8];
   
@@ -1150,13 +1164,12 @@ syslogin_perform_logout(struct logininfo *li) {
 	 * so they should all be there, but... */
 #endif
 	return 1;
-} /* syslogin_perform_logout() */
-
+}
 
 
 int
-syslogin_write_entry(struct logininfo *li) {
-
+syslogin_write_entry(struct logininfo *li)
+{
 	switch (li->type) {
 	case LTYPE_LOGIN:
 		return syslogin_perform_login(li);
@@ -1166,7 +1179,7 @@ syslogin_write_entry(struct logininfo *li) {
 		log("syslogin_write_entry: Invalid type field");
 		return 0;
 	}
-} /* utmp_write_entry() */
+}
 
 
 #endif
@@ -1176,23 +1189,14 @@ syslogin_write_entry(struct logininfo *li) {
 
 
 /**
- ** lastlog functions
+ ** Low-level lastlog functions
  **/
 
 #ifdef USE_LASTLOG
 
-#ifdef HAVE_LASTLOG_H
-# include <lastlog.h>
-#else
-# if !defined(USE_UTMP) && !defined(USE_WTMP)
-#  include <utmp.h>
-# endif
-#endif
-
-
 static void
-lastlog_construct(struct logininfo *li,
-			      struct lastlog *last) {
+lastlog_construct(struct logininfo *li, struct lastlog *last)
+{
 	/* clear the structure */
 	memset(last, '\0', sizeof(struct lastlog));
   
@@ -1200,7 +1204,7 @@ lastlog_construct(struct logininfo *li,
 			     sizeof(last->ll_line));
 	strlcpy(last->ll_host, li->hostname, sizeof(last->ll_host));
 	last->ll_time = li->tv_sec;
-} /* lastlog_construct() */
+}
 
 
 #define LL_FILE 1
@@ -1208,7 +1212,8 @@ lastlog_construct(struct logininfo *li,
 #define LL_OTHER 3
 
 static int
-lastlog_filetype(char *filename) {
+lastlog_filetype(char *filename)
+{
 	struct stat st;
 
 	if ( stat(LASTLOG_FILE, &st) != 0) {
@@ -1216,20 +1221,19 @@ lastlog_filetype(char *filename) {
 		    LASTLOG_FILE, strerror(errno));
 		return 0;
 	}
-
 	if (S_ISDIR(st.st_mode))
 		return LL_DIR;
 	else if (S_ISREG(st.st_mode))
 		return LL_FILE;
 	else
 		return LL_OTHER;
-} /* lastlog_filetype() */
+}
 
 
 /* open the file (using filemode) and seek to the login entry */
 static int
-lastlog_openseek(struct logininfo *li, int *fd, int filemode) {
-
+lastlog_openseek(struct logininfo *li, int *fd, int filemode)
+{
 	off_t offset;
 	int type;
 	char lastlog_file[1024];
@@ -1255,7 +1259,6 @@ lastlog_openseek(struct logininfo *li, int *fd, int filemode) {
 		    lastlog_file, strerror(errno));
 		return 0;
 	}
-
 	/* find this uid's offset in the lastlog file */
 	offset = (off_t) ( (long)li->uid * sizeof(struct lastlog));
 
@@ -1265,10 +1268,11 @@ lastlog_openseek(struct logininfo *li, int *fd, int filemode) {
 		return 0;
 	}
 	return 1;
-} /* lastlog_openseek() */
+}
 
 static int
-lastlog_perform_login(struct logininfo *li) {
+lastlog_perform_login(struct logininfo *li)
+{
 	struct lastlog last;
 	int fd;
 
@@ -1286,12 +1290,12 @@ lastlog_perform_login(struct logininfo *li) {
 		return 1;
 	} else
 		return 0;
-} /* lastlog_perform_login() */
+}
 
 
 int
-lastlog_write_entry(struct logininfo *li) {
-
+lastlog_write_entry(struct logininfo *li)
+{
 	switch(li->type) {
 	case LTYPE_LOGIN:
 		return lastlog_perform_login(li);
@@ -1299,22 +1303,21 @@ lastlog_write_entry(struct logininfo *li) {
 		log("lastlog_write_entry: Invalid type field");
 		return 0;
 	}
-} /* lastlog_write_entry() */
-
+}
 
 
 static void
-lastlog_populate_entry(struct logininfo *li,
-				   struct lastlog *last) {
+lastlog_populate_entry(struct logininfo *li, struct lastlog *last)
+{
 	line_fullname(li->line, last->ll_line, sizeof(li->line));
 	strlcpy(li->hostname, last->ll_host, sizeof(li->hostname));
 	li->tv_sec = last->ll_time;
-} /* lastlog_populate_entry() */
-
+}
 
 
 int
-lastlog_get_entry(struct logininfo *li) {
+lastlog_get_entry(struct logininfo *li)
+{
 	struct lastlog last;
 	int fd;
 
@@ -1328,58 +1331,10 @@ lastlog_get_entry(struct logininfo *li) {
 			lastlog_populate_entry(li, &last);
 			return 1;
 		}
-
 	} else
 		return 0;    
-} /* lastlog_get_entry() */
+}
 
 
 #endif
 /* USE_LASTLOG */
-
-
-/**
- ** lastlog retrieval functions
- **/
-
-/* take the uid in li and return the last login time */
-int
-getlast_entry(struct logininfo *li) {
-
-#ifdef USE_LASTLOG
-	if (lastlog_get_entry(li))
-		return 1;
-	else
-		return 0;
-#else
-	/* !USE_LASTLOG */
-	/* Try to retrieve the last login time from another source */
-
-#  if defined(USE_WTMP) && (defined(HAVE_TIME_IN_UTMP) || defined(HAVE_TV_IN_UTMP))
-
-	/* retrieve last login time from utmp */
-	if (wtmp_get_entry(li))
-		return 1;
-	else
-		return 0;
-
-#  else
-#    if defined(USE_WTMPX) && (defined(HAVE_TIME_IN_UTMPX) || defined(HAVE_TV_IN_UTMPX))
-
-	/* retrieve last login time from utmpx */
-	if (wtmpx_get_entry(li))
-		return 1;
-	else
-		return 0;
-
-#    else
-
-	/* no means of retrieving last login time */
-	return 0;
-#    endif
-#  endif
-
-#endif
-	/* USE_LASTLOG */
-
-}

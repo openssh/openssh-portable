@@ -18,7 +18,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: login.c,v 1.31 2000/06/03 14:57:40 andre Exp $");
+RCSID("$Id: login.c,v 1.32 2000/06/04 17:07:49 andre Exp $");
 
 #include "loginrec.h"
 
@@ -34,8 +34,8 @@ get_last_login_time(uid_t uid, const char *logname,
 {
   struct logininfo li;
 
-  login_getlastentry_uid(&li, uid);
-  strncpy(buf, li.hostname, bufsize);
+  login_get_lastlog(&li, uid);
+  strlcpy(buf, li.hostname, bufsize);
   return li.tv_sec;
 }
 
@@ -51,7 +51,7 @@ record_login(pid_t pid, const char *ttyname, const char *user, uid_t uid,
   struct logininfo *li;
 
   li = login_alloc_entry(pid, user, host, ttyname);
-  login_set_ip4(li, (struct sockaddr_in *)addr);
+  login_set_addr(li, addr, sizeof(struct sockaddr));
   login_login(li);
   login_free_entry(li);
 }

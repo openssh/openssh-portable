@@ -48,7 +48,7 @@
 
 #include "loginrec.h"
 
-RCSID("$Id: logintest.c,v 1.1 2000/06/03 14:57:40 andre Exp $");
+RCSID("$Id: logintest.c,v 1.2 2000/06/04 17:07:49 andre Exp $");
 
 
 int nologtest = 0;
@@ -56,23 +56,9 @@ int compile_opts_only = 0;
 int be_verbose = 0;
 
 
-#define DOTQUAD_MAXSIZE 17
-void dump_dotquad(char *s,  struct in_addr *sin4) {
-  unsigned int addr;
-
-  addr = ntohl(sin4->s_addr);
-  snprintf(s, DOTQUAD_MAXSIZE, "%d.%d.%d.%d",
-	   (addr >> 24)& 0xff, (addr >>16) & 0xff,
-	   (addr >>8) & 0xff, addr & 0xff );
-} /* dump_dotquad */
-
-
 /* Dump a logininfo to stdout. Assumes a tab size of 8 chars. */
-void dump_logininfo(struct logininfo *li, char *descname) {
-  char a4[DOTQUAD_MAXSIZE];
-
-  dump_dotquad(a4, &(li->hostaddr.sa_in4.sin_addr));
-
+void dump_logininfo(struct logininfo *li, char *descname)
+{
   /* yes I know how nasty this is */
   printf("struct logininfo %s = {\n\t"
 	 "progname\t'%s'\n\ttype\t\t%d\n\t"
@@ -81,8 +67,8 @@ void dump_logininfo(struct logininfo *li, char *descname) {
 	 "hostname\t'%s'\n\texit\t\t%d\n\ttermination\t%d\n\t"
 	 "tv_sec\t%d\n\ttv_usec\t%d\n\t"
 	 "struct login_netinfo hostaddr {\n\t\t"
-	 "struct sockaddr_in sa_in4 {\n"
-	 "\t\t\tsin_port\t%d\n\t\t\t*sin_addr\t%d(%s)\n\t\t}\n"
+	 "struct sockaddr sa {\n"
+	 "\t\t\tfamily\t%d\n\t\t}\n"
 	 "\t\t** !!! IP6 stuff not supported yet **\n"
 	 "\t}\n"
 	 "}\n",
@@ -90,13 +76,12 @@ void dump_logininfo(struct logininfo *li, char *descname) {
 	 li->pid, li->uid, li->line,
 	 li->username, li->hostname, li->exit, 
 	 li->termination, li->tv_sec, li->tv_usec, 
-	 ntohs(li->hostaddr.sa_in4.sin_port),
-	 ntohl(li->hostaddr.sa_in4.sin_addr.s_addr), a4);
-  /* FIXME: (ATL) print sockaddr_in6 stuff */
+	 li->hostaddr.sa.sa_family);
 }
 
 
-int testAPI() {
+int testAPI()
+{
   struct logininfo *li1;
   struct passwd *pw;
   struct hostent *he;
@@ -118,12 +103,12 @@ int testAPI() {
   printf("login_alloc_entry test (no host info):\n");
   /* !!! fake tty more effectively */
   li1 = login_alloc_entry((int)getpid(), username, NULL, ttyname(0));
-  login_set_progname(li1, "testlogin");
+  strlcpy(li1->progname, "OpenSSH-logintest", sizeof(li1->progname));
 
   if (be_verbose)
     dump_logininfo(li1, "li1");
 
-  printf("Setting IPv4 host info for 'localhost' (may call out):\n");
+  printf("Setting host address info for 'localhost' (may call out):\n");
   if (! (he = gethostbyname("localhost"))) {
     printf("Couldn't set hostname(lookup failed)\n");
   } else {
@@ -131,8 +116,8 @@ int testAPI() {
      *  any of this, a sockaddr_in* would be already prepared */
     memcpy((void *)&(sa_in4.sin_addr), (void *)&(he->h_addr_list[0][0]),
 	   sizeof(struct in_addr));
-    login_set_ip4(li1, &sa_in4);
-    login_set_hostname(li1, "localhost");
+    login_set_addr(li1, (struct sockaddr *) &sa_in4, sizeof(sa_in4));
+    strlcpy(li1->hostname, "localhost", sizeof(li1->hostname));
   }
   if (be_verbose)
     dump_logininfo(li1, "li1");
@@ -154,7 +139,7 @@ int testAPI() {
 #ifdef HAVE_TIME_H
   (void)time(&t0);
   strlcpy(s_t0, ctime(&t0), sizeof(s_t0));
-  t1 = login_getlasttime_uid(getuid());
+  t1 = login_get_lastlog_time(getuid());
   strlcpy(s_t1, ctime(&t1), sizeof(s_t1));
   printf("Before logging in:\n\tcurrent time is %d - %s\t"
 	 "lastlog time is %d - %s\n",
@@ -183,7 +168,7 @@ int testAPI() {
   printf("-- ('who' output ends)\n");
 
 #ifdef HAVE_TIME_H
-  t2 = login_getlasttime_uid(getuid());
+  t2 = login_get_lastlog_time(getuid());
   strlcpy(s_t2, ctime(&t2), sizeof(s_t2));
   printf("After logging in, lastlog time is %d - %s\n", (int)t2, s_t2);
   if (t1 == t2)
@@ -214,7 +199,8 @@ int testAPI() {
 } /* testAPI() */
 
 
-void testLineName(char *line) {
+void testLineName(char *line)
+{
   /* have to null-terminate - these functions are designed for
    * structures with fixed-length char arrays, and don't null-term.*/
   char full[17], strip[9], abbrev[5];
@@ -244,8 +230,8 @@ int testOutput() {
 
 
 /* show which options got compiled in */
-void showOptions(void) {
-  
+void showOptions(void)
+{  
   printf("**\n** Compile-time options\n**\n");
   
   printf("login recording methods selected:\n");
@@ -269,21 +255,12 @@ void showOptions(void) {
 #endif
   printf("\n");
 
-  printf("IP6 support: %s\n",
-#ifdef HAVE_IP6
-	 "enabled"
-#else
-	 "disabled"
-#endif
-	 );
-
-
 } /* showOptions() */
 
 
-int main(int argc, char *argv[]) {
-
-  printf("Platform-independent login recording test driver");
+int main(int argc, char *argv[])
+{
+  printf("Platform-independent login recording test driver\n");
 
   if (argc == 2) {
     if (strncmp(argv[1], "-i", 3) == 0)
