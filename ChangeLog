@@ -7,6 +7,9 @@
      [sftp.c]
      make "ls -l" listings print user/group names, add "ls -n" to show uid/gid
      (like /bin/ls); idea & ok markus@
+   - djm@cvs.openbsd.org 2004/06/20 19:28:12
+     [sftp.1]
+     mention new -n flag
 
 20040620
  - (tim) [configure.ac Makefile.in] Only change TEST_SHELL on broken platforms.
@@ -1329,4 +1332,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3419 2004/06/22 02:30:53 dtucker Exp $
+$Id: ChangeLog,v 1.3420 2004/06/22 02:31:23 dtucker Exp $
