@@ -1,4 +1,4 @@
-/* $OpenBSD: moduli.c,v 1.3 2003/12/07 06:34:18 djm Exp $ */
+/* $OpenBSD: moduli.c,v 1.4 2003/12/09 13:52:55 dtucker Exp $ */
 /*
  * Copyright 1994 Phil Karn <karn@qualcomm.com>
  * Copyright 1996-1998, 2003 William Allen Simpson <wsimpson@greendragon.com>
@@ -547,6 +547,15 @@ prime_test(FILE *in, FILE *out, u_int32_t trials,
 		    generator_wanted != generator_known) {
 			debug2("%10u: generator %d != %d",
 			    count_in, generator_known, generator_wanted);
+			continue;
+		}
+
+		/*
+		 * Primes with no known generator are useless for DH, so
+		 * skip those.
+		 */
+		if (generator_known == 0) {
+			debug2("%10u: no known generator", count_in);
 			continue;
 		}
 
