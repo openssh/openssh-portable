@@ -19,6 +19,7 @@
   - theo@cvs.openbsd.org
     [session.c]
     just some line shortening
+ - Released 2.1.0p3
 
 20000520
  - Xauth fix from Markus Friedl <markus.friedl@informatik.uni-erlangen.de>
