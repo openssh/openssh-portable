@@ -33,6 +33,9 @@
    - markus@cvs.openbsd.org 2003/09/18 07:52:54
      [sshconnect.c]
      missing {}; bug #656; jclonguet at free.fr
+   - markus@cvs.openbsd.org 2003/09/18 07:54:48
+     [buffer.c]
+     protect against double free; #660;  zardoz at users.sf.net
 
 20030919
  - (djm) Bug #683: Remove reference to --with-ipv4-default from INSTALL;
@@ -1169,4 +1172,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3024 2003/09/22 10:59:16 dtucker Exp $
+$Id: ChangeLog,v 1.3025 2003/09/22 11:00:19 dtucker Exp $
