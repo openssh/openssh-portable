@@ -1,3 +1,6 @@
+20010508
+ - (bal) Fixed configure test for USE_SIA.  
+
 20010506
  - (djm) Update config.guess and config.sub with latest versions (from
    ftp://ftp.gnu.org/gnu/config/) to allow configure on ia64-hpux.
@@ -5354,4 +5357,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1204 2001/05/06 18:01:43 mouring Exp $
+$Id: ChangeLog,v 1.1205 2001/05/07 12:54:26 mouring Exp $
