@@ -1,6 +1,9 @@
 20011026
  - (bal) Set the correct current time in login_utmp_only().  Patch by
    Wayne Davison <wayned@users.sourceforge.net>
+ - (tim) [scard/Makefile.in] Fix install: when building outside of source
+	 tree and using --src=/full_path/to/openssh
+	 Patch by Mark D. Baushke <mdb@juniper.net>
 
 20011025
  - (bal) Use VDISABLE if _POSIX_VDISABLE is set in readpassphrase.c.  Patch
@@ -6767,4 +6770,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1619 2001/10/26 15:56:55 mouring Exp $
+$Id: ChangeLog,v 1.1620 2001/10/27 00:33:18 tim Exp $
