@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.229 2004/11/07 00:01:46 djm Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.230 2004/11/07 17:57:30 jmc Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -157,10 +157,11 @@ static void
 usage(void)
 {
 	fprintf(stderr,
-"usage: ssh [-1246AaCfghkMNnqsTtVvXxY] [-b bind_address] [-c cipher_spec]\n"
+"usage: ssh [-1246AaCfgkMNnqsTtVvXxY] [-b bind_address] [-c cipher_spec]\n"
 "           [-D port] [-e escape_char] [-F configfile] [-i identity_file]\n"
-"           [-L port:host:hostport] [-l login_name] [-m mac_spec] [-o option]\n"
-"           [-p port] [-R port:host:hostport] [-S ctl] [user@]hostname [command]\n"
+"           [-L port:host:hostport] [-l login_name] [-m mac_spec] [-O ctl_cmd]\n"
+"           [-o option] [-p port] [-R port:host:hostport] [-S ctl_path]\n"
+"           [user@]hostname [command]\n"
 	);
 	exit(1);
 }
