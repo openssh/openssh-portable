@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.124 2003/10/14 19:42:10 jakob Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.125 2003/11/12 16:39:58 jakob Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -401,10 +401,11 @@ parse_flag:
 
 	case oVerifyHostKeyDNS:
 		intptr = &options->verify_host_key_dns;
-		goto parse_flag;
+		goto parse_yesnoask;
 
 	case oStrictHostKeyChecking:
 		intptr = &options->strict_host_key_checking;
+parse_yesnoask:
 		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing yes/no/ask argument.",

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.23 2003/10/12 13:12:13 jmc Exp $
+.\" $OpenBSD: ssh_config.5,v 1.24 2003/11/12 16:39:58 jakob Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -642,6 +642,23 @@ host key database instead of
 .It Cm VerifyHostKeyDNS
 Specifies whether to verify the remote key using DNS and SSHFP resource
 records.
+If this option is set to
+.Dq yes ,
+the client will implicitly trust keys that matches a secure fingerprint
+from DNS.
+Insecure fingerprints will be handled as if this option was set to
+.Dq ask .
+If this option is set to
+.Dq ask ,
+information on fingerprint match will be displayed, but the user will still
+need to confirm new host keys according to the
+.Cm StrictHostKeyChecking
+option.
+The argument must be
+.Dq yes ,
+.Dq no
+or  
+.Dq ask  .
 The default is
 .Dq no .
 Note that this option applies to protocol version 2 only.

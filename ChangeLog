@@ -31,6 +31,9 @@
    - dtucker@cvs.openbsd.org 2003/11/12 10:12:15
      [scp.c]
      When called with -q, pass -q to ssh; suppresses SSH2 banner.  ok markus@
+   - jakob@cvs.openbsd.org 2003/11/12 16:39:58
+     [dns.c dns.h readconf.c ssh_config.5 sshconnect.c]
+     update SSHFP validation. ok markus@
 
 20031115
  - (dtucker) [regress/agent-ptrace.sh] Test for GDB output from Solaris and
@@ -1451,4 +1454,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3105 2003/11/17 10:19:05 djm Exp $
+$Id: ChangeLog,v 1.3106 2003/11/17 10:19:29 djm Exp $

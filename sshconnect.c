@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.152 2003/11/10 16:23:41 jakob Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.153 2003/11/12 16:39:58 jakob Exp $");
 
 #include <openssl/bn.h>
 
@@ -38,7 +38,7 @@ RCSID("$OpenBSD: sshconnect.c,v 1.152 2003/11/10 16:23:41 jakob Exp $");
 char *client_version_string = NULL;
 char *server_version_string = NULL;
 
-int verified_host_key_dns = 0;
+int matching_host_key_dns = 0;
 
 /* import */
 extern Options options;
@@ -728,7 +728,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 			fp = key_fingerprint(host_key, SSH_FP_MD5, SSH_FP_HEX);
 			msg2[0] = '\0';
 			if (options.verify_host_key_dns) {
-				if (verified_host_key_dns)
+				if (matching_host_key_dns)
 					snprintf(msg2, sizeof(msg2),
 					    "Matching host key fingerprint"
 					    " found in DNS.\n");
@@ -892,23 +892,25 @@ int
 verify_host_key(char *host, struct sockaddr *hostaddr, Key *host_key)
 {
 	struct stat st;
+	int flags = 0;
 
-	if (options.verify_host_key_dns) {
-		switch(verify_host_key_dns(host, hostaddr, host_key)) {
-		case DNS_VERIFY_OK:
-#ifdef DNSSEC
-			return 0;
-#else
-			verified_host_key_dns = 1;
-			break;
-#endif
-		case DNS_VERIFY_FAILED:
-			return -1;
-		case DNS_VERIFY_ERROR:
-			break;
-		default:
-			debug3("bad return value from verify_host_key_dns");
-			break;
+	if (options.verify_host_key_dns &&
+	    verify_host_key_dns(host, hostaddr, host_key, &flags) == 0) {
+
+		if (flags & DNS_VERIFY_FOUND) {
+
+			if (options.verify_host_key_dns == 1 &&
+			    flags & DNS_VERIFY_MATCH &&
+			    flags & DNS_VERIFY_SECURE)
+				return 0;
+
+			if (flags & DNS_VERIFY_MATCH) {
+				matching_host_key_dns = 1;
+			} else {
+				warn_changed_key(host_key);
+				error("Update the SSHFP RR in DNS with the new "
+				    "host key to get rid of this message.");
+			}
 		}
 	}
 
