@@ -71,7 +71,7 @@ install -m644 scp.1 $RPM_BUILD_ROOT/usr/man/man1
 install -m644 ssh-agent.1 $RPM_BUILD_ROOT/usr/man/man1
 install -m644 ssh-add.1 $RPM_BUILD_ROOT/usr/man/man1
 install -m644 ssh-keygen.1 $RPM_BUILD_ROOT/usr/man/man1
-ln -s ssh.1 $RPM_BUILD_ROOT/usr/bin/slogin.1
+ln -s ssh.1 $RPM_BUILD_ROOT/usr/man/man1/slogin.1
 
 %clean
 rm -rf $RPM_BUILD_ROOT
