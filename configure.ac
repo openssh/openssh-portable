@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.141 2003/08/25 01:51:19 dtucker Exp $
+# $Id: configure.ac,v 1.142 2003/08/25 03:27:40 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -369,6 +369,7 @@ mips-sony-bsd|mips-sony-newsos4)
 		fi
 	fi
 	AC_DEFINE(DISABLE_FD_PASSING)
+	AC_DEFINE(BROKEN_GETADDRINFO)
 	AC_DEFINE(LOCKED_PASSWD_SUBSTR, "Nologin")
 	;;
 
