@@ -19,6 +19,10 @@
    - dtucker@cvs.openbsd.org 2004/06/18 06:13:25
      [sftp.c]
      Use execvp instead of execv so sftp -S ssh works.  "makes sense" markus@
+   - dtucker@cvs.openbsd.org 2004/06/18 06:15:51
+     [multiplex.sh]
+     Use -S for scp/sftp to force the use of the ssh being tested.
+     ok djm@,markus@
 
 20040617
  - (dtucker) [regress/scp.sh] diff -N is not portable (but needed for some
@@ -1292,4 +1296,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3410 2004/06/18 06:23:43 dtucker Exp $
+$Id: ChangeLog,v 1.3411 2004/06/18 06:25:35 dtucker Exp $
