@@ -18,7 +18,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: login.c,v 1.13 1999/12/27 00:33:56 damien Exp $");
+RCSID("$Id: login.c,v 1.14 1999/12/27 23:41:12 damien Exp $");
 
 #if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
 # include <utmpx.h>
@@ -142,10 +142,18 @@ record_login(int pid, const char *ttyname, const char *user, uid_t uid,
 	memset(&u, 0, sizeof(u));
 	strncpy(u.ut_line, ttyname + 5, sizeof(u.ut_line));
 	strncpy(u.ut_id, ttyname + 8, sizeof(u.ut_id));
-	u.ut_pid = (pid_t)pid;
-	u.ut_time = time(NULL);
 	strncpy(u.ut_name, user, sizeof(u.ut_name));
+#if defined(HAVE_TV_IN_UTMP)
+	(void)gettimeofday(&u.ut_tv, NULL);
+#else /* defined(HAVE_TV_IN_UTMP) */
+	u.ut_time = time(NULL);
+#endif /* defined(HAVE_TV_IN_UTMP) */
+#if defined(HAVE_PID_IN_UTMP)
+	u.ut_pid = (pid_t)pid;
+#endif /* HAVE_PID_IN_UTMP */
+#if defined(HAVE_TYPE_IN_UTMP)
  	u.ut_type = (uid == -1)?DEAD_PROCESS:USER_PROCESS;
+#endif /* HAVE_TYPE_IN_UTMP */
 #if defined(HAVE_HOST_IN_UTMP)
 	strncpy(u.ut_host, host, sizeof(u.ut_host));
 #endif
@@ -156,7 +164,7 @@ record_login(int pid, const char *ttyname, const char *user, uid_t uid,
 	strncpy(utx.ut_line, ttyname + 5, sizeof(utx.ut_line));
 	strncpy(utx.ut_id, ttyname + 8, sizeof(utx.ut_id));
 	utx.ut_pid = (pid_t)pid;
-	utx.ut_tv.tv_sec = time(NULL);
+	(void)gettimeofday(&utx.ut_tv, NULL);
  	utx.ut_type = (uid == -1)?DEAD_PROCESS:USER_PROCESS;
 # ifdef HAVE_HOST_IN_UTMPX
 #  ifdef HAVE_SYSLEN_IN_UTMPX

@@ -264,6 +264,21 @@ AC_EGREP_HEADER(syslen, utmpx.h,
 	[AC_DEFINE(HAVE_SYSLEN_IN_UTMPX) AC_MSG_RESULT(yes); ], 
 	[AC_MSG_RESULT(no)]
 )
+AC_MSG_CHECKING([whether utmp.h has ut_pid field])
+AC_EGREP_HEADER(ut_pid, utmp.h, 
+	[AC_DEFINE(HAVE_PID_IN_UTMP) AC_MSG_RESULT(yes); ], 
+	[AC_MSG_RESULT(no)]
+)
+AC_MSG_CHECKING([whether utmp.h has ut_type field])
+AC_EGREP_HEADER(ut_type, utmp.h, 
+	[AC_DEFINE(HAVE_TYPE_IN_UTMP) AC_MSG_RESULT(yes); ], 
+	[AC_MSG_RESULT(no)]
+)
+AC_MSG_CHECKING([whether utmp.h has ut_tv field])
+AC_EGREP_HEADER(ut_tv, utmp.h, 
+	[AC_DEFINE(HAVE_TV_IN_UTMP) AC_MSG_RESULT(yes); ], 
+	[AC_MSG_RESULT(no)]
+)
 
 dnl Look for lastlog location
 AC_ARG_WITH(lastlog,

@@ -36,6 +36,15 @@
 /* Define is utmpx.h has a syslen field */
 #undef HAVE_SYSLEN_IN_UTMPX
 
+/* Define is utmp.h has a ut_pid field */
+#undef HAVE_PID_IN_UTMP
+
+/* Define is utmp.h has a ut_type field */
+#undef HAVE_TYPE_IN_UTMP
+
+/* Define is utmp.h has a ut_tv field */
+#undef HAVE_TV_IN_UTMP
+
 /* Define if you want to use utmpx */
 #undef USE_UTMPX
 

@@ -1,5 +1,8 @@
 19991228
  - Replacement for getpagesize() for systems which lack it
+ - NetBSD login.c compile fix from David Rankin 
+  <drankin@bohemians.lexington.ky.us>
+ - Fully set ut_tv if present in utmp or utmpx
 
 19991227
  - Automatically correct paths in manpages and configuration files. Patch
