@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.192 2002/09/16 22:03:13 stevesk Exp $
+.\" $OpenBSD: sshd.8,v 1.193 2002/09/24 20:59:44 todd Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -737,12 +737,12 @@ something similar to:
 if read proto cookie && [ -n "$DISPLAY" ]; then
 	if [ `echo $DISPLAY | cut -c1-10` = 'localhost:' ]; then
 		# X11UseLocalhost=yes
-		xauth add unix:`echo $DISPLAY |
+		echo add unix:`echo $DISPLAY |
 		    cut -c11-` $proto $cookie
 	else
 		# X11UseLocalhost=no
-		xauth add $DISPLAY $proto $cookie
-	fi
+		echo add $DISPLAY $proto $cookie
+	fi | xauth -q -
 fi
 .Ed
 .Pp

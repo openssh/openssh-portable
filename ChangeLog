@@ -10,6 +10,12 @@
    - markus@cvs.openbsd.org 2002/09/24 08:46:04
      [monitor.c]
      only call kerberos code for authctxt->valid
+   - todd@cvs.openbsd.org 2002/09/24 20:59:44
+     [sshd.8]
+     tweak the example $HOME/.ssh/rc script to not show on any cmdline the
+     sensitive data it handles. This fixes bug # 402 as reported by
+     kolya@mit.edu (Nickolai Zeldovich).
+     ok markus@ and stevesk@
 
 20020923
  - (tim) [configure.ac] s/return/exit/ patch by dtucker@zip.com.au
@@ -709,4 +715,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2479 2002/09/25 02:20:17 djm Exp $
+$Id: ChangeLog,v 1.2480 2002/09/25 02:20:52 djm Exp $
