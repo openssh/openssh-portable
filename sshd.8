@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.172 2002/03/18 17:59:09 provos Exp $
+.\" $OpenBSD: sshd.8,v 1.173 2002/03/19 05:23:08 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -390,6 +390,7 @@ may be relevant for getting legal protection.
 The contents of the specified file are sent to the remote user before
 authentication is allowed.
 This option is only available for protocol version 2.
+By default, no banner is displayed.
 .Pp
 .It Cm ChallengeResponseAuthentication
 Specifies whether challenge response authentication is allowed.
