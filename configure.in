@@ -1085,7 +1085,7 @@ AC_ARG_WITH(afs,
 
 			if test "x$withval" != "xyes" ; then
 				CFLAGS="$CFLAGS -I${withval}/include"
-				LFLAGS="$LFLAGS -L${withval}/lib"
+				LDFLAGS="$LDFLAGS -L${withval}/lib"
 			fi
 
 			if test -z "$KRB4" ; then
@@ -1106,12 +1106,24 @@ LIBS="$LIBS $KLIBS"
 # Check whether user wants S/Key support
 SKEY_MSG="no" 
 AC_ARG_WITH(skey,
-	[  --with-skey             Enable S/Key support],
+	[  --with-skey=PATH         Enable S/Key support],
 	[
 		if test "x$withval" != "xno" ; then
+
+			if test "x$withval" != "xyes" ; then
+				CFLAGS="$CFLAGS -I${withval}/include"
+				LDFLAGS="$LDFLAGS -L${withval}/lib"
+			fi
+
 			AC_DEFINE(SKEY)
 			LIBS="$LIBS -lskey"
 			SKEY_MSG="yes" 
+	
+			AC_CHECK_FUNC(skey_keyinfo,
+				[],
+				[
+					AC_MSG_ERROR([** Incomplete or missing s/key libraries.])
+				])
 		fi
 	]
 )

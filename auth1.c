@@ -273,7 +273,7 @@ do_authloop(struct passwd * pw, char *luser)
 			if (options.skey_authentication == 1) {
 				char *skeyinfo = NULL;
 				if (pw != NULL)
-					skey_keyinfo(pw->pw_name);
+					skeyinfo = skey_keyinfo(pw->pw_name);
 				if (skeyinfo == NULL) {
 					debug("generating fake skeyinfo for %.100s.", luser);
 					skeyinfo = skey_fake_keyinfo(luser);

@@ -1,3 +1,14 @@
+20001110
+ - (bal) Fixed dropped answer from skey_keyinfo() in auth1.c
+ - (bal) Changed from --with-skey to --with-skey=PATH in configure.in
+ - (bal) Added in check to verify S/Key library is being detected in
+   configure.in
+ - (bal) next-posix.h - added another prototype wrapped in POSIX ifdef/endif. 
+   Patch by Mark Miller <markm@swoon.net>
+ - (bal) Added 'util.h' header to loginrec.c only if HAVE_UTIL_H is defined
+   to remove warnings under MacOS X.  Patch by Mark Miller <markm@swoon.net> 
+ - (bal) Fixed LDFLAG mispelling in configure.in for --with-afs
+
 20001107
  - (bal) acconfig.in - removed the double "USE_PIPES" entry. Patch by
    Mark Miller <markm@swoon.net>

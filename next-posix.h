@@ -39,6 +39,7 @@ pid_t posix_wait(int *status);
 
 /* #ifdef POSIX wrapped functions that need defining */
 pid_t getppid(void);
+void vhangup(void);
 
 /* TERMCAP */
 int tcgetattr(int fd, struct termios *t);
