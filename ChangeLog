@@ -1,3 +1,7 @@
+20030605
+ - (djm) Support AI_NUMERICHOST in fake-getaddrinfo.c. Needed for recent
+   canohost.c changes.
+
 20030604
  - (djm) Bug #573 - Remove unneeded Krb headers and compat goop. Patch from
    simon@sxw.org.uk (Also matches a change in OpenBSD a while ago)
@@ -458,4 +462,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2781 2003/06/04 12:56:15 djm Exp $
+$Id: ChangeLog,v 1.2782 2003/06/04 23:48:32 djm Exp $

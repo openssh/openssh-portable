@@ -1,4 +1,4 @@
-/* $Id: fake-getaddrinfo.h,v 1.4 2003/02/24 01:35:09 djm Exp $ */
+/* $Id: fake-getaddrinfo.h,v 1.5 2003/06/04 23:48:33 djm Exp $ */
 
 #ifndef _FAKE_GETADDRINFO_H
 #define _FAKE_GETADDRINFO_H
@@ -8,14 +8,9 @@
 #include "fake-gai-errnos.h"
 
 #ifndef AI_PASSIVE
-# define AI_PASSIVE        1
-# define AI_CANONNAME      2
-#endif
-
-#ifndef NI_NUMERICHOST
-# define NI_NUMERICHOST    2
-# define NI_NAMEREQD       4
-# define NI_NUMERICSERV    8
+# define AI_PASSIVE		(1)
+# define AI_CANONNAME		(1<<1)
+# define AI_NUMERICHOST		(1<<2)
 #endif
 
 #ifndef HAVE_STRUCT_ADDRINFO

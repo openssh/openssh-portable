@@ -1,4 +1,4 @@
-/* $Id: fake-getnameinfo.h,v 1.3 2003/05/18 14:13:39 djm Exp $ */
+/* $Id: fake-getnameinfo.h,v 1.4 2003/06/04 23:48:33 djm Exp $ */
 
 #ifndef _FAKE_GETNAMEINFO_H
 #define _FAKE_GETNAMEINFO_H
@@ -9,6 +9,12 @@
 int getnameinfo(const struct sockaddr *, size_t, char *, size_t, 
     char *, size_t, int);
 #endif /* !HAVE_GETNAMEINFO */
+
+#ifndef NI_NUMERICHOST
+# define NI_NUMERICHOST    (1)
+# define NI_NAMEREQD       (1<<1)
+# define NI_NUMERICSERV    (1<<2)
+#endif
 
 #ifndef NI_MAXSERV
 # define NI_MAXSERV 32

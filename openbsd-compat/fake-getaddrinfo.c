@@ -13,7 +13,7 @@
 #include "xmalloc.h"
 #include "ssh.h"
 
-RCSID("$Id: fake-getaddrinfo.c,v 1.8 2003/05/19 00:39:37 djm Exp $");
+RCSID("$Id: fake-getaddrinfo.c,v 1.9 2003/06/04 23:48:33 djm Exp $");
 
 #ifndef HAVE_GAI_STRERROR
 char *
@@ -24,6 +24,8 @@ gai_strerror(int err)
 		return ("no address associated with name");
 	case EAI_MEMORY:
 		return ("memory allocation failure.");
+	case EAI_NONAME:
+		return ("nodename nor servname provided, or not known");
 	default:
 		return ("unknown/invalid error.");
 	}
@@ -115,6 +117,10 @@ getaddrinfo(const char *hostname, const char *servname,
 		*res = malloc_ai(port, in.s_addr, hints);
 		return (0);
 	}
+	
+	/* Don't try DNS if AI_NUMERICHOST is set */
+	if (hints && hints->ai_flags & AI_NUMERICHOST)
+		return (EAI_NONAME);
 	
 	hp = gethostbyname(hostname);
 	if (hp && hp->h_name && hp->h_name[0] && hp->h_addr_list[0]) {
