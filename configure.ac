@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.156 2003/09/19 06:41:02 djm Exp $
+# $Id: configure.ac,v 1.157 2003/09/22 01:07:40 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -131,6 +131,9 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 }], [AC_MSG_RESULT(working)],
 	[AC_MSG_RESULT(buggy)
 	AC_DEFINE(BROKEN_GETADDRINFO)],
+	AC_DEFINE(SETEUID_BREAKS_SETUID)
+	AC_DEFINE(BROKEN_SETREUID)
+	AC_DEFINE(BROKEN_SETREGID)
 	[AC_MSG_RESULT(assume it is working)])
 	;;
 *-*-hpux10.26)
