@@ -2,6 +2,7 @@
  - Fixed configure not passing LDFLAGS to Solaris. Report from David G. 
    Hesprich <dghespri@sprintparanet.com>
  - Propogate LD through to Makefile
+ - Doc cleanups
 
 20000315
  - Fix broken CFLAGS handling during search for OpenSSL. Fixes va_list
