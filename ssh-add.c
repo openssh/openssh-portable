@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.37 2001/05/02 16:41:20 markus Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.38 2001/06/06 23:19:35 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -125,7 +125,6 @@ add_file(AuthenticationConnection *ac, const char *filename)
 	if (private == NULL) {
 		/* clear passphrase since it did not work */
 		clear_pass();
-		printf("Need passphrase for %.200s\n", filename);
 		snprintf(msg, sizeof msg, "Enter passphrase for %.200s: ",
 		   comment);
 		for (;;) {
