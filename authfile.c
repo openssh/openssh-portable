@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfile.c,v 1.25 2001/01/21 19:05:44 markus Exp $");
+RCSID("$OpenBSD: authfile.c,v 1.26 2001/01/28 22:27:05 stevesk Exp $");
 
 #include <openssl/err.h>
 #include <openssl/evp.h>
@@ -51,7 +51,8 @@ RCSID("$OpenBSD: authfile.c,v 1.25 2001/01/21 19:05:44 markus Exp $");
 #include "log.h"
 
 /* Version identification string for identity files. */
-#define AUTHFILE_ID_STRING "SSH PRIVATE KEY FILE FORMAT 1.1\n"
+static const char authfile_id_string[] =
+    "SSH PRIVATE KEY FILE FORMAT 1.1\n";
 
 /*
  * Saves the authentication (private) key in a file, encrypting it with
@@ -111,9 +112,8 @@ save_private_key_rsa1(const char *filename, const char *passphrase,
 	buffer_init(&encrypted);
 
 	/* First store keyfile id string. */
-	cp = AUTHFILE_ID_STRING;
-	for (i = 0; cp[i]; i++)
-		buffer_put_char(&encrypted, cp[i]);
+	for (i = 0; authfile_id_string[i]; i++)
+		buffer_put_char(&encrypted, authfile_id_string[i]);
 	buffer_put_char(&encrypted, 0);
 
 	/* Store cipher type. */
@@ -247,8 +247,8 @@ load_public_key_rsa(const char *filename, RSA * pub, char **comment_return)
 	}
 	close(fd);
 
-	/* Check that it is at least big enought to contain the ID string. */
-	if (len < strlen(AUTHFILE_ID_STRING) + 1) {
+	/* Check that it is at least big enough to contain the ID string. */
+	if (len < sizeof(authfile_id_string)) {
 		debug3("Bad RSA1 key file %.200s.", filename);
 		buffer_free(&buffer);
 		return 0;
@@ -257,8 +257,8 @@ load_public_key_rsa(const char *filename, RSA * pub, char **comment_return)
 	 * Make sure it begins with the id string.  Consume the id string
 	 * from the buffer.
 	 */
-	for (i = 0; i < (u_int) strlen(AUTHFILE_ID_STRING) + 1; i++)
-		if (buffer_get_char(&buffer) != (u_char) AUTHFILE_ID_STRING[i]) {
+	for (i = 0; i < sizeof(authfile_id_string); i++)
+		if (buffer_get_char(&buffer) != authfile_id_string[i]) {
 			debug3("Bad RSA1 key file %.200s.", filename);
 			buffer_free(&buffer);
 			return 0;
@@ -337,8 +337,8 @@ load_private_key_rsa1(int fd, const char *filename,
 	}
 	close(fd);
 
-	/* Check that it is at least big enought to contain the ID string. */
-	if (len < strlen(AUTHFILE_ID_STRING) + 1) {
+	/* Check that it is at least big enough to contain the ID string. */
+	if (len < sizeof(authfile_id_string)) {
 		debug3("Bad RSA1 key file %.200s.", filename);
 		buffer_free(&buffer);
 		return 0;
@@ -347,8 +347,8 @@ load_private_key_rsa1(int fd, const char *filename,
 	 * Make sure it begins with the id string.  Consume the id string
 	 * from the buffer.
 	 */
-	for (i = 0; i < (u_int) strlen(AUTHFILE_ID_STRING) + 1; i++)
-		if (buffer_get_char(&buffer) != (u_char) AUTHFILE_ID_STRING[i]) {
+	for (i = 0; i < sizeof(authfile_id_string); i++)
+		if (buffer_get_char(&buffer) != authfile_id_string[i]) {
 			debug3("Bad RSA1 key file %.200s.", filename);
 			buffer_free(&buffer);
 			return 0;
