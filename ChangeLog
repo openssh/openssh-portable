@@ -11,6 +11,8 @@
      - no need for poll.h; from bright@wintelcom.net
      - disable agent fwding for proto 1.3, remove abuse of auth-rsa flags.
      - split key exchange (kex) and user authentication (user-auth), ok: provos@
+ - Big manpage and config file cleanup from Andre Lucas
+   <andre.lucas@dial.pipex.com>
 
 20000119
  - SCO compile fixes from Gary E. Miller <gem@rellim.com>
