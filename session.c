@@ -912,8 +912,7 @@ static void
 read_etc_default_login(char ***env, u_int *envsize, uid_t uid)
 {
 	char **tmpenv = NULL, *var;
-	u_int i;
-	size_t tmpenvsize = 0;
+	u_int i, tmpenvsize = 0;
 	mode_t mask;
 
 	/*
@@ -922,6 +921,9 @@ read_etc_default_login(char ***env, u_int *envsize, uid_t uid)
 	 * interested in.
 	 */
 	read_environment_file(&tmpenv, &tmpenvsize, "/etc/default/login");
+
+	if (tmpenv == NULL)
+		return;
 
 	if (uid == 0)
 		var = child_get_env(tmpenv, "SUPATH");
