@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor_fdpass.c,v 1.5 2004/06/21 17:36:31 avsm Exp $");
+RCSID("$OpenBSD: monitor_fdpass.c,v 1.6 2004/08/13 02:51:48 djm Exp $");
 
 #include <sys/uio.h>
 
@@ -113,6 +113,8 @@ mm_receive_fd(int sock)
 		fatal("%s: no fd", __func__);
 #else
 	cmsg = CMSG_FIRSTHDR(&msg);
+	if (cmsg == NULL)
+		fatal("%s: no message header", __func__);
 #ifndef BROKEN_CMSG_TYPE
 	if (cmsg->cmsg_type != SCM_RIGHTS)
 		fatal("%s: expected type %d got %d", __func__,

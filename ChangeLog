@@ -18,6 +18,9 @@
    - jmc@cvs.openbsd.org 2004/08/13 00:01:43
      [ssh-keygen.1]
      kill whitespace at eol;
+   - djm@cvs.openbsd.org 2004/08/13 02:51:48
+     [monitor_fdpass.c]
+     extra check for no message case; ok markus, deraadt, hshoexer, henning
 
 20040812
  - (dtucker) [sshd.c] Remove duplicate variable imported during sync.
@@ -1615,4 +1618,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3503 2004/08/13 11:23:25 dtucker Exp $
+$Id: ChangeLog,v 1.3504 2004/08/13 11:29:02 dtucker Exp $
