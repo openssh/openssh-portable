@@ -68,25 +68,25 @@ install: all
 	$(INSTALL) -d $(mandir)
 	$(INSTALL) -d $(mandir)/man1
 	$(INSTALL) -d $(mandir)/man8
-	$(INSTALL) -s -c ssh $(bindir)/ssh
-	$(INSTALL) -s -c scp $(bindir)/scp
-	$(INSTALL) -s -c ssh-add $(bindir)/ssh-add
-	$(INSTALL) -s -c ssh-agent $(bindir)/ssh-agent
-	$(INSTALL) -s -c ssh-keygen $(bindir)/ssh-keygen
-	$(INSTALL) -s -c sshd $(sbindir)/sshd
-	$(INSTALL) -m644 -c ssh.1 $(mandir)/man1/ssh.1
-	$(INSTALL) -m644 -c scp.1 $(mandir)/man1/scp.1
-	$(INSTALL) -m644 -c ssh-add.1 $(mandir)/man1/ssh-add.1
-	$(INSTALL) -m644 -c ssh-agent.1 $(mandir)/man1/ssh-agent.1
-	$(INSTALL) -m644 -c ssh-keygen.1 $(mandir)/man1/ssh-keygen.1
-	$(INSTALL) -m644 -c sshd.8 $(mandir)/man8/sshd.8
+	$(INSTALL) -s ssh $(bindir)/ssh
+	$(INSTALL) -s scp $(bindir)/scp
+	$(INSTALL) -s ssh-add $(bindir)/ssh-add
+	$(INSTALL) -s ssh-agent $(bindir)/ssh-agent
+	$(INSTALL) -s ssh-keygen $(bindir)/ssh-keygen
+	$(INSTALL) -s sshd $(sbindir)/sshd
+	$(INSTALL) -m644 ssh.1 $(mandir)/man1/ssh.1
+	$(INSTALL) -m644 scp.1 $(mandir)/man1/scp.1
+	$(INSTALL) -m644 ssh-add.1 $(mandir)/man1/ssh-add.1
+	$(INSTALL) -m644 ssh-agent.1 $(mandir)/man1/ssh-agent.1
+	$(INSTALL) -m644 ssh-keygen.1 $(mandir)/man1/ssh-keygen.1
+	$(INSTALL) -m644 sshd.8 $(mandir)/man8/sshd.8
 	ln -sf ssh $(bindir)/slogin
 	ln -sf ssh.1 $(mandir)/man1/slogin.1
 
 	$(INSTALL) -d $(libexecdir) ;
 	$(INSTALL) -d $(libexecdir)/ssh ;
 	if [ -z "@GNOME_ASKPASS@" ] ; then \
-		$(INSTALL) -m755 -c gnome-ssh-askpass ${ASKPASS_PROGRAM}; \
+		$(INSTALL) -s @GNOME_ASKPASS@ ${ASKPASS_PROGRAM} ; \
 	fi
 
 	if [ ! -f $(sysconfdir)/ssh_config -a ! -f $(sysconfdir)/sshd_config ]; then \
