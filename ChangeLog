@@ -27,6 +27,8 @@
      lightweight do_setusercontext after chroot()
  - (bal) Updated AIX package build.  Patch by dtucker@zip.com.au
  - (tim) [Makefile.in] fix test on installing ssh-rand-helper.8
+ - (bal) added back in error check for mmap().  I screwed up, Pointed
+   out by stevesk@
 
 20020625
  - (stevesk) [INSTALL acconfig.h configure.ac defines.h] remove --with-rsh
@@ -1126,4 +1128,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2283 2002/06/25 23:45:42 tim Exp $
+$Id: ChangeLog,v 1.2284 2002/06/26 00:22:57 mouring Exp $
