@@ -193,10 +193,11 @@ debug3(const char *fmt,...)
 void
 log_init(char *av0, LogLevel level, SyslogFacility facility, int on_stderr)
 {
-	argv0 = av0;
 #if defined(HAVE_OPENLOG_R) && defined(SYSLOG_DATA_INIT)
 	struct syslog_data sdata = SYSLOG_DATA_INIT;
 #endif
+
+	argv0 = av0;
 
 	switch (level) {
 	case SYSLOG_LEVEL_QUIET:

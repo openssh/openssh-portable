@@ -10,6 +10,7 @@
      OpenSSH 4.0
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec] 
    [contrib/suse/openssh.spec] Update spec file versions
+ - (djm) [log.c] Fix dumb syntax error; ok dtucker@
  - (djm) Release OpenSSH 4.0p1
 
 20050307
@@ -2320,4 +2321,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3707 2005/03/09 00:03:08 djm Exp $
+$Id: ChangeLog,v 1.3708 2005/03/09 09:12:47 dtucker Exp $
