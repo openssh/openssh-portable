@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: xmalloc.c,v 1.9 2001/01/21 19:06:02 markus Exp $");
+RCSID("$OpenBSD: xmalloc.c,v 1.10 2001/01/28 20:53:21 stevesk Exp $");
 
 #include "xmalloc.h"
 #include "log.h"
@@ -51,7 +51,7 @@ xfree(void *ptr)
 char *
 xstrdup(const char *str)
 {
-	int len = strlen(str) + 1;
+	size_t len = strlen(str) + 1;
 
 	char *cp = xmalloc(len);
 	strlcpy(cp, str, len);
