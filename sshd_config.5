@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.15 2003/03/28 10:11:43 jmc Exp $
+.\" $OpenBSD: sshd_config.5,v 1.16 2003/04/30 01:16:20 mouring Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -72,7 +72,7 @@ If specified, login is allowed only for users whose primary
 group or supplementary group list matches one of the patterns.
 .Ql \&*
 and
-.Ql ?
+.Ql \&?
 can be used as
 wildcards in the patterns.
 Only group names are valid; a numerical group ID is not recognized.
@@ -93,7 +93,7 @@ If specified, login is allowed only for user names that
 match one of the patterns.
 .Ql \&*
 and
-.Ql ?
+.Ql \&?
 can be used as
 wildcards in the patterns.
 Only user names are valid; a numerical user ID is not recognized.
@@ -187,7 +187,7 @@ Login is disallowed for users whose primary group or supplementary
 group list matches one of the patterns.
 .Ql \&*
 and
-.Ql ?
+.Ql \&?
 can be used as
 wildcards in the patterns.
 Only group names are valid; a numerical group ID is not recognized.
@@ -199,7 +199,7 @@ by spaces.
 Login is disallowed for user names that match one of the patterns.
 .Ql \&*
 and
-.Ql ?
+.Ql \&?
 can be used as wildcards in the patterns.
 Only user names are valid; a numerical user ID is not recognized.
 By default, login is allowed for all users.

@@ -28,6 +28,10 @@
    - deraadt@cvs.openbsd.org 2003/04/26 04:29:49
      [ssh-keyscan.c]
      -t in usage(); rogier@quaak.org
+   - mouring@cvs.openbsd.org 2003/04/30 01:16:20
+     [sshd.8 sshd_config.5]
+     Escape ?, * and ! in .Ql for nroff compatibility.  OpenSSH Portable 
+     Bug #550 and * escaping suggested by jmc@.
 
 20030512
  - (djm) Redhat spec: Don't install profile.d scripts when not 
@@ -1415,4 +1419,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2684 2003/05/14 03:43:53 djm Exp $
+$Id: ChangeLog,v 1.2685 2003/05/14 03:44:42 djm Exp $
