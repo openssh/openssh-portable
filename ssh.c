@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.230 2004/11/07 17:57:30 jmc Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.231 2005/02/16 09:56:44 otto Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -297,7 +297,8 @@ again:
 		case 'i':
 			if (stat(optarg, &st) < 0) {
 				fprintf(stderr, "Warning: Identity file %s "
-				    "does not exist.\n", optarg);
+				    "not accessible: %s.\n", optarg,
+				    strerror(errno));
 				break;
 			}
 			if (options.num_identity_files >=
