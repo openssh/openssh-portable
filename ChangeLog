@@ -3,6 +3,9 @@
    - itojun@cvs.openbsd.org 2002/10/16 14:31:48
      [sftp-common.c]
      64bit pedant.  %llu is "unsigned long long".  markus ok
+   - markus@cvs.openbsd.org 2002/10/23 10:32:13
+     [packet.c]
+     use %u for u_int
 
 20021021
  - (djm) Bug #400: Kill ssh-rand-helper children on timeout, patch from 
@@ -780,4 +783,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2500 2002/11/09 15:40:34 mouring Exp $
+$Id: ChangeLog,v 1.2501 2002/11/09 15:41:39 mouring Exp $

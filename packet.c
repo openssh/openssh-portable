@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.97 2002/07/04 08:12:15 deraadt Exp $");
+RCSID("$OpenBSD: packet.c,v 1.98 2002/10/23 10:32:13 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -840,7 +840,7 @@ packet_read_poll1(void)
 	cp = buffer_ptr(&input);
 	len = GET_32BIT(cp);
 	if (len < 1 + 2 + 2 || len > 256 * 1024)
-		packet_disconnect("Bad packet length %d.", len);
+		packet_disconnect("Bad packet length %u.", len);
 	padded_len = (len + 8) & ~7;
 
 	/* Check if the packet has been entirely received. */
@@ -936,9 +936,9 @@ packet_read_poll2(u_int32_t *seqnr_p)
 		packet_length = GET_32BIT(cp);
 		if (packet_length < 1 + 4 || packet_length > 256 * 1024) {
 			buffer_dump(&incoming_packet);
-			packet_disconnect("Bad packet length %d.", packet_length);
+			packet_disconnect("Bad packet length %u.", packet_length);
 		}
-		DBG(debug("input: packet len %d", packet_length+4));
+		DBG(debug("input: packet len %u", packet_length+4));
 		buffer_consume(&input, block_size);
 	}
 	/* we have a partial packet of block_size bytes */
