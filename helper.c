@@ -100,8 +100,7 @@ void get_random_bytes(unsigned char *buf, int len)
 	if (sizeof(RANDOM_POOL) > sizeof(addr.sun_path))
 		fatal("Random pool path is too long");
 	
-	strncpy(addr.sun_path, RANDOM_POOL, sizeof(addr.sun_path - 1));
-	addr.sun_path[sizeof(addr.sun_path - 1)] = '\0';
+	strcpy(addr.sun_path, RANDOM_POOL);
 	
 	addr_len = offsetof(struct sockaddr_un, sun_path) + sizeof(RANDOM_POOL);
 	
@@ -130,9 +129,12 @@ void get_random_bytes(unsigned char *buf, int len)
 
 #endif /* HAVE_EGD */
 
-	c = read(random_pool, buf, len);
-	if (c == -1)
-		fatal("Couldn't read from random pool \"%s\": %s", RANDOM_POOL, strerror(errno));
+	do {
+		c = read(random_pool, buf, len);
+
+		if ((c == -1) && (errno != EINTR))
+			fatal("Couldn't read from random pool \"%s\": %s", RANDOM_POOL, strerror(errno));
+	} while (c == -1);
 
 	if (c != len)
 		fatal("Short read from random pool \"%s\"", RANDOM_POOL);

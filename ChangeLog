@@ -10,6 +10,9 @@
  - Tidy RCSIDs of bsd-*.c
  - Added autoconf test and macro to deal with old PAM libraries 
    pam_strerror definition (one arg vs two).
+ - Fix EGD problems (Thanks to Ben Taylor <bent@clark.net>)
+ - Retry /dev/urandom reads interrupted by signal (report from 
+   Robert Hardy <rhardy@webcon.net>)
 
 19991121
  - OpenBSD CVS Changes:
