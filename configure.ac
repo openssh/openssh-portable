@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.250 2005/03/07 09:21:37 tim Exp $
+# $Id: configure.ac,v 1.251 2005/03/17 21:37:04 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -2324,23 +2324,28 @@ AC_ARG_WITH(sectok,
 )
 
 # Check whether user wants OpenSC support
+OPENSC_CONFIG="no"
 AC_ARG_WITH(opensc,
-	AC_HELP_STRING([--with-opensc=PFX],
-		       [Enable smartcard support using OpenSC]),
-	opensc_config_prefix="$withval", opensc_config_prefix="")
-if test x$opensc_config_prefix != x ; then
-  OPENSC_CONFIG=$opensc_config_prefix/bin/opensc-config
-  AC_PATH_PROG(OPENSC_CONFIG, opensc-config, no)
-  if test "$OPENSC_CONFIG" != "no"; then
-    LIBOPENSC_CFLAGS=`$OPENSC_CONFIG --cflags`
-    LIBOPENSC_LIBS=`$OPENSC_CONFIG --libs`
-    CPPFLAGS="$CPPFLAGS $LIBOPENSC_CFLAGS"
-    LDFLAGS="$LDFLAGS $LIBOPENSC_LIBS"
-    AC_DEFINE(SMARTCARD)
-    AC_DEFINE(USE_OPENSC)
-    SCARD_MSG="yes, using OpenSC"
-  fi
-fi
+	[--with-opensc[[=PFX]]       Enable smartcard support using OpenSC (optionally in PATH)],
+	[
+	    if test "x$withval" != "xno" ; then
+		if test "x$withval" != "xyes" ; then
+  			OPENSC_CONFIG=$withval/bin/opensc-config
+		else
+  			AC_PATH_PROG(OPENSC_CONFIG, opensc-config, no)
+		fi
+		if test "$OPENSC_CONFIG" != "no"; then
+			LIBOPENSC_CFLAGS=`$OPENSC_CONFIG --cflags`
+			LIBOPENSC_LIBS=`$OPENSC_CONFIG --libs`
+			CPPFLAGS="$CPPFLAGS $LIBOPENSC_CFLAGS"
+			LDFLAGS="$LDFLAGS $LIBOPENSC_LIBS"
+			AC_DEFINE(SMARTCARD)
+			AC_DEFINE(USE_OPENSC)
+			SCARD_MSG="yes, using OpenSC"
+		fi
+	    fi
+	]
+)
 
 # Check libraries needed by DNS fingerprint support
 AC_SEARCH_LIBS(getrrsetbyname, resolv,

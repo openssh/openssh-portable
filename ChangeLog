@@ -1,3 +1,7 @@
+20050317
+ - (tim) [configure.ac] Bug 998. Make path for --with-opensc optional.
+   Make --without-opensc work.
+
 20050314
  - (dtucker) OpenBSD CVS Sync
    - dtucker@cvs.openbsd.org 2005/03/10 10:15:02
@@ -2364,4 +2368,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3720 2005/03/15 01:24:51 tim Exp $
+$Id: ChangeLog,v 1.3721 2005/03/17 21:37:04 tim Exp $
