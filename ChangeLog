@@ -1,3 +1,6 @@
+20010330
+ - (djm) Another openbsd-compat/glob.c sync
+
 20010328
  - (djm) Reorder tests and library inclusion for Krb4/AFS to try to 
    resolve linking conflicts with libcrypto. Report and suggested fix 
@@ -4688,4 +4691,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.991.2.15 2001/03/28 11:05:07 djm Exp $
+$Id: ChangeLog,v 1.991.2.16 2001/03/30 00:23:08 djm Exp $
