@@ -1,3 +1,6 @@
+20020707
+ - (tim) [Makefile.in] use umask instead of chmod on $(PRIVSEP_PATH)
+
 20020705
  - (tim) [configure.ac] AIX 4.2.1 has authenticate() in libs.
    Reported by Darren Tucker <dtucker@zip.com.au>
@@ -1280,4 +1283,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2337 2002/07/05 23:22:32 tim Exp $
+$Id: ChangeLog,v 1.2338 2002/07/07 20:30:45 tim Exp $
