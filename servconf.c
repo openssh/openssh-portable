@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.124 2003/08/13 08:46:30 markus Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.125 2003/08/22 10:56:09 markus Exp $");
 
 #include "ssh.h"
 #include "log.h"
@@ -73,6 +73,8 @@ initialize_server_options(ServerOptions *options)
 	options->kerberos_or_local_passwd = -1;
 	options->kerberos_ticket_cleanup = -1;
 	options->kerberos_tgt_passing = -1;
+	options->gss_authentication=-1;
+	options->gss_cleanup_creds = -1;
 	options->password_authentication = -1;
 	options->kbd_interactive_authentication = -1;
 	options->challenge_response_authentication = -1;
@@ -182,6 +184,10 @@ fill_default_server_options(ServerOptions *options)
 		options->kerberos_ticket_cleanup = 1;
 	if (options->kerberos_tgt_passing == -1)
 		options->kerberos_tgt_passing = 0;
+	if (options->gss_authentication == -1)
+		options->gss_authentication = 0;
+	if (options->gss_cleanup_creds == -1)
+		options->gss_cleanup_creds = 1;
 	if (options->password_authentication == -1)
 		options->password_authentication = 1;
 	if (options->kbd_interactive_authentication == -1)
@@ -259,6 +265,7 @@ typedef enum {
 	sBanner, sUseDNS, sHostbasedAuthentication,
 	sHostbasedUsesNameFromPacketOnly, sClientAliveInterval,
 	sClientAliveCountMax, sAuthorizedKeysFile, sAuthorizedKeysFile2,
+	sGssAuthentication, sGssCleanupCreds,
 	sUsePrivilegeSeparation,
 	sDeprecated, sUnsupported
 } ServerOpCodes;
@@ -305,6 +312,13 @@ static struct {
 	{ "kerberostgtpassing", sUnsupported },
 #endif
 	{ "afstokenpassing", sUnsupported },
+#ifdef GSSAPI
+	{ "gssapiauthentication", sGssAuthentication },
+	{ "gssapicleanupcreds", sGssCleanupCreds },
+#else
+	{ "gssapiauthentication", sUnsupported },
+	{ "gssapicleanupcreds", sUnsupported },
+#endif
 	{ "passwordauthentication", sPasswordAuthentication },
 	{ "kbdinteractiveauthentication", sKbdInteractiveAuthentication },
 	{ "challengeresponseauthentication", sChallengeResponseAuthentication },
@@ -621,6 +635,14 @@ parse_flag:
 
 	case sKerberosTgtPassing:
 		intptr = &options->kerberos_tgt_passing;
+		goto parse_flag;
+
+	case sGssAuthentication:
+		intptr = &options->gss_authentication;
+		goto parse_flag;
+
+	case sGssCleanupCreds:
+		intptr = &options->gss_cleanup_creds;
 		goto parse_flag;
 
 	case sPasswordAuthentication:

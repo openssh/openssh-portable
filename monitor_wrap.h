@@ -1,4 +1,4 @@
-/*	$OpenBSD: monitor_wrap.h,v 1.9 2003/07/22 13:35:22 markus Exp $	*/
+/*	$OpenBSD: monitor_wrap.h,v 1.10 2003/08/22 10:56:09 markus Exp $	*/
 
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
@@ -54,6 +54,14 @@ int mm_key_verify(Key *, u_char *, u_int, u_char *, u_int);
 int mm_auth_rsa_key_allowed(struct passwd *, BIGNUM *, Key **);
 int mm_auth_rsa_verify_response(Key *, BIGNUM *, u_char *);
 BIGNUM *mm_auth_rsa_generate_challenge(Key *);
+
+#ifdef GSSAPI
+#include "ssh-gss.h"
+OM_uint32 mm_ssh_gssapi_server_ctx(Gssctxt **ctxt, gss_OID oid);
+OM_uint32 mm_ssh_gssapi_accept_ctx(Gssctxt *ctxt,
+   gss_buffer_desc *recv, gss_buffer_desc *send, OM_uint32 *flags);
+int mm_ssh_gssapi_userok(char *user);
+#endif
 
 #ifdef USE_PAM
 void mm_start_pam(char *);

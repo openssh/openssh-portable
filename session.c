@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.160 2003/08/13 08:33:02 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.161 2003/08/22 10:56:09 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -57,6 +57,10 @@ RCSID("$OpenBSD: session.c,v 1.160 2003/08/13 08:33:02 markus Exp $");
 #include "canohost.h"
 #include "session.h"
 #include "monitor_wrap.h"
+
+#ifdef GSSAPI
+#include "ssh-gss.h"
+#endif
 
 /* func */
 
@@ -424,6 +428,12 @@ do_exec_no_pty(Session *s, const char *command)
 	}
 #endif /* USE_PAM */
 
+#ifdef GSSAPI
+	temporarily_use_uid(s->pw);
+	ssh_gssapi_storecreds();
+	restore_uid();
+#endif
+
 	/* Fork the child. */
 	if ((pid = fork()) == 0) {
 		fatal_remove_all_cleanups();
@@ -548,6 +558,12 @@ do_exec_pty(Session *s, const char *command)
 		do_pam_session(s->pw->pw_name, s->tty);
 		do_pam_setcred(1);
 	}
+#endif
+
+#ifdef GSSAPI
+	temporarily_use_uid(s->pw);
+	ssh_gssapi_storecreds();
+	restore_uid();
 #endif
 
 	/* Fork the child. */
@@ -807,7 +823,7 @@ check_quietlogin(Session *s, const char *command)
  * Sets the value of the given variable in the environment.  If the variable
  * already exists, its value is overriden.
  */
-static void
+void
 child_set_env(char ***envp, u_int *envsizep, const char *name,
 	const char *value)
 {
@@ -932,6 +948,13 @@ do_setup_env(Session *s, const char *shell)
 	 * important for a running system. They must not be dropped.
 	 */
 	copy_environment(environ, &env, &envsize);
+#endif
+
+#ifdef GSSAPI
+	/* Allow any GSSAPI methods that we've used to alter 
+	 * the childs environment as they see fit
+	 */
+	ssh_gssapi_do_child(&env, &envsize);
 #endif
 
 	if (!options.use_login) {
@@ -2088,4 +2111,8 @@ static void
 do_authenticated2(Authctxt *authctxt)
 {
 	server_loop2(authctxt);
+#if defined(GSSAPI)
+	if (options.gss_cleanup_creds)
+		ssh_gssapi_cleanup_creds(NULL);
+#endif
 }

@@ -1,4 +1,4 @@
-/*	$OpenBSD: readconf.h,v 1.53 2003/08/13 08:46:30 markus Exp $	*/
+/*	$OpenBSD: readconf.h,v 1.54 2003/08/22 10:56:09 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -42,6 +42,8 @@ typedef struct {
 					/* Try S/Key or TIS, authentication. */
 	int     kerberos_authentication;	/* Try Kerberos authentication. */
 	int     kerberos_tgt_passing;	/* Try Kerberos TGT passing. */
+	int     gss_authentication;	/* Try GSS authentication */
+	int     gss_deleg_creds;	/* Delegate GSS credentials */
 	int     password_authentication;	/* Try password
 						 * authentication. */
 	int     kbd_interactive_authentication; /* Try keyboard-interactive auth. */

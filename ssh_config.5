@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.17 2003/08/13 08:46:31 markus Exp $
+.\" $OpenBSD: ssh_config.5,v 1.18 2003/08/22 10:56:09 markus Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -331,6 +331,18 @@ The default is
 Specifies a file to use for the global
 host key database instead of
 .Pa /etc/ssh/ssh_known_hosts .
+.It Cm GSSAPIAuthentication
+Specifies whether authentication based on GSSAPI may be used, either using
+the result of a successful key exchange, or using GSSAPI user
+authentication.
+The default is 
+.Dq yes .
+Note that this option applies to protocol version 2 only.
+.It Cm GSSAPIDelegateCredentials
+Forward (delegate) credentials to the server.
+The default is
+.Dq no .
+Note that this option applies to protocol version 2 only.
 .It Cm HostbasedAuthentication
 Specifies whether to try rhosts based authentication with public key
 authentication.

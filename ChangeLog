@@ -2,6 +2,14 @@
  - (djm) Bug #629: Mark ssh_config option "pamauthenticationviakbdint"
    as deprecated. Remove mention from README.privsep. Patch from 
    aet AT cc.hut.fi
+ - (dtucker) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2003/08/22 10:56:09
+     [auth2.c auth2-gss.c auth.h compat.c compat.h gss-genr.c gss-serv-krb5.c
+     gss-serv.c monitor.c monitor.h monitor_wrap.c monitor_wrap.h readconf.c
+     readconf.h servconf.c servconf.h session.c session.h ssh-gss.h
+     ssh_config.5 sshconnect2.c sshd_config sshd_config.5]
+     support GSS API user authentication; patches from Simon Wilkinson,
+     stripped down and tested by Jakob and myself.
 
 20030825
  - (djm) Bug #621: Select OpenSC keys by usage attributes. Patch from 
@@ -874,4 +882,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2906 2003/08/26 00:48:14 djm Exp $
+$Id: ChangeLog,v 1.2907 2003/08/26 01:49:55 dtucker Exp $

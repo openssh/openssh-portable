@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.45 2003/07/22 13:35:22 markus Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.46 2003/08/22 10:56:09 markus Exp $");
 
 #include <openssl/dh.h>
 
@@ -58,6 +58,11 @@ RCSID("$OpenBSD: monitor.c,v 1.45 2003/07/22 13:35:22 markus Exp $");
 #include "compat.h"
 #include "ssh2.h"
 #include "mpaux.h"
+
+#ifdef GSSAPI
+#include "ssh-gss.h"
+static Gssctxt *gsscontext = NULL;
+#endif
 
 /* Imports */
 extern ServerOptions options;
@@ -128,6 +133,11 @@ int mm_answer_pam_free_ctx(int, Buffer *);
 #ifdef KRB5
 int mm_answer_krb5(int, Buffer *);
 #endif
+#ifdef GSSAPI
+int mm_answer_gss_setup_ctx(int, Buffer *);
+int mm_answer_gss_accept_ctx(int, Buffer *);
+int mm_answer_gss_userok(int, Buffer *);
+#endif
 
 static Authctxt *authctxt;
 static BIGNUM *ssh1_challenge = NULL;	/* used for ssh1 rsa auth */
@@ -184,6 +194,11 @@ struct mon_table mon_dispatch_proto20[] = {
     {MONITOR_REQ_KEYVERIFY, MON_AUTH, mm_answer_keyverify},
 #ifdef KRB5
     {MONITOR_REQ_KRB5, MON_ONCE|MON_AUTH, mm_answer_krb5},
+#endif
+#ifdef GSSAPI
+    {MONITOR_REQ_GSSSETUP, MON_ISAUTH, mm_answer_gss_setup_ctx},
+    {MONITOR_REQ_GSSSTEP, MON_ISAUTH, mm_answer_gss_accept_ctx},
+    {MONITOR_REQ_GSSUSEROK, MON_AUTH, mm_answer_gss_userok},
 #endif
     {0, 0, NULL}
 };
@@ -357,7 +372,6 @@ monitor_child_postauth(struct monitor *pmonitor)
 		monitor_permit(mon_dispatch, MONITOR_REQ_MODULI, 1);
 		monitor_permit(mon_dispatch, MONITOR_REQ_SIGN, 1);
 		monitor_permit(mon_dispatch, MONITOR_REQ_TERM, 1);
-
 	} else {
 		mon_dispatch = mon_dispatch_postauth15;
 		monitor_permit(mon_dispatch, MONITOR_REQ_TERM, 1);
@@ -1769,3 +1783,77 @@ monitor_reinit(struct monitor *mon)
 	mon->m_recvfd = pair[0];
 	mon->m_sendfd = pair[1];
 }
+
+#ifdef GSSAPI
+int
+mm_answer_gss_setup_ctx(int socket, Buffer *m)
+{
+	gss_OID_desc oid;
+	OM_uint32 major;
+	u_int len;
+
+	oid.elements = buffer_get_string(m, &len);
+	oid.length = len;
+
+	major = ssh_gssapi_server_ctx(&gsscontext, &oid);
+
+	xfree(oid.elements);
+
+	buffer_clear(m);
+	buffer_put_int(m, major);
+
+	mm_request_send(socket,MONITOR_ANS_GSSSETUP, m);
+
+	/* Now we have a context, enable the step */
+	monitor_permit(mon_dispatch, MONITOR_REQ_GSSSTEP, 1);
+
+	return (0);
+}
+
+int
+mm_answer_gss_accept_ctx(int socket, Buffer *m)
+{
+	gss_buffer_desc in;
+	gss_buffer_desc out = GSS_C_EMPTY_BUFFER;
+	OM_uint32 major,minor;
+	OM_uint32 flags = 0; /* GSI needs this */
+
+	in.value = buffer_get_string(m, &in.length);
+	major = ssh_gssapi_accept_ctx(gsscontext, &in, &out, &flags);
+	xfree(in.value);
+
+	buffer_clear(m);
+	buffer_put_int(m, major);
+	buffer_put_string(m, out.value, out.length);
+	buffer_put_int(m, flags);
+	mm_request_send(socket, MONITOR_ANS_GSSSTEP, m);
+
+	gss_release_buffer(&minor, &out);
+
+	/* Complete - now we can do signing */
+	if (major==GSS_S_COMPLETE) {
+		monitor_permit(mon_dispatch, MONITOR_REQ_GSSSTEP, 0);
+		monitor_permit(mon_dispatch, MONITOR_REQ_GSSUSEROK, 1);
+	}
+	return (0);
+}
+
+int
+mm_answer_gss_userok(int socket, Buffer *m)
+{
+	int authenticated;
+
+	authenticated = authctxt->valid && ssh_gssapi_userok(authctxt->user);
+
+	buffer_clear(m);
+	buffer_put_int(m, authenticated);
+
+	debug3("%s: sending result %d", __func__, authenticated);
+	mm_request_send(socket, MONITOR_ANS_GSSUSEROK, m);
+
+	auth_method="gssapi";
+
+	/* Monitor loop will terminate if authenticated */
+	return (authenticated);
+}
+#endif /* GSSAPI */

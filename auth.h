@@ -1,4 +1,4 @@
-/*	$OpenBSD: auth.h,v 1.43 2003/07/22 13:35:22 markus Exp $	*/
+/*	$OpenBSD: auth.h,v 1.44 2003/08/22 10:56:08 markus Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -67,6 +67,7 @@ struct Authctxt {
 	krb5_principal	 krb5_user;
 	char		*krb5_ticket_file;
 #endif
+	void		*methoddata;
 };
 /*
  * Every authentication method has to handle authentication requests for

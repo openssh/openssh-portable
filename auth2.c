@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.99 2003/06/24 08:23:46 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.100 2003/08/22 10:56:08 markus Exp $");
 
 #include "ssh2.h"
 #include "xmalloc.h"
@@ -35,6 +35,10 @@ RCSID("$OpenBSD: auth2.c,v 1.99 2003/06/24 08:23:46 markus Exp $");
 #include "dispatch.h"
 #include "pathnames.h"
 #include "monitor_wrap.h"
+
+#ifdef GSSAPI
+#include "ssh-gss.h"
+#endif
 
 /* import */
 extern ServerOptions options;
@@ -53,10 +57,16 @@ extern Authmethod method_hostbased;
 #ifdef KRB5
 extern Authmethod method_kerberos;
 #endif
+#ifdef GSSAPI
+extern Authmethod method_gssapi;
+#endif
 
 Authmethod *authmethods[] = {
 	&method_none,
 	&method_pubkey,
+#ifdef GSSAPI
+	&method_gssapi,
+#endif
 	&method_passwd,
 	&method_kbdint,
 	&method_hostbased,
@@ -184,6 +194,12 @@ input_userauth_request(int type, u_int32_t seq, void *ctxt)
 	}
 	/* reset state */
 	auth2_challenge_stop(authctxt);
+
+#ifdef GSSAPI
+	dispatch_set(SSH2_MSG_USERAUTH_GSSAPI_TOKEN, NULL);
+	dispatch_set(SSH2_MSG_USERAUTH_GSSAPI_EXCHANGE_COMPLETE, NULL);
+#endif
+
 	authctxt->postponed = 0;
 
 	/* try to authenticate user */

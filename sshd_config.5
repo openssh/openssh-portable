@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.22 2003/08/13 08:46:31 markus Exp $
+.\" $OpenBSD: sshd_config.5,v 1.23 2003/08/22 10:56:09 markus Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -225,6 +225,19 @@ or
 .Dq no .
 The default is
 .Dq no .
+.It Cm GSSAPIAuthentication
+Specifies whether authentication based on GSSAPI may be used, either using
+the result of a successful key exchange, or using GSSAPI user
+authentication.
+The default is 
+.Dq no .
+Note that this option applies to protocol version 2 only.
+.It Cm GSSAPICleanupCredentials
+Specifies whether to automatically destroy the user's credentials cache
+on logout.
+The default is
+.Dq yes .
+Note that this option applies to protocol version 2 only.
 .It Cm HostbasedAuthentication
 Specifies whether rhosts or /etc/hosts.equiv authentication together
 with successful public key client host authentication is allowed

@@ -1,4 +1,4 @@
-#	$OpenBSD: sshd_config,v 1.63 2003/08/13 08:46:31 markus Exp $
+#	$OpenBSD: sshd_config,v 1.64 2003/08/22 10:56:09 markus Exp $
 
 # This is the sshd server system-wide configuration file.  See
 # sshd_config(5) for more information.
@@ -62,6 +62,10 @@
 #KerberosOrLocalPasswd yes
 #KerberosTicketCleanup yes
 #KerberosTgtPassing no
+
+# GSSAPI options
+#GSSAPIAuthentication no
+#GSSAPICleanupCreds yes
 
 # Set this to 'yes' to enable PAM authentication (via challenge-response)
 # and session processing. Depending on your PAM configuration, this may
