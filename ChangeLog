@@ -8,6 +8,10 @@
    - stevesk@cvs.openbsd.org 2002/09/19 16:03:15
      [serverloop.c]
      log IP address also; ok markus@
+   - stevesk@cvs.openbsd.org 2002/09/20 18:41:29
+     [auth.c]
+     log illegal user here for missing privsep case (ssh2).
+     this is executed in the monitor. ok markus@
 
 20020919
  - (djm) OpenBSD CVS Sync
@@ -689,4 +693,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2474 2002/09/21 15:26:27 djm Exp $
+$Id: ChangeLog,v 1.2475 2002/09/21 15:26:51 djm Exp $
