@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.56 2001/06/25 08:25:40 markus Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.57 2001/06/26 04:07:06 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.56 2001/06/25 08:25:40 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.57 2001/06/26 04:07:06 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -706,7 +706,7 @@ usage(void)
 int
 main(int ac, char **av)
 {
-	int sock, c_flag = 0, k_flag = 0, s_flag = 0, ch;
+	int sock, c_flag = 0, d_flag = 0, k_flag = 0, s_flag = 0, ch;
 	struct sockaddr_un sunaddr;
 #ifdef HAVE_SETRLIMIT
 	struct rlimit rlim;
@@ -726,9 +726,9 @@ main(int ac, char **av)
 	seed_rng();
 
 #ifdef __GNU_LIBRARY__
-	while ((ch = getopt(ac, av, "+cks")) != -1) {
+	while ((ch = getopt(ac, av, "+cdks")) != -1) {
 #else /* __GNU_LIBRARY__ */
-	while ((ch = getopt(ac, av, "cks")) != -1) {
+	while ((ch = getopt(ac, av, "cdks")) != -1) {
 #endif /* __GNU_LIBRARY__ */
 		switch (ch) {
 		case 'c':
@@ -744,6 +744,11 @@ main(int ac, char **av)
 				usage();
 			s_flag++;
 			break;
+		case 'd':
+			if (d_flag)
+				usage();
+			d_flag++;
+			break;
 		default:
 			usage();
 		}
@@ -751,10 +756,10 @@ main(int ac, char **av)
 	ac -= optind;
 	av += optind;
 
-	if (ac > 0 && (c_flag || k_flag || s_flag))
+	if (ac > 0 && (c_flag || k_flag || s_flag || d_flag))
 		usage();
 
-	if (ac == 0 && !c_flag && !k_flag && !s_flag) {
+	if (ac == 0 && !c_flag && !k_flag && !s_flag && !d_flag) {
 		shell = getenv("SHELL");
 		if (shell != NULL && strncmp(shell + strlen(shell) - 3, "csh", 3) == 0)
 			c_flag = 1;
@@ -827,6 +832,14 @@ main(int ac, char **av)
 	 * Fork, and have the parent execute the command, if any, or present
 	 * the socket data.  The child continues as the authentication agent.
 	 */
+	if (d_flag) {
+		log_init(__progname, SYSLOG_LEVEL_DEBUG1, SYSLOG_FACILITY_AUTH, 1);
+		format = c_flag ? "setenv %s %s;\n" : "%s=%s; export %s;\n";
+		printf(format, SSH_AUTHSOCKET_ENV_NAME, socket_name,
+		    SSH_AUTHSOCKET_ENV_NAME);
+		printf("echo Agent pid %d;\n", parent_pid);
+		goto skip;
+	}
 	pid = fork();
 	if (pid == -1) {
 		perror("fork");
@@ -869,6 +882,8 @@ main(int ac, char **av)
 		perror("setsid");
 		cleanup_exit(1);
 	}
+
+skip:
 	if (atexit(cleanup_socket) < 0) {
 		perror("atexit");
 		cleanup_exit(1);
@@ -879,8 +894,10 @@ main(int ac, char **av)
 		alarm(10);
 	}
 	idtab_init();
-	signal(SIGINT, SIG_IGN);
-	signal(SIGPIPE, SIG_IGN);
+	if (!d_flag) {
+		signal(SIGINT, SIG_IGN);
+		signal(SIGPIPE, SIG_IGN);
+	}
 	signal(SIGHUP, cleanup_handler);
 	signal(SIGTERM, cleanup_handler);
 	while (1) {

@@ -1,4 +1,4 @@
-.\" $OpenBSD: ssh-agent.1,v 1.24 2001/04/10 09:13:21 itojun Exp $
+.\" $OpenBSD: ssh-agent.1,v 1.25 2001/06/26 04:07:06 markus Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -48,6 +48,8 @@
 .Op Fl c Li | Fl s
 .Nm ssh-agent
 .Fl k
+.Nm ssh-agent
+.Fl d
 .Sh DESCRIPTION
 .Nm
 is a program to hold private keys used for public key authentication
@@ -80,6 +82,10 @@ does not look like it's a csh style of shell.
 Kill the current agent (given by the
 .Ev SSH_AGENT_PID
 environment variable).
+.It Fl d
+Debug mode.  When this option is specified
+.Nm
+will fork.
 .El
 .Pp
 If a commandline is given, this is executed as a subprocess of the agent.

@@ -19,6 +19,9 @@
    - markus@cvs.openbsd.org 2001/06/26 02:47:07
      [ssh-keygen.c]
      allow loading a private RSA key to a cyberflex card.
+   - markus@cvs.openbsd.org 2001/06/26 04:07:06
+     [ssh-agent.1 ssh-agent.c]
+     add debug flag
 
 20010629
  - (bal) Removed net_aton() since we don't use it any more
@@ -5846,4 +5849,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1349 2001/07/04 03:44:03 mouring Exp $
+$Id: ChangeLog,v 1.1350 2001/07/04 03:48:02 mouring Exp $
