@@ -293,6 +293,8 @@ void    auth_request_forwarding(void);
  */
 char   *auth_get_socket_name(void);
 
+void	auth_sock_cleanup_proc(void *_pw);
+
 /*
  * This is called to process SSH_CMSG_AGENT_REQUEST_FORWARDING on the server.
  * This starts forwarding authentication requests.

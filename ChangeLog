@@ -1,3 +1,7 @@
+20010614
+ - (bal) Applied X11 Cookie Patch.  X11 Cookie behavior has changed to
+   no longer use /tmp/ssh-XXXXX/
+
 20010528
  - (tim) [conifgure.in] add setvbuf test needed for sftp-int.c
    Patch by Corinna Vinschen <vinschen@redhat.com>
@@ -5306,4 +5310,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1179.2.15 2001/05/28 17:21:43 tim Exp $
+$Id: ChangeLog,v 1.1179.2.16 2001/06/13 19:18:04 mouring Exp $
