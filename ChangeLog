@@ -1,3 +1,7 @@
+20040102
+ - (djm) OSX/Darwin needs BIND_8_COMPAT to build getrrsetbyname. Report from
+   jakob@
+
 20031231
  - (dtucker) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2003/12/22 09:16:58
@@ -1637,4 +1641,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3158 2003/12/31 03:59:17 dtucker Exp $
+$Id: ChangeLog,v 1.3159 2004/01/02 06:52:10 djm Exp $
