@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: nchan.c,v 1.40 2002/01/14 13:40:10 markus Exp $");
+RCSID("$OpenBSD: nchan.c,v 1.41 2002/01/14 13:41:13 markus Exp $");
 
 #include "ssh1.h"
 #include "ssh2.h"
@@ -324,9 +324,6 @@ chan_write_failed2(Channel *c)
 	debug("channel %d: write failed", c->self);
 	switch (c->ostate) {
 	case CHAN_OUTPUT_OPEN:
-		chan_shutdown_write(c); /* ?? */
-		chan_set_ostate(c, CHAN_OUTPUT_CLOSED);
-		break;
 	case CHAN_OUTPUT_WAIT_DRAIN:
 		chan_shutdown_write(c);
 		chan_set_ostate(c, CHAN_OUTPUT_CLOSED);
