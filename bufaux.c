@@ -165,7 +165,6 @@ buffer_get_int(Buffer *buffer)
 	return GET_32BIT(buf);
 }
 
-#ifdef HAVE_U_INT64_T
 u_int64_t
 buffer_get_int64(Buffer *buffer)
 {
@@ -174,7 +173,6 @@ buffer_get_int64(Buffer *buffer)
 	buffer_get(buffer, (char *) buf, 8);
 	return GET_64BIT(buf);
 }
-#endif
 
 /*
  * Stores integers in the buffer, msb first.
@@ -197,7 +195,6 @@ buffer_put_int(Buffer *buffer, u_int value)
 	buffer_append(buffer, buf, 4);
 }
 
-#ifdef HAVE_U_INT64_T
 void
 buffer_put_int64(Buffer *buffer, u_int64_t value)
 {
@@ -206,7 +203,6 @@ buffer_put_int64(Buffer *buffer, u_int64_t value)
 	PUT_64BIT(buf, value);
 	buffer_append(buffer, buf, 8);
 }
-#endif
 
 /*
  * Returns an arbitrary binary string from the buffer.  The string cannot

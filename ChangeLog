@@ -1,6 +1,8 @@
 20030427
  - (bal) Bug #541: return; was dropped by mistake.  Reported by 
    furrier@iglou.com
+ - (bal) Since we don't support platforms lacking u_int_64.  We may
+   as well clean out some of those evil #ifdefs
 
 20030409
  - (djm) Bug #539: Specify creation mode with O_CREAT for lastlog. Report 
@@ -1341,4 +1343,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2659 2003/04/27 17:55:33 mouring Exp $
+$Id: ChangeLog,v 1.2660 2003/04/27 18:01:37 mouring Exp $
