@@ -1,3 +1,7 @@
+20010509
+ - (bal) UseLogin patch for Solaris/UNICOS.  Patch by Wayne Davison
+   <wayne@blorf.net>
+
 20010508
  - (bal) Fixed configure test for USE_SIA.
 
@@ -5290,4 +5294,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1179.2.10 2001/05/07 12:59:19 mouring Exp $
+$Id: ChangeLog,v 1.1179.2.11 2001/05/08 20:34:31 mouring Exp $

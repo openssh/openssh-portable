@@ -77,6 +77,20 @@ record_login(pid_t pid, const char *ttyname, const char *user, uid_t uid,
   login_free_entry(li);
 }
 
+#ifdef LOGIN_NEEDS_UTMPX
+void
+record_utmp_only(pid_t pid, const char *ttyname, const char *user,
+		 const char *host, struct sockaddr * addr)
+{
+  struct logininfo *li;
+
+  li = login_alloc_entry(pid, user, host, ttyname);
+  login_set_addr(li, addr, sizeof(struct sockaddr));
+  login_utmp_only(li);
+  login_free_entry(li);
+}
+#endif
+
 /* Records that the user has logged out. */
 
 void

@@ -31,6 +31,15 @@ void
 record_login(pid_t pid, const char *ttyname, const char *user, uid_t uid,
     const char *host, struct sockaddr *addr);
 
+#ifdef LOGIN_NEEDS_UTMPX
+/*
+ * Record just the utmp info for /bin/login.
+ */
+void
+record_utmp_only(pid_t pid, const char *ttyname, const char *user,
+		 const char *host, struct sockaddr * addr);
+#endif
+
 /*
  * Records that the user has logged out.  This does many thigs normally done
  * by login(1) or init.
