@@ -6,6 +6,8 @@
      srp@srparish.net, help from djm
  - (djm) Fix getpeerid support for 64 bit BE systems. From 
     Arnd Bergmann <arndb@de.ibm.com>
+ - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
+   Report from murple@murple.net, diagnosis from dtucker@zip.com.au
  - Release 3.6p1
 
 20030324
@@ -1256,4 +1258,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2633.2.8 2003/03/26 05:02:47 djm Exp $
+$Id: ChangeLog,v 1.2633.2.9 2003/03/26 05:03:05 djm Exp $
