@@ -1,3 +1,7 @@
+20040719
+ - (djm) [openbsd-compat/bsd-arc4random.c] Discard early keystream, like OpenBSD
+   ok dtucker@
+
 20040717
  - (dtucker) [logintest.c scp.c sftp-server.c sftp.c ssh-add.c ssh-agent.c
    ssh-keygen.c ssh-keyscan.c ssh-keysign.c ssh-rand-helper.c ssh.c sshd.c
@@ -1527,4 +1531,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3477 2004/07/17 07:05:14 dtucker Exp $
+$Id: ChangeLog,v 1.3478 2004/07/18 23:30:38 djm Exp $
