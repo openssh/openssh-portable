@@ -133,7 +133,11 @@ sc_prkey_op_init(RSA *rsa, struct sc_pkcs15_object **key_obj_out)
 	key = key_obj->data;
 	r = sc_pkcs15_find_pin_by_auth_id(p15card, &key_obj->auth_id,
 					  &pin_obj);
-	if (r) {
+	if (r == SC_ERROR_OBJECT_NOT_FOUND) {
+		/* no pin required */
+		*key_obj_out = key_obj;
+		return 0;
+	} else if (r) {
 		error("Unable to find PIN object from SmartCard: %s",
 		      sc_strerror(r));
 		goto err;
