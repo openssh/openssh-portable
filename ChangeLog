@@ -18,6 +18,10 @@
    - markus@cvs.openbsd.org 2002/06/08 12:36:53
      [scp.c]
      remove FallBackToRsh
+   - markus@cvs.openbsd.org 2002/06/08 12:46:14
+     [readconf.c]
+     silently ignore deprecated options, since FallBackToRsh might be passed
+     by remote scp commands.
 
 20020607
  - (bal) Removed --{enable/disable}-suid-ssh
@@ -849,4 +853,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2194 2002/06/09 20:06:29 mouring Exp $
+$Id: ChangeLog,v 1.2195 2002/06/09 20:13:27 mouring Exp $
