@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.121 2002/06/08 21:15:27 itojun Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.122 2002/06/09 04:33:27 markus Exp $");
 
 #include <openssl/bn.h>
 
@@ -50,7 +50,7 @@ sockaddr_ntop(struct sockaddr *sa)
 
 	if (getnameinfo(sa, sa->sa_len, addrbuf, sizeof(addrbuf), NULL, 0,
 	    NI_NUMERICHOST) != 0)
-		abort();	/* XXX abort is bad -- do something else */
+		fatal("sockaddr_ntop: getnameinfo NI_NUMERICHOST failed");
 	return addrbuf;
 }
 

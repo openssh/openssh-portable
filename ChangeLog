@@ -25,6 +25,9 @@
   - itojun@cvs.openbsd.org 2002/06/08 21:15:27
      [sshconnect.c]
      always use getnameinfo.  (diag message only)
+   - markus@cvs.openbsd.org 2002/06/09 04:33:27
+     [sshconnect.c]
+     abort() - > fatal()
 
 20020607
  - (bal) Removed --{enable/disable}-suid-ssh
@@ -856,4 +859,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2196 2002/06/09 20:14:54 mouring Exp $
+$Id: ChangeLog,v 1.2197 2002/06/09 20:16:22 mouring Exp $
