@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.151 2001/09/19 21:41:57 stevesk Exp $
+.\" $OpenBSD: sshd.8,v 1.152 2001/09/20 00:15:54 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -413,7 +413,8 @@ server depend on knowing when a connection has become inactive.
 The default value is 3. If
 .Cm ClientAliveInterval
 (above) is set to 15, and
-.Cm Keepalive is left at the default, unresponsive ssh clients
+.Cm ClientAliveCountMax
+is left at the default, unresponsive ssh clients
 will be disconnected after approximately 45 seconds.
 .It Cm DenyGroups
 This keyword can be followed by a number of group names, separated
