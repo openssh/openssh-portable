@@ -313,9 +313,9 @@ do_authloop(Authctxt *authctxt)
 
 #ifdef HAVE_CYGWIN
 		if (authenticated &&
-		    !check_nt_auth(type == SSH_CMSG_AUTH_PASSWORD,pw->pw_uid)) {
+		    !check_nt_auth(type == SSH_CMSG_AUTH_PASSWORD, pw)) {
 			packet_disconnect("Authentication rejected for uid %d.",
-			(int)pw->pw_uid);
+			pw == NULL ? -1 : pw->pw_uid);
 			authenticated = 0;
 		}
 #else

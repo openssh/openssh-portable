@@ -335,7 +335,7 @@ userauth_none(Authctxt *authctxt)
 		return(0);
 
 #ifdef HAVE_CYGWIN
-	if (check_nt_auth(1, authctxt->pw->pw_uid) == 0)
+	if (check_nt_auth(1, authctxt->pw) == 0)
 		return(0);
 #endif
 #ifdef USE_PAM
@@ -361,7 +361,7 @@ userauth_passwd(Authctxt *authctxt)
 	packet_done();
 	if (authctxt->valid &&
 #ifdef HAVE_CYGWIN
-		check_nt_auth(1, authctxt->pw->pw_uid) &&
+	    check_nt_auth(1, authctxt->pw) &&
 #endif
 #ifdef USE_PAM
 	    auth_pam_password(authctxt->pw, password) == 1)
@@ -398,7 +398,7 @@ userauth_kbdint(Authctxt *authctxt)
 	xfree(devs);
 	xfree(lang);
 #ifdef HAVE_CYGWIN
-	if (check_nt_auth(0, authctxt->pw->pw_uid) == 0)
+	if (check_nt_auth(0, authctxt->pw) == 0)
 		return(0);
 #endif
 	return authenticated;
@@ -504,7 +504,7 @@ userauth_pubkey(Authctxt *authctxt)
 	xfree(pkalg);
 	xfree(pkblob);
 #ifdef HAVE_CYGWIN
-	if (check_nt_auth(0, authctxt->pw->pw_uid) == 0)
+	if (check_nt_auth(0, authctxt->pw) == 0)
 		return(0);
 #endif
 	return authenticated;

@@ -1,3 +1,7 @@
+20011229
+ - (djm) Apply Cygwin pointer deref fix from Corinna Vinschen 
+   <vinschen@redhat.com> Could be abused to guess valid usernames
+
 20011228
  - (djm) Remove recommendation to use GNU make, we should support most
    make programs.
@@ -7108,4 +7112,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1709 2001/12/27 22:57:33 djm Exp $
+$Id: ChangeLog,v 1.1710 2001/12/29 03:08:28 djm Exp $

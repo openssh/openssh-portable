@@ -15,7 +15,7 @@
 
 #include "includes.h"
 
-RCSID("$Id: bsd-cygwin_util.c,v 1.6 2001/11/27 01:19:44 tim Exp $");
+RCSID("$Id: bsd-cygwin_util.c,v 1.7 2001/12/29 03:08:30 djm Exp $");
 
 #ifdef HAVE_CYGWIN
 
@@ -58,7 +58,7 @@ int binary_pipe(int fd[2])
 	return ret;
 }
 
-int check_nt_auth(int pwd_authenticated, uid_t uid)
+int check_nt_auth(int pwd_authenticated, struct passwd *pw)
 {
 	/*
 	* The only authentication which is able to change the user
@@ -73,6 +73,8 @@ int check_nt_auth(int pwd_authenticated, uid_t uid)
 	*/
 	static int has_create_token = -1;
 
+	if (pw == NULL)
+		return 0;
 	if (is_winnt) {
 		if (has_create_token < 0) {
 			struct utsname uts;
@@ -90,7 +92,7 @@ int check_nt_auth(int pwd_authenticated, uid_t uid)
 			}
 		}
 		if (has_create_token < 1 &&
-		    !pwd_authenticated && geteuid() != uid)
+		    !pwd_authenticated && geteuid() != pw->pw_uid)
 			return 0;
 	}
 	return 1;
