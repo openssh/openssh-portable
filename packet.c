@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.107 2003/06/10 22:20:52 deraadt Exp $");
+RCSID("$OpenBSD: packet.c,v 1.108 2003/06/24 08:23:46 markus Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -108,7 +108,7 @@ static int compression_buffer_ready = 0;
 static int packet_compression = 0;
 
 /* default maximum packet size */
-int max_packet_size = 32768;
+u_int max_packet_size = 32768;
 
 /* Flag indicating whether this module has been initialized. */
 static int initialized = 0;
@@ -1446,8 +1446,8 @@ packet_is_interactive(void)
 	return interactive_mode;
 }
 
-int
-packet_set_maxsize(int s)
+u_int
+packet_set_maxsize(u_int s)
 {
 	static int called = 0;
 

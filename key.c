@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: key.c,v 1.52 2003/05/14 18:16:20 jakob Exp $");
+RCSID("$OpenBSD: key.c,v 1.53 2003/06/24 08:23:46 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -438,7 +438,7 @@ key_read(Key *ret, char **cpp)
 			xfree(blob);
 			return -1;
 		}
-		k = key_from_blob(blob, n);
+		k = key_from_blob(blob, (u_int)n);
 		xfree(blob);
 		if (k == NULL) {
 			error("key_read: key_from_blob %s failed", cp);
@@ -674,7 +674,7 @@ key_names_valid2(const char *names)
 }
 
 Key *
-key_from_blob(u_char *blob, int blen)
+key_from_blob(u_char *blob, u_int blen)
 {
 	Buffer b;
 	char *ktype;

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.119 2003/05/15 00:28:28 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.120 2003/06/24 08:23:46 markus Exp $");
 
 #ifdef KRB5
 #include <krb5.h>
@@ -67,7 +67,7 @@ extern Options options;
  */
 
 u_char *session_id2 = NULL;
-int session_id2_len = 0;
+u_int session_id2_len = 0;
 
 char *xxx_host;
 struct sockaddr *xxx_hostaddr;
@@ -591,7 +591,7 @@ sign_and_send_pubkey(Authctxt *authctxt, Identity *id)
 	Buffer b;
 	u_char *blob, *signature;
 	u_int bloblen, slen;
-	int skip = 0;
+	u_int skip = 0;
 	int ret = -1;
 	int have_sig = 1;
 

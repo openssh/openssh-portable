@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.190 2003/05/11 20:30:24 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.191 2003/06/24 08:23:46 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -419,7 +419,7 @@ channel_not_very_much_buffered_data(void)
 			}
 #endif
 			if (buffer_len(&c->output) > packet_get_maxsize()) {
-				debug2("channel %d: big output buffer %d > %d",
+				debug2("channel %d: big output buffer %u > %u",
 				    c->self, buffer_len(&c->output),
 				    packet_get_maxsize());
 				return 0;

@@ -1,4 +1,4 @@
-/*	$OpenBSD: packet.h,v 1.39 2003/04/08 20:21:29 itojun Exp $	*/
+/*	$OpenBSD: packet.h,v 1.40 2003/06/24 08:23:46 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -81,8 +81,8 @@ void	 packet_add_padding(u_char);
 void	 tty_make_modes(int, struct termios *);
 void	 tty_parse_modes(int, int *);
 
-extern int max_packet_size;
-int      packet_set_maxsize(int);
+extern u_int max_packet_size;
+u_int	 packet_set_maxsize(u_int);
 #define  packet_get_maxsize() max_packet_size
 
 /* don't allow remaining bytes after the end of the message */

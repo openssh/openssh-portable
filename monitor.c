@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.43 2003/06/12 07:57:38 markus Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.44 2003/06/24 08:23:46 markus Exp $");
 
 #include <openssl/dh.h>
 
@@ -141,7 +141,7 @@ static int key_blobtype = MM_NOKEY;
 static char *hostbased_cuser = NULL;
 static char *hostbased_chost = NULL;
 static char *auth_method = "unknown";
-static int session_id2_len = 0;
+static u_int session_id2_len = 0;
 static u_char *session_id2 = NULL;
 static pid_t monitor_child_pid;
 
