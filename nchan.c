@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: nchan.c,v 1.39 2002/01/14 13:34:07 markus Exp $");
+RCSID("$OpenBSD: nchan.c,v 1.40 2002/01/14 13:40:10 markus Exp $");
 
 #include "ssh1.h"
 #include "ssh2.h"
@@ -274,7 +274,7 @@ chan_send_oclose1(Channel *c)
  * the same for SSH2
  */
 static void
-chan_rcvd_oclose2(Channel *c)
+chan_rcvd_close2(Channel *c)
 {
 	debug("channel %d: rcvd close", c->self);
 	if (c->flags & CHAN_CLOSE_RCVD)
@@ -298,12 +298,13 @@ chan_rcvd_oclose2(Channel *c)
 	switch (c->istate) {
 	case CHAN_INPUT_OPEN:
 		chan_shutdown_read(c);
+		chan_set_istate(c, CHAN_INPUT_CLOSED);
 		break;
 	case CHAN_INPUT_WAIT_DRAIN:
 		chan_send_eof2(c);
+		chan_set_istate(c, CHAN_INPUT_CLOSED);
 		break;
 	}
-	chan_set_istate(c, CHAN_INPUT_CLOSED);
 }
 static void
 chan_ibuf_empty2(Channel *c)
@@ -311,7 +312,7 @@ chan_ibuf_empty2(Channel *c)
 	chan_ibuf_empty1(c);
 }
 static void
-chan_rcvd_ieof2(Channel *c)
+chan_rcvd_eof2(Channel *c)
 {
 	debug("channel %d: rcvd eof", c->self);
 	if (c->ostate == CHAN_OUTPUT_OPEN)
@@ -446,11 +447,11 @@ void
 chan_init(void)
 {
 	if (compat20) {
-		chan_rcvd_oclose		= chan_rcvd_oclose2;
+		chan_rcvd_oclose		= chan_rcvd_close2;
 		chan_read_failed		= chan_read_failed_12;
 		chan_ibuf_empty			= chan_ibuf_empty2;
 
-		chan_rcvd_ieof			= chan_rcvd_ieof2;
+		chan_rcvd_ieof			= chan_rcvd_eof2;
 		chan_write_failed		= chan_write_failed2;
 		chan_obuf_empty			= chan_obuf_empty2;
 	} else {
