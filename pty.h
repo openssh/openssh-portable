@@ -13,7 +13,7 @@
  * tty.
  */
 
-/* RCSID("$Id: pty.h,v 1.4 1999/12/07 04:38:32 damien Exp $"); */
+/* RCSID("$Id: pty.h,v 1.5 2000/03/02 12:30:53 damien Exp $"); */
 
 #ifndef PTY_H
 #define PTY_H
@@ -42,5 +42,7 @@ void    pty_make_controlling_tty(int *ttyfd, const char *ttyname);
 void 
 pty_change_window_size(int ptyfd, int row, int col,
     int xpixel, int ypixel);
+
+void	pty_setowner(struct passwd *pw, const char *ttyname);
 
 #endif				/* PTY_H */

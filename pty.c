@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: pty.c,v 1.11 1999/12/21 00:18:08 damien Exp $");
+RCSID("$Id: pty.c,v 1.12 2000/03/02 12:30:53 damien Exp $");
 
 #ifdef HAVE_UTIL_H
 # include <util.h>
@@ -188,9 +188,9 @@ void
 pty_release(const char *ttyname)
 {
 	if (chown(ttyname, (uid_t) 0, (gid_t) 0) < 0)
-		debug("chown %.100s 0 0 failed: %.100s", ttyname, strerror(errno));
+		error("chown %.100s 0 0 failed: %.100s", ttyname, strerror(errno));
 	if (chmod(ttyname, (mode_t) 0666) < 0)
-		debug("chmod %.100s 0666 failed: %.100s", ttyname, strerror(errno));
+		error("chmod %.100s 0666 failed: %.100s", ttyname, strerror(errno));
 }
 
 /* Makes the tty the processes controlling tty and sets it to sane modes. */
@@ -258,4 +258,30 @@ pty_change_window_size(int ptyfd, int row, int col,
 	w.ws_xpixel = xpixel;
 	w.ws_ypixel = ypixel;
 	(void) ioctl(ptyfd, TIOCSWINSZ, &w);
+}
+
+void
+pty_setowner(struct passwd *pw, const char *ttyname)
+{
+	struct group *grp;
+	gid_t gid;
+	mode_t mode;
+
+	/* Determine the group to make the owner of the tty. */
+	grp = getgrnam("tty");
+	if (grp) {
+		gid = grp->gr_gid;
+		mode = S_IRUSR | S_IWUSR | S_IWGRP;
+	} else {
+		gid = pw->pw_gid;
+		mode = S_IRUSR | S_IWUSR | S_IWGRP | S_IWOTH;
+	}
+
+	/* Change ownership of the tty. */
+	if (chown(ttyname, pw->pw_uid, gid) < 0)
+		fatal("chown(%.100s, %d, %d) failed: %.100s",
+		    ttyname, pw->pw_uid, gid, strerror(errno));
+	if (chmod(ttyname, mode) < 0)
+		fatal("chmod(%.100s, 0%o) failed: %.100s",
+		    ttyname, mode, strerror(errno));
 }

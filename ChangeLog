@@ -5,6 +5,7 @@
    - Rewrote OpenSSL detection code. Now uses AC_TRY_RUN with a test program
      to detect library and header location _and_ ensure library has proper
      RSA support built in (this is a problem with OpenSSL 0.9.5).
+ - Applied pty cleanup patch from markus.friedl@informatik.uni-erlangen.de
 
 20000207
  - Removed SOCKS code. Will support through a ProxyCommand.

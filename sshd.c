@@ -1622,6 +1622,37 @@ xauthfile_cleanup_proc(void *ignore)
 	}
 }
 
+struct pty_cleanup_context {
+	const char *ttyname;
+	int pid;
+};
+
+/*
+ * Function to perform cleanup if we get aborted abnormally (e.g., due to a
+ * dropped connection).
+ */
+void 
+pty_cleanup_proc(void *context)
+{
+	struct pty_cleanup_context *cu = context;
+
+	debug("pty_cleanup_proc called");
+
+	/* Record that the user has logged out. */
+	record_logout(cu->pid, cu->ttyname);
+
+	/* Release the pseudo-tty. */
+	pty_release(cu->ttyname);
+}
+
+/* simple cleanup: chown tty slave back to root */
+static void
+pty_release_proc(void *tty)
+{
+	char *ttyname = tty;
+	pty_release(ttyname);
+}
+
 /*
  * Prepares for an interactive session.  This is called after the user has
  * been successfully authenticated.  During this message exchange, pseudo
@@ -1636,11 +1667,7 @@ do_authenticated(struct passwd * pw)
 	int have_pty = 0, ptyfd = -1, ttyfd = -1, xauthfd = -1;
 	int row, col, xpixel, ypixel, screen;
 	char ttyname[64];
-	char *command, *term = NULL, *display = NULL, *proto = NULL,
-	*data = NULL;
-	struct group *grp;
-	gid_t tty_gid;
-	mode_t tty_mode;
+	char *command, *term = NULL, *display = NULL, *proto = NULL, *data = NULL;
 	int n_bytes;
 
 	/*
@@ -1698,33 +1725,20 @@ do_authenticated(struct passwd * pw)
 				error("Failed to allocate pty.");
 				goto fail;
 			}
-			/* Determine the group to make the owner of the tty. */
-			grp = getgrnam("tty");
-			if (grp) {
-				tty_gid = grp->gr_gid;
-				tty_mode = S_IRUSR | S_IWUSR | S_IWGRP;
-			} else {
-				tty_gid = pw->pw_gid;
-				tty_mode = S_IRUSR | S_IWUSR | S_IWGRP | S_IWOTH;
-			}
-
-			/* Change ownership of the tty. */
-			if (chown(ttyname, pw->pw_uid, tty_gid) < 0)
-				fatal("chown(%.100s, %d, %d) failed: %.100s",
-				      ttyname, pw->pw_uid, tty_gid, strerror(errno));
-			if (chmod(ttyname, tty_mode) < 0)
-				fatal("chmod(%.100s, 0%o) failed: %.100s",
-				      ttyname, tty_mode, strerror(errno));
+			fatal_add_cleanup(pty_release_proc, (void *)ttyname);
+			pty_setowner(pw, ttyname);
 
 			/* Get TERM from the packet.  Note that the value may be of arbitrary length. */
 			term = packet_get_string(&dlen);
 			packet_integrity_check(dlen, strlen(term), type);
-			/* packet_integrity_check(plen, 4 + dlen + 4*4 + n_bytes, type); */
+
 			/* Remaining bytes */
 			n_bytes = plen - (4 + dlen + 4 * 4);
 
-			if (strcmp(term, "") == 0)
+			if (strcmp(term, "") == 0) {
+				xfree(term);
 				term = NULL;
+			}
 
 			/* Get window size from the packet. */
 			row = packet_get_int();
@@ -1998,29 +2012,6 @@ do_exec_no_pty(const char *command, struct passwd * pw,
 #endif /* USE_PIPES */
 }
 
-struct pty_cleanup_context {
-	const char *ttyname;
-	int pid;
-};
-
-/*
- * Function to perform cleanup if we get aborted abnormally (e.g., due to a
- * dropped connection).
- */
-void 
-pty_cleanup_proc(void *context)
-{
-	struct pty_cleanup_context *cu = context;
-
-	debug("pty_cleanup_proc called");
-
-	/* Record that the user has logged out. */
-	record_logout(cu->pid, cu->ttyname);
-
-	/* Release the pseudo-tty. */
-	pty_release(cu->ttyname);
-}
-
 /*
  * This is called to fork and execute a command when we have a tty.  This
  * will call do_child from the child, and server_loop from the parent after
@@ -2167,6 +2158,15 @@ do_exec_pty(const char *command, int ptyfd, int ttyfd,
 	close(ttyfd);
 
 	/*
+	 * Add a cleanup function to clear the utmp entry and record logout
+	 * time in case we call fatal() (e.g., the connection gets closed).
+	 */
+	cleanup_context.pid = pid;
+	cleanup_context.ttyname = ttyname;
+	fatal_add_cleanup(pty_cleanup_proc, (void *) &cleanup_context);
+	fatal_remove_cleanup(pty_release_proc, (void *) ttyname);
+
+	/*
 	 * Create another descriptor of the pty master side for use as the
 	 * standard input.  We could use the original descriptor, but this
 	 * simplifies code in server_loop.  The descriptor is bidirectional.
@@ -2174,14 +2174,6 @@ do_exec_pty(const char *command, int ptyfd, int ttyfd,
 	fdout = dup(ptyfd);
 	if (fdout < 0)
 		packet_disconnect("dup failed: %.100s", strerror(errno));
-
-	/*
-	 * Add a cleanup function to clear the utmp entry and record logout
-	 * time in case we call fatal() (e.g., the connection gets closed).
-	 */
-	cleanup_context.pid = pid;
-	cleanup_context.ttyname = ttyname;
-	fatal_add_cleanup(pty_cleanup_proc, (void *) &cleanup_context);
 
 	/* Enter interactive session. */
 	server_loop(pid, ptyfd, fdout, -1);
