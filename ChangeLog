@@ -3,6 +3,7 @@
    faster data rate)  Bug #124
  - (bal) glob.c defines TILDE and AIX also defines it.  #undef it first.
    bug #265
+ - (bal) One too many nulls in ports-aix.c
  
 20020703
  - (bal) Updated contrib/cygwin/  patch by vinschen@redhat.com 
@@ -1273,4 +1274,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2334 2002/07/04 18:20:51 mouring Exp $
+$Id: ChangeLog,v 1.2335 2002/07/04 19:33:49 mouring Exp $

@@ -41,8 +41,8 @@ aix_usrinfo(struct passwd *pw)
 	char *cp;
 
 	cp = xmalloc(16 + 2 * strlen(pw->pw_name));
-	i = sprintf(cp, "LOGNAME=%s%cNAME=%s%c%c", pw->pw_name, 0, 
-	    pw->pw_name, 0, 0);
+	i = sprintf(cp, "LOGNAME=%s%cNAME=%s%c", pw->pw_name, 0, 
+	    pw->pw_name, 0);
 	if (usrinfo(SETUINFO, cp, i) == -1)
 		fatal("Couldn't set usrinfo: %s", strerror(errno));
 	debug3("AIX/UsrInfo: set len %d", i);
