@@ -1,6 +1,9 @@
 Programming:
 - Grep for 'XXX' comments and fix
 
+- Write a test program that calls stat() to search for EGD/PRNGd socket
+  rather than use the (non-portable) "test -S".
+
 - Replacement for setproctitle() - HP/UX support only currently
 
 - Improve PAM support (a pam_lastlog module will cause sshd to exit)
