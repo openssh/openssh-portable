@@ -11,6 +11,8 @@
    SSH2_MSG_USERAUTH_BANNER messages.  Note that this will not happen with
    SSH2 kbdint authentication, which need to be dealt with separately.  ok djm@
  - (dtucker) [session.c] Bug #927: make .hushlogin silent again.  ok djm@
+ - (dtucker) [configure.ac] Bug #321: Add cross-compile support to configure.
+   Parts by chua at ayrnetworks.com, astrand at lysator.liu.se and me.  ok djm@
 
 20040830
  - (dtucker) [session.c openbsd-compat/bsd-cygwin_util.{c,h}] Bug #915: only
@@ -1730,4 +1732,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3545 2004/09/11 13:09:53 dtucker Exp $
+$Id: ChangeLog,v 1.3546 2004/09/11 13:26:37 dtucker Exp $
