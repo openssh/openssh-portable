@@ -53,3 +53,6 @@ These are generated because OpenSSH first tries to determine whether a
 user needs authentication to login (e.g. empty password). Unfortunatly
 PAM likes to log all authentication events, this one included.
 
+If it annoys you too much, set "PermitEmptyPasswords no" in 
+sshd_config. This will quiet the error message at the expense of
+disabling logins to accounts with no password set.

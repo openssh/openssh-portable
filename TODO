@@ -4,9 +4,7 @@
 
 - Better documentation
 
-- Port to other platforms (Finish Solaris support)
-
-- Fix paths in manpages using autoconf
+- Port to other platforms
 
 - Better testing on non-PAM systems
 

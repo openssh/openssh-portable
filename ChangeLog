@@ -4,6 +4,9 @@
  - Removed credits from README to CREDITS file, updated.
  - Added --with-default-path to specify custom path for server
  - Removed #ifdef trickery from acconfig.h into defines.h
+ - PAM bugfix. PermitEmptyPassword was being ignored.
+ - Fixed PAM config files to allow empty passwords if server does.
+ - Explained spurious PAM auth warning workaround in UPGRADING
 
 19991226
  - Enabled utmpx support by default for Solaris

@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.43 1999/12/26 03:04:33 damien Exp $");
+RCSID("$Id: sshd.c,v 1.44 1999/12/26 23:45:54 damien Exp $");
 
 #ifdef HAVE_POLL_H
 # include <poll.h>
@@ -242,6 +242,9 @@ int do_pam_auth(const char *user, const char *password)
 {
 	int pam_retval;
 	
+	if ((options.permit_empty_passwd == 0) && (password[0] == '\0')
+		return 0;
+
 	pampasswd = password;
 	
 	pam_retval = pam_authenticate((pam_handle_t *)pamh, 0);
