@@ -59,6 +59,12 @@
      use rijndael/aes from libcrypto (openssl >= 0.9.7) instead of
      our own implementation. allow use of AES hardware via libcrypto, 
      ok deraadt@
+   - markus@cvs.openbsd.org 2002/05/31 10:30:33
+     [sshconnect2.c]
+     extent ssh-keysign protocol:
+     pass # of socket-fd to ssh-keysign, keysign verfies locally used
+     ip-address using this socket-fd, restricts fake local hostnames
+     to actual local hostnames; ok stevesk@
 
 20020604
  - (stevesk) [channels.c] bug #164 patch from YOSHIFUJI Hideaki (changed
@@ -743,4 +749,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2161 2002/06/06 20:50:07 mouring Exp $
+$Id: ChangeLog,v 1.2162 2002/06/06 20:51:04 mouring Exp $

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.102 2002/05/25 08:50:39 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.103 2002/05/31 10:30:33 markus Exp $");
 
 #include "ssh.h"
 #include "ssh2.h"
@@ -902,7 +902,7 @@ ssh_keysign(
 	Buffer b;
 	struct stat st;
 	pid_t pid;
-	int to[2], from[2], status, version = 1;
+	int to[2], from[2], status, version = 2;
 
 	debug("ssh_keysign called");
 
@@ -933,6 +933,8 @@ ssh_keysign(
 		close(to[1]);
 		if (dup2(to[0], STDIN_FILENO) < 0)
 			fatal("ssh_keysign: dup2: %s", strerror(errno));
+		close(from[1]);
+		close(to[0]);
 		execl(_PATH_SSH_KEY_SIGN, _PATH_SSH_KEY_SIGN, (char *) 0);
 		fatal("ssh_keysign: exec(%s): %s", _PATH_SSH_KEY_SIGN,
 		    strerror(errno));
@@ -941,6 +943,7 @@ ssh_keysign(
 	close(to[0]);
 
 	buffer_init(&b);
+	buffer_put_int(&b, packet_get_connection_in()); /* send # of socket */
 	buffer_put_string(&b, data, datalen);
 	msg_send(to[1], version, &b);
 
@@ -952,9 +955,9 @@ ssh_keysign(
 	close(from[0]);
 	close(to[1]);
 
-        while (waitpid(pid, &status, 0) < 0)
-                if (errno != EINTR)
-                        break;
+	while (waitpid(pid, &status, 0) < 0)
+		if (errno != EINTR)
+			break;
 
 	if (buffer_get_char(&b) != version) {
 		error("ssh_keysign: bad version");
