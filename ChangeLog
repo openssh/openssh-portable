@@ -2,6 +2,10 @@
  - (dtucker) [configure.ac] Bug #867: Additional tests for res_query in
    libresolv, fixes problems detecting it on some platforms
    (eg Linux/x86-64).  From Kurt Roeckx via Debian, ok mouring@
+ - (dtucker) OpenBSD CVS Sync
+   - jmc@cvs.openbsd.org 2004/05/04 18:36:07
+     [scp.1]
+     SendEnv here too;
 
 20040502
  - (dtucker) OpenBSD CVS Sync
@@ -1078,4 +1082,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3342 2004/05/13 01:56:16 dtucker Exp $
+$Id: ChangeLog,v 1.3343 2004/05/13 03:03:04 dtucker Exp $
