@@ -418,6 +418,12 @@ do_exec_no_pty(Session *s, const char *command)
 
 	session_proctitle(s);
 
+#ifdef GSSAPI
+	temporarily_use_uid(s->pw);
+	ssh_gssapi_storecreds();
+	restore_uid();
+#endif
+
 #if defined(USE_PAM)
 	if (options.use_pam) {
 		do_pam_session(s->pw->pw_name, NULL);
@@ -427,12 +433,6 @@ do_exec_no_pty(Session *s, const char *command)
 			    "TTY available");
 	}
 #endif /* USE_PAM */
-
-#ifdef GSSAPI
-	temporarily_use_uid(s->pw);
-	ssh_gssapi_storecreds();
-	restore_uid();
-#endif
 
 	/* Fork the child. */
 	if ((pid = fork()) == 0) {
@@ -553,17 +553,17 @@ do_exec_pty(Session *s, const char *command)
 	ptyfd = s->ptyfd;
 	ttyfd = s->ttyfd;
 
+#ifdef GSSAPI
+	temporarily_use_uid(s->pw);
+	ssh_gssapi_storecreds();
+	restore_uid();
+#endif
+
 #if defined(USE_PAM)
 	if (options.use_pam) {
 		do_pam_session(s->pw->pw_name, s->tty);
 		do_pam_setcred(1);
 	}
-#endif
-
-#ifdef GSSAPI
-	temporarily_use_uid(s->pw);
-	ssh_gssapi_storecreds();
-	restore_uid();
 #endif
 
 	/* Fork the child. */

@@ -31,6 +31,18 @@
 
 #include <gssapi.h>
 
+#ifdef KRB5
+#ifndef HEIMDAL
+#include <gssapi_generic.h>
+
+/* MIT Kerberos doesn't seem to define GSS_NT_HOSTBASED_SERVICE */
+
+#ifndef GSS_C_NT_HOSTBASED_SERVICE
+#define GSS_C_NT_HOSTBASED_SERVICE gss_nt_service_name
+#endif /* GSS_C_NT_... */
+#endif /* !HEIMDAL */
+#endif /* KRB5 */
+
 /* draft-ietf-secsh-gsskeyex-06 */
 #define SSH2_MSG_USERAUTH_GSSAPI_RESPONSE		60
 #define SSH2_MSG_USERAUTH_GSSAPI_TOKEN			61

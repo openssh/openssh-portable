@@ -31,7 +31,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.67 2003/08/25 03:08:49 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.68 2003/08/26 01:58:16 dtucker Exp $");
 
 #ifdef USE_PAM
 #include <security/pam_appl.h>
@@ -648,6 +648,29 @@ do_pam_chauthtok(void)
 	if (sshpam_err != PAM_SUCCESS)
 		fatal("PAM: pam_chauthtok(): %s",
 		    pam_strerror(sshpam_handle, sshpam_err));
+}
+
+/* 
+ * Set a PAM environment string. We need to do this so that the session
+ * modules can handle things like Kerberos/GSI credentials that appear
+ * during the ssh authentication process.
+ */
+
+int
+do_pam_putenv(char *name, char *value) 
+{
+	char *compound;
+	int ret = 1;
+
+#ifdef HAVE_PAM_PUTENV	
+	compound = xmalloc(strlen(name)+strlen(value)+2);
+	if (compound) {
+		sprintf(compound,"%s=%s",name,value);
+		ret = pam_putenv(sshpam_handle,compound);
+		xfree(compound);
+	}
+#endif
+	return (ret);
 }
 
 void

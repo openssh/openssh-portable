@@ -27,9 +27,6 @@ RCSID("$OpenBSD: sshconnect2.c,v 1.121 2003/08/22 10:56:09 markus Exp $");
 
 #ifdef KRB5
 #include <krb5.h>
-#ifndef HEIMDAL
-#define krb5_get_err_text(context,code) error_message(code)
-#endif /* !HEIMDAL */
 #endif
 
 #include "openbsd-compat/sys-queue.h"

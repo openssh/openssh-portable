@@ -1,4 +1,4 @@
-/* $Id: auth-pam.h,v 1.19 2003/08/25 03:08:49 djm Exp $ */
+/* $Id: auth-pam.h,v 1.20 2003/08/26 01:58:16 dtucker Exp $ */
 
 /*
  * Copyright (c) 2000 Damien Miller.  All rights reserved.
@@ -38,6 +38,7 @@ void do_pam_session(const char *, const char *);
 void do_pam_setcred(int );
 int is_pam_password_change_required(void);
 void do_pam_chauthtok(void);
+int do_pam_putenv(char *, char *);
 void print_pam_messages(void);
 char ** fetch_pam_environment(void);
 void free_pam_environment(char **);

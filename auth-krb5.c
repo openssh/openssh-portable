@@ -42,9 +42,6 @@ RCSID("$OpenBSD: auth-krb5.c,v 1.11 2003/07/16 15:02:06 markus Exp $");
 #ifdef KRB5
 
 #include <krb5.h>
-#ifndef HEIMDAL
-#define krb5_get_err_text(context,code) error_message(code)
-#endif /* !HEIMDAL */
 
 extern ServerOptions	 options;
 

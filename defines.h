@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.101 2003/08/21 06:49:41 dtucker Exp $ */
+/* $Id: defines.h,v 1.102 2003/08/26 01:58:16 dtucker Exp $ */
 
 
 /* Constants */
@@ -519,6 +519,10 @@ struct winsize {
 #  define __func__ __FUNCTION__
 #elif !defined(HAVE___func__)
 #  define __func__ ""
+#endif
+
+#if defined(KRB5) && !defined(HEIMDAL)
+#  define krb5_get_err_text(context,code) error_message(code)
 #endif
 
 /*

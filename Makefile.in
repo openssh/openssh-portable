@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.240 2003/08/02 13:51:38 dtucker Exp $
+# $Id: Makefile.in,v 1.241 2003/08/26 01:58:16 dtucker Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -68,7 +68,7 @@ LIBSSH_OBJS=authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o \
 	key.o dispatch.o kex.o mac.o uuencode.o misc.o \
 	rijndael.o ssh-dss.o ssh-rsa.o dh.o kexdh.o kexgex.o \
 	kexdhc.o kexgexc.o scard.o msg.o progressmeter.o dns.o \
-	entropy.o scard-opensc.o 
+	entropy.o scard-opensc.o gss-genr.o
 
 SSHOBJS= ssh.o readconf.o clientloop.o sshtty.o \
 	sshconnect.o sshconnect1.o sshconnect2.o
@@ -82,6 +82,7 @@ SSHDOBJS=sshd.o auth-rhosts.o auth-passwd.o auth-rsa.o auth-rh-rsa.o \
 	monitor_mm.o monitor.o monitor_wrap.o monitor_fdpass.o \
 	kexdhs.o kexgexs.o \
 	auth-krb5.o auth2-krb5.o \
+	auth2-gss.o gss-serv.o gss-serv-krb5.o \
 	loginrec.o auth-pam.o auth-sia.o md5crypt.o
 
 MANPAGES	= scp.1.out ssh-add.1.out ssh-agent.1.out ssh-keygen.1.out ssh-keyscan.1.out ssh.1.out sshd.8.out sftp-server.8.out sftp.1.out ssh-rand-helper.8.out ssh-keysign.8.out sshd_config.5.out ssh_config.5.out

@@ -38,7 +38,11 @@
 
 extern ServerOptions options;
 
+#ifdef HEIMDAL
 #include <krb5.h>
+#else
+#include <gssapi_krb5.h>
+#endif
 
 static krb5_context krb_context = NULL;
 
@@ -113,11 +117,39 @@ ssh_gssapi_krb5_storecreds(ssh_gssapi_client *client)
 	if (ssh_gssapi_krb5_init() == 0)
 		return;
 
+#ifdef HEIMDAL
 	if ((problem = krb5_cc_gen_new(krb_context, &krb5_fcc_ops, &ccache))) {
 		logit("krb5_cc_gen_new(): %.100s",
 		    krb5_get_err_text(krb_context, problem));
 		return;
 	}
+#else
+	{
+		int tmpfd;
+		char ccname[40];
+    
+		snprintf(ccname, sizeof(ccname), 
+		    "FILE:/tmp/krb5cc_%d_XXXXXX", geteuid());
+    
+		if ((tmpfd = mkstemp(ccname + strlen("FILE:"))) == -1) {
+			logit("mkstemp(): %.100s", strerror(errno));
+			problem = errno;
+			return;
+		}
+		if (fchmod(tmpfd, S_IRUSR | S_IWUSR) == -1) {
+			logit("fchmod(): %.100s", strerror(errno));
+			close(tmpfd);
+			problem = errno;
+			return;
+		}
+		close(tmpfd);
+		if ((problem = krb5_cc_resolve(krb_context, ccname, &ccache))) {
+			logit("krb5_cc_resolve(): %.100s",
+			    krb5_get_err_text(krb_context, problem));
+			return;
+		}
+	}
+#endif	/* #ifdef HEIMDAL */
 
 	if ((problem = krb5_parse_name(krb_context, 
 	    client->exportedname.value, &princ))) {
@@ -147,6 +179,11 @@ ssh_gssapi_krb5_storecreds(ssh_gssapi_client *client)
 	client->store.filename = xstrdup(krb5_cc_get_name(krb_context, ccache));
 	client->store.envvar = "KRB5CCNAME";
 	client->store.envval = xstrdup(client->store.filename);
+
+#ifdef USE_PAM
+	if (options.use_pam)
+		do_pam_putenv(client->store.envvar,client->store.envval);
+#endif
 
 	krb5_cc_close(krb_context, ccache);
 

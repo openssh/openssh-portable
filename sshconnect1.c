@@ -20,9 +20,6 @@ RCSID("$OpenBSD: sshconnect1.c,v 1.55 2003/08/13 08:46:31 markus Exp $");
 
 #ifdef KRB5
 #include <krb5.h>
-#ifndef HEIMDAL
-#define krb5_get_err_text(context,code) error_message(code)
-#endif /* !HEIMDAL */
 #endif
 
 #include "ssh.h"
