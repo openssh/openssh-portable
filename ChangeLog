@@ -4,6 +4,7 @@
      [sshconnect2.c]
      swap the last two parameters to TAILQ_FOREACH_REVERSE. matches what FreeBSD     and NetBSD do.
      ok millert@ mcbride@ markus@ ho@, checked to not affect ports by naddy@
+ - (djm) [openbsd-compat/sys-queue.h] Sync with OpenBSD, needed for above change
 
 20040419
  - (dtucker) OpenBSD CVS Sync
@@ -1008,4 +1009,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3322 2004/04/20 10:07:19 djm Exp $
+$Id: ChangeLog,v 1.3323 2004/04/20 10:10:46 djm Exp $

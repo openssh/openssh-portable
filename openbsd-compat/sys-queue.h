@@ -1,6 +1,6 @@
 /* OPENBSD ORIGINAL: sys/sys/queue.h */
 
-/*	$OpenBSD: queue.h,v 1.23 2003/06/02 23:28:21 millert Exp $	*/
+/*	$OpenBSD: queue.h,v 1.25 2004/04/08 16:08:21 henning Exp $	*/
 /*	$NetBSD: queue.h,v 1.11 1996/05/16 05:17:14 mycroft Exp $	*/
 
 /*
@@ -34,89 +34,8 @@
  *	@(#)queue.h	8.5 (Berkeley) 8/20/94
  */
 
-#ifndef	_FAKE_QUEUE_H_
-#define	_FAKE_QUEUE_H_
-
-/*
- * Ignore all <sys/queue.h> since older platforms have broken/incomplete
- * <sys/queue.h> that are too hard to work around.
- */
-#undef SLIST_HEAD
-#undef SLIST_HEAD_INITIALIZER
-#undef SLIST_ENTRY
-#undef SLIST_FIRST
-#undef SLIST_END
-#undef SLIST_EMPTY
-#undef SLIST_NEXT
-#undef SLIST_FOREACH
-#undef SLIST_INIT
-#undef SLIST_INSERT_AFTER
-#undef SLIST_INSERT_HEAD
-#undef SLIST_REMOVE_HEAD
-#undef SLIST_REMOVE
-#undef LIST_HEAD
-#undef LIST_HEAD_INITIALIZER
-#undef LIST_ENTRY
-#undef LIST_FIRST
-#undef LIST_END
-#undef LIST_EMPTY
-#undef LIST_NEXT
-#undef LIST_FOREACH
-#undef LIST_INIT
-#undef LIST_INSERT_AFTER
-#undef LIST_INSERT_BEFORE
-#undef LIST_INSERT_HEAD
-#undef LIST_REMOVE
-#undef LIST_REPLACE
-#undef SIMPLEQ_HEAD
-#undef SIMPLEQ_HEAD_INITIALIZER
-#undef SIMPLEQ_ENTRY
-#undef SIMPLEQ_FIRST
-#undef SIMPLEQ_END
-#undef SIMPLEQ_EMPTY
-#undef SIMPLEQ_NEXT
-#undef SIMPLEQ_FOREACH
-#undef SIMPLEQ_INIT
-#undef SIMPLEQ_INSERT_HEAD
-#undef SIMPLEQ_INSERT_TAIL
-#undef SIMPLEQ_INSERT_AFTER
-#undef SIMPLEQ_REMOVE_HEAD
-#undef TAILQ_HEAD
-#undef TAILQ_HEAD_INITIALIZER
-#undef TAILQ_ENTRY
-#undef TAILQ_FIRST
-#undef TAILQ_END
-#undef TAILQ_NEXT
-#undef TAILQ_LAST
-#undef TAILQ_PREV
-#undef TAILQ_EMPTY
-#undef TAILQ_FOREACH
-#undef TAILQ_FOREACH_REVERSE
-#undef TAILQ_INIT
-#undef TAILQ_INSERT_HEAD
-#undef TAILQ_INSERT_TAIL
-#undef TAILQ_INSERT_AFTER
-#undef TAILQ_INSERT_BEFORE
-#undef TAILQ_REMOVE
-#undef TAILQ_REPLACE
-#undef CIRCLEQ_HEAD
-#undef CIRCLEQ_HEAD_INITIALIZER
-#undef CIRCLEQ_ENTRY
-#undef CIRCLEQ_FIRST
-#undef CIRCLEQ_LAST
-#undef CIRCLEQ_END
-#undef CIRCLEQ_NEXT
-#undef CIRCLEQ_PREV
-#undef CIRCLEQ_EMPTY
-#undef CIRCLEQ_FOREACH
-#undef CIRCLEQ_FOREACH_REVERSE
-#undef CIRCLEQ_INIT
-#undef CIRCLEQ_INSERT_AFTER
-#undef CIRCLEQ_INSERT_BEFORE
-#undef CIRCLEQ_INSERT_HEAD
-#undef CIRCLEQ_INSERT_TAIL
-#undef CIRCLEQ_REMOVE
-#undef CIRCLEQ_REPLACE
+#ifndef	_SYS_QUEUE_H_
+#define	_SYS_QUEUE_H_
 
 /*
  * This file defines five types of data structures: singly-linked lists, 
@@ -194,6 +113,11 @@ struct {								\
 	    (var) != SLIST_END(head);					\
 	    (var) = SLIST_NEXT(var, field))
 
+#define	SLIST_FOREACH_PREVPTR(var, varp, head, field)			\
+	for ((varp) = &SLIST_FIRST((head));				\
+	    ((var) = *(varp)) != SLIST_END(head);			\
+	    (varp) = &SLIST_NEXT((var), field))
+
 /*
  * Singly-linked List functions.
  */
@@ -209,6 +133,10 @@ struct {								\
 #define	SLIST_INSERT_HEAD(head, elm, field) do {			\
 	(elm)->field.sle_next = (head)->slh_first;			\
 	(head)->slh_first = (elm);					\
+} while (0)
+
+#define	SLIST_REMOVE_NEXT(head, elm, field) do {			\
+	(elm)->field.sle_next = (elm)->field.sle_next->field.sle_next;	\
 } while (0)
 
 #define	SLIST_REMOVE_HEAD(head, field) do {				\
@@ -400,7 +328,7 @@ struct {								\
 	    (var) != TAILQ_END(head);					\
 	    (var) = TAILQ_NEXT(var, field))
 
-#define TAILQ_FOREACH_REVERSE(var, head, field, headname)		\
+#define TAILQ_FOREACH_REVERSE(var, head, headname, field)		\
 	for((var) = TAILQ_LAST(head, headname);				\
 	    (var) != TAILQ_END(head);					\
 	    (var) = TAILQ_PREV(var, headname, field))
@@ -579,4 +507,4 @@ struct {								\
 		(elm2)->field.cqe_prev->field.cqe_next = (elm2);	\
 } while (0)
 
-#endif	/* !_FAKE_QUEUE_H_ */
+#endif	/* !_SYS_QUEUE_H_ */
