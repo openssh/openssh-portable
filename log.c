@@ -284,10 +284,12 @@ log_init(char *av0, LogLevel level, SyslogFacility facility, int on_stderr)
 	case SYSLOG_FACILITY_AUTH:
 		log_facility = LOG_AUTH;
 		break;
+#if 0			/* This is broken. =) - BAL */
 #ifdef LOG_AUTHPRIV		/** BAL: Verify */
 	case SYSLOG_FACILITY_AUTHPRIV
 		log_facility = AUTHPRIV;
 		break
+#endif
 #endif
 	case SYSLOG_FACILITY_LOCAL0:
 		log_facility = LOG_LOCAL0;
