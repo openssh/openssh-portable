@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: dh.c,v 1.27 2004/02/27 22:42:47 dtucker Exp $");
+RCSID("$OpenBSD: dh.c,v 1.28 2004/02/27 22:44:56 dtucker Exp $");
 
 #include "xmalloc.h"
 
@@ -108,7 +108,7 @@ DH *
 choose_dh(int min, int wantbits, int max)
 {
 	FILE *f;
-	char line[2048];
+	char line[4096];
 	int best, bestcount, which;
 	int linenum;
 	struct dhgroup dhg;
