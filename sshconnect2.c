@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.69 2001/04/15 08:43:47 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.70 2001/04/17 10:53:26 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -111,6 +111,9 @@ ssh_kex2(char *host, struct sockaddr *hostaddr)
 		myproposal[PROPOSAL_MAC_ALGS_CTOS] =
 		myproposal[PROPOSAL_MAC_ALGS_STOC] = options.macs;
 	}
+	if (options.hostkeyalgorithms != NULL)
+	        myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] =
+		    options.hostkeyalgorithms;
 
 	/* start key exchange */
 	kex = kex_setup(myproposal);

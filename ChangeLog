@@ -9,9 +9,12 @@
    - markus@cvs.openbsd.org 2001/04/17 08:14:01                          
      [sshconnect1.c]                                                     
      check for key!=NULL, thanks to costa  
-  - markus@cvs.openbsd.org 2001/04/17 09:52:48                          
+   - markus@cvs.openbsd.org 2001/04/17 09:52:48                          
      [clientloop.c]                                                      
      handle EINTR/EAGAIN on read; ok deraadt@
+   - markus@cvs.openbsd.org 2001/04/17 10:53:26                          
+     [key.c key.h readconf.c readconf.h ssh.1 sshconnect2.c]             
+     add HostKeyAlgorithms; based on patch from res@shore.net; ok provos@
 
 20010416
   - OpenBSD CVS Sync
@@ -5137,4 +5140,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1133 2001/04/17 18:09:42 mouring Exp $
+$Id: ChangeLog,v 1.1134 2001/04/17 18:11:36 mouring Exp $

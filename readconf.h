@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: readconf.h,v 1.29 2001/04/12 19:15:25 markus Exp $"); */
+/* RCSID("$OpenBSD: readconf.h,v 1.30 2001/04/17 10:53:25 markus Exp $"); */
 
 #ifndef READCONF_H
 #define READCONF_H
@@ -72,6 +72,7 @@ typedef struct {
 	int     cipher;		/* Cipher to use. */
 	char   *ciphers;	/* SSH2 ciphers in order of preference. */
 	char   *macs;		/* SSH2 macs in order of preference. */
+	char   *hostkeyalgorithms;	/* SSH2 server key types in order of preference. */
 	int	protocol;	/* Protocol in order of preference. */
 	char   *hostname;	/* Real host to connect. */
 	char   *host_key_alias;	/* hostname alias for .ssh/known_hosts */

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.102 2001/04/10 09:13:22 itojun Exp $
+.\" $OpenBSD: ssh.1,v 1.103 2001/04/17 10:53:26 markus Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -776,6 +776,11 @@ real host name when looking up or saving the host key
 in the known_hosts files.
 This option is useful for tunneling ssh connections
 or if you have multiple servers running on a single host.
+.It Cm HostKeyAlgorithms
+Specfies the protocol version 2 host key algorithms
+that the client wants to use in order of preference.
+The default for this option is:
+.Dq ssh-rsa,ssh-dss
 .It Cm HostName
 Specifies the real host name to log into.
 This can be used to specify nicknames or abbreviations for hosts.

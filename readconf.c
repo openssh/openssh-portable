@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.75 2001/04/15 21:28:35 stevesk Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.76 2001/04/17 10:53:25 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -110,7 +110,8 @@ typedef enum {
 	oUsePrivilegedPort, oLogLevel, oCiphers, oProtocol, oMacs,
 	oGlobalKnownHostsFile2, oUserKnownHostsFile2, oPubkeyAuthentication,
 	oKbdInteractiveAuthentication, oKbdInteractiveDevices, oHostKeyAlias,
-	oDynamicForward, oPreferredAuthentications, oHostbasedAuthentication
+	oDynamicForward, oPreferredAuthentications, oHostbasedAuthentication,
+	oHostKeyAlgorithms
 } OpCodes;
 
 /* Textual representations of the tokens. */
@@ -175,6 +176,7 @@ static struct {
 	{ "loglevel", oLogLevel },
 	{ "dynamicforward", oDynamicForward },
 	{ "preferredauthentications", oPreferredAuthentications },
+	{ "hostkeyalgorithms", oHostKeyAlgorithms },
 	{ NULL, 0 }
 };
 
@@ -527,6 +529,17 @@ parse_int:
 			options->macs = xstrdup(arg);
 		break;
 
+	case oHostKeyAlgorithms:
+		arg = strdelim(&s);
+		if (!arg || *arg == '\0')
+			fatal("%.200s line %d: Missing argument.", filename, linenum);
+		if (!key_names_valid2(arg))
+			fatal("%.200s line %d: Bad protocol 2 host key algorithms '%s'.",
+			      filename, linenum, arg ? arg : "<NONE>");
+		if (*activep && options->hostkeyalgorithms == NULL)
+			options->hostkeyalgorithms = xstrdup(arg);
+		break;
+
 	case oProtocol:
 		intptr = &options->protocol;
 		arg = strdelim(&s);
@@ -732,6 +745,7 @@ initialize_options(Options * options)
 	options->cipher = -1;
 	options->ciphers = NULL;
 	options->macs = NULL;
+	options->hostkeyalgorithms = NULL;
 	options->protocol = SSH_PROTO_UNKNOWN;
 	options->num_identity_files = 0;
 	options->hostname = NULL;
@@ -824,6 +838,7 @@ fill_default_options(Options * options)
 		options->cipher = SSH_CIPHER_NOT_SET;
 	/* options->ciphers, default set in myproposals.h */
 	/* options->macs, default set in myproposals.h */
+	/* options->hostkeyalgorithms, default set in myproposals.h */
 	if (options->protocol == SSH_PROTO_UNKNOWN)
 		options->protocol = SSH_PROTO_1|SSH_PROTO_2;
 	if (options->num_identity_files == 0) {

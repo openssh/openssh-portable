@@ -1,4 +1,4 @@
-/*	$OpenBSD: key.h,v 1.11 2001/03/12 22:02:01 markus Exp $	*/
+/*	$OpenBSD: key.h,v 1.12 2001/04/17 10:53:24 markus Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -67,6 +67,7 @@ int	key_type_from_name(char *name);
 Key	*key_from_blob(char *blob, int blen);
 int	key_to_blob(Key *key, u_char **blobp, u_int *lenp);
 char	*key_ssh_name(Key *k);
+int	key_names_valid2(const char *names);
 
 int
 key_sign(

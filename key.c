@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: key.c,v 1.24 2001/04/16 08:26:04 deraadt Exp $");
+RCSID("$OpenBSD: key.c,v 1.25 2001/04/17 10:53:24 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -627,6 +627,28 @@ key_type_from_name(char *name)
 	}
 	debug2("key_type_from_name: unknown key type '%s'", name);
 	return KEY_UNSPEC;
+}
+
+int
+key_names_valid2(const char *names)
+{
+	char *s, *cp, *p;
+
+	if (names == NULL || strcmp(names, "") == 0)
+		return 0;
+	s = cp = xstrdup(names);
+	for ((p = strsep(&cp, ",")); p && *p != '\0';
+	     (p = strsep(&cp, ","))) {
+		switch (key_type_from_name(p)) {
+		case KEY_RSA1:
+		case KEY_UNSPEC:
+			xfree(s);
+			return 0;
+		}
+	}
+	debug3("key names ok: [%s]", names);
+	xfree(s);
+	return 1;
 }
 
 Key *
