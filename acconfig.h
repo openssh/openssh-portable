@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.147 2003/01/12 23:04:59 djm Exp $ */
+/* $Id: acconfig.h,v 1.148 2003/01/28 00:33:44 djm Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -370,6 +370,9 @@
 /* Setproctitle emulation */
 #undef SETPROCTITLE_STRATEGY
 #undef SETPROCTITLE_PS_PADDING
+
+/* Some systems put this outside of libc */
+#undef HAVE_NANOSLEEP
 
 @BOTTOM@
 

@@ -1,3 +1,7 @@
+200301028
+ - (djm) Search libposix4 and librt for nanosleep. From dtucker@zip.com.au 
+   and openssh-unix-dev@thewrittenword.com 
+
 200301027
  - (bal) Bugzilla 477 patch by wendyp@cray.com.  Define TIOCGPGRP for
    cray.  Also removed test for tcgetpgrp in configure.ac since it
@@ -1079,4 +1083,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2588 2003/01/27 21:15:10 mouring Exp $
+$Id: ChangeLog,v 1.2589 2003/01/28 00:33:42 djm Exp $
