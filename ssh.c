@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.174 2002/05/23 19:39:34 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.175 2002/06/08 05:07:56 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -716,14 +716,6 @@ again:
 	 * to read identity files and other non-world-readable files from the
 	 * user's home directory if it happens to be on a NFS volume where
 	 * root is mapped to nobody.
-	 */
-
-	/*
-	 * Note that some legacy systems need to postpone the following call
-	 * to permanently_set_uid() until the private hostkey is destroyed
-	 * with RSA_free().  Otherwise the calling user could ptrace() the
-	 * process, read the private hostkey and impersonate the host.
-	 * OpenBSD does not allow ptracing of setuid processes.
 	 */
 	permanently_set_uid(pw);
 
