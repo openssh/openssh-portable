@@ -59,6 +59,7 @@
  - (djm) Improve PAMAuthenticationViaKbdInt text from Nalin Dahyabhai 
    <nalin@redhat.com>
  - (djm) Update spec files for release 
+ - (djm) Fix int overflow in auth2-pam.c, similar to one discovered by ISS
 
 20020625
  - (stevesk) [INSTALL acconfig.h configure.ac defines.h] remove --with-rsh
@@ -1158,4 +1159,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2298 2002/06/26 13:57:12 djm Exp $
+$Id: ChangeLog,v 1.2299 2002/06/26 13:57:59 djm Exp $
