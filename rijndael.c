@@ -38,7 +38,7 @@ Mean:          500 cycles =    51.2 mbits/sec
 
 */
 
-#include <sys/types.h>
+#include "config.h"
 #include "rijndael.h"
 
 void gen_tabs	__P((void));
