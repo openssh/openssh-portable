@@ -16,7 +16,13 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.56 2004/07/11 17:48:47 deraadt Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.57 2004/11/05 12:19:56 djm Exp $");
+
+#ifdef USE_LIBEDIT
+#include <histedit.h>
+#else
+typedef void EditLine;
+#endif
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -1206,6 +1212,14 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 	return (0);
 }
 
+#ifdef USE_LIBEDIT
+static char *
+prompt(EditLine *el)
+{
+	return ("sftp> ");
+}
+#endif
+
 int
 interactive_loop(int fd_in, int fd_out, char *file1, char *file2)
 {
@@ -1214,6 +1228,27 @@ interactive_loop(int fd_in, int fd_out, char *file1, char *file2)
 	char cmd[2048];
 	struct sftp_conn *conn;
 	int err;
+	EditLine *el = NULL;
+#ifdef USE_LIBEDIT
+	History *hl = NULL;
+	HistEvent hev;
+	extern char *__progname;
+
+	if (!batchmode && isatty(STDIN_FILENO)) {
+		if ((el = el_init(__progname, stdin, stdout, stderr)) == NULL)
+			fatal("Couldn't initialise editline");
+		if ((hl = history_init()) == NULL)
+			fatal("Couldn't initialise editline history");
+		history(hl, &hev, H_SETSIZE, 100);
+		el_set(el, EL_HIST, history, hl);
+
+		el_set(el, EL_PROMPT, prompt);
+		el_set(el, EL_EDITOR, "emacs");
+		el_set(el, EL_TERMINAL, NULL);
+		el_set(el, EL_SIGNAL, 1);
+		el_source(el, NULL);
+	}
+#endif /* USE_LIBEDIT */
 
 	conn = do_init(fd_in, fd_out, copy_buffer_len, num_requests);
 	if (conn == NULL)
@@ -1261,16 +1296,28 @@ interactive_loop(int fd_in, int fd_out, char *file1, char *file2)
 
 		signal(SIGINT, SIG_IGN);
 
-		printf("sftp> ");
+		if (el == NULL) {
+			printf("sftp> ");
+			if (fgets(cmd, sizeof(cmd), infile) == NULL) {
+				printf("\n");
+				break;
+			}
+			if (batchmode) /* Echo command */
+				printf("%s", cmd);
+		} else {
+#ifdef USE_LIBEDIT
+			const char *line;
+			int count = 0;
 
-		/* XXX: use libedit */
-		if (fgets(cmd, sizeof(cmd), infile) == NULL) {
-			printf("\n");
-			break;
+			if ((line = el_gets(el, &count)) == NULL || count <= 0)
+				break;
+			history(hl, &hev, H_ENTER, line);
+			if (strlcpy(cmd, line, sizeof(cmd)) >= sizeof(cmd)) {
+				fprintf(stderr, "Error: input line too long\n");
+				continue;
+			}
+#endif /* USE_LIBEDIT */
 		}
-
-		if (batchmode) /* Echo command */
-			printf("%s", cmd);
 
 		cp = strrchr(cmd, '\n');
 		if (cp)

@@ -1,3 +1,10 @@
+20041107
+ - (dtucker) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2004/11/05 12:19:56
+     [sftp.c]
+     command editing and history support via libedit; ok markus@
+     thanks to hshoexer@ and many testers on tech@ too
+
 20041105
  - (dtucker) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2004/08/30 09:18:08
@@ -1841,4 +1848,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3578 2004/11/05 09:42:28 dtucker Exp $
+$Id: ChangeLog,v 1.3579 2004/11/07 09:04:10 dtucker Exp $
