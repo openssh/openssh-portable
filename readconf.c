@@ -256,7 +256,8 @@ process_config_line(Options *options, const char *host,
 		    char *line, const char *filename, int linenum,
 		    int *activep)
 {
-	char buf[256], *s, *string, **charptr, *endofnumber, *keyword, *arg;
+	char buf[256], *s, *string = NULL, **charptr, *endofnumber, *keyword, 
+	    *arg;
 	int opcode, *intptr, value;
 	u_short fwd_port, fwd_host_port;
 
@@ -469,7 +470,6 @@ parse_string:
 
 	case oProxyCommand:
 		charptr = &options->proxy_command;
-		string = xstrdup("");
 		while ((arg = strdelim(&s)) != NULL && *arg != '\0') {
 			string = xrealloc(string, strlen(string) + strlen(arg) + 2);
 			strcat(string, " ");

@@ -1,3 +1,9 @@
+20010806
+ - OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2001/07/22 21:32:27
+     [sshpty.c]
+     update comment
+
 20010803
  - (djm) Fix interrupted read in entropy gatherer. Spotted by markus@ on
    a fast UltraSPARC.
@@ -6107,4 +6113,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1425 2001/08/06 06:51:49 djm Exp $
+$Id: ChangeLog,v 1.1426 2001/08/06 20:47:23 mouring Exp $

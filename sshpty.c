@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshpty.c,v 1.2 2001/07/18 21:10:43 markus Exp $");
+RCSID("$OpenBSD: sshpty.c,v 1.3 2001/07/22 21:32:27 markus Exp $");
 
 #ifdef HAVE_UTIL_H
 # include <util.h>
@@ -313,7 +313,8 @@ pty_setowner(struct passwd *pw, const char *ttyname)
 
 	/*
 	 * Change owner and mode of the tty as required.
-	 * Warn but continue if filesystem is read-only and the uids match.
+	 * Warn but continue if filesystem is read-only and the uids match/
+	 * tty is owned by root.
 	 */
 	if (stat(ttyname, &st))
 		fatal("stat(%.100s) failed: %.100s", ttyname,
