@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.77 2001/09/17 21:04:02 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.78 2001/10/04 15:05:40 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -196,9 +196,11 @@ retry_select:
 	channel_prepare_select(readsetp, writesetp, maxfdp, nallocp, 0);
 
 	if (compat20) {
+#if 0
 		/* wrong: bad condition XXX */
 		if (channel_not_very_much_buffered_data())
-			FD_SET(connection_in, *readsetp);
+#endif
+		FD_SET(connection_in, *readsetp);
 	} else {
 		/*
 		 * Read packets from the client unless we have too much

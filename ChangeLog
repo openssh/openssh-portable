@@ -3,6 +3,9 @@
    - markus@cvs.openbsd.org 2001/10/04 14:34:16
      [key.c]
      call OPENSSL_free() for memory allocated by openssl; from chombier@mac.com
+   - markus@cvs.openbsd.org 2001/10/04 15:05:40
+     [channels.c serverloop.c]
+     comment out bogus conditions for selecting on connection_in
 
 20011007
  - (bal) ssh-copy-id corrected permissions for .ssh/ and authorized_keys.
@@ -6648,4 +6651,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1585 2001/10/10 05:00:49 djm Exp $
+$Id: ChangeLog,v 1.1586 2001/10/10 05:01:16 djm Exp $
