@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.49 2001/02/15 23:19:59 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.50 2001/02/19 09:53:32 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -70,6 +70,7 @@ static long fdout_bytes = 0;	/* Number of stdout bytes read from program. */
 static int stdin_eof = 0;	/* EOF message received from client. */
 static int fdout_eof = 0;	/* EOF encountered reading from fdout. */
 static int fderr_eof = 0;	/* EOF encountered readung from fderr. */
+static int fdin_is_tty = 0;	/* fdin points to a tty. */
 static int connection_in;	/* Connection to client (input). */
 static int connection_out;	/* Connection to client (output). */
 static u_int buffer_high;/* "Soft" max buffer size. */
@@ -338,7 +339,7 @@ process_output(fd_set * writeset)
 			fdin = -1;
 		} else {
 			/* Successful write. */
-			if (tcgetattr(fdin, &tio) == 0 &&
+			if (fdin_is_tty && tcgetattr(fdin, &tio) == 0 &&
 			    !(tio.c_lflag & ECHO) && (tio.c_lflag & ICANON)) {
 				/*
 				 * Simulate echo to reduce the impact of
@@ -434,6 +435,9 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 	/* we don't have stderr for interactive terminal sessions, see below */
 	if (fderr != -1)
 		set_nonblock(fderr);
+
+	if (!(datafellows & SSH_BUG_IGNOREMSG) && isatty(fdin))
+		fdin_is_tty = 1;
 
 	connection_in = packet_get_connection_in();
 	connection_out = packet_get_connection_out();

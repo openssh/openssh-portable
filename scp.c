@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.58 2001/02/10 15:14:11 danh Exp $");
+RCSID("$OpenBSD: scp.c,v 1.59 2001/02/19 10:36:25 deraadt Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -802,16 +802,16 @@ sink(argc, argv)
 			}
 			vect[0] = xstrdup(np);
 			sink(1, vect);
-			if (vect[0])
-				xfree(vect[0]);
 			if (setimes) {
 				setimes = 0;
-				if (utimes(np, tv) < 0)
+				if (utimes(vect[0], tv) < 0)
 					run_err("%s: set times: %s",
-						np, strerror(errno));
+					    vect[0], strerror(errno));
 			}
 			if (mod_flag)
-				(void) chmod(np, mode);
+				(void) chmod(vect[0], mode);
+			if (vect[0])
+				xfree(vect[0]);
 			continue;
 		}
 		omode = mode;
