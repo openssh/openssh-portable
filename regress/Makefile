@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.30 2004/06/13 15:04:08 djm Exp $
+#	$OpenBSD: Makefile,v 1.31 2004/06/24 19:32:00 djm Exp $
 
 REGRESS_TARGETS=	t1 t2 t3 t4 t5 t6 t7 t-exec
 tests:		$(REGRESS_TARGETS)
@@ -37,7 +37,8 @@ LTESTS= 	connect \
 		reconfigure \
 		dynamic-forward \
 		forwarding \
-		multiplex
+		multiplex \
+		reexec
 
 USER!=		id -un
 CLEANFILES=	t2.out t6.out1 t6.out2 t7.out t7.out.pub copy.1 copy.2 \
