@@ -1,5 +1,6 @@
 20030609
  - (djm) Sync README.smartcard with OpenBSD -current
+ - (djm) Re-merge OpenSC info into README.smartcard
 
 20030606
  - (dtucker) [uidswap.c] Fix setreuid and add missing args to fatal(). ok djm@
@@ -479,4 +480,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2791 2003/06/10 08:55:22 djm Exp $
+$Id: ChangeLog,v 1.2792 2003/06/10 11:09:09 djm Exp $

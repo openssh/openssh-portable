@@ -1,13 +1,15 @@
 How to use smartcards with OpenSSH?
 
 OpenSSH contains experimental support for authentication using
-Cyberflex smartcards and TODOS card readers. To enable this you
+Cyberflex smartcards and TODOS card readers, in addition to the cards 
+with PKCS#15 structure supported by OpenSC. To enable this you
 need to:
 
-(1) enable SMARTCARD support in OpenSSH:
+Using libsectok:
 
-	$ ./configure --with-smartcard [...]
-	and rebuild
+(1) enable sectok support in OpenSSH:
+
+	$ ./configure --with-sectok
 
 (2) If you have used a previous version of ssh with your card, you
     must remove the old applet and keys.
@@ -44,15 +46,7 @@ need to:
 	In spite of the name, this does not generate a key.
 	It just loads an already existing key on to the card.
 
-(5) tell the ssh client to use the card reader:
-
-	$ ssh -I 1 otherhost
-
-(6) or tell the agent (don't forget to restart) to use the smartcard:
-
-	$ ssh-add -s 1
-
-(7) Optional: If you don't want to use a card passphrase, change the
+(5) Optional: If you don't want to use a card passphrase, change the
     acl on the private key file:
 
 	$ sectok
@@ -64,6 +58,34 @@ need to:
 
 	If you do this, anyone who has access to your card
 	can assume your identity.  This is not recommended.
+
+
+Using OpenSC:
+
+(1) install OpenSC:
+
+	Sources and instructions are available from
+	http://www.opensc.org/
+
+(2) enable OpenSC support in OpenSSH:
+
+	$ ./configure --with-opensc[=/path/to/opensc] [options]
+
+(3) load a RSA key to the card:
+
+	Not supported yet.
+
+
+Common operations:
+
+(1) tell the ssh client to use the card reader:
+
+	$ ssh -I 1 otherhost
+
+(2) or tell the agent (don't forget to restart) to use the smartcard:
+
+	$ ssh-add -s 1
+
 
 -markus,
 Tue Jul 17 23:54:51 CEST 2001
