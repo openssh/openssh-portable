@@ -32,7 +32,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readpass.c,v 1.19 2001/06/24 05:35:33 markus Exp $");
+RCSID("$OpenBSD: readpass.c,v 1.20 2001/07/02 22:29:20 markus Exp $");
 
 #include "xmalloc.h"
 #include "readpass.h"
@@ -117,7 +117,7 @@ read_passphrase(const char *prompt, int flags)
 	}
 
 	if (readpassphrase(prompt, buf, sizeof buf, rppflags) == NULL)
-		return NULL;
+		return xstrdup("");
 
 	ret = xstrdup(buf);
 	memset(buf, 'x', sizeof buf);
