@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$Id: bsd-misc.c,v 1.6 2002/05/08 02:51:32 tim Exp $");
+RCSID("$Id: bsd-misc.c,v 1.7 2002/06/12 16:57:15 mouring Exp $");
 
 char *get_progname(char *argv0)
 {
@@ -117,4 +117,15 @@ int truncate (const char *path, off_t length)
 	return(ret);
 }
 #endif /* HAVE_TRUNCATE */
+
+#if !defined(HAVE_SETGROUPS) && defined(SETGROUPS_NOOP)
+/*
+ * Cygwin setgroups should be a noop.
+ */
+int
+setgroups(size_t size, const git_t *list)
+{
+	return 0;
+}
+#endif 
 

@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.65 2002/06/07 14:37:00 mouring Exp $
+# $Id: configure.ac,v 1.66 2002/06/12 16:57:15 mouring Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -85,6 +85,7 @@ case "$host" in
 	AC_DEFINE(IPV4_DEFAULT)
 	AC_DEFINE(IP_TOS_IS_BROKEN)
 	AC_DEFINE(NO_X11_UNIX_SOCKETS)
+	AC_DEFINE(SETGROUPS_NOOP)
 	;;
 *-*-dgux*)
 	AC_DEFINE(IP_TOS_IS_BROKEN)
@@ -569,10 +570,10 @@ AC_CHECK_FUNCS(arc4random b64_ntop bcopy bindresvport_sa \
 	inet_ntop innetgr login_getcapbool md5_crypt memmove \
 	mkdtemp mmap ngetaddrinfo openpty ogetaddrinfo readpassphrase \
 	realpath recvmsg rresvport_af sendmsg setdtablesize setegid \
-	setenv seteuid setlogin setproctitle setresgid setreuid setrlimit \
-	setsid setvbuf sigaction sigvec snprintf socketpair strerror \
-	strlcat strlcpy strmode strsep sysconf tcgetpgrp truncate utimes \
-	vhangup vsnprintf waitpid __b64_ntop _getpty)
+	setenv seteuid setgroups setlogin setproctitle setresgid setreuid \
+	setrlimit setsid setvbuf sigaction sigvec snprintf socketpair \
+	strerror strlcat strlcpy strmode strsep sysconf tcgetpgrp truncate \
+	utimes vhangup vsnprintf waitpid __b64_ntop _getpty)
 
 dnl IRIX and Solaris 2.5.1 have dirname() in libgen
 AC_CHECK_FUNCS(dirname, [AC_CHECK_HEADERS(libgen.h)] ,[

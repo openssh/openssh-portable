@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.137 2002/05/13 03:15:43 djm Exp $ */
+/* $Id: acconfig.h,v 1.138 2002/06/12 16:57:15 mouring Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -11,6 +11,9 @@
 /* Define to a Set Process Title type if your system is */
 /* supported by bsd-setproctitle.c */
 #undef SPT_TYPE
+
+/* setgroups() NOOP allowed */
+#undef SETGROUPS_NOOP
 
 /* SCO workaround */
 #undef BROKEN_SYS_TERMIO_H

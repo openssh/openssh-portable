@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: bsd-misc.h,v 1.4 2002/05/08 02:51:32 tim Exp $ */
+/* $Id: bsd-misc.h,v 1.5 2002/06/12 16:57:15 mouring Exp $ */
 
 #ifndef _BSD_MISC_H
 #define _BSD_MISC_H
@@ -75,5 +75,10 @@ int utimes(char *filename, struct timeval *tvp);
 #ifndef HAVE_TRUNCATE
 int truncate (const char *path, off_t length);
 #endif /* HAVE_TRUNCATE */
+
+#if !defined(HAVE_SETGROUPS) && defined(SETGROUPS_NOOP)
+int setgroups(size_t size, const git_t *list);
+#endif
+
 
 #endif /* _BSD_MISC_H */
