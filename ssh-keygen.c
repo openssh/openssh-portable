@@ -14,7 +14,7 @@ Identity and host key generation and maintenance.
 */
 
 #include "includes.h"
-RCSID("$Id: ssh-keygen.c,v 1.7 1999/11/21 07:31:57 damien Exp $");
+RCSID("$Id: ssh-keygen.c,v 1.8 1999/11/22 02:22:29 damien Exp $");
 
 #include "rsa.h"
 #include "ssh.h"
@@ -363,7 +363,7 @@ usage(void)
 int
 main(int ac, char **av)
 {
-  char buf[16384], buf2[1024], *passphrase1, *passphrase2;
+  char dotsshdir[16*1024], comment[1024], *passphrase1, *passphrase2;
   struct passwd *pw;
   char *tmpbuf;
   int opt;
@@ -390,12 +390,6 @@ main(int ac, char **av)
       printf("You don't exist, go away!\n");
       exit(1);
     }
-
-  /* Create ~/.ssh directory if it doesn\'t already exist. */
-  snprintf(buf, sizeof buf, "%s/%s", pw->pw_dir, SSH_USER_DIR);
-  if (stat(buf, &st) < 0)
-    if (mkdir(buf, 0755) < 0)
-      error("Could not create directory '%s'.", buf);
 
   /* Parse command line arguments. */
   while ((opt = getopt(ac, av, "qpclb:f:P:N:C:")) != EOF)
@@ -486,15 +480,26 @@ main(int ac, char **av)
   if (!have_identity)
     ask_filename(pw, "Enter file in which to save the key");
 
-  /* If the file aready exists, ask the user to confirm. */
+  /* Create ~/.ssh directory if it doesn\'t already exist. */
+  snprintf(dotsshdir, sizeof dotsshdir, "%s/%s", pw->pw_dir, SSH_USER_DIR);
+  if (strstr(identity_file, dotsshdir) != NULL &&
+      stat(dotsshdir, &st) < 0) {
+    if (mkdir(dotsshdir, 0755) < 0)
+      error("Could not create directory '%s'.", dotsshdir);
+    else if(!quiet)
+      printf("Created directory '%s'.\n", dotsshdir);
+ }
+
+  /* If the file already exists, ask the user to confirm. */
   if (stat(identity_file, &st) >= 0)
     {
+      char yesno[3];
       printf("%s already exists.\n", identity_file);
       printf("Overwrite (y/n)? ");
       fflush(stdout);
-      if (fgets(buf2, sizeof(buf2), stdin) == NULL)
+      if (fgets(yesno, sizeof(yesno), stdin) == NULL)
 	exit(1);
-      if (buf2[0] != 'y' && buf2[0] != 'Y')
+      if (yesno[0] != 'y' && yesno[0] != 'Y')
 	exit(1);
     }
   
@@ -529,7 +534,7 @@ main(int ac, char **av)
      edit this field. */
   if (identity_comment)
     {
-      strlcpy(buf2, identity_comment, sizeof(buf2));
+      strlcpy(comment, identity_comment, sizeof(comment));
     }
   else
     {
@@ -538,11 +543,11 @@ main(int ac, char **av)
 	  perror("gethostname");
 	  exit(1);
 	}
-      snprintf(buf2, sizeof buf2, "%s@%s", pw->pw_name, hostname);
+      snprintf(comment, sizeof comment, "%s@%s", pw->pw_name, hostname);
     }
 
   /* Save the key with the given passphrase and comment. */
-  if (!save_private_key(identity_file, passphrase1, private_key, buf2))
+  if (!save_private_key(identity_file, passphrase1, private_key, comment))
     {
       printf("Saving the key failed: %s: %s.\n",
 	     identity_file, strerror(errno));
@@ -561,18 +566,6 @@ main(int ac, char **av)
   if (!quiet)
     printf("Your identification has been saved in %s.\n", identity_file);
 
-  /* Display the public key on the screen. */
-  if (!quiet) {
-    printf("Your public key is:\n");
-    printf("%d ", BN_num_bits(public_key->n));
-    tmpbuf = BN_bn2dec(public_key->e);
-    printf("%s ", tmpbuf);
-    free(tmpbuf);
-    tmpbuf = BN_bn2dec(public_key->n);
-    printf("%s %s\n", tmpbuf, buf2);
-    free(tmpbuf);
-  }
-
   /* Save the public key in text format in a file with the same name but
      .pub appended. */
   strlcat(identity_file, ".pub", sizeof(identity_file));
@@ -587,12 +580,17 @@ main(int ac, char **av)
   fprintf(f, "%s ", tmpbuf);
   free(tmpbuf);
   tmpbuf = BN_bn2dec(public_key->n);
-  fprintf(f, "%s %s\n", tmpbuf, buf2);
+  fprintf(f, "%s %s\n", tmpbuf, comment);
   free(tmpbuf);
   fclose(f);
 
-  if (!quiet)
-    printf("Your public key has been saved in %s\n", identity_file);
+  if (!quiet) {
+    printf("Your public key has been saved in %s.\n", identity_file);
+    printf("The key fingerprint is:\n");
+    printf("%d %s %s\n", BN_num_bits(public_key->n),
+	   fingerprint(public_key->e, public_key->n),
+	   comment);
+  }
   
   exit(0);
 }

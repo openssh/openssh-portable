@@ -1,8 +1,13 @@
 19991122
  - Make <enter> close gnome-ssh-askpass (Debian bug #50299)
+ - OpenBSD CVS Changes
+   - [ssh-keygen.c] 
+     don't create ~/.ssh only if the user wants to store the private 
+     key there. show fingerprint instead of public-key after 
+     keygeneration. ok niels@
 
 19991121
- - OpenBSD CVS Changes
+ - OpenBSD CVS Changes:
    - [channels.c]
      make this compile, bad markus
    - [log.c readconf.c servconf.c ssh.h]
