@@ -2,7 +2,8 @@
  - (bal) I think this is the last of the bsd-*.h that don't belong.
  - (bal) Minor Makefile fix
  - (bal) openbsd-compat/Makefile minor fix.  Ensure dependancies are done
-   right.
+   right. 
+ - (bal) Changed order of LIB="" in -with-skey due to library resolving.
 
 20010103
  - (bal) Cygwin clean up by Corinna Vinschen <vinschen@redhat.com>

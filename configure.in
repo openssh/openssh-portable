@@ -1216,7 +1216,7 @@ AC_ARG_WITH(skey,
 			fi
 
 			AC_DEFINE(SKEY)
-			LIBS="$LIBS -lskey"
+			LIBS="-lskey $LIBS"
 			SKEY_MSG="yes" 
 	
 			AC_CHECK_FUNC(skey_keyinfo,
