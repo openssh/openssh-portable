@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.61 2001/04/08 11:27:33 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.62 2001/04/14 16:33:20 stevesk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -79,6 +79,7 @@ RCSID("$OpenBSD: clientloop.c,v 1.61 2001/04/08 11:27:33 markus Exp $");
 #include "clientloop.h"
 #include "authfd.h"
 #include "atomicio.h"
+#include "sshtty.h"
 
 /* import options */
 extern Options options;
@@ -100,15 +101,6 @@ extern char *host;
  * because this is updated in a signal handler.
  */
 static volatile int received_window_change_signal = 0;
-
-/* Terminal modes, as saved by enter_raw_mode. */
-static struct termios saved_tio;
-
-/*
- * Flag indicating whether we are in raw mode.  This is used by
- * enter_raw_mode and leave_raw_mode.
- */
-static int in_raw_mode = 0;
 
 /* Flag indicating whether the user\'s terminal is in non-blocking mode. */
 static int in_non_blocking_mode = 0;
@@ -135,46 +127,6 @@ int	session_ident = -1;
 
 /*XXX*/
 extern Kex *xxx_kex;
-
-/* Returns the user\'s terminal to normal mode if it had been put in raw mode. */
-
-void
-leave_raw_mode(void)
-{
-	if (!in_raw_mode)
-		return;
-	in_raw_mode = 0;
-	if (tcsetattr(fileno(stdin), TCSADRAIN, &saved_tio) < 0)
-		perror("tcsetattr");
-
-	fatal_remove_cleanup((void (*) (void *)) leave_raw_mode, NULL);
-}
-
-/* Puts the user\'s terminal in raw mode. */
-
-void
-enter_raw_mode(void)
-{
-	struct termios tio;
-
-	if (tcgetattr(fileno(stdin), &tio) < 0)
-		perror("tcgetattr");
-	saved_tio = tio;
-	tio.c_iflag |= IGNPAR;
-	tio.c_iflag &= ~(ISTRIP | INLCR | IGNCR | ICRNL | IXON | IXANY | IXOFF);
-	tio.c_lflag &= ~(ISIG | ICANON | ECHO | ECHOE | ECHOK | ECHONL);
-#ifdef IEXTEN
-	tio.c_lflag &= ~IEXTEN;
-#endif				/* IEXTEN */
-	tio.c_oflag &= ~OPOST;
-	tio.c_cc[VMIN] = 1;
-	tio.c_cc[VTIME] = 0;
-	if (tcsetattr(fileno(stdin), TCSADRAIN, &tio) < 0)
-		perror("tcsetattr");
-	in_raw_mode = 1;
-
-	fatal_add_cleanup((void (*) (void *)) leave_raw_mode, NULL);
-}
 
 /* Restores stdin to blocking mode. */
 
@@ -218,7 +170,7 @@ window_change_handler(int sig)
 void
 signal_handler(int sig)
 {
-	if (in_raw_mode)
+	if (in_raw_mode())
 		leave_raw_mode();
 	if (in_non_blocking_mode)
 		leave_non_blocking();
@@ -796,7 +748,7 @@ client_channel_closed(int id, void *arg)
 		error("client_channel_closed: id %d != session_ident %d",
 		    id, session_ident);
 	session_closed = 1;
-	if (in_raw_mode)
+	if (in_raw_mode())
 		leave_raw_mode();
 }
 

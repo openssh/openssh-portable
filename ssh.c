@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.114 2001/04/13 01:26:17 stevesk Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.115 2001/04/14 16:33:20 stevesk Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -67,6 +67,7 @@ RCSID("$OpenBSD: ssh.c,v 1.114 2001/04/13 01:26:17 stevesk Exp $");
 #include "misc.h"
 #include "kex.h"
 #include "mac.h"
+#include "sshtty.h"
 
 #ifdef HAVE___PROGNAME
 extern char *__progname;
@@ -879,7 +880,7 @@ ssh_session(void)
 		packet_put_int(ws.ws_ypixel);
 
 		/* Store tty modes in the packet. */
-		tty_make_modes(fileno(stdin));
+		tty_make_modes(fileno(stdin), NULL);
 
 		/* Send the packet, and wait for it to leave. */
 		packet_send();
@@ -983,6 +984,7 @@ ssh_session2_callback(int id, void *arg)
 {
 	int len;
 	int interactive = 0;
+	struct termios tio;
 
 	debug("client_init id %d arg %ld", id, (long)arg);
 
@@ -1002,7 +1004,8 @@ ssh_session2_callback(int id, void *arg)
 		packet_put_int(ws.ws_row);
 		packet_put_int(ws.ws_xpixel);
 		packet_put_int(ws.ws_ypixel);
-		packet_put_cstring("");		/* XXX: encode terminal modes */
+		tio = get_saved_tio();
+		tty_make_modes(/*ignored*/ 0, &tio);
 		packet_send();
 		interactive = 1;
 		/* XXX wait for reply */

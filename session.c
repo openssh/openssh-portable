@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.71 2001/04/06 21:00:12 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.72 2001/04/14 16:33:20 stevesk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1603,7 +1603,7 @@ int
 session_pty_req(Session *s)
 {
 	u_int len;
-	char *term_modes;	/* encoded terminal modes */
+	int n_bytes;
 
 	if (no_pty_flag)
 		return 0;
@@ -1614,8 +1614,6 @@ session_pty_req(Session *s)
 	s->row = packet_get_int();
 	s->xpixel = packet_get_int();
 	s->ypixel = packet_get_int();
-	term_modes = packet_get_string(&len);
-	packet_done();
 
 	if (strcmp(s->term, "") == 0) {
 		xfree(s->term);
@@ -1628,7 +1626,6 @@ session_pty_req(Session *s)
 		s->ptyfd = -1;
 		s->ttyfd = -1;
 		error("session_pty_req: session %d alloc failed", s->self);
-		xfree(term_modes);
 		return 0;
 	}
 	debug("session_pty_req: session %d alloc %s", s->self, s->tty);
@@ -1641,10 +1638,12 @@ session_pty_req(Session *s)
 	/* Get window size from the packet. */
 	pty_change_window_size(s->ptyfd, s->row, s->col, s->xpixel, s->ypixel);
 
+	/* Get tty modes from the packet. */
+	tty_parse_modes(s->ttyfd, &n_bytes);
+	packet_done();
+
 	session_proctitle(s);
 
-	/* XXX parse and set terminal modes */
-	xfree(term_modes);
 	return 1;
 }
 
