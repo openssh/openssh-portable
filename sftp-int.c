@@ -25,7 +25,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.58 2003/04/14 21:31:27 mouring Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.59 2003/05/15 03:39:07 mouring Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -425,29 +425,8 @@ process_get(struct sftp_conn *conn, char *src, char *dst, char *pwd, int pflag)
 		goto out;
 	}
 
-	/* Only one match, dst may be file, directory or unspecified */
-	if (g.gl_pathv[0] && g.gl_matchc == 1) {
-		if (dst) {
-			/* If directory specified, append filename */
-			if (is_dir(dst)) {
-				if (infer_path(g.gl_pathv[0], &tmp)) {
-					err = 1;
-					goto out;
-				}
-				abs_dst = path_append(dst, tmp);
-				xfree(tmp);
-			} else
-				abs_dst = xstrdup(dst);
-		} else if (infer_path(g.gl_pathv[0], &abs_dst)) {
-			err = -1;
-			goto out;
-		}
-		err = do_download(conn, g.gl_pathv[0], abs_dst, pflag);
-		goto out;
-	}
-
-	/* Multiple matches, dst may be directory or unspecified */
-	if (dst && !is_dir(dst)) {
+	/* If multiple matches, dst must be a directory or unspecified */
+	if (g.gl_matchc > 1 && dst && !is_dir(dst)) {
 		error("Multiple files match, but \"%s\" is not a directory",
 		    dst);
 		err = -1;
@@ -459,7 +438,19 @@ process_get(struct sftp_conn *conn, char *src, char *dst, char *pwd, int pflag)
 			err = -1;
 			goto out;
 		}
-		if (dst) {
+
+		if (g.gl_matchc == 1 && dst) {
+			/* If directory specified, append filename */
+			if (is_dir(dst)) {
+				if (infer_path(g.gl_pathv[0], &tmp)) {
+					err = 1;
+					goto out;
+				}
+				abs_dst = path_append(dst, tmp);
+				xfree(tmp);
+			} else
+				abs_dst = xstrdup(dst);
+		} else if (dst) {
 			abs_dst = path_append(dst, tmp);
 			xfree(tmp);
 		} else
@@ -503,38 +494,8 @@ process_put(struct sftp_conn *conn, char *src, char *dst, char *pwd, int pflag)
 		goto out;
 	}
 
-	/* Only one match, dst may be file, directory or unspecified */
-	if (g.gl_pathv[0] && g.gl_matchc == 1) {
-		if (!is_reg(g.gl_pathv[0])) {
-			error("Can't upload %s: not a regular file",
-			    g.gl_pathv[0]);
-			err = 1;
-			goto out;
-		}
-		if (tmp_dst) {
-			/* If directory specified, append filename */
-			if (remote_is_dir(conn, tmp_dst)) {
-				if (infer_path(g.gl_pathv[0], &tmp)) {
-					err = 1;
-					goto out;
-				}
-				abs_dst = path_append(tmp_dst, tmp);
-				xfree(tmp);
-			} else
-				abs_dst = xstrdup(tmp_dst);
-		} else {
-			if (infer_path(g.gl_pathv[0], &abs_dst)) {
-				err = -1;
-				goto out;
-			}
-			abs_dst = make_absolute(abs_dst, pwd);
-		}
-		err = do_upload(conn, g.gl_pathv[0], abs_dst, pflag);
-		goto out;
-	}
-
-	/* Multiple matches, dst may be directory or unspecified */
-	if (tmp_dst && !remote_is_dir(conn, tmp_dst)) {
+	/* If multiple matches, dst may be directory or unspecified */
+	if (g.gl_matchc > 1 && tmp_dst && !remote_is_dir(conn, tmp_dst)) {
 		error("Multiple files match, but \"%s\" is not a directory",
 		    tmp_dst);
 		err = -1;
@@ -551,7 +512,20 @@ process_put(struct sftp_conn *conn, char *src, char *dst, char *pwd, int pflag)
 			err = -1;
 			goto out;
 		}
-		if (tmp_dst) {
+
+		if (g.gl_matchc == 1 && tmp_dst) {
+			/* If directory specified, append filename */
+			if (remote_is_dir(conn, tmp_dst)) {
+				if (infer_path(g.gl_pathv[0], &tmp)) {
+					err = 1;
+					goto out;
+				}
+				abs_dst = path_append(tmp_dst, tmp);
+				xfree(tmp);
+			} else
+				abs_dst = xstrdup(tmp_dst);
+
+		} else if (tmp_dst) {
 			abs_dst = path_append(tmp_dst, tmp);
 			xfree(tmp);
 		} else
