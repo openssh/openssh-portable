@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.147 2002/08/22 21:45:41 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.148 2002/08/29 15:57:25 stevesk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -671,8 +671,8 @@ do_pre_login(Session *s)
 	 * the address be 0.0.0.0.
 	 */
 	memset(&from, 0, sizeof(from));
+	fromlen = sizeof(from);
 	if (packet_connection_is_on_socket()) {
-		fromlen = sizeof(from);
 		if (getpeername(packet_get_connection_in(),
 		    (struct sockaddr *) & from, &fromlen) < 0) {
 			debug("getpeername: %.100s", strerror(errno));
@@ -737,7 +737,7 @@ do_login(Session *s, const char *command)
 		record_login(pid, s->tty, pw->pw_name, pw->pw_uid,
 		    get_remote_name_or_ip(utmp_len,
 		    options.verify_reverse_mapping),
-		    (struct sockaddr *)&from);
+		    (struct sockaddr *)&from, fromlen);
 
 #ifdef USE_PAM
 	/*
