@@ -34,7 +34,7 @@ Garrick James <garrick@james.net> - configure fixes
 Gary E. Miller <gem@rellim.com> - SCO support
 Ged Lodder <lodder@yacc.com.au> - HPUX fixes and enhancements
 Gert Doering <gd@hilb1.medat.de> - bug and portability fixes
-HARUYAMA Seigo <haruyama@nt.phys.s.u-tokyo.ac.jp> - Translations & doc fixes
+HARUYAMA Seigo <haruyama@klab.org> - Translations & doc fixes
 Hideaki YOSHIFUJI <yoshfuji@ecei.tohoku.ac.jp> - IPv6 and bug fixes
 Hiroshi Takekawa <takekawa@sr3.t.u-tokyo.ac.jp> - Configure fixes
 Holger Trapp <Holger.Trapp@Informatik.TU-Chemnitz.DE> - KRB4/AFS config patch
