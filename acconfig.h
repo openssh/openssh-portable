@@ -207,6 +207,8 @@
 #undef HAVE_INTXX_T
 #undef HAVE_U_INTXX_T
 #undef HAVE_UINTXX_T
+#undef HAVE_INT64_T
+#undef HAVE_U_INT64_T
 #undef HAVE_SOCKLEN_T
 #undef HAVE_SIZE_T
 #undef HAVE_SSIZE_T

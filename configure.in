@@ -487,6 +487,19 @@ if test "x$ac_cv_have_intxx_t" = "xyes" ; then
 	have_intxx_t=1
 fi
 	
+AC_CACHE_CHECK([for int64_t type], ac_cv_have_int64_t, [
+	AC_TRY_COMPILE(
+		[ #include <sys/types.h> ], 
+		[ int64_t a; a = 1;], 
+		[ ac_cv_have_int64_t="yes" ],
+		[ ac_cv_have_int64_t="no" ]
+	)
+])
+if test "x$ac_cv_have_int64_t" = "xyes" ; then
+	AC_DEFINE(HAVE_INT64_T)
+	have_int64_t=1
+fi
+	
 AC_CACHE_CHECK([for u_intXX_t types], ac_cv_have_u_intxx_t, [
 	AC_TRY_COMPILE(
 		[ #include <sys/types.h> ], 
@@ -498,6 +511,19 @@ AC_CACHE_CHECK([for u_intXX_t types], ac_cv_have_u_intxx_t, [
 if test "x$ac_cv_have_u_intxx_t" = "xyes" ; then
 	AC_DEFINE(HAVE_U_INTXX_T)
 	have_u_intxx_t=1
+fi
+
+AC_CACHE_CHECK([for u_int64_t types], ac_cv_have_u_int64_t, [
+	AC_TRY_COMPILE(
+		[ #include <sys/types.h> ], 
+		[ u_int64_t a; a = 1;], 
+		[ ac_cv_have_u_int64_t="yes" ],
+		[ ac_cv_have_u_int64_t="no" ]
+	)
+])
+if test "x$ac_cv_have_u_int64_t" = "xyes" ; then
+	AC_DEFINE(HAVE_U_INT64_T)
+	have_u_int64_t=1
 fi
 
 if (test -z "$have_u_intxx_t" || test -z "$have_intxx_t" && \
