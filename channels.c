@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.191 2003/06/24 08:23:46 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.192 2003/07/02 12:56:34 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -2201,9 +2201,13 @@ channel_input_port_forward_request(int is_root, int gateway_ports)
 	 * privileged port.
 	 */
 	if (port < IPPORT_RESERVED && !is_root)
-		packet_disconnect("Requested forwarding of port %d but user is not root.",
-				  port);
+		packet_disconnect(
+		    "Requested forwarding of port %d but user is not root.",
+		    port);
+	if (host_port == 0)
+		packet_disconnect("Dynamic forwarding denied.");
 #endif
+
 	/* Initiate forwarding */
 	channel_setup_local_fwd_listener(port, hostname, host_port, gateway_ports);
 

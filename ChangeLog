@@ -12,6 +12,9 @@
    - markus@cvs.openbsd.org 2003/06/29 12:44:38
      [sshconnect.c]
      memset 0, not \0; andrushock@korovino.net
+   - markus@cvs.openbsd.org 2003/07/02 12:56:34
+     [channels.c]
+     deny dynamic forwarding with -R for v1, too; ok djm@
 
 20030630
  - (djm) Search for support functions necessary to build our 
@@ -632,4 +635,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2838 2003/07/03 03:48:04 dtucker Exp $
+$Id: ChangeLog,v 1.2839 2003/07/03 03:52:04 dtucker Exp $
