@@ -1,10 +1,11 @@
-20020508
- - (djm) Disable PAM kbd-int auth if privsep is turned on (it doesn't work)
+20020509
+ - (tim) [Makefile.in] Unbreak make -f Makefile.in distprep
 
-20020507
+20020508
  - (tim) [openbsd-compat/bsd-arc4random.c] fix logic on when seed_rng() is
    called. Report by Chris Maxwell <maxwell@cs.dal.ca>
  - (tim) [Makefile.in configure.ac] set SHELL variable in Makefile
+ - (djm) Disable PAM kbd-int auth if privsep is turned on (it doesn't work)
 
 20020507
  - (tim) [configure.ac openbsd-compat/bsd-misc.c openbsd-compat/bsd-misc.h]
@@ -547,4 +548,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2099 2002/05/09 05:59:13 djm Exp $
+$Id: ChangeLog,v 1.2100 2002/05/09 14:05:59 tim Exp $
