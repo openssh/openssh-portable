@@ -1,3 +1,10 @@
+20030516
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2003/05/15 13:52:10
+     [ssh.c]
+     Make "ssh -V" print the OpenSSL version in a human readable form. Patch
+     from Craig Leres (mindrot at ee.lbl.gov); ok markus@
+
 20030515
  - (djm) OpenBSD CVS Sync
    - jmc@cvs.openbsd.org 2003/05/14 13:11:56
@@ -1528,4 +1535,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2723 2003/05/15 11:42:59 dtucker Exp $
+$Id: ChangeLog,v 1.2724 2003/05/16 01:38:00 djm Exp $
