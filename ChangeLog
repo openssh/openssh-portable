@@ -29,6 +29,12 @@
    - jmc@cvs.openbsd.org 2005/03/01 17:32:19
      [ssh-add.1]
      sort options;
+   - jmc@cvs.openbsd.org 2005/03/01 18:15:56
+     [ssh-keygen.1]
+     sort options (no attempt made at synopsis clean up though);
+     spelling (occurance -> occurrence);
+     use prompt before examples;
+     grammar;
 
 20050301
  - (djm) OpenBSD CVS sync:
@@ -2248,4 +2254,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3683 2005/03/02 01:04:50 djm Exp $
+$Id: ChangeLog,v 1.3684 2005/03/02 01:05:06 djm Exp $
