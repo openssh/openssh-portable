@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.137 2005/03/04 08:48:06 djm Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.138 2005/03/10 10:15:02 dtucker Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -253,12 +253,14 @@ clear_forwardings(Options *options)
 	int i;
 
 	for (i = 0; i < options->num_local_forwards; i++) {
-		xfree(options->local_forwards[i].listen_host);
+		if (options->local_forwards[i].listen_host != NULL)
+			xfree(options->local_forwards[i].listen_host);
 		xfree(options->local_forwards[i].connect_host);
 	}
 	options->num_local_forwards = 0;
 	for (i = 0; i < options->num_remote_forwards; i++) {
-		xfree(options->remote_forwards[i].listen_host);
+		if (options->remote_forwards[i].listen_host != NULL)
+			xfree(options->remote_forwards[i].listen_host);
 		xfree(options->remote_forwards[i].connect_host);
 	}
 	options->num_remote_forwards = 0;

@@ -1,3 +1,10 @@
+20050314
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2005/03/10 10:15:02
+     [readconf.c]
+     Check listen addresses for null, prevents xfree from dying during
+     ClearAllForwardings (bz #996).  From  Craig Leres, ok markus@
+
 20050312
  - (dtucker) [regress/test-exec.sh] DEBUG can cause problems where debug
    output ends up in the client's output, causing regress failures.  Found
@@ -2326,4 +2333,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3707.2.2 2005/03/14 11:53:21 dtucker Exp $
+$Id: ChangeLog,v 1.3707.2.3 2005/03/14 11:58:11 dtucker Exp $
