@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.96 2001/02/17 23:28:58 deraadt Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.97 2001/02/21 21:14:04 stevesk Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -161,7 +161,8 @@ usage(void)
 #endif				/* AFS */
 	fprintf(stderr, "  -X          Enable X11 connection forwarding.\n");
 	fprintf(stderr, "  -x          Disable X11 connection forwarding.\n");
-	fprintf(stderr, "  -i file     Identity for RSA authentication (default: ~/.ssh/identity).\n");
+	fprintf(stderr, "  -i file     Identity for public key authentication\n");
+	fprintf(stderr, "              (default: ~/.ssh/identity).\n");
 	fprintf(stderr, "  -t          Tty; allocate a tty even if command is given.\n");
 	fprintf(stderr, "  -T          Do not allocate a tty.\n");
 	fprintf(stderr, "  -v          Verbose; display verbose debugging messages.\n");
