@@ -782,10 +782,6 @@ main(int ac, char **av)
 		log_stderr = 1;
 	log_init(__progname, options.log_level, options.log_facility, log_stderr);
 
-	/* Make supp. groups don't get propogated to PAM modules */
-	if (setgroups(0, NULL) < 0)
-		fatal("setgroups() failed: %.200s", strerror(errno));
-
 	/*
 	 * If not in debugging mode, and not started from inetd, disconnect
 	 * from the controlling terminal, and fork.  The original process

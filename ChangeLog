@@ -1,5 +1,6 @@
 20010918
  - (djm) Configure support for smartcards
+ - (djm) Revert setgroups call, it causes problems on OS-X
 
 20010917
  - (djm) x11-ssh-askpass-1.2.4 in RPM spec, revert workarounds
@@ -6460,4 +6461,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1525 2001/09/18 04:01:11 djm Exp $
+$Id: ChangeLog,v 1.1526 2001/09/18 04:03:03 djm Exp $
