@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.66 2001/06/12 16:11:26 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.67 2001/06/20 13:56:39 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -1085,7 +1085,7 @@ packet_disconnect(const char *fmt,...)
 	packet_write_wait();
 
 	/* Stop listening for connections. */
-	channel_stop_listening();
+	channel_close_all();
 
 	/* Close the connection. */
 	packet_close();

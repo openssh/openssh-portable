@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.75 2001/06/04 23:07:20 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.76 2001/06/20 13:56:39 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -546,7 +546,7 @@ process_escapes(Buffer *bin, Buffer *bout, Buffer *berr, char *buf, int len)
 				leave_raw_mode();
 
 				/* Stop listening for new connections. */
-				channel_stop_listening();
+				channel_close_all();	/* proto1 only XXXX */
 
 				printf("%c& [backgrounded]\n", escape_char);
 
@@ -926,8 +926,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 	if (have_pty)
 		signal(SIGWINCH, SIG_DFL);
 
-	/* Stop listening for connections. */
-	channel_stop_listening();
+	channel_free_all();
 
 	if (have_pty)
 		leave_raw_mode();

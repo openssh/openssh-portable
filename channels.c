@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.125 2001/06/07 20:23:04 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.126 2001/06/20 13:56:39 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -223,11 +223,7 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 		channels = xmalloc(channels_alloc * sizeof(Channel *));
 		for (i = 0; i < channels_alloc; i++)
 			channels[i] = NULL;
-		/*
-		 * Kludge: arrange a call to channel_stop_listening if we
-		 * terminate with fatal().
-		 */
-		fatal_add_cleanup((void (*) (void *)) channel_stop_listening, NULL);
+		fatal_add_cleanup((void (*) (void *)) channel_free_all, NULL);
 	}
 	/* Try to find a free slot where to put the new channel. */
 	for (found = -1, i = 0; i < channels_alloc; i++)
@@ -334,38 +330,14 @@ channel_free(Channel *c)
 	xfree(c);
 }
 
-
-/*
- * Stops listening for channels, and removes any unix domain sockets that we
- * might have.
- */
-
 void
-channel_stop_listening()
+channel_free_all(void)
 {
 	int i;
-	Channel *c;
 
-	for (i = 0; i < channels_alloc; i++) {
-		c = channels[i];
-		if (c != NULL) {
-			switch (c->type) {
-			case SSH_CHANNEL_AUTH_SOCKET:
-				close(c->sock);
-				/* auth_sock_cleanup_proc deletes the socket */
-				channel_free(c);
-				break;
-			case SSH_CHANNEL_PORT_LISTENER:
-			case SSH_CHANNEL_RPORT_LISTENER:
-			case SSH_CHANNEL_X11_LISTENER:
-				close(c->sock);
-				channel_free(c);
-				break;
-			default:
-				break;
-			}
-		}
-	}
+	for (i = 0; i < channels_alloc; i++)
+		if (channels[i] != NULL)
+			channel_free(channels[i]);
 }
 
 /*

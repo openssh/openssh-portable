@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.68 2001/06/04 23:07:20 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.69 2001/06/20 13:56:39 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -608,8 +608,7 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 		close(fdin);
 	fdin = -1;
 
-	/* Stop listening for channels; this removes unix domain sockets. */
-	channel_stop_listening();
+	channel_free_all();
 
 	/* We no longer want our SIGCHLD handler to be called. */
 	signal(SIGCHLD, SIG_DFL);
@@ -700,10 +699,11 @@ server_loop2(void)
 	if (writeset)
 		xfree(writeset);
 
+	channel_free_all();
+
 	signal(SIGCHLD, SIG_DFL);
 	while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
 		session_close_by_pid(pid, status);
-	channel_stop_listening();
 }
 
 void
