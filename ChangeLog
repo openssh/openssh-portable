@@ -30,6 +30,10 @@
    - deraadt@cvs.openbsd.org 2001/04/16 08:05:34
      [xmalloc.c]
      xrealloc dealing with ptr == nULL; mouring
+   - djm@cvs.openbsd.org 2001/04/16 08:19:31
+     [session.c]
+     Split motd and hushlogin checks into seperate functions, helps for 
+     portable. From Chris Adams <cmadams@hiwaay.net>; ok markus@
 
 20010415
  - OpenBSD CVS Sync
@@ -5115,4 +5119,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1126 2001/04/16 08:27:07 djm Exp $
+$Id: ChangeLog,v 1.1127 2001/04/16 08:29:15 djm Exp $

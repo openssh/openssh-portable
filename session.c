@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.72 2001/04/14 16:33:20 stevesk Exp $");
+RCSID("$OpenBSD: session.c,v 1.73 2001/04/16 08:19:31 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -128,6 +128,8 @@ void	do_exec_pty(Session *s, const char *command);
 void	do_exec_no_pty(Session *s, const char *command);
 void	do_login(Session *s, const char *command);
 void	do_child(Session *s, const char *command);
+void	do_motd(void);
+int	check_quietlogin(Session *s, const char *command);
 
 void	do_authenticated1(Authctxt *authctxt);
 void	do_authenticated2(Authctxt *authctxt);
@@ -681,13 +683,10 @@ do_exec_pty(Session *s, const char *command)
 void
 do_login(Session *s, const char *command)
 {
-	FILE *f;
 	char *time_string;
-	char buf[256];
 	char hostname[MAXHOSTNAMELEN];
 	socklen_t fromlen;
 	struct sockaddr_storage from;
-	struct stat st;
 	time_t last_login_time;
 	struct passwd * pw = s->pw;
 	pid_t pid = getpid();
@@ -729,15 +728,7 @@ do_login(Session *s, const char *command)
 	}
 #endif
 
-	/* Done if .hushlogin exists or a command given. */
-	if (command != NULL)
-		return;
-	snprintf(buf, sizeof(buf), "%.200s/.hushlogin", pw->pw_dir);
-#ifdef HAVE_LOGIN_CAP
-	if (login_getcapbool(lc, "hushlogin", 0) || stat(buf, &st) >= 0)
-#else
-	if (stat(buf, &st) >= 0)
-#endif
+	if (check_quietlogin(s, command))
 		return;
 
 #ifdef USE_PAM
@@ -758,6 +749,19 @@ do_login(Session *s, const char *command)
 		else
 			printf("Last login: %s from %s\r\n", time_string, hostname);
 	}
+
+	do_motd();
+}
+
+/*
+ * Display the message of the day.
+ */
+void
+do_motd(void)
+{
+	FILE *f;
+	char buf[256];
+
 	if (options.print_motd) {
 #ifdef HAVE_LOGIN_CAP
 		f = fopen(login_getcapstr(lc, "welcome", "/etc/motd",
@@ -771,6 +775,31 @@ do_login(Session *s, const char *command)
 			fclose(f);
 		}
 	}
+}
+
+
+/*
+ * Check for quiet login, either .hushlogin or command given.
+ */
+int
+check_quietlogin(Session *s, const char *command)
+{
+	char buf[256];
+	struct passwd * pw = s->pw;
+	struct stat st;
+
+	/* Return 1 if .hushlogin exists or a command given. */
+	if (command != NULL)
+		return 1;
+	snprintf(buf, sizeof(buf), "%.200s/.hushlogin", pw->pw_dir);
+#ifdef HAVE_LOGIN_CAP
+	if (login_getcapbool(lc, "hushlogin", 0) || stat(buf, &st) >= 0)
+		return 1;
+#else
+	if (stat(buf, &st) >= 0)
+		return 1;
+#endif
+	return 0;
 }
 
 /*
