@@ -19,6 +19,9 @@
    - markus@cvs.openbsd.org 2003/10/11 08:26:43
      [sshconnect2.c]
      search keys in reverse order; fixes #684
+   - markus@cvs.openbsd.org 2003/10/11 11:36:23
+     [monitor_wrap.c]
+     return NULL for missing banner; ok djm@
 
 20031009
  - (dtucker) [sshd_config.5] UsePAM defaults to "no".  ok djm@
@@ -1336,4 +1339,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3073 2003/10/15 05:55:59 dtucker Exp $
+$Id: ChangeLog,v 1.3074 2003/10/15 05:56:58 dtucker Exp $

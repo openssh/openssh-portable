@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor_wrap.c,v 1.32 2003/09/23 20:17:11 markus Exp $");
+RCSID("$OpenBSD: monitor_wrap.c,v 1.33 2003/10/11 11:36:23 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dh.h>
@@ -224,7 +224,8 @@ mm_getpwnamallow(const char *login)
 	return (pw);
 }
 
-char *mm_auth2_read_banner(void)
+char *
+mm_auth2_read_banner(void)
 {
 	Buffer m;
 	char *banner;
@@ -235,10 +236,16 @@ char *mm_auth2_read_banner(void)
 	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_AUTH2_READ_BANNER, &m);
 	buffer_clear(&m);
 
-	mm_request_receive_expect(pmonitor->m_recvfd, MONITOR_ANS_AUTH2_READ_BANNER, &m);
+	mm_request_receive_expect(pmonitor->m_recvfd,
+	    MONITOR_ANS_AUTH2_READ_BANNER, &m);
 	banner = buffer_get_string(&m, NULL);
 	buffer_free(&m);
 
+	/* treat empty banner as missing banner */
+	if (strlen(banner) == 0) {
+		xfree(banner);
+		banner = NULL;
+	}
 	return (banner);
 }
 
