@@ -1,3 +1,6 @@
+20020411
+ - (stevesk) [auth-sia.c] cleanup
+
 20020410
  - (stevesk) [configure.ac monitor.c] HAVE_SOCKETPAIR
  - (stevesk) [auth-sia.c] compile fix Chris Adams <cmadams@hiwaay.net>
@@ -8215,4 +8218,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2044 2002/04/10 22:04:54 stevesk Exp $
+$Id: ChangeLog,v 1.2045 2002/04/11 20:39:40 stevesk Exp $
