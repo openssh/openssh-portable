@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfile.c,v 1.40 2001/12/05 10:06:12 deraadt Exp $");
+RCSID("$OpenBSD: authfile.c,v 1.41 2001/12/19 07:18:56 deraadt Exp $");
 
 #include <openssl/err.h>
 #include <openssl/evp.h>
@@ -147,7 +147,7 @@ key_save_private_rsa1(Key *key, const char *filename, const char *passphrase,
 	if (write(fd, buffer_ptr(&encrypted), buffer_len(&encrypted)) !=
 	    buffer_len(&encrypted)) {
 		error("write to key file %s failed: %s", filename,
-		      strerror(errno));
+		    strerror(errno));
 		buffer_free(&encrypted);
 		close(fd);
 		unlink(filename);
@@ -450,7 +450,7 @@ key_load_private_pem(int fd, int type, const char *passphrase,
 		debug("PEM_read_PrivateKey failed");
 		(void)ERR_get_error();
 	} else if (pk->type == EVP_PKEY_RSA &&
-	     (type == KEY_UNSPEC||type==KEY_RSA)) {
+	    (type == KEY_UNSPEC||type==KEY_RSA)) {
 		prv = key_new(KEY_UNSPEC);
 		prv->rsa = EVP_PKEY_get1_RSA(pk);
 		prv->type = KEY_RSA;
@@ -459,7 +459,7 @@ key_load_private_pem(int fd, int type, const char *passphrase,
 		RSA_print_fp(stderr, prv->rsa, 8);
 #endif
 	} else if (pk->type == EVP_PKEY_DSA &&
-	     (type == KEY_UNSPEC||type==KEY_DSA)) {
+	    (type == KEY_UNSPEC||type==KEY_DSA)) {
 		prv = key_new(KEY_UNSPEC);
 		prv->dsa = EVP_PKEY_get1_DSA(pk);
 		prv->type = KEY_DSA;

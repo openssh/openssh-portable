@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: cipher.c,v 1.47 2001/08/23 11:31:59 markus Exp $");
+RCSID("$OpenBSD: cipher.c,v 1.48 2001/12/19 07:18:56 deraadt Exp $");
 
 #include "xmalloc.h"
 #include "log.h"
@@ -184,14 +184,14 @@ blowfish_setiv(CipherContext *cc, const u_char *iv, u_int ivlen)
 }
 static void
 blowfish_cbc_encrypt(CipherContext *cc, u_char *dest, const u_char *src,
-     u_int len)
+    u_int len)
 {
 	BF_cbc_encrypt((void *)src, dest, len, &cc->u.bf.key, cc->u.bf.iv,
 	    BF_ENCRYPT);
 }
 static void
 blowfish_cbc_decrypt(CipherContext *cc, u_char *dest, const u_char *src,
-     u_int len)
+    u_int len)
 {
 	BF_cbc_encrypt((void *)src, dest, len, &cc->u.bf.key, cc->u.bf.iv,
 	    BF_DECRYPT);
@@ -289,7 +289,7 @@ rijndael_setkey(CipherContext *cc, const u_char *key, u_int keylen)
 static void
 rijndael_setiv(CipherContext *cc, const u_char *iv, u_int ivlen)
 {
-	if (iv == NULL || ivlen != RIJNDAEL_BLOCKSIZE) 
+	if (iv == NULL || ivlen != RIJNDAEL_BLOCKSIZE)
 		fatal("bad/no IV for %s.", cc->cipher->name);
 	memcpy(cc->u.rijndael.iv, iv, RIJNDAEL_BLOCKSIZE);
 }
@@ -417,7 +417,7 @@ u_int
 cipher_mask_ssh1(int client)
 {
 	u_int mask = 0;
-	mask |= 1 << SSH_CIPHER_3DES;           /* Mandatory */
+	mask |= 1 << SSH_CIPHER_3DES;		/* Mandatory */
 	mask |= 1 << SSH_CIPHER_BLOWFISH;
 	if (client) {
 		mask |= 1 << SSH_CIPHER_DES;
@@ -457,7 +457,7 @@ ciphers_valid(const char *names)
 		return 0;
 	ciphers = cp = xstrdup(names);
 	for ((p = strsep(&cp, CIPHER_SEP)); p && *p != '\0';
-	     (p = strsep(&cp, CIPHER_SEP))) {
+	    (p = strsep(&cp, CIPHER_SEP))) {
 		c = cipher_by_name(p);
 		if (c == NULL || c->number != SSH_CIPHER_SSH2) {
 			debug("bad cipher %s [%s]", p, names);

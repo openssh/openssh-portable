@@ -29,7 +29,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.18 2001/07/14 15:10:16 stevesk Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.19 2001/12/19 07:18:56 deraadt Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
@@ -308,9 +308,8 @@ do_lsreaddir(int fd_in, int fd_out, char *path, int printflag,
 		*dir = xmalloc(sizeof(**dir));
 		(*dir)[0] = NULL;
 	}
-	
 
-	for(;;) {
+	for (;;) {
 		int count;
 
 		id = expected_id = msg_id++;
@@ -356,7 +355,7 @@ do_lsreaddir(int fd_in, int fd_out, char *path, int printflag,
 		if (count == 0)
 			break;
 		debug3("Received %d SSH2_FXP_NAME responses", count);
-		for(i = 0; i < count; i++) {
+		for (i = 0; i < count; i++) {
 			char *filename, *longname;
 			Attrib *a;
 
@@ -404,8 +403,8 @@ do_readdir(int fd_in, int fd_out, char *path, SFTP_DIRENT ***dir)
 void free_sftp_dirents(SFTP_DIRENT **s)
 {
 	int i;
-	
-	for(i = 0; s[i]; i++) {
+
+	for (i = 0; s[i]; i++) {
 		xfree(s[i]->filename);
 		xfree(s[i]->longname);
 		xfree(s[i]);
@@ -726,7 +725,7 @@ do_download(int fd_in, int fd_out, char *remote_path, char *local_path,
 
 	/* Read from remote and write to local */
 	offset = 0;
-	for(;;) {
+	for (;;) {
 		u_int len;
 		char *data;
 
@@ -758,7 +757,7 @@ do_download(int fd_in, int fd_out, char *remote_path, char *local_path,
 			else {
 				error("Couldn't read from remote "
 				    "file \"%s\" : %s", remote_path,
-				     fx2txt(status));
+				    fx2txt(status));
 				do_close(fd_in, fd_out, handle, handle_len);
 				goto done;
 			}
@@ -868,7 +867,7 @@ do_upload(int fd_in, int fd_out, char *local_path, char *remote_path,
 
 	/* Read from local and write to remote */
 	offset = 0;
-	for(;;) {
+	for (;;) {
 		int len;
 		char data[COPY_SIZE];
 

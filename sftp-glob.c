@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-glob.c,v 1.8 2001/07/14 15:10:17 stevesk Exp $");
+RCSID("$OpenBSD: sftp-glob.c,v 1.9 2001/12/19 07:18:56 deraadt Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
@@ -49,9 +49,9 @@ static void *
 fudge_opendir(const char *path)
 {
 	struct SFTP_OPENDIR *r;
-	
+
 	r = xmalloc(sizeof(*r));
-	
+
 	if (do_readdir(cur.fd_in, cur.fd_out, (char*)path, &r->dir))
 		return(NULL);
 
@@ -110,7 +110,7 @@ static void
 attrib_to_stat(Attrib *a, struct stat *st)
 {
 	memset(st, 0, sizeof(*st));
-	
+
 	if (a->flags & SSH2_FILEXFER_ATTR_SIZE)
 		st->st_size = a->size;
 	if (a->flags & SSH2_FILEXFER_ATTR_UIDGID) {
@@ -129,12 +129,12 @@ static int
 fudge_lstat(const char *path, struct stat *st)
 {
 	Attrib *a;
-	
+
 	if (!(a = do_lstat(cur.fd_in, cur.fd_out, (char*)path, 0)))
 		return(-1);
-	
+
 	attrib_to_stat(a, st);
-	
+
 	return(0);
 }
 
@@ -142,12 +142,12 @@ static int
 fudge_stat(const char *path, struct stat *st)
 {
 	Attrib *a;
-	
+
 	if (!(a = do_stat(cur.fd_in, cur.fd_out, (char*)path, 0)))
 		return(-1);
-	
+
 	attrib_to_stat(a, st);
-	
+
 	return(0);
 }
 
@@ -160,7 +160,7 @@ remote_glob(int fd_in, int fd_out, const char *pattern, int flags,
 	pglob->gl_closedir = (void (*)(void *))fudge_closedir;
 	pglob->gl_lstat = fudge_lstat;
 	pglob->gl_stat = fudge_stat;
-	
+
 	memset(&cur, 0, sizeof(cur));
 	cur.fd_in = fd_in;
 	cur.fd_out = fd_out;

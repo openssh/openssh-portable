@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.117 2001/12/06 18:02:32 stevesk Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.118 2001/12/19 07:18:56 deraadt Exp $");
 
 #include <openssl/bn.h>
 
@@ -109,7 +109,7 @@ ssh_proxy_connect(const char *host, u_short port, struct passwd *pw,
 	/* Create pipes for communicating with the proxy. */
 	if (pipe(pin) < 0 || pipe(pout) < 0)
 		fatal("Could not create pipes to communicate with the proxy: %.100s",
-		      strerror(errno));
+		    strerror(errno));
 
 	debug("Executing proxy command: %.500s", command_string);
 
@@ -258,7 +258,7 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 	int full_failure = 1;
 
 	debug("ssh_connect: getuid %u geteuid %u anon %d",
-	      (u_int) getuid(), (u_int) geteuid(), anonymous);
+	    (u_int) getuid(), (u_int) geteuid(), anonymous);
 
 	/* Get default port if port has not been set. */
 	if (port == 0) {
@@ -428,7 +428,7 @@ ssh_exchange_identification(void)
 	    &remote_major, &remote_minor, remote_version) != 3)
 		fatal("Bad remote protocol version identification: '%.100s'", buf);
 	debug("Remote protocol version %d.%d, remote software version %.100s",
-	      remote_major, remote_minor, remote_version);
+	    remote_major, remote_minor, remote_version);
 
 	compat_datafellows(remote_version);
 	mismatch = 0;
@@ -620,7 +620,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 	 */
 	host_file = user_hostfile;
 	host_status = check_host_in_hostfile(host_file, host, host_key,
-	     file_key, &host_line);
+	    file_key, &host_line);
 	if (host_status == HOST_NEW) {
 		host_file = system_hostfile;
 		host_status = check_host_in_hostfile(host_file, host, host_key,
@@ -663,7 +663,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 				    "'%.128s' not in list of known hosts.",
 				    type, ip);
 			else if (!add_host_to_hostfile(user_hostfile, ip,
-			     host_key))
+			    host_key))
 				log("Failed to add the %s host key for IP "
 				    "address '%.128s' to the list of known "
 				    "hosts (%.30s).", type, ip, user_hostfile);
@@ -789,7 +789,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 			error("Port forwarding is disabled to avoid "
 			    "man-in-the-middle attacks.");
 			options.num_local_forwards =
-			     options.num_remote_forwards = 0;
+			    options.num_remote_forwards = 0;
 		}
 		/*
 		 * XXX Should permit the user to change to use the new id.
@@ -813,7 +813,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 			error("Exiting, you have requested strict checking.");
 			goto fail;
 		} else if (options.strict_host_key_checking == 2) {
-			if (!confirm("Are you sure you want " 
+			if (!confirm("Are you sure you want "
 			    "to continue connecting (yes/no)? ")) {
 				goto fail;
 			}

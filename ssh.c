@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.150 2001/11/30 20:39:28 stevesk Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.151 2001/12/19 07:18:56 deraadt Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -485,7 +485,7 @@ again:
 				    fwd_host_port);
 			else if (opt == 'R')
 				add_remote_forward(&options, fwd_port, buf,
-				     fwd_host_port);
+				    fwd_host_port);
 			break;
 
 		case 'D':
@@ -1150,8 +1150,8 @@ ssh_session2_open(void)
 	channel_send_open(c->self);
 	if (!no_shell_flag)
 		channel_register_callback(c->self,
-		     SSH2_MSG_CHANNEL_OPEN_CONFIRMATION,
-		     ssh_session2_setup, (void *)0);
+		    SSH2_MSG_CHANNEL_OPEN_CONFIRMATION,
+		    ssh_session2_setup, (void *)0);
 
 	return c->self;
 }

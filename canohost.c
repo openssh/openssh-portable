@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: canohost.c,v 1.28 2001/12/05 03:56:39 itojun Exp $");
+RCSID("$OpenBSD: canohost.c,v 1.29 2001/12/19 07:18:56 deraadt Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -68,13 +68,13 @@ get_remote_hostname(int socket, int reverse_mapping_check)
 		check_ip_options(socket, ntop);
 
 	if (getnameinfo((struct sockaddr *)&from, fromlen, ntop, sizeof(ntop),
-	     NULL, 0, NI_NUMERICHOST) != 0)
+	    NULL, 0, NI_NUMERICHOST) != 0)
 		fatal("get_remote_hostname: getnameinfo NI_NUMERICHOST failed");
 
 	debug3("Trying to reverse map address %.100s.", ntop);
 	/* Map the IP address to a host name. */
 	if (getnameinfo((struct sockaddr *)&from, fromlen, name, sizeof(name),
-	     NULL, 0, NI_NAMEREQD) != 0) {
+	    NULL, 0, NI_NAMEREQD) != 0) {
 		/* Host name not found.  Use ip address. */
 		log("Could not reverse map address %.100s.", ntop);
 		return xstrdup(ntop);
@@ -230,7 +230,7 @@ get_socket_address(int socket, int remote, int flags)
 	}
 	/* Get the address in ascii. */
 	if (getnameinfo((struct sockaddr *)&addr, addrlen, ntop, sizeof(ntop),
-	     NULL, 0, flags) != 0) {
+	    NULL, 0, flags) != 0) {
 		error("get_socket_ipaddr: getnameinfo %d failed", flags);
 		return NULL;
 	}
@@ -316,7 +316,7 @@ get_sock_port(int sock, int local)
 	}
 	/* Return port number. */
 	if (getnameinfo((struct sockaddr *)&from, fromlen, NULL, 0,
-	     strport, sizeof(strport), NI_NUMERICSERV) != 0)
+	    strport, sizeof(strport), NI_NUMERICSERV) != 0)
 		fatal("get_sock_port: getnameinfo NI_NUMERICSERV failed");
 	return atoi(strport);
 }

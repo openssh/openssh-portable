@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.74 2001/12/05 10:06:12 deraadt Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.75 2001/12/19 07:18:56 deraadt Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.74 2001/12/05 10:06:12 deraadt Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.75 2001/12/19 07:18:56 deraadt Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -457,7 +457,7 @@ process_add_smartcard_key (SocketEntry *e)
 	Key *n = NULL, *k = NULL;
 	char *sc_reader_id = NULL;
 	int success = 0;
-	
+
 	sc_reader_id = buffer_get_string(&e->input, NULL);
 	k = sc_get_key(sc_reader_id);
 	xfree(sc_reader_id);
@@ -615,10 +615,10 @@ process_message(SocketEntry *e)
 #ifdef SMARTCARD
 	case SSH_AGENTC_ADD_SMARTCARD_KEY:
 		process_add_smartcard_key(e);
-		break; 
+		break;
 	case SSH_AGENTC_REMOVE_SMARTCARD_KEY:
 		process_remove_smartcard_key(e);
-		break; 
+		break;
 #endif /* SMARTCARD */
 	default:
 		/* Unknown message.  Respond with failure. */

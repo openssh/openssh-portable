@@ -1,4 +1,4 @@
-/*	$OpenBSD: rijndael.c,v 1.12 2001/09/13 09:48:39 markus Exp $ */
+/*	$OpenBSD: rijndael.c,v 1.13 2001/12/19 07:18:56 deraadt Exp $ */
 
 /**
  * rijndael-alg-fst.c
@@ -775,32 +775,31 @@ static int rijndaelKeySetupEnc(u32 rk[/*4*(Nr + 1)*/], const u8 cipherKey[], int
 	rk[6] = GETU32(cipherKey + 24);
 	rk[7] = GETU32(cipherKey + 28);
 	if (keyBits == 256) {
-        for (;;) {
-        	temp = rk[ 7];
-        	rk[ 8] = rk[ 0] ^
-        		(Te4[(temp >> 16) & 0xff] & 0xff000000) ^
-        		(Te4[(temp >>  8) & 0xff] & 0x00ff0000) ^
-        		(Te4[(temp      ) & 0xff] & 0x0000ff00) ^
-        		(Te4[(temp >> 24)       ] & 0x000000ff) ^
-        		rcon[i];
-        	rk[ 9] = rk[ 1] ^ rk[ 8];
-        	rk[10] = rk[ 2] ^ rk[ 9];
-        	rk[11] = rk[ 3] ^ rk[10];
-			if (++i == 7) {
-				return 14;
-			}
-        	temp = rk[11];
-        	rk[12] = rk[ 4] ^
-        		(Te4[(temp >> 24)       ] & 0xff000000) ^
-        		(Te4[(temp >> 16) & 0xff] & 0x00ff0000) ^
-        		(Te4[(temp >>  8) & 0xff] & 0x0000ff00) ^
-        		(Te4[(temp      ) & 0xff] & 0x000000ff);
-        	rk[13] = rk[ 5] ^ rk[12];
-        	rk[14] = rk[ 6] ^ rk[13];
-        	rk[15] = rk[ 7] ^ rk[14];
-
+		for (;;) {
+			temp = rk[ 7];
+			rk[ 8] = rk[ 0] ^
+				(Te4[(temp >> 16) & 0xff] & 0xff000000) ^
+				(Te4[(temp >>  8) & 0xff] & 0x00ff0000) ^
+				(Te4[(temp      ) & 0xff] & 0x0000ff00) ^
+				(Te4[(temp >> 24)       ] & 0x000000ff) ^
+				rcon[i];
+			rk[ 9] = rk[ 1] ^ rk[ 8];
+			rk[10] = rk[ 2] ^ rk[ 9];
+			rk[11] = rk[ 3] ^ rk[10];
+				if (++i == 7) {
+					return 14;
+				}
+			temp = rk[11];
+			rk[12] = rk[ 4] ^
+				(Te4[(temp >> 24)       ] & 0xff000000) ^
+				(Te4[(temp >> 16) & 0xff] & 0x00ff0000) ^
+				(Te4[(temp >>  8) & 0xff] & 0x0000ff00) ^
+				(Te4[(temp      ) & 0xff] & 0x000000ff);
+			rk[13] = rk[ 5] ^ rk[12];
+			rk[14] = rk[ 6] ^ rk[13];
+		     	rk[15] = rk[ 7] ^ rk[14];
 			rk += 8;
-        }
+		}
 	}
 	return 0;
 }
@@ -917,28 +916,28 @@ static void rijndaelEncrypt(const u32 rk[/*4*(Nr + 1)*/], int Nr, const u8 pt[16
    	t2 = Te0[s2 >> 24] ^ Te1[(s3 >> 16) & 0xff] ^ Te2[(s0 >>  8) & 0xff] ^ Te3[s1 & 0xff] ^ rk[38];
    	t3 = Te0[s3 >> 24] ^ Te1[(s0 >> 16) & 0xff] ^ Te2[(s1 >>  8) & 0xff] ^ Te3[s2 & 0xff] ^ rk[39];
     if (Nr > 10) {
-        /* round 10: */
-        s0 = Te0[t0 >> 24] ^ Te1[(t1 >> 16) & 0xff] ^ Te2[(t2 >>  8) & 0xff] ^ Te3[t3 & 0xff] ^ rk[40];
-        s1 = Te0[t1 >> 24] ^ Te1[(t2 >> 16) & 0xff] ^ Te2[(t3 >>  8) & 0xff] ^ Te3[t0 & 0xff] ^ rk[41];
-        s2 = Te0[t2 >> 24] ^ Te1[(t3 >> 16) & 0xff] ^ Te2[(t0 >>  8) & 0xff] ^ Te3[t1 & 0xff] ^ rk[42];
-        s3 = Te0[t3 >> 24] ^ Te1[(t0 >> 16) & 0xff] ^ Te2[(t1 >>  8) & 0xff] ^ Te3[t2 & 0xff] ^ rk[43];
-        /* round 11: */
-        t0 = Te0[s0 >> 24] ^ Te1[(s1 >> 16) & 0xff] ^ Te2[(s2 >>  8) & 0xff] ^ Te3[s3 & 0xff] ^ rk[44];
-        t1 = Te0[s1 >> 24] ^ Te1[(s2 >> 16) & 0xff] ^ Te2[(s3 >>  8) & 0xff] ^ Te3[s0 & 0xff] ^ rk[45];
-        t2 = Te0[s2 >> 24] ^ Te1[(s3 >> 16) & 0xff] ^ Te2[(s0 >>  8) & 0xff] ^ Te3[s1 & 0xff] ^ rk[46];
-        t3 = Te0[s3 >> 24] ^ Te1[(s0 >> 16) & 0xff] ^ Te2[(s1 >>  8) & 0xff] ^ Te3[s2 & 0xff] ^ rk[47];
-        if (Nr > 12) {
-            /* round 12: */
-            s0 = Te0[t0 >> 24] ^ Te1[(t1 >> 16) & 0xff] ^ Te2[(t2 >>  8) & 0xff] ^ Te3[t3 & 0xff] ^ rk[48];
-            s1 = Te0[t1 >> 24] ^ Te1[(t2 >> 16) & 0xff] ^ Te2[(t3 >>  8) & 0xff] ^ Te3[t0 & 0xff] ^ rk[49];
-            s2 = Te0[t2 >> 24] ^ Te1[(t3 >> 16) & 0xff] ^ Te2[(t0 >>  8) & 0xff] ^ Te3[t1 & 0xff] ^ rk[50];
-            s3 = Te0[t3 >> 24] ^ Te1[(t0 >> 16) & 0xff] ^ Te2[(t1 >>  8) & 0xff] ^ Te3[t2 & 0xff] ^ rk[51];
-            /* round 13: */
-            t0 = Te0[s0 >> 24] ^ Te1[(s1 >> 16) & 0xff] ^ Te2[(s2 >>  8) & 0xff] ^ Te3[s3 & 0xff] ^ rk[52];
-            t1 = Te0[s1 >> 24] ^ Te1[(s2 >> 16) & 0xff] ^ Te2[(s3 >>  8) & 0xff] ^ Te3[s0 & 0xff] ^ rk[53];
-            t2 = Te0[s2 >> 24] ^ Te1[(s3 >> 16) & 0xff] ^ Te2[(s0 >>  8) & 0xff] ^ Te3[s1 & 0xff] ^ rk[54];
-            t3 = Te0[s3 >> 24] ^ Te1[(s0 >> 16) & 0xff] ^ Te2[(s1 >>  8) & 0xff] ^ Te3[s2 & 0xff] ^ rk[55];
-        }
+	/* round 10: */
+	s0 = Te0[t0 >> 24] ^ Te1[(t1 >> 16) & 0xff] ^ Te2[(t2 >>  8) & 0xff] ^ Te3[t3 & 0xff] ^ rk[40];
+	s1 = Te0[t1 >> 24] ^ Te1[(t2 >> 16) & 0xff] ^ Te2[(t3 >>  8) & 0xff] ^ Te3[t0 & 0xff] ^ rk[41];
+	s2 = Te0[t2 >> 24] ^ Te1[(t3 >> 16) & 0xff] ^ Te2[(t0 >>  8) & 0xff] ^ Te3[t1 & 0xff] ^ rk[42];
+	s3 = Te0[t3 >> 24] ^ Te1[(t0 >> 16) & 0xff] ^ Te2[(t1 >>  8) & 0xff] ^ Te3[t2 & 0xff] ^ rk[43];
+	/* round 11: */
+	t0 = Te0[s0 >> 24] ^ Te1[(s1 >> 16) & 0xff] ^ Te2[(s2 >>  8) & 0xff] ^ Te3[s3 & 0xff] ^ rk[44];
+	t1 = Te0[s1 >> 24] ^ Te1[(s2 >> 16) & 0xff] ^ Te2[(s3 >>  8) & 0xff] ^ Te3[s0 & 0xff] ^ rk[45];
+	t2 = Te0[s2 >> 24] ^ Te1[(s3 >> 16) & 0xff] ^ Te2[(s0 >>  8) & 0xff] ^ Te3[s1 & 0xff] ^ rk[46];
+	t3 = Te0[s3 >> 24] ^ Te1[(s0 >> 16) & 0xff] ^ Te2[(s1 >>  8) & 0xff] ^ Te3[s2 & 0xff] ^ rk[47];
+	if (Nr > 12) {
+	    /* round 12: */
+	    s0 = Te0[t0 >> 24] ^ Te1[(t1 >> 16) & 0xff] ^ Te2[(t2 >>  8) & 0xff] ^ Te3[t3 & 0xff] ^ rk[48];
+	    s1 = Te0[t1 >> 24] ^ Te1[(t2 >> 16) & 0xff] ^ Te2[(t3 >>  8) & 0xff] ^ Te3[t0 & 0xff] ^ rk[49];
+	    s2 = Te0[t2 >> 24] ^ Te1[(t3 >> 16) & 0xff] ^ Te2[(t0 >>  8) & 0xff] ^ Te3[t1 & 0xff] ^ rk[50];
+	    s3 = Te0[t3 >> 24] ^ Te1[(t0 >> 16) & 0xff] ^ Te2[(t1 >>  8) & 0xff] ^ Te3[t2 & 0xff] ^ rk[51];
+	    /* round 13: */
+	    t0 = Te0[s0 >> 24] ^ Te1[(s1 >> 16) & 0xff] ^ Te2[(s2 >>  8) & 0xff] ^ Te3[s3 & 0xff] ^ rk[52];
+	    t1 = Te0[s1 >> 24] ^ Te1[(s2 >> 16) & 0xff] ^ Te2[(s3 >>  8) & 0xff] ^ Te3[s0 & 0xff] ^ rk[53];
+	    t2 = Te0[s2 >> 24] ^ Te1[(s3 >> 16) & 0xff] ^ Te2[(s0 >>  8) & 0xff] ^ Te3[s1 & 0xff] ^ rk[54];
+	    t3 = Te0[s3 >> 24] ^ Te1[(s0 >> 16) & 0xff] ^ Te2[(s1 >>  8) & 0xff] ^ Te3[s2 & 0xff] ^ rk[55];
+	}
     }
     rk += Nr << 2;
 #else  /* !FULL_UNROLL */
@@ -947,60 +946,60 @@ static void rijndaelEncrypt(const u32 rk[/*4*(Nr + 1)*/], int Nr, const u8 pt[16
 	 */
     r = Nr >> 1;
     for (;;) {
-        t0 =
-            Te0[(s0 >> 24)       ] ^
-            Te1[(s1 >> 16) & 0xff] ^
-            Te2[(s2 >>  8) & 0xff] ^
-            Te3[(s3      ) & 0xff] ^
-            rk[4];
-        t1 =
-            Te0[(s1 >> 24)       ] ^
-            Te1[(s2 >> 16) & 0xff] ^
-            Te2[(s3 >>  8) & 0xff] ^
-            Te3[(s0      ) & 0xff] ^
-            rk[5];
-        t2 =
-            Te0[(s2 >> 24)       ] ^
-            Te1[(s3 >> 16) & 0xff] ^
-            Te2[(s0 >>  8) & 0xff] ^
-            Te3[(s1      ) & 0xff] ^
-            rk[6];
-        t3 =
-            Te0[(s3 >> 24)       ] ^
-            Te1[(s0 >> 16) & 0xff] ^
-            Te2[(s1 >>  8) & 0xff] ^
-            Te3[(s2      ) & 0xff] ^
-            rk[7];
+	t0 =
+	    Te0[(s0 >> 24)       ] ^
+	    Te1[(s1 >> 16) & 0xff] ^
+	    Te2[(s2 >>  8) & 0xff] ^
+	    Te3[(s3      ) & 0xff] ^
+	    rk[4];
+	t1 =
+	    Te0[(s1 >> 24)       ] ^
+	    Te1[(s2 >> 16) & 0xff] ^
+	    Te2[(s3 >>  8) & 0xff] ^
+	    Te3[(s0      ) & 0xff] ^
+	    rk[5];
+	t2 =
+	    Te0[(s2 >> 24)       ] ^
+	    Te1[(s3 >> 16) & 0xff] ^
+	    Te2[(s0 >>  8) & 0xff] ^
+	    Te3[(s1      ) & 0xff] ^
+	    rk[6];
+	t3 =
+	    Te0[(s3 >> 24)       ] ^
+	    Te1[(s0 >> 16) & 0xff] ^
+	    Te2[(s1 >>  8) & 0xff] ^
+	    Te3[(s2      ) & 0xff] ^
+	    rk[7];
 
-        rk += 8;
-        if (--r == 0) {
-            break;
-        }
+	rk += 8;
+	if (--r == 0) {
+	    break;
+	}
 
-        s0 =
-            Te0[(t0 >> 24)       ] ^
-            Te1[(t1 >> 16) & 0xff] ^
-            Te2[(t2 >>  8) & 0xff] ^
-            Te3[(t3      ) & 0xff] ^
-            rk[0];
-        s1 =
-            Te0[(t1 >> 24)       ] ^
-            Te1[(t2 >> 16) & 0xff] ^
-            Te2[(t3 >>  8) & 0xff] ^
-            Te3[(t0      ) & 0xff] ^
-            rk[1];
-        s2 =
-            Te0[(t2 >> 24)       ] ^
-            Te1[(t3 >> 16) & 0xff] ^
-            Te2[(t0 >>  8) & 0xff] ^
-            Te3[(t1      ) & 0xff] ^
-            rk[2];
-        s3 =
-            Te0[(t3 >> 24)       ] ^
-            Te1[(t0 >> 16) & 0xff] ^
-            Te2[(t1 >>  8) & 0xff] ^
-            Te3[(t2      ) & 0xff] ^
-            rk[3];
+	s0 =
+	    Te0[(t0 >> 24)       ] ^
+	    Te1[(t1 >> 16) & 0xff] ^
+	    Te2[(t2 >>  8) & 0xff] ^
+	    Te3[(t3      ) & 0xff] ^
+	    rk[0];
+	s1 =
+	    Te0[(t1 >> 24)       ] ^
+	    Te1[(t2 >> 16) & 0xff] ^
+	    Te2[(t3 >>  8) & 0xff] ^
+	    Te3[(t0      ) & 0xff] ^
+	    rk[1];
+	s2 =
+	    Te0[(t2 >> 24)       ] ^
+	    Te1[(t3 >> 16) & 0xff] ^
+	    Te2[(t0 >>  8) & 0xff] ^
+	    Te3[(t1      ) & 0xff] ^
+	    rk[2];
+	s3 =
+	    Te0[(t3 >> 24)       ] ^
+	    Te1[(t0 >> 16) & 0xff] ^
+	    Te2[(t1 >>  8) & 0xff] ^
+	    Te3[(t2      ) & 0xff] ^
+	    rk[3];
     }
 #endif /* ?FULL_UNROLL */
     /*
@@ -1098,28 +1097,28 @@ static void rijndaelDecrypt(const u32 rk[/*4*(Nr + 1)*/], int Nr, const u8 ct[16
     t2 = Td0[s2 >> 24] ^ Td1[(s1 >> 16) & 0xff] ^ Td2[(s0 >>  8) & 0xff] ^ Td3[s3 & 0xff] ^ rk[38];
     t3 = Td0[s3 >> 24] ^ Td1[(s2 >> 16) & 0xff] ^ Td2[(s1 >>  8) & 0xff] ^ Td3[s0 & 0xff] ^ rk[39];
     if (Nr > 10) {
-        /* round 10: */
-        s0 = Td0[t0 >> 24] ^ Td1[(t3 >> 16) & 0xff] ^ Td2[(t2 >>  8) & 0xff] ^ Td3[t1 & 0xff] ^ rk[40];
-        s1 = Td0[t1 >> 24] ^ Td1[(t0 >> 16) & 0xff] ^ Td2[(t3 >>  8) & 0xff] ^ Td3[t2 & 0xff] ^ rk[41];
-        s2 = Td0[t2 >> 24] ^ Td1[(t1 >> 16) & 0xff] ^ Td2[(t0 >>  8) & 0xff] ^ Td3[t3 & 0xff] ^ rk[42];
-        s3 = Td0[t3 >> 24] ^ Td1[(t2 >> 16) & 0xff] ^ Td2[(t1 >>  8) & 0xff] ^ Td3[t0 & 0xff] ^ rk[43];
-        /* round 11: */
-        t0 = Td0[s0 >> 24] ^ Td1[(s3 >> 16) & 0xff] ^ Td2[(s2 >>  8) & 0xff] ^ Td3[s1 & 0xff] ^ rk[44];
-        t1 = Td0[s1 >> 24] ^ Td1[(s0 >> 16) & 0xff] ^ Td2[(s3 >>  8) & 0xff] ^ Td3[s2 & 0xff] ^ rk[45];
-        t2 = Td0[s2 >> 24] ^ Td1[(s1 >> 16) & 0xff] ^ Td2[(s0 >>  8) & 0xff] ^ Td3[s3 & 0xff] ^ rk[46];
-        t3 = Td0[s3 >> 24] ^ Td1[(s2 >> 16) & 0xff] ^ Td2[(s1 >>  8) & 0xff] ^ Td3[s0 & 0xff] ^ rk[47];
-        if (Nr > 12) {
-            /* round 12: */
-            s0 = Td0[t0 >> 24] ^ Td1[(t3 >> 16) & 0xff] ^ Td2[(t2 >>  8) & 0xff] ^ Td3[t1 & 0xff] ^ rk[48];
-            s1 = Td0[t1 >> 24] ^ Td1[(t0 >> 16) & 0xff] ^ Td2[(t3 >>  8) & 0xff] ^ Td3[t2 & 0xff] ^ rk[49];
-            s2 = Td0[t2 >> 24] ^ Td1[(t1 >> 16) & 0xff] ^ Td2[(t0 >>  8) & 0xff] ^ Td3[t3 & 0xff] ^ rk[50];
-            s3 = Td0[t3 >> 24] ^ Td1[(t2 >> 16) & 0xff] ^ Td2[(t1 >>  8) & 0xff] ^ Td3[t0 & 0xff] ^ rk[51];
-            /* round 13: */
-            t0 = Td0[s0 >> 24] ^ Td1[(s3 >> 16) & 0xff] ^ Td2[(s2 >>  8) & 0xff] ^ Td3[s1 & 0xff] ^ rk[52];
-            t1 = Td0[s1 >> 24] ^ Td1[(s0 >> 16) & 0xff] ^ Td2[(s3 >>  8) & 0xff] ^ Td3[s2 & 0xff] ^ rk[53];
-            t2 = Td0[s2 >> 24] ^ Td1[(s1 >> 16) & 0xff] ^ Td2[(s0 >>  8) & 0xff] ^ Td3[s3 & 0xff] ^ rk[54];
-            t3 = Td0[s3 >> 24] ^ Td1[(s2 >> 16) & 0xff] ^ Td2[(s1 >>  8) & 0xff] ^ Td3[s0 & 0xff] ^ rk[55];
-        }
+	/* round 10: */
+	s0 = Td0[t0 >> 24] ^ Td1[(t3 >> 16) & 0xff] ^ Td2[(t2 >>  8) & 0xff] ^ Td3[t1 & 0xff] ^ rk[40];
+	s1 = Td0[t1 >> 24] ^ Td1[(t0 >> 16) & 0xff] ^ Td2[(t3 >>  8) & 0xff] ^ Td3[t2 & 0xff] ^ rk[41];
+	s2 = Td0[t2 >> 24] ^ Td1[(t1 >> 16) & 0xff] ^ Td2[(t0 >>  8) & 0xff] ^ Td3[t3 & 0xff] ^ rk[42];
+	s3 = Td0[t3 >> 24] ^ Td1[(t2 >> 16) & 0xff] ^ Td2[(t1 >>  8) & 0xff] ^ Td3[t0 & 0xff] ^ rk[43];
+	/* round 11: */
+	t0 = Td0[s0 >> 24] ^ Td1[(s3 >> 16) & 0xff] ^ Td2[(s2 >>  8) & 0xff] ^ Td3[s1 & 0xff] ^ rk[44];
+	t1 = Td0[s1 >> 24] ^ Td1[(s0 >> 16) & 0xff] ^ Td2[(s3 >>  8) & 0xff] ^ Td3[s2 & 0xff] ^ rk[45];
+	t2 = Td0[s2 >> 24] ^ Td1[(s1 >> 16) & 0xff] ^ Td2[(s0 >>  8) & 0xff] ^ Td3[s3 & 0xff] ^ rk[46];
+	t3 = Td0[s3 >> 24] ^ Td1[(s2 >> 16) & 0xff] ^ Td2[(s1 >>  8) & 0xff] ^ Td3[s0 & 0xff] ^ rk[47];
+	if (Nr > 12) {
+	    /* round 12: */
+	    s0 = Td0[t0 >> 24] ^ Td1[(t3 >> 16) & 0xff] ^ Td2[(t2 >>  8) & 0xff] ^ Td3[t1 & 0xff] ^ rk[48];
+	    s1 = Td0[t1 >> 24] ^ Td1[(t0 >> 16) & 0xff] ^ Td2[(t3 >>  8) & 0xff] ^ Td3[t2 & 0xff] ^ rk[49];
+	    s2 = Td0[t2 >> 24] ^ Td1[(t1 >> 16) & 0xff] ^ Td2[(t0 >>  8) & 0xff] ^ Td3[t3 & 0xff] ^ rk[50];
+	    s3 = Td0[t3 >> 24] ^ Td1[(t2 >> 16) & 0xff] ^ Td2[(t1 >>  8) & 0xff] ^ Td3[t0 & 0xff] ^ rk[51];
+	    /* round 13: */
+	    t0 = Td0[s0 >> 24] ^ Td1[(s3 >> 16) & 0xff] ^ Td2[(s2 >>  8) & 0xff] ^ Td3[s1 & 0xff] ^ rk[52];
+	    t1 = Td0[s1 >> 24] ^ Td1[(s0 >> 16) & 0xff] ^ Td2[(s3 >>  8) & 0xff] ^ Td3[s2 & 0xff] ^ rk[53];
+	    t2 = Td0[s2 >> 24] ^ Td1[(s1 >> 16) & 0xff] ^ Td2[(s0 >>  8) & 0xff] ^ Td3[s3 & 0xff] ^ rk[54];
+	    t3 = Td0[s3 >> 24] ^ Td1[(s2 >> 16) & 0xff] ^ Td2[(s1 >>  8) & 0xff] ^ Td3[s0 & 0xff] ^ rk[55];
+	}
     }
 	rk += Nr << 2;
 #else  /* !FULL_UNROLL */
@@ -1128,60 +1127,60 @@ static void rijndaelDecrypt(const u32 rk[/*4*(Nr + 1)*/], int Nr, const u8 ct[16
      */
     r = Nr >> 1;
     for (;;) {
-        t0 =
-            Td0[(s0 >> 24)       ] ^
-            Td1[(s3 >> 16) & 0xff] ^
-            Td2[(s2 >>  8) & 0xff] ^
-            Td3[(s1      ) & 0xff] ^
-            rk[4];
-        t1 =
-            Td0[(s1 >> 24)       ] ^
-            Td1[(s0 >> 16) & 0xff] ^
-            Td2[(s3 >>  8) & 0xff] ^
-            Td3[(s2      ) & 0xff] ^
-            rk[5];
-        t2 =
-            Td0[(s2 >> 24)       ] ^
-            Td1[(s1 >> 16) & 0xff] ^
-            Td2[(s0 >>  8) & 0xff] ^
-            Td3[(s3      ) & 0xff] ^
-            rk[6];
-        t3 =
-            Td0[(s3 >> 24)       ] ^
-            Td1[(s2 >> 16) & 0xff] ^
-            Td2[(s1 >>  8) & 0xff] ^
-            Td3[(s0      ) & 0xff] ^
-            rk[7];
+	t0 =
+	    Td0[(s0 >> 24)       ] ^
+	    Td1[(s3 >> 16) & 0xff] ^
+	    Td2[(s2 >>  8) & 0xff] ^
+	    Td3[(s1      ) & 0xff] ^
+	    rk[4];
+	t1 =
+	    Td0[(s1 >> 24)       ] ^
+	    Td1[(s0 >> 16) & 0xff] ^
+	    Td2[(s3 >>  8) & 0xff] ^
+	    Td3[(s2      ) & 0xff] ^
+	    rk[5];
+	t2 =
+	    Td0[(s2 >> 24)       ] ^
+	    Td1[(s1 >> 16) & 0xff] ^
+	    Td2[(s0 >>  8) & 0xff] ^
+	    Td3[(s3      ) & 0xff] ^
+	    rk[6];
+	t3 =
+	    Td0[(s3 >> 24)       ] ^
+	    Td1[(s2 >> 16) & 0xff] ^
+	    Td2[(s1 >>  8) & 0xff] ^
+	    Td3[(s0      ) & 0xff] ^
+	    rk[7];
 
-        rk += 8;
-        if (--r == 0) {
-            break;
-        }
+	rk += 8;
+	if (--r == 0) {
+	    break;
+	}
 
-        s0 =
-            Td0[(t0 >> 24)       ] ^
-            Td1[(t3 >> 16) & 0xff] ^
-            Td2[(t2 >>  8) & 0xff] ^
-            Td3[(t1      ) & 0xff] ^
-            rk[0];
-        s1 =
-            Td0[(t1 >> 24)       ] ^
-            Td1[(t0 >> 16) & 0xff] ^
-            Td2[(t3 >>  8) & 0xff] ^
-            Td3[(t2      ) & 0xff] ^
-            rk[1];
-        s2 =
-            Td0[(t2 >> 24)       ] ^
-            Td1[(t1 >> 16) & 0xff] ^
-            Td2[(t0 >>  8) & 0xff] ^
-            Td3[(t3      ) & 0xff] ^
-            rk[2];
-        s3 =
-            Td0[(t3 >> 24)       ] ^
-            Td1[(t2 >> 16) & 0xff] ^
-            Td2[(t1 >>  8) & 0xff] ^
-            Td3[(t0      ) & 0xff] ^
-            rk[3];
+	s0 =
+	    Td0[(t0 >> 24)       ] ^
+	    Td1[(t3 >> 16) & 0xff] ^
+	    Td2[(t2 >>  8) & 0xff] ^
+	    Td3[(t1      ) & 0xff] ^
+	    rk[0];
+	s1 =
+	    Td0[(t1 >> 24)       ] ^
+	    Td1[(t0 >> 16) & 0xff] ^
+	    Td2[(t3 >>  8) & 0xff] ^
+	    Td3[(t2      ) & 0xff] ^
+	    rk[1];
+	s2 =
+	    Td0[(t2 >> 24)       ] ^
+	    Td1[(t1 >> 16) & 0xff] ^
+	    Td2[(t0 >>  8) & 0xff] ^
+	    Td3[(t3      ) & 0xff] ^
+	    rk[2];
+	s3 =
+	    Td0[(t3 >> 24)       ] ^
+	    Td1[(t2 >> 16) & 0xff] ^
+	    Td2[(t1 >>  8) & 0xff] ^
+	    Td3[(t0      ) & 0xff] ^
+	    rk[3];
     }
 #endif /* ?FULL_UNROLL */
     /*
@@ -1222,13 +1221,13 @@ void
 rijndael_set_key(rijndael_ctx *ctx, u_char *key, int bits, int encrypt)
 {
 	ctx->Nr = rijndaelKeySetupEnc(ctx->ek, key, bits);
-        if (encrypt) {
+	if (encrypt) {
 		ctx->decrypt = 0;
 		memset(ctx->dk, 0, sizeof(ctx->dk));
 	} else {
 		ctx->decrypt = 1;
 		memcpy(ctx->dk, ctx->ek, sizeof(ctx->ek));
-                rijndaelKeySetupDec(ctx->dk, key, bits, ctx->Nr);
+		rijndaelKeySetupDec(ctx->dk, key, bits, ctx->Nr);
 	}
 }
 

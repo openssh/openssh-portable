@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: key.c,v 1.35 2001/12/05 10:06:12 deraadt Exp $");
+RCSID("$OpenBSD: key.c,v 1.36 2001/12/19 07:18:56 deraadt Exp $");
 
 #include <openssl/evp.h>
 
@@ -219,7 +219,7 @@ key_fingerprint_hex(u_char* dgst_raw, size_t dgst_raw_len)
 
 	retval = xmalloc(dgst_raw_len * 3 + 1);
 	retval[0] = '\0';
-	for(i = 0; i < dgst_raw_len; i++) {
+	for (i = 0; i < dgst_raw_len; i++) {
 		char hex[4];
 		snprintf(hex, sizeof(hex), "%02x:", dgst_raw[i]);
 		strlcat(retval, hex, dgst_raw_len * 3);
@@ -281,7 +281,7 @@ key_fingerprint(Key *k, enum fp_type dgst_type, enum fp_rep dgst_rep)
 	char *retval = NULL;
 	u_char *dgst_raw;
 	size_t dgst_raw_len;
-	
+
 	dgst_raw = key_fingerprint_raw(k, dgst_type, &dgst_raw_len);
 	if (!dgst_raw)
 		fatal("key_fingerprint: null from key_fingerprint_raw()");
@@ -641,7 +641,7 @@ key_names_valid2(const char *names)
 		return 0;
 	s = cp = xstrdup(names);
 	for ((p = strsep(&cp, ",")); p && *p != '\0';
-	     (p = strsep(&cp, ","))) {
+	    (p = strsep(&cp, ","))) {
 		switch (key_type_from_name(p)) {
 		case KEY_RSA1:
 		case KEY_UNSPEC:

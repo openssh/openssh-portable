@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: sftp-server.c,v 1.30 2001/07/31 12:42:50 jakob Exp $");
+RCSID("$OpenBSD: sftp-server.c,v 1.31 2001/12/19 07:18:56 deraadt Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
@@ -144,7 +144,7 @@ handle_init(void)
 {
 	int i;
 
-	for(i = 0; i < sizeof(handles)/sizeof(Handle); i++)
+	for (i = 0; i < sizeof(handles)/sizeof(Handle); i++)
 		handles[i].use = HANDLE_UNUSED;
 }
 
@@ -153,7 +153,7 @@ handle_new(int use, char *name, int fd, DIR *dirp)
 {
 	int i;
 
-	for(i = 0; i < sizeof(handles)/sizeof(Handle); i++) {
+	for (i = 0; i < sizeof(handles)/sizeof(Handle); i++) {
 		if (handles[i].use == HANDLE_UNUSED) {
 			handles[i].use = use;
 			handles[i].dirp = dirp;
@@ -771,7 +771,7 @@ process_readdir(void)
 		}
 		if (count > 0) {
 			send_names(id, count, stats);
-			for(i = 0; i < count; i++) {
+			for (i = 0; i < count; i++) {
 				xfree(stats[i].name);
 				xfree(stats[i].long_name);
 			}
@@ -897,7 +897,7 @@ process_readlink(void)
 		send_status(id, errno_to_portable(errno));
 	else {
 		Stat s;
-		
+
 		link[len] = '\0';
 		attrib_clear(&s.attrib);
 		s.name = s.long_name = link;

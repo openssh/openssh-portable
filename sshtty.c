@@ -1,4 +1,4 @@
-/* $OpenBSD: sshtty.c,v 1.1 2001/04/14 16:33:20 stevesk Exp $ */
+/* $OpenBSD: sshtty.c,v 1.2 2001/12/19 07:18:56 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -46,7 +46,7 @@ static int _in_raw_mode = 0;
 int
 in_raw_mode(void)
 {
-	return _in_raw_mode;	
+	return _in_raw_mode;
 }
 
 struct termios

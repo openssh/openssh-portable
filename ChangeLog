@@ -28,6 +28,16 @@
      [auth-rsa.c]
      log fingerprint on successful public key authentication, simplify 
      usage of key structs; ok markus@
+   - deraadt@cvs.openbsd.org 2001/12/19 07:18:56
+     [auth1.c auth2.c auth2-chall.c auth-bsdauth.c auth.c authfile.c auth.h]
+     [auth-krb4.c auth-rhosts.c auth-skey.c bufaux.c canohost.c channels.c]
+     [cipher.c clientloop.c compat.c compress.c deattack.c key.c log.c mac.c]
+     [match.c misc.c nchan.c packet.c readconf.c rijndael.c rijndael.h scard.c]
+     [servconf.c servconf.h serverloop.c session.c sftp.c sftp-client.c]
+     [sftp-glob.c sftp-int.c sftp-server.c ssh-add.c ssh-agent.c ssh.c]
+     [sshconnect1.c sshconnect2.c sshconnect.c sshd.8 sshd.c sshd_config]
+     [ssh-keygen.c sshlogin.c sshpty.c sshtty.c ttymodes.c uidswap.c]
+     basic KNF done while i was looking for something else
 
 20011219
  - (stevesk) OpenBSD CVS sync X11 localhost display
@@ -7056,4 +7066,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1700 2001/12/21 01:52:39 djm Exp $
+$Id: ChangeLog,v 1.1701 2001/12/21 03:45:46 djm Exp $

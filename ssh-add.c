@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.46 2001/10/02 08:38:50 djm Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.47 2001/12/19 07:18:56 deraadt Exp $");
 
 #include <openssl/evp.h>
 
@@ -90,7 +90,7 @@ delete_file(AuthenticationConnection *ac, const char *filename)
 
 	key_free(public);
 	xfree(comment);
-	
+
 	return ret;
 }
 
@@ -160,7 +160,7 @@ add_file(AuthenticationConnection *ac, const char *filename)
 
 	xfree(comment);
 	key_free(private);
-	
+
 	return ret;
 }
 
@@ -169,11 +169,11 @@ update_card(AuthenticationConnection *ac, int add, const char *id)
 {
 	if (ssh_update_card(ac, add, id)) {
 		fprintf(stderr, "Card %s: %s\n",
-		     add ? "added" : "removed", id);
+		    add ? "added" : "removed", id);
 		return 0;
 	} else {
 		fprintf(stderr, "Could not %s card: %s\n",
-		     add ? "add" : "remove", id);
+		    add ? "add" : "remove", id);
 		return -1;
 	}
 }
@@ -188,8 +188,8 @@ list_identities(AuthenticationConnection *ac, int do_fp)
 
 	for (version = 1; version <= 2; version++) {
 		for (key = ssh_get_first_identity(ac, &comment, version);
-		     key != NULL;
-		     key = ssh_get_next_identity(ac, &comment, version)) {
+		    key != NULL;
+		    key = ssh_get_next_identity(ac, &comment, version)) {
 			had_identities = 1;
 			if (do_fp) {
 				fp = key_fingerprint(key, SSH_FP_MD5,
@@ -248,7 +248,7 @@ main(int argc, char **argv)
 		fprintf(stderr, "Could not open a connection to your authentication agent.\n");
 		exit(1);
 	}
-        while ((ch = getopt(argc, argv, "lLdDe:s:")) != -1) {
+	while ((ch = getopt(argc, argv, "lLdDe:s:")) != -1) {
 		switch (ch) {
 		case 'l':
 		case 'L':
@@ -267,7 +267,7 @@ main(int argc, char **argv)
 			sc_reader_id = optarg;
 			break;
 		case 'e':
-			deleting = 1; 
+			deleting = 1;
 			sc_reader_id = optarg;
 			break;
 		default:

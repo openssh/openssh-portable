@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: compress.c,v 1.15 2001/09/27 11:58:16 markus Exp $");
+RCSID("$OpenBSD: compress.c,v 1.16 2001/12/19 07:18:56 deraadt Exp $");
 
 #include "log.h"
 #include "buffer.h"
@@ -55,13 +55,13 @@ void
 buffer_compress_uninit(void)
 {
 	debug("compress outgoing: raw data %lu, compressed %lu, factor %.2f",
-	      outgoing_stream.total_in, outgoing_stream.total_out,
-	      outgoing_stream.total_in == 0 ? 0.0 :
-	      (double) outgoing_stream.total_out / outgoing_stream.total_in);
+	    outgoing_stream.total_in, outgoing_stream.total_out,
+	    outgoing_stream.total_in == 0 ? 0.0 :
+	    (double) outgoing_stream.total_out / outgoing_stream.total_in);
 	debug("compress incoming: raw data %lu, compressed %lu, factor %.2f",
-	      incoming_stream.total_out, incoming_stream.total_in,
-	      incoming_stream.total_out == 0 ? 0.0 :
-	      (double) incoming_stream.total_in / incoming_stream.total_out);
+	    incoming_stream.total_out, incoming_stream.total_in,
+	    incoming_stream.total_out == 0 ? 0.0 :
+	    (double) incoming_stream.total_in / incoming_stream.total_out);
 	if (compress_init_recv_called == 1)
 		inflateEnd(&incoming_stream);
 	if (compress_init_send_called == 1)

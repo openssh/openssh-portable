@@ -1,4 +1,4 @@
-#	$OpenBSD: sshd_config,v 1.42 2001/09/20 20:57:51 mouring Exp $
+#	$OpenBSD: sshd_config,v 1.43 2001/12/19 07:18:56 deraadt Exp $
 
 # This sshd was compiled with PATH=/usr/bin:/bin:/usr/sbin:/sbin
 
@@ -50,7 +50,7 @@ HostbasedAuthentication no
 PasswordAuthentication yes
 PermitEmptyPasswords no
 
-# Uncomment to disable s/key passwords 
+# Uncomment to disable s/key passwords
 #ChallengeResponseAuthentication no
 
 # Uncomment to enable PAM keyboard-interactive authentication 

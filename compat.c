@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: compat.c,v 1.55 2001/12/05 16:54:51 markus Exp $");
+RCSID("$OpenBSD: compat.c,v 1.56 2001/12/19 07:18:56 deraadt Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -82,19 +82,19 @@ compat_datafellows(const char *version)
 		{ "2.1 *",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
 					SSH_OLD_SESSIONID|SSH_BUG_DEBUG|
 					SSH_BUG_RSASIGMD5|SSH_BUG_HBSERVICE },
-		{ "2.0.13*,"	
-		  "2.0.14*,"	
-		  "2.0.15*,"	
-		  "2.0.16*,"	
-		  "2.0.17*,"	
-		  "2.0.18*,"	
+		{ "2.0.13*,"
+		  "2.0.14*,"
+		  "2.0.15*,"
+		  "2.0.16*,"
+		  "2.0.17*,"
+		  "2.0.18*,"
 		  "2.0.19*",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
 					SSH_OLD_SESSIONID|SSH_BUG_DEBUG|
 					SSH_BUG_PKSERVICE|SSH_BUG_X11FWD|
 					SSH_BUG_PKOK|SSH_BUG_RSASIGMD5|
 					SSH_BUG_HBSERVICE|SSH_BUG_OPENFAILURE|
 					SSH_BUG_DUMMYCHAN },
-		{ "2.0.11*,"	
+		{ "2.0.11*,"
 		  "2.0.12*",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
 					SSH_OLD_SESSIONID|SSH_BUG_DEBUG|
 					SSH_BUG_PKSERVICE|SSH_BUG_X11FWD|
@@ -124,7 +124,7 @@ compat_datafellows(const char *version)
 		{ "1.3.2*",		SSH_BUG_IGNOREMSG },	/* f-secure */
 		{ "*SSH Compatible Server*",			/* Netscreen */
 					SSH_BUG_PASSWORDPAD },
-		{ "*OSU_0*,"		
+		{ "*OSU_0*,"
 		  "OSU_1.0*,"
 		  "OSU_1.1*,"
 		  "OSU_1.2*,"

@@ -43,7 +43,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ttymodes.c,v 1.14 2001/06/24 17:18:31 markus Exp $");
+RCSID("$OpenBSD: ttymodes.c,v 1.15 2001/12/19 07:18:56 deraadt Exp $");
 
 #include "packet.h"
 #include "log.h"
@@ -396,7 +396,7 @@ tty_parse_modes(int fd, int *n_bytes_ptr)
 
 		default:
 			debug("Ignoring unsupported tty mode opcode %d (0x%x)",
-			      opcode, opcode);
+			    opcode, opcode);
 			if (!compat20) {
 				/*
 				 * SSH1:

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.76 2001/12/18 10:05:15 jakob Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.77 2001/12/19 07:18:56 deraadt Exp $");
 
 #include <openssl/evp.h>
 
@@ -721,7 +721,7 @@ user_key_allowed2(struct passwd *pw, Key *key, char *file)
 			    file, linenum);
 			fp = key_fingerprint(found, SSH_FP_MD5, SSH_FP_HEX);
 			verbose("Found matching %s key: %s",
-			     key_type(found), fp);
+			    key_type(found), fp);
 			xfree(fp);
 			break;
 		}

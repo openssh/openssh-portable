@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.85 2001/12/05 10:06:12 deraadt Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.86 2001/12/19 07:18:56 deraadt Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -670,7 +670,7 @@ do_change_passphrase(struct passwd *pw)
 			read_passphrase("Enter new passphrase (empty for no "
 			    "passphrase): ", RP_ALLOW_STDIN);
 		passphrase2 = read_passphrase("Enter same passphrase again: ",
-		     RP_ALLOW_STDIN);
+		    RP_ALLOW_STDIN);
 
 		/* Verify that they are the same. */
 		if (strcmp(passphrase1, passphrase2) != 0) {
@@ -748,7 +748,7 @@ do_change_comment(struct passwd *pw)
 		fprintf(stderr, "Comments are only supported for RSA1 keys.\n");
 		key_free(private);
 		exit(1);
-	}	
+	}
 	printf("Key now has comment '%s'\n", comment);
 
 	if (identity_comment) {

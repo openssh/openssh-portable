@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth.c,v 1.30 2001/11/17 19:14:34 stevesk Exp $");
+RCSID("$OpenBSD: auth.c,v 1.31 2001/12/19 07:18:56 deraadt Exp $");
 
 #ifdef HAVE_LOGIN_H
 #include <login.h>
@@ -272,7 +272,7 @@ expand_filename(const char *filename, struct passwd *pw)
 		}
 		if (cp[0] == '%' && cp[1] == 'u') {
 			buffer_append(&buffer, pw->pw_name,
-			     strlen(pw->pw_name));
+			    strlen(pw->pw_name));
 			cp++;
 			continue;
 		}
@@ -326,7 +326,7 @@ check_key_in_hostfiles(struct passwd *pw, Key *key, const char *host,
 		if (options.strict_modes &&
 		    (stat(user_hostfile, &st) == 0) &&
 		    ((st.st_uid != 0 && st.st_uid != pw->pw_uid) ||
-		     (st.st_mode & 022) != 0)) {
+		    (st.st_mode & 022) != 0)) {
 			log("Authentication refused for %.100s: "
 			    "bad owner or modes for %.200s",
 			    pw->pw_name, user_hostfile);
@@ -399,7 +399,7 @@ secure_filename(FILE *f, const char *file, struct passwd *pw,
 		if (stat(buf, &st) < 0 ||
 		    (st.st_uid != 0 && st.st_uid != uid) ||
 		    (st.st_mode & 022) != 0) {
-			snprintf(err, errlen, 
+			snprintf(err, errlen,
 			    "bad ownership or modes for directory %s", buf);
 			return -1;
 		}

@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.216 2001/12/10 16:45:04 stevesk Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.217 2001/12/19 07:18:56 deraadt Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -399,7 +399,7 @@ sshd_exchange_identification(int sock_in, int sock_out)
 		fatal_cleanup();
 	}
 	debug("Client protocol version %d.%d; client software version %.100s",
-	      remote_major, remote_minor, remote_version);
+	    remote_major, remote_minor, remote_version);
 
 	compat_datafellows(remote_version);
 
@@ -467,7 +467,7 @@ destroy_sensitive_data(void)
 		key_free(sensitive_data.server_key);
 		sensitive_data.server_key = NULL;
 	}
-	for(i = 0; i < options.num_host_key_files; i++) {
+	for (i = 0; i < options.num_host_key_files; i++) {
 		if (sensitive_data.host_keys[i]) {
 			key_free(sensitive_data.host_keys[i]);
 			sensitive_data.host_keys[i] = NULL;
@@ -483,7 +483,7 @@ list_hostkey_types(void)
 	static char buf[1024];
 	int i;
 	buf[0] = '\0';
-	for(i = 0; i < options.num_host_key_files; i++) {
+	for (i = 0; i < options.num_host_key_files; i++) {
 		Key *key = sensitive_data.host_keys[i];
 		if (key == NULL)
 			continue;
@@ -506,7 +506,7 @@ static Key *
 get_hostkey_by_type(int type)
 {
 	int i;
-	for(i = 0; i < options.num_host_key_files; i++) {
+	for (i = 0; i < options.num_host_key_files; i++) {
 		Key *key = sensitive_data.host_keys[i];
 		if (key != NULL && key->type == type)
 			return key;
@@ -687,9 +687,9 @@ main(int ac, char **av)
 			utmp_len = atoi(optarg);
 			break;
 		case 'o':
-                        if (process_server_config_line(&options, optarg,
+			if (process_server_config_line(&options, optarg,
 			    "command-line", 0) != 0)
-                                exit(1);
+				exit(1);
 			break;
 		case '?':
 		default:
@@ -734,14 +734,14 @@ main(int ac, char **av)
 
 	/* load private host keys */
 	sensitive_data.host_keys = xmalloc(options.num_host_key_files*sizeof(Key*));
-	for(i = 0; i < options.num_host_key_files; i++)
+	for (i = 0; i < options.num_host_key_files; i++)
 		sensitive_data.host_keys[i] = NULL;
 	sensitive_data.server_key = NULL;
 	sensitive_data.ssh1_host_key = NULL;
 	sensitive_data.have_ssh1_key = 0;
 	sensitive_data.have_ssh2_key = 0;
 
-	for(i = 0; i < options.num_host_key_files; i++) {
+	for (i = 0; i < options.num_host_key_files; i++) {
 		key = key_load_private(options.host_key_files[i], "", NULL);
 		sensitive_data.host_keys[i] = key;
 		if (key == NULL) {
@@ -842,7 +842,7 @@ main(int ac, char **av)
 	/* Chdir to the root directory so that the current disk can be
 	   unmounted if desired. */
 	chdir("/");
-	
+
 	/* ignore SIGPIPE */
 	signal(SIGPIPE, SIG_IGN);
 

@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.147 2001/12/08 17:49:28 stevesk Exp $");
+RCSID("$OpenBSD: channels.c,v 1.148 2001/12/19 07:18:56 deraadt Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -794,7 +794,7 @@ x11_open_helper(Buffer *b)
 		data_len = ucp[8] + 256 * ucp[9];
 	} else {
 		debug("Initial X11 packet contains bad byte order byte: 0x%x",
-		      ucp[0]);
+		    ucp[0]);
 		return -1;
 	}
 
@@ -884,7 +884,7 @@ channel_decode_socks4(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	u_char *p, *host;
 	int len, have, i, found;
-	char username[256];	
+	char username[256];
 	struct {
 		u_int8_t version;
 		u_int8_t command;
@@ -931,7 +931,7 @@ channel_decode_socks4(Channel *c, fd_set * readset, fd_set * writeset)
 	host = inet_ntoa(s4_req.dest_addr);
 	strlcpy(c->path, host, sizeof(c->path));
 	c->host_port = ntohs(s4_req.dest_port);
-	
+
 	debug("channel %d: dynamic request: socks4 host %s port %u command %u",
 	    c->self, host, c->host_port, s4_req.command);
 
@@ -1373,7 +1373,7 @@ channel_handle_efd(Channel *c, fd_set * readset, fd_set * writeset)
 		    FD_ISSET(c->efd, readset)) {
 			len = read(c->efd, buf, sizeof(buf));
 			debug2("channel %d: read %d from efd %d",
-			     c->self, len, c->efd);
+			    c->self, len, c->efd);
 			if (len < 0 && (errno == EINTR || errno == EAGAIN))
 				return 1;
 			if (len <= 0) {
@@ -1509,7 +1509,7 @@ static void
 channel_handler_init(void)
 {
 	int i;
-	for(i = 0; i < SSH_CHANNEL_MAX_TYPE; i++) {
+	for (i = 0; i < SSH_CHANNEL_MAX_TYPE; i++) {
 		channel_pre[i] = NULL;
 		channel_post[i] = NULL;
 	}
@@ -2414,8 +2414,8 @@ x11_create_display_inet(int x11_display_offset, int gateway_ports)
 	int gaierr, n, num_socks = 0, socks[NUM_SOCKS];
 
 	for (display_number = x11_display_offset;
-	     display_number < MAX_DISPLAYS;
-	     display_number++) {
+	    display_number < MAX_DISPLAYS;
+	    display_number++) {
 		port = 6000 + display_number;
 		memset(&hints, 0, sizeof(hints));
 		hints.ai_family = IPv4or6;
@@ -2541,7 +2541,7 @@ x11_connect_display(void)
 		/* Connect to the unix domain socket. */
 		if (sscanf(strrchr(display, ':') + 1, "%d", &display_number) != 1) {
 			error("Could not parse display number from DISPLAY: %.100s",
-			      display);
+			    display);
 			return -1;
 		}
 		/* Create a socket. */
@@ -2566,7 +2566,7 @@ x11_connect_display(void)
 	/* buf now contains the host name.  But first we parse the display number. */
 	if (sscanf(cp + 1, "%d", &display_number) != 1) {
 		error("Could not parse display number from DISPLAY: %.100s",
-		      display);
+		    display);
 		return -1;
 	}
 

@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.92 2001/11/17 19:14:34 stevesk Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.93 2001/12/19 07:18:56 deraadt Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -115,7 +115,7 @@ typedef enum {
 	oKbdInteractiveAuthentication, oKbdInteractiveDevices, oHostKeyAlias,
 	oDynamicForward, oPreferredAuthentications, oHostbasedAuthentication,
 	oHostKeyAlgorithms, oBindAddress, oSmartcardDevice,
-	oClearAllForwardings, oNoHostAuthenticationForLocalhost 
+	oClearAllForwardings, oNoHostAuthenticationForLocalhost
 } OpCodes;
 
 /* Textual representations of the tokens. */
@@ -185,8 +185,8 @@ static struct {
 	{ "hostkeyalgorithms", oHostKeyAlgorithms },
 	{ "bindaddress", oBindAddress },
 	{ "smartcarddevice", oSmartcardDevice },
-	{ "clearallforwardings", oClearAllForwardings }, 
-	{ "nohostauthenticationforlocalhost", oNoHostAuthenticationForLocalhost }, 
+	{ "clearallforwardings", oClearAllForwardings },
+	{ "nohostauthenticationforlocalhost", oNoHostAuthenticationForLocalhost },
 	{ NULL, oBadOption }
 };
 
@@ -225,7 +225,7 @@ add_remote_forward(Options *options, u_short port, const char *host,
 	Forward *fwd;
 	if (options->num_remote_forwards >= SSH_MAX_FORWARDS_PER_DIRECTION)
 		fatal("Too many remote forwards (max %d).",
-		      SSH_MAX_FORWARDS_PER_DIRECTION);
+		    SSH_MAX_FORWARDS_PER_DIRECTION);
 	fwd = &options->remote_forwards[options->num_remote_forwards++];
 	fwd->port = port;
 	fwd->host = xstrdup(host);
@@ -394,7 +394,7 @@ parse_flag:
 		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing yes/no/ask argument.",
-			      filename, linenum);
+			    filename, linenum);
 		value = 0;	/* To avoid compiler warning... */
 		if (strcmp(arg, "yes") == 0 || strcmp(arg, "true") == 0)
 			value = 1;
@@ -436,7 +436,7 @@ parse_flag:
 			intptr = &options->num_identity_files;
 			if (*intptr >= SSH_MAX_IDENTITY_FILES)
 				fatal("%.200s line %d: Too many identity files specified (max %d).",
-				      filename, linenum, SSH_MAX_IDENTITY_FILES);
+				    filename, linenum, SSH_MAX_IDENTITY_FILES);
 			charptr =  &options->identity_files[*intptr];
 			*charptr = xstrdup(arg);
 			*intptr = *intptr + 1;
@@ -536,7 +536,7 @@ parse_int:
 		value = cipher_number(arg);
 		if (value == -1)
 			fatal("%.200s line %d: Bad cipher '%s'.",
-			      filename, linenum, arg ? arg : "<NONE>");
+			    filename, linenum, arg ? arg : "<NONE>");
 		if (*activep && *intptr == -1)
 			*intptr = value;
 		break;
@@ -547,7 +547,7 @@ parse_int:
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
 		if (!ciphers_valid(arg))
 			fatal("%.200s line %d: Bad SSH2 cipher spec '%s'.",
-			      filename, linenum, arg ? arg : "<NONE>");
+			    filename, linenum, arg ? arg : "<NONE>");
 		if (*activep && options->ciphers == NULL)
 			options->ciphers = xstrdup(arg);
 		break;
@@ -558,7 +558,7 @@ parse_int:
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
 		if (!mac_valid(arg))
 			fatal("%.200s line %d: Bad SSH2 Mac spec '%s'.",
-			      filename, linenum, arg ? arg : "<NONE>");
+			    filename, linenum, arg ? arg : "<NONE>");
 		if (*activep && options->macs == NULL)
 			options->macs = xstrdup(arg);
 		break;
@@ -569,7 +569,7 @@ parse_int:
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
 		if (!key_names_valid2(arg))
 			fatal("%.200s line %d: Bad protocol 2 host key algorithms '%s'.",
-			      filename, linenum, arg ? arg : "<NONE>");
+			    filename, linenum, arg ? arg : "<NONE>");
 		if (*activep && options->hostkeyalgorithms == NULL)
 			options->hostkeyalgorithms = xstrdup(arg);
 		break;
@@ -582,7 +582,7 @@ parse_int:
 		value = proto_spec(arg);
 		if (value == SSH_PROTO_UNKNOWN)
 			fatal("%.200s line %d: Bad protocol spec '%s'.",
-			      filename, linenum, arg ? arg : "<NONE>");
+			    filename, linenum, arg ? arg : "<NONE>");
 		if (*activep && *intptr == SSH_PROTO_UNKNOWN)
 			*intptr = value;
 		break;
@@ -593,7 +593,7 @@ parse_int:
 		value = log_level_number(arg);
 		if (value == (LogLevel) - 1)
 			fatal("%.200s line %d: unsupported log level '%s'",
-			      filename, linenum, arg ? arg : "<NONE>");
+			    filename, linenum, arg ? arg : "<NONE>");
 		if (*activep && (LogLevel) * intptr == -1)
 			*intptr = (LogLevel) value;
 		break;
@@ -670,7 +670,7 @@ parse_int:
 			value = SSH_ESCAPECHAR_NONE;
 		else {
 			fatal("%.200s line %d: Bad escape character.",
-			      filename, linenum);
+			    filename, linenum);
 			/* NOTREACHED */
 			value = 0;	/* Avoid compiler warning. */
 		}
@@ -685,7 +685,7 @@ parse_int:
 	/* Check that there is no garbage at end of line. */
 	if ((arg = strdelim(&s)) != NULL && *arg != '\0') {
 		fatal("%.200s line %d: garbage at end of line; \"%.200s\".",
-		      filename, linenum, arg);
+		     filename, linenum, arg);
 	}
 	return 0;
 }
@@ -727,7 +727,7 @@ read_config_file(const char *filename, const char *host, Options *options)
 	fclose(f);
 	if (bad_options > 0)
 		fatal("%s: terminating, %d bad configuration options",
-		      filename, bad_options);
+		    filename, bad_options);
 	return 1;
 }
 

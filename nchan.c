@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: nchan.c,v 1.32 2001/10/10 22:18:47 markus Exp $");
+RCSID("$OpenBSD: nchan.c,v 1.33 2001/12/19 07:18:56 deraadt Exp $");
 
 #include "ssh1.h"
 #include "ssh2.h"
@@ -273,7 +273,7 @@ chan_send_oclose1(Channel *c)
 		break;
 	default:
 		error("channel %d: cannot send oclose for ostate %d",
-		     c->self, c->ostate);
+		    c->self, c->ostate);
 		break;
 	}
 }
@@ -322,7 +322,7 @@ chan_ibuf_empty2(Channel *c)
 	debug("channel %d: ibuf empty", c->self);
 	if (buffer_len(&c->input)) {
 		error("channel %d: chan_ibuf_empty for non empty buffer",
-		     c->self);
+		    c->self);
 		return;
 	}
 	switch (c->istate) {
@@ -334,7 +334,7 @@ chan_ibuf_empty2(Channel *c)
 		break;
 	default:
 		error("channel %d: chan_ibuf_empty for istate %d",
-		     c->self, c->istate);
+		    c->self, c->istate);
 		break;
 	}
 }
@@ -458,7 +458,7 @@ chan_is_dead(Channel *c, int send)
 		debug2("channel %d: active efd: %d len %d type %s",
 		    c->self, c->efd, buffer_len(&c->extended),
 		    c->extended_usage==CHAN_EXTENDED_READ ?
-		       "read": "write");
+		    "read": "write");
 	} else {
 		if (!(c->flags & CHAN_CLOSE_SENT)) {
 			if (send) {

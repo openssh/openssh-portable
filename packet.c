@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.74 2001/12/05 10:06:12 deraadt Exp $");
+RCSID("$OpenBSD: packet.c,v 1.75 2001/12/19 07:18:56 deraadt Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -380,7 +380,7 @@ packet_send1(void)
 		buffer_compress(&outgoing_packet, &compression_buffer);
 		buffer_clear(&outgoing_packet);
 		buffer_append(&outgoing_packet, buffer_ptr(&compression_buffer),
-			      buffer_len(&compression_buffer));
+		    buffer_len(&compression_buffer));
 	}
 	/* Compute packet length without padding (add checksum, remove padding). */
 	len = buffer_len(&outgoing_packet) + 4 - 8;
@@ -414,7 +414,7 @@ packet_send1(void)
 	buffer_append(&output, buf, 4);
 	buffer_append_space(&output, &cp, buffer_len(&outgoing_packet));
 	cipher_encrypt(&send_context, cp, buffer_ptr(&outgoing_packet),
-		       buffer_len(&outgoing_packet));
+	    buffer_len(&outgoing_packet));
 
 #ifdef PACKET_DEBUG
 	fprintf(stderr, "encrypted: ");
@@ -1277,7 +1277,7 @@ packet_send_ignore(int nbytes)
 
 	packet_start(compat20 ? SSH2_MSG_IGNORE : SSH_MSG_IGNORE);
 	packet_put_int(nbytes);
-	for(i = 0; i < nbytes; i++) {
+	for (i = 0; i < nbytes; i++) {
 		if (i % 4 == 0)
 			rand = arc4random();
 		packet_put_char(rand & 0xff);

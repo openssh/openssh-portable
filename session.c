@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.111 2001/12/06 18:09:23 stevesk Exp $");
+RCSID("$OpenBSD: session.c,v 1.112 2001/12/19 07:18:56 deraadt Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -258,7 +258,7 @@ do_authenticated1(Authctxt *authctxt)
 			compression_level = packet_get_int();
 			if (compression_level < 1 || compression_level > 9) {
 				packet_send_debug("Received illegal compression level %d.",
-				     compression_level);
+				    compression_level);
 				break;
 			}
 			/* Enable compression after we have responded with SUCCESS. */
@@ -323,7 +323,7 @@ do_authenticated1(Authctxt *authctxt)
 			if (packet_set_maxsize(packet_get_int()) > 0)
 				success = 1;
 			break;
-			
+
 #if defined(AFS) || defined(KRB5)
 		case SSH_CMSG_HAVE_KERBEROS_TGT:
 			if (!options.kerberos_tgt_passing) {
@@ -331,14 +331,14 @@ do_authenticated1(Authctxt *authctxt)
 			} else {
 				char *kdata = packet_get_string(&dlen);
 				packet_integrity_check(plen, 4 + dlen, type);
-				
+
 				/* XXX - 0x41, see creds_to_radix version */
 				if (kdata[0] != 0x41) {
 #ifdef KRB5
 					krb5_data tgt;
 					tgt.data = kdata;
 					tgt.length = dlen;
-					
+
 					if (auth_krb5_tgt(s->authctxt, &tgt))
 						success = 1;
 					else
@@ -356,7 +356,7 @@ do_authenticated1(Authctxt *authctxt)
 			}
 			break;
 #endif /* AFS || KRB5 */
-			
+
 #ifdef AFS
 		case SSH_CMSG_HAVE_AFS_TOKEN:
 			if (!options.afs_token_passing || !k_hasafs()) {
@@ -365,7 +365,7 @@ do_authenticated1(Authctxt *authctxt)
 				/* Accept AFS token. */
 				char *token = packet_get_string(&dlen);
 				packet_integrity_check(plen, 4 + dlen, type);
-				
+
 				if (auth_afs_token(s->authctxt, token))
 					success = 1;
 				else
@@ -649,7 +649,7 @@ do_pre_login(Session *s)
 	if (packet_connection_is_on_socket()) {
 		fromlen = sizeof(from);
 		if (getpeername(packet_get_connection_in(),
-		     (struct sockaddr *) & from, &fromlen) < 0) {
+		    (struct sockaddr *) & from, &fromlen) < 0) {
 			debug("getpeername: %.100s", strerror(errno));
 			fatal_cleanup();
 		}
@@ -811,7 +811,7 @@ check_quietlogin(Session *s, const char *command)
  */
 static void
 child_set_env(char ***envp, u_int *envsizep, const char *name,
-	      const char *value)
+	const char *value)
 {
 	u_int i, namelen;
 	char **env;
@@ -852,7 +852,7 @@ child_set_env(char ***envp, u_int *envsizep, const char *name,
  */
 static void
 read_environment_file(char ***env, u_int *envsize,
-		      const char *filename)
+	const char *filename)
 {
 	FILE *f;
 	char buf[4096];
@@ -1304,7 +1304,7 @@ do_child(Session *s, const char *command)
 
 	if (auth_get_socket_name() != NULL)
 		child_set_env(&env, &envsize, SSH_AUTHSOCKET_ENV_NAME,
-			      auth_get_socket_name());
+		    auth_get_socket_name());
 
 	/* read $HOME/.ssh/environment. */
 	if (!options.use_login) {
@@ -1367,10 +1367,10 @@ do_child(Session *s, const char *command)
 	/* Try to get AFS tokens for the local cell. */
 	if (k_hasafs()) {
 		char cell[64];
-		
+
 		if (k_afs_cell_of_file(pw->pw_dir, cell, sizeof(cell)) == 0)
 			krb_afslog(cell, 0);
-		
+
 		krb_afslog(0, 0);
 	}
 #endif /* AFS */
@@ -1487,9 +1487,9 @@ do_child(Session *s, const char *command)
 
 			execl(LOGIN_PROGRAM, "login", "-h", hostname,
 #ifdef LOGIN_NEEDS_TERM
-			     s->term? s->term : "unknown",
+			    s->term? s->term : "unknown",
 #endif
-			     "-p", "-f", "--", pw->pw_name, (char *)NULL);
+			    "-p", "-f", "--", pw->pw_name, (char *)NULL);
 
 			/* Login couldn't be executed, die. */
 
@@ -1517,12 +1517,12 @@ session_new(void)
 	static int did_init = 0;
 	if (!did_init) {
 		debug("session_new: init");
-		for(i = 0; i < MAX_SESSIONS; i++) {
+		for (i = 0; i < MAX_SESSIONS; i++) {
 			sessions[i].used = 0;
 		}
 		did_init = 1;
 	}
-	for(i = 0; i < MAX_SESSIONS; i++) {
+	for (i = 0; i < MAX_SESSIONS; i++) {
 		Session *s = &sessions[i];
 		if (! s->used) {
 			memset(s, 0, sizeof(*s));
@@ -1542,7 +1542,7 @@ static void
 session_dump(void)
 {
 	int i;
-	for(i = 0; i < MAX_SESSIONS; i++) {
+	for (i = 0; i < MAX_SESSIONS; i++) {
 		Session *s = &sessions[i];
 		debug("dump: used %d session %d %p channel %d pid %d",
 		    s->used,
@@ -1575,7 +1575,7 @@ static Session *
 session_by_channel(int id)
 {
 	int i;
-	for(i = 0; i < MAX_SESSIONS; i++) {
+	for (i = 0; i < MAX_SESSIONS; i++) {
 		Session *s = &sessions[i];
 		if (s->used && s->chanid == id) {
 			debug("session_by_channel: session %d channel %d", i, id);
@@ -1592,7 +1592,7 @@ session_by_pid(pid_t pid)
 {
 	int i;
 	debug("session_by_pid: pid %d", pid);
-	for(i = 0; i < MAX_SESSIONS; i++) {
+	for (i = 0; i < MAX_SESSIONS; i++) {
 		Session *s = &sessions[i];
 		if (s->used && s->pid == pid)
 			return s;
@@ -2001,9 +2001,9 @@ void
 session_destroy_all(void)
 {
 	int i;
-	for(i = 0; i < MAX_SESSIONS; i++) {
+	for (i = 0; i < MAX_SESSIONS; i++) {
 		Session *s = &sessions[i];
-		if (s->used) 
+		if (s->used)
 			session_close(s);
 	}
 }
@@ -2014,7 +2014,7 @@ session_tty_list(void)
 	static char buf[1024];
 	int i;
 	buf[0] = '\0';
-	for(i = 0; i < MAX_SESSIONS; i++) {
+	for (i = 0; i < MAX_SESSIONS; i++) {
 		Session *s = &sessions[i];
 		if (s->used && s->ttyfd != -1) {
 			if (buf[0] != '\0')

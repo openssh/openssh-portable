@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.87 2001/12/05 10:06:13 deraadt Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.88 2001/12/19 07:18:56 deraadt Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -111,7 +111,7 @@ ssh_kex2(char *host, struct sockaddr *hostaddr)
 		myproposal[PROPOSAL_MAC_ALGS_STOC] = options.macs;
 	}
 	if (options.hostkeyalgorithms != NULL)
-	        myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] =
+		myproposal[PROPOSAL_SERVER_HOST_KEY_ALGS] =
 		    options.hostkeyalgorithms;
 
 	/* start key exchange */
@@ -613,7 +613,7 @@ load_identity_file(char *filename)
 		if (options.batch_mode)
 			return NULL;
 		snprintf(prompt, sizeof prompt,
-		     "Enter passphrase for key '%.100s': ", filename);
+		    "Enter passphrase for key '%.100s': ", filename);
 		for (i = 0; i < options.number_of_password_prompts; i++) {
 			passphrase = read_passphrase(prompt, 0);
 			if (strcmp(passphrase, "") != 0) {
@@ -646,7 +646,7 @@ identity_sign_cb(Authctxt *authctxt, Key *key, u_char **sigp, int *lenp,
 		return -1;
 
 	/* private key is stored in external hardware */
-	if (options.identity_keys[idx]->flags & KEY_FLAG_EXT) 
+	if (options.identity_keys[idx]->flags & KEY_FLAG_EXT)
 		return key_sign(options.identity_keys[idx], sigp, lenp, data, datalen);
 
 	private = load_identity_file(options.identity_files[idx]);

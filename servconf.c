@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.94 2001/12/06 13:30:05 markus Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.95 2001/12/19 07:18:56 deraadt Exp $");
 
 #if defined(KRB4) || defined(KRB5)
 #include <krb.h>
@@ -190,7 +190,7 @@ fill_default_server_options(ServerOptions *options)
 	if (options->kerberos_tgt_passing == -1)
 		options->kerberos_tgt_passing = 0;
 #endif
-#ifdef AFS	
+#ifdef AFS
 	if (options->afs_token_passing == -1)
 		options->afs_token_passing = k_hasafs();
 #endif
@@ -217,7 +217,7 @@ fill_default_server_options(ServerOptions *options)
 	if (options->reverse_mapping_check == -1)
 		options->reverse_mapping_check = 0;
 	if (options->client_alive_interval == -1)
-		options->client_alive_interval = 0;  
+		options->client_alive_interval = 0;
 	if (options->client_alive_count_max == -1)
 		options->client_alive_count_max = 3;
 	if (options->authorized_keys_file2 == NULL) {
@@ -259,7 +259,7 @@ typedef enum {
 	sIgnoreUserKnownHosts, sCiphers, sMacs, sProtocol, sPidFile,
 	sGatewayPorts, sPubkeyAuthentication, sXAuthLocation, sSubsystem, sMaxStartups,
 	sBanner, sReverseMappingCheck, sHostbasedAuthentication,
-	sHostbasedUsesNameFromPacketOnly, sClientAliveInterval, 
+	sHostbasedUsesNameFromPacketOnly, sClientAliveInterval,
 	sClientAliveCountMax, sAuthorizedKeysFile, sAuthorizedKeysFile2,
 	sDeprecated
 } ServerOpCodes;
@@ -772,7 +772,7 @@ parse_flag:
 		value = proto_spec(arg);
 		if (value == SSH_PROTO_UNKNOWN)
 			fatal("%s line %d: Bad protocol spec '%s'.",
-			      filename, linenum, arg ? arg : "<NONE>");
+			    filename, linenum, arg ? arg : "<NONE>");
 		if (*intptr == SSH_PROTO_UNKNOWN)
 			*intptr = value;
 		break;
@@ -780,21 +780,21 @@ parse_flag:
 	case sSubsystem:
 		if (options->num_subsystems >= MAX_SUBSYSTEMS) {
 			fatal("%s line %d: too many subsystems defined.",
-			      filename, linenum);
+			    filename, linenum);
 		}
 		arg = strdelim(&cp);
 		if (!arg || *arg == '\0')
 			fatal("%s line %d: Missing subsystem name.",
-			      filename, linenum);
+			    filename, linenum);
 		for (i = 0; i < options->num_subsystems; i++)
 			if (strcmp(arg, options->subsystem_name[i]) == 0)
 				fatal("%s line %d: Subsystem '%s' already defined.",
-				      filename, linenum, arg);
+				    filename, linenum, arg);
 		options->subsystem_name[options->num_subsystems] = xstrdup(arg);
 		arg = strdelim(&cp);
 		if (!arg || *arg == '\0')
 			fatal("%s line %d: Missing subsystem command.",
-			      filename, linenum);
+			    filename, linenum);
 		options->subsystem_command[options->num_subsystems] = xstrdup(arg);
 		options->num_subsystems++;
 		break;
@@ -803,7 +803,7 @@ parse_flag:
 		arg = strdelim(&cp);
 		if (!arg || *arg == '\0')
 			fatal("%s line %d: Missing MaxStartups spec.",
-			      filename, linenum);
+			    filename, linenum);
 		if ((n = sscanf(arg, "%d:%d:%d",
 		    &options->max_startups_begin,
 		    &options->max_startups_rate,

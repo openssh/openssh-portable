@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.89 2001/12/05 03:50:01 itojun Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.90 2001/12/19 07:18:56 deraadt Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -254,7 +254,7 @@ client_make_packets_from_stdin_data(void)
 
 	/* Send buffered stdin data to the server. */
 	while (buffer_len(&stdin_buffer) > 0 &&
-	       packet_not_very_much_data_to_write()) {
+	    packet_not_very_much_data_to_write()) {
 		len = buffer_len(&stdin_buffer);
 		/* Keep the packets at reasonable size. */
 		if (len > packet_get_maxsize())
@@ -417,9 +417,9 @@ client_suspend_self(Buffer *bin, Buffer *bout, Buffer *berr)
 	/* Check if the window size has changed. */
 	if (ioctl(fileno(stdin), TIOCGWINSZ, &newws) >= 0 &&
 	    (oldws.ws_row != newws.ws_row ||
-	     oldws.ws_col != newws.ws_col ||
-	     oldws.ws_xpixel != newws.ws_xpixel ||
-	     oldws.ws_ypixel != newws.ws_ypixel))
+	    oldws.ws_col != newws.ws_col ||
+	    oldws.ws_xpixel != newws.ws_xpixel ||
+	    oldws.ws_ypixel != newws.ws_ypixel))
 		received_window_change_signal = 1;
 
 	/* OK, we have been continued by the user. Reinitialize buffers. */
@@ -994,11 +994,11 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 	/* Report bytes transferred, and transfer rates. */
 	total_time = get_current_time() - start_time;
 	debug("Transferred: stdin %lu, stdout %lu, stderr %lu bytes in %.1f seconds",
-	      stdin_bytes, stdout_bytes, stderr_bytes, total_time);
+	    stdin_bytes, stdout_bytes, stderr_bytes, total_time);
 	if (total_time > 0)
 		debug("Bytes per second: stdin %.1f, stdout %.1f, stderr %.1f",
-		      stdin_bytes / total_time, stdout_bytes / total_time,
-		      stderr_bytes / total_time);
+		    stdin_bytes / total_time, stdout_bytes / total_time,
+		    stderr_bytes / total_time);
 
 	/* Return the exit status of the program. */
 	debug("Exit status %d", exit_status);

@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: bufaux.c,v 1.18 2001/12/05 10:06:12 deraadt Exp $");
+RCSID("$OpenBSD: bufaux.c,v 1.19 2001/12/19 07:18:56 deraadt Exp $");
 
 #include <openssl/bn.h>
 #include "bufaux.h"
@@ -62,7 +62,7 @@ buffer_put_bignum(Buffer *buffer, BIGNUM *value)
 	oi = BN_bn2bin(value, buf);
 	if (oi != bin_size)
 		fatal("buffer_put_bignum: BN_bn2bin() failed: oi %d != bin_size %d",
-		      oi, bin_size);
+		    oi, bin_size);
 
 	/* Store the number of bits in the buffer in two bytes, msb first. */
 	PUT_16BIT(msg, bits);
@@ -112,14 +112,14 @@ buffer_put_bignum2(Buffer *buffer, BIGNUM *value)
 	oi = BN_bn2bin(value, buf+1);
 	if (oi != bytes-1)
 		fatal("buffer_put_bignum: BN_bn2bin() failed: oi %d != bin_size %d",
-		      oi, bytes);
+		    oi, bytes);
 	hasnohigh = (buf[1] & 0x80) ? 0 : 1;
 	if (value->neg) {
 		/**XXX should be two's-complement */
 		int i, carry;
 		u_char *uc = buf;
 		log("negativ!");
-		for(i = bytes-1, carry = 1; i>=0; i--) {
+		for (i = bytes-1, carry = 1; i>=0; i--) {
 			uc[i] ^= 0xff;
 			if (carry)
 				carry = !++uc[i];
