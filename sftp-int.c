@@ -25,7 +25,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.61 2003/07/19 00:45:53 djm Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.62 2003/08/25 08:13:09 fgsch Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -600,6 +600,7 @@ do_ls_dir(struct sftp_conn *conn, char *path, char *strip_path, int lflag)
 			width = ws.ws_col;
 
 		columns = width / (m + 2);
+		columns = MAX(columns, 1);
 		colspace = width / columns;
 	}
 
@@ -686,6 +687,7 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 			width = ws.ws_col;
 
 		columns = width / (m + 2);
+		columns = MAX(columns, 1);
 		colspace = width / columns;
 	}
 

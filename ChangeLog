@@ -22,6 +22,10 @@
    - deraadt@cvs.openbsd.org 2003/08/24 17:36:52
      [monitor.c monitor_wrap.c sshconnect2.c]
      64 bit cleanups; markus ok
+   - fgsch@cvs.openbsd.org 2003/08/25 08:13:09
+     [sftp-int.c]
+     fix div by zero when listing for filename lengths longer than width.
+     markus@ ok.
  - (dtucker) [Makefile.in acconfig.h auth-krb5.c auth-pam.c auth-pam.h
    configure.ac defines.h gss-serv-krb5.c session.c ssh-gss.h sshconnect1.c
    sshconnect2.c] Add Portable GSSAPI support, patch by Simon Wilkinson.
@@ -897,4 +901,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2912 2003/08/26 02:10:48 dtucker Exp $
+$Id: ChangeLog,v 1.2913 2003/08/26 02:12:56 dtucker Exp $
