@@ -40,7 +40,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-/* RCSID("$Id: loginrec.h,v 1.3 2000/06/19 08:20:03 andre Exp $"); */
+/* RCSID("$Id: loginrec.h,v 1.4 2000/06/27 01:18:27 djm Exp $"); */
 
 /**
  ** you should use the login_* calls to work around platform dependencies
@@ -56,11 +56,9 @@ union login_netinfo {
 	struct sockaddr_storage sa_storage;
 };
 
-
 /*
  *   * logininfo structure  *
  */
-
 /* types - different to utmp.h 'type' macros */
 /* (though set to the same value as linux, openbsd and others...) */
 #define LTYPE_LOGIN    7
@@ -73,31 +71,24 @@ union login_netinfo {
 #define LINFO_HOSTSIZE 256
 
 struct logininfo {
-
 	char       progname[LINFO_PROGSIZE];     /* name of program (for PAM) */
 	int        progname_null;
-
 	short int  type;                         /* type of login (LTYPE_*) */
-  
 	int        pid;                          /* PID of login process */
 	int        uid;                          /* UID of this user */
 	char       line[LINFO_LINESIZE];         /* tty/pty name */
 	char       username[LINFO_NAMESIZE];     /* login username */
 	char       hostname[LINFO_HOSTSIZE];     /* remote hostname */
-
 	/* 'exit_status' structure components */
 	int        exit;                        /* process exit status */
 	int        termination;                 /* process termination status */
-  
 	/* struct timeval (sys/time.h) isn't always available, if it isn't we'll
 	 * use time_t's value as tv_sec and set tv_usec to 0
 	 */
 	unsigned int tv_sec;
 	unsigned int tv_usec;                   
-
 	union login_netinfo hostaddr;       /* caller's host address(es) */
 }; /* struct logininfo */
-
 
 /*
  * login recording functions
@@ -143,6 +134,4 @@ char *line_fullname(char *dst, const char *src, int dstsize);
 char *line_stripname(char *dst, const char *src, int dstsize);
 char *line_abbrevname(char *dst, const char *src, int dstsize);
 
-
 #endif /* _HAVE_LOGINREC_H_ */
-

@@ -1,5 +1,6 @@
 20000627
  - (djm) Fixes to login code - not setting li->uid, cleanups
+ - (djm) Formatting
 
 20000626
  - (djm) Better fix to aclocal tests from Garrick James <garrick@james.net>
