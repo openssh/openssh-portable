@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.106 2003/04/01 10:22:21 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.107 2003/04/02 09:48:07 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -771,8 +771,14 @@ server_loop2(Authctxt *authctxt)
 		    &nalloc, 0);
 
 		collect_children();
-		if (!rekeying)
+		if (!rekeying) {
 			channel_after_select(readset, writeset);
+			if (packet_need_rekeying()) {
+				debug("need rekeying");
+				xxx_kex->done = 0;
+				kex_send_kexinit(xxx_kex);
+			}
+		}
 		process_input(readset);
 		if (connection_closed)
 			break;

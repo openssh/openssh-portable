@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.104 2003/04/01 10:22:21 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.105 2003/04/02 09:48:07 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -114,7 +114,7 @@ typedef enum {
 	oDynamicForward, oPreferredAuthentications, oHostbasedAuthentication,
 	oHostKeyAlgorithms, oBindAddress, oSmartcardDevice,
 	oClearAllForwardings, oNoHostAuthenticationForLocalhost,
-	oEnableSSHKeysign,
+	oEnableSSHKeysign, oRekeyLimit,
 	oDeprecated
 } OpCodes;
 
@@ -188,6 +188,7 @@ static struct {
 	{ "clearallforwardings", oClearAllForwardings },
 	{ "enablesshkeysign", oEnableSSHKeysign },
 	{ "nohostauthenticationforlocalhost", oNoHostAuthenticationForLocalhost },
+	{ "rekeylimit", oRekeyLimit },
 	{ NULL, oBadOption }
 };
 
@@ -422,6 +423,31 @@ parse_flag:
 	case oCompressionLevel:
 		intptr = &options->compression_level;
 		goto parse_int;
+
+	case oRekeyLimit:
+		intptr = &options->rekey_limit;
+		arg = strdelim(&s);
+		if (!arg || *arg == '\0')
+			fatal("%.200s line %d: Missing argument.", filename, linenum);
+		if (arg[0] < '0' || arg[0] > '9')
+			fatal("%.200s line %d: Bad number.", filename, linenum);
+		value = strtol(arg, &endofnumber, 10);
+		if (arg == endofnumber)
+			fatal("%.200s line %d: Bad number.", filename, linenum);
+		switch (toupper(*endofnumber)) {
+		case 'K':
+			value *= 1<<10;
+			break;
+		case 'M':
+			value *= 1<<20;
+			break;
+		case 'G':
+			value *= 1<<30;
+			break;
+		}
+		if (*activep && *intptr == -1)
+			*intptr = value;
+		break;
 
 	case oIdentityFile:
 		arg = strdelim(&s);
@@ -795,6 +821,7 @@ initialize_options(Options * options)
 	options->smartcard_device = NULL;
 	options->enable_ssh_keysign = - 1;
 	options->no_host_authentication_for_localhost = - 1;
+	options->rekey_limit = - 1;
 }
 
 /*
@@ -911,6 +938,8 @@ fill_default_options(Options * options)
 		options->no_host_authentication_for_localhost = 0;
 	if (options->enable_ssh_keysign == -1)
 		options->enable_ssh_keysign = 0;
+	if (options->rekey_limit == -1)
+		options->rekey_limit = 0;
 	/* options->proxy_command should not be set by default */
 	/* options->user will be set in the main program if appropriate */
 	/* options->hostname will be set in the main program if appropriate */

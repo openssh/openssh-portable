@@ -1,4 +1,4 @@
-/*	$OpenBSD: packet.h,v 1.37 2003/04/01 10:22:21 markus Exp $	*/
+/*	$OpenBSD: packet.h,v 1.38 2003/04/02 09:48:07 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -62,8 +62,8 @@ int	 packet_get_keyiv_len(int);
 void	 packet_get_keyiv(int, u_char *, u_int);
 int	 packet_get_keycontext(int, u_char *);
 void	 packet_set_keycontext(int, u_char *);
-u_int32_t packet_get_seqnr(int);
-void	 packet_set_seqnr(int, u_int32_t);
+void	 packet_get_state(int, u_int32_t *, u_int64_t *, u_int32_t *);
+void	 packet_set_state(int, u_int32_t, u_int64_t, u_int32_t);
 int	 packet_get_ssh1_cipher(void);
 void	 packet_set_iv(int, u_char *);
 
@@ -95,5 +95,8 @@ do { \
 		packet_disconnect("Packet integrity error."); \
 	} \
 } while (0)
+
+int	 packet_need_rekeying(void);
+void	 packet_set_rekey_limit(u_int32_t);
 
 #endif				/* PACKET_H */
