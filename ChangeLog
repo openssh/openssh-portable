@@ -6,6 +6,7 @@
  - (dtucker) Bug #543: [configure.ac port-aix.c port-aix.h]
    Call setauthdb() before loginfailed(), which may load password registry-
    specific functions.  Based on patch by cawlfiel@us.ibm.com.
+ - (dtucker) [port-aix.h] Fix prototypes.
 
 20030708
  - (dtucker) [acconfig.h auth-passwd.c configure.ac session.c port-aix.[ch]]
@@ -679,4 +680,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2852 2003/07/14 06:41:55 dtucker Exp $
+$Id: ChangeLog,v 1.2853 2003/07/14 06:43:42 dtucker Exp $

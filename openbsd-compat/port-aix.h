@@ -52,10 +52,10 @@
 
 #ifdef WITH_AIXAUTHENTICATE
 # define CUSTOM_FAILED_LOGIN 1
-void record_failed_login(const char *user, const char *ttyname);
+void record_failed_login(const char *, const char *);
 void aix_setauthdb(const char *);
 #endif
 
-void aix_usrinfo(struct passwd *pw);
+void aix_usrinfo(struct passwd *);
 void aix_remove_embedded_newlines(char *);
 #endif /* _AIX */
