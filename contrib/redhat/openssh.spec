@@ -86,7 +86,7 @@ PreReq: initscripts >= 5.20
 %endif
 BuildPreReq: perl, openssl-devel, sharutils, tcp_wrappers
 BuildPreReq: /bin/login
-%if %{build6x}
+%if ! %{build6x}
 BuildPreReq: glibc-devel, pam
 %else
 BuildPreReq: db1-devel, /usr/include/security/pam_appl.h
