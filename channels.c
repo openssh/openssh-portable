@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.93 2001/02/28 08:54:55 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.94 2001/02/28 12:55:07 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -195,10 +195,10 @@ channel_register_fds(Channel *c, int rfd, int wfd, int efd,
 
 	/* XXX ugly hack: nonblock is only set by the server */
 	if (nonblock && isatty(c->rfd)) {
-		debug("channel: %d: rfd %d isatty", c->self, c->rfd);
+		debug("channel %d: rfd %d isatty", c->self, c->rfd);
 		c->isatty = 1;
 		if (!isatty(c->wfd)) {
-			error("channel: %d: wfd %d is not a tty?",
+			error("channel %d: wfd %d is not a tty?",
 			    c->self, c->wfd);
 		}
 	} else {
@@ -1069,7 +1069,7 @@ channel_output_poll()
 		if (compat20 &&
 		    (c->flags & (CHAN_CLOSE_SENT|CHAN_CLOSE_RCVD))) {
 			/* XXX is this true? */
-			debug("channel: %d: no data after CLOSE", c->self);
+			debug("channel %d: no data after CLOSE", c->self);
 			continue;
 		}
 
@@ -1424,7 +1424,7 @@ channel_input_channel_request(int type, int plen, void *ctxt)
 		debug2("callback done");
 	} else {
 		char *service = packet_get_string(NULL);
-		debug("channel: %d rcvd request for %s", c->self, service);
+		debug("channel %d: rcvd request for %s", c->self, service);
 		debug("cb_fn %p cb_event %d", c->cb_fn , c->cb_event);
 		xfree(service);
 	}

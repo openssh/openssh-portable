@@ -76,6 +76,9 @@
      [packet.c packet.h sshconnect2.c]
      in ssh protocol v2 use ignore messages for padding (instead of
      trailing \0).
+   - markus@cvs.openbsd.org 2001/02/28 12:55:07
+     [channels.c]
+     unify debug messages
 
 20010304
  - (bal) Remove make-ssh-known-hosts.1 since it's no longer valid.
@@ -4268,4 +4271,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.873 2001/03/05 06:17:49 mouring Exp $
+$Id: ChangeLog,v 1.874 2001/03/05 06:20:14 mouring Exp $
