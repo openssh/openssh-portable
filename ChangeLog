@@ -11,6 +11,11 @@
    - djm@cvs.openbsd.org 2004/07/21 10:36:23
      [gss-serv-krb5.c]
      fix function declaration
+   - djm@cvs.openbsd.org 2004/07/21 11:51:29
+     [canohost.c]
+     bz#902: cache remote port so we don't fatal() in auth_log when remote
+     connection goes away quickly. from peak AT argo.troja.mff.cuni.cz;
+     ok markus@
  - (djm) [auth-pam.c] Portable parts of bz#899: Don't display invalid 
    usernames in setproctitle from peak AT argo.troja.mff.cuni.cz;
 
@@ -1559,4 +1564,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3487 2004/07/21 10:54:47 djm Exp $
+$Id: ChangeLog,v 1.3488 2004/07/21 11:53:34 djm Exp $
