@@ -1,3 +1,8 @@
+20000501
+ - OpenBSD CVS update
+   [packet.c]
+   - send debug messages in SSH2 format
+
 20000430
  - Merge HP-UX fixes and TCB support from Ged Lodder <lodder@yacc.com.au>
  - Integrate Andre Lucas' <andre.lucas@dial.pipex.com> entropy collection
