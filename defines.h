@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.98 2003/04/28 23:30:43 mouring Exp $ */
+/* $Id: defines.h,v 1.97.4.1 2003/08/21 07:08:43 dtucker Exp $ */
 
 
 /* Constants */
@@ -188,20 +188,27 @@ typedef unsigned long  u_int32_t;
 #ifndef HAVE_INT64_T
 # if (SIZEOF_LONG_INT == 8)
 typedef long int int64_t;
+#   define HAVE_INT64_T 1
 # else
 #  if (SIZEOF_LONG_LONG_INT == 8)
 typedef long long int int64_t;
+#   define HAVE_INT64_T 1
 #  endif
 # endif
 #endif
 #ifndef HAVE_U_INT64_T
 # if (SIZEOF_LONG_INT == 8)
 typedef unsigned long int u_int64_t;
+#   define HAVE_U_INT64_T 1
 # else
 #  if (SIZEOF_LONG_LONG_INT == 8)
 typedef unsigned long long int u_int64_t;
+#   define HAVE_U_INT64_T 1
 #  endif
 # endif
+#endif
+#if !defined(HAVE_LONG_LONG_INT) && (SIZEOF_LONG_LONG_INT == 8)
+# define HAVE_LONG_LONG_INT 1
 #endif
 
 #ifndef HAVE_U_CHAR
@@ -412,6 +419,23 @@ struct winsize {
 #ifndef CMSG_SPACE
 #define	CMSG_SPACE(len)	(__CMSG_ALIGN(sizeof(struct cmsghdr)) + __CMSG_ALIGN(len))
 #endif
+
+/* given pointer to struct cmsghdr, return pointer to data */
+#ifndef CMSG_DATA
+#define CMSG_DATA(cmsg) ((u_char *)(cmsg) + __CMSG_ALIGN(sizeof(struct cmsghdr)))
+#endif /* CMSG_DATA */
+
+/*
+ * RFC 2292 requires to check msg_controllen, in case that the kernel returns
+ * an empty list for some reasons.
+ */
+#ifndef CMSG_FIRSTHDR
+#define CMSG_FIRSTHDR(mhdr) \
+	((mhdr)->msg_controllen >= sizeof(struct cmsghdr) ? \
+	 (struct cmsghdr *)(mhdr)->msg_control : \
+	 (struct cmsghdr *)NULL)
+#endif /* CMSG_FIRSTHDR */
+
 
 /* Function replacement / compatibility hacks */
 

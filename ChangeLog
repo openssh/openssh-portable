@@ -9,6 +9,9 @@
    and Reliant Unix.  Fixes "can't set controlling tty errors".
  - (dtucker) [openbsd-compat/realpath.c] strcat -> strlcat, rootd -> needslash
    to fix check for ENAMETOOLONG (OpenBSD realpath.c rev 1.10).
+ - (dtucker) [defines.h] Bug #336: Add CMSG_DATA and CMSG_FIRSTHDR macros if
+   not already defined (eg Linux with some versions of libc5), based on those
+   from OpenBSD.
 
 20030429
  - (djm) Add back radix.o (used by AFS support), after it went missing from
@@ -1314,4 +1317,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2648.2.5 2003/08/21 06:41:41 dtucker Exp $
+$Id: ChangeLog,v 1.2648.2.6 2003/08/21 07:08:43 dtucker Exp $
