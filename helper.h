@@ -47,4 +47,8 @@ void arc4random_stir(void);
 void setproctitle(const char *fmt, ...);
 #endif /* !HAVE_SETPROCTITLE */
 
+#ifndef HAVE_SETENV
+int setenv(const char *name, const char *value, int overwrite);
+#endif /* !HAVE_SETENV */
+
 #endif /* _HELPER_H */

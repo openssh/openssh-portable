@@ -149,3 +149,24 @@ void setproctitle(const char *fmt, ...)
 	/* FIXME */
 }
 #endif /* !HAVE_SETPROCTITLE */
+
+#ifndef HAVE_SETENV
+int setenv(const char *name, const char *value, int overwrite)
+{
+	char *env_string;
+	int result;
+	
+	/* Don't overwrite existing env. var if overwrite is 0 */
+	if (!overwrite && (getenv(name) != NULL))
+		return(0);
+	
+	env_string = xmalloc(strlen(name) + strlen(value) + 2);
+	sprintf(env_string, "%s=%s", name, value);
+	
+	result = putenv(env_string);
+	
+	xfree(env_string);
+	
+	return(result);	
+}
+#endif /* !HAVE_SETENV */

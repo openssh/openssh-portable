@@ -13,6 +13,7 @@
  - Fix EGD problems (Thanks to Ben Taylor <bent@clark.net>)
  - Retry /dev/urandom reads interrupted by signal (report from 
    Robert Hardy <rhardy@webcon.net>)
+ - Added a setenv replacement for systems which lack it
 
 19991121
  - OpenBSD CVS Changes:
