@@ -4,6 +4,11 @@
  - (dtucker) [configure.ac sshd.c openbsd-compat/bsd-misc.h
    openbsd-compat/setenv.c] Unset KRB5CCNAME on AIX to prevent it from being
    inherited by the child.  ok djm@
+ - (dtucker) [auth-pam.c auth-pam.h auth1.c auth2.c monitor.c monitor_wrap.c
+   monitor_wrap.h] Bug #808: Ensure force_pwchange is correctly initialized
+   even if keyboard-interactive is not used by the client.  Prevents segfaults
+   in some cases where the user's password is expired (note this is not
+   considered a security exposure).  ok djm@
 
 20040304
  - (dtucker) [auth-pam.c] Don't try to export PAM when compiled with
@@ -1948,4 +1953,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3257.2.6 2004/03/08 11:21:58 dtucker Exp $
+$Id: ChangeLog,v 1.3257.2.7 2004/03/08 12:02:13 dtucker Exp $

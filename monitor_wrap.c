@@ -686,7 +686,7 @@ mm_session_pty_cleanup2(Session *s)
 
 #ifdef USE_PAM
 void
-mm_start_pam(char *user)
+mm_start_pam(Authctxt *authctxt)
 {
 	Buffer m;
 
@@ -695,8 +695,6 @@ mm_start_pam(char *user)
 		fatal("UsePAM=no, but ended up in %s anyway", __func__);
 
 	buffer_init(&m);
-	buffer_put_cstring(&m, user);
-
 	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_PAM_START, &m);
 
 	buffer_free(&m);
