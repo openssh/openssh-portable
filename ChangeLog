@@ -1,3 +1,6 @@
+20040128
+ - (dtucker) [regress/README.regress] Add tcpwrappers issue, noted by tim@
+
 20040127
  - (djm) OpenBSD CVS Sync
    - hshoexer@cvs.openbsd.org 2004/01/23 17:06:03
@@ -1762,4 +1765,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3197 2004/01/27 10:22:00 djm Exp $
+$Id: ChangeLog,v 1.3198 2004/01/28 01:26:14 dtucker Exp $
