@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.45 2001/02/22 08:03:51 deraadt Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.46 2001/03/09 03:14:39 deraadt Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -512,12 +512,11 @@ do_change_passphrase(struct passwd *pw)
 void
 do_change_comment(struct passwd *pw)
 {
-	char new_comment[1024], *comment;
-	Key *private;
-	Key *public;
-	char *passphrase;
+	char new_comment[1024], *comment, *passphrase;
+	Key *private, *public;
 	struct stat st;
 	FILE *f;
+	int fd;
 
 	if (!have_identity)
 		ask_filename(pw, "Enter file in which the key is");
@@ -585,9 +584,14 @@ do_change_comment(struct passwd *pw)
 	key_free(private);
 
 	strlcat(identity_file, ".pub", sizeof(identity_file));
-	f = fopen(identity_file, "w");
-	if (!f) {
+	fd = open(identity_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (fd == -1) {
 		printf("Could not save your public key in %s\n", identity_file);
+		exit(1);
+	}
+	f = fdopen(fd, "w");
+	if (f == NULL) {
+		printf("fdopen %s failed", identity_file);
 		exit(1);
 	}
 	if (!key_write(public, f))
@@ -617,12 +621,11 @@ int
 main(int ac, char **av)
 {
 	char dotsshdir[16 * 1024], comment[1024], *passphrase1, *passphrase2;
+	Key *private, *public;
 	struct passwd *pw;
-	int opt, type;
+	int opt, type, fd;
 	struct stat st;
 	FILE *f;
-	Key *private;
-	Key *public;
 
 	extern int optind;
 	extern char *optarg;
@@ -827,9 +830,14 @@ passphrase_again:
 		printf("Your identification has been saved in %s.\n", identity_file);
 
 	strlcat(identity_file, ".pub", sizeof(identity_file));
-	f = fopen(identity_file, "w");
-	if (!f) {
+	fd = open(identity_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (fd == -1) {
 		printf("Could not save your public key in %s\n", identity_file);
+		exit(1);
+	}
+	f = fdopen(fd, "w");
+	if (f == NULL) {
+		printf("fdopen %s failed", identity_file);
 		exit(1);
 	}
 	if (!key_write(public, f))
