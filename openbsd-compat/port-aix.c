@@ -2,7 +2,12 @@
 
 #ifdef _AIX
 
+#ifdef HAVE_USERSEC_H
+#include <usersec.h>
+#endif /* HAVE_USERSEC_H */
+
 #include <uinfo.h>
+#include <../xmalloc.h>
 
 /* AIX limits */
 #if defined(HAVE_GETUSERATTR) && !defined(S_UFSIZE_HARD) && defined(S_UFSIZE)
@@ -101,17 +106,16 @@ set_limits_from_userattr(char *user)
  * actually use this and die if it's not set
  */
 void
-aix_usrinfo(Session *s) 
+aix_usrinfo(struct passwd *pw, char *tty, int ttyfd) 
 {
-	struct passwd *pw = s->pw;
 	u_int i;
-	const char *cp=NULL;
+	char *cp=NULL;
 
-	if (s->ttyfd == -1)
-		s->tty[0] = '\0';
-	cp = xmalloc(22 + strlen(s->tty) + 2 * strlen(pw->pw_name));
+	if (ttyfd == -1)
+		tty[0] = '\0';
+	cp = xmalloc(22 + strlen(tty) + 2 * strlen(pw->pw_name));
 	i = sprintf(cp, "LOGNAME=%s%cNAME=%s%cTTY=%s%c%c", pw->pw_name, 0, 
-	    pw->pw_name, 0, s->tty, 0, 0);
+	    pw->pw_name, 0, tty, 0, 0);
 	if (usrinfo(SETUINFO, cp, i) == -1)
 		fatal("Couldn't set usrinfo: %s", strerror(errno));
 	debug3("AIX/UsrInfo: set len %d", i);

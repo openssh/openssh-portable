@@ -1,5 +1,10 @@
+20020224
+ - (bal) Drop Session *s usage in ports-aix.[ch] and pass just what we
+   need to do the jobs (AIX still does not fully compile, but that is
+   coming).
+
 20020221
- - (bal) Minor session.c for cygwin.  mispelt 'is_winnt' variable.
+ - (bal) Minor session.c fixup for cygwin.  mispelt 'is_winnt' variable.
 
 20020219
  - (djm) OpenBSD CVS Sync
@@ -7656,4 +7661,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1870 2002/02/21 15:37:02 mouring Exp $
+$Id: ChangeLog,v 1.1871 2002/02/24 20:25:46 mouring Exp $
