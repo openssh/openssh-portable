@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.107 2003/05/14 18:16:20 jakob Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.108 2003/05/15 01:48:10 jakob Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -94,15 +94,7 @@ typedef enum {
 	oForwardAgent, oForwardX11, oGatewayPorts, oRhostsAuthentication,
 	oPasswordAuthentication, oRSAAuthentication,
 	oChallengeResponseAuthentication, oXAuthLocation,
-#if defined(KRB4) || defined(KRB5)
-	oKerberosAuthentication,
-#endif
-#if defined(AFS) || defined(KRB5)
-	oKerberosTgtPassing,
-#endif
-#ifdef AFS
-	oAFSTokenPassing,
-#endif
+	oKerberosAuthentication, oKerberosTgtPassing, oAFSTokenPassing,
 	oIdentityFile, oHostName, oPort, oCipher, oRemoteForward, oLocalForward,
 	oUser, oHost, oEscapeChar, oRhostsRSAAuthentication, oProxyCommand,
 	oGlobalKnownHostsFile, oUserKnownHostsFile, oConnectionAttempts,
@@ -141,15 +133,9 @@ static struct {
 	{ "challengeresponseauthentication", oChallengeResponseAuthentication },
 	{ "skeyauthentication", oChallengeResponseAuthentication }, /* alias */
 	{ "tisauthentication", oChallengeResponseAuthentication },  /* alias */
-#if defined(KRB4) || defined(KRB5)
 	{ "kerberosauthentication", oKerberosAuthentication },
-#endif
-#if defined(AFS) || defined(KRB5)
 	{ "kerberostgtpassing", oKerberosTgtPassing },
-#endif
-#ifdef AFS
 	{ "afstokenpassing", oAFSTokenPassing },
-#endif
 	{ "fallbacktorsh", oDeprecated },
 	{ "usersh", oDeprecated },
 	{ "identityfile", oIdentityFile },
@@ -370,21 +356,19 @@ parse_flag:
 	case oChallengeResponseAuthentication:
 		intptr = &options->challenge_response_authentication;
 		goto parse_flag;
-#if defined(KRB4) || defined(KRB5)
+
 	case oKerberosAuthentication:
 		intptr = &options->kerberos_authentication;
 		goto parse_flag;
-#endif
-#if defined(AFS) || defined(KRB5)
+
 	case oKerberosTgtPassing:
 		intptr = &options->kerberos_tgt_passing;
 		goto parse_flag;
-#endif
-#ifdef AFS
+
 	case oAFSTokenPassing:
 		intptr = &options->afs_token_passing;
 		goto parse_flag;
-#endif
+
 	case oBatchMode:
 		intptr = &options->batch_mode;
 		goto parse_flag;
@@ -786,15 +770,9 @@ initialize_options(Options * options)
 	options->rsa_authentication = -1;
 	options->pubkey_authentication = -1;
 	options->challenge_response_authentication = -1;
-#if defined(KRB4) || defined(KRB5)
 	options->kerberos_authentication = -1;
-#endif
-#if defined(AFS) || defined(KRB5)
 	options->kerberos_tgt_passing = -1;
-#endif
-#ifdef AFS
 	options->afs_token_passing = -1;
-#endif
 	options->password_authentication = -1;
 	options->kbd_interactive_authentication = -1;
 	options->kbd_interactive_devices = NULL;
@@ -865,18 +843,12 @@ fill_default_options(Options * options)
 		options->pubkey_authentication = 1;
 	if (options->challenge_response_authentication == -1)
 		options->challenge_response_authentication = 1;
-#if defined(KRB4) || defined(KRB5)
 	if (options->kerberos_authentication == -1)
 		options->kerberos_authentication = 1;
-#endif
-#if defined(AFS) || defined(KRB5)
 	if (options->kerberos_tgt_passing == -1)
 		options->kerberos_tgt_passing = 1;
-#endif
-#ifdef AFS
 	if (options->afs_token_passing == -1)
 		options->afs_token_passing = 1;
-#endif
 	if (options->password_authentication == -1)
 		options->password_authentication = 1;
 	if (options->kbd_interactive_authentication == -1)

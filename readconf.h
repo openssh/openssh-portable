@@ -1,4 +1,4 @@
-/*	$OpenBSD: readconf.h,v 1.48 2003/05/14 18:16:20 jakob Exp $	*/
+/*	$OpenBSD: readconf.h,v 1.49 2003/05/15 01:48:10 jakob Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -41,15 +41,9 @@ typedef struct {
 	int     hostbased_authentication;	/* ssh2's rhosts_rsa */
 	int     challenge_response_authentication;
 					/* Try S/Key or TIS, authentication. */
-#if defined(KRB4) || defined(KRB5)
 	int     kerberos_authentication;	/* Try Kerberos authentication. */
-#endif
-#if defined(AFS) || defined(KRB5)
 	int     kerberos_tgt_passing;	/* Try Kerberos TGT passing. */
-#endif
-#ifdef AFS
 	int     afs_token_passing;	/* Try AFS token passing. */
-#endif
 	int     password_authentication;	/* Try password
 						 * authentication. */
 	int     kbd_interactive_authentication; /* Try keyboard-interactive auth. */

@@ -69,9 +69,10 @@
 # Kerberos TGT Passing only works with the AFS kaserver
 #KerberosTgtPassing no
 
-# Set this to 'yes' to enable PAM keyboard-interactive authentication 
+# Set this to 'yes' to enable PAM authentication (via challenge-response)
+# and session processing
 # Warning: enabling this may bypass the setting of 'PasswordAuthentication'
-#PAMAuthenticationViaKbdInt no
+#UsePAM no
 
 #X11Forwarding no
 #X11DisplayOffset 10

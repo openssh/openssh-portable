@@ -1,4 +1,4 @@
-/*	$OpenBSD: servconf.h,v 1.59 2002/07/30 17:03:55 markus Exp $	*/
+/*	$OpenBSD: servconf.h,v 1.60 2003/05/15 01:48:10 jakob Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -73,7 +73,6 @@ typedef struct {
 	int     hostbased_uses_name_from_packet_only; /* experimental */
 	int     rsa_authentication;	/* If true, permit RSA authentication. */
 	int     pubkey_authentication;	/* If true, permit ssh2 pubkey authentication. */
-#if defined(KRB4) || defined(KRB5)
 	int     kerberos_authentication;	/* If true, permit Kerberos
 						 * authentication. */
 	int     kerberos_or_local_passwd;	/* If true, permit kerberos
@@ -83,14 +82,9 @@ typedef struct {
 						 * /etc/passwd */
 	int     kerberos_ticket_cleanup;	/* If true, destroy ticket
 						 * file on logout. */
-#endif
-#if defined(AFS) || defined(KRB5)
 	int     kerberos_tgt_passing;	/* If true, permit Kerberos TGT
 					 * passing. */
-#endif
-#ifdef AFS
 	int     afs_token_passing;	/* If true, permit AFS token passing. */
-#endif
 	int     password_authentication;	/* If true, permit password
 						 * authentication. */
 	int     kbd_interactive_authentication;	/* If true, permit */

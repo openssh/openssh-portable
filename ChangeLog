@@ -16,6 +16,10 @@
    - markus@cvs.openbsd.org 2003/05/15 00:28:28
      [sshconnect2.c]
      cleanup unregister of per-method packet handlers; ok djm@
+   - jakob@cvs.openbsd.org 2003/05/15 01:48:10
+     [readconf.c readconf.h servconf.c servconf.h]
+     always parse kerberos options. ok djm@ markus@
+ - (djm) Always parse UsePAM
  - (djm) Configure glue for DNS support (code doesn't work in portable yet)
 
 20030514
@@ -1492,4 +1496,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2705 2003/05/15 02:01:28 djm Exp $
+$Id: ChangeLog,v 1.2706 2003/05/15 02:05:28 djm Exp $
