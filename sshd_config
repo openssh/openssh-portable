@@ -1,4 +1,4 @@
-#	$OpenBSD: sshd_config,v 1.34 2001/02/24 10:37:26 deraadt Exp $
+#	$OpenBSD: sshd_config,v 1.35 2001/03/25 13:16:11 stevesk Exp $
 
 # This sshd was compiled with PATH=/usr/bin:/bin:/usr/sbin:/sbin
 
@@ -25,6 +25,7 @@ StrictModes yes
 X11Forwarding no
 X11DisplayOffset 10
 PrintMotd yes
+#PrintLastLog no
 KeepAlive yes
 
 # Logging

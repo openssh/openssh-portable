@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.68 2001/03/25 00:01:34 djm Exp $");
+RCSID("$OpenBSD: session.c,v 1.69 2001/03/25 13:16:11 stevesk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -718,9 +718,11 @@ do_login(Session *s, const char *command)
 	}
 
 	/* Get the time and hostname when the user last logged in. */
-	hostname[0] = '\0';
-	last_login_time = get_last_login_time(pw->pw_uid, pw->pw_name,
-	    hostname, sizeof(hostname));
+	if (options.print_lastlog) {
+		hostname[0] = '\0';
+		last_login_time = get_last_login_time(pw->pw_uid, pw->pw_name,
+		    hostname, sizeof(hostname));
+	}
 
 	/* Record that there was a login on that tty from the remote host. */
 	record_login(pid, s->tty, pw->pw_name, pw->pw_uid,
@@ -757,7 +759,7 @@ do_login(Session *s, const char *command)
 		printf("%s\n", aixloginmsg);
 #endif /* WITH_AIXAUTHENTICATE */
 
-	if (last_login_time != 0) {
+	if (options.print_lastlog && last_login_time != 0) {
 		time_string = ctime(&last_login_time);
 		if (strchr(time_string, '\n'))
 			*strchr(time_string, '\n') = 0;

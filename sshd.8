@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.107 2001/03/19 12:10:17 djm Exp $
+.\" $OpenBSD: sshd.8,v 1.108 2001/03/25 13:16:11 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -593,6 +593,12 @@ Specifies the port number that
 listens on.
 The default is 22.
 Multiple options of this type are permitted.
+.It Cm PrintLastLog
+Specifies whether
+.Nm
+should print the date and time when the user last logged in.
+The default is
+.Dq yes .
 .It Cm PrintMotd
 Specifies whether
 .Nm

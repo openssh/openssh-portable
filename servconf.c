@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.71 2001/03/05 15:44:51 stevesk Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.72 2001/03/25 13:16:10 stevesk Exp $");
 
 #ifdef KRB4
 #include <krb.h>
@@ -55,6 +55,7 @@ initialize_server_options(ServerOptions *options)
 	options->ignore_rhosts = -1;
 	options->ignore_user_known_hosts = -1;
 	options->print_motd = -1;
+	options->print_lastlog = -1;
 	options->check_mail = -1;
 	options->x11_forwarding = -1;
 	options->x11_display_offset = -1;
@@ -132,6 +133,8 @@ fill_default_server_options(ServerOptions *options)
 		options->check_mail = 0;
 	if (options->print_motd == -1)
 		options->print_motd = 1;
+	if (options->print_lastlog == -1)
+		options->print_lastlog = 1;
 	if (options->x11_forwarding == -1)
 		options->x11_forwarding = 0;
 	if (options->x11_display_offset == -1)
@@ -208,7 +211,8 @@ typedef enum {
 #endif
 	sChallengeResponseAuthentication,
 	sPasswordAuthentication, sKbdInteractiveAuthentication, sListenAddress,
-	sPrintMotd, sIgnoreRhosts, sX11Forwarding, sX11DisplayOffset,
+	sPrintMotd, sPrintLastLog, sIgnoreRhosts,
+	sX11Forwarding, sX11DisplayOffset,
 	sStrictModes, sEmptyPasswd, sKeepAlives, sCheckMail,
 	sUseLogin, sAllowTcpForwarding,
 	sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
@@ -253,6 +257,7 @@ static struct {
 	{ "checkmail", sCheckMail },
 	{ "listenaddress", sListenAddress },
 	{ "printmotd", sPrintMotd },
+	{ "printlastlog", sPrintLastLog },
 	{ "ignorerhosts", sIgnoreRhosts },
 	{ "ignoreuserknownhosts", sIgnoreUserKnownHosts },
 	{ "x11forwarding", sX11Forwarding },
@@ -549,6 +554,10 @@ parse_flag:
 
 		case sPrintMotd:
 			intptr = &options->print_motd;
+			goto parse_flag;
+
+		case sPrintLastLog:
+			intptr = &options->print_lastlog;
 			goto parse_flag;
 
 		case sX11Forwarding:
