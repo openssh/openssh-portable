@@ -35,12 +35,16 @@
      [sftp-int.c sftp.c]
      Teach ls how to display multiple column display and allow users 
      to return to single column format via 'ls -1'.  OK @djm
+   - jakob@cvs.openbsd.org 2003/05/15 04:08:44
+     [readconf.c servconf.c]
+     disable kerberos when not supported. ok markus@
  - (djm) Always parse UsePAM
  - (djm) Configure glue for DNS support (code doesn't work in portable yet)
  - (djm) Import getrrsetbyname() function from OpenBSD libc (for DNS support)
  - (djm) Tidy Makefile clean targets
  - (djm) Adapt README.dns for portable
  - (djm) Avoid uuencode.c warnings
+ - (djm) Enable UsePAM when built --with-pam
 
 20030514
  - (djm) Bug #117: Don't lie to PAM about username
@@ -121,9 +125,6 @@
      http://bugzilla.mindrot.org/show_bug.cgi?id=560
      Privsep child continues to run after monitor killed.
      Pass monitor signals through to child; Darren Tucker
-   - jakob@cvs.openbsd.org 2003/05/15 04:08:44
-     [readconf.c servconf.c]
-     disable kerberos when not supported. ok markus@
  - (djm) Make portable build with MIT krb5 (some issues remain)
  - (djm) Add new UsePAM configuration directive to allow runtime control
    over usage of PAM. This allows non-root use of sshd when built with
@@ -1519,4 +1520,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2717 2003/05/15 04:15:23 djm Exp $
+$Id: ChangeLog,v 1.2718 2003/05/15 04:16:41 djm Exp $
