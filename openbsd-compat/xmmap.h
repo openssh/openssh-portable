@@ -1,4 +1,6 @@
 /*
+ * Copyright (c) 2002 Tim Rice.  All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -19,5 +21,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+/* $Id: xmmap.h,v 1.2 2003/06/02 02:25:27 tim Exp $ */
 
 void *xmmap(size_t size);
