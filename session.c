@@ -1415,7 +1415,7 @@ do_child(Session *s, const char *command)
 	 */
 	environ = env;
 
-#ifdef KRB5
+#if defined(HEIMDAL) && defined(AFS)
 	/*
 	 * At this point, we check to see if AFS is active and if we have
 	 * a valid Kerberos 5 TGT. If so, it seems like a good idea to see

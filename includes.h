@@ -169,6 +169,11 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 # include <libutil.h> /* Openpty on FreeBSD at least */
 #endif
 
+#if defined(HEIMDAL) && defined(AFS)
+# include <krb5.h>
+# include <kafs.h>
+#endif
+
 #include <openssl/opensslv.h> /* For OPENSSL_VERSION_NUMBER */
 
 #include "defines.h"
