@@ -12,6 +12,9 @@
      [compat.c compat.h ssh.c]
      bug compat: request a dummy channel for -N (no shell) sessions + 
      cleanup; vinschen@redhat.com
+   - mouring@cvs.openbsd.org 2001/09/20 20:57:51
+     [sshd_config]
+     CheckMail removed.  OKed stevesk@
 
 20010919
  - (bal) OpenBSD Sync
@@ -6545,4 +6548,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1553 2001/09/20 23:13:49 mouring Exp $
+$Id: ChangeLog,v 1.1554 2001/09/20 23:15:44 mouring Exp $
