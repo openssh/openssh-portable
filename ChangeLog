@@ -1,4 +1,11 @@
 20020923
+ - (djm) OpenBSD CVS Sync
+   - stevesk@cvs.openbsd.org 2002/09/23 20:46:27
+     [canohost.c]
+     change get_peer_ipaddr() and get_local_ipaddr() to not return NULL for
+     non-sockets; fixes a problem passing NULL to snprintf(). ok markus@
+
+20020923
  - (tim) [configure.ac] s/return/exit/ patch by dtucker@zip.com.au
 
 20020922
@@ -696,4 +703,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2476 2002/09/23 23:54:10 tim Exp $
+$Id: ChangeLog,v 1.2477 2002/09/25 02:19:08 djm Exp $
