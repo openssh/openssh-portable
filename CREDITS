@@ -35,7 +35,7 @@ Garrick James <garrick@james.net> - configure fixes
 Gary E. Miller <gem@rellim.com> - SCO support
 Ged Lodder <lodder@yacc.com.au> - HPUX fixes and enhancements
 Gert Doering <gd@hilb1.medat.de> - bug and portability fixes
-HARUYAMA Seigo <haruyama@klab.org> - Translations & doc fixes
+HARUYAMA Seigo <haruyama@unixuser.org> - Translations & doc fixes
 Hideaki YOSHIFUJI <yoshfuji@ecei.tohoku.ac.jp> - IPv6 and bug fixes
 Hiroshi Takekawa <takekawa@sr3.t.u-tokyo.ac.jp> - Configure fixes
 Holger Trapp <Holger.Trapp@Informatik.TU-Chemnitz.DE> - KRB4/AFS config patch
@@ -89,5 +89,5 @@ Apologies to anyone I have missed.
 
 Damien Miller <djm@mindrot.org>
 
-$Id: CREDITS,v 1.63 2001/11/11 23:34:22 djm Exp $
+$Id: CREDITS,v 1.64 2001/12/24 03:17:21 djm Exp $
 
