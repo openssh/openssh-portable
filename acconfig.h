@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.146 2003/01/07 04:18:33 djm Exp $ */
+/* $Id: acconfig.h,v 1.147 2003/01/12 23:04:59 djm Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -366,6 +366,10 @@
 
 /* Silly mkstemp() */
 #undef HAVE_STRICT_MKSTEMP
+
+/* Setproctitle emulation */
+#undef SETPROCTITLE_STRATEGY
+#undef SETPROCTITLE_PS_PADDING
 
 @BOTTOM@
 

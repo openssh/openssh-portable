@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.98 2003/01/09 22:53:12 djm Exp $
+# $Id: configure.ac,v 1.99 2003/01/12 23:04:59 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -82,6 +82,8 @@ case "$host" in
 	dnl AIX handles lastlog as part of its login message
 	AC_DEFINE(DISABLE_LASTLOG)
 	AC_DEFINE(LOGIN_NEEDS_UTMPX)
+	AC_DEFINE(SETPROCTITLE_STRATEGY,PS_USE_CLOBBER_ARGV)
+	AC_DEFINE(SETPROCTITLE_PS_PADDING, '\0')
 	;;
 *-*-cygwin*)
 	LIBS="$LIBS /usr/lib/textmode.o"
@@ -122,7 +124,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE(LOGIN_NEEDS_UTMPX)
 	AC_DEFINE(DISABLE_SHADOW)
 	AC_DEFINE(DISABLE_UTMP)
-	AC_DEFINE(SPT_TYPE,SPT_PSTAT)
+	AC_DEFINE(SETPROCTITLE_STRATEGY,PS_USE_PSTAT)
 	LIBS="$LIBS -lsec -lsecpw"
 	AC_CHECK_LIB(xnet, t_error, ,AC_MSG_ERROR([*** -lxnet needed on HP-UX - check config.log ***]))
 	disable_ptmx_check=yes
@@ -138,7 +140,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE(LOGIN_NEEDS_UTMPX)
 	AC_DEFINE(DISABLE_SHADOW)
 	AC_DEFINE(DISABLE_UTMP)
-	AC_DEFINE(SPT_TYPE,SPT_PSTAT)
+	AC_DEFINE(SETPROCTITLE_STRATEGY,PS_USE_PSTAT)
 	LIBS="$LIBS -lsec"
 	AC_CHECK_LIB(xnet, t_error, ,AC_MSG_ERROR([*** -lxnet needed on HP-UX - check config.log ***]))
 	;;
@@ -151,7 +153,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE(LOGIN_NEEDS_UTMPX)
 	AC_DEFINE(DISABLE_SHADOW)
 	AC_DEFINE(DISABLE_UTMP)
-	AC_DEFINE(SPT_TYPE,SPT_PSTAT)
+	AC_DEFINE(SETPROCTITLE_STRATEGY,PS_USE_PSTAT)
 	LIBS="$LIBS -lsec"
 	AC_CHECK_LIB(xnet, t_error, ,AC_MSG_ERROR([*** -lxnet needed on HP-UX - check config.log ***]))
 	;;
@@ -178,6 +180,8 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	check_for_libcrypt_later=1
 	AC_DEFINE(DONT_TRY_OTHER_AF)
 	AC_DEFINE(PAM_TTY_KLUDGE)
+	AC_DEFINE(SETPROCTITLE_STRATEGY,PS_USE_CLOBBER_ARGV)
+	AC_DEFINE(SETPROCTITLE_PS_PADDING, '\0')
 	inet6_default_4in6=yes
 	;;
 mips-sony-bsd|mips-sony-newsos4)

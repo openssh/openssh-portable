@@ -31,7 +31,7 @@
  * to contain some useful information. Mechanism differs wildly across
  * platforms.
  *
- * $Header: /var/cvs/openssh/openbsd-compat/setproctitle.c,v 1.3 2003/01/09 22:53:13 djm Exp $
+ * $Header: /var/cvs/openssh/openbsd-compat/setproctitle.c,v 1.4 2003/01/12 23:04:59 djm Exp $
  *
  * Copyright 2000 by PostgreSQL Global Development Group
  * various details abducted from various places
@@ -56,51 +56,47 @@ extern char **environ;
 /*------
  * Alternative ways of updating ps display:
  *
- * PS_USE_PSTAT
+ * SETPROCTITLE_STRATEGY == PS_USE_PSTAT
  *	   use the pstat(PSTAT_SETCMD, )
  *	   (HPUX)
- * PS_USE_PS_STRINGS
+ * SETPROCTITLE_STRATEGY == PS_USE_PS_STRINGS
  *	   assign PS_STRINGS->ps_argvstr = "string"
  *	   (some BSD systems)
- * PS_USE_CHANGE_ARGV
+ * SETPROCTITLE_STRATEGY == PS_USE_CHANGE_ARGV
  *	   assign argv[0] = "string"
  *	   (some other BSD systems)
- * PS_USE_CLOBBER_ARGV
+ * SETPROCTITLE_STRATEGY == PS_USE_CLOBBER_ARGV
  *	   write over the argv and environment area
  *	   (most SysV-like systems)
- * PS_USE_NONE
+ * SETPROCTITLE_STRATEGY == PS_USE_NONE
  *	   don't update ps display
  *	   (This is the default, as it is safest.)
  */
-#if defined(HAVE_PSTAT) && defined(PSTAT_SETCMD)
-#define PS_USE_PSTAT
-#elif defined(HAVE_PS_STRINGS)
-#define PS_USE_PS_STRINGS
-#elif defined(BSD) || defined(__bsdi__) || defined(__hurd__)
-#define PS_USE_CHANGE_ARGV
-#elif defined(__linux__) || defined(_AIX)
-#define PS_USE_CLOBBER_ARGV
-#else
-#define PS_USE_NONE
+
+#define PS_USE_NONE			0
+#define PS_USE_PSTAT			1
+#define PS_USE_PS_STRINGS		2
+#define PS_USE_CHANGE_ARGV		3
+#define PS_USE_CLOBBER_ARGV		4
+
+#ifndef SETPROCTITLE_STRATEGY
+# define SETPROCTITLE_STRATEGY	PS_USE_NONE 
 #endif
 
-/* Different systems want the buffer padded differently */
-#if defined(_AIX) || defined(__linux__) || defined(__QNX__) || defined(__svr4__)
-#define PS_PADDING '\0'
-#else
-#define PS_PADDING ' '
+#ifndef SETPROCTITLE_PS_PADDING
+# define SETPROCTITLE_PS_PADDING	' '
 #endif
 
 /*
  * argv clobbering uses existing argv space, all other methods need a buffer
  */
-#ifndef PS_USE_CLOBBER_ARGV
+#if SETPROCTITLE_STRATEGY != PS_USE_CLOBBER_ARGV
 static char ps_buffer[256];
 static const size_t ps_buffer_size = sizeof(ps_buffer);
-#else /* PS_USE_CLOBBER_ARGV */
+#else
 static char *ps_buffer;			/* will point to argv area */
 static size_t ps_buffer_size;		/* space determined at run time */
-#endif   /* PS_USE_CLOBBER_ARGV */
+#endif
 
 /* save the original argv[] location here */
 static int	save_argc;
@@ -115,17 +111,17 @@ extern char *__progname;
 void
 setproctitle(const char *fmt, ...)
 {
-#ifdef PS_USE_PSTAT
+#if SETPROCTITLE_STRATEGY == PS_USE_PSTAT
 	union pstun pst;
 #endif
-#ifndef PS_USE_NONE
+#if SETPROCTITLE_STRATEGY != PS_USE_NONE
 	ssize_t used;
 	va_list ap;
 
 	/* no ps display if you didn't call save_ps_display_args() */
 	if (save_argv == NULL)
 		return;
-#ifdef PS_USE_CLOBBER_ARGV
+#if SETPROCTITLE_STRATEGY == PS_USE_CLOBBER_ARGV
 	/* If ps_buffer is a pointer, it might still be null */
 	if (ps_buffer == NULL)
 		return;
@@ -134,12 +130,12 @@ setproctitle(const char *fmt, ...)
 	/*
 	 * Overwrite argv[] to point at appropriate space, if needed
 	 */
-#ifdef PS_USE_CHANGE_ARGV
+#if SETPROCTITLE_STRATEGY == PS_USE_CHANGE_ARGV
 	save_argv[0] = ps_buffer;
 	save_argv[1] = NULL;
 #endif /* PS_USE_CHANGE_ARGV */
 
-#ifdef PS_USE_CLOBBER_ARGV
+#if SETPROCTITLE_STRATEGY == PS_USE_CLOBBER_ARGV
 	save_argv[1] = NULL;
 #endif /* PS_USE_CLOBBER_ARGV */
 
@@ -158,26 +154,21 @@ setproctitle(const char *fmt, ...)
 	}
 	va_end(ap);
 
-#if 0
-	error("XXXXXXXXX %s", __progname);
-	error("XXXXXXXXX %d", ps_buffer_size);
-	error("XXXXXXXXX %s", ps_buffer);
-#endif
-
-#ifdef PS_USE_PSTAT
+#if SETPROCTITLE_STRATEGY == PS_USE_PSTAT
 	pst.pst_command = ps_buffer;
 	pstat(PSTAT_SETCMD, pst, strlen(ps_buffer), 0, 0);
 #endif   /* PS_USE_PSTAT */
 
-#ifdef PS_USE_PS_STRINGS
+#if SETPROCTITLE_STRATEGY == PS_USE_PS_STRINGS
 	PS_STRINGS->ps_nargvstr = 1;
 	PS_STRINGS->ps_argvstr = ps_buffer;
 #endif   /* PS_USE_PS_STRINGS */
 
-#ifdef PS_USE_CLOBBER_ARGV
+#if SETPROCTITLE_STRATEGY == PS_USE_CLOBBER_ARGV
 	/* pad unused memory */
 	used = strlen(ps_buffer);
-	memset(ps_buffer + used, PS_PADDING, ps_buffer_size - used);
+	memset(ps_buffer + used, SETPROCTITLE_PS_PADDING, 
+	    ps_buffer_size - used);
 #endif   /* PS_USE_CLOBBER_ARGV */
 
 #endif /* PS_USE_NONE */
@@ -196,7 +187,7 @@ setproctitle(const char *fmt, ...)
 void
 compat_init_setproctitle(int argc, char *argv[])
 {
-#ifdef PS_USE_CLOBBER_ARGV
+#if SETPROCTITLE_STRATEGY == PS_USE_CLOBBER_ARGV
 	char *end_of_area = NULL;
 	char **new_environ;
 	int i;
@@ -205,7 +196,7 @@ compat_init_setproctitle(int argc, char *argv[])
 	save_argc = argc;
 	save_argv = argv;
 
-#ifdef PS_USE_CLOBBER_ARGV
+#if SETPROCTITLE_STRATEGY == PS_USE_CLOBBER_ARGV
 	/*
 	 * If we're going to overwrite the argv area, count the available
 	 * space.  Also move the environment to make additional room.
