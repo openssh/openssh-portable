@@ -13,6 +13,8 @@
  - (dtucker) [session.c] Bug #927: make .hushlogin silent again.  ok djm@
  - (dtucker) [configure.ac] Bug #321: Add cross-compile support to configure.
    Parts by chua at ayrnetworks.com, astrand at lysator.liu.se and me.  ok djm@
+ - (dtucker) [auth-krb5.c] Bug #922: Pass KRB5CCNAME to PAM.  From deengert
+   at anl.gov, ok djm@
 
 20040830
  - (dtucker) [session.c openbsd-compat/bsd-cygwin_util.{c,h}] Bug #915: only
@@ -1732,4 +1734,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3546 2004/09/11 13:26:37 dtucker Exp $
+$Id: ChangeLog,v 1.3547 2004/09/11 13:32:09 dtucker Exp $
