@@ -15,12 +15,8 @@ filesystem (which is recommended) due to the lack of any basic security
 features of the FAT/FAT32 filesystems.
 ===========================================================================
 
-Since this package is part of the base distribution now, the location
-of the files has changed from /usr/local to /usr. The global configuration
-files are in /etc now.
-
-If you are installing OpenSSH the first time, you can generate
-global config files and server keys by running
+If you are installing OpenSSH the first time, you can generate global config
+files and server keys by running
    
    /usr/bin/ssh-host-config
 
@@ -39,6 +35,7 @@ Options:
     --debug      -d        Enable shell's debug output.
     --yes        -y        Answer all questions with "yes" automatically.
     --no         -n        Answer all questions with "no" automatically.
+    --port       -p <n>    sshd listens on port n.
 
 You can create the private and public keys for a user now by running
 

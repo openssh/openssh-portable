@@ -16,6 +16,7 @@ OLDSYSCONFDIR=${OLDPREFIX}/etc
 
 progname=$0
 auto_answer=""
+port_number=22
 
 request()
 {
@@ -67,6 +68,11 @@ do
     auto_answer=no
     ;;
 
+  -p | --port )
+    port_number=$1
+    shift
+    ;;
+
   *)
     echo "usage: ${progname} [OPTION]..."
     echo
@@ -76,6 +82,7 @@ do
     echo "    --debug  -d     Enable shell's debug output."
     echo "    --yes    -y     Answer all questions with \"yes\" automatically."
     echo "    --no     -n     Answer all questions with \"no\" automatically."
+    echo "    --port   -p <n> sshd listens on port n."
     echo
     exit 1
     ;;
@@ -254,6 +261,11 @@ Host *
         IdentityFile ~/.ssh/id_rsa
         IdentityFile ~/.ssh/id_dsa
 EOF
+  if [ "$port_number" != "22" ]
+  then
+    echo "Host localhost" >> ${SYSCONFDIR}/ssh_config
+    echo "    Port $port_number" >> ${SYSCONFDIR}/ssh_config
+  fi
 fi
 
 # Check if sshd_config exists. If yes, ask for overwriting
@@ -278,7 +290,7 @@ then
   cat > ${SYSCONFDIR}/sshd_config << EOF
 # This is ssh server systemwide configuration file.
 
-Port 22
+Port $port_number
 #
 Protocol 2,1
 ListenAddress 0.0.0.0
@@ -330,7 +342,7 @@ UseLogin no
 EOF
 fi
 
-# Add port 22/tcp to services
+# Care for services file
 _sys="`uname -a`"
 _nt=`expr "$_sys" : "CYGWIN_NT"`
 if [ $_nt -gt 0 ]
@@ -344,33 +356,86 @@ fi
 _services=`cygpath -u "${_wservices}"`
 _serv_tmp=`cygpath -u "${_wserv_tmp}"`
 
-mount -b -f "${_wservices}" "${_services}"
-mount -b -f "${_wserv_tmp}" "${_serv_tmp}"
+mount -t -f "${_wservices}" "${_services}"
+mount -t -f "${_wserv_tmp}" "${_serv_tmp}"
 
-if [ `grep -q 'sshd[ \t][ \t]*22' "${_services}"; echo $?` -ne 0 ]
+# Remove sshd 22/port from services
+if [ `grep -q 'sshd[ \t][ \t]*22' "${_services}"; echo $?` -eq 0 ]
 then
-  awk '{ if ( $2 ~ /^23\/tcp/ ) print "sshd               22/tcp                           #SSH daemon\r"; print $0; }' < "${_services}" > "${_serv_tmp}"
+  grep -v 'sshd[ \t][ \t]*22' "${_services}" > "${_serv_tmp}"
+  if [ -f "${_serv_tmp}" ]
+  then 
+    if mv "${_serv_tmp}" "${_services}"
+    then
+      echo "Removing sshd from ${_services}"
+    else
+      echo "Removing sshd from ${_services} failed\!"
+    fi 
+    rm -f "${_serv_tmp}"
+  else
+    echo "Removing sshd from ${_services} failed\!"
+  fi
+fi
+
+# Add ssh 22/tcp  and ssh 22/udp to services
+if [ `grep -q 'ssh[ \t][ \t]*22' "${_services}"; echo $?` -ne 0 ]
+then
+  awk '{ if ( $2 ~ /^23\/tcp/ ) print "ssh                22/tcp                           #SSH Remote Login Protocol\nssh                22/udp                           #SSH Remote Login Protocol"; print $0; }' < "${_services}" > "${_serv_tmp}"
   if [ -f "${_serv_tmp}" ]
   then
     if mv "${_serv_tmp}" "${_services}"
     then
-      echo "Added sshd to ${_services}"
+      echo "Added ssh to ${_services}"
     else
-      echo "Adding sshd to ${_services} failed\!"
+      echo "Adding ssh to ${_services} failed\!"
     fi
     rm -f "${_serv_tmp}"
   else
-    echo "Adding sshd to ${_services} failed\!"
+    echo "Adding ssh to ${_services} failed\!"
   fi
 fi
 
 umount "${_services}"
 umount "${_serv_tmp}"
 
-# Add sshd line to inetd.conf
-if [ -f /etc/inetd.conf ]
+# Care for inetd.conf file
+_inetcnf="/etc/inetd.conf"
+_inetcnf_tmp="/etc/inetd.conf.$$"
+
+if [ -f "${_inetcnf}" ]
 then
-  grep -q "^[# \t]*sshd" /etc/inetd.conf || echo "# sshd  stream  tcp     nowait  root    /usr/sbin/sshd -i" >> /etc/inetd.conf
+  # Check if ssh service is already in use as sshd
+  with_comment=1
+  grep -q '^[ \t]*sshd' "${_inetcnf}" && with_comment=0
+  # Remove sshd line from inetd.conf
+  if [ `grep -q '^[# \t]*sshd' "${_inetcnf}"; echo $?` -eq 0 ]
+  then
+    grep -v '^[# \t]*sshd' "${_inetcnf}" >> "${_inetcnf_tmp}"
+    if [ -f "${_inetcnf_tmp}" ]
+    then
+      if mv "${_inetcnf_tmp}" "${_inetcnf}"
+      then
+        echo "Removed sshd from ${_inetcnf}"
+      else
+        echo "Removing sshd from ${_inetcnf} failed\!"
+      fi
+      rm -f "${_inetcnf_tmp}"
+    else
+      echo "Removing sshd from ${_inetcnf} failed\!"
+    fi
+  fi
+
+  # Add ssh line to inetd.conf
+  if [ `grep -q '^[# \t]*ssh' "${_inetcnf}"; echo $?` -ne 0 ]
+  then
+    if [ "${with_comment}" -eq 0 ]
+    then
+      echo 'ssh  stream  tcp     nowait  root    /usr/sbin/sshd -i' >> "${_inetcnf}"
+    else
+      echo '# ssh  stream  tcp     nowait  root    /usr/sbin/sshd -i' >> "${_inetcnf}"
+    fi
+    echo "Added ssh to ${_inetcnf}"
+  fi
 fi
 
 if [ "${old_install}" = "1" ]
