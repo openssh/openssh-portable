@@ -1,4 +1,4 @@
-20030829
+20030902
  - (djm) OpenBSD CVS Sync
    - deraadt@cvs.openbsd.org 2003/08/24 17:36:51
      [auth2-gss.c]
@@ -962,4 +962,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2933 2003/09/02 12:59:01 djm Exp $
+$Id: ChangeLog,v 1.2934 2003/09/02 13:09:41 djm Exp $
