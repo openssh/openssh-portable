@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.253 2005/03/18 00:44:26 tim Exp $
+# $Id: configure.ac,v 1.254 2005/03/18 00:52:21 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -75,7 +75,7 @@ if test -z "$LD" ; then
 	LD=$CC
 fi
 AC_SUBST(LD)
-	
+
 AC_C_INLINE
 if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 	CFLAGS="$CFLAGS -Wall -Wpointer-arith -Wno-uninitialized"
@@ -84,7 +84,7 @@ fi
 AC_ARG_WITH(rpath,
 	[  --without-rpath         Disable auto-added -R linker paths],
 	[
-		if test "x$withval" = "xno" ; then	
+		if test "x$withval" = "xno" ; then
 			need_dash_r=""
 		fi
 		if test "x$withval" = "xyes" ; then
@@ -274,7 +274,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	;;
 *-*-netbsd*)
 	check_for_libcrypt_before=1
-	if test "x$withval" != "xno" ; then	
+	if test "x$withval" != "xno" ; then
 		need_dash_r=1
 	fi
 	;;
@@ -297,7 +297,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(BROKEN_SAVED_UIDS)
 	;;
 *-*-solaris*)
-	if test "x$withval" != "xno" ; then	
+	if test "x$withval" != "xno" ; then
 		need_dash_r=1
 	fi
 	AC_DEFINE(PAM_SUN_CODEBASE)
@@ -476,7 +476,7 @@ AC_ARG_WITH(cflags,
 		    test "x${withval}" != "xyes"; then
 			CFLAGS="$CFLAGS $withval"
 		fi
-	]	
+	]
 )
 AC_ARG_WITH(cppflags,
 	[  --with-cppflags         Specify additional flags to pass to preprocessor] ,
@@ -494,7 +494,7 @@ AC_ARG_WITH(ldflags,
 		    test "x${withval}" != "xyes"; then
 			LDFLAGS="$LDFLAGS $withval"
 		fi
-	]	
+	]
 )
 AC_ARG_WITH(libs,
 	[  --with-libs             Specify additional libraries to link with],
@@ -503,7 +503,7 @@ AC_ARG_WITH(libs,
 		    test "x${withval}" != "xyes"; then
 			LIBS="$LIBS $withval"
 		fi
-	]	
+	]
 )
 
 AC_MSG_CHECKING(compiler and flags for sanity)
@@ -734,7 +734,7 @@ int main(void){struct dirent d;exit(sizeof(d.d_name)<=sizeof(char));}
 		AC_MSG_RESULT(no)
 		AC_DEFINE(BROKEN_ONE_BYTE_DIRENT_D_NAME)
 	],
-	[ 
+	[
 		AC_MSG_WARN([cross compiling: assuming BROKEN_ONE_BYTE_DIRENT_D_NAME])
 		AC_DEFINE(BROKEN_ONE_BYTE_DIRENT_D_NAME)
 	]
@@ -763,7 +763,7 @@ AC_ARG_WITH(skey,
 			AC_DEFINE(SKEY)
 			LIBS="-lskey $LIBS"
 			SKEY_MSG="yes"
-	
+
 			AC_MSG_CHECKING([for s/key support])
 			AC_TRY_RUN(
 				[
@@ -1474,7 +1474,7 @@ int main(void) { exit(RAND_status() == 1 ? 0 : 1); }
 	[
 		AC_MSG_WARN([cross compiling: assuming yes])
 		# This is safe, since all recent OpenSSL versions will
-		# complain at runtime if not seeded correctly. 
+		# complain at runtime if not seeded correctly.
 		OPENSSL_SEEDS_ITSELF=yes
 	]
 )
@@ -1496,7 +1496,7 @@ AC_ARG_WITH(rand-helper,
 			USE_RAND_HELPER=yes
 		fi
 	],
-)	
+)
 
 # Which randomness source do we use?
 if test ! -z "$OPENSSL_SEEDS_ITSELF" && test -z "$USE_RAND_HELPER" ; then
@@ -1593,7 +1593,7 @@ AC_ARG_WITH(entropy-timeout,
 		    test "x${withval}" != "xyes"; then
 			entropy_timeout=$withval
 		fi
-	]	
+	]
 )
 AC_DEFINE_UNQUOTED(ENTROPY_TIMEOUT_MSEC, $entropy_timeout)
 
@@ -1605,7 +1605,7 @@ AC_ARG_WITH(privsep-user,
 		    test "x${withval}" != "xyes"; then
 			SSH_PRIVSEP_USER=$withval
 		fi
-	]	
+	]
 )
 AC_DEFINE_UNQUOTED(SSH_PRIVSEP_USER, "$SSH_PRIVSEP_USER")
 AC_SUBST(SSH_PRIVSEP_USER)
@@ -2437,7 +2437,7 @@ AC_ARG_WITH(kerberos5,
 					 AC_DEFINE(HEIMDAL)
 					 K5LIBS="-lkrb5 -ldes"
 					 K5LIBS="$K5LIBS -lcom_err -lasn1"
-					 AC_CHECK_LIB(roken, net_write, 
+					 AC_CHECK_LIB(roken, net_write,
 					   [K5LIBS="$K5LIBS -lroken"])
 				       ],
 				       [ AC_MSG_RESULT(no)
@@ -2456,7 +2456,7 @@ AC_ARG_WITH(kerberos5,
 					$K5LIBS)
 				],
 				$K5LIBS)
-			
+
 			AC_CHECK_HEADER(gssapi.h, ,
 				[ unset ac_cv_header_gssapi_h
 				  CPPFLAGS="$CPPFLAGS -I${KRB5ROOT}/include/gssapi"
@@ -2626,7 +2626,7 @@ AC_ARG_WITH(md5-passwords,
 AC_ARG_WITH(shadow,
 	[  --without-shadow        Disable shadow password support],
 	[
-		if test "x$withval" = "xno" ; then	
+		if test "x$withval" = "xno" ; then
 			AC_DEFINE(DISABLE_SHADOW)
 			disable_shadow=yes
 		fi
@@ -2661,7 +2661,7 @@ else
 	AC_ARG_WITH(ipaddr-display,
 		[  --with-ipaddr-display   Use ip address instead of hostname in \$DISPLAY],
 		[
-			if test "x$withval" != "xno" ; then	
+			if test "x$withval" != "xno" ; then
 				AC_DEFINE(IPADDR_IN_DISPLAY)
 				DISPLAY_HACK_MSG="yes"
 			fi
@@ -2707,7 +2707,7 @@ AC_ARG_WITH(default-path,
 			AC_MSG_WARN([
 --with-default-path=PATH has no effect on this system.
 Edit /etc/login.conf instead.])
-		elif test "x$withval" != "xno" ; then	
+		elif test "x$withval" != "xno" ; then
 			if test ! -z "$external_path_file" ; then
 				AC_MSG_WARN([
 --with-default-path=PATH will only be used if PATH is not defined in
@@ -2748,11 +2748,11 @@ main()
 {
 	FILE *fd;
 	int rc;
-	
+
 	fd = fopen(DATA,"w");
 	if(fd == NULL)
 		exit(1);
-	
+
 	if ((rc = fprintf(fd,"%s", _PATH_STDPATH)) < 0)
 		exit(1);
 
@@ -2826,7 +2826,7 @@ BSD_AUTH_MSG=no
 AC_ARG_WITH(bsd-auth,
 	[  --with-bsd-auth         Enable BSD auth support],
 	[
-		if test "x$withval" != "xno" ; then	
+		if test "x$withval" != "xno" ; then
 			AC_DEFINE(BSD_AUTH)
 			BSD_AUTH_MSG=yes
 		fi
@@ -2836,7 +2836,7 @@ AC_ARG_WITH(bsd-auth,
 # Where to place sshd.pid
 piddir=/var/run
 # make sure the directory exists
-if test ! -d $piddir ; then	
+if test ! -d $piddir ; then
 	piddir=`eval echo ${sysconfdir}`
 	case $piddir in
 		NONE/*) piddir=`echo $piddir | sed "s~NONE~$ac_default_prefix~"` ;;
@@ -2849,7 +2849,7 @@ AC_ARG_WITH(pid-dir,
 		if test -n "$withval"  &&  test "x$withval" != "xno"  &&  \
 		    test "x${withval}" != "xyes"; then
 			piddir=$withval
-			if test ! -d $piddir ; then	
+			if test ! -d $piddir ; then
 			AC_MSG_WARN([** no $piddir directory on this system **])
 			fi
 		fi
@@ -2927,7 +2927,7 @@ AC_ARG_ENABLE(pututxline,
 AC_ARG_WITH(lastlog,
   [  --with-lastlog=FILE|DIR specify lastlog location [common locations]],
 	[
-		if test "x$withval" = "xno" ; then	
+		if test "x$withval" = "xno" ; then
 			AC_DEFINE(DISABLE_LASTLOG)
 		elif test -n "$withval"  &&  test "x${withval}" != "xyes"; then
 			conf_lastlog_location=$withval
@@ -2996,7 +2996,7 @@ fi
 
 if test -n "$conf_lastlog_location"; then
 	AC_DEFINE_UNQUOTED(CONF_LASTLOG_FILE, "$conf_lastlog_location")
-fi	
+fi
 
 dnl utmp detection
 AC_MSG_CHECKING([if your system defines UTMP_FILE])
@@ -3026,7 +3026,7 @@ if test -z "$conf_utmp_location"; then
 fi
 if test -n "$conf_utmp_location"; then
 	AC_DEFINE_UNQUOTED(CONF_UTMP_FILE, "$conf_utmp_location")
-fi	
+fi
 
 dnl wtmp detection
 AC_MSG_CHECKING([if your system defines WTMP_FILE])
@@ -3056,7 +3056,7 @@ if test -z "$conf_wtmp_location"; then
 fi
 if test -n "$conf_wtmp_location"; then
 	AC_DEFINE_UNQUOTED(CONF_WTMP_FILE, "$conf_wtmp_location")
-fi	
+fi
 
 
 dnl utmpx detection - I don't know any system so perverse as to require
@@ -3084,7 +3084,7 @@ if test -z "$conf_utmpx_location"; then
 	fi
 else
 	AC_DEFINE_UNQUOTED(CONF_UTMPX_FILE, "$conf_utmpx_location")
-fi	
+fi
 
 dnl wtmpx detection
 AC_MSG_CHECKING([if your system defines WTMPX_FILE])
@@ -3109,7 +3109,7 @@ if test -z "$conf_wtmpx_location"; then
 	fi
 else
 	AC_DEFINE_UNQUOTED(CONF_WTMPX_FILE, "$conf_wtmpx_location")
-fi	
+fi
 
 
 if test ! -z "$blibpath" ; then
