@@ -25,7 +25,7 @@
 #include "includes.h"
 #include "xmalloc.h"
 
-RCSID("$Id: bsd-misc.c,v 1.19 2003/08/25 01:16:21 mouring Exp $");
+RCSID("$Id: bsd-misc.c,v 1.20 2003/12/18 00:34:07 mouring Exp $");
 
 /*
  * NB. duplicate __progname in case it is an alias for argv[0]
@@ -164,7 +164,6 @@ int nanosleep(const struct timespec *req, struct timespec *rem)
 
 	return(rc);
 }
-
 #endif
 
 #ifndef HAVE_TCGETPGRP
@@ -223,6 +222,7 @@ mysignal(int sig, mysig_t act)
 	}
 	return (osa.sa_handler);
 #else
+	#undef signal
 	return (signal(sig, act));
 #endif
 }

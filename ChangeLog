@@ -36,6 +36,8 @@
  - (dtucker) [acconfig.h configure.ac uidswap.c] Bug #645: Check for
    setres[ug]id() present but not implemented (eg some Linux/glibc
    combinations).
+ - (bal) [openbsd-compat/bsd-misc.c] unset 'signal' defined if we are
+   using a real 'signal()' (Noticed by a NeXT Compile)
 
 20031209
  - (dtucker) OpenBSD CVS Sync
@@ -1605,4 +1607,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3148 2003/12/17 07:53:26 dtucker Exp $
+$Id: ChangeLog,v 1.3149 2003/12/18 00:34:06 mouring Exp $
