@@ -21,6 +21,11 @@
      [auth-rsa.c auth2-pubkey.c authfile.c misc.c misc.h ssh.h sshd.8]
      Discard over-length authorized_keys entries rather than complaining when
      they don't decode.  bz #884, with & ok djm@
+ - (dtucker) OpenBSD CVS Sync (regress/)
+   - djm@cvs.openbsd.org 2004/06/26 06:16:07
+     [reexec.sh]
+     don't change the name of the copied sshd for the reexec fallback test,
+     makes life simpler for portable
 
 20041203
  - (dtucker) OpenBSD CVS Sync
@@ -1894,4 +1899,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3590 2004/12/06 11:47:41 dtucker Exp $
+$Id: ChangeLog,v 1.3591 2004/12/06 12:00:27 dtucker Exp $
