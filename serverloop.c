@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.67 2001/05/31 10:30:16 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.68 2001/06/04 23:07:20 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -84,10 +84,7 @@ static u_int buffer_high;	/* "Soft" max buffer size. */
  * This SIGCHLD kludge is used to detect when the child exits.  The server
  * will exit after that, as soon as forwarded connections have terminated.
  */
-
-static pid_t child_pid;			/* Pid of the child. */
 static volatile int child_terminated;	/* The child has terminated. */
-static volatile int child_wait_status;	/* Status from wait(). */
 
 void	server_init_dispatch(void);
 
@@ -97,28 +94,9 @@ void
 sigchld_handler(int sig)
 {
 	int save_errno = errno;
-	pid_t wait_pid;
-
-	debug("Received SIGCHLD.");
-	wait_pid = wait((int *) &child_wait_status);
-	if (wait_pid != -1) {
-		if (wait_pid != child_pid)
-			error("Strange, got SIGCHLD and wait returned pid %d but child is %d",
-			      wait_pid, child_pid);
-		if (WIFEXITED(child_wait_status) ||
-		    WIFSIGNALED(child_wait_status))
-			child_terminated = 1;
-	}
-	signal(SIGCHLD, sigchld_handler);
-	errno = save_errno;
-}
-void
-sigchld_handler2(int sig)
-{
-	int save_errno = errno;
 	debug("Received SIGCHLD.");
 	child_terminated = 1;
-	mysignal(SIGCHLD, sigchld_handler2);
+	mysignal(SIGCHLD, sigchld_handler);
 	errno = save_errno;
 }
 
@@ -466,7 +444,6 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 	debug("Entering interactive session.");
 
 	/* Initialize the SIGCHLD kludge. */
-	child_pid = pid;
 	child_terminated = 0;
 	signal(SIGCHLD, sigchld_handler);
 
@@ -634,27 +611,15 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 	/* Stop listening for channels; this removes unix domain sockets. */
 	channel_stop_listening();
 
-	/* Wait for the child to exit.  Get its exit status. */
-	wait_pid = wait(&wait_status);
-	if (wait_pid == -1) {
-		/*
-		 * It is possible that the wait was handled by SIGCHLD
-		 * handler.  This may result in either: this call
-		 * returning with EINTR, or: this call returning ECHILD.
-		 */
-		if (child_terminated)
-			wait_status = child_wait_status;
-		else
-			packet_disconnect("wait: %.100s", strerror(errno));
-	} else {
-		/* Check if it matches the process we forked. */
-		if (wait_pid != pid)
-			error("Strange, wait returned pid %d, expected %d",
-			       wait_pid, pid);
-	}
-
 	/* We no longer want our SIGCHLD handler to be called. */
 	signal(SIGCHLD, SIG_DFL);
+
+	wait_pid = waitpid(-1, &wait_status, child_terminated ? WNOHANG : 0);
+	if (wait_pid == -1)
+		packet_disconnect("wait: %.100s", strerror(errno));
+	else if (wait_pid != pid)
+		error("Strange, wait returned pid %d, expected %d",
+		    wait_pid, pid);
 
 	/* Check if it exited normally. */
 	if (WIFEXITED(wait_status)) {
@@ -700,7 +665,7 @@ server_loop2(void)
 
 	debug("Entering interactive session for SSH2.");
 
-	mysignal(SIGCHLD, sigchld_handler2);
+	mysignal(SIGCHLD, sigchld_handler);
 	child_terminated = 0;
 	connection_in = packet_get_connection_in();
 	connection_out = packet_get_connection_out();

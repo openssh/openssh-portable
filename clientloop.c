@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.74 2001/05/31 10:30:15 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.75 2001/06/04 23:07:20 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -102,6 +102,7 @@ extern char *host;
  * because this is updated in a signal handler.
  */
 static volatile int received_window_change_signal = 0;
+static volatile int received_signal = 0;
 
 /* Flag indicating whether the user\'s terminal is in non-blocking mode. */
 static int in_non_blocking_mode = 0;
@@ -171,13 +172,8 @@ window_change_handler(int sig)
 void
 signal_handler(int sig)
 {
-	if (in_raw_mode())
-		leave_raw_mode();
-	if (in_non_blocking_mode)
-		leave_non_blocking();
-	channel_stop_listening();
-	packet_close();
-	fatal("Killed by signal %d.", sig);
+	received_signal = sig;
+	quit_pending = 1;
 }
 
 /*
@@ -933,14 +929,8 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 	/* Stop listening for connections. */
 	channel_stop_listening();
 
-	/*
-	 * In interactive mode (with pseudo tty) display a message indicating
-	 * that the connection has been closed.
-	 */
-	if (have_pty && options.log_level != SYSLOG_LEVEL_QUIET) {
-		snprintf(buf, sizeof buf, "Connection to %.64s closed.\r\n", host);
-		buffer_append(&stderr_buffer, buf, strlen(buf));
-	}
+	if (have_pty)
+		leave_raw_mode();
 
 	/* restore blocking io */
 	if (!isatty(fileno(stdin)))
@@ -949,6 +939,21 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 		unset_nonblock(fileno(stdout));
 	if (!isatty(fileno(stderr)))
 		unset_nonblock(fileno(stderr));
+
+	if (received_signal) {
+		if (in_non_blocking_mode)	/* XXX */
+			leave_non_blocking();
+		fatal("Killed by signal %d.", received_signal);
+	}
+
+	/*
+	 * In interactive mode (with pseudo tty) display a message indicating
+	 * that the connection has been closed.
+	 */
+	if (have_pty && options.log_level != SYSLOG_LEVEL_QUIET) {
+		snprintf(buf, sizeof buf, "Connection to %.64s closed.\r\n", host);
+		buffer_append(&stderr_buffer, buf, strlen(buf));
+	}
 
 	/* Output any buffered data for stdout. */
 	while (buffer_len(&stdout_buffer) > 0) {
@@ -973,9 +978,6 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 		buffer_consume(&stderr_buffer, len);
 		stderr_bytes += len;
 	}
-
-	if (have_pty)
-		leave_raw_mode();
 
 	/* Clear and free any buffers. */
 	memset(buf, 0, sizeof(buf));

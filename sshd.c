@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.198 2001/05/28 23:58:35 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.199 2001/06/04 23:07:21 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -167,8 +167,9 @@ struct {
  */
 int key_do_regen = 0;
 
-/* This is set to true when SIGHUP is received. */
+/* This is set to true when a signal is received. */
 int received_sighup = 0;
+int received_sigterm = 0;
 
 /* session identifier, used by RSA-auth */
 u_char session_id[16];
@@ -227,21 +228,16 @@ sighup_restart(void)
 
 /*
  * Generic signal handler for terminating signals in the master daemon.
- * These close the listen socket; not closing it seems to cause "Address
- * already in use" problems on some machines, which is inconvenient.
  */
 void
 sigterm_handler(int sig)
 {
-	log("Received signal %d; terminating.", sig);
-	close_listen_socks();
-	unlink(options.pid_file);
-	exit(255);
+	received_sigterm = sig;
 }
 
 /*
  * SIGCHLD handler.  This is called whenever a child dies.  This will then
- * reap any zombies left by exited c.
+ * reap any zombies left by exited children.
  */
 void
 main_sigchld_handler(int sig)
@@ -262,6 +258,8 @@ main_sigchld_handler(int sig)
 void
 grace_alarm_handler(int sig)
 {
+	/* XXX no idea how fix this signal handler */
+
 	/* Close the connection. */
 	packet_close();
 
@@ -939,6 +937,13 @@ main(int ac, char **av)
 			ret = select(maxfd+1, fdset, NULL, NULL, NULL);
 			if (ret < 0 && errno != EINTR)
 				error("select: %.100s", strerror(errno));
+			if (received_sigterm) {
+				log("Received signal %d; terminating.",
+				    received_sigterm);
+				close_listen_socks();
+				unlink(options.pid_file);
+				exit(255);
+			}
 			if (key_used && key_do_regen) {
 				generate_ephemeral_server_key();
 				key_used = 0;
