@@ -1,3 +1,6 @@
+20031122
+ - (dtucker) [channels.c] Make AIX write limit code clearer.  Suggested by djm@
+
 20031121
  - (djm) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2003/11/20 11:39:28
@@ -1498,4 +1501,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3119 2003/11/21 12:48:55 djm Exp $
+$Id: ChangeLog,v 1.3120 2003/11/22 03:10:02 dtucker Exp $

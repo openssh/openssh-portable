@@ -1398,8 +1398,8 @@ channel_handle_wfd(Channel *c, fd_set * readset, fd_set * writeset)
 		dlen = buffer_len(&c->output);
 #ifdef _AIX
 		/* XXX: Later AIX versions can't push as much data to tty */
-		if (compat20 && c->wfd_isatty && dlen > 8*1024)
-			dlen = 8*1024;
+		if (compat20 && c->wfd_isatty)
+			dlen = MIN(dlen, 8*1024);
 #endif
 		len = write(c->wfd, data, dlen);
 		if (len < 0 && (errno == EINTR || errno == EAGAIN))
