@@ -13,8 +13,9 @@ Functions for connecting the local authentication agent.
 
 */
 
+#include "config.h"
 #include "includes.h"
-RCSID("$Id: authfd.c,v 1.1 1999/10/27 03:42:43 damien Exp $");
+RCSID("$Id: authfd.c,v 1.2 1999/10/28 03:25:17 damien Exp $");
 
 #include "ssh.h"
 #include "rsa.h"
@@ -24,7 +25,12 @@ RCSID("$Id: authfd.c,v 1.1 1999/10/27 03:42:43 damien Exp $");
 #include "xmalloc.h"
 #include "getput.h"
 
+#ifdef HAVE_OPENSSL
 #include <openssl/rsa.h>
+#endif
+#ifdef HAVE_SSL
+#include <ssl/rsa.h>
+#endif
 
 /* Returns the number of the authentication fd, or -1 if there is none. */
 

@@ -14,10 +14,19 @@ login (authentication) dialog.
 
 */
 
+#include "config.h"
 #include "includes.h"
-RCSID("$Id: sshconnect.c,v 1.1 1999/10/27 03:42:45 damien Exp $");
+RCSID("$Id: sshconnect.c,v 1.2 1999/10/28 03:25:17 damien Exp $");
 
+#ifdef HAVE_OPENSSL
 #include <openssl/bn.h>
+#include <openssl/md5.h>
+#endif
+#ifdef HAVE_SSL
+#include <ssl/bn.h>
+#include <ssl/md5.h>
+#endif
+
 #include "xmalloc.h"
 #include "rsa.h"
 #include "ssh.h"
@@ -28,7 +37,6 @@ RCSID("$Id: sshconnect.c,v 1.1 1999/10/27 03:42:45 damien Exp $");
 #include "uidswap.h"
 #include "compat.h"
 
-#include <openssl/md5.h>
 
 /* Session id for the current session. */
 unsigned char session_id[16];

@@ -14,11 +14,19 @@ Buffers.
 
 */
 
+#include "config.h"
 #include "includes.h"
-RCSID("$Id: bufaux.c,v 1.1 1999/10/27 03:42:43 damien Exp $");
+RCSID("$Id: bufaux.c,v 1.2 1999/10/28 03:25:17 damien Exp $");
 
 #include "ssh.h"
+
+#ifdef HAVE_OPENSSL
 #include <openssl/bn.h>
+#endif
+#ifdef HAVE_SSL
+#include <ssl/bn.h>
+#endif
+
 #include "bufaux.h"
 #include "xmalloc.h"
 #include "getput.h"

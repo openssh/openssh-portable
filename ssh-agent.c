@@ -13,8 +13,9 @@ The authentication agent program.
 
 */
 
+#include "config.h"
 #include "includes.h"
-RCSID("$Id: ssh-agent.c,v 1.1 1999/10/27 03:42:45 damien Exp $");
+RCSID("$Id: ssh-agent.c,v 1.2 1999/10/28 03:25:17 damien Exp $");
 
 #include "ssh.h"
 #include "rsa.h"
@@ -26,7 +27,12 @@ RCSID("$Id: ssh-agent.c,v 1.1 1999/10/27 03:42:45 damien Exp $");
 #include "getput.h"
 #include "mpaux.h"
 
+#ifdef HAVE_OPENSSL
 #include <openssl/md5.h>
+#endif
+#ifdef HAVE_SSL
+#include <ssl/md5.h>
+#endif
 
 typedef struct
 {

@@ -13,12 +13,18 @@ Interface for the packet protocol functions.
 
 */
 
-/* RCSID("$Id: packet.h,v 1.1 1999/10/27 03:42:44 damien Exp $"); */
+/* RCSID("$Id: packet.h,v 1.2 1999/10/28 03:25:17 damien Exp $"); */
 
+#include "config.h"
 #ifndef PACKET_H
 #define PACKET_H
 
+#ifdef HAVE_OPENSSL
 #include <openssl/bn.h>
+#endif
+#ifdef HAVE_SSL
+#include <ssl/bn.h>
+#endif
 
 /* Sets the socket used for communication.  Disables encryption until
    packet_set_encryption_key is called.  It is permissible that fd_in

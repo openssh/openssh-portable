@@ -14,10 +14,17 @@ for reading the passphrase from the user.
 
 */
 
+#include "config.h"
 #include "includes.h"
-RCSID("$Id: authfile.c,v 1.1 1999/10/27 03:42:43 damien Exp $");
+RCSID("$Id: authfile.c,v 1.2 1999/10/28 03:25:17 damien Exp $");
 
+#ifdef HAVE_OPENSSL
 #include <openssl/bn.h>
+#endif
+#ifdef HAVE_SSL
+#include <ssl/bn.h>
+#endif
+
 #include "xmalloc.h"
 #include "buffer.h"
 #include "bufaux.h"

@@ -11,13 +11,19 @@ Created: Wed Apr 19 17:41:39 1995 ylo
 
 */
 
+#include "config.h"
 #include "includes.h"
-RCSID("$Id: cipher.c,v 1.1 1999/10/27 03:42:44 damien Exp $");
+RCSID("$Id: cipher.c,v 1.2 1999/10/28 03:25:17 damien Exp $");
 
 #include "ssh.h"
 #include "cipher.h"
 
+#ifdef HAVE_OPENSSL
 #include <openssl/md5.h>
+#endif
+#ifdef HAVE_SSL
+#include <ssl/md5.h>
+#endif
 
 /*
  * What kind of tripple DES are these 2 routines?

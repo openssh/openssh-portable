@@ -18,7 +18,7 @@ Modified to work with SSL by Niels Provos <provos@citi.umich.edu> in Canada.
 */
 
 #include "includes.h"
-RCSID("$Id: ssh.c,v 1.1 1999/10/27 03:42:45 damien Exp $");
+RCSID("$Id: ssh.c,v 1.2 1999/10/28 03:25:17 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -215,6 +215,7 @@ main(int ac, char **av)
   else
     cp = av0;
   if (strcmp(cp, "rsh") != 0 && strcmp(cp, "ssh") != 0 &&
+      strcmp(cp, "openssh") != 0 && strcmp(cp, "openlogin") != 0 &&
       strcmp(cp, "rlogin") != 0 && strcmp(cp, "slogin") != 0)
     host = cp;
   

@@ -33,8 +33,8 @@ The OpenBSD team
 Miscellania - 
 
 This version of SSH is based upon code retrieved from the OpenBSD CVS
-repository on 1999-10-26, which in turn was based on the last free 
-version of SSH released by Tatu Ylonen.
+repository on 1999-10-26 patched by Damien Miller <djm@ibs.com.au>, which 
+in turn was based on the last free version of SSH released by Tatu Ylonen.
 
 Code in helper.[ch] is Copyright 1999 Internet Business Solutions and
 is released under a X11-style license (see source file for details).
