@@ -6,6 +6,9 @@
    - stevesk@cvs.openbsd.org 2002/06/22 02:00:29
      [ssh.h]
      correct comment
+   - stevesk@cvs.openbsd.org 2002/06/22 02:40:23
+     [ssh.1]
+     section 5 not 4 for ssh_config
 
 20020622
  - (djm) Update README.privsep; spotted by fries@
@@ -1015,4 +1018,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2245 2002/06/23 00:30:30 mouring Exp $
+$Id: ChangeLog,v 1.2246 2002/06/23 00:31:24 mouring Exp $
