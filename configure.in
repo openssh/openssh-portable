@@ -1031,7 +1031,7 @@ DISPLAY_HACK_MSG="no"
 AC_ARG_WITH(ipaddr-display,
 	[  --with-ipaddr-display   Use ip address instead of hostname in \$DISPLAY],
 	[
-		if test "x$withval" = "xno" ; then	
+		if test "x$withval" != "xno" ; then	
 			AC_DEFINE(IPADDR_IN_DISPLAY)
 			DISPLAY_HACK_MSG="yes" 
 		fi

@@ -160,7 +160,7 @@
 #include "xmalloc.h"
 #include "loginrec.h"
 
-RCSID("$Id: loginrec.c,v 1.19 2000/08/15 00:01:22 djm Exp $");
+RCSID("$Id: loginrec.c,v 1.20 2000/08/15 00:21:17 djm Exp $");
 
 /**
  ** prototypes for helper functions in this file
@@ -1380,14 +1380,17 @@ lastlog_openseek(struct logininfo *li, int *fd, int filemode)
 		return 0;
 	}
 	
-	/* find this uid's offset in the lastlog file */
-	offset = (off_t) ( (long)li->uid * sizeof(struct lastlog));
+	if (type == LL_FILE) {
+		/* find this uid's offset in the lastlog file */
+		offset = (off_t) ( (long)li->uid * sizeof(struct lastlog));
 
-	if ( lseek(*fd, offset, SEEK_SET) != offset ) {
-		log("lastlog_openseek: %s->lseek(): %s",
-		    lastlog_file, strerror(errno));
-		return 0;
+		if ( lseek(*fd, offset, SEEK_SET) != offset ) {
+			log("lastlog_openseek: %s->lseek(): %s",
+		   	 lastlog_file, strerror(errno));
+			return 0;
+		}
 	}
+	
 	return 1;
 }
 

@@ -2,6 +2,9 @@
  - (djm) More SunOS 4.1.x fixes from Nate Itkin <nitkin@europa.com>
  - (djm) Avoid failures on Irix when ssh is not setuid. Fix from
    Michael Stone <mstone@cs.loyola.edu>
+ - (djm) Don't seek in directory based lastlogs
+ - (djm) Fix --with-ipaddr-display configure option test. Patch from 
+   Jarno Huuskonen <jhuuskon@messi.uku.fi>
 
 20000813
  - (djm) Add $(srcdir) to includes when compiling (for VPATH). Report from
