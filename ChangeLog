@@ -1,3 +1,5 @@
+20010221
+ - (bal) Removed -L/usr/ucblib -R/usr/ucblib for Solaris platform.
 20010220
  - (bal) Fix mixed up params to memmove() from Jan 5th in setenv.c and
    getcwd.c.
@@ -4078,4 +4080,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.805 2001/02/20 01:20:47 mouring Exp $
+$Id: ChangeLog,v 1.806 2001/02/20 18:22:38 mouring Exp $
