@@ -24,6 +24,9 @@
      [auth.c match.c match.h]
      delay hostname lookup until we see a ``@'' in DenyUsers and AllowUsers
      for sshd -u0; ok markus@
+   - stevesk@cvs.openbsd.org 2002/02/28 20:36:42
+     [sshd.8]
+     DenyUsers allows user@host pattern also
 
 20020226
  - (tim) Bug 12 [configure.ac] add sys/bitypes.h to int64_t tests
@@ -7755,4 +7758,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1897 2002/03/05 01:35:23 mouring Exp $
+$Id: ChangeLog,v 1.1898 2002/03/05 01:37:12 mouring Exp $
