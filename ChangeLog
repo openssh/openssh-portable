@@ -1,5 +1,6 @@
 20030120
  - (djm) Fix compilation for NetBSD from dtucker@zip.com.au
+ - (tim) [progressmeter.c] make compilers without long long happy.
 
 20030118
  - (djm) Revert fix for Bug #442 for now.
@@ -1037,4 +1038,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2576 2003/01/20 02:15:10 djm Exp $
+$Id: ChangeLog,v 1.2577 2003/01/20 04:15:13 tim Exp $
