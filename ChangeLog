@@ -58,6 +58,10 @@
      [bufaux.c bufaux.h buffer.c buffer.h]
      introduce a new buffer API that returns an error rather than fatal()ing
      when presented with bad data; ok markus@
+   - djm@cvs.openbsd.org 2004/10/29 23:57:05
+     [key.c]
+     use new buffer API to avoid fatal errors on corrupt keys in authorized_keys
+     files; ok markus@
 
 20041102
  - (dtucker) [configure.ac includes.h] Bug #947: Fix compile error on HP-UX
@@ -1837,4 +1841,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3577 2004/11/05 09:41:24 dtucker Exp $
+$Id: ChangeLog,v 1.3578 2004/11/05 09:42:28 dtucker Exp $
