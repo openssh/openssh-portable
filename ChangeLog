@@ -23,6 +23,8 @@
      spotted by cschneid AT cschneid.com
  - (djm) [openbsd-compat/sys-queue.h] Sync with OpenBSD, needed for 
    above change
+ - (djm) [configure.ac] Check whether libroken is required when building 
+   with Heimdal
 
 20040419
  - (dtucker) OpenBSD CVS Sync
@@ -1027,4 +1029,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3328 2004/04/20 10:20:40 djm Exp $
+$Id: ChangeLog,v 1.3329 2004/04/20 10:28:55 djm Exp $
