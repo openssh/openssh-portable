@@ -47,7 +47,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.112 2004/07/18 23:39:11 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.113 2004/07/21 10:54:47 djm Exp $");
 
 #ifdef USE_PAM
 #if defined(HAVE_SECURITY_PAM_APPL_H)
@@ -365,8 +365,12 @@ sshpam_thread(void *ctxtp)
 	const char *pam_user;
 
 	pam_get_item(sshpam_handle, PAM_USER, (void **)&pam_user);
-	setproctitle("%s [pam]", pam_user);
 	environ[0] = NULL;
+
+	if (sshpam_authctxt != NULL) {
+		setproctitle("%s [pam]",
+		    sshpam_authctxt->valid ? pam_user : "unknown");
+	}
 #endif
 
 	sshpam_conv.conv = sshpam_thread_conv;
