@@ -1,3 +1,6 @@
+19991204
+ - Small cleanup of PAM code in sshd.c
+
 19991126
  - Add definition for __P()
  - Added [v]snprintf() replacement for systems that lack it

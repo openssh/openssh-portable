@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.32 1999/11/25 00:54:59 damien Exp $");
+RCSID("$Id: sshd.c,v 1.33 1999/12/04 09:24:48 damien Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -138,8 +138,7 @@ void do_child(const char *command, struct passwd * pw, const char *term,
 #ifdef HAVE_LIBPAM
 static int pamconv(int num_msg, const struct pam_message **msg,
 	  struct pam_response **resp, void *appdata_ptr);
-void do_pam_account_and_session(char *username, char *remote_user, 
-	  const char *remote_host);
+void do_pam_account_and_session(char *username, char *remote_user);
 void pam_cleanup_proc(void *context);
 
 static struct pam_conv conv = {
@@ -229,18 +228,16 @@ void pam_cleanup_proc(void *context)
 	}
 }
 
-void do_pam_account_and_session(char *username, char *remote_user, 
-	 const char *remote_host)
+void do_pam_account_and_session(char *username, char *remote_user)
 {
 	int pam_retval;
 
-	if (remote_host != NULL) {
-		debug("PAM setting rhost to \"%.200s\"", remote_host);
-		pam_retval = pam_set_item((pam_handle_t *)pamh, PAM_RHOST, remote_host);
-		if (pam_retval != PAM_SUCCESS) {
-			log("PAM set rhost failed: %.200s", PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
-			do_fake_authloop(username);
-		}
+	debug("PAM setting rhost to \"%.200s\"", get_canonical_hostname());
+	pam_retval = pam_set_item((pam_handle_t *)pamh, PAM_RHOST, 
+		get_canonical_hostname());
+	if (pam_retval != PAM_SUCCESS) {
+		log("PAM set rhost failed: %.200s", PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
+		do_fake_authloop(username);
 	}
 
 	if (remote_user != NULL) {
@@ -1555,8 +1552,7 @@ do_authloop(struct passwd * pw)
 			user);
 
 #ifdef HAVE_LIBPAM
-		do_pam_account_and_session(pw->pw_name, client_user,
-			get_canonical_hostname());
+		do_pam_account_and_session(pw->pw_name, client_user);
 
 		/* Clean up */
 		if (client_user != NULL)
@@ -2449,6 +2445,7 @@ do_child(const char *command, struct passwd * pw, const char *term,
 			equals = strstr(pam_env[i], "=");
 			if ((strlen(pam_env[i]) < (sizeof(var_name) - 1)) && (equals != NULL))
 			{
+				debug("PAM environment: %s=%s", var_name, var_val);
 				memset(var_name, '\0', sizeof(var_name));
 				memset(var_val, '\0', sizeof(var_val));
 				strncpy(var_name, pam_env[i], equals - pam_env[i]);
