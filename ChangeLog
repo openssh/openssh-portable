@@ -29,6 +29,9 @@
   - markus@cvs.openbsd.org 2001/02/12 23:26:20
     [sshd.c]
     missing memset; from solar@openwall.com
+  - stevesk@cvs.openbsd.org 2001/02/12 20:53:33
+    [sftp-int.c]
+    lumask now works with 1 numeric arg; ok markus@, djm@
 
 20010214
  - (djm) Don't try to close PAM session or delete credentials if the
@@ -3957,4 +3960,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.767 2001/02/15 03:17:13 mouring Exp $
+$Id: ChangeLog,v 1.768 2001/02/15 03:19:56 mouring Exp $

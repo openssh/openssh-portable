@@ -28,7 +28,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.20 2001/02/10 00:45:26 djm Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.21 2001/02/12 20:53:33 stevesk Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -293,7 +293,9 @@ parse_args(const char **cpp, int *pflag, unsigned long *n_arg,
     char **path1, char **path2)
 {
 	const char *cmd, *cp = *cpp;
+	char *cp2;
 	int base = 0;
+	long l;
 	int i, cmdnum;
 
 	/* Skip leading whitespace */
@@ -387,18 +389,24 @@ parse_args(const char **cpp, int *pflag, unsigned long *n_arg,
 		/* Uses the rest of the line */
 		break;
 	case I_LUMASK:
+		base = 8;
 	case I_CHMOD:
 		base = 8;
 	case I_CHOWN:
 	case I_CHGRP:
 		/* Get numeric arg (mandatory) */
-		if (*cp < '0' && *cp > '9') {
+		l = strtol(cp, &cp2, base);
+		if (cp2 == cp || ((l == LONG_MIN || l == LONG_MAX) &&
+		    errno == ERANGE) || l < 0) {
 			error("You must supply a numeric argument "
 			    "to the %s command.", cmd);
 			return(-1);
 		}
-		*n_arg = strtoul(cp, (char**)&cp, base);
-		if (!*cp || !strchr(WHITESPACE, *cp)) {
+		cp = cp2;
+		*n_arg = l;
+		if (cmdnum == I_LUMASK && strchr(WHITESPACE, *cp))
+			break;
+		if (cmdnum == I_LUMASK || !strchr(WHITESPACE, *cp)) {
 			error("You must supply a numeric argument "
 			    "to the %s command.", cmd);
 			return(-1);
@@ -530,6 +538,7 @@ parse_dispatch_command(int in, int out, const char *cmd, char **pwd)
 		break;
 	case I_LUMASK:
 		umask(n_arg);
+		printf("Local umask: %03lo\n", n_arg);
 		break;
 	case I_CHMOD:
 		path1 = make_absolute(path1, *pwd);
