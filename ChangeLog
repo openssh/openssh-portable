@@ -18,6 +18,9 @@
      support for password change; ok dtucker@
      (set password-dead=1w in login.conf to use this).
      In -Portable, this is currently only platforms using bsdauth.
+   - dtucker@cvs.openbsd.org 2004/02/05 05:37:17
+     [monitor.c sshd.c]
+     Pass SIGALRM through to privsep child if LoginGraceTime expires. ok markus@
 
 20040129
  - (dtucker) OpenBSD CVS Sync regress/
@@ -1803,4 +1806,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3212 2004/02/06 05:24:31 dtucker Exp $
+$Id: ChangeLog,v 1.3213 2004/02/06 05:40:27 dtucker Exp $

@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.284 2003/12/09 21:53:37 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.285 2004/02/05 05:37:17 dtucker Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -200,7 +200,7 @@ int startup_pipe;		/* in child */
 
 /* variables used for privilege separation */
 int use_privsep;
-struct monitor *pmonitor;
+struct monitor *pmonitor = NULL;
 
 /* message to be displayed after login */
 Buffer loginmsg;
@@ -305,6 +305,9 @@ static void
 grace_alarm_handler(int sig)
 {
 	/* XXX no idea how fix this signal handler */
+
+	if (use_privsep && pmonitor != NULL && pmonitor->m_pid > 0)
+		kill(pmonitor->m_pid, SIGALRM);
 
 	/* Log error and exit. */
 	fatal("Timeout before authentication for %s", get_remote_ipaddr());
@@ -593,6 +596,7 @@ privsep_preauth(Authctxt *authctxt)
 		debug2("Network child is on pid %ld", (long)pid);
 
 		close(pmonitor->m_recvfd);
+		pmonitor->m_pid = pid;
 		monitor_child_preauth(authctxt, pmonitor);
 		close(pmonitor->m_sendfd);
 
