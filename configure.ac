@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.229 2004/09/11 13:26:37 dtucker Exp $
+# $Id: configure.ac,v 1.230 2004/09/12 12:36:16 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -506,10 +506,11 @@ AC_ARG_WITH(libs,
 )
 
 AC_MSG_CHECKING(compiler and flags for sanity)
-AC_RUN_IFELSE([
+AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([
 #include <stdio.h>
 int main(){exit(0);}
-	],
+	])],
 	[	AC_MSG_RESULT(yes) ],
 	[
 		AC_MSG_RESULT(no)
@@ -648,7 +649,7 @@ AC_ARG_WITH(zlib-version-check,
 )
 
 AC_MSG_CHECKING(for zlib 1.1.4 or greater)
-AC_RUN_IFELSE([
+AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <zlib.h>
 int main()
 {
@@ -660,7 +661,7 @@ int main()
 		exit(0);
 	exit(2);
 }
-	],
+	]])],
 	AC_MSG_RESULT(yes),
 	[ AC_MSG_RESULT(no)
 	  if test -z "$zlib_check_nonfatal" ; then
@@ -729,11 +730,11 @@ AC_EGREP_CPP(FOUNDIT,
 
 AC_MSG_CHECKING([whether struct dirent allocates space for d_name])
 AC_RUN_IFELSE(
-	[
+	[AC_LANG_SOURCE([[
 #include <sys/types.h>
 #include <dirent.h>
 int main(void){struct dirent d;exit(sizeof(d.d_name)<=sizeof(char));}
-	],
+	]])],
 	[AC_MSG_RESULT(yes)],
 	[
 		AC_MSG_RESULT(no)
@@ -901,11 +902,12 @@ AC_CHECK_DECLS(h_errno, , ,[#include <netdb.h>])
 AC_CHECK_FUNCS(setresuid, [
 	dnl Some platorms have setresuid that isn't implemented, test for this
 	AC_MSG_CHECKING(if setresuid seems to work)
-	AC_RUN_IFELSE([
+	AC_RUN_IFELSE(
+		[AC_LANG_SOURCE([[
 #include <stdlib.h>
 #include <errno.h>
 int main(){errno=0; setresuid(0,0,0); if (errno==ENOSYS) exit(1); else exit(0);}
-		],
+		]])],
 		[AC_MSG_RESULT(yes)],
 		[AC_DEFINE(BROKEN_SETRESUID)
 		 AC_MSG_RESULT(not implemented)],
@@ -916,11 +918,12 @@ int main(){errno=0; setresuid(0,0,0); if (errno==ENOSYS) exit(1); else exit(0);}
 AC_CHECK_FUNCS(setresgid, [
 	dnl Some platorms have setresgid that isn't implemented, test for this
 	AC_MSG_CHECKING(if setresgid seems to work)
-	AC_RUN_IFELSE([
+	AC_RUN_IFELSE(
+		[AC_LANG_SOURCE([[
 #include <stdlib.h>
 #include <errno.h>
 int main(){errno=0; setresgid(0,0,0); if (errno==ENOSYS) exit(1); else exit(0);}
-		],
+		]])],
 		[AC_MSG_RESULT(yes)],
 		[AC_DEFINE(BROKEN_SETRESGID)
 		 AC_MSG_RESULT(not implemented)],
@@ -951,10 +954,10 @@ AC_CHECK_FUNC(getpagesize,
 if test "x$ac_cv_func_snprintf" = "xyes" ; then
 	AC_MSG_CHECKING([whether snprintf correctly terminates long strings])
 	AC_RUN_IFELSE(
-		[
+		[AC_LANG_SOURCE([[
 #include <stdio.h>
 int main(void){char b[5];snprintf(b,5,"123456789");exit(b[4]!='\0');}
-		],
+		]])],
 		[AC_MSG_RESULT(yes)],
 		[
 			AC_MSG_RESULT(no)
@@ -1223,7 +1226,7 @@ AC_TRY_LINK_FUNC(RAND_add, AC_DEFINE(HAVE_OPENSSL),
 # Determine OpenSSL header version
 AC_MSG_CHECKING([OpenSSL header version])
 AC_RUN_IFELSE(
-	[
+	[AC_LANG_SOURCE([[
 #include <stdio.h>
 #include <string.h>
 #include <openssl/opensslv.h>
@@ -1241,7 +1244,7 @@ int main(void) {
 
 	exit(0);
 }
-	],
+	]])],
 	[
 		ssl_header_ver=`cat conftest.sslincver`
 		AC_MSG_RESULT($ssl_header_ver)
@@ -1258,7 +1261,7 @@ int main(void) {
 # Determine OpenSSL library version
 AC_MSG_CHECKING([OpenSSL library version])
 AC_RUN_IFELSE(
-	[
+	[AC_LANG_SOURCE([[
 #include <stdio.h>
 #include <string.h>
 #include <openssl/opensslv.h>
@@ -1277,7 +1280,7 @@ int main(void) {
 
 	exit(0);
 }
-	],
+	]])],
 	[
 		ssl_library_ver=`cat conftest.ssllibver`
 		AC_MSG_RESULT($ssl_library_ver)
@@ -1294,11 +1297,11 @@ int main(void) {
 # Sanity check OpenSSL headers
 AC_MSG_CHECKING([whether OpenSSL's headers match the library])
 AC_RUN_IFELSE(
-	[
+	[AC_LANG_SOURCE([[
 #include <string.h>
 #include <openssl/opensslv.h>
 int main(void) { exit(SSLeay() == OPENSSL_VERSION_NUMBER ? 0 : 1); }
-	],
+	]])],
 	[
 		AC_MSG_RESULT(yes)
 	],
@@ -1331,11 +1334,11 @@ fi
 # Check wheter OpenSSL seeds itself
 AC_MSG_CHECKING([whether OpenSSL's PRNG is internally seeded])
 AC_RUN_IFELSE(
-	[
+	[AC_LANG_SOURCE([[
 #include <string.h>
 #include <openssl/rand.h>
 int main(void) { exit(RAND_status() == 1 ? 0 : 1); }
-	],
+	]])],
 	[
 		OPENSSL_SEEDS_ITSELF=yes
 		AC_MSG_RESULT(yes)
@@ -1918,7 +1921,7 @@ if test "x$ac_cv_have_int64_t" = "xno" -a \
 else
 dnl test snprintf (broken on SCO w/gcc)
 	AC_RUN_IFELSE(
-		[
+		[AC_LANG_SOURCE([[
 #include <stdio.h>
 #include <string.h>
 #ifdef HAVE_SNPRINTF
@@ -1941,7 +1944,7 @@ main()
 #else
 main() { exit(0); }
 #endif
-		], [ true ], [ AC_DEFINE(BROKEN_SNPRINTF) ],
+		]])], [ true ], [ AC_DEFINE(BROKEN_SNPRINTF) ],
 		AC_MSG_WARN([cross compiling: Assuming working snprintf()])
 	)
 fi
@@ -2413,7 +2416,7 @@ if test ! -z "$MAIL" ; then
 	AC_DEFINE_UNQUOTED(MAIL_DIRECTORY, "$maildir")
 fi
 
-if test ! -z "$cross_compiling"; then
+if test ! -z "$cross_compiling" && test "x$cross_compiling" = "xyes"; then
 	AC_MSG_WARN([cross compiling: Disabling /dev/ptmx test])
 	disable_ptmx_check=yes
 fi
@@ -2428,7 +2431,7 @@ if test -z "$no_dev_ptmx" ; then
 	fi
 fi
 
-if test -z "$cross_compiling"; then
+if test ! -z "$cross_compiling" && test "x$cross_compiling" != "xyes"; then
 	AC_CHECK_FILE("/dev/ptc",
 		[
 			AC_DEFINE_UNQUOTED(HAVE_DEV_PTS_AND_PTC)
@@ -2537,7 +2540,8 @@ AC_ARG_ENABLE(etc-default-login,
 	[ AC_CHECK_FILE("/etc/default/login",
 	    [ external_path_file=/etc/default/login ])
 
-	if test ! -z "$cross_compiling"; then
+	if test ! -z "$cross_compiling" && test "x$cross_compiling" = "xyes";
+	then
 		AC_MSG_WARN([cross compiling: Disabling /etc/default/login test])
 	elif test "x$external_path_file" = "x/etc/default/login"; then
 		AC_DEFINE(HAVE_ETC_DEFAULT_LOGIN)
