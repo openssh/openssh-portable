@@ -1,5 +1,10 @@
 20020723
  - (bal) [bsd-cray.c bsd-cray.h] Part 2 of Cray merger. 
+ - (bal) OpenBSD Sync
+   - markus@cvs.openbsd.org 2002/07/19 15:43:33
+     [log.c log.h session.c sshd.c]
+     remove fatal cleanups after fork; based on discussions with and code
+     from solar.
  
 20020722
  - (bal) AIX tty data limiting patch fix by leigh@solinno.co.uk
@@ -1423,4 +1428,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2394 2002/07/23 21:00:17 mouring Exp $
+$Id: ChangeLog,v 1.2395 2002/07/23 21:01:56 mouring Exp $

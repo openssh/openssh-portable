@@ -34,7 +34,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: log.c,v 1.23 2002/07/06 01:00:49 deraadt Exp $");
+RCSID("$OpenBSD: log.c,v 1.24 2002/07/19 15:43:33 markus Exp $");
 
 #include "log.h"
 #include "xmalloc.h"
@@ -221,6 +221,18 @@ fatal_remove_cleanup(void (*proc) (void *context), void *context)
 	}
 	fatal("fatal_remove_cleanup: no such cleanup function: 0x%lx 0x%lx",
 	    (u_long) proc, (u_long) context);
+}
+
+/* Remove all cleanups, to be called after fork() */
+void
+fatal_remove_all_cleanups(void)
+{
+	struct fatal_cleanup *cu, *next_cu;
+
+	for (cu = fatal_cleanups; cu; cu = next_cu) {
+		next_cu = cu->next;
+		xfree(cu);
+	}
 }
 
 /* Cleanup and exit */

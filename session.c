@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.143 2002/06/30 21:54:16 deraadt Exp $");
+RCSID("$OpenBSD: session.c,v 1.144 2002/07/19 15:43:33 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -470,6 +470,8 @@ do_exec_no_pty(Session *s, const char *command)
 
 	/* Fork the child. */
 	if ((pid = fork()) == 0) {
+		fatal_remove_all_cleanups();
+
 		/* Child.  Reinitialize the log since the pid has changed. */
 		log_init(__progname, options.log_level, options.log_facility, log_stderr);
 
@@ -585,6 +587,7 @@ do_exec_pty(Session *s, const char *command)
 
 	/* Fork the child. */
 	if ((pid = fork()) == 0) {
+		fatal_remove_all_cleanups();
 
 		/* Child.  Reinitialize the log because the pid has changed. */
 		log_init(__progname, options.log_level, options.log_facility, log_stderr);
