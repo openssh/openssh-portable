@@ -151,8 +151,7 @@ fi
 
 %files
 %defattr(-,root,root)
-%doc ChangeLog ChangeLog.Ylonen OVERVIEW 
-%doc README README.Ylonen INSTALL UPGRADING
+%doc ChangeLog OVERVIEW COPYING.Ylonen README README.Ylonen INSTALL UPGRADING
 %attr(0755,root,root) /usr/bin/ssh-keygen
 %attr(0755,root,root) /usr/bin/scp
 %attr(0644,root,root) /usr/man/man1/ssh-keygen.1
