@@ -60,7 +60,6 @@ Summary: OpenSSH Secure Shell protocol server (sshd)
 Group: System Environment/Daemons
 Obsoletes: ssh-server
 PreReq: openssh = %{version}-%{release}, chkconfig >= 0.9
-Requires: initscripts >= 4.16
 %if %{redhat7}
 Requires: /etc/pam.d/system-auth
 %endif

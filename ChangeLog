@@ -5,6 +5,8 @@
    - markus@cvs.openbsd.org 2001/02/23 15:37:45
      [session.c]
      handle SSH_PROTOFLAG_SCREEN_NUMBER for buggy clients
+ - (bal) sshd.init support for all Redhat release.  Patch by Jim Knoble 
+   <jmknoble@jmknoble.cx>
 
 20010226
  - (bal) Fixed bsd-snprinf.c so it now honors 'BROKEN_SNPRINTF' again.
@@ -4139,4 +4141,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.825 2001/02/26 20:13:32 mouring Exp $
+$Id: ChangeLog,v 1.826 2001/02/26 20:38:53 mouring Exp $
