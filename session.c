@@ -432,6 +432,9 @@ do_exec_no_pty(Session *s, const char *command)
 #if defined(USE_PAM)
 	do_pam_session(s->pw->pw_name, NULL);
 	do_pam_setcred(1);
+	if (is_pam_password_change_required())
+		packet_disconnect("Password change required but no "
+		    "TTY available");
 #endif /* USE_PAM */
 
 	/* Fork the child. */
