@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.38 2000/10/12 14:21:12 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.39 2000/12/06 22:58:15 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -1100,6 +1100,9 @@ packet_send_debug(const char *fmt,...)
 {
 	char buf[1024];
 	va_list args;
+
+	if (compat20 && (datafellows & SSH_BUG_DEBUG))
+		return;
 
 	va_start(args, fmt);
 	vsnprintf(buf, sizeof(buf), fmt, args);

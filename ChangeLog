@@ -1,3 +1,9 @@
+20001207
+ - (bal) OpenSSH CVS updates:
+   - markus@cvs.openbsd.org 2000/12/06 22:58:14 
+     [compat.c compat.h packet.c]
+     disable debug messages for ssh.com/f-secure 2.0.1x, 2.1.0
+
 20001206
  - (bal) OpenSSH CVS updates:
    - markus@cvs.openbsd.org 2000/12/05 20:34:09
