@@ -200,6 +200,7 @@ fi
 %attr(0644,root,root) /usr/man/man1/ssh-keygen.1
 %attr(0644,root,root) /usr/man/man1/scp.1
 %attr(0755,root,root) %dir /etc/ssh
+%attr(0755,root,root) %dir /usr/libexec/ssh
 
 %files clients
 %defattr(-,root,root)
@@ -212,7 +213,6 @@ fi
 %attr(0644,root,root) %config(noreplace) /etc/ssh/ssh_config
 %attr(-,root,root) /usr/bin/slogin
 %attr(-,root,root) /usr/man/man1/slogin.1
-%attr(0755,root,root) %dir /usr/libexec/ssh
 
 %files server
 %defattr(-,root,root)

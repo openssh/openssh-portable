@@ -212,6 +212,7 @@ fi
 %attr(0644,root,root) %doc /usr/man/man1/ssh-keygen.1
 %attr(0644,root,root) %doc /usr/man/man1/scp.1
 %attr(0755,root,root) %dir /etc/ssh
+%attr(0755,root,root) %dir /usr/libexec/ssh
 
 %files clients
 %defattr(-,root,root)
@@ -237,7 +238,6 @@ fi
 
 %files askpass
 %defattr(-,root,root)
-%attr(0755,root,root) %dir /usr/libexec/ssh
 %attr(0755,root,root) /usr/libexec/ssh/ssh-askpass
 %attr(0755,root,root) /usr/libexec/ssh/gnome-ssh-askpass
 
