@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.80 2001/01/08 22:29:05 markus Exp $
+.\" $OpenBSD: sshd.8,v 1.81 2001/01/13 18:56:48 markus Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -303,14 +303,14 @@ Default is
 This keyword can be followed by a number of group names, separated
 by spaces.
 If specified, login is allowed only for users whose primary
-group matches one of the patterns.
+group or supplementary group list matches one of the patterns.
 .Ql \&*
 and
 .Ql ?
 can be used as
 wildcards in the patterns.
 Only group names are valid; a numerical group ID isn't recognized.
-By default login is allowed regardless of the primary group.
+By default login is allowed regardless of the group list.
 .Pp
 .It Cm AllowTcpForwarding
 Specifies whether TCP forwarding is permitted.
@@ -354,15 +354,15 @@ The default is
 .It Cm DenyGroups
 This keyword can be followed by a number of group names, separated
 by spaces.
-Users whose primary group matches one of the patterns
-aren't allowed to log in.
+Users whose primary group or supplementary group list matches
+one of the patterns aren't allowed to log in.
 .Ql \&*
 and
 .Ql ?
 can be used as
 wildcards in the patterns.
 Only group names are valid; a numerical group ID isn't recognized.
-By default login is allowed regardless of the primary group.
+By default login is allowed regardless of the group list.
 .Pp
 .It Cm DenyUsers
 This keyword can be followed by a number of user names, separated

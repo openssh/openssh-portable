@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth.c,v 1.11 2000/10/11 20:27:23 markus Exp $");
+RCSID("$OpenBSD: auth.c,v 1.12 2001/01/13 18:56:48 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -46,6 +46,7 @@ RCSID("$OpenBSD: auth.c,v 1.11 2000/10/11 20:27:23 markus Exp $");
 #include "compat.h"
 #include "channels.h"
 #include "match.h"
+#include "groupaccess.h"
 #ifdef HAVE_LOGIN_H
 #include <login.h>
 #endif
@@ -62,11 +63,11 @@ RCSID("$OpenBSD: auth.c,v 1.11 2000/10/11 20:27:23 markus Exp $");
 extern ServerOptions options;
 
 /*
- * Check if the user is allowed to log in via ssh. If user is listed in
- * DenyUsers or user's primary group is listed in DenyGroups, false will
- * be returned. If AllowUsers isn't empty and user isn't listed there, or
- * if AllowGroups isn't empty and user isn't listed there, false will be
- * returned.
+ * Check if the user is allowed to log in via ssh. If user is listed
+ * in DenyUsers or one of user's groups is listed in DenyGroups, false
+ * will be returned. If AllowUsers isn't empty and user isn't listed
+ * there, or if AllowGroups isn't empty and one of user's groups isn't
+ * listed there, false will be returned.
  * If the user's shell is not executable, false will be returned.
  * Otherwise true is returned.
  */
@@ -74,7 +75,6 @@ int
 allowed_user(struct passwd * pw)
 {
 	struct stat st;
-	struct group *grp;
 	char *shell;
 	int i;
 #ifdef WITH_AIXAUTHENTICATE
@@ -82,10 +82,10 @@ allowed_user(struct passwd * pw)
 #endif /* WITH_AIXAUTHENTICATE */
 #if !defined(USE_PAM) && defined(HAVE_SHADOW_H) && \
 	!defined(DISABLE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
-  struct spwd *spw;
+	struct spwd *spw;
 
 	/* Shouldn't be called if pw is NULL, but better safe than sorry... */
-	if (!pw)
+	if (!pw || !pw->pw_name)
 		return 0;
 
 	spw = getspnam(pw->pw_name);
@@ -103,7 +103,7 @@ allowed_user(struct passwd * pw)
 	}
 #else
 	/* Shouldn't be called if pw is NULL, but better safe than sorry... */
-	if (!pw)
+	if (!pw || !pw->pw_name)
 		return 0;
 #endif
 
@@ -121,16 +121,12 @@ allowed_user(struct passwd * pw)
 
 	/* Return false if user is listed in DenyUsers */
 	if (options.num_deny_users > 0) {
-		if (!pw->pw_name)
-			return 0;
 		for (i = 0; i < options.num_deny_users; i++)
 			if (match_pattern(pw->pw_name, options.deny_users[i]))
 				return 0;
 	}
 	/* Return false if AllowUsers isn't empty and user isn't listed there */
 	if (options.num_allow_users > 0) {
-		if (!pw->pw_name)
-			return 0;
 		for (i = 0; i < options.num_allow_users; i++)
 			if (match_pattern(pw->pw_name, options.allow_users[i]))
 				break;
@@ -138,35 +134,29 @@ allowed_user(struct passwd * pw)
 		if (i >= options.num_allow_users)
 			return 0;
 	}
-	/* Get the primary group name if we need it. Return false if it fails */
 	if (options.num_deny_groups > 0 || options.num_allow_groups > 0) {
-		grp = getgrgid(pw->pw_gid);
-		if (!grp)
+		/* Get the user's group access list (primary and supplementary) */
+		if (ga_init(pw->pw_name, pw->pw_gid) == 0)
 			return 0;
 
-		/* Return false if user's group is listed in DenyGroups */
-		if (options.num_deny_groups > 0) {
-			if (!grp->gr_name)
+		/* Return false if one of user's groups is listed in DenyGroups */
+		if (options.num_deny_groups > 0)
+			if (ga_match(options.deny_groups,
+			    options.num_deny_groups)) {
+				ga_free();
 				return 0;
-			for (i = 0; i < options.num_deny_groups; i++)
-				if (match_pattern(grp->gr_name, options.deny_groups[i]))
-					return 0;
-		}
+			}
 		/*
-		 * Return false if AllowGroups isn't empty and user's group
+		 * Return false if AllowGroups isn't empty and one of user's groups
 		 * isn't listed there
 		 */
-		if (options.num_allow_groups > 0) {
-			if (!grp->gr_name)
+		if (options.num_allow_groups > 0)
+			if (!ga_match(options.allow_groups,
+			    options.num_allow_groups)) {
+				ga_free();
 				return 0;
-			for (i = 0; i < options.num_allow_groups; i++)
-				if (match_pattern(grp->gr_name, options.allow_groups[i]))
-					break;
-			/* i < options.num_allow_groups iff we break for
-			   loop */
-			if (i >= options.num_allow_groups)
-				return 0;
-		}
+			}
+		ga_free();
 	}
 
 #ifdef WITH_AIXAUTHENTICATE

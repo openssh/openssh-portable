@@ -5,6 +5,11 @@
    - add bsd-getgrouplist.h
    - new files groupaccess.[ch]
    - build but don't use yet (need to merge auth.c changes)
+ - (stevesk) complete:
+   - markus@cvs.openbsd.org  2001/01/13 11:56:48
+     [auth.c sshd.8]
+     support supplementary group in {Allow,Deny}Groups
+     from stevesk@pobox.com
 	
 20010112
  - (bal) OpenBSD Sync
