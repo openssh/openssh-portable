@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.205 2005/03/01 10:40:27 djm Exp $
+.\" $OpenBSD: sshd.8,v 1.206 2005/03/01 14:59:49 jmc Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -554,9 +554,9 @@ pattern, it is not accepted (by that line) even if it matched another
 pattern on the line.
 .Pp
 Alternately, hostnames may be stored in a hashed form which hides host names
-and addresses should the file's contents be disclosed. Hashed hostnames start
-with a 
-.Ql \&|
+and addresses should the file's contents be disclosed.
+Hashed hostnames start with a
+.Ql |
 character.
 Only one hashed hostname may appear on a single line and none of the above
 negation or wildcard operators may be applied.
