@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.54 2002/05/08 02:51:32 tim Exp $
+# $Id: configure.ac,v 1.55 2002/05/08 23:04:14 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -21,6 +21,7 @@ AC_PATH_PROGS(FILEPRIV, filepriv, true, /sbin:/usr/sbin)
 AC_PATH_PROG(TEST_MINUS_S_SH, bash)
 AC_PATH_PROG(TEST_MINUS_S_SH, ksh)
 AC_PATH_PROG(TEST_MINUS_S_SH, sh)
+AC_PATH_PROG(SH, sh)
 
 # System features
 AC_SYS_LARGEFILE

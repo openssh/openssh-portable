@@ -1,6 +1,7 @@
 20020507
  - (tim) [openbsd-compat/bsd-arc4random.c] fix logic on when seed_rng() is
    called. Report by Chris Maxwell <maxwell@cs.dal.ca>
+ - (tim) [Makefile.in configure.ac] set SHELL variable in Makefile
 
 20020507
  - (tim) [configure.ac openbsd-compat/bsd-misc.c openbsd-compat/bsd-misc.h]
@@ -543,4 +544,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2097 2002/05/08 22:57:18 tim Exp $
+$Id: ChangeLog,v 1.2098 2002/05/08 23:04:14 tim Exp $

@@ -1,4 +1,6 @@
-# $Id: Makefile.in,v 1.204 2002/04/15 03:24:00 djm Exp $
+# $Id: Makefile.in,v 1.205 2002/05/08 23:04:14 tim Exp $
+
+SHELL = @SH@
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
