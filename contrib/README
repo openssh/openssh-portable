@@ -11,11 +11,10 @@ or http proxy which supports the CONNECT method (eg. Squid).
 In this directory
 -----------------
 
-chroot.diff:
+chroot.diff: 
 
-Ricardo Cerqueira's <rmcc@clix.pt> patch to enable chrooting using the
-wu-ftpd style magic home directories (containing '/./'). More details in
-the head of the patch itself.
+Due to the fact the patch is never in sync with the rest of the tree.  It was
+removed. 
 
 ssh-copy-id:
 
