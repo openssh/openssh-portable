@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rh-rsa.c,v 1.26 2001/11/07 22:41:51 markus Exp $");
+RCSID("$OpenBSD: auth-rh-rsa.c,v 1.27 2001/12/27 19:54:53 markus Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -32,16 +32,15 @@ RCSID("$OpenBSD: auth-rh-rsa.c,v 1.26 2001/11/07 22:41:51 markus Exp $");
  */
 
 int
-auth_rhosts_rsa(struct passwd *pw, const char *client_user, RSA *client_host_key)
+auth_rhosts_rsa(struct passwd *pw, const char *client_user, Key *client_host_key)
 {
 	extern ServerOptions options;
 	const char *canonical_hostname;
 	HostStatus host_status;
-	Key *client_key;
 
 	debug("Trying rhosts with RSA host authentication for client user %.100s", client_user);
 
-	if (pw == NULL || client_host_key == NULL)
+	if (pw == NULL || client_host_key == NULL || client_host_key->rsa == NULL)
 		return 0;
 
 	/* Check if we would accept it using rhosts authentication. */
@@ -53,16 +52,9 @@ auth_rhosts_rsa(struct passwd *pw, const char *client_user, RSA *client_host_key
 
 	debug("Rhosts RSA authentication: canonical host %.900s", canonical_hostname);
 
-	/* wrap the RSA key into a 'generic' key */
-	client_key = key_new(KEY_RSA1);
-	BN_copy(client_key->rsa->e, client_host_key->e);
-	BN_copy(client_key->rsa->n, client_host_key->n);
-
-	host_status = check_key_in_hostfiles(pw, client_key, canonical_hostname,
-	    _PATH_SSH_SYSTEM_HOSTFILE,
+	host_status = check_key_in_hostfiles(pw, client_host_key,
+	    canonical_hostname, _PATH_SSH_SYSTEM_HOSTFILE,
 	    options.ignore_user_known_hosts ? NULL : _PATH_SSH_USER_HOSTFILE);
-
-	key_free(client_key);
 
 	if (host_status != HOST_OK) {
 		debug("Rhosts with RSA host authentication denied: unknown or invalid host key");
@@ -72,7 +64,7 @@ auth_rhosts_rsa(struct passwd *pw, const char *client_user, RSA *client_host_key
 	/* A matching host key was found and is known. */
 
 	/* Perform the challenge-response dialog with the client for the host key. */
-	if (!auth_rsa_challenge_dialog(client_host_key)) {
+	if (!auth_rsa_challenge_dialog(client_host_key->rsa)) {
 		log("Client on %.800s failed to respond correctly to host authentication.",
 		    canonical_hostname);
 		return 0;

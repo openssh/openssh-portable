@@ -21,7 +21,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $OpenBSD: auth.h,v 1.25 2001/12/19 07:18:56 deraadt Exp $
+ * $OpenBSD: auth.h,v 1.26 2001/12/27 19:54:53 markus Exp $
  */
 #ifndef AUTH_H
 #define AUTH_H
@@ -91,7 +91,7 @@ int     auth_rhosts(struct passwd *, const char *);
 int
 auth_rhosts2(struct passwd *, const char *, const char *, const char *);
 
-int	 auth_rhosts_rsa(struct passwd *, const char *, RSA *);
+int	 auth_rhosts_rsa(struct passwd *, const char *, Key *);
 int      auth_password(Authctxt *, const char *);
 int      auth_rsa(struct passwd *, BIGNUM *);
 int      auth_rsa_challenge_dialog(RSA *);

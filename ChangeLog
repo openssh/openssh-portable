@@ -48,6 +48,9 @@
    - markus@cvs.openbsd.org 2001/12/27 19:37:23
      [dh.c kexdh.c kexgex.c]
      always use BN_clear_free instead of BN_free
+   - markus@cvs.openbsd.org 2001/12/27 19:54:53
+     [auth1.c auth.h auth-rh-rsa.c]
+     auth_rhosts_rsa now accept generic keys.
 
 20020121
  - (djm) Rework ssh-rand-helper:
@@ -7195,4 +7198,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1736 2002/01/22 12:10:33 djm Exp $
+$Id: ChangeLog,v 1.1737 2002/01/22 12:11:00 djm Exp $

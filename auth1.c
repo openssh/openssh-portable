@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.29 2001/12/27 18:22:16 markus Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.30 2001/12/27 19:54:53 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -214,7 +214,7 @@ do_authloop(Authctxt *authctxt)
 			packet_integrity_check(plen, (4 + ulen) + 4 + elen + nlen, type);
 
 			authenticated = auth_rhosts_rsa(pw, client_user,
-			    client_host_key->rsa);
+			    client_host_key);
 			key_free(client_host_key);
 
 			snprintf(info, sizeof info, " ruser %.100s", client_user);
