@@ -1,41 +1,44 @@
-#	$OpenBSD: multiplex.sh,v 1.3 2004/06/17 05:51:59 dtucker Exp $
+#	$OpenBSD: multiplex.sh,v 1.4 2004/06/17 06:00:05 dtucker Exp $
 #	Placed in the Public Domain.
 
 CTL=$OBJ/ctl-sock
 
 tid="connection multiplexing"
 
+DATA=/bin/ls
+COPY=$OBJ/ls.copy
+
 start_sshd
 
 trace "start master, fork to background"
 ${SSH} -2 -MS$CTL -F $OBJ/ssh_config -f somehost sleep 60
 
-rm -f $OBJ/ls.copy
+rm -f ${COPY}
 trace "ssh transfer over multiplexed connection and check result"
-${SSH} -S$CTL otherhost cat /bin/ls > $OBJ/ls.copy
-test -f $OBJ/ls.copy			|| fail "failed copy /bin/ls"
-cmp /bin/ls $OBJ/ls.copy		|| fail "corrupted copy of /bin/ls"
+${SSH} -S$CTL otherhost cat ${DATA} > ${COPY}
+test -f ${COPY}				|| fail "failed copy ${DATA}" 
+cmp ${DATA} ${COPY}			|| fail "corrupted copy of ${DATA}"
 
-rm -f $OBJ/ls.copy
+rm -f ${COPY}
 trace "ssh transfer over multiplexed connection and check result"
-${SSH} -S $CTL otherhost cat /bin/ls > $OBJ/ls.copy
-test -f $OBJ/ls.copy			|| fail "failed copy /bin/ls"
-cmp /bin/ls $OBJ/ls.copy		|| fail "corrupted copy of /bin/ls"
+${SSH} -S $CTL otherhost cat ${DATA} > ${COPY}
+test -f ${COPY}				|| fail "failed copy ${DATA}" 
+cmp ${DATA} ${COPY}			|| fail "corrupted copy of ${DATA}"
 
-rm -f $OBJ/ls.copy
+rm -f ${COPY}
 trace "sftp transfer over multiplexed connection and check result"
-echo "get /bin/ls $OBJ/ls.copy" | \
+echo "get ${DATA} ${COPY}" | \
 	${SFTP} -oControlPath=$CTL otherhost >/dev/null 2>&1
-test -f $OBJ/ls.copy			|| fail "failed copy /bin/ls"
-cmp /bin/ls $OBJ/ls.copy		|| fail "corrupted copy of /bin/ls"
+test -f ${COPY}				|| fail "failed copy ${DATA}" 
+cmp ${DATA} ${COPY}			|| fail "corrupted copy of ${DATA}"
 
-rm -f $OBJ/ls.copy
+rm -f ${COPY}
 trace "scp transfer over multiplexed connection and check result"
-${SCP} -oControlPath=$CTL otherhost:/bin/ls $OBJ/ls.copy >/dev/null 2>&1
-test -f $OBJ/ls.copy			|| fail "failed copy /bin/ls"
-cmp /bin/ls $OBJ/ls.copy		|| fail "corrupted copy of /bin/ls"
+${SCP} -oControlPath=$CTL otherhost:${DATA} ${COPY} >/dev/null 2>&1
+test -f ${COPY}				|| fail "failed copy ${DATA}" 
+cmp ${DATA} ${COPY}			|| fail "corrupted copy of ${DATA}"
 
-rm -f $OBJ/ls.copy
+rm -f ${COPY}
 
 for s in 0 1 4 5 44; do
 	trace "exit status $s over multiplexed connection"
