@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: progressmeter.c,v 1.18 2003/12/02 12:15:10 markus Exp $");
+RCSID("$OpenBSD: progressmeter.c,v 1.19 2004/02/05 15:33:33 markus Exp $");
 
 #include "progressmeter.h"
 #include "atomicio.h"
@@ -107,7 +107,7 @@ refresh_progress_meter(void)
 	off_t transferred;
 	double elapsed;
 	int percent;
-	int bytes_left;
+	off_t bytes_left;
 	int cur_speed;
 	int hours, minutes, seconds;
 	int i, len;

@@ -21,6 +21,9 @@
    - dtucker@cvs.openbsd.org 2004/02/05 05:37:17
      [monitor.c sshd.c]
      Pass SIGALRM through to privsep child if LoginGraceTime expires. ok markus@
+   - markus@cvs.openbsd.org 2004/02/05 15:33:33
+     [progressmeter.c]
+     fix ETA for > 4GB; bugzilla #791; ok henning@ deraadt@
 
 20040129
  - (dtucker) OpenBSD CVS Sync regress/
@@ -1806,4 +1809,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3213 2004/02/06 05:40:27 dtucker Exp $
+$Id: ChangeLog,v 1.3214 2004/02/06 05:41:37 dtucker Exp $
