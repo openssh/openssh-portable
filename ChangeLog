@@ -54,6 +54,11 @@
      [sshd.c]
      don't start if privsep is enabled and SSH_PRIVSEP_USER or
      _PATH_PRIVSEP_CHROOT_DIR are missing; ok deraadt@
+   - markus@cvs.openbsd.org 2002/05/30 08:07:31
+     [cipher.c]
+     use rijndael/aes from libcrypto (openssl >= 0.9.7) instead of
+     our own implementation. allow use of AES hardware via libcrypto, 
+     ok deraadt@
 
 20020604
  - (stevesk) [channels.c] bug #164 patch from YOSHIFUJI Hideaki (changed
@@ -738,4 +743,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2160 2002/06/06 20:46:25 mouring Exp $
+$Id: ChangeLog,v 1.2161 2002/06/06 20:50:07 mouring Exp $
