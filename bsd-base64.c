@@ -44,7 +44,7 @@
 
 #include "config.h"
 
-#ifndef HAVE_B64_NTOP
+#if !defined(HAVE_B64_NTOP) && !defined(HAVE___B64_NTOP)
 
 #include <sys/types.h>
 #include <sys/param.h>
@@ -53,11 +53,12 @@
 #include <arpa/inet.h>
 
 #include <ctype.h>
-#include <resolv.h>
 #include <stdio.h>
 
 #include <stdlib.h>
 #include <string.h>
+
+#include "bsd-base64.h"
 
 #define Assert(Cond) if (!(Cond)) abort()
 
@@ -312,4 +313,4 @@ b64_pton(char const *src, u_char *target, size_t targsize)
 	return (tarindex);
 }
 
-#endif /* HAVE_B64_NTOP */
+#endif /* !defined(HAVE_B64_NTOP) && !defined(HAVE___B64_NTOP) */

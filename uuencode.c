@@ -4,8 +4,6 @@
 #include "includes.h"
 #include "xmalloc.h"
 
-#include <resolv.h>
-
 int
 uuencode(unsigned char *src, unsigned int srclength,
     char *target, size_t targsize)
