@@ -23,9 +23,9 @@
  */
 
 #include "includes.h"
-RCSID("$Id: auth-shadow.c,v 1.2 2004/02/10 02:51:34 dtucker Exp $");
+RCSID("$Id: auth-shadow.c,v 1.3 2004/02/11 07:48:52 dtucker Exp $");
 
-#ifdef USE_SHADOW
+#if defined(USE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
 #include <shadow.h>
 
 #include "auth.h"
@@ -76,4 +76,4 @@ auth_shadow_pwexpired(Authctxt *ctxt)
 
 	return 0;
 }
-#endif	/* USE_SHADOW */
+#endif	/* USE_SHADOW && HAS_SHADOW_EXPIRE */

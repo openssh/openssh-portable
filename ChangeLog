@@ -1,3 +1,7 @@
+20040211
+ - (dtucker) [auth-passwd.c auth-shadow.c] Only enable shadow expiry check
+   if HAS_SHADOW_EXPIRY is set.
+
 20040210
  - (dtucker) [auth-passwd.c auth.h openbsd-compat/port-aix.c
    openbsd-compat/port-aix.h] Bug #14: Use do_pwchange to support AIX's
@@ -16,7 +20,7 @@
  - (dtucker) [configure.ac loginrec.c] Bug #464: Use updwtmpx on platforms
    that support it.  from & ok mouring@
  - (dtucker) [configure.ac] Bug #345: Do not disable utmp on HP-UX 10.x.
-    ok djm@
+   ok djm@
 
 20040207
  - (dtucker) OpenBSD CVS Sync
@@ -1840,4 +1844,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3224 2004/02/10 06:15:05 dtucker Exp $
+$Id: ChangeLog,v 1.3225 2004/02/11 07:48:52 dtucker Exp $

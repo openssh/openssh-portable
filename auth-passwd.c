@@ -97,7 +97,7 @@ auth_password(Authctxt *authctxt, const char *password)
 		return ok;
 	}
 #endif
-#ifdef USE_SHADOW
+#if defined(USE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
 	if (auth_shadow_pwexpired(authctxt)) {
 		disable_forwarding();
 		authctxt->force_pwchange = 1;
