@@ -52,6 +52,7 @@
  - (djm) Fix problem with debug mode and MaxStartups
  - (djm) Don't generate host keys when $(DESTDIR) is set (e.g. during RPM
    builds)
+ - (djm) Add strsep function from OpenBSD libc for systems that lack it
 
 20000709
  - (djm) Only enable PAM_TTY kludge for Linux. Problem report from
