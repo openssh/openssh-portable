@@ -1,6 +1,9 @@
 Programming:
 - Grep for 'XXX' comments and fix
 
+- Link order is incorrect for some systems using Kerberos 4 and AFS. Result
+is multiple inclusion of DES symbols.
+
 - Integrate contrib/mdoc2man.pl so platforms which only have the troff 
   'an' macros can have readable manpages.
 
@@ -79,4 +82,4 @@ Packaging:
 - HP-UX: Provide DEPOT package scripts.
   (gilbert.r.loomis@saic.com)
 
-$Id: TODO,v 1.38 2001/03/19 14:58:47 stevesk Exp $
+$Id: TODO,v 1.39 2001/03/21 00:12:55 djm Exp $
