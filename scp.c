@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.47 2000/12/19 23:17:57 markus Exp $");
+RCSID("$OpenBSD: scp.c,v 1.48 2001/01/01 14:52:49 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -196,19 +196,6 @@ do_cmd(char *host, char *remuser, char *cmd, int *fdin, int *fdout, int argc)
 	close(pout[1]);
 	*fdin = pout[0];
 	return 0;
-}
-
-void
-fatal(const char *fmt,...)
-{
-	va_list ap;
-	char buf[1024];
-
-	va_start(ap, fmt);
-	vsnprintf(buf, sizeof(buf), fmt, ap);
-	va_end(ap);
-	fprintf(stderr, "%s\n", buf);
-	exit(255);
 }
 
 typedef struct {

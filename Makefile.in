@@ -91,8 +91,8 @@ ssh$(EXEEXT): libopenbsd-compat.a libssh.a $(SSHOBJS)
 sshd$(EXEEXT): libssh.a	libopenbsd-compat.a $(SSHDOBJS)
 	$(LD) -o $@ $(SSHDOBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
-scp$(EXEEXT): libopenbsd-compat.a libssh.a scp.o
-	$(LD) -o $@ scp.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
+scp$(EXEEXT): libopenbsd-compat.a libssh.a scp.o log-client.o
+	$(LD) -o $@ scp.o log-client.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
 ssh-add$(EXEEXT): libopenbsd-compat.a libssh.a ssh-add.o log-client.o
 	$(LD) -o $@ ssh-add.o log-client.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
