@@ -7114,4 +7114,5 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1711 2001/12/29 03:10:09 djm Exp $
+$Id: ChangeLog,v 1.1712 2001/12/31 00:55:59 djm Exp $
+
