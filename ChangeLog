@@ -1,3 +1,10 @@
+20030326
+ - (djm) OpenBSD CVS Sync
+   - deraadt@cvs.openbsd.org 2003/03/26 04:02:51
+     [sftp-server.c]
+     one last fix to the tree: race fix broke stuff; pr 3169; 
+     srp@srparish.net, help from djm
+
 20030325
  - (djm) Fix getpeerid support for 64 bit BE systems. From 
     Arnd Bergmann <arndb@de.ibm.com>
@@ -1252,4 +1259,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2641 2003/03/24 22:07:52 djm Exp $
+$Id: ChangeLog,v 1.2642 2003/03/26 05:01:11 djm Exp $
