@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.73 2001/07/26 20:04:27 rees Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.74 2001/08/01 23:33:09 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -380,6 +380,7 @@ do_print_public(struct passwd *pw)
 	exit(0);
 }
 
+#ifdef SMARTCARD
 #define NUM_RSA_KEY_ELEMENTS 5+1
 #define COPY_RSA_KEY(x, i) \
 	do { \
@@ -390,17 +391,33 @@ do_print_public(struct passwd *pw)
 			goto done; \
 	} while(0)
 
+static int
+get_AUT0(char *aut0)
+{
+	EVP_MD *evp_md = EVP_sha1();
+	EVP_MD_CTX md;
+	char *pass;
+
+	pass = read_passphrase("Enter passphrase for smartcard: ", RP_ALLOW_STDIN);
+	if (pass == NULL)
+		return -1;
+	EVP_DigestInit(&md, evp_md);
+	EVP_DigestUpdate(&md, pass, strlen(pass));
+	EVP_DigestFinal(&md, aut0, NULL);
+	memset(pass, 0, strlen(pass));
+	xfree(pass);
+	return 0;
+}
+
 static void
 do_upload(struct passwd *pw, int reader)
 {
-#ifndef SMARTCARD
-	fatal("no support for smartcards.");
-#else
 	Key *prv = NULL;
 	struct stat st;
 	u_char *elements[NUM_RSA_KEY_ELEMENTS];
 	u_char key_fid[2];
-	u_char AUT0[] = {0xad, 0x9f, 0x61, 0xfe, 0xfa, 0x20, 0xce, 0x63};
+	u_char DEFAUT0[] = {0xad, 0x9f, 0x61, 0xfe, 0xfa, 0x20, 0xce, 0x63};
+	u_char AUT0[EVP_MAX_MD_SIZE];
 	int len, status = 1, i, fd = -1, ret;
 	int sw = 0, cla = 0x00;
 
@@ -424,23 +441,27 @@ do_upload(struct passwd *pw, int reader)
 	COPY_RSA_KEY(dmp1, 4);
 	COPY_RSA_KEY(n, 5);
 	len = BN_num_bytes(prv->rsa->n);
-	fd = sectok_open(reader, 0, &sw);
+	fd = sectok_open(reader, STONOWAIT, &sw);
 	if (fd < 0) {
-		error("sectok_open failed");
+                error("sectok_open failed: %s", sectok_get_sw(sw));
 		goto done;
 	}
 	ret = sectok_reset(fd, 0, NULL, &sw);
 	if (ret <= 0) {
-		error("sectok_reset failed");
+                error("sectok_reset failed: %s", sectok_get_sw(sw));
 		goto done;
 	}
 	if ((cla = cyberflex_inq_class(fd)) < 0) {
 		error("cyberflex_inq_class failed");
 		goto done;
 	}
-	if (cyberflex_verify_AUT0(fd, cla, AUT0, sizeof(AUT0)) < 0) {
-		error("cyberflex_verify_AUT0 failed");
-		goto done;
+	memcpy(AUT0, DEFAUT0, sizeof(DEFAUT0));
+	if (cyberflex_verify_AUT0(fd, cla, AUT0, sizeof(DEFAUT0)) < 0) {
+		if (get_AUT0(AUT0) < 0 ||
+		    cyberflex_verify_AUT0(fd, cla, AUT0, sizeof(DEFAUT0)) < 0) {
+			error("cyberflex_verify_AUT0 failed");
+			goto done;
+		}
 	}
 	key_fid[0] = 0x00;
 	key_fid[1] = 0x12;
@@ -473,8 +494,8 @@ done:
 	if (fd != -1)
 		sectok_close(fd);
 	exit(status);
-#endif
 }
+#endif
 
 static void
 do_fingerprint(struct passwd *pw)
@@ -878,7 +899,11 @@ main(int ac, char **av)
 	if (print_public)
 		do_print_public(pw);
 	if (reader != -1)
+#ifdef SMARTCARD
 		do_upload(pw, reader);
+#else
+		fatal("no support for smartcards.");
+#endif
 
 	arc4random_stir();
 
