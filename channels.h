@@ -32,7 +32,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* RCSID("$OpenBSD: channels.h,v 1.32 2001/05/04 23:47:33 markus Exp $"); */
+/* RCSID("$OpenBSD: channels.h,v 1.33 2001/05/28 23:14:49 markus Exp $"); */
 
 #ifndef CHANNELS_H
 #define CHANNELS_H
@@ -53,7 +53,8 @@
 #define SSH_CHANNEL_RPORT_LISTENER	11	/* Listening to a R-style port  */
 #define SSH_CHANNEL_CONNECTING		12
 #define SSH_CHANNEL_DYNAMIC		13
-#define SSH_CHANNEL_MAX_TYPE		14
+#define SSH_CHANNEL_ZOMBIE		14	/* Almost dead. */
+#define SSH_CHANNEL_MAX_TYPE		15
 
 #define SSH_CHANNEL_PATH_LEN		30
 

@@ -65,6 +65,10 @@
    - markus@cvs.openbsd.org 2001/05/28 22:51:11
      [cipher.c cipher.h]                       
      simpler 3des for ssh1                     
+   - markus@cvs.openbsd.org 2001/05/28 23:14:49            
+     [channels.c channels.h nchan.c]                       
+     undo broken channel fix and try a different one. there
+     should be still some select errors...                 
 
 20010528
  - (tim) [conifgure.in] add setvbuf test needed for sftp-int.c
@@ -5495,4 +5499,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1242 2001/06/05 20:50:16 mouring Exp $
+$Id: ChangeLog,v 1.1243 2001/06/05 20:52:50 mouring Exp $

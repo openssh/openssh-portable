@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: nchan.c,v 1.25 2001/05/16 22:09:21 markus Exp $");
+RCSID("$OpenBSD: nchan.c,v 1.26 2001/05/28 23:14:49 markus Exp $");
 
 #include "ssh1.h"
 #include "ssh2.h"
@@ -394,14 +394,16 @@ chan_send_close2(Channel *c)
 void
 chan_mark_dead(Channel *c)
 {
-	c->flags |= CHAN_DEAD;
+	c->type = SSH_CHANNEL_ZOMBIE;
 }
 
 int
 chan_is_dead(Channel *c)
 {
-	if (c->flags & CHAN_DEAD)
+	if (c->type == SSH_CHANNEL_ZOMBIE) {
+		debug("channel %d: zombie", c->self);
 		return 1;
+	}
 	if (c->istate != CHAN_INPUT_CLOSED || c->ostate != CHAN_OUTPUT_CLOSED)
 		return 0;
 	if (!compat20) {
@@ -484,6 +486,7 @@ chan_shutdown_write(Channel *c)
 		if (close(c->wfd) < 0)
 			log("channel %d: chan_shutdown_write: close() failed for fd%d: %.100s",
 			    c->self, c->wfd, strerror(errno));
+		c->wfd = -1;
 	}
 }
 static void
@@ -506,5 +509,6 @@ chan_shutdown_read(Channel *c)
 		if (close(c->rfd) < 0)
 			log("channel %d: chan_shutdown_read: close() failed for fd%d: %.100s",
 			    c->self, c->rfd, strerror(errno));
+		c->rfd = -1;
 	}
 }

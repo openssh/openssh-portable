@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.117 2001/05/19 19:57:09 stevesk Exp $");
+RCSID("$OpenBSD: channels.c,v 1.118 2001/05/28 23:14:49 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -280,6 +280,9 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 void
 channel_close_fds(Channel *c)
 {
+	debug3("channel_close_fds: channel %d: r %d w %d e %d",
+	    c->self, c->rfd, c->wfd, c->efd);
+
 	if (c->sock != -1) {
 		close(c->sock);
 		c->sock = -1;
@@ -304,9 +307,17 @@ void
 channel_free(Channel *c)
 {
 	char *s;
+	int i, n;
+
+	for (n = 0, i = 0; i < channels_alloc; i++)
+		if (channels[i])
+			n++;
+
+	debug("channel_free: channel %d: (%s) nchannels: %d", c->self,
+	    c->remote_name ? c->remote_name : "???", n);
 
 	s = channel_open_message();
-	debug("channel_free: channel %d: status: %s", c->self, s);
+	debug3("channel_free: status: %s", c->self, s);
 	xfree(s);
 
 	if (c->dettach_user != NULL) {
@@ -893,7 +904,7 @@ channel_handle_rfd(Channel *c, fd_set * readset, fd_set * writeset)
 	char buf[16*1024];
 	int len;
 
-	if (c->istate == CHAN_INPUT_OPEN &&
+	if (c->rfd != -1 &&
 	    FD_ISSET(c->rfd, readset)) {
 		len = read(c->rfd, buf, sizeof(buf));
 		if (len < 0 && (errno == EINTR || errno == EAGAIN))
@@ -932,8 +943,7 @@ channel_handle_wfd(Channel *c, fd_set * readset, fd_set * writeset)
 	int len;
 
 	/* Send buffered output data to the socket. */
-	if ((c->ostate == CHAN_OUTPUT_OPEN ||
-	    c->ostate == CHAN_OUTPUT_WAIT_DRAIN) &&
+	if (c->wfd != -1 &&
 	    FD_ISSET(c->wfd, writeset) &&
 	    buffer_len(&c->output) > 0) {
 		len = write(c->wfd, buffer_ptr(&c->output),
@@ -1164,9 +1174,8 @@ channel_handler(chan_fn *ftab[], fd_set * readset, fd_set * writeset)
 		c = channels[i];
 		if (c == NULL)
 			continue;
-		if (ftab[c->type] == NULL)
-			continue;
-		(*ftab[c->type])(c, readset, writeset);
+		if (ftab[c->type] != NULL)
+			(*ftab[c->type])(c, readset, writeset);
 		if (chan_is_dead(c)) {
 			/*
 			 * we have to remove the fd's from the select mask
@@ -1715,6 +1724,7 @@ channel_still_open()
 		case SSH_CHANNEL_AUTH_SOCKET:
 		case SSH_CHANNEL_DYNAMIC:
 		case SSH_CHANNEL_CONNECTING:
+		case SSH_CHANNEL_ZOMBIE:
 			continue;
 		case SSH_CHANNEL_LARVAL:
 			if (!compat20)
@@ -1757,6 +1767,7 @@ channel_find_open()
 		case SSH_CHANNEL_RPORT_LISTENER:
 		case SSH_CHANNEL_OPENING:
 		case SSH_CHANNEL_CONNECTING:
+		case SSH_CHANNEL_ZOMBIE:
 			continue;
 		case SSH_CHANNEL_LARVAL:
 		case SSH_CHANNEL_AUTH_SOCKET:
@@ -1804,6 +1815,7 @@ channel_open_message()
 		case SSH_CHANNEL_RPORT_LISTENER:
 		case SSH_CHANNEL_CLOSED:
 		case SSH_CHANNEL_AUTH_SOCKET:
+		case SSH_CHANNEL_ZOMBIE:
 			continue;
 		case SSH_CHANNEL_LARVAL:
 		case SSH_CHANNEL_OPENING:
