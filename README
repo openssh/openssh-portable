@@ -36,6 +36,8 @@ The OpenBSD team
 Dan Brosemer <odin@linuxfreak.com> - Autoconf and build fixes & Debian scripts
 Niels Kristian Bech Jensen <nkbj@image.dk> - Makefile patch
 Nalin Dahyabhai <nalin.dahyabhai@pobox.com> - PAM environment patch
+Phil Hands <phil@hands.com> - Debian scripts, assorted patches
+Niels Kristian Bech Jensen <nkbj@image.dk> - Makefile patches
 
 Miscellania - 
 

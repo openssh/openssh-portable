@@ -14,7 +14,7 @@ Adds an identity to the authentication server, or removes an identity.
 */
 
 #include "includes.h"
-RCSID("$Id: ssh-add.c,v 1.4 1999/11/08 05:15:55 damien Exp $");
+RCSID("$Id: ssh-add.c,v 1.5 1999/11/08 23:28:04 damien Exp $");
 
 #include "rsa.h"
 #include "ssh.h"
@@ -112,9 +112,9 @@ add_file(AuthenticationConnection *ac, const char *filename)
                            filename, saved_comment);
               /* skip the prompt if it won't fit */
               if (tmp < 0 || tmp >= BUFSIZE)
-                tmp=execlp("/usr/lib/ssh/ssh-askpass", "ssh-askpass", 0);
+                tmp=execlp(ASKPASS_PROGRAM, "ssh-askpass", 0);
               else
-                tmp=execlp("/usr/lib/ssh/ssh-askpass", "ssh-askpass", buf, 0);
+                tmp=execlp(ASKPASS_PROGRAM, "ssh-askpass", buf, 0);
               if (tmp==-1)
                 {
                   fprintf(stderr, "Executing ssh-askpass failed: %s\n",

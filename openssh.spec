@@ -1,6 +1,6 @@
 Summary: OpenSSH free Secure Shell (SSH) implementation
 Name: openssh
-Version: 1.2pre8
+Version: 1.2pre9
 Release: 1
 Packager: Damien Miller <djm@ibs.com.au>
 Source0: openssh-%{version}-linux.tar.gz
@@ -39,8 +39,7 @@ patented algorithms to seperate libraries (OpenSSL).
 
 %build
 
-./configure --prefix=/usr --sysconfdir=/etc/ssh
-make OPT_FLAGS="$RPM_OPT_FLAGS"
+CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=/usr --sysconfdir=/etc/ssh
 
 %install
 rm -rf $RPM_BUILD_ROOT

@@ -1,3 +1,10 @@
+19991109
+ - Autodetection of SSL/Crypto library location via autoconf
+ - Fixed location of ssh-askpass to follow autoconf
+ - Integrated Makefile patch from Niels Kristian Bech Jensen <nkbj@image.dk>
+ - Autodetection of RSAref library for US users
+ - Minor doc updates
+
 19991108
  - Removed debian/ directory. This is now being maintained separately.
  - Added symlinks for slogin in RPM spec file

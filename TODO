@@ -1,7 +1,11 @@
--- Replacement for setproctitle()
+- Replacement for setproctitle()
 
--- Improve PAM support (a pam_lastlog module will cause sshd to exit)
+- Improve PAM support (a pam_lastlog module will cause sshd to exit)
 
--- Better documentation
+- Better documentation
 
--- Port to other platforms
+- Port to other platforms
+
+- Fix paths in manpages using autoconf
+
+- Enable libwrap support using autoconf switch

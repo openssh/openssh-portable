@@ -13,7 +13,7 @@ Generic header file for ssh.
 
 */
 
-/* RCSID("$Id: ssh.h,v 1.7 1999/11/08 05:15:55 damien Exp $"); */
+/* RCSID("$Id: ssh.h,v 1.8 1999/11/08 23:28:04 damien Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -92,6 +92,10 @@ only by root, whereas ssh_config should be world-readable. */
 #ifndef LOGIN_PROGRAM
 #define LOGIN_PROGRAM	"/usr/bin/login"
 #endif /* LOGIN_PROGRAM */
+
+#ifndef ASKPASS_PROGRAM
+#define ASKPASS_PROGRAM	"/usr/lib/ssh/ssh-askpass"
+#endif /* ASKPASS_PROGRAM */
 
 /* The process id of the daemon listening for connections is saved
    here to make it easier to kill the correct daemon when necessary. */

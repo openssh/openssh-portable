@@ -5,9 +5,12 @@ sbindir=@sbindir@
 libdir=@libdir@
 mandir=@mandir@
 
+SSH_PROGRAM=@bindir@/ssh
+ASKPASS_PROGRAM=@libdir@/ssh/ssh-askpass
+
 CC=@CC@
-OPT_FLAGS=-g
-CFLAGS=$(OPT_FLAGS) -Wall -DETCDIR=\"@sysconfdir@\" -DSSH_PROGRAM=\"@bindir@/ssh\" @DEFS@
+PATHS=-DETCDIR=\"@sysconfdir@\" -DSSH_PROGRAM=\"$(SSH_PROGRAM)\" -DASKPASS_PROGRAM=\"$(ASKPASS_PROGRAM)\"
+CFLAGS=@CFLAGS@ $(PATHS) @DEFS@
 TARGETS=libssh.a ssh sshd ssh-add ssh-keygen ssh-agent scp
 LFLAGS=-L.
 LIBS=-lssh @LIBS@
@@ -55,8 +58,9 @@ install:
 	install -d $(mandir)
 	install -d $(mandir)/man1
 	install -d $(mandir)/man8
+	install -d $(libdir)/ssh
 	install -s -c ssh $(bindir)/ssh
-	ln -s ssh $(bindir)/slogin
+	ln -sf ssh $(bindir)/slogin
 	install -s -c scp $(bindir)/scp
 	install -s -c ssh-add $(bindir)/ssh-add
 	install -m755 -c ssh-askpass $(libdir)/ssh/ssh-askpass
@@ -64,7 +68,7 @@ install:
 	install -s -c ssh-keygen $(bindir)/ssh-keygen
 	install -s -c sshd $(sbindir)/sshd
 	install -m644 -c ssh.1 $(mandir)/man1/ssh.1
-	ln -s ssh.1 $(mandir)/man1/slogin.1
+	ln -sf ssh.1 $(mandir)/man1/slogin.1
 	install -m644 -c scp.1 $(mandir)/man1/scp.1
 	install -m644 -c ssh-add.1 $(mandir)/man1/ssh-add.1
 	install -m644 -c ssh-agent.1 $(mandir)/man1/ssh-agent.1
@@ -77,4 +81,5 @@ distclean: clean
 mrproper: distclean
 
 veryclean: distclean
-	rm -f configure
+	rm -f configure config.h.in
+
