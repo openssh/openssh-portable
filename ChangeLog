@@ -12,6 +12,9 @@
    - markus@cvs.openbsd.org 2001/02/10 1:33:32
      [canohost.c]
      add debug message, since sshd blocks here if DNS is not available
+   - markus@cvs.openbsd.org 2001/02/10 12:44:02
+     [cli.c]
+     don't call vis() for \r
 
 20010210
  - (djm) Sync sftp and scp stuff from OpenBSD:
@@ -3795,4 +3798,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.716 2001/02/10 21:39:49 mouring Exp $
+$Id: ChangeLog,v 1.717 2001/02/10 21:45:02 mouring Exp $
