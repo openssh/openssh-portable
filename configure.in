@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.303 2001/07/22 19:32:01 mouring Exp $
+# $Id: configure.in,v 1.304 2001/07/24 17:00:14 mouring Exp $
 
 AC_INIT(ssh.c)
 
@@ -1679,11 +1679,11 @@ AC_ARG_ENABLE(suid-ssh,
        SSHMODE=0711
        ;;
   *)   AC_MSG_RESULT(yes)
-       SSHMODE=04711
+       SSHMODE=4711
        ;;
   esac ],
   AC_MSG_RESULT(yes)
-  SSHMODE=04711
+  SSHMODE=4711
 )
 AC_SUBST(SSHMODE)
 
