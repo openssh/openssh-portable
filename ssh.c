@@ -633,7 +633,6 @@ main(int ac, char **av)
 		    "originating port will not be trusted.");
 		options.rhosts_authentication = 0;
 	}
-
 	/*
 	 * If using rsh has been selected, exec it now (without trying
 	 * anything else).  Note that we must release privileges first.
