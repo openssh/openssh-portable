@@ -23,35 +23,18 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.91 2002/05/13 02:37:39 itojun Exp $");
-
-#include <openssl/evp.h>
+RCSID("$OpenBSD: auth2.c,v 1.92 2002/05/25 18:51:07 markus Exp $");
 
 #include "ssh2.h"
 #include "xmalloc.h"
-#include "rsa.h"
-#include "sshpty.h"
 #include "packet.h"
-#include "buffer.h"
 #include "log.h"
 #include "servconf.h"
 #include "compat.h"
-#include "channels.h"
-#include "bufaux.h"
 #include "auth.h"
-#include "session.h"
 #include "dispatch.h"
-#include "key.h"
-#include "cipher.h"
-#include "kex.h"
 #include "pathnames.h"
-#include "uidswap.h"
-#include "auth-options.h"
-#include "hostfile.h"
-#include "canohost.h"
-#include "match.h"
 #include "monitor_wrap.h"
-#include "atomicio.h"
 
 /* import */
 extern ServerOptions options;
@@ -80,12 +63,6 @@ int user_key_allowed(struct passwd *, Key *);
 int hostbased_key_allowed(struct passwd *, const char *, char *, Key *);
 
 /* auth */
-static void userauth_banner(void);
-static int userauth_none(Authctxt *);
-static int userauth_passwd(Authctxt *);
-static int userauth_pubkey(Authctxt *);
-static int userauth_hostbased(Authctxt *);
-static int userauth_kbdint(Authctxt *);
 
 Authmethod authmethods[] = {
 	{"none",
@@ -650,165 +627,4 @@ authmethod_lookup(const char *name)
 				return method;
 	debug2("Unrecognized authentication method name: %s", name ? name : "NULL");
 	return NULL;
-}
-
-/* return 1 if user allows given key */
-static int
-user_key_allowed2(struct passwd *pw, Key *key, char *file)
-{
-	char line[8192];
-	int found_key = 0;
-	FILE *f;
-	u_long linenum = 0;
-	struct stat st;
-	Key *found;
-	char *fp;
-
-	if (pw == NULL)
-		return 0;
-
-	/* Temporarily use the user's uid. */
-	temporarily_use_uid(pw);
-
-	debug("trying public key file %s", file);
-
-	/* Fail quietly if file does not exist */
-	if (stat(file, &st) < 0) {
-		/* Restore the privileged uid. */
-		restore_uid();
-		return 0;
-	}
-	/* Open the file containing the authorized keys. */
-	f = fopen(file, "r");
-	if (!f) {
-		/* Restore the privileged uid. */
-		restore_uid();
-		return 0;
-	}
-	if (options.strict_modes &&
-	    secure_filename(f, file, pw, line, sizeof(line)) != 0) {
-		fclose(f);
-		log("Authentication refused: %s", line);
-		restore_uid();
-		return 0;
-	}
-
-	found_key = 0;
-	found = key_new(key->type);
-
-	while (fgets(line, sizeof(line), f)) {
-		char *cp, *options = NULL;
-		linenum++;
-		/* Skip leading whitespace, empty and comment lines. */
-		for (cp = line; *cp == ' ' || *cp == '\t'; cp++)
-			;
-		if (!*cp || *cp == '\n' || *cp == '#')
-			continue;
-
-		if (key_read(found, &cp) != 1) {
-			/* no key?  check if there are options for this key */
-			int quoted = 0;
-			debug2("user_key_allowed: check options: '%s'", cp);
-			options = cp;
-			for (; *cp && (quoted || (*cp != ' ' && *cp != '\t')); cp++) {
-				if (*cp == '\\' && cp[1] == '"')
-					cp++;	/* Skip both */
-				else if (*cp == '"')
-					quoted = !quoted;
-			}
-			/* Skip remaining whitespace. */
-			for (; *cp == ' ' || *cp == '\t'; cp++)
-				;
-			if (key_read(found, &cp) != 1) {
-				debug2("user_key_allowed: advance: '%s'", cp);
-				/* still no key?  advance to next line*/
-				continue;
-			}
-		}
-		if (key_equal(found, key) &&
-		    auth_parse_options(pw, options, file, linenum) == 1) {
-			found_key = 1;
-			debug("matching key found: file %s, line %lu",
-			    file, linenum);
-			fp = key_fingerprint(found, SSH_FP_MD5, SSH_FP_HEX);
-			verbose("Found matching %s key: %s",
-			    key_type(found), fp);
-			xfree(fp);
-			break;
-		}
-	}
-	restore_uid();
-	fclose(f);
-	key_free(found);
-	if (!found_key)
-		debug2("key not found");
-	return found_key;
-}
-
-/* check whether given key is in .ssh/authorized_keys* */
-int
-user_key_allowed(struct passwd *pw, Key *key)
-{
-	int success;
-	char *file;
-
-	file = authorized_keys_file(pw);
-	success = user_key_allowed2(pw, key, file);
-	xfree(file);
-	if (success)
-		return success;
-
-	/* try suffix "2" for backward compat, too */
-	file = authorized_keys_file2(pw);
-	success = user_key_allowed2(pw, key, file);
-	xfree(file);
-	return success;
-}
-
-/* return 1 if given hostkey is allowed */
-int
-hostbased_key_allowed(struct passwd *pw, const char *cuser, char *chost,
-    Key *key)
-{
-	const char *resolvedname, *ipaddr, *lookup;
-	HostStatus host_status;
-	int len;
-
-	resolvedname = get_canonical_hostname(options.verify_reverse_mapping);
-	ipaddr = get_remote_ipaddr();
-
-	debug2("userauth_hostbased: chost %s resolvedname %s ipaddr %s",
-	    chost, resolvedname, ipaddr);
-
-	if (options.hostbased_uses_name_from_packet_only) {
-		if (auth_rhosts2(pw, cuser, chost, chost) == 0)
-			return 0;
-		lookup = chost;
-	} else {
-		if (((len = strlen(chost)) > 0) && chost[len - 1] == '.') {
-			debug2("stripping trailing dot from chost %s", chost);
-			chost[len - 1] = '\0';
-		}
-		if (strcasecmp(resolvedname, chost) != 0)
-			log("userauth_hostbased mismatch: "
-			    "client sends %s, but we resolve %s to %s",
-			    chost, ipaddr, resolvedname);
-		if (auth_rhosts2(pw, cuser, resolvedname, ipaddr) == 0)
-			return 0;
-		lookup = resolvedname;
-	}
-	debug2("userauth_hostbased: access allowed by auth_rhosts2");
-
-	host_status = check_key_in_hostfiles(pw, key, lookup,
-	    _PATH_SSH_SYSTEM_HOSTFILE,
-	    options.ignore_user_known_hosts ? NULL : _PATH_SSH_USER_HOSTFILE);
-
-	/* backward compat if no key has been found. */
-	if (host_status == HOST_NEW)
-		host_status = check_key_in_hostfiles(pw, key, lookup,
-		    _PATH_SSH_SYSTEM_HOSTFILE2,
-		    options.ignore_user_known_hosts ? NULL :
-		    _PATH_SSH_USER_HOSTFILE2);
-
-	return (host_status == HOST_OK);
 }
