@@ -43,12 +43,13 @@ RCSID("$OpenBSD: session.c,v 1.23 2000/07/11 08:11:33 deraadt Exp $");
 
 /* AIX limits */
 #if defined(HAVE_GETUSERATTR) && !defined(S_UFSIZE_HARD) && defined(S_UFSIZE)
-# define S_UFSIZE_HARD  S_UFSIZE
-# define S_UCPU_HARD  S_UCPU
-# define S_UDATA_HARD  S_UDATA
-# define S_USTACK_HARD  S_USTACK
-# define S_URSS_HARD  S_URSS
-# define S_UCORE_HARD  S_UCORE
+# define S_UFSIZE_HARD  S_UFSIZE "_hard"
+# define S_UCPU_HARD  S_UCPU "_hard"
+# define S_UDATA_HARD  S_UDATA "_hard"
+# define S_USTACK_HARD  S_USTACK "_hard"
+# define S_URSS_HARD  S_URSS "_hard"
+# define S_UCORE_HARD  S_UCORE "_hard"
+# define S_UNOFILE_HARD	S_UNOFILE "_hard"
 #endif
 
 /* types */

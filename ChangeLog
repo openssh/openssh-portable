@@ -5,6 +5,7 @@
  - (djm) Don't seek in directory based lastlogs
  - (djm) Fix --with-ipaddr-display configure option test. Patch from 
    Jarno Huuskonen <jhuuskon@messi.uku.fi>
+ - (djm) Fix AIX limits from Alexandre Oliva <oliva@lsd.ic.unicamp.br>
 
 20000813
  - (djm) Add $(srcdir) to includes when compiling (for VPATH). Report from
