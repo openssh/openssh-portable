@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.54 2001/02/28 21:27:47 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.55 2001/03/01 02:45:10 deraadt Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -389,7 +389,7 @@ packet_start2(int type)
 void
 packet_start(int type)
 {
-	DBG(debug("packet_start[%d]",type));
+	DBG(debug("packet_start[%d]", type));
 	if (use_ssh2_packet_format)
 		packet_start2(type);
 	else
@@ -942,7 +942,7 @@ packet_read_poll2(int *payload_len_ptr)
 	}
 
 #ifdef PACKET_DEBUG
-	fprintf(stderr, "read/plain[%d]:\r\n",type);
+	fprintf(stderr, "read/plain[%d]:\r\n", type);
 	buffer_dump(&incoming_packet);
 #endif
 	return (u_char)type;

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.43 2001/02/22 21:59:44 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.44 2001/03/01 02:45:10 deraadt Exp $");
 
 #include <openssl/evp.h>
 
@@ -640,7 +640,7 @@ user_key_allowed(struct passwd *pw, Key *key)
 		}
 		if (fail) {
 			fclose(f);
-			log("%s",buf);
+			log("%s", buf);
 			restore_uid();
 			return 0;
 		}
