@@ -1,3 +1,11 @@
+19991118
+ - Merged OpenBSD CVS changes
+   - [scp.c] foregroundproc() in scp
+   - [sshconnect.h] include fingerprint.h
+   - [sshd.c] bugfix: the log() for passwd-auth escaped during logging 
+     changes.
+ - Added openssh.com info to README
+
 19991117
  - Merged OpenBSD CVS changes
    - [ChangeLog.Ylonen] noone needs this anymore
