@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.46 2001/01/29 16:55:36 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.47 2001/01/29 19:42:35 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1069,6 +1069,8 @@ client_request_x11(const char *request_type, int rchan)
 	}
 	packet_done();
 	/* XXX check permission */
+	debug("client_request_x11: request from %s %d", originator,
+	    originator_port);
 	sock = x11_connect_display();
 	if (sock >= 0) {
 		newch = channel_new("x11",

@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: canohost.c,v 1.18 2001/01/21 19:05:45 markus Exp $");
+RCSID("$OpenBSD: canohost.c,v 1.19 2001/01/29 19:42:33 markus Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -188,6 +188,34 @@ get_canonical_hostname()
 }
 
 /*
+ * Returns the remote IP-address of socket as a string.  The returned
+ * string must be freed.
+ */
+
+char *
+get_peer_ipaddr(int socket)
+{
+	struct sockaddr_storage from;
+	socklen_t fromlen;
+	char ntop[NI_MAXHOST];
+
+	/* Get IP address of client. */
+	fromlen = sizeof(from);
+	memset(&from, 0, sizeof(from));
+	if (getpeername(socket, (struct sockaddr *) & from, &fromlen) < 0) {
+		debug("get_peer_ipaddr: getpeername failed: %.100s", strerror(errno));
+		return NULL;
+	}
+	/* Get the IP address in ascii. */
+	if (getnameinfo((struct sockaddr *)&from, fromlen, ntop, sizeof(ntop),
+	     NULL, 0, NI_NUMERICHOST) != 0) {
+		error("get_peer_ipaddr: getnameinfo NI_NUMERICHOST failed");
+		return NULL;
+	}
+	return xstrdup(ntop);
+}
+
+/*
  * Returns the IP-address of the remote host as a string.  The returned
  * string must not be freed.
  */
@@ -196,38 +224,19 @@ const char *
 get_remote_ipaddr()
 {
 	static char *canonical_host_ip = NULL;
-	struct sockaddr_storage from;
-	socklen_t fromlen;
-	int socket;
-	char ntop[NI_MAXHOST];
 
-	/* Check whether we have chached the name. */
-	if (canonical_host_ip != NULL)
-		return canonical_host_ip;
-
-	/* If not a socket, return UNKNOWN. */
-	if (!packet_connection_is_on_socket()) {
-		canonical_host_ip = xstrdup("UNKNOWN");
-		return canonical_host_ip;
+	/* Check whether we have cached the ipaddr. */
+	if (canonical_host_ip == NULL) {
+		if (packet_connection_is_on_socket()) {
+			canonical_host_ip =
+			    get_peer_ipaddr(packet_get_connection_in());
+			if (canonical_host_ip == NULL)
+				fatal_cleanup();
+		} else {
+			/* If not on socket, return UNKNOWN. */
+			canonical_host_ip = xstrdup("UNKNOWN");
+		}
 	}
-	/* Get client socket. */
-	socket = packet_get_connection_in();
-
-	/* Get IP address of client. */
-	fromlen = sizeof(from);
-	memset(&from, 0, sizeof(from));
-	if (getpeername(socket, (struct sockaddr *) & from, &fromlen) < 0) {
-		debug("getpeername failed: %.100s", strerror(errno));
-		fatal_cleanup();
-	}
-	/* Get the IP address in ascii. */
-	if (getnameinfo((struct sockaddr *)&from, fromlen, ntop, sizeof(ntop),
-	     NULL, 0, NI_NUMERICHOST) != 0)
-		fatal("get_remote_hostname: getnameinfo NI_NUMERICHOST failed");
-
-	canonical_host_ip = xstrdup(ntop);
-
-	/* Return ip address string. */
 	return canonical_host_ip;
 }
 

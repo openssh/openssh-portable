@@ -3,6 +3,9 @@
    - markus@cvs.openbsd.org  2001/01/29 09:55:37
      [channels.c channels.h clientloop.c serverloop.c]
      fix select overflow; ok deraadt@ and stevesk@
+   - markus@cvs.openbsd.org  2001/01/29 12:42:35
+     [canohost.c canohost.h channels.c clientloop.c]
+     add get_peer_ipaddr(socket), x11-fwd in ssh2 requires ipaddr, not DNS
 
 20000129
  - (stevesk) sftp-server.c: use %lld vs. %qd
