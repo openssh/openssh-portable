@@ -1,8 +1,11 @@
 20030622
- - (dtucker) OpenBSD CVS Sync (regress/)
+ - (dtucker) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2003/06/21 09:14:05
-     [reconfigure.sh]
+     [regress/reconfigure.sh]
      missing $SUDO; from dtucker@zip.com.au
+     [ssh-rsa.c]
+     backout last change, since it violates pkcs#1
+     switch to share/misc/license.template
  - (dtucker) [regress/authorized_keys_root] Remove temp data file from CVS.
  - (dtucker) [openbsd-compat/setproctitle.c] Ensure SPT_TYPE is defined before
    testing its value.
@@ -569,4 +572,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2818 2003/06/22 08:32:10 dtucker Exp $
+$Id: ChangeLog,v 1.2819 2003/06/22 10:45:15 dtucker Exp $
