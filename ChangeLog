@@ -1,3 +1,9 @@
+20010612
+  - markus@cvs.openbsd.org 2001/06/10 11:29:20
+     [dispatch.c]
+     we support rekeying
+     protocol errors are fatal.
+
 20010611
  - (bal) NeXT/MacOS X lack libgen.h and dirname().  Patch by Mark Miller 
    <markm@swoon.net> 
@@ -5602,4 +5608,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1276 2001/06/10 17:43:35 mouring Exp $
+$Id: ChangeLog,v 1.1277 2001/06/12 00:12:56 mouring Exp $
