@@ -58,6 +58,9 @@
    - markus@cvs.openbsd.org 2001/02/27 11:00:11
      [compat.c]
      support SSH-2.0-2.1 ; from Christophe_Moret@hp.com
+   - deraadt@cvs.openbsd.org 2001/02/28 05:34:28
+     [misc.c]
+     pull in protos
 
 20010304
  - (bal) Remove make-ssh-known-hosts.1 since it's no longer valid.
@@ -4250,4 +4253,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.868 2001/03/05 06:08:19 mouring Exp $
+$Id: ChangeLog,v 1.869 2001/03/05 06:09:31 mouring Exp $
