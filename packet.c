@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.41 2001/01/02 20:41:02 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.42 2001/01/09 21:19:50 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -1247,25 +1247,26 @@ packet_set_interactive(int interactive, int keepalives)
 			error("setsockopt SO_KEEPALIVE: %.100s", strerror(errno));
 	}
 	/*
-	 * IPTOS_LOWDELAY, TCP_NODELAY and IPTOS_THROUGHPUT are IPv4 only
+	 * IPTOS_LOWDELAY and IPTOS_THROUGHPUT are IPv4 only
 	 */
-	if (!packet_connection_is_ipv4())
-		return;
 	if (interactive) {
 		/*
 		 * Set IP options for an interactive connection.  Use
 		 * IPTOS_LOWDELAY and TCP_NODELAY.
 		 */
 #if defined(IP_TOS) && !defined(IP_TOS_IS_BROKEN)
-		int lowdelay = IPTOS_LOWDELAY;
-		if (setsockopt(connection_in, IPPROTO_IP, IP_TOS, (void *) &lowdelay,
-		    sizeof(lowdelay)) < 0)
-			error("setsockopt IPTOS_LOWDELAY: %.100s", strerror(errno));
+		if (packet_connection_is_ipv4()) {
+			int lowdelay = IPTOS_LOWDELAY;
+			if (setsockopt(connection_in, IPPROTO_IP, IP_TOS, 
+			    (void *) &lowdelay, sizeof(lowdelay)) < 0)
+			        error("setsockopt IPTOS_LOWDELAY: %.100s", 
+				    strerror(errno));
+		}
 #endif
 		if (setsockopt(connection_in, IPPROTO_TCP, TCP_NODELAY, (void *) &on,
 		    sizeof(on)) < 0)
 			error("setsockopt TCP_NODELAY: %.100s", strerror(errno));
-	} else {
+	} else if (packet_connection_is_ipv4()) {
 		/*
 		 * Set IP options for a non-interactive connection.  Use
 		 * IPTOS_THROUGHPUT.

@@ -1,3 +1,24 @@
+20010112
+ - (bal) OpenBSD Sync
+   - markus@cvs.openbsd.org 2001/01/10 22:56:22
+     [bufaux.h bufaux.c sftp-server.c sftp.h getput.h]
+     cleanup sftp-server implementation:
+	     add buffer_get_int64, buffer_put_int64, GET_64BIT, PUT_64BIT
+	     parse SSH2_FILEXFER_ATTR_EXTENDED
+	     send SSH2_FX_EOF if readdir returns no more entries
+	     reply to SSH2_FXP_EXTENDED message
+	     use #defines from the draft
+	     move #definations to sftp.h
+     more info:
+     http://www.ietf.org/internet-drafts/draft-ietf-secsh-filexfer-00.txt 
+   - markus@cvs.openbsd.org 2001/01/10 19:43:20
+     [sshd.c]
+     XXX - generate_empheral_server_key() is not safe against races,
+     because it calls log()     
+   - markus@cvs.openbsd.org 2001/01/09 21:19:50
+     [packet.c]
+     allow TCP_NDELAY for ipv6; from netbsd via itojun@
+
 20010110
  - (djm) SNI/Reliant Unix needs USE_PIPES and $DISPLAY hack. Report from
    Bladt Norbert <Norbert.Bladt@adi.ch>

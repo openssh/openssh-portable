@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: bufaux.c,v 1.14 2000/12/19 23:17:55 markus Exp $");
+RCSID("$OpenBSD: bufaux.c,v 1.15 2001/01/10 22:56:22 markus Exp $");
 
 #include "ssh.h"
 #include <openssl/bn.h>
@@ -152,6 +152,14 @@ buffer_get_int(Buffer *buffer)
 	return GET_32BIT(buf);
 }
 
+u_int64_t
+buffer_get_int64(Buffer *buffer)
+{
+	u_char buf[8];
+	buffer_get(buffer, (char *) buf, 8);
+	return GET_64BIT(buf);
+}
+
 /*
  * Stores an integer in the buffer in 4 bytes, msb first.
  */
@@ -161,6 +169,14 @@ buffer_put_int(Buffer *buffer, u_int value)
 	char buf[4];
 	PUT_32BIT(buf, value);
 	buffer_append(buffer, buf, 4);
+}
+
+void
+buffer_put_int64(Buffer *buffer, u_int64_t value)
+{
+	char buf[8];
+	PUT_64BIT(buf, value);
+	buffer_append(buffer, buf, 8);
 }
 
 /*

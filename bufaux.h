@@ -10,7 +10,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: bufaux.h,v 1.9 2000/12/19 23:17:55 markus Exp $"); */
+/* RCSID("$OpenBSD: bufaux.h,v 1.10 2001/01/10 22:56:22 markus Exp $"); */
 
 #ifndef BUFAUX_H
 #define BUFAUX_H
@@ -30,9 +30,11 @@ int	buffer_get_bignum2(Buffer *buffer, BIGNUM * value);
 
 /* Returns an integer from the buffer (4 bytes, msb first). */
 u_int buffer_get_int(Buffer * buffer);
+u_int64_t buffer_get_int64(Buffer *buffer);
 
 /* Stores an integer in the buffer in 4 bytes, msb first. */
 void    buffer_put_int(Buffer * buffer, u_int value);
+void	buffer_put_int64(Buffer *buffer, u_int64_t value);
 
 /* Returns a character from the buffer (0 - 255). */
 int     buffer_get_char(Buffer * buffer);

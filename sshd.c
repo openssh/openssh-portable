@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.146 2001/01/07 11:28:07 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.147 2001/01/10 19:43:20 deraadt Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -266,8 +266,8 @@ grace_alarm_handler(int sig)
  * do anything with the private key or random state before forking.
  * Thus there should be no concurrency control/asynchronous execution
  * problems.
+ * XXX calling log() is not safe from races.
  */
-/* XXX do we really want this work to be done in a signal handler ? -m */
 void
 generate_empheral_server_key(void)
 {
@@ -279,6 +279,7 @@ generate_empheral_server_key(void)
 	arc4random_stir();
 	log("RSA key generation complete.");
 }
+
 void
 key_regeneration_alarm(int sig)
 {
