@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.55 2001/03/01 02:45:10 deraadt Exp $");
+RCSID("$OpenBSD: packet.c,v 1.56 2001/03/03 21:41:07 millert Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -660,9 +660,12 @@ int
 packet_read(int *payload_len_ptr)
 {
 	int type, len;
-	fd_set set;
+	fd_set *setp;
 	char buf[8192];
 	DBG(debug("packet_read()"));
+
+	setp = (fd_set *)xmalloc(howmany(connection_in+1, NFDBITS) *
+	    sizeof(fd_mask));
 
 	/* Since we are blocking, ensure that all written packets have been sent. */
 	packet_write_wait();
@@ -678,17 +681,20 @@ packet_read(int *payload_len_ptr)
 		    || type == SSH_CMSG_EXIT_CONFIRMATION))
 			packet_integrity_check(*payload_len_ptr, 0, type);
 		/* If we got a packet, return it. */
-		if (type != SSH_MSG_NONE)
+		if (type != SSH_MSG_NONE) {
+			xfree(setp);
 			return type;
+		}
 		/*
 		 * Otherwise, wait for some data to arrive, add it to the
 		 * buffer, and try again.
 		 */
-		FD_ZERO(&set);
-		FD_SET(connection_in, &set);
+		memset(setp, 0, howmany(connection_in + 1, NFDBITS) *
+		    sizeof(fd_mask));
+		FD_SET(connection_in, setp);
 
 		/* Wait for some data to arrive. */
-		while (select(connection_in + 1, &set, NULL, NULL, NULL) == -1 &&
+		while (select(connection_in + 1, setp, NULL, NULL, NULL) == -1 &&
 		    (errno == EAGAIN || errno == EINTR))
 			;
 
@@ -1194,17 +1200,21 @@ packet_write_poll()
 void
 packet_write_wait()
 {
+	fd_set *setp;
+
+	setp = (fd_set *)xmalloc(howmany(connection_out + 1, NFDBITS) *
+	    sizeof(fd_mask));
 	packet_write_poll();
 	while (packet_have_data_to_write()) {
-		fd_set set;
-
-		FD_ZERO(&set);
-		FD_SET(connection_out, &set);
-		while (select(connection_out + 1, NULL, &set, NULL, NULL) == -1 &&
+		memset(setp, 0, howmany(connection_out + 1, NFDBITS) *
+		    sizeof(fd_mask));
+		FD_SET(connection_out, setp);
+		while (select(connection_out + 1, NULL, setp, NULL, NULL) == -1 &&
 		    (errno == EAGAIN || errno == EINTR))
 			;
 		packet_write_poll();
 	}
+	xfree(setp);
 }
 
 /* Returns true if there is buffered data to write to the connection. */
