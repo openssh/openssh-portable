@@ -236,13 +236,4 @@ typedef unsigned int size_t;
 # define PAM_STRERROR(a,b) pam_strerror((a),(b))
 #endif
 
-/* Solaris doesn't have a public [v]snprintf() function, but it has */
-/* __[v]snprintf() */
-#if !defined(HAVE_SNPRINTF) && defined(HAVE___SNPRINTF)
-# define snprintf __snprintf
-#endif /* !defined(HAVE_SNPRINTF) && defined(HAVE___SNPRINTF) */
-#if !defined(HAVE_VSNPRINTF) && defined(HAVE___VSNPRINTF)
-# define vsnprintf __vsnprintf
-#endif /* !defined(HAVE_VSNPRINTF) && defined(HAVE___VSNPRINTF) */
-
 #endif /* _DEFINES_H */
