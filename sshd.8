@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.123 2001/05/19 16:46:19 markus Exp $
+.\" $OpenBSD: sshd.8,v 1.124 2001/05/19 19:43:57 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -794,6 +794,49 @@ program.
 The default is
 .Pa /usr/X11R6/bin/xauth .
 .El
+.Ss Time Formats
+.Pp
+.Nm
+command-line arguments and configuration file options that specify time
+may be expressed using a sequence of the form:
+.Sm off
+.Ar time Oo Ar qualifier Oc ,
+.Sm on
+where
+.Ar time
+is a positive integer value and
+.Ar qualifier
+is one of the following:
+.Pp
+.Bl -tag -width Ds -compact -offset indent
+.It Cm <none>
+seconds
+.It Cm s | Cm S
+seconds
+.It Cm m | Cm M
+minutes
+.It Cm h | Cm H
+hours
+.It Cm d | Cm D
+days
+.It Cm w | Cm W
+weeks
+.El
+.Pp
+Each member of the sequence is added together to calculate
+the total time value.
+.Pp
+Time format examples:
+.Pp
+.Bl -tag -width Ds -compact -offset indent
+.It 600
+600 seconds (10 minutes)
+.It 10m
+10 minutes
+.It 1h30m
+1 hour 30 minutes (90 minutes)
+.El
+
 .Sh LOGIN PROCESS
 When a user successfully logs in,
 .Nm

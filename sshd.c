@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.196 2001/05/18 14:13:29 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.197 2001/05/19 19:43:57 stevesk Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -618,10 +618,16 @@ main(int ac, char **av)
 			}
 			break;
 		case 'g':
-			options.login_grace_time = atoi(optarg);
+			if ((options.login_grace_time = convtime(optarg)) == -1) {
+				fprintf(stderr, "Invalid login grace time.\n");
+				exit(1);
+			}
 			break;
 		case 'k':
-			options.key_regeneration_time = atoi(optarg);
+			if ((options.key_regeneration_time = convtime(optarg)) == -1) {
+				fprintf(stderr, "Invalid key regeneration interval.\n");
+				exit(1);
+			}
 			break;
 		case 'h':
 			if (options.num_host_key_files >= MAX_HOSTKEYS) {

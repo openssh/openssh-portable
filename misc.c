@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.c,v 1.8 2001/05/11 14:59:56 markus Exp $	*/
+/*	$OpenBSD: misc.c,v 1.9 2001/05/19 19:43:57 stevesk Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: misc.c,v 1.8 2001/05/11 14:59:56 markus Exp $");
+RCSID("$OpenBSD: misc.c,v 1.9 2001/05/19 19:43:57 stevesk Exp $");
 
 #include "misc.h"
 #include "log.h"
@@ -152,6 +152,66 @@ int a2port(const char *s)
 		return 0;
 
 	return port;
+}
+
+#define SECONDS		1
+#define MINUTES		(SECONDS * 60)
+#define HOURS		(MINUTES * 60)
+#define DAYS		(HOURS * 24)
+#define WEEKS		(DAYS * 7)
+
+long convtime(const char *s)
+{
+	long total, secs;
+	const char *p;
+	char *endp;
+
+	errno = 0;
+	total = 0;
+	p = s;
+
+	if (p == NULL || *p == '\0')
+		return -1;
+
+	while (*p) {
+		secs = strtol(p, &endp, 10);
+		if (p == endp ||
+		    (errno == ERANGE && (secs == LONG_MIN || secs == LONG_MAX)) ||
+		    secs < 0)
+			return -1;
+
+		switch (*endp++) {
+		case '\0':
+			endp--;
+		case 's':
+		case 'S':
+			break;
+		case 'm':
+		case 'M':
+			secs *= MINUTES;
+			break;
+		case 'h':
+		case 'H':
+			secs *= HOURS;
+			break;
+		case 'd':
+		case 'D':
+			secs *= DAYS;
+			break;
+		case 'w':
+		case 'W':
+			secs *= WEEKS;
+			break;
+		default:
+			return -1;
+		}
+		total += secs;
+		if (total < 0)
+			return -1;
+		p = endp;
+	}
+
+	return total;
 }
 
 char *

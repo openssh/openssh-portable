@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.80 2001/05/18 14:13:29 markus Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.81 2001/05/19 19:43:57 stevesk Exp $");
 
 #ifdef KRB4
 #include <krb.h>
@@ -429,11 +429,21 @@ parse_int:
 
 		case sLoginGraceTime:
 			intptr = &options->login_grace_time;
-			goto parse_int;
+parse_time:
+			arg = strdelim(&cp);
+			if (!arg || *arg == '\0')
+				fatal("%s line %d: missing time value.",
+				    filename, linenum);
+			if ((value = convtime(arg)) == -1)
+				fatal("%s line %d: invalid time value.",
+				    filename, linenum);
+			if (*intptr == -1)
+				*intptr = value;
+			break;
 
 		case sKeyRegenerationTime:
 			intptr = &options->key_regeneration_time;
-			goto parse_int;
+			goto parse_time;
 
 		case sListenAddress:
 			arg = strdelim(&cp);
@@ -792,12 +802,15 @@ parse_flag:
 		case sBanner:
 			charptr = &options->banner;
 			goto parse_filename;
+
 		case sClientAliveInterval:
 			intptr = &options->client_alive_interval;
-			goto parse_int;
+			goto parse_time;
+
 		case sClientAliveCountMax:
 			intptr = &options->client_alive_count_max;
 			goto parse_int;
+
 		case sPAMAuthenticationViaKbdInt:
 			intptr = &options->pam_authentication_via_kbd_int;
 			goto parse_flag;
