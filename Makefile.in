@@ -69,8 +69,11 @@ install: all
 	ln -sf ssh $(bindir)/slogin
 	install -s -c scp $(bindir)/scp
 	install -s -c ssh-add $(bindir)/ssh-add
-	[ -z "@GNOME_ASKPASS@" ] && install -m755 -c ssh-askpass $(libdir)/ssh/ssh-askpass
-	[ -z "@GNOME_ASKPASS@" ] || install -m755 -c gnome-ssh-askpass $(libdir)/ssh/ssh-askpass
+	if [ -z "@GNOME_ASKPASS@" ] ; then \
+		install -m755 -c ssh-askpass $(libdir)/ssh/ssh-askpass; \
+	else \
+		install -m755 -c gnome-ssh-askpass $(libdir)/ssh/ssh-askpass \
+	fi
 	install -s -c ssh-agent $(bindir)/ssh-agent
 	install -s -c ssh-keygen $(bindir)/ssh-keygen
 	install -s -c sshd $(sbindir)/sshd
