@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth.c,v 1.56 2004/07/28 09:40:29 markus Exp $");
+RCSID("$OpenBSD: auth.c,v 1.57 2005/01/22 08:17:59 dtucker Exp $");
 
 #ifdef HAVE_LOGIN_H
 #include <login.h>
@@ -153,8 +153,9 @@ allowed_user(struct passwd * pw)
 		for (i = 0; i < options.num_deny_users; i++)
 			if (match_user(pw->pw_name, hostname, ipaddr,
 			    options.deny_users[i])) {
-				logit("User %.100s not allowed because listed in DenyUsers",
-				    pw->pw_name);
+				logit("User %.100s from %.100s not allowed "
+				    "because listed in DenyUsers",
+				    pw->pw_name, hostname);
 				return 0;
 			}
 	}
@@ -166,16 +167,16 @@ allowed_user(struct passwd * pw)
 				break;
 		/* i < options.num_allow_users iff we break for loop */
 		if (i >= options.num_allow_users) {
-			logit("User %.100s not allowed because not listed in AllowUsers",
-			    pw->pw_name);
+			logit("User %.100s from %.100s not allowed because "
+			    "not listed in AllowUsers", pw->pw_name, hostname);
 			return 0;
 		}
 	}
 	if (options.num_deny_groups > 0 || options.num_allow_groups > 0) {
 		/* Get the user's group access list (primary and supplementary) */
 		if (ga_init(pw->pw_name, pw->pw_gid) == 0) {
-			logit("User %.100s not allowed because not in any group",
-			    pw->pw_name);
+			logit("User %.100s from %.100s not allowed because "
+			    "not in any group", pw->pw_name, hostname);
 			return 0;
 		}
 
@@ -184,8 +185,9 @@ allowed_user(struct passwd * pw)
 			if (ga_match(options.deny_groups,
 			    options.num_deny_groups)) {
 				ga_free();
-				logit("User %.100s not allowed because a group is listed in DenyGroups",
-				    pw->pw_name);
+				logit("User %.100s from %.100s not allowed "
+				    "because a group is listed in DenyGroups",
+				    pw->pw_name, hostname);
 				return 0;
 			}
 		/*
@@ -196,8 +198,9 @@ allowed_user(struct passwd * pw)
 			if (!ga_match(options.allow_groups,
 			    options.num_allow_groups)) {
 				ga_free();
-				logit("User %.100s not allowed because none of user's groups are listed in AllowGroups",
-				    pw->pw_name);
+				logit("User %.100s from %.100s not allowed "
+				    "because none of user's groups are listed "
+				    "in AllowGroups", pw->pw_name, hostname);
 				return 0;
 			}
 		ga_free();

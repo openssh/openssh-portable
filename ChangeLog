@@ -5,6 +5,10 @@
      Warn in advance for password and account expiry; initialize loginmsg
      buffer earlier and clear it after privsep fork. ok and help dtucker@
      markus@
+   - dtucker@cvs.openbsd.org 2005/01/22 08:17:59
+     [auth.c]
+     Log source of connections denied by AllowUsers, DenyUsers, AllowGroups and
+     DenyGroups.  bz #909, ok djm@
 
 20050120
  - (dtucker) OpenBSD CVS Sync
@@ -2023,4 +2027,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3621 2005/01/24 10:55:49 dtucker Exp $
+$Id: ChangeLog,v 1.3622 2005/01/24 10:56:48 dtucker Exp $
