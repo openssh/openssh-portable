@@ -12,16 +12,20 @@ if test "$GCC" = "yes"; then CFLAGS="$CFLAGS -Wall"; fi
 dnl Check for OpenSSL/SSLeay directories.
 AC_MSG_CHECKING([for OpenSSL/SSLeay directory])
 for ssldir in /usr /usr/local/openssl /usr/lib/openssl /usr/local/ssl /usr/lib/ssl /usr/local $prefix /usr/pkg ; do
-    if test -f "$ssldir/include/openssl/crypto.h"; then
-        AC_DEFINE(HAVE_OPENSSL)
-        break
-    fi
-    if test -f "$ssldir/include/ssl/crypto.h"; then
-        AC_DEFINE(HAVE_SSL)
-        break
-    fi
+	if test -f "$ssldir/include/openssl/crypto.h"; then
+		AC_DEFINE(HAVE_OPENSSL)
+		GOT_SSL="yes"
+		break
+	fi
+	if test -f "$ssldir/include/ssl/crypto.h"; then
+		AC_DEFINE(HAVE_SSL)
+		GOT_SSL="yes"
+		break
+	fi
 done
-AC_MSG_RESULT($ssldir)
+if test -z "$GOT_SSL" ; then
+	AC_MSG_ERROR([Could not find SSLeay / OpenSSL libraries, please install])	
+fi
 AC_SUBST(ssldir)
 AC_DEFINE_UNQUOTED(ssldir, "$ssldir")
 if test "$ssldir" != "/usr"; then
@@ -29,6 +33,7 @@ if test "$ssldir" != "/usr"; then
 	LIBS="$LIBS -L$ssldir/lib"
 fi
 LIBS="$LIBS -lssl -lcrypto"
+AC_MSG_RESULT($ssldir)
 
 dnl Check for RSAref library.
 AC_MSG_CHECKING([for RSAref library])
@@ -81,7 +86,8 @@ AC_ARG_WITH(random,
 		AC_CHECK_FILE("/dev/urandom",
 			[
 				RANDOM_POOL="/dev/urandom"; 
-				AC_DEFINE(RANDOM_POOL, "$RANDOM_POOL")
+				AC_SUBST(RANDOM_POOL)
+				AC_DEFINE_UNQUOTED(RANDOM_POOL, "$RANDOM_POOL")
 			]
 		)
 	]
@@ -93,7 +99,8 @@ AC_ARG_WITH(egd-pool,
 	[
 		RANDOM_POOL="$withval";
 		AC_DEFINE(HAVE_EGD)
-		AC_DEFINE(RANDOM_POOL, "$RANDOM_POOL")
+		AC_SUBST(RANDOM_POOL)
+		AC_DEFINE_UNQUOTED(RANDOM_POOL, "$RANDOM_POOL")
 	]
 )
 
