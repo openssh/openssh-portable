@@ -39,7 +39,7 @@
 #include "pathnames.h"
 #include "log.h"
 
-RCSID("$Id: ssh-rand-helper.c,v 1.3 2002/01/21 12:44:12 djm Exp $");
+RCSID("$Id: ssh-rand-helper.c,v 1.4 2002/01/22 10:58:28 djm Exp $");
 
 /* Number of bytes we write out */
 #define OUTPUT_SEED_SIZE	48
@@ -83,9 +83,7 @@ char *__progname;
 # define RUSAGE_CHILDREN 0
 #endif
 
-#if defined(PRNGD_SOCKET) || defined(PRNGD_PORT)
-# define USE_PRNGD
-#else
+#if !defined(PRNGD_SOCKET) && !defined(PRNGD_PORT)
 # define USE_SEED_FILES
 #endif
 
@@ -774,13 +772,11 @@ main(int argc, char **argv)
 	    (int)stir_from_system());
 
 #ifdef PRNGD_PORT
-	if (get_random_bytes_prngd(buf, sizeof(buf), PRNGD_PORT,
-	    NULL) == -1)
+	if (get_random_bytes_prngd(buf, sizeof(buf), PRNGD_PORT, NULL) == -1)
 		fatal("Entropy collection failed");
 	RAND_add(buf, sizeof(buf), sizeof(buf));
-#elif PRNGD_SOCKET
-	if (get_random_bytes_prngd(buf, sizeof(buf), PRNGD_SOCKET,
-	    NULL) == -1)
+#elif defined(PRNGD_SOCKET)
+	if (get_random_bytes_prngd(buf, sizeof(buf), 0, PRNGD_SOCKET) == -1)
 		fatal("Entropy collection failed");
 	RAND_add(buf, sizeof(buf), sizeof(buf));
 #else
