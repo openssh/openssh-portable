@@ -163,7 +163,7 @@
 #include "log.h"
 #include "atomicio.h"
 
-RCSID("$Id: loginrec.c,v 1.35 2001/10/02 00:29:00 stevesk Exp $");
+RCSID("$Id: loginrec.c,v 1.36 2001/10/22 06:49:23 djm Exp $");
 
 #ifdef HAVE_UTIL_H
 #  include <util.h>
@@ -1487,17 +1487,20 @@ lastlog_get_entry(struct logininfo *li)
 	struct lastlog last;
 	int fd;
 
-	if (lastlog_openseek(li, &fd, O_RDONLY)) {
-		if (atomicio(read, fd, &last, sizeof(last)) != sizeof(last)) {
-			log("lastlog_get_entry: Error reading from %s: %s",
-			    LASTLOG_FILE, strerror(errno));
-			return 0;
-		} else {
-			lastlog_populate_entry(li, &last);
-			return 1;
-		}
-	} else {
+	if (!lastlog_openseek(li, &fd, O_RDONLY))
+		return 0;
+
+	if (atomicio(read, fd, &last, sizeof(last)) != sizeof(last)) {
+		close(fd);
+		log("lastlog_get_entry: Error reading from %s: %s",
+		    LASTLOG_FILE, strerror(errno));
 		return 0;
 	}
+
+	close(fd);
+
+	lastlog_populate_entry(li, &last);
+
+	return 1;
 }
 #endif /* USE_LASTLOG */

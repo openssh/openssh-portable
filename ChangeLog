@@ -1,3 +1,7 @@
+20011022
+ - (djm) Fix fd leak in loginrec.c (ro fd to lastlog was left open).
+   Report from Michal Zalewski <lcamtuf@coredump.cx>
+
 20011021
  - (tim) [configure.in] Clean up library testing. Add optional PATH to
 	 --with-pcre, --with-zlib, and --with-tcp-wrappers. Based on
@@ -6740,4 +6744,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1610 2001/10/22 00:53:58 tim Exp $
+$Id: ChangeLog,v 1.1611 2001/10/22 06:49:22 djm Exp $
