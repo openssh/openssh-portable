@@ -2,7 +2,7 @@
  *    Kerberos v5 authentication and ticket-passing routines.
  * 
  * $FreeBSD: src/crypto/openssh/auth-krb5.c,v 1.6 2001/02/13 16:58:04 assar Exp $
- * $OpenBSD: auth-krb5.c,v 1.1 2001/06/26 16:15:23 dugsong Exp $
+ * $OpenBSD: auth-krb5.c,v 1.2 2001/11/12 01:47:09 dugsong Exp $
  */
 
 #include "includes.h"
@@ -52,8 +52,9 @@ auth_krb5(Authctxt *authctxt, krb5_data *auth, char **client)
 	krb5_principal server;
 	krb5_data reply;
 	krb5_ticket *ticket;
-	int fd;
-	
+	int fd, ret;
+
+	ret = 0;
 	server = NULL;
 	ticket = NULL;
 	reply.length = 0;
@@ -107,7 +108,8 @@ auth_krb5(Authctxt *authctxt, krb5_data *auth, char **client)
 	packet_put_string((char *) reply.data, reply.length);
 	packet_send();
 	packet_write_wait();
-	
+
+	ret = 1;
  err:
 	if (server)
 		krb5_free_principal(authctxt->krb5_ctx, server);
@@ -116,12 +118,11 @@ auth_krb5(Authctxt *authctxt, krb5_data *auth, char **client)
 	if (reply.length)
 		xfree(reply.data);
 	
-	if (problem) {
+	if (problem)
 		debug("Kerberos v5 authentication failed: %s",
 		    krb5_get_err_text(authctxt->krb5_ctx, problem));
-		return (0);
-	}
-	return (1);
+
+	return (ret);
 }
 
 int

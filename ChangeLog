@@ -5,6 +5,11 @@
    do_authenticated. Call loginfailed for protocol 2 failures > MAX like 
    we do for protocol 1. Reports from Ralf Wenk <wera0003@fh-karlsruhe.de>,
    K.Wolkersdorfer@fz-juelich.de and others
+ - (djm) OpenBSD CVS Sync
+   - dugsong@cvs.openbsd.org 2001/11/11 18:47:10
+     [auth-krb5.c]
+     fix krb5 authorization check. found by <jhawk@MIT.EDU>. from 
+     art@, deraadt@ ok
 
 20011112
  - (djm) Makefile correctness fix from Mark D. Baushke <mdb@juniper.net>
@@ -6895,4 +6900,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1659 2001/11/13 12:46:18 djm Exp $
+$Id: ChangeLog,v 1.1660 2001/11/13 13:02:10 djm Exp $
