@@ -2,6 +2,7 @@
  - (dtucker) [openbsd-compat/fake-rfc2553.h] Older Linuxes have AI_PASSIVE and
    AI_CANONNAME in netdb.h but not AI_NUMERICHOST, so check each definition
    separately before defining them.
+ - (dtucker) [auth-pam.c] Don't set PAM_TTY if tty is null.  ok djm@
 
 20030807
  - (dtucker) [session.c] Have session_break_req not attempt to send a break
@@ -803,4 +804,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2885 2003/08/08 02:15:11 dtucker Exp $
+$Id: ChangeLog,v 1.2886 2003/08/08 03:43:37 dtucker Exp $
