@@ -395,8 +395,7 @@ do_authentication(void)
 	setproctitle("%s", pw ? user : "unknown");
 
 #ifdef USE_PAM
-	if (pw)
-		start_pam(user);
+	start_pam(pw == NULL ? "NOUSER" : user);
 #endif
 
 	/*
