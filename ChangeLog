@@ -1,3 +1,11 @@
+20050209
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2005/01/28 09:45:53
+     [ssh_config]
+     Make it clear that the example entries in ssh_config are only some of the
+     commonly-used options and refer the user to ssh_config(5) for more
+     details; ok djm@
+
 20050208
  - (dtucker) [regress/test-exec.sh] Bug #912: Set _POSIX2_VERSION for the
    regress tests so newer versions of GNU head(1) behave themselves.  Patch
@@ -2086,4 +2094,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3639 2005/02/08 10:52:47 dtucker Exp $
+$Id: ChangeLog,v 1.3640 2005/02/08 22:46:47 dtucker Exp $
