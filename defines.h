@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.99 2003/06/11 12:51:32 djm Exp $ */
+/* $Id: defines.h,v 1.100 2003/08/07 05:58:28 dtucker Exp $ */
 
 
 /* Constants */
@@ -576,5 +576,23 @@ struct winsize {
 #endif
 
 /** end of login recorder definitions */
+
+#ifndef CMSG_DATA
+/* given pointer to struct cmsghdr, return pointer to data */
+#define CMSG_DATA(cmsg) \
+	((u_char *)(cmsg) +  (((u_int)(sizeof(struct cmsghdr)) \
+	 (sizeof(int) - 1)) &~ (sizeof(int) - 1)))
+#endif /* CMSG_DATA */
+
+#ifndef CMSG_FIRSTHDR
+/*
+ * RFC 2292 requires to check msg_controllen, in case that the kernel returns
+ * an empty list for some reasons.
+ */
+# define CMSG_FIRSTHDR(mhdr) \
+	((mhdr)->msg_controllen >= sizeof(struct cmsghdr) ? \
+	 (struct cmsghdr *)(mhdr)->msg_control : \
+	 (struct cmsghdr *)NULL)
+#endif /* CMSG_FIRSTHDR */
 
 #endif /* _DEFINES_H */
