@@ -1,3 +1,6 @@
+20010815
+ - (bal) Fixed stray code in readconf.c that went in by mistake.
+
 20010814
  - (stevesk) sshpty.c, cray.[ch]: whitespace, formatting and cleanup
    for some #ifdef _CRAY code; ok wendyp@cray.com
@@ -6286,4 +6289,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1474 2001/08/14 21:02:15 stevesk Exp $
+$Id: ChangeLog,v 1.1475 2001/08/15 22:58:59 mouring Exp $
