@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.18 2001/06/23 15:12:20 itojun Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.19 2001/09/17 17:57:57 stevesk Exp $");
 
 /* XXX: commandline mode */
 /* XXX: short-form remote directory listings (like 'ls -C') */
@@ -93,7 +93,9 @@ connect_to_server(char **args, int *in, int *out, pid_t *sshpid)
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: sftp [-1vC] [-b batchfile] [-osshopt=value] [user@]host[:file [file]]\n");
+	fprintf(stderr,
+	    "usage: sftp [-1vC] [-b batchfile] [-F config] [-o option]\n"
+	    "            [user@]host[:file [file]]\n");
 	exit(1);
 }
 
@@ -119,7 +121,7 @@ main(int argc, char **argv)
 	ll = SYSLOG_LEVEL_INFO;
 	infile = stdin;		/* Read from STDIN unless changed by -b */
 
-	while ((ch = getopt(argc, argv, "1hvCo:s:S:b:")) != -1) {
+	while ((ch = getopt(argc, argv, "1hvCo:s:S:b:F:")) != -1) {
 		switch (ch) {
 		case 'C':
 			addargs(&args, "-C");
@@ -131,8 +133,9 @@ main(int argc, char **argv)
 			}
 			debug_level++;
 			break;
+		case 'F':
 		case 'o':
-			addargs(&args, "-o%s", optarg);
+			addargs(&args, "-%c%s", ch, optarg);
 			break;
 		case '1':
 			sshver = 1;

@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.24 2001/09/05 06:23:07 deraadt Exp $
+.\" $OpenBSD: sftp.1,v 1.25 2001/09/17 17:57:57 stevesk Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -32,6 +32,7 @@
 .Nm sftp
 .Op Fl vC
 .Op Fl b Ar batchfile
+.Op Fl F Ar ssh_config
 .Op Fl o Ar ssh_option
 .Op Ar host
 .Nm sftp
@@ -77,6 +78,12 @@ and
 Enables compression (via ssh's
 .Fl C
 flag)
+.It Fl F Ar ssh_config
+Specifies an alternative
+per-user configuration file for
+.Nm ssh .
+This option is directly passed to
+.Xr ssh 1 .
 .It Fl o Ar ssh_option
 Can be used to pass options to
 .Nm ssh

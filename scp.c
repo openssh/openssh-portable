@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.82 2001/09/12 18:18:25 stevesk Exp $");
+RCSID("$OpenBSD: scp.c,v 1.83 2001/09/17 17:57:56 stevesk Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -241,7 +241,7 @@ main(argc, argv)
 	addargs(&args, "-oFallBackToRsh no");
 
 	fflag = tflag = 0;
-	while ((ch = getopt(argc, argv, "dfprtvBCc:i:P:q46S:o:")) != -1)
+	while ((ch = getopt(argc, argv, "dfprtvBCc:i:P:q46S:o:F:")) != -1)
 		switch (ch) {
 		/* User-visible flags. */
 		case '4':
@@ -252,6 +252,7 @@ main(argc, argv)
 		case 'o':
 		case 'c':
 		case 'i':
+		case 'F':
 			addargs(&args, "-%c%s", ch, optarg);
 			break;
 		case 'P':
@@ -954,9 +955,9 @@ response()
 void
 usage()
 {
-	(void) fprintf(stderr, "usage: scp "
-	    "[-pqrvBC46] [-S ssh] [-P port] [-c cipher] [-i identity] "
-	    "[-o option] f1 f2\n"
+	(void) fprintf(stderr,
+	    "usage: scp [-pqrvBC46] [-F config] [-S ssh] [-P port] [-c cipher] [-i identity]\n"
+	    "           [-o option] f1 f2\n"
 	    "   or: scp [options] f1 ... fn directory\n");
 	exit(1);
 }
