@@ -43,12 +43,12 @@ int IPv4or6 = AF_UNSPEC;
 #endif
 
 int ssh_port = SSH_DEFAULT_PORT;
- 
-#define KT_RSA1       1
-#define KT_DSA        2
-#define KT_RSA        4
- 
-int get_keytypes = KT_RSA1;   /* Get only RSA1 keys by default */
+
+#define KT_RSA1	1
+#define KT_DSA	2
+#define KT_RSA	4
+
+int get_keytypes = KT_RSA1;	/* Get only RSA1 keys by default */
 
 #define MAXMAXFD 256
 
@@ -673,9 +673,9 @@ usage(void)
 	fprintf(stderr, "  -p port     Connect to the specified port.\n");
 	fprintf(stderr, "  -t keytype  Specify the host key type.\n");
 	fprintf(stderr, "  -T timeout  Set connection timeout.\n");
-	fprintf(stderr, "  -v          Verbose; display verbose debugging messages.\n");
-	fprintf(stderr, "  -4          Use IPv4 only.\n");
-	fprintf(stderr, "  -6          Use IPv6 only.\n");
+        fprintf(stderr, "  -v          Verbose; display verbose debugging messages.\n");
+        fprintf(stderr, "  -4          Use IPv4 only.\n");
+        fprintf(stderr, "  -6          Use IPv6 only.\n");
 	exit(1);
 }
 
@@ -685,7 +685,7 @@ main(int argc, char **argv)
 	int debug_flag = 0, log_level = SYSLOG_LEVEL_INFO;
 	int opt, fopt_count = 0;
 	char *tname;
- 
+
 	extern int optind;
 	extern char *optarg;
 
@@ -719,7 +719,7 @@ main(int argc, char **argv)
 			else
 				fatal("Too high debugging level.");
 			break;
-                case 'f':
+		case 'f':
 			if (strcmp(optarg, "-") == 0)
 				optarg = NULL;
 			argv[fopt_count++] = optarg;
@@ -761,7 +761,6 @@ main(int argc, char **argv)
 
 	log_init("ssh-keyscan", log_level, SYSLOG_FACILITY_USER, 1);
 	fatal_add_cleanup(fatal_callback, NULL);
-
 
 	maxfd = fdlim_get(1);
 	if (maxfd < 0)
