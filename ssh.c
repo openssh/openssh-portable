@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.128 2001/07/09 05:58:47 fgsch Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.129 2001/07/11 16:29:59 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -313,7 +313,7 @@ main(int ac, char **av)
 
 again:
 	while ((opt = getopt(ac, av,
-	    "1246nfxXgpaAki:I:tvVqe:c:m:p:l:R:L:D:CNTo:sb:")) != -1) {
+	    "1246ab:c:e:fgi:kl:m:no:p:qstvxACD:I:L:NPR:TVX")) != -1) {
 		switch (opt) {
 		case '1':
 			options.protocol = SSH_PROTO_1;
