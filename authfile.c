@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfile.c,v 1.27 2001/02/08 19:30:51 itojun Exp $");
+RCSID("$OpenBSD: authfile.c,v 1.28 2001/02/21 09:05:54 deraadt Exp $");
 
 #include <openssl/err.h>
 #include <openssl/evp.h>
@@ -336,12 +336,12 @@ load_private_key_rsa1(int fd, const char *filename,
 		close(fd);
 		return 0;
 	}
-	close(fd);
 
 	/* Check that it is at least big enough to contain the ID string. */
 	if (len < sizeof(authfile_id_string)) {
 		debug3("Bad RSA1 key file %.200s.", filename);
 		buffer_free(&buffer);
+		close(fd);
 		return 0;
 	}
 	/*
@@ -352,8 +352,10 @@ load_private_key_rsa1(int fd, const char *filename,
 		if (buffer_get_char(&buffer) != authfile_id_string[i]) {
 			debug3("Bad RSA1 key file %.200s.", filename);
 			buffer_free(&buffer);
+			close(fd);
 			return 0;
 		}
+
 	/* Read cipher type. */
 	cipher_type = buffer_get_char(&buffer);
 	(void) buffer_get_int(&buffer);	/* Reserved data. */
@@ -403,6 +405,7 @@ fail:
 		prv->e = NULL;
 		if (comment_return)
 			xfree(*comment_return);
+		close(fd);
 		return 0;
 	}
 	/* Read the rest of the private key. */
@@ -431,7 +434,7 @@ fail:
 	BN_CTX_free(ctx);
 
 	buffer_free(&decrypted);
-
+	close(fd);
 	return 1;
 }
 
@@ -446,6 +449,7 @@ load_private_key_ssh2(int fd, const char *passphrase, Key *k, char **comment_ret
 	fp = fdopen(fd, "r");
 	if (fp == NULL) {
 		error("fdopen failed");
+		close(fd);
 		return 0;
 	}
 	pk = PEM_read_PrivateKey(fp, NULL, NULL, (char *)passphrase);
@@ -515,7 +519,7 @@ load_private_key(const char *filename, const char *passphrase, Key *key,
 		error("@         WARNING: UNPROTECTED PRIVATE KEY FILE!          @");
 		error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 		error("Bad ownership or mode(0%3.3o) for '%s'.",
-		      st.st_mode & 0777, filename);
+		    st.st_mode & 0777, filename);
 		error("It is recommended that your private key files are NOT accessible by others.");
 		return 0;
 	}
@@ -530,16 +534,19 @@ load_private_key(const char *filename, const char *passphrase, Key *key,
 			key->rsa->n = NULL;
 		}
 		ret = load_private_key_rsa1(fd, filename, passphrase,
-		     key->rsa, comment_return);
+		    key->rsa, comment_return);		/* closes fd */
+
 		break;
 	case KEY_DSA:
 	case KEY_RSA:
 	case KEY_UNSPEC:
-		ret = load_private_key_ssh2(fd, passphrase, key, comment_return);
+		ret = load_private_key_ssh2(fd, passphrase, key,
+		    comment_return);			/* closes fd */
+		break;
 	default:
+		close(fd);
 		break;
 	}
-	close(fd);
 	return ret;
 }
 
