@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.197 2003/05/20 12:09:32 jmc Exp $
+.\" $OpenBSD: sshd.8,v 1.198 2003/06/10 09:12:12 jmc Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -771,17 +771,6 @@ This can be used to specify
 machine-specific login-time initializations globally.
 This file should be writable only by root, and should be world-readable.
 .El
-.Sh AUTHORS
-OpenSSH is a derivative of the original and free
-ssh 1.2.12 release by Tatu Ylonen.
-Aaron Campbell, Bob Beck, Markus Friedl, Niels Provos,
-Theo de Raadt and Dug Song
-removed many bugs, re-added newer features and
-created OpenSSH.
-Markus Friedl contributed the support for SSH
-protocol versions 1.5 and 2.0.
-Niels Provos and Markus Friedl contributed support
-for privilege separation.
 .Sh SEE ALSO
 .Xr scp 1 ,
 .Xr sftp 1 ,
@@ -813,3 +802,14 @@ for privilege separation.
 .%D January 2002
 .%O work in progress material
 .Re
+.Sh AUTHORS
+OpenSSH is a derivative of the original and free
+ssh 1.2.12 release by Tatu Ylonen.
+Aaron Campbell, Bob Beck, Markus Friedl, Niels Provos,
+Theo de Raadt and Dug Song
+removed many bugs, re-added newer features and
+created OpenSSH.
+Markus Friedl contributed the support for SSH
+protocol versions 1.5 and 2.0.
+Niels Provos and Markus Friedl contributed support
+for privilege separation.

@@ -1,3 +1,16 @@
+20030611
+ - (djm) OpenBSD CVS Sync
+   - jmc@cvs.openbsd.org 2003/06/10 09:12:11
+     [scp.1 sftp-server.8 ssh.1 ssh-add.1 ssh-agent.1 ssh_config.5]
+     [sshd.8 sshd_config.5 ssh-keygen.1 ssh-keyscan.1 ssh-keysign.8]
+     - section reorder
+     - COMPATIBILITY merge
+     - macro cleanup
+     - kill whitespace at EOL
+     - new sentence, new line
+     ssh pages ok markus@
+
+
 20030609
  - (djm) Sync README.smartcard with OpenBSD -current
  - (djm) Re-merge OpenSC info into README.smartcard
@@ -480,4 +493,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2792 2003/06/10 11:09:09 djm Exp $
+$Id: ChangeLog,v 1.2793 2003/06/11 12:04:39 djm Exp $

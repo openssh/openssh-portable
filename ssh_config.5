@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.12 2003/06/02 08:31:10 jakob Exp $
+.\" $OpenBSD: ssh_config.5,v 1.13 2003/06/10 09:12:12 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -664,6 +664,8 @@ values that are not specified in the user's configuration file, and
 for those users who do not have a configuration file.
 This file must be world-readable.
 .El
+.Sh SEE ALSO
+.Xr ssh 1
 .Sh AUTHORS
 OpenSSH is a derivative of the original and free
 ssh 1.2.12 release by Tatu Ylonen.
@@ -673,5 +675,3 @@ removed many bugs, re-added newer features and
 created OpenSSH.
 Markus Friedl contributed the support for SSH
 protocol versions 1.5 and 2.0.
-.Sh SEE ALSO
-.Xr ssh 1

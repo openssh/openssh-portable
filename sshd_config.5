@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.18 2003/06/02 09:17:34 markus Exp $
+.\" $OpenBSD: sshd_config.5,v 1.19 2003/06/10 09:12:12 jmc Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -660,7 +660,7 @@ display server may be exposed to attack when the ssh client requests
 forwarding (see the warnings for
 .Cm ForwardX11
 in
-.Xr ssh_config 5 ).
+.Xr ssh_config 5 ) .
 A system administrator may have a stance in which they want to
 protect clients that may expose themselves to attack by unwittingly
 requesting X11 forwarding, which can warrant a
@@ -706,7 +706,6 @@ The default is
 .Pa /usr/X11R6/bin/xauth .
 .El
 .Ss Time Formats
-.Pp
 .Nm sshd
 command-line arguments and configuration file options that specify time
 may be expressed using a sequence of the form:
@@ -755,6 +754,8 @@ Contains configuration data for
 This file should be writable by root only, but it is recommended
 (though not necessary) that it be world-readable.
 .El
+.Sh SEE ALSO
+.Xr sshd 8
 .Sh AUTHORS
 OpenSSH is a derivative of the original and free
 ssh 1.2.12 release by Tatu Ylonen.
@@ -766,5 +767,3 @@ Markus Friedl contributed the support for SSH
 protocol versions 1.5 and 2.0.
 Niels Provos and Markus Friedl contributed support
 for privilege separation.
-.Sh SEE ALSO
-.Xr sshd 8
