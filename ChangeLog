@@ -168,6 +168,7 @@
    - deraadt@cvs.openbsd.org 2001/03/04 18:21:28
      [sshd.8]
      list SSH2 ciphers
+ - (bal) Put HAVE_PW_CLASS_IN_PASSWD back into pwcopy()
 
 20010304
  - (bal) Remove make-ssh-known-hosts.1 since it's no longer valid.
@@ -4360,4 +4361,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.903 2001/03/05 07:48:45 mouring Exp $
+$Id: ChangeLog,v 1.904 2001/03/05 07:57:09 mouring Exp $

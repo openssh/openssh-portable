@@ -108,7 +108,9 @@ pwcopy(struct passwd *pw)
 	copy->pw_gecos = xstrdup(pw->pw_gecos);
 	copy->pw_uid = pw->pw_uid;
 	copy->pw_gid = pw->pw_gid;
+#ifdef HAVE_PW_CLASS_IN_PASSWD
 	copy->pw_class = xstrdup(pw->pw_class);
+#endif
 	copy->pw_dir = xstrdup(pw->pw_dir);
 	copy->pw_shell = xstrdup(pw->pw_shell);
 	return copy;
