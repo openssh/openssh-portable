@@ -31,6 +31,7 @@
 #include "log.h"
 #include "servconf.h"
 #include "canohost.h"
+#include "uidswap.h"
 
 #include <sia.h>
 #include <siad.h>
@@ -103,8 +104,8 @@ session_setup_sia(struct passwd *pw, char *tty)
 
 	sia_ses_release(&ent);
 
-	if (setreuid(geteuid(), geteuid()) < 0)
-		fatal("setreuid: %s", strerror(errno));
+	setuid(0);
+	permanently_set_uid(pw);
 }
 
 #endif /* HAVE_OSF_SIA */

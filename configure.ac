@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.174 2003/11/21 12:48:55 djm Exp $
+# $Id: configure.ac,v 1.175 2003/11/22 03:25:16 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -409,14 +409,13 @@ mips-sony-bsd|mips-sony-newsos4)
 			LIBS="$LIBS -lsecurity -ldb -lm -laud"
 		else
 			AC_MSG_RESULT(no)
+			AC_DEFINE(LOCKED_PASSWD_SUBSTR, "Nologin")
 		fi
 	fi
-	AC_DEFINE(DISABLE_FD_PASSING)
 	AC_DEFINE(BROKEN_GETADDRINFO)
 	AC_DEFINE(SETEUID_BREAKS_SETUID)
 	AC_DEFINE(BROKEN_SETREUID)
 	AC_DEFINE(BROKEN_SETREGID)
-	AC_DEFINE(LOCKED_PASSWD_SUBSTR, "Nologin")
 	;;
 
 *-*-nto-qnx)
