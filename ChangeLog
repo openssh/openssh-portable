@@ -1,3 +1,6 @@
+20000807
+ - (djm) Set 0755 on binaries during install. 
+
 20000725
  - (djm) Fix autoconf typo: HAVE_BINRESVPORT_AF -> HAVE_BINDRESVPORT_AF
 
