@@ -51,7 +51,12 @@
 
 #include "includes.h"
 
-RCSID("$Id: bsd-snprintf.c,v 1.4 2001/02/13 14:05:59 mouring Exp $");
+RCSID("$Id: bsd-snprintf.c,v 1.5 2001/02/25 23:20:41 mouring Exp $");
+
+#if defined(BROKEN_SNPRINTF)		/* For those with broken snprintf() */
+# undef HAVE_SNPRINTF
+# undef HAVE_VSNPRINTF
+#endif
 
 #if !defined(HAVE_SNPRINTF) || !defined(HAVE_VSNPRINTF)
 
