@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.105 2002/03/20 19:12:24 stevesk Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.106 2002/04/20 09:02:03 deraadt Exp $");
 
 #if defined(KRB4)
 #include <krb.h>
@@ -212,7 +212,7 @@ fill_default_server_options(ServerOptions *options)
 #endif
 #ifdef AFS
 	if (options->afs_token_passing == -1)
-		options->afs_token_passing = k_hasafs();
+		options->afs_token_passing = 0;
 #endif
 	if (options->password_authentication == -1)
 		options->password_authentication = 1;
