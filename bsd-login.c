@@ -37,7 +37,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 /* from: static char sccsid[] = "@(#)login.c	8.1 (Berkeley) 6/4/93"; */
-static char *rcsid = "$Id: bsd-login.c,v 1.1 1999/11/19 04:32:34 damien Exp $";
+static char *rcsid = "$Id: bsd-login.c,v 1.2 1999/11/20 01:18:40 damien Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <sys/types.h>
@@ -58,6 +58,7 @@ login(utp)
 
 	tty = ttyslot();
 	if (tty > 0 && (fd = open(_PATH_UTMP, O_RDWR|O_CREAT, 0644)) >= 0) {
+#ifdef HAVE_HOST_IN_UTMP
 		(void)lseek(fd, (off_t)(tty * sizeof(struct utmp)), SEEK_SET);
 		/*
 		 * Prevent luser from zero'ing out ut_host.
@@ -70,6 +71,7 @@ login(utp)
 		    strncmp(old_ut.ut_line, utp->ut_line, UT_LINESIZE) == 0 &&
 		    strncmp(old_ut.ut_name, utp->ut_name, UT_NAMESIZE) == 0)
 			(void)memcpy(utp->ut_host, old_ut.ut_host, UT_HOSTSIZE);
+#endif /* HAVE_HOST_IN_UTMP */
 		(void)lseek(fd, (off_t)(tty * sizeof(struct utmp)), SEEK_SET);
 		(void)write(fd, utp, sizeof(struct utmp));
 		(void)close(fd);

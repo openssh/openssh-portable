@@ -1,3 +1,9 @@
+19991120
+ - Merged more Solaris support from Marc G. Fournier 
+   <marc.fournier@acadiau.ca>
+ - Wrote autoconf tests for integer bit-types
+ - Fixed enabling kerberos support
+
 19991119
  - Merged PAM buffer overrun patch from Chip Salzenberg <chip@valinux.com>
  - Merged OpenBSD CVS changes

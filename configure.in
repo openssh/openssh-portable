@@ -70,6 +70,57 @@ AC_CHECK_FUNC(daemon,
 	[AC_CHECK_LIB(bsd, daemon, [LIBS="$LIBS -lbsd"; AC_DEFINE(HAVE_DAEMON)])]
 )
 
+dnl Checks for data types
+AC_CHECK_SIZEOF(short int, 2)
+AC_CHECK_SIZEOF(int, 4)
+AC_CHECK_SIZEOF(long int, 4)
+AC_CHECK_SIZEOF(long long int, 8)
+
+dnl More checks for data types
+AC_MSG_CHECKING([For quad_t])
+AC_TRY_COMPILE(
+	[#include <sys/types.h>], 
+	[quad_t a; a = 1235;], 
+	[
+		AC_DEFINE(HAVE_QUAD_T)
+		AC_MSG_RESULT(yes)
+	],
+	[AC_MSG_RESULT(no)]
+) 
+
+AC_MSG_CHECKING([For intXX_t types])
+AC_TRY_COMPILE(
+	[#include <sys/types.h>], 
+	[int16_t a; int32_t b; a = 1235; b = 1235;], 
+	[
+		AC_DEFINE(HAVE_INTXX_T)
+		AC_MSG_RESULT(yes)
+	],
+	[AC_MSG_RESULT(no)]
+) 
+
+AC_MSG_CHECKING([For u_intXX_t types])
+AC_TRY_COMPILE(
+	[#include <sys/types.h>], 
+	[u_int16_t c; u_int32_t d; c = 1235; d = 1235;], 
+	[
+		AC_DEFINE(HAVE_U_INTXX_T)
+		AC_MSG_RESULT(yes)
+	],
+	[AC_MSG_RESULT(no)]
+) 
+
+AC_MSG_CHECKING([For uintXX_t types])
+AC_TRY_COMPILE(
+	[#include <sys/types.h>], 
+	[uint16_t c; uint32_t d; c = 1235; d = 1235;], 
+	[
+		AC_DEFINE(HAVE_UINTXX_T)
+		AC_MSG_RESULT(yes)
+	],
+	[AC_MSG_RESULT(no)]
+) 
+
 dnl Check whether use wants to disable the external ssh-askpass
 INSTALL_ASKPASS="yes"
 AC_MSG_CHECKING([whether to enable external ssh-askpass support])
@@ -158,14 +209,23 @@ dnl Look for lastlog location
 AC_MSG_CHECKING([location of lastlog file])
 for lastlog in /var/log/lastlog /var/adm/lastlog /etc/security/lastlog ; do
 	if test -f $lastlog ; then
-		gotlastlog="yes"
-		AC_MSG_RESULT($lastlog)
-		AC_DEFINE_UNQUOTED(LASTLOG_LOCATION, "$lastlog")
+		gotlastlog="file"
+		break
+	fi
+	if test -d $lastlog ; then
+		gotlastlog="dir"
 		break
 	fi
 done
 if test -z "$gotlastlog" ; then
 	AC_MSG_ERROR([*** Cannot find lastlog ***])
+else
+	if test "x$gotlastlog" = "xdir" ; then
+		AC_DEFINE(LASTLOG_IS_DIR)
+		AC_MSG_ERROR([*** Directory-based lastlogs are not yet supported ***])
+	fi
+	AC_MSG_RESULT($lastlog)
+	AC_DEFINE_UNQUOTED(LASTLOG_LOCATION, "$lastlog")
 fi	
 
 AC_MSG_CHECKING([whether libc defines __progname])
@@ -191,7 +251,7 @@ AC_ARG_WITH(kerberos4,
 )
 
 dnl Check whether user wants AFS support
-AC_ARG_WITH(kerberos4,
+AC_ARG_WITH(afs,
 	[  --with-afs              Enable AFS support],
 	[
 		AC_DEFINE(AFS)

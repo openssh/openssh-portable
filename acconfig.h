@@ -6,6 +6,9 @@
 /* Location of lastlog file */
 #undef LASTLOG_LOCATION
 
+/* If lastlog is a directory */
+#undef LASTLOG_IS_DIR
+
 /* Location of random number pool  */
 #undef RANDOM_POOL
 
@@ -51,13 +54,22 @@
 /* Define if you want to allow MD5 passwords */
 #undef HAVE_MD5_PASSWORDS
 
+/* Data types */
+#undef HAVE_QUAD_T
+#undef HAVE_INTXX_T
+#undef HAVE_U_INTXX_T
+#undef HAVE_UINTXX_T
+
 @BOTTOM@
 
 /* ******************* Shouldn't need to edit below this line ************** */
 
-#include <sys/types.h> /* For u_intXX_t */
-#include <sys/socket.h> /* For SHUT_XXXX */
-#include <paths.h> /* For _PATH_XXX */
+# include <sys/types.h> /* For u_intXX_t */
+# include <sys/socket.h> /* For SHUT_XXXX */
+
+#ifdef HAVE_PATHS_H
+# include <paths.h> /* For _PATH_XXX */
+#endif 
 
 #ifndef SHUT_RDWR
 enum
@@ -71,16 +83,63 @@ enum
 };
 #endif
 
-#if !defined(u_int32_t) && defined(uint32_t)
-#define u_int32_t uint32_t
+/* If sys/types.h does not supply intXX_t, supply them ourselves */
+/* (or die trying) */
+#ifndef HAVE_INTXX_T
+# if (SIZEOF_SHORT_INT == 2)
+#  define int16_t short int
+# else
+#  error "16 bit int type not found."
+# endif
+# if (SIZEOF_INT == 4)
+#  define int32_t int
+# else
+#  error "32 bit int type not found."
+# endif
+# if (SIZEOF_LONG_INT == 8)
+#  define int64_t long int
+# else
+#  if (SIZEOF_LONG_LONG_INT == 8)
+#   define int64_t long long int
+#  else
+#   error "64 bit int type not found."
+#  endif
+# endif
 #endif
 
-#if !defined(u_int16_t) && defined(uint16_t)
-#define u_int16_t uint16_t
+/* If sys/types.h does not supply u_intXX_t, supply them ourselves */
+#ifndef HAVE_U_INTXX_T
+# ifdef HAVE_UINTXX_T
+#  define u_int16_t uint16_t
+#  define u_int32_t uint32_t
+#  define u_int64_t uint64_t
+# else
+#  if (SIZEOF_SHORT_INT == 2)
+#   define u_int16_t unsigned short int
+#  else
+#   error "16 bit int type not found."
+#  endif
+#  if (SIZEOF_INT == 4)
+#   define u_int32_t unsigned int
+#  else
+#   error "32 bit int type not found."
+#  endif
+#  if (SIZEOF_LONG_INT == 8)
+#   define u_int64_t unsigned long int
+#  else
+#   if (SIZEOF_LONG_LONG_INT == 8)
+#    define u_int64_t unsigned long long int
+#   else
+#    error "64 bit int type not found."
+#   endif
+#  endif
+# endif
 #endif
 
-#if !defined(quad_t) && defined(int64_t)
-#define quad_t int64_t
+/* If quad_t is not supplied, then supply it now. We can rely on int64_t */
+/* being defined by the above */
+#ifndef HAVE_QUAD_T
+# define quad_t int64_t
 #endif
 
 #ifndef _PATH_LASTLOG
