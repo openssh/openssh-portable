@@ -16,6 +16,7 @@
      ok djm@
  - (djm) Remove IPv4 by default hack now that we can specify AF in config
  - (djm) Tidy and trim TODO
+ - (djm) Sync openbsd-compat/ with OpenBSD CVS head
 
 20030517
  - (bal) strcat -> strlcat on openbsd-compat/realpath.c (rev 1.8 OpenBSD)
@@ -1571,4 +1572,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2737 2003/05/18 11:45:26 djm Exp $
+$Id: ChangeLog,v 1.2738 2003/05/18 12:24:09 djm Exp $

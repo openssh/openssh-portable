@@ -1,4 +1,4 @@
-/* $OpenBSD: getrrsetbyname.c,v 1.4 2001/08/16 18:16:43 ho Exp $ */
+/* $OpenBSD: getrrsetbyname.c,v 1.7 2003/03/07 07:34:14 itojun Exp $ */
 
 /*
  * Copyright (c) 2001 Jakob Schlyter. All rights reserved.
@@ -49,6 +49,8 @@
 
 #include "getrrsetbyname.h"
 
+/* #include "thread_private.h" */
+
 #define ANSWER_BUFFER_SIZE 1024*64
 
 struct dns_query {
@@ -76,10 +78,10 @@ struct dns_response {
 	struct dns_rr		*additional;
 };
 
-static struct dns_response *parse_dns_response(const char *, int);
-static struct dns_query *parse_dns_qsection(const char *, int, const char **,
-    int);
-static struct dns_rr *parse_dns_rrsection(const char *, int, const char **,
+static struct dns_response *parse_dns_response(const u_char *, int);
+static struct dns_query *parse_dns_qsection(const u_char *, int,
+    const u_char **, int);
+static struct dns_rr *parse_dns_rrsection(const u_char *, int, const u_char **,
     int);
 
 static void free_dns_query(struct dns_query *);
@@ -153,13 +155,15 @@ getrrsetbyname(const char *hostname, unsigned int rdclass,
     unsigned int rdtype, unsigned int flags,
     struct rrsetinfo **res)
 {
+	struct __res_state *_resp = &_res;
 	int result;
 	struct rrsetinfo *rrset = NULL;
 	struct dns_response *response;
 	struct dns_rr *rr;
 	struct rdatainfo *rdata;
-	unsigned int length, index_ans, index_sig;
-	char answer[ANSWER_BUFFER_SIZE];
+	int length;
+	unsigned int index_ans, index_sig;
+	u_char answer[ANSWER_BUFFER_SIZE];
 
 	/* check for invalid class and type */
 	if (rdclass > 0xffff || rdtype > 0xffff) {
@@ -180,23 +184,24 @@ getrrsetbyname(const char *hostname, unsigned int rdclass,
 	}
 
 	/* initialize resolver */
-	if ((_res.options & RES_INIT) == 0 && res_init() == -1) {
+	if ((_resp->options & RES_INIT) == 0 && res_init() == -1) {
 		result = ERRSET_FAIL;
 		goto fail;
 	}
 
 #ifdef DEBUG
-	_res.options |= RES_DEBUG;
+	_resp->options |= RES_DEBUG;
 #endif /* DEBUG */
 
 #ifdef RES_USE_DNSSEC
 	/* turn on DNSSEC if EDNS0 is configured */
-	if (_res.options & RES_USE_EDNS0)
-		_res.options |= RES_USE_DNSSEC;
+	if (_resp->options & RES_USE_EDNS0)
+		_resp->options |= RES_USE_DNSSEC;
 #endif /* RES_USE_DNSEC */
 
 	/* make query */
-	length = res_query(hostname, rdclass, rdtype, answer, sizeof(answer));
+	length = res_query(hostname, (signed int) rdclass, (signed int) rdtype,
+	    answer, sizeof(answer));
 	if (length < 0) {
 		switch(h_errno) {
 		case HOST_NOT_FOUND:
@@ -338,10 +343,10 @@ freerrset(struct rrsetinfo *rrset)
  * DNS response parsing routines
  */
 static struct dns_response *
-parse_dns_response(const char *answer, int size)
+parse_dns_response(const u_char *answer, int size)
 {
 	struct dns_response *resp;
-	const char *cp;
+	const u_char *cp;
 
 	/* allocate memory for the response */
 	resp = calloc(1, sizeof(*resp));
@@ -403,7 +408,7 @@ parse_dns_response(const char *answer, int size)
 }
 
 static struct dns_query *
-parse_dns_qsection(const char *answer, int size, const char **cp, int count)
+parse_dns_qsection(const u_char *answer, int size, const u_char **cp, int count)
 {
 	struct dns_query *head, *curr, *prev;
 	int i, length;
@@ -449,7 +454,7 @@ parse_dns_qsection(const char *answer, int size, const char **cp, int count)
 }
 
 static struct dns_rr *
-parse_dns_rrsection(const char *answer, int size, const char **cp, int count)
+parse_dns_rrsection(const u_char *answer, int size, const u_char **cp, int count)
 {
 	struct dns_rr *head, *curr, *prev;
 	int i, length;
