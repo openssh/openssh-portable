@@ -17,6 +17,7 @@
      [auth2-passwd.c]
      Ignore password change request during password auth (which we currently
      don't support) and discard proposed new password.  corrections/ok markus@
+ - (dtucker) [configure.ac] Only test setresuid and setresgid if they exist.
 
 20031219
  - (dtucker) [defines.h] Bug #458: Define SIZE_T_MAX as UINT_MAX if we
@@ -1636,4 +1637,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3157 2003/12/31 00:43:24 dtucker Exp $
+$Id: ChangeLog,v 1.3158 2003/12/31 03:59:17 dtucker Exp $

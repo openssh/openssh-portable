@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.178 2003/12/18 01:52:19 dtucker Exp $
+# $Id: configure.ac,v 1.179 2003/12/31 03:59:17 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -749,7 +749,7 @@ AC_CHECK_FUNCS(\
 	mkdtemp mmap ngetaddrinfo nsleep ogetaddrinfo openlog_r openpty \
 	pstat readpassphrase realpath recvmsg rresvport_af sendmsg \
 	setdtablesize setegid setenv seteuid setgroups setlogin setpcred \
-	setproctitle setregid setresgid setresuid setreuid setrlimit \
+	setproctitle setregid setreuid setrlimit \
 	setsid setvbuf sigaction sigvec snprintf socketpair strerror \
 	strlcat strlcpy strmode strnvis strtoul sysconf tcgetpgrp \
 	truncate utimes vhangup vsnprintf waitpid \
@@ -783,29 +783,33 @@ AC_CHECK_DECL(tcsendbreak,
 	[#include <termios.h>]
 )
 
-dnl Some platorms have setresuid that isn't implemented
-AC_MSG_CHECKING(if setresuid seems to work)
-AC_TRY_RUN([
+AC_CHECK_FUNCS(setresuid, [
+	dnl Some platorms have setresuid that isn't implemented, test for this
+	AC_MSG_CHECKING(if setresuid seems to work)
+	AC_TRY_RUN([
 #include <stdlib.h>
 #include <errno.h>
 int main(){errno=0; setresuid(0,0,0); if (errno==ENOSYS) exit(1); else exit(0);}
-	],
-	[AC_MSG_RESULT(yes)],
-	[AC_DEFINE(BROKEN_SETRESUID),
-	 AC_MSG_RESULT(not implemented)]
-)
+		],
+		[AC_MSG_RESULT(yes)],
+		[AC_DEFINE(BROKEN_SETRESUID),
+		 AC_MSG_RESULT(not implemented)]
+	)
+])
 
-dnl Some platorms have setresgid that isn't implemented
-AC_MSG_CHECKING(if setresgid seems to work)
-AC_TRY_RUN([
+AC_CHECK_FUNCS(setresgid, [
+	dnl Some platorms have setresgid that isn't implemented, test for this
+	AC_MSG_CHECKING(if setresgid seems to work)
+	AC_TRY_RUN([
 #include <stdlib.h>
 #include <errno.h>
 int main(){errno=0; setresgid(0,0,0); if (errno==ENOSYS) exit(1); else exit(0);}
-	],
-	[AC_MSG_RESULT(yes)],
-	[AC_DEFINE(BROKEN_SETRESGID)
-	 AC_MSG_RESULT(not implemented)]
-)
+		],
+		[AC_MSG_RESULT(yes)],
+		[AC_DEFINE(BROKEN_SETRESGID)
+		 AC_MSG_RESULT(not implemented)]
+	)
+])
 
 dnl    Checks for time functions
 AC_CHECK_FUNCS(gettimeofday time)
