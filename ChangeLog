@@ -3,6 +3,8 @@
    No change in resultant binary
  - (djm) [loginrec.c] __func__ifiy
  - (djm) [loginrec.c] xmalloc
+ - (djm) [ssh.c sshd.c version.h] Don't divulge portable version in protocol
+   banner. Suggested by deraadt@, ok mouring@, dtucker@
 
 20040911
  - (djm) [ssh-agent.c] unifdef some cygwin code; ok dtucker@
@@ -1740,4 +1742,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3550 2004/09/12 05:26:00 djm Exp $
+$Id: ChangeLog,v 1.3551 2004/09/12 06:53:04 djm Exp $

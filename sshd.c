@@ -774,7 +774,7 @@ static void
 usage(void)
 {
 	fprintf(stderr, "%s, %s\n",
-	    SSH_VERSION, SSLeay_version(SSLEAY_VERSION));
+	    SSH_RELEASE, SSLeay_version(SSLEAY_VERSION));
 	fprintf(stderr,
 "usage: sshd [-46Ddeiqt] [-b bits] [-f config_file] [-g login_grace_time]\n"
 "            [-h host_key_file] [-k key_gen_time] [-o option] [-p port] [-u len]\n"
@@ -1081,7 +1081,7 @@ main(int ac, char **av)
 		exit(1);
 	}
 
-	debug("sshd version %.100s", SSH_VERSION);
+	debug("sshd version %.100s", SSH_RELEASE);
 
 	/* load private host keys */
 	sensitive_data.host_keys = xmalloc(options.num_host_key_files *
