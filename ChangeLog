@@ -33,6 +33,10 @@
    - provos@cvs.openbsd.org 2002/03/17 20:25:56
      [auth.c auth.h auth1.c auth2.c]
      getpwnamallow returns struct passwd * only if user valid; okay markus@
+   - provos@cvs.openbsd.org 2002/03/18 01:12:14
+     [auth.h auth1.c auth2.c sshd.c]
+     have the authentication functions return the authentication context
+     and then do_authenticated; okay millert@
 
 20020317
  - (tim) [configure.ac] Assume path given with --with-pid-dir=PATH is wanted,
@@ -7879,4 +7883,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1934 2002/03/22 01:24:38 mouring Exp $
+$Id: ChangeLog,v 1.1935 2002/03/22 01:27:35 mouring Exp $

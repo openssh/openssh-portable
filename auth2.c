@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.86 2002/03/17 20:25:56 provos Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.87 2002/03/18 01:12:14 provos Exp $");
 
 #include <openssl/evp.h>
 
@@ -109,7 +109,7 @@ Authmethod authmethods[] = {
  * loop until authctxt->success == TRUE
  */
 
-void
+Authctxt *
 do_authentication2(void)
 {
 	Authctxt *authctxt = authctxt_new();
@@ -125,7 +125,8 @@ do_authentication2(void)
 	dispatch_init(&dispatch_protocol_error);
 	dispatch_set(SSH2_MSG_SERVICE_REQUEST, &input_service_request);
 	dispatch_run(DISPATCH_BLOCK, &authctxt->success, authctxt);
-	do_authenticated(authctxt);
+
+	return (authctxt);
 }
 
 static void

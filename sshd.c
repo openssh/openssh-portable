@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.229 2002/03/14 16:38:26 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.230 2002/03/18 01:12:14 provos Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -72,6 +72,7 @@ RCSID("$OpenBSD: sshd.c,v 1.229 2002/03/14 16:38:26 markus Exp $");
 #include "misc.h"
 #include "dispatch.h"
 #include "channels.h"
+#include "session.h"
 
 #ifdef LIBWRAP
 #include <tcpd.h>
@@ -594,6 +595,7 @@ main(int ac, char **av)
 	int listen_sock, maxfd;
 	int startup_p[2];
 	int startups = 0;
+	Authctxt *authctxt;
 	Key *key;
 	int ret, key_used = 0;
 
@@ -1235,11 +1237,15 @@ main(int ac, char **av)
 	/* authenticate user and start session */
 	if (compat20) {
 		do_ssh2_kex();
-		do_authentication2();
+		authctxt = do_authentication2();
 	} else {
 		do_ssh1_kex();
-		do_authentication();
+		authctxt = do_authentication();
 	}
+
+	/* Perform session preparation. */
+	do_authenticated(authctxt);
+
 	/* The connection has been terminated. */
 	verbose("Closing connection to %.100s", remote_ip);
 

@@ -1,4 +1,4 @@
-/*	$OpenBSD: auth.h,v 1.32 2002/03/17 20:25:56 provos Exp $	*/
+/*	$OpenBSD: auth.h,v 1.33 2002/03/18 01:12:14 provos Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -121,8 +121,8 @@ void	krb5_cleanup_proc(void *authctxt);
 #include "auth-pam.h"
 #include "auth2-pam.h"
 
-void	do_authentication(void);
-void	do_authentication2(void);
+Authctxt *do_authentication(void);
+Authctxt *do_authentication2(void);
 
 Authctxt *authctxt_new(void);
 void	auth_log(Authctxt *, int, char *, char *);
