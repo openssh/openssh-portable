@@ -12,6 +12,10 @@
      [cipher.c]
      rename acss@opebsd.org to acss@openssh.org
      ok deraadt@
+   - djm@cvs.openbsd.org 2004/01/25 03:49:09
+     [sshconnect.c]
+     reset nonblocking flag after ConnectTimeout > 0 connect; (bugzilla #785)
+     from jclonguet AT free.fr; ok millert@
  - (djm) [acss.c acss.h cipher-acss.c] Portable support for ACSS 
    if libcrypto lacks it
 
@@ -1754,4 +1758,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3195 2004/01/27 10:20:59 djm Exp $
+$Id: ChangeLog,v 1.3196 2004/01/27 10:21:27 djm Exp $
