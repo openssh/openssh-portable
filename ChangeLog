@@ -7,7 +7,23 @@
      - new sentence new line
      - .Bk for arguments
      ok markus@
-
+   - markus@cvs.openbsd.org 2003/04/01 10:10:23
+     [clientloop.c monitor.c monitor_wrap.c packet.c packet.h readconf.c]
+     [readconf.h serverloop.c sshconnect2.c]
+     rekeying bugfixes and automatic rekeying:
+     * both client and server rekey _automatically_
+           (a) after 2^31 packets, because after 2^32 packets
+               the sequence number for packets wraps
+           (b) after 2^(blocksize_in_bits/4) blocks
+       (see: draft-ietf-secsh-newmodes-00.txt)
+       (a) and (b) are _enabled_ by default, and only disabled for known
+       openssh versions, that don't support rekeying properly.
+     * client option 'RekeyLimit'
+     * do not reply to requests during rekeying
+   - markus@cvs.openbsd.org 2003/04/01 10:22:21
+     [clientloop.c monitor.c monitor_wrap.c packet.c packet.h readconf.c]
+     [readconf.h serverloop.c sshconnect2.c]
+     backout rekeying changes (for 3.6.1)
 
 20030326
  - (djm) OpenBSD CVS Sync
@@ -1270,4 +1286,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2643 2003/04/01 11:42:14 djm Exp $
+$Id: ChangeLog,v 1.2644 2003/04/01 11:43:39 djm Exp $
