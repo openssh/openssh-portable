@@ -15,6 +15,9 @@
    - jakob@cvs.openbsd.org 2004/08/12 21:41:13
      [ssh-keygen.1 ssh.1]
      improve SSHFP documentation; ok deraadt@
+   - jmc@cvs.openbsd.org 2004/08/13 00:01:43
+     [ssh-keygen.1]
+     kill whitespace at eol;
 
 20040812
  - (dtucker) [sshd.c] Remove duplicate variable imported during sync.
@@ -1612,4 +1615,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3502 2004/08/13 11:22:40 dtucker Exp $
+$Id: ChangeLog,v 1.3503 2004/08/13 11:23:25 dtucker Exp $
