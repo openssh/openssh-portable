@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.94 2003/01/07 04:18:33 djm Exp $
+# $Id: configure.ac,v 1.95 2003/01/07 06:04:18 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -601,8 +601,8 @@ AC_CHECK_FUNCS(arc4random b64_ntop bcopy bindresvport_sa \
 	realpath recvmsg rresvport_af sendmsg setdtablesize setegid \
 	setenv seteuid setgroups setlogin setproctitle setresgid setreuid \
 	setrlimit setsid setpcred setvbuf sigaction sigvec snprintf \
-	socketpair strerror strlcat strlcpy strmode sysconf tcgetpgrp \
-	truncate utimes vhangup vsnprintf waitpid __b64_ntop _getpty)
+	socketpair strerror strlcat strlcpy strmode strvis sysconf \
+	tcgetpgrp truncate utimes vhangup vsnprintf waitpid __b64_ntop \		_getpty)
 
 dnl Make sure strsep prototype is defined before defining HAVE_STRSEP
 AC_CHECK_DECL(strsep, [AC_CHECK_FUNCS(strsep)])

@@ -8,6 +8,8 @@
  - (djm) Fix Bug #442 for PAM case
  - (djm) Bug #110: bogus error messages in lastlog_get_entry(). Fix based
    on one by peak@argo.troja.mff.cuni.cz
+ - (djm) Bug #111: Run syslog and stderr logging through strnvis to eliminate
+   nasties. Report from peak@argo.troja.mff.cuni.cz
 
 20030103
  - (djm) Bug #461: ssh-copy-id fails with no arguments. Patch from 
@@ -936,4 +938,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2545 2003/01/07 05:46:58 djm Exp $
+$Id: ChangeLog,v 1.2546 2003/01/07 06:04:18 djm Exp $

@@ -386,11 +386,14 @@ do_log(LogLevel level, const char *fmt, va_list args)
 	} else {
 		vsnprintf(msgbuf, sizeof(msgbuf), fmt, args);
 	}
+	/* Escape magic chars in output. */
+	strnvis(fmtbuf, msgbuf, sizeof(fmtbuf), VIS_OCTAL);
+	
 	if (log_on_stderr) {
-		fprintf(stderr, "%s\r\n", msgbuf);
+		fprintf(stderr, "%s\r\n", fmtbuf);
 	} else {
 		openlog(argv0 ? argv0 : __progname, LOG_PID, log_facility);
-		syslog(pri, "%.500s", msgbuf);
+		syslog(pri, "%.500s", fmtbuf);
 		closelog();
 	}
 }
