@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: misc.c,v 1.20 2002/12/13 10:03:15 markus Exp $");
+RCSID("$OpenBSD: misc.c,v 1.21 2003/04/12 10:15:36 markus Exp $");
 
 #include "misc.h"
 #include "log.h"
@@ -60,7 +60,7 @@ set_nonblock(int fd)
 		debug2("fd %d is O_NONBLOCK", fd);
 		return;
 	}
-	debug("fd %d setting O_NONBLOCK", fd);
+	debug2("fd %d setting O_NONBLOCK", fd);
 	val |= O_NONBLOCK;
 	if (fcntl(fd, F_SETFL, val) == -1)
 		debug("fcntl(%d, F_SETFL, O_NONBLOCK): %s",
