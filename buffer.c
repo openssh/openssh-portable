@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: buffer.c,v 1.10 2001/01/21 19:05:45 markus Exp $");
+RCSID("$OpenBSD: buffer.c,v 1.11 2001/04/05 21:02:46 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -112,7 +112,8 @@ void
 buffer_get(Buffer *buffer, char *buf, u_int len)
 {
 	if (len > buffer->end - buffer->offset)
-		fatal("buffer_get: trying to get more bytes than in buffer");
+		fatal("buffer_get: trying to get more bytes %d than in buffer %d",
+		    len, buffer->end - buffer->offset);
 	memcpy(buf, buffer->buf + buffer->offset, len);
 	buffer->offset += len;
 }
