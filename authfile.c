@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfile.c,v 1.29 2001/03/26 08:07:07 markus Exp $");
+RCSID("$OpenBSD: authfile.c,v 1.30 2001/03/26 23:12:42 markus Exp $");
 
 #include <openssl/err.h>
 #include <openssl/evp.h>
@@ -185,14 +185,14 @@ key_save_private_pem(Key *key, const char *filename, const char *_passphrase,
 		return 0;
 	}
 	switch (key->type) {
-		case KEY_DSA:
-			success = PEM_write_DSAPrivateKey(fp, key->dsa,
-			    cipher, passphrase, len, NULL, NULL);
-			break;
-		case KEY_RSA:
-			success = PEM_write_RSAPrivateKey(fp, key->rsa,
-			    cipher, passphrase, len, NULL, NULL);
-			break;
+	case KEY_DSA:
+		success = PEM_write_DSAPrivateKey(fp, key->dsa,
+		    cipher, passphrase, len, NULL, NULL);
+		break;
+	case KEY_RSA:
+		success = PEM_write_RSAPrivateKey(fp, key->rsa,
+		    cipher, passphrase, len, NULL, NULL);
+		break;
 	}
 	fclose(fp);
 	return success;
