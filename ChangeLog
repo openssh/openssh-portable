@@ -1,5 +1,6 @@
 20000610
  - (djm) Minor doc tweaks
+ - (djm) Fix for configure on bash2 from Jim Knoble <jmknoble@jmknoble.cx>
 
 20000609
  - (djm) Patch from Kenji Miyake <kenji@miyake.org> to disable utmp usage
