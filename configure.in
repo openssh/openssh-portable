@@ -79,14 +79,14 @@ case "$host" in
 	;;
 *-*-irix5*)
 	CFLAGS="$CFLAGS -I/usr/local/include"
-	LDFLAGS="$LDFLAGS -L/usr/local/lib"
+	LDFLAGS="$LDFLAGS"
 	MANTYPE='$(CATMAN)'
 	no_libsocket=1
 	no_libnsl=1
 	;;
 *-*-irix6*)
 	CFLAGS="$CFLAGS -I/usr/local/include"
-	LDFLAGS="$LDFLAGS -L/usr/local/lib"
+	LDFLAGS="$LDFLAGS"
 	MANTYPE='$(CATMAN)'
 	AC_MSG_WARN([*** Irix 6.x is not tested, please report you experiences *** ])
 	no_libsocket=1

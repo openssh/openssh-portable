@@ -1,4 +1,5 @@
 20000606
+ - (djm) Don't add /usr/local/lib to library search path on Irix
  - (djm) Fix rsh path in RPMs. Report from Jason L Tibbitts III 
    <tibbs@math.uh.edu>
  - (djm) Warn user if grabs fail in GNOME askpass. Patch from Zack Weinberg
