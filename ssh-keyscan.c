@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keyscan.c,v 1.31 2001/11/16 12:46:13 markus Exp $");
+RCSID("$OpenBSD: ssh-keyscan.c,v 1.32 2001/11/22 05:27:29 stevesk Exp $");
 
 #if defined(HAVE_SYS_QUEUE_H) && !defined(HAVE_BOGUS_SYS_QUEUE_H)
 #include <sys/queue.h>
@@ -744,7 +744,7 @@ main(int argc, char **argv)
 					get_keytypes |= KT_RSA;
 					break;
 				case KEY_UNSPEC:
-					fatal("unknown key type %s\n", tname);
+					fatal("unknown key type %s", tname);
 				}
 				tname = strtok(NULL, ",");
 			}
