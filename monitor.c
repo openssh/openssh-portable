@@ -567,7 +567,8 @@ mm_answer_pwnamallow(int socket, Buffer *m)
 	}
 
 #ifdef USE_PAM
-	monitor_permit(mon_dispatch, MONITOR_REQ_PAM_START, 1);
+	if (options.use_pam)
+		monitor_permit(mon_dispatch, MONITOR_REQ_PAM_START, 1);
 #endif
 
 	return (0);
@@ -750,6 +751,9 @@ mm_answer_pam_start(int socket, Buffer *m)
 {
 	char *user;
 	
+	if (!options.use_pam)
+		fatal("UsePAM not set, but ended up in %s anyway", __func__);
+
 	user = buffer_get_string(m, NULL);
 
 	start_pam(user);

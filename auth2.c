@@ -91,10 +91,6 @@ do_authentication2(void)
 	/* challenge-response is implemented via keyboard interactive */
 	if (options.challenge_response_authentication)
 		options.kbd_interactive_authentication = 1;
-	if (options.pam_authentication_via_kbd_int)
-		options.kbd_interactive_authentication = 1;
-	if (use_privsep)
-		options.pam_authentication_via_kbd_int = 0;
 
 	dispatch_init(&dispatch_protocol_error);
 	dispatch_set(SSH2_MSG_SERVICE_REQUEST, &input_service_request);
@@ -163,12 +159,14 @@ input_userauth_request(int type, u_int32_t seq, void *ctxt)
 			authctxt->valid = 1;
 			debug2("input_userauth_request: setting up authctxt for %s", user);
 #ifdef USE_PAM
-			PRIVSEP(start_pam(authctxt->pw->pw_name));
+			if (options.use_pam)
+				PRIVSEP(start_pam(authctxt->pw->pw_name));
 #endif
 		} else {
 			logit("input_userauth_request: illegal user %s", user);
 #ifdef USE_PAM
-			PRIVSEP(start_pam(user));
+			if (options.use_pam)
+				PRIVSEP(start_pam(user));
 #endif
 		}
 		setproctitle("%s%s", authctxt->pw ? user : "unknown",
@@ -214,12 +212,6 @@ userauth_finish(Authctxt *authctxt, int authenticated, char *method)
 	if (authenticated && authctxt->pw->pw_uid == 0 &&
 	    !auth_root_allowed(method))
 		authenticated = 0;
-
-#ifdef USE_PAM
-	if (!use_privsep && authenticated && authctxt->user && 
-	    !do_pam_account(authctxt->user, NULL))
-		authenticated = 0;
-#endif /* USE_PAM */
 
 #ifdef _UNICOS
 	if (authenticated && cray_access_denied(authctxt->user)) {

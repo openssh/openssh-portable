@@ -422,12 +422,15 @@ The probability increases linearly and all connection attempts
 are refused if the number of unauthenticated connections reaches
 .Dq full
 (60).
-.It Cm PAMAuthenticationViaKbdInt
-Specifies whether PAM challenge response authentication is allowed. This
-allows the use of most PAM challenge response authentication modules, but
-it will allow password authentication regardless of whether
-.Cm PasswordAuthentication
-is enabled.
+
+.It Cm UsePAM
+Enables PAM authentication (via challenge-response) and session set up. 
+If you enable this, you should probably disable 
+.Cm PasswordAuthentication .
+If you enable 
+.CM UsePAM
+then you will not be able to run sshd as a non-root user.
+
 .It Cm PasswordAuthentication
 Specifies whether password authentication is allowed.
 The default is

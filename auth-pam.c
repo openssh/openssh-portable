@@ -49,6 +49,8 @@ RCSID("$FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:
 #include "ssh2.h"
 #include "xmalloc.h"
 
+extern ServerOptions options;
+
 #define __unused
 
 #ifdef USE_POSIX_THREADS
@@ -276,7 +278,6 @@ sshpam_cleanup(void *arg)
 static int
 sshpam_init(const char *user)
 {
-	extern ServerOptions options;
 	extern u_int utmp_len;
 	const char *pam_rhost, *pam_user;
 
@@ -312,6 +313,10 @@ sshpam_init_ctx(Authctxt *authctxt)
 {
 	struct pam_ctxt *ctxt;
 	int socks[2];
+
+	/* Refuse to start if we don't have PAM enabled */
+	if (!options.use_pam)
+		return NULL;
 
 	/* Initialize PAM */
 	if (sshpam_init(authctxt->user) == -1) {

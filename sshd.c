@@ -1544,7 +1544,8 @@ main(int ac, char **av)
 	verbose("Closing connection to %.100s", remote_ip);
 
 #ifdef USE_PAM
-	finish_pam();
+	if (options.use_pam)
+		finish_pam();
 #endif /* USE_PAM */
 
 	packet_close();

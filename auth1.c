@@ -342,11 +342,6 @@ do_authloop(Authctxt *authctxt)
 		    !auth_root_allowed(get_authname(type)))
 			authenticated = 0;
 #endif
-#ifdef USE_PAM
-		if (!use_privsep && authenticated && 
-		    !do_pam_account(pw->pw_name, client_user))
-			authenticated = 0;
-#endif
 
 		/* Log before sending the reply */
 		auth_log(authctxt, authenticated, get_authname(type), info);
@@ -413,7 +408,8 @@ do_authentication(void)
 	    use_privsep ? " [net]" : "");
 
 #ifdef USE_PAM
-	PRIVSEP(start_pam(user));
+	if (options.use_pam)
+		PRIVSEP(start_pam(user));
 #endif
 
 	/*

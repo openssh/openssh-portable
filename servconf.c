@@ -59,8 +59,10 @@ initialize_server_options(ServerOptions *options)
 {
 	memset(options, 0, sizeof(*options));
 
+#ifdef USE_PAM
 	/* Portable-specific options */
-	options->pam_authentication_via_kbd_int = -1;
+	options->use_pam = -1;
+#endif
 
 	/* Standard Options */
 	options->num_ports = 0;
@@ -136,8 +138,10 @@ void
 fill_default_server_options(ServerOptions *options)
 {
 	/* Portable-specific options */
-	if (options->pam_authentication_via_kbd_int == -1)
-		options->pam_authentication_via_kbd_int = 0;
+#ifdef USE_PAM
+	if (options->use_pam == -1)
+		options->use_pam = 1;
+#endif
 
 	/* Standard Options */
 	if (options->protocol == SSH_PROTO_UNKNOWN)
@@ -279,7 +283,7 @@ fill_default_server_options(ServerOptions *options)
 typedef enum {
 	sBadOption,		/* == unknown option */
 	/* Portable-specific options */
-	sPAMAuthenticationViaKbdInt,
+	sUsePAM,
 	/* Standard Options */
 	sPort, sHostKeyFile, sServerKeyBits, sLoginGraceTime, sKeyRegenerationTime,
 	sPermitRootLogin, sLogFacility, sLogLevel,
@@ -315,7 +319,7 @@ static struct {
 	ServerOpCodes opcode;
 } keywords[] = {
 	/* Portable-specific options */
-	{ "PAMAuthenticationViaKbdInt", sPAMAuthenticationViaKbdInt },
+	{ "UsePAM", sUsePAM },
 	/* Standard Options */
 	{ "port", sPort },
 	{ "hostkey", sHostKeyFile },
@@ -462,8 +466,8 @@ process_server_config_line(ServerOptions *options, char *line,
 	opcode = parse_token(arg, filename, linenum);
 	switch (opcode) {
 	/* Portable-specific options */
-	case sPAMAuthenticationViaKbdInt:
-		intptr = &options->pam_authentication_via_kbd_int;
+	case sUsePAM:
+		intptr = &options->use_pam;
 		goto parse_flag;
 
 	/* Standard Options */

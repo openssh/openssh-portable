@@ -47,6 +47,7 @@ RCSID("$OpenBSD: monitor_wrap.c,v 1.26 2003/04/07 08:29:57 markus Exp $");
 #include "atomicio.h"
 #include "monitor_fdpass.h"
 #include "getput.h"
+#include "servconf.h"
 
 #include "auth.h"
 #include "channels.h"
@@ -59,6 +60,7 @@ extern z_stream incoming_stream;
 extern z_stream outgoing_stream;
 extern struct monitor *pmonitor;
 extern Buffer input, output;
+extern ServerOptions options;
 
 void
 mm_request_send(int socket, enum monitor_reqtype type, Buffer *m)
@@ -669,6 +671,8 @@ mm_start_pam(char *user)
 	Buffer m;
 
 	debug3("%s entering", __func__);
+	if (!options.use_pam)
+		fatal("UsePAM=no, but ended up in %s anyway", __func__);
 
 	buffer_init(&m);
 	buffer_put_cstring(&m, user);

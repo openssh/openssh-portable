@@ -78,8 +78,8 @@ allowed_user(struct passwd * pw)
 #ifdef WITH_AIXAUTHENTICATE
 	char *loginmsg;
 #endif /* WITH_AIXAUTHENTICATE */
-#if !defined(USE_PAM) && defined(HAVE_SHADOW_H) && \
-    !defined(DISABLE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
+#if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW) && \
+    defined(HAS_SHADOW_EXPIRE)
 	struct spwd *spw;
 	time_t today;
 #endif
@@ -88,10 +88,10 @@ allowed_user(struct passwd * pw)
 	if (!pw || !pw->pw_name)
 		return 0;
 
-#if !defined(USE_PAM) && defined(HAVE_SHADOW_H) && \
-    !defined(DISABLE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
+#if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW) && \
+    defined(HAS_SHADOW_EXPIRE)
 #define	DAY		(24L * 60 * 60) /* 1 day in seconds */
-	if ((spw = getspnam(pw->pw_name)) != NULL) {
+	if (!options.use_pam && (spw = getspnam(pw->pw_name)) != NULL) {
 		today = time(NULL) / DAY;
 		debug3("allowed_user: today %d sp_expire %d sp_lstchg %d"
 		    " sp_max %d", (int)today, (int)spw->sp_expire,

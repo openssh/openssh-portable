@@ -456,11 +456,13 @@ do_exec_no_pty(Session *s, const char *command)
 	session_proctitle(s);
 
 #if defined(USE_PAM)
-	do_pam_session(s->pw->pw_name, NULL);
-	do_pam_setcred(1);
-	if (is_pam_password_change_required())
-		packet_disconnect("Password change required but no "
-		    "TTY available");
+	if (options.use_pam) {
+		do_pam_session(s->pw->pw_name, NULL);
+		do_pam_setcred(1);
+		if (is_pam_password_change_required())
+			packet_disconnect("Password change required but no "
+			    "TTY available");
+	}
 #endif /* USE_PAM */
 
 	/* Fork the child. */
@@ -583,8 +585,10 @@ do_exec_pty(Session *s, const char *command)
 	ttyfd = s->ttyfd;
 
 #if defined(USE_PAM)
-	do_pam_session(s->pw->pw_name, s->tty);
-	do_pam_setcred(1);
+	if (options.use_pam) {
+		do_pam_session(s->pw->pw_name, s->tty);
+		do_pam_setcred(1);
+	}
 #endif
 
 	/* Fork the child. */
@@ -753,7 +757,7 @@ do_login(Session *s, const char *command)
 	 * If password change is needed, do it now.
 	 * This needs to occur before the ~/.hushlogin check.
 	 */
-	if (is_pam_password_change_required()) {
+	if (options.use_pam && is_pam_password_change_required()) {
 		print_pam_messages();
 		do_pam_chauthtok();
 	}
@@ -763,7 +767,7 @@ do_login(Session *s, const char *command)
 		return;
 
 #ifdef USE_PAM
-	if (!is_pam_password_change_required())
+	if (options.use_pam && !is_pam_password_change_required())
 		print_pam_messages();
 #endif /* USE_PAM */
 #ifdef WITH_AIXAUTHENTICATE
@@ -1077,10 +1081,9 @@ do_setup_env(Session *s, const char *shell)
 	 * Pull in any environment variables that may have
 	 * been set by PAM.
 	 */
-	{
-		char **p;
+	if (options.use_pam) {
+		char **p = fetch_pam_environment();
 
-		p = fetch_pam_environment();
 		copy_environment(p, &env, &envsize);
 		free_pam_environment(p);
 	}
@@ -1248,7 +1251,8 @@ do_setusercontext(struct passwd *pw)
 		 * These will have been wiped by the above initgroups() call.
 		 * Reestablish them here.
 		 */
-		do_pam_setcred(0);
+		if (options.use_pam)
+			do_pam_setcred(0);
 # endif /* USE_PAM */
 # if defined(WITH_IRIX_PROJECT) || defined(WITH_IRIX_JOBS) || defined(WITH_IRIX_ARRAY)
 		irix_setusercontext(pw);
