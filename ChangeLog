@@ -128,6 +128,15 @@
    - markus@cvs.openbsd.org 2002/01/11 13:36:43
      [ssh2.h]
      add defines for msg type ranges
+   - markus@cvs.openbsd.org 2002/01/11 13:39:36
+     [auth2.c dispatch.c dispatch.h kex.c]
+     a single dispatch_protocol_error() that sends a message of 
+     type 'UNIMPLEMENTED'
+     dispatch_range(): set handler for a ranges message types
+     use dispatch_protocol_ignore() for authentication requests after
+     successful authentication (the drafts requirement).
+     serverloop/clientloop now send a 'UNIMPLEMENTED' message instead 
+     of exiting.
 
 
 20020121
@@ -7276,4 +7285,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1760 2002/01/22 12:23:41 djm Exp $
+$Id: ChangeLog,v 1.1761 2002/01/22 12:24:13 djm Exp $

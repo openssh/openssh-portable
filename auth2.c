@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.80 2001/12/28 15:06:00 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.81 2002/01/11 13:39:36 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -71,7 +71,6 @@ struct Authmethod {
 
 static void input_service_request(int, u_int32_t, void *);
 static void input_userauth_request(int, u_int32_t, void *);
-static void protocol_error(int, u_int32_t, void *);
 
 /* helper */
 static Authmethod *authmethod_lookup(const char *);
@@ -123,20 +122,10 @@ do_authentication2(void)
 	if (options.pam_authentication_via_kbd_int)
 		options.kbd_interactive_authentication = 1;
 
-	dispatch_init(&protocol_error);
+	dispatch_init(&dispatch_protocol_error);
 	dispatch_set(SSH2_MSG_SERVICE_REQUEST, &input_service_request);
 	dispatch_run(DISPATCH_BLOCK, &authctxt->success, authctxt);
 	do_authenticated(authctxt);
-}
-
-static void
-protocol_error(int type, u_int32_t seq, void *ctxt)
-{
-	log("auth: protocol error: type %d", type);
-	packet_start(SSH2_MSG_UNIMPLEMENTED);
-	packet_put_int(seq);
-	packet_send();
-	packet_write_wait();
 }
 
 static void
@@ -265,7 +254,7 @@ userauth_finish(Authctxt *authctxt, int authenticated, char *method)
 	/* XXX todo: check if multiple auth methods are needed */
 	if (authenticated == 1) {
 		/* turn off userauth */
-		dispatch_set(SSH2_MSG_USERAUTH_REQUEST, &protocol_error);
+		dispatch_set(SSH2_MSG_USERAUTH_REQUEST, &dispatch_protocol_ignore);
 		packet_start(SSH2_MSG_USERAUTH_SUCCESS);
 		packet_send();
 		packet_write_wait();

@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: dispatch.c,v 1.14 2001/12/28 15:06:00 markus Exp $");
+RCSID("$OpenBSD: dispatch.c,v 1.15 2002/01/11 13:39:36 markus Exp $");
 
 #include "ssh1.h"
 #include "ssh2.h"
@@ -39,14 +39,36 @@ dispatch_fn *dispatch[DISPATCH_MAX];
 void
 dispatch_protocol_error(int type, u_int32_t seq, void *ctxt)
 {
-	fatal("dispatch_protocol_error: type %d seq %u", type, seq);
+	log("dispatch_protocol_error: type %d seq %u", type, seq);
+	if (!compat20)
+		fatal("protocol error");
+	packet_start(SSH2_MSG_UNIMPLEMENTED);
+	packet_put_int(seq);
+	packet_send();
+	packet_write_wait();
+}
+void
+dispatch_protocol_ignore(int type, u_int32_t seq, void *ctxt)
+{
+	log("dispatch_protocol_ignore: type %d seq %u", type, seq);
 }
 void
 dispatch_init(dispatch_fn *dflt)
 {
-	int i;
+	u_int i;
 	for (i = 0; i < DISPATCH_MAX; i++)
 		dispatch[i] = dflt;
+}
+void
+dispatch_range(u_int from, u_int to, dispatch_fn *fn)
+{
+	u_int i;
+
+	for (i = from; i <= to; i++) {
+		if (i >= DISPATCH_MAX)
+			break;
+		dispatch[i] = fn;
+	}
 }
 void
 dispatch_set(int type, dispatch_fn *fn)
