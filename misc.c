@@ -28,7 +28,6 @@
 RCSID("$OpenBSD: misc.c,v 1.1 2001/01/21 19:05:52 markus Exp $");
 
 #include "misc.h"
-#include "ssh.h"
 #include "log.h"
 
 char *
