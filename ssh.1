@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.165 2002/09/11 17:55:03 stevesk Exp $
+.\" $OpenBSD: ssh.1,v 1.166 2002/09/12 19:50:36 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -726,11 +726,11 @@ to make this work.)
 .It Ev SSH_AUTH_SOCK
 Identifies the path of a unix-domain socket used to communicate with the
 agent.
-.It Ev SSH_CLIENT
-Identifies the client end of the connection.
+.It Ev SSH_CONNECTION
+Identifies the client and server ends of the connection.
 The variable contains
-three space-separated values: client ip-address, client port number,
-and server port number.
+four space-separated values: client ip-address, client port number,
+server ip-address and server port number.
 .It Ev SSH_ORIGINAL_COMMAND
 The variable contains the original command line if a forced command
 is executed.

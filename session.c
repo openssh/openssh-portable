@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.148 2002/08/29 15:57:25 stevesk Exp $");
+RCSID("$OpenBSD: session.c,v 1.149 2002/09/12 19:50:36 stevesk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1011,9 +1011,15 @@ do_setup_env(Session *s, const char *shell)
 		}
 	}
 
+	/* SSH_CLIENT deprecated */
 	snprintf(buf, sizeof buf, "%.50s %d %d",
 	    get_remote_ipaddr(), get_remote_port(), get_local_port());
 	child_set_env(&env, &envsize, "SSH_CLIENT", buf);
+
+	snprintf(buf, sizeof buf, "%.50s %d %.50s %d",
+	    get_remote_ipaddr(), get_remote_port(),
+	    get_local_ipaddr(packet_get_connection_in()), get_local_port());
+	child_set_env(&env, &envsize, "SSH_CONNECTION", buf);
 
 	if (s->ttyfd != -1)
 		child_set_env(&env, &envsize, "SSH_TTY", s->tty);
