@@ -39,7 +39,7 @@
 #include "pathnames.h"
 #include "log.h"
 
-RCSID("$Id: ssh-rand-helper.c,v 1.18 2004/07/17 04:07:42 dtucker Exp $");
+RCSID("$Id: ssh-rand-helper.c,v 1.19 2004/08/23 11:52:09 djm Exp $");
 
 /* Number of bytes we write out */
 #define OUTPUT_SEED_SIZE	48
@@ -747,7 +747,7 @@ usage(void)
 	fprintf(stderr, "Usage: %s [options]\n", __progname);
 	fprintf(stderr, "  -v          Verbose; display verbose debugging messages.\n");
 	fprintf(stderr, "              Multiple -v increases verbosity.\n");
-	fprintf(stderr, "  -x          Force output in hexidecimal (for debugging)\n");
+	fprintf(stderr, "  -x          Force output in hexadecimal (for debugging)\n");
 	fprintf(stderr, "  -X          Force output in binary\n");
 	fprintf(stderr, "  -b bytes    Number of bytes to output (default %d)\n",
 	    OUTPUT_SEED_SIZE);
