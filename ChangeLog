@@ -81,6 +81,11 @@
    - stevesk@cvs.openbsd.org 2002/03/19 05:23:08
      [sshd.8]
      Banner has no default.
+   - mpech@cvs.openbsd.org 2002/03/19 06:32:56
+     [sftp-int.c]
+     use xfree() after xstrdup().
+
+     markus@ ok
 20020317
  - (tim) [configure.ac] Assume path given with --with-pid-dir=PATH is wanted,
    warn if directory does not exist. Put system directories in front of
@@ -7926,4 +7931,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1948 2002/03/22 02:44:40 mouring Exp $
+$Id: ChangeLog,v 1.1949 2002/03/22 02:47:28 mouring Exp $
