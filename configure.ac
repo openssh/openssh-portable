@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.187 2004/01/23 11:03:10 dtucker Exp $
+# $Id: configure.ac,v 1.188 2004/01/24 02:35:16 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -67,11 +67,9 @@ AC_ARG_WITH(rpath,
 # Check for some target-specific stuff
 case "$host" in
 *-*-aix*)
-	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
-	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	AC_MSG_CHECKING([how to specify blibpath for linker ($LD)])
 	if (test -z "$blibpath"); then
-		blibpath="/usr/lib:/lib:/usr/local/lib"
+		blibpath="/usr/lib:/lib"
 	fi
 	saved_LDFLAGS="$LDFLAGS"
 	for tryflags in -blibpath: -Wl,-blibpath: -Wl,-rpath, ;do
@@ -198,8 +196,6 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_CHECK_LIB(xnet, t_error, ,AC_MSG_ERROR([*** -lxnet needed on HP-UX - check config.log ***]))
 	;;
 *-*-irix5*)
-	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
-	LDFLAGS="$LDFLAGS"
 	PATH="$PATH:/usr/etc"
 	AC_DEFINE(BROKEN_INET_NTOA)
 	AC_DEFINE(SETEUID_BREAKS_SETUID)
@@ -209,8 +205,6 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE(LOCKED_PASSWD_STRING, "*LK*")
 	;;
 *-*-irix6*)
-	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
-	LDFLAGS="$LDFLAGS"
 	PATH="$PATH:/usr/etc"
 	AC_DEFINE(WITH_IRIX_ARRAY)
 	AC_DEFINE(WITH_IRIX_PROJECT)
@@ -265,17 +259,8 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(BROKEN_REALPATH)
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(BROKEN_SAVED_UIDS)
-	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
-	CFLAGS="$CFLAGS"
 	;;
 *-*-solaris*)
-	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
-	if test "x$withval" = "xno" ; then	
-		LDFLAGS="$LDFLAGS -L/usr/local/lib"
-	else
-		LDFLAGS="$LDFLAGS -L/usr/local/lib -R/usr/local/lib"
-		need_dash_r=1
-	fi
 	AC_DEFINE(PAM_SUN_CODEBASE)
 	AC_DEFINE(LOGIN_NEEDS_UTMPX)
 	AC_DEFINE(LOGIN_NEEDS_TERM)
@@ -306,8 +291,6 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(USE_PIPES)
 	;;
 *-ncr-sysv*)
-	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
-	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	LIBS="$LIBS -lc89"
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(SSHD_ACQUIRES_CTTY)
@@ -316,9 +299,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(BROKEN_SETREGID)
 	;;
 *-sni-sysv*)
-	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	# /usr/ucblib MUST NOT be searched on ReliantUNIX
-	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	AC_CHECK_LIB(dl, dlsym, ,)
 	IPADDR_IN_DISPLAY=yes
 	AC_DEFINE(USE_PIPES)
@@ -333,28 +314,21 @@ mips-sony-bsd|mips-sony-newsos4)
 	# otherwise you will find lots of "SIOCGPGRP errno 22" on syslog
 	;;
 *-*-sysv4.2*)
-	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
-	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(SETEUID_BREAKS_SETUID)
 	AC_DEFINE(BROKEN_SETREUID)
 	AC_DEFINE(BROKEN_SETREGID)
 	;;
 *-*-sysv5*)
-	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
-	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(SETEUID_BREAKS_SETUID)
 	AC_DEFINE(BROKEN_SETREUID)
 	AC_DEFINE(BROKEN_SETREGID)
 	;;
 *-*-sysv*)
-	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
-	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	;;
 *-*-sco3.2v4*)
-	CPPFLAGS="$CPPFLAGS -Dftruncate=chsize -I/usr/local/include"
-	LDFLAGS="$LDFLAGS -L/usr/local/lib"
+	CPPFLAGS="$CPPFLAGS -Dftruncate=chsize"
 	LIBS="$LIBS -los -lprot -lx -ltinfo -lm"
 	RANLIB=true
 	no_dev_ptmx=1
@@ -372,8 +346,6 @@ mips-sony-bsd|mips-sony-newsos4)
 	if test -z "$GCC"; then
 		CFLAGS="$CFLAGS -belf"
 	fi
-	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
-	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	LIBS="$LIBS -lprot -lx -ltinfo -lm"
 	no_dev_ptmx=1
 	AC_DEFINE(USE_PIPES)
@@ -587,7 +559,26 @@ AC_ARG_WITH(zlib,
 	]
 )
 
-AC_CHECK_LIB(z, deflate, ,AC_MSG_ERROR([*** zlib missing - please install first or check config.log ***]))
+AC_CHECK_LIB(z, deflate, ,
+	[
+		saved_CPPFLAGS="$CPPFLAGS"
+		saved_LDFLAGS="$LDFLAGS"
+		save_LIBS="$LIBS"
+		dnl Check default zlib install dir
+		if test -n "${need_dash_r}"; then
+			LDFLAGS="-L/usr/local/lib -R/usr/local/lib ${saved_LDFLAGS}"
+		else
+			LDFLAGS="-L/usr/local/lib ${saved_LDFLAGS}"
+		fi
+		CPPFLAGS="-I/usr/local/include ${saved_CPPFLAGS}"
+		LIBS="$LIBS -lz"
+		AC_TRY_LINK_FUNC(deflate, AC_DEFINE(HAVE_LIBZ),
+			[
+				AC_MSG_ERROR([*** zlib missing - please install first or check config.log ***])
+			]
+		)
+	]
+)
 AC_CHECK_HEADER([zlib.h], ,AC_MSG_ERROR([*** zlib.h missing - please install first or check config.log ***]))
 AC_MSG_CHECKING(for zlib 1.1.4 or greater)
 AC_TRY_RUN([

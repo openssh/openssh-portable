@@ -11,6 +11,9 @@
  - (dtucker) [acconfig.h configure.ac includes.h servconf.c session.c]
    Change AFS symbol to USE_AFS to prevent namespace collisions, do not
    include kafs.h unless necessary.  From deengert at anl.gov.
+ - (tim) [configure.ac] Remove hard coded -L/usr/local/lib and
+   -I/usr/local/include. Users can do LDFLAGS="-L/usr/local/lib" \
+   CPPFLAGS="-I/usr/local/include" ./configure if needed.
 
 20040122
  - (dtucker) [configure.ac] Use krb5-config where available for Kerberos/
@@ -1723,4 +1726,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3185 2004/01/23 11:03:10 dtucker Exp $
+$Id: ChangeLog,v 1.3186 2004/01/24 02:35:16 tim Exp $
