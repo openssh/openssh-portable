@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.67 2001/07/18 21:40:40 stevesk Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.68 2001/07/20 14:46:11 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.67 2001/07/18 21:40:40 stevesk Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.68 2001/07/20 14:46:11 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -779,20 +779,6 @@ after_select(fd_set *readset, fd_set *writeset)
 }
 
 static void
-check_parent_exists(int sig)
-{
-	int save_errno = errno;
-
-	if (parent_pid != -1 && kill(parent_pid, 0) < 0) {
-		/* printf("Parent has died - Authentication agent exiting.\n"); */
-		exit(1);
-	}
-	signal(SIGALRM, check_parent_exists);
-	alarm(10);
-	errno = save_errno;
-}
-
-static void
 cleanup_socket(void)
 {
 	if (socket_name[0])
@@ -813,6 +799,20 @@ cleanup_handler(int sig)
 {
 	cleanup_socket();
 	_exit(2);
+}
+
+static void
+check_parent_exists(int sig)
+{
+	int save_errno = errno;
+
+	if (parent_pid != -1 && kill(parent_pid, 0) < 0) {
+		/* printf("Parent has died - Authentication agent exiting.\n"); */
+		cleanup_handler(sig); /* safe */
+	}
+	signal(SIGALRM, check_parent_exists);
+	alarm(10);
+	errno = save_errno;
 }
 
 static void
