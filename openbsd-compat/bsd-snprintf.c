@@ -44,7 +44,9 @@
  *    right.
  **************************************************************/
 
-#include "config.h"
+#include "includes.h"
+
+RCSID("$Id: bsd-snprintf.c,v 1.2 2001/02/09 01:55:36 djm Exp $");
 
 #if !defined(HAVE_SNPRINTF) || !defined(HAVE_VSNPRINTF)
 

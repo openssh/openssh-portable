@@ -1,3 +1,5 @@
+/* $Id: realpath.h,v 1.2 2001/02/09 01:55:36 djm Exp $ */
+
 #ifndef _BSD_REALPATH_H
 #define _BSD_REALPATH_H
 

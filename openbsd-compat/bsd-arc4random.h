@@ -22,6 +22,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/* $Id: bsd-arc4random.h,v 1.2 2001/02/09 01:55:36 djm Exp $ */
+
 #ifndef _BSD_ARC4RANDOM_H
 #define _BSD_ARC4RANDOM_H
 

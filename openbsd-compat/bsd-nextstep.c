@@ -22,6 +22,8 @@
 
 #include "includes.h"
 
+RCSID("$Id: bsd-nextstep.c,v 1.3 2001/02/09 01:55:36 djm Exp $");
+
 #ifdef HAVE_NEXT
 #include <errno.h>
 #include <sys/wait.h>

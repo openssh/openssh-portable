@@ -1,3 +1,5 @@
+/* $Id: auth-pam.h,v 1.9 2001/02/09 01:55:36 djm Exp $ */
+
 #include "includes.h"
 #ifdef USE_PAM
 

@@ -13,7 +13,9 @@
  * binary mode on Windows systems.
  */
 
-#include "config.h"
+#include "includes.h"
+
+RCSID("$Id: bsd-cygwin_util.c,v 1.2 2001/02/09 01:55:36 djm Exp $");
 
 #ifdef HAVE_CYGWIN
 

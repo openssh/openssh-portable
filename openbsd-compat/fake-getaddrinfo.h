@@ -1,3 +1,5 @@
+/* $Id: fake-getaddrinfo.h,v 1.2 2001/02/09 01:55:36 djm Exp $ */
+
 #ifndef _FAKE_GETADDRINFO_H
 #define _FAKE_GETADDRINFO_H
 

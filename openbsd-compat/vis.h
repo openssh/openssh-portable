@@ -1,3 +1,5 @@
+/* $Id: vis.h,v 1.2 2001/02/09 01:55:37 djm Exp $ */
+
 #ifndef _BSD_VIS_H
 #define	_BSD_VIS_H
 

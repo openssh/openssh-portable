@@ -13,6 +13,8 @@
  * binary mode on Windows systems.
  */
 
+/* $Id: bsd-cygwin_util.h,v 1.2 2001/02/09 01:55:36 djm Exp $ */
+
 #include "config.h"
 
 #ifdef HAVE_CYGWIN

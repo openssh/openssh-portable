@@ -1,3 +1,5 @@
+# $Id: Makefile.in,v 1.5 2001/02/09 01:55:36 djm Exp $
+
 sysconfdir=@sysconfdir@
 piddir=@piddir@
 srcdir=@srcdir@

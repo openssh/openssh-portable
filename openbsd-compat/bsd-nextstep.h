@@ -21,6 +21,8 @@
  *
  */
 
+/* $Id: bsd-nextstep.h,v 1.2 2001/02/09 01:55:36 djm Exp $ */
+
 #ifndef _NEXT_POSIX_H
 #define _NEXT_POSIX_H
 

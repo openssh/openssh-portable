@@ -1,3 +1,5 @@
+/* $Id: fake-getnameinfo.h,v 1.2 2001/02/09 01:55:36 djm Exp $ */
+
 #ifndef _FAKE_GETNAMEINFO_H
 #define _FAKE_GETNAMEINFO_H
 

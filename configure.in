@@ -1,3 +1,5 @@
+# $Id: configure.in,v 1.234 2001/02/09 01:55:36 djm Exp $
+
 AC_INIT(ssh.c)
 
 AC_CONFIG_HEADER(config.h)

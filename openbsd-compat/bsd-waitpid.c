@@ -22,6 +22,8 @@
 
 #include "includes.h"
 
+RCSID("$Id: bsd-waitpid.c,v 1.2 2001/02/09 01:55:36 djm Exp $");
+
 #ifndef HAVE_WAITPID 
 #include <errno.h>
 #include <sys/wait.h>

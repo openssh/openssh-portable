@@ -214,3 +214,5 @@ If you experience problems compiling, installing or running OpenSSH.
 Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
 
+
+$Id: INSTALL,v 1.39 2001/02/09 01:55:36 djm Exp $

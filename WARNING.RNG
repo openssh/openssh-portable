@@ -79,3 +79,5 @@ up and various other factors.
 To make matters even more complex, some of the commands are reporting
 largely the same data as other commands (eg. the various "ps" calls).
 
+$Id: WARNING.RNG,v 1.4 2001/02/09 01:55:36 djm Exp $
+

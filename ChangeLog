@@ -24,6 +24,7 @@
    - markus@cvs.openbsd.org 2001/02/06 22:43:02
      [clientloop.c]
      remove confusing callback code
+ - (djm) Add CVS Id's to files that we have missed
 
 20010208
  - (djm) Don't delete external askpass program in make uninstall target.
@@ -3676,3 +3677,5 @@
  - Wrote replacements for OpenBSD arc4random* functions
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
+
+$Id: ChangeLog,v 1.704 2001/02/09 01:55:35 djm Exp $

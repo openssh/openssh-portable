@@ -1,3 +1,5 @@
+/* $Id: acconfig.h,v 1.101 2001/02/09 01:55:36 djm Exp $ */
+
 #ifndef _CONFIG_H
 #define _CONFIG_H
 

@@ -62,3 +62,5 @@ References -
 [5] http://www.kernel.org/pub/linux/libs/pam/ (PAM is standard on Solaris)
 [6] http://www.openbsd.org/cgi-bin/man.cgi?query=style&sektion=9
 [7] http://www.openssh.com/faq.html
+
+$Id: README,v 1.45 2001/02/09 01:55:36 djm Exp $
