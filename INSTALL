@@ -59,19 +59,37 @@ configuration files in /etc/ssh.
 
 There are a few other options to the configure script:
 
---enable-gnome-askpass will build the GNOME passphrase dialog. You need a 
-working installation of GNOME, including the development headers, for this
-to work.
+--enable-gnome-askpass will build the GNOME passphrase dialog. You
+need a working installation of GNOME, including the development
+headers, for this to work.
 
---with-random=/some/file allows you to specify an alternate source of 
-random numbers (the default is /dev/urandom). Unless you are absolutly 
+--with-random=/some/file allows you to specify an alternate source of
+random numbers (the default is /dev/urandom). Unless you are absolutly
 sure of what you are doing, it is best to leave this alone.
 
---with-egd-pool=/some/file allows you to enable Entropy Gathering Daemon 
-support and to specify a EGD pool socket. You will need to use this if your
-Unix does not support the /dev/urandom device (or similar).
+--with-egd-pool=/some/file allows you to enable Entropy Gathering
+Daemon support and to specify a EGD pool socket. You will need to
+use this if your Unix does not support the /dev/urandom device (or
+similar).
 
---without-askpass will disable X11 password requestor support in ssh-add
+--without-askpass will disable X11 password requestor support in
+ssh-add
+
+--with-kerberos4 will enable Kerberos IV support. You will need to
+have the Kerberos libraries and header files installed for this to
+work.
+
+--with-afs will enable AFS support. You will need to have the Kerberos
+IV and the AFS libraries and header files installed for this to work.
+
+--with-skey will enable S/Key one time password support. You will need
+the S/Key libraries and header files installed for this to work.
+
+--with-tcp-wrappers will enable TCP Wrappers (/etc/hosts.allow|deny)
+support. You will need libwrap.a and tcpd.h installed.
+
+--with-md5-passwords will enable the use of MD5 passwords. Enable this
+if your operating system uses MD5 passwords without using PAM.
 
 
 3. Configuration
