@@ -52,6 +52,7 @@ Nalin Dahyabhai <nalin.dahyabhai@pobox.com> - PAM environment patch
 Phil Hands <phil@hands.com> - Debian scripts, assorted patches
 Niels Kristian Bech Jensen <nkbj@image.dk> - Makefile patches
 Marc G. Fournier <marc.fournier@acadiau.ca> - Solaris patches
+Thomas Neumann <tom@smart.ruhr.de> - Shadow passwords
 
 Miscellania - 
 

@@ -55,7 +55,7 @@ AC_CHECK_LIB(dl, dlopen, , )
 AC_CHECK_LIB(pam, pam_authenticate, , )
 
 dnl Checks for header files.
-AC_CHECK_HEADERS(pty.h endian.h paths.h lastlog.h)
+AC_CHECK_HEADERS(pty.h endian.h paths.h lastlog.h shadow.h)
 
 dnl Checks for library functions.
 AC_PROG_GCC_TRADITIONAL

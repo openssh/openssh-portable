@@ -15,12 +15,20 @@ the password is valid for the user.
 */
 
 #include "includes.h"
-RCSID("$Id: auth-passwd.c,v 1.3 1999/11/11 06:57:39 damien Exp $");
+RCSID("$Id: auth-passwd.c,v 1.4 1999/11/13 04:40:10 damien Exp $");
 
 #include "packet.h"
 #include "ssh.h"
 #include "servconf.h"
 #include "xmalloc.h"
+#include "config.h"
+
+#ifdef HAVE_SHADOW_H
+#include <shadow.h>
+#endif
+
+#ifndef HAVE_PAM
+/* Don't need anything from here if we are using PAM */
 
 /* Tries to authenticate the user using password.  Returns true if
    authentication succeeds. */
@@ -29,6 +37,9 @@ int auth_password(struct passwd *pw, const char *password)
 {
   extern ServerOptions options;
   char *encrypted_password;
+#ifdef HAVE_SHADOW_H
+  struct spwd *spw;
+#endif
 
   if (pw->pw_uid == 0 && options.permit_root_login == 2)
   {
@@ -164,11 +175,31 @@ int auth_password(struct passwd *pw, const char *password)
       return 1; /* The user has no password and an empty password was tried. */
     }
 
+#ifdef HAVE_SHADOW_H
+  spw = getspnam(pw->pw_name);
+  if (spw == NULL)
+    return(0);
+
+  if ((spw->sp_namp == NULL) || (strcmp(pw->pw_name, spw->sp_namp) != 0))
+    fatal("Shadow lookup returned garbage.");
+
+  if (strlen(spw->sp_pwdp) < 3)
+    return(0);
+
+  /* Encrypt the candidate password using the proper salt. */
+  encrypted_password = crypt(password, spw->sp_pwdp);
+
+  /* Authentication is accepted if the encrypted passwords are identical. */
+  return (strcmp(encrypted_password, spw->sp_pwdp) == 0);
+#else /* !HAVE_SHADOW_H */
+
   /* Encrypt the candidate password using the proper salt. */
   encrypted_password = crypt(password, 
 			     (pw->pw_passwd[0] && pw->pw_passwd[1]) ?
 			     pw->pw_passwd : "xx");
-
   /* Authentication is accepted if the encrypted passwords are identical. */
   return (strcmp(encrypted_password, pw->pw_passwd) == 0);
+#endif /* !HAVE_SHADOW_H */
 }
+
+#endif /* !HAVE_PAM */

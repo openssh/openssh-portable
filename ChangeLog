@@ -9,6 +9,8 @@
      totalsize, ok niels,aaron
  - Delay fork (-f option) in ssh until after port forwarded connections 
    have been initialised. Patch from Jani Hakala <jahakala@cc.jyu.fi>
+ - Added shadow password patch from Thomas Neumann <tom@smart.ruhr.de>
+ - Added ifdefs to auth-passwd.c to exclude it when PAM is enabled
 
 19991112
  - Merged changes from OpenBSD CVS
