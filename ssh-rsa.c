@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-rsa.c,v 1.14 2001/12/05 10:06:12 deraadt Exp $");
+RCSID("$OpenBSD: ssh-rsa.c,v 1.15 2002/01/25 21:42:11 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -45,7 +45,7 @@ ssh_rsa_sign(
 {
 	const EVP_MD *evp_md;
 	EVP_MD_CTX md;
-	u_char *digest, *sig, *ret;
+	u_char digest[EVP_MAX_MD_SIZE], *sig, *ret;
 	u_int slen, dlen, len;
 	int ok, nid;
 	Buffer b;
@@ -63,18 +63,15 @@ ssh_rsa_sign(
 		error("ssh_rsa_sign: EVP_get_digestbynid %d failed", nid);
 		return -1;
 	}
-	dlen = evp_md->md_size;
-	digest = xmalloc(dlen);
 	EVP_DigestInit(&md, evp_md);
 	EVP_DigestUpdate(&md, data, datalen);
-	EVP_DigestFinal(&md, digest, NULL);
+	EVP_DigestFinal(&md, digest, &dlen);
 
 	slen = RSA_size(key->rsa);
 	sig = xmalloc(slen);
 
 	ok = RSA_sign(nid, digest, dlen, sig, &len, key->rsa);
-	memset(digest, 'd', dlen);
-	xfree(digest);
+	memset(digest, 'd', sizeof(digest));
 
 	if (ok != 1) {
 		int ecode = ERR_get_error();
@@ -120,7 +117,7 @@ ssh_rsa_verify(
 	const EVP_MD *evp_md;
 	EVP_MD_CTX md;
 	char *ktype;
-	u_char *sigblob, *digest;
+	u_char digest[EVP_MAX_MD_SIZE], *sigblob;
 	u_int len, dlen;
 	int rlen, ret, nid;
 
@@ -161,15 +158,12 @@ ssh_rsa_verify(
 		xfree(sigblob);
 		return -1;
 	}
-	dlen = evp_md->md_size;
-	digest = xmalloc(dlen);
 	EVP_DigestInit(&md, evp_md);
 	EVP_DigestUpdate(&md, data, datalen);
-	EVP_DigestFinal(&md, digest, NULL);
+	EVP_DigestFinal(&md, digest, &dlen);
 
 	ret = RSA_verify(nid, digest, dlen, sigblob, len, key->rsa);
-	memset(digest, 'd', dlen);
-	xfree(digest);
+	memset(digest, 'd', sizeof(digest));
 	memset(sigblob, 's', len);
 	xfree(sigblob);
 	if (ret == 0) {

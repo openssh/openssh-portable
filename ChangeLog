@@ -10,6 +10,10 @@
    - markus@cvs.openbsd.org 2002/01/25 21:00:24
      [sshconnect2.c]
      unused include
+   - markus@cvs.openbsd.org 2002/01/25 21:42:11
+     [ssh-dss.c ssh-rsa.c]
+     use static EVP_MAX_MD_SIZE buffers for EVP_DigestFinal; ok stevesk@
+     don't use evp_md->md_size, it's not public.
 
 20020130
  - (djm) Delay PRNG seeding until we need it in ssh-keygen, from markus@
@@ -7412,4 +7416,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1801 2002/02/05 00:53:15 djm Exp $
+$Id: ChangeLog,v 1.1802 2002/02/05 00:53:43 djm Exp $
