@@ -78,10 +78,6 @@ enum
 # endif /* PATH_MAX */
 #endif /* MAXPATHLEN */
 
-#ifndef MAXHOSTNAMELEN
-# define MAXHOSTNAMELEN 64
-#endif /* MAXHOSTNAMELEN */
-
 #ifndef STDIN_FILENO     
 # define STDIN_FILENO    0
 #endif                   

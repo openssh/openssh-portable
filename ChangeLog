@@ -1,3 +1,7 @@
+20001231
+ - (bal) Reverted out of MAXHOSTNAMELEN.  This should be set per OS.
+   for multiple reasons.
+
 20001230
  - (bal) OpenBSD CVS Update
    - markus@cvs.openbsd.org 2000/12/28 18:58:30
