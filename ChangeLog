@@ -1,6 +1,10 @@
 20030108
  - (djm) Sync openbsd-compat/ with OpenBSD -current
  - (djm) Avoid redundant xstrdup/xfree in auth2-pam.c. From Solar via markus@
+ - (djm) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2003/01/01 18:08:52
+     [channels.c]
+     move big output buffer messages to debug2
 
 20030107
  - (djm) Bug #401: Work around Linux breakage with IPv6 mapped addresses. 
@@ -946,4 +950,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2550 2003/01/08 01:37:03 djm Exp $
+$Id: ChangeLog,v 1.2551 2003/01/08 03:04:09 djm Exp $
