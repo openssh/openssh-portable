@@ -239,8 +239,8 @@ typedef unsigned int size_t;
 
 #if !defined(IN6_IS_ADDR_V4MAPPED)
 # define IN6_IS_ADDR_V4MAPPED(a) \
-	((((uint32_t *) (a))[0] == 0) && (((uint32_t *) (a))[1] == 0) && \
-	 (((uint32_t *) (a))[2] == htonl (0xffff)))
+	((((u_int32_t *) (a))[0] == 0) && (((u_int32_t *) (a))[1] == 0) && \
+	 (((u_int32_t *) (a))[2] == htonl (0xffff)))
 #endif /* !defined(IN6_IS_ADDR_V4MAPPED) */
 
 #if !defined(__GNUC__) || (__GNUC__ < 2)

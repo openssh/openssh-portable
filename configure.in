@@ -20,6 +20,8 @@ AC_SUBST(PERL)
 case "$host" in
 *-*-aix*)
 	AFS_LIBS="-lld"
+	CFLAGS="$CFLAGS -I/usr/local/include"
+	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	AC_DEFINE(BROKEN_GETADDRINFO)
 	;;
 *-*-hpux10*)
@@ -27,6 +29,8 @@ case "$host" in
 		CFLAGS="$CFLAGS -Aa"
 	fi
 	CFLAGS="$CFLAGS -D_HPUX_SOURCE"
+	CFLAGS="$CFLAGS -I/usr/local/include"
+	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	AC_DEFINE(IPADDR_IN_DISPLAY)
 	AC_DEFINE(USE_UTMPX)
 	AC_MSG_CHECKING(for HPUX trusted system password database)
@@ -43,11 +47,15 @@ case "$host" in
 	mansubdir=cat
 	;;
 *-*-irix5*)
+	CFLAGS="$CFLAGS -I/usr/local/include"
+	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	MANTYPE='$(CATMAN)'
 	no_libsocket=1
 	no_libnsl=1
 	;;
 *-*-irix6*)
+	CFLAGS="$CFLAGS -I/usr/local/include"
+	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	MANTYPE='$(CATMAN)'
 	AC_MSG_WARN([*** Irix 6.x is not tested, please report you experiences *** ])
 	no_libsocket=1
@@ -62,11 +70,15 @@ case "$host" in
 	need_dash_r=1
 	;;
 *-*-solaris*)
+	CFLAGS="$CFLAGS -I/usr/local/include"
+	LDFLAGS="$LDFLAGS -L/usr/local/lib -R/usr/local/lib"
 	need_dash_r=1
-	LDFLAGS="-L/usr/ucblib"
+	LDFLAGS="-L/usr/ucblib -R/usr/ucblib"
 	AC_DEFINE(USE_UTMPX)
 	;;
 *-*-sysv*)
+	CFLAGS="$CFLAGS -I/usr/local/include"
+	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	AC_DEFINE(USE_UTMPX)
 	MANTYPE='$(CATMAN)'
 	mansubdir=cat
@@ -220,7 +232,7 @@ else
 	fi
 fi
 LIBS="$saved_LIBS -lcrypto"
-if test ! -z $WANTS_RSAREF ; then
+if test ! -z "$WANTS_RSAREF" ; then
 	LIBS="$LIBS -lRSAglue -lrsaref"
 fi
 AC_MSG_RESULT($ssldir)
