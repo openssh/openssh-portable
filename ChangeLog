@@ -8,6 +8,8 @@
  - (djm) Clear supplemental groups at sshd start to prevent them from 
    being propogated to random PAM modules. Based on patch from Redhat via
    Pekka Savola <pekkas@netcore.fi>
+ - (djm) Make sure rijndael.c picks config.h
+ - (djm) Ensure that u_char gets defined
 
 20010914
  - (bal) OpenBSD CVS Sync
@@ -6439,4 +6441,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1519 2001/09/15 11:12:49 djm Exp $
+$Id: ChangeLog,v 1.1520 2001/09/16 07:13:11 djm Exp $
