@@ -22,6 +22,7 @@
 	[ssh.c] print _all_ bad config-options in ssh(1), too
 	[sshconnect.c] disconnect if getpeername() fails
  - OpenBSD's changes to sshd.c broke the PAM stuff, re-merged it.
+ - Various small cleanups to bring diff (against OpenBSD) size down.
 
 19991114
  - Solaris compilation fixes (still imcomplete)

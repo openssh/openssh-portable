@@ -41,7 +41,6 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <assert.h>
 #include <signal.h>
 #include <termios.h>
 #include <stdlib.h>
@@ -55,6 +54,9 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 
 #include "config.h"
 
+#ifdef HAVE_NETGROUP_H
+# include <netgroup.h>
+#endif 
 #ifdef HAVE_PATHS_H
 # include <paths.h>
 #endif 

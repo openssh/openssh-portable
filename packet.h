@@ -13,11 +13,12 @@ Interface for the packet protocol functions.
 
 */
 
-/* RCSID("$Id: packet.h,v 1.2 1999/10/28 03:25:17 damien Exp $"); */
+/* RCSID("$Id: packet.h,v 1.3 1999/11/15 04:40:55 damien Exp $"); */
 
-#include "config.h"
 #ifndef PACKET_H
 #define PACKET_H
+
+#include "config.h"
 
 #ifdef HAVE_OPENSSL
 #include <openssl/bn.h>

@@ -18,7 +18,7 @@ agent connections.
 */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.18 1999/11/15 04:25:10 damien Exp $");
+RCSID("$Id: sshd.c,v 1.19 1999/11/15 04:40:55 damien Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -133,8 +133,8 @@ void do_child(const char *command, struct passwd *pw, const char *term,
 #ifdef HAVE_LIBPAM
 static int pamconv(int num_msg, const struct pam_message **msg,
 		struct pam_response **resp, void *appdata_ptr);
-void do_pam_account_and_session(const char *username, 
-		const char *remote_user, const char *remote_host);
+void do_pam_account_and_session(char *username, char *remote_user, 
+		const char *remote_host);
 void pam_cleanup_proc(void *context);
 
 static struct pam_conv conv = {
@@ -230,7 +230,8 @@ void pam_cleanup_proc(void *context)
   }
 }
 
-void do_pam_account_and_session(const char *username, const char *remote_user, const char *remote_host)
+void do_pam_account_and_session(char *username, char *remote_user, 
+    const char *remote_host)
 {
   int pam_retval;
   
@@ -1201,12 +1202,17 @@ do_authentication(char *user)
   pw = &pwcopy;
 
 #ifdef HAVE_LIBPAM
-  debug("Starting up PAM with username \"%.200s\"", pw->pw_name);
+  {
+    int pam_retval;
+	 
+    debug("Starting up PAM with username \"%.200s\"", pw->pw_name);
 
-  if (pam_start("sshd", pw->pw_name, &conv, (pam_handle_t**)&pamh) != PAM_SUCCESS)
-    fatal("PAM initialisation failed: %.200s", pam_strerror((pam_handle_t *)pamh, pam_retval));
+    pam_retval = pam_start("sshd", pw->pw_name, &conv, (pam_handle_t**)&pamh);
+    if (pam_retval != PAM_SUCCESS)
+      fatal("PAM initialisation failed: %.200s", pam_strerror((pam_handle_t *)pamh, pam_retval));
 
-  fatal_add_cleanup(&pam_cleanup_proc, NULL);
+    fatal_add_cleanup(&pam_cleanup_proc, NULL);
+  }
 #endif
 
   /* If we are not running as root, the user must have the same uid as the
@@ -1263,8 +1269,11 @@ do_authloop(struct passwd *pw)
   unsigned int client_host_key_bits;
   BIGNUM *client_host_key_e, *client_host_key_n;
   BIGNUM *n;
-  char *client_user, *password;
+  char *client_user = NULL, *password = NULL;
   int plen, dlen, nlen, ulen, elen;
+#ifdef HAVE_LIBPAM
+  int pam_retval;
+#endif /* HAVE_LIBPAM */
 
   /* Indicate that authentication is needed. */
   packet_start(SSH_SMSG_FAILURE);
@@ -1435,18 +1444,18 @@ do_authloop(struct passwd *pw)
 	packet_integrity_check(plen, 4 + dlen, type);
   
 #ifdef HAVE_LIBPAM
-      	/* Do PAM auth with password */
+        /* Do PAM auth with password */
         pampasswd = password;
-	pam_retval = pam_authenticate((pam_handle_t *)pamh, 0);
+        pam_retval = pam_authenticate((pam_handle_t *)pamh, 0);
         if (pam_retval == PAM_SUCCESS)
         {
-          log("PAM Password authentication accepted for user \"%.100s\"", user);
+          log("PAM Password authentication accepted for user \"%.100s\"", pw->pw_name);
           authenticated = 1;
           break;
         }
-	
- 	log("PAM Password authentication for \"%.100s\" failed: %s", 
-	    user, pam_strerror((pam_handle_t *)pamh, pam_retval));
+
+        log("PAM Password authentication for \"%.100s\" failed: %s", 
+            pw->pw_name, pam_strerror((pam_handle_t *)pamh, pam_retval));
         break;
 #else /* HAVE_LIBPAM */
 	/* Try authentication with the password. */

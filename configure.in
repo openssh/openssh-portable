@@ -55,7 +55,7 @@ AC_CHECK_LIB(dl, dlopen, , )
 AC_CHECK_LIB(pam, pam_authenticate, , )
 
 dnl Checks for header files.
-AC_CHECK_HEADERS(pty.h endian.h paths.h lastlog.h shadow.h)
+AC_CHECK_HEADERS(pty.h endian.h paths.h lastlog.h shadow.h netgroup.h)
 
 dnl Check for ut_host field in utmp
 AC_MSG_CHECKING([whether utmp.h has ut_host field])
