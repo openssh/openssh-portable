@@ -1,5 +1,8 @@
 20010301
  - (djm) Properly add -lcrypt if needed. 
+ - (djm) Force standard PAM conversation function in a few more places.
+   Patch from Redhat 2.5.1p1-2 RPM, probably Nalin Dahyabhai 
+   <nalin@redhat.com>
 
 20010228
  - (djm) Detect endianness in configure and use it in rijndael.c. Fixes
@@ -4169,4 +4172,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.842 2001/02/28 22:16:11 djm Exp $
+$Id: ChangeLog,v 1.843 2001/02/28 22:18:57 djm Exp $
