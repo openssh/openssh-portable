@@ -10,14 +10,14 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-options.c,v 1.17 2001/05/30 12:55:06 markus Exp $");
+RCSID("$OpenBSD: auth-options.c,v 1.18 2001/05/31 10:30:12 markus Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
 #include "match.h"
 #include "log.h"
 #include "canohost.h"
-#include "channel.h"
+#include "channels.h"
 #include "auth-options.h"
 #include "servconf.h"
 

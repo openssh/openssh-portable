@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.63 2001/05/30 12:55:11 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.64 2001/05/31 10:30:16 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -48,7 +48,7 @@ RCSID("$OpenBSD: packet.c,v 1.63 2001/05/30 12:55:11 markus Exp $");
 
 #include "compress.h"
 #include "deattack.h"
-#include "channel.h"
+#include "channels.h"
 
 #include "compat.h"
 #include "ssh1.h"
