@@ -1,4 +1,4 @@
-#	$OpenBSD: Makefile,v 1.27 2004/02/17 08:23:20 dtucker Exp $
+#	$OpenBSD: Makefile,v 1.28 2004/04/27 09:47:30 djm Exp $
 
 REGRESS_TARGETS=	t1 t2 t3 t4 t5 t6 t7 t-exec
 tests:		$(REGRESS_TARGETS)
@@ -13,6 +13,7 @@ LTESTS= 	connect \
 		proto-version \
 		proto-mismatch \
 		exit-status \
+		envpass \
 		transfer \
 		banner \
 		rekey \
