@@ -480,11 +480,12 @@
      [compress.c]
      export compression streams for ssh-privsep
    - provos@cvs.openbsd.org 2002/03/18 17:50:31
-     [auth-bsdauth.c auth-options.c auth-rh-rsa.c auth-rsa.c auth-skey.c auth.h
-      auth1.c auth2-chall.c auth2.c kex.c kex.h kexdh.c kexgex.c servconf.c
-      session.h servconf.h serverloop.c session.c sshd.c]
-     integrate privilege separated openssh; its turned off by default for now.
-     work done by me and markus@
+     [auth-bsdauth.c auth-options.c auth-rh-rsa.c auth-rsa.c]
+     [auth-skey.c auth.h auth1.c auth2-chall.c auth2.c kex.c kex.h kexdh.c]
+     [kexgex.c servconf.c]
+     [session.h servconf.h serverloop.c session.c sshd.c]
+     integrate privilege separated openssh; its turned off by default 
+     for now. work done by me and markus@
    - provos@cvs.openbsd.org 2002/03/18 17:53:08
      [sshd.8]
      credits for privsep
@@ -510,9 +511,9 @@
      [auth-options.c auth.h session.c session.h sshd.c]
      clean up prototypes
    - markus@cvs.openbsd.org 2002/03/19 10:49:35
-     [auth-krb5.c auth-rh-rsa.c auth.c cipher.c key.c misc.h packet.c session.c
-      sftp-client.c sftp-glob.h sftp.c ssh-add.c ssh.c sshconnect2.c sshd.c
-      ttymodes.c]
+     [auth-krb5.c auth-rh-rsa.c auth.c cipher.c key.c misc.h]
+     [packet.c session.c sftp-client.c sftp-glob.h sftp.c ssh-add.c ssh.c]
+     [sshconnect2.c sshd.c ttymodes.c]
      KNF whitespace
    - markus@cvs.openbsd.org 2002/03/19 14:27:39
      [auth.c auth1.c auth2.c]
@@ -589,4 +590,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2118 2002/05/14 16:03:46 tim Exp $
+$Id: ChangeLog,v 1.2119 2002/05/15 00:08:17 djm Exp $
