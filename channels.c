@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.114 2001/05/08 19:17:30 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.115 2001/05/09 22:51:57 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -771,8 +771,9 @@ channel_post_port_listener(Channel *c, fd_set * readset, fd_set * writeset)
 
 		rtype = (c->type == SSH_CHANNEL_RPORT_LISTENER) ?
 		    "forwarded-tcpip" : "direct-tcpip";
-		nextstate = (c->host_port == 0) ? SSH_CHANNEL_DYNAMIC :
-		    SSH_CHANNEL_OPENING;
+		nextstate = (c->host_port == 0 &&
+		    c->type != SSH_CHANNEL_RPORT_LISTENER) ?
+		    SSH_CHANNEL_DYNAMIC : SSH_CHANNEL_OPENING;
 
 		addrlen = sizeof(addr);
 		newsock = accept(c->sock, &addr, &addrlen);

@@ -1,3 +1,10 @@
+20010511
+ - OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2001/05/09 22:51:57
+     [channels.c]
+     fix -R for protocol 2, noticed by greg@nest.cx.
+     bug was introduced with experimental dynamic forwarding.
+
 20010509
   - OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2001/05/06 21:23:31
@@ -5384,4 +5391,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1214 2001/05/09 00:38:19 mouring Exp $
+$Id: ChangeLog,v 1.1215 2001/05/10 23:24:49 mouring Exp $
