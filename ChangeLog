@@ -29,6 +29,9 @@
    - dtucker@cvs.openbsd.org 2004/07/08 12:59:35
      [scp.sh]
      Regress test for bz #863 (scp double-error), requires $SUDO.  ok markus@
+   - david@cvs.openbsd.org 2004/07/09 19:45:43
+     [Makefile]
+     add a missing CLEANFILES used in the re-exec test
 
 20041203
  - (dtucker) OpenBSD CVS Sync
@@ -1902,4 +1905,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3592 2004/12/06 12:03:27 dtucker Exp $
+$Id: ChangeLog,v 1.3593 2004/12/06 12:04:57 dtucker Exp $
