@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-add.1,v 1.28 2001/12/21 10:06:43 djm Exp $
+.\"	$OpenBSD: ssh-add.1,v 1.29 2002/01/29 16:41:19 markus Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -135,6 +135,11 @@ may be necessary to redirect the input from
 .Pa /dev/null
 to make this work.)
 .El
+.Sh DIAGNOSTICS
+Exit status is 0 on success, 1 if the specified command fails,
+and 2 if
+.Nm
+is unable to contact the authentication agent.
 .Sh AUTHORS
 OpenSSH is a derivative of the original and free
 ssh 1.2.12 release by Tatu Ylonen.

@@ -39,6 +39,9 @@
    - stevesk@cvs.openbsd.org 2002/01/29 16:29:02
      [session.c]
      limit subsystem length in log; ok markus@
+   - markus@cvs.openbsd.org 2002/01/29 16:41:19
+     [ssh-add.1]
+     add DIAGNOSTICS; ok stevesk@
 
 20020130
  - (djm) Delay PRNG seeding until we need it in ssh-keygen, from markus@
@@ -7441,4 +7444,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1809 2002/02/05 01:14:10 djm Exp $
+$Id: ChangeLog,v 1.1810 2002/02/05 01:14:41 djm Exp $
