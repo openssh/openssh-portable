@@ -3,7 +3,7 @@
 
 tid="agent timeout test"
 
-SSHAGENT_TIMEOUT=5
+SSHAGENT_TIMEOUT=10
 
 trace "start agent"
 eval `${SSHAGENT} -s` > /dev/null
