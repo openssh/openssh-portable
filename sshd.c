@@ -659,6 +659,7 @@ privsep_postauth(Authctxt *authctxt)
 	else if (pmonitor->m_pid != 0) {
 		debug2("User child is on pid %ld", (long)pmonitor->m_pid);
 		close(pmonitor->m_recvfd);
+		buffer_clear(&loginmsg);
 		monitor_child_postauth(pmonitor);
 
 		/* NEVERREACHED */

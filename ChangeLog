@@ -25,6 +25,8 @@
    - djm@cvs.openbsd.org 2004/08/11 12:01:16
      [sshlogin.c]
      make store_lastlog_message() static to appease -Wall; ok markus
+ - (dtucker) [sshd.c] Clear loginmsg in postauth monitor, prevents doubling
+    messages generated before the postauth privsep split.
 
 20040720
  - (djm) OpenBSD CVS Sync
@@ -1592,4 +1594,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3496 2004/08/12 12:50:03 dtucker Exp $
+$Id: ChangeLog,v 1.3497 2004/08/12 13:08:14 dtucker Exp $
