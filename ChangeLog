@@ -4,6 +4,9 @@
    prngd is not running.  Note that if you have prngd running when OpenSSH is
    built, OpenSSL will consider itself internally seeded and rand-helper won't
    be built at all unless explicitly enabled via --with-rand-helper.  ok djm@
+ - (dtucker) [regress/rekey.sh] Touch datafile before filling with dd, since
+   on some wacky platforms (eg old AIXes), dd will refuse to create an output
+   file if it doesn't exist.
 
 20041213
  - (dtucker) [contrib/findssh.sh] Clean up on interrupt; from
@@ -1957,4 +1960,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3605 2004/12/20 01:05:08 dtucker Exp $
+$Id: ChangeLog,v 1.3606 2004/12/20 01:35:42 dtucker Exp $
