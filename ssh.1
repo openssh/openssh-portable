@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.193 2004/06/26 09:03:21 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.194 2004/08/12 21:41:13 jakob Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -399,6 +399,15 @@ The
 .Cm StrictHostKeyChecking
 option can be used to prevent logins to machines whose
 host key is not known or has changed.
+.Pp
+.Nm
+can be configured to verify host identification using fingerprint resource
+records (SSHFP) published in DNS.
+The
+.Cm VerifyHostKeyDNS
+option can be used to control how DNS lookups are performed.
+SSHFP resource records can be generated using
+.Xr ssh-keygen 1 .
 .Pp
 The options are as follows:
 .Bl -tag -width Ds

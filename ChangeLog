@@ -12,6 +12,9 @@
    - djm@cvs.openbsd.org 2004/08/12 09:18:24
      [sshlogin.c]
      typo in error message, spotted by moritz AT jodeit.org (Id sync only)
+   - jakob@cvs.openbsd.org 2004/08/12 21:41:13
+     [ssh-keygen.1 ssh.1]
+     improve SSHFP documentation; ok deraadt@
 
 20040812
  - (dtucker) [sshd.c] Remove duplicate variable imported during sync.
@@ -1609,4 +1612,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3501 2004/08/13 11:21:47 dtucker Exp $
+$Id: ChangeLog,v 1.3502 2004/08/13 11:22:40 dtucker Exp $
