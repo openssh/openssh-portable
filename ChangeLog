@@ -2,6 +2,10 @@
   - (bal) Add perl5 check for HP/UX, Removed GNUness from Makefile.in
     and temporary commented out 'catman-do:' since it is broken.  Patches
     for the first two by Lutz Jaenicke <Lutz.Jaenicke@aet.TU-Cottbus.DE>
+  - OpenBSD CVS Sync
+   - deraadt@cvs.openbsd.org 2001/04/16 08:26:04                         
+     [key.c]                                                             
+     better safe than sorry in later mods; yongari@kt-is.co.kr   
 
 20010416
   - OpenBSD CVS Sync
@@ -5127,4 +5131,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1130 2001/04/17 17:58:55 mouring Exp $
+$Id: ChangeLog,v 1.1131 2001/04/17 18:06:14 mouring Exp $
