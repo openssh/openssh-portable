@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.96 2001/02/28 21:31:32 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.97 2001/03/04 00:03:59 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -1069,7 +1069,7 @@ channel_output_poll()
 		if (compat20 &&
 		    (c->flags & (CHAN_CLOSE_SENT|CHAN_CLOSE_RCVD))) {
 			/* XXX is this true? */
-			debug("channel %d: no data after CLOSE", c->self);
+			debug2("channel %d: no data after CLOSE", c->self);
 			continue;
 		}
 
