@@ -33,7 +33,7 @@ http://www.gnome.org/
 Alternatively, Jim Knoble <jmknoble@jmknoble.cx> has written an excellent X11
 passphrase requester. This is maintained separately at:
 
-http://www.ntrnet.net/~jmknoble/software/x11-ssh-askpass/index.html
+http://www.jmknoble.net/software/x11-ssh-askpass/
 
 PRNGD:
 
@@ -211,4 +211,4 @@ Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
 
 
-$Id: INSTALL,v 1.57 2003/09/19 06:30:14 djm Exp $
+$Id: INSTALL,v 1.58 2003/09/19 07:05:24 djm Exp $
