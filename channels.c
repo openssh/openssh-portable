@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.179 2002/06/26 08:55:02 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.180 2002/07/04 08:12:15 deraadt Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -572,6 +572,7 @@ void
 channel_send_open(int id)
 {
 	Channel *c = channel_lookup(id);
+
 	if (c == NULL) {
 		log("channel_send_open: %d: bad id", id);
 		return;
@@ -589,6 +590,7 @@ void
 channel_request_start(int local_id, char *service, int wantconfirm)
 {
 	Channel *c = channel_lookup(local_id);
+
 	if (c == NULL) {
 		log("channel_request_start: %d: unknown channel id", local_id);
 		return;
@@ -603,6 +605,7 @@ void
 channel_register_confirm(int id, channel_callback_fn *fn)
 {
 	Channel *c = channel_lookup(id);
+
 	if (c == NULL) {
 		log("channel_register_comfirm: %d: bad id", id);
 		return;
@@ -613,6 +616,7 @@ void
 channel_register_cleanup(int id, channel_callback_fn *fn)
 {
 	Channel *c = channel_lookup(id);
+
 	if (c == NULL) {
 		log("channel_register_cleanup: %d: bad id", id);
 		return;
@@ -623,6 +627,7 @@ void
 channel_cancel_cleanup(int id)
 {
 	Channel *c = channel_lookup(id);
+
 	if (c == NULL) {
 		log("channel_cancel_cleanup: %d: bad id", id);
 		return;
@@ -633,6 +638,7 @@ void
 channel_register_filter(int id, channel_filter_fn *fn)
 {
 	Channel *c = channel_lookup(id);
+
 	if (c == NULL) {
 		log("channel_register_filter: %d: bad id", id);
 		return;
@@ -645,6 +651,7 @@ channel_set_fds(int id, int rfd, int wfd, int efd,
     int extusage, int nonblock, u_int window_max)
 {
 	Channel *c = channel_lookup(id);
+
 	if (c == NULL || c->type != SSH_CHANNEL_LARVAL)
 		fatal("channel_activate for non-larval channel %d.", id);
 	channel_register_fds(c, rfd, wfd, efd, extusage, nonblock);
@@ -815,6 +822,7 @@ static void
 channel_pre_x11_open_13(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	int ret = x11_open_helper(&c->output);
+
 	if (ret == 1) {
 		/* Start normal processing for the channel. */
 		c->type = SSH_CHANNEL_OPEN;
@@ -1400,6 +1408,7 @@ static void
 channel_post_output_drain_13(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	int len;
+
 	/* Send buffered output data to the socket. */
 	if (FD_ISSET(c->sock, writeset) && buffer_len(&c->output) > 0) {
 		len = write(c->sock, buffer_ptr(&c->output),
@@ -1477,6 +1486,7 @@ static void
 channel_handler_init(void)
 {
 	int i;
+
 	for (i = 0; i < SSH_CHANNEL_MAX_TYPE; i++) {
 		channel_pre[i] = NULL;
 		channel_post[i] = NULL;
@@ -2610,6 +2620,7 @@ void
 deny_input_open(int type, u_int32_t seq, void *ctxt)
 {
 	int rchan = packet_get_int();
+
 	switch (type) {
 	case SSH_SMSG_AGENT_OPEN:
 		error("Warning: ssh server tried agent forwarding.");
