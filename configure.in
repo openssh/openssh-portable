@@ -144,7 +144,7 @@ case "$host" in
 	MANTYPE='$(CATMAN)'
 	AC_DEFINE(IP_TOS_IS_BROKEN)
 	mansubdir=cat
-	LIBS="$LIBS -lgen -lnsl -lsocket -lucb"
+	LIBS="$LIBS -lgen -lnsl -lucb"
 	;;
 *-*-sysv*)
 	CFLAGS="$CFLAGS -I/usr/local/include"
