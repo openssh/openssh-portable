@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.211 2004/04/07 04:16:11 mouring Exp $
+# $Id: configure.ac,v 1.212 2004/04/14 05:26:39 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -743,6 +743,15 @@ int main() { char *ff = skey_keyinfo(""); ff=""; exit(0); }
 					AC_MSG_RESULT(no)
 					AC_MSG_ERROR([** Incomplete or missing s/key libraries.])
 				])
+                 	AC_MSG_CHECKING(if skeychallenge takes 4 arguments)
+			AC_TRY_COMPILE(
+				[#include <stdio.h>
+				 #include <skey.h>],
+				[(void)skeychallenge(NULL,"name","",0);],
+				[AC_MSG_RESULT(yes)
+				 AC_DEFINE(SKEYCHALLENGE_4ARG)],
+				[AC_MSG_RESULT(no)]
+        		)
 		fi
 	]
 )

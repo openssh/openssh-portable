@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.113 2004/04/08 06:16:06 dtucker Exp $ */
+/* $Id: defines.h,v 1.114 2004/04/14 05:26:39 dtucker Exp $ */
 
 
 /* Constants */
@@ -545,6 +545,11 @@ struct winsize {
 # define SSH_SYSFDMAX 10000
 #endif
 
+
+/* Some platforms, eg NetBSD, have a 4th argument for skeychallenge() */
+#ifdef SKEYCHALLENGE_4ARG
+# define skeychallenge(a,b,c) skeychallenge((a), (b), (c), (sizeof(c)))
+#endif
 
 /*
  * Define this to use pipes instead of socketpairs for communicating with the

@@ -1,6 +1,8 @@
 20040412
  - (dtucker) [sshd_config.5] Add PermitRootLogin without-password warning
    from bug #701 (text from jfh at cise.ufl.edu).
+ - (dtucker) [acconfig.h configure.ac defines.h] Bug #673: check for 4-arg
+   skeychallenge(), eg on NetBSD.  ok mouring@
 
 20040408
  - (dtucker) [loginrec.c] Use UT_LINESIZE if available, prevents truncating
@@ -961,4 +963,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3308 2004/04/14 03:04:35 dtucker Exp $
+$Id: ChangeLog,v 1.3309 2004/04/14 05:26:39 dtucker Exp $

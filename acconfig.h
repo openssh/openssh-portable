@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.175 2004/04/07 04:16:11 mouring Exp $ */
+/* $Id: acconfig.h,v 1.176 2004/04/14 05:26:39 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -130,6 +130,9 @@
 
 /* Define if your AIX loginfailed() function takes 4 arguments (AIX >= 5.2) */
 #undef AIX_LOGINFAILED_4ARG
+
+/* Define if your skeychallenge() function takes 4 arguments (eg NetBSD) */
+#undef SKEYCHALLENGE_4ARG
 
 /* Define if you have/want arrays (cluster-wide session managment, not C arrays) */
 #undef WITH_IRIX_ARRAY
