@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.122 2002/01/29 22:46:41 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.123 2002/02/03 17:53:25 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1729,28 +1729,18 @@ session_auth_agent_req(Session *s)
 	}
 }
 
-void
-session_input_channel_req(int id, void *arg)
+int
+session_input_channel_req(Channel *c, const char *rtype)
 {
-	u_int len;
-	int reply;
 	int success = 0;
-	char *rtype;
 	Session *s;
-	Channel *c;
 
-	rtype = packet_get_string(&len);
-	reply = packet_get_char();
-
-	s = session_by_channel(id);
-	if (s == NULL)
-		fatal("session_input_channel_req: channel %d: no session", id);
-	c = channel_lookup(id);
-	if (c == NULL)
-		fatal("session_input_channel_req: channel %d: bad channel", id);
-
-	debug("session_input_channel_req: session %d channel %d request %s reply %d",
-	    s->self, id, rtype, reply);
+	if ((s = session_by_channel(c->self)) == NULL) {
+		log("session_input_channel_req: no session %d req %.100s",
+		    c->self, rtype);
+		return 0;
+	}
+	debug("session_input_channel_req: session %d req %s", s->self, rtype);
 
 	/*
 	 * a session is in LARVAL state until a shell, a command
@@ -1774,14 +1764,7 @@ session_input_channel_req(int id, void *arg)
 	if (strcmp(rtype, "window-change") == 0) {
 		success = session_window_change_req(s);
 	}
-
-	if (reply) {
-		packet_start(success ?
-		    SSH2_MSG_CHANNEL_SUCCESS : SSH2_MSG_CHANNEL_FAILURE);
-		packet_put_int(c->remote_id);
-		packet_send();
-	}
-	xfree(rtype);
+	return success;
 }
 
 void

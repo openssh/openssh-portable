@@ -54,6 +54,13 @@
    - markus@cvs.openbsd.org 2002/01/31 15:00:05
      [serverloop.c]
      no need for WNOHANG; ok stevesk@
+   - markus@cvs.openbsd.org 2002/02/03 17:53:25
+     [auth1.c serverloop.c session.c session.h]
+     don't use channel_input_channel_request and callback
+     use new server_input_channel_req() instead:
+     	server_input_channel_req does generic request parsing on server side
+     	session_input_channel_req handles just session specific things now
+     ok djm@
 
 20020130
  - (djm) Delay PRNG seeding until we need it in ssh-keygen, from markus@
@@ -7456,4 +7463,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1814 2002/02/05 01:20:16 djm Exp $
+$Id: ChangeLog,v 1.1815 2002/02/05 01:21:42 djm Exp $

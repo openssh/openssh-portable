@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.96 2002/01/31 15:00:05 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.97 2002/02/03 17:53:25 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -902,8 +902,6 @@ server_request_session(char *ctype)
 		channel_free(c);
 		return NULL;
 	}
-	channel_register_callback(c->self, SSH2_MSG_CHANNEL_REQUEST,
-	    session_input_channel_req, (void *)0);
 	channel_register_cleanup(c->self, session_close_by_channel);
 	return c;
 }
@@ -1004,6 +1002,33 @@ server_input_global_request(int type, u_int32_t seq, void *ctxt)
 	}
 	xfree(rtype);
 }
+static void
+server_input_channel_req(int type, u_int32_t seq, void *ctxt)
+{
+	Channel *c;
+	int id, reply, success = 0;
+	char *rtype;
+
+	id = packet_get_int();
+	rtype = packet_get_string(NULL);
+	reply = packet_get_char();
+
+	debug("server_input_channel_req: channel %d request %s reply %d",
+	    id, rtype, reply);
+
+	if ((c = channel_lookup(id)) == NULL)
+		packet_disconnect("server_input_channel_req: "
+		    "unknown channel %d", id);
+	if (c->type == SSH_CHANNEL_LARVAL || c->type == SSH_CHANNEL_OPEN)
+		success = session_input_channel_req(c, rtype);
+	if (reply) {
+		packet_start(success ?
+		    SSH2_MSG_CHANNEL_SUCCESS : SSH2_MSG_CHANNEL_FAILURE);
+		packet_put_int(c->remote_id);
+		packet_send();
+	}
+	xfree(rtype);
+}
 
 static void
 server_init_dispatch_20(void)
@@ -1017,7 +1042,7 @@ server_init_dispatch_20(void)
 	dispatch_set(SSH2_MSG_CHANNEL_OPEN, &server_input_channel_open);
 	dispatch_set(SSH2_MSG_CHANNEL_OPEN_CONFIRMATION, &channel_input_open_confirmation);
 	dispatch_set(SSH2_MSG_CHANNEL_OPEN_FAILURE, &channel_input_open_failure);
-	dispatch_set(SSH2_MSG_CHANNEL_REQUEST, &channel_input_channel_request);
+	dispatch_set(SSH2_MSG_CHANNEL_REQUEST, &server_input_channel_req);
 	dispatch_set(SSH2_MSG_CHANNEL_WINDOW_ADJUST, &channel_input_window_adjust);
 	dispatch_set(SSH2_MSG_GLOBAL_REQUEST, &server_input_global_request);
 	/* client_alive */
