@@ -2,6 +2,8 @@
  - (tim) [openssh/contrib/solaris/buildpkg.sh] add PKG_INSTALL_ROOT to
    work in a jumpstart environment. patch by kbrint@rufus.net
  - (tim) [Makefile.in] workaround for broken pakadd on some systems.
+ - (tim) [configure.ac] fix libc89 utimes test. Mention default path for
+   --with-privsep-path=
 
 20020707
  - (tim) [Makefile.in] use umask instead of chmod on $(PRIVSEP_PATH)
@@ -1314,4 +1316,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2350 2002/07/09 02:10:05 tim Exp $
+$Id: ChangeLog,v 1.2351 2002/07/09 02:17:10 tim Exp $

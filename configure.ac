@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.75 2002/07/07 20:43:36 tim Exp $
+# $Id: configure.ac,v 1.76 2002/07/09 02:17:10 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -424,7 +424,8 @@ AC_CHECK_FUNC(strcasecmp,
 	[], [ AC_CHECK_LIB(resolv, strcasecmp, LIBS="$LIBS -lresolv") ]
 )
 AC_CHECK_FUNC(utimes, 
-	[], [ AC_CHECK_LIB(c89, utimes, LIBS="$LIBS -lc89") ]
+	[], [ AC_CHECK_LIB(c89, utimes, [AC_DEFINE(HAVE_UTIMES)
+					LIBS="$LIBS -lc89"]) ]
 )
 
 dnl    Checks for libutil functions
@@ -1825,7 +1826,7 @@ LIBS="$LIBS $KLIBS $K5LIBS"
 
 PRIVSEP_PATH=/var/empty
 AC_ARG_WITH(privsep-path,
-	[  --with-privsep-path=xxx Path for privilege separation chroot ],
+	[  --with-privsep-path=xxx Path for privilege separation chroot (default=/var/empty)],
 	[
 		if test "x$withval" != "$no" ; then
 			PRIVSEP_PATH=$withval
