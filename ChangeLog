@@ -9,6 +9,11 @@
    - itojun@cvs.openbsd.org 2003/05/17 03:25:58
      [auth-rhosts.c]
      just in case, put numbers to sscanf %s arg.
+   - markus@cvs.openbsd.org 2003/05/17 04:27:52
+     [cipher.c cipher-ctr.c myproposal.h]
+     experimental support for aes-ctr modes from
+     http://www.ietf.org/internet-drafts/draft-ietf-secsh-newmodes-00.txt
+     ok djm@
  - (djm) Remove IPv4 by default hack now that we can specify AF in config
 
 20030517
@@ -1565,4 +1570,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2735 2003/05/18 10:53:10 djm Exp $
+$Id: ChangeLog,v 1.2736 2003/05/18 10:53:59 djm Exp $

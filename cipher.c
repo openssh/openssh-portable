@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: cipher.c,v 1.64 2003/05/15 03:08:29 markus Exp $");
+RCSID("$OpenBSD: cipher.c,v 1.65 2003/05/17 04:27:52 markus Exp $");
 
 #include "xmalloc.h"
 #include "log.h"
@@ -55,6 +55,8 @@ extern void ssh_rijndael_iv(EVP_CIPHER_CTX *, int, u_char *, u_int);
 extern const EVP_CIPHER *evp_ssh1_bf(void);
 extern const EVP_CIPHER *evp_ssh1_3des(void);
 extern void ssh1_3des_iv(EVP_CIPHER_CTX *, int, u_char *, int);
+extern const EVP_CIPHER *evp_aes_128_ctr(void);
+extern void ssh_aes_ctr_iv(EVP_CIPHER_CTX *, int, u_char *, u_int);
 
 struct Cipher {
 	char	*name;
@@ -85,6 +87,9 @@ struct Cipher {
 	{ "rijndael-cbc@lysator.liu.se",
 				SSH_CIPHER_SSH2, 16, 32, EVP_aes_256_cbc },
 #endif
+	{ "aes128-ctr", 	SSH_CIPHER_SSH2, 16, 16, evp_aes_128_ctr },
+	{ "aes192-ctr", 	SSH_CIPHER_SSH2, 16, 24, evp_aes_128_ctr },
+	{ "aes256-ctr", 	SSH_CIPHER_SSH2, 16, 32, evp_aes_128_ctr },
 
 	{ NULL,			SSH_CIPHER_ILLEGAL, 0, 0, NULL }
 };
@@ -337,6 +342,9 @@ cipher_get_keyiv(CipherContext *cc, u_char *iv, u_int len)
 			ssh_rijndael_iv(&cc->evp, 0, iv, len);
 		else
 #endif
+		if (c->evptype == evp_aes_128_ctr)
+			ssh_aes_ctr_iv(&cc->evp, 0, iv, len);
+		else
 			memcpy(iv, cc->evp.iv, len);
 		break;
 	case SSH_CIPHER_3DES:
@@ -365,6 +373,9 @@ cipher_set_keyiv(CipherContext *cc, u_char *iv)
 			ssh_rijndael_iv(&cc->evp, 1, iv, evplen);
 		else
 #endif
+		if (c->evptype == evp_aes_128_ctr)
+			ssh_aes_ctr_iv(&cc->evp, 1, iv, evplen);
+		else
 			memcpy(cc->evp.iv, iv, evplen);
 		break;
 	case SSH_CIPHER_3DES:

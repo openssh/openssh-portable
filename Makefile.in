@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.236 2003/05/15 11:33:46 djm Exp $
+# $Id: Makefile.in,v 1.237 2003/05/18 10:53:59 djm Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -61,7 +61,7 @@ INSTALL_SSH_RAND_HELPER=@INSTALL_SSH_RAND_HELPER@
 TARGETS=ssh$(EXEEXT) sshd$(EXEEXT) ssh-add$(EXEEXT) ssh-keygen$(EXEEXT) ssh-keyscan${EXEEXT} ssh-keysign${EXEEXT} ssh-agent$(EXEEXT) scp$(EXEEXT) ssh-rand-helper${EXEEXT} sftp-server$(EXEEXT) sftp$(EXEEXT)
 
 LIBSSH_OBJS=authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o \
-	cipher.o  cipher-aes.o cipher-bf1.o cipher-3des1.o \
+	cipher.o  cipher-aes.o cipher-bf1.o cipher-ctr.o cipher-3des1.o \
 	compat.o compress.o crc32.o deattack.o fatal.o \
 	hostfile.o log.o match.o mpaux.o nchan.o packet.o radix.o \
 	readpass.o rsa.o tildexpand.o ttymodes.o xmalloc.o atomicio.o \
