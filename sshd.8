@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.135 2001/06/27 04:48:53 markus Exp $
+.\" $OpenBSD: sshd.8,v 1.136 2001/07/22 22:24:16 markus Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -355,12 +355,10 @@ authentication is allowed.
 This option is only available for protocol version 2.
 .Pp
 .It Cm ChallengeResponseAuthentication
-Specifies whether
-challenge response
-authentication is allowed.
-Currently there is only support for
-.Xr skey 1
-authentication.
+Specifies whether challenge response authentication is allowed.
+All authentication styles from
+.Xr login.conf 5
+are supported.
 The default is
 .Dq yes .
 .It Cm CheckMail
@@ -1267,15 +1265,14 @@ created OpenSSH.
 Markus Friedl contributed the support for SSH
 protocol versions 1.5 and 2.0.
 .Sh SEE ALSO
-.Xr moduli 5 ,
-.Xr rlogin 1 ,
-.Xr rsh 1 ,
 .Xr scp 1 ,
 .Xr sftp 1 ,
 .Xr ssh 1 ,
 .Xr ssh-add 1 ,
 .Xr ssh-agent 1 ,
 .Xr ssh-keygen 1 ,
+.Xr login.conf 5 ,
+.Xr moduli 5 ,
 .Xr sftp-server 8
 .Rs
 .%A T. Ylonen
