@@ -1,3 +1,8 @@
+20040623
+ - (dtucker) [auth1.c] Ensure do_pam_account is called for Protocol 1
+   connections with empty passwords.  Patch from davidwu at nbttech.com,
+   ok djm@
+
 20040524
  - (dtucker) [auth-pam.c] Bug #839: Ensure that pam authentication "thread"
    is terminated if the privsep slave exits during keyboard-interactive
@@ -999,4 +1004,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3316.2.5 2004/05/24 01:53:42 dtucker Exp $
+$Id: ChangeLog,v 1.3316.2.6 2004/06/22 23:17:03 dtucker Exp $
