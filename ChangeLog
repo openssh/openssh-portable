@@ -28,6 +28,9 @@
    - stevesk@cvs.openbsd.org 2002/01/27 18:08:17
      [ssh.c]
      handle simple case to identify FamilyLocal display; ok markus@
+   - markus@cvs.openbsd.org 2002/01/29 14:27:57
+     [ssh-add.c]
+     exit 2 if no agent, exit 1 if list fails; debian#61078; ok djm@
 
 20020130
  - (djm) Delay PRNG seeding until we need it in ssh-keygen, from markus@
@@ -7430,4 +7433,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1806 2002/02/05 01:12:09 djm Exp $
+$Id: ChangeLog,v 1.1807 2002/02/05 01:12:49 djm Exp $

@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.49 2001/12/24 07:29:43 deraadt Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.50 2002/01/29 14:27:57 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -187,7 +187,7 @@ update_card(AuthenticationConnection *ac, int add, const char *id)
 	}
 }
 
-static void
+static int
 list_identities(AuthenticationConnection *ac, int do_fp)
 {
 	Key *key;
@@ -215,8 +215,11 @@ list_identities(AuthenticationConnection *ac, int do_fp)
 			xfree(comment);
 		}
 	}
-	if (!had_identities)
+	if (!had_identities) {
 		printf("The agent has no identities.\n");
+		return -1;
+	}
+	return 0;
 }
 
 static int
@@ -266,13 +269,14 @@ main(int argc, char **argv)
 	ac = ssh_get_authentication_connection();
 	if (ac == NULL) {
 		fprintf(stderr, "Could not open a connection to your authentication agent.\n");
-		exit(1);
+		exit(2);
 	}
 	while ((ch = getopt(argc, argv, "lLdDe:s:")) != -1) {
 		switch (ch) {
 		case 'l':
 		case 'L':
-			list_identities(ac, ch == 'l' ? 1 : 0);
+			if (list_identities(ac, ch == 'l' ? 1 : 0) == -1)
+				ret = 1;
 			goto done;
 			break;
 		case 'd':
