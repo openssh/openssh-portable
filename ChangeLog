@@ -38,6 +38,9 @@
      [compat.c]
      more versions suffering the SSH_BUG_DEBUG bug;
      3.0.x reported by dbutts@maddog.storability.com
+   - stevesk@cvs.openbsd.org 2001/09/17 23:56:07
+     [scp.1]
+     missing -B in usage string
 
 20010917
  - (djm) x11-ssh-askpass-1.2.4 in RPM spec, revert workarounds
@@ -6498,4 +6501,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1539 2001/09/18 05:55:10 mouring Exp $
+$Id: ChangeLog,v 1.1540 2001/09/18 05:56:57 mouring Exp $
