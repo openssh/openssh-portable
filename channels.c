@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.175 2002/06/10 22:28:41 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.176 2002/06/23 21:06:41 deraadt Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -2328,12 +2328,12 @@ channel_connect_to(const char *host, u_short port)
 
 /*
  * Creates an internet domain socket for listening for X11 connections.
- * Returns a suitable display number for the DISPLAY variable, or -1 if
- * an error occurs.
+ * Returns 0 and a suitable display number for the DISPLAY variable
+ * stored in display_numberp , or -1 if an error occurs.
  */
 int
 x11_create_display_inet(int x11_display_offset, int x11_use_localhost,
-    int single_connection)
+    int single_connection, u_int *display_numberp)
 {
 	Channel *nc = NULL;
 	int display_number, sock;
@@ -2431,7 +2431,8 @@ x11_create_display_inet(int x11_display_offset, int x11_use_localhost,
 	}
 
 	/* Return the display number for the DISPLAY environment variable. */
-	return display_number;
+	*display_numberp = display_number;
+	return (0);
 }
 
 static int

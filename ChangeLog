@@ -29,6 +29,12 @@
    - deraadt@cvs.openbsd.org 2002/06/23 21:06:13
      [sshpty.c]
      KNF
+   - deraadt@cvs.openbsd.org 2002/06/23 21:06:41
+     [channels.c channels.h session.c session.h]
+     display, screen, row, col, xpixel, ypixel are u_int; markus ok
+  - (bal) Also fixed IPADDR_IN_DISPLAY case where display, screen, row, col,
+    xpixel are u_int.
+
 
 20020623
  - (stevesk) [configure.ac] bug #255 LOGIN_NEEDS_UTMPX for AIX.
@@ -1073,4 +1079,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2262 2002/06/23 21:42:50 mouring Exp $
+$Id: ChangeLog,v 1.2263 2002/06/23 21:48:28 mouring Exp $
