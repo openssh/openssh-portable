@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth.c,v 1.22 2001/05/20 17:20:35 markus Exp $");
+RCSID("$OpenBSD: auth.c,v 1.23 2001/05/24 11:12:42 markus Exp $");
 
 #ifdef HAVE_LOGIN_H
 #include <login.h>
@@ -298,7 +298,7 @@ authorized_keys_file2(struct passwd *pw)
 /*
  * Check a given file for security. This is defined as all components
  * of the path to the file must either be owned by either the owner of
- * of the file or root and no directories must be world writable.
+ * of the file or root and no directories must be group or world writable.
  *
  * XXX Should any specific check be done for sym links ?
  *

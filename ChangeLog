@@ -47,6 +47,9 @@
       sshd_config]
      configurable authorized_keys{,2} location; originally from peter@; 
      ok djm@ 
+   - markus@cvs.openbsd.org 2001/05/24 11:12:42
+     [auth.c]                                  
+     fix comment; from jakob@                  
 
 20010528
  - (tim) [conifgure.in] add setvbuf test needed for sftp-int.c
@@ -5477,4 +5480,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1236 2001/06/05 20:25:05 mouring Exp $
+$Id: ChangeLog,v 1.1237 2001/06/05 20:27:53 mouring Exp $
