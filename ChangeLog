@@ -13,6 +13,10 @@
    stuff.  Change suggested by Mark Miller <markm@swoon.net>
  - (bal) Small fix to scp.  %lu vs %ld
  - (bal) NeXTStep lacks S_ISLNK.  Plus split up S_IS* 
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org     2001/03/19 03:52:51
+     [sftp-client.c]
+     Report ssh connection closing correctly; ok deraadt@
 
 20010318
  - (bal) Fixed scp type casing issue which causes "scp: protocol error: 
@@ -4612,4 +4616,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.979 2001/03/19 03:12:25 mouring Exp $
+$Id: ChangeLog,v 1.980 2001/03/19 11:29:46 djm Exp $
