@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.104 2001/04/20 07:17:51 djm Exp $
+.\" $OpenBSD: ssh.1,v 1.105 2001/04/22 08:13:30 djm Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -261,7 +261,7 @@ of
 .Ss Escape Characters
 .Pp
 When a pseudo terminal has been requested, ssh supports a number of functions
-through the use of an escape charater. 
+through the use of an escape character. 
 .Pp
 A single tilde character can be sent as
 .Ic ~~
@@ -290,8 +290,8 @@ to terminate (this does not currently work for SSH protocol version 2)
 .It Cm ~?
 Display a list of escape characters
 .It Cm ~R
-Request rekeying of connection (only useful for SSH protocol version 2 and if
-the peer supports it)
+Request rekeying of the connection (only useful for SSH protocol version 2
+and if the peer supports it)
 .El
 .Pp
 .Ss X11 and TCP forwarding
