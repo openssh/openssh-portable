@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.144 2000/12/28 12:03:58 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.145 2001/01/04 22:25:58 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -657,7 +657,7 @@ main(int ac, char **av)
 			fprintf(stderr, "  -q         Quiet (no logging)\n");
 			fprintf(stderr, "  -p port    Listen on the specified port (default: 22)\n");
 			fprintf(stderr, "  -k seconds Regenerate server key every this many seconds (default: 3600)\n");
-			fprintf(stderr, "  -g seconds Grace period for authentication (default: 300)\n");
+			fprintf(stderr, "  -g seconds Grace period for authentication (default: 600)\n");
 			fprintf(stderr, "  -b bits    Size of server RSA key (default: 768 bits)\n");
 			fprintf(stderr, "  -h file    File from which to read host key (default: %s)\n",
 			    HOST_KEY_FILE);

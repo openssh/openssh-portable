@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.45 2000/12/19 23:17:58 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.46 2001/01/04 22:41:03 markus Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -1336,7 +1336,7 @@ do_child(const char *command, struct passwd * pw, const char *term,
 	if (!options.use_login) {
 		if (stat(SSH_USER_RC, &st) >= 0) {
 			if (debug_flag)
-				fprintf(stderr, "Running "_PATH_BSHELL" %s\n", SSH_USER_RC);
+				fprintf(stderr, "Running %s %s\n", _PATH_BSHELL, SSH_USER_RC);
 
 			f = popen(_PATH_BSHELL " " SSH_USER_RC, "w");
 			if (f) {
@@ -1347,7 +1347,7 @@ do_child(const char *command, struct passwd * pw, const char *term,
 				fprintf(stderr, "Could not run %s\n", SSH_USER_RC);
 		} else if (stat(SSH_SYSTEM_RC, &st) >= 0) {
 			if (debug_flag)
-				fprintf(stderr, "Running "_PATH_BSHELL" %s\n", SSH_SYSTEM_RC);
+				fprintf(stderr, "Running %s %s\n", _PATH_BSHELL, SSH_SYSTEM_RC);
 
 			f = popen(_PATH_BSHELL " " SSH_SYSTEM_RC, "w");
 			if (f) {

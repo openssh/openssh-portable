@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.34 2000/12/27 12:34:50 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.35 2001/01/04 22:21:26 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
@@ -467,6 +467,7 @@ struct Authmethod {
 
 void	input_userauth_success(int type, int plen, void *ctxt);
 void	input_userauth_failure(int type, int plen, void *ctxt);
+void	input_userauth_banner(int type, int plen, void *ctxt);
 void	input_userauth_error(int type, int plen, void *ctxt);
 void	input_userauth_info_req(int type, int plen, void *ctxt);
 
@@ -543,6 +544,7 @@ ssh_userauth2(const char *server_user, char *host)
 	dispatch_init(&input_userauth_error);
 	dispatch_set(SSH2_MSG_USERAUTH_SUCCESS, &input_userauth_success);
 	dispatch_set(SSH2_MSG_USERAUTH_FAILURE, &input_userauth_failure);
+	dispatch_set(SSH2_MSG_USERAUTH_BANNER, &input_userauth_banner);
 	dispatch_run(DISPATCH_BLOCK, &authctxt.success, &authctxt);	/* loop until success */
 
 	if (authctxt.agent != NULL)
@@ -553,7 +555,19 @@ ssh_userauth2(const char *server_user, char *host)
 void
 input_userauth_error(int type, int plen, void *ctxt)
 {
-	fatal("input_userauth_error: bad message during authentication");
+	fatal("input_userauth_error: bad message during authentication: "
+	   "type %d", type);
+}
+void
+input_userauth_banner(int type, int plen, void *ctxt)
+{
+	char *msg, *lang;
+	debug3("input_userauth_banner");
+	msg = packet_get_string(NULL);
+	lang = packet_get_string(NULL);
+	fprintf(stderr, "%s", msg);
+	xfree(msg);
+	xfree(lang);
 }
 void
 input_userauth_success(int type, int plen, void *ctxt)

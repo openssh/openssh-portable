@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.74 2000/12/27 12:30:20 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.75 2001/01/04 22:35:32 djm Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -664,7 +664,7 @@ Specifies the ciphers allowed for protocol version 2
 in order of preference.
 Multiple ciphers must be comma-separated.
 The default is
-.Dq 3des-cbc,blowfish-cbc,cast128-cbc,arcfour .
+.Dq 3des-cbc,blowfish-cbc,cast128-cbc,arcfour,aes128-cbc .
 .It Cm Compression
 Specifies whether to use compression.
 The argument must be

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-rsa.c,v 1.2 2000/12/19 23:17:58 markus Exp $");
+RCSID("$OpenBSD: ssh-rsa.c,v 1.3 2001/01/06 11:23:27 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -36,9 +36,6 @@ RCSID("$OpenBSD: ssh-rsa.c,v 1.2 2000/12/19 23:17:58 markus Exp $");
 #include <openssl/err.h>
 
 #include "key.h"
-
-#define INTBLOB_LEN	20
-#define SIGBLOB_LEN	(2*INTBLOB_LEN)
 
 /* RSASSA-PKCS1-v1_5 (PKCS #1 v2.0 signature) with SHA1 */
 int

@@ -1,3 +1,25 @@
+20010107
+ - (bal) OpenBSD Sync
+   - markus@cvs.openbsd.org 2001/01/06 11:23:27
+     [ssh-rsa.c]
+     remove unused
+   - itojun@cvs.openbsd.org 2001/01/05 08:23:29
+     [ssh-keyscan.1]
+     missing .El
+   - markus@cvs.openbsd.org 2001/01/04 22:41:03
+     [session.c sshconnect.c]
+     consistent use of _PATH_BSHELL; from stevesk@pobox.com
+   - djm@cvs.openbsd.org 2001/01/04 22:35:32
+     [ssh.1 sshd.8]
+     Mention AES as available SSH2 Cipher; ok markus
+   - markus@cvs.openbsd.org 2001/01/04 22:25:58
+     [sshd.c]
+     sync usage()/man with defaults; from stevesk@pobox.com
+   - markus@cvs.openbsd.org 2001/01/04 22:21:26
+     [sshconnect2.c]
+     handle SSH2_MSG_USERAUTH_BANNER; fixes bug when connecting to a server
+     that prints a banner (e.g. /etc/issue.net)
+ 
 20010105
  - (bal) contrib/caldera/ provided by Tim Rice <tim@multitalents.net>
  - (bal) bsd-getcwd.c and bsd-setenv.c changed from bcopy() to memmove()
