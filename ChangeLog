@@ -144,6 +144,9 @@
    - markus@cvs.openbsd.org 2001/08/05 23:29:58
      [ssh-keyscan.c]
      make -t dsa work with commercial servers, too
+   - stevesk@cvs.openbsd.org 2001/08/06 19:47:05
+     [scp.c]
+     use alarm vs. setitimer for portable; ok markus@
 
 20010803
  - (djm) Fix interrupted read in entropy gatherer. Spotted by markus@ on
@@ -6254,4 +6257,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1464 2001/08/06 22:43:50 mouring Exp $
+$Id: ChangeLog,v 1.1465 2001/08/06 22:48:19 mouring Exp $
