@@ -1336,8 +1336,11 @@ main(int ac, char **av)
 	 * setlogin() affects the entire process group.  We don't
 	 * want the child to be able to affect the parent.
 	 */
+#if 0
+	/* XXX: this breaks Solaris */
 	if (setsid() < 0)
 		error("setsid: %.100s", strerror(errno));
+#endif
 
 	/*
 	 * Disable the key regeneration alarm.  We will not regenerate the

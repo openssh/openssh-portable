@@ -1,3 +1,6 @@
+20020521
+ - (stevesk) [sshd.c] bug 245; disable setsid() for now
+
 20020517
  - (tim) [configure.ac] remove extra MD5_MSG="no" line.
 
@@ -656,4 +659,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2135 2002/05/17 15:59:22 tim Exp $
+$Id: ChangeLog,v 1.2136 2002/05/21 17:50:21 stevesk Exp $
