@@ -9,6 +9,9 @@
    - nino@cvs.openbsd.org 2003/06/12 15:34:09
      [scp.c]
      Typo. Ok markus@.
+   - markus@cvs.openbsd.org 2003/06/12 19:12:03
+     [scard.c scard.h ssh-agent.c ssh.c]
+     add sc_get_key_label; larsch at trustcenter.de; bugzilla#591
 
 20030614
  - (djm) Update license on fake-rfc2553.[ch]; ok itojun@
@@ -524,4 +527,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2804 2003/06/18 10:26:34 djm Exp $
+$Id: ChangeLog,v 1.2805 2003/06/18 10:28:40 djm Exp $

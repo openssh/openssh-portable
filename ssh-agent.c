@@ -35,7 +35,7 @@
 
 #include "includes.h"
 #include "openbsd-compat/sys-queue.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.110 2003/06/11 11:18:38 djm Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.111 2003/06/12 19:12:03 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -618,7 +618,7 @@ process_add_smartcard_key (SocketEntry *e)
 		if (lookup_identity(k, version) == NULL) {
 			id = xmalloc(sizeof(Identity));
 			id->key = k;
-			id->comment = xstrdup("smartcard key");
+			id->comment = sc_get_key_label(k);
 			id->death = death;
 			id->confirm = confirm;
 			TAILQ_INSERT_TAIL(&tab->idlist, id, next);
