@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: canohost.c,v 1.37 2003/06/02 09:17:34 markus Exp $");
+RCSID("$OpenBSD: canohost.c,v 1.38 2003/09/23 20:17:11 markus Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -40,7 +40,7 @@ get_remote_hostname(int socket, int use_dns)
 	memset(&from, 0, sizeof(from));
 	if (getpeername(socket, (struct sockaddr *)&from, &fromlen) < 0) {
 		debug("getpeername failed: %.100s", strerror(errno));
-		fatal_cleanup();
+		cleanup_exit(255);
 	}
 #ifdef IPV4_IN_IPV6
 	if (from.ss_family == AF_INET6) {
@@ -296,7 +296,7 @@ get_remote_ipaddr(void)
 			canonical_host_ip =
 			    get_peer_ipaddr(packet_get_connection_in());
 			if (canonical_host_ip == NULL)
-				fatal_cleanup();
+				cleanup_exit(255);
 		} else {
 			/* If not on socket, return UNKNOWN. */
 			canonical_host_ip = xstrdup("UNKNOWN");
@@ -336,7 +336,7 @@ get_sock_port(int sock, int local)
 	} else {
 		if (getpeername(sock, (struct sockaddr *)&from, &fromlen) < 0) {
 			debug("getpeername failed: %.100s", strerror(errno));
-			fatal_cleanup();
+			cleanup_exit(255);
 		}
 	}
 

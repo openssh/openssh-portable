@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.113 2003/09/19 17:43:35 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.114 2003/09/23 20:17:11 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1384,14 +1384,9 @@ client_init_dispatch(void)
 
 /* client specific fatal cleanup */
 void
-fatal(const char *fmt,...)
+cleanup_exit(int i)
 {
-	va_list args;
-
-	va_start(args, fmt);
-	do_log(SYSLOG_LEVEL_FATAL, fmt, args);
-	va_end(args);
 	leave_raw_mode();
 	leave_non_blocking();
-	_exit(255);
+	_exit(i);
 }

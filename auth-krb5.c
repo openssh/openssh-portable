@@ -28,7 +28,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-krb5.c,v 1.12 2003/08/28 12:54:34 markus Exp $");
+RCSID("$OpenBSD: auth-krb5.c,v 1.13 2003/09/23 20:17:11 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -50,17 +50,12 @@ krb5_init(void *context)
 {
 	Authctxt *authctxt = (Authctxt *)context;
 	krb5_error_code problem;
-	static int cleanup_registered = 0;
 
 	if (authctxt->krb5_ctx == NULL) {
 		problem = krb5_init_context(&authctxt->krb5_ctx);
 		if (problem)
 			return (problem);
 		krb5_init_ets(authctxt->krb5_ctx);
-	}
-	if (!cleanup_registered) {
-		fatal_add_cleanup(krb5_cleanup_proc, authctxt);
-		cleanup_registered = 1;
 	}
 	return (0);
 }
@@ -205,10 +200,8 @@ auth_krb5_password(Authctxt *authctxt, const char *password)
 }
 
 void
-krb5_cleanup_proc(void *context)
+krb5_cleanup_proc(Authctxt *authctxt)
 {
-	Authctxt *authctxt = (Authctxt *)context;
-
 	debug("krb5_cleanup_proc called");
 	if (authctxt->krb5_fwd_ccache) {
 		krb5_cc_destroy(authctxt->krb5_ctx, authctxt->krb5_fwd_ccache);

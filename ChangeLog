@@ -1,3 +1,15 @@
+20031002
+ - OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2003/09/23 20:17:11
+     [Makefile.in auth1.c auth2.c auth.c auth.h auth-krb5.c canohost.c
+     cleanup.c clientloop.c fatal.c gss-serv.c log.c log.h monitor.c monitor.h
+     monitor_wrap.c monitor_wrap.h packet.c serverloop.c session.c session.h
+     ssh-agent.c sshd.c]
+     replace fatal_cleanup() and linked list of fatal callbacks with static
+     cleanup_exit() function.  re-refine cleanup_exit() where appropriate,
+     allocate sshd's authctxt eary to allow simpler cleanup in sshd.
+     tested by many, ok deraadt@
+
 20030930
  - (bal) Fix issues in openbsd-compat/realpath.c
 
@@ -1232,4 +1244,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3044 2003/09/30 23:49:06 mouring Exp $
+$Id: ChangeLog,v 1.3045 2003/10/02 06:12:36 dtucker Exp $

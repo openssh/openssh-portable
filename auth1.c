@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.52 2003/08/28 12:54:34 markus Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.53 2003/09/23 20:17:11 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -275,10 +275,9 @@ do_authloop(Authctxt *authctxt)
  * Performs authentication of an incoming connection.  Session key has already
  * been exchanged and encryption is enabled.
  */
-Authctxt *
-do_authentication(void)
+void
+do_authentication(Authctxt *authctxt)
 {
-	Authctxt *authctxt;
 	u_int ulen;
 	char *user, *style = NULL;
 
@@ -292,7 +291,6 @@ do_authentication(void)
 	if ((style = strchr(user, ':')) != NULL)
 		*style++ = '\0';
 
-	authctxt = authctxt_new();
 	authctxt->user = user;
 	authctxt->style = style;
 
@@ -332,6 +330,4 @@ do_authentication(void)
 	packet_start(SSH_SMSG_SUCCESS);
 	packet_send();
 	packet_write_wait();
-
-	return (authctxt);
 }

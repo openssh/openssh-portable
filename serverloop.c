@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.110 2003/06/24 08:23:46 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.111 2003/09/23 20:17:11 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -60,7 +60,7 @@ extern ServerOptions options;
 
 /* XXX */
 extern Kex *xxx_kex;
-static Authctxt *xxx_authctxt;
+extern Authctxt *the_authctxt;
 
 static Buffer stdin_buffer;	/* Buffer for stdin data. */
 static Buffer stdout_buffer;	/* Buffer for stdout data. */
@@ -355,13 +355,13 @@ process_input(fd_set * readset)
 			connection_closed = 1;
 			if (compat20)
 				return;
-			fatal_cleanup();
+			cleanup_exit(255);
 		} else if (len < 0) {
 			if (errno != EINTR && errno != EAGAIN) {
 				verbose("Read error from remote host "
 				    "%.100s: %.100s",
 				    get_remote_ipaddr(), strerror(errno));
-				fatal_cleanup();
+				cleanup_exit(255);
 			}
 		} else {
 			/* Buffer any received data. */
@@ -756,8 +756,6 @@ server_loop2(Authctxt *authctxt)
 	max_fd = MAX(connection_in, connection_out);
 	max_fd = MAX(max_fd, notify_pipe[0]);
 
-	xxx_authctxt = authctxt;
-
 	server_init_dispatch();
 
 	for (;;) {
@@ -900,7 +898,7 @@ server_request_session(char *ctype)
 	c = channel_new(ctype, SSH_CHANNEL_LARVAL,
 	    -1, -1, -1, /*window size*/0, CHAN_SES_PACKET_DEFAULT,
 	    0, "server-session", 1);
-	if (session_open(xxx_authctxt, c->self) != 1) {
+	if (session_open(the_authctxt, c->self) != 1) {
 		debug("session open failed, free channel %d", c->self);
 		channel_free(c);
 		return NULL;
@@ -974,7 +972,7 @@ server_input_global_request(int type, u_int32_t seq, void *ctxt)
 		char *listen_address;
 		u_short listen_port;
 
-		pw = auth_get_user();
+		pw = the_authctxt->pw;
 		if (pw == NULL)
 			fatal("server_input_global_request: no user");
 		listen_address = packet_get_string(NULL);

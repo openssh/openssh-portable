@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.111 2003/09/19 11:33:09 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.112 2003/09/23 20:17:11 markus Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -868,7 +868,7 @@ packet_read_seqnr(u_int32_t *seqnr_p)
 		len = read(connection_in, buf, sizeof(buf));
 		if (len == 0) {
 			logit("Connection closed by %.200s", get_remote_ipaddr());
-			fatal_cleanup();
+			cleanup_exit(255);
 		}
 		if (len < 0)
 			fatal("Read from socket failed: %.100s", strerror(errno));
@@ -1134,7 +1134,7 @@ packet_read_poll_seqnr(u_int32_t *seqnr_p)
 				logit("Received disconnect from %s: %u: %.400s",
 				    get_remote_ipaddr(), reason, msg);
 				xfree(msg);
-				fatal_cleanup();
+				cleanup_exit(255);
 				break;
 			case SSH2_MSG_UNIMPLEMENTED:
 				seqnr = packet_get_int();
@@ -1159,7 +1159,7 @@ packet_read_poll_seqnr(u_int32_t *seqnr_p)
 				msg = packet_get_string(NULL);
 				logit("Received disconnect from %s: %.400s",
 				    get_remote_ipaddr(), msg);
-				fatal_cleanup();
+				cleanup_exit(255);
 				xfree(msg);
 				break;
 			default:
@@ -1336,7 +1336,7 @@ packet_disconnect(const char *fmt,...)
 
 	/* Close the connection. */
 	packet_close();
-	fatal_cleanup();
+	cleanup_exit(255);
 }
 
 /* Checks if there is any buffered output, and tries to write some of the output. */

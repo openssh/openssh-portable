@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.49 2003/08/28 12:54:34 markus Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.50 2003/09/23 20:17:11 markus Exp $");
 
 #include <openssl/dh.h>
 
@@ -272,13 +272,16 @@ monitor_permit_authentications(int permit)
 	}
 }
 
-Authctxt *
-monitor_child_preauth(struct monitor *pmonitor)
+void
+monitor_child_preauth(Authctxt *_authctxt, struct monitor *pmonitor)
 {
 	struct mon_table *ent;
 	int authenticated = 0;
 
 	debug3("preauth child monitor started");
+
+	authctxt = _authctxt;
+	memset(authctxt, 0, sizeof(*authctxt));
 
 	if (compat20) {
 		mon_dispatch = mon_dispatch_proto20;
@@ -291,8 +294,6 @@ monitor_child_preauth(struct monitor *pmonitor)
 
 		monitor_permit(mon_dispatch, MONITOR_REQ_SESSKEY, 1);
 	}
-
-	authctxt = authctxt_new();
 
 	/* The first few requests do not require asynchronous access */
 	while (!authenticated) {
@@ -333,8 +334,6 @@ monitor_child_preauth(struct monitor *pmonitor)
 	    __func__, authctxt->user);
 
 	mm_get_keystate(pmonitor);
-
-	return (authctxt);
 }
 
 static void
@@ -1185,7 +1184,7 @@ mm_record_login(Session *s, struct passwd *pw)
 		if (getpeername(packet_get_connection_in(),
 			(struct sockaddr *) & from, &fromlen) < 0) {
 			debug("getpeername: %.100s", strerror(errno));
-			fatal_cleanup();
+			cleanup_exit(255);
 		}
 	}
 	/* Record that there was a login on that tty from the remote host. */
@@ -1200,7 +1199,6 @@ mm_session_close(Session *s)
 	debug3("%s: session %d pid %ld", __func__, s->self, (long)s->pid);
 	if (s->ttyfd != -1) {
 		debug3("%s: tty %s ptyfd %d",  __func__, s->tty, s->ptyfd);
-		fatal_remove_cleanup(session_pty_cleanup2, (void *)s);
 		session_pty_cleanup2(s);
 	}
 	s->used = 0;
@@ -1225,7 +1223,6 @@ mm_answer_pty(int socket, Buffer *m)
 	res = pty_allocate(&s->ptyfd, &s->ttyfd, s->tty, sizeof(s->tty));
 	if (res == 0)
 		goto error;
-	fatal_add_cleanup(session_pty_cleanup2, (void *)s);
 	pty_setowner(authctxt->pw, s->tty);
 
 	buffer_put_int(m, 1);

@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.277 2003/09/19 11:33:09 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.278 2003/09/23 20:17:11 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -203,6 +203,9 @@ struct monitor *pmonitor;
 
 /* message to be displayed after login */
 Buffer loginmsg;
+
+/* global authentication context */
+Authctxt *the_authctxt = NULL;
 
 /* Prototypes for various functions defined later in this file. */
 void destroy_sensitive_data(void);
@@ -375,7 +378,7 @@ sshd_exchange_identification(int sock_in, int sock_out)
 	    strlen(server_version_string))
 	    != strlen(server_version_string)) {
 		logit("Could not write ident string to %s", get_remote_ipaddr());
-		fatal_cleanup();
+		cleanup_exit(255);
 	}
 
 	/* Read other sides version identification. */
@@ -384,7 +387,7 @@ sshd_exchange_identification(int sock_in, int sock_out)
 		if (atomicio(read, sock_in, &buf[i], 1) != 1) {
 			logit("Did not receive identification string from %s",
 			    get_remote_ipaddr());
-			fatal_cleanup();
+			cleanup_exit(255);
 		}
 		if (buf[i] == '\r') {
 			buf[i] = 0;
@@ -414,7 +417,7 @@ sshd_exchange_identification(int sock_in, int sock_out)
 		close(sock_out);
 		logit("Bad protocol version identification '%.100s' from %s",
 		    client_version_string, get_remote_ipaddr());
-		fatal_cleanup();
+		cleanup_exit(255);
 	}
 	debug("Client protocol version %d.%d; client software version %.100s",
 	    remote_major, remote_minor, remote_version);
@@ -424,13 +427,13 @@ sshd_exchange_identification(int sock_in, int sock_out)
 	if (datafellows & SSH_BUG_PROBE) {
 		logit("probed from %s with %s.  Don't panic.",
 		    get_remote_ipaddr(), client_version_string);
-		fatal_cleanup();
+		cleanup_exit(255);
 	}
 
 	if (datafellows & SSH_BUG_SCANNER) {
 		logit("scanned from %s with %s.  Don't panic.",
 		    get_remote_ipaddr(), client_version_string);
-		fatal_cleanup();
+		cleanup_exit(255);
 	}
 
 	mismatch = 0;
@@ -476,7 +479,7 @@ sshd_exchange_identification(int sock_in, int sock_out)
 		logit("Protocol major versions differ for %s: %.200s vs. %.200s",
 		    get_remote_ipaddr(),
 		    server_version_string, client_version_string);
-		fatal_cleanup();
+		cleanup_exit(255);
 	}
 }
 
@@ -571,10 +574,9 @@ privsep_preauth_child(void)
 #endif
 }
 
-static Authctxt *
-privsep_preauth(void)
+static int
+privsep_preauth(Authctxt *authctxt)
 {
-	Authctxt *authctxt = NULL;
 	int status;
 	pid_t pid;
 
@@ -590,7 +592,7 @@ privsep_preauth(void)
 		debug2("Network child is on pid %ld", (long)pid);
 
 		close(pmonitor->m_recvfd);
-		authctxt = monitor_child_preauth(pmonitor);
+		monitor_child_preauth(authctxt, pmonitor);
 		close(pmonitor->m_sendfd);
 
 		/* Sync memory */
@@ -600,7 +602,7 @@ privsep_preauth(void)
 		while (waitpid(pid, &status, 0) < 0)
 			if (errno != EINTR)
 				break;
-		return (authctxt);
+		return (1);
 	} else {
 		/* child */
 
@@ -611,17 +613,12 @@ privsep_preauth(void)
 			privsep_preauth_child();
 		setproctitle("%s", "[net]");
 	}
-	return (NULL);
+	return (0);
 }
 
 static void
 privsep_postauth(Authctxt *authctxt)
 {
-	extern Authctxt *x_authctxt;
-
-	/* XXX - Remote port forwarding */
-	x_authctxt = authctxt;
-
 #ifdef DISABLE_FD_PASSING
 	if (1) {
 #else
@@ -804,8 +801,8 @@ main(int ac, char **av)
 	int listen_sock, maxfd;
 	int startup_p[2];
 	int startups = 0;
-	Authctxt *authctxt;
 	Key *key;
+	Authctxt *authctxt;
 	int ret, key_used = 0;
 
 #ifdef HAVE_SECUREWARE
@@ -1460,18 +1457,25 @@ main(int ac, char **av)
         /* prepare buffers to collect authentication messages */
 	buffer_init(&loginmsg);
 
+	/* allocate authentication context */
+	authctxt = xmalloc(sizeof(*authctxt));
+	memset(authctxt, 0, sizeof(*authctxt));
+
+	/* XXX global for cleanup, access from other modules */
+	the_authctxt = authctxt;
+
 	if (use_privsep)
-		if ((authctxt = privsep_preauth()) != NULL)
+		if (privsep_preauth(authctxt) == 1)
 			goto authenticated;
 
 	/* perform the key exchange */
 	/* authenticate user and start session */
 	if (compat20) {
 		do_ssh2_kex();
-		authctxt = do_authentication2();
+		do_authentication2(authctxt);
 	} else {
 		do_ssh1_kex();
-		authctxt = do_authentication();
+		do_authentication(authctxt);
 	}
 	/*
 	 * If we use privilege separation, the unprivileged child transfers
@@ -1494,7 +1498,7 @@ main(int ac, char **av)
 			destroy_sensitive_data();
 	}
 
-	/* Perform session preparation. */
+	/* Start session. */
 	do_authenticated(authctxt);
 
 	/* The connection has been terminated. */
@@ -1786,4 +1790,13 @@ do_ssh2_kex(void)
 	packet_write_wait();
 #endif
 	debug("KEX done");
+}
+
+/* server specific fatal cleanup */
+void
+cleanup_exit(int i)
+{
+	if (the_authctxt)
+		do_cleanup(the_authctxt);
+	_exit(i);
 }
