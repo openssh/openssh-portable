@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.111 2001/04/12 14:29:09 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.112 2001/04/12 19:15:25 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -130,8 +130,11 @@ struct sockaddr_storage hostaddr;
  */
 volatile int received_window_change_signal = 0;
 
-/* Host private key. */
-Key *host_private_key = NULL;
+/* Private host keys. */
+struct {
+	Key     **keys;
+	int	nkeys;
+} sensitive_data;
 
 /* Original real UID. */
 uid_t original_real_uid;
@@ -646,9 +649,18 @@ main(int ac, char **av)
 	 * authentication. This must be done before releasing extra
 	 * privileges, because the file is only readable by root.
 	 */
-	if (ok && (options.protocol & SSH_PROTO_1)) {
-		host_private_key = key_load_private_type(KEY_RSA1,
+	sensitive_data.nkeys = 0;
+	sensitive_data.keys = NULL;
+	if (ok && (options.rhosts_rsa_authentication ||
+	    options.hostbased_authentication)) {
+		sensitive_data.nkeys = 3;
+		sensitive_data.keys = xmalloc(sensitive_data.nkeys*sizeof(Key));
+		sensitive_data.keys[0] = key_load_private_type(KEY_RSA1,
 		    _PATH_HOST_KEY_FILE, "", NULL);
+		sensitive_data.keys[1] = key_load_private_type(KEY_DSA,
+		    _PATH_HOST_DSA_KEY_FILE, "", NULL);
+		sensitive_data.keys[2] = key_load_private_type(KEY_RSA,
+		    _PATH_HOST_RSA_KEY_FILE, "", NULL);
 	}
 	/*
 	 * Get rid of any extra privileges that we may have.  We will no
@@ -707,11 +719,21 @@ main(int ac, char **av)
 	    tilde_expand_filename(options.user_hostfile2, original_real_uid);
 
 	/* Log into the remote system.  This never returns if the login fails. */
-	ssh_login(host_private_key, host, (struct sockaddr *)&hostaddr, pw);
+	ssh_login(sensitive_data.keys, sensitive_data.nkeys,
+	    host, (struct sockaddr *)&hostaddr, pw);
 
-	/* We no longer need the host private key.  Clear it now. */
-	if (host_private_key != NULL)
-		key_free(host_private_key);	/* Destroys contents safely */
+	/* We no longer need the private host keys.  Clear them now. */
+	if (sensitive_data.nkeys != 0) {
+		for (i = 0; i < sensitive_data.nkeys; i++) {
+			if (sensitive_data.keys[i] != NULL) {
+				/* Destroys contents safely */
+				debug3("clear hostkey %d", i);
+				key_free(sensitive_data.keys[i]);
+				sensitive_data.keys[i] = NULL;
+			}
+		}
+		xfree(sensitive_data.keys);
+	}
 
 	exit_status = compat20 ? ssh_session2() : ssh_session();
 	packet_close();

@@ -4,6 +4,15 @@
      [ssh.c]                                                
      show debug output during option processing, report from 
      pekkas@netcore.fi
+ - OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2001/04/12 19:15:26
+     [auth-rhosts.c auth.h auth2.c buffer.c canohost.c canohost.h 
+      compat.c compat.h hostfile.c pathnames.h readconf.c readconf.h 
+      servconf.c servconf.h ssh.c sshconnect.c sshconnect.h sshconnect1.c 
+      sshconnect2.c sshd_config]
+     implement HostbasedAuthentication (= RhostRSAAuthentication for ssh v2)
+     similar to RhostRSAAuthentication unless you enable (the experimental)
+     HostbasedUsesNameFromPacketOnly option.  please test. :)
  - (bal) Added openbsd-compat/inet_ntop.[ch] since HP/UX (and others)
    lack it.
 
@@ -5026,4 +5035,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1102 2001/04/12 21:35:52 mouring Exp $
+$Id: ChangeLog,v 1.1103 2001/04/12 23:34:34 mouring Exp $

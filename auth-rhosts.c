@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rhosts.c,v 1.22 2001/04/06 21:00:06 markus Exp $");
+RCSID("$OpenBSD: auth-rhosts.c,v 1.23 2001/04/12 19:15:24 markus Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -24,6 +24,9 @@ RCSID("$OpenBSD: auth-rhosts.c,v 1.22 2001/04/06 21:00:06 markus Exp $");
 #include "servconf.h"
 #include "canohost.h"
 #include "auth.h"
+
+/* import */
+extern ServerOptions options;
 
 /*
  * This function processes an rhosts-style file (.rhosts, .shosts, or
@@ -150,16 +153,31 @@ check_rhosts_file(const char *filename, const char *hostname,
 int
 auth_rhosts(struct passwd *pw, const char *client_user)
 {
-	extern ServerOptions options;
-	char buf[1024];
 	const char *hostname, *ipaddr;
+	int ret;
+
+	hostname = get_canonical_hostname(options.reverse_mapping_check);
+	ipaddr = get_remote_ipaddr();
+	ret = auth_rhosts2(pw, client_user, hostname, ipaddr);
+	return ret;
+}
+
+int
+auth_rhosts2(struct passwd *pw, const char *client_user, const char *hostname,
+    const char *ipaddr)
+{
+	char buf[1024];
 	struct stat st;
 	static const char *rhosts_files[] = {".shosts", ".rhosts", NULL};
 	u_int rhosts_file_index;
 
+	debug2("auth_rhosts2: clientuser %s hostname %s ipaddr %s",
+	    client_user, hostname, ipaddr);
+
 	/* no user given */
 	if (pw == NULL)
 		return 0;
+
 	/* Switch to the user's uid. */
 	temporarily_use_uid(pw);
 	/*
@@ -183,9 +201,6 @@ auth_rhosts(struct passwd *pw, const char *client_user)
 	    stat(_PATH_RHOSTS_EQUIV, &st) < 0 &&
 	    stat(_PATH_SSH_HOSTS_EQUIV, &st) < 0)
 		return 0;
-
-	hostname = get_canonical_hostname(options.reverse_mapping_check);
-	ipaddr = get_remote_ipaddr();
 
 	/* If not logging in as superuser, try /etc/hosts.equiv and shosts.equiv. */
 	if (pw->pw_uid != 0) {

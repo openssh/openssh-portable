@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.74 2001/04/06 22:25:25 stevesk Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.75 2001/04/12 19:15:25 markus Exp $");
 
 #ifdef KRB4
 #include <krb.h>
@@ -67,6 +67,8 @@ initialize_server_options(ServerOptions *options)
 	options->log_level = (LogLevel) - 1;
 	options->rhosts_authentication = -1;
 	options->rhosts_rsa_authentication = -1;
+	options->hostbased_authentication = -1;
+	options->hostbased_uses_name_from_packet_only = -1;
 	options->rsa_authentication = -1;
 	options->pubkey_authentication = -1;
 #ifdef KRB4
@@ -156,6 +158,10 @@ fill_default_server_options(ServerOptions *options)
 		options->rhosts_authentication = 0;
 	if (options->rhosts_rsa_authentication == -1)
 		options->rhosts_rsa_authentication = 0;
+	if (options->hostbased_authentication == -1)
+		options->hostbased_authentication = 0;
+	if (options->hostbased_uses_name_from_packet_only == -1)
+		options->hostbased_uses_name_from_packet_only = 0;
 	if (options->rsa_authentication == -1)
 		options->rsa_authentication = 1;
 	if (options->pubkey_authentication == -1)
@@ -219,7 +225,8 @@ typedef enum {
 	sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
 	sIgnoreUserKnownHosts, sCiphers, sMacs, sProtocol, sPidFile,
 	sGatewayPorts, sPubkeyAuthentication, sXAuthLocation, sSubsystem, sMaxStartups,
-	sBanner, sReverseMappingCheck
+	sBanner, sReverseMappingCheck, sHostbasedAuthentication,
+	sHostbasedUsesNameFromPacketOnly
 } ServerOpCodes;
 
 /* Textual representation of the tokens. */
@@ -239,6 +246,8 @@ static struct {
 	{ "loglevel", sLogLevel },
 	{ "rhostsauthentication", sRhostsAuthentication },
 	{ "rhostsrsaauthentication", sRhostsRSAAuthentication },
+	{ "hostbasedauthentication", sHostbasedAuthentication },
+	{ "hostbasedusesnamefrompacketonly", sHostbasedUsesNameFromPacketOnly },
 	{ "rsaauthentication", sRSAAuthentication },
 	{ "pubkeyauthentication", sPubkeyAuthentication },
 	{ "dsaauthentication", sPubkeyAuthentication },			/* alias */
@@ -535,6 +544,14 @@ parse_flag:
 
 		case sRhostsRSAAuthentication:
 			intptr = &options->rhosts_rsa_authentication;
+			goto parse_flag;
+
+		case sHostbasedAuthentication:
+			intptr = &options->hostbased_authentication;
+			goto parse_flag;
+
+		case sHostbasedUsesNameFromPacketOnly:
+			intptr = &options->hostbased_uses_name_from_packet_only;
 			goto parse_flag;
 
 		case sRSAAuthentication:

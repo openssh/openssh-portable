@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.71 2001/04/07 08:55:17 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.72 2001/04/12 19:15:25 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -110,7 +110,7 @@ typedef enum {
 	oUsePrivilegedPort, oLogLevel, oCiphers, oProtocol, oMacs,
 	oGlobalKnownHostsFile2, oUserKnownHostsFile2, oPubkeyAuthentication,
 	oKbdInteractiveAuthentication, oKbdInteractiveDevices, oHostKeyAlias,
-	oDynamicForward, oPreferredAuthentications
+	oDynamicForward, oPreferredAuthentications, oHostbasedAuthentication
 } OpCodes;
 
 /* Textual representations of the tokens. */
@@ -131,6 +131,8 @@ static struct {
 	{ "rsaauthentication", oRSAAuthentication },
 	{ "pubkeyauthentication", oPubkeyAuthentication },
 	{ "dsaauthentication", oPubkeyAuthentication },		    /* alias */
+	{ "rhostsrsaauthentication", oRhostsRSAAuthentication },
+	{ "hostbaedauthentication", oHostbasedAuthentication },
 	{ "challengeresponseauthentication", oChallengeResponseAuthentication },
 	{ "skeyauthentication", oChallengeResponseAuthentication }, /* alias */
 	{ "tisauthentication", oChallengeResponseAuthentication },  /* alias */
@@ -158,7 +160,6 @@ static struct {
 	{ "user", oUser },
 	{ "host", oHost },
 	{ "escapechar", oEscapeChar },
-	{ "rhostsrsaauthentication", oRhostsRSAAuthentication },
 	{ "globalknownhostsfile", oGlobalKnownHostsFile },
 	{ "userknownhostsfile", oUserKnownHostsFile },
 	{ "globalknownhostsfile2", oGlobalKnownHostsFile2 },
@@ -322,6 +323,10 @@ parse_flag:
 
 	case oRhostsRSAAuthentication:
 		intptr = &options->rhosts_rsa_authentication;
+		goto parse_flag;
+
+	case oHostbasedAuthentication:
+		intptr = &options->hostbased_authentication;
 		goto parse_flag;
 
 	case oChallengeResponseAuthentication:
@@ -594,7 +599,7 @@ parse_int:
 			    filename, linenum);
 		fwd_port = atoi(arg);
 		add_local_forward(options, fwd_port, "socks4", 0);
-                break;
+		break;
 
 	case oHost:
 		*activep = 0;
@@ -712,6 +717,7 @@ initialize_options(Options * options)
 	options->kbd_interactive_authentication = -1;
 	options->kbd_interactive_devices = NULL;
 	options->rhosts_rsa_authentication = -1;
+	options->hostbased_authentication = -1;
 	options->fallback_to_rsh = -1;
 	options->use_rsh = -1;
 	options->batch_mode = -1;
@@ -789,6 +795,8 @@ fill_default_options(Options * options)
 		options->kbd_interactive_authentication = 1;
 	if (options->rhosts_rsa_authentication == -1)
 		options->rhosts_rsa_authentication = 1;
+	if (options->hostbased_authentication == -1)
+		options->hostbased_authentication = 0;
 	if (options->fallback_to_rsh == -1)
 		options->fallback_to_rsh = 0;
 	if (options->use_rsh == -1)

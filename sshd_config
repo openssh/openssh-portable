@@ -1,4 +1,4 @@
-#	$OpenBSD: sshd_config,v 1.35 2001/03/25 13:16:11 stevesk Exp $
+#	$OpenBSD: sshd_config,v 1.36 2001/04/12 19:15:26 markus Exp $
 
 # This sshd was compiled with PATH=/usr/bin:/bin:/usr/sbin:/sbin
 
@@ -37,6 +37,8 @@ RhostsAuthentication no
 #
 # For this to work you will also need host keys in /etc/ssh_known_hosts
 RhostsRSAAuthentication no
+# similar for protocol version 2
+HostbasedAuthentication no
 #
 RSAAuthentication yes
 

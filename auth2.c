@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.51 2001/04/06 21:00:08 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.52 2001/04/12 19:15:24 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -48,6 +48,9 @@ RCSID("$OpenBSD: auth2.c,v 1.51 2001/04/06 21:00:08 markus Exp $");
 #include "uidswap.h"
 #include "auth-options.h"
 #include "misc.h"
+#include "hostfile.h"
+#include "canohost.h"
+#include "tildexpand.h"
 
 /* import */
 extern ServerOptions options;
@@ -76,8 +79,11 @@ void	protocol_error(int type, int plen, void *ctxt);
 
 /* helper */
 Authmethod	*authmethod_lookup(const char *name);
-int	user_key_allowed(struct passwd *pw, Key *key);
 char	*authmethods_get(void);
+int	user_key_allowed(struct passwd *pw, Key *key);
+int
+hostbased_key_allowed(struct passwd *pw, const char *cuser, const char *chost,
+    Key *key);
 
 /* auth */
 void	userauth_banner(void);
@@ -85,6 +91,7 @@ void	userauth_reply(Authctxt *authctxt, int authenticated);
 int	userauth_none(Authctxt *authctxt);
 int	userauth_passwd(Authctxt *authctxt);
 int	userauth_pubkey(Authctxt *authctxt);
+int	userauth_hostbased(Authctxt *authctxt);
 int	userauth_kbdint(Authctxt *authctxt);
 
 Authmethod authmethods[] = {
@@ -100,6 +107,9 @@ Authmethod authmethods[] = {
 	{"keyboard-interactive",
 		userauth_kbdint,
 		&options.kbd_interactive_authentication},
+	{"hostbased",
+		userauth_hostbased,
+		&options.hostbased_authentication},
 	{NULL, NULL, NULL}
 };
 
@@ -211,7 +221,7 @@ input_userauth_request(int type, int plen, void *ctxt)
 	} else if (authctxt->valid) {
 		if (strcmp(user, authctxt->user) != 0 ||
 		    strcmp(service, authctxt->service) != 0) {
-			log("input_userauth_request: missmatch: (%s,%s)!=(%s,%s)",
+			log("input_userauth_request: mismatch: (%s,%s)!=(%s,%s)",
 			    user, service, authctxt->user, authctxt->service);
 			authctxt->valid = 0;
 		}
@@ -519,6 +529,89 @@ userauth_pubkey(Authctxt *authctxt)
 	return authenticated;
 }
 
+int
+userauth_hostbased(Authctxt *authctxt)
+{
+	Buffer b;
+	Key *key;
+	char *pkalg, *pkblob, *sig;
+	char *cuser, *chost;
+	u_int alen, blen, slen;
+	int pktype;
+	int authenticated = 0;
+
+	if (!authctxt->valid) {
+		debug2("userauth_hostbased: disabled because of invalid user");
+		return 0;
+	}
+	pkalg = packet_get_string(&alen);
+	pkblob = packet_get_string(&blen);
+	chost = packet_get_string(NULL);
+	cuser = packet_get_string(NULL);
+	sig = packet_get_string(&slen);
+
+	debug("userauth_hostbased: cuser %s chost %s pkalg %s slen %d",
+	    cuser, chost, pkalg, slen);
+#ifdef DEBUG_PK
+	debug("signature:");
+	buffer_init(&b);
+	buffer_append(&b, sig, slen);
+	buffer_dump(&b);
+	buffer_free(&b);
+#endif
+	pktype = key_type_from_name(pkalg);
+	if (pktype == KEY_UNSPEC) {
+		/* this is perfectly legal */
+		log("userauth_hostbased: unsupported "
+		    "public key algorithm: %s", pkalg);
+		goto done;
+	}
+	key = key_from_blob(pkblob, blen);
+	if (key == NULL) {
+		debug("userauth_hostbased: cannot decode key: %s", pkalg);
+		goto done;
+	}
+	buffer_init(&b);
+	if (datafellows & SSH_OLD_SESSIONID) {
+		buffer_append(&b, session_id2, session_id2_len);
+	} else {
+		buffer_put_string(&b, session_id2, session_id2_len);
+	}
+	if (datafellows & SSH_BUG_HBSERVICE)
+		debug("SSH_BUG_HBSERVICE");
+	/* reconstruct packet */
+	buffer_put_char(&b, SSH2_MSG_USERAUTH_REQUEST);
+	buffer_put_cstring(&b, authctxt->user);
+	buffer_put_cstring(&b,
+	    datafellows & SSH_BUG_HBSERVICE ?
+	    "ssh-userauth" :
+	    authctxt->service);
+	buffer_put_cstring(&b, "hostbased");
+	buffer_put_string(&b, pkalg, alen);
+	buffer_put_string(&b, pkblob, blen);
+	buffer_put_cstring(&b, chost);
+	buffer_put_cstring(&b, cuser);
+#ifdef DEBUG_PK
+	buffer_dump(&b);
+#endif
+	/* test for allowed key and correct signature */
+	if (hostbased_key_allowed(authctxt->pw, cuser, chost, key) &&
+	    key_verify(key, sig, slen, buffer_ptr(&b), buffer_len(&b)) == 1)
+		authenticated = 1;
+
+	buffer_clear(&b);
+	key_free(key);
+
+done:
+	debug2("userauth_hostbased: authenticated %d", authenticated);
+	xfree(pkalg);
+	xfree(pkblob);
+	xfree(cuser);
+	xfree(chost);
+	xfree(sig);
+	return authenticated;
+}
+
 /* get current user */
 
 struct passwd*
@@ -695,4 +788,66 @@ user_key_allowed(struct passwd *pw, Key *key)
 	if (!found_key)
 		debug2("key not found");
 	return found_key;
+}
+
+/* return 1 if given hostkey is allowed */
+int
+hostbased_key_allowed(struct passwd *pw, const char *cuser, const char *chost,
+    Key *key)
+{
+	Key *found;
+	const char *resolvedname, *ipaddr, *lookup;
+	struct stat st;
+	char *user_hostfile;
+	int host_status;
+
+	resolvedname = get_canonical_hostname(options.reverse_mapping_check);
+	ipaddr = get_remote_ipaddr();
+
+	debug2("userauth_hostbased: resolvedname %s ipaddr %s",
+	    resolvedname, ipaddr);
+
+	if (options.hostbased_uses_name_from_packet_only) {
+		if (auth_rhosts2(pw, cuser, chost, chost) == 0)
+			return 0;
+		lookup = chost;
+	} else {
+		if (strcasecmp(resolvedname, chost) != 0)
+			log("userauth_hostbased mismatch: "
+			    "client sends %s, but we resolve %s to %s",
+			    chost, ipaddr, resolvedname);
+		if (auth_rhosts2(pw, cuser, resolvedname, ipaddr) == 0)
+			return 0;
+		lookup = resolvedname;
+	}
+	debug2("userauth_hostbased: access allowed by auth_rhosts2");
+
+	/* XXX this is copied from auth-rh-rsa.c and should be shared */
+	found = key_new(key->type);
+	host_status = check_host_in_hostfile(_PATH_SSH_SYSTEM_HOSTFILE2, lookup,
+	    key, found, NULL);
+
+	if (host_status != HOST_OK && !options.ignore_user_known_hosts) {
+		user_hostfile = tilde_expand_filename(_PATH_SSH_USER_HOSTFILE2,
+		    pw->pw_uid);
+		if (options.strict_modes &&
+		    (stat(user_hostfile, &st) == 0) &&
+		    ((st.st_uid != 0 && st.st_uid != pw->pw_uid) ||
+		     (st.st_mode & 022) != 0)) {
+			log("Hostbased authentication refused for %.100s: "
+			    "bad owner or modes for %.200s",
+			    pw->pw_name, user_hostfile);
+		} else {
+			temporarily_use_uid(pw);
+			host_status = check_host_in_hostfile(user_hostfile,
+			    lookup, key, found, NULL);
+			restore_uid();
+		}
+		xfree(user_hostfile);
+	}
+	key_free(found);
+
+	debug2("userauth_hostbased: key %s for %s", host_status == HOST_OK ?
+	    "ok" : "not found", lookup);
+	return (host_status == HOST_OK);
 }

@@ -21,7 +21,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $OpenBSD: auth.h,v 1.14 2001/03/28 22:43:31 markus Exp $
+ * $OpenBSD: auth.h,v 1.15 2001/04/12 19:15:24 markus Exp $
  */
 #ifndef AUTH_H
 #define AUTH_H
@@ -57,6 +57,11 @@ struct Authctxt {
  * consider .rhosts and .shosts (/etc/hosts.equiv will still be used).
  */
 int     auth_rhosts(struct passwd * pw, const char *client_user);
+
+/* extended interface similar to auth_rhosts() */
+int
+auth_rhosts2(struct passwd *pw, const char *client_user, const char *hostname,
+    const char *ipaddr);
 
 /*
  * Tries to authenticate the user using the .rhosts file and the host using

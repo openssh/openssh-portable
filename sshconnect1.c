@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.29 2001/03/26 08:07:09 markus Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.30 2001/04/12 19:15:25 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/evp.h>
@@ -911,17 +911,14 @@ ssh_kex(char *host, struct sockaddr *hostaddr)
  * Authenticate user
  */
 void
-ssh_userauth(
-    const char *local_user,
-    const char *server_user,
-    char *host,
-    Key *own_host_key)
+ssh_userauth1(const char *local_user, const char *server_user, char *host,
+    Key **keys, int nkeys)
 {
 	int i, type;
 	int payload_len;
 
 	if (supported_authentications == 0)
-		fatal("ssh_userauth: server supports no auth methods");
+		fatal("ssh_userauth1: server supports no auth methods");
 
 	/* Send the name of the user to log in as on the server. */
 	packet_start(SSH_CMSG_USER);
@@ -1000,9 +997,12 @@ ssh_userauth(
 	 * authentication.
 	 */
 	if ((supported_authentications & (1 << SSH_AUTH_RHOSTS_RSA)) &&
-	    options.rhosts_rsa_authentication && own_host_key != NULL) {
-		if (try_rhosts_rsa_authentication(local_user, own_host_key))
-			return;
+	    options.rhosts_rsa_authentication) {
+		for (i = 0; i < nkeys; i++) {
+			if (keys[i]->type == KEY_RSA1 &&
+			    try_rhosts_rsa_authentication(local_user, keys[i]))
+				return;
+		}
 	}
 	/* Try RSA authentication if the server supports it. */
 	if ((supported_authentications & (1 << SSH_AUTH_RSA)) &&
