@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.300 2004/07/28 08:56:22 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.301 2004/08/11 11:50:09 dtucker Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1577,7 +1577,8 @@ main(int ac, char **av)
 
 		dup2(config_s[1], REEXEC_CONFIG_PASS_FD);
 		close(config_s[1]);
-		close(startup_pipe);
+		if (startup_pipe != -1)
+			close(startup_pipe);
 
 		execv(rexec_argv[0], rexec_argv);
 
