@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.30 2001/04/04 20:25:37 markus Exp $");
+RCSID("$OpenBSD: kex.c,v 1.31 2001/04/04 22:04:34 markus Exp $");
 
 #include <openssl/crypto.h>
 
@@ -166,6 +166,7 @@ kex_input_kexinit(int type, int plen, void *ctxt)
 {
 	char *ptr;
 	int dlen;
+	int i;
 	Kex *kex = (Kex *)ctxt;
 
 	debug("SSH2_MSG_KEXINIT received");
@@ -174,6 +175,15 @@ kex_input_kexinit(int type, int plen, void *ctxt)
 
 	ptr = packet_get_raw(&dlen);
 	buffer_append(&kex->peer, ptr, dlen);
+
+	/* discard packet */
+	for (i = 0; i < KEX_COOKIE_LEN; i++)
+		packet_get_char();
+	for (i = 0; i < PROPOSAL_MAX; i++)
+		xfree(packet_get_string(NULL));
+	packet_get_char();
+	packet_get_int();
+	packet_done();
 
 	kex_kexinit_finish(kex);
 }

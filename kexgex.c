@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kexgex.c,v 1.3 2001/04/04 09:48:34 markus Exp $");
+RCSID("$OpenBSD: kexgex.c,v 1.4 2001/04/04 22:04:35 markus Exp $");
 
 #include <openssl/bn.h>
 
@@ -286,7 +286,7 @@ kexgex_server(Kex *kex)
 		/* unused for old GEX */
 		break;
 	default:
-		fatal("protocol error during kex, no DH_GEX_REQUEST");
+		fatal("protocol error during kex, no DH_GEX_REQUEST: %d", type);
 	}
 	packet_done();
 

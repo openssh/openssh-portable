@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.57 2001/04/04 20:25:37 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.58 2001/04/04 22:04:35 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -650,9 +650,7 @@ void
 server_loop2(void)
 {
 	fd_set *readset = NULL, *writeset = NULL;
-	int max_fd;
-	int had_channel = 0;
-	int status;
+	int had_channel = 0, rekeying = 0, max_fd, status;
 	pid_t pid;
 
 	debug("Entering interactive session for SSH2.");
@@ -668,21 +666,26 @@ server_loop2(void)
 
 	for (;;) {
 		process_buffered_input_packets();
+
+                rekeying = (xxx_kex != NULL && !xxx_kex->done);
+
 		if (!had_channel && channel_still_open())
 			had_channel = 1;
 		if (had_channel && !channel_still_open()) {
 			debug("!channel_still_open.");
 			break;
 		}
-		if (packet_not_very_much_data_to_write())
+		if (!rekeying && packet_not_very_much_data_to_write())
 			channel_output_poll();
-		wait_until_can_do_something(&readset, &writeset, &max_fd, 0);
+		wait_until_can_do_something(&readset, &writeset, &max_fd,
+		    rekeying);
 		if (child_terminated) {
 			while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
 				session_close_by_pid(pid, status);
 			child_terminated = 0;
 		}
-		channel_after_select(readset, writeset);
+		if (!rekeying)
+			channel_after_select(readset, writeset);
 		process_input(readset);
 		process_output(writeset);
 	}

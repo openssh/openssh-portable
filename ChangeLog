@@ -20,6 +20,10 @@
    - markus@cvs.openbsd.org 2001/04/04 20:32:56
      [auth2.c]
      we don't care about missing bannerfiles; from tsoome@ut.ee, ok deraadt@
+   - markus@cvs.openbsd.org 2001/04/04 22:04:35
+     [kex.c kexgex.c serverloop.c]
+     parse full kexinit packet.
+     make server-side more robust, too.
 
 20010404
  - OpenBSD CVS Sync
@@ -4859,4 +4863,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1059 2001/04/04 23:47:52 mouring Exp $
+$Id: ChangeLog,v 1.1060 2001/04/04 23:50:21 mouring Exp $
