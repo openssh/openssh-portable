@@ -35,7 +35,7 @@
  * that ai_family is AF_INET. Don't use it for another purpose.
  */
 
-/* $Id: fake-rfc2553.h,v 1.4 2003/06/13 22:43:23 djm Exp $ */
+/* $Id: fake-rfc2553.h,v 1.5 2003/08/08 02:15:12 dtucker Exp $ */
 
 #ifndef _FAKE_RFC2553_H
 #define _FAKE_RFC2553_H
@@ -88,12 +88,21 @@ struct sockaddr_in6 {
 
 #ifndef NI_NUMERICHOST
 # define NI_NUMERICHOST    (1)
+#endif
+#ifndef NI_NAMEREQD
 # define NI_NAMEREQD       (1<<1)
+#endif
+#ifndef NI_NUMERICSERV
 # define NI_NUMERICSERV    (1<<2)
 #endif
+
 #ifndef AI_PASSIVE
 # define AI_PASSIVE		(1)
+#endif
+#ifndef AI_CANONNAME
 # define AI_CANONNAME		(1<<1)
+#endif
+#ifndef AI_NUMERICHOST
 # define AI_NUMERICHOST		(1<<2)
 #endif
 
