@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.88 2001/08/30 16:04:35 stevesk Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.89 2001/09/03 20:58:33 stevesk Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -670,10 +670,10 @@ parse_int:
 /*
  * Reads the config file and modifies the options accordingly.  Options
  * should already be initialized before this call.  This never returns if
- * there is an error.  If the file does not exist, this returns immediately.
+ * there is an error.  If the file does not exist, this returns 0.
  */
 
-void
+int
 read_config_file(const char *filename, const char *host, Options *options)
 {
 	FILE *f;
@@ -684,7 +684,7 @@ read_config_file(const char *filename, const char *host, Options *options)
 	/* Open the file. */
 	f = fopen(filename, "r");
 	if (!f)
-		return;
+		return 0;
 
 	debug("Reading configuration data %.200s", filename);
 
@@ -704,6 +704,7 @@ read_config_file(const char *filename, const char *host, Options *options)
 	if (bad_options > 0)
 		fatal("%s: terminating, %d bad configuration options",
 		      filename, bad_options);
+	return 1;
 }
 
 /*

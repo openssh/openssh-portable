@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.141 2001/08/29 23:27:23 stevesk Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.142 2001/09/03 20:58:33 stevesk Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -622,14 +622,16 @@ again:
 	 * file if the user specifies a config file on the command line.
 	 */
 	if (config != NULL) {
-		read_config_file(config, host, &options);
+		if (!read_config_file(config, host, &options))
+			fatal("Can't open user config file %.100s: "
+			    "%.100s", config, strerror(errno));
 	} else  {
 		snprintf(buf, sizeof buf, "%.100s/%.100s", pw->pw_dir,
 		    _PATH_SSH_USER_CONFFILE);
 
 		/* Read systemwide configuration file. */
-		read_config_file(_PATH_HOST_CONFIG_FILE, host, &options);
-		read_config_file(buf, host, &options);
+		(void)read_config_file(_PATH_HOST_CONFIG_FILE, host, &options);
+		(void)read_config_file(buf, host, &options);
 	}
 
 	/* Fill configuration defaults. */
