@@ -5,6 +5,8 @@
  - (dtucker) [LICENCE Makefile.in auth-passwd.c auth-shadow.c auth.c auth.h
    defines.h] Bug #14: Use do_pwchange to support password expiry and force
    change for platforms using /etc/shadow.  ok djm@
+ - (dtucker) [openbsd-compat/fake-rfc2553.h] Bug #563: Prepend ssh_ to compat
+   functions to avoid conflicts with Heimdal's libroken.  ok djm@
 
 20040207
  - (dtucker) OpenBSD CVS Sync
@@ -1828,4 +1830,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3219 2004/02/10 02:01:14 dtucker Exp $
+$Id: ChangeLog,v 1.3220 2004/02/10 02:05:40 dtucker Exp $
