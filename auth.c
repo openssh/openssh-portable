@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth.c,v 1.28 2001/10/03 10:01:20 markus Exp $");
+RCSID("$OpenBSD: auth.c,v 1.29 2001/11/08 20:02:24 markus Exp $");
 
 #ifdef HAVE_LOGIN_H
 #include <login.h>
@@ -208,7 +208,7 @@ auth_log(Authctxt *authctxt, int authenticated, char *method, char *info)
 	    authmsg,
 	    method,
 	    authctxt->valid ? "" : "illegal user ",
-	    authctxt->valid && authctxt->pw->pw_uid == 0 ? "ROOT" : authctxt->user,
+	    authctxt->user,
 	    get_remote_ipaddr(),
 	    get_remote_port(),
 	    info);
