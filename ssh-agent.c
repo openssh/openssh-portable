@@ -35,7 +35,7 @@
 
 #include "includes.h"
 #include "openbsd-compat/sys-queue.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.120 2004/08/11 21:43:05 avsm Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.121 2004/10/07 10:12:36 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -1122,6 +1122,7 @@ main(int ac, char **av)
 	sock = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (sock < 0) {
 		perror("socket");
+		*socket_name = '\0'; /* Don't unlink any existing file */
 		cleanup_exit(1);
 	}
 	memset(&sunaddr, 0, sizeof(sunaddr));
@@ -1130,6 +1131,7 @@ main(int ac, char **av)
 	prev_mask = umask(0177);
 	if (bind(sock, (struct sockaddr *) & sunaddr, sizeof(sunaddr)) < 0) {
 		perror("bind");
+		*socket_name = '\0'; /* Don't unlink any existing file */
 		umask(prev_mask);
 		cleanup_exit(1);
 	}
