@@ -1,3 +1,6 @@
+20020625
+ - (stevesk) [INSTALL acconfig.h configure.ac defines.h] remove --with-rsh
+
 20020624
  - OpenBSD CVS Sync
    - deraadt@cvs.openbsd.org 2002/06/23 03:25:50
@@ -1082,4 +1085,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2264 2002/06/23 21:49:25 mouring Exp $
+$Id: ChangeLog,v 1.2265 2002/06/24 16:26:49 stevesk Exp $

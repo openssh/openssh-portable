@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.138 2002/06/12 16:57:15 mouring Exp $ */
+/* $Id: acconfig.h,v 1.139 2002/06/24 16:26:49 stevesk Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -227,9 +227,6 @@
 
 /* Define if xauth is found in your path */
 #undef XAUTH_PATH
-
-/* Define if rsh is found in your path */
-#undef RSH_PATH
 
 /* Define if you want to allow MD5 passwords */
 #undef HAVE_MD5_PASSWORDS

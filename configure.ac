@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.68 2002/06/22 18:51:48 stevesk Exp $
+# $Id: configure.ac,v 1.69 2002/06/24 16:26:49 stevesk Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -247,7 +247,6 @@ mips-sony-bsd|mips-sony-newsos4)
 	CPPFLAGS="$CPPFLAGS -Dftruncate=chsize -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	LIBS="$LIBS -los -lprot -lx -ltinfo -lm"
-	rsh_path="/usr/bin/rcmd"
 	RANLIB=true
 	no_dev_ptmx=1
 	AC_DEFINE(BROKEN_SYS_TERMIO_H)
@@ -264,7 +263,6 @@ mips-sony-bsd|mips-sony-newsos4)
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	LIBS="$LIBS -lprot -lx -ltinfo -lm"
 	no_dev_ptmx=1
-	rsh_path="/usr/bin/rcmd"
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(HAVE_SECUREWARE)
 	AC_DEFINE(DISABLE_SHADOW)
@@ -1790,17 +1788,6 @@ AC_ARG_WITH(afs,
 LIBS="$LIBS $KLIBS $K5LIBS"
 
 # Looking for programs, paths and files
-AC_ARG_WITH(rsh,
-	[  --with-rsh=PATH         Specify path to remote shell program ],
-	[
-		if test "x$withval" != "$no" ; then
-			rsh_path=$withval
-		fi
-	],
-	[
-		AC_PATH_PROG(rsh_path, rsh)
-	]
-)
 
 PRIVSEP_PATH=/var/empty
 AC_ARG_WITH(privsep-path,
@@ -1835,9 +1822,6 @@ else
 	AC_DEFINE_UNQUOTED(XAUTH_PATH, "$xauth_path")
 	XAUTH_PATH=$xauth_path
 	AC_SUBST(XAUTH_PATH)
-fi
-if test ! -z "$rsh_path" ; then
-	AC_DEFINE_UNQUOTED(RSH_PATH, "$rsh_path")
 fi
 
 # Check for mail directory (last resort if we cannot get it from headers)
