@@ -6,7 +6,9 @@
  * that ai_family is AF_INET. Don't use it for another purpose.
  */
 
-RCSID("$Id: fake-rfc2553.c,v 1.1 2003/06/05 08:52:48 djm Exp $");
+#include "includes.h"
+
+RCSID("$Id: fake-rfc2553.c,v 1.2 2003/06/05 09:37:30 dtucker Exp $");
 
 #ifndef HAVE_GETNAMEINFO
 int getnameinfo(const struct sockaddr *sa, size_t salen, char *host, 
