@@ -20,6 +20,9 @@
    - markus@cvs.openbsd.org 2003/06/16 10:22:45
      [ssh-add.c]
      print out key comment on each prompt; make ssh-askpass more useable; ok djm@
+   - markus@cvs.openbsd.org 2003/06/17 18:14:23
+     [cipher-ctr.c]
+     use license from /usr/share/misc/license.template for new code
 
 20030614
  - (djm) Update license on fake-rfc2553.[ch]; ok itojun@
@@ -535,4 +538,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2807 2003/06/18 10:29:18 djm Exp $
+$Id: ChangeLog,v 1.2808 2003/06/18 10:29:35 djm Exp $
