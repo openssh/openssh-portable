@@ -44,9 +44,6 @@ Clean up configure/makefiles:
   left to do.  HAVE_LOGIN is one of them.  Consider NOT looking for information
   in wtmpx or utmpx or any of that stuff if it's not detected from the start
 
-- Fix Make functionality so that build from a different directory work. 
-  (roth@feep.net)
-
 - Fails to compile when cross compile.
   (vinschen@redhat.com)
 
@@ -62,4 +59,4 @@ Packaging:
 - HP/UX: Provide DEPOT package scripts.
   (gilbert.r.loomis@saic.com)
 
-$Id: TODO,v 1.35 2001/02/13 02:18:50 mouring Exp $
+$Id: TODO,v 1.36 2001/02/17 01:04:37 mouring Exp $
