@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.207 2002/05/13 03:15:43 djm Exp $
+# $Id: Makefile.in,v 1.208 2002/05/13 04:12:05 djm Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -30,7 +30,7 @@ PATHS= -DSSHDIR=\"$(sysconfdir)\" \
 	-D_PATH_SSH_ASKPASS_DEFAULT=\"$(ASKPASS_PROGRAM)\" \
 	-D_PATH_SFTP_SERVER=\"$(SFTP_SERVER)\" \
 	-D_PATH_SSH_PIDDIR=\"$(piddir)\" \
-	-D_PATH_PRIVSEP_CHROOT_DIR=\"$(PRIVSEP_PATH)\"
+	-D_PATH_PRIVSEP_CHROOT_DIR=\"$(PRIVSEP_PATH)\" \
 	-DSSH_RAND_HELPER=\"$(libexecdir)/ssh-rand-helper\"
 
 CC=@CC@
