@@ -171,6 +171,10 @@
  - (bal) Put HAVE_PW_CLASS_IN_PASSWD back into pwcopy()
  - (bal) Fix up logging since it changed.  removed log-*.c
  - (djm) Fix up LOG_AUTHPRIV for systems that have it
+ - (stevesk) OpenBSD sync:
+   - deraadt@cvs.openbsd.org 2001/03/05 08:37:27
+     [ssh-keyscan.c]
+     skip inlining, why bother
 
 20010304
  - (bal) Remove make-ssh-known-hosts.1 since it's no longer valid.
@@ -4363,4 +4367,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.906 2001/03/05 10:23:31 djm Exp $
+$Id: ChangeLog,v 1.907 2001/03/05 19:46:37 stevesk Exp $
