@@ -1,9 +1,4 @@
 20010227
- - (djm) Fix up POSIX saved uid support. Report from Mark Miller 
-   <markm@swoon.net>
- - (djm) Search for -lcrypt on FreeBSD too
-
-20010226
  - (bal) Applied shutdown() patch for sftp.c by  Corinna Vinschen 
    <vinschen@redhat.com>
  - (bal) OpenBSD Sync
@@ -12,6 +7,9 @@
      handle SSH_PROTOFLAG_SCREEN_NUMBER for buggy clients
  - (bal) sshd.init support for all Redhat release.  Patch by Jim Knoble 
    <jmknoble@jmknoble.cx>
+ - (djm) Fix up POSIX saved uid support. Report from Mark Miller 
+   <markm@swoon.net>
+ - (djm) Search for -lcrypt on FreeBSD too
 
 20010226
  - (bal) Fixed bsd-snprinf.c so it now honors 'BROKEN_SNPRINTF' again.
@@ -4146,4 +4144,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.828 2001/02/26 22:05:38 djm Exp $
+$Id: ChangeLog,v 1.829 2001/02/26 22:11:59 mouring Exp $
