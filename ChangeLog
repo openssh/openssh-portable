@@ -1,10 +1,3 @@
-20010328
- - OpenBSD CVS Sync
-   - markus@cvs.openbsd.org 2001/03/26 08:07:09
-     [authfile.c authfile.h ssh-add.c ssh-keygen.c ssh.c sshconnect.c 
-      sshconnect.h sshconnect1.c sshconnect2.c sshd.c]
-     simpler key load/save interface, see authfile.h
-
 20010327
  - Attempt sync with sshlogin.c w/ OpenBSD (mainly CVS ID)
  - Fix pointer issues in waitpid() and wait() replaces.  Patch by Lutz 
@@ -17,6 +10,13 @@
      [servconf.c servconf.h session.c sshd.8 sshd_config]
      PrintLastLog option; from chip@valinux.com with some minor
      changes by me.  ok markus@
+   - markus@cvs.openbsd.org 2001/03/26 08:07:09
+     [authfile.c authfile.h ssh-add.c ssh-keygen.c ssh.c sshconnect.c 
+      sshconnect.h sshconnect1.c sshconnect2.c sshd.c]
+     simpler key load/save interface, see authfile.h
+ - (djm) Reestablish PAM credentials (which can be supplemental group 
+   memberships) after initgroups() blows them away. Report and suggested
+   fix from Nalin Dahyabhai <nalin@redhat.com>
 
 20010324
  - Fixed permissions ssh-keyscan.  Thanks to Christopher Linn <celinn@mtu.edu>.
@@ -4725,4 +4725,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1020 2001/03/26 13:44:06 mouring Exp $
+$Id: ChangeLog,v 1.1021 2001/03/27 06:12:24 djm Exp $
