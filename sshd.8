@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.115 2001/04/13 22:46:54 beck Exp $
+.\" $OpenBSD: sshd.8,v 1.116 2001/04/15 19:41:21 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -368,9 +368,10 @@ Sets a timeout interval in seconds after which if no data has been received
 from the client, 
 .Nm
 will send a message through the encrypted
-channel to request a response from the client. This may only be
-used on a server supporting only protocol version 2. The default
+channel to request a response from the client.
+The default
 is 0, indicating that these messages will not be sent to the client.
+This option applies to protocol version 2 only.
 .It Cm ClientAliveCountMax
 Sets the number of client alive messages (see above) which may be
 sent without
@@ -380,12 +381,17 @@ reached while client alive messages are being sent,
 .Nm
 will disconnect the client, terminating the session. It is important
 to note that the use of client alive messages is very different from 
-Keepalive (below). The client alive messages are sent through the
+.Cm Keepalive
+(below). The client alive messages are sent through the
 encrypted channel and therefore will not be spoofable. The TCP keepalive
-option enable by Keepalive is spoofable. You want to use the client
+option enabled by
+.Cm Keepalive
+is spoofable. You want to use the client
 alive mechanism when you are basing something important on
 clients having an active connection to the server.
- The default is value is 3. If you set ClientAliveInterval
+.Pp
+The default value is 3. If you set
+.Cm ClientAliveInterval
 (above) to 15, and leave this value at the default, unresponsive ssh clients
 will be disconnected after approximately 45 seconds. 
 .It Cm DenyGroups
