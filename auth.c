@@ -119,13 +119,11 @@ allowed_user(struct passwd * pw)
 			return 0;
 		}
 	}
-#endif
-
-#if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
 	passwd = spw->sp_pwdp;
 #else
 	passwd = pw->pw_passwd;
 #endif
+
 	/* check for locked account */
 	if (strcmp(passwd, "*LK*") == 0 || passwd[0] == '!') {
 		log("User %.100s not allowed because account is locked",
