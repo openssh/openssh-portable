@@ -54,6 +54,10 @@
 /* Define if you want to allow MD5 passwords */
 #undef HAVE_MD5_PASSWORDS
 
+/* Define if you have an old version of PAM which takes only one argument */
+/* to pam_strerror */
+#undef HAVE_OLD_PAM
+
 /* Data types */
 #undef HAVE_QUAD_T
 #undef HAVE_INTXX_T
@@ -194,4 +198,10 @@ enum
       }                                                       \
    } while (0)
 
+#endif
+
+#ifdef HAVE_OLD_PAM
+# define PAM_STRERROR(a,b) pam_strerror((b))
+#else
+# define PAM_STRERROR(a,b) pam_strerror((a),(b))
 #endif

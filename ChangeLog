@@ -6,8 +6,10 @@
      key there. show fingerprint instead of public-key after 
      keygeneration. ok niels@
  - Added OpenBSD bsd-strlcat.c, created bsd-strlcat.h
- - Added timersum() macro
+ - Added timersub() macro
  - Tidy RCSIDs of bsd-*.c
+ - Added autoconf test and macro to deal with old PAM libraries 
+   pam_strerror definition (one arg vs two).
 
 19991121
  - OpenBSD CVS Changes:

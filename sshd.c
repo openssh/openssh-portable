@@ -18,7 +18,7 @@ agent connections.
 */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.27 1999/11/21 07:31:57 damien Exp $");
+RCSID("$Id: sshd.c,v 1.28 1999/11/22 03:27:24 damien Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -221,14 +221,14 @@ void pam_cleanup_proc(void *context)
     if (pam_retval != PAM_SUCCESS)
     {
       log("Cannot close PAM session: %.200s", 
-          pam_strerror((pam_handle_t *)pamh, pam_retval));
+          PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
     }
      
     pam_retval = pam_end((pam_handle_t *)pamh, pam_retval);
     if (pam_retval != PAM_SUCCESS)
     {
       log("Cannot release PAM authentication: %.200s", 
-          pam_strerror((pam_handle_t *)pamh, pam_retval));
+          PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
     }
   }
 }
@@ -244,7 +244,7 @@ void do_pam_account_and_session(char *username, char *remote_user,
     pam_retval = pam_set_item((pam_handle_t *)pamh, PAM_RHOST, remote_host);
     if (pam_retval != PAM_SUCCESS)
     {
-      log("PAM set rhost failed: %.200s", pam_strerror((pam_handle_t *)pamh, pam_retval));
+      log("PAM set rhost failed: %.200s", PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
 	   do_fake_authloop(username);
     }
   }
@@ -255,7 +255,7 @@ void do_pam_account_and_session(char *username, char *remote_user,
     pam_retval = pam_set_item((pam_handle_t *)pamh, PAM_RUSER, remote_user);
     if (pam_retval != PAM_SUCCESS)
     {
-      log("PAM set ruser failed: %.200s", pam_strerror((pam_handle_t *)pamh, pam_retval));
+      log("PAM set ruser failed: %.200s", PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
 	   do_fake_authloop(username);
     }
   }
@@ -263,14 +263,14 @@ void do_pam_account_and_session(char *username, char *remote_user,
   pam_retval = pam_acct_mgmt((pam_handle_t *)pamh, 0);
   if (pam_retval != PAM_SUCCESS)
   {
-    log("PAM rejected by account configuration: %.200s", pam_strerror((pam_handle_t *)pamh, pam_retval));
+    log("PAM rejected by account configuration: %.200s", PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
 	 do_fake_authloop(username);
   }
 
   pam_retval = pam_open_session((pam_handle_t *)pamh, 0);
   if (pam_retval != PAM_SUCCESS)
   {
-    log("PAM session setup failed: %.200s", pam_strerror((pam_handle_t *)pamh, pam_retval));
+    log("PAM session setup failed: %.200s", PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
 	 do_fake_authloop(username);
   }
 }
@@ -1206,7 +1206,7 @@ do_authentication(char *user)
 
     pam_retval = pam_start("sshd", pw->pw_name, &conv, (pam_handle_t**)&pamh);
     if (pam_retval != PAM_SUCCESS)
-      fatal("PAM initialisation failed: %.200s", pam_strerror((pam_handle_t *)pamh, pam_retval));
+      fatal("PAM initialisation failed: %.200s", PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
 
     fatal_add_cleanup(&pam_cleanup_proc, NULL);
   }
@@ -1456,7 +1456,7 @@ do_authloop(struct passwd *pw)
         }
 
         log("PAM Password authentication for \"%.100s\" failed: %s", 
-            pw->pw_name, pam_strerror((pam_handle_t *)pamh, pam_retval));
+            pw->pw_name, PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
         break;
 #else /* HAVE_LIBPAM */
 	/* Try authentication with the password. */

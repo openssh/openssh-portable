@@ -77,7 +77,7 @@ AC_CHECK_SIZEOF(long int, 4)
 AC_CHECK_SIZEOF(long long int, 8)
 
 dnl More checks for data types
-AC_MSG_CHECKING([For quad_t])
+AC_MSG_CHECKING([for quad_t])
 AC_TRY_COMPILE(
 	[#include <sys/types.h>], 
 	[quad_t a; a = 1235;], 
@@ -88,7 +88,7 @@ AC_TRY_COMPILE(
 	[AC_MSG_RESULT(no)]
 ) 
 
-AC_MSG_CHECKING([For intXX_t types])
+AC_MSG_CHECKING([for intXX_t types])
 AC_TRY_COMPILE(
 	[#include <sys/types.h>], 
 	[int16_t a; int32_t b; a = 1235; b = 1235;], 
@@ -99,7 +99,7 @@ AC_TRY_COMPILE(
 	[AC_MSG_RESULT(no)]
 ) 
 
-AC_MSG_CHECKING([For u_intXX_t types])
+AC_MSG_CHECKING([for u_intXX_t types])
 AC_TRY_COMPILE(
 	[#include <sys/types.h>], 
 	[u_int16_t c; u_int32_t d; c = 1235; d = 1235;], 
@@ -119,6 +119,21 @@ AC_TRY_COMPILE(
 		AC_MSG_RESULT(yes)
 	],
 	[AC_MSG_RESULT(no)]
+) 
+
+dnl Check PAM strerror arguments
+AC_MSG_CHECKING([whether pam_strerror takes only one argument])
+AC_TRY_COMPILE(
+	[
+		#include <stdlib.h>
+		#include <security/pam_appl.h>
+	], 
+	[(void)pam_strerror((pam_handle_t *)NULL, -1);], 
+	[AC_MSG_RESULT(no)],
+	[
+		AC_DEFINE(HAVE_OLD_PAM)
+		AC_MSG_RESULT(yes)
+	]
 ) 
 
 dnl Check whether use wants to disable the external ssh-askpass
