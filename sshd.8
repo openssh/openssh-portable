@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.188 2002/08/12 17:30:35 stevesk Exp $
+.\" $OpenBSD: sshd.8,v 1.189 2002/08/21 11:20:59 espie Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -389,9 +389,9 @@ Each RSA public key consists of the following fields, separated by
 spaces: options, bits, exponent, modulus, comment.
 Each protocol version 2 public key consists of:
 options, keytype, base64 encoded key, comment.
-The options fields
-are optional; its presence is determined by whether the line starts
-with a number or not (the option field never starts with a number).
+The options field
+is optional; its presence is determined by whether the line starts
+with a number or not (the options field never starts with a number).
 The bits, exponent, modulus and comment fields give the RSA key for
 protocol version 1; the
 comment field is not used for anything (but may be convenient for the
@@ -402,7 +402,7 @@ or
 .Dq ssh-rsa .
 .Pp
 Note that lines in this file are usually several hundred bytes long
-(because of the size of the RSA key modulus).
+(because of the size of the public key encoding).
 You don't want to type them in; instead, copy the
 .Pa identity.pub ,
 .Pa id_dsa.pub
@@ -421,7 +421,7 @@ The following option specifications are supported (note
 that option keywords are case-insensitive):
 .Bl -tag -width Ds
 .It Cm from="pattern-list"
-Specifies that in addition to RSA authentication, the canonical name
+Specifies that in addition to public key authentication, the canonical name
 of the remote host must be present in the comma-separated list of
 patterns
 .Pf ( Ql *
@@ -433,7 +433,7 @@ patterns negated by prefixing them with
 .Ql ! ;
 if the canonical host name matches a negated pattern, the key is not accepted.
 The purpose
-of this option is to optionally increase security: RSA authentication
+of this option is to optionally increase security: public key authentication
 by itself does not trust the network or name servers or anything (but
 the key); however, if somebody somehow steals the key, the key
 permits an intruder to log in from anywhere in the world.
@@ -451,7 +451,7 @@ one must not request a pty or should specify
 .Cm no-pty .
 A quote may be included in the command by quoting it with a backslash.
 This option might be useful
-to restrict certain RSA keys to perform just a specific operation.
+to restrict certain public keys to perform just a specific operation.
 An example might be a key that permits remote backups but nothing else.
 Note that the client may specify TCP/IP and/or X11
 forwarding unless they are explicitly prohibited.
