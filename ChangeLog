@@ -21,6 +21,9 @@
    - itojun@cvs.openbsd.org 2002/03/15 11:00:38
      [auth.c]
      fix file type checking (use S_ISREG).  ok by markus
+   - markus@cvs.openbsd.org 2002/03/16 11:24:53
+     [compress.c]
+     skip inflateEnd if inflate fails; ok provos@
 
 20020317
  - (tim) [configure.ac] Assume path given with --with-pid-dir=PATH is wanted,
@@ -7867,4 +7870,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1930 2002/03/22 01:15:33 mouring Exp $
+$Id: ChangeLog,v 1.1931 2002/03/22 01:17:52 mouring Exp $
