@@ -2,6 +2,7 @@
  - (tim) Typo in regress/README.regress
  - (tim) [regress/test-exec.sh] RhostsAuthentication is deprecated.
  - (tim) [defines.h] Add defines for HFIXEDSZ and T_SIG
+ - (tim) [configure.ac includes.h] add <sys/ptms.h> for grantpt() and friends.
 
 20040124
  - (djm) Typo in openbsd-compat/bsd-openpty.c; from wendyp AT cray.com
@@ -1734,4 +1735,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3190 2004/01/27 00:02:17 tim Exp $
+$Id: ChangeLog,v 1.3191 2004/01/27 03:03:39 tim Exp $

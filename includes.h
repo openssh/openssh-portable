@@ -134,6 +134,9 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #ifdef HAVE_SYS_STRTIO_H
 #include <sys/strtio.h>	/* for TIOCCBRK on HP-UX */
 #endif
+#if defined(HAVE_SYS_PTMS_H) && defined(HAVE_DEV_PTMX)
+#include <sys/ptms.h>	/* for grantpt() and friends */
+#endif
 
 #include <netinet/in_systm.h> /* For typedefs */
 #include <netinet/in.h> /* For IPv6 macros */
