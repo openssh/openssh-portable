@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.223 2002/01/13 17:57:37 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.224 2002/02/04 12:15:25 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -709,8 +709,10 @@ main(int ac, char **av)
 	 * key (unless started from inetd)
 	 */
 	log_init(__progname,
-	    options.log_level == -1 ? SYSLOG_LEVEL_INFO : options.log_level,
-	    options.log_facility == -1 ? SYSLOG_FACILITY_AUTH : options.log_facility,
+	    options.log_level == SYSLOG_LEVEL_NOT_SET ?
+	    SYSLOG_LEVEL_INFO : options.log_level,
+	    options.log_facility == SYSLOG_FACILITY_NOT_SET ?
+	    SYSLOG_FACILITY_AUTH : options.log_facility,
 	    !inetd_flag);
 
 #ifdef _CRAY
