@@ -10,6 +10,8 @@ piddir=@piddir@
 srcdir=@srcdir@
 top_srcdir=@top_srcdir@
 
+DESTDIR=
+
 VPATH=@srcdir@
 
 SSH_PROGRAM=@bindir@/ssh
@@ -100,65 +102,65 @@ catman-do:
 	done
 
 install: $(TARGETS)
-	$(INSTALL) -d $(bindir)
-	$(INSTALL) -d $(sbindir)
-	$(INSTALL) -d $(mandir)
-	$(INSTALL) -d $(mandir)/$(mansubdir)1
-	$(INSTALL) -d $(mandir)/$(mansubdir)8
-	$(INSTALL) -s ssh $(bindir)/ssh
-	$(INSTALL) -s scp $(bindir)/scp
-	$(INSTALL) -s ssh-add $(bindir)/ssh-add
-	$(INSTALL) -s ssh-agent $(bindir)/ssh-agent
-	$(INSTALL) -s ssh-keygen $(bindir)/ssh-keygen
-	$(INSTALL) -s sshd $(sbindir)/sshd
-	$(INSTALL) -m 644 ssh.[01].out $(mandir)/$(mansubdir)1/ssh.1
-	$(INSTALL) -m 644 scp.[01].out $(mandir)/$(mansubdir)1/scp.1
-	$(INSTALL) -m 644 ssh-add.[01].out $(mandir)/$(mansubdir)1/ssh-add.1
-	$(INSTALL) -m 644 ssh-agent.[01].out $(mandir)/$(mansubdir)1/ssh-agent.1
-	$(INSTALL) -m 644 ssh-keygen.[01].out $(mandir)/$(mansubdir)1/ssh-keygen.1
-	$(INSTALL) -m 644 sshd.[08].out $(mandir)/$(mansubdir)8/sshd.8
-	-rm -f $(bindir)/slogin
-	ln -s ssh $(bindir)/slogin
-	-rm -f $(mandir)/$(mansubdir)1/slogin.1
-	ln -s ssh.1 $(mandir)/$(mansubdir)1/slogin.1
+	$(INSTALL) -d $(DESTDIR)$(bindir)
+	$(INSTALL) -d $(DESTDIR)$(sbindir)
+	$(INSTALL) -d $(DESTDIR)$(mandir)
+	$(INSTALL) -d $(DESTDIR)$(mandir)/$(mansubdir)1
+	$(INSTALL) -d $(DESTDIR)$(mandir)/$(mansubdir)8
+	$(INSTALL) -s ssh $(DESTDIR)$(bindir)/ssh
+	$(INSTALL) -s scp $(DESTDIR)$(bindir)/scp
+	$(INSTALL) -s ssh-add $(DESTDIR)$(bindir)/ssh-add
+	$(INSTALL) -s ssh-agent $(DESTDIR)$(bindir)/ssh-agent
+	$(INSTALL) -s ssh-keygen $(DESTDIR)$(bindir)/ssh-keygen
+	$(INSTALL) -s sshd $(DESTDIR)$(sbindir)/sshd
+	$(INSTALL) -m 644 ssh.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh.1
+	$(INSTALL) -m 644 scp.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/scp.1
+	$(INSTALL) -m 644 ssh-add.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-add.1
+	$(INSTALL) -m 644 ssh-agent.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-agent.1
+	$(INSTALL) -m 644 ssh-keygen.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-keygen.1
+	$(INSTALL) -m 644 sshd.[08].out $(DESTDIR)$(mandir)/$(mansubdir)8/sshd.8
+	-rm -f $(DESTDIR)$(bindir)/slogin
+	ln -s ssh $(DESTDIR)$(bindir)/slogin
+	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/slogin.1
+	ln -s ssh.1 $(DESTDIR)$(mandir)/$(mansubdir)1/slogin.1
 
 	if [ ! -z "@GNOME_ASKPASS@" ] ; then \
-		$(INSTALL) -d $(libexecdir) ; \
-		$(INSTALL) -d $(libexecdir)/ssh ; \
-		$(INSTALL) -s @GNOME_ASKPASS@ ${ASKPASS_LOCATION} ; \
+		$(INSTALL) -d $(DESTDIR)$(libexecdir) ; \
+		$(INSTALL) -d $(DESTDIR)$(libexecdir)/ssh ; \
+		$(INSTALL) -s @GNOME_ASKPASS@ $(DESTDIR)${ASKPASS_LOCATION} ; \
 	fi
 
-	if [ ! -f $(sysconfdir)/ssh_config -a ! -f $(sysconfdir)/sshd_config ]; then \
-		$(INSTALL) -d $(sysconfdir); \
-		$(INSTALL) -m 644 ssh_config.out $(sysconfdir)/ssh_config; \
-		$(INSTALL) -m 644 sshd_config.out $(sysconfdir)/sshd_config; \
+	if [ ! -f $(DESTDIR)$(sysconfdir)/ssh_config -a ! -f $(DESTDIR)$(sysconfdir)/sshd_config ]; then \
+		$(INSTALL) -d $(DESTDIR)$(sysconfdir); \
+		$(INSTALL) -m 644 ssh_config.out $(DESTDIR)$(sysconfdir)/ssh_config; \
+		$(INSTALL) -m 644 sshd_config.out $(DESTDIR)$(sysconfdir)/sshd_config; \
 	fi
 
 uninstallall:	uninstall
-	-rm -f $(sysconfdir)/ssh_config
-	-rm -f $(sysconfdir)/sshd_config
-	-rmdir $(sysconfdir)
-	-rmdir $(bindir)
-	-rmdir $(sbindir)
-	-rmdir $(mandir)/$(mansubdir)1
-	-rmdir $(mandir)/$(mansubdir)8
-	-rmdir $(mandir)
-	-rmdir $(libexecdir)
+	-rm -f $(DESTDIR)$(sysconfdir)/ssh_config
+	-rm -f $(DESTDIR)$(sysconfdir)/sshd_config
+	-rmdir $(DESTDIR)$(sysconfdir)
+	-rmdir $(DESTDIR)$(bindir)
+	-rmdir $(DESTDIR)$(sbindir)
+	-rmdir $(DESTDIR)$(mandir)/$(mansubdir)1
+	-rmdir $(DESTDIR)$(mandir)/$(mansubdir)8
+	-rmdir $(DESTDIR)$(mandir)
+	-rmdir $(DESTDIR)$(libexecdir)
 
 uninstall: 
-	-rm -f $(bindir)/ssh
-	-rm -f $(bindir)/scp
-	-rm -f $(bindir)/ssh-add
-	-rm -f $(bindir)/ssh-agent
-	-rm -f $(bindir)/ssh-keygen
-	-rm -f $(sbindir)/sshd
-	-rm -f $(mandir)/$(mansubdir)1/ssh.1
-	-rm -f $(mandir)/$(mansubdir)1/scp.1
-	-rm -f $(mandir)/$(mansubdir)1/ssh-add.1
-	-rm -f $(mandir)/$(mansubdir)1/ssh-agent.1
-	-rm -f $(mandir)/$(mansubdir)1/ssh-keygen.1
-	-rm -f $(mandir)/$(mansubdir)8/sshd.8
-	-rm -f $(bindir)/slogin
-	-rm -f $(mandir)/$(mansubdir)1/slogin.1
-	-rm -f ${ASKPASS_PROGRAM}
-	-rmdir $(libexecdir)/ssh ;
+	-rm -f $(DESTDIR)$(bindir)/ssh
+	-rm -f $(DESTDIR)$(bindir)/scp
+	-rm -f $(DESTDIR)$(bindir)/ssh-add
+	-rm -f $(DESTDIR)$(bindir)/ssh-agent
+	-rm -f $(DESTDIR)$(bindir)/ssh-keygen
+	-rm -f $(DESTDIR)$(sbindir)/sshd
+	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/ssh.1
+	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/scp.1
+	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-add.1
+	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-agent.1
+	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-keygen.1
+	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)8/sshd.8
+	-rm -f $(DESTDIR)$(bindir)/slogin
+	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/slogin.1
+	-rm -f $(DESTDIR)${ASKPASS_PROGRAM}
+	-rmdir $(DESTDIR)$(libexecdir)/ssh ;

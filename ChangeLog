@@ -8,6 +8,9 @@
  - New URL for x11-ssh-askpass.
  - Fixpaths was missing /etc/ssh_known_hosts. Report from Jim Knoble 
    <jmknoble@pobox.com>
+ - Added 'DESTDIR' option to Makefile to ease package building. Patch from 
+   Jim Knoble <jmknoble@pobox.com>
+ - Updated RPM spec files to use DESTDIR
 
 20000124
  - Pick up version 1.2.2 from OpenBSD CVS (no changes, just version number

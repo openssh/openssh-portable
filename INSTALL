@@ -27,8 +27,8 @@ libraries and headers.
 GNOME:
 http://www.gnome.org/
 
-Alternatly Jim Knoble <jmknoble@pobox.com> has written an excellent X11
-passphrase requester. This is maintained seperatly at:
+Alternatively, Jim Knoble <jmknoble@pobox.com> has written an excellent X11
+passphrase requester. This is maintained separately at:
 
 http://www.ntrnet.net/~jmknoble/software/x11-ssh-askpass/index.html
 

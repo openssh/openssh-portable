@@ -160,9 +160,8 @@ cd ..
 
 %install
 rm -rf $RPM_BUILD_ROOT
-make install prefix="$RPM_BUILD_ROOT/usr" sysconfdir="$RPM_BUILD_ROOT/etc/ssh"
+make install DESTDIR=$RPM_BUILD_ROOT/
 
-install -d $RPM_BUILD_ROOT/etc/ssh
 install -d $RPM_BUILD_ROOT/etc/pam.d/
 install -d $RPM_BUILD_ROOT/etc/rc.d/init.d
 install -m644 packages/redhat/sshd.pam $RPM_BUILD_ROOT/etc/pam.d/sshd
