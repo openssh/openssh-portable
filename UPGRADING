@@ -57,3 +57,24 @@ If it annoys you too much, set "PermitEmptyPasswords no" in
 sshd_config. This will quiet the error message at the expense of
 disabling logins to accounts with no password set. This is the 
 default if you use the supplied sshd_config file.
+
+6. Empty passwords not allowed with PAM authentication
+
+To enable empty passwords with a version of OpenSSH built with PAM you
+must add the flag "nullok" to the end of the password checking module
+in the /etc/pam.d/sshd file. For example:
+
+auth required/lib/security/pam_unix.so shadow nodelay nullok
+
+This must be done in addtion to setting "PermitEmptyPasswords yes"
+in the sshd_config file.
+
+There is one caveat when using empty passwords with PAM
+authentication: PAM will allow _any_ password when authenticating
+an account with an empty password. This breaks the check that sshd
+uses to determined whether an account has no password set and grant
+users access to the account regardless of the policy specified by
+"PermitEmptyPasswords". For this reason, it is recommended that you do
+not add the "nullok" directive to your PAM configuration file unless
+you specifically wish to allow empty passwords.
+

@@ -2,6 +2,9 @@
  - Add explicit make rules for files proccessed by fixpaths.
  - Fix "make install" in RPM spec files. Report from Tenkou N. Hattori  
    <tnh@kondara.org>
+ - Removed "nullok" directive from default PAM configuration files. 
+   Added information on enabling EmptyPasswords on openssh+PAM in 
+   UPGRADING file.
 
 20000102
  - Prevent multiple inclusion of config.h and defines.h. Suggested
