@@ -12,6 +12,10 @@
      shared connection env passing regress test
  - (dtucker) [regress/README.regress] Add detail on how to run a single
    test from the top-level Makefile.
+ - (dtucker) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2004/06/17 23:56:57
+     [ssh.1 ssh.c]
+     sync usage() and SYNPOSIS with connection sharing changes
 
 20040617
  - (dtucker) [regress/scp.sh] diff -N is not portable (but needed for some
@@ -1285,4 +1289,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3408 2004/06/18 04:14:43 dtucker Exp $
+$Id: ChangeLog,v 1.3409 2004/06/18 06:22:39 dtucker Exp $
