@@ -20,6 +20,9 @@
    - markus@cvs.openbsd.org 2001/07/23 12:47:05
      [ssh.1]
      sync PreferredAuthentications
+   - aaron@cvs.openbsd.org 2001/07/23 14:14:18
+     [ssh-keygen.1]
+     Fix typo.
 
 20010803
  - (djm) Fix interrupted read in entropy gatherer. Spotted by markus@ on
@@ -6130,4 +6133,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1431 2001/08/06 20:58:51 mouring Exp $
+$Id: ChangeLog,v 1.1432 2001/08/06 21:00:27 mouring Exp $
