@@ -4,6 +4,9 @@
      [ssh.c]
      Make "ssh -V" print the OpenSSL version in a human readable form. Patch
      from Craig Leres (mindrot at ee.lbl.gov); ok markus@
+   - jakob@cvs.openbsd.org 2003/05/15 14:02:47
+     [readconf.c servconf.c]
+     warn for unsupported config option. ok markus@
 
 20030515
  - (djm) OpenBSD CVS Sync
@@ -1535,4 +1538,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2724 2003/05/16 01:38:00 djm Exp $
+$Id: ChangeLog,v 1.2725 2003/05/16 01:38:32 djm Exp $

@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.109 2003/05/15 04:08:44 jakob Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.110 2003/05/15 14:02:47 jakob Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -107,7 +107,7 @@ typedef enum {
 	oHostKeyAlgorithms, oBindAddress, oSmartcardDevice,
 	oClearAllForwardings, oNoHostAuthenticationForLocalhost,
 	oEnableSSHKeysign, oRekeyLimit, oVerifyHostKeyDNS,
-	oDeprecated
+	oDeprecated, oUnsupported
 } OpCodes;
 
 /* Textual representations of the tokens. */
@@ -133,9 +133,18 @@ static struct {
 	{ "challengeresponseauthentication", oChallengeResponseAuthentication },
 	{ "skeyauthentication", oChallengeResponseAuthentication }, /* alias */
 	{ "tisauthentication", oChallengeResponseAuthentication },  /* alias */
+#if defined(KRB4) || defined(KRB5)
 	{ "kerberosauthentication", oKerberosAuthentication },
 	{ "kerberostgtpassing", oKerberosTgtPassing },
+#else
+	{ "kerberosauthentication", oUnsupported },
+	{ "kerberostgtpassing", oUnsupported },
+#endif
+#if defined(AFS)
 	{ "afstokenpassing", oAFSTokenPassing },
+#else
+	{ "afstokenpassing", oUnsupported },
+#endif
 	{ "fallbacktorsh", oDeprecated },
 	{ "usersh", oDeprecated },
 	{ "identityfile", oIdentityFile },
@@ -170,10 +179,18 @@ static struct {
 	{ "preferredauthentications", oPreferredAuthentications },
 	{ "hostkeyalgorithms", oHostKeyAlgorithms },
 	{ "bindaddress", oBindAddress },
+#ifdef SMARTCARD
 	{ "smartcarddevice", oSmartcardDevice },
+#else
+	{ "smartcarddevice", oUnsupported },
+#endif
 	{ "clearallforwardings", oClearAllForwardings },
 	{ "enablesshkeysign", oEnableSSHKeysign },
+#ifdef DNS
 	{ "verifyhostkeydns", oVerifyHostKeyDNS },
+#else
+	{ "verifyhostkeydns", oUnsupported },
+#endif
 	{ "nohostauthenticationforlocalhost", oNoHostAuthenticationForLocalhost },
 	{ "rekeylimit", oRekeyLimit },
 	{ NULL, oBadOption }
@@ -697,6 +714,11 @@ parse_int:
 		    filename, linenum, keyword);
 		return 0;
 
+	case oUnsupported:
+		error("%s line %d: Unsupported option \"%s\"",
+		    filename, linenum, keyword);
+		return 0;
+
 	default:
 		fatal("process_config_line: Unimplemented opcode %d", opcode);
 	}
@@ -844,23 +866,11 @@ fill_default_options(Options * options)
 	if (options->challenge_response_authentication == -1)
 		options->challenge_response_authentication = 1;
 	if (options->kerberos_authentication == -1)
-#if defined(KRB4) || defined(KRB5)
 		options->kerberos_authentication = 1;
-#else
-		options->kerberos_authentication = 0;
-#endif
 	if (options->kerberos_tgt_passing == -1)
-#if defined(KRB4) || defined(KRB5)
 		options->kerberos_tgt_passing = 1;
-#else
-		options->kerberos_tgt_passing = 0;
-#endif
 	if (options->afs_token_passing == -1)
-#if defined(AFS)
 		options->afs_token_passing = 1;
-#else
-		options->afs_token_passing = 0;
-#endif
 	if (options->password_authentication == -1)
 		options->password_authentication = 1;
 	if (options->kbd_interactive_authentication == -1)
