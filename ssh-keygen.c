@@ -847,8 +847,6 @@ main(int ac, char **av)
 	extern char *optarg;
 
 	__progname = get_progname(av[0]);
-	init_rng();
-	seed_rng();
 
 	SSLeay_add_all_algorithms();
 
@@ -964,6 +962,8 @@ main(int ac, char **av)
 #endif /* SMARTCARD */
 	}
 
+	init_rng();
+	seed_rng();
 	arc4random_stir();
 
 	if (key_type_name == NULL) {

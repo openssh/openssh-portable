@@ -1,3 +1,6 @@
+20020130
+ - (djm) Delay PRNG seeding until we need it in ssh-keygen, from markus@
+
 20020125
  - (djm) Don't grab Xserver or pointer by default. x11-ssh-askpass doesn't 
    and grabbing can cause deadlocks with kinput2. 
@@ -7394,4 +7397,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1796 2002/01/24 13:59:25 djm Exp $
+$Id: ChangeLog,v 1.1797 2002/01/29 22:37:06 djm Exp $
