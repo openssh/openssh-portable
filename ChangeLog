@@ -1,3 +1,7 @@
+20000711
+ - (djm) Fixup for AIX getuserattr() support from Tom Bertelson
+   <tbert@abac.com>
+
 20000709
  - (djm) Only enable PAM_TTY kludge for Linux. Problem report from
    Kevin Steves <stevesk@sweden.hp.com>

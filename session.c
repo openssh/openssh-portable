@@ -799,24 +799,52 @@ void do_pam_environment(char ***env, int *envsize)
 void set_limit(char *user, char *soft, char *hard, int resource, int mult)
 {
 	struct rlimit rlim;
-	rlim_t tlim;
-	int mask;
+	int slim, hlim;
 
 	getrlimit(resource, &rlim);
 
-	tlim = (rlim_t) 0;
-	if (getuserattr(user, soft, &tlim, SEC_INT) != -1 && tlim)
-		rlim.rlim_cur = tlim * mult;
+	slim = 0;
+	if (getuserattr(user, soft, &slim, SEC_INT) != -1) {
+		if (slim < 0) {
+			rlim.rlim_cur = RLIM_INFINITY;
+		} else if (slim != 0) {
+			/* See the wackiness below */
+			if (rlim.rlim_cur == slim * mult)
+				slim = 0;
+			else
+				rlim.rlim_cur = slim * mult;
+		}
+	}
 
-	tlim = (rlim_t) 0;
-	if (getuserattr(user, hard, &tlim, SEC_INT) != -1 && tlim)
-		rlim.rlim_max = tlim * mult;
+	hlim = 0;
+	if (getuserattr(user, hard, &hlim, SEC_INT) != -1) {
+		if (hlim < 0) {
+			rlim.rlim_max = RLIM_INFINITY;
+		} else if (hlim != 0) {
+			rlim.rlim_max = hlim * mult;
+		}
+	}
 
-	if (rlim.rlim_cur > rlim.rlim_max)
+	/*
+	 * XXX For cpu and fsize the soft limit is set to the hard limit
+	 * if the hard limit is left at its default value and the soft limit
+	 * is changed from its default value, either by requesting it
+	 * (slim == 0) or by setting it to the current default.  At least
+	 * that's how rlogind does it.  If you're confused you're not alone.
+	 * Bug or feature? AIX 4.3.1.2
+	 */
+	if ((!strcmp(soft, "fsize") || !strcmp(soft, "cpu"))
+	    && hlim == 0 && slim != 0)
+		rlim.rlim_max = rlim.rlim_cur;
+	/* A specified hard limit limits the soft limit */
+	else if (hlim > 0 && rlim.rlim_cur > rlim.rlim_max)
+		rlim.rlim_cur = rlim.rlim_max;
+	/* A soft limit can increase a hard limit */
+	else if (rlim.rlim_cur > rlim.rlim_max)
 		rlim.rlim_max = rlim.rlim_cur;
 
 	if (setrlimit(resource, &rlim) != 0)
-		error("setrlimit(%.10s) failed: %.100s", soft, strerror(errno))
+		error("setrlimit(%.10s) failed: %.100s", soft, strerror(errno));
 }
 
 void set_limits_from_userattr(char *user)
