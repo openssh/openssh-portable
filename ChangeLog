@@ -14,6 +14,8 @@
  - Retry /dev/urandom reads interrupted by signal (report from 
    Robert Hardy <rhardy@webcon.net>)
  - Added a setenv replacement for systems which lack it
+ - Only display public key comment when presenting ssh-askpass dialog
+ - Released 1.2pre14
 
 19991121
  - OpenBSD CVS Changes:

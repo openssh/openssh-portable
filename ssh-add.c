@@ -14,7 +14,7 @@ Adds an identity to the authentication server, or removes an identity.
 */
 
 #include "includes.h"
-RCSID("$Id: ssh-add.c,v 1.10 1999/11/17 06:29:08 damien Exp $");
+RCSID("$Id: ssh-add.c,v 1.11 1999/11/22 07:11:23 damien Exp $");
 
 #include "rsa.h"
 #include "ssh.h"
@@ -282,7 +282,7 @@ int askpass(const char *filename, RSA *key, const char *saved_comment, char **co
       exit(1);
     }
 
-    tmp = snprintf(buf, sizeof(buf), "Need passphrase for %s (%s)", filename, saved_comment);
+    tmp = snprintf(buf, sizeof(buf), "Need passphrase for %s", saved_comment);
     /* skip the prompt if it won't fit */
     if ((tmp < 0) || (tmp >= sizeof(buf)))
       tmp = execlp(ASKPASS_PROGRAM, "ssh-askpass", 0);
