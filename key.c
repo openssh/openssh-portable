@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: key.c,v 1.48 2002/07/04 10:41:47 markus Exp $");
+RCSID("$OpenBSD: key.c,v 1.49 2002/09/09 14:54:14 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -494,7 +494,8 @@ key_write(Key *key, FILE *f)
 {
 	int n, success = 0;
 	u_int len, bits = 0;
-	u_char *blob, *uu;
+	u_char *blob;
+	char *uu;
 
 	if (key->type == KEY_RSA1 && key->rsa != NULL) {
 		/* size of modulus 'n' */

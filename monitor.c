@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.25 2002/09/09 06:48:06 itojun Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.26 2002/09/09 14:54:15 markus Exp $");
 
 #include <openssl/dh.h>
 
@@ -131,8 +131,8 @@ static BIGNUM *ssh1_challenge = NULL;	/* used for ssh1 rsa auth */
 static u_char *key_blob = NULL;
 static u_int key_bloblen = 0;
 static int key_blobtype = MM_NOKEY;
-static u_char *hostbased_cuser = NULL;
-static u_char *hostbased_chost = NULL;
+static char *hostbased_cuser = NULL;
+static char *hostbased_chost = NULL;
 static char *auth_method = "unknown";
 static int session_id2_len = 0;
 static u_char *session_id2 = NULL;
@@ -758,7 +758,8 @@ int
 mm_answer_keyallowed(int socket, Buffer *m)
 {
 	Key *key;
-	u_char *cuser, *chost, *blob;
+	char *cuser, *chost;
+	u_char *blob;
 	u_int bloblen;
 	enum mm_keytype type = 0;
 	int allowed = 0;
@@ -834,7 +835,7 @@ static int
 monitor_valid_userblob(u_char *data, u_int datalen)
 {
 	Buffer b;
-	u_char *p;
+	char *p;
 	u_int len;
 	int fail = 0;
 
@@ -887,11 +888,11 @@ monitor_valid_userblob(u_char *data, u_int datalen)
 }
 
 static int
-monitor_valid_hostbasedblob(u_char *data, u_int datalen, u_char *cuser,
-    u_char *chost)
+monitor_valid_hostbasedblob(u_char *data, u_int datalen, char *cuser,
+    char *chost)
 {
 	Buffer b;
-	u_char *p;
+	char *p;
 	u_int len;
 	int fail = 0;
 

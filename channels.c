@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.180 2002/07/04 08:12:15 deraadt Exp $");
+RCSID("$OpenBSD: channels.c,v 1.181 2002/09/09 14:54:14 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -875,7 +875,7 @@ channel_pre_x11_open(Channel *c, fd_set * readset, fd_set * writeset)
 static int
 channel_decode_socks4(Channel *c, fd_set * readset, fd_set * writeset)
 {
-	u_char *p, *host;
+	char *p, *host;
 	int len, have, i, found;
 	char username[256];
 	struct {

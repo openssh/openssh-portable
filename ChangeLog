@@ -8,6 +8,9 @@
      [monitor_wrap.c monitor_wrap.h]
      kerberos support for privsep.  confirmed to work by lha@stacken.kth.se
      patch from markus
+   - markus@cvs.openbsd.org 2002/09/09 14:54:15
+     [channels.c kex.h key.c monitor.c monitor_wrap.c radix.c uuencode.c]
+     signed vs unsigned from -pedantic; ok henning@
 
 20020911
  - (djm) Sync openbsd-compat with OpenBSD -current
@@ -1628,4 +1631,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2453 2002/09/11 23:47:29 djm Exp $
+$Id: ChangeLog,v 1.2454 2002/09/11 23:49:15 djm Exp $
