@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: nchan.c,v 1.35 2002/01/10 12:38:26 markus Exp $");
+RCSID("$OpenBSD: nchan.c,v 1.36 2002/01/10 12:47:59 markus Exp $");
 
 #include "ssh1.h"
 #include "ssh2.h"
@@ -155,29 +155,6 @@ static void
 chan_rcvd_ieof1(Channel *c)
 {
 	debug("channel %d: rcvd ieof", c->self);
-	if (c->type != SSH_CHANNEL_OPEN) {
-		debug("channel %d: non-open", c->self);
-		if (c->istate == CHAN_INPUT_OPEN) {
-			debug("channel %d: non-open: input open -> wait_oclose",
-			    c->self);
-			chan_shutdown_read(c);
-			chan_send_ieof1(c);
-			c->istate = CHAN_INPUT_WAIT_OCLOSE;
-		} else {
-			error("channel %d: non-open: istate %d != open",
-			    c->self, c->istate);
-		}
-		if (c->ostate == CHAN_OUTPUT_OPEN) {
-			debug("channel %d: non-open: output open -> closed",
-			    c->self);
-			chan_send_oclose1(c);
-			c->ostate = CHAN_OUTPUT_CLOSED;
-		} else {
-			error("channel %d: non-open: ostate %d != open",
-			    c->self, c->ostate);
-		}
-		return;
-	}
 	switch (c->ostate) {
 	case CHAN_OUTPUT_OPEN:
 		debug("channel %d: output open -> drain", c->self);
