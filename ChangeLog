@@ -77,6 +77,7 @@
    - markus@cvs.openbsd.org 2001/06/08 15:25:40
      [includes.h pathnames.h readconf.c servconf.c]
      move the path for xauth to pathnames.h
+ - (bal) configure.in fix for Tru64 (forgeting to reset $LIB)
 
 20010606
  - OpenBSD CVS Sync
@@ -5588,4 +5589,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1269 2001/06/09 01:48:01 mouring Exp $
+$Id: ChangeLog,v 1.1270 2001/06/09 02:16:28 mouring Exp $

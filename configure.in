@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.287 2001/05/28 17:17:35 tim Exp $
+# $Id: configure.in,v 1.288 2001/06/09 02:16:29 mouring Exp $
 
 AC_INIT(ssh.c)
 
@@ -696,6 +696,7 @@ int main(void)
 		break;
 	], [])
 done
+LIBS="$saved_LIBS"
 
 if test ! -z "$no_rsa" ; then
 	AC_MSG_RESULT(disabled)
@@ -711,7 +712,7 @@ else
 		else
 			RSA_MSG="yes (using RSAref)"
 			AC_MSG_RESULT(using RSAref)
-			LIBS="$saved_LIBS -lcrypto -lRSAglue -lrsaref"
+			LIBS="$LIBS -lcrypto -lRSAglue -lrsaref"
 		fi
 	fi
 fi
