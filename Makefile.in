@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.222 2002/07/14 17:02:21 tim Exp $
+# $Id: Makefile.in,v 1.223 2003/01/09 01:22:59 tim Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -48,6 +48,7 @@ AR=@AR@
 RANLIB=@RANLIB@
 INSTALL=@INSTALL@
 PERL=@PERL@
+SED=@SED@
 ENT=@ENT@
 XAUTH_PATH=@XAUTH_PATH@
 LDFLAGS=-L. -Lopenbsd-compat/ @LDFLAGS@
@@ -74,23 +75,23 @@ CONFIGFILES=sshd_config.out ssh_config.out moduli.out
 CONFIGFILES_IN=sshd_config ssh_config moduli
 
 PATHSUBS	= \
-	-D/etc/ssh/ssh_prng_cmds=$(sysconfdir)/ssh_prng_cmds \
-	-D/etc/ssh/ssh_config=$(sysconfdir)/ssh_config \
-	-D/etc/ssh/ssh_known_hosts=$(sysconfdir)/ssh_known_hosts \
-	-D/etc/ssh/sshd_config=$(sysconfdir)/sshd_config \
-	-D/usr/libexec=$(libexecdir) \
-	-D/etc/shosts.equiv=$(sysconfdir)/shosts.equiv \
-	-D/etc/ssh/ssh_host_key=$(sysconfdir)/ssh_host_key \
-	-D/etc/ssh/ssh_host_dsa_key=$(sysconfdir)/ssh_host_dsa_key \
-	-D/etc/ssh/ssh_host_rsa_key=$(sysconfdir)/ssh_host_rsa_key \
-	-D/var/run/sshd.pid=$(piddir)/sshd.pid \
-	-D/etc/ssh/moduli=$(sysconfdir)/moduli \
-	-D/etc/ssh/sshrc=$(sysconfdir)/sshrc \
-	-D/usr/X11R6/bin/xauth=$(XAUTH_PATH) \
-	-D/var/empty=$(PRIVSEP_PATH) \
-	-D/usr/bin:/bin:/usr/sbin:/sbin=@user_path@
+	-e 's|/etc/ssh/ssh_prng_cmds|$(sysconfdir)/ssh_prng_cmds|g' \
+	-e 's|/etc/ssh/ssh_config|$(sysconfdir)/ssh_config|g' \
+	-e 's|/etc/ssh/ssh_known_hosts|$(sysconfdir)/ssh_known_hosts|g' \
+	-e 's|/etc/ssh/sshd_config|$(sysconfdir)/sshd_config|g' \
+	-e 's|/usr/libexec|$(libexecdir)|g' \
+	-e 's|/etc/shosts.equiv|$(sysconfdir)/shosts.equiv|g' \
+	-e 's|/etc/ssh/ssh_host_key|$(sysconfdir)/ssh_host_key|g' \
+	-e 's|/etc/ssh/ssh_host_dsa_key|$(sysconfdir)/ssh_host_dsa_key|g' \
+	-e 's|/etc/ssh/ssh_host_rsa_key|$(sysconfdir)/ssh_host_rsa_key|g' \
+	-e 's|/var/run/sshd.pid|$(piddir)/sshd.pid|g' \
+	-e 's|/etc/ssh/moduli|$(sysconfdir)/moduli|g' \
+	-e 's|/etc/sshrc|$(sysconfdir)/sshrc|g' \
+	-e 's|/usr/X11R6/bin/xauth|$(XAUTH_PATH)|g' \
+	-e 's|/var/empty|$(PRIVSEP_PATH)|g' \
+	-e 's|/usr/bin:/bin:/usr/sbin:/sbin|@user_path@|g'
 
-FIXPATHSCMD	= $(PERL) $(srcdir)/fixpaths $(PATHSUBS)
+FIXPATHSCMD	= $(SED) $(PATHSUBS)
 
 all: $(CONFIGFILES) $(MANPAGES) $(TARGETS)
 

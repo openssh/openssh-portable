@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.96 2003/01/07 13:06:48 djm Exp $
+# $Id: configure.ac,v 1.97 2003/01/09 01:22:59 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -14,6 +14,7 @@ AC_PROG_RANLIB
 AC_PROG_INSTALL
 AC_PATH_PROG(AR, ar)
 AC_PATH_PROGS(PERL, perl5 perl)
+AC_PATH_PROG(SED, sed)
 AC_SUBST(PERL)
 AC_PATH_PROG(ENT, ent)
 AC_SUBST(ENT)

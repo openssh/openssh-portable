@@ -15,6 +15,8 @@
      markus@ ok
  - (djm) Update README to reflect AIX's status as a well supported platform.
    From dtucker@zip.com.au
+ - (tim) [Makefile.in configure.ac] replace fixpath with sed script. Patch
+   by Mo DeJong.
 
 20030107
  - (djm) Bug #401: Work around Linux breakage with IPv6 mapped addresses. 
@@ -960,4 +962,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2554 2003/01/08 12:28:40 djm Exp $
+$Id: ChangeLog,v 1.2555 2003/01/09 01:22:59 tim Exp $
