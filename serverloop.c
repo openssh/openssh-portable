@@ -23,6 +23,7 @@
 #include "ssh2.h"
 #include "session.h"
 #include "dispatch.h"
+#include "auth-options.h"
 
 static Buffer stdin_buffer;	/* Buffer for stdin data. */
 static Buffer stdout_buffer;	/* Buffer for stdout data. */
@@ -719,7 +720,13 @@ input_direct_tcpip(void)
 
 	debug("open direct-tcpip: from %s port %d to %s port %d",
 	   originator, originator_port, target, target_port);
+
 	/* XXX check permission */
+	if (! no_port_forwarding_flag) {
+		xfree(target);
+		xfree(originator);
+		return -1;
+	}
 	sock = channel_connect_to(target, target_port);
 	xfree(target);
 	xfree(originator);

@@ -28,7 +28,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: compat.c,v 1.11 2000/05/30 03:44:53 damien Exp $");
+RCSID("$Id: compat.c,v 1.12 2000/06/18 04:50:44 djm Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -61,6 +61,7 @@ compat_datafellows(const char *version)
 		char	*version;
 		int	bugs;
 	} check[] = {
+		{"2.2.0",	SSH_BUG_HMAC},
 		{"2.1.0",	SSH_BUG_SIGBLOB|SSH_BUG_HMAC},
 		{"2.0.1",	SSH_BUG_SIGBLOB|SSH_BUG_HMAC|SSH_BUG_PUBKEYAUTH|SSH_BUG_X11FWD},
 		{NULL,		0}

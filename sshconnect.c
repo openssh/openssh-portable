@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.74 2000/05/17 16:57:02 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.76 2000/06/17 20:30:10 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dsa.h>
@@ -314,23 +314,28 @@ ssh_exchange_identification()
 	int connection_out = packet_get_connection_out();
 
 	/* Read other side\'s version identification. */
-	for (i = 0; i < sizeof(buf) - 1; i++) {
-		int len = read(connection_in, &buf[i], 1);
-		if (len < 0)
-			fatal("ssh_exchange_identification: read: %.100s", strerror(errno));
-		if (len != 1)
-			fatal("ssh_exchange_identification: Connection closed by remote host");
-		if (buf[i] == '\r') {
-			buf[i] = '\n';
-			buf[i + 1] = 0;
-			continue;		/**XXX wait for \n */
+	for (;;) {
+		for (i = 0; i < sizeof(buf) - 1; i++) {
+			int len = atomicio(read, connection_in, &buf[i], 1);
+			if (len < 0)
+				fatal("ssh_exchange_identification: read: %.100s", strerror(errno));
+			if (len != 1)
+				fatal("ssh_exchange_identification: Connection closed by remote host");
+			if (buf[i] == '\r') {
+				buf[i] = '\n';
+				buf[i + 1] = 0;
+				continue;		/**XXX wait for \n */
+			}
+			if (buf[i] == '\n') {
+				buf[i + 1] = 0;
+				break;
+			}
 		}
-		if (buf[i] == '\n') {
-			buf[i + 1] = 0;
+		buf[sizeof(buf) - 1] = 0;
+		if (strncmp(buf, "SSH-", 4) == 0)
 			break;
-		}
+		debug("ssh_exchange_identification: %s", buf);
 	}
-	buf[sizeof(buf) - 1] = 0;
 	server_version_string = xstrdup(buf);
 
 	/*

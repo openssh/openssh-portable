@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.17 2000/06/05 19:53:40 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.20 2000/06/18 04:42:54 markus Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -26,6 +26,7 @@ RCSID("$OpenBSD: session.c,v 1.17 2000/06/05 19:53:40 markus Exp $");
 #include "bufaux.h"
 #include "ssh2.h"
 #include "auth.h"
+#include "auth-options.h"
 
 /* types */
 
@@ -87,18 +88,6 @@ Session	sessions[MAX_SESSIONS];
 /* AIX's lastlogin message, set in auth1.c */
 char *aixloginmsg;
 #endif /* WITH_AIXAUTHENTICATE */
-
-/* Flags set in auth-rsa from authorized_keys flags.  These are set in auth-rsa.c. */
-int no_port_forwarding_flag = 0;
-int no_agent_forwarding_flag = 0;
-int no_x11_forwarding_flag = 0;
-int no_pty_flag = 0;
-
-/* RSA authentication "command=" option. */
-char *forced_command = NULL;
-
-/* RSA authentication "environment=" options. */
-struct envstring *custom_environment = NULL;
 
 /*
  * Remove local Xauthority file.
@@ -1260,6 +1249,8 @@ session_pty_req(Session *s)
 	unsigned int len;
 	char *term_modes;	/* encoded terminal modes */
 
+	if (no_pty_flag)
+		return 0;
 	if (s->ttyfd != -1)
 		return 0;
 	s->term = packet_get_string(&len);
@@ -1307,9 +1298,21 @@ session_subsystem_req(Session *s)
 	unsigned int len;
 	int success = 0;
 	char *subsys = packet_get_string(&len);
+	int i;
 
 	packet_done();
 	log("subsystem request for %s", subsys);
+
+	for (i = 0; i < options.num_subsystems; i++) {
+		if(strcmp(subsys, options.subsystem_name[i]) == 0) {
+			debug("subsystem: exec() %s", options.subsystem_command[i]);
+			do_exec_no_pty(s, options.subsystem_command[i], s->pw);
+			success = 1;
+		}
+	}
+
+	if (!success)
+		log("subsystem request for %s failed, subsystem not found", subsys);
 
 	xfree(subsys);
 	return success;
@@ -1318,6 +1321,10 @@ session_subsystem_req(Session *s)
 int
 session_x11_req(Session *s)
 {
+	if (!no_port_forwarding_flag) {
+		debug("X11 forwarding disabled in user configuration file.");
+		return 0;
+	}
 	if (!options.x11_forwarding) {
 		debug("X11 forwarding disabled in server configuration file.");
 		return 0;
@@ -1364,6 +1371,41 @@ session_x11_req(Session *s)
 	return 1;
 }
 
+int
+session_shell_req(Session *s)
+{
+	/* if forced_command == NULL, the shell is execed */
+	char *shell = forced_command;
+	packet_done();
+	s->extended = 1;
+	if (s->ttyfd == -1)
+		do_exec_no_pty(s, shell, s->pw);
+	else
+		do_exec_pty(s, shell, s->pw);
+	return 1;
+}
+
+int
+session_exec_req(Session *s)
+{
+	unsigned int len;
+	char *command = packet_get_string(&len);
+	packet_done();
+	if (forced_command) {
+		xfree(command);
+		command = forced_command;
+		debug("Forced command '%.500s'", forced_command);
+	}
+	s->extended = 1;
+	if (s->ttyfd == -1)
+		do_exec_no_pty(s, command, s->pw);
+	else
+		do_exec_pty(s, command, s->pw);
+	if (forced_command == NULL)
+		xfree(command);
+	return 1;
+}
+
 void
 session_input_channel_req(int id, void *arg)
 {
@@ -1393,23 +1435,9 @@ session_input_channel_req(int id, void *arg)
 	 */
 	if (c->type == SSH_CHANNEL_LARVAL) {
 		if (strcmp(rtype, "shell") == 0) {
-			packet_done();
-			s->extended = 1;
-			if (s->ttyfd == -1)
-				do_exec_no_pty(s, NULL, s->pw);
-			else
-				do_exec_pty(s, NULL, s->pw);
-			success = 1;
+			success = session_shell_req(s);
 		} else if (strcmp(rtype, "exec") == 0) {
-			char *command = packet_get_string(&len);
-			packet_done();
-			s->extended = 1;
-			if (s->ttyfd == -1)
-				do_exec_no_pty(s, command, s->pw);
-			else
-				do_exec_pty(s, command, s->pw);
-			xfree(command);
-			success = 1;
+			success = session_exec_req(s);
 		} else if (strcmp(rtype, "pty-req") == 0) {
 			success =  session_pty_req(s);
 		} else if (strcmp(rtype, "x11-req") == 0) {

@@ -49,3 +49,5 @@ PermitEmptyPasswords no
 
 CheckMail no
 UseLogin no
+
+#Subsystem	sftp	/usr/local/sbin/sftpd

@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: servconf.c,v 1.18 2000/06/07 09:55:44 djm Exp $");
+RCSID("$Id: servconf.c,v 1.19 2000/06/18 04:50:44 djm Exp $");
 
 #include "ssh.h"
 #include "servconf.h"
@@ -75,6 +75,7 @@ initialize_server_options(ServerOptions *options)
 	options->ciphers = NULL;
 	options->protocol = SSH_PROTO_UNKNOWN;
 	options->gateway_ports = -1;
+	options->num_subsystems = 0;
 }
 
 void
@@ -160,7 +161,7 @@ fill_default_server_options(ServerOptions *options)
 		options->gateway_ports = 0;
 }
 
-#define WHITESPACE " \t\r\n"
+#define WHITESPACE " \t\r\n="
 
 /* Keyword tokens. */
 typedef enum {
@@ -182,7 +183,7 @@ typedef enum {
 	sStrictModes, sEmptyPasswd, sRandomSeedFile, sKeepAlives, sCheckMail,
 	sUseLogin, sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
 	sIgnoreUserKnownHosts, sHostDSAKeyFile, sCiphers, sProtocol, sPidFile,
-	sGatewayPorts, sDSAAuthentication, sXAuthLocation
+	sGatewayPorts, sDSAAuthentication, sXAuthLocation, sSubsystem
 } ServerOpCodes;
 
 /* Textual representation of the tokens. */
@@ -237,6 +238,7 @@ static struct {
 	{ "ciphers", sCiphers },
 	{ "protocol", sProtocol },
 	{ "gatewayports", sGatewayPorts },
+	{ "subsystem", sSubsystem },
 	{ NULL, 0 }
 };
 
@@ -302,6 +304,7 @@ read_server_config(ServerOptions *options, const char *filename)
 	int linenum, *intptr, value;
 	int bad_options = 0;
 	ServerOpCodes opcode;
+	int i;
 
 	f = fopen(filename, "r");
 	if (!f) {
@@ -611,6 +614,28 @@ parse_flag:
 				      filename, linenum, cp ? cp : "<NONE>");
 			if (*intptr == SSH_PROTO_UNKNOWN)
 				*intptr = value;
+			break;
+
+		case sSubsystem:
+			if(options->num_subsystems >= MAX_SUBSYSTEMS) {
+				fatal("%s line %d: too many subsystems defined.",
+				      filename, linenum);
+			}
+			cp = strtok(NULL, WHITESPACE);
+			if (!cp)
+				fatal("%s line %d: Missing subsystem name.",
+				      filename, linenum);
+			for (i = 0; i < options->num_subsystems; i++)
+				if(strcmp(cp, options->subsystem_name[i]) == 0)
+					fatal("%s line %d: Subsystem '%s' already defined.",
+					      filename, linenum, cp);
+			options->subsystem_name[options->num_subsystems] = xstrdup(cp);
+			cp = strtok(NULL, WHITESPACE);
+			if (!cp)
+				fatal("%s line %d: Missing subsystem command.",
+				      filename, linenum);
+			options->subsystem_command[options->num_subsystems] = xstrdup(cp);
+			options->num_subsystems++;
 			break;
 
 		default:

@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: sshd.8,v 1.23 2000/06/07 09:55:44 djm Exp $
+.\" $Id: sshd.8,v 1.24 2000/06/18 04:50:45 djm Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSHD 8
@@ -543,6 +543,11 @@ This is normally desirable because novices sometimes accidentally leave their
 directory or files world-writable.
 The default is
 .Dq yes .
+.It Cm Subsystem
+Configures an external subsystem (e.g. file transfer daemon).
+Arguments should be a subsystem name and a command to execute upon subsystem request. 
+By default no subsystems are defined.
+Note that this option applies to protocol version 2 only.
 .It Cm SyslogFacility
 Gives the facility code that is used when logging messages from
 .Nm sshd .

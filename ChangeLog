@@ -8,6 +8,38 @@
    Martin Petrak <petrak@spsknm.schools.sk>
  - (djm) Include sys/types.h when including netinet/in.h in configure tests.
    Patch from Jun-ichiro itojun Hagino <itojun@iijlab.net>
+ - OpenBSD CVS updates:
+   - deraadt@cvs.openbsd.org 2000/06/17 09:58:46
+     [channels.c]
+     everyone says "nix it" (remove protocol 2 debugging message)
+   - markus@cvs.openbsd.org  2000/06/17 13:24:34
+     [sshconnect.c]
+     allow extended server banners
+   - markus@cvs.openbsd.org  2000/06/17 14:30:10
+     [sshconnect.c]
+     missing atomicio, typo
+   - jakob@cvs.openbsd.org   2000/06/17 16:52:34
+     [servconf.c servconf.h session.c sshd.8 sshd_config]
+     add support for ssh v2 subsystems. ok markus@.
+   - deraadt@cvs.openbsd.org 2000/06/17 18:57:48
+     [readconf.c servconf.c]
+     include = in WHITESPACE; markus ok
+   - markus@cvs.openbsd.org  2000/06/17 19:09:10
+     [auth2.c]
+     implement bug compatibility with ssh-2.0.13 pubkey, server side
+   - markus@cvs.openbsd.org  2000/06/17 21:00:28
+     [compat.c]
+     initial support for ssh.com's 2.2.0
+   - markus@cvs.openbsd.org  2000/06/17 21:16:09
+     [scp.c]
+     typo
+   - markus@cvs.openbsd.org  2000/06/17 22:05:02
+     [auth-rsa.c auth2.c serverloop.c session.c auth-options.c auth-options.h]
+     split auth-rsa option parsing into auth-options
+     add options support to authorized_keys2
+   - markus@cvs.openbsd.org  2000/06/17 22:42:54
+     [session.c]
+     typo
 
 20000613
  - (djm) Fixes from Andrew McGill <andrewm@datrix.co.za>:
