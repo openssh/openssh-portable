@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.105 2003/02/01 04:43:34 mouring Exp $
+# $Id: configure.ac,v 1.106 2003/02/10 23:04:03 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -86,6 +86,7 @@ case "$host" in
 	AC_DEFINE(SETPROCTITLE_PS_PADDING, '\0')
 	;;
 *-*-cygwin*)
+	check_for_libcrypt_later=1
 	LIBS="$LIBS /usr/lib/textmode.o"
 	AC_DEFINE(HAVE_CYGWIN)
 	AC_DEFINE(USE_PIPES)
