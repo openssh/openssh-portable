@@ -18,6 +18,7 @@
 #include "bsd-inet_aton.h"
 #include "bsd-inet_ntoa.h"
 #include "bsd-strsep.h"
+#include "bsd-strtok.h"
 
 /* rfc2553 socket API replacements */
 #include "fake-getaddrinfo.h"
