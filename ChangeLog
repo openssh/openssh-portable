@@ -59,11 +59,15 @@
      [auth2-chall.c]
      make sure # of response matches # of queries, fixes int overflow; 
      from ISS
+   - markus@cvs.openbsd.org 2002/06/26 13:56:27
+     [version.h]
+     3.4
  - (djm) Require krb5 devel for RPM build w/ KrbV 
  - (djm) Improve PAMAuthenticationViaKbdInt text from Nalin Dahyabhai 
    <nalin@redhat.com>
  - (djm) Update spec files for release 
  - (djm) Fix int overflow in auth2-pam.c, similar to one discovered by ISS
+ - (djm) Release 3.4p1
 
 20020625
  - (stevesk) [INSTALL acconfig.h configure.ac defines.h] remove --with-rsh
@@ -1163,4 +1167,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2300 2002/06/26 13:58:39 djm Exp $
+$Id: ChangeLog,v 1.2301 2002/06/26 13:59:10 djm Exp $
