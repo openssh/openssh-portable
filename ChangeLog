@@ -16,6 +16,9 @@
    - provos@cvs.openbsd.org 2001/06/22 21:27:08
      [dh.c pathnames.h]
      use /etc/moduli instead of /etc/primes, okay markus@
+   - provos@cvs.openbsd.org 2001/06/22 21:28:53
+     [sshd.8]
+     document /etc/moduli
 
 20010622
  - (stevesk) handle systems without pw_expire and pw_change.
@@ -5700,4 +5703,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1300 2001/06/25 04:13:25 mouring Exp $
+$Id: ChangeLog,v 1.1301 2001/06/25 04:14:59 mouring Exp $

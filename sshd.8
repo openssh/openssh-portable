@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.128 2001/06/22 10:17:51 mpech Exp $
+.\" $OpenBSD: sshd.8,v 1.129 2001/06/22 21:28:53 provos Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -1123,7 +1123,7 @@ really used for anything; they are provided for the convenience of
 the user so their contents can be copied to known hosts files.
 These files are created using
 .Xr ssh-keygen 1 .
-.It Pa /etc/primes
+.It Pa /etc/moduli
 Contains Diffie-Hellman groups used for the "Diffie-Hellman Group Exchange".
 .It Pa /var/run/sshd.pid
 Contains the process ID of the
@@ -1306,6 +1306,7 @@ created OpenSSH.
 Markus Friedl contributed the support for SSH
 protocol versions 1.5 and 2.0.
 .Sh SEE ALSO
+.Xr moduli 5 ,
 .Xr rlogin 1 ,
 .Xr rsh 1 ,
 .Xr scp 1 ,
