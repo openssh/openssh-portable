@@ -3,7 +3,7 @@
 
 You will need working installations of Zlib and OpenSSL.
 
-Zlib:
+Zlib 1.1.4 or greater:
 http://www.gzip.org/zlib/ 
 
 OpenSSL 0.9.6 or greater:
@@ -211,4 +211,4 @@ Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
 
 
-$Id: INSTALL,v 1.56.2.2 2003/09/19 07:06:06 djm Exp $
+$Id: INSTALL,v 1.56.2.3 2003/09/22 03:29:00 dtucker Exp $
