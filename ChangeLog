@@ -6,6 +6,10 @@
    - deraadt@cvs.openbsd.org 2002/06/23 03:26:19
      [cipher.c key.c]
      KNF
+   - deraadt@cvs.openbsd.org 2002/06/23 03:30:58
+     [scard.c ssh-dss.c ssh-rsa.c sshconnect.c sshconnect2.c sshd.c sshlogin.c
+      sshpty.c]
+     various KNF and %d for unsigned
 
 20020623
  - (stevesk) [configure.ac] bug #255 LOGIN_NEEDS_UTMPX for AIX.
@@ -1050,4 +1054,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2255 2002/06/23 21:21:30 mouring Exp $
+$Id: ChangeLog,v 1.2256 2002/06/23 21:23:20 mouring Exp $
