@@ -7,6 +7,7 @@
  - (djm) Try to avoid adding -I/usr/include to CPPFLAGS during SSL tests. This
    can cause weird segfaults errors on Solaris 
  - (djm) Avoid warning in PAM code by making read_passphrase arguments const
+ - (djm) Add --with-pam to RPM spec files
 
 20010115
  - (bal) sftp-server.c change to use chmod() if fchmod() does not exist.

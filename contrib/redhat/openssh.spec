@@ -142,10 +142,11 @@ This package contains the GNOME passphrase dialog.
 
 %configure \
 	--libexecdir=%{_libexecdir}/openssh \
+	--with-pam \
 	--with-tcp-wrappers \
 	--with-ipv4-default \
 	--with-rsh=/usr/bin/rsh \
-	--with-default-path=/usr/local/bin:/bin:/usr/bin:/usr/X11R6/bin
+	--with-default-path=/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin
 
 make
 
