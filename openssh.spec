@@ -181,6 +181,6 @@ fi
 
 %files askpass
 %defattr(-,root,root)
-%attr(0755,root,root) /usr/lib/ssh/ssh-askpass
+%attr(0755,root,root) /usr/libexec/ssh/ssh-askpass
 %attr(0755,root,root) %dir /usr/lib/ssh
 

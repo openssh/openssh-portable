@@ -7,7 +7,7 @@ mandir=@mandir@
 sysconfdir=@sysconfdir@
 
 SSH_PROGRAM=@bindir@/ssh
-ASKPASS_PROGRAM=@libdir@/ssh/ssh-askpass
+ASKPASS_PROGRAM=@libexecdir@/ssh/ssh-askpass
 
 CC=@CC@
 PATHS=-DETCDIR=\"$(sysconfdir)\" -DSSH_PROGRAM=\"$(SSH_PROGRAM)\" -DASKPASS_PROGRAM=\"$(ASKPASS_PROGRAM)\"
@@ -82,11 +82,11 @@ install: all
 
 	if [ "x@INSTALL_ASKPASS@" = "xyes" ] ; then \
 		install -d $(libdir) ; \
-		install -d $(libdir)/ssh ; \
+		install -d $(libexecdir)/ssh ; \
 		if [ -z "@GNOME_ASKPASS@" ] ; then \
-			install -m755 -c ssh-askpass $(libdir)/ssh/ssh-askpass; \
+			install -m755 -c ssh-askpass ${ASKPASS_PROGRAM}; \
 		else \
-			install -m755 -c gnome-ssh-askpass $(libdir)/ssh/ssh-askpass; \
+			install -m755 -c gnome-ssh-askpass ${ASKPASS_PROGRAM}; \
 		fi ; \
 	fi
 
