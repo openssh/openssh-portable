@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.17 2001/05/08 19:45:25 mouring Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.18 2001/06/23 15:12:20 itojun Exp $");
 
 /* XXX: commandline mode */
 /* XXX: short-form remote directory listings (like 'ls -C') */
@@ -49,7 +49,7 @@ char *__progname;
 char *ssh_program = _PATH_SSH_PROGRAM;
 FILE* infile;
 
-void
+static void
 connect_to_server(char **args, int *in, int *out, pid_t *sshpid)
 {
 	int c_in, c_out;
@@ -90,7 +90,7 @@ connect_to_server(char **args, int *in, int *out, pid_t *sshpid)
 	close(c_out);
 }
 
-void
+static void
 usage(void)
 {
 	fprintf(stderr, "usage: sftp [-1vC] [-b batchfile] [-osshopt=value] [user@]host[:file [file]]\n");

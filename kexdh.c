@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kexdh.c,v 1.5 2001/06/23 02:34:29 markus Exp $");
+RCSID("$OpenBSD: kexdh.c,v 1.6 2001/06/23 15:12:18 itojun Exp $");
 
 #include <openssl/crypto.h>
 #include <openssl/bn.h>
@@ -38,7 +38,7 @@ RCSID("$OpenBSD: kexdh.c,v 1.5 2001/06/23 02:34:29 markus Exp $");
 #include "dh.h"
 #include "ssh2.h"
 
-u_char *
+static u_char *
 kex_dh_hash(
     char *client_version_string,
     char *server_version_string,
@@ -88,7 +88,7 @@ kex_dh_hash(
 
 /* client */
 
-void
+static void
 kexdh_client(Kex *kex)
 {
 	BIGNUM *dh_server_pub = NULL, *shared_secret = NULL;
@@ -193,7 +193,7 @@ kexdh_client(Kex *kex)
 
 /* server */
 
-void
+static void
 kexdh_server(Kex *kex)
 {
 	BIGNUM *shared_secret = NULL, *dh_client_pub = NULL;

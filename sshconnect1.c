@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.34 2001/06/23 02:34:32 markus Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.35 2001/06/23 15:12:21 itojun Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/evp.h>
@@ -55,7 +55,7 @@ extern char *__progname;
  * Checks if the user has an authentication agent, and if so, tries to
  * authenticate using the agent.
  */
-int
+static int
 try_agent_authentication(void)
 {
 	int type;
@@ -155,7 +155,7 @@ try_agent_authentication(void)
  * Computes the proper response to a RSA challenge, and sends the response to
  * the server.
  */
-void
+static void
 respond_to_rsa_challenge(BIGNUM * challenge, RSA * prv)
 {
 	u_char buf[32], response[16];
@@ -200,7 +200,7 @@ respond_to_rsa_challenge(BIGNUM * challenge, RSA * prv)
  * Checks if the user has authentication file, and if so, tries to authenticate
  * the user using it.
  */
-int
+static int
 try_rsa_authentication(const char *authfile)
 {
 	BIGNUM *challenge;
@@ -321,7 +321,7 @@ try_rsa_authentication(const char *authfile)
  * Tries to authenticate the user using combined rhosts or /etc/hosts.equiv
  * authentication and RSA host authentication.
  */
-int
+static int
 try_rhosts_rsa_authentication(const char *local_user, Key * host_key)
 {
 	int type;
@@ -379,7 +379,7 @@ try_rhosts_rsa_authentication(const char *local_user, Key * host_key)
 }
 
 #ifdef KRB4
-int
+static int
 try_kerberos_authentication(void)
 {
 	KTEXT_ST auth;		/* Kerberos data */
@@ -496,7 +496,7 @@ try_kerberos_authentication(void)
 #endif /* KRB4 */
 
 #ifdef AFS
-int
+static int
 send_kerberos_tgt(void)
 {
 	CREDENTIALS *creds;
@@ -541,7 +541,7 @@ send_kerberos_tgt(void)
 	return 1;
 }
 
-void
+static void
 send_afs_tokens(void)
 {
 	CREDENTIALS creds;
@@ -615,7 +615,7 @@ send_afs_tokens(void)
  * Tries to authenticate with any string-based challenge/response system.
  * Note that the client code is not tied to s/key or TIS.
  */
-int
+static int
 try_challenge_response_authentication(void)
 {
 	int type, i;
@@ -677,7 +677,7 @@ try_challenge_response_authentication(void)
 /*
  * Tries to authenticate with plain passwd authentication.
  */
-int
+static int
 try_password_authentication(char *prompt)
 {
 	int type, i, payload_len;

@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.67 2001/06/20 13:56:39 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.68 2001/06/23 15:12:19 itojun Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -260,8 +260,8 @@ packet_get_protocol_flags()
  * Level is compression level 1 (fastest) - 9 (slow, best) as in gzip.
  */
 
-void
-packet_init_compression()
+static void
+packet_init_compression(void)
 {
 	if (compression_buffer_ready == 1)
 		return;
@@ -356,7 +356,7 @@ packet_put_bignum2(BIGNUM * value)
  * encrypts the packet before sending.
  */
 
-void
+static void
 packet_send1(void)
 {
 	char buf[8], *cp;
@@ -427,7 +427,7 @@ packet_send1(void)
 	 */
 }
 
-void
+static void
 set_newkeys(int mode)
 {
 	Enc *enc;
@@ -480,7 +480,7 @@ set_newkeys(int mode)
 /*
  * Finalize packet in SSH2 format (compress, mac, encrypt, enqueue)
  */
-void
+static void
 packet_send2(void)
 {
 	static u_int32_t seqnr = 0;
@@ -683,7 +683,7 @@ packet_read_expect(int *payload_len_ptr, int expected_type)
  * 	Check bytes
  */
 
-int
+static int
 packet_read_poll1(int *payload_len_ptr)
 {
 	u_int len, padded_len;
@@ -761,7 +761,7 @@ packet_read_poll1(int *payload_len_ptr)
 	return type;
 }
 
-int
+static int
 packet_read_poll2(int *payload_len_ptr)
 {
 	static u_int32_t seqnr = 0;

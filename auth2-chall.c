@@ -23,7 +23,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: auth2-chall.c,v 1.6 2001/06/03 20:06:11 markus Exp $");
+RCSID("$OpenBSD: auth2-chall.c,v 1.7 2001/06/23 15:12:17 itojun Exp $");
 
 #include "ssh2.h"
 #include "auth.h"
@@ -33,9 +33,9 @@ RCSID("$OpenBSD: auth2-chall.c,v 1.6 2001/06/03 20:06:11 markus Exp $");
 #include "auth.h"
 #include "log.h"
 
-static int auth2_challenge_start(Authctxt *authctxt);
-static int send_userauth_info_request(Authctxt *authctxt);
-static void input_userauth_info_response(int type, int plen, void *ctxt);
+static int auth2_challenge_start(Authctxt *);
+static int send_userauth_info_request(Authctxt *);
+static void input_userauth_info_response(int, int, void *);
 
 #ifdef BSD_AUTH
 extern KbdintDevice bsdauth_device;
@@ -64,7 +64,7 @@ struct KbdintAuthctxt
 	KbdintDevice *device;
 };
 
-KbdintAuthctxt *
+static KbdintAuthctxt *
 kbdint_alloc(const char *devs)
 {
 	KbdintAuthctxt *kbdintctxt;
@@ -89,7 +89,7 @@ kbdint_alloc(const char *devs)
 
 	return kbdintctxt;
 }
-void
+static void
 kbdint_reset_device(KbdintAuthctxt *kbdintctxt)
 {
 	if (kbdintctxt->ctxt) {
@@ -98,7 +98,7 @@ kbdint_reset_device(KbdintAuthctxt *kbdintctxt)
 	}
 	kbdintctxt->device = NULL;
 }
-void
+static void
 kbdint_free(KbdintAuthctxt *kbdintctxt)
 {
 	if (kbdintctxt->device)
@@ -110,7 +110,7 @@ kbdint_free(KbdintAuthctxt *kbdintctxt)
 	xfree(kbdintctxt);
 }
 /* get next device */
-int
+static int
 kbdint_next_device(KbdintAuthctxt *kbdintctxt)
 {
 	size_t len;

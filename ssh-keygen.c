@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.62 2001/06/23 06:41:10 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.63 2001/06/23 15:12:20 itojun Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -79,7 +79,7 @@ char *__progname;
 
 char hostname[MAXHOSTNAMELEN];
 
-void
+static void
 ask_filename(struct passwd *pw, const char *prompt)
 {
 	char buf[1024];
@@ -112,7 +112,7 @@ ask_filename(struct passwd *pw, const char *prompt)
 	have_identity = 1;
 }
 
-Key *
+static Key *
 load_identity(char *filename)
 {
 	char *pass;
@@ -136,7 +136,7 @@ load_identity(char *filename)
 #define SSH_COM_PRIVATE_BEGIN		"---- BEGIN SSH2 ENCRYPTED PRIVATE KEY ----"
 #define	SSH_COM_PRIVATE_KEY_MAGIC	0x3f6ff9eb
 
-void
+static void
 do_convert_to_ssh2(struct passwd *pw)
 {
 	Key *k;
@@ -169,7 +169,7 @@ do_convert_to_ssh2(struct passwd *pw)
 	exit(0);
 }
 
-void
+static void
 buffer_get_bignum_bits(Buffer *b, BIGNUM *value)
 {
 	int bits = buffer_get_int(b);
@@ -182,7 +182,7 @@ buffer_get_bignum_bits(Buffer *b, BIGNUM *value)
 	buffer_consume(b, bytes);
 }
 
-Key *
+static Key *
 do_convert_private_ssh2_from_blob(char *blob, int blen)
 {
 	Buffer b;
@@ -277,7 +277,7 @@ do_convert_private_ssh2_from_blob(char *blob, int blen)
 	return key;
 }
 
-void
+static void
 do_convert_from_ssh2(struct passwd *pw)
 {
 	Key *k;
@@ -350,7 +350,7 @@ do_convert_from_ssh2(struct passwd *pw)
 	exit(0);
 }
 
-void
+static void
 do_print_public(struct passwd *pw)
 {
 	Key *prv;
@@ -374,7 +374,7 @@ do_print_public(struct passwd *pw)
 	exit(0);
 }
 
-void
+static void
 do_fingerprint(struct passwd *pw)
 {
 	FILE *f;
@@ -471,7 +471,7 @@ do_fingerprint(struct passwd *pw)
  * Perform changing a passphrase.  The argument is the passwd structure
  * for the current user.
  */
-void
+static void
 do_change_passphrase(struct passwd *pw)
 {
 	char *comment;
@@ -547,7 +547,7 @@ do_change_passphrase(struct passwd *pw)
 /*
  * Change the comment of a private key file.
  */
-void
+static void
 do_change_comment(struct passwd *pw)
 {
 	char new_comment[1024], *comment, *passphrase;
@@ -640,7 +640,7 @@ do_change_comment(struct passwd *pw)
 	exit(0);
 }
 
-void
+static void
 usage(void)
 {
 	printf("Usage: %s [-ceilpqyB] [-t type] [-b bits] [-f file] [-C comment] "

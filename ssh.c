@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.125 2001/06/22 23:35:21 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.126 2001/06/23 15:12:21 itojun Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -148,7 +148,7 @@ int subsystem_flag = 0;
 
 /* Prints a help message to the user.  This function never returns. */
 
-void
+static void
 usage(void)
 {
 	fprintf(stderr, "Usage: %s [options] host [command]\n", __progname);
@@ -198,7 +198,7 @@ usage(void)
  * Connects to the given host using rsh (or prints an error message and exits
  * if rsh is not available).  This function never returns.
  */
-void
+static void
 rsh_connect(char *host, char *user, Buffer * command)
 {
 	char *args[10];
@@ -232,9 +232,9 @@ rsh_connect(char *host, char *user, Buffer * command)
 	exit(1);
 }
 
-int	ssh_session(void);
-int	ssh_session2(void);
-void	load_public_identity_files(void);
+static int ssh_session(void);
+static int ssh_session2(void);
+static void load_public_identity_files(void);
 
 /*
  * Main program for the ssh client.
@@ -742,7 +742,7 @@ main(int ac, char **av)
 	return exit_status;
 }
 
-void
+static void
 x11_get_proto(char *proto, int proto_len, char *data, int data_len)
 {
 	char line[512];
@@ -781,7 +781,7 @@ x11_get_proto(char *proto, int proto_len, char *data, int data_len)
 	}
 }
 
-void
+static void
 ssh_init_forwarding(void)
 {
 	int success = 0;
@@ -815,7 +815,7 @@ ssh_init_forwarding(void)
 	}
 }
 
-void
+static void
 check_agent_present(void)
 {
 	if (options.forward_agent) {
@@ -828,7 +828,7 @@ check_agent_present(void)
 	}
 }
 
-int
+static int
 ssh_session(void)
 {
 	int type;
@@ -966,7 +966,7 @@ ssh_session(void)
 	    options.escape_char : SSH_ESCAPECHAR_NONE, 0);
 }
 
-void
+static void
 client_subsystem_reply(int type, int plen, void *ctxt)
 {
 	int id, len;
@@ -981,7 +981,7 @@ client_subsystem_reply(int type, int plen, void *ctxt)
 		    len, buffer_ptr(&command), id);
 }
 
-void
+static void
 ssh_session2_callback(int id, void *arg)
 {
 	int len;
@@ -1057,7 +1057,7 @@ ssh_session2_callback(int id, void *arg)
 	packet_set_interactive(interactive);
 }
 
-int
+static int
 ssh_session2_command(void)
 {
 	Channel *c;
@@ -1104,7 +1104,7 @@ ssh_session2_command(void)
 	return c->self;
 }
 
-int
+static int
 ssh_session2(void)
 {
 	int id;
@@ -1123,7 +1123,7 @@ ssh_session2(void)
 	    options.escape_char : SSH_ESCAPECHAR_NONE, id);
 }
 
-void
+static void
 load_public_identity_files(void)
 {
 	char *filename;

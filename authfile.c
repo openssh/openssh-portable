@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfile.c,v 1.36 2001/06/07 20:23:03 markus Exp $");
+RCSID("$OpenBSD: authfile.c,v 1.37 2001/06/23 15:12:17 itojun Exp $");
 
 #include <openssl/err.h>
 #include <openssl/evp.h>
@@ -62,7 +62,7 @@ static const char authfile_id_string[] =
  * passphrase.
  */
 
-int
+static int
 key_save_private_rsa1(Key *key, const char *filename, const char *passphrase,
     const char *comment)
 {
@@ -159,7 +159,7 @@ key_save_private_rsa1(Key *key, const char *filename, const char *passphrase,
 }
 
 /* save SSH v2 key in OpenSSL PEM format */
-int
+static int
 key_save_private_pem(Key *key, const char *filename, const char *_passphrase,
     const char *comment)
 {
@@ -226,7 +226,7 @@ key_save_private(Key *key, const char *filename, const char *passphrase,
  * otherwise.
  */
 
-Key *
+static Key *
 key_load_public_rsa1(int fd, const char *filename, char **commentp)
 {
 	Buffer buffer;
@@ -306,7 +306,7 @@ key_load_public_type(int type, const char *filename, char **commentp)
  * Assumes we are called under uid of the owner of the file.
  */
 
-Key *
+static Key *
 key_load_private_rsa1(int fd, const char *filename, const char *passphrase,
     char **commentp)
 {
@@ -430,7 +430,7 @@ fail:
 	return NULL;
 }
 
-Key *
+static Key *
 key_load_private_pem(int fd, int type, const char *passphrase,
     char **commentp)
 {
@@ -481,7 +481,7 @@ key_load_private_pem(int fd, int type, const char *passphrase,
 	return prv;
 }
 
-int
+static int
 key_perm_ok(int fd, const char *filename)
 {
 	struct stat st;
@@ -571,7 +571,7 @@ key_load_private(const char *filename, const char *passphrase,
 	return prv;
 }
 
-int
+static int
 key_try_load_public(Key *k, const char *filename, char **commentp)
 {
 	FILE *f;

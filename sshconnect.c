@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.108 2001/06/23 02:34:31 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.109 2001/06/23 15:12:21 itojun Exp $");
 
 #include <openssl/bn.h>
 
@@ -44,7 +44,7 @@ extern int IPv4or6;
 /*
  * Connect to the given ssh server using a proxy command.
  */
-int
+static int
 ssh_proxy_connect(const char *host, u_short port, struct passwd *pw,
 		  const char *proxy_command)
 {
@@ -144,7 +144,7 @@ ssh_proxy_connect(const char *host, u_short port, struct passwd *pw,
 /*
  * Creates a (possibly privileged) socket for use as the ssh connection.
  */
-int
+static int
 ssh_create_socket(struct passwd *pw, int privileged, int family)
 {
 	int sock, gaierr;
@@ -345,7 +345,7 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
  * Waits for the server identification string, and sends our own
  * identification string.
  */
-void
+static void
 ssh_exchange_identification(void)
 {
 	char buf[256], remote_version[256];	/* must be same size! */
@@ -444,7 +444,7 @@ ssh_exchange_identification(void)
 }
 
 /* defaults to 'no' */
-int
+static int
 read_yes_or_no(const char *prompt, int defval)
 {
 	char buf[1024];
@@ -500,7 +500,7 @@ read_yes_or_no(const char *prompt, int defval)
  * is not valid. the user_hostfile will not be updated if 'readonly' is true.
  */
 
-int
+static int
 check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
     int readonly, const char *user_hostfile, const char *system_hostfile)
 {

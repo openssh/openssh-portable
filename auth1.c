@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.23 2001/05/18 14:13:28 markus Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.24 2001/06/23 15:12:17 itojun Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -35,7 +35,7 @@ extern char *aixloginmsg;
 /*
  * convert ssh auth msg type into description
  */
-char *
+static char *
 get_authname(int type)
 {
 	static char buf[1024];
@@ -64,7 +64,7 @@ get_authname(int type)
  * read packets, try to authenticate the user and
  * return only if authentication is successful
  */
-void
+static void
 do_authloop(Authctxt *authctxt)
 {
 	int authenticated = 0;

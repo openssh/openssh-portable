@@ -67,6 +67,17 @@
      [ssh-keygen.c]
      try to decode ssh-3.0.0 private rsa keys
      (allow migration to openssh, not vice versa), #910
+   - itojun@cvs.openbsd.org 2001/06/23 15:12:20
+     [auth1.c auth2.c auth2-chall.c authfd.c authfile.c auth-rhosts.c 
+      canohost.c channels.c cipher.c clientloop.c deattack.c dh.c 
+      hostfile.c kex.c kexdh.c kexgex.c key.c nchan.c packet.c radix.c 
+      readpass.c scp.c servconf.c serverloop.c session.c sftp.c 
+      sftp-client.c sftp-glob.c sftp-int.c sftp-server.c ssh-add.c 
+      ssh-agent.c ssh.c sshconnect1.c sshconnect2.c sshconnect.c sshd.c 
+      ssh-keygen.c ssh-keyscan.c]
+     more strict prototypes.  raise warning level in Makefile.inc.  
+     markus ok'ed
+     TODO; cleanup headers
 
 20010622
  - (stevesk) handle systems without pw_expire and pw_change.
@@ -5751,4 +5762,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1314 2001/06/25 04:47:54 mouring Exp $
+$Id: ChangeLog,v 1.1315 2001/06/25 05:01:22 mouring Exp $

@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.69 2001/06/20 13:56:39 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.70 2001/06/23 15:12:19 itojun Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -84,13 +84,15 @@ static u_int buffer_high;	/* "Soft" max buffer size. */
  * This SIGCHLD kludge is used to detect when the child exits.  The server
  * will exit after that, as soon as forwarded connections have terminated.
  */
+
 static volatile int child_terminated;	/* The child has terminated. */
 
-void	server_init_dispatch(void);
+/* prototypes */
+static void server_init_dispatch(void);
 
 int client_alive_timeouts = 0;
 
-void
+static void
 sigchld_handler(int sig)
 {
 	int save_errno = errno;
@@ -104,7 +106,7 @@ sigchld_handler(int sig)
  * Make packets from buffered stderr data, and buffer it for sending
  * to the client.
  */
-void
+static void
 make_packets_from_stderr_data(void)
 {
 	int len;
@@ -133,7 +135,7 @@ make_packets_from_stderr_data(void)
  * Make packets from buffered stdout data, and buffer it for sending to the
  * client.
  */
-void
+static void
 make_packets_from_stdout_data(void)
 {
 	int len;
@@ -164,7 +166,7 @@ make_packets_from_stdout_data(void)
  * have data or can accept data.  Optionally, a maximum time can be specified
  * for the duration of the wait (0 = infinite).
  */
-void
+static void
 wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp, int *maxfdp,
     u_int max_time_milliseconds)
 {
@@ -286,7 +288,7 @@ retry_select:
  * Processes input from the client and the program.  Input data is stored
  * in buffers and processed later.
  */
-void
+static void
 process_input(fd_set * readset)
 {
 	int len;
@@ -342,7 +344,7 @@ process_input(fd_set * readset)
 /*
  * Sends data from internal buffers to client program stdin.
  */
-void
+static void
 process_output(fd_set * writeset)
 {
 	struct termios tio;
@@ -390,7 +392,7 @@ process_output(fd_set * writeset)
  * Wait until all buffered output has been sent to the client.
  * This is used when the program terminates.
  */
-void
+static void
 drain_output(void)
 {
 	/* Send any buffered stdout data to the client. */
@@ -415,7 +417,7 @@ drain_output(void)
 	packet_write_wait();
 }
 
-void
+static void
 process_buffered_input_packets(void)
 {
 	dispatch_run(DISPATCH_NONBLOCK, NULL, compat20 ? xxx_kex : NULL);
@@ -706,7 +708,7 @@ server_loop2(void)
 		session_close_by_pid(pid, status);
 }
 
-void
+static void
 server_input_channel_failure(int type, int plen, void *ctxt)
 {
 	debug("Got CHANNEL_FAILURE for keepalive");
@@ -719,7 +721,7 @@ server_input_channel_failure(int type, int plen, void *ctxt)
 }
 
 
-void
+static void
 server_input_stdin_data(int type, int plen, void *ctxt)
 {
 	char *data;
@@ -736,7 +738,7 @@ server_input_stdin_data(int type, int plen, void *ctxt)
 	xfree(data);
 }
 
-void
+static void
 server_input_eof(int type, int plen, void *ctxt)
 {
 	/*
@@ -749,7 +751,7 @@ server_input_eof(int type, int plen, void *ctxt)
 	stdin_eof = 1;
 }
 
-void
+static void
 server_input_window_size(int type, int plen, void *ctxt)
 {
 	int row = packet_get_int();
@@ -763,7 +765,7 @@ server_input_window_size(int type, int plen, void *ctxt)
 		pty_change_window_size(fdin, row, col, xpixel, ypixel);
 }
 
-Channel *
+static Channel *
 server_request_direct_tcpip(char *ctype)
 {
 	Channel *c;
@@ -796,7 +798,7 @@ server_request_direct_tcpip(char *ctype)
 	return c;
 }
 
-Channel *
+static Channel *
 server_request_session(char *ctype)
 {
 	Channel *c;
@@ -827,7 +829,7 @@ server_request_session(char *ctype)
 	return c;
 }
 
-void
+static void
 server_input_channel_open(int type, int plen, void *ctxt)
 {
 	Channel *c = NULL;
@@ -877,7 +879,7 @@ server_input_channel_open(int type, int plen, void *ctxt)
 	xfree(ctype);
 }
 
-void
+static void
 server_input_global_request(int type, int plen, void *ctxt)
 {
 	char *rtype;
@@ -927,7 +929,7 @@ server_input_global_request(int type, int plen, void *ctxt)
 	xfree(rtype);
 }
 
-void
+static void
 server_init_dispatch_20(void)
 {
 	debug("server_init_dispatch_20");
@@ -947,7 +949,7 @@ server_init_dispatch_20(void)
 	/* rekeying */
 	dispatch_set(SSH2_MSG_KEXINIT, &kex_input_kexinit);
 }
-void
+static void
 server_init_dispatch_13(void)
 {
 	debug("server_init_dispatch_13");
@@ -962,7 +964,7 @@ server_init_dispatch_13(void)
 	dispatch_set(SSH_MSG_CHANNEL_OPEN_FAILURE, &channel_input_open_failure);
 	dispatch_set(SSH_MSG_PORT_OPEN, &channel_input_port_open);
 }
-void
+static void
 server_init_dispatch_15(void)
 {
 	server_init_dispatch_13();
@@ -970,7 +972,7 @@ server_init_dispatch_15(void)
 	dispatch_set(SSH_MSG_CHANNEL_CLOSE, &channel_input_ieof);
 	dispatch_set(SSH_MSG_CHANNEL_CLOSE_CONFIRMATION, &channel_input_oclose);
 }
-void
+static void
 server_init_dispatch(void)
 {
 	if (compat20)

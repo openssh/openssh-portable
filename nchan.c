@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: nchan.c,v 1.28 2001/05/31 10:30:16 markus Exp $");
+RCSID("$OpenBSD: nchan.c,v 1.29 2001/06/23 15:12:19 itojun Exp $");
 
 #include "ssh1.h"
 #include "ssh2.h"
@@ -74,14 +74,14 @@ chan_event_fn *chan_obuf_empty			= NULL;
 /*
  * ACTIONS: should never update the channel states
  */
-static void	chan_send_ieof1(Channel *c);
-static void	chan_send_oclose1(Channel *c);
-static void	chan_send_close2(Channel *c);
-static void	chan_send_eof2(Channel *c);
+static void	chan_send_ieof1(Channel *);
+static void	chan_send_oclose1(Channel *);
+static void	chan_send_close2(Channel *);
+static void	chan_send_eof2(Channel *);
 
 /* helper */
-static void	chan_shutdown_write(Channel *c);
-static void	chan_shutdown_read(Channel *c);
+static void	chan_shutdown_write(Channel *);
+static void	chan_shutdown_read(Channel *);
 
 /*
  * SSH1 specific implementation of event functions

@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.126 2001/06/20 13:56:39 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.127 2001/06/23 15:12:17 itojun Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -133,12 +133,11 @@ static u_int x11_fake_data_len;
 static char *auth_sock_name = NULL;
 static char *auth_sock_dir = NULL;
 
-
 /* AF_UNSPEC or AF_INET or AF_INET6 */
 extern int IPv4or6;
 
 /* helper */
-void	port_open_helper(Channel *c, char *rtype);
+static void port_open_helper(Channel *c, char *rtype);
 
 /* -- channel core */
 
@@ -164,7 +163,7 @@ channel_lookup(int id)
  * when the channel consumer/producer is ready, e.g. shell exec'd
  */
 
-void
+static void
 channel_register_fds(Channel *c, int rfd, int wfd, int efd,
     int extusage, int nonblock)
 {
@@ -270,7 +269,7 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 
 /* Close all channel fd/socket. */
 
-void
+static void
 channel_close_fds(Channel *c)
 {
 	debug3("channel_close_fds: channel %d: r %d w %d e %d",
@@ -633,20 +632,20 @@ typedef void chan_fn(Channel *c, fd_set * readset, fd_set * writeset);
 chan_fn *channel_pre[SSH_CHANNEL_MAX_TYPE];
 chan_fn *channel_post[SSH_CHANNEL_MAX_TYPE];
 
-void
+static void
 channel_pre_listener(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	FD_SET(c->sock, readset);
 }
 
-void
+static void
 channel_pre_connecting(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	debug3("channel %d: waiting for connection", c->self);
 	FD_SET(c->sock, writeset);
 }
 
-void
+static void
 channel_pre_open_13(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	if (buffer_len(&c->input) < packet_get_maxsize())
@@ -655,7 +654,7 @@ channel_pre_open_13(Channel *c, fd_set * readset, fd_set * writeset)
 		FD_SET(c->sock, writeset);
 }
 
-void
+static void
 channel_pre_open_15(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	/* test whether sockets are 'alive' for read/write */
@@ -672,7 +671,7 @@ channel_pre_open_15(Channel *c, fd_set * readset, fd_set * writeset)
 	}
 }
 
-void
+static void
 channel_pre_open_20(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	if (c->istate == CHAN_INPUT_OPEN &&
@@ -698,7 +697,7 @@ channel_pre_open_20(Channel *c, fd_set * readset, fd_set * writeset)
 	}
 }
 
-void
+static void
 channel_pre_input_draining(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	if (buffer_len(&c->input) == 0) {
@@ -710,7 +709,7 @@ channel_pre_input_draining(Channel *c, fd_set * readset, fd_set * writeset)
 	}
 }
 
-void
+static void
 channel_pre_output_draining(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	if (buffer_len(&c->output) == 0)
@@ -728,7 +727,7 @@ channel_pre_output_draining(Channel *c, fd_set * readset, fd_set * writeset)
  * XXX All this happens at the client side.
  * Returns: 0 = need more data, -1 = wrong cookie, 1 = ok
  */
-int
+static int
 x11_open_helper(Buffer *b)
 {
 	u_char *ucp;
@@ -786,7 +785,7 @@ x11_open_helper(Buffer *b)
 	return 1;
 }
 
-void
+static void
 channel_pre_x11_open_13(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	int ret = x11_open_helper(&c->output);
@@ -811,7 +810,7 @@ channel_pre_x11_open_13(Channel *c, fd_set * readset, fd_set * writeset)
 	}
 }
 
-void
+static void
 channel_pre_x11_open(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	int ret = x11_open_helper(&c->output);
@@ -830,7 +829,7 @@ channel_pre_x11_open(Channel *c, fd_set * readset, fd_set * writeset)
 }
 
 /* try to decode a socks4 header */
-int
+static int
 channel_decode_socks4(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	u_char *p, *host;
@@ -900,7 +899,7 @@ channel_decode_socks4(Channel *c, fd_set * readset, fd_set * writeset)
 }
 
 /* dynamic port forwarding */
-void
+static void
 channel_pre_dynamic(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	u_char *p;
@@ -940,7 +939,7 @@ channel_pre_dynamic(Channel *c, fd_set * readset, fd_set * writeset)
 }
 
 /* This is our fake X11 server socket. */
-void
+static void
 channel_post_x11_listener(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	Channel *nc;
@@ -998,7 +997,7 @@ channel_post_x11_listener(Channel *c, fd_set * readset, fd_set * writeset)
 	}
 }
 
-void
+static void
 port_open_helper(Channel *c, char *rtype)
 {
 	int direct;
@@ -1052,7 +1051,7 @@ port_open_helper(Channel *c, char *rtype)
 /*
  * This socket is listening for connections to a forwarded TCP/IP port.
  */
-void
+static void
 channel_post_port_listener(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	Channel *nc;
@@ -1100,7 +1099,7 @@ channel_post_port_listener(Channel *c, fd_set * readset, fd_set * writeset)
  * This is the authentication agent socket listening for connections from
  * clients.
  */
-void
+static void
 channel_post_auth_listener(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	Channel *nc;
@@ -1140,7 +1139,7 @@ channel_post_auth_listener(Channel *c, fd_set * readset, fd_set * writeset)
 	}
 }
 
-void
+static void
 channel_post_connecting(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	int err = 0;
@@ -1187,7 +1186,7 @@ channel_post_connecting(Channel *c, fd_set * readset, fd_set * writeset)
 	}
 }
 
-int
+static int
 channel_handle_rfd(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	char buf[16*1024];
@@ -1225,7 +1224,7 @@ channel_handle_rfd(Channel *c, fd_set * readset, fd_set * writeset)
 	}
 	return 1;
 }
-int
+static int
 channel_handle_wfd(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	struct termios tio;
@@ -1273,7 +1272,7 @@ channel_handle_wfd(Channel *c, fd_set * readset, fd_set * writeset)
 	}
 	return 1;
 }
-int
+static int
 channel_handle_efd(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	char buf[16*1024];
@@ -1318,7 +1317,7 @@ channel_handle_efd(Channel *c, fd_set * readset, fd_set * writeset)
 	}
 	return 1;
 }
-int
+static int
 channel_check_window(Channel *c)
 {
 	if (c->type == SSH_CHANNEL_OPEN &&
@@ -1338,14 +1337,14 @@ channel_check_window(Channel *c)
 	return 1;
 }
 
-void
+static void
 channel_post_open_1(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	channel_handle_rfd(c, readset, writeset);
 	channel_handle_wfd(c, readset, writeset);
 }
 
-void
+static void
 channel_post_open_2(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	channel_handle_rfd(c, readset, writeset);
@@ -1355,7 +1354,7 @@ channel_post_open_2(Channel *c, fd_set * readset, fd_set * writeset)
 	channel_check_window(c);
 }
 
-void
+static void
 channel_post_output_drain_13(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	int len;
@@ -1370,7 +1369,7 @@ channel_post_output_drain_13(Channel *c, fd_set * readset, fd_set * writeset)
 	}
 }
 
-void
+static void
 channel_handler_init_20(void)
 {
 	channel_pre[SSH_CHANNEL_OPEN] =			&channel_pre_open_20;
@@ -1391,7 +1390,7 @@ channel_handler_init_20(void)
 	channel_post[SSH_CHANNEL_DYNAMIC] =		&channel_post_open_2;
 }
 
-void
+static void
 channel_handler_init_13(void)
 {
 	channel_pre[SSH_CHANNEL_OPEN] =			&channel_pre_open_13;
@@ -1413,7 +1412,7 @@ channel_handler_init_13(void)
 	channel_post[SSH_CHANNEL_DYNAMIC] =		&channel_post_open_1;
 }
 
-void
+static void
 channel_handler_init_15(void)
 {
 	channel_pre[SSH_CHANNEL_OPEN] =			&channel_pre_open_15;
@@ -1432,7 +1431,7 @@ channel_handler_init_15(void)
 	channel_post[SSH_CHANNEL_DYNAMIC] =		&channel_post_open_1;
 }
 
-void
+static void
 channel_handler_init(void)
 {
 	int i;
@@ -1448,7 +1447,7 @@ channel_handler_init(void)
 		channel_handler_init_15();
 }
 
-void
+static void
 channel_handler(chan_fn *ftab[], fd_set * readset, fd_set * writeset)
 {
 	static int did_init = 0;
@@ -1828,7 +1827,7 @@ channel_input_open_confirmation(int type, int plen, void *ctxt)
 	}
 }
 
-char *
+static char *
 reason2txt(int reason)
 {
 	switch(reason) {
@@ -2220,7 +2219,7 @@ channel_clear_permitted_opens(void)
 
 
 /* return socket to remote host, port */
-int
+static int
 connect_to(const char *host, u_short port)
 {
 	struct addrinfo hints, *ai, *aitop;
@@ -2455,8 +2454,7 @@ x11_create_display_inet(int screen_number, int x11_display_offset)
 #define X_UNIX_PATH "/tmp/.X11-unix/X"
 #endif
 
-static
-int
+static int
 connect_local_xsocket(u_int dnr)
 {
 	static const char *const x_sockets[] = {

@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: sftp-server.c,v 1.27 2001/06/22 22:21:20 markus Exp $");
+RCSID("$OpenBSD: sftp-server.c,v 1.28 2001/06/23 15:12:20 itojun Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
@@ -62,7 +62,7 @@ struct Stat {
 	Attrib attrib;
 };
 
-int
+static int
 errno_to_portable(int unixerrno)
 {
 	int ret = 0;
@@ -93,7 +93,7 @@ errno_to_portable(int unixerrno)
 	return ret;
 }
 
-int
+static int
 flags_from_portable(int pflags)
 {
 	int flags = 0;
@@ -115,7 +115,7 @@ flags_from_portable(int pflags)
 	return flags;
 }
 
-Attrib *
+static Attrib *
 get_attrib(void)
 {
 	return decode_attrib(&iqueue);
@@ -139,7 +139,7 @@ enum {
 
 Handle	handles[100];
 
-void
+static void
 handle_init(void)
 {
 	int i;
@@ -148,7 +148,7 @@ handle_init(void)
 		handles[i].use = HANDLE_UNUSED;
 }
 
-int
+static int
 handle_new(int use, char *name, int fd, DIR *dirp)
 {
 	int i;
@@ -165,14 +165,14 @@ handle_new(int use, char *name, int fd, DIR *dirp)
 	return -1;
 }
 
-int
+static int
 handle_is_ok(int i, int type)
 {
 	return i >= 0 && i < sizeof(handles)/sizeof(Handle) &&
 	    handles[i].use == type;
 }
 
-int
+static int
 handle_to_string(int handle, char **stringp, int *hlenp)
 {
 	if (stringp == NULL || hlenp == NULL)
@@ -183,7 +183,7 @@ handle_to_string(int handle, char **stringp, int *hlenp)
 	return 0;
 }
 
-int
+static int
 handle_from_string(char *handle, u_int hlen)
 {
 	int val;
@@ -197,7 +197,7 @@ handle_from_string(char *handle, u_int hlen)
 	return -1;
 }
 
-char *
+static char *
 handle_to_name(int handle)
 {
 	if (handle_is_ok(handle, HANDLE_DIR)||
@@ -206,7 +206,7 @@ handle_to_name(int handle)
 	return NULL;
 }
 
-DIR *
+static DIR *
 handle_to_dir(int handle)
 {
 	if (handle_is_ok(handle, HANDLE_DIR))
@@ -214,7 +214,7 @@ handle_to_dir(int handle)
 	return NULL;
 }
 
-int
+static int
 handle_to_fd(int handle)
 {
 	if (handle_is_ok(handle, HANDLE_FILE))
@@ -222,7 +222,7 @@ handle_to_fd(int handle)
 	return -1;
 }
 
-int
+static int
 handle_close(int handle)
 {
 	int ret = -1;
@@ -239,7 +239,7 @@ handle_close(int handle)
 	return ret;
 }
 
-int
+static int
 get_handle(void)
 {
 	char *handle;
@@ -255,7 +255,7 @@ get_handle(void)
 
 /* send replies */
 
-void
+static void
 send_msg(Buffer *m)
 {
 	int mlen = buffer_len(m);
@@ -265,7 +265,7 @@ send_msg(Buffer *m)
 	buffer_consume(m, mlen);
 }
 
-void
+static void
 send_status(u_int32_t id, u_int32_t error)
 {
 	Buffer msg;
@@ -295,7 +295,7 @@ send_status(u_int32_t id, u_int32_t error)
 	send_msg(&msg);
 	buffer_free(&msg);
 }
-void
+static void
 send_data_or_handle(char type, u_int32_t id, char *data, int dlen)
 {
 	Buffer msg;
@@ -308,14 +308,14 @@ send_data_or_handle(char type, u_int32_t id, char *data, int dlen)
 	buffer_free(&msg);
 }
 
-void
+static void
 send_data(u_int32_t id, char *data, int dlen)
 {
 	TRACE("sent data id %d len %d", id, dlen);
 	send_data_or_handle(SSH2_FXP_DATA, id, data, dlen);
 }
 
-void
+static void
 send_handle(u_int32_t id, int handle)
 {
 	char *string;
@@ -327,7 +327,7 @@ send_handle(u_int32_t id, int handle)
 	xfree(string);
 }
 
-void
+static void
 send_names(u_int32_t id, int count, Stat *stats)
 {
 	Buffer msg;
@@ -347,7 +347,7 @@ send_names(u_int32_t id, int count, Stat *stats)
 	buffer_free(&msg);
 }
 
-void
+static void
 send_attrib(u_int32_t id, Attrib *a)
 {
 	Buffer msg;
@@ -363,7 +363,7 @@ send_attrib(u_int32_t id, Attrib *a)
 
 /* parse incoming */
 
-void
+static void
 process_init(void)
 {
 	Buffer msg;
@@ -377,7 +377,7 @@ process_init(void)
 	buffer_free(&msg);
 }
 
-void
+static void
 process_open(void)
 {
 	u_int32_t id, pflags;
@@ -409,7 +409,7 @@ process_open(void)
 	xfree(name);
 }
 
-void
+static void
 process_close(void)
 {
 	u_int32_t id;
@@ -423,7 +423,7 @@ process_close(void)
 	send_status(id, status);
 }
 
-void
+static void
 process_read(void)
 {
 	char buf[64*1024];
@@ -463,7 +463,7 @@ process_read(void)
 		send_status(id, status);
 }
 
-void
+static void
 process_write(void)
 {
 	u_int32_t id;
@@ -501,7 +501,7 @@ process_write(void)
 	xfree(data);
 }
 
-void
+static void
 process_do_stat(int do_lstat)
 {
 	Attrib a;
@@ -526,19 +526,19 @@ process_do_stat(int do_lstat)
 	xfree(name);
 }
 
-void
+static void
 process_stat(void)
 {
 	process_do_stat(0);
 }
 
-void
+static void
 process_lstat(void)
 {
 	process_do_stat(1);
 }
 
-void
+static void
 process_fstat(void)
 {
 	Attrib a;
@@ -564,7 +564,7 @@ process_fstat(void)
 		send_status(id, status);
 }
 
-struct timeval *
+static struct timeval *
 attrib_to_tv(Attrib *a)
 {
 	static struct timeval tv[2];
@@ -576,7 +576,7 @@ attrib_to_tv(Attrib *a)
 	return tv;
 }
 
-void
+static void
 process_setstat(void)
 {
 	Attrib *a;
@@ -608,7 +608,7 @@ process_setstat(void)
 	xfree(name);
 }
 
-void
+static void
 process_fsetstat(void)
 {
 	Attrib *a;
@@ -657,7 +657,7 @@ process_fsetstat(void)
 	send_status(id, status);
 }
 
-void
+static void
 process_opendir(void)
 {
 	DIR *dirp = NULL;
@@ -689,7 +689,7 @@ process_opendir(void)
 /*
  * drwxr-xr-x    5 markus   markus       1024 Jan 13 18:39 .ssh
  */
-char *
+static char *
 ls_file(char *name, struct stat *st)
 {
 	int ulen, glen, sz = 0;
@@ -728,7 +728,7 @@ ls_file(char *name, struct stat *st)
 	return xstrdup(buf);
 }
 
-void
+static void
 process_readdir(void)
 {
 	DIR *dirp;
@@ -782,7 +782,7 @@ process_readdir(void)
 	}
 }
 
-void
+static void
 process_remove(void)
 {
 	char *name;
@@ -799,7 +799,7 @@ process_remove(void)
 	xfree(name);
 }
 
-void
+static void
 process_mkdir(void)
 {
 	Attrib *a;
@@ -819,7 +819,7 @@ process_mkdir(void)
 	xfree(name);
 }
 
-void
+static void
 process_rmdir(void)
 {
 	u_int32_t id;
@@ -835,7 +835,7 @@ process_rmdir(void)
 	xfree(name);
 }
 
-void
+static void
 process_realpath(void)
 {
 	char resolvedname[MAXPATHLEN];
@@ -860,7 +860,7 @@ process_realpath(void)
 	xfree(path);
 }
 
-void
+static void
 process_rename(void)
 {
 	u_int32_t id;
@@ -882,7 +882,7 @@ process_rename(void)
 	xfree(newpath);
 }
 
-void
+static void
 process_readlink(void)
 {
 	u_int32_t id;
@@ -906,7 +906,7 @@ process_readlink(void)
 	xfree(path);
 }
 
-void
+static void
 process_symlink(void)
 {
 	u_int32_t id;
@@ -928,7 +928,7 @@ process_symlink(void)
 	xfree(newpath);
 }
 
-void
+static void
 process_extended(void)
 {
 	u_int32_t id;
@@ -942,7 +942,7 @@ process_extended(void)
 
 /* stolen from ssh-agent */
 
-void
+static void
 process(void)
 {
 	u_int msg_len;

@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: key.c,v 1.26 2001/06/23 05:26:02 markus Exp $");
+RCSID("$OpenBSD: key.c,v 1.27 2001/06/23 15:12:19 itojun Exp $");
 
 #include <openssl/evp.h>
 
@@ -153,7 +153,7 @@ key_equal(Key *a, Key *b)
 	return 0;
 }
 
-u_char*
+static u_char*
 key_fingerprint_raw(Key *k, enum fp_type dgst_type, size_t *dgst_raw_length)
 {
 	EVP_MD *md = NULL;
@@ -210,7 +210,7 @@ key_fingerprint_raw(Key *k, enum fp_type dgst_type, size_t *dgst_raw_length)
 	return retval;
 }
 
-char*
+static char*
 key_fingerprint_hex(u_char* dgst_raw, size_t dgst_raw_len)
 {
 	char *retval;
@@ -227,7 +227,7 @@ key_fingerprint_hex(u_char* dgst_raw, size_t dgst_raw_len)
 	return retval;
 }
 
-char*
+static char*
 key_fingerprint_bubblebabble(u_char* dgst_raw, size_t dgst_raw_len)
 {
 	char vowels[] = { 'a', 'e', 'i', 'o', 'u', 'y' };
@@ -308,7 +308,7 @@ key_fingerprint(Key *k, enum fp_type dgst_type, enum fp_rep dgst_rep)
  * last processed (and maybe modified) character.  Note that this may modify
  * the buffer containing the number.
  */
-int
+static int
 read_bignum(char **cpp, BIGNUM * value)
 {
 	char *cp = *cpp;
@@ -344,7 +344,7 @@ read_bignum(char **cpp, BIGNUM * value)
 	*cpp = cp;
 	return 1;
 }
-int
+static int
 write_bignum(FILE *f, BIGNUM *num)
 {
 	char *buf = BN_bn2dec(num);
@@ -544,7 +544,7 @@ key_size(Key *k){
 	return 0;
 }
 
-RSA *
+static RSA *
 rsa_generate_private_key(u_int bits)
 {
 	RSA *private;
@@ -554,7 +554,7 @@ rsa_generate_private_key(u_int bits)
 	return private;
 }
 
-DSA*
+static DSA*
 dsa_generate_private_key(u_int bits)
 {
 	DSA *private = DSA_generate_parameters(bits, NULL, 0, NULL, NULL, NULL, NULL);

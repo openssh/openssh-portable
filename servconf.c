@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.83 2001/06/08 15:25:40 markus Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.84 2001/06/23 15:12:19 itojun Exp $");
 
 #ifdef KRB4
 #include <krb.h>
@@ -31,8 +31,8 @@ RCSID("$OpenBSD: servconf.c,v 1.83 2001/06/08 15:25:40 markus Exp $");
 #include "kex.h"
 #include "mac.h"
 
-void add_listen_addr(ServerOptions *options, char *addr, u_short port);
-void add_one_listen_addr(ServerOptions *options, char *addr, u_short port);
+static void add_listen_addr(ServerOptions *, char *, u_short);
+static void add_one_listen_addr(ServerOptions *, char *, u_short);
 
 /* AF_UNSPEC or AF_INET or AF_INET6 */
 extern int IPv4or6;
@@ -333,7 +333,7 @@ parse_token(const char *cp, const char *filename,
 	return sBadOption;
 }
 
-void
+static void
 add_listen_addr(ServerOptions *options, char *addr, u_short port)
 {
 	int i;
@@ -347,7 +347,7 @@ add_listen_addr(ServerOptions *options, char *addr, u_short port)
 		add_one_listen_addr(options, addr, port);
 }
 
-void
+static void
 add_one_listen_addr(ServerOptions *options, char *addr, u_short port)
 {
 	struct addrinfo hints, *ai, *aitop;

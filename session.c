@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.93 2001/06/21 21:08:25 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.94 2001/06/23 15:12:20 itojun Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -120,25 +120,22 @@ struct Session {
 /* func */
 
 Session *session_new(void);
-void	session_set_fds(Session *s, int fdin, int fdout, int fderr);
-void	session_pty_cleanup(void *session);
-int	session_pty_req(Session *s);
-void	session_proctitle(Session *s);
-int	session_setup_x11fwd(Session *s);
-void	session_close(Session *s);
-void	do_exec_pty(Session *s, const char *command);
-void	do_exec_no_pty(Session *s, const char *command);
-void	do_exec(Session *s, const char *command);
-void	do_login(Session *s, const char *command);
-#ifdef LOGIN_NEEDS_UTMPX
-void	do_pre_login(Session *s);
-#endif
-void	do_child(Session *s, const char *command);
+void  session_set_fds(Session *, int, int, int);
+static void   session_pty_cleanup(void *);
+void  session_proctitle(Session *);
+int   session_setup_x11fwd(Session *);
+void  do_exec_pty(Session *, const char *);
+void  do_exec_no_pty(Session *, const char *);
+void  do_exec(Session *, const char *);
+void  do_login(Session *, const char *);
+void  do_child(Session *, const char *);
 void	do_motd(void);
-int	check_quietlogin(Session *s, const char *command);
 
-void	do_authenticated1(Authctxt *authctxt);
-void	do_authenticated2(Authctxt *authctxt);
+static void do_authenticated1(Authctxt *);
+static void do_authenticated2(Authctxt *);
+ 
+static void session_close(Session *);
+static int session_pty_req(Session *);
 
 /* import */
 extern ServerOptions options;
@@ -209,7 +206,7 @@ do_authenticated(Authctxt *authctxt)
  * terminals are allocated, X11, TCP/IP, and authentication agent forwardings
  * are requested, etc.
  */
-void
+static void
 do_authenticated1(Authctxt *authctxt)
 {
 	Session *s;
@@ -738,7 +735,7 @@ check_quietlogin(Session *s, const char *command)
  * Sets the value of the given variable in the environment.  If the variable
  * already exists, its value is overriden.
  */
-void
+static void
 child_set_env(char ***envp, u_int *envsizep, const char *name,
 	      const char *value)
 {
@@ -779,7 +776,7 @@ child_set_env(char ***envp, u_int *envsizep, const char *name,
  * Otherwise, it must consist of empty lines, comments (line starts with '#')
  * and assignments of the form name=value.  No other forms are allowed.
  */
-void
+static void
 read_environment_file(char ***env, u_int *envsize,
 		      const char *filename)
 {
@@ -1488,7 +1485,7 @@ session_new(void)
 	return NULL;
 }
 
-void
+static void
 session_dump(void)
 {
 	int i;
@@ -1520,7 +1517,7 @@ session_open(int chanid)
 	return 1;
 }
 
-Session *
+static Session *
 session_by_channel(int id)
 {
 	int i;
@@ -1536,7 +1533,7 @@ session_by_channel(int id)
 	return NULL;
 }
 
-Session *
+static Session *
 session_by_pid(pid_t pid)
 {
 	int i;
@@ -1551,7 +1548,7 @@ session_by_pid(pid_t pid)
 	return NULL;
 }
 
-int
+static int
 session_window_change_req(Session *s)
 {
 	s->col = packet_get_int();
@@ -1563,7 +1560,7 @@ session_window_change_req(Session *s)
 	return 1;
 }
 
-int
+static int
 session_pty_req(Session *s)
 {
 	u_int len;
@@ -1628,7 +1625,7 @@ session_pty_req(Session *s)
 	return 1;
 }
 
-int
+static int
 session_subsystem_req(Session *s)
 {
 	u_int len;
@@ -1655,7 +1652,7 @@ session_subsystem_req(Session *s)
 	return success;
 }
 
-int
+static int
 session_x11_req(Session *s)
 {
 	int success;
@@ -1676,7 +1673,7 @@ session_x11_req(Session *s)
 	return success;
 }
 
-int
+static int
 session_shell_req(Session *s)
 {
 	packet_done();
@@ -1684,7 +1681,7 @@ session_shell_req(Session *s)
 	return 1;
 }
 
-int
+static int
 session_exec_req(Session *s)
 {
 	u_int len;
@@ -1695,7 +1692,7 @@ session_exec_req(Session *s)
 	return 1;
 }
 
-int
+static int
 session_auth_agent_req(Session *s)
 {
 	static int called = 0;
@@ -1788,7 +1785,7 @@ session_set_fds(Session *s, int fdin, int fdout, int fderr)
  * Function to perform pty cleanup. Also called if we get aborted abnormally
  * (e.g., due to a dropped connection).
  */
-void
+static void
 session_pty_cleanup(void *session)
 {
 	Session *s = session;
@@ -1818,7 +1815,7 @@ session_pty_cleanup(void *session)
 		error("close(s->ptymaster): %s", strerror(errno));
 }
 
-void
+static void
 session_exit_message(Session *s, int status)
 {
 	Channel *c;
@@ -1867,7 +1864,7 @@ session_exit_message(Session *s, int status)
 	s->chanid = -1;
 }
 
-void
+static void
 session_close(Session *s)
 {
 	debug("session_close: session %d pid %d", s->self, s->pid);
@@ -1928,7 +1925,7 @@ session_close_by_channel(int id, void *arg)
 	}
 }
 
-char *
+static char *
 session_tty_list(void)
 {
 	static char buf[1024];
@@ -1991,7 +1988,7 @@ session_setup_x11fwd(Session *s)
 	return 1;
 }
 
-void
+static void
 do_authenticated2(Authctxt *authctxt)
 {
 	server_loop2();

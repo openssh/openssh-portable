@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.199 2001/06/04 23:07:21 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.200 2001/06/23 15:12:21 itojun Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -182,16 +182,15 @@ int session_id2_len = 0;
 u_int utmp_len = MAXHOSTNAMELEN;
 
 /* Prototypes for various functions defined later in this file. */
-void do_ssh1_kex(void);
-void do_ssh2_kex(void);
+void destroy_sensitive_data(void);
 
-void ssh_dh1_server(Kex *, Buffer *_kexinit, Buffer *);
-void ssh_dhgex_server(Kex *, Buffer *_kexinit, Buffer *);
+static void do_ssh1_kex(void);
+static void do_ssh2_kex(void);
 
 /*
  * Close all listening sockets
  */
-void
+static void
 close_listen_socks(void)
 {
 	int i;
@@ -205,7 +204,7 @@ close_listen_socks(void)
  * the effect is to reread the configuration file (and to regenerate
  * the server key).
  */
-void
+static void
 sighup_handler(int sig)
 {
 	received_sighup = 1;
@@ -216,7 +215,7 @@ sighup_handler(int sig)
  * Called from the main program after receiving SIGHUP.
  * Restarts the server.
  */
-void
+static void
 sighup_restart(void)
 {
 	log("Received SIGHUP; restarting.");
@@ -229,7 +228,7 @@ sighup_restart(void)
 /*
  * Generic signal handler for terminating signals in the master daemon.
  */
-void
+static void
 sigterm_handler(int sig)
 {
 	received_sigterm = sig;
@@ -239,7 +238,7 @@ sigterm_handler(int sig)
  * SIGCHLD handler.  This is called whenever a child dies.  This will then
  * reap any zombies left by exited children.
  */
-void
+static void
 main_sigchld_handler(int sig)
 {
 	int save_errno = errno;
@@ -255,7 +254,7 @@ main_sigchld_handler(int sig)
 /*
  * Signal handler for the alarm after the login grace period has expired.
  */
-void
+static void
 grace_alarm_handler(int sig)
 {
 	/* XXX no idea how fix this signal handler */
@@ -274,7 +273,7 @@ grace_alarm_handler(int sig)
  * Thus there should be no concurrency control/asynchronous execution
  * problems.
  */
-void
+static void
 generate_ephemeral_server_key(void)
 {
 	u_int32_t rand = 0;
@@ -297,7 +296,7 @@ generate_ephemeral_server_key(void)
 	arc4random_stir();
 }
 
-void
+static void
 key_regeneration_alarm(int sig)
 {
 	int save_errno = errno;
@@ -306,7 +305,7 @@ key_regeneration_alarm(int sig)
 	key_do_regen = 1;
 }
 
-void
+static void
 sshd_exchange_identification(int sock_in, int sock_out)
 {
 	int i, mismatch;
@@ -456,7 +455,7 @@ destroy_sensitive_data(void)
 	memset(sensitive_data.ssh1_cookie, 0, SSH_SESSION_KEY_LENGTH);
 }
 
-char *
+static char *
 list_hostkey_types(void)
 {
 	static char buf[1024];
@@ -481,7 +480,7 @@ list_hostkey_types(void)
 	return buf;
 }
 
-Key *
+static Key *
 get_hostkey_by_type(int type)
 {
 	int i;
@@ -499,7 +498,7 @@ get_hostkey_by_type(int type)
  * of (max_startups_rate/100). the probability increases linearly until
  * all connections are dropped for startups > max_startups
  */
-int
+static int
 drop_connection(int startups)
 {
 	double p, r;
@@ -1203,7 +1202,7 @@ main(int ac, char **av)
 /*
  * SSH1 key exchange
  */
-void
+static void
 do_ssh1_kex(void)
 {
 	int i, len;
@@ -1424,7 +1423,7 @@ do_ssh1_kex(void)
 /*
  * SSH2 key exchange: diffie-hellman-group1-sha1
  */
-void
+static void
 do_ssh2_kex(void)
 {
 	Kex *kex;
