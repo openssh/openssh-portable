@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.203 2004/02/29 23:53:37 tim Exp $
+# $Id: configure.ac,v 1.202.2.1 2004/02/29 23:54:28 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
