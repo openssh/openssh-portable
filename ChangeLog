@@ -3,6 +3,9 @@
    - deraadt@cvs.openbsd.org 2001/04/14 04:31:01
      [ssh-add.c]
      do not double free
+   - markus@cvs.openbsd.org 2001/04/14 16:17:14
+     [channels.c]
+     remove some channels that are not appropriate for keepalive.
 
 20010414
  - Sync with OpenBSD glob.c, strlcat.c and vis.c changes
@@ -5069,4 +5072,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1111 2001/04/14 23:07:16 mouring Exp $
+$Id: ChangeLog,v 1.1112 2001/04/14 23:08:36 mouring Exp $
