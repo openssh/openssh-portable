@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.115 2001/05/09 22:51:57 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.116 2001/05/16 22:09:20 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -893,7 +893,7 @@ channel_handle_rfd(Channel *c, fd_set * readset, fd_set * writeset)
 	char buf[16*1024];
 	int len;
 
-	if (c->rfd != -1 &&
+	if (c->istate == CHAN_INPUT_OPEN &&
 	    FD_ISSET(c->rfd, readset)) {
 		len = read(c->rfd, buf, sizeof(buf));
 		if (len < 0 && (errno == EINTR || errno == EAGAIN))
@@ -932,7 +932,8 @@ channel_handle_wfd(Channel *c, fd_set * readset, fd_set * writeset)
 	int len;
 
 	/* Send buffered output data to the socket. */
-	if (c->wfd != -1 &&
+	if ((c->ostate == CHAN_OUTPUT_OPEN ||
+	    c->ostate == CHAN_OUTPUT_WAIT_DRAIN) &&
 	    FD_ISSET(c->wfd, writeset) &&
 	    buffer_len(&c->output) > 0) {
 		len = write(c->wfd, buffer_ptr(&c->output),

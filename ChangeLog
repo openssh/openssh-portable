@@ -13,6 +13,9 @@
      [clientloop.c]
      check for open sessions before we call select(); fixes the x11 client
      bug reported by bowman@math.ualberta.ca
+   - markus@cvs.openbsd.org 2001/05/16 22:09:21
+     [channels.c nchan.c]
+     more select() error fixes (don't set rfd/wfd to -1).
 
 20010512
  - OpenBSD CVS Sync
@@ -5418,4 +5421,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1222 2001/05/17 03:19:40 mouring Exp $
+$Id: ChangeLog,v 1.1223 2001/05/17 03:21:27 mouring Exp $
