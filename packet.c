@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.76 2001/12/19 17:16:13 stevesk Exp $");
+RCSID("$OpenBSD: packet.c,v 1.77 2001/12/20 22:50:24 djm Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -610,7 +610,7 @@ packet_send(void)
  */
 
 int
-packet_read(int *payload_len_ptr)
+packet_read_seqnr(int *payload_len_ptr, u_int32_t *seqnr_p)
 {
 	int type, len;
 	fd_set *setp;
@@ -626,7 +626,7 @@ packet_read(int *payload_len_ptr)
 	/* Stay in the loop until we have received a complete packet. */
 	for (;;) {
 		/* Try to read a packet from the buffer. */
-		type = packet_read_poll(payload_len_ptr);
+		type = packet_read_poll_seqnr(payload_len_ptr, seqnr_p);
 		if (!compat20 && (
 		    type == SSH_SMSG_SUCCESS
 		    || type == SSH_SMSG_FAILURE
@@ -663,6 +663,12 @@ packet_read(int *payload_len_ptr)
 		packet_process_incoming(buf, len);
 	}
 	/* NOTREACHED */
+}
+
+int
+packet_read(int *payload_len_ptr)
+{
+	return packet_read_seqnr(payload_len_ptr, NULL);
 }
 
 /*
@@ -753,7 +759,7 @@ packet_read_poll1(int *payload_len_ptr)
 
 	/* Test check bytes. */
 	if (len != buffer_len(&incoming_packet))
-		packet_disconnect("packet_read_poll: len %d != buffer_len %d.",
+		packet_disconnect("packet_read_poll1: len %d != buffer_len %d.",
 		    len, buffer_len(&incoming_packet));
 
 	ucp = (u_char *) buffer_ptr(&incoming_packet) + len - 4;
@@ -775,7 +781,7 @@ packet_read_poll1(int *payload_len_ptr)
 }
 
 static int
-packet_read_poll2(int *payload_len_ptr)
+packet_read_poll2(int *payload_len_ptr, u_int32_t *seqnr_p)
 {
 	static u_int32_t seqnr = 0;
 	static u_int packet_length = 0;
@@ -848,6 +854,8 @@ packet_read_poll2(int *payload_len_ptr)
 		DBG(debug("MAC #%d ok", seqnr));
 		buffer_consume(&input, mac->mac_len);
 	}
+	if (seqnr_p != NULL)
+		*seqnr_p = seqnr;
 	if (++seqnr == 0)
 		log("incoming seqnr wraps around");
 
@@ -890,7 +898,7 @@ packet_read_poll2(int *payload_len_ptr)
 }
 
 int
-packet_read_poll(int *payload_len_ptr)
+packet_read_poll_seqnr(int *payload_len_ptr, u_int32_t *seqnr_p)
 {
 	int reason;
 	u_char type;
@@ -898,7 +906,7 @@ packet_read_poll(int *payload_len_ptr)
 
 	for (;;) {
 		if (compat20) {
-			type = packet_read_poll2(payload_len_ptr);
+			type = packet_read_poll2(payload_len_ptr, seqnr_p);
 			if (type)
 				DBG(debug("received packet type %d", type));
 			switch (type) {
@@ -949,6 +957,12 @@ packet_read_poll(int *payload_len_ptr)
 			}
 		}
 	}
+}
+
+int
+packet_read_poll(int *payload_len_ptr)
+{
+	return packet_read_poll_seqnr(payload_len_ptr, NULL);
 }
 
 /*

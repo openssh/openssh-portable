@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.77 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.78 2001/12/20 22:50:24 djm Exp $");
 
 #include <openssl/evp.h>
 
@@ -69,9 +69,9 @@ struct Authmethod {
 
 /* protocol */
 
-static void input_service_request(int, int, void *);
-static void input_userauth_request(int, int, void *);
-static void protocol_error(int, int, void *);
+static void input_service_request(int, int, u_int32_t, void *);
+static void input_userauth_request(int, int, u_int32_t, void *);
+static void protocol_error(int, int, u_int32_t, void *);
 
 /* helper */
 static Authmethod *authmethod_lookup(const char *);
@@ -130,17 +130,17 @@ do_authentication2(void)
 }
 
 static void
-protocol_error(int type, int plen, void *ctxt)
+protocol_error(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	log("auth: protocol error: type %d plen %d", type, plen);
 	packet_start(SSH2_MSG_UNIMPLEMENTED);
-	packet_put_int(0);
+	packet_put_int(seq);
 	packet_send();
 	packet_write_wait();
 }
 
 static void
-input_service_request(int type, int plen, void *ctxt)
+input_service_request(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	Authctxt *authctxt = ctxt;
 	u_int len;
@@ -173,7 +173,7 @@ input_service_request(int type, int plen, void *ctxt)
 }
 
 static void
-input_userauth_request(int type, int plen, void *ctxt)
+input_userauth_request(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	Authctxt *authctxt = ctxt;
 	Authmethod *m = NULL;

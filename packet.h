@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: packet.h,v 1.27 2001/12/19 17:16:13 stevesk Exp $"); */
+/* RCSID("$OpenBSD: packet.h,v 1.28 2001/12/20 22:50:24 djm Exp $"); */
 
 #ifndef PACKET_H
 #define PACKET_H
@@ -44,6 +44,8 @@ int      packet_read(int *payload_len_ptr);
 void     packet_read_expect(int *payload_len_ptr, int type);
 int      packet_read_poll(int *packet_len_ptr);
 void     packet_process_incoming(const char *buf, u_int len);
+int      packet_read_seqnr(int *payload_len_ptr, u_int32_t *seqnr_p);
+int      packet_read_poll_seqnr(int *packet_len_ptr, u_int32_t *seqnr_p);
 
 u_int	 packet_get_char(void);
 u_int	 packet_get_int(void);

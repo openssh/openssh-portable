@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.149 2001/12/20 16:37:29 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.150 2001/12/20 22:50:24 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1710,7 +1710,7 @@ channel_output_poll(void)
 /* -- protocol input */
 
 void
-channel_input_data(int type, int plen, void *ctxt)
+channel_input_data(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	int id;
 	char *data;
@@ -1756,7 +1756,7 @@ channel_input_data(int type, int plen, void *ctxt)
 }
 
 void
-channel_input_extended_data(int type, int plen, void *ctxt)
+channel_input_extended_data(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	int id;
 	int tcode;
@@ -1796,7 +1796,7 @@ channel_input_extended_data(int type, int plen, void *ctxt)
 }
 
 void
-channel_input_ieof(int type, int plen, void *ctxt)
+channel_input_ieof(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	int id;
 	Channel *c;
@@ -1818,7 +1818,7 @@ channel_input_ieof(int type, int plen, void *ctxt)
 }
 
 void
-channel_input_close(int type, int plen, void *ctxt)
+channel_input_close(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	int id;
 	Channel *c;
@@ -1857,7 +1857,7 @@ channel_input_close(int type, int plen, void *ctxt)
 
 /* proto version 1.5 overloads CLOSE_CONFIRMATION with OCLOSE */
 void
-channel_input_oclose(int type, int plen, void *ctxt)
+channel_input_oclose(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	int id = packet_get_int();
 	Channel *c = channel_lookup(id);
@@ -1868,7 +1868,7 @@ channel_input_oclose(int type, int plen, void *ctxt)
 }
 
 void
-channel_input_close_confirmation(int type, int plen, void *ctxt)
+channel_input_close_confirmation(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	int id = packet_get_int();
 	Channel *c = channel_lookup(id);
@@ -1884,7 +1884,7 @@ channel_input_close_confirmation(int type, int plen, void *ctxt)
 }
 
 void
-channel_input_open_confirmation(int type, int plen, void *ctxt)
+channel_input_open_confirmation(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	int id, remote_id;
 	Channel *c;
@@ -1934,7 +1934,7 @@ reason2txt(int reason)
 }
 
 void
-channel_input_open_failure(int type, int plen, void *ctxt)
+channel_input_open_failure(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	int id, reason;
 	char *msg = NULL, *lang = NULL;
@@ -1968,7 +1968,7 @@ channel_input_open_failure(int type, int plen, void *ctxt)
 }
 
 void
-channel_input_channel_request(int type, int plen, void *ctxt)
+channel_input_channel_request(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	int id;
 	Channel *c;
@@ -1993,7 +1993,7 @@ channel_input_channel_request(int type, int plen, void *ctxt)
 }
 
 void
-channel_input_window_adjust(int type, int plen, void *ctxt)
+channel_input_window_adjust(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	Channel *c;
 	int id, adjust;
@@ -2017,7 +2017,7 @@ channel_input_window_adjust(int type, int plen, void *ctxt)
 }
 
 void
-channel_input_port_open(int type, int plen, void *ctxt)
+channel_input_port_open(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	Channel *c = NULL;
 	u_short host_port;
@@ -2624,7 +2624,7 @@ x11_connect_display(void)
  */
 
 void
-x11_input_open(int type, int plen, void *ctxt)
+x11_input_open(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	Channel *c = NULL;
 	int remote_id, sock = 0;
@@ -2671,7 +2671,7 @@ x11_input_open(int type, int plen, void *ctxt)
 
 /* dummy protocol handler that denies SSH-1 requests (agent/x11) */
 void
-deny_input_open(int type, int plen, void *ctxt)
+deny_input_open(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	int rchan = packet_get_int();
 	switch (type) {
@@ -2882,7 +2882,7 @@ auth_input_request_forwarding(struct passwd * pw)
 /* This is called to process an SSH_SMSG_AGENT_OPEN message. */
 
 void
-auth_input_open_request(int type, int plen, void *ctxt)
+auth_input_open_request(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	Channel *c = NULL;
 	int remote_id, sock;

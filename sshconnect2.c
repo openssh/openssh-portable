@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.88 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.89 2001/12/20 22:50:24 djm Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -174,12 +174,12 @@ struct Authmethod {
 	int	*batch_flag;	/* flag in option struct that disables method */
 };
 
-void	input_userauth_success(int, int, void *);
-void	input_userauth_failure(int, int, void *);
-void	input_userauth_banner(int, int, void *);
-void	input_userauth_error(int, int, void *);
-void	input_userauth_info_req(int, int, void *);
-void	input_userauth_pk_ok(int, int, void *);
+void	input_userauth_success(int, int, u_int32_t, void *);
+void	input_userauth_failure(int, int, u_int32_t, void *);
+void	input_userauth_banner(int, int, u_int32_t, void *);
+void	input_userauth_error(int, int, u_int32_t, void *);
+void	input_userauth_info_req(int, int, u_int32_t, void *);
+void	input_userauth_pk_ok(int, int, u_int32_t, void *);
 
 int	userauth_none(Authctxt *);
 int	userauth_pubkey(Authctxt *);
@@ -308,13 +308,13 @@ userauth(Authctxt *authctxt, char *authlist)
 	}
 }
 void
-input_userauth_error(int type, int plen, void *ctxt)
+input_userauth_error(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	fatal("input_userauth_error: bad message during authentication: "
 	   "type %d", type);
 }
 void
-input_userauth_banner(int type, int plen, void *ctxt)
+input_userauth_banner(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	char *msg, *lang;
 	debug3("input_userauth_banner");
@@ -325,7 +325,7 @@ input_userauth_banner(int type, int plen, void *ctxt)
 	xfree(lang);
 }
 void
-input_userauth_success(int type, int plen, void *ctxt)
+input_userauth_success(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	Authctxt *authctxt = ctxt;
 	if (authctxt == NULL)
@@ -336,7 +336,7 @@ input_userauth_success(int type, int plen, void *ctxt)
 	authctxt->success = 1;			/* break out */
 }
 void
-input_userauth_failure(int type, int plen, void *ctxt)
+input_userauth_failure(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	Authctxt *authctxt = ctxt;
 	char *authlist = NULL;
@@ -357,7 +357,7 @@ input_userauth_failure(int type, int plen, void *ctxt)
 	userauth(authctxt, authlist);
 }
 void
-input_userauth_pk_ok(int type, int plen, void *ctxt)
+input_userauth_pk_ok(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	Authctxt *authctxt = ctxt;
 	Key *key = NULL;
@@ -768,7 +768,7 @@ userauth_kbdint(Authctxt *authctxt)
  * parse INFO_REQUEST, prompt user and send INFO_RESPONSE
  */
 void
-input_userauth_info_req(int type, int plen, void *ctxt)
+input_userauth_info_req(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	Authctxt *authctxt = ctxt;
 	char *name, *inst, *lang, *prompt, *response;

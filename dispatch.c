@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: dispatch.c,v 1.11 2001/06/10 11:29:20 markus Exp $");
+RCSID("$OpenBSD: dispatch.c,v 1.12 2001/12/20 22:50:24 djm Exp $");
 
 #include "ssh1.h"
 #include "ssh2.h"
@@ -37,9 +37,10 @@ RCSID("$OpenBSD: dispatch.c,v 1.11 2001/06/10 11:29:20 markus Exp $");
 dispatch_fn *dispatch[DISPATCH_MAX];
 
 void
-dispatch_protocol_error(int type, int plen, void *ctxt)
+dispatch_protocol_error(int type, int plen, u_int32_t seq, void *ctxt)
 {
-	fatal("dispatch_protocol_error: type %d plen %d", type, plen);
+	fatal("dispatch_protocol_error: type %d seq %u plen %d", type, 
+	    seq, plen);
 }
 void
 dispatch_init(dispatch_fn *dflt)
@@ -59,16 +60,17 @@ dispatch_run(int mode, int *done, void *ctxt)
 	for (;;) {
 		int plen;
 		int type;
+		u_int32_t seqnr;
 
 		if (mode == DISPATCH_BLOCK) {
-			type = packet_read(&plen);
+			type = packet_read_seqnr(&plen, &seqnr);
 		} else {
-			type = packet_read_poll(&plen);
+			type = packet_read_poll_seqnr(&plen, &seqnr);
 			if (type == SSH_MSG_NONE)
 				return;
 		}
 		if (type > 0 && type < DISPATCH_MAX && dispatch[type] != NULL)
-			(*dispatch[type])(type, plen, ctxt);
+			(*dispatch[type])(type, plen, seqnr, ctxt);
 		else
 			packet_disconnect("protocol error: rcvd type %d", type);
 		if (done != NULL && *done)

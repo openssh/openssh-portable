@@ -51,6 +51,13 @@
      [channels.c channels.h session.c]
      setup x11 listen socket for just one connect if the client requests so.
      (v2 only, but the openssh client does not support this feature).
+   - djm@cvs.openbsd.org 2001/12/20 22:50:24
+     [auth2.c auth2-chall.c channels.c channels.h clientloop.c dispatch.c]
+     [dispatch.h kex.c kex.h packet.c packet.h serverloop.c ssh.c]
+     [sshconnect2.c]
+     Conformance fix: we should send failing packet sequence number when
+     responding with a SSH_MSG_UNIMPLEMENTED message. Spotted by
+     yakk@yakk.dot.net; ok markus@
 
 20011219
  - (stevesk) OpenBSD CVS sync X11 localhost display
@@ -7079,4 +7086,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1704 2001/12/21 03:58:35 djm Exp $
+$Id: ChangeLog,v 1.1705 2001/12/21 04:00:19 djm Exp $

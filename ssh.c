@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.152 2001/12/19 17:16:13 stevesk Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.153 2001/12/20 22:50:24 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -1015,7 +1015,7 @@ ssh_session(void)
 }
 
 static void
-client_subsystem_reply(int type, int plen, void *ctxt)
+client_subsystem_reply(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	int id, len;
 

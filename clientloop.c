@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.90 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.91 2001/12/20 22:50:24 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1008,7 +1008,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 /*********/
 
 static void
-client_input_stdout_data(int type, int plen, void *ctxt)
+client_input_stdout_data(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	u_int data_len;
 	char *data = packet_get_string(&data_len);
@@ -1018,7 +1018,7 @@ client_input_stdout_data(int type, int plen, void *ctxt)
 	xfree(data);
 }
 static void
-client_input_stderr_data(int type, int plen, void *ctxt)
+client_input_stderr_data(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	u_int data_len;
 	char *data = packet_get_string(&data_len);
@@ -1028,7 +1028,7 @@ client_input_stderr_data(int type, int plen, void *ctxt)
 	xfree(data);
 }
 static void
-client_input_exit_status(int type, int plen, void *ctxt)
+client_input_exit_status(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	packet_integrity_check(plen, 4, type);
 	exit_status = packet_get_int();
@@ -1149,7 +1149,7 @@ client_request_agent(const char *request_type, int rchan)
 
 /* XXXX move to generic input handler */
 static void
-client_input_channel_open(int type, int plen, void *ctxt)
+client_input_channel_open(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	Channel *c = NULL;
 	char *ctype;
@@ -1201,7 +1201,7 @@ client_input_channel_open(int type, int plen, void *ctxt)
 	xfree(ctype);
 }
 static void
-client_input_channel_req(int type, int plen, void *ctxt)
+client_input_channel_req(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	Channel *c = NULL;
 	int id, reply, success = 0;
