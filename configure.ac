@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.159 2003/09/22 01:26:16 dtucker Exp $
+# $Id: configure.ac,v 1.160 2003/09/22 01:40:25 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -286,6 +286,9 @@ mips-sony-bsd|mips-sony-newsos4)
 	LIBS="$LIBS -lc89"
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(SSHD_ACQUIRES_CTTY)
+	AC_DEFINE(SETEUID_BREAKS_SETUID)
+	AC_DEFINE(BROKEN_SETREUID)
+	AC_DEFINE(BROKEN_SETREGID)
 	;;
 *-sni-sysv*)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
