@@ -1,4 +1,4 @@
-20030303
+20040303
  - (djm) [configure.ac ssh-agent.c] Use prctl to prevent ptrace on ssh-agent
    ok dtucker  
 
@@ -845,4 +845,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3272 2004/03/03 00:08:59 djm Exp $
+$Id: ChangeLog,v 1.3273 2004/03/04 08:47:29 dtucker Exp $
