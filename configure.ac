@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.20 2002/02/13 21:44:06 djm Exp $
+# $Id: configure.ac,v 1.21 2002/02/26 16:40:49 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -320,6 +320,18 @@ AC_ARG_WITH(libs,
 	]	
 )
 
+# Checks for header files.
+AC_CHECK_HEADERS(bstring.h crypt.h endian.h floatingpoint.h \
+	getopt.h glob.h lastlog.h limits.h login.h \
+	login_cap.h maillock.h netdb.h netgroup.h \
+	netinet/in_systm.h paths.h poll.h pty.h \
+	security/pam_appl.h shadow.h stddef.h stdint.h \
+	strings.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h \
+	sys/poll.h sys/queue.h sys/select.h sys/stat.h \
+	sys/stropts.h sys/sysmacros.h sys/time.h \
+	sys/ttcompat.h sys/un.h time.h ttyent.h usersec.h \
+	util.h utime.h utmp.h utmpx.h)
+
 # Checks for libraries.
 AC_CHECK_FUNC(yp_match, , AC_CHECK_LIB(nsl, yp_match))
 AC_CHECK_FUNC(setsockopt, , AC_CHECK_LIB(socket, setsockopt))
@@ -391,19 +403,6 @@ AC_CHECK_FUNCS(logout updwtmp logwtmp)
 
 AC_FUNC_STRFTIME
 
-# Checks for header files.
-AC_CHECK_HEADERS(bstring.h crypt.h endian.h floatingpoint.h \
-	getopt.h glob.h lastlog.h limits.h login.h \
-	login_cap.h maillock.h netdb.h netgroup.h \
-	netinet/in_systm.h paths.h poll.h pty.h \
-	rpc/rpc.h \
-	security/pam_appl.h shadow.h stddef.h stdint.h \
-	strings.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h \
-	sys/poll.h sys/queue.h sys/select.h sys/stat.h \
-	sys/stropts.h sys/sysmacros.h sys/time.h \
-	sys/ttcompat.h sys/un.h time.h ttyent.h usersec.h \
-	util.h utime.h utmp.h utmpx.h)
-
 # Check for ALTDIRFUNC glob() extension
 AC_MSG_CHECKING(for GLOB_ALTDIRFUNC support)
 AC_EGREP_CPP(FOUNDIT,
@@ -469,9 +468,16 @@ AC_ARG_WITH(skey,
 			LIBS="-lskey $LIBS"
 			SKEY_MSG="yes" 
 	
-			AC_CHECK_FUNC(skey_keyinfo,
-				[],
+			AC_MSG_CHECKING([for s/key support])
+			AC_TRY_RUN(
 				[
+#include <stdio.h>
+#include <skey.h>
+int main() { char *ff = skey_keyinfo(""); ff=""; return 0; }
+				],
+				[AC_MSG_RESULT(yes)],
+				[
+					AC_MSG_RESULT(no)
 					AC_MSG_ERROR([** Incomplete or missing s/key libraries.])
 				])
 		fi
@@ -508,7 +514,8 @@ AC_ARG_WITH(tcp-wrappers,
 					CPPFLAGS="-I${withval} ${CPPFLAGS}"
 				fi
 			fi
-			LIBS="-lwrap $LIBS"
+			LIBWRAP="-lwrap"
+			LIBS="$LIBWRAP $LIBS"
 			AC_MSG_CHECKING(for libwrap)
 			AC_TRY_LINK(
 				[
@@ -519,12 +526,14 @@ AC_ARG_WITH(tcp-wrappers,
 				[
 					AC_MSG_RESULT(yes)
 					AC_DEFINE(LIBWRAP)
+					AC_SUBST(LIBWRAP)
 					TCPW_MSG="yes"
 				],
 				[
 					AC_MSG_ERROR([*** libwrap missing])
 				]
 			)
+			LIBS="$saved_LIBS"
 		fi
 	]
 )
@@ -640,6 +649,7 @@ AC_ARG_WITH(pam,
 			PAM_MSG="yes"
 
 			AC_DEFINE(USE_PAM)
+			AC_SUBST(LIBPAM, ["-lpam -ldl"])
 		fi
 	]
 )
@@ -956,6 +966,25 @@ AC_ARG_WITH(prngd-socket,
 			PRNGD_SOCKET="$withval"
 			AC_DEFINE_UNQUOTED(PRNGD_SOCKET, "$PRNGD_SOCKET")
 		fi
+	],
+	[
+		# Check for existing socket only if we don't have a random device already
+		if test "$USE_RAND_HELPER" = yes ; then
+			AC_MSG_CHECKING(for PRNGD/EGD socket)
+			# Insert other locations here
+			for sock in /var/run/egd-pool /dev/egd-pool /etc/entropy; do
+				if test -r $sock && $TEST_MINUS_S_SH -c "test -S $sock -o -p $sock" ; then
+					PRNGD_SOCKET="$sock"
+					AC_DEFINE_UNQUOTED(PRNGD_SOCKET, "$PRNGD_SOCKET")
+					break;
+				fi
+			done
+			if test ! -z "$PRNGD_SOCKET" ; then
+				AC_MSG_RESULT($PRNGD_SOCKET)
+			else
+				AC_MSG_RESULT(not found)
+			fi
+		fi
 	]
 )
 
@@ -1086,6 +1115,19 @@ if test -z "$have_int64_t" ; then
 	)
 fi
 
+if test -z "$have_int64_t" ; then
+    AC_MSG_CHECKING([for int64_t type in sys/bitypes.h])
+	AC_TRY_COMPILE(
+		[ #include <sys/bitypes.h> ], 
+		[ int64_t a; a = 1],
+		[
+			AC_DEFINE(HAVE_INT64_T)
+			AC_MSG_RESULT(yes)
+		],
+		[ AC_MSG_RESULT(no) ]
+	)
+fi
+
 AC_CACHE_CHECK([for u_intXX_t types], ac_cv_have_u_intxx_t, [
 	AC_TRY_COMPILE(
 		[ #include <sys/types.h> ], 
@@ -1123,6 +1165,19 @@ AC_CACHE_CHECK([for u_int64_t types], ac_cv_have_u_int64_t, [
 if test "x$ac_cv_have_u_int64_t" = "xyes" ; then
 	AC_DEFINE(HAVE_U_INT64_T)
 	have_u_int64_t=1
+fi
+
+if test -z "$have_u_int64_t" ; then
+    AC_MSG_CHECKING([for u_int64_t type in sys/bitypes.h])
+	AC_TRY_COMPILE(
+		[ #include <sys/bitypes.h> ], 
+		[ u_int64_t a; a = 1],
+		[
+			AC_DEFINE(HAVE_U_INT64_T)
+			AC_MSG_RESULT(yes)
+		],
+		[ AC_MSG_RESULT(no) ]
+	)
 fi
 
 if test -z "$have_u_intxx_t" ; then
@@ -1192,6 +1247,8 @@ if test "x$ac_cv_have_u_char" = "xyes" ; then
 fi
 
 TYPE_SOCKLEN_T
+
+AC_CHECK_TYPES(sig_atomic_t)
 
 AC_CACHE_CHECK([for size_t], ac_cv_have_size_t, [
 	AC_TRY_COMPILE(
@@ -2191,6 +2248,11 @@ if test ! -z "$blibpath" ; then
 	AC_MSG_WARN([Please check and edit -blibpath in LDFLAGS in Makefile])
 fi
 
+dnl remove pam and dl because they are in $LIBPAM
+if test "$PAM_MSG" = yes ; then
+	LIBS=`echo $LIBS | sed 's/-lpam -ldl //'`
+fi
+
 AC_EXEEXT
 AC_CONFIG_FILES([Makefile openbsd-compat/Makefile scard/Makefile ssh_prng_cmds])
 AC_OUTPUT
@@ -2240,7 +2302,7 @@ echo "          Compiler: ${CC}"
 echo "    Compiler flags: ${CFLAGS}"
 echo "Preprocessor flags: ${CPPFLAGS}"
 echo "      Linker flags: ${LDFLAGS}"
-echo "         Libraries: ${LIBS}"
+echo "         Libraries: ${LIBWRAP} ${LIBPAM} ${LIBS}"
 
 echo ""
 

@@ -1,3 +1,19 @@
+20020226
+ - (tim) Bug 12 [configure.ac] add sys/bitypes.h to int64_t tests
+   based on patch by mooney@dogbert.cc.ndsu.nodak.edu (Tim Mooney)
+   Bug 45 [configure.ac] modify skey test to work around conflict with autoconf
+   reported by nolan@naic.edu (Michael Nolan)
+   patch by  Pekka Savola <pekkas@netcore.fi>
+   Bug 74 [configure.ac defines.h] add sig_atomic_t test
+   reported by dwd@bell-labs.com (Dave Dykstra)
+   Bug 102 [defines.h] UNICOS fixes. patch by wendyp@cray.com
+   [configure.ac Makefile.in] link libwrap only with sshd
+   based on patch by Maciej W. Rozycki <macro@ds2.pg.gda.pl>
+   Bug 123 link libpam only with sshd
+   reported by peak@argo.troja.mff.cuni.cz (Pavel Kankovsky)
+   [configure.ac defines.h] modify previous SCO3 fix to not break Solaris 7
+   [acconfig.h] remove unused HAVE_REGCOMP
+
 20020225
  - (bal) Last AIX patch.  Moved aix_usrinfo() outside of do_setuserconext()
    since we need more session information than provided by that function.
@@ -7670,4 +7686,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1874 2002/02/25 15:48:02 mouring Exp $
+$Id: ChangeLog,v 1.1875 2002/02/26 16:40:48 tim Exp $

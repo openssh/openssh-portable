@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.195 2002/02/10 07:32:29 djm Exp $
+# $Id: Makefile.in,v 1.196 2002/02/26 16:40:49 tim Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -31,6 +31,8 @@ LD=@LD@
 CFLAGS=@CFLAGS@
 CPPFLAGS=-I. -I$(srcdir) @CPPFLAGS@ $(PATHS) @DEFS@
 LIBS=@LIBS@
+LIBPAM=@LIBPAM@
+LIBWRAP=@LIBWRAP@
 AR=@AR@
 RANLIB=@RANLIB@
 INSTALL=@INSTALL@
@@ -100,7 +102,7 @@ ssh$(EXEEXT): $(LIBCOMPAT) libssh.a $(SSHOBJS)
 	$(LD) -o $@ $(SSHOBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
 sshd$(EXEEXT): libssh.a	$(LIBCOMPAT) $(SSHDOBJS)
-	$(LD) -o $@ $(SSHDOBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
+	$(LD) -o $@ $(SSHDOBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBWRAP) $(LIBPAM) $(LIBS)
 
 scp$(EXEEXT): $(LIBCOMPAT) libssh.a scp.o
 	$(LD) -o $@ scp.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
