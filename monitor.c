@@ -143,7 +143,9 @@ struct mon_table mon_dispatch_proto20[] = {
     {MONITOR_REQ_SIGN, MON_ONCE, mm_answer_sign},
     {MONITOR_REQ_PWNAM, MON_ONCE, mm_answer_pwnamallow},
     {MONITOR_REQ_AUTHSERV, MON_ONCE, mm_answer_authserv},
+#if !defined(USE_PAM)
     {MONITOR_REQ_AUTHPASSWORD, MON_AUTH, mm_answer_authpassword},
+#endif
 #ifdef BSD_AUTH
     {MONITOR_REQ_BSDAUTHQUERY, MON_ISAUTH, mm_answer_bsdauthquery},
     {MONITOR_REQ_BSDAUTHRESPOND, MON_AUTH,mm_answer_bsdauthrespond},
@@ -170,7 +172,9 @@ struct mon_table mon_dispatch_proto15[] = {
     {MONITOR_REQ_PWNAM, MON_ONCE, mm_answer_pwnamallow},
     {MONITOR_REQ_SESSKEY, MON_ONCE, mm_answer_sesskey},
     {MONITOR_REQ_SESSID, MON_ONCE, mm_answer_sessid},
+#if !defined(USE_PAM)
     {MONITOR_REQ_AUTHPASSWORD, MON_AUTH, mm_answer_authpassword},
+#endif
     {MONITOR_REQ_RSAKEYALLOWED, MON_ISAUTH, mm_answer_rsa_keyallowed},
     {MONITOR_REQ_KEYALLOWED, MON_ISAUTH, mm_answer_keyallowed},
     {MONITOR_REQ_RSACHALLENGE, MON_ONCE, mm_answer_rsa_challenge},
@@ -533,6 +537,7 @@ mm_answer_authserv(int socket, Buffer *m)
 	return (0);
 }
 
+#if !defined(USE_PAM)
 int
 mm_answer_authpassword(int socket, Buffer *m)
 {
@@ -561,6 +566,7 @@ mm_answer_authpassword(int socket, Buffer *m)
 	/* Causes monitor loop to terminate if authenticated */
 	return (authenticated);
 }
+#endif
 
 #ifdef BSD_AUTH
 int
