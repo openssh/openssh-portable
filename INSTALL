@@ -82,9 +82,6 @@ Daemon support and to specify a EGD pool socket. You will need to
 use this if your Unix does not support the /dev/urandom device (or
 similar).
 
---without-askpass will disable X11 password requestor support in
-ssh-add
-
 --with-kerberos4 will enable Kerberos IV support. You will need to
 have the Kerberos libraries and header files installed for this to
 work.

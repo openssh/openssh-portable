@@ -137,46 +137,23 @@ AC_TRY_COMPILE(
 	]
 ) 
 
-dnl Check whether use wants to disable the external ssh-askpass
-INSTALL_ASKPASS="yes"
-AC_MSG_CHECKING([whether to enable external ssh-askpass support])
-AC_ARG_WITH(askpass,
-	[  --with-askpass=yes/no   Enable external ssh-askpass support (default=yes)],
+AC_MSG_CHECKING([whether to build GNOME ssh-askpass])
+dnl Check whether user wants GNOME ssh-askpass
+AC_ARG_WITH(gnome-askpass,
+	[  --with-gnome-askpass    Build the GNOME passphrase requester (default=no)],
 	[
 		if test x$withval = xno ; then
-			INSTALL_ASKPASS="no"
+			GNOME_ASKPASS="";
 		else
-			INSTALL_ASKPASS="yes"
+			GNOME_ASKPASS="gnome-ssh-askpass";
 		fi
-	]
-)
-if test "x$INSTALL_ASKPASS" = "xyes" ; then
-	AC_DEFINE(USE_EXTERNAL_ASKPASS)
-	AC_SUBST(INSTALL_ASKPASS)
-	AC_MSG_RESULT(yes)
-else
+	])
+AC_SUBST(GNOME_ASKPASS)
+
+if test -z "$GNOME_ASKPASS" ; then
 	AC_MSG_RESULT(no)
-fi
-
-if test "x$INSTALL_ASKPASS" = "xyes" ; then
-	AC_MSG_CHECKING([whether to build GNOME ssh-askpass])
-	dnl Check whether user wants GNOME ssh-askpass
-	AC_ARG_WITH(gnome-askpass,
-		[  --with-gnome-askpass    Build the GNOME passphrase requester (default=no)],
-		[
-			if test x$withval = xno ; then
-				GNOME_ASKPASS="";
-			else
-				GNOME_ASKPASS="gnome-ssh-askpass";
-			fi
-		])
-	AC_SUBST(GNOME_ASKPASS)
-
-	if test -z "$GNOME_ASKPASS" ; then
-		AC_MSG_RESULT(no)
-	else
-		AC_MSG_RESULT(yes)
-	fi
+else
+	AC_MSG_RESULT(yes)
 fi
 
 dnl Check for user-specified random device
