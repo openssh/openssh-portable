@@ -1,6 +1,11 @@
+20000513
+ - Fix for non-recognised DSA keys from Arkadiusz Miskiewicz 
+   <misiek@pld.org.pl>
+
 20000511
  - Fix for prng_seed permissions checking from Lutz Jaenicke 
    <Lutz.Jaenicke@aet.TU-Cottbus.DE>
+ - "make host-key" fix for Irix
 
 20000509
  - OpenBSD CVS update

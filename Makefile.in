@@ -140,8 +140,8 @@ install: manpages $(TARGETS)
 	fi
 
 host-key: ssh-keygen
-	./ssh-keygen -b 1024 -f $(sysconfdir)/ssh_host_key -N ''
-	./ssh-keygen -d -f $(sysconfdir)/ssh_host_dsa_key -N ''
+	./ssh-keygen -b 1024 -f $(sysconfdir)/ssh_host_key -N ""
+	./ssh-keygen -d -f $(sysconfdir)/ssh_host_dsa_key -N ""
 
 uninstallall:	uninstall
 	-rm -f $(DESTDIR)$(sysconfdir)/ssh_config

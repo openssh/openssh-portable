@@ -255,7 +255,7 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 			temporarily_use_uid(original_real_uid);
 			if (connect(sock, ai->ai_addr, ai->ai_addrlen) >= 0) {
 				/* Successful connection. */
-				memcpy(hostaddr, ai->ai_addr, sizeof(*(ai->ai_addr)));
+				memcpy(hostaddr, ai->ai_addr, ai->ai_addrlen);
 				restore_uid();
 				break;
 			} else {
