@@ -72,6 +72,7 @@ case "$1" in
 		echo -n "Shutting down sshd: "
 		if [ -f $PID_FILE ] ; then
 			killproc sshd
+			RETVAL=$?
 			[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/sshd
 		fi
 		echo
