@@ -670,7 +670,7 @@ AC_ARG_WITH(pid-dir,
 		fi
 	]
 )
-AC_DEFINE_UNQUOTED(PID_DIR, "$piddir")
+AC_DEFINE_UNQUOTED(PIDDIR, "$piddir")
 AC_SUBST(piddir)
 
 dnl Check for mail directory (last resort if we cannot get it from headers)

@@ -133,7 +133,7 @@
 #undef USER_PATH
 
 /* Specify location of ssh.pid */
-#undef PID_DIR
+#undef PIDDIR
 
 @BOTTOM@
 
