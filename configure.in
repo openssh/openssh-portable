@@ -61,8 +61,11 @@ case "$host" in
 	AC_DEFINE(USE_UTMPX)
 	;;
 *-*-irix5*)
-	AC_DEFINE(CRYPT_H_BREAKS_BUILD)
-#	CFLAGS="$CFLAGS -shared"
+	no_libsocket=1
+	no_libnsl=1
+	;;
+*-*-irix6*)
+	AC_MSG_WARN([*** Irix 6.x is not tested *** ])
 	no_libsocket=1
 	no_libnsl=1
 	;;
@@ -106,7 +109,6 @@ dnl Checks for libraries.
 AC_CHECK_LIB(crypto, CRYPTO_lock, ,AC_MSG_ERROR([*** libcrypto missing - please install first ***]))
 AC_CHECK_LIB(z, deflate, ,AC_MSG_ERROR([*** zlib missing - please install first ***]))
 AC_CHECK_LIB(util, login, AC_DEFINE(HAVE_LIBUTIL_LOGIN) LIBS="$LIBS -lutil")
-AC_CHECK_LIB(crypt, crypt, , )
 
 if test -z "$no_libsocket" ; then
 	AC_CHECK_LIB(nsl, yp_match, , )
@@ -116,7 +118,7 @@ if test -z "$no_libnsl" ; then
 fi
 
 dnl Checks for header files.
-AC_CHECK_HEADERS(bstring.h crypt.h endian.h lastlog.h login.h maillock.h netdb.h netgroup.h paths.h poll.h pty.h shadow.h security/pam_appl.h sys/bsdtty.h sys/cdefs.h sys/poll.h sys/select.h sys/stropts.h sys/time.h sys/ttcompat.h util.h utmp.h utmpx.h)
+AC_CHECK_HEADERS(bstring.h endian.h lastlog.h login.h maillock.h netdb.h netgroup.h paths.h poll.h pty.h shadow.h security/pam_appl.h sys/bsdtty.h sys/cdefs.h sys/poll.h sys/select.h sys/stropts.h sys/time.h sys/ttcompat.h util.h utmp.h utmpx.h)
 
 dnl Checks for library functions.
 AC_CHECK_FUNCS(arc4random getpagesize _getpty innetgr md5_crypt mkdtemp openpty setenv seteuid setlogin setproctitle setreuid snprintf strlcat strlcpy updwtmpx vsnprintf)

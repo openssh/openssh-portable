@@ -11,7 +11,7 @@
 
 #ifndef USE_PAM
 
-RCSID("$Id: auth-passwd.c,v 1.14 1999/12/30 21:49:13 damien Exp $");
+RCSID("$Id: auth-passwd.c,v 1.15 2000/01/06 01:03:13 damien Exp $");
 
 #include "packet.h"
 #include "ssh.h"
@@ -21,9 +21,6 @@ RCSID("$Id: auth-passwd.c,v 1.14 1999/12/30 21:49:13 damien Exp $");
 #ifdef HAVE_SHADOW_H
 # include <shadow.h>
 #endif
-#if defined(HAVE_CRYPT_H) && !defined(CRYPT_H_BREAKS_BUILD)
-# include <crypt.h>
-#endif /* defined(HAVE_CRYPT_H) && !defined(CRYPT_H_BREAKS_BUILD) */
 #if defined(HAVE_MD5_PASSWORDS) && !defined(HAVE_MD5_CRYPT)
 # include "md5crypt.h"
 #endif /* defined(HAVE_MD5_PASSWORDS) && !defined(HAVE_MD5_CRYPT) */

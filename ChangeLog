@@ -1,3 +1,10 @@
+20000105
+ - Fixed annoying DES corruption problem. libcrypt has been 
+   overriding symbols in libcrypto. Removed libcrypt and crypt.h
+   altogether (libcrypto includes its own crypt(1) replacement)
+ - Added platform-specific rules for Irix 6.x. Included warning that
+   they are untested.
+
 20000103
  - Add explicit make rules for files proccessed by fixpaths.
  - Fix "make install" in RPM spec files. Report from Tenkou N. Hattori  

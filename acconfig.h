@@ -138,9 +138,6 @@
 /* Specify default $PATH */
 #undef USER_PATH
 
-/* Define if the inclusion of crypt.h breaks the build (e.g. Irix 5.x) */
-#undef CRYPT_H_BREAKS_BUILD
-
 @BOTTOM@
 
 /* ******************* Shouldn't need to edit below this line ************** */
