@@ -1,3 +1,7 @@
+20020331
+ - (tim) [configure.ac] use /bin/test -L to work around broken builtin on
+   Solaris 8
+
 20020330
  - (stevesk) [configure.ac] remove header check for sys/ttcompat.h
    bug 167
@@ -8093,4 +8097,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2002 2002/03/30 17:55:21 stevesk Exp $
+$Id: ChangeLog,v 1.2003 2002/03/31 19:23:06 tim Exp $

@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.29 2002/03/30 17:55:23 stevesk Exp $
+# $Id: configure.ac,v 1.30 2002/03/31 19:23:07 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -1015,7 +1015,7 @@ AC_DEFINE_UNQUOTED(ENTROPY_TIMEOUT_MSEC, $entropy_timeout)
 
 OPATH=$PATH
 PATH=/bin:/usr/bin
-test -L /bin && PATH=/usr/bin
+/bin/test -L /bin && PATH=/usr/bin
 test -d /sbin && PATH=$PATH:/sbin
 test -d /usr/sbin && PATH=$PATH:/usr/sbin
 PATH=$PATH:/etc:$OPATH
