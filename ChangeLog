@@ -1,5 +1,7 @@
 20001020
  - (djm) Don't define _REENTRANT for SNI/Reliant Unix
+ - (bal) Imported NEWS-OS waitpid() macros into NeXT.  Since implementation
+   is more correct then current version.
 
 20001018
  - (stevesk) Add initial support for setproctitle().  Current

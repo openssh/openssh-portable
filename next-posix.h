@@ -39,11 +39,14 @@
 #undef WIFSTOPPED
 #undef WIFSIGNALED
 
-#define WIFEXITED(w)	(!((w) & 0377))
-#define WIFSTOPPED(w)	((w) & 0100)
+#define _W_INT(w)	(*(int*)&(w))	/* convert union wait to int */
+#define WIFEXITED(w)	(!((_W_INT(w)) & 0377))
+#define WIFSTOPPED(w)	((_W_INT(w)) & 0100)
 #define WIFSIGNALED(w)	(!WIFEXITED(w) && !WIFSTOPPED(w))
-#define WEXITSTATUS(w)	(int)(WIFEXITED(w) ? (((w) >> 8) & 0377) : -1)
-#define WTERMSIG(w)	(int)(WIFSIGNALED(w) ? ((w) & 0177) : -1)
+#define WEXITSTATUS(w)	(int)(WIFEXITED(w) ? ((_W_INT(w) >> 8) & 0377) : -1)
+#define WTERMSIG(w)	(int)(WIFSIGNALED(w) ? (_W_INT(w) & 0177) : -1)
+#define WCOREFLAG	0x80
+#define WCOREDUMP(w) 	((_W_INT(w)) & WCOREFLAG)
 
 /* Swap out the next 'BSDish' wait() for a more POSIX complient one */
 pid_t posix_wait(int *status);
