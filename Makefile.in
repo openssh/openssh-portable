@@ -33,7 +33,9 @@ INSTALL_SSH_PRNG_CMDS=@INSTALL_SSH_PRNG_CMDS@
 
 TARGETS=ssh sshd ssh-add ssh-keygen ssh-agent scp $(EXTRA_TARGETS)
 
-LIBOBJS= atomicio.o authfd.o authfile.o bsd-base64.o bsd-bindresvport.o bsd-daemon.o bsd-misc.o bsd-mktemp.o bsd-rresvport.o bsd-setenv.o bsd-snprintf.o bsd-strlcat.o bsd-strlcpy.o bufaux.o buffer.o canohost.o channels.o cipher.o compat.o compress.o crc32.o deattack.o dispatch.o dsa.o fake-getaddrinfo.o fake-getnameinfo.o fingerprint.o hmac.o hostfile.o key.o kex.o log.o match.o mpaux.o nchan.o packet.o radix.o entropy.o readpass.o rsa.o tildexpand.o ttymodes.o uidswap.o uuencode.o xmalloc.o 
+LIBSSH_OBJS=atomicio.o authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o cipher.o compat.o compress.o crc32.o deattack.o dispatch.o dsa.o fingerprint.o hmac.o hostfile.o key.o kex.o log.o match.o mpaux.o nchan.o packet.o radix.o entropy.o readpass.o rsa.o tildexpand.o ttymodes.o uidswap.o uuencode.o xmalloc.o 
+
+LIBOPENBSD_COMPAT_OBJS=bsd-base64.o bsd-bindresvport.o bsd-daemon.o bsd-misc.o bsd-mktemp.o bsd-rresvport.o bsd-setenv.o bsd-snprintf.o bsd-strlcat.o bsd-strlcpy.o fake-getaddrinfo.o fake-getnameinfo.o 
 
 SSHOBJS= ssh.o sshconnect.o sshconnect1.o sshconnect2.o log-client.o readconf.o clientloop.o
 
@@ -53,29 +55,35 @@ all: $(TARGETS) $(CONFIGFILES)
 
 manpages: $(MANPAGES)
 
-$(LIBOBJS): config.h
+$(LIBSSH_OBJS): config.h
 
-libssh.a: $(LIBOBJS)
-	$(AR) rv $@ $(LIBOBJS)
+$(LIBOPENBSD_COMPAT_OBJS): config.h
+
+libopenbsd-compat.a: $(LIBOPENBSD_COMPAT_OBJS)
+	$(AR) rv $@ $(LIBOPENBSD_COMPAT_OBJS)
 	$(RANLIB) $@
 
-ssh: libssh.a $(SSHOBJS)
-	$(LD) -o $@ $(SSHOBJS) $(LDFLAGS) -lssh $(LIBS)
+libssh.a: $(LIBSSH_OBJS)
+	$(AR) rv $@ $(LIBSSH_OBJS)
+	$(RANLIB) $@
 
-sshd: libssh.a	$(SSHDOBJS)
-	$(LD) -o $@ $(SSHDOBJS) $(LDFLAGS) -lssh $(LIBS)
+ssh: libopenbsd-compat.a libssh.a $(SSHOBJS)
+	$(LD) -o $@ $(SSHOBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
-scp: libssh.a scp.o
-	$(LD) -o $@ scp.o $(LDFLAGS) -lssh $(LIBS) 
+sshd: libssh.a	libopenbsd-compat.a $(SSHDOBJS)
+	$(LD) -o $@ $(SSHDOBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
-ssh-add: libssh.a ssh-add.o log-client.o
-	$(LD) -o $@ ssh-add.o log-client.o $(LDFLAGS) -lssh $(LIBS) 
+scp: libopenbsd-compat.a libssh.a scp.o
+	$(LD) -o $@ scp.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
-ssh-agent: libssh.a ssh-agent.o log-client.o
-	$(LD) -o $@ ssh-agent.o log-client.o $(LDFLAGS) -lssh $(LIBS) 
+ssh-add: libopenbsd-compat.a libssh.a ssh-add.o log-client.o
+	$(LD) -o $@ ssh-add.o log-client.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
-ssh-keygen: libssh.a ssh-keygen.o log-client.o
-	$(LD) -o $@ ssh-keygen.o log-client.o $(LDFLAGS) -lssh $(LIBS) 
+ssh-agent: libopenbsd-compat.a libssh.a ssh-agent.o log-client.o
+	$(LD) -o $@ ssh-agent.o log-client.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
+
+ssh-keygen: libopenbsd-compat.a libssh.a ssh-keygen.o log-client.o
+	$(LD) -o $@ ssh-keygen.o log-client.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
 $(MANPAGES) $(CONFIGFILES)::
 	$(FIXPATHSCMD) $(srcdir)/$@

@@ -21,7 +21,7 @@
     - handle escapes in real and original key format, ok millert@
     [version.h]
     - OpenSSH-2.1
-
+ - Moved all the bsd-* and fake-* stuff into new libopenbsd-compat.a
 
 20000508
  - Makefile and RPM spec fixes

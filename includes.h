@@ -89,22 +89,8 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 
 #include "version.h"
 
-/* BSD function replacements */
-#include "bsd-bindresvport.h"
-#include "bsd-rresvport.h"
-#include "bsd-misc.h"
-#include "bsd-strlcpy.h"
-#include "bsd-strlcat.h"
-#include "bsd-mktemp.h"
-#include "bsd-snprintf.h"
-#include "bsd-daemon.h"
-#include "bsd-login.h"
-#include "bsd-base64.h"
-
-/* rfc2553 socket API replacements */
-#include "fake-getaddrinfo.h"
-#include "fake-getnameinfo.h"
-#include "fake-socket.h"
+/* OpenBSD function replacements */
+#include "openbsd-compat.h"
 
 /* Entropy collection */
 #include "entropy.h"
