@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.109 2004/01/27 05:40:35 tim Exp $ */
+/* $Id: defines.h,v 1.110 2004/02/10 02:01:14 dtucker Exp $ */
 
 
 /* Constants */
@@ -585,6 +585,9 @@ struct winsize {
 #  endif
 #endif
 
+#if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
+# define USE_SHADOW
+#endif
 
 /* The login() library function in libutil is first choice */
 #if defined(HAVE_LOGIN) && !defined(DISABLE_LOGIN)
