@@ -12,6 +12,9 @@
      [sshd.8]
      new sentence, new line;
      whitespace;
+   - jmc@cvs.openbsd.org 2005/03/01 15:05:00
+     [ssh-keygen.1]
+     whitespace;
 
 20050301
  - (djm) OpenBSD CVS sync:
@@ -2231,4 +2234,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3678 2005/03/02 01:03:23 djm Exp $
+$Id: ChangeLog,v 1.3679 2005/03/02 01:03:43 djm Exp $

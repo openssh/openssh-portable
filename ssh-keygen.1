@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.64 2005/03/01 10:42:49 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.65 2005/03/01 15:05:00 jmc Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -273,15 +273,15 @@ and
 .Nm sshd ,
 but they do not reveal identifying information should the file's contents
 be disclosed.
-This option will not modify existing hashed hostnames and is therefore safe 
+This option will not modify existing hashed hostnames and is therefore safe
 to use on files that mix hashed and non-hashed names.
 .It Fl R Ar hostname
 Removes all keys belonging to
 .Ar hostname
-from a 
+from a
 .Pa known_hosts
 file.
-This option is useful to delete hashed hosts (see the 
+This option is useful to delete hashed hosts (see the
 .Fl H
 option above).
 .It Fl G Ar output_file
