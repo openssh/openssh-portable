@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.87 2001/06/12 21:21:29 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.88 2001/06/12 21:30:57 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1960,7 +1960,6 @@ session_proctitle(Session *s)
 int
 session_setup_x11fwd(Session *s)
 {
-	int fd;
 	struct stat st;
 
 	if (no_x11_forwarding_flag) {
