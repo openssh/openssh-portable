@@ -22,8 +22,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef SMARTCARD
 #include "includes.h"
+#ifdef SMARTCARD
 RCSID("$OpenBSD: scard.c,v 1.13 2001/08/02 16:14:05 jakob Exp $");
 
 #include <openssl/engine.h>

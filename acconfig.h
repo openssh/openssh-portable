@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.115 2001/09/15 11:31:54 djm Exp $ */
+/* $Id: acconfig.h,v 1.116 2001/09/18 04:01:12 djm Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -332,6 +332,9 @@
 
 /* Define on *nto-qnx systems */
 #undef MISSING_FD_MASK
+
+/* Define if you want smartcard support */
+#undef SMARTCARD
 
 @BOTTOM@
 

@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.309 2001/09/17 21:34:34 tim Exp $
+# $Id: configure.in,v 1.310 2001/09/18 04:01:12 djm Exp $
 
 AC_INIT(ssh.c)
 
@@ -1311,12 +1311,41 @@ fi
 
 
 # Check whether user wants Kerberos support
+SCARD_MSG="no" 
+AC_ARG_WITH(smartcard,
+	[  --with-smartcard        Enable smartcard support],
+	[
+		if test "x$withval" != "xno" ; then
+			if test "x$withval" != "xyes" ; then
+				CPPFLAGS="$CPPFLAGS -I${withval}"
+				LDFLAGS="$LDFLAGS -L${withval}"
+				if test ! -z "$need_dash_r" ; then
+					LDFLAGS="$LDFLAGS -R${withval}"
+				fi
+				if test ! -z "$blibpath" ; then
+					blibpath="$blibpath:${withval}"
+				fi
+			fi
+			AC_CHECK_HEADERS(sectok.h)
+			if test "$ac_cv_header_sectok_h" != yes; then
+				AC_MSG_ERROR(Can't find sectok.h)
+			fi
+			AC_CHECK_LIB(sectok, sectok_open)
+			if test "$ac_cv_lib_sectok_sectok_open" != yes; then
+				AC_MSG_ERROR(Can't find libsectok)
+			fi
+			AC_DEFINE(SMARTCARD)
+			SCARD_MSG="yes" 
+		fi
+	]
+)
+
+# Check whether user wants Kerberos support
 KRB4_MSG="no" 
 AC_ARG_WITH(kerberos4,
 	[  --with-kerberos4=PATH   Enable Kerberos 4 support],
 	[
 		if test "x$withval" != "xno" ; then
-	
 			if test "x$withval" != "xyes" ; then
 				CPPFLAGS="$CPPFLAGS -I${withval}/include"
 				LDFLAGS="$LDFLAGS -L${withval}/lib"
@@ -2069,6 +2098,7 @@ echo "      Random number collection: $RAND_MSG"
 echo "                Manpage format: $MANTYPE"
 echo "                   PAM support: ${PAM_MSG}"
 echo "            KerberosIV support: $KRB4_MSG"
+echo "             Smartcard support: $SCARD_MSG"
 echo "                   AFS support: $AFS_MSG"
 echo "                 S/KEY support: $SKEY_MSG"
 echo "          TCP Wrappers support: $TCPW_MSG"
