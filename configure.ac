@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.217 2004/05/13 01:56:17 dtucker Exp $
+# $Id: configure.ac,v 1.218 2004/05/23 04:09:40 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -924,6 +924,20 @@ int main(void){char b[5];snprintf(b,5,"123456789");exit(b[4]!='\0');}
 			AC_MSG_WARN([****** Your snprintf() function is broken, complain to your vendor])
 		]
 	)
+fi
+
+# Check for missing getpeereid (or equiv) support
+NO_PEERCHECK=""
+if test "x$ac_cv_func_getpeereid" != "xyes" ; then
+	AC_MSG_CHECKING([whether system supports SO_PEERCRED getsockopt])
+	AC_TRY_COMPILE(
+		[#include <sys/types.h>
+		 #include <sys/socket.h>],
+		[int i = SO_PEERCRED;],
+		[AC_MSG_RESULT(yes)],
+		[AC_MSG_RESULT(no)
+		NO_PEERCHECK=1]
+        )
 fi
 
 dnl see whether mkstemp() requires XXXXXX
@@ -2972,6 +2986,16 @@ if test ! -z "$RAND_HELPER_CMDHASH" ; then
 	echo "service. Please read WARNING.RNG and request that your OS "
 	echo "vendor includes kernel-based random number collection in "
 	echo "future versions of your OS."
+	echo ""
+fi
+
+if test ! -z "$NO_PEERCHECK" ; then
+	echo "WARNING: the operating system that you are using does not "
+	echo "appear to support either the getpeereid() API nor the "
+	echo "SO_PEERCRED getsockopt() option. These facilities are used to "
+	echo "enforce security checks to prevent unauthorised connections to "
+	echo "ssh-agent. Their absence increases the risk that a malicious "
+	echo "user can connect to your agent. "
 	echo ""
 fi
 
