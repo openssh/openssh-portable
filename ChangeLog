@@ -3,7 +3,9 @@
  - (tim) [sshpty.c] set tty modes when allocating old style bsd ptys to
    match what newer style ptys have when allocated. Based on a patch by
    Roger Cornelius <rac@tenzing.org>
-   [README.privsep] UnixWare 7 and OpenUNIX 8 work.
+ - (tim) [README.privsep] UnixWare 7 and OpenUNIX 8 work.
+ - (tim) [README.privsep] remove reference to UnixWare 7 and OpenUNIX 8
+   from PAM-enabled pragraph. UnixWare has no PAM.
 
 20020513
  - (stevesk) add initial README.privsep
@@ -586,4 +588,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2116 2002/05/14 00:07:18 tim Exp $
+$Id: ChangeLog,v 1.2117 2002/05/14 03:50:38 tim Exp $
