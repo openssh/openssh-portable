@@ -3,6 +3,9 @@
    - markus@cvs.openbsd.org 2001/09/19 10:08:51
      [sshd.8]
      command=xxx applies to subsystem now, too
+   - markus@cvs.openbsd.org 2001/09/19 13:23:29
+     [key.c]
+     key_read() now returns -1 on type mismatch, too
 
 20010918
  - (djm) Configure support for smartcards. Based on Ben's work.
@@ -6510,4 +6513,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1542 2001/09/20 00:54:01 mouring Exp $
+$Id: ChangeLog,v 1.1543 2001/09/20 00:55:53 mouring Exp $

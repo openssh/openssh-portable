@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: key.c,v 1.31 2001/09/17 20:50:22 markus Exp $");
+RCSID("$OpenBSD: key.c,v 1.32 2001/09/19 13:23:29 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -358,7 +358,7 @@ write_bignum(FILE *f, BIGNUM *num)
 	return 1;
 }
 
-/* returns 1 ok, -1 error, 0 type mismatch */
+/* returns 1 ok, -1 error */
 int
 key_read(Key *ret, char **cpp)
 {
@@ -413,7 +413,7 @@ key_read(Key *ret, char **cpp)
 		} else if (ret->type != type) {
 			/* is a key, but different type */
 			debug3("key_read: type mismatch");
-			return 0;
+			return -1;
 		}
 		len = 2*strlen(cp);
 		blob = xmalloc(len);
