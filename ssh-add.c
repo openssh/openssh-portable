@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.47 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.48 2001/12/21 10:06:43 djm Exp $");
 
 #include <openssl/evp.h>
 
@@ -57,6 +57,15 @@ char *__progname;
 
 /* argv0 */
 extern char *__progname;
+
+/* Default files to add */
+static char *default_files[] = {
+	_PATH_SSH_CLIENT_ID_RSA,
+	_PATH_SSH_CLIENT_ID_DSA,
+	_PATH_SSH_CLIENT_IDENTITY, 
+	NULL
+};
+
 
 /* we keep a cache of one passphrases */
 static char *pass = NULL;
@@ -210,6 +219,19 @@ list_identities(AuthenticationConnection *ac, int do_fp)
 		printf("The agent has no identities.\n");
 }
 
+static int
+do_file(AuthenticationConnection *ac, int deleting, char *file)
+{
+	if (deleting) {
+		if (delete_file(ac, file) == -1)
+			return -1;
+	} else {
+		if (add_file(ac, file) == -1)
+			return -1;
+	}
+	return 0;
+}
+
 static void
 usage(void)
 {
@@ -231,8 +253,6 @@ main(int argc, char **argv)
 	extern char *optarg;
 	extern int optind;
 	AuthenticationConnection *ac = NULL;
-	struct passwd *pw;
-	char buf[1024];
 	char *sc_reader_id = NULL;
 	int i, ch, deleting = 0, ret = 0;
 
@@ -284,30 +304,26 @@ main(int argc, char **argv)
 		goto done;
 	}
 	if (argc == 0) {
-		pw = getpwuid(getuid());
-		if (!pw) {
+		char buf[MAXPATHLEN];
+		struct passwd *pw;
+
+		if ((pw = getpwuid(getuid())) == NULL) {
 			fprintf(stderr, "No user found with uid %u\n",
 			    (u_int)getuid());
 			ret = 1;
 			goto done;
 		}
-		snprintf(buf, sizeof buf, "%s/%s", pw->pw_dir, _PATH_SSH_CLIENT_IDENTITY);
-		if (deleting) {
-			if (delete_file(ac, buf) == -1)
-				ret = 1;
-		} else {
-			if (add_file(ac, buf) == -1)
+
+		for(i = 0; default_files[i]; i++) {
+			snprintf(buf, sizeof(buf), "%s/%s", pw->pw_dir, 
+			    default_files[i]);
+			if (do_file(ac, deleting, buf) == -1)
 				ret = 1;
 		}
 	} else {
-		for (i = 0; i < argc; i++) {
-			if (deleting) {
-				if (delete_file(ac, argv[i]) == -1)
-					ret = 1;
-			} else {
-				if (add_file(ac, argv[i]) == -1)
-					ret = 1;
-			}
+		for(i = 0; i < argc; i++) {
+			if (do_file(ac, deleting, argv[1]) == -1)
+				ret = 1;
 		}
 	}
 	clear_pass();
