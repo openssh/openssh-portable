@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.182 2001/07/14 03:07:43 djm Exp $
+# $Id: Makefile.in,v 1.183 2001/07/25 16:24:34 mouring Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -171,6 +171,7 @@ distprep: catman-do
 	autoreconf
 
 install: $(CONFIGFILES) $(MANPAGES) $(TARGETS) install-files host-key
+install-nokeys: $(CONFIGFILES) $(MANPAGES) $(TARGETS) install-files
 
 install-files:
 	$(srcdir)/mkinstalldirs $(DESTDIR)$(bindir)

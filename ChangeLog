@@ -1,3 +1,6 @@
+20010725
+ - (bal) Added 'install-nokeys' to Makefile to assist package builders.
+
 20010724
  - (bal) 4711 not 04711 for ssh binary.
 
@@ -6096,4 +6099,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1422 2001/07/24 17:00:13 mouring Exp $
+$Id: ChangeLog,v 1.1423 2001/07/25 16:24:33 mouring Exp $
