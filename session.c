@@ -477,6 +477,8 @@ do_exec_no_pty(Session *s, const char *command, struct passwd * pw)
 	if (s == NULL)
 		fatal("do_exec_no_pty: no session");
 
+	signal(SIGPIPE, SIG_DFL);
+
 	session_proctitle(s);
 
 #ifdef USE_PAM

@@ -3,6 +3,9 @@
  - (djm) Support in bsd-snprintf.c for long long conversions from 
    Ben Lindstrom <mouring@pconline.com>
  - (djm) Cleanup NeXT support from Ben Lindstrom <mouring@pconline.com>
+ - (djm) Ignore SIGPIPEs from serverloop to child. Fixes crashes with
+   very short lived X connections. Bug report from Tobias Oetiker 
+   <oetiker@ee.ethz.ch>. Fix from Markus Friedl <markus@cvs.openbsd.org>
 
 20000929
  - (djm) Fix SSH2 not terminating until all background tasks done problem.
