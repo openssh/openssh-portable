@@ -1,3 +1,7 @@
+20011115
+ - (djm) Fix IPv4 default in ssh-keyscan. Spotted by Dan Astoorian 
+   <djast@cs.toronto.edu> Fix from markus@
+
 20011113
  - (djm) Fix early (and double) free of remote user when using Kerberos. 
    Patch from Simon Wilkinson <simon@sxw.org.uk>
@@ -6907,4 +6911,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1663 2001/11/13 13:05:57 djm Exp $
+$Id: ChangeLog,v 1.1664 2001/11/14 21:40:45 djm Exp $
