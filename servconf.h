@@ -13,7 +13,7 @@
  * 
  */
 
-/* RCSID("$Id: servconf.h,v 1.7 2000/04/12 08:45:07 damien Exp $"); */
+/* RCSID("$Id: servconf.h,v 1.8 2000/04/12 10:17:40 damien Exp $"); */
 
 #ifndef SERVCONF_H
 #define SERVCONF_H
@@ -48,6 +48,8 @@ typedef struct {
 					 * searching at */
 	int     strict_modes;	/* If true, require string home dir modes. */
 	int     keepalives;	/* If true, set SO_KEEPALIVE. */
+	char   *ciphers;	/* Ciphers in order of preference. */
+	int	protocol;	/* Protocol in order of preference. */
 	SyslogFacility log_facility;	/* Facility for system logging. */
 	LogLevel log_level;	/* Level for system logging. */
 	int     rhosts_authentication;	/* If true, permit rhosts

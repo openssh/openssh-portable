@@ -14,13 +14,14 @@
  */
 
 #include "includes.h"
-RCSID("$Id: readconf.c,v 1.9 2000/04/01 01:09:25 damien Exp $");
+RCSID("$Id: readconf.c,v 1.10 2000/04/12 10:17:40 damien Exp $");
 
 #include "ssh.h"
 #include "cipher.h"
 #include "readconf.h"
 #include "match.h"
 #include "xmalloc.h"
+#include "compat.h"
 
 /* Format of the configuration file:
 
@@ -103,7 +104,7 @@ typedef enum {
 	oGlobalKnownHostsFile, oUserKnownHostsFile, oConnectionAttempts,
 	oBatchMode, oCheckHostIP, oStrictHostKeyChecking, oCompression,
 	oCompressionLevel, oKeepAlives, oNumberOfPasswordPrompts, oTISAuthentication,
-	oUsePrivilegedPort, oLogLevel
+	oUsePrivilegedPort, oLogLevel, oCiphers, oProtocol
 } OpCodes;
 
 /* Textual representations of the tokens. */
@@ -134,6 +135,8 @@ static struct {
 	{ "proxycommand", oProxyCommand },
 	{ "port", oPort },
 	{ "cipher", oCipher },
+	{ "ciphers", oCiphers },
+	{ "protocol", oProtocol },
 	{ "remoteforward", oRemoteForward },
 	{ "localforward", oLocalForward },
 	{ "user", oUser },
@@ -444,6 +447,26 @@ parse_int:
 			*intptr = value;
 		break;
 
+	case oCiphers:
+		cp = strtok(NULL, WHITESPACE);
+		if (!ciphers_valid(cp))
+			fatal("%.200s line %d: Bad cipher spec '%s'.",
+			      filename, linenum, cp ? cp : "<NONE>");
+		if (*activep && options->ciphers == NULL)
+			options->ciphers = xstrdup(cp);
+		break;
+
+	case oProtocol:
+		intptr = &options->protocol;
+		cp = strtok(NULL, WHITESPACE);
+		value = proto_spec(cp);
+		if (value == SSH_PROTO_UNKNOWN)
+			fatal("%.200s line %d: Bad protocol spec '%s'.",
+			      filename, linenum, cp ? cp : "<NONE>");
+		if (*activep && *intptr == SSH_PROTO_UNKNOWN)
+			*intptr = value;
+		break;
+
 	case oLogLevel:
 		intptr = (int *) &options->log_level;
 		cp = strtok(NULL, WHITESPACE);
@@ -616,6 +639,8 @@ initialize_options(Options * options)
 	options->connection_attempts = -1;
 	options->number_of_password_prompts = -1;
 	options->cipher = -1;
+	options->ciphers = NULL;
+	options->protocol = SSH_PROTO_UNKNOWN;
 	options->num_identity_files = 0;
 	options->hostname = NULL;
 	options->proxy_command = NULL;
@@ -689,6 +714,8 @@ fill_default_options(Options * options)
 	/* Selected in ssh_login(). */
 	if (options->cipher == -1)
 		options->cipher = SSH_CIPHER_NOT_SET;
+	if (options->protocol == SSH_PROTO_UNKNOWN)
+		options->protocol = SSH_PROTO_1;
 	if (options->num_identity_files == 0) {
 		options->identity_files[0] =
 			xmalloc(2 + strlen(SSH_CLIENT_IDENTITY) + 1);

@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.61 2000/04/04 21:37:27 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.65 2000/04/12 07:56:16 markus Exp $");
 
 #ifdef HAVE_OPENSSL
 #include <openssl/bn.h>
@@ -993,7 +993,7 @@ void
 ssh_exchange_identification()
 {
 	char buf[256], remote_version[256];	/* must be same size! */
-	int remote_major, remote_minor, i;
+	int remote_major, remote_minor, i, mismatch;
 	int connection_in = packet_get_connection_in();
 	int connection_out = packet_get_connection_out();
 
@@ -1027,39 +1027,51 @@ ssh_exchange_identification()
 	debug("Remote protocol version %d.%d, remote software version %.100s",
 	      remote_major, remote_minor, remote_version);
 
-/*** XXX option for disabling 2.0 or 1.5 */
 	compat_datafellows(remote_version);
+	mismatch = 0;
 
-	/* Check if the remote protocol version is too old. */
-	if (remote_major == 1 && remote_minor < 3)
-		fatal("Remote machine has too old SSH software version.");
-
-	/* We speak 1.3, too. */
-	if (remote_major == 1 && remote_minor == 3) {
-		enable_compat13();
-		if (options.forward_agent) {
-			log("Agent forwarding disabled for protocol 1.3");
-			options.forward_agent = 0;
+	switch(remote_major) {
+	case 1:
+		if (remote_minor == 99 &&
+		    (options.protocol & SSH_PROTO_2) &&
+		    !(options.protocol & SSH_PROTO_1_PREFERRED)) {
+			enable_compat20();
+			break;
 		}
+		if (!(options.protocol & SSH_PROTO_1)) {
+			mismatch = 1;
+			break;
+		}
+		if (remote_minor < 3) {
+			fatal("Remote machine has too old SSH software version.");
+		} else if (remote_minor == 3) {
+			/* We speak 1.3, too. */
+			enable_compat13();
+			if (options.forward_agent) {
+				log("Agent forwarding disabled for protocol 1.3");
+				options.forward_agent = 0;
+			}
+		}
+		break;
+	case 2:
+		if (options.protocol & SSH_PROTO_2) {
+			enable_compat20();
+			break;
+		}
+		/* FALLTHROUGH */
+	default: 
+		mismatch = 1;
+		break;
 	}
-	if ((remote_major == 2 && remote_minor == 0) ||
-	    (remote_major == 1 && remote_minor == 99)) {
-		enable_compat20();
-	}
-#if 0
-	/*
-	 * Removed for now, to permit compatibility with latter versions. The
-	 * server will reject our version and disconnect if it doesn't
-	 * support it.
-	 */
-	if (remote_major != PROTOCOL_MAJOR)
+	if (mismatch)
 		fatal("Protocol major versions differ: %d vs. %d",
-		      PROTOCOL_MAJOR, remote_major);
-#endif
+		    (options.protocol & SSH_PROTO_2) ? PROTOCOL_MAJOR_2 : PROTOCOL_MAJOR_1,
+		    remote_major);
+
 	/* Send our own protocol version identification. */
 	snprintf(buf, sizeof buf, "SSH-%d.%d-%.100s\n",
-	    compat20 ? 2 : PROTOCOL_MAJOR,
-	    compat20 ? 0 : PROTOCOL_MINOR,
+	    compat20 ? PROTOCOL_MAJOR_2 : PROTOCOL_MAJOR_1,
+	    compat20 ? PROTOCOL_MINOR_2 : PROTOCOL_MINOR_1,
 	    SSH_VERSION);
 	if (atomicio(write, connection_out, buf, strlen(buf)) != strlen(buf))
 		fatal("write: %.100s", strerror(errno));
@@ -1350,11 +1362,15 @@ ssh_kex2(char *host, struct sockaddr *hostaddr)
 /* KEXINIT */
 
 	debug("Sending KEX init.");
-        if (options.cipher == SSH_CIPHER_ARCFOUR ||
+	if (options.ciphers != NULL) {
+		myproposal[PROPOSAL_ENC_ALGS_CTOS] = 
+		myproposal[PROPOSAL_ENC_ALGS_STOC] = options.ciphers;
+	} else if (
+	    options.cipher == SSH_CIPHER_ARCFOUR ||
             options.cipher == SSH_CIPHER_3DES_CBC ||
             options.cipher == SSH_CIPHER_CAST128_CBC ||
             options.cipher == SSH_CIPHER_BLOWFISH_CBC) {
-		myproposal[PROPOSAL_ENC_ALGS_CTOS] = cipher_name(options.cipher);
+		myproposal[PROPOSAL_ENC_ALGS_CTOS] =
 		myproposal[PROPOSAL_ENC_ALGS_STOC] = cipher_name(options.cipher);
 	}
 	if (options.compression) {
@@ -1404,7 +1420,7 @@ ssh_kex2(char *host, struct sockaddr *hostaddr)
 	debug("Sending SSH2_MSG_KEXDH_INIT.");
 
 	/* generate and send 'e', client DH public key */
-	dh = new_dh_group1();
+	dh = dh_new_group1();
 	packet_start(SSH2_MSG_KEXDH_INIT);
 	packet_put_bignum2(dh->pub_key);
 	packet_send();
@@ -1450,6 +1466,9 @@ ssh_kex2(char *host, struct sockaddr *hostaddr)
 
 	/* signed H */
 	signature = packet_get_string(&slen);
+
+	if (!dh_pub_is_valid(dh, dh_server_pub))
+		packet_disconnect("bad server public DH value");
 
 	klen = DH_size(dh);
 	kbuf = xmalloc(klen);
@@ -1507,12 +1526,13 @@ ssh_kex2(char *host, struct sockaddr *hostaddr)
 	packet_write_wait();
 	debug("done: send SSH2_MSG_NEWKEYS.");
 
+#ifdef DEBUG_KEXDH
 	/* send 1st encrypted/maced/compressed message */
 	packet_start(SSH2_MSG_IGNORE);
 	packet_put_cstring("markus");
 	packet_send();
 	packet_write_wait();
-
+#endif
 	debug("done: KEX2.");
 }
 /*
@@ -1527,6 +1547,7 @@ ssh_userauth2(int host_key_valid, RSA *own_host_key,
 	unsigned int dlen;
 	int partial;
 	struct passwd *pw;
+	char prompt[80];
 	char *server_user, *local_user;
 	char *auths;
 	char *password;
@@ -1578,7 +1599,9 @@ ssh_userauth2(int host_key_valid, RSA *own_host_key,
 			fatal("passwd auth not supported: %s", auths);
 		xfree(auths);
 		/* try passwd */
-		password = read_passphrase("password: ", 0);
+		snprintf(prompt, sizeof(prompt), "%.30s@%.40s's password: ",
+		    server_user, host);
+		password = read_passphrase(prompt, 0);
 		packet_start(SSH2_MSG_USERAUTH_REQUEST);
 		packet_put_cstring(server_user);
 		packet_put_cstring(service);

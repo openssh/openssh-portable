@@ -17,7 +17,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: channels.c,v 1.23 2000/04/12 08:45:06 damien Exp $");
+RCSID("$Id: channels.c,v 1.24 2000/04/12 10:17:38 damien Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -437,6 +437,7 @@ channel_pre_x11_open_13(Channel *c, fd_set * readset, fd_set * writeset)
 	if (ret == 1) {
 		/* Start normal processing for the channel. */
 		c->type = SSH_CHANNEL_OPEN;
+		channel_pre_open_13(c, readset, writeset);
 	} else if (ret == -1) {
 		/*
 		 * We have received an X11 connection that has bad
@@ -460,6 +461,7 @@ channel_pre_x11_open_15(Channel *c, fd_set * readset, fd_set * writeset)
 	int ret = x11_open_helper(c);
 	if (ret == 1) {
 		c->type = SSH_CHANNEL_OPEN;
+		channel_pre_open_15(c, readset, writeset);
 	} else if (ret == -1) {
 		debug("X11 rejected %d i%d/o%d", c->self, c->istate, c->ostate);
 		chan_read_failed(c);

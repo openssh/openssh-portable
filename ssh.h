@@ -13,7 +13,7 @@
  * 
  */
 
-/* RCSID("$Id: ssh.h,v 1.30 2000/04/12 08:45:07 damien Exp $"); */
+/* RCSID("$Id: ssh.h,v 1.31 2000/04/12 10:17:41 damien Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -54,14 +54,16 @@
 /*
  * Major protocol version.  Different version indicates major incompatiblity
  * that prevents communication.
- */
-#define PROTOCOL_MAJOR		1
-
-/*
+ *
  * Minor protocol version.  Different version indicates minor incompatibility
  * that does not prevent interoperation.
  */
-#define PROTOCOL_MINOR		5
+#define PROTOCOL_MAJOR_1	1
+#define PROTOCOL_MINOR_1	5
+
+/* We support both SSH1 and SSH2 */
+#define PROTOCOL_MAJOR_2	2
+#define PROTOCOL_MINOR_2	0
 
 /*
  * Name for the service.  The port named by this service overrides the

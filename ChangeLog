@@ -1,3 +1,21 @@
+20000412
+ - OpenBSD CVS updates:
+   - [channels.c]
+     repair x11-fwd
+   - [sshconnect.c]
+     fix passwd prompt for ssh2, less debugging output.
+   - [clientloop.c compat.c dsa.c kex.c sshd.c]
+     less debugging output
+   - [kex.c kex.h sshconnect.c sshd.c]
+     check for reasonable public DH values
+   - [README.openssh2 cipher.c cipher.h compat.c compat.h readconf.c]
+     [readconf.h servconf.c servconf.h ssh.c ssh.h sshconnect.c sshd.c]
+     add Cipher and Protocol options to ssh/sshd, e.g.:
+     ssh -o 'Protocol 1,2' if you prefer proto 1, ssh -o 'Ciphers
+     arcfour,3des-cbc'
+   - [sshd.c]
+     print 1.99 only if server supports both
+
 20000408
  - Avoid some compiler warnings in fake-get*.c
  - Add IPTOS macros for systems which lack them

@@ -28,7 +28,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: kex.c,v 1.2 2000/04/04 04:57:08 damien Exp $");
+RCSID("$Id: kex.c,v 1.3 2000/04/12 10:17:39 damien Exp $");
 
 #include "ssh.h"
 #include "ssh2.h"
@@ -43,8 +43,6 @@ RCSID("$Id: kex.c,v 1.2 2000/04/04 04:57:08 damien Exp $");
 # include <openssl/dh.h>
 # include <openssl/crypto.h>
 # include <openssl/bio.h>
-# include <openssl/bn.h>
-# include <openssl/dh.h>
 # include <openssl/pem.h>
 #endif /* HAVE_OPENSSL */
 #if HAVE_SSL
@@ -52,12 +50,9 @@ RCSID("$Id: kex.c,v 1.2 2000/04/04 04:57:08 damien Exp $");
 # include <ssl/dh.h>
 # include <ssl/crypto.h>
 # include <ssl/bio.h>
-# include <ssl/bn.h>
-# include <ssl/dh.h>
 # include <ssl/pem.h>
 #endif /* HAVE_SSL */
 
-#include "entropy.h"
 #include "kex.h"
 
 Buffer *
@@ -85,8 +80,36 @@ kex_init(char *myproposal[PROPOSAL_MAX])
 
 /* diffie-hellman-group1-sha1 */
 
+int
+dh_pub_is_valid(DH *dh, BIGNUM *dh_pub)
+{
+	int i;
+	int n = BN_num_bits(dh_pub);
+	int bits_set = 0;
+
+	/* we only accept g==2 */
+	if (!BN_is_word(dh->g, 2)) {
+		log("invalid DH base != 2");
+		return 0;
+	}
+	if (dh_pub->neg) {
+		log("invalid public DH value: negativ");
+		return 0;
+	}
+	for (i = 0; i <= n; i++)
+		if (BN_is_bit_set(dh_pub, i))
+			bits_set++;
+	debug("bits set: %d/%d", bits_set, BN_num_bits(dh->p));
+
+	/* if g==2 and bits_set==1 then computing log_g(dh_pub) is trivial */
+	if (bits_set > 1 && (BN_cmp(dh_pub, dh->p) == -1))
+		return 1;
+	log("invalid public DH value (%d/%d)", bits_set, BN_num_bits(dh->p));
+	return 0;
+}
+
 DH *
-new_dh_group1()
+dh_new_group1()
 {
 	static char *group1 =
 	    "FFFFFFFF" "FFFFFFFF" "C90FDAA2" "2168C234" "C4C6628B" "80DC1CD1"
@@ -96,22 +119,23 @@ new_dh_group1()
 	    "EE386BFB" "5A899FA5" "AE9F2411" "7C4B1FE6" "49286651" "ECE65381"
 	    "FFFFFFFF" "FFFFFFFF";
 	DH *dh;
-	int ret;
+	int ret, tries = 0;
 	dh = DH_new();
 	if(dh == NULL)
 		fatal("DH_new");
-	ret = BN_hex2bn(&dh->p,group1);
+	ret = BN_hex2bn(&dh->p, group1);
 	if(ret<0)
 		fatal("BN_hex2bn");
 	dh->g = BN_new();
 	if(dh->g == NULL)
 		fatal("DH_new g");
-	BN_set_word(dh->g,2);
-
-	seed_rng();
-	if (DH_generate_key(dh) == 0)
-		fatal("DH_generate_key");
-
+	BN_set_word(dh->g, 2);
+	do {
+		if (DH_generate_key(dh) == 0)
+			fatal("DH_generate_key");
+		if (tries++ > 10)
+			fatal("dh_new_group1: too many bad keys: giving up");
+	} while (!dh_pub_is_valid(dh, dh->pub_key));
 	return dh;
 }
 
@@ -356,7 +380,7 @@ kex_choose_conf(char *cprop[PROPOSAL_MAX], char *sprop[PROPOSAL_MAX], int server
 		choose_enc (&k->enc [mode], cprop[nenc],  sprop[nenc]);
 		choose_mac (&k->mac [mode], cprop[nmac],  sprop[nmac]);
 		choose_comp(&k->comp[mode], cprop[ncomp], sprop[ncomp]);
-		log("kex: %s %s %s %s",
+		debug("kex: %s %s %s %s",
 		    ctos ? "client->server" : "server->client",
 		    k->enc[mode].name,
 		    k->mac[mode].name,

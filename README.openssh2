@@ -1,4 +1,13 @@
-$Id: README.openssh2,v 1.2 2000/04/06 21:28:22 markus Exp $
+$Id: README.openssh2,v 1.3 2000/04/12 07:45:43 markus Exp $
+
+howto:
+	1) generate server key:
+		$ umask 077
+		$ openssl dsaparam 1024 -out dsa1024.pem
+		$ openssl gendsa -out /etc/ssh_dsa_key dsa1024.pem -rand /dev/arandom
+	2) enable ssh2:
+		server: add 'Protocol 2,1' to /etc/sshd_config
+		client: ssh -o 'Protocol 2,1', or add to .ssh/config
 
 works:
 	secsh-transport: works w/o rekey
@@ -11,11 +20,7 @@ works:
 		tcp-forwarding: -L works
 	dss: verification works,
 		key database in ~/.ssh/known_hosts with bits == 0 hack
-	dss: signature works, keygen w/ openssl:
-		$ umask 077
-		$ openssl dsaparam 1024 -out dsa1024.pem
-		$ openssl gendsa -out /etc/ssh_dsa_key dsa1024.pem -rand /dev/arandom
-		start sshd with '-2' flag
+	dss: signature works, keygen w/ openssl
 	client interops w/ sshd2, lshd
 	server interops w/ ssh2, lsh, ssh.com's Windows client, SecureCRT
 	server supports multiple concurrent sessions (e.g. with SSH.com Windows client)
@@ -33,4 +38,4 @@ todo:
 	sftp
 
 -markus
-$Date: 2000/04/06 21:28:22 $
+$Date: 2000/04/12 07:45:43 $

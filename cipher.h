@@ -11,7 +11,7 @@
  * 
  */
 
-/* RCSID("$Id: cipher.h,v 1.8 2000/04/06 02:32:39 damien Exp $"); */
+/* RCSID("$Id: cipher.h,v 1.9 2000/04/12 10:17:39 damien Exp $"); */
 
 #ifndef CIPHER_H
 #define CIPHER_H
@@ -87,6 +87,9 @@ const char *cipher_name(int cipher);
  * cipher, or -1 on error.
  */
 int     cipher_number(const char *name);
+
+/* returns 1 if all ciphers are supported (ssh2 only) */
+int     ciphers_valid(const char *names);
 
 /*
  * Selects the cipher to use and sets the key.  If for_encryption is true,

@@ -12,11 +12,12 @@
  */
 
 #include "includes.h"
-RCSID("$Id: servconf.c,v 1.10 2000/04/12 08:45:06 damien Exp $");
+RCSID("$Id: servconf.c,v 1.11 2000/04/12 10:17:40 damien Exp $");
 
 #include "ssh.h"
 #include "servconf.h"
 #include "xmalloc.h"
+#include "compat.h"
 
 /* add listen address */
 void add_listen_addr(ServerOptions *options, char *addr);
@@ -68,6 +69,8 @@ initialize_server_options(ServerOptions *options)
 	options->num_deny_users = 0;
 	options->num_allow_groups = 0;
 	options->num_deny_groups = 0;
+	options->ciphers = NULL;
+	options->protocol = SSH_PROTO_UNKNOWN;
 }
 
 void 
@@ -139,6 +142,8 @@ fill_default_server_options(ServerOptions *options)
 		options->permit_empty_passwd = 0;
 	if (options->use_login == -1)
 		options->use_login = 0;
+	if (options->protocol == SSH_PROTO_UNKNOWN)
+		options->protocol = SSH_PROTO_1;
 }
 
 #define WHITESPACE " \t\r\n"
@@ -162,7 +167,7 @@ typedef enum {
 	sPrintMotd, sIgnoreRhosts, sX11Forwarding, sX11DisplayOffset,
 	sStrictModes, sEmptyPasswd, sRandomSeedFile, sKeepAlives, sCheckMail,
 	sUseLogin, sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
-	sIgnoreUserKnownHosts, sDSAKeyFile
+	sIgnoreUserKnownHosts, sDSAKeyFile, sCiphers, sProtocol
 } ServerOpCodes;
 
 /* Textual representation of the tokens. */
@@ -211,6 +216,8 @@ static struct {
 	{ "denyusers", sDenyUsers },
 	{ "allowgroups", sAllowGroups },
 	{ "denygroups", sDenyGroups },
+	{ "ciphers", sCiphers },
+	{ "protocol", sProtocol },
 	{ NULL, 0 }
 };
 
@@ -494,7 +501,7 @@ parse_flag:
 			value = log_facility_number(cp);
 			if (value == (SyslogFacility) - 1)
 				fatal("%.200s line %d: unsupported log facility '%s'\n",
-				  filename, linenum, cp ? cp : "<NONE>");
+				    filename, linenum, cp ? cp : "<NONE>");
 			if (*intptr == -1)
 				*intptr = (SyslogFacility) value;
 			break;
@@ -505,53 +512,65 @@ parse_flag:
 			value = log_level_number(cp);
 			if (value == (LogLevel) - 1)
 				fatal("%.200s line %d: unsupported log level '%s'\n",
-				  filename, linenum, cp ? cp : "<NONE>");
+				    filename, linenum, cp ? cp : "<NONE>");
 			if (*intptr == -1)
 				*intptr = (LogLevel) value;
 			break;
 
 		case sAllowUsers:
 			while ((cp = strtok(NULL, WHITESPACE))) {
-				if (options->num_allow_users >= MAX_ALLOW_USERS) {
-					fprintf(stderr, "%s line %d: too many allow users.\n",
-						filename, linenum);
-					exit(1);
-				}
+				if (options->num_allow_users >= MAX_ALLOW_USERS)
+					fatal("%s line %d: too many allow users.\n",
+					    filename, linenum);
 				options->allow_users[options->num_allow_users++] = xstrdup(cp);
 			}
 			break;
 
 		case sDenyUsers:
 			while ((cp = strtok(NULL, WHITESPACE))) {
-				if (options->num_deny_users >= MAX_DENY_USERS) {
-					fprintf(stderr, "%s line %d: too many deny users.\n",
-						filename, linenum);
-					exit(1);
-				}
+				if (options->num_deny_users >= MAX_DENY_USERS)
+					fatal( "%s line %d: too many deny users.\n",
+					    filename, linenum);
 				options->deny_users[options->num_deny_users++] = xstrdup(cp);
 			}
 			break;
 
 		case sAllowGroups:
 			while ((cp = strtok(NULL, WHITESPACE))) {
-				if (options->num_allow_groups >= MAX_ALLOW_GROUPS) {
-					fprintf(stderr, "%s line %d: too many allow groups.\n",
-						filename, linenum);
-					exit(1);
-				}
+				if (options->num_allow_groups >= MAX_ALLOW_GROUPS)
+					fatal("%s line %d: too many allow groups.\n",
+					    filename, linenum);
 				options->allow_groups[options->num_allow_groups++] = xstrdup(cp);
 			}
 			break;
 
 		case sDenyGroups:
 			while ((cp = strtok(NULL, WHITESPACE))) {
-				if (options->num_deny_groups >= MAX_DENY_GROUPS) {
-					fprintf(stderr, "%s line %d: too many deny groups.\n",
-						filename, linenum);
-					exit(1);
-				}
+				if (options->num_deny_groups >= MAX_DENY_GROUPS)
+					fatal("%s line %d: too many deny groups.\n",
+					    filename, linenum);
 				options->deny_groups[options->num_deny_groups++] = xstrdup(cp);
 			}
+			break;
+
+		case sCiphers:
+			cp = strtok(NULL, WHITESPACE);
+			if (!ciphers_valid(cp))
+				fatal("%s line %d: Bad cipher spec '%s'.",
+				    filename, linenum, cp ? cp : "<NONE>");
+			if (options->ciphers == NULL)
+				options->ciphers = xstrdup(cp);
+			break;
+
+		case sProtocol:
+			intptr = &options->protocol;
+			cp = strtok(NULL, WHITESPACE);
+			value = proto_spec(cp);
+			if (value == SSH_PROTO_UNKNOWN)
+				fatal("%s line %d: Bad protocol spec '%s'.",
+				      filename, linenum, cp ? cp : "<NONE>");
+			if (*intptr == SSH_PROTO_UNKNOWN)
+				*intptr = value;
 			break;
 
 		default:

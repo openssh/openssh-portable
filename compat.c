@@ -28,10 +28,12 @@
  */
 
 #include "includes.h"
-RCSID("$Id: compat.c,v 1.6 2000/04/12 08:45:06 damien Exp $");
+RCSID("$Id: compat.c,v 1.7 2000/04/12 10:17:39 damien Exp $");
 
 #include "ssh.h"
 #include "packet.h"
+#include "xmalloc.h"
+#include "compat.h"
 
 int compat13 = 0;
 int compat20 = 0;
@@ -65,9 +67,36 @@ compat_datafellows(const char *version)
 		len = strlen(check[i]);
 		if (strlen(version) >= len &&
 		   (strncmp(version, check[i], len) == 0)) {
-			log("datafellows: %.200s", version);
+			verbose("datafellows: %.200s", version);
 			datafellows = 1;
 			return;
 		}
 	}
+}
+
+#define	SEP	","
+int
+proto_spec(const char *spec)
+{
+	char *s = xstrdup(spec);
+	char *p;
+	int ret = SSH_PROTO_UNKNOWN;
+
+	for ((p = strtok(s, SEP)); p; (p = strtok(NULL, SEP))) {
+		switch(atoi(p)) {
+		case 1:
+			if (ret == SSH_PROTO_UNKNOWN)
+				ret |= SSH_PROTO_1_PREFERRED;
+			ret |= SSH_PROTO_1;
+			break;
+		case 2:
+			ret |= SSH_PROTO_2;
+			break;
+		default:
+			log("ignoring bad proto spec: '%s'.", p);
+			break;
+		}
+	}
+	xfree(s);
+	return ret;
 }
