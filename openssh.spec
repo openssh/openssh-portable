@@ -79,7 +79,7 @@ This package contains the GNOME passphrase dialog.
 
 %prep
 
-%setup -n openssh
+%setup
 
 %build
 
