@@ -55,9 +55,9 @@ echo "ldflags: $LDFLAGS"
 echo
 echo "libs: $LIBS"
 echo
-echo "ccver-v: `$CC -v 2>&1`"
+echo "ccver-v: `$CC -v 2>&1 | sed '/^[ \t]*$/d'`"
 echo
-echo "ccver-V: `$CC -V 2>&1`"
+echo "ccver-V: `$CC -V 2>&1 | sed '/^[ \t]*$/d'`"
 echo
 echo "cppdefines:"
 ${CPP} -dM - </dev/null
