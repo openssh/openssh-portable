@@ -1,4 +1,4 @@
-/*	$OpenBSD: dns.c,v 1.4 2003/05/14 23:29:22 jakob Exp $	*/
+/*	$OpenBSD: dns.c,v 1.5 2003/05/15 02:27:15 jakob Exp $	*/
 
 /*
  * Copyright (c) 2003 Wesley Griffin. All rights reserved.
@@ -44,7 +44,7 @@
 #include "uuencode.h"
 
 extern char *__progname;
-RCSID("$OpenBSD: dns.c,v 1.4 2003/05/14 23:29:22 jakob Exp $");
+RCSID("$OpenBSD: dns.c,v 1.5 2003/05/15 02:27:15 jakob Exp $");
 
 #ifndef LWRES
 static const char *errset_text[] = {
@@ -183,6 +183,7 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
 	/* Only accept validated answers */
 	if (!fingerprints->rri_flags & RRSET_VALIDATED) {
 		error("Ignored unvalidated fingerprint from DNS.");
+		freerrset(fingerprints);
 		return DNS_VERIFY_ERROR;
 	}
 #endif
@@ -193,6 +194,7 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
 	if (!dns_read_key(&hostkey_algorithm, &hostkey_digest_type,
 	    &hostkey_digest, &hostkey_digest_len, hostkey)) {
 		error("Error calculating host key fingerprint.");
+		freerrset(fingerprints);
 		return DNS_VERIFY_ERROR;
 	}
 

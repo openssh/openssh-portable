@@ -19,6 +19,9 @@
    - jakob@cvs.openbsd.org 2003/05/15 01:48:10
      [readconf.c readconf.h servconf.c servconf.h]
      always parse kerberos options. ok djm@ markus@
+   - jakob@cvs.openbsd.org 2003/05/15 02:27:15
+     [dns.c]
+     add missing freerrset
  - (djm) Always parse UsePAM
  - (djm) Configure glue for DNS support (code doesn't work in portable yet)
  - (djm) Import getrrsetbyname() function from OpenBSD libc (for DNS support)
@@ -1499,4 +1502,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2709 2003/05/15 03:23:36 djm Exp $
+$Id: ChangeLog,v 1.2710 2003/05/15 03:27:28 djm Exp $
