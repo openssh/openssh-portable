@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: compat.c,v 1.64 2002/09/19 14:53:14 stevesk Exp $");
+RCSID("$OpenBSD: compat.c,v 1.65 2002/09/27 10:42:09 mickey Exp $");
 
 #include "buffer.h"
 #include "packet.h"
@@ -146,6 +146,8 @@ compat_datafellows(const char *version)
 		  "OSU_1.5alpha3*",	SSH_BUG_PASSWORDPAD },
 		{ "*SSH_Version_Mapper*",
 					SSH_BUG_SCANNER },
+		{ "Probe-*",
+					SSH_BUG_PROBE },
 		{ NULL,			0 }
 	};
 

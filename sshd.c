@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.259 2002/09/25 15:19:02 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.260 2002/09/27 10:42:09 mickey Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -423,6 +423,12 @@ sshd_exchange_identification(int sock_in, int sock_out)
 	    remote_major, remote_minor, remote_version);
 
 	compat_datafellows(remote_version);
+
+	if (datafellows & SSH_BUG_PROBE) {
+		log("probed from %s with %s.  Don't panic.",
+		    get_remote_ipaddr(), client_version_string);
+		fatal_cleanup();
+	}
 
 	if (datafellows & SSH_BUG_SCANNER) {
 		log("scanned from %s with %s.  Don't panic.",
