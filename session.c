@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.85 2001/06/12 10:58:29 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.86 2001/06/12 16:10:38 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -122,6 +122,7 @@ struct Session {
 Session *session_new(void);
 void	session_set_fds(Session *s, int fdin, int fdout, int fderr);
 void	session_pty_cleanup(void *session);
+int	session_pty_req(Session *s);
 void	session_proctitle(Session *s);
 int	session_setup_x11fwd(Session *s);
 void	session_close(Session *s);
@@ -242,7 +243,7 @@ do_authenticated1(Authctxt *authctxt)
 {
 	Session *s;
 	char *command;
-	int success, type, n_bytes, plen, screen_flag, have_pty = 0;
+	int success, type, plen, screen_flag;
 	int compression_level = 0, enable_compression_after_reply = 0;
 	u_int proto_len, data_len, dlen;
 
@@ -275,51 +276,7 @@ do_authenticated1(Authctxt *authctxt)
 			break;
 
 		case SSH_CMSG_REQUEST_PTY:
-			if (no_pty_flag) {
-				debug("Allocating a pty not permitted for this authentication.");
-				break;
-			}
-			if (have_pty)
-				packet_disconnect("Protocol error: you already have a pty.");
-
-			debug("Allocating pty.");
-
-			/* Allocate a pty and open it. */
-			if (!pty_allocate(&s->ptyfd, &s->ttyfd, s->tty,
-			    sizeof(s->tty))) {
-				error("Failed to allocate pty.");
-				break;
-			}
-			fatal_add_cleanup(session_pty_cleanup, (void *)s);
-			pty_setowner(s->pw, s->tty);
-
-			/* Get TERM from the packet.  Note that the value may be of arbitrary length. */
-			s->term = packet_get_string(&dlen);
-			packet_integrity_check(dlen, strlen(s->term), type);
-			/* packet_integrity_check(plen, 4 + dlen + 4*4 + n_bytes, type); */
-			/* Remaining bytes */
-			n_bytes = plen - (4 + dlen + 4 * 4);
-
-			if (strcmp(s->term, "") == 0) {
-				xfree(s->term);
-				s->term = NULL;
-			}
-			/* Get window size from the packet. */
-			s->row = packet_get_int();
-			s->col = packet_get_int();
-			s->xpixel = packet_get_int();
-			s->ypixel = packet_get_int();
-			pty_change_window_size(s->ptyfd, s->row, s->col, s->xpixel, s->ypixel);
-
-			/* Get tty modes from the packet. */
-			tty_parse_modes(s->ttyfd, &n_bytes);
-			packet_integrity_check(plen, 4 + dlen + 4 * 4 + n_bytes, type);
-
-			session_proctitle(s);
-
-			/* Indicate that we now have a pty. */
-			success = 1;
-			have_pty = 1;
+			success = session_pty_req(s);
 			break;
 
 		case SSH_CMSG_X11_REQUEST_FORWARDING:
@@ -391,7 +348,7 @@ do_authenticated1(Authctxt *authctxt)
 				command = forced_command;
 				debug("Forced command '%.500s'", forced_command);
 			}
-			if (have_pty)
+			if (s->ttyfd != -1)
 				do_exec_pty(s, command);
 			else
 				do_exec_no_pty(s, command);
@@ -1631,13 +1588,24 @@ session_pty_req(Session *s)
 	u_int len;
 	int n_bytes;
 
-	if (no_pty_flag)
+	if (no_pty_flag) {
+		debug("Allocating a pty not permitted for this authentication.");
 		return 0;
-	if (s->ttyfd != -1)
+	}
+	if (s->ttyfd != -1) {
+		packet_disconnect("Protocol error: you already have a pty.");
 		return 0;
+	}
+
 	s->term = packet_get_string(&len);
-	s->col = packet_get_int();
-	s->row = packet_get_int();
+
+	if (compat20) {
+		s->col = packet_get_int();
+		s->row = packet_get_int();
+	} else {
+		s->row = packet_get_int();
+		s->col = packet_get_int();
+	}
 	s->xpixel = packet_get_int();
 	s->ypixel = packet_get_int();
 
@@ -1645,9 +1613,12 @@ session_pty_req(Session *s)
 		xfree(s->term);
 		s->term = NULL;
 	}
+
 	/* Allocate a pty and open it. */
+	debug("Allocating pty.");
 	if (!pty_allocate(&s->ptyfd, &s->ttyfd, s->tty, sizeof(s->tty))) {
-		xfree(s->term);
+		if (s->term)
+			xfree(s->term);
 		s->term = NULL;
 		s->ptyfd = -1;
 		s->ttyfd = -1;
@@ -1655,21 +1626,24 @@ session_pty_req(Session *s)
 		return 0;
 	}
 	debug("session_pty_req: session %d alloc %s", s->self, s->tty);
+
+	/* for SSH1 the tty modes length is not given */
+	if (!compat20)
+		n_bytes = packet_remaining();
+	tty_parse_modes(s->ttyfd, &n_bytes);
+
 	/*
 	 * Add a cleanup function to clear the utmp entry and record logout
 	 * time in case we call fatal() (e.g., the connection gets closed).
 	 */
 	fatal_add_cleanup(session_pty_cleanup, (void *)s);
 	pty_setowner(s->pw, s->tty);
-	/* Get window size from the packet. */
+
+	/* Set window size from the packet. */
 	pty_change_window_size(s->ptyfd, s->row, s->col, s->xpixel, s->ypixel);
 
-	/* Get tty modes from the packet. */
-	tty_parse_modes(s->ttyfd, &n_bytes);
 	packet_done();
-
 	session_proctitle(s);
-
 	return 1;
 }
 

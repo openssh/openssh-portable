@@ -4,6 +4,9 @@
      [session.c]
      merge session_free into session_close()
      merge pty_cleanup_proc into session_pty_cleanup()
+   - markus@cvs.openbsd.org 2001/06/12 16:10:38
+     [session.c]
+     merge ssh1/ssh2 tty msg parse and alloc code
 
 20010612
  - scp.c ID update (upstream synced vfsprintf() from us)
@@ -5623,4 +5626,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1281 2001/06/13 04:35:43 mouring Exp $
+$Id: ChangeLog,v 1.1282 2001/06/13 04:37:36 mouring Exp $
