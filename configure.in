@@ -151,46 +151,58 @@ fi
 AC_MSG_CHECKING([for OpenSSL/SSLeay directory])
 for ssldir in "" $tryssldir /usr /usr/local/openssl /usr/lib/openssl /usr/local/ssl /usr/lib/ssl /usr/local /usr/pkg /opt /opt/openssl ; do
 	if test ! -z "$ssldir" ; then
-		LIBS="$saved_LIBS -L$ssldir"
+		LIBS="$saved_LIBS -L$ssldir -lcrypto"
 		CFLAGS="$CFLAGS -I$ssldir/include"
 		if test "x$need_dash_r" = "x1" ; then
 			LIBS="$LIBS -R$ssldir/lib"
 		fi
+	else
+		LIBS="$saved_LIBS -lcrypto"
 	fi
-	LIBS="$LIBS -lcrypto"
 
-	AC_TRY_RUN(
-		[
-			#include <openssl/rsa.h>
-			#include <openssl/bn.h>
-			#include <openssl/sha.h>
-			int main(void) 
-			{RSA *key; char seed[2048];memset(seed, 0, sizeof(seed));
-			RAND_seed(seed, sizeof(seed));key=RSA_generate_key(32,3,NULL,NULL);
-			return(key==NULL);}
-		],
-		[
-			AC_DEFINE(HAVE_OPENSSL)
-			found_crypto=1
-			break;
-		], []
-	)
-	AC_TRY_RUN(
-		[
-			#include <ssl/rsa.h>
-			#include <ssl/bn.h>
-			#include <ssl/sha.h>
-			int main(void) 
-			{RSA *key; char seed[2048];memset(seed, 0, sizeof(seed));
-			RAND_seed(seed, sizeof(seed));key=RSA_generate_key(32,3,NULL,NULL);
-			return(key==NULL);}
-		],
-		[
-			AC_DEFINE(HAVE_SSL)
-			found_crypto=1
-			break;
-		], []
-	)
+	for WANTS_RSAREF in "" 1 ; do
+		
+		if test ! -z "$WANTS_RSAREF" ; then
+			LIBS="$LIBS -lRSAglue -lrsaref"
+		fi
+
+		AC_TRY_RUN(
+			[
+				#include <openssl/rsa.h>
+				#include <openssl/bn.h>
+				#include <openssl/sha.h>
+				int main(void) 
+				{RSA *key; char seed[2048];memset(seed, 0, sizeof(seed));
+				RAND_seed(seed, sizeof(seed));key=RSA_generate_key(32,3,NULL,NULL);
+				return(key==NULL);}
+			],
+			[
+				AC_DEFINE(HAVE_OPENSSL)
+				found_crypto=1
+				break;
+			], []
+		)
+		AC_TRY_RUN(
+			[
+				#include <ssl/rsa.h>
+				#include <ssl/bn.h>
+				#include <ssl/sha.h>
+				int main(void) 
+				{RSA *key; char seed[2048];memset(seed, 0, sizeof(seed));
+				RAND_seed(seed, sizeof(seed));key=RSA_generate_key(32,3,NULL,NULL);
+				return(key==NULL);}
+			],
+			[
+				AC_DEFINE(HAVE_SSL)
+				found_crypto=1
+				break;
+			], []
+		)
+	done
+
+	if test ! -z "$found_crypto" ; then
+		break;
+	fi
 done
 
 if test -z "$found_crypto" ; then
@@ -206,6 +218,9 @@ else
 	fi
 fi
 LIBS="$saved_LIBS -lcrypto"
+if test ! -z $WANTS_RSAREF ; then
+	LIBS="$LIBS -lRSAglue -lrsaref"
+fi
 AC_MSG_RESULT($ssldir)
 
 # Checks for data types
@@ -448,7 +463,7 @@ AC_TRY_LINK([],
 AC_ARG_WITH(rsh,
 	[  --with-rsh=PATH         Specify path to remote shell program ],
 	[
-		if test "x$withval" != "$xno" ; then
+		if test "x$withval" != "$no" ; then
 			AC_DEFINE_UNQUOTED(RSH_PATH, "$withval")
 		fi
 	],
@@ -549,7 +564,7 @@ AC_MSG_CHECKING([whether to build GNOME ssh-askpass])
 AC_ARG_WITH(gnome-askpass,
 	[  --with-gnome-askpass    Build the GNOME passphrase requester (default=no)],
 	[
-		if test x$withval = xno ; then
+		if test "x$withval" = "xno" ; then
 			GNOME_ASKPASS="";
 		else
 			GNOME_ASKPASS="gnome-ssh-askpass";
@@ -621,7 +636,7 @@ AC_SUBST(mansubdir)
 AC_ARG_WITH(kerberos4,
 	[  --with-kerberos4=PATH   Enable Kerberos 4 support],
 	[
-		if test "x$withval" != "$xno" ; then
+		if test "x$withval" != "xno" ; then
 	
 			if test "x$withval" != "$xyes" ; then
 				CFLAGS="$CFLAGS -I${withval}/include"
@@ -653,7 +668,7 @@ AC_ARG_WITH(kerberos4,
 AC_ARG_WITH(afs,
 	[  --with-afs=PATH         Enable AFS support],
 	[
-		if test "x$withval" != "$xno" ; then
+		if test "x$withval" != "xno" ; then
 
 			if test "x$withval" != "$xyes" ; then
 				CFLAGS="$CFLAGS -I${withval}/include"
@@ -678,7 +693,7 @@ LIBS="$LIBS $KLIBS"
 AC_ARG_WITH(skey,
 	[  --with-skey             Enable S/Key support],
 	[
-		if test "x$withval" != "$xno" ; then
+		if test "x$withval" != "xno" ; then
 			AC_DEFINE(SKEY)
 			LIBS="$LIBS -lskey"
 		fi
@@ -689,7 +704,7 @@ AC_ARG_WITH(skey,
 AC_ARG_WITH(tcp-wrappers,
 	[  --with-tcp-wrappers     Enable tcpwrappers support],
 	[
-		if test "x$withval" != "$xno" ; then
+		if test "x$withval" != "xno" ; then
 			saved_LIBS="$LIBS"
 			LIBS="$LIBS -lwrap"
 			AC_MSG_CHECKING(for libwrap)
@@ -717,7 +732,7 @@ AC_ARG_WITH(tcp-wrappers,
 AC_ARG_WITH(md5-passwords,
 	[  --with-md5-passwords    Enable use of MD5 passwords],
 	[
-		if test "x$withval" != "$xno" ; then
+		if test "x$withval" != "xno" ; then
 			AC_DEFINE(HAVE_MD5_PASSWORDS)
 		fi
 	]

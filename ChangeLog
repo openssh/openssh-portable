@@ -1,3 +1,6 @@
+20000311
+ - Detect RSAref
+
 20000309
  - OpenBSD CVS updates to v1.2.3
 	[ssh.h atomicio.c]
