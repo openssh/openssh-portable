@@ -16,6 +16,8 @@
    <karn@ka9q.ampr.org>
  - Fixed __progname symbol collisions reported by Andre Lucas 
    <andre.lucas@dial.pipex.com>
+ - Merged bsd-login ttyslot and AIX utmp patch from Gert Doering
+   <gd@hilb1.medat.de>
 
 20000430
  - Merge HP-UX fixes and TCB support from Ged Lodder <lodder@yacc.com.au>
