@@ -677,14 +677,6 @@ do_exec(Session *s, const char *command)
 	}
 #endif
 
-#ifdef GSSAPI
-	if (options.gss_authentication) {
-		temporarily_use_uid(s->pw);
-		ssh_gssapi_storecreds();
-		restore_uid();
-	}
-#endif
-
 	if (s->ttyfd != -1)
 		do_exec_pty(s, command);
 	else
@@ -1279,6 +1271,13 @@ do_setusercontext(struct passwd *pw)
 # ifdef __bsdi__
 		setpgid(0, 0);
 # endif
+#ifdef GSSAPI
+		if (options.gss_authentication) {
+			temporarily_use_uid(pw);
+			ssh_gssapi_storecreds();
+			restore_uid();
+		}
+#endif
 # ifdef USE_PAM
 		if (options.use_pam) {
 			do_pam_session();
@@ -1309,6 +1308,13 @@ do_setusercontext(struct passwd *pw)
 			exit(1);
 		}
 		endgrent();
+#ifdef GSSAPI
+		if (options.gss_authentication) {
+			temporarily_use_uid(pw);
+			ssh_gssapi_storecreds();
+			restore_uid();
+		}
+#endif
 # ifdef USE_PAM
 		/*
 		 * PAM credentials may take the form of supplementary groups.
