@@ -39,7 +39,7 @@
 #ifndef HAVE_MKDTEMP
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char rcsid[] = "$OpenBSD: mktemp.c,v 1.13 1998/06/30 23:03:13 deraadt Exp $";
+static char rcsid[] = "$OpenBSD: mktemp.c,v 1.14 2002/01/02 20:18:32 deraadt Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #ifdef HAVE_CYGWIN
@@ -84,7 +84,8 @@ _gettemp(path, doopen, domkdir, slen)
 {
 	register char *start, *trv, *suffp;
 	struct stat sbuf;
-	int pid, rval;
+	int rval;
+	pid_t pid;
 
 	if (doopen && domkdir) {
 		errno = EINVAL;

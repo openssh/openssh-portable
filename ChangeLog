@@ -34,6 +34,7 @@
      [sftp-client.c sftp-client.h sftp-glob.c sftp-glob.h sftp.h]
      [sftp-int.c sftp-int.h]
      API cleanup and backwards compat for filexfer v.0 servers; ok markus@
+ - (djm) Sync openbsd-compat with OpenBSD CVS too
 
 20020210
  - (djm) OpenBSD CVS Sync
@@ -7581,4 +7582,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1848 2002/02/13 03:10:32 djm Exp $
+$Id: ChangeLog,v 1.1849 2002/02/13 05:00:15 djm Exp $

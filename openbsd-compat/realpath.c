@@ -32,7 +32,7 @@
 #if !defined(HAVE_REALPATH) || defined(BROKEN_REALPATH)
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char *rcsid = "$OpenBSD: realpath.c,v 1.5 2001/06/27 00:58:56 lebel Exp $";
+static char *rcsid = "$OpenBSD: realpath.c,v 1.6 2002/01/12 16:24:35 millert Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <sys/param.h>
@@ -74,6 +74,10 @@ realpath(const char *path, char *resolved)
 	}
 	close(fd);
 
+	/* Convert "." -> "" to optimize away a needless lstat() and chdir() */
+	if (path[0] == '.' && path[1] == '\0')
+		path = "";
+
 	/*
 	 * Find the dirname and basename from the path to be resolved.
 	 * Change directory to the dirname component.
@@ -102,7 +106,7 @@ loop:
 		p = resolved;
 
 	/* Deal with the last component. */
-	if (lstat(p, &sb) == 0) {
+	if (*p != '\0' && lstat(p, &sb) == 0) {
 		if (S_ISLNK(sb.st_mode)) {
 			if (++symlinks > MAXSYMLINKS) {
 				serrno = ELOOP;

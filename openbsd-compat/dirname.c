@@ -1,4 +1,4 @@
-/*	$OpenBSD: dirname.c,v 1.5 2001/06/27 00:58:54 lebel Exp $	*/
+/*	$OpenBSD: dirname.c,v 1.6 2001/06/28 04:27:19 pjanzen Exp $	*/
 
 /*
  * Copyright (c) 1997 Todd C. Miller <Todd.Miller@courtesan.com>
@@ -31,7 +31,7 @@
 #ifndef HAVE_DIRNAME
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char rcsid[] = "$OpenBSD: dirname.c,v 1.5 2001/06/27 00:58:54 lebel Exp $";
+static char rcsid[] = "$OpenBSD: dirname.c,v 1.6 2001/06/28 04:27:19 pjanzen Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <errno.h>
@@ -70,7 +70,7 @@ dirname(path)
 		} while (endp > path && *endp == '/');
 	}
 
-	if (endp - path + 1 > sizeof(bname)) {
+	if (endp - path + 2 > sizeof(bname)) {
 		errno = ENAMETOOLONG;
 		return(NULL);
 	}
