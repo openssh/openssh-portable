@@ -11,21 +11,14 @@
 
 umask 022
 PKGNAME=openssh
-
-PATH=$PATH:`pwd`		# set path for external tools
-export PATH
-
-## Extract common info requires for the 'info' part of the package.
-VERSION=`tail -1 ../../version.h | sed -e 's/.*_\([0-9]\)/\1/g' | sed 's/\"$//'`
-BFFVERSION=`echo $VERSION | sed 's/p/./g'`
-
-echo "Building BFF for $PKGNAME $VERSION (package version $BFFVERSION)"
 PKGDIR=package
 
-# Clean build directory and package file
+PATH=`pwd`:$PATH		# set path for external tools
+export PATH
+
+# Clean build directory 
 rm -rf $PKGDIR
 mkdir $PKGDIR
-rm -f $PKGNAME-$VERSION.bff
 
 if [ ! -f ../../Makefile ]
 then
@@ -39,6 +32,29 @@ START=`pwd`
 FAKE_ROOT=$START/$PKGDIR
 cd ../.. 
 make install-nokeys DESTDIR=$FAKE_ROOT
+
+if [ $? -gt 0 ]
+then
+	echo "Fake root install failed, stopping."
+	exit 1
+fi
+
+#
+# Extract common info requires for the 'info' part of the package.
+#	AIX requires 4-part version numbers
+#
+VERSION=`./ssh -V 2>&1 | sed -e 's/,.*//' | cut -f 2 -d _`
+MAJOR=`echo $VERSION | cut -f 1 -d p | cut -f 1 -d .`
+MINOR=`echo $VERSION | cut -f 1 -d p | cut -f 2 -d .`
+PATCH=`echo $VERSION | cut -f 1 -d p | cut -f 3 -d .`
+PORTABLE=`echo $VERSION | cut -f 2 -d p`
+if [ "$PATCH" = "" ]
+then
+	PATCH=0
+fi
+BFFVERSION=`printf "%d.%d.%d.%d" $MAJOR $MINOR $PATCH $PORTABLE`
+
+echo "Building BFF for $PKGNAME $VERSION (package version $BFFVERSION)"
 
 #
 # Fill in some details, like prefix and sysconfdir
@@ -175,6 +191,7 @@ mv ../lpp_name .
 #	file list on the fly and feed it to backup using -i
 #
 echo Creating $PKGNAME-$VERSION.bff with backup...
+rm -f $PKGNAME-$VERSION.bff
 (
 	echo "./lpp_name"
 	find . ! -name lpp_name -a ! -name . -print 

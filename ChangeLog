@@ -2,6 +2,10 @@
  - (tim) [configure.ac] Assume path given with --with-pid-dir=PATH is wanted,
    warn if directory does not exist. Put system directories in front of
    PATH for finding entorpy commands.
+ - (tim) [contrib/aix/buildbff.sh contrib/aix/inventory.sh] AIX package
+   build fixes.  Patch by Darren Tucker <dtucker@zip.com.au>
+   [contrib/solaris/buildpkg.sh] add missing dirs to SYSTEM_DIR. Have
+   postinstall check for $piddir and add if necessary.
 
 20020311
  - (tim) [contrib/solaris/buildpkg.sh, contrib/solaris/README] Updated to
@@ -7839,4 +7843,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1922 2002/03/17 20:17:34 tim Exp $
+$Id: ChangeLog,v 1.1923 2002/03/17 22:05:24 tim Exp $

@@ -29,6 +29,7 @@ SYSTEM_DIR="/etc	\
 /etc/rc0.d		\
 /etc/rc1.d		\
 /etc/rc2.d		\
+/etc/opt		\
 /opt			\
 /opt/bin		\
 /usr			\
@@ -49,6 +50,7 @@ SYSTEM_DIR="/etc	\
 /usr/local/sbin		\
 /usr/local/share	\
 /var			\
+/var/opt		\
 /var/run		\
 /var/tmp		\
 /tmp"
@@ -200,6 +202,9 @@ installf ${PKGNAME} $TEST_DIR/etc/rcS.d/K30${SYSVINIT_NAME}=$TEST_DIR/etc/init.d
 	installf ${PKGNAME} $TEST_DIR/etc/rc1.d/K30${SYSVINIT_NAME}=$TEST_DIR/etc/init.d/${SYSVINIT_NAME} l
 	installf ${PKGNAME} $TEST_DIR/etc/rc2.d/S98${SYSVINIT_NAME}=$TEST_DIR/etc/init.d/${SYSVINIT_NAME} l
 fi
+
+# If piddir doesn't exist we add it. (Ie. --with-pid-dir=/var/opt/ssh)
+[ -d $piddir ]  ||  installf ${PKGNAME} $TEST_DIR$piddir d 755 root sys
 
 installf -f ${PKGNAME}
 

@@ -52,7 +52,7 @@ find . ! -name . -print | perl -ne '{
 	} elsif ( -f $_ ) {
 		# Entry is File
 		print "\ttype=FILE\n";
-		print "\tsize=VOLATILE\n";
+		print "\tsize=$sz\n";
 		print "\tchecksum=VOLATILE\n";
 	} elsif ( -d $_ ) {
 		# Entry is Directory
