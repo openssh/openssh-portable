@@ -103,7 +103,7 @@ userauth_none(Authctxt *authctxt)
 	userauth_banner();
 #ifdef HAVE_CYGWIN
 	if (check_nt_auth(1, authctxt->pw) == 0)
-		return(0);
+		return (0);
 #endif
 	if (options.password_authentication)
 		return (PRIVSEP(auth_password(authctxt, "")));

@@ -4,6 +4,8 @@
    failing PAM session modules to user then exit, similar to the way
    /etc/nologin is handled.  ok djm@
  - (dtucker) [auth-pam.c] Relocate sshpam_store_conv(), no code change.
+ - (djm) [auth2-kbdint.c auth2-none.c  auth2-passwd.c auth2-pubkey.c] 
+   Make cygwin code more consistent with that which surrounds it
 
 20040830
  - (dtucker) [session.c openbsd-compat/bsd-cygwin_util.{c,h}] Bug #915: only
@@ -1723,4 +1725,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3542 2004/09/11 12:28:01 dtucker Exp $
+$Id: ChangeLog,v 1.3543 2004/09/11 12:42:09 djm Exp $
