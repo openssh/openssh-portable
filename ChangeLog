@@ -8,6 +8,9 @@
      - added .Xr's
      - typos
      ok djm@
+   - jmc@cvs.openbsd.org 2003/05/20 12:09:31
+     [ssh.1 ssh_config.5 sshd.8 sshd_config.5 ssh-keygen.1]
+     new sentence, new line
 
 20030520
  - (djm) OpenBSD CVS Sync
@@ -1596,4 +1599,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2746 2003/05/23 08:44:04 djm Exp $
+$Id: ChangeLog,v 1.2747 2003/05/23 08:44:23 djm Exp $

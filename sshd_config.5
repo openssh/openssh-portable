@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.16 2003/04/30 01:16:20 mouring Exp $
+.\" $OpenBSD: sshd_config.5,v 1.17 2003/05/20 12:09:32 jmc Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -107,7 +107,8 @@ Specifies the file that contains the public keys that can be used
 for user authentication.
 .Cm AuthorizedKeysFile
 may contain tokens of the form %T which are substituted during connection
-set-up. The following tokens are defined: %% is replaced by a literal '%',
+set-up.
+The following tokens are defined: %% is replaced by a literal '%',
 %h is replaced by the home directory of the user being authenticated and
 %u is replaced by the username of that user.
 After expansion,
@@ -153,20 +154,24 @@ This option applies to protocol version 2 only.
 Sets the number of client alive messages (see above) which may be
 sent without
 .Nm sshd
-receiving any messages back from the client. If this threshold is
-reached while client alive messages are being sent,
+receiving any messages back from the client.
+If this threshold is reached while client alive messages are being sent,
 .Nm sshd
-will disconnect the client, terminating the session. It is important
-to note that the use of client alive messages is very different from
+will disconnect the client, terminating the session.
+It is important to note that the use of client alive messages is very
+different from
 .Cm KeepAlive
-(below). The client alive messages are sent through the
-encrypted channel and therefore will not be spoofable. The TCP keepalive
-option enabled by
+(below).
+The client alive messages are sent through the encrypted channel
+and therefore will not be spoofable.
+The TCP keepalive option enabled by
 .Cm KeepAlive
-is spoofable. The client alive mechanism is valuable when the client or
+is spoofable.
+The client alive mechanism is valuable when the client or
 server depend on knowing when a connection has become inactive.
 .Pp
-The default value is 3. If
+The default value is 3.
+If
 .Cm ClientAliveInterval
 (above) is set to 15, and
 .Cm ClientAliveCountMax
@@ -369,11 +374,12 @@ is not specified,
 .Nm sshd
 will listen on the address and all prior
 .Cm Port
-options specified. The default is to listen on all local
-addresses.
+options specified.
+The default is to listen on all local addresses.
 Multiple
 .Cm ListenAddress
-options are permitted. Additionally, any
+options are permitted.
+Additionally, any
 .Cm Port
 options must precede this option for non port qualified addresses.
 .It Cm LoginGraceTime
@@ -454,8 +460,8 @@ but only if the
 .Ar command
 option has been specified
 (which may be useful for taking remote backups even if root login is
-normally not allowed). All other authentication methods are disabled
-for root.
+normally not allowed).
+All other authentication methods are disabled for root.
 .Pp
 If this option is set to
 .Dq no

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.171 2003/05/15 04:08:41 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.172 2003/05/20 12:09:31 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -488,8 +488,8 @@ It is possible to have multiple
 options (and multiple identities specified in
 configuration files).
 .It Fl I Ar smartcard_device
-Specifies which smartcard device to use. The argument is
-the device
+Specifies which smartcard device to use.
+The argument is the device
 .Nm
 should use to communicate with a smartcard used for storing the user's
 private RSA key.
@@ -542,9 +542,10 @@ per-host basis in the configuration file.
 Quiet mode.
 Causes all warning and diagnostic messages to be suppressed.
 .It Fl s
-May be used to request invocation of a subsystem on the remote system. Subsystems are a feature of the SSH2 protocol which facilitate the use
-of SSH as a secure transport for other applications (eg. sftp). The
-subsystem is specified as the remote command.
+May be used to request invocation of a subsystem on the remote system.
+Subsystems are a feature of the SSH2 protocol which facilitate the use
+of SSH as a secure transport for other applications (eg. sftp).
+The subsystem is specified as the remote command.
 .It Fl t
 Force pseudo-tty allocation.
 This can be used to execute arbitrary

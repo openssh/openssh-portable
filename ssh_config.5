@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.10 2003/05/16 03:27:12 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.11 2003/05/20 12:09:32 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -116,7 +116,8 @@ The host is the
 argument given on the command line (i.e., the name is not converted to
 a canonicalized host name before matching).
 .It Cm AddressFamily
-Specifies which address family to use when connecting. Valid arguments are
+Specifies which address family to use when connecting.
+Valid arguments are
 .Dq any ,
 .Dq inet
 (Use IPv4 only) or
@@ -236,9 +237,9 @@ This may be useful in scripts if the connection sometimes fails.
 The default is 1.
 .It Cm ConnectTimeout
 Specifies the timeout (in seconds) used when connecting to the ssh
-server, instead of using the default system TCP timeout. This value is 
-used only when the target is down or really unreachable, not when it
-refuses the connection.
+server, instead of using the default system TCP timeout.
+This value is used only when the target is down or really unreachable,
+not when it refuses the connection.
 .It Cm DynamicForward
 Specifies that a TCP/IP port on the local machine be forwarded
 over the secure channel, and the application
@@ -351,7 +352,8 @@ Numeric IP addresses are also permitted (both on the command line and in
 specifications).
 .It Cm IdentityFile
 Specifies a file from which the user's RSA or DSA authentication identity
-is read. The default is
+is read.
+The default is
 .Pa $HOME/.ssh/identity
 for protocol version 1, and
 .Pa $HOME/.ssh/id_rsa
@@ -448,7 +450,8 @@ Specifies the port number to connect on the remote host.
 Default is 22.
 .It Cm PreferredAuthentications
 Specifies the order in which the client should try protocol 2
-authentication methods. This allows a client to prefer one method (e.g.
+authentication methods.
+This allows a client to prefer one method (e.g.
 .Cm keyboard-interactive )
 over another method (e.g.
 .Cm password )
@@ -561,12 +564,12 @@ The default is
 .Dq yes .
 Note that this option applies to protocol version 1 only.
 .It Cm SmartcardDevice
-Specifies which smartcard device to use. The argument to this keyword is
-the device
+Specifies which smartcard device to use.
+The argument to this keyword is the device
 .Nm ssh
 should use to communicate with a smartcard used for storing the user's
-private RSA key. By default, no device is specified and smartcard support
-is not activated.
+private RSA key.
+By default, no device is specified and smartcard support is not activated.
 .It Cm StrictHostKeyChecking
 If this flag is set to
 .Dq yes ,
