@@ -1,3 +1,7 @@
+20040304
+ - (dtucker) [auth-pam.c] Don't try to export PAM when compiled with
+   -DUSE_POSIX_THREADS.  From antoine.verheijen at ualbert ca.  ok djm@
+
 20040303
  - (djm) [configure.ac ssh-agent.c] Use prctl to prevent ptrace on ssh-agent
    ok dtucker  
@@ -845,4 +849,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3273 2004/03/04 08:47:29 dtucker Exp $
+$Id: ChangeLog,v 1.3274 2004/03/04 08:54:10 dtucker Exp $

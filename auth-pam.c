@@ -31,7 +31,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.95 2004/02/17 12:20:08 dtucker Exp $");
+RCSID("$Id: auth-pam.c,v 1.96 2004/03/04 08:54:10 dtucker Exp $");
 
 #ifdef USE_PAM
 #if defined(HAVE_SECURITY_PAM_APPL_H)
@@ -201,6 +201,7 @@ import_environments(Buffer *b)
 
 	debug3("PAM: %s entering", __func__);
 
+#ifndef USE_POSIX_THREADS
 	/* Import variables set by do_pam_account */
 	sshpam_account_status = buffer_get_int(b);
 	pam_password_change_required(buffer_get_int(b));
@@ -228,6 +229,7 @@ import_environments(Buffer *b)
 		}
 #endif
 	}
+#endif
 }
 
 /*
