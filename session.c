@@ -95,6 +95,7 @@ extern int debug_flag;
 extern u_int utmp_len;
 extern int startup_pipe;
 extern void destroy_sensitive_data(void);
+extern Buffer loginmsg;
 
 /* original command from peer. */
 const char *original_command = NULL;
@@ -102,10 +103,6 @@ const char *original_command = NULL;
 /* data */
 #define MAX_SESSIONS 10
 Session	sessions[MAX_SESSIONS];
-
-#ifdef WITH_AIXAUTHENTICATE
-char *aixloginmsg;
-#endif /* WITH_AIXAUTHENTICATE */
 
 #ifdef HAVE_LOGIN_CAP
 login_cap_t *lc;
@@ -770,10 +767,13 @@ do_login(Session *s, const char *command)
 	if (options.use_pam && !is_pam_password_change_required())
 		print_pam_messages();
 #endif /* USE_PAM */
-#ifdef WITH_AIXAUTHENTICATE
-	if (aixloginmsg && *aixloginmsg)
-		printf("%s\n", aixloginmsg);
-#endif /* WITH_AIXAUTHENTICATE */
+
+	/* display post-login message */
+	if (buffer_len(&loginmsg) > 0) {
+		buffer_append(&loginmsg, "\0", 1);
+		printf("%s\n", (char *)buffer_ptr(&loginmsg));
+	}
+	buffer_free(&loginmsg);
 
 #ifndef NO_SSH_LASTLOG
 	if (options.print_lastlog && s->last_login_time != 0) {

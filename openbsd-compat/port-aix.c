@@ -61,6 +61,28 @@ aix_usrinfo(struct passwd *pw)
 	xfree(cp);
 }
 
+#ifdef WITH_AIXAUTHENTICATE
+/*
+ * Remove embedded newlines in string (if any).
+ * Used before logging messages returned by AIX authentication functions
+ * so the message is logged on one line.
+ */
+void
+aix_remove_embedded_newlines(char *p)
+{
+	if (p == NULL)
+		return;
+
+	for (; *p; p++) {
+		if (*p == '\n')
+			*p = ' ';
+	}
+	/* Remove trailing whitespace */
+	if (*--p == ' ')
+		*p = '\0';
+}
+#endif /* WITH_AIXAUTHENTICATE */
+  
 # ifdef CUSTOM_FAILED_LOGIN
 /*
  * record_failed_login: generic "login failed" interface function

@@ -201,6 +201,9 @@ int startup_pipe;		/* in child */
 int use_privsep;
 struct monitor *pmonitor;
 
+/* message to be displayed after login */
+Buffer loginmsg;
+
 /* Prototypes for various functions defined later in this file. */
 void destroy_sensitive_data(void);
 void demote_sensitive_data(void);
@@ -1500,6 +1503,9 @@ main(int ac, char **av)
 #endif /* AFS */
 
 	packet_set_nonblocking();
+
+        /* prepare buffers to collect authentication messages */
+	buffer_init(&loginmsg);
 
 	if (use_privsep)
 		if ((authctxt = privsep_preauth()) != NULL)

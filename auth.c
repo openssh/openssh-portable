@@ -54,6 +54,7 @@ RCSID("$OpenBSD: auth.c,v 1.48 2003/06/02 09:17:34 markus Exp $");
 
 /* import */
 extern ServerOptions options;
+extern Buffer loginmsg;
 
 /* Debugging messages */
 Buffer auth_debug;
@@ -75,9 +76,6 @@ allowed_user(struct passwd * pw)
 	const char *hostname = NULL, *ipaddr = NULL;
 	char *shell;
 	int i;
-#ifdef WITH_AIXAUTHENTICATE
-	char *loginmsg;
-#endif /* WITH_AIXAUTHENTICATE */
 #if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW) && \
     defined(HAS_SHADOW_EXPIRE)
 	struct spwd *spw;
@@ -206,26 +204,23 @@ allowed_user(struct passwd * pw)
 	 * PermitRootLogin to control logins via ssh), or if running as
 	 * non-root user (since loginrestrictions will always fail).
 	 */
-	if ((pw->pw_uid != 0) && (geteuid() == 0) &&
-	    loginrestrictions(pw->pw_name, S_RLOGIN, NULL, &loginmsg) != 0) {
-		int loginrestrict_errno = errno;
+	if ((pw->pw_uid != 0) && (geteuid() == 0)) {
+		char *msg;
 
-		if (loginmsg && *loginmsg) {
-			/* Remove embedded newlines (if any) */
-			char *p;
-			for (p = loginmsg; *p; p++) {
-				if (*p == '\n')
-					*p = ' ';
+	   	if (loginrestrictions(pw->pw_name, S_RLOGIN, NULL, &msg) != 0) {
+			int loginrestrict_errno = errno;
+
+			if (msg && *msg) {
+				buffer_append(&loginmsg, msg, strlen(msg));
+				aix_remove_embedded_newlines(msg);
+				logit("Login restricted for %s: %.100s",
+				    pw->pw_name, msg);
 			}
-			/* Remove trailing newline */
-			*--p = '\0';
-			logit("Login restricted for %s: %.100s", pw->pw_name, 
-			    loginmsg);
+			/* Don't fail if /etc/nologin  set */
+		    	if (!(loginrestrict_errno == EPERM && 
+			    stat(_PATH_NOLOGIN, &st) == 0))
+				return 0;
 		}
-		/* Don't fail if /etc/nologin  set */
-	    	if (!(loginrestrict_errno == EPERM && 
-		    stat(_PATH_NOLOGIN, &st) == 0))
-			return 0;
 	}
 #endif /* WITH_AIXAUTHENTICATE */
 

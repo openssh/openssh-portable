@@ -51,4 +51,5 @@ void record_failed_login(const char *user, const char *ttyname);
 #endif
 
 void aix_usrinfo(struct passwd *pw);
+void aix_remove_embedded_newlines(char *);
 #endif /* _AIX */

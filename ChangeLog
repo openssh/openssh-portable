@@ -2,7 +2,9 @@
  - (dtucker) [acconfig.h auth-passwd.c configure.ac session.c port-aix.[ch]]
    Include AIX headers for authentication functions and make calls match
    prototypes.  Test for and handle 3-args and 4-arg variants of loginfailed.
- - (dtucker) Check return value of setpcred().
+ - (dtucker) [session.c] Check return value of setpcred().
+ - (dtucker) [auth-passwd.c auth.c session.c sshd.c port-aix.c port-aix.h]
+   Convert aixloginmsg into platform-independant Buffer loginmsg.
 
 20030707
  - (dtucker) [configure.ac] Bug #600: Check that getrusage is declared before
@@ -668,4 +670,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2848 2003/07/08 11:01:04 dtucker Exp $
+$Id: ChangeLog,v 1.2849 2003/07/08 12:59:59 dtucker Exp $
