@@ -1,3 +1,13 @@
+20000712
+ - Remove -lresolve for Reliant Unix
+ - (djm) OpenBSD CVS Updates:
+   - deraadt@cvs.openbsd.org 2000/07/11 02:11:34
+     [session.c sshd.c ]
+     make MaxStartups code still work with -d; djm
+   - deraadt@cvs.openbsd.org 2000/07/11 13:17:45
+     [readconf.c ssh_config]
+     disable FallBackToRsh by default
+
 20000711
  - (djm) Fixup for AIX getuserattr() support from Tom Bertelson
    <tbert@abac.com>
