@@ -1,3 +1,7 @@
+20030107
+ - (djm) Bug #401: Work around Linux breakage with IPv6 mapped addresses. 
+   Based on fix from yoshfuji@linux-ipv6.org
+
 20030103
  - (djm) Bug #461: ssh-copy-id fails with no arguments. Patch from 
    cjwatson@debian.org
@@ -925,4 +929,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2540 2003/01/03 03:52:53 djm Exp $
+$Id: ChangeLog,v 1.2541 2003/01/06 23:51:23 djm Exp $
