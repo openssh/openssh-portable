@@ -1,5 +1,14 @@
 20010407
  - (bal) CVS ID Resync of version.h
+ - OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2001/04/05 23:39:20
+     [serverloop.c]
+     keep the ssh session even if there is no active channel.
+     this is more in line with the protocol spec and makes
+        ssh -N -L 1234:server:110 host
+     more useful.
+     based on discussion with <mats@mindbright.se> long time ago
+     and recent mail from <res@shore.net>
  
 20010406
  - (stevesk) logintest.c: fix for systems without __progname
@@ -4911,4 +4920,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1075 2001/04/07 01:08:46 mouring Exp $
+$Id: ChangeLog,v 1.1076 2001/04/07 01:12:11 mouring Exp $

@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.59 2001/04/05 10:42:51 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.60 2001/04/05 23:39:20 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -77,7 +77,8 @@ static int fderr_eof = 0;	/* EOF encountered readung from fderr. */
 static int fdin_is_tty = 0;	/* fdin points to a tty. */
 static int connection_in;	/* Connection to client (input). */
 static int connection_out;	/* Connection to client (output). */
-static u_int buffer_high;/* "Soft" max buffer size. */
+static int connection_closed = 0;	/* Connection to client closed. */
+static u_int buffer_high;	/* "Soft" max buffer size. */
 
 /*
  * This SIGCHLD kludge is used to detect when the child exits.  The server
@@ -277,6 +278,9 @@ process_input(fd_set * readset)
 		len = read(connection_in, buf, sizeof(buf));
 		if (len == 0) {
 			verbose("Connection closed by remote host.");
+			connection_closed = 1;
+			if (compat20)
+				return;
 			fatal_cleanup();
 		} else if (len < 0) {
 			if (errno != EINTR && errno != EAGAIN) {
@@ -650,7 +654,7 @@ void
 server_loop2(void)
 {
 	fd_set *readset = NULL, *writeset = NULL;
-	int had_channel = 0, rekeying = 0, max_fd, status;
+	int rekeying = 0, max_fd, status;
 	pid_t pid;
 
 	debug("Entering interactive session for SSH2.");
@@ -669,12 +673,6 @@ server_loop2(void)
 
 		rekeying = (xxx_kex != NULL && !xxx_kex->done);
 
-		if (!had_channel && channel_still_open())
-			had_channel = 1;
-		if (had_channel && !channel_still_open()) {
-			debug("!channel_still_open.");
-			break;
-		}
 		if (!rekeying && packet_not_very_much_data_to_write())
 			channel_output_poll();
 		wait_until_can_do_something(&readset, &writeset, &max_fd,
@@ -687,6 +685,8 @@ server_loop2(void)
 		if (!rekeying)
 			channel_after_select(readset, writeset);
 		process_input(readset);
+		if (connection_closed)
+			break;
 		process_output(writeset);
 	}
 	if (readset)
