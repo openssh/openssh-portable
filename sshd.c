@@ -18,7 +18,7 @@ agent connections.
 */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.4 1999/10/28 04:03:14 damien Exp $");
+RCSID("$Id: sshd.c,v 1.5 1999/10/28 23:18:29 damien Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -1136,7 +1136,7 @@ do_authentication(char *user, int privileged_port)
   pw = &pwcopy;
 
 #ifdef HAVE_LIBPAM
-  if (PAM_SUCCESS != pam_start("opensshd", pw->pw_name, &conv, (pam_handle_t**)&pamh))
+  if (PAM_SUCCESS != pam_start("sshd", pw->pw_name, &conv, (pam_handle_t**)&pamh))
   {
     packet_start(SSH_SMSG_FAILURE);
     packet_send();
