@@ -42,46 +42,14 @@ RCSID("$OpenBSD: auth-passwd.c,v 1.27 2002/05/24 16:45:16 stevesk Exp $");
 #include "log.h"
 #include "servconf.h"
 #include "auth.h"
-#include "buffer.h"
-#include "xmalloc.h"
-#include "canohost.h"
-
-#if !defined(HAVE_OSF_SIA)
-/* Don't need any of these headers for the SIA cases */
-# ifdef HAVE_CRYPT_H
-#  include <crypt.h>
-# endif
-# ifdef __hpux
-#  include <hpsecurity.h>
-#  include <prot.h>
-# endif
-# ifdef HAVE_SECUREWARE
-#  include <sys/security.h>
-#  include <sys/audit.h>
-#  include <prot.h>
-# endif /* HAVE_SECUREWARE */
-# if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
-#  include <shadow.h>
-# endif
-# if defined(HAVE_GETPWANAM) && !defined(DISABLE_SHADOW)
-#  include <sys/label.h>
-#  include <sys/audit.h>
-#  include <pwdadj.h>
-# endif
-# if defined(HAVE_MD5_PASSWORDS) && !defined(HAVE_MD5_CRYPT)
-#  include "md5crypt.h"
-# endif /* defined(HAVE_MD5_PASSWORDS) && !defined(HAVE_MD5_CRYPT) */
-
-# ifdef HAVE_CYGWIN
-#  undef ERROR
-#  include <windows.h>
-#  include <sys/cygwin.h>
-#  define is_winnt       (GetVersion() < 0x80000000)
-# endif
-#endif /* !HAVE_OSF_SIA */
+#include "openbsd-compat/xcrypt.h"
+#ifdef WITH_AIXAUTHENTICATE
+# include "buffer.h"
+# include "canohost.h"
+extern Buffer loginmsg;
+#endif
 
 extern ServerOptions options;
-extern Buffer loginmsg;
 
 /*
  * Tries to authenticate the user using password.  Returns true if
@@ -92,25 +60,6 @@ auth_password(Authctxt *authctxt, const char *password)
 {
 	struct passwd * pw = authctxt->pw;
 	int ok = authctxt->valid;
-#if !defined(HAVE_OSF_SIA)
-	char *encrypted_password;
-	char *pw_password;
-	char *salt;
-# if defined(__hpux) || defined(HAVE_SECUREWARE)
-	struct pr_passwd *spw;
-# endif /* __hpux || HAVE_SECUREWARE */
-# if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
-	struct spwd *spw;
-# endif
-# if defined(HAVE_GETPWANAM) && !defined(DISABLE_SHADOW)
-	struct passwd_adjunct *spw;
-# endif
-# ifdef WITH_AIXAUTHENTICATE
-	char *authmsg;
-	int authsuccess;
-	int reenter = 1;
-# endif
-#endif /* !defined(HAVE_OSF_SIA) */
 
 	/* deny if no user. */
 	if (pw == NULL)
@@ -122,13 +71,12 @@ auth_password(Authctxt *authctxt, const char *password)
 	if (*password == '\0' && options.permit_empty_passwd == 0)
 		ok = 0;
 
-#if defined(HAVE_OSF_SIA)
 	if (!ok)
 		return 0;
+
+#if defined(HAVE_OSF_SIA)
 	return auth_sia_password(authctxt, password);
 #else
-	if (!ok)
-		return 0;
 # ifdef KRB5
 	if (options.kerberos_authentication == 1) {
 		int ret = auth_krb5_password(authctxt, password);
@@ -148,32 +96,40 @@ auth_password(Authctxt *authctxt, const char *password)
 	}
 # endif
 # ifdef WITH_AIXAUTHENTICATE
-	authsuccess = (authenticate(pw->pw_name,password,&reenter,&authmsg) == 0);
-	aix_remove_embedded_newlines(authmsg);	
+	{
+		char *authmsg;
+		int reenter = 1;
+		int authsuccess = (authenticate(pw->pw_name, password, 
+		    &reenter, &authmsg) == 0);
+		aix_remove_embedded_newlines(authmsg);	
 
-	if (authsuccess) {
-		char *msg;
-		char *host = (char *)get_canonical_hostname(options.use_dns);
+		if (authsuccess) {
+			char *msg;
+			char *host = 
+			    (char *)get_canonical_hostname(options.use_dns);
 
-		debug3("AIX/authenticate succeeded for user %s: %.100s",
-			pw->pw_name, authmsg);
+			debug3("AIX/authenticate succeeded for user %s: %.100s",
+				pw->pw_name, authmsg);
 
-	        /* We don't have a pty yet, so just label the line as "ssh" */
-	        if (loginsuccess(authctxt->user, host, "ssh", &msg) == 0){
-			if (msg != NULL) {
-				debug("%s: msg %s", __func__, msg);
-				buffer_append(&loginmsg, msg, strlen(msg));
-				xfree(msg);
+	        	/* No pty yet, so just label the line as "ssh" */
+	        	if (loginsuccess(authctxt->user, host, "ssh", 
+			    &msg) == 0){
+				if (msg != NULL) {
+					debug("%s: msg %s", __func__, msg);
+					buffer_append(&loginmsg, msg, 
+					    strlen(msg));
+					xfree(msg);
+				}
 			}
-		}
-	} else {
-		debug3("AIX/authenticate failed for user %s: %.100s",
-		    pw->pw_name, authmsg);
-	}
-	if (authmsg != NULL)
-		xfree(authmsg);
+		} else 
+			debug3("AIX/authenticate failed for user %s: %.100s",
+			    pw->pw_name, authmsg);
 
-	return (authsuccess);
+		if (authmsg != NULL)
+			xfree(authmsg);
+
+		return (authsuccess);
+	}
 # endif
 # ifdef KRB4
 	if (options.kerberos_authentication == 1) {
@@ -189,63 +145,27 @@ auth_password(Authctxt *authctxt, const char *password)
 		return 0;
 	else
 		return 1;
-# endif
-	pw_password = pw->pw_passwd;
-
-	/*
-	 * Various interfaces to shadow or protected password data
-	 */
-# if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
-	spw = getspnam(pw->pw_name);
-	if (spw != NULL)
-		pw_password = spw->sp_pwdp;
-# endif /* defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW) */
-
-# if defined(HAVE_GETPWANAM) && !defined(DISABLE_SHADOW)
-	if (issecure() && (spw = getpwanam(pw->pw_name)) != NULL)
-		pw_password = spw->pwa_passwd;
-# endif /* defined(HAVE_GETPWANAM) && !defined(DISABLE_SHADOW) */
-
-# ifdef HAVE_SECUREWARE
-	if ((spw = getprpwnam(pw->pw_name)) != NULL)
-		pw_password = spw->ufld.fd_encrypt;
-# endif /* HAVE_SECUREWARE */
-
-# if defined(__hpux) && !defined(HAVE_SECUREWARE)
-	if (iscomsec() && (spw = getprpwnam(pw->pw_name)) != NULL)
-		pw_password = spw->ufld.fd_encrypt;
-# endif /* defined(__hpux) && !defined(HAVE_SECUREWARE) */
+# else
+	{
+	char *pw_password = shadow_pw(pw);
 
 	/* Check for users with no password. */
-	if ((password[0] == '\0') && (pw_password[0] == '\0'))
+	/* XXX Reverted back to OpenBSD, why was this changed again? */
+	if (strcmp(pw_password, "") == 0 && strcmp(pw->pw_passwd, "") == 0)
 		return 1;
+	else {
+		/* Encrypt the candidate password using the proper salt. */
+		char *encrypted_password = xcrypt(password,
+		    (pw_password[0] && pw_password[1]) ? pw_password : "xx");
 
-	if (pw_password[0] != '\0')
-		salt = pw_password;
-	else
-		salt = "xx";
+		/*
+		 * Authentication is accepted if the encrypted passwords
+		 * are identical.
+		 */
+		return (strcmp(encrypted_password, pw_password) == 0);
+	}
 
-# ifdef HAVE_MD5_PASSWORDS
-	if (is_md5_salt(salt))
-		encrypted_password = md5_crypt(password, salt);
-	else
-		encrypted_password = crypt(password, salt);
-# else /* HAVE_MD5_PASSWORDS */
-#  if defined(__hpux) && !defined(HAVE_SECUREWARE)
-	if (iscomsec())
-		encrypted_password = bigcrypt(password, salt);
-	else
-		encrypted_password = crypt(password, salt);
-#  else
-#   ifdef HAVE_SECUREWARE
-	encrypted_password = bigcrypt(password, salt);
-#   else
-	encrypted_password = crypt(password, salt);
-#   endif /* HAVE_SECUREWARE */
-#  endif /* __hpux && !defined(HAVE_SECUREWARE) */
-# endif /* HAVE_MD5_PASSWORDS */
-
-	/* Authentication is accepted if the encrypted passwords are identical. */
-	return (strcmp(encrypted_password, pw_password) == 0);
+	}
+# endif
 #endif /* !HAVE_OSF_SIA */
 }

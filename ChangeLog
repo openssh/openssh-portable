@@ -1,3 +1,10 @@
+20030724
+ - (bal) [auth-passwd.c openbsd-compat/Makefile.in openbsd-compat/xcrypt.c 
+    openbsd-compat/xcrypt.h] Split off encryption into xcrypt() interface,
+    and isolate shadow password functions.  Tested in Solaris, but should
+    not break other platforms too badly (except maybe HP =).  Also brings
+    auth-passwd.c into full sync with OpenBSD tree.
+
 20030723
  - (dtucker) [configure.ac] Back out change for bug #620.
 
@@ -721,4 +728,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2864 2003/07/23 04:33:10 dtucker Exp $
+$Id: ChangeLog,v 1.2865 2003/07/24 06:52:13 mouring Exp $
