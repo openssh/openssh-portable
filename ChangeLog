@@ -6568,4 +6568,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1562 2001/09/25 06:39:35 djm Exp $
+$Id: ChangeLog,v 1.1559.2.1 2001/09/25 06:46:10 djm Exp $

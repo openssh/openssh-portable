@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.314 2001/09/25 06:39:35 djm Exp $
+# $Id: configure.in,v 1.313.2.1 2001/09/25 06:46:12 djm Exp $
 
 AC_INIT(ssh.c)
 
