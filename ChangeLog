@@ -1,3 +1,7 @@
+20031115
+ - (dtucker) [regress/agent-ptrace.sh] Test for GDB output from Solaris and
+   HP-UX, skip test on AIX.
+
 20031113
  - (dtucker) [auth-pam.c] Append newlines to lines output by the
    pam_chauthtok_conv().
@@ -1413,4 +1417,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3096 2003/11/13 08:52:31 dtucker Exp $
+$Id: ChangeLog,v 1.3097 2003/11/15 01:13:16 dtucker Exp $
