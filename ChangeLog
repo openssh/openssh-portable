@@ -39,6 +39,9 @@
      [auth-krb4.c monitor.h serverloop.c session.c ssh-agent.c sshd.c]
      pid_t cleanup. Markus need this now to keep hacking.
      markus@, millert@ ok
+   - itojun@cvs.openbsd.org 2002/06/11 08:11:45
+     [canohost.c]
+     use "ntop" only after initialized
 
 20020609
  - (bal) OpenBSD CVS Sync
@@ -904,4 +907,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2209 2002/06/11 16:42:49 mouring Exp $
+$Id: ChangeLog,v 1.2210 2002/06/11 16:47:22 mouring Exp $
