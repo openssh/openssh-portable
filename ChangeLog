@@ -3,8 +3,6 @@
  - Cleanup sshd.c PAM a little more
  - Revised RPM package to include Jim Knoble's <jmknoble@pobox.com>
    X11 ssh-askpass program.
- - Revised RPM package to use conditional building of gnome and X11
-   askpass packages.
 
 19991225
  - More fixes from Andre Lucas <andre.lucas@dial.pipex.com>
