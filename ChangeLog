@@ -58,6 +58,7 @@
  - (djm) Require krb5 devel for RPM build w/ KrbV 
  - (djm) Improve PAMAuthenticationViaKbdInt text from Nalin Dahyabhai 
    <nalin@redhat.com>
+ - (djm) Update spec files for release 
 
 20020625
  - (stevesk) [INSTALL acconfig.h configure.ac defines.h] remove --with-rsh
@@ -1157,4 +1158,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2297 2002/06/26 13:51:06 djm Exp $
+$Id: ChangeLog,v 1.2298 2002/06/26 13:57:12 djm Exp $
