@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.147 2003/06/29 12:44:38 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.148 2003/09/18 07:52:54 markus Exp $");
 
 #include <openssl/bn.h>
 
@@ -271,9 +271,10 @@ timeout_connect(int sockfd, const struct sockaddr *serv_addr,
 		optval = 0;
 		optlen = sizeof(optval);
 		if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &optval, 
-		    &optlen) == -1)
+		    &optlen) == -1) {
 		    	debug("getsockopt: %s", strerror(errno));
 			break;
+		}
 		if (optval != 0) {
 			errno = optval;
 			break;
