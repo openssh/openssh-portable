@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.70 2001/05/08 19:45:24 mouring Exp $");
+RCSID("$OpenBSD: scp.c,v 1.71 2001/05/19 16:05:41 markus Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -804,7 +804,7 @@ sink(argc, argv)
 		}
 		omode = mode;
 		mode |= S_IWRITE;
-		if ((ofd = open(np, O_WRONLY | O_CREAT | O_TRUNC, mode)) < 0) {
+		if ((ofd = open(np, O_WRONLY|O_CREAT, mode)) < 0) {
 bad:			run_err("%s: %s", np, strerror(errno));
 			continue;
 		}
@@ -859,12 +859,10 @@ bad:			run_err("%s: %s", np, strerror(errno));
 			wrerr = YES;
 			wrerrno = j >= 0 ? EIO : errno;
 		}
-#if 0
 		if (ftruncate(ofd, size)) {
 			run_err("%s: truncate: %s", np, strerror(errno));
 			wrerr = DISPLAYED;
 		}
-#endif
 		if (pflag) {
 			if (exists || omode != mode)
 #ifdef HAVE_FCHMOD
