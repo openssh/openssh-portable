@@ -26,6 +26,9 @@
      [sshd.c]
      utmp_len is unsigned; display error consistent with other options.
      ok markus@
+   - stevesk@cvs.openbsd.org 2002/07/15 17:15:31
+     [uidswap.c]
+     little more debugging; ok markus@
 
 20020722
  - (bal) AIX tty data limiting patch fix by leigh@solinno.co.uk
@@ -1449,4 +1452,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2402 2002/07/23 21:15:13 mouring Exp $
+$Id: ChangeLog,v 1.2403 2002/07/23 21:29:49 mouring Exp $
