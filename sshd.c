@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.244 2002/05/29 11:21:57 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.245 2002/06/11 05:46:20 mpech Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -574,7 +574,7 @@ privsep_preauth(void)
 	if (pid == -1) {
 		fatal("fork of unprivileged child failed");
 	} else if (pid != 0) {
-		debug2("Network child is on pid %d", pid);
+		debug2("Network child is on pid %ld", (long)pid);
 
 		close(pmonitor->m_recvfd);
 		authctxt = monitor_child_preauth(pmonitor);
@@ -630,7 +630,7 @@ privsep_postauth(Authctxt *authctxt)
 	if (pmonitor->m_pid == -1)
 		fatal("fork of unprivileged child failed");
 	else if (pmonitor->m_pid != 0) {
-		debug2("User child is on pid %d", pmonitor->m_pid);
+		debug2("User child is on pid %ld", (long)pmonitor->m_pid);
 		close(pmonitor->m_recvfd);
 		monitor_child_postauth(pmonitor);
 
@@ -1173,7 +1173,7 @@ main(int ac, char **av)
 			 */
 			f = fopen(options.pid_file, "wb");
 			if (f) {
-				fprintf(f, "%u\n", (u_int) getpid());
+				fprintf(f, "%ld\n", (long) getpid());
 				fclose(f);
 			}
 		}
@@ -1320,7 +1320,7 @@ main(int ac, char **av)
 				if (pid < 0)
 					error("fork: %.100s", strerror(errno));
 				else
-					debug("Forked child %d.", pid);
+					debug("Forked child %ld.", (long)pid);
 
 				close(startup_p[1]);
 

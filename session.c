@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.136 2002/06/10 22:28:41 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.137 2002/06/11 05:46:20 mpech Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -162,8 +162,8 @@ auth_input_request_forwarding(struct passwd * pw)
 		auth_sock_dir = NULL;
 		return 0;
 	}
-	snprintf(auth_sock_name, MAXPATHLEN, "%s/agent.%d",
-		 auth_sock_dir, (int) getpid());
+	snprintf(auth_sock_name, MAXPATHLEN, "%s/agent.%ld",
+		 auth_sock_dir, (long) getpid());
 
 	/* delete agent socket on fatal() */
 	fatal_add_cleanup(auth_sock_cleanup_proc, pw);
@@ -435,7 +435,7 @@ do_authenticated1(Authctxt *authctxt)
 void
 do_exec_no_pty(Session *s, const char *command)
 {
-	int pid;
+	pid_t pid;
 
 #ifdef USE_PIPES
 	int pin[2], pout[2], perr[2];
@@ -1430,12 +1430,12 @@ session_dump(void)
 	int i;
 	for (i = 0; i < MAX_SESSIONS; i++) {
 		Session *s = &sessions[i];
-		debug("dump: used %d session %d %p channel %d pid %d",
+		debug("dump: used %d session %d %p channel %d pid %ld",
 		    s->used,
 		    s->self,
 		    s,
 		    s->chanid,
-		    s->pid);
+		    (long)s->pid);
 	}
 }
 
@@ -1493,13 +1493,13 @@ static Session *
 session_by_pid(pid_t pid)
 {
 	int i;
-	debug("session_by_pid: pid %d", pid);
+	debug("session_by_pid: pid %ld", (long)pid);
 	for (i = 0; i < MAX_SESSIONS; i++) {
 		Session *s = &sessions[i];
 		if (s->used && s->pid == pid)
 			return s;
 	}
-	error("session_by_pid: unknown pid %d", pid);
+	error("session_by_pid: unknown pid %ld", (long)pid);
 	session_dump();
 	return NULL;
 }
@@ -1789,8 +1789,8 @@ session_exit_message(Session *s, int status)
 	if ((c = channel_lookup(s->chanid)) == NULL)
 		fatal("session_exit_message: session %d: no channel %d",
 		    s->self, s->chanid);
-	debug("session_exit_message: session %d channel %d pid %d",
-	    s->self, s->chanid, s->pid);
+	debug("session_exit_message: session %d channel %d pid %ld",
+	    s->self, s->chanid, (long)s->pid);
 
 	if (WIFEXITED(status)) {
 		channel_request_start(s->chanid, "exit-status", 0);
@@ -1829,7 +1829,7 @@ session_exit_message(Session *s, int status)
 void
 session_close(Session *s)
 {
-	debug("session_close: session %d pid %d", s->self, s->pid);
+	debug("session_close: session %d pid %ld", s->self, (long)s->pid);
 	if (s->ttyfd != -1) {
 		fatal_remove_cleanup(session_pty_cleanup, (void *)s);
 		session_pty_cleanup(s);
@@ -1853,7 +1853,8 @@ session_close_by_pid(pid_t pid, int status)
 {
 	Session *s = session_by_pid(pid);
 	if (s == NULL) {
-		debug("session_close_by_pid: no session for pid %d", pid);
+		debug("session_close_by_pid: no session for pid %ld",
+		    (long)pid);
 		return;
 	}
 	if (s->chanid != -1)
@@ -1873,7 +1874,8 @@ session_close_by_channel(int id, void *arg)
 		debug("session_close_by_channel: no session for id %d", id);
 		return;
 	}
-	debug("session_close_by_channel: channel %d child %d", id, s->pid);
+	debug("session_close_by_channel: channel %d child %ld",
+	    id, (long)s->pid);
 	if (s->pid != 0) {
 		debug("session_close_by_channel: channel %d: has child", id);
 		/*

@@ -35,7 +35,7 @@
 
 #include "includes.h"
 #include "openbsd-compat/fake-queue.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.90 2002/06/09 13:32:01 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.91 2002/06/11 05:46:20 mpech Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -1043,7 +1043,7 @@ main(int ac, char **av)
 		format = c_flag ? "unsetenv %s;\n" : "unset %s;\n";
 		printf(format, SSH_AUTHSOCKET_ENV_NAME);
 		printf(format, SSH_AGENTPID_ENV_NAME);
-		printf("echo Agent pid %d killed;\n", pid);
+		printf("echo Agent pid %ld killed;\n", (long)pid);
 		exit(0);
 	}
 	parent_pid = getpid();
@@ -1055,8 +1055,8 @@ main(int ac, char **av)
 			perror("mkdtemp: private socket dir");
 			exit(1);
 		}
-		snprintf(socket_name, sizeof socket_name, "%s/agent.%d", socket_dir,
-		    parent_pid);
+		snprintf(socket_name, sizeof socket_name, "%s/agent.%ld", socket_dir,
+		    (long)parent_pid);
 	} else {
 		/* Try to use specified agent socket */
 		socket_dir[0] = '\0';
@@ -1102,7 +1102,7 @@ main(int ac, char **av)
 		format = c_flag ? "setenv %s %s;\n" : "%s=%s; export %s;\n";
 		printf(format, SSH_AUTHSOCKET_ENV_NAME, socket_name,
 		    SSH_AUTHSOCKET_ENV_NAME);
-		printf("echo Agent pid %d;\n", parent_pid);
+		printf("echo Agent pid %ld;\n", (long)parent_pid);
 		goto skip;
 	}
 	pid = fork();
@@ -1112,14 +1112,14 @@ main(int ac, char **av)
 	}
 	if (pid != 0) {		/* Parent - execute the given command. */
 		close(sock);
-		snprintf(pidstrbuf, sizeof pidstrbuf, "%d", pid);
+		snprintf(pidstrbuf, sizeof pidstrbuf, "%ld", (long)pid);
 		if (ac == 0) {
 			format = c_flag ? "setenv %s %s;\n" : "%s=%s; export %s;\n";
 			printf(format, SSH_AUTHSOCKET_ENV_NAME, socket_name,
 			    SSH_AUTHSOCKET_ENV_NAME);
 			printf(format, SSH_AGENTPID_ENV_NAME, pidstrbuf,
 			    SSH_AGENTPID_ENV_NAME);
-			printf("echo Agent pid %d;\n", pid);
+			printf("echo Agent pid %ld;\n", (long)pid);
 			exit(0);
 		}
 		if (setenv(SSH_AUTHSOCKET_ENV_NAME, socket_name, 1) == -1 ||

@@ -35,6 +35,10 @@
      run less code with euid==0 if ssh is installed setuid root
      just switch the euid, don't switch the complete set of groups
      (this is only needed by sshd). ok provos@
+   - mpech@cvs.openbsd.org 2002/06/11 05:46:20
+     [auth-krb4.c monitor.h serverloop.c session.c ssh-agent.c sshd.c]
+     pid_t cleanup. Markus need this now to keep hacking.
+     markus@, millert@ ok
 
 20020609
  - (bal) OpenBSD CVS Sync
@@ -900,4 +904,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2208 2002/06/11 16:37:51 mouring Exp $
+$Id: ChangeLog,v 1.2209 2002/06/11 16:42:49 mouring Exp $
