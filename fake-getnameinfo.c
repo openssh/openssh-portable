@@ -25,7 +25,7 @@ int getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 		if (strlen(tmpserv) > servlen)
 			return EAI_MEMORY;
 		else
-			strlcpy(serv, tmpserv, servlen);
+			strcpy(serv, tmpserv);
 	}
 
 	if (host) {
@@ -33,7 +33,7 @@ int getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 			if (strlen(inet_ntoa(sin->sin_addr)) >= hostlen)
 				return EAI_MEMORY;
 
-			strlcpy(host, inet_ntoa(sin->sin_addr), hostlen);
+			strcpy(host, inet_ntoa(sin->sin_addr));
 			return 0;
 		} else {
 			hp = gethostbyaddr((char *)&sin->sin_addr, 
@@ -44,7 +44,7 @@ int getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 			if (strlen(hp->h_name) >= hostlen)
 				return EAI_MEMORY;
 
-			strlcpy(host, hp->h_name, hostlen);
+			strcpy(host, hp->h_name);
 			return 0;
 		}
 	}
