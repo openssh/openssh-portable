@@ -4,6 +4,7 @@
      [clientloop.c ssh.1]
      Split out and improve escape character documentation, mention ~R in
      ~? help text; ok markus@
+ - Update RPM spec files for CVS version.h
 
 20010420
  - OpenBSD CVS Sync                         
@@ -5194,4 +5195,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1148 2001/04/20 12:50:51 mouring Exp $
+$Id: ChangeLog,v 1.1149 2001/04/20 13:19:37 djm Exp $
