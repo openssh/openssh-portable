@@ -1,8 +1,6 @@
 /*	$OpenBSD: inet_addr.c,v 1.6 1999/05/03 22:31:14 yanick Exp $	*/
 
 /*
- * ++Copyright++ 1983, 1990, 1993
- * -
  * Copyright (c) 1983, 1990, 1993
  *    The Regents of the University of California.  All rights reserved.
  * 
