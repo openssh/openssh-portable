@@ -1,3 +1,6 @@
+20020105
+ - (bal) NCR requies use_pipes to operate correctly.
+
 20020103
  - (djm) Use bigcrypt() on systems with SCO_PROTECTED_PW. Patch from 
    Roger Cornelius <rac@tenzing.org>
@@ -7118,4 +7121,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1714 2002/01/02 23:30:56 djm Exp $
+$Id: ChangeLog,v 1.1715 2002/01/05 17:15:30 mouring Exp $
