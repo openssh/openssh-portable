@@ -10,6 +10,7 @@
    - [regress/rekey.sh] Remove dependence on /dev/zero (not all platforms have
      it).  The sparse file will take less disk space too.
    - [regress/sftp-cmds.sh] Ensure file used for test are readable.
+   - [regress/stderr-after-eof.sh] Search for a usable checksum program.
 
 20030903
  - (djm) OpenBSD CVS Sync
@@ -1000,4 +1001,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2947 2003/09/04 04:26:31 dtucker Exp $
+$Id: ChangeLog,v 1.2948 2003/09/04 04:32:02 dtucker Exp $

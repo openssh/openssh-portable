@@ -7,13 +7,23 @@ DATA=/etc/motd
 DATA=${OBJ}/data
 COPY=${OBJ}/copy
 
-MD5=md5sum
+if [ -x "`which md5sum 2>&1`" ]; then
+	CHECKSUM=md5sum
+elif [ -x "`which openssl 2>&1`" ]; then
+	CHECKSUM="openssl md5"
+elif [ -x "`which cksum 2>&1`" ]; then
+	CHECKSUM=cksum
+elif [ -x "`which sum 2>&1`" ]; then
+	CHECKSUM=sum
+else
+	fatal "No checksum program available, aborting $tid test"
+fi
 
 # setup data
 rm -f ${DATA} ${COPY}
 cp /dev/null ${DATA}
 for i in 1 2 3 4 5 6; do
-	(date;echo $i) | $MD5 >> ${DATA}
+	(date;echo $i) | $CHECKSUM >> ${DATA}
 done
 
 ${SSH} -2 -F $OBJ/ssh_proxy otherhost \
