@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-add.1,v 1.29 2002/01/29 16:41:19 markus Exp $
+.\"	$OpenBSD: ssh-add.1,v 1.30 2002/02/04 20:41:16 stevesk Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -94,21 +94,16 @@ Remove key in smartcard
 .Bl -tag -width Ds
 .It Pa $HOME/.ssh/identity
 Contains the protocol version 1 RSA authentication identity of the user.
-This file should not be readable by anyone but the user.
-Note that
-.Nm
-ignores this file if it is accessible by others.
-It is possible to
-specify a passphrase when generating the key; that passphrase will be
-used to encrypt the private part of this file.
-This is the default file added by
-.Nm
-when no other files have been specified.
 .It Pa $HOME/.ssh/id_dsa
 Contains the protocol version 2 DSA authentication identity of the user.
 .It Pa $HOME/.ssh/id_rsa
 Contains the protocol version 2 RSA authentication identity of the user.
 .El
+.Pp
+Identity files should not be readable by anyone but the user.
+Note that
+.Nm
+ignores identity files if they are accessible by others.
 .Sh ENVIRONMENT
 .Bl -tag -width Ds
 .It Ev "DISPLAY" and "SSH_ASKPASS"

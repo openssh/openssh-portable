@@ -89,6 +89,9 @@
      [log.c log.h readconf.c servconf.c]
      add SYSLOG_FACILITY_NOT_SET = -1, SYSLOG_LEVEL_NOT_SET = -1,
      fixes arm/netbsd; based on patch from bjh21@netbsd.org; ok djm@
+   - stevesk@cvs.openbsd.org 2002/02/04 20:41:16
+     [ssh-add.1]
+     more sync for default ssh-add identities; ok markus@
 
 20020130
  - (djm) Delay PRNG seeding until we need it in ssh-keygen, from markus@
@@ -7491,4 +7494,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1823 2002/02/05 01:26:34 djm Exp $
+$Id: ChangeLog,v 1.1824 2002/02/05 01:26:58 djm Exp $
