@@ -206,6 +206,8 @@ main(int ac, char **av)
 	int dummy;
 	uid_t original_effective_uid;
 
+	init_rng();
+
 	/*
 	 * Save the original real uid.  It will be needed later (uid-swapping
 	 * may clobber the real uid).

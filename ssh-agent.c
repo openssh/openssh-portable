@@ -509,6 +509,8 @@ main(int ac, char **av)
 	char *shell, *format, *pidstr, pidstrbuf[1 + 3 * sizeof pid];
 	extern int optind;
 
+	init_rng();
+
 	/* check if RSA support exists */
 	if (rsa_alive() == 0) {
 		fprintf(stderr,

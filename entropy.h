@@ -31,5 +31,6 @@
 #define _RANDOMS_H
 
 void seed_rng(void);
+void init_rng(void);
 
 #endif /* _RANDOMS_H */

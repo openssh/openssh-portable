@@ -210,6 +210,8 @@ main(int argc, char **argv)
 	int i;
 	int deleting = 0;
 
+	init_rng();
+
 	/* check if RSA support exists */
 	if (rsa_alive() == 0) {
 		fprintf(stderr,

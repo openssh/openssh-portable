@@ -520,6 +520,8 @@ main(int ac, char **av)
 	extern int optind;
 	extern char *optarg;
 
+	init_rng();
+
 	SSLeay_add_all_algorithms();
 
 	/* we need this for the home * directory.  */

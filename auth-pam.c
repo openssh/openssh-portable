@@ -34,7 +34,7 @@
 #include "xmalloc.h"
 #include "servconf.h"
 
-RCSID("$Id: auth-pam.c,v 1.10 2000/07/09 11:21:52 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.11 2000/07/09 12:42:33 djm Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: You password has expired, please change it now"
@@ -279,7 +279,7 @@ char **fetch_pam_environment(void)
 void print_pam_messages(void)
 {
 	if (pam_msg != NULL)
-		fputs(stderr, pam_msg);
+		fputs(pam_msg, stderr);
 }
 
 /* Append a message to the PAM message buffer */

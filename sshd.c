@@ -422,6 +422,8 @@ main(int ac, char **av)
 	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
 	int listen_sock, maxfd;
 
+	init_rng();
+
 	/* Save argv[0]. */
 	saved_argc = ac;
 	saved_argv = av;

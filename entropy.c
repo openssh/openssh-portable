@@ -35,7 +35,7 @@
 #include <openssl/rand.h>
 #include <openssl/sha.h>
 
-RCSID("$Id: entropy.c,v 1.16 2000/06/26 03:55:31 djm Exp $");
+RCSID("$Id: entropy.c,v 1.17 2000/07/09 12:42:33 djm Exp $");
 
 #ifndef offsetof
 # define offsetof(type, member) ((size_t) &((type *)0)->member)
@@ -168,6 +168,9 @@ seed_rng(void)
 	memset(buf, '\0', sizeof(buf));
 }
 
+/* No-op */
+void init_rng(void) {}
+
 #else /* defined(EGD_SOCKET) || defined(RANDOM_POOL) */
 
 /* 
@@ -180,9 +183,9 @@ seed_rng(void)
 /* static int entropy_timeout_default = ENTROPY_TIMEOUT_MSEC; */
 static int entropy_timeout_current = ENTROPY_TIMEOUT_MSEC;
 
-static int prng_seed_loaded = 0;
 static int prng_seed_saved = 0;
-static int prng_commands_loaded = 0;
+static int prng_initialised = 0;
+uid_t original_uid;
 
 typedef struct
 {
@@ -395,10 +398,10 @@ hash_output_from_command(entropy_source_t *src, char *hash)
 			close(p[1]);
 			close(devnull);
 
+			setuid(original_uid);
 			execv(src->path, (char**)(src->args));
 			debug("(child) Couldn't exec '%s': %s", src->cmdstring,
 			      strerror(errno));
-			src->badness = src->sticky_badness = 128;
 			_exit(-1);
 		default: /* Parent */
 			break;
@@ -432,38 +435,36 @@ hash_output_from_command(entropy_source_t *src, char *hash)
 
 		ret = select(p[0]+1, &rdset, NULL, NULL, &tv);
 
+		RAND_add(&tv, sizeof(tv), 0.0);
+
 		switch (ret) {
 		case 0:
 			/* timer expired */
 			error_abort = 1;
 			break;
-			
 		case 1:
 			/* command input */
 			bytes_read = read(p[0], buf, sizeof(buf));
+			RAND_add(&bytes_read, sizeof(&bytes_read), 0.0);
 			if (bytes_read == -1) {
 				error_abort = 1;
 				break;
-			}
-			if (bytes_read) {
+			} else if (bytes_read) {
 				SHA1_Update(&sha, buf, bytes_read);
 				total_bytes_read += bytes_read;
-				RAND_add(&bytes_read, sizeof(&bytes_read), 0.0);
-			} else
+			} else {
 				cmd_eof = 1;
-
+			}
 			break;
-
 		case -1:
 		default:
+			/* error */
 			debug("Command '%s': select() failed: %s", src->cmdstring,
 			      strerror(errno));
 			error_abort = 1;
 			break;
-		} /* switch ret */
-
-		RAND_add(&tv, sizeof(&tv), 0.0);
-	} /* while !error_abort && !cmd_eof */
+		}
+	}
 
 	SHA1_Final(hash, &sha);
 
@@ -533,7 +534,7 @@ prng_check_seedfile(char *filename) {
 		fatal("PRNG seedfile %.100s is not a regular file", filename);
 
 	/* mode 0600, owned by root or the current user? */
-	if (((st.st_mode & 0177) != 0) || !(st.st_uid == getuid()))
+	if (((st.st_mode & 0177) != 0) || !(st.st_uid == original_uid))
 		fatal("PRNG seedfile %.100s must be mode 0600, owned by uid %d",
 			 filename, getuid());
 
@@ -551,12 +552,14 @@ prng_write_seedfile(void) {
 	if (prng_seed_saved)
 		return;
 	
+	setuid(original_uid);
+	
 	prng_seed_saved = 1;
 	
-	pw = getpwuid(getuid());
+	pw = getpwuid(original_uid);
 	if (pw == NULL)
 		fatal("Couldn't get password entry for current user (%i): %s", 
-			getuid(), strerror(errno));
+			original_uid, strerror(errno));
 				
 	/* Try to ensure that the parent directory is there */
 	snprintf(filename, sizeof(filename), "%.512s/%s", pw->pw_dir, 
@@ -591,10 +594,10 @@ prng_read_seedfile(void) {
 	char filename[1024];
 	struct passwd *pw;
 	
-	pw = getpwuid(getuid());
+	pw = getpwuid(original_uid);
 	if (pw == NULL)
 		fatal("Couldn't get password entry for current user (%i): %s", 
-			getuid(), strerror(errno));
+			original_uid, strerror(errno));
 			
 	snprintf(filename, sizeof(filename), "%.512s/%s", pw->pw_dir, 
 		SSH_PRNG_SEED_FILE);
@@ -755,7 +758,7 @@ prng_read_commands(char *cmdfilename)
 	/* trim to size */
 	entropy_sources = xrealloc(entcmd, (cur_cmd+1) * sizeof(entropy_source_t));
 
-	debug("loaded %d entropy commands from %.100s", cur_cmd, cmdfilename);
+	debug("Loaded %d entropy commands from %.100s", cur_cmd, cmdfilename);
 
 	return (cur_cmd >= MIN_ENTROPY_SOURCES);
 }
@@ -777,35 +780,41 @@ void
 seed_rng(void)
 {
 	void *old_sigchld_handler;
-	
-	if (!prng_commands_loaded) {
-		if (!prng_read_commands(SSH_PRNG_COMMAND_FILE))
-			fatal("PRNG initialisation failed -- exiting.");
-		prng_commands_loaded = 1;
-	}
 
+	if (!prng_initialised)
+		fatal("RNG not initialised");
+	
 	/* Make sure some other sigchld handler doesn't reap our entropy */
 	/* commands */
 	old_sigchld_handler = signal(SIGCHLD, SIG_DFL);
 
-	debug("Seeding random number generator.");
-	debug("OpenSSL random status is now %i\n", RAND_status());
-	debug("%i bytes from system calls", (int)stir_from_system());
-	debug("%i bytes from programs", (int)stir_from_programs());
-	debug("OpenSSL random status is now %i\n", RAND_status());
+	debug("Seeded RNG with %i bytes from programs", (int)stir_from_programs());
+	debug("Seeded RNG with %i bytes from system calls", (int)stir_from_system());
+
+	if (!RAND_status())
+		fatal("Not enough entropy in RNG");
 
 	signal(SIGCHLD, old_sigchld_handler);
 
 	if (!RAND_status())
 		fatal("Couldn't initialise builtin random number generator -- exiting.");
-
-	if (!prng_seed_loaded)
-	{
-		prng_seed_loaded = 1;
-		prng_seed_saved = 0;		
-		prng_read_seedfile();
-		fatal_add_cleanup(prng_seed_cleanup, NULL);
-		atexit(prng_write_seedfile);
-	}
 }
+
+void init_rng(void) 
+{
+	original_uid = getuid();
+
+	/* Read in collection commands */
+	if (!prng_read_commands(SSH_PRNG_COMMAND_FILE))
+		fatal("PRNG initialisation failed -- exiting.");
+
+	/* Set ourselves up to save a seed upon exit */
+	prng_seed_saved = 0;		
+	prng_read_seedfile();
+	fatal_add_cleanup(prng_seed_cleanup, NULL);
+	atexit(prng_write_seedfile);
+
+	prng_initialised = 1;
+}
+
 #endif /* defined(EGD_SOCKET) || defined(RANDOM_POOL) */
