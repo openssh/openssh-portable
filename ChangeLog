@@ -1,3 +1,6 @@
+20011004
+ - (bal) nchan2.ms resync.  BSD License applied.
+
 20011003
  - (bal) CVS ID fix up in version.h
  - (bal) OpenBSD CVS Sync:
@@ -6632,4 +6635,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1581 2001/10/03 17:55:26 mouring Exp $
+$Id: ChangeLog,v 1.1582 2001/10/04 21:16:57 mouring Exp $
