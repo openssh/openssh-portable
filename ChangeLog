@@ -1,3 +1,15 @@
+20000518
+ - Include Andre Lucas' fixprogs script. Forgot to "cvs add" it yesterday
+ - OpenBSD CVS updates:
+  - markus@cvs.openbsd.org
+    [sshconnect.c]
+    copy only ai_addrlen bytes; misiek@pld.org.pl
+    [auth.c]
+    accept an empty shell in authentication; bug reported by 
+    chris@tinker.ucr.edu
+    [serverloop.c]
+    we don't have stderr for interactive terminal sessions (fcntl errors)
+
 20000517
  - Fix from Andre Lucas <andre.lucas@dial.pipex.com>
   - Fixes command line printing segfaults (spotter: Bladt Norbert)
