@@ -1,3 +1,9 @@
+20040229
+ - (dtucker) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2004/02/25 00:22:45
+     [sshd.c]
+     typo in comment
+
 20040226
  - (bal) KNF our sshlogin.c even if the code looks nothing like upstream
    code due to diversity issues.
@@ -802,4 +808,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3260 2004/02/27 03:01:19 mouring Exp $
+$Id: ChangeLog,v 1.3261 2004/02/29 09:11:30 dtucker Exp $

@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.286 2004/02/23 12:02:33 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.287 2004/02/25 00:22:45 djm Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -568,7 +568,7 @@ privsep_preauth_child(void)
 	debug3("privsep user:group %u:%u", (u_int)pw->pw_uid,
 	    (u_int)pw->pw_gid);
 #if 0
-	/* XXX not ready, to heavy after chroot */
+	/* XXX not ready, too heavy after chroot */
 	do_setusercontext(pw);
 #else
 	gidset[0] = pw->pw_gid;
