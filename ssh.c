@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.146 2001/10/01 21:38:53 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.147 2001/10/08 19:05:05 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -681,7 +681,7 @@ again:
 
 	/* Open a connection to the remote host. */
 
-	cerr = ssh_connect(host, &hostaddr, options.port,
+	cerr = ssh_connect(host, &hostaddr, options.port, IPv4or6,
 	    options.connection_attempts,
 	    original_effective_uid != 0 || !options.use_privileged_port,
 	    pw, options.proxy_command);

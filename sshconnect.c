@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.114 2001/10/08 16:15:47 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.115 2001/10/08 19:05:05 markus Exp $");
 
 #include <openssl/bn.h>
 
@@ -37,9 +37,6 @@ char *server_version_string = NULL;
 
 extern Options options;
 extern char *__progname;
-
-/* AF_UNSPEC or AF_INET or AF_INET6 */
-extern int IPv4or6;
 
 #ifndef INET6_ADDRSTRLEN		/* for non IPv6 machines */
 #define INET6_ADDRSTRLEN 46
@@ -243,9 +240,8 @@ ssh_create_socket(struct passwd *pw, int privileged, int family)
  */
 int
 ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
-	    u_short port, int connection_attempts,
-	    int anonymous, struct passwd *pw,
-	    const char *proxy_command)
+    u_short port, int family, int connection_attempts,
+    int anonymous, struct passwd *pw, const char *proxy_command)
 {
 	int gaierr;
 	int on = 1;
@@ -279,7 +275,7 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 	/* No proxy command. */
 
 	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = IPv4or6;
+	hints.ai_family = family;
 	hints.ai_socktype = SOCK_STREAM;
 	snprintf(strport, sizeof strport, "%d", port);
 	if ((gaierr = getaddrinfo(host, strport, &hints, &aitop)) != 0)

@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.103 2001/10/06 00:36:42 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.104 2001/10/09 10:12:08 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1342,16 +1342,6 @@ do_child(Session *s, const char *command)
 	for (i = 3; i < 64; i++)
 		close(i);
 
-	/* Change current directory to the user\'s home directory. */
-	if (chdir(pw->pw_dir) < 0) {
-		fprintf(stderr, "Could not chdir to home directory %s: %s\n",
-			pw->pw_dir, strerror(errno));
-#ifdef HAVE_LOGIN_CAP
-		if (login_getcapbool(lc, "requirehome", 0))
-			exit(1);
-#endif
-	}
-
 	/*
 	 * Must take new environment into use so that .ssh/rc, /etc/sshrc and
 	 * xauth are run in the proper environment.
@@ -1369,6 +1359,16 @@ do_child(Session *s, const char *command)
 		krb_afslog(0, 0);
 	}
 #endif /* AFS */
+
+	/* Change current directory to the user\'s home directory. */
+	if (chdir(pw->pw_dir) < 0) {
+		fprintf(stderr, "Could not chdir to home directory %s: %s\n",
+		    pw->pw_dir, strerror(errno));
+#ifdef HAVE_LOGIN_CAP
+		if (login_getcapbool(lc, "requirehome", 0))
+			exit(1);
+#endif
+	}
 
 	/*
 	 * Run $HOME/.ssh/rc, /etc/sshrc, or xauth (whichever is found first
