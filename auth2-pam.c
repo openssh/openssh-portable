@@ -1,5 +1,5 @@
 #include "includes.h"
-RCSID("$Id: auth2-pam.c,v 1.10 2001/02/16 02:03:04 djm Exp $");
+RCSID("$Id: auth2-pam.c,v 1.11 2001/06/27 05:36:44 djm Exp $");
 
 #ifdef USE_PAM
 #include <security/pam_appl.h>
@@ -136,9 +136,6 @@ input_userauth_info_response_pam(int type, int plen, void *ctxt)
 
 	if (authctxt == NULL)
 		fatal("input_userauth_info_response_pam: no authentication context");
-
-	if (authctxt->attempt++ >= AUTH_FAIL_MAX)
-		packet_disconnect("too many failed userauth_requests");
 
 	nresp = packet_get_int();	/* Number of responses. */
 	debug("got %d responses", nresp);
