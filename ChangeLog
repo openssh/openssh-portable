@@ -20,6 +20,7 @@
  - (djm) SCO needs librpc for libwrap. Patch from Tim Rice 
    <tim@multitalents.net>
  - (stevesk) misc.c: cpp rework of SA_(INTERRUPT|RESTART) handling.
+ - (stevesk) scp.c: use mysignal() for updateprogressmeter() handler.
 
 20010217
  - (bal) OpenBSD Sync:
@@ -4027,4 +4028,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.793 2001/02/18 03:42:02 stevesk Exp $
+$Id: ChangeLog,v 1.794 2001/02/18 03:55:16 stevesk Exp $

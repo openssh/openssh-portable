@@ -81,6 +81,7 @@ RCSID("$OpenBSD: scp.c,v 1.58 2001/02/10 15:14:11 danh Exp $");
 #include "atomicio.h"
 #include "pathnames.h"
 #include "log.h"
+#include "misc.h"
 
 #ifdef HAVE___PROGNAME
 extern char *__progname;
@@ -1221,17 +1222,7 @@ progressmeter(int flag)
 	atomicio(write, fileno(stdout), buf, strlen(buf));
 
 	if (flag == -1) {
-		struct sigaction sa;
-		sa.sa_handler = updateprogressmeter;
-		sigemptyset((sigset_t *)&sa.sa_mask);
-		sa.sa_flags = 0;
-#ifdef SA_RESTART
-		sa.sa_flags |= SA_RESTART;
-#endif
-#ifdef SA_INTERRUPT
-		sa.sa_flags |= SA_INTERRUPT;
-#endif
-		sigaction(SIGALRM, &sa, NULL);
+		mysignal(SIGALRM, updateprogressmeter);
 		alarmtimer(1);
 	} else if (flag == 1) {
 		alarmtimer(0);
