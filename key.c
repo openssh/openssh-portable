@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: key.c,v 1.20 2001/03/11 15:13:09 jakob Exp $");
+RCSID("$OpenBSD: key.c,v 1.21 2001/03/11 18:29:51 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -156,6 +156,8 @@ key_equal(Key *a, Key *b)
 u_char*
 key_fingerprint_raw(Key *k, enum fp_type dgst_type, size_t *dgst_raw_length)
 {
+	EVP_MD *md = NULL;
+	EVP_MD_CTX ctx;
 	u_char *blob = NULL;
 	u_char *retval = NULL;
 	int len = 0;
@@ -163,6 +165,17 @@ key_fingerprint_raw(Key *k, enum fp_type dgst_type, size_t *dgst_raw_length)
 
 	*dgst_raw_length = 0;
 
+	switch (dgst_type) {
+	case SSH_FP_MD5:
+		md = EVP_md5();
+		break;
+	case SSH_FP_SHA1:
+		md = EVP_sha1();
+		break;
+	default:
+		fatal("key_fingerprint_raw: bad digest type %d",
+		    dgst_type);
+	}
 	switch (k->type) {
 	case KEY_RSA1:
 		nlen = BN_num_bytes(k->rsa->n);
@@ -184,23 +197,7 @@ key_fingerprint_raw(Key *k, enum fp_type dgst_type, size_t *dgst_raw_length)
 		break;
 	}
 	if (blob != NULL) {
-		EVP_MD *md = NULL;
-		EVP_MD_CTX ctx;
-
 		retval = xmalloc(EVP_MAX_MD_SIZE);
-
-		switch (dgst_type) {
-		case SSH_FP_MD5:
-			md = EVP_md5();
-			break;
-		case SSH_FP_SHA1:
-			md = EVP_sha1();
-			break;
-		default:
-			fatal("key_fingerprint_raw: bad digest type %d",
-			    dgst_type);
-		}
-
 		EVP_DigestInit(&ctx, md);
 		EVP_DigestUpdate(&ctx, blob, len);
 		EVP_DigestFinal(&ctx, retval, NULL);

@@ -21,6 +21,10 @@
    test if snprintf() supports %ll
    add /dev to search path for PRNGD/EGD socket
    fix my mistake in USER_PATH test program
+ - OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2001/03/11 18:29:51
+     [key.c]
+     style+cleanup
 
 20010311
  - OpenBSD CVS Sync
@@ -4514,4 +4518,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.945 2001/03/12 01:32:12 tim Exp $
+$Id: ChangeLog,v 1.946 2001/03/12 02:59:31 mouring Exp $
