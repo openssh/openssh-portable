@@ -54,6 +54,9 @@
    - markus@cvs.openbsd.org  2001/01/31 13:48:09
      [sshconnect2.c]
      unused
+   - deraadt@cvs.openbsd.org 2001/02/04 08:23:08
+     [sftp-client.c sftp-server.c]
+     make gcc on the alpha even happier
 
 20010104
  - (bal) I think this is the last of the bsd-*.h that don't belong.

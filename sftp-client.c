@@ -29,7 +29,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.1 2001/02/04 11:11:54 djm Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.3 2001/02/04 15:32:25 stevesk Exp $");
 
 #include "ssh.h"
 #include "buffer.h"
@@ -621,7 +621,7 @@ do_download(int fd_in, int fd_out, char *remote_path, char *local_path,
 		buffer_put_int(&msg, COPY_SIZE);
 		send_msg(fd_out, &msg);
 		debug3("Sent message SSH2_FXP_READ I:%d O:%llu S:%u",
-		    id, offset, COPY_SIZE);
+		    id, (unsigned long long)offset, COPY_SIZE);
 
 		buffer_clear(&msg);
 
@@ -656,7 +656,8 @@ do_download(int fd_in, int fd_out, char *remote_path, char *local_path,
 			fatal("Received more data than asked for %d > %d",
 			    len, COPY_SIZE);
 
-		debug3("In read loop, got %d offset %lld", len, offset);
+		debug3("In read loop, got %d offset %lld", len,
+		    (unsigned long long)offset);
 		if (atomicio(write, local_fd, data, len) != len) {
 			error("Couldn't write to \"%s\": %s", local_path,
 			    strerror(errno));
@@ -763,7 +764,7 @@ do_upload(int fd_in, int fd_out, char *local_path, char *remote_path,
 		buffer_put_string(&msg, data, len);
 		send_msg(fd_out, &msg);
 		debug3("Sent message SSH2_FXP_WRITE I:%d O:%llu S:%u",
-		    id, offset, len);
+		    id, (unsigned long long)offset, len);
 
 		status = get_status(fd_in, id);
 		if (status != SSH2_FX_OK) {
@@ -774,7 +775,8 @@ do_upload(int fd_in, int fd_out, char *local_path, char *remote_path,
 			close(local_fd);
 			return(-1);
 		}
-		debug3("In write loop, got %d offset %lld", len, offset);
+		debug3("In write loop, got %d offset %llu", len,
+		    (unsigned long long)offset);
 
 		offset += len;
 	}
