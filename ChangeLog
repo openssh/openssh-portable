@@ -15,6 +15,7 @@
      http://www.ietf.org/internet-drafts/draft-ietf-secsh-newmodes-00.txt
      ok djm@
  - (djm) Remove IPv4 by default hack now that we can specify AF in config
+ - (djm) Tidy and trim TODO
 
 20030517
  - (bal) strcat -> strlcat on openbsd-compat/realpath.c (rev 1.8 OpenBSD)
@@ -1570,4 +1571,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2736 2003/05/18 10:53:59 djm Exp $
+$Id: ChangeLog,v 1.2737 2003/05/18 11:45:26 djm Exp $
