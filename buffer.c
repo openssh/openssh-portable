@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: buffer.c,v 1.17 2003/09/16 03:03:47 deraadt Exp $");
+RCSID("$OpenBSD: buffer.c,v 1.18 2003/09/16 21:02:39 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -23,8 +23,11 @@ RCSID("$OpenBSD: buffer.c,v 1.17 2003/09/16 03:03:47 deraadt Exp $");
 void
 buffer_init(Buffer *buffer)
 {
-	buffer->alloc = 4096;
-	buffer->buf = xmalloc(buffer->alloc);
+	const u_int len = 4096;
+
+	buffer->alloc = 0;
+	buffer->buf = xmalloc(len);
+	buffer->alloc = len;
 	buffer->offset = 0;
 	buffer->end = 0;
 }
@@ -34,8 +37,10 @@ buffer_init(Buffer *buffer)
 void
 buffer_free(Buffer *buffer)
 {
-	memset(buffer->buf, 0, buffer->alloc);
-	xfree(buffer->buf);
+	if (buffer->alloc > 0) {
+		memset(buffer->buf, 0, buffer->alloc);
+		xfree(buffer->buf);
+	}
 }
 
 /*
