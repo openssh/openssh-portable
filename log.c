@@ -194,6 +194,9 @@ void
 log_init(char *av0, LogLevel level, SyslogFacility facility, int on_stderr)
 {
 	argv0 = av0;
+#if defined(HAVE_OPENLOG_R) && defined(SYSLOG_DATA_INIT)
+	struct syslog_data sdata = SYSLOG_DATA_INIT;
+#endif
 
 	switch (level) {
 	case SYSLOG_LEVEL_QUIET:
@@ -261,6 +264,19 @@ log_init(char *av0, LogLevel level, SyslogFacility facility, int on_stderr)
 		    (int) facility);
 		exit(1);
 	}
+
+	/*
+	 * If an external library (eg libwrap) attempts to use syslog
+	 * immediately after reexec, syslog may be pointing to the wrong
+	 * facility, so we force an open/close of syslog here.
+	 */
+#if defined(HAVE_OPENLOG_R) && defined(SYSLOG_DATA_INIT)
+	openlog_r(argv0 ? argv0 : __progname, LOG_PID, log_facility, &sdata);
+	closelog_r(&sdata);
+#else
+	openlog(argv0 ? argv0 : __progname, LOG_PID, log_facility);
+	closelog();
+#endif
 }
 
 #define MSGBUFSIZ 1024
