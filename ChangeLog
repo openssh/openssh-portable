@@ -26,6 +26,12 @@
    - djm@cvs.openbsd.org 2004/01/21 03:07:59
      [sftp.c]
      initialise infile in main, rather than statically - from portable
+   - deraadt@cvs.openbsd.org 2004/01/11 21:55:06
+     [sshpty.c]
+     for pty opening, only use the openpty() path.  the other stuff only needs
+     to be in openssh-p; markus ok
+ - (djm) [openbsd-compat/bsd-openpty.c] Rework old sshpty.c code into an
+   openpty() replacement
 
 20040114
  - (dtucker) [auth-pam.c] Have monitor die if PAM authentication thread exits
@@ -1695,4 +1701,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3176 2004/01/21 03:11:05 djm Exp $
+$Id: ChangeLog,v 1.3177 2004/01/21 06:07:16 djm Exp $
