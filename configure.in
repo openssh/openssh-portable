@@ -713,7 +713,7 @@ AC_ARG_WITH(rsh,
 	[  --with-rsh=PATH         Specify path to remote shell program ],
 	[
 		if test "x$withval" != "$no" ; then
-			rsa_path=$withval
+			rsh_path=$withval
 		fi
 	],
 	[

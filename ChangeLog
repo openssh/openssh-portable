@@ -1,6 +1,8 @@
 20000708
  - (djm) Fix bad fprintf format handling in auth-pam.c. Patch from 
    Aaron Hopkins <aaron@die.net>
+ - (djm) Fix incorrect configure handling of --with-rsh-path option. Fix from
+   Lutz Jaenicke <Lutz.Jaenicke@aet.TU-Cottbus.DE>
 
 20000702
  - (djm) Fix brace mismatch from Corinna Vinschen <vinschen@cygnus.com>
