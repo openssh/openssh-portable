@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.39 2003/05/14 02:15:47 markus Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.40 2003/05/14 08:57:49 markus Exp $");
 
 #include <openssl/dh.h>
 
@@ -143,6 +143,7 @@ static char *hostbased_chost = NULL;
 static char *auth_method = "unknown";
 static int session_id2_len = 0;
 static u_char *session_id2 = NULL;
+static pid_t monitor_child_pid;
 
 struct mon_table {
 	enum monitor_reqtype type;
@@ -321,9 +322,25 @@ monitor_child_preauth(struct monitor *pmonitor)
 	return (authctxt);
 }
 
+static void
+monitor_set_child_handler(pid_t pid)
+{
+	monitor_child_pid = pid;
+}
+
+static void
+monitor_child_handler(int signal)
+{
+	kill(monitor_child_pid, signal);
+}
+
 void
 monitor_child_postauth(struct monitor *pmonitor)
 {
+	monitor_set_child_handler(pmonitor->m_pid);
+	signal(SIGHUP, &monitor_child_handler);
+	signal(SIGTERM, &monitor_child_handler);
+
 	if (compat20) {
 		mon_dispatch = mon_dispatch_postauth20;
 

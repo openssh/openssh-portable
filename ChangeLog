@@ -72,6 +72,11 @@
      - better formatting in SYNOPSIS
      - whitespace at EOL
      ok djm@
+   - markus@cvs.openbsd.org 2003/05/14 08:57:49
+     [monitor.c]
+     http://bugzilla.mindrot.org/show_bug.cgi?id=560
+     Privsep child continues to run after monitor killed.
+     Pass monitor signals through to child; Darren Tucker
  - (djm) Make portable build with MIT krb5 (some issues remain)
  - (djm) Add new UsePAM configuration directive to allow runtime control
    over usage of PAM. This allows non-root use of sshd when built with
@@ -1465,4 +1470,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2697 2003/05/14 09:30:38 djm Exp $
+$Id: ChangeLog,v 1.2698 2003/05/14 09:31:12 djm Exp $
