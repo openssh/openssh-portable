@@ -20,6 +20,7 @@
  - (djm) Merge patch from Tim Waugh (via Nalin Dahyabhai <nalin@redhat.com>)
    to fix NULL pointer deref and fake authloop breakage in PAM code.
  - (bal) Updated contrib/cygwin/ by Corinna Vinschen <vinschen@redhat.com>
+ - (bal) Minor cygwin patch to auth1.c.  Suggested by djm.
  
 20010118
  - (bal) Super Sized OpenBSD Resync

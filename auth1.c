@@ -329,13 +329,12 @@ do_authloop(Authctxt *authctxt)
 			(int)pw->pw_uid);
 			authenticated = 0;
 		}
-#endif
-
+#else
 		/* Special handling for root */
 		if (authenticated && authctxt->pw->pw_uid == 0 && !auth_root_allowed())
 			authenticated = 0;
-
-#ifdef USE_PAM			/* ISSUE: Right place? */
+#endif
+#ifdef USE_PAM			
 		if (authenticated && !do_pam_account(pw->pw_name, client_user))
 			authenticated = 0;
 #endif
