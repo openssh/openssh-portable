@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.158 2004/06/21 17:36:31 avsm Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.159 2005/01/05 08:51:32 markus Exp $");
 
 #include <openssl/bn.h>
 
@@ -297,12 +297,6 @@ timeout_connect(int sockfd, const struct sockaddr *serv_addr,
  * second).  If proxy_command is non-NULL, it specifies the command (with %h
  * and %p substituted for host and port, respectively) to use to contact
  * the daemon.
- * Return values:
- *    0 for OK
- *    ECONNREFUSED if we got a "Connection Refused" by the peer on any address
- *    ECONNABORTED if we failed without a "Connection refused"
- * Suitable error messages for the connection failure will already have been
- * printed.
  */
 int
 ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
@@ -315,12 +309,6 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
 	struct addrinfo hints, *ai, *aitop;
 	struct servent *sp;
-	/*
-	 * Did we get only other errors than "Connection refused" (which
-	 * should block fallback to rsh and similar), or did we get at least
-	 * one "Connection refused"?
-	 */
-	int full_failure = 1;
 
 	debug2("ssh_connect: needpriv %d", needpriv);
 
@@ -381,8 +369,6 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 				memcpy(hostaddr, ai->ai_addr, ai->ai_addrlen);
 				break;
 			} else {
-				if (errno == ECONNREFUSED)
-					full_failure = 0;
 				debug("connect to address %s port %s: %s",
 				    ntop, strport, strerror(errno));
 				/*
@@ -408,9 +394,9 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 
 	/* Return failure if we didn't get a successful connection. */
 	if (attempt >= connection_attempts) {
-		logit("ssh: connect to host %s port %s: %s",
+		error("ssh: connect to host %s port %s: %s",
 		    host, strport, strerror(errno));
-		return full_failure ? ECONNABORTED : ECONNREFUSED;
+		return (-1);
 	}
 
 	debug("Connection established.");
