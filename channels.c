@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.136 2001/10/04 15:05:40 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.137 2001/10/07 17:49:40 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -241,6 +241,7 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 	}
 	/* Initialize and return new channel. */
 	c = channels[found] = xmalloc(sizeof(Channel));
+	memset(c, 0, sizeof(Channel));
 	buffer_init(&c->input);
 	buffer_init(&c->output);
 	buffer_init(&c->extended);
@@ -974,7 +975,7 @@ channel_pre_dynamic(Channel *c, fd_set * readset, fd_set * writeset)
 	int have, ret;
 
 	have = buffer_len(&c->input);
-
+	c->delayed = 0;
 	debug2("channel %d: pre_dynamic: have %d", c->self, have);
 	/* buffer_dump(&c->input); */
 	/* check if the fixed size part of the packet is in buffer. */
@@ -1133,11 +1134,18 @@ channel_post_port_listener(Channel *c, fd_set * readset, fd_set * writeset)
 		    "to %.100s port %d requested.",
 		    c->listening_port, c->path, c->host_port);
 
-		rtype = (c->type == SSH_CHANNEL_RPORT_LISTENER) ?
-		    "forwarded-tcpip" : "direct-tcpip";
-		nextstate = (c->host_port == 0 &&
-		    c->type != SSH_CHANNEL_RPORT_LISTENER) ?
-		    SSH_CHANNEL_DYNAMIC : SSH_CHANNEL_OPENING;
+		if (c->type == SSH_CHANNEL_RPORT_LISTENER) {
+			nextstate = SSH_CHANNEL_OPENING;
+			rtype = "forwarded-tcpip";
+		} else {
+			if (c->host_port == 0) {
+				nextstate = SSH_CHANNEL_DYNAMIC;
+				rtype = "direct-tcpip";
+			} else {
+				nextstate = SSH_CHANNEL_OPENING;
+				rtype = "direct-tcpip";
+			}
+		}
 
 		addrlen = sizeof(addr);
 		newsock = accept(c->sock, &addr, &addrlen);
@@ -1158,8 +1166,16 @@ channel_post_port_listener(Channel *c, fd_set * readset, fd_set * writeset)
 		nc->host_port = c->host_port;
 		strlcpy(nc->path, c->path, sizeof(nc->path));
 
-		if (nextstate != SSH_CHANNEL_DYNAMIC)
+		if (nextstate == SSH_CHANNEL_DYNAMIC) {
+			/*
+			 * do not call the channel_post handler until
+			 * this flag has been reset by a pre-handler.
+			 * otherwise the FD_ISSET calls might overflow
+			 */
+			nc->delayed = 1;
+		} else {
 			port_open_helper(nc, rtype);
+		}
 	}
 }
 
@@ -1409,6 +1425,8 @@ channel_check_window(Channel *c)
 static void
 channel_post_open_1(Channel *c, fd_set * readset, fd_set * writeset)
 {
+	if (c->delayed)
+		return;
 	channel_handle_rfd(c, readset, writeset);
 	channel_handle_wfd(c, readset, writeset);
 }
@@ -1416,6 +1434,8 @@ channel_post_open_1(Channel *c, fd_set * readset, fd_set * writeset)
 static void
 channel_post_open_2(Channel *c, fd_set * readset, fd_set * writeset)
 {
+	if (c->delayed)
+		return;
 	channel_handle_rfd(c, readset, writeset);
 	channel_handle_wfd(c, readset, writeset);
 	channel_handle_efd(c, readset, writeset);

@@ -32,7 +32,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* RCSID("$OpenBSD: channels.h,v 1.47 2001/10/01 21:38:53 markus Exp $"); */
+/* RCSID("$OpenBSD: channels.h,v 1.48 2001/10/07 17:49:40 markus Exp $"); */
 
 #ifndef CHANNEL_H
 #define CHANNEL_H
@@ -68,7 +68,6 @@ struct Channel {
 	int     type;		/* channel type/state */
 	int     self;		/* my own channel identifier */
 	int     remote_id;	/* channel identifier for remote peer */
-	/* peer can be reached over encrypted connection, via packet-sent */
 	int     istate;		/* input from channel (state of receive half) */
 	int     ostate;		/* output to channel  (state of transmit half) */
 	int     flags;		/* close sent/rcvd */
@@ -77,7 +76,8 @@ struct Channel {
 	int     efd;		/* extended fd */
 	int     sock;		/* sock fd */
 	int     isatty;		/* rfd is a tty */
-	int     force_drain;		/* force close on iEOF */
+	int     force_drain;	/* force close on iEOF */
+	int     delayed;		/* fdset hack */
 	Buffer  input;		/* data read from socket, to be sent over
 				 * encrypted connection */
 	Buffer  output;		/* data received over encrypted connection for

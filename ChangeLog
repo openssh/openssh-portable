@@ -21,6 +21,10 @@
    - markus@cvs.openbsd.org 2001/10/07 10:29:52
      [authfile.c]
      grammer; Matthew_Clarke@mindlink.bc.ca
+   - markus@cvs.openbsd.org 2001/10/07 17:49:40
+     [channels.c channels.h]
+     avoid possible FD_ISSET overflow for channels established
+     during channnel_after_select() (used for dynamic channels).
 
 20011007
  - (bal) ssh-copy-id corrected permissions for .ssh/ and authorized_keys.
@@ -6666,4 +6670,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1591 2001/10/10 05:03:36 djm Exp $
+$Id: ChangeLog,v 1.1592 2001/10/10 05:03:58 djm Exp $
