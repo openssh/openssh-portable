@@ -1,4 +1,5 @@
 20020410
+ - (stevesk) [configure.ac monitor.c] HAVE_SOCKETPAIR
  - (stevesk) [auth-sia.c] compile fix Chris Adams <cmadams@hiwaay.net>
  - (bal) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2002/04/10 08:21:47
@@ -8214,4 +8215,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2043 2002/04/10 16:26:20 mouring Exp $
+$Id: ChangeLog,v 1.2044 2002/04/10 22:04:54 stevesk Exp $
