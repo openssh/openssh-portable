@@ -43,6 +43,11 @@ void
 initialize_server_options(ServerOptions *options)
 {
 	memset(options, 0, sizeof(*options));
+
+	/* Portable-specific options */
+	options->pam_authentication_via_kbd_int = -1;
+
+	/* Standard Options */
 	options->num_ports = 0;
 	options->ports_from_cmdline = 0;
 	options->listen_addrs = NULL;
@@ -104,12 +109,16 @@ initialize_server_options(ServerOptions *options)
 	options->client_alive_count_max = -1;
 	options->authorized_keys_file = NULL;
 	options->authorized_keys_file2 = NULL;
-	options->pam_authentication_via_kbd_int = -1;
 }
 
 void
 fill_default_server_options(ServerOptions *options)
 {
+	/* Portable-specific options */
+	if (options->pam_authentication_via_kbd_int == -1)
+		options->pam_authentication_via_kbd_int = 0;
+
+	/* Standard Options */
 	if (options->protocol == SSH_PROTO_UNKNOWN)
 		options->protocol = SSH_PROTO_1|SSH_PROTO_2;
 	if (options->num_host_key_files == 0) {
@@ -222,13 +231,14 @@ fill_default_server_options(ServerOptions *options)
 	}
 	if (options->authorized_keys_file == NULL)
 		options->authorized_keys_file = _PATH_SSH_USER_PERMITTED_KEYS;
-	if (options->pam_authentication_via_kbd_int == -1)
-		options->pam_authentication_via_kbd_int = 0;
 }
 
 /* Keyword tokens. */
 typedef enum {
 	sBadOption,		/* == unknown option */
+	/* Portable-specific options */
+	sPAMAuthenticationViaKbdInt,
+	/* Standard Options */
 	sPort, sHostKeyFile, sServerKeyBits, sLoginGraceTime, sKeyRegenerationTime,
 	sPermitRootLogin, sLogFacility, sLogLevel,
 	sRhostsAuthentication, sRhostsRSAAuthentication, sRSAAuthentication,
@@ -253,7 +263,7 @@ typedef enum {
 	sBanner, sReverseMappingCheck, sHostbasedAuthentication,
 	sHostbasedUsesNameFromPacketOnly, sClientAliveInterval, 
 	sClientAliveCountMax, sAuthorizedKeysFile, sAuthorizedKeysFile2,
-	sDeprecated, sPAMAuthenticationViaKbdInt
+	sDeprecated 
 } ServerOpCodes;
 
 /* Textual representation of the tokens. */
@@ -261,6 +271,9 @@ static struct {
 	const char *name;
 	ServerOpCodes opcode;
 } keywords[] = {
+	/* Portable-specific options */
+	{ "PAMAuthenticationViaKbdInt", sPAMAuthenticationViaKbdInt },
+	/* Standard Options */
 	{ "port", sPort },
 	{ "hostkey", sHostKeyFile },
 	{ "hostdsakey", sHostKeyFile },					/* alias */
@@ -323,7 +336,6 @@ static struct {
 	{ "clientalivecountmax", sClientAliveCountMax },
 	{ "authorizedkeysfile", sAuthorizedKeysFile },
 	{ "authorizedkeysfile2", sAuthorizedKeysFile2 },
-	{ "PAMAuthenticationViaKbdInt", sPAMAuthenticationViaKbdInt },
 	{ NULL, 0 }
 };
 
@@ -417,6 +429,13 @@ read_server_config(ServerOptions *options, const char *filename)
 		case sBadOption:
 			bad_options++;
 			continue;
+
+		/* Portable-specific options */
+		case sPAMAuthenticationViaKbdInt:
+			intptr = &options->pam_authentication_via_kbd_int;
+			goto parse_flag;
+
+		/* Standard Options */
 		case sPort:
 			/* ignore ports from configfile if cmdline specifies ports */
 			if (options->ports_from_cmdline)
@@ -848,10 +867,6 @@ parse_flag:
 			while(arg)
 			    arg = strdelim(&cp);
 			break;
-
-		case sPAMAuthenticationViaKbdInt:
-			intptr = &options->pam_authentication_via_kbd_int;
-			goto parse_flag;
 
 		default:
 			fatal("%s line %d: Missing handler for opcode %s (%d)",

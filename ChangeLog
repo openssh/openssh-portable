@@ -60,7 +60,8 @@
      original patch from jlk@kamens.brookline.ma.us via nalin@redhat.com
    - markus@cvs.openbsd.org 2001/11/10 13:19:45
      [sshd.c]
-     cleanup libwrap support (remove bogus comment, bogus close(), add debug, etc).
+     cleanup libwrap support (remove bogus comment, bogus close(), add 
+     debug, etc).
    - markus@cvs.openbsd.org 2001/11/10 13:22:42
      [ssh-rsa.c]
      KNF (unexpand)
@@ -69,7 +70,11 @@
      remove extra debug()
    - markus@cvs.openbsd.org 2001/11/11 13:02:31
      [servconf.c]
-     make AuthorizedKeysFile2 fallback to AuthorizedKeysFile if AuthorizedKeysFile is specified.
+     make AuthorizedKeysFile2 fallback to AuthorizedKeysFile if 
+     AuthorizedKeysFile is specified.
+ - (djm) Reorder portable-specific server options so that they come first. 
+   This should help reduce diff collisions for new server options (as they
+   will appear at the end)
 
 20011109
  - (stevesk) auth-pam.c: use do_pam_authenticate(PAM_DISALLOW_NULL_AUTHTOK)
@@ -6882,4 +6887,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1656 2001/11/12 00:14:35 djm Exp $
+$Id: ChangeLog,v 1.1657 2001/11/12 00:40:11 djm Exp $
