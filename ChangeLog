@@ -3,6 +3,9 @@
    - markus@cvs.openbsd.org 2002/04/23 12:54:10
      [version.h]
      3.2.1
+   - djm@cvs.openbsd.org 2002/04/23 22:16:29
+     [sshd.c]
+     Improve error message; ok markus@ stevesk@
 
 20020423
  - (stevesk) [acconfig.h configure.ac session.c] LOGIN_NO_ENDOPT for HP-UX
@@ -500,4 +503,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2082 2002/04/23 23:48:14 djm Exp $
+$Id: ChangeLog,v 1.2083 2002/04/23 23:49:09 djm Exp $
