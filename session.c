@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.138 2002/06/20 23:05:55 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.139 2002/06/23 20:39:45 deraadt Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -252,8 +252,8 @@ do_authenticated1(Authctxt *authctxt)
 	Session *s;
 	char *command;
 	int success, type, screen_flag;
-	int compression_level = 0, enable_compression_after_reply = 0;
-	u_int proto_len, data_len, dlen;
+	int enable_compression_after_reply = 0;
+	u_int proto_len, data_len, dlen, compression_level = 0;
 
 	s = session_new();
 	s->authctxt = authctxt;
