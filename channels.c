@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.196 2003/09/19 11:31:33 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.197 2003/09/23 20:41:11 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -2837,47 +2837,4 @@ auth_request_forwarding(void)
 	packet_start(SSH_CMSG_AGENT_REQUEST_FORWARDING);
 	packet_send();
 	packet_write_wait();
-}
-
-/* This is called to process an SSH_SMSG_AGENT_OPEN message. */
-
-void
-auth_input_open_request(int type, u_int32_t seq, void *ctxt)
-{
-	Channel *c = NULL;
-	int remote_id, sock;
-
-	/* Read the remote channel number from the message. */
-	remote_id = packet_get_int();
-	packet_check_eom();
-
-	/*
-	 * Get a connection to the local authentication agent (this may again
-	 * get forwarded).
-	 */
-	sock = ssh_get_authentication_socket();
-
-	/*
-	 * If we could not connect the agent, send an error message back to
-	 * the server. This should never happen unless the agent dies,
-	 * because authentication forwarding is only enabled if we have an
-	 * agent.
-	 */
-	if (sock >= 0) {
-		c = channel_new("", SSH_CHANNEL_OPEN, sock, sock,
-		    -1, 0, 0, 0, "authentication agent connection", 1);
-		c->remote_id = remote_id;
-		c->force_drain = 1;
-	}
-	if (c == NULL) {
-		packet_start(SSH_MSG_CHANNEL_OPEN_FAILURE);
-		packet_put_int(remote_id);
-	} else {
-		/* Send a confirmation to the remote host. */
-		debug("Forwarding authentication connection.");
-		packet_start(SSH_MSG_CHANNEL_OPEN_CONFIRMATION);
-		packet_put_int(remote_id);
-		packet_put_int(c->self);
-	}
-	packet_send();
 }
