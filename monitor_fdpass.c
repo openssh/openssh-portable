@@ -34,6 +34,7 @@ RCSID("$OpenBSD: monitor_fdpass.c,v 1.2 2002/03/24 17:53:16 stevesk Exp $");
 void
 mm_send_fd(int socket, int fd)
 {
+#if defined(HAVE_ACCRIGHTS_IN_MSGHDR) || defined(HAVE_CONTROL_IN_MSGHDR)
 	struct msghdr msg;
 	struct iovec vec;
 	char ch = '\0';
@@ -68,11 +69,16 @@ mm_send_fd(int socket, int fd)
 	if (n != 1)
 		fatal("%s: sendmsg: expected sent 1 got %d",
 		    __FUNCTION__, n);
+#else
+	fatal("%s: UsePrivilegeSeparation=yes not supported",
+	    __FUNCTION__);
+#endif
 }
 
 int
 mm_receive_fd(int socket)
 {
+#if defined(HAVE_ACCRIGHTS_IN_MSGHDR) || defined(HAVE_CONTROL_IN_MSGHDR)
 	struct msghdr msg;
 	struct iovec vec;
 	char ch;
@@ -112,4 +118,8 @@ mm_receive_fd(int socket)
 	fd = (*(int *)CMSG_DATA(cmsg));
 #endif
 	return fd;
+#else
+	fatal("%s: UsePrivilegeSeparation=yes not supported",
+	    __FUNCTION__);
+#endif
 }
