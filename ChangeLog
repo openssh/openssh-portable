@@ -55,6 +55,9 @@
    - markus@cvs.openbsd.org 2001/07/28 09:21:15
      [sshd.8]
      cleanup some RSA vs DSA vs SSH1 vs SSH2 notes
+   - mouring@cvs.openbsd.org 2001/07/29 17:02:46
+     [scp.1]
+     Clarified -o option in scp.1  OKed by Markus@
 
 20010803
  - (djm) Fix interrupted read in entropy gatherer. Spotted by markus@ on
@@ -6165,4 +6168,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1441 2001/08/06 21:18:57 mouring Exp $
+$Id: ChangeLog,v 1.1442 2001/08/06 21:20:22 mouring Exp $
