@@ -39,6 +39,9 @@
    - markus@cvs.openbsd.org 2001/11/07 22:41:51
      [auth2.c auth-rh-rsa.c]
      unused includes
+   - markus@cvs.openbsd.org 2001/11/07 22:53:21
+     [channels.h]
+     crank c->path to 256 so they can hold a full hostname; dwd@bell-labs.com
 
 20011109
  - (stevesk) auth-pam.c: use do_pam_authenticate(PAM_DISALLOW_NULL_AUTHTOK)
@@ -6848,4 +6851,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1646 2001/11/12 00:04:28 djm Exp $
+$Id: ChangeLog,v 1.1647 2001/11/12 00:04:54 djm Exp $
