@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: sshd.8,v 1.15 2000/03/26 03:04:55 damien Exp $
+.\" $Id: sshd.8,v 1.16 2000/04/01 01:09:27 damien Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSHD 8
@@ -69,7 +69,7 @@ random number as a session key which is used to encrypt all further
 communications in the session.
 The rest of the session is encrypted
 using a conventional cipher, currently Blowfish and 3DES, with 3DES
-being is used by default.
+being used by default.
 The client selects the encryption algorithm
 to use from those offered by the server.
 .Pp
@@ -877,11 +877,11 @@ The libraries described in
 .Xr ssl 8
 are required for proper operation.
 .Sh SEE ALSO
-.Xr rlogin 1 ,
-.Xr rsh 1 ,
 .Xr scp 1 ,
 .Xr ssh 1 ,
 .Xr ssh-add 1 ,
 .Xr ssh-agent 1 ,
 .Xr ssh-keygen 1 ,
-.Xr ssl 8
+.Xr ssl 8 ,
+.Xr rlogin 1 ,
+.Xr rsh 1

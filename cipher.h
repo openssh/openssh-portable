@@ -11,7 +11,7 @@
  * 
  */
 
-/* RCSID("$Id: cipher.h,v 1.6 2000/03/26 03:04:52 damien Exp $"); */
+/* RCSID("$Id: cipher.h,v 1.7 2000/04/01 01:09:23 damien Exp $"); */
 
 #ifndef CIPHER_H
 #define CIPHER_H
@@ -21,10 +21,14 @@
 #ifdef HAVE_OPENSSL
 #include <openssl/des.h>
 #include <openssl/blowfish.h>
+#include <openssl/rc4.h>
+#include <openssl/cast.h>
 #endif
 #ifdef HAVE_SSL
 #include <ssl/des.h>
 #include <ssl/blowfish.h>
+#include <ssl/rc4.h>
+#include <ssl/cast.h>
 #endif
 
 /* Cipher types.  New types can be added, but old types should not be removed
@@ -37,6 +41,13 @@
 #define SSH_CIPHER_BROKEN_TSS	4	/* TRI's Simple Stream encryption CBC */
 #define SSH_CIPHER_BROKEN_RC4	5	/* Alleged RC4 */
 #define SSH_CIPHER_BLOWFISH	6
+#define SSH_CIPHER_RESERVED	7
+
+/* these ciphers are used in SSH2: */
+#define SSH_CIPHER_BLOWFISH_CBC	8
+#define SSH_CIPHER_3DES_CBC	9
+#define SSH_CIPHER_ARCFOUR	10	/* Alleged RC4 */
+#define SSH_CIPHER_CAST128_CBC	11
 
 typedef struct {
 	unsigned int type;
@@ -52,6 +63,11 @@ typedef struct {
 			struct bf_key_st key;
 			unsigned char iv[8];
 		}       bf;
+		struct {
+			CAST_KEY key;
+			unsigned char iv[8];
+		} cast;
+		RC4_KEY rc4;
 	}       u;
 }       CipherContext;
 /*
@@ -77,6 +93,10 @@ int     cipher_number(const char *name);
 void 
 cipher_set_key(CipherContext * context, int cipher,
     const unsigned char *key, int keylen, int for_encryption);
+void 
+cipher_set_key_iv(CipherContext * context, int cipher,
+    const unsigned char *key, int keylen, 
+    const unsigned char *iv, int ivlen);
 
 /*
  * Sets key for the cipher by computing the MD5 checksum of the passphrase,

@@ -15,7 +15,7 @@
 */
 
 #include "includes.h"
-RCSID("$Id: mpaux.c,v 1.8 1999/12/13 23:47:16 damien Exp $");
+RCSID("$Id: mpaux.c,v 1.9 2000/04/01 01:09:24 damien Exp $");
 
 #include "getput.h"
 #include "xmalloc.h"
@@ -31,9 +31,9 @@ RCSID("$Id: mpaux.c,v 1.8 1999/12/13 23:47:16 damien Exp $");
 
 void
 compute_session_id(unsigned char session_id[16],
-		   unsigned char cookie[8],
-		   BIGNUM* host_key_n,
-		   BIGNUM* session_key_n)
+    unsigned char cookie[8],
+    BIGNUM* host_key_n,
+    BIGNUM* session_key_n)
 {
 	unsigned int host_key_bytes = BN_num_bytes(host_key_n);
 	unsigned int session_key_bytes = BN_num_bytes(session_key_n);

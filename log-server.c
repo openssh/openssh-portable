@@ -15,7 +15,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: log-server.c,v 1.7 2000/03/09 10:27:50 damien Exp $");
+RCSID("$Id: log-server.c,v 1.8 2000/04/01 01:09:24 damien Exp $");
 
 #include <syslog.h>
 #include "packet.h"
@@ -137,9 +137,11 @@ do_log(LogLevel level, const char *fmt, va_list args)
 	} else {
 		vsnprintf(msgbuf, sizeof(msgbuf), fmt, args);
 	}
-	if (log_on_stderr)
+	if (log_on_stderr) {
 		fprintf(stderr, "%s\n", msgbuf);
-	openlog(__progname, LOG_PID, log_facility);
-	syslog(pri, "%.500s", msgbuf);
-	closelog();
+	} else {
+		openlog(__progname, LOG_PID, log_facility);
+		syslog(pri, "%.500s", msgbuf);
+		closelog();
+	}
 }

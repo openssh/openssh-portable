@@ -15,7 +15,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: clientloop.c,v 1.7 1999/12/07 04:38:32 damien Exp $");
+RCSID("$Id: clientloop.c,v 1.8 2000/04/01 01:09:23 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -23,6 +23,11 @@ RCSID("$Id: clientloop.c,v 1.7 1999/12/07 04:38:32 damien Exp $");
 #include "buffer.h"
 #include "authfd.h"
 #include "readconf.h"
+
+#include "compat.h"
+#include "channels.h"
+#include "dispatch.h"
+
 
 /* Flag indicating that stdin should be redirected from /dev/null. */
 extern int stdin_null_flag;
@@ -228,108 +233,6 @@ client_check_initial_eof_on_stdin()
 	}
 }
 
-/*
- * Get packets from the connection input buffer, and process them as long as
- * there are packets available.
- */
-
-void 
-client_process_buffered_input_packets()
-{
-	int type;
-	char *data;
-	unsigned int data_len;
-	int payload_len;
-
-	/* Process any buffered packets from the server. */
-	while (!quit_pending &&
-	       (type = packet_read_poll(&payload_len)) != SSH_MSG_NONE) {
-		switch (type) {
-
-		case SSH_SMSG_STDOUT_DATA:
-			data = packet_get_string(&data_len);
-			packet_integrity_check(payload_len, 4 + data_len, type);
-			buffer_append(&stdout_buffer, data, data_len);
-			stdout_bytes += data_len;
-			memset(data, 0, data_len);
-			xfree(data);
-			break;
-
-		case SSH_SMSG_STDERR_DATA:
-			data = packet_get_string(&data_len);
-			packet_integrity_check(payload_len, 4 + data_len, type);
-			buffer_append(&stderr_buffer, data, data_len);
-			stdout_bytes += data_len;
-			memset(data, 0, data_len);
-			xfree(data);
-			break;
-
-		case SSH_SMSG_EXITSTATUS:
-			packet_integrity_check(payload_len, 4, type);
-			exit_status = packet_get_int();
-			/* Acknowledge the exit. */
-			packet_start(SSH_CMSG_EXIT_CONFIRMATION);
-			packet_send();
-			/*
-			 * Must wait for packet to be sent since we are
-			 * exiting the loop.
-			 */
-			packet_write_wait();
-			/* Flag that we want to exit. */
-			quit_pending = 1;
-			break;
-
-		case SSH_SMSG_X11_OPEN:
-			x11_input_open(payload_len);
-			break;
-
-		case SSH_MSG_PORT_OPEN:
-			channel_input_port_open(payload_len);
-			break;
-
-		case SSH_SMSG_AGENT_OPEN:
-			packet_integrity_check(payload_len, 4, type);
-			auth_input_open_request();
-			break;
-
-		case SSH_MSG_CHANNEL_OPEN_CONFIRMATION:
-			packet_integrity_check(payload_len, 4 + 4, type);
-			channel_input_open_confirmation();
-			break;
-
-		case SSH_MSG_CHANNEL_OPEN_FAILURE:
-			packet_integrity_check(payload_len, 4, type);
-			channel_input_open_failure();
-			break;
-
-		case SSH_MSG_CHANNEL_DATA:
-			channel_input_data(payload_len);
-			break;
-
-		case SSH_MSG_CHANNEL_CLOSE:
-			packet_integrity_check(payload_len, 4, type);
-			channel_input_close();
-			break;
-
-		case SSH_MSG_CHANNEL_CLOSE_CONFIRMATION:
-			packet_integrity_check(payload_len, 4, type);
-			channel_input_close_confirmation();
-			break;
-
-		default:
-			/*
-			 * Any unknown packets received during the actual
-			 * session cause the session to terminate.  This is
-			 * intended to make debugging easier since no
-			 * confirmations are sent.  Any compatible protocol
-			 * extensions must be negotiated during the
-			 * preparatory phase.
-			 */
-			packet_disconnect("Protocol error during session: type %d",
-					  type);
-		}
-	}
-}
 
 /*
  * Make packets from buffered stdin data, and buffer them for sending to the
@@ -776,11 +679,31 @@ client_process_output(fd_set * writeset)
 }
 
 /*
+ * Get packets from the connection input buffer, and process them as long as
+ * there are packets available.
+ *
+ * Any unknown packets received during the actual
+ * session cause the session to terminate.  This is
+ * intended to make debugging easier since no
+ * confirmations are sent.  Any compatible protocol
+ * extensions must be negotiated during the
+ * preparatory phase.
+ */
+
+void 
+client_process_buffered_input_packets()
+{
+	dispatch_run(DISPATCH_NONBLOCK, &quit_pending);
+}
+
+/*
  * Implements the interactive session with the server.  This is called after
  * the user has been authenticated, and a command has been started on the
  * remote host.  If escape_char != -1, it is the character used as an escape
  * character for terminating or suspending the session.
  */
+
+void client_init_dispatch(void);
 
 int 
 client_loop(int have_pty, int escape_char_arg)
@@ -815,6 +738,8 @@ client_loop(int have_pty, int escape_char_arg)
 	buffer_init(&stdin_buffer);
 	buffer_init(&stdout_buffer);
 	buffer_init(&stderr_buffer);
+
+	client_init_dispatch();
 
 	/* Set signal handlers to restore non-blocking mode.  */
 	signal(SIGINT, signal_handler);
@@ -949,4 +874,78 @@ client_loop(int have_pty, int escape_char_arg)
 	/* Return the exit status of the program. */
 	debug("Exit status %d", exit_status);
 	return exit_status;
+}
+
+/*********/
+
+void
+client_input_stdout_data(int type, int plen)
+{
+	unsigned int data_len;
+	char *data = packet_get_string(&data_len);
+	packet_integrity_check(plen, 4 + data_len, type);
+	buffer_append(&stdout_buffer, data, data_len);
+	stdout_bytes += data_len;
+	memset(data, 0, data_len);
+	xfree(data);
+}
+void
+client_input_stderr_data(int type, int plen)
+{
+	unsigned int data_len;
+	char *data = packet_get_string(&data_len);
+	packet_integrity_check(plen, 4 + data_len, type);
+	buffer_append(&stderr_buffer, data, data_len);
+	stdout_bytes += data_len;
+	memset(data, 0, data_len);
+	xfree(data);
+}
+void
+client_input_exit_status(int type, int plen)
+{
+	packet_integrity_check(plen, 4, type);
+	exit_status = packet_get_int();
+	/* Acknowledge the exit. */
+	packet_start(SSH_CMSG_EXIT_CONFIRMATION);
+	packet_send();
+	/*
+	 * Must wait for packet to be sent since we are
+	 * exiting the loop.
+	 */
+	packet_write_wait();
+	/* Flag that we want to exit. */
+	quit_pending = 1;
+}
+
+void 
+client_init_dispatch_13()
+{
+	dispatch_init(NULL);
+	dispatch_set(SSH_MSG_CHANNEL_CLOSE, &channel_input_close);
+	dispatch_set(SSH_MSG_CHANNEL_CLOSE_CONFIRMATION, &channel_input_close_confirmation);
+	dispatch_set(SSH_MSG_CHANNEL_DATA, &channel_input_data);
+	dispatch_set(SSH_MSG_CHANNEL_DATA, &channel_input_data);
+	dispatch_set(SSH_MSG_CHANNEL_OPEN_CONFIRMATION, &channel_input_open_confirmation);
+	dispatch_set(SSH_MSG_CHANNEL_OPEN_FAILURE, &channel_input_open_failure);
+	dispatch_set(SSH_MSG_PORT_OPEN, &channel_input_port_open);
+	dispatch_set(SSH_SMSG_AGENT_OPEN, &auth_input_open_request);
+	dispatch_set(SSH_SMSG_EXITSTATUS, &client_input_exit_status);
+	dispatch_set(SSH_SMSG_STDERR_DATA, &client_input_stderr_data);
+	dispatch_set(SSH_SMSG_STDOUT_DATA, &client_input_stdout_data);
+	dispatch_set(SSH_SMSG_X11_OPEN, &x11_input_open);
+}
+void 
+client_init_dispatch_15()
+{
+	client_init_dispatch_13();
+	dispatch_set(SSH_MSG_CHANNEL_CLOSE, &channel_input_ieof);
+	dispatch_set(SSH_MSG_CHANNEL_CLOSE_CONFIRMATION, & channel_input_oclose);
+}
+void 
+client_init_dispatch()
+{
+	if (compat13)
+		client_init_dispatch_13();
+	else
+		client_init_dispatch_15();
 }

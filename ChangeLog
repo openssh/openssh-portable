@@ -1,3 +1,35 @@
+20000401
+ - Big OpenBSD CVS update (mainly beginnings of SSH2 infrastructure)
+   - [auth.c session.c sshd.c auth.h]
+     split sshd.c -> auth.c session.c sshd.c plus cleanup and goto-removal
+   - [bufaux.c bufaux.h]
+     support ssh2 bignums
+   - [channels.c channels.h clientloop.c sshd.c nchan.c nchan.h packet.c]
+     [readconf.c ssh.c ssh.h serverloop.c]
+     replace big switch() with function tables (prepare for ssh2)
+   - [ssh2.h]
+     ssh2 message type codes
+   - [sshd.8]
+     reorder Xr to avoid cutting
+   - [serverloop.c]
+     close(fdin) if fdin != fdout, shutdown otherwise, ok theo@
+   - [channels.c]
+     missing close
+     allow bigger packets
+   - [cipher.c cipher.h]
+     support ssh2 ciphers
+   - [compress.c]
+     cleanup, less code
+   - [dispatch.c dispatch.h]
+     function tables for different message types
+   - [log-server.c]
+     do not log() if debuggin to stderr
+     rename a cpp symbol, to avoid param.h collision
+   - [mpaux.c]
+     KNF
+   - [nchan.c]
+     sync w/ channels.c
+
 20000326
  - Better tests for OpenSSL w/ RSAref
  - Added replacement setenv() function from OpenBSD libc. Suggested by 

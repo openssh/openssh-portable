@@ -31,11 +31,11 @@ LDFLAGS=-L. @LDFLAGS@
 
 TARGETS=ssh sshd ssh-add ssh-keygen ssh-agent scp $(EXTRA_TARGETS)
 
-LIBOBJS= atomicio.o authfd.o authfile.o bsd-bindresvport.o bsd-daemon.o bsd-misc.o bsd-mktemp.o bsd-rresvport.o bsd-setenv.o bsd-snprintf.o bsd-strlcat.o bsd-strlcpy.o bufaux.o buffer.o canohost.o channels.o cipher.o compat.o compress.o crc32.o deattack.o fake-getaddrinfo.o fake-getnameinfo.o fingerprint.o hostfile.o key.o log.o match.o mpaux.o nchan.o packet.o radix.o random.o readpass.o rsa.o tildexpand.o ttymodes.o uidswap.o xmalloc.o 
+LIBOBJS= atomicio.o authfd.o authfile.o bsd-bindresvport.o bsd-daemon.o bsd-misc.o bsd-mktemp.o bsd-rresvport.o bsd-setenv.o bsd-snprintf.o bsd-strlcat.o bsd-strlcpy.o bufaux.o buffer.o canohost.o channels.o cipher.o compat.o compress.o crc32.o deattack.o dispatch.o fake-getaddrinfo.o fake-getnameinfo.o fingerprint.o hostfile.o key.o log.o match.o mpaux.o nchan.o packet.o radix.o random.o readpass.o rsa.o tildexpand.o ttymodes.o uidswap.o xmalloc.o 
 
 SSHOBJS= ssh.o sshconnect.o log-client.o readconf.o clientloop.o
 
-SSHDOBJS= sshd.o auth-rhosts.o auth-krb4.o auth-pam.o auth-passwd.o auth-rsa.o auth-rh-rsa.o pty.o log-server.o login.o servconf.o serverloop.o bsd-login.o md5crypt.o
+SSHDOBJS= sshd.o auth-rhosts.o auth-krb4.o auth-pam.o auth-passwd.o auth-rsa.o auth-rh-rsa.o pty.o log-server.o login.o servconf.o serverloop.o bsd-login.o md5crypt.o session.o auth.o
 
 TROFFMAN	= scp.1 ssh-add.1 ssh-agent.1 ssh-keygen.1 ssh.1 sshd.8
 CATMAN		= scp.0 ssh-add.0 ssh-agent.0 ssh-keygen.0 ssh.0 sshd.0

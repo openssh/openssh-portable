@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: cipher.c,v 1.14 2000/03/26 03:04:52 damien Exp $");
+RCSID("$Id: cipher.c,v 1.15 2000/04/01 01:09:23 damien Exp $");
 
 #include "ssh.h"
 #include "cipher.h"
@@ -122,7 +122,12 @@ static char *cipher_names[] =
 	"3des",
 	"tss",
 	"rc4",
-	"blowfish"
+	"blowfish",
+	"reserved",
+	"blowfish-cbc",
+	"3des-cbc",
+	"arcfour",
+	"cast128-cbc"
 };
 
 /*
@@ -137,6 +142,10 @@ cipher_mask()
 	unsigned int mask = 0;
 	mask |= 1 << SSH_CIPHER_3DES;		/* Mandatory */
 	mask |= 1 << SSH_CIPHER_BLOWFISH;
+	mask |= 1 << SSH_CIPHER_BLOWFISH_CBC;
+	mask |= 1 << SSH_CIPHER_3DES_CBC;
+	mask |= 1 << SSH_CIPHER_ARCFOUR;
+	mask |= 1 << SSH_CIPHER_CAST128_CBC;
 	return mask;
 }
 
@@ -233,14 +242,82 @@ cipher_set_key(CipherContext *context, int cipher,
 		break;
 
 	case SSH_CIPHER_BLOWFISH:
+		if (keylen < 16)
+			error("Key length %d is insufficient for blowfish.", keylen);
 		BF_set_key(&context->u.bf.key, keylen, padded);
 		memset(context->u.bf.iv, 0, 8);
+		break;
+
+	case SSH_CIPHER_3DES_CBC:
+	case SSH_CIPHER_BLOWFISH_CBC:
+	case SSH_CIPHER_ARCFOUR:
+	case SSH_CIPHER_CAST128_CBC:
+		fatal("cipher_set_key: illegal cipher: %s", cipher_name(cipher));
 		break;
 
 	default:
 		fatal("cipher_set_key: unknown cipher: %s", cipher_name(cipher));
 	}
 	memset(padded, 0, sizeof(padded));
+}
+
+
+void 
+cipher_set_key_iv(CipherContext * context, int cipher,
+    const unsigned char *key, int keylen, 
+    const unsigned char *iv, int ivlen)
+{
+	/* Set cipher type. */
+	context->type = cipher;
+
+	/* Initialize the initialization vector. */
+	switch (cipher) {
+	case SSH_CIPHER_NONE:
+		break;
+
+	case SSH_CIPHER_3DES:
+	case SSH_CIPHER_BLOWFISH:
+		fatal("cipher_set_key_iv: illegal cipher: %s", cipher_name(cipher));
+		break;
+
+	case SSH_CIPHER_3DES_CBC:
+		if (keylen < 24)
+			error("Key length %d is insufficient for 3des-cbc.", keylen);
+		des_set_key((void *) key, context->u.des3.key1);
+		des_set_key((void *) (key+8), context->u.des3.key2);
+		des_set_key((void *) (key+16), context->u.des3.key3);
+		if (ivlen < 8)
+			error("IV length %d is insufficient for 3des-cbc.", ivlen);
+		memcpy(context->u.des3.iv3, (char *)iv, 8);
+		break;
+
+	case SSH_CIPHER_BLOWFISH_CBC:
+		if (keylen < 16)
+			error("Key length %d is insufficient for blowfish.", keylen);
+		if (ivlen < 8)
+			error("IV length %d is insufficient for blowfish.", ivlen);
+		BF_set_key(&context->u.bf.key, keylen, (unsigned char *)key);
+		memcpy(context->u.bf.iv, (char *)iv, 8);
+		break;
+
+	case SSH_CIPHER_ARCFOUR:
+		if (keylen < 16)
+			error("Key length %d is insufficient for arcfour.", keylen);
+		RC4_set_key(&context->u.rc4, keylen, (unsigned char *)key);
+		break;
+
+	case SSH_CIPHER_CAST128_CBC:
+		if (keylen < 16)
+			error("Key length %d is insufficient for cast128.", keylen);
+		if (ivlen < 8)
+			error("IV length %d is insufficient for cast128.", ivlen);
+		CAST_set_key(&context->u.cast.key, keylen, (unsigned char *) key);
+		memcpy(context->u.cast.iv, (char *)iv, 8);
+		break;
+
+	default:
+		fatal("cipher_set_key: unknown cipher: %s", cipher_name(cipher));
+	}
 }
 
 /* Encrypts data using the cipher. */
@@ -270,6 +347,27 @@ cipher_encrypt(CipherContext *context, unsigned char *dest,
 		               &context->u.bf.key, context->u.bf.iv,
 			       BF_ENCRYPT);
 		swap_bytes(dest, dest, len);
+		break;
+
+	case SSH_CIPHER_BLOWFISH_CBC:
+		BF_cbc_encrypt((void *)src, dest, len,
+		               &context->u.bf.key, context->u.bf.iv,
+			       BF_ENCRYPT);
+		break;
+
+	case SSH_CIPHER_3DES_CBC:
+		des_ede3_cbc_encrypt(src, dest, len,
+		    context->u.des3.key1, context->u.des3.key2,
+		    context->u.des3.key3, &context->u.des3.iv3, DES_ENCRYPT);
+		break;
+
+	case SSH_CIPHER_ARCFOUR:
+		RC4(&context->u.rc4, len, (unsigned char *)src, dest);
+		break;
+
+	case SSH_CIPHER_CAST128_CBC:
+		CAST_cbc_encrypt(src, dest, len,
+		    &context->u.cast.key, context->u.cast.iv, CAST_ENCRYPT);
 		break;
 
 	default:
@@ -304,6 +402,27 @@ cipher_decrypt(CipherContext *context, unsigned char *dest,
 			       &context->u.bf.key, context->u.bf.iv,
 			       BF_DECRYPT);
 		swap_bytes(dest, dest, len);
+		break;
+
+	case SSH_CIPHER_BLOWFISH_CBC:
+		BF_cbc_encrypt((void *) src, dest, len,
+			       &context->u.bf.key, context->u.bf.iv,
+			       BF_DECRYPT);
+		break;
+
+	case SSH_CIPHER_3DES_CBC:
+		des_ede3_cbc_encrypt(src, dest, len,
+		    context->u.des3.key1, context->u.des3.key2,
+		    context->u.des3.key3, &context->u.des3.iv3, DES_DECRYPT);
+		break;
+
+	case SSH_CIPHER_ARCFOUR:
+		RC4(&context->u.rc4, len, (unsigned char *)src, dest);
+		break;
+
+	case SSH_CIPHER_CAST128_CBC:
+		CAST_cbc_encrypt(src, dest, len,
+		    &context->u.cast.key, context->u.cast.iv, CAST_DECRYPT);
 		break;
 
 	default:

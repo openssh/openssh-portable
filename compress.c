@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: compress.c,v 1.4 2000/03/17 12:40:16 damien Exp $");
+RCSID("$Id: compress.c,v 1.5 2000/04/01 01:09:24 damien Exp $");
 
 #include "ssh.h"
 #include "buffer.h"
@@ -90,23 +90,13 @@ buffer_compress(Buffer * input_buffer, Buffer * output_buffer)
 		case Z_OK:
 			/* Append compressed data to output_buffer. */
 			buffer_append(output_buffer, buf,
-				      sizeof(buf) - outgoing_stream.avail_out);
+			    sizeof(buf) - outgoing_stream.avail_out);
 			break;
-		case Z_STREAM_END:
-			fatal("buffer_compress: deflate returned Z_STREAM_END");
-			/* NOTREACHED */
-		case Z_STREAM_ERROR:
-			fatal("buffer_compress: deflate returned Z_STREAM_ERROR");
-			/* NOTREACHED */
-		case Z_BUF_ERROR:
-			fatal("buffer_compress: deflate returned Z_BUF_ERROR");
-			/* NOTREACHED */
 		default:
 			fatal("buffer_compress: deflate returned %d", status);
 			/* NOTREACHED */
 		}
-	}
-	while (outgoing_stream.avail_out == 0);
+	} while (outgoing_stream.avail_out == 0);
 }
 
 /*
@@ -127,27 +117,17 @@ buffer_uncompress(Buffer * input_buffer, Buffer * output_buffer)
 	incoming_stream.next_in = (unsigned char *) buffer_ptr(input_buffer);
 	incoming_stream.avail_in = buffer_len(input_buffer);
 
-	incoming_stream.next_out = (unsigned char *) buf;
-	incoming_stream.avail_out = sizeof(buf);
-
 	for (;;) {
+		/* Set up fixed-size output buffer. */
+		incoming_stream.next_out = (unsigned char *) buf;
+		incoming_stream.avail_out = sizeof(buf);
+
 		status = inflate(&incoming_stream, Z_PARTIAL_FLUSH);
 		switch (status) {
 		case Z_OK:
 			buffer_append(output_buffer, buf,
-				      sizeof(buf) - incoming_stream.avail_out);
-			incoming_stream.next_out = (unsigned char *) buf;
-			incoming_stream.avail_out = sizeof(buf);
+			    sizeof(buf) - incoming_stream.avail_out);
 			break;
-		case Z_STREAM_END:
-			fatal("buffer_uncompress: inflate returned Z_STREAM_END");
-			/* NOTREACHED */
-		case Z_DATA_ERROR:
-			fatal("buffer_uncompress: inflate returned Z_DATA_ERROR");
-			/* NOTREACHED */
-		case Z_STREAM_ERROR:
-			fatal("buffer_uncompress: inflate returned Z_STREAM_ERROR");
-			/* NOTREACHED */
 		case Z_BUF_ERROR:
 			/*
 			 * Comments in zlib.h say that we should keep calling
@@ -155,11 +135,9 @@ buffer_uncompress(Buffer * input_buffer, Buffer * output_buffer)
 			 * be the error that we get.
 			 */
 			return;
-		case Z_MEM_ERROR:
-			fatal("buffer_uncompress: inflate returned Z_MEM_ERROR");
-			/* NOTREACHED */
 		default:
 			fatal("buffer_uncompress: inflate returned %d", status);
+			/* NOTREACHED */
 		}
 	}
 }

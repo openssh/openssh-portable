@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: ssh.c,v 1.22 2000/03/26 03:04:54 damien Exp $");
+RCSID("$Id: ssh.c,v 1.23 2000/04/01 01:09:26 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -20,6 +20,7 @@ RCSID("$Id: ssh.c,v 1.22 2000/03/26 03:04:54 damien Exp $");
 #include "authfd.h"
 #include "readconf.h"
 #include "uidswap.h"
+#include "channels.h"
 
 #ifdef HAVE___PROGNAME
 extern char *__progname;

@@ -12,10 +12,12 @@
  * Auxiliary functions for storing and retrieving various data types to/from
  * Buffers.
  *
+ * SSH2 packet format added by Markus Friedl
+ *
  */
 
 #include "includes.h"
-RCSID("$Id: bufaux.c,v 1.8 2000/03/17 12:40:15 damien Exp $");
+RCSID("$Id: bufaux.c,v 1.9 2000/04/01 01:09:23 damien Exp $");
 
 #include "ssh.h"
 
@@ -83,6 +85,50 @@ buffer_get_bignum(Buffer *buffer, BIGNUM *value)
 }
 
 /*
+ * Stores an BIGNUM in the buffer in SSH2 format.
+ */
+void
+buffer_put_bignum2(Buffer *buffer, BIGNUM *value)
+{
+	int bytes = BN_num_bytes(value) + 1;
+	unsigned char *buf = xmalloc(bytes);
+	int oi;
+	int hasnohigh = 0;
+	buf[0] = '\0';
+	/* Get the value of in binary */
+	oi = BN_bn2bin(value, buf+1);
+	if (oi != bytes-1)
+		fatal("buffer_put_bignum: BN_bn2bin() failed: oi %d != bin_size %d",
+		      oi, bytes);
+	hasnohigh = (buf[1] & 0x80) ? 0 : 1;
+	if (value->neg) {
+		/**XXX should be two's-complement */
+		int i, carry;
+		unsigned char *uc = buf;
+		log("negativ!");
+		for(i = bytes-1, carry = 1; i>=0; i--) {
+			uc[i] ^= 0xff;
+			if(carry)
+				carry = !++uc[i];
+		}
+	}
+	buffer_put_string(buffer, buf+hasnohigh, bytes-hasnohigh);
+	memset(buf, 0, bytes);
+	xfree(buf);
+}
+
+int
+buffer_get_bignum2(Buffer *buffer, BIGNUM *value)
+{
+	/**XXX should be two's-complement */
+	int len;
+	unsigned char *bin = (unsigned char *)buffer_get_string(buffer, (unsigned int *)&len);
+	BN_bin2bn(bin, len, value);
+	xfree(bin);
+	return len;
+}
+
+/*
  * Returns an integer from the buffer (4 bytes, msb first).
  */
 unsigned int 
@@ -141,6 +187,11 @@ buffer_put_string(Buffer *buffer, const void *buf, unsigned int len)
 {
 	buffer_put_int(buffer, len);
 	buffer_append(buffer, buf, len);
+}
+void 
+buffer_put_cstring(Buffer *buffer, const char *s)
+{
+	buffer_put_string(buffer, s, strlen(s));
 }
 
 /*

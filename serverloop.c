@@ -13,6 +13,10 @@
 #include "buffer.h"
 #include "servconf.h"
 #include "pty.h"
+#include "channels.h"
+
+#include "compat.h"
+#include "dispatch.h"
 
 static Buffer stdin_buffer;	/* Buffer for stdin data. */
 static Buffer stdout_buffer;	/* Buffer for stdout data. */
@@ -47,6 +51,8 @@ static volatile int child_terminated;	/* The child has terminated. */
 static volatile int child_has_selected; /* Child has had chance to drain. */
 static volatile int child_wait_status;	/* Status from wait(). */
 
+void	server_init_dispatch(void);
+
 void 
 sigchld_handler(int sig)
 {
@@ -65,104 +71,6 @@ sigchld_handler(int sig)
 	}
 	signal(SIGCHLD, sigchld_handler);
 	errno = save_errno;
-}
-
-/*
- * Process any buffered packets that have been received from the client.
- */
-void 
-process_buffered_input_packets()
-{
-	int type;
-	char *data;
-	unsigned int data_len;
-	int row, col, xpixel, ypixel;
-	int payload_len;
-
-	/* Process buffered packets from the client. */
-	while ((type = packet_read_poll(&payload_len)) != SSH_MSG_NONE) {
-		switch (type) {
-		case SSH_CMSG_STDIN_DATA:
-			/* Stdin data from the client.  Append it to the buffer. */
-			/* Ignore any data if the client has closed stdin. */
-			if (fdin == -1)
-				break;
-			data = packet_get_string(&data_len);
-			packet_integrity_check(payload_len, (4 + data_len), type);
-			buffer_append(&stdin_buffer, data, data_len);
-			memset(data, 0, data_len);
-			xfree(data);
-			break;
-
-		case SSH_CMSG_EOF:
-			/*
-			 * Eof from the client.  The stdin descriptor to the
-			 * program will be closed when all buffered data has
-			 * drained.
-			 */
-			debug("EOF received for stdin.");
-			packet_integrity_check(payload_len, 0, type);
-			stdin_eof = 1;
-			break;
-
-		case SSH_CMSG_WINDOW_SIZE:
-			debug("Window change received.");
-			packet_integrity_check(payload_len, 4 * 4, type);
-			row = packet_get_int();
-			col = packet_get_int();
-			xpixel = packet_get_int();
-			ypixel = packet_get_int();
-			if (fdin != -1)
-				pty_change_window_size(fdin, row, col, xpixel, ypixel);
-			break;
-
-		case SSH_MSG_PORT_OPEN:
-			debug("Received port open request.");
-			channel_input_port_open(payload_len);
-			break;
-
-		case SSH_MSG_CHANNEL_OPEN_CONFIRMATION:
-			debug("Received channel open confirmation.");
-			packet_integrity_check(payload_len, 4 + 4, type);
-			channel_input_open_confirmation();
-			break;
-
-		case SSH_MSG_CHANNEL_OPEN_FAILURE:
-			debug("Received channel open failure.");
-			packet_integrity_check(payload_len, 4, type);
-			channel_input_open_failure();
-			break;
-
-		case SSH_MSG_CHANNEL_DATA:
-			channel_input_data(payload_len);
-			break;
-
-		case SSH_MSG_CHANNEL_CLOSE:
-			debug("Received channel close.");
-			packet_integrity_check(payload_len, 4, type);
-			channel_input_close();
-			break;
-
-		case SSH_MSG_CHANNEL_CLOSE_CONFIRMATION:
-			debug("Received channel close confirmation.");
-			packet_integrity_check(payload_len, 4, type);
-			channel_input_close_confirmation();
-			break;
-
-		default:
-			/*
-			 * In this phase, any unexpected messages cause a
-			 * protocol error.  This is to ease debugging; also,
-			 * since no confirmations are sent messages,
-			 * unprocessed unknown messages could cause strange
-			 * problems.  Any compatible protocol extensions must
-			 * be negotiated before entering the interactive
-			 * session.
-			 */
-			packet_disconnect("Protocol error during session: type %d",
-					  type);
-		}
-	}
 }
 
 /*
@@ -378,7 +286,7 @@ process_output(fd_set * writeset)
 #ifdef USE_PIPES
 			close(fdin);
 #else
-			if (fdout == -1)
+			if (fdin != fdout)
 				close(fdin);
 			else
 				shutdown(fdin, SHUT_WR); /* We will no longer send. */
@@ -423,6 +331,12 @@ drain_output()
 	}
 	/* Wait until all buffered data has been written to the client. */
 	packet_write_wait();
+}
+
+void 
+process_buffered_input_packets()
+{
+	dispatch_run(DISPATCH_NONBLOCK, NULL);
 }
 
 /*
@@ -490,6 +404,8 @@ server_loop(int pid, int fdin_arg, int fdout_arg, int fderr_arg)
 	if (fderr == -1)
 		fderr_eof = 1;
 
+	server_init_dispatch();
+
 	/* Main loop of the server for the interactive session mode. */
 	for (;;) {
 		fd_set readset, writeset;
@@ -505,7 +421,7 @@ server_loop(int pid, int fdin_arg, int fdout_arg, int fderr_arg)
 #ifdef USE_PIPES
 			close(fdin);
 #else
-			if (fdout == -1)
+			if (fdin != fdout)
 				close(fdin);
 			else
 				shutdown(fdin, SHUT_WR); /* We will no longer send. */
@@ -549,7 +465,7 @@ server_loop(int pid, int fdin_arg, int fdout_arg, int fderr_arg)
 		    (buffer_len(&stdout_buffer) == 0) && 
 			 (buffer_len(&stderr_buffer) == 0)) {
 			if (!channel_still_open())
-				goto quit;
+				break;
 			if (!waiting_termination) {
 				const char *s = "Waiting for forwarded connections to terminate...\r\n";
 				char *cp;
@@ -576,7 +492,6 @@ server_loop(int pid, int fdin_arg, int fdout_arg, int fderr_arg)
 		process_output(&writeset);
 	}
 
-quit:
 	/* Cleanup and termination code. */
 
 	/* Wait until all output has been sent to the client. */
@@ -661,4 +576,80 @@ quit:
 	/* Some weird exit cause.  Just exit. */
 	packet_disconnect("wait returned status %04x.", wait_status);
 	/* NOTREACHED */
+}
+
+void
+server_input_stdin_data(int type, int plen)
+{
+	char *data;
+	unsigned int data_len;
+
+	/* Stdin data from the client.  Append it to the buffer. */
+	/* Ignore any data if the client has closed stdin. */
+	if (fdin == -1)
+		return;
+	data = packet_get_string(&data_len);
+	packet_integrity_check(plen, (4 + data_len), type);
+	buffer_append(&stdin_buffer, data, data_len);
+	memset(data, 0, data_len);
+	xfree(data);
+}
+
+void
+server_input_eof(int type, int plen)
+{
+	/*
+	 * Eof from the client.  The stdin descriptor to the
+	 * program will be closed when all buffered data has
+	 * drained.
+	 */
+	debug("EOF received for stdin.");
+	packet_integrity_check(plen, 0, type);
+	stdin_eof = 1;
+}
+
+void
+server_input_window_size(int type, int plen)
+{
+	int row = packet_get_int();
+	int col = packet_get_int();
+	int xpixel = packet_get_int();
+	int ypixel = packet_get_int();
+
+	debug("Window change received.");
+	packet_integrity_check(plen, 4 * 4, type);
+	if (fdin != -1)
+		pty_change_window_size(fdin, row, col, xpixel, ypixel);
+}
+
+void 
+server_init_dispatch_13()
+{
+	debug("server_init_dispatch_13");
+	dispatch_init(NULL);
+	dispatch_set(SSH_CMSG_EOF, &server_input_eof);
+	dispatch_set(SSH_CMSG_STDIN_DATA, &server_input_stdin_data);
+	dispatch_set(SSH_CMSG_WINDOW_SIZE, &server_input_window_size);
+	dispatch_set(SSH_MSG_CHANNEL_CLOSE, &channel_input_close);
+	dispatch_set(SSH_MSG_CHANNEL_CLOSE_CONFIRMATION, &channel_input_close_confirmation);
+	dispatch_set(SSH_MSG_CHANNEL_DATA, &channel_input_data);
+	dispatch_set(SSH_MSG_CHANNEL_OPEN_CONFIRMATION, &channel_input_open_confirmation);
+	dispatch_set(SSH_MSG_CHANNEL_OPEN_FAILURE, &channel_input_open_failure);
+	dispatch_set(SSH_MSG_PORT_OPEN, &channel_input_port_open);
+}
+void 
+server_init_dispatch_15()
+{
+	server_init_dispatch_13();
+	debug("server_init_dispatch_15");
+	dispatch_set(SSH_MSG_CHANNEL_CLOSE, &channel_input_ieof);
+	dispatch_set(SSH_MSG_CHANNEL_CLOSE_CONFIRMATION, &channel_input_oclose);
+}
+void 
+server_init_dispatch()
+{
+	if (compat13)
+		server_init_dispatch_13();
+	else
+		server_init_dispatch_15();
 }

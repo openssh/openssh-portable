@@ -15,7 +15,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: packet.c,v 1.12 2000/03/09 10:27:50 damien Exp $");
+RCSID("$Id: packet.c,v 1.13 2000/04/01 01:09:25 damien Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -28,6 +28,7 @@ RCSID("$Id: packet.c,v 1.12 2000/03/09 10:27:50 damien Exp $");
 
 #include "compress.h"
 #include "deattack.h"
+#include "channels.h"
 
 /*
  * This variable contains the file descriptors used for communicating with
