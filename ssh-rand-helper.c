@@ -39,7 +39,7 @@
 #include "pathnames.h"
 #include "log.h"
 
-RCSID("$Id: ssh-rand-helper.c,v 1.22 2005/02/16 02:20:07 dtucker Exp $");
+RCSID("$Id: ssh-rand-helper.c,v 1.23 2005/02/16 02:32:30 dtucker Exp $");
 
 /* Number of bytes we write out */
 #define OUTPUT_SEED_SIZE	48
@@ -891,8 +891,8 @@ main(int argc, char **argv)
 
 /*
  * We may attempt to re-seed during mkstemp if we are using the one in the
- * compat library (via mkstemp -> arc4random -> seed_rng) so we need
- * our own seed_rng().  We must also check that we have enough entropy.
+ * compat library (via mkstemp -> _gettemp -> arc4random -> seed_rng) so we
+ * need our own seed_rng().  We must also check that we have enough entropy.
  */
 void
 seed_rng(void)
