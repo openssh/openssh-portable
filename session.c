@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.145 2002/07/22 11:03:06 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.146 2002/07/30 17:03:55 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1065,7 +1065,7 @@ do_setup_env(Session *s, const char *shell)
 		    auth_sock_name);
 
 	/* read $HOME/.ssh/environment. */
-	if (!options.use_login) {
+	if (options.permit_user_env && !options.use_login) {
 		snprintf(buf, sizeof buf, "%.200s/.ssh/environment",
 		    pw->pw_dir);
 		read_environment_file(&env, &envsize, buf);

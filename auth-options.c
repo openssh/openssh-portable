@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-options.c,v 1.25 2002/07/21 18:32:20 stevesk Exp $");
+RCSID("$OpenBSD: auth-options.c,v 1.26 2002/07/30 17:03:55 markus Exp $");
 
 #include "xmalloc.h"
 #include "match.h"
@@ -133,7 +133,8 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 			goto next_option;
 		}
 		cp = "environment=\"";
-		if (strncasecmp(opts, cp, strlen(cp)) == 0) {
+		if (options.permit_user_env &&
+		    strncasecmp(opts, cp, strlen(cp)) == 0) {
 			char *s;
 			struct envstring *new_envstring;
 
