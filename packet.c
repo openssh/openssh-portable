@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.59 2001/04/04 23:09:18 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.60 2001/04/05 10:39:03 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -104,6 +104,7 @@ static Buffer incoming_packet;
 
 /* Scratch buffer for packet compression/decompression. */
 static Buffer compression_buffer;
+static int compression_buffer_ready = 0;
 
 /* Flag indicating whether packet compression/decompression is enabled. */
 static int packet_compression = 0;
@@ -249,7 +250,7 @@ packet_close()
 	buffer_free(&output);
 	buffer_free(&outgoing_packet);
 	buffer_free(&incoming_packet);
-	if (packet_compression) {
+	if (compression_buffer_ready) {
 		buffer_free(&compression_buffer);
 		buffer_compress_uninit();
 	}
@@ -277,15 +278,24 @@ packet_get_protocol_flags()
  * Level is compression level 1 (fastest) - 9 (slow, best) as in gzip.
  */
 
-/*** XXXXX todo: kex means re-init */
+void
+packet_init_compression()
+{
+	if (compression_buffer_ready == 1)
+		return;
+	compression_buffer_ready = 1;
+	buffer_init(&compression_buffer);
+}
+
 void
 packet_start_compression(int level)
 {
-	if (packet_compression)
+	if (packet_compression && !use_ssh2_packet_format)
 		fatal("Compression already enabled.");
 	packet_compression = 1;
-	buffer_init(&compression_buffer);
-	buffer_compress_init(level);
+	packet_init_compression();
+	buffer_compress_init_send(level);
+	buffer_compress_init_recv();
 }
 
 /*
@@ -542,9 +552,12 @@ set_newkeys(int mode)
 	memset(enc->iv,  0, enc->cipher->block_size);
 	memset(enc->key, 0, enc->cipher->key_len);
 	if (comp->type != 0 && comp->enabled == 0) {
+		packet_init_compression();
+		if (mode == MODE_OUT)
+			buffer_compress_init_send(6);
+		else
+			buffer_compress_init_recv();
 		comp->enabled = 1;
-		if (! packet_compression)
-			packet_start_compression(6);
 	}
 }
 

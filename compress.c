@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: compress.c,v 1.13 2001/02/08 19:30:51 itojun Exp $");
+RCSID("$OpenBSD: compress.c,v 1.14 2001/04/05 10:39:01 markus Exp $");
 
 #include "log.h"
 #include "buffer.h"
@@ -21,6 +21,8 @@ RCSID("$OpenBSD: compress.c,v 1.13 2001/02/08 19:30:51 itojun Exp $");
 
 static z_stream incoming_stream;
 static z_stream outgoing_stream;
+static int compress_init_send_called = 0;
+static int compress_init_recv_called = 0;
 
 /*
  * Initializes compression; level is compression level from 1 to 9
@@ -28,13 +30,23 @@ static z_stream outgoing_stream;
  */
 
 void
-buffer_compress_init(int level)
+buffer_compress_init_send(int level)
 {
+	if (compress_init_send_called == 1)
+		deflateEnd(&incoming_stream);
+	compress_init_send_called = 1;
 	debug("Enabling compression at level %d.", level);
 	if (level < 1 || level > 9)
 		fatal("Bad compression level %d.", level);
-	inflateInit(&incoming_stream);
 	deflateInit(&outgoing_stream, level);
+}
+void
+buffer_compress_init_recv(void)
+{
+	if (compress_init_recv_called == 1)
+		inflateEnd(&incoming_stream);
+	compress_init_recv_called = 1;
+	inflateInit(&incoming_stream);
 }
 
 /* Frees any data structures allocated for compression. */
@@ -50,8 +62,10 @@ buffer_compress_uninit(void)
 	      incoming_stream.total_out, incoming_stream.total_in,
 	      incoming_stream.total_out == 0 ? 0.0 :
 	      (double) incoming_stream.total_in / incoming_stream.total_out);
-	inflateEnd(&incoming_stream);
-	deflateEnd(&outgoing_stream);
+	if (compress_init_recv_called == 1)
+		inflateEnd(&incoming_stream);
+	if (compress_init_send_called == 1)
+		deflateEnd(&outgoing_stream);
 }
 
 /*
