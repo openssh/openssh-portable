@@ -72,20 +72,23 @@ int
 allowed_user(struct passwd * pw)
 {
 	struct stat st;
-	const char *hostname = NULL, *ipaddr = NULL;
+	const char *hostname = NULL, *ipaddr = NULL, *passwd;
 	char *shell;
 	int i;
 #ifdef WITH_AIXAUTHENTICATE
 	char *loginmsg;
 #endif /* WITH_AIXAUTHENTICATE */
 #if !defined(USE_PAM) && defined(HAVE_SHADOW_H) && \
-	!defined(DISABLE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
+    !defined(DISABLE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
 	struct spwd *spw;
+#endif
 
 	/* Shouldn't be called if pw is NULL, but better safe than sorry... */
 	if (!pw || !pw->pw_name)
 		return 0;
 
+#if !defined(USE_PAM) && defined(HAVE_SHADOW_H) && \
+    !defined(DISABLE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
 #define	DAY		(24L * 60 * 60) /* 1 day in seconds */
 	spw = getspnam(pw->pw_name);
 	if (spw != NULL) {
@@ -116,11 +119,19 @@ allowed_user(struct passwd * pw)
 			return 0;
 		}
 	}
-#else
-	/* Shouldn't be called if pw is NULL, but better safe than sorry... */
-	if (!pw || !pw->pw_name)
-		return 0;
 #endif
+
+#if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
+	passwd = spw->sp_pwdp;
+#else
+	passwd = pw->pw_passwd;
+#endif
+	/* check for locked account */
+	if (strcmp(passwd, "*LK*") == 0 || passwd[0] == '!') {
+		log("User %.100s not allowed because account is locked",
+		    pw->pw_name);
+		return 0;
+	}
 
 	/*
 	 * Get the shell from the password data.  An empty shell field is

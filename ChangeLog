@@ -1,6 +1,8 @@
 20030107
  - (djm) Bug #401: Work around Linux breakage with IPv6 mapped addresses. 
    Based on fix from yoshfuji@linux-ipv6.org
+ - (djm) Bug #442: Check for and deny access to accounts with locked 
+   passwords. Patch from dtucker@zip.com.au
 
 20030103
  - (djm) Bug #461: ssh-copy-id fails with no arguments. Patch from 
@@ -929,4 +931,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2541 2003/01/06 23:51:23 djm Exp $
+$Id: ChangeLog,v 1.2542 2003/01/07 01:19:32 djm Exp $
