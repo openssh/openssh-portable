@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keyscan.c,v 1.32 2001/11/22 05:27:29 stevesk Exp $");
+RCSID("$OpenBSD: ssh-keyscan.c,v 1.33 2001/12/10 20:34:31 markus Exp $");
 
 #if defined(HAVE_SYS_QUEUE_H) && !defined(HAVE_BOGUS_SYS_QUEUE_H)
 #include <sys/queue.h>
@@ -493,8 +493,9 @@ static void
 congreet(int s)
 {
 	char buf[256], *cp;
+	char remote_version[sizeof buf];
 	size_t bufsiz;
-	int n = 0;
+	int remote_major, remote_minor, n = 0;
 	con *c = &fdcon[s];
 
 	bufsiz = sizeof(buf);
@@ -516,20 +517,21 @@ congreet(int s)
 		return;
 	}
 	*cp = '\0';
+	if (sscanf(buf, "SSH-%d.%d-%[^\n]\n",
+	    &remote_major, &remote_minor, remote_version) == 3)
+		compat_datafellows(remote_version);
+	else
+		datafellows = 0;
 	if (c->c_keytype != KT_RSA1) {
-		int remote_major, remote_minor;
-		char remote_version[sizeof buf];
-
-		if (sscanf(buf, "SSH-%d.%d-%[^\n]\n",
-		    &remote_major, &remote_minor, remote_version) == 3)
-			compat_datafellows(remote_version);
-		else
-			datafellows = 0;
 		if (!ssh2_capable(remote_major, remote_minor)) {
 			debug("%s doesn't support ssh2", c->c_name);
 			confree(s);
 			return;
 		}
+	} else if (remote_major != 1) {
+		debug("%s doesn't support ssh1", c->c_name);
+		confree(s);
+		return;
 	}
 	fprintf(stderr, "# %s %s\n", c->c_name, chop(buf));
 	n = snprintf(buf, sizeof buf, "SSH-%d.%d-OpenSSH-keyscan\r\n",
