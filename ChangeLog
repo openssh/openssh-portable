@@ -128,6 +128,9 @@
      [ssh-keyscan.c]
      Dynamically allocate read_wait and its copies.  Since maxfd is
      based on resource limits it is often (usually?) larger than FD_SETSIZE.
+   - millert@cvs.openbsd.org 2001/03/03 21:40:30
+     [sftp-server.c]
+     Dynamically allocate fd_set; deraadt@ OK
 
 20010304
  - (bal) Remove make-ssh-known-hosts.1 since it's no longer valid.
@@ -4320,4 +4323,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.890 2001/03/05 07:04:38 mouring Exp $
+$Id: ChangeLog,v 1.891 2001/03/05 07:06:12 mouring Exp $

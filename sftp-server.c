@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: sftp-server.c,v 1.20 2001/02/21 09:12:56 deraadt Exp $");
+RCSID("$OpenBSD: sftp-server.c,v 1.21 2001/03/03 21:40:30 millert Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
@@ -940,9 +940,9 @@ process(void)
 int
 main(int ac, char **av)
 {
-	fd_set rset, wset;
+	fd_set *rset, *wset;
 	int in, out, max;
-	ssize_t len, olen;
+	ssize_t len, olen, set_size;
 
 	__progname = get_progname(av[0]);
 	handle_init();
@@ -963,23 +963,27 @@ main(int ac, char **av)
 	buffer_init(&iqueue);
 	buffer_init(&oqueue);
 
-	for (;;) {
-		FD_ZERO(&rset);
-		FD_ZERO(&wset);
+	set_size = howmany(max + 1, NFDBITS) * sizeof(fd_mask);
+	rset = (fd_set *)xmalloc(set_size);
+	wset = (fd_set *)xmalloc(set_size);
 
-		FD_SET(in, &rset);
+	for (;;) {
+		memset(rset, 0, set_size);
+		memset(wset, 0, set_size);
+
+		FD_SET(in, rset);
 		olen = buffer_len(&oqueue);
 		if (olen > 0)
-			FD_SET(out, &wset);
+			FD_SET(out, wset);
 
-		if (select(max+1, &rset, &wset, NULL, NULL) < 0) {
+		if (select(max+1, rset, wset, NULL, NULL) < 0) {
 			if (errno == EINTR)
 				continue;
 			exit(2);
 		}
 
 		/* copy stdin to iqueue */
-		if (FD_ISSET(in, &rset)) {
+		if (FD_ISSET(in, rset)) {
 			char buf[4*4096];
 			len = read(in, buf, sizeof buf);
 			if (len == 0) {
@@ -993,7 +997,7 @@ main(int ac, char **av)
 			}
 		}
 		/* send oqueue to stdout */
-		if (FD_ISSET(out, &wset)) {
+		if (FD_ISSET(out, wset)) {
 			len = write(out, buffer_ptr(&oqueue), olen);
 			if (len < 0) {
 				error("write error");
