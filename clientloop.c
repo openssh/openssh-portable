@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.88 2001/11/22 12:34:22 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.89 2001/12/05 03:50:01 itojun Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -949,7 +949,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 	if (received_signal) {
 		if (in_non_blocking_mode)	/* XXX */
 			leave_non_blocking();
-		fatal("Killed by signal %d.", received_signal);
+		fatal("Killed by signal %d.", (int) received_signal);
 	}
 
 	/*
