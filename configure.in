@@ -145,6 +145,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(BROKEN_REALPATH)
 	AC_DEFINE(USE_PIPES)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
+	CFLAGS="$CFLAGS \${CPPFLAGS}"
 	;;
 *-*-solaris*)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
