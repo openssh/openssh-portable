@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.288 2001/06/09 02:16:29 mouring Exp $
+# $Id: configure.in,v 1.289 2001/06/09 02:26:59 mouring Exp $
 
 AC_INIT(ssh.c)
 
@@ -1415,7 +1415,7 @@ fi
 AC_SUBST(INSTALL_SSH_PRNG_CMDS)
 
 
-AC_ARG_WITH(catman,
+AC_ARG_WITH(mantype,
 	[  --with-mantype=man|cat|doc  Set man page type],
 	[
 		case "$withval" in
