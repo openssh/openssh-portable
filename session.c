@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.82 2001/06/05 16:46:19 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.83 2001/06/07 22:25:02 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1950,10 +1950,6 @@ session_free(Session *s)
 void
 session_close(Session *s)
 {
-	if (s->display) {
-		xauthfile_cleanup_proc(s->pw);
-		fatal_remove_cleanup(xauthfile_cleanup_proc, s->pw);
-	}
 	session_pty_cleanup(s);
 	session_free(s);
 	session_proctitle(s);
@@ -2055,9 +2051,9 @@ session_setup_x11fwd(Session *s)
 	strlcpy(xauthfile, "/tmp/ssh-XXXXXXXX", MAXPATHLEN);
 	temporarily_use_uid(s->pw);
 	if (mkdtemp(xauthfile) == NULL) {
-		restore_uid();
 		error("private X11 dir: mkdtemp %s failed: %s",
 		    xauthfile, strerror(errno));
+		restore_uid();
 		xfree(xauthfile);
 		xauthfile = NULL;
 		return 0;
