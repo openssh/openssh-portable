@@ -309,7 +309,13 @@ PermitRootLogin yes
 IgnoreRhosts yes
 # Uncomment if you don't trust ~/.ssh/known_hosts for RhostsRSAAuthentication
 #IgnoreUserKnownHosts yes
-StrictModes yes
+
+#
+# The following setting overrides permission checks on host key files
+# and directories. For security reasons set this to "yes" when running
+# NT/W2K, NTFS and CYGWIN=ntsec.
+StrictModes no
+
 X11Forwarding no
 X11DisplayOffset 10
 PrintMotd yes
@@ -325,12 +331,9 @@ RhostsAuthentication no
 # For this to work you will also need host keys in /etc/ssh_known_hosts
 RhostsRSAAuthentication no
 
-# To install for logon to different user accounts change to "no" here
 RSAAuthentication yes
 
-# To install for logon to different user accounts change to "yes" here
-PasswordAuthentication no
-
+PasswordAuthentication yes
 PermitEmptyPasswords no
 
 CheckMail no
@@ -435,6 +438,48 @@ then
       echo '# ssh  stream  tcp     nowait  root    /usr/sbin/sshd -i' >> "${_inetcnf}"
     fi
     echo "Added ssh to ${_inetcnf}"
+  fi
+fi
+
+# Create /var/log and /var/log/lastlog if not already existing
+
+if [ -f /var/log ]
+then
+  echo "Creating /var/log failed\!"
+else
+  if [ ! -d /var/log ]
+  then
+    mkdir /var/log
+  fi
+  if [ -d /var/log/lastlog ]
+  then
+    echo "Creating /var/log/lastlog failed\!"
+  elif [ ! -f /var/log/lastlog ]
+  then
+    cat /dev/null > /var/log/lastlog
+  fi
+fi
+
+# On NT ask if sshd should be installed as service
+if [ $_nt -gt 0 ]
+then
+  echo
+  echo "Do you want to install sshd as service?"
+  if request "(Say \"no\" if it's already installed as service)"
+  then
+    echo
+    echo "Which value should the environment variable CYGWIN have when"
+    echo "sshd starts? It's recommended to set at least \"ntsec\" to be"
+    echo "able to change user context without password."
+    echo -n "Default is \"binmode ntsec tty\".  CYGWIN="
+    read _cygwin
+    [ -z "${_cygwin}" ] && _cygwin="binmode ntsec tty"
+    if cygrunsrv -I sshd -d "CYGWIN sshd" -p /usr/sbin/sshd -a -D -e "CYGWIN=${_cygwin}"
+    then
+      chown system /etc/ssh*
+      echo
+      echo "The service has been installed under LocalSystem account."
+    fi
   fi
 fi
 
