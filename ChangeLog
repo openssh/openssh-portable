@@ -1,3 +1,7 @@
+20010719
+ - (tim) [configure.in] put inet_aton back in AC_CHECK_FUNCS.
+	 report from Mark Miller <markm@swoon.net>
+
 20010718
  - OpenBSD CVS Sync
    - stevesk@cvs.openbsd.org 2001/07/14 15:10:17
@@ -6066,4 +6070,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1414 2001/07/18 16:50:33 mouring Exp $
+$Id: ChangeLog,v 1.1415 2001/07/20 03:33:46 tim Exp $
