@@ -28,7 +28,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.24 2002/02/24 16:57:19 markus Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.25 2002/03/08 06:10:16 itojun Exp $");
 
 #if defined(HAVE_SYS_QUEUE_H) && !defined(HAVE_BOGUS_SYS_QUEUE_H)
 #include <sys/queue.h>
@@ -821,7 +821,9 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 		/* Send some more requests */
 		while (num_req < max_req) {
 			debug3("Request range %llu -> %llu (%d/%d)", 
-			    offset, offset + buflen - 1, num_req, max_req);
+			    (unsigned long long)offset,
+			    (unsigned long long)offset + buflen - 1,
+			    num_req, max_req);
 			req = xmalloc(sizeof(*req));
 			req->id = conn->msg_id++;
 			req->len = buflen;
