@@ -1,7 +1,11 @@
+20030714
+ - (dtucker) [acconfig.h configure.ac port-aix.c] Older AIXes don't declare
+   loginfailed at all, so assume 3-arg loginfailed if not declared.
+
 20030708
  - (dtucker) [acconfig.h auth-passwd.c configure.ac session.c port-aix.[ch]]
    Include AIX headers for authentication functions and make calls match
-   prototypes.  Test for and handle 3-args and 4-arg variants of loginfailed.
+   prototypes.  Test for and handle 3-arg and 4-arg variants of loginfailed.
  - (dtucker) [session.c] Check return value of setpcred().
  - (dtucker) [auth-passwd.c auth.c session.c sshd.c port-aix.c port-aix.h]
    Convert aixloginmsg into platform-independant Buffer loginmsg.
@@ -670,4 +674,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2849 2003/07/08 12:59:59 dtucker Exp $
+$Id: ChangeLog,v 1.2850 2003/07/14 06:21:44 dtucker Exp $

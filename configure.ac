@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.132 2003/07/08 10:52:13 dtucker Exp $
+# $Id: configure.ac,v 1.133 2003/07/14 06:21:44 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -75,25 +75,26 @@ case "$host" in
 		AC_MSG_RESULT($blibflags)
 	fi
 	LDFLAGS="$saved_LDFLAGS"
-	# Check for authenticate.  Might be in libs.a on older AIXes
-	AC_CHECK_FUNC(authenticate, [with_aixauthenticate=1],
+	dnl Check for authenticate.  Might be in libs.a on older AIXes
+	AC_CHECK_FUNC(authenticate, [AC_DEFINE(WITH_AIXAUTHENTICATE)],
 		[AC_CHECK_LIB(s,authenticate,
-			[ 	with_aixaixauthenticate=1
+			[ AC_DEFINE(WITH_AIXAUTHENTICATE)
 				LIBS="$LIBS -ls"
 			])
 		])
-	# Check if loginfailed takes 3 arguments (AIX <= 5.1)
-	if (test "x$with_aixauthenticate" = "x1" ); then
-		AC_DEFINE(WITH_AIXAUTHENTICATE)
-		AC_MSG_CHECKING(if loginfailed takes 3 arguments)
-		AC_TRY_COMPILE(
+	dnl Check if loginfailed is declared and takes 4 arguments (AIX >= 5.2)
+	AC_CHECK_DECL(loginfailed,
+		 [AC_MSG_CHECKING(if loginfailed takes 4 arguments)
+		  AC_TRY_COMPILE(
 			[#include <usersec.h>],
-			[(void)loginfailed("user","host","tty");],
- 			[AC_MSG_RESULT(yes)
-			 AC_DEFINE(AIX_LOGINFAILED_3ARG)],
+			[(void)loginfailed("user","host","tty",0);],
+			[AC_MSG_RESULT(yes)
+			 AC_DEFINE(AIX_LOGINFAILED_4ARG)],
 			[AC_MSG_RESULT(no)]
-		)
-	fi
+		)],
+		[],
+		[#include <usersec.h>]
+	)
 	AC_DEFINE(BROKEN_GETADDRINFO)
 	AC_DEFINE(BROKEN_REALPATH)
 	dnl AIX handles lastlog as part of its login message

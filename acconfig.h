@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.158 2003/07/08 10:52:13 dtucker Exp $ */
+/* $Id: acconfig.h,v 1.159 2003/07/14 06:21:44 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -110,8 +110,8 @@
 /* Define if you want to enable AIX4's authenticate function */
 #undef WITH_AIXAUTHENTICATE
 
-/* Define if your AIX loginfailed() function takes 3 arguments (AIX <= 5.1) */
-#undef AIX_LOGINFAILED_3ARG
+/* Define if your AIX loginfailed() function takes 4 arguments (AIX >= 5.2) */
+#undef AIX_LOGINFAILED_4ARG
 
 /* Define if you have/want arrays (cluster-wide session managment, not C arrays) */
 #undef WITH_IRIX_ARRAY
