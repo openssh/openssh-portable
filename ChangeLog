@@ -16,6 +16,10 @@
    - stevesk@cvs.openbsd.org 2002/08/22 19:27:53
      [ssh-agent.c]
      use common close function; ok markus@
+   - stevesk@cvs.openbsd.org 2002/08/22 19:38:42
+     [clientloop.c]
+     format with current EscapeChar; bugzilla #388 from wknox@mitre.org.
+     ok markus@
 
 20020820
  - OpenBSD CVS Sync
@@ -1557,4 +1561,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2431 2002/09/04 06:31:21 djm Exp $
+$Id: ChangeLog,v 1.2432 2002/09/04 06:32:10 djm Exp $
