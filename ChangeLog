@@ -74,6 +74,10 @@
    - markus@cvs.openbsd.org 2003/02/21 09:05:53
      [servconf.c]
      print sshd_config filename in debug2 mode.
+   - mpech@cvs.openbsd.org 2003/02/21 10:34:48
+     [auth-krb4.c]
+     ...sizeof(&adat.session) is not good here.
+     henning@, deraadt@, millert@
 
 20030211
  - (djm) Cygwin needs libcrypt too. Patch from vinschen@redhat.com
@@ -1174,4 +1178,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2614 2003/02/24 01:04:33 djm Exp $
+$Id: ChangeLog,v 1.2615 2003/02/24 01:05:18 djm Exp $
