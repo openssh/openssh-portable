@@ -124,6 +124,9 @@
    - stevesk@cvs.openbsd.org 2002/06/06 01:09:41
      [monitor.h]
      no trailing comma in enum; china@thewrittenword.com
+   - markus@cvs.openbsd.org 2002/06/06 17:12:44
+     [sftp-server.c]
+     discard remaining bytes of current request; ok provos@
 
 20020604
  - (stevesk) [channels.c] bug #164 patch from YOSHIFUJI Hideaki (changed
@@ -808,4 +811,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2177 2002/06/06 21:57:01 mouring Exp $
+$Id: ChangeLog,v 1.2178 2002/06/06 21:57:54 mouring Exp $
