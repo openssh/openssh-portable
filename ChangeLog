@@ -6,6 +6,9 @@
      1) send a bogus channel request if we find a channel
      2) send a bogus global request if we don't have a channel
      ok + test beck@
+   - markus@cvs.openbsd.org 2003/12/09 17:29:04
+     [sshd.c]
+     fix -o and HUP; ok henning@
 
 20031209
  - (dtucker) OpenBSD CVS Sync
@@ -1575,4 +1578,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3140 2003/12/17 05:27:32 djm Exp $
+$Id: ChangeLog,v 1.3141 2003/12/17 05:29:22 djm Exp $

@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.282 2003/12/02 17:01:15 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.283 2003/12/09 17:29:04 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -800,6 +800,7 @@ main(int ac, char **av)
 	FILE *f;
 	struct addrinfo *ai;
 	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
+	char *line;
 	int listen_sock, maxfd;
 	int startup_p[2];
 	int startups = 0;
@@ -908,9 +909,11 @@ main(int ac, char **av)
 			}
 			break;
 		case 'o':
-			if (process_server_config_line(&options, optarg,
+			line = xstrdup(optarg);
+			if (process_server_config_line(&options, line,
 			    "command-line", 0) != 0)
 				exit(1);
+			xfree(line);
 			break;
 		case '?':
 		default:
