@@ -1,20 +1,29 @@
 Other patches and addons for OpenSSH. Please send submissions to 
-djm@ibs.com.au
+djm@mindrot.org
 
-Elsewhere
----------
+Externally maintained
+---------------------
 
-http://www.imasy.or.jp/~gotoh/connect.c is a Unix and Windows 
-ProxyCommand which allows OpenSSH to make connections through a SOCKS5
-or http proxy which supports the CONNECT method (eg. Squid).
+SSH Proxy Command -- connect.c
+
+Shun-ichi GOTO <gotoh@imasy.or.jp> has written a very useful ProxyCommand
+which allows the use of outbound SSH from behind a SOCKS4, SOCKS5 or 
+https CONNECT style proxy server. His page for connect.c has extensive
+documentation on its use as well as compiled versions for Win32.
+
+http://www.taiyo.co.jp/~gotoh/ssh/connect.html
+
+
+X11 SSH Askpass:
+
+Jim Knoble <jmknoble@pobox.com> has written an excellent X11
+passphrase requester. This is highly recommended:
+
+http://www.ntrnet.net/~jmknoble/software/x11-ssh-askpass/index.html
+
 
 In this directory
 -----------------
-
-chroot.diff: 
-
-Due to the fact the patch is never in sync with the rest of the tree.  It was
-removed. 
 
 ssh-copy-id:
 
@@ -23,7 +32,7 @@ your public key to a remote machine's ~/.ssh/authorized_keys file.
 
 gnome-ssh-askpass[12]:
 
-A GNOME/Gtk2 passphrase requester of my own creation. Compilation instructions
+A GNOME and Gtk2 passphrase requesters. Compilation instructions
 are in the top of the files.
 
 sshd.pam.generic:
@@ -43,19 +52,9 @@ Contributed by Mark D. Roth <roth@feep.net>
 
 redhat:
 
-RPM spec file an scripts for building Redhat packages
+RPM spec file and scripts for building Redhat packages
 
 suse:
 
-RPM spec file an scripts for building SuSE packages
+RPM spec file and scripts for building SuSE packages
 
-
-Externally maintained
----------------------
-
-X11 SSH Askpass:
-
-Jim Knoble <jmknoble@pobox.com> has written an excellent X11
-passphrase requester. This is highly recommended:
-
-http://www.ntrnet.net/~jmknoble/software/x11-ssh-askpass/index.html
