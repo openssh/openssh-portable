@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.61 2001/05/25 14:37:32 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.62 2001/06/23 06:41:10 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -187,7 +187,8 @@ do_convert_private_ssh2_from_blob(char *blob, int blen)
 {
 	Buffer b;
 	Key *key = NULL;
-	int ignore, magic, rlen, ktype;
+	int magic, rlen, ktype, i1, i2, i3, i4;
+	u_long e;
 	char *type, *cipher;
 
 	buffer_init(&b);
@@ -199,13 +200,13 @@ do_convert_private_ssh2_from_blob(char *blob, int blen)
 		buffer_free(&b);
 		return NULL;
 	}
-	ignore = buffer_get_int(&b);
+	i1 = buffer_get_int(&b);
 	type   = buffer_get_string(&b, NULL);
 	cipher = buffer_get_string(&b, NULL);
-	ignore = buffer_get_int(&b);
-	ignore = buffer_get_int(&b);
-	ignore = buffer_get_int(&b);
-
+	i2 = buffer_get_int(&b);
+	i3 = buffer_get_int(&b);
+	i4 = buffer_get_int(&b);
+	debug("ignore (%d %d %d %d)", i1,i2,i3,i4);
 	if (strcmp(cipher, "none") != 0) {
 		error("unsupported cipher %s", cipher);
 		xfree(cipher);
@@ -235,7 +236,17 @@ do_convert_private_ssh2_from_blob(char *blob, int blen)
 		buffer_get_bignum_bits(&b, key->dsa->priv_key);
 		break;
 	case KEY_RSA:
-		if (!BN_set_word(key->rsa->e, (u_long) buffer_get_char(&b))) {
+		e  = buffer_get_char(&b);
+		debug("e %lx", e);
+		if (e < 30) {
+			e <<= 8;
+			e += buffer_get_char(&b);
+			debug("e %lx", e);
+			e <<= 8;
+			e += buffer_get_char(&b);
+			debug("e %lx", e);
+		}
+		if (!BN_set_word(key->rsa->e, e)) {
 			buffer_free(&b);
 			key_free(key);
 			return NULL;
@@ -258,8 +269,8 @@ do_convert_private_ssh2_from_blob(char *blob, int blen)
 		u_int slen;
 		u_char *sig, data[10] = "abcde12345";
 
-		key_sign(key, &sig, &slen, data, sizeof data);
-		key_verify(key, sig, slen, data, sizeof data);
+		key_sign(key, &sig, &slen, data, sizeof(data));
+		key_verify(key, sig, slen, data, sizeof(data));
 		xfree(sig);
 	}
 #endif
