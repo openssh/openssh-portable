@@ -22,6 +22,9 @@
      Don't ftruncate after write error, creating sparse files of 
      incorrect length
      mindrot bug #403, reported by rusr@cup.hp.com; ok markus@
+   - djm@cvs.openbsd.org 2003/01/10 10:32:54
+     [channels.c]
+     hush socket() errors, except last. Fixes mindrot bug #408; ok markus@
 
 20030108
  - (djm) Sync openbsd-compat/ with OpenBSD -current
@@ -990,4 +993,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2562 2003/01/10 10:44:48 djm Exp $
+$Id: ChangeLog,v 1.2563 2003/01/10 10:45:12 djm Exp $

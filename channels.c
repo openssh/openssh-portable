@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.185 2003/01/01 18:08:52 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.186 2003/01/10 10:32:54 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -2281,7 +2281,10 @@ connect_to(const char *host, u_short port)
 		}
 		sock = socket(ai->ai_family, SOCK_STREAM, 0);
 		if (sock < 0) {
-			error("socket: %.100s", strerror(errno));
+			if (ai->ai_next == NULL)
+				error("socket: %.100s", strerror(errno));
+			else
+				verbose("socket: %.100s", strerror(errno));
 			continue;
 		}
 		if (fcntl(sock, F_SETFL, O_NONBLOCK) < 0)
