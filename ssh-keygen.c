@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.58 2001/04/22 13:41:02 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.59 2001/04/23 21:57:07 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -136,7 +136,7 @@ try_load_pem_key(char *filename)
 void
 do_convert_to_ssh2(struct passwd *pw)
 {
-	Key *prv;
+	Key *k;
 	int len;
 	u_char *blob;
 	struct stat st;
@@ -147,20 +147,21 @@ do_convert_to_ssh2(struct passwd *pw)
 		perror(identity_file);
 		exit(1);
 	}
-	prv = try_load_pem_key(identity_file);
-	if (prv == NULL) {
-		fprintf(stderr, "load failed\n");
-		exit(1);
+	if ((k = key_load_public(identity_file, NULL)) == NULL) {
+		if ((k = try_load_pem_key(identity_file)) == NULL) {
+			fprintf(stderr, "load failed\n");
+			exit(1);
+		}
 	}
-	key_to_blob(prv, &blob, &len);
+	key_to_blob(k, &blob, &len);
 	fprintf(stdout, "%s\n", SSH_COM_PUBLIC_BEGIN);
 	fprintf(stdout,
 	    "Comment: \"%d-bit %s, converted from OpenSSH by %s@%s\"\n",
-	    key_size(prv), key_type(prv),
+	    key_size(k), key_type(k),
 	    pw->pw_name, hostname);
 	dump_base64(stdout, blob, len);
 	fprintf(stdout, "%s\n", SSH_COM_PUBLIC_END);
-	key_free(prv);
+	key_free(k);
 	xfree(blob);
 	exit(0);
 }

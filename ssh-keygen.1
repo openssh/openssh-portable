@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.39 2001/04/22 23:58:36 markus Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.40 2001/04/23 21:57:07 markus Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -145,7 +145,8 @@ Requests changing the comment in the private and public key files.
 The program will prompt for the file containing the private keys, for
 passphrase if the key has one, and for the new comment.
 .It Fl e
-This option will read a private OpenSSH key file and print the key in a
+This option will read a private or public OpenSSH key file and
+print the key in a
 .Sq SECSH Public Key File Format
 to stdout.
 This option allows exporting keys for use by several commercial
