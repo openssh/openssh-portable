@@ -31,7 +31,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.74 2003/09/23 12:12:38 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.75 2003/10/07 01:30:16 dtucker Exp $");
 
 #ifdef USE_PAM
 #include <security/pam_appl.h>
@@ -126,6 +126,7 @@ struct pam_ctxt {
 };
 
 static void sshpam_free_ctx(void *);
+static struct pam_ctxt *cleanup_ctxt;
 
 /*
  * Conversation function for authentication thread.
@@ -245,15 +246,19 @@ sshpam_thread(void *ctxtp)
 	return (NULL); /* Avoid warning for non-pthread case */
 }
 
-static void
-sshpam_thread_cleanup(void *ctxtp)
+void
+sshpam_thread_cleanup(void)
 {
-	struct pam_ctxt *ctxt = ctxtp;
+	struct pam_ctxt *ctxt = cleanup_ctxt;
 
-	pthread_cancel(ctxt->pam_thread);
-	pthread_join(ctxt->pam_thread, NULL);
-	close(ctxt->pam_psock);
-	close(ctxt->pam_csock);
+	if (ctxt != NULL && ctxt->pam_thread != 0) {
+		pthread_cancel(ctxt->pam_thread);
+		pthread_join(ctxt->pam_thread, NULL);
+		close(ctxt->pam_psock);
+		close(ctxt->pam_csock);
+		memset(ctxt, 0, sizeof(*ctxt));
+		cleanup_ctxt = NULL;
+	}
 }
 
 static int
@@ -265,10 +270,9 @@ sshpam_null_conv(int n, const struct pam_message **msg,
 
 static struct pam_conv null_conv = { sshpam_null_conv, NULL };
 
-static void
-sshpam_cleanup(void *arg)
+void
+sshpam_cleanup(void)
 {
-	(void)arg;
 	debug("PAM: cleanup");
 	if (sshpam_handle == NULL)
 		return;
@@ -299,7 +303,6 @@ sshpam_init(const char *user)
 		    PAM_USER, (const void **)&pam_user);
 		if (sshpam_err == PAM_SUCCESS && strcmp(user, pam_user) == 0)
 			return (0);
-		fatal_remove_cleanup(sshpam_cleanup, NULL);
 		pam_end(sshpam_handle, sshpam_err);
 		sshpam_handle = NULL;
 	}
@@ -333,7 +336,6 @@ sshpam_init(const char *user)
 		return (-1);
 	}
 #endif
-	fatal_add_cleanup(sshpam_cleanup, NULL);
 	return (0);
 }
 
@@ -354,7 +356,7 @@ sshpam_init_ctx(Authctxt *authctxt)
 	}
 
 	ctxt = xmalloc(sizeof *ctxt);
-	ctxt->pam_done = 0;
+	memset(ctxt, 0, sizeof(*ctxt));
 
 	/* Start the authentication thread */
 	if (socketpair(AF_UNIX, SOCK_STREAM, PF_UNSPEC, socks) == -1) {
@@ -372,7 +374,7 @@ sshpam_init_ctx(Authctxt *authctxt)
 		xfree(ctxt);
 		return (NULL);
 	}
-	fatal_add_cleanup(sshpam_thread_cleanup, ctxt);
+	cleanup_ctxt = ctxt;
 	return (ctxt);
 }
 
@@ -481,8 +483,7 @@ sshpam_free_ctx(void *ctxtp)
 {
 	struct pam_ctxt *ctxt = ctxtp;
 
-	fatal_remove_cleanup(sshpam_thread_cleanup, ctxt);
-	sshpam_thread_cleanup(ctxtp);
+	sshpam_thread_cleanup();
 	xfree(ctxt);
 	/*
 	 * We don't call sshpam_cleanup() here because we may need the PAM
@@ -524,8 +525,7 @@ start_pam(const char *user)
 void
 finish_pam(void)
 {
-	fatal_remove_cleanup(sshpam_cleanup, NULL);
-	sshpam_cleanup(NULL);
+	sshpam_cleanup();
 }
 
 u_int

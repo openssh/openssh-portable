@@ -2165,6 +2165,13 @@ do_cleanup(Authctxt *authctxt)
 		ssh_gssapi_cleanup_creds();
 #endif
 
+#ifdef USE_PAM
+	if (options.use_pam) {
+		sshpam_cleanup();
+		sshpam_thread_cleanup();
+	}
+#endif
+
 	/* remove agent socket */
 	auth_sock_cleanup_proc(authctxt->pw);
 

@@ -1,5 +1,7 @@
 20031007
  - (djm) Delete autom4te.cache after autoreconf
+ - (dtucker) [auth-pam.c auth-pam.h session.c] Make PAM use the new static
+   cleanup functions.  With & ok djm@
 
 20031003
  - OpenBSD CVS Sync
@@ -1282,4 +1284,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3057 2003/10/07 00:18:22 djm Exp $
+$Id: ChangeLog,v 1.3058 2003/10/07 01:30:15 dtucker Exp $
