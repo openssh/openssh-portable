@@ -5,6 +5,8 @@
    stevesk
  - (djm) Fix my breaking of cygwin builds, Patch from Corinna Vinschen 
    <vinschen@redhat.com> and myself.
+ - (djm) Close listen_sock on bind() failures. Patch from Arkadiusz
+   Miskiewicz <misiek@pld.ORG.PL>
 
 20010217
  - (bal) OpenBSD Sync:
@@ -4012,4 +4014,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.785 2001/02/18 01:30:55 djm Exp $
+$Id: ChangeLog,v 1.786 2001/02/18 01:36:39 djm Exp $
