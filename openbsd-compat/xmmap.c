@@ -26,6 +26,8 @@
 #include <sys/mman.h>
 #endif
 
+#include "log.h"
+
 void *xmmap(size_t size)
 {
 	void *address;
