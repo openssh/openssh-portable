@@ -2,6 +2,8 @@
  - (djm) OSX/Darwin needs BIND_8_COMPAT to build getrrsetbyname. Report from
    jakob@
  - (djm) Remove useless DNS support configure summary message. from jakob@
+ - (djm) OSX/Darwin put the PAM headers in a different place, detect this.
+   Report from jakob@
 
 20031231
  - (dtucker) OpenBSD CVS Sync
@@ -1642,4 +1644,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3160 2004/01/02 06:53:04 djm Exp $
+$Id: ChangeLog,v 1.3161 2004/01/02 07:01:30 djm Exp $

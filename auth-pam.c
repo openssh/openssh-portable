@@ -31,10 +31,14 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.86 2003/12/18 05:08:59 dtucker Exp $");
+RCSID("$Id: auth-pam.c,v 1.87 2004/01/02 07:01:31 djm Exp $");
 
 #ifdef USE_PAM
+#if defined(HAVE_SECURITY_PAM_APPL_H)
 #include <security/pam_appl.h>
+#elif defined (HAVE_PAM_PAM_APPL_H)
+#include <pam/pam_appl.h>
+#endif
 
 #include "auth.h"
 #include "auth-pam.h"

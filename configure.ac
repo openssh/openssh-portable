@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.181 2004/01/02 06:53:04 djm Exp $
+# $Id: configure.ac,v 1.182 2004/01/02 07:01:31 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -499,7 +499,7 @@ int main(){exit(0);}
 AC_CHECK_HEADERS(bstring.h crypt.h endian.h features.h floatingpoint.h \
 	getopt.h glob.h ia.h lastlog.h limits.h login.h \
 	login_cap.h maillock.h netdb.h netgroup.h \
-	netinet/in_systm.h paths.h pty.h readpassphrase.h \
+	netinet/in_systm.h pam/pam_appl.h paths.h pty.h readpassphrase.h \
 	rpc/types.h security/pam_appl.h shadow.h stddef.h stdint.h \
 	strings.h sys/strtio.h sys/audit.h sys/bitypes.h sys/bsdtty.h \
 	sys/cdefs.h sys/mman.h sys/pstat.h sys/select.h sys/stat.h \
@@ -929,7 +929,8 @@ AC_ARG_WITH(pam,
 	[  --with-pam              Enable PAM support ],
 	[
 		if test "x$withval" != "xno" ; then
-			if test "x$ac_cv_header_security_pam_appl_h" != "xyes" ; then
+			if test "x$ac_cv_header_security_pam_appl_h" != "xyes" && \
+			   test "x$ac_cv_header_pam_pam_appl_h" != "xyes" ; then
 				AC_MSG_ERROR([PAM headers not found])
 			fi
 
@@ -958,7 +959,11 @@ if test "x$PAM_MSG" = "xyes" ; then
 	AC_TRY_COMPILE(
 		[
 #include <stdlib.h>
+#if defined(HAVE_SECURITY_PAM_APPL_H)
 #include <security/pam_appl.h>
+#elif defined (HAVE_PAM_PAM_APPL_H)
+#include <pam/pam_appl.h>
+#endif
 		],
 		[(void)pam_strerror((pam_handle_t *)NULL, -1);],
 		[AC_MSG_RESULT(no)],

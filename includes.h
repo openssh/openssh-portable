@@ -147,7 +147,11 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 # include <rpc/types.h> /* For INADDR_LOOPBACK */
 #endif
 #ifdef USE_PAM
+#if defined(HAVE_SECURITY_PAM_APPL_H)
 # include <security/pam_appl.h>
+#elif defined (HAVE_PAM_PAM_APPL_H)
+# include <pam/pam_appl.h>
+#endif
 #endif
 #ifdef HAVE_READPASSPHRASE_H
 # include <readpassphrase.h>
