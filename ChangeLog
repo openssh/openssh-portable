@@ -3,7 +3,7 @@
    BSM audit support for the time being.  ok djm@
  - (dtucker) OpenBSD CVS Sync (regress/)
    - fgsch@cvs.openbsd.org 2004/12/10 01:31:30
-     [Makefile]
+     [Makefile sftp-glob.sh]
      some globbing regress; prompted and ok djm@
 
 20050306
@@ -2291,4 +2291,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3695 2005/03/07 06:36:18 dtucker Exp $
+$Id: ChangeLog,v 1.3696 2005/03/07 07:25:53 dtucker Exp $
