@@ -153,9 +153,6 @@
 /* getaddrinfo is broken (if present) */
 #undef BROKEN_GETADDRINFO
 
-/* Whether Unix98 ptys are automatically removed when they are closed */
-#undef PTY_REMOVED_ON_CLOSE
-
 @BOTTOM@
 
 /* ******************* Shouldn't need to edit below this line ************** */

@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: pty.c,v 1.15 2000/03/09 10:27:51 damien Exp $");
+RCSID("$Id: pty.c,v 1.16 2000/03/09 11:31:13 damien Exp $");
 
 #ifdef HAVE_UTIL_H
 # include <util.h>
@@ -187,12 +187,10 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 void 
 pty_release(const char *ttyname)
 {
-#ifndef PTY_REMOVED_ON_CLOSE
 	if (chown(ttyname, (uid_t) 0, (gid_t) 0) < 0)
 		error("chown %.100s 0 0 failed: %.100s", ttyname, strerror(errno));
 	if (chmod(ttyname, (mode_t) 0666) < 0)
 		error("chmod %.100s 0666 failed: %.100s", ttyname, strerror(errno));
-#endif /* PTY_REMOVED_ON_CLOSE */
 }
 
 /* Makes the tty the processes controlling tty and sets it to sane modes. */

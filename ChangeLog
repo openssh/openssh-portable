@@ -59,6 +59,8 @@
 	 - fix pr 1113, fclose() -> pclose(), todo: remote popen()
 	 - version 1.2.3
  - Cleaned up
+ - Removed warning workaround for Linux and devpts filesystems (no longer 
+   required after OpenBSD updates)
 
 20000308
  - Configure fix from Hiroshi Takekawa <takekawa@sr3.t.u-tokyo.ac.jp>
