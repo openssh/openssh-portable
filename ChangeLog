@@ -1,3 +1,6 @@
+20020716
+ - (tim) [contrib/solaris/opensshd.in] Only kill sshd if .pid file found
+
 20020715
  - (bal) OpenBSD CVS Sync
    - itojun@cvs.openbsd.org 2002/07/12 13:29:09
@@ -1374,4 +1377,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2370 2002/07/15 18:49:20 mouring Exp $
+$Id: ChangeLog,v 1.2371 2002/07/16 21:24:38 tim Exp $
