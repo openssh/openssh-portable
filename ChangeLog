@@ -24,6 +24,7 @@
  - (djm) Crank RPM spec versions
  - (dtucker) [README] Add pointer to release notes.  ok djm@
  - (dtucker) {README.platform] Add platform-specific notes.
+ - (tim) [configure.ac] SCO3 needs -lcrypt_i for -lprot
 
 20040223
  - (dtucker) [session.c] Bug #789: Only make setcred call for !privsep in the
@@ -1927,4 +1928,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3255 2004/02/24 05:14:41 dtucker Exp $
+$Id: ChangeLog,v 1.3256 2004/02/24 05:47:04 tim Exp $

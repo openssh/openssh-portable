@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.201 2004/02/23 23:37:33 dtucker Exp $
+# $Id: configure.ac,v 1.202 2004/02/24 05:47:04 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -336,7 +336,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	;;
 *-*-sco3.2v4*)
 	CPPFLAGS="$CPPFLAGS -Dftruncate=chsize"
-	LIBS="$LIBS -los -lprot -lx -ltinfo -lm"
+	LIBS="$LIBS -los -lprot -lcrypt_i -lx -ltinfo -lm"
 	RANLIB=true
 	no_dev_ptmx=1
 	AC_DEFINE(BROKEN_SYS_TERMIO_H)
