@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-options.c,v 1.15 2001/03/16 19:06:28 markus Exp $");
+RCSID("$OpenBSD: auth-options.c,v 1.16 2001/03/18 12:07:52 markus Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -268,7 +268,8 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 				xfree(patterns);
 				goto bad_option;
 			}
-			channel_add_permitted_opens(patterns, port);
+			if (options.allow_tcp_forwarding)
+				channel_add_permitted_opens(patterns, port);
 			xfree(patterns);
 			goto next_option;
 		}
