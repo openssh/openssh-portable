@@ -1,9 +1,13 @@
 20010308
  - OpenBSD CVS Sync
-  - djm@cvs.openbsd.org 2001/03/07 10:11:23
-    [sftp-client.c sftp-client.h sftp-int.c sftp-server.c sftp.1 sftp.c sftp.h]
-    Support for new draft (draft-ietf-secsh-filexfer-01). New symlink handling
-    functions and small protocol change.
+   - djm@cvs.openbsd.org 2001/03/07 10:11:23
+     [sftp-client.c sftp-client.h sftp-int.c sftp-server.c sftp.1 sftp.c sftp.h]
+     Support for new draft (draft-ietf-secsh-filexfer-01). New symlink handling
+     functions and small protocol change.
+   - markus@cvs.openbsd.org 2001/03/08 00:15:48
+     [readconf.c ssh.1]
+     turn off useprivilegedports by default. only rhost-auth needs
+     this. older sshd's may need this, too.
 
 20010307
  - (bal) OpenBSD CVS Sync
@@ -4437,4 +4441,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.925 2001/03/07 23:08:49 djm Exp $
+$Id: ChangeLog,v 1.926 2001/03/08 03:39:10 mouring Exp $

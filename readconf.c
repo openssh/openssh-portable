@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.64 2001/03/04 17:42:28 millert Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.65 2001/03/08 00:15:47 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -745,7 +745,7 @@ fill_default_options(Options * options)
 	if (options->gateway_ports == -1)
 		options->gateway_ports = 0;
 	if (options->use_privileged_port == -1)
-		options->use_privileged_port = 1;
+		options->use_privileged_port = 0;
 	if (options->rhosts_authentication == -1)
 		options->rhosts_authentication = 1;
 	if (options->rsa_authentication == -1)
