@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.68 2001/06/29 16:56:16 stevesk Exp $ */
+/* $Id: defines.h,v 1.69 2001/08/12 03:02:51 djm Exp $ */
 
 /* Necessary headers */
 
@@ -206,7 +206,6 @@ typedef long int int64_t;
 #  if (SIZEOF_LONG_LONG_INT == 8)
 typedef long long int int64_t;
 #   define HAVE_INT64_T 1
-#   define HAVE_LONG_LONG_INT
 #  endif
 # endif
 #endif
@@ -220,6 +219,9 @@ typedef unsigned long long int u_int64_t;
 #   define HAVE_U_INT64_T 1
 #  endif
 # endif
+#endif
+#if !defined(HAVE_LONG_LONG_INT) && (SIZEOF_LONG_LONG_INT == 8)
+# define HAVE_LONG_LONG_INT 1
 #endif
 
 #ifndef HAVE_SOCKLEN_T
