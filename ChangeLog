@@ -62,6 +62,9 @@
       key.c misc.c packet.c servconf.c ssh-agent.c sshconnect2.c 
       sshconnect.c sshd.c ssh-dss.c ssh-keygen.c ssh-rsa.c]
      minor KNF
+   - markus@cvs.openbsd.org 2001/12/05 15:04:48
+     [version.h]
+     post 3.0.2
 
 20011126
  - (tim) [contrib/cygwin/README, openbsd-compat/bsd-cygwin_util.c,
@@ -6984,4 +6987,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1684 2001/12/06 18:00:18 mouring Exp $
+$Id: ChangeLog,v 1.1685 2001/12/06 18:02:59 mouring Exp $
