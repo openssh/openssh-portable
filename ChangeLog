@@ -18,6 +18,10 @@
    - jmc@cvs.openbsd.org 2004/04/28 07:13:42
      [sftp.1 ssh.1]
      add SendEnv to -o list;
+   - dtucker@cvs.openbsd.org 2004/05/02 11:54:31
+     [sshd.8]
+     Man page grammar fix (bz #858), from damerell at chiark.greenend.org.uk
+     via Debian; ok djm@
 
 20040423
  - (dtucker) [configure.ac openbsd-compat/getrrsetbyname.c] Declare h_errno
@@ -1059,4 +1063,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3337 2004/05/02 12:14:03 dtucker Exp $
+$Id: ChangeLog,v 1.3338 2004/05/02 12:15:08 dtucker Exp $
