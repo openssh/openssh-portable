@@ -45,7 +45,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: scp.c,v 1.19 2000/04/16 01:18:45 damien Exp $");
+RCSID("$Id: scp.c,v 1.20 2000/04/19 06:26:14 damien Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -1008,7 +1008,7 @@ run_err(const char *fmt,...)
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	$Id: scp.c,v 1.19 2000/04/16 01:18:45 damien Exp $
+ *	$Id: scp.c,v 1.20 2000/04/19 06:26:14 damien Exp $
  */
 
 char *
@@ -1211,7 +1211,12 @@ progressmeter(int flag)
 		snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
 			 " - stalled -");
 	} else {
-		remaining = (int) (totalbytes / (statbytes / elapsed) - elapsed);
+		if (flag != 1)
+			remaining =
+			    (int)(totalbytes / (statbytes / elapsed) - elapsed);
+		else
+			remaining = elapsed;
+
 		i = remaining / 3600;
 		if (i)
 			snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
@@ -1221,7 +1226,8 @@ progressmeter(int flag)
 				 "   ");
 		i = remaining % 3600;
 		snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
-			 "%02d:%02d ETA", i / 60, i % 60);
+			 "%02d:%02d%s", i / 60, i % 60,
+			 (flag != 1) ? " ETA" : "    ");
 	}
 	atomicio(write, fileno(stdout), buf, strlen(buf));
 

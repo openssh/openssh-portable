@@ -1,3 +1,16 @@
+20000419
+ - OpenBSD CVS updates
+   [channels.c]
+   - fix pr 1196, listen_port and port_to_connect interchanged
+   [scp.c]
+   - after completion, replace the progress bar ETA counter with a final 
+     elapsed time; my idea, aaron wrote the patch
+   [ssh_config sshd_config]
+   - show 'Protocol' as an example, ok markus@
+   [sshd.c]
+   - missing xfree()
+ - Add missing header to bsd-misc.c
+
 20000416
  - Reduce diff against OpenBSD source
    - All OpenSSL includes are now unconditionally referenced as 

@@ -47,6 +47,8 @@
 #include "bsd-misc.h"
 #include "entropy.h"
 
+#include <openssl/rand.h>
+
 #ifndef HAVE_ARC4RANDOM
 
 typedef struct

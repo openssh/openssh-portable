@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.105 2000/04/14 10:30:33 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.106 2000/04/17 12:31:47 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -1265,6 +1265,7 @@ do_ssh2_kex()
 	packet_put_bignum2(dh->pub_key);	// f
 	packet_put_string((char *)signature, slen);
 	packet_send();
+	xfree(signature);
 	packet_write_wait();
 
 	kex_derive_keys(kex, hash, shared_secret);
