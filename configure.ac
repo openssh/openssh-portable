@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.128 2003/06/28 02:54:33 dtucker Exp $
+# $Id: configure.ac,v 1.129 2003/06/29 11:30:41 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -436,6 +436,18 @@ AC_ARG_WITH(libs,
 			LIBS="$LIBS $withval"
 		fi
 	]	
+)
+
+AC_MSG_CHECKING(compiler and flags for sanity)
+AC_TRY_RUN([
+#include <stdio.h>
+int main(){exit(0);}
+	],
+	[	AC_MSG_RESULT(yes) ],
+	[
+		AC_MSG_RESULT(no)
+		AC_MSG_ERROR([*** compiler cannot create working executables, check config.log ***])
+	]
 )
 
 # Checks for header files.
