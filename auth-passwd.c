@@ -11,7 +11,7 @@
 
 #ifndef USE_PAM
 
-RCSID("$Id: auth-passwd.c,v 1.18 2000/04/16 02:31:49 damien Exp $");
+RCSID("$Id: auth-passwd.c,v 1.19 2000/04/29 14:47:29 damien Exp $");
 
 #include "packet.h"
 #include "ssh.h"
@@ -19,9 +19,12 @@ RCSID("$Id: auth-passwd.c,v 1.18 2000/04/16 02:31:49 damien Exp $");
 #include "xmalloc.h"
 
 #ifdef WITH_AIXAUTHENTICATE
-#include <login.h>
+# include <login.h>
 #endif
-
+#ifdef HAVE_HPUX_TRUSTED_SYSTEM_PW
+# include <hpsecurity.h>
+# include <prot.h>
+#endif
 #ifdef HAVE_SHADOW_H
 # include <shadow.h>
 #endif
@@ -108,7 +111,11 @@ auth_password(struct passwd * pw, const char *password)
 	else
 		encrypted_password = crypt(password, salt);
 #else /* HAVE_MD5_PASSWORDS */    
+# ifdef HAVE_HPUX_TRUSTED_SYSTEM_PW
+	encrypted_password = bigcrypt(password, salt);
+# else
 	encrypted_password = crypt(password, salt);
+# endif /* HAVE_HPUX_TRUSTED_SYSTEM_PW */
 #endif /* HAVE_MD5_PASSWORDS */    
 
 	/* Authentication is accepted if the encrypted passwords are identical. */

@@ -13,7 +13,7 @@
 #include "xmalloc.h"
 #include "servconf.h"
 
-RCSID("$Id: auth-pam.c,v 1.3 2000/04/20 13:12:58 damien Exp $");
+RCSID("$Id: auth-pam.c,v 1.4 2000/04/29 14:47:29 damien Exp $");
 
 /* Callbacks */
 static int pamconv(int num_msg, const struct pam_message **msg,
@@ -226,7 +226,11 @@ void start_pam(struct passwd *pw)
 /* Return list of PAM enviornment strings */
 char **fetch_pam_environment(void)
 {
+#ifdef HAVE_PAM_GETENVLIST
 	return(pam_getenvlist((pam_handle_t *)pamh));
+#else /* HAVE_PAM_GETENVLIST */
+	return(NULL);
+#endif /* HAVE_PAM_GETENVLIST */
 }
 
 /* Print any messages that have been generated during authentication */

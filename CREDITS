@@ -21,6 +21,7 @@ David Del Piero <David.DelPiero@qed.qld.gov.au> - bug fixes
 David Hesprich <darkgrue@gue-tech.org> - Configure fixes
 David Rankin <drankin@bohemians.lexington.ky.us> - libwrap, AIX, NetBSD fixes
 Gary E. Miller <gem@rellim.com> - SCO support
+Ged Lodder <lodder@yacc.com.au> - HPUX fixes and enhancements
 HARUYAMA Seigo <haruyama@nt.phys.s.u-tokyo.ac.jp> - Translations & doc fixes
 Hideaki YOSHIFUJI <yoshfuji@ecei.tohoku.ac.jp> - IPv6 fixes
 Hiroshi Takekawa <takekawa@sr3.t.u-tokyo.ac.jp> - Configure fixes
