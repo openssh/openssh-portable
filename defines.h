@@ -75,6 +75,7 @@ typedef int int32_t;
 # else
 #  error "32 bit int type not found."
 # endif
+/*
 # if (SIZEOF_LONG_INT == 8)
 typedef long int int64_t;
 # else
@@ -85,6 +86,7 @@ typedef long long int int64_t;
 #   error "64 bit int type not found."
 #  endif
 # endif
+*/
 #endif
 
 /* If sys/types.h does not supply u_intXX_t, supply them ourselves */
@@ -93,7 +95,9 @@ typedef long long int int64_t;
 typedef uint8_t u_int8_t;
 typedef uint16_t u_int16_t;
 typedef uint32_t u_int32_t;
+/*
 typedef  uint64_t u_int64_t;
+*/
 # define HAVE_U_INTXX_T 1
 # else
 #  if (SIZEOF_CHAR == 1)
@@ -111,6 +115,7 @@ typedef unsigned int u_int32_t;
 #  else
 #   error "32 bit int type not found."
 #  endif
+/*
 #  if (SIZEOF_LONG_INT == 8)
 typedef unsigned long int u_int64_t;
 #  else
@@ -121,6 +126,7 @@ typedef unsigned long long int u_int64_t;
 #    error "64 bit int type not found."
 #   endif
 #  endif
+*/
 # endif
 #endif
 

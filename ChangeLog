@@ -1,6 +1,7 @@
 20000403
  - Wrote entropy collection routines for systems that lack /dev/random
    and EGD
+ - Disable tests and typedefs for 64 bit types. They are currently unused.
 
 20000401
  - Big OpenBSD CVS update (mainly beginnings of SSH2 infrastructure)
