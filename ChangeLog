@@ -1,3 +1,7 @@
+20030303
+ - (djm) [configure.ac ssh-agent.c] Use prctl to prevent ptrace on ssh-agent
+   ok dtucker  
+
 20040229
  - (tim) [configure.ac] Put back bits mistakenly removed from Rev 1.188
 
@@ -841,4 +845,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3271 2004/02/29 23:53:37 tim Exp $
+$Id: ChangeLog,v 1.3272 2004/03/03 00:08:59 djm Exp $

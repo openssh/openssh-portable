@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.203 2004/02/29 23:53:37 tim Exp $
+# $Id: configure.ac,v 1.204 2004/03/03 00:08:59 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -494,10 +494,10 @@ AC_CHECK_HEADERS(bstring.h crypt.h endian.h features.h floatingpoint.h \
 	netinet/in_systm.h pam/pam_appl.h paths.h pty.h readpassphrase.h \
 	rpc/types.h security/pam_appl.h shadow.h stddef.h stdint.h \
 	strings.h sys/strtio.h sys/audit.h sys/bitypes.h sys/bsdtty.h \
-	sys/cdefs.h sys/mman.h sys/pstat.h sys/ptms.h sys/select.h sys/stat.h \
-	sys/stream.h sys/stropts.h sys/sysmacros.h sys/time.h sys/timers.h \
-	sys/un.h time.h tmpdir.h ttyent.h usersec.h \
-	util.h utime.h utmp.h utmpx.h vis.h)
+	sys/cdefs.h sys/mman.h sys/prctl.h sys/pstat.h sys/ptms.h \
+	sys/select.h sys/stat.h sys/stream.h sys/stropts.h \
+	sys/sysmacros.h sys/time.h sys/timers.h sys/un.h time.h tmpdir.h \
+	ttyent.h usersec.h util.h utime.h utmp.h utmpx.h vis.h)
 
 # Checks for libraries.
 AC_CHECK_FUNC(yp_match, , AC_CHECK_LIB(nsl, yp_match))
@@ -797,7 +797,7 @@ AC_CHECK_FUNCS(\
 	getpeereid _getpty getrlimit getttyent glob inet_aton \
 	inet_ntoa inet_ntop innetgr login_getcapbool md5_crypt memmove \
 	mkdtemp mmap ngetaddrinfo nsleep ogetaddrinfo openlog_r openpty \
-	pstat readpassphrase realpath recvmsg rresvport_af sendmsg \
+	pstat prctl readpassphrase realpath recvmsg rresvport_af sendmsg \
 	setdtablesize setegid setenv seteuid setgroups setlogin setpcred \
 	setproctitle setregid setreuid setrlimit \
 	setsid setvbuf sigaction sigvec snprintf socketpair strerror \
