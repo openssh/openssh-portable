@@ -1,3 +1,6 @@
+20030905
+ - (dtucker) [Makefile.in] Add distclean target for regress/, fix clean target.
+
 20030904
  - (dtucker) Portablize regression tests.  Parts contributed by Roumen
    Petrov, David M. Williams and Corinna Vinschen.
@@ -1018,4 +1021,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2960 2003/09/04 12:06:16 dtucker Exp $
+$Id: ChangeLog,v 1.2961 2003/09/05 01:35:52 dtucker Exp $
