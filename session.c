@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.123 2002/02/03 17:53:25 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.124 2002/02/06 14:37:22 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1825,23 +1825,19 @@ static void
 session_exit_message(Session *s, int status)
 {
 	Channel *c;
-	if (s == NULL)
-		fatal("session_close: no session");
-	c = channel_lookup(s->chanid);
-	if (c == NULL)
+
+	if ((c = channel_lookup(s->chanid)) == NULL)
 		fatal("session_exit_message: session %d: no channel %d",
 		    s->self, s->chanid);
 	debug("session_exit_message: session %d channel %d pid %d",
 	    s->self, s->chanid, s->pid);
 
 	if (WIFEXITED(status)) {
-		channel_request_start(s->chanid,
-		    "exit-status", 0);
+		channel_request_start(s->chanid, "exit-status", 0);
 		packet_put_int(WEXITSTATUS(status));
 		packet_send();
 	} else if (WIFSIGNALED(status)) {
-		channel_request_start(s->chanid,
-		    "exit-signal", 0);
+		channel_request_start(s->chanid, "exit-signal", 0);
 		packet_put_int(WTERMSIG(status));
 #ifdef WCOREDUMP
 		packet_put_char(WCOREDUMP(status));

@@ -19,6 +19,9 @@
    - mpech@cvs.openbsd.org 2002/02/06 14:27:23
      [sftp.c]
      sync usage() with manual.
+   - markus@cvs.openbsd.org 2002/02/06 14:37:22
+     [session.c]
+     minor KNF
 
 20020205
  - (djm) Cleanup after sync:
@@ -7525,4 +7528,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1833 2002/02/08 11:06:29 djm Exp $
+$Id: ChangeLog,v 1.1834 2002/02/08 11:06:48 djm Exp $
