@@ -1321,7 +1321,7 @@ do_child(Session *s, const char *command)
 	 */
 	if (!options.use_login) {
 #ifdef HAVE_OSF_SIA
-		session_setup_sia(pw->pw_name, s->ttyfd == -1 ? NULL : s->tty);
+		session_setup_sia(pw, s->ttyfd == -1 ? NULL : s->tty);
 		if (!check_quietlogin(s, command))
 			do_motd();
 #else /* HAVE_OSF_SIA */
