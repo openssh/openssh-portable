@@ -33,7 +33,9 @@
 #include "canohost.h"
 #include "readpass.h"
 
-RCSID("$Id: auth-pam.c,v 1.34 2001/03/27 06:12:24 djm Exp $");
+extern char *__progname;
+
+RCSID("$Id: auth-pam.c,v 1.35 2001/04/20 17:43:47 stevesk Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now"

@@ -61,7 +61,7 @@
 #define SSH_SERVICE_NAME	"ssh"
 
 #if defined(USE_PAM) && !defined(SSHD_PAM_SERVICE)
-# define SSHD_PAM_SERVICE       "sshd"
+# define SSHD_PAM_SERVICE       __progname
 #endif
 
 /*

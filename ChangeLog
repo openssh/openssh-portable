@@ -5,6 +5,8 @@
      Split out and improve escape character documentation, mention ~R in
      ~? help text; ok markus@
  - Update RPM spec files for CVS version.h
+ - (stevesk) set the default PAM service name to __progname instead
+   of the hard-coded value "sshd"; from Mark D. Roth <roth@feep.net>
 
 20010420
  - OpenBSD CVS Sync                         
@@ -5195,4 +5197,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1149 2001/04/20 13:19:37 djm Exp $
+$Id: ChangeLog,v 1.1150 2001/04/20 17:43:48 stevesk Exp $
