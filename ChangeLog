@@ -1,6 +1,8 @@
 20040408
  - (dtucker) [loginrec.c] Use UT_LINESIZE if available, prevents truncating
    pty name on Linux 2.6.x systems.  Patch from jpe at eisenmenger.org.
+ - (bal) [monitor.c monitor_wrap.c] Second try.  Put the zlib.h headers
+   back and #undef TARGET_OS_MAC instead.  (Bug report pending with Apple)
 
 20040407
  - (dtucker) [session.c] Flush stdout after displaying loginmsg.  From
@@ -951,4 +953,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3304 2004/04/08 00:57:05 dtucker Exp $
+$Id: ChangeLog,v 1.3305 2004/04/08 05:11:03 mouring Exp $
