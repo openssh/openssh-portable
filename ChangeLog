@@ -8,6 +8,10 @@
    - djm@cvs.openbsd.org 2004/02/17 11:03:08
      [sftp.c]
      sftp.c and sftp-int.c, together at last; ok markus@
+   - jmc@cvs.openbsd.org 2004/02/17 19:35:21
+     [sshd_config.5]
+     remove cruft left over from RhostsAuthentication removal;
+     ok markus@
 
 20040217
  - (djm) Simplify the license on code I have written. No code changes.
@@ -1877,4 +1881,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3236 2004/02/18 03:30:55 djm Exp $
+$Id: ChangeLog,v 1.3237 2004/02/18 03:31:23 djm Exp $
