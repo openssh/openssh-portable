@@ -3,6 +3,9 @@
    - stevesk@cvs.openbsd.org 2001/04/02 14:15:31
      [sshd.8]
      typo; ok markus@
+   - stevesk@cvs.openbsd.org 2001/04/02 14:20:23
+     [readconf.c servconf.c]
+     correct comment; ok markus@
 
 20010402
  - (stevesk) log.c openbsd sync; missing newlines
@@ -4802,4 +4805,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1045 2001/04/02 18:18:21 mouring Exp $
+$Id: ChangeLog,v 1.1046 2001/04/02 18:20:03 mouring Exp $

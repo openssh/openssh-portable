@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.72 2001/03/25 13:16:10 stevesk Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.73 2001/04/02 14:20:23 stevesk Exp $");
 
 #ifdef KRB4
 #include <krb.h>
@@ -284,8 +284,7 @@ static struct {
 };
 
 /*
- * Returns the number of the token pointed to by cp of length len. Never
- * returns if the token is not known.
+ * Returns the number of the token pointed to by cp or sBadOption.
  */
 
 static ServerOpCodes
