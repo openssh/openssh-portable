@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.165 2003/09/08 21:35:17 tim Exp $ */
+/* $Id: acconfig.h,v 1.166 2003/09/16 01:52:19 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -358,6 +358,9 @@
 
 /* Define in your struct dirent expects you to allocate extra space for d_name */
 #undef BROKEN_ONE_BYTE_DIRENT_D_NAME
+
+/* Define if your system has /etc/default/login */
+#undef HAVE_ETC_DEFAULT_LOGIN
 
 /* Define if your getopt(3) defines and uses optreset */
 #undef HAVE_GETOPT_OPTRESET

@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.102 2003/08/26 01:58:16 dtucker Exp $ */
+/* $Id: defines.h,v 1.103 2003/09/16 01:52:19 dtucker Exp $ */
 
 
 /* Constants */
@@ -319,6 +319,10 @@ struct winsize {
 
 #ifndef _PATH_STDPATH
 # define _PATH_STDPATH "/usr/bin:/bin:/usr/sbin:/sbin"
+#endif
+
+#ifndef SUPERUSER_PATH
+# define SUPERUSER_PATH	_PATH_STDPATH
 #endif
 
 #ifndef _PATH_DEVNULL

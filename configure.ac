@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.153 2003/09/13 01:15:15 tim Exp $
+# $Id: configure.ac,v 1.154 2003/09/16 01:52:19 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -250,6 +250,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(LOCKED_PASSWD_STRING, "*LK*")
 	# Pushing STREAMS modules will cause sshd to acquire a controlling tty.
 	AC_DEFINE(SSHD_ACQUIRES_CTTY)
+	external_path_file=/etc/default/login
 	# hardwire lastlog location (can't detect it on some versions)
 	conf_lastlog_location="/var/adm/lastlog"
 	AC_MSG_CHECKING(for obsolete utmp and wtmp in solaris2.x)
@@ -286,6 +287,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(IP_TOS_IS_BROKEN)
 	AC_DEFINE(SSHD_ACQUIRES_CTTY)
+	external_path_file=/etc/default/login
 	# /usr/ucblib/libucb.a no longer needed on ReliantUNIX
 	# Attention: always take care to bind libsocket and libnsl before libc,
 	# otherwise you will find lots of "SIOCGPGRP errno 22" on syslog
@@ -2180,30 +2182,48 @@ else
 	)
 fi
 
+# check for /etc/default/login and use it if present.
+AC_CHECK_FILE("/etc/default/login", [ external_path_file=/etc/default/login ])
+
+if test "x$external_path_file" = "x/etc/default/login"; then
+	AC_DEFINE(HAVE_ETC_DEFAULT_LOGIN)
+fi
+
 dnl BSD systems use /etc/login.conf so --with-default-path= has no effect
 if test $ac_cv_func_login_getcapbool = "yes" -a \
 	$ac_cv_header_login_cap_h = "yes" ; then
-	USES_LOGIN_CONF=yes
+	external_path_file=/etc/login.conf
 fi
+
 # Whether to mess with the default path
 SERVER_PATH_MSG="(default)" 
 AC_ARG_WITH(default-path,
 	[  --with-default-path=    Specify default \$PATH environment for server],
 	[
-		if test "$USES_LOGIN_CONF" = "yes" ; then
+		if test "x$external_path_file" = "x/etc/login.conf" ; then
 			AC_MSG_WARN([
 --with-default-path=PATH has no effect on this system.
 Edit /etc/login.conf instead.])
 		elif test "x$withval" != "xno" ; then	
+			if ! test -z "$external_path_file" ; then
+				AC_MSG_WARN([
+--with-default-path=PATH will only be used if PATH is not defined in
+$external_path_file .])
+			fi
 			user_path="$withval"
 			SERVER_PATH_MSG="$withval" 
 		fi
 	],
-	[ if test "$USES_LOGIN_CONF" = "yes" ; then
-	AC_MSG_WARN([Make sure the path to scp is in /etc/login.conf])
+	[ if test "x$external_path_file" = "x/etc/login.conf" ; then
+		AC_MSG_WARN([Make sure the path to scp is in /etc/login.conf])
 	else
-	AC_TRY_RUN(
-		[
+		if ! test -z "$external_path_file" ; then
+			AC_MSG_WARN([
+If PATH is defined in $external_path_file, ensure the path to scp is included,
+otherwise scp will not work.])
+		fi
+		AC_TRY_RUN(
+			[
 /* find out what STDPATH is */
 #include <stdio.h>
 #ifdef HAVE_PATHS_H
@@ -2257,7 +2277,7 @@ main()
 		fi
 	fi ]
 )
-if test "$USES_LOGIN_CONF" != "yes" ; then
+if test "x$external_path_file" != "x/etc/login.conf" ; then
 	AC_DEFINE_UNQUOTED(USER_PATH, "$user_path")
 	AC_SUBST(user_path)
 fi
@@ -2627,10 +2647,15 @@ echo "                   Askpass program: $E"
 echo "                      Manual pages: $F"
 echo "                          PID file: $G"
 echo "  Privilege separation chroot path: $H"
-if test "$USES_LOGIN_CONF" = "yes" ; then
-echo "   At runtime, sshd will use the path defined in /etc/login.conf"
+if test "x$external_path_file" = "x/etc/login.conf" ; then
+echo "   At runtime, sshd will use the path defined in $external_path_file"
+echo "   Make sure the path to scp is present, otherwise scp will not work"
 else
 echo "            sshd default user PATH: $I"
+	if ! test -z "$external_path_file"; then
+echo "   (If PATH is set in $external_path_file it will be used instead. If"
+echo "   used, ensure the path to scp is present, otherwise scp will not work.)"
+	fi
 fi
 if test ! -z "$superuser_path" ; then
 echo "          sshd superuser user PATH: $J"

@@ -802,6 +802,16 @@ child_set_env(char ***envp, u_int *envsizep, const char *name,
 	char **env;
 
 	/*
+	 * If we're passed an uninitialized list, allocate a single null
+	 * entry before continuing.
+	 */
+	if (*envp == NULL && *envsizep == 0) {
+		*envp = xmalloc(sizeof(char *));
+		*envp[0] = NULL;
+		*envsizep = 1;
+	}
+
+	/*
 	 * Find the slot where the value should be stored.  If the variable
 	 * already exists, we reuse the slot; otherwise we append a new slot
 	 * at the end of the array, expanding if necessary.
@@ -877,6 +887,59 @@ read_environment_file(char ***env, u_int *envsize,
 	fclose(f);
 }
 
+#ifdef HAVE_ETC_DEFAULT_LOGIN
+/*
+ * Return named variable from specified environment, or NULL if not present.
+ */
+static char *
+child_get_env(char **env, const char *name)
+{
+	int i;
+	size_t len;
+
+	len = strlen(name);
+	for (i=0; env[i] != NULL; i++)
+		if (strncmp(name, env[i], len) == 0 && env[i][len] == '=')
+			return(env[i] + len + 1);
+	return NULL;
+}
+
+/*
+ * Read /etc/default/login.
+ * We pick up the PATH (or SUPATH for root) and UMASK.
+ */
+static void
+read_etc_default_login(char ***env, u_int *envsize, uid_t uid)
+{
+	char **tmpenv = NULL, *var;
+	u_int i;
+	size_t tmpenvsize = 0;
+	mode_t mask;
+
+	/*
+	 * We don't want to copy the whole file to the child's environment,
+	 * so we use a temporary environment and copy the variables we're
+	 * interested in.
+	 */
+	read_environment_file(&tmpenv, &tmpenvsize, "/etc/default/login");
+
+	if (uid == 0)
+		var = child_get_env(tmpenv, "SUPATH");
+	else
+		var = child_get_env(tmpenv, "PATH");
+	if (var != NULL)
+		child_set_env(env, envsize, "PATH", var);
+	
+	if ((var = child_get_env(tmpenv, "UMASK")) != NULL)
+		if (sscanf(var, "%5lo", &mask) == 1)
+			umask(mask);
+	
+	for (i = 0; tmpenv[i] != NULL; i++)
+		xfree(tmpenv[i]);
+	xfree(tmpenv);
+}
+#endif /* HAVE_ETC_DEFAULT_LOGIN */
+
 void copy_environment(char **source, char ***env, u_int *envsize)
 {
 	char *var_name, *var_val;
@@ -905,7 +968,7 @@ do_setup_env(Session *s, const char *shell)
 {
 	char buf[256];
 	u_int i, envsize;
-	char **env, *laddr;
+	char **env, *laddr, *path = NULL;
 	struct passwd *pw = s->pw;
 
 	/* Initialize the environment. */
@@ -949,12 +1012,15 @@ do_setup_env(Session *s, const char *shell)
 		 * needed for loading shared libraries. So the path better
 		 * remains intact here.
 		 */
-#  ifdef SUPERUSER_PATH
-		child_set_env(&env, &envsize, "PATH", 
-		    s->pw->pw_uid == 0 ? SUPERUSER_PATH : _PATH_STDPATH);
-#  else 
-		child_set_env(&env, &envsize, "PATH", _PATH_STDPATH);
-#  endif /* SUPERUSER_PATH */
+#  ifdef HAVE_ETC_DEFAULT_LOGIN
+		read_etc_default_login(&env, &envsize, pw->pw_uid);
+		path = child_get_env(env, "PATH");
+#  endif /* HAVE_ETC_DEFAULT_LOGIN */
+		if (path == NULL || *path == '\0') {
+			child_set_env(&env, &envsize, "PATH", 
+			    s->pw->pw_uid == 0 ?
+				SUPERUSER_PATH : _PATH_STDPATH);
+		}
 # endif /* HAVE_CYGWIN */
 #endif /* HAVE_LOGIN_CAP */
 
