@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.232 2002/03/19 03:03:43 stevesk Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.233 2002/03/19 10:35:39 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -516,7 +516,7 @@ demote_sensitive_data(void)
 	/* We do not clear ssh1_host key and cookie.  XXX - Okay Niels? */
 }
 
-void
+static void
 privsep_preauth_child(void)
 {
 	u_int32_t rand[256];
@@ -546,7 +546,7 @@ privsep_preauth_child(void)
 	setuid(options.unprivileged_user);
 }
 
-void
+static void
 privsep_postauth(Authctxt *authctxt, pid_t pid)
 {
 	extern Authctxt *x_authctxt;

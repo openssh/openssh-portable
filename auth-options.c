@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-options.c,v 1.22 2002/03/18 17:50:31 provos Exp $");
+RCSID("$OpenBSD: auth-options.c,v 1.23 2002/03/19 10:35:39 markus Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -42,7 +42,7 @@ struct envstring *custom_environment = NULL;
 
 extern ServerOptions options;
 
-void
+static void
 auth_send_debug(Buffer *m)
 {
 	char *msg;

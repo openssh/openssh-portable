@@ -86,6 +86,10 @@
      use xfree() after xstrdup().
 
      markus@ ok
+   - markus@cvs.openbsd.org 2002/03/19 10:35:39
+     [auth-options.c auth.h session.c session.h sshd.c]
+     clean up prototypes
+
 20020317
  - (tim) [configure.ac] Assume path given with --with-pid-dir=PATH is wanted,
    warn if directory does not exist. Put system directories in front of
@@ -7931,4 +7935,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1949 2002/03/22 02:47:28 mouring Exp $
+$Id: ChangeLog,v 1.1950 2002/03/22 02:50:06 mouring Exp $

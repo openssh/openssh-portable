@@ -1,4 +1,4 @@
-/*	$OpenBSD: auth.h,v 1.34 2002/03/18 17:50:31 provos Exp $	*/
+/*	$OpenBSD: auth.h,v 1.35 2002/03/19 10:35:39 markus Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -88,7 +88,7 @@ struct KbdintDevice
 	void	(*free_ctx)(void *ctx);
 };
 
-int     auth_rhosts(struct passwd *, const char *);
+int      auth_rhosts(struct passwd *, const char *);
 int
 auth_rhosts2(struct passwd *, const char *, const char *, const char *);
 
@@ -96,6 +96,13 @@ int	 auth_rhosts_rsa(struct passwd *, char *, Key *);
 int      auth_password(Authctxt *, const char *);
 int      auth_rsa(struct passwd *, BIGNUM *);
 int      auth_rsa_challenge_dialog(Key *);
+BIGNUM	*auth_rsa_generate_challenge(Key *);
+int	 auth_rsa_verify_response(Key *, BIGNUM *, u_char[]);
+int	 auth_rsa_key_allowed(struct passwd *, BIGNUM *, Key **);
+
+int	 auth_rhosts_rsa_key_allowed(struct passwd *, char *, char *, Key *);
+int	 hostbased_key_allowed(struct passwd *, const char *, char *, Key *);
+int	 user_key_allowed(struct passwd *, Key *);
 
 #ifdef KRB4
 #include <krb.h>
@@ -133,6 +140,10 @@ void	privsep_challenge_enable(void);
 
 int	auth2_challenge(Authctxt *, char *);
 void	auth2_challenge_stop(Authctxt *);
+int	bsdauth_query(void *, char **, char **, u_int *, char ***, u_int **);
+int	bsdauth_respond(void *, u_int, char **);
+int	skey_query(void *, char **, char **, u_int *, char ***, u_int **);
+int	skey_respond(void *, u_int, char **);
 
 int	allowed_user(struct passwd *);
 struct passwd * getpwnamallow(const char *user);
@@ -152,6 +163,12 @@ secure_filename(FILE *, const char *, struct passwd *, char *, size_t);
 HostStatus
 check_key_in_hostfiles(struct passwd *, Key *, const char *,
     const char *, const char *);
+
+/* hostkey handling */
+Key	*get_hostkey_by_index(int);
+Key	*get_hostkey_by_type(int);
+int	 get_hostkey_index(Key *);
+int	 ssh1_session_key(BIGNUM *);
 
 #define AUTH_FAIL_MAX 6
 #define AUTH_FAIL_LOG (AUTH_FAIL_MAX/2)

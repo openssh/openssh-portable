@@ -1,4 +1,4 @@
-/*	$OpenBSD: session.h,v 1.15 2002/03/18 17:50:31 provos Exp $	*/
+/*	$OpenBSD: session.h,v 1.16 2002/03/19 10:35:39 markus Exp $	*/
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -59,6 +59,7 @@ int	 session_input_channel_req(Channel *, const char *);
 void	 session_close_by_pid(pid_t, int);
 void	 session_close_by_channel(int, void *);
 void	 session_destroy_all(void (*)(Session *));
+void	 session_pty_cleanup2(void *);
 
 Session	*session_new(void);
 Session	*session_by_tty(char *);
