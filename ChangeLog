@@ -41,6 +41,10 @@
    - deraadt@cvs.openbsd.org 2002/07/01 16:15:25
      [msg.c]
      %u
+   - markus@cvs.openbsd.org 2002/07/01 19:48:46
+     [sshconnect2.c]
+     for compression=yes, we fallback to no-compression if the server does
+     not support compression, vice versa for compression=no. ok mouring@
 
 20020702
  - (djm) Use PAM_MSG_MEMBER for PAM_TEXT_INFO messages, use xmalloc & 
@@ -1249,4 +1253,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2326 2002/07/04 00:15:22 mouring Exp $
+$Id: ChangeLog,v 1.2327 2002/07/04 00:16:25 mouring Exp $
