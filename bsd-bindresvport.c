@@ -47,19 +47,6 @@ static char *rcsid = "$OpenBSD: bindresvport.c,v 1.11 1999/12/17 19:22:08 deraad
 #define ENDPORT (IPPORT_RESERVED - 1)
 #define NPORTS	(ENDPORT - STARTPORT + 1)
 
-#if 0
-/*
- * Bind a socket to a privileged IP port
- */
-int
-bindresvport(sd, sin)
-	int sd;
-	struct sockaddr_in *sin;
-{
-	return bindresvport_af(sd, (struct sockaddr *)sin, AF_INET);
-}
-#endif 
-
 /*
  * Bind a socket to a privileged IP port
  */
@@ -97,17 +84,20 @@ bindresvport_af(sd, sa, af)
 	sa->sa_family = af;
 
 	if (*portp == 0)
-		*portp = (getpid() % NPORTS) + STARTPORT;
+		*portp = (arc4random() % NPORTS) + STARTPORT;
 
 	for(i = 0; i < NPORTS; i++) {
 		error = bind(sd, sa, salen);
-		
-		if ((error == 0) || ((error < 0) && (errno != EADDRINUSE)))
+
+		/* Terminate on success */
+		if (error == 0)
 			break;
 			
-		(*portp)++;
-		if (*portp < ENDPORT)
-			*portp = STARTPORT;
+		/* Terminate on errors, except "address already in use" */
+		if ((error < 0) && ((errno != EADDRINUSE) || (errno != EINVAL)))
+			break;
+			
+		*portp = (i % NPORTS) + STARTPORT;
 	}
 
 	return (error);

@@ -1,3 +1,7 @@
+20000117
+ - Clean up bsd-bindresvport.c. Use arc4random() for picking initial
+   port, ignore EINVAL errors (Linux) when searching for free port.
+
 20000116
  - Renamed --with-xauth-path to --with-xauth
  - Added --with-pid-dir option
