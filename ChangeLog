@@ -1,3 +1,9 @@
+20010329
+ - OpenBSD CVS Sync
+   - stevesk@cvs.openbsd.org 2001/03/26 15:47:59
+     [ssh.1]
+     document more defaults; misc. cleanup.  ok markus@
+
 20010328
  - (djm) Reorder tests and library inclusion for Krb4/AFS to try to 
    resolve linking conflicts with libcrypto. Report and suggested fix 
@@ -4735,4 +4741,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1025 2001/03/28 11:05:26 djm Exp $
+$Id: ChangeLog,v 1.1026 2001/03/29 00:27:11 mouring Exp $
