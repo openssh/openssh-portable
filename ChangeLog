@@ -31,6 +31,7 @@
  - (djm) Makefile.in fixes
  - (stevesk) add mysignal() wrapper and use it for the protocol 2
    SIGCHLD handler.
+ - (djm) Use setvbuf() instead of setlinebuf(). Suggest from stevek@
 
 20010103
  - (bal) Cygwin clean up by Corinna Vinschen <vinschen@redhat.com>

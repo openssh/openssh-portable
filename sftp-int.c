@@ -560,8 +560,8 @@ interactive_loop(int fd_in, int fd_out)
 	if (pwd == NULL)
 		fatal("Need cwd");
 
-	setlinebuf(stdout);
-	setlinebuf(stdin);
+	setvbuf(stdout, (char *)NULL, _IOLBF, 0);
+	setvbuf(stdin, (char *)NULL, _IOLBF, 0);
 
 	for(;;) {
 		char *cp;
