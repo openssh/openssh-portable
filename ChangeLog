@@ -4,6 +4,7 @@
      [scard.c]
      Fix segv when smartcard communication error occurs during key load. 
      ok markus@
+ - (djm) Update spec files for new x11-askpass
 
 20010926
  - (djm) Disable AC_SYS_LARGEFILE, it breaks on several systems
@@ -6579,4 +6580,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1559.2.4 2001/09/28 09:53:07 djm Exp $
+$Id: ChangeLog,v 1.1559.2.5 2001/09/28 10:02:35 djm Exp $

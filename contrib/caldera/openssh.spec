@@ -1,4 +1,4 @@
-%define askpass		1.2.2
+%define askpass		1.2.4.1
 
 Name        	: openssh
 Version     	: 2.9.9p2
@@ -310,4 +310,4 @@ fi
 * Mon Jan 01 1998 ...
 Template Version: 1.31
 
-$Id: openssh.spec,v 1.19.2.1 2001/09/25 22:40:22 djm Exp $
+$Id: openssh.spec,v 1.19.2.2 2001/09/28 10:02:36 djm Exp $
