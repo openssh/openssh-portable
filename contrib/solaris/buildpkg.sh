@@ -11,7 +11,9 @@ umask 022
 # Options for building the package
 # You can create a config.local with your customized options
 #
-# uncommenting TEST_DIR and using configure--prefix=/var/tmp and 
+# uncommenting TEST_DIR and using
+# configure --prefix=/var/tmp --with-privsep-path=/var/tmp/empty
+# and 
 # PKGNAME=tOpenSSH should allow testing a package without interfering
 # with a real OpenSSH package on a system.
 #TEST_DIR=/var/tmp	# leave commented out for production build
@@ -106,7 +108,8 @@ case ${UNAME_S} in
 		RCS_D=yes
 		DEF_MSG="(default: n)"
 		;;
-	*)	ARCH=`uname -m` ;;
+	*)	ARCH=`uname -m`
+		DEF_MSG="\n" ;;
 esac
 
 ## Setup our run level stuff while we are at it.
@@ -171,13 +174,16 @@ echo "Building postinstall file..."
 cat > postinstall << _EOF
 #! /sbin/sh
 #
-[ -f ${sysconfdir}/ssh_config ]  ||  \\
-	cp -p ${sysconfdir}/ssh_config.default ${sysconfdir}/ssh_config
-[ -f ${sysconfdir}/sshd_config ]  ||  \\
-	cp -p ${sysconfdir}/sshd_config.default ${sysconfdir}/sshd_config
-[ -f ${sysconfdir}/ssh_prng_cmds.default ]  &&  {
-	[ -f ${sysconfdir}/ssh_prng_cmds ]  ||  \\
-	cp -p ${sysconfdir}/ssh_prng_cmds.default ${sysconfdir}/ssh_prng_cmds
+[ -f \${PKG_INSTALL_ROOT}${sysconfdir}/ssh_config ]  ||  \\
+	cp -p \${PKG_INSTALL_ROOT}${sysconfdir}/ssh_config.default \\
+		\${PKG_INSTALL_ROOT}${sysconfdir}/ssh_config
+[ -f \${PKG_INSTALL_ROOT}${sysconfdir}/sshd_config ]  ||  \\
+	cp -p \${PKG_INSTALL_ROOT}${sysconfdir}/sshd_config.default \\
+		\${PKG_INSTALL_ROOT}${sysconfdir}/sshd_config
+[ -f \${PKG_INSTALL_ROOT}${sysconfdir}/ssh_prng_cmds.default ]  &&  {
+	[ -f \${PKG_INSTALL_ROOT}${sysconfdir}/ssh_prng_cmds ]  ||  \\
+	cp -p \${PKG_INSTALL_ROOT}${sysconfdir}/ssh_prng_cmds.default \\
+		\${PKG_INSTALL_ROOT}${sysconfdir}/ssh_prng_cmds
 }
 
 # make rc?.d dirs only if we are doing a test install
@@ -191,20 +197,20 @@ cat > postinstall << _EOF
 if [ "\${USE_SYM_LINKS}" = yes ]
 then
 	[ "$RCS_D" = yes ]  &&  \
-installf ${PKGNAME} $TEST_DIR/etc/rcS.d/K30${SYSVINIT_NAME}=../init.d/${SYSVINIT_NAME} s
-	installf ${PKGNAME} $TEST_DIR/etc/rc0.d/K30${SYSVINIT_NAME}=../init.d/${SYSVINIT_NAME} s
-	installf ${PKGNAME} $TEST_DIR/etc/rc1.d/K30${SYSVINIT_NAME}=../init.d/${SYSVINIT_NAME} s
-	installf ${PKGNAME} $TEST_DIR/etc/rc2.d/S98${SYSVINIT_NAME}=../init.d/${SYSVINIT_NAME} s
+installf ${PKGNAME} \${PKG_INSTALL_ROOT}$TEST_DIR/etc/rcS.d/K30${SYSVINIT_NAME}=../init.d/${SYSVINIT_NAME} s
+	installf ${PKGNAME} \${PKG_INSTALL_ROOT}$TEST_DIR/etc/rc0.d/K30${SYSVINIT_NAME}=../init.d/${SYSVINIT_NAME} s
+	installf ${PKGNAME} \${PKG_INSTALL_ROOT}$TEST_DIR/etc/rc1.d/K30${SYSVINIT_NAME}=../init.d/${SYSVINIT_NAME} s
+	installf ${PKGNAME} \${PKG_INSTALL_ROOT}$TEST_DIR/etc/rc2.d/S98${SYSVINIT_NAME}=../init.d/${SYSVINIT_NAME} s
 else
 	[ "$RCS_D" = yes ]  &&  \
-installf ${PKGNAME} $TEST_DIR/etc/rcS.d/K30${SYSVINIT_NAME}=$TEST_DIR/etc/init.d/${SYSVINIT_NAME} l
-	installf ${PKGNAME} $TEST_DIR/etc/rc0.d/K30${SYSVINIT_NAME}=$TEST_DIR/etc/init.d/${SYSVINIT_NAME} l
-	installf ${PKGNAME} $TEST_DIR/etc/rc1.d/K30${SYSVINIT_NAME}=$TEST_DIR/etc/init.d/${SYSVINIT_NAME} l
-	installf ${PKGNAME} $TEST_DIR/etc/rc2.d/S98${SYSVINIT_NAME}=$TEST_DIR/etc/init.d/${SYSVINIT_NAME} l
+installf ${PKGNAME} \${PKG_INSTALL_ROOT}$TEST_DIR/etc/rcS.d/K30${SYSVINIT_NAME}=$TEST_DIR/etc/init.d/${SYSVINIT_NAME} l
+	installf ${PKGNAME} \${PKG_INSTALL_ROOT}$TEST_DIR/etc/rc0.d/K30${SYSVINIT_NAME}=$TEST_DIR/etc/init.d/${SYSVINIT_NAME} l
+	installf ${PKGNAME} \${PKG_INSTALL_ROOT}$TEST_DIR/etc/rc1.d/K30${SYSVINIT_NAME}=$TEST_DIR/etc/init.d/${SYSVINIT_NAME} l
+	installf ${PKGNAME} \${PKG_INSTALL_ROOT}$TEST_DIR/etc/rc2.d/S98${SYSVINIT_NAME}=$TEST_DIR/etc/init.d/${SYSVINIT_NAME} l
 fi
 
 # If piddir doesn't exist we add it. (Ie. --with-pid-dir=/var/opt/ssh)
-[ -d $piddir ]  ||  installf ${PKGNAME} $TEST_DIR$piddir d 755 root sys
+[ -d $piddir ]  ||  installf ${PKGNAME} \${PKG_INSTALL_ROOT}$TEST_DIR$piddir d 755 root sys
 
 installf -f ${PKGNAME}
 
