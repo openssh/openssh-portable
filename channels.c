@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.123 2001/06/04 21:59:42 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.124 2001/06/05 10:24:32 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -352,7 +352,7 @@ channel_stop_listening()
 			switch (c->type) {
 			case SSH_CHANNEL_AUTH_SOCKET:
 				close(c->sock);
-				unlink(c->path);
+				/* auth_sock_cleanup_proc deletes the socket */
 				channel_free(c);
 				break;
 			case SSH_CHANNEL_PORT_LISTENER:
@@ -2861,6 +2861,7 @@ auth_input_request_forwarding(struct passwd * pw)
 	if (nc == NULL) {
 		error("auth_input_request_forwarding: channel_new failed");
 		auth_sock_cleanup_proc(pw);
+		fatal_remove_cleanup(auth_sock_cleanup_proc, pw);
 		close(sock);
 		return 0;
 	}
