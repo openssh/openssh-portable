@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.36 2003/06/04 12:41:22 djm Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.37 2003/07/10 20:05:55 markus Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -112,8 +112,9 @@ usage(void)
 	extern char *__progname;
 
 	fprintf(stderr,
-	    "usage: %s [-vC1] [-b batchfile] [-o option] [-s subsystem|path] [-B buffer_size]\n"
-	    "            [-F config] [-P direct server path] [-S program]\n"
+	    "usage: %s [-vC1] [-b batchfile] [-o ssh_option] [-s subsystem | sftp_server]\n"
+	    "            [-B buffer_size] [-F ssh_config] [-P sftp_server path]\n"
+	    "            [-R num_requests] [-S program]\n"
 	    "            [user@]host[:file [file]]\n", __progname);
 	exit(1);
 }

@@ -17,6 +17,9 @@
      [packet.c]
      the 2^(blocksize*2) rekeying limit is too expensive for 3DES,
      blowfish, etc, so enforce a 1GB limit for small blocksizes.
+   - markus@cvs.openbsd.org 2003/07/10 20:05:55
+     [sftp.c]
+     sync usage with manpage, add missing -R
 
 20030708
  - (dtucker) [acconfig.h auth-passwd.c configure.ac session.c port-aix.[ch]]
@@ -690,4 +693,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2855 2003/07/14 07:31:06 dtucker Exp $
+$Id: ChangeLog,v 1.2856 2003/07/14 07:32:29 dtucker Exp $
