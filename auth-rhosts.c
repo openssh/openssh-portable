@@ -16,7 +16,7 @@ the login based on rhosts authentication.  This file also processes
 */
 
 #include "includes.h"
-RCSID("$Id: auth-rhosts.c,v 1.3 1999/11/15 04:25:10 damien Exp $");
+RCSID("$Id: auth-rhosts.c,v 1.4 1999/11/18 21:25:48 damien Exp $");
 
 #include "packet.h"
 #include "ssh.h"
@@ -213,7 +213,7 @@ int auth_rhosts(struct passwd *pw, const char *client_user)
      group or world writable. */
   if (stat(pw->pw_dir, &st) < 0)
     {
-      log("Rhosts authentication refused for %.100: no home directory %.200s",
+      log("Rhosts authentication refused for %.100s: no home directory %.200s",
 	  pw->pw_name, pw->pw_dir);
       packet_send_debug("Rhosts authentication refused for %.100: no home directory %.200s",
 			pw->pw_name, pw->pw_dir);

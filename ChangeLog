@@ -1,5 +1,10 @@
 19991119
  - Merged PAM buffer overrun patch from Chip Salzenberg <chip@valinux.com>
+ - Merged OpenBSD CVS changes
+   - [auth-rhosts.c auth-rsa.c ssh-agent.c sshconnect.c sshd.c]
+     more %d vs. %s in fmt-strings
+   - [authfd.c]
+     Integers should not be printed with %s
 
 19991118
  - Merged OpenBSD CVS changes

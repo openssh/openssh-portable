@@ -15,7 +15,7 @@ login (authentication) dialog.
 */
 
 #include "includes.h"
-RCSID("$Id: sshconnect.c,v 1.11 1999/11/17 22:28:11 damien Exp $");
+RCSID("$Id: sshconnect.c,v 1.12 1999/11/18 21:25:48 damien Exp $");
 
 #ifdef HAVE_OPENSSL
 #include <openssl/bn.h>
@@ -1354,7 +1354,7 @@ void ssh_login(int host_key_valid,
     if (cipher_mask() & supported_ciphers & (1 << ssh_cipher_default))
       options.cipher = ssh_cipher_default;
     else {
-      debug("Cipher %d not supported, using %.100s instead.",
+      debug("Cipher %s not supported, using %.100s instead.",
 	    cipher_name(ssh_cipher_default),
 	    cipher_name(SSH_FALLBACK_CIPHER));
       options.cipher = SSH_FALLBACK_CIPHER;
