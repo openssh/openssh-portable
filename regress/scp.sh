@@ -1,4 +1,4 @@
-#	$OpenBSD: scp.sh,v 1.2 2004/06/16 13:15:09 dtucker Exp $
+#	$OpenBSD: scp.sh,v 1.3 2004/07/08 12:59:35 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="scp"
@@ -63,6 +63,19 @@ rm -rf ${DIR2}
 cp ${DATA} ${DIR}/copy
 $SCP $scpopts -r somehost:${DIR} ${DIR2} || fail "copy failed"
 diff ${DIFFOPT} ${DIR} ${DIR2} || fail "corrupted copy"
+
+if [ ! -z "$SUDO" ]; then
+	verbose "$tid: skipped file after scp -p with failed chown+utimes"
+	scpclean
+	cp -p ${DATA} ${DIR}/copy
+	cp -p ${DATA} ${DIR}/copy2
+	cp ${DATA} ${DIR2}/copy
+	chmod 660 ${DIR2}/copy
+	$SUDO chown root ${DIR2}/copy
+	$SCP -p $scpopts somehost:${DIR}/\* ${DIR2} >/dev/null 2>&1
+	diff -rN ${DIR} ${DIR2} || fail "corrupted copy"
+	$SUDO rm ${DIR2}/copy
+fi
 
 for i in 0 1 2 3 4; do
 	verbose "$tid: disallow bad server #$i"

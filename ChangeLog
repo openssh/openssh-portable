@@ -26,6 +26,9 @@
      [reexec.sh]
      don't change the name of the copied sshd for the reexec fallback test,
      makes life simpler for portable
+   - dtucker@cvs.openbsd.org 2004/07/08 12:59:35
+     [scp.sh]
+     Regress test for bz #863 (scp double-error), requires $SUDO.  ok markus@
 
 20041203
  - (dtucker) OpenBSD CVS Sync
@@ -1899,4 +1902,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3591 2004/12/06 12:00:27 dtucker Exp $
+$Id: ChangeLog,v 1.3592 2004/12/06 12:03:27 dtucker Exp $
