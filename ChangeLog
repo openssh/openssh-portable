@@ -1,3 +1,44 @@
+20000818
+ - (djm) OpenBSD CVS changes:
+   - markus@cvs.openbsd.org  2000/07/22 03:14:37
+     [servconf.c servconf.h sshd.8 sshd.c sshd_config]
+     random early drop; ok theo, niels
+   - deraadt@cvs.openbsd.org 2000/07/26 11:46:51
+     [ssh.1]
+     typo
+   - deraadt@cvs.openbsd.org 2000/08/01 11:46:11
+     [sshd.8]
+     many fixes from pepper@mail.reppep.com
+   - provos@cvs.openbsd.org  2000/08/01 13:01:42
+     [Makefile.in util.c aux.c]
+     rename aux.c to util.c to help with cygwin port
+   - deraadt@cvs.openbsd.org 2000/08/02 00:23:31
+     [authfd.c]
+     correct sun_len; Alexander@Leidinger.net
+   - provos@cvs.openbsd.org  2000/08/02 10:27:17
+     [readconf.c sshd.8]
+     disable kerberos authentication by default
+   - provos@cvs.openbsd.org  2000/08/02 11:27:05
+     [sshd.8 readconf.c auth-krb4.c]
+     disallow kerberos authentication if we can't verify the TGT; from
+     dugsong@
+     kerberos authentication is on by default only if you have a srvtab.
+   - markus@cvs.openbsd.org  2000/08/04 14:30:07
+     [auth.c]
+     unused
+   - markus@cvs.openbsd.org  2000/08/04 14:30:35
+     [sshd_config]
+     MaxStartups
+   - markus@cvs.openbsd.org  2000/08/15 13:20:46
+     [authfd.c]
+     cleanup; ok niels@
+   - markus@cvs.openbsd.org  2000/08/17 14:05:10
+     [session.c]
+     cleanup login(1)-like jobs, no duplicate utmp entries
+   - markus@cvs.openbsd.org  2000/08/17 14:06:34
+     [session.c sshd.8 sshd.c]
+      sshd -u len, similar to telnetd
+
 20000816
  - (djm) Replacement for inet_ntoa for Irix (which breaks on gcc)
  - (djm) Fix strerror replacement for old SunOS. Based on patch from 

@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.49 2000/07/14 22:59:46 markus Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.50 2000/07/22 09:14:36 markus Exp $");
 
 #include "ssh.h"
 #include "servconf.h"
@@ -76,6 +76,8 @@ initialize_server_options(ServerOptions *options)
 	options->protocol = SSH_PROTO_UNKNOWN;
 	options->gateway_ports = -1;
 	options->num_subsystems = 0;
+	options->max_startups_begin = -1;
+	options->max_startups_rate = -1;
 	options->max_startups = -1;
 }
 
@@ -162,6 +164,10 @@ fill_default_server_options(ServerOptions *options)
 		options->gateway_ports = 0;
 	if (options->max_startups == -1)
 		options->max_startups = 10;
+	if (options->max_startups_rate == -1)
+		options->max_startups_rate = 100;		/* 100% */
+	if (options->max_startups_begin == -1)
+		options->max_startups_begin = options->max_startups;
 }
 
 /* Keyword tokens. */
@@ -644,6 +650,22 @@ parse_flag:
 			break;
 
 		case sMaxStartups:
+			arg = strdelim(&cp);
+			if (!arg || *arg == '\0')
+				fatal("%s line %d: Missing MaxStartups spec.",
+				      filename, linenum);
+			if (sscanf(arg, "%d:%d:%d",
+			    &options->max_startups_begin,
+			    &options->max_startups_rate,
+			    &options->max_startups) == 3) {
+				if (options->max_startups_begin >
+				    options->max_startups ||
+				    options->max_startups_rate > 100 ||
+				    options->max_startups_rate < 1)
+				fatal("%s line %d: Illegal MaxStartups spec.",
+				      filename, linenum);
+				break;
+			}
 			intptr = &options->max_startups;
 			goto parse_int;
 

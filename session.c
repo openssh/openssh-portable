@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.23 2000/07/11 08:11:33 deraadt Exp $");
+RCSID("$OpenBSD: session.c,v 1.25 2000/08/17 20:06:34 markus Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -85,6 +85,7 @@ void	session_pty_cleanup(Session *s);
 void	session_proctitle(Session *s);
 void	do_exec_pty(Session *s, const char *command, struct passwd * pw);
 void	do_exec_no_pty(Session *s, const char *command, struct passwd * pw);
+void	do_login(Session *s);
 
 void
 do_child(const char *command, struct passwd * pw, const char *term,
@@ -101,6 +102,7 @@ static const char *__progname = "sshd";
 
 extern int log_stderr;
 extern int debug_flag;
+extern unsigned int utmp_len;
 
 extern int startup_pipe;
 
@@ -523,34 +525,13 @@ do_exec_no_pty(Session *s, const char *command, struct passwd * pw)
 void
 do_exec_pty(Session *s, const char *command, struct passwd * pw)
 {
-	FILE *f;
-	char buf[100], *time_string;
-	char line[256];
-	const char *hostname;
 	int fdout, ptyfd, ttyfd, ptymaster;
-	int quiet_login;
 	pid_t pid;
-	socklen_t fromlen;
-	struct sockaddr_storage from;
-	struct stat st;
-	time_t last_login_time;
 
 	if (s == NULL)
 		fatal("do_exec_pty: no session");
 	ptyfd = s->ptyfd;
 	ttyfd = s->ttyfd;
-
-	/* Get remote host name. */
-	hostname = get_canonical_hostname();
-
-	/*
-	 * Get the time when the user last logged in.  Buf will be set to
-	 * contain the hostname the last login was from.
-	 */
-	if (!options.use_login) {
-		last_login_time = get_last_login_time(pw->pw_uid, pw->pw_name,
-						      buf, sizeof(buf));
-	}
 
 #ifdef USE_PAM
 			do_pam_session(pw->pw_name, s->tty);
@@ -559,10 +540,7 @@ do_exec_pty(Session *s, const char *command, struct passwd * pw)
 
 	/* Fork the child. */
 	if ((pid = fork()) == 0) {
-		pid = getpid();
-
-		/* Child.  Reinitialize the log because the pid has
-		   changed. */
+		/* Child.  Reinitialize the log because the pid has changed. */
 		log_init(__progname, options.log_level, options.log_facility, log_stderr);
 
 		/* Close the master side of the pseudo tty. */
@@ -586,82 +564,10 @@ do_exec_pty(Session *s, const char *command, struct passwd * pw)
 		/* Close the extra descriptor for the pseudo tty. */
 		close(ttyfd);
 
-/* XXXX ? move to do_child() ??*/
-		/*
-		 * Get IP address of client.  This is needed because we want
-		 * to record where the user logged in from.  If the
-		 * connection is not a socket, let the ip address be 0.0.0.0.
-		 */
-		memset(&from, 0, sizeof(from));
-		if (packet_connection_is_on_socket()) {
-			fromlen = sizeof(from);
-			if (getpeername(packet_get_connection_in(),
-			     (struct sockaddr *) & from, &fromlen) < 0) {
-				debug("getpeername: %.100s", strerror(errno));
-				fatal_cleanup();
-			}
-		}
-		/* Record that there was a login on that terminal. */
-		if (!options.use_login || command != NULL)
-			record_login(pid, s->tty, pw->pw_name, pw->pw_uid, 
-			    hostname, (struct sockaddr *)&from);
+		/* record login, etc. similar to login(1) */
+		if (command == NULL && !options.use_login)
+			do_login(s);
 
-		/* Check if .hushlogin exists. */
-		snprintf(line, sizeof line, "%.200s/.hushlogin", pw->pw_dir);
-		quiet_login = stat(line, &st) >= 0;
-
-#ifdef USE_PAM
-		if (!quiet_login)
-			print_pam_messages();
-#endif /* USE_PAM */
-
-		/*
-		 * If the user has logged in before, display the time of last
-		 * login. However, don't display anything extra if a command
-		 * has been specified (so that ssh can be used to execute
-		 * commands on a remote machine without users knowing they
-		 * are going to another machine). Login(1) will do this for
-		 * us as well, so check if login(1) is used
-		 */
-		if (command == NULL && last_login_time != 0 && !quiet_login &&
-		    !options.use_login) {
-			/* Convert the date to a string. */
-			time_string = ctime(&last_login_time);
-			/* Remove the trailing newline. */
-			if (strchr(time_string, '\n'))
-				*strchr(time_string, '\n') = 0;
-			/* Display the last login time.  Host if displayed
-			   if known. */
-			if (strcmp(buf, "") == 0)
-				printf("Last login: %s\r\n", time_string);
-			else
-				printf("Last login: %s from %s\r\n", time_string, buf);
-		}
-		/*
-		 * Print /etc/motd unless a command was specified or printing
-		 * it was disabled in server options or login(1) will be
-		 * used.  Note that some machines appear to print it in
-		 * /etc/profile or similar.
-		 */
-		if (command == NULL && options.print_motd && !quiet_login &&
-		    !options.use_login) {
-			/* Print /etc/motd if it exists. */
-			f = fopen("/etc/motd", "r");
-			if (f) {
-				while (fgets(line, sizeof(line), f))
-					fputs(line, stdout);
-				fclose(f);
-			}
-		}
-#if defined(WITH_AIXAUTHENTICATE)
-		/*
-		 * AIX handles the lastlog info differently.  Display it here.
-		 */
-		if (command == NULL && aixloginmsg && *aixloginmsg &&
-		    !quiet_login && !options.use_login) {
-			printf("%s\n", aixloginmsg);
-		}
-#endif
 		/* Do common processing for the child, such as execing the command. */
 		do_child(command, pw, s->term, s->display, s->auth_proto,
 		    s->auth_data, s->tty);
@@ -696,6 +602,87 @@ do_exec_pty(Session *s, const char *command, struct passwd * pw)
 		server_loop(pid, ptyfd, fdout, -1);
 		/* server_loop _has_ closed ptyfd and fdout. */
 		session_pty_cleanup(s);
+	}
+}
+
+const char *
+get_remote_name_or_ip(void)
+{
+	static const char *remote = "";
+	if (utmp_len > 0)
+		remote = get_canonical_hostname();
+	if (utmp_len == 0 || strlen(remote) > utmp_len)
+		remote = get_remote_ipaddr();
+	return remote;
+}
+
+/* administrative, login(1)-like work */
+void
+do_login(Session *s)
+{
+	FILE *f;
+	char *time_string;
+	char buf[256];
+	socklen_t fromlen;
+	struct sockaddr_storage from;
+	struct stat st;
+	time_t last_login_time;
+	struct passwd * pw = s->pw;
+	pid_t pid = getpid();
+
+	/*
+	 * Get IP address of client. If the connection is not a socket, let
+	 * the address be 0.0.0.0.
+	 */
+	memset(&from, 0, sizeof(from));
+	if (packet_connection_is_on_socket()) {
+		fromlen = sizeof(from);
+		if (getpeername(packet_get_connection_in(),
+		     (struct sockaddr *) & from, &fromlen) < 0) {
+			debug("getpeername: %.100s", strerror(errno));
+			fatal_cleanup();
+		}
+	}
+
+	/* Record that there was a login on that tty from the remote host. */
+	record_login(pid, s->tty, pw->pw_name, pw->pw_uid,
+	    get_remote_name_or_ip(), (struct sockaddr *)&from);
+
+	/* Done if .hushlogin exists. */
+	snprintf(buf, sizeof(buf), "%.200s/.hushlogin", pw->pw_dir);
+	if (stat(buf, &st) >= 0)
+		return;
+
+#ifdef USE_PAM
+	print_pam_messages();
+#endif /* USE_PAM */
+#ifdef WITH_AIXAUTHENTICATE
+	if (aixloginmsg && *aixloginmsg)
+		printf("%s\n", aixloginmsg);
+#endif /* WITH_AIXAUTHENTICATE */
+
+	/*
+	 * Get the time when the user last logged in.  'buf' will be set
+	 * to contain the hostname the last login was from. 
+	 */
+	last_login_time = get_last_login_time(pw->pw_uid, pw->pw_name,
+	    buf, sizeof(buf));
+	if (last_login_time != 0) {
+		time_string = ctime(&last_login_time);
+		if (strchr(time_string, '\n'))
+			*strchr(time_string, '\n') = 0;
+		if (strcmp(buf, "") == 0)
+			printf("Last login: %s\r\n", time_string);
+		else
+			printf("Last login: %s from %s\r\n", time_string, buf);
+	}
+	if (options.print_motd) {
+		f = fopen("/etc/motd", "r");
+		if (f) {
+			while (fgets(buf, sizeof(buf), f))
+				fputs(buf, stdout);
+			fclose(f);
+		}
 	}
 }
 
@@ -1265,8 +1252,9 @@ do_child(const char *command, struct passwd * pw, const char *term,
 		} else {
 			/* Launch login(1). */
 
-			execl(LOGIN_PROGRAM, "login", "-h", get_remote_ipaddr(),
-			      "-p", "-f", "--", pw->pw_name, NULL);
+			execl(LOGIN_PROGRAM, "login",
+			     "-h", get_remote_name_or_ip(),
+			     "-p", "-f", "--", pw->pw_name, NULL);
 
 			/* Login couldn't be executed, die. */
 

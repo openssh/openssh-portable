@@ -9,7 +9,7 @@
 #include "ssh.h"
 #include "servconf.h"
 
-RCSID("$OpenBSD: auth-krb4.c,v 1.15 2000/06/22 23:54:59 djm Exp $");
+RCSID("$OpenBSD: auth-krb4.c,v 1.16 2000/08/02 17:27:04 provos Exp $");
 
 #ifdef KRB4
 char *ticket = NULL;
@@ -82,11 +82,12 @@ auth_krb4_password(struct passwd * pw, const char *password)
 			if (r == RD_AP_UNDEC) {
 				/*
 				 * Probably didn't have a srvtab on
-				 * localhost. Allow login.
+				 * localhost. Disallow login.
 				 */
 				log("Kerberos V4 TGT for %s unverifiable, "
 				    "no srvtab installed? krb_rd_req: %s",
 				    pw->pw_name, krb_err_txt[r]);
+				goto kerberos_auth_failure;
 			} else if (r != KSUCCESS) {
 				log("Kerberos V4 %s ticket unverifiable: %s",
 				    KRB4_SERVICE_NAME, krb_err_txt[r]);
@@ -94,12 +95,13 @@ auth_krb4_password(struct passwd * pw, const char *password)
 			}
 		} else if (r == KDC_PR_UNKNOWN) {
 			/*
-			 * Allow login if no rcmd service exists, but
+			 * Disallow login if no rcmd service exists, and
 			 * log the error.
 			 */
 			log("Kerberos V4 TGT for %s unverifiable: %s; %s.%s "
 			    "not registered, or srvtab is wrong?", pw->pw_name,
 			krb_err_txt[r], KRB4_SERVICE_NAME, phost);
+			goto kerberos_auth_failure;
 		} else {
 			/*
 			 * TGT is bad, forget it. Possibly spoofed!

@@ -13,7 +13,7 @@
  *
  */
 
-/* RCSID("$OpenBSD: servconf.h,v 1.26 2000/06/26 21:59:18 markus Exp $"); */
+/* RCSID("$OpenBSD: servconf.h,v 1.27 2000/07/22 09:14:36 markus Exp $"); */
 
 #ifndef SERVCONF_H
 #define SERVCONF_H
@@ -100,6 +100,8 @@ typedef struct {
 	char   *subsystem_name[MAX_SUBSYSTEMS];
 	char   *subsystem_command[MAX_SUBSYSTEMS];
 
+	int	max_startups_begin;
+	int	max_startups_rate;
 	int	max_startups;
 
 }       ServerOptions;
