@@ -1,6 +1,13 @@
 20040407
  - (dtucker) [session.c] Flush stdout after displaying loginmsg.  From
    f_mohr at yahoo.de.
+ - (bal) [acconfig.h auth-krb5.c configure.ac gss-serv-krb5.c] Check to see
+   if Krb5 library exports krb5_init_etc() since some OSes (like MacOS/X)
+   are starting to restrict it as internal since it is not needed by
+   developers any more. (Patch based on Apple tree)
+ - (bal) [monitor.c monitor_wrap.c] monitor_wrap.c] moved zlib.h higher since 
+   krb5 on MacOS/X conflicts.  There may be a better solution, but this will 
+   work for now.
 
 20040406
  - (dtucker) [acconfig.h configure.ac defines.h] Bug #820: don't use
@@ -940,4 +947,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3302 2004/04/06 22:04:09 dtucker Exp $
+$Id: ChangeLog,v 1.3303 2004/04/07 04:16:11 mouring Exp $

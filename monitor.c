@@ -33,11 +33,12 @@ RCSID("$OpenBSD: monitor.c,v 1.55 2004/02/05 05:37:17 dtucker Exp $");
 #include <skey.h>
 #endif
 
+#include "zlib.h"  /* XXX Moved due to conflict on MacOS/X */
+
 #include "ssh.h"
 #include "auth.h"
 #include "kex.h"
 #include "dh.h"
-#include "zlib.h"
 #include "packet.h"
 #include "auth-options.h"
 #include "sshpty.h"

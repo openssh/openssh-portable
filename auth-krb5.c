@@ -54,7 +54,9 @@ krb5_init(void *context)
 		problem = krb5_init_context(&authctxt->krb5_ctx);
 		if (problem)
 			return (problem);
+#ifdef KRB5_INIT_ETS
 		krb5_init_ets(authctxt->krb5_ctx);
+#endif
 	}
 	return (0);
 }

@@ -30,6 +30,8 @@ RCSID("$OpenBSD: monitor_wrap.c,v 1.35 2003/11/17 11:06:07 markus Exp $");
 #include <openssl/bn.h>
 #include <openssl/dh.h>
 
+#include "zlib.h"  /* XXX Moved due to conflict on MacOS/X */
+
 #include "ssh.h"
 #include "dh.h"
 #include "kex.h"
@@ -40,7 +42,6 @@ RCSID("$OpenBSD: monitor_wrap.c,v 1.35 2003/11/17 11:06:07 markus Exp $");
 #include "packet.h"
 #include "mac.h"
 #include "log.h"
-#include "zlib.h"
 #include "monitor.h"
 #include "monitor_wrap.h"
 #include "xmalloc.h"
