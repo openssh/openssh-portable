@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.98 2002/01/22 02:52:41 stevesk Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.99 2002/01/27 14:57:46 stevesk Exp $");
 
 #if defined(KRB4) || defined(KRB5)
 #include <krb.h>
@@ -63,6 +63,7 @@ initialize_server_options(ServerOptions *options)
 	options->print_lastlog = -1;
 	options->x11_forwarding = -1;
 	options->x11_display_offset = -1;
+	options->x11_use_localhost = -1;
 	options->xauth_location = NULL;
 	options->strict_modes = -1;
 	options->keepalives = -1;
@@ -159,6 +160,8 @@ fill_default_server_options(ServerOptions *options)
 		options->x11_forwarding = 0;
 	if (options->x11_display_offset == -1)
 		options->x11_display_offset = 10;
+	if (options->x11_use_localhost == -1)
+		options->x11_use_localhost = 1;
 	if (options->xauth_location == NULL)
 		options->xauth_location = _PATH_XAUTH;
 	if (options->strict_modes == -1)
@@ -255,7 +258,7 @@ typedef enum {
 	sChallengeResponseAuthentication,
 	sPasswordAuthentication, sKbdInteractiveAuthentication, sListenAddress,
 	sPrintMotd, sPrintLastLog, sIgnoreRhosts,
-	sX11Forwarding, sX11DisplayOffset,
+	sX11Forwarding, sX11DisplayOffset, sX11UseLocalhost,
 	sStrictModes, sEmptyPasswd, sKeepAlives,
 	sUseLogin, sAllowTcpForwarding,
 	sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
@@ -315,6 +318,7 @@ static struct {
 	{ "ignoreuserknownhosts", sIgnoreUserKnownHosts },
 	{ "x11forwarding", sX11Forwarding },
 	{ "x11displayoffset", sX11DisplayOffset },
+	{ "x11uselocalhost", sX11UseLocalhost },
 	{ "xauthlocation", sXAuthLocation },
 	{ "strictmodes", sStrictModes },
 	{ "permitemptypasswords", sEmptyPasswd },
@@ -654,6 +658,10 @@ parse_flag:
 	case sX11DisplayOffset:
 		intptr = &options->x11_display_offset;
 		goto parse_int;
+
+	case sX11UseLocalhost:
+		intptr = &options->x11_use_localhost;
+		goto parse_flag;
 
 	case sXAuthLocation:
 		charptr = &options->xauth_location;

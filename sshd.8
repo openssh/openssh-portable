@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.163 2002/01/18 20:46:34 stevesk Exp $
+.\" $OpenBSD: sshd.8,v 1.164 2002/01/27 14:57:46 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -858,6 +858,31 @@ way, as users can always install their own forwarders.
 X11 forwarding is automatically disabled if
 .Cm UseLogin
 is enabled.
+.It Cm X11UseLocalhost
+Specifies whether
+.Nm
+should bind the X11 forwarding server to the loopback address or to
+the wildcard address.  By default,
+.Nm
+binds the forwarding server to the loopback address and sets the
+hostname part of the
+.Ev DISPLAY
+environment variable to
+.Dq localhost .
+This prevents remote hosts from connecting to the fake display.
+However, some older X11 clients may not function with this
+configuration.
+.Cm X11UseLocalhost
+may be set to
+.Dq no
+to specify that the forwarding server should be bound to the wildcard
+address.
+The argument must be
+.Dq yes
+or
+.Dq no .
+The default is
+.Dq yes .
 .It Cm XAuthLocation
 Specifies the location of the
 .Xr xauth 1

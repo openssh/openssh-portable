@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.162 2002/01/24 21:09:25 stevesk Exp $");
+RCSID("$OpenBSD: channels.c,v 1.163 2002/01/27 14:57:46 stevesk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -2379,7 +2379,7 @@ channel_connect_to(const char *host, u_short port)
  * an error occurs.
  */
 int
-x11_create_display_inet(int x11_display_offset, int gateway_ports,
+x11_create_display_inet(int x11_display_offset, int x11_use_localhost,
     int single_connection)
 {
 	Channel *nc = NULL;
@@ -2395,7 +2395,7 @@ x11_create_display_inet(int x11_display_offset, int gateway_ports,
 		port = 6000 + display_number;
 		memset(&hints, 0, sizeof(hints));
 		hints.ai_family = IPv4or6;
-		hints.ai_flags = gateway_ports ? AI_PASSIVE : 0;
+		hints.ai_flags = x11_use_localhost ? 0: AI_PASSIVE;
 		hints.ai_socktype = SOCK_STREAM;
 		snprintf(strport, sizeof strport, "%d", port);
 		if ((gaierr = getaddrinfo(NULL, strport, &hints, &aitop)) != 0) {

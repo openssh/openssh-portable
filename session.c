@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.118 2002/01/26 16:44:22 stevesk Exp $");
+RCSID("$OpenBSD: session.c,v 1.119 2002/01/27 14:57:46 stevesk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -2021,7 +2021,7 @@ session_setup_x11fwd(Session *s)
 		return 0;
 	}
 	s->display_number = x11_create_display_inet(options.x11_display_offset,
-	    options.gateway_ports, s->single_connection);
+	    options.x11_use_localhost, s->single_connection);
 	if (s->display_number == -1) {
 		debug("x11_create_display_inet failed.");
 		return 0;
@@ -2035,7 +2035,7 @@ session_setup_x11fwd(Session *s)
 	 * authorization entry is added with xauth(1).  This will be
 	 * different than the DISPLAY string for localhost displays.
 	 */
-	if (!options.gateway_ports) {
+	if (options.x11_use_localhost) {
 		snprintf(display, sizeof display, "localhost:%d.%d",
 		    s->display_number, s->screen);
 		snprintf(auth_display, sizeof auth_display, "unix:%d.%d",
