@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.27 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.28 2001/12/25 18:53:00 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -231,6 +231,8 @@ do_authloop(Authctxt *authctxt)
 			}
 			/* RSA authentication requested. */
 			n = BN_new();
+			if (n == NULL)
+				fatal("BN_new failed");
 			packet_get_bignum(n, &nlen);
 			packet_integrity_check(plen, nlen, type);
 			authenticated = auth_rsa(pw, n);
