@@ -6,6 +6,7 @@
  - (stevesk) [auth-pam.c] cast to avoid initialization type mismatch
    warning on pam_conv struct conversation function.
  - (stevesk) [auth-pam.h] license
+ - (stevesk) [auth-pam.h] unneeded include
 
 20020720
  - (stevesk) [ssh-keygen.c] bug #231: always init/seed_rng().
@@ -1406,4 +1407,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2384 2002/07/21 23:16:00 stevesk Exp $
+$Id: ChangeLog,v 1.2385 2002/07/21 23:20:07 stevesk Exp $
