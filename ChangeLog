@@ -1,3 +1,7 @@
+20030807
+ - (dtucker) [session.c] Have session_break_req not attempt to send a break
+   if TIOCSBRK and TIOCCBRK are not defined (eg Cygwin).
+
 20030802
  - (dtucker) [monitor.h monitor_wrap.h] Remove excess ident tags.
  - (dtucker) OpenBSD CVS Sync
@@ -785,4 +789,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2879 2003/08/02 14:36:16 dtucker Exp $
+$Id: ChangeLog,v 1.2880 2003/08/07 03:24:24 dtucker Exp $
