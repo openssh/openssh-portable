@@ -103,7 +103,9 @@
 /*
  * Default location of askpass
  */
+#ifndef _PATH_SSH_ASKPASS_DEFAULT
 #define _PATH_SSH_ASKPASS_DEFAULT	"/usr/X11R6/bin/ssh-askpass"
+#endif
 
 /* for scp */
 #ifndef _PATH_CP
@@ -128,7 +130,7 @@
  * Relevant only when using builtin PRNG.
  */
 #ifndef SSH_PRNG_SEED_FILE
-# define SSH_PRNG_SEED_FILE      SSH_USER_DIR"/prng_seed"
+# define SSH_PRNG_SEED_FILE      _PATH_SSH_USER_DIR"/prng_seed"
 #endif /* SSH_PRNG_SEED_FILE */
 #ifndef SSH_PRNG_COMMAND_FILE
 # define SSH_PRNG_COMMAND_FILE   ETCDIR "/ssh_prng_cmds"
