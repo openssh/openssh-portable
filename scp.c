@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.100 2003/01/23 14:06:15 markus Exp $");
+RCSID("$OpenBSD: scp.c,v 1.101 2003/02/02 10:51:13 markus Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -370,8 +370,6 @@ toremote(targ, argc, argv)
 		tuser = argv[argc - 1];
 		if (*tuser == '\0')
 			tuser = NULL;
-		else if (!okname(tuser))
-			exit(1);
 	} else {
 		thost = argv[argc - 1];
 		tuser = NULL;
@@ -398,6 +396,8 @@ toremote(targ, argc, argv)
 				if (*suser == '\0')
 					suser = pwd->pw_name;
 				else if (!okname(suser))
+					continue;
+				if (tuser && !okname(tuser))
 					continue;
 				snprintf(bp, len,
 				    "%s%s %s -n "
@@ -472,8 +472,6 @@ tolocal(argc, argv)
 			suser = argv[i];
 			if (*suser == '\0')
 				suser = pwd->pw_name;
-			else if (!okname(suser))
-				continue;
 		}
 		host = cleanhostname(host);
 		len = strlen(src) + CMDNEEDS + 20;
@@ -1085,9 +1083,18 @@ okname(cp0)
 		c = (int)*cp;
 		if (c & 0200)
 			goto bad;
-		if (!isalpha(c) && !isdigit(c) &&
-		    c != '@' && c != '_' && c != '-' && c != '.' && c != '+')
-			goto bad;
+		if (!isalpha(c) && !isdigit(c)) {
+			switch (c) {
+			case '\'':
+			case '"':
+			case '`':
+			case ' ':
+			case '#':
+				goto bad;
+			default:
+				break;
+			}
+		}
 	} while (*++cp);
 	return (1);
 

@@ -20,6 +20,10 @@
      [sshd.8]
      typos; sshd(8): help and ok markus@
      help and ok millert@
+   - markus@cvs.openbsd.org 2003/02/02 10:51:13
+     [scp.c]
+     call okname() only when using system(3) for remote-remote copy;
+     fixes bugs #483, #472; ok deraadt@, mouring@
 
 20030211
  - (djm) Cygwin needs libcrypt too. Patch from vinschen@redhat.com
@@ -1120,4 +1124,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2598 2003/02/24 00:52:26 djm Exp $
+$Id: ChangeLog,v 1.2599 2003/02/24 00:52:58 djm Exp $
