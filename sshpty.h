@@ -14,8 +14,8 @@
 
 /* RCSID("$OpenBSD: sshpty.h,v 1.1 2001/03/04 01:46:30 djm Exp $"); */
 
-#ifndef PTY_H
-#define PTY_H
+#ifndef SSHPTY_H
+#define SSHPTY_H
 
 /*
  * Allocates and opens a pty.  Returns 0 if no pty could be allocated, or
@@ -44,4 +44,4 @@ pty_change_window_size(int ptyfd, int row, int col,
 
 void	pty_setowner(struct passwd *pw, const char *ttyname);
 
-#endif				/* PTY_H */
+#endif				/* SSHPTY_H */
