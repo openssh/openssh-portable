@@ -4,6 +4,8 @@
    redhat.com, ok djm@
  - (dtucker) [regress/Makefile] Clean scp-ssh-wrapper.scp too.  Patch from
    vinschen at redhat.com.
+ - (dtucker) [Makefile.in contrib/ssh-copy-id] Bug #894: Improve portability
+   of shell constructs.  Patch from cjwatson at debian.org.
 
 20040829
  - (dtucker) [openbsd-compat/getrrsetbyname.c] Prevent getrrsetbyname from
@@ -1714,4 +1716,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3538 2004/08/30 11:13:49 dtucker Exp $
+$Id: ChangeLog,v 1.3539 2004/08/30 11:33:02 dtucker Exp $

@@ -24,7 +24,7 @@ else
   fi
 fi
 
-if [ -z "`eval $GET_ID`" -a -r "${ID_FILE}" ] ; then
+if [ -z "`eval $GET_ID`" ] && [ -r "${ID_FILE}" ] ; then
   GET_ID="cat ${ID_FILE}"
 fi
 
