@@ -6,6 +6,9 @@
    - deraadt@cvs.openbsd.org 2001/04/16 08:26:04                         
      [key.c]                                                             
      better safe than sorry in later mods; yongari@kt-is.co.kr   
+   - markus@cvs.openbsd.org 2001/04/17 08:14:01                          
+     [sshconnect1.c]                                                     
+     check for key!=NULL, thanks to costa  
 
 20010416
   - OpenBSD CVS Sync
@@ -5131,4 +5134,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1131 2001/04/17 18:06:14 mouring Exp $
+$Id: ChangeLog,v 1.1132 2001/04/17 18:08:15 mouring Exp $

@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.30 2001/04/12 19:15:25 markus Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.31 2001/04/17 08:14:01 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/evp.h>
@@ -999,7 +999,7 @@ ssh_userauth1(const char *local_user, const char *server_user, char *host,
 	if ((supported_authentications & (1 << SSH_AUTH_RHOSTS_RSA)) &&
 	    options.rhosts_rsa_authentication) {
 		for (i = 0; i < nkeys; i++) {
-			if (keys[i]->type == KEY_RSA1 &&
+			if (keys[i] != NULL && keys[i]->type == KEY_RSA1 &&
 			    try_rhosts_rsa_authentication(local_user, keys[i]))
 				return;
 		}
