@@ -146,7 +146,7 @@ GNOME GUI desktop environment.
 
 EXTRA_OPTS=""
 
-%if %{smartcard}
+%if %{scard}
 	EXTRA_OPTS="$EXTRA_OPTS --with-smartcard"
 %endif
 
