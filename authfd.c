@@ -14,7 +14,7 @@ Functions for connecting the local authentication agent.
 */
 
 #include "includes.h"
-RCSID("$Id: authfd.c,v 1.3 1999/11/12 23:51:58 damien Exp $");
+RCSID("$Id: authfd.c,v 1.4 1999/11/16 02:37:16 damien Exp $");
 
 #include "ssh.h"
 #include "rsa.h"
@@ -117,7 +117,7 @@ void ssh_close_authentication_connection(AuthenticationConnection *ac)
 
 int
 ssh_get_first_identity(AuthenticationConnection *auth,
-		       int *bitsp, BIGNUM *e, BIGNUM *n, char **comment)
+		       BIGNUM *e, BIGNUM *n, char **comment)
 {
   unsigned char msg[8192];
   int len, l;
@@ -179,7 +179,7 @@ ssh_get_first_identity(AuthenticationConnection *auth,
     fatal("Too many identities in authentication reply: %d\n", auth->howmany);
 
   /* Return the first entry (if any). */
-  return ssh_get_next_identity(auth, bitsp, e, n, comment);
+  return ssh_get_next_identity(auth, e, n, comment);
 }
 
 /* Returns the next authentication identity for the agent.  Other functions
@@ -189,18 +189,24 @@ ssh_get_first_identity(AuthenticationConnection *auth,
 
 int
 ssh_get_next_identity(AuthenticationConnection *auth,
-		      int *bitsp, BIGNUM *e, BIGNUM *n, char **comment)
+		      BIGNUM *e, BIGNUM *n, char **comment)
 {
+  unsigned int bits;
+
   /* Return failure if no more entries. */
   if (auth->howmany <= 0)
     return 0;
 
   /* Get the next entry from the packet.  These will abort with a fatal
      error if the packet is too short or contains corrupt data. */
-  *bitsp = buffer_get_int(&auth->identities);
+  bits = buffer_get_int(&auth->identities);
   buffer_get_bignum(&auth->identities, e);
   buffer_get_bignum(&auth->identities, n);
   *comment = buffer_get_string(&auth->identities, NULL);
+
+  if (bits != BN_num_bits(n))
+    error("Warning: keysize mismatch: actual %d, announced %s",
+	  BN_num_bits(n), bits);
 
   /* Decrement the number of remaining entries. */
   auth->howmany--;
@@ -216,7 +222,7 @@ ssh_get_next_identity(AuthenticationConnection *auth,
 
 int
 ssh_decrypt_challenge(AuthenticationConnection *auth,
-		      int bits, BIGNUM *e, BIGNUM *n, BIGNUM *challenge,
+		      BIGNUM *e, BIGNUM *n, BIGNUM *challenge,
 		      unsigned char session_id[16],
 		      unsigned int response_type,
 		      unsigned char response[16])
@@ -233,7 +239,7 @@ ssh_decrypt_challenge(AuthenticationConnection *auth,
   buf[0] = SSH_AGENTC_RSA_CHALLENGE;
   buffer_init(&buffer);
   buffer_append(&buffer, (char *)buf, 1);
-  buffer_put_int(&buffer, bits);
+  buffer_put_int(&buffer, BN_num_bits(n));
   buffer_put_bignum(&buffer, e);
   buffer_put_bignum(&buffer, n);
   buffer_put_bignum(&buffer, challenge);

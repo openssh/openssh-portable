@@ -15,7 +15,7 @@ authentication.
 */
 
 #include "includes.h"
-RCSID("$Id: auth-rh-rsa.c,v 1.4 1999/11/12 04:19:27 damien Exp $");
+RCSID("$Id: auth-rh-rsa.c,v 1.5 1999/11/16 02:37:16 damien Exp $");
 
 #include "packet.h"
 #include "ssh.h"
@@ -27,7 +27,6 @@ RCSID("$Id: auth-rh-rsa.c,v 1.4 1999/11/12 04:19:27 damien Exp $");
    its host key.  Returns true if authentication succeeds. */
 
 int auth_rhosts_rsa(struct passwd *pw, const char *client_user,
-		    unsigned int client_host_key_bits,
 		    BIGNUM *client_host_key_e, BIGNUM *client_host_key_n)
 {
   extern ServerOptions options;
@@ -51,8 +50,7 @@ int auth_rhosts_rsa(struct passwd *pw, const char *client_user,
   ke = BN_new();
   kn = BN_new();
   host_status = check_host_in_hostfile(SSH_SYSTEM_HOSTFILE, canonical_hostname,
-				       client_host_key_bits, client_host_key_e,
-				       client_host_key_n, ke, kn);
+				       client_host_key_e, client_host_key_n, ke, kn);
 
   /* Check user host file unless ignored. */
   if (host_status != HOST_OK && !options.ignore_user_known_hosts) {
@@ -70,8 +68,7 @@ int auth_rhosts_rsa(struct passwd *pw, const char *client_user,
       /* XXX race between stat and the following open() */
       temporarily_use_uid(pw->pw_uid);
       host_status = check_host_in_hostfile(user_hostfile, canonical_hostname,
-					   client_host_key_bits, client_host_key_e,
-					   client_host_key_n, ke, kn);
+					   client_host_key_e, client_host_key_n, ke, kn);
       restore_uid();
     }
     xfree(user_hostfile);
@@ -89,8 +86,7 @@ int auth_rhosts_rsa(struct passwd *pw, const char *client_user,
   /* A matching host key was found and is known. */
   
   /* Perform the challenge-response dialog with the client for the host key. */
-  if (!auth_rsa_challenge_dialog(client_host_key_bits,
-				 client_host_key_e, client_host_key_n))
+  if (!auth_rsa_challenge_dialog(client_host_key_e, client_host_key_n))
     {
       log("Client on %.800s failed to respond correctly to host authentication.",
 	  canonical_hostname);

@@ -14,7 +14,7 @@ Adds an identity to the authentication server, or removes an identity.
 */
 
 #include "includes.h"
-RCSID("$Id: ssh-add.c,v 1.8 1999/11/15 06:10:57 damien Exp $");
+RCSID("$Id: ssh-add.c,v 1.9 1999/11/16 02:37:16 damien Exp $");
 
 #include "rsa.h"
 #include "ssh.h"
@@ -133,33 +133,32 @@ void
 list_identities(AuthenticationConnection *ac)
 {
   BIGNUM *e, *n;
-  int bits, status;
+  int status;
   char *comment;
   int had_identities;
 
   e = BN_new();
   n = BN_new();
   had_identities = 0;
-  for (status = ssh_get_first_identity(ac, &bits, e, n, &comment);
+  for (status = ssh_get_first_identity(ac, e, n, &comment);
        status;
-       status = ssh_get_next_identity(ac, &bits, e, n, &comment))
+       status = ssh_get_next_identity(ac, e, n, &comment))
     {
-      char *buf;
+      char *ebuf, *nbuf;
       had_identities = 1;
-      printf("%d ", bits);
-      buf = BN_bn2dec(e);
-      if (buf != NULL) {
-        printf("%s ", buf);
-        free (buf);
-      } else {
-	error("list_identities: BN_bn2dec #1 failed.");
-      }
-      buf = BN_bn2dec(n);
-      if (buf != NULL) {
-        printf("%s %s\n", buf, comment);
-        free (buf);
-      } else {
-	error("list_identities: BN_bn2dec #2 failed.");
+      ebuf = BN_bn2dec(e);
+      if (ebuf == NULL) {
+	error("list_identities: BN_bn2dec(e) failed.");
+      }else{
+        nbuf = BN_bn2dec(n);
+        if (nbuf == NULL) {
+	  error("list_identities: BN_bn2dec(n) failed.");
+        }else{
+          unsigned int bits = BN_num_bits(n);
+          printf("%d %s %s %s\n", bits, ebuf, nbuf, comment);
+          free(nbuf);
+        }
+        free(ebuf);
       }
       xfree(comment);
     }

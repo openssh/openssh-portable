@@ -13,7 +13,7 @@ Generic header file for ssh.
 
 */
 
-/* RCSID("$Id: ssh.h,v 1.12 1999/11/12 04:19:27 damien Exp $"); */
+/* RCSID("$Id: ssh.h,v 1.13 1999/11/16 02:37:17 damien Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -273,8 +273,7 @@ int auth_rhosts(struct passwd *pw, const char *client_user);
 /* Tries to authenticate the user using the .rhosts file and the host using
    its host key.  Returns true if authentication succeeds. */
 int auth_rhosts_rsa(struct passwd *pw, const char *client_user,
-		    unsigned int bits, BIGNUM *client_host_key_e,
-		    BIGNUM *client_host_key_n);
+		    BIGNUM *client_host_key_e, BIGNUM *client_host_key_n);
 
 /* Tries to authenticate the user using password.  Returns true if
    authentication succeeds. */
@@ -319,20 +318,18 @@ int match_hostname(const char *host, const char *pattern, unsigned int len);
    HOST_NEW if the host is not known, and HOST_CHANGED if the host is known
    but used to have a different host key.  The host must be in all lowercase. */
 typedef enum { HOST_OK, HOST_NEW, HOST_CHANGED } HostStatus;
-HostStatus check_host_in_hostfile(const char *filename, 
-				  const char *host, unsigned int bits,
-				  BIGNUM *e, BIGNUM *n,
-				  BIGNUM *ke, BIGNUM *kn);
+HostStatus check_host_in_hostfile(const char *filename, const char *host, 
+				  BIGNUM *e, BIGNUM *n, BIGNUM *ke, BIGNUM *kn);
 
 /* Appends an entry to the host file.  Returns false if the entry
    could not be appended. */
 int add_host_to_hostfile(const char *filename, const char *host,
-			 unsigned int bits, BIGNUM *e, BIGNUM *n);
+			 BIGNUM *e, BIGNUM *n);
 
 /* Performs the RSA authentication challenge-response dialog with the client,
    and returns true (non-zero) if the client gave the correct answer to
    our challenge; returns zero if the client gives a wrong answer. */
-int auth_rsa_challenge_dialog(unsigned int bits, BIGNUM *e, BIGNUM *n);
+int auth_rsa_challenge_dialog(BIGNUM *e, BIGNUM *n);
 
 /* Reads a passphrase from /dev/tty with echo turned off.  Returns the 
    passphrase (allocated with xmalloc).  Exits if EOF is encountered. 

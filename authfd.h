@@ -13,7 +13,7 @@ Functions to interface with the SSH_AUTHENTICATION_FD socket.
 
 */
 
-/* RCSID("$Id: authfd.h,v 1.1 1999/10/27 03:42:43 damien Exp $"); */
+/* RCSID("$Id: authfd.h,v 1.2 1999/11/16 02:37:16 damien Exp $"); */
 
 #ifndef AUTHFD_H
 #define AUTHFD_H
@@ -62,19 +62,19 @@ void ssh_close_authentication_connection(AuthenticationConnection *ac);
    The caller must initialize the integers before the call, and free the
    comment after a successful call (before calling ssh_get_next_identity). */
 int ssh_get_first_identity(AuthenticationConnection *connection,
-			   int *bitsp, BIGNUM *e, BIGNUM *n, char **comment);
+			   BIGNUM *e, BIGNUM *n, char **comment);
 
 /* Returns the next authentication identity for the agent.  Other functions
    can be called between this and ssh_get_first_identity or two calls of this
    function.  This returns 0 if there are no more identities.  The caller
    must free comment after a successful return. */
 int ssh_get_next_identity(AuthenticationConnection *connection,
-			  int *bitsp, BIGNUM *e, BIGNUM *n, char **comment);
+			  BIGNUM *e, BIGNUM *n, char **comment);
 
 /* Requests the agent to decrypt the given challenge.  Returns true if
    the agent claims it was able to decrypt it. */
 int ssh_decrypt_challenge(AuthenticationConnection *auth,
-			  int bits, BIGNUM *e, BIGNUM *n, BIGNUM *challenge,
+			  BIGNUM *e, BIGNUM *n, BIGNUM *challenge,
 			  unsigned char session_id[16], 
 			  unsigned int response_type,
 			  unsigned char response[16]);

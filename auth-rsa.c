@@ -16,7 +16,7 @@ validity of the host key.
 */
 
 #include "includes.h"
-RCSID("$Id: auth-rsa.c,v 1.6 1999/11/12 23:51:58 damien Exp $");
+RCSID("$Id: auth-rsa.c,v 1.7 1999/11/16 02:37:16 damien Exp $");
 
 #include "rsa.h"
 #include "packet.h"
@@ -61,7 +61,7 @@ extern unsigned char session_id[16];
    our challenge; returns zero if the client gives a wrong answer. */
 
 int
-auth_rsa_challenge_dialog(unsigned int bits, BIGNUM *e, BIGNUM *n)
+auth_rsa_challenge_dialog(BIGNUM *e, BIGNUM *n)
 {
   BIGNUM *challenge, *encrypted_challenge, *aux;
   RSA *pk;
@@ -138,7 +138,7 @@ int
 auth_rsa(struct passwd *pw, BIGNUM *client_n)
 {
   extern ServerOptions options;
-  char line[8192];
+  char line[8192], file[1024];
   int authenticated;
   unsigned int bits;
   FILE *f;
@@ -150,11 +150,11 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
   temporarily_use_uid(pw->pw_uid);
 
   /* The authorized keys. */
-  snprintf(line, sizeof line, "%.500s/%.100s", pw->pw_dir,
+  snprintf(file, sizeof file, "%.500s/%.100s", pw->pw_dir,
     SSH_USER_PERMITTED_KEYS);
   
   /* Fail quietly if file does not exist */
-  if (stat(line, &st) < 0)
+  if (stat(file, &st) < 0)
     {
       /* Restore the privileged uid. */
       restore_uid();
@@ -162,12 +162,12 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
     }
 
   /* Open the file containing the authorized keys. */
-  f = fopen(line, "r");
+  f = fopen(file, "r");
   if (!f)
     {
       /* Restore the privileged uid. */
       restore_uid();
-      packet_send_debug("Could not open %.900s for reading.", line);
+      packet_send_debug("Could not open %.900s for reading.", file);
       packet_send_debug("If your home is on an NFS volume, it may need to be world-readable.");
       return 0;
     }
@@ -180,7 +180,7 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
         (st.st_uid != 0 && st.st_uid != pw->pw_uid) ||
         (st.st_mode & 022) != 0) {
       snprintf(buf, sizeof buf, "RSA authentication refused for %.100s: "
-               "bad ownership or modes for '%s'.", pw->pw_name, line);
+               "bad ownership or modes for '%s'.", pw->pw_name, file);
       fail=1;
     }else{
       /* Check path to SSH_USER_PERMITTED_KEYS */
@@ -263,6 +263,12 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 	}
       /* cp now points to the comment part. */
 
+      /* check the real bits  */
+      if (bits != BN_num_bits(n))
+        error("Warning: error in %s, line %d: keysize mismatch: "
+              "actual size %d vs. announced %d.",
+              file, linenum, BN_num_bits(n), bits);
+
       /* Check if the we have found the desired key (identified by its
 	 modulus). */
       if (BN_cmp(n, client_n) != 0)
@@ -271,7 +277,7 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
       /* We have found the desired key. */
 
       /* Perform the challenge-response dialog for this key. */
-      if (!auth_rsa_challenge_dialog(bits, e, n))
+      if (!auth_rsa_challenge_dialog(e, n))
 	{
 	  /* Wrong response. */
 	  log("Wrong response to RSA authentication challenge.");

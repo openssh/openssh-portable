@@ -11,12 +11,12 @@ Created: Wed Apr 19 16:50:42 1995 ylo
 
 */
 
-/* RCSID("$Id: cipher.h,v 1.2 1999/10/28 03:25:17 damien Exp $"); */
-
-#include "config.h"
+/* RCSID("$Id: cipher.h,v 1.3 1999/11/16 02:37:16 damien Exp $"); */
 
 #ifndef CIPHER_H
 #define CIPHER_H
+
+#include "config.h"
 
 #ifdef HAVE_OPENSSL
 #include <openssl/des.h>
@@ -34,8 +34,8 @@ Created: Wed Apr 19 16:50:42 1995 ylo
 #define SSH_CIPHER_IDEA		1 /* IDEA CFB */
 #define SSH_CIPHER_DES		2 /* DES CBC */
 #define SSH_CIPHER_3DES		3 /* 3DES CBC */
-#define SSH_CIPHER_TSS		4 /* TRI's Simple Stream encryption CBC */
-#define SSH_CIPHER_RC4		5 /* Alleged RC4 */
+#define SSH_CIPHER_BROKEN_TSS	4 /* TRI's Simple Stream encryption CBC */
+#define SSH_CIPHER_BROKEN_RC4	5 /* Alleged RC4 */
 #define SSH_CIPHER_BLOWFISH	6
 
 typedef struct {

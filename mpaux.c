@@ -15,7 +15,7 @@ precision integers.
 */
 
 #include "includes.h"
-RCSID("$Id: mpaux.c,v 1.5 1999/11/12 23:51:58 damien Exp $");
+RCSID("$Id: mpaux.c,v 1.6 1999/11/16 02:37:16 damien Exp $");
 
 #ifdef HAVE_OPENSSL
 #include <openssl/bn.h>
@@ -33,15 +33,15 @@ RCSID("$Id: mpaux.c,v 1.5 1999/11/12 23:51:58 damien Exp $");
 void
 compute_session_id(unsigned char session_id[16],
 		   unsigned char cookie[8],
-		   unsigned int host_key_bits,
 		   BIGNUM *host_key_n,
-		   unsigned int session_key_bits,
 		   BIGNUM *session_key_n)
 {
+  unsigned int host_key_bits = BN_num_bits(host_key_n);
+  unsigned int session_key_bits = BN_num_bits(session_key_n);
   unsigned int bytes = (host_key_bits + 7) / 8 + (session_key_bits + 7) / 8 + 8;
   unsigned char *buf = xmalloc(bytes);
   MD5_CTX md;
-  
+
   BN_bn2bin(host_key_n, buf);
   BN_bn2bin(session_key_n, buf + (host_key_bits + 7 ) / 8);
   memcpy(buf + (host_key_bits + 7) / 8 + (session_key_bits + 7) / 8,

@@ -14,7 +14,7 @@ Functions for manipulating the known hosts files.
 */
 
 #include "includes.h"
-RCSID("$Id: hostfile.c,v 1.2 1999/11/08 05:15:55 damien Exp $");
+RCSID("$Id: hostfile.c,v 1.3 1999/11/16 02:37:16 damien Exp $");
 
 #include "packet.h"
 #include "ssh.h"
@@ -166,29 +166,20 @@ match_hostname(const char *host, const char *pattern, unsigned int len)
    but used to have a different host key. */
 
 HostStatus
-check_host_in_hostfile(const char *filename, 
-		       const char *host, unsigned int bits,
-		       BIGNUM *e, BIGNUM *n,
-		       BIGNUM *ke, BIGNUM *kn)
+check_host_in_hostfile(const char *filename, const char *host,
+		       BIGNUM *e, BIGNUM *n, BIGNUM *ke, BIGNUM *kn)
 {
   FILE *f;
   char line[8192];
-  unsigned int kbits, hostlen;
+  int linenum = 0;
+  unsigned int bits, kbits, hostlen;
   char *cp, *cp2;
   HostStatus end_return;
-  struct stat st;
 
   /* Open the file containing the list of known hosts. */
   f = fopen(filename, "r");
   if (!f)
-    {
-      if (stat(filename, &st) >= 0)
-	{
-	  packet_send_debug("Could not open %.900s for reading.", filename);
-	  packet_send_debug("If your home directory is on an NFS volume, it may need to be world-readable.");
-	}
-      return HOST_NEW;
-    }
+    return HOST_NEW;
 
   /* Cache the length of the host name. */
   hostlen = strlen(host);
@@ -198,10 +189,14 @@ check_host_in_hostfile(const char *filename,
      one. */
   end_return = HOST_NEW;
 
+  /* size of modulus 'n' */
+  bits = BN_num_bits(n);
+
   /* Go trough the file. */
   while (fgets(line, sizeof(line), f))
     {
       cp = line;
+      linenum++;
 
       /* Skip any leading whitespace. */
       for (; *cp == ' ' || *cp == '\t'; cp++)
@@ -227,7 +222,15 @@ check_host_in_hostfile(const char *filename,
       if (!auth_rsa_read_key(&cp, &kbits, ke, kn))
 	continue;
 
-      /* Check if the current key is the same as the previous one. */
+      if (kbits != BN_num_bits(kn)) {
+        error("Warning: error in %s, line %d: keysize mismatch for host %s: "
+	      "actual size %d vs. announced %d.",
+	      filename, linenum, host, BN_num_bits(kn), kbits);
+        error("Warning: replace %d with %d in %s, line %d.",
+	      kbits, BN_num_bits(kn), filename, linenum);
+      }
+
+      /* Check if the current key is the same as the given key. */
       if (kbits == bits && BN_cmp(ke, e) == 0 && BN_cmp(kn, n) == 0)
 	{
 	  /* Ok, they match. */
@@ -252,21 +255,25 @@ check_host_in_hostfile(const char *filename,
 
 int
 add_host_to_hostfile(const char *filename, const char *host,
-		     unsigned int bits, BIGNUM *e, BIGNUM *n)
+		     BIGNUM *e, BIGNUM *n)
 {
   FILE *f;
   char *buf;
+  unsigned int bits;
  
   /* Open the file for appending. */
   f = fopen(filename, "a");
   if (!f)
     return 0;
 
+  /* size of modulus 'n' */
+  bits = BN_num_bits(n);
+
   /* Print the host name and key to the file. */
   fprintf(f, "%s %u ", host, bits);
   buf = BN_bn2dec(e);
   if (buf == NULL) {
-    error("add_host_to_hostfile: BN_bn2dec #1 failed");
+    error("add_host_to_hostfile: BN_bn2dec(e) failed");
     fclose(f);
     return 0;
   }
@@ -274,7 +281,7 @@ add_host_to_hostfile(const char *filename, const char *host,
   free (buf);
   buf = BN_bn2dec(n);
   if (buf == NULL) {
-    error("add_host_to_hostfile: BN_bn2dec #2 failed");
+    error("add_host_to_hostfile: BN_bn2dec(n) failed");
     fclose(f);
     return 0;
   }

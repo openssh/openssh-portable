@@ -15,7 +15,7 @@ login (authentication) dialog.
 */
 
 #include "includes.h"
-RCSID("$Id: sshconnect.c,v 1.8 1999/11/15 04:25:10 damien Exp $");
+RCSID("$Id: sshconnect.c,v 1.9 1999/11/16 02:37:17 damien Exp $");
 
 #ifdef HAVE_OPENSSL
 #include <openssl/bn.h>
@@ -339,7 +339,7 @@ int ssh_connect(const char *host, struct sockaddr_in *hostaddr,
 int
 try_agent_authentication()
 {
-  int status, type, bits;
+  int status, type;
   char *comment;
   AuthenticationConnection *auth;
   unsigned char response[16];
@@ -356,9 +356,9 @@ try_agent_authentication()
   challenge = BN_new();
   
   /* Loop through identities served by the agent. */
-  for (status = ssh_get_first_identity(auth, &bits, e, n, &comment);
+  for (status = ssh_get_first_identity(auth, e, n, &comment);
        status;
-       status = ssh_get_next_identity(auth, &bits, e, n, &comment))
+       status = ssh_get_next_identity(auth, e, n, &comment))
     {
       int plen, clen;
 
@@ -395,7 +395,7 @@ try_agent_authentication()
       debug("Received RSA challenge from server.");
       
       /* Ask the agent to decrypt the challenge. */
-      if (!ssh_decrypt_challenge(auth, bits, e, n, challenge, 
+      if (!ssh_decrypt_challenge(auth, e, n, challenge, 
 				 session_id, 1, response))
 	{
 	  /* The agent failed to authenticate this identifier although it
@@ -1128,19 +1128,15 @@ void ssh_login(int host_key_valid,
 			 SSH_SMSG_PUBLIC_KEY);
 
   /* Compute the session id. */
-  compute_session_id(session_id, check_bytes, 
-		     BN_num_bits(host_key->n), host_key->n, 
-		     BN_num_bits(public_key->n), public_key->n);
+  compute_session_id(session_id, check_bytes, host_key->n, public_key->n);
 
   /* Check if the host key is present in the user\'s list of known hosts
      or in the systemwide list. */
-  host_status = check_host_in_hostfile(options.user_hostfile, 
-				       host, BN_num_bits(host_key->n), 
+  host_status = check_host_in_hostfile(options.user_hostfile, host,
 				       host_key->e, host_key->n,
 				       file_key->e, file_key->n);
   if (host_status == HOST_NEW)
     host_status = check_host_in_hostfile(options.system_hostfile, host, 
-					 BN_num_bits(host_key->n),
 					 host_key->e, host_key->n,
 					 file_key->e, file_key->n);
   /* Force accepting of the host key for localhost and 127.0.0.1.
@@ -1161,13 +1157,11 @@ void ssh_login(int host_key_valid,
     ip_key->n = BN_new();
     ip_key->e = BN_new();
     ip_status = check_host_in_hostfile(options.user_hostfile, ip,
-				       BN_num_bits(host_key->n),
 				       host_key->e, host_key->n,
 				       ip_key->e, ip_key->n);
 
     if (ip_status == HOST_NEW)
       ip_status = check_host_in_hostfile(options.system_hostfile, ip,
-					 BN_num_bits(host_key->n),
 					 host_key->e, host_key->n,
 					 ip_key->e, ip_key->n);
     if (host_status == HOST_CHANGED &&
@@ -1188,14 +1182,15 @@ void ssh_login(int host_key_valid,
     if (options.check_host_ip) {
       if (ip_status == HOST_NEW) {
 	if (!add_host_to_hostfile(options.user_hostfile, ip,
-				  BN_num_bits(host_key->n), 
 				  host_key->e, host_key->n))
-	  log("Failed to add the host ip to the list of known hosts (%.30s).", 
-	      options.user_hostfile);
+ 	  log("Failed to add the host key for IP address '%.30s' to the list of known hosts (%.30s).", 
+ 	      ip, options.user_hostfile);
 	else
-	  log("Warning: Permanently added host ip '%.30s' to the list of known hosts.", ip);
+ 	  log("Warning: Permanently added host key for IP address '%.30s' to the list of known hosts.",
+               ip);
       } else if (ip_status != HOST_OK)
-	log("Warning: the host key differ from the key of the ip address '%.30s' differs", ip);
+ 	log("Warning: the host key for '%.200s' differs from the key for the IP address '%.30s'",
+ 	    host, ip);
     }
     
     break;
@@ -1226,7 +1221,6 @@ void ssh_login(int host_key_valid,
       /* If not in strict mode, add the key automatically to the local
 	 known_hosts file. */
       if (!add_host_to_hostfile(options.user_hostfile, hostp,
-				BN_num_bits(host_key->n), 
 				host_key->e, host_key->n))
 	log("Failed to add the host to the list of known hosts (%.500s).", 
 	    options.user_hostfile);
@@ -1238,13 +1232,20 @@ void ssh_login(int host_key_valid,
   case HOST_CHANGED:
     if (options.check_host_ip) {
       if (host_ip_differ) {
+        char *msg;
+	if (ip_status == HOST_NEW)
+	  msg = "is unknown";
+	else if (ip_status == HOST_OK)
+	  msg = "is unchanged";
+	else 
+	  msg = "has a different value";
 	error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 	error("@       WARNING: POSSIBLE DNS SPOOFING DETECTED!          @");
 	error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 	error("The host key for %s has changed,", host);
-	error("but the key for the according IP address %s has", ip);
-	error("a different status.  This could either mean that DNS");
-	error("SPOOFING is happening or the IP address for the host");
+	error("and the key for the according IP address %s", ip);
+	error("%s. This could either mean that", msg);
+	error("DNS SPOOFING is happening or the IP address for the host");
 	error("and its host key have changed at the same time");
       }
     }
@@ -1391,8 +1392,7 @@ void ssh_login(int host_key_valid,
   debug("Sent encrypted session key.");
   
   /* Set the encryption key. */
-  packet_set_encryption_key(session_key, SSH_SESSION_KEY_LENGTH, 
-			    options.cipher, 1);
+  packet_set_encryption_key(session_key, SSH_SESSION_KEY_LENGTH, options.cipher);
 
   /* We will no longer need the session key here.  Destroy any extra copies. */
   memset(session_key, 0, sizeof(session_key));

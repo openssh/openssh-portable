@@ -18,7 +18,7 @@ agent connections.
 */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.20 1999/11/15 06:10:57 damien Exp $");
+RCSID("$Id: sshd.c,v 1.21 1999/11/16 02:37:17 damien Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -1036,9 +1036,7 @@ do_connection()
 
   /* Compute session id for this session. */
   compute_session_id(session_id, check_bytes,
-		     BN_num_bits(sensitive_data.host_key->n),
 		     sensitive_data.host_key->n, 
-		     BN_num_bits(sensitive_data.private_key->n),
 		     sensitive_data.private_key->n);
 
   /* Extract session key from the decrypted integer.  The key is in the 
@@ -1061,8 +1059,7 @@ do_connection()
   
   /* Set the session key.  From this on all communications will be
      encrypted. */
-  packet_set_encryption_key(session_key, SSH_SESSION_KEY_LENGTH, 
-			    cipher_type, 0);
+  packet_set_encryption_key(session_key, SSH_SESSION_KEY_LENGTH, cipher_type);
   
   /* Destroy our copy of the session key.  It is no longer needed. */
   memset(session_key, 0, sizeof(session_key));
@@ -1270,7 +1267,7 @@ void
 do_authloop(struct passwd *pw)
 {
   int authentication_failures = 0;
-  unsigned int client_host_key_bits;
+  unsigned int bits;
   BIGNUM *client_host_key_e, *client_host_key_n;
   BIGNUM *n;
   char *client_user = NULL, *password = NULL;
@@ -1398,13 +1395,17 @@ do_authloop(struct passwd *pw)
 	/* Get the client host key. */
 	client_host_key_e = BN_new();
 	client_host_key_n = BN_new();
-	client_host_key_bits = packet_get_int();
+	bits = packet_get_int();
 	packet_get_bignum(client_host_key_e, &elen);
 	packet_get_bignum(client_host_key_n, &nlen);
+
+        if (bits != BN_num_bits(client_host_key_n))
+          error("Warning: keysize mismatch for client_host_key: "
+	        "actual %d, announced %s", BN_num_bits(client_host_key_n), bits);
   
 	packet_integrity_check(plen, (4 + ulen) + 4 + elen + nlen, type);
   
-	authenticated = auth_rhosts_rsa(pw, client_user, client_host_key_bits,
+	authenticated = auth_rhosts_rsa(pw, client_user,
 					client_host_key_e, client_host_key_n);
 	log("Rhosts authentication %s for %.100s, remote %.100s.",
 	     authenticated ? "accepted" : "failed",

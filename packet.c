@@ -15,7 +15,7 @@ with the other side.  This same code is used both on client and server side.
 */
 
 #include "includes.h"
-RCSID("$Id: packet.c,v 1.2 1999/11/08 05:15:55 damien Exp $");
+RCSID("$Id: packet.c,v 1.3 1999/11/16 02:37:16 damien Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -236,30 +236,11 @@ packet_decrypt(CipherContext *cc, void *dest, void *src,
 
 void
 packet_set_encryption_key(const unsigned char *key, unsigned int keylen,
-			  int cipher, int is_client)
+			  int cipher)
 {
-  cipher_type = cipher;
-  if (cipher == SSH_CIPHER_RC4)
-    {
-      if (is_client)
-	{ /* In client: use first half for receiving, second for sending. */
-	  cipher_set_key(&receive_context, cipher, key, keylen / 2, 0);
-	  cipher_set_key(&send_context, cipher, key + keylen / 2, 
-			 keylen / 2, 1);
-	}
-      else
-	{ /* In server: use first half for sending, second for receiving. */
-	  cipher_set_key(&receive_context, cipher, key + keylen / 2, 
-			 keylen / 2, 0);
-	  cipher_set_key(&send_context, cipher, key, keylen / 2, 1);
-	}
-    }
-  else
-    {
-      /* All other ciphers use the same key in both directions for now. */
-      cipher_set_key(&receive_context, cipher, key, keylen, 0);
-      cipher_set_key(&send_context, cipher, key, keylen, 1);
-    }
+  /* All other ciphers use the same key in both directions for now. */
+  cipher_set_key(&receive_context, cipher, key, keylen, 0);
+  cipher_set_key(&send_context, cipher, key, keylen, 1);
 }
 
 /* Starts constructing a packet to send. */

@@ -1,3 +1,18 @@
+19991116
+ - Fix some Linux libc5 problems reported by Miles Wilson <mw@mctitle.com>
+ - Merged OpenBSD CVS changes:
+   - [auth-rh-rsa.c auth-rsa.c authfd.c authfd.h hostfile.c mpaux.c]
+     [mpaux.h ssh-add.c ssh-agent.c ssh.h ssh.c sshd.c]
+     the keysize of rsa-parameter 'n' is passed implizit,
+     a few more checks and warnings about 'pretended' keysizes.
+   - [cipher.c cipher.h packet.c packet.h sshd.c]
+     remove support for cipher RC4
+   - [ssh.c]
+     a note for legay systems about secuity issues with permanently_set_uid(),
+     the private hostkey and ptrace()
+   - [sshconnect.c]
+     more detailed messages about adding and checking hostkeys
+
 19991115
  - Merged OpenBSD CVS changes:
    - [ssh-add.c] change passphrase loop logic and remove ref to 
