@@ -105,6 +105,11 @@ support. You will need libwrap.a and tcpd.h installed.
 --with-md5-passwords will enable the use of MD5 passwords. Enable this
 if your operating system uses MD5 passwords without using PAM.
 
+If you need to pass special options to the compiler or linker, you
+can specify these as enviornment variables before running ./configure.
+For example:
+
+CFLAGS="-O -m486" LFLAGS="-s" ./configure
 
 3. Configuration
 ----------------

@@ -6,6 +6,9 @@
 /* SSL directory.  */
 #undef ssldir
 
+/* Define if you want to disable PAM support */
+#undef DISABLE_PAM
+
 /* Define if you want to disable lastlog support */
 #undef DISABLE_LASTLOG
 
@@ -114,6 +117,9 @@
 
 /* Specify default $PATH */
 #undef USER_PATH
+
+/* Define if the inclusion of crypt.h breaks the build (e.g. Irix 5.x) */
+#undef CRYPT_H_BREAKS_BUILD
 
 @BOTTOM@
 

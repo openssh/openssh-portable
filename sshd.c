@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.45 1999/12/26 23:55:23 damien Exp $");
+RCSID("$Id: sshd.c,v 1.46 1999/12/28 04:09:36 damien Exp $");
 
 #ifdef HAVE_POLL_H
 # include <poll.h>
@@ -143,7 +143,7 @@ void do_child(const char *command, struct passwd * pw, const char *term,
 	      const char *display, const char *auth_proto,
 	      const char *auth_data, const char *ttyname);
 
-#ifdef HAVE_LIBPAM
+#ifdef USE_PAM
 static int pamconv(int num_msg, const struct pam_message **msg,
 	  struct pam_response **resp, void *appdata_ptr);
 int do_pam_auth(const char *user, const char *password);
@@ -301,7 +301,7 @@ void do_pam_session(char *username, char *ttyname)
 	if (pam_retval != PAM_SUCCESS)
 		fatal("PAM session setup failed: %.200s", PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
 }
-#endif /* HAVE_LIBPAM */
+#endif /* USE_PAM */
 
 /*
  * Signal handler for SIGHUP.  Sshd execs itself when it receives SIGHUP;
@@ -952,7 +952,7 @@ main(int ac, char **av)
 	/* The connection has been terminated. */
 	verbose("Closing connection to %.100s", remote_ip);
 
-#ifdef HAVE_LIBPAM
+#ifdef USE_PAM
 	{
 		int retval;
 
@@ -967,7 +967,7 @@ main(int ac, char **av)
 			fatal_remove_cleanup(&pam_cleanup_proc, NULL);
 		}
 	}
-#endif /* HAVE_LIBPAM */
+#endif /* USE_PAM */
 
 	packet_close();
 	exit(0);
@@ -1285,7 +1285,7 @@ do_authentication(char *user)
 	pwcopy.pw_shell = xstrdup(pw->pw_shell);
 	pw = &pwcopy;
 
-#ifdef HAVE_LIBPAM
+#ifdef USE_PAM
 	{
 		int pam_retval;
 
@@ -1313,11 +1313,11 @@ do_authentication(char *user)
 #ifdef KRB4
 	    (!options.kerberos_authentication || options.kerberos_or_local_passwd) &&
 #endif /* KRB4 */
-#ifdef HAVE_LIBPAM
+#ifdef USE_PAM
 	    do_pam_auth(pw->pw_name, "")) {
-#else /* HAVE_LIBPAM */
+#else /* USE_PAM */
 	    auth_password(pw, "")) {
-#endif /* HAVE_LIBPAM */
+#endif /* USE_PAM */
 		/* Authentication with empty password succeeded. */
 		log("Login for user %s from %.100s, accepted without authentication.",
 		    pw->pw_name, get_remote_ipaddr());
@@ -1457,9 +1457,9 @@ do_authloop(struct passwd * pw)
 			authenticated = auth_rhosts(pw, client_user);
 
 			snprintf(user, sizeof user, " ruser %s", client_user);
-#ifndef HAVE_LIBPAM
+#ifndef USE_PAM
 			xfree(client_user);
-#endif /* HAVE_LIBPAM */
+#endif /* USE_PAM */
 			break;
 
 		case SSH_CMSG_AUTH_RHOSTS_RSA:
@@ -1492,9 +1492,9 @@ do_authloop(struct passwd * pw)
 			BN_clear_free(client_host_key_n);
 
 			snprintf(user, sizeof user, " ruser %s", client_user);
-#ifndef HAVE_LIBPAM
+#ifndef USE_PAM
 			xfree(client_user);
-#endif /* HAVE_LIBPAM */
+#endif /* USE_PAM */
 			break;
 
 		case SSH_CMSG_AUTH_RSA:
@@ -1523,13 +1523,13 @@ do_authloop(struct passwd * pw)
 			password = packet_get_string(&dlen);
 			packet_integrity_check(plen, 4 + dlen, type);
 
-#ifdef HAVE_LIBPAM
+#ifdef USE_PAM
 			/* Do PAM auth with password */
 			authenticated = do_pam_auth(pw->pw_name, password);
-#else /* HAVE_LIBPAM */
+#else /* USE_PAM */
 			/* Try authentication with the password. */
 			authenticated = auth_password(pw, password);
-#endif /* HAVE_LIBPAM */
+#endif /* USE_PAM */
 			memset(password, 0, strlen(password));
 			xfree(password);
 			break;
@@ -1595,13 +1595,13 @@ do_authloop(struct passwd * pw)
 			get_remote_port(),
 			user);
 
-#ifndef HAVE_LIBPAM
+#ifndef USE_PAM
 		if (authenticated)
 			return;
 
 		if (attempt > AUTH_FAIL_MAX)
 			packet_disconnect(AUTH_FAIL_MSG, pw->pw_name);
-#else /* HAVE_LIBPAM */
+#else /* USE_PAM */
 		if (authenticated) {
 			do_pam_account(pw->pw_name, client_user);
 
@@ -1617,7 +1617,7 @@ do_authloop(struct passwd * pw)
 
 			packet_disconnect(AUTH_FAIL_MSG, pw->pw_name);
 		}
-#endif /* HAVE_LIBPAM */
+#endif /* USE_PAM */
 
 		/* Send a message indicating that the authentication attempt failed. */
 		packet_start(SSH_SMSG_FAILURE);
@@ -1823,10 +1823,10 @@ do_authenticated(struct passwd * pw)
 			/* Indicate that we now have a pty. */
 			have_pty = 1;
 
-#ifdef HAVE_LIBPAM
+#ifdef USE_PAM
 			/* do the pam_open_session since we have the pty */
 			do_pam_session(pw->pw_name,ttyname);
-#endif /* HAVE_LIBPAM */
+#endif /* USE_PAM */
 
 			break;
 
@@ -2194,7 +2194,7 @@ do_exec_pty(const char *command, int ptyfd, int ttyfd,
 		snprintf(line, sizeof line, "%.200s/.hushlogin", pw->pw_dir);
 		quiet_login = stat(line, &st) >= 0;
 
-#ifdef HAVE_LIBPAM
+#ifdef USE_PAM
 		/* output the results of the pamconv() */
 		if (!quiet_login && pamconv_msg != NULL)
 			fprintf(stderr, pamconv_msg);
@@ -2382,7 +2382,7 @@ do_child(const char *command, struct passwd * pw, const char *term,
 	struct stat st;
 	char *argv[10];
 
-#ifndef HAVE_LIBPAM /* pam_nologin handles this */
+#ifndef USE_PAM /* pam_nologin handles this */
 	/* Check /etc/nologin. */
 	f = fopen("/etc/nologin", "r");
 	if (f) {
@@ -2393,7 +2393,7 @@ do_child(const char *command, struct passwd * pw, const char *term,
 		if (pw->pw_uid != 0)
 			exit(254);
 	}
-#endif /* HAVE_LIBPAM */
+#endif /* USE_PAM */
 
 #ifdef HAVE_SETLOGIN
 	/* Set login name in the kernel. */
@@ -2498,7 +2498,7 @@ do_child(const char *command, struct passwd * pw, const char *term,
 	}
 #endif /* KRB4 */
 
-#ifdef HAVE_LIBPAM
+#ifdef USE_PAM
 	/* Pull in any environment variables that may have been set by PAM. */
 	{
 		char *equals, var_name[512], var_val[512];
@@ -2517,7 +2517,7 @@ do_child(const char *command, struct passwd * pw, const char *term,
 			}
 		}
 	}
-#endif /* HAVE_LIBPAM */
+#endif /* USE_PAM */
 
 	if (xauthfile)
 		child_set_env(&env, &envsize, "XAUTHORITY", xauthfile);

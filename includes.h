@@ -52,8 +52,14 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #include <time.h>
 #include <dirent.h>
 
+#ifdef HAVE_BSTRING_H
+# include <bstring.h>
+#endif 
 #ifdef HAVE_NETGROUP_H
 # include <netgroup.h>
+#endif 
+#ifdef HAVE_NETDB_H
+# include <netdb.h>
 #endif 
 #ifdef HAVE_PATHS_H
 # include <paths.h>
@@ -70,7 +76,7 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #ifdef HAVE_SYS_BSDTTY_H
 # include <sys/bsdtty.h>
 #endif
-#ifdef HAVE_LIBPAM
+#ifdef USE_PAM
 # include <security/pam_appl.h>
 #endif
 

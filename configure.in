@@ -56,6 +56,12 @@ case "$host" in
 *-*-solaris*)
 	AC_DEFINE(USE_UTMPX)
 	;;
+*-*-irix5*)
+	AC_DEFINE(CRYPT_H_BREAKS_BUILD)
+#	CFLAGS="$CFLAGS -shared"
+	no_libsocket=1
+	no_libnsl=1
+	;;
 esac
 
 dnl Check for OpenSSL/SSLeay directories.
@@ -81,7 +87,6 @@ if test "$ssldir" != "/usr"; then
 	CFLAGS="$CFLAGS -I$ssldir/include"
 	LDFLAGS="$LDFLAGS -L$ssldir/lib"
 fi
-LIBS="$LIBS -lssl -lcrypto"
 AC_MSG_RESULT($ssldir)
 
 dnl Check for RSAref library.
@@ -96,28 +101,20 @@ dnl Checks for libraries.
 AC_CHECK_LIB(crypto, CRYPTO_lock, ,AC_MSG_ERROR([*** libcrypto missing - please install first ***]))
 AC_CHECK_LIB(z, deflate, ,AC_MSG_ERROR([*** zlib missing - please install first ***]))
 AC_CHECK_LIB(util, login, AC_DEFINE(HAVE_LIBUTIL_LOGIN) LIBS="$LIBS -lutil")
-AC_CHECK_LIB(nsl, yp_match, , )
-AC_CHECK_LIB(socket, main, , )
+AC_CHECK_LIB(crypt, crypt, , )
 
-dnl Use ip address instead of hostname in $DISPLAY
-AC_ARG_WITH(pam,
-	[  --without-pam           Disable PAM support ],
-	[
-		if test "x$withval" != "xno" ; then
-			no_pam=1
-		fi
-	]
-)
-if test -z "$no_pam" ; then
-	AC_CHECK_LIB(dl, dlopen, , )
-	AC_CHECK_LIB(pam, pam_authenticate, , )
+if test -z "$no_libsocket" ; then
+	AC_CHECK_LIB(nsl, yp_match, , )
+fi
+if test -z "$no_libnsl" ; then
+	AC_CHECK_LIB(socket, main, , )
 fi
 
 dnl Checks for header files.
-AC_CHECK_HEADERS(endian.h lastlog.h login.h maillock.h netgroup.h paths.h poll.h pty.h shadow.h sys/bsdtty.h sys/poll.h sys/select.h sys/stropts.h sys/time.h sys/ttcompat.h util.h utmp.h utmpx.h)
+AC_CHECK_HEADERS(bstring.h crypt.h endian.h lastlog.h login.h maillock.h netdb.h netgroup.h paths.h poll.h pty.h shadow.h security/pam_appl.h sys/bsdtty.h sys/cdefs.h sys/poll.h sys/select.h sys/stropts.h sys/time.h sys/ttcompat.h util.h utmp.h utmpx.h)
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS(arc4random getpagesize _getpty innetgr mkdtemp openpty setenv seteuid setlogin setproctitle setreuid snprintf strlcat strlcpy updwtmpx vsnprintf)
+AC_CHECK_FUNCS(arc4random getpagesize _getpty innetgr md5_crypt mkdtemp openpty setenv seteuid setlogin setproctitle setreuid snprintf strlcat strlcpy updwtmpx vsnprintf)
 
 AC_CHECK_FUNC(login, 
 	[AC_DEFINE(HAVE_LOGIN)],
@@ -180,20 +177,34 @@ AC_TRY_COMPILE(
 	[AC_MSG_RESULT(no)]
 ) 
 
-dnl Check PAM strerror arguments
-AC_MSG_CHECKING([whether pam_strerror takes only one argument])
-AC_TRY_COMPILE(
+AC_ARG_WITH(pam,
+	[  --without-pam           Disable PAM support ],
 	[
-		#include <stdlib.h>
-		#include <security/pam_appl.h>
-	], 
-	[(void)pam_strerror((pam_handle_t *)NULL, -1);], 
-	[AC_MSG_RESULT(no)],
-	[
-		AC_DEFINE(HAVE_OLD_PAM)
-		AC_MSG_RESULT(yes)
+		if test "x$withval" = "xno" ; then
+			no_pam=1
+			AC_DEFINE(DISABLE_PAM)
+		fi
 	]
-) 
+)
+
+if test -z "$no_pam" -a "x$ac_cv_header_security_pam_appl_h" = "xyes" ; then
+	AC_CHECK_LIB(dl, dlopen, , )
+	LIBS="$LIBS -lpam"
+	dnl Check PAM strerror arguments
+	AC_MSG_CHECKING([whether pam_strerror takes only one argument])
+	AC_TRY_COMPILE(
+		[
+			#include <stdlib.h>
+			#include <security/pam_appl.h>
+		], 
+		[(void)pam_strerror((pam_handle_t *)NULL, -1);], 
+		[AC_MSG_RESULT(no)],
+		[
+			AC_DEFINE(HAVE_OLD_PAM)
+			AC_MSG_RESULT(yes)
+		]
+	) 
+fi
 
 AC_MSG_CHECKING([whether to build GNOME ssh-askpass])
 dnl Check whether user wants GNOME ssh-askpass
@@ -303,16 +314,18 @@ AC_ARG_WITH(lastlog,
 			fi
 		done
 		if test -z "$gotlastlog" ; then
-			AC_MSG_WARN([*** Cannot find lastlog ***])
+			AC_MSG_RESULT(not found)
 			nolastlog=1
 		else
 			if test "x$gotlastlog" = "xdir" ; then
+				AC_MSG_RESULT(${lastlog}/)
 				AC_DEFINE(LASTLOG_IS_DIR)
 				AC_MSG_WARN([*** Directory-based lastlogs are not yet supported ***])
 				nolastlog=1
+			else
+				AC_MSG_RESULT($lastlog)
+				AC_DEFINE_UNQUOTED(LASTLOG_LOCATION, "$lastlog")
 			fi
-			AC_MSG_RESULT($lastlog)
-			AC_DEFINE_UNQUOTED(LASTLOG_LOCATION, "$lastlog")
 		fi	
 	]
 )

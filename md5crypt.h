@@ -20,18 +20,11 @@
 
 #include "config.h"
 
-#include <unistd.h>
-#include <string.h>
-
-#ifdef HAVE_OPENSSL
-#include <openssl/md5.h>
-#endif
-
-#ifdef HAVE_SSL
-#include <ssl/md5.h>
-#endif
+#if defined(HAVE_MD5_PASSWORDS) && !defined(HAVE_MD5_CRYPT)
 
 int is_md5_salt(const char *salt);
 char *md5_crypt(const char *pw, const char *salt);
+
+#endif /* defined(HAVE_MD5_PASSWORDS) && !defined(HAVE_MD5_CRYPT) */
 
 #endif /* MD5CRYPT_H */

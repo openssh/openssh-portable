@@ -17,7 +17,7 @@
 
 #include "config.h"
 
-#ifdef HAVE_MD5_PASSWORDS
+#if defined(HAVE_MD5_PASSWORDS) && !defined(HAVE_MD5_CRYPT)
 
 #include <unistd.h>
 #include <string.h>
@@ -163,4 +163,4 @@ md5_crypt(const char *pw, const char *salt)
 	return passwd;
 }
 
-#endif  /* HAVE_MD5_PASSWORDS */
+#endif /* defined(HAVE_MD5_PASSWORDS) && !defined(HAVE_MD5_CRYPT) */

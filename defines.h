@@ -18,8 +18,12 @@
 #endif
 
 #ifdef HAVE_MAILLOCK_H
-#include <maillock.h>
+# include <maillock.h> /* For _PATH_MAILDIR */
 #endif
+
+#ifdef HAVE_SYS_CDEFS_H
+# include <sys/cdefs.h> /* For __P() */
+#endif 
 
 #ifndef SHUT_RDWR
 enum
@@ -205,3 +209,8 @@ enum
 #  define _PATH_RSH RSH_PATH
 # endif /* RSH_PATH */
 #endif /* _PATH_RSH */
+
+#if defined(HAVE_SECURITY_PAM_APPL_H) && !defined(DISABLE_PAM)
+# define USE_PAM
+#endif /* defined(HAVE_SECURITY_PAM_APPL_H) && !defined(DISABLE_PAM) */
+

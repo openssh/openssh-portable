@@ -12,9 +12,9 @@ http://www.openssh.com/
 This port consists of the re-introduction of autoconf support, PAM
 support (for Linux and Solaris), EGD[1] support, and replacements
 for OpenBSD library functions that are (regrettably) absent from
-other unices. This port has been best tested on Linux, though some
-Solaris support is beginning to filter in. This version actively
-tracks changes in the OpenBSD CVS repository.
+other unices. This port has been best tested on Linux, Solaris and
+HPUX, though support for AIX and Irix is underway. This version 
+actively tracks changes in the OpenBSD CVS repository.
 
 The PAM support is now more functional than the popular packages of
 commercial ssh-1.2.x. It checks "account" and "session" modules for

@@ -85,7 +85,7 @@ gnome-ssh-askpass: gnome-ssh-askpass.c
 	$(CC) $(CFLAGS) $(GNOME_CFLAGS) -o $@ gnome-ssh-askpass.c $(GNOME_LIBS)
 
 clean:
-	rm -f $(OBJS) $(TARGETS) config.status config.cache config.log core \
+	rm -f *.o $(TARGETS) config.status config.cache config.log core \
 		*.1 *.8 sshd_config ssh_config
 
 manpages:
