@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.55 2001/04/18 23:43:25 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.56 2001/04/19 00:05:11 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -482,7 +482,7 @@ userauth_pubkey(Authctxt *authctxt)
 			} else {
 				buffer_put_cstring(&b, "publickey");
 				buffer_put_char(&b, have_sig);
-				buffer_put_cstring(&b, key_ssh_name(key));
+				buffer_put_cstring(&b, pkalg);
 			}
 			buffer_put_string(&b, pkblob, blen);
 #ifdef DEBUG_PK

@@ -19,6 +19,10 @@
    - markus@cvs.openbsd.org 2001/04/18 23:44:51
      [authfile.c] 
      error->debug; noted by fries@ 
+   - markus@cvs.openbsd.org 2001/04/19 00:05:11       
+     [auth2.c]                                        
+     use local variable, no function call needed.     
+     (btw, hostbased works now with ssh.com >= 2.0.13)
 
 20010418
   - OpenBSD CVS Sync                            
@@ -5181,4 +5185,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1145 2001/04/19 20:47:10 mouring Exp $
+$Id: ChangeLog,v 1.1146 2001/04/19 20:50:07 mouring Exp $
