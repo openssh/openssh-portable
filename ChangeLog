@@ -8,6 +8,10 @@
    set at runtime using AddressFamily option.
  - (djm) Fix use of macro before #define in cipher-aes.c
  - (djm) Sync license on openbsd-compat/bindresvport.c with OpenBSD CVS
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2003/05/26 12:54:40
+     [sshconnect.c]
+     fix format strings; ok markus@
 
 20030530
  - (dtucker) Add missing semicolon in md5crypt.c, patch from openssh at
@@ -1634,4 +1638,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2760 2003/06/02 08:59:08 djm Exp $
+$Id: ChangeLog,v 1.2761 2003/06/02 09:09:13 djm Exp $

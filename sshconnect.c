@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.142 2003/05/23 08:29:30 djm Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.143 2003/05/26 12:54:40 djm Exp $");
 
 #include <openssl/bn.h>
 
@@ -848,7 +848,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 			    host_file, host_line);
 		}
 		if (options.strict_host_key_checking == 1) {
-			logit(msg);
+			logit("%s", msg);
 			error("Exiting, you have requested strict checking.");
 			goto fail;
 		} else if (options.strict_host_key_checking == 2) {
@@ -857,7 +857,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 			if (!confirm(msg))
 				goto fail;
 		} else {
-			logit(msg);
+			logit("%s", msg);
 		}
 	}
 
