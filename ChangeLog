@@ -1,3 +1,7 @@
+20050309
+ - (dtucker) [regress/test-exec.sh] Set BIN_SH=xpg4 on OSF1/Digital Unix/Tru64
+   so that regress tests behave.  From Chris Adams.
+
 20050307
  - (dtucker) [configure.ac] Disable gettext search when configuring with
    BSM audit support for the time being.  ok djm@
@@ -2306,4 +2310,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3702 2005/03/07 09:21:37 tim Exp $
+$Id: ChangeLog,v 1.3703 2005/03/08 23:02:55 dtucker Exp $

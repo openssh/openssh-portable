@@ -7,6 +7,13 @@
 _POSIX2_VERSION=199209
 export _POSIX2_VERSION
 
+case `uname -s 2>/dev/null` in
+OSF1*)
+	BIN_SH=xpg4
+	export BIN_SH
+	;;
+esac
+
 if [ ! -z "$TEST_SSH_PORT" ]; then
 	PORT="$TEST_SSH_PORT"
 else
