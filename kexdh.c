@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kexdh.c,v 1.8 2001/12/27 18:22:16 markus Exp $");
+RCSID("$OpenBSD: kexdh.c,v 1.9 2001/12/27 19:37:22 markus Exp $");
 
 #include <openssl/crypto.h>
 #include <openssl/bn.h>
@@ -171,7 +171,7 @@ kexdh_client(Kex *kex)
 	    shared_secret
 	);
 	xfree(server_host_key_blob);
-	BN_free(dh_server_pub);
+	BN_clear_free(dh_server_pub);
 	DH_free(dh);
 
 	if (key_verify(server_host_key, signature, slen, hash, 20) != 1)
@@ -262,7 +262,7 @@ kexdh_server(Kex *kex)
 	    dh->pub_key,
 	    shared_secret
 	);
-	BN_free(dh_client_pub);
+	BN_clear_free(dh_client_pub);
 
 	/* save session id := H */
 	/* XXX hashlen depends on KEX */

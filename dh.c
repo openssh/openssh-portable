@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: dh.c,v 1.18 2001/12/27 18:22:16 markus Exp $");
+RCSID("$OpenBSD: dh.c,v 1.19 2001/12/27 19:37:22 markus Exp $");
 
 #include "xmalloc.h"
 
@@ -94,8 +94,8 @@ parse_prime(int linenum, char *line, struct dhgroup *dhg)
 	return (1);
 
  failclean:
-	BN_free(dhg->g);
-	BN_free(dhg->p);
+	BN_clear_free(dhg->g);
+	BN_clear_free(dhg->p);
  fail:
 	error("Bad prime description in line %d", linenum);
 	return (0);
@@ -122,8 +122,8 @@ choose_dh(int min, int wantbits, int max)
 		linenum++;
 		if (!parse_prime(linenum, line, &dhg))
 			continue;
-		BN_free(dhg.g);
-		BN_free(dhg.p);
+		BN_clear_free(dhg.g);
+		BN_clear_free(dhg.p);
 
 		if (dhg.size > max || dhg.size < min)
 			continue;
@@ -152,8 +152,8 @@ choose_dh(int min, int wantbits, int max)
 		if ((dhg.size > max || dhg.size < min) ||
 		    dhg.size != best ||
 		    linenum++ != which) {
-			BN_free(dhg.g);
-			BN_free(dhg.p);
+			BN_clear_free(dhg.g);
+			BN_clear_free(dhg.p);
 			continue;
 		}
 		break;
@@ -203,7 +203,7 @@ dh_gen_key(DH *dh, int need)
 		    BN_num_bits(dh->p), 2*need);
 	do {
 		if (dh->priv_key != NULL)
-			BN_free(dh->priv_key);
+			BN_clear_free(dh->priv_key);
 		if ((dh->priv_key = BN_new()) == NULL)
 			fatal("dh_gen_key: BN_new failed");
 		/* generate a 2*need bits random private exponent */

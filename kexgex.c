@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kexgex.c,v 1.11 2001/12/27 18:22:16 markus Exp $");
+RCSID("$OpenBSD: kexgex.c,v 1.12 2001/12/27 19:37:23 markus Exp $");
 
 #include <openssl/bn.h>
 
@@ -232,7 +232,7 @@ kexgex_client(Kex *kex)
 	/* have keys, free DH */
 	DH_free(dh);
 	xfree(server_host_key_blob);
-	BN_free(dh_server_pub);
+	BN_clear_free(dh_server_pub);
 
 	if (key_verify(server_host_key, signature, slen, hash, 20) != 1)
 		fatal("key_verify failed for server_host_key");
@@ -365,7 +365,7 @@ kexgex_server(Kex *kex)
 	    dh->pub_key,
 	    shared_secret
 	);
-	BN_free(dh_client_pub);
+	BN_clear_free(dh_client_pub);
 
 	/* save session id := H */
 	/* XXX hashlen depends on KEX */
