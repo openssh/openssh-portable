@@ -163,7 +163,51 @@ sys_auth_passwd(Authctxt *ctxt, const char *password)
 
 	return authsuccess;
 }
-  
+
+/*
+ * Check if specified account is permitted to log in.
+ * Returns 1 if login is allowed, 0 if not allowed.
+ */
+int
+sys_auth_allowed_user(struct passwd *pw)
+{
+	char *msg = NULL;
+	int result, permitted = 0;
+	struct stat st;
+
+	/*
+	 * Don't perform checks for root account (PermitRootLogin controls
+	 * logins via * ssh) or if running as non-root user (since
+	 * loginrestrictions will always fail due to insufficient privilege).
+	 */
+	if (pw->pw_uid == 0 || geteuid() != 0) {
+		debug3("%s: not checking");
+		return 1;
+	}
+
+	result = loginrestrictions(pw->pw_name, S_RLOGIN, NULL, &msg);
+	if (result == 0)
+		permitted = 1;
+	/*
+	 * If restricted because /etc/nologin exists, the login will be denied
+	 * in session.c after the nologin message is sent, so allow for now
+	 * and do not append the returned message.
+	 */
+	if (result == -1 && errno == EPERM && stat(_PATH_NOLOGIN, &st) == 0)
+		permitted = 1;
+	else if (msg != NULL)
+		buffer_append(&loginmsg, msg, strlen(msg));
+	if (msg == NULL)
+		msg = xstrdup("(none)");
+	aix_remove_embedded_newlines(msg);
+	debug3("AIX/loginrestrictions returned %d msg %.100s", result, msg);
+
+	if (!permitted)
+		logit("Login restricted for %s: %.100s", pw->pw_name, msg);
+	xfree(msg);
+	return permitted;
+}
+
 #  ifdef CUSTOM_FAILED_LOGIN
 /*
  * record_failed_login: generic "login failed" interface function

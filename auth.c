@@ -203,31 +203,10 @@ allowed_user(struct passwd * pw)
 		ga_free();
 	}
 
-#ifdef WITH_AIXAUTHENTICATE
-	/*
-	 * Don't check loginrestrictions() for root account (use
-	 * PermitRootLogin to control logins via ssh), or if running as
-	 * non-root user (since loginrestrictions will always fail).
-	 */
-	if ((pw->pw_uid != 0) && (geteuid() == 0)) {
-		char *msg;
-
-		if (loginrestrictions(pw->pw_name, S_RLOGIN, NULL, &msg) != 0) {
-			int loginrestrict_errno = errno;
-
-			if (msg && *msg) {
-				buffer_append(&loginmsg, msg, strlen(msg));
-				aix_remove_embedded_newlines(msg);
-				logit("Login restricted for %s: %.100s",
-				    pw->pw_name, msg);
-			}
-			/* Don't fail if /etc/nologin  set */
-			if (!(loginrestrict_errno == EPERM &&
-			    stat(_PATH_NOLOGIN, &st) == 0))
-				return 0;
-		}
-	}
-#endif /* WITH_AIXAUTHENTICATE */
+#ifdef CUSTOM_SYS_AUTH_ALLOWED_USER
+	if (!sys_auth_allowed_user(pw))
+		return 0;
+#endif
 
 	/* We found no reason not to let this user try to log on... */
 	return 1;
