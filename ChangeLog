@@ -1,3 +1,9 @@
+20010912
+ - (bal) OpenBSD CVS Sync
+   - jakob@cvs.openbsd.org 2001/08/16 19:18:34
+     [servconf.c servconf.h session.c sshd.8]
+     deprecate CheckMail. ok markus@
+
 20010815
  - (bal) Fixed stray code in readconf.c that went in by mistake.
  - OpenBSD CVS Sync
@@ -6320,4 +6326,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1484 2001/08/16 00:09:49 mouring Exp $
+$Id: ChangeLog,v 1.1485 2001/09/12 16:32:14 mouring Exp $

@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: servconf.h,v 1.47 2001/06/26 17:27:24 markus Exp $"); */
+/* RCSID("$OpenBSD: servconf.h,v 1.48 2001/08/16 19:18:34 jakob Exp $"); */
 
 #ifndef SERVCONF_H
 #define SERVCONF_H
@@ -52,7 +52,6 @@ typedef struct {
 						 * for RhostsRsaAuth */
 	int     print_motd;	/* If true, print /etc/motd. */
 	int	print_lastlog;	/* If true, print lastlog */
-	int     check_mail;	/* If true, check for new mail. */
 	int     x11_forwarding;	/* If true, permit inet (spoofing) X11 fwd. */
 	int     x11_display_offset;	/* What DISPLAY number to start
 					 * searching at */

@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.88 2001/07/11 00:24:53 itojun Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.89 2001/08/16 19:18:34 jakob Exp $");
 
 #if defined(KRB4) || defined(KRB5)
 #include <krb.h>
@@ -56,7 +56,6 @@ initialize_server_options(ServerOptions *options)
 	options->ignore_user_known_hosts = -1;
 	options->print_motd = -1;
 	options->print_lastlog = -1;
-	options->check_mail = -1;
 	options->x11_forwarding = -1;
 	options->x11_display_offset = -1;
 	options->xauth_location = NULL;
@@ -138,8 +137,6 @@ fill_default_server_options(ServerOptions *options)
 		options->ignore_rhosts = 1;
 	if (options->ignore_user_known_hosts == -1)
 		options->ignore_user_known_hosts = 0;
-	if (options->check_mail == -1)
-		options->check_mail = 0;
 	if (options->print_motd == -1)
 		options->print_motd = 1;
 	if (options->print_lastlog == -1)
@@ -241,7 +238,7 @@ typedef enum {
 	sPasswordAuthentication, sKbdInteractiveAuthentication, sListenAddress,
 	sPrintMotd, sPrintLastLog, sIgnoreRhosts,
 	sX11Forwarding, sX11DisplayOffset,
-	sStrictModes, sEmptyPasswd, sKeepAlives, sCheckMail,
+	sStrictModes, sEmptyPasswd, sKeepAlives,
 	sUseLogin, sAllowTcpForwarding,
 	sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
 	sIgnoreUserKnownHosts, sCiphers, sMacs, sProtocol, sPidFile,
@@ -249,7 +246,7 @@ typedef enum {
 	sBanner, sReverseMappingCheck, sHostbasedAuthentication,
 	sHostbasedUsesNameFromPacketOnly, sClientAliveInterval, 
 	sClientAliveCountMax, sAuthorizedKeysFile, sAuthorizedKeysFile2,
-	sPAMAuthenticationViaKbdInt
+	sDeprecated, sPAMAuthenticationViaKbdInt
 } ServerOpCodes;
 
 /* Textual representation of the tokens. */
@@ -289,7 +286,7 @@ static struct {
 	{ "kbdinteractiveauthentication", sKbdInteractiveAuthentication },
 	{ "challengeresponseauthentication", sChallengeResponseAuthentication },
 	{ "skeyauthentication", sChallengeResponseAuthentication }, /* alias */
-	{ "checkmail", sCheckMail },
+	{ "checkmail", sDeprecated },
 	{ "listenaddress", sListenAddress },
 	{ "printmotd", sPrintMotd },
 	{ "printlastlog", sPrintLastLog },
@@ -625,10 +622,6 @@ parse_flag:
 			intptr = &options->kbd_interactive_authentication;
 			goto parse_flag;
 
-		case sCheckMail:
-			intptr = &options->check_mail;
-			goto parse_flag;
-
 		case sChallengeResponseAuthentication:
 			intptr = &options->challenge_response_authentication;
 			goto parse_flag;
@@ -841,6 +834,13 @@ parse_flag:
 		case sClientAliveCountMax:
 			intptr = &options->client_alive_count_max;
 			goto parse_int;
+
+		case sDeprecated:
+			log("%s line %d: Deprecated option %s",
+			    filename, linenum, arg);
+			while(arg)
+			    arg = strdelim(&cp);
+			break;
 
 		case sPAMAuthenticationViaKbdInt:
 			intptr = &options->pam_authentication_via_kbd_int;

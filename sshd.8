@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.139 2001/08/01 22:16:45 markus Exp $
+.\" $OpenBSD: sshd.8,v 1.140 2001/08/16 19:18:34 jakob Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -367,12 +367,6 @@ All authentication styles from
 are supported.
 The default is
 .Dq yes .
-.It Cm CheckMail
-Specifies whether
-.Nm
-should check for new mail for interactive logins.
-The default is
-.Dq no .
 .It Cm Ciphers
 Specifies the ciphers allowed for protocol version 2.
 Multiple ciphers must be comma-separated.

@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.99 2001/07/09 07:04:53 deraadt Exp $");
+RCSID("$OpenBSD: session.c,v 1.100 2001/08/16 19:18:34 jakob Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1459,25 +1459,6 @@ do_child(Session *s, const char *command)
 		if (!options.use_login) {
 			char buf[256];
 
-			/*
-			 * Check for mail if we have a tty and it was enabled
-			 * in server options.
-			 */
-			if (s->ttyfd != -1 && options.check_mail) {
-				char *mailbox;
-				struct stat mailstat;
-
-				mailbox = getenv("MAIL");
-				if (mailbox != NULL) {
-					if (stat(mailbox, &mailstat) != 0 ||
-					    mailstat.st_size == 0)
-						printf("No mail.\n");
-					else if (mailstat.st_mtime < mailstat.st_atime)
-						printf("You have mail.\n");
-					else
-						printf("You have new mail.\n");
-				}
-			}
 			/* Start the shell.  Set initial character to '-'. */
 			buf[0] = '-';
 			strncpy(buf + 1, cp, sizeof(buf) - 1);
