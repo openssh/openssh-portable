@@ -1,3 +1,6 @@
+20030614
+ - (djm) Update license on fake-rfc2553.[ch]; ok itojun@
+
 20030611
  - (djm) Mention portable copyright holders in LICENSE
  - (djm) Put licenses on substantial header files
@@ -509,4 +512,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2800 2003/06/11 12:51:32 djm Exp $
+$Id: ChangeLog,v 1.2801 2003/06/13 22:43:22 djm Exp $
