@@ -158,7 +158,7 @@
 #include "log.h"
 #include "atomicio.h"
 
-RCSID("$Id: loginrec.c,v 1.58 2004/08/15 09:12:52 djm Exp $");
+RCSID("$Id: loginrec.c,v 1.59 2004/08/23 11:53:28 djm Exp $");
 
 #ifdef HAVE_UTIL_H
 #  include <util.h>
@@ -832,12 +832,12 @@ utmp_write_direct(struct logininfo *li, struct utmp *ut)
 
 		pos = (off_t)tty * sizeof(struct utmp);
 		if ((ret = lseek(fd, pos, SEEK_SET)) == -1) {
-			logit("%s: llseek: %s", strerror(errno));
+			logit("%s: lseek: %s", __func__, strerror(errno));
 			return (0);
 		}
 		if (ret != pos) {
-			logit("%s: Couldn't seek to tty %s slot in %s", tty,
-			    UTMP_FILE);
+			logit("%s: Couldn't seek to tty %d slot in %s", 
+			    __func__, tty, UTMP_FILE);
 			return (0);
 		}
 		/*
@@ -853,11 +853,11 @@ utmp_write_direct(struct logininfo *li, struct utmp *ut)
 		}
 
 		if ((ret = lseek(fd, pos, SEEK_SET)) == -1) {
-			logit("%s: llseek: %s", __func__, strerror(errno));
+			logit("%s: lseek: %s", __func__, strerror(errno));
 			return (0);
 		}
 		if (ret != pos) {
-			logit("%s: Couldn't seek to tty %s slot in %s",
+			logit("%s: Couldn't seek to tty %d slot in %s",
 			    __func__, tty, UTMP_FILE);
 			return (0);
 		}

@@ -1,6 +1,8 @@
 20040823
  - (djm) [ssh-rand-helper.c] Typo. Found by 
    Martin.Kraemer AT Fujitsu-Siemens.com
+ - (djm) [loginrec.c] Typo and bad args in error messages; Spotted by 
+   Martin.Kraemer AT Fujitsu-Siemens.com
 
 20040817
  - (dtucker) [regress/README.regress] Note compatibility issues with GNU head.
@@ -1658,4 +1660,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3518 2004/08/23 11:52:08 djm Exp $
+$Id: ChangeLog,v 1.3519 2004/08/23 11:53:28 djm Exp $
