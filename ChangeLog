@@ -10,6 +10,9 @@
    - djm@cvs.openbsd.org 2002/02/05 00:00:46
      [sftp.1 sftp.c sftp-client.c sftp-client.h sftp-int.c]
      Add "-B" option to specify copy buffer length (default 32k); ok markus@
+   - markus@cvs.openbsd.org 2002/02/05 14:32:55
+     [channels.c channels.h ssh.c]
+     merge channel_request() into channel_request_start()
 
 20020205
  - (djm) Cleanup after sync:
@@ -7516,4 +7519,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1830 2002/02/08 11:04:05 djm Exp $
+$Id: ChangeLog,v 1.1831 2002/02/08 11:04:26 djm Exp $
