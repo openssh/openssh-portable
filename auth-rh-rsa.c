@@ -13,10 +13,9 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rh-rsa.c,v 1.28 2002/01/29 14:32:03 markus Exp $");
+RCSID("$OpenBSD: auth-rh-rsa.c,v 1.29 2002/03/04 12:43:06 markus Exp $");
 
 #include "packet.h"
-#include "xmalloc.h"
 #include "uidswap.h"
 #include "log.h"
 #include "servconf.h"
