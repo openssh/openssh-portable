@@ -1,3 +1,27 @@
+19991125
+ - More reformatting merged from OpenBSD CVS
+ - Merged OpenBSD CVS changes:
+   - [channels.c]
+     fix packet_integrity_check() for !have_hostname_in_open.
+     report from mrwizard@psu.edu via djm@ibs.com.au
+   - [channels.c]
+     set SO_REUSEADDR and SO_LINGER for forwarded ports.
+     chip@valinux.com via damien@ibs.com.au
+   - [nchan.c]
+     it's not an error() if shutdown_write failes in nchan.
+   - [readconf.c]
+     remove dead #ifdef-0-code
+   - [readconf.c servconf.c]
+     strcasecmp instead of tolower
+   - [scp.c]
+     progress meter overflow fix from damien@ibs.com.au
+   - [ssh-add.1 ssh-add.c]
+     SSH_ASKPASS support
+   - [ssh.1 ssh.c]
+     postpone fork_after_authentication until command execution,
+     request/patch from jahakala@cc.jyu.fi via damien@ibs.com.au
+     plus: use daemon() for backgrounding
+
 19991124
  - Merged very large OpenBSD source code reformat
  - OpenBSD CVS updates
