@@ -256,6 +256,14 @@ auth_log(Authctxt *authctxt, int authenticated, char *method, char *info)
 	    get_remote_ipaddr(),
 	    get_remote_port(),
 	    info);
+
+#ifdef WITH_AIXAUTHENTICATE
+	if (authenticated == 0 && strcmp(method, "password") == 0)
+	    loginfailed(authctxt->user,
+		get_canonical_hostname(options.verify_reverse_mapping),
+		"ssh");
+#endif /* WITH_AIXAUTHENTICATE */
+
 }
 
 /*

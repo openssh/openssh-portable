@@ -232,12 +232,6 @@ userauth_finish(Authctxt *authctxt, int authenticated, char *method)
 		authctxt->success = 1;
 	} else {
 		if (authctxt->failures++ > AUTH_FAIL_MAX) {
-#ifdef WITH_AIXAUTHENTICATE
-			/* XXX: privsep */
-			loginfailed(authctxt->user,
-			    get_canonical_hostname(options.verify_reverse_mapping),
-			    "ssh");
-#endif /* WITH_AIXAUTHENTICATE */
 			packet_disconnect(AUTH_FAIL_MSG, authctxt->user);
 		}
 		methods = authmethods_get();
