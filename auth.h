@@ -1,5 +1,4 @@
-/*	$OpenBSD: auth.h,v 1.41 2002/09/26 11:38:43 markus Exp $	*/
-/*	$FreeBSD: src/crypto/openssh/auth.h,v 1.10 2003/03/31 13:45:36 des Exp $	*/
+/*	$OpenBSD: auth.h,v 1.42 2003/04/16 14:35:27 markus Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -49,13 +48,13 @@ typedef struct KbdintDevice KbdintDevice;
 
 struct Authctxt {
 	int		 success;
-	int		 postponed;
-	int		 valid;
+	int		 postponed;	/* authentication needs another step */
+	int		 valid;		/* user exists and is allowed to login */
 	int		 attempt;
 	int		 failures;
-	char		*user;
+	char		*user;		/* username sent by the client */
 	char		*service;
-	struct passwd	*pw;
+	struct passwd	*pw;		/* set if 'valid' */
 	char		*style;
 	void		*kbdintctxt;
 #ifdef BSD_AUTH
@@ -72,6 +71,12 @@ struct Authctxt {
 	char		*krb5_ticket_file;
 #endif
 };
+/*
+ * Every authentication method has to handle authentication requests for
+ * non-existing users, or for users that are not allowed to login. In this
+ * case 'valid' is set to 0, but 'user' points to the username requested by
+ * the client.
+ */
 
 struct Authmethod {
 	char	*name;
