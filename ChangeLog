@@ -48,6 +48,9 @@
    - stevesk@cvs.openbsd.org 2002/08/29 16:09:02
      [ssh_config.5]
      more on UsePrivilegedPort and setuid root; ok markus@
+   - stevesk@cvs.openbsd.org 2002/08/29 19:49:42
+     [ssh.c]
+     shrink initial privilege bracket for setuid case; ok markus@
 
 20020820
  - OpenBSD CVS Sync
@@ -1589,4 +1592,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2440 2002/09/04 06:47:35 djm Exp $
+$Id: ChangeLog,v 1.2441 2002/09/04 06:50:06 djm Exp $
