@@ -1,4 +1,8 @@
 20001215
+ - (stevesk) Old OpenBSD patch wasn't completely applied:
+   - markus@cvs.openbsd.org 2000/01/24 22:11:20
+     [scp.c]
+     allow '.' in usernames; from jedgar@fxp.org
  - (stevesk) OpenBSD CVS updates:
    - markus@cvs.openbsd.org 2000/12/13 16:26:53
      [ssh-keyscan.c]
