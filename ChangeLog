@@ -1,7 +1,25 @@
+20001215
+ - (stevesk) OpenBSD CVS updates:
+   - markus@cvs.openbsd.org 2000/12/13 16:26:53
+     [ssh-keyscan.c]
+     fatal already adds \n; from stevesk@pobox.com
+   - markus@cvs.openbsd.org 2000/12/13 16:25:44
+     [ssh-agent.c]
+     remove redundant spaces; from stevesk@pobox.com
+   - ho@cvs.openbsd.org 2000/12/12 15:50:21
+     [pty.c]
+     When failing to set tty owner and mode on a read-only filesystem, don't
+     abort if the tty already has correct owner and reasonably sane modes.
+     Example; permit 'root' to login to a firewall with read-only root fs.
+     (markus@ ok)
+   - deraadt@cvs.openbsd.org 2000/12/13 06:36:05
+     [pty.c]
+     KNF
+
 20001213
  - (djm) Make sure we reset the SIGPIPE disposition after we fork. Report
    from Andreas M. Kirchwitz <amk@krell.zikzak.de>
- - (stevesk) OpenSSH CVS update:
+ - (stevesk) OpenBSD CVS update:
    - markus@cvs.openbsd.org 2000/12/12 15:30:02
      [ssh-keyscan.c ssh.c sshd.c]
      consistently use __progname; from stevesk@pobox.com	
@@ -62,7 +80,7 @@
      tweak comment to reflect real location of pid file; ok provos@
  - (stevesk) Import <sys/queue.h> from OpenBSD for systems that don't
    have it (used in ssh-keyscan).
- - (stevesk) OpenSSH CVS update:
+ - (stevesk) OpenBSD CVS update:
    - markus@cvs.openbsd.org 2000/12/06 19:57:48
      [ssh-keyscan.c]
      err(3) -> internal error(), from stevesk@sweden.hp.com

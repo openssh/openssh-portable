@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: pty.c,v 1.16 2000/09/07 21:13:37 markus Exp $");
+RCSID("$OpenBSD: pty.c,v 1.18 2000/12/13 06:36:05 deraadt Exp $");
 
 #ifdef HAVE_UTIL_H
 # include <util.h>
@@ -291,6 +291,7 @@ pty_setowner(struct passwd *pw, const char *ttyname)
 	struct group *grp;
 	gid_t gid;
 	mode_t mode;
+	struct stat st;
 
 	/* Determine the group to make the owner of the tty. */
 	grp = getgrnam("tty");
@@ -302,11 +303,36 @@ pty_setowner(struct passwd *pw, const char *ttyname)
 		mode = S_IRUSR | S_IWUSR | S_IWGRP | S_IWOTH;
 	}
 
-	/* Change ownership of the tty. */
-	if (chown(ttyname, pw->pw_uid, gid) < 0)
-		fatal("chown(%.100s, %d, %d) failed: %.100s",
-		    ttyname, pw->pw_uid, gid, strerror(errno));
-	if (chmod(ttyname, mode) < 0)
-		fatal("chmod(%.100s, 0%o) failed: %.100s",
-		    ttyname, mode, strerror(errno));
+	/*
+	 * Change owner and mode of the tty as required.
+	 * Warn but continue if filesystem is read-only and the uids match.
+	 */
+	if (stat(ttyname, &st))
+		fatal("stat(%.100s) failed: %.100s", ttyname,
+		    strerror(errno));
+
+	if (st.st_uid != pw->pw_uid || st.st_gid != gid) {
+		if (chown(ttyname, pw->pw_uid, gid) < 0) {
+			if (errno == EROFS && st.st_uid == pw->pw_uid)
+				error("chown(%.100s, %d, %d) failed: %.100s",
+				      ttyname, pw->pw_uid, gid, 
+				      strerror(errno));
+			else
+				fatal("chown(%.100s, %d, %d) failed: %.100s",
+				      ttyname, pw->pw_uid, gid, 
+				      strerror(errno));
+		}
+	}
+
+	if ((st.st_mode & (S_IRWXU|S_IRWXG|S_IRWXO)) != mode) {
+		if (chmod(ttyname, mode) < 0) {
+			if (errno == EROFS &&
+			    (st.st_mode & (S_IRGRP | S_IROTH)) == 0)
+				error("chmod(%.100s, 0%o) failed: %.100s",
+				      ttyname, mode, strerror(errno));
+			else
+				fatal("chmod(%.100s, 0%o) failed: %.100s",
+				      ttyname, mode, strerror(errno));
+		}
+	}
 }
