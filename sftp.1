@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.5 2001/02/07 18:10:39 stevesk Exp $
+.\" $OpenBSD: sftp.1,v 1.6 2001/02/10 00:45:52 djm Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller. All rights reserved.
 .\"
@@ -64,7 +64,8 @@ Once in interactive mode,
 .Nm
 understands a set of commands similar to those of 
 .Xr ftp 1 .
-Commands are case insensitive.
+Commands are case insensitive and pathnames may be enclosed in quotes if they
+contain spaces.
 .Bl -tag -width Ds
 .It Ic cd Ar path
 Change remote directory to 
