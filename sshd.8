@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.202 2004/08/26 16:00:55 markus Exp $
+.\" $OpenBSD: sshd.8,v 1.203 2004/12/06 11:41:03 dtucker Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -420,7 +420,9 @@ or
 .Dq ssh-rsa .
 .Pp
 Note that lines in this file are usually several hundred bytes long
-(because of the size of the public key encoding).
+(because of the size of the public key encoding) up to a limit of
+8 kilobytes, which permits DSA keys up to 8 kilobits and RSA
+keys up to 16 kilobits.
 You don't want to type them in; instead, copy the
 .Pa identity.pub ,
 .Pa id_dsa.pub

@@ -17,6 +17,10 @@
      - describe ls flags as a list
      - other minor improvements
      ok jmc, djm
+   - dtucker@cvs.openbsd.org 2004/12/06 11:41:03
+     [auth-rsa.c auth2-pubkey.c authfile.c misc.c misc.h ssh.h sshd.8]
+     Discard over-length authorized_keys entries rather than complaining when
+     they don't decode.  bz #884, with & ok djm@
 
 20041203
  - (dtucker) OpenBSD CVS Sync
@@ -1890,4 +1894,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3589 2004/12/06 11:46:45 dtucker Exp $
+$Id: ChangeLog,v 1.3590 2004/12/06 11:47:41 dtucker Exp $

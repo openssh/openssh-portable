@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfile.c,v 1.58 2004/08/23 11:48:09 djm Exp $");
+RCSID("$OpenBSD: authfile.c,v 1.59 2004/12/06 11:41:03 dtucker Exp $");
 
 #include <openssl/err.h>
 #include <openssl/evp.h>
@@ -601,13 +601,14 @@ static int
 key_try_load_public(Key *k, const char *filename, char **commentp)
 {
 	FILE *f;
-	char line[4096];
+	char line[SSH_MAX_PUBKEY_BYTES];
 	char *cp;
+	int linenum = 0;
 
 	f = fopen(filename, "r");
 	if (f != NULL) {
-		while (fgets(line, sizeof(line), f)) {
-			line[sizeof(line)-1] = '\0';
+		while (read_keyfile_line(f, filename, line, sizeof(line),
+			    &linenum) != -1) {
 			cp = line;
 			switch (*cp) {
 			case '#':
