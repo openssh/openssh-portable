@@ -12,6 +12,8 @@
      VerifyReverseMapping check; with itojun@, provos@, jakob@ and deraadt@
      ok deraadt@, djm@
  - (djm) Fix portable-specific uses of verify_reverse_mapping too
+ - (djm) Sync openbsd-compat with OpenBSD CVS. 
+    - No more 4-term BSD licenses in our tree
 
 20030602
  - (djm) Fix segv from bad reordering in auth-pam.c
@@ -1659,4 +1661,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2765 2003/06/03 00:25:48 djm Exp $
+$Id: ChangeLog,v 1.2766 2003/06/03 02:12:50 djm Exp $
