@@ -699,7 +699,7 @@ usage()
 {
 	fprintf(stderr, "ssh-agent version %s\n", SSH_VERSION);
 	fprintf(stderr, "Usage: %s [-c | -s] [-k] [command {args...]]\n",
-            __progname);
+	    __progname);
 	exit(1);
 }
 
