@@ -1,6 +1,7 @@
 AC_INIT(ssh.c)
 
 AC_CONFIG_HEADER(config.h)
+AC_PROG_CC
 AC_CANONICAL_HOST
 
 # C Compiler features
@@ -8,7 +9,6 @@ if test "$GCC" = "yes"; then CFLAGS="$CFLAGS -Wall"; fi
 AC_C_INLINE
 
 # Checks for programs.
-AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_RANLIB
 AC_PROG_INSTALL
