@@ -1,3 +1,7 @@
+20000609
+ - (djm) Patch from Kenji Miyake <kenji@miyake.org> to disable utmp usage
+   (in favour of utmpx) on Solaris 8
+
 20000606
  - (djm) Cleanup of entropy.c. Reorganised code, removed second pass through
    list of commands (by default). Removed verbose debugging (by default).

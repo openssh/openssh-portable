@@ -106,6 +106,15 @@ case "$host" in
 	need_dash_r=1
 	# hardwire lastlog location (can't detect it on some versions)
 	conf_lastlog_location="/var/adm/lastlog"
+	AC_MSG_CHECKING(for obsolete utmp and wtmp in solaris2.x)
+	sol2ver=`echo "$host"| sed -e 's/.*[[0-9]]\.//'`
+	if test "$sol2ver" -ge 8; then
+		AC_MSG_RESULT(yes)
+		AC_DEFINE(DISABLE_UTMP)
+		AC_DEFINE(DISABLE_WTMP)
+	else
+		AC_MSG_RESULT(no)
+	fi
 	;;
 *-*-sunos4*)
 	CFLAGS="$CFLAGS -DSUNOS4"
