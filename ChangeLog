@@ -23,6 +23,8 @@
     - OpenSSH-2.1
  - Moved all the bsd-* and fake-* stuff into new libopenbsd-compat.a
  - Doc updates
+ - Cleanup of bsd-base64 headers, bugfix definitions of __b64_*. Reported 
+   by Andre Lucas <andre.lucas@dial.pipex.com>
 
 20000508
  - Makefile and RPM spec fixes
