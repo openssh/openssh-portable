@@ -9,6 +9,7 @@
      [sshconnect.c]
      strict_host_key_checking for host_status != HOST_CHANGED && 
      ip_status == HOST_CHANGED
+ - (bal) authfile.c: Synced CVS ID tag 
 
 20010102
  - (bal) OpenBSD CVS Update
