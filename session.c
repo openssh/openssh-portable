@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.107 2001/10/10 22:18:47 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.108 2001/10/11 13:45:21 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1865,6 +1865,9 @@ session_pty_cleanup(void *session)
 	 */
 	if (close(s->ptymaster) < 0)
 		error("close(s->ptymaster): %s", strerror(errno));
+
+	/* unlink pty from session */
+	s->ttyfd = -1;
 }
 
 static void
@@ -1963,8 +1966,15 @@ session_close_by_channel(int id, void *arg)
 	}
 	debug("session_close_by_channel: channel %d child %d", id, s->pid);
 	if (s->pid != 0) {
-		/* delay detach */
 		debug("session_close_by_channel: channel %d: has child", id);
+		/*
+		 * delay detach of session, but release pty, since
+		 * the fd's to the child are already closed
+		 */
+		if (s->ttyfd != -1) {
+			fatal_remove_cleanup(session_pty_cleanup, (void *)s);
+			session_pty_cleanup(s);
+		}
 		return;
 	}
 	/* detach by removing callback */
