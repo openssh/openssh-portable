@@ -12,6 +12,9 @@
 /* Define if you want to disable PAM support */
 #undef DISABLE_PAM
 
+/* Define if you want to disable AIX4's authenticate function */
+#undef WITH_AIXAUTHENTICATE
+
 /* Define if you want to disable lastlog support */
 #undef DISABLE_LASTLOG
 
@@ -29,6 +32,12 @@
 
 /* Define if using the Dante SOCKS library. */
 #undef HAVE_DANTE
+
+/* Define if using the Socks4 SOCKS library. */
+#undef HAVE_SOCKS4
+
+/* Define if using the Socks5 SOCKS library. */
+#undef HAVE_SOCKS5
 
 /* Define if you want to install preformatted manpages.*/
 #undef MANTYPE

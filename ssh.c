@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: ssh.c,v 1.17 2000/01/19 03:36:49 damien Exp $");
+RCSID("$Id: ssh.c,v 1.18 2000/01/22 23:32:04 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -216,6 +216,10 @@ main(int ac, char **av)
 
 	/* Save our own name. */
 	av0 = av[0];
+
+#ifdef SOCKS
+	SOCKSinit(av0);
+#endif /* SOCKS */
 
 	/* Initialize option structure to indicate that no values have been set. */
 	initialize_options(&options);

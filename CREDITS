@@ -15,7 +15,7 @@ Chun-Chung Chen <cjj@u.washington.edu> - RPM fixes
 Dan Brosemer <odin@linuxfreak.com> - Autoconf support, build fixes
 Darren Hall <dhall@virage.org> - AIX patches
 David Agraz <dagraz@jahoopa.com> - Build fixes
-David Rankin <drankin@bohemians.lexington.ky.us> - libwrap, NetBSD fixes
+David Rankin <drankin@bohemians.lexington.ky.us> - libwrap, AIX, NetBSD fixes
 Gary E. Miller <gem@rellim.com> - SCO support
 Holger Trapp <Holger.Trapp@Informatik.TU-Chemnitz.DE> - KRB4/AFS config patch
 Jani Hakala <jahakala@cc.jyu.fi> - Patches
@@ -26,6 +26,7 @@ Juergen Keil <jk@tools.de> - scp bugfixing
 Kees Cook <cook@cpoint.net> - scp fixes
 Kiyokazu SUTO <suto@ks-and-ks.ne.jp> - Bugfixes
 Marc G. Fournier <marc.fournier@acadiau.ca> - Solaris patches
+Matt Richards <v2matt@btv.ibm.com> - AIX patches
 Nalin Dahyabhai <nalin.dahyabhai@pobox.com> - PAM environment patch
 Niels Kristian Bech Jensen <nkbj@image.dk> - Assorted patches
 Peter Kocks <peter.kocks@baygate.com> - Makefile fixes

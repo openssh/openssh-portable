@@ -13,7 +13,7 @@
  * 
  */
 
-/* RCSID("$Id: ssh.h,v 1.24 2000/01/14 04:45:52 damien Exp $"); */
+/* RCSID("$Id: ssh.h,v 1.25 2000/01/22 23:32:04 damien Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -752,7 +752,7 @@ extern int IPv4or6;
 #include "auth-pam.h"
 #endif /* USE_PAM */
 
-#ifdef HAVE_DANTE
+#if defined(HAVE_DANTE) || defined(HAVE_SOCKS4)
 /*
  * The following defines map the normal socket operations to SOCKSified
  * versions coming from the Dante SOCKS package.
@@ -795,6 +795,54 @@ ssize_t Rsendto (int, const void *,
             size_t, int, const struct sockaddr *, socklen_t);
 ssize_t Rwrite(int , const void *, size_t );
 ssize_t Rwritev(int , const struct iovec *, int );
-#endif /* HAVE_DANTE */
+#endif /* HAVE_DANTE || HAVE_SOCKS4 */
 
+#if defined(HAVE_SOCKS5) 
+/*
+ * The following defines map the normal socket operations to SOCKSified
+ * versions coming from the SOCKS package.
+ */
+#define accept SOCKSaccept
+#define bind SOCKSbind
+#define bindresvport SOCKSbindresvport
+#define connect SOCKSconnect
+#define gethostbyname SOCKSgethostbyname
+#define gethostbyname2 SOCKSgethostbyname2
+#define getpeername SOCKSgetpeername
+#define getsockname SOCKSgetsockname
+#define read SOCKSread
+#define readv SOCKSreadv
+#define recv SOCKSrecv
+#define recvmsg SOCKSrecvmsg
+#define recvfrom SOCKSrecvfrom
+#define rresvport SOCKSrresvport
+#define send SOCKSsend
+#define sendmsg SOCKSsendmsg
+#define sendto SOCKSsendto
+#define write SOCKSwrite
+#define writev SOCKSwritev
+int     SOCKSaccept (int, struct sockaddr *, socklen_t *);
+int     SOCKSbind (int, const struct sockaddr *, socklen_t);
+int	SOCKSbindresvport(int , struct sockaddr_in *);
+int     SOCKSconnect (int, const struct sockaddr *, socklen_t);
+struct hostent *SOCKSgethostbyname(const char *);
+struct hostent *SOCKSgethostbyname2(const char *, int);
+int     SOCKSgetpeername (int, struct sockaddr *, socklen_t *);
+int     SOCKSgetsockname (int, struct sockaddr *, socklen_t *);
+ssize_t SOCKSread(int , void *, size_t );
+ssize_t SOCKSreadv(int d, const struct iovec *iov, int iovcnt);
+ssize_t SOCKSrecv (int, void *, size_t, int);
+ssize_t SOCKSrecvfrom (int, void *, size_t, int, struct sockaddr *,
+            socklen_t *);
+ssize_t SOCKSsend (int, const void *, size_t, int);
+ssize_t SOCKSsendmsg (int, const struct msghdr *, int);
+ssize_t SOCKSsendto (int, const void *,
+            size_t, int, const struct sockaddr *, socklen_t);
+ssize_t SOCKSwrite(int , const void *, size_t );
+ssize_t SOCKSwritev(int , const struct iovec *, int );
+#endif /* SOCKS5 */
+
+#if defined(DANTE) || defined(SOCKS4) || defined(SOCKS5)
+#define SOCKS
+#endif /* defined(DANTE) || defined(SOCKS4) || defined(SOCKS5) */
 #endif				/* SSH_H */

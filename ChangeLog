@@ -2,6 +2,8 @@
  - OpenBSD CVS:
    - [packet.c]
      getsockname() requires initialized tolen; andy@guildsoftware.com
+ - AIX patch from Matt Richards <v2matt@btv.ibm.com> and David Rankin 
+   <drankin@bohemians.lexington.ky.us>
 
 20000122
  - Fix compilation of bsd-snprintf.c on Solaris, fix from Ben Taylor

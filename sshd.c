@@ -1099,6 +1099,9 @@ allowed_user(struct passwd * pw)
 {
 	struct group *grp;
 	int i;
+#ifdef WITH_AIXAUTHENTICATE
+	char *loginmsg;
+#endif /* WITH_AIXAUTHENTICATE */
 
 	/* Shouldn't be called if pw is NULL, but better safe than sorry... */
 	if (!pw)
@@ -1155,6 +1158,12 @@ allowed_user(struct passwd * pw)
 				return 0;
 		}
 	}
+
+#ifdef WITH_AIXAUTHENTICATE
+	if (loginrestrictions(pw->pw_name,S_LOGIN,NULL,&loginmsg) != 0)
+		return 0;
+#endif /* WITH_AIXAUTHENTICATE */
+
 	/* We found no reason not to let this user try to log on... */
 	return 1;
 }
@@ -1178,6 +1187,10 @@ do_authentication()
 	packet_integrity_check(plen, (4 + ulen), SSH_CMSG_USER);
 
 	setproctitle("%s", user);
+
+#ifdef WITH_AIXAUTHENTICATE
+	char *loginmsg;
+#endif /* WITH_AIXAUTHENTICATE */
 
 #ifdef AFS
 	/* If machine has AFS, set process authentication group. */
@@ -1244,6 +1257,9 @@ do_authentication()
 					  get_canonical_hostname());
 	}
 	/* The user has been authenticated and accepted. */
+#ifdef WITH_AIXAUTHENTICATE
+	loginsuccess(user,get_canonical_hostname(),"ssh",&loginmsg);
+#endif /* WITH_AIXAUTHENTICATE */
 	packet_start(SSH_SMSG_SUCCESS);
 	packet_send();
 	packet_write_wait();
@@ -1498,8 +1514,7 @@ do_authloop(struct passwd * pw)
 
 		if (authenticated) {
 #ifdef USE_PAM
-			if (!do_pam_account(pw->pw_name, client_user))
-			{
+			if (!do_pam_account(pw->pw_name, client_user)) {
 				if (client_user != NULL)
 					xfree(client_user);
 
@@ -1582,6 +1597,11 @@ do_fake_authloop(char *user)
 		packet_start(SSH_SMSG_FAILURE);
 		packet_send();
 		packet_write_wait();
+#ifdef WITH_AIXAUTHENTICATE 
+		if (strncmp(get_authname(type),"password",
+		    strlen(get_authname(type))) == 0)
+			loginfailed(pw->pw_name,get_canonical_hostname(),"ssh");
+#endif /* WITH_AIXAUTHENTICATE */
 	}
 	/* NOTREACHED */
 	abort();
@@ -2423,6 +2443,18 @@ do_child(const char *command, struct passwd * pw, const char *term,
 	if (display)
 		child_set_env(&env, &envsize, "DISPLAY", display);
 
+#ifdef _AIX
+	{
+           char *authstate,*krb5cc;
+
+	   if ((authstate = getenv("AUTHSTATE")) != NULL)
+		 child_set_env(&env,&envsize,"AUTHSTATE",authstate);
+
+	   if ((krb5cc = getenv("KRB5CCNAME")) != NULL)
+		 child_set_env(&env,&envsize,"KRB5CCNAME",krb5cc);
+	}
+#endif
+
 #ifdef KRB4
 	{
 		extern char *ticket;
@@ -2443,6 +2475,8 @@ do_child(const char *command, struct passwd * pw, const char *term,
 	if (auth_get_socket_name() != NULL)
 		child_set_env(&env, &envsize, SSH_AUTHSOCKET_ENV_NAME,
 			      auth_get_socket_name());
+
+	read_environment_file(&env,&envsize,"/etc/environment");
 
 	/* read $HOME/.ssh/environment. */
 	if (!options.use_login) {

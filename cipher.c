@@ -12,10 +12,11 @@
  */
 
 #include "includes.h"
-RCSID("$Id: cipher.c,v 1.11 1999/12/14 22:34:31 damien Exp $");
+RCSID("$Id: cipher.c,v 1.12 2000/01/22 23:32:03 damien Exp $");
 
 #include "ssh.h"
 #include "cipher.h"
+#include "config.h"
 
 #ifdef HAVE_OPENSSL
 #include <openssl/md5.h>
