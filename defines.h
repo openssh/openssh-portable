@@ -34,6 +34,10 @@
 # include <sys/cdefs.h> /* For __P() */
 #endif 
 
+#ifdef HAVE_SYS_SYSMACROS_H
+# include <sys/sysmacros.h> /* For MIN, MAX, etc */
+#endif
+
 /* Constants */
 
 #ifndef SHUT_RDWR

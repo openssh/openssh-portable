@@ -6,15 +6,19 @@
    - [sshconnect.c]
      - disable agent fwding for proto 1.3, remove abuse of auth-rsa flags.
      - destroy keys earlier
-     - split key exchange (kex) and user authentication (user-auth), ok: provos@
+     - split key exchange (kex) and user authentication (user-auth), 
+       ok: provos@
    - [sshd.c]
      - no need for poll.h; from bright@wintelcom.net
      - disable agent fwding for proto 1.3, remove abuse of auth-rsa flags.
-     - split key exchange (kex) and user authentication (user-auth), ok: provos@
+     - split key exchange (kex) and user authentication (user-auth), 
+       ok: provos@
  - Big manpage and config file cleanup from Andre Lucas
    <andre.lucas@dial.pipex.com>
    - Re-added latest (unmodified) OpenBSD manpages
  - Doc updates
+ - NetBSD patch from David Rankin <drankin@bohemians.lexington.ky.us> and
+   Christos Zoulas <christos@netbsd.org>
 
 20000119
  - SCO compile fixes from Gary E. Miller <gem@rellim.com>

@@ -51,6 +51,31 @@ if test "$GCC" = "yes"; then CFLAGS="$CFLAGS -Wall"; fi
 
 AC_C_INLINE
 
+dnl Check for OpenSSL/SSLeay directories.
+AC_MSG_CHECKING([for OpenSSL/SSLeay directory])
+for ssldir in $prefix /usr /usr/local/openssl /usr/lib/openssl /usr/local/ssl /usr/lib/ssl /usr/local $prefix /usr/pkg ; do
+	if test -f "$ssldir/include/openssl/crypto.h"; then
+		AC_DEFINE(HAVE_OPENSSL)
+		GOT_SSL="yes"
+		break
+	fi
+	if test -f "$ssldir/include/ssl/crypto.h"; then
+		AC_DEFINE(HAVE_SSL)
+		GOT_SSL="yes"
+		break
+	fi
+done
+if test -z "$GOT_SSL" ; then
+	AC_MSG_ERROR([Could not find SSLeay / OpenSSL libraries, please install])	
+fi
+AC_SUBST(ssldir)
+AC_DEFINE_UNQUOTED(ssldir, "$ssldir")
+if test "$ssldir" != "/usr"; then
+	CFLAGS="$CFLAGS -I$ssldir/include"
+	LDFLAGS="$LDFLAGS -L$ssldir/lib"
+fi
+AC_MSG_RESULT($ssldir)
+
 dnl Check for some target-specific stuff
 case "$host" in
 *-*-aix*)
@@ -87,6 +112,11 @@ case "$host" in
 *-*-linux*)
 	no_dev_ptmx=1
 	;;
+*-*-netbsd*)
+	if test "$GOT_SSL" = "yes"; then
+		LDFLAGS="$LDFLAGS -R$ssldir/lib"
+	fi
+	;;
 *-*-solaris*)
 	AC_DEFINE(USE_UTMPX)
 	;;
@@ -94,31 +124,6 @@ case "$host" in
 	LIBS="$LIBS -lgen -lsocket"
 	;;
 esac
-
-dnl Check for OpenSSL/SSLeay directories.
-AC_MSG_CHECKING([for OpenSSL/SSLeay directory])
-for ssldir in $prefix /usr /usr/local/openssl /usr/lib/openssl /usr/local/ssl /usr/lib/ssl /usr/local $prefix /usr/pkg ; do
-	if test -f "$ssldir/include/openssl/crypto.h"; then
-		AC_DEFINE(HAVE_OPENSSL)
-		GOT_SSL="yes"
-		break
-	fi
-	if test -f "$ssldir/include/ssl/crypto.h"; then
-		AC_DEFINE(HAVE_SSL)
-		GOT_SSL="yes"
-		break
-	fi
-done
-if test -z "$GOT_SSL" ; then
-	AC_MSG_ERROR([Could not find SSLeay / OpenSSL libraries, please install])	
-fi
-AC_SUBST(ssldir)
-AC_DEFINE_UNQUOTED(ssldir, "$ssldir")
-if test "$ssldir" != "/usr"; then
-	CFLAGS="$CFLAGS -I$ssldir/include"
-	LDFLAGS="$LDFLAGS -L$ssldir/lib"
-fi
-AC_MSG_RESULT($ssldir)
 
 dnl Check for RSAref library.
 AC_MSG_CHECKING([for RSAref library])
