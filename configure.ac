@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.257 2005/03/21 11:46:34 dtucker Exp $
+# $Id: configure.ac,v 1.258 2005/04/05 09:22:45 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -1020,7 +1020,9 @@ if test "x$ac_cv_func_getpeereid" != "xyes" ; then
 		[#include <sys/types.h>
 		 #include <sys/socket.h>],
 		[int i = SO_PEERCRED;],
-		[AC_MSG_RESULT(yes)],
+		[ AC_MSG_RESULT(yes)
+		  AC_DEFINE(HAVE_SO_PEERCRED, [], [Have PEERCRED socket option])
+		],
 		[AC_MSG_RESULT(no)
 		NO_PEERCHECK=1]
         )

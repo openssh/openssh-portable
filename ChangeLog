@@ -1,3 +1,6 @@
+20050405
+ - (dtucker) [configure.ac] Define HAVE_SO_PEERCRED if we have it.  ok djm@
+
 20050403
  - (djm) OpenBSD CVS Sync
    - deraadt@cvs.openbsd.org 2005/03/31 18:39:21
@@ -2420,4 +2423,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3737 2005/04/03 02:44:23 dtucker Exp $
+$Id: ChangeLog,v 1.3738 2005/04/05 09:22:45 dtucker Exp $
