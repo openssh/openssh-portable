@@ -18,7 +18,7 @@ Modified to work with SSL by Niels Provos <provos@citi.umich.edu> in Canada.
 */
 
 #include "includes.h"
-RCSID("$Id: ssh.c,v 1.3 1999/10/28 05:23:30 damien Exp $");
+RCSID("$Id: ssh.c,v 1.4 1999/10/30 01:39:56 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -213,7 +213,6 @@ main(int ac, char **av)
   else
     cp = av0;
   if (strcmp(cp, "rsh") != 0 && strcmp(cp, "ssh") != 0 &&
-      strcmp(cp, "openssh") != 0 && strcmp(cp, "openlogin") != 0 &&
       strcmp(cp, "rlogin") != 0 && strcmp(cp, "slogin") != 0)
     host = cp;
   
@@ -500,7 +499,7 @@ main(int ac, char **av)
     }
 
   /* Disable rhosts authentication if not running as root. */
-  if (original_effective_uid != 0)
+  if (original_effective_uid != 0 || !options.use_privileged_port)
     {
       options.rhosts_authentication = 0;
       options.rhosts_rsa_authentication = 0;
@@ -526,13 +525,7 @@ main(int ac, char **av)
   restore_uid();
 
   /* Open a connection to the remote host.  This needs root privileges if
-     rhosts_{rsa_}authentication is true. */
-
-  if (!options.use_privileged_port)
-    {
-       options.rhosts_authentication = 0;
-       options.rhosts_rsa_authentication = 0;
-    }
+     rhosts_{rsa_}authentication is enabled. */
 
   ok = ssh_connect(host, &hostaddr, options.port, options.connection_attempts,
 		   !options.rhosts_authentication &&

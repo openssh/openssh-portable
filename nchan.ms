@@ -50,9 +50,9 @@ Notes
 The input buffer is filled with data from the socket
 (the socket represents the local comsumer/producer of the
 forwarded channel).
-The data is then sent over the INPUT-end of the channel to the
+The data is then sent over the INPUT-end (transmit-end) of the channel to the
 remote peer.
-Data sent by the peer is received on the OUTPUT-end,
+Data sent by the peer is received on the OUTPUT-end (receive-end),
 saved in the output buffer and written to the socket.
 .PP
 If the local protocol instance has forwarded all data on the

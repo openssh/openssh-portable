@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.15 1999/10/28 08:43:10 markus Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.16 1999/10/28 20:41:23 markus Exp $	*/
 
 /*
 
@@ -15,9 +15,8 @@ The authentication agent program.
 
 */
 
-#include "config.h"
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.15 1999/10/28 08:43:10 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.16 1999/10/28 20:41:23 markus Exp $");
 
 #include "ssh.h"
 #include "rsa.h"
@@ -656,11 +655,17 @@ main(int ac, char **av)
   close(1);
   close(2);
 
-  if (ac == 0 && setsid() == -1)
-    cleanup_exit(1);
+  if (setsid() == -1)
+    {
+      perror("setsid");
+      cleanup_exit(1);
+    }
 
   if (atexit(cleanup_socket) < 0)
-    cleanup_exit(1);
+    {
+      perror("atexit");
+      cleanup_exit(1);
+    }
 
   new_socket(AUTH_SOCKET, sock);
   if (ac > 0)

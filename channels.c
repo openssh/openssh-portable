@@ -16,7 +16,7 @@ arbitrary tcp/ip connections, and the authentication agent connection.
 */
 
 #include "includes.h"
-RCSID("$Id: channels.c,v 1.2 1999/10/28 05:23:30 damien Exp $");
+RCSID("$Id: channels.c,v 1.3 1999/10/30 01:39:56 damien Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -155,7 +155,6 @@ int channel_allocate(int type, int sock, char *remote_name)
   chan_init_iostates(c);
   c->self = found;
   c->type = type;
-  c->x11 = 0;
   c->sock = sock;
   c->remote_id = -1;
   c->remote_name = remote_name;
@@ -316,8 +315,6 @@ void channel_prepare_select(fd_set *readset, fd_set *writeset)
 
 	  /* Start normal processing for the channel. */
 	  ch->type = SSH_CHANNEL_OPEN;
-	  /* Enable X11 Problem FIX */
-	  ch->x11 = 1;
 	  goto redo;
 	  
 	reject:

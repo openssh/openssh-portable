@@ -6,7 +6,8 @@ fixed, new features reintroduced and many other clean-ups.
 
 This Linux port basically consists of a few fixes to deal with the way
 that OpenSSL is usually installed on Linux systems, a few replacements
-for OpenBSD library functions and the introduction of PAM support.
+for OpenBSD library functions and the introduction of PAM support. This
+version tracks changes made to the OpenBSD CVS version.
 
 The PAM support is now more functional than the popular packages of
 commercial ssh-1.2.x. It checks "account" and "session" modules for
@@ -40,7 +41,7 @@ Nalin Dahyabhai <nalin.dahyabhai@pobox.com> - PAM environment patch
 Miscellania - 
 
 This version of SSH is based upon code retrieved from the OpenBSD CVS
-repository on 1999-10-29 patched by Damien Miller <djm@ibs.com.au>,
+repository on 1999-10-30 patched by Damien Miller <djm@ibs.com.au>,
 which in turn was based on the last free version of SSH released by
 Tatu Ylonen.
 

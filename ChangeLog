@@ -1,5 +1,12 @@
 19991030
  - Integrated debian package support from Dan Brosemer <odin@linuxfreak.com>
+ - Merged latest updates for OpenBSD CVS:
+   - channels.[ch] - remove broken x11 fix and document istate/ostate
+   - ssh-agent.c - call setsid() regardless of argv[]
+   - ssh.c - save a few lines when disabling rhosts-{rsa-}auth
+ - Documentation cleanups
+ - Renamed README -> README.Ylonen
+ - Renamed README.openssh ->README
 
 19991029
  - Renamed openssh* back to ssh* at request of Theo de Raadt
