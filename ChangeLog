@@ -3,6 +3,7 @@
    Make --without-opensc work.
  - (tim) [configure.ac] portability changes on test statements. Some shells
    have problems with -a operator.
+ - (tim) [configure.ac] make some configure options a little more error proof.
 
 20050314
  - (dtucker) OpenBSD CVS Sync
@@ -2370,4 +2371,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3722 2005/03/18 00:23:19 tim Exp $
+$Id: ChangeLog,v 1.3723 2005/03/18 00:44:25 tim Exp $

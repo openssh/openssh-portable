@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.252 2005/03/18 00:23:19 tim Exp $
+# $Id: configure.ac,v 1.253 2005/03/18 00:44:26 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -472,7 +472,8 @@ esac
 AC_ARG_WITH(cflags,
 	[  --with-cflags           Specify additional flags to pass to compiler],
 	[
-		if test "x$withval" != "xno" ; then
+		if test -n "$withval"  &&  test "x$withval" != "xno"  &&  \
+		    test "x${withval}" != "xyes"; then
 			CFLAGS="$CFLAGS $withval"
 		fi
 	]	
@@ -480,7 +481,8 @@ AC_ARG_WITH(cflags,
 AC_ARG_WITH(cppflags,
 	[  --with-cppflags         Specify additional flags to pass to preprocessor] ,
 	[
-		if test "x$withval" != "xno"; then
+		if test -n "$withval"  &&  test "x$withval" != "xno"  &&  \
+		    test "x${withval}" != "xyes"; then
 			CPPFLAGS="$CPPFLAGS $withval"
 		fi
 	]
@@ -488,7 +490,8 @@ AC_ARG_WITH(cppflags,
 AC_ARG_WITH(ldflags,
 	[  --with-ldflags          Specify additional flags to pass to linker],
 	[
-		if test "x$withval" != "xno" ; then
+		if test -n "$withval"  &&  test "x$withval" != "xno"  &&  \
+		    test "x${withval}" != "xyes"; then
 			LDFLAGS="$LDFLAGS $withval"
 		fi
 	]	
@@ -496,7 +499,8 @@ AC_ARG_WITH(ldflags,
 AC_ARG_WITH(libs,
 	[  --with-libs             Specify additional libraries to link with],
 	[
-		if test "x$withval" != "xno" ; then
+		if test -n "$withval"  &&  test "x$withval" != "xno"  &&  \
+		    test "x${withval}" != "xyes"; then
 			LIBS="$LIBS $withval"
 		fi
 	]	
@@ -795,7 +799,7 @@ AC_ARG_WITH(tcp-wrappers,
 			saved_LDFLAGS="$LDFLAGS"
 			saved_CPPFLAGS="$CPPFLAGS"
 			if test -n "${withval}" && \
-			    test "${withval}" != "yes"; then
+			    test "x${withval}" != "xyes"; then
 				if test -d "${withval}/lib"; then
 					if test -n "${need_dash_r}"; then
 						LDFLAGS="-L${withval}/lib -R${withval}/lib ${LDFLAGS}"
@@ -1585,7 +1589,8 @@ entropy_timeout=200
 AC_ARG_WITH(entropy-timeout,
 	[  --with-entropy-timeout  Specify entropy gathering command timeout (msec)],
 	[
-		if test "x$withval" != "xno" ; then
+		if test -n "$withval"  &&  test "x$withval" != "xno"  &&  \
+		    test "x${withval}" != "xyes"; then
 			entropy_timeout=$withval
 		fi
 	]	
@@ -1596,7 +1601,8 @@ SSH_PRIVSEP_USER=sshd
 AC_ARG_WITH(privsep-user,
 	[  --with-privsep-user=user Specify non-privileged user for privilege separation],
 	[
-		if test -n "$withval"; then
+		if test -n "$withval"  &&  test "x$withval" != "xno"  &&  \
+		    test "x${withval}" != "xyes"; then
 			SSH_PRIVSEP_USER=$withval
 		fi
 	]	
@@ -2490,7 +2496,8 @@ PRIVSEP_PATH=/var/empty
 AC_ARG_WITH(privsep-path,
 	[  --with-privsep-path=xxx Path for privilege separation chroot (default=/var/empty)],
 	[
-		if test "x$withval" != "$no" ; then
+		if test -n "$withval"  &&  test "x$withval" != "xno"  &&  \
+		    test "x${withval}" != "xyes"; then
 			PRIVSEP_PATH=$withval
 		fi
 	]
@@ -2500,7 +2507,8 @@ AC_SUBST(PRIVSEP_PATH)
 AC_ARG_WITH(xauth,
 	[  --with-xauth=PATH       Specify path to xauth program ],
 	[
-		if test "x$withval" != "xno" ; then
+		if test -n "$withval"  &&  test "x$withval" != "xno"  &&  \
+		    test "x${withval}" != "xyes"; then
 			xauth_path=$withval
 		fi
 	],
@@ -2781,7 +2789,8 @@ fi
 AC_ARG_WITH(superuser-path,
 	[  --with-superuser-path=  Specify different path for super-user],
 	[
-		if test "x$withval" != "xno" ; then
+		if test -n "$withval"  &&  test "x$withval" != "xno"  &&  \
+		    test "x${withval}" != "xyes"; then
 			AC_DEFINE_UNQUOTED(SUPERUSER_PATH, "$withval")
 			superuser_path=$withval
 		fi
@@ -2837,7 +2846,8 @@ fi
 AC_ARG_WITH(pid-dir,
 	[  --with-pid-dir=PATH     Specify location of ssh.pid file],
 	[
-		if test "x$withval" != "xno" ; then	
+		if test -n "$withval"  &&  test "x$withval" != "xno"  &&  \
+		    test "x${withval}" != "xyes"; then
 			piddir=$withval
 			if test ! -d $piddir ; then	
 			AC_MSG_WARN([** no $piddir directory on this system **])
@@ -2919,7 +2929,7 @@ AC_ARG_WITH(lastlog,
 	[
 		if test "x$withval" = "xno" ; then	
 			AC_DEFINE(DISABLE_LASTLOG)
-		else
+		elif test -n "$withval"  &&  test "x${withval}" != "xyes"; then
 			conf_lastlog_location=$withval
 		fi
 	]
