@@ -27,7 +27,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.1 2001/02/04 11:11:54 djm Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.7 2001/02/05 00:02:32 deraadt Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -65,35 +65,36 @@ RCSID("$OpenBSD: sftp-int.c,v 1.1 2001/02/04 11:11:54 djm Exp $");
 #define I_SHELL		20
 
 struct CMD {
-	const int n;
 	const char *c;
+	const int n;
 };
 
 const struct CMD cmds[] = {
-	{ I_CHDIR,	"CD" },
-	{ I_CHDIR,	"CHDIR" },
-	{ I_CHDIR,	"LCD" },
-	{ I_CHGRP,	"CHGRP" },
-	{ I_CHMOD,	"CHMOD" },
-	{ I_CHOWN,	"CHOWN" },
-	{ I_HELP,	"HELP" },
-	{ I_GET,	"GET" },
-	{ I_LCHDIR,	"LCHDIR" },
-	{ I_LLS,	"LLS" },
-	{ I_LMKDIR,	"LMKDIR" },
-	{ I_LPWD,	"LPWD" },
-	{ I_LS,		"LS" },
-	{ I_LUMASK,	"LUMASK" },
-	{ I_MKDIR,	"MKDIR" },
-	{ I_PUT,	"PUT" },
-	{ I_PWD,	"PWD" },
-	{ I_QUIT,	"EXIT" },
-	{ I_QUIT,	"QUIT" },
-	{ I_RENAME,	"RENAME" },
-	{ I_RMDIR,	"RMDIR" },
-	{ I_RM,		"RM" },
-	{ I_SHELL,	"!" },
-	{ -1,		NULL}
+	{ "CD",		I_CHDIR },
+	{ "CHDIR",	I_CHDIR },
+	{ "CHGRP",	I_CHGRP },
+	{ "CHMOD",	I_CHMOD },
+	{ "CHOWN",	I_CHOWN },
+	{ "EXIT",	I_QUIT },
+	{ "GET",	I_GET },
+	{ "HELP",	I_HELP },
+	{ "LCD",	I_LCHDIR },
+	{ "LCHDIR",	I_LCHDIR },
+	{ "LLS",	I_LLS },
+	{ "LMKDIR",	I_LMKDIR },
+	{ "LPWD",	I_LPWD },
+	{ "LS",		I_LS },
+	{ "LUMASK",	I_LUMASK },
+	{ "MKDIR",	I_MKDIR },
+	{ "PUT",	I_PUT },
+	{ "PWD",	I_PWD },
+	{ "QUIT",	I_QUIT },
+	{ "RENAME",	I_RENAME },
+	{ "RM",		I_RM },
+	{ "RMDIR",	I_RMDIR },
+	{ "!",		I_SHELL },
+	{ "?",		I_HELP },
+	{ NULL,			-1}
 };
 
 void
@@ -289,6 +290,7 @@ parse_args(const char **cpp, int *pflag, unsigned long *n_arg,
     char **path1, char **path2)
 {
 	const char *cmd, *cp = *cpp;
+	int base = 0;
 	int i, cmdnum;
 
 	/* Skip leading whitespace */
@@ -383,6 +385,7 @@ parse_args(const char **cpp, int *pflag, unsigned long *n_arg,
 		break;
 	case I_LUMASK:
 	case I_CHMOD:
+		base = 8;
 	case I_CHOWN:
 	case I_CHGRP:
 		/* Get numeric arg (mandatory) */
@@ -391,7 +394,7 @@ parse_args(const char **cpp, int *pflag, unsigned long *n_arg,
 			    "to the %s command.", cmd);
 			return(-1);
 		}
-		*n_arg = strtoul(cp, (char**)&cp, 0);
+		*n_arg = strtoul(cp, (char**)&cp, base);
 		if (!*cp || !strchr(WHITESPACE, *cp)) {
 			error("You must supply a numeric argument "
 			    "to the %s command.", cmd);
@@ -500,10 +503,11 @@ parse_dispatch_command(int in, int out, const char *cmd, char **pwd)
 		a.flags |= SSH2_FILEXFER_ATTR_PERMISSIONS;
 		a.perm = n_arg;
 		do_setstat(in, out, path1, &a);
+		break;
 	case I_CHOWN:
 		path1 = make_absolute(path1, *pwd);
 		aa = do_stat(in, out, path1);
-		if (!aa->flags & SSH2_FILEXFER_ATTR_UIDGID) {
+		if (!(aa->flags & SSH2_FILEXFER_ATTR_UIDGID)) {
 			error("Can't get current ownership of "
 			    "remote file \"%s\"", path1);
 			break;
@@ -514,7 +518,7 @@ parse_dispatch_command(int in, int out, const char *cmd, char **pwd)
 	case I_CHGRP:
 		path1 = make_absolute(path1, *pwd);
 		aa = do_stat(in, out, path1);
-		if (!aa->flags & SSH2_FILEXFER_ATTR_UIDGID) {
+		if (!(aa->flags & SSH2_FILEXFER_ATTR_UIDGID)) {
 			error("Can't get current ownership of "
 			    "remote file \"%s\"", path1);
 			break;

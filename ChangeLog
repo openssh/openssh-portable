@@ -9,6 +9,22 @@
    - stevesk@cvs.openbsd.org 2001/02/04 15:21:19
      [sftp-server.c]
      SSH2_FILEXFER_ATTR_UIDGID support; ok markus@
+   - deraadt@cvs.openbsd.org 2001/02/04 17:02:32
+     [sftp-int.c]
+     ? == help
+   - deraadt@cvs.openbsd.org 2001/02/04 16:47:46
+     [sftp-int.c]
+     sort commands, so that abbreviations work as expected
+   - stevesk@cvs.openbsd.org 2001/02/04 15:17:52
+     [sftp-int.c]
+     debugging sftp: precedence and missing break.  chmod, chown, chgrp
+     seem to be working now.
+   - markus@cvs.openbsd.org 2001/02/04 14:41:21
+     [sftp-int.c]
+     use base 8 for umask/chmod
+   - markus@cvs.openbsd.org 2001/02/04 11:11:54
+     [sftp-int.c]
+     fix LCD
 
 20010104
  - (bal) I think this is the last of the bsd-*.h that don't belong.
