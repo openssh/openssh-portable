@@ -11,6 +11,9 @@
 %define _sysconfdir	/etc/ssh
 %define	_libexecdir	%{_libdir}/ssh
 
+# Do we want to disable root_login? (1=yes 0=no)
+%define no_root_login 0
+
 #old cvs stuff.  please update before use.  may be deprecated.
 %define use_stable	1
 %if %{use_stable}
@@ -24,6 +27,10 @@
 %endif
 %define xsa		x11-ssh-askpass		
 %define askpass		%{xsa}-1.2.4.1
+
+# OpenSSH privilege separation requires a user & group ID
+%define sshd_uid    67
+%define sshd_gid    67
 
 Name        	: openssh
 Version     	: %{version}%{cvs}
@@ -174,6 +181,9 @@ CFLAGS="$RPM_OPT_FLAGS" \
             --with-pam \
             --with-tcp-wrappers \
             --with-ipv4-default \
+	    --sysconfdir=%{_sysconfdir}/ssh \
+	    --libexecdir=%{_libexecdir}/openssh \
+	    --with-privsep-path=%{_var}/empty/sshd \
 	    #leave this line for easy edits.
 
 %__make CFLAGS="$RPM_OPT_FLAGS"
@@ -198,11 +208,17 @@ xmkmf
 
 # OpenLinux specific configuration
 mkdir -p %{buildroot}{/etc/pam.d,%{SVIcdir},%{SVIdir}}
+mkdir -p %{buildroot}%{_var}/empty/sshd
 
 # enabling X11 forwarding on the server is convenient and okay,
 # on the client side it's a potential security risk!
-%__perl -pi -e 's:X11Forwarding no:X11Forwarding yes:g' \
+%__perl -pi -e 's:#X11Forwarding no:X11Forwarding yes:g' \
     %{buildroot}%{_sysconfdir}/sshd_config
+
+%if %{no_root_login}
+%__perl -pi -e 's:#PermitRootLogin yes:PermitRootLogin no:g' \
+    %{buildroot}%{_sysconfdir}/sshd_config
+%endif
 
 install -m644 contrib/caldera/sshd.pam %{buildroot}/etc/pam.d/sshd
 # FIXME: disabled, find out why this doesn't work with nis
@@ -265,6 +281,11 @@ rm %{buildroot}%{_mandir}/man1/slogin.1 && \
 /usr/sbin/ssh-host-keygen
 : # to protect the rpm database
 
+%pre server
+%{_sbindir}/groupadd -g %{sshd_gid} sshd 2>/dev/null || :
+%{_sbindir}/useradd -d /var/empty/sshd -s /bin/false -u %{sshd_uid} \
+	-c "SSH Daemon virtual user" -g sshd sshd 2>/dev/null || :
+: # to protect the rpm database
 
 %Post server
 if [ -x %{LSBinit}-install ]; then
@@ -312,6 +333,7 @@ fi
  
 %Files server
 %defattr(-,root,root)
+%dir %attr(0700,root,root) %{_var}/empty/sshd
 %config %{SVIdir}/sshd
 %config /etc/pam.d/sshd
 %config %{_sysconfdir}/moduli
@@ -333,4 +355,4 @@ fi
 * Mon Jan 01 1998 ...
 Template Version: 1.31
 
-$Id: openssh.spec,v 1.34 2002/06/25 17:07:26 tim Exp $
+$Id: openssh.spec,v 1.35 2002/06/26 02:28:56 tim Exp $
