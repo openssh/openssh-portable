@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.149 2003/09/10 05:22:45 dtucker Exp $
+# $Id: configure.ac,v 1.150 2003/09/11 04:42:56 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -442,7 +442,7 @@ int main(){exit(0);}
 
 # Checks for header files.
 AC_CHECK_HEADERS(bstring.h crypt.h endian.h features.h floatingpoint.h \
-	getopt.h glob.h ia.h lastlog.h libgen.h limits.h login.h \
+	getopt.h glob.h ia.h lastlog.h limits.h login.h \
 	login_cap.h maillock.h netdb.h netgroup.h \
 	netinet/in_systm.h paths.h pty.h readpassphrase.h \
 	rpc/types.h security/pam_appl.h shadow.h stddef.h stdint.h \
@@ -462,9 +462,6 @@ if test "x$with_tcp_wrappers" != "xno" ; then
 	AC_CHECK_LIB(rpc, innetgr, LIBS="-lrpc -lyp -lrpc $LIBS" , , -lyp -lrpc)
     fi
 fi
-
-AC_CHECK_FUNC(getspnam, ,
-	AC_CHECK_LIB(gen, getspnam, LIBS="$LIBS -lgen"))
 
 AC_ARG_WITH(rpath,
 	[  --without-rpath         Disable auto-added -R linker paths],
@@ -676,7 +673,6 @@ AC_CHECK_FUNCS(\
 )
 
 AC_SEARCH_LIBS(nanosleep, rt posix4, AC_DEFINE(HAVE_NANOSLEEP))
-AC_SEARCH_LIBS(basename, gen, AC_DEFINE(HAVE_BASENAME))
 
 dnl Make sure prototypes are defined for these before using them.
 AC_CHECK_DECL(strsep, [AC_CHECK_FUNCS(strsep)])
@@ -725,6 +721,10 @@ int main(int argc, char **argv) {
 		fi
 	])
 ])
+
+AC_CHECK_FUNC(getspnam, ,
+	AC_CHECK_LIB(gen, getspnam, LIBS="$LIBS -lgen"))
+AC_SEARCH_LIBS(basename, gen, AC_DEFINE(HAVE_BASENAME))
 
 dnl    Checks for time functions
 AC_CHECK_FUNCS(gettimeofday time)
