@@ -67,28 +67,14 @@ struct sigaction
 	struct sigvec sv;
 };
 
-#define sigset_t _nc_sigset_t
 typedef unsigned long sigset_t;
 
 #undef  sa_mask
-#define sa_mask sv_mask
+#define sa_mask sv.sv_mask
 #undef  sa_handler
-#define sa_handler sv_handler
+#define sa_handler sv.sv_handler
 #undef  sa_flags
-#define sa_flags sv_flags
-
-#undef  sigaction
-#define sigaction   _nc_sigaction
-#undef  sigprocmask
-#define sigprocmask _nc_sigprocmask
-#undef  sigemptyset
-#define sigemptyset _nc_sigemptyset
-#undef  sigsuspend
-#define sigsuspend  _nc_sigsuspend
-#undef  sigdelset
-#define sigdelset   _nc_sigdelset
-#undef  sigaddset
-#define sigaddset   _nc_sigaddset
+#define sa_flags sv.sv_flags
 
 int sigaction(int sig, struct sigaction *sigact, struct sigaction *osigact);
 int sigprocmask (int how, sigset_t *mask, sigset_t *omask);
