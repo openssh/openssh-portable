@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.140 2001/08/29 23:13:10 stevesk Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.141 2001/08/29 23:27:23 stevesk Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -258,6 +258,7 @@ main(int ac, char **av)
 {
 	int i, opt, exit_status, cerr;
 	u_short fwd_port, fwd_host_port;
+	char sfwd_port[6], sfwd_host_port[6];
 	char *p, *cp, buf[256];
 	struct stat st;
 	struct passwd *pw;
@@ -470,33 +471,31 @@ again:
 		case 'l':
 			options.user = optarg;
 			break;
-		case 'R':
-			if (sscanf(optarg, "%hu/%255[^/]/%hu", &fwd_port, buf,
-			    &fwd_host_port) != 3 &&
-			    sscanf(optarg, "%hu:%255[^:]:%hu", &fwd_port, buf,
-			    &fwd_host_port) != 3) {
-				fprintf(stderr,
-				    "Bad forwarding specification '%s'.\n",
-				    optarg);
-				usage();
-				/* NOTREACHED */
-			}
-			add_remote_forward(&options, fwd_port, buf,
-			     fwd_host_port);
-			break;
+
 		case 'L':
-			if (sscanf(optarg, "%hu/%255[^/]/%hu", &fwd_port, buf,
-			    &fwd_host_port) != 3 &&
-			    sscanf(optarg, "%hu:%255[^:]:%hu", &fwd_port, buf,
-			    &fwd_host_port) != 3) {
+		case 'R':
+			if (sscanf(optarg, "%5[0-9]:%255[^:]:%5[0-9]",
+			    sfwd_port, buf, sfwd_host_port) != 3 &&
+			    sscanf(optarg, "%5[0-9]/%255[^/]/%5[0-9]",
+			    sfwd_port, buf, sfwd_host_port) != 3) {
 				fprintf(stderr,
-				    "Bad forwarding specification '%s'.\n",
+				    "Bad forwarding specification '%s'\n",
 				    optarg);
 				usage();
 				/* NOTREACHED */
 			}
-			add_local_forward(&options, fwd_port, buf,
-			    fwd_host_port);
+			if ((fwd_port = a2port(sfwd_port)) == 0 ||
+	  		    (fwd_host_port = a2port(sfwd_host_port)) == 0) {
+				fprintf(stderr,
+				    "Bad forwarding port(s) '%s'\n", optarg);
+				exit(1);
+			}
+			if (opt == 'L')
+				add_local_forward(&options, fwd_port, buf,
+				    fwd_host_port);
+			else if (opt == 'R')
+				add_remote_forward(&options, fwd_port, buf,
+				     fwd_host_port);
 			break;
 
 		case 'D':
