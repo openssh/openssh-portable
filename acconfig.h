@@ -48,6 +48,9 @@
 /* Define if your libraries define daemon() */
 #undef HAVE_DAEMON
 
+/* Define if you want to allow MD5 passwords */
+#undef HAVE_MD5_PASSWORDS
+
 @BOTTOM@
 
 /* ******************* Shouldn't need to edit below this line ************** */

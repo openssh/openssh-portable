@@ -15,8 +15,9 @@
  - Added autoconf option to enable S/Key support (untested)
  - Added autoconf option to enable TCP wrappers support (compiles OK)
  - Renamed BSD helper function files to bsd-*
- - Added tests for login and daemon and OpenBSD replacements for when they
-   are absent.
+ - Added tests for login and daemon and enable OpenBSD replacements for 
+   when they are absent.
+ - Added non-PAM MD5 password support patch from Tudor Bosman <tudorb@jm.nu>
 
 19991118
  - Merged OpenBSD CVS changes

@@ -74,7 +74,7 @@ dnl Check whether use wants to disable the external ssh-askpass
 INSTALL_ASKPASS="yes"
 AC_MSG_CHECKING([whether to enable external ssh-askpass support])
 AC_ARG_WITH(askpass,
-	[  --with-askpass=yes/no   Enable external ssh-askpass support (default=no)],
+	[  --with-askpass=yes/no   Enable external ssh-askpass support (default=yes)],
 	[
 		if test x$withval = xno ; then
 			INSTALL_ASKPASS="no"
@@ -211,6 +211,12 @@ AC_ARG_WITH(skey,
 		AC_DEFINE(LIBWRAP)
 		LIBS="$LIBS -lwrap"
 	]
+)
+
+dnl Check whether to enable MD5 passwords
+AC_ARG_WITH(md5passwords,
+	[  --with-md5-passwords    Enable use of MD5 passwords],
+	[AC_DEFINE(HAVE_MD5_PASSWORDS)]
 )
 
 AC_OUTPUT(Makefile)

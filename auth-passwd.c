@@ -15,7 +15,10 @@ the password is valid for the user.
 */
 
 #include "includes.h"
-RCSID("$Id: auth-passwd.c,v 1.4 1999/11/13 04:40:10 damien Exp $");
+
+#ifndef HAVE_PAM
+
+RCSID("$Id: auth-passwd.c,v 1.5 1999/11/19 04:53:20 damien Exp $");
 
 #include "packet.h"
 #include "ssh.h"
@@ -27,7 +30,10 @@ RCSID("$Id: auth-passwd.c,v 1.4 1999/11/13 04:40:10 damien Exp $");
 #include <shadow.h>
 #endif
 
-#ifndef HAVE_PAM
+#ifdef HAVE_MD5_PASSWORDS
+#include "md5crypt.h"
+#endif
+
 /* Don't need anything from here if we are using PAM */
 
 /* Tries to authenticate the user using password.  Returns true if
@@ -187,7 +193,14 @@ int auth_password(struct passwd *pw, const char *password)
     return(0);
 
   /* Encrypt the candidate password using the proper salt. */
+#ifdef HAVE_MD5_PASSWORDS
+  if (is_md5_salt(spw->sp_pwdp))
+    encrypted_password = md5_crypt(password, spw->sp_pwdp);
+  else
+    encrypted_password = crypt(password, spw->sp_pwdp);
+#else /* HAVE_MD5_PASSWORDS */    
   encrypted_password = crypt(password, spw->sp_pwdp);
+#endif /* HAVE_MD5_PASSWORDS */    
 
   /* Authentication is accepted if the encrypted passwords are identical. */
   return (strcmp(encrypted_password, spw->sp_pwdp) == 0);
