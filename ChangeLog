@@ -1,3 +1,8 @@
+20030914
+ - (dtucker) [Makefile regress/Makefile] Fix portability issues preventing
+   the regression tests from running with Solaris' make.  Patch from Brian
+   Poole (raj at cerias.purdue.edu).
+
 20030913
  - (dtucker) [regress/agent-timeout.sh] Timeout of 5 sec is borderline for
    slower hosts, increase to 10 sec.
@@ -1086,4 +1091,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2989 2003/09/13 12:02:05 dtucker Exp $
+$Id: ChangeLog,v 1.2990 2003/09/14 01:40:35 dtucker Exp $
