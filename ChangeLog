@@ -6,6 +6,16 @@
    <Lutz.Jaenicke@aet.TU-Cottbus.DE>
  - (bal) double entry in configure.in.  Pointed out by Lutz Jaenicke
    <Lutz.Jaenicke@aet.TU-Cottbus.DE>
+ - (stevesk) OpenBSD sync:
+   - markus@cvs.openbsd.org  2001/02/08 11:20:01
+     [auth2.c]
+     strict checking
+   - markus@cvs.openbsd.org  2001/02/08 11:15:22
+     [version.h]
+     update to 2.3.2
+   - markus@cvs.openbsd.org  2001/02/08 11:12:30
+     [auth2.c]
+     fix typo
 
 20010208
  - (djm) Don't delete external askpass program in make uninstall target.

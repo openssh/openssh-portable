@@ -305,7 +305,7 @@ userauth_reply(Authctxt *authctxt, int authenticated)
 	char *methods;
 
 	/* XXX todo: check if multiple auth methods are needed */
-	if (authenticated) {
+	if (authenticated == 1) {
 #ifdef WITH_AIXAUTHENTICATE
 		/* We don't have a pty yet, so just label the line as "ssh" */
 		if (loginsuccess(authctxt->user?authctxt->user:"NOUSER",
@@ -512,7 +512,7 @@ userauth_pubkey(Authctxt *authctxt)
 				packet_put_string(pkblob, blen);
 				packet_send();
 				packet_write_wait();
-				authenticated = -1;
+				authctxt->postponed = 1;
 			}
 		}
 		if (authenticated != 1)
