@@ -43,6 +43,9 @@
      [channels.c channels.h compat.c compat.h nchan.c]
      don't send stderr data after EOF, accept this from older known (broken)
      sshd servers only, fixes http://bugzilla.mindrot.org/show_bug.cgi?id=179
+   - stevesk@cvs.openbsd.org 2002/03/26 03:24:01
+     [monitor.h monitor_fdpass.h monitor_mm.h monitor_wrap.h]
+     $OpenBSD$
 
 20020324
  - (stevesk) [session.c] disable LOGIN_NEEDS_TERM until we are sure
@@ -8057,4 +8060,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1990 2002/03/26 03:26:24 mouring Exp $
+$Id: ChangeLog,v 1.1991 2002/03/26 03:42:20 mouring Exp $
