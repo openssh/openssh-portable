@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.300 2001/07/15 02:09:29 stevesk Exp $
+# $Id: configure.in,v 1.301 2001/07/15 18:30:44 mouring Exp $
 
 AC_INIT(ssh.c)
 
@@ -73,6 +73,9 @@ case "$host" in
 	;;
 *-*-dgux*)
 	AC_DEFINE(IP_TOS_IS_BROKEN)
+	;;
+*-*-darwin*)
+	AC_DEFINE(BROKEN_GETADDRINFO)
 	;;
 *-*-hpux10*)
 	if test -z "$GCC"; then
