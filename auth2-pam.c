@@ -1,5 +1,5 @@
 #include "includes.h"
-RCSID("$Id: auth2-pam.c,v 1.6 2001/01/22 05:34:40 mouring Exp $");
+RCSID("$Id: auth2-pam.c,v 1.7 2001/01/30 23:50:49 djm Exp $");
 
 #ifdef USE_PAM
 #include <security/pam_appl.h>
@@ -152,7 +152,6 @@ input_userauth_info_response_pam(int type, int plen, void *ctxt)
 	for (i = 0; i < nresp; i++) {
 		int j = context_pam2.prompts[i];
 		resp = packet_get_string(&rlen);
-		debug("response ssh-%d(pam-%d) = \"%s\"", i, j, resp);
 		context_pam2.responses[j].resp_retcode = PAM_SUCCESS;
 		context_pam2.responses[j].resp = xstrdup(resp);
 		xfree(resp);

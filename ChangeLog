@@ -6,6 +6,8 @@
  - (djm) Fix autoconf logic for --with-lastlog=no Report and diagnosis from
    Philipp Buehler <lists@fips.de> and Kevin Steves <stevesk@sweden.hp.com>
    respectively.
+ - (djm) Don't log SSH2 PAM KbdInt responses to debug, they may contain
+   passwords.
 
 20000130
  - (djm) OpenBSD CVS Sync:
