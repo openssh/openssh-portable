@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.249 2003/09/14 01:40:36 dtucker Exp $
+# $Id: Makefile.in,v 1.250 2003/09/22 00:58:56 dtucker Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -192,20 +192,18 @@ ssh_prng_cmds.out:	ssh_prng_cmds
 moduli:
 	echo
 
-clean:
+clean:	regressclean
 	rm -f *.o *.a $(TARGETS) logintest config.cache config.log 
 	rm -f *.out core 
 	(cd openbsd-compat && $(MAKE) clean)
-	(cd regress && $(MAKE) clean)
 
-distclean:
+distclean:	regressclean
 	rm -f *.o *.a $(TARGETS) logintest config.cache config.log 
 	rm -f *.out core
 	rm -f Makefile config.h config.status ssh_prng_cmds *~
 	rm -rf autom4te.cache
 	(cd openbsd-compat && $(MAKE) distclean)
 	(cd scard && $(MAKE) distclean)
-	(cd regress && $(MAKE) distclean)
 
 veryclean: distclean
 	rm -f configure config.h.in *.0
@@ -373,6 +371,8 @@ uninstall:
 tests:	$(TARGETS)
 	BUILDDIR=`pwd`; \
 	[ -d `pwd`/regress ]  ||  mkdir -p `pwd`/regress; \
+	[ -f `pwd`/regress/Makefile ]  || \
+	    ln -s $(srcdir)/regress/Makefile `pwd`/regress/Makefile ; \
 	TEST_SSH_SSH="$${BUILDDIR}/ssh"; \
 	TEST_SSH_SSHD="$${BUILDDIR}/sshd"; \
 	TEST_SSH_SSHAGENT="$${BUILDDIR}/ssh-agent"; \
@@ -398,3 +398,8 @@ tests:	$(TARGETS)
 		TEST_SSH_SFTPSERVER="$${TEST_SSH_SFTPSERVER}" \
 		EXEEXT="$(EXEEXT)" \
 		$@
+
+regressclean:
+	if [ -f regress/Makefile -a -r regress/Makefile ]; then \
+		(cd regress && $(MAKE) clean) \
+	fi

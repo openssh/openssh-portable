@@ -1,3 +1,7 @@
+20030923
+ - (dtucker) [configure.ac] Bug #644: Fix "make clean" for out-of-tree
+   builds.  Portability corrections from tim@.
+
 20030919
  - (djm) Bug #683: Remove reference to --with-ipv4-default from INSTALL;
    djast AT cs.toronto.edu
@@ -1133,4 +1137,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3008 2003/09/19 11:25:23 dtucker Exp $
+$Id: ChangeLog,v 1.3009 2003/09/22 00:58:55 dtucker Exp $
