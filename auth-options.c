@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-options.c,v 1.29 2005/03/01 10:09:52 djm Exp $");
+RCSID("$OpenBSD: auth-options.c,v 1.30 2005/03/10 22:01:05 deraadt Exp $");
 
 #include "xmalloc.h"
 #include "match.h"
@@ -255,8 +255,8 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 				xfree(patterns);
 				goto bad_option;
 			}
- 			host = cleanhostname(host);
- 			if (p == NULL || (port = a2port(p)) == 0) {
+			host = cleanhostname(host);
+			if (p == NULL || (port = a2port(p)) == 0) {
 				debug("%.100s, line %lu: Bad permitopen port "
 				    "<%.100s>", file, linenum, p ? p : "");
 				auth_debug_add("%.100s, line %lu: "

@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.212 2005/03/01 10:09:52 djm Exp $");
+RCSID("$OpenBSD: channels.c,v 1.213 2005/03/10 22:01:05 deraadt Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1018,7 +1018,7 @@ channel_decode_socks5(Channel *c, fd_set * readset, fd_set * writeset)
 		debug2("channel %d: only socks5 connect supported", c->self);
 		return -1;
 	}
-	switch(s5_req.atyp){
+	switch (s5_req.atyp){
 	case SSH_SOCKS5_IPV4:
 		addrlen = 4;
 		af = AF_INET;
@@ -2199,11 +2199,11 @@ channel_setup_fwd_listener(int type, const char *listen_addr, u_short listen_por
 
 	/*
 	 * Determine whether or not a port forward listens to loopback,
-	 * specified address or wildcard. On the client, a specified bind 
-	 * address will always override gateway_ports. On the server, a 
-	 * gateway_ports of 1 (``yes'') will override the client's 
-	 * specification and force a wildcard bind, whereas a value of 2 
-	 * (``clientspecified'') will bind to whatever address the client 
+	 * specified address or wildcard. On the client, a specified bind
+	 * address will always override gateway_ports. On the server, a
+	 * gateway_ports of 1 (``yes'') will override the client's
+	 * specification and force a wildcard bind, whereas a value of 2
+	 * (``clientspecified'') will bind to whatever address the client
 	 * asked for.
 	 *
 	 * Special-case listen_addrs are:
@@ -2317,7 +2317,7 @@ channel_cancel_rport_listener(const char *host, u_short port)
 	u_int i;
 	int found = 0;
 
-	for(i = 0; i < channels_alloc; i++) {
+	for (i = 0; i < channels_alloc; i++) {
 		Channel *c = channels[i];
 
 		if (c != NULL && c->type == SSH_CHANNEL_RPORT_LISTENER &&
@@ -2629,7 +2629,7 @@ channel_send_window_changes(void)
 	struct winsize ws;
 
 	for (i = 0; i < channels_alloc; i++) {
-		if (channels[i] == NULL || !channels[i]->client_tty || 
+		if (channels[i] == NULL || !channels[i]->client_tty ||
 		    channels[i]->type != SSH_CHANNEL_OPEN)
 			continue;
 		if (ioctl(channels[i]->rfd, TIOCGWINSZ, &ws) < 0)

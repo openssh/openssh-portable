@@ -4,6 +4,11 @@
      [readconf.c]
      Check listen addresses for null, prevents xfree from dying during
      ClearAllForwardings (bz #996).  From  Craig Leres, ok markus@
+   - deraadt@cvs.openbsd.org 2005/03/10 22:01:05
+     [misc.c ssh-keygen.c servconf.c clientloop.c auth-options.c ssh-add.c
+     monitor.c sftp-client.c bufaux.h hostfile.c ssh.c sshconnect.c channels.c
+     readconf.c bufaux.c sftp.c]
+     spacing
 
 20050313
  - (dtucker) [contrib/cygwin/ssh-host-config] Makes the query for the
@@ -2338,4 +2343,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3711 2005/03/14 12:02:46 dtucker Exp $
+$Id: ChangeLog,v 1.3712 2005/03/14 12:08:12 dtucker Exp $
