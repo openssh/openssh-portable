@@ -26,7 +26,11 @@
    - markus@cvs.openbsd.org  2000/10/15 08:18:31
      [rijndael.c]
      typo
- - Copy manpages back over from OpenBSD - too tedious to wade through diffs
+ - (djm) Copy manpages back over from OpenBSD - too tedious to wade 
+   through diffs
+ - Added condrestart to Redhat init script. Patch from Pekka Savola 
+   <pekkas@netcore.fi>
+ - Update version in Redhat spec file
 
 20001015
  - (djm) Fix ssh2 hang on background processes at logout.

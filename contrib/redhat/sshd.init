@@ -81,12 +81,19 @@ case "$1" in
 		$0 start
 		RETVAL=$?
 		;;
+	condrestart)
+		if [ -f /var/lock/subsys/sshd ] ; then
+			$0 stop
+			$0 start
+			RETVAL=$?
+		fi
+		;;
 	status)
 		status sshd
 		RETVAL=$?
 		;;
 	*)
-		echo "Usage: sshd {start|stop|restart|status}"
+		echo "Usage: sshd {start|stop|restart|status|condrestart}"
 		exit 1
 		;;
 esac
