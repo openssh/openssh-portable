@@ -7,6 +7,7 @@
      [version.h]
      enter 3.6
  - (bal) The days of lack of int64_t support are over.  Sorry kids.
+ - (bal) scp.c 'limit' conflicts with Cray.  Rename to 'limitbw'
 
 20030318
  - (tim) [configure.ac openbsd-compat/bsd-misc.c openbsd-compat/bsd-misc.h]
@@ -1232,4 +1233,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2633.2.1 2003/03/21 00:51:35 mouring Exp $
+$Id: ChangeLog,v 1.2633.2.2 2003/03/21 00:54:03 mouring Exp $

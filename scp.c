@@ -96,7 +96,7 @@ void bwlimit(int);
 arglist args;
 
 /* Bandwidth limit */
-off_t limit = 0;
+off_t limitbw = 0;
 
 /* Name of current file being transferred. */
 char *curfile;
@@ -251,7 +251,7 @@ main(argc, argv)
 			speed = strtod(optarg, &endp);
 			if (speed <= 0 || *endp != '\0')
 				usage();
-			limit = speed * 1024;
+			limitbw = speed * 1024;
 			break;
 		case 'p':
 			pflag = 1;
@@ -594,7 +594,7 @@ next:			(void) close(fd);
 					haderr = result >= 0 ? EIO : errno;
 				statbytes += result;
 			}
-			if (limit)
+			if (limitbw)
 				bwlimit(amt);
 		}
 		if (showprogress)
@@ -688,7 +688,7 @@ bwlimit(int amount)
 		return;
 
 	lamt *= 8;
-	wait = (double)1000000L * lamt / limit;
+	wait = (double)1000000L * lamt / limitbw;
 
 	bwstart.tv_sec = wait / 1000000L;
 	bwstart.tv_usec = wait % 1000000L;
@@ -917,7 +917,7 @@ bad:			run_err("%s: %s", np, strerror(errno));
 				statbytes += j;
 			} while (amt > 0);
 		
-			if (limit)
+			if (limitbw)
 				bwlimit(4096);
 
 			if (count == bp->cnt) {
