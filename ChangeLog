@@ -10,6 +10,9 @@
      [deattack.c misc.c session.c ssh-agent.c]
      more buffer allocation fixes; from Solar Designer; CAN-2003-0682;
      ok millert@
+   - markus@cvs.openbsd.org 2003/09/19 09:02:02
+     [packet.c]
+     buffer_dump only if PACKET_DEBUG is defined; Jedi/Sector One; pr 3471
 
 20030922
  - (dtucker) [Makefile.in] Bug #644: Fix "make clean" for out-of-tree
@@ -1175,4 +1178,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2994.2.30 2003/09/23 08:59:08 dtucker Exp $
+$Id: ChangeLog,v 1.2994.2.31 2003/09/23 09:00:41 dtucker Exp $

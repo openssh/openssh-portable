@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.109 2003/07/10 14:42:28 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.110 2003/09/19 09:02:02 markus Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -1020,7 +1020,9 @@ packet_read_poll2(u_int32_t *seqnr_p)
 		cp = buffer_ptr(&incoming_packet);
 		packet_length = GET_32BIT(cp);
 		if (packet_length < 1 + 4 || packet_length > 256 * 1024) {
+#ifdef PACKET_DEBUG
 			buffer_dump(&incoming_packet);
+#endif
 			packet_disconnect("Bad packet length %u.", packet_length);
 		}
 		DBG(debug("input: packet len %u", packet_length+4));
