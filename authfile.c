@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfile.c,v 1.38 2001/09/23 11:09:13 markus Exp $");
+RCSID("$OpenBSD: authfile.c,v 1.39 2001/10/07 10:29:52 markus Exp $");
 
 #include <openssl/err.h>
 #include <openssl/evp.h>
@@ -250,7 +250,7 @@ key_load_public_rsa1(int fd, const char *filename, char **commentp)
 
 	/* Check that it is at least big enough to contain the ID string. */
 	if (len < sizeof(authfile_id_string)) {
-		debug3("No RSA1 key file %.200s.", filename);
+		debug3("Not a RSA1 key file %.200s.", filename);
 		buffer_free(&buffer);
 		return NULL;
 	}
@@ -260,7 +260,7 @@ key_load_public_rsa1(int fd, const char *filename, char **commentp)
 	 */
 	for (i = 0; i < sizeof(authfile_id_string); i++)
 		if (buffer_get_char(&buffer) != authfile_id_string[i]) {
-			debug3("No RSA1 key file %.200s.", filename);
+			debug3("Not a RSA1 key file %.200s.", filename);
 			buffer_free(&buffer);
 			return NULL;
 		}
@@ -336,7 +336,7 @@ key_load_private_rsa1(int fd, const char *filename, const char *passphrase,
 
 	/* Check that it is at least big enough to contain the ID string. */
 	if (len < sizeof(authfile_id_string)) {
-		debug3("No RSA1 key file %.200s.", filename);
+		debug3("Not a RSA1 key file %.200s.", filename);
 		buffer_free(&buffer);
 		close(fd);
 		return NULL;
@@ -347,7 +347,7 @@ key_load_private_rsa1(int fd, const char *filename, const char *passphrase,
 	 */
 	for (i = 0; i < sizeof(authfile_id_string); i++)
 		if (buffer_get_char(&buffer) != authfile_id_string[i]) {
-			debug3("No RSA1 key file %.200s.", filename);
+			debug3("Not a RSA1 key file %.200s.", filename);
 			buffer_free(&buffer);
 			close(fd);
 			return NULL;
