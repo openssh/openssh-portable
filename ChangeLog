@@ -1,6 +1,10 @@
 20010226
  - (bal) Applied shutdown() patch for sftp.c by  Corinna Vinschen 
    <vinschen@redhat.com>
+ - (bal) OpenBSD Sync
+   - markus@cvs.openbsd.org 2001/02/23 15:37:45
+     [session.c]
+     handle SSH_PROTOFLAG_SCREEN_NUMBER for buggy clients
 
 20010226
  - (bal) Fixed bsd-snprinf.c so it now honors 'BROKEN_SNPRINTF' again.
@@ -4135,4 +4139,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.824 2001/02/26 20:04:45 mouring Exp $
+$Id: ChangeLog,v 1.825 2001/02/26 20:13:32 mouring Exp $
