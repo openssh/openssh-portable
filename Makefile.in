@@ -5,7 +5,8 @@ sbindir=@sbindir@
 libdir=@libdir@
 
 CC=@CC@
-CFLAGS=-g -Wall -DETCDIR=\"/etc/ssh\" @DEFS@
+OPT_FLAGS=-g
+CFLAGS=$(OPT_FLAGS) -Wall -DETCDIR=\"@sysconfdir@\" @DEFS@
 TARGETS=bin/libopenssh.a bin/openssh bin/opensshd bin/openssh-add bin/openssh-keygen bin/openssh-agent bin/openscp
 LFLAGS=-L./bin
 LIBS=-lopenssh @LIBS@

@@ -57,15 +57,17 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 
 #include "version.h"
 
+#include "config.h"
+
 #include "helper.h"
 #include "mktemp.h"
 #include "strlcpy.h"
 
-#ifdef HAVE_PAM
+#ifdef HAVE_LIBPAM
 #include <security/pam_appl.h>
 #endif /* HAVE_PAM */
 
-#ifdef HAVE_PWDB
+#ifdef HAVE_LIBPWDB
 #include <pwdb/pwdb_map.h>
 #endif /* HAVE_PWDB */
 
@@ -82,11 +84,5 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 /* Define this to use pipes instead of socketpairs for communicating with the
    client program.  Socketpairs do not seem to work on all systems. */
 #define USE_PIPES 1
-
-#ifndef SHUT_RD
-#define SHUT_RD 0 
-#define SHUT_WR 1 
-#define SHUT_RDWR 2 
-#endif /* SHUT_RD */
 
 #endif /* INCLUDES_H */

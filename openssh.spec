@@ -1,6 +1,6 @@
 Summary: OpenSSH free Secure Shell (SSH) implementation
 Name: openssh
-Version: 1.2pre3
+Version: 1.2pre4
 Release: 1
 Packager: Damien Miller <djm@ibs.com.au>
 Source0: openssh-%{version}-linux.tar.gz
@@ -20,6 +20,9 @@ up to date in terms of security and features, as well as removing all
 patented algorithms to seperate libraries (OpenSSL).
 
 %changelog
+* Thu Oct 28 1999 Damien Miller <djm@ibs.com.au>
+- Use autoconf
+- New binary names
 * Wed Oct 27 1999 Damien Miller <djm@ibs.com.au>
 - Initial RPMification, based on Jan "Yenya" Kasprzak's <kas@fi.muni.cz> spec.
 
@@ -29,7 +32,8 @@ patented algorithms to seperate libraries (OpenSSL).
 
 %build
 
-make -f Makefile.GNU OPT_FLAGS="$RPM_OPT_FLAGS"
+./configure --prefix=/usr --sysconfdir=/etc/openssh
+make OPT_FLAGS="$RPM_OPT_FLAGS"
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -37,69 +41,69 @@ mkdir -p $RPM_BUILD_ROOT/usr/bin
 mkdir -p $RPM_BUILD_ROOT/usr/sbin 
 mkdir -p $RPM_BUILD_ROOT/etc/rc.d/init.d
 mkdir -p $RPM_BUILD_ROOT/etc/pam.d
-mkdir -p $RPM_BUILD_ROOT/etc/ssh
+mkdir -p $RPM_BUILD_ROOT/etc/openssh
 mkdir -p $RPM_BUILD_ROOT/usr/man/man1
 mkdir -p $RPM_BUILD_ROOT/usr/man/man8
 
-install -m644 ssh.pam $RPM_BUILD_ROOT/etc/pam.d/ssh
-install -m755 sshd.init $RPM_BUILD_ROOT/etc/rc.d/init.d/sshd
-install -m600 ssh_config $RPM_BUILD_ROOT/etc/ssh/ssh_config
-install -m600 sshd_config $RPM_BUILD_ROOT/etc/ssh/sshd_config
+install -m644 opensshd.pam $RPM_BUILD_ROOT/etc/pam.d/opensshd
+install -m755 opensshd.init $RPM_BUILD_ROOT/etc/rc.d/init.d/opensshd
+install -m600 ssh_config $RPM_BUILD_ROOT/etc/openssh/ssh_config
+install -m600 sshd_config $RPM_BUILD_ROOT/etc/openssh/sshd_config
 
-install -s -m755 bin/sshd $RPM_BUILD_ROOT/usr/sbin
-install -s -m755 bin/ssh $RPM_BUILD_ROOT/usr/bin
-install -s -m755 bin/scp $RPM_BUILD_ROOT/usr/bin
-install -s -m755 bin/ssh-agent $RPM_BUILD_ROOT/usr/bin
-install -s -m755 bin/ssh-add $RPM_BUILD_ROOT/usr/bin
-install -s -m755 bin/ssh-keygen $RPM_BUILD_ROOT/usr/bin
+install -s -m755 bin/opensshd $RPM_BUILD_ROOT/usr/sbin
+install -s -m755 bin/openssh $RPM_BUILD_ROOT/usr/bin
+install -s -m755 bin/openscp $RPM_BUILD_ROOT/usr/bin
+install -s -m755 bin/openssh-agent $RPM_BUILD_ROOT/usr/bin
+install -s -m755 bin/openssh-add $RPM_BUILD_ROOT/usr/bin
+install -s -m755 bin/openssh-keygen $RPM_BUILD_ROOT/usr/bin
 
-install -m644 sshd.8 $RPM_BUILD_ROOT/usr/man/man8
-install -m644 ssh.1 $RPM_BUILD_ROOT/usr/man/man1
-install -m644 scp.1 $RPM_BUILD_ROOT/usr/man/man1
-install -m644 ssh-agent.1 $RPM_BUILD_ROOT/usr/man/man1
-install -m644 ssh-add.1 $RPM_BUILD_ROOT/usr/man/man1
-install -m644 ssh-keygen.1 $RPM_BUILD_ROOT/usr/man/man1
+install -m644 opensshd.8 $RPM_BUILD_ROOT/usr/man/man8
+install -m644 openssh.1 $RPM_BUILD_ROOT/usr/man/man1
+install -m644 openscp.1 $RPM_BUILD_ROOT/usr/man/man1
+install -m644 openssh-agent.1 $RPM_BUILD_ROOT/usr/man/man1
+install -m644 openssh-add.1 $RPM_BUILD_ROOT/usr/man/man1
+install -m644 openssh-keygen.1 $RPM_BUILD_ROOT/usr/man/man1
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %post
-/sbin/chkconfig --add sshd
-if [ ! -f /etc/ssh/ssh_host_key -o ! -s /etc/ssh/ssh_host_key ]; then
-	/usr/bin/ssh-keygen -b 1024 -f /etc/ssh/ssh_host_key -N '' >&2
+/sbin/chkconfig --add opensshd
+if [ ! -f /etc/openssh/ssh_host_key -o ! -s /etc/openssh/ssh_host_key ]; then
+	/usr/bin/openssh-keygen -b 1024 -f /etc/openssh/ssh_host_key -N '' >&2
 fi
-if test -r /var/run/sshd.pid
+if test -r /var/run/opensshd.pid
 then
-	/etc/rc.d/init.d/sshd restart >&2
+	/etc/rc.d/init.d/opensshd restart >&2
 fi
 
 %preun
 if [ "$1" = 0 ]
 then
-	/etc/rc.d/init.d/sshd stop >&2
-	/sbin/chkconfig --del sshd
+	/etc/rc.d/init.d/opensshd stop >&2
+	/sbin/chkconfig --del opensshd
 fi
 
 %files
 %defattr(-,root,root)
-%doc COPYING.Ylonen ChangeLog ChangeLog.linux OVERVIEW 
+%doc COPYING.Ylonen ChangeLog ChangeLog.Ylonen OVERVIEW 
 %doc README README.openssh
-%attr(0755,root,root) /usr/sbin/sshd
-%attr(0755,root,root) /usr/bin/ssh
-%attr(0755,root,root) /usr/bin/ssh-agent
-%attr(0755,root,root) /usr/bin/ssh-keygen
-%attr(0755,root,root) /usr/bin/ssh-add
-%attr(0755,root,root) /usr/bin/scp
+%attr(0755,root,root) /usr/sbin/opensshd
+%attr(0755,root,root) /usr/bin/openssh
+%attr(0755,root,root) /usr/bin/openssh-agent
+%attr(0755,root,root) /usr/bin/openssh-keygen
+%attr(0755,root,root) /usr/bin/openssh-add
+%attr(0755,root,root) /usr/bin/openscp
 
-%attr(0755,root,root) /usr/man/man8/sshd.8
-%attr(0755,root,root) /usr/man/man1/ssh.1
-%attr(0755,root,root) /usr/man/man1/ssh-agent.1
-%attr(0755,root,root) /usr/man/man1/ssh-keygen.1
-%attr(0755,root,root) /usr/man/man1/ssh-add.1
-%attr(0755,root,root) /usr/man/man1/scp.1
+%attr(0755,root,root) /usr/man/man8/opensshd.8
+%attr(0755,root,root) /usr/man/man1/openssh.1
+%attr(0755,root,root) /usr/man/man1/openssh-agent.1
+%attr(0755,root,root) /usr/man/man1/openssh-keygen.1
+%attr(0755,root,root) /usr/man/man1/openssh-add.1
+%attr(0755,root,root) /usr/man/man1/openscp.1
 
-%attr(0600,root,root) %config /etc/ssh/sshd_config
-%attr(0600,root,root) %config /etc/pam.d/ssh
-%attr(0755,root,root) %config /etc/rc.d/init.d/sshd
-%attr(0644,root,root) %config /etc/ssh/ssh_config
+%attr(0600,root,root) %config /etc/openssh/sshd_config
+%attr(0600,root,root) %config /etc/pam.d/opensshd
+%attr(0755,root,root) %config /etc/rc.d/init.d/opensshd
+%attr(0644,root,root) %config /etc/openssh/ssh_config
 

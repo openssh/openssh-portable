@@ -2,7 +2,7 @@
 
 Port 22
 ListenAddress 0.0.0.0
-HostKey /etc/ssh/ssh_host_key
+HostKey /etc/openssh/ssh_host_key
 ServerKeyBits 768
 LoginGraceTime 600
 KeyRegenerationInterval 3600
@@ -20,7 +20,7 @@ KeepAlive yes
 SyslogFacility AUTH
 RhostsAuthentication no
 #
-# For this to work you will also need host keys in /etc/ssh/ssh_known_hosts
+# For this to work you will also need host keys in /etc/openssh/ssh_known_hosts
 RhostsRSAAuthentication no
 #
 RSAAuthentication yes

@@ -1,16 +1,16 @@
 #!/bin/bash
 
-# Init file for OpenSSH sshd
+# Init file for OpenSSH server daemon
 #
 # chkconfig: 2345 55 25
 # description: OpenSSH server daemon
 #
-# processname: sshd
-# config: /etc/ssh/ssh_host_key
-# config: /etc/ssh/ssh_host_key.pub
-# config: /etc/ssh/ssh_random_seed
-# config: /etc/ssh/sshd_config
-# pidfile: /var/run/sshd.pid
+# processname: opensshd
+# config: /etc/openssh/ssh_host_key
+# config: /etc/openssh/ssh_host_key.pub
+# config: /etc/openssh/ssh_random_seed
+# config: /etc/openssh/sshd_config
+# pidfile: /var/run/opensshd.pid
 
 # source function library
 . /etc/rc.d/init.d/functions
@@ -19,14 +19,14 @@ RETVAL=0
 
 case "$1" in
   start)
-	echo -n "Starting sshd: "
-        daemon /usr/sbin/sshd
+	echo -n "Starting opensshd: "
+        daemon /usr/sbin/opensshd
 	RETVAL=$?
 	[ $RETVAL -eq 0 ] && touch /var/lock/subsys/sshd
 	echo
 	;;
   stop)
-	echo -n "Shutting down sshd: "
+	echo -n "Shutting down opensshd: "
 	killproc sshd
 	RETVAL=$?
 	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/sshd
@@ -38,11 +38,11 @@ case "$1" in
 	RETVAL=$?
         ;;
   status)
-        status sshd
+        status opensshd
 	RETVAL=$?
         ;;
   *)
-	echo "Usage: sshd {start|stop|restart|status}"
+	echo "Usage: opensshd {start|stop|restart|status}"
 	exit 1
 esac
 

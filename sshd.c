@@ -18,7 +18,7 @@ agent connections.
 */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.3 1999/10/28 03:20:30 damien Exp $");
+RCSID("$Id: sshd.c,v 1.4 1999/10/28 04:03:14 damien Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -129,7 +129,7 @@ void do_exec_no_pty(const char *command, struct passwd *pw,
 void do_child(const char *command, struct passwd *pw, const char *term,
 	      const char *display, const char *auth_proto,
 	      const char *auth_data, const char *ttyname);
-#ifdef HAVE_PAM
+#ifdef HAVE_LIBPAM
 static int pamconv(int num_msg, const struct pam_message **msg,
                    struct pam_response **resp, void *appdata_ptr);
 void do_pam_account_and_session(const char *username, const char *password, 
@@ -225,7 +225,7 @@ void do_pam_account_and_session(const char *username, const char *password, cons
 	 eat_packets_and_disconnect(username);
   }
 }
-#endif /* HAVE_PAM */
+#endif /* HAVE_LIBPAM */
 
 /* Signal handler for SIGHUP.  Sshd execs itself when it receives SIGHUP;
    the effect is to reread the configuration file (and to regenerate
@@ -809,7 +809,7 @@ main(int ac, char **av)
   /* The connection has been terminated. */
   log("Closing connection to %.100s", inet_ntoa(sin.sin_addr));
 
-#ifdef HAVE_PAM
+#ifdef HAVE_LIBPAM
   {
     int retval;
     
@@ -823,7 +823,7 @@ main(int ac, char **av)
       fatal_remove_cleanup(&pam_cleanup_proc, NULL);
     }
   }
-#endif /* HAVE_PAM */
+#endif /* HAVE_LIBPAM */
 
   packet_close();
 
@@ -1135,17 +1135,17 @@ do_authentication(char *user, int privileged_port)
   pwcopy.pw_shell = xstrdup(pw->pw_shell);
   pw = &pwcopy;
 
-#ifdef HAVE_PAM
-  if (PAM_SUCCESS != pam_start("ssh", pw->pw_name, &conv, (pam_handle_t**)&pamh))
+#ifdef HAVE_LIBPAM
+  if (PAM_SUCCESS != pam_start("opensshd", pw->pw_name, &conv, (pam_handle_t**)&pamh))
   {
     packet_start(SSH_SMSG_FAILURE);
     packet_send();
     packet_write_wait();
     packet_disconnect("PAM initialisation failed.");
   }
-#endif
 
   fatal_add_cleanup(&pam_cleanup_proc, NULL); 
+#endif
 
   /* If we are not running as root, the user must have the same uid as the
      server. */
@@ -1289,16 +1289,16 @@ do_authentication(char *user, int privileged_port)
 	      log("Rhosts authentication accepted for %.100s, remote %.100s on %.700s.",
 		  user, client_user, get_canonical_hostname());
 	      authenticated = 1;
-#ifndef HAVE_PAM
+#ifndef HAVE_LIBPAM
 	      xfree(client_user);
-#endif /* HAVE_PAM */
+#endif /* HAVE_LIBPAM */
 	      break;
 	    }
 	  log("Rhosts authentication failed for %.100s, remote %.100s.",
 		user, client_user);
-#ifndef HAVE_PAM
+#ifndef HAVE_LIBPAM
 	  xfree(client_user);
-#endif /* HAVE_PAM */
+#endif /* HAVE_LIBPAM */
 	  break;
 
 	case SSH_CMSG_AUTH_RHOSTS_RSA:
@@ -1341,18 +1341,18 @@ do_authentication(char *user, int privileged_port)
 	    {
 	      /* Authentication accepted. */
 	      authenticated = 1;
-#ifndef HAVE_PAM
+#ifndef HAVE_LIBPAM
 	      xfree(client_user);
-#endif /* HAVE_PAM */
+#endif /* HAVE_LIBPAM */
 	      BN_clear_free(client_host_key_e);
 	      BN_clear_free(client_host_key_n);
 	      break;
 	    }
 	  log("Rhosts authentication failed for %.100s, remote %.100s.",
 		user, client_user);
-#ifndef HAVE_PAM
+#ifndef HAVE_LIBPAM
           xfree(client_user);
-#endif /* HAVE_PAM */
+#endif /* HAVE_LIBPAM */
 	  BN_clear_free(client_host_key_e);
 	  BN_clear_free(client_host_key_n);
 	  break;
@@ -1403,7 +1403,7 @@ do_authentication(char *user, int privileged_port)
 	    packet_integrity_check(plen, 4 + passw_len, type);
 	  }
 
-#ifdef HAVE_PAM
+#ifdef HAVE_LIBPAM
           pampasswd = password;
   
           if (PAM_SUCCESS == pam_authenticate((pam_handle_t *)pamh, 0))
@@ -1416,7 +1416,7 @@ do_authentication(char *user, int privileged_port)
  	    log("PAM Password authentication for %.100s failed.", user);
             break;
 	  }
-#else /* HAVE_PAM */
+#else /* HAVE_LIBPAM */
 	  /* Try authentication with the password. */
 	  if (auth_password(pw, password))
 	    {
@@ -1432,7 +1432,7 @@ do_authentication(char *user, int privileged_port)
 	  memset(password, 0, strlen(password));
 	  xfree(password);
 	  break;
-#endif /* HAVE_PAM */
+#endif /* HAVE_LIBPAM */
 
 	case SSH_CMSG_AUTH_TIS:
 	  /* TIS Authentication is unsupported */
@@ -1470,7 +1470,7 @@ do_authentication(char *user, int privileged_port)
 			  get_canonical_hostname());
     }
 
-#ifdef HAVE_PAM
+#ifdef HAVE_LIBPAM
   do_pam_account_and_session(pw->pw_name, password, client_user, get_canonical_hostname());
 
   /* Clean up */
@@ -1482,7 +1482,7 @@ do_authentication(char *user, int privileged_port)
     memset(password, 0, strlen(password));
     xfree(password);
   }
-#endif /* HAVE_PAM */
+#endif /* HAVE_LIBPAM */
 
   /* The user has been authenticated and accepted. */
   packet_start(SSH_SMSG_SUCCESS);
