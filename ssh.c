@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.100 2001/03/01 22:46:37 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.101 2001/03/03 23:59:34 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -556,9 +556,11 @@ main(int ac, char **av)
 	/* Take a copy of the returned structure. */
 	pw = pwcopy(pw);
 
-	/* Initialize "log" output.  Since we are the client all output
-	   actually goes to the terminal. */
-	log_init(av[0], options.log_level, SYSLOG_FACILITY_USER, 0);
+	/*
+	 * Initialize "log" output.  Since we are the client all output
+	 * actually goes to stderr.
+	 */
+	log_init(av[0], SYSLOG_LEVEL_INFO, SYSLOG_FACILITY_USER, 1);
 
 	/* Read per-user configuration file. */
 	snprintf(buf, sizeof buf, "%.100s/%.100s", pw->pw_dir, _PATH_SSH_USER_CONFFILE);
@@ -571,7 +573,7 @@ main(int ac, char **av)
 	fill_default_options(&options);
 
 	/* reinit */
-	log_init(av[0], options.log_level, SYSLOG_FACILITY_USER, 0);
+	log_init(av[0], options.log_level, SYSLOG_FACILITY_USER, 1);
 
 	if (options.user == NULL)
 		options.user = xstrdup(pw->pw_name);
