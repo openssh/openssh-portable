@@ -78,6 +78,12 @@ int deny_severity = LOG_WARNING;
 #define O_NOCTTY	0
 #endif
 
+#ifdef HAVE___PROGNAME
+extern char *__progname;
+#else
+char *__progname;
+#endif
+
 /* Server configuration options. */
 ServerOptions options;
 
@@ -562,6 +568,7 @@ main(int ac, char **av)
 	int startup_p[2];
 	int startups = 0;
 
+	__progname = get_progname(av[0]);
 	init_rng();
 
 	/* Save argv[0]. */

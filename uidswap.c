@@ -16,9 +16,6 @@ RCSID("$OpenBSD: uidswap.c,v 1.9 2000/09/07 20:27:55 deraadt Exp $");
 
 #include "ssh.h"
 #include "uidswap.h"
-#ifdef WITH_IRIX_AUDIT
-#include <sat.h>
-#endif /* WITH_IRIX_AUDIT */
 
 /*
  * Note: all these functions must work in all of the following cases:
@@ -91,14 +88,6 @@ restore_uid()
 void
 permanently_set_uid(uid_t uid)
 {
-#ifdef WITH_IRIX_AUDIT
-	if (sysconf(_SC_AUDIT)) {
-		debug("Setting sat id to %d", (int) uid);
-		if (satsetid(uid))
-			debug("error setting satid: %.100s", strerror(errno));
-	}
-#endif /* WITH_IRIX_AUDIT */
-
 	if (setuid(uid) < 0)
 		debug("setuid %u: %.100s", (u_int) uid, strerror(errno));
 }

@@ -1,6 +1,9 @@
 20001117
  - (bal) Changed from 'primes' to 'primes.out' for consistancy sake.  It
    has no affect the output.  Patch by Corinna Vinschen <vinschen@redhat.com>
+ - (stevek) Reworked progname support. 
+ - (bal) Misplaced #include "includes.h" in bsd-setproctitle.c.  Patch by
+   Shinichi Maruyama <marya@st.jip.co.jp>
 
 20001116
  - (bal) Added in MAXSYMLINK test in bsd-realpath.c.  Required for some SCO

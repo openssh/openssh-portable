@@ -93,9 +93,9 @@ char socket_dir[1024];
 
 #ifdef HAVE___PROGNAME
 extern char *__progname;
-#else /* HAVE___PROGNAME */
-static const char *__progname = "ssh-agent";
-#endif /* HAVE___PROGNAME */
+#else
+char *__progname;
+#endif
 
 void
 idtab_init(void)
@@ -672,6 +672,7 @@ main(int ac, char **av)
 	char *shell, *format, *pidstr, pidstrbuf[1 + 3 * sizeof pid];
 	extern int optind;
 	
+	__progname = get_progname(av[0]);
 	init_rng();
 	
 #ifdef __GNU_LIBRARY__

@@ -26,6 +26,26 @@
 #include "xmalloc.h"
 #include "ssh.h"
 
+char *get_progname(char *argv0)
+{
+#ifdef HAVE___PROGNAME
+	extern char *__progname;
+
+	return __progname;
+#else
+	char *p;
+
+	if (argv0 == NULL)
+		return "unknown";	/* XXX */
+	p = strrchr(argv0, '/');
+	if (p == NULL)
+		p = argv0;
+	else
+		p++;
+	return p;
+#endif
+}
+
 #ifndef HAVE_SETLOGIN
 int setlogin(const char *name)
 {

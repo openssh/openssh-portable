@@ -50,9 +50,9 @@ RCSID("$OpenBSD: ssh-add.c,v 1.23 2000/11/12 19:50:38 markus Exp $");
 
 #ifdef HAVE___PROGNAME
 extern char *__progname;
-#else /* HAVE___PROGNAME */
-static const char *__progname = "ssh-add";
-#endif /* HAVE___PROGNAME */
+#else
+char *__progname;
+#endif
 
 void
 delete_file(AuthenticationConnection *ac, const char *filename)
@@ -249,6 +249,7 @@ main(int argc, char **argv)
 	int i;
 	int deleting = 0;
 
+	__progname = get_progname(argv[0]);
 	init_rng();
 
         SSLeay_add_all_algorithms();

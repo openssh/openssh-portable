@@ -35,11 +35,7 @@ char *client_version_string = NULL;
 char *server_version_string = NULL;
 
 extern Options options;
-#ifdef HAVE___PROGNAME
 extern char *__progname;
-#else /* HAVE___PROGNAME */
-static const char *__progname = "ssh";
-#endif /* HAVE___PROGNAME */
 
 /*
  * Connect to the given ssh server using a proxy command.

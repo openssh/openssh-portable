@@ -38,9 +38,9 @@
 static char rcsid[] = "$OpenBSD: setproctitle.c,v 1.7 1999/02/25 22:10:12 art Exp $";
 #endif /* LIBC_SCCS and not lint */
 
-#ifndef HAVE_SETPROCTITLE
-
 #include "includes.h"
+
+#ifndef HAVE_SETPROCTITLE
 
 #define SPT_NONE	0
 #define SPT_PSTAT	1
@@ -56,11 +56,7 @@ static char rcsid[] = "$OpenBSD: setproctitle.c,v 1.7 1999/02/25 22:10:12 art Ex
 
 #define	MAX_PROCTITLE	2048
 
-#ifdef HAVE___PROGNAME
 extern char *__progname;
-#else
-static const char *__progname = "sshd";
-#endif /* HAVE___PROGNAME */
 
 /*
  * Set Process Title (SPT) defines.  Modeled after sendmail's

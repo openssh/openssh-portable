@@ -90,6 +90,12 @@ RCSID("$OpenBSD: sftp-server.c,v 1.6 2000/09/07 20:27:53 deraadt Exp $");
 #define get_string(lenp)		buffer_get_string(&iqueue, lenp);
 #define TRACE				log
 
+#ifdef HAVE___PROGNAME
+extern char *__progname;
+#else
+char *__progname;
+#endif
+
 /* input and output queue */
 Buffer iqueue;
 Buffer oqueue;
@@ -1015,6 +1021,7 @@ main(int ac, char **av)
 	int in, out, max;
 	ssize_t len, olen;
 
+	__progname = get_progname(av[0]);
 	handle_init();
 
 	in = dup(STDIN_FILENO);

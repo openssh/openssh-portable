@@ -57,7 +57,10 @@ RCSID("$OpenBSD: session.c,v 1.43 2000/11/06 23:04:56 markus Exp $");
 #endif /* WITH_IRIX_PROJECT */
 #ifdef WITH_IRIX_JOBS
 #include <sys/resource.h>
-#endif
+#endif 
+#ifdef WITH_IRIX_AUDIT
+#include <sat.h>
+#endif /* WITH_IRIX_AUDIT */
 
 #if defined(HAVE_USERSEC_H)
 #include <usersec.h>
@@ -131,12 +134,7 @@ do_child(const char *command, struct passwd * pw, const char *term,
 
 /* import */
 extern ServerOptions options;
-#ifdef HAVE___PROGNAME
 extern char *__progname;
-#else /* HAVE___PROGNAME */
-static const char *__progname = "sshd";
-#endif /* HAVE___PROGNAME */
-
 extern int log_stderr;
 extern int debug_flag;
 extern unsigned int utmp_len;
@@ -1104,7 +1102,6 @@ do_child(const char *command, struct passwd * pw, const char *term,
 				      strerror(errno));
                         }
 #  endif /* WITH_IRIX_JOBS */
-
 #  ifdef WITH_IRIX_ARRAY
 			/* initialize array session */
 			if (jid == 0) {
@@ -1123,6 +1120,14 @@ do_child(const char *command, struct passwd * pw, const char *term,
 			  fatal("Failed to initialize project %d for %s: %.100s",
 				(int)projid, pw->pw_name, strerror(errno));
 #  endif /* WITH_IRIX_PROJECT */
+#ifdef WITH_IRIX_AUDIT
+			if (sysconf(_SC_AUDIT)) {
+				debug("Setting sat id to %d", (int) pw->pw_uid);
+				if (satsetid(pw->pw_uid))
+					debug("error setting satid: %.100s", strerror(errno));
+			}
+#endif /* WITH_IRIX_AUDIT */
+
 			/* Permanently switch to the desired uid. */
 			permanently_set_uid(pw->pw_uid);
 # endif /* HAVE_LOGIN_CAP */

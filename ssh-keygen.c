@@ -74,9 +74,9 @@ char *key_type_name = NULL;
 /* argv0 */
 #ifdef HAVE___PROGNAME
 extern char *__progname;
-#else /* HAVE___PROGNAME */
-static const char *__progname = "ssh-keygen";
-#endif /* HAVE___PROGNAME */
+#else
+char *__progname;
+#endif
 
 char hostname[MAXHOSTNAMELEN];
 
@@ -610,6 +610,7 @@ main(int ac, char **av)
 	extern int optind;
 	extern char *optarg;
 
+	__progname = get_progname(av[0]);
 	init_rng();
 
 	SSLeay_add_all_algorithms();

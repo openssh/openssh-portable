@@ -62,9 +62,9 @@ RCSID("$OpenBSD: ssh.c,v 1.72 2000/11/12 19:50:38 markus Exp $");
 
 #ifdef HAVE___PROGNAME
 extern char *__progname;
-#else /* HAVE___PROGNAME */
-static const char *__progname = "ssh";
-#endif /* HAVE___PROGNAME */
+#else
+char *__progname;
+#endif
 
 /* Flag indicating whether IPv4 or IPv6.  This can be set on the command line.
    Default value is AF_UNSPEC means both IPv4 and IPv6. */
@@ -237,6 +237,7 @@ main(int ac, char **av)
 	int dummy;
 	uid_t original_effective_uid;
 
+	__progname = get_progname(av[0]);
 	init_rng();
 
 	/*

@@ -84,6 +84,12 @@ RCSID("$OpenBSD: scp.c,v 1.43 2000/10/18 18:23:02 markus Exp $");
 #define _PATH_CP "cp"
 #endif
 
+#ifdef HAVE___PROGNAME
+extern char *__progname;
+#else
+char *__progname;
+#endif
+
 /* For progressmeter() -- number of seconds before xfer considered "stalled" */
 #define STALLTIME	5
 
@@ -248,6 +254,8 @@ main(argc, argv)
 	char *targ;
 	extern char *optarg;
 	extern int optind;
+
+	__progname = get_progname(argv[0]);
 
 	args.list = NULL;
 	addargs("ssh");	 	/* overwritten with ssh_program */
