@@ -12,7 +12,6 @@
 #include "bsd-mktemp.h"
 #include "bsd-snprintf.h"
 #include "bsd-daemon.h"
-#include "bsd-login.h"
 #include "bsd-base64.h"
 
 /* rfc2553 socket API replacements */

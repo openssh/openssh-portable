@@ -19,14 +19,6 @@
 # include <paths.h> /* For _PATH_XXX */
 #endif 
 
-#ifdef HAVE_UTMP_H
-# include <utmp.h> /* For _PATH_XXX */
-#endif 
-
-#if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
-# include <utmpx.h> /* For _PATH_XXX */
-#endif 
-
 #ifdef HAVE_SYS_TIME_H
 # include <sys/time.h> /* For timersub */
 #endif
@@ -161,47 +153,6 @@ typedef int ssize_t;
 
 /* Paths */
 
-/* If _PATH_LASTLOG is not defined by system headers, set it to the */
-/* lastlog file detected by autoconf */
-#ifndef _PATH_LASTLOG
-# ifdef LASTLOG_LOCATION
-#  define _PATH_LASTLOG LASTLOG_LOCATION
-# endif
-#endif
-
-#ifndef _PATH_UTMP
-# ifdef UTMP_FILE
-#  define _PATH_UTMP UTMP_FILE
-# else
-#  define _PATH_UTMP "/var/adm/utmp"
-# endif
-#endif
-
-#ifndef _PATH_WTMP
-# ifdef WTMP_FILE
-#  define _PATH_WTMP WTMP_FILE
-# else
-#  define _PATH_WTMP "/var/adm/wtmp"
-# endif
-#endif
-
-#if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
-# ifndef _PATH_UTMPX
-#  ifdef UTMPX_FILE
-#   define _PATH_UTMPX UTMPX_FILE
-#  else
-#   define _PATH_UTMPX "/var/adm/utmpx"
-#  endif
-# endif
-# ifndef _PATH_WTMPX
-#  ifdef WTMPX_FILE
-#   define _PATH_WTMPX WTMPX_FILE
-#  else
-#   define _PATH_WTMPX "/var/adm/wtmp"
-#  endif
-# endif
-#endif
-
 #ifndef _PATH_BSHELL
 # define _PATH_BSHELL "/bin/sh"
 #endif
@@ -296,5 +247,81 @@ typedef int ssize_t;
 #if !defined(HAVE_ATEXIT) && defined(HAVE_ON_EXIT)
 # define atexit(a) on_exit(a)
 #endif /* !defined(HAVE_ATEXIT) && defined(HAVE_ON_EXIT) */
+
+/**
+ ** login recorder definitions
+ **/
+
+/* preprocess */
+
+#ifdef HAVE_UTMP_H
+#  ifdef HAVE_TIME_IN_UTMP
+#    include <time.h>
+#  endif
+#  include <utmp.h>
+#endif
+#ifdef HAVE_UTMPX_H
+#  ifdef HAVE_TV_IN_UTMPX
+#    include <sys/time.h>
+#  endif
+#  include <utmpx.h>
+#endif
+#ifdef HAVE_LASTLOG_H
+#  include <lastlog.h>
+#endif
+#ifdef HAVE_PATHS_H
+#  include <paths.h>
+#endif
+
+/* FIXME: put default paths back in */
+#if !defined(UTMP_FILE) && defined(_PATH_UTMP)
+#  define UTMP_FILE _PATH_UTMP
+#endif
+#if !defined(WTMP_FILE) && defined(_PATH_WTMP)
+#  define WTMP_FILE _PATH_WTMP
+#endif
+/* pick up the user's location for lastlog if given */
+#ifdef CONF_LASTLOG_FILE
+#  define LASTLOG_FILE CONF_LASTLOG_FILE
+#endif
+#if !defined(LASTLOG_FILE) && defined(_PATH_LASTLOG)
+#  define LASTLOG_FILE _PATH_LASTLOG
+#endif
+
+
+/* The login() library function in libutil is first choice */
+#if defined(HAVE_LOGIN) && !defined(DISABLE_LOGIN)
+#  define USE_LOGIN
+
+#else
+/* Simply select your favourite login types. */
+/* Can't do if-else because some systems use several... <sigh> */
+#  if defined(UTMPX_FILE) && !defined(DISABLE_UTMPX)
+#    define USE_UTMPX
+#  endif
+#  if defined(UTMP_FILE) && !defined(DISABLE_UTMP)
+#    define USE_UTMP
+#  endif
+#  if defined(WTMPX_FILE) && !defined(DISABLE_WTMPX)
+#    define USE_WTMPX
+#  endif
+#  if defined(WTMP_FILE) && !defined(DISABLE_WTMP)
+#    define USE_WTMP
+#  endif
+
+#endif
+
+/* I hope that the presence of LASTLOG_FILE is enough to detect this */
+#if defined(LASTLOG_FILE) && !defined(DISABLE_LASTLOG)
+#  define USE_LASTLOG
+#endif
+
+/* which type of time to use? (api.c) */
+#ifdef HAVE_SYS_TIME_H
+#  define USE_TIMEVAL
+#endif
+
+/** end of login recorder definitions */
+
 
 #endif /* _DEFINES_H */

@@ -52,10 +52,50 @@
 #undef HAVE_TYPE_IN_UTMP
 #undef HAVE_TYPE_IN_UTMPX
 #undef HAVE_TV_IN_UTMP
+#undef HAVE_TV_IN_UTMPX
 #undef HAVE_ID_IN_UTMP
+#undef HAVE_EXIT_IN_UTMP
+#undef HAVE_TIME_IN_UTMP
+#undef HAVE_TIME_IN_UTMPX
 
-/* Define if you want to use utmpx */
-#undef USE_UTMPX
+/* Define if you don't want to use your system's login() call */
+#undef DISABLE_LOGIN
+
+/* Define if you don't want to use pututline() etc. to write [uw]tmp */
+#undef DISABLE_PUTUTLINE
+
+/* Define if you don't want to use pututxline() etc. to write [uw]tmpx */
+#undef DISABLE_PUTUTXLINE
+
+/* Define if you don't want to use lastlog */
+#undef DISABLE_LASTLOG
+
+/* Define if you don't want to use utmp */
+#undef DISABLE_UTMP
+
+/* Define if you don't want to use utmpx */
+#undef DISABLE_UTMPX
+
+/* Define if you don't want to use wtmp */
+#undef DISABLE_WTMP
+
+/* Define if you don't want to use wtmpx */
+#undef DISABLE_WTMPX
+
+/* Define if you want to specify the path to your lastlog file */
+#undef CONF_LASTLOG_FILE
+
+/* Define if you want to specify the path to your utmp file */
+#undef CONF_UTMP_FILE
+
+/* Define if you want to specify the path to your wtmp file */
+#undef CONF_WTMP_FILE
+
+/* Define if you want to specify the path to your utmpx file */
+#undef CONF_UTMPX_FILE
+
+/* Define if you want to specify the path to your wtmpx file */
+#undef CONF_WTMPX_FILE
 
 /* Define is libutil has login() function */
 #undef HAVE_LIBUTIL_LOGIN

@@ -1,0 +1,307 @@
+/*
+ * Copyright (c) 2000 Andre Lucas.  All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *      This product includes software developed by Markus Friedl.
+ * 4. The name of the author may not be used to endorse or promote products
+ *    derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/** 
+ ** logintest.c:  simple test driver for platform-independent login recording
+ **               and lastlog retrieval
+ **/
+
+#include "config.h"
+
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <pwd.h>
+#include <netdb.h>
+#ifdef HAVE_TIME_H
+#include <time.h>
+#endif
+
+#include "loginrec.h"
+
+RCSID("$Id: logintest.c,v 1.1 2000/06/03 14:57:40 andre Exp $");
+
+
+int nologtest = 0;
+int compile_opts_only = 0;
+int be_verbose = 0;
+
+
+#define DOTQUAD_MAXSIZE 17
+void dump_dotquad(char *s,  struct in_addr *sin4) {
+  unsigned int addr;
+
+  addr = ntohl(sin4->s_addr);
+  snprintf(s, DOTQUAD_MAXSIZE, "%d.%d.%d.%d",
+	   (addr >> 24)& 0xff, (addr >>16) & 0xff,
+	   (addr >>8) & 0xff, addr & 0xff );
+} /* dump_dotquad */
+
+
+/* Dump a logininfo to stdout. Assumes a tab size of 8 chars. */
+void dump_logininfo(struct logininfo *li, char *descname) {
+  char a4[DOTQUAD_MAXSIZE];
+
+  dump_dotquad(a4, &(li->hostaddr.sa_in4.sin_addr));
+
+  /* yes I know how nasty this is */
+  printf("struct logininfo %s = {\n\t"
+	 "progname\t'%s'\n\ttype\t\t%d\n\t"
+	 "pid\t\t%d\n\tuid\t\t%d\n\t"
+	 "line\t\t'%s'\n\tusername\t'%s'\n\t"
+	 "hostname\t'%s'\n\texit\t\t%d\n\ttermination\t%d\n\t"
+	 "tv_sec\t%d\n\ttv_usec\t%d\n\t"
+	 "struct login_netinfo hostaddr {\n\t\t"
+	 "struct sockaddr_in sa_in4 {\n"
+	 "\t\t\tsin_port\t%d\n\t\t\t*sin_addr\t%d(%s)\n\t\t}\n"
+	 "\t\t** !!! IP6 stuff not supported yet **\n"
+	 "\t}\n"
+	 "}\n",
+	 descname, li->progname, li->type, 
+	 li->pid, li->uid, li->line,
+	 li->username, li->hostname, li->exit, 
+	 li->termination, li->tv_sec, li->tv_usec, 
+	 ntohs(li->hostaddr.sa_in4.sin_port),
+	 ntohl(li->hostaddr.sa_in4.sin_addr.s_addr), a4);
+  /* FIXME: (ATL) print sockaddr_in6 stuff */
+}
+
+
+int testAPI() {
+  struct logininfo *li1;
+  struct passwd *pw;
+  struct hostent *he;
+  struct sockaddr_in sa_in4;
+  char cmdstring[256], stripline[8];
+  char username[32];
+#ifdef HAVE_TIME_H
+  time_t t0, t1, t2;
+  char s_t0[64],s_t1[64],s_t2[64]; /* ctime() strings */
+#endif
+
+  printf("**\n** Testing the API...\n**\n");
+
+  pw = getpwuid(getuid());
+  strlcpy(username, pw->pw_name, sizeof(username));
+
+  /* gethostname(hostname, sizeof(hostname)); */
+
+  printf("login_alloc_entry test (no host info):\n");
+  /* !!! fake tty more effectively */
+  li1 = login_alloc_entry((int)getpid(), username, NULL, ttyname(0));
+  login_set_progname(li1, "testlogin");
+
+  if (be_verbose)
+    dump_logininfo(li1, "li1");
+
+  printf("Setting IPv4 host info for 'localhost' (may call out):\n");
+  if (! (he = gethostbyname("localhost"))) {
+    printf("Couldn't set hostname(lookup failed)\n");
+  } else {
+    /* NOTE: this is messy, but typically a program wouldn't have to set
+     *  any of this, a sockaddr_in* would be already prepared */
+    memcpy((void *)&(sa_in4.sin_addr), (void *)&(he->h_addr_list[0][0]),
+	   sizeof(struct in_addr));
+    login_set_ip4(li1, &sa_in4);
+    login_set_hostname(li1, "localhost");
+  }
+  if (be_verbose)
+    dump_logininfo(li1, "li1");
+
+  if ((int)geteuid() != 0) {
+    printf("NOT RUNNING LOGIN TESTS - you are not root!\n");
+    return 1; /* this isn't necessarily an error */
+  }
+
+  if (nologtest)
+    return 1;
+  
+  line_stripname(stripline, li1->line, sizeof(stripline));
+
+  printf("Performing an invalid login attempt (no type field)\n--\n");
+  login_write(li1);
+  printf("--\n(Should have written an error to stderr)\n");
+
+#ifdef HAVE_TIME_H
+  (void)time(&t0);
+  strlcpy(s_t0, ctime(&t0), sizeof(s_t0));
+  t1 = login_getlasttime_uid(getuid());
+  strlcpy(s_t1, ctime(&t1), sizeof(s_t1));
+  printf("Before logging in:\n\tcurrent time is %d - %s\t"
+	 "lastlog time is %d - %s\n",
+	 (int)t0, s_t0, (int)t1, s_t1);
+#endif
+
+  printf("Performing a login on line %s...\n--\n", stripline);
+  login_login(li1);
+  
+  snprintf(cmdstring, sizeof(cmdstring), "who | grep '%s '",
+	   stripline);
+  system(cmdstring);
+  
+  printf("--\nWaiting for a few seconds...\n");
+  sleep(2);
+
+  printf("Performing a logout (the root login "
+	 "shown above should be gone)\n"
+	 "If the root login hasn't gone, but another user on the same\n"
+	 "pty has, this is OK - we're hacking it here, and there\n"
+	 "shouldn't be two users on one pty in reality...\n"
+	 "-- ('who' output follows)\n");
+  login_logout(li1);
+
+  system(cmdstring);
+  printf("-- ('who' output ends)\n");
+
+#ifdef HAVE_TIME_H
+  t2 = login_getlasttime_uid(getuid());
+  strlcpy(s_t2, ctime(&t2), sizeof(s_t2));
+  printf("After logging in, lastlog time is %d - %s\n", (int)t2, s_t2);
+  if (t1 == t2)
+    printf("The lastlog times before and after logging in are the "
+	   "same.\nThis indicates that lastlog is ** NOT WORKING "
+	   "CORRECTLY **\n");
+  else if (t0 != t2)
+    printf("** The login time and the lastlog time differ.\n"
+	   "** This indicates that lastlog is either recording the "
+	   "wrong time,\n** or retrieving the wrong entry.\n");
+  else
+    printf("lastlog agrees with the login time. This is a good thing.\n");
+
+#endif
+
+  printf("--\nThe output of 'last' shown next should have "
+	 "an entry for root \n  on %s for the time shown above:\n--\n", 
+	 stripline);
+  snprintf(cmdstring, sizeof(cmdstring), "last | grep '%s ' | head -3",
+	   stripline);
+  system(cmdstring);
+	     
+  printf("--\nEnd of login test.\n");
+
+  login_free_entry(li1);
+
+  return 1;
+} /* testAPI() */
+
+
+void testLineName(char *line) {
+  /* have to null-terminate - these functions are designed for
+   * structures with fixed-length char arrays, and don't null-term.*/
+  char full[17], strip[9], abbrev[5];
+
+  memset(full, '\0', sizeof(full));
+  memset(strip, '\0', sizeof(strip));
+  memset(abbrev, '\0', sizeof(abbrev));
+
+  line_fullname(full, line, sizeof(full)-1);
+  line_stripname(strip, full, sizeof(strip)-1);
+  line_abbrevname(abbrev, full, sizeof(abbrev)-1);
+  printf("%s: %s, %s, %s\n", line, full, strip, abbrev);
+
+} /* testLineName() */
+
+
+int testOutput() {
+  printf("**\n** Testing linename functions\n**\n");
+  testLineName("/dev/pts/1");
+  testLineName("pts/1");
+  testLineName("pts/999");
+  testLineName("/dev/ttyp00");
+  testLineName("ttyp00");
+
+  return 1;
+} /* testOutput() */
+
+
+/* show which options got compiled in */
+void showOptions(void) {
+  
+  printf("**\n** Compile-time options\n**\n");
+  
+  printf("login recording methods selected:\n");
+#ifdef USE_LOGIN
+  printf("\tUSE_LOGIN\n");
+#endif
+#ifdef USE_UTMP
+  printf("\tUSE_UTMP (UTMP_FILE=%s)\n", UTMP_FILE);
+#endif
+#ifdef USE_UTMPX
+  printf("\tUSE_UTMPX (UTMPX_FILE=%s)\n", UTMPX_FILE);
+#endif
+#ifdef USE_WTMP
+  printf("\tUSE_WTMP (WTMP_FILE=%s)\n", WTMP_FILE);
+#endif
+#ifdef USE_WTMPX
+  printf("\tUSE_WTMPX (WTMPX_FILE=%s)\n", WTMPX_FILE);
+#endif
+#ifdef USE_LASTLOG
+  printf("\tUSE_LASTLOG (LASTLOG_FILE=%s)\n", LASTLOG_FILE);
+#endif
+  printf("\n");
+
+  printf("IP6 support: %s\n",
+#ifdef HAVE_IP6
+	 "enabled"
+#else
+	 "disabled"
+#endif
+	 );
+
+
+} /* showOptions() */
+
+
+int main(int argc, char *argv[]) {
+
+  printf("Platform-independent login recording test driver");
+
+  if (argc == 2) {
+    if (strncmp(argv[1], "-i", 3) == 0)
+      compile_opts_only = 1;
+    else if (strncmp(argv[1], "-v", 3) == 0)
+      be_verbose=1;
+  }
+      
+  if (!compile_opts_only) {
+    if (be_verbose && !testOutput())
+      return 1;
+    
+    if (!testAPI())
+      return 1;
+  }
+
+  showOptions();
+  
+  return 0;
+} /* main() */
+
