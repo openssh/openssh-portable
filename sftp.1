@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.20 2001/06/23 05:57:08 deraadt Exp $
+.\" $OpenBSD: sftp.1,v 1.21 2001/06/23 17:48:18 itojun Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -37,7 +37,7 @@
 .Nm sftp
 .Op [\fIuser\fR@]\fIhost\fR[:\fIfile\fR [\fIfile\fR]]
 .Nm sftp
-.Op [\fIuser\fR@]\fIhost\fR[:\fIdir\fR[\fI/\fR]] 
+.Op [\fIuser\fR@]\fIhost\fR[:\fIdir\fR[\fI/\fR]]
 .Sh DESCRIPTION
 .Nm
 is an interactive file transfer program, similar to
@@ -52,7 +52,7 @@ connects and logs into the specified
 .Ar host ,
 then enters an interactive command mode.
 .Pp
-The second usage format will retrieve files automatically if a non-interactive 
+The second usage format will retrieve files automatically if a non-interactive
 authentication method is used; otherwise it will do so after
 successful interactive authentication.
 .Pp
@@ -68,13 +68,13 @@ instead of
 Since it lacks user interaction it should be used in conjunction with
 non-interactive authentication.
 .Nm
-will abort if any of the following 
-commands fail: 
+will abort if any of the following
+commands fail:
 .Ic get , put , rename , ln , rm , mkdir , chdir , lchdir
 and
 .Ic lmkdir .
 .It Fl C
-Enables compression (via ssh's 
+Enables compression (via ssh's
 .Fl C
 flag)
 .It Fl o Ar ssh_option
@@ -86,31 +86,31 @@ Raise logging level. This option is also passed to ssh.
 .Sh INTERACTIVE COMMANDS
 Once in interactive mode,
 .Nm
-understands a set of commands similar to those of 
+understands a set of commands similar to those of
 .Xr ftp 1 .
 Commands are case insensitive and pathnames may be enclosed in quotes if they
 contain spaces.
 .Bl -tag -width Ds
 .It Ic cd Ar path
-Change remote directory to 
+Change remote directory to
 .Ar path .
 .It Ic lcd Ar path
-Change local directory to 
+Change local directory to
 .Ar path .
 .It Ic chgrp Ar grp Ar path
-Change group of file 
+Change group of file
 .Ar path
 to
 .Ar grp .
 .Ar grp
 must be a numeric GID.
 .It Ic chmod Ar mode Ar path
-Change permissions of file 
+Change permissions of file
 .Ar path
 to
 .Ar mode .
 .It Ic chown Ar own Ar path
-Change owner of file 
+Change owner of file
 .Ar path
 to
 .Ar own .
@@ -127,15 +127,15 @@ Retrieve the
 .Ar remote-path
 and store it on the local machine.
 If the local
-path name is not specified, it is given the same name it has on the 
-remote machine. If the 
+path name is not specified, it is given the same name it has on the
+remote machine. If the
 .Fl P
 flag is specified, then the file's full permission and access time are
 copied too.
 .It Ic help
 Display help text.
 .It Ic lls Op Ar ls-options Op Ar path
-Display local directory listing of either 
+Display local directory listing of either
 .Ar path
 or current directory if
 .Ar path
@@ -144,7 +144,7 @@ is not specified.
 Create local directory specified by
 .Ar path .
 .It Ic ln Ar oldpath Ar newpath
-Create a symbolic link from 
+Create a symbolic link from
 .Ar oldpath
 to
 .Ar newpath .
@@ -157,7 +157,7 @@ or current directory if
 .Ar path
 is not specified.
 .It Ic lumask Ar umask
-Set local umask to 
+Set local umask to
 .Ar umask .
 .It Ic mkdir Ar path
 Create remote directory specified by
@@ -169,8 +169,8 @@ Create remote directory specified by
 .Xc
 Upload
 .Ar local-path
-and store it on the remote machine. If the remote path name is not 
-specified, it is given the same name it has on the local machine. If the 
+and store it on the remote machine. If the remote path name is not
+specified, it is given the same name it has on the local machine. If the
 .Fl P
 flag is specified, then the file's full permission and access time are
 copied too.
@@ -190,12 +190,12 @@ Remove remote directory specified by
 Delete remote file specified by
 .Ar path .
 .It Ic symlink Ar oldpath Ar newpath
-Create a symbolic link from 
+Create a symbolic link from
 .Ar oldpath
 to
 .Ar newpath .
 .It Ic ! Ar command
-Execute 
+Execute
 .Ar command
 in local shell.
 .It Ic !

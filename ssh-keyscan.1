@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keyscan.1,v 1.7 2001/06/22 10:17:51 mpech Exp $
+.\"	$OpenBSD: ssh-keyscan.1,v 1.8 2001/06/23 17:48:18 itojun Exp $
 .\"
 .\" Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
 .\"
@@ -47,21 +47,21 @@ have begun after you created your ssh_known_hosts file.
 .Sh OPTIONS
 .Bl -tag -width Ds
 .It Fl t
-Set the timeout for connection attempts.  If 
+Set the timeout for connection attempts.  If
 .Pa timeout
 seconds have elapsed since a connection was initiated to a host or since the
 last time anything was read from that host, then the connection is
 closed and the host in question considered unavailable.  Default is 5
 seconds.
 .It Fl f
-Read hosts or 
+Read hosts or
 .Pa addrlist namelist
 pairs from this file, one per line.
 If
 .Pa -
 is supplied instead of a filename,
 .Nm
-will read hosts or 
+will read hosts or
 .Pa addrlist namelist
 pairs from the standard input.
 .El

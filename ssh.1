@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.116 2001/06/23 02:34:31 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.117 2001/06/23 17:48:19 itojun Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -269,7 +269,7 @@ of
 .Ss Escape Characters
 .Pp
 When a pseudo terminal has been requested, ssh supports a number of functions
-through the use of an escape character. 
+through the use of an escape character.
 .Pp
 A single tilde character can be sent as
 .Ic ~~
@@ -278,7 +278,7 @@ The escape character must always follow a newline to be interpreted as
 special.
 The escape character can be changed in configuration files using the
 .Cm EscapeChar
-configuration directive or on the command line by the 
+configuration directive or on the command line by the
 .Fl e
 option.
 .Pp
@@ -510,8 +510,8 @@ Quiet mode.
 Causes all warning and diagnostic messages to be suppressed.
 Only fatal errors are displayed.
 .It Fl s
-May be used to request invocation of a subsystem on the remote system. Subsystems are a feature of the SSH2 protocol which facilitate the use 
-of SSH as a secure transport for other applications (eg. sftp). The 
+May be used to request invocation of a subsystem on the remote system. Subsystems are a feature of the SSH2 protocol which facilitate the use
+of SSH as a secure transport for other applications (eg. sftp). The
 subsystem is specified as the remote command.
 .It Fl t
 Force pseudo-tty allocation.
@@ -698,7 +698,7 @@ The default is
 Specifies the cipher to use for encrypting the session
 in protocol version 1.
 Currently,
-.Dq blowfish 
+.Dq blowfish
 and
 .Dq 3des
 are supported.
@@ -883,7 +883,7 @@ The possible values are:
 QUIET, FATAL, ERROR, INFO, VERBOSE and DEBUG.
 The default is INFO.
 .It Cm MACs
-Specifies the MAC (message authentication code) algorithms 
+Specifies the MAC (message authentication code) algorithms
 in order of preference.
 The MAC algorithm is used in protocol version 2
 for data integrity protection.
@@ -906,8 +906,8 @@ The default is
 Specifies the port number to connect on the remote host.
 Default is 22.
 .It Cm PreferredAuthentications
-Specifies the order in which the client should try protocol 2 
-authentication methods. This allows a client to prefer one method (e.g. 
+Specifies the order in which the client should try protocol 2
+authentication methods. This allows a client to prefer one method (e.g.
 .Cm keyboard-interactive )
 over another method (e.g.
 .Cm password )
@@ -979,7 +979,7 @@ Disabling rhosts authentication may reduce
 authentication time on slow connections when rhosts authentication is
 not used.
 Most servers do not permit RhostsAuthentication because it
-is not secure (see 
+is not secure (see
 .Cm RhostsRSAAuthentication ) .
 The argument to this keyword must be
 .Dq yes

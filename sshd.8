@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.132 2001/06/23 03:03:59 markus Exp $
+.\" $OpenBSD: sshd.8,v 1.133 2001/06/23 17:48:19 itojun Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -374,7 +374,7 @@ The default is
 .Dq aes128-cbc,3des-cbc,blowfish-cbc,cast128-cbc,arcfour.
 .It Cm ClientAliveInterval
 Sets a timeout interval in seconds after which if no data has been received
-from the client, 
+from the client,
 .Nm
 will send a message through the encrypted
 channel to request a response from the client.
@@ -386,10 +386,10 @@ Sets the number of client alive messages (see above) which may be
 sent without
 .Nm
 receiving any messages back from the client. If this threshold is
-reached while client alive messages are being sent, 
+reached while client alive messages are being sent,
 .Nm
 will disconnect the client, terminating the session. It is important
-to note that the use of client alive messages is very different from 
+to note that the use of client alive messages is very different from
 .Cm Keepalive
 (below). The client alive messages are sent through the
 encrypted channel and therefore will not be spoofable. The TCP keepalive
@@ -402,7 +402,7 @@ clients having an active connection to the server.
 The default value is 3. If you set
 .Cm ClientAliveInterval
 (above) to 15, and leave this value at the default, unresponsive ssh clients
-will be disconnected after approximately 45 seconds. 
+will be disconnected after approximately 45 seconds.
 .It Cm DenyGroups
 This keyword can be followed by a number of group names, separated
 by spaces.
@@ -787,12 +787,12 @@ The default is
 Note that
 .Xr login 1
 is never used for remote command execution.
-Note also, that if this is enabled,                                                           
-.Cm X11Forwarding                                                             
+Note also, that if this is enabled,
+.Cm X11Forwarding
 will be disabled because
 .Xr login 1
 does not know how to handle
-.Xr xauth 1                                                                   
+.Xr xauth 1
 cookies.
 .It Cm X11DisplayOffset
 Specifies the first display number available for
@@ -808,9 +808,9 @@ The default is
 .Dq no .
 Note that disabling X11 forwarding does not improve security in any
 way, as users can always install their own forwarders.
-X11 forwarding is automatically disabled if                                                     
-.Cm UseLogin                                                                  
-is enabled.          
+X11 forwarding is automatically disabled if
+.Cm UseLogin
+is enabled.
 .It Cm XAuthLocation
 Specifies the location of the
 .Xr xauth 1
@@ -1005,13 +1005,13 @@ authentication.
 .It Cm no-pty
 Prevents tty allocation (a request to allocate a pty will fail).
 .It Cm permitopen="host:port"
-Limit local 
+Limit local
 .Li ``ssh -L''
 port forwarding such that it may only connect to the specified host and
-port. Multiple 
+port. Multiple
 .Cm permitopen
-options may be applied separated by commas. No pattern matching is 
-performed on the specified hostnames, they must be literal domains or 
+options may be applied separated by commas. No pattern matching is
+performed on the specified hostnames, they must be literal domains or
 addresses.
 .El
 .Ss Examples
