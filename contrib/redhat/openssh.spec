@@ -270,6 +270,10 @@ ln -s x11-ssh-askpass $RPM_BUILD_ROOT%{_libexecdir}/openssh/ssh-askpass
 install -s contrib/gnome-ssh-askpass $RPM_BUILD_ROOT%{_libexecdir}/openssh/gnome-ssh-askpass
 %endif
 
+%if ! %{scard}
+	 rm -f $RPM_BUILD_ROOT/usr/share/openssh/Ssh.bin
+%endif
+
 install -m 755 -d $RPM_BUILD_ROOT%{_sysconfdir}/profile.d/
 install -m 755 contrib/redhat/gnome-ssh-askpass.csh $RPM_BUILD_ROOT%{_sysconfdir}/profile.d/
 install -m 755 contrib/redhat/gnome-ssh-askpass.sh $RPM_BUILD_ROOT%{_sysconfdir}/profile.d/
