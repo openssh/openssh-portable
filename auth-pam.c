@@ -35,7 +35,7 @@
 
 extern char *__progname;
 
-RCSID("$Id: auth-pam.c,v 1.39 2001/10/28 11:36:56 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.40 2001/10/28 17:32:38 stevesk Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now"
@@ -147,8 +147,8 @@ static int do_pam_conversation(int num_msg, const struct pam_message **msg,
 				break;
 			case PAM_PROMPT_ECHO_OFF:
 				reply[count].resp = 
-				    read_passphrase(PAM_MSG_MEMBER(msg, count, 
-					msg), RP_ALLOW_STDIN));
+				    read_passphrase(PAM_MSG_MEMBER(msg, count,
+					msg), RP_ALLOW_STDIN);
 				reply[count].resp_retcode = PAM_SUCCESS;
 				break;
 			case PAM_ERROR_MSG:
