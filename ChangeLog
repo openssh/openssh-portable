@@ -4,6 +4,7 @@
    openbsd-compat/port-aix.c openbsd-compat/port-aix.h] Bug #835: enable IPv6
    on AIX where possible (see README.platform for details) and work around
    a misfeature of AIX's getnameinfo.  ok djm@
+ - (dtucker) [loginrec.c] Add missing #include.
 
 20050211
  - (dtucker) [configure.ac] Tidy up configure --help output.
@@ -2130,4 +2131,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3652 2005/02/15 10:45:57 dtucker Exp $
+$Id: ChangeLog,v 1.3653 2005/02/15 11:19:28 dtucker Exp $

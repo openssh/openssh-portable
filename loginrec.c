@@ -155,6 +155,7 @@
 #include "packet.h"
 #include "canohost.h"
 #include "auth.h"
+#include "buffer.h"
 
 #ifdef HAVE_UTIL_H
 # include <util.h>
@@ -164,7 +165,7 @@
 # include <libutil.h>
 #endif
 
-RCSID("$Id: loginrec.c,v 1.66 2005/02/15 10:45:57 dtucker Exp $");
+RCSID("$Id: loginrec.c,v 1.67 2005/02/15 11:19:28 dtucker Exp $");
 
 /**
  ** prototypes for helper functions in this file
