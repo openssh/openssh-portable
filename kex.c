@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.13 2000/11/12 19:50:37 markus Exp $");
+RCSID("$OpenBSD: kex.c,v 1.14 2000/12/15 17:30:14 provos Exp $");
 
 #include "ssh.h"
 #include "ssh2.h"
@@ -139,7 +139,7 @@ dh_pub_is_valid(DH *dh, BIGNUM *dh_pub)
 	return 0;
 }
 
-DH *
+void
 dh_gen_key(DH *dh)
 {
 	int tries = 0;
@@ -150,7 +150,6 @@ dh_gen_key(DH *dh)
 		if (tries++ > 10)
 			fatal("dh_new_group1: too many bad keys: giving up");
 	} while (!dh_pub_is_valid(dh, dh->pub_key));
-	return dh;
 }
 
 DH *
@@ -168,8 +167,13 @@ dh_new_group_asc(const char *gen, const char *modulus)
 	if ((ret = BN_hex2bn(&dh->g, gen)) < 0)
 		fatal("BN_hex2bn g");
 
-	return (dh_gen_key(dh));
+	return (dh);
 }
+
+/*
+ * This just returns the group, we still need to generate the exchange
+ * value.
+ */
 
 DH *
 dh_new_group(BIGNUM *gen, BIGNUM *modulus)
@@ -182,7 +186,7 @@ dh_new_group(BIGNUM *gen, BIGNUM *modulus)
 	dh->p = modulus;
 	dh->g = gen;
 
-	return (dh_gen_key(dh));
+	return (dh);
 }
 
 DH *

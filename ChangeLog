@@ -27,6 +27,9 @@
    - deraadt@cvs.openbsd.org 2000/12/11 10:27:33
      [scp.c]
      when copying 0-sized files, do not re-print ETA time at completion
+   - provos@cvs.openbsd.org 2000/12/15 10:30:15
+     [kex.c kex.h sshconnect2.c sshd.c]
+     compute diffie-hellman in parallel between server and client. okay markus@
 
 20001213
  - (djm) Make sure we reset the SIGPIPE disposition after we fork. Report
