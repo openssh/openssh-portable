@@ -468,19 +468,21 @@ then
 fi
 
 # Care for services file
+_my_etcdir="/ssh-host-config.$$"
 if [ $_nt -gt 0 ]
 then
-  _wservices="${SYSTEMROOT}\\system32\\drivers\\etc\\services"
-  _wserv_tmp="${SYSTEMROOT}\\system32\\drivers\\etc\\srv.out.$$"
+  _win_etcdir="${SYSTEMROOT}\\system32\\drivers\\etc"
+  _services="${_my_etcdir}/services"
 else
-  _wservices="${WINDIR}\\SERVICES"
-  _wserv_tmp="${WINDIR}\\SERV.$$"
+  _win_etcdir="${WINDIR}"
+  _services="${_my_etcdir}/SERVICES"
 fi
-_services=`cygpath -u "${_wservices}"`
-_serv_tmp=`cygpath -u "${_wserv_tmp}"`
+_serv_tmp="${_my_etcdir}/srv.out.$$"
 
-mount -t -f "${_wservices}" "${_services}"
-mount -t -f "${_wserv_tmp}" "${_serv_tmp}"
+mount -t -f "${_win_etcdir}" "${_my_etcdir}"
+
+# Depends on the above mount
+_wservices=`cygpath -w "${_services}"`
 
 # Remove sshd 22/port from services
 if [ `grep -q 'sshd[ \t][ \t]*22' "${_services}"; echo $?` -eq 0 ]
@@ -490,13 +492,13 @@ then
   then 
     if mv "${_serv_tmp}" "${_services}"
     then
-      echo "Removing sshd from ${_services}"
+      echo "Removing sshd from ${_wservices}"
     else
-      echo "Removing sshd from ${_services} failed\!"
+      echo "Removing sshd from ${_wservices} failed\!"
     fi 
     rm -f "${_serv_tmp}"
   else
-    echo "Removing sshd from ${_services} failed\!"
+    echo "Removing sshd from ${_wservices} failed\!"
   fi
 fi
 
@@ -508,18 +510,17 @@ then
   then
     if mv "${_serv_tmp}" "${_services}"
     then
-      echo "Added ssh to ${_services}"
+      echo "Added ssh to ${_wservices}"
     else
-      echo "Adding ssh to ${_services} failed\!"
+      echo "Adding ssh to ${_wservices} failed\!"
     fi
     rm -f "${_serv_tmp}"
   else
-    echo "Adding ssh to ${_services} failed\!"
+    echo "Adding ssh to ${_wservices} failed\!"
   fi
 fi
 
-umount "${_services}"
-umount "${_serv_tmp}"
+umount "${_my_etcdir}"
 
 # Care for inetd.conf file
 _inetcnf="${SYSCONFDIR}/inetd.conf"

@@ -1,3 +1,8 @@
+20031103
+ - (dtucker) [contrib/cygwin/ssh-host-config] Ensure entries in /etc/services
+   are created correctly with CRLF line terminations.  Patch from vinschen at
+   redhat.com.
+
 20031021
  - (dtucker) [INSTALL] Some system crypt() functions support MD5 passwords
    directly.  Noted by Darren.Moffat at sun.com.
@@ -1371,4 +1376,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3085 2003/10/21 12:27:08 dtucker Exp $
+$Id: ChangeLog,v 1.3086 2003/11/03 07:59:29 dtucker Exp $
