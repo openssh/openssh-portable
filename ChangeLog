@@ -2,6 +2,10 @@
  - (tim) update README files.
  - (dtucker) [mdoc2man.awk] Bug #883: correctly recognise .Pa and .Ev macros.
  - (dtucker) [regress/README.regress] Document new variables.
+ - (dtucker) [acconfig.h configure.ac sftp-server.c] Bug #823: add sftp
+   rename handling for Linux which returns EPERM for link() on (at least some)
+   filesystems that do not support hard links.  sftp-server will fall back to
+   stat+rename() in such cases.
 
 20040626
  - (djm) OpenBSD CVS Sync
@@ -1438,4 +1442,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3455 2004/06/28 05:52:50 dtucker Exp $
+$Id: ChangeLog,v 1.3456 2004/06/28 06:01:19 dtucker Exp $

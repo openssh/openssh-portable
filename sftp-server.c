@@ -840,7 +840,11 @@ process_rename(void)
 	else if (S_ISREG(sb.st_mode)) {
 		/* Race-free rename of regular files */
 		if (link(oldpath, newpath) == -1) {
-			if (errno == EOPNOTSUPP) {
+			if (errno == EOPNOTSUPP
+#ifdef LINK_OPNOTSUPP_ERRNO
+			    || errno == LINK_OPNOTSUPP_ERRNO
+#endif
+			    ) {
 				struct stat st;
 
 				/*

@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.177 2004/04/15 23:22:40 dtucker Exp $ */
+/* $Id: acconfig.h,v 1.178 2004/06/28 06:01:20 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -433,6 +433,12 @@
 
 /* Define if cmsg_type is not passed correctly */
 #undef BROKEN_CMSG_TYPE
+
+/*
+ * Define to whatever link() returns for "not supported" if it doesn't
+ * return EOPNOTSUPP.
+ */
+#undef LINK_OPNOTSUPP_ERRNO
 
 /* Strings used in /etc/passwd to denote locked account */
 #undef LOCKED_PASSWD_STRING
