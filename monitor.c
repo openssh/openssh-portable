@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.20 2002/06/27 09:08:00 deraadt Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.21 2002/06/27 10:35:47 deraadt Exp $");
 
 #include <openssl/dh.h>
 
@@ -559,7 +559,7 @@ int mm_answer_auth2_read_banner(int socket, Buffer *m)
 	mm_request_send(socket, MONITOR_ANS_AUTH2_READ_BANNER, m);
 
 	if (banner != NULL)
-		free(banner);
+		xfree(banner);
 
 	return (0);
 }
