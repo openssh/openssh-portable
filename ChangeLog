@@ -28,6 +28,7 @@
  - (dtucker) [auth-pam.c] Bug #839: Ensure that pam authentication "thread"
    is terminated if the privsep slave exits during keyboard-interactive
    authentication.  ok djm@
+ - (dtucker) [sshd.c] Fix typo in comment.
 
 20040523
  - (djm) [sshd_config] Explain consequences of UsePAM=yes a little better in 
@@ -1157,4 +1158,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3366 2004/05/24 01:55:36 dtucker Exp $
+$Id: ChangeLog,v 1.3367 2004/05/24 03:37:13 dtucker Exp $

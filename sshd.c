@@ -935,7 +935,7 @@ main(int ac, char **av)
 	unsetenv("KRB5CCNAME");
 #endif /* _AIX */
 #ifdef _UNICOS
-	/* Cray can define user privs drop all prives now!
+	/* Cray can define user privs drop all privs now!
 	 * Not needed on PRIV_SU systems!
 	 */
 	drop_cray_privs();
