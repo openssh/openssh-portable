@@ -1,3 +1,7 @@
+20010110
+ - (djm) SNI/Reliant Unix needs USE_PIPES and $DISPLAY hack. Report from
+   Bladt Norbert <Norbert.Bladt@adi.ch>
+
 20010109
  - (bal) Resync CVS ID of cli.c
  - (stevesk) auth1.c: free should be after WITH_AIXAUTHENTICATE
