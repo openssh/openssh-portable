@@ -167,7 +167,6 @@ popd
 %install
 rm -rf $RPM_BUILD_ROOT
 %{makeinstall} \
-	sysconfdir=$RPM_BUILD_ROOT%{_sysconfdir}/ssh \
 	libexecdir=$RPM_BUILD_ROOT%{_libexecdir}/openssh \
 	DESTDIR=/ # Hack to disable key generation
 
@@ -212,8 +211,8 @@ fi
 %attr(0755,root,root) %{_bindir}/scp
 %attr(0644,root,root) %{_mandir}/man1/ssh-keygen.1*
 %attr(0644,root,root) %{_mandir}/man1/scp.1*
-%attr(0755,root,root) %dir %{_sysconfdir}/ssh
-%attr(0600,root,root) %config(noreplace) %{_sysconfdir}/ssh/primes
+%attr(0755,root,root) %dir %{_sysconfdir}
+%attr(0600,root,root) %config(noreplace) %{_sysconfdir}/primes
 %attr(0755,root,root) %dir %{_libexecdir}/openssh
 
 %files clients
@@ -224,7 +223,7 @@ fi
 %attr(0644,root,root) %{_mandir}/man1/ssh.1*
 %attr(0644,root,root) %{_mandir}/man1/ssh-agent.1*
 %attr(0644,root,root) %{_mandir}/man1/ssh-add.1*
-%attr(0644,root,root) %config(noreplace) %{_sysconfdir}/ssh/ssh_config
+%attr(0644,root,root) %config(noreplace) %{_sysconfdir}/ssh_config
 %attr(-,root,root) %{_bindir}/slogin
 %attr(-,root,root) %{_mandir}/man1/slogin.1*
 
@@ -234,7 +233,7 @@ fi
 %attr(0755,root,root) %{_libexecdir}/openssh/sftp-server
 %attr(0644,root,root) %{_mandir}/man8/sshd.8*
 %attr(0644,root,root) %{_mandir}/man8/sftp-server.8*
-%attr(0600,root,root) %config(noreplace) %{_sysconfdir}/ssh/sshd_config
+%attr(0600,root,root) %config(noreplace) %{_sysconfdir}/sshd_config
 %attr(0600,root,root) %config(noreplace) /etc/pam.d/sshd
 %attr(0755,root,root) %config /etc/rc.d/init.d/sshd
 

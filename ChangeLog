@@ -35,6 +35,7 @@
      SSH2 RSA or DSA keys are added to .ssh/authorised_keys2 as before.
  - (djm) Fix up Makefile and Redhat init script to create RSA host keys
  - (djm) Change to interim version
+ - (djm) Fix RPM spec file stupidity
 
 20001112
  - (bal) SCO Patch to add needed libraries for configure.in.  Patch by
