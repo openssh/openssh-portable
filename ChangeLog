@@ -4,7 +4,8 @@
    - markus@cvs.openbsd.org 2003/09/16 21:02:40
      [buffer.c channels.c version.h]
      more malloc/fatal fixes; ok millert/deraadt; ghudson at MIT.EDU
-
+ - (djm) Crank RPM spec file versions
+ 
 20030916
  - (dtucker) [acconfig.h configure.ac defines.h session.c] Bug #252: Retrieve
    PATH (or SUPATH) and UMASK from /etc/default/login on platforms that have it
@@ -1112,4 +1113,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2998 2003/09/16 21:31:14 djm Exp $
+$Id: ChangeLog,v 1.2999 2003/09/16 21:32:17 djm Exp $
