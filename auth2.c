@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.104 2003/11/04 08:54:09 djm Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.105 2004/05/23 23:59:53 dtucker Exp $");
 
 #include "ssh2.h"
 #include "xmalloc.h"
@@ -243,7 +243,7 @@ userauth_finish(Authctxt *authctxt, int authenticated, char *method)
 		/* now we can break out */
 		authctxt->success = 1;
 	} else {
-		if (authctxt->failures++ > AUTH_FAIL_MAX)
+		if (authctxt->failures++ > options.max_authtries)
 			packet_disconnect(AUTH_FAIL_MSG, authctxt->user);
 		methods = authmethods_get();
 		packet_start(SSH2_MSG_USERAUTH_FAILURE);

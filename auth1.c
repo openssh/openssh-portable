@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.56 2004/05/09 01:19:27 djm Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.57 2004/05/23 23:59:53 dtucker Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -261,7 +261,7 @@ do_authloop(Authctxt *authctxt)
 		if (authenticated)
 			return;
 
-		if (authctxt->failures++ > AUTH_FAIL_MAX)
+		if (authctxt->failures++ > options.max_authtries)
 			packet_disconnect(AUTH_FAIL_MSG, authctxt->user);
 
 		packet_start(SSH_SMSG_FAILURE);

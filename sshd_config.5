@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.32 2004/04/28 07:02:56 jmc Exp $
+.\" $OpenBSD: sshd_config.5,v 1.33 2004/05/23 23:59:53 dtucker Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -402,6 +402,10 @@ for data integrity protection.
 Multiple algorithms must be comma-separated.
 The default is
 .Dq hmac-md5,hmac-sha1,hmac-ripemd160,hmac-sha1-96,hmac-md5-96 .
+.It Cm MaxAuthTries
+Specifies the maximum number of authentication attempts permitted per
+connection.  Once the number of failures reaches half this value, additional
+failures are logged.  The default is 6.
 .It Cm MaxStartups
 Specifies the maximum number of concurrent unauthenticated connections to the
 .Nm sshd

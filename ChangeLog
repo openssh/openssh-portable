@@ -21,6 +21,9 @@
    - jmc@cvs.openbsd.org 2004/05/22 16:01:05
      [ssh.1]
      kill whitespace at eol;
+   - dtucker@cvs.openbsd.org 2004/05/23 23:59:53
+     [auth.c auth.h auth1.c auth2.c servconf.c servconf.h sshd_config sshd_config.5]
+     Add MaxAuthTries sshd config option; ok markus@
 
 20040523
  - (djm) [sshd_config] Explain consequences of UsePAM=yes a little better in 
@@ -1150,4 +1153,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3364 2004/05/24 00:35:14 dtucker Exp $
+$Id: ChangeLog,v 1.3365 2004/05/24 00:36:23 dtucker Exp $

@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.132 2004/05/08 00:01:37 deraadt Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.133 2004/05/23 23:59:53 dtucker Exp $");
 
 #include "ssh.h"
 #include "log.h"
@@ -94,6 +94,7 @@ initialize_server_options(ServerOptions *options)
 	options->max_startups_begin = -1;
 	options->max_startups_rate = -1;
 	options->max_startups = -1;
+	options->max_authtries = -1;
 	options->banner = NULL;
 	options->use_dns = -1;
 	options->client_alive_interval = -1;
@@ -212,6 +213,8 @@ fill_default_server_options(ServerOptions *options)
 		options->max_startups_rate = 100;		/* 100% */
 	if (options->max_startups_begin == -1)
 		options->max_startups_begin = options->max_startups;
+	if (options->max_authtries == -1)
+		options->max_authtries = DEFAULT_AUTH_FAIL_MAX;
 	if (options->use_dns == -1)
 		options->use_dns = 1;
 	if (options->client_alive_interval == -1)
@@ -262,7 +265,8 @@ typedef enum {
 	sPermitUserEnvironment, sUseLogin, sAllowTcpForwarding, sCompression,
 	sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
 	sIgnoreUserKnownHosts, sCiphers, sMacs, sProtocol, sPidFile,
-	sGatewayPorts, sPubkeyAuthentication, sXAuthLocation, sSubsystem, sMaxStartups,
+	sGatewayPorts, sPubkeyAuthentication, sXAuthLocation, sSubsystem,
+	sMaxStartups, sMaxAuthTries,
 	sBanner, sUseDNS, sHostbasedAuthentication,
 	sHostbasedUsesNameFromPacketOnly, sClientAliveInterval,
 	sClientAliveCountMax, sAuthorizedKeysFile, sAuthorizedKeysFile2,
@@ -357,6 +361,7 @@ static struct {
 	{ "gatewayports", sGatewayPorts },
 	{ "subsystem", sSubsystem },
 	{ "maxstartups", sMaxStartups },
+	{ "maxauthtries", sMaxAuthTries },
 	{ "banner", sBanner },
 	{ "usedns", sUseDNS },
 	{ "verifyreversemapping", sDeprecated },
@@ -868,6 +873,10 @@ parse_flag:
 		else
 			options->max_startups = options->max_startups_begin;
 		break;
+
+	case sMaxAuthTries:
+		intptr = &options->max_authtries;
+		goto parse_int;
 
 	case sBanner:
 		charptr = &options->banner;
