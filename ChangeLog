@@ -1,3 +1,9 @@
+20011010
+ - (djm) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2001/10/04 14:34:16
+     [key.c]
+     call OPENSSL_free() for memory allocated by openssl; from chombier@mac.com
+
 20011007
  - (bal) ssh-copy-id corrected permissions for .ssh/ and authorized_keys.
    Prompted by Matthew Vernon <matthew@sel.cam.ac.uk> 
@@ -6642,4 +6648,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1584 2001/10/08 01:54:24 mouring Exp $
+$Id: ChangeLog,v 1.1585 2001/10/10 05:00:49 djm Exp $
