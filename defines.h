@@ -247,4 +247,8 @@ typedef unsigned int size_t;
 # define PAM_STRERROR(a,b) pam_strerror((a),(b))
 #endif
 
+#if defined(BROKEN_GETADDRINFO) && defined(HAVE_GETADDRINFO)
+# undef HAVE_GETADDRINFO
+#endif /* defined(BROKEN_GETADDRINFO) && defined(HAVE_GETADDRINFO) */
+
 #endif /* _DEFINES_H */

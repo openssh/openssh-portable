@@ -1,3 +1,6 @@
+20000120
+ - Don't use getaddrinfo on AIX
+
 20000119
  - SCO compile fixes from Gary E. Miller <gem@rellim.com>
  - Compile fix from Darren_Hall@progressive.com

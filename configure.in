@@ -55,6 +55,7 @@ dnl Check for some target-specific stuff
 case "$host" in
 *-*-aix*)
 	AFS_LIBS="-lld"
+	AC_DEFINE(BROKEN_GETADDRINFO)
 	;;
 *-*-hpux10*)
 	if test -z "$GCC"; then
