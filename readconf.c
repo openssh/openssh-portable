@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.113 2003/06/26 20:08:33 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.114 2003/07/03 08:09:05 djm Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -288,7 +288,6 @@ process_config_line(Options *options, const char *host,
 	size_t len;
 	u_short fwd_port, fwd_host_port;
 	char sfwd_host_port[6];
-	extern int IPv4or6;
 
 	/* Strip trailing whitespace */
 	for(len = strlen(line) - 1; len > 0; len--) {
@@ -727,14 +726,17 @@ parse_int:
 
 	case oAddressFamily:
 		arg = strdelim(&s);
+		intptr = &options->address_family;
 		if (strcasecmp(arg, "inet") == 0)
-			IPv4or6 = AF_INET;
+			value = AF_INET;
 		else if (strcasecmp(arg, "inet6") == 0)
-			IPv4or6 = AF_INET6;
+			value = AF_INET6;
 		else if (strcasecmp(arg, "any") == 0)
-			IPv4or6 = AF_UNSPEC;
+			value = AF_UNSPEC;
 		else
 			fatal("Unsupported AddressFamily \"%s\"", arg);
+		if (*activep && *intptr == -1)
+			*intptr = value;
 		break;
 
 	case oEnableSSHKeysign:
@@ -839,6 +841,7 @@ initialize_options(Options * options)
 	options->keepalives = -1;
 	options->compression_level = -1;
 	options->port = -1;
+	options->address_family = -1;
 	options->connection_attempts = -1;
 	options->connection_timeout = -1;
 	options->number_of_password_prompts = -1;
@@ -926,6 +929,8 @@ fill_default_options(Options * options)
 		options->compression_level = 6;
 	if (options->port == -1)
 		options->port = 0;	/* Filled in ssh_connect. */
+	if (options->address_family == -1)
+		options->address_family = AF_UNSPEC;
 	if (options->connection_attempts == -1)
 		options->connection_attempts = 1;
 	if (options->number_of_password_prompts == -1)

@@ -1,4 +1,4 @@
-/*	$OpenBSD: readconf.h,v 1.50 2003/05/15 14:55:25 djm Exp $	*/
+/*	$OpenBSD: readconf.h,v 1.51 2003/07/03 08:09:06 djm Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -58,6 +58,7 @@ typedef struct {
 	LogLevel log_level;	/* Level for logging. */
 
 	int     port;		/* Port to connect. */
+	int     address_family;
 	int     connection_attempts;	/* Max attempts (seconds) before
 					 * giving up */
 	int     connection_timeout;	/* Max time (seconds) before

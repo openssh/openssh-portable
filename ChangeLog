@@ -30,6 +30,10 @@
    - markus@cvs.openbsd.org 2003/07/03 08:24:13
      [regress/Makefile]
      enable tests for dynamic fwd via socks (-D), uses nc(1)
+   - djm@cvs.openbsd.org 2003/07/03 08:09:06
+     [readconf.c readconf.h ssh-keysign.c ssh.c]
+     fix AddressFamily option in config file, from brent@graveland.net;
+     ok markus@
 
 20030630
  - (djm) Search for support functions necessary to build our 
@@ -650,4 +654,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2843 2003/07/03 10:27:55 dtucker Exp $
+$Id: ChangeLog,v 1.2844 2003/07/03 10:37:47 dtucker Exp $
