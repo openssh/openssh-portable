@@ -1,3 +1,7 @@
+20040616
+ - (dtucker) [openbsd-compat/port-aix.c] Expand whitespace -> tabs. No
+   code changes.
+
 20040615
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2004/05/26 08:59:57
@@ -1222,4 +1226,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3387 2004/06/15 05:47:51 djm Exp $
+$Id: ChangeLog,v 1.3388 2004/06/16 02:01:15 dtucker Exp $

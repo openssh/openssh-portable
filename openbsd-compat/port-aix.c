@@ -133,12 +133,12 @@ sys_auth_passwd(Authctxt *ctxt, const char *password)
 		/*
 		 * Check if the user's password is expired.
 		 */
-                expired = passwdexpired(name, &msg);
-                if (msg && *msg) {
-                        buffer_append(&loginmsg, msg, strlen(msg));
-                        aix_remove_embedded_newlines(msg);
-                }
-                debug3("AIX/passwdexpired returned %d msg %.100s", expired, msg);
+		expired = passwdexpired(name, &msg);
+		if (msg && *msg) {
+			buffer_append(&loginmsg, msg, strlen(msg));
+			aix_remove_embedded_newlines(msg);
+		}
+		debug3("AIX/passwdexpired returned %d msg %.100s", expired, msg);
 
 		switch (expired) {
 		case 0: /* password not expired */
