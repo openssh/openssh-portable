@@ -33,8 +33,8 @@
  *     and: Eric S. Raymond <esr@snark.thyrsus.com>                         *
  ****************************************************************************/
 
-#include <signal.h>
 #include "config.h"
+#include <signal.h>
 #include "sigact.h"
 
 /* This file provides sigaction() emulation using sigvec() */
