@@ -8,6 +8,10 @@
      tweak comment to reflect real location of pid file; ok provos@
  - (stevesk) Import <sys/queue.h> from OpenBSD for systems that don't
    have it (used in ssh-keyscan).
+ - (stevesk) OpenSSH CVS update:
+   - markus@cvs.openbsd.org 2000/12/06 19:57:48
+     [ssh-keyscan.c]
+     err(3) -> internal error(), from stevesk@sweden.hp.com
 
 20001205
  - (bal) OpenSSH CVS updates:
