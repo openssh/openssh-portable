@@ -54,6 +54,10 @@
      	Accepted publickey for ROOT from 127.0.0.1 port 42734 ssh2
      becomes
      	Accepted publickey for root from 127.0.0.1 port 42734 ssh2
+   - markus@cvs.openbsd.org 2001/11/09 18:59:23
+     [clientloop.c serverloop.c]
+     don't memset too much memory, ok millert@
+     original patch from jlk@kamens.brookline.ma.us via nalin@redhat.com
 
 20011109
  - (stevesk) auth-pam.c: use do_pam_authenticate(PAM_DISALLOW_NULL_AUTHTOK)
@@ -6863,4 +6867,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1650 2001/11/12 00:06:06 djm Exp $
+$Id: ChangeLog,v 1.1651 2001/11/12 00:06:32 djm Exp $

@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.86 2001/10/24 19:57:40 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.87 2001/11/09 18:59:23 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -346,8 +346,8 @@ client_wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp,
 		if (session_closed && !channel_still_open() &&
 		    !packet_have_data_to_write()) {
 			/* clear mask since we did not call select() */
-			memset(*readsetp, 0, *maxfdp);
-			memset(*writesetp, 0, *maxfdp);
+			memset(*readsetp, 0, *nallocp);
+			memset(*writesetp, 0, *nallocp);
 			return;
 		} else {
 			FD_SET(connection_in, *readsetp);
@@ -375,8 +375,8 @@ client_wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp,
 		 * We have to return, because the mainloop checks for the flags
 		 * set by the signal handlers.
 		 */
-		memset(*readsetp, 0, *maxfdp);
-		memset(*writesetp, 0, *maxfdp);
+		memset(*readsetp, 0, *nallocp);
+		memset(*writesetp, 0, *nallocp);
 
 		if (errno == EINTR)
 			return;
