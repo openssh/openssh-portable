@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.6 2001/02/24 00:24:20 mouring Exp $
+# $Id: Makefile.in,v 1.7 2001/03/12 05:16:19 mouring Exp $
 
 sysconfdir=@sysconfdir@
 piddir=@piddir@
@@ -9,7 +9,7 @@ VPATH=@srcdir@
 CC=@CC@
 LD=@LD@
 CFLAGS=@CFLAGS@
-CPPFLAGS=@CPPFLAGS@ -I. -I.. -I$(srcdir) -I$(srcdir)/.. @DEFS@
+CPPFLAGS=-I. -I.. -I$(srcdir) -I$(srcdir)/.. @CPPFLAGS@ @DEFS@
 LIBS=@LIBS@
 AR=@AR@
 RANLIB=@RANLIB@

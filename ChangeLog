@@ -31,6 +31,7 @@
      with -l and make -B work with /path/to/known_hosts. ok deraadt@
  - (djm) Bump portable version number for generating test RPMs
  - (djm) Add "static_openssl" RPM build option, remove rsh build dependency
+ - (bal) Reorder includes in Makefile. 
 
 20010311
  - OpenBSD CVS Sync
@@ -4524,4 +4525,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.949 2001/03/12 03:47:30 djm Exp $
+$Id: ChangeLog,v 1.950 2001/03/12 05:16:18 mouring Exp $
