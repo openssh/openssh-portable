@@ -67,6 +67,7 @@
      [auth2.c monitor.c sshconnect2.c auth2-krb5.c]
      implement kerberos over ssh2 ("kerberos-2@ssh.com"); tested with jakob@
      server interops with commercial client; ok jakob@ djm@
+ - (djm) Make portable build with MIT krb5 (some issues remain)
 
 20030512
  - (djm) Redhat spec: Don't install profile.d scripts when not 
@@ -1454,4 +1455,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2692 2003/05/14 03:47:37 djm Exp $
+$Id: ChangeLog,v 1.2693 2003/05/14 04:31:11 djm Exp $

@@ -27,7 +27,12 @@ RCSID("$OpenBSD: sshconnect2.c,v 1.118 2003/05/14 02:15:47 markus Exp $");
 
 #ifdef KRB5
 #include <krb5.h>
+#ifndef HEIMDAL
+#define krb5_get_err_text(context,code) error_message(code)
+#endif /* !HEIMDAL */
 #endif
+
+#include "openbsd-compat/sys-queue.h"
 
 #include "ssh.h"
 #include "ssh2.h"
@@ -1206,7 +1211,12 @@ userauth_kerberos(Authctxt *authctxt)
 	packet_put_string(ap.data, ap.length);
 	packet_send();
 
+#ifdef HEIMDAL
 	krb5_data_free(&ap);
+#else
+# warning "XXX - leaks ap data on MIT kerberos"
+#endif
+
 	return (1);
 }
 #endif

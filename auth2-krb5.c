@@ -25,6 +25,8 @@
 #include "includes.h"
 RCSID("$OpenBSD: auth2-krb5.c,v 1.1 2003/05/14 02:15:47 markus Exp $");
 
+#ifdef KRB5
+
 #include <krb5.h>
 
 #include "ssh2.h"
@@ -64,3 +66,5 @@ Authmethod method_kerberos = {
 	userauth_kerberos,
 	&options.kerberos_authentication
 };
+
+#endif /* KRB5 */
