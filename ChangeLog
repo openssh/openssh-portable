@@ -1,4 +1,8 @@
 20030517
+ - (djm) Return of the dreaded PAM_TTY_KLUDGE, which went missing in 
+   recent merge
+
+20030517
  - (bal) strcat -> strlcat on openbsd-compat/realpath.c (rev 1.8 OpenBSD)
 
 20030516
@@ -1552,4 +1556,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2731 2003/05/18 01:22:43 mouring Exp $
+$Id: ChangeLog,v 1.2732 2003/05/18 10:45:47 djm Exp $

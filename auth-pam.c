@@ -29,8 +29,9 @@
  * SUCH DAMAGE.
  */
 
+/* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $");
+RCSID("$Id: auth-pam.c,v 1.62 2003/05/18 10:45:48 djm Exp $");
 
 #ifdef USE_PAM
 #include <security/pam_appl.h>
@@ -293,17 +294,34 @@ sshpam_init(const char *user)
 	}
 	debug("PAM: initializing for \"%s\"", user);
 	sshpam_err = pam_start("sshd", user, &null_conv, &sshpam_handle);
-	if (sshpam_err != PAM_SUCCESS)
-		return (-1);
-	pam_rhost = get_remote_name_or_ip(utmp_len,
-	    options.verify_reverse_mapping);
-	debug("PAM: setting PAM_RHOST to \"%s\"", pam_rhost);
-	sshpam_err = pam_set_item(sshpam_handle, PAM_RHOST, pam_rhost);
 	if (sshpam_err != PAM_SUCCESS) {
 		pam_end(sshpam_handle, sshpam_err);
 		sshpam_handle = NULL;
 		return (-1);
 	}
+	debug("PAM: setting PAM_RHOST to \"%s\"", pam_rhost);
+	pam_rhost = get_remote_name_or_ip(utmp_len,
+	    options.verify_reverse_mapping);
+	sshpam_err = pam_set_item(sshpam_handle, PAM_RHOST, pam_rhost);
+	if (sshpam_err != PAM_SUCCESS) {
+	pam_end(sshpam_handle, sshpam_err);
+		sshpam_handle = NULL;
+		return (-1);
+	}
+#ifdef PAM_TTY_KLUDGE
+        /*
+         * Some silly PAM modules (e.g. pam_time) require a TTY to operate.
+         * sshd doesn't set the tty until too late in the auth process and 
+	 * may not even set one (for tty-less connections)
+         */
+	debug("PAM: setting PAM_TTY to \"ssh\"");
+	sshpam_err = pam_set_item(sshpam_handle, PAM_TTY, "ssh");
+	if (sshpam_err != PAM_SUCCESS) {
+		pam_end(sshpam_handle, sshpam_err);
+		sshpam_handle = NULL;
+		return (-1);
+	}
+#endif
 	fatal_add_cleanup(sshpam_cleanup, NULL);
 	return (0);
 }
