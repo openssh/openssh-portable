@@ -7,6 +7,7 @@
    <pekkas@netcore.fi>
  - (djm) Don't need X11-askpass in RPM spec file if building without it
    from Pekka Savola <pekkas@netcore.fi>
+
 20001105
  - (bal) Sync with OpenBSD:
    - markus@cvs.openbsd.org 2000/10/31 9:31:58
