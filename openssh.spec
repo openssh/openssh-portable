@@ -124,18 +124,18 @@ fi
 %defattr(-,root,root)
 %doc COPYING.Ylonen ChangeLog ChangeLog.Ylonen OVERVIEW 
 %doc README README.Ylonen
-%attr(0755,root,root) /usr/bin/ssh
+%attr(4755,root,root) /usr/bin/ssh
 %attr(0755,root,root) /usr/bin/ssh-agent
 %attr(0755,root,root) /usr/bin/ssh-keygen
 %attr(0755,root,root) /usr/bin/ssh-add
 %attr(0755,root,root) /usr/bin/scp
-%attr(0755,root,root) /usr/bin/slogin
+%attr(-,root,root) /usr/bin/slogin
 %attr(0644,root,root) /usr/man/man1/ssh.1
 %attr(0644,root,root) /usr/man/man1/ssh-agent.1
 %attr(0644,root,root) /usr/man/man1/ssh-keygen.1
 %attr(0644,root,root) /usr/man/man1/ssh-add.1
 %attr(0644,root,root) /usr/man/man1/scp.1
-%attr(0644,root,root) /usr/man/man1/slogin.1
+%attr(-,root,root) /usr/man/man1/slogin.1
 %attr(0644,root,root) %config /etc/ssh/ssh_config
 
 %files server

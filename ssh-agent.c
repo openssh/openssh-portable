@@ -531,7 +531,11 @@ main(int ac, char **av)
     exit(1);
   }
 
+#if defined(__GNU_LIBRARY__)
+  while ((ch = getopt(ac, av, "+cks")) != -1)
+#else 
   while ((ch = getopt(ac, av, "cks")) != -1)
+#endif /* defined(__GNU_LIBRARY__) */
     {
       switch (ch)
 	{

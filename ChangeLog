@@ -1,3 +1,9 @@
+19991110
+ - Merged several minor fixed:
+   - ssh-agent commandline parsing
+   - RPM spec file now installs ssh setuid root
+   - Makefile creates libdir
+
 19991109
  - Autodetection of SSL/Crypto library location via autoconf
  - Fixed location of ssh-askpass to follow autoconf

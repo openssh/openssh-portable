@@ -64,6 +64,7 @@ install: all
 	install -d $(mandir)
 	install -d $(mandir)/man1
 	install -d $(mandir)/man8
+	install -d $(libdir)
 	install -d $(libdir)/ssh
 	install -s -c ssh $(bindir)/ssh
 	ln -sf ssh $(bindir)/slogin
