@@ -10,6 +10,9 @@
    - markus@cvs.openbsd.org 2002/03/28 15:34:51
      [session.c]
      do not call record_login twice (for use_privsep)
+   - markus@cvs.openbsd.org 2002/03/29 18:59:32
+     [session.c session.h]
+     retrieve last login time before the pty is allocated, store per session
 
 20020401
  - (stevesk) [monitor.c] PAM should work again; will *not* work with
@@ -8117,4 +8120,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2009 2002/04/02 20:32:46 mouring Exp $
+$Id: ChangeLog,v 1.2010 2002/04/02 20:35:35 mouring Exp $
