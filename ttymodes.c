@@ -43,7 +43,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ttymodes.c,v 1.12 2001/04/14 16:33:20 stevesk Exp $");
+RCSID("$OpenBSD: ttymodes.c,v 1.13 2001/04/15 01:35:22 stevesk Exp $");
 
 #include "packet.h"
 #include "log.h"
@@ -428,7 +428,7 @@ tty_parse_modes(int fd, int *n_bytes_ptr)
 			} else {
 				/*
 				 * SSH2:
-				 * Opcodes 0 to 159 are defined to have
+				 * Opcodes 1 to 159 are defined to have
 				 * a uint32 argument.
 				 * Opcodes 160 to 255 are undefined and
 				 * cause parsing to stop.
@@ -453,7 +453,7 @@ set:
 		return;		/* Don't process bytes passed */
 	}
 	if (failure == -1)
-		return;		/* Packet parsed ok but tty stuff failed */
+		return;		/* Packet parsed ok but tcgetattr() failed */
 
 	/* Set the new modes for the terminal. */
 	if (tcsetattr(fd, TCSANOW, &tio) == -1)
