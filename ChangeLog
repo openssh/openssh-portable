@@ -14,6 +14,11 @@
    [configure.ac defines.h] modify previous SCO3 fix to not break Solaris 7
    [acconfig.h] remove unused HAVE_REGCOMP
  - (stevesk) openbsd-compat/base64.h: typo in comment
+ - (bal) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2002/02/15 23:54:10
+     [auth-krb5.c]
+     krb5_get_err_text() does not like context==NULL; he@nordu.net via google; 
+     ok provos@
 
 20020225
  - (bal) Last AIX patch.  Moved aix_usrinfo() outside of do_setuserconext()
@@ -7687,4 +7692,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1876 2002/02/26 16:59:58 stevesk Exp $
+$Id: ChangeLog,v 1.1877 2002/02/26 17:46:11 mouring Exp $
