@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: cipher.c,v 1.62 2002/11/21 22:45:31 markus Exp $");
+RCSID("$OpenBSD: cipher.c,v 1.63 2003/04/12 10:13:57 markus Exp $");
 
 #include "xmalloc.h"
 #include "log.h"
@@ -395,6 +395,28 @@ ssh1_3des_cleanup(EVP_CIPHER_CTX *ctx)
 	return (1);
 }
 
+static void
+ssh1_3des_iv(EVP_CIPHER_CTX *evp, int doset, u_char *iv, int len)
+{
+	struct ssh1_3des_ctx *c;
+
+	if (len != 24)
+		fatal("%s: bad 3des iv length: %d", __func__, len);
+	if ((c = EVP_CIPHER_CTX_get_app_data(evp)) == NULL)
+		fatal("%s: no 3des context", __func__);
+	if (doset) {
+		debug3("%s: Installed 3DES IV", __func__);
+		memcpy(c->k1.iv, iv, 8);
+		memcpy(c->k2.iv, iv + 8, 8);
+		memcpy(c->k3.iv, iv + 16, 8);
+	} else {
+		debug3("%s: Copying 3DES IV", __func__);
+		memcpy(iv, c->k1.iv, 8);
+		memcpy(iv + 8, c->k2.iv, 8);
+		memcpy(iv + 16, c->k3.iv, 8);
+	}
+}
+
 static const EVP_CIPHER *
 evp_ssh1_3des(void)
 {
@@ -567,6 +589,19 @@ ssh_rijndael_cleanup(EVP_CIPHER_CTX *ctx)
 	return (1);
 }
 
+static void
+ssh_rijndael_iv(EVP_CIPHER_CTX *evp, int doset, u_char * iv, u_int len)
+{
+	struct ssh_rijndael_ctx *c;
+
+	if ((c = EVP_CIPHER_CTX_get_app_data(evp)) == NULL)
+		fatal("ssh_rijndael_iv: no context");
+	if (doset)
+		memcpy(c->r_iv, iv, len);
+	else
+		memcpy(iv, c->r_iv, len);
+}
+
 static const EVP_CIPHER *
 evp_rijndael(void)
 {
@@ -611,7 +646,6 @@ void
 cipher_get_keyiv(CipherContext *cc, u_char *iv, u_int len)
 {
 	Cipher *c = cc->cipher;
-	u_char *civ = NULL;
 	int evplen;
 
 	switch (c->number) {
@@ -624,45 +658,25 @@ cipher_get_keyiv(CipherContext *cc, u_char *iv, u_int len)
 		if (evplen != len)
 			fatal("%s: wrong iv length %d != %d", __func__,
 			    evplen, len);
-
 #if OPENSSL_VERSION_NUMBER < 0x00907000L
-		if (c->evptype == evp_rijndael) {
-			struct ssh_rijndael_ctx *aesc;
-
-			aesc = EVP_CIPHER_CTX_get_app_data(&cc->evp);
-			if (aesc == NULL)
-				fatal("%s: no rijndael context", __func__);
-			civ = aesc->r_iv;
-		} else
+		if (c->evptype == evp_rijndael)
+			ssh_rijndael_iv(&cc->evp, 0, iv, len);
+		else
 #endif
-		{
-			civ = cc->evp.iv;
-		}
+			memcpy(iv, cc->evp.iv, len);
 		break;
-	case SSH_CIPHER_3DES: {
-		struct ssh1_3des_ctx *desc;
-		if (len != 24)
-			fatal("%s: bad 3des iv length: %d", __func__, len);
-		desc = EVP_CIPHER_CTX_get_app_data(&cc->evp);
-		if (desc == NULL)
-			fatal("%s: no 3des context", __func__);
-		debug3("%s: Copying 3DES IV", __func__);
-		memcpy(iv, desc->k1.iv, 8);
-		memcpy(iv + 8, desc->k2.iv, 8);
-		memcpy(iv + 16, desc->k3.iv, 8);
-		return;
-	}
+	case SSH_CIPHER_3DES:
+		ssh1_3des_iv(&cc->evp, 0, iv, 24);
+		break;
 	default:
 		fatal("%s: bad cipher %d", __func__, c->number);
 	}
-	memcpy(iv, civ, len);
 }
 
 void
 cipher_set_keyiv(CipherContext *cc, u_char *iv)
 {
 	Cipher *c = cc->cipher;
-	u_char *div = NULL;
 	int evplen = 0;
 
 	switch (c->number) {
@@ -672,36 +686,19 @@ cipher_set_keyiv(CipherContext *cc, u_char *iv)
 		evplen = EVP_CIPHER_CTX_iv_length(&cc->evp);
 		if (evplen == 0)
 			return;
-
 #if OPENSSL_VERSION_NUMBER < 0x00907000L
-		if (c->evptype == evp_rijndael) {
-			struct ssh_rijndael_ctx *aesc;
-
-			aesc = EVP_CIPHER_CTX_get_app_data(&cc->evp);
-			if (aesc == NULL)
-				fatal("%s: no rijndael context", __func__);
-			div = aesc->r_iv;
-		} else
+		if (c->evptype == evp_rijndael)
+			ssh_rijndael_iv(&cc->evp, 1, iv, evplen);
+		else
 #endif
-		{
-			div = cc->evp.iv;
-		}
+			memcpy(cc->evp.iv, iv, evplen);
 		break;
-	case SSH_CIPHER_3DES: {
-		struct ssh1_3des_ctx *desc;
-		desc = EVP_CIPHER_CTX_get_app_data(&cc->evp);
-		if (desc == NULL)
-			fatal("%s: no 3des context", __func__);
-		debug3("%s: Installed 3DES IV", __func__);
-		memcpy(desc->k1.iv, iv, 8);
-		memcpy(desc->k2.iv, iv + 8, 8);
-		memcpy(desc->k3.iv, iv + 16, 8);
-		return;
-	}
+	case SSH_CIPHER_3DES:
+		ssh1_3des_iv(&cc->evp, 1, iv, 24);
+		break;
 	default:
 		fatal("%s: bad cipher %d", __func__, c->number);
 	}
-	memcpy(div, iv, evplen);
 }
 
 #if OPENSSL_VERSION_NUMBER < 0x00907000L
