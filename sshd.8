@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: sshd.8,v 1.13 2000/03/09 10:27:53 damien Exp $
+.\" $Id: sshd.8,v 1.14 2000/03/17 12:40:18 damien Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSHD 8
@@ -147,7 +147,7 @@ is normally not run
 from inetd because it needs to generate the server key before it can
 respond to the client, and this may take tens of seconds.  Clients
 would have to wait too long if the key was regenerated every time.
-However, with small key sizes (e.g.  512) using
+However, with small key sizes (e.g., 512) using
 .Nm
 from inetd may
 be feasible.

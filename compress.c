@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: compress.c,v 1.3 1999/11/25 00:54:59 damien Exp $");
+RCSID("$Id: compress.c,v 1.4 2000/03/17 12:40:16 damien Exp $");
 
 #include "ssh.h"
 #include "buffer.h"
@@ -75,13 +75,13 @@ buffer_compress(Buffer * input_buffer, Buffer * output_buffer)
 		return;
 
 	/* Input is the contents of the input buffer. */
-	outgoing_stream.next_in = buffer_ptr(input_buffer);
+	outgoing_stream.next_in = (unsigned char *) buffer_ptr(input_buffer);
 	outgoing_stream.avail_in = buffer_len(input_buffer);
 
 	/* Loop compressing until deflate() returns with avail_out != 0. */
 	do {
 		/* Set up fixed-size output buffer. */
-		outgoing_stream.next_out = buf;
+		outgoing_stream.next_out = (unsigned char *)buf;
 		outgoing_stream.avail_out = sizeof(buf);
 
 		/* Compress as much data into the buffer as possible. */
@@ -124,10 +124,10 @@ buffer_uncompress(Buffer * input_buffer, Buffer * output_buffer)
 	char buf[4096];
 	int status;
 
-	incoming_stream.next_in = buffer_ptr(input_buffer);
+	incoming_stream.next_in = (unsigned char *) buffer_ptr(input_buffer);
 	incoming_stream.avail_in = buffer_len(input_buffer);
 
-	incoming_stream.next_out = buf;
+	incoming_stream.next_out = (unsigned char *) buf;
 	incoming_stream.avail_out = sizeof(buf);
 
 	for (;;) {
@@ -136,7 +136,7 @@ buffer_uncompress(Buffer * input_buffer, Buffer * output_buffer)
 		case Z_OK:
 			buffer_append(output_buffer, buf,
 				      sizeof(buf) - incoming_stream.avail_out);
-			incoming_stream.next_out = buf;
+			incoming_stream.next_out = (unsigned char *) buf;
 			incoming_stream.avail_out = sizeof(buf);
 			break;
 		case Z_STREAM_END:

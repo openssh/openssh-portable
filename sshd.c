@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.91 2000/03/09 19:31:47 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.92 2000/03/16 20:56:15 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -1202,7 +1202,8 @@ void
 do_authentication()
 {
 	struct passwd *pw, pwcopy;
-	int plen, ulen;
+	int plen;
+	unsigned int ulen;
 	char *user;
 
 	/* Get the name of the user that we wish to log in as. */
@@ -1304,7 +1305,9 @@ do_authloop(struct passwd * pw)
 	BIGNUM *n;
 	char *client_user = NULL, *password = NULL;
 	char user[1024];
-	int plen, dlen, nlen, ulen, elen;
+	unsigned int dlen;
+	int plen, nlen, elen;
+	unsigned int ulen;
 	int type = 0;
 	void (*authlog) (const char *fmt,...) = verbose;
 
@@ -1608,7 +1611,7 @@ do_fake_authloop(char *user)
 		(void)packet_read(&plen);
 #else /* SKEY */
 		int type = packet_read(&plen);
-		int dlen;
+		unsigned int dlen;
 		char *password, *skeyinfo;
 		/* Try to send a fake s/key challenge. */
 		if (options.skey_authentication == 1 &&
@@ -1697,6 +1700,8 @@ do_authenticated(struct passwd * pw)
 	int row, col, xpixel, ypixel, screen;
 	char ttyname[64];
 	char *command, *term = NULL, *display = NULL, *proto = NULL, *data = NULL;
+	int plen;
+	unsigned int dlen;
 	int n_bytes;
 
 	/*
@@ -1720,7 +1725,6 @@ do_authenticated(struct passwd * pw)
 	 * or a command.
 	 */
 	while (1) {
-		int plen, dlen;
 
 		/* Get a packet from the client. */
 		type = packet_read(&plen);
@@ -1799,7 +1803,7 @@ do_authenticated(struct passwd * pw)
 			if (display)
 				packet_disconnect("Protocol error: X11 display already set.");
 			{
-				int proto_len, data_len;
+				unsigned int proto_len, data_len;
 				proto = packet_get_string(&proto_len);
 				data = packet_get_string(&data_len);
 				packet_integrity_check(plen, 4 + proto_len + 4 + data_len + 4, type);
@@ -1881,7 +1885,7 @@ do_authenticated(struct passwd * pw)
 				goto do_forced_command;
 			/* Get command from the packet. */
 			{
-				int dlen;
+				unsigned int dlen;
 				command = packet_get_string(&dlen);
 				debug("Executing command '%.500s'", command);
 				packet_integrity_check(plen, 4 + dlen, type);

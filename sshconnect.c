@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.56 2000/02/18 08:50:33 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.57 2000/03/16 20:56:14 markus Exp $");
 
 #ifdef HAVE_OPENSSL
 #include <openssl/bn.h>
@@ -638,6 +638,7 @@ try_kerberos_authentication()
 	char *realm;
 	CREDENTIALS cred;
 	int r, type, plen;
+	socklen_t slen;
 	Key_schedule schedule;
 	u_long checksum, cksum;
 	MSG_DAT msg_data;
@@ -680,16 +681,16 @@ try_kerberos_authentication()
 	/* Zero the buffer. */
 	(void) memset(auth.dat, 0, MAX_KTXT_LEN);
 
-	r = sizeof(local);
+	slen = sizeof(local);
 	memset(&local, 0, sizeof(local));
 	if (getsockname(packet_get_connection_in(),
-			(struct sockaddr *) & local, &r) < 0)
+			(struct sockaddr *) & local, &slen) < 0)
 		debug("getsockname failed: %s", strerror(errno));
 
-	r = sizeof(foreign);
+	slen = sizeof(foreign);
 	memset(&foreign, 0, sizeof(foreign));
 	if (getpeername(packet_get_connection_in(),
-			(struct sockaddr *) & foreign, &r) < 0) {
+			(struct sockaddr *) & foreign, &slen) < 0) {
 		debug("getpeername failed: %s", strerror(errno));
 		fatal_cleanup();
 	}
@@ -751,7 +752,7 @@ send_kerberos_tgt()
 	CREDENTIALS *creds;
 	char pname[ANAME_SZ], pinst[INST_SZ], prealm[REALM_SZ];
 	int r, type, plen;
-	unsigned char buffer[8192];
+	char buffer[8192];
 	struct stat st;
 
 	/* Don't do anything if we don't have any tickets. */
@@ -772,11 +773,11 @@ send_kerberos_tgt()
 		debug("Kerberos V4 ticket expired: %s", TKT_FILE);
 		return 0;
 	}
-	creds_to_radix(creds, buffer);
+	creds_to_radix(creds, (unsigned char *)buffer);
 	xfree(creds);
 
 	packet_start(SSH_CMSG_HAVE_KERBEROS_TGT);
-	packet_put_string((char *) buffer, strlen(buffer));
+	packet_put_string(buffer, strlen(buffer));
 	packet_send();
 	packet_write_wait();
 
@@ -798,7 +799,7 @@ send_afs_tokens(void)
 	struct ClearToken ct;
 	int i, type, len, plen;
 	char buf[2048], *p, *server_cell;
-	unsigned char buffer[8192];
+	char buffer[8192];
 
 	/* Move over ktc_GetToken, here's something leaner. */
 	for (i = 0; i < 100; i++) {	/* just in case */
@@ -840,10 +841,10 @@ send_afs_tokens(void)
 		creds.pinst[0] = '\0';
 
 		/* Encode token, ship it off. */
-		if (!creds_to_radix(&creds, buffer))
+		if (!creds_to_radix(&creds, (unsigned char*) buffer))
 			break;
 		packet_start(SSH_CMSG_HAVE_AFS_TOKEN);
-		packet_put_string((char *) buffer, strlen(buffer));
+		packet_put_string(buffer, strlen(buffer));
 		packet_send();
 		packet_write_wait();
 
@@ -867,7 +868,9 @@ send_afs_tokens(void)
 int
 try_skey_authentication()
 {
-	int type, i, payload_len;
+	int type, i;
+	int payload_len;
+	unsigned int clen;
 	char *challenge, *response;
 
 	debug("Doing skey authentication.");
@@ -887,7 +890,8 @@ try_skey_authentication()
 		debug("No challenge for skey authentication.");
 		return 0;
 	}
-	challenge = packet_get_string(&payload_len);
+	challenge = packet_get_string(&clen);
+	packet_integrity_check(payload_len, (4 + clen), type);
 	if (options.cipher == SSH_CIPHER_NONE)
 		log("WARNING: Encryption is disabled! "
 		    "Reponse will be transmitted in clear text.");

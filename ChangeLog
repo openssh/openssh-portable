@@ -5,6 +5,13 @@
    <jmknoble@pobox.com>
  - Checks for 64 bit int types. Problem report from Mats Fredholm
    <matsf@init.se>
+ - OpenBSD CVS updates:
+   - [atomicio.c auth-krb4.c bufaux.c channels.c compress.c fingerprint.c] 
+     [packet.h radix.c rsa.c scp.c ssh-agent.c ssh-keygen.c sshconnect.c]
+     [sshd.c]
+     pedantic: signed vs. unsigned, void*-arithm, etc
+   - [ssh.1 sshd.8]
+     Various cleanups and standardizations.
 
 20000316
  - Fixed configure not passing LDFLAGS to Solaris. Report from David G. 

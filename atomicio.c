@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: atomicio.c,v 1.9 2000/03/09 10:27:50 damien Exp $");
+RCSID("$Id: atomicio.c,v 1.10 2000/03/17 12:40:15 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -33,12 +33,13 @@ RCSID("$Id: atomicio.c,v 1.9 2000/03/09 10:27:50 damien Exp $");
  * ensure all of data on socket comes through. f==read || f==write
  */
 ssize_t
-atomicio(f, fd, s, n)
+atomicio(f, fd, _s, n)
 	ssize_t (*f) ();
 	int fd;
-	void *s;
+	void *_s;
 	size_t n;
 {
+	char *s = _s;
 	ssize_t res, pos = 0;
 
 	while (n > pos) {
