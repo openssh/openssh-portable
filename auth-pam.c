@@ -29,7 +29,7 @@
 #include "xmalloc.h"
 #include "servconf.h"
 
-RCSID("$Id: auth-pam.c,v 1.13 2000/09/16 05:09:27 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.14 2000/10/07 11:16:55 stevesk Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now"
@@ -132,20 +132,20 @@ void pam_cleanup_proc(void *context)
 	{
 		pam_retval = pam_close_session(pamh, 0);
 		if (pam_retval != PAM_SUCCESS) {
-			log("Cannot close PAM session: %.200s", 
-				PAM_STRERROR(pamh, pam_retval));
+			log("Cannot close PAM session[%d]: %.200s", 
+				pam_retval, PAM_STRERROR(pamh, pam_retval));
 		}
 
 		pam_retval = pam_setcred(pamh, PAM_DELETE_CRED);
 		if (pam_retval != PAM_SUCCESS) {
-			debug("Cannot delete credentials: %.200s", 
-				PAM_STRERROR(pamh, pam_retval));
+			debug("Cannot delete credentials[%d]: %.200s", 
+				pam_retval, PAM_STRERROR(pamh, pam_retval));
 		}
 
 		pam_retval = pam_end(pamh, pam_retval);
 		if (pam_retval != PAM_SUCCESS) {
-			log("Cannot release PAM authentication: %.200s", 
-				PAM_STRERROR(pamh, pam_retval));
+			log("Cannot release PAM authentication[%d]: %.200s", 
+				pam_retval, PAM_STRERROR(pamh, pam_retval));
 		}
 	}
 }
@@ -173,8 +173,8 @@ int auth_pam_password(struct passwd *pw, const char *password)
 			pw->pw_name);
 		return 1;
 	} else {
-		debug("PAM Password authentication for \"%.100s\" failed: %s", 
-			pw->pw_name, PAM_STRERROR(pamh, pam_retval));
+		debug("PAM Password authentication for \"%.100s\" failed[%d]: %s", 
+			pw->pw_name, pam_retval, PAM_STRERROR(pamh, pam_retval));
 		return 0;
 	}
 }
@@ -188,16 +188,16 @@ int do_pam_account(char *username, char *remote_user)
 	pam_retval = pam_set_item(pamh, PAM_RHOST, 
 		get_canonical_hostname());
 	if (pam_retval != PAM_SUCCESS) {
-		fatal("PAM set rhost failed: %.200s", 
-			PAM_STRERROR(pamh, pam_retval));
+		fatal("PAM set rhost failed[%d]: %.200s", 
+			pam_retval, PAM_STRERROR(pamh, pam_retval));
 	}
 
 	if (remote_user != NULL) {
 		debug("PAM setting ruser to \"%.200s\"", remote_user);
 		pam_retval = pam_set_item(pamh, PAM_RUSER, remote_user);
 		if (pam_retval != PAM_SUCCESS) {
-			fatal("PAM set ruser failed: %.200s", 
-				PAM_STRERROR(pamh, pam_retval));
+			fatal("PAM set ruser failed[%d]: %.200s", 
+				pam_retval, PAM_STRERROR(pamh, pam_retval));
 		}
 	}
 
@@ -212,8 +212,8 @@ int do_pam_account(char *username, char *remote_user)
 			password_change_required = 1;
 			break;
 		default:
-			log("PAM rejected by account configuration: %.200s", 
-				PAM_STRERROR(pamh, pam_retval));
+			log("PAM rejected by account configuration[%d]: %.200s", 
+				pam_retval, PAM_STRERROR(pamh, pam_retval));
 			return(0);
 	}
 	
@@ -229,15 +229,15 @@ void do_pam_session(char *username, const char *ttyname)
 		debug("PAM setting tty to \"%.200s\"", ttyname);
 		pam_retval = pam_set_item(pamh, PAM_TTY, ttyname);
 		if (pam_retval != PAM_SUCCESS) {
-			fatal("PAM set tty failed: %.200s", 
-				PAM_STRERROR(pamh, pam_retval));
+			fatal("PAM set tty failed[%d]: %.200s", 
+				pam_retval, PAM_STRERROR(pamh, pam_retval));
 		}
 	}
 
 	pam_retval = pam_open_session(pamh, 0);
 	if (pam_retval != PAM_SUCCESS) {
-		fatal("PAM session setup failed: %.200s", 
-			PAM_STRERROR(pamh, pam_retval));
+		fatal("PAM session setup failed[%d]: %.200s", 
+			pam_retval, PAM_STRERROR(pamh, pam_retval));
 	}
 }
 
@@ -249,8 +249,8 @@ void do_pam_setcred()
 	debug("PAM establishing creds");
 	pam_retval = pam_setcred(pamh, PAM_ESTABLISH_CRED);
 	if (pam_retval != PAM_SUCCESS) {
-		fatal("PAM setcred failed: %.200s", 
-			PAM_STRERROR(pamh, pam_retval));
+		fatal("PAM setcred failed[%d]: %.200s", 
+			pam_setcred, PAM_STRERROR(pamh, pam_retval));
 	}
 }
 
@@ -266,8 +266,15 @@ void do_pam_chauthtok()
 
 	if (password_change_required) {
 		pamstate = OTHER;
+		/*
+		 * XXX: should we really loop forever?
+		 */
 		do {
 			pam_retval = pam_chauthtok(pamh, PAM_CHANGE_EXPIRED_AUTHTOK);
+			if (pam_retval != PAM_SUCCESS) {
+				log("PAM pam_chauthtok failed[%d]: %.200s", 
+					pam_retval, PAM_STRERROR(pamh, pam_retval));
+			}
 		} while (pam_retval != PAM_SUCCESS);
 	}
 }
@@ -289,8 +296,8 @@ void start_pam(struct passwd *pw)
 	pam_retval = pam_start(SSHD_PAM_SERVICE, pw->pw_name, &conv, &pamh);
 
 	if (pam_retval != PAM_SUCCESS) {
-		fatal("PAM initialisation failed: %.200s", 
-			PAM_STRERROR(pamh, pam_retval));
+		fatal("PAM initialisation failed[%d]: %.200s", 
+			pam_retval, PAM_STRERROR(pamh, pam_retval));
 	}
 
 #ifdef PAM_TTY_KLUDGE
@@ -303,8 +310,8 @@ void start_pam(struct passwd *pw)
 	 */
 	pam_retval = pam_set_item(pamh, PAM_TTY, "ssh");
 	if (pam_retval != PAM_SUCCESS) {
-		fatal("PAM set tty failed: %.200s", 
-			PAM_STRERROR(pamh, pam_retval));
+		fatal("PAM set tty failed[%d]: %.200s", 
+			pam_retval, PAM_STRERROR(pamh, pam_retval));
 	}
 #endif /* PAM_TTY_KLUDGE */
 

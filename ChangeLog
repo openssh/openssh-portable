@@ -1,3 +1,7 @@
+20001007
+ - (stevesk) Print PAM return value in PAM log messages to aid
+   with debugging.
+	
 20001002
  - (djm) Fix USER_PATH, report from Kevin Steves <stevesk@sweden.hp.com>
  - (djm) Add host system and CC to end-of-configure report. Suggested by
