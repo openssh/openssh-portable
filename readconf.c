@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.110 2003/05/15 14:02:47 jakob Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.111 2003/05/15 14:55:25 djm Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -106,7 +106,7 @@ typedef enum {
 	oDynamicForward, oPreferredAuthentications, oHostbasedAuthentication,
 	oHostKeyAlgorithms, oBindAddress, oSmartcardDevice,
 	oClearAllForwardings, oNoHostAuthenticationForLocalhost,
-	oEnableSSHKeysign, oRekeyLimit, oVerifyHostKeyDNS,
+	oEnableSSHKeysign, oRekeyLimit, oVerifyHostKeyDNS, oConnectTimeout,
 	oDeprecated, oUnsupported
 } OpCodes;
 
@@ -193,6 +193,7 @@ static struct {
 #endif
 	{ "nohostauthenticationforlocalhost", oNoHostAuthenticationForLocalhost },
 	{ "rekeylimit", oRekeyLimit },
+	{ "connecttimeout", oConnectTimeout },
 	{ NULL, oBadOption }
 };
 
@@ -309,6 +310,20 @@ process_config_line(Options *options, const char *host,
 		/* don't panic, but count bad options */
 		return -1;
 		/* NOTREACHED */
+	case oConnectTimeout:
+		intptr = &options->connection_timeout;
+/* parse_time: */
+		arg = strdelim(&s);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: missing time value.",
+			    filename, linenum);
+		if ((value = convtime(arg)) == -1)
+			fatal("%s line %d: invalid time value.",
+			    filename, linenum);
+		if (*intptr == -1)
+			*intptr = value;
+		break;
+
 	case oForwardAgent:
 		intptr = &options->forward_agent;
 parse_flag:
@@ -808,6 +823,7 @@ initialize_options(Options * options)
 	options->compression_level = -1;
 	options->port = -1;
 	options->connection_attempts = -1;
+	options->connection_timeout = -1;
 	options->number_of_password_prompts = -1;
 	options->cipher = -1;
 	options->ciphers = NULL;

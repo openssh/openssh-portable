@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.8 2003/05/14 18:16:20 jakob Exp $
+.\" $OpenBSD: ssh_config.5,v 1.9 2003/05/15 14:55:25 djm Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -227,6 +227,11 @@ Specifies the number of tries (one per second) to make before exiting.
 The argument must be an integer.
 This may be useful in scripts if the connection sometimes fails.
 The default is 1.
+.It Cm ConnectTimeout
+Specifies the timeout (in seconds) used when connecting to the ssh
+server, instead of using the default system TCP timeout. This value is 
+used only when the target is down or really unreachable, not when it
+refuses the connection.
 .It Cm DynamicForward
 Specifies that a TCP/IP port on the local machine be forwarded
 over the secure channel, and the application

@@ -1,4 +1,4 @@
-/*	$OpenBSD: readconf.h,v 1.49 2003/05/15 01:48:10 jakob Exp $	*/
+/*	$OpenBSD: readconf.h,v 1.50 2003/05/15 14:55:25 djm Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -60,6 +60,8 @@ typedef struct {
 	int     port;		/* Port to connect. */
 	int     connection_attempts;	/* Max attempts (seconds) before
 					 * giving up */
+	int     connection_timeout;	/* Max time (seconds) before
+				 	 * aborting connection attempt */
 	int     number_of_password_prompts;	/* Max number of password
 						 * prompts. */
 	int     cipher;		/* Cipher to use. */

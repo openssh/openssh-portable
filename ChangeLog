@@ -10,6 +10,10 @@
    - markus@cvs.openbsd.org 2003/05/15 14:09:21
      [auth2-krb5.c]
      fix 64bit issue; report itojun@
+   - djm@cvs.openbsd.org 2003/05/15 14:55:25
+     [readconf.c readconf.h ssh_config ssh_config.5 sshconnect.c]
+     add a ConnectTimeout option to ssh, based on patch from
+     Jean-Charles Longuet (jclonguet at free.fr); portable #207 ok markus@
 
 20030515
  - (djm) OpenBSD CVS Sync
@@ -1541,4 +1545,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2726 2003/05/16 01:38:46 djm Exp $
+$Id: ChangeLog,v 1.2727 2003/05/16 01:39:04 djm Exp $

@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.140 2003/05/14 18:16:21 jakob Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.141 2003/05/15 14:55:25 djm Exp $");
 
 #include <openssl/bn.h>
 
@@ -218,6 +218,71 @@ ssh_create_socket(int privileged, struct addrinfo *ai)
 	return sock;
 }
 
+static int
+timeout_connect(int sockfd, const struct sockaddr *serv_addr,
+    socklen_t addrlen, int timeout)
+{
+	fd_set *fdset;
+	struct timeval tv;
+	socklen_t optlen;
+	int fdsetsz, optval, rc;
+
+	if (timeout <= 0)
+		return (connect(sockfd, serv_addr, addrlen));
+
+	if (fcntl(sockfd, F_SETFL, O_NONBLOCK) < 0)
+		return (-1);
+
+	rc = connect(sockfd, serv_addr, addrlen);
+	if (rc == 0)
+		return (0);
+	if (errno != EINPROGRESS)
+		return (-1);
+
+	fdsetsz = howmany(sockfd + 1, NFDBITS) * sizeof(fd_mask);
+	fdset = (fd_set *)xmalloc(fdsetsz);
+
+	memset(fdset, '\0', fdsetsz);
+	FD_SET(sockfd, fdset);
+	tv.tv_sec = timeout;
+	tv.tv_usec = 0;
+
+	for(;;) {
+		rc = select(sockfd + 1, NULL, fdset, NULL, &tv);
+		if (rc != -1 || errno != EINTR)
+			break;
+	}
+
+	switch(rc) {
+	case 0:
+		/* Timed out */
+		errno = ETIMEDOUT;
+		return (-1);
+	case -1:
+		/* Select error */
+	    	debug("select: %s", strerror(errno));
+		return (-1);
+	case 1:
+		/* Completed or failed */
+		optval = 0;
+		optlen = sizeof(optval);
+		if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &optval, 
+		    &optlen) == -1)
+		    	debug("getsockopt: %s", strerror(errno));
+			return (-1);
+		if (optval != 0) {
+			errno = optval;
+			return (-1);
+		}
+		break;
+	default:
+		/* Should not occur */
+		fatal("Bogus return (%d) from select()", rc);
+	}
+
+	return (0);
+}
+
 /*
  * Opens a TCP/IP connection to the remote server on the given host.
  * The address of the remote host will be returned in hostaddr.
@@ -306,7 +371,8 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 				/* Any error is already output */
 				continue;
 
-			if (connect(sock, ai->ai_addr, ai->ai_addrlen) >= 0) {
+			if (timeout_connect(sock, ai->ai_addr, ai->ai_addrlen,
+			    options.connection_timeout) >= 0) {
 				/* Successful connection. */
 				memcpy(hostaddr, ai->ai_addr, ai->ai_addrlen);
 				break;
