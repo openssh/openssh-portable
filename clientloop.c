@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.62 2001/04/14 16:33:20 stevesk Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.63 2001/04/15 17:16:00 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -80,6 +80,7 @@ RCSID("$OpenBSD: clientloop.c,v 1.62 2001/04/14 16:33:20 stevesk Exp $");
 #include "authfd.h"
 #include "atomicio.h"
 #include "sshtty.h"
+#include "misc.h"
 
 /* import options */
 extern Options options;
@@ -782,6 +783,13 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 	max_fd = MAX(connection_in, connection_out);
 
 	if (!compat20) {
+		/* enable nonblocking unless tty */
+		if (!isatty(fileno(stdin)))
+			set_nonblock(fileno(stdin));
+		if (!isatty(fileno(stdout)))
+			set_nonblock(fileno(stdout));
+		if (!isatty(fileno(stderr)))
+			set_nonblock(fileno(stderr));
 		max_fd = MAX(max_fd, fileno(stdin));
 		max_fd = MAX(max_fd, fileno(stdout));
 		max_fd = MAX(max_fd, fileno(stderr));
