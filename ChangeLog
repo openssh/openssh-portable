@@ -29,6 +29,9 @@
    - stevesk@cvs.openbsd.org 2001/11/22 05:27:29
      [ssh-keyscan.c]
      don't use "\n" in fatal()
+   - markus@cvs.openbsd.org 2001/11/22 12:34:22
+     [clientloop.c serverloop.c sshd.c]
+     volatile sig_atomic_t
 
 20011126
  - (tim) [contrib/cygwin/README, openbsd-compat/bsd-cygwin_util.c,
@@ -6951,4 +6954,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1675 2001/12/06 16:45:10 mouring Exp $
+$Id: ChangeLog,v 1.1676 2001/12/06 16:48:14 mouring Exp $

@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.87 2001/11/09 18:59:23 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.88 2001/11/22 12:34:22 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -101,8 +101,8 @@ extern char *host;
  * window size to be sent to the server a little later.  This is volatile
  * because this is updated in a signal handler.
  */
-static volatile int received_window_change_signal = 0;
-static volatile int received_signal = 0;
+static volatile sig_atomic_t received_window_change_signal = 0;
+static volatile sig_atomic_t received_signal = 0;
 
 /* Flag indicating whether the user\'s terminal is in non-blocking mode. */
 static int in_non_blocking_mode = 0;

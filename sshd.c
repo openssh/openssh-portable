@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.211 2001/11/19 11:20:21 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.212 2001/11/22 12:34:22 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -169,11 +169,11 @@ struct {
  * Flag indicating whether the RSA server key needs to be regenerated.
  * Is set in the SIGALRM handler and cleared when the key is regenerated.
  */
-int key_do_regen = 0;
+static volatile sig_atomic_t key_do_regen = 0;
 
 /* This is set to true when a signal is received. */
-int received_sighup = 0;
-int received_sigterm = 0;
+static volatile sig_atomic_t received_sighup = 0;
+static volatile sig_atomic_t received_sigterm = 0;
 
 /* session identifier, used by RSA-auth */
 u_char session_id[16];

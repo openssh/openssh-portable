@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.83 2001/11/09 18:59:23 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.84 2001/11/22 12:34:22 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -87,7 +87,7 @@ static int client_alive_timeouts = 0;
  * will exit after that, as soon as forwarded connections have terminated.
  */
 
-static volatile int child_terminated;	/* The child has terminated. */
+static volatile sig_atomic_t child_terminated = 0;	/* The child has terminated. */
 
 /* prototypes */
 static void server_init_dispatch(void);
