@@ -36,10 +36,10 @@ Source1: http://www.jmknoble.cx/software/x11-ssh-askpass/x11-ssh-askpass-%{avers
 %endif
 Copyright: BSD
 Group: Applications/Internet
-BuildRoot: /tmp/openssh-%{version}-buildroot
+BuildRoot: %{_tmppath}/%{name}-%{version}-buildroot
 Obsoletes: ssh
 PreReq: openssl >= 0.9.5a
-RreReq: openssl = %{exact_openssl_version}
+PreReq: openssl = %{exact_openssl_version}
 Requires: openssl >= 0.9.5a
 Requires: rpm >= 3.0.5
 BuildPreReq: perl, openssl-devel, tcp_wrappers
@@ -61,6 +61,9 @@ Group: System Environment/Daemons
 Obsoletes: ssh-server
 PreReq: openssh = %{version}-%{release}, chkconfig >= 0.9
 Requires: initscripts >= 4.16
+%if %{redhat7}
+Requires: /etc/pam.d/system-auth
+%endif
 
 %package askpass
 Summary: OpenSSH X11 passphrase dialog

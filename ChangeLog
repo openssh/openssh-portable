@@ -1,3 +1,7 @@
+20010224
+ - (bal) pam_stack fix to correctly detect between RH7 and older RHs.
+   Patch by Pekka Savola <pekkas@netcore.fi>
+
 20010223
  - (bal) Fix --define rh7 in openssh.spec file.  Patch by Steve Tell
    <tell@telltronics.org>
@@ -4106,4 +4110,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.815 2001/02/23 05:05:53 mouring Exp $
+$Id: ChangeLog,v 1.816 2001/02/24 00:05:29 mouring Exp $
