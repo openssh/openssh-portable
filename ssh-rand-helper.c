@@ -39,7 +39,7 @@
 #include "pathnames.h"
 #include "log.h"
 
-RCSID("$Id: ssh-rand-helper.c,v 1.10 2003/03/17 05:13:53 djm Exp $");
+RCSID("$Id: ssh-rand-helper.c,v 1.11 2003/05/16 05:51:45 djm Exp $");
 
 /* Number of bytes we write out */
 #define OUTPUT_SEED_SIZE	48
@@ -532,7 +532,7 @@ prng_check_seedfile(char *filename)
 	/* mode 0600, owned by root or the current user? */
 	if (((st.st_mode & 0177) != 0) || !(st.st_uid == getuid())) {
 		debug("WARNING: PRNG seedfile %.100s must be mode 0600, "
-		    "owned by uid %d", filename, getuid());
+		    "owned by uid %li", filename, (long int)getuid());
 		return 0;
 	}
 
@@ -550,7 +550,7 @@ prng_write_seedfile(void)
 	pw = getpwuid(getuid());
 	if (pw == NULL)
 		fatal("Couldn't get password entry for current user "
-		    "(%i): %s", getuid(), strerror(errno));
+		    "(%li): %s", (long int)getuid(), strerror(errno));
 
 	/* Try to ensure that the parent directory is there */
 	snprintf(filename, sizeof(filename), "%.512s/%s", pw->pw_dir,
@@ -589,7 +589,7 @@ prng_read_seedfile(void)
 	pw = getpwuid(getuid());
 	if (pw == NULL)
 		fatal("Couldn't get password entry for current user "
-		    "(%i): %s", getuid(), strerror(errno));
+		    "(%li): %s", (long int)getuid(), strerror(errno));
 
 	snprintf(filename, sizeof(filename), "%.512s/%s", pw->pw_dir,
 		SSH_PRNG_SEED_FILE);

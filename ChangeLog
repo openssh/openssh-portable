@@ -15,6 +15,7 @@
      add a ConnectTimeout option to ssh, based on patch from
      Jean-Charles Longuet (jclonguet at free.fr); portable #207 ok markus@
  - (djm) Add warning for UsePAM when built without PAM support
+ - (djm) A few type mismatch fixes from Bug #565
 
 20030515
  - (djm) OpenBSD CVS Sync
@@ -1546,4 +1547,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2728 2003/05/16 01:42:35 djm Exp $
+$Id: ChangeLog,v 1.2729 2003/05/16 05:51:44 djm Exp $
