@@ -33,6 +33,12 @@
 
 #ifndef HAVE_ARC4RANDOM
 
+/* Size of key to use */
+#define SEED_SIZE 20
+
+/* Number of bytes to reseed after */
+#define REKEY_BYTES	(1 >> 18)
+
 static int rc4_ready = 0;
 static RC4_KEY rc4;
 
@@ -40,27 +46,30 @@ unsigned int arc4random(void)
 {
 	unsigned int r = 0;
 
-	if (!rc4_ready)
+	if (rc4_ready <= 0)
 		arc4random_stir();
 	
 	RC4(&rc4, sizeof(r), (unsigned char *)&r, (unsigned char *)&r);
+
+	rc4_ready -= sizeof(r);
 	
 	return(r);
 }
 
 void arc4random_stir(void)
 {
-	unsigned char rand_buf[32];
+	unsigned char rand_buf[SEED_SIZE];
 	
 	memset(&rc4, 0, sizeof(rc4));
 
 	seed_rng();
+
 	RAND_bytes(rand_buf, sizeof(rand_buf));
 	
 	RC4_set_key(&rc4, sizeof(rand_buf), rand_buf);
 
 	memset(rand_buf, 0, sizeof(rand_buf));
 	
-	rc4_ready = 1;
+	rc4_ready = REKEY_BYTES;
 }
 #endif /* !HAVE_ARC4RANDOM */

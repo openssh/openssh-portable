@@ -1,5 +1,7 @@
 20000830
  - (djm) Compile warning fixes from Mark Miller <markm@swoon.net>
+ - (djm) Periodically rekey arc4random
+ - (djm) Clean up diff against OpenBSD.
 
 20000829
  - (djm) Fix ^C ignored issue on Solaris. Diagnosis from Gert 
