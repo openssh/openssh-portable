@@ -4,7 +4,7 @@ RCSID("$OpenBSD: auth-skey.c,v 1.7 2000/06/20 01:39:38 markus Exp $");
 
 #include "ssh.h"
 #include "packet.h"
-#include <sha1.h>
+#include <openssl/sha.h>
 
 /* from %OpenBSD: skeylogin.c,v 1.32 1999/08/16 14:46:56 millert Exp % */
 
@@ -74,7 +74,6 @@ skey_fake_keyinfo(char *username)
 	size_t secretlen = 0;
 	SHA_CTX ctx;
 	char *p, *u;
-	char md[SHA_DIGEST_LENGTH];
 
 	/*
 	 * Base first 4 chars of seed on hostname.
@@ -99,7 +98,7 @@ skey_fake_keyinfo(char *username)
 
 		SHA1_Init(&ctx);
 		SHA1_Update(&ctx, username, strlen(username));
-		SHA1_End(&ctx, up);
+		SHA1_Final(up, &ctx);
 
 		/* Collapse the hash */
 		ptr = hash_collapse(up);
@@ -133,7 +132,7 @@ skey_fake_keyinfo(char *username)
 		SHA1_Init(&ctx);
 		SHA1_Update(&ctx, secret, secretlen);
 		SHA1_Update(&ctx, username, strlen(username));
-		SHA1_End(&ctx, up);
+		SHA1_Final(up, &ctx);
 		
 		/* Zero out */
 		memset(secret, 0, secretlen);
@@ -141,7 +140,7 @@ skey_fake_keyinfo(char *username)
 		/* Now hash the hash */
 		SHA1_Init(&ctx);
 		SHA1_Update(&ctx, up, strlen(up));
-		SHA1_End(&ctx, up);
+		SHA1_Final(up, &ctx);
 		
 		ptr = hash_collapse(up + 4);
 		
