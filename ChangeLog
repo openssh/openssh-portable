@@ -131,6 +131,7 @@
      [sftp-server.c]
      use get_int() macro (hide iqueue)
  - (bal) Missed msg.[ch] in merge.  Required for ssh-keysign.
+ - (bal) Forgot to add msg.c Makefile.in.
 
 20020604
  - (stevesk) [channels.c] bug #164 patch from YOSHIFUJI Hideaki (changed
@@ -815,4 +816,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2180 2002/06/07 01:51:06 mouring Exp $
+$Id: ChangeLog,v 1.2181 2002/06/07 01:53:59 mouring Exp $
