@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.39 2001/01/22 23:06:40 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.41 2001/02/04 15:32:26 stevesk Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -529,7 +529,6 @@ ssh_userauth2(const char *server_user, char *host)
 		char *reply = packet_get_string(&plen);
 		debug("service_accept: %s", reply);
 		xfree(reply);
-		packet_done();
 	} else {
 		debug("buggy server: service_accept w/o service");
 	}
