@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.48 2002/02/11 16:15:46 markus Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.49 2002/03/14 15:24:27 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -459,6 +459,8 @@ try_krb4_authentication(void)
 
 		/* Get server's response. */
 		reply = packet_get_string((u_int *) &auth.length);
+		if (auth.length >= MAX_KTXT_LEN)
+			fatal("Kerberos v4: Malformed response from server");
 		memcpy(auth.dat, reply, auth.length);
 		xfree(reply);
 

@@ -9,6 +9,9 @@
    - itojun@cvs.openbsd.org 2002/03/11 03:19:53
      [sftp-client.c]
      indent
+   - markus@cvs.openbsd.org 2002/03/14 15:24:27
+     [sshconnect1.c]
+     don't trust size sent by (rogue) server; noted by s.esser@e-matters.de
 
 20020317
  - (tim) [configure.ac] Assume path given with --with-pid-dir=PATH is wanted,
@@ -7855,4 +7858,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1926 2002/03/22 01:05:27 mouring Exp $
+$Id: ChangeLog,v 1.1927 2002/03/22 01:08:07 mouring Exp $
