@@ -5,6 +5,11 @@
    - itojun@cvs.openbsd.org 2002/07/09 11:56:50
      [sshconnect.c]
      silently try next address on connect(2).  markus ok
+   - itojun@cvs.openbsd.org 2002/07/09 11:56:27
+     [canohost.c]
+     suppress log on reverse lookup failiure, as there's no real value in
+     doing so.
+     markus ok
 
 20020709
  - (bal) NO_IPPORT_RESERVED_CONCEPT used instead of CYGWIN so other platforms
@@ -1328,4 +1333,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2354 2002/07/11 03:54:43 mouring Exp $
+$Id: ChangeLog,v 1.2355 2002/07/11 03:56:46 mouring Exp $
