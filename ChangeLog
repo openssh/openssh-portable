@@ -31,6 +31,9 @@
    - markus@cvs.openbsd.org 2001/02/22 21:57:27
      [ssh.1 sshd.8]
      typos/grammar from matt@anzen.com
+   - markus@cvs.openbsd.org 2001/02/22 21:59:44
+     [auth.c auth.h auth1.c auth2.c misc.c misc.h ssh.c]
+     use pwcopy in ssh.c, too
 
 20010304
  - (bal) Remove make-ssh-known-hosts.1 since it's no longer valid.
@@ -4223,4 +4226,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.861 2001/03/05 05:49:29 mouring Exp $
+$Id: ChangeLog,v 1.862 2001/03/05 05:56:40 mouring Exp $

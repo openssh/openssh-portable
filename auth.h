@@ -21,7 +21,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $OpenBSD: auth.h,v 1.11 2001/02/12 16:16:23 markus Exp $
+ * $OpenBSD: auth.h,v 1.12 2001/02/22 21:59:43 markus Exp $
  */
 #ifndef AUTH_H
 #define AUTH_H
@@ -132,7 +132,6 @@ char	*get_challenge(Authctxt *authctxt, char *devs);
 int	verify_response(Authctxt *authctxt, char *response);
 
 struct passwd * auth_get_user(void);
-struct passwd * pwcopy(struct passwd *pw);
 
 #define AUTH_FAIL_MAX 6
 #define AUTH_FAIL_LOG (AUTH_FAIL_MAX/2)

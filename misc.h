@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.h,v 1.2 2001/01/29 01:58:17 niklas Exp $	*/
+/*	$OpenBSD: misc.h,v 1.3 2001/02/22 21:59:44 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -19,6 +19,8 @@ char	*strdelim(char **s);
 
 /* set filedescriptor to non-blocking */
 void	set_nonblock(int fd);
+
+struct passwd * pwcopy(struct passwd *pw);
 
 /* wrapper for signal interface */
 typedef void (*mysig_t)(int);

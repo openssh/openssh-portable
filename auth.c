@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth.c,v 1.17 2001/02/12 16:16:23 markus Exp $");
+RCSID("$OpenBSD: auth.c,v 1.18 2001/02/22 21:59:43 markus Exp $");
 
 #ifdef HAVE_LOGIN_H
 #include <login.h>
@@ -168,26 +168,6 @@ authctxt_new(void)
 	Authctxt *authctxt = xmalloc(sizeof(*authctxt));
 	memset(authctxt, 0, sizeof(*authctxt));
 	return authctxt;
-}
-
-struct passwd *
-pwcopy(struct passwd *pw)
-{
-	struct passwd *copy = xmalloc(sizeof(*copy));
-	memset(copy, 0, sizeof(*copy));
-	copy->pw_name = xstrdup(pw->pw_name);
-	copy->pw_passwd = xstrdup(pw->pw_passwd);
-	copy->pw_uid = pw->pw_uid;
-	copy->pw_gid = pw->pw_gid;
-#ifdef HAVE_PW_CLASS_IN_PASSWD
-	copy->pw_class = xstrdup(pw->pw_class);
-#endif
-#ifdef HAVE_CYGWIN
-	copy->pw_gecos = xstrdup(pw->pw_gecos);
-#endif
-	copy->pw_dir = xstrdup(pw->pw_dir);
-	copy->pw_shell = xstrdup(pw->pw_shell);
-	return copy;
 }
 
 void

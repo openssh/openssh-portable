@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.97 2001/02/21 21:14:04 stevesk Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.98 2001/02/22 21:59:44 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -245,7 +245,7 @@ main(int ac, char **av)
 	u_short fwd_port, fwd_host_port;
 	char *optarg, *cp, buf[256];
 	struct stat st;
-	struct passwd *pw, pwcopy;
+	struct passwd *pw;
 	int dummy;
 	uid_t original_effective_uid;
 
@@ -555,17 +555,7 @@ main(int ac, char **av)
 		exit(1);
 	}
 	/* Take a copy of the returned structure. */
-	memset(&pwcopy, 0, sizeof(pwcopy));
-	pwcopy.pw_name = xstrdup(pw->pw_name);
-	pwcopy.pw_passwd = xstrdup(pw->pw_passwd);
-	pwcopy.pw_uid = pw->pw_uid;
-	pwcopy.pw_gid = pw->pw_gid;
-#ifdef HAVE_PW_CLASS_IN_PASSWD
-	pwcopy.pw_class = xstrdup(pw->pw_class);
-#endif
-	pwcopy.pw_dir = xstrdup(pw->pw_dir);
-	pwcopy.pw_shell = xstrdup(pw->pw_shell);
-	pw = &pwcopy;
+	pw = pwcopy(pw);
 
 	/* Initialize "log" output.  Since we are the client all output
 	   actually goes to the terminal. */

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.42 2001/02/13 22:49:40 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.43 2001/02/22 21:59:44 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -47,6 +47,7 @@ RCSID("$OpenBSD: auth2.c,v 1.42 2001/02/13 22:49:40 markus Exp $");
 #include "pathnames.h"
 #include "uidswap.h"
 #include "auth-options.h"
+#include "misc.h"
 
 /* import */
 extern ServerOptions options;
@@ -75,7 +76,6 @@ void	protocol_error(int type, int plen, void *ctxt);
 
 /* helper */
 Authmethod	*authmethod_lookup(const char *name);
-struct passwd	*pwcopy(struct passwd *pw);
 int	user_key_allowed(struct passwd *pw, Key *key);
 char	*authmethods_get(void);
 
