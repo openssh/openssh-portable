@@ -1,3 +1,7 @@
+20050222
+ - (dtucker) [uidswap.c] Skip uid restore test on Cygwin.  Patch from
+   vinschen at redhat.com.
+
 20050220
  - (dtucker) [LICENCE Makefile.in README.platform audit-bsm.c configure.ac
    defines.h] Bug #125: Add *EXPERIMENTAL* BSM audit support.  Configure
@@ -2156,4 +2160,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3661 2005/02/20 12:27:11 dtucker Exp $
+$Id: ChangeLog,v 1.3662 2005/02/22 06:57:13 dtucker Exp $

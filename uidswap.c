@@ -56,10 +56,12 @@ temporarily_use_uid(struct passwd *pw)
 	debug("temporarily_use_uid: %u/%u (e=%u/%u)",
 	    (u_int)pw->pw_uid, (u_int)pw->pw_gid,
 	    (u_int)saved_euid, (u_int)saved_egid);
+#ifndef HAVE_CYGWIN
 	if (saved_euid != 0) {
 		privileged = 0;
 		return;
 	}
+#endif
 #else
 	if (geteuid() != 0) {
 		privileged = 0;
