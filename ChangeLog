@@ -26,6 +26,9 @@
      [sftp-int.c]
      fix div by zero when listing for filename lengths longer than width.
      markus@ ok.
+   - djm@cvs.openbsd.org 2003/08/25 10:33:33
+     [sshconnect2.c]
+     fprintf->logit to silence login banner with "ssh -q"; ok markus@
  - (dtucker) [Makefile.in acconfig.h auth-krb5.c auth-pam.c auth-pam.h
    configure.ac defines.h gss-serv-krb5.c session.c ssh-gss.h sshconnect1.c
    sshconnect2.c] Add Portable GSSAPI support, patch by Simon Wilkinson.
@@ -901,4 +904,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2913 2003/08/26 02:12:56 dtucker Exp $
+$Id: ChangeLog,v 1.2914 2003/08/26 02:14:05 dtucker Exp $
