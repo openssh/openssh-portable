@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: dh.c,v 1.11 2001/03/29 21:17:39 markus Exp $");
+RCSID("$OpenBSD: dh.c,v 1.12 2001/04/03 19:53:29 markus Exp $");
 
 #include "xmalloc.h"
 
@@ -272,4 +272,23 @@ dh_new_group1(void)
 	    "FFFFFFFF" "FFFFFFFF";
 
 	return (dh_new_group_asc(gen, group1));
+}
+
+/*
+ * Estimates the group order for a Diffie-Hellman group that has an
+ * attack complexity approximately the same as O(2**bits).  Estimate
+ * with:  O(exp(1.9223 * (ln q)^(1/3) (ln ln q)^(2/3)))
+ */
+
+int
+dh_estimate(int bits)
+{
+
+	if (bits < 64)
+		return (512);	/* O(2**63) */
+	if (bits < 128)
+		return (1024);	/* O(2**86) */
+	if (bits < 192)
+		return (2048);	/* O(2**116) */
+	return (4096);		/* O(2**156) */
 }

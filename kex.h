@@ -1,4 +1,4 @@
-/*	$OpenBSD: kex.h,v 1.17 2001/03/29 21:17:40 markus Exp $	*/
+/*	$OpenBSD: kex.h,v 1.18 2001/04/03 19:53:29 markus Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -28,6 +28,8 @@
 
 #include <openssl/evp.h>
 #include "buffer.h"
+#include "cipher.h"
+#include "key.h"
 
 #define	KEX_DH1		"diffie-hellman-group1-sha1"
 #define	KEX_DHGEX	"diffie-hellman-group-exchange-sha1"
@@ -82,6 +84,7 @@ struct Comp {
 	int		enabled;
 	char		*name;
 };
+#define KEX_INIT_SENT	0x0001
 struct Kex {
 	Enc		enc [MODE_MAX];
 	Mac		mac [MODE_MAX];
@@ -91,40 +94,31 @@ struct Kex {
 	char		*name;
 	int		hostkey_type;
 	int		kex_type;
+
+	/* used during kex */
+	Buffer		my;
+	Buffer		peer;
+	int		newkeys;
+	int		flags;
+	void		*state;
+	char		*client_version_string;
+	char		*server_version_string;
+
+	int		(*check_host_key)(Key *hostkey);
+	Key		*(*load_host_key)(int type);
 };
 
-Buffer	*kex_init(char *myproposal[PROPOSAL_MAX]);
-void
-kex_exchange_kexinit(
-    Buffer *my_kexinit, Buffer *peer_kexint,
-    char *peer_proposal[PROPOSAL_MAX]);
-Kex *
-kex_choose_conf(char *cprop[PROPOSAL_MAX],
-    char *sprop[PROPOSAL_MAX], int server);
-int	kex_derive_keys(Kex *k, u_char *hash, BIGNUM *shared_secret);
+void	kex_derive_keys(Kex *k, u_char *hash, BIGNUM *shared_secret);
 void	packet_set_kex(Kex *k);
+Kex	*kex_start(char *proposal[PROPOSAL_MAX]);
+void	kex_send_newkeys(void);
+void	kex_protocol_error(int type, int plen, void *ctxt);
 
-u_char *
-kex_hash(
-    char *client_version_string,
-    char *server_version_string,
-    char *ckexinit, int ckexinitlen,
-    char *skexinit, int skexinitlen,
-    char *serverhostkeyblob, int sbloblen,
-    BIGNUM *client_dh_pub,
-    BIGNUM *server_dh_pub,
-    BIGNUM *shared_secret);
+void	kexdh(Kex *);
+void	kexgex(Kex *);
 
-u_char *
-kex_hash_gex(
-    char *client_version_string,
-    char *server_version_string,
-    char *ckexinit, int ckexinitlen,
-    char *skexinit, int skexinitlen,
-    char *serverhostkeyblob, int sbloblen,
-    int min, int wantbits, int max,
-    BIGNUM *prime, BIGNUM *gen,
-    BIGNUM *client_dh_pub,
-    BIGNUM *server_dh_pub,
-    BIGNUM *shared_secret);
+#if defined(DEBUG_KEX) || defined(DEBUG_KEXDH)
+void	dump_digest(char *msg, u_char *digest, int len);
+#endif
+
 #endif

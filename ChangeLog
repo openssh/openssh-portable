@@ -6,6 +6,10 @@
    - stevesk@cvs.openbsd.org 2001/04/03 13:56:11
      [sftp-glob.c ssh-agent.c ssh-keygen.c]
      free() -> xfree()
+   - markus@cvs.openbsd.org 2001/04/03 19:53:29
+     [dh.c dh.h kex.c kex.h sshconnect2.c sshd.c]
+     move kex to kex*.c, used dispatch_set() callbacks for kex. should
+     make rekeying easier.
 
 20010403
  - OpenBSD CVS Sync
@@ -4816,4 +4820,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1049 2001/04/04 01:53:20 mouring Exp $
+$Id: ChangeLog,v 1.1050 2001/04/04 01:56:17 mouring Exp $

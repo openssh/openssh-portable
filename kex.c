@@ -23,12 +23,9 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.25 2001/03/29 21:17:39 markus Exp $");
+RCSID("$OpenBSD: kex.c,v 1.26 2001/04/03 19:53:29 markus Exp $");
 
 #include <openssl/crypto.h>
-#include <openssl/bio.h>
-#include <openssl/bn.h>
-#include <openssl/pem.h>
 
 #include "ssh2.h"
 #include "xmalloc.h"
@@ -42,233 +39,169 @@ RCSID("$OpenBSD: kex.c,v 1.25 2001/03/29 21:17:39 markus Exp $");
 #include "log.h"
 #include "mac.h"
 #include "match.h"
+#include "dispatch.h"
 
 #define KEX_COOKIE_LEN	16
 
-Buffer *
-kex_init(char *myproposal[PROPOSAL_MAX])
+void	kex_kexinit_finish(Kex *kex);
+void	kex_choose_conf(Kex *k);
+
+/* put algorithm proposal into buffer */
+void
+kex_prop2buf(Buffer *b, char *proposal[PROPOSAL_MAX])
 {
-	int first_kex_packet_follows = 0;
-	u_char cookie[KEX_COOKIE_LEN];
 	u_int32_t rand = 0;
 	int i;
-	Buffer *ki = xmalloc(sizeof(*ki));
+
+	buffer_clear(b);
 	for (i = 0; i < KEX_COOKIE_LEN; i++) {
 		if (i % 4 == 0)
 			rand = arc4random();
-		cookie[i] = rand & 0xff;
+		buffer_put_char(b, rand & 0xff);
 		rand >>= 8;
 	}
-	buffer_init(ki);
-	buffer_append(ki, (char *)cookie, sizeof cookie);
 	for (i = 0; i < PROPOSAL_MAX; i++)
-		buffer_put_cstring(ki, myproposal[i]);
-	buffer_put_char(ki, first_kex_packet_follows);
-	buffer_put_int(ki, 0);				/* uint32 reserved */
-	return ki;
+		buffer_put_cstring(b, proposal[i]);
+	buffer_put_char(b, 0);			/* first_kex_packet_follows */
+	buffer_put_int(b, 0);			/* uint32 reserved */
 }
 
-/* send kexinit, parse and save reply */
-void
-kex_exchange_kexinit(
-    Buffer *my_kexinit, Buffer *peer_kexint,
-    char *peer_proposal[PROPOSAL_MAX])
+/* parse buffer and return algorithm proposal */
+char **
+kex_buf2prop(Buffer *raw)
 {
+	Buffer b;
 	int i;
-	char *ptr;
-	int plen;
+	char **proposal;
 
-	debug("send KEXINIT");
-	packet_start(SSH2_MSG_KEXINIT);
-	packet_put_raw(buffer_ptr(my_kexinit), buffer_len(my_kexinit));
-	packet_send();
-	packet_write_wait();
-	debug("done");
+	proposal = xmalloc(PROPOSAL_MAX * sizeof(char *));
 
-	/*
-	 * read and save raw KEXINIT payload in buffer. this is used during
-	 * computation of the session_id and the session keys.
-	 */
-	debug("wait KEXINIT");
-	packet_read_expect(&plen, SSH2_MSG_KEXINIT);
-	ptr = packet_get_raw(&plen);
-	buffer_append(peer_kexint, ptr, plen);
-
-	/* parse packet and save algorithm proposal */
+	buffer_init(&b);
+	buffer_append(&b, buffer_ptr(raw), buffer_len(raw));
 	/* skip cookie */
 	for (i = 0; i < KEX_COOKIE_LEN; i++)
-		packet_get_char();
+		buffer_get_char(&b);
 	/* extract kex init proposal strings */
 	for (i = 0; i < PROPOSAL_MAX; i++) {
-		peer_proposal[i] = packet_get_string(NULL);
-		debug("got kexinit: %s", peer_proposal[i]);
+		proposal[i] = buffer_get_string(&b,NULL);
+		debug2("kex_parse_kexinit: %s", proposal[i]);
 	}
-	/* first kex follow / reserved */
-	i = packet_get_char();
-	debug("first kex follow: %d ", i);
-	i = packet_get_int();
-	debug("reserved: %d ", i);
-	packet_done();
-	debug("done");
+	/* first kex follows / reserved */
+	i = buffer_get_char(&b);
+	debug2("kex_parse_kexinit: first_kex_follows %d ", i);
+	i = buffer_get_int(&b);
+	debug2("kex_parse_kexinit: reserved %d ", i);
+	buffer_free(&b);
+	return proposal;
 }
 
-#ifdef DEBUG_KEX
 void
-dump_digest(u_char *digest, int len)
+kex_prop_free(char **proposal)
 {
 	int i;
-	for (i = 0; i< len; i++){
-		fprintf(stderr, "%02x", digest[i]);
-		if(i%2!=0)
-			fprintf(stderr, " ");
-	}
-	fprintf(stderr, "\n");
-}
-#endif
 
-u_char *
-kex_hash(
-    char *client_version_string,
-    char *server_version_string,
-    char *ckexinit, int ckexinitlen,
-    char *skexinit, int skexinitlen,
-    char *serverhostkeyblob, int sbloblen,
-    BIGNUM *client_dh_pub,
-    BIGNUM *server_dh_pub,
-    BIGNUM *shared_secret)
-{
-	Buffer b;
-	static u_char digest[EVP_MAX_MD_SIZE];
-	EVP_MD *evp_md = EVP_sha1();
-	EVP_MD_CTX md;
-
-	buffer_init(&b);
-	buffer_put_string(&b, client_version_string, strlen(client_version_string));
-	buffer_put_string(&b, server_version_string, strlen(server_version_string));
-
-	/* kexinit messages: fake header: len+SSH2_MSG_KEXINIT */
-	buffer_put_int(&b, ckexinitlen+1);
-	buffer_put_char(&b, SSH2_MSG_KEXINIT);
-	buffer_append(&b, ckexinit, ckexinitlen);
-	buffer_put_int(&b, skexinitlen+1);
-	buffer_put_char(&b, SSH2_MSG_KEXINIT);
-	buffer_append(&b, skexinit, skexinitlen);
-
-	buffer_put_string(&b, serverhostkeyblob, sbloblen);
-	buffer_put_bignum2(&b, client_dh_pub);
-	buffer_put_bignum2(&b, server_dh_pub);
-	buffer_put_bignum2(&b, shared_secret);
-
-#ifdef DEBUG_KEX
-	buffer_dump(&b);
-#endif
-
-	EVP_DigestInit(&md, evp_md);
-	EVP_DigestUpdate(&md, buffer_ptr(&b), buffer_len(&b));
-	EVP_DigestFinal(&md, digest, NULL);
-
-	buffer_free(&b);
-
-#ifdef DEBUG_KEX
-	dump_digest(digest, evp_md->md_size);
-#endif
-	return digest;
+	for (i = 0; i < PROPOSAL_MAX; i++)
+		xfree(proposal[i]);
+	xfree(proposal);
 }
 
-u_char *
-kex_hash_gex(
-    char *client_version_string,
-    char *server_version_string,
-    char *ckexinit, int ckexinitlen,
-    char *skexinit, int skexinitlen,
-    char *serverhostkeyblob, int sbloblen,
-    int min, int wantbits, int max, BIGNUM *prime, BIGNUM *gen,
-    BIGNUM *client_dh_pub,
-    BIGNUM *server_dh_pub,
-    BIGNUM *shared_secret)
+void
+kex_protocol_error(int type, int plen, void *ctxt)
 {
-	Buffer b;
-	static u_char digest[EVP_MAX_MD_SIZE];
-	EVP_MD *evp_md = EVP_sha1();
-	EVP_MD_CTX md;
-
-	buffer_init(&b);
-	buffer_put_string(&b, client_version_string, strlen(client_version_string));
-	buffer_put_string(&b, server_version_string, strlen(server_version_string));
-
-	/* kexinit messages: fake header: len+SSH2_MSG_KEXINIT */
-	buffer_put_int(&b, ckexinitlen+1);
-	buffer_put_char(&b, SSH2_MSG_KEXINIT);
-	buffer_append(&b, ckexinit, ckexinitlen);
-	buffer_put_int(&b, skexinitlen+1);
-	buffer_put_char(&b, SSH2_MSG_KEXINIT);
-	buffer_append(&b, skexinit, skexinitlen);
-
-	buffer_put_string(&b, serverhostkeyblob, sbloblen);
-	if (min == -1 || max == -1) 
-		buffer_put_int(&b, wantbits);
-	else {
-		buffer_put_int(&b, min);
-		buffer_put_int(&b, wantbits);
-		buffer_put_int(&b, max);
-	}
-	buffer_put_bignum2(&b, prime);
-	buffer_put_bignum2(&b, gen);
-	buffer_put_bignum2(&b, client_dh_pub);
-	buffer_put_bignum2(&b, server_dh_pub);
-	buffer_put_bignum2(&b, shared_secret);
-
-#ifdef DEBUG_KEX
-	buffer_dump(&b);
-#endif
-
-	EVP_DigestInit(&md, evp_md);
-	EVP_DigestUpdate(&md, buffer_ptr(&b), buffer_len(&b));
-	EVP_DigestFinal(&md, digest, NULL);
-
-	buffer_free(&b);
-
-#ifdef DEBUG_KEX
-	dump_digest(digest, evp_md->md_size);
-#endif
-	return digest;
+        error("Hm, kex protocol error: type %d plen %d", type, plen);
 }
 
-u_char *
-derive_key(int id, int need, u_char *hash, BIGNUM *shared_secret)
+void
+kex_send_newkeys(void)
 {
-	Buffer b;
-	EVP_MD *evp_md = EVP_sha1();
-	EVP_MD_CTX md;
-	char c = id;
-	int have;
-	int mdsz = evp_md->md_size;
-	u_char *digest = xmalloc(((need+mdsz-1)/mdsz)*mdsz);
+	packet_start(SSH2_MSG_NEWKEYS);
+	packet_send();
+	/* packet_write_wait(); */
+	debug("SSH2_MSG_NEWKEYS sent");
+}
 
-	buffer_init(&b);
-	buffer_put_bignum2(&b, shared_secret);
+void
+kex_input_newkeys(int type, int plen, void *ctxt)
+{
+	Kex *kex = ctxt;
+	int i;
 
-	EVP_DigestInit(&md, evp_md);
-	EVP_DigestUpdate(&md, buffer_ptr(&b), buffer_len(&b));	/* shared_secret K */
-	EVP_DigestUpdate(&md, hash, mdsz);		/* transport-06 */
-	EVP_DigestUpdate(&md, &c, 1);			/* key id */
-	EVP_DigestUpdate(&md, hash, mdsz);		/* session id */
-	EVP_DigestFinal(&md, digest, NULL);
+	debug("SSH2_MSG_NEWKEYS received");
+	kex->newkeys = 1;
+	for (i = 30; i <= 49; i++)
+		dispatch_set(i, &kex_protocol_error);
+	buffer_clear(&kex->peer);
+	buffer_clear(&kex->my);
+	kex->flags &= ~KEX_INIT_SENT;
+}
 
-	/* expand */
-	for (have = mdsz; need > have; have += mdsz) {
-		EVP_DigestInit(&md, evp_md);
-		EVP_DigestUpdate(&md, buffer_ptr(&b), buffer_len(&b));
-		EVP_DigestUpdate(&md, hash, mdsz);
-		EVP_DigestUpdate(&md, digest, have);
-		EVP_DigestFinal(&md, digest + have, NULL);
+void
+kex_send_kexinit(Kex *kex)
+{
+	packet_start(SSH2_MSG_KEXINIT);
+	packet_put_raw(buffer_ptr(&kex->my), buffer_len(&kex->my));
+	packet_send();
+	debug("SSH2_MSG_KEXINIT sent");
+	kex->flags |= KEX_INIT_SENT;
+}
+
+void
+kex_input_kexinit(int type, int plen, void *ctxt)
+{
+	char *ptr;
+	int dlen;
+	Kex *kex = (Kex *)ctxt;
+
+	dispatch_set(SSH2_MSG_KEXINIT, &kex_protocol_error);
+	debug("SSH2_MSG_KEXINIT received");
+
+	ptr = packet_get_raw(&dlen);
+	buffer_append(&kex->peer, ptr, dlen);
+
+	kex_kexinit_finish(kex);
+}
+
+Kex *
+kex_start(char *proposal[PROPOSAL_MAX])
+{
+	Kex *kex;
+	int i;
+
+	kex = xmalloc(sizeof(*kex));
+	memset(kex, 0, sizeof(*kex));
+	buffer_init(&kex->peer);
+	buffer_init(&kex->my);
+	kex_prop2buf(&kex->my, proposal);
+	kex->newkeys = 0;
+
+	kex_send_kexinit(kex);					/* we start */
+	/* Numbers 30-49 are used for kex packets */
+	for (i = 30; i <= 49; i++)
+		dispatch_set(i, kex_protocol_error);
+
+	dispatch_set(SSH2_MSG_KEXINIT, &kex_input_kexinit);
+	dispatch_set(SSH2_MSG_NEWKEYS, &kex_input_newkeys);
+	return kex;
+}
+
+void
+kex_kexinit_finish(Kex *kex)
+{
+	if (!(kex->flags & KEX_INIT_SENT))
+		kex_send_kexinit(kex);
+
+	kex_choose_conf(kex);
+
+	switch(kex->kex_type) {
+	case DH_GRP1_SHA1:
+		kexdh(kex);
+		break;
+	case DH_GEX_SHA1:
+		kexgex(kex);
+		break;
+	default:
+		fatal("Unsupported key exchange %d", kex->kex_type);
 	}
-	buffer_free(&b);
-#ifdef DEBUG_KEX
-	fprintf(stderr, "Digest '%c'== ", c);
-	dump_digest(digest, need);
-#endif
-	return digest;
 }
 
 void
@@ -340,17 +273,25 @@ choose_hostkeyalg(Kex *k, char *client, char *server)
 	xfree(hostkeyalg);
 }
 
-Kex *
-kex_choose_conf(char *cprop[PROPOSAL_MAX], char *sprop[PROPOSAL_MAX], int server)
+void
+kex_choose_conf(Kex *k)
 {
+	char **my, **peer;
+	char **cprop, **sprop;
 	int mode;
 	int ctos;				/* direction: if true client-to-server */
 	int need;
-	Kex *k;
 
-	k = xmalloc(sizeof(*k));
-	memset(k, 0, sizeof(*k));
-	k->server = server;
+	my   = kex_buf2prop(&k->my);
+	peer = kex_buf2prop(&k->peer);
+
+	if (k->server) {
+		cprop=peer;
+		sprop=my;
+	} else {
+		cprop=my;
+		sprop=peer;
+	}
 
 	for (mode = 0; mode < MODE_MAX; mode++) {
 		int nenc, nmac, ncomp;
@@ -381,11 +322,51 @@ kex_choose_conf(char *cprop[PROPOSAL_MAX], char *sprop[PROPOSAL_MAX], int server
 	}
 	/* XXX need runden? */
 	k->we_need = need;
-	return k;
+
+	kex_prop_free(my);
+	kex_prop_free(peer);
+
+}
+
+u_char *
+derive_key(int id, int need, u_char *hash, BIGNUM *shared_secret)
+{
+	Buffer b;
+	EVP_MD *evp_md = EVP_sha1();
+	EVP_MD_CTX md;
+	char c = id;
+	int have;
+	int mdsz = evp_md->md_size;
+	u_char *digest = xmalloc(((need+mdsz-1)/mdsz)*mdsz);
+
+	buffer_init(&b);
+	buffer_put_bignum2(&b, shared_secret);
+
+	EVP_DigestInit(&md, evp_md);
+	EVP_DigestUpdate(&md, buffer_ptr(&b), buffer_len(&b));	/* shared_secret K */
+	EVP_DigestUpdate(&md, hash, mdsz);		/* transport-06 */
+	EVP_DigestUpdate(&md, &c, 1);			/* key id */
+	EVP_DigestUpdate(&md, hash, mdsz);		/* session id */
+	EVP_DigestFinal(&md, digest, NULL);
+
+	/* expand */
+	for (have = mdsz; need > have; have += mdsz) {
+		EVP_DigestInit(&md, evp_md);
+		EVP_DigestUpdate(&md, buffer_ptr(&b), buffer_len(&b));
+		EVP_DigestUpdate(&md, hash, mdsz);
+		EVP_DigestUpdate(&md, digest, have);
+		EVP_DigestFinal(&md, digest + have, NULL);
+	}
+	buffer_free(&b);
+#ifdef DEBUG_KEX
+	fprintf(stderr, "key '%c'== ", c);
+	dump_digest("key", digest, need);
+#endif
+	return digest;
 }
 
 #define NKEYS	6
-int
+void
 kex_derive_keys(Kex *k, u_char *hash, BIGNUM *shared_secret)
 {
 	int i;
@@ -402,5 +383,22 @@ kex_derive_keys(Kex *k, u_char *hash, BIGNUM *shared_secret)
 		k->enc[mode].key = keys[ctos ? 2 : 3];
 		k->mac[mode].key = keys[ctos ? 4 : 5];
 	}
-	return 0;
 }
+
+#if defined(DEBUG_KEX) || defined(DEBUG_KEXDH)
+void
+dump_digest(char *msg, u_char *digest, int len)
+{
+	int i;
+
+	fprintf(stderr, "%s\n", msg);
+	for (i = 0; i< len; i++){
+		fprintf(stderr, "%02x", digest[i]);
+		if (i%32 == 31)
+			fprintf(stderr, "\n");
+		else if (i%8 == 7)
+			fprintf(stderr, " ");
+	}
+	fprintf(stderr, "\n");
+}
+#endif
