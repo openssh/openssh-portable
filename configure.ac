@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.183 2004/01/05 11:36:52 dtucker Exp $
+# $Id: configure.ac,v 1.184 2004/01/08 13:19:25 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -793,7 +793,7 @@ AC_CHECK_FUNCS(setresuid, [
 int main(){errno=0; setresuid(0,0,0); if (errno==ENOSYS) exit(1); else exit(0);}
 		],
 		[AC_MSG_RESULT(yes)],
-		[AC_DEFINE(BROKEN_SETRESUID),
+		[AC_DEFINE(BROKEN_SETRESUID)
 		 AC_MSG_RESULT(not implemented)]
 	)
 ])
