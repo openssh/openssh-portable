@@ -238,9 +238,8 @@ userauth_finish(Authctxt *authctxt, int authenticated, char *method)
 		/* now we can break out */
 		authctxt->success = 1;
 	} else {
-		if (authctxt->failures++ > AUTH_FAIL_MAX) {
+		if (authctxt->failures++ > AUTH_FAIL_MAX)
 			packet_disconnect(AUTH_FAIL_MSG, authctxt->user);
-		}
 #ifdef _UNICOS
 		if (strcmp(method, "password") == 0)
 			cray_login_failure(authctxt->user, IA_UDBERR);

@@ -4,6 +4,7 @@
  - (bal) Since we don't support platforms lacking u_int_64.  We may
    as well clean out some of those evil #ifdefs
  - (bal) auth1.c minor resync while looking at the code.
+ - (bal) auth2.c same changed as above.
 
 20030409
  - (djm) Bug #539: Specify creation mode with O_CREAT for lastlog. Report 
@@ -1344,4 +1345,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2661 2003/04/27 18:41:30 mouring Exp $
+$Id: ChangeLog,v 1.2662 2003/04/27 18:44:31 mouring Exp $
