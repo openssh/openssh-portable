@@ -5,18 +5,17 @@
 This is the port of OpenBSD's excellent OpenSSH[0] to Linux and other
 Unices.
 
-OpenSSH is based on the last free version of Tatu Ylonen's SSH with
-all patent-encumbered algorithms removed (to external libraries), all
-known security bugs fixed, new features reintroduced and many other
-clean-ups. More information about SSH itself can be found in the file
-README.Ylonen. OpenSSH has been created by Aaron Campbell, Bob Beck,
-Markus Friedl, Niels Provos, Theo de Raadt, and Dug Song. It has a
-homepage at http://www.openssh.com/
+OpenSSH is based on the last free version of Tatu Ylonen's sample
+implementation with all patent-encumbered algorithms removed (to
+external libraries), all known security bugs fixed, new features
+reintroduced and many other clean-ups.  OpenSSH has been created by
+Aaron Campbell, Bob Beck, Markus Friedl, Niels Provos, Theo de Raadt,
+and Dug Song. It has a homepage at http://www.openssh.com/
 
 This port consists of the re-introduction of autoconf support, PAM
 support (for Linux and Solaris), EGD[1]/PRNGD[2] support and replacements 
 for OpenBSD library functions that are (regrettably) absent from other 
-unices. This port has been best tested on Linux, Solaris, HPUX, NetBSD 
+unices. This port has been best tested on Linux, Solaris, HP-UX, NetBSD 
 and Irix. Support for AIX, SCO, NeXT and other Unices is underway. 
 This version actively tracks changes in the OpenBSD CVS repository.
 
@@ -48,9 +47,9 @@ Damien Miller <djm@mindrot.org>
 
 Miscellania - 
 
-This version of SSH is based upon code retrieved from the OpenBSD CVS
-repository which in turn was based on the last free 
-version of SSH released by Tatu Ylonen.
+This version of OpenSSH is based upon code retrieved from the OpenBSD
+CVS repository which in turn was based on the last free sample
+implementation released by Tatu Ylonen.
 
 References -
 
@@ -59,8 +58,9 @@ References -
 [2] http://www.aet.tu-cottbus.de/personen/jaenicke/postfix_tls/prngd.html
 [3] ftp://ftp.freesoftware.com/pub/infozip/zlib/
 [4] http://www.openssl.org/
-[5] http://www.kernel.org/pub/linux/libs/pam/ (PAM is standard on Solaris)
+[5] http://www.kernel.org/pub/linux/libs/pam/ (PAM is standard on Solaris
+    and HP-UX 11)
 [6] http://www.openbsd.org/cgi-bin/man.cgi?query=style&sektion=9
 [7] http://www.openssh.com/faq.html
 
-$Id: README,v 1.46 2001/02/18 01:58:24 djm Exp $
+$Id: README,v 1.47 2001/02/24 09:00:23 stevesk Exp $
