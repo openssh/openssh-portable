@@ -1046,7 +1046,7 @@ ssh_userauth(
 	    options.password_authentication && !options.batch_mode) {
 		char prompt[80];
 
-		snprintf(prompt, sizeof(prompt), "%.30s@%.40s's password: ",
+		snprintf(prompt, sizeof(prompt), "%.30s@%.128s's password: ",
 		    server_user, host);
 		if (try_password_authentication(prompt))
 			return;
