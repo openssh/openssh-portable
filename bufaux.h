@@ -1,3 +1,5 @@
+/*	$OpenBSD: bufaux.h,v 1.16 2002/03/04 17:27:39 stevesk Exp $	*/
+
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -9,8 +11,6 @@
  * incompatible with the protocol description in the RFC file, it must be
  * called by a name other than "ssh" or "Secure Shell".
  */
-
-/* RCSID("$OpenBSD: bufaux.h,v 1.15 2001/12/28 14:13:13 markus Exp $"); */
 
 #ifndef BUFAUX_H
 #define BUFAUX_H

@@ -45,6 +45,15 @@
      error-> debug, because O_NONBLOCK for /dev/null causes too many different 
      errnos; ok stevesk@, deraadt@
      unused include
+   - stevesk@cvs.openbsd.org 2002/03/04 17:27:39
+     [auth-krb5.c auth-options.h auth.h authfd.h authfile.h bufaux.h buffer.h 
+      channels.h cipher.h compat.h compress.h crc32.h deattack.c getput.h 
+      groupaccess.c misc.c mpaux.h packet.h readconf.h rsa.h scard.h 
+      servconf.h ssh-agent.c ssh.h ssh2.h sshpty.h sshtty.c ttymodes.h 
+      uuencode.c xmalloc.h]
+     $OpenBSD$ and RCSID() cleanup: don't use RCSID() in .h files; add
+     missing RCSID() to .c files and remove dup /*$OpenBSD$*/ from .c
+     files.  ok markus@
 
 20020226
  - (tim) Bug 12 [configure.ac] add sys/bitypes.h to int64_t tests
@@ -7776,4 +7785,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1903 2002/03/05 01:48:09 mouring Exp $
+$Id: ChangeLog,v 1.1904 2002/03/05 01:53:02 mouring Exp $

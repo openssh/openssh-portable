@@ -1,3 +1,5 @@
+/*	$OpenBSD: authfd.h,v 1.23 2002/03/04 17:27:39 stevesk Exp $	*/
+
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -10,8 +12,6 @@
  * incompatible with the protocol description in the RFC file, it must be
  * called by a name other than "ssh" or "Secure Shell".
  */
-
-/* RCSID("$OpenBSD: authfd.h,v 1.22 2002/02/24 19:14:59 markus Exp $"); */
 
 #ifndef AUTHFD_H
 #define AUTHFD_H

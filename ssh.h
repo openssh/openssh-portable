@@ -1,3 +1,5 @@
+/*	$OpenBSD: ssh.h,v 1.64 2002/03/04 17:27:39 stevesk Exp $	*/
+
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -9,8 +11,6 @@
  * incompatible with the protocol description in the RFC file, it must be
  * called by a name other than "ssh" or "Secure Shell".
  */
-
-/* RCSID("$OpenBSD: ssh.h,v 1.63 2001/05/24 18:57:53 stevesk Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H

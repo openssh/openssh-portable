@@ -1,3 +1,5 @@
+/*	$OpenBSD: auth.h,v 1.29 2002/03/04 17:27:39 stevesk Exp $	*/
+
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -21,8 +23,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $OpenBSD: auth.h,v 1.28 2002/02/17 19:42:32 millert Exp $
  */
+
 #ifndef AUTH_H
 #define AUTH_H
 

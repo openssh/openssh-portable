@@ -1,5 +1,3 @@
-/*	$OpenBSD: misc.c,v 1.18 2002/03/04 13:10:46 markus Exp $	*/
-
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -25,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: misc.c,v 1.18 2002/03/04 13:10:46 markus Exp $");
+RCSID("$OpenBSD: misc.c,v 1.19 2002/03/04 17:27:39 stevesk Exp $");
 
 #include "misc.h"
 #include "log.h"

@@ -1,3 +1,5 @@
+/*	$OpenBSD: cipher.h,v 1.32 2002/03/04 17:27:39 stevesk Exp $	*/
+
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -31,8 +33,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-/* RCSID("$OpenBSD: cipher.h,v 1.31 2002/02/18 13:05:32 markus Exp $"); */
 
 #ifndef CIPHER_H
 #define CIPHER_H

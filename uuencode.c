@@ -1,5 +1,3 @@
-/*	$OpenBSD: uuencode.c,v 1.14 2002/02/25 16:33:27 markus Exp $	*/
-
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -27,8 +25,7 @@
 #include "includes.h"
 #include "xmalloc.h"
 #include "uuencode.h"
-
-RCSID("$OpenBSD: uuencode.c,v 1.14 2002/02/25 16:33:27 markus Exp $");
+RCSID("$OpenBSD: uuencode.c,v 1.15 2002/03/04 17:27:39 stevesk Exp $");
 
 int
 uuencode(u_char *src, u_int srclength,
