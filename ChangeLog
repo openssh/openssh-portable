@@ -2,6 +2,9 @@
  - (stevesk) [sshd_config] PAMAuthenticationViaKbdInt no; commented
    options should contain default value.  from solar.
  - (bal) Cygwin uid0 fix by vinschen@redhat.com
+ - (bal) s/config.h/includes.h/ in openbsd-compat/ for *.c.  Otherwise wise
+   have issues of our fixes not propogating right (ie bcopy instead of
+   memmove).  OK tim
 
 200206027
  - OpenBSD CVS Sync
@@ -1192,4 +1195,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2309 2002/06/27 18:02:21 mouring Exp $
+$Id: ChangeLog,v 1.2310 2002/06/27 18:23:20 mouring Exp $

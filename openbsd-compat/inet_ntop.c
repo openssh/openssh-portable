@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-#include "config.h"
+#include "includes.h"
 
 #ifndef HAVE_INET_NTOP
 

@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 
-#include "config.h"
+#include "includes.h"
 
 #if defined(BROKEN_INET_NTOA) || !defined(HAVE_INET_NTOA)
 
