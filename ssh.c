@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.142 2001/09/03 20:58:33 stevesk Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.143 2001/09/20 13:50:40 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -1032,14 +1032,15 @@ client_subsystem_reply(int type, int plen, void *ctxt)
 		    len, buffer_ptr(&command), id);
 }
 
+/* request pty/x11/agent/tcpfwd/shell for channel */
 static void
-ssh_session2_callback(int id, void *arg)
+ssh_session2_setup(int id, void *arg)
 {
 	int len;
 	int interactive = 0;
 	struct termios tio;
 
-	debug("client_init id %d arg %ld", id, (long)arg);
+	debug("ssh_session2_setup: id %d", id);
 
 	if (tty_flag) {
 		struct winsize ws;
@@ -1108,8 +1109,9 @@ ssh_session2_callback(int id, void *arg)
 	packet_set_interactive(interactive);
 }
 
+/* open new channel for a session */
 static int
-ssh_session2_command(void)
+ssh_session2_open(void)
 {
 	Channel *c;
 	int window, packetmax, in, out, err;
@@ -1144,13 +1146,15 @@ ssh_session2_command(void)
 	    window, packetmax, CHAN_EXTENDED_WRITE,
 	    xstrdup("client-session"), /*nonblock*/0);
 	if (c == NULL)
-		fatal("ssh_session2_command: channel_new failed");
+		fatal("ssh_session2_open: channel_new failed");
 
-	debug3("ssh_session2_command: channel_new: %d", c->self);
+	debug3("ssh_session2_open: channel_new: %d", c->self);
 
 	channel_send_open(c->self);
-	channel_register_callback(c->self, SSH2_MSG_CHANNEL_OPEN_CONFIRMATION,
-	     ssh_session2_callback, (void *)0);
+	if (!no_shell_flag)
+		channel_register_callback(c->self,
+		     SSH2_MSG_CHANNEL_OPEN_CONFIRMATION,
+		     ssh_session2_setup, (void *)0);
 
 	return c->self;
 }
@@ -1158,12 +1162,13 @@ ssh_session2_command(void)
 static int
 ssh_session2(void)
 {
-	int id;
+	int id = -1;
 
 	/* XXX should be pre-session */
 	ssh_init_forwarding();
 
-	id = no_shell_flag ? -1 : ssh_session2_command();
+	if (!no_shell_flag || (datafellows & SSH_BUG_DUMMYCHAN))
+		id = ssh_session2_open();
 
 	/* If requested, let ssh continue in the background. */
 	if (fork_after_authentication_flag)
