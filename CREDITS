@@ -8,6 +8,7 @@ Ben Taylor <bent@clark.net> - Solaris debugging and fixes
 Chip Salzenberg <chip@valinux.com> - Assorted patches
 Chris Saia <csaia@wtower.com> - SuSE packaging
 Chris, the Young One <cky@pobox.com> - Password auth fixes
+Christos Zoulas <christos@zoulas.com> - Autoconf fixes
 Chun-Chung Chen <cjj@u.washington.edu> - RPM fixes
 Dan Brosemer <odin@linuxfreak.com> - Autoconf support, build fixes
 Darren Hall <dhall@virage.org> - AIX patches

@@ -14,6 +14,9 @@
    <jhuuskon@hytti.uku.fi>
  - Fix hang on logout if processes are still using the pty. Needs 
    further testing.
+ - Patch from Christos Zoulas <christos@zoulas.com>
+   - Try $prefix first when looking for OpenSSL.
+   - Include sys/types.h when including sys/socket.h in test programs
 
 20000116
  - Renamed --with-xauth-path to --with-xauth
