@@ -46,6 +46,9 @@
    - markus@cvs.openbsd.org 2001/06/04 23:16:16
      [session.c]
      merge ssh1/2 x11-fwd setup, create listener after tmp-dir
+   - pvalchev@cvs.openbsd.org 2001/06/05 05:05:39
+     [ssh-keyscan.1 ssh-keyscan.c]
+     License clarification from David Mazieres, ok deraadt@
 
 20010606
  - OpenBSD CVS Sync
@@ -5557,4 +5560,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1260 2001/06/09 01:29:12 mouring Exp $
+$Id: ChangeLog,v 1.1261 2001/06/09 01:30:39 mouring Exp $
