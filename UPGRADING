@@ -120,3 +120,9 @@ Configure OpenSSH with --with-md5-passwords
 Ensure that your OpenSSL libraries have been built to include RSA support
 either internally or through RSAref.
 
+13. "scp: command not found" errors
+
+scp must be in the default PATH on both the client and the server. You may
+need to use the --with-default-path option to specify a custom path to
+search on the server.
+
