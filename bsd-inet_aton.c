@@ -101,7 +101,7 @@ inet_addr(cp)
 int
 inet_aton(const char *cp, struct in_addr *addr)
 {
-	register in_addr_t val;
+	register u_int32_t val;
 	register int base, n;
 	register char c;
 	unsigned int parts[4];
