@@ -4,13 +4,14 @@
 #include "config.h"
 
 #include <sys/types.h> /* For size_t */
+#include <varargs.h> /* For va_list */
 
 #ifndef HAVE_SNPRINTF
 int snprintf(char *str, size_t n, char const *fmt, ...);
 #endif /* !HAVE_SNPRINTF */
 
 #ifndef HAVE_VSNPRINTF
-int vsnprintf(char *str, size_t n, char *fmt, char *ap);
+int vsnprintf(char *str, size_t n, char *fmt, va_list *ap);
 #endif /* !HAVE_SNPRINTF */
 
 

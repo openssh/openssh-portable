@@ -126,7 +126,7 @@ vsnprintf(str, n, fmt, ap)
 	char *str;
 	size_t n;
 	char *fmt;
-	char *ap;
+	va_list *ap;
 {
 	struct sigaction osa, nsa;
 	char *p;
