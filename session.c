@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.144 2002/07/19 15:43:33 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.145 2002/07/22 11:03:06 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -962,8 +962,10 @@ do_setup_env(Session *s, const char *shell)
 		child_set_env(&env, &envsize, "LOGNAME", pw->pw_name);
 		child_set_env(&env, &envsize, "HOME", pw->pw_dir);
 #ifdef HAVE_LOGIN_CAP
-		(void) setusercontext(lc, pw, pw->pw_uid, LOGIN_SETPATH);
-		child_set_env(&env, &envsize, "PATH", getenv("PATH"));
+		if (setusercontext(lc, pw, pw->pw_uid, LOGIN_SETPATH) < 0)
+			child_set_env(&env, &envsize, "PATH", _PATH_STDPATH);
+		else
+			child_set_env(&env, &envsize, "PATH", getenv("PATH"));
 #else /* HAVE_LOGIN_CAP */
 # ifndef HAVE_CYGWIN
 		/*
