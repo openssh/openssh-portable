@@ -163,7 +163,7 @@
 #include "log.h"
 #include "atomicio.h"
 
-RCSID("$Id: loginrec.c,v 1.47 2003/03/10 00:23:07 djm Exp $");
+RCSID("$Id: loginrec.c,v 1.48 2003/04/09 09:40:34 djm Exp $");
 
 #ifdef HAVE_UTIL_H
 #  include <util.h>
@@ -1483,7 +1483,7 @@ lastlog_perform_login(struct logininfo *li)
 	/* create our struct lastlog */
 	lastlog_construct(li, &last);
 
-	if (!lastlog_openseek(li, &fd, O_RDWR|O_CREAT))
+	if (!lastlog_openseek(li, &fd, O_RDWR|O_CREAT, 0600))
 		return(0);
 
 	/* write the entry */
