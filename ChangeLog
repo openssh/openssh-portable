@@ -38,6 +38,12 @@
      [sshconnect1.c sshconnect2.c sshconnect.c sshd.8 sshd.c sshd_config]
      [ssh-keygen.c sshlogin.c sshpty.c sshtty.c ttymodes.c uidswap.c]
      basic KNF done while i was looking for something else
+   - markus@cvs.openbsd.org 2001/12/19 16:09:39
+     [serverloop.c]
+     fix race between SIGCHLD and select with an additional pipe.  writing
+     to the pipe on SIGCHLD wakes up select(). using pselect() is not
+     portable and siglongjmp() ugly. W. R. Stevens suggests similar solution.
+     initial idea by pmenage@ensim.com; ok deraadt@, djm@
 
 20011219
  - (stevesk) OpenBSD CVS sync X11 localhost display
@@ -7066,4 +7072,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1701 2001/12/21 03:45:46 djm Exp $
+$Id: ChangeLog,v 1.1702 2001/12/21 03:53:11 djm Exp $

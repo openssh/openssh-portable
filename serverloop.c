@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.86 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.87 2001/12/19 16:09:39 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -92,6 +92,51 @@ static volatile sig_atomic_t child_terminated = 0;	/* The child has terminated. 
 /* prototypes */
 static void server_init_dispatch(void);
 
+/*
+ * we write to this pipe if a SIGCHLD is caught in order to avoid
+ * the race between select() and child_terminated
+ */
+static int notify_pipe[2];
+static void
+notify_setup(void)
+{
+	if (pipe(notify_pipe) < 0) {
+		error("pipe(notify_pipe) failed %s", strerror(errno));
+	} else if ((fcntl(notify_pipe[0], F_SETFD, 1) == -1) ||
+	    (fcntl(notify_pipe[1], F_SETFD, 1) == -1)) {
+		error("fcntl(notify_pipe, F_SETFD) failed %s", strerror(errno));
+		close(notify_pipe[0]);
+		close(notify_pipe[1]);
+	} else {
+		set_nonblock(notify_pipe[0]);
+		set_nonblock(notify_pipe[1]);
+		return;
+	}
+	notify_pipe[0] = -1;	/* read end */
+	notify_pipe[1] = -1;	/* write end */
+}
+static void
+notify_parent(void)
+{
+	if (notify_pipe[1] != -1)
+		write(notify_pipe[1], "", 1);
+}
+static void
+notify_prepare(fd_set *readset)
+{
+	if (notify_pipe[0] != -1)
+		FD_SET(notify_pipe[0], readset);
+}
+static void
+notify_done(fd_set *readset)
+{
+	char c;
+
+	if (notify_pipe[0] != -1 && FD_ISSET(notify_pipe[0], readset))
+		while (read(notify_pipe[0], &c, 1) != -1)
+			debug2("notify_done: reading");
+}
+
 static void
 sigchld_handler(int sig)
 {
@@ -99,6 +144,7 @@ sigchld_handler(int sig)
 	debug("Received SIGCHLD.");
 	child_terminated = 1;
 	mysignal(SIGCHLD, sigchld_handler);
+	notify_parent();
 	errno = save_errno;
 }
 
@@ -242,6 +288,7 @@ wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp, int *maxfdp,
 		if (fdin != -1 && buffer_len(&stdin_buffer) > 0)
 			FD_SET(fdin, *writesetp);
 	}
+	notify_prepare(*readsetp);
 
 	/*
 	 * If we have buffered packet data going to the client, mark that
@@ -279,6 +326,8 @@ wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp, int *maxfdp,
 			error("select: %.100s", strerror(errno));
 	} else if (ret == 0 && client_alive_scheduled)
 		client_alive_check();
+
+	notify_done(*readsetp);
 }
 
 /*
@@ -468,6 +517,8 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 	connection_in = packet_get_connection_in();
 	connection_out = packet_get_connection_out();
 
+	notify_setup();
+
 	previous_stdout_buffer_bytes = 0;
 
 	/* Set approximate I/O buffer size. */
@@ -573,6 +624,7 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 		max_fd = MAX(max_fd, fdin);
 		max_fd = MAX(max_fd, fdout);
 		max_fd = MAX(max_fd, fderr);
+		max_fd = MAX(max_fd, notify_pipe[0]);
 
 		/* Sleep in select() until we can do something. */
 		wait_until_can_do_something(&readset, &writeset, &max_fd,
@@ -697,7 +749,11 @@ server_loop2(Authctxt *authctxt)
 	connection_in = packet_get_connection_in();
 	connection_out = packet_get_connection_out();
 
+	notify_setup();
+
 	max_fd = MAX(connection_in, connection_out);
+	max_fd = MAX(max_fd, notify_pipe[0]);
+
 	xxx_authctxt = authctxt;
 
 	server_init_dispatch();
