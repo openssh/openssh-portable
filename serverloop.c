@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.46 2001/02/08 19:30:52 itojun Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.47 2001/02/08 23:11:42 dugsong Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -317,6 +317,7 @@ process_input(fd_set * readset)
 void
 process_output(fd_set * writeset)
 {
+	struct termios tio;
 	int len;
 
 	/* Write buffered data to program stdin. */
@@ -336,7 +337,16 @@ process_output(fd_set * writeset)
 #endif
 			fdin = -1;
 		} else {
-			/* Successful write.  Consume the data from the buffer. */
+			/* Successful write. */
+			if (tcgetattr(fdin, &tio) == 0 &&
+			    !(tio.c_lflag & ECHO)) {
+				/* Simulate echo to reduce the impact of traffic analysis. */
+				packet_start(SSH_MSG_IGNORE);
+				memset(buffer_ptr(&stdin_buffer), 0, len);
+				packet_put_string(buffer_ptr(&stdin_buffer), len);
+				packet_send();
+			}
+			/* Consume the data from the buffer. */
 			buffer_consume(&stdin_buffer, len);
 			/* Update the count of bytes written to the program. */
 			stdin_bytes += len;
