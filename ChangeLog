@@ -41,9 +41,6 @@
      [ssh.c util.c]
      enable non-blocking IO on channels, and tty's (except for the 
      client ttys).
-   - markus@cvs.openbsd.org  2000/10/27 01:48:22
-     channels.c channels.h clientloop.c
-     deny agent/x11 forwarding unless requested; thanks to jwl@pobox.com
 
 20001027
  - (djm) Increase REKEY_BYTES to 2^24 for arc4random
