@@ -16,6 +16,9 @@
    - stevesk@cvs.openbsd.org 2002/09/16 20:12:11
      [sshd_config.5]
      more details on X11Forwarding security issues and threats; ok markus@
+   - stevesk@cvs.openbsd.org 2002/09/16 22:03:13
+     [sshd.8]
+     reference moduli(5) in FILES /etc/moduli.
 
 20020912
  - (djm) Made GNOME askpass programs return non-zero if cancel button is 
@@ -666,4 +669,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2468 2002/09/19 01:51:21 djm Exp $
+$Id: ChangeLog,v 1.2469 2002/09/19 01:51:53 djm Exp $
