@@ -52,7 +52,8 @@
  - (djm) Bug #423: reorder setting of PAM_TTY and calling of PAM session 
    management (now done in do_setusercontext). Largely from 
    michael_steffens AT hp.com
-
+ - (djm) Fix openbsd-compat/ again - remove references to strl(cpy|cat).h 
+ 
 20030829
  - (bal) openbsd-compat/ clean up.  Considate headers, add in Id on our
    files, and added missing license to header.
@@ -967,4 +968,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2936 2003/09/02 13:18:52 djm Exp $
+$Id: ChangeLog,v 1.2937 2003/09/02 13:33:42 djm Exp $
