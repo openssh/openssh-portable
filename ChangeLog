@@ -2,6 +2,8 @@
  - (dtucker) [configure.ac] Bug #636: Add support for Cray's new X1 machine.
    Patch from wendyp at cray.com.
  - (dtucker) [configure.ac] Part of bug #615: tcsendbreak might be a macro.
+ - (dtucker) [regressh/yes-head.sh] Some platforms (eg Solaris) don't have
+   "yes".
 
 20030909
  - (tim) [regress/Makefile] Fixes for building outside of a read-only
@@ -1057,4 +1059,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2977 2003/09/10 05:22:44 dtucker Exp $
+$Id: ChangeLog,v 1.2978 2003/09/10 10:17:40 dtucker Exp $
