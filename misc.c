@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: misc.c,v 1.26 2004/12/06 11:41:03 dtucker Exp $");
+RCSID("$OpenBSD: misc.c,v 1.27 2004/12/11 01:48:56 dtucker Exp $");
 
 #include "misc.h"
 #include "log.h"
@@ -339,15 +339,15 @@ addargs(arglist *args, char *fmt, ...)
  */
 int
 read_keyfile_line(FILE *f, const char *filename, char *buf, size_t bufsz,
-   int *lineno)
+   u_long *lineno)
 {
 	while (fgets(buf, bufsz, f) != NULL) {
 		(*lineno)++;
 		if (buf[strlen(buf) - 1] == '\n' || feof(f)) {
 			return 0;
 		} else {
-			debug("%s: %s line %d exceeds size limit", __func__,
-			    filename, lineno);
+			debug("%s: %s line %lu exceeds size limit", __func__,
+			    filename, *lineno);
 			/* discard remainder of line */
 			while(fgetc(f) != '\n' && !feof(f))
 				;	/* nothing */

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2-pubkey.c,v 1.8 2004/12/06 11:41:03 dtucker Exp $");
+RCSID("$OpenBSD: auth2-pubkey.c,v 1.9 2004/12/11 01:48:56 dtucker Exp $");
 
 #include "ssh.h"
 #include "ssh2.h"
@@ -41,6 +41,7 @@ RCSID("$OpenBSD: auth2-pubkey.c,v 1.8 2004/12/06 11:41:03 dtucker Exp $");
 #include "auth-options.h"
 #include "canohost.h"
 #include "monitor_wrap.h"
+#include "misc.h"
 
 /* import */
 extern ServerOptions options;

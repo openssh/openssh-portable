@@ -12,6 +12,10 @@
        ignore).
      - don't do extra do_lstat() if we only have one matching file.
      djm@ ok
+   - dtucker@cvs.openbsd.org 2004/12/11 01:48:56
+     [auth-rsa.c auth2-pubkey.c authfile.c misc.c misc.h]
+     Fix debug call in error path of authorized_keys processing and fix related
+     warnings; ok djm@
 
 20041208
  - (tim) [configure.ac] Comment some non obvious platforms in the
@@ -1942,4 +1946,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3602 2004/12/11 02:37:22 dtucker Exp $
+$Id: ChangeLog,v 1.3603 2004/12/11 02:39:50 dtucker Exp $
