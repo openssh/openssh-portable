@@ -1,5 +1,6 @@
 20050204
  - (dtucker) [monitor.c] Permit INVALID_USER audit events from slave too.
+ - (dtucker) [auth.c] Fix parens in audit log check.
 
 20050202
  - (dtucker) [configure.ac openbsd-compat/realpath.c] Sync up with realpath
@@ -2075,4 +2076,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3635 2005/02/04 04:05:08 dtucker Exp $
+$Id: ChangeLog,v 1.3636 2005/02/04 04:19:44 dtucker Exp $
