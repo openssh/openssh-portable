@@ -35,7 +35,7 @@
 
 #include "includes.h"
 #include "openbsd-compat/sys-queue.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.112 2003/09/18 08:49:45 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.113 2003/09/19 11:29:40 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -949,7 +949,7 @@ after_select(fd_set *readset, fd_set *writeset)
 }
 
 static void
-cleanup_socket(void *p)
+cleanup_socket(void)
 {
 	if (socket_name[0])
 		unlink(socket_name);
@@ -960,15 +960,26 @@ cleanup_socket(void *p)
 static void
 cleanup_exit(int i)
 {
-	cleanup_socket(NULL);
-	exit(i);
+	cleanup_socket();
+	_exit(i);
 }
 
 static void
 cleanup_handler(int sig)
 {
-	cleanup_socket(NULL);
+	cleanup_socket();
 	_exit(2);
+}
+
+void
+fatal(const char *fmt,...)
+{
+	va_list args;
+	va_start(args, fmt);
+	do_log(SYSLOG_LEVEL_FATAL, fmt, args);
+	va_end(args);
+	cleanup_socket();
+	_exit(255);
 }
 
 static void
@@ -1209,7 +1220,6 @@ main(int ac, char **av)
 #endif
 
 skip:
-	fatal_add_cleanup(cleanup_socket, NULL);
 	new_socket(AUTH_SOCKET, sock);
 	if (ac > 0) {
 		mysignal(SIGALRM, check_parent_exists);

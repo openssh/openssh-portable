@@ -52,6 +52,9 @@
    - markus@cvs.openbsd.org 2003/09/19 09:03:00
      [buffer.c]
      sign fix in buffer_dump; Jedi/Sector One; pr 3473
+   - markus@cvs.openbsd.org 2003/09/19 11:29:40
+     [ssh-agent.c]
+     provide a ssh-agent specific fatal() function; ok deraadt
 
 20030919
  - (djm) Bug #683: Remove reference to --with-ipv4-default from INSTALL;
@@ -1188,4 +1191,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3030 2003/09/22 11:08:21 dtucker Exp $
+$Id: ChangeLog,v 1.3031 2003/09/22 11:10:21 dtucker Exp $
