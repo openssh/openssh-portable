@@ -3,6 +3,9 @@
    - ian@cvs.openbsd.org 2001/04/18 16:21:05
      [ssh-keyscan.1]                        
      Fix typo reported in PR/1779           
+   - markus@cvs.openbsd.org 2001/04/18 21:57:42                            
+     [readpass.c ssh-add.c]                                                
+     call askpass from ssh, too, based on work by roth@feep.net, ok deraadt
 
 20010418
   - OpenBSD CVS Sync                            
@@ -5165,4 +5168,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1140 2001/04/19 20:31:02 mouring Exp $
+$Id: ChangeLog,v 1.1141 2001/04/19 20:33:07 mouring Exp $
