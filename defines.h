@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.94 2002/07/22 23:34:25 mouring Exp $ */
+/* $Id: defines.h,v 1.95 2002/08/21 02:54:12 mouring Exp $ */
 
 
 /* Constants */
@@ -215,6 +215,10 @@ typedef unsigned long long int u_int64_t;
 typedef unsigned char u_char;
 # define HAVE_U_CHAR
 #endif /* HAVE_U_CHAR */
+
+#ifndef SIZE_T_MAX
+#define SIZE_T_MAX ULONG_MAX
+#endif /* SIZE_T_MAX */
 
 #ifndef HAVE_SIZE_T
 typedef unsigned int size_t;
