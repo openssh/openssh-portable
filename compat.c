@@ -23,22 +23,13 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: compat.c,v 1.54 2001/12/05 10:06:12 deraadt Exp $");
-
-#ifdef HAVE_LIBPCRE
-#  include <pcreposix.h>
-#else /* Use native regex libraries */
-#  ifdef HAVE_REGEX_H
-#    include <regex.h>
-#  else
-#    include "openbsd-compat/fake-regex.h"
-#  endif
-#endif /* HAVE_LIBPCRE */
+RCSID("$OpenBSD: compat.c,v 1.55 2001/12/05 16:54:51 markus Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
 #include "compat.h"
 #include "log.h"
+#include "match.h"
 
 int compat13 = 0;
 int compat20 = 0;
@@ -60,86 +51,97 @@ enable_compat13(void)
 void
 compat_datafellows(const char *version)
 {
-	int i, ret;
-	char ebuf[1024];
-	regex_t reg;
+	int i;
 	static struct {
 		char	*pat;
 		int	bugs;
 	} check[] = {
-		{ "^OpenSSH[-_]2\\.[012]",
-					SSH_OLD_SESSIONID|SSH_BUG_BANNER|
+		{ "OpenSSH-2.0*,"
+		  "OpenSSH-2.1*,"
+		  "OpenSSH_2.1*,"
+		  "OpenSSH_2.2*",	SSH_OLD_SESSIONID|SSH_BUG_BANNER|
 					SSH_OLD_DHGEX|SSH_BUG_NOREKEY },
-		{ "^OpenSSH_2\\.3\\.0", SSH_BUG_BANNER|SSH_BUG_BIGENDIANAES|
+		{ "OpenSSH_2.3.0*",	SSH_BUG_BANNER|SSH_BUG_BIGENDIANAES|
 					SSH_OLD_DHGEX|SSH_BUG_NOREKEY},
-		{ "^OpenSSH_2\\.3\\.",  SSH_BUG_BIGENDIANAES|SSH_OLD_DHGEX|
+		{ "OpenSSH_2.3.*",	SSH_BUG_BIGENDIANAES|SSH_OLD_DHGEX|
 					SSH_BUG_NOREKEY},
-		{ "^OpenSSH_2\\.5\\.[01]p1",
+		{ "OpenSSH_2.5.0p1*,"
+		  "OpenSSH_2.5.1p1*",
 					SSH_BUG_BIGENDIANAES|SSH_OLD_DHGEX|
 					SSH_BUG_NOREKEY },
-		{ "^OpenSSH_2\\.5\\.[012]",
-					SSH_OLD_DHGEX|SSH_BUG_NOREKEY },
-		{ "^OpenSSH_2\\.5\\.3",
+		{ "OpenSSH_2.5.0*,"
+		  "OpenSSH_2.5.1*,"
+		  "OpenSSH_2.5.2*",	SSH_OLD_DHGEX|SSH_BUG_NOREKEY },
+		{ "OpenSSH_2.5.3*",
 					SSH_BUG_NOREKEY },
-		{ "^OpenSSH",		0 },
-		{ "MindTerm",		0 },
-		{ "^2\\.1\\.0",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
+		{ "OpenSSH*",		0 },
+		{ "*MindTerm*",		0 },
+		{ "2.1.0*",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
 					SSH_OLD_SESSIONID|SSH_BUG_DEBUG|
 					SSH_BUG_RSASIGMD5|SSH_BUG_HBSERVICE },
-		{ "^2\\.1 ",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
+		{ "2.1 *",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
 					SSH_OLD_SESSIONID|SSH_BUG_DEBUG|
 					SSH_BUG_RSASIGMD5|SSH_BUG_HBSERVICE },
-		{ "^2\\.0\\.1[3-9]",	SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
+		{ "2.0.13*,"	
+		  "2.0.14*,"	
+		  "2.0.15*,"	
+		  "2.0.16*,"	
+		  "2.0.17*,"	
+		  "2.0.18*,"	
+		  "2.0.19*",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
 					SSH_OLD_SESSIONID|SSH_BUG_DEBUG|
 					SSH_BUG_PKSERVICE|SSH_BUG_X11FWD|
 					SSH_BUG_PKOK|SSH_BUG_RSASIGMD5|
 					SSH_BUG_HBSERVICE|SSH_BUG_OPENFAILURE|
 					SSH_BUG_DUMMYCHAN },
-		{ "^2\\.0\\.1[1-2]",	SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
+		{ "2.0.11*,"	
+		  "2.0.12*",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
 					SSH_OLD_SESSIONID|SSH_BUG_DEBUG|
 					SSH_BUG_PKSERVICE|SSH_BUG_X11FWD|
 					SSH_BUG_PKAUTH|SSH_BUG_PKOK|
 					SSH_BUG_RSASIGMD5|SSH_BUG_OPENFAILURE|
 					SSH_BUG_DUMMYCHAN },
-		{ "^2\\.0\\.",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
+		{ "2.0.*",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
 					SSH_OLD_SESSIONID|SSH_BUG_DEBUG|
 					SSH_BUG_PKSERVICE|SSH_BUG_X11FWD|
 					SSH_BUG_PKAUTH|SSH_BUG_PKOK|
 					SSH_BUG_RSASIGMD5|SSH_BUG_OPENFAILURE|
 					SSH_BUG_DERIVEKEY|SSH_BUG_DUMMYCHAN },
-		{ "^2\\.[23]\\.0",	SSH_BUG_HMAC|SSH_BUG_DEBUG|
+		{ "2.2.0*,"
+		  "2.3.0*",		SSH_BUG_HMAC|SSH_BUG_DEBUG|
 					SSH_BUG_RSASIGMD5 },
-		{ "^2\\.3\\.",		SSH_BUG_DEBUG|SSH_BUG_RSASIGMD5 },
-		{ "^2\\.[2-9]\\.",	SSH_BUG_DEBUG },
-		{ "^3\\.0\\.",		SSH_BUG_DEBUG },
-		{ "^2\\.4$",		SSH_OLD_SESSIONID },	/* Van Dyke */
-		{ "^3\\.0 SecureCRT",	SSH_OLD_SESSIONID },
-		{ "^1\\.7 SecureFX",	SSH_OLD_SESSIONID },
-		{ "^1\\.2\\.1[89]",	SSH_BUG_IGNOREMSG },
-		{ "^1\\.2\\.2[012]",	SSH_BUG_IGNOREMSG },
-		{ "^1\\.3\\.2",		SSH_BUG_IGNOREMSG },	/* f-secure */
-		{ "^SSH Compatible Server",			/* Netscreen */
+		{ "2.3.*",		SSH_BUG_DEBUG|SSH_BUG_RSASIGMD5 },
+		{ "2.4",		SSH_OLD_SESSIONID },	/* Van Dyke */
+		{ "2.*",		SSH_BUG_DEBUG },
+		{ "3.0.*",		SSH_BUG_DEBUG },
+		{ "3.0 SecureCRT*",	SSH_OLD_SESSIONID },
+		{ "1.7 SecureFX*",	SSH_OLD_SESSIONID },
+		{ "1.2.18*,"
+		  "1.2.19*,"
+		  "1.2.20*,"
+		  "1.2.21*,"
+		  "1.2.22*",		SSH_BUG_IGNOREMSG },
+		{ "1.3.2*",		SSH_BUG_IGNOREMSG },	/* f-secure */
+		{ "*SSH Compatible Server*",			/* Netscreen */
 					SSH_BUG_PASSWORDPAD },
-		{ "^OSU_0",		SSH_BUG_PASSWORDPAD },
-		{ "^OSU_1\\.[0-4]",	SSH_BUG_PASSWORDPAD },
-		{ "^OSU_1\\.5alpha[1-3]",
-					SSH_BUG_PASSWORDPAD },
-		{ "^SSH_Version_Mapper",
+		{ "*OSU_0*,"		
+		  "OSU_1.0*,"
+		  "OSU_1.1*,"
+		  "OSU_1.2*,"
+		  "OSU_1.3*,"
+		  "OSU_1.4*,"
+		  "OSU_1.5alpha1*,"
+		  "OSU_1.5alpha2*,"
+		  "OSU_1.5alpha3*",	SSH_BUG_PASSWORDPAD },
+		{ "*SSH_Version_Mapper*",
 					SSH_BUG_SCANNER },
 		{ NULL,			0 }
 	};
+
 	/* process table, return first match */
 	for (i = 0; check[i].pat; i++) {
-		ret = regcomp(&reg, check[i].pat, REG_EXTENDED|REG_NOSUB);
-		if (ret != 0) {
-			regerror(ret, &reg, ebuf, sizeof(ebuf));
-			ebuf[sizeof(ebuf)-1] = '\0';
-			error("regerror: %s", ebuf);
-			continue;
-		}
-		ret = regexec(&reg, version, 0, NULL, 0);
-		regfree(&reg);
-		if (ret == 0) {
+		if (match_pattern_list(version, check[i].pat,
+		    strlen(check[i].pat), 0) == 1) {
 			debug("match: %s pat %s", version, check[i].pat);
 			datafellows = check[i].bugs;
 			return;
