@@ -1,3 +1,7 @@
+20000924
+ - (djm) Merged cleanup patch from Mark Miller <markm@swoon.net>
+ - (djm) A bit more cleanup - created cygwin_util.h
+
 20000923
  - (djm) Fix address logging in utmp from Kevin Steves 
    <stevesk@sweden.hp.com>

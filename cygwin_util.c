@@ -16,6 +16,7 @@
 #include "config.h"
 
 #ifdef HAVE_CYGWIN
+
 #include <fcntl.h>
 #include <io.h>
 #include <stdlib.h>
@@ -25,35 +26,37 @@
 
 int binary_open(const char *filename, int flags, mode_t mode)
 {
-       return open(filename, flags | O_BINARY, mode);
+	return open(filename, flags | O_BINARY, mode);
 }
 
 int binary_pipe(int fd[2])
 {
-       int ret = pipe(fd);
-       if (!ret) {
-               setmode (fd[0], O_BINARY);
-               setmode (fd[1], O_BINARY);
-       }
-       return ret;
+	int ret = pipe(fd);
+
+	if (!ret) {
+		setmode (fd[0], O_BINARY);
+		setmode (fd[1], O_BINARY);
+	}
+	return ret;
 }
 
-int check_nt_auth (int pwd_authenticated, uid_t uid)
+int check_nt_auth(int pwd_authenticated, uid_t uid)
 {
 	/*
-	 * The only authentication which is able to change the user
-	 * context on NT systems is the password authentication. So
-	 * we deny all requsts for changing the user context if another
-	 * authentication method is used.
-	 * This may change in future when a special openssh
-	 * subauthentication package is available.
-	 */
+	* The only authentication which is able to change the user
+	* context on NT systems is the password authentication. So
+	* we deny all requsts for changing the user context if another
+	* authentication method is used.
+	* This may change in future when a special openssh
+	* subauthentication package is available.
+	*/
 	if (is_winnt && !pwd_authenticated && geteuid() != uid)
 		return 0;
+	
 	return 1;
 }
 
-int check_ntsec (const char *filename)
+int check_ntsec(const char *filename)
 {
 	char *cygwin;
 	int allow_ntea = 0;
@@ -98,4 +101,5 @@ int check_ntsec (const char *filename)
 
 	return 0;
 }
-#endif
+
+#endif /* HAVE_CYGWIN */

@@ -23,10 +23,11 @@
  */
 
 #include "includes.h"
-#include <openssl/rand.h>
-#include <openssl/rc4.h>
 
 #ifndef HAVE_ARC4RANDOM
+
+#include <openssl/rand.h>
+#include <openssl/rc4.h>
 
 /* Size of key to use */
 #define SEED_SIZE 20

@@ -46,10 +46,10 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #include <grp.h>
 #include <time.h>
 #include <dirent.h>
-#ifdef HAVE_CYGWIN
+
+#ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #endif
-
 #ifdef HAVE_BSTRING_H
 # include <bstring.h>
 #endif 
@@ -90,34 +90,8 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #endif
 
 #include "version.h"
-
-/* OpenBSD function replacements */
 #include "openbsd-compat.h"
-
-/* Entropy collection */
+#include "cygwin_util.h"
 #include "entropy.h"
 
-/* Define this to be the path of the xauth program. */
-#ifndef XAUTH_PATH
-#define XAUTH_PATH "/usr/X11R6/bin/xauth"
-#endif /* XAUTH_PATH */
-
-/* Define this to be the path of the rsh program. */
-#ifndef _PATH_RSH
-#define _PATH_RSH "/usr/bin/rsh"
-#endif /* _PATH_RSH */
-
-/*
- * Define this to use pipes instead of socketpairs for communicating with the
- * client program.  Socketpairs do not seem to work on all systems.
- */
-/* #define USE_PIPES 1 */
-
-#ifdef HAVE_CYGWIN
-#define open binary_open
-#define pipe binary_pipe
-extern int binary_open();
-extern int binary_pipe();
-#endif
-
-#endif				/* INCLUDES_H */
+#endif /* INCLUDES_H */

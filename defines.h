@@ -250,12 +250,19 @@ typedef int mode_t;
 #ifndef _PATH_RSH
 # ifdef RSH_PATH
 #  define _PATH_RSH RSH_PATH
+# else /* RSH_PATH */
+#  define _PATH_RSH "/usr/bin/rsh"
 # endif /* RSH_PATH */
 #endif /* _PATH_RSH */
 
 #ifndef _PATH_NOLOGIN
 # define _PATH_NOLOGIN "/etc/nologin"
 #endif
+
+/* Define this to be the path of the xauth program. */
+#ifndef XAUTH_PATH
+#define XAUTH_PATH "/usr/X11R6/bin/xauth"
+#endif /* XAUTH_PATH */
 
 /* Macros */
 
@@ -331,6 +338,15 @@ typedef int mode_t;
 #ifndef GETPGRP_VOID
 # define getpgrp() getpgrp(0)
 #endif
+
+/*
+ * Define this to use pipes instead of socketpairs for communicating with the
+ * client program.  Socketpairs do not seem to work on all systems.
+ *
+ * configure.in sets this for a few OS's which are known to have problems
+ * but you may need to set it yourself
+ */
+/* #define USE_PIPES 1 */
 
 /**
  ** login recorder definitions
