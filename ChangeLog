@@ -1,7 +1,7 @@
 20030923
  - (dtucker) [Makefile.in] Bug #644: Fix "make clean" for out-of-tree
    builds.  Portability corrections from tim@.
- - (dtucker) [configure.ac] Bug #655: uid swapping issues on Mac OS X.
+ - (dtucker) [configure.ac] Bug #665: uid swapping issues on Mac OS X.
    Patch from max at quendi.de.
  - (dtucker) [configure.ac] Bug #657: uid swapping issues on BSDi.
  - (dtucker) [configure.ac] Bug #653: uid swapping issues on Tru64.
@@ -25,6 +25,8 @@
  - (dtucker) [INSTALL] Bug #686: Document requirement for zlib 1.1.4 or
    higher.
  - (tim) Fix typo. s/SETEIUD_BREAKS_SETUID/SETEUID_BREAKS_SETUID/
+ - (tim) [configure.ac] Bug 665: move 3 new AC_DEFINES outside of AC_TRY_RUN.
+   Report by distler AT golem ph utexas edu.
 
 20030919
  - (djm) Bug #683: Remove reference to --with-ipv4-default from INSTALL;
@@ -1161,4 +1163,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3021 2003/09/22 04:00:59 tim Exp $
+$Id: ChangeLog,v 1.3022 2003/09/22 04:38:11 tim Exp $

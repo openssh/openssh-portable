@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.163 2003/09/22 04:01:00 tim Exp $
+# $Id: configure.ac,v 1.164 2003/09/22 04:38:11 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -131,10 +131,10 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 }], [AC_MSG_RESULT(working)],
 	[AC_MSG_RESULT(buggy)
 	AC_DEFINE(BROKEN_GETADDRINFO)],
+	[AC_MSG_RESULT(assume it is working)])
 	AC_DEFINE(SETEUID_BREAKS_SETUID)
 	AC_DEFINE(BROKEN_SETREUID)
 	AC_DEFINE(BROKEN_SETREGID)
-	[AC_MSG_RESULT(assume it is working)])
 	;;
 *-*-hpux10.26)
 	if test -z "$GCC"; then
