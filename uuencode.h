@@ -1,7 +1,7 @@
-/*	$OpenBSD: uuencode.h,v 1.5 2001/01/29 01:58:19 niklas Exp $	*/
+/*	$OpenBSD: uuencode.h,v 1.6 2001/06/25 08:25:41 markus Exp $	*/
 
 /*
- * Copyright (c) 1999 Markus Friedl.  All rights reserved.
+ * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions

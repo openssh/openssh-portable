@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  *
  * SSH2 support by Markus Friedl.
- * Copyright (c) 2000 Markus Friedl.  All rights reserved.
+ * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.70 2001/06/23 15:12:19 itojun Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.71 2001/06/25 08:25:39 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"

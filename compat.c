@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999,2000 Markus Friedl.  All rights reserved.
+ * Copyright (c) 1999, 2000, 2001 Markus Friedl.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: compat.c,v 1.50 2001/04/30 16:02:49 markus Exp $");
+RCSID("$OpenBSD: compat.c,v 1.51 2001/06/25 08:25:37 markus Exp $");
 
 #ifdef HAVE_LIBPCRE
 #  include <pcreposix.h>

@@ -1,3 +1,11 @@
+20010704
+ - OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2001/06/25 08:25:41
+     [channels.c channels.h cipher.c clientloop.c compat.c compat.h 
+      hostfile.c kex.c kex.h key.c key.h nchan.c packet.c serverloop.c 
+      session.c session.h sftp-server.c ssh-add.c ssh-agent.c uuencode.h]
+     update copyright for 2001
+
 20010629
  - (bal) Removed net_aton() since we don't use it any more
  - (bal) Fixed _DISABLE_VPOSIX in readpassphrase.c.
@@ -5824,4 +5832,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1344 2001/06/29 19:51:48 stevesk Exp $
+$Id: ChangeLog,v 1.1345 2001/07/04 03:32:30 mouring Exp $

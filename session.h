@@ -1,7 +1,7 @@
-/*	$OpenBSD: session.h,v 1.6 2001/03/21 11:43:45 markus Exp $	*/
+/*	$OpenBSD: session.h,v 1.7 2001/06/25 08:25:39 markus Exp $	*/
 
 /*
- * Copyright (c) 2000 Markus Friedl.  All rights reserved.
+ * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
