@@ -1,3 +1,9 @@
+20000131
+ - (djm) OpenBSD CVS Sync:
+   - djm@cvs.openbsd.org     2001/01/30 15:48:53
+     [sshconnect.c]
+     Make warning message a little more consistent. ok markus@
+
 20000130
  - (djm) OpenBSD CVS Sync:
    - markus@cvs.openbsd.org  2001/01/29 09:55:37
