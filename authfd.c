@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfd.c,v 1.50 2002/06/05 19:57:12 markus Exp $");
+RCSID("$OpenBSD: authfd.c,v 1.51 2002/06/05 21:55:44 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -536,6 +536,41 @@ ssh_remove_identity(AuthenticationConnection *auth, Key *key)
 	} else if (key->type == KEY_DSA || key->type == KEY_RSA) {
 		key_to_blob(key, &blob, &blen);
 		buffer_put_char(&msg, SSH2_AGENTC_REMOVE_IDENTITY);
+		buffer_put_string(&msg, blob, blen);
+		xfree(blob);
+	} else {
+		buffer_free(&msg);
+		return 0;
+	}
+	if (ssh_request_reply(auth, &msg, &msg) == 0) {
+		buffer_free(&msg);
+		return 0;
+	}
+	type = buffer_get_char(&msg);
+	buffer_free(&msg);
+	return decode_reply(type);
+}
+
+int
+ssh_lifetime_identity(AuthenticationConnection *auth, Key *key, u_int life)
+{
+	Buffer msg;
+	int type;
+	u_char *blob;
+	u_int blen;
+
+	buffer_init(&msg);
+
+	if (key->type == KEY_RSA1) {
+		buffer_put_char(&msg, SSH_AGENTC_LIFETIME_IDENTITY1);
+		buffer_put_int(&msg, life);
+		buffer_put_int(&msg, BN_num_bits(key->rsa->n));
+		buffer_put_bignum(&msg, key->rsa->e);
+		buffer_put_bignum(&msg, key->rsa->n);
+	} else if (key->type == KEY_DSA || key->type == KEY_RSA) {
+		key_to_blob(key, &blob, &blen);
+		buffer_put_char(&msg, SSH_AGENTC_LIFETIME_IDENTITY);
+		buffer_put_int(&msg, life);
 		buffer_put_string(&msg, blob, blen);
 		xfree(blob);
 	} else {

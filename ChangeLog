@@ -117,6 +117,10 @@
    - markus@cvs.openbsd.org 2002/06/05 20:56:39
      [ssh-add.c]
      add -x/-X to usage
+   - markus@cvs.openbsd.org 2002/06/05 21:55:44
+     [authfd.c authfd.h ssh-add.1 ssh-add.c ssh-agent.c]
+     ssh-add -t life,  Set lifetime (in seconds) when adding identities; 
+     ok provos@
 
 20020604
  - (stevesk) [channels.c] bug #164 patch from YOSHIFUJI Hideaki (changed
@@ -801,4 +805,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2175 2002/06/06 21:53:11 mouring Exp $
+$Id: ChangeLog,v 1.2176 2002/06/06 21:54:57 mouring Exp $

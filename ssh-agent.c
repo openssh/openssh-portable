@@ -35,7 +35,7 @@
 
 #include "includes.h"
 #include "openbsd-compat/fake-queue.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.88 2002/06/05 19:57:12 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.89 2002/06/05 21:55:44 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -76,6 +76,7 @@ typedef struct identity {
 	TAILQ_ENTRY(identity) next;
 	Key *key;
 	char *comment;
+	u_int death;
 } Identity;
 
 typedef struct {
@@ -124,6 +125,14 @@ idtab_lookup(int version)
 	return &idtable[version];
 }
 
+static void
+free_identity(Identity *id)
+{
+	key_free(id->key);
+	xfree(id->comment);
+	xfree(id);
+}
+
 /* return matching private key for given public key */
 static Identity *
 lookup_identity(Key *key, int version)
@@ -136,14 +145,6 @@ lookup_identity(Key *key, int version)
 			return (id);
 	}
 	return (NULL);
-}
-
-static void
-free_identity(Identity *id)
-{
-	key_free(id->key);
-	xfree(id->comment);
-	xfree(id);
 }
 
 /* send list of supported public keys to 'client' */
@@ -368,6 +369,27 @@ process_remove_all_identities(SocketEntry *e, int version)
 }
 
 static void
+reaper(void)
+{
+	Idtab *tab;
+	Identity *id, *nxt;
+	int version;
+	u_int now = time(NULL);
+
+	for (version = 1; version < 3; version++) {
+		tab = idtab_lookup(version);
+		for (id = TAILQ_FIRST(&tab->idlist); id; id = nxt) {
+			nxt = TAILQ_NEXT(id, next);
+			if (id->death != 0 && now >= id->death) {
+				TAILQ_REMOVE(&tab->idlist, id, next);
+				free_identity(id);
+				tab->nentries--;
+			}
+		}
+	}
+}
+
+static void
 process_add_identity(SocketEntry *e, int version)
 {
 	Key *k = NULL;
@@ -433,6 +455,7 @@ process_add_identity(SocketEntry *e, int version)
 		Identity *id = xmalloc(sizeof(Identity));
 		id->key = k;
 		id->comment = comment;
+		id->death = 0;
 		TAILQ_INSERT_TAIL(&tab->idlist, id, next);
 		/* Increment the number of identities. */
 		tab->nentries++;
@@ -441,6 +464,43 @@ process_add_identity(SocketEntry *e, int version)
 		xfree(comment);
 	}
 send:
+	buffer_put_int(&e->output, 1);
+	buffer_put_char(&e->output,
+	    success ? SSH_AGENT_SUCCESS : SSH_AGENT_FAILURE);
+}
+
+static void
+process_lifetime_identity(SocketEntry *e, int version)
+{
+	Key *key = NULL;
+	u_char *blob;
+	u_int blen, bits, death;
+	int success = 0;
+
+	death = time(NULL) + buffer_get_int(&e->request);
+
+	switch (version) {
+	case 1:
+		key = key_new(KEY_RSA1);
+		bits = buffer_get_int(&e->request);
+		buffer_get_bignum(&e->request, key->rsa->e);
+		buffer_get_bignum(&e->request, key->rsa->n);
+
+		break;
+	case 2:
+		blob = buffer_get_string(&e->request, &blen);
+		key = key_from_blob(blob, blen);
+		xfree(blob);
+		break;
+	}
+	if (key != NULL) {
+		Identity *id = lookup_identity(key, version);
+		if (id != NULL && id->death == 0) {
+			id->death = death;
+			success = 1;
+		}
+		key_free(key);
+	}
 	buffer_put_int(&e->output, 1);
 	buffer_put_char(&e->output,
 	    success ? SSH_AGENT_SUCCESS : SSH_AGENT_FAILURE);
@@ -517,6 +577,7 @@ process_add_smartcard_key (SocketEntry *e)
 			id = xmalloc(sizeof(Identity));
 			id->key = k;
 			id->comment = xstrdup("smartcard key");
+			id->death = 0;
 			TAILQ_INSERT_TAIL(&tab->idlist, id, next);
 			tab->nentries++;
 			success = 1;
@@ -580,6 +641,10 @@ process_message(SocketEntry *e)
 	u_int msg_len;
 	u_int type;
 	u_char *cp;
+
+	/* kill dead keys */
+	reaper();
+
 	if (buffer_len(&e->input) < 5)
 		return;		/* Incomplete message. */
 	cp = buffer_ptr(&e->input);
@@ -642,6 +707,9 @@ process_message(SocketEntry *e)
 	case SSH_AGENTC_REMOVE_ALL_RSA_IDENTITIES:
 		process_remove_all_identities(e, 1);
 		break;
+	case SSH_AGENTC_LIFETIME_IDENTITY1:
+		process_lifetime_identity(e, 1);
+		break;
 	/* ssh2 */
 	case SSH2_AGENTC_SIGN_REQUEST:
 		process_sign_request2(e);
@@ -657,6 +725,9 @@ process_message(SocketEntry *e)
 		break;
 	case SSH2_AGENTC_REMOVE_ALL_IDENTITIES:
 		process_remove_all_identities(e, 2);
+		break;
+	case SSH_AGENTC_LIFETIME_IDENTITY:
+		process_lifetime_identity(e, 2);
 		break;
 #ifdef SMARTCARD
 	case SSH_AGENTC_ADD_SMARTCARD_KEY:

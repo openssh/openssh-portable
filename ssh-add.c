@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.55 2002/06/05 20:56:39 markus Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.56 2002/06/05 21:55:44 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -66,6 +66,8 @@ static char *default_files[] = {
 	NULL
 };
 
+/* Default lifetime (0 == forever) */
+static u_int lifetime = 0;
 
 /* we keep a cache of one passphrases */
 static char *pass = NULL;
@@ -166,6 +168,18 @@ add_file(AuthenticationConnection *ac, const char *filename)
 		ret = 0;
 	} else
 		fprintf(stderr, "Could not add identity: %s\n", filename);
+
+	if (ret == 0 && lifetime != 0) {
+		if (ssh_lifetime_identity(ac, private, lifetime)) {
+			fprintf(stderr,
+			    "Lifetime set to %d seconds for: %s (%s)\n",
+			    lifetime, filename, comment);
+		} else {
+			fprintf(stderr,
+			    "Could not set lifetime for identity: %s\n",
+			    filename);
+		}
+	}
 
 	xfree(comment);
 	key_free(private);
@@ -280,6 +294,7 @@ usage(void)
 	fprintf(stderr, "  -D          Delete all identities.\n");
 	fprintf(stderr, "  -x          Lock agent.\n");
 	fprintf(stderr, "  -x          Unlock agent.\n");
+	fprintf(stderr, "  -t life     Set lifetime (in seconds) when adding identities.\n");
 #ifdef SMARTCARD
 	fprintf(stderr, "  -s reader   Add key in smartcard reader.\n");
 	fprintf(stderr, "  -e reader   Remove key in smartcard reader.\n");
@@ -307,7 +322,7 @@ main(int argc, char **argv)
 		fprintf(stderr, "Could not open a connection to your authentication agent.\n");
 		exit(2);
 	}
-	while ((ch = getopt(argc, argv, "lLdDxXe:s:")) != -1) {
+	while ((ch = getopt(argc, argv, "lLdDxXe:s:t:")) != -1) {
 		switch (ch) {
 		case 'l':
 		case 'L':
@@ -335,6 +350,9 @@ main(int argc, char **argv)
 		case 'e':
 			deleting = 1;
 			sc_reader_id = optarg;
+			break;
+		case 't':
+			lifetime = atoi(optarg);
 			break;
 		default:
 			usage();
