@@ -1,3 +1,6 @@
+20011003
+ - (bal) CVS ID fix up in version.h
+
 20011001
  - (stevesk) loginrec.c: fix type conversion problems exposed when using
    64-bit off_t.
@@ -6589,4 +6592,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1568 2001/10/02 00:29:00 stevesk Exp $
+$Id: ChangeLog,v 1.1569 2001/10/03 17:03:54 mouring Exp $
