@@ -1,3 +1,7 @@
+20000314
+ - Include macro for IN6_IS_ADDR_V4MAPPED. Report from 
+   peter@frontierflying.com
+
 20000311
  - Detect RSAref
  - OpenBSD CVS change
