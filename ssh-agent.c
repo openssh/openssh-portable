@@ -35,7 +35,7 @@
 
 #include "includes.h"
 #include "openbsd-compat/sys-queue.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.107 2003/01/23 13:50:27 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.108 2003/03/13 11:44:50 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -479,6 +479,17 @@ process_add_identity(SocketEntry *e, int version)
 			break;
 		default:
 			buffer_clear(&e->request);
+			goto send;
+		}
+		break;
+	}
+	/* enable blinding */
+	switch (k->type) {
+	case KEY_RSA:
+	case KEY_RSA1:
+		if (RSA_blinding_on(k->rsa, NULL) != 1) {
+			error("process_add_identity: RSA_blinding_on failed");
+			key_free(k);
 			goto send;
 		}
 		break;

@@ -3,6 +3,11 @@
    - markus@cvs.openbsd.org 2003/03/13 11:42:19
      [authfile.c ssh-keysign.c]
      move RSA_blinding_on to generic key load method
+   - markus@cvs.openbsd.org 2003/03/13 11:44:50
+     [ssh-agent.c]
+     ssh-agent is similar to ssh-keysign (allows other processes to use
+     private rsa keys). however, it gets key over socket and not from
+     a file, so we have to do blinding here as well.
 
 20030310
 - (djm) OpenBSD CVS Sync
@@ -1209,4 +1214,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2628 2003/03/15 00:36:18 djm Exp $
+$Id: ChangeLog,v 1.2629 2003/03/15 00:37:09 djm Exp $
