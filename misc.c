@@ -108,6 +108,8 @@ mysignal(int sig, mysig_t act)
 		memset(&sa, 0, sizeof sa);
 		sigemptyset(&sa.sa_mask);
 		sa.sa_flags = 0;
+		if (sig == SIGCHLD)
+			sa.sa_flags |= SA_RESTART;
 		sa.sa_handler = act;
 		if (sigaction(sig, &sa, 0) == -1)
 			return (mysig_t) -1;
