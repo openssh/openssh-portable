@@ -1,3 +1,7 @@
+20010427
+ - (bal) Fixed uidswap.c so it should work on non-posix complient systems.
+   patch based on 2.5.2 version by djm.
+
 20010425
  - OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2001/04/23 21:57:07
@@ -5252,4 +5256,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1171 2001/04/26 04:40:28 tim Exp $
+$Id: ChangeLog,v 1.1172 2001/04/26 23:03:37 mouring Exp $
