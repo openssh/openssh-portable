@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kexdh.c,v 1.2 2001/04/03 23:32:12 markus Exp $");
+RCSID("$OpenBSD: kexdh.c,v 1.3 2001/04/04 09:48:34 markus Exp $");
 
 #include <openssl/crypto.h>
 #include <openssl/bn.h>
@@ -170,8 +170,8 @@ kexdh_client(Kex *kex)
 	    shared_secret
 	);
 	xfree(server_host_key_blob);
-	DH_free(dh);
 	BN_free(dh_server_pub);
+	DH_free(dh);
 
 	if (key_verify(server_host_key, (u_char *)signature, slen, hash, 20) != 1)
 		fatal("key_verify failed for server_host_key");
@@ -187,7 +187,7 @@ kexdh_client(Kex *kex)
 
 	kex_derive_keys(kex, hash, shared_secret);
 	BN_clear_free(shared_secret);
-	kex_send_newkeys();
+	kex_finish(kex);
 }
 
 /* server */
@@ -283,15 +283,15 @@ kexdh_server(Kex *kex)
 	packet_put_bignum2(dh->pub_key);	/* f */
 	packet_put_string((char *)signature, slen);
 	packet_send();
+
 	xfree(signature);
 	xfree(server_host_key_blob);
+	/* have keys, free DH */
+	DH_free(dh);
 
 	kex_derive_keys(kex, hash, shared_secret);
 	BN_clear_free(shared_secret);
-	kex_send_newkeys();
-
-	/* have keys, free DH */
-	DH_free(dh);
+	kex_finish(kex);
 }
 
 void

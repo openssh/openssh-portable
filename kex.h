@@ -1,4 +1,4 @@
-/*	$OpenBSD: kex.h,v 1.19 2001/04/03 23:32:12 markus Exp $	*/
+/*	$OpenBSD: kex.h,v 1.20 2001/04/04 09:48:34 markus Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -111,8 +111,9 @@ struct Kex {
 	Key	*(*load_host_key)(int type);
 };
 
-Kex	*kex_start(char *proposal[PROPOSAL_MAX]);
-void	kex_send_newkeys(void);
+Kex	*kex_setup(char *proposal[PROPOSAL_MAX]);
+void	kex_finish(Kex *kex);
+
 void	kex_send_kexinit(Kex *kex);
 void	kex_protocol_error(int type, int plen, void *ctxt);
 void	kex_derive_keys(Kex *k, u_char *hash, BIGNUM *shared_secret);

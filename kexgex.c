@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kexgex.c,v 1.2 2001/04/03 23:32:12 markus Exp $");
+RCSID("$OpenBSD: kexgex.c,v 1.3 2001/04/04 09:48:34 markus Exp $");
 
 #include <openssl/bn.h>
 
@@ -228,6 +228,8 @@ kexgex_client(Kex *kex)
 	    dh_server_pub,
 	    shared_secret
 	);
+	/* have keys, free DH */
+	DH_free(dh);
 	xfree(server_host_key_blob);
 	BN_free(dh_server_pub);
 
@@ -242,14 +244,10 @@ kexgex_client(Kex *kex)
 		kex->session_id = xmalloc(kex->session_id_len);
 		memcpy(kex->session_id, hash, kex->session_id_len);
 	}
-
 	kex_derive_keys(kex, hash, shared_secret);
 	BN_clear_free(shared_secret);
 
-	kex_send_newkeys();
-
-	/* have keys, free DH */
-	DH_free(dh);
+	kex_finish(kex);
 }
 
 /* server */
@@ -391,14 +389,13 @@ kexgex_server(Kex *kex)
 	packet_send();
 	xfree(signature);
 	xfree(server_host_key_blob);
+	/* have keys, free DH */
+	DH_free(dh);
 
 	kex_derive_keys(kex, hash, shared_secret);
 	BN_clear_free(shared_secret);
 
-	kex_send_newkeys();
-
-	/* have keys, free DH */
-	DH_free(dh);
+	kex_finish(kex);
 }
 
 void

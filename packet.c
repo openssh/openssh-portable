@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.57 2001/04/03 23:32:12 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.58 2001/04/04 09:48:34 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -525,7 +525,8 @@ set_newkeys(int mode)
 	if (newkeys[mode] != NULL) {
 		debug("newkeys: rekeying");
 		memset(cc, 0, sizeof(*cc));
-		// free old keys, reset compression cipher-contexts;
+		/* todo: free old keys, reset compression/cipher-ctxt; */
+		xfree(newkeys[mode]);
 	}
 	newkeys[mode] = kex_get_newkeys(mode);
 	if (newkeys[mode] == NULL)

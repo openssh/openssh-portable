@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.63 2001/04/04 00:06:54 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.64 2001/04/04 09:48:35 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -111,7 +111,7 @@ ssh_kex2(char *host, struct sockaddr *hostaddr)
 		myproposal[PROPOSAL_MAC_ALGS_STOC] = options.macs;
 	}
 
-	kex = kex_start(myproposal);
+	kex = kex_setup(myproposal);
 	kex->client_version_string=client_version_string;
 	kex->server_version_string=server_version_string;
 	kex->check_host_key=&check_host_key_callback;
@@ -254,7 +254,7 @@ ssh_userauth2(const char *server_user, char *host)
 	/* initial userauth request */
 	userauth_none(&authctxt);
 
-	//dispatch_init(&input_userauth_error);
+	/* dispatch_init(&input_userauth_error); */
         for (i = 50; i <= 254; i++) {
                 dispatch_set(i, &input_userauth_error);
         }

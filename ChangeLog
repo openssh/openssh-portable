@@ -1,3 +1,11 @@
+20010405
+ - OpenBSD CVS Sync                                              
+   - markus@cvs.openbsd.org 2001/04/04 09:48:35                  
+     [kex.c kex.h kexdh.c kexgex.c packet.c sshconnect2.c sshd.c]
+     don't sent multiple kexinit-requests.                       
+     send newkeys, block while waiting for newkeys.              
+     fix comments.                                               
+
 20010404
  - OpenBSD CVS Sync
    - deraadt@cvs.openbsd.org 2001/04/02 17:32:23
@@ -4836,4 +4844,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1054 2001/04/04 17:39:19 mouring Exp $
+$Id: ChangeLog,v 1.1055 2001/04/04 17:52:53 mouring Exp $

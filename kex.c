@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.27 2001/04/03 23:32:11 markus Exp $");
+RCSID("$OpenBSD: kex.c,v 1.28 2001/04/04 09:48:34 markus Exp $");
 
 #include <openssl/crypto.h>
 
@@ -112,20 +112,17 @@ kex_protocol_error(int type, int plen, void *ctxt)
 }
 
 void
-kex_send_newkeys(void)
+kex_finish(Kex *kex)
 {
+	int i, plen;
+
 	packet_start(SSH2_MSG_NEWKEYS);
 	packet_send();
 	/* packet_write_wait(); */
 	debug("SSH2_MSG_NEWKEYS sent");
-}
 
-void
-kex_input_newkeys(int type, int plen, void *ctxt)
-{
-	Kex *kex = ctxt;
-	int i;
-
+        debug("waiting for SSH2_MSG_NEWKEYS");
+        packet_read_expect(&plen, SSH2_MSG_NEWKEYS);
 	debug("SSH2_MSG_NEWKEYS received");
 	kex->newkeys = 1;
 	for (i = 30; i <= 49; i++)
@@ -138,6 +135,10 @@ kex_input_newkeys(int type, int plen, void *ctxt)
 void
 kex_send_kexinit(Kex *kex)
 {
+	if (kex->flags & KEX_INIT_SENT) {
+		debug("KEX_INIT_SENT");
+		return;
+	}
 	packet_start(SSH2_MSG_KEXINIT);
 	packet_put_raw(buffer_ptr(&kex->my), buffer_len(&kex->my));
 	packet_send();
@@ -161,7 +162,7 @@ kex_input_kexinit(int type, int plen, void *ctxt)
 }
 
 Kex *
-kex_start(char *proposal[PROPOSAL_MAX])
+kex_setup(char *proposal[PROPOSAL_MAX])
 {
 	Kex *kex;
 	int i;
@@ -179,7 +180,6 @@ kex_start(char *proposal[PROPOSAL_MAX])
 		dispatch_set(i, kex_protocol_error);
 
 	dispatch_set(SSH2_MSG_KEXINIT, &kex_input_kexinit);
-	dispatch_set(SSH2_MSG_NEWKEYS, &kex_input_newkeys);
 	return kex;
 }
 
