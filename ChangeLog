@@ -3,6 +3,8 @@
    - markus@cvs.openbsd.org 2001/05/11 14:59:56
      [clientloop.c misc.c misc.h]
      add unset_nonblock for stdout/err flushing in client_loop().
+ - (bal) Patch to partial sync up contrib/solaris/ packaging software.
+   Patch by pete <ninjaz@webexpress.com>
 
 20010511
  - OpenBSD CVS Sync
@@ -5400,4 +5402,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1217 2001/05/12 00:08:37 mouring Exp $
+$Id: ChangeLog,v 1.1218 2001/05/12 16:50:50 mouring Exp $
