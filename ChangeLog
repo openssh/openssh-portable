@@ -1,3 +1,6 @@
+20030517
+ - (bal) strcat -> strlcat on openbsd-compat/realpath.c (rev 1.8 OpenBSD)
+
 20030516
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2003/05/15 13:52:10
@@ -1549,4 +1552,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2730 2003/05/16 08:21:01 djm Exp $
+$Id: ChangeLog,v 1.2731 2003/05/18 01:22:43 mouring Exp $

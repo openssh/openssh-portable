@@ -32,7 +32,7 @@
 #if !defined(HAVE_REALPATH) || defined(BROKEN_REALPATH)
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char *rcsid = "$OpenBSD: realpath.c,v 1.7 2002/05/24 21:22:37 deraadt Exp $";
+static char *rcsid = "$OpenBSD: realpath.c,v 1.8 2003/04/04 22:47:43 hin Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <sys/param.h>
@@ -148,8 +148,8 @@ loop:
 			goto err1;
 		}
 		if (rootd == 0)
-			(void)strcat(resolved, "/");
-		(void)strcat(resolved, wbuf);
+			strlcat(resolved, "/", MAXPATHLEN);
+		strlcat(resolved, wbuf, MAXPATHLEN);
 	}
 
 	/* Go back to where we came from. */
