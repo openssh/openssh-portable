@@ -55,6 +55,10 @@
      [ssh.c]
      Avoid setting optind to 0 as GNU getopt treats that like we do optreset.
      markus@ OK
+   - markus@cvs.openbsd.org 2002/12/10 08:56:00
+     [session.c]
+     Make sure $SHELL points to the shell from the password file, even if shell
+     is overridden from login.conf; bug#453; semen at online.sinor.ru; ok millert@
 
 20021205
  - (djm) PERL-free fixpaths from stuge-openssh-unix-dev@cdy.org
@@ -890,4 +894,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2530 2002/12/23 02:24:54 mouring Exp $
+$Id: ChangeLog,v 1.2531 2002/12/23 02:26:08 mouring Exp $

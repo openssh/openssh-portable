@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.151 2002/12/04 04:36:47 stevesk Exp $");
+RCSID("$OpenBSD: session.c,v 1.152 2002/12/10 08:56:00 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1324,11 +1324,16 @@ do_child(Session *s, const char *command)
 	 * legal, and means /bin/sh.
 	 */
 	shell = (pw->pw_shell[0] == '\0') ? _PATH_BSHELL : pw->pw_shell;
+
+	/*
+	 * Make sure $SHELL points to the shell from the password file,
+	 * even if shell is overridden from login.conf
+	 */
+	env = do_setup_env(s, shell);
+
 #ifdef HAVE_LOGIN_CAP
 	shell = login_getcapstr(lc, "shell", (char *)shell, (char *)shell);
 #endif
-
-	env = do_setup_env(s, shell);
 
 	/* we have to stash the hostname before we close our socket. */
 	if (options.use_login)
