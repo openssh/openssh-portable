@@ -1,3 +1,6 @@
+20000626
+ - Better fix to aclocal tests from Garrick James <garrick@james.net>
+ 
 20000623
  - (djm) Use sa_family_t in prototype for rresvport_af. Patch from 
    Svante Signell <svante.signell@telia.com>
