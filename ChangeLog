@@ -1,3 +1,9 @@
+20030525
+- (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2003/05/24 09:02:22
+     [log.c]
+     pass logged data through strnvis; ok markus
+
 20030524
  - (dtucker) Correct --osfsia in INSTALL.  Patch by skeleten at shillest.net
 
@@ -1605,4 +1611,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2749 2003/05/24 01:41:16 dtucker Exp $
+$Id: ChangeLog,v 1.2750 2003/05/25 04:38:02 djm Exp $
