@@ -1,3 +1,9 @@
+20041105
+ - (dtucker) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2004/08/30 09:18:08
+     [LICENCE]
+     s/keygen/keyscan/
+
 20041102
  - (dtucker) [configure.ac includes.h] Bug #947: Fix compile error on HP-UX
    10.x by testing for conflicts in shadow.h and undef'ing _INCLUDE__STDC__
@@ -1776,4 +1782,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3562 2004/11/02 09:30:54 dtucker Exp $
+$Id: ChangeLog,v 1.3563 2004/11/05 09:00:03 dtucker Exp $
