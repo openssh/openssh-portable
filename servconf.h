@@ -13,7 +13,7 @@ Definitions for server configuration data and for the functions reading it.
 
 */
 
-/* RCSID("$Id: servconf.h,v 1.2 1999/11/11 06:57:40 damien Exp $"); */
+/* RCSID("$Id: servconf.h,v 1.3 1999/11/12 00:33:04 damien Exp $"); */
 
 #ifndef SERVCONF_H
 #define SERVCONF_H
@@ -33,6 +33,7 @@ typedef struct
   int key_regeneration_time;	/* Server key lifetime (seconds). */
   int permit_root_login;	/* If true, permit root login. */
   int ignore_rhosts;		/* Ignore .rhosts and .shosts. */
+  int ignore_user_known_hosts;	/* Ignore ~/.ssh/known_hosts for RhostsRsaAuth */
   int print_motd;		/* If true, print /etc/motd. */
   int check_mail;               /* If true, check for new mail. */
   int x11_forwarding;		/* If true, permit inet (spoofing) X11 fwd. */

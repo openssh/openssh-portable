@@ -1,6 +1,10 @@
 19991112
  - Merged changes from OpenBSD CVS
    - [sshd.c] session_key_int may be zero
+   - [auth-rh-rsa.c servconf.c servconf.h ssh.h sshd.8 sshd.c sshd_config]
+     IgnoreUserKnownHosts(default=no), used for RhostRSAAuth, ok 
+     deraadt,millert
+ - Brought default sshd_config more in line with OpenBSD's
 
 19991111
  - Added (untested) Entropy Gathering Daemon (EGD) support

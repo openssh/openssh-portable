@@ -15,22 +15,22 @@ authentication.
 */
 
 #include "includes.h"
-RCSID("$Id: auth-rh-rsa.c,v 1.2 1999/11/11 00:43:13 damien Exp $");
+RCSID("$Id: auth-rh-rsa.c,v 1.3 1999/11/12 00:33:04 damien Exp $");
 
 #include "packet.h"
 #include "ssh.h"
 #include "xmalloc.h"
 #include "uidswap.h"
+#include "servconf.h"
 
 /* Tries to authenticate the user using the .rhosts file and the host using
-   its host key.  Returns true if authentication succeeds. 
-   .rhosts and .shosts will be ignored if ignore_rhosts is non-zero. */
+   its host key.  Returns true if authentication succeeds. */
 
 int auth_rhosts_rsa(struct passwd *pw, const char *client_user,
 		    unsigned int client_host_key_bits,
-		    BIGNUM *client_host_key_e, BIGNUM *client_host_key_n,
-		    int ignore_rhosts, int strict_modes)
+		    BIGNUM *client_host_key_e, BIGNUM *client_host_key_n)
 {
+  extern ServerOptions options;
   const char *canonical_hostname;
   HostStatus host_status;
   BIGNUM *ke, *kn;
@@ -38,7 +38,7 @@ int auth_rhosts_rsa(struct passwd *pw, const char *client_user,
   debug("Trying rhosts with RSA host authentication for %.100s", client_user);
 
   /* Check if we would accept it using rhosts authentication. */
-  if (!auth_rhosts(pw, client_user, ignore_rhosts, strict_modes))
+  if (!auth_rhosts(pw, client_user, options.ignore_rhosts, options.strict_modes))
     return 0;
 
   canonical_hostname = get_canonical_hostname();
@@ -53,13 +53,14 @@ int auth_rhosts_rsa(struct passwd *pw, const char *client_user,
   host_status = check_host_in_hostfile(SSH_SYSTEM_HOSTFILE, canonical_hostname,
 				       client_host_key_bits, client_host_key_e,
 				       client_host_key_n, ke, kn);
-  /* Check user host file. */
-  if (host_status != HOST_OK) {
+
+  /* Check user host file unless ignored. */
+  if (host_status != HOST_OK && !options.ignore_user_known_hosts) {
     struct stat st;
     char *user_hostfile = tilde_expand_filename(SSH_USER_HOSTFILE, pw->pw_uid);
     /* Check file permissions of SSH_USER_HOSTFILE,
        auth_rsa() did already check pw->pw_dir, but there is a race XXX */
-    if (strict_modes &&
+    if (options.strict_modes &&
 	(stat(user_hostfile, &st) == 0) &&
 	((st.st_uid != 0 && st.st_uid != pw->pw_uid) ||
 	(st.st_mode & 022) != 0)) {

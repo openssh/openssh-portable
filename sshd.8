@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: sshd.8,v 1.6 1999/11/11 06:57:40 damien Exp $
+.\" $Id: sshd.8,v 1.7 1999/11/12 00:33:04 damien Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSHD 8
@@ -244,6 +244,15 @@ authentication.
 and
 .Pa /etc/ssh/shosts.equiv 
 are still used.  The default is 
+.Dq no .
+.It Cm IgnoreUserKnownHosts
+Specifies whether
+.Nm
+should ignore the user's
+.Pa $HOME/.ssh/known_hosts
+during
+.Cm RhostsRSAAuthentication .
+The default is
 .Dq no .
 .It Cm KeepAlive
 Specifies whether the system should send keepalive messages to the

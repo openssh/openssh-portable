@@ -12,7 +12,7 @@ Created: Mon Aug 21 15:48:58 1995 ylo
 */
 
 #include "includes.h"
-RCSID("$Id: servconf.c,v 1.2 1999/11/11 06:57:39 damien Exp $");
+RCSID("$Id: servconf.c,v 1.3 1999/11/12 00:33:04 damien Exp $");
 
 #include "ssh.h"
 #include "servconf.h"
@@ -31,6 +31,7 @@ void initialize_server_options(ServerOptions *options)
   options->key_regeneration_time = -1;
   options->permit_root_login = -1;
   options->ignore_rhosts = -1;
+  options->ignore_user_known_hosts = -1;
   options->print_motd = -1;
   options->check_mail = -1;
   options->x11_forwarding = -1;
@@ -88,6 +89,8 @@ void fill_default_server_options(ServerOptions *options)
     options->permit_root_login = 1;		 /* yes */
   if (options->ignore_rhosts == -1)
     options->ignore_rhosts = 0;
+  if (options->ignore_user_known_hosts == -1)
+    options->ignore_user_known_hosts = 0;
   if (options->check_mail == -1)
     options->check_mail = 0;
   if (options->print_motd == -1)
@@ -156,8 +159,8 @@ typedef enum
   sPasswordAuthentication, sListenAddress,
   sPrintMotd, sIgnoreRhosts, sX11Forwarding, sX11DisplayOffset,
   sStrictModes, sEmptyPasswd, sRandomSeedFile, sKeepAlives, sCheckMail,
-  sUseLogin, sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups
-
+  sUseLogin, sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
+  sIgnoreUserKnownHosts
 } ServerOpCodes;
 
 /* Textual representation of the tokens. */
@@ -195,6 +198,7 @@ static struct
   { "listenaddress", sListenAddress },
   { "printmotd", sPrintMotd },
   { "ignorerhosts", sIgnoreRhosts },
+  { "ignoreuserknownhosts", sIgnoreUserKnownHosts },
   { "x11forwarding", sX11Forwarding },
   { "x11displayoffset", sX11DisplayOffset },
   { "strictmodes", sStrictModes },
@@ -402,7 +406,11 @@ void read_server_config(ServerOptions *options, const char *filename)
 	  if (*intptr == -1)
 	    *intptr = value;
 	  break;
-	  
+
+	case sIgnoreUserKnownHosts:
+	  intptr = &options->ignore_user_known_hosts;
+	  goto parse_int;
+
 	case sRhostsAuthentication:
 	  intptr = &options->rhosts_authentication;
 	  goto parse_flag;
