@@ -12,6 +12,9 @@
      [auth2.c auth2-chall.c auth.h]
      add auth2_challenge_stop(), simplifies cleanup of kbd-int sessions,
      fixes memleak.
+   - stevesk@cvs.openbsd.org 2001/12/10 16:45:04
+     [sshd.c]
+     possible fd leak on error; ok markus@
 
 20011219
  - (stevesk) OpenBSD CVS sync X11 localhost display
@@ -7040,4 +7043,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1695 2001/12/21 01:42:34 djm Exp $
+$Id: ChangeLog,v 1.1696 2001/12/21 01:44:28 djm Exp $

@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.215 2001/12/06 13:30:06 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.216 2001/12/10 16:45:04 stevesk Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1030,6 +1030,7 @@ main(int ac, char **av)
 				}
 				if (fcntl(newsock, F_SETFL, 0) < 0) {
 					error("newsock del O_NONBLOCK: %s", strerror(errno));
+					close(newsock);
 					continue;
 				}
 				if (drop_connection(startups) == 1) {
