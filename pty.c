@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: pty.c,v 1.12 2000/03/02 12:30:53 damien Exp $");
+RCSID("$Id: pty.c,v 1.13 2000/03/02 12:31:50 damien Exp $");
 
 #ifdef HAVE_UTIL_H
 # include <util.h>
@@ -187,9 +187,9 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 void 
 pty_release(const char *ttyname)
 {
-	if (chown(ttyname, (uid_t) 0, (gid_t) 0) < 0)
+	if ((chown(ttyname, (uid_t) 0, (gid_t) 0) < 0) && (errno != ENOENT))
 		error("chown %.100s 0 0 failed: %.100s", ttyname, strerror(errno));
-	if (chmod(ttyname, (mode_t) 0666) < 0)
+	if ((chmod(ttyname, (mode_t) 0666) < 0) && (errno != ENOENT))
 		error("chmod %.100s 0666 failed: %.100s", ttyname, strerror(errno));
 }
 
