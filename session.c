@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.61 2001/03/16 19:06:30 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.62 2001/03/20 18:57:04 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"

@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-passwd.c,v 1.21 2001/02/12 16:16:23 markus Exp $");
+RCSID("$OpenBSD: auth-passwd.c,v 1.22 2001/03/20 18:57:04 markus Exp $");
 
 #if !defined(USE_PAM) && !defined(HAVE_OSF_SIA)
 

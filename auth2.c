@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.46 2001/03/11 13:25:36 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.47 2001/03/20 18:57:04 markus Exp $");
 
 #include <openssl/evp.h>
 

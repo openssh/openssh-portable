@@ -1,6 +1,8 @@
 20010322
  - (djm) Better AIX no tty fix, spotted by Gert Doering <gert@greenie.muc.de>
  - (bal) version.c CVS ID resync
+ - (bal) auth-chall.c auth-passwd.c auth.h auth1.c auth2.c session.c CVS ID
+   resync
 
 20010321
  - (djm) Fix ttyname breakage for AIX and Tru64. Patch from Steve 
@@ -4660,4 +4662,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1000 2001/03/22 01:08:39 mouring Exp $
+$Id: ChangeLog,v 1.1001 2001/03/22 01:22:03 mouring Exp $
