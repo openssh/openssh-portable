@@ -227,8 +227,8 @@ fi
 %doc CREDITS UPGRADING
 %attr(0755,root,root) /usr/bin/ssh-keygen
 %attr(0755,root,root) /usr/bin/scp
-%attr(0644,root,root) /usr/man/man1/ssh-keygen.1*
-%attr(0644,root,root) /usr/man/man1/scp.1*
+%attr(0644,root,root) %{_mandir}/man1/ssh-keygen.1*
+%attr(0644,root,root) %{_mandir}/man1/scp.1*
 %attr(0755,root,root) %dir /etc/ssh
 %attr(0755,root,root) %dir /usr/libexec/openssh
 
@@ -237,17 +237,19 @@ fi
 %attr(4755,root,root) /usr/bin/ssh
 %attr(0755,root,root) /usr/bin/ssh-agent
 %attr(0755,root,root) /usr/bin/ssh-add
-%attr(0644,root,root) /usr/man/man1/ssh.1*
-%attr(0644,root,root) /usr/man/man1/ssh-agent.1*
-%attr(0644,root,root) /usr/man/man1/ssh-add.1*
+%attr(0644,root,root) %{_mandir}/man1/ssh.1*
+%attr(0644,root,root) %{_mandir}/man1/ssh-agent.1*
+%attr(0644,root,root) %{_mandir}/man1/ssh-add.1*
 %attr(0644,root,root) %config(noreplace) /etc/ssh/ssh_config
 %attr(-,root,root) /usr/bin/slogin
-%attr(-,root,root) /usr/man/man1/slogin.1*
+%attr(-,root,root) %{_mandir}/man1/slogin.1*
 
 %files server
 %defattr(-,root,root)
 %attr(0755,root,root) /usr/sbin/sshd
-%attr(0644,root,root) /usr/man/man8/sshd.8*
+%attr(0755,root,root) /usr/libexec/openssh/sftp-server
+%attr(0644,root,root) %{_mandir}/man8/sshd.8*
+%attr(0644,root,root) %{_mandir}/man8/sftp-server.8*
 %attr(0600,root,root) %config(noreplace) /etc/ssh/sshd_config
 %attr(0600,root,root) %config(noreplace) /etc/pam.d/sshd
 %attr(0755,root,root) %config /etc/rc.d/init.d/sshd

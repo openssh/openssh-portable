@@ -58,6 +58,7 @@ Nalin Dahyabhai <nalin.dahyabhai@pobox.com> - PAM environment patch
 Nate Itkin <nitkin@europa.com> - SunOS 4.1.x fixes
 Niels Kristian Bech Jensen <nkbj@image.dk> - Assorted patches
 Pavel Troller <patrol@omni.sinus.cz> - Bugfixes
+Pekka Savola <pekkas@netcore.fi> - Bugfixes
 Peter Kocks <peter.kocks@baygate.com> - Makefile fixes
 Phil Hands <phil@hands.com> - Debian scripts, assorted patches
 Phil Karn <karn@ka9q.ampr.org> - Autoconf fix
