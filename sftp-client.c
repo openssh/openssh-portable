@@ -29,7 +29,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.11 2001/03/07 10:11:22 djm Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.12 2001/03/13 22:42:54 djm Exp $");
 
 #include "ssh.h"
 #include "buffer.h"
@@ -275,11 +275,13 @@ do_close(int fd_in, int fd_out, char *handle, u_int handle_len)
 	return(status);
 }
 
+
 int
-do_ls(int fd_in, int fd_out, char *path)
+do_lsreaddir(int fd_in, int fd_out, char *path, int printflag, 
+    SFTP_DIRENT ***dir)
 {
 	Buffer msg;
-	u_int type, id, handle_len, i, expected_id;
+	u_int type, id, handle_len, i, expected_id, ents;
 	char *handle;
 
 	id = msg_id++;
@@ -295,6 +297,13 @@ do_ls(int fd_in, int fd_out, char *path)
 	handle = get_handle(fd_in, id, &handle_len);
 	if (handle == NULL)
 		return(-1);
+
+	if (dir) {
+		ents = 0;
+		*dir = xmalloc(sizeof(**dir));
+		(*dir)[0] = NULL;
+	}
+	
 
 	for(;;) {
 		int count;
@@ -350,7 +359,18 @@ do_ls(int fd_in, int fd_out, char *path)
 			longname = buffer_get_string(&msg, NULL);
 			a = decode_attrib(&msg);
 
-			printf("%s\n", longname);
+			if (printflag)
+				printf("%s\n", longname);
+
+			if (dir) {
+				*dir = xrealloc(*dir, sizeof(**dir) * 
+				    (ents + 2));
+				(*dir)[ents] = xmalloc(sizeof(***dir));
+				(*dir)[ents]->filename = xstrdup(filename);
+				(*dir)[ents]->longname = xstrdup(longname);
+				memcpy(&(*dir)[ents]->a, a, sizeof(*a));
+				(*dir)[++ents] = NULL;
+			}
 
 			xfree(filename);
 			xfree(longname);
@@ -362,6 +382,30 @@ do_ls(int fd_in, int fd_out, char *path)
 	xfree(handle);
 
 	return(0);
+}
+
+int
+do_ls(int fd_in, int fd_out, char *path)
+{
+	return(do_lsreaddir(fd_in, fd_out, path, 1, NULL));
+}
+
+int
+do_readdir(int fd_in, int fd_out, char *path, SFTP_DIRENT ***dir)
+{
+	return(do_lsreaddir(fd_in, fd_out, path, 0, dir));
+}
+
+void free_sftp_dirents(SFTP_DIRENT **s)
+{
+	int i;
+	
+	for(i = 0; s[i]; i++) {
+		xfree(s[i]->filename);
+		xfree(s[i]->longname);
+		xfree(s[i]);
+	}
+	xfree(s);
 }
 
 int
@@ -875,3 +919,4 @@ done:
 	buffer_free(&msg);
 	return status;
 }
+

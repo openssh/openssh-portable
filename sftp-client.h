@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.h,v 1.2 2001/03/07 10:11:23 djm Exp $ */
+/* $OpenBSD: sftp-client.h,v 1.3 2001/03/13 22:42:54 djm Exp $ */
 
 /*
  * Copyright (c) 2001 Damien Miller.  All rights reserved.
@@ -26,6 +26,14 @@
 
 /* Client side of SSH2 filexfer protocol */
 
+typedef struct SFTP_DIRENT SFTP_DIRENT;
+
+struct SFTP_DIRENT {
+	char *filename;
+	char *longname;
+	Attrib a;
+};
+
 /* 
  * Initialiase a SSH filexfer connection. Returns -1 on error or 
  * protocol version on success.
@@ -37,6 +45,12 @@ int do_close(int fd_in, int fd_out, char *handle, u_int handle_len);
 
 /* List contents of directory 'path' to stdout */
 int do_ls(int fd_in, int fd_out, char *path);
+
+/* Read contents of 'path' to NULL-terminated array 'dir' */
+int do_readdir(int fd_in, int fd_out, char *path, SFTP_DIRENT ***dir);
+
+/* Frees a NULL-terminated array of SFTP_DIRENTs (eg. from do_readdir) */
+void free_sftp_dirents(SFTP_DIRENT **s);
 
 /* Delete file 'path' */
 int do_rm(int fd_in, int fd_out, char *path);
