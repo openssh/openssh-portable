@@ -10,6 +10,20 @@
 #include <libc.h>
 #include <sys/dir.h>
 
+#define NAME_MAX 255
+struct dirent {
+	off_t   d_off;
+	unsigned long   d_fileno;
+	unsigned short  d_reclen;
+	unsigned short  d_namlen;
+	char    d_name[NAME_MAX + 1];
+};
+
+struct utimbuf {
+	time_t  actime;
+	time_t  modtime;
+};
+
 /* FILE */
 #define O_NONBLOCK      00004   /* non-blocking open */
 
@@ -38,5 +52,7 @@ int tcsetpgrp(int fd, pid_t pgrp);
 speed_t cfgetospeed(const struct termios *t);
 speed_t cfgetispeed(const struct termios *t);
 int cfsetospeed(struct termios *t,int speed);
+
+
 #endif /* HAVE_NEXT */
 #endif /* _NEXT_POSIX_H */
