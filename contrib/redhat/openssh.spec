@@ -2,7 +2,7 @@
 %define oversion 2.2.0p1
 
 # Version of ssh-askpass
-%define aversion 1.0
+%define aversion 1.0.1
 
 # Do we want to disable building of x11-askpass? (1=yes 0=no)
 %define no_x11_askpass 0
@@ -17,7 +17,7 @@ Release: 1
 Packager: Damien Miller <djm@mindrot.org>
 URL: http://www.openssh.com/
 Source0: ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-%{oversion}.tar.gz
-Source1: http://www.ntrnet.net/~jmknoble/software/x11-ssh-askpass/x11-ssh-askpass-%{aversion}.tar.gz
+Source1: http://www.ntrnet.net/~jmknoble/software/x11-ssh-askpass/x11-ssh-askpass-%{aversion}.tar.gz 
 Copyright: BSD
 Group: Applications/Internet
 BuildRoot: /tmp/openssh-%{version}-buildroot

@@ -1,3 +1,7 @@
+20000901
+ - (djm) Pick up Jim's new X11-askpass
+ - (djm) Release 2.2.0p1
+
 20000831
  - (djm) Workaround SIGPIPE problems on SCO. Fix from Aran Cox 
    <acox@cv.telegroup.com>
