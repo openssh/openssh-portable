@@ -85,6 +85,10 @@
      [auth2.c]
      cross checking of announced vs actual pktype in pubkey/hostbaed auth; 
      ok stevesk@
+   - markus@cvs.openbsd.org 2002/02/04 12:15:25
+     [log.c log.h readconf.c servconf.c]
+     add SYSLOG_FACILITY_NOT_SET = -1, SYSLOG_LEVEL_NOT_SET = -1,
+     fixes arm/netbsd; based on patch from bjh21@netbsd.org; ok djm@
 
 20020130
  - (djm) Delay PRNG seeding until we need it in ssh-keygen, from markus@
@@ -7487,4 +7491,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1822 2002/02/05 01:26:03 djm Exp $
+$Id: ChangeLog,v 1.1823 2002/02/05 01:26:34 djm Exp $
