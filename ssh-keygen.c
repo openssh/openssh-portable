@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.106 2003/05/15 03:10:52 djm Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.107 2003/07/28 09:49:56 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -27,6 +27,7 @@ RCSID("$OpenBSD: ssh-keygen.c,v 1.106 2003/05/15 03:10:52 djm Exp $");
 #include "pathnames.h"
 #include "log.h"
 #include "readpass.h"
+#include "moduli.h"
 
 #ifdef SMARTCARD
 #include "scard.h"
@@ -781,6 +782,9 @@ usage(void)
 	fprintf(stderr, "  -U reader   Upload private key to smartcard.\n");
 #endif /* SMARTCARD */
 
+	fprintf(stderr, "  -G file     Generate candidates for DH-GEX moduli\n");
+	fprintf(stderr, "  -T file     Screen candidates for DH-GEX moduli\n");
+
 	exit(1);
 }
 
@@ -791,12 +795,15 @@ int
 main(int ac, char **av)
 {
 	char dotsshdir[MAXPATHLEN], comment[1024], *passphrase1, *passphrase2;
-	char *reader_id = NULL;
+	char out_file[PATH_MAX], *reader_id = NULL;
 	char *resource_record_hostname = NULL;
 	Key *private, *public;
 	struct passwd *pw;
 	struct stat st;
-	int opt, type, fd, download = 0;
+	int opt, type, fd, download = 0, memory = 0;
+	int generator_wanted = 0, trials = 100;
+	int do_gen_candidates = 0, do_screen_candidates = 0;
+	BIGNUM *start = NULL;
 	FILE *f;
 
 	extern int optind;
@@ -805,6 +812,8 @@ main(int ac, char **av)
 	__progname = get_progname(av[0]);
 
 	SSLeay_add_all_algorithms();
+	log_init(av[0], SYSLOG_LEVEL_INFO, SYSLOG_FACILITY_USER, 1);
+
 	init_rng();
 	seed_rng();
 
@@ -819,7 +828,8 @@ main(int ac, char **av)
 		exit(1);
 	}
 
-	while ((opt = getopt(ac, av, "degiqpclBRxXyb:f:t:U:D:P:N:C:r:")) != -1) {
+	while ((opt = getopt(ac, av,
+	    "degiqpclBRxXyb:f:t:U:D:P:N:C:r:g:T:G:M:S:a:W:")) != -1) {
 		switch (opt) {
 		case 'b':
 			bits = atoi(optarg);
@@ -890,6 +900,39 @@ main(int ac, char **av)
 		case 'r':
 			resource_record_hostname = optarg;
 			break;
+		case 'W':
+			generator_wanted = atoi(optarg);
+			if (generator_wanted < 1)
+				fatal("Desired generator has bad value.");
+			break;
+		case 'a':
+			trials = atoi(optarg);
+			if (trials < TRIAL_MINIMUM) {
+				fatal("Minimum primality trials is %d", 
+				    TRIAL_MINIMUM);
+			}
+			break;
+		case 'M':
+			memory = atoi(optarg);
+			if (memory != 0 && 
+			   (memory < LARGE_MINIMUM || memory > LARGE_MAXIMUM)) {
+				fatal("Invalid memory amount (min %ld, max %ld)",
+				    LARGE_MINIMUM, LARGE_MAXIMUM);
+			}
+			break;
+		case 'G':
+			do_gen_candidates = 1;
+			strlcpy(out_file, optarg, sizeof(out_file));
+			break;
+		case 'T':
+			do_screen_candidates = 1;
+			strlcpy(out_file, optarg, sizeof(out_file));
+			break;
+		case 'S':
+			/* XXX - also compare length against bits */
+			if (BN_hex2bn(&start, optarg) == 0)
+				fatal("Invalid start point.");
+			break;
 		case '?':
 		default:
 			usage();
@@ -931,6 +974,41 @@ main(int ac, char **av)
 #else /* SMARTCARD */
 		fatal("no support for smartcards.");
 #endif /* SMARTCARD */
+	}
+
+	if (do_gen_candidates) {
+		FILE *out = fopen(out_file, "w");
+		
+		if (out == NULL) {
+			error("Couldn't open modulus candidate file \"%s\": %s",
+			    out_file, strerror(errno));
+			return (1);
+		}
+		if (gen_candidates(out, memory, bits, start) != 0)
+			fatal("modulus candidate generation failed\n");
+
+		return (0);
+	}
+
+	if (do_screen_candidates) {
+		FILE *in;
+		FILE *out = fopen(out_file, "w");
+
+		if (have_identity && strcmp(identity_file, "-") != 0) {
+			if ((in = fopen(identity_file, "r")) == NULL) {
+				fatal("Couldn't open modulus candidate "
+				    "file \"%s\": %s", identity_file, 
+				    strerror(errno));
+			}
+		} else
+			in = stdin;
+
+		if (out == NULL) {
+			fatal("Couldn't open moduli file \"%s\": %s",
+			    out_file, strerror(errno));
+		}
+		if (prime_test(in, out, trials, generator_wanted) != 0)
+			fatal("modulus screening failed\n");
 	}
 
 	arc4random_stir();

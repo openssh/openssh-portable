@@ -13,6 +13,11 @@
    - markus@cvs.openbsd.org 2003/07/23 07:42:43
      [sshd_config]
      remove AFS; itojun@
+   - djm@cvs.openbsd.org 2003/07/28 09:49:56
+     [ssh-keygen.1 ssh-keygen.c]
+     Support for generating Diffie-Hellman groups (/etc/moduli) from ssh-keygen.
+     Based on code from Phil Karn, William Allen Simpson and Niels Provos.
+     ok markus@, thanks jmc@
 
 20030730
  - (djm) [auth-pam.c] Don't use crappy APIs like sprintf. Thanks bal
@@ -751,4 +756,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2870 2003/08/02 12:31:45 dtucker Exp $
+$Id: ChangeLog,v 1.2871 2003/08/02 12:40:07 dtucker Exp $
