@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.114 2001/08/16 00:09:50 mouring Exp $ */
+/* $Id: acconfig.h,v 1.115 2001/09/15 11:31:54 djm Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -253,6 +253,7 @@
 #undef HAVE_UINTXX_T
 #undef HAVE_INT64_T
 #undef HAVE_U_INT64_T
+#undef HAVE_U_CHAR
 #undef HAVE_SOCKLEN_T
 #undef HAVE_SIZE_T
 #undef HAVE_SSIZE_T

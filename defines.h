@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.70 2001/08/16 00:09:50 mouring Exp $ */
+/* $Id: defines.h,v 1.71 2001/09/15 11:31:54 djm Exp $ */
 
 /* Necessary headers */
 
@@ -237,6 +237,11 @@ typedef unsigned long long int u_int64_t;
 #if !defined(HAVE_LONG_LONG_INT) && (SIZEOF_LONG_LONG_INT == 8)
 # define HAVE_LONG_LONG_INT 1
 #endif
+
+#ifndef HAVE_U_CHAR
+typedef unsigned char u_char;
+# define HAVE_U_CHAR
+#endif /* HAVE_U_CHAR */
 
 #ifndef HAVE_SOCKLEN_T
 typedef unsigned int socklen_t;
