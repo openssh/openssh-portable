@@ -1,3 +1,7 @@
+20000628
+ - (djm) Fixes to lastlog code for Irix
+ - (djm) Use atomicio in loginrec
+
 20000627
  - (djm) Fixes to login code - not setting li->uid, cleanups
  - (djm) Formatting

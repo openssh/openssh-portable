@@ -170,7 +170,7 @@
 #include "xmalloc.h"
 #include "loginrec.h"
 
-RCSID("$Id: loginrec.c,v 1.11 2000/06/27 01:18:27 djm Exp $");
+RCSID("$Id: loginrec.c,v 1.12 2000/06/27 14:50:50 djm Exp $");
 
 /**
  ** prototypes for helper functions in this file
@@ -281,17 +281,16 @@ login_get_lastlog_time(const int uid)
 struct logininfo *
 login_get_lastlog(struct logininfo *li, const int uid)
 {
-#ifndef USE_LASTLOG
 	struct passwd *pw;
-#endif
 
 	memset(li, '\0', sizeof(struct logininfo));
 	li->uid = uid;
 
-#ifndef USE_LASTLOG
-	/* If we don't have a 'real' lastlog, we need the username to
+	/* 
+	 * If we don't have a 'real' lastlog, we need the username to
 	 * reliably search wtmp(x) for the last login (see
-	 * wtmp_get_entry().) */
+	 * wtmp_get_entry().) 
+	 */
 	pw = getpwuid(uid);
 	if (pw == NULL)
 		fatal("login_get_lastlog: Cannot find account for uid %i", uid);
@@ -299,7 +298,6 @@ login_get_lastlog(struct logininfo *li, const int uid)
 	/* No MIN_SIZEOF here - we absolutely *must not* truncate the
          * username */
 	strlcpy(li->username, pw->pw_name, sizeof(li->username));
-#endif
 
 	if (getlast_entry(li))
 		return li;
@@ -452,10 +450,7 @@ int
 getlast_entry(struct logininfo *li)
 {
 #ifdef USE_LASTLOG
-	if (lastlog_get_entry(li))
-		return 1;
-	else
-		return 0;
+	return(lastlog_get_entry(li));
 #else /* !USE_LASTLOG */
 
 #ifdef DISABLE_LASTLOG
@@ -738,22 +733,23 @@ utmp_write_direct(struct logininfo *li, struct utmp *ut)
 		 * If the new ut_line is empty but the old one is not
 		 * and ut_line and ut_name match, preserve the old ut_line.
 		 */
-		if (   read(fd, &old_ut, sizeof(struct utmp)) == sizeof(struct utmp)
-		       && ut->ut_host[0] == '\0'
-		       && old_ut.ut_host[0] != '\0'
-		       && strncmp(old_ut.ut_line, ut->ut_line, sizeof(ut->ut_line)) == 0
-		       && strncmp(old_ut.ut_name, ut->ut_name, sizeof(ut->ut_name)) == 0  )
+		if (atomicio(read, fd, &old_ut, sizeof(old_ut)) == sizeof(old_ut) && 
+			(ut->ut_host[0] == '\0') && (old_ut.ut_host[0] != '\0') && 
+			(strncmp(old_ut.ut_line, ut->ut_line, sizeof(ut->ut_line)) == 0) && 
+			(strncmp(old_ut.ut_name, ut->ut_name, sizeof(ut->ut_name)) == 0)) {
 			(void)memcpy(ut->ut_host, old_ut.ut_host, sizeof(ut->ut_host));
-
+		}
+		
 		(void)lseek(fd, (off_t)(tty * sizeof(struct utmp)), SEEK_SET);
-		if (write(fd, ut, sizeof(struct utmp))==-1)
+		if (atomicio(write, fd, ut, sizeof(ut)) != sizeof(ut))
 			log("utmp_write_direct: error writing %s: %s",
 			    UTMP_FILE, strerror(errno));
       
 		(void)close(fd);
 		return 1;
-	} else
+	} else {
 		return 0;
+	}
 }
 # endif /* UTMP_USE_LIBRARY */
 
@@ -936,8 +932,7 @@ wtmp_write(struct logininfo *li, struct utmp *ut)
 		return 0;
 	}
   	if (fstat(fd, &buf) == 0) 
-		if (write(fd, (char *)ut, sizeof(struct utmp)) != 
-		    sizeof(struct utmp)) {
+		if (atomicio(write, fd, ut, sizeof(*ut)) != sizeof(*ut)) {
 			ftruncate(fd, buf.st_size);
 			log("wtmp_write: problem writing %s: %s",
 			    WTMP_FILE, strerror(errno));
@@ -1044,7 +1039,7 @@ wtmp_get_entry(struct logininfo *li)
 	}
 
 	while (!found) {
-		if (read(fd, &ut, sizeof(ut)) != sizeof(ut)) {
+		if (atomicio(read, fd, &ut, sizeof(ut)) != sizeof(ut)) {
 			log("wtmp_get_entry: read of %s failed: %s",
 			    WTMP_FILE, strerror(errno));
 			close (fd);
@@ -1104,8 +1099,7 @@ wtmpx_write(struct logininfo *li, struct utmpx *utx)
 	}
 
 	if (fstat(fd, &buf) == 0) 
-		if (write(fd, (char *)utx, sizeof(struct utmpx)) != 
-		    sizeof(struct utmpx)) {
+		if (atomicio(write, fd, utx, sizeof(*utx)) != sizeof(*utx)) {
 			ftruncate(fd, buf.st_size);
 			log("wtmpx_write: problem writing %s: %s",
 			    WTMPX_FILE, strerror(errno));
@@ -1201,7 +1195,7 @@ wtmpx_get_entry(struct logininfo *li)
 	}
 
 	while (!found) {
-		if (read(fd, &utx, sizeof(utx)) != sizeof(utx)) {
+		if (atomicio(read, fd, &utx, sizeof(utx)) != sizeof(utx)) {
 			log("wtmpx_get_entry: read of %s failed: %s",
 			    WTMPX_FILE, strerror(errno));
 			close (fd);
@@ -1360,7 +1354,7 @@ lastlog_openseek(struct logininfo *li, int *fd, int filemode)
 
 	*fd = open(lastlog_file, filemode);
 	if ( *fd < 0) {
-		log("lastlog_openseek: Couldn't open %s: %s",
+		debug("lastlog_openseek: Couldn't open %s: %s",
 		    lastlog_file, strerror(errno));
 		return 0;
 	}
@@ -1386,9 +1380,8 @@ lastlog_perform_login(struct logininfo *li)
 	lastlog_construct(li, &last);
 
 	/* write the entry */
-	if (lastlog_openseek(li, &fd, O_RDWR)) {
-		if (write(fd, &last, sizeof(struct lastlog)) != 
-			sizeof(struct lastlog)) {
+	if (lastlog_openseek(li, &fd, O_RDWR|O_CREAT)) {
+		if (atomicio(write, fd, &last, sizeof(last)) != sizeof(last)) {
 			log("lastlog_write_filemode: Error writing to %s: %s",
 			    LASTLOG_FILE, strerror(errno));
 			return 0;
@@ -1427,9 +1420,8 @@ lastlog_get_entry(struct logininfo *li)
 	int fd;
 
 	if (lastlog_openseek(li, &fd, O_RDONLY)) {
-		if ( read(fd, &last, sizeof(struct lastlog)) != 
-			sizeof(struct lastlog) ) {
-			log("lastlog_write_filemode: Error reading from %s: %s",
+		if (atomicio(read, fd, &last, sizeof(last)) != sizeof(last)) {
+			log("lastlog_get_entry: Error reading from %s: %s",
 			    LASTLOG_FILE, strerror(errno));
 			return 0;
 		} else {
