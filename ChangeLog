@@ -1,6 +1,7 @@
 20000612
  - (djm) Glob manpages in RPM spec files to catch compressed files
  - (djm) Full license in auth-pam.c
+ - (djm) Configure fixes from SAKAI Kiyotaka <ksakai@kso.netwk.ntt-at.co.jp>
 
 20000610
  - (djm) Minor doc tweaks

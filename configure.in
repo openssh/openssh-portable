@@ -1003,7 +1003,7 @@ AC_TRY_COMPILE([
 if test -z "$conf_lastlog_location"; then
 	if test x"$system_lastlog_path" = x"no" ; then
 		for f in /var/log/lastlog /usr/adm/lastlog /var/adm/lastlog /etc/security/lastlog ; do
-				if test -d "$f" -o -e "$f" ; then
+				if test -d "$f" -o -f "$f" ; then
 					conf_lastlog_location=$f
 				fi
 		done
