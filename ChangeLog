@@ -8,6 +8,7 @@
  - (djm) Fix printing of $DISPLAY hack if set by system type. Report from
    Kevin Steves <stevesk@sweden.hp.com>
  - (djm) NeXT patch from Ben Lindstrom <mouring@pconline.com>
+ - (djm) Fix doh in bsd-arc4random.c
 
 20000829
  - (djm) Fix ^C ignored issue on Solaris. Diagnosis from Gert 

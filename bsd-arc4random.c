@@ -37,7 +37,7 @@
 #define SEED_SIZE 20
 
 /* Number of bytes to reseed after */
-#define REKEY_BYTES	(1 >> 18)
+#define REKEY_BYTES	(1 << 18)
 
 static int rc4_ready = 0;
 static RC4_KEY rc4;
