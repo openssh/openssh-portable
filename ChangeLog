@@ -4,6 +4,9 @@
  - Integrated Makefile patch from Niels Kristian Bech Jensen <nkbj@image.dk>
  - Autodetection of RSAref library for US users
  - Minor doc updates
+ - Merged OpenBSD CVS changes:
+   - [rsa.c] bugfix: use correct size for memset()
+   - [sshconnect.c] warn if announced size of modulus 'n' != real size
 
 19991108
  - Removed debian/ directory. This is now being maintained separately.

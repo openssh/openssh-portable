@@ -35,7 +35,7 @@ Description of the RSA algorithm can be found e.g. from the following sources:
 */
 
 #include "includes.h"
-RCSID("$Id: rsa.c,v 1.2 1999/11/08 04:30:59 damien Exp $");
+RCSID("$Id: rsa.c,v 1.3 1999/11/08 23:35:52 damien Exp $");
 
 #include "rsa.h"
 #include "ssh.h"
@@ -110,28 +110,26 @@ void
 rsa_public_encrypt(BIGNUM *out, BIGNUM *in, RSA* key)
 {
   char *inbuf, *outbuf;
-  int in_len;
-  int out_len;
-  int len;
+  int len, ilen, olen;
 
   if (BN_num_bits(key->e) < 2 || !BN_is_odd(key->e))
     fatal("rsa_public_encrypt() exponent too small or not odd");
 
-  out_len = BN_num_bytes(key->n);
-  outbuf = xmalloc(out_len);
+  olen = BN_num_bytes(key->n);
+  outbuf = xmalloc(olen);
 
-  in_len = BN_num_bytes(in);
-  inbuf = xmalloc(in_len);
+  ilen = BN_num_bytes(in);
+  inbuf = xmalloc(ilen);
   BN_bn2bin(in, inbuf);
 
-  if ((len = RSA_public_encrypt(in_len, inbuf, outbuf, key,
+  if ((len = RSA_public_encrypt(ilen, inbuf, outbuf, key,
 				RSA_PKCS1_PADDING)) <= 0)
     fatal("rsa_public_encrypt() failed");
 
   BN_bin2bn(outbuf, len, out);
 
-  memset(outbuf, 0, out_len);
-  memset(inbuf, 0, in_len);
+  memset(outbuf, 0, olen);
+  memset(inbuf, 0, ilen);
   xfree(outbuf);
   xfree(inbuf);
 }
@@ -140,25 +138,23 @@ void
 rsa_private_decrypt(BIGNUM *out, BIGNUM *in, RSA *key)
 {
   char *inbuf, *outbuf;
-  int in_len;
-  int out_len;
-  int len;
+  int len, ilen, olen;
 
-  out_len = BN_num_bytes(key->n);
-  outbuf = xmalloc(out_len);
+  olen = BN_num_bytes(key->n);
+  outbuf = xmalloc(olen);
 
-  in_len = BN_num_bytes(in);
-  inbuf = xmalloc(in_len);
+  ilen = BN_num_bytes(in);
+  inbuf = xmalloc(ilen);
   BN_bn2bin(in, inbuf);
 
-  if ((len = RSA_private_decrypt(in_len, inbuf, outbuf, key,
+  if ((len = RSA_private_decrypt(ilen, inbuf, outbuf, key,
 				 RSA_SSLV23_PADDING)) <= 0)
     fatal("rsa_private_decrypt() failed");
 
   BN_bin2bn(outbuf, len, out);
 
-  memset(outbuf, 0, out_len);
-  memset(inbuf, 0, in_len);
+  memset(outbuf, 0, olen);
+  memset(inbuf, 0, ilen);
   xfree(outbuf);
   xfree(inbuf);
 }
