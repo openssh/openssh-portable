@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000 Damien Miller.  All rights reserved.
+ * Copyright (c) 2000-2001 Damien Miller.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -20,6 +20,17 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/*
+ * This is a simple GNOME SSH passphrase grabber. To use it, set the 
+ * environment variable SSH_ASKPASS to point to the location of 
+ * gnome-ssh-askpass before calling "ssh-add < /dev/null". 
+ *
+ * There is only one run-time option: if you set the environment variable
+ * "GNOME_SSH_ASKPASS_NOGRAB=true" then gnome-ssh-askpass will not grab
+ * the X server. I have found this necessary to avoid server hangs with
+ * X input extensions (e.g. kinput2) enabled. - djm
  */
 
 /*
@@ -57,9 +68,10 @@ passphrase_dialog(char *message)
 {
 	char *passphrase;
 	char **messages;
-	int result, i;
-	
+	int result, i, grab_server;
 	GtkWidget *dialog, *entry, *label;
+
+	grab_server = (getenv("GNOME_SSH_ASKPASS_NOGRAB") == NULL);
 
 	dialog = gnome_dialog_new("OpenSSH", GNOME_STOCK_BUTTON_OK,
 	    GNOME_STOCK_BUTTON_CANCEL, NULL);
@@ -89,7 +101,8 @@ passphrase_dialog(char *message)
 	gtk_widget_show_all(dialog);
 
 	/* Grab focus */
-	XGrabServer(GDK_DISPLAY());
+	if (grab_server)
+		XGrabServer(GDK_DISPLAY());
 	if (gdk_pointer_grab(dialog->window, TRUE, 0, NULL, NULL, 
 	    GDK_CURRENT_TIME))
 		goto nograb;
@@ -103,7 +116,8 @@ passphrase_dialog(char *message)
 	result = gnome_dialog_run(GNOME_DIALOG(dialog));
 
 	/* Ungrab */
-	XUngrabServer(GDK_DISPLAY());
+	if (grab_server)
+		XUngrabServer(GDK_DISPLAY());
 	gdk_pointer_ungrab(GDK_CURRENT_TIME);
 	gdk_keyboard_ungrab(GDK_CURRENT_TIME);
 	gdk_flush();
@@ -126,7 +140,8 @@ passphrase_dialog(char *message)
  nograbkb:
 	gdk_pointer_ungrab(GDK_CURRENT_TIME);
  nograb:
-	XUngrabServer(GDK_DISPLAY());
+	if (grab_server)
+		XUngrabServer(GDK_DISPLAY());
 	gnome_dialog_close(GNOME_DIALOG(dialog));
 	
 	report_failed_grab();

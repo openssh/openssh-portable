@@ -1,3 +1,9 @@
+20011221
+ - (djm) Add option to gnome-ssh-askpass to stop it from grabbing the X
+   server. I have found this necessary to avoid server hangs with X input
+   extensions (e.g. kinput2). Enable by setting the environment variable
+   "GNOME_SSH_ASKPASS_NOGRAB"
+
 20011219
  - (stevesk) OpenBSD CVS sync X11 localhost display
    - stevesk@cvs.openbsd.org 2001/11/29 14:10:51
@@ -7025,4 +7031,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1692 2001/12/19 17:58:01 stevesk Exp $
+$Id: ChangeLog,v 1.1693 2001/12/20 23:28:07 djm Exp $
