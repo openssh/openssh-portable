@@ -23,13 +23,12 @@
  */
 
 #include "includes.h"
-RCSID("$Id: auth-shadow.c,v 1.1 2004/02/10 02:01:14 dtucker Exp $");
+RCSID("$Id: auth-shadow.c,v 1.2 2004/02/10 02:51:34 dtucker Exp $");
 
 #ifdef USE_SHADOW
 #include <shadow.h>
 
 #include "auth.h"
-#include "auth-shadow.h"
 #include "buffer.h"
 #include "log.h"
 
