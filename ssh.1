@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.98 2001/03/08 00:15:48 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.99 2001/03/19 12:49:51 djm Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -853,6 +853,14 @@ Note that this option applies to both protocol version 1 and 2.
 .It Cm Port
 Specifies the port number to connect on the remote host.
 Default is 22.
+.It Cm PreferredAuthentications
+Specifies the order in which the client should try protocol 2 
+authentication methods. This allows a client to prefer one method (e.g. 
+.Cm keyboard-interactive )
+over another method (e.g.
+.Cm password )
+The default for this option is:
+.Dq publickey, password, keyboard-interactive
 .It Cm Protocol
 Specifies the protocol versions
 .Nm
