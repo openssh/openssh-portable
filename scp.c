@@ -1176,7 +1176,8 @@ progressmeter(int flag)
 		abbrevsize >>= 10;
 	}
 	snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf), " %5lu %c%c ",
-	    (unsigned long) abbrevsize, prefixes[i], prefixes[i] == ' ' ? ' ' : 'B');
+	    (unsigned long) abbrevsize, prefixes[i],
+	    prefixes[i] == ' ' ? ' ' : 'B');
 
 	timersub(&now, &lastupdate, &wait);
 	if (cursize > lastsize) {
