@@ -10,6 +10,12 @@
    - markus@cvs.openbsd.org 2003/04/02 14:36:26
      [ssh-keysign.c]
      potential segfault if KEY_UNSPEC; cjwatson@debian.org; bug #526
+   - itojun@cvs.openbsd.org 2003/04/03 07:25:27
+     [progressmeter.c]
+     $OpenBSD$
+   - itojun@cvs.openbsd.org 2003/04/03 10:17:35
+     [progressmeter.c]
+     remove $OpenBSD$, as other *.c does not have it.
 
 20030402
  - (bal) if IP_TOS is not found or broken don't try to compile in
@@ -1312,4 +1318,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2653 2003/04/09 10:50:26 djm Exp $
+$Id: ChangeLog,v 1.2654 2003/04/09 10:50:59 djm Exp $
