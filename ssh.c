@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.102 2001/03/04 10:57:53 stevesk Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.103 2001/03/04 17:42:28 millert Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -388,7 +388,7 @@ main(int ac, char **av)
 				options.log_level++;
 				break;
 			} else {
-				fatal("Too high debugging level.\n");
+				fatal("Too high debugging level.");
 			}
 			/* fallthrough */
 		case 'V':
@@ -544,14 +544,14 @@ main(int ac, char **av)
 	/* Do not allocate a tty if stdin is not a tty. */
 	if (!isatty(fileno(stdin)) && !force_tty_flag) {
 		if (tty_flag)
-			log("Pseudo-terminal will not be allocated because stdin is not a terminal.\n");
+			log("Pseudo-terminal will not be allocated because stdin is not a terminal.");
 		tty_flag = 0;
 	}
 
 	/* Get user data. */
 	pw = getpwuid(original_real_uid);
 	if (!pw) {
-		log("You don't exist, go away!\n");
+		log("You don't exist, go away!");
 		exit(1);
 	}
 	/* Take a copy of the returned structure. */

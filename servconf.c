@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.69 2001/03/04 11:16:06 stevesk Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.70 2001/03/04 17:42:28 millert Exp $");
 
 #ifdef KRB4
 #include <krb.h>
@@ -318,7 +318,7 @@ add_listen_addr(ServerOptions *options, char *addr)
 		hints.ai_flags = (addr == NULL) ? AI_PASSIVE : 0;
 		snprintf(strport, sizeof strport, "%d", options->ports[i]);
 		if ((gaierr = getaddrinfo(addr, strport, &hints, &aitop)) != 0)
-			fatal("bad addr or host: %s (%s)\n",
+			fatal("bad addr or host: %s (%s)",
 			    addr ? addr : "<NULL>",
 			    gai_strerror(gaierr));
 		for (ai = aitop; ai->ai_next; ai = ai->ai_next)
@@ -371,11 +371,11 @@ read_server_config(ServerOptions *options, const char *filename)
 				fatal("%s line %d: ports must be specified before "
 				    "ListenAdress.\n", filename, linenum);
 			if (options->num_ports >= MAX_PORTS)
-				fatal("%s line %d: too many ports.\n",
+				fatal("%s line %d: too many ports.",
 				    filename, linenum);
 			arg = strdelim(&cp);
 			if (!arg || *arg == '\0')
-				fatal("%s line %d: missing port number.\n",
+				fatal("%s line %d: missing port number.",
 				    filename, linenum);
 			options->ports[options->num_ports++] = atoi(arg);
 			break;
@@ -405,7 +405,7 @@ parse_int:
 		case sListenAddress:
 			arg = strdelim(&cp);
 			if (!arg || *arg == '\0')
-				fatal("%s line %d: missing inet addr.\n",
+				fatal("%s line %d: missing inet addr.",
 				    filename, linenum);
 			add_listen_addr(options, arg);
 			break;
@@ -591,7 +591,7 @@ parse_flag:
 			arg = strdelim(&cp);
 			value = log_facility_number(arg);
 			if (value == (SyslogFacility) - 1)
-				fatal("%.200s line %d: unsupported log facility '%s'\n",
+				fatal("%.200s line %d: unsupported log facility '%s'",
 				    filename, linenum, arg ? arg : "<NONE>");
 			if (*intptr == -1)
 				*intptr = (SyslogFacility) value;
@@ -602,7 +602,7 @@ parse_flag:
 			arg = strdelim(&cp);
 			value = log_level_number(arg);
 			if (value == (LogLevel) - 1)
-				fatal("%.200s line %d: unsupported log level '%s'\n",
+				fatal("%.200s line %d: unsupported log level '%s'",
 				    filename, linenum, arg ? arg : "<NONE>");
 			if (*intptr == -1)
 				*intptr = (LogLevel) value;
@@ -615,7 +615,7 @@ parse_flag:
 		case sAllowUsers:
 			while ((arg = strdelim(&cp)) && *arg != '\0') {
 				if (options->num_allow_users >= MAX_ALLOW_USERS)
-					fatal("%s line %d: too many allow users.\n",
+					fatal("%s line %d: too many allow users.",
 					    filename, linenum);
 				options->allow_users[options->num_allow_users++] = xstrdup(arg);
 			}
@@ -624,7 +624,7 @@ parse_flag:
 		case sDenyUsers:
 			while ((arg = strdelim(&cp)) && *arg != '\0') {
 				if (options->num_deny_users >= MAX_DENY_USERS)
-					fatal( "%s line %d: too many deny users.\n",
+					fatal( "%s line %d: too many deny users.",
 					    filename, linenum);
 				options->deny_users[options->num_deny_users++] = xstrdup(arg);
 			}
@@ -633,7 +633,7 @@ parse_flag:
 		case sAllowGroups:
 			while ((arg = strdelim(&cp)) && *arg != '\0') {
 				if (options->num_allow_groups >= MAX_ALLOW_GROUPS)
-					fatal("%s line %d: too many allow groups.\n",
+					fatal("%s line %d: too many allow groups.",
 					    filename, linenum);
 				options->allow_groups[options->num_allow_groups++] = xstrdup(arg);
 			}
@@ -642,7 +642,7 @@ parse_flag:
 		case sDenyGroups:
 			while ((arg = strdelim(&cp)) && *arg != '\0') {
 				if (options->num_deny_groups >= MAX_DENY_GROUPS)
-					fatal("%s line %d: too many deny groups.\n",
+					fatal("%s line %d: too many deny groups.",
 					    filename, linenum);
 				options->deny_groups[options->num_deny_groups++] = xstrdup(arg);
 			}

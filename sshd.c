@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.171 2001/03/04 01:46:30 djm Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.172 2001/03/04 17:42:28 millert Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -738,7 +738,7 @@ main(int ac, char **av)
 		options.protocol &= ~SSH_PROTO_2;
 	}
 	if (!(options.protocol & (SSH_PROTO_1|SSH_PROTO_2))) {
-		log("sshd: no hostkeys available -- exiting.\n");
+		log("sshd: no hostkeys available -- exiting.");
 		exit(1);
 	}
 

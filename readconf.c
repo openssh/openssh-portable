@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.63 2001/02/24 10:37:55 deraadt Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.64 2001/03/04 17:42:28 millert Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -187,7 +187,7 @@ add_local_forward(Options *options, u_short port, const char *host,
 #ifndef HAVE_CYGWIN
 	extern uid_t original_real_uid;
 	if (port < IPPORT_RESERVED && original_real_uid != 0)
-		fatal("Privileged ports can only be forwarded by root.\n");
+		fatal("Privileged ports can only be forwarded by root.");
 #endif
 	if (options->num_local_forwards >= SSH_MAX_FORWARDS_PER_DIRECTION)
 		fatal("Too many local forwards (max %d).", SSH_MAX_FORWARDS_PER_DIRECTION);
@@ -534,7 +534,7 @@ parse_int:
 		arg = strdelim(&s);
 		value = log_level_number(arg);
 		if (value == (LogLevel) - 1)
-			fatal("%.200s line %d: unsupported log level '%s'\n",
+			fatal("%.200s line %d: unsupported log level '%s'",
 			      filename, linenum, arg ? arg : "<NONE>");
 		if (*activep && (LogLevel) * intptr == -1)
 			*intptr = (LogLevel) value;
@@ -659,7 +659,7 @@ read_config_file(const char *filename, const char *host, Options *options)
 	}
 	fclose(f);
 	if (bad_options > 0)
-		fatal("%s: terminating, %d bad configuration options\n",
+		fatal("%s: terminating, %d bad configuration options",
 		      filename, bad_options);
 }
 

@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.97 2001/03/04 00:03:59 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.98 2001/03/04 17:42:28 millert Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -521,7 +521,7 @@ channel_pre_x11_open_13(Channel *c, fd_set * readset, fd_set * writeset)
 		 * We have received an X11 connection that has bad
 		 * authentication information.
 		 */
-		log("X11 connection rejected because of wrong authentication.\r\n");
+		log("X11 connection rejected because of wrong authentication.");
 		buffer_clear(&c->input);
 		buffer_clear(&c->output);
 		close(c->sock);

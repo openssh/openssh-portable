@@ -28,7 +28,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.23 2001/03/01 02:18:04 deraadt Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.24 2001/03/04 17:42:28 millert Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -579,7 +579,7 @@ parse_dispatch_command(int in, int out, const char *cmd, char **pwd)
 		break;
 	case I_LPWD:
 		if (!getcwd(path_buf, sizeof(path_buf)))
-			error("Couldn't get local cwd: %s\n",
+			error("Couldn't get local cwd: %s",
 			    strerror(errno));
 		else
 			printf("Local working directory: %s\n",

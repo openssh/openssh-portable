@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfd.c,v 1.36 2001/03/01 02:11:25 deraadt Exp $");
+RCSID("$OpenBSD: authfd.c,v 1.37 2001/03/04 17:42:27 millert Exp $");
 
 #include <openssl/evp.h>
 
@@ -254,7 +254,7 @@ ssh_get_num_identities(AuthenticationConnection *auth, int version)
 	/* Get the number of entries in the response and check it for sanity. */
 	auth->howmany = buffer_get_int(&auth->identities);
 	if (auth->howmany > 1024)
-		fatal("Too many identities in authentication reply: %d\n",
+		fatal("Too many identities in authentication reply: %d",
 		    auth->howmany);
 
 	return auth->howmany;

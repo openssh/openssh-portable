@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.97 2001/02/15 23:19:59 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.98 2001/03/04 17:42:28 millert Exp $");
 
 #include <openssl/bn.h>
 
@@ -618,7 +618,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 			    "Are you sure you want to continue connecting (yes/no)? ",
 			    host, ip, type, key_fingerprint(host_key));
 			if (!read_yes_or_no(prompt, -1))
-				fatal("Aborted by user!\n");
+				fatal("Aborted by user!");
 		}
 		if (options.check_host_ip && ip_status == HOST_NEW) {
 			snprintf(hostline, sizeof(hostline), "%s,%s", host, ip);
@@ -719,7 +719,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 		} else if (options.strict_host_key_checking == 2) {
 			if (!read_yes_or_no("Are you sure you want " \
 			    "to continue connecting (yes/no)? ", -1))
-				fatal("Aborted by user!\n");
+				fatal("Aborted by user!");
 		}
 	}
 

@@ -34,7 +34,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: log.c,v 1.17 2001/03/04 17:42:28 millert Exp $");
+RCSID("$OpenBSD: log.c,v 1.16 2001/03/03 23:59:34 markus Exp $");
 
 #include "log.h"
 #include "xmalloc.h"
@@ -265,7 +265,7 @@ log_init(char *av0, LogLevel level, SyslogFacility facility, int on_stderr)
 		log_level = level;
 		break;
 	default:
-		fprintf(stderr, "Unrecognized internal syslog level code %d\n",
+		fprintf(stderr, "Unrecognized internal syslog level code %d",
 		    (int) level);
 		exit(1);
 	}
@@ -315,7 +315,7 @@ log_init(char *av0, LogLevel level, SyslogFacility facility, int on_stderr)
 		break;
 	default:
 		fprintf(stderr,
-		    "Unrecognized internal syslog facility code %d\n",
+		    "Unrecognized internal syslog facility code %d",
 		    (int) facility);
 		exit(1);
 	}
