@@ -45,7 +45,7 @@
  * XXX: we should tell the child how many bytes we need.
  */
 
-RCSID("$Id: entropy.c,v 1.42 2002/04/18 12:53:27 djm Exp $");
+RCSID("$Id: entropy.c,v 1.43 2002/04/21 18:26:10 tim Exp $");
 
 #ifndef OPENSSL_PRNG_ONLY
 #define RANDOM_SEED_SIZE 48
@@ -87,9 +87,10 @@ seed_rng(void)
 		close(devnull);
 
 		if (original_uid != original_euid && 
-		    setuid(original_uid) == -1) {
-			fprintf(stderr, "(rand child) setuid: %s\n", 
-			    strerror(errno));
+		    ( seteuid(getuid()) == -1 || 
+		      setuid(original_uid) == -1) ) {
+			fprintf(stderr, "(rand child) setuid(%d): %s\n", 
+			    original_uid, strerror(errno));
 			_exit(1);
 		}
 		
