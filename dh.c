@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: dh.c,v 1.26 2003/12/16 15:51:54 markus Exp $");
+RCSID("$OpenBSD: dh.c,v 1.27 2004/02/27 22:42:47 dtucker Exp $");
 
 #include "xmalloc.h"
 
@@ -89,6 +89,9 @@ parse_prime(int linenum, char *line, struct dhgroup *dhg)
 		goto failclean;
 
 	if (BN_num_bits(dhg->p) != dhg->size)
+		goto failclean;
+
+	if (BN_is_zero(dhg->g) || BN_is_one(dhg->g))
 		goto failclean;
 
 	return (1);
