@@ -7,6 +7,9 @@
      [clientloop.c monitor.c monitor_wrap.c packet.c packet.h readconf.c]
      [readconf.h serverloop.c sshconnect2.c]
      reapply rekeying chage, tested by henning@, ok djm@
+   - markus@cvs.openbsd.org 2003/04/02 14:36:26
+     [ssh-keysign.c]
+     potential segfault if KEY_UNSPEC; cjwatson@debian.org; bug #526
 
 20030402
  - (bal) if IP_TOS is not found or broken don't try to compile in
@@ -1309,4 +1312,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2652 2003/04/09 10:50:06 djm Exp $
+$Id: ChangeLog,v 1.2653 2003/04/09 10:50:26 djm Exp $
