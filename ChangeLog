@@ -1,4 +1,4 @@
-20010525
+20010625
  - OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2001/06/21 21:08:25
      [session.c]
@@ -43,6 +43,9 @@
      *known_hosts2 is obsolete for hostbased authentication and
      only used for backward compat. merge ssh1/2 hostkey check
      and move it to auth.c
+   - deraadt@cvs.openbsd.org 2001/06/23 02:33:05
+     [sftp.1 sftp-server.8 ssh-keygen.1]
+     join .%A entries; most by bk@rt.fm
 
 20010622
  - (stevesk) handle systems without pw_expire and pw_change.
@@ -5727,4 +5730,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1307 2001/06/25 04:30:16 mouring Exp $
+$Id: ChangeLog,v 1.1308 2001/06/25 04:32:38 mouring Exp $
