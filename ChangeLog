@@ -1,6 +1,10 @@
 20011023
  - (bal) Updated version to 3.0p1 in preparing for release.
  - (bal) Added 'PAM_TTY_KLUDGE' to Solaris platform.
+ - (tim) [configure.in] Fix test for broken dirname. Based on patch from
+	 Dave Dykstra <dwd@bell-labs.com>. Remove un-needed test for zlib.h.
+	 [contrib/caldera/openssh.spec, contrib/redhat/openssh.spec,
+	 contrib/suse/openssh.spec] Update version to match version.h
 
 20011022
  - (djm) Fix fd leak in loginrec.c (ro fd to lastlog was left open).
@@ -6748,4 +6752,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1613 2001/10/23 17:14:00 mouring Exp $
+$Id: ChangeLog,v 1.1614 2001/10/24 05:36:54 tim Exp $

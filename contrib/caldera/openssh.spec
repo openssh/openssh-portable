@@ -1,11 +1,11 @@
 %define askpass		1.2.4.1
 
 Name        	: openssh
-Version     	: 2.9.9p2
-Release     	: 3
+Version     	: 3.0p2
+Release     	: 1
 Group       	: System/Network
 
-Summary     	: OpenSSH free Secure Shell (SSH) implementation.
+Summary     	: OpenSSH free Secure Shell (SSH) protocol implementation.
 Summary(de) 	: OpenSSH - freie Implementation der Secure Shell (SSH).
 Summary(es) 	: OpenSSH implementación libre de Secure Shell (SSH).
 Summary(fr) 	: Implémentation libre du shell sécurisé OpenSSH (SSH).
@@ -24,7 +24,7 @@ BuildRoot   	: /tmp/%{Name}-%{Version}
 
 Source0: ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-%{Version}.tar.gz
 Source1: http://www.ntrnet.net/~jmknoble/software/x11-ssh-askpass/x11-ssh-askpass-%{askpass}.tar.gz
-Source2: http://www.openssh.com/openssh-faq.html
+Source2: http://www.openssh.com/faq.html
 
 
 %Package server
@@ -310,4 +310,4 @@ fi
 * Mon Jan 01 1998 ...
 Template Version: 1.31
 
-$Id: openssh.spec,v 1.21 2001/09/28 10:05:08 djm Exp $
+$Id: openssh.spec,v 1.22 2001/10/24 05:36:55 tim Exp $

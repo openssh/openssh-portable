@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.316 2001/10/23 17:14:01 mouring Exp $
+# $Id: configure.in,v 1.317 2001/10/24 05:36:55 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -396,11 +396,7 @@ AC_ARG_WITH(zlib,
 	]
 )
 
-AC_CHECK_HEADER(zlib.h,
-	AC_CHECK_LIB(z, gzread, ,
-		AC_MSG_ERROR([*** zlib missing. install first or check config.log ***])),
-	AC_MSG_ERROR([*** zlib missing. install first or check config.log ***]))
-
+AC_CHECK_LIB(z, deflate, ,AC_MSG_ERROR([*** zlib missing - please install first or check config.log ***]))
 
 # We don't want to check if we did an pcre override.
 if test -z "$no_comp_check" ; then
@@ -431,7 +427,7 @@ AC_FUNC_STRFTIME
 
 # Checks for header files.
 AC_CHECK_HEADERS(bstring.h crypt.h endian.h floatingpoint.h \
-	getopt.h glob.h lastlog.h libgen.h limits.h login.h \
+	getopt.h glob.h lastlog.h limits.h login.h \
 	login_cap.h maillock.h netdb.h netgroup.h \
 	netinet/in_systm.h paths.h poll.h pty.h regex.h \
 	security/pam_appl.h shadow.h stddef.h stdint.h \
@@ -581,10 +577,12 @@ AC_CHECK_FUNCS(arc4random atexit b64_ntop bcopy bindresvport_sa \
 	vhangup vsnprintf waitpid __b64_ntop _getpty)
 
 dnl IRIX and Solaris 2.5.1 have dirname() in libgen
-AC_CHECK_FUNCS(dirname, ,[
+AC_CHECK_FUNCS(dirname, [AC_CHECK_HEADERS(libgen.h)] ,[
 	AC_CHECK_LIB(gen, dirname,[
 		AC_CACHE_CHECK([for broken dirname],
 			ac_cv_have_broken_dirname, [
+			save_LIBS="$LIBS"
+			LIBS="$LIBS -lgen"
 			AC_TRY_RUN(
 				[
 #include <libgen.h>
@@ -595,7 +593,7 @@ int main(int argc, char **argv) {
 
     strncpy(buf,"/etc", 32);
     s = dirname(buf);
-    if (s && s[0] == '\0') {
+    if (!s || strncmp(s, "/", 32) != 0) {
 	exit(1);
     } else {
 	exit(0);
@@ -605,10 +603,12 @@ int main(int argc, char **argv) {
 				[ ac_cv_have_broken_dirname="no" ],
 				[ ac_cv_have_broken_dirname="yes" ]
 			)
+			LIBS="$save_LIBS"
 		])
-		if test "x$ac_cv_have_getopt_optreset" = "xno" ; then
+		if test "x$ac_cv_have_broken_dirname" = "xno" ; then
 			LIBS="$LIBS -lgen"
 			AC_DEFINE(HAVE_DIRNAME)
+			AC_CHECK_HEADERS(libgen.h)
 		fi
 	])
 ])
