@@ -305,7 +305,7 @@ static struct {
 	{ "kerberosauthentication", sKerberosAuthentication },
 	{ "kerberosorlocalpasswd", sKerberosOrLocalPasswd },
 	{ "kerberosticketcleanup", sKerberosTicketCleanup },
-#ifdef AFS
+#ifdef USE_AFS
 	{ "kerberosgetafstoken", sKerberosGetAFSToken },
 #else
 	{ "kerberosgetafstoken", sUnsupported },

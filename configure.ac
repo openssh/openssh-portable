@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.186 2004/01/23 06:13:33 dtucker Exp $
+# $Id: configure.ac,v 1.187 2004/01/23 11:03:10 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -2128,7 +2128,7 @@ AC_ARG_WITH(kerberos5,
 		fi
 	fi ]
 	AC_SEARCH_LIBS(k_hasafs, kafs,
-		[ AC_DEFINE(AFS)
+		[ AC_DEFINE(USE_AFS)
 		  K5LIBS="-lkafs $K5LIBS"
 		]
 	)
