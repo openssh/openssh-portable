@@ -733,7 +733,7 @@ server_input_channel_open(int type, int plen)
 	rwindow = packet_get_int();
 	rmaxpack = packet_get_int();
 
-	log("channel_input_open: ctype %s rchan %d win %d max %d",
+	debug("channel_input_open: ctype %s rchan %d win %d max %d",
 	    ctype, rchan, rwindow, rmaxpack);
 
 	if (strcmp(ctype, "session") == 0) {

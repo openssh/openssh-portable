@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: servconf.c,v 1.12 2000/04/16 01:18:45 damien Exp $");
+RCSID("$Id: servconf.c,v 1.13 2000/04/29 13:57:11 damien Exp $");
 
 #include "ssh.h"
 #include "servconf.h"
@@ -143,7 +143,7 @@ fill_default_server_options(ServerOptions *options)
 	if (options->use_login == -1)
 		options->use_login = 0;
 	if (options->protocol == SSH_PROTO_UNKNOWN)
-		options->protocol = SSH_PROTO_1;
+		options->protocol = SSH_PROTO_1|SSH_PROTO_2;
 }
 
 #define WHITESPACE " \t\r\n"

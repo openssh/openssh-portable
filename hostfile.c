@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: hostfile.c,v 1.16 2000/04/14 10:30:31 markus Exp $");
+RCSID("$OpenBSD: hostfile.c,v 1.17 2000/04/26 20:56:29 markus Exp $");
 
 #include "packet.h"
 #include "match.h"
@@ -39,13 +39,8 @@ hostfile_read_key(char **cpp, unsigned int *bitsp, Key *ret)
 	for (cp = *cpp; *cp == ' ' || *cp == '\t'; cp++)
 		;
 
-	/* Get number of bits. */
-	if (*cp < '0' || *cp > '9')
-		return 0;	/* Bad bit count... */
-	for (bits = 0; *cp >= '0' && *cp <= '9'; cp++)
-		bits = 10 * bits + *cp - '0';
-
-	if (!key_read(ret, bits, &cp))
+	bits = key_read(ret, &cp);
+	if (bits == 0)
 		return 0;
 
 	/* Skip trailing whitespace. */
@@ -182,24 +177,18 @@ add_host_to_hostfile(const char *filename, const char *host, Key *key)
 {
 	FILE *f;
 	int success = 0;
-
 	if (key == NULL)
-		return 1;
-
-	/* Open the file for appending. */
+		return 1;	/* XXX ? */
 	f = fopen(filename, "a");
 	if (!f)
 		return 0;
-
 	fprintf(f, "%s ", host);
 	if (key_write(key, f)) {
-		fprintf(f, "\n");
 		success = 1;
 	} else {
-		error("add_host_to_hostfile: saving key failed");
+		error("add_host_to_hostfile: saving key in %s failed", filename);
 	}
-
-	/* Close the file. */
+	fprintf(f, "\n");
 	fclose(f);
 	return success;
 }

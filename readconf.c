@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: readconf.c,v 1.11 2000/04/16 01:18:44 damien Exp $");
+RCSID("$Id: readconf.c,v 1.12 2000/04/29 13:57:11 damien Exp $");
 
 #include "ssh.h"
 #include "cipher.h"
@@ -104,7 +104,8 @@ typedef enum {
 	oGlobalKnownHostsFile, oUserKnownHostsFile, oConnectionAttempts,
 	oBatchMode, oCheckHostIP, oStrictHostKeyChecking, oCompression,
 	oCompressionLevel, oKeepAlives, oNumberOfPasswordPrompts, oTISAuthentication,
-	oUsePrivilegedPort, oLogLevel, oCiphers, oProtocol
+	oUsePrivilegedPort, oLogLevel, oCiphers, oProtocol, oIdentityFile2,
+	oGlobalKnownHostsFile2, oUserKnownHostsFile2
 } OpCodes;
 
 /* Textual representations of the tokens. */
@@ -131,6 +132,7 @@ static struct {
 	{ "fallbacktorsh", oFallBackToRsh },
 	{ "usersh", oUseRsh },
 	{ "identityfile", oIdentityFile },
+	{ "identityfile2", oIdentityFile2 },
 	{ "hostname", oHostName },
 	{ "proxycommand", oProxyCommand },
 	{ "port", oPort },
@@ -145,6 +147,8 @@ static struct {
 	{ "rhostsrsaauthentication", oRhostsRSAAuthentication },
 	{ "globalknownhostsfile", oGlobalKnownHostsFile },
 	{ "userknownhostsfile", oUserKnownHostsFile },
+	{ "globalknownhostsfile2", oGlobalKnownHostsFile2 },
+	{ "userknownhostsfile2", oUserKnownHostsFile2 },
 	{ "connectionattempts", oConnectionAttempts },
 	{ "batchmode", oBatchMode },
 	{ "checkhostip", oCheckHostIP },
@@ -368,14 +372,22 @@ parse_flag:
 		goto parse_int;
 
 	case oIdentityFile:
+	case oIdentityFile2:
 		cp = strtok(NULL, WHITESPACE);
 		if (!cp)
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
 		if (*activep) {
-			if (options->num_identity_files >= SSH_MAX_IDENTITY_FILES)
+			intptr = (opcode == oIdentityFile) ?
+			    &options->num_identity_files :
+			    &options->num_identity_files2;
+			if (*intptr >= SSH_MAX_IDENTITY_FILES)
 				fatal("%.200s line %d: Too many identity files specified (max %d).",
 				      filename, linenum, SSH_MAX_IDENTITY_FILES);
-			options->identity_files[options->num_identity_files++] = xstrdup(cp);
+			charptr = (opcode == oIdentityFile) ?
+			    &options->identity_files[*intptr] :
+			    &options->identity_files2[*intptr];
+			*charptr = xstrdup(cp);
+			*intptr = *intptr + 1;
 		}
 		break;
 
@@ -395,6 +407,14 @@ parse_string:
 
 	case oUserKnownHostsFile:
 		charptr = &options->user_hostfile;
+		goto parse_string;
+
+	case oGlobalKnownHostsFile2:
+		charptr = &options->system_hostfile2;
+		goto parse_string;
+
+	case oUserKnownHostsFile2:
+		charptr = &options->user_hostfile2;
 		goto parse_string;
 
 	case oHostName:
@@ -642,12 +662,15 @@ initialize_options(Options * options)
 	options->ciphers = NULL;
 	options->protocol = SSH_PROTO_UNKNOWN;
 	options->num_identity_files = 0;
+	options->num_identity_files2 = 0;
 	options->hostname = NULL;
 	options->proxy_command = NULL;
 	options->user = NULL;
 	options->escape_char = -1;
 	options->system_hostfile = NULL;
 	options->user_hostfile = NULL;
+	options->system_hostfile2 = NULL;
+	options->user_hostfile2 = NULL;
 	options->num_local_forwards = 0;
 	options->num_remote_forwards = 0;
 	options->log_level = (LogLevel) - 1;
@@ -715,19 +738,31 @@ fill_default_options(Options * options)
 	if (options->cipher == -1)
 		options->cipher = SSH_CIPHER_NOT_SET;
 	if (options->protocol == SSH_PROTO_UNKNOWN)
-		options->protocol = SSH_PROTO_1;
+		options->protocol = SSH_PROTO_1|SSH_PROTO_2|SSH_PROTO_1_PREFERRED;
 	if (options->num_identity_files == 0) {
 		options->identity_files[0] =
 			xmalloc(2 + strlen(SSH_CLIENT_IDENTITY) + 1);
 		sprintf(options->identity_files[0], "~/%.100s", SSH_CLIENT_IDENTITY);
 		options->num_identity_files = 1;
 	}
+#if 0
+	if (options->num_identity_files2 == 0) {
+		options->identity_files2[0] =
+			xmalloc(2 + strlen(SSH2_CLIENT_IDENTITY) + 1);
+		sprintf(options->identity_files2[0], "~/%.100s", SSH2_CLIENT_IDENTITY);
+		options->num_identity_files2 = 1;
+	}
+#endif
 	if (options->escape_char == -1)
 		options->escape_char = '~';
 	if (options->system_hostfile == NULL)
 		options->system_hostfile = SSH_SYSTEM_HOSTFILE;
 	if (options->user_hostfile == NULL)
 		options->user_hostfile = SSH_USER_HOSTFILE;
+	if (options->system_hostfile2 == NULL)
+		options->system_hostfile2 = SSH_SYSTEM_HOSTFILE2;
+	if (options->user_hostfile2 == NULL)
+		options->user_hostfile2 = SSH_USER_HOSTFILE2;
 	if (options->log_level == (LogLevel) - 1)
 		options->log_level = SYSLOG_LEVEL_INFO;
 	/* options->proxy_command should not be set by default */

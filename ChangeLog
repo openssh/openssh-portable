@@ -1,3 +1,47 @@
+20000429
+ - Merge big update to OpenSSH-2.0 from OpenBSD CVS
+   [README.openssh2]
+   - interop w/ F-secure windows client
+   - sync documentation
+   - ssh_host_dsa_key not ssh_dsa_key
+   [auth-rsa.c]
+   - missing fclose
+   [auth.c authfile.c compat.c dsa.c dsa.h hostfile.c key.c key.h radix.c]
+   [readconf.c readconf.h ssh-add.c ssh-keygen.c ssh.c ssh.h sshconnect.c]
+   [sshd.c uuencode.c uuencode.h authfile.h]
+   - add DSA pubkey auth and other SSH2 fixes.  use ssh-keygen -[xX]
+     for trading keys with the real and the original SSH, directly from the
+     people who invented the SSH protocol.
+   [auth.c auth.h authfile.c sshconnect.c auth1.c auth2.c sshconnect.h]
+   [sshconnect1.c sshconnect2.c]
+   - split auth/sshconnect in one file per protocol version
+   [sshconnect2.c]
+   - remove debug
+   [uuencode.c]
+   - add trailing =
+   [version.h]
+   - OpenSSH-2.0
+   [ssh-keygen.1 ssh-keygen.c]
+   - add -R flag: exit code indicates if RSA is alive
+   [sshd.c]
+   - remove unused
+     silent if -Q is specified
+   [ssh.h]
+   - host key becomes /etc/ssh_host_dsa_key
+   [readconf.c servconf.c ]
+   - ssh/sshd default to proto 1 and 2
+   [uuencode.c]
+   - remove debug
+   [auth2.c ssh-keygen.c sshconnect2.c sshd.c]
+   - xfree DSA blobs
+   [auth2.c serverloop.c session.c]
+   - cleanup logging for sshd/2, respect PasswordAuth no
+   [sshconnect2.c]
+   - less debug, respect .ssh/config
+   [README.openssh2 channels.c channels.h]
+   - clientloop.c session.c ssh.c 
+   - support for x11-fwding, client+server
+
 20000421
  - Merge fix from OpenBSD CVS
   [ssh-agent.c]

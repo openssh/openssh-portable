@@ -13,7 +13,7 @@
  *
  */
 
-/* RCSID("$Id: ssh.h,v 1.34 2000/04/20 13:12:59 damien Exp $"); */
+/* RCSID("$Id: ssh.h,v 1.35 2000/04/29 13:57:12 damien Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -88,6 +88,7 @@
  * world-readable.
  */
 #define SSH_SYSTEM_HOSTFILE	ETCDIR "/ssh_known_hosts"
+#define SSH_SYSTEM_HOSTFILE2	ETCDIR "/ssh_known_hosts2"
 
 /*
  * Of these, ssh_host_key must be readable only by root, whereas ssh_config
@@ -96,7 +97,7 @@
 #define HOST_KEY_FILE		ETCDIR "/ssh_host_key"
 #define SERVER_CONFIG_FILE	ETCDIR "/sshd_config"
 #define HOST_CONFIG_FILE	ETCDIR "/ssh_config"
-#define DSA_KEY_FILE		ETCDIR "/ssh_dsa_key"
+#define DSA_KEY_FILE		ETCDIR "/ssh_host_dsa_key"
 
 #ifndef SSH_PROGRAM
 #define SSH_PROGRAM			"/usr/bin/ssh"
@@ -128,6 +129,7 @@
  * contain anything particularly secret.
  */
 #define SSH_USER_HOSTFILE	"~/.ssh/known_hosts"
+#define SSH_USER_HOSTFILE2	"~/.ssh/known_hosts2"
 
 /*
  * Name of the default file containing client-side authentication key. This
@@ -152,6 +154,7 @@
  * running as root.)
  */
 #define SSH_USER_PERMITTED_KEYS	".ssh/authorized_keys"
+#define SSH_USER_PERMITTED_KEYS2	".ssh/authorized_keys2"
 
 /*
  * Per-user and system-wide ssh "rc" files.  These files are executed with
@@ -407,36 +410,6 @@ int     auth_rsa_challenge_dialog(RSA *pk);
  */
 char   *read_passphrase(const char *prompt, int from_stdin);
 
-/*
- * Saves the authentication (private) key in a file, encrypting it with
- * passphrase.  The identification of the file (lowest 64 bits of n) will
- * precede the key to provide identification of the key without needing a
- * passphrase.
- */
-int
-save_private_key(const char *filename, const char *passphrase,
-    RSA * private_key, const char *comment);
-
-/*
- * Loads the public part of the key file (public key and comment). Returns 0
- * if an error occurred; zero if the public key was successfully read.  The
- * comment of the key is returned in comment_return if it is non-NULL; the
- * caller must free the value with xfree.
- */
-int
-load_public_key(const char *filename, RSA * pub,
-    char **comment_return);
-
-/*
- * Loads the private key from the file.  Returns 0 if an error is encountered
- * (file does not exist or is not readable, or passphrase is bad). This
- * initializes the private key.  The comment of the key is returned in
- * comment_return if it is non-NULL; the caller must free the value with
- * xfree.
- */
-int
-load_private_key(const char *filename, const char *passphrase,
-    RSA * private_key, char **comment_return);
 
 /*------------ Definitions for logging. -----------------------*/
 

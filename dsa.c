@@ -28,7 +28,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: dsa.c,v 1.4 2000/04/14 10:30:31 markus Exp $");
+RCSID("$Id: dsa.c,v 1.5 2000/04/26 20:56:29 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -47,13 +47,14 @@ RCSID("$Id: dsa.c,v 1.4 2000/04/14 10:30:31 markus Exp $");
 #include <openssl/hmac.h>
 #include "kex.h"
 #include "key.h"
+#include "uuencode.h"
 
 #define INTBLOB_LEN	20
 #define SIGBLOB_LEN	(2*INTBLOB_LEN)
 
 Key *
-dsa_serverkey_from_blob(
-    char *serverhostkey, int serverhostkeylen)
+dsa_key_from_blob(
+    char *blob, int blen)
 {
 	Buffer b;
 	char *ktype;
@@ -61,14 +62,17 @@ dsa_serverkey_from_blob(
 	DSA *dsa;
 	Key *key;
 
+#ifdef DEBUG_DSS
+	dump_base64(blob, blen);
+#endif
 	/* fetch & parse DSA/DSS pubkey */
 	key = key_new(KEY_DSA);
 	dsa = key->dsa;
 	buffer_init(&b);
-	buffer_append(&b, serverhostkey, serverhostkeylen);
+	buffer_append(&b, blob, blen);
 	ktype = buffer_get_string(&b, NULL);
 	if (strcmp(KEX_DSS, ktype) != 0) {
-		error("dsa_serverkey_from_blob: cannot handle type  %s", ktype);
+		error("dsa_key_from_blob: cannot handle type  %s", ktype);
 		key_free(key);
 		return NULL;
 	}
@@ -78,7 +82,7 @@ dsa_serverkey_from_blob(
 	buffer_get_bignum2(&b, dsa->pub_key);
 	rlen = buffer_len(&b);
 	if(rlen != 0)
-		error("dsa_serverkey_from_blob: remaining bytes in serverhostkey %d", rlen);
+		error("dsa_key_from_blob: remaining bytes in key blob %d", rlen);
 	buffer_free(&b);
 
 	debug("keytype %s", ktype);
@@ -87,37 +91,8 @@ dsa_serverkey_from_blob(
 #endif
 	return key;
 }
-DSA *
-dsa_load_private(char *filename)
-{
-	DSA *dsa;
-	BIO *in;
-
-	in = BIO_new(BIO_s_file());
-	if (in == NULL)
-		fatal("BIO_new failed");
-	if (BIO_read_filename(in, filename) <= 0)
-		fatal("BIO_read failed %s: %s", filename, strerror(errno));
-	fprintf(stderr, "read DSA private key\n");
-	dsa = PEM_read_bio_DSAPrivateKey(in,NULL,NULL,NULL);
-	if (dsa == NULL)
-		fatal("PEM_read_bio_DSAPrivateKey failed %s", filename);
-	BIO_free(in);
-	return dsa;
-}
-Key *
-dsa_get_serverkey(char *filename)
-{
-	Key *k = key_new(KEY_EMPTY);
-	k->type = KEY_DSA;
-	k->dsa = dsa_load_private(filename);
-#ifdef DEBUG_DSS
-	DSA_print_fp(stderr, dsa, 8);
-#endif
-	return k;
-}
 int
-dsa_make_serverkey_blob(Key *key, unsigned char **blobp, unsigned int *lenp)
+dsa_make_key_blob(Key *key, unsigned char **blobp, unsigned int *lenp)
 {
 	Buffer b;
 	int len;
@@ -146,7 +121,7 @@ int
 dsa_sign(
     Key *key,
     unsigned char **sigp, int *lenp,
-    unsigned char *hash, int hlen)
+    unsigned char *data, int datalen)
 {
 	unsigned char *digest;
 	unsigned char *ret;
@@ -165,10 +140,13 @@ dsa_sign(
 	}
 	digest = xmalloc(evp_md->md_size);
 	EVP_DigestInit(&md, evp_md);
-	EVP_DigestUpdate(&md, hash, hlen);
+	EVP_DigestUpdate(&md, data, datalen);
 	EVP_DigestFinal(&md, digest, NULL);
 
 	sig = DSA_do_sign(digest, evp_md->md_size, key->dsa);
+	if (sig == NULL) {
+		fatal("dsa_sign: cannot sign");
+	}
 
 	rlen = BN_num_bytes(sig->r);
 	slen = BN_num_bytes(sig->s);
@@ -212,7 +190,7 @@ int
 dsa_verify(
     Key *key,
     unsigned char *signature, int signaturelen,
-    unsigned char *hash, int hlen)
+    unsigned char *data, int datalen)
 {
 	Buffer b;
 	unsigned char *digest;
@@ -269,10 +247,10 @@ dsa_verify(
 		xfree(sigblob);
 	}
 	
-	/* sha1 the signed data (== session_id == hash) */
+	/* sha1 the data */
 	digest = xmalloc(evp_md->md_size);
 	EVP_DigestInit(&md, evp_md);
-	EVP_DigestUpdate(&md, hash, hlen);
+	EVP_DigestUpdate(&md, data, datalen);
 	EVP_DigestFinal(&md, digest, NULL);
 
 	ret = DSA_do_verify(digest, evp_md->md_size, sig, key->dsa);
@@ -295,4 +273,22 @@ dsa_verify(
 	}
 	debug("dsa_verify: signature %s", txt);
 	return ret;
+}
+
+Key *
+dsa_generate_key(unsigned int bits)
+{
+	DSA *dsa = DSA_generate_parameters(bits, NULL, 0, NULL, NULL, NULL, NULL);
+	Key *k;
+	if (dsa == NULL) {
+		fatal("DSA_generate_parameters failed");
+	}
+	if (!DSA_generate_key(dsa)) {
+		fatal("DSA_generate_keys failed");
+	}
+
+	k = key_new(KEY_EMPTY);
+	k->type = KEY_DSA;
+	k->dsa = dsa;
+	return k;
 }

@@ -18,6 +18,7 @@ void	key_free(Key *k);
 int	key_equal(Key *a, Key *b);
 char	*key_fingerprint(Key *k);
 int	key_write(Key *key, FILE *f);
-int	key_read(Key *key, unsigned int bits, char **cpp);
+unsigned int
+key_read(Key *key, char **cpp);
 
 #endif

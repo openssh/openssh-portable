@@ -11,7 +11,11 @@
  */
 
 #include "includes.h"
-RCSID("$Id: ssh.c,v 1.26 2000/04/16 01:18:46 damien Exp $");
+RCSID("$Id: ssh.c,v 1.27 2000/04/29 13:57:12 damien Exp $");
+
+#include <openssl/evp.h>
+#include <openssl/dsa.h>
+#include <openssl/rsa.h>
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -24,6 +28,8 @@ RCSID("$Id: ssh.c,v 1.26 2000/04/16 01:18:46 damien Exp $");
 #include "ssh2.h"
 #include "compat.h"
 #include "channels.h"
+#include "key.h"
+#include "authfile.h"
 
 #ifdef HAVE___PROGNAME
 extern char *__progname;
@@ -358,10 +364,16 @@ main(int ac, char **av)
 			}
 			break;
 		case 'c':
-			options.cipher = cipher_number(optarg);
-			if (options.cipher == -1) {
-				fprintf(stderr, "Unknown cipher type '%s'\n", optarg);
-				exit(1);
+			if (ciphers_valid(optarg)) {
+				/* SSH2 only */
+				options.ciphers = xstrdup(optarg);
+			} else {
+				/* SSH1 only */
+				options.cipher = cipher_number(optarg);
+				if (options.cipher == -1) {
+					fprintf(stderr, "Unknown cipher type '%s'\n", optarg);
+					exit(1);
+				}
 			}
 			break;
 		case 'p':
@@ -417,16 +429,11 @@ main(int ac, char **av)
 	if (!host)
 		usage();
 
-	/* check if RSA support exists */
-	if (rsa_alive() == 0) {
-		fprintf(stderr,
-			"%s: no RSA support in libssl and libcrypto.  See ssl(8).\n",
-			__progname);
-		exit(1);
-	}
 	/* Initialize the command to execute on remote host. */
 	buffer_init(&command);
 
+	OpenSSL_add_all_algorithms();
+	
 	/*
 	 * Save the command to execute on the remote host in a buffer. There
 	 * is no limit on the length of the command, except by the maximum
@@ -496,6 +503,20 @@ main(int ac, char **av)
 	/* reinit */
 	log_init(av[0], options.log_level, SYSLOG_FACILITY_USER, 0);
 
+	/* check if RSA support exists */
+	if ((options.protocol & SSH_PROTO_1) &&
+	    rsa_alive() == 0) {
+		log("%s: no RSA support in libssl and libcrypto.  See ssl(8).",
+		    __progname);
+		log("Disabling protocol version 1");
+		options.protocol &= ~ (SSH_PROTO_1|SSH_PROTO_1_PREFERRED);
+	}
+	if (! options.protocol & (SSH_PROTO_1|SSH_PROTO_2)) {
+		fprintf(stderr, "%s: No protocol version available.\n",
+		    __progname);
+ 		exit(1);
+	}
+
 	if (options.user == NULL)
 		options.user = xstrdup(pw->pw_name);
 
@@ -562,9 +583,12 @@ main(int ac, char **av)
 	 * authentication. This must be done before releasing extra
 	 * privileges, because the file is only readable by root.
 	 */
-	if (ok) {
+	if (ok && (options.protocol & SSH_PROTO_1)) {
+		Key k;
 		host_private_key = RSA_new();
-		if (load_private_key(HOST_KEY_FILE, "", host_private_key, NULL))
+		k.type = KEY_RSA;
+		k.rsa = host_private_key;
+		if (load_private_key(HOST_KEY_FILE, "", &k, NULL))
 			host_private_key_loaded = 1;
 	}
 	/*
@@ -610,15 +634,22 @@ main(int ac, char **av)
 		exit(1);
 	}
 	/* Expand ~ in options.identity_files. */
+	/* XXX mem-leaks */
 	for (i = 0; i < options.num_identity_files; i++)
 		options.identity_files[i] =
 			tilde_expand_filename(options.identity_files[i], original_real_uid);
-
+	for (i = 0; i < options.num_identity_files2; i++)
+		options.identity_files2[i] =
+			tilde_expand_filename(options.identity_files2[i], original_real_uid);
 	/* Expand ~ in known host file names. */
 	options.system_hostfile = tilde_expand_filename(options.system_hostfile,
-							original_real_uid);
+	    original_real_uid);
 	options.user_hostfile = tilde_expand_filename(options.user_hostfile,
-						      original_real_uid);
+	    original_real_uid);
+	options.system_hostfile2 = tilde_expand_filename(options.system_hostfile2,
+	    original_real_uid);
+	options.user_hostfile2 = tilde_expand_filename(options.user_hostfile2,
+	    original_real_uid);
 
 	/* Log into the remote system.  This never returns if the login fails. */
 	ssh_login(host_private_key_loaded, host_private_key,

@@ -16,7 +16,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: auth-rsa.c,v 1.17 2000/04/16 02:31:49 damien Exp $");
+RCSID("$Id: auth-rsa.c,v 1.18 2000/04/29 13:57:09 damien Exp $");
 
 #include "rsa.h"
 #include "packet.h"
@@ -185,6 +185,7 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 			}
 		}
 		if (fail) {
+			fclose(f);
 			log(buf);
 			packet_send_debug(buf);
 			restore_uid();
