@@ -15,6 +15,8 @@
 # source function library
 . /etc/rc.d/init.d/functions
 
+[ -f /etc/sysconfig/sshd ] && . /etc/sysconfig/sshd
+
 RETVAL=0
 
 # Some functions to make the below more readable
@@ -104,7 +106,7 @@ case "$1" in
 		
 		echo -n "Starting sshd: "
 		if [ ! -f $PID_FILE ] ; then
-			sshd
+			sshd $OPTIONS
 			RETVAL=$?
 			if [ "$RETVAL" = "0" ] ; then
 				my_success "sshd startup" "sshd"

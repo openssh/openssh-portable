@@ -5,6 +5,8 @@
    Carson Gaspar <carson@taltos.org>
  - (bal) arpa/nameser.h does not exist on Cygwin.  Patch by Corinna 
    Vinschen <vinschen@redhat.com>
+ - (bal) Add /etc/sysconfig/sshd support to redhat's sshd.init. Patch by
+   Pekka Savola <pekkas@netcore.fi>
 
 20010425
  - OpenBSD CVS Sync
@@ -5260,4 +5262,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1174 2001/04/27 00:34:44 mouring Exp $
+$Id: ChangeLog,v 1.1175 2001/04/27 00:46:17 mouring Exp $
