@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.83 2002/01/29 14:32:03 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.84 2002/02/04 11:58:10 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -397,7 +397,7 @@ static int
 userauth_pubkey(Authctxt *authctxt)
 {
 	Buffer b;
-	Key *key;
+	Key *key = NULL;
 	char *pkalg, *pkblob, *sig;
 	u_int alen, blen, slen;
 	int have_sig, pktype;
@@ -424,72 +424,80 @@ userauth_pubkey(Authctxt *authctxt)
 	pktype = key_type_from_name(pkalg);
 	if (pktype == KEY_UNSPEC) {
 		/* this is perfectly legal */
-		log("userauth_pubkey: unsupported public key algorithm: %s", pkalg);
-		xfree(pkalg);
-		xfree(pkblob);
-		return 0;
+		log("userauth_pubkey: unsupported public key algorithm: %s",
+		    pkalg);
+		goto done;
 	}
 	key = key_from_blob(pkblob, blen);
-	if (key != NULL) {
-		if (have_sig) {
-			sig = packet_get_string(&slen);
-			packet_check_eom();
-			buffer_init(&b);
-			if (datafellows & SSH_OLD_SESSIONID) {
-				buffer_append(&b, session_id2, session_id2_len);
-			} else {
-				buffer_put_string(&b, session_id2, session_id2_len);
-			}
-			/* reconstruct packet */
-			buffer_put_char(&b, SSH2_MSG_USERAUTH_REQUEST);
-			buffer_put_cstring(&b, authctxt->user);
-			buffer_put_cstring(&b,
-			    datafellows & SSH_BUG_PKSERVICE ?
-			    "ssh-userauth" :
-			    authctxt->service);
-			if (datafellows & SSH_BUG_PKAUTH) {
-				buffer_put_char(&b, have_sig);
-			} else {
-				buffer_put_cstring(&b, "publickey");
-				buffer_put_char(&b, have_sig);
-				buffer_put_cstring(&b, pkalg);
-			}
-			buffer_put_string(&b, pkblob, blen);
-#ifdef DEBUG_PK
-			buffer_dump(&b);
-#endif
-			/* test for correct signature */
-			if (user_key_allowed(authctxt->pw, key) &&
-			    key_verify(key, sig, slen, buffer_ptr(&b), buffer_len(&b)) == 1)
-				authenticated = 1;
-			buffer_clear(&b);
-			xfree(sig);
-		} else {
-			debug("test whether pkalg/pkblob are acceptable");
-			packet_check_eom();
-
-			/* XXX fake reply and always send PK_OK ? */
-			/*
-			 * XXX this allows testing whether a user is allowed
-			 * to login: if you happen to have a valid pubkey this
-			 * message is sent. the message is NEVER sent at all
-			 * if a user is not allowed to login. is this an
-			 * issue? -markus
-			 */
-			if (user_key_allowed(authctxt->pw, key)) {
-				packet_start(SSH2_MSG_USERAUTH_PK_OK);
-				packet_put_string(pkalg, alen);
-				packet_put_string(pkblob, blen);
-				packet_send();
-				packet_write_wait();
-				authctxt->postponed = 1;
-			}
-		}
-		if (authenticated != 1)
-			auth_clear_options();
-		key_free(key);
+	if (key == NULL) {
+		error("userauth_pubkey: cannot decode key: %s", pkalg);
+		goto done;
 	}
+	if (key->type != pktype) {
+		error("userauth_pubkey: type mismatch for decoded key "
+		    "(received %d, expected %d)", key->type, pktype);
+		goto done;
+	}
+	if (have_sig) {
+		sig = packet_get_string(&slen);
+		packet_check_eom();
+		buffer_init(&b);
+		if (datafellows & SSH_OLD_SESSIONID) {
+			buffer_append(&b, session_id2, session_id2_len);
+		} else {
+			buffer_put_string(&b, session_id2, session_id2_len);
+		}
+		/* reconstruct packet */
+		buffer_put_char(&b, SSH2_MSG_USERAUTH_REQUEST);
+		buffer_put_cstring(&b, authctxt->user);
+		buffer_put_cstring(&b,
+		    datafellows & SSH_BUG_PKSERVICE ?
+		    "ssh-userauth" :
+		    authctxt->service);
+		if (datafellows & SSH_BUG_PKAUTH) {
+			buffer_put_char(&b, have_sig);
+		} else {
+			buffer_put_cstring(&b, "publickey");
+			buffer_put_char(&b, have_sig);
+			buffer_put_cstring(&b, pkalg);
+		}
+		buffer_put_string(&b, pkblob, blen);
+#ifdef DEBUG_PK
+		buffer_dump(&b);
+#endif
+		/* test for correct signature */
+		if (user_key_allowed(authctxt->pw, key) &&
+		    key_verify(key, sig, slen, buffer_ptr(&b), buffer_len(&b)) == 1)
+			authenticated = 1;
+		buffer_clear(&b);
+		xfree(sig);
+	} else {
+		debug("test whether pkalg/pkblob are acceptable");
+		packet_check_eom();
+
+		/* XXX fake reply and always send PK_OK ? */
+		/*
+		 * XXX this allows testing whether a user is allowed
+		 * to login: if you happen to have a valid pubkey this
+		 * message is sent. the message is NEVER sent at all
+		 * if a user is not allowed to login. is this an
+		 * issue? -markus
+		 */
+		if (user_key_allowed(authctxt->pw, key)) {
+			packet_start(SSH2_MSG_USERAUTH_PK_OK);
+			packet_put_string(pkalg, alen);
+			packet_put_string(pkblob, blen);
+			packet_send();
+			packet_write_wait();
+			authctxt->postponed = 1;
+		}
+	}
+	if (authenticated != 1)
+		auth_clear_options();
+done:
 	debug2("userauth_pubkey: authenticated %d pkalg %s", authenticated, pkalg);
+	if (key != NULL)
+		key_free(key);
 	xfree(pkalg);
 	xfree(pkblob);
 #ifdef HAVE_CYGWIN
@@ -503,7 +511,7 @@ static int
 userauth_hostbased(Authctxt *authctxt)
 {
 	Buffer b;
-	Key *key;
+	Key *key = NULL;
 	char *pkalg, *pkblob, *sig, *cuser, *chost, *service;
 	u_int alen, blen, slen;
 	int pktype;
@@ -537,7 +545,12 @@ userauth_hostbased(Authctxt *authctxt)
 	}
 	key = key_from_blob(pkblob, blen);
 	if (key == NULL) {
-		debug("userauth_hostbased: cannot decode key: %s", pkalg);
+		error("userauth_hostbased: cannot decode key: %s", pkalg);
+		goto done;
+	}
+	if (key->type != pktype) {
+		error("userauth_hostbased: type mismatch for decoded key "
+		    "(received %d, expected %d)", key->type, pktype);
 		goto done;
 	}
 	service = datafellows & SSH_BUG_HBSERVICE ? "ssh-userauth" :
@@ -562,10 +575,10 @@ userauth_hostbased(Authctxt *authctxt)
 		authenticated = 1;
 
 	buffer_clear(&b);
-	key_free(key);
-
 done:
 	debug2("userauth_hostbased: authenticated %d", authenticated);
+	if (key != NULL)
+		key_free(key);
 	xfree(pkalg);
 	xfree(pkblob);
 	xfree(cuser);
