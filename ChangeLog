@@ -6,6 +6,8 @@
    - stevesk@cvs.openbsd.org 2001/04/02 14:20:23
      [readconf.c servconf.c]
      correct comment; ok markus@
+ - (stevesk) nchan.c: remove ostate checks and add EINVAL to
+    shutdown(SHUT_RD) error() bypass for HP-UX.
 
 20010402
  - (stevesk) log.c openbsd sync; missing newlines
@@ -4805,4 +4807,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1046 2001/04/02 18:20:03 mouring Exp $
+$Id: ChangeLog,v 1.1047 2001/04/03 13:02:48 stevesk Exp $
