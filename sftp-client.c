@@ -29,7 +29,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.8 2001/02/08 17:11:23 stevesk Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.9 2001/02/10 00:41:46 djm Exp $");
 
 #include "ssh.h"
 #include "buffer.h"
@@ -331,7 +331,7 @@ do_ls(int fd_in, int fd_out, char *path)
 				error("Couldn't read directory: %s",
 				    fx2txt(status));
 				do_close(fd_in, fd_out, handle, handle_len);
-				return(0);
+				return(status);
 			}
 		} else if (type != SSH2_FXP_NAME)
 			fatal("Expected SSH2_FXP_NAME(%d) packet, got %d",

@@ -21,6 +21,8 @@
    - danh@cvs.openbsd.org 2001/02/10 15:14:11
      [scp.c]
      fix memory leak; ok markus@
+ - (bal) Minor correction to sftp-client.c I made.  Should return 'status'
+   instead of '0'  (from the OpenBSD tree)
 
 20010210
  - (djm) Sync sftp and scp stuff from OpenBSD:
@@ -3804,4 +3806,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.718 2001/02/10 21:50:00 mouring Exp $
+$Id: ChangeLog,v 1.719 2001/02/10 21:53:40 mouring Exp $
