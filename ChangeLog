@@ -13,6 +13,9 @@
    - markus@cvs.openbsd.org 2002/02/11 16:19:39
      [sshd.c]
      include md5.h not hmac.h
+   - markus@cvs.openbsd.org 2002/02/11 16:21:42
+     [match.c]
+     support up to 40 algorithms per proposal
 
 20020210
  - (djm) OpenBSD CVS Sync
@@ -7560,4 +7563,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1842 2002/02/13 02:55:06 djm Exp $
+$Id: ChangeLog,v 1.1843 2002/02/13 02:55:30 djm Exp $

@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: match.c,v 1.16 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: match.c,v 1.17 2002/02/11 16:21:42 markus Exp $");
 
 #include "match.h"
 #include "xmalloc.h"
@@ -226,7 +226,7 @@ match_user(const char *user, const char *host, const char *ipaddr,
  * Returns first item from client-list that is also supported by server-list,
  * caller must xfree() returned string.
  */
-#define	MAX_PROP	20
+#define	MAX_PROP	40
 #define	SEP	","
 char *
 match_list(const char *client, const char *server, u_int *next)
