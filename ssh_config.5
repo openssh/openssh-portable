@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.2 2002/08/17 23:55:01 stevesk Exp $
+.\" $OpenBSD: ssh_config.5,v 1.3 2002/08/27 17:18:40 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -258,6 +258,13 @@ or
 .Dq no .
 The default is
 .Dq no .
+.Pp
+Agent forwarding should be enabled with caution.  Users with the
+ability to bypass file permissions on the remote host (for the agent's
+Unix-domain socket) can access the local agent through the forwarded
+connection.  An attacker cannot obtain key material from the agent,
+however they can perform operations on the keys that enable them to
+authenticate using the identities loaded into the agent.
 .It Cm ForwardX11
 Specifies whether X11 connections will be automatically redirected
 over the secure channel and
@@ -269,6 +276,12 @@ or
 .Dq no .
 The default is
 .Dq no .
+.Pp
+X11 forwarding should be enabled with caution.  Users with the ability
+to bypass file permissions on the remote host (for the user's X
+authorization database) can access the local X11 display through the
+forwarded connection.  An attacker may then be able to perform
+activities such as keystroke monitoring.
 .It Cm GatewayPorts
 Specifies whether remote hosts are allowed to connect to local
 forwarded ports.

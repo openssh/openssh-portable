@@ -35,6 +35,9 @@
      [ssh-rsa.c]
      RSA_public_decrypt() returns -1 on error so len must be signed; 
      ok markus@
+   - stevesk@cvs.openbsd.org 2002/08/27 17:18:40
+     [ssh_config.5]
+     some warning text for ForwardAgent and ForwardX11; ok markus@
 
 20020820
  - OpenBSD CVS Sync
@@ -1576,4 +1579,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2436 2002/09/04 06:39:48 djm Exp $
+$Id: ChangeLog,v 1.2437 2002/09/04 06:40:37 djm Exp $
