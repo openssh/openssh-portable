@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: uidswap.c,v 1.14 2001/04/06 21:00:16 markus Exp $");
+RCSID("$OpenBSD: uidswap.c,v 1.15 2001/04/08 11:24:33 markus Exp $");
 
 #include "log.h"
 #include "uidswap.h"
@@ -54,8 +54,8 @@ temporarily_use_uid(struct passwd *pw)
  	}
  	privileged = 1;
  	temporarily_use_uid_effective = 1;
-        saved_egid = getegid();                                                       
-        saved_egroupslen = getgroups(NGROUPS_MAX, saved_egroups);                           
+	saved_egid = getegid();
+	saved_egroupslen = getgroups(NGROUPS_MAX, saved_egroups);
  	if (saved_egroupslen < 0)
  		fatal("getgroups: %.100s", strerror(errno));
  
@@ -69,10 +69,10 @@ temporarily_use_uid(struct passwd *pw)
  			fatal("getgroups: %.100s", strerror(errno));
  	}
   	/* Set the effective uid to the given (unprivileged) uid. */
-        if (setgroups(user_groupslen, user_groups) < 0)
+	if (setgroups(user_groupslen, user_groups) < 0)
 		fatal("setgroups: %.100s", strerror(errno));
-        pw->pw_gid = pw->pw_gid;
-        if (setegid(pw->pw_gid) < 0)
+	pw->pw_gid = pw->pw_gid;
+	if (setegid(pw->pw_gid) < 0)
  		fatal("setegid %u: %.100s", (u_int) pw->pw_gid,
  		    strerror(errno));
  	if (seteuid(pw->pw_uid) == -1)
@@ -95,9 +95,9 @@ restore_uid(void)
 	/* Set the effective uid back to the saved uid. */
 	if (seteuid(saved_euid) < 0)
 		fatal("seteuid %u: %.100s", (u_int) saved_euid, strerror(errno));
-        if (setgroups(saved_egroupslen, saved_egroups) < 0)
+	if (setgroups(saved_egroupslen, saved_egroups) < 0)
 		fatal("setgroups: %.100s", strerror(errno));
-        if (setegid(saved_egid) < 0)
+	if (setegid(saved_egid) < 0)
 		fatal("setegid %u: %.100s", (u_int) saved_egid, strerror(errno));
 	temporarily_use_uid_effective = 0;
 }

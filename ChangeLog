@@ -21,6 +21,9 @@
      portforwarding).  work by Dan Kaminsky <dankamin@cisco.com> and me. 
      thanks to Dan for this great patch: use 'ssh -D 1080 host' and make 
      netscape use localhost:1080 as a socks proxy.
+   - markus@cvs.openbsd.org 2001/04/08 11:24:33
+     [uidswap.c]
+     KNF
 
 20010408
  - OpenBSD CVS Sync
@@ -4961,4 +4964,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1084 2001/04/08 18:30:26 mouring Exp $
+$Id: ChangeLog,v 1.1085 2001/04/08 18:38:04 mouring Exp $
