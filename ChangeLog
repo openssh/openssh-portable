@@ -4,6 +4,7 @@
    <Lutz.Jaenicke@aet.TU-Cottbus.DE> and Tamito KAJIYAMA 
    <kajiyama@grad.sccs.chukyo-u.ac.jp>
  - (djm) Pick up LOGIN_PROGRAM from environment or PATH if not set by headers
+ - (djm) Add local version to version.h
  - (djm) OpenBSD CVS updates:
    - deraadt@cvs.openbsd.org 2000/08/18 20:07:23
      [ssh.c]
