@@ -16,6 +16,9 @@
      [auth2.c compat.c sshconnect2.c]                                    
      more ssh v2 hostbased-auth interop: ssh.com >= 2.1.0 works now      
      (however the 2.1.0 server seems to work only if debug is enabled...)
+   - markus@cvs.openbsd.org 2001/04/18 23:44:51
+     [authfile.c] 
+     error->debug; noted by fries@ 
 
 20010418
   - OpenBSD CVS Sync                            
@@ -5178,4 +5181,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1144 2001/04/19 20:40:45 mouring Exp $
+$Id: ChangeLog,v 1.1145 2001/04/19 20:47:10 mouring Exp $
