@@ -1,3 +1,9 @@
+20041211
+ - (dtucker) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2004/12/06 16:00:43
+     [bufaux.c]
+     use 0x00 not \0 since buf[] is a bignum
+
 20041208
  - (tim) [configure.ac] Comment some non obvious platforms in the
  target-specific case statement. Suggested and OK by dtucker@
@@ -1927,4 +1933,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3600 2004/12/09 02:29:58 tim Exp $
+$Id: ChangeLog,v 1.3601 2004/12/11 02:34:56 dtucker Exp $

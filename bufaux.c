@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: bufaux.c,v 1.33 2004/10/29 23:56:17 djm Exp $");
+RCSID("$OpenBSD: bufaux.c,v 1.34 2004/12/06 16:00:43 markus Exp $");
 
 #include <openssl/bn.h>
 #include "bufaux.h"
@@ -151,7 +151,7 @@ buffer_put_bignum2_ret(Buffer *buffer, const BIGNUM *value)
 		return (-1);
 	}
 	buf = xmalloc(bytes);
-	buf[0] = '\0';
+	buf[0] = 0x00;
 	/* Get the value of in binary */
 	oi = BN_bn2bin(value, buf+1);
 	if (oi != bytes-1) {
