@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.182 2004/03/05 10:53:58 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.183 2004/04/19 13:02:40 djm Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -885,6 +885,8 @@ the convenience of the user.
 This is the per-user configuration file.
 The file format and configuration options are described in
 .Xr ssh_config 5 .
+Because of the potential for abuse, this file must have strict permissions:
+read/write for the user, and not accessible by others.
 .It Pa $HOME/.ssh/authorized_keys
 Lists the public keys (RSA/DSA) that can be used for logging in as this user.
 The format of this file is described in the
