@@ -55,6 +55,9 @@
    - stevesk@cvs.openbsd.org 2001/08/29 23:27:23
      [ssh.c]
      validate ports for -L/-R; ok markus@
+   - stevesk@cvs.openbsd.org 2001/08/29 23:39:40
+     [ssh.1 sshd.8]
+     additional documentation for GatewayPorts; ok markus@
 
 20010815
  - (bal) Fixed stray code in readconf.c that went in by mistake.
@@ -6378,4 +6381,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1501 2001/09/12 17:56:15 mouring Exp $
+$Id: ChangeLog,v 1.1502 2001/09/12 17:58:15 mouring Exp $

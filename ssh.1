@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.133 2001/08/29 23:13:11 stevesk Exp $
+.\" $OpenBSD: ssh.1,v 1.134 2001/08/29 23:39:40 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -848,6 +848,15 @@ The default is
 .It Cm GatewayPorts
 Specifies whether remote hosts are allowed to connect to local
 forwarded ports.
+By default,
+.Nm
+binds local port forwardings to the loopback addresss.  This
+prevents other remote hosts from connecting to forwarded ports.
+.Cm GatewayPorts
+can be used to specify that
+.Nm
+should bind local port forwardings to the wildcard address,
+thus allowing remote hosts to connect to forwarded ports.
 The argument must be
 .Dq yes
 or

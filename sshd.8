@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.144 2001/08/29 23:02:21 stevesk Exp $
+.\" $OpenBSD: sshd.8,v 1.145 2001/08/29 23:39:40 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -442,6 +442,15 @@ By default login is allowed regardless of the user name.
 .It Cm GatewayPorts
 Specifies whether remote hosts are allowed to connect to ports
 forwarded for the client.
+By default,
+.Nm
+binds remote port forwardings to the loopback addresss.  This
+prevents other remote hosts from connecting to forwarded ports.
+.Cm GatewayPorts
+can be used to specify that
+.Nm
+should bind remote port forwardings to the wildcard address,
+thus allowing remote hosts to connect to forwarded ports.
 The argument must be
 .Dq yes
 or
