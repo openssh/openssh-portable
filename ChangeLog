@@ -1,3 +1,8 @@
+19991229
+ - Applied another NetBSD portability patch from David Rankin 
+   <drankin@bohemians.lexington.ky.us>
+ - Fix --with-default-path option.
+
 19991228
  - Replacement for getpagesize() for systems which lack it
  - NetBSD login.c compile fix from David Rankin 

@@ -18,7 +18,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: login.c,v 1.14 1999/12/27 23:41:12 damien Exp $");
+RCSID("$Id: login.c,v 1.15 1999/12/28 15:32:22 damien Exp $");
 
 #if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
 # include <utmpx.h>
@@ -141,7 +141,9 @@ record_login(int pid, const char *ttyname, const char *user, uid_t uid,
 	/* Construct an utmp/wtmp entry. */
 	memset(&u, 0, sizeof(u));
 	strncpy(u.ut_line, ttyname + 5, sizeof(u.ut_line));
+#if defined(HAVE_ID_IN_UTMP)
 	strncpy(u.ut_id, ttyname + 8, sizeof(u.ut_id));
+#endif /* defined(HAVE_ID_IN_UTMP) */ 
 	strncpy(u.ut_name, user, sizeof(u.ut_name));
 #if defined(HAVE_TV_IN_UTMP)
 	(void)gettimeofday(&u.ut_tv, NULL);

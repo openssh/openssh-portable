@@ -48,6 +48,9 @@
 /* Define is utmp.h has a ut_tv field */
 #undef HAVE_TV_IN_UTMP
 
+/* Define is utmp.h has a ut_id field */
+#undef HAVE_ID_IN_UTMP
+
 /* Define if you want to use utmpx */
 #undef USE_UTMPX
 

@@ -302,6 +302,11 @@ AC_EGREP_HEADER(ut_tv, utmp.h,
 	[AC_DEFINE(HAVE_TV_IN_UTMP) AC_MSG_RESULT(yes); ], 
 	[AC_MSG_RESULT(no)]
 )
+AC_MSG_CHECKING([whether utmp.h has ut_id field])
+AC_EGREP_HEADER(ut_id, utmp.h, 
+	[AC_DEFINE(HAVE_ID_IN_UTMP) AC_MSG_RESULT(yes); ], 
+	[AC_MSG_RESULT(no)]
+)
 
 dnl Look for lastlog location
 AC_ARG_WITH(lastlog,
@@ -440,7 +445,7 @@ AC_ARG_WITH(path,
 	[  --with-default-path=PATH Specify default \$PATH environment for server],
 	[
 		if test "x$withval" != "xno" ; then	
-			AC_DEFINE_UNQUOTED(USER_PATH, $withval")
+			AC_DEFINE_UNQUOTED(USER_PATH, "$withval")
 		fi
 	]
 )
