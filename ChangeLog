@@ -6,6 +6,9 @@
  - (djm) Rename sysconfdir/primes => sysconfdir/moduli
  - (djm) Oops, forgot make logic for primes=>moduli. Also try to rename 
    existing primes->moduli if it exists.
+ - (djm) Sync with -current openbsd-compat/readpassphrase.c:
+   - djm@cvs.openbsd.org 2001/06/27 13:23:30
+     typo, spotted by Tom Holroyd <tomh@po.crl.go.jp>; ok deraadt@
 
 20010625
  - OpenBSD CVS Sync
@@ -5800,4 +5803,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1329 2001/06/27 11:52:32 djm Exp $
+$Id: ChangeLog,v 1.1330 2001/06/27 13:26:38 djm Exp $
