@@ -33,6 +33,9 @@
    - jakob@cvs.openbsd.org 2003/10/14 19:42:10
      [dns.c dns.h readconf.c ssh-keygen.c sshconnect.c]
      include SSHFP lookup code (not enabled by default). ok markus@
+   - jakob@cvs.openbsd.org 2003/10/14 19:43:23
+     [README.dns]
+     update
 
 20031009
  - (dtucker) [sshd_config.5] UsePAM defaults to "no".  ok djm@
@@ -1350,4 +1353,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3077 2003/10/15 06:00:47 dtucker Exp $
+$Id: ChangeLog,v 1.3078 2003/10/15 06:07:53 dtucker Exp $
