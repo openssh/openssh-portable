@@ -2,7 +2,7 @@
 %define oversion 2.9.9p1
 
 # Version of ssh-askpass
-%define aversion 1.2.4
+%define aversion 1.2.4.1
 
 # Do we want to disable building of x11-askpass? (1=yes 0=no)
 %define no_x11_askpass 0
