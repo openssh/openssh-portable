@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.197 2004/02/11 22:46:40 tim Exp $
+# $Id: configure.ac,v 1.198 2004/02/12 17:27:21 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -1021,12 +1021,6 @@ if test "x$PAM_MSG" = "xyes" ; then
 	)
 fi
 
-# Some systems want crypt() from libcrypt, *not* the version in OpenSSL,
-# because the system crypt() is more featureful.
-if test "x$check_for_libcrypt_before" = "x1"; then
-	AC_CHECK_LIB(crypt, crypt)
-fi
-
 # Search for OpenSSL
 saved_CPPFLAGS="$CPPFLAGS"
 saved_LDFLAGS="$LDFLAGS"
@@ -1055,7 +1049,7 @@ AC_ARG_WITH(ssl-dir,
 		fi
 	]
 )
-LIBS="$LIBS -lcrypto"
+LIBS="-lcrypto $LIBS"
 AC_TRY_LINK_FUNC(RAND_add, AC_DEFINE(HAVE_OPENSSL),
 	[
 		dnl Check default openssl install dir
@@ -1156,6 +1150,12 @@ Check config.log for details.
 Also see contrib/findssl.sh for help identifying header/library mismatches.])
 	]
 )
+
+# Some systems want crypt() from libcrypt, *not* the version in OpenSSL,
+# because the system crypt() is more featureful.
+if test "x$check_for_libcrypt_before" = "x1"; then
+	AC_CHECK_LIB(crypt, crypt)
+fi
 
 # Some Linux systems (Slackware) need crypt() from libcrypt, *not* the
 # version in OpenSSL.
