@@ -21,6 +21,7 @@
    holger AT van-lengerich.de and openssh_bugzilla AT hockin.org
  - (dtucker) [uidswap.c] Minor KNF.  ok djm@
  - (tim) [openbsd-compat/getrrsetbyname.c] Make gcc 2.7.2.3 happy.  ok djm@
+ - (djm) Crank RPM spec versions
 
 20040223
  - (dtucker) [session.c] Bug #789: Only make setcred call for !privsep in the
@@ -1924,4 +1925,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3252 2004/02/24 04:51:06 tim Exp $
+$Id: ChangeLog,v 1.3253 2004/02/24 05:00:02 djm Exp $
