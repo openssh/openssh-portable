@@ -6,6 +6,9 @@
      [readconf.c ssh_config ssh_config.5 ssh-keysign.c]
      add AddressFamily option to ssh_config (like -4, -6 on commandline).
      Portable bug #534; ok markus@
+   - itojun@cvs.openbsd.org 2003/05/17 03:25:58
+     [auth-rhosts.c]
+     just in case, put numbers to sscanf %s arg.
  - (djm) Remove IPv4 by default hack now that we can specify AF in config
 
 20030517
@@ -1562,4 +1565,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2734 2003/05/18 10:52:40 djm Exp $
+$Id: ChangeLog,v 1.2735 2003/05/18 10:53:10 djm Exp $
