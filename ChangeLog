@@ -42,6 +42,11 @@
    - stevesk@cvs.openbsd.org 2001/05/19 19:57:09
      [channels.c]                               
      typo in error message                      
+   - markus@cvs.openbsd.org 2001/05/20 17:20:36                                 
+     [auth-rsa.c auth.c auth.h auth2.c servconf.c servconf.h sshd.8
+      sshd_config]
+     configurable authorized_keys{,2} location; originally from peter@; 
+     ok djm@ 
 
 20010528
  - (tim) [conifgure.in] add setvbuf test needed for sftp-int.c
@@ -5472,4 +5477,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1235 2001/06/05 20:01:39 mouring Exp $
+$Id: ChangeLog,v 1.1236 2001/06/05 20:25:05 mouring Exp $

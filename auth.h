@@ -21,7 +21,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $OpenBSD: auth.h,v 1.16 2001/05/18 14:13:28 markus Exp $
+ * $OpenBSD: auth.h,v 1.17 2001/05/20 17:20:35 markus Exp $
  */
 #ifndef AUTH_H
 #define AUTH_H
@@ -158,6 +158,16 @@ char	*get_challenge(Authctxt *authctxt);
 int	verify_response(Authctxt *authctxt, const char *response);
 
 struct passwd * auth_get_user(void);
+
+
+/* expand a filename - return buffer is allocated by xmalloc */
+char	*expand_filename(const char *template, struct passwd *pw);
+char	*authorized_keys_file(struct passwd *pw);
+char	*authorized_keys_file2(struct passwd *pw);
+
+/* check a file and the path to it */
+int
+secure_filename(FILE *f, const char *file, uid_t u, char *err, size_t errlen);
 
 #define AUTH_FAIL_MAX 6
 #define AUTH_FAIL_LOG (AUTH_FAIL_MAX/2)

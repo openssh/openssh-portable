@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.57 2001/05/18 14:13:28 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.58 2001/05/20 17:20:35 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -666,7 +666,7 @@ authmethod_lookup(const char *name)
 int
 user_key_allowed(struct passwd *pw, Key *key)
 {
-	char line[8192], file[MAXPATHLEN];
+	char line[8192], *file;
 	int found_key = 0;
 	FILE *f;
 	u_long linenum = 0;
@@ -680,13 +680,14 @@ user_key_allowed(struct passwd *pw, Key *key)
 	temporarily_use_uid(pw);
 
 	/* The authorized keys. */
-	snprintf(file, sizeof file, "%.500s/%.100s", pw->pw_dir,
-	    _PATH_SSH_USER_PERMITTED_KEYS2);
+	file = authorized_keys_file2(pw);
+	debug("trying public key file %s", file);
 
 	/* Fail quietly if file does not exist */
 	if (stat(file, &st) < 0) {
 		/* Restore the privileged uid. */
 		restore_uid();
+		xfree(file);
 		return 0;
 	}
 	/* Open the file containing the authorized keys. */
@@ -694,48 +695,18 @@ user_key_allowed(struct passwd *pw, Key *key)
 	if (!f) {
 		/* Restore the privileged uid. */
 		restore_uid();
+		xfree(file);
 		return 0;
 	}
-	if (options.strict_modes) {
-		int fail = 0;
-		char buf[1024];
-		/* Check open file in order to avoid open/stat races */
-		if (fstat(fileno(f), &st) < 0 ||
-		    (st.st_uid != 0 && st.st_uid != pw->pw_uid) ||
-		    (st.st_mode & 022) != 0) {
-			snprintf(buf, sizeof buf,
-			    "%s authentication refused for %.100s: "
-			    "bad ownership or modes for '%s'.",
-			    key_type(key), pw->pw_name, file);
-			fail = 1;
-		} else {
-			/* Check path to _PATH_SSH_USER_PERMITTED_KEYS */
-			int i;
-			static const char *check[] = {
-				"", _PATH_SSH_USER_DIR, NULL
-			};
-			for (i = 0; check[i]; i++) {
-				snprintf(line, sizeof line, "%.500s/%.100s",
-				    pw->pw_dir, check[i]);
-				if (stat(line, &st) < 0 ||
-				    (st.st_uid != 0 && st.st_uid != pw->pw_uid) ||
-				    (st.st_mode & 022) != 0) {
-					snprintf(buf, sizeof buf,
-					    "%s authentication refused for %.100s: "
-					    "bad ownership or modes for '%s'.",
-					    key_type(key), pw->pw_name, line);
-					fail = 1;
-					break;
-				}
-			}
-		}
-		if (fail) {
-			fclose(f);
-			log("%s", buf);
-			restore_uid();
-			return 0;
-		}
+	if (options.strict_modes &&
+	    secure_filename(f, file, pw->pw_uid, line, sizeof(line)) != 0) {
+		xfree(file);
+		fclose(f);
+		log("Authentication refused: %s", line);
+		restore_uid();
+		return 0;
 	}
+
 	found_key = 0;
 	found = key_new(key->type);
 
@@ -778,6 +749,7 @@ user_key_allowed(struct passwd *pw, Key *key)
 	}
 	restore_uid();
 	fclose(f);
+	xfree(file);
 	key_free(found);
 	if (!found_key)
 		debug2("key not found");

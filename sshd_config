@@ -1,4 +1,4 @@
-#	$OpenBSD: sshd_config,v 1.38 2001/04/15 21:41:29 deraadt Exp $
+#	$OpenBSD: sshd_config,v 1.39 2001/05/20 17:20:36 markus Exp $
 
 # This sshd was compiled with PATH=/usr/bin:/bin:/usr/sbin:/sbin
 
@@ -41,6 +41,9 @@ RhostsRSAAuthentication no
 HostbasedAuthentication no
 #
 RSAAuthentication yes
+PubkeyAuthentication yes
+#AuthorizedKeysFile	%h/.ssh/authorized_keys
+#AuthorizedKeysFile2	%h/.ssh/authorized_keys2
 
 # To disable tunneled clear text passwords, change to no here!
 PasswordAuthentication yes

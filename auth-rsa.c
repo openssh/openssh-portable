@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rsa.c,v 1.40 2001/04/06 21:00:07 markus Exp $");
+RCSID("$OpenBSD: auth-rsa.c,v 1.41 2001/05/20 17:20:35 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/md5.h>
@@ -122,7 +122,7 @@ auth_rsa_challenge_dialog(RSA *pk)
 int
 auth_rsa(struct passwd *pw, BIGNUM *client_n)
 {
-	char line[8192], file[MAXPATHLEN];
+	char line[8192], *file;
 	int authenticated;
 	u_int bits;
 	FILE *f;
@@ -138,13 +138,14 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 	temporarily_use_uid(pw);
 
 	/* The authorized keys. */
-	snprintf(file, sizeof file, "%.500s/%.100s", pw->pw_dir,
-		 _PATH_SSH_USER_PERMITTED_KEYS);
+	file = authorized_keys_file(pw);
+	debug("trying public RSA key file %s", file);
 
 	/* Fail quietly if file does not exist */
 	if (stat(file, &st) < 0) {
 		/* Restore the privileged uid. */
 		restore_uid();
+		xfree(file);
 		return 0;
 	}
 	/* Open the file containing the authorized keys. */
@@ -154,43 +155,17 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 		restore_uid();
 		packet_send_debug("Could not open %.900s for reading.", file);
 		packet_send_debug("If your home is on an NFS volume, it may need to be world-readable.");
+		xfree(file);
 		return 0;
 	}
-	if (options.strict_modes) {
-		int fail = 0;
-		char buf[1024];
-		/* Check open file in order to avoid open/stat races */
-		if (fstat(fileno(f), &st) < 0 ||
-		    (st.st_uid != 0 && st.st_uid != pw->pw_uid) ||
-		    (st.st_mode & 022) != 0) {
-			snprintf(buf, sizeof buf, "RSA authentication refused for %.100s: "
-				 "bad ownership or modes for '%s'.", pw->pw_name, file);
-			fail = 1;
-		} else {
-			/* Check path to _PATH_SSH_USER_PERMITTED_KEYS */
-			int i;
-			static const char *check[] = {
-				"", _PATH_SSH_USER_DIR, NULL
-			};
-			for (i = 0; check[i]; i++) {
-				snprintf(line, sizeof line, "%.500s/%.100s", pw->pw_dir, check[i]);
-				if (stat(line, &st) < 0 ||
-				    (st.st_uid != 0 && st.st_uid != pw->pw_uid) ||
-				    (st.st_mode & 022) != 0) {
-					snprintf(buf, sizeof buf, "RSA authentication refused for %.100s: "
-						 "bad ownership or modes for '%s'.", pw->pw_name, line);
-					fail = 1;
-					break;
-				}
-			}
-		}
-		if (fail) {
-			fclose(f);
-			log("%s", buf);
-			packet_send_debug("%s", buf);
-			restore_uid();
-			return 0;
-		}
+	if (options.strict_modes &&
+	    secure_filename(f, file, pw->pw_uid, line, sizeof(line)) != 0) {
+		xfree(file);
+		fclose(f);
+		log("Authentication refused: %s", line);
+		packet_send_debug("Authentication refused: %s", line);
+		restore_uid();
+		return 0;
 	}
 	/* Flag indicating whether authentication has succeeded. */
 	authenticated = 0;
@@ -285,6 +260,7 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 	restore_uid();
 
 	/* Close the file. */
+	xfree(file);
 	fclose(f);
 
 	RSA_free(pk);

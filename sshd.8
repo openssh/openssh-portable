@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.124 2001/05/19 19:43:57 stevesk Exp $
+.\" $OpenBSD: sshd.8,v 1.125 2001/05/20 17:20:35 markus Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -331,6 +331,34 @@ wildcards in the patterns.
 Only user names are valid; a numerical user ID isn't recognized.
 By default login is allowed regardless of the user name.
 .Pp
+.It Cm AuthorizedKeysFile
+Specifies the file that contains the public RSA keys that can be used
+for RSA authentication in protocol version 1.
+.Cm AuthorizedKeysFile
+may contain tokens of the form %T which are substituted during connection
+set-up. The following tokens are defined; %% is replaces by a literal '%',
+%h is replaced by the home directory of the user being authenticated and
+%u is replaced by the username of that user.
+After expansion,
+.Cm AuthorizedKeysFile
+is taken to be an absolute path or one realtive to the user's home
+directory.
+The default is
+.Dq .ssh/authorized_keys
+.It Cm AuthorizedKeysFile2
+Specifies the file that contains the public keys that can be used
+for public key authentication in protocol version 2.
+.Cm AuthorizedKeysFile2
+may contain tokens of the form %T which are substituted during connection
+set-up. The following tokens are defined; %% is replaces by a literal '%',
+%h is replaced by the home directory of the user being authenticated and
+%u is replaced by the username of that user.
+After expansion,
+.Cm AuthorizedKeysFile2
+is taken to be an absolute path or one realtive to the user's home
+directory.
+The default is
+.Dq .ssh/authorized_keys2
 .It Cm Banner
 In some jurisdictions, sending a warning message before authentication
 may be relevant for getting legal protection.
@@ -883,15 +911,18 @@ authentication protocol and cookie in standard input.
 Runs user's shell or command.
 .El
 .Sh AUTHORIZED_KEYS FILE FORMAT
-The
 .Pa $HOME/.ssh/authorized_keys
-file lists the RSA keys that are
+is the default file that lists the RSA keys that are
 permitted for RSA authentication in protocol version 1.
-Similarly, the
+.Cm AuthorizedKeysFile
+may be used to specify an alternative file.
+Similarly,
 .Pa $HOME/.ssh/authorized_keys2
-file lists the DSA and RSA keys that are
+is the default file that lists the DSA and RSA keys that are
 permitted for public key authentication (PubkeyAuthentication)
 in protocol version 2.
+.Cm AuthorizedKeysFile2
+may be used to specify an alternative file.
 .Pp
 Each line of the file contains one
 key (empty lines and lines starting with a

@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.81 2001/05/19 19:43:57 stevesk Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.82 2001/05/20 17:20:35 markus Exp $");
 
 #ifdef KRB4
 #include <krb.h>
@@ -101,6 +101,8 @@ initialize_server_options(ServerOptions *options)
 	options->reverse_mapping_check = -1;
 	options->client_alive_interval = -1;
 	options->client_alive_count_max = -1;
+	options->authorized_keys_file = NULL;
+	options->authorized_keys_file2 = NULL;
 	options->pam_authentication_via_kbd_int = -1;
 }
 
@@ -208,6 +210,10 @@ fill_default_server_options(ServerOptions *options)
 		options->client_alive_interval = 0;  
 	if (options->client_alive_count_max == -1)
 		options->client_alive_count_max = 3;
+	if (options->authorized_keys_file == NULL)
+	        options->authorized_keys_file = _PATH_SSH_USER_PERMITTED_KEYS;  
+	if (options->authorized_keys_file2 == NULL)
+	        options->authorized_keys_file2 = _PATH_SSH_USER_PERMITTED_KEYS2;
 	if (options->pam_authentication_via_kbd_int == -1)
 		options->pam_authentication_via_kbd_int = 0;
 }
@@ -235,7 +241,8 @@ typedef enum {
 	sGatewayPorts, sPubkeyAuthentication, sXAuthLocation, sSubsystem, sMaxStartups,
 	sBanner, sReverseMappingCheck, sHostbasedAuthentication,
 	sHostbasedUsesNameFromPacketOnly, sClientAliveInterval, 
-	sClientAliveCountMax, sPAMAuthenticationViaKbdInt
+	sClientAliveCountMax, sAuthorizedKeysFile, sAuthorizedKeysFile2,
+	sPAMAuthenticationViaKbdInt
 } ServerOpCodes;
 
 /* Textual representation of the tokens. */
@@ -301,6 +308,8 @@ static struct {
 	{ "reversemappingcheck", sReverseMappingCheck },
 	{ "clientaliveinterval", sClientAliveInterval },
 	{ "clientalivecountmax", sClientAliveCountMax },
+	{ "authorizedkeysfile", sAuthorizedKeysFile },
+	{ "authorizedkeysfile2", sAuthorizedKeysFile2 },
 	{ "PAMAuthenticationViaKbdInt", sPAMAuthenticationViaKbdInt },
 	{ NULL, 0 }
 };
@@ -801,6 +810,18 @@ parse_flag:
 
 		case sBanner:
 			charptr = &options->banner;
+			goto parse_filename;
+		/*
+		 * These options can contain %X options expanded at
+		 * connect time, so that you can specify paths like:
+		 *
+		 * AuthorizedKeysFile	/etc/ssh_keys/%u
+		 */
+		case sAuthorizedKeysFile:
+		case sAuthorizedKeysFile2:
+			charptr = (opcode == sAuthorizedKeysFile ) ?
+			    &options->authorized_keys_file :
+			    &options->authorized_keys_file2;
 			goto parse_filename;
 
 		case sClientAliveInterval:
