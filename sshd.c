@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.302 2004/08/28 01:01:48 djm Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.303 2004/09/15 18:42:27 mickey Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -750,7 +750,7 @@ get_hostkey_index(Key *key)
 static int
 drop_connection(int startups)
 {
-	double p, r;
+	int p, r;
 
 	if (startups < options.max_startups_begin)
 		return 0;
@@ -761,10 +761,9 @@ drop_connection(int startups)
 
 	p  = 100 - options.max_startups_rate;
 	p *= startups - options.max_startups_begin;
-	p /= (double) (options.max_startups - options.max_startups_begin);
+	p /= options.max_startups - options.max_startups_begin;
 	p += options.max_startups_rate;
-	p /= 100.0;
-	r = arc4random() / (double) UINT_MAX;
+	r = arc4random() % 100;
 
 	debug("drop_connection: p %g, r %g", p, r);
 	return (r < p) ? 1 : 0;
