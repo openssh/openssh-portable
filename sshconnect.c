@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.149 2003/10/14 19:42:10 jakob Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.150 2003/11/03 09:09:41 jakob Exp $");
 
 #include <openssl/bn.h>
 
@@ -52,6 +52,7 @@ extern pid_t proxy_command_pid;
 #endif
 
 static int show_other_keys(const char *, Key *);
+static void warn_changed_key(Key *);
 
 /*
  * Connect to the given ssh server using a proxy command.
@@ -785,20 +786,10 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 				error("Offending key for IP in %s:%d", ip_file, ip_line);
 		}
 		/* The host key has changed. */
-		fp = key_fingerprint(host_key, SSH_FP_MD5, SSH_FP_HEX);
-		error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-		error("@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @");
-		error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-		error("IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!");
-		error("Someone could be eavesdropping on you right now (man-in-the-middle attack)!");
-		error("It is also possible that the %s host key has just been changed.", type);
-		error("The fingerprint for the %s key sent by the remote host is\n%s.",
-		    type, fp);
-		error("Please contact your system administrator.");
+		warn_changed_key(host_key);
 		error("Add correct host key in %.100s to get rid of this message.",
 		    user_hostfile);
 		error("Offending key in %s:%d", host_file, host_line);
-		xfree(fp);
 
 		/*
 		 * If strict host key checking is in use, the user will have
@@ -1044,4 +1035,26 @@ show_other_keys(const char *host, Key *key)
 		debug2("no key of type %d for host %s", type[i], host);
 	}
 	return (found);
+}
+
+static void
+warn_changed_key(Key *host_key)
+{
+	char *fp;
+	char *type = key_type(host_key);
+
+	fp = key_fingerprint(host_key, SSH_FP_MD5, SSH_FP_HEX);
+
+	error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+	error("@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @");
+	error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+	error("IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!");
+	error("Someone could be eavesdropping on you right now (man-in-the-middle attack)!");
+	error("It is also possible that the %s host key has just been changed.", type);
+	error("The fingerprint for the %s key sent by the remote host is\n%s.",
+	    type, fp);
+	error("Please contact your system administrator.");
+
+	xfree(fp);
+	xfree(type);
 }

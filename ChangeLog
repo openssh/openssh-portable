@@ -4,7 +4,9 @@
      [auth-chall.c]
      make this a little more idiot-proof; ok markus@
      (includes portable-specific changes)
-
+   - jakob@cvs.openbsd.org 2003/11/03 09:09:41
+     [sshconnect.c]
+     move changed key warning into warn_changed_key(). ok markus@
 
 20031115
  - (dtucker) [regress/agent-ptrace.sh] Test for GDB output from Solaris and
@@ -1425,4 +1427,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3098 2003/11/17 10:09:50 djm Exp $
+$Id: ChangeLog,v 1.3099 2003/11/17 10:10:47 djm Exp $
