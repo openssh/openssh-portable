@@ -1,3 +1,7 @@
+20000612
+ - (djm) Glob manpages in RPM spec files to catch compressed files
+ - (djm) Full license in auth-pam.c
+
 20000610
  - (djm) Minor doc tweaks
  - (djm) Fix for configure on bash2 from Jim Knoble <jmknoble@jmknoble.cx>

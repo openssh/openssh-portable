@@ -119,6 +119,8 @@ patented algorithms to seperate libraries (OpenSSL).
 This package contains the GNOME passphrase dialog.
 
 %changelog
+* Mon Jun 12 2000 Damien Miller <djm@mindrot.org>
+- Glob manpages to catch compressed files
 * Wed Mar 15 2000 Damien Miller <djm@ibs.com.au>
 - Updated for new location
 - Updated for new gnome-ssh-askpass build
@@ -212,8 +214,8 @@ fi
 %doc CREDITS UPGRADING
 %attr(0755,root,root) /usr/bin/ssh-keygen
 %attr(0755,root,root) /usr/bin/scp
-%attr(0644,root,root) /usr/man/man1/ssh-keygen.1
-%attr(0644,root,root) /usr/man/man1/scp.1
+%attr(0644,root,root) /usr/man/man1/ssh-keygen.1*
+%attr(0644,root,root) /usr/man/man1/scp.1*
 %attr(0755,root,root) %dir /etc/ssh
 %attr(0755,root,root) %dir /usr/libexec/ssh
 
@@ -222,17 +224,17 @@ fi
 %attr(4755,root,root) /usr/bin/ssh
 %attr(0755,root,root) /usr/bin/ssh-agent
 %attr(0755,root,root) /usr/bin/ssh-add
-%attr(0644,root,root) /usr/man/man1/ssh.1
-%attr(0644,root,root) /usr/man/man1/ssh-agent.1
-%attr(0644,root,root) /usr/man/man1/ssh-add.1
+%attr(0644,root,root) /usr/man/man1/ssh.1*
+%attr(0644,root,root) /usr/man/man1/ssh-agent.1*
+%attr(0644,root,root) /usr/man/man1/ssh-add.1*
 %attr(0644,root,root) %config(noreplace) /etc/ssh/ssh_config
 %attr(-,root,root) /usr/bin/slogin
-%attr(-,root,root) /usr/man/man1/slogin.1
+%attr(-,root,root) /usr/man/man1/slogin.1*
 
 %files server
 %defattr(-,root,root)
 %attr(0755,root,root) /usr/sbin/sshd
-%attr(0644,root,root) /usr/man/man8/sshd.8
+%attr(0644,root,root) /usr/man/man8/sshd.8*
 %attr(0600,root,root) %config(noreplace) /etc/ssh/sshd_config
 %attr(0600,root,root) %config(noreplace) /etc/pam.d/sshd
 %attr(0755,root,root) %config /etc/rc.d/init.d/sshd
@@ -248,3 +250,4 @@ fi
 %files askpass-gnome
 %defattr(-,root,root)
 %attr(0755,root,root) /usr/libexec/ssh/gnome-ssh-askpass
+
