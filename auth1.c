@@ -97,7 +97,7 @@ do_authloop(Authctxt *authctxt)
 	    (!options.kerberos_authentication || options.kerberos_or_local_passwd) &&
 #endif
 #ifdef USE_PAM
-	    auth_pam_password(pw, password)) {
+	    auth_pam_password(pw, "")) {
 #else
 	    auth_password(pw, "")) {
 #endif

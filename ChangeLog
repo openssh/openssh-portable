@@ -5,6 +5,7 @@
    (backed out of original patch and removed it from ChangeLog)
  - (bal) Use chown() if fchown() does not exist in ftp-server.c patch by
    Tim Rice <tim@multitalents.net>
+ - (stevesk) auth1.c: fix PAM passwordless check.
 
 20010212
  - (djm) Update Redhat specfile to allow --define "skip_x11_askpass 1", 
@@ -3912,4 +3913,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.753 2001/02/13 02:40:56 mouring Exp $
+$Id: ChangeLog,v 1.754 2001/02/13 11:26:21 stevesk Exp $
