@@ -4,6 +4,7 @@
    Based partially on patch supplied by alex.kiernan at thus.net.  ok djm@
  - (tim) [configure.ac] Move libgen tests to before libwrap to unbreak
    UnixWare 2.03 using --with-tcp-wrappers.
+ - (tim) [configure.ac] Prefer setuid/setgid on UnixWare and Open Server.
 
 20030910
  - (dtucker) [configure.ac] Bug #636: Add support for Cray's new X1 machine.
@@ -1066,4 +1067,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2980 2003/09/12 05:19:31 tim Exp $
+$Id: ChangeLog,v 1.2981 2003/09/12 05:24:36 tim Exp $
