@@ -18,6 +18,7 @@
    - djm@cvs.openbsd.org 2005/03/04 08:48:46
      [Makefile envpass.sh]
      regress test for SendEnv config parsing bug; ok dtucker@
+ - (dtucker) [regress/test-exec.sh] Put SUDO in the right place.
 
 20050306
  - (dtucker) [monitor.c] Bug #125 comment #47: fix errors returned by monitor
@@ -2304,4 +2305,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3700 2005/03/07 07:35:34 dtucker Exp $
+$Id: ChangeLog,v 1.3701 2005/03/07 08:15:06 dtucker Exp $

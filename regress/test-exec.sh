@@ -261,7 +261,7 @@ chmod 644 $OBJ/authorized_keys_$USER
 # create a proxy version of the client config
 (
 	cat $OBJ/ssh_config
-	echo proxycommand sh ${SRC}/sshd-log-wrapper.sh ${SUDO} ${SSHD} ${TEST_SSH_LOGFILE} -i -f $OBJ/sshd_proxy
+	echo proxycommand ${SUDO} sh ${SRC}/sshd-log-wrapper.sh ${SSHD} ${TEST_SSH_LOGFILE} -i -f $OBJ/sshd_proxy
 ) > $OBJ/ssh_proxy
 
 # check proxy config
