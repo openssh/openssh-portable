@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.53 2001/02/28 09:57:06 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.54 2001/02/28 21:27:47 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -1321,8 +1321,7 @@ packet_set_maxsize(int s)
 void
 packet_inject_ignore(int sumlen)
 {
-	u_int32_t rand = 0;
-	int i, blocksize, padlen, have, need, nb, mini, nbytes;
+	int blocksize, padlen, have, need, nb, mini, nbytes;
 	Enc *enc = NULL;
 
 	if (use_ssh2_packet_format == 0)
@@ -1350,7 +1349,16 @@ packet_inject_ignore(int sumlen)
 
 	/* enqueue current message and append a ignore message */
 	packet_send();
-	packet_start(SSH2_MSG_IGNORE);
+	packet_send_ignore(nbytes);
+}
+
+void
+packet_send_ignore(int nbytes)
+{
+	u_int32_t rand = 0;
+	int i;
+
+	packet_start(compat20 ? SSH2_MSG_IGNORE : SSH_MSG_IGNORE);
 	packet_put_int(nbytes);
 	for(i = 0; i < nbytes; i++) {
 		if (i % 4 == 0)

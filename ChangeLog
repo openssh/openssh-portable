@@ -85,6 +85,10 @@
    - markus@cvs.openbsd.org 2001/02/28 21:21:41
      [sshd.c]
      generate a fake session id, too
+   - markus@cvs.openbsd.org 2001/02/28 21:27:48
+     [channels.c packet.c packet.h serverloop.c]
+     use ignore message to simulate a SSH2_MSG_CHANNEL_DATA message
+     use random content in ignore messages.
 
 20010304
  - (bal) Remove make-ssh-known-hosts.1 since it's no longer valid.
@@ -4277,4 +4281,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.876 2001/03/05 06:25:23 mouring Exp $
+$Id: ChangeLog,v 1.877 2001/03/05 06:28:06 mouring Exp $

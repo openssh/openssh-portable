@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.51 2001/02/23 15:34:53 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.52 2001/02/28 21:27:48 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -345,9 +345,7 @@ process_output(fd_set * writeset)
 				 * Simulate echo to reduce the impact of
 				 * traffic analysis
 				 */
-				packet_start(SSH_MSG_IGNORE);
-				memset(buffer_ptr(&stdin_buffer), 0, len);
-				packet_put_string(buffer_ptr(&stdin_buffer), len);
+				packet_send_ignore(len);
 				packet_send();
 			}
 			/* Consume the data from the buffer. */

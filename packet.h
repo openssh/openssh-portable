@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: packet.h,v 1.20 2001/02/28 09:57:07 markus Exp $"); */
+/* RCSID("$OpenBSD: packet.h,v 1.21 2001/02/28 21:27:47 markus Exp $"); */
 
 #ifndef PACKET_H
 #define PACKET_H
@@ -215,6 +215,9 @@ void	packet_set_ssh2_format(void);
 int	packet_remaining(void);
 
 /* append an ignore message */
+void	packet_send_ignore(int nbytes);
+
+/* add an ignore message and make sure size (current+ignore) = n*sumlen */
 void	packet_inject_ignore(int sumlen);
 
 #endif				/* PACKET_H */

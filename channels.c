@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.94 2001/02/28 12:55:07 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.95 2001/02/28 21:27:48 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -768,6 +768,7 @@ channel_handle_rfd(Channel *c, fd_set * readset, fd_set * writeset)
 int
 channel_handle_wfd(Channel *c, fd_set * readset, fd_set * writeset)
 {
+	struct termios tio;
 	int len;
 
 	/* Send buffered output data to the socket. */
@@ -789,16 +790,15 @@ channel_handle_wfd(Channel *c, fd_set * readset, fd_set * writeset)
 			return -1;
 		}
 		if (compat20 && c->isatty) {
-			struct termios tio;
 			if (tcgetattr(c->wfd, &tio) == 0 &&
 			    !(tio.c_lflag & ECHO) && (tio.c_lflag & ICANON)) {
 				/*
 				 * Simulate echo to reduce the impact of
-				 * traffic analysis.
+				 * traffic analysis. We need too match the
+				 * size of a SSH2_MSG_CHANNEL_DATA message
+				 * (4 byte channel id + data)
 				 */
-				packet_start(SSH2_MSG_IGNORE);
-				memset(buffer_ptr(&c->output), 0, len);
-				packet_put_string(buffer_ptr(&c->output), len);
+				packet_send_ignore(4 + len);
 				packet_send();
 			}
 		}
