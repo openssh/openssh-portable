@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keyscan.c,v 1.16 2001/02/12 22:56:10 deraadt Exp $");
+RCSID("$OpenBSD: ssh-keyscan.c,v 1.17 2001/02/21 07:37:04 deraadt Exp $");
 
 #if defined(HAVE_SYS_QUEUE_H) && !defined(HAVE_BOGUS_SYS_QUEUE_H)
 #include <sys/queue.h>
@@ -89,7 +89,7 @@ typedef struct {
 	void (*errfun) (const char *,...);
 } Linebuf;
 
-static inline Linebuf *
+static __inline__ Linebuf *
 Linebuf_alloc(const char *filename, void (*errfun) (const char *,...))
 {
 	Linebuf *lb;
@@ -123,7 +123,7 @@ Linebuf_alloc(const char *filename, void (*errfun) (const char *,...))
 	return (lb);
 }
 
-static inline void
+static __inline__ void
 Linebuf_free(Linebuf * lb)
 {
 	fclose(lb->stream);
@@ -131,7 +131,7 @@ Linebuf_free(Linebuf * lb)
 	xfree(lb);
 }
 
-static inline void
+static __inline__ void
 Linebuf_restart(Linebuf * lb)
 {
 	clearerr(lb->stream);
@@ -139,13 +139,13 @@ Linebuf_restart(Linebuf * lb)
 	lb->lineno = 0;
 }
 
-static inline int
+static __inline__ int
 Linebuf_lineno(Linebuf * lb)
 {
 	return (lb->lineno);
 }
 
-static inline char *
+static __inline__ char *
 Linebuf_getline(Linebuf * lb)
 {
 	int n = 0;
@@ -155,7 +155,8 @@ Linebuf_getline(Linebuf * lb)
 		/* Read a line */
 		if (!fgets(&lb->buf[n], lb->size - n, lb->stream)) {
 			if (ferror(lb->stream) && lb->errfun)
-				(*lb->errfun) ("%s: %s\n", lb->filename, strerror(errno));
+				(*lb->errfun) ("%s: %s\n", lb->filename,
+				    strerror(errno));
 			return (NULL);
 		}
 		n = strlen(lb->buf);
@@ -167,13 +168,15 @@ Linebuf_getline(Linebuf * lb)
 		}
 		if (n != lb->size - 1) {
 			if (lb->errfun)
-				(*lb->errfun) ("%s: skipping incomplete last line\n", lb->filename);
+				(*lb->errfun) ("%s: skipping incomplete last line\n",
+				    lb->filename);
 			return (NULL);
 		}
 		/* Double the buffer if we need more space */
 		if (!(lb->buf = realloc(lb->buf, (lb->size *= 2)))) {
 			if (lb->errfun)
-				(*lb->errfun) ("linebuf (%s): realloc failed\n", lb->filename);
+				(*lb->errfun) ("linebuf (%s): realloc failed\n",
+				    lb->filename);
 			return (NULL);
 		}
 	}
@@ -184,6 +187,7 @@ fdlim_get(int hard)
 {
 #if defined(HAVE_GETRLIMIT) && defined(RLIMIT_NOFILE)
 	struct rlimit rlfd;
+
 	if (getrlimit(RLIMIT_NOFILE, &rlfd) < 0)
 		return (-1);
 	if ((hard ? rlfd.rlim_max : rlfd.rlim_cur) == RLIM_INFINITY)
@@ -222,7 +226,7 @@ fdlim_set(int lim)
  * separators.  This is the same as the 4.4BSD strsep, but different from the
  * one in the GNU libc.
  */
-inline char *
+static __inline__ char *
 xstrsep(char **str, const char *delim)
 {
 	char *s, *e;
