@@ -13,6 +13,18 @@
  - Avoid WCOREDUMP complation errors for systems that lack it
  - Avoid SIGCHLD warnings from entropy commands 
  - Fix HAVE_PAM_GETENVLIST setting from Simon Wilkinson <sxw@dcs.ed.ac.uk>
+ - OpenBSD CVS update:
+  - markus@cvs.openbsd.org 
+    [ssh.c]
+    fix usage()
+    [ssh2.h]
+    draft-ietf-secsh-architecture-05.txt
+    [ssh.1]
+    document ssh -T -N (ssh2 only)
+    [channels.c serverloop.c ssh.h sshconnect.c sshd.c aux.c]
+    enable nonblocking IO for sshd w/ proto 1, too; split out common code
+    [aux.c]
+    missing include
 
 20000513
  - Fix for non-recognised DSA keys from Arkadiusz Miskiewicz 

@@ -259,20 +259,15 @@ process_input(fd_set * readset)
 		if (len == 0) {
 			verbose("Connection closed by remote host.");
 			fatal_cleanup();
+		} else if (len < 0) {
+			if (errno != EINTR && errno != EAGAIN) {
+				verbose("Read error from remote host: %.100s", strerror(errno));
+				fatal_cleanup();
+			}
+		} else {
+			/* Buffer any received data. */
+			packet_process_incoming(buf, len);
 		}
-		/*
-		 * There is a kernel bug on Solaris that causes select to
-		 * sometimes wake up even though there is no data available.
-		 */
-		if (len < 0 && errno == EAGAIN)
-			len = 0;
-
-		if (len < 0) {
-			verbose("Read error from remote host: %.100s", strerror(errno));
-			fatal_cleanup();
-		}
-		/* Buffer any received data. */
-		packet_process_incoming(buf, len);
 	}
 	if (compat20)
 		return;
@@ -280,9 +275,11 @@ process_input(fd_set * readset)
 	/* Read and buffer any available stdout data from the program. */
 	if (!fdout_eof && FD_ISSET(fdout, readset)) {
 		len = read(fdout, buf, sizeof(buf));
-		if (len <= 0)
+		if (len < 0 && (errno == EINTR || errno == EAGAIN)) {
+			/* do nothing */
+		} else if (len <= 0) {
 			fdout_eof = 1;
-		else {
+		} else {
 			buffer_append(&stdout_buffer, buf, len);
 			fdout_bytes += len;
 		}
@@ -290,10 +287,13 @@ process_input(fd_set * readset)
 	/* Read and buffer any available stderr data from the program. */
 	if (!fderr_eof && FD_ISSET(fderr, readset)) {
 		len = read(fderr, buf, sizeof(buf));
-		if (len <= 0)
+		if (len < 0 && (errno == EINTR || errno == EAGAIN)) {
+			/* do nothing */
+		} else if (len <= 0) {
 			fderr_eof = 1;
-		else
+		} else {
 			buffer_append(&stderr_buffer, buf, len);
+		}
 	}
 }
 
@@ -309,7 +309,9 @@ process_output(fd_set * writeset)
 	if (!compat20 && fdin != -1 && FD_ISSET(fdin, writeset)) {
 		len = write(fdin, buffer_ptr(&stdin_buffer),
 		    buffer_len(&stdin_buffer));
-		if (len <= 0) {
+		if (len < 0 && (errno == EINTR || errno == EAGAIN)) {
+			/* do nothing */
+		} else if (len <= 0) {
 #ifdef USE_PIPES
 			close(fdin);
 #else
@@ -396,6 +398,12 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 	fdin = fdin_arg;
 	fdout = fdout_arg;
 	fderr = fderr_arg;
+
+	/* nonblocking IO */
+	set_nonblock(fdin);
+	set_nonblock(fdout);
+	set_nonblock(fderr);
+
 	connection_in = packet_get_connection_in();
 	connection_out = packet_get_connection_out();
 

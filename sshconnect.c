@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.72 2000/05/04 09:50:22 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.73 2000/05/17 08:20:15 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dsa.h>
@@ -299,21 +299,6 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 	packet_set_connection(sock, sock);
 
 	return 1;
-}
-
-char *
-chop(char *s)
-{
-	char *t = s;
-	while (*t) {
-		if(*t == '\n' || *t == '\r') {
-			*t = '\0';
-			return s;
-		}
-		t++;
-	}
-	return s;
-
 }
 
 /*

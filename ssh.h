@@ -13,7 +13,7 @@
  *
  */
 
-/* RCSID("$Id: ssh.h,v 1.39 2000/05/09 01:03:02 damien Exp $"); */
+/* RCSID("$Id: ssh.h,v 1.40 2000/05/17 12:34:24 damien Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -485,6 +485,12 @@ void    fatal_remove_cleanup(void (*proc) (void *context), void *context);
  * Warning: this calls getpw*.
  */
 char   *tilde_expand_filename(const char *filename, uid_t my_uid);
+
+/* remove newline at end of string */
+char	*chop(char *s);
+
+/* set filedescriptor to non-blocking */
+void	set_nonblock(int fd);
 
 /*
  * Performs the interactive session.  This handles data transmission between

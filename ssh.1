@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: ssh.1,v 1.25 2000/05/09 01:03:02 damien Exp $
+.\" $Id: ssh.1,v 1.26 2000/05/17 12:34:24 damien Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSH 1
@@ -24,7 +24,7 @@
 .Op Ar command
 .Pp
 .Nm ssh
-.Op Fl afgknqtvxCPX246
+.Op Fl afgknqtvxCNPTX246
 .Op Fl c Ar cipher_spec
 .Op Fl e Ar escape_char
 .Op Fl i Ar identity_file
@@ -416,6 +416,10 @@ program will be put in the background.
 needs to ask for a password or passphrase; see also the
 .Fl f
 option.)
+.It Fl N
+Do not execute a remote command.
+This is usefull if you just want to forward ports
+(protocol version 2 only).
 .It Fl o Ar option
 Can be used to give options in the format used in the config file.
 This is useful for specifying options for which there is no separate
@@ -442,6 +446,8 @@ Force pseudo-tty allocation.
 This can be used to execute arbitrary
 screen-based programs on a remote machine, which can be very useful,
 e.g., when implementing menu services.
+.It Fl T
+Disable pseudo-tty allocation (protocol version 2 only).
 .It Fl v
 Verbose mode.
 Causes

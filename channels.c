@@ -17,7 +17,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: channels.c,v 1.30 2000/05/09 01:02:59 damien Exp $");
+RCSID("$Id: channels.c,v 1.31 2000/05/17 12:34:23 damien Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -145,23 +145,6 @@ channel_lookup(int id)
 		return NULL;
 	}
 	return c;
-}
-
-void
-set_nonblock(int fd)
-{
-	int val;
-	val = fcntl(fd, F_GETFL, 0);
-	if (val < 0) {
-		error("fcntl(%d, F_GETFL, 0): %s", fd, strerror(errno));
-		return;
-	}
-	if (val & O_NONBLOCK)
-		return;
-	debug("fd %d setting O_NONBLOCK", fd);
-	val |= O_NONBLOCK;
-	if (fcntl(fd, F_SETFL, val) == -1)
-		error("fcntl(%d, F_SETFL, O_NONBLOCK): %s", fd, strerror(errno));
 }
 
 /*
