@@ -1,3 +1,7 @@
+20000923
+ - (djm) Fix address logging in utmp from Kevin Steves 
+   <stevesk@sweden.hp.com>
+
 20000920
  - (djm) Fix bad path substitution. Report from Andrew Miner
    <asminer@cs.iastate.edu>

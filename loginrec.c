@@ -161,7 +161,7 @@
 #include "xmalloc.h"
 #include "loginrec.h"
 
-RCSID("$Id: loginrec.c,v 1.23 2000/09/05 05:13:07 djm Exp $");
+RCSID("$Id: loginrec.c,v 1.24 2000/09/23 02:57:27 djm Exp $");
 
 /**
  ** prototypes for helper functions in this file
@@ -678,7 +678,10 @@ construct_utmpx(struct logininfo *li, struct utmpx *utx)
 	strncpy(utx->ut_host, li->hostname, MIN_SIZEOF(utx->ut_host, li->hostname));
 # endif
 # ifdef HAVE_ADDR_IN_UTMPX
-	/* FIXME: (ATL) not supported yet */
+	/* this is just a 32-bit IP address */
+	if (li->hostaddr.sa.sa_family == AF_INET)
+		utx->ut_addr = li->hostaddr.sa_in.sin_addr.s_addr;
+ # endif
 # endif
 # ifdef HAVE_SYSLEN_IN_UTMPX
 	/* ut_syslen is the length of the utx_host string */
