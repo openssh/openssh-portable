@@ -1,3 +1,6 @@
+20020611
+ - (bal) ssh-agent.c RCSD fix (|unexpand already done)
+
 20020609
  - (bal) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2002/06/08 05:07:56
@@ -862,4 +865,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2198 2002/06/09 20:20:58 mouring Exp $
+$Id: ChangeLog,v 1.2199 2002/06/11 15:42:53 mouring Exp $
