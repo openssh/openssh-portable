@@ -3,7 +3,9 @@
    - markus@cvs.openbsd.org 2003/06/12 07:57:38
      [monitor.c sshlogin.c sshpty.c]
      typos; dtucker at zip.com.au
-
+   - djm@cvs.openbsd.org 2003/06/12 12:22:47
+     [LICENCE]
+     mention more copyright holders; ok markus@
 
 20030614
  - (djm) Update license on fake-rfc2553.[ch]; ok itojun@
@@ -519,4 +521,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2802 2003/06/18 10:25:33 djm Exp $
+$Id: ChangeLog,v 1.2803 2003/06/18 10:26:13 djm Exp $
