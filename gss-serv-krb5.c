@@ -134,11 +134,15 @@ ssh_gssapi_krb5_storecreds(ssh_gssapi_client *client)
 	{
 		int tmpfd;
 		char ccname[40];
+		mode_t old_umask;
 
 		snprintf(ccname, sizeof(ccname),
 		    "FILE:/tmp/krb5cc_%d_XXXXXX", geteuid());
 
-		if ((tmpfd = mkstemp(ccname + strlen("FILE:"))) == -1) {
+		old_umask = umask(0177);
+		tmpfd = mkstemp(ccname + strlen("FILE:"));
+		umask(old_umask);
+		if (tmpfd == -1) {
 			logit("mkstemp(): %.100s", strerror(errno));
 			problem = errno;
 			return;

@@ -23,7 +23,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: xmmap.c,v 1.4 2004/05/13 06:39:34 dtucker Exp $ */
+/* $Id: xmmap.c,v 1.5 2004/08/14 13:55:38 dtucker Exp $ */
 
 #include "includes.h"
 
@@ -50,8 +50,11 @@ void *xmmap(size_t size)
 	if (address == MAP_FAILED) {
 		char tmpname[sizeof(MM_SWAP_TEMPLATE)] = MM_SWAP_TEMPLATE;
 		int tmpfd;
+		mode_t old_umask;
 
+		old_umask = umask(0177);
 		tmpfd = mkstemp(tmpname);
+		umask(old_umask);
 		if (tmpfd == -1)
 			fatal("mkstemp(\"%s\"): %s",
 			    MM_SWAP_TEMPLATE, strerror(errno));
