@@ -1,6 +1,12 @@
 20000604
  - Configure tweaking for new login code on Irix 5.3
+ - (andre) login code changes based on djm feedback
 
+20000603
+ - (andre) New login code
+    - Remove bsd-login.[ch] and all the OpenBSD-derived code in login.c
+    - Add loginrec.[ch], logintest.c and autoconf code
+	
 20000531
  - Cleanup of auth.c, login.c and fake-*
  - Cleanup of auth-pam.c, save and print "account expired" error messages
