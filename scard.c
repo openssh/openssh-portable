@@ -24,7 +24,7 @@
 
 #include "includes.h"
 #ifdef SMARTCARD
-RCSID("$OpenBSD: scard.c,v 1.13 2001/08/02 16:14:05 jakob Exp $");
+RCSID("$OpenBSD: scard.c,v 1.14 2001/09/17 20:22:14 markus Exp $"); 
 
 #include <openssl/engine.h>
 #include <sectok.h>
@@ -120,14 +120,14 @@ sc_read_pubkey(Key * k)
 {
 	u_char buf[2], *n;
 	char *p;
-	int len, sw, status;
+	int len, sw, status = -1;
 
 	len = sw = 0;
 
 	if (sc_fd < 0) {
 		status = sc_init();
 		if (status < 0 )
-			return status;
+			goto err;
 	}
 
 	/* get key size */
@@ -135,8 +135,7 @@ sc_read_pubkey(Key * k)
 	     sizeof(buf), buf, &sw);
 	if (!sectok_swOK(sw)) {
 		error("could not obtain key length: %s", sectok_get_sw(sw));
-		sc_close();
-		return -1;
+		goto err;
 	}
 	len = (buf[0] << 8) | buf[1];
 	len /= 8;
@@ -147,30 +146,32 @@ sc_read_pubkey(Key * k)
 	sectok_apdu(sc_fd, CLA_SSH, INS_GET_PUBKEY, 0, 0, 0, NULL, len, n, &sw);
 	if (!sectok_swOK(sw)) {
 		error("could not obtain public key: %s", sectok_get_sw(sw));
-		xfree(n);
-		return -1;
+		goto err;
 	}
+
 	debug("INS_GET_KEYLENGTH: sw %s", sectok_get_sw(sw));
 
 	if (BN_bin2bn(n, len, k->rsa->n) == NULL) {
 		error("c_read_pubkey: BN_bin2bn failed");
-		xfree(n);
-		sc_close();
-		return -1;
+		goto err;
 	}
-	xfree(n);
 
 	/* currently the java applet just stores 'n' */
 	if (!BN_set_word(k->rsa->e, 35)) {
 		error("c_read_pubkey: BN_set_word(e, 35) failed");
-		return -1;
+		goto err;
 	}
 
+	status = 0;
 	p = key_fingerprint(k, SSH_FP_MD5, SSH_FP_HEX);
 	debug("fingerprint %d %s", key_size(k), p);
 	xfree(p);
 
-	return 0;
+err:
+	if (n != NULL)
+		xfree(n);
+	sc_close();
+	return status;
 }
 
 /* private key operations */
@@ -179,7 +180,7 @@ static int
 sc_private_decrypt(int flen, u_char *from, u_char *to, RSA *rsa, int padding)
 {
 	u_char *padded = NULL;
-	int sw, len, olen, status;
+	int sw, len, olen, status = -1;
 
 	debug("sc_private_decrypt called");
 
@@ -199,7 +200,6 @@ sc_private_decrypt(int flen, u_char *from, u_char *to, RSA *rsa, int padding)
 	if (!sectok_swOK(sw)) {
 		error("sc_private_decrypt: INS_DECRYPT failed: %s",
 		    sectok_get_sw(sw));
-		sc_close();
 		goto err;
 	}
 	sectok_apdu(sc_fd, CLA_SSH, INS_GET_RESPONSE, 0, 0, 0, NULL,
@@ -207,7 +207,6 @@ sc_private_decrypt(int flen, u_char *from, u_char *to, RSA *rsa, int padding)
 	if (!sectok_swOK(sw)) {
 		error("sc_private_decrypt: INS_GET_RESPONSE failed: %s",
 		    sectok_get_sw(sw));
-		sc_close();
 		goto err;
 	}
 	olen = RSA_padding_check_PKCS1_type_2(to, len, padded + 1, len - 1,
@@ -215,6 +214,7 @@ sc_private_decrypt(int flen, u_char *from, u_char *to, RSA *rsa, int padding)
 err:
 	if (padded)
 		xfree(padded);
+	sc_close();
 	return (olen >= 0 ? olen : status);
 }
 
@@ -222,7 +222,7 @@ static int
 sc_private_encrypt(int flen, u_char *from, u_char *to, RSA *rsa, int padding)
 {
 	u_char *padded = NULL;
-	int sw, len, status;
+	int sw, len, status = -1;
 
 	len = sw = 0;
 	if (sc_fd < 0) {
@@ -245,7 +245,6 @@ sc_private_encrypt(int flen, u_char *from, u_char *to, RSA *rsa, int padding)
 	if (!sectok_swOK(sw)) {
 		error("sc_private_decrypt: INS_DECRYPT failed: %s",
 		    sectok_get_sw(sw));
-		sc_close();
 		goto err;
 	}
 	sectok_apdu(sc_fd, CLA_SSH, INS_GET_RESPONSE, 0, 0, 0, NULL,
@@ -253,12 +252,12 @@ sc_private_encrypt(int flen, u_char *from, u_char *to, RSA *rsa, int padding)
 	if (!sectok_swOK(sw)) {
 		error("sc_private_decrypt: INS_GET_RESPONSE failed: %s",
 		    sectok_get_sw(sw));
-		sc_close();
 		goto err;
 	}
 err:
 	if (padded)
 		xfree(padded);
+	sc_close();
 	return (len >= 0 ? len : status);
 }
 
@@ -367,6 +366,5 @@ sc_get_key(const char *id)
 		return NULL;
 	}
 	return k;
-	sc_close();
 }
 #endif /* SMARTCARD */

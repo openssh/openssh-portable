@@ -15,6 +15,11 @@
    - stevesk@cvs.openbsd.org 2001/09/17 19:27:15
      [kexdh.c kexgex.c key.c key.h ssh-dss.c ssh-keygen.c ssh-rsa.c]
      u_char*/char* cleanup; ok markus
+   - markus@cvs.openbsd.org 2001/09/17 20:22:14
+     [scard.c]
+     never keep a connection to the smartcard open.
+     allows ssh-keygen -D U while the agent is running; report from 
+     jakob@
 
 20010917
  - (djm) x11-ssh-askpass-1.2.4 in RPM spec, revert workarounds
@@ -6475,4 +6480,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1533 2001/09/18 05:41:19 mouring Exp $
+$Id: ChangeLog,v 1.1534 2001/09/18 05:45:44 mouring Exp $
