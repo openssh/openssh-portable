@@ -1,5 +1,5 @@
 /* 
- * $Id: bsd-cray.c,v 1.9 2003/05/02 13:42:25 dtucker Exp $
+ * $Id: bsd-cray.c,v 1.10 2003/05/02 21:32:56 dtucker Exp $
  *
  * bsd-cray.c
  *
@@ -146,6 +146,7 @@ cray_access_denied(char *username)
 /*
  * record_failed_login: generic "login failed" interface function
  */
+void
 record_failed_login(const char *user, const char *ttyname)
 {
 	cray_login_failure((char *)user, IA_UDBERR);
