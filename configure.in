@@ -75,11 +75,9 @@ case "$host" in
 	mansubdir=cat
 	;;
 *-*-hpux11*)
-	if test -z "$GCC"; then
-		CFLAGS="$CFLAGS -Ae"
-	fi
 	CFLAGS="$CFLAGS -D_HPUX_SOURCE"
 	AC_DEFINE(IPADDR_IN_DISPLAY)
+	AC_DEFINE(USE_PIPES)
 	AC_MSG_CHECKING(for HPUX trusted system password database)
 	if test -f /tcb/files/auth/system/default; then
 		AC_MSG_RESULT(yes)
