@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.67 2002/06/21 00:01:19 mouring Exp $
+# $Id: configure.ac,v 1.68 2002/06/22 18:51:48 stevesk Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -76,6 +76,7 @@ case "$host" in
 	AC_DEFINE(BROKEN_REALPATH)
 	dnl AIX handles lastlog as part of its login message
 	AC_DEFINE(DISABLE_LASTLOG)
+	AC_DEFINE(LOGIN_NEEDS_UTMPX)
 	;;
 *-*-cygwin*)
 	LIBS="$LIBS /usr/lib/textmode.o"

@@ -1,3 +1,6 @@
+20020623
+ - (stevesk) [configure.ac] bug #255 LOGIN_NEEDS_UTMPX for AIX.
+
 20020622
  - (djm) Update README.privsep; spotted by fries@
  - (djm) Release 3.3p1
@@ -1006,4 +1009,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2241 2002/06/22 00:26:59 mouring Exp $
+$Id: ChangeLog,v 1.2242 2002/06/22 18:51:48 stevesk Exp $
