@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.29 2001/03/02 18:54:31 deraadt Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.30 2001/03/12 22:02:02 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -211,10 +211,10 @@ add_file(AuthenticationConnection *ac, const char *filename)
 }
 
 void
-list_identities(AuthenticationConnection *ac, int fp)
+list_identities(AuthenticationConnection *ac, int do_fp)
 {
 	Key *key;
-	char *comment;
+	char *comment, *fp;
 	int had_identities = 0;
 	int version;
 
@@ -223,10 +223,12 @@ list_identities(AuthenticationConnection *ac, int fp)
 		     key != NULL;
 		     key = ssh_get_next_identity(ac, &comment, version)) {
 			had_identities = 1;
-			if (fp) {
+			if (do_fp) {
+				fp = key_fingerprint(key, SSH_FP_MD5,
+				    SSH_FP_HEX);
 				printf("%d %s %s (%s)\n",
-				    key_size(key), key_fingerprint(key),
-				    comment, key_type(key));
+				    key_size(key), fp, comment, key_type(key));
+				xfree(fp);
 			} else {
 				if (!key_write(key, stdout))
 					fprintf(stderr, "key_write failed");

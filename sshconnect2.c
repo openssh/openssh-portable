@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.53 2001/03/10 17:51:04 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.54 2001/03/12 22:02:02 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -660,7 +660,7 @@ input_userauth_pk_ok(int type, int plen, void *ctxt)
 	Key *key = NULL;
 	Buffer b;
 	int alen, blen, pktype, sent = 0;
-	char *pkalg, *pkblob;
+	char *pkalg, *pkblob, *fp;
 
 	if (authctxt == NULL)
 		fatal("input_userauth_pk_ok: no authentication context");
@@ -687,7 +687,6 @@ input_userauth_pk_ok(int type, int plen, void *ctxt)
 			debug("no last key or no sign cb");
 			break;
 		}
-		debug2("last_key %s", key_fingerprint(authctxt->last_key));
 		if ((pktype = key_type_from_name(pkalg)) == KEY_UNSPEC) {
 			debug("unknown pkalg %s", pkalg);
 			break;
@@ -696,7 +695,9 @@ input_userauth_pk_ok(int type, int plen, void *ctxt)
 			debug("no key from blob. pkalg %s", pkalg);
 			break;
 		}
-		debug2("input_userauth_pk_ok: fp %s", key_fingerprint(key));
+		fp = key_fingerprint(key, SSH_FP_MD5, SSH_FP_HEX);
+		debug2("input_userauth_pk_ok: fp %s", fp);
+		xfree(fp);
 		if (!key_equal(key, authctxt->last_key)) {
 			debug("key != last_key");
 			break;

@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.99 2001/03/10 15:31:00 deraadt Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.100 2001/03/12 22:02:02 markus Exp $");
 
 #include <openssl/bn.h>
 
@@ -481,7 +481,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 	Key *file_key;
 	char *type = key_type(host_key);
 	char *ip = NULL;
-	char hostline[1000], *hostp;
+	char hostline[1000], *hostp, *fp;
 	HostStatus host_status;
 	HostStatus ip_status;
 	int local = 0, host_ip_differ = 0;
@@ -612,11 +612,13 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 		} else if (options.strict_host_key_checking == 2) {
 			/* The default */
 			char prompt[1024];
+			fp = key_fingerprint(host_key, SSH_FP_MD5, SSH_FP_HEX);
 			snprintf(prompt, sizeof(prompt),
 			    "The authenticity of host '%.200s (%s)' can't be established.\n"
 			    "%s key fingerprint is %s.\n"
 			    "Are you sure you want to continue connecting (yes/no)? ",
-			    host, ip, type, key_fingerprint(host_key));
+			    host, ip, type, fp);
+			xfree(fp);
 			if (!read_yes_or_no(prompt, -1))
 				fatal("Aborted by user!");
 		}
@@ -655,6 +657,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 				error("Offending key for IP in %s:%d", ip_file, ip_line);
 		}
 		/* The host key has changed. */
+		fp = key_fingerprint(host_key, SSH_FP_MD5, SSH_FP_HEX);
 		error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 		error("@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @");
 		error("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
@@ -662,11 +665,12 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 		error("Someone could be eavesdropping on you right now (man-in-the-middle attack)!");
 		error("It is also possible that the %s host key has just been changed.", type);
 		error("The fingerprint for the %s key sent by the remote host is\n%s.",
-		    type, key_fingerprint(host_key));
+		    type, fp);
 		error("Please contact your system administrator.");
 		error("Add correct host key in %.100s to get rid of this message.",
 		    user_hostfile);
 		error("Offending key in %s:%d", host_file, host_line);
+		xfree(fp);
 
 		/*
 		 * If strict host key checking is in use, the user will have

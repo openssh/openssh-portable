@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.49 2001/03/11 22:33:24 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.50 2001/03/12 22:02:02 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -353,7 +353,7 @@ do_fingerprint(struct passwd *pw)
 			debug("try_load_public_key KEY_UNSPEC failed");
 	}
 	if (success) {
-		fp = key_fingerprint_ex(public, type, rep);
+		fp = key_fingerprint(public, type, rep);
 		printf("%d %s %s\n", key_size(public),
 		    fp, comment);
 		key_free(public);
@@ -409,7 +409,7 @@ do_fingerprint(struct passwd *pw)
 				}
 			}
 			comment = *cp ? cp : comment;
-			fp = key_fingerprint_ex(public, type, rep);
+			fp = key_fingerprint(public, type, rep);
 			printf("%d %s %s\n", key_size(public), fp,
 			    comment ? comment : "no comment");
 			xfree(fp);
@@ -857,10 +857,12 @@ passphrase_again:
 	fclose(f);
 
 	if (!quiet) {
+		char *fp = key_fingerprint(public, SSH_FP_MD5, SSH_FP_HEX);
 		printf("Your public key has been saved in %s.\n",
 		    identity_file);
 		printf("The key fingerprint is:\n");
-		printf("%s %s\n", key_fingerprint(public), comment);
+		printf("%s %s\n", fp, comment);
+		xfree(fp);
 	}
 
 	key_free(public);

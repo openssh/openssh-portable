@@ -1,3 +1,9 @@
+20010313
+ - OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2001/03/12 22:02:02
+     [key.c key.h ssh-add.c ssh-keygen.c sshconnect.c sshconnect2.c]
+     remove old key_fingerprint interface, s/_ex//
+
 20010312
  - OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2001/03/11 13:25:36
@@ -4525,4 +4531,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.950 2001/03/12 05:16:18 mouring Exp $
+$Id: ChangeLog,v 1.951 2001/03/13 04:57:58 mouring Exp $

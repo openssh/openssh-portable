@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: key.c,v 1.21 2001/03/11 18:29:51 markus Exp $");
+RCSID("$OpenBSD: key.c,v 1.22 2001/03/12 22:02:01 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -275,7 +275,7 @@ key_fingerprint_bubblebabble(u_char* dgst_raw, size_t dgst_raw_len)
 }
 
 char*
-key_fingerprint_ex(Key *k, enum fp_type dgst_type, enum fp_rep dgst_rep)
+key_fingerprint(Key *k, enum fp_type dgst_type, enum fp_rep dgst_rep)
 {
 	char *retval = NULL; 
 	u_char *dgst_raw;
@@ -283,7 +283,7 @@ key_fingerprint_ex(Key *k, enum fp_type dgst_type, enum fp_rep dgst_rep)
 	
 	dgst_raw = key_fingerprint_raw(k, dgst_type, &dgst_raw_len);
 	if (!dgst_raw)
-		fatal("key_fingerprint_ex: null value returned from key_fingerprint_raw()");
+		fatal("key_fingerprint: null from key_fingerprint_raw()");
 	switch(dgst_rep) {
 	case SSH_FP_HEX:
 		retval = key_fingerprint_hex(dgst_raw, dgst_raw_len);
@@ -298,18 +298,6 @@ key_fingerprint_ex(Key *k, enum fp_type dgst_type, enum fp_rep dgst_rep)
 	}
 	memset(dgst_raw, 0, dgst_raw_len);
 	xfree(dgst_raw);
-	return retval;
-}
-
-char *
-key_fingerprint(Key *k)
-{
-	static char retval[(EVP_MAX_MD_SIZE + 1) * 3];
-	char *digest;
-
-	digest = key_fingerprint_ex(k, SSH_FP_MD5, SSH_FP_HEX);
-	strlcpy(retval, digest, sizeof(retval));
-	xfree(digest);
 	return retval;
 }
 
