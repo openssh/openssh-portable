@@ -13,6 +13,8 @@
  - (djm) Release 2.5.2p1
 - tim@mindrot.org 2001/03/19 18:33:47 [defines.h]
   change S_ISLNK macro to work for UnixWare 2.03
+- tim@mindrot.org 2001/03/19 20:45:11 [openbsd-compat/glob.c]
+  add get_arg_max(). Use sysconf() if ARG_MAX is not defined
 
 20010319
  - (djm) Seed PRNG at startup, rather than waiting for arc4random calls to 
@@ -4643,4 +4645,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.992 2001/03/20 02:31:44 tim Exp $
+$Id: ChangeLog,v 1.993 2001/03/20 04:46:50 tim Exp $

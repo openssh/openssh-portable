@@ -37,6 +37,18 @@
 #include "includes.h"
 #include <ctype.h>
 
+long
+get_arg_max()
+{
+#ifdef ARG_MAX
+	return(ARG_MAX);
+#elif defined(HAVE_SYSCONF) && defined(_SC_ARG_MAX)
+	return(sysconf(_SC_ARG_MAX));
+#else
+	return(256); /* XXX: arbitrary */
+#endif
+}
+
 #if !defined(HAVE_GLOB) || !defined(GLOB_HAS_ALTDIRFUNC) || \
     !defined(GLOB_HAS_GL_MATCHC)
 
@@ -689,7 +701,7 @@ globextend(path, pglob, limitp)
 	pathv[pglob->gl_offs + pglob->gl_pathc] = NULL;
 
 	if ((pglob->gl_flags & GLOB_LIMIT) &&
-	    newsize + *limitp >= ARG_MAX) {
+	    newsize + *limitp >= (u_int) get_arg_max()) {
 		errno = 0;
 		return(GLOB_NOSPACE);
 	}
