@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.262 2003/01/27 17:06:31 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.263 2003/02/16 17:09:57 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -202,8 +202,8 @@ int *startup_pipes = NULL;
 int startup_pipe;		/* in child */
 
 /* variables used for privilege separation */
-extern struct monitor *pmonitor;
-extern int use_privsep;
+int use_privsep;
+struct monitor *pmonitor;
 
 /* Prototypes for various functions defined later in this file. */
 void destroy_sensitive_data(void);
@@ -1814,6 +1814,8 @@ do_ssh2_kex(void)
 
 	/* start key exchange */
 	kex = kex_setup(myproposal);
+	kex->kex[KEX_DH_GRP1_SHA1] = kexdh_server;
+	kex->kex[KEX_DH_GEX_SHA1] = kexgex_server;
 	kex->server = 1;
 	kex->client_version_string=client_version_string;
 	kex->server_version_string=server_version_string;

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.110 2002/12/19 00:07:02 djm Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.111 2003/02/16 17:09:57 markus Exp $");
 
 #include "ssh.h"
 #include "ssh2.h"
@@ -110,6 +110,8 @@ ssh_kex2(char *host, struct sockaddr *hostaddr)
 
 	/* start key exchange */
 	kex = kex_setup(myproposal);
+	kex->kex[KEX_DH_GRP1_SHA1] = kexdh_client;
+	kex->kex[KEX_DH_GEX_SHA1] = kexgex_client;
 	kex->client_version_string=client_version_string;
 	kex->server_version_string=server_version_string;
 	kex->verify_host_key=&verify_host_key_callback;

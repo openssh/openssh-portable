@@ -63,6 +63,10 @@
    - markus@cvs.openbsd.org 2003/02/12 21:39:50
      [crc32.c crc32.h]
      replace crc32.c with a BSD licensed version; noted by David Turner
+   - markus@cvs.openbsd.org 2003/02/16 17:09:57
+     [kex.c kexdh.c kexgex.c kex.h sshconnect2.c sshd.c ssh-keyscan.c]
+     split kex into client and server code, no need to link
+     server code into the client; ok provos@
 
 20030211
  - (djm) Cygwin needs libcrypt too. Patch from vinschen@redhat.com
@@ -1163,4 +1167,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2611 2003/02/24 01:02:12 djm Exp $
+$Id: ChangeLog,v 1.2612 2003/02/24 01:03:03 djm Exp $

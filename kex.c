@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.53 2003/02/02 10:56:08 markus Exp $");
+RCSID("$OpenBSD: kex.c,v 1.54 2003/02/16 17:09:57 markus Exp $");
 
 #include <openssl/crypto.h>
 
@@ -43,11 +43,6 @@ RCSID("$OpenBSD: kex.c,v 1.53 2003/02/02 10:56:08 markus Exp $");
 #include "monitor.h"
 
 #define KEX_COOKIE_LEN	16
-
-/* Use privilege separation for sshd */
-int use_privsep;
-struct monitor *pmonitor;
-
 
 /* prototype */
 static void kex_kexinit_finish(Kex *);
@@ -237,14 +232,10 @@ kex_kexinit_finish(Kex *kex)
 
 	kex_choose_conf(kex);
 
-	switch (kex->kex_type) {
-	case DH_GRP1_SHA1:
-		kexdh(kex);
-		break;
-	case DH_GEX_SHA1:
-		kexgex(kex);
-		break;
-	default:
+	if (kex->kex_type >= 0 && kex->kex_type < KEX_MAX &&
+	    kex->kex[kex->kex_type] != NULL) {
+		(kex->kex[kex->kex_type])(kex);
+	} else {
 		fatal("Unsupported key exchange %d", kex->kex_type);
 	}
 }
@@ -301,9 +292,9 @@ choose_kex(Kex *k, char *client, char *server)
 	if (k->name == NULL)
 		fatal("no kex alg");
 	if (strcmp(k->name, KEX_DH1) == 0) {
-		k->kex_type = DH_GRP1_SHA1;
+		k->kex_type = KEX_DH_GRP1_SHA1;
 	} else if (strcmp(k->name, KEX_DHGEX) == 0) {
-		k->kex_type = DH_GEX_SHA1;
+		k->kex_type = KEX_DH_GEX_SHA1;
 	} else
 		fatal("bad kex alg %s", k->name);
 }
