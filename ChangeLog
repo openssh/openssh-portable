@@ -2,6 +2,8 @@
  - (djm) Reorder tests and library inclusion for Krb4/AFS to try to 
    resolve linking conflicts with libcrypto. Report and suggested fix 
    from Holger Trapp <Holger.Trapp@Informatik.TU-Chemnitz.DE>
+ - (djm) Work around Solaris' broken struct dirent. Diagnosis and suggested
+   fix from Philippe Levan <levan@epix.net>
 
 20010327
  - Attempt sync with sshlogin.c w/ OpenBSD (mainly CVS ID)
@@ -4730,4 +4732,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1022 2001/03/28 03:03:42 djm Exp $
+$Id: ChangeLog,v 1.1023 2001/03/28 04:35:30 djm Exp $

@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.268 2001/03/28 03:03:42 djm Exp $
+# $Id: configure.in,v 1.269 2001/03/28 04:35:30 djm Exp $
 
 AC_INIT(ssh.c)
 
@@ -402,6 +402,20 @@ AC_EGREP_CPP(FOUNDIT,
         [
                 AC_MSG_RESULT(no)
         ]
+)
+
+AC_MSG_CHECKING([whether struct dirent allocates space for d_name])
+AC_TRY_RUN(
+	[
+#include <sys/types.h>
+#include <dirent.h>
+int main(void){struct dirent d;return(sizeof(d.d_name)<=sizeof(char));}
+	],
+	[AC_MSG_RESULT(yes)], 
+	[
+		AC_MSG_RESULT(no)
+		AC_DEFINE(BROKEN_ONE_BYTE_DIRENT_D_NAME)
+	]
 )
 
 # Check whether user wants S/Key support

@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.108 2001/03/17 01:15:38 mouring Exp $ */
+/* $Id: acconfig.h,v 1.109 2001/03/28 04:35:30 djm Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -307,6 +307,9 @@
 
 /* Define if your system glob() function has gl_matchc options in glob_t */
 #undef GLOB_HAS_GL_MATCHC
+
+/* Define in your struct dirent expects you to allocate extra space for d_name */
+#undef BROKEN_ONE_BYTE_DIRENT_D_NAME
 
 @BOTTOM@
 

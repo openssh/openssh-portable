@@ -65,7 +65,9 @@ void *fudge_opendir(const char *path)
 
 struct dirent *fudge_readdir(struct SFTP_OPENDIR *od)
 {
-	static struct dirent ret;
+	/* Solaris needs sizeof(dirent) + path length (see below) */
+	static char buf[sizeof(struct dirent) + MAXPATHLEN];
+	struct dirent *ret = (struct dirent *)buf;
 #ifdef __GNU_LIBRARY__
 	static int inum = 1;
 #endif /* __GNU_LIBRARY__ */
@@ -73,22 +75,30 @@ struct dirent *fudge_readdir(struct SFTP_OPENDIR *od)
 	if (od->dir[od->offset] == NULL)
 		return(NULL);
 
-	memset(&ret, 0, sizeof(ret));
-	strlcpy(ret.d_name, od->dir[od->offset++]->filename, 
-	    sizeof(ret.d_name));
+	memset(buf, 0, sizeof(buf));
 
+	/*
+	 * Solaris defines dirent->d_name as a one byte array and expects
+	 * you to hack around it.
+	 */
+#ifdef BROKEN_ONE_BYTE_DIRENT_D_NAME
+	strlcpy(ret->d_name, od->dir[od->offset++]->filename, MAXPATHLEN);
+#else
+	strlcpy(ret->d_name, od->dir[od->offset++]->filename, 
+	    sizeof(ret->d_name));
+#endif
 #ifdef __GNU_LIBRARY__
 	/*
 	 * Idiot glibc uses extensions to struct dirent for readdir with
 	 * ALTDIRFUNCs. Not that this is documented anywhere but the 
 	 * source... Fake an inode number to appease it.
 	 */
-	ret.d_ino = inum++;
+	ret->d_ino = inum++;
 	if (!inum)
 		inum = 1;
 #endif /* __GNU_LIBRARY__ */
 
-	return(&ret);
+	return(ret);
 }
 
 void fudge_closedir(struct SFTP_OPENDIR *od)
