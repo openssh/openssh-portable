@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.279 2003/09/26 08:19:29 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.280 2003/10/02 10:41:59 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -758,7 +758,8 @@ drop_connection(int startups)
 static void
 usage(void)
 {
-	fprintf(stderr, "sshd version %s\n", SSH_VERSION);
+	fprintf(stderr, "sshd version %s, %s\n",
+	    SSH_VERSION, SSLeay_version(SSLEAY_VERSION));
 	fprintf(stderr, "Usage: %s [options]\n", __progname);
 	fprintf(stderr, "Options:\n");
 	fprintf(stderr, "  -f file    Configuration file (default %s)\n", _PATH_SERVER_CONFIG_FILE);
