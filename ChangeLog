@@ -4,6 +4,8 @@
  - (bal) .c.o rule in openbsd-compat/Makefile.in did not make it to the
    main tree while porting forward.  Pointed out by Lutz Jaenicke 
    <Lutz.Jaenicke@aet.TU-Cottbus.DE>
+ - (bal) double entry in configure.in.  Pointed out by Lutz Jaenicke
+   <Lutz.Jaenicke@aet.TU-Cottbus.DE>
 
 20010208
  - (djm) Don't delete external askpass program in make uninstall target.

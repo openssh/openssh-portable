@@ -1680,7 +1680,6 @@ G=`eval echo ${piddir}` ; G=`eval echo ${G}`
 echo ""
 echo "OpenSSH configured has been configured with the following options."
 echo "                 User binaries: $B"
-echo "                 User binaries: $B"
 echo "               System binaries: $C"
 echo "           Configuration files: $D"
 echo "               Askpass program: $E"
