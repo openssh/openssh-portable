@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.107 2001/04/06 21:00:13 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.108 2001/04/07 08:55:18 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -178,6 +178,9 @@ usage(void)
 	fprintf(stderr, "  -R listen-port:host:port   Forward remote port to local address\n");
 	fprintf(stderr, "              These cause %s to listen for connections on a port, and\n", __progname);
 	fprintf(stderr, "              forward them to the other side by connecting to host:port.\n");
+	fprintf(stderr, "  -D port     Dynamically forward local port to multiple remote addresses.\n");
+	fprintf(stderr, "              Allows SSH to act as an application-layer proxy.\n");
+	fprintf(stderr, "              Protocols Supported: SOCKS4\n");
 	fprintf(stderr, "  -C          Enable compression.\n");
 	fprintf(stderr, "  -N          Do not execute a shell or command.\n");
 	fprintf(stderr, "  -g          Allow remote hosts to connect to forwarded ports.\n");
@@ -314,7 +317,7 @@ main(int ac, char **av)
 		opt = av[optind][1];
 		if (!opt)
 			usage();
-		if (strchr("eilcmpLRo", opt)) {	/* options with arguments */
+		if (strchr("eilcmpLRDo", opt)) {   /* options with arguments */
 			optarg = av[optind] + 2;
 			if (strcmp(optarg, "") == 0) {
 				if (optind >= ac - 1)
@@ -480,6 +483,12 @@ main(int ac, char **av)
 			}
 			add_local_forward(&options, fwd_port, buf, fwd_host_port);
 			break;
+
+		case 'D':
+			fwd_port = atoi(optarg);
+			add_local_forward(&options, fwd_port, "socks4", 0);
+			break;
+
 		case 'C':
 			options.compression = 1;
 			break;

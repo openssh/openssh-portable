@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.70 2001/04/02 14:20:23 stevesk Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.71 2001/04/07 08:55:17 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -110,7 +110,7 @@ typedef enum {
 	oUsePrivilegedPort, oLogLevel, oCiphers, oProtocol, oMacs,
 	oGlobalKnownHostsFile2, oUserKnownHostsFile2, oPubkeyAuthentication,
 	oKbdInteractiveAuthentication, oKbdInteractiveDevices, oHostKeyAlias,
-	oPreferredAuthentications
+	oDynamicForward, oPreferredAuthentications
 } OpCodes;
 
 /* Textual representations of the tokens. */
@@ -172,6 +172,7 @@ static struct {
 	{ "keepalive", oKeepAlives },
 	{ "numberofpasswordprompts", oNumberOfPasswordPrompts },
 	{ "loglevel", oLogLevel },
+	{ "dynamicforward", oDynamicForward },
 	{ "preferredauthentications", oPreferredAuthentications },
 	{ NULL, 0 }
 };
@@ -582,6 +583,18 @@ parse_int:
 		if (*activep)
 			add_local_forward(options, fwd_port, buf, fwd_host_port);
 		break;
+
+	case oDynamicForward:
+		arg = strdelim(&s);
+		if (!arg || *arg == '\0')
+			fatal("%.200s line %d: Missing port argument.",
+			    filename, linenum);
+		if (arg[0] < '0' || arg[0] > '9')
+			fatal("%.200s line %d: Badly formatted port number.",
+			    filename, linenum);
+		fwd_port = atoi(arg);
+		add_local_forward(options, fwd_port, "socks4", 0);
+                break;
 
 	case oHost:
 		*activep = 0;
