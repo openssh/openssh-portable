@@ -5,6 +5,8 @@
    <andre.lucas@dial.pipex.com>
  - Make IPv4 use the default in RPM packages
  - Irix uses preformatted manpages
+ - Missing htons() in bsd-bindresvport.c, fix from Holger Trapp
+   <Holger.Trapp@Informatik.TU-Chemnitz.DE>
 
 20000120
  - Don't use getaddrinfo on AIX

@@ -61,6 +61,7 @@ bindresvport_af(sd, sa, af)
 	struct sockaddr_in *sin;
 	struct sockaddr_in6 *sin6;
 	u_int16_t *portp;
+	u_int16_t port;
 	int salen;
 	int i;
 
@@ -83,10 +84,13 @@ bindresvport_af(sd, sa, af)
 	}
 	sa->sa_family = af;
 
-	if (*portp == 0)
-		*portp = (u_int16_t)(arc4random() % NPORTS) + STARTPORT;
+	port = ntohs(*portp);
+	if (port == 0)
+		port = (arc4random() % NPORTS) + STARTPORT;
 
 	for(i = 0; i < NPORTS; i++) {
+		*portp = htons(port);
+		
 		error = bind(sd, sa, salen);
 		
 		/* Terminate on success */
@@ -97,7 +101,9 @@ bindresvport_af(sd, sa, af)
 		if ((error < 0) && !((errno == EADDRINUSE) || (errno == EINVAL)))
 			break;
 			
-		*portp = (i % NPORTS) + STARTPORT;
+		port++;
+		if (port > ENDPORT)
+			port = STARTPORT;
 	}
 
 	return (error);
