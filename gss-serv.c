@@ -1,4 +1,4 @@
-/*	$OpenBSD: gss-serv.c,v 1.1 2003/08/22 10:56:09 markus Exp $	*/
+/*	$OpenBSD: gss-serv.c,v 1.2 2003/08/31 13:30:18 markus Exp $	*/
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -178,9 +178,10 @@ ssh_gssapi_parse_ename(Gssctxt *ctx, gss_buffer_t ename, gss_buffer_t name)
 	if (ename->length < offset+name->length)
         	return GSS_S_FAILURE;
 	
-	name->value = xmalloc(name->length);
+	name->value = xmalloc(name->length+1);
 	memcpy(name->value,tok+offset,name->length);
-	
+	((char *)name->value)[name->length] = 0;
+
 	return GSS_S_COMPLETE;
 } 
 
