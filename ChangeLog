@@ -19,6 +19,9 @@
      modes (not normally a problem on OpenBSD but common with -Portable
      on POSIX platforms).  From peak at argo.troja.mff.cuni.cz (bz#950);
      ok djm@ markus@
+   - dtucker@cvs.openbsd.org 2005/01/24 10:29:06
+     [moduli]
+     Import new moduli; requested by deraadt@ a week ago
 
 20050120
  - (dtucker) OpenBSD CVS Sync
@@ -2037,4 +2040,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3624 2005/01/24 10:57:40 dtucker Exp $
+$Id: ChangeLog,v 1.3625 2005/01/24 11:00:40 dtucker Exp $
