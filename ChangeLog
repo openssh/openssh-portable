@@ -1,3 +1,7 @@
+20030428
+ - (bal) [defines.h progressmeter.c scp.c] Some more culling of non 64bit 
+   hacked code.
+
 20030427
  - (bal) Bug #541: return; was dropped by mistake.  Reported by 
    furrier@iglou.com
@@ -1345,4 +1349,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2662 2003/04/27 18:44:31 mouring Exp $
+$Id: ChangeLog,v 1.2663 2003/04/28 23:30:43 mouring Exp $

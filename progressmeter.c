@@ -215,36 +215,19 @@ draw_progress_meter()
 
     	nspaces = MIN(get_tty_width() - 79, sizeof(spaces) - 1);
 
-#ifdef HAVE_LONG_LONG_INT
 	snprintf(buf, sizeof(buf),
 	    "\r%-45.45s%.*s%3d%% %4lld%c%c %3lld.%01d%cB/s",
 	    curfile,
 	    nspaces,
 	    spaces,
 	    ratio,
-	    (long long)abbrevsize,
+	    (int64_t)abbrevsize,
 	    prefixes[ai],
 	    ai == 0 ? ' ' : 'B',
-	    (long long)(bytespersec / 1024),
+	    (int64_t)(bytespersec / 1024),
 	    (int)((bytespersec % 1024) * 10 / 1024),
 	    prefixes[bi]
 	);
-#else
-		/* XXX: Handle integer overflow? */
-	snprintf(buf, sizeof(buf),
-	    "\r%-45.45s%.*s%3d%% %4lu%c%c %3lu.%01d%cB/s",
-	    curfile,
-	    nspaces,
-	    spaces,
-	    ratio,
-	    (u_long)abbrevsize,
-	    prefixes[ai],
-	    ai == 0 ? ' ' : 'B',
-	    (u_long)(bytespersec / 1024),
-	    (int)((bytespersec % 1024) * 10 / 1024),
-	    prefixes[bi]
-	);
-#endif
 
 	if (cursize <= 0 || elapsed <= 0.0 || cursize > totalbytes) {
 		snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
