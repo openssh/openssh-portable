@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.62 2001/06/07 19:57:53 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.63 2001/06/22 21:55:49 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -650,9 +650,9 @@ authmethod_lookup(const char *name)
 
 /* return 1 if user allows given key */
 int
-user_key_allowed(struct passwd *pw, Key *key)
+user_key_allowed2(struct passwd *pw, Key *key, char *file)
 {
-	char line[8192], *file;
+	char line[8192];
 	int found_key = 0;
 	FILE *f;
 	u_long linenum = 0;
@@ -665,15 +665,12 @@ user_key_allowed(struct passwd *pw, Key *key)
 	/* Temporarily use the user's uid. */
 	temporarily_use_uid(pw);
 
-	/* The authorized keys. */
-	file = authorized_keys_file2(pw);
 	debug("trying public key file %s", file);
 
 	/* Fail quietly if file does not exist */
 	if (stat(file, &st) < 0) {
 		/* Restore the privileged uid. */
 		restore_uid();
-		xfree(file);
 		return 0;
 	}
 	/* Open the file containing the authorized keys. */
@@ -681,12 +678,10 @@ user_key_allowed(struct passwd *pw, Key *key)
 	if (!f) {
 		/* Restore the privileged uid. */
 		restore_uid();
-		xfree(file);
 		return 0;
 	}
 	if (options.strict_modes &&
 	    secure_filename(f, file, pw->pw_uid, line, sizeof(line)) != 0) {
-		xfree(file);
 		fclose(f);
 		log("Authentication refused: %s", line);
 		restore_uid();
@@ -735,11 +730,30 @@ user_key_allowed(struct passwd *pw, Key *key)
 	}
 	restore_uid();
 	fclose(f);
-	xfree(file);
 	key_free(found);
 	if (!found_key)
 		debug2("key not found");
 	return found_key;
+}
+
+/* check whether given key is in .ssh/authorized_keys* */
+int
+user_key_allowed(struct passwd *pw, Key *key)
+{
+	int success;
+	char *file;
+
+	file = authorized_keys_file(pw);
+	success = user_key_allowed2(pw, key, file);
+	xfree(file);
+	if (success)
+		return success;
+
+	/* try suffix "2" for backward compat, too */
+	file = authorized_keys_file2(pw);
+	success = user_key_allowed2(pw, key, file);
+	xfree(file);
+	return success;
 }
 
 /* return 1 if given hostkey is allowed */

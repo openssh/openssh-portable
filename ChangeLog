@@ -19,6 +19,12 @@
    - provos@cvs.openbsd.org 2001/06/22 21:28:53
      [sshd.8]
      document /etc/moduli
+   - markus@cvs.openbsd.org 2001/06/22 21:55:49
+     [auth2.c auth-rsa.c pathnames.h ssh.1 sshd.8 sshd_config 
+      ssh-keygen.1]
+     merge authorized_keys2 into authorized_keys.
+     authorized_keys2 is used for backward compat.
+     (just append authorized_keys2 to authorized_keys).
 
 20010622
  - (stevesk) handle systems without pw_expire and pw_change.
@@ -5703,4 +5709,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1301 2001/06/25 04:14:59 mouring Exp $
+$Id: ChangeLog,v 1.1302 2001/06/25 04:17:12 mouring Exp $

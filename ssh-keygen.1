@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.42 2001/06/03 19:36:44 markus Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.43 2001/06/22 21:55:49 markus Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -233,7 +233,7 @@ will read this file when a login attempt is made.
 .It Pa $HOME/.ssh/id_dsa.pub
 Contains the protocol version 2 DSA public key for authentication.
 The contents of this file should be added to
-.Pa $HOME/.ssh/authorized_keys2
+.Pa $HOME/.ssh/authorized_keys
 on all machines
 where you wish to log in using public key authentication.
 There is no need to keep the contents of this file secret.
@@ -251,7 +251,7 @@ will read this file when a login attempt is made.
 .It Pa $HOME/.ssh/id_rsa.pub
 Contains the protocol version 2 RSA public key for authentication.
 The contents of this file should be added to
-.Pa $HOME/.ssh/authorized_keys2
+.Pa $HOME/.ssh/authorized_keys
 on all machines
 where you wish to log in using public key authentication.
 There is no need to keep the contents of this file secret.

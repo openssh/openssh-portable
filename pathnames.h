@@ -1,4 +1,4 @@
-/*	$OpenBSD: pathnames.h,v 1.7 2001/06/22 21:27:08 provos Exp $	*/
+/*	$OpenBSD: pathnames.h,v 1.8 2001/06/22 21:55:49 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -89,6 +89,8 @@
  * running as root.)
  */
 #define _PATH_SSH_USER_PERMITTED_KEYS	".ssh/authorized_keys"
+
+/* backward compat for protocol v2 */
 #define _PATH_SSH_USER_PERMITTED_KEYS2	".ssh/authorized_keys2"
 
 /*

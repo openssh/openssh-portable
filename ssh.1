@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.114 2001/06/22 10:17:51 mpech Exp $
+.\" $OpenBSD: ssh.1,v 1.115 2001/06/22 21:55:49 markus Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -224,7 +224,7 @@ or
 .Pa $HOME/.ssh/id_rsa ,
 to sign the session identifier and sends the result to the server.
 The server checks whether the matching public key is listed in
-.Pa $HOME/.ssh/authorized_keys2
+.Pa $HOME/.ssh/authorized_keys
 and grants access if both the key is found and the signature is correct.
 The session identifier is derived from a shared Diffie-Hellman value
 and is only known to the client and the server.
@@ -1224,7 +1224,7 @@ The contents of the
 and
 .Pa $HOME/.ssh/id_rsa.pub
 file should be added to
-.Pa $HOME/.ssh/authorized_keys2
+.Pa $HOME/.ssh/authorized_keys
 on all machines
 where you wish to log in using protocol version 2 DSA/RSA authentication.
 These files are not
@@ -1242,18 +1242,10 @@ This file does not usually contain any sensitive information,
 but the recommended permissions are read/write for the user, and not
 accessible by others.
 .It Pa $HOME/.ssh/authorized_keys
-Lists the RSA keys that can be used for logging in as this user.
+Lists the public keys (RSA/DSA) that can be used for logging in as this user.
 The format of this file is described in the
 .Xr sshd 8
 manual page.
-In the simplest form the format is the same as the .pub
-identity files (that is, each line contains the number of bits in
-modulus, public exponent, modulus, and comment fields, separated by
-spaces).
-This file is not highly sensitive, but the recommended
-permissions are read/write for the user, and not accessible by others.
-.It Pa $HOME/.ssh/authorized_keys2
-Lists the public keys (RSA/DSA) that can be used for logging in as this user.
 This file is not highly sensitive, but the recommended
 permissions are read/write for the user, and not accessible by others.
 .It Pa /etc/ssh_known_hosts, /etc/ssh_known_hosts2

@@ -1,4 +1,4 @@
-#	$OpenBSD: sshd_config,v 1.40 2001/05/31 13:08:04 markus Exp $
+#	$OpenBSD: sshd_config,v 1.41 2001/06/22 21:55:50 markus Exp $
 
 # This sshd was compiled with PATH=/usr/bin:/bin:/usr/sbin:/sbin
 
@@ -34,7 +34,6 @@ StrictModes yes
 RSAAuthentication yes
 PubkeyAuthentication yes
 #AuthorizedKeysFile	%h/.ssh/authorized_keys
-#AuthorizedKeysFile2	%h/.ssh/authorized_keys2
 
 # rhosts authentication should not be used
 RhostsAuthentication no
