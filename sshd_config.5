@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.37 2004/12/23 23:11:00 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.38 2005/01/08 00:41:19 jmc Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -466,7 +466,7 @@ server allows login to accounts with empty password strings.
 The default is
 .Dq no .
 .It Cm PermitRootLogin
-Specifies whether root can login using
+Specifies whether root can log in using
 .Xr ssh 1 .
 The argument must be
 .Dq yes ,
@@ -495,7 +495,7 @@ All other authentication methods are disabled for root.
 .Pp
 If this option is set to
 .Dq no
-root is not allowed to login.
+root is not allowed to log in.
 .It Cm PermitUserEnvironment
 Specifies whether
 .Pa ~/.ssh/environment

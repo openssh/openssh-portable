@@ -13,6 +13,9 @@
    - markus@cvs.openbsd.org 2005/01/05 08:51:32
      [sshconnect.c]
      remove dead code, log connect() failures with level error, ok djm@
+   - jmc@cvs.openbsd.org 2005/01/08 00:41:19
+     [sshd_config.5]
+     `login'(n) -> `log in'(v);
 
 20050118
  - (dtucker) [INSTALL Makefile.in configure.ac survey.sh.in] Implement
@@ -1985,4 +1988,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3612 2005/01/20 00:00:46 dtucker Exp $
+$Id: ChangeLog,v 1.3613 2005/01/20 00:01:46 dtucker Exp $
