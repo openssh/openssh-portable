@@ -3,8 +3,8 @@
 
 tid="sftp invalid commands"
 
-DATA=/bin/ls
-DATA2=/bin/cat
+DATA=/bin/ls${EXEEXT}
+DATA2=/bin/cat${EXEEXT}
 NONEXIST=/NONEXIST.$$
 COPY=${OBJ}/copy
 GLOBFILES=`(cd /bin;echo l*)`

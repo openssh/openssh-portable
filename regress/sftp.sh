@@ -3,7 +3,7 @@
 
 tid="basic sftp put/get"
 
-DATA=/bin/ls
+DATA=/bin/ls{EXEEXT}
 COPY=${OBJ}/copy
 
 BUFFERSIZE="5 1000 32000 64000"

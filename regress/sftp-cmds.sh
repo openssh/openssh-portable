@@ -7,7 +7,7 @@
 
 tid="sftp commands"
 
-DATA=/bin/ls
+DATA=/bin/ls${EXEEXT}
 COPY=${OBJ}/copy
 # test that these files are readable!
 for i in `(cd /bin;echo l*)`
@@ -70,7 +70,7 @@ rm -f ${COPY}.dd/*
 verbose "$tid: get to directory"
 echo "get $DATA ${COPY}.dd" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
         || fail "get failed"
-cmp $DATA ${COPY}.dd/ls || fail "corrupted copy after get"
+cmp $DATA ${COPY}.dd/`basename $DATA` || fail "corrupted copy after get"
 
 rm -f ${COPY}.dd/*
 verbose "$tid: glob get to directory"
@@ -82,13 +82,13 @@ done
 
 rm -f ${COPY}.dd/*
 verbose "$tid: get to local dir"
-echo "lcd ${COPY}.dd\nget $DATA" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
+(echo "lcd ${COPY}.dd"; echo "get $DATA" ) | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
         || fail "get failed"
-cmp $DATA ${COPY}.dd/ls || fail "corrupted copy after get"
+cmp $DATA ${COPY}.dd/`basename $DATA` || fail "corrupted copy after get"
 
 rm -f ${COPY}.dd/*
 verbose "$tid: glob get to local dir"
-echo "lcd ${COPY}.dd\nget /bin/l*" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
+(echo "lcd ${COPY}.dd"; echo "get /bin/l*") | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
         || fail "get failed"
 for x in $GLOBFILES; do
         cmp /bin/$x ${COPY}.dd/$x || fail "corrupted copy after get"
@@ -110,7 +110,7 @@ rm -f ${COPY}.dd/*
 verbose "$tid: put to directory"
 echo "put $DATA ${COPY}.dd" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
 	|| fail "put failed"
-cmp $DATA ${COPY}.dd/ls || fail "corrupted copy after put"
+cmp $DATA ${COPY}.dd/`basename $DATA` || fail "corrupted copy after put"
 
 rm -f ${COPY}.dd/*
 verbose "$tid: glob put to directory"
@@ -122,13 +122,13 @@ done
 
 rm -f ${COPY}.dd/*
 verbose "$tid: put to local dir"
-echo "cd ${COPY}.dd\nput $DATA" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
+(echo "cd ${COPY}.dd"; echo "put $DATA") | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
 	|| fail "put failed"
-cmp $DATA ${COPY}.dd/ls || fail "corrupted copy after put"
+cmp $DATA ${COPY}.dd/`basename $DATA` || fail "corrupted copy after put"
 
 rm -f ${COPY}.dd/*
 verbose "$tid: glob put to local dir"
-echo "cd ${COPY}.dd\nput /bin/l*" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
+(echo "cd ${COPY}.dd"; echo "put /bin/l*") | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
 	|| fail "put failed"
 for x in $GLOBFILES; do
         cmp /bin/$x ${COPY}.dd/$x || fail "corrupted copy after put"

@@ -64,7 +64,7 @@ EOF
 # we need a real server (no ProxyConnect option)
 start_sshd
 
-DATA=/bin/ls
+DATA=/bin/ls${EXEEXT}
 COPY=${OBJ}/copy
 rm -f ${COPY}
 

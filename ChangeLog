@@ -11,6 +11,9 @@
      it).  The sparse file will take less disk space too.
    - [regress/sftp-cmds.sh] Ensure file used for test are readable.
    - [regress/stderr-after-eof.sh] Search for a usable checksum program.
+   - [regress/sftp-badcmds.sh regress/sftp-cmds.sh regress/sftp.sh
+     regress/ssh-com-client.sh regress/ssh-com-sftp.sh regress/stderr-data.sh
+     regress/transfer.sh] Use ${EXEEXT} where appropriate.
 
 20030903
  - (djm) OpenBSD CVS Sync
@@ -1001,4 +1004,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2948 2003/09/04 04:32:02 dtucker Exp $
+$Id: ChangeLog,v 1.2949 2003/09/04 04:54:39 dtucker Exp $
