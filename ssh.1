@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.121 2001/07/22 21:32:42 pvalchev Exp $
+.\" $OpenBSD: ssh.1,v 1.122 2001/07/22 22:04:19 markus Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -1012,15 +1012,12 @@ The default is
 Note that this option applies to protocol version 1 only.
 .It Cm ChallengeResponseAuthentication
 Specifies whether to use challenge response authentication.
-Currently there is only support for
-.Xr skey 1
-authentication.
 The argument to this keyword must be
 .Dq yes
 or
 .Dq no .
 The default is
-.Dq no .
+.Dq yes .
 .It Cm StrictHostKeyChecking
 If this flag is set to
 .Dq yes ,
