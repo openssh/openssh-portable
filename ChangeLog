@@ -130,6 +130,10 @@
    - rees@cvs.openbsd.org 2002/03/21 18:08:15
      [scard.c]
      In sc_put_key(), sc_reader_id should be id.
+   - markus@cvs.openbsd.org 2002/03/21 20:51:12
+     [sshd_config]
+     add privsep (off)
+
 20020317
  - (tim) [configure.ac] Assume path given with --with-pid-dir=PATH is wanted,
    warn if directory does not exist. Put system directories in front of
@@ -7975,4 +7979,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1961 2002/03/22 03:38:35 mouring Exp $
+$Id: ChangeLog,v 1.1962 2002/03/22 03:40:58 mouring Exp $
