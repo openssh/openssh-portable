@@ -1,3 +1,6 @@
+20040627
+ - (tim) update README files.
+
 20040626
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2004/06/25 18:43:36
@@ -1433,4 +1436,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3452 2004/06/25 23:21:06 djm Exp $
+$Id: ChangeLog,v 1.3453 2004/06/28 03:50:35 tim Exp $

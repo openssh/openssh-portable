@@ -50,11 +50,21 @@ Search for all instances of OpenSSL headers and libraries and print their
 versions.  This is intended to help diagnose OpenSSH's "OpenSSL headers do not
 match your library" errors. 
 
-redhat:
+aix:
+    Files to build an AIX native (installp or SMIT installable) package.
 
-RPM spec file and scripts for building Redhat packages
+caldera:
+    RPM spec file and scripts for building Caldera OpenLinuix packages
+
+cygwin:
+    Support files for Cygwin
+
+hpux:
+    Support files for HP-UX
+
+redhat:
+    RPM spec file and scripts for building Redhat packages
 
 suse:
-
-RPM spec file and scripts for building SuSE packages
+    RPM spec file and scripts for building SuSE packages
 
