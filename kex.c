@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.40 2001/12/28 14:50:54 markus Exp $");
+RCSID("$OpenBSD: kex.c,v 1.41 2001/12/28 15:06:00 markus Exp $");
 
 #include <openssl/crypto.h>
 
@@ -107,9 +107,9 @@ kex_prop_free(char **proposal)
 }
 
 static void
-kex_protocol_error(int type, int plen, u_int32_t seq, void *ctxt)
+kex_protocol_error(int type, u_int32_t seq, void *ctxt)
 {
-	error("Hm, kex protocol error: type %d plen %d", type, plen);
+	error("Hm, kex protocol error: type %d seq %u", type, seq);
 }
 
 static void
@@ -164,7 +164,7 @@ kex_send_kexinit(Kex *kex)
 }
 
 void
-kex_input_kexinit(int type, int plen, u_int32_t seq, void *ctxt)
+kex_input_kexinit(int type, u_int32_t seq, void *ctxt)
 {
 	char *ptr;
 	int dlen;

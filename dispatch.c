@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: dispatch.c,v 1.13 2001/12/28 14:50:54 markus Exp $");
+RCSID("$OpenBSD: dispatch.c,v 1.14 2001/12/28 15:06:00 markus Exp $");
 
 #include "ssh1.h"
 #include "ssh2.h"
@@ -37,10 +37,9 @@ RCSID("$OpenBSD: dispatch.c,v 1.13 2001/12/28 14:50:54 markus Exp $");
 dispatch_fn *dispatch[DISPATCH_MAX];
 
 void
-dispatch_protocol_error(int type, int plen, u_int32_t seq, void *ctxt)
+dispatch_protocol_error(int type, u_int32_t seq, void *ctxt)
 {
-	fatal("dispatch_protocol_error: type %d seq %u plen %d", type, 
-	    seq, plen);
+	fatal("dispatch_protocol_error: type %d seq %u", type, seq);
 }
 void
 dispatch_init(dispatch_fn *dflt)
@@ -69,7 +68,7 @@ dispatch_run(int mode, int *done, void *ctxt)
 				return;
 		}
 		if (type > 0 && type < DISPATCH_MAX && dispatch[type] != NULL)
-			(*dispatch[type])(type, 1234, seqnr, ctxt);
+			(*dispatch[type])(type, seqnr, ctxt);
 		else
 			packet_disconnect("protocol error: rcvd type %d", type);
 		if (done != NULL && *done)

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.79 2001/12/28 12:14:27 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.80 2001/12/28 15:06:00 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -69,9 +69,9 @@ struct Authmethod {
 
 /* protocol */
 
-static void input_service_request(int, int, u_int32_t, void *);
-static void input_userauth_request(int, int, u_int32_t, void *);
-static void protocol_error(int, int, u_int32_t, void *);
+static void input_service_request(int, u_int32_t, void *);
+static void input_userauth_request(int, u_int32_t, void *);
+static void protocol_error(int, u_int32_t, void *);
 
 /* helper */
 static Authmethod *authmethod_lookup(const char *);
@@ -130,9 +130,9 @@ do_authentication2(void)
 }
 
 static void
-protocol_error(int type, int plen, u_int32_t seq, void *ctxt)
+protocol_error(int type, u_int32_t seq, void *ctxt)
 {
-	log("auth: protocol error: type %d plen %d", type, plen);
+	log("auth: protocol error: type %d", type);
 	packet_start(SSH2_MSG_UNIMPLEMENTED);
 	packet_put_int(seq);
 	packet_send();
@@ -140,7 +140,7 @@ protocol_error(int type, int plen, u_int32_t seq, void *ctxt)
 }
 
 static void
-input_service_request(int type, int plen, u_int32_t seq, void *ctxt)
+input_service_request(int type, u_int32_t seq, void *ctxt)
 {
 	Authctxt *authctxt = ctxt;
 	u_int len;
@@ -173,7 +173,7 @@ input_service_request(int type, int plen, u_int32_t seq, void *ctxt)
 }
 
 static void
-input_userauth_request(int type, int plen, u_int32_t seq, void *ctxt)
+input_userauth_request(int type, u_int32_t seq, void *ctxt)
 {
 	Authctxt *authctxt = ctxt;
 	Authmethod *m = NULL;

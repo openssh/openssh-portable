@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.92 2001/12/28 14:50:54 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.93 2001/12/28 15:06:00 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -782,7 +782,7 @@ server_loop2(Authctxt *authctxt)
 }
 
 static void
-server_input_channel_failure(int type, int plen, u_int32_t seq, void *ctxt)
+server_input_channel_failure(int type, u_int32_t seq, void *ctxt)
 {
 	debug("Got CHANNEL_FAILURE for keepalive");
 	/*
@@ -795,7 +795,7 @@ server_input_channel_failure(int type, int plen, u_int32_t seq, void *ctxt)
 
 
 static void
-server_input_stdin_data(int type, int plen, u_int32_t seq, void *ctxt)
+server_input_stdin_data(int type, u_int32_t seq, void *ctxt)
 {
 	char *data;
 	u_int data_len;
@@ -812,7 +812,7 @@ server_input_stdin_data(int type, int plen, u_int32_t seq, void *ctxt)
 }
 
 static void
-server_input_eof(int type, int plen, u_int32_t seq, void *ctxt)
+server_input_eof(int type, u_int32_t seq, void *ctxt)
 {
 	/*
 	 * Eof from the client.  The stdin descriptor to the
@@ -825,7 +825,7 @@ server_input_eof(int type, int plen, u_int32_t seq, void *ctxt)
 }
 
 static void
-server_input_window_size(int type, int plen, u_int32_t seq, void *ctxt)
+server_input_window_size(int type, u_int32_t seq, void *ctxt)
 {
 	int row = packet_get_int();
 	int col = packet_get_int();
@@ -903,7 +903,7 @@ server_request_session(char *ctype)
 }
 
 static void
-server_input_channel_open(int type, int plen, u_int32_t seq, void *ctxt)
+server_input_channel_open(int type, u_int32_t seq, void *ctxt)
 {
 	Channel *c = NULL;
 	char *ctype;
@@ -953,7 +953,7 @@ server_input_channel_open(int type, int plen, u_int32_t seq, void *ctxt)
 }
 
 static void
-server_input_global_request(int type, int plen, u_int32_t seq, void *ctxt)
+server_input_global_request(int type, u_int32_t seq, void *ctxt)
 {
 	char *rtype;
 	int want_reply;

@@ -32,7 +32,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* RCSID("$OpenBSD: channels.h,v 1.55 2001/12/20 22:50:24 djm Exp $"); */
+/* RCSID("$OpenBSD: channels.h,v 1.56 2001/12/28 15:06:00 markus Exp $"); */
 
 #ifndef CHANNEL_H
 #define CHANNEL_H
@@ -157,17 +157,17 @@ int	 channel_close_fd(int *);
 
 /* protocol handler */
 
-void	 channel_input_channel_request(int, int, u_int32_t, void *);
-void	 channel_input_close(int, int, u_int32_t, void *);
-void	 channel_input_close_confirmation(int, int, u_int32_t, void *);
-void	 channel_input_data(int, int, u_int32_t, void *);
-void	 channel_input_extended_data(int, int, u_int32_t, void *);
-void	 channel_input_ieof(int, int, u_int32_t, void *);
-void	 channel_input_oclose(int, int, u_int32_t, void *);
-void	 channel_input_open_confirmation(int, int, u_int32_t, void *);
-void	 channel_input_open_failure(int, int, u_int32_t, void *);
-void	 channel_input_port_open(int, int, u_int32_t, void *);
-void	 channel_input_window_adjust(int, int, u_int32_t, void *);
+void	 channel_input_channel_request(int, u_int32_t, void *);
+void	 channel_input_close(int, u_int32_t, void *);
+void	 channel_input_close_confirmation(int, u_int32_t, void *);
+void	 channel_input_data(int, u_int32_t, void *);
+void	 channel_input_extended_data(int, u_int32_t, void *);
+void	 channel_input_ieof(int, u_int32_t, void *);
+void	 channel_input_oclose(int, u_int32_t, void *);
+void	 channel_input_open_confirmation(int, u_int32_t, void *);
+void	 channel_input_open_failure(int, u_int32_t, void *);
+void	 channel_input_port_open(int, u_int32_t, void *);
+void	 channel_input_window_adjust(int, u_int32_t, void *);
 
 /* file descriptor handling (read/write) */
 
@@ -199,9 +199,9 @@ channel_request_forwarding(const char *, u_short, const char *, u_short, int,
 
 int	 x11_connect_display(void);
 int	 x11_create_display_inet(int, int, int);
-void     x11_input_open(int, int, u_int32_t, void *);
+void     x11_input_open(int, u_int32_t, void *);
 void	 x11_request_forwarding_with_spoofing(int, const char *, const char *);
-void	 deny_input_open(int, int, u_int32_t, void *);
+void	 deny_input_open(int, u_int32_t, void *);
 
 /* agent forwarding */
 
@@ -209,7 +209,7 @@ void	 auth_request_forwarding(void);
 char	*auth_get_socket_name(void);
 void	 auth_sock_cleanup_proc(void *);
 int	 auth_input_request_forwarding(struct passwd *);
-void	 auth_input_open_request(int, int, u_int32_t, void *);
+void	 auth_input_open_request(int, u_int32_t, void *);
 
 /* channel close */
 

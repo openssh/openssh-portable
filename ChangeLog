@@ -71,6 +71,10 @@
      [packet.c packet.h serverloop.c session.c ssh.c sshconnect1.c]
      [sshconnect2.c sshd.c]
      packet_read* no longer return the packet length, since it's not used.
+   - markus@cvs.openbsd.org 2001/12/28 15:06:00
+     [auth2.c auth2-chall.c channels.c channels.h clientloop.c dispatch.c]
+     [dispatch.h kex.c kex.h serverloop.c ssh.c sshconnect2.c]
+     remove plen from the dispatch fn. it's no longer used.
 
 
 20020121
@@ -7219,4 +7223,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1743 2002/01/22 12:16:32 djm Exp $
+$Id: ChangeLog,v 1.1744 2002/01/22 12:17:30 djm Exp $

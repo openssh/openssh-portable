@@ -23,7 +23,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: auth2-chall.c,v 1.12 2001/12/28 12:14:27 markus Exp $");
+RCSID("$OpenBSD: auth2-chall.c,v 1.13 2001/12/28 15:06:00 markus Exp $");
 
 #include "ssh2.h"
 #include "auth.h"
@@ -35,7 +35,7 @@ RCSID("$OpenBSD: auth2-chall.c,v 1.12 2001/12/28 12:14:27 markus Exp $");
 
 static int auth2_challenge_start(Authctxt *);
 static int send_userauth_info_request(Authctxt *);
-static void input_userauth_info_response(int, int, u_int32_t, void *);
+static void input_userauth_info_response(int, u_int32_t, void *);
 
 #ifdef BSD_AUTH
 extern KbdintDevice bsdauth_device;
@@ -234,7 +234,7 @@ send_userauth_info_request(Authctxt *authctxt)
 }
 
 static void
-input_userauth_info_response(int type, int plen, u_int32_t seq, void *ctxt)
+input_userauth_info_response(int type, u_int32_t seq, void *ctxt)
 {
 	Authctxt *authctxt = ctxt;
 	KbdintAuthctxt *kbdintctxt;
