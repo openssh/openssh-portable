@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-passwd.c,v 1.25 2002/05/06 23:00:59 mouring Exp $");
+RCSID("$OpenBSD: auth-passwd.c,v 1.24 2002/03/04 12:43:06 markus Exp $");
 
 #include "packet.h"
 #include "log.h"
@@ -89,16 +89,16 @@ extern ServerOptions options;
 int
 auth_password(Authctxt *authctxt, const char *password)
 {
-	struct passwd * pw = authctxt->pw;
 #if defined(USE_PAM)
-	if (*pw->pw_passwd == '\0' && options.permit_empty_passwd == 0)
+	if (*password == '\0' && options.permit_empty_passwd == 0)
 		return 0;
 	return auth_pam_password(authctxt, password);
 #elif defined(HAVE_OSF_SIA)
-	if (*pw->pw_passwd == '\0' && options.permit_empty_passwd == 0)
+	if (*password == '\0' && options.permit_empty_passwd == 0)
 		return 0;
 	return auth_sia_password(authctxt, password);
 #else
+	struct passwd * pw = authctxt->pw;
 	char *encrypted_password;
 	char *pw_password;
 	char *salt;
@@ -131,7 +131,7 @@ auth_password(Authctxt *authctxt, const char *password)
 	 */
 	if (!is_winnt)
 #endif
-	if (*pw->pw_passwd == '\0' && options.permit_empty_passwd == 0)
+	if (*password == '\0' && options.permit_empty_passwd == 0)
 		return 0;
 #ifdef KRB5
 	if (options.kerberos_authentication == 1) {
