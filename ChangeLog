@@ -1,3 +1,6 @@
+20010128
+ - (bal) Put USE_PIPES back into sco3.2v5
+
 20010126
  - (bal) SSH_PROGRAM vs _PATH_SSH_PROGRAM fix pointed out by Roumen 
    Petrov <roumen.petrov@skalasoft.com>

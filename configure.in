@@ -221,6 +221,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(HAVE_BOGUS_SYS_QUEUE_H)
 	;;
 *-*-sco3.2v5*)
+	AC_DEFINE(USE_PIPES)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	MANTYPE='$(CATMAN)'
