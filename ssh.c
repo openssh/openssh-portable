@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.208 2004/03/10 09:45:06 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.209 2004/03/11 10:21:17 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -310,12 +310,8 @@ again:
 			}
 			/* fallthrough */
 		case 'V':
-			fprintf(stderr,
-			    "%s, SSH protocols %d.%d/%d.%d, %s\n",
-			    SSH_VERSION,
-			    PROTOCOL_MAJOR_1, PROTOCOL_MINOR_1,
-			    PROTOCOL_MAJOR_2, PROTOCOL_MINOR_2,
-			    SSLeay_version(SSLEAY_VERSION));
+			fprintf(stderr, "%s, %s\n",
+			    SSH_VERSION, SSLeay_version(SSLEAY_VERSION));
 			if (opt == 'V')
 				exit(0);
 			break;

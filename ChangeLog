@@ -10,6 +10,9 @@
    - markus@cvs.openbsd.org 2004/03/11 08:36:26
      [sshd.c]
      trim usage; ok deraadt
+   - markus@cvs.openbsd.org 2004/03/11 10:21:17
+     [ssh.c sshd.c]
+     ssh, sshd: sync version output, ok djm
 
 20040311
  - (djm) [configure.ac] Add standard license to configure.ac; ok ben, dtucker
@@ -911,4 +914,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3292 2004/03/21 22:35:21 djm Exp $
+$Id: ChangeLog,v 1.3293 2004/03/21 22:36:00 djm Exp $
