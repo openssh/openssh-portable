@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.100 2001/03/26 15:47:59 stevesk Exp $
+.\" $OpenBSD: ssh.1,v 1.101 2001/04/05 15:45:43 markus Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -884,11 +884,11 @@ and
 .Dq 2 .
 Multiple versions must be comma-separated.
 The default is
-.Dq 1,2 .
+.Dq 2,1 .
 This means that
 .Nm
-tries version 1 and falls back to version 2
-if version 1 is not available.
+tries version 2 and falls back to version 1
+if version 2 is not available.
 .It Cm ProxyCommand
 Specifies the command to use to connect to the server.
 The command

@@ -20,6 +20,9 @@
    - markus@cvs.openbsd.org 2001/04/05 11:09:17
      [clientloop.c compat.c compat.h]
      add SSH_BUG_NOREKEY and detect broken (=all old) openssh versions.
+   - markus@cvs.openbsd.org 2001/04/05 15:45:43
+     [ssh.1]
+     ssh defaults to protocol v2; from quisar@quisar.ambre.net
 
 20010405
  - OpenBSD CVS Sync                                              
@@ -4892,4 +4895,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1068 2001/04/05 23:28:36 mouring Exp $
+$Id: ChangeLog,v 1.1069 2001/04/05 23:29:59 mouring Exp $
