@@ -1,3 +1,6 @@
+20010320
+ - (bal) glob.c update to added GLOB_LIMITS.
+
 20010319
  - (djm) Seed PRNG at startup, rather than waiting for arc4random calls to 
    do it implicitly.
@@ -4627,4 +4630,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.985 2001/03/19 13:42:21 mouring Exp $
+$Id: ChangeLog,v 1.986 2001/03/19 18:58:13 mouring Exp $
