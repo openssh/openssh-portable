@@ -1,3 +1,7 @@
+20000531
+ - Cleanup of auth.c, login.c and fake-*
+ - Cleanup of auth-pam.c, save and print "account expired" error messages
+
 20000530
  - Define atexit for old Solaris
  - Fix buffer overrun in login.c for systems which use syslen in utmpx.

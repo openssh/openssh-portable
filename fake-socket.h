@@ -5,10 +5,10 @@
 #include "sys/types.h"
 
 #ifndef HAVE_STRUCT_SOCKADDR_STORAGE
-#define	_SS_MAXSIZE	128	/* Implementation specific max size */
-#define	_SS_ALIGNSIZE	(sizeof(int))
-#define	_SS_PAD1SIZE	(_SS_ALIGNSIZE - sizeof(u_short))
-#define	_SS_PAD2SIZE	(_SS_MAXSIZE - (sizeof(u_short) + \
+# define	_SS_MAXSIZE	128	/* Implementation specific max size */
+# define	_SS_ALIGNSIZE	(sizeof(int))
+# define	_SS_PAD1SIZE	(_SS_ALIGNSIZE - sizeof(u_short))
+# define	_SS_PAD2SIZE	(_SS_MAXSIZE - (sizeof(u_short) + \
 					_SS_PAD1SIZE + _SS_ALIGNSIZE))
 
 struct sockaddr_storage {
@@ -20,7 +20,7 @@ struct sockaddr_storage {
 #endif /* !HAVE_STRUCT_SOCKADDR_STORAGE */
 
 #ifndef IN6_IS_ADDR_LOOPBACK
-#define IN6_IS_ADDR_LOOPBACK(a) \
+# define IN6_IS_ADDR_LOOPBACK(a) \
 	(((u_int32_t *) (a))[0] == 0 && ((u_int32_t *) (a))[1] == 0 && \
 	 ((u_int32_t *) (a))[2] == 0 && ((u_int32_t *) (a))[3] == htonl (1))
 #endif /* !IN6_IS_ADDR_LOOPBACK */

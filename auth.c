@@ -121,17 +121,17 @@ allowed_user(struct passwd * pw)
 	}
 
 #ifdef WITH_AIXAUTHENTICATE
-	if (loginrestrictions(pw->pw_name,S_RLOGIN,NULL,&loginmsg) != 0) {
+	if (loginrestrictions(pw->pw_name, S_RLOGIN, NULL, &loginmsg) != 0) {
 		if (loginmsg && *loginmsg) {
 			/* Remove embedded newlines (if any) */
 			char *p;
-			for (p = loginmsg; *p; p++)
+			for (p = loginmsg; *p; p++) {
 				if (*p == '\n')
 					*p = ' ';
+			}
 			/* Remove trailing newline */
 			*--p = '\0';
-			log("Login restricted for %s: %.100s",
-					pw->pw_name, loginmsg);
+			log("Login restricted for %s: %.100s", pw->pw_name, loginmsg);
 		}
 		return 0;
 	}

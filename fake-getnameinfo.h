@@ -2,6 +2,7 @@
 #define _FAKE_GETNAMEINFO_H
 
 #include "config.h"
+
 #ifndef HAVE_GETNAMEINFO
 int getnameinfo(const struct sockaddr *sa, size_t salen, char *host, 
                 size_t hostlen, char *serv, size_t servlen, int flags);
