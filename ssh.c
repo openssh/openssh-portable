@@ -63,6 +63,7 @@ RCSID("$OpenBSD: ssh.c,v 1.93 2001/02/08 19:30:52 itojun Exp $");
 #include "readconf.h"
 #include "sshconnect.h"
 #include "tildexpand.h"
+#include "dispatch.h"
 #include "misc.h"
 
 #ifdef HAVE___PROGNAME
@@ -180,9 +181,10 @@ usage(void)
 	fprintf(stderr, "  -C          Enable compression.\n");
 	fprintf(stderr, "  -N          Do not execute a shell or command.\n");
 	fprintf(stderr, "  -g          Allow remote hosts to connect to forwarded ports.\n");
+	fprintf(stderr, "  -1          Force protocol version 1.\n");
+	fprintf(stderr, "  -2          Force protocol version 2.\n");
 	fprintf(stderr, "  -4          Use IPv4 only.\n");
 	fprintf(stderr, "  -6          Use IPv6 only.\n");
-	fprintf(stderr, "  -2          Force protocol version 2.\n");
 	fprintf(stderr, "  -o 'option' Process the option as if it was read from a configuration file.\n");
 	fprintf(stderr, "  -s          Invoke command (mandatory) as SSH2 subsystem.\n");
 	exit(1);
@@ -331,6 +333,9 @@ main(int ac, char **av)
 			optarg = NULL;
 		}
 		switch (opt) {
+		case '1':
+			options.protocol = SSH_PROTO_1;
+			break;
 		case '2':
 			options.protocol = SSH_PROTO_2;
 			break;
@@ -939,6 +944,20 @@ ssh_session(void)
 }
 
 void
+client_subsystem_reply(int type, int plen, void *ctxt)
+{
+	int id, len;
+
+	id = packet_get_int();
+	len = buffer_len(&command);
+	len = MAX(len, 900);
+	packet_done();
+	if (type == SSH2_MSG_CHANNEL_FAILURE)
+		fatal("Request for subsystem '%.*s' failed on channel %d",
+		    len, buffer_ptr(&command), id);
+}
+
+void
 ssh_session2_callback(int id, void *arg)
 {
 	int len;
@@ -995,7 +1014,11 @@ ssh_session2_callback(int id, void *arg)
 			len = 900;
 		if (subsystem_flag) {
 			debug("Sending subsystem: %.*s", len, buffer_ptr(&command));
-			channel_request_start(id, "subsystem", 0);
+			channel_request_start(id, "subsystem", /*want reply*/ 1);
+			/* register callback for reply */
+			/* XXX we asume that client_loop has already been called */
+			dispatch_set(SSH2_MSG_CHANNEL_FAILURE, &client_subsystem_reply);
+			dispatch_set(SSH2_MSG_CHANNEL_SUCCESS, &client_subsystem_reply);
 		} else {
 			debug("Sending command: %.*s", len, buffer_ptr(&command));
 			channel_request_start(id, "exec", 0);
@@ -1006,10 +1029,10 @@ ssh_session2_callback(int id, void *arg)
 		channel_request(id, "shell", 0);
 	}
 	/* channel_callback(id, SSH2_MSG_OPEN_CONFIGMATION, client_init, 0); */
+
 done:
 	/* register different callback, etc. XXX */
 	packet_set_interactive(interactive);
-	clientloop_set_session_ident(id);
 }
 
 int
