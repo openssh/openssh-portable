@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.19 2004/06/13 15:16:54 djm Exp $
+#	$OpenBSD: test-exec.sh,v 1.20 2004/06/22 22:45:52 dtucker Exp $
 #	Placed in the Public Domain.
 
 PORT=4242
@@ -172,6 +172,11 @@ cat << EOF > $OBJ/sshd_config
 	Subsystem	sftp	$SFTPSERVER
 EOF
 
+if [ ! -z "$TEST_SSH_SSHD_CONFOPTS" ]; then
+	trace "adding sshd_config option $TEST_SSH_SSHD_CONFOPTS"
+	echo "$TEST_SSH_SSHD_CONFOPTS" >> $OBJ/sshd_config
+fi
+
 # server config for proxy connects
 cp $OBJ/sshd_config $OBJ/sshd_proxy
 
@@ -196,6 +201,11 @@ Host *
 	BatchMode		yes
 	StrictHostKeyChecking	yes
 EOF
+
+if [ ! -z "$TEST_SSH_SSH_CONFOPTS" ]; then
+	trace "adding ssh_config option $TEST_SSH_SSHD_CONFOPTS"
+	echo "$TEST_SSH_SSH_CONFOPTS" >> $OBJ/ssh_config
+fi
 
 rm -f $OBJ/known_hosts $OBJ/authorized_keys_$USER
 
