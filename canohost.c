@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: canohost.c,v 1.23 2001/02/10 01:33:32 markus Exp $");
+RCSID("$OpenBSD: canohost.c,v 1.24 2001/04/05 15:48:19 stevesk Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -249,6 +249,17 @@ get_remote_ipaddr()
 		}
 	}
 	return canonical_host_ip;
+}
+
+const char *
+get_remote_name_or_ip(u_int utmp_len, int reverse_mapping_check)
+{
+	static const char *remote = "";
+	if (utmp_len > 0)
+		remote = get_canonical_hostname(reverse_mapping_check);
+	if (utmp_len == 0 || strlen(remote) > utmp_len)
+		remote = get_remote_ipaddr();
+	return remote;
 }
 
 /* Returns the local/remote port for the socket. */

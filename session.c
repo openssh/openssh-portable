@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.69 2001/03/25 13:16:11 stevesk Exp $");
+RCSID("$OpenBSD: session.c,v 1.70 2001/04/05 15:48:18 stevesk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -677,17 +677,6 @@ do_exec_pty(Session *s, const char *command)
 	}
 }
 
-const char *
-get_remote_name_or_ip(void)
-{
-	static const char *remote = "";
-	if (utmp_len > 0)
-		remote = get_canonical_hostname(options.reverse_mapping_check);
-	if (utmp_len == 0 || strlen(remote) > utmp_len)
-		remote = get_remote_ipaddr();
-	return remote;
-}
-
 /* administrative, login(1)-like work */
 void
 do_login(Session *s, const char *command)
@@ -726,7 +715,8 @@ do_login(Session *s, const char *command)
 
 	/* Record that there was a login on that tty from the remote host. */
 	record_login(pid, s->tty, pw->pw_name, pw->pw_uid,
-	    get_remote_name_or_ip(), (struct sockaddr *)&from);
+	    get_remote_name_or_ip(utmp_len, options.reverse_mapping_check),
+	    (struct sockaddr *)&from);
 
 #ifdef USE_PAM
 	/*
@@ -1308,7 +1298,8 @@ do_child(Session *s, const char *command)
 	}
 	/* we have to stash the hostname before we close our socket. */
 	if (options.use_login)
-		hostname = get_remote_name_or_ip();
+		hostname = get_remote_name_or_ip(utmp_len,
+		    options.reverse_mapping_check);
 	/*
 	 * Close the connection descriptors; note that this is the child, and
 	 * the server will still have the socket open, and it is important
