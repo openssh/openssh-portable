@@ -45,6 +45,8 @@
      return error on msg send/receive failure (rather than fatal); ok markus@
  - (djm) Bug #632: Don't call pam_end indirectly from within kbd-int
    conversation function
+ - (djm) Export environment variables from authentication subprocess to 
+   parent. Part of Bug #717
 
 20031115
  - (dtucker) [regress/agent-ptrace.sh] Test for GDB output from Solaris and
@@ -1465,4 +1467,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3110 2003/11/17 10:27:55 djm Exp $
+$Id: ChangeLog,v 1.3111 2003/11/17 10:41:42 djm Exp $

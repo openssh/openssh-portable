@@ -31,7 +31,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.79 2003/11/17 10:27:55 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.80 2003/11/17 10:41:42 djm Exp $");
 
 #ifdef USE_PAM
 #include <security/pam_appl.h>
@@ -117,6 +117,7 @@ static int sshpam_authenticated = 0;
 static int sshpam_new_authtok_reqd = 0;
 static int sshpam_session_open = 0;
 static int sshpam_cred_established = 0;
+static char **sshpam_env = NULL;
 
 struct pam_ctxt {
 	sp_pthread_t	 pam_thread;
@@ -127,6 +128,51 @@ struct pam_ctxt {
 
 static void sshpam_free_ctx(void *);
 static struct pam_ctxt *cleanup_ctxt;
+
+/* Some PAM implementations don't implement this */
+#ifndef HAVE_PAM_GETENVLIST
+static char **
+pam_getenvlist(pam_handle_t *pamh)
+{
+	/*
+	 * XXX - If necessary, we can still support envrionment passing 
+	 * for platforms without pam_getenvlist by searching for known
+	 * env vars (e.g. KRB5CCNAME) from the PAM environment.
+	 */
+	 return NULL;
+}
+#endif
+
+/* Import regular and PAM environment from subprocess */
+static void
+import_environments(Buffer *b)
+{
+	char *env;
+	u_int i, num_env;
+	int err;
+
+	/* Import environment from subprocess */
+	num_env = buffer_get_int(b);
+	sshpam_env = xmalloc((num_env + 1) * sizeof(*sshpam_env));
+	debug3("PAM: num env strings %d", num_env);
+	for(i = 0; i < num_env; i++)
+		sshpam_env[i] = buffer_get_string(b, NULL);
+
+	sshpam_env[num_env] = NULL;
+
+	/* Import PAM environment from subprocess */
+	num_env = buffer_get_int(b);
+	debug("PAM: num PAM env strings %d", num_env);
+	for(i = 0; i < num_env; i++) {
+		env = buffer_get_string(b, NULL);
+
+		/* Errors are not fatal here */
+		if ((err = pam_putenv(sshpam_handle, env)) != PAM_SUCCESS) {
+			error("PAM: pam_putenv: %s",
+			    pam_strerror(sshpam_handle, sshpam_err));
+		}
+	}
+}
 
 /*
  * Conversation function for authentication thread.
@@ -220,10 +266,14 @@ sshpam_thread(void *ctxtp)
 	Buffer buffer;
 	struct pam_conv sshpam_conv;
 #ifndef USE_POSIX_THREADS
+	extern char **environ;
+	char **env_from_pam;
+	u_int i;
 	const char *pam_user;
 
 	pam_get_item(sshpam_handle, PAM_USER, (const void **)&pam_user);
 	setproctitle("%s [pam]", pam_user);
+	environ[0] = NULL;
 #endif
 
 	sshpam_conv.conv = sshpam_thread_conv;
@@ -238,6 +288,24 @@ sshpam_thread(void *ctxtp)
 	if (sshpam_err != PAM_SUCCESS)
 		goto auth_fail;
 	buffer_put_cstring(&buffer, "OK");
+
+#ifndef USE_POSIX_THREADS
+	/* Export any environment strings set in child */
+	for(i = 0; environ[i] != NULL; i++)
+		; /* Count */
+	buffer_put_int(&buffer, i);
+	for(i = 0; environ[i] != NULL; i++)
+		buffer_put_cstring(&buffer, environ[i]);
+
+	/* Export any environment strings set by PAM in child */
+	env_from_pam = pam_getenvlist(sshpam_handle);
+	for(i = 0; env_from_pam != NULL && env_from_pam[i] != NULL; i++)
+		; /* Count */
+	buffer_put_int(&buffer, i);
+	for(i = 0; env_from_pam != NULL && env_from_pam[i] != NULL; i++)
+		buffer_put_cstring(&buffer, env_from_pam[i]);
+#endif /* USE_POSIX_THREADS */
+
 	/* XXX - can't do much about an error here */
 	ssh_msg_send(ctxt->pam_csock, sshpam_err, &buffer);
 	buffer_free(&buffer);
@@ -440,6 +508,7 @@ sshpam_query(void *ctx, char **name, char **info,
 				**prompts = NULL;
 			}
 			if (type == PAM_SUCCESS) {
+				import_environments(&buffer);
 				*num = 0;
 				**echo_on = 0;
 				ctxt->pam_done = 1;
@@ -704,7 +773,6 @@ do_pam_chauthtok(void)
  * modules can handle things like Kerberos/GSI credentials that appear
  * during the ssh authentication process.
  */
-
 int
 do_pam_putenv(char *name, char *value) 
 {
@@ -731,14 +799,15 @@ print_pam_messages(void)
 }
 
 char **
+fetch_pam_child_environment(void)
+{
+	return sshpam_env;
+}
+
+char **
 fetch_pam_environment(void)
 {
-#ifdef HAVE_PAM_GETENVLIST
-	debug("PAM: retrieving environment");
 	return (pam_getenvlist(sshpam_handle));
-#else
-	return (NULL);
-#endif
 }
 
 void

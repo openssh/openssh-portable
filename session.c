@@ -1095,8 +1095,13 @@ do_setup_env(Session *s, const char *shell)
 	 * been set by PAM.
 	 */
 	if (options.use_pam) {
-		char **p = fetch_pam_environment();
+		char **p;
+		
+		p = fetch_pam_child_environment();
+		copy_environment(p, &env, &envsize);
+		free_pam_environment(p);
 
+		p = fetch_pam_environment();
 		copy_environment(p, &env, &envsize);
 		free_pam_environment(p);
 	}
