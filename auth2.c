@@ -27,7 +27,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.11 2000/06/19 00:50:11 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.12 2000/07/07 03:55:03 todd Exp $");
 
 #include <openssl/dsa.h>
 #include <openssl/rsa.h>
@@ -489,8 +489,8 @@ user_dsa_key_allowed(struct passwd *pw, Key *key)
 			}
 		}
 		if (fail) {
-			log(buf);
 			fclose(f);
+			log("%s",buf);
 			restore_uid();
 			return 0;
 		}

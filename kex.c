@@ -28,7 +28,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.8 2000/06/20 01:39:41 markus Exp $");
+RCSID("$OpenBSD: kex.c,v 1.9 2000/07/10 16:30:25 ho Exp $");
 
 #include "ssh.h"
 #include "ssh2.h"
@@ -287,13 +287,14 @@ char *
 get_match(char *client, char *server)
 {
 	char *sproposals[MAX_PROP];
-	char *c, *s, *p, *ret;
+	char *c, *s, *p, *ret, *cp, *sp;
 	int i, j, nproposals;
 
-	c = xstrdup(client);
-	s = xstrdup(server);
+	c = cp = xstrdup(client);
+	s = sp = xstrdup(server);
 
-	for ((p = strtok(s, SEP)), i=0; p; (p = strtok(NULL, SEP)), i++) {
+	for ((p = strsep(&sp, SEP)), i=0; p && *p != '\0'; 
+	     (p = strsep(&sp, SEP)), i++) {
 		if (i < MAX_PROP)
 			sproposals[i] = p;
 		else
@@ -301,7 +302,8 @@ get_match(char *client, char *server)
 	}
 	nproposals = i;
 
-	for ((p = strtok(c, SEP)), i=0; p; (p = strtok(NULL, SEP)), i++) {
+	for ((p = strsep(&cp, SEP)), i=0; p && *p != '\0'; 
+	     (p = strsep(&cp, SEP)), i++) {
 		for (j = 0; j < nproposals; j++) {
 			if (strcmp(p, sproposals[j]) == 0) {
 				ret = xstrdup(p);

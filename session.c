@@ -8,10 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.20 2000/06/18 04:42:54 markus Exp $");
-#if defined(HAVE_USERSEC_H)
-#include <usersec.h>
-#endif
+RCSID("$OpenBSD: session.c,v 1.22 2000/07/05 20:18:07 deraadt Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -34,6 +31,10 @@ RCSID("$OpenBSD: session.c,v 1.20 2000/06/18 04:42:54 markus Exp $");
 #ifdef WITH_IRIX_PROJECT
 #include <proj.h>
 #endif /* WITH_IRIX_PROJECT */
+
+#if defined(HAVE_USERSEC_H)
+#include <usersec.h>
+#endif
 
 #ifdef HAVE_OSF_SIA
 # include <sia.h>
@@ -89,6 +90,8 @@ static const char *__progname = "sshd";
 
 extern int log_stderr;
 extern int debug_flag;
+
+extern int startup_pipe;
 
 /* Local Xauthority file. */
 static char *xauthfile;
@@ -166,6 +169,7 @@ do_authenticated(struct passwd * pw)
 	 * authentication.
 	 */
 	alarm(0);
+	close(startup_pipe);
 
 	/*
 	 * Inform the channel mechanism that we are the server side and that
@@ -1457,7 +1461,7 @@ session_subsystem_req(Session *s)
 int
 session_x11_req(Session *s)
 {
-	if (!no_port_forwarding_flag) {
+	if (no_x11_forwarding_flag) {
 		debug("X11 forwarding disabled in user configuration file.");
 		return 0;
 	}
@@ -1788,6 +1792,7 @@ do_authenticated2(void)
 	 * authentication.
 	 */
 	alarm(0);
+	close(startup_pipe);
 	server_loop2();
 	if (xauthfile)
 		xauthfile_cleanup_proc(NULL);

@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: sshd.8,v 1.24 2000/06/18 04:50:45 djm Exp $
+.\" $Id: sshd.8,v 1.25 2000/07/11 07:31:39 djm Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSHD 8
@@ -435,6 +435,14 @@ QUIET, FATAL, ERROR, INFO, VERBOSE and DEBUG.
 The default is INFO.
 Logging with level DEBUG violates the privacy of users
 and is not recommended.
+.It Cm MaxStartups
+Specifies the maximum number of concurrent unauthenticated connections to the
+.Nm
+daemon.
+Additional connections will be dropped until authentication succeeds or the
+.Cm LoginGraceTime
+expires for a connection.
+The default is 10.
 .It Cm PasswordAuthentication
 Specifies whether password authentication is allowed.
 The default is
@@ -954,6 +962,7 @@ Like
 This can be used to specify
 machine-specific login-time initializations globally.
 This file should be writable only by root, and should be world-readable.
+.El
 .Sh AUTHOR
 OpenSSH
 is a derivative of the original (free) ssh 1.2.12 release by Tatu Ylonen,

@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: cipher.c,v 1.28 2000/06/20 01:39:40 markus Exp $");
+RCSID("$OpenBSD: cipher.c,v 1.29 2000/07/10 16:30:25 ho Exp $");
 
 #include "ssh.h"
 #include "cipher.h"
@@ -174,14 +174,15 @@ cipher_name(int cipher)
 int
 ciphers_valid(const char *names)
 {
-	char *ciphers;
+	char *ciphers, *cp;
 	char *p;
 	int i;
 
 	if (names == NULL || strcmp(names, "") == 0)
 		return 0;
-	ciphers = xstrdup(names);
-	for ((p = strtok(ciphers, CIPHER_SEP)); p; (p = strtok(NULL, CIPHER_SEP))) {
+	ciphers = cp = xstrdup(names);
+	for ((p = strsep(&cp, CIPHER_SEP)); p && *p != '\0'; 
+	     (p = strsep(&cp, CIPHER_SEP))) {
 		i = cipher_number(p);
 		if (i == -1 || !(cipher_mask2() & (1 << i))) {
 			xfree(ciphers);

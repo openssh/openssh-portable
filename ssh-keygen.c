@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.27 2000/06/20 01:39:44 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.28 2000/07/07 03:55:04 todd Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -127,13 +127,13 @@ do_convert_to_ssh2(struct passwd *pw)
 		exit(1);
 	}
 	dsa_make_key_blob(k, &blob, &len);
-	fprintf(stdout, SSH_COM_MAGIC_BEGIN "\n");
+	fprintf(stdout, "%s\n", SSH_COM_MAGIC_BEGIN);
 	fprintf(stdout,
 	    "Comment: \"%d-bit DSA, converted from openssh by %s@%s\"\n",
 	    BN_num_bits(k->dsa->p),
 	    pw->pw_name, hostname);
 	dump_base64(stdout, blob, len);
-	fprintf(stdout, SSH_COM_MAGIC_END "\n");
+	fprintf(stdout, "%s\n", SSH_COM_MAGIC_END);
 	key_free(k);
 	xfree(blob);
 	exit(0);

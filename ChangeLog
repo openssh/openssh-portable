@@ -10,6 +10,45 @@
    to compile on more platforms (incl NeXT).
  - (djm) Added bsd-inet_aton and configure support for NeXT
  - (djm) Misc NeXT fixes from Ben Lindstrom <mouring@pconline.com>
+ - (djm) OpenBSD CVS updates:
+   - markus@cvs.openbsd.org  2000/06/26 03:22:29
+     [authfd.c]
+     cleanup, less cut&paste
+   - markus@cvs.openbsd.org  2000/06/26 15:59:19
+     [servconf.c servconf.h session.c sshd.8 sshd.c]
+     MaxStartups: limit number of unauthenticated connections, work by 
+     theo and me
+   - deraadt@cvs.openbsd.org 2000/07/05 14:18:07
+     [session.c]
+     use no_x11_forwarding_flag correctly; provos ok
+   - provos@cvs.openbsd.org  2000/07/05 15:35:57
+     [sshd.c]
+     typo
+   - aaron@cvs.openbsd.org   2000/07/05 22:06:58
+     [scp.1 ssh-agent.1 ssh-keygen.1 sshd.8]
+     Insert more missing .El directives. Our troff really should identify 
+     these and spit out a warning.
+   - todd@cvs.openbsd.org    2000/07/06 21:55:04
+     [auth-rsa.c auth2.c ssh-keygen.c]
+     clean code is good code
+   - deraadt@cvs.openbsd.org 2000/07/07 02:14:29
+     [serverloop.c]
+     sense of port forwarding flag test was backwards
+   - provos@cvs.openbsd.org  2000/07/08 17:17:31
+     [compat.c readconf.c]
+     replace strtok with strsep; from David Young <dyoung@onthejob.net>
+   - deraadt@cvs.openbsd.org 2000/07/08 19:21:15
+     [auth.h]
+     KNF
+   - ho@cvs.openbsd.org      2000/07/08 19:27:33
+     [compat.c readconf.c]
+     Better conditions for strsep() ending.
+   - ho@cvs.openbsd.org      2000/07/10 10:27:05
+     [readconf.c]
+     Get the correct message on errors. (niels@ ok)
+   - ho@cvs.openbsd.org      2000/07/10 10:30:25
+     [cipher.c kex.c servconf.c]
+     strtok() --> strsep(). (niels@ ok)
 
 20000709
  - (djm) Only enable PAM_TTY kludge for Linux. Problem report from

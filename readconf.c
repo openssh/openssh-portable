@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.37 2000/06/20 01:39:43 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.40 2000/07/10 16:27:05 ho Exp $");
 
 #include "ssh.h"
 #include "cipher.h"
@@ -164,7 +164,7 @@ static struct {
 	{ NULL, 0 }
 };
 
-/* Characters considered whitespace in strtok calls. */
+/* Characters considered whitespace in strsep calls. */
 #define WHITESPACE " \t\r\n="
 
 
@@ -237,18 +237,18 @@ process_config_line(Options *options, const char *host,
 		    char *line, const char *filename, int linenum,
 		    int *activep)
 {
-	char buf[256], *cp, *string, **charptr, *cp2;
+	char buf[256], *s, *string, **charptr, *endofnumber, *keyword, *arg;
 	int opcode, *intptr, value;
 	u_short fwd_port, fwd_host_port;
 
 	/* Skip leading whitespace. */
-	cp = line + strspn(line, WHITESPACE);
-	if (!*cp || *cp == '\n' || *cp == '#')
+	s = line + strspn(line, WHITESPACE);
+	if (!*s || *s == '\n' || *s == '#')
 		return 0;
 
 	/* Get the keyword. (Each line is supposed to begin with a keyword). */
-	cp = strtok(cp, WHITESPACE);
-	opcode = parse_token(cp, filename, linenum);
+	keyword = strsep(&s, WHITESPACE);
+	opcode = parse_token(keyword, filename, linenum);
 
 	switch (opcode) {
 	case oBadOption:
@@ -258,13 +258,13 @@ process_config_line(Options *options, const char *host,
 	case oForwardAgent:
 		intptr = &options->forward_agent;
 parse_flag:
-		cp = strtok(NULL, WHITESPACE);
-		if (!cp)
+		arg = strsep(&s, WHITESPACE);
+		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing yes/no argument.", filename, linenum);
 		value = 0;	/* To avoid compiler warning... */
-		if (strcmp(cp, "yes") == 0 || strcmp(cp, "true") == 0)
+		if (strcmp(arg, "yes") == 0 || strcmp(arg, "true") == 0)
 			value = 1;
-		else if (strcmp(cp, "no") == 0 || strcmp(cp, "false") == 0)
+		else if (strcmp(arg, "no") == 0 || strcmp(arg, "false") == 0)
 			value = 0;
 		else
 			fatal("%.200s line %d: Bad yes/no argument.", filename, linenum);
@@ -344,16 +344,16 @@ parse_flag:
 
 	case oStrictHostKeyChecking:
 		intptr = &options->strict_host_key_checking;
-		cp = strtok(NULL, WHITESPACE);
-		if (!cp)
+		arg = strsep(&s, WHITESPACE);
+		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing yes/no argument.",
 			      filename, linenum);
 		value = 0;	/* To avoid compiler warning... */
-		if (strcmp(cp, "yes") == 0 || strcmp(cp, "true") == 0)
+		if (strcmp(arg, "yes") == 0 || strcmp(arg, "true") == 0)
 			value = 1;
-		else if (strcmp(cp, "no") == 0 || strcmp(cp, "false") == 0)
+		else if (strcmp(arg, "no") == 0 || strcmp(arg, "false") == 0)
 			value = 0;
-		else if (strcmp(cp, "ask") == 0)
+		else if (strcmp(arg, "ask") == 0)
 			value = 2;
 		else
 			fatal("%.200s line %d: Bad yes/no/ask argument.", filename, linenum);
@@ -379,8 +379,8 @@ parse_flag:
 
 	case oIdentityFile:
 	case oIdentityFile2:
-		cp = strtok(NULL, WHITESPACE);
-		if (!cp)
+		arg = strsep(&s, WHITESPACE);
+		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
 		if (*activep) {
 			intptr = (opcode == oIdentityFile) ?
@@ -392,7 +392,7 @@ parse_flag:
 			charptr = (opcode == oIdentityFile) ?
 			    &options->identity_files[*intptr] :
 			    &options->identity_files2[*intptr];
-			*charptr = xstrdup(cp);
+			*charptr = xstrdup(arg);
 			*intptr = *intptr + 1;
 		}
 		break;
@@ -404,11 +404,11 @@ parse_flag:
 	case oUser:
 		charptr = &options->user;
 parse_string:
-		cp = strtok(NULL, WHITESPACE);
-		if (!cp)
+		arg = strsep(&s, WHITESPACE);
+		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
 		if (*activep && *charptr == NULL)
-			*charptr = xstrdup(cp);
+			*charptr = xstrdup(arg);
 		break;
 
 	case oGlobalKnownHostsFile:
@@ -434,10 +434,10 @@ parse_string:
 	case oProxyCommand:
 		charptr = &options->proxy_command;
 		string = xstrdup("");
-		while ((cp = strtok(NULL, WHITESPACE)) != NULL) {
-			string = xrealloc(string, strlen(string) + strlen(cp) + 2);
+		while ((arg = strsep(&s, WHITESPACE)) != NULL && *arg != '\0') {
+			string = xrealloc(string, strlen(string) + strlen(arg) + 2);
 			strcat(string, " ");
-			strcat(string, cp);
+			strcat(string, arg);
 		}
 		if (*activep && *charptr == NULL)
 			*charptr = string;
@@ -448,15 +448,15 @@ parse_string:
 	case oPort:
 		intptr = &options->port;
 parse_int:
-		cp = strtok(NULL, WHITESPACE);
-		if (!cp)
+		arg = strsep(&s, WHITESPACE);
+		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
-		if (cp[0] < '0' || cp[0] > '9')
+		if (arg[0] < '0' || arg[0] > '9')
 			fatal("%.200s line %d: Bad number.", filename, linenum);
 
 		/* Octal, decimal, or hex format? */
-		value = strtol(cp, &cp2, 0);
-		if (cp == cp2)
+		value = strtol(arg, &endofnumber, 0);
+		if (arg == endofnumber)
 			fatal("%.200s line %d: Bad number.", filename, linenum);
 		if (*activep && *intptr == -1)
 			*intptr = value;
@@ -468,65 +468,65 @@ parse_int:
 
 	case oCipher:
 		intptr = &options->cipher;
-		cp = strtok(NULL, WHITESPACE);
-		if (!cp)
+		arg = strsep(&s, WHITESPACE);
+		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
-		value = cipher_number(cp);
+		value = cipher_number(arg);
 		if (value == -1)
 			fatal("%.200s line %d: Bad cipher '%s'.",
-			      filename, linenum, cp ? cp : "<NONE>");
+			      filename, linenum, arg ? arg : "<NONE>");
 		if (*activep && *intptr == -1)
 			*intptr = value;
 		break;
 
 	case oCiphers:
-		cp = strtok(NULL, WHITESPACE);
-		if (!cp)
+		arg = strsep(&s, WHITESPACE);
+		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
-		if (!ciphers_valid(cp))
+		if (!ciphers_valid(arg))
 			fatal("%.200s line %d: Bad SSH2 cipher spec '%s'.",
-			      filename, linenum, cp ? cp : "<NONE>");
+			      filename, linenum, arg ? arg : "<NONE>");
 		if (*activep && options->ciphers == NULL)
-			options->ciphers = xstrdup(cp);
+			options->ciphers = xstrdup(arg);
 		break;
 
 	case oProtocol:
 		intptr = &options->protocol;
-		cp = strtok(NULL, WHITESPACE);
-		if (!cp)
+		arg = strsep(&s, WHITESPACE);
+		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
-		value = proto_spec(cp);
+		value = proto_spec(arg);
 		if (value == SSH_PROTO_UNKNOWN)
 			fatal("%.200s line %d: Bad protocol spec '%s'.",
-			      filename, linenum, cp ? cp : "<NONE>");
+			      filename, linenum, arg ? arg : "<NONE>");
 		if (*activep && *intptr == SSH_PROTO_UNKNOWN)
 			*intptr = value;
 		break;
 
 	case oLogLevel:
 		intptr = (int *) &options->log_level;
-		cp = strtok(NULL, WHITESPACE);
-		value = log_level_number(cp);
+		arg = strsep(&s, WHITESPACE);
+		value = log_level_number(arg);
 		if (value == (LogLevel) - 1)
 			fatal("%.200s line %d: unsupported log level '%s'\n",
-			      filename, linenum, cp ? cp : "<NONE>");
+			      filename, linenum, arg ? arg : "<NONE>");
 		if (*activep && (LogLevel) * intptr == -1)
 			*intptr = (LogLevel) value;
 		break;
 
 	case oRemoteForward:
-		cp = strtok(NULL, WHITESPACE);
-		if (!cp)
+		arg = strsep(&s, WHITESPACE);
+		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
-		if (cp[0] < '0' || cp[0] > '9')
+		if (arg[0] < '0' || arg[0] > '9')
 			fatal("%.200s line %d: Badly formatted port number.",
 			      filename, linenum);
-		fwd_port = atoi(cp);
-		cp = strtok(NULL, WHITESPACE);
-		if (!cp)
+		fwd_port = atoi(arg);
+		arg = strsep(&s, WHITESPACE);
+		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing second argument.",
 			      filename, linenum);
-		if (sscanf(cp, "%255[^:]:%hu", buf, &fwd_host_port) != 2)
+		if (sscanf(arg, "%255[^:]:%hu", buf, &fwd_host_port) != 2)
 			fatal("%.200s line %d: Badly formatted host:port.",
 			      filename, linenum);
 		if (*activep)
@@ -534,18 +534,18 @@ parse_int:
 		break;
 
 	case oLocalForward:
-		cp = strtok(NULL, WHITESPACE);
-		if (!cp)
+		arg = strsep(&s, WHITESPACE);
+		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
-		if (cp[0] < '0' || cp[0] > '9')
+		if (arg[0] < '0' || arg[0] > '9')
 			fatal("%.200s line %d: Badly formatted port number.",
 			      filename, linenum);
-		fwd_port = atoi(cp);
-		cp = strtok(NULL, WHITESPACE);
-		if (!cp)
+		fwd_port = atoi(arg);
+		arg = strsep(&s, WHITESPACE);
+		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing second argument.",
 			      filename, linenum);
-		if (sscanf(cp, "%255[^:]:%hu", buf, &fwd_host_port) != 2)
+		if (sscanf(arg, "%255[^:]:%hu", buf, &fwd_host_port) != 2)
 			fatal("%.200s line %d: Badly formatted host:port.",
 			      filename, linenum);
 		if (*activep)
@@ -554,26 +554,26 @@ parse_int:
 
 	case oHost:
 		*activep = 0;
-		while ((cp = strtok(NULL, WHITESPACE)) != NULL)
-			if (match_pattern(host, cp)) {
-				debug("Applying options for %.100s", cp);
+		while ((arg = strsep(&s, WHITESPACE)) != NULL && *arg != '\0')
+			if (match_pattern(host, arg)) {
+				debug("Applying options for %.100s", arg);
 				*activep = 1;
 				break;
 			}
-		/* Avoid garbage check below, as strtok already returned NULL. */
+		/* Avoid garbage check below, as strsep is done. */
 		return 0;
 
 	case oEscapeChar:
 		intptr = &options->escape_char;
-		cp = strtok(NULL, WHITESPACE);
-		if (!cp)
+		arg = strsep(&s, WHITESPACE);
+		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
-		if (cp[0] == '^' && cp[2] == 0 &&
-		    (unsigned char) cp[1] >= 64 && (unsigned char) cp[1] < 128)
-			value = (unsigned char) cp[1] & 31;
-		else if (strlen(cp) == 1)
-			value = (unsigned char) cp[0];
-		else if (strcmp(cp, "none") == 0)
+		if (arg[0] == '^' && arg[2] == 0 &&
+		    (unsigned char) arg[1] >= 64 && (unsigned char) arg[1] < 128)
+			value = (unsigned char) arg[1] & 31;
+		else if (strlen(arg) == 1)
+			value = (unsigned char) arg[0];
+		else if (strcmp(arg, "none") == 0)
 			value = -2;
 		else {
 			fatal("%.200s line %d: Bad escape character.",
@@ -590,9 +590,11 @@ parse_int:
 	}
 
 	/* Check that there is no garbage at end of line. */
-	if (strtok(NULL, WHITESPACE) != NULL)
-		fatal("%.200s line %d: garbage at end of line.",
-		      filename, linenum);
+	if ((arg = strsep(&s, WHITESPACE)) != NULL && *arg != '\0')
+	{
+		fatal("%.200s line %d: garbage at end of line; \"%.200s\".",
+		      filename, linenum, arg);
+	}
 	return 0;
 }
 

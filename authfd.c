@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfd.c,v 1.20 2000/06/20 01:39:38 markus Exp $");
+RCSID("$OpenBSD: authfd.c,v 1.21 2000/06/26 09:22:29 markus Exp $");
 
 #include "ssh.h"
 #include "rsa.h"
@@ -25,6 +25,9 @@ RCSID("$OpenBSD: authfd.c,v 1.20 2000/06/20 01:39:38 markus Exp $");
 #include "getput.h"
 
 #include <openssl/rsa.h>
+
+/* helper */
+int ssh_agent_get_reply(AuthenticationConnection *auth);
 
 /* Returns the number of the authentication fd, or -1 if there is none. */
 
@@ -344,7 +347,7 @@ ssh_add_identity(AuthenticationConnection *auth,
 {
 	Buffer buffer;
 	unsigned char buf[8192];
-	int len, l, type;
+	int len;
 
 	/* Format a message to the agent. */
 	buffer_init(&buffer);
@@ -368,57 +371,11 @@ ssh_add_identity(AuthenticationConnection *auth,
 	    atomicio(write, auth->fd, buffer_ptr(&buffer),
 	    buffer_len(&buffer)) != buffer_len(&buffer)) {
 		error("Error writing to authentication socket.");
-error_cleanup:
 		buffer_free(&buffer);
 		return 0;
 	}
-	/* Wait for response from the agent.  First read the length of the
-	   response packet. */
-	len = 4;
-	while (len > 0) {
-		l = read(auth->fd, buf + 4 - len, len);
-		if (l <= 0) {
-			error("Error reading response length from authentication socket.");
-			goto error_cleanup;
-		}
-		len -= l;
-	}
-
-	/* Extract the length, and check it for sanity. */
-	len = GET_32BIT(buf);
-	if (len > 256 * 1024)
-		fatal("Add identity response too long: %d", len);
-
-	/* Read the rest of the response in tothe buffer. */
-	buffer_clear(&buffer);
-	while (len > 0) {
-		l = len;
-		if (l > sizeof(buf))
-			l = sizeof(buf);
-		l = read(auth->fd, buf, l);
-		if (l <= 0) {
-			error("Error reading response from authentication socket.");
-			goto error_cleanup;
-		}
-		buffer_append(&buffer, (char *) buf, l);
-		len -= l;
-	}
-
-	/* Get the type of the packet. */
-	type = buffer_get_char(&buffer);
-	switch (type) {
-	case SSH_AGENT_FAILURE:
-		buffer_free(&buffer);
-		return 0;
-	case SSH_AGENT_SUCCESS:
-		buffer_free(&buffer);
-		return 1;
-	default:
-		fatal("Bad response to add identity from authentication agent: %d",
-		      type);
-	}
-	/* NOTREACHED */
-	return 0;
+	buffer_free(&buffer);
+	return ssh_agent_get_reply(auth);
 }
 
 /*
@@ -430,8 +387,8 @@ int
 ssh_remove_identity(AuthenticationConnection *auth, RSA *key)
 {
 	Buffer buffer;
-	unsigned char buf[8192];
-	int len, l, type;
+	unsigned char buf[5];
+	int len;
 
 	/* Format a message to the agent. */
 	buffer_init(&buffer);
@@ -449,59 +406,11 @@ ssh_remove_identity(AuthenticationConnection *auth, RSA *key)
 	    atomicio(write, auth->fd, buffer_ptr(&buffer),
 	    buffer_len(&buffer)) != buffer_len(&buffer)) {
 		error("Error writing to authentication socket.");
-error_cleanup:
 		buffer_free(&buffer);
 		return 0;
 	}
-	/*
-	 * Wait for response from the agent.  First read the length of the
-	 * response packet.
-	 */
-	len = 4;
-	while (len > 0) {
-		l = read(auth->fd, buf + 4 - len, len);
-		if (l <= 0) {
-			error("Error reading response length from authentication socket.");
-			goto error_cleanup;
-		}
-		len -= l;
-	}
-
-	/* Extract the length, and check it for sanity. */
-	len = GET_32BIT(buf);
-	if (len > 256 * 1024)
-		fatal("Remove identity response too long: %d", len);
-
-	/* Read the rest of the response in tothe buffer. */
-	buffer_clear(&buffer);
-	while (len > 0) {
-		l = len;
-		if (l > sizeof(buf))
-			l = sizeof(buf);
-		l = read(auth->fd, buf, l);
-		if (l <= 0) {
-			error("Error reading response from authentication socket.");
-			goto error_cleanup;
-		}
-		buffer_append(&buffer, (char *) buf, l);
-		len -= l;
-	}
-
-	/* Get the type of the packet. */
-	type = buffer_get_char(&buffer);
-	switch (type) {
-	case SSH_AGENT_FAILURE:
-		buffer_free(&buffer);
-		return 0;
-	case SSH_AGENT_SUCCESS:
-		buffer_free(&buffer);
-		return 1;
-	default:
-		fatal("Bad response to remove identity from authentication agent: %d",
-		      type);
-	}
-	/* NOTREACHED */
-	return 0;
+	buffer_free(&buffer);
+	return ssh_agent_get_reply(auth);
 }
 
 /*
@@ -512,9 +421,7 @@ error_cleanup:
 int
 ssh_remove_all_identities(AuthenticationConnection *auth)
 {
-	Buffer buffer;
-	unsigned char buf[8192];
-	int len, l, type;
+	unsigned char buf[5];
 
 	/* Get the length of the message, and format it in the buffer. */
 	PUT_32BIT(buf, 1);
@@ -525,6 +432,20 @@ ssh_remove_all_identities(AuthenticationConnection *auth)
 		error("Error writing to authentication socket.");
 		return 0;
 	}
+	return ssh_agent_get_reply(auth);
+}
+
+/*
+ * Read for reply from agent. returns 1 for success, 0 on error
+ */
+
+int 
+ssh_agent_get_reply(AuthenticationConnection *auth)
+{
+	Buffer buffer;
+	unsigned char buf[8192];
+	int len, l, type;
+
 	/*
 	 * Wait for response from the agent.  First read the length of the
 	 * response packet.
@@ -534,6 +455,7 @@ ssh_remove_all_identities(AuthenticationConnection *auth)
 		l = read(auth->fd, buf + 4 - len, len);
 		if (l <= 0) {
 			error("Error reading response length from authentication socket.");
+			buffer_free(&buffer);
 			return 0;
 		}
 		len -= l;
@@ -542,9 +464,9 @@ ssh_remove_all_identities(AuthenticationConnection *auth)
 	/* Extract the length, and check it for sanity. */
 	len = GET_32BIT(buf);
 	if (len > 256 * 1024)
-		fatal("Remove identity response too long: %d", len);
+		fatal("Response from agent too long: %d", len);
 
-	/* Read the rest of the response into the buffer. */
+	/* Read the rest of the response in to the buffer. */
 	buffer_init(&buffer);
 	while (len > 0) {
 		l = len;
@@ -562,16 +484,14 @@ ssh_remove_all_identities(AuthenticationConnection *auth)
 
 	/* Get the type of the packet. */
 	type = buffer_get_char(&buffer);
+	buffer_free(&buffer);
 	switch (type) {
 	case SSH_AGENT_FAILURE:
-		buffer_free(&buffer);
 		return 0;
 	case SSH_AGENT_SUCCESS:
-		buffer_free(&buffer);
 		return 1;
 	default:
-		fatal("Bad response to remove identity from authentication agent: %d",
-		      type);
+		fatal("Bad response from authentication agent: %d", type);
 	}
 	/* NOTREACHED */
 	return 0;

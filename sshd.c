@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.119 2000/06/22 16:32:27 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.121 2000/07/05 21:35:56 provos Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -350,7 +350,7 @@ sshd_exchange_identification(int sock_in, int sock_out)
 			break;
 		}
 		if (remote_minor < 3) {
-			packet_disconnect("Your ssh version is too old and"
+			packet_disconnect("Your ssh version is too old and "
 			    "is no longer supported.  Please install a newer version.");
 		} else if (remote_minor == 3) {
 			/* note that this disables agent-forwarding */
@@ -400,6 +400,9 @@ destroy_sensitive_data(void)
 		key_free(sensitive_data.dsa_host_key);
 }
 
+int *startup_pipes = NULL;	/* options.max_startup sized array of fd ints */
+int startup_pipe;		/* in child */
+
 /*
  * Main program for the daemon.
  */
@@ -408,7 +411,7 @@ main(int ac, char **av)
 {
 	extern char *optarg;
 	extern int optind;
-	int opt, sock_in = 0, sock_out = 0, newsock, i, fdsetsz, on = 1;
+	int opt, sock_in = 0, sock_out = 0, newsock, j, i, fdsetsz, on = 1;
 	pid_t pid;
 	socklen_t fromlen;
 	int silent = 0;
@@ -421,6 +424,8 @@ main(int ac, char **av)
 	struct addrinfo *ai;
 	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
 	int listen_sock, maxfd;
+	int startup_p[2];
+	int startups = 0;
 
 	init_rng();
 
@@ -746,6 +751,7 @@ main(int ac, char **av)
 
 		/* Arrange to restart on SIGHUP.  The handler needs listen_sock. */
 		signal(SIGHUP, sighup_handler);
+
 		signal(SIGTERM, sigterm_handler);
 		signal(SIGQUIT, sigterm_handler);
 
@@ -753,12 +759,15 @@ main(int ac, char **av)
 		signal(SIGCHLD, main_sigchld_handler);
 
 		/* setup fd set for listen */
+		fdset = NULL;
 		maxfd = 0;
 		for (i = 0; i < num_listen_socks; i++)
 			if (listen_socks[i] > maxfd)
 				maxfd = listen_socks[i];
-		fdsetsz = howmany(maxfd, NFDBITS) * sizeof(fd_mask);
-		fdset = (fd_set *)xmalloc(fdsetsz);
+		/* pipes connected to unauthenticated childs */
+		startup_pipes = xmalloc(options.max_startups * sizeof(int));
+		for (i = 0; i < options.max_startups; i++)
+			startup_pipes[i] = -1;
 
 		/*
 		 * Stay listening for connections until the system crashes or
@@ -767,80 +776,128 @@ main(int ac, char **av)
 		for (;;) {
 			if (received_sighup)
 				sighup_restart();
-			/* Wait in select until there is a connection. */
+			if (fdset != NULL)
+				xfree(fdset);
+			fdsetsz = howmany(maxfd, NFDBITS) * sizeof(fd_mask);
+			fdset = (fd_set *)xmalloc(fdsetsz);
 			memset(fdset, 0, fdsetsz);
+
 			for (i = 0; i < num_listen_socks; i++)
 				FD_SET(listen_socks[i], fdset);
+			for (i = 0; i < options.max_startups; i++)
+				if (startup_pipes[i] != -1)
+					FD_SET(startup_pipes[i], fdset);
+
+			/* Wait in select until there is a connection. */
 			if (select(maxfd + 1, fdset, NULL, NULL, NULL) < 0) {
 				if (errno != EINTR)
 					error("select: %.100s", strerror(errno));
 				continue;
 			}
+			for (i = 0; i < options.max_startups; i++)
+				if (startup_pipes[i] != -1 &&
+				    FD_ISSET(startup_pipes[i], fdset)) {
+					/*
+					 * the read end of the pipe is ready
+					 * if the child has closed the pipe
+					 * after successfull authentication
+					 * or if the child has died
+					 */
+					close(startup_pipes[i]);
+					startup_pipes[i] = -1;
+					startups--;
+				}
 			for (i = 0; i < num_listen_socks; i++) {
 				if (!FD_ISSET(listen_socks[i], fdset))
 					continue;
-			fromlen = sizeof(from);
-			newsock = accept(listen_socks[i], (struct sockaddr *)&from,
-			    &fromlen);
-			if (newsock < 0) {
-				if (errno != EINTR && errno != EWOULDBLOCK)
-					error("accept: %.100s", strerror(errno));
-				continue;
-			}
-			if (fcntl(newsock, F_SETFL, 0) < 0) {
-				error("newsock del O_NONBLOCK: %s", strerror(errno));
-				continue;
-			}
-			/*
-			 * Got connection.  Fork a child to handle it, unless
-			 * we are in debugging mode.
-			 */
-			if (debug_flag) {
+				fromlen = sizeof(from);
+				newsock = accept(listen_socks[i], (struct sockaddr *)&from,
+				    &fromlen);
+				if (newsock < 0) {
+					if (errno != EINTR && errno != EWOULDBLOCK)
+						error("accept: %.100s", strerror(errno));
+					continue;
+				}
+				if (fcntl(newsock, F_SETFL, 0) < 0) {
+					error("newsock del O_NONBLOCK: %s", strerror(errno));
+					continue;
+				}
+				if (startups >= options.max_startups) {
+					close(newsock);
+					continue;
+				}
+				if (pipe(startup_p) == -1) {
+					close(newsock);
+					continue;
+				}
+
+				for (j = 0; j < options.max_startups; j++)
+					if (startup_pipes[j] == -1) {
+						startup_pipes[j] = startup_p[0];
+						if (maxfd < startup_p[0])
+							maxfd = startup_p[0];
+						startups++;
+						break;
+					}
+				
 				/*
-				 * In debugging mode.  Close the listening
-				 * socket, and start processing the
-				 * connection without forking.
+				 * Got connection.  Fork a child to handle it, unless
+				 * we are in debugging mode.
 				 */
-				debug("Server will not fork when running in debugging mode.");
-				close_listen_socks();
-				sock_in = newsock;
-				sock_out = newsock;
-				pid = getpid();
-				break;
-			} else {
-				/*
-				 * Normal production daemon.  Fork, and have
-				 * the child process the connection. The
-				 * parent continues listening.
-				 */
-				if ((pid = fork()) == 0) {
+				if (debug_flag) {
 					/*
-					 * Child.  Close the listening socket, and start using the
-					 * accepted socket.  Reinitialize logging (since our pid has
-					 * changed).  We break out of the loop to handle the connection.
+					 * In debugging mode.  Close the listening
+					 * socket, and start processing the
+					 * connection without forking.
 					 */
+					debug("Server will not fork when running in debugging mode.");
 					close_listen_socks();
 					sock_in = newsock;
 					sock_out = newsock;
-					log_init(av0, options.log_level, options.log_facility, log_stderr);
+					pid = getpid();
 					break;
+				} else {
+					/*
+					 * Normal production daemon.  Fork, and have
+					 * the child process the connection. The
+					 * parent continues listening.
+					 */
+					if ((pid = fork()) == 0) {
+						/*
+						 * Child.  Close the listening and max_startup
+						 * sockets.  Start using the accepted socket.
+						 * Reinitialize logging (since our pid has
+						 * changed).  We break out of the loop to handle
+						 * the connection.
+						 */
+						startup_pipe = startup_p[1];
+						for (j = 0; j < options.max_startups; j++)
+							if (startup_pipes[j] != -1)
+								close(startup_pipes[j]);
+						close_listen_socks();
+						sock_in = newsock;
+						sock_out = newsock;
+						log_init(av0, options.log_level, options.log_facility, log_stderr);
+						break;
+					}
 				}
+
+				/* Parent.  Stay in the loop. */
+				if (pid < 0)
+					error("fork: %.100s", strerror(errno));
+				else
+					debug("Forked child %d.", pid);
+
+				close(startup_p[1]);
+
+				/* Mark that the key has been used (it was "given" to the child). */
+				key_used = 1;
+
+				arc4random_stir();
+
+				/* Close the new socket (the child is now taking care of it). */
+				close(newsock);
 			}
-
-			/* Parent.  Stay in the loop. */
-			if (pid < 0)
-				error("fork: %.100s", strerror(errno));
-			else
-				debug("Forked child %d.", pid);
-
-			/* Mark that the key has been used (it was "given" to the child). */
-			key_used = 1;
-
-			arc4random_stir();
-
-			/* Close the new socket (the child is now taking care of it). */
-			close(newsock);
-			} /* for (i = 0; i < num_listen_socks; i++) */
 			/* child process check (or debug mode) */
 			if (num_listen_socks < 0)
 				break;

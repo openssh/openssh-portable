@@ -722,7 +722,7 @@ input_direct_tcpip(void)
 	   originator, originator_port, target, target_port);
 
 	/* XXX check permission */
-	if (! no_port_forwarding_flag) {
+	if (no_port_forwarding_flag) {
 		xfree(target);
 		xfree(originator);
 		return -1;
