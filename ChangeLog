@@ -2,6 +2,7 @@
  - (bal) Removed net_aton() since we don't use it any more
  - (bal) Fixed _DISABLE_VPOSIX in readpassphrase.c.
  - (bal) Updated zlib's home.  Thanks to David Howe <DaveHowe@gmx.co.uk>.
+ - (stevesk) remove _REENTRANT #define
 
 20010628
  - (djm) Sync openbsd-compat with -current libc
@@ -5821,4 +5822,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1341 2001/06/29 12:39:23 mouring Exp $
+$Id: ChangeLog,v 1.1342 2001/06/29 16:56:16 stevesk Exp $

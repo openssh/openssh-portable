@@ -1,12 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.67 2001/06/28 00:13:48 stevesk Exp $ */
-
-/* Some platforms need this for the _r() functions */
-#if !defined(_REENTRANT) && !defined(SNI)
-# define _REENTRANT 1
-#endif
+/* $Id: defines.h,v 1.68 2001/06/29 16:56:16 stevesk Exp $ */
 
 /* Necessary headers */
 
