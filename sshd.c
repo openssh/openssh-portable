@@ -1005,6 +1005,16 @@ main(int ac, char **av)
 	if (test_flag)
 		exit(0);
 
+	/*
+	 * Clear out any supplemental groups we may have inherited.  This
+	 * prevents inadvertent creation of files with bad modes (in the
+	 * portable version at least, it's certainly possible for PAM 
+	 * to create a file, and we can't control the code in every 
+	 * module which might be used).
+	 */
+	if (setgroups(0, NULL) < 0)
+		debug("setgroups() failed: %.200s", strerror(errno));
+
 	/* Initialize the log (it is reinitialized below in case we forked). */
 	if (debug_flag && !inetd_flag)
 		log_stderr = 1;

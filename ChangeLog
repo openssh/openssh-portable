@@ -2,6 +2,8 @@
  - (djm) Rework RedHat RPM files. Based on spec from Nalin 
    Dahyabhai <nalin@redhat.com> and patches from 
    Pekka Savola <pekkas@netcore.fi>
+ - (djm) Try to drop supplemental groups at daemon startup. Patch from 
+   RedHat
 
 20020509
  - (tim) [Makefile.in] Unbreak make -f Makefile.in distprep
@@ -553,4 +555,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2101 2002/05/10 02:19:23 djm Exp $
+$Id: ChangeLog,v 1.2102 2002/05/10 02:20:24 djm Exp $
