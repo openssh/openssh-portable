@@ -6,6 +6,7 @@
    Based on patch from nalin@redhat.com of code extracted from Owl's package
  - (tim) [ssh_prng_cmds.in] Bug 323 arp -n flag doesn't exist under Solaris.
    report by chris@by-design.net
+ - (tim) [loginrec.c] Bug 347: Fix typo (WTMPX_FILE) report by rodney@bond.net
 
 20020712
  - (tim) [Makefile.in] quiet down install-files: and check-user:
@@ -1358,4 +1359,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2364 2002/07/14 21:43:57 tim Exp $
+$Id: ChangeLog,v 1.2365 2002/07/14 22:33:20 tim Exp $

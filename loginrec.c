@@ -163,7 +163,7 @@
 #include "log.h"
 #include "atomicio.h"
 
-RCSID("$Id: loginrec.c,v 1.40 2002/04/23 13:09:19 djm Exp $");
+RCSID("$Id: loginrec.c,v 1.41 2002/07/14 22:33:20 tim Exp $");
 
 #ifdef HAVE_UTIL_H
 #  include <util.h>
@@ -1249,7 +1249,7 @@ wtmpx_get_entry(struct logininfo *li)
 	}
 	if (fstat(fd, &st) != 0) {
 		log("wtmpx_get_entry: couldn't stat %s: %s",
-		    WTMP_FILE, strerror(errno));
+		    WTMPX_FILE, strerror(errno));
 		close(fd);
 		return 0;
 	}
