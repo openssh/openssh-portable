@@ -1,3 +1,6 @@
+20010105
+ - (bal) contrib/caldera/ provided by Tim Rice <tim@multitalents.net>
+
 20010104
  - (djm) Fix memory leak on systems with BROKEN_GETADDRINFO. Based on
    work by Chris Vaughan <vaughan99@yahoo.com>
