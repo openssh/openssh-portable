@@ -6,7 +6,7 @@ You will need working installations of Zlib and OpenSSL.
 Zlib:
 http://www.gzip.org/zlib/ 
 
-OpenSSL 0.9.5a or greater:
+OpenSSL 0.9.6 or greater:
 http://www.openssl.org/
 
 RPMs of OpenSSL are available at http://violet.ibs.com.au/openssh/files/support.
@@ -218,4 +218,4 @@ Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
 
 
-$Id: INSTALL,v 1.48 2001/12/27 22:57:34 djm Exp $
+$Id: INSTALL,v 1.49 2002/03/07 17:49:40 mouring Exp $
