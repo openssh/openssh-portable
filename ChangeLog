@@ -32,6 +32,10 @@
    - stevesk@cvs.openbsd.org 2001/08/23 18:08:59
      [ssh-add.1 ssh-keyscan.1]
      minor cleanup
+   - danh@cvs.openbsd.org 2001/08/27 22:02:13
+     [ssh-keyscan.c]
+     fix memory fault if non-existent filename is given to the -f option
+     ok markus@
 
 20010815
  - (bal) Fixed stray code in readconf.c that went in by mistake.
@@ -6355,4 +6359,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1494 2001/09/12 17:06:13 mouring Exp $
+$Id: ChangeLog,v 1.1495 2001/09/12 17:10:40 mouring Exp $
