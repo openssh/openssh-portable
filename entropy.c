@@ -35,7 +35,7 @@
 #include <openssl/rand.h>
 #include <openssl/sha.h>
 
-RCSID("$Id: entropy.c,v 1.11 2000/05/17 12:08:30 damien Exp $");
+RCSID("$Id: entropy.c,v 1.12 2000/05/31 01:24:34 damien Exp $");
 
 #ifdef EGD_SOCKET
 #ifndef offsetof
@@ -82,8 +82,6 @@ void get_random_bytes(unsigned char *buf, int len)
 	c = atomicio(read, egd_socket, buf, len);
 	if (c <= 0)
 		fatal("Couldn't read from EGD socket \"%s\": %s", EGD_SOCKET, strerror(errno));
-	
-	close(EGD_SOCKET);
 }
 #else /* !EGD_SOCKET */
 #ifdef RANDOM_POOL
