@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.86 2002/09/04 13:26:30 djm Exp $
+# $Id: configure.ac,v 1.87 2002/09/12 00:33:00 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -596,7 +596,7 @@ AC_ARG_WITH(tcp-wrappers,
 dnl    Checks for library functions.
 AC_CHECK_FUNCS(arc4random b64_ntop bcopy bindresvport_sa \
 	clock fchmod fchown freeaddrinfo futimes gai_strerror \
-	getaddrinfo getcwd getgrouplist getnameinfo getopt \
+	getaddrinfo getcwd getgrouplist getnameinfo getopt getpeereid\
 	getrlimit getrusage getttyent glob inet_aton inet_ntoa \
 	inet_ntop innetgr login_getcapbool md5_crypt memmove \
 	mkdtemp mmap ngetaddrinfo openpty ogetaddrinfo readpassphrase \

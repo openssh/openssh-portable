@@ -1,4 +1,6 @@
 20020912
+ - (djm) Added getpeereid() replacement. Properly implemented for systems
+   with SO_PEERCRED support. Faked for systems which lack it.
  - (djm) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2002/09/08 20:24:08
      [hostfile.h]
@@ -1646,4 +1648,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2458 2002/09/11 23:54:25 djm Exp $
+$Id: ChangeLog,v 1.2459 2002/09/12 00:32:59 djm Exp $
