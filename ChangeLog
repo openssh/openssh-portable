@@ -11,7 +11,6 @@
      o) better -mdoc style;
      o) typo;
      o) sort SEE ALSO;
-
      aaron@ ok
    - provos@cvs.openbsd.org 2001/06/22 21:27:08
      [dh.c pathnames.h]
@@ -105,6 +104,7 @@
    - markus@cvs.openbsd.org 2001/06/24 17:18:31
      [ttymodes.c]
      passing modes works fine: debug2->3
+ - (djm) -Wall fix for session.c
 
 20010622
  - (stevesk) handle systems without pw_expire and pw_change.
@@ -5789,4 +5789,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1323 2001/06/25 05:24:16 mouring Exp $
+$Id: ChangeLog,v 1.1324 2001/06/25 07:07:59 djm Exp $
