@@ -4,6 +4,8 @@
  - (dtucker) [auth-passwd.c] On AIX, call setauthdb() before loginsuccess(),
    required to correctly reset failed login count when using a password
    registry other than "files" (eg LDAP, see bug #543).
+ - (tim) [configure.ac] define WITH_ABBREV_NO_TTY for SCO.
+   Report by Roger Cornelius.
 
 20030912
  - (tim) [regress/agent-ptrace.sh] sh doesn't like "if ! shell_function; then".
@@ -1082,4 +1084,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2987 2003/09/13 00:41:56 dtucker Exp $
+$Id: ChangeLog,v 1.2988 2003/09/13 01:15:15 tim Exp $
