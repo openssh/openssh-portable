@@ -12,6 +12,9 @@
    - dtucker@cvs.openbsd.org 2004/06/01 14:20:45
      [auth2-chall.c]
      Remove redundant #include; ok markus@
+   - pedro@cvs.openbsd.org 2004/06/03 12:22:20
+     [sftp-client.c sftp.c]
+     initialize pointers, ok markus@
 
 20040603
  - (dtucker) [auth-pam.c] Don't use pam_* namespace for sshd's PAM functions.
@@ -1196,4 +1199,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3378 2004/06/15 00:28:24 djm Exp $
+$Id: ChangeLog,v 1.3379 2004/06/15 00:28:56 djm Exp $

@@ -20,7 +20,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.49 2004/05/19 12:17:33 djm Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.50 2004/06/03 12:22:20 pedro Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -992,7 +992,7 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 		TAILQ_ENTRY(outstanding_ack) tq;
 	};
 	TAILQ_HEAD(ackhead, outstanding_ack) acks;
-	struct outstanding_ack *ack;
+	struct outstanding_ack *ack = NULL;
 
 	TAILQ_INIT(&acks);
 

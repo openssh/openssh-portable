@@ -16,7 +16,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.47 2004/05/26 08:59:57 djm Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.48 2004/06/03 12:22:20 pedro Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -1310,7 +1310,7 @@ int
 main(int argc, char **argv)
 {
 	int in, out, ch, err;
-	char *host, *userhost, *cp, *file2;
+	char *host, *userhost, *cp, *file2 = NULL;
 	int debug_level = 0, sshver = 2;
 	char *file1 = NULL, *sftp_server = NULL;
 	char *ssh_program = _PATH_SSH_PROGRAM, *sftp_direct = NULL;
