@@ -1,7 +1,8 @@
 20000701
  - (djm) Fix Tru64 SIA problems reported by John P Speno <speno@isc.upenn.edu>
  - (djm) Login fixes from Tom Bertelson <tbert@abac.com>
- - (djm) Replace "/bin/sh" with _PATH_BSHELL
+ - (djm) Replace "/bin/sh" with _PATH_BSHELL. Report from Corinna Vinschen
+   <vinschen@cygnus.com>
  - (djm) Replace "/usr/bin/login" with LOGIN_PROGRAM
 
 20000628
