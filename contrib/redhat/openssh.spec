@@ -173,6 +173,7 @@ popd
 rm -rf $RPM_BUILD_ROOT
 %{makeinstall} \
 	libexecdir=$RPM_BUILD_ROOT%{_libexecdir}/openssh \
+	datadir=$RPM_BUILD_ROOT%{_datadir}/openssh \
 	DESTDIR=/ # Hack to disable key generation
 
 
