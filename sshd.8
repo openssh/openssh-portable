@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.111 2001/04/08 23:28:27 stevesk Exp $
+.\" $OpenBSD: sshd.8,v 1.112 2001/04/09 18:00:15 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -486,26 +486,33 @@ If the value is 0, the key is never regenerated.
 The default is 3600 (seconds).
 .It Cm ListenAddress
 Specifies the local addresses
-.Nm
+.Xr sshd 8
 should listen on.
 The following forms may be used:
 .Pp
 .Bl -item -offset indent -compact
 .It
 .Cm ListenAddress
-host|IPv4_addr|IPv6_addr
+.Sm off
+.Ar host No | Ar IPv4_addr No | Ar IPv6_addr
+.Sm on
 .It
 .Cm ListenAddress
-host|IPv4_addr:port
+.Sm off
+.Ar host No | Ar IPv4_addr No : Ar port
+.Sm on
 .It
 .Cm ListenAddress
-[host|IPv6_addr]:port
+.Sm off
+.Oo
+.Ar host No | Ar IPv6_addr Oc : Ar port
+.Sm on
 .El
 .Pp
 If
-.Dq :port
+.Ar port
 is not specified,
-.Nm
+.Xr sshd 8
 will listen on the address and all prior
 .Cm Port
 options specified. The default is to listen on all local

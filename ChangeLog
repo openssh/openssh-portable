@@ -18,6 +18,9 @@
    - markus@cvs.openbsd.org 2001/04/09 15:19:49
      [ssh-add.1]
      ssh-add retries the last passphrase...
+   - stevesk@cvs.openbsd.org 2001/04/09 18:00:15
+     [sshd.8]
+     ListenAddress mandoc from aaron@
 
 20010409
  - (stevesk) use setresgid() for setegid() if needed
@@ -4987,4 +4990,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1092 2001/04/10 02:46:54 mouring Exp $
+$Id: ChangeLog,v 1.1093 2001/04/10 02:48:50 mouring Exp $
