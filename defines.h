@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.78 2002/01/23 06:54:31 mouring Exp $ */
+/* $Id: defines.h,v 1.79 2002/02/13 18:14:53 tim Exp $ */
 
 /* Necessary headers */
 
@@ -11,6 +11,9 @@
 #include <netinet/in_systm.h> /* For typedefs */
 #include <netinet/in.h> /* For IPv6 macros */
 #include <netinet/ip.h> /* For IPTOS macros */
+#ifdef HAVE_RPC_RPC_H
+# include <rpc/rpc.h> /* For INADDR_LOOPBACK on SCO OSR3 */
+#endif
 #ifdef HAVE_SYS_UN_H
 # include <sys/un.h> /* For sockaddr_un */
 #endif

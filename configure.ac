@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.18 2002/02/13 12:06:57 djm Exp $
+# $Id: configure.ac,v 1.19 2002/02/13 18:14:53 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -395,6 +395,7 @@ AC_CHECK_HEADERS(bstring.h crypt.h endian.h floatingpoint.h \
 	getopt.h glob.h lastlog.h limits.h login.h \
 	login_cap.h maillock.h netdb.h netgroup.h \
 	netinet/in_systm.h paths.h poll.h pty.h \
+	rpc/rpc.h \
 	security/pam_appl.h shadow.h stddef.h stdint.h \
 	strings.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h \
 	sys/poll.h sys/queue.h sys/select.h sys/stat.h \

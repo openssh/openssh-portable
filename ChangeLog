@@ -37,6 +37,8 @@
  - (djm) Sync openbsd-compat with OpenBSD CVS too
  - (djm) Bug #106: Add --without-rpath configure option. Patch from 
    Nicolas.Williams@ubsw.com
+ - (tim) [configure.ac, defines.h ] add rpc/rpc.h for INADDR_LOOPBACK
+    on SCO OSR3
 
 20020210
  - (djm) OpenBSD CVS Sync
@@ -7584,4 +7586,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1850 2002/02/13 12:06:56 djm Exp $
+$Id: ChangeLog,v 1.1851 2002/02/13 18:14:52 tim Exp $
