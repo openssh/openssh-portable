@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: bufaux.c,v 1.24 2002/03/26 15:23:40 markus Exp $");
+RCSID("$OpenBSD: bufaux.c,v 1.25 2002/04/20 09:14:58 markus Exp $");
 
 #include <openssl/bn.h>
 #include "bufaux.h"
@@ -137,10 +137,18 @@ buffer_get_bignum2(Buffer *buffer, BIGNUM *value)
 	BN_bin2bn(bin, len, value);
 	xfree(bin);
 }
-
 /*
- * Returns an integer from the buffer (4 bytes, msb first).
+ * Returns integers from the buffer (msb first).
  */
+
+u_short
+buffer_get_short(Buffer *buffer)
+{
+	u_char buf[2];
+	buffer_get(buffer, (char *) buf, 2);
+	return GET_16BIT(buf);
+}
+
 u_int
 buffer_get_int(Buffer *buffer)
 {
@@ -160,8 +168,16 @@ buffer_get_int64(Buffer *buffer)
 #endif
 
 /*
- * Stores an integer in the buffer in 4 bytes, msb first.
+ * Stores integers in the buffer, msb first.
  */
+void
+buffer_put_short(Buffer *buffer, u_short value)
+{
+	char buf[2];
+	PUT_16BIT(buf, value);
+	buffer_append(buffer, buf, 2);
+}
+
 void
 buffer_put_int(Buffer *buffer, u_int value)
 {

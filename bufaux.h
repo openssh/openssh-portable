@@ -1,4 +1,4 @@
-/*	$OpenBSD: bufaux.h,v 1.17 2002/03/18 17:25:29 provos Exp $	*/
+/*	$OpenBSD: bufaux.h,v 1.18 2002/04/20 09:14:58 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -22,6 +22,9 @@ void    buffer_put_bignum(Buffer *, BIGNUM *);
 void    buffer_put_bignum2(Buffer *, BIGNUM *);
 void	buffer_get_bignum(Buffer *, BIGNUM *);
 void	buffer_get_bignum2(Buffer *, BIGNUM *);
+
+u_short	buffer_get_short(Buffer *);
+void	buffer_put_short(Buffer *, u_short);
 
 u_int	buffer_get_int(Buffer *);
 void    buffer_put_int(Buffer *, u_int);
