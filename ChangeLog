@@ -1,3 +1,7 @@
+20010726
+ - (stevesk) use mysignal() in protocol 1 loop now that the SIGCHLD
+   handler has converged.
+
 20010725
  - (bal) Added 'install-nokeys' to Makefile to assist package builders.
 
@@ -6099,4 +6103,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1423 2001/07/25 16:24:33 mouring Exp $
+$Id: ChangeLog,v 1.1424 2001/07/26 17:51:49 stevesk Exp $

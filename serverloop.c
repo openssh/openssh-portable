@@ -448,7 +448,7 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 
 	/* Initialize the SIGCHLD kludge. */
 	child_terminated = 0;
-	signal(SIGCHLD, sigchld_handler);
+	mysignal(SIGCHLD, sigchld_handler);
 
 	/* Initialize our global variables. */
 	fdin = fdin_arg;
@@ -621,7 +621,7 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 	channel_free_all();
 
 	/* We no longer want our SIGCHLD handler to be called. */
-	signal(SIGCHLD, SIG_DFL);
+	mysignal(SIGCHLD, SIG_DFL);
 
 	wait_pid = waitpid(-1, &wait_status, child_terminated ? WNOHANG : 0);
 	if (wait_pid == -1)
@@ -710,7 +710,7 @@ server_loop2(Authctxt *authctxt)
 	if (writeset)
 		xfree(writeset);
 
-	signal(SIGCHLD, SIG_DFL);
+	mysignal(SIGCHLD, SIG_DFL);
 
 	while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
 		session_close_by_pid(pid, status);
