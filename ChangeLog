@@ -1,3 +1,10 @@
+20010413
+ - OpenBSD CVS Sync                                                           
+   - markus@cvs.openbsd.org 2001/04/12 14:29:09 
+     [ssh.c]                                                
+     show debug output during option processing, report from 
+     pekkas@netcore.fi
+
 20010412
  - OpenBSD CVS Sync                            
    - markus@cvs.openbsd.org 2001/04/10 07:46:58
@@ -5017,4 +5024,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1100 2001/04/11 23:10:09 mouring Exp $
+$Id: ChangeLog,v 1.1101 2001/04/12 16:16:57 mouring Exp $
