@@ -31,6 +31,10 @@
    - markus@cvs.openbsd.org 2001/06/26 05:33:34
      [ssh-agent.c]
      more smartcard support.
+   - mpech@cvs.openbsd.org 2001/06/26 05:48:07
+     [sshd.8]
+     remove unnecessary .Pp between .It;
+     millert@ ok
 
 20010629
  - (bal) Removed net_aton() since we don't use it any more
@@ -5858,4 +5862,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1353 2001/07/04 03:53:15 mouring Exp $
+$Id: ChangeLog,v 1.1354 2001/07/04 03:55:21 mouring Exp $
