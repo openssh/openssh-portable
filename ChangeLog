@@ -1,3 +1,6 @@
+20001027
+ - (djm) Increase REKEY_BYTES to 2^24 for arc4random
+
 20001025
  - (djm) Added WARNING.RNG file and modified configure to ask users of the
    builtin entropy code to read it.
