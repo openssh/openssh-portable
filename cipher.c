@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: cipher.c,v 1.46 2001/06/25 08:25:36 markus Exp $");
+RCSID("$OpenBSD: cipher.c,v 1.47 2001/08/23 11:31:59 markus Exp $");
 
 #include "xmalloc.h"
 #include "log.h"
@@ -283,66 +283,65 @@ cast_cbc_decrypt(CipherContext *cc, u_char *dest, const u_char *src, u_int len)
 static void
 rijndael_setkey(CipherContext *cc, const u_char *key, u_int keylen)
 {
-	rijndael_set_key(&cc->u.rijndael.enc, (u4byte *)key, 8*keylen, 1);
-	rijndael_set_key(&cc->u.rijndael.dec, (u4byte *)key, 8*keylen, 0);
+	rijndael_set_key(&cc->u.rijndael.enc, (char *)key, 8*keylen, 1);
+	rijndael_set_key(&cc->u.rijndael.dec, (char *)key, 8*keylen, 0);
 }
 static void
 rijndael_setiv(CipherContext *cc, const u_char *iv, u_int ivlen)
 {
-	if (iv == NULL)
-		fatal("no IV for %s.", cc->cipher->name);
-	memcpy((u_char *)cc->u.rijndael.iv, iv, RIJNDAEL_BLOCKSIZE);
+	if (iv == NULL || ivlen != RIJNDAEL_BLOCKSIZE) 
+		fatal("bad/no IV for %s.", cc->cipher->name);
+	memcpy(cc->u.rijndael.iv, iv, RIJNDAEL_BLOCKSIZE);
 }
 static void
 rijndael_cbc_encrypt(CipherContext *cc, u_char *dest, const u_char *src,
     u_int len)
 {
 	rijndael_ctx *ctx = &cc->u.rijndael.enc;
-	u4byte *iv = cc->u.rijndael.iv;
-	u4byte in[4];
-	u4byte *cprev, *cnow, *plain;
-	int i, blocks = len / RIJNDAEL_BLOCKSIZE;
+	u_char *iv = cc->u.rijndael.iv;
+	u_char in[RIJNDAEL_BLOCKSIZE];
+	u_char *cprev, *cnow, *plain;
+	int i, j, blocks = len / RIJNDAEL_BLOCKSIZE;
+
 	if (len == 0)
 		return;
 	if (len % RIJNDAEL_BLOCKSIZE)
 		fatal("rijndael_cbc_encrypt: bad len %d", len);
-	cnow  = (u4byte*) dest;
-	plain = (u4byte*) src;
+	cnow  = dest;
+	plain = (u_char *) src;
 	cprev = iv;
-	for(i = 0; i < blocks; i++, plain+=4, cnow+=4) {
-		in[0] = plain[0] ^ cprev[0];
-		in[1] = plain[1] ^ cprev[1];
-		in[2] = plain[2] ^ cprev[2];
-		in[3] = plain[3] ^ cprev[3];
+	for (i = 0; i < blocks; i++, plain+=RIJNDAEL_BLOCKSIZE,
+	    cnow+=RIJNDAEL_BLOCKSIZE) {
+		for (j = 0; j < RIJNDAEL_BLOCKSIZE; j++)
+			in[j] = plain[j] ^ cprev[j];
 		rijndael_encrypt(ctx, in, cnow);
 		cprev = cnow;
 	}
 	memcpy(iv, cprev, RIJNDAEL_BLOCKSIZE);
 }
-
 static void
 rijndael_cbc_decrypt(CipherContext *cc, u_char *dest, const u_char *src,
     u_int len)
 {
 	rijndael_ctx *ctx = &cc->u.rijndael.dec;
-	u4byte *iv = cc->u.rijndael.iv;
-	u4byte ivsaved[4];
-	u4byte *cnow =  (u4byte*) (src+len-RIJNDAEL_BLOCKSIZE);
-	u4byte *plain = (u4byte*) (dest+len-RIJNDAEL_BLOCKSIZE);
-	u4byte *ivp;
-	int i, blocks = len / RIJNDAEL_BLOCKSIZE;
+	u_char *iv = cc->u.rijndael.iv;
+	u_char ivsaved[RIJNDAEL_BLOCKSIZE];
+	u_char *cnow  = (u_char *) (src+len-RIJNDAEL_BLOCKSIZE);
+	u_char *plain = dest+len-RIJNDAEL_BLOCKSIZE;
+	u_char *ivp;
+	int i, j, blocks = len / RIJNDAEL_BLOCKSIZE;
+
 	if (len == 0)
 		return;
 	if (len % RIJNDAEL_BLOCKSIZE)
 		fatal("rijndael_cbc_decrypt: bad len %d", len);
 	memcpy(ivsaved, cnow, RIJNDAEL_BLOCKSIZE);
-	for(i = blocks; i > 0; i--, cnow-=4, plain-=4) {
+	for (i = blocks; i > 0; i--, cnow-=RIJNDAEL_BLOCKSIZE,
+	    plain-=RIJNDAEL_BLOCKSIZE) {
 		rijndael_decrypt(ctx, cnow, plain);
-		ivp =  (i == 1) ? iv : cnow-4;
-		plain[0] ^= ivp[0];
-		plain[1] ^= ivp[1];
-		plain[2] ^= ivp[2];
-		plain[3] ^= ivp[3];
+		ivp = (i == 1) ? iv : cnow-RIJNDAEL_BLOCKSIZE;
+		for (j = 0; j < RIJNDAEL_BLOCKSIZE; j++)
+			plain[j] ^= ivp[j];
 	}
 	memcpy(iv, ivsaved, RIJNDAEL_BLOCKSIZE);
 }
