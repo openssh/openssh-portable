@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.100 2003/08/22 10:56:08 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.101 2003/08/22 13:22:27 markus Exp $");
 
 #include "ssh2.h"
 #include "xmalloc.h"
@@ -54,9 +54,6 @@ extern Authmethod method_pubkey;
 extern Authmethod method_passwd;
 extern Authmethod method_kbdint;
 extern Authmethod method_hostbased;
-#ifdef KRB5
-extern Authmethod method_kerberos;
-#endif
 #ifdef GSSAPI
 extern Authmethod method_gssapi;
 #endif
@@ -70,9 +67,6 @@ Authmethod *authmethods[] = {
 	&method_passwd,
 	&method_kbdint,
 	&method_hostbased,
-#ifdef KRB5
-	&method_kerberos,
-#endif
 	NULL
 };
 
