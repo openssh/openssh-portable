@@ -3,6 +3,9 @@
    - markus@cvs.openbsd.org 2001/02/07 22:35:46
      [auth1.c auth2.c sshd.c]
      move k_setpag() to a central place; ok dugsong@
+   - markus@cvs.openbsd.org 2001/02/10 12:52:02
+     [auth2.c]
+     offer passwd before s/key
 
 20010210
  - (djm) Sync sftp and scp stuff from OpenBSD:
@@ -3786,4 +3789,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.713 2001/02/10 21:27:11 mouring Exp $
+$Id: ChangeLog,v 1.714 2001/02/10 21:31:53 mouring Exp $
