@@ -1,4 +1,10 @@
-20040118
+20050120
+ - (dtucker) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2004/12/23 17:35:48
+     [session.c]
+     check for NULL; from mpech
+
+20050118
  - (dtucker) [INSTALL Makefile.in configure.ac survey.sh.in] Implement
    "make survey" and "make send-survey".  This will provide data on the
    configure parameters, platform and platform features to the development
@@ -1969,4 +1975,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3608 2005/01/18 01:45:42 dtucker Exp $
+$Id: ChangeLog,v 1.3609 2005/01/19 23:55:46 dtucker Exp $
