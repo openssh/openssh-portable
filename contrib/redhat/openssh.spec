@@ -19,6 +19,9 @@
 # Use Redhat 7.0 pam control file
 %define redhat7 0
 
+# Disable IPv6 (avoids DNS hangs on some glibc versions)
+%define noip6 0
+
 # Reserve options to override askpass settings with:
 # rpm -ba|--rebuild --define 'skip_xxx 1'
 %{?skip_x11_askpass:%define no_x11_askpass 1}
@@ -35,6 +38,10 @@
 # Options for Smartcard support: (needs libsectok and openssl-engine)
 # rpm -ba|--rebuild --define "smartcard 1"
 %{?smartcard:%define scard 1}
+
+# Option to disable ipv6
+# rpm -ba|--rebuild --define "noipv6 1"
+%{?noipv6:%define noip6 1}
 
 %define exact_openssl_version   %(rpm -q openssl | cut -d - -f 2)
 
@@ -150,12 +157,15 @@ EXTRA_OPTS=""
 	EXTRA_OPTS="$EXTRA_OPTS --with-smartcard"
 %endif
 
+%if %{noip6}
+	EXTRA_OPTS="$EXTRA_OPTS --with-ipv4-default "
+%endif
+
 %configure \
 	--libexecdir=%{_libexecdir}/openssh \
 	--datadir=%{_datadir}/openssh \
 	--with-pam \
 	--with-tcp-wrappers \
-	--with-ipv4-default \
 	--with-rsh=/usr/bin/rsh \
 	--with-default-path=/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin \
 	$EXTRA_OPTS
@@ -235,7 +245,7 @@ fi
 %attr(0644,root,root) %{_mandir}/man1/ssh-keygen.1*
 %attr(0644,root,root) %{_mandir}/man1/scp.1*
 %attr(0755,root,root) %dir %{_sysconfdir}
-%attr(0600,root,root) %config(noreplace) %{_sysconfdir}/moduli
+%attr(0600,root,root) %config %{_sysconfdir}/moduli
 %attr(0755,root,root) %dir %{_libexecdir}/openssh
 %if %{scard}
 %attr(0755,root,root) %dir %{_datadir}/openssh
@@ -254,7 +264,7 @@ fi
 %attr(0644,root,root) %{_mandir}/man1/ssh-add.1*
 %attr(0644,root,root) %{_mandir}/man1/ssh-keyscan.1*
 %attr(0644,root,root) %{_mandir}/man1/sftp.1*
-%attr(0644,root,root) %config(noreplace) %{_sysconfdir}/ssh_config
+%attr(0644,root,root) %config %{_sysconfdir}/ssh_config
 %attr(-,root,root) %{_bindir}/slogin
 %attr(-,root,root) %{_mandir}/man1/slogin.1*
 
@@ -264,9 +274,9 @@ fi
 %attr(0755,root,root) %{_libexecdir}/openssh/sftp-server
 %attr(0644,root,root) %{_mandir}/man8/sshd.8*
 %attr(0644,root,root) %{_mandir}/man8/sftp-server.8*
-#%attr(0600,root,root) %config(noreplace) %{_sysconfdir}/sshd_config
+#%attr(0600,root,root) %config %{_sysconfdir}/sshd_config
 %attr(0600,root,root) %config %{_sysconfdir}/sshd_config
-%attr(0600,root,root) %config(noreplace) /etc/pam.d/sshd
+%attr(0600,root,root) %config /etc/pam.d/sshd
 %attr(0755,root,root) %config /etc/rc.d/init.d/sshd
 
 %if ! %{no_x11_askpass}

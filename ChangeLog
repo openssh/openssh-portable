@@ -1,3 +1,7 @@
+20011030
+ - (djm) Redhat RPM spec: remove noreplace from config files, allow IPv6 
+   by default (can force IPv4 using --define "noipv6 1")
+
 20011029
  - (tim) [TODO defines.h loginrec.c] Change the references to configure.in
    to configure.ac
@@ -6785,4 +6789,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1627 2001/10/30 02:50:39 tim Exp $
+$Id: ChangeLog,v 1.1628 2001/10/30 11:03:51 djm Exp $
