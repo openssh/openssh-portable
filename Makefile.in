@@ -44,8 +44,6 @@ CONFIGFILES=sshd_config ssh_config
 
 all: $(TARGETS) $(MANPAGES) $(CONFIGFILES)
 
-$(OBJS): config.h
-
 $(LIBOBJS): config.h
 
 libssh.a: $(LIBOBJS)
