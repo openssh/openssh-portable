@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.67 2001/04/16 02:31:43 mouring Exp $");
+RCSID("$OpenBSD: scp.c,v 1.68 2001/04/22 12:34:05 markus Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -115,7 +115,7 @@ void addargs(char *fmt, ...) __attribute__((format(printf, 1, 2)));
 static struct timeval start;
 
 /* Number of bytes of current file transferred so far. */
-volatile u_long statbytes;
+volatile off_t statbytes;
 
 /* Total size of current file. */
 off_t totalbytes = 0;
@@ -488,8 +488,8 @@ source(argc, argv)
 	struct stat stb;
 	static BUF buffer;
 	BUF *bp;
-	off_t i;
-	int amt, fd, haderr, indx, result;
+	off_t i, amt, result;
+	int fd, haderr, indx;
 	char *last, *name, buf[2048];
 	int len;
 
