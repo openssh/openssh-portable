@@ -1,5 +1,9 @@
 20041206
  - (dtucker) [TODO WARNING.RNG] Update to reflect current reality.  ok djm@
+ - (dtucker) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2004/11/25 22:22:14
+     [sftp-client.c sftp.c]
+     leak; from mpech
 
 20041203
  - (dtucker) OpenBSD CVS Sync
@@ -1873,4 +1877,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3585 2004/12/06 11:40:10 dtucker Exp $
+$Id: ChangeLog,v 1.3586 2004/12/06 11:43:43 dtucker Exp $
