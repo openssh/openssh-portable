@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.58 2002/05/13 03:15:43 djm Exp $
+# $Id: configure.ac,v 1.59 2002/05/13 03:51:40 stevesk Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -915,7 +915,7 @@ AC_DEFINE_UNQUOTED(ENTROPY_TIMEOUT_MSEC, $entropy_timeout)
 
 ssh_privsep_user=sshd
 AC_ARG_WITH(privsep-user,
-	[  --with-privsep-user     Specify non-privileged user for privilege separation],
+	[  --with-privsep-user=user Specify non-privileged user for privilege separation],
 	[
 		if test -n "$withval"; then
 			ssh_privsep_user=$withval
