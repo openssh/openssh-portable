@@ -1,5 +1,7 @@
 20000702
  - (djm) Fix brace mismatch from Corinna Vinschen <vinschen@cygnus.com>
+ - (djm) Stop shadow expiry checking from preventing logins with NIS. Based
+   on fix from HARUYAMA Seigo <haruyama@nt.phys.s.u-tokyo.ac.jp>
 
 20000701
  - (djm) Fix Tru64 SIA problems reported by John P Speno <speno@isc.upenn.edu>

@@ -65,17 +65,18 @@ allowed_user(struct passwd * pw)
 		return 0;
 
 	spw = getspnam(pw->pw_name);
-	if (spw == NULL)
-		return 0;
-	
-	/* Check account expiry */
-	if ((spw->sp_expire > 0) && ((time(NULL) / 86400) > spw->sp_expire))
-		return 0;
+	if (spw != NULL) {
+		int days = time(NULL) / 86400;
 
-	/* Check password expiry */
-	if ((spw->sp_lstchg > 0) && (spw->sp_inact > 0) && 
-		((time(NULL) / 86400) > (spw->sp_lstchg + spw->sp_inact)))
-		return 0;
+		/* Check account expiry */
+		if ((spw->sp_expire > 0) && (days > spw->sp_expire))
+			return 0;
+
+		/* Check password expiry */
+		if ((spw->sp_lstchg > 0) && (spw->sp_inact > 0) && 
+			(days > (spw->sp_lstchg + spw->sp_inact)))
+			return 0;
+	}
 #else
 	/* Shouldn't be called if pw is NULL, but better safe than sorry... */
 	if (!pw)
