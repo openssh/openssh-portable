@@ -51,6 +51,7 @@
  - (djm) Only build getrrsetbyname replacement when using --with-dns
  - (djm) Bug #529: sshd doesn't work correctly after SIGHUP (copy argv 
          correctly)
+ - (djm) Bug #444: Wrong paths after reconfigure
 
 20030514
  - (djm) Bug #117: Don't lie to PAM about username
@@ -1526,4 +1527,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2721 2003/05/15 11:29:10 djm Exp $
+$Id: ChangeLog,v 1.2722 2003/05/15 11:33:46 djm Exp $
