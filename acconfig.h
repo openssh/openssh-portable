@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.169 2003/12/17 07:53:26 dtucker Exp $ */
+/* $Id: acconfig.h,v 1.170 2004/01/02 07:02:44 djm Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -429,6 +429,9 @@
 
 /* Define if HEADER.ad exists in arpa/nameser.h */
 #undef HAVE_HEADER_AD
+
+/* Define if your resolver libs need this for getrrsetbyname */
+#undef BIND_8_COMPAT
 
 @BOTTOM@
 
