@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.79 2001/10/04 15:12:37 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.80 2001/10/09 19:51:18 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -699,6 +699,7 @@ server_loop2(Authctxt *authctxt)
 		if (child_terminated) {
 			while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
 				session_close_by_pid(pid, status);
+			/* XXX race */
 			child_terminated = 0;
 		}
 		if (!rekeying)
@@ -708,6 +709,9 @@ server_loop2(Authctxt *authctxt)
 			break;
 		process_output(writeset);
 	}
+	/* close all channels, no more reads and writes */
+	channel_close_all();
+
 	if (readset)
 		xfree(readset);
 	if (writeset)
@@ -715,14 +719,14 @@ server_loop2(Authctxt *authctxt)
 
 	mysignal(SIGCHLD, SIG_DFL);
 
+	/* collect dead children */
 	while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
 		session_close_by_pid(pid, status);
 	/*
-	 * there is a race between channel_free_all() killing children and
-	 * children dying before kill()
+	 * there is a race between channel_detach_all() killing remaining
+	 * children and children dying before kill()
 	 */
 	channel_detach_all();
-	channel_stop_listening();
 
 	while (session_have_children()) {
 		pid = waitpid(-1, &status, 0);
