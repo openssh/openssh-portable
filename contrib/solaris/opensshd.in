@@ -3,6 +3,8 @@
 #
 # Stripped PRNGd out of it for the time being.
 
+umask 022
+
 CAT=/usr/bin/cat
 KILL=/usr/bin/kill
 

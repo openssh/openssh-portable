@@ -1,3 +1,7 @@
+20021111
+ - (tim) [contrib/solaris/opensshd.in] add umask 022 so sshd.pid is
+   not world writable.
+
 20021109
  - (bal) OpenBSD CVS Sync
    - itojun@cvs.openbsd.org 2002/10/16 14:31:48
@@ -818,4 +822,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2511 2002/11/09 16:11:10 mouring Exp $
+$Id: ChangeLog,v 1.2512 2002/11/13 23:50:04 tim Exp $
