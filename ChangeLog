@@ -28,6 +28,11 @@
      [auth-rhosts.c]
      handle debug messages during rhosts-rsa and hostbased authentication; 
      ok provos@
+   - mouring@cvs.openbsd.org 2002/05/15 15:47:49
+     [kex.c monitor.c monitor_wrap.c sshd.c]
+     'monitor' variable clashes with at least one lame platform (NeXT).  i
+     Renamed to 'pmonitor'.  provos@
+ - (bal) Fixed up PAM case.  I think.
 
 20020514
  - (stevesk) [README.privsep] PAM+privsep works with Solaris 8.
@@ -632,4 +637,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2128 2002/05/15 16:19:37 mouring Exp $
+$Id: ChangeLog,v 1.2129 2002/05/15 16:25:01 mouring Exp $

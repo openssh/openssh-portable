@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.241 2002/05/13 15:53:19 millert Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.242 2002/05/15 15:47:49 mouring Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -202,7 +202,7 @@ int *startup_pipes = NULL;
 int startup_pipe;		/* in child */
 
 /* variables used for privilege separation */
-extern struct monitor *monitor;
+extern struct monitor *pmonitor;
 extern int use_privsep;
 
 /* Prototypes for various functions defined later in this file. */
@@ -566,9 +566,9 @@ privsep_preauth(void)
 	pid_t pid;
 
 	/* Set up unprivileged child process to deal with network data */
-	monitor = monitor_init();
+	pmonitor = monitor_init();
 	/* Store a pointer to the kex for later rekeying */
-	monitor->m_pkex = &xxx_kex;
+	pmonitor->m_pkex = &xxx_kex;
 
 	pid = fork();
 	if (pid == -1) {
@@ -576,12 +576,12 @@ privsep_preauth(void)
 	} else if (pid != 0) {
 		debug2("Network child is on pid %d", pid);
 
-		close(monitor->m_recvfd);
-		authctxt = monitor_child_preauth(monitor);
-		close(monitor->m_sendfd);
+		close(pmonitor->m_recvfd);
+		authctxt = monitor_child_preauth(pmonitor);
+		close(pmonitor->m_sendfd);
 
 		/* Sync memory */
-		monitor_sync(monitor);
+		monitor_sync(pmonitor);
 
 		/* Wait for the child's exit status */
 		while (waitpid(pid, &status, 0) < 0)
@@ -591,7 +591,7 @@ privsep_preauth(void)
 	} else {
 		/* child */
 
-		close(monitor->m_sendfd);
+		close(pmonitor->m_sendfd);
 
 		/* Demote the child */
 		if (getuid() == 0 || geteuid() == 0)
@@ -611,7 +611,7 @@ privsep_postauth(Authctxt *authctxt)
 
 	if (authctxt->pw->pw_uid == 0 || options.use_login) {
 		/* File descriptor passing is broken or root login */
-		monitor_apply_keystate(monitor);
+		monitor_apply_keystate(pmonitor);
 		use_privsep = 0;
 		return;
 	}
@@ -624,21 +624,21 @@ privsep_postauth(Authctxt *authctxt)
 	}
 
 	/* New socket pair */
-	monitor_reinit(monitor);
+	monitor_reinit(pmonitor);
 
-	monitor->m_pid = fork();
-	if (monitor->m_pid == -1)
+	pmonitor->m_pid = fork();
+	if (pmonitor->m_pid == -1)
 		fatal("fork of unprivileged child failed");
-	else if (monitor->m_pid != 0) {
-		debug2("User child is on pid %d", monitor->m_pid);
-		close(monitor->m_recvfd);
-		monitor_child_postauth(monitor);
+	else if (pmonitor->m_pid != 0) {
+		debug2("User child is on pid %d", pmonitor->m_pid);
+		close(pmonitor->m_recvfd);
+		monitor_child_postauth(pmonitor);
 
 		/* NEVERREACHED */
 		exit(0);
 	}
 
-	close(monitor->m_sendfd);
+	close(pmonitor->m_sendfd);
 
 	/* Demote the private keys to public keys. */
 	demote_sensitive_data();
@@ -647,7 +647,7 @@ privsep_postauth(Authctxt *authctxt)
 	do_setusercontext(authctxt->pw);
 
 	/* It is safe now to apply the key state */
-	monitor_apply_keystate(monitor);
+	monitor_apply_keystate(pmonitor);
 }
 
 static char *
@@ -1459,7 +1459,7 @@ main(int ac, char **av)
 	 * the current keystate and exits
 	 */
 	if (use_privsep) {
-		mm_send_keystate(monitor);
+		mm_send_keystate(pmonitor);
 		exit(0);
 	}
 
