@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.118 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.119 2002/01/21 15:13:51 markus Exp $");
 
 #include <openssl/bn.h>
 
@@ -31,6 +31,7 @@ RCSID("$OpenBSD: sshconnect.c,v 1.118 2001/12/19 07:18:56 deraadt Exp $");
 #include "readconf.h"
 #include "atomicio.h"
 #include "misc.h"
+#include "readpass.h"
 
 char *client_version_string = NULL;
 char *server_version_string = NULL;
@@ -488,40 +489,24 @@ ssh_exchange_identification(void)
 static int
 confirm(const char *prompt)
 {
-	char buf[1024];
-	FILE *f;
-	int retval = -1;
+	const char *msg, *again = "Please type 'yes' or 'no': ";
+	char *p;
+	int ret = -1;
 
 	if (options.batch_mode)
 		return 0;
-	if (isatty(STDIN_FILENO))
-		f = stdin;
-	else
-		f = fopen(_PATH_TTY, "rw");
-	if (f == NULL)
-		return 0;
-	fflush(stdout);
-	fprintf(stderr, "%s", prompt);
-	while (1) {
-		if (fgets(buf, sizeof(buf), f) == NULL) {
-			fprintf(stderr, "\n");
-			strlcpy(buf, "no", sizeof buf);
-		}
-		/* Remove newline from response. */
-		if (strchr(buf, '\n'))
-			*strchr(buf, '\n') = 0;
-		if (strcmp(buf, "yes") == 0)
-			retval = 1;
-		else if (strcmp(buf, "no") == 0)
-			retval = 0;
-		else
-			fprintf(stderr, "Please type 'yes' or 'no': ");
-
-		if (retval != -1) {
-			if (f != stdin)
-				fclose(f);
-			return retval;
-		}
+	for (msg = prompt;;msg = again) {
+		p = read_passphrase(msg, RP_ECHO);
+		if (p == NULL ||
+		    (p[0] == '\0') || (p[0] == '\n') ||
+		    strncasecmp(p, "no", 2) == 0)
+			ret = 0;
+		if (strncasecmp(p, "yes", 3) == 0)
+			ret = 1;
+		if (p)
+			xfree(p);
+		if (ret != -1)
+			return ret;
 	}
 }
 
@@ -543,7 +528,8 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 	int local = 0, host_ip_differ = 0;
 	int salen;
 	char ntop[NI_MAXHOST];
-	int host_line, ip_line;
+	char msg[1024];
+	int len, host_line, ip_line;
 	const char *host_file = NULL, *ip_file = NULL;
 
 	/*
@@ -688,18 +674,16 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 			goto fail;
 		} else if (options.strict_host_key_checking == 2) {
 			/* The default */
-			char prompt[1024];
 			fp = key_fingerprint(host_key, SSH_FP_MD5, SSH_FP_HEX);
-			snprintf(prompt, sizeof(prompt),
+			snprintf(msg, sizeof(msg),
 			    "The authenticity of host '%.200s (%s)' can't be "
 			    "established.\n"
 			    "%s key fingerprint is %s.\n"
 			    "Are you sure you want to continue connecting "
 			    "(yes/no)? ", host, ip, type, fp);
 			xfree(fp);
-			if (!confirm(prompt)) {
+			if (!confirm(msg))
 				goto fail;
-			}
 		}
 		if (options.check_host_ip && ip_status == HOST_NEW) {
 			snprintf(hostline, sizeof(hostline), "%s,%s", host, ip);
@@ -803,20 +787,28 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 
 	if (options.check_host_ip && host_status != HOST_CHANGED &&
 	    ip_status == HOST_CHANGED) {
-		log("Warning: the %s host key for '%.200s' "
-		    "differs from the key for the IP address '%.128s'",
-		    type, host, ip);
-		if (host_status == HOST_OK)
-			log("Matching host key in %s:%d", host_file, host_line);
-		log("Offending key for IP in %s:%d", ip_file, ip_line);
+		snprintf(msg, sizeof(msg),
+		    "Warning: the %s host key for '%.200s' "
+		    "differs from the key for the IP address '%.128s'"
+		    "\nOffending key for IP in %s:%d",
+		    type, host, ip, ip_file, ip_line);
+		if (host_status == HOST_OK) {
+			len = strlen(msg);
+			snprintf(msg + len, sizeof(msg) - len,
+			    "\nMatching host key in %s:%d",
+			     host_file, host_line);
+		}
 		if (options.strict_host_key_checking == 1) {
+			log(msg);
 			error("Exiting, you have requested strict checking.");
 			goto fail;
 		} else if (options.strict_host_key_checking == 2) {
-			if (!confirm("Are you sure you want "
-			    "to continue connecting (yes/no)? ")) {
+			strlcat(msg, "\nAre you sure you want "
+			    "to continue connecting (yes/no)? ", sizeof(msg));
+			if (!confirm(msg))
 				goto fail;
-			}
+		} else {
+			log(msg);
 		}
 	}
 
