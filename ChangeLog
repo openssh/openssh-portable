@@ -1,3 +1,7 @@
+20030629
+ - (dtucker) Bug #602: move #include of netdb.h to after in.h (fixes compiler
+   warnings on Solaris 2.5.1).
+   
 20030628
  - (djm) Bug #591: use PKCS#15 private key label as a comment in case 
    of OpenSC. Report and patch from larsch@trustcenter.de
@@ -607,4 +611,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2832 2003/06/29 11:20:04 dtucker Exp $
+$Id: ChangeLog,v 1.2833 2003/06/29 11:23:37 dtucker Exp $

@@ -50,9 +50,6 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #ifdef HAVE_NETGROUP_H
 # include <netgroup.h>
 #endif
-#if defined(HAVE_NETDB_H)
-# include <netdb.h>
-#endif
 #ifdef HAVE_ENDIAN_H
 # include <endian.h>
 #endif
@@ -143,6 +140,9 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #include <netinet/ip.h> /* For IPTOS macros */
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
+#if defined(HAVE_NETDB_H)
+# include <netdb.h>
+#endif
 #ifdef HAVE_RPC_TYPES_H
 # include <rpc/types.h> /* For INADDR_LOOPBACK */
 #endif
