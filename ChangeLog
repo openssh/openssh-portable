@@ -18,6 +18,8 @@
      the tty modes up and kill ourselves -- instead of our process group 
      leader (scp, cvs, ...) going away and leaving us in noecho mode.  
      people with cbreak shells never even noticed..
+   - [ssh-add.1 ssh-agent.1 ssh-keygen.1 ssh.1 sshd.8]
+     ie. -> i.e.,
 
 20000120
  - Don't use getaddrinfo on AIX
