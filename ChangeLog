@@ -62,6 +62,10 @@
    - markus@cvs.openbsd.org 2001/06/06 23:19:35
      [ssh-add.c]
      remove debug message; Darren.Moffat@eng.sun.com
+   - markus@cvs.openbsd.org 2001/06/07 19:57:53
+     [auth2.c]
+     style is used for bsdauth.
+     disconnect on user/service change (ietf-drafts)
 
 20010606
  - OpenBSD CVS Sync
@@ -5573,4 +5577,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1265 2001/06/09 01:38:24 mouring Exp $
+$Id: ChangeLog,v 1.1266 2001/06/09 01:40:00 mouring Exp $

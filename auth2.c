@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.61 2001/05/31 10:30:12 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.62 2001/06/07 19:57:53 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -219,14 +219,12 @@ input_userauth_request(int type, int plen, void *ctxt)
 		setproctitle("%s", pw ? user : "unknown");
 		authctxt->user = xstrdup(user);
 		authctxt->service = xstrdup(service);
-		authctxt->style = style ? xstrdup(style) : NULL; /* currently unused */
-	} else if (authctxt->valid) {
-		if (strcmp(user, authctxt->user) != 0 ||
-		    strcmp(service, authctxt->service) != 0) {
-			log("input_userauth_request: mismatch: (%s,%s)!=(%s,%s)",
-			    user, service, authctxt->user, authctxt->service);
-			authctxt->valid = 0;
-		}
+		authctxt->style = style ? xstrdup(style) : NULL;
+	} else if (strcmp(user, authctxt->user) != 0 ||
+	    strcmp(service, authctxt->service) != 0) {
+		packet_disconnect("Change of username or service not allowed: "
+		    "(%s,%s) -> (%s,%s)",
+		    authctxt->user, authctxt->service, user, service);
 	}
 	/* reset state */
 	dispatch_set(SSH2_MSG_USERAUTH_INFO_RESPONSE, &protocol_error);
