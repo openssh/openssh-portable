@@ -7,6 +7,7 @@
  - (djm) Specify --datadir in RPM spec files so smartcard applet gets
     put somewhere sane. Add Ssh.bin to manifest.
  - (djm) Make smartcard support conditional in Redhat RPM spec
+ - (bal) LICENCE update.  Has not been done in a while.
 
 20010917
  - (djm) x11-ssh-askpass-1.2.4 in RPM spec, revert workarounds
@@ -6467,4 +6468,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1530 2001/09/18 05:33:07 djm Exp $
+$Id: ChangeLog,v 1.1531 2001/09/18 05:36:27 mouring Exp $
