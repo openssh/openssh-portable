@@ -2,6 +2,8 @@
  - (bal) SCO Patch to add needed libraries for configure.in.  Patch by
    Phillips Porch <root@theporch.com>
  - (bal) IRIX patch to adding Job Limits.  Patch by Denis Parker <dcp@sgi.com>
+ - (stevesk) pty.c: HP-UX 10 and 11 don't define TIOCSCTTY.  Add error() to
+   failed ioctl(TIOCSCTTY) call.
 
 20001111
  - (djm) Added /etc/primes for kex DH group neg, fixup Makefile.in and

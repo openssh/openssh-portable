@@ -238,12 +238,8 @@ pty_make_controlling_tty(int *ttyfd, const char *ttyname)
 	/* Make it our controlling tty. */
 #ifdef TIOCSCTTY
 	debug("Setting controlling tty using TIOCSCTTY.");
-	/*
-	 * We ignore errors from this, because HPSUX defines TIOCSCTTY, but
-	 * returns EINVAL with these arguments, and there is absolutely no
-	 * documentation.
-	 */
-	ioctl(*ttyfd, TIOCSCTTY, NULL);
+	if (ioctl(*ttyfd, TIOCSCTTY, NULL) < 0)
+		error("ioctl(TIOCSCTTY): %.100s", strerror(errno));
 #endif /* TIOCSCTTY */
 #ifdef HAVE_NEWS4
 	if (setpgrp(0,0) < 0)
