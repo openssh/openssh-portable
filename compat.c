@@ -33,7 +33,7 @@ RCSID("$OpenBSD: compat.c,v 1.32 2000/12/09 23:51:11 provos Exp $");
 #  include <pcreposix.h>
 #else /* Use native regex libraries */
 #  include <regex.h>
-#endif /* HAVE_LIBRX */
+#endif /* HAVE_LIBPCRE */
 
 int compat13 = 0;
 int compat20 = 0;
