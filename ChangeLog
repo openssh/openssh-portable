@@ -25,6 +25,7 @@
      use license from /usr/share/misc/license.template for new code
  - (dtucker) [reconfigure.sh rekey.sh sftp-badcmds.sh]
    Import new regression tests from OpenBSD
+ - (dtucker) [regress/copy.1 regress/copy.2] Remove temp data files from CVS.
 
 20030614
  - (djm) Update license on fake-rfc2553.[ch]; ok itojun@
@@ -540,4 +541,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2809 2003/06/18 12:18:57 dtucker Exp $
+$Id: ChangeLog,v 1.2810 2003/06/18 12:21:33 dtucker Exp $
