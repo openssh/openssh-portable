@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.99 2001/03/02 18:54:31 deraadt Exp $
+.\" $OpenBSD: sshd.8,v 1.100 2001/03/04 11:04:41 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -550,7 +550,7 @@ server allows login to accounts with empty password strings.
 The default is
 .Dq no .
 .It Cm PermitRootLogin
-Specifies whether the root can log in using
+Specifies whether root can login using
 .Xr ssh 1 .
 The argument must be
 .Dq yes ,
@@ -574,6 +574,10 @@ option has been specified
 (which may be useful for taking remote backups even if root login is
 normally not allowed). All other authentication methods are disabled
 for root.
+.Pp
+If this option is set to
+.Dq no
+root is not allowed to login.
 .It Cm PidFile
 Specifies the file that contains the process identifier of the
 .Nm
