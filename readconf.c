@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.72 2001/04/12 19:15:25 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.73 2001/04/12 19:39:27 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -132,7 +132,7 @@ static struct {
 	{ "pubkeyauthentication", oPubkeyAuthentication },
 	{ "dsaauthentication", oPubkeyAuthentication },		    /* alias */
 	{ "rhostsrsaauthentication", oRhostsRSAAuthentication },
-	{ "hostbaedauthentication", oHostbasedAuthentication },
+	{ "hostbasedauthentication", oHostbasedAuthentication },
 	{ "challengeresponseauthentication", oChallengeResponseAuthentication },
 	{ "skeyauthentication", oChallengeResponseAuthentication }, /* alias */
 	{ "tisauthentication", oChallengeResponseAuthentication },  /* alias */

@@ -13,6 +13,9 @@
      implement HostbasedAuthentication (= RhostRSAAuthentication for ssh v2)
      similar to RhostRSAAuthentication unless you enable (the experimental)
      HostbasedUsesNameFromPacketOnly option.  please test. :)
+   - markus@cvs.openbsd.org 2001/04/12 19:39:27
+     [readconf.c]
+     typo
  - (bal) Added openbsd-compat/inet_ntop.[ch] since HP/UX (and others)
    lack it.
 
@@ -5035,4 +5038,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1103 2001/04/12 23:34:34 mouring Exp $
+$Id: ChangeLog,v 1.1104 2001/04/12 23:36:05 mouring Exp $
