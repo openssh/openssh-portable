@@ -4,6 +4,8 @@
      [monitor.c]
      unbreak rekeying for privsep; ok millert@
  - Release 3.6p1
+ - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
+   Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
 20030320
  - (djm) OpenBSD CVS Sync
@@ -1246,4 +1248,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2639 2003/03/23 22:12:09 djm Exp $
+$Id: ChangeLog,v 1.2640 2003/03/24 02:35:58 djm Exp $

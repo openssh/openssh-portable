@@ -12,7 +12,7 @@
 #include "includes.h"
 #include "ssh.h"
 
-RCSID("$Id: fake-getaddrinfo.c,v 1.4 2003/02/24 01:35:09 djm Exp $");
+RCSID("$Id: fake-getaddrinfo.c,v 1.5 2003/03/24 02:35:59 djm Exp $");
 
 #ifndef HAVE_GAI_STRERROR
 char *gai_strerror(int ecode)
@@ -71,6 +71,7 @@ int getaddrinfo(const char *hostname, const char *servname,
 	struct in_addr in;
 	int i;
 	long int port;
+	u_long addr;
 
 	port = 0;
 	if (servname != NULL) {
@@ -86,7 +87,10 @@ int getaddrinfo(const char *hostname, const char *servname,
 	}
 
 	if (hints && hints->ai_flags & AI_PASSIVE) {
-		if (NULL != (*res = malloc_ai(port, htonl(0x00000000))))
+		addr = htonl(0x00000000);
+		if (hostname && inet_aton(hostname, &in) != 0)
+			addr = in.s_addr;
+		if (NULL != (*res = malloc_ai(port, addr)))
 			return 0;
 		else
 			return EAI_MEMORY;
