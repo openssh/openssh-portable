@@ -2,6 +2,8 @@
  - sshd Redhat init script patch from Jim Knoble <jmknoble@pobox.com>
    fixes compatability with 4.x and 5.x
  - Fixed default SSH_ASKPASS
+ - Fix PAM account and session being called multiple times. Problem 
+   reported by Adrian Baugh <adrian@merlin.keble.ox.ac.uk>
 
 19991204
  - Small cleanup of PAM code in sshd.c
