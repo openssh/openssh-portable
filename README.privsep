@@ -20,6 +20,9 @@ prepare the privsep preauth environment:
 	# groupadd sshd
 	# useradd -g sshd sshd
 
+If you are on UnixWare 7 or OpenUNIX 8 do this additional step.
+	# ln /usr/lib/.ns.so /usr/lib/ns.so.1
+
 /var/empty should not contain any files.
 
 configure supports the following options to change the default
@@ -31,6 +34,7 @@ privsep user and chroot directory:
 Privsep requires operating system support for file descriptor passing
 and mmap(MAP_ANON).
 
+OpenSSH is known to function with privsep on UnixWare 7 and OpenUNIX 8
 PAM-enabled OpenSSH is known to function with privsep on Linux and
 Solaris 8.  It does not function on HP-UX with a trusted system
 configuration.  PAMAuthenticationViaKbdInt does not function with
@@ -51,4 +55,4 @@ process 1005 is the sshd process listening for new connections.
 process 6917 is the privileged monitor process, 6919 is the user owned
 sshd process and 6921 is the shell process.
 
-$Id: README.privsep,v 1.2 2002/05/13 23:31:10 stevesk Exp $
+$Id: README.privsep,v 1.3 2002/05/14 00:07:18 tim Exp $

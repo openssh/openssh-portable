@@ -1,5 +1,9 @@
 20020514
  - (stevesk) [README.privsep] PAM+privsep works with Solaris 8.
+ - (tim) [sshpty.c] set tty modes when allocating old style bsd ptys to
+   match what newer style ptys have when allocated. Based on a patch by
+   Roger Cornelius <rac@tenzing.org>
+   [README.privsep] UnixWare 7 and OpenUNIX 8 work.
 
 20020513
  - (stevesk) add initial README.privsep
@@ -582,4 +586,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2115 2002/05/13 23:31:09 stevesk Exp $
+$Id: ChangeLog,v 1.2116 2002/05/14 00:07:18 tim Exp $

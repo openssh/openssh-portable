@@ -199,6 +199,7 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 	const char *ptyminors = "0123456789abcdef";
 	int num_minors = strlen(ptyminors);
 	int num_ptys = strlen(ptymajors) * num_minors;
+	struct termios tio;
 
 	for (i = 0; i < num_ptys; i++) {
 		snprintf(buf, sizeof buf, "/dev/pty%c%c", ptymajors[i / num_minors],
@@ -223,6 +224,19 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 			close(*ptyfd);
 			return 0;
 		}
+		/* set tty modes to a sane state for broken clients */
+		if (tcgetattr(*ptyfd, &tio) < 0)
+			log("Getting tty modes for pty failed: %.100s", strerror(errno));
+		else {
+			tio.c_lflag |= (ECHO | ISIG | ICANON);
+			tio.c_oflag |= (OPOST | ONLCR);
+			tio.c_iflag |= ICRNL;
+
+			/* Set the new modes for the terminal. */
+			if (tcsetattr(*ptyfd, TCSANOW, &tio) < 0)
+				log("Setting tty modes for pty failed: %.100s", strerror(errno));
+		}
+
 		return 1;
 	}
 	return 0;
