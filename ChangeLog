@@ -1,3 +1,6 @@
+20040620
+ - (tim) [configure.ac Makefile.in] Only change TEST_SHELL on broken platforms.
+
 20040619
  - (dtucker) [auth-pam.c] Don't use PAM namespace for
     pam_password_change_required either.
@@ -1316,4 +1319,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3416 2004/06/20 02:31:06 tim Exp $
+$Id: ChangeLog,v 1.3417 2004/06/20 17:37:32 tim Exp $
