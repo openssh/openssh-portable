@@ -75,11 +75,10 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.39 2000/09/07 20:53:00 markus Exp $");
+RCSID("$OpenBSD: scp.c,v 1.40 2000/09/21 11:11:42 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
-#include <utime.h>
 
 #define _PATH_CP "cp"
 
@@ -711,8 +710,8 @@ sink(argc, argv)
 	off_t size;
 	int setimes, targisdir, wrerrno = 0;
 	char ch, *cp, *np, *targ, *why, *vect[1], buf[2048];
-	struct utimbuf ut;
 	int dummy_usec;
+	struct timeval tv[2];
 
 #define	SCREWUP(str)	{ why = str; goto screwup; }
 
@@ -766,16 +765,18 @@ sink(argc, argv)
 		if (*cp == 'T') {
 			setimes++;
 			cp++;
-			getnum(ut.modtime);
+			getnum(tv[1].tv_sec);
 			if (*cp++ != ' ')
 				SCREWUP("mtime.sec not delimited");
 			getnum(dummy_usec);
+			tv[1].tv_usec = 0;
 			if (*cp++ != ' ')
 				SCREWUP("mtime.usec not delimited");
-			getnum(ut.actime);
+			getnum(tv[0].tv_sec);
 			if (*cp++ != ' ')
 				SCREWUP("atime.sec not delimited");
 			getnum(dummy_usec);
+			tv[0].tv_usec = 0;
 			if (*cp++ != '\0')
 				SCREWUP("atime.usec not delimited");
 			(void) atomicio(write, remout, "", 1);
@@ -843,7 +844,7 @@ sink(argc, argv)
 			sink(1, vect);
 			if (setimes) {
 				setimes = 0;
-				if (utime(np, &ut) < 0)
+				if (utimes(np, tv) < 0)
 					run_err("%s: set times: %s",
 						np, strerror(errno));
 			}
@@ -930,7 +931,7 @@ bad:			run_err("%s: %s", np, strerror(errno));
 		(void) response();
 		if (setimes && wrerr == NO) {
 			setimes = 0;
-			if (utime(np, &ut) < 0) {
+			if (utimes(np, tv) < 0) {
 				run_err("%s: set times: %s",
 					np, strerror(errno));
 				wrerr = DISPLAYED;

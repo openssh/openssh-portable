@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.36 2000/09/15 07:13:49 deraadt Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.37 2000/09/21 11:07:51 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.36 2000/09/15 07:13:49 deraadt Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.37 2000/09/21 11:07:51 markus Exp $");
 
 #include "ssh.h"
 #include "rsa.h"
@@ -56,6 +56,7 @@ RCSID("$OpenBSD: ssh-agent.c,v 1.36 2000/09/15 07:13:49 deraadt Exp $");
 #include "authfd.h"
 #include "dsa.h"
 #include "kex.h"
+#include "compat.h"
 
 typedef struct {
 	int fd;
@@ -237,6 +238,7 @@ process_sign_request2(SocketEntry *e)
 	Key *key, *private;
 	unsigned char *blob, *data, *signature = NULL;
 	unsigned int blen, dlen, slen = 0;
+	int flags;
 	Buffer msg;
 	int ok = -1;
 
@@ -244,7 +246,10 @@ process_sign_request2(SocketEntry *e)
 	
 	blob = buffer_get_string(&e->input, &blen);
 	data = buffer_get_string(&e->input, &dlen);
-	buffer_get_int(&e->input);			/* flags, unused */
+
+	flags = buffer_get_int(&e->input);
+	if (flags & SSH_AGENT_OLD_SIGNATURE)
+		datafellows = SSH_BUG_SIGBLOB;
 
 	key = dsa_key_from_blob(blob, blen);
 	if (key != NULL) {

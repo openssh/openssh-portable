@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfd.c,v 1.27 2000/09/07 20:27:49 deraadt Exp $");
+RCSID("$OpenBSD: authfd.c,v 1.28 2000/09/21 11:07:50 markus Exp $");
 
 #include "ssh.h"
 #include "rsa.h"
@@ -51,6 +51,7 @@ RCSID("$OpenBSD: authfd.c,v 1.27 2000/09/07 20:27:49 deraadt Exp $");
 #include "authfd.h"
 #include "kex.h"
 #include "dsa.h"
+#include "compat.h"
 
 /* helper */
 int	decode_reply(int type);
@@ -364,20 +365,24 @@ ssh_agent_sign(AuthenticationConnection *auth,
     unsigned char **sigp, int *lenp,
     unsigned char *data, int datalen)
 {
+	extern int datafellows;
 	Buffer msg;
 	unsigned char *blob;
 	unsigned int blen;
-	int type;
+	int type, flags = 0;
 	int ret = -1;
 
 	if (dsa_make_key_blob(key, &blob, &blen) == 0)
 		return -1;
 
+	if (datafellows & SSH_BUG_SIGBLOB)
+		flags = SSH_AGENT_OLD_SIGNATURE;
+
 	buffer_init(&msg);
 	buffer_put_char(&msg, SSH2_AGENTC_SIGN_REQUEST);
 	buffer_put_string(&msg, blob, blen);
 	buffer_put_string(&msg, data, datalen);
-	buffer_put_int(&msg, 0);				/* flags, unused */
+	buffer_put_int(&msg, flags);
 	xfree(blob);
 
 	if (ssh_request_reply(auth, &msg, &msg) == 0) {

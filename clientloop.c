@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.35 2000/09/14 20:25:14 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.36 2000/09/21 11:25:33 markus Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -771,7 +771,7 @@ client_process_output(fd_set * writeset)
 void
 client_process_buffered_input_packets()
 {
-	dispatch_run(DISPATCH_NONBLOCK, &quit_pending);
+	dispatch_run(DISPATCH_NONBLOCK, &quit_pending, NULL);
 }
 
 /* scan buf[] for '~' before sending data to the peer */
@@ -978,7 +978,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 /*********/
 
 void
-client_input_stdout_data(int type, int plen)
+client_input_stdout_data(int type, int plen, void *ctxt)
 {
 	unsigned int data_len;
 	char *data = packet_get_string(&data_len);
@@ -989,7 +989,7 @@ client_input_stdout_data(int type, int plen)
 	xfree(data);
 }
 void
-client_input_stderr_data(int type, int plen)
+client_input_stderr_data(int type, int plen, void *ctxt)
 {
 	unsigned int data_len;
 	char *data = packet_get_string(&data_len);
@@ -1000,7 +1000,7 @@ client_input_stderr_data(int type, int plen)
 	xfree(data);
 }
 void
-client_input_exit_status(int type, int plen)
+client_input_exit_status(int type, int plen, void *ctxt)
 {
 	packet_integrity_check(plen, 4, type);
 	exit_status = packet_get_int();
@@ -1018,7 +1018,7 @@ client_input_exit_status(int type, int plen)
 
 /* XXXX move to generic input handler */
 void
-client_input_channel_open(int type, int plen)
+client_input_channel_open(int type, int plen, void *ctxt)
 {
 	Channel *c = NULL;
 	char *ctype;

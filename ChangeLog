@@ -8,6 +8,32 @@
  - (djm) NeXT patch from Ben Lindstrom <mouring@pconline.com>
  - (djm) Use printf %lld instead of %qd in sftp-server.c. Fix from 
    Michael Stone <mstone@cs.loyola.edu>
+ - (djm) OpenBSD CVS sync:
+   - markus@cvs.openbsd.org  2000/09/17 09:38:59
+     [sshconnect2.c sshd.c]
+     fix DEBUG_KEXDH
+   - markus@cvs.openbsd.org  2000/09/17 09:52:51
+     [sshconnect.c]
+     yes no; ok niels@
+   - markus@cvs.openbsd.org  2000/09/21 04:55:11
+     [sshd.8]
+     typo
+   - markus@cvs.openbsd.org  2000/09/21 05:03:54
+     [serverloop.c]
+     typo
+   - markus@cvs.openbsd.org  2000/09/21 05:11:42
+     scp.c
+     utime() to utimes(); mouring@pconline.com
+   - markus@cvs.openbsd.org  2000/09/21 05:25:08
+     sshconnect2.c
+     change login logic in ssh2, allows plugin of other auth methods
+   - markus@cvs.openbsd.org  2000/09/21 05:25:35
+     [auth2.c channels.c channels.h clientloop.c dispatch.c dispatch.h]
+     [serverloop.c]
+     add context to dispatch_run
+   - markus@cvs.openbsd.org  2000/09/21 05:07:52
+     authfd.c authfd.h ssh-agent.c
+     bug compat for old ssh.com software
 
 20000920
  - (djm) Fix bad path substitution. Report from Andrew Miner

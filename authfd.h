@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: authfd.h,v 1.11 2000/09/07 20:27:49 deraadt Exp $"); */
+/* RCSID("$OpenBSD: authfd.h,v 1.12 2000/09/21 11:07:51 markus Exp $"); */
 
 #ifndef AUTHFD_H
 #define AUTHFD_H
@@ -36,6 +36,9 @@
 #define SSH2_AGENTC_ADD_IDENTITY		17
 #define SSH2_AGENTC_REMOVE_IDENTITY		18
 #define SSH2_AGENTC_REMOVE_ALL_IDENTITIES	19
+
+#define	SSH_AGENT_OLD_SIGNATURE			0x01
+
 
 typedef struct {
 	int     fd;

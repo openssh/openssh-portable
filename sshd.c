@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.127 2000/09/12 20:53:10 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.128 2000/09/17 15:38:59 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -1336,7 +1336,7 @@ do_ssh2_kex()
 
 #ifdef DEBUG_KEXDH
 	fprintf(stderr, "\ndh_client_pub= ");
-	bignum_print(dh_client_pub);
+	BN_print_fp(stderr, dh_client_pub);
 	fprintf(stderr, "\n");
 	debug("bits %d", BN_num_bits(dh_client_pub));
 #endif
@@ -1346,12 +1346,13 @@ do_ssh2_kex()
 
 #ifdef DEBUG_KEXDH
 	fprintf(stderr, "\np= ");
-	bignum_print(dh->p);
+	BN_print_fp(stderr, dh->p);
 	fprintf(stderr, "\ng= ");
-	bignum_print(dh->g);
+	bn_print(dh->g);
 	fprintf(stderr, "\npub= ");
-	bignum_print(dh->pub_key);
+	BN_print_fp(stderr, dh->pub_key);
 	fprintf(stderr, "\n");
+        DHparams_print_fp(stderr, dh);
 #endif
 	if (!dh_pub_is_valid(dh, dh_client_pub))
 		packet_disconnect("bad client public DH value");
