@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.145 2001/12/06 18:09:23 stevesk Exp $");
+RCSID("$OpenBSD: channels.c,v 1.146 2001/12/06 18:20:32 stevesk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -993,7 +993,7 @@ channel_post_x11_listener(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	Channel *nc;
 	struct sockaddr addr;
-	int newsock;
+	int newsock, on = 1;
 	socklen_t addrlen;
 	char buf[16384], *remote_ipaddr;
 	int remote_port;
@@ -1006,6 +1006,10 @@ channel_post_x11_listener(Channel *c, fd_set * readset, fd_set * writeset)
 			error("accept: %.100s", strerror(errno));
 			return;
 		}
+		if (setsockopt(newsock, IPPROTO_TCP, TCP_NODELAY, &on,
+		    sizeof on) == -1)
+			error("setsockopt TCP_NODELAY: %.100s",
+			    strerror(errno));
 		remote_ipaddr = get_peer_ipaddr(newsock);
 		remote_port = get_peer_port(newsock);
 		snprintf(buf, sizeof buf, "X11 connection from %.200s port %d",
@@ -2567,7 +2571,7 @@ connect_local_xsocket(u_int dnr)
 int
 x11_connect_display(void)
 {
-	int display_number, sock = 0;
+	int display_number, sock = 0, on = 1;
 	const char *display;
 	char buf[1024], *cp;
 	struct addrinfo hints, *ai, *aitop;
@@ -2655,6 +2659,8 @@ x11_connect_display(void)
 		    strerror(errno));
 		return -1;
 	}
+	if (setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, &on, sizeof on) == -1)
+		error("setsockopt TCP_NODELAY: %.100s", strerror(errno));
 	return sock;
 }
 
