@@ -156,23 +156,6 @@
 
 #include "includes.h"
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <errno.h>
-#ifdef HAVE_PWD_H
-#  include <pwd.h>
-#endif
-#ifdef HAVE_SYS_TIME_H
-#  include <sys/time.h>
-#else
-#  include <time.h>
-#endif
 #if HAVE_UTMP_H
 # include <utmp.h>
 #endif
@@ -187,8 +170,7 @@
 #include "xmalloc.h"
 #include "loginrec.h"
 
-RCSID("$Id: loginrec.c,v 1.3 2000/06/04 17:07:49 andre Exp $");
-
+RCSID("$Id: loginrec.c,v 1.4 2000/06/07 11:32:13 djm Exp $");
 
 /**
  ** prototypes for helper functions in this file
@@ -1117,9 +1099,7 @@ wtmpx_get_entry(struct logininfo *li)
 }
 
 
-#endif
-/* USE_WTMPX */
-
+#endif /* USE_WTMPX */
 
 
 /**
@@ -1154,11 +1134,11 @@ syslogin_perform_logout(struct logininfo *li)
 
 	if (!logout(line)) {
 		log("syslogin_perform_logout: logout() returned an error");
-#  ifdef HAVE_LOGWTMP
+# ifdef HAVE_LOGWTMP
 	} else {
 		logwtmp(line, "", "");
 	}
-#  endif
+# endif
 	/* TODO: what to do if we have login, but no logout?
 	 * what if logout but no logwtmp? All routines are in libutil
 	 * so they should all be there, but... */
@@ -1182,8 +1162,7 @@ syslogin_write_entry(struct logininfo *li)
 }
 
 
-#endif
-/* USE_LOGIN */
+#endif /* USE_LOGIN */
 
 /* end of file log-syslogin.c */
 
@@ -1336,5 +1315,4 @@ lastlog_get_entry(struct logininfo *li)
 }
 
 
-#endif
-/* USE_LASTLOG */
+#endif /* USE_LASTLOG */
