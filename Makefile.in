@@ -34,7 +34,7 @@ SSH_MODE= @SSHMODE@
 
 INSTALL_SSH_PRNG_CMDS=@INSTALL_SSH_PRNG_CMDS@
 
-TARGETS=ssh$(EXEEXT) sshd$(EXEEXT) ssh-add$(EXEEXT) ssh-keygen$(EXEEXT) ssh-agent$(EXEEXT) scp$(EXEEXT) sftp-server$(EXEEXT)
+TARGETS=ssh$(EXEEXT) sshd$(EXEEXT) ssh-add$(EXEEXT) ssh-keygen$(EXEEXT) ssh-keyscan${EXEEXT} ssh-agent$(EXEEXT) scp$(EXEEXT) sftp-server$(EXEEXT)
 
 LIBSSH_OBJS=atomicio.o authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o cipher.o cli.o compat.o compress.o crc32.o cygwin_util.o deattack.o dispatch.o hmac.o hostfile.o key.o kex.o log.o match.o mpaux.o nchan.o packet.o radix.o rijndael.o entropy.o readpass.o rsa.o ssh-dss.o ssh-rsa.o tildexpand.o ttymodes.o uidswap.o util.o uuencode.o xmalloc.o 
 
@@ -44,8 +44,8 @@ SSHOBJS= ssh.o sshconnect.o sshconnect1.o sshconnect2.o log-client.o readconf.o 
 
 SSHDOBJS= sshd.o auth.o auth1.o auth2.o auth-skey.o auth2-skey.o auth-rhosts.o auth-options.o auth-krb4.o auth-pam.o auth2-pam.o auth-passwd.o auth-rsa.o auth-rh-rsa.o dh.o pty.o log-server.o login.o loginrec.o servconf.o serverloop.o md5crypt.o session.o
 
-TROFFMAN	= scp.1 ssh-add.1 ssh-agent.1 ssh-keygen.1 ssh.1 sshd.8 sftp-server.8
-CATMAN		= scp.0 ssh-add.0 ssh-agent.0 ssh-keygen.0 ssh.0 sshd.0 sftp-server.0
+TROFFMAN	= scp.1 ssh-add.1 ssh-agent.1 ssh-keygen.1 ssh-keyscan.1 ssh.1 sshd.8 sftp-server.8
+CATMAN		= scp.0 ssh-add.0 ssh-agent.0 ssh-keygen.0 ssh-keyscan.0 ssh.0 sshd.0 sftp-server.0
 MANPAGES	= @MANTYPE@
 
 CONFIGFILES=sshd_config ssh_config primes
@@ -100,6 +100,9 @@ ssh-agent$(EXEEXT): libopenbsd-compat.a libssh.a ssh-agent.o log-client.o
 ssh-keygen$(EXEEXT): libopenbsd-compat.a libssh.a ssh-keygen.o log-client.o
 	$(LD) -o $@ ssh-keygen.o log-client.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
+ssh-keyscan$(EXEEXT): libopenbsd-compat.a libssh.a log-client.o ssh-keyscan.o
+	$(LD) -o $@ ssh-keyscan.o log-client.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
+
 sftp-server$(EXEEXT): libopenbsd-compat.a libssh.a sftp-server.o log-server.o
 	$(LD) -o $@ sftp-server.o log-server.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
@@ -146,6 +149,7 @@ install-files:
 	$(INSTALL) -m 0755 -s ssh-add $(DESTDIR)$(bindir)/ssh-add
 	$(INSTALL) -m 0755 -s ssh-agent $(DESTDIR)$(bindir)/ssh-agent
 	$(INSTALL) -m 0755 -s ssh-keygen $(DESTDIR)$(bindir)/ssh-keygen
+	$(INSTALL) -m 0775 -s ssh-keyscan $(DESTDIR)$(bindir)/ssh-keyscan
 	$(INSTALL) -m 0755 -s sshd $(DESTDIR)$(sbindir)/sshd
 	$(INSTALL) -m 0755 -s sftp-server $(DESTDIR)$(libexecdir)/sftp-server
 	$(INSTALL) -m 644 ssh.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh.1
@@ -229,12 +233,14 @@ uninstall:
 	-rm -f $(DESTDIR)$(bindir)/ssh-add$(EXEEXT)
 	-rm -f $(DESTDIR)$(bindir)/ssh-agent$(EXEEXT)
 	-rm -f $(DESTDIR)$(bindir)/ssh-keygen$(EXEEXT)
+	-rm -f $(DESTDIR)$(bindir)/ssh-keyscan$(EXEEXT)
 	-rm -f $(DESTDIR)$(sbindir)/sshd$(EXEEXT)
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/ssh.1
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/scp.1
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-add.1
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-agent.1
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-keygen.1
+	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-keyscan.1
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)8/sshd.8
 	-rm -f $(DESTDIR)$(bindir)/slogin
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/slogin.1

@@ -1,6 +1,14 @@
+20001205
+ - (bal) OpenSSH CVS updates:
+   - markus@cvs.openbsd.org 2000/12/04 19:24:02
+     [ssh-keyscan.c ssh-keyscan.1]
+     David Maziere's ssh-keyscan, ok niels@
+ - (bal) Updated Makefile.in to include ssh-keyscan that was just added
+   to the recent OpenBSD source tree.
+
 20001204
  - (bal) More C functions defined in NeXT that are unaccessable without
-   defining -POSIX.  
+   defining -POSIX. 
  - (bal) OpenBSD CVS updates: 
    - markus@cvs.openbsd.org 2000/12/03 11:29:04 
      [compat.c]
