@@ -367,6 +367,8 @@ fi
 
 AC_FUNC_GETPGRP
 
+AC_FUNC_STRFTIME
+
 # Check for PAM libs
 PAM_MSG="no"
 AC_ARG_WITH(pam,
