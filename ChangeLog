@@ -1,5 +1,7 @@
 20010714
  - (stevesk) change getopt() declaration
+ - (stevesk) configure.in: use ll suffix for long long constant
+   in snprintf() test
 
 20010713
  - (djm) Enable /etc/nologin check on PAM systems, as some lack the 
@@ -6028,4 +6030,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1400 2001/07/14 16:05:55 stevesk Exp $
+$Id: ChangeLog,v 1.1401 2001/07/15 02:09:28 stevesk Exp $

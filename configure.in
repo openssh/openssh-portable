@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.299 2001/07/14 03:22:53 djm Exp $
+# $Id: configure.in,v 1.300 2001/07/15 02:09:29 stevesk Exp $
 
 AC_INIT(ssh.c)
 
@@ -1044,7 +1044,7 @@ main()
 #if (SIZEOF_LONG_INT == 8)
 	long int num = 0x7fffffffffffffff;
 #else
-	long long num = 0x7fffffffffffffff;
+	long long num = 0x7fffffffffffffffll;
 #endif
 	strcpy(expected_out, "9223372036854775807");
 	snprintf(buf, mazsize, "%lld", num);
