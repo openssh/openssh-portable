@@ -1,7 +1,7 @@
 Summary: OpenSSH, a free Secure Shell (SSH) implementation
 Name: openssh
-Version: 1.2pre14
-Release: 2RSAref
+Version: 1.2pre15
+Release: 1
 Source0: openssh-%{version}.tar.gz
 Copyright: BSD
 Group: Applications/Internet
