@@ -1,3 +1,9 @@
+20020311
+ - (tim) [contrib/solaris/buildpkg.sh, contrib/solaris/README] Updated to
+   build on all platforms that support SVR4 style package tools. Now runs
+   from build dir. Parts are based on patches from Antonio Navarro, and
+   Darren Tucker.
+
 20020308
  - (djm) Revert bits of Markus' OpenSSL compat patch which was 
    accidentally committed.
@@ -7828,4 +7834,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1920 2002/03/11 11:53:29 djm Exp $
+$Id: ChangeLog,v 1.1921 2002/03/12 04:55:53 tim Exp $
