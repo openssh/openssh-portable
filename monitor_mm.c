@@ -130,12 +130,12 @@ mm_destroy(struct mm_master *mm)
 	mm_freelist(mm->mmalloc, &mm->rb_free);
 	mm_freelist(mm->mmalloc, &mm->rb_allocated);
 
-#ifdef HAVE_MMAP
+#ifdef HAVE_MMAP_ANON_SHARED
 	if (munmap(mm->address, mm->size) == -1)
 		fatal("munmap(%p, %lu): %s", mm->address, (u_long)mm->size,
 		    strerror(errno));
 #else
-	fatal("%s: UsePrivilegeSeparation=yes not supported",
+	fatal("%s: UsePrivilegeSeparation=yes and Compression=yes not supported",
 	    __func__);
 #endif
 	if (mm->mmalloc == NULL)

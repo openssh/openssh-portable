@@ -30,6 +30,8 @@
  - (bal) added back in error check for mmap().  I screwed up, Pointed
    out by stevesk@
  - (tim) [README.privsep] UnixWare tip no longer needed.
+ - (bal) fixed NeXTStep missing munmap() issue. It defines HAVE_MMAP,
+   but it all damned lies.
 
 20020625
  - (stevesk) [INSTALL acconfig.h configure.ac defines.h] remove --with-rsh
@@ -1129,4 +1131,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2285 2002/06/26 00:25:47 tim Exp $
+$Id: ChangeLog,v 1.2286 2002/06/26 00:29:02 mouring Exp $
