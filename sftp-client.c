@@ -28,7 +28,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.28 2002/03/19 10:49:35 markus Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.29 2002/04/01 22:02:16 markus Exp $");
 
 #if defined(HAVE_SYS_QUEUE_H) && !defined(HAVE_BOGUS_SYS_QUEUE_H)
 #include <sys/queue.h>
@@ -274,7 +274,7 @@ do_init(int fd_in, int fd_out, u_int transfer_buflen, u_int num_requests)
 
 	/* Some filexfer v.0 servers don't support large packets */
 	if (version == 0)
-		ret->transfer_buflen = MAX(ret->transfer_buflen, 20480);
+		ret->transfer_buflen = MIN(ret->transfer_buflen, 20480);
 
 	return(ret);
 }
