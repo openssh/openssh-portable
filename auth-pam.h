@@ -15,5 +15,6 @@ void print_pam_messages(void);
 int pam_password_change_required(void);
 void do_pam_chauthtok(void);
 void pam_set_conv(struct pam_conv *);
+void message_cat(char **p, const char *a);
 
 #endif /* USE_PAM */

@@ -28,31 +28,29 @@
 #include "ssh.h"
 #include "xmalloc.h"
 #include "log.h"
+#include "auth-pam.h"
 #include "servconf.h"
 #include "canohost.h"
 #include "readpass.h"
 
-RCSID("$Id: auth-pam.c,v 1.24 2001/02/05 12:42:17 stevesk Exp $");
+RCSID("$Id: auth-pam.c,v 1.25 2001/02/07 01:58:34 djm Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now"
 
-/* Callbacks */
-static int pamconv(int num_msg, const struct pam_message **msg,
-	  struct pam_response **resp, void *appdata_ptr);
-void pam_cleanup_proc(void *context);
-void pam_msg_cat(const char *msg);
+static int do_pam_conversation(int num_msg, const struct pam_message **msg,
+	struct pam_response **resp, void *appdata_ptr);
 
 /* module-local variables */
 static struct pam_conv conv = {
-	pamconv,
+	do_pam_conversation,
 	NULL
 };
+static char *pam_msg = NULL;
 static pam_handle_t *pamh = NULL;
 static const char *pampasswd = NULL;
-static char *pam_msg = NULL;
 
-/* states for pamconv() */
+/* states for do_pam_conversation() */
 enum { INITIAL_LOGIN, OTHER } pamstate = INITIAL_LOGIN;
 /* remember whether pam_acct_mgmt() returned PAM_NEWAUTHTOK_REQD */
 static int password_change_required = 0;
@@ -80,14 +78,14 @@ int do_pam_authenticate(int flags)
  *
  * INITIAL_LOGIN mode simply feeds the password from the client into
  * PAM in response to PAM_PROMPT_ECHO_OFF, and collects output
- * messages with pam_msg_cat().  This is used during initial
+ * messages with into pam_msg.  This is used during initial
  * authentication to bypass the normal PAM password prompt.
  *
  * OTHER mode handles PAM_PROMPT_ECHO_OFF with read_passphrase(prompt, 1)
  * and outputs messages to stderr. This mode is used if pam_chauthtok()
  * is called to update expired passwords.
  */
-static int pamconv(int num_msg, const struct pam_message **msg,
+static int do_pam_conversation(int num_msg, const struct pam_message **msg,
 	struct pam_response **resp, void *appdata_ptr)
 {
 	struct pam_response *reply;
@@ -100,40 +98,28 @@ static int pamconv(int num_msg, const struct pam_message **msg,
 		return PAM_CONV_ERR;
 
 	for (count = 0; count < num_msg; count++) {
-		switch(PAM_MSG_MEMBER(msg, count, msg_style)) {
+		if (pamstate == INITIAL_LOGIN) {
+			/*
+			 * We can't use stdio yet, queue messages for 
+			 * printing later
+			 */
+			switch(PAM_MSG_MEMBER(msg, count, msg_style)) {
 			case PAM_PROMPT_ECHO_ON:
-				if (pamstate == INITIAL_LOGIN) {
+				free(reply);
+				return PAM_CONV_ERR;
+			case PAM_PROMPT_ECHO_OFF:
+				if (pampasswd == NULL) {
 					free(reply);
 					return PAM_CONV_ERR;
-				} else {
-					fputs(PAM_MSG_MEMBER(msg, count, msg), stderr);
-					fgets(buf, sizeof(buf), stdin);
-					reply[count].resp = xstrdup(buf);
-					reply[count].resp_retcode = PAM_SUCCESS;
-					break;
 				}
-			case PAM_PROMPT_ECHO_OFF:
-				if (pamstate == INITIAL_LOGIN) {
-					if (pampasswd == NULL) {
-						free(reply);
-						return PAM_CONV_ERR;
-					}
-					reply[count].resp = xstrdup(pampasswd);
-				} else {
-					reply[count].resp =
-						xstrdup(read_passphrase(PAM_MSG_MEMBER(msg, count, msg), 1));
-				}
+				reply[count].resp = xstrdup(pampasswd);
 				reply[count].resp_retcode = PAM_SUCCESS;
 				break;
 			case PAM_ERROR_MSG:
 			case PAM_TEXT_INFO:
 				if ((*msg)[count].msg != NULL) {
-					if (pamstate == INITIAL_LOGIN)
-						pam_msg_cat(PAM_MSG_MEMBER(msg, count, msg));
-					else {
-						fputs(PAM_MSG_MEMBER(msg, count, msg), stderr);
-						fputs("\n", stderr);
-					}
+					message_cat(&pam_msg, 
+					    PAM_MSG_MEMBER(msg, count, msg));
 				}
 				reply[count].resp = xstrdup("");
 				reply[count].resp_retcode = PAM_SUCCESS;
@@ -141,6 +127,36 @@ static int pamconv(int num_msg, const struct pam_message **msg,
 			default:
 				free(reply);
 				return PAM_CONV_ERR;
+			}
+		} else {
+			/*
+			 * stdio is connected, so interact directly
+			 */
+			switch(PAM_MSG_MEMBER(msg, count, msg_style)) {
+			case PAM_PROMPT_ECHO_ON:
+				fputs(PAM_MSG_MEMBER(msg, count, msg), stderr);
+				fgets(buf, sizeof(buf), stdin);
+				reply[count].resp = xstrdup(buf);
+				reply[count].resp_retcode = PAM_SUCCESS;
+				break;
+			case PAM_PROMPT_ECHO_OFF:
+				reply[count].resp = xstrdup(
+				    read_passphrase(PAM_MSG_MEMBER(msg, count, 
+				    msg), 1));
+				reply[count].resp_retcode = PAM_SUCCESS;
+				break;
+			case PAM_ERROR_MSG:
+			case PAM_TEXT_INFO:
+				if ((*msg)[count].msg != NULL)
+					fprintf(stderr, "%s\n", 
+					    PAM_MSG_MEMBER(msg, count, msg));
+				reply[count].resp = xstrdup("");
+				reply[count].resp_retcode = PAM_SUCCESS;
+				break;
+			default:
+				free(reply);
+				return PAM_CONV_ERR;
+			}
 		}
 	}
 
@@ -154,25 +170,21 @@ void pam_cleanup_proc(void *context)
 {
 	int pam_retval;
 
-	if (pamh != NULL)
-	{
+	if (pamh) {
 		pam_retval = pam_close_session(pamh, 0);
-		if (pam_retval != PAM_SUCCESS) {
+		if (pam_retval != PAM_SUCCESS)
 			log("Cannot close PAM session[%d]: %.200s",
-				pam_retval, PAM_STRERROR(pamh, pam_retval));
-		}
+			    pam_retval, PAM_STRERROR(pamh, pam_retval));
 
 		pam_retval = pam_setcred(pamh, PAM_DELETE_CRED);
-		if (pam_retval != PAM_SUCCESS) {
-			debug("Cannot delete credentials[%d]: %.200s",
-				pam_retval, PAM_STRERROR(pamh, pam_retval));
-		}
+		if (pam_retval != PAM_SUCCESS)
+			debug("Cannot delete credentials[%d]: %.200s", 
+			    pam_retval, PAM_STRERROR(pamh, pam_retval));
 
 		pam_retval = pam_end(pamh, pam_retval);
-		if (pam_retval != PAM_SUCCESS) {
+		if (pam_retval != PAM_SUCCESS)
 			log("Cannot release PAM authentication[%d]: %.200s",
-				pam_retval, PAM_STRERROR(pamh, pam_retval));
-		}
+			    pam_retval, PAM_STRERROR(pamh, pam_retval));
 	}
 }
 
@@ -197,12 +209,13 @@ int auth_pam_password(struct passwd *pw, const char *password)
 	pamstate = INITIAL_LOGIN;
 	pam_retval = do_pam_authenticate(0);
 	if (pam_retval == PAM_SUCCESS) {
-		debug("PAM Password authentication accepted for user \"%.100s\"",
-			pw->pw_name);
+		debug("PAM Password authentication accepted for "
+		    "user \"%.100s\"", pw->pw_name);
 		return 1;
 	} else {
-		debug("PAM Password authentication for \"%.100s\" failed[%d]: %s",
-			pw->pw_name, pam_retval, PAM_STRERROR(pamh, pam_retval));
+		debug("PAM Password authentication for \"%.100s\" "
+		    "failed[%d]: %s", pw->pw_name, pam_retval, 
+		    PAM_STRERROR(pamh, pam_retval));
 		return 0;
 	}
 }
@@ -213,22 +226,21 @@ int do_pam_account(char *username, char *remote_user)
 	int pam_retval;
 	extern ServerOptions options;
 
+	pam_set_conv(&conv);
+
 	debug("PAM setting rhost to \"%.200s\"",
 	    get_canonical_hostname(options.reverse_mapping_check));
 	pam_retval = pam_set_item(pamh, PAM_RHOST,
 		get_canonical_hostname(options.reverse_mapping_check));
-	if (pam_retval != PAM_SUCCESS) {
-		fatal("PAM set rhost failed[%d]: %.200s",
-			pam_retval, PAM_STRERROR(pamh, pam_retval));
-	}
-
-	if (remote_user != NULL) {
+	if (pam_retval != PAM_SUCCESS)
+		fatal("PAM set rhost failed[%d]: %.200s", pam_retval,
+		    PAM_STRERROR(pamh, pam_retval));
+	if (remote_user) {
 		debug("PAM setting ruser to \"%.200s\"", remote_user);
 		pam_retval = pam_set_item(pamh, PAM_RUSER, remote_user);
-		if (pam_retval != PAM_SUCCESS) {
-			fatal("PAM set ruser failed[%d]: %.200s",
-				pam_retval, PAM_STRERROR(pamh, pam_retval));
-		}
+		if (pam_retval != PAM_SUCCESS)
+			fatal("PAM set ruser failed[%d]: %.200s", pam_retval, 
+			    PAM_STRERROR(pamh, pam_retval));
 	}
 
 	pam_retval = pam_acct_mgmt(pamh, 0);
@@ -237,13 +249,14 @@ int do_pam_account(char *username, char *remote_user)
 			/* This is what we want */
 			break;
 		case PAM_NEW_AUTHTOK_REQD:
-			pam_msg_cat(NEW_AUTHTOK_MSG);
+			message_cat(&pam_msg, NEW_AUTHTOK_MSG);
 			/* flag that password change is necessary */
 			password_change_required = 1;
 			break;
 		default:
-			log("PAM rejected by account configuration[%d]: %.200s",
-				pam_retval, PAM_STRERROR(pamh, pam_retval));
+			log("PAM rejected by account configuration[%d]: "
+			    "%.200s", pam_retval, PAM_STRERROR(pamh, 
+			    pam_retval));
 			return(0);
 	}
 
@@ -258,17 +271,15 @@ void do_pam_session(char *username, const char *ttyname)
 	if (ttyname != NULL) {
 		debug("PAM setting tty to \"%.200s\"", ttyname);
 		pam_retval = pam_set_item(pamh, PAM_TTY, ttyname);
-		if (pam_retval != PAM_SUCCESS) {
+		if (pam_retval != PAM_SUCCESS)
 			fatal("PAM set tty failed[%d]: %.200s",
-				pam_retval, PAM_STRERROR(pamh, pam_retval));
-		}
+			    pam_retval, PAM_STRERROR(pamh, pam_retval));
 	}
 
 	pam_retval = pam_open_session(pamh, 0);
-	if (pam_retval != PAM_SUCCESS) {
+	if (pam_retval != PAM_SUCCESS)
 		fatal("PAM session setup failed[%d]: %.200s",
-			pam_retval, PAM_STRERROR(pamh, pam_retval));
-	}
+		    pam_retval, PAM_STRERROR(pamh, pam_retval));
 }
 
 /* Set PAM credentials */
@@ -279,13 +290,12 @@ void do_pam_setcred(void)
 	debug("PAM establishing creds");
 	pam_retval = pam_setcred(pamh, PAM_ESTABLISH_CRED);
 	if (pam_retval != PAM_SUCCESS) {
-		if(was_authenticated) {
+		if (was_authenticated)
 			fatal("PAM setcred failed[%d]: %.200s",
-				pam_retval, PAM_STRERROR(pamh, pam_retval));
-		} else {
+			    pam_retval, PAM_STRERROR(pamh, pam_retval));
+		else
 			debug("PAM setcred failed[%d]: %.200s",
-				pam_retval, PAM_STRERROR(pamh, pam_retval));
-		}
+			    pam_retval, PAM_STRERROR(pamh, pam_retval));
 	}
 }
 
@@ -307,15 +317,13 @@ void do_pam_chauthtok(void)
 
 	if (password_change_required) {
 		pamstate = OTHER;
-		/*
-		 * XXX: should we really loop forever?
-		 */
+		/* XXX: should we really loop forever? */
 		do {
-			pam_retval = pam_chauthtok(pamh, PAM_CHANGE_EXPIRED_AUTHTOK);
-			if (pam_retval != PAM_SUCCESS) {
+			pam_retval = pam_chauthtok(pamh, 
+			    PAM_CHANGE_EXPIRED_AUTHTOK);
+			if (pam_retval != PAM_SUCCESS)
 				log("PAM pam_chauthtok failed[%d]: %.200s",
-					pam_retval, PAM_STRERROR(pamh, pam_retval));
-			}
+				    pam_retval, PAM_STRERROR(pamh, pam_retval));
 		} while (pam_retval != PAM_SUCCESS);
 	}
 }
@@ -336,11 +344,9 @@ void start_pam(const char *user)
 
 	pam_retval = pam_start(SSHD_PAM_SERVICE, user, &conv, &pamh);
 
-	if (pam_retval != PAM_SUCCESS) {
+	if (pam_retval != PAM_SUCCESS)
 		fatal("PAM initialisation failed[%d]: %.200s",
-			pam_retval, PAM_STRERROR(pamh, pam_retval));
-	}
-
+		    pam_retval, PAM_STRERROR(pamh, pam_retval));
 #ifdef PAM_TTY_KLUDGE
 	/*
 	 * Some PAM modules (e.g. pam_time) require a TTY to operate,
@@ -350,10 +356,9 @@ void start_pam(const char *user)
 	 * Kludge: Set a fake PAM_TTY
 	 */
 	pam_retval = pam_set_item(pamh, PAM_TTY, "ssh");
-	if (pam_retval != PAM_SUCCESS) {
+	if (pam_retval != PAM_SUCCESS)
 		fatal("PAM set tty failed[%d]: %.200s",
-			pam_retval, PAM_STRERROR(pamh, pam_retval));
-	}
+		    pam_retval, PAM_STRERROR(pamh, pam_retval));
 #endif /* PAM_TTY_KLUDGE */
 
 	fatal_add_cleanup(&pam_cleanup_proc, NULL);
@@ -377,26 +382,25 @@ void print_pam_messages(void)
 		fputs(pam_msg, stderr);
 }
 
-/* Append a message to the PAM message buffer */
-void pam_msg_cat(const char *msg)
+/* Append a message to buffer */
+void message_cat(char **p, const char *a)
 {
-	char *p;
-	size_t new_msg_len;
-	size_t pam_msg_len;
+	char *cp;
+	size_t new_len;
 
-	new_msg_len = strlen(msg);
+	new_len = strlen(a);
 
-	if (pam_msg) {
-		pam_msg_len = strlen(pam_msg);
-		pam_msg = xrealloc(pam_msg, new_msg_len + pam_msg_len + 2);
-		p = pam_msg + pam_msg_len;
-	} else {
-		pam_msg = p = xmalloc(new_msg_len + 2);
-	}
+	if (*p) {
+		size_t len = strlen(*p);
 
-	memcpy(p, msg, new_msg_len);
-	p[new_msg_len] = '\n';
-	p[new_msg_len + 1] = '\0';
+		*p = xrealloc(*p, new_len + len + 2);
+		cp = *p + len;
+	} else
+		*p = cp = xmalloc(new_len + 2);
+
+	memcpy(cp, a, new_len);
+	cp[new_len] = '\n';
+	cp[new_len + 1] = '\0';
 }
 
 #endif /* USE_PAM */

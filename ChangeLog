@@ -1,6 +1,12 @@
 20010107
  - (bal) Save the whole path to AR in configure.  Some Solaris 2.7 installs
    seem lose track of it while in openbsd-compat/  (two confirmed reports)
+ - (djm) Much KNF on PAM code
+ - (djm) Revise auth-pam.c conversation function to be a little more readable.
+ - (djm) Revise kbd-int PAM conversation function to fold all text messages
+   to before first prompt. Fixes hangs if last pam_message did not require
+   a reply.
+ - (djm) Fix password changing when using PAM kbd-int authentication
 
 20010105
  - (bal) Disable groupaccess by setting NGROUPS_MAX to 0 for platforms

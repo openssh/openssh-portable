@@ -1,5 +1,5 @@
 #include "includes.h"
-RCSID("$Id: auth2-pam.c,v 1.7 2001/01/30 23:50:49 djm Exp $");
+RCSID("$Id: auth2-pam.c,v 1.8 2001/02/07 01:58:33 djm Exp $");
 
 #ifdef USE_PAM
 #include <security/pam_appl.h>
@@ -7,10 +7,16 @@ RCSID("$Id: auth2-pam.c,v 1.7 2001/01/30 23:50:49 djm Exp $");
 #include "ssh.h"
 #include "ssh2.h"
 #include "auth.h"
+#include "auth-pam.h"
 #include "packet.h"
 #include "xmalloc.h"
 #include "dispatch.h"
 #include "log.h"
+
+static int do_pam_conversation_kbd_int(int num_msg, 
+    const struct pam_message **msg, struct pam_response **resp, 
+    void *appdata_ptr);
+void input_userauth_info_response_pam(int type, int plen, void *ctxt);
 
 struct {
 	int finished, num_received, num_expected;
@@ -18,16 +24,10 @@ struct {
 	struct pam_response *responses;
 } context_pam2 = {0, 0, 0, NULL};
 
-static int do_conversation2(int num_msg, const struct pam_message **msg,
-			    struct pam_response **resp, void *appdata_ptr);
-
-static struct pam_conv
-conv2 = {
-	do_conversation2,
+static struct pam_conv conv2 = {
+	do_pam_conversation_kbd_int,
 	NULL,
 };
-
-void input_userauth_info_response_pam(int type, int plen, void *ctxt);
 
 int
 auth2_pam(Authctxt *authctxt)
@@ -41,7 +41,7 @@ auth2_pam(Authctxt *authctxt)
 	pam_set_conv(&conv2);
 
 	dispatch_set(SSH2_MSG_USERAUTH_INFO_RESPONSE,
-		     &input_userauth_info_response_pam);
+	    &input_userauth_info_response_pam);
 	retval = (do_pam_authenticate(0) == PAM_SUCCESS);
 	dispatch_set(SSH2_MSG_USERAUTH_INFO_RESPONSE, NULL);
 
@@ -49,11 +49,11 @@ auth2_pam(Authctxt *authctxt)
 }
 
 static int
-do_conversation2(int num_msg, const struct pam_message **msg,
-		 struct pam_response **resp, void *appdata_ptr)
+do_pam_conversation_kbd_int(int num_msg, const struct pam_message **msg,
+    struct pam_response **resp, void *appdata_ptr)
 {
-	int echo = 0, i = 0, j = 0, done = 0;
-	char *tmp = NULL, *text = NULL;
+	int i, j, done;
+	char *text;
 
 	context_pam2.finished = 0;
 	context_pam2.num_received = 0;
@@ -62,53 +62,47 @@ do_conversation2(int num_msg, const struct pam_message **msg,
 	context_pam2.responses = xmalloc(sizeof(struct pam_response) * num_msg);
 	memset(context_pam2.responses, 0, sizeof(struct pam_response) * num_msg);
 
-	packet_start(SSH2_MSG_USERAUTH_INFO_REQUEST);
-	packet_put_cstring("");				/* Name */
-	packet_put_cstring("");				/* Instructions */
-	packet_put_cstring("");				/* Language */
-	for (i = 0, j = 0; i < num_msg; i++) {
-		if((PAM_MSG_MEMBER(msg, i, msg_style) == PAM_PROMPT_ECHO_ON) ||
-		   (PAM_MSG_MEMBER(msg, i, msg_style) == PAM_PROMPT_ECHO_OFF) ||
-		   (i == num_msg - 1)) {
-			j++;
+	text = NULL;
+	for (i = 0, context_pam2.num_expected = 0; i < num_msg; i++) {
+		int style = PAM_MSG_MEMBER(msg, i, msg_style);
+		switch (style) {
+		case PAM_PROMPT_ECHO_ON:
+		case PAM_PROMPT_ECHO_OFF:
+			context_pam2.num_expected++;
+			break;
+		case PAM_TEXT_INFO:
+		case PAM_ERROR_MSG:
+		default:
+			/* Capture all these messages to be sent at once */
+			message_cat(&text, PAM_MSG_MEMBER(msg, i, msg));
+			break;
 		}
 	}
-	packet_put_int(j);				/* Number of prompts. */
-	context_pam2.num_expected = j;
+
+	if (context_pam2.num_expected == 0)
+		return PAM_SUCCESS;
+
+	packet_start(SSH2_MSG_USERAUTH_INFO_REQUEST);
+	packet_put_cstring("");	/* Name */
+	packet_put_cstring("");	/* Instructions */
+	packet_put_cstring("");	/* Language */
+	packet_put_int(context_pam2.num_expected);
+	
 	for (i = 0, j = 0; i < num_msg; i++) {
-		switch(PAM_MSG_MEMBER(msg, i, msg_style)) {
-			case PAM_PROMPT_ECHO_ON:
-				echo = 1;
-				break;
-			case PAM_PROMPT_ECHO_OFF:
-				echo = 0;
-				break;
-			default:
-				echo = 0;
-				break;
-		}
-		if(text) {
-			tmp = xmalloc(strlen(text) + strlen(PAM_MSG_MEMBER(msg, i, msg)) + 2);
-			strcpy(tmp, text);
-			strcat(tmp, "\n");
-			strcat(tmp, PAM_MSG_MEMBER(msg, i, msg));
-			xfree(text);
-			text = tmp;
-			tmp = NULL;
-		} else {
-			text = xstrdup(PAM_MSG_MEMBER(msg, i, msg));
-		}
-		if((PAM_MSG_MEMBER(msg, i, msg_style) == PAM_PROMPT_ECHO_ON) ||
-		   (PAM_MSG_MEMBER(msg, i, msg_style) == PAM_PROMPT_ECHO_OFF) ||
-		   (i == num_msg - 1)) {
-			debug("sending prompt ssh-%d(pam-%d) = \"%s\"",
-			      j, i, text);
-			context_pam2.prompts[j++] = i;
+		int style = PAM_MSG_MEMBER(msg, i, msg_style);
+		
+		/* Skip messages which don't need a reply */
+		if (style != PAM_PROMPT_ECHO_ON && style != PAM_PROMPT_ECHO_OFF)
+			continue;
+		
+		context_pam2.prompts[j++] = i;
+		if (text) {
+			message_cat(&text, PAM_MSG_MEMBER(msg, i, msg));
 			packet_put_cstring(text);
-			packet_put_char(echo);
-			xfree(text);
 			text = NULL;
-		}
+		} else
+			packet_put_cstring(PAM_MSG_MEMBER(msg, i, msg));
+		packet_put_char(style == PAM_PROMPT_ECHO_ON);
 	}
 	packet_send();
 	packet_write_wait();
@@ -120,17 +114,15 @@ do_conversation2(int num_msg, const struct pam_message **msg,
 	while(context_pam2.finished == 0) {
 		done = 1;
 		dispatch_run(DISPATCH_BLOCK, &done, appdata_ptr);
-		if(context_pam2.finished == 0) {
+		if(context_pam2.finished == 0)
 			debug("extra packet during conversation");
-		}
 	}
 
 	if(context_pam2.num_received == context_pam2.num_expected) {
 		*resp = context_pam2.responses;
 		return PAM_SUCCESS;
-	} else {
+	} else
 		return PAM_CONV_ERR;
-	}
 }
 
 void
@@ -151,6 +143,7 @@ input_userauth_info_response_pam(int type, int plen, void *ctxt)
 
 	for (i = 0; i < nresp; i++) {
 		int j = context_pam2.prompts[i];
+
 		resp = packet_get_string(&rlen);
 		context_pam2.responses[j].resp_retcode = PAM_SUCCESS;
 		context_pam2.responses[j].resp = xstrdup(resp);
