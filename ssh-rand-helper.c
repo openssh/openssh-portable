@@ -39,7 +39,7 @@
 #include "pathnames.h"
 #include "log.h"
 
-RCSID("$Id: ssh-rand-helper.c,v 1.13 2003/08/21 23:34:41 djm Exp $");
+RCSID("$Id: ssh-rand-helper.c,v 1.14 2003/09/22 15:36:15 mouring Exp $");
 
 /* Number of bytes we write out */
 #define OUTPUT_SEED_SIZE	48
@@ -563,7 +563,7 @@ prng_write_seedfile(void)
 	debug("writing PRNG seed to file %.100s", filename);
 
 	if (RAND_bytes(seed, sizeof(seed)) <= 0)
-		fatal("PRNG seed extration failed");
+		fatal("PRNG seed extraction failed");
 
 	/* Don't care if the seed doesn't exist */
 	prng_check_seedfile(filename);

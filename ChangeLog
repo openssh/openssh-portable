@@ -71,6 +71,8 @@
    - markus@cvs.openbsd.org 2003/09/19 17:43:35
      [clientloop.c sshtty.c sshtty.h]
      remove fatal callbacks from client code; ok deraadt
+ - (bal) "extration" -> "extraction" in ssh-rand-helper.c; repoted by john
+	on #unixhelp@efnet
 
 20030919
  - (djm) Bug #683: Remove reference to --with-ipv4-default from INSTALL;
@@ -1207,4 +1209,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3036 2003/09/22 11:16:05 dtucker Exp $
+$Id: ChangeLog,v 1.3037 2003/09/22 15:36:15 mouring Exp $
