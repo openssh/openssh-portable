@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.32 2001/04/08 13:03:00 markus Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.33 2001/04/09 15:12:23 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -54,6 +54,18 @@ extern char *__progname;
 #else
 char *__progname;
 #endif
+
+/* we keep a cache of one passphrases */
+static char *pass = NULL;
+void
+clear_pass(void)
+{
+	if (pass) {
+		memset(pass, 0, strlen(pass));
+		xfree(pass);
+		pass = NULL;
+	}
+}
 
 void
 delete_file(AuthenticationConnection *ac, const char *filename)
@@ -136,7 +148,7 @@ add_file(AuthenticationConnection *ac, const char *filename)
 {
 	struct stat st;
 	Key *private;
-	char *comment = NULL, *askpass = NULL, *pass;
+	char *comment = NULL, *askpass = NULL;
 	char buf[1024], msg[1024];
 	int interactive = isatty(STDIN_FILENO);
 
@@ -155,7 +167,12 @@ add_file(AuthenticationConnection *ac, const char *filename)
 	private = key_load_private(filename, "", &comment);
 	if (comment == NULL)
 		comment = xstrdup(filename);
+	/* try last */
+	if (private == NULL && pass != NULL)
+		private = key_load_private(filename, pass, NULL);
 	if (private == NULL) {
+		/* clear passphrase since it did not work */
+		clear_pass();
 		printf("Need passphrase for %.200s\n", filename);
 		if (!interactive && askpass == NULL) {
 			xfree(comment);
@@ -175,10 +192,9 @@ add_file(AuthenticationConnection *ac, const char *filename)
 				return;
 			}
 			private = key_load_private(filename, pass, &comment);
-			memset(pass, 0, strlen(pass));
-			xfree(pass);
 			if (private != NULL)
 				break;
+			clear_pass();
 			strlcpy(msg, "Bad passphrase, try again", sizeof msg);
 		}
 	}
@@ -280,6 +296,7 @@ main(int argc, char **argv)
 		else
 			add_file(ac, buf);
 	}
+	clear_pass();
 	ssh_close_authentication_connection(ac);
 	exit(0);
 }
