@@ -57,10 +57,22 @@
      [sftp-int.c]
      Check for NULL attribs for chown, chmod & chgrp operations, only send
      relevant attribs back to server; ok markus@
+   - djm@cvs.openbsd.org     2001/02/06 15:05:25
+     [sftp.c]
+     Use getopt to process commandline arguments
+   - djm@cvs.openbsd.org     2001/02/06 15:06:21
+     [sftp.c ]
+     Wait for ssh subprocess at exit
+   - djm@cvs.openbsd.org     2001/02/06 15:18:16
+     [sftp-int.c]
+     stat target for remote chdir before doing chdir
+   - djm@cvs.openbsd.org     2001/02/06 15:32:54
+     [sftp.1]
+     Punctuation fix from Pekka Savola <pekkas@netcore.fi>
+   - provos@cvs.openbsd.org  2001/02/05 22:22:02
+     [sftp-int.c]
+     cleanup get_pathname, fix pwd after failed cd. okay djm@
  - (djm) Update makefile.in for _PATH_SFTP_SERVER
-
-
-
 
 20010209
  - (bal) patch to vis.c to deal with HAVE_VIS right by Robert Mooney 
@@ -3767,4 +3779,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.710 2001/02/09 13:40:03 djm Exp $
+$Id: ChangeLog,v 1.711 2001/02/09 13:47:59 djm Exp $
