@@ -26,6 +26,9 @@
    - markus@cvs.openbsd.org 2002/02/23 17:59:02
      [kex.c kexdh.c kexgex.c]
      don't allow garbage after payload.
+   - stevesk@cvs.openbsd.org 2002/02/24 16:09:52
+     [sshd.c]
+     use u_char* here; ok markus@
 
 20020225
  - (bal) Last AIX patch.  Moved aix_usrinfo() outside of do_setuserconext()
@@ -7699,4 +7702,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1880 2002/02/26 17:58:29 mouring Exp $
+$Id: ChangeLog,v 1.1881 2002/02/26 18:00:48 mouring Exp $

@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.226 2002/02/11 16:19:39 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.227 2002/02/24 16:09:52 stevesk Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1434,7 +1434,7 @@ do_ssh1_kex(void)
 	}
 	if (rsafail) {
 		int bytes = BN_num_bytes(session_key_int);
-		char *buf = xmalloc(bytes);
+		u_char *buf = xmalloc(bytes);
 		MD5_CTX md;
 
 		log("do_connection: generating a fake encryption key");
