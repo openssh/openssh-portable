@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: ssh.1,v 1.12 1999/12/13 23:47:16 damien Exp $
+.\" $Id: ssh.1,v 1.13 1999/12/26 03:24:41 damien Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSH 1
@@ -803,12 +803,6 @@ in
 .Pa /etc/ssh/ssh_known_hosts ) .
 See
 .Xr sshd 8 .
-.It Pa $HOME/.ssh/random_seed
-Used for seeding the random number generator.  This file contains
-sensitive data and should read/write for the user and not accessible
-for others.  This file is created the first time the program is run
-and updated automatically.  The user should never need to read or
-modify this file.
 .It Pa $HOME/.ssh/identity
 Contains the RSA authentication identity of the user.  This file
 contains sensitive data and should be readable by the user but not
@@ -939,6 +933,10 @@ started.
 See the 
 .Xr sshd 8
 manual page for more information.
+.It Pa $HOME/.ssh/environment
+Contains additional definitions for environment variables, see section
+.Sx ENVIRONMENT
+above.
 .It Pa libcrypto.so.X.1
 A version of this library which includes support for the RSA algorithm
 is required for proper operation.

@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 23:55:14 1995 ylo
 .\"
-.\" $Id: ssh-keygen.1,v 1.5 1999/11/17 06:29:08 damien Exp $
+.\" $Id: ssh-keygen.1,v 1.6 1999/12/26 03:24:41 damien Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSH-KEYGEN 1
@@ -109,10 +109,6 @@ Provides the (old) passphrase.
 .El
 .Sh FILES
 .Bl -tag -width Ds
-.It Pa $HOME/.ssh/random_seed
-Used for seeding the random number generator.  This file should not be
-readable by anyone but the user.  This file is created the first time
-the program is run, and is updated every time.
 .It Pa $HOME/.ssh/identity
 Contains the RSA authentication identity of the user.  This file
 should not be readable by anyone but the user.  It is possible to

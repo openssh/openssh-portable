@@ -7,6 +7,10 @@
    Unfortunatly there is currently no way to disable auth failure 
    messages. Mention this in UPGRADING file and sent message to PAM 
    developers
+ - OpenBSD CVS update:
+   - [ssh-keygen.1 ssh.1]
+     remove ref to .ssh/random_seed, mention .ssh/environment in 
+     .Sh FILES, too
 
 19991225
  - More fixes from Andre Lucas <andre.lucas@dial.pipex.com>
