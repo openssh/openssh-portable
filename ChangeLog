@@ -34,6 +34,7 @@
    but it all damned lies.
  - (stevesk) [README.privsep] more for sshd pseudo-account.
  - (tim) [contrib/caldera/openssh.spec] add support for privsep
+ - (djm) setlogin needs pgid==pid on BSD/OS; from itojun@
 
 20020625
  - (stevesk) [INSTALL acconfig.h configure.ac defines.h] remove --with-rsh
@@ -1133,4 +1134,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2288 2002/06/26 02:28:55 tim Exp $
+$Id: ChangeLog,v 1.2289 2002/06/26 09:12:59 djm Exp $

@@ -1163,6 +1163,9 @@ do_setusercontext(struct passwd *pw)
 		setpcred(pw->pw_name);
 #endif /* HAVE_SETPCRED */
 #ifdef HAVE_LOGIN_CAP
+#ifdef __bsdi__
+		setpgid(0, 0);
+#endif
 		if (setusercontext(lc, pw, pw->pw_uid,
 		    (LOGIN_SETALL & ~LOGIN_SETPATH)) < 0) {
 			perror("unable to set user context");
