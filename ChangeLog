@@ -9,6 +9,9 @@
      [authfd.c scp.c ssh-keyscan.c]
      use atomicio instead of homegrown equivalents or read/write.
      markus@ ok
+   - djm@cvs.openbsd.org 2004/08/12 09:18:24
+     [sshlogin.c]
+     typo in error message, spotted by moritz AT jodeit.org (Id sync only)
 
 20040812
  - (dtucker) [sshd.c] Remove duplicate variable imported during sync.
@@ -1606,4 +1609,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3500 2004/08/13 11:19:37 dtucker Exp $
+$Id: ChangeLog,v 1.3501 2004/08/13 11:21:47 dtucker Exp $
