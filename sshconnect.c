@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.128 2002/07/09 11:56:50 itojun Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.129 2002/07/09 12:04:02 itojun Exp $");
 
 #include <openssl/bn.h>
 
@@ -46,6 +46,7 @@ extern uid_t original_effective_uid;
 #define INET6_ADDRSTRLEN 46
 #endif
 
+#if 0
 static const char *
 sockaddr_ntop(struct sockaddr *sa, socklen_t salen)
 {
@@ -56,6 +57,7 @@ sockaddr_ntop(struct sockaddr *sa, socklen_t salen)
 		fatal("sockaddr_ntop: getnameinfo NI_NUMERICHOST failed");
 	return addrbuf;
 }
+#endif
 
 /*
  * Connect to the given ssh server using a proxy command.
