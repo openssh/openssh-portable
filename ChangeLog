@@ -1,3 +1,6 @@
+20021015
+ - (tim) [contrib/caldera/openssh.spec] make ssh-agent setgid nobody
+
 20021004
  - (bal) Disable post-authentication Privsep for OSF/1.  It conflicts with
    SIA.
@@ -761,4 +764,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2493 2002/10/04 23:54:54 mouring Exp $
+$Id: ChangeLog,v 1.2494 2002/10/15 20:16:55 tim Exp $

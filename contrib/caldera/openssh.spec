@@ -316,7 +316,14 @@ fi
 %defattr(-,root,root)
 %dir %{_sysconfdir}
 %config %{_sysconfdir}/ssh_config
-%{_bindir}/*
+%{_bindir}/scp
+%{_bindir}/sftp
+%{_bindir}/ssh
+%{_bindir}/slogin
+%{_bindir}/ssh-add
+%attr(2755,root,nobody) %{_bindir}/ssh-agent
+%{_bindir}/ssh-keygen
+%{_bindir}/ssh-keyscan
 %dir %{_libexecdir}
 %{_sbindir}/ssh-host-keygen
 %dir %{_defaultdocdir}/%{name}-%{version}
@@ -331,7 +338,7 @@ fi
  
 %Files server
 %defattr(-,root,root)
-%dir %attr(0700,root,root) %{_var}/empty/sshd
+%dir %{_var}/empty/sshd
 %config %{SVIdir}/sshd
 %config /etc/pam.d/sshd
 %config %{_sysconfdir}/moduli
@@ -353,4 +360,4 @@ fi
 * Mon Jan 01 1998 ...
 Template Version: 1.31
 
-$Id: openssh.spec,v 1.38 2002/10/03 01:56:59 djm Exp $
+$Id: openssh.spec,v 1.39 2002/10/15 20:16:56 tim Exp $
