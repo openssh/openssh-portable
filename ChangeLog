@@ -1,3 +1,8 @@
+20020922
+ - (djm) OpenBSD CVS Sync
+   - stevesk@cvs.openbsd.org 2002/09/19 14:53:14
+     [compat.c]
+
 20020919
  - (djm) OpenBSD CVS Sync
    - stevesk@cvs.openbsd.org 2002/09/12 19:11:52
@@ -678,4 +683,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2471 2002/09/19 02:05:02 djm Exp $
+$Id: ChangeLog,v 1.2472 2002/09/21 15:25:35 djm Exp $
