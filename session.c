@@ -1036,7 +1036,7 @@ do_child(const char *command, struct passwd * pw, const char *term,
 
 #if defined(USE_PAM) && !defined(PAM_SUN_CODEBASE)
 	/* Solaris-derived PAMs don't like doing this after the fork() */
-	do_pam_session(pw->pw_name, s->tty);
+	do_pam_session(pw->pw_name, ttyname);
 	do_pam_setcred();
 #endif
 
