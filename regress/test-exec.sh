@@ -6,7 +6,7 @@ PORT=4242
 
 if [ -x /usr/ucb/whoami ]; then
 	USER=`/usr/ucb/whoami`
-elif [ -x "`which whoami 2>&1`" ]; then
+elif whoami >/dev/null 2>&1; then
 	USER=`whoami`
 else
 	USER=`id -un`
@@ -87,6 +87,21 @@ echon()
        else
                fatal "Don't know how to echo without newline."
        fi
+}
+
+have_prog()
+{
+	saved_IFS="$IFS"
+	IFS=":"
+	for i in $PATH
+	do
+		if [ -x $i/$1 ]; then
+			IFS="$saved_IFS"
+			return 0
+		fi
+	done
+	IFS="$saved_IFS"
+	return 1
 }
 
 cleanup ()

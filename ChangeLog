@@ -5,6 +5,9 @@
  - (tim) [configure.ac] Move libgen tests to before libwrap to unbreak
    UnixWare 2.03 using --with-tcp-wrappers.
  - (tim) [configure.ac] Prefer setuid/setgid on UnixWare and Open Server.
+ - (tim) [regress/agent-ptrace.sh regress/dynamic-forward.sh
+   regress/sftp-cmds.sh regress/stderr-after-eof.sh regress/test-exec.sh]
+   no longer depends on which(1). patch by dtucker@
 
 20030910
  - (dtucker) [configure.ac] Bug #636: Add support for Cray's new X1 machine.
@@ -1067,4 +1070,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2981 2003/09/12 05:24:36 tim Exp $
+$Id: ChangeLog,v 1.2982 2003/09/12 05:32:17 tim Exp $

@@ -17,7 +17,7 @@ do
 	fi
 done
 
-if [ -x "`which uname 2>&1`" ]
+if have_prog uname
 then
 	case `uname` in
 	CYGWIN*)

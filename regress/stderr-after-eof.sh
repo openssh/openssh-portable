@@ -7,13 +7,13 @@ DATA=/etc/motd
 DATA=${OBJ}/data
 COPY=${OBJ}/copy
 
-if [ -x "`which md5sum 2>&1`" ]; then
+if have_prog md5sum; then
 	CHECKSUM=md5sum
-elif [ -x "`which openssl 2>&1`" ]; then
+elif have_prog openssl; then
 	CHECKSUM="openssl md5"
-elif [ -x "`which cksum 2>&1`" ]; then
+elif have_prog cksum; then
 	CHECKSUM=cksum
-elif [ -x "`which sum 2>&1`" ]; then
+elif have_prog sum; then
 	CHECKSUM=sum
 else
 	fatal "No checksum program available, aborting $tid test"
