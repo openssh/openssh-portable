@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.39 2004/01/13 09:25:05 djm Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.40 2004/01/21 03:07:59 djm Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -43,7 +43,7 @@ extern char *__progname;
 char *__progname;
 #endif
 
-FILE* infile = stdin;
+FILE* infile;
 int batchmode = 0;
 size_t copy_buffer_len = 32768;
 size_t num_requests = 16;
@@ -141,7 +141,9 @@ main(int argc, char **argv)
 	addargs(&args, "-oForwardX11 no");
 	addargs(&args, "-oForwardAgent no");
 	addargs(&args, "-oClearAllForwardings yes");
+
 	ll = SYSLOG_LEVEL_INFO;
+	infile = stdin;
 
 	while ((ch = getopt(argc, argv, "1hvCo:s:S:b:B:F:P:R:")) != -1) {
 		switch (ch) {
