@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth.c,v 1.32 2002/01/29 14:32:03 markus Exp $");
+RCSID("$OpenBSD: auth.c,v 1.33 2002/02/28 19:36:28 stevesk Exp $");
 
 #ifdef HAVE_LOGIN_H
 #include <login.h>
@@ -65,7 +65,6 @@ int
 allowed_user(struct passwd * pw)
 {
 	struct stat st;
-	const char *hostname = NULL, *ipaddr = NULL;
 	char *shell;
 	int i;
 #ifdef WITH_AIXAUTHENTICATE
@@ -110,22 +109,17 @@ allowed_user(struct passwd * pw)
 	if (!((st.st_mode & S_IFREG) && (st.st_mode & (S_IXOTH|S_IXUSR|S_IXGRP))))
 		return 0;
 
-	if (options.num_deny_users > 0 || options.num_allow_users > 0) {
-		hostname = get_canonical_hostname(options.verify_reverse_mapping);
-		ipaddr = get_remote_ipaddr();
-	}
-
 	/* Return false if user is listed in DenyUsers */
 	if (options.num_deny_users > 0) {
 		for (i = 0; i < options.num_deny_users; i++)
-			if (match_user(pw->pw_name, hostname, ipaddr,
+			if (match_user(pw->pw_name, options.verify_reverse_mapping,
 			    options.deny_users[i]))
 				return 0;
 	}
 	/* Return false if AllowUsers isn't empty and user isn't listed there */
 	if (options.num_allow_users > 0) {
 		for (i = 0; i < options.num_allow_users; i++)
-			if (match_user(pw->pw_name, hostname, ipaddr,
+			if (match_user(pw->pw_name, options.verify_reverse_mapping,
 			    options.allow_users[i]))
 				break;
 		/* i < options.num_allow_users iff we break for loop */

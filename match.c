@@ -35,9 +35,10 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: match.c,v 1.17 2002/02/11 16:21:42 markus Exp $");
+RCSID("$OpenBSD: match.c,v 1.18 2002/02/28 19:36:28 stevesk Exp $");
 
 #include "match.h"
+#include "canohost.h"
 #include "xmalloc.h"
 
 /*
@@ -202,7 +203,7 @@ match_host_and_ip(const char *host, const char *ipaddr,
  * match user, user@host_or_ip, user@host_or_ip_list against pattern
  */
 int
-match_user(const char *user, const char *host, const char *ipaddr,
+match_user(const char *user, int verify_reverse_mapping,
     const char *pattern)
 {
 	char *p, *pat;
@@ -216,7 +217,9 @@ match_user(const char *user, const char *host, const char *ipaddr,
 	*p++ = '\0';
 
 	if ((ret = match_pattern(user, pat)) == 1)
-		ret = match_host_and_ip(host, ipaddr, p);
+		ret = match_host_and_ip(
+		    get_canonical_hostname(verify_reverse_mapping),
+		    get_remote_ipaddr(), p);
 	xfree(pat);
 
 	return ret;
