@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.120 2002/05/23 19:24:30 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.121 2002/06/08 21:15:27 itojun Exp $");
 
 #include <openssl/bn.h>
 
@@ -46,21 +46,11 @@ extern char *__progname;
 static const char *
 sockaddr_ntop(struct sockaddr *sa)
 {
-	void *addr;
-	static char addrbuf[INET6_ADDRSTRLEN];
+	static char addrbuf[NI_MAXHOST];
 
-	switch (sa->sa_family) {
-	case AF_INET:
-		addr = &((struct sockaddr_in *)sa)->sin_addr;
-		break;
-	case AF_INET6:
-		addr = &((struct sockaddr_in6 *)sa)->sin6_addr;
-		break;
-	default:
-		/* This case should be protected against elsewhere */
+	if (getnameinfo(sa, sa->sa_len, addrbuf, sizeof(addrbuf), NULL, 0,
+	    NI_NUMERICHOST) != 0)
 		abort();	/* XXX abort is bad -- do something else */
-	}
-	inet_ntop(sa->sa_family, addr, addrbuf, sizeof(addrbuf));
 	return addrbuf;
 }
 

@@ -22,6 +22,9 @@
      [readconf.c]
      silently ignore deprecated options, since FallBackToRsh might be passed
      by remote scp commands.
+  - itojun@cvs.openbsd.org 2002/06/08 21:15:27
+     [sshconnect.c]
+     always use getnameinfo.  (diag message only)
 
 20020607
  - (bal) Removed --{enable/disable}-suid-ssh
@@ -853,4 +856,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2195 2002/06/09 20:13:27 mouring Exp $
+$Id: ChangeLog,v 1.2196 2002/06/09 20:14:54 mouring Exp $
