@@ -38,7 +38,7 @@
  * Compile with:
  *
  * cc `gnome-config --cflags gnome gnomeui` \
- *    gnome-ssh-askpass.c -o gnome-ssh-askpass \
+ *    gnome-ssh-askpass1.c -o gnome-ssh-askpass \
  *    `gnome-config --libs gnome gnomeui`
  *
  */
@@ -64,7 +64,7 @@ report_failed_grab (void)
 	gnome_dialog_run_and_close(GNOME_DIALOG(err));
 }
 
-void
+int
 passphrase_dialog(char *message)
 {
 	char *passphrase;
@@ -135,7 +135,7 @@ passphrase_dialog(char *message)
 	gtk_entry_set_text(GTK_ENTRY(entry), passphrase);
 			
 	gnome_dialog_close(GNOME_DIALOG(dialog));
-	return;
+	return (result == 0 ? 0 : -1);
 
 	/* At least one grab failed - ungrab what we got, and report
 	   the failure to the user.  Note that XGrabServer() cannot
@@ -148,13 +148,15 @@ passphrase_dialog(char *message)
 	gnome_dialog_close(GNOME_DIALOG(dialog));
 	
 	report_failed_grab();
+	return (-1);
 }
 
 int
 main(int argc, char **argv)
 {
 	char *message;
-	
+	int result;
+
 	gnome_init("GNOME ssh-askpass", "0.1", argc, argv);
 
 	if (argc == 2)
@@ -163,6 +165,7 @@ main(int argc, char **argv)
 		message = "Enter your OpenSSH passphrase:";
 
 	setvbuf(stdout, 0, _IONBF, 0);
-	passphrase_dialog(message);
-	return 0;
+	result = passphrase_dialog(message);
+
+	return (result);
 }

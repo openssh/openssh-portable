@@ -40,7 +40,7 @@
  * Compile with:
  *
  * cc `pkg-config --cflags gtk+-2.0` \
- *    gnome-ssh-askpass.c -o gnome-ssh-askpass \
+ *    gnome-ssh-askpass2.c -o gnome-ssh-askpass \
  *    `pkg-config --libs gtk+-2.0`
  *
  */
@@ -79,7 +79,7 @@ ok_dialog(GtkWidget *entry, gpointer dialog)
 	gtk_dialog_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
 }
 
-static void
+static int
 passphrase_dialog(char *message)
 {
 	const char *failed;
@@ -165,7 +165,7 @@ passphrase_dialog(char *message)
 	g_free(passphrase);
 			
 	gtk_widget_destroy(dialog);
-	return;
+	return (result == GTK_RESPONSE_OK ? 0 : -1);
 
 	/* At least one grab failed - ungrab what we got, and report
 	   the failure to the user.  Note that XGrabServer() cannot
@@ -178,13 +178,16 @@ passphrase_dialog(char *message)
 	gtk_widget_destroy(dialog);
 	
 	report_failed_grab(failed);
+
+	return (-1);
 }
 
 int
 main(int argc, char **argv)
 {
 	char *message;
-	
+	int result;
+
 	gtk_init(&argc, &argv);
 
 	if (argc > 1) {
@@ -194,8 +197,8 @@ main(int argc, char **argv)
 	}
 
 	setvbuf(stdout, 0, _IONBF, 0);
-	passphrase_dialog(message);
+	result = passphrase_dialog(message);
 	g_free(message);
 
-	return 0;
+	return (result);
 }

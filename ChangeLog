@@ -1,4 +1,6 @@
 20020912
+ - (djm) Made GNOME askpass programs return non-zero if cancel button is 
+   pressed.
  - (djm) Added getpeereid() replacement. Properly implemented for systems
    with SO_PEERCRED support. Faked for systems which lack it.
  - (djm) Sync sys/tree.h with OpenBSD -current. Rename tree.h and 
@@ -645,4 +647,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2462 2002/09/12 00:45:32 djm Exp $
+$Id: ChangeLog,v 1.2463 2002/09/12 04:49:00 djm Exp $
