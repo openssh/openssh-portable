@@ -1,4 +1,10 @@
 20030923
+ - (dtucker) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2003/09/18 07:52:54
+     [sshconnect.c]
+     missing {}; bug #656; jclonguet at free.fr
+
+20030922
  - (dtucker) [Makefile.in] Bug #644: Fix "make clean" for out-of-tree
    builds.  Portability corrections from tim@.
  - (dtucker) [configure.ac] Bug #665: uid swapping issues on Mac OS X.
@@ -1162,4 +1168,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2994.2.27 2003/09/23 02:51:36 tim Exp $
+$Id: ChangeLog,v 1.2994.2.28 2003/09/23 08:49:28 dtucker Exp $
