@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.116 2004/06/15 00:34:08 djm Exp $ */
+/* $Id: defines.h,v 1.117 2004/06/22 03:27:16 dtucker Exp $ */
 
 
 /* Constants */
@@ -423,6 +423,10 @@ struct winsize {
 #if !defined(__GNUC__) || (__GNUC__ < 2)
 # define __attribute__(x)
 #endif /* !defined(__GNUC__) || (__GNUC__ < 2) */
+
+#ifndef __dead
+# define __dead	__attribute__((noreturn))
+#endif
 
 /* *-*-nto-qnx doesn't define this macro in the system headers */
 #ifdef MISSING_HOWMANY

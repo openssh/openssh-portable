@@ -38,6 +38,7 @@
      don't show .files by default in ls, add -a option to turn them back on;
      ok markus
  - (dtucker) [monitor.c] Fix Portable-specific -Wshadow warnings on "socket".
+ - (dtucker) [defines.h] Define __dead if not already defined.
 
 20040620
  - (tim) [configure.ac Makefile.in] Only change TEST_SHELL on broken platforms.
@@ -1360,4 +1361,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3428 2004/06/22 03:26:00 dtucker Exp $
+$Id: ChangeLog,v 1.3429 2004/06/22 03:27:16 dtucker Exp $
