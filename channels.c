@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.168 2002/02/14 23:27:59 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.169 2002/02/24 19:59:42 stevesk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1116,6 +1116,7 @@ channel_post_port_listener(Channel *c, fd_set * readset, fd_set * writeset)
 			error("accept: %.100s", strerror(errno));
 			return;
 		}
+		set_nodelay(newsock);
 		nc = channel_new(rtype,
 		    nextstate, newsock, newsock, -1,
 		    c->local_window_max, c->local_maxpacket,
@@ -2270,6 +2271,7 @@ connect_to(const char *host, u_short port)
 		return -1;
 	}
 	/* success */
+	set_nodelay(sock);
 	return sock;
 }
 

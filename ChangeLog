@@ -42,6 +42,12 @@
      [auth2.c authfd.c authfd.h authfile.c kexdh.c kexgex.c key.c key.h 
       ssh-dss.c ssh-dss.h ssh-keygen.c ssh-rsa.c ssh-rsa.h sshconnect2.c]
      signed vs. unsigned: make size arguments u_int, ok stevesk@
+   - stevesk@cvs.openbsd.org 2002/02/24 19:59:42
+     [channels.c misc.c]
+     disable Nagle in connect_to() and channel_post_port_listener() (port
+     forwarding endpoints).  the intention is to preserve the on-the-wire
+     appearance to applications at either end; the applications can then
+     enable TCP_NODELAY according to their requirements. ok markus@
 
 20020225
  - (bal) Last AIX patch.  Moved aix_usrinfo() outside of do_setuserconext()
@@ -7715,4 +7721,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1885 2002/02/26 18:09:42 mouring Exp $
+$Id: ChangeLog,v 1.1886 2002/02/26 18:12:51 mouring Exp $

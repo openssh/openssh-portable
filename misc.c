@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.c,v 1.15 2002/01/24 21:09:25 stevesk Exp $	*/
+/*	$OpenBSD: misc.c,v 1.16 2002/02/24 19:59:42 stevesk Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: misc.c,v 1.15 2002/01/24 21:09:25 stevesk Exp $");
+RCSID("$OpenBSD: misc.c,v 1.16 2002/02/24 19:59:42 stevesk Exp $");
 
 #include "misc.h"
 #include "log.h"
@@ -96,10 +96,20 @@ unset_nonblock(int fd)
 void
 set_nodelay(int fd)
 {
-	int on = 1;
+	int opt, optlen;
 
+	optlen = sizeof opt;
+	if (getsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &opt, &optlen) == -1) {
+		error("getsockopt TCP_NODELAY: %.100s", strerror(errno));
+		return;
+	}
+	if (opt == 1) {
+		debug2("fd %d is TCP_NODELAY", fd);
+		return;
+	}
+	opt = 1;
 	debug("fd %d setting TCP_NODELAY", fd);
-	if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &on, sizeof on) == -1)
+	if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &opt, sizeof opt) == -1)
 		error("setsockopt TCP_NODELAY: %.100s", strerror(errno));
 }
 
