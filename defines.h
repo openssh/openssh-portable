@@ -207,7 +207,7 @@ typedef int ssize_t;
 #ifndef HAVE_CLOCK_T
 typedef long clock_t;
 # define HAVE_CLOCK_T
-#endif; /* HAVE_CLOCK_T */
+#endif /* HAVE_CLOCK_T */
 
 #ifndef HAVE_SA_FAMILY_T
 typedef int sa_family_t;

@@ -29,6 +29,7 @@
   - (bal) changed bsd-bindresvport.c and bsd-rresvport.c to use 'socklen_t'
     instead of 'int'
  - (stevesk) sshd_config: sync
+ - (stevesk) defines.h: remove spurious ``;''
 
 20010108
  - (bal) Fixed another typo in cli.c
