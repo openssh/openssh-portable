@@ -13,6 +13,8 @@
      [sftp.1]
      add version; from Nils Nordman <nino at nforced dot com> via markus@.
      markus@ ok
+ - (djm) Update README to reflect AIX's status as a well supported platform.
+   From dtucker@zip.com.au
 
 20030107
  - (djm) Bug #401: Work around Linux breakage with IPv6 mapped addresses. 
@@ -958,4 +960,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2553 2003/01/08 03:05:23 djm Exp $
+$Id: ChangeLog,v 1.2554 2003/01/08 12:28:40 djm Exp $
