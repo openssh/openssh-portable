@@ -37,6 +37,9 @@
    - markus@cvs.openbsd.org 2002/02/18 13:05:32
      [cipher.c cipher.h]
      switch to EVP, ok djm@ deraadt@
+   - markus@cvs.openbsd.org 2002/02/18 17:55:20
+     [ssh.1]
+     -q: Fatal errors are _not_ displayed.
 
 20020218
  - (tim) newer config.guess from ftp://ftp.gnu.org/gnu/config/config.guess
@@ -7634,4 +7637,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1863 2002/02/19 04:26:42 djm Exp $
+$Id: ChangeLog,v 1.1864 2002/02/19 04:27:23 djm Exp $
