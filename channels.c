@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.82 2001/01/21 19:05:46 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.83 2001/01/24 21:03:50 stevesk Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -1922,6 +1922,7 @@ x11_create_display_inet(int screen_number, int x11_display_offset)
 			break;
 #endif
 		}
+		freeaddrinfo(aitop);
 		if (num_socks > 0)
 			break;
 	}
