@@ -329,13 +329,7 @@ userauth_none(Authctxt *authctxt)
 	if (check_nt_auth(1, authctxt->pw) == 0)
 		return(0);
 #endif
-#ifdef USE_PAM
-	return auth_pam_password(authctxt->pw, "");
-#elif defined(HAVE_OSF_SIA)
-	return 0;
-#else /* !HAVE_OSF_SIA && !USE_PAM */
 	return PRIVSEP(auth_password(authctxt, ""));
-#endif /* USE_PAM */
 }
 
 static int
@@ -354,13 +348,7 @@ userauth_passwd(Authctxt *authctxt)
 #ifdef HAVE_CYGWIN
 	    check_nt_auth(1, authctxt->pw) &&
 #endif
-#ifdef USE_PAM
-	    auth_pam_password(authctxt->pw, password) == 1)
-#elif defined(HAVE_OSF_SIA)
-	    auth_sia_password(authctxt->user, password) == 1)
-#else /* !USE_PAM && !HAVE_OSF_SIA */
 	    PRIVSEP(auth_password(authctxt, password)) == 1)
-#endif /* USE_PAM */
 		authenticated = 1;
 	memset(password, 0, len);
 	xfree(password);

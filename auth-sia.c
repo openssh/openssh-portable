@@ -6,6 +6,7 @@
 #include "log.h"
 #include "servconf.h"
 #include "canohost.h"
+#include "auth.h"
 
 #include <sia.h>
 #include <siad.h>
@@ -23,15 +24,16 @@ extern char **saved_argv;
 extern int errno;
 
 int
-auth_sia_password(char *user, char *pass)
+auth_sia_password(Authctxt *authctxt, char *pass)
 {
 	int ret;
 	SIAENTITY *ent = NULL;
 	const char *host;
+	char *user = authctxt->user;
 
 	host = get_canonical_hostname(options.verify_reverse_mapping);
 
-	if (!user || !pass)
+	if (!user || !pass || pass[0] == '\0')
 		return(0);
 
 	if (sia_ses_init(&ent, saved_argc, saved_argv, host, user, NULL, 0,

@@ -28,6 +28,7 @@
 #include "ssh.h"
 #include "xmalloc.h"
 #include "log.h"
+#include "auth.h"
 #include "auth-pam.h"
 #include "servconf.h"
 #include "canohost.h"
@@ -35,7 +36,7 @@
 
 extern char *__progname;
 
-RCSID("$Id: auth-pam.c,v 1.42 2002/02/05 01:40:47 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.43 2002/04/04 19:02:28 stevesk Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now"
@@ -199,10 +200,11 @@ void do_pam_cleanup_proc(void *context)
 }
 
 /* Attempt password authentation using PAM */
-int auth_pam_password(struct passwd *pw, const char *password)
+int auth_pam_password(Authctxt *authctxt, const char *password)
 {
 	extern ServerOptions options;
 	int pam_retval;
+	struct passwd *pw = authctxt->pw;
 
 	do_pam_set_conv(&conv);
 

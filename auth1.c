@@ -84,13 +84,7 @@ do_authloop(Authctxt *authctxt)
 #if defined(KRB4) || defined(KRB5)
 	    (!options.kerberos_authentication || options.kerberos_or_local_passwd) &&
 #endif
-#ifdef USE_PAM
-	    auth_pam_password(pw, "")) {
-#elif defined(HAVE_OSF_SIA)
-	    0) {
-#else
 	    PRIVSEP(auth_password(authctxt, ""))) {
-#endif
 		auth_log(authctxt, 1, "without authentication", "");
 		return;
 	}
@@ -246,17 +240,8 @@ do_authloop(Authctxt *authctxt)
 			password = packet_get_string(&dlen);
 			packet_check_eom();
 
-#ifdef USE_PAM
-			/* Do PAM auth with password */
-			authenticated = auth_pam_password(pw, password);
-#elif defined(HAVE_OSF_SIA)
-			/* Do SIA auth with password */
-			authenticated = auth_sia_password(authctxt->user, 
-			    password);
-#else /* !USE_PAM && !HAVE_OSF_SIA */
 			/* Try authentication with the password. */
 			authenticated = PRIVSEP(auth_password(authctxt, password));
-#endif /* USE_PAM */
 
 			memset(password, 0, strlen(password));
 			xfree(password);

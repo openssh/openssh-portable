@@ -38,47 +38,47 @@
 #include "includes.h"
 RCSID("$OpenBSD: auth-passwd.c,v 1.24 2002/03/04 12:43:06 markus Exp $");
 
-#if !defined(USE_PAM) && !defined(HAVE_OSF_SIA)
-
 #include "packet.h"
 #include "log.h"
 #include "servconf.h"
 #include "auth.h"
 
-#ifdef HAVE_CRYPT_H
-# include <crypt.h>
-#endif
-#ifdef WITH_AIXAUTHENTICATE
-# include <login.h>
-#endif
-#ifdef __hpux
-# include <hpsecurity.h>
-# include <prot.h>
-#endif
-#ifdef HAVE_SCO_PROTECTED_PW
-# include <sys/security.h>
-# include <sys/audit.h>
-# include <prot.h>
-#endif /* HAVE_SCO_PROTECTED_PW */
-#if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
-# include <shadow.h>
-#endif
-#if defined(HAVE_GETPWANAM) && !defined(DISABLE_SHADOW)
-# include <sys/label.h>
-# include <sys/audit.h>
-# include <pwdadj.h>
-#endif
-#if defined(HAVE_MD5_PASSWORDS) && !defined(HAVE_MD5_CRYPT)
-# include "md5crypt.h"
-#endif /* defined(HAVE_MD5_PASSWORDS) && !defined(HAVE_MD5_CRYPT) */
+#if !defined(USE_PAM) && !defined(HAVE_OSF_SIA)
+/* Don't need any of these headers for the PAM or SIA cases */
+# ifdef HAVE_CRYPT_H
+#  include <crypt.h>
+# endif
+# ifdef WITH_AIXAUTHENTICATE
+#  include <login.h>
+# endif
+# ifdef __hpux
+#  include <hpsecurity.h>
+#  include <prot.h>
+# endif
+# ifdef HAVE_SCO_PROTECTED_PW
+#  include <sys/security.h>
+#  include <sys/audit.h>
+#  include <prot.h>
+# endif /* HAVE_SCO_PROTECTED_PW */
+# if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
+#  include <shadow.h>
+# endif
+# if defined(HAVE_GETPWANAM) && !defined(DISABLE_SHADOW)
+#  include <sys/label.h>
+#  include <sys/audit.h>
+#  include <pwdadj.h>
+# endif
+# if defined(HAVE_MD5_PASSWORDS) && !defined(HAVE_MD5_CRYPT)
+#  include "md5crypt.h"
+# endif /* defined(HAVE_MD5_PASSWORDS) && !defined(HAVE_MD5_CRYPT) */
 
-#ifdef HAVE_CYGWIN
-#undef ERROR
-#include <windows.h>
-#include <sys/cygwin.h>
-#define is_winnt       (GetVersion() < 0x80000000)
-#endif
-
+# ifdef HAVE_CYGWIN
+#  undef ERROR
+#  include <windows.h>
+#  include <sys/cygwin.h>
+#  define is_winnt       (GetVersion() < 0x80000000)
+# endif
+#endif /* !USE_PAM && !HAVE_OSF_SIA */
 
 extern ServerOptions options;
 
@@ -89,6 +89,15 @@ extern ServerOptions options;
 int
 auth_password(Authctxt *authctxt, const char *password)
 {
+#if defined(USE_PAM)
+	if (*password == '\0' && options.permit_empty_passwd == 0)
+		return 0;
+	return auth_pam_password(authctxt, password);
+#elif defined(HAVE_OSF_SIA)
+	if (*password == '\0' && options.permit_empty_passwd == 0)
+		return 0;
+	return auth_sia_password(authctxt, password);
+#else
 	struct passwd * pw = authctxt->pw;
 	char *encrypted_password;
 	char *pw_password;
@@ -221,5 +230,5 @@ auth_password(Authctxt *authctxt, const char *password)
 
 	/* Authentication is accepted if the encrypted passwords are identical. */
 	return (strcmp(encrypted_password, pw_password) == 0);
-}
 #endif /* !USE_PAM && !HAVE_OSF_SIA */
+}
