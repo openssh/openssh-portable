@@ -267,7 +267,7 @@ AC_EGREP_HEADER(syslen, utmpx.h,
 
 dnl Look for lastlog location
 AC_ARG_WITH(lastlog,
-	[  --with-lastlog          Location of lastlog file],
+	[  --with-lastlog=FILE     Location of lastlog file],
 	[
 		if test "x$withval" = "xno" ; then
 			AC_DEFINE(DISABLE_LASTLOG)
@@ -392,6 +392,15 @@ AC_ARG_WITH(ipaddr-display,
 	[
 		if test "x$withval" = "xno" ; then	
 			AC_DEFINE(IPADDR_IN_DISPLAY)
+		fi
+	]
+)
+
+AC_ARG_WITH(path,
+	[  --with-default-path=PATH Specify default \$PATH environment for server],
+	[
+		if test "x$withval" != "xno" ; then	
+			AC_DEFINE_UNQUOTED(USER_PATH, $withval")
 		fi
 	]
 )
