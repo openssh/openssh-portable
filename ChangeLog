@@ -1,3 +1,6 @@
+20030906
+ - (dtucker) [acconfig.h configure.ac uidswap.c] Prefer setuid/setgid on AIX.
+
 20030905
  - (dtucker) [Makefile.in] Add distclean target for regress/, fix clean target.
 
@@ -1021,4 +1024,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2961 2003/09/05 01:35:52 dtucker Exp $
+$Id: ChangeLog,v 1.2962 2003/09/06 06:44:39 dtucker Exp $

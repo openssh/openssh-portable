@@ -154,7 +154,7 @@ permanently_set_uid(struct passwd *pw)
 #if defined(HAVE_SETRESGID)
 	if (setresgid(pw->pw_gid, pw->pw_gid, pw->pw_gid) < 0)
 		fatal("setresgid %u: %.100s", (u_int)pw->pw_gid, strerror(errno));
-#elif defined(HAVE_SETREGID)
+#elif defined(HAVE_SETREGID) && !defined(BROKEN_SETREGID)
 	if (setregid(pw->pw_gid, pw->pw_gid) < 0)
 		fatal("setregid %u: %.100s", (u_int)pw->pw_gid, strerror(errno));
 #else
@@ -167,7 +167,7 @@ permanently_set_uid(struct passwd *pw)
 #if defined(HAVE_SETRESUID)
 	if (setresuid(pw->pw_uid, pw->pw_uid, pw->pw_uid) < 0)
 		fatal("setresuid %u: %.100s", (u_int)pw->pw_uid, strerror(errno));
-#elif defined(HAVE_SETREUID)
+#elif defined(HAVE_SETREUID) && !defined(BROKEN_SETREUID)
 	if (setreuid(pw->pw_uid, pw->pw_uid) < 0)
 		fatal("setreuid %u: %.100s", (u_int)pw->pw_uid, strerror(errno));
 #else

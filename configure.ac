@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.143 2003/08/26 01:58:16 dtucker Exp $
+# $Id: configure.ac,v 1.144 2003/09/06 06:44:39 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -97,6 +97,9 @@ case "$host" in
 	AC_CHECK_FUNCS(setauthdb)
 	AC_DEFINE(BROKEN_GETADDRINFO)
 	AC_DEFINE(BROKEN_REALPATH)
+	AC_DEFINE(SETEUID_BREAKS_SETUID)
+	AC_DEFINE(BROKEN_SETREUID)
+	AC_DEFINE(BROKEN_SETREGID)
 	dnl AIX handles lastlog as part of its login message
 	AC_DEFINE(DISABLE_LASTLOG)
 	AC_DEFINE(LOGIN_NEEDS_UTMPX)

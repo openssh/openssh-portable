@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.162 2003/08/26 01:58:16 dtucker Exp $ */
+/* $Id: acconfig.h,v 1.163 2003/09/06 06:44:39 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -34,6 +34,12 @@
 
 /* Define if your platform breaks doing a seteuid before a setuid */
 #undef SETEUID_BREAKS_SETUID
+
+/* Define if your setreuid() is broken */
+#undef BROKEN_SETREUID
+
+/* Define if your setregid() is broken */
+#undef BROKEN_SERREGID
 
 /* Define to a Set Process Title type if your system is */
 /* supported by bsd-setproctitle.c */
