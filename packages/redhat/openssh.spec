@@ -16,7 +16,6 @@ Group: Applications/Internet
 BuildRoot: /tmp/openssh-%{version}-buildroot
 Obsoletes: ssh
 Requires: openssl
-PreReq: openssl
 BuildPreReq: openssl-devel
 BuildPreReq: tcp_wrappers
 BuildPreReq: gnome-libs-devel
@@ -29,9 +28,9 @@ Obsoletes: ssh-clients
 
 %package server
 Summary: OpenSSH Secure Shell protocol server (sshd)
-Requires: openssh chkconfig >= 0.9
 Group: System Environment/Daemons
 Obsoletes: ssh-server
+PreReq: openssh chkconfig >= 0.9
 
 %package askpass
 Summary: OpenSSH X11 passphrase dialog

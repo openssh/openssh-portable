@@ -14,6 +14,7 @@
  - Released 1.2.1pre21
  - Fixed implicit '.' in default path, report from Jim Knoble 
    <jmknoble@pobox.com>
+ - Redhat RPM spec fixes from Jim Knoble <jmknoble@pobox.com>
 
 19991225
  - More fixes from Andre Lucas <andre.lucas@dial.pipex.com>
