@@ -20,6 +20,10 @@
    - markus@cvs.openbsd.org 2001/09/28 15:46:29
      [ssh.c]
      bug: read user config first; report kaukasoi@elektroni.ee.tut.fi
+   - markus@cvs.openbsd.org 2001/10/01 08:06:28
+     [scp.c]
+     skip filenames containing \n; report jdamery@chiark.greenend.org.uk
+     and matthew@debian.org
 
 20011001
  - (stevesk) loginrec.c: fix type conversion problems exposed when using
@@ -6612,4 +6616,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1575 2001/10/03 17:22:29 mouring Exp $
+$Id: ChangeLog,v 1.1576 2001/10/03 17:30:58 mouring Exp $

@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.84 2001/09/19 19:24:19 stevesk Exp $");
+RCSID("$OpenBSD: scp.c,v 1.85 2001/10/01 08:06:28 markus Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -503,6 +503,11 @@ source(argc, argv)
 		len = strlen(name);
 		while (len > 1 && name[len-1] == '/')
 			name[--len] = '\0';
+		if (strchr(name, '\n') != NULL) {
+			run_err("%s: skipping, filename contains a newline",
+			    name);
+			goto next;
+		}
 		if ((fd = open(name, O_RDONLY, 0)) < 0)
 			goto syserr;
 		if (fstat(fd, &stb) < 0) {
