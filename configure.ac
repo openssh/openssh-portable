@@ -1,4 +1,4 @@
-i# $Id: configure.ac,v 1.8 2002/01/05 17:15:32 mouring Exp $
+i# $Id: configure.ac,v 1.9 2002/01/05 23:24:28 stevesk Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -184,7 +184,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	LIBS="$LIBS -lc89"
 	AC_DEFINE(HAVE_BOGUS_SYS_QUEUE_H)
-	AC_DEFINE(USE_PIPES);
+	AC_DEFINE(USE_PIPES)
 	;;
 *-sni-sysv*)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
