@@ -1,3 +1,6 @@
+20010610
+ - (bal) Missed two files in major resync.  auth-bsdauth.c and auth-skey.c
+
 20010609
  - OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2001/05/30 12:55:13
@@ -5592,4 +5595,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1272 2001/06/09 02:26:58 mouring Exp $
+$Id: ChangeLog,v 1.1273 2001/06/10 00:41:18 mouring Exp $
