@@ -42,6 +42,9 @@
    - markus@cvs.openbsd.org 2003/06/12 15:40:01
      [try-ciphers.sh]
      add ctr
+   - markus@cvs.openbsd.org 2003/06/12 15:43:32
+     [Makefile]
+     test -HUP; dtucker at zip.com.au
 
 20030614
  - (djm) Update license on fake-rfc2553.[ch]; ok itojun@
@@ -557,4 +560,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2815 2003/06/18 12:43:13 dtucker Exp $
+$Id: ChangeLog,v 1.2816 2003/06/18 12:45:34 dtucker Exp $
