@@ -89,7 +89,6 @@ This package contains the secure shell daemon. The sshd is the server
 part of the secure shell protocol and allows ssh clients to connect to 
 your host.
 
-%package askpass-gnome
 %description askpass
 Ssh (Secure Shell) a program for logging into a remote machine and for
 executing commands in a remote machine.  It is intended to replace
@@ -104,7 +103,6 @@ patented algorithms to seperate libraries (OpenSSL).
 This package contains Jim Knoble's <jmknoble@pobox.com> X11 passphrase 
 dialog.
 
-%package askpass-gnome
 %description askpass
 Ssh (Secure Shell) a program for logging into a remote machine and for
 executing commands in a remote machine.  It is intended to replace
