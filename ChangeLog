@@ -10,6 +10,9 @@
      ssh_config.5 sshconnect1.c sshd.8 sshd.c sshd_config sshd_config.5]
      remove RhostsAuthentication; suggested by djm@ before; ok djm@, deraadt@,
      fgsch@, miod@, henning@, jakob@ and others
+   - markus@cvs.openbsd.org 2003/08/13 09:07:10
+     [readconf.c ssh.c]
+     socks4->socks, since with support both 4 and 5; dtucker@zip.com.au
 
 20030811
  - (dtucker) OpenBSD CVS Sync
@@ -828,4 +831,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2891 2003/08/13 10:37:05 dtucker Exp $
+$Id: ChangeLog,v 1.2892 2003/08/13 10:38:36 dtucker Exp $

@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.116 2003/08/13 08:46:30 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.117 2003/08/13 09:07:09 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -670,7 +670,7 @@ parse_int:
 			fatal("%.200s line %d: Badly formatted port number.",
 			    filename, linenum);
 		if (*activep)
-			add_local_forward(options, fwd_port, "socks4", 0);
+			add_local_forward(options, fwd_port, "socks", 0);
 		break;
 
 	case oClearAllForwardings:

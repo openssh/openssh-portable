@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.199 2003/08/13 08:46:30 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.200 2003/08/13 09:07:10 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -445,7 +445,7 @@ again:
 				    optarg);
 				exit(1);
 			}
-			add_local_forward(&options, fwd_port, "socks4", 0);
+			add_local_forward(&options, fwd_port, "socks", 0);
 			break;
 
 		case 'C':
