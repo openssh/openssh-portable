@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.184 2002/08/29 19:49:42 stevesk Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.185 2002/09/11 18:27:26 stevesk Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -829,11 +829,8 @@ check_agent_present(void)
 {
 	if (options.forward_agent) {
 		/* Clear agent forwarding if we don\'t have an agent. */
-		int authfd = ssh_get_authentication_socket();
-		if (authfd < 0)
+		if (!ssh_agent_present())
 			options.forward_agent = 0;
-		else
-			ssh_close_authentication_socket(authfd);
 	}
 }
 

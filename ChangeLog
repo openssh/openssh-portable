@@ -18,6 +18,10 @@
    - stevesk@cvs.openbsd.org 2002/09/11 17:55:03
      [ssh.1]
      add agent and X11 forwarding warning text from ssh_config.5; ok markus@
+   - stevesk@cvs.openbsd.org 2002/09/11 18:27:26
+     [authfd.c authfd.h ssh.c]
+     don't connect to agent to test for presence if we've previously
+     connected; ok markus@
 
 20020911
  - (djm) Sync openbsd-compat with OpenBSD -current
@@ -1638,4 +1642,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2456 2002/09/11 23:52:03 djm Exp $
+$Id: ChangeLog,v 1.2457 2002/09/11 23:52:46 djm Exp $
