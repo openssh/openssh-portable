@@ -1,4 +1,4 @@
-/* $Id: port-aix.h,v 1.23 2005/02/15 10:45:58 dtucker Exp $ */
+/* $Id: port-aix.h,v 1.24 2005/02/16 11:49:31 dtucker Exp $ */
 
 /*
  *
@@ -30,6 +30,9 @@
 #ifdef HAVE_SYS_SOCKET_H
 # include <sys/socket.h>
 #endif
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>	/* for seteuid() */
+#endif
 
 #ifdef WITH_AIXAUTHENTICATE
 # include <login.h>
@@ -41,6 +44,26 @@
 #endif
 
 #include "buffer.h"
+
+/* These should be in the system headers but are not. */
+int usrinfo(int, char *, int);
+int setauthdb(const char *, char *);
+/* these may or may not be in the headers depending on the version */
+#if (HAVE_DECL_AUTHENTICATE == 0)
+int authenticate(char *, char *, int *, char **);
+#endif
+#if (HAVE_DECL_LOGINFAILED == 0)
+int loginfailed(char *, char *, char *);
+#endif
+#if (HAVE_DECL_LOGINRESTRICTIONS == 0)
+int loginrestrictions(char *, int, char *, char **);
+#endif
+#if (HAVE_DECL_LOGINSUCCESS == 0)
+int loginsuccess(char *, char *, char *, char **);
+#endif
+#if (HAVE_DECL_PASSWDEXPIRED == 0)
+int passwdexpired(char *, char **);
+#endif
 
 /* Some versions define r_type in the above headers, which causes a conflict */
 #ifdef r_type

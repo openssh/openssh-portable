@@ -12,6 +12,8 @@
    authentication early enough to be available to PAM session modules when
    privsep=yes.  Patch from deengert at anl.gov, ok'ed in principle by Sam
    Hartman and similar to Debian's ssh-krb5 package.
+ - (dtucker) [configure.ac openbsd-compat/port-aix.{c,h}] Silence some more
+   compiler warnings on AIX.
 
 20050215
  - (dtucker) [config.sh.in] Collect oslevel -r too.
@@ -2146,4 +2148,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3658 2005/02/16 05:47:37 dtucker Exp $
+$Id: ChangeLog,v 1.3659 2005/02/16 11:49:31 dtucker Exp $

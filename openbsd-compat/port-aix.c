@@ -37,10 +37,6 @@
 #include <sys/socket.h>
 #include "port-aix.h"
 
-/* These should be in the system headers but are not. */
-int usrinfo(int, char *, int);
-int setauthdb(const char *, char *);
-
 # ifdef HAVE_SETAUTHDB
 static char old_registry[REGISTRY_SIZE] = "";
 # endif
