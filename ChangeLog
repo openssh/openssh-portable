@@ -32,6 +32,7 @@
  - (dtucker) [Makefile.in acconfig.h auth-krb5.c auth-pam.c auth-pam.h
    configure.ac defines.h gss-serv-krb5.c session.c ssh-gss.h sshconnect1.c
    sshconnect2.c] Add Portable GSSAPI support, patch by Simon Wilkinson.
+ - (dtucker) [Makefile.in] Remove auth2-krb5.
 
 20030825
  - (djm) Bug #621: Select OpenSC keys by usage attributes. Patch from 
@@ -904,4 +905,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2914 2003/08/26 02:14:05 dtucker Exp $
+$Id: ChangeLog,v 1.2915 2003/08/26 02:22:04 dtucker Exp $
