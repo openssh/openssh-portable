@@ -110,7 +110,7 @@ sigchld_handler2(int sig)
 	int save_errno = errno;
 	debug("Received SIGCHLD.");
 	child_terminated = 1;
-	signal(SIGCHLD, sigchld_handler2);
+	mysignal(SIGCHLD, sigchld_handler2);
 	errno = save_errno;
 }
 
@@ -639,7 +639,7 @@ server_loop2(void)
 
 	debug("Entering interactive session for SSH2.");
 
-	signal(SIGCHLD, sigchld_handler2);
+	mysignal(SIGCHLD, sigchld_handler2);
 	signal(SIGPIPE, SIG_IGN);
 	child_terminated = 0;
 	connection_in = packet_get_connection_in();

@@ -19,3 +19,7 @@ char	*strdelim(char **s);
 
 /* set filedescriptor to non-blocking */
 void	set_nonblock(int fd);
+
+/* wrapper for signal interface */
+typedef void (*mysig_t)(int);
+mysig_t mysignal(int sig, mysig_t act);

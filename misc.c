@@ -27,6 +27,7 @@
 #include "includes.h"
 RCSID("$OpenBSD: util.c,v 1.6 2000/10/27 07:32:19 markus Exp $");
 
+#include "misc.h"
 #include "ssh.h"
 #include "log.h"
 
@@ -94,4 +95,26 @@ strdelim(char **s)
 		*s += strspn(*s + 1, WHITESPACE) + 1;
 
 	return (old);
+}
+
+mysig_t
+mysignal(int sig, mysig_t act)
+{
+#ifdef HAVE_SIGACTION
+	struct sigaction sa, osa;
+
+	if (sigaction(sig, 0, &osa) == -1)
+		return (mysig_t) -1;
+	if (osa.sa_handler != act) {
+		memset(&sa, 0, sizeof sa);
+		sigemptyset(&sa.sa_mask);
+		sa.sa_flags = 0;
+		sa.sa_handler = act;
+		if (sigaction(sig, &sa, 0) == -1)
+			return (mysig_t) -1;
+	}
+	return (osa.sa_handler);
+#else
+	return (signal(sig, act));
+#endif
 }

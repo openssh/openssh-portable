@@ -29,6 +29,8 @@
  - (djm) Update several bits for new optional reverse lookup stuff. I 
    think I got them all.
  - (djm) Makefile.in fixes
+ - (stevesk) add mysignal() wrapper and use it for the protocol 2
+   SIGCHLD handler.
 
 20010103
  - (bal) Cygwin clean up by Corinna Vinschen <vinschen@redhat.com>
