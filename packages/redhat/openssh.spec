@@ -15,6 +15,7 @@ Copyright: BSD
 Group: Applications/Internet
 BuildRoot: /tmp/openssh-%{version}-buildroot
 Obsoletes: ssh
+PreReq: openssl
 Requires: openssl
 BuildPreReq: perl
 BuildPreReq: openssl-devel

@@ -6,6 +6,7 @@ Source0: openssh-%{version}.tar.gz
 Copyright: BSD
 Group: Applications/Internet
 BuildRoot: /tmp/openssh-%{version}-buildroot
+PreReq: openssl
 Obsoletes: ssh
 #
 # (Build[ing] Prereq[uisites] only work for RPM 2.95 and newer.)
@@ -30,6 +31,7 @@ Obsoletes: ssh-clients
 Summary: OpenSSH Secure Shell protocol server (sshd)
 Requires: openssh
 Group: System Environment/Daemons
+PreReq: openssh
 Obsoletes: ssh-server
 
 %package askpass
