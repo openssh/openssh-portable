@@ -3,7 +3,10 @@
  - (djm) Manually fix up missed diff hunks (mainly RCS idents)
  - (djm) Remove UPGRADING document in favour of a link to the better 
    maintained FAQ on www.openssh.com
-
+ - (djm) Fix multiple dependancy on gnome-libs from Pekka Savola
+   <pekkas@netcore.fi>
+ - (djm) Don't need X11-askpass in RPM spec file if building without it
+   from Pekka Savola <pekkas@netcore.fi>
 20001105
  - (bal) Sync with OpenBSD:
    - markus@cvs.openbsd.org 2000/10/31 9:31:58

@@ -17,14 +17,16 @@ Release: 1
 Packager: Damien Miller <djm@mindrot.org>
 URL: http://www.openssh.com/
 Source0: ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-%{oversion}.tar.gz
+%if ! %{no_x11_askpass}
 Source1: http://www.ntrnet.net/~jmknoble/software/x11-ssh-askpass/x11-ssh-askpass-%{aversion}.tar.gz 
+%endif
 Copyright: BSD
 Group: Applications/Internet
 BuildRoot: /tmp/openssh-%{version}-buildroot
 Obsoletes: ssh
 PreReq: openssl >= 0.9.5a
 Requires: openssl >= 0.9.5a
-BuildPreReq: perl, openssl-devel, tcp_wrappers, gnome-libs-devel
+BuildPreReq: perl, openssl-devel, tcp_wrappers
 BuildPreReq: /bin/login, /usr/bin/rsh, /usr/include/security/pam_appl.h
 %if ! %{no_gnome_askpass}
 BuildPreReq: gnome-libs-devel
@@ -128,7 +130,11 @@ This package contains the GNOME passphrase dialog.
 
 %prep
 
+%if ! %{no_x11_askpass}
 %setup -q -a 1
+%else
+%setup -q
+%endif
 
 %build
 
