@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.132 2002/07/24 16:11:18 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.133 2002/07/29 18:57:30 markus Exp $");
 
 #include <openssl/bn.h>
 
@@ -882,7 +882,7 @@ show_key_from_file(const char *file, const char *host, int keytype)
 	    keytype, found, &line))) {
 		fp = key_fingerprint(found, SSH_FP_MD5, SSH_FP_HEX);
 		log("WARNING: %s key found for host %s\n"
-		    "in file %s line %d with\n"
+		    "in %s:%d\n"
 		    "%s key fingerprint %s.",
 		    key_type(found), host, file, line,
 		    key_type(found), fp);

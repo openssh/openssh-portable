@@ -15,6 +15,9 @@
      [sftp.c]
      FallBackToRsh does not exist anywhere else.  Remove it from here.
      OK deraadt.
+   - markus@cvs.openbsd.org 2002/07/29 18:57:30
+     [sshconnect.c]
+     print file:line
 
 20020730
  - (bal) [uidswap.c] SCO compile correction by gert@greenie.muc.de
@@ -1483,4 +1486,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2411 2002/08/01 01:25:00 mouring Exp $
+$Id: ChangeLog,v 1.2412 2002/08/01 01:26:29 mouring Exp $
