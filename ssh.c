@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.144 2001/09/24 03:38:58 stevesk Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.145 2001/09/28 15:46:29 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -626,10 +626,10 @@ again:
 	} else  {
 		snprintf(buf, sizeof buf, "%.100s/%.100s", pw->pw_dir,
 		    _PATH_SSH_USER_CONFFILE);
-
-		/* Read systemwide configuration file. */
-		(void)read_config_file(_PATH_HOST_CONFIG_FILE, host, &options);
 		(void)read_config_file(buf, host, &options);
+
+		/* Read systemwide configuration file after use config. */
+		(void)read_config_file(_PATH_HOST_CONFIG_FILE, host, &options);
 	}
 
 	/* Fill configuration defaults. */
