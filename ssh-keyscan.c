@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keyscan.c,v 1.12 2001/02/04 15:32:26 stevesk Exp $");
+RCSID("$OpenBSD: ssh-keyscan.c,v 1.15 2001/02/09 09:04:59 itojun Exp $");
 
 #if defined(HAVE_SYS_QUEUE_H) && !defined(HAVE_BOGUS_SYS_QUEUE_H)
 #include <sys/queue.h>
@@ -146,7 +146,7 @@ Linebuf_lineno(Linebuf * lb)
 }
 
 static inline char *
-getline(Linebuf * lb)
+Linebuf_getline(Linebuf * lb)
 {
 	int n = 0;
 
@@ -490,7 +490,7 @@ conloop(void)
 		seltime = c->c_tv;
 		seltime.tv_sec -= now.tv_sec;
 		seltime.tv_usec -= now.tv_usec;
-		if ((int) seltime.tv_usec < 0) {
+		if (seltime.tv_usec < 0) {
 			seltime.tv_usec += 1000000;
 			seltime.tv_sec--;
 		}
@@ -547,7 +547,7 @@ nexthost(int argc, char **argv)
 				error("ignoring invalid/misplaced option `%s'", argv[argno++]);
 		} else {
 			char *line;
-			line = getline(lb);
+			line = Linebuf_getline(lb);
 			if (line)
 				return (line);
 			Linebuf_free(lb);
@@ -599,6 +599,7 @@ main(int argc, char **argv)
 	if (maxfd > fdlim_get(0))
 		fdlim_set(maxfd);
 	fdcon = xmalloc(maxfd * sizeof(con));
+	memset(fdcon, 0, maxfd * sizeof(con));
 
 	do {
 		while (ncon < maxcon) {
