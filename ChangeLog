@@ -35,6 +35,10 @@
      make the monitor sync the transfer ssh1 session key;
      transfer keycontext only for RC4 (this is still depends on EVP
      implementation details and is broken).
+   - stevesk@cvs.openbsd.org 2002/06/20 19:56:07
+     [ssh.1 sshd.8]
+     move configuration file options from ssh.1/sshd.8 to
+     ssh_config.5/sshd_config.5; ok deraadt@ millert@
  - (bal) Cygwin special handling of empty passwords wrong.  Patch by
    vinschen@redhat.com
 
@@ -965,4 +969,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2226 2002/06/21 00:43:42 mouring Exp $
+$Id: ChangeLog,v 1.2227 2002/06/21 00:59:05 mouring Exp $
