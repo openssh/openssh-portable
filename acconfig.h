@@ -34,6 +34,10 @@
 
 /* ******************* Shouldn't need to edit below this line ************** */
 
+#include <sys/types.h> /* For u_intXX_t */
+#include <sys/socket.h> /* For SHUT_XXXX */
+#include <paths.h> /* For _PATH_XXX */
+
 #ifndef SHUT_RDWR
 enum
 {
@@ -46,15 +50,16 @@ enum
 };
 #endif
 
-#include <sys/types.h> /* For u_intXX_t */
-#include <paths.h> /* For _PATH_XXX */
-
 #if !defined(u_int32_t) && defined(uint32_t)
 #define u_int32_t uint32_t
 #endif
 
 #if !defined(u_int16_t) && defined(uint16_t)
 #define u_int16_t uint16_t
+#endif
+
+#if !defined(quad_t) && defined(int64_t)
+#define quad_t int64_t
 #endif
 
 #ifndef _PATH_LASTLOG
@@ -87,4 +92,9 @@ enum
 # ifdef MAILDIR
 #  define _PATH_MAILDIR MAILDIR
 # endif
+#endif
+
+#ifndef MAX
+# define MAX(a,b) (((a)>(b))?(a):(b))
+# define MIN(a,b) (((a)<(b))?(a):(b))
 #endif

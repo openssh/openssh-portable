@@ -19,9 +19,10 @@ This file includes most of the needed system headers.
 #define RCSID(msg) \
 static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 
+#include "config.h"
+
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <sys/select.h>
 #include <sys/param.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
@@ -52,8 +53,6 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #include <time.h>
 #include <dirent.h>
 
-#include "config.h"
-
 #ifdef HAVE_NETGROUP_H
 # include <netgroup.h>
 #endif 
@@ -63,15 +62,17 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #ifdef HAVE_ENDIAN_H
 # include <endian.h>
 #endif
+#ifdef HAVE_SYS_SELECT_H
+# include <sys/select.h>
+#endif
+#ifdef HAVE_LIBPAM
+# include <security/pam_appl.h>
+#endif /* HAVE_PAM */
 
 #include "version.h"
 #include "helper.h"
 #include "mktemp.h"
 #include "strlcpy.h"
-
-#ifdef HAVE_LIBPAM
-#include <security/pam_appl.h>
-#endif /* HAVE_PAM */
 
 /* Define this to be the path of the xauth program. */
 #ifndef XAUTH_PATH
