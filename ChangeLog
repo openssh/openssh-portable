@@ -1,5 +1,6 @@
 20040828
- - (dtucker) Remove superfluous Cygwin #ifdef; from vinschen at redhat.com.
+ - (dtucker) [openbsd-compat/mktemp.c] Remove superfluous Cygwin #ifdef; from
+   vinschen at redhat.com.
 
 20040823
  - (djm) [ssh-rand-helper.c] Typo. Found by 
@@ -1663,4 +1664,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3520 2004/08/28 05:46:57 dtucker Exp $
+$Id: ChangeLog,v 1.3521 2004/08/28 06:17:35 dtucker Exp $
