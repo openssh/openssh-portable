@@ -1,6 +1,7 @@
 20000107
  - New config.sub and config.guess to fix problems on SCO. Supplied
    by Gary E. Miller <gem@rellim.com>
+ - Solaris build fix from Gary E. Miller <gem@rellim.com>
 
 20000106
  - Documentation update & cleanup

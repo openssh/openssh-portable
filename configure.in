@@ -40,6 +40,9 @@ AC_C_INLINE
 
 dnl Check for some target-specific stuff
 case "$host" in
+*-*-aix*)
+	AFS_LIBS="-lld"
+	;;
 *-*-hpux10*)
 	if test -z "$GCC"; then
 		CFLAGS="$CFLAGS -Aa"
@@ -58,12 +61,6 @@ case "$host" in
 		AC_DEFINE(DISABLE_SHADOW)
 	fi
 	;;
-*-*-solaris*)
-	AC_DEFINE(USE_UTMPX)
-	;;
-*-*-aix*)
-	AFS_LIBS="-lld"
-	;;
 *-*-irix5*)
 	no_libsocket=1
 	no_libnsl=1
@@ -72,6 +69,12 @@ case "$host" in
 	AC_MSG_WARN([*** Irix 6.x is not tested *** ])
 	no_libsocket=1
 	no_libnsl=1
+	;;
+*-*-solaris*)
+	AC_DEFINE(USE_UTMPX)
+	;;
+*-*-sysv*)
+	LIBS="$LIBS -lgen -lsocket"
 	;;
 esac
 
