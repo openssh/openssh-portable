@@ -32,7 +32,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readpass.c,v 1.24 2001/12/21 08:53:45 djm Exp $");
+RCSID("$OpenBSD: readpass.c,v 1.25 2002/01/11 23:02:18 markus Exp $");
 
 #include "xmalloc.h"
 #include "readpass.h"
@@ -112,7 +112,7 @@ read_passphrase(const char *prompt, int flags)
 			use_askpass = 1;
 	} else {
 		rppflags |= RPP_REQUIRE_TTY;
-		ttyfd = open("/dev/tty", O_RDWR);
+		ttyfd = open(_PATH_TTY, O_RDWR);
 		if (ttyfd >= 0)
 			close(ttyfd);
 		else
