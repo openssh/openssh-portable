@@ -969,6 +969,9 @@ do_setup_env(Session *s, const char *shell)
 		/* Set basic environment. */
 		child_set_env(&env, &envsize, "USER", pw->pw_name);
 		child_set_env(&env, &envsize, "LOGNAME", pw->pw_name);
+#ifdef _AIX
+		child_set_env(&env, &envsize, "LOGIN", pw->pw_name);
+#endif
 		child_set_env(&env, &envsize, "HOME", pw->pw_dir);
 #ifdef HAVE_LOGIN_CAP
 		if (setusercontext(lc, pw, pw->pw_uid, LOGIN_SETPATH) < 0)
