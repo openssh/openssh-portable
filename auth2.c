@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.90 2002/05/12 23:53:45 djm Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.91 2002/05/13 02:37:39 itojun Exp $");
 
 #include <openssl/evp.h>
 
@@ -51,6 +51,7 @@ RCSID("$OpenBSD: auth2.c,v 1.90 2002/05/12 23:53:45 djm Exp $");
 #include "canohost.h"
 #include "match.h"
 #include "monitor_wrap.h"
+#include "atomicio.h"
 
 /* import */
 extern ServerOptions options;

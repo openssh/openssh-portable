@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: auth-skey.c,v 1.17 2002/03/18 17:50:31 provos Exp $");
+RCSID("$OpenBSD: auth-skey.c,v 1.18 2002/05/13 02:37:39 itojun Exp $");
 
 #ifdef SKEY
 
@@ -38,7 +38,7 @@ skey_init_ctx(Authctxt *authctxt)
 	return authctxt;
 }
 
-static int
+int
 skey_query(void *ctx, char **name, char **infotxt,
     u_int* numprompts, char ***prompts, u_int **echo_on)
 {
@@ -66,7 +66,7 @@ skey_query(void *ctx, char **name, char **infotxt,
 	return 0;
 }
 
-static int
+int
 skey_respond(void *ctx, u_int numresponses, char **responses)
 {
 	Authctxt *authctxt = ctx;
