@@ -31,7 +31,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.99 2004/03/30 10:57:57 dtucker Exp $");
+RCSID("$Id: auth-pam.c,v 1.100 2004/04/18 01:00:26 dtucker Exp $");
 
 #ifdef USE_PAM
 #if defined(HAVE_SECURITY_PAM_APPL_H)
@@ -58,6 +58,7 @@ RCSID("$Id: auth-pam.c,v 1.99 2004/03/30 10:57:57 dtucker Exp $");
 extern ServerOptions options;
 extern Buffer loginmsg;
 extern int compat20;
+extern u_int utmp_len;
 
 #ifdef USE_POSIX_THREADS
 #include <pthread.h>
@@ -453,7 +454,6 @@ sshpam_cleanup(void)
 static int
 sshpam_init(Authctxt *authctxt)
 {
-	extern u_int utmp_len;
 	extern char *__progname;
 	const char *pam_rhost, *pam_user, *user = authctxt->user;
 
@@ -599,7 +599,10 @@ sshpam_query(void *ctx, char **name, char **info,
 				xfree(msg);
 				return (0);
 			}
-			error("PAM: %s", msg);
+			error("PAM: %s for %s%.100s from %.100s", msg,
+			    sshpam_authctxt->valid ? "" : "illegal user ",
+			    sshpam_authctxt->user,
+			    get_remote_name_or_ip(utmp_len, options.use_dns));
 			/* FALLTHROUGH */
 		default:
 			*num = 0;
