@@ -136,6 +136,9 @@ install: $(TARGETS)
 		$(INSTALL) -m 644 sshd_config.out $(DESTDIR)$(sysconfdir)/sshd_config; \
 	fi
 
+host-key: ssh-keygen
+	./ssh-keygen -b 1024 -f $(sysconfdir)/ssh_host_key -N ''
+
 uninstallall:	uninstall
 	-rm -f $(DESTDIR)$(sysconfdir)/ssh_config
 	-rm -f $(DESTDIR)$(sysconfdir)/sshd_config

@@ -173,8 +173,8 @@ whatever you specified as your --sysconfdir (/usr/local/etc by default).
 The default configuration should be instantly usable, though you should 
 review it to ensure that it matches your security requirements.
 
-To generate a host key, issue the following command: (replacing
-/etc/ssh/ssh_host_key with an appropriate path)
+To generate a host key, run "make host-key". Alternately you can do so
+manually using the following command: 
 
 /usr/bin/ssh-keygen -b 1024 -f /etc/ssh/ssh_host_key -N ''
 
