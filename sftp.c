@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.8 2001/02/28 05:36:28 deraadt Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.9 2001/03/03 23:52:22 markus Exp $");
 
 /* XXX: commandline mode */
 /* XXX: copy between two remote hosts (commandline) */
@@ -91,24 +91,14 @@ make_ssh_args(char *add_arg)
 	static char **args = NULL;
 	static int nargs = 0;
 	char debug_buf[4096];
-	int i, use_subsystem = 1;
-
-	/* no subsystem if protocol 1 or the server-spec contains a '/' */
-	if (use_ssh1 ||
-	    (sftp_server != NULL && strchr(sftp_server, '/') != NULL))
-		use_subsystem = 0;
+	int i;
 
 	/* Init args array */
 	if (args == NULL) {
-		nargs = use_subsystem ? 6 : 5;
+		nargs = 2;
 		i = 0;
 		args = xmalloc(sizeof(*args) * nargs);
 		args[i++] = "ssh";
-		args[i++] = use_ssh1 ? "-oProtocol=1" : "-oProtocol=2";
-		if (use_subsystem)
-			args[i++] = "-s";
-		args[i++] = "-oForwardAgent=no";
-		args[i++] = "-oForwardX11=no";
 		args[i++] = NULL;
 	}
 
@@ -120,6 +110,13 @@ make_ssh_args(char *add_arg)
 		args[i++] = NULL;
 		return(NULL);
 	}
+
+	/* no subsystem if the server-spec contains a '/' */
+	if (sftp_server == NULL || strchr(sftp_server, '/') == NULL)
+		make_ssh_args("-s");
+	make_ssh_args("-oForwardX11=no");
+	make_ssh_args("-oForwardAgent=no");
+	make_ssh_args(use_ssh1 ? "-oProtocol=1" : "-oProtocol=2");
 
 	/* Otherwise finish up and return the arg array */
 	if (sftp_server != NULL)

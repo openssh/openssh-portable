@@ -137,6 +137,9 @@
    - deraadt@cvs.openbsd.org 2001/03/03 22:07:50
      [sftp-server.c]
      KNF
+   - markus@cvs.openbsd.org 2001/03/03 23:52:22
+     [sftp.c]
+     clean up arg processing. based on work by Christophe_Moret@hp.com
 
 20010304
  - (bal) Remove make-ssh-known-hosts.1 since it's no longer valid.
@@ -4329,4 +4332,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.893 2001/03/05 07:09:11 mouring Exp $
+$Id: ChangeLog,v 1.894 2001/03/05 07:10:47 mouring Exp $
