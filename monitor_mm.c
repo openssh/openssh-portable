@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor_mm.c,v 1.3 2002/03/19 10:41:32 markus Exp $");
+RCSID("$OpenBSD: monitor_mm.c,v 1.4 2002/03/25 20:12:10 stevesk Exp $");
 
 #include <sys/mman.h>
 
@@ -56,8 +56,8 @@ mm_make_entry(struct mm_master *mm, struct mmtree *head,
 
 	tmp2 = RB_INSERT(mmtree, head, tmp);
 	if (tmp2 != NULL)
-		fatal("mm_make_entry(%p): double address %p->%p(%d)",
-		    mm, tmp2, address, size);
+		fatal("mm_make_entry(%p): double address %p->%p(%lu)",
+		    mm, tmp2, address, (u_long)size);
 
 	return (tmp);
 }
@@ -85,7 +85,7 @@ mm_create(struct mm_master *mmalloc, size_t size)
 	address = mmap(NULL, size, PROT_WRITE|PROT_READ, MAP_ANON|MAP_SHARED,
 	    -1, 0);
 	if (address == MAP_FAILED)
-		fatal("mmap(%d)", size);
+		fatal("mmap(%lu)", (u_long)size);
 
 	mm->address = address;
 	mm->size = size;
@@ -124,7 +124,7 @@ mm_destroy(struct mm_master *mm)
 	mm_freelist(mm->mmalloc, &mm->rb_allocated);
 
 	if (munmap(mm->address, mm->size) == -1)
-		fatal("munmap(%p, %d)", mm->address, mm->size);
+		fatal("munmap(%p, %lu)", mm->address, (u_long)mm->size);
 	if (mm->mmalloc == NULL)
 		xfree(mm);
 	else
@@ -138,7 +138,7 @@ mm_xmalloc(struct mm_master *mm, size_t size)
 
 	address = mm_malloc(mm, size);
 	if (address == NULL)
-		fatal("%s: mm_malloc(%d)", __FUNCTION__, size);
+		fatal("%s: mm_malloc(%lu)", __FUNCTION__, (u_long)size);
 	return (address);
 }
 
@@ -223,8 +223,8 @@ mm_free(struct mm_master *mm, void *address)
 
 	/* Check if range does not overlap */
 	if (prev != NULL && MM_ADDRESS_END(prev) > address)
-		fatal("mm_free: memory corruption: %p(%d) > %p",
-		    prev->address, prev->size, address);
+		fatal("mm_free: memory corruption: %p(%lu) > %p",
+		    prev->address, (u_long)prev->size, address);
 
 	/* See if we can merge backwards */
 	if (prev != NULL && MM_ADDRESS_END(prev) == address) {
@@ -246,8 +246,8 @@ mm_free(struct mm_master *mm, void *address)
 		return;
 
 	if (MM_ADDRESS_END(prev) > mms->address)
-		fatal("mm_free: memory corruption: %p < %p(%d)",
-		    mms->address, prev->address, prev->size);
+		fatal("mm_free: memory corruption: %p < %p(%lu)",
+		    mms->address, prev->address, (u_long)prev->size);
 	if (MM_ADDRESS_END(prev) != mms->address)
 		return;
 

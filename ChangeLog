@@ -31,6 +31,11 @@
    - markus@cvs.openbsd.org 2002/03/25 17:34:27
      [scard.c scard.h ssh-agent.c ssh-keygen.c ssh.c]
      change sc_get_key to sc_get_keys and hide smartcard details in scard.c
+   - stevesk@cvs.openbsd.org 2002/03/25 20:12:10
+     [monitor_mm.c monitor_wrap.c]
+     ssize_t args use "%ld" and cast to (long)
+     size_t args use "%lu" and cast to (u_long)
+     ok markus@ and thanks millert@
 
 20020324
  - (stevesk) [session.c] disable LOGIN_NEEDS_TERM until we are sure
@@ -8045,4 +8050,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1987 2002/03/26 03:17:42 mouring Exp $
+$Id: ChangeLog,v 1.1988 2002/03/26 03:20:45 mouring Exp $

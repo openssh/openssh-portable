@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor_wrap.c,v 1.4 2002/03/19 14:27:39 markus Exp $");
+RCSID("$OpenBSD: monitor_wrap.c,v 1.5 2002/03/25 20:12:10 stevesk Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dh.h>
@@ -88,7 +88,7 @@ mm_request_receive(int socket, Buffer *m)
 	if (res != sizeof(buf)) {
 		if (res == 0)
 			fatal_cleanup();
-		fatal("%s: read: %d", __FUNCTION__, res);
+		fatal("%s: read: %ld", __FUNCTION__, (long)res);
 	}
 	msg_len = GET_32BIT(buf);
 	if (msg_len > 256 * 1024)
@@ -97,7 +97,7 @@ mm_request_receive(int socket, Buffer *m)
 	buffer_append_space(m, msg_len);
 	res = atomicio(read, socket, buffer_ptr(m), msg_len);
 	if (res != msg_len)
-		fatal("%s: read: %d != msg_len", __FUNCTION__, res);
+		fatal("%s: read: %ld != msg_len", __FUNCTION__, (long)res);
 }
 
 void
