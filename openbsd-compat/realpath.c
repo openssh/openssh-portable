@@ -150,7 +150,7 @@ loop:
 			serrno = ENAMETOOLONG;
 			goto err1;
 		}
-		if (needslash == 0)
+		if (needslash)
 			strlcat(resolved, "/", MAXPATHLEN);
 		strlcat(resolved, wbuf, MAXPATHLEN);
 	}
