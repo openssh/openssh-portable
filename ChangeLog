@@ -114,6 +114,9 @@
      [authfd.c authfd.h ssh-add.1 ssh-add.c ssh-agent.c]
      ssh-add -x for lock and -X for unlocking the agent.
      todo: encrypt private keys with locked...
+   - markus@cvs.openbsd.org 2002/06/05 20:56:39
+     [ssh-add.c]
+     add -x/-X to usage
 
 20020604
  - (stevesk) [channels.c] bug #164 patch from YOSHIFUJI Hideaki (changed
@@ -798,4 +801,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2174 2002/06/06 21:52:03 mouring Exp $
+$Id: ChangeLog,v 1.2175 2002/06/06 21:53:11 mouring Exp $
