@@ -1,3 +1,22 @@
+19991214
+ - OpenBSD CVS Changes
+   - [canohost.c]
+     fix get_remote_port() and friends for sshd -i; 
+     Holger.Trapp@Informatik.TU-Chemnitz.DE
+   - [mpaux.c]
+     make code simpler. no need for memcpy. niels@ ok
+   - [pty.c]
+     namebuflen not sizeof namebuflen; bnd@ep-ag.com via djm@mindrot.org
+     fix proto; markus
+   - [ssh.1]
+      typo; mark.baushke@solipsa.com
+   - [channels.c ssh.c ssh.h sshd.c]
+     type conflict for 'extern Type *options' in channels.c; dot@dotat.at
+   - [sshconnect.c]
+     move checking of hostkey into own function.
+   - [version.h]
+     OpenSSH-1.2.1
+
 19991211
  - Fix compilation on systems with AFS. Reported by 
    aloomis@glue.umd.edu

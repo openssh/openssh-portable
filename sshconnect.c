@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: sshconnect.c,v 1.17 1999/12/07 04:38:32 damien Exp $");
+RCSID("$Id: sshconnect.c,v 1.18 1999/12/13 23:47:16 damien Exp $");
 
 #ifdef HAVE_OPENSSL
 #include <openssl/bn.h>
@@ -156,8 +156,10 @@ ssh_create_socket(uid_t original_real_uid, int privileged)
 			fatal("rresvport: %.100s", strerror(errno));
 		debug("Allocated local port %d.", p);
 	} else {
-		/* Just create an ordinary socket on arbitrary port.  We
-		   use the user's uid to create the socket. */
+		/*
+		 * Just create an ordinary socket on arbitrary port.  We use
+		 * the user's uid to create the socket.
+		 */
 		temporarily_use_uid(original_real_uid);
 		sock = socket(AF_INET, SOCK_STREAM, 0);
 		if (sock < 0)
@@ -209,9 +211,11 @@ ssh_connect(const char *host, struct sockaddr_in * hostaddr,
 	/* No host lookup made yet. */
 	hp = NULL;
 
-	/* Try to connect several times.  On some machines, the first time
-	   will sometimes fail.  In general socket code appears to behave
-	   quite magically on many machines. */
+	/*
+	 * Try to connect several times.  On some machines, the first time
+	 * will sometimes fail.  In general socket code appears to behave
+	 * quite magically on many machines.
+	 */
 	for (attempt = 0; attempt < connection_attempts; attempt++) {
 		if (attempt > 0)
 			debug("Trying again...");
@@ -1087,39 +1091,21 @@ read_yes_or_no(const char *prompt, int defval)
 }
 
 /*
- * Starts a dialog with the server, and authenticates the current user on the
- * server.  This does not need any extra privileges.  The basic connection
- * to the server must already have been established before this is called.
- * User is the remote user; if it is NULL, the current local user name will
- * be used.  Anonymous indicates that no rhosts authentication will be used.
- * If login fails, this function prints an error and never returns.
- * This function does not require super-user privileges.
+ * check whether the supplied host key is valid, return only if ok.
  */
+
 void
-ssh_login(int host_key_valid,
-	  RSA *own_host_key,
-	  const char *orighost,
-	  struct sockaddr_in *hostaddr,
-	  uid_t original_real_uid)
+check_host_key(char *host,
+    struct sockaddr_in *hostaddr,
+    RSA *host_key)
 {
-	int i, type;
-	struct passwd *pw;
-	BIGNUM *key;
-	RSA *host_key, *file_key;
-	RSA *public_key;
-	int bits, rbits;
-	unsigned char session_key[SSH_SESSION_KEY_LENGTH];
-	const char *server_user, *local_user;
-	char *cp, *host, *ip = NULL;
+	RSA *file_key;
+	char *ip = NULL;
 	char hostline[1000], *hostp;
-	unsigned char check_bytes[8];
-	unsigned int supported_ciphers, supported_authentications, protocol_flags;
 	HostStatus host_status;
 	HostStatus ip_status;
 	int host_ip_differ = 0;
 	int local = (ntohl(hostaddr->sin_addr.s_addr) >> 24) == IN_LOOPBACKNET;
-	int payload_len, clen, sum_len = 0;
-	u_int32_t rand = 0;
 
 	/*
 	 * Turn off check_host_ip for proxy connects, since
@@ -1131,87 +1117,13 @@ ssh_login(int host_key_valid,
 	if (options.check_host_ip)
 		ip = xstrdup(inet_ntoa(hostaddr->sin_addr));
 
-	/* Convert the user-supplied hostname into all lowercase. */
-	host = xstrdup(orighost);
-	for (cp = host; *cp; cp++)
-		if (isupper(*cp))
-			*cp = tolower(*cp);
-
-	/* Exchange protocol version identification strings with the server. */
-	ssh_exchange_identification();
-
-	/* Put the connection into non-blocking mode. */
-	packet_set_nonblocking();
-
-	/* Get local user name.  Use it as server user if no user name was given. */
-	pw = getpwuid(original_real_uid);
-	if (!pw)
-		fatal("User id %d not found from user database.", original_real_uid);
-	local_user = xstrdup(pw->pw_name);
-	server_user = options.user ? options.user : local_user;
-
-	debug("Waiting for server public key.");
-
-	/* Wait for a public key packet from the server. */
-	packet_read_expect(&payload_len, SSH_SMSG_PUBLIC_KEY);
-
-	/* Get check bytes from the packet. */
-	for (i = 0; i < 8; i++)
-		check_bytes[i] = packet_get_char();
-
-	/* Get the public key. */
-	public_key = RSA_new();
-	bits = packet_get_int();/* bits */
-	public_key->e = BN_new();
-	packet_get_bignum(public_key->e, &clen);
-	sum_len += clen;
-	public_key->n = BN_new();
-	packet_get_bignum(public_key->n, &clen);
-	sum_len += clen;
-
-	rbits = BN_num_bits(public_key->n);
-	if (bits != rbits) {
-		log("Warning: Server lies about size of server public key: "
-		    "actual size is %d bits vs. announced %d.", rbits, bits);
-		log("Warning: This may be due to an old implementation of ssh.");
-	}
-	/* Get the host key. */
-	host_key = RSA_new();
-	bits = packet_get_int();/* bits */
-	host_key->e = BN_new();
-	packet_get_bignum(host_key->e, &clen);
-	sum_len += clen;
-	host_key->n = BN_new();
-	packet_get_bignum(host_key->n, &clen);
-	sum_len += clen;
-
-	rbits = BN_num_bits(host_key->n);
-	if (bits != rbits) {
-		log("Warning: Server lies about size of server host key: "
-		    "actual size is %d bits vs. announced %d.", rbits, bits);
-		log("Warning: This may be due to an old implementation of ssh.");
-	}
-	/* Store the host key from the known host file in here so that we
-	   can compare it with the key for the IP address. */
+	/*
+	 * Store the host key from the known host file in here so that we can
+	 * compare it with the key for the IP address.
+	 */
 	file_key = RSA_new();
 	file_key->n = BN_new();
 	file_key->e = BN_new();
-
-	/* Get protocol flags. */
-	protocol_flags = packet_get_int();
-	packet_set_protocol_flags(protocol_flags);
-
-	supported_ciphers = packet_get_int();
-	supported_authentications = packet_get_int();
-
-	debug("Received server public key (%d bits) and host key (%d bits).",
-	      BN_num_bits(public_key->n), BN_num_bits(host_key->n));
-
-	packet_integrity_check(payload_len,
-			       8 + 4 + sum_len + 0 + 4 + 0 + 0 + 4 + 4 + 4,
-			       SSH_SMSG_PUBLIC_KEY);
-
-	compute_session_id(session_id, check_bytes, host_key->n, public_key->n);
 
 	/*
 	 * Check if the host key is present in the user\'s list of known
@@ -1372,9 +1284,121 @@ ssh_login(int host_key_valid,
 		 */
 		break;
 	}
-
 	if (options.check_host_ip)
 		xfree(ip);
+}
+
+/*
+ * Starts a dialog with the server, and authenticates the current user on the
+ * server.  This does not need any extra privileges.  The basic connection
+ * to the server must already have been established before this is called.
+ * User is the remote user; if it is NULL, the current local user name will
+ * be used.  Anonymous indicates that no rhosts authentication will be used.
+ * If login fails, this function prints an error and never returns.
+ * This function does not require super-user privileges.
+ */
+void
+ssh_login(int host_key_valid,
+	  RSA *own_host_key,
+	  const char *orighost,
+	  struct sockaddr_in *hostaddr,
+	  uid_t original_real_uid)
+{
+	int i, type;
+	struct passwd *pw;
+	BIGNUM *key;
+	RSA *host_key;
+	RSA *public_key;
+	int bits, rbits;
+	unsigned char session_key[SSH_SESSION_KEY_LENGTH];
+	const char *server_user, *local_user;
+	char *host, *cp;
+	unsigned char check_bytes[8];
+	unsigned int supported_ciphers, supported_authentications;
+	unsigned int server_flags, client_flags;
+	int payload_len, clen, sum_len = 0;
+	u_int32_t rand = 0;
+
+	/* Convert the user-supplied hostname into all lowercase. */
+	host = xstrdup(orighost);
+	for (cp = host; *cp; cp++)
+		if (isupper(*cp))
+			*cp = tolower(*cp);
+
+	/* Exchange protocol version identification strings with the server. */
+	ssh_exchange_identification();
+
+	/* Put the connection into non-blocking mode. */
+	packet_set_nonblocking();
+
+	/* Get local user name.  Use it as server user if no user name was given. */
+	pw = getpwuid(original_real_uid);
+	if (!pw)
+		fatal("User id %d not found from user database.", original_real_uid);
+	local_user = xstrdup(pw->pw_name);
+	server_user = options.user ? options.user : local_user;
+
+	debug("Waiting for server public key.");
+
+	/* Wait for a public key packet from the server. */
+	packet_read_expect(&payload_len, SSH_SMSG_PUBLIC_KEY);
+
+	/* Get check bytes from the packet. */
+	for (i = 0; i < 8; i++)
+		check_bytes[i] = packet_get_char();
+
+	/* Get the public key. */
+	public_key = RSA_new();
+	bits = packet_get_int();/* bits */
+	public_key->e = BN_new();
+	packet_get_bignum(public_key->e, &clen);
+	sum_len += clen;
+	public_key->n = BN_new();
+	packet_get_bignum(public_key->n, &clen);
+	sum_len += clen;
+
+	rbits = BN_num_bits(public_key->n);
+	if (bits != rbits) {
+		log("Warning: Server lies about size of server public key: "
+		    "actual size is %d bits vs. announced %d.", rbits, bits);
+		log("Warning: This may be due to an old implementation of ssh.");
+	}
+	/* Get the host key. */
+	host_key = RSA_new();
+	bits = packet_get_int();/* bits */
+	host_key->e = BN_new();
+	packet_get_bignum(host_key->e, &clen);
+	sum_len += clen;
+	host_key->n = BN_new();
+	packet_get_bignum(host_key->n, &clen);
+	sum_len += clen;
+
+	rbits = BN_num_bits(host_key->n);
+	if (bits != rbits) {
+		log("Warning: Server lies about size of server host key: "
+		    "actual size is %d bits vs. announced %d.", rbits, bits);
+		log("Warning: This may be due to an old implementation of ssh.");
+	}
+
+	/* Get protocol flags. */
+	server_flags = packet_get_int();
+	packet_set_protocol_flags(server_flags);
+
+	supported_ciphers = packet_get_int();
+	supported_authentications = packet_get_int();
+
+	debug("Received server public key (%d bits) and host key (%d bits).",
+	      BN_num_bits(public_key->n), BN_num_bits(host_key->n));
+
+	packet_integrity_check(payload_len,
+			       8 + 4 + sum_len + 0 + 4 + 0 + 0 + 4 + 4 + 4,
+			       SSH_SMSG_PUBLIC_KEY);
+
+	check_host_key(host, hostaddr, host_key);
+
+	client_flags = SSH_PROTOFLAG_SCREEN_NUMBER | SSH_PROTOFLAG_HOST_IN_FWD_OPEN;
+
+	compute_session_id(session_id, check_bytes, host_key->n, public_key->n);
 
 	/* Generate a session key. */
 	arc4random_stir();
@@ -1465,7 +1489,7 @@ ssh_login(int host_key_valid,
 	packet_put_bignum(key);
 
 	/* Send protocol flags. */
-	packet_put_int(SSH_PROTOFLAG_SCREEN_NUMBER | SSH_PROTOFLAG_HOST_IN_FWD_OPEN);
+	packet_put_int(client_flags);
 
 	/* Send the packet now. */
 	packet_send();

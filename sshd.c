@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.37 1999/12/08 23:31:37 damien Exp $");
+RCSID("$Id: sshd.c,v 1.38 1999/12/13 23:47:16 damien Exp $");
 
 #include <poll.h>
 
@@ -960,7 +960,7 @@ do_connection()
 	unsigned char check_bytes[8];
 	char *user;
 	unsigned int cipher_type, auth_mask, protocol_flags;
-	int plen, slen;
+	int plen, slen, ulen;
 	u_int32_t rand = 0;
 
 	/*
@@ -1139,11 +1139,8 @@ do_connection()
 	packet_read_expect(&plen, SSH_CMSG_USER);
 
 	/* Get the user name. */
-	{
-		int ulen;
-		user = packet_get_string(&ulen);
-		packet_integrity_check(plen, (4 + ulen), SSH_CMSG_USER);
-	}
+	user = packet_get_string(&ulen);
+	packet_integrity_check(plen, (4 + ulen), SSH_CMSG_USER);
 
 	/* Destroy the private and public keys.  They will no longer be needed. */
 	RSA_free(public_key);
@@ -1646,15 +1643,22 @@ do_fake_authloop(char *user)
 #ifdef SKEY
 		int dlen;
 		char *password, *skeyinfo;
-		if (options.password_authentication &&
-		    options.skey_authentication == 1 &&
-		    type == SSH_CMSG_AUTH_PASSWORD &&
-		    (password = packet_get_string(&dlen)) != NULL &&
-		    dlen == 5 &&
-		    strncasecmp(password, "s/key", 5) == 0 &&
+		/* Try to send a fake s/key challenge. */
+		if (options.skey_authentication == 1 &&
 		    (skeyinfo = skey_fake_keyinfo(user)) != NULL) {
-			/* Send a fake s/key challenge. */
-			packet_send_debug(skeyinfo);
+			if (type == SSH_CMSG_AUTH_TIS) {
+				packet_start(SSH_SMSG_AUTH_TIS_CHALLENGE);
+				packet_put_string(skeyinfo, strlen(skeyinfo));
+				packet_send();
+				packet_write_wait();
+				continue;
+			} else if (type == SSH_CMSG_AUTH_PASSWORD &&
+			           options.password_authentication &&
+			           (password = packet_get_string(&dlen)) != NULL &&
+			           dlen == 5 &&
+			           strncasecmp(password, "s/key", 5) == 0 ) {
+				packet_send_debug(skeyinfo);
+			}
 		}
 #endif
 		if (attempt > AUTH_FAIL_MAX)
@@ -1836,7 +1840,7 @@ do_authenticated(struct passwd * pw)
 				screen = packet_get_int();
 			else
 				screen = 0;
-			display = x11_create_display_inet(screen);
+			display = x11_create_display_inet(screen, options.x11_display_offset);
 			if (!display)
 				goto fail;
 

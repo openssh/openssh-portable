@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: canohost.c,v 1.4 1999/11/25 00:54:58 damien Exp $");
+RCSID("$Id: canohost.c,v 1.5 1999/12/13 23:47:15 damien Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -143,6 +143,28 @@ check_ip_options:
 static char *canonical_host_name = NULL;
 static char *canonical_host_ip = NULL;
 
+/* Returns 1 if remote host is connected via socket, 0 if not. */
+
+int
+peer_connection_is_on_socket()
+{
+	struct sockaddr_in from;
+	int fromlen;
+	int in = packet_get_connection_in();
+	int out = packet_get_connection_out();
+
+	/* filedescriptors in and out are the same, so it's a socket */
+	if (in == out)
+		return 1;
+	fromlen = sizeof(from);
+	memset(&from, 0, sizeof(from));
+	if (getpeername(in, (struct sockaddr *) & from, &fromlen) < 0)
+		return 0;
+	if (from.sin_family != AF_INET && from.sin_family != AF_INET6)
+		return 0;
+	return 1;
+}
+
 /*
  * Return the canonical name of the host in the other side of the current
  * connection.  The host name is cached, so it is efficient to call this
@@ -157,7 +179,7 @@ get_canonical_hostname()
 		return canonical_host_name;
 
 	/* Get the real hostname if socket; otherwise return UNKNOWN. */
-	if (packet_get_connection_in() == packet_get_connection_out())
+	if (peer_connection_is_on_socket())
 		canonical_host_name = get_remote_hostname(packet_get_connection_in());
 	else
 		canonical_host_name = xstrdup("UNKNOWN");
@@ -181,7 +203,7 @@ get_remote_ipaddr()
 		return canonical_host_ip;
 
 	/* If not a socket, return UNKNOWN. */
-	if (packet_get_connection_in() != packet_get_connection_out()) {
+	if (!peer_connection_is_on_socket()) {
 		canonical_host_ip = xstrdup("UNKNOWN");
 		return canonical_host_ip;
 	}
@@ -232,7 +254,7 @@ get_remote_port()
 	 * If the connection is not a socket, return 65535.  This is
 	 * intentionally chosen to be an unprivileged port number.
 	 */
-	if (packet_get_connection_in() != packet_get_connection_out())
+	if (!peer_connection_is_on_socket())
 		return 65535;
 
 	/* Get client socket. */

@@ -16,7 +16,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: channels.c,v 1.11 1999/12/07 05:47:28 damien Exp $");
+RCSID("$Id: channels.c,v 1.12 1999/12/13 23:47:15 damien Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -877,11 +877,10 @@ channel_open_message()
 
 void 
 channel_request_local_forwarding(u_short port, const char *host,
-				 u_short host_port)
+				 u_short host_port, int gateway_ports)
 {
 	int ch, sock, on = 1;
 	struct sockaddr_in sin;
-	extern Options options;
 	struct linger linger;
 
 	if (strlen(host) > sizeof(channels[0].path) - 1)
@@ -895,7 +894,7 @@ channel_request_local_forwarding(u_short port, const char *host,
 	/* Initialize socket address. */
 	memset(&sin, 0, sizeof(sin));
 	sin.sin_family = AF_INET;
-	if (options.gateway_ports == 1)
+	if (gateway_ports == 1)
 		sin.sin_addr.s_addr = htonl(INADDR_ANY);
 	else
 		sin.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
@@ -983,9 +982,11 @@ channel_input_port_forward_request(int is_root)
 	if (port < IPPORT_RESERVED && !is_root)
 		packet_disconnect("Requested forwarding of port %d but user is not root.",
 				  port);
-
-	/* Initiate forwarding. */
-	channel_request_local_forwarding(port, hostname, host_port);
+	/*
+	 * Initiate forwarding,
+	 * bind port to localhost only (gateway ports == 0).
+	 */
+	channel_request_local_forwarding(port, hostname, host_port, 0);
 
 	/* Free the argument string. */
 	xfree(hostname);
@@ -1116,16 +1117,15 @@ fail:
  */
 
 char *
-x11_create_display_inet(int screen_number)
+x11_create_display_inet(int screen_number, int x11_display_offset)
 {
-	extern ServerOptions options;
 	int display_number, sock;
 	u_short port;
 	struct sockaddr_in sin;
 	char buf[512];
 	char hostname[MAXHOSTNAMELEN];
 
-	for (display_number = options.x11_display_offset;
+	for (display_number = x11_display_offset;
 	     display_number < MAX_DISPLAYS;
 	     display_number++) {
 		port = 6000 + display_number;
