@@ -33,7 +33,7 @@
 #include "canohost.h"
 #include "readpass.h"
 
-RCSID("$Id: auth-pam.c,v 1.29 2001/02/15 00:51:32 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.30 2001/02/26 22:20:48 djm Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now"
@@ -280,6 +280,7 @@ void do_pam_session(char *username, const char *ttyname)
 	if (pam_retval != PAM_SUCCESS)
 		fatal("PAM session setup failed[%d]: %.200s",
 		    pam_retval, PAM_STRERROR(__pamh, pam_retval));
+
 	session_opened = 1;
 }
 
