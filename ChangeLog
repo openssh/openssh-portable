@@ -1,5 +1,11 @@
 20010117
  - (djm) Only write random seed file at exit
+ - (djm) Make PAM support optional, enable with --with-pam
+ - (djm) Try to use libcrypt on Linux, but link it after OpenSSL (which 
+   provides a crypt() of its own)
+ - (djm) Avoid a warning in bsd-bindresvport.c
+ - (djm) Try to avoid adding -I/usr/include to CPPFLAGS during SSL tests. This
+   can cause weird segfaults errors on Solaris 
 
 20010115
  - (bal) sftp-server.c change to use chmod() if fchmod() does not exist.

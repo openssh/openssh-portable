@@ -62,12 +62,10 @@ case "$host" in
 *-*-cygwin*)
 	LIBS="$LIBS -lregex /usr/lib/textmode.o"
 	AC_DEFINE(HAVE_CYGWIN)
-	AC_DEFINE(DISABLE_PAM)
 	AC_DEFINE(DISABLE_SHADOW)
 	AC_DEFINE(IPV4_DEFAULT)
 	AC_DEFINE(IP_TOS_IS_BROKEN)
 	AC_DEFINE(BROKEN_VHANGUP)
-	no_pam=1
 	no_libsocket=1
 	no_libnsl=1
 	;;
@@ -122,6 +120,7 @@ case "$host" in
 	;;
 *-*-linux*)
 	no_dev_ptmx=1
+	check_for_libcrypt_later=1
 	AC_DEFINE(DONT_TRY_OTHER_AF)
 	AC_DEFINE(PAM_TTY_KLUDGE)
 	inet6_default_4in6=yes
@@ -368,27 +367,30 @@ fi
 
 AC_FUNC_GETPGRP
 
+# Check for PAM libs
 PAM_MSG="no"
 AC_ARG_WITH(pam,
-	[  --without-pam           Disable PAM support ],
+	[  --with-pam              Enable PAM support ],
 	[
-		if test "x$withval" = "xno" ; then
-			no_pam=1
-			AC_DEFINE(DISABLE_PAM)
-			PAM_MSG="disabled"
+		if test "x$withval" != "xno" ; then
+			if test "x$ac_cv_header_security_pam_appl_h" != "xyes" ; then
+				AC_MSG_ERROR([PAM headers not found])
+			fi
+
+			AC_CHECK_LIB(dl, dlopen, , )
+			AC_CHECK_LIB(pam, pam_set_item, , AC_MSG_ERROR([*** libpam missing]))
+			AC_CHECK_FUNCS(pam_getenvlist)
+
+			disable_shadow=yes
+			PAM_MSG="yes"
+
+			AC_DEFINE(USE_PAM)
 		fi
 	]
 )
-if (test -z "$no_pam" && test "x$ac_cv_header_security_pam_appl_h" = "xyes") ; then
-	AC_CHECK_LIB(dl, dlopen, , )
-	LIBS="$LIBS -lpam"
 
-	AC_CHECK_FUNCS(pam_getenvlist)
-
-	disable_shadow=yes
-
-	PAM_MSG="yes"
-
+# Check for older PAM
+if test "x$PAM_MSG" = "xyes" ; then
 	# Check PAM strerror arguments (old PAM)
 	AC_MSG_CHECKING([whether pam_strerror takes only one argument])
 	AC_TRY_COMPILE(
@@ -403,7 +405,7 @@ if (test -z "$no_pam" && test "x$ac_cv_header_security_pam_appl_h" = "xyes") ; t
 			AC_MSG_RESULT(yes)
 			PAM_MSG="yes (old library)"
 		]
-	) 
+	)
 fi
 
 # The big search for OpenSSL
@@ -425,7 +427,7 @@ fi
 AC_CACHE_CHECK([for OpenSSL directory], ac_cv_openssldir, [
 
 	for ssldir in $tryssldir "" /usr/local/openssl /usr/lib/openssl /usr/local/ssl /usr/lib/ssl /usr/local /usr/pkg /opt /opt/openssl ; do
-		if test ! -z "$ssldir" ; then
+		if test ! -z "$ssldir" -a "x$ssldir" != "x/usr"; then
 			LDFLAGS="$saved_LDFLAGS -L$ssldir/lib -L$ssldir"
 			CPPFLAGS="$saved_CPPFLAGS -I$ssldir/include"
 			if test ! -z "$need_dash_r" ; then
@@ -476,13 +478,16 @@ if (test ! -z "$ac_cv_openssldir" && test "x$ac_cv_openssldir" != "x(system)") ;
 	AC_DEFINE(HAVE_OPENSSL)
 	dnl Need to recover ssldir - test above runs in subshell
 	ssldir=$ac_cv_openssldir
-	CPPFLAGS="$saved_CPPFLAGS -I$ssldir/include"
-	LDFLAGS="$saved_LDFLAGS -L$ssldir/lib -L$ssldir"
-	if test ! -z "$need_dash_r" ; then
-		LDFLAGS="$LDFLAGS -R$ssldir/lib -R$ssldir"
-	fi
-	if test ! -z "$blibpath" ; then
-		blibpath="$blibpath:$ssldir:$ssldir/lib"
+
+	if test ! -z "$ssldir" -a "x$ssldir" != "x/usr"; then
+		CPPFLAGS="$saved_CPPFLAGS -I$ssldir/include"
+		LDFLAGS="$saved_LDFLAGS -L$ssldir/lib -L$ssldir"
+		if test ! -z "$need_dash_r" ; then
+			LDFLAGS="$LDFLAGS -R$ssldir/lib -R$ssldir"
+		fi
+		if test ! -z "$blibpath" ; then
+			blibpath="$blibpath:$ssldir:$ssldir/lib"
+		fi
 	fi
 fi
 LIBS="$saved_LIBS -lcrypto"
@@ -535,6 +540,12 @@ else
 			LIBS="$saved_LIBS -lcrypto -lRSAglue -lrsaref"
 		fi
 	fi
+fi
+
+# Some Linux systems (Slackware) need crypt() from libcrypt, *not* the 
+# version in OpenSSL. Skip this for PAM
+if test "x$PAM_MSG" = "xno" -a "x$check_for_libcrypt_later" = "x1"; then
+	AC_CHECK_LIB(crypt, crypt, , )
 fi
 
 # Cheap hack to ensure NEWS-OS libraries are arranged right.

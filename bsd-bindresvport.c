@@ -88,6 +88,9 @@ bindresvport_af(sd, sa, af)
 	if (port == 0)
 		port = (arc4random() % NPORTS) + STARTPORT;
 
+	/* Avoid warning */
+	error = -1;
+
 	for(i = 0; i < NPORTS; i++) {
 		*portp = htons(port);
 		

@@ -332,10 +332,6 @@ struct winsize {
 # define __attribute__(x)
 #endif /* !defined(__GNUC__) || (__GNUC__ < 2) */
 
-#if defined(HAVE_SECURITY_PAM_APPL_H) && !defined(DISABLE_PAM)
-# define USE_PAM
-#endif /* defined(HAVE_SECURITY_PAM_APPL_H) && !defined(DISABLE_PAM) */
-
 #ifndef SUN_LEN
 #define SUN_LEN(su) \
         (sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
