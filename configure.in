@@ -1043,7 +1043,7 @@ AC_CHECK_FILE("/dev/ptc",
 
 # Check for user-specified random device, otherwise check /dev/urandom
 AC_ARG_WITH(random,
-	[  --with-random=FILE      read randomness from FILE (default=/dev/urandom)],
+	[  --with-random=FILE      read entropy from FILE (default=/dev/urandom)],
 	[
 		if test "x$withval" != "xno" ; then
 			RANDOM_POOL="$withval";
@@ -1064,14 +1064,30 @@ AC_ARG_WITH(random,
 
 # Check for EGD pool file
 AC_ARG_WITH(egd-pool,
-	[  --with-egd-pool=FILE    read randomness from EGD pool FILE (default none)],
+	[  --with-egd-pool=FILE    read entropy from PRNGD/EGD socket FILE (default=/var/run/egd-pool)],
 	[
 		if test "x$withval" != "xno" ; then
 			EGD_SOCKET="$withval";
 			AC_DEFINE_UNQUOTED(EGD_SOCKET, "$EGD_SOCKET")
 		fi
+	],
+	[
+		# Check for existing socket only if we don't have a random device already
+		if test -z "$RANDOM_POOL" ; then
+			AC_MSG_CHECKING(for PRNGD/EGD socket)
+			# Insert other locations here
+			for egdsock in /var/run/egd-pool /etc/entropy ; do
+				if test -S $egdsock ; then
+					EGD_SOCKET="$egdsock"
+					AC_DEFINE_UNQUOTED(EGD_SOCKET, "$EGD_SOCKET")
+					AC_MSG_RESULT($egdsock)
+					break;
+				fi
+			done
+		fi
 	]
 )
+
 
 # detect pathnames for entropy gathering commands, if we need them
 INSTALL_SSH_PRNG_CMDS=""
@@ -1629,7 +1645,7 @@ if test ! -z "$RANDOM_POOL" ; then
 	RAND_MSG="Device ($RANDOM_POOL)"
 else
 	if test ! -z "$EGD_SOCKET" ; then
-		RAND_MSG="EGD ($EGD_SOCKET)"
+		RAND_MSG="EGD/PRNGD ($EGD_SOCKET)"
 	else
 		RAND_MSG="Builtin (timeout $entropy_timeout)"
 		BUILTIN_RNG=1

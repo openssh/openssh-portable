@@ -14,8 +14,8 @@ Markus Friedl, Niels Provos, Theo de Raadt, and Dug Song. It has a
 homepage at http://www.openssh.com/
 
 This port consists of the re-introduction of autoconf support, PAM
-support (for Linux and Solaris), EGD[1] support and replacements for 
-OpenBSD library functions that are (regrettably) absent from other 
+support (for Linux and Solaris), EGD[1]/PRNGD[2] support and replacements 
+for OpenBSD library functions that are (regrettably) absent from other 
 unices. This port has been best tested on Linux, Solaris, HPUX, NetBSD 
 and Irix. Support for AIX, SCO, NeXT and other Unices is underway. 
 This version actively tracks changes in the OpenBSD CVS repository.
@@ -24,7 +24,7 @@ The PAM support is now more functional than the popular packages of
 commercial ssh-1.2.x. It checks "account" and "session" modules for
 all logins, not just when using password authentication.
 
-OpenSSH depends on Zlib[2], OpenSSL[3] and optionally PAM[4].
+OpenSSH depends on Zlib[3], OpenSSL[4] and optionally PAM[5].
 
 There is now several mailing lists for this port of OpenSSH. Please
 refer to http://www.openssh.com/list.html for details on how to join.
@@ -37,11 +37,11 @@ If you are a citizen of the USA or another country which restricts
 export of cryptographic products, then please refrain from sending 
 crypto-related code or patches to the list. We cannot accept them.
 Other code contribution are accepted, but please follow the OpenBSD
-style guidelines[5].
+style guidelines[6].
 
 Please refer to the INSTALL document for information on how to install
 OpenSSH on your system. There are a number of differences between this 
-port of OpenSSH and F-Secure SSH 1.x, please refer to the OpenSSH FAQ[6]
+port of OpenSSH and F-Secure SSH 1.x, please refer to the OpenSSH FAQ[7]
 for details and general tips.
 
 Damien Miller <djm@mindrot.org>
@@ -56,8 +56,9 @@ References -
 
 [0] http://www.openssh.com/faq.html
 [1] http://www.lothar.com/tech/crypto/
-[2] ftp://ftp.freesoftware.com/pub/infozip/zlib/
-[3] http://www.openssl.org/
-[4] http://www.kernel.org/pub/linux/libs/pam/ (PAM is standard on Solaris)
-[5] http://www.openbsd.org/cgi-bin/man.cgi?query=style&sektion=9&apropos=0&manpath=OpenBSD+Current
-[6] http://www.openssh.com/faq.html
+[2] http://www.aet.tu-cottbus.de/personen/jaenicke/postfix_tls/prngd.html
+[3] ftp://ftp.freesoftware.com/pub/infozip/zlib/
+[4] http://www.openssl.org/
+[5] http://www.kernel.org/pub/linux/libs/pam/ (PAM is standard on Solaris)
+[6] http://www.openbsd.org/cgi-bin/man.cgi?query=style&sektion=9
+[7] http://www.openssh.com/faq.html

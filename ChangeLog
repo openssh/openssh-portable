@@ -9,6 +9,8 @@
      [bindresvport.c]
      in bindresvport(), if sin is non-NULL, example sin->sin_family for 
      the actual family being processed
+ - (djm) Mention PRNGd in documentation, it is nicer than EGD
+ - (djm) Automatically search for "well-known" EGD/PRNGd sockets in autoconf
 
 20010124
  - (bal) OpenBSD Resync

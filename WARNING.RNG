@@ -16,6 +16,8 @@ key and impersonate you or your hosts.
 
 If you are using the builtin random number support (configure will
 tell you if this is the case), then read this document in its entirety.
+Alternately, you can use Lutz Jaenicke's PRNGd - a small daemon which
+collects random numbers and makes them available by a socket.
 
 Please also request that your OS vendor provides a kernel-based random
 number collector (/dev/random) in future versions of your operating
