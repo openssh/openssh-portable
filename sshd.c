@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.295 2004/06/25 01:16:09 djm Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.296 2004/06/25 18:43:36 djm Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -96,6 +96,12 @@ int deny_severity = LOG_WARNING;
 #ifndef O_NOCTTY
 #define O_NOCTTY	0
 #endif
+
+/* Re-exec fds */
+#define REEXEC_DEVCRYPTO_RESERVED_FD	(STDERR_FILENO + 1)
+#define REEXEC_STARTUP_PIPE_FD		(STDERR_FILENO + 2)
+#define REEXEC_CONFIG_PASS_FD		(STDERR_FILENO + 3)
+#define REEXEC_MIN_FREE_FD		(STDERR_FILENO + 4)
 
 #ifdef HAVE___PROGNAME
 extern char *__progname;
@@ -1016,7 +1022,9 @@ main(int ac, char **av)
 	if (rexec_flag && (av[0] == NULL || *av[0] != '/'))
 		fatal("sshd re-exec requires execution with an absolute path");
 	if (rexeced_flag)
-		closefrom(STDERR_FILENO + 3);
+		closefrom(REEXEC_MIN_FREE_FD);
+	else
+		closefrom(REEXEC_DEVCRYPTO_RESERVED_FD);
 
 	SSLeay_add_all_algorithms();
 	channel_set_af(IPv4or6);
@@ -1056,7 +1064,7 @@ main(int ac, char **av)
 	/* Fetch our configuration */
 	buffer_init(&cfg);
 	if (rexeced_flag)
-		recv_rexec_state(STDERR_FILENO + 2, &cfg);
+		recv_rexec_state(REEXEC_CONFIG_PASS_FD, &cfg);
 	else
 		load_server_config(config_file_name, &cfg);
 
@@ -1235,11 +1243,11 @@ main(int ac, char **av)
 
 		startup_pipe = -1;
 		if (rexeced_flag) {
-			close(STDERR_FILENO + 2);
+			close(REEXEC_CONFIG_PASS_FD);
 			sock_in = sock_out = dup(STDIN_FILENO);
 			if (!debug_flag) {
-				startup_pipe = dup(STDERR_FILENO + 1);
-				close(STDERR_FILENO + 1);
+				startup_pipe = dup(REEXEC_STARTUP_PIPE_FD);
+				close(REEXEC_STARTUP_PIPE_FD);
 			}
 		} else {
 			sock_in = dup(STDIN_FILENO);
@@ -1501,6 +1509,7 @@ main(int ac, char **av)
 						sock_in = newsock;
 						sock_out = newsock;
 						log_init(__progname, options.log_level, options.log_facility, log_stderr);
+						close(config_s[0]);
 						break;
 					}
 				}
@@ -1545,35 +1554,40 @@ main(int ac, char **av)
 	if (rexec_flag) {
 		int fd;
 
-		debug("rexec newsock %d pipe %d sock %d", newsock, 
-		    startup_pipe, config_s[0]);
+		debug("rexec start in %d out %d newsock %d pipe %d sock %d",
+		    sock_in, sock_out, newsock, startup_pipe, config_s[0]);
 		dup2(newsock, STDIN_FILENO);
 		dup2(STDIN_FILENO, STDOUT_FILENO);
 		if (startup_pipe == -1)
-			close(STDERR_FILENO + 1);
+			close(REEXEC_STARTUP_PIPE_FD);
 		else
-			dup2(startup_pipe, STDERR_FILENO + 1);
+			dup2(startup_pipe, REEXEC_STARTUP_PIPE_FD);
 
-		dup2(config_s[1], STDERR_FILENO + 2);
+		dup2(config_s[1], REEXEC_CONFIG_PASS_FD);
 		close(config_s[1]);
+		close(startup_pipe);
+
 		execv(rexec_argv[0], rexec_argv);
 
 		/* Reexec has failed, fall back and continue */
 		error("rexec of %s failed: %s", rexec_argv[0], strerror(errno));
-		recv_rexec_state(STDERR_FILENO + 2, NULL);
+		recv_rexec_state(REEXEC_CONFIG_PASS_FD, NULL);
 		log_init(__progname, options.log_level,
 		    options.log_facility, log_stderr);
 
 		/* Clean up fds */
+		startup_pipe = REEXEC_STARTUP_PIPE_FD;
 		close(config_s[1]);
-		close(STDERR_FILENO + 1);
-		close(STDERR_FILENO + 2);
+		close(REEXEC_CONFIG_PASS_FD);
+		newsock = sock_out = sock_in = dup(STDIN_FILENO);
 		if ((fd = open(_PATH_DEVNULL, O_RDWR, 0)) != -1) {
 			dup2(fd, STDIN_FILENO);
 			dup2(fd, STDOUT_FILENO);
 			if (fd > STDERR_FILENO)
 				close(fd);
 		}
+		debug("rexec cleanup in %d out %d newsock %d pipe %d sock %d",
+		    sock_in, sock_out, newsock, startup_pipe, config_s[0]);
 	}
 
 	/*
