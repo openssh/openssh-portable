@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.193 2004/02/06 05:24:31 dtucker Exp $
+# $Id: configure.ac,v 1.194 2004/02/06 10:29:42 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -494,7 +494,7 @@ AC_CHECK_HEADERS(bstring.h crypt.h endian.h features.h floatingpoint.h \
 	rpc/types.h security/pam_appl.h shadow.h stddef.h stdint.h \
 	strings.h sys/strtio.h sys/audit.h sys/bitypes.h sys/bsdtty.h \
 	sys/cdefs.h sys/mman.h sys/pstat.h sys/ptms.h sys/select.h sys/stat.h \
-	sys/stropts.h sys/sysmacros.h sys/time.h sys/timers.h \
+	sys/stream.h sys/stropts.h sys/sysmacros.h sys/time.h sys/timers.h \
 	sys/un.h time.h tmpdir.h ttyent.h usersec.h \
 	util.h utime.h utmp.h utmpx.h vis.h)
 

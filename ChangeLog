@@ -12,6 +12,8 @@
  - (dtucker) [openbsd-compat/port-aix.c openbsd-compat/port-aix.h] Bug #796:
    Restore previous authdb setting after auth calls.  Fixes problems with
    setpcred failing on accounts that use AFS or NIS password registries.
+ - (dtucker) [configure.ac includes.h] Include <sys/stream.h> if present,
+   required on Solaris 2.5.1 for queue_t, which is used by <sys/ptms.h>.
  - (dtucker) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2004/01/30 09:48:57
      [auth-passwd.c auth.h pathnames.h session.c]
@@ -1809,4 +1811,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3214 2004/02/06 05:41:37 dtucker Exp $
+$Id: ChangeLog,v 1.3215 2004/02/06 10:29:41 dtucker Exp $
