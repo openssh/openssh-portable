@@ -7,6 +7,8 @@
      [scp.c]
      since ssh has xstrdup, use it instead of strdup+test. unbreaks -Werror
      build
+ - (dtucker) [monitor.c] Don't free buffers in audit functions, monitor_read
+   will free as needed.  ok tim@ djm@
 
 20050331
  - (dtucker) OpenBSD CVS Sync
@@ -2418,4 +2420,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3736 2005/04/03 00:16:39 djm Exp $
+$Id: ChangeLog,v 1.3737 2005/04/03 02:44:23 dtucker Exp $

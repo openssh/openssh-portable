@@ -1525,7 +1525,6 @@ mm_answer_audit_event(int socket, Buffer *m)
 	debug3("%s entering", __func__);
 
 	event = buffer_get_int(m);
-	buffer_free(m);
 	switch(event) {
 	case SSH_AUTH_FAIL_PUBKEY:
 	case SSH_AUTH_FAIL_HOSTBASED:
@@ -1554,7 +1553,6 @@ mm_answer_audit_command(int socket, Buffer *m)
 	/* sanity check command, if so how? */
 	audit_run_command(cmd);
 	xfree(cmd);
-	buffer_free(m);
 	return (0);
 }
 #endif /* SSH_AUDIT_EVENTS */
