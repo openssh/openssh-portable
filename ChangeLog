@@ -1,6 +1,9 @@
 20001017
  - (djm) Add -lregex to cywin libs from Corinna Vinschen
    <vinschen@cygnus.com>
+ - (djm) Don't rely on atomicio's retval to determine length of askpass
+   supplied passphrase. Problem report from Lutz Jaenicke
+   <Lutz.Jaenicke@aet.TU-Cottbus.DE>
 
 20001016
  - (djm) Sync with OpenBSD:
