@@ -21,6 +21,8 @@
    <tim@multitalents.net>
  - (stevesk) misc.c: cpp rework of SA_(INTERRUPT|RESTART) handling.
  - (stevesk) scp.c: use mysignal() for updateprogressmeter() handler.
+ - (djm) SA_INTERRUPT is the converse of SA_RESTART, apply it only for 
+   SIGALRM.
 
 20010217
  - (bal) OpenBSD Sync:
@@ -4028,4 +4030,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.794 2001/02/18 03:55:16 stevesk Exp $
+$Id: ChangeLog,v 1.795 2001/02/18 04:18:43 djm Exp $
