@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.234 2004/12/09 02:29:59 tim Exp $
+# $Id: configure.ac,v 1.235 2005/01/18 01:05:18 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -3020,7 +3020,8 @@ if test "$ac_cv_lib_pam_pam_set_item" = yes ; then
 fi
 
 AC_EXEEXT
-AC_CONFIG_FILES([Makefile buildpkg.sh opensshd.init openbsd-compat/Makefile scard/Makefile ssh_prng_cmds])
+AC_CONFIG_FILES([Makefile buildpkg.sh opensshd.init openbsd-compat/Makefile \
+	scard/Makefile ssh_prng_cmds survey.sh])
 AC_OUTPUT
 
 # Print summary of options

@@ -1,3 +1,10 @@
+20040118
+ - (dtucker) [INSTALL Makefile.in configure.ac survey.sh.in] Implement
+   "make survey" and "make send-survey".  This will provide data on the
+   configure parameters, platform and platform features to the development
+   team, which will allow (among other things) better targetting of testing.
+   It's entirely voluntary and is off be default. ok djm@
+
 20041220
  - (dtucker) [ssh-rand-helper.c] Fall back to command-based seeding if reading
    from prngd is enabled at compile time but fails at run time, eg because
@@ -1960,4 +1967,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3606 2004/12/20 01:35:42 dtucker Exp $
+$Id: ChangeLog,v 1.3607 2005/01/18 01:05:18 dtucker Exp $

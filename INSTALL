@@ -200,7 +200,20 @@ running and has collected some Entropy.
 For more information on configuration, please refer to the manual pages
 for sshd, ssh and ssh-agent.
 
-4. Problems?
+4. (Optional) Send survey
+-------------------------
+
+$ make survey
+[check the contents and make sure there's no sensitive information]
+$ make send-survey
+
+This will send configuration information for the currently configured
+host to a survey address.  This will help determine which configurations
+are actually in use, and what valid combinations of configure options
+exist.  The raw data is available only to the OpenSSH developers, however
+summary data may be published.
+
+5. Problems?
 ------------
 
 If you experience problems compiling, installing or running OpenSSH.
@@ -208,4 +221,4 @@ Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
 
 
-$Id: INSTALL,v 1.65 2004/11/07 09:14:34 dtucker Exp $
+$Id: INSTALL,v 1.66 2005/01/18 01:05:18 dtucker Exp $
