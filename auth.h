@@ -1,4 +1,4 @@
-/*	$OpenBSD: auth.h,v 1.38 2002/05/25 18:51:07 markus Exp $	*/
+/*	$OpenBSD: auth.h,v 1.39 2002/05/31 11:35:15 markus Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -43,6 +43,7 @@
 #endif
 
 typedef struct Authctxt Authctxt;
+typedef struct Authmethod Authmethod;
 typedef struct KbdintDevice KbdintDevice;
 
 struct Authctxt {
@@ -69,6 +70,12 @@ struct Authctxt {
 	krb5_principal	 krb5_user;
 	char		*krb5_ticket_file;
 #endif
+};
+
+struct Authmethod {
+	char	*name;
+	int	(*userauth)(Authctxt *authctxt);
+	int	*enabled;
 };
 
 /*
@@ -99,13 +106,6 @@ int      auth_rsa_challenge_dialog(Key *);
 BIGNUM	*auth_rsa_generate_challenge(Key *);
 int	 auth_rsa_verify_response(Key *, BIGNUM *, u_char[]);
 int	 auth_rsa_key_allowed(struct passwd *, BIGNUM *, Key **);
-
-/* ssh2 methods */
-int	 userauth_none(Authctxt *);
-int	 userauth_passwd(Authctxt *);
-int	 userauth_pubkey(Authctxt *);
-int	 userauth_hostbased(Authctxt *);
-int	 userauth_kbdint(Authctxt *);
 
 int	 auth_rhosts_rsa_key_allowed(struct passwd *, char *, char *, Key *);
 int	 hostbased_key_allowed(struct passwd *, const char *, char *, Key *);

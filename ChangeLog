@@ -65,6 +65,9 @@
      pass # of socket-fd to ssh-keysign, keysign verfies locally used
      ip-address using this socket-fd, restricts fake local hostnames
      to actual local hostnames; ok stevesk@
+   - markus@cvs.openbsd.org 2002/05/31 11:35:15
+     [auth.h auth2.c]
+     move Authmethod definitons to per-method file.
 
 20020604
  - (stevesk) [channels.c] bug #164 patch from YOSHIFUJI Hideaki (changed
@@ -749,4 +752,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2162 2002/06/06 20:51:04 mouring Exp $
+$Id: ChangeLog,v 1.2163 2002/06/06 20:52:37 mouring Exp $

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.92 2002/05/25 18:51:07 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.93 2002/05/31 11:35:15 markus Exp $");
 
 #include "ssh2.h"
 #include "xmalloc.h"
@@ -42,13 +42,22 @@ extern u_char *session_id2;
 extern int session_id2_len;
 
 Authctxt *x_authctxt = NULL;
-static int one = 1;
 
-typedef struct Authmethod Authmethod;
-struct Authmethod {
-	char	*name;
-	int	(*userauth)(Authctxt *authctxt);
-	int	*enabled;
+/* methods */
+
+extern Authmethod method_none;
+extern Authmethod method_pubkey;
+extern Authmethod method_passwd;
+extern Authmethod method_kbdint;
+extern Authmethod method_hostbased;
+
+Authmethod *authmethods[] = {
+	&method_none,
+	&method_pubkey,
+	&method_passwd,
+	&method_kbdint,
+	&method_hostbased,
+	NULL
 };
 
 /* protocol */
@@ -61,27 +70,6 @@ static Authmethod *authmethod_lookup(const char *);
 static char *authmethods_get(void);
 int user_key_allowed(struct passwd *, Key *);
 int hostbased_key_allowed(struct passwd *, const char *, char *, Key *);
-
-/* auth */
-
-Authmethod authmethods[] = {
-	{"none",
-		userauth_none,
-		&one},
-	{"publickey",
-		userauth_pubkey,
-		&options.pubkey_authentication},
-	{"password",
-		userauth_passwd,
-		&options.password_authentication},
-	{"keyboard-interactive",
-		userauth_kbdint,
-		&options.kbd_interactive_authentication},
-	{"hostbased",
-		userauth_hostbased,
-		&options.hostbased_authentication},
-	{NULL, NULL, NULL}
-};
 
 /*
  * loop until authctxt->success == TRUE
@@ -595,18 +583,20 @@ auth_get_user(void)
 static char *
 authmethods_get(void)
 {
-	Authmethod *method = NULL;
 	Buffer b;
 	char *list;
+	int i;
 
 	buffer_init(&b);
-	for (method = authmethods; method->name != NULL; method++) {
-		if (strcmp(method->name, "none") == 0)
+	for (i = 0; authmethods[i] != NULL; i++) {
+		if (strcmp(authmethods[i]->name, "none") == 0)
 			continue;
-		if (method->enabled != NULL && *(method->enabled) != 0) {
+		if (authmethods[i]->enabled != NULL &&
+		    *(authmethods[i]->enabled) != 0) {
 			if (buffer_len(&b) > 0)
 				buffer_append(&b, ",", 1);
-			buffer_append(&b, method->name, strlen(method->name));
+			buffer_append(&b, authmethods[i]->name,
+			    strlen(authmethods[i]->name));
 		}
 	}
 	buffer_append(&b, "\0", 1);
@@ -618,13 +608,15 @@ authmethods_get(void)
 static Authmethod *
 authmethod_lookup(const char *name)
 {
-	Authmethod *method = NULL;
+	int i;
+
 	if (name != NULL)
-		for (method = authmethods; method->name != NULL; method++)
-			if (method->enabled != NULL &&
-			    *(method->enabled) != 0 &&
-			    strcmp(name, method->name) == 0)
-				return method;
-	debug2("Unrecognized authentication method name: %s", name ? name : "NULL");
+		for (i = 0; authmethods[i] != NULL; i++)
+			if (authmethods[i]->enabled != NULL &&
+			    *(authmethods[i]->enabled) != 0 &&
+			    strcmp(name, authmethods[i]->name) == 0)
+				return authmethods[i];
+	debug2("Unrecognized authentication method name: %s",
+	    name ? name : "NULL");
 	return NULL;
 }
