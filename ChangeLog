@@ -8,6 +8,10 @@
    - david@cvs.openbsd.org 2005/01/14 04:21:18
      [Makefile test-exec.sh]
      pass the SUDO make variable to the individual sh tests; ok dtucker@ markus@
+   - dtucker@cvs.openbsd.org 2005/02/27 11:33:30
+     [multiplex.sh test-exec.sh sshd-log-wrapper.sh]
+     Add optional capability to log output from regress commands; ok markus@
+     Use with: make TEST_SSH_LOGFILE=/tmp/regress.log
 
 20050306
  - (dtucker) [monitor.c] Bug #125 comment #47: fix errors returned by monitor
@@ -2294,4 +2298,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3697 2005/03/07 07:27:28 dtucker Exp $
+$Id: ChangeLog,v 1.3698 2005/03/07 07:33:02 dtucker Exp $
