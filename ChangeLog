@@ -6,6 +6,8 @@
    - todd@cvs.openssh.org 2000/12/05 16:47:28
      [sshd.c]
      tweak comment to reflect real location of pid file; ok provos@
+ - (stevesk) Import <sys/queue.h> from OpenBSD for systems that don't
+   have it (used in ssh-keyscan).
 
 20001205
  - (bal) OpenSSH CVS updates:
