@@ -28,6 +28,9 @@
    - markus@cvs.openbsd.org 2001/10/08 11:48:57
      [channels.c]
      better debug
+   - markus@cvs.openbsd.org 2001/10/08 16:15:47
+     [sshconnect.c]
+     use correct family for -b option
 
 20011007
  - (bal) ssh-copy-id corrected permissions for .ssh/ and authorized_keys.
@@ -6673,4 +6676,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1593 2001/10/10 05:04:20 djm Exp $
+$Id: ChangeLog,v 1.1594 2001/10/10 05:04:41 djm Exp $
