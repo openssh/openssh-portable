@@ -24,6 +24,9 @@
      [ssh.c]
      convert hostkeyalias to lowercase, otherwise uppercase aliases will
      not match at all; ok henning@
+   - markus@cvs.openbsd.org 2003/07/03 08:21:46
+     [regress/dynamic-forward.sh]
+     add socks5; speedup; reformat; based on patch from dtucker@zip.com.au
 
 20030630
  - (djm) Search for support functions necessary to build our 
@@ -644,4 +647,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2841 2003/07/03 06:20:42 dtucker Exp $
+$Id: ChangeLog,v 1.2842 2003/07/03 10:26:04 dtucker Exp $

@@ -1,4 +1,4 @@
-#	$OpenBSD: dynamic-forward.sh,v 1.1 2003/06/26 14:23:10 markus Exp $
+#	$OpenBSD: dynamic-forward.sh,v 1.2 2003/07/03 08:21:46 markus Exp $
 #	Placed in the Public Domain.
 
 tid="dynamic forwarding"
@@ -19,19 +19,28 @@ trace "will use ProxyCommand $proxycmd"
 start_sshd
 
 for p in 1 2; do
-  for s in 4; do
-    for h in 127.0.0.1 localhost; do
-	trace "testing ssh protocol $p socks version $s host $h"
 	trace "start dynamic forwarding, fork to background"
-	${SSH} -$p -F $OBJ/ssh_config -f -D $FWDPORT somehost sleep 10
+	${SSH} -$p -F $OBJ/ssh_config -f -D $FWDPORT -q somehost \
+		exec sh -c \'"echo \$\$ > $OBJ/remote_pid; exec sleep 444"\'
 
-	trace "transfer over forwarded channel and check result"
-	${SSH} -F $OBJ/ssh_config -o "ProxyCommand ${proxycmd}${s} $h $PORT" \
-		somehost cat /bin/ls > $OBJ/ls.copy
-	test -f $OBJ/ls.copy	 || fail "failed copy /bin/ls"
-	cmp /bin/ls $OBJ/ls.copy || fail "corrupted copy of /bin/ls"
+	for s in 4 5; do
+	    for h in 127.0.0.1 localhost; do
+		trace "testing ssh protocol $p socks version $s host $h"
+		${SSH} -F $OBJ/ssh_config \
+			-o "ProxyCommand ${proxycmd}${s} $h $PORT" \
+			somehost cat /bin/ls > $OBJ/ls.copy
+		test -f $OBJ/ls.copy	 || fail "failed copy /bin/ls"
+		cmp /bin/ls $OBJ/ls.copy || fail "corrupted copy of /bin/ls"
+	    done
+	done
 
-	sleep 10
-    done
-  done
+	if [ -f $OBJ/remote_pid ]; then
+		remote=`cat $OBJ/remote_pid`
+		trace "terminate remote shell, pid $remote"
+		if [ $remote -gt 1 ]; then
+			kill -HUP $remote
+		fi
+	else
+		fail "no pid file: $OBJ/remote_pid"
+	fi
 done
