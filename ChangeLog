@@ -2,6 +2,16 @@
  - OpenBSD CVS update
    [packet.c]
    - send debug messages in SSH2 format
+   [scp.c]
+   - fix very rare EAGAIN/EINTR issues; based on work by djm
+   [packet.c]
+   - less debug, rm unused
+   [auth2.c]
+   - disable kerb,s/key in ssh2
+   [sshd.8]
+   - Minor tweaks and typo fixes.
+   [ssh-keygen.c]
+   - Put -d into usage and reorder. markus ok.
  - Include missing headers for OpenSSL tests. Fix from Phil Karn 
    <karn@ka9q.ampr.org>
  - Fixed __progname symbol collisions reported by Andre Lucas 

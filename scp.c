@@ -45,7 +45,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: scp.c,v 1.20 2000/04/19 06:26:14 damien Exp $");
+RCSID("$Id: scp.c,v 1.21 2000/05/01 11:10:33 damien Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -543,7 +543,7 @@ syserr:			run_err("%s: %s", name, strerror(errno));
 			(void) sprintf(buf, "T%lu 0 %lu 0\n",
 				       (unsigned long) stb.st_mtime,
 				       (unsigned long) stb.st_atime);
-			(void) write(remout, buf, strlen(buf));
+			(void) atomicio(write, remout, buf, strlen(buf));
 			if (response() < 0)
 				goto next;
 		}
@@ -556,7 +556,7 @@ syserr:			run_err("%s: %s", name, strerror(errno));
 			fprintf(stderr, "Sending file modes: %s", buf);
 			fflush(stderr);
 		}
-		(void) write(remout, buf, strlen(buf));
+		(void) atomicio(write, remout, buf, strlen(buf));
 		if (response() < 0)
 			goto next;
 		if ((bp = allocbuf(&buffer, fd, 2048)) == NULL) {
@@ -578,7 +578,7 @@ next:			(void) close(fd);
 					haderr = result >= 0 ? EIO : errno;
 			}
 			if (haderr)
-				(void) write(remout, bp->buf, amt);
+				(void) atomicio(write, remout, bp->buf, amt);
 			else {
 				result = atomicio(write, remout, bp->buf, amt);
 				if (result != amt)
@@ -592,7 +592,7 @@ next:			(void) close(fd);
 		if (close(fd) < 0 && !haderr)
 			haderr = errno;
 		if (!haderr)
-			(void) write(remout, "", 1);
+			(void) atomicio(write, remout, "", 1);
 		else
 			run_err("%s: %s", name, strerror(haderr));
 		(void) response();
@@ -621,7 +621,7 @@ rsource(name, statp)
 		(void) sprintf(path, "T%lu 0 %lu 0\n",
 			       (unsigned long) statp->st_mtime,
 			       (unsigned long) statp->st_atime);
-		(void) write(remout, path, strlen(path));
+		(void) atomicio(write, remout, path, strlen(path));
 		if (response() < 0) {
 			closedir(dirp);
 			return;
@@ -632,7 +632,7 @@ rsource(name, statp)
 		       0, last);
 	if (verbose_mode)
 		fprintf(stderr, "Entering directory: %s", path);
-	(void) write(remout, path, strlen(path));
+	(void) atomicio(write, remout, path, strlen(path));
 	if (response() < 0) {
 		closedir(dirp);
 		return;
@@ -651,7 +651,7 @@ rsource(name, statp)
 		source(1, vect);
 	}
 	(void) closedir(dirp);
-	(void) write(remout, "E\n", 2);
+	(void) atomicio(write, remout, "E\n", 2);
 	(void) response();
 }
 
@@ -687,7 +687,7 @@ sink(argc, argv)
 	if (targetshouldbedirectory)
 		verifydir(targ);
 
-	(void) write(remout, "", 1);
+	(void) atomicio(write, remout, "", 1);
 	if (stat(targ, &stb) == 0 && S_ISDIR(stb.st_mode))
 		targisdir = 1;
 	for (first = 1;; first = 0) {
@@ -705,7 +705,7 @@ sink(argc, argv)
 
 		if (buf[0] == '\01' || buf[0] == '\02') {
 			if (iamremote == 0)
-				(void) write(STDERR_FILENO,
+				(void) atomicio(write, STDERR_FILENO,
 					     buf + 1, strlen(buf + 1));
 			if (buf[0] == '\02')
 				exit(1);
@@ -713,7 +713,7 @@ sink(argc, argv)
 			continue;
 		}
 		if (buf[0] == 'E') {
-			(void) write(remout, "", 1);
+			(void) atomicio(write, remout, "", 1);
 			return;
 		}
 		if (ch == '\n')
@@ -737,7 +737,7 @@ sink(argc, argv)
 			getnum(dummy_usec);
 			if (*cp++ != '\0')
 				SCREWUP("atime.usec not delimited");
-			(void) write(remout, "", 1);
+			(void) atomicio(write, remout, "", 1);
 			continue;
 		}
 		if (*cp != 'C' && *cp != 'D') {
@@ -816,7 +816,7 @@ sink(argc, argv)
 bad:			run_err("%s: %s", np, strerror(errno));
 			continue;
 		}
-		(void) write(remout, "", 1);
+		(void) atomicio(write, remout, "", 1);
 		if ((bp = allocbuf(&buffer, ofd, 4096)) == NULL) {
 			(void) close(ofd);
 			continue;
@@ -897,7 +897,7 @@ bad:			run_err("%s: %s", np, strerror(errno));
 			run_err("%s: %s", np, strerror(wrerrno));
 			break;
 		case NO:
-			(void) write(remout, "", 1);
+			(void) atomicio(write, remout, "", 1);
 			break;
 		case DISPLAYED:
 			break;
@@ -932,7 +932,7 @@ response()
 		} while (cp < &rbuf[sizeof(rbuf) - 1] && ch != '\n');
 
 		if (!iamremote)
-			(void) write(STDERR_FILENO, rbuf, cp - rbuf);
+			(void) atomicio(write, STDERR_FILENO, rbuf, cp - rbuf);
 		++errs;
 		if (resp == 1)
 			return (-1);
@@ -1008,7 +1008,7 @@ run_err(const char *fmt,...)
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	$Id: scp.c,v 1.20 2000/04/19 06:26:14 damien Exp $
+ *	$Id: scp.c,v 1.21 2000/05/01 11:10:33 damien Exp $
  */
 
 char *
@@ -1240,7 +1240,7 @@ progressmeter(int flag)
 		alarmtimer(1);
 	} else if (flag == 1) {
 		alarmtimer(0);
-		write(fileno(stdout), "\n", 1);
+		atomicio(write, fileno(stdout), "\n", 1);
 		statbytes = 0;
 	}
 }

@@ -17,7 +17,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: packet.c,v 1.20 2000/04/30 22:24:07 damien Exp $");
+RCSID("$Id: packet.c,v 1.21 2000/05/01 11:10:33 damien Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -130,7 +130,7 @@ clear_enc_keys(Enc *enc, int len)
 void
 packet_set_ssh2_format(void)
 {
-	debug("use_ssh2_packet_format");
+	DBG(debug("use_ssh2_packet_format"));
 	use_ssh2_packet_format = 1;
 }
 
@@ -613,7 +613,7 @@ packet_send2()
 			fatal("packet_send2: no KEX");
 		if (mac->md != NULL)
 			mac->enabled = 1;
-		debug("cipher_set_key_iv send_context");
+		DBG(debug("cipher_set_key_iv send_context"));
 		cipher_set_key_iv(&send_context, enc->type,
 		    enc->key, enc->key_len,
 		    enc->iv, enc->iv_len);
@@ -634,13 +634,6 @@ packet_send()
 	else
 		packet_send1();
 	DBG(debug("packet_send done"));
-}
-
-void
-packet_send_and_wait()
-{
-	packet_send();
-	packet_write_wait();
 }
 
 /*
@@ -921,7 +914,7 @@ packet_read_poll2(int *payload_len_ptr)
 			fatal("packet_read_poll2: no KEX");
 		if (mac->md != NULL)
 			mac->enabled = 1;
-		debug("cipher_set_key_iv receive_context");
+		DBG(debug("cipher_set_key_iv receive_context"));
 		cipher_set_key_iv(&receive_context, enc->type,
 		    enc->key, enc->key_len,
 		    enc->iv, enc->iv_len);

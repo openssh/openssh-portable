@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: sshd.8,v 1.18 2000/04/20 13:27:27 damien Exp $
+.\" $Id: sshd.8,v 1.19 2000/05/01 11:10:34 damien Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSHD 8
@@ -31,7 +31,7 @@
 .Nm
 (Secure Shell Daemon) is the daemon program for
 .Xr ssh 1 .
-Together these programs replace rlogin and rsh programs, and
+Together these programs replace rlogin and rsh, and
 provide secure encrypted communications between two untrusted hosts
 over an insecure network.
 The programs are intended to be as easy to
@@ -56,19 +56,19 @@ the daemon starts, it generates a server RSA key (normally 768 bits).
 This key is normally regenerated every hour if it has been used, and
 is never stored on disk.
 .Pp
-Whenever a client connects the daemon, the daemon sends its host
-and server public keys to the client.
+Whenever a client connects the daemon responds with its public
+host and server keys.
 The client compares the
 host key against its own database to verify that it has not changed.
 The client then generates a 256 bit random number.
 It encrypts this
 random number using both the host key and the server key, and sends
 the encrypted number to the server.
-Both sides then start to use this
+Both sides then use this
 random number as a session key which is used to encrypt all further
 communications in the session.
 The rest of the session is encrypted
-using a conventional cipher, currently Blowfish and 3DES, with 3DES
+using a conventional cipher, currently Blowfish or 3DES, with 3DES
 being used by default.
 The client selects the encryption algorithm
 to use from those offered by the server.
@@ -95,7 +95,7 @@ are disabled (thus completely disabling
 .Xr rlogin 1
 and
 .Xr rsh 1
-into that machine).
+into the machine).
 .Pp
 If the client successfully authenticates itself, a dialog for
 preparing the session is entered.
@@ -188,9 +188,9 @@ authentication, and termination of each connection is logged.
 Do not print an error message if RSA support is missing.
 .It Fl V Ar client_protocol_id
 SSH2 compatibility mode.
-When this options is specified
+When this option is specified
 .Nm
-assumes the client has sent the given version string
+assumes the client has sent the supplied version string
 and skips the
 Protocol Version Identification Exchange.
 .It Fl 4
