@@ -99,6 +99,8 @@ case "$host" in
 		AC_MSG_RESULT(no)
 		AC_DEFINE(DISABLE_SHADOW)
 	fi
+	MANTYPE='$(CATMAN)'
+	mansubdir=cat
 	;;
 *-*-irix5*)
 	no_libsocket=1
@@ -147,7 +149,7 @@ if test -z "$no_libnsl" ; then
 fi
 
 dnl Checks for header files.
-AC_CHECK_HEADERS(bstring.h endian.h lastlog.h login.h maillock.h netdb.h netgroup.h paths.h poll.h pty.h shadow.h security/pam_appl.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h sys/poll.h sys/select.h sys/stropts.h sys/sysmacros.h sys/time.h sys/ttcompat.h util.h utmp.h utmpx.h)
+AC_CHECK_HEADERS(bstring.h endian.h lastlog.h login.h maillock.h netdb.h netgroup.h paths.h poll.h pty.h shadow.h security/pam_appl.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h sys/poll.h sys/select.h sys/stropts.h sys/sysmacros.h sys/time.h sys/ttcompat.h stddef.h util.h utmp.h utmpx.h)
 
 dnl Checks for library functions.
 AC_CHECK_FUNCS(arc4random bindresvport_af freeaddrinfo gai_strerror getaddrinfo getpagesize getnameinfo innetgr md5_crypt mkdtemp openpty rresvport_af setenv seteuid setlogin setproctitle setreuid snprintf strlcat strlcpy updwtmpx vsnprintf _getpty)
@@ -523,6 +525,24 @@ AC_ARG_WITH(dante,
 		fi
 	]
 )
+AC_ARG_WITH(catman,
+	[  --with-catman=man|cat   Install preformatted manpages[no]],
+	[
+		MANTYPE='$(CATMAN)'
+		if test x"$withval" != x"yes" ; then
+		   mansubdir=$withval
+		else
+		   mansubdir=cat
+		fi
+	], [
+		if test -z "$MANTYPE" ; then
+			MANTYPE='$(TROFFMAN)'
+			mansubdir=man
+		fi
+	]
+)
+AC_SUBST(MANTYPE)
+AC_SUBST(mansubdir)
 
 if test -z "$no_dev_ptmx" ; then
 	AC_CHECK_FILE("/dev/ptmx", AC_DEFINE_UNQUOTED(HAVE_DEV_PTMX))

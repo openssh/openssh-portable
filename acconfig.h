@@ -30,6 +30,9 @@
 /* Define if using the Dante SOCKS library. */
 #undef HAVE_DANTE
 
+/* Define if you want to install preformatted manpages.*/
+#undef MANTYPE
+
 /* Define if your ssl headers are included with #include <ssl/header.h>  */
 #undef HAVE_SSL
 
