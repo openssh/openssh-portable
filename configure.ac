@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.113 2003/03/21 01:18:09 mouring Exp $
+# $Id: configure.ac,v 1.114 2003/04/29 13:22:40 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -57,20 +57,24 @@ case "$host" in
 	AFS_LIBS="-lld"
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
-	if (test "$LD" != "gcc" && test -z "$blibpath"); then
-		AC_MSG_CHECKING([if linkage editor ($LD) accepts -blibpath])
-		saved_LDFLAGS="$LDFLAGS"
-		LDFLAGS="$LDFLAGS -blibpath:/usr/lib:/lib:/usr/local/lib"
-		AC_TRY_LINK([],
-			[],
-			[
-				AC_MSG_RESULT(yes)
-				blibpath="/usr/lib:/lib:/usr/local/lib"
-			],
-			[ AC_MSG_RESULT(no) ]
-		)
-		LDFLAGS="$saved_LDFLAGS"
+	AC_MSG_CHECKING([how to specify blibpath for linker ($LD)]) 
+	if (test -z "$blibpath"); then
+		blibpath="/usr/lib:/lib:/usr/local/lib"
 	fi
+	saved_LDFLAGS="$LDFLAGS"
+	for tryflags in -blibpath: -Wl,-blibpath: -Wl,-rpath, ;do
+		if (test -z "$blibflags"); then
+			LDFLAGS="$saved_LDFLAGS $tryflags$blibpath"
+			AC_TRY_LINK([], [], [blibflags=$tryflags])
+		fi
+	done
+	if (test -z "$blibflags"); then
+		AC_MSG_RESULT(not found)
+		AC_MSG_ERROR([*** must be able to specify blibpath on AIX - check config.log])
+	else
+		AC_MSG_RESULT($blibflags)
+	fi
+	LDFLAGS="$saved_LDFLAGS"
 	AC_CHECK_FUNC(authenticate, [AC_DEFINE(WITH_AIXAUTHENTICATE)],
 		[AC_CHECK_LIB(s,authenticate,
 			[ AC_DEFINE(WITH_AIXAUTHENTICATE)
@@ -618,6 +622,7 @@ AC_CHECK_FUNCS(\
 )
 
 AC_SEARCH_LIBS(nanosleep, rt posix4, AC_DEFINE(HAVE_NANOSLEEP))
+AC_SEARCH_LIBS(basename, gen, AC_DEFINE(HAVE_BASENAME))
 
 dnl Make sure strsep prototype is defined before defining HAVE_STRSEP
 AC_CHECK_DECL(strsep, [AC_CHECK_FUNCS(strsep)])
@@ -2473,8 +2478,8 @@ fi
 
 
 if test ! -z "$blibpath" ; then
-	LDFLAGS="$LDFLAGS -blibpath:$blibpath"
-	AC_MSG_WARN([Please check and edit -blibpath in LDFLAGS in Makefile])
+	LDFLAGS="$LDFLAGS $blibflags$blibpath"
+	AC_MSG_WARN([Please check and edit blibpath in LDFLAGS in Makefile])
 fi
 
 dnl remove pam and dl because they are in $LIBPAM

@@ -1,3 +1,10 @@
+20030429
+ - (djm) Add back radix.o (used by AFS support), after it went missing from
+   Makefile many moons ago
+ - (djm) Apply "owl-always-auth" patch from Openwall/Solar Designer
+ - (djm) Fix blibpath specification for AIX/gcc
+ - (djm) Some systems have basename in -lgen. Fix from ayamura@ayamura.org
+
 20030428
  - (bal) [defines.h progressmeter.c scp.c] Some more culling of non 64bit 
    hacked code.
@@ -1349,4 +1356,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2663 2003/04/28 23:30:43 mouring Exp $
+$Id: ChangeLog,v 1.2664 2003/04/29 13:22:40 djm Exp $

@@ -5,7 +5,7 @@ Theo de Raadt, and Dug Song - Creators of OpenSSH
 
 Alain St-Denis <Alain.St-Denis@ec.gc.ca> - Irix fix
 Alexandre Oliva <oliva@lsd.ic.unicamp.br> - AIX fixes
-Andre Lucas <andre.lucas@dial.pipex.com> - new login code, many fixes
+Andre Lucas <andre@ae-35.com> - new login code, many fixes
 Andreas Steinmetz <ast@domdv.de> - Shadow password expiry support
 Andrew McGill <andrewm@datrix.co.za> - SCO fixes
 Andrew Morgan <morgan@transmeta.com> - PAM bugfixes
@@ -91,5 +91,5 @@ Apologies to anyone I have missed.
 
 Damien Miller <djm@mindrot.org>
 
-$Id: CREDITS,v 1.67 2002/07/28 20:31:19 stevesk Exp $
+$Id: CREDITS,v 1.68 2003/04/29 13:22:40 djm Exp $
 

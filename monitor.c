@@ -606,7 +606,7 @@ mm_answer_authpassword(int socket, Buffer *m)
 	passwd = buffer_get_string(m, &plen);
 	/* Only authenticate if the context is valid */
 	authenticated = options.password_authentication &&
-	    authctxt->valid && auth_password(authctxt, passwd);
+	    auth_password(authctxt, passwd) && authctxt->valid;
 	memset(passwd, 0, strlen(passwd));
 	xfree(passwd);
 

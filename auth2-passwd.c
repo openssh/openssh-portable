@@ -47,11 +47,11 @@ userauth_passwd(Authctxt *authctxt)
 		logit("password change not supported");
 	password = packet_get_string(&len);
 	packet_check_eom();
-	if (authctxt->valid &&
+	if (PRIVSEP(auth_password(authctxt, password)) == 1 && authctxt->valid
 #ifdef HAVE_CYGWIN
-	    check_nt_auth(1, authctxt->pw) &&
+	    && check_nt_auth(1, authctxt->pw)
 #endif
-	    PRIVSEP(auth_password(authctxt, password)) == 1)
+	    )
 		authenticated = 1;
 	memset(password, 0, len);
 	xfree(password);
