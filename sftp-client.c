@@ -613,7 +613,7 @@ do_download(int fd_in, int fd_out, char *remote_path, char *local_path,
 		buffer_put_int(&msg, COPY_SIZE);
 		send_msg(fd_out, &msg);
 		debug3("Sent message SSH2_FXP_READ I:%d O:%llu S:%u",
-		    id, (unsigned long long)offset, COPY_SIZE);
+		    id, (u_int64_t)offset, COPY_SIZE);
 
 		buffer_clear(&msg);
 
@@ -646,7 +646,7 @@ do_download(int fd_in, int fd_out, char *remote_path, char *local_path,
 			    len, COPY_SIZE);
 
 		debug3("In read loop, got %d offset %llu", len,
-		    (unsigned long long)offset);
+		    (u_int64_t)offset);
 		if (atomicio(write, local_fd, data, len) != len) {
 			error("Couldn't write to \"%s\": %s", local_path,
 			    strerror(errno));
@@ -767,7 +767,7 @@ do_upload(int fd_in, int fd_out, char *local_path, char *remote_path,
 		buffer_put_string(&msg, data, len);
 		send_msg(fd_out, &msg);
 		debug3("Sent message SSH2_FXP_WRITE I:%d O:%llu S:%u",
-		    id, (unsigned long long)offset, len);
+		    id, (u_int64_t)offset, len);
 
 		status = get_status(fd_in, id);
 		if (status != SSH2_FX_OK) {
@@ -778,7 +778,7 @@ do_upload(int fd_in, int fd_out, char *local_path, char *remote_path,
 			goto done;
 		}
 		debug3("In write loop, got %d offset %llu", len,
-		    (unsigned long long)offset);
+		    (u_int64_t)offset);
 
 		offset += len;
 	}

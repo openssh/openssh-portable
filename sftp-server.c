@@ -402,7 +402,7 @@ process_read(void)
 	len = get_int();
 
 	TRACE("read id %d handle %d off %llu len %d", id, handle,
-	    (unsigned long long)off, len);
+	    (u_int64_t)off, len);
 	if (len > sizeof buf) {
 		len = sizeof buf;
 		log("read change len %d", len);
@@ -443,7 +443,7 @@ process_write(void)
 	data = get_string(&len);
 
 	TRACE("write id %d handle %d off %llu len %d", id, handle,
-	    (unsigned long long)off, len);
+	    (u_int64_t)off, len);
 	fd = handle_to_fd(handle);
 	if (fd >= 0) {
 		if (lseek(fd, off, SEEK_SET) < 0) {
@@ -685,7 +685,7 @@ ls_file(char *name, struct stat *st)
 	if (sz == 0)
 		tbuf[0] = '\0';
 	snprintf(buf, sizeof buf, "%s %3d %-8.8s %-8.8s %8llu %s %s", mode,
-	    st->st_nlink, user, group, (unsigned long long)st->st_size, tbuf, name);
+	    st->st_nlink, user, group, (u_int64_t)st->st_size, tbuf, name);
 	return xstrdup(buf);
 }
 

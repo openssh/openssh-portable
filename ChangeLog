@@ -1,6 +1,8 @@
 20010225
  - (djm) Use %{_libexecdir} rather than hardcoded path in RPM specfile
    Patch from Adrian Ho <lexfiend@usa.net>
+ - (bal) Replace 'unsigned long long' to 'u_int64_t' since not every
+   platform defines u_int64_t as being that.
 
 20010224
  - (bal) Missed part of the UNIX sockets patch.  Patch by Corinna 
@@ -4124,4 +4126,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.820 2001/02/24 22:36:29 djm Exp $
+$Id: ChangeLog,v 1.821 2001/02/25 02:02:43 mouring Exp $
