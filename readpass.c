@@ -1,119 +1,94 @@
 /*
- * 
- * readpass.c
- * 
- * Author: Tatu Ylonen <ylo@cs.hut.fi>
- * 
- * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
- *                    All rights reserved
- * 
- * Created: Mon Jul 10 22:08:59 1995 ylo
- * 
- * Functions for reading passphrases and passwords.
- * 
+ * Copyright (c) 1988, 1993
+ *      The Regents of the University of California.  All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *      This product includes software developed by the University of
+ *      California, Berkeley and its contributors.
+ * 4. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
  */
 
 #include "includes.h"
-RCSID("$Id: readpass.c,v 1.3 1999/11/25 00:54:59 damien Exp $");
+RCSID("$Id: readpass.c,v 1.4 1999/12/08 23:31:37 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
 
-/* Saved old terminal mode for read_passphrase. */
-static struct termios saved_tio;
-
-/* Old interrupt signal handler for read_passphrase. */
-static void (*old_handler) (int sig) = NULL;
-
-/* Interrupt signal handler for read_passphrase. */
-
-void 
-intr_handler(int sig)
-{
-	/* Restore terminal modes. */
-	tcsetattr(fileno(stdin), TCSANOW, &saved_tio);
-	/* Restore the old signal handler. */
-	signal(sig, old_handler);
-	/* Resend the signal, with the old handler. */
-	kill(getpid(), sig);
-}
-
 /*
  * Reads a passphrase from /dev/tty with echo turned off.  Returns the
- * passphrase (allocated with xmalloc).  Exits if EOF is encountered. The
- * passphrase if read from stdin if from_stdin is true (as is the case with
- * ssh-keygen).
+ * passphrase (allocated with xmalloc), being very careful to ensure that
+ * no other userland buffer is storing the password.
  */
-
 char *
 read_passphrase(const char *prompt, int from_stdin)
 {
-	char buf[1024], *cp;
-	struct termios tio;
-	FILE *f;
+	char buf[1024], *p, ch;
+	struct termios tio, saved_tio;
+	sigset_t oset, nset;
+	int input, output, echo = 0;
+  
+	if (from_stdin) {
+		input = STDIN_FILENO;
+		output = STDERR_FILENO;
+	} else
+		input = output = open("/dev/tty", O_RDWR);
 
-	if (from_stdin)
-		f = stdin;
-	else {
-		/*
-		 * Read the passphrase from /dev/tty to make it possible to
-		 * ask it even when stdin has been redirected.
-		 */
-		f = fopen("/dev/tty", "r");
-		if (!f) {
-			/* No controlling terminal and no DISPLAY.  Nowhere to read. */
-			fprintf(stderr, "You have no controlling tty and no DISPLAY.  Cannot read passphrase.\n");
-			exit(1);
-		}
+	if (input == -1)
+		fatal("You have no controlling tty.  Cannot read passphrase.\n");
+
+	/* block signals, get terminal modes and turn off echo */
+	sigemptyset(&nset);
+	sigaddset(&nset, SIGINT);
+	sigaddset(&nset, SIGTSTP);
+	(void) sigprocmask(SIG_BLOCK, &nset, &oset);
+
+	if (tcgetattr(input, &tio) == 0 && (tio.c_lflag & ECHO)) {
+		echo = 1;
+		saved_tio = tio;
+		tio.c_lflag &= ~(ECHO | ECHOE | ECHOK | ECHONL);
+		(void) tcsetattr(input, TCSANOW, &tio);
 	}
 
-	/* Display the prompt (on stderr because stdout might be redirected). */
 	fflush(stdout);
-	fprintf(stderr, "%s", prompt);
-	fflush(stderr);
 
-	/* Get terminal modes. */
-	tcgetattr(fileno(f), &tio);
-	saved_tio = tio;
-	/* Save signal handler and set the new handler. */
-	old_handler = signal(SIGINT, intr_handler);
+	(void)write(output, prompt, strlen(prompt));
+	for (p = buf; read(input, &ch, 1) == 1 && ch != '\n';)
+		if (p < buf + sizeof(buf) - 1)
+			*p++ = ch;
+	*p = '\0';
+	(void)write(output, "\n", 1);
 
-	/* Set new terminal modes disabling all echo. */
-	tio.c_lflag &= ~(ECHO | ECHOE | ECHOK | ECHONL);
-	tcsetattr(fileno(f), TCSANOW, &tio);
+	/* restore terminal modes and allow signals */
+	if (echo)
+		tcsetattr(input, TCSANOW, &saved_tio);
+	(void) sigprocmask(SIG_SETMASK, &oset, NULL);
 
-	/* Read the passphrase from the terminal. */
-	if (fgets(buf, sizeof(buf), f) == NULL) {
-		/* Got EOF.  Just exit. */
-		/* Restore terminal modes. */
-		tcsetattr(fileno(f), TCSANOW, &saved_tio);
-		/* Restore the signal handler. */
-		signal(SIGINT, old_handler);
-		/* Print a newline (the prompt probably didn\'t have one). */
-		fprintf(stderr, "\n");
-		/* Close the file. */
-		if (f != stdin)
-			fclose(f);
-		exit(1);
-	}
-	/* Restore terminal modes. */
-	tcsetattr(fileno(f), TCSANOW, &saved_tio);
-	/* Restore the signal handler. */
-	(void) signal(SIGINT, old_handler);
-	/* Remove newline from the passphrase. */
-	if (strchr(buf, '\n'))
-		*strchr(buf, '\n') = 0;
-	/* Allocate a copy of the passphrase. */
-	cp = xstrdup(buf);
-	/*
-	 * Clear the buffer so we don\'t leave copies of the passphrase
-	 * laying around.
-	 */
+	if (!from_stdin)
+		(void)close(input);
+	p = xstrdup(buf);
 	memset(buf, 0, sizeof(buf));
-	/* Print a newline since the prompt probably didn\'t have one. */
-	fprintf(stderr, "\n");
-	/* Close the file. */
-	if (f != stdin)
-		fclose(f);
-	return cp;
+	return (p);
 }

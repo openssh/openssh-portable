@@ -4,6 +4,17 @@
    - "uninstall" rule for Makefile
    - utmpx support
    - Should fix PAM problems on Solaris
+ - OpenBSD CVS updates:
+   - [readpass.c]
+     avoid stdio; based on work by markus, millert, and I
+   - [sshd.c]
+     make sure the client selects a supported cipher
+   - [sshd.c]
+     fix sighup handling.  accept would just restart and daemon handled 
+     sighup only after the next connection was accepted. use poll on 
+     listen sock now.
+   - [sshd.c]
+     make that a fatal
 
 19991208
  - Compile fix for Solaris with /dev/ptmx from 
