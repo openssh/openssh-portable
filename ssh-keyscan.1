@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keyscan.1,v 1.18 2004/07/12 23:34:25 brad Exp $
+.\"	$OpenBSD: ssh-keyscan.1,v 1.19 2005/03/01 10:41:28 djm Exp $
 .\"
 .\" Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
 .\"
@@ -15,7 +15,7 @@
 .Sh SYNOPSIS
 .Nm ssh-keyscan
 .Bk -words
-.Op Fl v46
+.Op Fl Hv46
 .Op Fl p Ar port
 .Op Fl T Ar timeout
 .Op Fl t Ar type
@@ -46,6 +46,14 @@ scanning process involve any encryption.
 .Pp
 The options are as follows:
 .Bl -tag -width Ds
+.It Fl H
+Hash all hostnames and addresses in the output.
+Hashed names may be used normally by
+.Nm ssh
+and
+.Nm sshd ,
+but they do not reveal identifying information should the file's contents
+be disclosed.
 .It Fl p Ar port
 Port to connect to on the remote host.
 .It Fl T Ar timeout

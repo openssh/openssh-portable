@@ -33,6 +33,9 @@
      add support for hashing host names and addresses added to known_hosts
      files, to improve privacy of which hosts user have been visiting; ok 
      markus@ deraadt@
+   - djm@cvs.openbsd.org 2005/03/01 10:41:28
+     [ssh-keyscan.1 ssh-keyscan.c]
+     option to hash hostnames output by ssh-keyscan; ok markus@ deraadt@
 
 20050226
  - (dtucker) [openbsd-compat/bsd-openpty.c openbsd-compat/inet_ntop.c]
@@ -2209,4 +2212,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3673 2005/03/01 10:47:37 djm Exp $
+$Id: ChangeLog,v 1.3674 2005/03/01 10:48:03 djm Exp $
