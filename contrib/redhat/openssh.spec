@@ -177,7 +177,7 @@ install -d $RPM_BUILD_ROOT/usr/libexec/ssh
 install -m644 contrib/redhat/sshd.pam $RPM_BUILD_ROOT/etc/pam.d/sshd
 install -m755 contrib/redhat/sshd.init $RPM_BUILD_ROOT/etc/rc.d/init.d/sshd
 
-install -s x11-ssh-askpass-%{aversion}/ssh-askpass $RPM_BUILD_ROOT/usr/libexec/ssh/x11-ssh-askpass
+install -s x11-ssh-askpass-%{aversion}/x11-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/ssh/x11-ssh-askpass
 ln -s /usr/libexec/ssh/x11-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/ssh/ssh-askpass
 
 install -s contrib/gnome-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/ssh/gnome-ssh-askpass
