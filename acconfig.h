@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.149.4.1 2003/08/21 07:42:34 dtucker Exp $ */
+/* $Id: acconfig.h,v 1.149.4.2 2003/08/21 07:56:29 dtucker Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -376,6 +376,9 @@
 
 /* Define if sshd somehow reacquires a controlling TTY after setsid() */
 #undef SSHD_ACQUIRES_CTTY
+
+/* Define if cmsg_type is not passed correctly */
+#undef BROKEN_CMSG_TYPE
 
 @BOTTOM@
 
