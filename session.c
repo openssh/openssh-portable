@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.88 2001/06/12 21:30:57 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.89 2001/06/13 09:10:31 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1893,7 +1893,7 @@ session_close_by_pid(pid_t pid, int status)
 {
 	Session *s = session_by_pid(pid);
 	if (s == NULL) {
-		debug("session_close_by_pid: no session for pid %d", s->pid);
+		debug("session_close_by_pid: no session for pid %d", pid);
 		return;
 	}
 	if (s->chanid != -1)

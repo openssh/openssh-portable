@@ -1,5 +1,11 @@
+20010614
+ - OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2001/06/13 09:10:31
+     [session.c]
+     typo, use pid not s->pid, mstone@cs.loyola.edu
+
 20010613
-- OpenBSD CVS Sync
+ - OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2001/06/12 10:58:29
      [session.c]
      merge session_free into session_close()
@@ -5638,4 +5644,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1285 2001/06/13 04:43:52 mouring Exp $
+$Id: ChangeLog,v 1.1286 2001/06/13 19:23:32 mouring Exp $
