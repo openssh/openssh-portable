@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.59 2001/01/22 23:06:39 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.60 2001/01/28 20:36:16 stevesk Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -359,7 +359,7 @@ parse_flag:
 		intptr = &options->strict_host_key_checking;
 		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
-			fatal("%.200s line %d: Missing yes/no argument.",
+			fatal("%.200s line %d: Missing yes/no/ask argument.",
 			      filename, linenum);
 		value = 0;	/* To avoid compiler warning... */
 		if (strcmp(arg, "yes") == 0 || strcmp(arg, "true") == 0)
