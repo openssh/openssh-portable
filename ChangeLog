@@ -1,3 +1,24 @@
+19991117
+ - Merged OpenBSD CVS changes
+   - [ChangeLog.Ylonen] noone needs this anymore
+   - [authfd.c] close-on-exec for auth-socket, ok deraadt
+   - [hostfile.c] 
+     in known_hosts key lookup the entry for the bits does not need 
+     to match, all the information is contained in n and e. This 
+     solves the problem with buggy servers announcing the wrong 
+     modulus length.  markus and me.
+   - [serverloop.c] 
+     bugfix: check for space if child has terminated, from: 
+     iedowse@maths.tcd.ie
+   - [ssh-add.1 ssh-add.c ssh-keygen.1 ssh-keygen.c sshconnect.c]
+     [fingerprint.c fingerprint.h]
+     rsa key fingerprints, idea from Bjoern Groenvall <bg@sics.se>
+   - [ssh-agent.1] typo
+   - [ssh.1] add OpenSSH information to AUTHOR section. okay markus@
+   - [sshd.c] 
+     force logging to stderr while loading private key file
+     (lost while converting to new log-levels)
+
 19991116
  - Fix some Linux libc5 problems reported by Miles Wilson <mw@mctitle.com>
  - Merged OpenBSD CVS changes:

@@ -15,7 +15,7 @@ login (authentication) dialog.
 */
 
 #include "includes.h"
-RCSID("$Id: sshconnect.c,v 1.9 1999/11/16 02:37:17 damien Exp $");
+RCSID("$Id: sshconnect.c,v 1.10 1999/11/17 06:29:08 damien Exp $");
 
 #ifdef HAVE_OPENSSL
 #include <openssl/bn.h>
@@ -1081,9 +1081,9 @@ void ssh_login(int host_key_valid,
 
   rbits = BN_num_bits(public_key->n);
   if (bits != rbits) {
-    log("Warning: Server lies about size of server public key,");
-    log("Warning: this may be due to an old implementation of ssh.");
-    log("Warning: (actual size %d bits, announced size %d bits)", rbits, bits);
+    log("Warning: Server lies about size of server public key: "
+        "actual size is %d bits vs. announced %d.", rbits, bits);
+    log("Warning: This may be due to an old implementation of ssh.");
   }
 
   /* Get the host key. */
@@ -1098,9 +1098,9 @@ void ssh_login(int host_key_valid,
 
   rbits = BN_num_bits(host_key->n);
   if (bits != rbits) {
-    log("Warning: Server lies about size of server host key,");
-    log("Warning: this may be due to an old implementation of ssh.");
-    log("Warning: (actual size %d bits, announced size %d bits)", rbits, bits);
+    log("Warning: Server lies about size of server host key: "
+        "actual size is %d bits vs. announced %d.", rbits, bits);
+    log("Warning: This may be due to an old implementation of ssh.");
   }
 
   /* Store the host key from the known host file in here
@@ -1205,10 +1205,12 @@ void ssh_login(int host_key_valid,
 	fatal("No host key is known for %.200s and you have requested strict checking.", host);
       } else if (options.strict_host_key_checking == 2) { /* The default */
 	char prompt[1024];
+        char *fp = fingerprint(host_key->e, host_key->n);
 	snprintf(prompt, sizeof(prompt),
 		 "The authenticity of host '%.200s' can't be established.\n"
-		 "Are you sure you want to continue connecting (yes/no)? ",
-		 host);
+                 "Key fingerprint is %d %s.\n"
+ 		 "Are you sure you want to continue connecting (yes/no)? ",
+		 host, BN_num_bits(host_key->n), fp);
 	if (!read_yes_or_no(prompt, -1))
 	  fatal("Aborted by user!\n");
       }

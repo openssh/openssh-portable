@@ -269,8 +269,9 @@ retry_select:
   if (channel_max_fd() > max_fd)
     max_fd = channel_max_fd();
   
-  /* If child has terminated, read as much as is available and then exit. */
-  if (child_terminated)
+  /* If child has terminated and there is enough buffer space to read from
+     it, then read as much as is available and exit. */
+  if (child_terminated && packet_not_very_much_data_to_write())
     if (max_time_milliseconds == 0)
       max_time_milliseconds = 100;
   

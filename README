@@ -4,6 +4,8 @@ OpenSSH is based on the last free version of Tatu Ylonen's SSH with
 all patent-encumbered algorithms removed, all known security bugs
 fixed, new features reintroduced and many other clean-ups. More
 information about SSH itself can be found in the file README.Ylonen.
+OpenSSH has been created by Aaron Cambell, Bob Beck, Markus Friedl,
+Niels Provos, Theo de Raadt, and Dug Song.
 
 This port consists of the re-introduction of autoconf support, PAM
 support (for Linux and Solaris), EGD[1] support, and replacements for

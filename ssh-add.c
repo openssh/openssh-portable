@@ -14,12 +14,13 @@ Adds an identity to the authentication server, or removes an identity.
 */
 
 #include "includes.h"
-RCSID("$Id: ssh-add.c,v 1.9 1999/11/16 02:37:16 damien Exp $");
+RCSID("$Id: ssh-add.c,v 1.10 1999/11/17 06:29:08 damien Exp $");
 
 #include "rsa.h"
 #include "ssh.h"
 #include "xmalloc.h"
 #include "authfd.h"
+#include "fingerprint.h"
 
 #ifdef USE_EXTERNAL_ASKPASS
 int askpass(const char *filename, RSA *key, const char *saved_comment, char **comment);
@@ -115,7 +116,6 @@ add_file(AuthenticationConnection *ac, const char *filename)
       xfree(pass);
       if (success)
 	break;
-
       printf("Bad passphrase.\n");
     } 
   }
@@ -130,7 +130,7 @@ add_file(AuthenticationConnection *ac, const char *filename)
 }
 
 void
-list_identities(AuthenticationConnection *ac)
+list_identities(AuthenticationConnection *ac, int fp)
 {
   BIGNUM *e, *n;
   int status;
@@ -144,21 +144,25 @@ list_identities(AuthenticationConnection *ac)
        status;
        status = ssh_get_next_identity(ac, e, n, &comment))
     {
-      char *ebuf, *nbuf;
+      unsigned int bits = BN_num_bits(n);
       had_identities = 1;
-      ebuf = BN_bn2dec(e);
-      if (ebuf == NULL) {
-	error("list_identities: BN_bn2dec(e) failed.");
-      }else{
-        nbuf = BN_bn2dec(n);
-        if (nbuf == NULL) {
-	  error("list_identities: BN_bn2dec(n) failed.");
-        }else{
-          unsigned int bits = BN_num_bits(n);
-          printf("%d %s %s %s\n", bits, ebuf, nbuf, comment);
-          free(nbuf);
-        }
-        free(ebuf);
+      if (fp) {
+	printf("%d %s %s\n", bits, fingerprint(e, n), comment);
+      } else {
+	char *ebuf, *nbuf;
+	ebuf = BN_bn2dec(e);
+	if (ebuf == NULL) {
+	  error("list_identities: BN_bn2dec(e) failed.");
+	}else{
+	  nbuf = BN_bn2dec(n);
+	  if (nbuf == NULL) {
+	    error("list_identities: BN_bn2dec(n) failed.");
+	  }else{
+	    printf("%d %s %s %s\n", bits, ebuf, nbuf, comment);
+	    free(nbuf);
+	  }
+	  free(ebuf);
+	}
       }
       xfree(comment);
     }
@@ -180,6 +184,7 @@ main(int argc, char **argv)
 
   /* check if RSA support exists */
   if (rsa_alive() == 0) {
+    extern char *__progname;
 
     fprintf(stderr,
       "%s: no RSA support in libssl and libcrypto.  See ssl(8).\n",
@@ -196,9 +201,10 @@ main(int argc, char **argv)
 
   for (i = 1; i < argc; i++)
     {
-      if (strcmp(argv[i], "-l") == 0)
+      if ((strcmp(argv[i], "-l") == 0) ||
+          (strcmp(argv[i], "-L") == 0))
 	{
-	  list_identities(ac);
+	  list_identities(ac, argv[i][1] == 'l' ? 1 : 0);
 	  no_files = 0; /* Don't default-add/delete if -l. */
 	  continue;
 	}

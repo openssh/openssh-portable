@@ -18,7 +18,7 @@ agent connections.
 */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.21 1999/11/16 02:37:17 damien Exp $");
+RCSID("$Id: sshd.c,v 1.22 1999/11/17 06:29:08 damien Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -486,34 +486,28 @@ main(int ac, char **av)
       exit(1);
     }
 
-  /* Initialize the log (it is reinitialized below in case we forked). */
-
-  if (debug_flag && !inetd_flag)
-    log_stderr = 1;
-
-  log_init(av0, options.log_level, options.log_facility, log_stderr);
+  /* Force logging to stderr while loading the private host key
+     unless started from inetd */
+  log_init(av0, options.log_level, options.log_facility, !inetd_flag);
 
   debug("sshd version %.100s", SSH_VERSION);
 
   sensitive_data.host_key = RSA_new();
+  errno = 0;
   /* Load the host key.  It must have empty passphrase. */
   if (!load_private_key(options.host_key_file, "", 
 			sensitive_data.host_key, &comment))
     {
-      if (debug_flag)
-	fprintf(stderr, "Could not load host key: %s: %s\n",
-		options.host_key_file, strerror(errno));
-      else
-	{
-	  int err = errno;
- 	  /* force logging */
-          log_init(av0, SYSLOG_LEVEL_DEBUG, options.log_facility, log_stderr);
-	  error("Could not load host key: %.200s: %.100s", 
-		options.host_key_file, strerror(err));
-	}
+      error("Could not load host key: %.200s: %.100s", 
+	    options.host_key_file, strerror(errno));
       exit(1);
     }
   xfree(comment);
+
+  /* Initialize the log (it is reinitialized below in case we forked). */
+  if (debug_flag && !inetd_flag)
+    log_stderr = 1;
+  log_init(av0, options.log_level, options.log_facility, log_stderr);
 
   /* If not in debugging mode, and not started from inetd, disconnect from
      the controlling terminal, and fork.  The original process exits. */
