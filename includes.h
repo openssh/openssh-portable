@@ -103,4 +103,8 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #include "openbsd-compat/bsd-cygwin_util.h"
 #include "entropy.h"
 
+#ifndef MAP_FAILED
+# define MAP_FAILED ((void *)-1)
+#endif
+
 #endif /* INCLUDES_H */
