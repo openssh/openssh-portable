@@ -7,6 +7,8 @@
    Vinschen <vinschen@redhat.com>
  - (bal) Add /etc/sysconfig/sshd support to redhat's sshd.init. Patch by
    Pekka Savola <pekkas@netcore.fi>
+ - (bal) Cygwin lacks setgroups() API.  Patch by Corinna Vinschen 
+   <vinschen@redhat.com>
 
 20010425
  - OpenBSD CVS Sync
@@ -5262,4 +5264,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1175 2001/04/27 00:46:17 mouring Exp $
+$Id: ChangeLog,v 1.1176 2001/04/27 02:10:15 mouring Exp $

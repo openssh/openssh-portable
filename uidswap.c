@@ -80,9 +80,11 @@ temporarily_use_uid(struct passwd *pw)
 		if (user_groupslen < 0)
 			fatal("getgroups: %.100s", strerror(errno));
 	}
+#ifndef HAVE_CYGWIN
 	/* Set the effective uid to the given (unprivileged) uid. */
 	if (setgroups(user_groupslen, user_groups) < 0)
 		fatal("setgroups: %.100s", strerror(errno));
+#endif /* !HAVE_CYWIN */
 #ifndef SAVED_IDS_WORK_WITH_SETEUID
 	/* Propagate the privileged gid to all of our gids. */
 	if (setgid(getegid()) < 0)
@@ -130,8 +132,10 @@ restore_uid(void)
 	setgid(getgid());
 #endif /* SAVED_IDS_WORK_WITH_SETEUID */
 
+#ifndef HAVE_CYGWIN
 	if (setgroups(saved_egroupslen, saved_egroups) < 0)
 		fatal("setgroups: %.100s", strerror(errno));
+#endif /* !HAVE_CYGWIN */
 	temporarily_use_uid_effective = 0;
 }
 
