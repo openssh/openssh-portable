@@ -349,9 +349,8 @@ do_authloop(Authctxt *authctxt)
 		if (authenticated)
 			return;
 
-		if (authctxt->failures++ > AUTH_FAIL_MAX) {
+		if (authctxt->failures++ > AUTH_FAIL_MAX)
 			packet_disconnect(AUTH_FAIL_MSG, authctxt->user);
-		}
 
 		packet_start(SSH_SMSG_FAILURE);
 		packet_send();
