@@ -1,3 +1,12 @@
+20031217
+ - (djm) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2003/12/09 15:28:43
+     [serverloop.c]
+     make ClientKeepAlive work for ssh -N, too (no login shell requested).
+     1) send a bogus channel request if we find a channel
+     2) send a bogus global request if we don't have a channel
+     ok + test beck@
+
 20031209
  - (dtucker) OpenBSD CVS Sync
    - matthieu@cvs.openbsd.org 2003/11/25 23:10:08
@@ -1566,4 +1575,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3139 2003/12/09 13:54:38 dtucker Exp $
+$Id: ChangeLog,v 1.3140 2003/12/17 05:27:32 djm Exp $
