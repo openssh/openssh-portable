@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.242 2005/02/15 10:45:57 dtucker Exp $
+# $Id: configure.ac,v 1.243 2005/02/16 05:19:17 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -339,6 +339,8 @@ mips-sony-bsd|mips-sony-newsos4)
 *-sni-sysv*)
 	# /usr/ucblib MUST NOT be searched on ReliantUNIX
 	AC_CHECK_LIB(dl, dlsym, ,)
+	# -lresolv needs to be at then end of LIBS or DNS lookups break
+	AC_CHECK_LIB(res_query, resolv, [ LIBS="$LIBS -lresolv" ])
 	IPADDR_IN_DISPLAY=yes
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(IP_TOS_IS_BROKEN)

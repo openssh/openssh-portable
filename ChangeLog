@@ -5,6 +5,9 @@
    via mkstemp in some configurations.  ok djm@
  - (dtucker) [auth-shadow.c] Prevent compiler warnings if "DAY" is defined
    by the system headers.
+ - (dtucker) [configure.ac] Bug #893: check for libresolv early on Reliant
+   Unix; prevents problems relating to the location of -lresolv in the
+   link order.
 
 20050215
  - (dtucker) [config.sh.in] Collect oslevel -r too.
@@ -2139,4 +2142,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3656 2005/02/16 03:20:06 dtucker Exp $
+$Id: ChangeLog,v 1.3657 2005/02/16 05:19:17 dtucker Exp $
