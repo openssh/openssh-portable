@@ -72,13 +72,12 @@ manpages: $(MANPAGES)
 $(LIBSSH_OBJS): config.h
 $(SSHOBJS): config.h
 $(SSHDOBJS): config.h
-$(LIBOPENBSD_COMPAT_OBJS): config.h
 
 .c.o:
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
 
 LIBCOMPAT=openbsd-compat/libopenbsd-compat.a
-$(LIBCOMPAT): 
+$(LIBCOMPAT): config.h
 	(cd openbsd-compat; $(MAKE))
 
 libssh.a: $(LIBSSH_OBJS)
