@@ -29,6 +29,9 @@
    - stevesk@cvs.openbsd.org 2002/02/24 16:09:52
      [sshd.c]
      use u_char* here; ok markus@
+   - markus@cvs.openbsd.org 2002/02/24 16:57:19
+     [sftp-client.c]
+     early close(), missing free; ok stevesk@
 
 20020225
  - (bal) Last AIX patch.  Moved aix_usrinfo() outside of do_setuserconext()
@@ -7702,4 +7705,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1881 2002/02/26 18:00:48 mouring Exp $
+$Id: ChangeLog,v 1.1882 2002/02/26 18:02:43 mouring Exp $
