@@ -31,6 +31,10 @@
      [session.c]
      send signal name (not signal number) in "exit-signal" message; noticed
      by galb@vandyke.com
+   - stevesk@cvs.openbsd.org 2002/08/27 17:13:56
+     [ssh-rsa.c]
+     RSA_public_decrypt() returns -1 on error so len must be signed; 
+     ok markus@
 
 20020820
  - OpenBSD CVS Sync
@@ -1572,4 +1576,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2435 2002/09/04 06:39:02 djm Exp $
+$Id: ChangeLog,v 1.2436 2002/09/04 06:39:48 djm Exp $

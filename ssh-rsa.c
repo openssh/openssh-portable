@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-rsa.c,v 1.25 2002/08/02 22:20:30 markus Exp $");
+RCSID("$OpenBSD: ssh-rsa.c,v 1.26 2002/08/27 17:13:56 stevesk Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -211,7 +211,8 @@ static int
 openssh_RSA_verify(int type, u_char *hash, u_int hashlen,
     u_char *sigbuf, u_int siglen, RSA *rsa)
 {
-	u_int ret, rsasize, len, oidlen = 0, hlen = 0;
+	u_int ret, rsasize, oidlen = 0, hlen = 0;
+	int len;
 	const u_char *oid = NULL;
 	u_char *decrypted = NULL;
 
