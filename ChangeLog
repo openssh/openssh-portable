@@ -1,3 +1,7 @@
+20010711
+ - (djm) dirname(3) may modify its argument on glibc and other systems. 
+   Patch from markus@, spotted by Tom Holroyd <tomh@po.crl.go.jp>
+
 20010704
  - OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2001/06/25 08:25:41
@@ -5968,4 +5972,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1383 2001/07/05 04:27:20 tim Exp $
+$Id: ChangeLog,v 1.1384 2001/07/11 11:32:20 djm Exp $
