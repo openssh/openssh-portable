@@ -12,6 +12,9 @@
    - markus@cvs.openbsd.org 2003/04/12 10:15:36
      [misc.c]
      debug->debug2
+   - naddy@cvs.openbsd.org 2003/04/12 11:40:15
+     [ssh.1]
+     document -V switch, fix wording; ok markus@
 
 20030512
  - (djm) Redhat spec: Don't install profile.d scripts when not 
@@ -1399,4 +1402,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2680 2003/05/14 03:41:39 djm Exp $
+$Id: ChangeLog,v 1.2681 2003/05/14 03:42:08 djm Exp $

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.168 2003/03/28 10:11:43 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.169 2003/04/12 11:40:15 naddy Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -49,7 +49,7 @@
 .Pp
 .Nm ssh
 .Bk -words
-.Op Fl afgknqstvxACNTX1246
+.Op Fl afgknqstvxACNTVX1246
 .Op Fl b Ar bind_address
 .Op Fl c Ar cipher_spec
 .Op Fl e Ar escape_char
@@ -563,8 +563,10 @@ This is helpful in
 debugging connection, authentication, and configuration problems.
 Multiple
 .Fl v
-options increases the verbosity.
-Maximum is 3.
+options increase the verbosity.
+The maximum is 3.
+.It Fl V
+Display the version number and exit.
 .It Fl x
 Disables X11 forwarding.
 .It Fl X
