@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.43 2000/10/18 18:23:02 markus Exp $");
+RCSID("$OpenBSD: scp.c,v 1.44 2000/12/11 17:27:33 deraadt Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -415,20 +415,20 @@ toremote(targ, argc, argv)
 					suser = pwd->pw_name;
 				else if (!okname(suser))
 					continue;
-				(void) sprintf(bp,
+				sprintf(bp,
 				    "%s%s -x -o'FallBackToRsh no' -n -l %s %s %s %s '%s%s%s:%s'",
-				     ssh_program, verbose_mode ? " -v" : "",
-				     suser, host, cmd, src,
-				     tuser ? tuser : "", tuser ? "@" : "",
-				     thost, targ);
+				    ssh_program, verbose_mode ? " -v" : "",
+				    suser, host, cmd, src,
+				    tuser ? tuser : "", tuser ? "@" : "",
+				    thost, targ);
 			} else {
 				host = cleanhostname(argv[i]);
-				(void) sprintf(bp,
+				sprintf(bp,
 				    "exec %s%s -x -o'FallBackToRsh no' -n %s %s %s '%s%s%s:%s'",
-				     ssh_program, verbose_mode ? " -v" : "",
-				     host, cmd, src,
-				     tuser ? tuser : "", tuser ? "@" : "",
-				     thost, targ);
+				    ssh_program, verbose_mode ? " -v" : "",
+				    host, cmd, src,
+				    tuser ? tuser : "", tuser ? "@" : "",
+				    thost, targ);
 			}
 			if (verbose_mode)
 				fprintf(stderr, "Executing: %s\n", bp);
@@ -557,10 +557,9 @@ syserr:			run_err("%s: %s", name, strerror(errno));
 				goto next;
 		}
 #define	FILEMODEMASK	(S_ISUID|S_ISGID|S_IRWXU|S_IRWXG|S_IRWXO)
-		(void) sprintf(buf, "C%04o %lu %s\n",
-			     (unsigned int) (stb.st_mode & FILEMODEMASK),
-			       (unsigned long) stb.st_size,
-			       last);
+		sprintf(buf, "C%04o %lu %s\n",
+		    (unsigned int) (stb.st_mode & FILEMODEMASK),
+		    (unsigned long) stb.st_size, last);
 		if (verbose_mode) {
 			fprintf(stderr, "Sending file modes: %s", buf);
 			fflush(stderr);
@@ -715,7 +714,7 @@ sink(argc, argv)
 		if (buf[0] == '\01' || buf[0] == '\02') {
 			if (iamremote == 0)
 				(void) atomicio(write, STDERR_FILENO,
-					     buf + 1, strlen(buf + 1));
+				    buf + 1, strlen(buf + 1));
 			if (buf[0] == '\02')
 				exit(1);
 			++errs;
@@ -1187,8 +1186,7 @@ progressmeter(int flag)
 		abbrevsize >>= 10;
 	}
 	snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf), " %5d %c%c ",
-	     (int) abbrevsize, prefixes[i], prefixes[i] == ' ' ? ' ' :
-		 'B');
+	    (int) abbrevsize, prefixes[i], prefixes[i] == ' ' ? ' ' : 'B');
 
 	timersub(&now, &lastupdate, &wait);
 	if (cursize > lastsize) {
@@ -1203,16 +1201,17 @@ progressmeter(int flag)
 	timersub(&now, &start, &td);
 	elapsed = td.tv_sec + (td.tv_usec / 1000000.0);
 
-	if (statbytes <= 0 || elapsed <= 0.0 || cursize > totalbytes) {
+	if (flag != 1 &&
+	    (statbytes <= 0 || elapsed <= 0.0 || cursize > totalbytes)) {
 		snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
-			 "   --:-- ETA");
+		    "   --:-- ETA");
 	} else if (wait.tv_sec >= STALLTIME) {
 		snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
-			 " - stalled -");
+		    " - stalled -");
 	} else {
 		if (flag != 1)
-			remaining =
-			    (int)(totalbytes / (statbytes / elapsed) - elapsed);
+			remaining = (int)(totalbytes / (statbytes / elapsed) -
+			    elapsed);
 		else
 			remaining = elapsed;
 

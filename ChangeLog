@@ -24,6 +24,9 @@
      rhosts-rsa is no longer automagically disabled if ssh is not privileged.
      UsePrivilegedPort=no disables rhosts-rsa _only_ for old servers.
      these changes should not change the visible default behaviour of the ssh client.
+   - deraadt@cvs.openbsd.org 2000/12/11 10:27:33
+     [scp.c]
+     when copying 0-sized files, do not re-print ETA time at completion
 
 20001213
  - (djm) Make sure we reset the SIGPIPE disposition after we fork. Report
