@@ -378,6 +378,8 @@ then
 # This is the sshd server system-wide configuration file.  See
 # sshd_config(5) for more information.
 
+# This sshd was compiled with PATH=/usr/bin:/bin:/usr/sbin:/sbin
+
 # The strategy used for options in the default sshd_config shipped with
 # OpenSSH is to specify options with their default value where
 # possible, but leave them commented.  Uncommented options change a
@@ -394,7 +396,7 @@ Port $port_number
 #HostKey ${SYSCONFDIR}/ssh_host_rsa_key
 #HostKey ${SYSCONFDIR}/ssh_host_dsa_key
 
-# Lifetime and size of ephemeral version 1 server ke
+# Lifetime and size of ephemeral version 1 server key
 #KeyRegenerationInterval 3600
 #ServerKeyBits 768
 
@@ -405,7 +407,7 @@ Port $port_number
 
 # Authentication:
 
-#LoginGraceTime 600
+#LoginGraceTime 120
 #PermitRootLogin yes
 # The following setting overrides permission checks on host key files
 # and directories. For security reasons set this to "yes" when running
@@ -414,11 +416,11 @@ StrictModes no
 
 #RSAAuthentication yes
 #PubkeyAuthentication yes
-#AuthorizedKeysFile     %h/.ssh/authorized_keys
+#AuthorizedKeysFile     .ssh/authorized_keys
 
 # rhosts authentication should not be used
 #RhostsAuthentication no
-# Don't read ~/.rhosts and ~/.shosts files
+# Don't read the user's ~/.rhosts and ~/.shosts files
 #IgnoreRhosts yes
 # For this to work you will also need host keys in ${SYSCONFDIR}/ssh_known_hosts
 #RhostsRSAAuthentication no
@@ -443,6 +445,7 @@ StrictModes no
 #KeepAlive yes
 #UseLogin no
 UsePrivilegeSeparation $privsep_used
+#PermitUserEnvironment no
 #Compression yes
 
 #MaxStartups 10

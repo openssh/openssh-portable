@@ -36,6 +36,9 @@
      [scp.c]
      check exit status from ssh, and exit(1) if ssh fails; bug#369; 
      binder@arago.de
+ - (bal) Update ssh-host-config and minor rewrite of bsd-cygwin_util.c
+   ntsec now default if cygwin version beginning w/ version 56.  Patch
+   by Corinna Vinschen <vinschen@redhat.com> 
 
 20021021
  - (djm) Bug #400: Kill ssh-rand-helper children on timeout, patch from 
@@ -813,4 +816,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2509 2002/11/09 15:54:08 mouring Exp $
+$Id: ChangeLog,v 1.2510 2002/11/09 15:59:27 mouring Exp $
