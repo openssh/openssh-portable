@@ -1,4 +1,4 @@
-#	$OpenBSD: multiplex.sh,v 1.2 2004/06/16 13:16:40 dtucker Exp $
+#	$OpenBSD: multiplex.sh,v 1.3 2004/06/17 05:51:59 dtucker Exp $
 #	Placed in the Public Domain.
 
 CTL=$OBJ/ctl-sock
@@ -10,11 +10,13 @@ start_sshd
 trace "start master, fork to background"
 ${SSH} -2 -MS$CTL -F $OBJ/ssh_config -f somehost sleep 60
 
+rm -f $OBJ/ls.copy
 trace "ssh transfer over multiplexed connection and check result"
 ${SSH} -S$CTL otherhost cat /bin/ls > $OBJ/ls.copy
 test -f $OBJ/ls.copy			|| fail "failed copy /bin/ls"
 cmp /bin/ls $OBJ/ls.copy		|| fail "corrupted copy of /bin/ls"
 
+rm -f $OBJ/ls.copy
 trace "ssh transfer over multiplexed connection and check result"
 ${SSH} -S $CTL otherhost cat /bin/ls > $OBJ/ls.copy
 test -f $OBJ/ls.copy			|| fail "failed copy /bin/ls"
@@ -32,6 +34,8 @@ trace "scp transfer over multiplexed connection and check result"
 ${SCP} -oControlPath=$CTL otherhost:/bin/ls $OBJ/ls.copy >/dev/null 2>&1
 test -f $OBJ/ls.copy			|| fail "failed copy /bin/ls"
 cmp /bin/ls $OBJ/ls.copy		|| fail "corrupted copy of /bin/ls"
+
+rm -f $OBJ/ls.copy
 
 for s in 0 1 4 5 44; do
 	trace "exit status $s over multiplexed connection"
@@ -52,4 +56,6 @@ for s in 0 1 4 5 44; do
 	fi
 done
 
-sleep 30 # early close test sleeps 5 seconds per test
+# kill master, remove control socket.  ssh -MS will exit when sleep exits
+$SUDO kill `cat $PIDFILE`
+rm -f $CTL
