@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.144 2003/06/04 08:25:18 djm Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.145 2003/06/11 10:16:16 jakob Exp $");
 
 #include <openssl/bn.h>
 
@@ -39,6 +39,10 @@ RCSID("$OpenBSD: sshconnect.c,v 1.144 2003/06/04 08:25:18 djm Exp $");
 
 char *client_version_string = NULL;
 char *server_version_string = NULL;
+
+#ifdef DNS
+int verified_host_key_dns = 0;
+#endif
 
 /* import */
 extern Options options;
@@ -570,7 +574,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 	int salen;
 	char ntop[NI_MAXHOST];
 	char msg[1024];
-	int len, host_line, ip_line, has_keys;
+	int len, host_line, ip_line;
 	const char *host_file = NULL, *ip_file = NULL;
 
 	/*
@@ -714,19 +718,36 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 			    "have requested strict checking.", type, host);
 			goto fail;
 		} else if (options.strict_host_key_checking == 2) {
-			has_keys = show_other_keys(host, host_key);
+			char msg1[1024], msg2[1024];
+
+			if (show_other_keys(host, host_key))
+				snprintf(msg1, sizeof(msg1),
+				   "\nbut keys of different type are already"
+				   " known for this host.");
+			else
+				snprintf(msg1, sizeof(msg1), ".");
 			/* The default */
 			fp = key_fingerprint(host_key, SSH_FP_MD5, SSH_FP_HEX);
+			msg2[0] = '\0';
+#ifdef DNS
+			if (options.verify_host_key_dns) {
+				if (verified_host_key_dns)
+					snprintf(msg2, sizeof(msg2),
+					    "Matching host key fingerprint"
+					    " found in DNS.\n");
+				else
+					snprintf(msg2, sizeof(msg2),
+					    "No matching host key fingerprint"
+					    " found in DNS.\n");
+			}
+#endif
 			snprintf(msg, sizeof(msg),
 			    "The authenticity of host '%.200s (%s)' can't be "
 			    "established%s\n"
-			    "%s key fingerprint is %s.\n"
+			    "%s key fingerprint is %s.\n%s"
 			    "Are you sure you want to continue connecting "
 			    "(yes/no)? ",
-			    host, ip,
-			    has_keys ? ",\nbut keys of different type are already "
-			    "known for this host." : ".",
-			    type, fp);
+			    host, ip, msg1, type, fp, msg2);
 			xfree(fp);
 			if (!confirm(msg))
 				goto fail;
@@ -890,7 +911,12 @@ verify_host_key(char *host, struct sockaddr *hostaddr, Key *host_key)
 	if (options.verify_host_key_dns) {
 		switch(verify_host_key_dns(host, hostaddr, host_key)) {
 		case DNS_VERIFY_OK:
+#ifdef DNSSEC
 			return 0;
+#else
+			verified_host_key_dns = 1;
+			break;
+#endif
 		case DNS_VERIFY_FAILED:
 			return -1;
 		case DNS_VERIFY_ERROR:
