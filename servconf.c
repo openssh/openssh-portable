@@ -131,11 +131,7 @@ fill_default_server_options(ServerOptions *options)
 {
 	/* Portable-specific options */
 	if (options->use_pam == -1)
-#ifdef USE_PAM
 		options->use_pam = 1;
-#else
-		options->use_pam = 0;
-#endif
 
 	/* Standard Options */
 	if (options->protocol == SSH_PROTO_UNKNOWN)
@@ -299,7 +295,11 @@ static struct {
 	ServerOpCodes opcode;
 } keywords[] = {
 	/* Portable-specific options */
+#ifdef USE_PAM
 	{ "UsePAM", sUsePAM },
+#else
+	{ "UsePAM", sUnsupported },
+#endif
 	/* Standard Options */
 	{ "port", sPort },
 	{ "hostkey", sHostKeyFile },
