@@ -20,6 +20,10 @@
    2.3.x.
  - (djm) Avoid warnings for missing broken IP_TOS. Patch from Mark Miller
    <markm@swoon.net>
+ - (djm) Open Server 5 doesn't need BROKEN_SAVED_UIDS. Patch from Tim Rice 
+   <tim@multitalents.net>
+ - (djm) Avoid multiple definition of _PATH_LS. Patch from Tim Rice 
+   <tim@multitalents.net>
 
 20010226
  - (bal) Fixed bsd-snprinf.c so it now honors 'BROKEN_SNPRINTF' again.
@@ -4154,4 +4158,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.835 2001/02/27 03:03:37 djm Exp $
+$Id: ChangeLog,v 1.836 2001/02/27 03:42:58 djm Exp $
