@@ -86,7 +86,7 @@ install: all
 	$(INSTALL) -d $(libexecdir) ;
 	$(INSTALL) -d $(libexecdir)/ssh ;
 	if [ -z "@GNOME_ASKPASS@" ] ; then \
-		$(INSTALL) -m755 -c ssh-askpass ${ASKPASS_PROGRAM}; \
+		$(INSTALL) -m755 -c gnome-ssh-askpass ${ASKPASS_PROGRAM}; \
 	fi
 
 	if [ ! -f $(sysconfdir)/ssh_config -a ! -f $(sysconfdir)/sshd_config ]; then \
