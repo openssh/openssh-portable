@@ -36,6 +36,7 @@
  - (djm) Fix up Makefile and Redhat init script to create RSA host keys
  - (djm) Change to interim version
  - (djm) Fix RPM spec file stupidity
+ - (djm) fixpaths to DSA and RSA keys too
 
 20001112
  - (bal) SCO Patch to add needed libraries for configure.in.  Patch by

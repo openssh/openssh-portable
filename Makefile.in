@@ -49,7 +49,7 @@ MANPAGES	= @MANTYPE@
 
 CONFIGFILES=sshd_config ssh_config primes
 
-PATHSUBS	= -D/etc/ssh_config=$(sysconfdir)/ssh_config -D/etc/ssh_known_hosts=$(sysconfdir)/ssh_known_hosts -D/etc/sshd_config=$(sysconfdir)/sshd_config -D/usr/libexec=$(libexecdir) -D/etc/shosts.equiv=$(sysconfdir)/shosts.equiv -D/etc/ssh_host_key=$(sysconfdir)/ssh_host_key -D/var/run/sshd.pid=$(piddir)/sshd.pid -D/etc/primes=$(sysconfdir)/primes
+PATHSUBS	= -D/etc/ssh_config=$(sysconfdir)/ssh_config -D/etc/ssh_known_hosts=$(sysconfdir)/ssh_known_hosts -D/etc/sshd_config=$(sysconfdir)/sshd_config -D/usr/libexec=$(libexecdir) -D/etc/shosts.equiv=$(sysconfdir)/shosts.equiv -D/etc/ssh_host_key=$(sysconfdir)/ssh_host_key -D/etc/ssh_host_dsa_key=$(sysconfdir)/ssh_host_dsa_key -D/etc/ssh_host_rsa_key=$(sysconfdir)/ssh_host_rsa_key -D/var/run/sshd.pid=$(piddir)/sshd.pid -D/etc/primes=$(sysconfdir)/primes
 
 FIXPATHSCMD	= $(PERL) $(srcdir)/fixpaths $(PATHSUBS)
 
