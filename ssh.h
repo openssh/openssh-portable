@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh.h,v 1.66 2002/03/29 19:18:33 stevesk Exp $	*/
+/*	$OpenBSD: ssh.h,v 1.67 2002/05/07 19:54:36 deraadt Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -105,7 +105,7 @@
  * primary group.
  */
 #ifndef SSH_PRIVSEP_USER
-#define SSH_PRIVSEP_USER		"nobody"
+#define SSH_PRIVSEP_USER		"ssh"
 #endif
 
 /* Minimum modulus size (n) for RSA keys. */

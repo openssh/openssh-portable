@@ -1,5 +1,10 @@
 20020515
  - (bal) CVS ID fix up on auth-passwd.c
+ - (bal) OpenBSD CVS Sync
+   - deraadt@cvs.openbsd.org 2002/05/07 19:54:36
+     [ssh.h]
+     use ssh uid
+
 
 20020514
  - (stevesk) [README.privsep] PAM+privsep works with Solaris 8.
@@ -604,4 +609,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2121 2002/05/15 15:59:17 mouring Exp $
+$Id: ChangeLog,v 1.2122 2002/05/15 16:07:11 mouring Exp $
