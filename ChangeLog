@@ -1,6 +1,8 @@
 20020417
  - (djm) Tell users to configure /dev/random support into OpenSSL in INSTALL
  - (djm) Fix .Nm in mdoc2man.pl from pspencer@fields.utoronto.ca
+ - (tim) [configure.ac] Issue warning on --with-default-path=/some_path
+   if LOGIN_CAP is enabled. Report & testing by Tuc <tuc@ttsg.com>
 
 20020415
  - (djm) Unbreak "make install". Fix from Darren Tucker <dtucker@zip.com.au>
@@ -8252,4 +8254,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2058 2002/04/17 02:30:45 djm Exp $
+$Id: ChangeLog,v 1.2059 2002/04/18 04:19:14 tim Exp $

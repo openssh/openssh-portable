@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.45 2002/04/16 04:10:11 tim Exp $
+# $Id: configure.ac,v 1.46 2002/04/18 04:19:15 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -2019,17 +2019,28 @@ else
 	)
 fi
 
+dnl BSD systems use /etc/login.conf so --with-default-path= has no effect
+if test $ac_cv_func_login_getcapbool = "yes" -a \
+	$ac_cv_header_login_cap_h = "yes" ; then
+	USES_LOGIN_CONF=yes
+fi
 # Whether to mess with the default path
 SERVER_PATH_MSG="(default)" 
 AC_ARG_WITH(default-path,
 	[  --with-default-path=PATH Specify default \$PATH environment for server],
 	[
-		if test "x$withval" != "xno" ; then	
+		if test "$USES_LOGIN_CONF" = "yes" ; then
+			AC_MSG_WARN([
+--with-default-path=PATH has no effect on this system.
+Edit /etc/login.conf instead.])
+		elif test "x$withval" != "xno" ; then	
 			user_path="$withval"
 			SERVER_PATH_MSG="$withval" 
 		fi
 	],
-	[
+	[ if test "$USES_LOGIN_CONF" = "yes" ; then
+	AC_MSG_WARN([Make sure the path to scp is in /etc/login.conf])
+	else
 	AC_TRY_RUN(
 		[
 /* find out what STDPATH is */
@@ -2079,10 +2090,12 @@ main()
 				AC_MSG_RESULT(Adding $t_bindir to USER_PATH so scp will work)
 			fi
 		fi
-	]
+	fi ]
 )
-AC_DEFINE_UNQUOTED(USER_PATH, "$user_path")
-AC_SUBST(user_path)
+if test "$USES_LOGIN_CONF" != "yes" ; then
+	AC_DEFINE_UNQUOTED(USER_PATH, "$user_path")
+	AC_SUBST(user_path)
+fi
 
 # Whether to force IPv4 by default (needed on broken glibc Linux)
 IPV4_HACK_MSG="no" 
@@ -2433,7 +2446,11 @@ echo "           Configuration files: $D"
 echo "               Askpass program: $E"
 echo "                  Manual pages: $F"
 echo "                      PID file: $G"
+if test "$USES_LOGIN_CONF" = "yes" ; then
+echo "        At runtime, sshd will use the path defined in /etc/login.conf"
+else
 echo "        sshd default user PATH: $H"
+fi
 echo "                Manpage format: $MANTYPE"
 echo "                   PAM support: ${PAM_MSG}"
 echo "            KerberosIV support: $KRB4_MSG"
