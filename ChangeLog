@@ -2,6 +2,7 @@
  - (djm) Sync openbsd-compat with -current libc
  - (djm) Fix from Lutz Jaenicke <Lutz.Jaenicke@aet.TU-Cottbus.DE> for my 
    broken makefile
+ - (bal) Removed strtok_r and inet_ntop since they are no longer used.
 
 20010627
  - (djm) Reintroduce pam_session call for non-pty sessions.
@@ -5814,4 +5815,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1336 2001/06/28 10:23:14 djm Exp $
+$Id: ChangeLog,v 1.1337 2001/06/28 23:21:28 mouring Exp $
