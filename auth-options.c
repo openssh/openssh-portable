@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-options.c,v 1.19 2001/06/24 05:25:09 markus Exp $");
+RCSID("$OpenBSD: auth-options.c,v 1.20 2001/08/30 20:36:34 stevesk Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -20,6 +20,7 @@ RCSID("$OpenBSD: auth-options.c,v 1.19 2001/06/24 05:25:09 markus Exp $");
 #include "channels.h"
 #include "auth-options.h"
 #include "servconf.h"
+#include "misc.h"
 
 /* Flags set authorized_keys flags */
 int no_port_forwarding_flag = 0;
@@ -213,8 +214,8 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 		}
 		cp = "permitopen=\"";
 		if (strncasecmp(opts, cp, strlen(cp)) == 0) {
+			char host[256], sport[6];
 			u_short port;
-			char *c, *ep;
 			char *patterns = xmalloc(strlen(opts) + 1);
 
 			opts += strlen(cp);
@@ -239,28 +240,25 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 			}
 			patterns[i] = 0;
 			opts++;
-			c = strchr(patterns, ':');
-			if (c == NULL) {
-				debug("%.100s, line %lu: permitopen: missing colon <%.100s>",
-				    file, linenum, patterns);
-				packet_send_debug("%.100s, line %lu: missing colon",
-				    file, linenum);
+			if (sscanf(patterns, "%255[^:]:%5[0-9]", host, sport) != 2 &&
+			    sscanf(patterns, "%255[^/]/%5[0-9]", host, sport) != 2) {
+				debug("%.100s, line %lu: Bad permitopen specification "
+				    "<%.100s>", file, linenum, patterns);
+				packet_send_debug("%.100s, line %lu: "
+				    "Bad permitopen specification", file, linenum);
 				xfree(patterns);
 				goto bad_option;
 			}
-			*c = 0;
-			c++;
-			port = strtol(c, &ep, 0);
-			if (c == ep) {
-				debug("%.100s, line %lu: permitopen: missing port <%.100s>",
-				    file, linenum, patterns);
-				packet_send_debug("%.100s, line %lu: missing port",
-				    file, linenum);
+			if ((port = a2port(sport)) == 0) {
+				debug("%.100s, line %lu: Bad permitopen port <%.100s>",
+				    file, linenum, sport);
+				packet_send_debug("%.100s, line %lu: "
+				    "Bad permitopen port", file, linenum);
 				xfree(patterns);
 				goto bad_option;
 			}
 			if (options.allow_tcp_forwarding)
-				channel_add_permitted_opens(patterns, port);
+				channel_add_permitted_opens(host, port);
 			xfree(patterns);
 			goto next_option;
 		}
