@@ -1,3 +1,6 @@
+20031009
+ - (dtucker) [sshd_config.5] UsePAM defaults to "no".  ok djm@
+
 20031008
  - (dtucker) OpenBSD CVS Sync
    - dtucker@cvs.openbsd.org 2003/10/07 01:47:27
@@ -1234,4 +1237,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2994.2.47 2003/10/08 07:53:02 dtucker Exp $
+$Id: ChangeLog,v 1.2994.2.48 2003/10/09 04:16:47 dtucker Exp $
