@@ -8,6 +8,9 @@
    Nalin Dahyabhai <nalin@redhat.com>
  - (djm) BSD license for gnome-ssh-askpass (was X11)
  - (djm) KNF on gnome-ssh-askpass
+ - (djm) USE_PIPES for a few more sysv platforms
+ - (djm) Cleanup configure.in a little
+ - (djm) Ask users to check config.log when we can't find necessary libs
 
 20010215
  - (djm) Move PAM session setup back to before setuid to user. Fixes 
@@ -3981,4 +3984,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.776 2001/02/16 00:18:58 djm Exp $
+$Id: ChangeLog,v 1.777 2001/02/16 01:05:39 djm Exp $
