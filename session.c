@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.80 2001/06/04 21:59:43 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.81 2001/06/04 23:16:16 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -123,6 +123,7 @@ Session *session_new(void);
 void	session_set_fds(Session *s, int fdin, int fdout, int fderr);
 void	session_pty_cleanup(Session *s);
 void	session_proctitle(Session *s);
+int	session_setup_x11fwd(Session *s);
 void	do_exec_pty(Session *s, const char *command);
 void	do_exec_no_pty(Session *s, const char *command);
 void	do_login(Session *s, const char *command);
@@ -261,10 +262,9 @@ do_authenticated1(Authctxt *authctxt)
 {
 	Session *s;
 	char *command;
-	int success, type, fd, n_bytes, plen, screen_flag, have_pty = 0;
+	int success, type, n_bytes, plen, screen_flag, have_pty = 0;
 	int compression_level = 0, enable_compression_after_reply = 0;
 	u_int proto_len, data_len, dlen;
-	struct stat st;
 
 	s = session_new();
 	s->pw = authctxt->pw;
@@ -343,23 +343,6 @@ do_authenticated1(Authctxt *authctxt)
 			break;
 
 		case SSH_CMSG_X11_REQUEST_FORWARDING:
-			if (!options.x11_forwarding) {
-				packet_send_debug("X11 forwarding disabled in server configuration file.");
-				break;
-			}
-			if (!options.xauth_location ||
-			    (stat(options.xauth_location, &st) == -1)) {
-				packet_send_debug("No xauth program; cannot forward with spoofing.");
-				break;
-			}
-			if (no_x11_forwarding_flag) {
-				packet_send_debug("X11 forwarding not permitted for this authentication.");
-				break;
-			}
-			debug("Received request for X11 forwarding with auth spoofing.");
-			if (s->display != NULL)
-				packet_disconnect("Protocol error: X11 display already set.");
-
 			s->auth_proto = packet_get_string(&proto_len);
 			s->auth_data = packet_get_string(&data_len);
 
@@ -371,39 +354,16 @@ do_authenticated1(Authctxt *authctxt)
 				if (!screen_flag)
 					debug2("Buggy client: "
 					    "X11 screen flag missing");
-				packet_integrity_check(plen,
-				    4 + proto_len + 4 + data_len + 4, type);
 				s->screen = packet_get_int();
 			} else {
-				packet_integrity_check(plen,
-				    4 + proto_len + 4 + data_len, type);
 				s->screen = 0;
 			}
-			s->display = x11_create_display_inet(s->screen, options.x11_display_offset);
-
-			if (s->display == NULL)
-				break;
-
-			/* Setup to always have a local .Xauthority. */
-			xauthfile = xmalloc(MAXPATHLEN);
-			strlcpy(xauthfile, "/tmp/ssh-XXXXXXXX", MAXPATHLEN);
-			temporarily_use_uid(s->pw);
-			if (mkdtemp(xauthfile) == NULL) {
-				restore_uid();
-				error("private X11 dir: mkdtemp %s failed: %s",
-				    xauthfile, strerror(errno));
-				xfree(xauthfile);
-				xauthfile = NULL;
-				/* XXXX remove listening channels */
-				break;
+			packet_done();
+			success = session_setup_x11fwd(s);
+			if (!success) {
+				xfree(s->auth_proto);
+				xfree(s->auth_data);
 			}
-			strlcat(xauthfile, "/cookies", MAXPATHLEN);
-			fd = open(xauthfile, O_RDWR|O_CREAT|O_EXCL, 0600);
-			if (fd >= 0)
-				close(fd);
-			restore_uid();
-			fatal_add_cleanup(xauthfile_cleanup_proc, s->pw);
-			success = 1;
 			break;
 
 		case SSH_CMSG_AGENT_REQUEST_FORWARDING:
@@ -1759,29 +1719,7 @@ session_subsystem_req(Session *s)
 int
 session_x11_req(Session *s)
 {
-	int fd;
-	struct stat st;
-	if (no_x11_forwarding_flag) {
-		debug("X11 forwarding disabled in user configuration file.");
-		return 0;
-	}
-	if (!options.x11_forwarding) {
-		debug("X11 forwarding disabled in server configuration file.");
-		return 0;
-	}
-	if (!options.xauth_location ||
-	    (stat(options.xauth_location, &st) == -1)) {
-		packet_send_debug("No xauth program; cannot forward with spoofing.");
-		return 0;
-	}
-	if (xauthfile != NULL) {
-		debug("X11 fwd already started.");
-		return 0;
-	}
-
-	debug("Received request for X11 forwarding with auth spoofing.");
-	if (s->display != NULL)
-		packet_disconnect("Protocol error: X11 display already set.");
+	int success;
 
 	s->single_connection = packet_get_char();
 	s->auth_proto = packet_get_string(NULL);
@@ -1789,33 +1727,12 @@ session_x11_req(Session *s)
 	s->screen = packet_get_int();
 	packet_done();
 
-	s->display = x11_create_display_inet(s->screen, options.x11_display_offset);
-	if (s->display == NULL) {
+	success = session_setup_x11fwd(s);
+	if (!success) {
 		xfree(s->auth_proto);
 		xfree(s->auth_data);
-		return 0;
 	}
-	xauthfile = xmalloc(MAXPATHLEN);
-	strlcpy(xauthfile, "/tmp/ssh-XXXXXXXX", MAXPATHLEN);
-	temporarily_use_uid(s->pw);
-	if (mkdtemp(xauthfile) == NULL) {
-		restore_uid();
-		error("private X11 dir: mkdtemp %s failed: %s",
-		    xauthfile, strerror(errno));
-		xfree(xauthfile);
-		xauthfile = NULL;
-		xfree(s->auth_proto);
-		xfree(s->auth_data);
-		/* XXXX remove listening channels */
-		return 0;
-	}
-	strlcat(xauthfile, "/cookies", MAXPATHLEN);
-	fd = open(xauthfile, O_RDWR|O_CREAT|O_EXCL, 0600);
-	if (fd >= 0)
-		close(fd);
-	restore_uid();
-	fatal_add_cleanup(xauthfile_cleanup_proc, s->pw);
-	return 1;
+	return success;
 }
 
 int
@@ -2033,6 +1950,10 @@ session_free(Session *s)
 void
 session_close(Session *s)
 {
+	if (s->display) {
+		xauthfile_cleanup_proc(s->pw);
+		fatal_remove_cleanup(xauthfile_cleanup_proc, s->pw);
+	}
 	session_pty_cleanup(s);
 	session_free(s);
 	session_proctitle(s);
@@ -2105,6 +2026,54 @@ session_proctitle(Session *s)
 		error("no user for session %d", s->self);
 	else
 		setproctitle("%s@%s", s->pw->pw_name, session_tty_list());
+}
+
+int
+session_setup_x11fwd(Session *s)
+{
+	int fd;
+	struct stat st;
+
+	if (no_x11_forwarding_flag) {
+		packet_send_debug("X11 forwarding disabled in user configuration file.");
+		return 0;
+	}
+	if (!options.x11_forwarding) {
+		debug("X11 forwarding disabled in server configuration file.");
+		return 0;
+	}
+	if (!options.xauth_location ||
+	    (stat(options.xauth_location, &st) == -1)) {
+		packet_send_debug("No xauth program; cannot forward with spoofing.");
+		return 0;
+	}
+	if (s->display != NULL) {
+		debug("X11 display already set.");
+		return 0;
+	}
+	xauthfile = xmalloc(MAXPATHLEN);
+	strlcpy(xauthfile, "/tmp/ssh-XXXXXXXX", MAXPATHLEN);
+	temporarily_use_uid(s->pw);
+	if (mkdtemp(xauthfile) == NULL) {
+		restore_uid();
+		error("private X11 dir: mkdtemp %s failed: %s",
+		    xauthfile, strerror(errno));
+		xfree(xauthfile);
+		xauthfile = NULL;
+		return 0;
+	}
+	strlcat(xauthfile, "/cookies", MAXPATHLEN);
+	fd = open(xauthfile, O_RDWR|O_CREAT|O_EXCL, 0600);
+	if (fd >= 0)
+		close(fd);
+	restore_uid();
+	s->display = x11_create_display_inet(s->screen, options.x11_display_offset);
+	if (s->display == NULL) {
+		xauthfile_cleanup_proc(s->pw);
+		return 0;
+	}
+	fatal_add_cleanup(xauthfile_cleanup_proc, s->pw);
+	return 1;
 }
 
 void
