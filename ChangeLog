@@ -15,6 +15,9 @@
    - djm@cvs.openbsd.org 2005/02/27 23:13:36
      [login-timeout.sh]
      avoid nameservice lookups in regress test; ok dtucker@
+   - djm@cvs.openbsd.org 2005/03/04 08:48:46
+     [Makefile envpass.sh]
+     regress test for SendEnv config parsing bug; ok dtucker@
 
 20050306
  - (dtucker) [monitor.c] Bug #125 comment #47: fix errors returned by monitor
@@ -2301,4 +2304,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3699 2005/03/07 07:34:04 dtucker Exp $
+$Id: ChangeLog,v 1.3700 2005/03/07 07:35:34 dtucker Exp $
