@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.28 2002/02/05 00:00:46 djm Exp $
+.\" $OpenBSD: sftp.1,v 1.29 2002/02/06 14:22:42 markus Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -30,13 +30,13 @@
 .Nd Secure file transfer program
 .Sh SYNOPSIS
 .Nm sftp
-.Op Fl 1Cv
-.Op Fl B Ar buffer_size
+.Op Fl vC1
 .Op Fl b Ar batchfile
-.Op Fl F Ar ssh_config
 .Op Fl o Ar ssh_option
-.Op Fl P Ar sftp_server path
 .Op Fl s Ar subsystem | sftp_server
+.Op Fl B Ar buffer_size
+.Op Fl F Ar ssh_config
+.Op Fl P Ar sftp_server path
 .Op Fl S Ar program
 .Ar host
 .Nm sftp
@@ -65,19 +65,6 @@ The last usage format allows the sftp client to start in a remote directory.
 .Pp
 The options are as follows:
 .Bl -tag -width Ds
-.It Fl 1
-Specify the use of protocol version 1.
-.It Fl B Ar buffer_size
-Specify  the size of the buffer that 
-.Nm
-uses when transferring files. Larger buffers require fewer round trips at
-the cost of higher memory consumption. The default is 32768 bytes.
-.It Fl P Ar sftp_server path
-Connect directly to a local 
-.Nm sftp-server 
-(rather than via
-.Nm ssh )
-This option may be useful in debugging the client and server.
 .It Fl b Ar batchfile
 Batch mode reads a series of commands from an input
 .Ar batchfile
@@ -91,16 +78,6 @@ commands fail:
 .Ic get , put , rename , ln , rm , mkdir , chdir , lchdir
 and
 .Ic lmkdir .
-.It Fl C
-Enables compression (via ssh's
-.Fl C
-flag).
-.It Fl F Ar ssh_config
-Specifies an alternative
-per-user configuration file for
-.Nm ssh .
-This option is directly passed to
-.Xr ssh 1 .
 .It Fl o Ar ssh_option
 Can be used to pass options to
 .Nm ssh
@@ -118,6 +95,29 @@ on the remote host.  A path is useful for using sftp over
 protocol version 1, or when the remote
 .Nm sshd
 does not have an sftp subsystem configured.
+.It Fl v
+Raise logging level. This option is also passed to ssh.
+.It Fl B Ar buffer_size
+Specify  the size of the buffer that 
+.Nm
+uses when transferring files. Larger buffers require fewer round trips at
+the cost of higher memory consumption. The default is 32768 bytes.
+.It Fl C
+Enables compression (via ssh's
+.Fl C
+flag).
+.It Fl F Ar ssh_config
+Specifies an alternative
+per-user configuration file for
+.Nm ssh .
+This option is directly passed to
+.Xr ssh 1 .
+.It Fl P Ar sftp_server path
+Connect directly to a local 
+.Nm sftp-server 
+(rather than via
+.Nm ssh )
+This option may be useful in debugging the client and server.
 .It Fl S Ar program
 Name of the
 .Ar program
@@ -125,8 +125,8 @@ to use for the encrypted connection.
 The program must understand
 .Xr ssh 1
 options.
-.It Fl v
-Raise logging level. This option is also passed to ssh.
+.It Fl 1
+Specify the use of protocol version 1.
 .El
 .Sh INTERACTIVE COMMANDS
 Once in interactive mode,

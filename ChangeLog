@@ -13,6 +13,9 @@
    - markus@cvs.openbsd.org 2002/02/05 14:32:55
      [channels.c channels.h ssh.c]
      merge channel_request() into channel_request_start()
+   - markus@cvs.openbsd.org 2002/02/06 14:22:42
+     [sftp.1]
+     sort options; ok mpech@, stevesk@
 
 20020205
  - (djm) Cleanup after sync:
@@ -7519,4 +7522,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1831 2002/02/08 11:04:26 djm Exp $
+$Id: ChangeLog,v 1.1832 2002/02/08 11:06:03 djm Exp $
