@@ -5,6 +5,11 @@
      Change mm_zalloc() sanity checks to be more in line with what
      we do in calloc() and add a check to monitor_mm.c.
      OK provos@ and markus@
+   - marc@cvs.openbsd.org 2002/08/02 16:00:07
+     [ssh.1 sshd.8]
+     note that .ssh/environment is only read when
+     allowed (PermitUserEnvironment in sshd_config).
+     OK markus@
 
 20020813
  - (tim) [configure.ac] Display OpenSSL header/library version.
@@ -1502,4 +1507,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2415 2002/08/20 18:36:25 mouring Exp $
+$Id: ChangeLog,v 1.2416 2002/08/20 18:38:02 mouring Exp $

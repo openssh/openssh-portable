@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.160 2002/06/22 11:51:39 naddy Exp $
+.\" $OpenBSD: ssh.1,v 1.161 2002/08/02 16:00:07 marc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -742,7 +742,12 @@ reads
 .Pa $HOME/.ssh/environment ,
 and adds lines of the format
 .Dq VARNAME=value
-to the environment.
+to the environment if the file exists and if users are allowed to
+change their environment.
+See
+.Cm PermitUserEnvironment
+in
+.Xr sshd_config 5 .
 .Sh FILES
 .Bl -tag -width Ds
 .It Pa $HOME/.ssh/known_hosts

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.186 2002/06/22 16:45:29 stevesk Exp $
+.\" $OpenBSD: sshd.8,v 1.187 2002/08/02 16:00:07 marc Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -350,7 +350,11 @@ Sets up basic environment.
 .It
 Reads
 .Pa $HOME/.ssh/environment
-if it exists.
+if it exists and users are allowed to change their environment.
+See
+.Cm PermitUserEnvironment
+in
+.Xr sshd_config 5 .
 .It
 Changes to user's home directory.
 .It
