@@ -17,12 +17,6 @@ Ricardo Cerqueira's <rmcc@clix.pt> patch to enable chrooting using the
 wu-ftpd style magic home directories (containing '/./'). More details in
 the head of the patch itself.
 
-make-ssh-known-hosts:
-
-Tero Kivinen's <Tero.Kivinen@hut.fi> PERL script to generate
-ssh_known_hosts files by trawling tjhrough the DNS. More details in the
-manpage.
-
 ssh-copy-id:
 
 Phil Hands' <phil@hands.com> shell script to automate the process of adding
@@ -45,7 +39,8 @@ Dominik Brettnacher <domi@saargate.de>
 mdoc2man.pl:
 
 Converts mdoc formated manpages into normal manpages.  This can be used
-on Solaris machines to provide manpages that are not preformated.
+on Solaris machines to provide manpages that are not preformated. 
+Contributed by Mark D. Roth <roth@feep.net>
 
 redhat:
 
@@ -65,4 +60,3 @@ Jim Knoble <jmknoble@pobox.com> has written an excellent X11
 passphrase requester. This is highly recommended:
 
 http://www.ntrnet.net/~jmknoble/software/x11-ssh-askpass/index.html
-
