@@ -32,6 +32,9 @@
    - david@cvs.openbsd.org 2004/07/09 19:45:43
      [Makefile]
      add a missing CLEANFILES used in the re-exec test
+   - djm@cvs.openbsd.org 2004/10/08 02:01:50
+     [reexec.sh]
+     shrink and tidy; ok dtucker@
 
 20041203
  - (dtucker) OpenBSD CVS Sync
@@ -1905,4 +1908,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3593 2004/12/06 12:04:57 dtucker Exp $
+$Id: ChangeLog,v 1.3594 2004/12/06 12:05:52 dtucker Exp $
