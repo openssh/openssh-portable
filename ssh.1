@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.106 2001/04/22 13:32:27 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.107 2001/04/22 23:58:36 markus Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -110,7 +110,7 @@ permitted to log in.
 This form of authentication alone is normally not
 allowed by the server because it is not secure.
 .Pp
-The second (and primary) authentication method is the
+The second authentication method is the
 .Pa rhosts
 or
 .Pa hosts.equiv
@@ -205,13 +205,18 @@ the password cannot be seen by someone listening on the network.
 .Ss SSH protocol version 2
 .Pp
 When a user connects using the protocol version 2
-different authentication methods are available:
-At first, the client attempts to authenticate using the public key method.
-If this method fails password authentication is tried.
+different authentication methods are available.
+Using the default values for
+.Cm PreferredAuthentications ,
+the client will try to authenticate first using the public key method;
+if this method fails password authentication is attempted,
+and finally if this method fails keyboard-interactive authentication
+is attempted.
+If this method fails password authentication is
+tried.
 .Pp
 The public key method is similar to RSA authentication described
-in the previous section except that the DSA or RSA algorithm is used
-instead.
+in the previous section and allows the RSA or DSA algorithm to be used:
 The client uses his private key,
 .Pa $HOME/.ssh/id_dsa
 or
@@ -225,8 +230,10 @@ and is only known to the client and the server.
 .Pp
 If public key authentication fails or is not available a password
 can be sent encrypted to the remote host for proving the user's identity.
-This protocol 2 implementation does not yet support Kerberos or
-S/Key authentication.
+.Pp
+Additionally,
+.Nm
+supports hostbased or challenge response authentication.
 .Pp
 Protocol 2 provides additional mechanisms for confidentiality
 (the traffic is encrypted using 3DES, Blowfish, CAST128 or Arcfour)
@@ -286,7 +293,7 @@ Background ssh
 List forwarded connections
 .It Cm ~&
 Background ssh at logout when waiting for forwarded connection / X11 sessions
-to terminate (this does not currently work for SSH protocol version 2)
+to terminate (protocol version 1 only)
 .It Cm ~?
 Display a list of escape characters
 .It Cm ~R
@@ -573,6 +580,8 @@ from the local machine.
 Port forwardings can also be specified in the configuration file.
 Privileged ports can be forwarded only when
 logging in as root on the remote machine.
+IPv6 addresses can be specified with an alternative syntax:
+.Ar port/host/hostport
 .It Fl 1
 Forces
 .Nm
@@ -645,6 +654,7 @@ The argument to this keyword must be
 .Dq yes
 or
 .Dq no .
+This option applies to protocol version 1 only.
 .It Cm BatchMode
 If set to
 .Dq yes ,
@@ -687,8 +697,7 @@ The default is
 .Pp
 .Bd -literal
   ``aes128-cbc,3des-cbc,blowfish-cbc,cast128-cbc,arcfour,
-    aes192-cbc,aes256-cbc,rijndael128-cbc,rijndael192-cbc,
-    rijndael256-cbc,rijndael-cbc@lysator.liu.se''
+    aes192-cbc,aes256-cbc''
 .Ed
 .It Cm Compression
 Specifies whether to use compression.
@@ -704,21 +713,13 @@ The argument must be an integer from 1 (fast) to 9 (slow, best).
 The default level is 6, which is good for most applications.
 The meaning of the values is the same as in
 .Xr gzip 1 .
+Note that this option applies to protocol version 1 only.
 .It Cm ConnectionAttempts
 Specifies the number of tries (one per second) to make before falling
 back to rsh or exiting.
 The argument must be an integer.
 This may be useful in scripts if the connection sometimes fails.
 The default is 4.
-.It Cm PubkeyAuthentication
-Specifies whether to try public key authentication.
-The argument to this keyword must be
-.Dq yes
-or
-.Dq no .
-The default is
-.Dq yes .
-Note that this option applies to protocol version 2 only.
 .It Cm EscapeChar
 Sets the escape character (default:
 .Ql ~ ) .
@@ -783,17 +784,29 @@ host key database instead of
 Specifies a file to use for the protocol version 2 global
 host key database instead of
 .Pa /etc/ssh_known_hosts2 .
-.It Cm HostKeyAlias
-Specifies an alias that should be used instead of the
-real host name when looking up or saving the host key
-in the known_hosts files.
-This option is useful for tunneling ssh connections
-or if you have multiple servers running on a single host.
+.It Cm HostbasedAuthentication
+Specifies whether to try rhosts based authentication with public key
+authentication.
+The argument must be
+.Dq yes
+or
+.Dq no .
+The default is
+.Dq yes .
+This option applies to protocol version 2 only and
+is similar to
+.Cm RhostsRSAAuthentication .
 .It Cm HostKeyAlgorithms
 Specfies the protocol version 2 host key algorithms
 that the client wants to use in order of preference.
 The default for this option is:
 .Dq ssh-rsa,ssh-dss
+.It Cm HostKeyAlias
+Specifies an alias that should be used instead of the
+real host name when looking up or saving the host key
+in the host key database files.
+This option is useful for tunneling ssh connections
+or if you have multiple servers running on a single host.
 .It Cm HostName
 Specifies the real host name to log into.
 This can be used to specify nicknames or abbreviations for hosts.
@@ -802,7 +815,7 @@ Numeric IP addresses are also permitted (both on the command line and in
 .Cm HostName
 specifications).
 .It Cm IdentityFile
-Specifies the file from which the user's RSA authentication identity
+Specifies the file from which the user's RSA or DSA authentication identity
 is read (default
 .Pa $HOME/.ssh/identity
 in the user's home directory).
@@ -882,7 +895,6 @@ or
 .Dq no .
 The default is
 .Dq yes .
-Note that this option applies to both protocol version 1 and 2.
 .It Cm Port
 Specifies the port number to connect on the remote host.
 Default is 22.
@@ -934,6 +946,15 @@ Note that
 .Cm CheckHostIP
 is not available for connects with a proxy command.
 .Pp
+.It Cm PubkeyAuthentication
+Specifies whether to try public key authentication.
+The argument to this keyword must be
+.Dq yes
+or
+.Dq no .
+The default is
+.Dq yes .
+This option applies to protocol version 2 only.
 .It Cm RemoteForward
 Specifies that a TCP/IP port on the remote machine be forwarded over
 the secure channel to given host:port from the local machine.
@@ -951,13 +972,15 @@ Disabling rhosts authentication may reduce
 authentication time on slow connections when rhosts authentication is
 not used.
 Most servers do not permit RhostsAuthentication because it
-is not secure (see RhostsRSAAuthentication).
+is not secure (see 
+.Cm RhostsRSAAuthentication ).
 The argument to this keyword must be
 .Dq yes
 or
 .Dq no .
 The default is
 .Dq yes .
+This option applies to protocol version 1 only.
 .It Cm RhostsRSAAuthentication
 Specifies whether to try rhosts based authentication with RSA host
 authentication.
@@ -967,6 +990,7 @@ or
 .Dq no .
 The default is
 .Dq yes .
+This option applies to protocol version 1 only.
 .It Cm RSAAuthentication
 Specifies whether to try RSA authentication.
 The argument to this keyword must be
@@ -1037,13 +1061,13 @@ or
 .Dq no .
 The default is
 .Dq no .
-Note that setting this option to
-.Dq no
-turns off
+Note that you need to set this option to
+.Dq yes
+if you want to use
 .Cm RhostsAuthentication
 and
 .Cm RhostsRSAAuthentication
-for older servers.
+with older servers.
 .It Cm User
 Specifies the user to log in as.
 This can be useful if you have a different user name on different machines.
@@ -1097,7 +1121,9 @@ the host where the shell runs, and n is an integer >= 1.
 .Nm
 uses this special value to forward X11 connections over the secure
 channel.
-The user should normally not set DISPLAY explicitly, as that
+The user should normally not set
+.Ev DISPLAY
+explicitly, as that
 will render the X11 connection insecure (and will require the user to
 manually copy any required authorization cookies).
 .It Ev HOME
@@ -1211,7 +1237,7 @@ spaces).
 This file is not highly sensitive, but the recommended
 permissions are read/write for the user, and not accessible by others.
 .It Pa $HOME/.ssh/authorized_keys2
-Lists the public keys (DSA/RSA) that can be used for logging in as this user.
+Lists the public keys (RSA/DSA) that can be used for logging in as this user.
 This file is not highly sensitive, but the recommended
 permissions are read/write for the user, and not accessible by others.
 .It Pa /etc/ssh_known_hosts, /etc/ssh_known_hosts2
@@ -1219,7 +1245,7 @@ Systemwide list of known host keys.
 .Pa /etc/ssh_known_hosts
 contains RSA and
 .Pa /etc/ssh_known_hosts2
-contains DSA or RSA keys for protocol version 2.
+contains RSA or DSA keys for protocol version 2.
 These files should be prepared by the
 system administrator to contain the public host keys of all machines in the
 organization.

@@ -1,3 +1,9 @@
+20010424
+ - OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2001/04/22 23:58:36
+     [ssh-keygen.1 ssh.1 sshd.8]
+     document hostbased and other cleanup
+
 20010422
  - OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2001/04/20 16:32:22
@@ -5225,4 +5231,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1159 2001/04/22 17:19:46 mouring Exp $
+$Id: ChangeLog,v 1.1160 2001/04/23 13:02:16 mouring Exp $

@@ -34,13 +34,13 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.119 2001/04/22 13:32:27 markus Exp $
+.\" $OpenBSD: sshd.8,v 1.120 2001/04/22 23:58:36 markus Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
 .Sh NAME
 .Nm sshd
-.Nd OpenSSH ssh daemon
+.Nd OpenSSH SSH daemon
 .Sh SYNOPSIS
 .Nm sshd
 .Op Fl deiqD46
@@ -134,8 +134,9 @@ Each host has a host-specific DSA key used to identify the host.
 However, when the daemon starts, it does not generate a server key.
 Forward security is provided through a Diffie-Hellman key agreement.
 This key agreement results in a shared session key.
+.Pp
 The rest of the session is encrypted using a symmetric cipher, currently
-Blowfish, 3DES, CAST128, Arcfour, 128 bit AES, or 256 bit AES.
+128 bit AES, Blowfish, 3DES, CAST128, Arcfour, 192 bit AES, or 256 bit AES.
 The client selects the encryption algorithm
 to use from those offered by the server.
 Additionally, session integrity is provided
@@ -143,8 +144,9 @@ through a cryptographic message authentication code
 (hmac-sha1 or hmac-md5).
 .Pp
 Protocol version 2 provides a public key based
-user authentication method (PubkeyAuthentication)
-and conventional password authentication.
+user (PubkeyAuthentication) or
+client host (HostbasedAuthentication) authentication method,
+conventional password authentication and challenge response based methods.
 .Pp
 .Ss Command execution and data forwarding
 .Pp
@@ -180,7 +182,8 @@ by executing itself with the name it was started as, ie.
 The options are as follows:
 .Bl -tag -width Ds
 .It Fl b Ar bits
-Specifies the number of bits in the server key (default 768).
+Specifies the number of bits in the ephemeral protocol version 1
+server key (default 768).
 .Pp
 .It Fl d
 Debug mode.
@@ -188,8 +191,12 @@ The server sends verbose debug output to the system
 log, and does not put itself in the background.
 The server also will not fork and will only process one connection.
 This option is only intended for debugging for the server.
-Multiple -d options increases the debugging level.
+Multiple -d options increase the debugging level.
 Maximum is 3.
+.It Fl e
+When this option is specified,
+.Nm
+will send the output to the standard error instead of the system log.
 .It Fl f Ar configuration_file
 Specifies the name of the configuration file.
 The default is
@@ -210,7 +217,7 @@ This option must be given if
 is not run as root (as the normal
 host file is normally not readable by anyone but root).
 It is possible to have multiple host key files for
-the different protocol versions.
+the different protocol versions and host key algorithms.
 .It Fl i
 Specifies that
 .Nm
@@ -225,8 +232,8 @@ However, with small key sizes (e.g., 512) using
 from inetd may
 be feasible.
 .It Fl k Ar key_gen_time
-Specifies how often the server key is regenerated (default 3600
-seconds, or one hour).
+Specifies how often the ephemeral protocol version 1 server key is
+regenerated (default 3600 seconds, or one hour).
 The motivation for regenerating the key fairly
 often is that the key is not stored anywhere, and after about an hour,
 it becomes impossible to recover the key for decrypting intercepted
@@ -263,18 +270,6 @@ When this option is specified
 will not detach and does not become a daemon.
 This allows easy monitoring of
 .Nm sshd .
-.It Fl e
-When this option is specified,
-.Nm
-will send the output to the standard error instead of the system log.
-.It Fl V Ar client_protocol_id
-SSH-2 compatibility mode.
-When this option is specified
-.Nm
-assumes the client has sent the supplied version string
-and skips the
-Protocol Version Identification Exchange.
-This option is not intended to be called directly.
 .It Fl 4
 Forces
 .Nm
@@ -426,6 +421,15 @@ or
 .Dq no .
 The default is
 .Dq no .
+.It Cm HostbasedAuthentication
+Specifies whether rhosts or /etc/hosts.equiv authentication together
+with successful public key client host authentication is allowed
+(hostbased authentication).
+This option is similar to
+.Cm RhostsRSAAuthentication
+and applies to protocol version 2 only.
+The default is
+.Dq no .
 .It Cm HostKey
 Specifies the file containing the private host keys (default
 .Pa /etc/ssh_host_key )
@@ -445,7 +449,12 @@ Specifies that
 .Pa .rhosts
 and
 .Pa .shosts
-files will not be used in authentication.
+files will not be used in
+.Cm RhostsAuthentication ,
+.Cm RhostsRSAAuthentication
+or
+.Cm HostbasedAuthentication .
+.Pp
 .Pa /etc/hosts.equiv
 and
 .Pa /etc/shosts.equiv
@@ -458,7 +467,9 @@ Specifies whether
 should ignore the user's
 .Pa $HOME/.ssh/known_hosts
 during
-.Cm RhostsRSAAuthentication .
+.Cm RhostsRSAAuthentication
+or
+.Cm HostbasedAuthentication .
 The default is
 .Dq no .
 .It Cm KeepAlive
@@ -511,8 +522,8 @@ file on logout.
 Default is
 .Dq yes .
 .It Cm KeyRegenerationInterval
-The server key is automatically regenerated after this many seconds
-(if it has been used).
+In protocol version 1, the ephemeral server key is automatically regenerated
+after this many seconds (if it has been used).
 The purpose of regeneration is to prevent
 decrypting captured sessions by later breaking into the machine and
 stealing the keys.
@@ -521,7 +532,7 @@ If the value is 0, the key is never regenerated.
 The default is 3600 (seconds).
 .It Cm ListenAddress
 Specifies the local addresses
-.Xr sshd 8
+.Nm
 should listen on.
 The following forms may be used:
 .Pp
@@ -547,7 +558,7 @@ The following forms may be used:
 If
 .Ar port
 is not specified,
-.Xr sshd 8
+.Nm
 will listen on the address and all prior
 .Cm Port
 options specified. The default is to listen on all local
@@ -609,7 +620,6 @@ are refused if the number of unauthenticated connections reaches
 Specifies whether password authentication is allowed.
 The default is
 .Dq yes .
-Note that this option applies to both protocol versions 1 and 2.
 .It Cm PermitEmptyPasswords
 When password authentication is allowed, it specifies whether the
 server allows login to accounts with empty password strings.
@@ -656,6 +666,8 @@ Specifies the port number that
 listens on.
 The default is 22.
 Multiple options of this type are permitted.
+See also
+.Cm ListenAddress .
 .It Cm PrintLastLog
 Specifies whether
 .Nm
@@ -707,18 +719,20 @@ instead, because it performs RSA-based host authentication in addition
 to normal rhosts or /etc/hosts.equiv authentication.
 The default is
 .Dq no .
+This option applies to protocol version 1 only.
 .It Cm RhostsRSAAuthentication
 Specifies whether rhosts or /etc/hosts.equiv authentication together
 with successful RSA host authentication is allowed.
 The default is
 .Dq no .
+This option applies to protocol version 1 only.
 .It Cm RSAAuthentication
 Specifies whether pure RSA authentication is allowed.
 The default is
 .Dq yes .
-Note that this option applies to protocol version 1 only.
+This option applies to protocol version 1 only.
 .It Cm ServerKeyBits
-Defines the number of bits in the server key.
+Defines the number of bits in the ephemeral protocol version 1 server key.
 The minimum value is 512, and the default is 768.
 .It Cm StrictModes
 Specifies whether
@@ -825,12 +839,12 @@ Runs user's shell or command.
 The
 .Pa $HOME/.ssh/authorized_keys
 file lists the RSA keys that are
-permitted for RSA authentication in SSH protocols 1.3 and 1.5
+permitted for RSA authentication in protocol version 1
 Similarly, the
 .Pa $HOME/.ssh/authorized_keys2
 file lists the DSA and RSA keys that are
 permitted for public key authentication (PubkeyAuthentication)
-in SSH protocol 2.0.
+in protocol version 2.
 .Pp
 Each line of the file contains one
 key (empty lines and lines starting with a
@@ -994,7 +1008,10 @@ or by taking
 .Pa /etc/ssh_host_key.pub
 and adding the host names at the front.
 .Ss Examples
-closenet,closenet.hut.fi,.\|.\|.\|,130.233.208.41 1024 37 159.\|.\|.93 closenet.hut.fi
+.Bd -literal
+closenet,.\|.\|.\|,130.233.208.41 1024 37 159.\|.\|.93 closenet.hut.fi
+cvs.openbsd.org,199.185.137.3 ssh-rsa AAAA1234.....=
+.Ed
 .Sh FILES
 .Bl -tag -width Ds
 .It Pa /etc/sshd_config
@@ -1003,16 +1020,14 @@ Contains configuration data for
 This file should be writable by root only, but it is recommended
 (though not necessary) that it be world-readable.
 .It Pa /etc/ssh_host_key, /etc/ssh_host_dsa_key, /etc/ssh_host_rsa_key
-These three files contain the private parts of the
-(SSH1, SSH2 DSA, and SSH2 RSA) host keys.
+These three files contain the private parts of the host keys.
 These files should only be owned by root, readable only by root, and not
 accessible to others.
 Note that
 .Nm
 does not start if this file is group/world-accessible.
 .It Pa /etc/ssh_host_key.pub, /etc/ssh_host_dsa_key.pub, /etc/ssh_host_rsa_key.pub
-These three files contain the public parts of the
-(SSH1, SSH2 DSA, and SSH2 RSA) host keys.
+These three files contain the public parts of the host keys.
 These files should be world-readable but writable only by
 root.
 Their contents should match the respective private parts.
@@ -1042,7 +1057,7 @@ Users will place the contents of their
 files into this file, as described in
 .Xr ssh-keygen 1 .
 .It Pa $HOME/.ssh/authorized_keys2
-Lists the DSA keys that can be used to log into the user's account.
+Lists the public keys (RSA or DSA) that can be used to log into the user's account.
 This file must be readable by root (which may on some machines imply
 it being world-readable if the user's home directory resides on an NFS
 volume).
@@ -1064,6 +1079,17 @@ These files should be writable only by root/the owner.
 .Pa /etc/ssh_known_hosts
 should be world-readable, and
 .Pa $HOME/.ssh/known_hosts
+can but need not be world-readable.
+.It Pa "/etc/ssh_known_hosts2" and "$HOME/.ssh/known_hosts2"
+These files are consulted when using protocol version 2 hostbased
+authentication to check the public key of the host.
+The key must be listed in one of these files to be accepted.
+The client uses the same files
+to verify that it is connecting to the correct remote host.
+These files should be writable only by root/the owner.
+.Pa /etc/ssh_known_hosts2
+should be world-readable, and
+.Pa $HOME/.ssh/known_hosts2
 can but need not be world-readable.
 .It Pa /etc/nologin
 If this file exists,
@@ -1162,8 +1188,12 @@ which may be needed before the user's home directory becomes
 accessible; AFS is a particular example of such an environment.
 .Pp
 This file will probably contain some initialization code followed by
-something similar to: "if read proto cookie; then echo add $DISPLAY
-$proto $cookie | xauth -q -; fi".
+something similar to:
+.Bd -literal
+	if read proto cookie; then
+		echo add $DISPLAY $proto $cookie | xauth -q -
+	fi
+.Ed
 .Pp
 If this file does not exist,
 .Pa /etc/sshrc
@@ -1206,6 +1236,15 @@ protocol versions 1.5 and 2.0.
 .%A S. Lehtinen
 .%T "SSH Protocol Architecture"
 .%N draft-ietf-secsh-architecture-07.txt
+.%D January 2001
+.%O work in progress material
+.Re
+.Rs
+.%A M. Friedl
+.%A N. Provos
+.%A W. A. Simpson
+.%T "Diffie-Hellman Group Exchange for the SSH Transport Layer Protocol"
+.%N draft-ietf-secsh-dh-group-exchange-00.txt
 .%D January 2001
 .%O work in progress material
 .Re
