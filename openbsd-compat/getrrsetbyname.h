@@ -58,6 +58,14 @@
 #include <netdb.h>
 #include <resolv.h>
 
+#ifndef HFIXEDSZ
+#define HFIXEDSZ 12
+#endif
+
+#ifndef T_SIG
+#define T_SIG 24
+#endif
+
 /*
  * Flags for getrrsetbyname()
  */

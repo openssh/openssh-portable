@@ -3,6 +3,8 @@
  - (tim) [regress/test-exec.sh] RhostsAuthentication is deprecated.
  - (tim) [defines.h] Add defines for HFIXEDSZ and T_SIG
  - (tim) [configure.ac includes.h] add <sys/ptms.h> for grantpt() and friends.
+ - (tim) [defines.h openbsd-compat/getrrsetbyname.h] Move defines for HFIXEDSZ
+   and T_SIG to getrrsetbyname.h
 
 20040124
  - (djm) Typo in openbsd-compat/bsd-openpty.c; from wendyp AT cray.com
@@ -1735,4 +1737,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3191 2004/01/27 03:03:39 tim Exp $
+$Id: ChangeLog,v 1.3192 2004/01/27 05:40:35 tim Exp $
