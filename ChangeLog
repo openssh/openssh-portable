@@ -124,6 +124,9 @@
    - markus@cvs.openbsd.org 2002/03/21 16:57:15
      [scard.c]
      remove const
+   - markus@cvs.openbsd.org 2002/03/21 16:58:13
+     [clientloop.c]
+     remove unused
 
 20020317
  - (tim) [configure.ac] Assume path given with --with-pid-dir=PATH is wanted,
@@ -7970,4 +7973,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1959 2002/03/22 03:33:43 mouring Exp $
+$Id: ChangeLog,v 1.1960 2002/03/22 03:35:48 mouring Exp $

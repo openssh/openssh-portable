@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.97 2002/03/21 15:17:26 jakob Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.98 2002/03/21 16:58:13 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -474,7 +474,6 @@ client_process_net_input(fd_set * readset)
 static void
 process_cmdline(Buffer *bin, Buffer *bout, Buffer *berr)
 {
-	char string[1024];
 	void (*handler)(int);
 	char *s, *cmd;
 	u_short fwd_port, fwd_host_port;
