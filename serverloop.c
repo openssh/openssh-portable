@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.73 2001/07/02 13:59:14 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.74 2001/07/02 22:52:57 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -711,7 +711,8 @@ server_loop2(Authctxt *authctxt)
 	 * there is a race between channel_free_all() killing children and
 	 * children dying before kill()
 	 */
-	channel_free_all();
+	channel_detach_all();
+	channel_stop_listening();
 
 	while (session_have_children()) {
 		pid = waitpid(-1, &status, 0);
@@ -722,6 +723,7 @@ server_loop2(Authctxt *authctxt)
 			break;
 		}
 	}
+	channel_free_all();
 }
 
 static void

@@ -124,6 +124,12 @@
    - markus@cvs.openbsd.org 2001/07/02 22:40:18
      [ssh-keygen.c]
      update for sectok.h interface changes.
+   - markus@cvs.openbsd.org 2001/07/02 22:52:57
+     [channels.c channels.h serverloop.c]
+     improve cleanup/exit logic in ssh2:
+     stop listening to channels, detach channel users (e.g. sessions).
+     wait for children (i.e. dying sessions), send exit messages,
+     cleanup all channels.
  
 20010629
  - (bal) Removed net_aton() since we don't use it any more
@@ -5951,4 +5957,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1375 2001/07/04 05:24:27 mouring Exp $
+$Id: ChangeLog,v 1.1376 2001/07/04 05:26:06 mouring Exp $

@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.130 2001/06/30 18:08:39 stevesk Exp $");
+RCSID("$OpenBSD: channels.c,v 1.131 2001/07/02 22:52:56 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -260,7 +260,7 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 	c->cb_fn = NULL;
 	c->cb_arg = NULL;
 	c->cb_event = 0;
-	c->dettach_user = NULL;
+	c->detach_user = NULL;
 	c->input_filter = NULL;
 	debug("channel %d: new [%s]", found, remote_name);
 	return c;
@@ -310,9 +310,9 @@ channel_free(Channel *c)
 	debug3("channel_free: status: %s", s);
 	xfree(s);
 
-	if (c->dettach_user != NULL) {
-		debug("channel_free: channel %d: dettaching channel user", c->self);
-		c->dettach_user(c->self, NULL);
+	if (c->detach_user != NULL) {
+		debug("channel_free: channel %d: detaching channel user", c->self);
+		c->detach_user(c->self, NULL);
 	}
 	if (c->sock != -1)
 		shutdown(c->sock, SHUT_RDWR);
@@ -338,6 +338,22 @@ channel_free_all(void)
 			channel_free(channels[i]);
 }
 
+void
+channel_detach_all(void)
+{
+	int i;
+	Channel *c;
+
+	for (i = 0; i < channels_alloc; i++) {
+		c = channels[i];
+		if (c != NULL && c->detach_user != NULL) {
+			debug("channel_detach_all: channel %d", c->self);
+			c->detach_user(c->self, NULL);
+			c->detach_user = NULL;
+		}
+	}
+}
+
 /*
  * Closes the sockets/fds of all channels.  This is used to close extra file
  * descriptors after a fork.
@@ -351,6 +367,32 @@ channel_close_all()
 	for (i = 0; i < channels_alloc; i++)
 		if (channels[i] != NULL)
 			channel_close_fds(channels[i]);
+}
+
+/*
+ * Stop listening to channels.
+ */
+
+void
+channel_stop_listening(void)
+{
+	int i;
+	Channel *c;
+
+	for (i = 0; i < channels_alloc; i++) {
+		c = channels[i];
+		if (c != NULL) {
+			switch (c->type) {
+			case SSH_CHANNEL_AUTH_SOCKET:
+			case SSH_CHANNEL_PORT_LISTENER:
+			case SSH_CHANNEL_RPORT_LISTENER:
+			case SSH_CHANNEL_X11_LISTENER:
+				close(c->sock);
+				channel_free(c);
+				break;
+			}
+		}
+	}
 }
 
 /*
@@ -579,7 +621,7 @@ channel_register_cleanup(int id, channel_callback_fn *fn)
 		log("channel_register_cleanup: %d: bad id", id);
 		return;
 	}
-	c->dettach_user = fn;
+	c->detach_user = fn;
 }
 void
 channel_cancel_cleanup(int id)
@@ -589,7 +631,7 @@ channel_cancel_cleanup(int id)
 		log("channel_cancel_cleanup: %d: bad id", id);
 		return;
 	}
-	c->dettach_user = NULL;
+	c->detach_user = NULL;
 }
 void
 channel_register_filter(int id, channel_filter_fn *fn)
