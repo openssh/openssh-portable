@@ -26,7 +26,7 @@
 #include "includes.h"
 #include "uuencode.h"
 
-RCSID("$OpenBSD: radix.c,v 1.18 2002/04/20 09:17:19 markus Exp $");
+RCSID("$OpenBSD: radix.c,v 1.19 2002/04/22 06:15:47 markus Exp $");
 
 #ifdef AFS
 #include <krb.h>
@@ -76,15 +76,17 @@ creds_to_radix(CREDENTIALS *creds, u_char *buf, size_t buflen)
 
 #define GETSTRING(b, t, tlen) \
 	do { \
-		int i; \
+		int i, found = 0; \
 		for (i = 0; i < tlen; i++) { \
 			if (buffer_len(b) == 0) \
 				goto done; \
 			t[i] = buffer_get_char(b); \
-			if (t[i] == '\0') \
+			if (t[i] == '\0') { \
+				found = 1; \
 				break; \
+			} \
 		} \
-		if (t[i] != '\0') \
+		if (!found) \
 			goto done; \
 	} while(0)
 

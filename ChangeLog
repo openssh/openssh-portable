@@ -18,6 +18,9 @@
    - stevesk@cvs.openbsd.org 2002/04/21 16:25:06
      [sshconnect1.c]
      spelling in error message; ok markus@
+   - markus@cvs.openbsd.org 2002/04/22 06:15:47
+     [radix.c]
+     fix check for overflow
 
 20020421
  - (tim) [entropy.c.] Portability fix for SCO Unix 3.2v4.x (SCO OSR 3.0).
@@ -8284,4 +8287,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2067 2002/04/23 10:56:02 djm Exp $
+$Id: ChangeLog,v 1.2068 2002/04/23 11:00:33 djm Exp $
