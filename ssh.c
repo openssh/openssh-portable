@@ -615,7 +615,11 @@ again:
 
 	cerr = ssh_connect(host, &hostaddr, options.port, IPv4or6,
 	    options.connection_attempts,
+#ifdef HAVE_CYGWIN
+	    options.use_privileged_port,
+#else
 	    original_effective_uid == 0 && options.use_privileged_port,
+#endif
 	    options.proxy_command);
 
 	/*
