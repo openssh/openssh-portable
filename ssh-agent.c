@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.29 2000/04/19 07:05:49 deraadt Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.30 2000/04/21 00:27:11 djm Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -9,7 +9,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.29 2000/04/19 07:05:49 deraadt Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.30 2000/04/21 00:27:11 djm Exp $");
 
 #include "ssh.h"
 #include "rsa.h"
@@ -440,6 +440,8 @@ after_select(fd_set *readset, fd_set *writeset)
 					shutdown(sockets[i].fd, SHUT_RDWR);
 					close(sockets[i].fd);
 					sockets[i].type = AUTH_UNUSED;
+					buffer_free(&sockets[i].input);
+					buffer_free(&sockets[i].output);
 					break;
 				}
 				buffer_consume(&sockets[i].output, len);
@@ -450,6 +452,8 @@ after_select(fd_set *readset, fd_set *writeset)
 					shutdown(sockets[i].fd, SHUT_RDWR);
 					close(sockets[i].fd);
 					sockets[i].type = AUTH_UNUSED;
+					buffer_free(&sockets[i].input);
+					buffer_free(&sockets[i].output);
 					break;
 				}
 				buffer_append(&sockets[i].input, buf, len);

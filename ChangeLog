@@ -1,3 +1,9 @@
+20000421
+ - Merge fix from OpenBSD CVS
+  [ssh-agent.c]
+  - Fix memory leak per connection. Report from Andy Spiegl <Andy@Spiegl.de>
+    via Debian bug #59926
+
 20000420
  - Make fixpaths work with perl4, patch from Andre Lucas 
    <andre.lucas@dial.pipex.com>
