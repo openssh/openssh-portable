@@ -1,0 +1,35 @@
+OpenSSH is almost completely compatible with the commercial SSH 1.2.x.
+There are, however, a few exceptions that you will need to bear in
+mind while upgrading:
+
+1. OpenSSH does not support any patented transport algorithms.
+
+Only 3DES and Blowfish can be selected. This difference may manifest
+itself in the ssh command refusing to read its config files.
+
+Solution: Edit /etc/ssh/ssh_config and select a different "Cipher"
+option ("3des" or "blowfish").
+
+2. Old versions of commercial SSH encrypt host keys with IDEA
+
+The old versions of SSH used a patented algorithm to encrypt their
+/etc/ssh/ssh_host_key
+
+This problem will manifest as sshd not being able to read its host
+key.
+
+Solution: You will need to run the *commercial* version of ssh-keygen
+on the host's private key:
+
+ssh-keygen -u /etc/ssh/ssh_host_key
+
+3. Incompatible changes to sshd_config format.
+
+OpenSSH extends the sshd_config file format in a number of ways. There
+is currently one change which is incompatible with the old.
+
+Commercial SSH controlled logging using the "QuietMode" and
+"FascistLogging" directives. OpenSSH introduces a more general set of
+logging options "SyslogFacility" and "LogLevel". See the sshd manual
+page for details.
+
