@@ -1,5 +1,5 @@
 20010418
- - OpenBSD CVS Sync                            
+  - OpenBSD CVS Sync                            
    - markus@cvs.openbsd.org 2001/04/17 19:34:25
      [session.c]
      move auth_approval to do_authenticated().
@@ -8,6 +8,8 @@
    - markus@cvs.openbsd.org 2001/04/18 14:15:00
      [canohost.c]
      debug->debug3
+  - (bal) renabled 'catman-do:' and fixed it.  So now catman pages should
+    be working again.
 
 20010417
   - (bal) Add perl5 check for HP/UX, Removed GNUness from Makefile.in
@@ -30,7 +32,6 @@
      [channels.c ssh.c]
      undo socks5 and https support since they are not really used and
      only bloat ssh.  remove -D from usage(), since '-D' is experimental.
-
 
 20010416
   - OpenBSD CVS Sync
@@ -5156,4 +5157,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1137 2001/04/18 15:32:44 mouring Exp $
+$Id: ChangeLog,v 1.1138 2001/04/18 15:46:01 mouring Exp $

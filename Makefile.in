@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.170 2001/04/17 17:57:11 mouring Exp $
+# $Id: Makefile.in,v 1.171 2001/04/18 15:46:03 mouring Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -148,15 +148,15 @@ mrproper: distclean
 veryclean: distclean
 	rm -f configure config.h.in *.0
 
-#catman-do:
-#	@for f in $(TROFFMAN) ; do \
-#		base=`echo $$f | sed 's/\..*$$//'` ; \
-#		echo "$$f -> $$base.0" ; \
-#		nroff -mandoc $$f | cat -v | sed -e 's/.\^H//g' \
-#			>$$base.0 ; \
-#	done
+catman-do:
+	@for f in $(MANPAGES) ; do \
+		base=`echo $$f | sed 's/\..*$$//'` ; \
+		echo "$$f -> $$base.0" ; \
+		nroff -mandoc $$f | cat -v | sed -e 's/.\^H//g' \
+			>$$base.0 ; \
+	done
 
-distprep: #catman-do
+distprep: catman-do
 	autoreconf
 
 install: $(TARGETS) install-files host-key
