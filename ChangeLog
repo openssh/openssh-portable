@@ -24,6 +24,8 @@
  - Added autoconf code to detect /dev/ptmx (Solaris) and /dev/ptc (AIX)
  - Updated SuSE spec from Chris Saia <csaia@wtower.com>
  - Tweaked Redhat spec
+ - Clean up bad imports of a few files (forgot -kb)
+ - Released 1.2pre16
 
 19991204
  - Small cleanup of PAM code in sshd.c
