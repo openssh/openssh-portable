@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.51 2000/09/07 20:27:53 deraadt Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.52 2000/10/11 20:14:39 markus Exp $");
 
 #include "ssh.h"
 #include "servconf.h"
@@ -61,6 +61,7 @@ initialize_server_options(ServerOptions *options)
 	options->afs_token_passing = -1;
 #endif
 	options->password_authentication = -1;
+	options->kbd_interactive_authentication = -1;
 #ifdef SKEY
 	options->skey_authentication = -1;
 #endif
@@ -148,6 +149,8 @@ fill_default_server_options(ServerOptions *options)
 #endif /* AFS */
 	if (options->password_authentication == -1)
 		options->password_authentication = 1;
+	if (options->kbd_interactive_authentication == -1)
+		options->kbd_interactive_authentication = 0;
 #ifdef SKEY
 	if (options->skey_authentication == -1)
 		options->skey_authentication = 1;
@@ -183,7 +186,7 @@ typedef enum {
 #ifdef SKEY
 	sSkeyAuthentication,
 #endif
-	sPasswordAuthentication, sListenAddress,
+	sPasswordAuthentication, sKbdInteractiveAuthentication, sListenAddress,
 	sPrintMotd, sIgnoreRhosts, sX11Forwarding, sX11DisplayOffset,
 	sStrictModes, sEmptyPasswd, sRandomSeedFile, sKeepAlives, sCheckMail,
 	sUseLogin, sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
@@ -220,6 +223,7 @@ static struct {
 	{ "afstokenpassing", sAFSTokenPassing },
 #endif
 	{ "passwordauthentication", sPasswordAuthentication },
+	{ "kbdinteractiveauthentication", sKbdInteractiveAuthentication },
 #ifdef SKEY
 	{ "skeyauthentication", sSkeyAuthentication },
 #endif
@@ -495,6 +499,10 @@ parse_flag:
 
 		case sPasswordAuthentication:
 			intptr = &options->password_authentication;
+			goto parse_flag;
+
+		case sKbdInteractiveAuthentication:
+			intptr = &options->kbd_interactive_authentication;
 			goto parse_flag;
 
 		case sCheckMail:

@@ -87,7 +87,9 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #ifdef HAVE_SYS_SYSMACROS_H
 # include <sys/sysmacros.h>
 #endif
-
+#ifdef HAVE_VIS_H
+# include <vis.h>
+#endif
 #include "version.h"
 #include "openbsd-compat.h"
 #include "cygwin_util.h"

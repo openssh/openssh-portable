@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.66 2000/09/12 20:53:10 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.68 2000/10/11 20:27:24 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/dsa.h>
@@ -425,11 +425,12 @@ main(int ac, char **av)
 				options.cipher = SSH_CIPHER_ILLEGAL;
 			} else {
 				/* SSH1 only */
-				options.cipher = cipher_number(optarg);
-				if (options.cipher == -1) {
+				Cipher *c = cipher_by_name(optarg);
+				if (c == NULL || c->number < 0) {
 					fprintf(stderr, "Unknown cipher type '%s'\n", optarg);
 					exit(1);
 				}
+				options.cipher = c->number;
 			}
 			break;
 		case 'p':
@@ -582,22 +583,6 @@ main(int ac, char **av)
 	if (options.hostname != NULL)
 		host = options.hostname;
 
-	/* Find canonic host name. */
-	if (strchr(host, '.') == 0) {
-		struct addrinfo hints;
-		struct addrinfo *ai = NULL;
-		int errgai;
-		memset(&hints, 0, sizeof(hints));
-		hints.ai_family = IPv4or6;
-		hints.ai_flags = AI_CANONNAME;
-		hints.ai_socktype = SOCK_STREAM;
-		errgai = getaddrinfo(host, NULL, &hints, &ai);
-		if (errgai == 0) {
-			if (ai->ai_canonname != NULL)
-				host = xstrdup(ai->ai_canonname);
-			freeaddrinfo(ai);
-		}
-	}
 	/* Disable rhosts authentication if not running as root. */
 #ifdef HAVE_CYGWIN
 	/* Ignore uid if running under Windows */

@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: servconf.h,v 1.28 2000/09/07 20:27:53 deraadt Exp $"); */
+/* RCSID("$OpenBSD: servconf.h,v 1.29 2000/10/11 20:14:39 markus Exp $"); */
 
 #ifndef SERVCONF_H
 #define SERVCONF_H
@@ -78,6 +78,7 @@ typedef struct {
 #endif
 	int     password_authentication;	/* If true, permit password
 						 * authentication. */
+	int     kbd_interactive_authentication;	/* If true, permit */
 #ifdef SKEY
 	int     skey_authentication;	/* If true, permit s/key
 					 * authentication. */

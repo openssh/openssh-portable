@@ -374,8 +374,9 @@ is a fast block cipher, it appears very secure and is much faster than
 .Ar 3des .
 .It Fl c Ar "3des-cbc,blowfish-cbc,arcfour,cast128-cbc"
 Additionally, for protocol version 2 a comma-separated list of ciphers can
-be specified in order of preference. Protocol version 2 supports
-3DES, Blowfish and CAST128 in CBC mode and Arcfour.
+be specified in order of preference.
+Protocol version 2 supports 3DES, Blowfish, and CAST128 in CBC mode
+and Arcfour.
 .It Fl e Ar ch|^ch|none
 Sets the escape character for sessions with a pty (default:
 .Ql ~ ) .
@@ -483,7 +484,8 @@ debugging connection, authentication, and configuration problems.
 The verbose mode is also used to display
 .Xr skey 1
 challenges, if the user entered "s/key" as password.
-Multiple -v options increases the verbosity. Maximum is 3.
+Multiple -v options increases the verbosity.
+Maximum is 3.
 .It Fl x
 Disables X11 forwarding.
 .It Fl X

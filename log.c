@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: log.c,v 1.10 2000/09/12 20:53:10 markus Exp $");
+RCSID("$OpenBSD: log.c,v 1.11 2000/09/30 16:27:43 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -208,6 +208,7 @@ static struct {
 	{ "ERROR",	SYSLOG_LEVEL_ERROR },
 	{ "INFO",	SYSLOG_LEVEL_INFO },
 	{ "VERBOSE",	SYSLOG_LEVEL_VERBOSE },
+	{ "DEBUG",	SYSLOG_LEVEL_DEBUG1 },
 	{ "DEBUG1",	SYSLOG_LEVEL_DEBUG1 },
 	{ "DEBUG2",	SYSLOG_LEVEL_DEBUG2 },
 	{ "DEBUG3",	SYSLOG_LEVEL_DEBUG3 },

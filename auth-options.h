@@ -22,4 +22,7 @@ extern struct envstring *custom_environment;
 
 /* return 1 if access is granted, 0 if not. side effect: sets key option flags */
 int	auth_parse_options(struct passwd *pw, char *options, unsigned long linenum);
+/* reset options flags */
+void	auth_clear_options(void);
+
 #endif

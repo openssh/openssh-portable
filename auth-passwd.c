@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-passwd.c,v 1.17 2000/09/07 20:27:49 deraadt Exp $");
+RCSID("$OpenBSD: auth-passwd.c,v 1.18 2000/10/03 18:03:03 markus Exp $");
 
 #if !defined(USE_PAM) && !defined(HAVE_OSF_SIA)
 
@@ -156,7 +156,7 @@ auth_password(struct passwd * pw, const char *password)
 	}
 #endif
 
-#ifdef SKEY
+#ifdef SKEY_VIA_PASSWD_IS_DISABLED
 	if (options.skey_authentication == 1) {
 		int ret = auth_skey_password(pw, password);
 		if (ret == 1 || ret == 0)

@@ -3,6 +3,81 @@
  - (djm) Revert SSH2 serverloop hack, will find a better way.
  - (djm) Add workaround for Linux 2.4's gratuitious errno change. Patch
    from Martin Johansson <fatbob@acc.umu.se>
+ - (djm) Big OpenBSD sync:
+   - markus@cvs.openbsd.org  2000/09/30 10:27:44
+     [log.c]
+     allow loglevel debug
+   - markus@cvs.openbsd.org  2000/10/03 11:59:57
+     [packet.c]
+     hmac->mac
+   - markus@cvs.openbsd.org  2000/10/03 12:03:03
+     [auth-krb4.c auth-passwd.c auth-rh-rsa.c auth-rhosts.c auth-rsa.c auth1.c]
+     move fake-auth from auth1.c to individual auth methods, disables s/key in
+     debug-msg
+   - markus@cvs.openbsd.org  2000/10/03 12:16:48
+     ssh.c
+     do not resolve canonname, i have no idea why this was added oin ossh
+   - markus@cvs.openbsd.org  2000/10/09 15:30:44
+     ssh-keygen.1 ssh-keygen.c
+     -X now reads private ssh.com DSA keys, too.
+   - markus@cvs.openbsd.org  2000/10/09 15:32:34
+     auth-options.c
+     clear options on every call.
+   - markus@cvs.openbsd.org  2000/10/09 15:51:00
+     authfd.c authfd.h
+     interop with ssh-agent2, from <res@shore.net>
+   - markus@cvs.openbsd.org  2000/10/10 14:20:45
+     compat.c
+     use rexexp for version string matching
+   - provos@cvs.openbsd.org  2000/10/10 22:02:18
+     [kex.c kex.h myproposal.h ssh.h ssh2.h sshconnect2.c sshd.c dh.c dh.h]
+     First rough implementation of the diffie-hellman group exchange.  The
+     client can ask the server for bigger groups to perform the diffie-hellman
+     in, thus increasing the attack complexity when using ciphers with longer
+     keys.  University of Windsor provided network, T the company.
+   - markus@cvs.openbsd.org  2000/10/11 13:59:52
+     [auth-rsa.c auth2.c]
+     clear auth options unless auth sucessfull
+   - markus@cvs.openbsd.org  2000/10/11 14:00:27
+     [auth-options.h]
+     clear auth options unless auth sucessfull
+   - markus@cvs.openbsd.org  2000/10/11 14:03:27
+     [scp.1 scp.c]
+     support 'scp -o' with help from mouring@pconline.com
+   - markus@cvs.openbsd.org  2000/10/11 14:11:35
+     [dh.c]
+     Wall
+   - markus@cvs.openbsd.org  2000/10/11 14:14:40
+     [auth.h auth2.c readconf.c readconf.h readpass.c servconf.c servconf.h]
+     [ssh.h sshconnect2.c sshd_config auth2-skey.c cli.c cli.h]
+     add support for s/key (kbd-interactive) to ssh2, based on work by
+     mkiernan@avantgo.com and me
+   - markus@cvs.openbsd.org  2000/10/11 14:27:24
+     [auth.c auth1.c auth2.c authfile.c cipher.c cipher.h kex.c kex.h]
+     [myproposal.h packet.c readconf.c session.c ssh.c ssh.h sshconnect1.c]
+     [sshconnect2.c sshd.c]
+     new cipher framework
+   - markus@cvs.openbsd.org  2000/10/11 14:45:21
+     [cipher.c]
+     remove DES
+   - markus@cvs.openbsd.org  2000/10/12 03:59:20
+     [cipher.c cipher.h sshconnect1.c sshconnect2.c sshd.c]
+     enable DES in SSH-1 clients only
+   - markus@cvs.openbsd.org  2000/10/12 08:21:13
+     [kex.h packet.c]
+     remove unused
+   - markus@cvs.openbsd.org  2000/10/13 12:34:46
+     [sshd.c]
+     Kludge for F-Secure Macintosh < 1.0.2; appro@fy.chalmers.se
+   - markus@cvs.openbsd.org  2000/10/13 12:59:15
+     [cipher.c cipher.h myproposal.h  rijndael.c rijndael.h]
+     rijndael/aes support
+   - markus@cvs.openbsd.org  2000/10/13 13:10:54
+     [sshd.8]
+     more info about -V
+   - markus@cvs.openbsd.org  2000/10/13 13:12:02
+     [myproposal.h]
+     prefer no compression
 
 20001007
  - (stevesk) Print PAM return value in PAM log messages to aid

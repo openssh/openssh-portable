@@ -12,7 +12,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: ssh.h,v 1.51 2000/09/12 20:53:10 markus Exp $"); */
+/* RCSID("$OpenBSD: ssh.h,v 1.54 2000/10/11 20:27:24 markus Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -27,14 +27,6 @@
 #endif
 #include "rsa.h"
 #include "cipher.h"
-
-/*
- * XXX
- * The default cipher used if IDEA is not supported by the remote host. It is
- * recommended that this be one of the mandatory ciphers (DES, 3DES), though
- * that is not required.
- */
-#define SSH_FALLBACK_CIPHER	SSH_CIPHER_3DES
 
 /* Cipher used for encrypting authentication files. */
 #define SSH_AUTHFILE_CIPHER	SSH_CIPHER_3DES
@@ -98,6 +90,7 @@
 #define SERVER_CONFIG_FILE	ETCDIR "/sshd_config"
 #define HOST_CONFIG_FILE	ETCDIR "/ssh_config"
 #define HOST_DSA_KEY_FILE	ETCDIR "/ssh_host_dsa_key"
+#define DH_PRIMES		ETCDIR "/primes"
 
 #ifndef SSH_PROGRAM
 #define SSH_PROGRAM			"/usr/bin/ssh"
@@ -423,7 +416,7 @@ int     auth_rsa_challenge_dialog(RSA *pk);
  * passphrase (allocated with xmalloc).  Exits if EOF is encountered. If
  * from_stdin is true, the passphrase will be read from stdin instead.
  */
-char   *read_passphrase(const char *prompt, int from_stdin);
+char   *read_passphrase(char *prompt, int from_stdin);
 
 
 /*------------ Definitions for logging. -----------------------*/

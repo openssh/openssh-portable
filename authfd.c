@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfd.c,v 1.28 2000/09/21 11:07:50 markus Exp $");
+RCSID("$OpenBSD: authfd.c,v 1.29 2000/10/09 21:51:00 markus Exp $");
 
 #include "ssh.h"
 #include "rsa.h"
@@ -55,6 +55,10 @@ RCSID("$OpenBSD: authfd.c,v 1.28 2000/09/21 11:07:50 markus Exp $");
 
 /* helper */
 int	decode_reply(int type);
+
+/* macro to check for "agent failure" message */
+#define agent_failed(x) \
+    ((x == SSH_AGENT_FAILURE) || (x == SSH_COM_AGENT2_FAILURE))
 
 /* Returns the number of the authentication fd, or -1 if there is none. */
 
@@ -242,7 +246,7 @@ ssh_get_first_identity(AuthenticationConnection *auth, char **comment, int versi
 
 	/* Get message type, and verify that we got a proper answer. */
 	type = buffer_get_char(&auth->identities);
-	if (type == SSH_AGENT_FAILURE) {
+	if (agent_failed(type)) {
 		return NULL;
 	} else if (type != code2) {
 		fatal("Bad authentication reply message type: %d", type);
@@ -341,7 +345,7 @@ ssh_decrypt_challenge(AuthenticationConnection *auth,
 	}
 	type = buffer_get_char(&buffer);
 
-	if (type == SSH_AGENT_FAILURE) {
+	if (agent_failed(type)) {
 		log("Agent admitted failure to authenticate using the key.");
 	} else if (type != SSH_AGENT_RSA_RESPONSE) {
 		fatal("Bad authentication response: %d", type);
@@ -390,7 +394,7 @@ ssh_agent_sign(AuthenticationConnection *auth,
 		return -1;
 	}
 	type = buffer_get_char(&msg);
-	if (type == SSH_AGENT_FAILURE) {
+	if (agent_failed(type)) {
 		log("Agent admitted failure to sign using the key.");
 	} else if (type != SSH2_AGENT_SIGN_RESPONSE) {
 		fatal("Bad authentication response: %d", type);
@@ -537,6 +541,7 @@ decode_reply(int type)
 {
 	switch (type) {
 	case SSH_AGENT_FAILURE:
+	case SSH_COM_AGENT2_FAILURE:
 		log("SSH_AGENT_FAILURE");
 		return 0;
 	case SSH_AGENT_SUCCESS:
