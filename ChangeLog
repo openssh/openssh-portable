@@ -1,3 +1,7 @@
+20040226
+ - (bal) KNF our sshlogin.c even if the code looks nothing like upstream
+   code due to diversity issues.
+
 20040225
  - (djm) Trim ChangeLog 
  - (djm) Don't specify path to PAM modules in Redhat sshd.pam; from Fedora
@@ -798,4 +802,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3259 2004/02/24 23:57:45 djm Exp $
+$Id: ChangeLog,v 1.3260 2004/02/27 03:01:19 mouring Exp $
