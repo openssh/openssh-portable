@@ -1,7 +1,14 @@
-.\"	$OpenBSD: ssh-keyscan.1,v 1.3 2001/01/29 01:58:18 niklas Exp $
+.\"	$OpenBSD: ssh-keyscan.1,v 1.4 2001/03/01 03:38:33 deraadt Exp $
+.\"
+.\" Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
+.\"
+.\" Modification and redistribution in source and binary forms is
+.\" permitted provided that due credit is given to the author and the
+.\" OpenBSD project (for instance by leaving this copyright notice
+.\" intact).
 .\"
 .Dd January 1, 1996
-.Dt ssh-keyscan 1
+.Dt SSH-KEYSCAN 1
 .Os
 .Sh NAME
 .Nm ssh-keyscan
@@ -72,7 +79,7 @@ Find all hosts from the file
 which have new or different keys from those in the sorted file
 .Pa ssh_known_hosts :
 .Bd -literal
-ssh-keyscan -f ssh_hosts | sort -u - ssh_known_hosts | \e\ 
+$ ssh-keyscan -f ssh_hosts | sort -u - ssh_known_hosts | \e\ 
 	diff ssh_known_hosts -
 .Ed
 .Pp
@@ -91,7 +98,7 @@ of all the machines it scans.
 This is because it opens a connection to the ssh port, reads the public
 key, and drops the connection as soon as it gets the key.
 .Sh SEE ALSO
-.Xr ssh 1
+.Xr ssh 1 ,
 .Xr sshd 8
 .Sh AUTHOR
 David Mazieres <dm@lcs.mit.edu>
