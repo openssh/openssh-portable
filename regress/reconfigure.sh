@@ -4,7 +4,14 @@
 tid="simple connect after reconfigure"
 
 # we need the full path to sshd for -HUP
-SSHD=/usr/sbin/sshd
+case $SSHD in
+/*)
+	# full path is OK 
+	;;
+*)
+	# otherwise make fully qualified
+	SSHD=$OBJ/$SSHD
+esac
 
 start_sshd
 
