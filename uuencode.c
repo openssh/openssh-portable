@@ -28,8 +28,6 @@
 #include "xmalloc.h"
 #include "uuencode.h"
 
-#include <resolv.h>
-
 RCSID("$OpenBSD: uuencode.c,v 1.10 2001/02/08 19:30:53 itojun Exp $");
 
 int
