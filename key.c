@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: key.c,v 1.18 2001/03/11 13:25:36 markus Exp $");
+RCSID("$OpenBSD: key.c,v 1.19 2001/03/11 15:03:15 jakob Exp $");
 
 #include <openssl/evp.h>
 
@@ -153,19 +153,16 @@ key_equal(Key *a, Key *b)
 	return 0;
 }
 
-/*
- * Generate key fingerprint in ascii format.
- * Based on ideas and code from Bjoern Groenvall <bg@sics.se>
- */
-char *
-key_fingerprint(Key *k)
+u_char*
+key_fingerprint_raw(Key *k, enum fp_type dgst_type, size_t *dgst_raw_length)
 {
-	static char retval[(EVP_MAX_MD_SIZE+1)*3];
 	u_char *blob = NULL;
+	u_char *retval = NULL;
 	int len = 0;
 	int nlen, elen;
 
-	retval[0] = '\0';
+	*dgst_raw_length = 0;
+
 	switch (k->type) {
 	case KEY_RSA1:
 		nlen = BN_num_bytes(k->rsa->n);
@@ -183,26 +180,141 @@ key_fingerprint(Key *k)
 		return retval;
 		break;
 	default:
-		fatal("key_fingerprint: bad key type %d", k->type);
+		fatal("key_fingerprint_raw: bad key type %d", k->type);
 		break;
 	}
 	if (blob != NULL) {
-		int i;
-		u_char digest[EVP_MAX_MD_SIZE];
-		EVP_MD *md = EVP_md5();
+		EVP_MD *md = NULL;
 		EVP_MD_CTX ctx;
+
+		retval = xmalloc(EVP_MAX_MD_SIZE);
+
+		switch (dgst_type) {
+		case SSH_FP_MD5:
+			md = EVP_md5();
+			break;
+		case SSH_FP_SHA1:
+			md = EVP_sha1();
+			break;
+		default:
+			fatal("key_fingerprint_raw: bad digest type %d",
+			    dgst_type);
+		}
+
 		EVP_DigestInit(&ctx, md);
 		EVP_DigestUpdate(&ctx, blob, len);
-		EVP_DigestFinal(&ctx, digest, NULL);
-		for(i = 0; i < md->md_size; i++) {
-			char hex[4];
-			snprintf(hex, sizeof(hex), "%02x:", digest[i]);
-			strlcat(retval, hex, sizeof(retval));
-		}
-		retval[strlen(retval) - 1] = '\0';
+		EVP_DigestFinal(&ctx, retval, NULL);
+		*dgst_raw_length = md->md_size;
 		memset(blob, 0, len);
 		xfree(blob);
+	} else {
+		fatal("key_fingerprint_raw: blob is null");
 	}
+	return retval;
+}
+
+char*
+key_fingerprint_hex(u_char* dgst_raw, size_t dgst_raw_len) 
+{
+	char *retval;
+	int i;
+
+	retval = xmalloc(dgst_raw_len * 3);
+	retval[0] = '\0';
+	for(i = 0; i < dgst_raw_len; i++) {
+		char hex[4];
+		snprintf(hex, sizeof(hex), "%02x:", dgst_raw[i]);
+		strlcat(retval, hex, dgst_raw_len * 3);
+	}
+	retval[(dgst_raw_len * 3) - 1] = '\0';
+	return retval;
+}
+
+char*
+key_fingerprint_bubblebabble(u_char* dgst_raw, size_t dgst_raw_len) 
+{
+	char vowels[] = { 'a', 'e', 'i', 'o', 'u', 'y' };
+	char consonants[] = { 'b', 'c', 'd', 'f', 'g', 'h', 'k', 'l', 'm',
+	    'n', 'p', 'r', 's', 't', 'v', 'z', 'x' };
+	u_int rounds, idx, retval_idx, seed;
+	char *retval;
+
+	rounds = (dgst_raw_len / 2) + 1;
+	retval = xmalloc(sizeof(char) * (rounds*6));
+	seed = 1;
+	retval_idx = 0;
+	retval[retval_idx++] = 'x';
+	for (idx=0;idx<rounds;idx++) {
+		u_int idx0, idx1, idx2, idx3, idx4;
+		if ((idx + 1 < rounds) || (dgst_raw_len % 2 != 0)) {
+			idx0 = (((((u_int)(dgst_raw[2 * idx])) >> 6) & 3) +
+			    seed) % 6;
+			idx1 = (((u_int)(dgst_raw[2 * idx])) >> 2) & 15;
+			idx2 = ((((u_int)(dgst_raw[2 * idx])) & 3) +
+			    (seed / 6)) % 6;
+			retval[retval_idx++] = vowels[idx0];
+			retval[retval_idx++] = consonants[idx1];
+			retval[retval_idx++] = vowels[idx2];
+			if ((idx + 1) < rounds) {
+				idx3 = (((u_int)(dgst_raw[(2 * idx) + 1])) >> 4) & 15;
+				idx4 = (((u_int)(dgst_raw[(2 * idx) + 1]))) & 15;
+				retval[retval_idx++] = consonants[idx3];
+				retval[retval_idx++] = '-';
+				retval[retval_idx++] = consonants[idx4];
+				seed = ((seed * 5) +
+				    ((((u_int)(dgst_raw[2 * idx])) * 7) +
+				    ((u_int)(dgst_raw[(2 * idx) + 1])))) % 36;
+			}
+		} else {
+			idx0 = seed % 6;
+			idx1 = 16;
+			idx2 = seed / 6;
+			retval[retval_idx++] = vowels[idx0];
+			retval[retval_idx++] = consonants[idx1];
+			retval[retval_idx++] = vowels[idx2];
+		}
+	}
+	retval[retval_idx++] = 'x';
+	retval[retval_idx++] = '\0';
+	return retval;
+}
+
+char*
+key_fingerprint_ex(Key *k, enum fp_type dgst_type, enum fp_rep dgst_rep)
+{
+	char *retval = NULL; 
+	u_char *dgst_raw;
+	size_t dgst_raw_len; 
+	
+	dgst_raw = key_fingerprint_raw(k, dgst_type, &dgst_raw_len);
+	if (!dgst_raw)
+		fatal("key_fingerprint_ex: null value returned from key_fingerprint_raw()");
+	switch(dgst_rep) {
+	case SSH_FP_HEX:
+		retval = key_fingerprint_hex(dgst_raw, dgst_raw_len);
+		break;
+	case SSH_FP_BUBBLEBABBLE:
+		retval = key_fingerprint_bubblebabble(dgst_raw, dgst_raw_len);
+		break;
+	default:
+		fatal("key_fingerprint_ex: bad digest representation %d",
+		    dgst_rep);
+		break;
+	}
+	memset(dgst_raw, 0, dgst_raw_len);
+	xfree(dgst_raw);
+	return retval;
+}
+
+char *
+key_fingerprint(Key *k)
+{
+	static char retval[(EVP_MAX_MD_SIZE + 1) * 3];
+	char *digest;
+
+	digest = key_fingerprint_ex(k, SSH_FP_MD5, SSH_FP_HEX);
+	strlcpy(retval, digest, sizeof(retval));
+	xfree(digest);
 	return retval;
 }
 

@@ -1,4 +1,4 @@
-/*	$OpenBSD: key.h,v 1.9 2001/01/29 01:58:16 niklas Exp $	*/
+/*	$OpenBSD: key.h,v 1.10 2001/03/11 15:03:16 jakob Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -36,6 +36,14 @@ enum types {
 	KEY_DSA,
 	KEY_UNSPEC
 };
+enum fp_type {
+	SSH_FP_SHA1,
+	SSH_FP_MD5
+};
+enum fp_rep {
+	SSH_FP_HEX,
+	SSH_FP_BUBBLEBABBLE
+};
 struct Key {
 	int	type;
 	RSA	*rsa;
@@ -46,6 +54,7 @@ Key	*key_new(int type);
 Key	*key_new_private(int type);
 void	key_free(Key *k);
 int	key_equal(Key *a, Key *b);
+char	*key_fingerprint_ex(Key *k, enum fp_type dgst_type, enum fp_rep dgst_rep);
 char	*key_fingerprint(Key *k);
 char	*key_type(Key *k);
 int	key_write(Key *key, FILE *f);
