@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: key.c,v 1.30 2001/09/17 19:27:15 stevesk Exp $");
+RCSID("$OpenBSD: key.c,v 1.31 2001/09/17 20:50:22 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -728,8 +728,9 @@ key_to_blob(Key *key, u_char **blobp, u_int *lenp)
 		buffer_put_bignum2(&b, key->rsa->n);
 		break;
 	default:
-		error("key_to_blob: illegal key type %d", key->type);
-		break;
+		error("key_to_blob: unsupported key type %d", key->type);
+		buffer_free(&b);
+		return 0;
 	}
 	len = buffer_len(&b);
 	buf = xmalloc(len);
