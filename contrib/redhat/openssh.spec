@@ -200,7 +200,7 @@ fi
 %files
 %defattr(-,root,root)
 %doc ChangeLog OVERVIEW COPYING.Ylonen README* INSTALL 
-%doc CREDITS UPGRADING LICENCE
+%doc CREDITS LICENCE
 %attr(0755,root,root) %{_bindir}/ssh-keygen
 %attr(0755,root,root) %{_bindir}/scp
 %attr(0644,root,root) %{_mandir}/man1/ssh-keygen.1*
