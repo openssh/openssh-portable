@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.71 2001/04/18 22:03:45 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.72 2001/04/18 23:43:26 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -815,6 +815,7 @@ userauth_hostbased(Authctxt *authctxt)
 	Buffer b;
 	u_char *signature, *blob;
 	char *chost, *pkalg, *p;
+	const char *service;
 	u_int blen, slen;
 	int ok, i, len, found = 0;
 
@@ -847,20 +848,15 @@ userauth_hostbased(Authctxt *authctxt)
 		xfree(chost);
 		return 0;
 	}
+	service = datafellows & SSH_BUG_HBSERVICE ? "ssh-userauth" :
+	    authctxt->service;
 	pkalg = xstrdup(key_ssh_name(private));
 	buffer_init(&b);
-	if (datafellows & SSH_OLD_SESSIONID) {
-		buffer_append(&b, session_id2, session_id2_len);
-	} else {
-		buffer_put_string(&b, session_id2, session_id2_len);
-	}
 	/* construct data */
+	buffer_put_string(&b, session_id2, session_id2_len);
 	buffer_put_char(&b, SSH2_MSG_USERAUTH_REQUEST);
 	buffer_put_cstring(&b, authctxt->server_user);
-	buffer_put_cstring(&b,
-	    datafellows & SSH_BUG_HBSERVICE ?
-	    "ssh-userauth" :
-	    authctxt->service);
+	buffer_put_cstring(&b, service);
 	buffer_put_cstring(&b, authctxt->method->name);
 	buffer_put_cstring(&b, pkalg);
 	buffer_put_string(&b, blob, blen);

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.54 2001/04/18 22:48:26 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.55 2001/04/18 23:43:25 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -534,8 +534,7 @@ userauth_hostbased(Authctxt *authctxt)
 {
 	Buffer b;
 	Key *key;
-	char *pkalg, *pkblob, *sig;
-	char *cuser, *chost;
+	char *pkalg, *pkblob, *sig, *cuser, *chost, *service;
 	u_int alen, blen, slen;
 	int pktype;
 	int authenticated = 0;
@@ -571,21 +570,14 @@ userauth_hostbased(Authctxt *authctxt)
 		debug("userauth_hostbased: cannot decode key: %s", pkalg);
 		goto done;
 	}
+	service = datafellows & SSH_BUG_HBSERVICE ? "ssh-userauth" :
+	    authctxt->service;
 	buffer_init(&b);
-	if (datafellows & SSH_OLD_SESSIONID) {
-		buffer_append(&b, session_id2, session_id2_len);
-	} else {
-		buffer_put_string(&b, session_id2, session_id2_len);
-	}
-	if (datafellows & SSH_BUG_HBSERVICE)
-		debug("SSH_BUG_HBSERVICE");
+	buffer_put_string(&b, session_id2, session_id2_len);
 	/* reconstruct packet */
 	buffer_put_char(&b, SSH2_MSG_USERAUTH_REQUEST);
 	buffer_put_cstring(&b, authctxt->user);
-	buffer_put_cstring(&b,
-	    datafellows & SSH_BUG_HBSERVICE ?
-	    "ssh-userauth" :
-	    authctxt->service);
+	buffer_put_cstring(&b, service);
 	buffer_put_cstring(&b, "hostbased");
 	buffer_put_string(&b, pkalg, alen);
 	buffer_put_string(&b, pkblob, blen);
