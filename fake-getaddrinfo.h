@@ -7,6 +7,7 @@
 
 #ifndef AI_PASSIVE
 # define AI_PASSIVE        1
+# define AI_CANONNAME      2
 #endif
 
 #ifndef NI_NUMERICHOST
@@ -25,7 +26,7 @@ struct addrinfo {
 	char	*ai_canonname;	/* canonical name for hostname */
 	struct sockaddr *ai_addr;	/* binary address */
 	struct addrinfo *ai_next;	/* next structure in linked list */
-}
+};
 #endif /* !HAVE_STRUCT_ADDRINFO */
 
 #ifndef HAVE_GETADDRINFO
