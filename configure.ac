@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.225 2004/08/15 08:40:59 djm Exp $
+# $Id: configure.ac,v 1.226 2004/08/16 13:12:06 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -298,6 +298,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(LOGIN_NEEDS_UTMPX)
 	AC_DEFINE(LOGIN_NEEDS_TERM)
 	AC_DEFINE(PAM_TTY_KLUDGE)
+	AC_DEFINE(SSHPAM_CHAUTHTOK_NEEDS_RUID)
 	AC_DEFINE(LOCKED_PASSWD_STRING, "*LK*")
 	# Pushing STREAMS modules will cause sshd to acquire a controlling tty.
 	AC_DEFINE(SSHD_ACQUIRES_CTTY)

@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.179 2004/08/15 08:40:59 djm Exp $ */
+/* $Id: acconfig.h,v 1.180 2004/08/16 13:12:06 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -103,6 +103,9 @@
 
 /* Work around problematic Linux PAM modules handling of PAM_TTY */
 #undef PAM_TTY_KLUDGE
+
+/* Define if pam_chauthtok wants real uid set to the unpriv'ed user */
+#undef SSHPAM_CHAUTHTOK_NEEDS_RUID
 
 /* Use PIPES instead of a socketpair() */
 #undef USE_PIPES
