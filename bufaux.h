@@ -31,11 +31,15 @@ int	buffer_get_bignum2(Buffer *buffer, BIGNUM * value);
 
 /* Returns an integer from the buffer (4 bytes, msb first). */
 u_int buffer_get_int(Buffer * buffer);
+#ifdef HAVE_U_INT64_T
 u_int64_t buffer_get_int64(Buffer *buffer);
+#endif
 
 /* Stores an integer in the buffer in 4 bytes, msb first. */
 void    buffer_put_int(Buffer * buffer, u_int value);
+#ifdef HAVE_U_INT64_T
 void	buffer_put_int64(Buffer *buffer, u_int64_t value);
+#endif
 
 /* Returns a character from the buffer (0 - 255). */
 int     buffer_get_char(Buffer * buffer);
