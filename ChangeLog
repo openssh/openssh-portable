@@ -1,3 +1,6 @@
+20040601
+ - (djm) [auth-pam.c] Add copyright for local changes
+
 20040530
  - (dtucker) [auth-pam.c auth-pam.h auth-passwd.c] Bug #874: Re-add PAM 
    support for PasswordAuthentication=yes.  ok djm@
@@ -1174,4 +1177,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3372 2004/05/31 04:48:40 tim Exp $
+$Id: ChangeLog,v 1.3373 2004/06/01 01:28:21 djm Exp $
