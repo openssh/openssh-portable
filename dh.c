@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: dh.c,v 1.9 2001/03/27 17:46:49 provos Exp $");
+RCSID("$OpenBSD: dh.c,v 1.10 2001/03/28 22:04:57 provos Exp $");
 
 #include "xmalloc.h"
 
@@ -79,18 +79,21 @@ parse_prime(int linenum, char *line, struct dhgroup *dhg)
 		goto fail;
 
 	dhg->g = BN_new();
-	if (BN_hex2bn(&dhg->g, gen) < 0) {
-		BN_free(dhg->g);
-		goto fail;
-	}
 	dhg->p = BN_new();
-	if (BN_hex2bn(&dhg->p, prime) < 0) {
-		BN_free(dhg->g);
-		BN_free(dhg->p);
-		goto fail;
-	}
+	if (BN_hex2bn(&dhg->g, gen) < 0)
+		goto failclean;
+
+	if (BN_hex2bn(&dhg->p, prime) < 0)
+		goto failclean;
+
+	if (BN_num_bits(dhg->p) != dhg->size)
+		goto failclean;
 
 	return (1);
+
+ failclean:
+	BN_free(dhg->g);
+	BN_free(dhg->p);
  fail:
 	error("Bad prime description in line %d", linenum);
 	return (0);
