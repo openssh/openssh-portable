@@ -1,3 +1,9 @@
+20011205
+ - (bal) OpenBSD CVS Sync
+   - deraadt@cvs.openbsd.org 2001/11/14 20:45:08
+     [sshd.c]
+     errno saving wrapping in a signal handler
+
 20011126
  - (tim) [contrib/cygwin/README, openbsd-compat/bsd-cygwin_util.c,
    openbsd-compat/bsd-cygwin_util.h, openbsd-compat/daemon.c]
@@ -6919,4 +6925,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1666 2001/11/27 01:19:43 tim Exp $
+$Id: ChangeLog,v 1.1667 2001/12/06 16:19:01 mouring Exp $
