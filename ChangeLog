@@ -1,6 +1,7 @@
 20001028
  - (djm) fix select hack in serverloop.c from Philippe WILLEM 
    <Philippe.WILLEM@urssaf.fr>
+ - (djm) Fix mangled AIXAUTHENTICATE code
 
 20001027
  - (djm) Increase REKEY_BYTES to 2^24 for arc4random

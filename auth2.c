@@ -193,7 +193,7 @@ input_userauth_request(int type, int plen, void *ctxt)
 		fatal("input_userauth_request: no authctxt");
 	if (authctxt->attempt++ >= AUTH_FAIL_MAX) {
 #ifdef WITH_AIXAUTHENTICATE 
-		loginfailed(user,get_canonical_hostname(),"ssh");
+		loginfailed(authctxt->pw->pw_name, get_canonical_hostname(), "ssh");
 #endif /* WITH_AIXAUTHENTICATE */
 		packet_disconnect("too many failed userauth_requests");
 	}
@@ -306,8 +306,8 @@ userauth_reply(Authctxt *authctxt, int authenticated)
 	if (authenticated == 1) {
 #ifdef WITH_AIXAUTHENTICATE
 		/* We don't have a pty yet, so just label the line as "ssh" */
-		if (loginsuccess(user, get_canonical_hostname(), "ssh",
-				&aixloginmsg) < 0)
+		if (loginsuccess(authctxt->pw->pw_name, get_canonical_hostname(), 
+			"ssh", &aixloginmsg) < 0)
 			aixloginmsg = NULL;
 #endif /* WITH_AIXAUTHENTICATE */
 		/* turn off userauth */
