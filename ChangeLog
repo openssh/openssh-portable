@@ -17,6 +17,8 @@
  - (djm) Doc fixes from Pekka Savola <pekkas@netcore.fi>
  - (djm) Use SA_INTERRUPT along SA_RESTART if present (equivalent for 
    SunOS)
+ - (djm) SCO needs librpc for libwrap. Patch from Tim Rice 
+   <tim@multitalents.net>
 
 20010217
  - (bal) OpenBSD Sync:
@@ -4024,4 +4026,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.791 2001/02/18 02:05:52 djm Exp $
+$Id: ChangeLog,v 1.792 2001/02/18 02:09:40 djm Exp $

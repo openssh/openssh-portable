@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.244 2001/02/18 01:49:57 djm Exp $
+# $Id: configure.in,v 1.245 2001/02/18 02:07:07 djm Exp $
 
 AC_INIT(ssh.c)
 
@@ -323,6 +323,9 @@ fi
 if test -z "$no_libsocket" ; then
 	AC_CHECK_LIB(socket, main, , )
 fi
+
+dnl SCO OS3 needs this for libwrap
+AC_CHECK_LIB(rpc, innetgr, LIBS="-lrpc -lyp -lrpc $LIBS" , , -lyp -lrpc)
 
 AC_CHECK_LIB(gen, getspnam, LIBS="$LIBS -lgen")
 AC_CHECK_LIB(z, deflate, ,AC_MSG_ERROR([*** zlib missing - please install first or check config.log ***]))
