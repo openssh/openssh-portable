@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.105 2001/03/26 08:07:09 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.106 2001/04/05 21:05:24 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -946,9 +946,6 @@ ssh_session2_callback(int id, void *arg)
 
 	debug("client_init id %d arg %ld", id, (long)arg);
 
-	if (no_shell_flag)
-		goto done;
-
 	if (tty_flag) {
 		struct winsize ws;
 		char *cp;
@@ -1011,15 +1008,14 @@ ssh_session2_callback(int id, void *arg)
 	}
 	/* channel_callback(id, SSH2_MSG_OPEN_CONFIGMATION, client_init, 0); */
 
-done:
 	/* register different callback, etc. XXX */
 	packet_set_interactive(interactive);
 }
 
 int
-ssh_session2(void)
+ssh_session2_command(void)
 {
-	int window, packetmax, id;
+	int id, window, packetmax;
 	int in, out, err;
 
 	if (stdin_null_flag) {
@@ -1041,14 +1037,6 @@ ssh_session2(void)
 	if (!isatty(err))
 		set_nonblock(err);
 
-	/* XXX should be pre-session */
-	ssh_init_forwarding();
-
-	/* If requested, let ssh continue in the background. */
-	if (fork_after_authentication_flag)
-		if (daemon(1, 1) < 0)
-			fatal("daemon() failed: %.200s", strerror(errno));
-
 	window = CHAN_SES_WINDOW_DEFAULT;
 	packetmax = CHAN_SES_PACKET_DEFAULT;
 	if (!tty_flag) {
@@ -1060,9 +1048,29 @@ ssh_session2(void)
 	    window, packetmax, CHAN_EXTENDED_WRITE,
 	    xstrdup("client-session"), /*nonblock*/0);
 
+debug("channel_new: %d", id);
+
 	channel_open(id);
 	channel_register_callback(id, SSH2_MSG_CHANNEL_OPEN_CONFIRMATION,
 	     ssh_session2_callback, (void *)0);
+
+	return id;
+}
+
+int
+ssh_session2(void)
+{
+	int id;
+
+	/* XXX should be pre-session */
+	ssh_init_forwarding();
+
+	id = no_shell_flag ? -1 : ssh_session2_command();
+
+	/* If requested, let ssh continue in the background. */
+	if (fork_after_authentication_flag)
+		if (daemon(1, 1) < 0)
+			fatal("daemon() failed: %.200s", strerror(errno));
 
 	return client_loop(tty_flag, tty_flag ? options.escape_char : -1, id);
 }

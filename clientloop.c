@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.59 2001/04/05 20:01:10 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.60 2001/04/05 21:05:23 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -128,6 +128,7 @@ static u_int buffer_high;/* Soft max buffer size. */
 static int connection_in;	/* Connection to server (input). */
 static int connection_out;	/* Connection to server (output). */
 static int need_rekeying;	/* Set to non-zero if rekeying is requested. */
+static int session_closed = 0;	/* In SSH2: login session closed. */
 
 void	client_init_dispatch(void);
 int	session_ident = -1;
@@ -788,6 +789,15 @@ simple_escape_filter(Channel *c, char *buf, int len)
 	return process_escapes(&c->input, &c->output, &c->extended, buf, len);
 }
 
+void
+client_channel_closed(int id, void *arg)
+{
+	if (id != session_ident)
+		error("client_channel_closed: id %d != session_ident %d",
+		    id, session_ident);
+	session_closed = 1;
+}
+
 /*
  * Implements the interactive session with the server.  This is called after
  * the user has been authenticated, and a command has been started on the
@@ -851,6 +861,9 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 		if (escape_char != -1)
 			channel_register_filter(session_ident,
 			    simple_escape_filter);
+		if (session_ident != -1)
+			channel_register_cleanup(session_ident,
+			    client_channel_closed);
 	} else {
 		/* Check if we should immediately send eof on stdin. */
 		client_check_initial_eof_on_stdin();
@@ -862,12 +875,10 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 		/* Process buffered packets sent by the server. */
 		client_process_buffered_input_packets();
 
-		rekeying = (xxx_kex != NULL && !xxx_kex->done);
-
-		if (compat20 && !channel_still_open()) {
-			debug2("!channel_still_open.");
+		if (compat20 && session_closed && !channel_still_open())
 			break;
-		}
+
+		rekeying = (xxx_kex != NULL && !xxx_kex->done);
 
 		if (rekeying) {
 			debug("rekeying in progress");
