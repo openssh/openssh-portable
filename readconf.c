@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.74 2001/04/12 20:09:37 stevesk Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.75 2001/04/15 21:28:35 stevesk Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -233,8 +233,8 @@ parse_token(const char *cp, const char *filename, int linenum)
 		if (strcasecmp(cp, keywords[i].name) == 0)
 			return keywords[i].opcode;
 
-	fprintf(stderr, "%s: line %d: Bad configuration option: %s\n",
-		filename, linenum, cp);
+	error("%s: line %d: Bad configuration option: %s",
+	    filename, linenum, cp);
 	return oBadOption;
 }
 

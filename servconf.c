@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.77 2001/04/13 22:46:53 beck Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.78 2001/04/15 21:28:35 stevesk Exp $");
 
 #ifdef KRB4
 #include <krb.h>
@@ -315,8 +315,8 @@ parse_token(const char *cp, const char *filename,
 		if (strcasecmp(cp, keywords[i].name) == 0)
 			return keywords[i].opcode;
 
-	fprintf(stderr, "%s: line %d: Bad configuration option: %s\n",
-		filename, linenum, cp);
+	error("%s: line %d: Bad configuration option: %s",
+	    filename, linenum, cp);
 	return sBadOption;
 }
 
@@ -415,11 +415,9 @@ read_server_config(ServerOptions *options, const char *filename)
 			intptr = &options->server_key_bits;
 parse_int:
 			arg = strdelim(&cp);
-			if (!arg || *arg == '\0') {
-				fprintf(stderr, "%s line %d: missing integer value.\n",
-					filename, linenum);
-				exit(1);
-			}
+			if (!arg || *arg == '\0')
+				fatal("%s line %d: missing integer value.",
+				    filename, linenum);
 			value = atoi(arg);
 			if (*intptr == -1)
 				*intptr = value;
@@ -472,20 +470,15 @@ parse_int:
 
 		case sHostKeyFile:
 			intptr = &options->num_host_key_files;
-			if (*intptr >= MAX_HOSTKEYS) {
-				fprintf(stderr,
-				    "%s line %d: too many host keys specified (max %d).\n",
+			if (*intptr >= MAX_HOSTKEYS)
+				fatal("%s line %d: too many host keys specified (max %d).",
 				    filename, linenum, MAX_HOSTKEYS);
-				exit(1);
-			}
 			charptr = &options->host_key_files[*intptr];
 parse_filename:
 			arg = strdelim(&cp);
-			if (!arg || *arg == '\0') {
-				fprintf(stderr, "%s line %d: missing file name.\n",
+			if (!arg || *arg == '\0')
+				fatal("%s line %d: missing file name.",
 				    filename, linenum);
-				exit(1);
-			}
 			if (*charptr == NULL) {
 				*charptr = tilde_expand_filename(arg, getuid());
 				/* increase optional counter */
@@ -501,12 +494,11 @@ parse_filename:
 		case sPermitRootLogin:
 			intptr = &options->permit_root_login;
 			arg = strdelim(&cp);
-			if (!arg || *arg == '\0') {
-				fprintf(stderr, "%s line %d: missing yes/"
+			if (!arg || *arg == '\0')
+				fatal("%s line %d: missing yes/"
 				    "without-password/forced-commands-only/no "
-				    "argument.\n", filename, linenum);
-				exit(1);
-			}
+				    "argument.", filename, linenum);
+			value = 0;	/* silence compiler */
 			if (strcmp(arg, "without-password") == 0)
 				value = PERMIT_NO_PASSWD;
 			else if (strcmp(arg, "forced-commands-only") == 0)
@@ -515,12 +507,10 @@ parse_filename:
 				value = PERMIT_YES;
 			else if (strcmp(arg, "no") == 0)
 				value = PERMIT_NO;
-			else {
-				fprintf(stderr, "%s line %d: Bad yes/"
+			else
+				fatal("%s line %d: Bad yes/"
 				    "without-password/forced-commands-only/no "
-				    "argument: %s\n", filename, linenum, arg);
-				exit(1);
-			}
+				    "argument: %s", filename, linenum, arg);
 			if (*intptr == -1)
 				*intptr = value;
 			break;
@@ -529,20 +519,17 @@ parse_filename:
 			intptr = &options->ignore_rhosts;
 parse_flag:
 			arg = strdelim(&cp);
-			if (!arg || *arg == '\0') {
-				fprintf(stderr, "%s line %d: missing yes/no argument.\n",
-					filename, linenum);
-				exit(1);
-			}
+			if (!arg || *arg == '\0')
+				fatal("%s line %d: missing yes/no argument.",
+				    filename, linenum);
+			value = 0;	/* silence compiler */
 			if (strcmp(arg, "yes") == 0)
 				value = 1;
 			else if (strcmp(arg, "no") == 0)
 				value = 0;
-			else {
-				fprintf(stderr, "%s line %d: Bad yes/no argument: %s\n",
+			else
+				fatal("%s line %d: Bad yes/no argument: %s",
 					filename, linenum, arg);
-				exit(1);
-			}
 			if (*intptr == -1)
 				*intptr = value;
 			break;
@@ -808,21 +795,15 @@ parse_flag:
 			intptr = &options->client_alive_count_max;
 			goto parse_int;
 		default:
-			fprintf(stderr, "%s line %d: Missing handler for opcode %s (%d)\n",
-				filename, linenum, arg, opcode);
-			exit(1);
+			fatal("%s line %d: Missing handler for opcode %s (%d)",
+			    filename, linenum, arg, opcode);
 		}
-		if ((arg = strdelim(&cp)) != NULL && *arg != '\0') {
-			fprintf(stderr,
-				"%s line %d: garbage at end of line; \"%.200s\".\n",
-				filename, linenum, arg);
-			exit(1);
-		}
+		if ((arg = strdelim(&cp)) != NULL && *arg != '\0')
+			fatal("%s line %d: garbage at end of line; \"%.200s\".",
+			    filename, linenum, arg);
 	}
 	fclose(f);
-	if (bad_options > 0) {
-		fprintf(stderr, "%s: terminating, %d bad configuration options\n",
-			filename, bad_options);
-		exit(1);
-	}
+	if (bad_options > 0)
+		fatal("%s: terminating, %d bad configuration options",
+		    filename, bad_options);
 }
