@@ -113,7 +113,7 @@ OM_uint32 ssh_gssapi_server_ctx(Gssctxt **ctx, gss_OID oid);
 int ssh_gssapi_userok(char *name);
 
 void ssh_gssapi_do_child(char ***envp, u_int *envsizep);
-void ssh_gssapi_cleanup_creds(void *ignored);
+void ssh_gssapi_cleanup_creds(void);
 void ssh_gssapi_storecreds(void);
 
 #endif /* GSSAPI */
