@@ -22,6 +22,8 @@
    <wayne@blorf.net>
  - (bal) ./configure support to disable SIA on OSF1.  Patch by
    Chris Adams <cmadams@hiwaay.net>
+ - (bal) Updates from the Sony NEWS-OS platform by NAKAJI Hiroyuki 
+   <nakaji@tutrp.tut.ac.jp>
 
 20010508
  - (bal) Fixed configure test for USE_SIA.  
@@ -5382,4 +5384,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1213 2001/05/09 00:02:52 mouring Exp $
+$Id: ChangeLog,v 1.1214 2001/05/09 00:38:19 mouring Exp $

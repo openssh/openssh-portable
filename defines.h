@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.62 2001/04/05 17:15:08 stevesk Exp $ */
+/* $Id: defines.h,v 1.63 2001/05/09 00:38:21 mouring Exp $ */
 
 /* Some platforms need this for the _r() functions */
 #if !defined(_REENTRANT) && !defined(SNI)
@@ -92,7 +92,11 @@ enum
 #endif
 
 #ifndef NGROUPS_MAX	/* Disable groupaccess if NGROUP_MAX is not set */
+#ifdef NGROUPS
+#define NGROUPS_MAX NGROUPS
+#else
 #define NGROUPS_MAX 0
+#endif
 #endif
 
 #ifndef O_NONBLOCK	/* Non Blocking Open */
