@@ -1053,7 +1053,7 @@ do_child(Session *s, const char *command)
 	   switch, so we let login(1) to this for us. */
 	if (!options.use_login) {
 #ifdef HAVE_OSF_SIA
-		session_setup_sia(pw->pw_name, s->tty);
+		session_setup_sia(pw->pw_name, s->ttyfd == -1 ? NULL : s->tty);
 #else /* HAVE_OSF_SIA */
 #ifdef HAVE_CYGWIN
 		if (is_winnt) {
@@ -1137,7 +1137,8 @@ do_child(Session *s, const char *command)
 			cp = xmalloc(22 + strlen(s->tty) + 
 			    2 * strlen(pw->pw_name));
 			i = sprintf(cp, "LOGNAME=%s%cNAME=%s%cTTY=%s%c%c",
-			    pw->pw_name, 0, pw->pw_name, 0, s->tty, 0,0);
+			    pw->pw_name, 0, pw->pw_name, 0, 
+			    s->ttyfd == -1 ? "" : s->tty, 0,0);
 			if (usrinfo(SETUINFO, cp, i) == -1)
 				fatal("Couldn't set usrinfo: %s", 
 				    strerror(errno));
