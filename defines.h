@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.84 2002/03/22 21:08:04 stevesk Exp $ */
+/* $Id: defines.h,v 1.85 2002/04/06 23:52:05 mouring Exp $ */
 
 /* Necessary headers */
 
@@ -492,14 +492,6 @@ struct winsize {
 #if !defined(HAVE_MEMMOVE) && defined(HAVE_BCOPY)
 # define memmove(s1, s2, n) bcopy((s2), (s1), (n))
 #endif /* !defined(HAVE_MEMMOVE) && defined(HAVE_BCOPY) */
-
-#if !defined(HAVE_ATEXIT) && defined(HAVE_ON_EXIT)
-# define atexit(a) on_exit(a, NULL)
-#else
-# if defined(HAVE_XATEXIT)
-#  define atexit(a) xatexit(a)
-# endif /* defined(HAVE_XATEXIT) */
-#endif /* !defined(HAVE_ATEXIT) && defined(HAVE_ON_EXIT) */
 
 #if defined(HAVE_VHANGUP) && !defined(HAVE_DEV_PTMX)
 #  define USE_VHANGUP

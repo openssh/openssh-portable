@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.126 2002/04/05 20:23:37 mouring Exp $ */
+/* $Id: acconfig.h,v 1.127 2002/04/06 23:52:04 mouring Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -282,9 +282,6 @@
 
 /* Use IPv4 for connection by default, IPv6 can still if explicity asked */
 #undef IPV4_DEFAULT
-
-/* If you have no atexit() but xatexit(), and want to use xatexit() */
-#undef HAVE_XATEXIT
 
 /* getaddrinfo is broken (if present) */
 #undef BROKEN_GETADDRINFO
