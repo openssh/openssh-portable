@@ -137,6 +137,10 @@ main(int argc, char **argv)
 	seteuid(getuid());
 	setuid(getuid());
 
+        init_rng();
+        seed_rng();
+        arc4random_stir();
+
 #ifdef DEBUG_SSH_KEYSIGN
 	log_init("ssh-keysign", SYSLOG_LEVEL_DEBUG3, SYSLOG_FACILITY_AUTH, 0);
 #endif  
