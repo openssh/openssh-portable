@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.146 2002/07/30 17:03:55 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.147 2002/08/22 21:45:41 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1809,6 +1809,27 @@ session_pty_cleanup(void *session)
 	PRIVSEP(session_pty_cleanup2(session));
 }
 
+static char *
+sig2name(int sig)
+{
+#define SSH_SIG(x) if (sig == SIG ## x) return #x
+	SSH_SIG(ABRT);
+	SSH_SIG(ALRM);
+	SSH_SIG(FPE);
+	SSH_SIG(HUP);
+	SSH_SIG(ILL);
+	SSH_SIG(INT);
+	SSH_SIG(KILL);
+	SSH_SIG(PIPE);
+	SSH_SIG(QUIT);
+	SSH_SIG(SEGV);
+	SSH_SIG(TERM);
+	SSH_SIG(USR1);
+	SSH_SIG(USR2);
+#undef	SSH_SIG
+	return "SIG@openssh.com";
+}
+
 static void
 session_exit_message(Session *s, int status)
 {
@@ -1826,7 +1847,7 @@ session_exit_message(Session *s, int status)
 		packet_send();
 	} else if (WIFSIGNALED(status)) {
 		channel_request_start(s->chanid, "exit-signal", 0);
-		packet_put_int(WTERMSIG(status));
+		packet_put_cstring(sig2name(WTERMSIG(status)));
 #ifdef WCOREDUMP
 		packet_put_char(WCOREDUMP(status));
 #else /* WCOREDUMP */

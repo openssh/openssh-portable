@@ -27,6 +27,10 @@
      [auth1.c auth2.c]
      auth_root_allowed() is handled by the monitor in the privsep case,
      so skip this for use_privsep, ok stevesk@, fixes bugzilla #387/325
+   - markus@cvs.openbsd.org 2002/08/22 21:45:41
+     [session.c]
+     send signal name (not signal number) in "exit-signal" message; noticed
+     by galb@vandyke.com
 
 20020820
  - OpenBSD CVS Sync
@@ -1568,4 +1572,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2434 2002/09/04 06:37:26 djm Exp $
+$Id: ChangeLog,v 1.2435 2002/09/04 06:39:02 djm Exp $
