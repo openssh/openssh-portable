@@ -8,8 +8,10 @@ Copyright: BSD
 Group: Applications/Internet
 BuildRoot: /tmp/openssh-%{version}-buildroot
 Obsoletes: ssh
-PreReq: openssl
-BuildPreReq: openssl
+Requires: openssl >= 0.9.4
+PreReq: openssl >= 0.9.4
+BuildPreReq: openssl >= 0.9.4
+BuildPreReq: openssl-devel >= 0.9.4
 BuildPreReq: tcp_wrappers
 BuildPreReq: gnome-libs
 
