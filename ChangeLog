@@ -1,6 +1,8 @@
 20050317
  - (tim) [configure.ac] Bug 998. Make path for --with-opensc optional.
    Make --without-opensc work.
+ - (tim) [configure.ac] portability changes on test statements. Some shells
+   have problems with -a operator.
 
 20050314
  - (dtucker) OpenBSD CVS Sync
@@ -2368,4 +2370,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3721 2005/03/17 21:37:04 tim Exp $
+$Id: ChangeLog,v 1.3722 2005/03/18 00:23:19 tim Exp $

@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.251 2005/03/17 21:37:04 tim Exp $
+# $Id: configure.ac,v 1.252 2005/03/18 00:23:19 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -794,7 +794,8 @@ AC_ARG_WITH(tcp-wrappers,
 			saved_LIBS="$LIBS"
 			saved_LDFLAGS="$LDFLAGS"
 			saved_CPPFLAGS="$CPPFLAGS"
-			if test -n "${withval}" -a "${withval}" != "yes"; then
+			if test -n "${withval}" && \
+			    test "${withval}" != "yes"; then
 				if test -d "${withval}/lib"; then
 					if test -n "${need_dash_r}"; then
 						LDFLAGS="-L${withval}/lib -R${withval}/lib ${LDFLAGS}"
@@ -1090,7 +1091,8 @@ main()
 	)
 fi
 
-if test "x$ac_cv_func_getaddrinfo" = "xyes" -a "x$check_for_hpux_broken_getaddrinfo" = "x1"; then
+if test "x$ac_cv_func_getaddrinfo" = "xyes" && \
+    test "x$check_for_hpux_broken_getaddrinfo" = "x1"; then
 	AC_MSG_CHECKING(if getaddrinfo seems to work)
 	AC_TRY_RUN(
 		[
@@ -1158,7 +1160,8 @@ main(void)
 	)
 fi
 
-if test "x$ac_cv_func_getaddrinfo" = "xyes" -a "x$check_for_aix_broken_getaddrinfo" = "x1"; then
+if test "x$ac_cv_func_getaddrinfo" = "xyes" && \
+    test "x$check_for_aix_broken_getaddrinfo" = "x1"; then
 	AC_MSG_CHECKING(if getaddrinfo seems to work)
 	AC_TRY_RUN(
 		[
@@ -1492,7 +1495,7 @@ AC_ARG_WITH(rand-helper,
 )	
 
 # Which randomness source do we use?
-if test ! -z "$OPENSSL_SEEDS_ITSELF" -a -z "$USE_RAND_HELPER" ; then
+if test ! -z "$OPENSSL_SEEDS_ITSELF" && test -z "$USE_RAND_HELPER" ; then
 	# OpenSSL only
 	AC_DEFINE(OPENSSL_PRNG_ONLY)
 	RAND_MSG="OpenSSL internal ONLY"
@@ -2030,9 +2033,9 @@ fi
 AC_CHECK_TYPES(struct timespec)
 
 # We need int64_t or else certian parts of the compile will fail.
-if test "x$ac_cv_have_int64_t" = "xno" -a \
-	"x$ac_cv_sizeof_long_int" != "x8" -a \
-	"x$ac_cv_sizeof_long_long_int" = "x0" ; then
+if test "x$ac_cv_have_int64_t" = "xno" && \
+	test "x$ac_cv_sizeof_long_int" != "x8" && \
+	test "x$ac_cv_sizeof_long_long_int" = "x0" ; then
 	echo "OpenSSH requires int64_t support.  Contact your vendor or install"
 	echo "an alternative compiler (I.E., GCC) before continuing."
 	echo ""
@@ -2682,8 +2685,8 @@ if test "x$etc_default_login" != "xno"; then
 fi
 
 dnl BSD systems use /etc/login.conf so --with-default-path= has no effect
-if test $ac_cv_func_login_getcapbool = "yes" -a \
-	$ac_cv_header_login_cap_h = "yes" ; then
+if test $ac_cv_func_login_getcapbool = "yes" && \
+	test $ac_cv_header_login_cap_h = "yes" ; then
 	external_path_file=/etc/login.conf
 fi
 
