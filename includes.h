@@ -122,6 +122,6 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
  * Define this to use pipes instead of socketpairs for communicating with the
  * client program.  Socketpairs do not seem to work on all systems.
  */
-#define USE_PIPES 1
+/* #define USE_PIPES 1 */
 
 #endif				/* INCLUDES_H */

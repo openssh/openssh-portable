@@ -1,3 +1,7 @@
+20000201
+ - Use socket pairs by default (instead of pipes). Prevents race condition
+   on several (buggy) OSs. Report and fix from tridge@linuxcare.com
+
 20000127
  - Seed OpenSSL's random number generator before generating RSA keypairs
  - Split random collector into seperate file
