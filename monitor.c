@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.32 2003/02/16 17:30:33 markus Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.33 2003/03/05 22:33:43 markus Exp $");
 
 #include <openssl/dh.h>
 
@@ -806,8 +806,9 @@ mm_answer_keyallowed(int socket, Buffer *m)
 			fatal("%s: unknown key type %d", __func__, type);
 			break;
 		}
-		key_free(key);
 	}
+	if (key != NULL)
+		key_free(key);
 
 	/* clear temporarily storage (used by verify) */
 	monitor_reset_key_state();
@@ -1204,8 +1205,9 @@ mm_answer_rsa_keyallowed(int socket, Buffer *m)
 		key_blob = blob;
 		key_bloblen = blen;
 		key_blobtype = MM_RSAUSERKEY;
-		key_free(key);
 	}
+	if (key != NULL)
+		key_free(key);
 
 	mm_append_debug(m);
 
@@ -1246,6 +1248,9 @@ mm_answer_rsa_challenge(int socket, Buffer *m)
 	mm_request_send(socket, MONITOR_ANS_RSACHALLENGE, m);
 
 	monitor_permit(mon_dispatch, MONITOR_REQ_RSARESPONSE, 1);
+
+	xfree(blob);
+	key_free(key);
 	return (0);
 }
 
@@ -1276,6 +1281,7 @@ mm_answer_rsa_response(int socket, Buffer *m)
 		fatal("%s: received bad response to challenge", __func__);
 	success = auth_rsa_verify_response(key, ssh1_challenge, response);
 
+	xfree(blob);
 	key_free(key);
 	xfree(response);
 

@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.153 2003/02/06 09:26:23 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.154 2003/03/05 22:33:43 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -951,7 +951,7 @@ do_setup_env(Session *s, const char *shell)
 {
 	char buf[256];
 	u_int i, envsize;
-	char **env;
+	char **env, *laddr;
 	struct passwd *pw = s->pw;
 
 	/* Initialize the environment. */
@@ -1030,9 +1030,10 @@ do_setup_env(Session *s, const char *shell)
 	    get_remote_ipaddr(), get_remote_port(), get_local_port());
 	child_set_env(&env, &envsize, "SSH_CLIENT", buf);
 
+	laddr = get_local_ipaddr(packet_get_connection_in());
 	snprintf(buf, sizeof buf, "%.50s %d %.50s %d",
-	    get_remote_ipaddr(), get_remote_port(),
-	    get_local_ipaddr(packet_get_connection_in()), get_local_port());
+	    get_remote_ipaddr(), get_remote_port(), laddr, get_local_port());
+	xfree(laddr);
 	child_set_env(&env, &envsize, "SSH_CONNECTION", buf);
 
 	if (s->ttyfd != -1)

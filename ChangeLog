@@ -1,3 +1,10 @@
+20030310
+- (djm) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2003/03/05 22:33:43
+     [channels.c monitor.c scp.c session.c sftp-client.c sftp-int.c]
+     [sftp-server.c ssh-add.c sshconnect2.c]
+     fix memory leaks; from dlheine@suif.Stanford.EDU/CLOUSEAU; ok djm@
+
 20030225
  - (djm) Fix some compile errors spotted by dtucker and his fabulous 
    tinderbox
@@ -1191,4 +1198,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2622 2003/02/24 23:22:35 djm Exp $
+$Id: ChangeLog,v 1.2623 2003/03/10 00:21:17 djm Exp $

@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.101 2003/02/02 10:51:13 markus Exp $");
+RCSID("$OpenBSD: scp.c,v 1.102 2003/03/05 22:33:43 markus Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -395,10 +395,14 @@ toremote(targ, argc, argv)
 				suser = argv[i];
 				if (*suser == '\0')
 					suser = pwd->pw_name;
-				else if (!okname(suser))
+				else if (!okname(suser)) {
+					xfree(bp);
 					continue;
-				if (tuser && !okname(tuser))
+				}
+				if (tuser && !okname(tuser)) {
+					xfree(bp);
 					continue;
+				}
 				snprintf(bp, len,
 				    "%s%s %s -n "
 				    "-l %s %s %s %s '%s%s%s:%s'",

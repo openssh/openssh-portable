@@ -25,7 +25,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.56 2003/01/16 03:41:55 djm Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.57 2003/03/05 22:33:43 markus Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -1104,6 +1104,7 @@ interactive_loop(int fd_in, int fd_out, char *file1, char *file2)
 
 			err = parse_dispatch_command(conn, cmd, &pwd, 1);
 			xfree(dir);
+			xfree(pwd);
 			return (err);
 		}
 		xfree(dir);

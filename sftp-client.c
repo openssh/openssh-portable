@@ -28,7 +28,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.41 2003/01/14 10:58:00 djm Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.42 2003/03/05 22:33:43 markus Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -374,6 +374,7 @@ do_lsreaddir(struct sftp_conn *conn, char *path, int printflag,
 				error("Couldn't read directory: %s",
 				    fx2txt(status));
 				do_close(conn, handle, handle_len);
+				xfree(handle);
 				return(status);
 			}
 		} else if (type != SSH2_FXP_NAME)
@@ -1113,6 +1114,8 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 				    remote_path, fx2txt(status));
 				do_close(conn, handle, handle_len);
 				close(local_fd);
+				xfree(data);
+				xfree(ack);
 				goto done;
 			}
 			debug3("In write loop, ack for %u %u bytes at %llu",

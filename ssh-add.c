@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.65 2003/01/23 13:50:27 markus Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.66 2003/03/05 22:33:43 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -195,6 +195,7 @@ static int
 update_card(AuthenticationConnection *ac, int add, const char *id)
 {
 	char *pin;
+	int ret = -1;
 
 	pin = read_passphrase("Enter passphrase for smartcard: ", RP_ALLOW_STDIN);
 	if (pin == NULL)
@@ -203,12 +204,14 @@ update_card(AuthenticationConnection *ac, int add, const char *id)
 	if (ssh_update_card(ac, add, id, pin)) {
 		fprintf(stderr, "Card %s: %s\n",
 		    add ? "added" : "removed", id);
-		return 0;
+		ret = 0;
 	} else {
 		fprintf(stderr, "Could not %s card: %s\n",
 		    add ? "add" : "remove", id);
-		return -1;
+		ret = -1;
 	}
+	xfree(pin);
+	return ret;
 }
 
 static int

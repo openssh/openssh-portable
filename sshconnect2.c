@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.111 2003/02/16 17:09:57 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.112 2003/03/05 22:33:43 markus Exp $");
 
 #include "ssh.h"
 #include "ssh2.h"
@@ -1014,6 +1014,7 @@ userauth_hostbased(Authctxt *authctxt)
 	strlcpy(chost, p, len);
 	strlcat(chost, ".", len);
 	debug2("userauth_hostbased: chost %s", chost);
+	xfree(p);
 
 	service = datafellows & SSH_BUG_HBSERVICE ? "ssh-userauth" :
 	    authctxt->service;
