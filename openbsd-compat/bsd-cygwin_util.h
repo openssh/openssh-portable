@@ -13,12 +13,14 @@
  * binary mode on Windows systems.
  */
 
-/* $Id: bsd-cygwin_util.h,v 1.3 2001/02/18 01:30:56 djm Exp $ */
+/* $Id: bsd-cygwin_util.h,v 1.4 2001/04/13 14:28:43 djm Exp $ */
 
 #ifndef _BSD_CYGWIN_UTIL_H
 #define _BSD_CYGWIN_UTIL_H
 
 #ifdef HAVE_CYGWIN
+
+#include <io.h>
 
 int binary_open(const char *filename, int flags, ...);
 int binary_pipe(int fd[2]);

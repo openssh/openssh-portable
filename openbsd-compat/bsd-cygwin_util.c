@@ -15,12 +15,11 @@
 
 #include "includes.h"
 
-RCSID("$Id: bsd-cygwin_util.c,v 1.3 2001/02/18 01:30:56 djm Exp $");
+RCSID("$Id: bsd-cygwin_util.c,v 1.4 2001/04/13 14:28:42 djm Exp $");
 
 #ifdef HAVE_CYGWIN
 
 #include <fcntl.h>
-#include <io.h>
 #include <stdlib.h>
 #include <sys/vfs.h>
 #include <windows.h>

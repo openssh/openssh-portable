@@ -291,6 +291,9 @@ main(argc, argv)
 		case 't':	/* "to" */
 			iamremote = 1;
 			tflag = 1;
+#ifdef HAVE_CYGWIN
+			setmode(0, O_BINARY);
+#endif
 			break;
 		default:
 			usage();

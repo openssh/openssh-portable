@@ -1043,6 +1043,11 @@ main(int ac, char **av)
 	in = dup(STDIN_FILENO);
 	out = dup(STDOUT_FILENO);
 
+#ifdef HAVE_CYGWIN
+	setmode(in, O_BINARY);
+	setmode(out, O_BINARY);
+#endif
+
 	max = 0;
 	if (in > max)
 		max = in;
