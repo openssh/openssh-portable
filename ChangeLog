@@ -1,3 +1,7 @@
+20040719
+ - (tim) [configure.ac] updwtmpx() on OpenServer seems to add duplicate entry.
+   Report by rac AT tenzing.org
+
 20040711
  - (dtucker) [auth-pam.c] Check for zero from waitpid() too, which allows
    the monitor to properly clean up the PAM thread (Debian bug #252676).
@@ -1015,4 +1019,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3316.2.8 2004/07/11 06:52:47 dtucker Exp $
+$Id: ChangeLog,v 1.3316.2.9 2004/07/19 17:20:30 tim Exp $
