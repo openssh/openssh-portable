@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.95 2002/02/04 12:15:25 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.96 2002/06/08 05:17:01 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -41,7 +41,7 @@ RCSID("$OpenBSD: readconf.c,v 1.95 2002/02/04 12:15:25 markus Exp $");
    # that they are given in.
 
    Host *.ngs.fi ngs.fi
-     FallBackToRsh no
+     User foo
 
    Host fake.com
      HostName another.host.name.real.org
@@ -65,7 +65,7 @@ RCSID("$OpenBSD: readconf.c,v 1.95 2002/02/04 12:15:25 markus Exp $");
      ProxyCommand ssh-proxy %h %p
 
    Host *.fr
-     UseRsh yes
+     PublicKeyAuthentication no
 
    Host *.su
      Cipher none
@@ -79,8 +79,6 @@ RCSID("$OpenBSD: readconf.c,v 1.95 2002/02/04 12:15:25 markus Exp $");
      PasswordAuthentication yes
      RSAAuthentication yes
      RhostsRSAAuthentication yes
-     FallBackToRsh no
-     UseRsh no
      StrictHostKeyChecking yes
      KeepAlives no
      IdentityFile ~/.ssh/identity
@@ -94,7 +92,7 @@ RCSID("$OpenBSD: readconf.c,v 1.95 2002/02/04 12:15:25 markus Exp $");
 typedef enum {
 	oBadOption,
 	oForwardAgent, oForwardX11, oGatewayPorts, oRhostsAuthentication,
-	oPasswordAuthentication, oRSAAuthentication, oFallBackToRsh, oUseRsh,
+	oPasswordAuthentication, oRSAAuthentication, 
 	oChallengeResponseAuthentication, oXAuthLocation,
 #if defined(KRB4) || defined(KRB5)
 	oKerberosAuthentication,
@@ -115,7 +113,8 @@ typedef enum {
 	oKbdInteractiveAuthentication, oKbdInteractiveDevices, oHostKeyAlias,
 	oDynamicForward, oPreferredAuthentications, oHostbasedAuthentication,
 	oHostKeyAlgorithms, oBindAddress, oSmartcardDevice,
-	oClearAllForwardings, oNoHostAuthenticationForLocalhost
+	oClearAllForwardings, oNoHostAuthenticationForLocalhost,
+	oDeprecated
 } OpCodes;
 
 /* Textual representations of the tokens. */
@@ -150,8 +149,8 @@ static struct {
 #ifdef AFS
 	{ "afstokenpassing", oAFSTokenPassing },
 #endif
-	{ "fallbacktorsh", oFallBackToRsh },
-	{ "usersh", oUseRsh },
+	{ "fallbacktorsh", oDeprecated },
+	{ "usersh", oDeprecated },
 	{ "identityfile", oIdentityFile },
 	{ "identityfile2", oIdentityFile },			/* alias */
 	{ "hostname", oHostName },
@@ -373,14 +372,6 @@ parse_flag:
 		intptr = &options->afs_token_passing;
 		goto parse_flag;
 #endif
-	case oFallBackToRsh:
-		intptr = &options->fallback_to_rsh;
-		goto parse_flag;
-
-	case oUseRsh:
-		intptr = &options->use_rsh;
-		goto parse_flag;
-
 	case oBatchMode:
 		intptr = &options->batch_mode;
 		goto parse_flag;
@@ -678,6 +669,11 @@ parse_int:
 			*intptr = value;
 		break;
 
+	case oDeprecated:
+		fatal("%s line %d: Deprecated option \"%s\"",
+		    filename, linenum, keyword);
+		break;
+
 	default:
 		fatal("process_config_line: Unimplemented opcode %d", opcode);
 	}
@@ -765,8 +761,6 @@ initialize_options(Options * options)
 	options->kbd_interactive_devices = NULL;
 	options->rhosts_rsa_authentication = -1;
 	options->hostbased_authentication = -1;
-	options->fallback_to_rsh = -1;
-	options->use_rsh = -1;
 	options->batch_mode = -1;
 	options->check_host_ip = -1;
 	options->strict_host_key_checking = -1;
@@ -849,10 +843,6 @@ fill_default_options(Options * options)
 		options->rhosts_rsa_authentication = 1;
 	if (options->hostbased_authentication == -1)
 		options->hostbased_authentication = 0;
-	if (options->fallback_to_rsh == -1)
-		options->fallback_to_rsh = 0;
-	if (options->use_rsh == -1)
-		options->use_rsh = 0;
 	if (options->batch_mode == -1)
 		options->batch_mode = 0;
 	if (options->check_host_ip == -1)

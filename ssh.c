@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.175 2002/06/08 05:07:56 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.176 2002/06/08 05:17:01 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -197,44 +197,6 @@ usage(void)
 	fprintf(stderr, "  -o 'option' Process the option as if it was read from a configuration file.\n");
 	fprintf(stderr, "  -s          Invoke command (mandatory) as SSH2 subsystem.\n");
 	fprintf(stderr, "  -b addr     Local IP address.\n");
-	exit(1);
-}
-
-/*
- * Connects to the given host using rsh (or prints an error message and exits
- * if rsh is not available).  This function never returns.
- */
-static void
-rsh_connect(char *host, char *user, Buffer * command)
-{
-	char *args[10];
-	int i;
-
-	log("Using rsh.  WARNING: Connection will not be encrypted.");
-	/* Build argument list for rsh. */
-	i = 0;
-	args[i++] = _PATH_RSH;
-	/* host may have to come after user on some systems */
-	args[i++] = host;
-	if (user) {
-		args[i++] = "-l";
-		args[i++] = user;
-	}
-	if (buffer_len(command) > 0) {
-		buffer_append(command, "\0", 1);
-		args[i++] = buffer_ptr(command);
-	}
-	args[i++] = NULL;
-	if (debug_flag) {
-		for (i = 0; args[i]; i++) {
-			if (i != 0)
-				fprintf(stderr, " ");
-			fprintf(stderr, "%s", args[i]);
-		}
-		fprintf(stderr, "\n");
-	}
-	execv(_PATH_RSH, args);
-	perror(_PATH_RSH);
 	exit(1);
 }
 
@@ -650,24 +612,6 @@ again:
 		    "originating port will not be trusted.");
 		options.rhosts_authentication = 0;
 	}
-	/*
-	 * If using rsh has been selected, exec it now (without trying
-	 * anything else).  Note that we must release privileges first.
-	 */
-	if (options.use_rsh) {
-		/*
-		 * Restore our superuser privileges.  This must be done
-		 * before permanently setting the uid.
-		 */
-		restore_uid();
-
-		/* Switch to the original uid permanently. */
-		permanently_set_uid(pw);
-
-		/* Execute rsh. */
-		rsh_connect(host, options.user, &command);
-		fatal("rsh_connect returned");
-	}
 	/* Restore our superuser privileges. */
 	restore_uid();
 
@@ -728,21 +672,9 @@ again:
 		if (mkdir(buf, 0700) < 0)
 			error("Could not create directory '%.200s'.", buf);
 
-	/* Check if the connection failed, and try "rsh" if appropriate. */
-	if (cerr) {
-		if (!options.fallback_to_rsh)
-			exit(1);
-		if (options.port != 0)
-			log("Secure connection to %.100s on port %hu refused; "
-			    "reverting to insecure method",
-			    host, options.port);
-		else
-			log("Secure connection to %.100s refused; "
-			    "reverting to insecure method.", host);
+	if (cerr)
+		exit(1);
 
-		rsh_connect(host, options.user, &command);
-		fatal("rsh_connect returned");
-	}
 	/* load options.identity_files */
 	load_public_identity_files();
 

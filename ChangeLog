@@ -6,6 +6,9 @@
    - markus@cvs.openbsd.org 2002/06/08 05:07:09
      [ssh-keysign.c]
      only accept 20 byte session ids
+   - markus@cvs.openbsd.org 2002/06/08 05:17:01
+     [readconf.c readconf.h ssh.1 ssh.c]
+     deprecate FallBackToRsh and UseRsh; patch from djm@
 
 20020607
  - (bal) Removed --{enable/disable}-suid-ssh
@@ -837,4 +840,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2190 2002/06/09 20:01:48 mouring Exp $
+$Id: ChangeLog,v 1.2191 2002/06/09 20:04:02 mouring Exp $
