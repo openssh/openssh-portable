@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keysign.c,v 1.3 2002/06/08 05:07:09 markus Exp $");
+RCSID("$OpenBSD: ssh-keysign.c,v 1.4 2002/06/19 00:27:55 deraadt Exp $");
 
 #include <openssl/evp.h>
 
@@ -59,7 +59,7 @@ valid_request(struct passwd *pw, char *host, Key **ret, u_char *data,
 
 	buffer_init(&b);
 	buffer_append(&b, data, datalen);
- 
+
 	/* session id, currently limited to SHA1 (20 bytes) */
 	p = buffer_get_string(&b, &len);
 	if (len != 20)
@@ -104,9 +104,9 @@ valid_request(struct passwd *pw, char *host, Key **ret, u_char *data,
 	if (strlen(host) != len - 1)
 		fail++;
 	else if (p[len - 1] != '.')
-	      fail++;
+		fail++;
 	else if (strncasecmp(host, p, len - 1) != 0)
-	      fail++;
+		fail++;
 	xfree(p);
 
 	/* local user */
@@ -153,14 +153,14 @@ main(int argc, char **argv)
 
 #ifdef DEBUG_SSH_KEYSIGN
 	log_init("ssh-keysign", SYSLOG_LEVEL_DEBUG3, SYSLOG_FACILITY_AUTH, 0);
-#endif  
+#endif
 
 	if (key_fd[0] == -1 && key_fd[1] == -1)
 		fatal("could not open any host key");
 
 	if ((pw = getpwuid(getuid())) == NULL)
 		fatal("getpwuid failed");
-	pw = pwcopy(pw); 
+	pw = pwcopy(pw);
 
 	SSLeay_add_all_algorithms();
 
@@ -188,7 +188,7 @@ main(int argc, char **argv)
 		fatal("bad fd");
 	if ((host = get_local_name(fd)) == NULL)
 		fatal("cannot get sockname for fd");
-	
+
 	data = buffer_get_string(&b, &dlen);
 	if (valid_request(pw, host, &key, data, dlen) < 0)
 		fatal("not a valid request");
@@ -208,7 +208,7 @@ main(int argc, char **argv)
 
 	if (key_sign(keys[i], &signature, &slen, data, dlen) != 0)
 		fatal("key_sign failed");
-	
+
 	/* send reply */
 	buffer_clear(&b);
 	buffer_put_string(&b, signature, slen);

@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: auth-bsdauth.c,v 1.3 2002/03/18 17:50:31 provos Exp $");
+RCSID("$OpenBSD: auth-bsdauth.c,v 1.4 2002/06/19 00:27:55 deraadt Exp $");
 
 #ifdef BSD_AUTH
 #include "xmalloc.h"
@@ -57,7 +57,7 @@ bsdauth_query(void *ctx, char **name, char **infotxt,
 		debug3("bsdauth_query: style %s",
 		    authctxt->style ? authctxt->style : "<default>");
 		authctxt->as = auth_userchallenge(authctxt->user,
-		     authctxt->style, "auth-ssh", &challenge);
+		    authctxt->style, "auth-ssh", &challenge);
 		if (authctxt->as == NULL)
 			challenge = NULL;
 		debug2("bsdauth_query: <%s>", challenge ? challenge : "empty");
@@ -66,8 +66,8 @@ bsdauth_query(void *ctx, char **name, char **infotxt,
 	if (challenge == NULL)
 		return -1;
 
-	*name       = xstrdup("");
-	*infotxt    = xstrdup("");
+	*name = xstrdup("");
+	*infotxt = xstrdup("");
 	*numprompts = 1;
 	*prompts = xmalloc(*numprompts * sizeof(char*));
 	*echo_on = xmalloc(*numprompts * sizeof(u_int));

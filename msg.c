@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: msg.c,v 1.1 2002/05/23 19:24:30 markus Exp $");
+RCSID("$OpenBSD: msg.c,v 1.2 2002/06/19 00:27:55 deraadt Exp $");
 
 #include "buffer.h"
 #include "getput.h"
@@ -39,7 +39,7 @@ msg_send(int fd, u_char type, Buffer *m)
 	debug3("msg_send: type %d", type);
 
 	PUT_32BIT(buf, mlen + 1);
-	buf[4] = type;         /* 1st byte of payload is mesg-type */
+	buf[4] = type;		/* 1st byte of payload is mesg-type */
 	if (atomicio(write, fd, buf, sizeof(buf)) != sizeof(buf))
 		fatal("msg_send: write");
 	if (atomicio(write, fd, buffer_ptr(m), mlen) != mlen)

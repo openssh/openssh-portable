@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor_wrap.c,v 1.9 2002/06/14 21:35:00 todd Exp $");
+RCSID("$OpenBSD: monitor_wrap.c,v 1.10 2002/06/19 00:27:55 deraadt Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dh.h>
@@ -68,7 +68,7 @@ mm_request_send(int socket, enum monitor_reqtype type, Buffer *m)
 	debug3("%s entering: type %d", __func__, type);
 
 	PUT_32BIT(buf, mlen + 1);
-	buf[4] = (u_char) type;         /* 1st byte of payload is mesg-type */
+	buf[4] = (u_char) type;		/* 1st byte of payload is mesg-type */
 	if (atomicio(write, socket, buf, sizeof(buf)) != sizeof(buf))
 		fatal("%s: write", __func__);
 	if (atomicio(write, socket, buffer_ptr(m), mlen) != mlen)
@@ -221,7 +221,7 @@ char* mm_auth2_read_banner(void)
 	mm_request_receive_expect(pmonitor->m_recvfd, MONITOR_ANS_AUTH2_READ_BANNER, &m);
 	banner = buffer_get_string(&m, NULL);
 	buffer_free(&m);
-	
+
 	return (banner);
 }
 
@@ -694,8 +694,8 @@ static void
 mm_chall_setup(char **name, char **infotxt, u_int *numprompts,
     char ***prompts, u_int **echo_on)
 {
-	*name       = xstrdup("");
-	*infotxt    = xstrdup("");
+	*name = xstrdup("");
+	*infotxt = xstrdup("");
 	*numprompts = 1;
 	*prompts = xmalloc(*numprompts * sizeof(char*));
 	*echo_on = xmalloc(*numprompts * sizeof(u_int));

@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.99 2002/06/09 13:32:01 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.100 2002/06/19 00:27:55 deraadt Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -140,7 +140,7 @@ load_identity(char *filename)
 }
 
 #define SSH_COM_PUBLIC_BEGIN		"---- BEGIN SSH2 PUBLIC KEY ----"
-#define SSH_COM_PUBLIC_END  		"---- END SSH2 PUBLIC KEY ----"
+#define SSH_COM_PUBLIC_END		"---- END SSH2 PUBLIC KEY ----"
 #define SSH_COM_PRIVATE_BEGIN		"---- BEGIN SSH2 ENCRYPTED PRIVATE KEY ----"
 #define	SSH_COM_PRIVATE_KEY_MAGIC	0x3f6ff9eb
 

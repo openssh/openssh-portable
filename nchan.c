@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: nchan.c,v 1.46 2002/06/09 13:32:01 markus Exp $");
+RCSID("$OpenBSD: nchan.c,v 1.47 2002/06/19 00:27:55 deraadt Exp $");
 
 #include "ssh1.h"
 #include "ssh2.h"
@@ -367,7 +367,7 @@ chan_rcvd_ieof(Channel *c)
 	else
 		chan_rcvd_ieof1(c);
 	if (c->ostate == CHAN_OUTPUT_WAIT_DRAIN &&
-	    buffer_len(&c->output) == 0 && 
+	    buffer_len(&c->output) == 0 &&
 	    !CHANNEL_EFD_OUTPUT_ACTIVE(c))
 		chan_obuf_empty(c);
 }

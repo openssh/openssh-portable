@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.103 2002/05/31 10:30:33 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.104 2002/06/19 00:27:55 deraadt Exp $");
 
 #include "ssh.h"
 #include "ssh2.h"
@@ -395,7 +395,7 @@ input_userauth_pk_ok(int type, u_int32_t seq, void *ctxt)
 		if (key->type != pktype) {
 			error("input_userauth_pk_ok: type mismatch "
 			    "for decoded key (received %d, expected %d)",
-			     key->type, pktype);
+			    key->type, pktype);
 			break;
 		}
 		fp = key_fingerprint(key, SSH_FP_MD5, SSH_FP_HEX);
@@ -463,7 +463,7 @@ userauth_passwd(Authctxt *authctxt)
 	packet_add_padding(64);
 	packet_send();
 
-	dispatch_set(SSH2_MSG_USERAUTH_PASSWD_CHANGEREQ, 
+	dispatch_set(SSH2_MSG_USERAUTH_PASSWD_CHANGEREQ,
 	    &input_userauth_passwd_changereq);
 
 	return 1;
@@ -495,7 +495,7 @@ input_userauth_passwd_changereq(int type, u_int32_t seqnr, void *ctxt)
 	packet_put_cstring(authctxt->service);
 	packet_put_cstring(authctxt->method->name);
 	packet_put_char(1);			/* additional info */
-	snprintf(prompt, sizeof(prompt), 
+	snprintf(prompt, sizeof(prompt),
 	    "Enter %.30s@%.128s's old password: ",
 	    authctxt->server_user, authctxt->host);
 	password = read_passphrase(prompt, 0);
@@ -504,7 +504,7 @@ input_userauth_passwd_changereq(int type, u_int32_t seqnr, void *ctxt)
 	xfree(password);
 	password = NULL;
 	while (password == NULL) {
-		snprintf(prompt, sizeof(prompt), 
+		snprintf(prompt, sizeof(prompt),
 		    "Enter %.30s@%.128s's new password: ",
 		    authctxt->server_user, authctxt->host);
 		password = read_passphrase(prompt, RP_ALLOW_EOF);
@@ -512,7 +512,7 @@ input_userauth_passwd_changereq(int type, u_int32_t seqnr, void *ctxt)
 			/* bail out */
 			return;
 		}
-		snprintf(prompt, sizeof(prompt), 
+		snprintf(prompt, sizeof(prompt),
 		    "Retype %.30s@%.128s's new password: ",
 		    authctxt->server_user, authctxt->host);
 		retype = read_passphrase(prompt, 0);
@@ -530,8 +530,8 @@ input_userauth_passwd_changereq(int type, u_int32_t seqnr, void *ctxt)
 	xfree(password);
 	packet_add_padding(64);
 	packet_send();
-	
-	dispatch_set(SSH2_MSG_USERAUTH_PASSWD_CHANGEREQ, 
+
+	dispatch_set(SSH2_MSG_USERAUTH_PASSWD_CHANGEREQ,
 	    &input_userauth_passwd_changereq);
 }
 

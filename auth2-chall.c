@@ -23,7 +23,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: auth2-chall.c,v 1.17 2002/03/18 17:50:31 provos Exp $");
+RCSID("$OpenBSD: auth2-chall.c,v 1.18 2002/06/19 00:27:55 deraadt Exp $");
 
 #include "ssh2.h"
 #include "auth.h"
@@ -219,7 +219,7 @@ send_userauth_info_request(Authctxt *authctxt)
 	packet_start(SSH2_MSG_USERAUTH_INFO_REQUEST);
 	packet_put_cstring(name);
 	packet_put_cstring(instr);
-	packet_put_cstring(""); 	/* language not used */
+	packet_put_cstring("");		/* language not used */
 	packet_put_int(numprompts);
 	for (i = 0; i < numprompts; i++) {
 		packet_put_cstring(prompts[i]);

@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshconnect.h,v 1.16 2002/06/11 04:14:26 markus Exp $	*/
+/*	$OpenBSD: sshconnect.h,v 1.17 2002/06/19 00:27:55 deraadt Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -28,9 +28,9 @@
 
 typedef struct Sensitive Sensitive;
 struct Sensitive {
-	Key     **keys;
-	int     nkeys;
-	int     external_keysign;
+	Key	**keys;
+	int	nkeys;
+	int	external_keysign;
 };
 
 int
@@ -54,16 +54,16 @@ void	 ssh_put_password(char *);
 /*
  * Macros to raise/lower permissions.
  */
-#define PRIV_START do {                         \
-        int save_errno = errno;                 \
-        (void)seteuid(original_effective_uid);  \
-        errno = save_errno;                     \
+#define PRIV_START do {				\
+	int save_errno = errno;			\
+	(void)seteuid(original_effective_uid);	\
+	errno = save_errno;			\
 } while (0)
 
-#define PRIV_END do {                           \
-        int save_errno = errno;                 \
-        (void)seteuid(original_real_uid);       \
-        errno = save_errno;                     \
+#define PRIV_END do {				\
+	int save_errno = errno;			\
+	(void)seteuid(original_real_uid);	\
+	errno = save_errno;			\
 } while (0)
 
 #endif

@@ -35,7 +35,7 @@
 
 #include "includes.h"
 #include "openbsd-compat/fake-queue.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.94 2002/06/15 01:27:48 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.95 2002/06/19 00:27:55 deraadt Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -365,7 +365,6 @@ process_remove_all_identities(SocketEntry *e, int version)
 	/* Send success. */
 	buffer_put_int(&e->output, 1);
 	buffer_put_char(&e->output, SSH_AGENT_SUCCESS);
-	return;
 }
 
 static void
@@ -499,11 +498,10 @@ process_lock_agent(SocketEntry *e, int lock)
 	}
 	memset(passwd, 0, strlen(passwd));
 	xfree(passwd);
- 
+
 	buffer_put_int(&e->output, 1);
 	buffer_put_char(&e->output,
 	    success ? SSH_AGENT_SUCCESS : SSH_AGENT_FAILURE);
-	return;
 }
 
 static void

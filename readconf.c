@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.99 2002/06/10 17:45:20 stevesk Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.100 2002/06/19 00:27:55 deraadt Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -92,7 +92,7 @@ RCSID("$OpenBSD: readconf.c,v 1.99 2002/06/10 17:45:20 stevesk Exp $");
 typedef enum {
 	oBadOption,
 	oForwardAgent, oForwardX11, oGatewayPorts, oRhostsAuthentication,
-	oPasswordAuthentication, oRSAAuthentication, 
+	oPasswordAuthentication, oRSAAuthentication,
 	oChallengeResponseAuthentication, oXAuthLocation,
 #if defined(KRB4) || defined(KRB5)
 	oKerberosAuthentication,

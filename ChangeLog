@@ -23,6 +23,13 @@
    - deraadt@cvs.openbsd.org 2002/06/17 06:05:56
      [scp.c]
      make usage like man page
+   - deraadt@cvs.openbsd.org 2002/06/19 00:27:55
+     [auth-bsdauth.c auth-skey.c auth1.c auth2-chall.c auth2-none.c authfd.c
+      authfd.h monitor_wrap.c msg.c nchan.c radix.c readconf.c scp.c sftp.1
+      ssh-add.1 ssh-add.c ssh-agent.1 ssh-agent.c ssh-keygen.1 ssh-keygen.c
+      ssh-keysign.c ssh.1 sshconnect.c sshconnect.h sshconnect2.c ttymodes.c
+      xmalloc.h]
+     KNF done automatically while reading....
  - (bal) Cygwin special handling of empty passwords wrong.  Patch by
    vinschen@redhat.com
 
@@ -953,4 +960,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2224 2002/06/21 00:26:22 mouring Exp $
+$Id: ChangeLog,v 1.2225 2002/06/21 00:41:51 mouring Exp $

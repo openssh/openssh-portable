@@ -1,4 +1,4 @@
-/*	$OpenBSD: authfd.h,v 1.29 2002/06/15 01:27:48 markus Exp $	*/
+/*	$OpenBSD: authfd.h,v 1.30 2002/06/19 00:27:55 deraadt Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -40,11 +40,11 @@
 
 /* smartcard */
 #define SSH_AGENTC_ADD_SMARTCARD_KEY		20
-#define SSH_AGENTC_REMOVE_SMARTCARD_KEY	        21
+#define SSH_AGENTC_REMOVE_SMARTCARD_KEY		21
 
 /* lock/unlock the agent */
 #define SSH_AGENTC_LOCK				22
-#define SSH_AGENTC_UNLOCK		        23
+#define SSH_AGENTC_UNLOCK			23
 
 /* add key with constraints */
 #define SSH_AGENTC_ADD_RSA_ID_CONSTRAINED	24
@@ -56,21 +56,21 @@
 #define SSH2_AGENT_FAILURE			30
 
 /* additional error code for ssh.com's ssh-agent2 */
-#define SSH_COM_AGENT2_FAILURE                  102
+#define SSH_COM_AGENT2_FAILURE			102
 
 #define	SSH_AGENT_OLD_SIGNATURE			0x01
 
 typedef struct {
-	int     fd;
-	Buffer  identities;
-	int     howmany;
-}       AuthenticationConnection;
+	int	fd;
+	Buffer	identities;
+	int	howmany;
+}	AuthenticationConnection;
 
-int      ssh_get_authentication_socket(void);
-void     ssh_close_authentication_socket(int);
+int	ssh_get_authentication_socket(void);
+void	ssh_close_authentication_socket(int);
 
 AuthenticationConnection *ssh_get_authentication_connection(void);
-void     ssh_close_authentication_connection(AuthenticationConnection *);
+void	ssh_close_authentication_connection(AuthenticationConnection *);
 int	 ssh_get_num_identities(AuthenticationConnection *, int);
 Key	*ssh_get_first_identity(AuthenticationConnection *, char **, int);
 Key	*ssh_get_next_identity(AuthenticationConnection *, char **, int);

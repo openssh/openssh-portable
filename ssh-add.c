@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.60 2002/06/15 01:27:48 markus Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.61 2002/06/19 00:27:55 deraadt Exp $");
 
 #include <openssl/evp.h>
 
@@ -244,7 +244,7 @@ lock_agent(AuthenticationConnection *ac, int lock)
 {
 	char prompt[100], *p1, *p2;
 	int passok = 1, ret = -1;
- 
+
 	strlcpy(prompt, "Enter lock password: ", sizeof(prompt));
 	p1 = read_passphrase(prompt, RP_ALLOW_STDIN);
 	if (lock) {
