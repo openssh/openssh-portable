@@ -18,7 +18,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: login.c,v 1.19 2000/01/23 09:18:36 damien Exp $");
+RCSID("$Id: login.c,v 1.20 2000/01/26 00:04:48 damien Exp $");
 
 #if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
 # include <utmpx.h>
@@ -173,21 +173,23 @@ record_login(int pid, const char *ttyname, const char *user, uid_t uid,
 	strncpy(u.ut_host, host, sizeof(u.ut_host));
 #endif
 #if defined(HAVE_ADDR_IN_UTMP)
-	switch (addr->sa_family) {
-		case AF_INET: {
-			struct sockaddr_in *in = (struct sockaddr_in*)addr;
-			memcpy(&(u.ut_addr), &(in->sin_addr), sizeof(&(in->sin_addr)));
-			break;
-		}
+	if (addr) {
+		switch (addr->sa_family) {
+			case AF_INET: {
+				struct sockaddr_in *in = (struct sockaddr_in*)addr;
+				memcpy(&(u.ut_addr), &(in->sin_addr), sizeof(&(in->sin_addr)));
+				break;
+			}
 #if defined(HAVE_ADDR_V6_IN_UTMP)
-		case AF_INET6: {
-			struct sockaddr_in6 *in6 = (struct sockaddr_in6*)addr;
-			memcpy(u.ut_addr_v6, &(in6->sin6_addr), sizeof(&(in6->sin6_addr)));
-			break;
-		}
+			case AF_INET6: {
+				struct sockaddr_in6 *in6 = (struct sockaddr_in6*)addr;
+				memcpy(u.ut_addr_v6, &(in6->sin6_addr), sizeof(&(in6->sin6_addr)));
+				break;
+			}
 #endif
-		default:
-			break;
+			default:
+				break;
+		}
 	}
 #endif
 
@@ -208,21 +210,23 @@ record_login(int pid, const char *ttyname, const char *user, uid_t uid,
 #  endif /* HAVE_SYSLEN_IN_UTMPX */
 # endif
 #if defined(HAVE_ADDR_IN_UTMPX)
-	switch (addr->sa_family) {
-		case AF_INET: {
-			struct sockaddr_in *in = (struct sockaddr_in*)addr;
-			memcpy(&(utx.ut_addr), &(in->sin_addr), sizeof(&(in->sin_addr)));
-			break;
-		}
+	if (addr)
+		switch (addr->sa_family) {
+			case AF_INET: {
+				struct sockaddr_in *in = (struct sockaddr_in*)addr;
+				memcpy(&(utx.ut_addr), &(in->sin_addr), sizeof(&(in->sin_addr)));
+				break;
+			}
 #if defined(HAVE_ADDR_V6_IN_UTMPX)
-		case AF_INET6: {
-			struct sockaddr_in6 *in6 = (struct sockaddr_in6*)addr;
-			memcpy(utx.ut_addr_v6, &(in6->sin6_addr), sizeof(&(in6->sin6_addr)));
-			break;
-		}
+			case AF_INET6: {
+				struct sockaddr_in6 *in6 = (struct sockaddr_in6*)addr;
+				memcpy(utx.ut_addr_v6, &(in6->sin6_addr), sizeof(&(in6->sin6_addr)));
+				break;
+			}
 #endif
-		default:
-			break;
+			default:
+				break;
+		}
 	}
 #endif
 #endif /* defined(HAVE_UTMPX_H) && defined(USE_UTMPX) */
