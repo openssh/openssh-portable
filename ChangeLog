@@ -13,6 +13,7 @@
  - (bal) Disable Privsep for Tru64 after pre-authentication due to issues
    with SIA.  Also, clean up of tru64 support patch by Chris Adams
    <cmadams@hiwaay.net>
+ - (tim) [contrib/caldera/openssh.spec] workaround RPM quirk. Fix %files
 
 20030318
  - (tim) [configure.ac openbsd-compat/bsd-misc.c openbsd-compat/bsd-misc.h]
@@ -1238,4 +1239,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2637 2003/03/21 01:18:09 mouring Exp $
+$Id: ChangeLog,v 1.2638 2003/03/21 04:50:41 tim Exp $

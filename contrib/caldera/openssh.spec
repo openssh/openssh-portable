@@ -198,7 +198,7 @@ xmkmf
 %Install
 [ %{buildroot} != "/" ] && rm -rf %{buildroot}
 
-%makeinstall
+make install DESTDIR=%{buildroot}
 %makeinstall -C %{askpass} \
     BINDIR=%{_libexecdir} \
     MANPATH=%{_mandir} \
@@ -325,6 +325,7 @@ fi
 %{_bindir}/ssh-keygen
 %{_bindir}/ssh-keyscan
 %dir %{_libexecdir}
+%attr(4711,root,root) %{_libexecdir}/ssh-keysign
 %{_sbindir}/ssh-host-keygen
 %dir %{_defaultdocdir}/%{name}-%{version}
 %{_defaultdocdir}/%{name}-%{version}/CREDITS
@@ -335,6 +336,8 @@ fi
 %{_defaultdocdir}/%{name}-%{version}/TODO
 %{_defaultdocdir}/%{name}-%{version}/faq.html
 %{_mandir}/man1/*
+%{_mandir}/man8/ssh-keysign.8.gz
+%{_mandir}/man5/ssh_config.5.gz
  
 %Files server
 %defattr(-,root,root)
@@ -346,6 +349,7 @@ fi
 %config %{SVIcdir}/sshd
 %{_libexecdir}/sftp-server
 %{_sbindir}/sshd
+%{_mandir}/man5/sshd_config.5.gz
 %{_mandir}/man8/sftp-server.8.gz
 %{_mandir}/man8/sshd.8.gz
  
@@ -360,4 +364,4 @@ fi
 * Mon Jan 01 1998 ...
 Template Version: 1.31
 
-$Id: openssh.spec,v 1.40 2003/03/19 23:52:14 djm Exp $
+$Id: openssh.spec,v 1.41 2003/03/21 04:50:41 tim Exp $
