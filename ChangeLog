@@ -10,6 +10,7 @@
  - (djm) Add new server configuration directive 'PAMAuthenticationViaKbdInt'
    (default: off), implies KbdInteractiveAuthentication. Suggestion from 
    markus@
+ - (djm) Include crypt.h if available in auth-passwd.c
 
 20010424
  - OpenBSD CVS Sync
@@ -5249,4 +5250,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1169 2001/04/25 12:44:14 djm Exp $
+$Id: ChangeLog,v 1.1170 2001/04/25 12:50:18 djm Exp $

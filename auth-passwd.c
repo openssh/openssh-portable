@@ -46,6 +46,9 @@ RCSID("$OpenBSD: auth-passwd.c,v 1.22 2001/03/20 18:57:04 markus Exp $");
 #include "servconf.h"
 #include "auth.h"
 
+#ifdef HAVE_CRYPT_H
+# include <crypt.h>
+#endif
 #ifdef WITH_AIXAUTHENTICATE
 # include <login.h>
 #endif
