@@ -21,7 +21,7 @@
  *
  */
 
-/* $Id: bsd-nextstep.h,v 1.5 2001/03/19 03:01:57 mouring Exp $ */
+/* $Id: bsd-nextstep.h,v 1.6 2001/03/19 13:42:22 mouring Exp $ */
 
 #ifndef _NEXT_POSIX_H
 #define _NEXT_POSIX_H
@@ -30,6 +30,7 @@
 #include <sys/dir.h>
 
 /* NGROUPS_MAX is behind -lposix.  Use the BSD version which is NGROUPS */
+#undef NGROUPS_MAX
 #define NGROUPS_MAX NGROUPS
 
 /* NeXT's readdir() is BSD (struct direct) not POSIX (struct dirent) */
