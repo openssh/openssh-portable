@@ -1,3 +1,7 @@
+20040123 
+ - (djm) Do pam_session processing for systems with HAVE_LOGIN_CAP; from 
+   ralf.hack AT pipex.net; ok dtucker@
+
 20040122
  - (dtucker) [configure.ac] Use krb5-config where available for Kerberos/
    GSSAPI detection, libs and includes.  ok djm@
@@ -1709,4 +1713,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3180 2004/01/23 00:10:03 tim Exp $
+$Id: ChangeLog,v 1.3181 2004/01/23 03:16:26 djm Exp $

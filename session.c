@@ -1243,6 +1243,12 @@ do_setusercontext(struct passwd *pw)
 # ifdef __bsdi__
 		setpgid(0, 0);
 # endif
+# ifdef USE_PAM
+		if (options.use_pam) {
+			do_pam_session();
+			do_pam_setcred(0);
+		}
+# endif /* USE_PAM */
 		if (setusercontext(lc, pw, pw->pw_uid,
 		    (LOGIN_SETALL & ~LOGIN_SETPATH)) < 0) {
 			perror("unable to set user context");
