@@ -47,7 +47,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.105 2004/06/01 01:28:20 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.106 2004/06/03 04:53:12 dtucker Exp $");
 
 #ifdef USE_PAM
 #if defined(HAVE_SECURITY_PAM_APPL_H)
@@ -782,7 +782,7 @@ do_pam_setcred(int init)
 }
 
 static int
-pam_tty_conv(int n, const struct pam_message **msg,
+sshpam_tty_conv(int n, const struct pam_message **msg,
     struct pam_response **resp, void *data)
 {
 	char input[PAM_MAX_MSG_SIZE];
@@ -835,7 +835,7 @@ pam_tty_conv(int n, const struct pam_message **msg,
 	return (PAM_CONV_ERR);
 }
 
-static struct pam_conv tty_conv = { pam_tty_conv, NULL };
+static struct pam_conv tty_conv = { sshpam_tty_conv, NULL };
 
 /*
  * XXX this should be done in the authentication phase, but ssh1 doesn't
@@ -859,7 +859,7 @@ do_pam_chauthtok(void)
 }
 
 static int
-pam_store_conv(int n, const struct pam_message **msg,
+sshpam_store_conv(int n, const struct pam_message **msg,
     struct pam_response **resp, void *data)
 {
 	struct pam_response *reply;
@@ -901,7 +901,7 @@ pam_store_conv(int n, const struct pam_message **msg,
 	return (PAM_CONV_ERR);
 }
 
-static struct pam_conv store_conv = { pam_store_conv, NULL };
+static struct pam_conv store_conv = { sshpam_store_conv, NULL };
 
 void
 do_pam_session(void)

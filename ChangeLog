@@ -1,3 +1,7 @@
+20040603
+ - (dtucker) [auth-pam.c] Don't use pam_* namespace for sshd's PAM functions.
+   ok djm@
+
 20040601
  - (djm) [auth-pam.c] Add copyright for local changes
 
@@ -1177,4 +1181,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3373 2004/06/01 01:28:21 djm Exp $
+$Id: ChangeLog,v 1.3374 2004/06/03 04:53:12 dtucker Exp $
