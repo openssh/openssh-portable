@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.213 2004/04/14 10:14:26 djm Exp $
+# $Id: configure.ac,v 1.214 2004/04/17 03:03:07 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -359,6 +359,9 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(HAVE_SECUREWARE)
 	AC_DEFINE(DISABLE_SHADOW)
 	AC_DEFINE(BROKEN_SAVED_UIDS)
+	AC_DEFINE(SETEUID_BREAKS_SETUID)
+	AC_DEFINE(BROKEN_SETREUID)
+	AC_DEFINE(BROKEN_SETREGID)
 	AC_DEFINE(WITH_ABBREV_NO_TTY)
 	AC_CHECK_FUNCS(getluid setluid)
 	MANTYPE=man

@@ -4,6 +4,8 @@
  - (djm) [auth-krb5.c auth.h session.c] Explicitly refer to Kerberos ccache 
    file using FILE: method, fixes problems on Mac OSX.
    Patch from simon@sxw.org.uk; ok dtucker@
+ - (tim) [configure.ac] Set SETEUID_BREAKS_SETUID, BROKEN_SETREUID and
+   BROKEN_SETREGID for SCO OpenServer 3
 
 20040412
  - (dtucker) [sshd_config.5] Add PermitRootLogin without-password warning
@@ -973,4 +975,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3313 2004/04/16 12:47:55 djm Exp $
+$Id: ChangeLog,v 1.3314 2004/04/17 03:03:07 tim Exp $
