@@ -2344,10 +2344,6 @@ do_cleanup(Authctxt *authctxt)
 	}
 #endif
 
-#ifdef SSH_AUDIT_EVENTS
-	PRIVSEP(audit_event(SSH_CONNECTION_CLOSE));
-#endif
-
 	/* remove agent socket */
 	auth_sock_cleanup_proc(authctxt->pw);
 

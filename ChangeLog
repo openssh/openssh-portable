@@ -1,6 +1,8 @@
 20050306
  - (dtucker) [monitor.c] Bug #125 comment #47: fix errors returned by monitor
    when attempting to audit disconnect events.  Reported by Phil Dibowitz.
+ - (dtucker) [session.c sshd.c] Bug #125 comment #49: Send disconnect audit
+   events earlier, prevents mm_request_send errors reported by Matt Goebel.
 
 20050305
  - (djm) [contrib/cygwin/README] Improve Cygwin build documentation. Patch 
@@ -2281,4 +2283,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3692 2005/03/06 11:31:35 dtucker Exp $
+$Id: ChangeLog,v 1.3693 2005/03/06 11:38:51 dtucker Exp $

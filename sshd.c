@@ -1728,6 +1728,10 @@ main(int ac, char **av)
 		finish_pam();
 #endif /* USE_PAM */
 
+#ifdef SSH_AUDIT_EVENTS
+	PRIVSEP(audit_event(SSH_CONNECTION_CLOSE));
+#endif
+
 	packet_close();
 
 	if (use_privsep)
