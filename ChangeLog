@@ -1,3 +1,6 @@
+20030524
+ - (dtucker) Correct --osfsia in INSTALL.  Patch by skeleten at shillest.net
+
 20030523
  - (djm) Use VIS_SAFE on logged strings rather than default strnvis 
    encoding (which encodes many more characters)
@@ -1602,4 +1605,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2748 2003/05/23 08:44:41 djm Exp $
+$Id: ChangeLog,v 1.2749 2003/05/24 01:41:16 dtucker Exp $

@@ -123,7 +123,7 @@ it if lastlog is installed in a different place.
 
 --without-lastlog will disable lastlog support entirely.
 
---with-sia, --without-sia will enable or disable OSF1's Security 
+--with-osfsia, --without-osfsia will enable or disable OSF1's Security 
 Integration Architecture.  The default for OSF1 machines is enable.
 
 --with-kerberos4=PATH will enable Kerberos IV support. You will need
@@ -217,4 +217,4 @@ Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
 
 
-$Id: INSTALL,v 1.55 2002/07/25 04:36:25 djm Exp $
+$Id: INSTALL,v 1.56 2003/05/24 01:41:16 dtucker Exp $
