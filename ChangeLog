@@ -1,4 +1,5 @@
 20020513
+ - (stevesk) add initial README.privsep
  - (stevesk) [configure.ac] nicer message: --with-privsep-user=user
  - (djm) Add --with-superuser-path=xxx configure option to specify what $PATH
    the superuser receives.
@@ -576,4 +577,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2111 2002/05/13 03:51:40 stevesk Exp $
+$Id: ChangeLog,v 1.2112 2002/05/13 03:57:04 stevesk Exp $
