@@ -143,7 +143,7 @@ auth_password(Authctxt *authctxt, const char *password)
 	char *pw_password = authctxt->valid ? shadow_pw(pw) : pw->pw_passwd;
 
 	/* Check for users with no password. */
-	if (strcmp(pw_password, "") == 0 && strcmp(pw->pw_passwd, "") == 0)
+	if (strcmp(pw_password, "") == 0 && strcmp(password, "") == 0)
 		return ok;
 	else {
 		/* Encrypt the candidate password using the proper salt. */
