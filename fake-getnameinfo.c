@@ -22,7 +22,7 @@ int getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 
 	if (serv) {
 		snprintf(tmpserv, sizeof(tmpserv), "%d", ntohs(sin->sin_port));
-		if (strlen(tmpserv) > servlen)
+		if (strlen(tmpserv) >= servlen)
 			return EAI_MEMORY;
 		else
 			strcpy(serv, tmpserv);

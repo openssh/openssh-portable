@@ -57,6 +57,7 @@ Michael Stone <mstone@cs.loyola.edu> - Irix enhancements
 Nalin Dahyabhai <nalin.dahyabhai@pobox.com> - PAM environment patch
 Nate Itkin <nitkin@europa.com> - SunOS 4.1.x fixes
 Niels Kristian Bech Jensen <nkbj@image.dk> - Assorted patches
+Pavel Kankovsky <peak@argo.troja.mff.cuni.cz> - Security fixes
 Pavel Troller <patrol@omni.sinus.cz> - Bugfixes
 Pekka Savola <pekkas@netcore.fi> - Bugfixes
 Peter Kocks <peter.kocks@baygate.com> - Makefile fixes
