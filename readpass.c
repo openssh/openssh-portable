@@ -32,13 +32,12 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readpass.c,v 1.21 2001/07/10 21:49:12 markus Exp $");
+RCSID("$OpenBSD: readpass.c,v 1.22 2001/07/14 15:10:16 stevesk Exp $");
 
 #include "xmalloc.h"
 #include "readpass.h"
 #include "pathnames.h"
 #include "log.h"
-#include "atomicio.h"
 #include "ssh.h"
 
 static char *
