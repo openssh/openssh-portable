@@ -18,7 +18,7 @@ agent connections.
 */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.13 1999/11/11 06:57:40 damien Exp $");
+RCSID("$Id: sshd.c,v 1.14 1999/11/11 09:44:05 damien Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -881,7 +881,7 @@ main(int ac, char **av)
 
 void do_connection(int privileged_port)
 {
-  int i;
+  int i, len;
   BIGNUM *session_key_int;
   unsigned char session_key[SSH_SESSION_KEY_LENGTH];
   unsigned char check_bytes[8];
@@ -1024,11 +1024,12 @@ void do_connection(int privileged_port)
      least significant 256 bits of the integer; the first byte of the 
      key is in the highest bits. */
   BN_mask_bits(session_key_int, sizeof(session_key) * 8);
-  if (BN_num_bytes(session_key_int) != sizeof(session_key)){
-    fatal("do_connection: session_key_int %d != sizeof(session_key) %d",
-	  BN_num_bytes(session_key_int), sizeof(session_key));
-  }
-  BN_bn2bin(session_key_int, session_key);
+  len = BN_num_bytes(session_key_int);
+  if (len <= 0 || len > sizeof(session_key))
+    fatal("do_connection: bad len: session_key_int %d > sizeof(session_key) %d",
+	  len, sizeof(session_key));
+  memset(session_key, 0, sizeof(session_key));
+  BN_bn2bin(session_key_int, session_key + sizeof(session_key) - len);
   
   /* Xor the first 16 bytes of the session key with the session id. */
   for (i = 0; i < 16; i++)
