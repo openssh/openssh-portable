@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rsa.c,v 1.47 2001/12/27 18:22:16 markus Exp $");
+RCSID("$OpenBSD: auth-rsa.c,v 1.48 2001/12/27 20:39:58 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/md5.h>
@@ -92,9 +92,9 @@ auth_rsa_challenge_dialog(RSA *pk)
 
 	/* Wait for a response. */
 	packet_read_expect(&plen, SSH_CMSG_AUTH_RSA_RESPONSE);
-	packet_integrity_check(plen, 16, SSH_CMSG_AUTH_RSA_RESPONSE);
 	for (i = 0; i < 16; i++)
 		response[i] = packet_get_char();
+	packet_done();
 
 	/* The response is MD5 of decrypted challenge plus session id. */
 	len = BN_num_bytes(challenge);

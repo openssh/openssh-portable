@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.114 2001/12/20 16:37:29 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.115 2001/12/27 20:39:58 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -254,8 +254,8 @@ do_authenticated1(Authctxt *authctxt)
 		/* Process the packet. */
 		switch (type) {
 		case SSH_CMSG_REQUEST_COMPRESSION:
-			packet_integrity_check(plen, 4, type);
 			compression_level = packet_get_int();
+			packet_done();
 			if (compression_level < 1 || compression_level > 9) {
 				packet_send_debug("Received illegal compression level %d.",
 				    compression_level);
@@ -330,7 +330,7 @@ do_authenticated1(Authctxt *authctxt)
 				verbose("Kerberos TGT passing disabled.");
 			} else {
 				char *kdata = packet_get_string(&dlen);
-				packet_integrity_check(plen, 4 + dlen, type);
+				packet_done();
 
 				/* XXX - 0x41, see creds_to_radix version */
 				if (kdata[0] != 0x41) {
@@ -364,7 +364,7 @@ do_authenticated1(Authctxt *authctxt)
 			} else {
 				/* Accept AFS token. */
 				char *token = packet_get_string(&dlen);
-				packet_integrity_check(plen, 4 + dlen, type);
+				packet_done();
 
 				if (auth_afs_token(s->authctxt, token))
 					success = 1;

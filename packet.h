@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: packet.h,v 1.28 2001/12/20 22:50:24 djm Exp $"); */
+/* RCSID("$OpenBSD: packet.h,v 1.29 2001/12/27 20:39:58 markus Exp $"); */
 
 #ifndef PACKET_H
 #define PACKET_H
@@ -73,16 +73,6 @@ void	 tty_parse_modes(int, int *);
 extern int max_packet_size;
 int      packet_set_maxsize(int);
 #define  packet_get_maxsize() max_packet_size
-
-#define packet_integrity_check(payload_len, expected_len, type) \
-do { \
-	int _p = (payload_len), _e = (expected_len); \
-	if (_p != _e) { \
-		log("Packet integrity error (%d != %d) at %s:%d", \
-		    _p, _e, __FILE__, __LINE__); \
-		packet_disconnect("Packet integrity error. (%d)", (type)); \
-	} \
-} while (0)
 
 #define packet_done() \
 do { \

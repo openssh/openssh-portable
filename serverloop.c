@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.89 2001/12/21 12:17:33 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.90 2001/12/27 20:39:58 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -806,7 +806,7 @@ server_input_stdin_data(int type, int plen, u_int32_t seq, void *ctxt)
 	if (fdin == -1)
 		return;
 	data = packet_get_string(&data_len);
-	packet_integrity_check(plen, (4 + data_len), type);
+	packet_done();
 	buffer_append(&stdin_buffer, data, data_len);
 	memset(data, 0, data_len);
 	xfree(data);
@@ -821,7 +821,7 @@ server_input_eof(int type, int plen, u_int32_t seq, void *ctxt)
 	 * drained.
 	 */
 	debug("EOF received for stdin.");
-	packet_integrity_check(plen, 0, type);
+	packet_done();
 	stdin_eof = 1;
 }
 
@@ -834,7 +834,7 @@ server_input_window_size(int type, int plen, u_int32_t seq, void *ctxt)
 	int ypixel = packet_get_int();
 
 	debug("Window change received.");
-	packet_integrity_check(plen, 4 * 4, type);
+	packet_done();
 	if (fdin != -1)
 		pty_change_window_size(fdin, row, col, xpixel, ypixel);
 }

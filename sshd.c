@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.218 2001/12/27 18:22:16 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.219 2001/12/27 20:39:58 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1358,8 +1358,7 @@ do_ssh1_kex(void)
 
 	protocol_flags = packet_get_int();
 	packet_set_protocol_flags(protocol_flags);
-
-	packet_integrity_check(plen, 1 + 8 + slen + 4, SSH_CMSG_SESSION_KEY);
+	packet_done();
 
 	/*
 	 * Decrypt it using our private server key and private host key (key

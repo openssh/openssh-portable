@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.91 2001/12/20 22:50:24 djm Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.92 2001/12/27 20:39:58 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1012,7 +1012,7 @@ client_input_stdout_data(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	u_int data_len;
 	char *data = packet_get_string(&data_len);
-	packet_integrity_check(plen, 4 + data_len, type);
+	packet_done();
 	buffer_append(&stdout_buffer, data, data_len);
 	memset(data, 0, data_len);
 	xfree(data);
@@ -1022,7 +1022,7 @@ client_input_stderr_data(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	u_int data_len;
 	char *data = packet_get_string(&data_len);
-	packet_integrity_check(plen, 4 + data_len, type);
+	packet_done();
 	buffer_append(&stderr_buffer, data, data_len);
 	memset(data, 0, data_len);
 	xfree(data);
@@ -1030,8 +1030,8 @@ client_input_stderr_data(int type, int plen, u_int32_t seq, void *ctxt)
 static void
 client_input_exit_status(int type, int plen, u_int32_t seq, void *ctxt)
 {
-	packet_integrity_check(plen, 4, type);
 	exit_status = packet_get_int();
+	packet_done();
 	/* Acknowledge the exit. */
 	packet_start(SSH_CMSG_EXIT_CONFIRMATION);
 	packet_send();

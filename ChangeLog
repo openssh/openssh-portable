@@ -51,6 +51,10 @@
    - markus@cvs.openbsd.org 2001/12/27 19:54:53
      [auth1.c auth.h auth-rh-rsa.c]
      auth_rhosts_rsa now accept generic keys.
+   - markus@cvs.openbsd.org 2001/12/27 20:39:58
+     [auth1.c auth-rsa.c channels.c clientloop.c packet.c packet.h]
+     [serverloop.c session.c ssh.c sshconnect1.c sshd.c ttymodes.c]
+     get rid of packet_integrity_check, use packet_done() instead.
 
 20020121
  - (djm) Rework ssh-rand-helper:
@@ -7198,4 +7202,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1737 2002/01/22 12:11:00 djm Exp $
+$Id: ChangeLog,v 1.1738 2002/01/22 12:11:38 djm Exp $

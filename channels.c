@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.150 2001/12/20 22:50:24 djm Exp $");
+RCSID("$OpenBSD: channels.c,v 1.151 2001/12/27 20:39:58 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1734,7 +1734,6 @@ channel_input_data(int type, int plen, u_int32_t seq, void *ctxt)
 
 	/* Get the data. */
 	data = packet_get_string(&data_len);
-	packet_done();
 
 	if (compat20) {
 		if (data_len > c->local_maxpacket) {
@@ -1748,9 +1747,8 @@ channel_input_data(int type, int plen, u_int32_t seq, void *ctxt)
 			return;
 		}
 		c->local_window -= data_len;
-	}else{
-		packet_integrity_check(plen, 4 + 4 + data_len, type);
 	}
+	packet_done();
 	buffer_append(&c->output, data, data_len);
 	xfree(data);
 }
@@ -1801,9 +1799,8 @@ channel_input_ieof(int type, int plen, u_int32_t seq, void *ctxt)
 	int id;
 	Channel *c;
 
-	packet_integrity_check(plen, 4, type);
-
 	id = packet_get_int();
+	packet_done();
 	c = channel_lookup(id);
 	if (c == NULL)
 		packet_disconnect("Received ieof for nonexistent channel %d.", id);
@@ -1823,9 +1820,8 @@ channel_input_close(int type, int plen, u_int32_t seq, void *ctxt)
 	int id;
 	Channel *c;
 
-	packet_integrity_check(plen, 4, type);
-
 	id = packet_get_int();
+	packet_done();
 	c = channel_lookup(id);
 	if (c == NULL)
 		packet_disconnect("Received close for nonexistent channel %d.", id);
@@ -1861,7 +1857,8 @@ channel_input_oclose(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	int id = packet_get_int();
 	Channel *c = channel_lookup(id);
-	packet_integrity_check(plen, 4, type);
+
+	packet_done();
 	if (c == NULL)
 		packet_disconnect("Received oclose for nonexistent channel %d.", id);
 	chan_rcvd_oclose(c);
@@ -1889,9 +1886,6 @@ channel_input_open_confirmation(int type, int plen, u_int32_t seq, void *ctxt)
 	int id, remote_id;
 	Channel *c;
 
-	if (!compat20)
-		packet_integrity_check(plen, 4 + 4, type);
-
 	id = packet_get_int();
 	c = channel_lookup(id);
 
@@ -1906,7 +1900,6 @@ channel_input_open_confirmation(int type, int plen, u_int32_t seq, void *ctxt)
 	if (compat20) {
 		c->remote_window = packet_get_int();
 		c->remote_maxpacket = packet_get_int();
-		packet_done();
 		if (c->cb_fn != NULL && c->cb_event == type) {
 			debug2("callback start");
 			c->cb_fn(c->self, c->cb_arg);
@@ -1915,6 +1908,7 @@ channel_input_open_confirmation(int type, int plen, u_int32_t seq, void *ctxt)
 		debug("channel %d: open confirm rwindow %d rmax %d", c->self,
 		    c->remote_window, c->remote_maxpacket);
 	}
+	packet_done();
 }
 
 static char *
@@ -1940,9 +1934,6 @@ channel_input_open_failure(int type, int plen, u_int32_t seq, void *ctxt)
 	char *msg = NULL, *lang = NULL;
 	Channel *c;
 
-	if (!compat20)
-		packet_integrity_check(plen, 4, type);
-
 	id = packet_get_int();
 	c = channel_lookup(id);
 
@@ -1955,7 +1946,6 @@ channel_input_open_failure(int type, int plen, u_int32_t seq, void *ctxt)
 			msg  = packet_get_string(NULL);
 			lang = packet_get_string(NULL);
 		}
-		packet_done();
 		log("channel %d: open failed: %s%s%s", id,
 		    reason2txt(reason), msg ? ": ": "", msg ? msg : "");
 		if (msg != NULL)
@@ -1963,6 +1953,7 @@ channel_input_open_failure(int type, int plen, u_int32_t seq, void *ctxt)
 		if (lang != NULL)
 			xfree(lang);
 	}
+	packet_done();
 	/* Free the channel.  This will also close the socket. */
 	channel_free(c);
 }
@@ -2888,10 +2879,9 @@ auth_input_open_request(int type, int plen, u_int32_t seq, void *ctxt)
 	int remote_id, sock;
 	char *name;
 
-	packet_integrity_check(plen, 4, type);
-
 	/* Read the remote channel number from the message. */
 	remote_id = packet_get_int();
+	packet_done();
 
 	/*
 	 * Get a connection to the local authentication agent (this may again
