@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.130 2001/08/22 16:21:21 stevesk Exp $
+.\" $OpenBSD: ssh.1,v 1.131 2001/08/22 17:45:16 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -389,20 +389,24 @@ This can also be specified on a per-host basis in a configuration file.
 .It Fl b Ar bind_address
 Specify the interface to transmit from on machines with multiple
 interfaces or aliased addresses.
-.It Fl c Ar blowfish|3des
+.It Fl c Ar blowfish|3des|des
 Selects the cipher to use for encrypting the session.
 .Ar 3des
 is used by default.
 It is believed to be secure.
 .Ar 3des
 (triple-des) is an encrypt-decrypt-encrypt triple with three different keys.
-It is presumably more secure than the
-.Ar des
-cipher which is no longer fully supported in
-.Nm ssh .
 .Ar blowfish
 is a fast block cipher, it appears very secure and is much faster than
 .Ar 3des .
+.Ar des
+is only supported in the
+.Nm
+client for interoperability with legacy protocol 1 implementations
+that do not support the
+.Ar 3des
+cipher.  Its use is strongly discouraged due to cryptographic
+weaknesses.
 .It Fl c Ar cipher_spec
 Additionally, for protocol version 2 a comma-separated list of ciphers can
 be specified in order of preference.
@@ -714,10 +718,19 @@ The default is
 Specifies the cipher to use for encrypting the session
 in protocol version 1.
 Currently,
-.Dq blowfish
+.Dq blowfish ,
+.Dq 3des ,
 and
-.Dq 3des
+.Dq des
 are supported.
+.Ar des
+is only supported in the
+.Nm
+client for interoperability with legacy protocol 1 implementations
+that do not support the
+.Ar 3des
+cipher.  Its use is strongly discouraged due to cryptographic
+weaknesses.
 The default is
 .Dq 3des .
 .It Cm Ciphers

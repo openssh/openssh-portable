@@ -19,6 +19,9 @@
    - stevesk@cvs.openbsd.org 2001/08/22 16:30:02
      [sshd.8]
      no rexd; ok markus@
+   - stevesk@cvs.openbsd.org 2001/08/22 17:45:16
+     [ssh.1]
+     document cipher des for protocol 1; ok deraadt@
 
 20010815
  - (bal) Fixed stray code in readconf.c that went in by mistake.
@@ -6342,4 +6345,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1490 2001/09/12 16:46:08 mouring Exp $
+$Id: ChangeLog,v 1.1491 2001/09/12 16:52:28 mouring Exp $
