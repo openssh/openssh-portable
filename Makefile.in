@@ -19,7 +19,7 @@ LIBWRAP=@LIBWRAP@
 AR=@AR@
 RANLIB=@RANLIB@
 INSTALL=@INSTALL@
-LFLAGS=@LDFLAGS@
+LDFLAGS=-L. @LDFLAGS@
 
 GNOME_CFLAGS=`gnome-config --cflags gnome gnomeui`
 GNOME_LIBS=`gnome-config --libs gnome gnomeui`
@@ -33,37 +33,43 @@ OBJS= atomicio.o authfd.o authfile.o auth-krb4.o auth-passwd.o \
   packet.o pty.o radix.o readconf.o readpass.o rsa.o servconf.o \
   serverloop.o sshconnect.o tildexpand.o ttymodes.o uidswap.o \
   xmalloc.o 
-all: $(OBJS) $(TARGETS)
 
-libssh.a: atomicio.o authfd.o authfile.o bsd-daemon.o bsd-mktemp.o \
+LIBOBJS= atomicio.o authfd.o authfile.o bsd-daemon.o bsd-mktemp.o \
   bsd-snprintf.o bsd-strlcat.o bsd-strlcpy.o bufaux.o \
   buffer.o canohost.o channels.o cipher.o compat.o \
   compress.o crc32.o deattack.o fingerprint.o helper.o \
   hostfile.o log.o match.o mpaux.o nchan.o packet.o \
   radix.o readpass.o rsa.o tildexpand.o ttymodes.o uidswap.o \
   xmalloc.o 
-	$(AR) rv $@ $^
+
+all: $(OBJS) $(TARGETS)
+
+libssh.a: $(LIBOBJS)
+	$(AR) rv $@ $(LIBOBJS)
 	$(RANLIB) $@
 
 ssh: ssh.o sshconnect.o log-client.o readconf.o clientloop.o libssh.a
-	$(CC) -o $@ $^ $(LFLAGS) $(LIBS) 
+	$(CC) -o $@ ssh.o sshconnect.o log-client.o readconf.o \
+		clientloop.o $(LDFLAGS) -lssh $(LIBS)
 
 sshd:	sshd.o auth-rhosts.o auth-krb4.o auth-passwd.o auth-rsa.o \
   auth-rh-rsa.o pty.o log-server.o login.o servconf.o serverloop.o \
   bsd-login.o md5crypt.o libssh.a
-	$(CC) -o $@ $^ $(LFLAGS) $(LIBS) $(LIBWRAP)
+	$(CC) -o $@ sshd.o auth-rhosts.o auth-krb4.o auth-passwd.o \
+	auth-rsa.o auth-rh-rsa.o pty.o log-server.o login.o servconf.o \
+	serverloop.o bsd-login.o md5crypt.o $(LDFLAGS) -lssh $(LIBS) $(LIBWRAP)
 
 scp:	scp.o libssh.a
-	$(CC) -o $@ $^ $(LFLAGS) $(LIBS) 
+	$(CC) -o $@ scp.o $(LDFLAGS) -lssh $(LIBS) 
 
 ssh-add: ssh-add.o log-client.o libssh.a
-	$(CC) -o $@ $^ $(LFLAGS) $(LIBS) 
+	$(CC) -o $@ ssh-add.o log-client.o $(LDFLAGS) -lssh $(LIBS) 
 
 ssh-agent: ssh-agent.o log-client.o libssh.a
-	$(CC) -o $@ $^ $(LFLAGS) $(LIBS) 
+	$(CC) -o $@ ssh-agent.o log-client.o $(LDFLAGS) -lssh $(LIBS) 
 
 ssh-keygen: ssh-keygen.o log-client.o libssh.a
-	$(CC) -o $@ $^ $(LFLAGS) $(LIBS) 
+	$(CC) -o $@ ssh-keygen.o log-client.o $(LDFLAGS) -lssh $(LIBS) 
 
 gnome-ssh-askpass: gnome-ssh-askpass.c
 	$(CC) $(CFLAGS) $(GNOME_CFLAGS) -o $@ gnome-ssh-askpass.c $(GNOME_LIBS)
