@@ -9,6 +9,8 @@
  - Removed redundant subdirectories
  - Integrated part of a patch from Dan Brosemer <odin@linuxfreak.com> for 
    building on Debian.
+ - Fixed off-by-one error in PAM env patch
+ - Released 1.2pre6
 
 19991028
  - Further PAM enhancements.
