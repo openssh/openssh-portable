@@ -1,6 +1,8 @@
 20040719
  - (djm) [openbsd-compat/bsd-arc4random.c] Discard early keystream, like OpenBSD
    ok dtucker@
+ - (djm) [auth-pam.c] Avoid use of xstrdup and friends in conversation function,
+   instead return PAM_CONV_ERR, avoiding another path to fatal(); ok dtucker@
 
 20040717
  - (dtucker) [logintest.c scp.c sftp-server.c sftp.c ssh-add.c ssh-agent.c
@@ -1531,4 +1533,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3478 2004/07/18 23:30:38 djm Exp $
+$Id: ChangeLog,v 1.3479 2004/07/18 23:39:11 djm Exp $
