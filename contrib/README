@@ -26,6 +26,24 @@ gnome-ssh-askpass:
 A GNOME passphrase requester of my own creation. Compilation instructions
 are in the top of the file.
 
+sshd.pam.generic:
+
+A generic PAM config file which may be useful on your system. YMMV
+
+sshd.pam.freebsd
+
+A PAM config file which works with FreeBSD's PAM port. Contributed by
+Dominik Brettnacher <domi@saargate.de>
+
+redhat:
+
+RPM spec file an scripts for building Redhat packages
+
+suse:
+
+RPM spec file an scripts for building SuSE packages
+
+
 Externally maintained
 ---------------------
 
