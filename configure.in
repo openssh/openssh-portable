@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.293 2001/06/27 13:35:53 djm Exp $
+# $Id: configure.in,v 1.294 2001/06/27 16:32:24 stevesk Exp $
 
 AC_INIT(ssh.c)
 
@@ -87,14 +87,14 @@ case "$host" in
 	LIBS="$LIBS -lsec"
 	;;
 *-*-hpux11*)
-	CPPFLAGS="$CPPFLAGS -D_HPUX_SOURCE"
+	CPPFLAGS="$CPPFLAGS -D_HPUX_SOURCE -D_XOPEN_SOURCE -D_XOPEN_SOURCE_EXTENDED=1"
 	IPADDR_IN_DISPLAY=yes
 	AC_DEFINE(PAM_SUN_CODEBASE)
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(DISABLE_SHADOW)
 	AC_DEFINE(DISABLE_UTMP)
 	AC_DEFINE(SPT_TYPE,SPT_PSTAT)
-	LIBS="$LIBS -lsec"
+	LIBS="$LIBS -lxnet -lsec"
 	;;
 *-*-irix5*)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"

@@ -10,6 +10,9 @@
    - djm@cvs.openbsd.org 2001/06/27 13:23:30
      typo, spotted by Tom Holroyd <tomh@po.crl.go.jp>; ok deraadt@
  - (djm) Turn up warnings if gcc or egcs detected
+ - (stevesk) for HP-UX 11.X use X/Open socket interface;
+    pulls in modern socket prototypes and eliminates a number of compiler
+    warnings.  see xopen_networking(7).
 
 20010625
  - OpenBSD CVS Sync
@@ -5804,4 +5807,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1331 2001/06/27 13:35:51 djm Exp $
+$Id: ChangeLog,v 1.1332 2001/06/27 16:32:24 stevesk Exp $
