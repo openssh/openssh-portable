@@ -1,3 +1,6 @@
+20020515
+ - (bal) CVS ID fix up on auth-passwd.c
+
 20020514
  - (stevesk) [README.privsep] PAM+privsep works with Solaris 8.
  - (tim) [sshpty.c] set tty modes when allocating old style bsd ptys to
@@ -601,4 +604,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2120 2002/05/15 00:12:29 djm Exp $
+$Id: ChangeLog,v 1.2121 2002/05/15 15:59:17 mouring Exp $
