@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.21 2000/11/12 19:50:37 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.22 2000/12/03 11:15:02 markus Exp $");
 
 #ifdef HAVE_OSF_SIA
 # include <sia.h>
@@ -434,14 +434,27 @@ userauth_pubkey(Authctxt *authctxt)
 		return 0;
 	}
 	have_sig = packet_get_char();
-	pkalg = packet_get_string(&alen);
+	if (datafellows & SSH_BUG_PKAUTH) {
+		debug2("userauth_pubkey: SSH_BUG_PKAUTH");
+		/* no explicit pkalg given */
+		pkblob = packet_get_string(&blen);
+		buffer_init(&b);
+		buffer_append(&b, pkblob, blen);
+		/* so we have to extract the pkalg from the pkblob */
+		pkalg = buffer_get_string(&b, &alen);
+		buffer_free(&b);
+	} else {
+		pkalg = packet_get_string(&alen);
+		pkblob = packet_get_string(&blen);
+	}
 	pktype = key_type_from_name(pkalg);
 	if (pktype == KEY_UNSPEC) {
-		log("bad pkalg %s", pkalg);
+		/* this is perfectly legal */
+		log("userauth_pubkey: unsupported public key algorithm: %s", pkalg);
 		xfree(pkalg);
+		xfree(pkblob);
 		return 0;
 	}
-	pkblob = packet_get_string(&blen);
 	key = key_from_blob(pkblob, blen);
 	if (key != NULL) {
 		if (have_sig) {
@@ -457,12 +470,16 @@ userauth_pubkey(Authctxt *authctxt)
 			buffer_put_char(&b, SSH2_MSG_USERAUTH_REQUEST);
 			buffer_put_cstring(&b, authctxt->user);
 			buffer_put_cstring(&b,
-			    datafellows & SSH_BUG_PUBKEYAUTH ?
+			    datafellows & SSH_BUG_PKSERVICE ?
 			    "ssh-userauth" :
 			    authctxt->service);
-			buffer_put_cstring(&b, "publickey");
-			buffer_put_char(&b, have_sig);
-			buffer_put_cstring(&b, key_ssh_name(key));
+			if (datafellows & SSH_BUG_PKAUTH) {
+				buffer_put_char(&b, have_sig);
+			} else {
+				buffer_put_cstring(&b, "publickey");
+				buffer_put_char(&b, have_sig);
+				buffer_put_cstring(&b, key_ssh_name(key));
+			}
 			buffer_put_string(&b, pkblob, blen);
 #ifdef DEBUG_PK
 			buffer_dump(&b);

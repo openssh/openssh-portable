@@ -37,9 +37,11 @@
 pid_t posix_wait(int *status);
 #define wait(a) posix_wait(a)
 
-/* #ifdef POSIX wrapped functions that need defining */
+/* #ifdef wrapped functions that need defining for clean compiling */
 pid_t getppid(void);
 void vhangup(void);
+int innetgr(const char *netgroup, const char *host, const char *user, 
+            const char *domain);
 
 /* TERMCAP */
 int tcgetattr(int fd, struct termios *t);

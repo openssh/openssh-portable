@@ -1,5 +1,19 @@
+20001204
+ - (bal) More C functions defined in NeXT that are unaccessable without
+   defining -POSIX.  
+ - (bal) OpenBSD CVS updates: 
+   - markus@cvs.openbsd.org 2000/12/03 11:29:04 
+     [compat.c]
+     remove fallback to SSH_BUG_HMAC now that the drafts are updated
+   - markus@cvs.openbsd.org 2000/12/03 11:27:55
+     [compat.c]
+     correctly match "2.1.0.pl2 SSH" etc; from pekkas@netcore.fi/bugzilla.redhat
+   - markus@cvs.openbsd.org 2000/12/03 11:15:03
+     [auth2.c compat.c compat.h sshconnect2.c]
+     support f-secure/ssh.com 2.0.12; ok niels@
+
 20001203
-- (bal) OpenBSD CVS updates:
+ - (bal) OpenBSD CVS updates:
   - markus@cvs.openbsd.org 2000/11/30 22:54:31
     [channels.c]
     debug->warn if tried to do -R style fwd w/o client requesting this; 

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: compat.c,v 1.27 2000/10/31 09:31:58 markus Exp $");
+RCSID("$OpenBSD: compat.c,v 1.30 2000/12/03 11:29:04 markus Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -64,17 +64,19 @@ compat_datafellows(const char *version)
 	} check[] = {
 		{ "^OpenSSH[-_]2\\.[012]",	SSH_OLD_SESSIONID },
 		{ "MindTerm",		0 },
-		{ "^2\\.1\\.0 ",	SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
+		{ "^2\\.1\\.0",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
 					SSH_OLD_SESSIONID },
-		{ "^2\\.0\\.",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
+		{ "^2\\.0\\.1[3-9]",	SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
 					SSH_OLD_SESSIONID|
-					SSH_BUG_PUBKEYAUTH|SSH_BUG_X11FWD },
-		{ "^2\\.[23]\\.0 ",	SSH_BUG_HMAC},
+					SSH_BUG_PKSERVICE|SSH_BUG_X11FWD },
+		{ "^2\\.0\\.",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
+					SSH_OLD_SESSIONID|SSH_BUG_PKAUTH|
+					SSH_BUG_PKSERVICE|SSH_BUG_X11FWD },
+		{ "^2\\.[23]\\.0",	SSH_BUG_HMAC},
 		{ "^2\\.[2-9]\\.",	0 },
 		{ "^2\\.4$",		SSH_OLD_SESSIONID}, /* Van Dyke */
 		{ "^3\\.0 SecureCRT",	SSH_OLD_SESSIONID},
 		{ "^1\\.7 SecureFX",	SSH_OLD_SESSIONID},
-		{ "^2\\.",		SSH_BUG_HMAC},	/* XXX fallback */
 		{ NULL,			0 }
 	};
 	/* process table, return first match */

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.29 2000/11/23 21:03:47 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.30 2000/12/03 11:15:04 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
@@ -647,8 +647,10 @@ sign_and_send_pubkey(Authctxt *authctxt, Key *k, sign_cb_fn *sign_callback)
 	int ret = -1;
 	int have_sig = 1;
 
+	debug3("sign_and_send_pubkey");
 	if (key_to_blob(k, &blob, &bloblen) == 0) {
 		/* we cannot handle this key */
+		debug3("sign_and_send_pubkey: cannot handle key");
 		return 0;
 	}
 	/* data to be signed */
@@ -663,12 +665,16 @@ sign_and_send_pubkey(Authctxt *authctxt, Key *k, sign_cb_fn *sign_callback)
 	buffer_put_char(&b, SSH2_MSG_USERAUTH_REQUEST);
 	buffer_put_cstring(&b, authctxt->server_user);
 	buffer_put_cstring(&b,
-	    datafellows & SSH_BUG_PUBKEYAUTH ?
+	    datafellows & SSH_BUG_PKSERVICE ?
 	    "ssh-userauth" :
 	    authctxt->service);
-	buffer_put_cstring(&b, authctxt->method->name);
-	buffer_put_char(&b, have_sig);
-	buffer_put_cstring(&b, key_ssh_name(k)); 
+	if (datafellows & SSH_BUG_PKAUTH) {
+		buffer_put_char(&b, have_sig);
+	} else {
+		buffer_put_cstring(&b, authctxt->method->name);
+		buffer_put_char(&b, have_sig);
+		buffer_put_cstring(&b, key_ssh_name(k)); 
+	}
 	buffer_put_string(&b, blob, bloblen);
 
 	/* generate signature */
@@ -681,7 +687,7 @@ sign_and_send_pubkey(Authctxt *authctxt, Key *k, sign_cb_fn *sign_callback)
 #ifdef DEBUG_PK
 	buffer_dump(&b);
 #endif
-	if (datafellows & SSH_BUG_PUBKEYAUTH) {
+	if (datafellows & SSH_BUG_PKSERVICE) {
 		buffer_clear(&b);
 		buffer_append(&b, session_id2, session_id2_len);
 		buffer_put_char(&b, SSH2_MSG_USERAUTH_REQUEST);
@@ -689,7 +695,8 @@ sign_and_send_pubkey(Authctxt *authctxt, Key *k, sign_cb_fn *sign_callback)
 		buffer_put_cstring(&b, authctxt->service);
 		buffer_put_cstring(&b, authctxt->method->name);
 		buffer_put_char(&b, have_sig);
-		buffer_put_cstring(&b, key_ssh_name(k)); 
+		if (!(datafellows & SSH_BUG_PKAUTH))
+			buffer_put_cstring(&b, key_ssh_name(k)); 
 		buffer_put_string(&b, blob, bloblen);
 	}
 	xfree(blob);
