@@ -1,4 +1,4 @@
-/*	$OpenBSD: session.h,v 1.12 2001/10/09 21:59:41 markus Exp $	*/
+/*	$OpenBSD: session.h,v 1.13 2001/10/10 22:18:47 markus Exp $	*/
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -32,6 +32,6 @@ int	 session_open(Authctxt*, int);
 void	 session_input_channel_req(int, void *);
 void	 session_close_by_pid(pid_t, int);
 void	 session_close_by_channel(int, void *);
-void	 session_close_all(void);
+void	 session_destroy_all(void);
 
 #endif

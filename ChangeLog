@@ -1,3 +1,13 @@
+20011012
+ - (djm) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2001/10/10 22:18:47
+     [channels.c channels.h clientloop.c nchan.c serverloop.c]
+     [session.c session.h]
+     try to keep channels open until an exit-status message is sent.
+     don't kill the login shells if the shells stdin/out/err is closed.
+     this should now work:
+     ssh -2n localhost 'exec > /dev/null 2>&1; sleep 10; exit 5'; echo ?
+
 20011010
  - (djm) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2001/10/04 14:34:16
@@ -6695,4 +6705,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1600 2001/10/10 20:45:43 mouring Exp $
+$Id: ChangeLog,v 1.1601 2001/10/12 01:35:04 djm Exp $

@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.81 2001/10/09 21:59:41 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.82 2001/10/10 22:18:47 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -208,9 +208,6 @@ wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp, int *maxfdp,
 		max_time_milliseconds = options.client_alive_interval * 1000;
 	}
 
-	/* When select fails we restart from here. */
-retry_select:
-
 	/* Allocate and update select() masks for channel descriptors. */
 	channel_prepare_select(readsetp, writesetp, maxfdp, nallocp, 0);
 
@@ -275,12 +272,11 @@ retry_select:
 	ret = select((*maxfdp)+1, *readsetp, *writesetp, NULL, tvp);
 
 	if (ret == -1) {
+		memset(*readsetp, 0, *maxfdp);
+		memset(*writesetp, 0, *maxfdp);
 		if (errno != EINTR)
 			error("select: %.100s", strerror(errno));
-		else
-			goto retry_select;
-	}
-	if (ret == 0 && client_alive_scheduled)
+	} else if (ret == 0 && client_alive_scheduled)
 		client_alive_check();
 }
 
@@ -668,13 +664,30 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 	/* NOTREACHED */
 }
 
+static void
+collect_children(void)
+{
+	pid_t pid;
+	sigset_t oset, nset;
+	int status;
+
+	/* block SIGCHLD while we check for dead children */
+	sigemptyset(&nset);
+	sigaddset(&nset, SIGCHLD);
+	sigprocmask(SIG_BLOCK, &nset, &oset);
+	if (child_terminated) {
+		while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
+			session_close_by_pid(pid, status);
+		child_terminated = 0;
+	}
+	sigprocmask(SIG_SETMASK, &oset, NULL);
+}
+
 void
 server_loop2(Authctxt *authctxt)
 {
 	fd_set *readset = NULL, *writeset = NULL;
-	int rekeying = 0, max_fd, status, nalloc = 0;
-	pid_t pid;
-	sigset_t oset, nset;
+	int rekeying = 0, max_fd, nalloc = 0;
 
 	debug("Entering interactive session for SSH2.");
 
@@ -698,16 +711,7 @@ server_loop2(Authctxt *authctxt)
 		wait_until_can_do_something(&readset, &writeset, &max_fd,
 		    &nalloc, 0);
 
-		/* block SIGCHLD while we check for dead children */
-		sigemptyset(&nset);
-		sigaddset(&nset, SIGCHLD);
-		sigprocmask(SIG_BLOCK, &nset, &oset);
-		if (child_terminated) {
-			while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
-				session_close_by_pid(pid, status);
-			child_terminated = 0;
-		}
-		sigprocmask(SIG_SETMASK, &oset, NULL);
+		collect_children();
 		if (!rekeying)
 			channel_after_select(readset, writeset);
 		process_input(readset);
@@ -715,6 +719,8 @@ server_loop2(Authctxt *authctxt)
 			break;
 		process_output(writeset);
 	}
+	collect_children();
+
 	if (readset)
 		xfree(readset);
 	if (writeset)
@@ -723,13 +729,8 @@ server_loop2(Authctxt *authctxt)
 	/* free all channels, no more reads and writes */
 	channel_free_all();
 
-	/* collect remaining dead children, XXX not necessary? */
-	mysignal(SIGCHLD, SIG_DFL);
-	while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
-		session_close_by_pid(pid, status);
-
-	/* close remaining sessions, e.g remove wtmp entries */
-	session_close_all();
+	/* free remaining sessions, e.g. remove wtmp entries */
+	session_destroy_all();
 }
 
 static void

@@ -32,7 +32,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* RCSID("$OpenBSD: channels.h,v 1.49 2001/10/09 21:59:41 markus Exp $"); */
+/* RCSID("$OpenBSD: channels.h,v 1.50 2001/10/10 22:18:47 markus Exp $"); */
 
 #ifndef CHANNEL_H
 #define CHANNEL_H
@@ -214,7 +214,7 @@ void	 auth_input_open_request(int, int, void *);
 
 /* channel close */
 
-int	 chan_is_dead(Channel *);
+int	 chan_is_dead(Channel *, int);
 void	 chan_mark_dead(Channel *);
 void 	 chan_init_iostates(Channel *);
 void	 chan_init(void);

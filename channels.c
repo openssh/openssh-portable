@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.139 2001/10/09 21:59:41 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.140 2001/10/10 22:18:47 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -331,10 +331,6 @@ channel_free(Channel *c)
 	debug3("channel_free: status: %s", s);
 	xfree(s);
 
-	if (c->detach_user != NULL) {
-		debug("channel_free: channel %d: detaching channel user", c->self);
-		c->detach_user(c->self, NULL);
-	}
 	if (c->sock != -1)
 		shutdown(c->sock, SHUT_RDWR);
 	channel_close_fds(c);
@@ -1520,6 +1516,28 @@ channel_handler_init(void)
 		channel_handler_init_15();
 }
 
+/* gc dead channels */
+static void
+channel_garbage_collect(Channel *c)
+{
+	if (c == NULL)
+		return;
+	if (c->detach_user != NULL) {
+		if (!chan_is_dead(c, 0))
+			return;
+		debug("channel %d: gc: notify user", c->self);
+		c->detach_user(c->self, NULL);
+		/* if we still have a callback */
+		if (c->detach_user != NULL)
+			return;
+		debug("channel %d: gc: user detached", c->self);
+	}
+	if (!chan_is_dead(c, 1))
+		return;
+	debug("channel %d: garbage collecting", c->self);
+	channel_free(c);
+}
+
 static void
 channel_handler(chan_fn *ftab[], fd_set * readset, fd_set * writeset)
 {
@@ -1537,24 +1555,7 @@ channel_handler(chan_fn *ftab[], fd_set * readset, fd_set * writeset)
 			continue;
 		if (ftab[c->type] != NULL)
 			(*ftab[c->type])(c, readset, writeset);
-		if (chan_is_dead(c)) {
-			/*
-			 * we have to remove the fd's from the select mask
-			 * before the channels are free'd and the fd's are
-			 * closed
-			 */
-			if (c->wfd != -1)
-				FD_CLR(c->wfd, writeset);
-			if (c->rfd != -1)
-				FD_CLR(c->rfd, readset);
-			if (c->efd != -1) {
-				if (c->extended_usage == CHAN_EXTENDED_READ)
-					FD_CLR(c->efd, readset);
-				if (c->extended_usage == CHAN_EXTENDED_WRITE)
-					FD_CLR(c->efd, writeset);
-			}
-			channel_free(c);
-		}
+		channel_garbage_collect(c);
 	}
 }
 
@@ -1625,7 +1626,7 @@ channel_output_poll()
 		if (compat20 &&
 		    (c->flags & (CHAN_CLOSE_SENT|CHAN_CLOSE_RCVD))) {
 			/* XXX is this true? */
-			debug2("channel %d: no data after CLOSE", c->self);
+			debug3("channel %d: will not send data after close", c->self);
 			continue;
 		}
 

@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.106 2001/10/09 21:59:41 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.107 2001/10/10 22:18:47 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1958,36 +1958,29 @@ session_close_by_channel(int id, void *arg)
 {
 	Session *s = session_by_channel(id);
 	if (s == NULL) {
-		debug("session_close_by_channel: no session for channel %d", id);
+		debug("session_close_by_channel: no session for id %d", id);
 		return;
 	}
-	/* disconnect channel */
+	debug("session_close_by_channel: channel %d child %d", id, s->pid);
+	if (s->pid != 0) {
+		/* delay detach */
+		debug("session_close_by_channel: channel %d: has child", id);
+		return;
+	}
+	/* detach by removing callback */
 	channel_cancel_cleanup(s->chanid);
 	s->chanid = -1;
-
-	debug("session_close_by_channel: channel %d kill %d", id, s->pid);
-	if (s->pid != 0) {
-		/* notify child */
-		if (kill(s->pid, SIGHUP) < 0)
-			error("session_close_by_channel: kill %d: %s",
-			    s->pid, strerror(errno));
-	}
 	session_close(s);
 }
 
 void
-session_close_all(void)
+session_destroy_all(void)
 {
 	int i;
 	for(i = 0; i < MAX_SESSIONS; i++) {
 		Session *s = &sessions[i];
-		if (s->used) {
-			if (s->chanid != -1) {
-				channel_cancel_cleanup(s->chanid);
-				s->chanid = -1;
-			}
+		if (s->used) 
 			session_close(s);
-		}
 	}
 }
 

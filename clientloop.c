@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.82 2001/09/17 20:52:47 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.83 2001/10/10 22:18:47 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -753,6 +753,7 @@ client_channel_closed(int id, void *arg)
 	if (id != session_ident)
 		error("client_channel_closed: id %d != session_ident %d",
 		    id, session_ident);
+	channel_cancel_cleanup(id);
 	session_closed = 1;
 	if (in_raw_mode())
 		leave_raw_mode();
