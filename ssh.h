@@ -20,7 +20,6 @@
 #include <stdarg.h> /* For va_list */
 #include <syslog.h> /* For LOG_AUTH and friends */
 #include <sys/socket.h> /* For struct sockaddr_storage */
-#include "openbsd-compat/fake-socket.h" /* For struct sockaddr_storage */
 #ifdef HAVE_SYS_SELECT_H
 # include <sys/select.h>
 #endif

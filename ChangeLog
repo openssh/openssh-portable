@@ -5,6 +5,7 @@
    "SetUID demystified" - Hao Chen, David Wagner and Drew Dean
    Proceedings of USENIX Security Symposium 2002
  - (djm) Don't use xmalloc() or pull in toplevel headers in fake-* code
+ - (djm) Merge all the openbsd/fake-* into fake-rfc2553.[ch]
 
 20030604
  - (djm) Bug #573 - Remove unneeded Krb headers and compat goop. Patch from
@@ -466,4 +467,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2784 2003/06/05 00:04:12 djm Exp $
+$Id: ChangeLog,v 1.2785 2003/06/05 08:52:48 djm Exp $

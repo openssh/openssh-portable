@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.21 2003/05/15 02:27:08 djm Exp $ */
+/* $Id: openbsd-compat.h,v 1.22 2003/06/05 08:52:48 djm Exp $ */
 
 #ifndef _OPENBSD_H
 #define _OPENBSD_H
@@ -38,9 +38,7 @@
 #include "bsd-waitpid.h"
 
 /* rfc2553 socket API replacements */
-#include "fake-getaddrinfo.h"
-#include "fake-getnameinfo.h"
-#include "fake-socket.h"
+#include "fake-rfc2553.h"
 
 /* Routines for a single OS platform */
 #include "bsd-cray.h"
