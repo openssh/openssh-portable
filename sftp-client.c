@@ -28,7 +28,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.26 2002/03/11 03:18:49 itojun Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.27 2002/03/11 03:19:53 itojun Exp $");
 
 #if defined(HAVE_SYS_QUEUE_H) && !defined(HAVE_BOGUS_SYS_QUEUE_H)
 #include <sys/queue.h>
@@ -884,9 +884,9 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 				/* Resend the request for the missing data */
 				debug3("Short data block, re-requesting "
 				    "%llu -> %llu (%2d)",
-				        (unsigned long long)req->offset + len, 
-					(unsigned long long)req->offset + req->len - 1,
-					num_req);
+				    (unsigned long long)req->offset + len, 
+				    (unsigned long long)req->offset +
+				    req->len - 1, num_req);
 				req->id = conn->msg_id++;
 				req->len -= len;
 				req->offset += len;
