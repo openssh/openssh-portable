@@ -1969,8 +1969,6 @@ session_close_by_channel(int id, void *arg)
 		session_close(s);
 	} else {
 		/* notify child, delay session cleanup */
-		if (s->pid <= 1)
-			fatal("session_close_by_channel: Unsafe s->pid = %d", s->pid);
 		if (kill(s->pid, (s->ttyfd == -1) ? SIGTERM : SIGHUP) < 0)
 			error("session_close_by_channel: kill %d: %s",
 			    s->pid, strerror(errno));

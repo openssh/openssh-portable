@@ -7,6 +7,7 @@
  - (djm) Fix OSF SIA auth NULL pointer deref. Report from Mike Battersby 
    <mib@unimelb.edu.au>
  - (bal) NCR SVR4 compatiblity provide by Don Bragg <thewizarddon@yahoo.com>
+ - (stevesk) session.c: remove debugging code.
 
 20010211
  - (bal) OpenBSD Sync
@@ -3903,4 +3904,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.748 2001/02/12 07:29:45 mouring Exp $
+$Id: ChangeLog,v 1.749 2001/02/12 15:07:52 stevesk Exp $
