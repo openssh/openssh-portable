@@ -8,6 +8,9 @@
      adds correct error reporting to async connect()s
      fixes the server-discards-data-before-connected-bug found by 
      onoe@sm.sony.co.jp
+   - mouring@cvs.openbsd.org 2001/05/08 19:45:25
+     [misc.c misc.h scp.c sftp.c]
+     Use addargs() in sftp plus some clean up of addargs().  OK Markus
 
 20010508
  - (bal) Fixed configure test for USE_SIA.  
@@ -5368,4 +5371,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1207 2001/05/08 20:07:39 mouring Exp $
+$Id: ChangeLog,v 1.1208 2001/05/08 20:27:25 mouring Exp $

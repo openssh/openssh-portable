@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.69 2001/05/03 23:09:53 mouring Exp $");
+RCSID("$OpenBSD: scp.c,v 1.70 2001/05/08 19:45:24 mouring Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -107,8 +107,8 @@ void progressmeter(int);
 int getttywidth(void);
 int do_cmd(char *host, char *remuser, char *cmd, int *fdin, int *fdout, int argc);
 
-/* setup arguments for the call to ssh */
-void addargs(char *fmt, ...) __attribute__((format(printf, 1, 2)));
+/* Struct for addargs */
+arglist args;
 
 /* Time a transfer started. */
 static struct timeval start;
@@ -130,13 +130,6 @@ int showprogress = 1;
 
 /* This is the program to execute for the secured connection. ("ssh" or -S) */
 char *ssh_program = _PATH_SSH_PROGRAM;
-
-/* This is the list of arguments that scp passes to ssh */
-struct {
-	char	**list;
-	int	num;
-	int	nalloc;
-} args;
 
 /*
  * This function executes the given command as the specified user on the
@@ -181,9 +174,9 @@ do_cmd(char *host, char *remuser, char *cmd, int *fdin, int *fdout, int argc)
 
 		args.list[0] = ssh_program;
 		if (remuser != NULL)
-			addargs("-l%s", remuser);
-		addargs("%s", host);
-		addargs("%s", cmd);
+			addargs(&args, "-l%s", remuser);
+		addargs(&args, "%s", host);
+		addargs(&args, "%s", cmd);
 
 		execvp(ssh_program, args.list);
 		perror(ssh_program);
@@ -238,9 +231,9 @@ main(argc, argv)
 	__progname = get_progname(argv[0]);
 
 	args.list = NULL;
-	addargs("ssh");	 	/* overwritten with ssh_program */
-	addargs("-x");
-	addargs("-oFallBackToRsh no");
+	addargs(&args, "ssh");	 	/* overwritten with ssh_program */
+	addargs(&args, "-x");
+	addargs(&args, "-oFallBackToRsh no");
 
 	fflag = tflag = 0;
 	while ((ch = getopt(argc, argv, "dfprtvBCc:i:P:q46S:o:")) != -1)
@@ -249,18 +242,18 @@ main(argc, argv)
 		case '4':
 		case '6':
 		case 'C':
-			addargs("-%c", ch);
+			addargs(&args, "-%c", ch);
 			break;
 		case 'o':
 		case 'c':
 		case 'i':
-			addargs("-%c%s", ch, optarg);
+			addargs(&args, "-%c%s", ch, optarg);
 			break;
 		case 'P':
-			addargs("-p%s", optarg);
+			addargs(&args, "-p%s", optarg);
 			break;
 		case 'B':
-			addargs("-oBatchmode yes");
+			addargs(&args, "-oBatchmode yes");
 			break;
 		case 'p':
 			pflag = 1;
@@ -1211,26 +1204,4 @@ getttywidth(void)
 		return (winsize.ws_col ? winsize.ws_col : 80);
 	else
 		return (80);
-}
-
-void
-addargs(char *fmt, ...)
-{
-	va_list ap;
-	char buf[1024];
-
-	va_start(ap, fmt);
-	vsnprintf(buf, sizeof(buf), fmt, ap);
-	va_end(ap);
-
-	if (args.list == NULL) {
-		args.nalloc = 32;
-		args.num = 0;
-		args.list = xmalloc(args.nalloc * sizeof(char *));
-	} else if (args.num+2 >= args.nalloc) {
-		args.nalloc *= 2;
-		args.list = xrealloc(args.list, args.nalloc * sizeof(char *));
-	}
-	args.list[args.num++] = xstrdup(buf);
-	args.list[args.num] = NULL;
 }
