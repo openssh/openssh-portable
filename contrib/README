@@ -32,8 +32,8 @@ your public key to a remote machine's ~/.ssh/authorized_keys file.
 
 gnome-ssh-askpass[12]:
 
-A GNOME and Gtk2 passphrase requesters. Compilation instructions
-are in the top of the files.
+A GNOME and Gtk2 passphrase requesters. Use "make gnome-ssh-askpass1" or
+"make gnome-ssh-askpass2" to build.
 
 sshd.pam.generic:
 

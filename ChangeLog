@@ -1,3 +1,6 @@
+20020930
+ - (djm) Tidy contrib/, add Makefile for GNOME passphrase dialogs, tweak README
+
 20020927
  - (djm) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2002/09/25 11:17:16
@@ -734,4 +737,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2485 2002/09/27 03:25:58 djm Exp $
+$Id: ChangeLog,v 1.2486 2002/09/30 00:40:39 djm Exp $
