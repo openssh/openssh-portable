@@ -33,6 +33,8 @@ Credits -
 The OpenBSD team
 'jonchen' - the original author of PAM support of SSH
 Dan Brosemer <odin@linuxfreak.com> - Autoconf and build fixes
+Niels Kristian Bech Jensen <nkbj@image.dk> - Makefile patch
+Nalin Dahyabhai <nalin.dahyabhai@pobox.com> - PAM environment patch
 
 Miscellania - 
 
