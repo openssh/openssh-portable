@@ -7,6 +7,13 @@
      [cipher-aes.c]
      fix #ifdef before #define; ok markus@
      (RCS ID sync only, Portable already had this)
+   - markus@cvs.openbsd.org 2003/12/02 12:15:10
+     [progressmeter.c]
+     improvments from andreas@:
+     * saner speed estimate for transfers that takes less than a second by
+       rounding the time to 1 second.
+     * when the transfer is finished calculate the actual total speed
+       rather than the current speed which is given during the transfer
 
 20031208
  - (tim) [configure.ac] Bug 770. Fix --without-rpath.
@@ -1545,4 +1552,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3133 2003/12/09 08:05:42 dtucker Exp $
+$Id: ChangeLog,v 1.3134 2003/12/09 08:07:13 dtucker Exp $

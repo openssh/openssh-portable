@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: progressmeter.c,v 1.17 2003/11/20 11:39:28 markus Exp $");
+RCSID("$OpenBSD: progressmeter.c,v 1.18 2003/12/02 12:15:10 markus Exp $");
 
 #include "progressmeter.h"
 #include "atomicio.h"
@@ -120,14 +120,18 @@ refresh_progress_meter(void)
 
 	if (bytes_left > 0)
 		elapsed = now - last_update;
-	else
+	else {
 		elapsed = now - start;
+		/* Calculate true total speed when done */
+		transferred = end_pos;
+		bytes_per_second = 0;
+	}
 
 	/* calculate speed */
 	if (elapsed != 0)
 		cur_speed = (transferred / elapsed);
 	else
-		cur_speed = 0;
+		cur_speed = transferred;
 
 #define AGE_FACTOR 0.9
 	if (bytes_per_second != 0) {
