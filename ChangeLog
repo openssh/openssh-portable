@@ -3,6 +3,9 @@
    <andre.lucas@dial.pipex.com>
  - Reorder PAM initialisation so it does not mess up lastlog. Reported
    by Andre Lucas <andre.lucas@dial.pipex.com>
+ - Use preformatted manpages on SCO, report from Gary E. Miller 
+   <gem@rellim.com>
+ - New URL for x11-ssh-askpass.
 
 20000124
  - Pick up version 1.2.2 from OpenBSD CVS (no changes, just version number

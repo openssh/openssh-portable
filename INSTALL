@@ -30,8 +30,7 @@ http://www.gnome.org/
 Alternatly Jim Knoble <jmknoble@pobox.com> has written an excellent X11
 passphrase requester. This is maintained seperatly at:
 
-http://www.pobox.com/~jmknoble/jmk/
-
+http://www.ntrnet.net/~jmknoble/software/x11-ssh-askpass/index.html
 
 If you are planning to use OpenSSH on a Unix which lacks a Kernel random
 number generator (/dev/urandom), you will need to install the Entropy

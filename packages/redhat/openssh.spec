@@ -10,7 +10,7 @@ Version: %{oversion}
 Release: 1
 Packager: Damien Miller <djm@ibs.com.au>
 Source0: http://violet.ibs.com.au/openssh/files/openssh-%{oversion}.tar.gz
-Source1: http://www.pobox.com/~jmknoble/jmk/x11-ssh-askpass-%{aversion}.tar.gz
+Source1: http://www.ntrnet.net/~jmknoble/software/x11-ssh-askpass/x11-ssh-askpass-%{aversion}.tar.gz
 Copyright: BSD
 Group: Applications/Internet
 BuildRoot: /tmp/openssh-%{version}-buildroot

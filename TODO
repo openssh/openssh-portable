@@ -8,3 +8,5 @@
   lack of u_intXX_t types. There must be a better way.
 
 - Move all compatability cruft (bsd-*, fake-*) into subordinate library
+
+- Cleanup configure.in

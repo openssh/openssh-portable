@@ -125,6 +125,9 @@ case "$host" in
 	AC_DEFINE(USE_UTMPX)
 	;;
 *-*-sysv*)
+	AC_DEFINE(USE_UTMPX)
+	MANTYPE='$(CATMAN)'
+	mansubdir=cat
 	LIBS="$LIBS -lgen -lsocket"
 	;;
 esac
