@@ -153,7 +153,11 @@ make
 
 %if ! %{no_x11_askpass}
 pushd x11-ssh-askpass-%{aversion}
-xmkmf -a
+xmkmf
+### Hacks to workaround XFree breakage
+perl -pi -e "s|distclean: |distclean:: |g" Makefile
+make SshAskpass_ad.h
+###
 make
 popd
 %endif

@@ -1,3 +1,6 @@
+20010916
+ - (djm) Workaround XFree breakage in RPM spec file
+
 20010915
  - (djm) Make do_pre_login static to avoid prototype #ifdef hell
  - (djm) Sync scard/ stuff
@@ -6441,4 +6444,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1520 2001/09/16 07:13:11 djm Exp $
+$Id: ChangeLog,v 1.1521 2001/09/16 07:13:45 djm Exp $
