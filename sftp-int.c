@@ -26,7 +26,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.27 2001/03/13 22:42:54 djm Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.28 2001/03/14 15:15:58 markus Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -70,6 +70,7 @@ int version;
 #define I_RMDIR		19
 #define I_SHELL		20
 #define I_SYMLINK	21
+#define I_VERSION	22
 
 struct CMD {
 	const char *c;
@@ -102,6 +103,7 @@ const struct CMD cmds[] = {
 	{ "rm",		I_RM },
 	{ "rmdir",	I_RMDIR },
 	{ "symlink",	I_SYMLINK },
+	{ "version",	I_VERSION },
 	{ "!",		I_SHELL },
 	{ "?",		I_HELP },
 	{ NULL,			-1}
@@ -133,6 +135,7 @@ help(void)
 	printf("rmdir path                    Remove remote directory\n");
 	printf("rm path                       Delete remote file\n");
 	printf("symlink oldpath newpath       Symlink remote file\n");
+	printf("version                       Show SFTP version\n");
 	printf("!command                      Execute 'command' in local shell\n");
 	printf("!                             Escape to local shell\n");
 	printf("?                             Synonym for help\n");
@@ -432,6 +435,7 @@ parse_args(const char **cpp, int *pflag, unsigned long *n_arg,
 	case I_PWD:
 	case I_LPWD:
 	case I_HELP:
+	case I_VERSION:
 		break;
 	default:
 		fatal("Command not implemented");
@@ -681,6 +685,9 @@ parse_dispatch_command(int in, int out, const char *cmd, char **pwd)
 		return(-1);
 	case I_HELP:
 		help();
+		break;
+	case I_VERSION:
+		printf("SFTP protocol version %d\n", version);
 		break;
 	default:
 		fatal("%d is not implemented", cmdnum);

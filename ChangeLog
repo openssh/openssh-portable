@@ -3,16 +3,19 @@
    - markus@cvs.openbsd.org 2001/03/14 08:57:14
      [sftp-client.c]
      Wall
+   - markus@cvs.openbsd.org 2001/03/14 15:15:58
+     [sftp-int.c]
+     add version command
  - (stevesk) ssh-keyscan.c: specify "openbsd-compat/fake-queue.h"
 
 20010314
  - OpenBSD CVS Sync
-  - markus@cvs.openbsd.org 2001/03/13 17:34:42
-    [auth-options.c]
-    missing xfree, deny key on parse error; ok stevesk@
-  - djm@cvs.openbsd.org 2001/03/13 22:42:54
-    [sftp-client.c sftp-client.h sftp-glob.c sftp-glob.h sftp-int.c]
-    sftp client filename globbing for get, put, ch{mod,grp,own}. ok markus@
+   - markus@cvs.openbsd.org 2001/03/13 17:34:42
+     [auth-options.c]
+     missing xfree, deny key on parse error; ok stevesk@
+   - djm@cvs.openbsd.org 2001/03/13 22:42:54
+     [sftp-client.c sftp-client.h sftp-glob.c sftp-glob.h sftp-int.c]
+     sftp client filename globbing for get, put, ch{mod,grp,own}. ok markus@
  - (bal) Fix strerror() in bsd-misc.c
  - (djm) Add replacement glob() from OpenBSD libc if the system glob is
    missing or lacks the GLOB_ALTDIRFUNC extension
@@ -4552,4 +4555,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.957 2001/03/14 18:37:13 stevesk Exp $
+$Id: ChangeLog,v 1.958 2001/03/14 21:26:27 mouring Exp $
