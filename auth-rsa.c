@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rsa.c,v 1.32 2000/10/14 12:19:45 markus Exp $");
+RCSID("$OpenBSD: auth-rsa.c,v 1.33 2000/11/14 23:42:40 markus Exp $");
 
 #include "rsa.h"
 #include "packet.h"
@@ -231,12 +231,6 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 			}
 		} else
 			options = NULL;
-		/*
-		 * If our options do not allow this key to be used,
-		 * do not send challenge.
-		 */
-		if (!auth_parse_options(pw, options, linenum))
-			continue;
 
 		/* Parse the key from the line. */
 		if (!auth_rsa_read_key(&cp, &bits, pk->e, pk->n)) {
@@ -259,6 +253,12 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 			    file, linenum, BN_num_bits(pk->n), bits);
 
 		/* We have found the desired key. */
+		/*
+		 * If our options do not allow this key to be used,
+		 * do not send challenge.
+		 */
+		if (!auth_parse_options(pw, options, linenum))
+			continue;
 
 		/* Perform the challenge-response dialog for this key. */
 		if (!auth_rsa_challenge_dialog(pk)) {

@@ -1,3 +1,30 @@
+20001123
+ - (bal) Merge OpenBSD changes:
+   - markus@cvs.openbsd.org  2000/11/15 22:31:36
+     [auth-options.c]
+     case insensitive key options; from stevesk@sweeden.hp.com    
+   - markus@cvs.openbsd.org  2000/11/16 17:55:43
+     [dh.c]
+     do not use perror() in sshd, after child is forked()
+   - markus@cvs.openbsd.org  2000/11/14 23:42:40
+     [auth-rsa.c]
+     parse option only if key matches; fix some confusing seen by the client
+   - markus@cvs.openbsd.org  2000/11/14 23:44:19
+     [session.c]
+     check no_agent_forward_flag for ssh-2, too
+   - markus@cvs.openbsd.org  2000/11/15
+     [ssh-agent.1]
+     reorder SYNOPSIS; typo, use .It
+   - markus@cvs.openbsd.org  2000/11/14 23:48:55
+     [ssh-agent.c]
+     do not reorder keys if a key is removed
+   - markus@cvs.openbsd.org  2000/11/15 19:58:08
+     [ssh.c]
+     just ignore non existing user keys   
+   - millert@cvs.openbsd.org  200/11/15 20:24:43
+     [ssh-keygen.c]
+     Add missing \n at end of error message.
+
 20001122
  - (bal) Minor patch to ensure platforms lacking IRIX job limit supports
    are compilable.

@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-options.c,v 1.5 2000/10/09 21:32:34 markus Exp $");
+RCSID("$OpenBSD: auth-options.c,v 1.6 2000/11/15 22:31:36 markus Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -65,35 +65,35 @@ auth_parse_options(struct passwd *pw, char *options, unsigned long linenum)
 
 	while (*options && *options != ' ' && *options != '\t') {
 		cp = "no-port-forwarding";
-		if (strncmp(options, cp, strlen(cp)) == 0) {
+		if (strncasecmp(options, cp, strlen(cp)) == 0) {
 			packet_send_debug("Port forwarding disabled.");
 			no_port_forwarding_flag = 1;
 			options += strlen(cp);
 			goto next_option;
 		}
 		cp = "no-agent-forwarding";
-		if (strncmp(options, cp, strlen(cp)) == 0) {
+		if (strncasecmp(options, cp, strlen(cp)) == 0) {
 			packet_send_debug("Agent forwarding disabled.");
 			no_agent_forwarding_flag = 1;
 			options += strlen(cp);
 			goto next_option;
 		}
 		cp = "no-X11-forwarding";
-		if (strncmp(options, cp, strlen(cp)) == 0) {
+		if (strncasecmp(options, cp, strlen(cp)) == 0) {
 			packet_send_debug("X11 forwarding disabled.");
 			no_x11_forwarding_flag = 1;
 			options += strlen(cp);
 			goto next_option;
 		}
 		cp = "no-pty";
-		if (strncmp(options, cp, strlen(cp)) == 0) {
+		if (strncasecmp(options, cp, strlen(cp)) == 0) {
 			packet_send_debug("Pty allocation disabled.");
 			no_pty_flag = 1;
 			options += strlen(cp);
 			goto next_option;
 		}
 		cp = "command=\"";
-		if (strncmp(options, cp, strlen(cp)) == 0) {
+		if (strncasecmp(options, cp, strlen(cp)) == 0) {
 			int i;
 			options += strlen(cp);
 			forced_command = xmalloc(strlen(options) + 1);
@@ -121,7 +121,7 @@ auth_parse_options(struct passwd *pw, char *options, unsigned long linenum)
 			goto next_option;
 		}
 		cp = "environment=\"";
-		if (strncmp(options, cp, strlen(cp)) == 0) {
+		if (strncasecmp(options, cp, strlen(cp)) == 0) {
 			int i;
 			char *s;
 			struct envstring *new_envstring;
@@ -156,7 +156,7 @@ auth_parse_options(struct passwd *pw, char *options, unsigned long linenum)
 			goto next_option;
 		}
 		cp = "from=\"";
-		if (strncmp(options, cp, strlen(cp)) == 0) {
+		if (strncasecmp(options, cp, strlen(cp)) == 0) {
 			int mname, mip;
 			char *patterns = xmalloc(strlen(options) + 1);
 			int i;

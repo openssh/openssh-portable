@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: dh.c,v 1.2 2000/10/11 20:11:35 markus Exp $");
+RCSID("$OpenBSD: dh.c,v 1.3 2000/11/16 17:55:43 markus Exp $");
 
 #include "xmalloc.h"
 
@@ -102,7 +102,6 @@ choose_dh(int minbits)
 
 	f = fopen(DH_PRIMES, "r");
 	if (!f) {
-		perror(DH_PRIMES);
 		log("WARNING: %s does not exist, using old prime", DH_PRIMES);
 		return (dh_new_group1());
 	}
@@ -133,8 +132,7 @@ choose_dh(int minbits)
 
 	f = fopen(DH_PRIMES, "r");
 	if (!f) {
-		perror(DH_PRIMES);
-		exit(1);
+		fatal("WARNING: %s dissappeared, giving up", DH_PRIMES);
 	}
 
 	linenum = 0;

@@ -1,4 +1,4 @@
-.\" $OpenBSD: ssh-agent.1,v 1.17 2000/11/10 05:10:40 aaron Exp $
+.\" $OpenBSD: ssh-agent.1,v 1.19 2000/11/15 20:09:01 markus Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -42,12 +42,12 @@
 .Nd authentication agent
 .Sh SYNOPSIS
 .Nm ssh-agent
-.Op Fl c Li | Fl s
-.Op Fl k
-.Oo
 .Ar command
-.Op Ar args ...
-.Oc
+.Ar args ...
+.Nm ssh-agent
+.Op Fl c Li | Fl s
+.Nm ssh-agent
+.Fl k
 .Sh DESCRIPTION
 .Nm
 is a program to hold private keys used for public key authentication
@@ -154,7 +154,7 @@ but is normally added to the agent using
 at login time.
 .It Pa $HOME/.ssh/id_dsa
 Contains the DSA authentication identity of the user.
-.Pq Pa /tmp/ssh-XXXXXXXX/agent.<pid> ,
+.It Pa /tmp/ssh-XXXXXXXX/agent.<pid>
 Unix-domain sockets used to contain the connection to the
 authentication agent.
 These sockets should only be readable by the owner.
@@ -172,7 +172,7 @@ This version of OpenSSH
 .Bl -bullet
 .It
 has all components of a restrictive nature (i.e., patents, see
-.Xr crypto 3 )
+.Xr ssl 8 )
 directly removed from the source code; any licensed or patented components
 are chosen from
 external libraries.
@@ -191,4 +191,4 @@ supports one-time password authentication with
 .Xr ssh-add 1 ,
 .Xr ssh-keygen 1 ,
 .Xr sshd 8 ,
-.Xr crypto 3
+.Xr ssl 8

@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.39 2000/11/12 19:50:38 markus Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.40 2000/11/14 23:48:55 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.39 2000/11/12 19:50:38 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.40 2000/11/14 23:48:55 markus Exp $");
 
 #include "ssh.h"
 #include "rsa.h"
@@ -308,8 +308,9 @@ process_remove_identity(SocketEntry *e, int version)
 			/*
 			 * We have this key.  Free the old key.  Since we
 			 * don\'t want to leave empty slots in the middle of
-			 * the array, we actually free the key there and copy
-			 * data from the last entry.
+			 * the array, we actually free the key there and move
+			 * all the entries between the empty slot and the end
+			 * of the array.
 			 */
 			Idtab *tab = idtab_lookup(version);
 			key_free(tab->identities[idx].key);
@@ -318,8 +319,13 @@ process_remove_identity(SocketEntry *e, int version)
 				fatal("process_remove_identity: "
 				    "internal error: tab->nentries %d",
 				    tab->nentries);
-			if (idx != tab->nentries - 1)
-				tab->identities[idx] = tab->identities[tab->nentries - 1];
+			if (idx != tab->nentries - 1) {
+				int i;
+				for (i = idx; i < tab->nentries - 1; i++)
+					tab->identities[i] = tab->identities[i+1];
+			}
+			tab->identities[tab->nentries - 1].key = NULL;
+			tab->identities[tab->nentries - 1].comment = NULL;
 			tab->nentries--;
 			success = 1;
 		}
