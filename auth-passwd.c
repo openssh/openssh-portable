@@ -124,13 +124,6 @@ auth_password(Authctxt *authctxt, const char *password)
        if (pw->pw_uid == 0 && options.permit_root_login != PERMIT_YES)
 		return 0;
 #endif
-#ifdef HAVE_CYGWIN
-	/*
-	 * Empty password is only possible on NT if the user has _really_
-	 * an empty password and authentication is done, though.
-	 */
-	if (!is_winnt)
-#endif
 	if (*password == '\0' && options.permit_empty_passwd == 0)
 		return 0;
 #ifdef KRB5

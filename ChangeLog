@@ -23,6 +23,8 @@
    - deraadt@cvs.openbsd.org 2002/06/17 06:05:56
      [scp.c]
      make usage like man page
+ - (bal) Cygwin special handling of empty passwords wrong.  Patch by
+   vinschen@redhat.com
 
 20020613
  - (bal) typo of setgroup for cygwin.  Patch by vinschen@redhat.com
@@ -951,4 +953,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2223 2002/06/21 00:10:58 mouring Exp $
+$Id: ChangeLog,v 1.2224 2002/06/21 00:26:22 mouring Exp $
