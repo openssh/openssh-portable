@@ -1,4 +1,4 @@
-.\" $OpenBSD: ssh-agent.1,v 1.19 2000/11/15 20:09:01 markus Exp $
+.\" $OpenBSD: ssh-agent.1,v 1.20 2001/01/28 10:24:04 markus Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -161,31 +161,14 @@ These sockets should only be readable by the owner.
 The sockets should get automatically removed when the agent exits.
 .El
 .Sh AUTHORS
-Tatu Ylonen <ylo@cs.hut.fi>
-.Pp
-OpenSSH
-is a derivative of the original (free) ssh 1.2.12 release, but with bugs
-removed and newer features re-added.
-Rapidly after the 1.2.12 release,
-newer versions bore successively more restrictive licenses.
-This version of OpenSSH
-.Bl -bullet
-.It
-has all components of a restrictive nature (i.e., patents, see
-.Xr ssl 8 )
-directly removed from the source code; any licensed or patented components
-are chosen from
-external libraries.
-.It
-has been updated to support ssh protocol 1.5.
-.It
-contains added support for
-.Xr kerberos 8
-authentication and ticket passing.
-.It
-supports one-time password authentication with
-.Xr skey 1 .
-.El
+OpenSSH is a derivative of the original and free
+ssh 1.2.12 release by Tatu Ylonen.
+Aaron Campbell, Bob Beck, Markus Friedl, Niels Provos,
+Theo de Raadt and Dug Song
+removed many bugs, re-added newer features and
+created OpenSSH.
+Markus Friedl contributed the support for SSH
+protocol versions 1.5 and 2.0.
 .Sh SEE ALSO
 .Xr ssh 1 ,
 .Xr ssh-add 1 ,
