@@ -78,6 +78,12 @@
      pad received signature with leading zeros, because RSA_verify expects
      a signature of RSA_size. the drafts says the signature is transmitted
      unpadded (e.g. putty does not pad), reported by anakin@pobox.com
+   - deraadt@cvs.openbsd.org 2002/06/03 12:04:07
+     [ssh.h]
+     compatiblity -> compatibility
+     decriptor -> descriptor
+     authentciated -> authenticated
+     transmition -> transmission
 
 20020604
  - (stevesk) [channels.c] bug #164 patch from YOSHIFUJI Hideaki (changed
@@ -762,4 +768,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2165 2002/06/06 20:55:04 mouring Exp $
+$Id: ChangeLog,v 1.2166 2002/06/06 20:56:07 mouring Exp $
