@@ -23,7 +23,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: auth2-chall.c,v 1.8 2001/09/27 15:31:17 markus Exp $");
+RCSID("$OpenBSD: auth2-chall.c,v 1.9 2001/12/09 18:45:56 markus Exp $");
 
 #include "ssh2.h"
 #include "auth.h"
@@ -156,6 +156,18 @@ auth2_challenge(Authctxt *authctxt, char *devs)
 	return auth2_challenge_start(authctxt);
 }
 
+/* unregister kbd-int callbacks and context */
+void
+auth2_challenge_stop(Authctxt *authctxt)
+{
+	/* unregister callback */
+	dispatch_set(SSH2_MSG_USERAUTH_INFO_RESPONSE, NULL);
+	if (authctxt->kbdintctxt != NULL)  {
+		kbdint_free(authctxt->kbdintctxt);
+		authctxt->kbdintctxt = NULL;
+	}
+}
+
 /* side effect: sets authctxt->postponed if a reply was sent*/
 static int
 auth2_challenge_start(Authctxt *authctxt)
@@ -166,21 +178,18 @@ auth2_challenge_start(Authctxt *authctxt)
 	    kbdintctxt->devices ?  kbdintctxt->devices : "<empty>");
 
 	if (kbdint_next_device(kbdintctxt) == 0) {
-		kbdint_free(kbdintctxt);
-		authctxt->kbdintctxt = NULL;
+		auth2_challenge_stop(authctxt);
 		return 0;
 	}
 	debug("auth2_challenge_start: trying authentication method '%s'",
 	    kbdintctxt->device->name);
 
 	if ((kbdintctxt->ctxt = kbdintctxt->device->init_ctx(authctxt)) == NULL) {
-		kbdint_free(kbdintctxt);
-		authctxt->kbdintctxt = NULL;
+		auth2_challenge_stop(authctxt);
 		return 0;
 	}
 	if (send_userauth_info_request(authctxt) == 0) {
-		kbdint_free(kbdintctxt);
-		authctxt->kbdintctxt = NULL;
+		auth2_challenge_stop(authctxt);
 		return 0;
 	}
 	dispatch_set(SSH2_MSG_USERAUTH_INFO_RESPONSE,
@@ -271,10 +280,8 @@ input_userauth_info_response(int type, int plen, void *ctxt)
 		break;
 	case 1:
 		/* Authentication needs further interaction */
-		authctxt->postponed = 1;
-		if (send_userauth_info_request(authctxt) == 0) {
-			authctxt->postponed = 0;
-		}
+		if (send_userauth_info_request(authctxt) == 1)
+			authctxt->postponed = 1;
 		break;
 	default:
 		/* Failure! */
@@ -290,12 +297,8 @@ input_userauth_info_response(int type, int plen, void *ctxt)
 	strlcat(method, kbdintctxt->device->name, len);
 
 	if (!authctxt->postponed) {
-		/* unregister callback */
-		dispatch_set(SSH2_MSG_USERAUTH_INFO_RESPONSE, NULL);
-
 		if (authenticated) {
-			kbdint_free(kbdintctxt);
-			authctxt->kbdintctxt = NULL;
+			auth2_challenge_stop(authctxt);
 		} else {
 			/* start next device */
 			/* may set authctxt->postponed */

@@ -21,7 +21,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $OpenBSD: auth.h,v 1.22 2001/06/26 17:27:22 markus Exp $
+ * $OpenBSD: auth.h,v 1.23 2001/12/09 18:45:56 markus Exp $
  */
 #ifndef AUTH_H
 #define AUTH_H
@@ -130,6 +130,7 @@ void	userauth_finish(Authctxt *, int, char *);
 int	auth_root_allowed(char *);
 
 int	auth2_challenge(Authctxt *, char *);
+void	auth2_challenge_stop(Authctxt *);
 
 int	allowed_user(struct passwd *);
 
