@@ -1,3 +1,6 @@
+20030802
+ - (dtucker) [monitor.h monitor_wrap.h] Remove excess ident tags.
+
 20030730
  - (djm) [auth-pam.c] Don't use crappy APIs like sprintf. Thanks bal
 
@@ -735,4 +738,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2867 2003/07/30 04:53:11 djm Exp $
+$Id: ChangeLog,v 1.2868 2003/08/02 10:37:03 dtucker Exp $
