@@ -16,6 +16,7 @@
    - markus@cvs.openbsd.org 2004/03/20 10:40:59
      [version.h]
      3.8.1
+ - (djm) Crank RPM spec versions
 
 20040311
  - (djm) [configure.ac] Add standard license to configure.ac; ok ben, dtucker
@@ -917,4 +918,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3294 2004/03/21 22:39:09 djm Exp $
+$Id: ChangeLog,v 1.3295 2004/03/21 22:40:01 djm Exp $
