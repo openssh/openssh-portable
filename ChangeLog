@@ -9,6 +9,10 @@
    - dtucker@cvs.openbsd.org 2003/11/18 00:40:05
      [serverloop.c]
      Correct check for authctxt->valid.  ok djm@
+   - djm@cvs.openbsd.org 2003/11/18 10:53:07
+     [monitor.c]
+     unbreak fake authloop for non-existent users (my screwup). Spotted and
+     tested by dtucker@; ok markus@
 
 20031117
  - (djm) OpenBSD CVS Sync
@@ -1484,4 +1488,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3116 2003/11/18 11:01:25 djm Exp $
+$Id: ChangeLog,v 1.3117 2003/11/18 11:01:48 djm Exp $

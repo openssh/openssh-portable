@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.52 2003/11/17 11:06:07 markus Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.53 2003/11/18 10:53:07 djm Exp $");
 
 #include <openssl/dh.h>
 
@@ -567,6 +567,7 @@ mm_answer_pwnamallow(int socket, Buffer *m)
 
 	if (pwent == NULL) {
 		buffer_put_char(m, 0);
+		authctxt->pw = fakepw();
 		goto out;
 	}
 
