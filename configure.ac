@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.52 2002/04/23 20:45:56 stevesk Exp $
+# $Id: configure.ac,v 1.53 2002/04/25 18:17:05 stevesk Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -90,6 +90,22 @@ case "$host" in
 	;;
 *-*-darwin*)
 	AC_DEFINE(BROKEN_GETADDRINFO)
+	;;
+*-*-hpux10.26)
+	if test -z "$GCC"; then
+		CFLAGS="$CFLAGS -Ae"
+	fi
+	CPPFLAGS="$CPPFLAGS -D_HPUX_SOURCE -D_XOPEN_SOURCE -D_XOPEN_SOURCE_EXTENDED=1"
+	IPADDR_IN_DISPLAY=yes
+	AC_DEFINE(HAVE_SECUREWARE)
+	AC_DEFINE(USE_PIPES)
+	AC_DEFINE(LOGIN_NO_ENDOPT)
+	AC_DEFINE(LOGIN_NEEDS_UTMPX)
+	AC_DEFINE(DISABLE_SHADOW)
+	AC_DEFINE(DISABLE_UTMP)
+	AC_DEFINE(SPT_TYPE,SPT_PSTAT)
+	LIBS="$LIBS -lxnet -lsec -lsecpw"
+	disable_ptmx_check=yes
 	;;
 *-*-hpux10*)
 	if test -z "$GCC"; then
@@ -235,7 +251,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	no_dev_ptmx=1
 	AC_DEFINE(BROKEN_SYS_TERMIO_H)
 	AC_DEFINE(USE_PIPES)
-	AC_DEFINE(HAVE_SCO_PROTECTED_PW)
+	AC_DEFINE(HAVE_SECUREWARE)
 	AC_DEFINE(DISABLE_SHADOW)
 	AC_DEFINE(BROKEN_SAVED_UIDS)
 	AC_CHECK_FUNCS(getluid setluid)
@@ -249,7 +265,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	no_dev_ptmx=1
 	rsh_path="/usr/bin/rcmd"
 	AC_DEFINE(USE_PIPES)
-	AC_DEFINE(HAVE_SCO_PROTECTED_PW)
+	AC_DEFINE(HAVE_SECUREWARE)
 	AC_DEFINE(DISABLE_SHADOW)
 	AC_CHECK_FUNCS(getluid setluid)
 	MANTYPE=man
@@ -1926,12 +1942,14 @@ if test ! -z "$MAIL" ; then
 fi
 
 if test -z "$no_dev_ptmx" ; then
-	AC_CHECK_FILE("/dev/ptmx", 
-		[
-			AC_DEFINE_UNQUOTED(HAVE_DEV_PTMX)
-			have_dev_ptmx=1
-		]
-	)
+	if test "x$disable_ptmx_check" != "xyes" ; then
+		AC_CHECK_FILE("/dev/ptmx", 
+			[
+				AC_DEFINE_UNQUOTED(HAVE_DEV_PTMX)
+				have_dev_ptmx=1
+			]
+		)
+	fi
 fi
 AC_CHECK_FILE("/dev/ptc", 
 	[

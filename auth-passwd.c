@@ -55,11 +55,11 @@ RCSID("$OpenBSD: auth-passwd.c,v 1.24 2002/03/04 12:43:06 markus Exp $");
 #  include <hpsecurity.h>
 #  include <prot.h>
 # endif
-# ifdef HAVE_SCO_PROTECTED_PW
+# ifdef HAVE_SECUREWARE
 #  include <sys/security.h>
 #  include <sys/audit.h>
 #  include <prot.h>
-# endif /* HAVE_SCO_PROTECTED_PW */
+# endif /* HAVE_SECUREWARE */
 # if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
 #  include <shadow.h>
 # endif
@@ -102,12 +102,9 @@ auth_password(Authctxt *authctxt, const char *password)
 	char *encrypted_password;
 	char *pw_password;
 	char *salt;
-#ifdef __hpux
+#if defined(__hpux) || defined(HAVE_SECUREWARE)
 	struct pr_passwd *spw;
-#endif
-#ifdef HAVE_SCO_PROTECTED_PW
-	struct pr_passwd *spw;
-#endif /* HAVE_SCO_PROTECTED_PW */
+#endif /* __hpux || HAVE_SECUREWARE */
 #if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
 	struct spwd *spw;
 #endif
@@ -183,21 +180,20 @@ auth_password(Authctxt *authctxt, const char *password)
 		pw_password = spw->sp_pwdp;
 #endif /* defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW) */
 
-#ifdef HAVE_SCO_PROTECTED_PW
-	spw = getprpwnam(pw->pw_name);
-	if (spw != NULL)
-		pw_password = spw->ufld.fd_encrypt;
-#endif /* HAVE_SCO_PROTECTED_PW */
-
 #if defined(HAVE_GETPWANAM) && !defined(DISABLE_SHADOW)
 	if (issecure() && (spw = getpwanam(pw->pw_name)) != NULL)
 		pw_password = spw->pwa_passwd;
 #endif /* defined(HAVE_GETPWANAM) && !defined(DISABLE_SHADOW) */
 
-#if defined(__hpux)
+#ifdef HAVE_SECUREWARE
+	if ((spw = getprpwnam(pw->pw_name)) != NULL)
+		pw_password = spw->ufld.fd_encrypt;
+#endif /* HAVE_SECUREWARE */
+
+#if defined(__hpux) && !defined(HAVE_SECUREWARE)
 	if (iscomsec() && (spw = getprpwnam(pw->pw_name)) != NULL)
 		pw_password = spw->ufld.fd_encrypt;
-#endif /* defined(__hpux) */
+#endif /* defined(__hpux) && !defined(HAVE_SECUREWARE) */
 
 	/* Check for users with no password. */
 	if ((password[0] == '\0') && (pw_password[0] == '\0'))
@@ -214,18 +210,18 @@ auth_password(Authctxt *authctxt, const char *password)
 	else
 		encrypted_password = crypt(password, salt);
 #else /* HAVE_MD5_PASSWORDS */
-# ifdef __hpux
+# if defined(__hpux) && !defined(HAVE_SECUREWARE)
 	if (iscomsec())
 		encrypted_password = bigcrypt(password, salt);
 	else
 		encrypted_password = crypt(password, salt);
 # else
-#  ifdef HAVE_SCO_PROTECTED_PW
+#  ifdef HAVE_SECUREWARE
 	encrypted_password = bigcrypt(password, salt);
 #  else
 	encrypted_password = crypt(password, salt);
-#  endif /* HAVE_SCO_PROTECTED_PW */
-# endif /* __hpux */
+#  endif /* HAVE_SECUREWARE */
+# endif /* __hpux && !defined(HAVE_SECUREWARE) */
 #endif /* HAVE_MD5_PASSWORDS */
 
 	/* Authentication is accepted if the encrypted passwords are identical. */

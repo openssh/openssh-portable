@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.134 2002/04/23 20:45:56 stevesk Exp $ */
+/* $Id: acconfig.h,v 1.135 2002/04/25 18:17:04 stevesk Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -15,8 +15,8 @@
 /* SCO workaround */
 #undef BROKEN_SYS_TERMIO_H
 
-/* Define if you have SCO protected password database */
-#undef HAVE_SCO_PROTECTED_PW
+/* Define if you have SecureWare-based protected password database */
+#undef HAVE_SECUREWARE
 
 /* If your header files don't define LOGIN_PROGRAM, then use this (detected) */
 /* from environment and PATH */

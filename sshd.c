@@ -48,6 +48,10 @@ RCSID("$OpenBSD: sshd.c,v 1.240 2002/04/23 22:16:29 djm Exp $");
 #include <openssl/bn.h>
 #include <openssl/md5.h>
 #include <openssl/rand.h>
+#ifdef HAVE_SECUREWARE
+#include <sys/security.h>
+#include <prot.h>
+#endif
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -786,6 +790,9 @@ main(int ac, char **av)
 	Key *key;
 	int ret, key_used = 0;
 
+#ifdef HAVE_SECUREWARE
+	(void)set_auth_parameters(ac, av);
+#endif
 	__progname = get_progname(av[0]);
 	init_rng();
 
@@ -997,10 +1004,6 @@ main(int ac, char **av)
 	/* Configuration looks good, so exit if in test mode. */
 	if (test_flag)
 		exit(0);
-
-#ifdef HAVE_SCO_PROTECTED_PW
-	(void) set_auth_parameters(ac, av);
-#endif
 
 	/* Initialize the log (it is reinitialized below in case we forked). */
 	if (debug_flag && !inetd_flag)

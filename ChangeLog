@@ -1,5 +1,7 @@
 20020425
  - (stevesk) [defines.h] remove USE_TIMEVAL; unused
+ - (stevesk) [acconfig.h auth-passwd.c configure.ac sshd.c] HP-UX 10.26
+   support.  bug #184.  most from dcole@keysoftsys.com.
 
 20020424
  - (djm) OpenBSD CVS Sync
@@ -506,4 +508,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2084 2002/04/25 17:56:07 stevesk Exp $
+$Id: ChangeLog,v 1.2085 2002/04/25 18:17:05 stevesk Exp $
