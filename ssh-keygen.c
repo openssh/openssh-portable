@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.97 2002/03/25 17:34:27 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.98 2002/03/27 22:21:45 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -290,6 +290,7 @@ do_convert_from_ssh2(struct passwd *pw)
 {
 	Key *k;
 	int blen;
+	u_int len;
 	char line[1024], *p;
 	u_char blob[8096];
 	char encoded[8096];
@@ -334,6 +335,12 @@ do_convert_from_ssh2(struct passwd *pw)
 		*p = '\0';
 		strlcat(encoded, line, sizeof(encoded));
 	}
+	len = strlen(encoded);
+	if (((len % 4) == 3) &&
+	    (encoded[len-1] == '=') &&
+	    (encoded[len-2] == '=') &&
+	    (encoded[len-3] == '='))
+		encoded[len-3] = '\0';
 	blen = uudecode(encoded, blob, sizeof(blob));
 	if (blen < 0) {
 		fprintf(stderr, "uudecode failed.\n");
