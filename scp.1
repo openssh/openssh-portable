@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sun May  7 00:14:37 1995 ylo
 .\"
-.\" $OpenBSD: scp.1,v 1.15 2001/07/29 17:02:46 mouring Exp $
+.\" $OpenBSD: scp.1,v 1.16 2001/08/08 07:16:58 deraadt Exp $
 .\"
 .Dd September 25, 1999
 .Dt SCP 1
@@ -109,8 +109,11 @@ The program must understand
 options.
 .It Fl o Ar option
 Can be used to give options in the format used in the config file.
-Theses options are passed directly to
-.Xr ssh 1 .
+These options are passed directly to
+.Xr ssh 1 ,
+for instance
+.Fl o "Protocol=1"
+would force protocol 1.
 .It Fl 4
 Forces
 .Nm
