@@ -29,9 +29,7 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #include <sys/wait.h>
 #include <sys/resource.h>
 
-#ifndef HAVE_CYGWIN
 #include <netinet/tcp.h>
-#endif
 #include <arpa/inet.h>
 
 #include <stdio.h>

@@ -1,3 +1,6 @@
+20010103
+ - (bal) Cygwin clean up by Corinna Vinschen <vinschen@redhat.com>
+
 20010102
  - (bal) Makefile fix where sourcedir != builddir by Corinna Vinschen 
    <vinschen@redhat.com>

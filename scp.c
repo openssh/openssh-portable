@@ -1111,11 +1111,7 @@ foregroundproc()
 	if (pgrp == -1)
 		pgrp = getpgrp();
 
-#ifdef HAVE_CYGWIN
-	/*
-	 * Cygwin only supports tcgetpgrp() for getting the controlling tty
-         * currently.
-	 */
+#ifdef HAVE_TCGETPGRP
 	return ((ctty_pgrp = tcgetpgrp(STDOUT_FILENO)) != -1 &&
 		ctty_pgrp == pgrp);
 #else
