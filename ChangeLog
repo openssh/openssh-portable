@@ -12,6 +12,8 @@
  - Fix rresvport_af failure errors (logic error in bsd-bindresvport.c)
  - Fix --with-ipaddr-display option test. Fix from Jarno Huuskonen 
    <jhuuskon@hytti.uku.fi>
+ - Fix hang on logout if processes are still using the pty. Needs 
+   further testing.
 
 20000116
  - Renamed --with-xauth-path to --with-xauth
