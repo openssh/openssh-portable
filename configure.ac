@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.83 2002/07/22 23:34:25 mouring Exp $
+# $Id: configure.ac,v 1.84 2002/07/23 00:00:06 mouring Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -287,6 +287,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	LDFLAGS="$LDFLAGS"
 	LIBS="$LIBS -lgen -lrsc -lshare -luex -lacm"
 	MANTYPE=cat
+	;;
 *-*-unicos*)
 	no_libsocket=1
 	no_libnsl=1
