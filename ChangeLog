@@ -1,3 +1,13 @@
+20011222
+ - (djm) Ignore fix & patchlevel in OpenSSL version check. Patch from 
+   solar@openwall.com
+ - (djm) Rework entropy code. If the OpenSSL PRNG is has not been 
+   internally seeded, execute a subprogram "ssh-rand-helper" to obtain
+   some entropy for us. Rewrite the old in-process entropy collecter as
+   an example ssh-rand-helper.
+ - (djm) Always perform ssh_prng_cmds path lookups in configure, even if
+   we don't end up using ssh_prng_cmds (so we always get a valid file) 
+      
 20011221
  - (djm) Add option to gnome-ssh-askpass to stop it from grabbing the X
    server. I have found this necessary to avoid server hangs with X input
@@ -7086,4 +7096,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1705 2001/12/21 04:00:19 djm Exp $
+$Id: ChangeLog,v 1.1706 2001/12/23 14:41:47 djm Exp $

@@ -154,13 +154,3 @@
 #ifndef ASKPASS_PROGRAM
 #define ASKPASS_PROGRAM         "/usr/lib/ssh/ssh-askpass"
 #endif /* ASKPASS_PROGRAM */
-
-/*
- * Relevant only when using builtin PRNG.
- */
-#ifndef SSH_PRNG_SEED_FILE
-# define SSH_PRNG_SEED_FILE      _PATH_SSH_USER_DIR"/prng_seed"
-#endif /* SSH_PRNG_SEED_FILE */
-#ifndef SSH_PRNG_COMMAND_FILE
-# define SSH_PRNG_COMMAND_FILE   ETCDIR "/ssh_prng_cmds"
-#endif /* SSH_PRNG_COMMAND_FILE */
