@@ -10,6 +10,12 @@
      [readconf.c readconf.h scp.c sftp.c ssh.1]
      add ClearAllForwardings ssh option and set it in scp and sftp; ok 
      markus@
+   - stevesk@cvs.openbsd.org 2001/09/19 19:35:30
+     [authfd.c]
+     use sizeof addr vs. SUN_LEN(addr) for sockaddr_un.  Stevens 
+     blesses this and we do it this way elsewhere.  this helps in 
+     portable because not all systems have SUN_LEN() and 
+     sockaddr_un.sun_len.  ok markus@
 
 20010918
  - (djm) Configure support for smartcards. Based on Ben's work.
@@ -6517,4 +6523,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1544 2001/09/20 00:57:55 mouring Exp $
+$Id: ChangeLog,v 1.1545 2001/09/20 01:03:31 mouring Exp $
