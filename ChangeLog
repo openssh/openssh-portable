@@ -1,6 +1,7 @@
 20010123
  - (bal) regexp.h typo in configure.in.  Should have been regex.h
  - (bal) SSH_USER_DIR to _PATH_SSH_USER_DIR patch by stevesk@
+ - (bal) SSH_ASKPASS_DEFAULT to _PATH_SSH_ASKPASS_DEFAULT 
 
 20010122
  - (bal) OpenBSD Resync
