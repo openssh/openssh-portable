@@ -2,9 +2,13 @@
  - (djm) Fix early exit for root auth success when UsePAM=yes and 
    PermitRootLogin=no
  - (dtucker) [auth-pam.c] Convert chauthtok_conv into a generic tty_conv,
-   and use it for do_pam_session.  Fixes problems like pam_motd not displaying
-   anything.  ok djm@
+   and use it for do_pam_session.  Fixes problems like pam_motd not
+   displaying anything.  ok djm@
  - (dtucker) [auth-pam.c] Only use pam_putenv if our platform has it. ok djm@
+ - (djm) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2003/11/18 00:40:05
+     [serverloop.c]
+     Correct check for authctxt->valid.  ok djm@
 
 20031117
  - (djm) OpenBSD CVS Sync
@@ -1480,4 +1484,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3115 2003/11/18 01:45:35 dtucker Exp $
+$Id: ChangeLog,v 1.3116 2003/11/18 11:01:25 djm Exp $
