@@ -1,6 +1,10 @@
 20010317
  - Support usrinfo() on AIX. Based on patch from Gert Doering 
    <gert@greenie.muc.de>
+ - OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2001/03/15 15:05:59
+     [scp.c]
+     use %lld in printf, ok millert@/deraadt@; report from ssh@client.fi
 
 20010315
  - OpenBSD CVS Sync
@@ -4563,4 +4567,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.961 2001/03/16 23:29:50 djm Exp $
+$Id: ChangeLog,v 1.962 2001/03/17 00:10:20 mouring Exp $
