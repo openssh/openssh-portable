@@ -686,6 +686,8 @@ main(int argc, char **argv)
 	extern char *optarg;
 
 	__progname = get_progname(argv[0]);
+	init_rng();
+	seed_rng();
 	TAILQ_INIT(&tq);
 
 	if (argc <= 1)
