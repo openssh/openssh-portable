@@ -3,6 +3,7 @@ exec_prefix=@exec_prefix@
 bindir=@bindir@
 sbindir=@sbindir@
 libdir=@libdir@
+mandir=@mandir@
 
 CC=@CC@
 OPT_FLAGS=-g
@@ -58,14 +59,21 @@ clean:
 install:
 	install -d $(bindir)
 	install -d $(sbindir)
-	install -d $(libdir)
-	install -c bin/ssh $(bindir)/ssh
-	install -c bin/scp $(bindir)/scp
-	install -c bin/ssh-add $(bindir)/ssh-add
-	install -c bin/ssh-agent $(bindir)/ssh-agent
-	install -c bin/ssh-keygen $(bindir)/ssh-keygen
-	install -c bin/sshd $(sbindir)/sshd
-	install -c bin/libssh.a $(libdir)/libssh.a
+	install -d $(mandir)
+	install -d $(mandir)/man1
+	install -d $(mandir)/man8
+	install -s -c bin/ssh $(bindir)/ssh
+	install -s -c bin/scp $(bindir)/scp
+	install -s -c bin/ssh-add $(bindir)/ssh-add
+	install -s -c bin/ssh-agent $(bindir)/ssh-agent
+	install -s -c bin/ssh-keygen $(bindir)/ssh-keygen
+	install -s -c bin/sshd $(sbindir)/sshd
+	install -m644 -c ssh.1 $(mandir)/man1/ssh.1
+	install -m644 -c scp.1 $(mandir)/man1/scp.1
+	install -m644 -c ssh-add.1 $(mandir)/man1/ssh-add.1
+	install -m644 -c ssh-agent.1 $(mandir)/man1/ssh-agent.1
+	install -m644 -c ssh-keygen.1 $(mandir)/man1/ssh-keygen.1
+	install -m644 -c sshd.8 $(mandir)/man8/sshd.8
 
 distclean: clean
 	rm -f Makefile config.h *~
