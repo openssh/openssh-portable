@@ -154,7 +154,10 @@ int setenv(const char *name, const char *value, int overwrite)
 	
 	result = putenv(env_string);
 	
-	xfree(env_string);
+	/* Putenv doesn't copy the env_string, so we need to keep a copy of it */
+	/* around. This leaks a bit of memory, but it doesn't matter */
+	/* for our (OpenSSH port ) use: setenv is only used twice in ssh-agent */
+/*	xfree(env_string); */
 	
 	return(result);	
 }
