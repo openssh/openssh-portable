@@ -1,3 +1,6 @@
+20001218
+ - (stevesk) rsa.c: entropy.h not needed.
+
 20001216
  - (stevesk) OpenBSD CVS updates:
    - markus@cvs.openbsd.org 2000/12/16 02:53:57

@@ -65,7 +65,6 @@ RCSID("$OpenBSD: rsa.c,v 1.17 2000/11/12 19:50:37 markus Exp $");
 #include "rsa.h"
 #include "ssh.h"
 #include "xmalloc.h"
-#include "entropy.h"
 
 void
 rsa_public_encrypt(BIGNUM *out, BIGNUM *in, RSA *key)
