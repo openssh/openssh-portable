@@ -1,5 +1,6 @@
 20010629
  - (bal) Removed net_aton() since we don't use it any more
+ - (bal) Fixed _DISABLE_VPOSIX in readpassphrase.c.
 
 20010628
  - (djm) Sync openbsd-compat with -current libc
@@ -5819,4 +5820,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1339 2001/06/29 12:32:31 mouring Exp $
+$Id: ChangeLog,v 1.1340 2001/06/29 12:35:12 mouring Exp $

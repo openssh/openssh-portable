@@ -51,7 +51,9 @@ readpassphrase(prompt, buf, bufsiz, flags)
 {
 	struct termios term;
 	char ch, *p, *end;
+#ifdef _POSIX_VDISABLE
 	u_char status;
+#endif
 	int echo, input, output;
 	sigset_t oset, nset;
 
@@ -86,7 +88,9 @@ readpassphrase(prompt, buf, bufsiz, flags)
 
 	/* Turn off echo if possible. */
 	echo = 0;
+#ifdef _POSIX_VDISABLE
 	status = _POSIX_VDISABLE;
+#endif
 	if (tcgetattr(input, &term) == 0) {
 		if (!(flags & RPP_ECHO_ON) && (term.c_lflag & ECHO)) {
 			echo = 1;
@@ -124,7 +128,11 @@ readpassphrase(prompt, buf, bufsiz, flags)
 		}
 	}
 	*p = '\0';
+#ifdef _POSIX_VDISABLE
 	if (echo || status != _POSIX_VDISABLE) {
+#else
+	if (echo) {
+#endif
 		if (echo) {
 			(void)write(output, "\n", 1);
 			term.c_lflag |= ECHO;
