@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.142 2002/06/26 13:49:26 deraadt Exp $");
+RCSID("$OpenBSD: session.c,v 1.143 2002/06/30 21:54:16 deraadt Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -992,13 +992,13 @@ do_setup_env(Session *s, const char *shell)
 	if (!options.use_login) {
 		while (custom_environment) {
 			struct envstring *ce = custom_environment;
-			char *s = ce->s;
+			char *str = ce->s;
 
-			for (i = 0; s[i] != '=' && s[i]; i++)
+			for (i = 0; str[i] != '=' && str[i]; i++)
 				;
-			if (s[i] == '=') {
-				s[i] = 0;
-				child_set_env(&env, &envsize, s, s + i + 1);
+			if (str[i] == '=') {
+				str[i] = 0;
+				child_set_env(&env, &envsize, str, str + i + 1);
 			}
 			custom_environment = ce->next;
 			xfree(ce->s);

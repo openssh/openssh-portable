@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.253 2002/06/28 23:05:06 deraadt Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.254 2002/06/30 21:54:16 deraadt Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -320,7 +320,7 @@ grace_alarm_handler(int sig)
 static void
 generate_ephemeral_server_key(void)
 {
-	u_int32_t rand = 0;
+	u_int32_t rnd = 0;
 	int i;
 
 	verbose("Generating %s%d bit RSA key.",
@@ -333,9 +333,9 @@ generate_ephemeral_server_key(void)
 
 	for (i = 0; i < SSH_SESSION_KEY_LENGTH; i++) {
 		if (i % 4 == 0)
-			rand = arc4random();
-		sensitive_data.ssh1_cookie[i] = rand & 0xff;
-		rand >>= 8;
+			rnd = arc4random();
+		sensitive_data.ssh1_cookie[i] = rnd & 0xff;
+		rnd >>= 8;
 	}
 	arc4random_stir();
 }
@@ -529,7 +529,7 @@ demote_sensitive_data(void)
 static void
 privsep_preauth_child(void)
 {
-	u_int32_t rand[256];
+	u_int32_t rnd[256];
 	gid_t gidset[1];
 	struct passwd *pw;
 	int i;
@@ -538,8 +538,8 @@ privsep_preauth_child(void)
 	privsep_challenge_enable();
 
 	for (i = 0; i < 256; i++)
-		rand[i] = arc4random();
-	RAND_seed(rand, sizeof(rand));
+		rnd[i] = arc4random();
+	RAND_seed(rnd, sizeof(rnd));
 
 	/* Demote the private keys to public keys. */
 	demote_sensitive_data();
@@ -1600,7 +1600,7 @@ do_ssh1_kex(void)
 	u_char session_key[SSH_SESSION_KEY_LENGTH];
 	u_char cookie[8];
 	u_int cipher_type, auth_mask, protocol_flags;
-	u_int32_t rand = 0;
+	u_int32_t rnd = 0;
 
 	/*
 	 * Generate check bytes that the client must send back in the user
@@ -1613,9 +1613,9 @@ do_ssh1_kex(void)
 	 */
 	for (i = 0; i < 8; i++) {
 		if (i % 4 == 0)
-			rand = arc4random();
-		cookie[i] = rand & 0xff;
-		rand >>= 8;
+			rnd = arc4random();
+		cookie[i] = rnd & 0xff;
+		rnd >>= 8;
 	}
 
 	/*
