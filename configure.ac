@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.19 2002/02/13 18:14:53 tim Exp $
+# $Id: configure.ac,v 1.20 2002/02/13 21:44:06 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -63,6 +63,7 @@ case "$host" in
 	AC_DEFINE(BROKEN_GETADDRINFO)
 	dnl AIX handles lastlog as part of its login message
 	AC_DEFINE(DISABLE_LASTLOG)
+	AC_DEFINE(HAVE_BOGUS_SYS_QUEUE_H)
 	;;
 *-*-cygwin*)
 	LIBS="$LIBS /usr/lib/textmode.o"
