@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: compat.c,v 1.48 2001/04/29 19:16:52 markus Exp $");
+RCSID("$OpenBSD: compat.c,v 1.49 2001/04/30 15:50:46 markus Exp $");
 
 #ifdef HAVE_LIBPCRE
 #  include <pcreposix.h>
@@ -94,11 +94,17 @@ compat_datafellows(const char *version)
 					SSH_BUG_PKSERVICE|SSH_BUG_X11FWD|
 					SSH_BUG_PKOK|SSH_BUG_RSASIGMD5|
 					SSH_BUG_HBSERVICE|SSH_BUG_OPENFAILURE },
-		{ "^2\\.0\\.",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
+		{ "^2\\.0\\.1[0-2]",	SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
 					SSH_OLD_SESSIONID|SSH_BUG_DEBUG|
 					SSH_BUG_PKSERVICE|SSH_BUG_X11FWD|
 					SSH_BUG_PKAUTH|SSH_BUG_PKOK|
 					SSH_BUG_RSASIGMD5|SSH_BUG_OPENFAILURE },
+		{ "^2\\.0\\.",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
+					SSH_OLD_SESSIONID|SSH_BUG_DEBUG|
+					SSH_BUG_PKSERVICE|SSH_BUG_X11FWD|
+					SSH_BUG_PKAUTH|SSH_BUG_PKOK|
+					SSH_BUG_RSASIGMD5|SSH_BUG_OPENFAILURE|
+					SSH_BUG_DERIVEKEY },
 		{ "^2\\.[23]\\.0",	SSH_BUG_HMAC|SSH_BUG_RSASIGMD5 },
 		{ "^2\\.3\\.",		SSH_BUG_RSASIGMD5 },
 		{ "^2\\.[2-9]\\.",	0 },

@@ -3,6 +3,9 @@
    - markus@cvs.openbsd.org 2001/04/30 11:18:52
      [readconf.c readconf.h ssh.1 ssh.c sshconnect.c]
      implement 'ssh -b bind_address' like 'telnet -b'
+   - markus@cvs.openbsd.org 2001/04/30 15:50:46
+     [compat.c compat.h kex.c]
+     allow interop with weaker key generation used by ssh-2.0.x, x < 10
  - (tim) [contrib/caldera/openssh.spec] add Requires line for Caldera 3.1
 
 20010430
@@ -5289,4 +5292,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1186 2001/04/30 18:00:11 tim Exp $
+$Id: ChangeLog,v 1.1187 2001/04/30 23:06:57 mouring Exp $

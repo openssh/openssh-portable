@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.33 2001/04/05 10:42:50 markus Exp $");
+RCSID("$OpenBSD: kex.c,v 1.34 2001/04/30 15:50:46 markus Exp $");
 
 #include <openssl/crypto.h>
 
@@ -375,7 +375,8 @@ derive_key(Kex *kex, int id, int need, u_char *hash, BIGNUM *shared_secret)
 
 	/* K1 = HASH(K || H || "A" || session_id) */
 	EVP_DigestInit(&md, evp_md);
-	EVP_DigestUpdate(&md, buffer_ptr(&b), buffer_len(&b));
+	if (!(datafellows & SSH_BUG_DERIVEKEY))
+		EVP_DigestUpdate(&md, buffer_ptr(&b), buffer_len(&b));
 	EVP_DigestUpdate(&md, hash, mdsz);
 	EVP_DigestUpdate(&md, &c, 1);
 	EVP_DigestUpdate(&md, kex->session_id, kex->session_id_len);
@@ -388,7 +389,8 @@ derive_key(Kex *kex, int id, int need, u_char *hash, BIGNUM *shared_secret)
 	 */
 	for (have = mdsz; need > have; have += mdsz) {
 		EVP_DigestInit(&md, evp_md);
-		EVP_DigestUpdate(&md, buffer_ptr(&b), buffer_len(&b));
+		if (!(datafellows & SSH_BUG_DERIVEKEY))
+			EVP_DigestUpdate(&md, buffer_ptr(&b), buffer_len(&b));
 		EVP_DigestUpdate(&md, hash, mdsz);
 		EVP_DigestUpdate(&md, digest, have);
 		EVP_DigestFinal(&md, digest + have, NULL);
