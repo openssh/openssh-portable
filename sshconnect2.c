@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.68 2001/04/12 19:15:25 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.69 2001/04/15 08:43:47 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -358,7 +358,7 @@ input_userauth_pk_ok(int type, int plen, void *ctxt)
 	Authctxt *authctxt = ctxt;
 	Key *key = NULL;
 	Buffer b;
-	int alen, blen, pktype, sent = 0;
+	int alen, blen, sent = 0;
 	char *pkalg, *pkblob, *fp;
 
 	if (authctxt == NULL)
@@ -386,7 +386,7 @@ input_userauth_pk_ok(int type, int plen, void *ctxt)
 			debug("no last key or no sign cb");
 			break;
 		}
-		if ((pktype = key_type_from_name(pkalg)) == KEY_UNSPEC) {
+		if (key_type_from_name(pkalg) == KEY_UNSPEC) {
 			debug("unknown pkalg %s", pkalg);
 			break;
 		}

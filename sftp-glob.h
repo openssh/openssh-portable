@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-glob.h,v 1.2 2001/04/05 10:42:53 markus Exp $ */
+/* $OpenBSD: sftp-glob.h,v 1.3 2001/04/15 08:43:46 markus Exp $ */
 
 /*
  * Copyright (c) 2001 Damien Miller.  All rights reserved.
@@ -28,5 +28,5 @@
 
 int
 remote_glob(int fd_in, int fd_out, const char *pattern, int flags,
-    const int (*errfunc)(const char *, int), glob_t *pglob);
+    int (*errfunc)(const char *, int), glob_t *pglob);
 

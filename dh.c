@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: dh.c,v 1.13 2001/04/04 23:09:17 markus Exp $");
+RCSID("$OpenBSD: dh.c,v 1.14 2001/04/15 08:43:45 markus Exp $");
 
 #include "xmalloc.h"
 
@@ -80,10 +80,10 @@ parse_prime(int linenum, char *line, struct dhgroup *dhg)
 
 	dhg->g = BN_new();
 	dhg->p = BN_new();
-	if (BN_hex2bn(&dhg->g, gen) < 0)
+	if (BN_hex2bn(&dhg->g, gen) == 0)
 		goto failclean;
 
-	if (BN_hex2bn(&dhg->p, prime) < 0)
+	if (BN_hex2bn(&dhg->p, prime) == 0)
 		goto failclean;
 
 	if (BN_num_bits(dhg->p) != dhg->size)
@@ -228,15 +228,14 @@ DH *
 dh_new_group_asc(const char *gen, const char *modulus)
 {
 	DH *dh;
-	int ret;
 
 	dh = DH_new();
 	if (dh == NULL)
 		fatal("DH_new");
 
-	if ((ret = BN_hex2bn(&dh->p, modulus)) < 0)
+	if (BN_hex2bn(&dh->p, modulus) == 0)
 		fatal("BN_hex2bn p");
-	if ((ret = BN_hex2bn(&dh->g, gen)) < 0)
+	if (BN_hex2bn(&dh->g, gen) == 0)
 		fatal("BN_hex2bn g");
 
 	return (dh);

@@ -26,7 +26,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.35 2001/04/12 23:17:54 mouring Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.36 2001/04/15 08:43:46 markus Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -146,7 +146,7 @@ help(void)
 void
 local_do_shell(const char *args)
 {
-	int ret, status;
+	int status;
 	char *shell;
 	pid_t pid;
 
@@ -163,10 +163,10 @@ local_do_shell(const char *args)
 		/* XXX: child has pipe fds to ssh subproc open - issue? */
 		if (args) {
 			debug3("Executing %s -c \"%s\"", shell, args);
-			ret = execl(shell, shell, "-c", args, NULL);
+			execl(shell, shell, "-c", args, NULL);
 		} else {
 			debug3("Executing %s", shell);
-			ret = execl(shell, shell, NULL);
+			execl(shell, shell, NULL);
 		}
 		fprintf(stderr, "Couldn't execute \"%s\": %s\n", shell,
 		    strerror(errno));

@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.193 2001/04/12 20:09:38 stevesk Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.194 2001/04/15 08:43:47 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -799,9 +799,9 @@ main(int ac, char **av)
 
 	/* Start listening for a socket, unless started from inetd. */
 	if (inetd_flag) {
-		int s1, s2;
+		int s1;
 		s1 = dup(0);	/* Make sure descriptors 0, 1, and 2 are in use. */
-		s2 = dup(s1);
+		dup(s1);
 		sock_in = dup(0);
 		sock_out = dup(1);
 		startup_pipe = -1;

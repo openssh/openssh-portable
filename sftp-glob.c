@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-glob.c,v 1.4 2001/04/05 10:42:53 markus Exp $");
+RCSID("$OpenBSD: sftp-glob.c,v 1.5 2001/04/15 08:43:46 markus Exp $");
 
 #include "ssh.h"
 #include "buffer.h"
@@ -151,7 +151,7 @@ int fudge_stat(const char *path, struct stat *st)
 
 int
 remote_glob(int fd_in, int fd_out, const char *pattern, int flags,
-    const int (*errfunc)(const char *, int), glob_t *pglob)
+    int (*errfunc)(const char *, int), glob_t *pglob)
 {
 	pglob->gl_opendir = (void*)fudge_opendir;
 	pglob->gl_readdir = (void*)fudge_readdir;
