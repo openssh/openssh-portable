@@ -117,7 +117,7 @@ int main(int argc, char **argv)
 
 	if (passphrase_dialog(&passphrase, message))
 	{
-		printf("%s\n", passphrase);
+		puts(passphrase);
 		memset(passphrase, '\0', strlen(passphrase));
 	}
 	
