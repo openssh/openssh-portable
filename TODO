@@ -11,4 +11,5 @@
 
 - Cleanup configure.in
 
-- A good source of strong random numbers. Waiting on a Yarrow port.
+- Load / write random seed on startup / exit
+
