@@ -1,6 +1,7 @@
 20001018
  - (stevesk) Add initial support for setproctitle().  Current
    support is for the HP-UX pstat(PSTAT_SETCMD, ...) method.
+ - (stevesk) Add egd startup scripts to contrib/hpux/
 
 20001017
  - (djm) Add -lregex to cywin libs from Corinna Vinschen
