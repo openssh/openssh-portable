@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.62 2001/02/11 12:59:25 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.63 2001/02/24 10:37:55 deraadt Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -808,6 +808,12 @@ fill_default_options(Options * options)
 			    len, "~/%.100s", _PATH_SSH_CLIENT_IDENTITY);
 		}
 		if (options->protocol & SSH_PROTO_2) {
+			len = 2 + strlen(_PATH_SSH_CLIENT_ID_RSA) + 1;
+			options->identity_files[options->num_identity_files] =
+			    xmalloc(len);
+			snprintf(options->identity_files[options->num_identity_files++],
+			    len, "~/%.100s", _PATH_SSH_CLIENT_ID_RSA);
+
 			len = 2 + strlen(_PATH_SSH_CLIENT_ID_DSA) + 1;
 			options->identity_files[options->num_identity_files] =
 			    xmalloc(len);
