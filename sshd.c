@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.47 1999/12/28 23:17:09 damien Exp $");
+RCSID("$Id: sshd.c,v 1.48 1999/12/28 23:25:41 damien Exp $");
 
 #ifdef HAVE_POLL_H
 # include <poll.h>
@@ -149,6 +149,7 @@ static int pamconv(int num_msg, const struct pam_message **msg,
 int do_pam_auth(const char *user, const char *password);
 void do_pam_account(char *username, char *remote_user);
 void do_pam_session(char *username, char *ttyname);
+void do_pam_setcred();
 void pam_cleanup_proc(void *context);
 
 static struct pam_conv conv = {
@@ -230,6 +231,12 @@ void pam_cleanup_proc(void *context)
 			PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
 		}
 
+		pam_retval = pam_setcred((pam_handle_t *)pamh, PAM_DELETE_CRED);
+		if (pam_retval != PAM_SUCCESS) {
+			log("Cannot delete credentials: %.200s", 
+			PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
+		}
+
 		pam_retval = pam_end((pam_handle_t *)pamh, pam_retval);
 		if (pam_retval != PAM_SUCCESS) {
 			log("Cannot release PAM authentication: %.200s", 
@@ -300,6 +307,16 @@ void do_pam_session(char *username, char *ttyname)
 	pam_retval = pam_open_session((pam_handle_t *)pamh, 0);
 	if (pam_retval != PAM_SUCCESS)
 		fatal("PAM session setup failed: %.200s", PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
+}
+ 
+void do_pam_setcred()
+{
+	int pam_retval;
+ 
+	debug("PAM establishing creds");
+	pam_retval = pam_setcred((pam_handle_t *)pamh, PAM_ESTABLISH_CRED);
+	if (pam_retval != PAM_SUCCESS)
+		fatal("PAM setcred failed: %.200s", PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
 }
 #endif /* USE_PAM */
 
@@ -1906,6 +1923,9 @@ do_authenticated(struct passwd * pw)
 			packet_set_interactive(have_pty || display != NULL,
 					       options.keepalives);
 
+#ifdef USE_PAM
+			do_pam_setcred();
+#endif
 			if (forced_command != NULL)
 				goto do_forced_command;
 			debug("Forking shell.");
@@ -1921,6 +1941,9 @@ do_authenticated(struct passwd * pw)
 			packet_set_interactive(have_pty || display != NULL,
 					       options.keepalives);
 
+#ifdef USE_PAM
+			do_pam_setcred();
+#endif
 			if (forced_command != NULL)
 				goto do_forced_command;
 			/* Get command from the packet. */

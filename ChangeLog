@@ -6,6 +6,8 @@
    <drankin@bohemians.lexington.ky.us>
  - Print whether OpenSSH was compiled with RSARef, patch from 
    Nalin Dahyabhai <nalin@thermo.stat.ncsu.edu>
+ - Calls to pam_setcred, patch from Nalin Dahyabhai 
+   <nalin@thermo.stat.ncsu.edu>
 
 19991228
  - Replacement for getpagesize() for systems which lack it
