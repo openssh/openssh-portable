@@ -1,3 +1,7 @@
+20000124
+ - Pick up version 1.2.2 from OpenBSD CVS (no changes, just version number
+   increment)
+
 20000123
  - OpenBSD CVS:
    - [packet.c]
