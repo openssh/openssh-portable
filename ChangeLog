@@ -27,6 +27,9 @@
    - markus@cvs.openbsd.org 2002/03/16 17:22:09
      [auth-rh-rsa.c auth.h]
      split auth_rhosts_rsa(), ok provos@
+   - stevesk@cvs.openbsd.org 2002/03/16 17:41:25
+     [auth-krb5.c]
+     BSD license.  from Daniel Kouril via Dug Song.  ok markus@
 
 20020317
  - (tim) [configure.ac] Assume path given with --with-pid-dir=PATH is wanted,
@@ -7873,4 +7876,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1932 2002/03/22 01:20:32 mouring Exp $
+$Id: ChangeLog,v 1.1933 2002/03/22 01:22:27 mouring Exp $
