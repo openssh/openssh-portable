@@ -6,6 +6,10 @@
      Simplify the code and check for errors using fstat(2).
 
      Problem reported by Mauricio Sanchez, markus@ ok.
+   - markus@cvs.openbsd.org 2002/11/18 16:43:44
+     [clientloop.c]
+     don't overwrite SIG{INT,QUIT,TERM} handler if set to SIG_IGN;
+     e.g. if ssh is used for backup; report Joerg Schilling; ok millert@
 
 20021205
  - (djm) PERL-free fixpaths from stuge-openssh-unix-dev@cdy.org
@@ -841,4 +845,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2516 2002/12/23 02:00:23 mouring Exp $
+$Id: ChangeLog,v 1.2517 2002/12/23 02:01:55 mouring Exp $
