@@ -1,3 +1,7 @@
+20010216
+ - (bal) added '--with-prce'  to allow overriding of system regex when
+   required (tested by David Dulek <ddulek@fastenal.com>)
+
 20010215
  - (djm) Move PAM session setup back to before setuid to user. Fixes 
    problems on Solaris-derived PAMs.
@@ -3970,4 +3974,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.772 2001/02/15 17:27:15 stevesk Exp $
+$Id: ChangeLog,v 1.773 2001/02/15 18:16:22 mouring Exp $

@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.238 2001/02/15 03:46:28 mouring Exp $
+# $Id: configure.in,v 1.239 2001/02/15 18:16:23 mouring Exp $
 
 AC_INIT(ssh.c)
 
@@ -295,6 +295,20 @@ AC_ARG_WITH(libs,
 	]	
 )
 
+AC_ARG_WITH(pcre,
+	[  --with-pcre             Override built in regex library with pcre],
+	[
+
+		AC_CHECK_LIB(pcre, pcre_info, 
+			[ 
+				AC_DEFINE(HAVE_LIBPCRE) 
+				LIBS="$LIBS -lpcreposix -lpcre" 
+				no_comp_check="yes"
+			],
+			[ AC_MSG_ERROR([*** Can not locate pcre libraries.]) ]
+		)
+	]	
+)
 
 # Checks for libraries.
 if test -z "$no_libsocket" ; then
@@ -308,13 +322,22 @@ AC_CHECK_LIB(gen, getspnam, LIBS="$LIBS -lgen")
 AC_CHECK_LIB(z, deflate, ,AC_MSG_ERROR([*** zlib missing - please install first ***]))
 AC_CHECK_LIB(util, login, AC_DEFINE(HAVE_LIBUTIL_LOGIN) LIBS="$LIBS -lutil")
 
-AC_CHECK_FUNC(regcomp, 
-	[ AC_DEFINE(HAVE_REGCOMP)],
-	[
-		AC_CHECK_LIB(pcre, pcre_info, 
-			AC_DEFINE(HAVE_LIBPCRE) LIBS="$LIBS -lpcreposix -lpcre")
-	]
-)
+# We don't want to check if we did an pcre override.
+if test -z "$no_comp_check" ; then
+	AC_CHECK_FUNC(regcomp, 
+		[ AC_DEFINE(HAVE_REGCOMP)],
+		[
+			AC_CHECK_LIB(pcre, pcre_info, 
+			[
+				AC_DEFINE(HAVE_LIBPCRE)
+				LIBS="$LIBS -lpcreposix -lpcre"
+			],
+			[
+				AC_MSG_ERROR([*** No regex library found.])
+			])
+		]
+	)
+fi
 
 dnl UnixWare 2.x
 AC_CHECK_FUNC(strcasecmp, 
