@@ -38,7 +38,7 @@
 
 %define exact_openssl_version   %(rpm -q openssl | cut -d - -f 2)
 
-Summary: The OpenSSH implementation of SSH.
+Summary: The OpenSSH implementation of SSH protocol versions 1 and 2
 Name: openssh
 Version: %{oversion}
 Release: 1
