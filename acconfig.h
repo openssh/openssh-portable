@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.135 2002/04/25 18:17:04 stevesk Exp $ */
+/* $Id: acconfig.h,v 1.136 2002/05/13 00:56:51 djm Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -348,6 +348,9 @@
 
 /* Define if you shouldn't strip 'tty' from your ttyname in [uw]tmp */
 #undef WITH_ABBREV_NO_TTY
+
+/* Define if you want a different $PATH for the superuser */
+#undef SUPERUSER_PATH
 
 @BOTTOM@
 
