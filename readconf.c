@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.84 2001/07/25 14:35:18 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.85 2001/07/31 09:28:44 jakob Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -114,7 +114,7 @@ typedef enum {
 	oGlobalKnownHostsFile2, oUserKnownHostsFile2, oPubkeyAuthentication,
 	oKbdInteractiveAuthentication, oKbdInteractiveDevices, oHostKeyAlias,
 	oDynamicForward, oPreferredAuthentications, oHostbasedAuthentication,
-	oHostKeyAlgorithms, oBindAddress
+	oHostKeyAlgorithms, oBindAddress, oSmartcardDevice
 } OpCodes;
 
 /* Textual representations of the tokens. */
@@ -183,6 +183,7 @@ static struct {
 	{ "preferredauthentications", oPreferredAuthentications },
 	{ "hostkeyalgorithms", oHostKeyAlgorithms },
 	{ "bindaddress", oBindAddress },
+	{ "smartcarddevice", oSmartcardDevice },
 	{ NULL, 0 }
 };
 
@@ -467,6 +468,10 @@ parse_string:
 	case oBindAddress:
 		charptr = &options->bind_address;
 		goto parse_string;
+
+	case oSmartcardDevice:
+		intptr = &options->smartcard_device;
+		goto parse_int;
 
 	case oProxyCommand:
 		charptr = &options->proxy_command;
@@ -772,6 +777,7 @@ initialize_options(Options * options)
 	options->log_level = (LogLevel) - 1;
 	options->preferred_authentications = NULL;
 	options->bind_address = NULL;
+	options->smartcard_device = -1;
 }
 
 /*

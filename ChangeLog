@@ -75,6 +75,11 @@
    - jakob@cvs.openbsd.org 2001/07/31 08:41:10
      [scard.c]
      do not complain about missing smartcards. ok markus@
+   - jakob@cvs.openbsd.org 2001/07/31 09:28:44
+     [readconf.c readconf.h ssh.1 ssh.c]
+     add 'SmartcardDevice' client option to specify which smartcard device 
+     is used to access a smartcard used for storing the user's private RSA 
+     key. ok markus@.
 
 20010803
  - (djm) Fix interrupted read in entropy gatherer. Spotted by markus@ on
@@ -6185,4 +6190,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1445 2001/08/06 21:25:38 mouring Exp $
+$Id: ChangeLog,v 1.1446 2001/08/06 21:27:53 mouring Exp $

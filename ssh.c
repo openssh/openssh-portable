@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.131 2001/07/27 14:50:45 millert Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.132 2001/07/31 09:28:44 jakob Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -150,11 +150,6 @@ Buffer command;
 
 /* Should we execute a command or invoke a subsystem? */
 int subsystem_flag = 0;
-
-#ifdef SMARTCARD
-/* Smartcard reader id */
-int sc_reader_num = -1;
-#endif
 
 /* Prints a help message to the user.  This function never returns. */
 
@@ -377,7 +372,7 @@ again:
 			break;
 		case 'I':
 #ifdef SMARTCARD
-			sc_reader_num = atoi(optarg);
+			options.smartcard_device = atoi(optarg);
 #else
 			fprintf(stderr, "no support for smartcards.\n");
 #endif
@@ -1156,9 +1151,9 @@ load_public_identity_files(void)
 	int i = 0;
 
 #ifdef SMARTCARD
-	if (sc_reader_num != -1 &&
+	if (options.smartcard_device >= 0 &&
 	    options.num_identity_files + 1 < SSH_MAX_IDENTITY_FILES &&
-	    (public = sc_get_key(sc_reader_num)) != NULL ) {
+	    (public = sc_get_key(options.smartcard_device)) != NULL ) {
 		Key *new;
 
 		if (options.num_identity_files + 2 > SSH_MAX_IDENTITY_FILES)

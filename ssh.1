@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.124 2001/07/25 14:35:18 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.125 2001/07/31 09:28:44 jakob Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -448,6 +448,12 @@ It is possible to have multiple
 .Fl i
 options (and multiple identities specified in
 configuration files).
+.It Fl I Ar smartcard_device
+Specifies which smartcard device to use. The argument is
+the device
+.Nm
+should use to communicate with a smartcard used for storing the user's
+private RSA key.
 .It Fl k
 Disables forwarding of Kerberos tickets and AFS tokens.
 This may also be specified on a per-host basis in the configuration file.
@@ -1016,6 +1022,13 @@ or
 .Dq no .
 The default is
 .Dq yes .
+.It Cm SmartcardDevice
+Specifies which smartcard device to use. The argument to this keyword is
+the device
+.Nm
+should use to communicate with a smartcard used for storing the user's
+private RSA key. By default, no device is specified and smartcard support
+is not activated.
 .It Cm StrictHostKeyChecking
 If this flag is set to
 .Dq yes ,

@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: readconf.h,v 1.35 2001/06/26 17:27:24 markus Exp $"); */
+/* RCSID("$OpenBSD: readconf.h,v 1.36 2001/07/31 09:28:44 jakob Exp $"); */
 
 #ifndef READCONF_H
 #define READCONF_H
@@ -87,6 +87,7 @@ typedef struct {
 	char   *user_hostfile2;
 	char   *preferred_authentications;
 	char   *bind_address;	/* local socket address for connection to sshd */
+	int	smartcard_device; /* Smartcard reader device */
 
 	int     num_identity_files;	/* Number of files for RSA/DSA identities. */
 	char   *identity_files[SSH_MAX_IDENTITY_FILES];
