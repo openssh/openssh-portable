@@ -947,11 +947,7 @@ main(int ac, char **av)
 	init_rng();
 	seed_rng();
 
-#ifdef __GNU_LIBRARY__
-	while ((ch = getopt(ac, av, "+cdksa:")) != -1) {
-#else /* __GNU_LIBRARY__ */
 	while ((ch = getopt(ac, av, "cdksa:")) != -1) {
-#endif /* __GNU_LIBRARY__ */
 		switch (ch) {
 		case 'c':
 			if (s_flag)
