@@ -51,7 +51,7 @@
 
 #include "includes.h"
 
-RCSID("$Id: bsd-snprintf.c,v 1.3 2001/02/13 02:18:50 mouring Exp $");
+RCSID("$Id: bsd-snprintf.c,v 1.4 2001/02/13 14:05:59 mouring Exp $");
 
 #if !defined(HAVE_SNPRINTF) || !defined(HAVE_VSNPRINTF)
 
@@ -69,6 +69,9 @@ fmtint(char *buffer, size_t *currlen, size_t maxlen, long value, int base,
 static void 
 fmtfp(char *buffer, size_t *currlen, size_t maxlen, long double fvalue, 
       int min, int max, int flags);
+
+static void
+dopr_outch(char *buffer, size_t *currlen, size_t maxlen, char c);
 
 /*
  * dopr(): poor man's version of doprintf
