@@ -61,6 +61,7 @@ typedef long int int64_t;
 # else
 #  if (SIZEOF_LONG_LONG_INT == 8)
 typedef long long int int64_t;
+#   define HAVE_INTXX_T
 #  else
 #   error "64 bit int type not found."
 #  endif
@@ -89,6 +90,7 @@ typedef unsigned long int u_int64_t;
 #  else
 #   if (SIZEOF_LONG_LONG_INT == 8)
 typedef unsigned long long int u_int64_t;
+#    define HAVE_U_INTXX_T
 #   else
 #    error "64 bit int type not found."
 #   endif
@@ -100,14 +102,17 @@ typedef unsigned long long int u_int64_t;
 /* being defined by the above */
 #ifndef HAVE_QUAD_T
 typedef int64_t quad_t;
+# define HAVE_QUAD_T
 #endif
 
 #ifndef HAVE_SOCKLEN_T
 typedef unsigned int socklen_t;
+# define HAVE_SOCKLEN_T
 #endif /* HAVE_SOCKLEN_T */
 
 #ifndef HAVE_SIZE_T
 typedef unsigned int size_t;
+# define HAVE_SIZE_T
 #endif /* HAVE_SIZE_T */
 
 /* Paths */
