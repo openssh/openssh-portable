@@ -38,7 +38,7 @@
 #include "readpass.h"
 #include "scard.h"
 
-#if OPENSSL_VERSION_NUMBER >= 0x00907000L
+#if OPENSSL_VERSION_NUMBER < 0x00907000L && defined(CRYPTO_LOCK_ENGINE)
 #define USE_ENGINE
 #define RSA_get_default_method RSA_get_default_openssl_method
 #else
