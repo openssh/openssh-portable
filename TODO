@@ -32,6 +32,8 @@ Programming:
    and order to try them in e.g. "ChallengeResponseAuthentication skey, pam"
 
 - Complete Tru64 SIA support
+ - It looks like we could merge it into the password auth code to cut down
+   on diff size. Maybe PAM password auth too?
 
 - Finish integrating kernel-level auditing code for IRIX and SOLARIS
   (Gilbert.r.loomis@saic.com)
@@ -89,4 +91,4 @@ Packaging:
 - HP-UX: Provide DEPOT package scripts.
   (gilbert.r.loomis@saic.com)
 
-$Id: TODO,v 1.42 2001/07/22 19:32:01 mouring Exp $
+$Id: TODO,v 1.43 2001/09/25 03:01:49 djm Exp $
