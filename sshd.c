@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.173 2001/03/05 17:17:21 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.174 2001/03/09 12:30:29 deraadt Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -149,7 +149,7 @@ char *server_version_string = NULL;
  * not very useful.  Currently, memory locking is not implemented.
  */
 struct {
-	Key	*server_key;		/* empheral server key */
+	Key	*server_key;		/* ephemeral server key */
 	Key	*ssh1_host_key;		/* ssh1 host key */
 	Key	**host_keys;		/* all private host keys */
 	int	have_ssh1_key;
@@ -273,7 +273,7 @@ grace_alarm_handler(int sig)
  * problems.
  */
 void
-generate_empheral_server_key(void)
+generate_ephemeral_server_key(void)
 {
 	u_int32_t rand = 0;
 	int i;
@@ -820,7 +820,7 @@ main(int ac, char **av)
 		 */
 		debug("inetd sockets after dupping: %d, %d", sock_in, sock_out);
 		if (options.protocol & SSH_PROTO_1)
-			generate_empheral_server_key();
+			generate_ephemeral_server_key();
 	} else {
 		for (ai = options.listen_addrs; ai; ai = ai->ai_next) {
 			if (ai->ai_family != AF_INET && ai->ai_family != AF_INET6)
@@ -898,7 +898,7 @@ main(int ac, char **av)
 			}
 		}
 		if (options.protocol & SSH_PROTO_1)
-			generate_empheral_server_key();
+			generate_ephemeral_server_key();
 
 		/* Arrange to restart on SIGHUP.  The handler needs listen_sock. */
 		signal(SIGHUP, sighup_handler);
@@ -944,7 +944,7 @@ main(int ac, char **av)
 			if (ret < 0 && errno != EINTR)
 				error("select: %.100s", strerror(errno));
 			if (key_used && key_do_regen) {
-				generate_empheral_server_key();
+				generate_ephemeral_server_key();
 				key_used = 0;
 				key_do_regen = 0;
 			}

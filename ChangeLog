@@ -4,6 +4,9 @@
      [ssh-keygen.c]
      create *.pub files with umask 0644, so that you can mv them to 
      authorized_keys
+   - deraadt@cvs.openbsd.org 2001/03/09 12:30:29
+     [sshd.c]
+     typo; slade@shore.net
 
 20010309
  - OpenBSD CVS Sync
@@ -4464,4 +4467,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.931 2001/03/09 18:19:24 mouring Exp $
+$Id: ChangeLog,v 1.932 2001/03/09 18:25:32 mouring Exp $
