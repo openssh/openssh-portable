@@ -163,7 +163,7 @@
 #include "log.h"
 #include "atomicio.h"
 
-RCSID("$Id: loginrec.c,v 1.34 2001/08/06 23:29:17 mouring Exp $");
+RCSID("$Id: loginrec.c,v 1.35 2001/10/02 00:29:00 stevesk Exp $");
 
 #ifdef HAVE_UTIL_H
 #  include <util.h>
@@ -1095,7 +1095,7 @@ wtmp_get_entry(struct logininfo *li)
 	}
 
 	/* Seek to the start of the last struct utmp */
-	if (lseek(fd, (off_t)(0 - sizeof(struct utmp)), SEEK_END) == -1) {
+	if (lseek(fd, -(off_t)sizeof(struct utmp), SEEK_END) == -1) {
 		/* Looks like we've got a fresh wtmp file */
 		close(fd);
 		return 0;
@@ -1128,7 +1128,7 @@ wtmp_get_entry(struct logininfo *li)
 			continue;
 		}
 		/* Seek back 2 x struct utmp */
-		if (lseek(fd, (off_t)(0-2*sizeof(struct utmp)), SEEK_CUR) == -1) {
+		if (lseek(fd, -(off_t)(2 * sizeof(struct utmp)), SEEK_CUR) == -1) {
 			/* We've found the start of the file, so quit */
 			close (fd);
 			return 0;
@@ -1251,7 +1251,7 @@ wtmpx_get_entry(struct logininfo *li)
 	}
 
 	/* Seek to the start of the last struct utmpx */
-	if (lseek(fd, (off_t)(0-sizeof(struct utmpx)), SEEK_END) == -1 ) {
+	if (lseek(fd, -(off_t)sizeof(struct utmpx), SEEK_END) == -1 ) {
 		/* probably a newly rotated wtmpx file */
 		close(fd);
 		return 0;
@@ -1281,7 +1281,7 @@ wtmpx_get_entry(struct logininfo *li)
 # endif
 			continue;
 		}
-		if (lseek(fd, (off_t)(0-2*sizeof(struct utmpx)), SEEK_CUR) == -1) {
+		if (lseek(fd, -(off_t)(2 * sizeof(struct utmpx)), SEEK_CUR) == -1) {
 			close (fd);
 			return 0;
 		}
@@ -1424,7 +1424,7 @@ lastlog_openseek(struct logininfo *li, int *fd, int filemode)
 
 	if (type == LL_FILE) {
 		/* find this uid's offset in the lastlog file */
-		offset = (off_t) ( (long)li->uid * sizeof(struct lastlog));
+		offset = (off_t) ((long)li->uid * sizeof(struct lastlog));
 
 		if ( lseek(*fd, offset, SEEK_SET) != offset ) {
 			log("lastlog_openseek: %s->lseek(): %s",

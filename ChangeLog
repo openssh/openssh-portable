@@ -1,3 +1,7 @@
+20011001
+ - (stevesk) loginrec.c: fix type conversion problems exposed when using
+   64-bit off_t.
+	
 20010929
  - (bal) move reading 'config.h' up higher.  Patch by albert chin
    <china@thewrittenword.com)
@@ -6585,4 +6589,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1567 2001/09/29 14:27:00 mouring Exp $
+$Id: ChangeLog,v 1.1568 2001/10/02 00:29:00 stevesk Exp $
