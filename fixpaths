@@ -22,7 +22,8 @@ while ($_=$ARGV[0], /^-/) {
       die ("$usage$0: error in command line arguments.\n");
     }
   } else {
-    die ("$usage$0: unknown option '-".$ARGV[0][1]."'\n");
+    @cmd = split(//, $ARGV[0]); $opt = $cmd[1];
+    die ("$usage$0: unknown option '-$opt'\n");
   }
 } # while parsing arguments
 
