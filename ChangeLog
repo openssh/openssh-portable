@@ -36,6 +36,9 @@
      [ssh-keyscan.c]
      fix memory fault if non-existent filename is given to the -f option
      ok markus@
+   - markus@cvs.openbsd.org 2001/08/28 09:51:26
+     [readconf.c]
+     don't set DynamicForward unless Host matches
 
 20010815
  - (bal) Fixed stray code in readconf.c that went in by mistake.
@@ -6359,4 +6362,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1495 2001/09/12 17:10:40 mouring Exp $
+$Id: ChangeLog,v 1.1496 2001/09/12 17:35:27 mouring Exp $
