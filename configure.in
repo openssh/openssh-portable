@@ -1438,7 +1438,14 @@ AC_ARG_ENABLE(pututxline,
 )
 AC_ARG_WITH(lastlog,
   [  --with-lastlog=FILE|DIR specify lastlog location [common locations]],
-  [ conf_lastlog_location="$withval";  ],)
+	[
+		if test "x$withval" = "xno" ; then	
+			AC_DEFINE(DISABLE_LASTLOG)
+		else
+			conf_lastlog_location=$withval
+		fi
+	]
+)
 
 dnl lastlog, [uw]tmpx? detection
 dnl  NOTE: set the paths in the platform section to avoid the

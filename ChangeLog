@@ -3,6 +3,9 @@
    - djm@cvs.openbsd.org     2001/01/30 15:48:53
      [sshconnect.c]
      Make warning message a little more consistent. ok markus@
+ - (djm) Fix autoconf logic for --with-lastlog=no Report and diagnosis from
+   Philipp Buehler <lists@fips.de> and Kevin Steves <stevesk@sweden.hp.com>
+   respectively.
 
 20000130
  - (djm) OpenBSD CVS Sync:
