@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-passwd.c,v 1.28 2003/07/22 13:35:22 markus Exp $");
+RCSID("$OpenBSD: auth-passwd.c,v 1.29 2003/08/26 09:58:43 markus Exp $");
 
 #include "packet.h"
 #include "log.h"
@@ -62,25 +62,22 @@ auth_password(Authctxt *authctxt, const char *password)
 
 	/* deny if no user. */
 	if (pw == NULL)
-		ok = 0;
+		return 0;
 #ifndef HAVE_CYGWIN
 	if (pw && pw->pw_uid == 0 && options.permit_root_login != PERMIT_YES)
 		ok = 0;
 #endif
 	if (*password == '\0' && options.permit_empty_passwd == 0)
-		ok = 0;
-
-	if (!ok)
 		return 0;
 
 #if defined(HAVE_OSF_SIA)
-	return auth_sia_password(authctxt, password);
+	return auth_sia_password(authctxt, password) && ok;
 #else
 # ifdef KRB5
 	if (options.kerberos_authentication == 1) {
 		int ret = auth_krb5_password(authctxt, password);
 		if (ret == 1 || ret == 0)
-			return ret;
+			return ret && ok;
 		/* Fall back to ordinary passwd authentication. */
 	}
 # endif
@@ -89,30 +86,32 @@ auth_password(Authctxt *authctxt, const char *password)
 		HANDLE hToken = cygwin_logon_user(pw, password);
 
 		if (hToken == INVALID_HANDLE_VALUE)
-			return (0);
+			return 0;
 		cygwin_set_impersonation_token(hToken);
-		return (1);
+		return ok;
 	}
 # endif
 # ifdef WITH_AIXAUTHENTICATE
 	{
-		char *authmsg;
+		char *authmsg = NULL;
 		int reenter = 1;
-		int authsuccess = (authenticate(pw->pw_name, password, 
-		    &reenter, &authmsg) == 0);
-		aix_remove_embedded_newlines(authmsg);	
+		int authsuccess = 0;
 
-		if (authsuccess) {
+		if (authenticate(pw->pw_name, password, &reenter,
+		    &authmsg) == 0 && ok) {
 			char *msg;
 			char *host = 
 			    (char *)get_canonical_hostname(options.use_dns);
+
+			authsuccess = 1;
+			aix_remove_embedded_newlines(authmsg);	
 
 			debug3("AIX/authenticate succeeded for user %s: %.100s",
 				pw->pw_name, authmsg);
 
 	        	/* No pty yet, so just label the line as "ssh" */
 	        	if (loginsuccess(authctxt->user, host, "ssh", 
-			    &msg) == 0){
+			    &msg) == 0) {
 				if (msg != NULL) {
 					debug("%s: msg %s", __func__, msg);
 					buffer_append(&loginmsg, msg, 
@@ -120,14 +119,15 @@ auth_password(Authctxt *authctxt, const char *password)
 					xfree(msg);
 				}
 			}
-		} else 
+		} else {
 			debug3("AIX/authenticate failed for user %s: %.100s",
 			    pw->pw_name, authmsg);
+		}
 
 		if (authmsg != NULL)
 			xfree(authmsg);
 
-		return (authsuccess);
+		return authsuccess;
 	}
 # endif
 # ifdef BSD_AUTH
@@ -135,15 +135,15 @@ auth_password(Authctxt *authctxt, const char *password)
 	    (char *)password) == 0)
 		return 0;
 	else
-		return 1;
+		return ok;
 # else
 	{
-	char *pw_password = shadow_pw(pw);
+	/* Just use the supplied fake password if authctxt is invalid */
+	char *pw_password = authctxt->valid ? shadow_pw(pw) : pw->pw_passwd;
 
 	/* Check for users with no password. */
-	/* XXX Reverted back to OpenBSD, why was this changed again? */
 	if (strcmp(pw_password, "") == 0 && strcmp(pw->pw_passwd, "") == 0)
-		return 1;
+		return ok;
 	else {
 		/* Encrypt the candidate password using the proper salt. */
 		char *encrypted_password = xcrypt(password,
@@ -153,7 +153,7 @@ auth_password(Authctxt *authctxt, const char *password)
 		 * Authentication is accepted if the encrypted passwords
 		 * are identical.
 		 */
-		return (strcmp(encrypted_password, pw_password) == 0);
+		return (strcmp(encrypted_password, pw_password) == 0) && ok;
 	}
 
 	}

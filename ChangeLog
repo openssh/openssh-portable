@@ -1,3 +1,11 @@
+20030903
+ - (djm) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2003/08/26 09:58:43
+     [auth-passwd.c auth.c auth.h auth1.c auth2-none.c auth2-passwd.c]
+     [auth2.c monitor.c]
+     fix passwd auth for 'username leaks via timing'; with djm@, original 
+     patches from solar
+
 20030902
  - (djm) OpenBSD CVS Sync
    - deraadt@cvs.openbsd.org 2003/08/24 17:36:51
@@ -968,4 +976,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2937 2003/09/02 13:33:42 djm Exp $
+$Id: ChangeLog,v 1.2938 2003/09/02 21:32:45 djm Exp $

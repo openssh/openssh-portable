@@ -299,8 +299,10 @@ do_authentication(void)
 	/* Verify that the user is a valid user. */
 	if ((authctxt->pw = PRIVSEP(getpwnamallow(user))) != NULL)
 		authctxt->valid = 1;
-	else
+	else {
 		debug("do_authentication: illegal user %s", user);
+		authctxt->pw = fakepw();
+	}
 
 	setproctitle("%s%s", authctxt->pw ? user : "unknown",
 	    use_privsep ? " [net]" : "");

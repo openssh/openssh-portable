@@ -1,4 +1,4 @@
-/*	$OpenBSD: auth.h,v 1.46 2003/08/28 12:54:34 markus Exp $	*/
+/*	$OpenBSD: auth.h,v 1.45 2003/08/26 09:58:43 markus Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -172,6 +172,8 @@ int	 ssh1_session_key(BIGNUM *);
 void	 auth_debug_add(const char *fmt,...) __attribute__((format(printf, 1, 2)));
 void	 auth_debug_send(void);
 void	 auth_debug_reset(void);
+
+struct passwd *fakepw(void);
 
 #define AUTH_FAIL_MAX 6
 #define AUTH_FAIL_LOG (AUTH_FAIL_MAX/2)
