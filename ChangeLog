@@ -1,6 +1,8 @@
 20020401
  - (stevesk) [monitor.c] PAM should work again; will *not* work with
    UsePrivilegeSeparation=yes.
+ - (stevesk) [auth1.c] fix password auth for protocol 1 when
+   !USE_PAM && !HAVE_OSF_SIA; merge issue.
 
 20020331
  - (tim) [configure.ac] use /bin/test -L to work around broken builtin on
@@ -8102,4 +8104,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2005 2002/04/01 18:04:35 stevesk Exp $
+$Id: ChangeLog,v 1.2006 2002/04/02 03:24:56 stevesk Exp $

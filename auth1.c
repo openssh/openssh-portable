@@ -253,6 +253,7 @@ do_authloop(Authctxt *authctxt)
 			/* Do SIA auth with password */
 			authenticated = auth_sia_password(authctxt->user, 
 			    password);
+#else /* !USE_PAM && !HAVE_OSF_SIA */
 			/* Try authentication with the password. */
 			authenticated = PRIVSEP(auth_password(authctxt, password));
 #endif /* USE_PAM */
