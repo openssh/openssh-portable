@@ -15,7 +15,7 @@ The main loop for the interactive session (client side).
 */
 
 #include "includes.h"
-RCSID("$Id: clientloop.c,v 1.1 1999/10/27 03:42:44 damien Exp $");
+RCSID("$Id: clientloop.c,v 1.1.1.1 1999/10/27 03:42:44 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"

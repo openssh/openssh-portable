@@ -14,7 +14,7 @@ Functions for reading the configuration files.
 */
 
 #include "includes.h"
-RCSID("$Id: readconf.c,v 1.1 1999/10/27 03:42:44 damien Exp $");
+RCSID("$Id: readconf.c,v 1.1.1.1 1999/10/27 03:42:44 damien Exp $");
 
 #include "ssh.h"
 #include "cipher.h"

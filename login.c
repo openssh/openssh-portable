@@ -18,7 +18,7 @@ on a tty.
 */
 
 #include "includes.h"
-RCSID("$Id: login.c,v 1.1 1999/10/27 03:42:44 damien Exp $");
+RCSID("$Id: login.c,v 1.1.1.1 1999/10/27 03:42:44 damien Exp $");
 
 #include <utmp.h>
 #include "ssh.h"

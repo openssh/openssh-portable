@@ -13,7 +13,7 @@ Functions for reading the configuration file.
 
 */
 
-/* RCSID("$Id: readconf.h,v 1.1 1999/10/27 03:42:44 damien Exp $"); */
+/* RCSID("$Id: readconf.h,v 1.1.1.1 1999/10/27 03:42:44 damien Exp $"); */
 
 #ifndef READCONF_H
 #define READCONF_H

@@ -13,7 +13,7 @@ RSA key generation, encryption and decryption.
 
 */
 
-/* RCSID("$Id: rsa.h,v 1.1 1999/10/27 03:42:44 damien Exp $"); */
+/* RCSID("$Id: rsa.h,v 1.1.1.1 1999/10/27 03:42:44 damien Exp $"); */
 
 #ifndef RSA_H
 #define RSA_H

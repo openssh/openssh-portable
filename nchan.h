@@ -1,4 +1,4 @@
-/* RCSID("$Id: nchan.h,v 1.1 1999/10/27 03:42:44 damien Exp $"); */
+/* RCSID("$Id: nchan.h,v 1.1.1.1 1999/10/27 03:42:44 damien Exp $"); */
 
 #ifndef NCHAN_H
 #define NCHAN_H

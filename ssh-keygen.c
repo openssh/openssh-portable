@@ -14,7 +14,7 @@ Identity and host key generation and maintenance.
 */
 
 #include "includes.h"
-RCSID("$Id: ssh-keygen.c,v 1.1 1999/10/27 03:42:45 damien Exp $");
+RCSID("$Id: ssh-keygen.c,v 1.1.1.1 1999/10/27 03:42:45 damien Exp $");
 
 #include "rsa.h"
 #include "ssh.h"

@@ -14,7 +14,7 @@ The authentication agent program.
 */
 
 #include "includes.h"
-RCSID("$Id: ssh-agent.c,v 1.1 1999/10/27 03:42:45 damien Exp $");
+RCSID("$Id: ssh-agent.c,v 1.1.1.1 1999/10/27 03:42:45 damien Exp $");
 
 #include "ssh.h"
 #include "rsa.h"

@@ -11,7 +11,7 @@ Created: Wed Mar 29 02:18:23 1995 ylo
 
 */
 
-/* RCSID("$Id: bufaux.h,v 1.1 1999/10/27 03:42:43 damien Exp $"); */
+/* RCSID("$Id: bufaux.h,v 1.1.1.1 1999/10/27 03:42:43 damien Exp $"); */
 
 #ifndef BUFAUX_H
 #define BUFAUX_H

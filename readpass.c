@@ -14,7 +14,7 @@ Functions for reading passphrases and passwords.
 */
 
 #include "includes.h"
-RCSID("$Id: readpass.c,v 1.1 1999/10/27 03:42:44 damien Exp $");
+RCSID("$Id: readpass.c,v 1.1.1.1 1999/10/27 03:42:44 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"

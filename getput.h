@@ -13,7 +13,7 @@ Macros for storing and retrieving data in msb first and lsb first order.
 
 */
 
-/* RCSID("$Id: getput.h,v 1.1 1999/10/27 03:42:44 damien Exp $"); */
+/* RCSID("$Id: getput.h,v 1.1.1.1 1999/10/27 03:42:44 damien Exp $"); */
 
 #ifndef GETPUT_H
 #define GETPUT_H

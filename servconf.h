@@ -13,7 +13,7 @@ Definitions for server configuration data and for the functions reading it.
 
 */
 
-/* RCSID("$Id: servconf.h,v 1.1 1999/10/27 03:42:45 damien Exp $"); */
+/* RCSID("$Id: servconf.h,v 1.1.1.1 1999/10/27 03:42:45 damien Exp $"); */
 
 #ifndef SERVCONF_H
 #define SERVCONF_H

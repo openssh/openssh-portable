@@ -18,7 +18,7 @@ Modified to work with SSL by Niels Provos <provos@citi.umich.edu> in Canada.
 */
 
 #include "includes.h"
-RCSID("$Id: ssh.c,v 1.1 1999/10/27 03:42:45 damien Exp $");
+RCSID("$Id: ssh.c,v 1.1.1.1 1999/10/27 03:42:45 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"

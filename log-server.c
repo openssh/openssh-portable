@@ -15,7 +15,7 @@ to the system log.
 */
 
 #include "includes.h"
-RCSID("$Id: log-server.c,v 1.1 1999/10/27 03:42:44 damien Exp $");
+RCSID("$Id: log-server.c,v 1.1.1.1 1999/10/27 03:42:44 damien Exp $");
 
 #include <syslog.h>
 #include "packet.h"

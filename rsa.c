@@ -35,7 +35,7 @@ Description of the RSA algorithm can be found e.g. from the following sources:
 */
 
 #include "includes.h"
-RCSID("$Id: rsa.c,v 1.1 1999/10/27 03:42:44 damien Exp $");
+RCSID("$Id: rsa.c,v 1.1.1.1 1999/10/27 03:42:44 damien Exp $");
 
 #include "rsa.h"
 #include "ssh.h"

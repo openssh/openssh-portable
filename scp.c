@@ -42,11 +42,11 @@ and ssh has the necessary privileges.)
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	$Id: scp.c,v 1.1 1999/10/27 03:42:45 damien Exp $
+ *	$Id: scp.c,v 1.1.1.1 1999/10/27 03:42:45 damien Exp $
  */
 
 #include "includes.h"
-RCSID("$Id: scp.c,v 1.1 1999/10/27 03:42:45 damien Exp $");
+RCSID("$Id: scp.c,v 1.1.1.1 1999/10/27 03:42:45 damien Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -976,7 +976,7 @@ run_err(const char *fmt, ...)
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	$Id: scp.c,v 1.1 1999/10/27 03:42:45 damien Exp $
+ *	$Id: scp.c,v 1.1.1.1 1999/10/27 03:42:45 damien Exp $
  */
 
 char *

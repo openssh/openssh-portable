@@ -13,7 +13,7 @@ Functions to interface with the SSH_AUTHENTICATION_FD socket.
 
 */
 
-/* RCSID("$Id: authfd.h,v 1.1 1999/10/27 03:42:43 damien Exp $"); */
+/* RCSID("$Id: authfd.h,v 1.1.1.1 1999/10/27 03:42:43 damien Exp $"); */
 
 #ifndef AUTHFD_H
 #define AUTHFD_H

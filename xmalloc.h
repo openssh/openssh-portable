@@ -14,7 +14,7 @@ failure (they call fatal if they encounter an error).
 
 */
 
-/* RCSID("$Id: xmalloc.h,v 1.1 1999/10/27 03:42:46 damien Exp $"); */
+/* RCSID("$Id: xmalloc.h,v 1.1.1.1 1999/10/27 03:42:46 damien Exp $"); */
 
 #ifndef XMALLOC_H
 #define XMALLOC_H
