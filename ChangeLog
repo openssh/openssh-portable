@@ -3,6 +3,7 @@
    --define "skip_gnome_askpass 1", --define "rh7 1" and make the 
    implicit rpm-3.0.5 dependancy explicit. Patch and suggestions from 
    Pekka Savola <pekkas@netcore.fi>
+ - (djm) Clean up PCRE text in INSTALL
 
 20010211
  - (bal) OpenBSD Sync
@@ -3899,4 +3900,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.745 2001/02/11 22:34:17 djm Exp $
+$Id: ChangeLog,v 1.746 2001/02/12 00:15:41 djm Exp $

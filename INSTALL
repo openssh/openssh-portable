@@ -49,11 +49,11 @@ ftp://ftp.gnu.org/gnu/make/
 OpenSSH has only been tested with GNU make. It may work with other
 'make' programs, but you are on your own.
 
-pcre (POSIX Regular Expression library):
+PCRE (PERL-compatible Regular Expression library):
 ftp://ftp.cus.cam.ac.uk/pub/software/programs/pcre/
 
-Most platforms do not required this.  However older 4.3 BSD do not
-have a posix regex library. 
+Most platforms do not require this.  However older Unices may not have a 
+posix regex library. PCRE provides a POSIX interface.
 
 S/Key Libraries:
 http://www.sparc.spb.su/solaris/skey/
@@ -215,4 +215,4 @@ Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
 
 
-$Id: INSTALL,v 1.39 2001/02/09 01:55:36 djm Exp $
+$Id: INSTALL,v 1.40 2001/02/12 00:15:41 djm Exp $
