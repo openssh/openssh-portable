@@ -11,6 +11,8 @@
      version 2.5.2
  - (djm) Update RPM spec version
  - (djm) Release 2.5.2p1
+- tim@mindrot.org 2001/03/19 18:33:47 [defines.h]
+  change S_ISLNK macro to work for UnixWare 2.03
 
 20010319
  - (djm) Seed PRNG at startup, rather than waiting for arc4random calls to 
@@ -4641,4 +4643,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.991 2001/03/19 22:30:50 djm Exp $
+$Id: ChangeLog,v 1.992 2001/03/20 02:31:44 tim Exp $
