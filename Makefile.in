@@ -54,7 +54,11 @@ SSHDOBJS= sshd.o auth-rhosts.o auth-krb4.o auth-pam.o auth-passwd.o \
   auth-rsa.o auth-rh-rsa.o pty.o log-server.o login.o servconf.o \
   serverloop.o bsd-login.o md5crypt.o
 
-all: $(OBJS) $(TARGETS) manpages
+MANPAGES=scp.1 ssh-add.1 ssh-agent.1 ssh-keygen.1 ssh.1 sshd.8
+
+CONFIGFILES=sshd_config ssh_config
+
+all: $(OBJS) $(TARGETS) $(MANPAGES) $(CONFIGFILES)
 
 $(OBJS): config.h
 
@@ -89,10 +93,31 @@ clean:
 	rm -f *.o $(TARGETS) config.status config.cache config.log core \
 		*.1 *.8 sshd_config ssh_config
 
-manpages:
-	$(PERL) $(FIXPATHS) -Dsysconfdir=${sysconfdir} $(srcdir)/*.[18].in $(srcdir)/ssh*_config.in
+scp.1: scp.1.in
+	$(PERL) $(FIXPATHS) -Dsysconfdir=${sysconfdir} $(srcdir)/scp.1.in
 
-install: manpages all
+ssh-add.1: ssh-add.1.in
+	$(PERL) $(FIXPATHS) -Dsysconfdir=${sysconfdir} ssh-add.1.in
+
+ssh-agent.1: ssh-agent.1.in
+	$(PERL) $(FIXPATHS) -Dsysconfdir=${sysconfdir} ssh-agent.1.in
+
+ssh-keygen.1: ssh-keygen.1.in
+	$(PERL) $(FIXPATHS) -Dsysconfdir=${sysconfdir} ssh-keygen.1.in
+
+ssh.1: ssh.1.in
+	$(PERL) $(FIXPATHS) -Dsysconfdir=${sysconfdir} ssh.1.in
+
+sshd.8: sshd.8.in
+	$(PERL) $(FIXPATHS) -Dsysconfdir=${sysconfdir} sshd.8.in
+
+sshd_config: sshd_config.in
+	$(PERL) $(FIXPATHS) -Dsysconfdir=${sysconfdir} sshd_config.in
+
+ssh_config: ssh_config.in
+	$(PERL) $(FIXPATHS) -Dsysconfdir=${sysconfdir} ssh_config.in
+
+install: $(TARGETS)
 	$(INSTALL) -d $(bindir)
 	$(INSTALL) -d $(sbindir)
 	$(INSTALL) -d $(mandir)

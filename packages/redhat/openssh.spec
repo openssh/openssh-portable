@@ -158,15 +158,13 @@ cd ..
 
 %install
 rm -rf $RPM_BUILD_ROOT
-make install prefix="$RPM_BUILD_ROOT/usr"
+make install prefix="$RPM_BUILD_ROOT/usr" sysconfdir="$RPM_BUILD_ROOT/etc/ssh"
 
 install -d $RPM_BUILD_ROOT/etc/ssh
 install -d $RPM_BUILD_ROOT/etc/pam.d/
 install -d $RPM_BUILD_ROOT/etc/rc.d/init.d
 install -m644 packages/redhat/sshd.pam $RPM_BUILD_ROOT/etc/pam.d/sshd
 install -m755 packages/redhat/sshd.init $RPM_BUILD_ROOT/etc/rc.d/init.d/sshd
-install -m600 ssh_config $RPM_BUILD_ROOT/etc/ssh/ssh_config
-install -m600 sshd_config $RPM_BUILD_ROOT/etc/ssh/sshd_config
 
 install -s x11-ssh-askpass-%{aversion}/ssh-askpass $RPM_BUILD_ROOT/usr/libexec/ssh/x11-ssh-askpass
 ln -s /usr/libexec/ssh/x11-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/ssh/ssh-askpass

@@ -148,15 +148,13 @@ make
 
 %install
 rm -rf $RPM_BUILD_ROOT
-make install prefix="$RPM_BUILD_ROOT/usr"
+make install prefix="$RPM_BUILD_ROOT/usr" sysconfdir="$RPM_BUILD_ROOT/etc/ssh"
 install -d $RPM_BUILD_ROOT/etc/ssh/
 install -d $RPM_BUILD_ROOT/etc/pam.d/
 install -d $RPM_BUILD_ROOT/sbin/init.d/
 install -d $RPM_BUILD_ROOT/var/adm/fillup-templates
 install -m644 sshd.pam.generic $RPM_BUILD_ROOT/etc/pam.d/sshd
 install -m744 packages/suse/rc.sshd $RPM_BUILD_ROOT/sbin/init.d/sshd
-install -m644 ssh_config $RPM_BUILD_ROOT/etc/ssh/ssh_config
-install -m600 sshd_config $RPM_BUILD_ROOT/etc/ssh/sshd_config
 ln -s ../../sbin/init.d/sshd $RPM_BUILD_ROOT/usr/sbin/rcsshd
 ln -s gnome-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/ssh/ssh-askpass
 install -m744 packages/suse/rc.config.sshd \
