@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: authfd.c,v 1.13 2000/04/16 02:31:49 damien Exp $");
+RCSID("$Id: authfd.c,v 1.14 2000/04/30 00:00:53 damien Exp $");
 
 #include "ssh.h"
 #include "rsa.h"
@@ -217,8 +217,8 @@ ssh_get_next_identity(AuthenticationConnection *auth,
 	*comment = buffer_get_string(&auth->identities, NULL);
 
 	if (bits != BN_num_bits(n))
-		error("Warning: identity keysize mismatch: actual %d, announced %u",
-		      BN_num_bits(n), bits);
+		log("Warning: identity keysize mismatch: actual %d, announced %u",
+		    BN_num_bits(n), bits);
 
 	/* Decrement the number of remaining entries. */
 	auth->howmany--;

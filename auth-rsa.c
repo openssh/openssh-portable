@@ -16,7 +16,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: auth-rsa.c,v 1.18 2000/04/29 13:57:09 damien Exp $");
+RCSID("$Id: auth-rsa.c,v 1.19 2000/04/30 00:00:53 damien Exp $");
 
 #include "rsa.h"
 #include "packet.h"
@@ -255,7 +255,6 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 			    file, linenum, BN_num_bits(pk->n), bits);
 
 		/* We have found the desired key. */
-
 
 		/* Perform the challenge-response dialog for this key. */
 		if (!auth_rsa_challenge_dialog(pk)) {

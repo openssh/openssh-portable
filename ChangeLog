@@ -8,6 +8,11 @@
  - Changed entropy seed code to user per-user seeds only (server seed is 
    saved in root's .ssh directory)
  - Use atexit() and fatal cleanups to save seed on exit
+ - More OpenBSD updates:
+   [session.c]
+   - don't call chan_write_failed() if we are not writing
+   [auth-rsa.c auth1.c authfd.c hostfile.c ssh-agent.c]
+   - keysize warnings error() -> log()
 
 20000429
  - Merge big update to OpenSSH-2.0 from OpenBSD CVS

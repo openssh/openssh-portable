@@ -17,7 +17,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: channels.c,v 1.26 2000/04/19 06:26:13 damien Exp $");
+RCSID("$Id: channels.c,v 1.27 2000/04/30 00:00:53 damien Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -40,9 +40,11 @@ RCSID("$Id: channels.c,v 1.26 2000/04/19 06:26:13 damien Exp $");
 /* Max len of agent socket */
 #define MAX_SOCKET_NAME 100
 
-/* default buffer for tcp-fwd-channel */
-#define CHAN_WINDOW_DEFAULT      (8*1024)
-#define CHAN_PACKET_DEFAULT	 (CHAN_WINDOW_DEFAULT/2)
+/* default window/packet sizes for tcp/x11-fwd-channel */
+#define CHAN_TCP_WINDOW_DEFAULT	(8*1024)
+#define CHAN_TCP_PACKET_DEFAULT	(CHAN_TCP_WINDOW_DEFAULT/2)
+#define CHAN_X11_WINDOW_DEFAULT	(4*1024)
+#define CHAN_X11_PACKET_DEFAULT	(CHAN_X11_WINDOW_DEFAULT/2)
 
 /*
  * Pointer to an array containing all allocated channels.  The array is
@@ -204,17 +206,15 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 	c->self = found;
 	c->type = type;
 	c->ctype = ctype;
-	c->local_window = window;
-	c->local_window_max = window;
-	c->local_consumed = 0;
-	c->local_maxpacket = maxpack;
-	c->remote_window = 0;
-	c->remote_maxpacket = 0;
 	c->rfd = rfd;
 	c->wfd = wfd;
 	c->sock = (rfd == wfd) ? rfd : -1;
 	c->efd = efd;
 	c->extended_usage = extended_usage;
+	c->local_window = window;
+	c->local_window_max = window;
+	c->local_consumed = 0;
+	c->local_maxpacket = maxpack;
 	c->remote_id = -1;
 	c->remote_name = remote_name;
 	c->remote_window = 0;
@@ -371,6 +371,7 @@ channel_pre_output_draining(Channel *c, fd_set * readset, fd_set * writeset)
  * state until the first packet has been completely read.  The authentication
  * data in that packet is then substituted by the real data if it matches the
  * fake data, and the channel is put into normal mode.
+ * XXX All this happens at the client side.
  */
 int
 x11_open_helper(Channel *c)
@@ -456,7 +457,7 @@ channel_pre_x11_open_13(Channel *c, fd_set * readset, fd_set * writeset)
 }
 
 void
-channel_pre_x11_open_15(Channel *c, fd_set * readset, fd_set * writeset)
+channel_pre_x11_open(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	int ret = x11_open_helper(c);
 	if (ret == 1) {
@@ -464,7 +465,7 @@ channel_pre_x11_open_15(Channel *c, fd_set * readset, fd_set * writeset)
 		channel_pre_open_15(c, readset, writeset);
 	} else if (ret == -1) {
 		debug("X11 rejected %d i%d/o%d", c->self, c->istate, c->ostate);
-		chan_read_failed(c);
+		chan_read_failed(c);	/** force close? */
 		chan_write_failed(c);
 		debug("X11 closed %d i%d/o%d", c->self, c->istate, c->ostate);
 	}
@@ -478,6 +479,7 @@ channel_post_x11_listener(Channel *c, fd_set * readset, fd_set * writeset)
 	int newsock, newch;
 	socklen_t addrlen;
 	char buf[16384], *remote_hostname;
+	int remote_port;
 
 	if (FD_ISSET(c->sock, readset)) {
 		debug("X11 connection requested.");
@@ -488,16 +490,32 @@ channel_post_x11_listener(Channel *c, fd_set * readset, fd_set * writeset)
 			return;
 		}
 		remote_hostname = get_remote_hostname(newsock);
+		remote_port = get_peer_port(newsock);
 		snprintf(buf, sizeof buf, "X11 connection from %.200s port %d",
-		remote_hostname, get_peer_port(newsock));
+		    remote_hostname, remote_port);
+
+		newch = channel_new("x11",
+		    SSH_CHANNEL_OPENING, newsock, newsock, -1,
+		    c->local_window_max, c->local_maxpacket,
+		    0, xstrdup(buf));
+		if (compat20) {
+			packet_start(SSH2_MSG_CHANNEL_OPEN);
+			packet_put_cstring("x11");
+			packet_put_int(newch);
+			packet_put_int(c->local_window_max);
+			packet_put_int(c->local_maxpacket);
+			/* originator host and port */
+			packet_put_cstring(remote_hostname);
+			packet_put_int(remote_port);
+			packet_send();
+		} else {
+			packet_start(SSH_SMSG_X11_OPEN);
+			packet_put_int(newch);
+			if (have_hostname_in_open)
+				packet_put_string(buf, strlen(buf));
+			packet_send();
+		}
 		xfree(remote_hostname);
-		newch = channel_allocate(SSH_CHANNEL_OPENING, newsock,
-					 xstrdup(buf));
-		packet_start(SSH_SMSG_X11_OPEN);
-		packet_put_int(newch);
-		if (have_hostname_in_open)
-			packet_put_string(buf, strlen(buf));
-		packet_send();
 	}
 }
 
@@ -597,7 +615,7 @@ channel_handle_rfd(Channel *c, fd_set * readset, fd_set * writeset)
 	    FD_ISSET(c->rfd, readset)) {
 		len = read(c->rfd, buf, sizeof(buf));
 		if (len <= 0) {
-			debug("channel %d: read<0 rfd %d len %d",
+			debug("channel %d: read<=0 rfd %d len %d",
 			    c->self, c->rfd, len);
 			if (compat13) {
 				buffer_consume(&c->output, buffer_len(&c->output));
@@ -729,10 +747,13 @@ void
 channel_handler_init_20(void)
 {
 	channel_pre[SSH_CHANNEL_OPEN] =			&channel_pre_open_20;
+	channel_pre[SSH_CHANNEL_X11_OPEN] =		&channel_pre_x11_open;
 	channel_pre[SSH_CHANNEL_PORT_LISTENER] =	&channel_pre_listener;
+	channel_pre[SSH_CHANNEL_X11_LISTENER] =		&channel_pre_listener;
 
 	channel_post[SSH_CHANNEL_OPEN] =		&channel_post_open_2;
 	channel_post[SSH_CHANNEL_PORT_LISTENER] =	&channel_post_port_listener;
+	channel_post[SSH_CHANNEL_X11_LISTENER] =	&channel_post_x11_listener;
 }
 
 void
@@ -757,7 +778,7 @@ void
 channel_handler_init_15(void)
 {
 	channel_pre[SSH_CHANNEL_OPEN] =			&channel_pre_open_15;
-	channel_pre[SSH_CHANNEL_X11_OPEN] =		&channel_pre_x11_open_15;
+	channel_pre[SSH_CHANNEL_X11_OPEN] =		&channel_pre_x11_open;
 	channel_pre[SSH_CHANNEL_X11_LISTENER] =		&channel_pre_listener;
 	channel_pre[SSH_CHANNEL_PORT_LISTENER] =	&channel_pre_listener;
 	channel_pre[SSH_CHANNEL_AUTH_SOCKET] =		&channel_pre_listener;
@@ -1428,7 +1449,7 @@ channel_request_local_forwarding(u_short port, const char *host,
 		ch = channel_new(
 		    "port listener", SSH_CHANNEL_PORT_LISTENER,
 		    sock, sock, -1,
-		    CHAN_WINDOW_DEFAULT, CHAN_PACKET_DEFAULT,
+		    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT,
 		    0, xstrdup("port listener"));
 		strlcpy(channels[ch].path, host, sizeof(channels[ch].path));
 		channels[ch].host_port = host_port;
@@ -1769,8 +1790,10 @@ x11_create_display_inet(int screen_number, int x11_display_offset)
 	/* Allocate a channel for each socket. */
 	for (n = 0; n < num_socks; n++) {
 		sock = socks[n];
-		(void) channel_allocate(SSH_CHANNEL_X11_LISTENER, sock,
-					xstrdup("X11 inet listener"));
+		(void) channel_new("x11 listener",
+		    SSH_CHANNEL_X11_LISTENER, sock, sock, -1,
+		    CHAN_X11_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT,
+		    0, xstrdup("X11 inet listener"));
 	}
 
 	/* Return a suitable value for the DISPLAY environment variable. */
@@ -1810,44 +1833,21 @@ connect_local_xsocket(unsigned int dnr)
 	return -1;
 }
 
-
-/*
- * This is called when SSH_SMSG_X11_OPEN is received.  The packet contains
- * the remote channel number.  We should do whatever we want, and respond
- * with either SSH_MSG_OPEN_CONFIRMATION or SSH_MSG_OPEN_FAILURE.
- */
-
-void
-x11_input_open(int type, int plen)
+int
+x11_connect_display(void)
 {
-	int remote_channel, display_number, sock = 0, newch;
+	int display_number, sock = 0;
 	const char *display;
-	char buf[1024], *cp, *remote_host;
-	unsigned int remote_len;
+	char buf[1024], *cp;
 	struct addrinfo hints, *ai, *aitop;
 	char strport[NI_MAXSERV];
 	int gaierr;
-
-	/* Get remote channel number. */
-	remote_channel = packet_get_int();
-
-	/* Get remote originator name. */
-	if (have_hostname_in_open) {
-		remote_host = packet_get_string(&remote_len);
-		remote_len += 4;
-	} else {
-		remote_host = xstrdup("unknown (remote did not supply name)");
-		remote_len = 0;
-	}
-
-	debug("Received X11 open request.");
-	packet_integrity_check(plen, 4 + remote_len, SSH_SMSG_X11_OPEN);
 
 	/* Try to open a socket for the local X server. */
 	display = getenv("DISPLAY");
 	if (!display) {
 		error("DISPLAY not set.");
-		goto fail;
+		return -1;
 	}
 	/*
 	 * Now we decode the value of the DISPLAY variable and make a
@@ -1864,15 +1864,15 @@ x11_input_open(int type, int plen)
 		if (sscanf(strrchr(display, ':') + 1, "%d", &display_number) != 1) {
 			error("Could not parse display number from DISPLAY: %.100s",
 			      display);
-			goto fail;
+			return -1;
 		}
 		/* Create a socket. */
 		sock = connect_local_xsocket(display_number);
 		if (sock < 0)
-			goto fail;
+			return -1;
 
 		/* OK, we now have a connection to the display. */
-		goto success;
+		return sock;
 	}
 	/*
 	 * Connect to an inet socket.  The DISPLAY value is supposedly
@@ -1883,14 +1883,14 @@ x11_input_open(int type, int plen)
 	cp = strchr(buf, ':');
 	if (!cp) {
 		error("Could not find ':' in DISPLAY: %.100s", display);
-		goto fail;
+		return -1;
 	}
 	*cp = 0;
 	/* buf now contains the host name.  But first we parse the display number. */
 	if (sscanf(cp + 1, "%d", &display_number) != 1) {
 		error("Could not parse display number from DISPLAY: %.100s",
 		      display);
-		goto fail;
+		return -1;
 	}
 
 	/* Look up the host address */
@@ -1900,7 +1900,7 @@ x11_input_open(int type, int plen)
 	snprintf(strport, sizeof strport, "%d", 6000 + display_number);
 	if ((gaierr = getaddrinfo(buf, strport, &hints, &aitop)) != 0) {
 		error("%.100s: unknown host. (%s)", buf, gai_strerror(gaierr));
-		goto fail;
+		return -1;
 	}
 	for (ai = aitop; ai; ai = ai->ai_next) {
 		/* Create a socket. */
@@ -1923,31 +1923,60 @@ x11_input_open(int type, int plen)
 	if (!ai) {
 		error("connect %.100s port %d: %.100s", buf, 6000 + display_number,
 		    strerror(errno));
-		goto fail;
+		return -1;
 	}
-success:
-	/* We have successfully obtained a connection to the real X display. */
+	return sock;
+}
 
-	/* Allocate a channel for this connection. */
-	if (x11_saved_proto == NULL)
-		newch = channel_allocate(SSH_CHANNEL_OPEN, sock, remote_host);
-	else
-		newch = channel_allocate(SSH_CHANNEL_X11_OPEN, sock, remote_host);
-	channels[newch].remote_id = remote_channel;
+/*
+ * This is called when SSH_SMSG_X11_OPEN is received.  The packet contains
+ * the remote channel number.  We should do whatever we want, and respond
+ * with either SSH_MSG_OPEN_CONFIRMATION or SSH_MSG_OPEN_FAILURE.
+ */
 
-	/* Send a confirmation to the remote host. */
-	packet_start(SSH_MSG_CHANNEL_OPEN_CONFIRMATION);
-	packet_put_int(remote_channel);
-	packet_put_int(newch);
-	packet_send();
+void
+x11_input_open(int type, int plen)
+{
+	int remote_channel, sock = 0, newch;
+	char *remote_host;
+	unsigned int remote_len;
 
-	return;
+	/* Get remote channel number. */
+	remote_channel = packet_get_int();
 
-fail:
-	/* Send refusal to the remote host. */
-	packet_start(SSH_MSG_CHANNEL_OPEN_FAILURE);
-	packet_put_int(remote_channel);
-	packet_send();
+	/* Get remote originator name. */
+	if (have_hostname_in_open) {
+		remote_host = packet_get_string(&remote_len);
+		remote_len += 4;
+	} else {
+		remote_host = xstrdup("unknown (remote did not supply name)");
+		remote_len = 0;
+	}
+
+	debug("Received X11 open request.");
+	packet_integrity_check(plen, 4 + remote_len, SSH_SMSG_X11_OPEN);
+
+	/* Obtain a connection to the real X display. */
+	sock = x11_connect_display();
+	if (sock == -1) {
+		/* Send refusal to the remote host. */
+		packet_start(SSH_MSG_CHANNEL_OPEN_FAILURE);
+		packet_put_int(remote_channel);
+		packet_send();
+	} else {
+		/* Allocate a channel for this connection. */
+		newch = channel_allocate(
+		     (x11_saved_proto == NULL) ?
+		     SSH_CHANNEL_OPEN : SSH_CHANNEL_X11_OPEN,
+		     sock, remote_host);
+		channels[newch].remote_id = remote_channel;
+
+		/* Send a confirmation to the remote host. */
+		packet_start(SSH_MSG_CHANNEL_OPEN_CONFIRMATION);
+		packet_put_int(remote_channel);
+		packet_put_int(newch);
+		packet_send();
+	}
 }
 
 /*
@@ -1956,7 +1985,8 @@ fail:
  */
 
 void
-x11_request_forwarding_with_spoofing(const char *proto, const char *data)
+x11_request_forwarding_with_spoofing(int client_session_id,
+    const char *proto, const char *data)
 {
 	unsigned int data_len = (unsigned int) strlen(data) / 2;
 	unsigned int i, value;
@@ -2002,9 +2032,14 @@ x11_request_forwarding_with_spoofing(const char *proto, const char *data)
 		sprintf(new_data + 2 * i, "%02x", (unsigned char) x11_fake_data[i]);
 
 	/* Send the request packet. */
-	packet_start(SSH_CMSG_X11_REQUEST_FORWARDING);
-	packet_put_string(proto, strlen(proto));
-	packet_put_string(new_data, strlen(new_data));
+	if (compat20) {
+		channel_request_start(client_session_id, "x11-req", 0);
+		packet_put_char(0);	/* XXX bool single connection */
+	} else {
+		packet_start(SSH_CMSG_X11_REQUEST_FORWARDING);
+	}
+	packet_put_cstring(proto);
+	packet_put_cstring(new_data);
 	packet_put_int(screen_number);
 	packet_send();
 	packet_write_wait();
@@ -2154,20 +2189,26 @@ auth_input_open_request(int type, int plen)
 }
 
 void
-channel_open(int id)
+channel_start_open(int id)
 {
 	Channel *c = channel_lookup(id);
 	if (c == NULL) {
 		log("channel_open: %d: bad id", id);
 		return;
 	}
+	debug("send channel open %d", id);
 	packet_start(SSH2_MSG_CHANNEL_OPEN);
 	packet_put_cstring(c->ctype);
 	packet_put_int(c->self);
 	packet_put_int(c->local_window);
 	packet_put_int(c->local_maxpacket);
+}
+void
+channel_open(int id)
+{
+	/* XXX REMOVE ME */
+	channel_start_open(id);
 	packet_send();
-	debug("channel open %d", id);
 }
 void
 channel_request(int id, char *service, int wantconfirm)

@@ -16,7 +16,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: clientloop.c,v 1.12 2000/04/19 21:42:21 damien Exp $");
+RCSID("$Id: clientloop.c,v 1.13 2000/04/30 00:00:54 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -954,6 +954,69 @@ client_input_exit_status(int type, int plen)
 	quit_pending = 1;
 }
 
+/* XXXX move to generic input handler */
+void
+client_input_channel_open(int type, int plen)
+{
+	Channel *c = NULL;
+	char *ctype;
+	int id;
+	unsigned int len;
+	int rchan;
+	int rmaxpack;
+	int rwindow;
+
+	ctype = packet_get_string(&len);
+	rchan = packet_get_int();
+	rwindow = packet_get_int();
+	rmaxpack = packet_get_int();
+
+	log("server_input_open: ctype %s rchan %d win %d max %d",
+	    ctype, rchan, rwindow, rmaxpack);
+
+	if (strcmp(ctype, "x11") == 0) {
+		int sock;
+		char *originator;
+		int originator_port;
+		originator = packet_get_string(NULL);
+		originator_port = packet_get_int();
+		packet_done();
+		/* XXX check permission */
+		xfree(originator);
+		/* XXX move to channels.c */
+		sock = x11_connect_display();
+		if (sock >= 0) {
+			id = channel_new("x11", SSH_CHANNEL_X11_OPEN,
+			    sock, sock, -1, 4*1024, 32*1024, 0,
+			    xstrdup("x11"));
+			c = channel_lookup(id);
+		}
+	}
+/* XXX duplicate : */
+	if (c != NULL) {
+		debug("confirm %s", ctype);
+		c->remote_id = rchan;
+		c->remote_window = rwindow;
+		c->remote_maxpacket = rmaxpack;
+
+		packet_start(SSH2_MSG_CHANNEL_OPEN_CONFIRMATION);
+		packet_put_int(c->remote_id);
+		packet_put_int(c->self);
+		packet_put_int(c->local_window);
+		packet_put_int(c->local_maxpacket);
+		packet_send();
+	} else {
+		debug("failure %s", ctype);
+		packet_start(SSH2_MSG_CHANNEL_OPEN_FAILURE);
+		packet_put_int(rchan);
+		packet_put_int(SSH2_OPEN_ADMINISTRATIVELY_PROHIBITED);
+		packet_put_cstring("bla bla");
+		packet_put_cstring("");
+		packet_send();
+	}
+	xfree(ctype);
+}
+
 void
 client_init_dispatch_20()
 {
@@ -962,6 +1025,7 @@ client_init_dispatch_20()
 	dispatch_set(SSH2_MSG_CHANNEL_DATA, &channel_input_data);
 	dispatch_set(SSH2_MSG_CHANNEL_EOF, &channel_input_ieof);
 	dispatch_set(SSH2_MSG_CHANNEL_EXTENDED_DATA, &channel_input_extended_data);
+	dispatch_set(SSH2_MSG_CHANNEL_OPEN, &client_input_channel_open);
 	dispatch_set(SSH2_MSG_CHANNEL_OPEN_CONFIRMATION, &channel_input_open_confirmation);
 	dispatch_set(SSH2_MSG_CHANNEL_OPEN_FAILURE, &channel_input_open_failure);
 	dispatch_set(SSH2_MSG_CHANNEL_REQUEST, &channel_input_channel_request);
@@ -973,7 +1037,6 @@ client_init_dispatch_13()
 	dispatch_init(NULL);
 	dispatch_set(SSH_MSG_CHANNEL_CLOSE, &channel_input_close);
 	dispatch_set(SSH_MSG_CHANNEL_CLOSE_CONFIRMATION, &channel_input_close_confirmation);
-	dispatch_set(SSH_MSG_CHANNEL_DATA, &channel_input_data);
 	dispatch_set(SSH_MSG_CHANNEL_DATA, &channel_input_data);
 	dispatch_set(SSH_MSG_CHANNEL_OPEN_CONFIRMATION, &channel_input_open_confirmation);
 	dispatch_set(SSH_MSG_CHANNEL_OPEN_FAILURE, &channel_input_open_failure);

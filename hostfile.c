@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: hostfile.c,v 1.17 2000/04/26 20:56:29 markus Exp $");
+RCSID("$OpenBSD: hostfile.c,v 1.18 2000/04/29 18:11:52 markus Exp $");
 
 #include "packet.h"
 #include "match.h"
@@ -70,10 +70,10 @@ hostfile_check_key(int bits, Key *key, const char *host, const char *filename, i
 	if (key == NULL || key->type != KEY_RSA || key->rsa == NULL)
 		return 1;
 	if (bits != BN_num_bits(key->rsa->n)) {
-		error("Warning: %s, line %d: keysize mismatch for host %s: "
+		log("Warning: %s, line %d: keysize mismatch for host %s: "
 		    "actual %d vs. announced %d.",
 		    filename, linenum, host, BN_num_bits(key->rsa->n), bits);
-		error("Warning: replace %d with %d in %s, line %d.",
+		log("Warning: replace %d with %d in %s, line %d.",
 		    bits, BN_num_bits(key->rsa->n), filename, linenum);
 	}
 	return 1;

@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: ssh.c,v 1.27 2000/04/29 13:57:12 damien Exp $");
+RCSID("$Id: ssh.c,v 1.28 2000/04/30 00:00:54 damien Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/dsa.h>
@@ -664,6 +664,45 @@ main(int ac, char **av)
 	return exit_status;
 }
 
+void
+x11_get_proto(char *proto, int proto_len, char *data, int data_len)
+{
+	char line[512];
+	FILE *f;
+	int got_data = 0, i;
+
+#ifdef XAUTH_PATH
+	/* Try to get Xauthority information for the display. */
+	snprintf(line, sizeof line, "%.100s list %.200s 2>/dev/null",
+		 XAUTH_PATH, getenv("DISPLAY"));
+	f = popen(line, "r");
+	if (f && fgets(line, sizeof(line), f) &&
+	    sscanf(line, "%*s %s %s", proto, data) == 2)
+		got_data = 1;
+	if (f)
+		pclose(f);
+#endif /* XAUTH_PATH */
+	/*
+	 * If we didn't get authentication data, just make up some
+	 * data.  The forwarding code will check the validity of the
+	 * response anyway, and substitute this data.  The X11
+	 * server, however, will ignore this fake data and use
+	 * whatever authentication mechanisms it was using otherwise
+	 * for the local connection.
+	 */
+	if (!got_data) {
+		u_int32_t rand = 0;
+
+		strlcpy(proto, "MIT-MAGIC-COOKIE-1", proto_len);
+		for (i = 0; i < 16; i++) {
+			if (i % 4 == 0)
+				rand = arc4random();
+			snprintf(data + 2 * i, data_len - 2 * i, "%02x", rand & 0xff);
+			rand >>= 8;
+		}
+	}
+}
+
 int
 ssh_session(void)
 {
@@ -737,56 +776,22 @@ ssh_session(void)
 	}
 	/* Request X11 forwarding if enabled and DISPLAY is set. */
 	if (options.forward_x11 && getenv("DISPLAY") != NULL) {
-		char line[512], proto[512], data[512];
-		FILE *f;
-		int forwarded = 0, got_data = 0, i;
-
-#ifdef XAUTH_PATH
-		/* Try to get Xauthority information for the display. */
-		snprintf(line, sizeof line, "%.100s list %.200s 2>/dev/null",
-			 XAUTH_PATH, getenv("DISPLAY"));
-		f = popen(line, "r");
-		if (f && fgets(line, sizeof(line), f) &&
-		    sscanf(line, "%*s %s %s", proto, data) == 2)
-			got_data = 1;
-		if (f)
-			pclose(f);
-#endif /* XAUTH_PATH */
-		/*
-		 * If we didn't get authentication data, just make up some
-		 * data.  The forwarding code will check the validity of the
-		 * response anyway, and substitute this data.  The X11
-		 * server, however, will ignore this fake data and use
-		 * whatever authentication mechanisms it was using otherwise
-		 * for the local connection.
-		 */
-		if (!got_data) {
-			u_int32_t rand = 0;
-
-			strlcpy(proto, "MIT-MAGIC-COOKIE-1", sizeof proto);
-			for (i = 0; i < 16; i++) {
-				if (i % 4 == 0)
-					rand = arc4random();
-				snprintf(data + 2 * i, sizeof data - 2 * i, "%02x", rand & 0xff);
-				rand >>= 8;
-			}
-		}
-		/*
-		 * Got local authentication reasonable information. Request
-		 * forwarding with authentication spoofing.
-		 */
+		char proto[512], data[512];
+		/* Get reasonable local authentication information. */
+		x11_get_proto(proto, sizeof proto, data, sizeof data);
+		/* Request forwarding with authentication spoofing. */
 		debug("Requesting X11 forwarding with authentication spoofing.");
-		x11_request_forwarding_with_spoofing(proto, data);
+		x11_request_forwarding_with_spoofing(0, proto, data);
 
 		/* Read response from the server. */
 		type = packet_read(&plen);
 		if (type == SSH_SMSG_SUCCESS) {
-			forwarded = 1;
 			interactive = 1;
-		} else if (type == SSH_SMSG_FAILURE)
+		} else if (type == SSH_SMSG_FAILURE) {
 			log("Warning: Remote host denied X11 forwarding.");
-		else
+		} else {
 			packet_disconnect("Protocol error waiting for X11 forwarding");
+		}
 	}
 	/* Tell the packet module whether this is an interactive session. */
 	packet_set_interactive(interactive, options.keepalives);
@@ -909,6 +914,17 @@ client_init(int id, void *arg)
 		packet_send();
 		/* XXX wait for reply */
 	}
+	if (options.forward_x11 &&
+	    getenv("DISPLAY") != NULL) {
+		char proto[512], data[512];
+		/* Get reasonable local authentication information. */
+		x11_get_proto(proto, sizeof proto, data, sizeof data);
+		/* Request forwarding with authentication spoofing. */
+		debug("Requesting X11 forwarding with authentication spoofing.");
+		x11_request_forwarding_with_spoofing(id, proto, data);
+		/* XXX wait for reply */
+	}
+
 	len = buffer_len(&command);
 	if (len > 0) {
 		if (len > 900)

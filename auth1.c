@@ -4,7 +4,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.1 2000/04/26 21:28:32 markus Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.2 2000/04/29 18:11:52 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -262,8 +262,8 @@ do_authloop(struct passwd * pw)
 			packet_get_bignum(client_host_key->n, &nlen);
 
 			if (bits != BN_num_bits(client_host_key->n))
-				error("Warning: keysize mismatch for client_host_key: "
-				      "actual %d, announced %d", BN_num_bits(client_host_key->n), bits);
+				log("Warning: keysize mismatch for client_host_key: "
+				    "actual %d, announced %d", BN_num_bits(client_host_key->n), bits);
 			packet_integrity_check(plen, (4 + ulen) + 4 + elen + nlen, type);
 
 			authenticated = auth_rhosts_rsa(pw, client_user, client_host_key);

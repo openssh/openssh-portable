@@ -1,4 +1,4 @@
-/* RCSID("$Id: channels.h,v 1.7 2000/04/16 01:18:41 damien Exp $"); */
+/* RCSID("$Id: channels.h,v 1.8 2000/04/30 00:00:54 damien Exp $"); */
 
 #ifndef CHANNELS_H
 #define CHANNELS_H
@@ -207,7 +207,9 @@ void    x11_request_forwarding(void);
  * Requests forwarding for X11 connections, with authentication spoofing.
  * This should be called in the client only.
  */
-void    x11_request_forwarding_with_spoofing(const char *proto, const char *data);
+void
+x11_request_forwarding_with_spoofing(int client_session_id,
+    const char *proto, const char *data);
 
 /* Sends a message to the server to request authentication fd forwarding. */
 void    auth_request_forwarding(void);
@@ -230,5 +232,6 @@ void    auth_input_open_request(int type, int plen);
 
 /* XXX */
 int	channel_connect_to(const char *host, u_short host_port);
+int	x11_connect_display(void);
 
 #endif

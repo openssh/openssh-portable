@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.30 2000/04/21 00:27:11 djm Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.31 2000/04/29 18:11:52 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -9,7 +9,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.30 2000/04/21 00:27:11 djm Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.31 2000/04/29 18:11:52 markus Exp $");
 
 #include "ssh.h"
 #include "rsa.h"
@@ -178,7 +178,7 @@ process_remove_identity(SocketEntry *e)
 	buffer_get_bignum(&e->input, n);
 
 	if (bits != BN_num_bits(n))
-		error("Warning: identity keysize mismatch: actual %d, announced %d",
+		log("Warning: identity keysize mismatch: actual %d, announced %d",
 		      BN_num_bits(n), bits);
 
 	/* Check if we have the key. */

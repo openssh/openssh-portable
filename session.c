@@ -34,6 +34,7 @@ typedef struct Session Session;
 struct Session {
 	int	used;
 	int	self;
+	int	extended;
 	struct	passwd *pw;
 	pid_t	pid;
 	/* tty */
@@ -46,6 +47,7 @@ struct Session {
 	int	screen;
 	char	*auth_proto;
 	char	*auth_data;
+	int	single_connection;
 	/* proto 2 */
 	int	chanid;
 };
@@ -170,6 +172,7 @@ do_authenticated(struct passwd * pw)
 		channel_permit_all_opens();
 
 	s = session_new();
+	s->pw = pw;
 
 	/*
 	 * We stay in this loop until the client requests to execute a shell
@@ -279,6 +282,7 @@ do_authenticated(struct passwd * pw)
 				    xauthfile, strerror(errno));
 				xfree(xauthfile);
 				xauthfile = NULL;
+				/* XXXX remove listening channels */
 				break;
 			}
 			strlcat(xauthfile, "/cookies", MAXPATHLEN);
@@ -462,7 +466,7 @@ do_exec_no_pty(Session *s, const char *command, struct passwd * pw)
 	close(perr[1]);
 
 	if (compat20) {
-		session_set_fds(s, pin[1], pout[0], perr[0]);
+		session_set_fds(s, pin[1], pout[0], s->extended ? perr[0] : -1);
 	} else {
 		/* Enter the interactive session. */
 		server_loop(pid, pin[1], pout[0], perr[0]);
@@ -478,7 +482,7 @@ do_exec_no_pty(Session *s, const char *command, struct passwd * pw)
 	 * handle the case that fdin and fdout are the same.
 	 */
 	if (compat20) {
-		session_set_fds(s, inout[1], inout[1], err[1]);
+		session_set_fds(s, inout[1], inout[1], s->extended ? err[1] : -1);
 	} else {
 		server_loop(pid, inout[1], inout[1], err[1]);
 		/* server_loop has closed inout[1] and err[1]. */
@@ -1119,6 +1123,7 @@ session_new(void)
 		Session *s = &sessions[i];
 		if (! s->used) {
 			s->pid = 0;
+			s->extended = 0;
 			s->chanid = -1;
 			s->ptyfd = -1;
 			s->ttyfd = -1;
@@ -1129,6 +1134,7 @@ session_new(void)
 			s->auth_data = NULL;
 			s->auth_proto = NULL;
 			s->used = 1;
+			s->pw = NULL;
 			debug("session_new: session %d", i);
 			return s;
 		}
@@ -1160,12 +1166,11 @@ session_open(int chanid)
 		error("no more sessions");
 		return 0;
 	}
-	debug("session_open: session %d: link with channel %d", s->self, chanid);
-	s->chanid = chanid;
 	s->pw = auth_get_user();
 	if (s->pw == NULL)
-		fatal("no user for session %i channel %d",
-		    s->self, s->chanid);
+		fatal("no user for session %i", s->self);
+	debug("session_open: session %d: link with channel %d", s->self, chanid);
+	s->chanid = chanid;
 	return 1;
 }
 
@@ -1257,6 +1262,69 @@ session_pty_req(Session *s)
 	return 1;
 }
 
+int
+session_subsystem_req(Session *s)
+{
+	unsigned int len;
+	int success = 0;
+	char *subsys = packet_get_string(&len);
+
+	packet_done();
+	log("subsystem request for %s", subsys);
+
+	xfree(subsys);
+	return success;
+}
+
+int
+session_x11_req(Session *s)
+{
+	if (!options.x11_forwarding) {
+		debug("X11 forwarding disabled in server configuration file.");
+		return 0;
+	}
+	if (xauthfile != NULL) {
+		debug("X11 fwd already started.");
+		return 0;
+	}
+
+	debug("Received request for X11 forwarding with auth spoofing.");
+	if (s->display != NULL)
+		packet_disconnect("Protocol error: X11 display already set.");
+
+	s->single_connection = packet_get_char();
+	s->auth_proto = packet_get_string(NULL);
+	s->auth_data = packet_get_string(NULL);
+	s->screen = packet_get_int();
+	packet_done();
+
+	s->display = x11_create_display_inet(s->screen, options.x11_display_offset);
+	if (s->display == NULL) {
+		xfree(s->auth_proto);
+		xfree(s->auth_data);
+		return 0;
+	}
+	xauthfile = xmalloc(MAXPATHLEN);
+	strlcpy(xauthfile, "/tmp/ssh-XXXXXXXX", MAXPATHLEN);
+	temporarily_use_uid(s->pw->pw_uid);
+	if (mkdtemp(xauthfile) == NULL) {
+		restore_uid();
+		error("private X11 dir: mkdtemp %s failed: %s",
+		    xauthfile, strerror(errno));
+		xfree(xauthfile);
+		xauthfile = NULL;
+		xfree(s->auth_proto);
+		xfree(s->auth_data);
+		/* XXXX remove listening channels */
+		return 0;
+	}
+	strlcat(xauthfile, "/cookies", MAXPATHLEN);
+	open(xauthfile, O_RDWR|O_CREAT|O_EXCL, 0600);
+	restore_uid();
+	fatal_add_cleanup(xauthfile_cleanup_proc, s);
+	return 1;
+}
+
 void
 session_input_channel_req(int id, void *arg)
 {
@@ -1294,6 +1362,8 @@ session_input_channel_req(int id, void *arg)
 		} else if (strcmp(rtype, "exec") == 0) {
 			char *command = packet_get_string(&len);
 			packet_done();
+			s->extended = 1;
+			s->extended = 1;
 			if (s->ttyfd == -1)
 				do_exec_no_pty(s, command, s->pw);
 			else
@@ -1302,6 +1372,10 @@ session_input_channel_req(int id, void *arg)
 			success = 1;
 		} else if (strcmp(rtype, "pty-req") == 0) {
 			success =  session_pty_req(s);
+		} else if (strcmp(rtype, "x11-req") == 0) {
+			success = session_x11_req(s);
+		} else if (strcmp(rtype, "subsystem") == 0) {
+			success = session_subsystem_req(s);
 		}
 	}
 	if (strcmp(rtype, "window-change") == 0) {
@@ -1399,7 +1473,8 @@ session_exit_message(Session *s, int status)
 	 * Note that we must not call 'chan_read_failed', since there could
 	 * be some more data waiting in the pipe.
 	 */
-	chan_write_failed(c);
+	if (c->ostate != CHAN_OUTPUT_CLOSED)
+		chan_write_failed(c);
 	s->chanid = -1;
 }
 
@@ -1475,4 +1550,6 @@ do_authenticated2(void)
 	 */
 	alarm(0);
 	server_loop2();
+ 	if (xauthfile)
+ 		xauthfile_cleanup_proc(NULL);
 }
