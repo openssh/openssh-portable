@@ -671,7 +671,8 @@ server_loop2(void)
 		if (packet_not_very_much_data_to_write())
 			channel_output_poll();
 		wait_until_can_do_something(&readset, &writeset, 0);
-		if (child_terminated) {
+		if (child_terminated && child_has_selected) {
+			/* XXX: race - assumes only one child has terminated */
 			while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
 				session_close_by_pid(pid, status);
 			child_terminated = 0;

@@ -1,3 +1,6 @@
+20001015
+ - (djm) Fix ssh2 hang on background processes at logout.
+
 20001014
  - (bal) Add support for realpath and getcwd for platforms with broken
    or missing realpath implementations for sftp-server.

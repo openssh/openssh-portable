@@ -1,6 +1,8 @@
 #ifndef _RIJNDAEL_H_
 #define _RIJNDAEL_H_
 
+#include "config.h"
+
 /* 1. Standard types for AES cryptography source code               */
 
 typedef u_int8_t   u1byte; /* an 8 bit unsigned character type */
