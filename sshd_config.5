@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.33 2004/05/23 23:59:53 dtucker Exp $
+.\" $OpenBSD: sshd_config.5,v 1.34 2004/06/13 14:01:42 dtucker Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -149,6 +149,18 @@ The default is
 .It Cm Ciphers
 Specifies the ciphers allowed for protocol version 2.
 Multiple ciphers must be comma-separated.
+The supported ciphers are
+.Dq 3des-cbc ,
+.Dq aes128-cbc ,
+.Dq aes192-cbc ,
+.Dq aes256-cbc ,
+.Dq aes128-ctr ,
+.Dq aes192-ctr ,
+.Dq aes256-ctr ,
+.Dq arcfour ,
+.Dq blowfish-cbc ,
+and
+.Dq cast128-cbc .
 The default is
 .Bd -literal
   ``aes128-cbc,3des-cbc,blowfish-cbc,cast128-cbc,arcfour,

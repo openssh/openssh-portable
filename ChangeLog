@@ -20,6 +20,10 @@
      [ssh-keyscan.c sshconnect2.c sshd.c]
      implement diffie-hellman-group14-sha1 kex method (trivial extension to
      existing diffie-hellman-group1-sha1); ok markus@
+   - dtucker@cvs.openbsd.org 2004/06/13 14:01:42
+     [ssh.1 ssh_config.5 sshd_config.5]
+     List supported ciphers in man pages, tidy up ssh -c;
+     "looks fine" jmc@, ok markus@
 
 20040603
  - (dtucker) [auth-pam.c] Don't use pam_* namespace for sshd's PAM functions.
@@ -1204,4 +1208,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3380 2004/06/15 00:30:09 djm Exp $
+$Id: ChangeLog,v 1.3381 2004/06/15 00:30:39 djm Exp $
