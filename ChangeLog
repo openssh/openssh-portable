@@ -1,7 +1,9 @@
 20030103
  - (djm) Bug #461: ssh-copy-id fails with no arguments. Patch from 
    cjwatson@debian.org
-
+ - (djm) Bug #460: Filling utmp[x]->ut_addr_v6 if present. Patch from 
+   cjwatson@debian.org
+   
 20030101
   - (stevesk) [session.c sshlogin.c sshlogin.h] complete portable
     parts of pass addrlen with sockaddr * fix.
@@ -921,4 +923,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2538 2003/01/03 03:34:06 djm Exp $
+$Id: ChangeLog,v 1.2539 2003/01/03 03:42:27 djm Exp $
