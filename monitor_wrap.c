@@ -1103,6 +1103,36 @@ mm_auth_rsa_verify_response(Key *key, BIGNUM *p, u_char response[16])
 	return (success);
 }
 
+#ifdef AUDIT_EVENTS
+void
+mm_audit_event(ssh_audit_event_t event)
+{
+	Buffer m;
+
+	debug3("%s entering", __func__);
+
+	buffer_init(&m);
+	buffer_put_int(&m, event);
+
+	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_AUDIT_EVENT, &m);
+	buffer_free(&m);
+}
+
+void
+mm_audit_run_command(const char *command)
+{
+	Buffer m;
+
+	debug3("%s entering command %s", __func__, command);
+
+	buffer_init(&m);
+	buffer_put_cstring(&m, command);
+
+	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_AUDIT_COMMAND, &m);
+	buffer_free(&m);
+}
+#endif /* AUDIT_EVENTS */
+
 #ifdef GSSAPI
 OM_uint32
 mm_ssh_gssapi_server_ctx(Gssctxt **ctx, gss_OID goid)

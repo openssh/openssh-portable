@@ -14,6 +14,10 @@
    attempts (currently only for password, kbdint and C/R, only on Linux and
    HP-UX), based on code from login.c from util-linux. With ashok_kovai at
    hotmail.com, ok djm@
+ - (dtucker) [Makefile.in auth.c auth.h auth1.c auth2.c loginrec.c monitor.c
+   monitor.h monitor_wrap.c monitor_wrap.h session.c sshd.c] Bug #125:
+   (first stage) Add audit instrumentation to sshd, currently disabled by
+   default.  with suggestions from and djm@
 
 20050201
  - (dtucker) [log.c] Bug #973: force log_init() to open syslog, since on some
@@ -2068,4 +2072,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3632 2005/02/02 12:30:24 dtucker Exp $
+$Id: ChangeLog,v 1.3633 2005/02/02 13:20:53 dtucker Exp $

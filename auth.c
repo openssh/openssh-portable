@@ -51,6 +51,7 @@ RCSID("$OpenBSD: auth.c,v 1.57 2005/01/22 08:17:59 dtucker Exp $");
 #include "bufaux.h"
 #include "packet.h"
 #include "loginrec.h"
+#include "monitor_wrap.h"
 
 /* import */
 extern ServerOptions options;
@@ -250,6 +251,44 @@ auth_log(Authctxt *authctxt, int authenticated, char *method, char *info)
 	    strcmp(method, "challenge-response") == 0)
 		record_failed_login(authctxt->user,
 		    get_canonical_hostname(options.use_dns), "ssh");
+#endif
+#ifdef AUDIT_EVENTS
+	if (authenticated == 0 && !authctxt->postponed) {
+		ssh_audit_event_t event;
+
+		debug3("audit failed auth attempt, method %s euid %d",
+		    method, (int)geteuid());
+		/*
+		 * Because the auth loop is used in both monitor and slave,
+		 * we must be careful to send each event only once and with
+		 * enough privs to write the event.
+		 */
+		event = audit_classify_auth(method);
+		switch(event) {
+		case AUTH_FAIL_NONE:
+		case AUTH_FAIL_PASSWD:
+		case AUTH_FAIL_KBDINT:
+			if (geteuid() == 0)
+				audit_event(event);
+			break;
+		case AUTH_FAIL_PUBKEY:
+		case AUTH_FAIL_HOSTBASED:
+		case AUTH_FAIL_GSSAPI:
+			/*
+			 * This is required to handle the case where privsep
+			 * is enabled but it's root logging in, since
+			 * use_privsep won't be cleared until after a
+			 * successful login.
+			 */
+			if (geteuid() == 0)
+				audit_event(event);
+			else
+				PRIVSEP(audit_event(event));
+			break;
+		default:
+			error("unknown authentication audit event %d", event);
+		}
+	}
 #endif
 }
 
@@ -476,6 +515,9 @@ getpwnamallow(const char *user)
 		record_failed_login(user,
 		    get_canonical_hostname(options.use_dns), "ssh");
 #endif
+#ifdef AUDIT_EVENTS
+		audit_event(INVALID_USER);
+#endif /* AUDIT_EVENTS */
 		return (NULL);
 	}
 	if (!allowed_user(pw))

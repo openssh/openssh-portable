@@ -167,6 +167,9 @@ input_userauth_request(int type, u_int32_t seq, void *ctxt)
 			if (options.use_pam)
 				PRIVSEP(start_pam(authctxt));
 #endif
+#ifdef AUDIT_EVENTS
+			PRIVSEP(audit_event(INVALID_USER));
+#endif
 		}
 		setproctitle("%s%s", authctxt->valid ? user : "unknown",
 		    use_privsep ? " [net]" : "");
@@ -214,8 +217,12 @@ userauth_finish(Authctxt *authctxt, int authenticated, char *method)
 
 	/* Special handling for root */
 	if (authenticated && authctxt->pw->pw_uid == 0 &&
-	    !auth_root_allowed(method))
+	    !auth_root_allowed(method)) {
 		authenticated = 0;
+#ifdef AUDIT_EVENTS
+		PRIVSEP(audit_event(LOGIN_ROOT_DENIED));
+#endif
+	}
 
 #ifdef USE_PAM
 	if (options.use_pam && authenticated) {
@@ -255,8 +262,12 @@ userauth_finish(Authctxt *authctxt, int authenticated, char *method)
 		/* now we can break out */
 		authctxt->success = 1;
 	} else {
-		if (authctxt->failures++ > options.max_authtries)
+		if (authctxt->failures++ > options.max_authtries) {
+#ifdef AUDIT_EVENTS
+			PRIVSEP(audit_event(LOGIN_EXCEED_MAXTRIES));
+#endif
 			packet_disconnect(AUTH_FAIL_MSG, authctxt->user);
+		}
 		methods = authmethods_get();
 		packet_start(SSH2_MSG_USERAUTH_FAILURE);
 		packet_put_cstring(methods);

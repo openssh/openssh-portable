@@ -1628,6 +1628,9 @@ main(int ac, char **av)
 	remote_port = get_remote_port();
 	remote_ip = get_remote_ipaddr();
 
+#ifdef AUDIT_EVENTS
+	audit_connection_from(remote_ip, remote_port);
+#endif
 #ifdef LIBWRAP
 	/* Check whether logins are denied from this host. */
 	if (packet_connection_is_on_socket()) {
@@ -1697,6 +1700,10 @@ main(int ac, char **av)
 	}
 
  authenticated:
+#ifdef AUDIT_EVENTS
+	audit_event(AUTH_SUCCESS);
+#endif
+
 	/*
 	 * In privilege separation, we fork another child and prepare
 	 * file descriptor passing.
@@ -2010,5 +2017,10 @@ cleanup_exit(int i)
 {
 	if (the_authctxt)
 		do_cleanup(the_authctxt);
+#ifdef AUDIT_EVENTS
+	/* done after do_cleanup so it can cancel the PAM auth 'thread' */
+	if (!use_privsep || mm_is_monitor())
+		audit_event(CONNECTION_ABANDON);
+#endif
 	_exit(i);
 }

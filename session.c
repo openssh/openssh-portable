@@ -665,6 +665,18 @@ do_exec(Session *s, const char *command)
 		debug("Forced command '%.900s'", command);
 	}
 
+#ifdef AUDIT_EVENTS
+	if (command != NULL)
+		PRIVSEP(audit_run_command(command));
+	else if (s->ttyfd == -1) {
+		char *shell = s->pw->pw_shell;
+
+		if (shell[0] == '\0')	/* empty shell means /bin/sh */
+			shell =_PATH_BSHELL;
+		PRIVSEP(audit_run_command(shell));
+	}
+#endif
+
 #ifdef GSSAPI
 	if (options.gss_authentication) {
 		temporarily_use_uid(s->pw);
@@ -2319,6 +2331,10 @@ do_cleanup(Authctxt *authctxt)
 		sshpam_cleanup();
 		sshpam_thread_cleanup();
 	}
+#endif
+
+#ifdef AUDIT_EVENTS
+	PRIVSEP(audit_event(CONNECTION_CLOSE));
 #endif
 
 	/* remove agent socket */

@@ -247,8 +247,12 @@ do_authloop(Authctxt *authctxt)
 #else
 		/* Special handling for root */
 		if (authenticated && authctxt->pw->pw_uid == 0 &&
-		    !auth_root_allowed(get_authname(type)))
+		    !auth_root_allowed(get_authname(type))) {
 			authenticated = 0;
+# ifdef AUDIT_EVENTS
+			PRIVSEP(audit_event(LOGIN_ROOT_DENIED));
+# endif
+		}
 #endif
 
 #ifdef USE_PAM
@@ -283,8 +287,12 @@ do_authloop(Authctxt *authctxt)
 		if (authenticated)
 			return;
 
-		if (authctxt->failures++ > options.max_authtries)
+		if (authctxt->failures++ > options.max_authtries) {
+#ifdef AUDIT_EVENTS
+			PRIVSEP(audit_event(LOGIN_EXCEED_MAXTRIES));
+#endif
 			packet_disconnect(AUTH_FAIL_MSG, authctxt->user);
+		}
 
 		packet_start(SSH_SMSG_FAILURE);
 		packet_send();
