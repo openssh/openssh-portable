@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.89 2001/12/20 22:50:24 djm Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.90 2001/12/28 12:14:27 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -247,7 +247,7 @@ ssh_userauth2(const char *local_user, const char *server_user, char *host,
 	} else {
 		debug("buggy server: service_accept w/o service");
 	}
-	packet_done();
+	packet_check_eom();
 	debug("got SSH2_MSG_SERVICE_ACCEPT");
 
 	if (options.preferred_authentications == NULL)
@@ -347,7 +347,7 @@ input_userauth_failure(int type, int plen, u_int32_t seq, void *ctxt)
 
 	authlist = packet_get_string(NULL);
 	partial = packet_get_char();
-	packet_done();
+	packet_check_eom();
 
 	if (partial != 0)
 		log("Authenticated with partial success.");
@@ -379,7 +379,7 @@ input_userauth_pk_ok(int type, int plen, u_int32_t seq, void *ctxt)
 		pkalg = packet_get_string(&alen);
 		pkblob = packet_get_string(&blen);
 	}
-	packet_done();
+	packet_check_eom();
 
 	debug("input_userauth_pk_ok: pkalg %s blen %d lastkey %p hint %d",
 	    pkalg, blen, authctxt->last_key, authctxt->last_key_hint);
@@ -815,7 +815,7 @@ input_userauth_info_req(int type, int plen, u_int32_t seq, void *ctxt)
 		xfree(response);
 		xfree(prompt);
 	}
-	packet_done(); /* done with parsing incoming message. */
+	packet_check_eom(); /* done with parsing incoming message. */
 
 	packet_add_padding(64);
 	packet_send();

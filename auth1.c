@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.31 2001/12/27 20:39:58 markus Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.32 2001/12/28 12:14:27 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -120,7 +120,7 @@ do_authloop(Authctxt *authctxt)
 				verbose("Kerberos authentication disabled.");
 			} else {
 				char *kdata = packet_get_string(&dlen);
-				packet_done();
+				packet_check_eom();
 
 				if (kdata[0] == 4) { /* KRB_PROT_VERSION */
 #ifdef KRB4
@@ -180,7 +180,7 @@ do_authloop(Authctxt *authctxt)
 			 * IP-spoofing on a local network.)
 			 */
 			client_user = packet_get_string(&ulen);
-			packet_done();
+			packet_check_eom();
 
 			/* Try to authenticate using /etc/hosts.equiv and .rhosts. */
 			authenticated = auth_rhosts(pw, client_user);
@@ -210,7 +210,7 @@ do_authloop(Authctxt *authctxt)
 				verbose("Warning: keysize mismatch for client_host_key: "
 				    "actual %d, announced %d",
 				     BN_num_bits(client_host_key->rsa->n), bits);
-			packet_done();
+			packet_check_eom();
 
 			authenticated = auth_rhosts_rsa(pw, client_user,
 			    client_host_key);
@@ -228,7 +228,7 @@ do_authloop(Authctxt *authctxt)
 			if ((n = BN_new()) == NULL)
 				fatal("do_authloop: BN_new failed");
 			packet_get_bignum(n, &nlen);
-			packet_done();
+			packet_check_eom();
 			authenticated = auth_rsa(pw, n);
 			BN_clear_free(n);
 			break;
@@ -244,7 +244,7 @@ do_authloop(Authctxt *authctxt)
 			 * not visible to an outside observer.
 			 */
 			password = packet_get_string(&dlen);
-			packet_done();
+			packet_check_eom();
 
 #ifdef USE_PAM
 			/* Do PAM auth with password */
@@ -282,7 +282,7 @@ do_authloop(Authctxt *authctxt)
 			if (options.challenge_response_authentication == 1) {
 				char *response = packet_get_string(&dlen);
 				debug("got response '%s'", response);
-				packet_done();
+				packet_check_eom();
 				authenticated = verify_response(authctxt, response);
 				memset(response, 'r', dlen);
 				xfree(response);
@@ -369,7 +369,7 @@ do_authentication(void)
 
 	/* Get the user name. */
 	user = packet_get_string(&ulen);
-	packet_done();
+	packet_check_eom();
 
 	if ((style = strchr(user, ':')) != NULL)
 		*style++ = '\0';

@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.90 2001/12/27 20:39:58 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.91 2001/12/28 12:14:27 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -806,7 +806,7 @@ server_input_stdin_data(int type, int plen, u_int32_t seq, void *ctxt)
 	if (fdin == -1)
 		return;
 	data = packet_get_string(&data_len);
-	packet_done();
+	packet_check_eom();
 	buffer_append(&stdin_buffer, data, data_len);
 	memset(data, 0, data_len);
 	xfree(data);
@@ -821,7 +821,7 @@ server_input_eof(int type, int plen, u_int32_t seq, void *ctxt)
 	 * drained.
 	 */
 	debug("EOF received for stdin.");
-	packet_done();
+	packet_check_eom();
 	stdin_eof = 1;
 }
 
@@ -834,7 +834,7 @@ server_input_window_size(int type, int plen, u_int32_t seq, void *ctxt)
 	int ypixel = packet_get_int();
 
 	debug("Window change received.");
-	packet_done();
+	packet_check_eom();
 	if (fdin != -1)
 		pty_change_window_size(fdin, row, col, xpixel, ypixel);
 }
@@ -851,7 +851,7 @@ server_request_direct_tcpip(char *ctype)
 	target_port = packet_get_int();
 	originator = packet_get_string(NULL);
 	originator_port = packet_get_int();
-	packet_done();
+	packet_check_eom();
 
 	debug("server_request_direct_tcpip: originator %s port %d, target %s port %d",
 	   originator, originator_port, target, target_port);
@@ -878,7 +878,7 @@ server_request_session(char *ctype)
 	Channel *c;
 
 	debug("input_session_request");
-	packet_done();
+	packet_check_eom();
 	/*
 	 * A server session has no fd to read or write until a
 	 * CHANNEL_REQUEST for a shell is made, so we set the type to

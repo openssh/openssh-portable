@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.44 2001/12/27 20:39:58 markus Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.45 2001/12/28 12:14:27 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/evp.h>
@@ -109,7 +109,7 @@ try_agent_authentication(void)
 					  type);
 
 		packet_get_bignum(challenge, &clen);
-		packet_done();
+		packet_check_eom();
 
 		debug("Received RSA challenge from server.");
 
@@ -243,7 +243,7 @@ try_rsa_authentication(int idx)
 	if ((challenge = BN_new()) == NULL)
 		fatal("try_rsa_authentication: BN_new failed");
 	packet_get_bignum(challenge, &clen);
-	packet_done();
+	packet_check_eom();
 
 	debug("Received RSA challenge from server.");
 
@@ -357,7 +357,7 @@ try_rhosts_rsa_authentication(const char *local_user, Key * host_key)
 	if ((challenge = BN_new()) == NULL)
 		fatal("try_rhosts_rsa_authentication: BN_new failed");
 	packet_get_bignum(challenge, &clen);
-	packet_done();
+	packet_check_eom();
 
 	debug("Received RSA challenge for host key from server.");
 
@@ -464,7 +464,7 @@ try_krb4_authentication(void)
 		memcpy(auth.dat, reply, auth.length);
 		xfree(reply);
 
-		packet_done();
+		packet_check_eom();
 
 		/*
 		 * If his response isn't properly encrypted with the session
@@ -573,7 +573,7 @@ try_krb5_authentication(krb5_context *context, krb5_auth_context *auth_context)
 
 		/* Get server's response. */
 		ap.data = packet_get_string((unsigned int *) &ap.length);
-		packet_done();
+		packet_check_eom();
 		/* XXX je to dobre? */
 
 		problem = krb5_rd_rep(*context, *auth_context, &ap, &reply);
@@ -838,7 +838,7 @@ try_challenge_response_authentication(void)
 			return 0;
 		}
 		challenge = packet_get_string(&clen);
-		packet_done();
+		packet_check_eom();
 		snprintf(prompt, sizeof prompt, "%s%s", challenge,
 		    strchr(challenge, '\n') ? "" : "\nResponse: ");
 		xfree(challenge);
@@ -964,7 +964,7 @@ ssh_kex(char *host, struct sockaddr *hostaddr)
 
 	supported_ciphers = packet_get_int();
 	supported_authentications = packet_get_int();
-	packet_done();
+	packet_check_eom();
 
 	debug("Received server public key (%d bits) and host key (%d bits).",
 	    BN_num_bits(server_key->rsa->n), BN_num_bits(host_key->rsa->n));

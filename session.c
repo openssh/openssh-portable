@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.115 2001/12/27 20:39:58 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.116 2001/12/28 12:14:27 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -255,7 +255,7 @@ do_authenticated1(Authctxt *authctxt)
 		switch (type) {
 		case SSH_CMSG_REQUEST_COMPRESSION:
 			compression_level = packet_get_int();
-			packet_done();
+			packet_check_eom();
 			if (compression_level < 1 || compression_level > 9) {
 				packet_send_debug("Received illegal compression level %d.",
 				    compression_level);
@@ -286,7 +286,7 @@ do_authenticated1(Authctxt *authctxt)
 			} else {
 				s->screen = 0;
 			}
-			packet_done();
+			packet_check_eom();
 			success = session_setup_x11fwd(s);
 			if (!success) {
 				xfree(s->auth_proto);
@@ -330,7 +330,7 @@ do_authenticated1(Authctxt *authctxt)
 				verbose("Kerberos TGT passing disabled.");
 			} else {
 				char *kdata = packet_get_string(&dlen);
-				packet_done();
+				packet_check_eom();
 
 				/* XXX - 0x41, see creds_to_radix version */
 				if (kdata[0] != 0x41) {
@@ -364,7 +364,7 @@ do_authenticated1(Authctxt *authctxt)
 			} else {
 				/* Accept AFS token. */
 				char *token = packet_get_string(&dlen);
-				packet_done();
+				packet_check_eom();
 
 				if (auth_afs_token(s->authctxt, token))
 					success = 1;
@@ -386,7 +386,7 @@ do_authenticated1(Authctxt *authctxt)
 			} else {
 				do_exec(s, NULL);
 			}
-			packet_done();
+			packet_check_eom();
 			session_close(s);
 			return;
 
@@ -1575,7 +1575,7 @@ session_window_change_req(Session *s)
 	s->row = packet_get_int();
 	s->xpixel = packet_get_int();
 	s->ypixel = packet_get_int();
-	packet_done();
+	packet_check_eom();
 	pty_change_window_size(s->ptyfd, s->row, s->col, s->xpixel, s->ypixel);
 	return 1;
 }
@@ -1640,7 +1640,7 @@ session_pty_req(Session *s)
 	/* Set window size from the packet. */
 	pty_change_window_size(s->ptyfd, s->row, s->col, s->xpixel, s->ypixel);
 
-	packet_done();
+	packet_check_eom();
 	session_proctitle(s);
 	return 1;
 }
@@ -1654,7 +1654,7 @@ session_subsystem_req(Session *s)
 	char *cmd, *subsys = packet_get_string(&len);
 	int i;
 
-	packet_done();
+	packet_check_eom();
 	log("subsystem request for %s", subsys);
 
 	for (i = 0; i < options.num_subsystems; i++) {
@@ -1689,7 +1689,7 @@ session_x11_req(Session *s)
 	s->auth_proto = packet_get_string(NULL);
 	s->auth_data = packet_get_string(NULL);
 	s->screen = packet_get_int();
-	packet_done();
+	packet_check_eom();
 
 	success = session_setup_x11fwd(s);
 	if (!success) {
@@ -1704,7 +1704,7 @@ session_x11_req(Session *s)
 static int
 session_shell_req(Session *s)
 {
-	packet_done();
+	packet_check_eom();
 	do_exec(s, NULL);
 	return 1;
 }
@@ -1714,7 +1714,7 @@ session_exec_req(Session *s)
 {
 	u_int len;
 	char *command = packet_get_string(&len);
-	packet_done();
+	packet_check_eom();
 	do_exec(s, command);
 	xfree(command);
 	return 1;
@@ -1724,7 +1724,7 @@ static int
 session_auth_agent_req(Session *s)
 {
 	static int called = 0;
-	packet_done();
+	packet_check_eom();
 	if (no_agent_forwarding_flag) {
 		debug("session_auth_agent_req: no_agent_forwarding_flag");
 		return 0;

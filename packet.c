@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.78 2001/12/27 20:39:58 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.79 2001/12/28 12:14:27 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -632,7 +632,7 @@ packet_read_seqnr(int *payload_len_ptr, u_int32_t *seqnr_p)
 		    || type == SSH_SMSG_FAILURE
 		    || type == SSH_CMSG_EOF
 		    || type == SSH_CMSG_EXIT_CONFIRMATION))
-			packet_done();
+			packet_check_eom();
 		/* If we got a packet, return it. */
 		if (type != SSH_MSG_NONE) {
 			xfree(setp);

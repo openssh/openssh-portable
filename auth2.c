@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.78 2001/12/20 22:50:24 djm Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.79 2001/12/28 12:14:27 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -146,7 +146,7 @@ input_service_request(int type, int plen, u_int32_t seq, void *ctxt)
 	u_int len;
 	int accept = 0;
 	char *service = packet_get_string(&len);
-	packet_done();
+	packet_check_eom();
 
 	if (authctxt == NULL)
 		fatal("input_service_request: no authctxt");
@@ -328,7 +328,7 @@ userauth_none(Authctxt *authctxt)
 	Authmethod *m = authmethod_lookup("none");
 	if (m != NULL)
 		m->enabled = NULL;
-	packet_done();
+	packet_check_eom();
 	userauth_banner();
 
 	if (authctxt->valid == 0)
@@ -358,7 +358,7 @@ userauth_passwd(Authctxt *authctxt)
 	if (change)
 		log("password change not supported");
 	password = packet_get_string(&len);
-	packet_done();
+	packet_check_eom();
 	if (authctxt->valid &&
 #ifdef HAVE_CYGWIN
 	    check_nt_auth(1, authctxt->pw) &&
@@ -384,7 +384,7 @@ userauth_kbdint(Authctxt *authctxt)
 
 	lang = packet_get_string(NULL);
 	devs = packet_get_string(NULL);
-	packet_done();
+	packet_check_eom();
 
 	debug("keyboard-interactive devs %s", devs);
 
@@ -444,7 +444,7 @@ userauth_pubkey(Authctxt *authctxt)
 	if (key != NULL) {
 		if (have_sig) {
 			sig = packet_get_string(&slen);
-			packet_done();
+			packet_check_eom();
 			buffer_init(&b);
 			if (datafellows & SSH_OLD_SESSIONID) {
 				buffer_append(&b, session_id2, session_id2_len);
@@ -477,7 +477,7 @@ userauth_pubkey(Authctxt *authctxt)
 			xfree(sig);
 		} else {
 			debug("test whether pkalg/pkblob are acceptable");
-			packet_done();
+			packet_check_eom();
 
 			/* XXX fake reply and always send PK_OK ? */
 			/*

@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.151 2001/12/27 20:39:58 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.152 2001/12/28 12:14:27 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1748,7 +1748,7 @@ channel_input_data(int type, int plen, u_int32_t seq, void *ctxt)
 		}
 		c->local_window -= data_len;
 	}
-	packet_done();
+	packet_check_eom();
 	buffer_append(&c->output, data, data_len);
 	xfree(data);
 }
@@ -1780,7 +1780,7 @@ channel_input_extended_data(int type, int plen, u_int32_t seq, void *ctxt)
 		return;
 	}
 	data = packet_get_string(&data_len);
-	packet_done();
+	packet_check_eom();
 	if (data_len > c->local_window) {
 		log("channel %d: rcvd too much extended_data %d, win %d",
 		    c->self, data_len, c->local_window);
@@ -1800,7 +1800,7 @@ channel_input_ieof(int type, int plen, u_int32_t seq, void *ctxt)
 	Channel *c;
 
 	id = packet_get_int();
-	packet_done();
+	packet_check_eom();
 	c = channel_lookup(id);
 	if (c == NULL)
 		packet_disconnect("Received ieof for nonexistent channel %d.", id);
@@ -1821,7 +1821,7 @@ channel_input_close(int type, int plen, u_int32_t seq, void *ctxt)
 	Channel *c;
 
 	id = packet_get_int();
-	packet_done();
+	packet_check_eom();
 	c = channel_lookup(id);
 	if (c == NULL)
 		packet_disconnect("Received close for nonexistent channel %d.", id);
@@ -1858,7 +1858,7 @@ channel_input_oclose(int type, int plen, u_int32_t seq, void *ctxt)
 	int id = packet_get_int();
 	Channel *c = channel_lookup(id);
 
-	packet_done();
+	packet_check_eom();
 	if (c == NULL)
 		packet_disconnect("Received oclose for nonexistent channel %d.", id);
 	chan_rcvd_oclose(c);
@@ -1870,7 +1870,7 @@ channel_input_close_confirmation(int type, int plen, u_int32_t seq, void *ctxt)
 	int id = packet_get_int();
 	Channel *c = channel_lookup(id);
 
-	packet_done();
+	packet_check_eom();
 	if (c == NULL)
 		packet_disconnect("Received close confirmation for "
 		    "out-of-range channel %d.", id);
@@ -1908,7 +1908,7 @@ channel_input_open_confirmation(int type, int plen, u_int32_t seq, void *ctxt)
 		debug("channel %d: open confirm rwindow %d rmax %d", c->self,
 		    c->remote_window, c->remote_maxpacket);
 	}
-	packet_done();
+	packet_check_eom();
 }
 
 static char *
@@ -1953,7 +1953,7 @@ channel_input_open_failure(int type, int plen, u_int32_t seq, void *ctxt)
 		if (lang != NULL)
 			xfree(lang);
 	}
-	packet_done();
+	packet_check_eom();
 	/* Free the channel.  This will also close the socket. */
 	channel_free(c);
 }
@@ -2002,7 +2002,7 @@ channel_input_window_adjust(int type, int plen, u_int32_t seq, void *ctxt)
 		return;
 	}
 	adjust = packet_get_int();
-	packet_done();
+	packet_check_eom();
 	debug2("channel %d: rcvd adjust %d", id, adjust);
 	c->remote_window += adjust;
 }
@@ -2024,7 +2024,7 @@ channel_input_port_open(int type, int plen, u_int32_t seq, void *ctxt)
 	} else {
 		originator_string = xstrdup("unknown (remote did not supply name)");
 	}
-	packet_done();
+	packet_check_eom();
 	sock = channel_connect_to(host, host_port);
 	if (sock != -1) {
 		c = channel_new("connected socket",
@@ -2630,7 +2630,7 @@ x11_input_open(int type, int plen, u_int32_t seq, void *ctxt)
 	} else {
 		remote_host = xstrdup("unknown (remote did not supply name)");
 	}
-	packet_done();
+	packet_check_eom();
 
 	/* Obtain a connection to the real X display. */
 	sock = x11_connect_display();
@@ -2881,7 +2881,7 @@ auth_input_open_request(int type, int plen, u_int32_t seq, void *ctxt)
 
 	/* Read the remote channel number from the message. */
 	remote_id = packet_get_int();
-	packet_done();
+	packet_check_eom();
 
 	/*
 	 * Get a connection to the local authentication agent (this may again

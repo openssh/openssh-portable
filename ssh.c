@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.154 2001/12/27 20:39:58 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.155 2001/12/28 12:14:27 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -976,7 +976,7 @@ ssh_session(void)
 
 		/* Read response from the server. */
 		type = packet_read(&plen);
-		packet_done();
+		packet_check_eom();
 		if (type != SSH_SMSG_SUCCESS)
 			log("Warning: Remote host denied authentication agent forwarding.");
 	}
@@ -1023,7 +1023,7 @@ client_subsystem_reply(int type, int plen, u_int32_t seq, void *ctxt)
 	len = buffer_len(&command);
 	if (len > 900)
 		len = 900;
-	packet_done();
+	packet_check_eom();
 	if (type == SSH2_MSG_CHANNEL_FAILURE)
 		fatal("Request for subsystem '%.*s' failed on channel %d",
 		    len, (u_char *)buffer_ptr(&command), id);

@@ -43,7 +43,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ttymodes.c,v 1.15 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: ttymodes.c,v 1.16 2001/12/27 20:39:58 markus Exp $");
 
 #include "packet.h"
 #include "log.h"
@@ -422,7 +422,6 @@ tty_parse_modes(int fd, int *n_bytes_ptr)
 					 * more coming after the mode data.
 					 */
 					log("parse_tty_modes: unknown opcode %d", opcode);
-					packet_integrity_check(0, 1, SSH_CMSG_REQUEST_PTY);
 					goto set;
   				}
 			} else {

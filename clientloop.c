@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.92 2001/12/27 20:39:58 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.93 2001/12/28 12:14:27 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1012,7 +1012,7 @@ client_input_stdout_data(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	u_int data_len;
 	char *data = packet_get_string(&data_len);
-	packet_done();
+	packet_check_eom();
 	buffer_append(&stdout_buffer, data, data_len);
 	memset(data, 0, data_len);
 	xfree(data);
@@ -1022,7 +1022,7 @@ client_input_stderr_data(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	u_int data_len;
 	char *data = packet_get_string(&data_len);
-	packet_done();
+	packet_check_eom();
 	buffer_append(&stderr_buffer, data, data_len);
 	memset(data, 0, data_len);
 	xfree(data);
@@ -1031,7 +1031,7 @@ static void
 client_input_exit_status(int type, int plen, u_int32_t seq, void *ctxt)
 {
 	exit_status = packet_get_int();
-	packet_done();
+	packet_check_eom();
 	/* Acknowledge the exit. */
 	packet_start(SSH_CMSG_EXIT_CONFIRMATION);
 	packet_send();
@@ -1057,7 +1057,7 @@ client_request_forwarded_tcpip(const char *request_type, int rchan)
 	listen_port = packet_get_int();
 	originator_address = packet_get_string(NULL);
 	originator_port = packet_get_int();
-	packet_done();
+	packet_check_eom();
 
 	debug("client_request_forwarded_tcpip: listen %s port %d, originator %s port %d",
 	    listen_address, listen_port, originator_address, originator_port);
@@ -1101,7 +1101,7 @@ client_request_x11(const char *request_type, int rchan)
 	} else {
 		originator_port = packet_get_int();
 	}
-	packet_done();
+	packet_check_eom();
 	/* XXX check permission */
 	debug("client_request_x11: request from %s %d", originator,
 	    originator_port);
@@ -1226,7 +1226,7 @@ client_input_channel_req(int type, int plen, u_int32_t seq, void *ctxt)
 	} else if (strcmp(rtype, "exit-status") == 0) {
 		success = 1;
 		exit_status = packet_get_int();
-		packet_done();
+		packet_check_eom();
 	}
 	if (reply) {
 		packet_start(success ?

@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kexgex.c,v 1.12 2001/12/27 19:37:23 markus Exp $");
+RCSID("$OpenBSD: kexgex.c,v 1.13 2001/12/28 12:14:27 markus Exp $");
 
 #include <openssl/bn.h>
 
@@ -146,7 +146,7 @@ kexgex_client(Kex *kex)
 	if ((g = BN_new()) == NULL)
 		fatal("BN_new");
 	packet_get_bignum2(g, &dlen);
-	packet_done();
+	packet_check_eom();
 
 	if (BN_num_bits(p) < min || BN_num_bits(p) > max)
 		fatal("DH_GEX group out of range: %d !< %d !< %d",
@@ -196,7 +196,7 @@ kexgex_client(Kex *kex)
 
 	/* signed H */
 	signature = packet_get_string(&slen);
-	packet_done();
+	packet_check_eom();
 
 	if (!dh_pub_is_valid(dh, dh_server_pub))
 		packet_disconnect("bad server public DH value");
@@ -289,7 +289,7 @@ kexgex_server(Kex *kex)
 	default:
 		fatal("protocol error during kex, no DH_GEX_REQUEST: %d", type);
 	}
-	packet_done();
+	packet_check_eom();
 
 	if (max < min || nbits < min || max < nbits)
 		fatal("DH_GEX_REQUEST, bad parameters: %d !< %d !< %d",
