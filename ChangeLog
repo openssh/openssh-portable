@@ -39,6 +39,9 @@
    - mouring@cvs.openbsd.org 2003/05/15 04:07:12
      [sftp-cmds.sh]
      Advanced put/get testing for sftp.  OK @djm
+   - markus@cvs.openbsd.org 2003/06/12 15:40:01
+     [try-ciphers.sh]
+     add ctr
 
 20030614
  - (djm) Update license on fake-rfc2553.[ch]; ok itojun@
@@ -554,4 +557,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2814 2003/06/18 12:41:41 dtucker Exp $
+$Id: ChangeLog,v 1.2815 2003/06/18 12:43:13 dtucker Exp $
