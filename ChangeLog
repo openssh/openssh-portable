@@ -19,6 +19,18 @@
    - markus@cvs.openbsd.org 2003/04/07 08:29:57
      [monitor_wrap.c]
      typo: get correct counters; introduced during rekeying change.
+   - millert@cvs.openbsd.org 2003/04/07 21:58:05
+     [progressmeter.c]
+     The UCB copyright here is incorrect.  This code did not originate
+     at UCB, it was written by Luke Mewburn.  Updated the copyright at
+     the author's request.  markus@ OK
+   - itojun@cvs.openbsd.org 2003/04/08 20:21:29
+     [*.c *.h]
+     rename log() into logit() to avoid name conflict.  markus ok, from
+     netbsd
+     - (djm) XXX - Performed locally using:
+       "perl -p -i -e 's/(\s|^)log\(/$1logit\(/g' *.c *.h"
+   - (djm) Fix up missing include for packet.c
 
 20030402
  - (bal) if IP_TOS is not found or broken don't try to compile in
@@ -1321,4 +1333,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2655 2003/04/09 10:51:24 djm Exp $
+$Id: ChangeLog,v 1.2656 2003/04/09 11:05:52 djm Exp $

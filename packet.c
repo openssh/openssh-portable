@@ -39,7 +39,7 @@
 #include "includes.h"
 RCSID("$OpenBSD: packet.c,v 1.105 2003/04/02 09:48:07 markus Exp $");
 
-#include <sys/queue.h>
+#include "openbsd-compat/sys-queue.h"
 
 #include "xmalloc.h"
 #include "buffer.h"
