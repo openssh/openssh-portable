@@ -16,6 +16,10 @@
      [session.c]
      standardise arguments to auth methods - they should all take authctxt.
      check authctxt->valid rather then pw != NULL; ok markus@
+   - jakob@cvs.openbsd.org 2003/11/08 16:02:40
+     [auth1.c]
+     remove unused variable (pw). ok djm@
+     (id sync only - still used in portable)
 
 20031115
  - (dtucker) [regress/agent-ptrace.sh] Test for GDB output from Solaris and
@@ -1436,4 +1440,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3101 2003/11/17 10:13:40 djm Exp $
+$Id: ChangeLog,v 1.3102 2003/11/17 10:16:55 djm Exp $
