@@ -54,7 +54,7 @@ extern void ssh_rijndael_iv(EVP_CIPHER_CTX *, int, u_char *, u_int);
 #endif
 
 #if !defined(EVP_CTRL_SET_ACSS_MODE)
-# if (OPENSSL_VERSION_NUMBER >= 0x00906000L)
+# if (OPENSSL_VERSION_NUMBER >= 0x00907000L)
 extern const EVP_CIPHER *evp_acss(void);
 #  define EVP_acss evp_acss
 #  define EVP_CTRL_SET_ACSS_MODE xxx	/* used below */
