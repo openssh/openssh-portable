@@ -55,10 +55,10 @@
      [auth1.c auth-rsa.c channels.c clientloop.c packet.c packet.h]
      [serverloop.c session.c ssh.c sshconnect1.c sshd.c ttymodes.c]
      get rid of packet_integrity_check, use packet_done() instead.
-   - markus@cvs.openbsd.org 2001/12/27 20:39:58
-     [auth1.c auth-rsa.c channels.c clientloop.c packet.c packet.h]
-     [serverloop.c session.c ssh.c sshconnect1.c sshd.c ttymodes.c]
-     get rid of packet_integrity_check, use packet_done() instead.
+   - markus@cvs.openbsd.org 2001/12/28 12:14:27
+     [auth1.c auth2.c auth2-chall.c auth-rsa.c channels.c clientloop.c kex.c kexdh.c kexgex.c packet.c packet.h serverloop.c session.c ssh.c sshconnect1.c sshconnect2.c sshd.c]
+     s/packet_done/packet_check_eom/ (end-of-message); ok djm@
+
 
 20020121
  - (djm) Rework ssh-rand-helper:
@@ -7206,4 +7206,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1739 2002/01/22 12:12:11 djm Exp $
+$Id: ChangeLog,v 1.1740 2002/01/22 12:14:10 djm Exp $
