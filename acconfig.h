@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.117 2001/09/20 19:43:41 stevesk Exp $ */
+/* $Id: acconfig.h,v 1.118 2001/10/22 00:53:59 tim Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -251,7 +251,6 @@
 #undef HAVE_INT64_T
 #undef HAVE_U_INT64_T
 #undef HAVE_U_CHAR
-#undef HAVE_SOCKLEN_T
 #undef HAVE_SIZE_T
 #undef HAVE_SSIZE_T
 #undef HAVE_CLOCK_T

@@ -1,6 +1,7 @@
-# $Id: configure.in,v 1.314 2001/09/25 06:39:35 djm Exp $
+# $Id: configure.in,v 1.315 2001/10/22 00:53:59 tim Exp $
 
-AC_INIT(ssh.c)
+AC_INIT
+AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
 AC_PROG_CC
@@ -71,8 +72,6 @@ case "$host" in
 	AC_DEFINE(IPV4_DEFAULT)
 	AC_DEFINE(IP_TOS_IS_BROKEN)
 	AC_DEFINE(NO_X11_UNIX_SOCKETS)
-	no_libsocket=1
-	no_libnsl=1
 	;;
 *-*-dgux*)
 	AC_DEFINE(IP_TOS_IS_BROKEN)
@@ -106,8 +105,6 @@ case "$host" in
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS"
 	PATH="$PATH:/usr/etc"
-	no_libsocket=1
-	no_libnsl=1
 	AC_DEFINE(BROKEN_INET_NTOA)
 	;;
 *-*-irix6*)
@@ -118,8 +115,6 @@ case "$host" in
 	AC_DEFINE(WITH_IRIX_PROJECT)
 	AC_DEFINE(WITH_IRIX_AUDIT)
 	AC_CHECK_FUNC(jlimit_startjob, [AC_DEFINE(WITH_IRIX_JOBS)])
-	no_libsocket=1
-	no_libnsl=1
 	AC_DEFINE(BROKEN_INET_NTOA)
 	;;
 *-*-linux*)
@@ -186,7 +181,7 @@ mips-sony-bsd|mips-sony-newsos4)
 *-ncr-sysv*)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
-	LIBS="$LIBS -lc89 -lnsl -lgen -lsocket"
+	LIBS="$LIBS -lc89"
 	AC_DEFINE(HAVE_BOGUS_SYS_QUEUE_H)
 	;;
 *-sni-sysv*)
@@ -213,12 +208,11 @@ mips-sony-bsd|mips-sony-newsos4)
 *-*-sysv*)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
-	LIBS="$LIBS -lgen -lsocket"
 	;;
 *-*-sco3.2v4*)
 	CPPFLAGS="$CPPFLAGS -Dftruncate=chsize -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
-	LIBS="$LIBS -lgen -lsocket -los -lprot -lx -ltinfo -lm"
+	LIBS="$LIBS -los -lprot -lx -ltinfo -lm"
 	rsh_path="/usr/bin/rcmd"
 	RANLIB=true
 	no_dev_ptmx=1
@@ -230,6 +224,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(BROKEN_SAVED_UIDS)
 	AC_CHECK_FUNCS(getluid setluid)
 	MANTYPE=man
+	do_sco3_extra_lib_check=yes
 	;;
 *-*-sco3.2v5*)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
@@ -319,34 +314,92 @@ AC_ARG_WITH(libs,
 )
 
 AC_ARG_WITH(pcre,
-	[  --with-pcre             Override built in regex library with pcre],
+	[  --with-pcre[[=PATH]]      Override built in regex library with pcre
+                            (optionally in PATH)],
 	[
+		case "$withval" in
+		no) ;;
+		*)
+			if test "x$withval" != "xyes"; then
+				if test -d "$withval/lib"; then
+					if test -n "${need_dash_r}"; then
+						LDFLAGS="${LDFLAGS} -L$withval/lib -R$withval/lib"
+					else
+						LDFLAGS="${LDFLAGS} -L$withval/lib"
+					fi
+				else
+					if test -n "${need_dash_r}"; then
+						LDFLAGS="${LDFLAGS} -L$withval -R$withval"
+					else
+						LDFLAGS="${LDFLAGS} -L$withval"
+					fi
+				fi
+				if test -d "$withval/include"; then
+					CPPFLAGS="${CPPFLAGS} -I$withval/include"
+				else
+					CPPFLAGS="${CPPFLAGS} -I$withval"
+				fi
+			fi
 
-		AC_CHECK_LIB(pcre, pcre_info, 
-			[ 
-				AC_DEFINE(HAVE_LIBPCRE) 
-				LIBS="$LIBS -lpcreposix -lpcre" 
-				no_comp_check="yes"
-			],
-			[ AC_MSG_ERROR([*** Can not locate pcre libraries.]) ]
-		)
+			AC_CHECK_HEADER(pcreposix.h,
+				AC_CHECK_LIB(pcre, pcre_info,[
+					AC_DEFINE(HAVE_LIBPCRE)
+					LIBS="$LIBS -lpcreposix -lpcre"
+					no_comp_check=yes],
+					AC_MSG_ERROR([*** unable to locate pcre library ***])),
+				AC_MSG_ERROR([*** unable to locate pcreposix.h include file ***]))
+			;;
+		esac
 	]	
 )
 
 # Checks for libraries.
-if test -z "$no_libnsl" ; then
-	AC_CHECK_LIB(nsl, yp_match, , )
-fi
-if test -z "$no_libsocket" ; then
-	AC_CHECK_LIB(socket, main, , )
-fi
+AC_CHECK_FUNC(yp_match, , AC_CHECK_LIB(nsl, yp_match))
+AC_CHECK_FUNC(setsockopt, , AC_CHECK_LIB(socket, setsockopt))
 
 dnl SCO OS3 needs this for libwrap
-AC_CHECK_LIB(rpc, innetgr, LIBS="-lrpc -lyp -lrpc $LIBS" , , -lyp -lrpc)
+if test "x$with_tcp_wrappers" != "xno" ; then
+    if test "x$do_sco3_extra_lib_check" = "xyes" ; then
+	AC_CHECK_LIB(rpc, innetgr, LIBS="-lrpc -lyp -lrpc $LIBS" , , -lyp -lrpc)
+    fi
+fi
 
-AC_CHECK_LIB(gen, getspnam, LIBS="$LIBS -lgen")
-AC_CHECK_LIB(z, deflate, ,AC_MSG_ERROR([*** zlib missing - please install first or check config.log ***]))
-AC_CHECK_LIB(util, login, AC_DEFINE(HAVE_LIBUTIL_LOGIN) LIBS="$LIBS -lutil")
+AC_CHECK_FUNC(getspnam, ,
+	AC_CHECK_LIB(gen, getspnam, LIBS="$LIBS -lgen"))
+AC_CHECK_FUNC(login, ,
+	AC_CHECK_LIB(util, login,
+		AC_DEFINE(HAVE_LIBUTIL_LOGIN) LIBS="$LIBS -lutil"))
+
+dnl zlib is required
+AC_ARG_WITH(zlib,
+	[  --with-zlib=PATH        Use zlib in PATH],
+	[
+		if test -d "$withval/lib"; then
+			if test -n "${need_dash_r}"; then
+				LDFLAGS="${LDFLAGS} -L$withval/lib -R$withval/lib"
+			else
+				LDFLAGS="${LDFLAGS} -L$withval/lib"
+			fi
+		else
+			if test -n "${need_dash_r}"; then
+				LDFLAGS="${LDFLAGS} -L$withval -R$withval"
+			else
+				LDFLAGS="${LDFLAGS} -L$withval"
+			fi
+		fi
+		if test -d "$withval/include"; then
+			CPPFLAGS="${CPPFLAGS} -I$withval/include"
+		else
+			CPPFLAGS="${CPPFLAGS} -I$withval"
+		fi
+	]
+)
+
+AC_CHECK_HEADER(zlib.h,
+	AC_CHECK_LIB(z, gzread, ,
+		AC_MSG_ERROR([*** zlib missing. install first or check config.log ***])),
+	AC_MSG_ERROR([*** zlib missing. install first or check config.log ***]))
+
 
 # We don't want to check if we did an pcre override.
 if test -z "$no_comp_check" ; then
@@ -376,7 +429,16 @@ AC_CHECK_FUNC(utimes,
 AC_FUNC_STRFTIME
 
 # Checks for header files.
-AC_CHECK_HEADERS(bstring.h crypt.h endian.h floatingpoint.h getopt.h glob.h lastlog.h libgen.h limits.h login.h login_cap.h maillock.h netdb.h netgroup.h netinet/in_systm.h paths.h poll.h pty.h regex.h shadow.h security/pam_appl.h stdint.h strings.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h sys/poll.h sys/queue.h sys/select.h sys/stat.h sys/stropts.h sys/sysmacros.h sys/time.h sys/ttcompat.h sys/un.h stddef.h time.h ttyent.h usersec.h util.h utime.h utmp.h utmpx.h)
+AC_CHECK_HEADERS(bstring.h crypt.h endian.h floatingpoint.h \
+	getopt.h glob.h lastlog.h libgen.h limits.h login.h \
+	login_cap.h maillock.h netdb.h netgroup.h \
+	netinet/in_systm.h paths.h poll.h pty.h regex.h \
+	security/pam_appl.h shadow.h stddef.h stdint.h \
+	strings.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h \
+	sys/poll.h sys/queue.h sys/select.h sys/stat.h \
+	sys/stropts.h sys/sysmacros.h sys/time.h \
+	sys/ttcompat.h sys/un.h time.h ttyent.h usersec.h \
+	util.h utime.h utmp.h utmpx.h)
 
 # Check for ALTDIRFUNC glob() extension
 AC_MSG_CHECKING(for GLOB_ALTDIRFUNC support)
@@ -429,7 +491,8 @@ int main(void){struct dirent d;return(sizeof(d.d_name)<=sizeof(char));}
 # Check whether user wants S/Key support
 SKEY_MSG="no" 
 AC_ARG_WITH(skey,
-	[  --with-skey=PATH         Enable S/Key support],
+	[  --with-skey[[=PATH]]      Enable S/Key support
+                            (optionally in PATH)],
 	[
 		if test "x$withval" != "xno" ; then
 
@@ -452,12 +515,36 @@ AC_ARG_WITH(skey,
 )
 
 # Check whether user wants TCP wrappers support
-TCPW_MSG="no" 
+TCPW_MSG="no"
 AC_ARG_WITH(tcp-wrappers,
-	[  --with-tcp-wrappers     Enable tcpwrappers support],
+	[  --with-tcp-wrappers[[=PATH]]      Enable tcpwrappers support
+                            (optionally in PATH)],
 	[
 		if test "x$withval" != "xno" ; then
 			saved_LIBS="$LIBS"
+			saved_LDFLAGS="$LDFLAGS"
+			saved_CPPFLAGS="$CPPFLAGS"
+			if test -n "${withval}" -a "${withval}" != "yes"; then
+				if test -d "${withval}/lib"; then
+					if test -n "${need_dash_r}"; then
+						LDFLAGS="$LDFLAGS -L${withval}/lib -R${withval}/lib"
+					else
+						LDFLAGS="$LDFLAGS -L${withval}/lib"
+					fi
+				else
+					if test -n "${need_dash_r}"; then
+						LDFLAGS="$LDFLAGS -L${withval} -R${withval}"
+					else
+						LDFLAGS="$LDFLAGS -L${withval}"
+					fi
+				fi
+				if test -d "${withval}/include"; then
+					CPPFLAGS="$CPPFLAGS -I${withval}/include"
+				else
+					CPPFLAGS="$CPPFLAGS -I${withval}"
+				fi
+					TCPW_MSG="yes"
+			fi
 			LIBS="-lwrap $LIBS"
 			AC_MSG_CHECKING(for libwrap)
 			AC_TRY_LINK(
@@ -469,7 +556,7 @@ AC_ARG_WITH(tcp-wrappers,
 				[
 					AC_MSG_RESULT(yes)
 					AC_DEFINE(LIBWRAP)
-					TCPW_MSG="yes" 
+					TCPW_MSG="yes"
 				],
 				[
 					AC_MSG_ERROR([*** libwrap missing])
@@ -480,7 +567,51 @@ AC_ARG_WITH(tcp-wrappers,
 )
 
 dnl    Checks for library functions.
-AC_CHECK_FUNCS(arc4random atexit b64_ntop bcopy bindresvport_sa clock dirname fchown fchmod freeaddrinfo futimes gai_strerror getcwd getaddrinfo getgrouplist getopt getnameinfo getrlimit getrusage getttyent glob inet_aton inet_ntoa inet_ntop innetgr login_getcapbool md5_crypt memmove mkdtemp on_exit openpty readpassphrase realpath rresvport_af setdtablesize setenv setegid seteuid setlogin setproctitle setresgid setreuid setrlimit setsid setvbuf sigaction sigvec snprintf strerror strlcat strlcpy strmode strsep sysconf tcgetpgrp utimes vsnprintf vhangup waitpid _getpty __b64_ntop)
+AC_CHECK_FUNCS(arc4random atexit b64_ntop bcopy bindresvport_sa \
+	clock fchmod fchown freeaddrinfo futimes gai_strerror \
+	getaddrinfo getcwd getgrouplist getnameinfo getopt \
+	getrlimit getrusage getttyent glob inet_aton inet_ntoa \
+	inet_ntop innetgr login_getcapbool md5_crypt memmove \
+	mkdtemp on_exit openpty readpassphrase realpath \
+	rresvport_af setdtablesize setegid setenv seteuid \
+	setlogin setproctitle setresgid setreuid setrlimit \
+	setsid setvbuf sigaction sigvec snprintf strerror \
+	strlcat strlcpy strmode strsep sysconf tcgetpgrp utimes \
+	vhangup vsnprintf waitpid __b64_ntop _getpty)
+
+dnl IRIX and Solaris 2.5.1 have dirname() in libgen
+AC_CHECK_FUNCS(dirname, ,[
+	AC_CHECK_LIB(gen, dirname,[
+		AC_CACHE_CHECK([for broken dirname],
+			ac_cv_have_broken_dirname, [
+			AC_TRY_RUN(
+				[
+#include <libgen.h>
+#include <string.h>
+
+int main(int argc, char **argv) {
+    char *s, buf[32];
+
+    strncpy(buf,"/etc", 32);
+    s = dirname(buf);
+    if (s && s[0] == '\0') {
+	exit(1);
+    } else {
+	exit(0);
+    }
+}
+				],
+				[ ac_cv_have_broken_dirname="no" ],
+				[ ac_cv_have_broken_dirname="yes" ]
+			)
+		])
+		if test "x$ac_cv_have_getopt_optreset" = "xno" ; then
+			LIBS="$LIBS -lgen"
+			AC_DEFINE(HAVE_DIRNAME)
+		fi
+	])
+])
+
 dnl    Checks for time functions
 AC_CHECK_FUNCS(gettimeofday time)
 dnl    Checks for libutil functions
@@ -928,20 +1059,7 @@ if test "x$ac_cv_have_u_char" = "xyes" ; then
 	AC_DEFINE(HAVE_U_CHAR)
 fi
 
-AC_CACHE_CHECK([for socklen_t], ac_cv_have_socklen_t, [
-	AC_TRY_COMPILE(
-		[
-#include <sys/types.h>
-#include <sys/socket.h>
-		],
-		[socklen_t foo; foo = 1235;],
-		[ ac_cv_have_socklen_t="yes" ],
-		[ ac_cv_have_socklen_t="no" ]
-	)
-])
-if test "x$ac_cv_have_socklen_t" = "xyes" ; then
-	AC_DEFINE(HAVE_SOCKLEN_T)
-fi
+TYPE_SOCKLEN_T
 
 AC_CACHE_CHECK([for size_t], ac_cv_have_size_t, [
 	AC_TRY_COMPILE(
@@ -1168,7 +1286,8 @@ OSSH_CHECK_HEADER_FOR_FIELD(ut_exit, utmp.h, HAVE_EXIT_IN_UTMP)
 OSSH_CHECK_HEADER_FOR_FIELD(ut_time, utmp.h, HAVE_TIME_IN_UTMP)
 OSSH_CHECK_HEADER_FOR_FIELD(ut_time, utmpx.h, HAVE_TIME_IN_UTMPX)
 OSSH_CHECK_HEADER_FOR_FIELD(ut_tv, utmpx.h, HAVE_TV_IN_UTMPX)
-AC_STRUCT_ST_BLKSIZE
+
+AC_CHECK_MEMBERS([struct stat.st_blksize])
 
 AC_CACHE_CHECK([for ss_family field in struct sockaddr_storage],
 		ac_cv_have_ss_family_in_struct_ss, [
@@ -2045,7 +2164,8 @@ fi
 
 AC_EXEEXT
 
-AC_OUTPUT(Makefile openbsd-compat/Makefile scard/Makefile ssh_prng_cmds)
+AC_CONFIG_FILES([Makefile openbsd-compat/Makefile scard/Makefile ssh_prng_cmds])
+AC_OUTPUT
 
 # Print summary of options
 

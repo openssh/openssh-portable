@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.188 2001/10/12 09:15:28 djm Exp $
+# $Id: Makefile.in,v 1.189 2001/10/22 00:53:59 tim Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -86,8 +86,9 @@ $(SSHDOBJS): config.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
 
 LIBCOMPAT=openbsd-compat/libopenbsd-compat.a
-$(LIBCOMPAT): config.h
+$(LIBCOMPAT): always
 	(cd openbsd-compat; $(MAKE))
+always:
 
 libssh.a: $(LIBSSH_OBJS)
 	$(AR) rv $@ $(LIBSSH_OBJS)

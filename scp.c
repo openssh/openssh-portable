@@ -1040,7 +1040,7 @@ allocbuf(bp, fd, blksize)
 	int fd, blksize;
 {
 	size_t size;
-#ifdef HAVE_ST_BLKSIZE
+#ifdef HAVE_STRUCT_STAT_ST_BLKSIZE
 	struct stat stb;
 
 	if (fstat(fd, &stb) < 0) {
@@ -1052,9 +1052,9 @@ allocbuf(bp, fd, blksize)
 	else
 		size = blksize + (stb.st_blksize - blksize % stb.st_blksize) %
 		    stb.st_blksize;
-#else /* HAVE_ST_BLKSIZE */
+#else /* HAVE_STRUCT_STAT_ST_BLKSIZE */
 	size = blksize;
-#endif /* HAVE_ST_BLKSIZE */
+#endif /* HAVE_STRUCT_STAT_ST_BLKSIZE */
 	if (bp->cnt >= size)
 		return (bp);
 	if (bp->buf == NULL)

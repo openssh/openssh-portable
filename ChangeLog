@@ -1,3 +1,18 @@
+20011021
+ - (tim) [configure.in] Clean up library testing. Add optional PATH to
+	 --with-pcre, --with-zlib, and --with-tcp-wrappers. Based on
+	 patch by albert chin (china@thewrittenword.com)
+	 Re-arange AC_CHECK_HEADERS and AC_CHECK_FUNCS for eaiser reading
+	 of patches to configure.in. Replace obsolete AC_STRUCT_ST_BLKSIZE
+	 with AC_CHECK_MEMBERS. Add test for broken dirname() on
+	 Solaris 2.5.1 by Dan Astoorian <djast@cs.toronto.edu>
+	 [acconfig.h aclocal.m4 defines.h configure.in] Better socklen_t test.
+	 patch by albert chin (china@thewrittenword.com)
+	 [scp.c] Replace obsolete HAVE_ST_BLKSIZE with
+	 HAVE_STRUCT_STAT_ST_BLKSIZE.
+	 [Makefile.in] When running make in top level, always do make
+	 in openbsd-compat. patch by Dave Dykstra <dwd@bell-labs.com>
+
 20011019
  - (bal) Fixed up init.d symlink issue and piddir stuff.  Patches by
    Zoran Milojevic <Zoran.Milojevic@SS8.com> and j.petersen@msh.de 
@@ -6725,4 +6740,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1609 2001/10/19 20:36:23 mouring Exp $
+$Id: ChangeLog,v 1.1610 2001/10/22 00:53:58 tim Exp $

@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.72 2001/09/20 19:43:41 stevesk Exp $ */
+/* $Id: defines.h,v 1.73 2001/10/22 00:53:59 tim Exp $ */
 
 /* Necessary headers */
 
@@ -242,11 +242,6 @@ typedef unsigned long long int u_int64_t;
 typedef unsigned char u_char;
 # define HAVE_U_CHAR
 #endif /* HAVE_U_CHAR */
-
-#ifndef HAVE_SOCKLEN_T
-typedef unsigned int socklen_t;
-# define HAVE_SOCKLEN_T
-#endif /* HAVE_SOCKLEN_T */
 
 #ifndef HAVE_SIZE_T
 typedef unsigned int size_t;
