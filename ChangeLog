@@ -3,6 +3,8 @@
    <bent@clark.net>
  - Merge preformatted manpage patch from Andre Lucas
    <andre.lucas@dial.pipex.com>
+ - Make IPv4 use the default in RPM packages
+ - Irix uses preformatted manpages
 
 20000120
  - Don't use getaddrinfo on AIX

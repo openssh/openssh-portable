@@ -148,7 +148,8 @@ This package contains the GNOME passphrase dialog.
 
 CFLAGS="$RPM_OPT_FLAGS" \
 	./configure --prefix=/usr --sysconfdir=/etc/ssh \
-                    --with-gnome-askpass --with-tcp-wrappers
+                    --with-gnome-askpass --with-tcp-wrappers \
+                    --with-ipv4-default
 
 make
 

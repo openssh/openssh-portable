@@ -103,11 +103,13 @@ case "$host" in
 	mansubdir=cat
 	;;
 *-*-irix5*)
+	MANTYPE='$(CATMAN)'
 	no_libsocket=1
 	no_libnsl=1
 	;;
 *-*-irix6*)
-	AC_MSG_WARN([*** Irix 6.x is not tested *** ])
+	MANTYPE='$(CATMAN)'
+	AC_MSG_WARN([*** Irix 6.x is not tested, please report you experiences *** ])
 	no_libsocket=1
 	no_libnsl=1
 	;;
