@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.110 2004/02/10 02:01:14 dtucker Exp $ */
+/* $Id: defines.h,v 1.111 2004/03/04 11:59:37 dtucker Exp $ */
 
 
 /* Constants */
@@ -614,6 +614,13 @@ struct winsize {
 /* I hope that the presence of LASTLOG_FILE is enough to detect this */
 #if defined(LASTLOG_FILE) && !defined(DISABLE_LASTLOG)
 #  define USE_LASTLOG
+#endif
+
+#ifdef HAVE_OSF_SIA
+# ifdef USE_SHADOW
+#  undef USE_SHADOW
+# endif
+# define CUSTOM_SYS_AUTH_PASSWD 1
 #endif
 
 /** end of login recorder definitions */

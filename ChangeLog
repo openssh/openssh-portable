@@ -3,6 +3,9 @@
    -DUSE_POSIX_THREADS.  From antoine.verheijen at ualbert ca.  ok djm@
  - (dtucker) [auth-pam.c] Reset signal status when starting pam auth thread,
    prevent hanging during PAM keyboard-interactive authentications.  ok djm@
+ - (dtucker) [auth-passwd.c auth-sia.c auth-sia.h defines.h
+   openbsd-compat/xcrypt.c] Bug #802: Fix build error on Tru64 when
+   configured --with-osfsia.  ok djm@
 
 20040303
  - (djm) [configure.ac ssh-agent.c] Use prctl to prevent ptrace on ssh-agent
@@ -851,4 +854,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3275 2004/03/04 09:03:54 dtucker Exp $
+$Id: ChangeLog,v 1.3276 2004/03/04 11:59:36 dtucker Exp $
