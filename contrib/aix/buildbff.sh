@@ -11,10 +11,12 @@
 
 #
 # Tunable configuration settings
-# 	create a "config.local" in your build directory to override these.
+# 	create a "config.local" in your build directory or set
+#	environment variables to override these.
 #
-PERMIT_ROOT_LOGIN=no
-X11_FORWARDING=no
+[ -z "$PERMIT_ROOT_LOGIN" ] || PERMIT_ROOT_LOGIN=no
+[ -z "$X11_FORWARDING" ] || X11_FORWARDING=no
+[ -z "$AIX_SRC" ] || AIX_SRC=no
 
 umask 022
 
@@ -167,6 +169,18 @@ For the full text of the license, see /usr/lpp/openssh/LICENCE
 EOD
 
 #
+# openssh.size file allows filesystem expansion as required
+# generate list of directories containing files
+# then calculate disk usage for each directory and store in openssh.size
+#
+files=`find . -type f -print`
+dirs=`for file in $files; do dirname $file; done | sort -u`
+for dir in $dirs
+do
+	du $dir
+done > ../openssh.size
+
+#
 # Create postinstall script
 #
 cat <<EOF >>../openssh.post_i
@@ -245,14 +259,42 @@ else
 fi
 echo
 
-# Add to system startup if required
-if grep $sbindir/sshd /etc/rc.tcpip >/dev/null
+# Set startup command depending on SRC support
+if [ "$AIX_SRC" = "yes" ]
 then
-        echo "sshd found in rc.tcpip, not adding."
+	echo Creating SRC sshd subsystem.
+	rmssys -s sshd 2>&1 >/dev/null
+	mkssys -s sshd -p "$sbindir/sshd" -a '-D' -u 0 -S -n 15 -f 9 -R -G tcpip
+	startupcmd="start $sbindir/sshd \\\"\\\$src_running\\\""
+	oldstartcmd="$sbindir/sshd"
 else
-        echo >>/etc/rc.tcpip
-        echo "echo Starting sshd" >>/etc/rc.tcpip
-        echo "$sbindir/sshd" >>/etc/rc.tcpip
+	startupcmd="$sbindir/sshd"
+	oldstartcmd="start $sbindir/sshd \\\"$src_running\\\""
+fi
+
+# If migrating to or from SRC, change previous startup command
+# otherwise add to rc.tcpip
+if egrep "^\$oldstartcmd" /etc/rc.tcpip >/dev/null
+then
+	if sed "s|^\$oldstartcmd|\$startupcmd|g" /etc/rc.tcpip >/etc/rc.tcpip.new
+	then
+		chmod 0755 /etc/rc.tcpip.new
+		mv /etc/rc.tcpip /etc/rc.tcpip.old && \
+		mv /etc/rc.tcpip.new /etc/rc.tcpip
+	else
+		echo "Updating /etc/rc.tcpip failed, please check."
+	fi
+else
+	# Add to system startup if required
+	if grep "^\$startupcmd" /etc/rc.tcpip >/dev/null
+	then
+		echo "sshd found in rc.tcpip, not adding."
+	else
+		echo "Adding sshd to rc.tcpip"
+		echo >>/etc/rc.tcpip
+		echo "# Start sshd" >>/etc/rc.tcpip
+		echo "\$startupcmd" >>/etc/rc.tcpip
+	fi
 fi
 EOF
 
@@ -262,7 +304,7 @@ EOF
 echo Creating liblpp.a
 (
 	cd ..
-	for i in openssh.al openssh.copyright openssh.inventory openssh.post_i LICENCE README*
+	for i in openssh.al openssh.copyright openssh.inventory openssh.post_i openssh.size LICENCE README*
 	do
 		ar -r liblpp.a $i
 		rm $i

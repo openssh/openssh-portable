@@ -2,9 +2,9 @@
 #
 # inventory.sh
 #
-# Originall written by Ben Lindstrom, modified by Darren Tucker to use perl
+# Originally written by Ben Lindstrom, modified by Darren Tucker to use perl
 #
-# This will produced and AIX package inventory file, which looks like:
+# This will produce an AIX package inventory file, which looks like:
 #
 # /usr/local/bin:
 #          class=apply,inventory,openssh

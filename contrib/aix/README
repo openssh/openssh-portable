@@ -6,9 +6,15 @@ installable) openssh package.
 
 Directions:
 
+(optional) create config.local in your build dir
 ./configure [options]
-cd contrib/aix; ./buildbff.sh
+contrib/aix/buildbff.sh
 
+The file config.local or the environment is read to set the following options
+(default first):
+PERMIT_ROOT_LOGIN=[no|yes]
+X11_FORWARDING=[no|yes]
+AIX_SRC=[no|yes]
 
 Acknowledgements:
 
@@ -19,6 +25,8 @@ Jim Abbey's (GPL'ed) lppbuild-2.1 was used to learn how to build .bff's
 and for comparison with the output from this script, however no code
 from lppbuild is included and it is not required for operation.
 
+SRC support based on examples provided by Sandor Sklar and Maarten Kreuger.
+
 
 Other notes:
 
@@ -26,8 +34,7 @@ The script treats all packages as USR packages (not ROOT+USR when
 appropriate).  It seems to work, though......
 
 If there are any patches to this that have not yet been integrated they
-may be found at http://www.zip.com.au/~dtucker/openssh/ or
-http://home.usf.advantra.com.au/~dtucker/openssh/.
+may be found at http://www.zip.com.au/~dtucker/openssh/.
 
 
 Disclaimer:
