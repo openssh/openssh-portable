@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 ###
-### Quick usage:  mdoc2man.pl < mdoc_manpage.8 > doc_manpage.8
+### Quick usage:  mdoc2man.pl < mdoc_manpage.8 > man_manpage.8
 ###
 ###
 ###  Copyright (c) 2001 University of Illinois Board of Trustees

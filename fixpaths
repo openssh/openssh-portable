@@ -3,21 +3,17 @@
 # fixpaths  - substitute makefile variables into text files
 
 
-$usage = "Usage: $0 [-x<file dot-suffix>] [-Dstring=replacement] [[infile] ...]\n";
-
-$ext="out";
+$usage = "Usage: $0 [-Dstring=replacement] [[infile] ...]\n";
 
 if (!defined(@ARGV)) { die ("$usage"); }
 
 # read in the command line and get some definitions
 while ($_=$ARGV[0], /^-/) {
-  if (/^-[Dx]/) {
+  if (/^-D/) {
     # definition
     shift(@ARGV);
     if ( /-D(.*)=(.*)/ ) {
       $def{"$1"}=$2;
-    } elsif ( /-x\s*(\w+)/ ) {
-	$ext=$1;
     } else {
       die ("$usage$0: error in command line arguments.\n");
     }
@@ -34,15 +30,13 @@ if (!defined(%def)) {
 for $f (@ARGV) {
 
   $f =~ /(.*\/)*(.*)$/;
-  $of = $2.".$ext"; 
 
   open(IN, "<$f")          || die ("$0: input file $f missing!\n");
-  open(OUT, ">$of")        || die ("$0: cannot create output file $of: $!\n");
   while (<IN>) {
     for $s (keys(%def)) {
       s#$s#$def{$s}#;
     } # for $s
-    print OUT;
+    print;
   } # while <IN>
 } # for $f
 

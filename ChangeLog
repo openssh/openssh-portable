@@ -6,6 +6,8 @@
    - markus@cvs.openbsd.org 2001/04/15 08:43:47
      [dh.c sftp-glob.c sftp-glob.h sftp-int.c sshconnect2.c sshd.c]
      some unused variable and typos; from tomh@po.crl.go.jp
+ - (djm) Convert mandoc manpages to man automatically. Patch from Mark D.
+   Roth <roth+openssh@feep.net>
 
 20010415
  - OpenBSD CVS Sync
@@ -5091,4 +5093,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1118 2001/04/15 14:27:16 mouring Exp $
+$Id: ChangeLog,v 1.1119 2001/04/16 00:41:46 djm Exp $

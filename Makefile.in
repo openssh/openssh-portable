@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.167 2001/04/14 23:21:51 mouring Exp $
+# $Id: Makefile.in,v 1.168 2001/04/16 00:41:46 djm Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -6,7 +6,6 @@ bindir=@bindir@
 sbindir=@sbindir@
 libexecdir=@libexecdir@
 mandir=@mandir@
-mansubdir=@mansubdir@
 sysconfdir=@sysconfdir@
 piddir=@piddir@
 srcdir=@srcdir@
@@ -50,9 +49,8 @@ SSHOBJS= ssh.o sshconnect.o sshconnect1.o sshconnect2.o sshtty.o readconf.o clie
 
 SSHDOBJS= sshd.o auth.o auth1.o auth2.o auth-chall.o auth2-chall.o auth-rhosts.o auth-options.o auth-krb4.o auth-pam.o auth2-pam.o auth-passwd.o auth-rsa.o auth-rh-rsa.o auth-sia.o sshpty.o sshlogin.o loginrec.o servconf.o serverloop.o md5crypt.o session.o groupaccess.o
 
-TROFFMAN	= scp.1 ssh-add.1 ssh-agent.1 ssh-keygen.1 ssh-keyscan.1 ssh.1 sshd.8 sftp-server.8 sftp.1
-CATMAN		= scp.0 ssh-add.0 ssh-agent.0 ssh-keygen.0 ssh-keyscan.0 ssh.0 sshd.0 sftp-server.0 sftp.0
-MANPAGES	= @MANTYPE@
+MANPAGES	= scp.1.out ssh-add.1.out ssh-agent.1.out ssh-keygen.1.out ssh-keyscan.1.out ssh.1.out sshd.8.out sftp-server.8.out sftp.1.out
+MANTYPE		= @MANTYPE@
 
 CONFIGFILES=sshd_config ssh_config primes
 
@@ -73,9 +71,7 @@ PATHSUBS	= \
 
 FIXPATHSCMD	= $(PERL) $(srcdir)/fixpaths $(PATHSUBS)
 
-all: $(CONFIGFILES) $(TARGETS) 
-
-manpages: $(MANPAGES)
+all: $(CONFIGFILES) $(MANPAGES) $(TARGETS)
 
 $(LIBSSH_OBJS): config.h
 $(SSHOBJS): config.h
@@ -123,8 +119,20 @@ sftp$(EXEEXT): $(LIBCOMPAT) libssh.a sftp.o sftp-client.o sftp-int.o sftp-common
 logintest: logintest.o $(LIBCOMPAT) libssh.a loginrec.o
 	$(LD) -o $@ logintest.o $(LDFLAGS) loginrec.o -lopenbsd-compat -lssh $(LIBS)
 
-$(MANPAGES) $(CONFIGFILES)::
-	$(FIXPATHSCMD) $(srcdir)/$@
+$(MANPAGES): %.out: %
+	if test "$(MANTYPE)" = "cat"; then \
+		manpage=`echo $< | sed 's/\.[1-9]$$/\.0/'`; \
+	else \
+		manpage=$<; \
+	fi; \
+	if test "$(MANTYPE)" = "man"; then \
+		$(FIXPATHSCMD) $(srcdir)/$${manpage} | $(PERL) $(srcdir)/mdoc2man.pl > $@; \
+	else \
+		$(FIXPATHSCMD) $(srcdir)/$${manpage} > $@; \
+	fi
+
+$(CONFIGFILES)::
+	$(FIXPATHSCMD) $(srcdir)/$@ > $@.out
 
 clean:
 	(cd openbsd-compat; $(MAKE) clean)
@@ -151,14 +159,12 @@ catman-do:
 distprep: catman-do
 	autoreconf
 
-install: manpages $(TARGETS) install-files host-key
+install: $(TARGETS) install-files host-key
 
 install-files:
 	$(srcdir)/mkinstalldirs $(DESTDIR)$(bindir)
 	$(srcdir)/mkinstalldirs $(DESTDIR)$(sbindir)
 	$(srcdir)/mkinstalldirs $(DESTDIR)$(mandir)
-	$(srcdir)/mkinstalldirs $(DESTDIR)$(mandir)/$(mansubdir)1
-	$(srcdir)/mkinstalldirs $(DESTDIR)$(mandir)/$(mansubdir)8
 	$(srcdir)/mkinstalldirs $(DESTDIR)$(libexecdir)
 	$(INSTALL) -m $(SSH_MODE) -s ssh $(DESTDIR)$(bindir)/ssh
 	$(INSTALL) -m 0755 -s scp $(DESTDIR)$(bindir)/scp
@@ -169,15 +175,22 @@ install-files:
 	$(INSTALL) -m 0755 -s sshd $(DESTDIR)$(sbindir)/sshd
 	@NO_SFTP@$(INSTALL) -m 0755 -s sftp $(DESTDIR)$(bindir)/sftp
 	@NO_SFTP@$(INSTALL) -m 0755 -s sftp-server $(DESTDIR)$(SFTP_SERVER)
-	$(INSTALL) -m 644 ssh.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh.1
-	$(INSTALL) -m 644 scp.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/scp.1
-	$(INSTALL) -m 644 ssh-add.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-add.1
-	$(INSTALL) -m 644 ssh-agent.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-agent.1
-	$(INSTALL) -m 644 ssh-keygen.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-keygen.1
-	$(INSTALL) -m 644 ssh-keyscan.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-keyscan.1
-	$(INSTALL) -m 644 sshd.[08].out $(DESTDIR)$(mandir)/$(mansubdir)8/sshd.8
-	@NO_SFTP@$(INSTALL) -m 644 sftp.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/sftp.1
-	@NO_SFTP@$(INSTALL) -m 644 sftp-server.[08].out $(DESTDIR)$(mandir)/$(mansubdir)8/sftp-server.8
+	if test "$(MANTYPE)" = "doc"; then \
+		mansubdir="man"; \
+	else \
+		mansubdir="$(MANTYPE)"; \
+	fi; \
+	$(srcdir)/mkinstalldirs $(DESTDIR)$(mandir)/$${mansubdir}1; \
+	$(srcdir)/mkinstalldirs $(DESTDIR)$(mandir)/$${mansubdir}8; \
+	$(INSTALL) -m 644 ssh.1.out $(DESTDIR)$(mandir)/$${mansubdir}1/ssh.1; \
+	$(INSTALL) -m 644 scp.1.out $(DESTDIR)$(mandir)/$${mansubdir}1/scp.1; \
+	$(INSTALL) -m 644 ssh-add.1.out $(DESTDIR)$(mandir)/$${mansubdir}1/ssh-add.1; \
+	$(INSTALL) -m 644 ssh-agent.1.out $(DESTDIR)$(mandir)/$${mansubdir}1/ssh-agent.1; \
+	$(INSTALL) -m 644 ssh-keygen.1.out $(DESTDIR)$(mandir)/$${mansubdir}1/ssh-keygen.1; \
+	$(INSTALL) -m 644 ssh-keyscan.1.out $(DESTDIR)$(mandir)/$${mansubdir}1/ssh-keyscan.1; \
+	$(INSTALL) -m 644 sshd.8.out $(DESTDIR)$(mandir)/$${mansubdir}8/sshd.8; \
+	@NO_SFTP@$(INSTALL) -m 644 sftp.1.out $(DESTDIR)$(mandir)/$${mansubdir}1/sftp.1; \
+	@NO_SFTP@$(INSTALL) -m 644 sftp-server.8.out $(DESTDIR)$(mandir)/$${mansubdir}8/sftp-server.8;
 	-rm -f $(DESTDIR)$(bindir)/slogin
 	ln -s ssh$(EXEEXT) $(DESTDIR)$(bindir)/slogin
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/slogin.1

@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.275 2001/04/12 21:35:53 mouring Exp $
+# $Id: configure.in,v 1.276 2001/04/16 00:41:46 djm Exp $
 
 AC_INIT(ssh.c)
 
@@ -58,12 +58,8 @@ case "$host" in
 	fi
 	AC_CHECK_FUNC(authenticate, [AC_DEFINE(WITH_AIXAUTHENTICATE)])
 	AC_DEFINE(BROKEN_GETADDRINFO)
-	MANTYPE='$(CATMAN)'
-	mansubdir=cat
 	dnl AIX handles lastlog as part of its login message
 	AC_DEFINE(DISABLE_LASTLOG)
-	MANTYPE='$(CATMAN)'
-	mansubdir=cat
 	;;
 *-*-cygwin*)
 	LIBS="$LIBS -lregex /usr/lib/textmode.o"
@@ -74,9 +70,11 @@ case "$host" in
 	AC_DEFINE(NO_X11_UNIX_SOCKETS)
 	no_libsocket=1
 	no_libnsl=1
+	MANTYPE=doc
 	;;
 *-*-dgux*)
 	AC_DEFINE(IP_TOS_IS_BROKEN)
+	MANTYPE=doc
 	;;
 *-*-hpux10*)
 	if test -z "$GCC"; then
@@ -89,8 +87,6 @@ case "$host" in
 	AC_DEFINE(DISABLE_UTMP)
 	AC_DEFINE(SPT_TYPE,SPT_PSTAT)
 	LIBS="$LIBS -lsec"
-	MANTYPE='$(CATMAN)'
-	mansubdir=cat
 	;;
 *-*-hpux11*)
 	CPPFLAGS="$CPPFLAGS -D_HPUX_SOURCE"
@@ -101,14 +97,11 @@ case "$host" in
 	AC_DEFINE(DISABLE_UTMP)
 	AC_DEFINE(SPT_TYPE,SPT_PSTAT)
 	LIBS="$LIBS -lsec"
-	MANTYPE='$(CATMAN)'
-	mansubdir=cat
 	;;
 *-*-irix5*)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS"
 	PATH="$PATH:/usr/etc"
-	MANTYPE='$(CATMAN)'
 	no_libsocket=1
 	no_libnsl=1
 	AC_DEFINE(BROKEN_INET_NTOA)
@@ -117,7 +110,6 @@ case "$host" in
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS"
 	PATH="$PATH:/usr/etc"
-	MANTYPE='$(CATMAN)'
 	AC_DEFINE(WITH_IRIX_ARRAY)
 	AC_DEFINE(WITH_IRIX_PROJECT)
 	AC_DEFINE(WITH_IRIX_AUDIT)
@@ -125,7 +117,6 @@ case "$host" in
 	no_libsocket=1
 	no_libnsl=1
 	AC_DEFINE(BROKEN_INET_NTOA)
-	mansubdir=man
 	;;
 *-*-linux*)
 	no_dev_ptmx=1
@@ -133,6 +124,7 @@ case "$host" in
 	AC_DEFINE(DONT_TRY_OTHER_AF)
 	AC_DEFINE(PAM_TTY_KLUDGE)
 	inet6_default_4in6=yes
+	MANTYPE=doc
 	;;
 mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(HAVE_NEWS4)
@@ -140,12 +132,15 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_CHECK_LIB(iberty, xatexit, AC_DEFINE(HAVE_XATEXIT),
 		AC_MSG_ERROR([*** libiberty missing - please install first or check config.log ***])
         )
+	MANTYPE=doc
 	;;
 *-*-netbsd*)
 	need_dash_r=1
+	MANTYPE=doc
 	;;
 *-*-freebsd*)
 	check_for_libcrypt_later=1
+	MANTYPE=doc
 	;;
 *-next-*)
 	conf_lastlog_location="/usr/adm/lastlog"
@@ -158,6 +153,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(BROKEN_SAVED_UIDS)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	CFLAGS="$CFLAGS"
+	MANTYPE=doc
 	;;
 *-*-solaris*)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
@@ -185,56 +181,42 @@ mips-sony-bsd|mips-sony-newsos4)
 	conf_wtmp_location=/var/adm/wtmp
 	conf_lastlog_location=/var/adm/lastlog
 	AC_DEFINE(USE_PIPES)
-	MANTYPE='$(CATMAN)'
-	mansubdir=cat
 	;;
 *-ncr-sysv*)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
-	MANTYPE='$(CATMAN)'
-	mansubdir=cat
 	LIBS="$LIBS -lc89 -lnsl -lgen -lsocket"
 	;;
 *-sni-sysv*)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib -L/usr/ucblib"
-	MANTYPE='$(CATMAN)'
 	IPADDR_IN_DISPLAY=yes
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(IP_TOS_IS_BROKEN)
 	AC_DEFINE(HAVE_BOGUS_SYS_QUEUE_H)
-	mansubdir=cat
 	LIBS="$LIBS -lgen -lnsl -lucb"
 	;;
 *-*-sysv4.2*)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
-	MANTYPE='$(CATMAN)'
-	mansubdir=cat
 	enable_suid_ssh=no
 	AC_DEFINE(USE_PIPES)
 	;;
 *-*-sysv5*)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
-	MANTYPE='$(CATMAN)'
-	mansubdir=cat
 	enable_suid_ssh=no
 	AC_DEFINE(USE_PIPES)
 	;;
 *-*-sysv*)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
-	MANTYPE='$(CATMAN)'
-	mansubdir=cat
 	LIBS="$LIBS -lgen -lsocket"
 	;;
 *-*-sco3.2v4*)
 	CPPFLAGS="$CPPFLAGS -Dftruncate=chsize -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
-	MANTYPE='$(CATMAN)'
 	LIBS="$LIBS -lgen -lsocket -los -lprot -lx -ltinfo -lm"
-	mansubdir=cat
 	rsh_path="/usr/bin/rcmd"
 	RANLIB=true
 	no_dev_ptmx=1
@@ -250,8 +232,6 @@ mips-sony-bsd|mips-sony-newsos4)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	LIBS="$LIBS -lprot -lx -ltinfo -lm"
-	MANTYPE='$(CATMAN)'
-	mansubdir=cat
 	no_dev_ptmx=1
 	rsh_path="/usr/bin/rcmd"
 	AC_DEFINE(USE_PIPES)
@@ -1426,23 +1406,23 @@ AC_SUBST(INSTALL_SSH_PRNG_CMDS)
 
 
 AC_ARG_WITH(catman,
-	[  --with-catman=man|cat   Install preformatted manpages[no]],
+	[  --with-mantype=man|cat|doc  Set man page type],
 	[
-		MANTYPE='$(CATMAN)'
-		if test x"$withval" != x"yes" ; then
-		   mansubdir=$withval
-		else
-		   mansubdir=cat
-		fi
+		case "$withval" in
+		man|cat|doc)
+			MANTYPE=$withval
+			;;
+		*)
+			AC_MSG_ERROR(invalid man type: $withval)
+			;;
+		esac
 	], [
 		if test -z "$MANTYPE" ; then
-			MANTYPE='$(TROFFMAN)'
-			mansubdir=man
+			MANTYPE=man
 		fi
 	]
 )
 AC_SUBST(MANTYPE)
-AC_SUBST(mansubdir)
 
 # Check whether to enable MD5 passwords
 MD5_MSG="no" 
@@ -1897,11 +1877,6 @@ AC_OUTPUT(Makefile openbsd-compat/Makefile ssh_prng_cmds)
 
 # Print summary of options
 
-if test x$MANTYPE = x'$(CATMAN)' ; then
-	MAN_MSG=cat
-else 
-	MAN_MSG=man
-fi
 if test ! -z "$RANDOM_POOL" ; then
 	RAND_MSG="Device ($RANDOM_POOL)"
 else
@@ -1921,7 +1896,7 @@ B=`eval echo ${bindir}` ; B=`eval echo ${B}`
 C=`eval echo ${sbindir}` ; C=`eval echo ${C}`
 D=`eval echo ${sysconfdir}` ; D=`eval echo ${D}`
 E=`eval echo ${libexecdir}/ssh-askpass` ; E=`eval echo ${E}`
-F=`eval echo ${mandir}/${mansubdir}X` ; F=`eval echo ${F}`
+F=`eval echo ${mandir}` ; F=`eval echo ${F}`
 G=`eval echo ${piddir}` ; G=`eval echo ${G}`
 H=`eval echo ${user_path}` ; H=`eval echo ${H}`
 
@@ -1935,7 +1910,7 @@ echo "                  Manual pages: $F"
 echo "                      PID file: $G"
 echo "        sshd default user PATH: $H"
 echo "      Random number collection: $RAND_MSG"
-echo "                Manpage format: $MAN_MSG"
+echo "                Manpage format: $MANTYPE"
 echo "                   PAM support: ${PAM_MSG}"
 echo "            KerberosIV support: $KRB4_MSG"
 echo "                   AFS support: $AFS_MSG"

@@ -55,6 +55,7 @@ Larry Jones <larry.jones@sdrc.com> - Bugfixes
 Lutz Jaenicke <Lutz.Jaenicke@aet.TU-Cottbus.DE> - Bugfixes
 Marc G. Fournier <marc.fournier@acadiau.ca> - Solaris patches
 Martin Johansson <fatbob@acc.umu.se> - Linux fixes
+Mark D. Roth <roth+openssh@feep.net> - Features, bug fixes
 Mark Miller <markm@swoon.net> - Bugfixes
 Matt Richards <v2matt@btv.ibm.com> - AIX patches
 Michael Stone <mstone@cs.loyola.edu> - Irix enhancements
@@ -87,5 +88,5 @@ Apologies to anyone I have missed.
 
 Damien Miller <djm@mindrot.org>
 
-$Id: CREDITS,v 1.61 2001/02/09 01:55:35 djm Exp $
+$Id: CREDITS,v 1.62 2001/04/16 00:41:46 djm Exp $
 
