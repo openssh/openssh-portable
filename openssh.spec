@@ -50,6 +50,9 @@ make
 rm -rf $RPM_BUILD_ROOT
 make install prefix="$RPM_BUILD_ROOT/usr"
 
+install -d $RPM_BUILD_ROOT/etc/ssh
+install -d $RPM_BUILD_ROOT/etc/pam.d/
+install -d $RPM_BUILD_ROOT/etc/rc.d/init.d
 install -m644 sshd.pam $RPM_BUILD_ROOT/etc/pam.d/sshd
 install -m755 sshd.init.redhat $RPM_BUILD_ROOT/etc/rc.d/init.d/sshd
 install -m600 ssh_config $RPM_BUILD_ROOT/etc/ssh/ssh_config
