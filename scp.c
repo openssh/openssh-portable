@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.74 2001/06/16 08:57:35 markus Exp $");
+RCSID("$OpenBSD: scp.c,v 1.75 2001/06/23 00:16:16 deraadt Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -662,7 +662,7 @@ sink(argc, argv)
 
 #define	atime	tv[0]
 #define	mtime	tv[1]
-#define	SCREWUP(str)	{ why = str; goto screwup; }
+#define	SCREWUP(str)	do { why = str; goto screwup; } while (0)
 
 	setimes = targisdir = 0;
 	mask = umask(0);
@@ -1003,7 +1003,7 @@ okname(cp0)
 
 	cp = cp0;
 	do {
-		c = *cp;
+		c = (int)*cp;
 		if (c & 0200)
 			goto bad;
 		if (!isalpha(c) && !isdigit(c) &&
