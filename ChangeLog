@@ -61,6 +61,9 @@
      	server_input_channel_req does generic request parsing on server side
      	session_input_channel_req handles just session specific things now
      ok djm@
+   - markus@cvs.openbsd.org 2002/02/03 17:55:55
+     [channels.c channels.h]
+     remove unused channel_input_channel_request
 
 20020130
  - (djm) Delay PRNG seeding until we need it in ssh-keygen, from markus@
@@ -7463,4 +7466,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1815 2002/02/05 01:21:42 djm Exp $
+$Id: ChangeLog,v 1.1816 2002/02/05 01:22:08 djm Exp $

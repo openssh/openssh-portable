@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.163 2002/01/27 14:57:46 stevesk Exp $");
+RCSID("$OpenBSD: channels.c,v 1.164 2002/02/03 17:55:55 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1938,31 +1938,6 @@ channel_input_open_failure(int type, u_int32_t seq, void *ctxt)
 	packet_check_eom();
 	/* Free the channel.  This will also close the socket. */
 	channel_free(c);
-}
-
-void
-channel_input_channel_request(int type, u_int32_t seq, void *ctxt)
-{
-	int id;
-	Channel *c;
-
-	id = packet_get_int();
-	c = channel_lookup(id);
-
-	if (c == NULL ||
-	    (c->type != SSH_CHANNEL_OPEN && c->type != SSH_CHANNEL_LARVAL))
-		packet_disconnect("Received request for "
-		    "non-open channel %d.", id);
-	if (c->cb_fn != NULL && c->cb_event == type) {
-		debug2("callback start");
-		c->cb_fn(c->self, c->cb_arg);
-		debug2("callback done");
-	} else {
-		char *service = packet_get_string(NULL);
-		debug("channel %d: rcvd request for %s", c->self, service);
-		debug("cb_fn %p cb_event %d", c->cb_fn , c->cb_event);
-		xfree(service);
-	}
 }
 
 void

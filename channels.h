@@ -32,7 +32,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* RCSID("$OpenBSD: channels.h,v 1.60 2002/01/16 13:17:51 markus Exp $"); */
+/* RCSID("$OpenBSD: channels.h,v 1.61 2002/02/03 17:55:55 markus Exp $"); */
 
 #ifndef CHANNEL_H
 #define CHANNEL_H
@@ -157,7 +157,6 @@ int	 channel_close_fd(int *);
 
 /* protocol handler */
 
-void	 channel_input_channel_request(int, u_int32_t, void *);
 void	 channel_input_close(int, u_int32_t, void *);
 void	 channel_input_close_confirmation(int, u_int32_t, void *);
 void	 channel_input_data(int, u_int32_t, void *);
