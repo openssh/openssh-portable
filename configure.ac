@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.138 2003/08/02 12:24:49 dtucker Exp $
+# $Id: configure.ac,v 1.139 2003/08/13 10:48:07 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -695,8 +695,8 @@ AC_CHECK_FUNCS(\
 	setdtablesize setegid setenv seteuid setgroups setlogin setpcred \
 	setproctitle setregid setresgid setresuid setreuid setrlimit \
 	setsid setvbuf sigaction sigvec snprintf socketpair strerror \
-	strlcat strlcpy strmode strnvis sysconf tcgetpgrp truncate utimes \
-	vhangup vsnprintf waitpid \
+	strlcat strlcpy strmode strnvis sysconf tcgetpgrp tcsendbreak \
+	truncate utimes vhangup vsnprintf waitpid \
 )
 
 AC_SEARCH_LIBS(nanosleep, rt posix4, AC_DEFINE(HAVE_NANOSLEEP))

@@ -25,7 +25,7 @@
 #include "includes.h"
 #include "xmalloc.h"
 
-RCSID("$Id: bsd-misc.c,v 1.16 2003/08/02 14:36:16 dtucker Exp $");
+RCSID("$Id: bsd-misc.c,v 1.17 2003/08/13 10:48:07 dtucker Exp $");
 
 /*
  * NB. duplicate __progname in case it is an alias for argv[0]
@@ -180,3 +180,23 @@ tcgetpgrp(int fd)
 }
 #endif /* HAVE_TCGETPGRP */
 
+#ifndef HAVE_TCSENDBREAK
+int
+tcsendbreak(int fd, int duration)
+{
+# if defined(TIOCSBRK) && defined(TIOCCBRK)
+	struct timeval sleepytime;
+
+	sleepytime.tv_sec = 0;
+	sleepytime.tv_usec = 400000;
+	if (ioctl(fd, TIOCSBRK, 0) == -1)
+		return (-1);
+	(void)select(0, 0, 0, 0, &sleepytime);
+	if (ioctl(fd, TIOCCBRK, 0) == -1)
+		return (-1);
+	return (0);
+# else
+	return -1;
+# endif
+}
+#endif /* HAVE_TCSENDBREAK */

@@ -13,6 +13,9 @@
    - markus@cvs.openbsd.org 2003/08/13 09:07:10
      [readconf.c ssh.c]
      socks4->socks, since with support both 4 and 5; dtucker@zip.com.au
+ - (dtucker) [configure.ac openbsd-compat/bsd-misc.c openbsd-compat/bsd-misc.h]
+   Add a tcsendbreak function for platforms that don't have one, based on the
+   one from OpenBSD.
 
 20030811
  - (dtucker) OpenBSD CVS Sync
@@ -831,4 +834,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2892 2003/08/13 10:38:36 dtucker Exp $
+$Id: ChangeLog,v 1.2893 2003/08/13 10:48:07 dtucker Exp $
