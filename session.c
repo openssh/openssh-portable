@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.74 2001/04/17 19:34:25 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.75 2001/05/03 15:45:15 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1393,10 +1393,11 @@ do_child(Session *s, const char *command)
 	if (!options.use_login) {
 		/* ignore _PATH_SSH_USER_RC for subsystems */
 		if (!s->is_subsystem && (stat(_PATH_SSH_USER_RC, &st) >= 0)) {
+			snprintf(cmd, sizeof cmd, "%s -c '%s %s'",
+			    shell, _PATH_BSHELL, _PATH_SSH_USER_RC);
 			if (debug_flag)
-				fprintf(stderr, "Running %s %s\n", _PATH_BSHELL,
-				    _PATH_SSH_USER_RC);
-			f = popen(_PATH_BSHELL " " _PATH_SSH_USER_RC, "w");
+				fprintf(stderr, "Running %s\n", cmd);
+			f = popen(cmd, "w");
 			if (f) {
 				if (do_xauth)
 					fprintf(f, "%s %s\n", s->auth_proto,

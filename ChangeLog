@@ -3,6 +3,9 @@
    - stevesk@cvs.openbsd.org 2001/05/03 15:07:39
      [channels.c]
      typo in debug() string
+   - markus@cvs.openbsd.org 2001/05/03 15:45:15
+     [session.c]
+     exec shell -c /bin/sh .ssh/sshrc, from abartlet@pcug.org.au
 
 20010503
  - OpenBSD CVS Sync
@@ -5314,4 +5317,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1191 2001/05/03 22:35:32 mouring Exp $
+$Id: ChangeLog,v 1.1192 2001/05/03 22:37:26 mouring Exp $
