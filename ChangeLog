@@ -1,6 +1,8 @@
 20050216
  - (djm) write seed to temporary file and atomically rename into place; 
    ok dtucker@
+ - (dtucker) [ssh-rand-helper.c] Provide seed_rng since it may be called
+   via mkstemp in some configurations.  ok djm@
 
 20050215
  - (dtucker) [config.sh.in] Collect oslevel -r too.
@@ -2135,4 +2137,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3654 2005/02/16 02:02:45 djm Exp $
+$Id: ChangeLog,v 1.3655 2005/02/16 02:20:07 dtucker Exp $
