@@ -1,3 +1,6 @@
+20030723
+ - (dtucker) [configure.ac] Back out change for bug #620.
+
 20030719
  - (dtucker) [configure.ac] Bug #620: Define BROKEN_GETADDRINFO for
    Solaris/x86.  Patch from jrhett at isite.net.
@@ -718,4 +721,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2863 2003/07/19 10:11:54 dtucker Exp $
+$Id: ChangeLog,v 1.2864 2003/07/23 04:33:10 dtucker Exp $
