@@ -120,6 +120,33 @@ case "$host" in
 	;;
 esac
 
+# Allow user to specify flags
+AC_ARG_WITH(cflags,
+	[  --with-cflags           Specify additional flags to pass to compiler],
+	[
+		if test "x$withval" != "xno" ; then
+			CFLAGS="$CFLAGS $withval"
+		fi
+	]	
+)
+AC_ARG_WITH(ldflags,
+	[  --with-ldlags           Specify additional flags to pass to linker],
+	[
+		if test "x$withval" != "xno" ; then
+			LDFLAGS="$LDFLAGS $withval"
+		fi
+	]	
+)
+AC_ARG_WITH(libs,
+	[  --with-libs             Specify additional libraries to link with],
+	[
+		if test "x$withval" != "xno" ; then
+			LIBS="$LIBS $withval"
+		fi
+	]	
+)
+
+
 # Checks for libraries.
 AC_CHECK_LIB(z, deflate, ,AC_MSG_ERROR([*** zlib missing - please install first ***]))
 AC_CHECK_LIB(util, login, AC_DEFINE(HAVE_LIBUTIL_LOGIN) LIBS="$LIBS -lutil")
