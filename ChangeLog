@@ -1,6 +1,12 @@
 19991216
  - Makefile changes for Solaris from Peter Kocks 
    <peter.kocks@baygate.com>
+ - Minor updates to docs
+ - Merged OpenBSD CVS changes:
+   - [authfd.c ssh-agent.c]
+     keysize warnings talk about identity files
+   - [packet.c]
+     "Connection closed by x.x.x.x": fatal() -> log()
 
 19991215
  - Integrated patchs from Juergen Keil <jk@tools.de>

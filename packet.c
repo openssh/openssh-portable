@@ -15,7 +15,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: packet.c,v 1.7 1999/12/06 00:47:29 damien Exp $");
+RCSID("$Id: packet.c,v 1.8 1999/12/16 02:18:04 damien Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -415,8 +415,10 @@ packet_read(int *payload_len_ptr)
 
 		/* Read data from the socket. */
 		len = read(connection_in, buf, sizeof(buf));
-		if (len == 0)
-			fatal("Connection closed by %.200s", get_remote_ipaddr());
+		if (len == 0) {
+			log("Connection closed by %.200s", get_remote_ipaddr());
+			fatal_cleanup();
+		}
 		if (len < 0)
 			fatal("Read from socket failed: %.100s", strerror(errno));
 		/* Append it to the buffer. */
