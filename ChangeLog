@@ -11,22 +11,23 @@
 20020513
  - (stevesk) add initial README.privsep
  - (stevesk) [configure.ac] nicer message: --with-privsep-user=user
- - (djm) Add --with-superuser-path=xxx configure option to specify what $PATH
-   the superuser receives.
+ - (djm) Add --with-superuser-path=xxx configure option to specify 
+   what $PATH the superuser receives.
  - (djm) Bug #231: UsePrivilegeSeparation turns off Banner.
  - (djm) Add --with-privsep-path configure option
  - (djm) Update RPM spec file: different superuser path, use
    /var/empty/sshd for privsep
  - (djm) Bug #234: missing readpassphrase declaration and defines
- - (djm) Add INSTALL warning about SSH protocol 1 blowfish w/ OpenSSL < 0.9.6
+ - (djm) Add INSTALL warning about SSH protocol 1 blowfish w/ 
+    OpenSSL < 0.9.6
 
 20020511
  - (tim) [configure.ac] applied a rework of djm's OpenSSL search cleanup patch.
    Now only searches system and /usr/local/ssl (OpenSSL's default install path)
    Others must use --with-ssl-dir=....
  - (tim) [monitor_fdpass.c] fix for systems that have both
-   HAVE_ACCRIGHTS_IN_MSGHDR and HAVE_CONTROL_IN_MSGHDR. Ie. sys/socket.h has
-   #define msg_accrights msg_control
+   HAVE_ACCRIGHTS_IN_MSGHDR and HAVE_CONTROL_IN_MSGHDR. Ie. sys/socket.h 
+   has #define msg_accrights msg_control
 
 20020510
  - (stevesk) [auth.c] Shadow account and expiration cleanup.  Now
@@ -75,7 +76,8 @@
 20020426
  - (djm) Bug #137, #209: fix make problems for scard/Ssh.bin, do uudecode
    during distprep only
- - (djm) Disable PAM password expiry until a complete fix for bug #188 exists
+ - (djm) Disable PAM password expiry until a complete fix for bug #188 
+   exists
  - (djm) Bug #180: Set ToS bits on IPv4-in-IPv6 mapped addresses. Based on 
    patch from openssh@misc.tecq.org
 
@@ -148,21 +150,23 @@
 
 20020421
  - (tim) [entropy.c.] Portability fix for SCO Unix 3.2v4.x (SCO OSR 3.0).
-   entropy.c needs seteuid(getuid()) for the setuid(original_uid) to succeed.
-   Patch by gert@greenie.muc.de. This fixes one part of Bug 208
+   entropy.c needs seteuid(getuid()) for the setuid(original_uid) to 
+   succeed. Patch by gert@greenie.muc.de. This fixes one part of Bug 208
 
 20020418
  - (djm) Avoid SIGCHLD breakage when run from rsync. Fix from 
    Sturle Sunde <sturle.sunde@usit.uio.no>
 
 20020417
- - (djm) Tell users to configure /dev/random support into OpenSSL in INSTALL
+ - (djm) Tell users to configure /dev/random support into OpenSSL in 
+   INSTALL
  - (djm) Fix .Nm in mdoc2man.pl from pspencer@fields.utoronto.ca
  - (tim) [configure.ac] Issue warning on --with-default-path=/some_path
    if LOGIN_CAP is enabled. Report & testing by Tuc <tuc@ttsg.com>
 
 20020415
- - (djm) Unbreak "make install". Fix from Darren Tucker <dtucker@zip.com.au>
+ - (djm) Unbreak "make install". Fix from Darren Tucker 
+   <dtucker@zip.com.au>
  - (stevesk) bsd-cygwin_util.[ch] BSD license from Corinna Vinschen
  - (tim) [configure.ac] add tests for recvmsg and sendmsg.
    [monitor_fdpass.c] add checks for HAVE_SENDMSG and HAVE_RECVMSG for
@@ -200,7 +204,8 @@
  - (bal) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2002/04/10 08:21:47
      [auth1.c compat.c compat.h]
-     strip '@' from username only for KerbV and known broken clients, bug #204
+     strip '@' from username only for KerbV and known broken clients, 
+     bug #204
    - markus@cvs.openbsd.org 2002/04/10 08:56:01
      [version.h]
      OpenSSH_3.2
@@ -271,13 +276,15 @@
  - (bal) OpenBSD CVS Sync (now for the real sync)
    - markus@cvs.openbsd.org 2002/03/27 22:21:45
      [ssh-keygen.c]
-     try to import keys with extra trailing === (seen with ssh.com < 2.0.12)
+     try to import keys with extra trailing === (seen with ssh.com < 
+     2.0.12)
    - markus@cvs.openbsd.org 2002/03/28 15:34:51
      [session.c]
      do not call record_login twice (for use_privsep)
    - markus@cvs.openbsd.org 2002/03/29 18:59:32
      [session.c session.h]
-     retrieve last login time before the pty is allocated, store per session
+     retrieve last login time before the pty is allocated, store per 
+     session
    - stevesk@cvs.openbsd.org 2002/03/29 19:16:22
      [sshd.8]
      RSA key modulus size minimum 768; ok markus@
@@ -335,7 +342,8 @@
      do not talk about packets in bufaux
    - rees@cvs.openbsd.org 2002/03/26 18:46:59
      [scard.c]
-     try_AUT0 in read_pubkey too, for those paranoid few who want to acl 'sh'
+     try_AUT0 in read_pubkey too, for those paranoid few who want to 
+     acl 'sh'
    - markus@cvs.openbsd.org 2002/03/26 22:50:39
      [channels.h]
      CHANNEL_EFD_OUTPUT_ACTIVE is false for CHAN_CLOSE_RCVD, too
@@ -392,8 +400,9 @@
      simplify num_identity_files handling
    - markus@cvs.openbsd.org 2002/03/25 21:13:51
      [channels.c channels.h compat.c compat.h nchan.c]
-     don't send stderr data after EOF, accept this from older known (broken)
-     sshd servers only, fixes http://bugzilla.mindrot.org/show_bug.cgi?id=179
+     don't send stderr data after EOF, accept this from older known 
+     (broken) sshd servers only, fixes
+     http://bugzilla.mindrot.org/show_bug.cgi?id=179
    - stevesk@cvs.openbsd.org 2002/03/26 03:24:01
      [monitor.h monitor_fdpass.h monitor_mm.h monitor_wrap.h]
      $OpenBSD$
@@ -431,7 +440,8 @@
      indent
    - markus@cvs.openbsd.org 2002/03/14 15:24:27
      [sshconnect1.c]
-     don't trust size sent by (rogue) server; noted by s.esser@e-matters.de
+     don't trust size sent by (rogue) server; noted by 
+     s.esser@e-matters.de
    - markus@cvs.openbsd.org 2002/03/14 16:38:26
      [sshd.c]
      split out ssh1 session key decryption; ok provos@
@@ -452,7 +462,8 @@
      BSD license.  from Daniel Kouril via Dug Song.  ok markus@
    - provos@cvs.openbsd.org 2002/03/17 20:25:56
      [auth.c auth.h auth1.c auth2.c]
-     getpwnamallow returns struct passwd * only if user valid; okay markus@
+     getpwnamallow returns struct passwd * only if user valid; 
+     okay markus@
    - provos@cvs.openbsd.org 2002/03/18 01:12:14
      [auth.h auth1.c auth2.c sshd.c]
      have the authentication functions return the authentication context
@@ -568,9 +579,9 @@
      remove unused, sync w/ cmdline patch in my tree.
 
 20020317
- - (tim) [configure.ac] Assume path given with --with-pid-dir=PATH is wanted,
-   warn if directory does not exist. Put system directories in front of
-   PATH for finding entorpy commands.
+ - (tim) [configure.ac] Assume path given with --with-pid-dir=PATH is 
+   wanted, warn if directory does not exist. Put system directories in 
+   front of PATH for finding entorpy commands.
  - (tim) [contrib/aix/buildbff.sh contrib/aix/inventory.sh] AIX package
    build fixes.  Patch by Darren Tucker <dtucker@zip.com.au>
    [contrib/solaris/buildpkg.sh] add missing dirs to SYSTEM_DIR. Have
@@ -590,4 +601,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2119 2002/05/15 00:08:17 djm Exp $
+$Id: ChangeLog,v 1.2120 2002/05/15 00:12:29 djm Exp $
