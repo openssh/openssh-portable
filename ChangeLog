@@ -1,3 +1,7 @@
+20030526
+ - (djm) Avoid auth2-chall.c warning when compiling without 
+   PAM, BSD_AUTH and SKEY
+
 20030525
 - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2003/05/24 09:02:22
@@ -1614,4 +1618,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2751 2003/05/25 04:38:33 djm Exp $
+$Id: ChangeLog,v 1.2752 2003/05/26 11:36:13 djm Exp $
