@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: uidswap.c,v 1.20 2002/04/01 21:50:51 stevesk Exp $");
+RCSID("$OpenBSD: uidswap.c,v 1.21 2002/05/28 17:28:02 stevesk Exp $");
 
 #include "log.h"
 #include "uidswap.h"
@@ -52,8 +52,8 @@ temporarily_use_uid(struct passwd *pw)
 #ifdef SAVED_IDS_WORK_WITH_SETEUID
 	saved_euid = geteuid();
 	saved_egid = getegid();
-	debug("temporarily_use_uid: %d/%d (e=%d)",
-	    pw->pw_uid, pw->pw_gid, saved_euid);
+	debug("temporarily_use_uid: %u/%u (e=%u)",
+	    (u_int)pw->pw_uid, (u_int)pw->pw_gid, (u_int)saved_euid);
 	if (saved_euid != 0) {
 		privileged = 0;
 		return;
@@ -94,10 +94,10 @@ temporarily_use_uid(struct passwd *pw)
 		debug("setuid %u: %.100s", (u_int) geteuid(), strerror(errno));
 #endif /* SAVED_IDS_WORK_WITH_SETEUID */
 	if (setegid(pw->pw_gid) < 0)
-		fatal("setegid %u: %.100s", (u_int) pw->pw_gid,
+		fatal("setegid %u: %.100s", (u_int)pw->pw_gid,
 		    strerror(errno));
 	if (seteuid(pw->pw_uid) == -1)
-		fatal("seteuid %u: %.100s", (u_int) pw->pw_uid,
+		fatal("seteuid %u: %.100s", (u_int)pw->pw_uid,
 		    strerror(errno));
 }
 
@@ -117,10 +117,9 @@ restore_uid(void)
 #ifdef SAVED_IDS_WORK_WITH_SETEUID
 	/* Set the effective uid back to the saved privileged uid. */
 	if (seteuid(saved_euid) < 0)
-		fatal("seteuid %u: %.100s", (u_int) saved_euid, strerror(errno));
+		fatal("seteuid %u: %.100s", (u_int)saved_euid, strerror(errno));
 	if (setegid(saved_egid) < 0)
-		fatal("setegid %u: %.100s", (u_int) saved_egid, 
-		    strerror(errno));
+		fatal("setegid %u: %.100s", (u_int)saved_egid, strerror(errno));
 #else /* SAVED_IDS_WORK_WITH_SETEUID */
 	/*
 	 * We are unable to restore the real uid to its unprivileged value.
@@ -148,7 +147,7 @@ permanently_set_uid(struct passwd *pw)
 	if (temporarily_use_uid_effective)
 		fatal("restore_uid: temporarily_use_uid effective");
 	if (setgid(pw->pw_gid) < 0)
-		fatal("setgid %u: %.100s", (u_int) pw->pw_gid, strerror(errno));
+		fatal("setgid %u: %.100s", (u_int)pw->pw_gid, strerror(errno));
 	if (setuid(pw->pw_uid) < 0)
-		fatal("setuid %u: %.100s", (u_int) pw->pw_uid, strerror(errno));
+		fatal("setuid %u: %.100s", (u_int)pw->pw_uid, strerror(errno));
 }
