@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: ssh.1,v 1.17 2000/03/03 11:48:49 damien Exp $
+.\" $Id: ssh.1,v 1.18 2000/03/09 10:27:52 damien Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSH 1
@@ -557,6 +557,8 @@ set.  The argument must be
 .Dq yes
 or
 .Dq no .
+The default is
+.Dq no .
 .It Cm GatewayPorts
 Specifies whether remote hosts are allowed to connect to local
 forwarded ports.
@@ -813,7 +815,7 @@ and adds lines of the format
 .Dq VARNAME=value
 to the environment.
 .Sh FILES
-.Bl -tag -width $HOME/.ssh/known_hosts
+.Bl -tag -width Ds
 .It Pa $HOME/.ssh/known_hosts
 Records host keys for all hosts the user has logged into (that are not
 in
@@ -958,17 +960,12 @@ above.
 A version of this library which includes support for the RSA algorithm
 is required for proper operation.
 .Sh AUTHOR
-Tatu Ylonen <ylo@cs.hut.fi>
-.Pp
-Issues can be found from the SSH WWW home page:
-.Pp
-.Dl http://www.cs.hut.fi/ssh
-.Pp
 OpenSSH
-is a derivative of the original (free) ssh 1.2.12 release, but with bugs
-removed and newer features re-added.   Rapidly after the 1.2.12 release,
-newer versions bore successively more restrictive licenses.  This version
-of OpenSSH
+is a derivative of the original (free) ssh 1.2.12 release by Tatu Ylonen,
+but with bugs removed and newer features re-added.   Rapidly after the
+1.2.12 release, newer versions of the original ssh bore successively
+more restrictive licenses, and thus demand for a free version was born.
+This version of OpenSSH
 .Bl -bullet
 .It
 has all components of a restrictive nature (i.e., patents, see
@@ -977,7 +974,8 @@ directly removed from the source code; any licensed or patented components
 are chosen from
 external libraries.
 .It
-has been updated to support ssh protocol 1.5.
+has been updated to support ssh protocol 1.5, making it compatible with
+all other ssh protocol 1 clients and servers.
 .It
 contains added support for 
 .Xr kerberos 8

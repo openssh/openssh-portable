@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.80 2000/01/20 15:19:22 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.90 2000/03/06 20:29:04 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -148,6 +148,27 @@ void do_child(const char *command, struct passwd * pw, const char *term,
 	      const char *auth_data, const char *ttyname);
 
 /*
+ * Remove local Xauthority file.
+ */
+void
+xauthfile_cleanup_proc(void *ignore)
+{
+	debug("xauthfile_cleanup_proc called");
+
+	if (xauthfile != NULL) {
+		char *p;
+		unlink(xauthfile);
+		p = strrchr(xauthfile, '/');
+		if (p != NULL) {
+			*p = '\0';
+			rmdir(xauthfile);
+		}
+		xfree(xauthfile);
+		xauthfile = NULL;
+	}
+}
+
+/*
  * Close all listening sockets
  */
 void
@@ -234,6 +255,7 @@ grace_alarm_handler(int sig)
 char *
 get_authname(int type)
 {
+	static char buf[1024];
 	switch (type) {
 	case SSH_CMSG_AUTH_PASSWORD:
 		return "password";
@@ -252,8 +274,8 @@ get_authname(int type)
 		return "s/key";
 #endif
 	}
-	fatal("get_authname: unknown auth %d: internal error", type);
-	return NULL;
+	snprintf(buf, sizeof buf, "bad-auth-msg-%d", type);
+	return buf;
 }
 
 /*
@@ -878,7 +900,7 @@ main(int ac, char **av)
 
 	/* Cleanup user's local Xauthority file. */
 	if (xauthfile)
-		unlink(xauthfile);
+		xauthfile_cleanup_proc(NULL);
 
 	/* The connection has been terminated. */
 	verbose("Closing connection to %.100s", remote_ip);
@@ -1089,12 +1111,14 @@ do_ssh_kex()
  * DenyUsers or user's primary group is listed in DenyGroups, false will
  * be returned. If AllowUsers isn't empty and user isn't listed there, or
  * if AllowGroups isn't empty and user isn't listed there, false will be
- * returned. Otherwise true is returned.
- * XXX This function should also check if user has a valid shell
+ * returned. 
+ * If the user's shell is not executable, false will be returned.
+ * Otherwise true is returned. 
  */
 static int
 allowed_user(struct passwd * pw)
 {
+	struct stat st;
 	struct group *grp;
 	int i;
 #ifdef WITH_AIXAUTHENTICATE
@@ -1105,7 +1129,11 @@ allowed_user(struct passwd * pw)
 	if (!pw)
 		return 0;
 
-	/* XXX Should check for valid login shell */
+	/* deny if shell does not exists or is not executable */
+	if (stat(pw->pw_shell, &st) != 0)
+		return 0;
+	if (!((st.st_mode & S_IFREG) && (st.st_mode & (S_IXOTH|S_IXUSR|S_IXGRP))))
+		return 0;
 
 	/* Return false if user is listed in DenyUsers */
 	if (options.num_deny_users > 0) {
@@ -1202,6 +1230,7 @@ do_authentication()
 	pw = getpwnam(user);
 	if (!pw || !allowed_user(pw))
 		do_fake_authloop(user);
+	xfree(user);
 
 	/* Take a copy of the returned structure. */
 	memset(&pwcopy, 0, sizeof(pwcopy));
@@ -1224,7 +1253,7 @@ do_authentication()
 	if (getuid() != 0 && pw->pw_uid != getuid())
 		packet_disconnect("Cannot change user when server not running as root.");
 
-	debug("Attempting authentication for %.100s.", user);
+	debug("Attempting authentication for %.100s.", pw->pw_name);
 
 	/* If the user has no password, accept authentication immediately. */
 	if (options.password_authentication &&
@@ -1510,17 +1539,22 @@ do_authloop(struct passwd * pw)
 			get_remote_port(),
 			user);
 
-		if (authenticated) {
 #ifdef USE_PAM
+		if (authenticated) {
 			if (!do_pam_account(pw->pw_name, client_user)) {
-				if (client_user != NULL)
+				if (client_user != NULL) {
 					xfree(client_user);
-
+					client_user = NULL;
+				}
 				do_fake_authloop(pw->pw_name);
 			}
-#endif /* USE_PAM */
 			return;
 		}
+#else /* USE_PAM */
+		if (authenticated) {
+			return;
+		}
+#endif /* USE_PAM */
 
 		if (client_user != NULL) {
 			xfree(client_user);
@@ -1572,6 +1606,7 @@ do_fake_authloop(char *user)
 		/* Try to send a fake s/key challenge. */
 		if (options.skey_authentication == 1 &&
 		    (skeyinfo = skey_fake_keyinfo(user)) != NULL) {
+			password = NULL;
 			if (type == SSH_CMSG_AUTH_TIS) {
 				packet_start(SSH_SMSG_AUTH_TIS_CHALLENGE);
 				packet_put_string(skeyinfo, strlen(skeyinfo));
@@ -1585,6 +1620,8 @@ do_fake_authloop(char *user)
 			           strncasecmp(password, "s/key", 5) == 0 ) {
 				packet_send_debug(skeyinfo);
 			}
+			if (password != NULL)
+				xfree(password);
 		}
 #endif
 		if (attempt > AUTH_FAIL_MAX)
@@ -1605,22 +1642,6 @@ do_fake_authloop(char *user)
 	}
 	/* NOTREACHED */
 	abort();
-}
-
-
-/*
- * Remove local Xauthority file.
- */
-static void
-xauthfile_cleanup_proc(void *ignore)
-{
-	debug("xauthfile_cleanup_proc called");
-
-	if (xauthfile != NULL) {
-		unlink(xauthfile);
-		xfree(xauthfile);
-		xauthfile = NULL;
-	}
 }
 
 struct pty_cleanup_context {
@@ -1665,7 +1686,7 @@ do_authenticated(struct passwd * pw)
 {
 	int type;
 	int compression_level = 0, enable_compression_after_reply = 0;
-	int have_pty = 0, ptyfd = -1, ttyfd = -1, xauthfd = -1;
+	int have_pty = 0, ptyfd = -1, ttyfd = -1;
 	int row, col, xpixel, ypixel, screen;
 	char ttyname[64];
 	char *command, *term = NULL, *display = NULL, *proto = NULL, *data = NULL;
@@ -1684,7 +1705,8 @@ do_authenticated(struct passwd * pw)
 	 * by the client telling us, so we can equally well trust the client
 	 * not to request anything bogus.)
 	 */
-	channel_permit_all_opens();
+	if (!no_port_forwarding_flag)
+		channel_permit_all_opens();
 
 	/*
 	 * We stay in this loop until the client requests to execute a shell
@@ -1785,16 +1807,20 @@ do_authenticated(struct passwd * pw)
 
 			/* Setup to always have a local .Xauthority. */
 			xauthfile = xmalloc(MAXPATHLEN);
-			snprintf(xauthfile, MAXPATHLEN, "/tmp/XauthXXXXXX");
-
-			if ((xauthfd = mkstemp(xauthfile)) != -1) {
-				fchown(xauthfd, pw->pw_uid, pw->pw_gid);
-				close(xauthfd);
-				fatal_add_cleanup(xauthfile_cleanup_proc, NULL);
-			} else {
+			strlcpy(xauthfile, "/tmp/ssh-XXXXXXXX", MAXPATHLEN);
+			temporarily_use_uid(pw->pw_uid);
+			if (mkdtemp(xauthfile) == NULL) {
+				restore_uid();
+				error("private X11 dir: mkdtemp %s failed: %s",
+				    xauthfile, strerror(errno));
 				xfree(xauthfile);
 				xauthfile = NULL;
+				goto fail;
 			}
+			strlcat(xauthfile, "/cookies", MAXPATHLEN);
+			open(xauthfile, O_RDWR|O_CREAT|O_EXCL, 0600);
+			restore_uid();
+			fatal_add_cleanup(xauthfile_cleanup_proc, NULL);
 			break;
 #else /* XAUTH_PATH */
 			packet_send_debug("No xauth program; cannot forward with spoofing.");
@@ -2026,6 +2052,7 @@ do_exec_pty(const char *command, int ptyfd, int ttyfd,
 	    const char *auth_data)
 {
 	int pid, fdout;
+	int ptymaster;
 	const char *hostname;
 	time_t last_login_time;
 	char buf[100], *time_string;
@@ -2174,11 +2201,16 @@ do_exec_pty(const char *command, int ptyfd, int ttyfd,
 	 */
 	fdout = dup(ptyfd);
 	if (fdout < 0)
-		packet_disconnect("dup failed: %.100s", strerror(errno));
+		packet_disconnect("dup #1 failed: %.100s", strerror(errno));
+
+	/* we keep a reference to the pty master */
+	ptymaster = dup(ptyfd);
+	if (ptymaster < 0)
+		packet_disconnect("dup #2 failed: %.100s", strerror(errno));
 
 	/* Enter interactive session. */
 	server_loop(pid, ptyfd, fdout, -1);
-	/* server_loop has not closed ptyfd and fdout. */
+	/* server_loop _has_ closed ptyfd and fdout. */
 
 	/* Cancel the cleanup function. */
 	fatal_remove_cleanup(pty_cleanup_proc, (void *) &cleanup_context);
@@ -2194,8 +2226,8 @@ do_exec_pty(const char *command, int ptyfd, int ttyfd,
 	 * the pty cleanup, so that another process doesn't get this pty
 	 * while we're still cleaning up.
 	 */
-	close(ptyfd);
-	close(fdout);
+	if (close(ptymaster) < 0)
+		error("close(ptymaster): %s", strerror(errno));
 }
 
 /*
@@ -2563,7 +2595,7 @@ do_child(const char *command, struct passwd * pw, const char *term,
 				f = popen(XAUTH_PATH " -q -", "w");
 				if (f) {
 					fprintf(f, "add %s %s %s\n", display, auth_proto, auth_data);
-					fclose(f);
+					pclose(f);
 				} else
 					fprintf(stderr, "Could not run %s -q -\n", XAUTH_PATH);
 			}

@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: pty.c,v 1.14 2000/03/02 12:56:13 damien Exp $");
+RCSID("$Id: pty.c,v 1.15 2000/03/09 10:27:51 damien Exp $");
 
 #ifdef HAVE_UTIL_H
 # include <util.h>

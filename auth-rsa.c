@@ -16,7 +16,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: auth-rsa.c,v 1.12 2000/01/20 11:44:09 damien Exp $");
+RCSID("$Id: auth-rsa.c,v 1.13 2000/03/09 10:27:50 damien Exp $");
 
 #include "rsa.h"
 #include "packet.h"
@@ -68,9 +68,9 @@ extern unsigned char session_id[16];
 int
 auth_rsa_challenge_dialog(BIGNUM *e, BIGNUM *n)
 {
-	BIGNUM *challenge, *encrypted_challenge, *aux;
+	BIGNUM *challenge, *encrypted_challenge;
 	RSA *pk;
-	BN_CTX *ctx = BN_CTX_new();
+	BN_CTX *ctx;
 	unsigned char buf[32], mdbuf[16], response[16];
 	MD5_CTX md;
 	unsigned int i;
@@ -78,11 +78,12 @@ auth_rsa_challenge_dialog(BIGNUM *e, BIGNUM *n)
 
 	encrypted_challenge = BN_new();
 	challenge = BN_new();
-	aux = BN_new();
 
 	/* Generate a random challenge. */
 	BN_rand(challenge, 256, 0, 0);
+	ctx = BN_CTX_new();
 	BN_mod(challenge, challenge, n, ctx);
+	BN_CTX_free(ctx);
 
 	/* Create the public key data structure. */
 	pk = RSA_new();
@@ -99,7 +100,14 @@ auth_rsa_challenge_dialog(BIGNUM *e, BIGNUM *n)
 	packet_start(SSH_SMSG_AUTH_RSA_CHALLENGE);
 	packet_put_bignum(encrypted_challenge);
 	packet_send();
+	BN_clear_free(encrypted_challenge);
 	packet_write_wait();
+
+	/* Wait for a response. */
+	packet_read_expect(&plen, SSH_CMSG_AUTH_RSA_RESPONSE);
+	packet_integrity_check(plen, 16, SSH_CMSG_AUTH_RSA_RESPONSE);
+	for (i = 0; i < 16; i++)
+		response[i] = packet_get_char();
 
 	/* The response is MD5 of decrypted challenge plus session id. */
 	len = BN_num_bytes(challenge);
@@ -111,18 +119,7 @@ auth_rsa_challenge_dialog(BIGNUM *e, BIGNUM *n)
 	MD5_Update(&md, buf, 32);
 	MD5_Update(&md, session_id, 16);
 	MD5_Final(mdbuf, &md);
-
-	/* We will no longer need these. */
-	BN_clear_free(encrypted_challenge);
 	BN_clear_free(challenge);
-	BN_clear_free(aux);
-	BN_CTX_free(ctx);
-
-	/* Wait for a response. */
-	packet_read_expect(&plen, SSH_CMSG_AUTH_RSA_RESPONSE);
-	packet_integrity_check(plen, 16, SSH_CMSG_AUTH_RSA_RESPONSE);
-	for (i = 0; i < 16; i++)
-		response[i] = packet_get_char();
 
 	/* Verify that the response is the original challenge. */
 	if (memcmp(response, mdbuf, 16) != 0) {

@@ -1,3 +1,65 @@
+20000309
+ - OpenBSD CVS updates to v1.2.3
+	[ssh.h atomicio.c]
+	 - int atomicio -> ssize_t (for alpha). ok deraadt@
+	[auth-rsa.c]
+	 - delay MD5 computation until client sends response, free() early, cleanup.
+	[cipher.c]
+	 - void* -> unsigned char*, ok niels@
+	[hostfile.c]
+	 - remove unused variable 'len'. fix comments.
+	 - remove unused variable
+	[log-client.c log-server.c]
+	 - rename a cpp symbol, to avoid param.h collision
+	[packet.c]
+	 - missing xfree()
+	 - getsockname() requires initialized tolen; andy@guildsoftware.com
+	 - use getpeername() in packet_connection_is_on_socket(), fixes sshd -i;
+	from Holger.Trapp@Informatik.TU-Chemnitz.DE
+	[pty.c pty.h]
+	 - register cleanup for pty earlier. move code for pty-owner handling to 
+   	pty.c ok provos@, dugsong@
+	[readconf.c]
+	 - turn off x11-fwd for the client, too.
+	[rsa.c]
+	 - PKCS#1 padding
+	[scp.c]
+	 - allow '.' in usernames; from jedgar@fxp.org
+	[servconf.c]
+	 - typo: ignore_user_known_hosts int->flag; naddy@mips.rhein-neckar.de
+	 - sync with sshd_config
+	[ssh-keygen.c]
+	 - enable ssh-keygen -l -f ~/.ssh/known_hosts, ok deraadt@
+	[ssh.1]
+	 - Change invalid 'CHAT' loglevel to 'VERBOSE'
+	[ssh.c]
+	 - suppress AAAA query host when '-4' is used; from shin@nd.net.fujitsu.co.jp
+	 - turn off x11-fwd for the client, too.
+	[sshconnect.c]
+	 - missing xfree()
+	 - retry rresvport_af(), too. from sumikawa@ebina.hitachi.co.jp.
+	 - read error vs. "Connection closed by remote host"
+	[sshd.8]
+	 - ie. -> i.e.,
+	 - do not link to a commercial page..
+	 - sync with sshd_config
+	[sshd.c]
+	 - no need for poll.h; from bright@wintelcom.net
+	 - log with level log() not fatal() if peer behaves badly.
+	 - don't panic if client behaves strange. ok deraadt@
+	 - make no-port-forwarding for RSA keys deny both -L and -R style fwding
+	 - delay close() of pty until the pty has been chowned back to root
+	 - oops, fix comment, too.
+	 - missing xfree()
+	 - move XAUTHORITY to subdir. ok dugsong@. fixes debian bug #57907, too.
+   	(http://cgi.debian.org/cgi-bin/bugreport.cgi?archive=no&bug=57907)
+	 - register cleanup for pty earlier. move code for pty-owner handling to 
+      pty.c ok provos@, dugsong@
+	 - create x11 cookie file
+	 - fix pr 1113, fclose() -> pclose(), todo: remote popen()
+	 - version 1.2.3
+ - Cleaned up
+
 20000308
  - Configure fix from Hiroshi Takekawa <takekawa@sr3.t.u-tokyo.ac.jp>
 

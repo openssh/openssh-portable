@@ -15,7 +15,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: log-server.c,v 1.6 2000/01/20 13:18:16 damien Exp $");
+RCSID("$Id: log-server.c,v 1.7 2000/03/09 10:27:50 damien Exp $");
 
 #include <syslog.h>
 #include "packet.h"
@@ -97,13 +97,13 @@ log_init(char *av0, LogLevel level, SyslogFacility facility, int on_stderr)
 	log_on_stderr = on_stderr;
 }
 
-#define SSH_MSGBUFSIZE 1024
+#define MSGBUFSIZ 1024
 
 void
 do_log(LogLevel level, const char *fmt, va_list args)
 {
-	char msgbuf[SSH_MSGBUFSIZE];
-	char fmtbuf[SSH_MSGBUFSIZE];
+	char msgbuf[MSGBUFSIZ];
+	char fmtbuf[MSGBUFSIZ];
 	char *txt = NULL;
 	int pri = LOG_INFO;
 

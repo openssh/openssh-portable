@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: cipher.c,v 1.12 2000/01/22 23:32:03 damien Exp $");
+RCSID("$Id: cipher.c,v 1.13 2000/03/09 10:27:50 damien Exp $");
 
 #include "ssh.h"
 #include "cipher.h"
@@ -41,7 +41,7 @@ void
 SSH_3CBC_ENCRYPT(des_key_schedule ks1,
 		 des_key_schedule ks2, des_cblock * iv2,
 		 des_key_schedule ks3, des_cblock * iv3,
-		 void *dest, void *src,
+		 unsigned char *dest, unsigned char *src,
 		 unsigned int len)
 {
 	des_cblock iv1;
@@ -49,20 +49,20 @@ SSH_3CBC_ENCRYPT(des_key_schedule ks1,
 	memcpy(&iv1, iv2, 8);
 
 	des_cbc_encrypt(src, dest, len, ks1, &iv1, DES_ENCRYPT);
-	memcpy(&iv1, (char *)dest + len - 8, 8);
+	memcpy(&iv1, dest + len - 8, 8);
 
 	des_cbc_encrypt(dest, dest, len, ks2, iv2, DES_DECRYPT);
 	memcpy(iv2, &iv1, 8);	/* Note how iv1 == iv2 on entry and exit. */
 
 	des_cbc_encrypt(dest, dest, len, ks3, iv3, DES_ENCRYPT);
-	memcpy(iv3, (char *)dest + len - 8, 8);
+	memcpy(iv3, dest + len - 8, 8);
 }
 
 void
 SSH_3CBC_DECRYPT(des_key_schedule ks1,
 		 des_key_schedule ks2, des_cblock * iv2,
 		 des_key_schedule ks3, des_cblock * iv3,
-		 void *dest, void *src,
+		 unsigned char *dest, unsigned char *src,
 		 unsigned int len)
 {
 	des_cblock iv1;
@@ -70,10 +70,10 @@ SSH_3CBC_DECRYPT(des_key_schedule ks1,
 	memcpy(&iv1, iv2, 8);
 
 	des_cbc_encrypt(src, dest, len, ks3, iv3, DES_DECRYPT);
-	memcpy(iv3, (char *)src + len - 8, 8);
+	memcpy(iv3, src + len - 8, 8);
 
 	des_cbc_encrypt(dest, dest, len, ks2, iv2, DES_ENCRYPT);
-	memcpy(iv2, (char *)dest + len - 8, 8);
+	memcpy(iv2, dest + len - 8, 8);
 
 	des_cbc_encrypt(dest, dest, len, ks1, &iv1, DES_DECRYPT);
 	/* memcpy(&iv1, iv2, 8); */
@@ -273,7 +273,7 @@ cipher_encrypt(CipherContext *context, unsigned char *dest,
 		SSH_3CBC_ENCRYPT(context->u.des3.key1,
 				 context->u.des3.key2, &context->u.des3.iv2,
 				 context->u.des3.key3, &context->u.des3.iv3,
-				 dest, (void *) src, len);
+				 dest, (unsigned char *) src, len);
 		break;
 
 	case SSH_CIPHER_BLOWFISH:
@@ -308,7 +308,7 @@ cipher_decrypt(CipherContext *context, unsigned char *dest,
 		SSH_3CBC_DECRYPT(context->u.des3.key1,
 				 context->u.des3.key2, &context->u.des3.iv2,
 				 context->u.des3.key3, &context->u.des3.iv3,
-				 dest, (void *) src, len);
+				 dest, (unsigned char *) src, len);
 		break;
 
 	case SSH_CIPHER_BLOWFISH:

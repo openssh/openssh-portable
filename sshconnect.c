@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.53 2000/01/18 09:42:17 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.56 2000/02/18 08:50:33 markus Exp $");
 
 #ifdef HAVE_OPENSSL
 #include <openssl/bn.h>
@@ -156,8 +156,9 @@ ssh_create_socket(uid_t original_real_uid, int privileged, int family)
 		int p = IPPORT_RESERVED - 1;
 		sock = rresvport_af(&p, family);
 		if (sock < 0)
-			fatal("rresvport: af=%d %.100s", family, strerror(errno));
-		debug("Allocated local port %d.", p);
+			error("rresvport: af=%d %.100s", family, strerror(errno));
+		else
+			debug("Allocated local port %d.", p);
 	} else {
 		/*
 		 * Just create an ordinary socket on arbitrary port.  We use
@@ -891,6 +892,7 @@ try_skey_authentication()
 		log("WARNING: Encryption is disabled! "
 		    "Reponse will be transmitted in clear text.");
 	fprintf(stderr, "%s\n", challenge);
+	xfree(challenge);
 	fflush(stderr);
 	for (i = 0; i < options.number_of_password_prompts; i++) {
 		if (i != 0)
@@ -960,8 +962,11 @@ ssh_exchange_identification()
 
 	/* Read other side\'s version identification. */
 	for (i = 0; i < sizeof(buf) - 1; i++) {
-		if (read(connection_in, &buf[i], 1) != 1)
+		int len = read(connection_in, &buf[i], 1);
+		if (len < 0)
 			fatal("ssh_exchange_identification: read: %.100s", strerror(errno));
+		if (len != 1)
+			fatal("ssh_exchange_identification: Connection closed by remote host");
 		if (buf[i] == '\r') {
 			buf[i] = '\n';
 			buf[i + 1] = 0;

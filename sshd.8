@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: sshd.8,v 1.12 2000/01/22 08:57:41 damien Exp $
+.\" $Id: sshd.8,v 1.13 2000/03/09 10:27:53 damien Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSHD 8
@@ -258,13 +258,16 @@ Note that
 .Nm
 does not start if this file is group/world-accessible.
 .It Cm IgnoreRhosts
-Specifies that rhosts and shosts files will not be used in
-authentication.
+Specifies that
+.Pa .rhosts
+and 
+.Pa .shosts
+files will not be used in authentication.
 .Pa /etc/hosts.equiv
 and
 .Pa /etc/shosts.equiv 
 are still used.  The default is 
-.Dq no .
+.Dq yes .
 .It Cm IgnoreUserKnownHosts
 Specifies whether
 .Nm
@@ -352,7 +355,7 @@ The default is
 When password authentication is allowed, it specifies whether the
 server allows login to accounts with empty password strings.  The default
 is
-.Dq yes .
+.Dq no .
 .It Cm PermitRootLogin
 Specifies whether the root can log in using
 .Xr ssh 1 .
@@ -403,7 +406,7 @@ The default is
 .It Cm RhostsRSAAuthentication
 Specifies whether rhosts or /etc/hosts.equiv authentication together
 with successful RSA host authentication is allowed.  The default is
-.Dq yes .
+.Dq no .
 .It Cm RSAAuthentication
 Specifies whether pure RSA authentication is allowed.  The default is
 .Dq yes .
@@ -442,9 +445,10 @@ Specifies the first display number available for
 X11 forwarding.  This prevents
 .Nm
 from interfering with real X11 servers.
+The default is 10.
 .It Cm X11Forwarding
 Specifies whether X11 forwarding is permitted.  The default is
-.Dq yes .
+.Dq no .
 Note that disabling X11 forwarding does not improve security in any
 way, as users can always install their own forwarders.
 .El
@@ -762,18 +766,12 @@ This can be used to specify
 machine-specific login-time initializations globally.  This file
 should be writable only by root, and should be world-readable.
 .Sh AUTHOR
-Tatu Ylonen <ylo@cs.hut.fi>
-.Pp
-Information about new releases, mailing lists, and other related
-issues can be found from the SSH WWW home page:
-.Pp
-.Dl http://www.cs.hut.fi/ssh.
-.Pp
 OpenSSH
-is a derivative of the original (free) ssh 1.2.12 release, but with bugs
-removed and newer features re-added.   Rapidly after the 1.2.12 release,
-newer versions bore successively more restrictive licenses.  This version
-of OpenSSH
+is a derivative of the original (free) ssh 1.2.12 release by Tatu Ylonen,
+but with bugs removed and newer features re-added.   Rapidly after the
+1.2.12 release, newer versions of the original ssh bore successively
+more restrictive licenses, and thus demand for a free version was born.
+This version of OpenSSH
 .Bl -bullet
 .It
 has all components of a restrictive nature (i.e., patents, see
@@ -782,7 +780,8 @@ directly removed from the source code; any licensed or patented components
 are chosen from
 external libraries.
 .It
-has been updated to support ssh protocol 1.5.
+has been updated to support ssh protocol 1.5, making it compatible with
+all other ssh protocol 1 clients and servers.
 .It
 contains added support for 
 .Xr kerberos 8

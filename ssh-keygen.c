@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: ssh-keygen.c,v 1.10 1999/11/25 00:54:59 damien Exp $");
+RCSID("$Id: ssh-keygen.c,v 1.11 2000/03/09 10:27:51 damien Exp $");
 
 #include "rsa.h"
 #include "ssh.h"
@@ -80,8 +80,11 @@ ask_filename(struct passwd *pw, const char *prompt)
 void
 do_fingerprint(struct passwd *pw)
 {
-	char *comment;
+	FILE *f;
+	BIGNUM *e, *n;
 	RSA *public_key;
+	char *comment = NULL, *cp, *ep, line[16*1024];
+	int i, skip = 0, num = 1, invalid = 1;
 	struct stat st;
 
 	if (!have_identity)
@@ -90,38 +93,71 @@ do_fingerprint(struct passwd *pw)
 		perror(identity_file);
 		exit(1);
 	}
+	
 	public_key = RSA_new();
-	if (!load_public_key(identity_file, public_key, &comment)) {
-		char *cp, line[1024];
-		BIGNUM *e, *n;
-		int dummy, invalid = 0;
-		FILE *f = fopen(identity_file, "r");
+	if (load_public_key(identity_file, public_key, &comment)) {
+		printf("%d %s %s\n", BN_num_bits(public_key->n),
+		    fingerprint(public_key->e, public_key->n),
+		    comment);
+		RSA_free(public_key);
+		exit(0);
+	}
+	RSA_free(public_key);
+
+	f = fopen(identity_file, "r");
+	if (f != NULL) {
 		n = BN_new();
 		e = BN_new();
-		if (f && fgets(line, sizeof(line), f)) {
-			cp = line;
-			line[strlen(line) - 1] = '\0';
-			if (auth_rsa_read_key(&cp, &dummy, e, n)) {
-				public_key->e = e;
-				public_key->n = n;
-				comment = xstrdup(cp ? cp : "no comment");
-			} else {
-				invalid = 1;
+		while (fgets(line, sizeof(line), f)) {
+			i = strlen(line) - 1;
+			if (line[i] != '\n') {
+				error("line %d too long: %.40s...", num, line);
+				skip = 1;
+				continue;
 			}
-		} else {
-			invalid = 1;
+			num++;
+			if (skip) {
+				skip = 0;
+				continue;
+			}
+			line[i] = '\0';
+
+			/* Skip leading whitespace, empty and comment lines. */
+			for (cp = line; *cp == ' ' || *cp == '\t'; cp++)
+				;
+			if (!*cp || *cp == '\n' || *cp == '#')
+				continue ;
+			i = strtol(cp, &ep, 10);
+			if (i == 0 || ep == NULL || (*ep != ' ' && *ep != '\t')) {
+				int quoted = 0;
+				comment = cp;
+				for (; *cp && (quoted || (*cp != ' ' && *cp != '\t')); cp++) {
+					if (*cp == '\\' && cp[1] == '"')
+						cp++;	/* Skip both */
+					else if (*cp == '"')
+						quoted = !quoted;
+				}
+				if (!*cp)
+					continue;
+				*cp++ = '\0';
+			}
+			ep = cp;
+			if (auth_rsa_read_key(&cp, &i, e, n)) {
+				invalid = 0;
+				comment = *cp ? cp : comment;
+				printf("%d %s %s\n", BN_num_bits(n),
+				    fingerprint(e, n),
+				    comment ? comment : "no comment");
+			}
 		}
-		if (invalid) {
-			printf("%s is not a valid key file.\n", identity_file);
-			BN_free(e);
-			BN_free(n);
-			exit(1);
-		}
+		BN_free(e);
+		BN_free(n);
+		fclose(f);
 	}
-	printf("%d %s %s\n", BN_num_bits(public_key->n),
-	       fingerprint(public_key->e, public_key->n),
-	       comment);
-	RSA_free(public_key);
+	if (invalid) {
+		printf("%s is not a valid key file.\n", identity_file);
+		exit(1);
+	}
 	exit(0);
 }
 
@@ -314,7 +350,7 @@ void
 usage(void)
 {
 	printf("ssh-keygen version %s\n", SSH_VERSION);
-	printf("Usage: %s [-b bits] [-p] [-c] [-f file] [-P pass] [-N new-pass] [-C comment]\n", __progname);
+	printf("Usage: %s [-b bits] [-p] [-c] [-l] [-f file] [-P pass] [-N new-pass] [-C comment]\n", __progname);
 	exit(1);
 }
 

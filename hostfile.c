@@ -14,13 +14,13 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: hostfile.c,v 1.11 2000/01/04 00:07:59 markus Exp $");
+RCSID("$OpenBSD: hostfile.c,v 1.13 2000/02/18 10:20:20 markus Exp $");
 
 #include "packet.h"
 #include "ssh.h"
 
 /*
- * Reads a multiple-precision integer in hex from the buffer, and advances
+ * Reads a multiple-precision integer in decimal from the buffer, and advances
  * the pointer.  The integer must already be initialized.  This function is
  * permitted to modify the buffer.  This leaves *cpp to point just beyond the
  * last processed (and maybe modified) character.  Note that this may modify
@@ -31,25 +31,22 @@ int
 auth_rsa_read_bignum(char **cpp, BIGNUM * value)
 {
 	char *cp = *cpp;
-	int len, old;
+	int old;
 
 	/* Skip any leading whitespace. */
 	for (; *cp == ' ' || *cp == '\t'; cp++)
 		;
 
-	/* Check that it begins with a hex digit. */
+	/* Check that it begins with a decimal digit. */
 	if (*cp < '0' || *cp > '9')
 		return 0;
 
 	/* Save starting position. */
 	*cpp = cp;
 
-	/* Move forward until all hex digits skipped. */
+	/* Move forward until all decimal digits skipped. */
 	for (; *cp >= '0' && *cp <= '9'; cp++)
 		;
-
-	/* Compute the length of the hex number. */
-	len = cp - *cpp;
 
 	/* Save the old terminating character, and replace it by \0. */
 	old = *cp;
@@ -179,7 +176,7 @@ check_host_in_hostfile(const char *filename, const char *host,
 	FILE *f;
 	char line[8192];
 	int linenum = 0;
-	unsigned int bits, kbits, hostlen;
+	unsigned int kbits, hostlen;
 	char *cp, *cp2;
 	HostStatus end_return;
 
@@ -197,9 +194,6 @@ check_host_in_hostfile(const char *filename, const char *host,
 	 * not found the proper one.
 	 */
 	end_return = HOST_NEW;
-
-	/* size of modulus 'n' */
-	bits = BN_num_bits(n);
 
 	/* Go trough the file. */
 	while (fgets(line, sizeof(line), f)) {

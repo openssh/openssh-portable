@@ -15,7 +15,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: packet.c,v 1.11 2000/01/22 22:38:00 damien Exp $");
+RCSID("$Id: packet.c,v 1.12 2000/03/09 10:27:50 damien Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -505,7 +505,7 @@ packet_read_poll(int *payload_len_ptr)
 {
 	unsigned int len, padded_len;
 	unsigned char *ucp;
-	char buf[8], *cp;
+	char buf[8], *cp, *msg;
 	unsigned int checksum, stored_checksum;
 
 restart:
@@ -575,7 +575,9 @@ restart:
 
 	/* Handle disconnect message. */
 	if ((unsigned char) buf[0] == SSH_MSG_DISCONNECT) {
-		log("Received disconnect: %.900s", packet_get_string(NULL));
+		msg = packet_get_string(NULL);
+		log("Received disconnect: %.900s", msg);
+		xfree(msg);
 		fatal_cleanup();
 	}	
 
@@ -585,7 +587,9 @@ restart:
 
 	/* Send debug messages as debugging output. */
 	if ((unsigned char) buf[0] == SSH_MSG_DEBUG) {
-		debug("Remote: %.900s", packet_get_string(NULL));
+		msg = packet_get_string(NULL);
+		debug("Remote: %.900s", msg);
+		xfree(msg);
 		goto restart;
 	}
 	/* Return type. */
