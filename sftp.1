@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.25 2001/09/17 17:57:57 stevesk Exp $
+.\" $OpenBSD: sftp.1,v 1.26 2001/09/17 20:38:09 stevesk Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -30,11 +30,13 @@
 .Nd Secure file transfer program
 .Sh SYNOPSIS
 .Nm sftp
-.Op Fl vC
+.Op Fl 1Cv
 .Op Fl b Ar batchfile
 .Op Fl F Ar ssh_config
 .Op Fl o Ar ssh_option
-.Op Ar host
+.Op Fl s Ar subsystem | sftp_server
+.Op Fl S Ar program
+.Ar host
 .Nm sftp
 .Op [\fIuser\fR@]\fIhost\fR[:\fIfile\fR [\fIfile\fR]]
 .Nm sftp
@@ -61,6 +63,8 @@ The last usage format allows the sftp client to start in a remote directory.
 .Pp
 The options are as follows:
 .Bl -tag -width Ds
+.It Fl 1
+Specify the use of protocol version 1.
 .It Fl b Ar batchfile
 Batch mode reads a series of commands from an input
 .Ar batchfile
@@ -77,7 +81,7 @@ and
 .It Fl C
 Enables compression (via ssh's
 .Fl C
-flag)
+flag).
 .It Fl F Ar ssh_config
 Specifies an alternative
 per-user configuration file for
@@ -92,9 +96,22 @@ in the format used in the
 configuration file. This is useful for specifying options
 for which there is no separate
 .Nm sftp
-command-line flag.  For example, forcing the use of protocol
-version 1 is specified using
-.Ic sftp -oProtocol=1 .
+command-line flag.  For example, to specify an alternate
+port use:
+.Ic sftp -oPort=24 .
+.It Fl s Ar subsystem | sftp_server
+Specifies the SSH2 subsystem or the path for an sftp server
+on the remote host.  A path is useful for using sftp over
+protocol version 1, or when the remote
+.Nm sshd
+does not have an sftp subsystem configured.
+.It Fl S Ar program
+Name of the
+.Ar program
+to use for the encrypted connection.
+The program must understand
+.Xr ssh 1
+options.
 .It Fl v
 Raise logging level. This option is also passed to ssh.
 .El
