@@ -11,9 +11,7 @@ AC_PROG_INSTALL
 AC_CHECK_PROG(AR, ar, ar)
 AC_PATH_PROG(PERL, perl)
 AC_SUBST(PERL)
-AC_PATH_PROG(xauth_path, xauth)
 
-dnl Use ip address instead of hostname in $DISPLAY
 AC_ARG_WITH(rsh,
 	[  --with-rsh=PATH         Specify path to remote shell program ],
 	[
@@ -23,6 +21,21 @@ AC_ARG_WITH(rsh,
 	],
 	[
 		AC_PATH_PROG(rsh_path, rsh)
+	]
+)
+
+AC_ARG_WITH(xauth-path,
+	[  --with-xauth-path=PATH  Specify path to xauth program ],
+	[
+		if test "x$withval" != "$xno" ; then
+			AC_DEFINE_UNQUOTED(XAUTH_PATH, "$withval")
+		fi
+	],
+	[
+		AC_PATH_PROG(xauth_path, xauth)
+		if test ! -z "$xauth_path" -a -x "/usr/openwin/bin/xauth" ; then
+			xauth_path="/usr/openwin/bin/xauth"
+		fi
 	]
 )
 
@@ -69,6 +82,9 @@ case "$host" in
 	AC_MSG_WARN([*** Irix 6.x is not tested *** ])
 	no_libsocket=1
 	no_libnsl=1
+	;;
+*-*-linux*)
+	no_dev_ptmx=1
 	;;
 *-*-solaris*)
 	AC_DEFINE(USE_UTMPX)
@@ -125,10 +141,10 @@ if test -z "$no_libnsl" ; then
 fi
 
 dnl Checks for header files.
-AC_CHECK_HEADERS(bstring.h endian.h lastlog.h login.h maillock.h netdb.h netgroup.h paths.h poll.h pty.h shadow.h security/pam_appl.h sys/bsdtty.h sys/cdefs.h sys/poll.h sys/select.h sys/stropts.h sys/time.h sys/ttcompat.h util.h utmp.h utmpx.h)
+AC_CHECK_HEADERS(bstring.h endian.h lastlog.h login.h maillock.h netdb.h netgroup.h paths.h poll.h pty.h shadow.h security/pam_appl.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h sys/poll.h sys/select.h sys/stropts.h sys/time.h sys/ttcompat.h util.h utmp.h utmpx.h)
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS(arc4random bindresvport_af freeaddrinfo gai_strerror getaddrinfo getpagesize getnameinfo _getpty innetgr md5_crypt mkdtemp openpty  rresvport_af setenv seteuid setlogin setproctitle setreuid snprintf strlcat strlcpy updwtmpx vsnprintf)
+AC_CHECK_FUNCS(arc4random bindresvport_af freeaddrinfo gai_strerror getaddrinfo getpagesize getnameinfo innetgr md5_crypt mkdtemp openpty rresvport_af setenv seteuid setlogin setproctitle setreuid snprintf strlcat strlcpy updwtmpx vsnprintf _getpty __snprintf __vsnprintf)
 
 AC_CHECK_FUNC(login, 
 	[AC_DEFINE(HAVE_LOGIN)],
@@ -154,6 +170,7 @@ AC_TRY_COMPILE(
 	[
 		AC_DEFINE(HAVE_INTXX_T)
 		AC_MSG_RESULT(yes)
+		have_intxx_t=1
 	],
 	[AC_MSG_RESULT(no)]
 ) 
@@ -165,9 +182,31 @@ AC_TRY_COMPILE(
 	[
 		AC_DEFINE(HAVE_U_INTXX_T)
 		AC_MSG_RESULT(yes)
+		have_u_intxx_t=1
 	],
 	[AC_MSG_RESULT(no)]
 ) 
+
+if test -z "$have_u_intxx_t" -a -z "$have_intxx_t" -a \
+           "x$ac_cv_header_sys_bitypes_h" = "xyes"
+then
+	AC_MSG_CHECKING([for intXX_t and u_intXX_t types in sys/bitypes.h])
+	AC_TRY_COMPILE(
+		[#include <sys/bitypes.h>], 
+		[
+			u_int16_t c; u_int32_t d; 
+			int16_t e; int32_t f;
+			c = 1235; d = 1235;
+			e = 1235; f = 1235;
+		], 
+		[
+			AC_DEFINE(HAVE_U_INTXX_T)
+			AC_DEFINE(HAVE_INTXX_T)
+			AC_MSG_RESULT(yes)
+		],
+		[AC_MSG_RESULT(no)]
+	) 
+fi
 
 AC_MSG_CHECKING([for uintXX_t types])
 AC_TRY_COMPILE(
@@ -468,7 +507,9 @@ AC_ARG_WITH(dante,
 	]
 )
 
-AC_CHECK_FILE("/dev/ptmx", AC_DEFINE_UNQUOTED(HAVE_DEV_PTMX))
+if test ! -z "$no_dev_ptmx" ; then
+	AC_CHECK_FILE("/dev/ptmx", AC_DEFINE_UNQUOTED(HAVE_DEV_PTMX))
+fi
 AC_CHECK_FILE("/dev/ptc", AC_DEFINE_UNQUOTED(HAVE_DEV_PTS_AND_PTC))
 
 AC_MSG_CHECKING([whether libc defines __progname])

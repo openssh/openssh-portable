@@ -1,3 +1,16 @@
+20000115
+ - Add --with-xauth-path configure directive and explicit test for
+   /usr/openwin/bin/xauth for Solaris systems. Report from Anders 
+   Nordby <anders@fix.no>
+ - Fix incorrect detection of /dev/ptmx on Linux systems that lack 
+   openpty. Report from John Seifarth <john@waw.be>
+ - Look for intXX_t and u_intXX_t in sys/bitypes.h if they are not in
+   sys/types.h. Fixes problems on SCO, report from Gary E. Miller 
+   <gem@rellim.com>
+ - Use __snprintf and __vnsprintf if they are found where snprintf and
+   vnsprintf are lacking. Suggested by Ben Taylor <bent@shell.clark.net>
+   and others.
+
 20000114
  - Merged OpenBSD IPv6 patch:
    - [sshd.c sshd.8 sshconnect.c ssh.h ssh.c servconf.h servconf.c scp.1]

@@ -3,8 +3,12 @@
 
 /* Necessary headers */
 
-#include <sys/types.h> /* For u_intXX_t */
+#include <sys/types.h> 
 #include <sys/socket.h> /* For SHUT_XXXX */
+
+#ifdef HAVE_SYS_BITYPES_H
+# include <sys/bitypes.h> /* For u_intXX_t */
+#endif 
 
 #ifdef HAVE_PATHS_H
 # include <paths.h> /* For _PATH_XXX */
@@ -231,5 +235,14 @@ typedef unsigned int size_t;
 #else
 # define PAM_STRERROR(a,b) pam_strerror((a),(b))
 #endif
+
+/* Solaris doesn't have a public [v]snprintf() function, but it has */
+/* __[v]snprintf() */
+#if !defined(HAVE_SNPRINTF) && defined(HAVE___SNPRINTF)
+# define snprintf __snprintf
+#endif /* !defined(HAVE_SNPRINTF) && defined(HAVE___SNPRINTF) */
+#if !defined(HAVE_VSNPRINTF) && defined(HAVE___VSNPRINTF)
+# define vsnprintf __vsnprintf
+#endif /* !defined(HAVE_VSNPRINTF) && defined(HAVE___VSNPRINTF) */
 
 #endif /* _DEFINES_H */
