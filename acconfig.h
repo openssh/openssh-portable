@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.107 2001/03/14 00:39:46 djm Exp $ */
+/* $Id: acconfig.h,v 1.108 2001/03/17 01:15:38 mouring Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -304,6 +304,9 @@
 
 /* Define if your system glob() function has the GLOB_ALTDIRFUNC extension */
 #undef GLOB_HAS_ALTDIRFUNC
+
+/* Define if your system glob() function has gl_matchc options in glob_t */
+#undef GLOB_HAS_GL_MATCHC
 
 @BOTTOM@
 

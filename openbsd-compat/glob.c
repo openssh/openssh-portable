@@ -37,7 +37,8 @@
 #include "includes.h"
 #include <ctype.h>
 
-#if !defined(HAVE_GLOB) || !defined(GLOB_HAS_ALTDIRFUNC)
+#if !defined(HAVE_GLOB) || !defined(GLOB_HAS_ALTDIRFUNC) || \
+    !defined(GLOB_HAS_GL_MATCHC)
 
 #if defined(LIBC_SCCS) && !defined(lint)
 #if 0
@@ -855,5 +856,6 @@ qprintf(str, s)
 }
 #endif
 
-#endif /* !defined(HAVE_GLOB) || !defined(GLOB_HAS_ALTDIRFUNC) */
+#endif /* !defined(HAVE_GLOB) || !defined(GLOB_HAS_ALTDIRFUNC) ||
+          !defined(GLOB_HAS_GL_MATCHC) */
 

@@ -54,7 +54,8 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #ifdef HAVE_BSTRING_H
 # include <bstring.h>
 #endif
-#if defined(HAVE_GLOB_H) && defined(GLOB_HAS_ALTDIRFUNC)
+#if defined(HAVE_GLOB_H) && defined(GLOB_HAS_ALTDIRFUNC) && \
+    defined(GLOB_HAS_GL_MATCHC)
 # include <glob.h>
 #endif
 #ifdef HAVE_NETGROUP_H

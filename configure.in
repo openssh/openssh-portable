@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.265 2001/03/14 00:39:46 djm Exp $
+# $Id: configure.in,v 1.266 2001/03/17 01:15:38 mouring Exp $
 
 AC_INIT(ssh.c)
 
@@ -387,6 +387,24 @@ AC_EGREP_CPP(FOUNDIT,
 		AC_MSG_RESULT(no)
 	]
 )
+
+# Check for g.gl_matchc glob() extension
+AC_MSG_CHECKING(for gl_matchc field in glob_t)
+AC_EGREP_CPP(FOUNDIT,
+        [
+                #include <glob.h>
+		int main(void){glob_t g; g.gl_matchc = 1;}
+        ],
+        [
+                AC_DEFINE(GLOB_HAS_GL_MATCHC)
+                AC_MSG_RESULT(yes)
+        ],
+        [
+                AC_MSG_RESULT(no)
+        ]
+)
+
+
 
 # Check whether user wants Kerberos support
 KRB4_MSG="no" 

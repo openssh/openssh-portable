@@ -39,7 +39,8 @@
  *	@(#)glob.h	8.1 (Berkeley) 6/2/93
  */
 
-#if !defined(HAVE_GLOB_H) || !defined(GLOB_HAS_ALTDIRFUNC)
+#if !defined(HAVE_GLOB_H) || !defined(GLOB_HAS_ALTDIRFUNC) || \
+    !defined(GLOB_HAS_GL_MATCHC)
 
 #ifndef _GLOB_H_
 #define	_GLOB_H_
@@ -94,5 +95,6 @@ void	globfree __P((glob_t *));
 
 #endif /* !_GLOB_H_ */
 
-#endif /* !defined(HAVE_GLOB_H) || !defined(GLOB_HAS_ALTDIRFUNC) */
+#endif /* !defined(HAVE_GLOB_H) || !defined(GLOB_HAS_ALTDIRFUNC)  ||
+	  !defined(GLOB_HAS_GL_MATCHC */
 

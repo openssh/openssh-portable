@@ -22,6 +22,8 @@
      [auth-options.c channels.c channels.h serverloop.c session.c]
      implement "permitopen" key option, restricts -L style forwarding to
      to specified host:port pairs. based on work by harlan@genua.de
+ - Check for gl_matchc support in glob_t and fall back to the 
+   openbsd-compat/glob.[ch] support if it does not exist.
 
 20010315
  - OpenBSD CVS Sync
@@ -4584,4 +4586,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.967 2001/03/17 00:47:54 mouring Exp $
+$Id: ChangeLog,v 1.968 2001/03/17 01:15:38 mouring Exp $
