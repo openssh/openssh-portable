@@ -109,11 +109,26 @@ if test -z "$RANDOM_POOL" -a -z "$EGD_POOL"; then
 fi
 
 dnl Check whether use wants to disable the external ssh-askpass
+INSTALL_ASKPASS="yes"
+AC_MSG_CHECKING([whether to enable external ssh-askpass support])
 AC_ARG_WITH(askpass,
-	[  --without-askpass       Disable external ssh-askpass support],
-	[AC_DEFINE(DISABLE_EXTERNAL_ASKPASS)],
-	[INSTALL_ASKPASS="yes"]
+	[  --with-askpass=yes/no   Enable external ssh-askpass support (default=yes)],
+	[
+		if test x$withval = xno ; then
+			INSTALL_ASKPASS="no"
+		else
+			INSTALL_ASKPASS="yes"
+		fi
+		
+	]
 )
-AC_SUBST(INSTALL_ASKPASS)
+
+if test "x$INSTALL_ASKPASS" = "xyes" ; then
+	AC_DEFINE(USE_EXTERNAL_ASKPASS)
+	AC_SUBST(INSTALL_ASKPASS)
+	AC_MSG_RESULT(yes)
+else
+	AC_MSG_RESULT(no)
+fi
 
 AC_OUTPUT(Makefile)

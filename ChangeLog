@@ -1,3 +1,11 @@
+19991115
+ - Merged OpenBSD CVS changes:
+   - [ssh-add.c] change passphrase loop logic and remove ref to 
+     $DISPLAY, ok niels
+ - Changed to ssh-add.c broke askpass support. Revised it to be a little more
+   modular. 
+ - Revised autoconf support for enabling/disabling askpass support.
+
 19991114
  - Solaris compilation fixes (still imcomplete)
 

@@ -22,7 +22,7 @@
 #undef HAVE_LIBUTIL_LOGIN
 
 /* Define if you *don't* want to use an external ssh-askpass */
-#undef DISABLE_EXTERNAL_ASKPASS
+#undef USE_EXTERNAL_ASKPASS
 
 @BOTTOM@
 

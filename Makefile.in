@@ -80,7 +80,7 @@ install: all
 	ln -sf ssh $(bindir)/slogin
 	ln -sf ssh.1 $(mandir)/man1/slogin.1
 
-	if [ ! -z "@INSTALL_ASKPASS@" ] ; then \
+	if [ "x@INSTALL_ASKPASS@" = "xyes" ] ; then \
 		install -d $(libdir) ; \
 		install -d $(libdir)/ssh ; \
 		if [ -z "@GNOME_ASKPASS@" ] ; then \
