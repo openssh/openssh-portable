@@ -163,7 +163,7 @@ if test "x$prefix" != "xNONE" ; then
 	tryssldir="$tryssldir $prefix"
 fi
 AC_MSG_CHECKING([for OpenSSL/SSLeay directory])
-for ssldir in "" $tryssldir /usr /usr/local/openssl /usr/lib/openssl /usr/local/ssl /usr/lib/ssl /usr/local /usr/pkg /opt /opt/openssl ; do
+for ssldir in "" $tryssldir /usr/local/openssl /usr/lib/openssl /usr/local/ssl /usr/lib/ssl /usr/local /usr/pkg /opt /opt/openssl ; do
 	if test ! -z "$ssldir" ; then
 		LIBS="$saved_LIBS -L$ssldir/lib -L$ssldir -lcrypto"
 		CFLAGS="$CFLAGS -I$ssldir/include"
