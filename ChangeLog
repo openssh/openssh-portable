@@ -1,3 +1,7 @@
+20041006
+ - (dtucker) [README.privsep] Bug #939: update info about HP-UX Trusted Mode
+   and other PAM platforms.
+
 20040930
  - (dtucker) [configure.ac] Set AC_PACKAGE_NAME.  ok djm@
 
@@ -1757,4 +1761,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3556 2004/09/30 11:17:08 dtucker Exp $
+$Id: ChangeLog,v 1.3557 2004/10/06 10:09:32 dtucker Exp $
