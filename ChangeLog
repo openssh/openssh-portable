@@ -1,3 +1,11 @@
+20030224
+ - (djm) Tweak gnome-ssh-askpass2:
+   - Retry kb and mouse grab a couple of times, so passphrase dialog doesn't 
+     immediately fail if you are doing something else when it appears (e.g. 
+     dragging a window)
+   - Perform server grab after we have the keyboard and/or pointer to avoid 
+     races.
+
 20030211
  - (djm) Cygwin needs libcrypt too. Patch from vinschen@redhat.com
 
@@ -1097,4 +1105,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2593 2003/02/10 23:04:03 djm Exp $
+$Id: ChangeLog,v 1.2594 2003/02/24 00:48:22 djm Exp $
