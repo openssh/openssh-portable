@@ -1,6 +1,7 @@
 20020719
  - (tim) [contrib/solaris/buildpkg.sh] create privsep user/group if needed.
    Patch by dtucker@zip.com.au
+ - (tim) [configure.ac]  test for libxnet on HP. Patch by dtucker@zip.com.au
 
 20020718
  - (tim) [defines.h] Bug 313 patch by dirk.meyer@dinoex.sub.org
@@ -1393,4 +1394,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2378 2002/07/19 18:57:57 tim Exp $
+$Id: ChangeLog,v 1.2379 2002/07/19 19:41:10 tim Exp $
