@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: ssh.c,v 1.31 2000/05/17 12:34:24 damien Exp $");
+RCSID("$Id: ssh.c,v 1.32 2000/05/20 05:22:37 damien Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/dsa.h>
@@ -435,7 +435,7 @@ main(int ac, char **av)
 	buffer_init(&command);
 
 	OpenSSL_add_all_algorithms();
-	
+
 	/*
 	 * Save the command to execute on the remote host in a buffer. There
 	 * is no limit on the length of the command, except by the maximum

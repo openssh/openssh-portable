@@ -58,7 +58,6 @@ allowed_user(struct passwd * pw)
 	if (!pw)
 		return 0;
 
-	/* deny if shell does not exists or is not executable */
 	/*
 	 * Get the shell from the password data.  An empty shell field is
 	 * legal, and means /bin/sh.

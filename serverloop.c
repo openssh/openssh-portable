@@ -402,7 +402,9 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 	/* nonblocking IO */
 	set_nonblock(fdin);
 	set_nonblock(fdout);
-	set_nonblock(fderr);
+	/* we don't have stderr for interactive terminal sessions, see below */
+	if (fderr != -1)
+		set_nonblock(fderr);
 
 	connection_in = packet_get_connection_in();
 	connection_out = packet_get_connection_out();
