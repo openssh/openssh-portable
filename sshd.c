@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.243 2002/05/22 23:18:25 deraadt Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.244 2002/05/29 11:21:57 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -999,6 +999,19 @@ main(int ac, char **av)
 			debug("Forcing server key to %d bits to make it differ from host key.",
 			    options.server_key_bits);
 		}
+	}
+
+	if (use_privsep) {
+		struct passwd *pw;
+		struct stat st;
+
+		if ((pw = getpwnam(SSH_PRIVSEP_USER)) == NULL)
+			fatal("Privilege separation user %s does not exist",
+			    SSH_PRIVSEP_USER);
+		if ((stat(_PATH_PRIVSEP_CHROOT_DIR, &st) == -1) ||
+		    (S_ISDIR(st.st_mode) == 0))
+			fatal("Missing privilege separation directory: %s",
+			    _PATH_PRIVSEP_CHROOT_DIR);
 	}
 
 	/* Configuration looks good, so exit if in test mode. */

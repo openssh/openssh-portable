@@ -50,6 +50,10 @@
    - stevesk@cvs.openbsd.org 2002/05/29 03:06:30
      [ssh.1 sshd.8]
      spelling
+   - markus@cvs.openbsd.org 2002/05/29 11:21:57
+     [sshd.c]
+     don't start if privsep is enabled and SSH_PRIVSEP_USER or
+     _PATH_PRIVSEP_CHROOT_DIR are missing; ok deraadt@
 
 20020604
  - (stevesk) [channels.c] bug #164 patch from YOSHIFUJI Hideaki (changed
@@ -734,4 +738,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2159 2002/06/06 20:45:33 mouring Exp $
+$Id: ChangeLog,v 1.2160 2002/06/06 20:46:25 mouring Exp $
