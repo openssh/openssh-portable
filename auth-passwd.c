@@ -117,7 +117,7 @@ auth_password(Authctxt *authctxt, const char *password)
 	if (pw == NULL)
 		return 0;
 #ifndef HAVE_CYGWIN
-       if (pw->pw_uid == 0 && options.permit_root_login != PERMIT_NO_PASSWD)
+       if (pw->pw_uid == 0 && options.permit_root_login != PERMIT_YES)
 		return 0;
 #endif
 	if (*password == '\0' && options.permit_empty_passwd == 0)
