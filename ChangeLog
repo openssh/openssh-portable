@@ -1,3 +1,6 @@
+20030813
+ - (dtucker) [session.c] Remove #ifdef TIOCSBRK kludge.
+
 20030811
  - (dtucker) OpenBSD CVS Sync
    (thanks to Simon Wilkinson for help with this -dt)
@@ -815,4 +818,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2888 2003/08/11 13:00:33 dtucker Exp $
+$Id: ChangeLog,v 1.2889 2003/08/13 10:28:14 dtucker Exp $

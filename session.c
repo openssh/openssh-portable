@@ -1696,7 +1696,6 @@ session_break_req(Session *s)
 	break_length = packet_get_int();
 	packet_check_eom();
 
-#if defined(TIOCSBRK) && defined(TIOCCBRK)
 	if (s->ttyfd == -1)
 		return 0;
 	/* we will sleep from 500ms to 3000ms */
@@ -1707,9 +1706,6 @@ session_break_req(Session *s)
 	usleep(break_length * 1000);
 	ioctl(s->ttyfd, TIOCCBRK, NULL);
 	return 1;
-#else
-	return 0;
-#endif
 }
 
 static int
