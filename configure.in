@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.240 2001/02/15 18:34:29 mouring Exp $
+# $Id: configure.in,v 1.241 2001/02/15 23:18:12 djm Exp $
 
 AC_INIT(ssh.c)
 
@@ -352,6 +352,126 @@ AC_CHECK_FUNC(utimes,
 
 # Checks for header files.
 AC_CHECK_HEADERS(bstring.h endian.h floatingpoint.h getopt.h lastlog.h limits.h login.h login_cap.h maillock.h netdb.h netgroup.h netinet/in_systm.h paths.h poll.h pty.h regex.h shadow.h security/pam_appl.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h sys/poll.h sys/queue.h sys/select.h sys/stat.h sys/stropts.h sys/sysmacros.h sys/time.h sys/ttcompat.h sys/un.h stddef.h time.h ttyent.h usersec.h util.h utime.h utmp.h utmpx.h vis.h)
+
+# Check whether user wants Kerberos support
+KRB4_MSG="no" 
+AC_ARG_WITH(kerberos4,
+	[  --with-kerberos4=PATH   Enable Kerberos 4 support],
+	[
+		if test "x$withval" != "xno" ; then
+	
+			if test "x$withval" != "xyes" ; then
+				CPPFLAGS="$CPPFLAGS -I${withval}/include"
+				LDFLAGS="$LDFLAGS -L${withval}/lib"
+				if test ! -z "$need_dash_r" ; then
+					LDFLAGS="$LDFLAGS -R${withval}/lib"
+				fi
+				if test ! -z "$blibpath" ; then
+					blibpath="$blibpath:${withval}/lib"
+				fi
+			else
+				if test -d /usr/include/kerberosIV ; then
+					CPPFLAGS="$CPPFLAGS -I/usr/include/kerberosIV"
+				fi
+			fi
+
+			AC_CHECK_HEADERS(krb.h)
+			AC_CHECK_LIB(krb, main)
+			if test "$ac_cv_header_krb_h" != yes; then
+				AC_MSG_WARN([Cannot find krb.h, build may fail])
+			fi
+			if test "$ac_cv_lib_krb_main" != yes; then
+				AC_MSG_WARN([Cannot find libkrb, build may fail])
+			fi
+
+			KLIBS="-lkrb -ldes"
+			AC_CHECK_LIB(resolv, dn_expand, , )
+			KRB4=yes
+			KRB4_MSG="yes" 
+			AC_DEFINE(KRB4)
+		fi
+	]
+)
+
+# Check whether user wants AFS support
+AFS_MSG="no" 
+AC_ARG_WITH(afs,
+	[  --with-afs=PATH         Enable AFS support],
+	[
+		if test "x$withval" != "xno" ; then
+
+			if test "x$withval" != "xyes" ; then
+				CPPFLAGS="$CPPFLAGS -I${withval}/include"
+				LDFLAGS="$LDFLAGS -L${withval}/lib"
+			fi
+
+			if test -z "$KRB4" ; then
+				AC_MSG_WARN([AFS requires Kerberos IV support, build may fail])
+			fi
+
+			LIBS="$LIBS -lkafs"
+			if test ! -z "$AFS_LIBS" ; then
+				LIBS="$LIBS $AFS_LIBS"
+			fi
+			AC_DEFINE(AFS)
+			AFS_MSG="yes" 
+		fi
+	]
+)
+LIBS="$LIBS $KLIBS"
+
+# Check whether user wants S/Key support
+SKEY_MSG="no" 
+AC_ARG_WITH(skey,
+	[  --with-skey=PATH         Enable S/Key support],
+	[
+		if test "x$withval" != "xno" ; then
+
+			if test "x$withval" != "xyes" ; then
+				CPPFLAGS="$CPPFLAGS -I${withval}/include"
+				LDFLAGS="$LDFLAGS -L${withval}/lib"
+			fi
+
+			AC_DEFINE(SKEY)
+			LIBS="-lskey $LIBS"
+			SKEY_MSG="yes" 
+	
+			AC_CHECK_FUNC(skey_keyinfo,
+				[],
+				[
+					AC_MSG_ERROR([** Incomplete or missing s/key libraries.])
+				])
+		fi
+	]
+)
+
+# Check whether user wants TCP wrappers support
+TCPW_MSG="no" 
+AC_ARG_WITH(tcp-wrappers,
+	[  --with-tcp-wrappers     Enable tcpwrappers support],
+	[
+		if test "x$withval" != "xno" ; then
+			saved_LIBS="$LIBS"
+			LIBS="-lwrap $LIBS"
+			AC_MSG_CHECKING(for libwrap)
+			AC_TRY_LINK(
+				[
+#include <tcpd.h>
+					int deny_severity = 0, allow_severity = 0;
+				],
+				[hosts_access(0);],
+				[
+					AC_MSG_RESULT(yes)
+					AC_DEFINE(LIBWRAP)
+					TCPW_MSG="yes" 
+				],
+				[
+					AC_MSG_ERROR([*** libwrap missing])
+				]
+			)
+		fi
+	]
+)
 
 dnl    Checks for library functions.
 AC_CHECK_FUNCS(arc4random atexit b64_ntop bcopy bindresvport_sa clock fchown fchmod freeaddrinfo futimes gai_strerror getcwd getaddrinfo getgrouplist getnameinfo getrlimit getrusage getttyent inet_aton inet_ntoa innetgr login_getcapbool md5_crypt memmove mkdtemp on_exit openpty realpath rresvport_af setdtablesize setenv seteuid setlogin setproctitle setreuid setrlimit setsid sigaction sigvec snprintf strerror strlcat strlcpy strmode strsep strtok_r sysconf tcgetpgrp utimes vsnprintf vhangup vis waitpid _getpty __b64_ntop)
@@ -1177,126 +1297,6 @@ AC_ARG_WITH(catman,
 )
 AC_SUBST(MANTYPE)
 AC_SUBST(mansubdir)
-
-# Check whether user wants Kerberos support
-KRB4_MSG="no" 
-AC_ARG_WITH(kerberos4,
-	[  --with-kerberos4=PATH   Enable Kerberos 4 support],
-	[
-		if test "x$withval" != "xno" ; then
-	
-			if test "x$withval" != "xyes" ; then
-				CPPFLAGS="$CPPFLAGS -I${withval}/include"
-				LDFLAGS="$LDFLAGS -L${withval}/lib"
-				if test ! -z "$need_dash_r" ; then
-					LDFLAGS="$LDFLAGS -R${withval}/lib"
-				fi
-				if test ! -z "$blibpath" ; then
-					blibpath="$blibpath:${withval}/lib"
-				fi
-			else
-				if test -d /usr/include/kerberosIV ; then
-					CPPFLAGS="$CPPFLAGS -I/usr/include/kerberosIV"
-				fi
-			fi
-
-			AC_CHECK_HEADERS(krb.h)
-			AC_CHECK_LIB(krb, main)
-			if test "$ac_cv_header_krb_h" != yes; then
-				AC_MSG_WARN([Cannot find krb.h, build may fail])
-			fi
-			if test "$ac_cv_lib_krb_main" != yes; then
-				AC_MSG_WARN([Cannot find libkrb, build may fail])
-			fi
-
-			KLIBS="-lkrb -ldes"
-			AC_CHECK_LIB(resolv, dn_expand, , )
-			KRB4=yes
-			KRB4_MSG="yes" 
-			AC_DEFINE(KRB4)
-		fi
-	]
-)
-
-# Check whether user wants AFS support
-AFS_MSG="no" 
-AC_ARG_WITH(afs,
-	[  --with-afs=PATH         Enable AFS support],
-	[
-		if test "x$withval" != "xno" ; then
-
-			if test "x$withval" != "xyes" ; then
-				CPPFLAGS="$CPPFLAGS -I${withval}/include"
-				LDFLAGS="$LDFLAGS -L${withval}/lib"
-			fi
-
-			if test -z "$KRB4" ; then
-				AC_MSG_WARN([AFS requires Kerberos IV support, build may fail])
-			fi
-
-			LIBS="$LIBS -lkafs"
-			if test ! -z "$AFS_LIBS" ; then
-				LIBS="$LIBS $AFS_LIBS"
-			fi
-			AC_DEFINE(AFS)
-			AFS_MSG="yes" 
-		fi
-	]
-)
-LIBS="$LIBS $KLIBS"
-
-# Check whether user wants S/Key support
-SKEY_MSG="no" 
-AC_ARG_WITH(skey,
-	[  --with-skey=PATH         Enable S/Key support],
-	[
-		if test "x$withval" != "xno" ; then
-
-			if test "x$withval" != "xyes" ; then
-				CPPFLAGS="$CPPFLAGS -I${withval}/include"
-				LDFLAGS="$LDFLAGS -L${withval}/lib"
-			fi
-
-			AC_DEFINE(SKEY)
-			LIBS="-lskey $LIBS"
-			SKEY_MSG="yes" 
-	
-			AC_CHECK_FUNC(skey_keyinfo,
-				[],
-				[
-					AC_MSG_ERROR([** Incomplete or missing s/key libraries.])
-				])
-		fi
-	]
-)
-
-# Check whether user wants TCP wrappers support
-TCPW_MSG="no" 
-AC_ARG_WITH(tcp-wrappers,
-	[  --with-tcp-wrappers     Enable tcpwrappers support],
-	[
-		if test "x$withval" != "xno" ; then
-			saved_LIBS="$LIBS"
-			LIBS="$LIBS -lwrap"
-			AC_MSG_CHECKING(for libwrap)
-			AC_TRY_LINK(
-				[
-#include <tcpd.h>
-					int deny_severity = 0, allow_severity = 0;
-				],
-				[hosts_access(0);],
-				[
-					AC_MSG_RESULT(yes)
-					AC_DEFINE(LIBWRAP)
-					TCPW_MSG="yes" 
-				],
-				[
-					AC_MSG_ERROR([*** libwrap missing])
-				]
-			)
-		fi
-	]
-)
 
 # Check whether to enable MD5 passwords
 MD5_MSG="no" 
