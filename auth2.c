@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.68 2001/06/26 05:50:11 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.69 2001/07/23 18:14:58 stevesk Exp $");
 
 #include <openssl/evp.h>
 
@@ -721,7 +721,7 @@ user_key_allowed2(struct passwd *pw, Key *key, char *file)
 		if (key_equal(found, key) &&
 		    auth_parse_options(pw, options, file, linenum) == 1) {
 			found_key = 1;
-			debug("matching key found: file %s, line %ld",
+			debug("matching key found: file %s, line %lu",
 			    file, linenum);
 			break;
 		}
