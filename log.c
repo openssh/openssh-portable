@@ -265,7 +265,7 @@ log_init(char *av0, LogLevel level, SyslogFacility facility, int on_stderr)
 void
 do_log(LogLevel level, const char *fmt, va_list args)
 {
-#ifdef OPENLOG_R
+#ifdef HAVE_OPENLOG_R
 	struct syslog_data sdata = SYSLOG_DATA_INIT;
 #endif
 	char msgbuf[MSGBUFSIZ];
@@ -321,7 +321,7 @@ do_log(LogLevel level, const char *fmt, va_list args)
 		snprintf(msgbuf, sizeof msgbuf, "%s\r\n", fmtbuf);
 		write(STDERR_FILENO, msgbuf, strlen(msgbuf));
 	} else {
-#ifdef OPENLOG_R
+#ifdef HAVE_OPENLOG_R
 		openlog_r(argv0 ? argv0 : __progname, LOG_PID, log_facility, &sdata);
 		syslog_r(pri, &sdata, "%.500s", fmtbuf);
 		closelog_r(&sdata);
