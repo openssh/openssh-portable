@@ -47,6 +47,7 @@
    Charles Levert <charles@comm.polymtl.ca>
  - (djm) Seperate arc4random into seperate file and use OpenSSL's RC4 
    implementation.
+ - (djm) SUN_LEN macro for systems which lack it
 
 20000815
  - (djm) More SunOS 4.1.x fixes from Nate Itkin <nitkin@europa.com>

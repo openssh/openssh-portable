@@ -27,7 +27,6 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <sys/wait.h>
-#include <sys/un.h>
 #include <sys/resource.h>
 
 #include <netinet/tcp.h>

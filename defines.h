@@ -6,6 +6,7 @@
 #include <sys/types.h> /* For [u]intxx_t */
 #include <sys/socket.h> /* For SHUT_XXXX */
 #include <sys/param.h> /* For MAXPATHLEN */
+#include <sys/un.h> /* For SUN_LEN */
 #include <netinet/in_systm.h> /* For typedefs */
 #include <netinet/in.h> /* For IPv6 macros */
 #include <netinet/ip.h> /* For IPTOS macros */
@@ -281,6 +282,11 @@ typedef int mode_t;
 #if defined(HAVE_SECURITY_PAM_APPL_H) && !defined(DISABLE_PAM)
 # define USE_PAM
 #endif /* defined(HAVE_SECURITY_PAM_APPL_H) && !defined(DISABLE_PAM) */
+
+#ifndef SUN_LEN
+#define SUN_LEN(su) \
+        (sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
+#endif /* SUN_LEN */
 
 /* Function replacement / compatibility hacks */
 
