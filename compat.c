@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: compat.c,v 1.44 2001/04/05 10:00:06 markus Exp $");
+RCSID("$OpenBSD: compat.c,v 1.45 2001/04/05 11:09:16 markus Exp $");
 
 #ifdef HAVE_LIBPCRE
 #  include <pcreposix.h>
@@ -69,14 +69,18 @@ compat_datafellows(const char *version)
 	} check[] = {
 		{ "^OpenSSH[-_]2\\.[012]",
 					SSH_OLD_SESSIONID|SSH_BUG_BANNER|
-					SSH_OLD_DHGEX },
+					SSH_OLD_DHGEX|SSH_BUG_NOREKEY },
 		{ "^OpenSSH_2\\.3\\.0", SSH_BUG_BANNER|SSH_BUG_BIGENDIANAES|
-					SSH_OLD_DHGEX},
-		{ "^OpenSSH_2\\.3\\.",  SSH_BUG_BIGENDIANAES|SSH_OLD_DHGEX},
+					SSH_OLD_DHGEX|SSH_BUG_NOREKEY},
+		{ "^OpenSSH_2\\.3\\.",  SSH_BUG_BIGENDIANAES|SSH_OLD_DHGEX|
+					SSH_BUG_NOREKEY},
 		{ "^OpenSSH_2\\.5\\.[01]p1",
-					SSH_BUG_BIGENDIANAES|SSH_OLD_DHGEX },
+					SSH_BUG_BIGENDIANAES|SSH_OLD_DHGEX|
+					SSH_BUG_NOREKEY },
 		{ "^OpenSSH_2\\.5\\.[012]",
-					SSH_OLD_DHGEX },
+					SSH_OLD_DHGEX|SSH_BUG_NOREKEY },
+		{ "^OpenSSH_2\\.5\\.3",
+					SSH_BUG_NOREKEY },
 		{ "^OpenSSH",		0 },
 		{ "MindTerm",		0 },
 		{ "^2\\.1\\.0",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
