@@ -45,6 +45,11 @@
      [sshconnect2.c]
      for compression=yes, we fallback to no-compression if the server does
      not support compression, vice versa for compression=no. ok mouring@
+   - markus@cvs.openbsd.org 2002/07/03 09:55:38
+     [ssh-keysign.c]
+     use RSA_blinding_on() for rsa hostkeys (suggested by Bill Sommerfeld)
+     in order to avoid a possible Kocher timing attack pointed out by Charles
+     Hannum; ok provos@
 
 20020702
  - (djm) Use PAM_MSG_MEMBER for PAM_TEXT_INFO messages, use xmalloc & 
@@ -1253,4 +1258,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2327 2002/07/04 00:16:25 mouring Exp $
+$Id: ChangeLog,v 1.2328 2002/07/04 00:17:33 mouring Exp $
