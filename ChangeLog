@@ -19,6 +19,7 @@
  - (djm) [groupaccess.c uidswap.c] Bug #787: Size group arrays at runtime 
    using sysconf() if available Based on patches from 
    holger AT van-lengerich.de and openssh_bugzilla AT hockin.org
+ - (dtucker) [uidswap.c] Minor KNF.  ok djm@
 
 20040223
  - (dtucker) [session.c] Bug #789: Only make setcred call for !privsep in the
@@ -1922,4 +1923,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3250 2004/02/24 02:05:11 djm Exp $
+$Id: ChangeLog,v 1.3251 2004/02/24 02:17:30 dtucker Exp $
