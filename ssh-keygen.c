@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.77 2001/08/02 15:06:52 jakob Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.78 2001/08/02 15:43:57 jakob Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -32,7 +32,7 @@ RCSID("$OpenBSD: ssh-keygen.c,v 1.77 2001/08/02 15:06:52 jakob Exp $");
 #include <sectok.h>
 #include <openssl/engine.h>
 #include "scard.h"
-#endif
+#endif /* SMARTCARD */
 
 /* Number of bits in the RSA/DSA key.  This value can be changed on the command line. */
 int bits = 1024;
@@ -515,7 +515,7 @@ do_download(struct passwd *pw, const char *sc_reader_id)
 	fprintf(stdout, "\n");
 	exit(0);
 }
-#endif
+#endif /* SMARTCARD */
 
 static void
 do_fingerprint(struct passwd *pw)
@@ -946,9 +946,9 @@ main(int ac, char **av)
 			do_download(pw, reader_id);
 		else
 			do_upload(pw, reader_id);
-#else
+#else /* SMARTCARD */
 		fatal("no support for smartcards.");
-#endif
+#endif /* SMARTCARD */
 	}
 
 	arc4random_stir();

@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.135 2001/08/02 15:32:10 jakob Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.136 2001/08/02 15:43:57 jakob Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -72,7 +72,7 @@ RCSID("$OpenBSD: ssh.c,v 1.135 2001/08/02 15:32:10 jakob Exp $");
 #ifdef SMARTCARD
 #include <openssl/engine.h>
 #include "scard.h"
-#endif
+#endif /* SMARTCARD */
 
 #ifdef HAVE___PROGNAME
 extern char *__progname;
@@ -376,9 +376,9 @@ again:
 		case 'I':
 #ifdef SMARTCARD
 			options.smartcard_device = xstrdup(optarg);
-#else
+#else /* SMARTCARD */
 			fprintf(stderr, "no support for smartcards.\n");
-#endif
+#endif /* SMARTCARD */
 			break;
 		case 't':
 			if (tty_flag)
@@ -1195,7 +1195,7 @@ load_public_identity_files(void)
 
 		key_free(public);
 	}
-#endif
+#endif /* SMARTCARD */
 	for (; i < options.num_identity_files; i++) {
 		filename = tilde_expand_filename(options.identity_files[i],
 		    original_real_uid);
