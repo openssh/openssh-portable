@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.205 2003/12/09 17:30:05 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.206 2003/12/16 15:49:51 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -1029,16 +1029,13 @@ client_subsystem_reply(int type, u_int32_t seq, void *ctxt)
 }
 
 void
-client_global_request_reply(int type, u_int32_t seq, void *ctxt)
+client_global_request_reply_fwd(int type, u_int32_t seq, void *ctxt)
 {
 	int i;
 
 	i = client_global_request_id++;
-	if (i >= options.num_remote_forwards) {
-		debug("client_global_request_reply: too many replies %d > %d",
-		    i, options.num_remote_forwards);
+	if (i >= options.num_remote_forwards)
 		return;
-	}
 	debug("remote forward %s for: listen %d, connect %s:%d",
 	    type == SSH2_MSG_REQUEST_SUCCESS ? "success" : "failure",
 	    options.remote_forwards[i].port,

@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.126 2003/12/09 21:53:36 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.127 2003/12/16 15:49:51 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -105,6 +105,7 @@ typedef enum {
 	oClearAllForwardings, oNoHostAuthenticationForLocalhost,
 	oEnableSSHKeysign, oRekeyLimit, oVerifyHostKeyDNS, oConnectTimeout,
 	oAddressFamily, oGssAuthentication, oGssDelegateCreds,
+	oServerAliveInterval, oServerAliveCountMax,
 	oDeprecated, oUnsupported
 } OpCodes;
 
@@ -189,6 +190,8 @@ static struct {
 	{ "rekeylimit", oRekeyLimit },
 	{ "connecttimeout", oConnectTimeout },
 	{ "addressfamily", oAddressFamily },
+	{ "serveraliveinterval", oServerAliveInterval },
+	{ "serveralivecountmax", oServerAliveCountMax },
 	{ NULL, oBadOption }
 };
 
@@ -307,7 +310,7 @@ process_config_line(Options *options, const char *host,
 		/* NOTREACHED */
 	case oConnectTimeout:
 		intptr = &options->connection_timeout;
-/* parse_time: */
+parse_time:
 		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%s line %d: missing time value.",
@@ -733,6 +736,14 @@ parse_int:
 		intptr = &options->enable_ssh_keysign;
 		goto parse_flag;
 
+	case oServerAliveInterval:
+		intptr = &options->server_alive_interval;
+		goto parse_time;
+
+	case oServerAliveCountMax:
+		intptr = &options->server_alive_count_max;
+		goto parse_int;
+
 	case oDeprecated:
 		debug("%s line %d: Deprecated option \"%s\"",
 		    filename, linenum, keyword);
@@ -860,6 +871,8 @@ initialize_options(Options * options)
 	options->no_host_authentication_for_localhost = - 1;
 	options->rekey_limit = - 1;
 	options->verify_host_key_dns = -1;
+	options->server_alive_interval = -1;
+	options->server_alive_count_max = -1;
 }
 
 /*
@@ -974,6 +987,10 @@ fill_default_options(Options * options)
 		options->rekey_limit = 0;
 	if (options->verify_host_key_dns == -1)
 		options->verify_host_key_dns = 0;
+	if (options->server_alive_interval == -1)
+		options->server_alive_interval = 0;
+	if (options->server_alive_count_max == -1)
+		options->server_alive_count_max = 3;
 	/* options->proxy_command should not be set by default */
 	/* options->user will be set in the main program if appropriate */
 	/* options->hostname will be set in the main program if appropriate */

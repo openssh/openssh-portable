@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.116 2003/12/09 23:45:32 dtucker Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.117 2003/12/16 15:49:51 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -127,6 +127,7 @@ static int connection_in;	/* Connection to server (input). */
 static int connection_out;	/* Connection to server (output). */
 static int need_rekeying;	/* Set to non-zero if rekeying is requested. */
 static int session_closed = 0;	/* In SSH2: login session closed. */
+static int server_alive_timeouts = 0;
 
 static void client_init_dispatch(void);
 int	session_ident = -1;
@@ -313,6 +314,24 @@ client_check_window_change(void)
 	}
 }
 
+static void
+client_global_request_reply(int type, u_int32_t seq, void *ctxt)
+{
+	server_alive_timeouts = 0;
+	client_global_request_reply_fwd(type, seq, ctxt);
+}
+
+static void
+server_alive_check(void)
+{
+	if (++server_alive_timeouts > options.server_alive_count_max)
+		packet_disconnect("Timeout, server not responding.");
+	packet_start(SSH2_MSG_GLOBAL_REQUEST);
+	packet_put_cstring("keepalive@openssh.com");
+	packet_put_char(1);     /* boolean: want reply */
+	packet_send();
+}
+
 /*
  * Waits until the client can do something (some data becomes available on
  * one of the file descriptors).
@@ -322,6 +341,9 @@ static void
 client_wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp,
     int *maxfdp, int *nallocp, int rekeying)
 {
+	struct timeval tv, *tvp;
+	int ret;
+
 	/* Add any selections by the channel mechanism. */
 	channel_prepare_select(readsetp, writesetp, maxfdp, nallocp, rekeying);
 
@@ -363,13 +385,18 @@ client_wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp,
 	/*
 	 * Wait for something to happen.  This will suspend the process until
 	 * some selected descriptor can be read, written, or has some other
-	 * event pending. Note: if you want to implement SSH_MSG_IGNORE
-	 * messages to fool traffic analysis, this might be the place to do
-	 * it: just have a random timeout for the select, and send a random
-	 * SSH_MSG_IGNORE packet when the timeout expires.
+	 * event pending.
 	 */
 
-	if (select((*maxfdp)+1, *readsetp, *writesetp, NULL, NULL) < 0) {
+	if (options.server_alive_interval == 0 || !compat20)
+		tvp = NULL;
+	else {  
+		tv.tv_sec = options.server_alive_interval;
+		tv.tv_usec = 0;
+		tvp = &tv;
+	}
+	ret = select((*maxfdp)+1, *readsetp, *writesetp, NULL, tvp);
+	if (ret < 0) {
 		char buf[100];
 
 		/*
@@ -386,7 +413,8 @@ client_wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp,
 		snprintf(buf, sizeof buf, "select: %s\r\n", strerror(errno));
 		buffer_append(&stderr_buffer, buf, strlen(buf));
 		quit_pending = 1;
-	}
+	} else if (ret == 0)
+		server_alive_check();
 }
 
 static void
@@ -1365,7 +1393,8 @@ client_input_global_request(int type, u_int32_t seq, void *ctxt)
 
 	rtype = packet_get_string(NULL);
 	want_reply = packet_get_char();
-	debug("client_input_global_request: rtype %s want_reply %d", rtype, want_reply);
+	debug("client_input_global_request: rtype %s want_reply %d",
+	    rtype, want_reply);
 	if (want_reply) {
 		packet_start(success ?
 		    SSH2_MSG_REQUEST_SUCCESS : SSH2_MSG_REQUEST_FAILURE);

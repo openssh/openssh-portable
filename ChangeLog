@@ -23,6 +23,12 @@
    - markus@cvs.openbsd.org 2003/12/14 12:37:21
      [ssh_config.5]
      we don't support GSS KEX; from Simon Wilkinson
+   - markus@cvs.openbsd.org 2003/12/16 15:49:51
+     [clientloop.c clientloop.h readconf.c readconf.h scp.1 sftp.1 ssh.1]
+     [ssh.c ssh_config.5]
+     application layer keep alive (ServerAliveInterval ServerAliveCountMax)
+     for ssh(1), similar to the sshd(8) option; ok beck@; with help from
+     jmc and dtucker@
 
 20031209
  - (dtucker) OpenBSD CVS Sync
@@ -1592,4 +1598,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3145 2003/12/17 05:32:23 djm Exp $
+$Id: ChangeLog,v 1.3146 2003/12/17 05:33:10 djm Exp $

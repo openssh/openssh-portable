@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.27 2003/12/14 12:37:21 markus Exp $
+.\" $OpenBSD: ssh_config.5,v 1.28 2003/12/16 15:49:51 markus Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -552,6 +552,42 @@ running.
 The default is
 .Dq yes .
 Note that this option applies to protocol version 1 only.
+.It Cm ServerAliveInterval
+Sets a timeout interval in seconds after which if no data has been received
+from the server,
+.Nm ssh
+will send a message through the encrypted
+channel to request a response from the server.
+The default
+is 0, indicating that these messages will not be sent to the server.
+This option applies to protocol version 2 only.
+.It Cm ServerAliveCountMax
+Sets the number of server alive messages (see above) which may be
+sent without
+.Nm ssh
+receiving any messages back from the server.
+If this threshold is reached while server alive messages are being sent,
+.Nm ssh
+will disconnect from the server, terminating the session.
+It is important to note that the use of server alive messages is very
+different from
+.Cm TCPKeepAlive
+(below).
+The server alive messages are sent through the encrypted channel
+and therefore will not be spoofable.
+The TCP keepalive option enabled by
+.Cm TCPKeepAlive
+is spoofable.
+The server alive mechanism is valuable when the client or
+server depend on knowing when a connection has become inactive.
+.Pp
+The default value is 3.
+If, for example,
+.Cm ServerAliveInterval
+(above) is set to 15, and
+.Cm ServerAliveCountMax
+is left at the default, if the server becomes unresponsive ssh
+will disconnect after approximately 45 seconds.
 .It Cm SmartcardDevice
 Specifies which smartcard device to use.
 The argument to this keyword is the device
