@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.178 2001/03/23 14:28:32 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.179 2001/03/26 08:07:09 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -454,39 +454,6 @@ destroy_sensitive_data(void)
 	sensitive_data.ssh1_host_key = NULL;
 	memset(sensitive_data.ssh1_cookie, 0, SSH_SESSION_KEY_LENGTH);
 }
-Key *
-load_private_key_autodetect(const char *filename)
-{
-	struct stat st;
-	int type;
-	Key *public, *private;
-
-	if (stat(filename, &st) < 0) {
-		perror(filename);
-		return NULL;
-	}
-	/*
-	 * try to load the public key. right now this only works for RSA1,
-	 * since SSH2 keys are fully encrypted
-	 */
-	type = KEY_RSA1;
-	public = key_new(type);
-	if (!load_public_key(filename, public, NULL)) {
-		/* ok, so we will assume this is 'some' key */
-		type = KEY_UNSPEC;
-	}
-	key_free(public);
-
-	/* Ok, try key with empty passphrase */
-	private = key_new(type);
-	if (load_private_key(filename, "", private, NULL)) {
-		debug("load_private_key_autodetect: type %d %s",
-		    private->type, key_type(private));
-		return private;
-	}
-	key_free(private);
-	return NULL;
-}
 
 char *
 list_hostkey_types(void)
@@ -579,6 +546,7 @@ main(int ac, char **av)
 	int listen_sock, maxfd;
 	int startup_p[2];
 	int startups = 0;
+	Key *key;
 	int ret, key_used = 0;
 
 	__progname = get_progname(av[0]);
@@ -716,10 +684,12 @@ main(int ac, char **av)
 	sensitive_data.have_ssh2_key = 0;
 
 	for(i = 0; i < options.num_host_key_files; i++) {
-		Key *key = load_private_key_autodetect(options.host_key_files[i]);
+		key = key_load_private(options.host_key_files[i], "", NULL);
+		sensitive_data.host_keys[i] = key;
 		if (key == NULL) {
 			error("Could not load host key: %.200s: %.100s",
 			    options.host_key_files[i], strerror(errno));
+			sensitive_data.host_keys[i] = NULL;
 			continue;
 		}
 		switch(key->type){
@@ -732,7 +702,8 @@ main(int ac, char **av)
 			sensitive_data.have_ssh2_key = 1;
 			break;
 		}
-		sensitive_data.host_keys[i] = key;
+		debug("private host key: #%d type %d %s", i, key->type,
+		    key_type(key));
 	}
 	if ((options.protocol & SSH_PROTO_1) && !sensitive_data.have_ssh1_key) {
 		log("Disabling protocol version 1. Could not load host key");

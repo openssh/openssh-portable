@@ -1,3 +1,10 @@
+20010328
+ - OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2001/03/26 08:07:09
+     [authfile.c authfile.h ssh-add.c ssh-keygen.c ssh.c sshconnect.c 
+      sshconnect.h sshconnect1.c sshconnect2.c sshd.c]
+     simpler key load/save interface, see authfile.h
+
 20010327
  - Attempt sync with sshlogin.c w/ OpenBSD (mainly CVS ID)
  - Fix pointer issues in waitpid() and wait() replaces.  Patch by Lutz 
@@ -4718,4 +4725,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1019 2001/03/26 05:45:53 mouring Exp $
+$Id: ChangeLog,v 1.1020 2001/03/26 13:44:06 mouring Exp $

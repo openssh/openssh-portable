@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.55 2001/03/23 11:04:07 djm Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.56 2001/03/26 08:07:09 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -901,26 +901,24 @@ load_identity_file(char *filename)
 {
 	Key *private;
 	char prompt[300], *passphrase;
-	int success = 0, quit, i;
+	int quit, i;
 	struct stat st;
 
 	if (stat(filename, &st) < 0) {
 		debug3("no such identity: %s", filename);
 		return NULL;
 	}
-	private = key_new(KEY_UNSPEC);
-	if (!load_private_key(filename, "", private, NULL)) {
-		if (options.batch_mode) {
-			key_free(private);
+	private = key_load_private_type(KEY_UNSPEC, filename, "", NULL);
+	if (private == NULL) {
+		if (options.batch_mode)
 			return NULL;
-		}
 		snprintf(prompt, sizeof prompt,
 		     "Enter passphrase for key '%.100s': ", filename);
 		for (i = 0; i < options.number_of_password_prompts; i++) {
 			passphrase = read_passphrase(prompt, 0);
 			if (strcmp(passphrase, "") != 0) {
-				success = load_private_key(filename,
-				    passphrase, private, NULL);
+				private = key_load_private_type(KEY_UNSPEC, filename,
+				    passphrase, NULL);
 				quit = 0;
 			} else {
 				debug2("no passphrase given, try next key");
@@ -928,13 +926,9 @@ load_identity_file(char *filename)
 			}
 			memset(passphrase, 0, strlen(passphrase));
 			xfree(passphrase);
-			if (success || quit)
+			if (private != NULL || quit)
 				break;
 			debug2("bad passphrase given, try again...");
-		}
-		if (!success) {
-			key_free(private);
-			return NULL;
 		}
 	}
 	return private;

@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.104 2001/03/08 21:42:32 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.105 2001/03/26 08:07:09 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -130,11 +130,8 @@ struct sockaddr_storage hostaddr;
  */
 volatile int received_window_change_signal = 0;
 
-/* Flag indicating whether we have a valid host private key loaded. */
-int host_private_key_loaded = 0;
-
 /* Host private key. */
-RSA *host_private_key = NULL;
+Key *host_private_key = NULL;
 
 /* Original real UID. */
 uid_t original_real_uid;
@@ -631,12 +628,8 @@ main(int ac, char **av)
 	 * privileges, because the file is only readable by root.
 	 */
 	if (ok && (options.protocol & SSH_PROTO_1)) {
-		Key k;
-		host_private_key = RSA_new();
-		k.type = KEY_RSA1;
-		k.rsa = host_private_key;
-		if (load_private_key(_PATH_HOST_KEY_FILE, "", &k, NULL))
-			host_private_key_loaded = 1;
+		host_private_key = key_load_private_type(KEY_RSA1,
+		    _PATH_HOST_KEY_FILE, "", NULL);
 	}
 	/*
 	 * Get rid of any extra privileges that we may have.  We will no
@@ -695,12 +688,12 @@ main(int ac, char **av)
 	    tilde_expand_filename(options.user_hostfile2, original_real_uid);
 
 	/* Log into the remote system.  This never returns if the login fails. */
-	ssh_login(host_private_key_loaded, host_private_key,
-		  host, (struct sockaddr *)&hostaddr, original_real_uid);
+	ssh_login(host_private_key, host, (struct sockaddr *)&hostaddr,
+	    original_real_uid);
 
 	/* We no longer need the host private key.  Clear it now. */
-	if (host_private_key_loaded)
-		RSA_free(host_private_key);	/* Destroys contents safely */
+	if (host_private_key != NULL)
+		key_free(host_private_key);	/* Destroys contents safely */
 
 	exit_status = compat20 ? ssh_session2() : ssh_session();
 	packet_close();
@@ -1074,26 +1067,6 @@ ssh_session2(void)
 	return client_loop(tty_flag, tty_flag ? options.escape_char : -1, id);
 }
 
-int
-guess_identity_file_type(const char *filename)
-{
-	struct stat st;
-	Key *public;
-	int type = KEY_RSA1; /* default */
-
-	if (stat(filename, &st) < 0) {
-		/* ignore this key */
-		return KEY_UNSPEC;
-	}
-	public = key_new(type);
-	if (!load_public_key(filename, public, NULL)) {
-		/* ok, so we will assume this is 'some' key */
-		type = KEY_UNSPEC;
-	}
-	key_free(public);
-	return type;
-}
-
 void
 load_public_identity_files(void)
 {
@@ -1104,16 +1077,7 @@ load_public_identity_files(void)
 	for (i = 0; i < options.num_identity_files; i++) {
 		filename = tilde_expand_filename(options.identity_files[i],
 		    original_real_uid);
-		public = key_new(KEY_RSA1);
-		if (!load_public_key(filename, public, NULL)) {
-			key_free(public);
-			public = key_new(KEY_UNSPEC);
-			if (!try_load_public_key(filename, public, NULL)) {
-				debug("unknown identity file %s", filename);
-				key_free(public);
-				public = NULL;
-			}
-		}
+		public = key_load_public(filename, NULL);
 		debug("identity file %s type %d", filename,
 		    public ? public->type : -1);
 		xfree(options.identity_files[i]);

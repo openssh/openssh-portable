@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.30 2001/03/12 22:02:02 markus Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.31 2001/03/26 08:07:08 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -61,14 +61,10 @@ delete_file(AuthenticationConnection *ac, const char *filename)
 	Key *public;
 	char *comment;
 
-	public = key_new(KEY_RSA1);
-	if (!load_public_key(filename, public, &comment)) {
-		key_free(public);
-		public = key_new(KEY_UNSPEC);
-		if (!try_load_public_key(filename, public, &comment)) {
-			printf("Bad key file %s\n", filename);
-			return;
-		}
+	public = key_load_public(filename, &comment);
+	if (public == NULL) {
+		printf("Bad key file %s\n", filename);
+		return;
 	}
 	if (ssh_remove_identity(ac, public))
 		fprintf(stderr, "Identity removed: %s (%s)\n", filename, comment);
@@ -139,30 +135,15 @@ void
 add_file(AuthenticationConnection *ac, const char *filename)
 {
 	struct stat st;
-	Key *public;
 	Key *private;
-	char *saved_comment, *comment, *askpass = NULL;
+	char *comment, *askpass = NULL, *pass;
 	char buf[1024], msg[1024];
-	int success;
 	int interactive = isatty(STDIN_FILENO);
-	int type = KEY_RSA1;
 
 	if (stat(filename, &st) < 0) {
 		perror(filename);
 		exit(1);
 	}
-	/*
-	 * try to load the public key. right now this only works for RSA,
-	 * since DSA keys are fully encrypted
-	 */
-	public = key_new(KEY_RSA1);
-	if (!load_public_key(filename, public, &saved_comment)) {
-		/* ok, so we will assume this is 'some' key */
-		type = KEY_UNSPEC;
-		saved_comment = xstrdup(filename);
-	}
-	key_free(public);
-
 	if (!interactive && getenv("DISPLAY")) {
 		if (getenv(SSH_ASKPASS_ENV))
 			askpass = getenv(SSH_ASKPASS_ENV);
@@ -171,17 +152,17 @@ add_file(AuthenticationConnection *ac, const char *filename)
 	}
 
 	/* At first, try empty passphrase */
-	private = key_new(type);
-	success = load_private_key(filename, "", private, &comment);
-	if (!success) {
+	private = key_load_private(filename, "", &comment);
+	if (comment == NULL)
+		comment = xstrdup(filename);
+	if (private == NULL) {
 		printf("Need passphrase for %.200s\n", filename);
 		if (!interactive && askpass == NULL) {
-			xfree(saved_comment);
+			xfree(comment);
 			return;
 		}
-		snprintf(msg, sizeof msg, "Enter passphrase for %.200s", saved_comment);
+		snprintf(msg, sizeof msg, "Enter passphrase for %.200s", comment);
 		for (;;) {
-			char *pass;
 			if (interactive) {
 				snprintf(buf, sizeof buf, "%s: ", msg);
 				pass = read_passphrase(buf, 1);
@@ -190,24 +171,23 @@ add_file(AuthenticationConnection *ac, const char *filename)
 			}
 			if (strcmp(pass, "") == 0) {
 				xfree(pass);
-				xfree(saved_comment);
+				xfree(comment);
 				return;
 			}
-			success = load_private_key(filename, pass, private, &comment);
+			private = key_load_private(filename, pass, &comment);
 			memset(pass, 0, strlen(pass));
 			xfree(pass);
-			if (success)
+			if (private != NULL)
 				break;
 			strlcpy(msg, "Bad passphrase, try again", sizeof msg);
 		}
 	}
-	xfree(comment);
-	if (ssh_add_identity(ac, private, saved_comment))
-		fprintf(stderr, "Identity added: %s (%s)\n", filename, saved_comment);
+	if (ssh_add_identity(ac, private, comment))
+		fprintf(stderr, "Identity added: %s (%s)\n", filename, comment);
 	else
 		fprintf(stderr, "Could not add identity: %s\n", filename);
+	xfree(comment);
 	key_free(private);
-	xfree(saved_comment);
 }
 
 void

@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshconnect.h,v 1.6 2001/02/15 23:19:59 markus Exp $	*/
+/*	$OpenBSD: sshconnect.h,v 1.7 2001/03/26 08:07:09 markus Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -50,7 +50,7 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
  */
 
 void
-ssh_login(int host_key_valid, RSA * host_key, const char *host,
+ssh_login(Key *host_key, const char *host,
     struct sockaddr * hostaddr, uid_t original_real_uid);
 
 
@@ -61,7 +61,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 void	ssh_kex(char *host, struct sockaddr *hostaddr);
 void
 ssh_userauth(const char * local_user, const char * server_user, char *host,
-    int host_key_valid, RSA *own_host_key);
+    Key *own_host_key);
 
 void	ssh_kex2(char *host, struct sockaddr *hostaddr);
 void	ssh_userauth2(const char *server_user, char *host);

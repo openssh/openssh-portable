@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.28 2001/03/08 21:42:33 markus Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.29 2001/03/26 08:07:09 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/evp.h>
@@ -211,9 +211,9 @@ try_rsa_authentication(const char *authfile)
 	int plen, clen;
 
 	/* Try to load identification for the authentication key. */
-	public = key_new(KEY_RSA1);
-	if (!load_public_key(authfile, public, &comment)) {
-		key_free(public);
+	/* XXKEYLOAD */
+	public = key_load_public_type(KEY_RSA1, authfile, &comment);
+	if (public == NULL) {
 		/* Could not load it.  Fail. */
 		return 0;
 	}
@@ -252,12 +252,12 @@ try_rsa_authentication(const char *authfile)
 
 	debug("Received RSA challenge from server.");
 
-	private = key_new(KEY_RSA1);
 	/*
 	 * Load the private key.  Try first with empty passphrase; if it
 	 * fails, ask for a passphrase.
 	 */
-	if (!load_private_key(authfile, "", private, NULL)) {
+	private = key_load_private_type(KEY_RSA1, authfile, "", NULL);
+	if (private == NULL) {
 		char buf[300];
 		snprintf(buf, sizeof buf, "Enter passphrase for RSA key '%.100s': ",
 		    comment);
@@ -270,7 +270,8 @@ try_rsa_authentication(const char *authfile)
 		}
 
 		/* Load the authentication file using the pasphrase. */
-		if (!load_private_key(authfile, passphrase, private, NULL)) {
+		private = key_load_private_type(KEY_RSA1, authfile, passphrase, NULL);
+		if (private == NULL) {
 			memset(passphrase, 0, strlen(passphrase));
 			xfree(passphrase);
 			error("Bad passphrase.");
@@ -285,7 +286,6 @@ try_rsa_authentication(const char *authfile)
 			/* Expect the server to reject it... */
 			packet_read_expect(&plen, SSH_SMSG_FAILURE);
 			xfree(comment);
-			key_free(private);
 			BN_clear_free(challenge);
 			return 0;
 		}
@@ -322,7 +322,7 @@ try_rsa_authentication(const char *authfile)
  * authentication and RSA host authentication.
  */
 int
-try_rhosts_rsa_authentication(const char *local_user, RSA * host_key)
+try_rhosts_rsa_authentication(const char *local_user, Key * host_key)
 {
 	int type;
 	BIGNUM *challenge;
@@ -333,9 +333,9 @@ try_rhosts_rsa_authentication(const char *local_user, RSA * host_key)
 	/* Tell the server that we are willing to authenticate using this key. */
 	packet_start(SSH_CMSG_AUTH_RHOSTS_RSA);
 	packet_put_string(local_user, strlen(local_user));
-	packet_put_int(BN_num_bits(host_key->n));
-	packet_put_bignum(host_key->e);
-	packet_put_bignum(host_key->n);
+	packet_put_int(BN_num_bits(host_key->rsa->n));
+	packet_put_bignum(host_key->rsa->e);
+	packet_put_bignum(host_key->rsa->n);
 	packet_send();
 	packet_write_wait();
 
@@ -361,7 +361,7 @@ try_rhosts_rsa_authentication(const char *local_user, RSA * host_key)
 	debug("Received RSA challenge for host key from server.");
 
 	/* Compute a response to the challenge. */
-	respond_to_rsa_challenge(challenge, host_key);
+	respond_to_rsa_challenge(challenge, host_key->rsa);
 
 	/* We no longer need the challenge. */
 	BN_clear_free(challenge);
@@ -915,7 +915,7 @@ ssh_userauth(
     const char *local_user,
     const char *server_user,
     char *host,
-    int host_key_valid, RSA *own_host_key)
+    Key *own_host_key)
 {
 	int i, type;
 	int payload_len;
@@ -1000,7 +1000,7 @@ ssh_userauth(
 	 * authentication.
 	 */
 	if ((supported_authentications & (1 << SSH_AUTH_RHOSTS_RSA)) &&
-	    options.rhosts_rsa_authentication && host_key_valid) {
+	    options.rhosts_rsa_authentication && own_host_key != NULL) {
 		if (try_rhosts_rsa_authentication(local_user, own_host_key))
 			return;
 	}
