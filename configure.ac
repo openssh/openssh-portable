@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.113.2.1 2003/04/29 09:12:08 djm Exp $
+# $Id: configure.ac,v 1.113.2.2 2003/08/21 06:16:21 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -247,6 +247,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	LIBS="$LIBS -lc89"
 	AC_DEFINE(USE_PIPES)
+	AC_DEFINE(STREAMS_PUSH_ACQUIRES_CTTY)
 	;;
 *-sni-sysv*)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
@@ -255,6 +256,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	IPADDR_IN_DISPLAY=yes
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(IP_TOS_IS_BROKEN)
+	AC_DEFINE(STREAMS_PUSH_ACQUIRES_CTTY)
 	# /usr/ucblib/libucb.a no longer needed on ReliantUNIX
 	# Attention: always take care to bind libsocket and libnsl before libc,
 	# otherwise you will find lots of "SIOCGPGRP errno 22" on syslog
@@ -611,7 +613,7 @@ AC_CHECK_FUNCS(\
 	arc4random __b64_ntop b64_ntop __b64_pton b64_pton basename bcopy \
 	bindresvport_sa clock fchmod fchown freeaddrinfo futimes \
 	gai_strerror getaddrinfo getcwd getgrouplist getnameinfo getopt \
-	getpeereid _getpty getrlimit getrusage getttyent glob inet_aton \
+	getpeereid _getpty getrlimit getttyent glob inet_aton \
 	inet_ntoa inet_ntop innetgr login_getcapbool md5_crypt memmove \
 	mkdtemp mmap ngetaddrinfo nsleep ogetaddrinfo openpty pstat \
 	readpassphrase realpath recvmsg rresvport_af sendmsg setdtablesize \
@@ -624,8 +626,9 @@ AC_CHECK_FUNCS(\
 AC_SEARCH_LIBS(nanosleep, rt posix4, AC_DEFINE(HAVE_NANOSLEEP))
 AC_SEARCH_LIBS(basename, gen, AC_DEFINE(HAVE_BASENAME))
 
-dnl Make sure strsep prototype is defined before defining HAVE_STRSEP
+dnl Make sure prototypes are defined for these before using them.
 AC_CHECK_DECL(strsep, [AC_CHECK_FUNCS(strsep)])
+AC_CHECK_DECL(getrusage, [AC_CHECK_FUNCS(getrusage)])
 
 dnl IRIX and Solaris 2.5.1 have dirname() in libgen
 AC_CHECK_FUNCS(dirname, [AC_CHECK_HEADERS(libgen.h)] ,[

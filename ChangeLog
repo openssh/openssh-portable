@@ -3,6 +3,10 @@
    Remove temp data files from cvs.
  - (dtucker) [sshd.c] Bug #529: sshd doesn't work correctly after SIGHUP
    (copy argv correctly), fix by djm from -current.
+ - (dtucker) [configure.ac] Bug #600: Check that getrusage is declared before
+   searching libraries for it.  Fixes build errors on NCR MP-RAS.
+ - (dtucker) [configure.ac] Define STREAMS_PUSH_ACQUIRES_CTTY for NCR MP-RAS
+   and Reliant Unix.  Fixes "can't set controlling tty errors".
 
 20030429
  - (djm) Add back radix.o (used by AFS support), after it went missing from
@@ -1308,4 +1312,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2648.2.3 2003/08/21 06:11:30 dtucker Exp $
+$Id: ChangeLog,v 1.2648.2.4 2003/08/21 06:16:21 dtucker Exp $
