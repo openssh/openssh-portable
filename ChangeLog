@@ -1,3 +1,7 @@
+20040108
+ - (dtucker) [auth-pam.c defines.h] Bug #783: move __unused to defines.h and
+   only define if not already.  From des at freebsd.org.
+
 20040105
  - (dtucker) [contrib/ssh-copy-id] Bug #781: exit if ssh fails.  Patch from
    cjwatson at debian.org.
@@ -1650,4 +1654,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3163 2004/01/05 11:36:51 dtucker Exp $
+$Id: ChangeLog,v 1.3164 2004/01/08 12:32:04 dtucker Exp $

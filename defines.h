@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.106 2003/12/18 23:58:43 dtucker Exp $ */
+/* $Id: defines.h,v 1.107 2004/01/08 12:32:04 dtucker Exp $ */
 
 
 /* Constants */
@@ -127,6 +127,10 @@ including rpc/rpc.h breaks Solaris 6
 */
 #ifndef INADDR_LOOPBACK
 #define INADDR_LOOPBACK ((u_long)0x7f000001)
+#endif
+
+#ifndef __unused
+#define __unused
 #endif
 
 /* Types */
