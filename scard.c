@@ -24,7 +24,7 @@
 
 #ifdef SMARTCARD
 #include "includes.h"
-RCSID("$OpenBSD: scard.c,v 1.5 2001/07/04 23:13:09 markus Exp $");
+RCSID("$OpenBSD: scard.c,v 1.6 2001/07/25 11:59:35 markus Exp $");
 
 #include <openssl/engine.h>
 #include <sectok.h>
@@ -93,7 +93,7 @@ sc_enable_applet(void)
 		sc_close();
 		return -1;
 	}
-	/* send appled id */
+	/* send applet id */
 	for (i = 0; i < sizeof(aid); i++)
 		aid[i] = 0x77;
 	aid_len = 5;
