@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.66 2001/06/26 02:47:07 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.67 2001/06/27 05:35:42 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -416,10 +416,6 @@ do_upload(struct passwd *pw, int reader)
 		error("load failed");
 		goto done;
 	}
-{
-	prv->type = KEY_RSA;
-	key_write(prv, stderr);
-}
 	for (i = 0; i < NUM_RSA_KEY_ELEMENTS; i++)
 		elements[i] = NULL;
 	COPY_RSA_KEY(q, 0);
@@ -439,6 +435,10 @@ do_upload(struct passwd *pw, int reader)
                 error("screset failed.");
 		goto done;
         }
+	if ((cla = cyberflex_inq_class(fd)) < 0) {
+		error("cyberflex_inq_class failed");
+		goto done;
+	}
 	if (cyberflex_verify_AUT0(fd, cla, AUT0, sizeof(AUT0)) < 0) {
 		error("cyberflex_verify_AUT0 failed");
 		goto done;
