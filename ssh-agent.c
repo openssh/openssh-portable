@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.66 2001/07/17 20:48:42 markus Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.67 2001/07/18 21:40:40 stevesk Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.66 2001/07/17 20:48:42 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.67 2001/07/18 21:40:40 stevesk Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -987,6 +987,13 @@ main(int ac, char **av)
 		perror(av[0]);
 		exit(1);
 	}
+
+	if (setsid() == -1) {
+		perror("setsid");
+		cleanup_exit(1);
+	}
+
+	(void)chdir("/");
 	close(0);
 	close(1);
 	close(2);
@@ -999,10 +1006,6 @@ main(int ac, char **av)
 		cleanup_exit(1);
 	}
 #endif
-	if (setsid() == -1) {
-		perror("setsid");
-		cleanup_exit(1);
-	}
 
 skip:
 	if (atexit(cleanup_socket) < 0) {
