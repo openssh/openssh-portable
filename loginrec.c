@@ -158,7 +158,7 @@
 #include "log.h"
 #include "atomicio.h"
 
-RCSID("$Id: loginrec.c,v 1.53 2003/11/21 12:48:55 djm Exp $");
+RCSID("$Id: loginrec.c,v 1.54 2004/02/10 05:49:35 dtucker Exp $");
 
 #ifdef HAVE_UTIL_H
 #  include <util.h>
@@ -1183,6 +1183,7 @@ wtmp_get_entry(struct logininfo *li)
 static int
 wtmpx_write(struct logininfo *li, struct utmpx *utx)
 {
+#ifndef HAVE_UPDWTMPX
 	struct stat buf;
 	int fd, ret = 1;
 
@@ -1202,6 +1203,10 @@ wtmpx_write(struct logininfo *li, struct utmpx *utx)
 	(void)close(fd);
 
 	return ret;
+#else
+	updwtmpx(WTMPX_FILE, utx);
+	return 1;
+#endif
 }
 
 

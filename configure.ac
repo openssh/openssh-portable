@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.194 2004/02/06 10:29:42 dtucker Exp $
+# $Id: configure.ac,v 1.195 2004/02/10 05:49:35 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -801,7 +801,7 @@ AC_CHECK_FUNCS(\
 	setproctitle setregid setreuid setrlimit \
 	setsid setvbuf sigaction sigvec snprintf socketpair strerror \
 	strlcat strlcpy strmode strnvis strtoul sysconf tcgetpgrp \
-	truncate utimes vhangup vsnprintf waitpid \
+	truncate updwtmpx utimes vhangup vsnprintf waitpid \
 )
 
 # IRIX has a const char return value for gai_strerror()

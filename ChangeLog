@@ -13,6 +13,8 @@
  - (dtucker) [openbsd-compat/port-aix.c openbsd-compat/port-aix.h] Move
    include from port-aix.h to port-aix.c and remove unnecessary function
    definition.  Fixes build errors on AIX.
+ - (dtucker) [configure.ac loginrec.c] Bug #464: Use updwtmpx on platforms
+   that support it.  from & ok mouring@
 
 20040207
  - (dtucker) OpenBSD CVS Sync
@@ -1836,4 +1838,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3222 2004/02/10 04:27:34 dtucker Exp $
+$Id: ChangeLog,v 1.3223 2004/02/10 05:49:35 dtucker Exp $
