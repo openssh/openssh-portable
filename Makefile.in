@@ -47,7 +47,9 @@ PATHSUBS	= -D/etc/ssh_config=$(sysconfdir)/ssh_config -D/etc/known_hosts=$(sysco
 
 FIXPATHSCMD	= $(PERL) $(srcdir)/fixpaths $(PATHSUBS)
 
-all: $(TARGETS) $(MANPAGES) $(CONFIGFILES)
+all: $(TARGETS) $(CONFIGFILES)
+
+manpages: $(MANPAGES)
 
 $(LIBOBJS): config.h
 
@@ -95,7 +97,7 @@ catman-do:
 			>$${f%%.[18]}.0 ; \
 	done
 
-install: $(TARGETS)
+install: manpages $(TARGETS)
 	$(INSTALL) -d $(DESTDIR)$(bindir)
 	$(INSTALL) -d $(DESTDIR)$(sbindir)
 	$(INSTALL) -d $(DESTDIR)$(mandir)

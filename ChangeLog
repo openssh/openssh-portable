@@ -8,6 +8,9 @@
      channel layer support for ssh2
    - [kex.h kex.c hmac.h hmac.c dsa.c dsa.h]
      DSA, keyexchange, algorithm agreement for ssh2
+ - Generate manpages before make install not at the end of make all
+ - Don't seed the rng quite so often
+ - Always reseed rng when requested
 
 20000403
  - Wrote entropy collection routines for systems that lack /dev/random
