@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.25 2002/03/08 03:50:58 mouring Exp $
+# $Id: configure.ac,v 1.26 2002/03/17 20:17:35 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -1006,6 +1006,20 @@ AC_ARG_WITH(entropy-timeout,
 
 AC_DEFINE_UNQUOTED(ENTROPY_TIMEOUT_MSEC, $entropy_timeout)
 
+# We do this little dance with the search path to insure
+# that programs that we select for use by installed programs
+# (which may be run by the super-user) come from trusted
+# locations before they come from the user's private area.
+# This should help avoid accidentally configuring some
+# random version of a program in someone's personal bin.
+
+OPATH=$PATH
+PATH=/bin:/usr/bin
+test -L /bin && PATH=/usr/bin
+test -d /sbin && PATH=$PATH:/sbin
+test -d /usr/sbin && PATH=$PATH:/usr/sbin
+PATH=$PATH:/etc:$OPATH
+
 # These programs are used by the command hashing source to gather entropy 
 OSSH_PATH_ENTROPY_PROG(PROG_LS, ls)
 OSSH_PATH_ENTROPY_PROG(PROG_NETSTAT, netstat)
@@ -1023,6 +1037,8 @@ OSSH_PATH_ENTROPY_PROG(PROG_VMSTAT, vmstat)
 OSSH_PATH_ENTROPY_PROG(PROG_UPTIME, uptime)
 OSSH_PATH_ENTROPY_PROG(PROG_IPCS, ipcs)
 OSSH_PATH_ENTROPY_PROG(PROG_TAIL, tail)
+# restore PATH
+PATH=$OPATH
 
 # Where does ssh-rand-helper get its randomness from?
 INSTALL_SSH_PRNG_CMDS=""
@@ -2007,15 +2023,6 @@ AC_SUBST(SSHMODE)
 
 # Where to place sshd.pid
 piddir=/var/run
-AC_ARG_WITH(pid-dir,
-	[  --with-pid-dir=PATH     Specify location of ssh.pid file],
-	[
-		if test "x$withval" != "xno" ; then	
-			piddir=$withval
-		fi
-	]
-)
-
 # make sure the directory exists
 if test ! -d $piddir ; then	
 	piddir=`eval echo ${sysconfdir}`
@@ -2023,6 +2030,18 @@ if test ! -d $piddir ; then
  		NONE/*) piddir=`echo $piddir | sed "s~NONE~$ac_default_prefix~"` ;;
 	esac
 fi
+
+AC_ARG_WITH(pid-dir,
+	[  --with-pid-dir=PATH     Specify location of ssh.pid file],
+	[
+		if test "x$withval" != "xno" ; then	
+			piddir=$withval
+			if test ! -d $piddir ; then	
+			AC_MSG_WARN([** no $piddir directory on this system **])
+			fi
+		fi
+	]
+)
 
 AC_DEFINE_UNQUOTED(_PATH_SSH_PIDDIR, "$piddir")
 AC_SUBST(piddir)

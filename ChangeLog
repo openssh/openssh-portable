@@ -1,3 +1,8 @@
+20020317
+ - (tim) [configure.ac] Assume path given with --with-pid-dir=PATH is wanted,
+   warn if directory does not exist. Put system directories in front of
+   PATH for finding entorpy commands.
+
 20020311
  - (tim) [contrib/solaris/buildpkg.sh, contrib/solaris/README] Updated to
    build on all platforms that support SVR4 style package tools. Now runs
@@ -7834,4 +7839,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1921 2002/03/12 04:55:53 tim Exp $
+$Id: ChangeLog,v 1.1922 2002/03/17 20:17:34 tim Exp $
