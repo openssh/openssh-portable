@@ -1,3 +1,6 @@
+20020218
+ - (tim) newer config.guess from ftp://ftp.gnu.org/gnu/config/config.guess
+
 20020213
  - (djm) Don't use system sys/queue.h on AIX. Report from 
    gert@greenie.muc.de
@@ -7591,4 +7594,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1853 2002/02/14 09:39:49 djm Exp $
+$Id: ChangeLog,v 1.1854 2002/02/18 23:18:56 tim Exp $
