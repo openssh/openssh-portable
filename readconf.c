@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.60 2001/01/28 20:36:16 stevesk Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.61 2001/02/08 14:39:36 deraadt Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -717,6 +717,8 @@ initialize_options(Options * options)
 void
 fill_default_options(Options * options)
 {
+	int len;
+
 	if (options->forward_agent == -1)
 		options->forward_agent = 0;
 	if (options->forward_x11 == -1)
@@ -783,16 +785,18 @@ fill_default_options(Options * options)
 		options->protocol = SSH_PROTO_1|SSH_PROTO_2|SSH_PROTO_1_PREFERRED;
 	if (options->num_identity_files == 0) {
 		if (options->protocol & SSH_PROTO_1) {
+			len = 2 + strlen(_PATH_SSH_CLIENT_IDENTITY) + 1;
 			options->identity_files[options->num_identity_files] =
-			    xmalloc(2 + strlen(_PATH_SSH_CLIENT_IDENTITY) + 1);
-			sprintf(options->identity_files[options->num_identity_files++],
-			    "~/%.100s", _PATH_SSH_CLIENT_IDENTITY);
+			    xmalloc(len);
+			snprintf(options->identity_files[options->num_identity_files++],
+			    len, "~/%.100s", _PATH_SSH_CLIENT_IDENTITY);
 		}
 		if (options->protocol & SSH_PROTO_2) {
+			len = 2 + strlen(_PATH_SSH_CLIENT_ID_DSA) + 1;
 			options->identity_files[options->num_identity_files] =
-			    xmalloc(2 + strlen(_PATH_SSH_CLIENT_ID_DSA) + 1);
-			sprintf(options->identity_files[options->num_identity_files++],
-			    "~/%.100s", _PATH_SSH_CLIENT_ID_DSA);
+			    xmalloc(len);
+			snprintf(options->identity_files[options->num_identity_files++],
+			    len, "~/%.100s", _PATH_SSH_CLIENT_ID_DSA);
 		}
 	}
 	if (options->escape_char == -1)
