@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.31 2001/03/26 08:07:08 markus Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.32 2001/04/08 13:03:00 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -59,7 +59,7 @@ void
 delete_file(AuthenticationConnection *ac, const char *filename)
 {
 	Key *public;
-	char *comment;
+	char *comment = NULL;
 
 	public = key_load_public(filename, &comment);
 	if (public == NULL) {
@@ -136,7 +136,7 @@ add_file(AuthenticationConnection *ac, const char *filename)
 {
 	struct stat st;
 	Key *private;
-	char *comment, *askpass = NULL, *pass;
+	char *comment = NULL, *askpass = NULL, *pass;
 	char buf[1024], msg[1024];
 	int interactive = isatty(STDIN_FILENO);
 
