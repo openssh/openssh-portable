@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.249 2005/03/07 06:34:46 dtucker Exp $
+# $Id: configure.ac,v 1.250 2005/03/07 09:21:37 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -373,23 +373,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	;;
 # SCO UNIX and OEM versions of SCO UNIX
 *-*-sco3.2v4*)
-	CPPFLAGS="$CPPFLAGS -Dftruncate=chsize"
-	LIBS="$LIBS -los -lprot -lcrypt_i -lx -ltinfo -lm"
-	RANLIB=true
-	no_dev_ptmx=1
-	AC_DEFINE(BROKEN_SYS_TERMIO_H)
-	AC_DEFINE(USE_PIPES)
-	AC_DEFINE(HAVE_SECUREWARE)
-	AC_DEFINE(DISABLE_SHADOW)
-	AC_DEFINE(BROKEN_SAVED_UIDS)
-	AC_DEFINE(SETEUID_BREAKS_SETUID)
-	AC_DEFINE(BROKEN_SETREUID)
-	AC_DEFINE(BROKEN_SETREGID)
-	AC_DEFINE(WITH_ABBREV_NO_TTY)
-	AC_CHECK_FUNCS(getluid setluid)
-	MANTYPE=man
-	do_sco3_extra_lib_check=yes
-	TEST_SHELL=ksh
+	AC_MSG_ERROR("This Platform is no longer supported.")
 	;;
 # SCO OpenServer 5.x
 *-*-sco3.2v5*)
@@ -554,13 +538,6 @@ AC_CHECK_HEADERS(sys/ptms.h, [], [], [
 # Checks for libraries.
 AC_CHECK_FUNC(yp_match, , AC_CHECK_LIB(nsl, yp_match))
 AC_CHECK_FUNC(setsockopt, , AC_CHECK_LIB(socket, setsockopt))
-
-dnl SCO OS3 needs this for libwrap
-if test "x$with_tcp_wrappers" != "xno" ; then
-    if test "x$do_sco3_extra_lib_check" = "xyes" ; then
-	AC_CHECK_LIB(rpc, innetgr, LIBS="-lrpc -lyp -lrpc $LIBS" , , -lyp -lrpc)
-    fi
-fi
 
 dnl IRIX and Solaris 2.5.1 have dirname() in libgen
 AC_CHECK_FUNCS(dirname, [AC_CHECK_HEADERS(libgen.h)] ,[

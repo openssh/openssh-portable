@@ -19,6 +19,7 @@
      [Makefile envpass.sh]
      regress test for SendEnv config parsing bug; ok dtucker@
  - (dtucker) [regress/test-exec.sh] Put SUDO in the right place.
+ - (tim) [configure.ac] SCO 3.2v4.2 no longer supported.
 
 20050306
  - (dtucker) [monitor.c] Bug #125 comment #47: fix errors returned by monitor
@@ -2305,4 +2306,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3701 2005/03/07 08:15:06 dtucker Exp $
+$Id: ChangeLog,v 1.3702 2005/03/07 09:21:37 tim Exp $
