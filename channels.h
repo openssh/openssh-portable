@@ -32,7 +32,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* RCSID("$OpenBSD: channels.h,v 1.63 2002/02/05 14:32:55 markus Exp $"); */
+/* RCSID("$OpenBSD: channels.h,v 1.64 2002/02/14 23:28:00 markus Exp $"); */
 
 #ifndef CHANNEL_H
 #define CHANNEL_H
@@ -113,12 +113,12 @@ struct Channel {
 #define CHAN_EXTENDED_WRITE		2
 
 /* default window/packet sizes for tcp/x11-fwd-channel */
-#define CHAN_SES_WINDOW_DEFAULT	(32*1024)
-#define CHAN_SES_PACKET_DEFAULT	(CHAN_SES_WINDOW_DEFAULT/2)
-#define CHAN_TCP_WINDOW_DEFAULT	(32*1024)
-#define CHAN_TCP_PACKET_DEFAULT	(CHAN_TCP_WINDOW_DEFAULT/2)
-#define CHAN_X11_WINDOW_DEFAULT	(4*1024)
-#define CHAN_X11_PACKET_DEFAULT	(CHAN_X11_WINDOW_DEFAULT/2)
+#define CHAN_SES_PACKET_DEFAULT	(32*1024)
+#define CHAN_SES_WINDOW_DEFAULT	(4*CHAN_SES_PACKET_DEFAULT)
+#define CHAN_TCP_PACKET_DEFAULT	(32*1024)
+#define CHAN_TCP_WINDOW_DEFAULT	(4*CHAN_TCP_PACKET_DEFAULT)
+#define CHAN_X11_PACKET_DEFAULT	(16*1024)
+#define CHAN_X11_WINDOW_DEFAULT	(4*CHAN_X11_PACKET_DEFAULT)
 
 /* possible input states */
 #define CHAN_INPUT_OPEN			0
@@ -139,7 +139,7 @@ struct Channel {
 
 Channel	*channel_lookup(int);
 Channel *channel_new(char *, int, int, int, int, int, int, int, char *, int);
-void	 channel_set_fds(int, int, int, int, int, int);
+void	 channel_set_fds(int, int, int, int, int, int, u_int);
 void	 channel_free(Channel *);
 void	 channel_free_all(void);
 void	 channel_stop_listening(void);

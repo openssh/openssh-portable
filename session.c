@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.125 2002/02/09 17:37:34 deraadt Exp $");
+RCSID("$OpenBSD: session.c,v 1.126 2002/02/14 23:28:00 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1781,7 +1781,8 @@ session_set_fds(Session *s, int fdin, int fdout, int fderr)
 	channel_set_fds(s->chanid,
 	    fdout, fdin, fderr,
 	    fderr == -1 ? CHAN_EXTENDED_IGNORE : CHAN_EXTENDED_READ,
-	    1);
+	    1,
+	    CHAN_SES_WINDOW_DEFAULT);
 }
 
 /*
