@@ -1,3 +1,8 @@
+20030101
+  - (stevesk) [session.c sshlogin.c sshlogin.h] complete portable
+    parts of pass addrlen with sockaddr * fix.
+    from Hajimu UMEMOTO <ume@FreeBSD.org>
+
 20021222
  - (bal) OpenBSD CVS Sync
    - fgsch@cvs.openbsd.org 2002/11/15 10:03:09
@@ -912,4 +917,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2536 2002/12/23 02:58:17 mouring Exp $
+$Id: ChangeLog,v 1.2537 2003/01/01 23:43:55 stevesk Exp $

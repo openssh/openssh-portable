@@ -689,7 +689,7 @@ do_pre_login(Session *s)
 
 	record_utmp_only(pid, s->tty, s->pw->pw_name,
 	    get_remote_name_or_ip(utmp_len, options.verify_reverse_mapping),
-	    (struct sockaddr *)&from);
+	    (struct sockaddr *)&from, fromlen);
 }
 #endif
 
@@ -730,8 +730,8 @@ do_login(Session *s, const char *command)
 	 * the address be 0.0.0.0.
 	 */
 	memset(&from, 0, sizeof(from));
+	fromlen = sizeof(from);
 	if (packet_connection_is_on_socket()) {
-		fromlen = sizeof(from);
 		if (getpeername(packet_get_connection_in(),
 		    (struct sockaddr *) & from, &fromlen) < 0) {
 			debug("getpeername: %.100s", strerror(errno));
