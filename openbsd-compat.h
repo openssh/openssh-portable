@@ -24,6 +24,7 @@
 #include "bsd-vis.h"
 #include "bsd-waitpid.h"
 #include "bsd-setproctitle.h"
+#include "bsd-getgrouplist.h"
 
 /* rfc2553 socket API replacements */
 #include "fake-getaddrinfo.h"

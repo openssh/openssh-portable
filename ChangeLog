@@ -1,3 +1,11 @@
+20010114
+ - (stevesk) initial work for OpenBSD "support supplementary group in
+   {Allow,Deny}Groups" patch:
+   - import getgrouplist.c from OpenBSD (bsd-getgrouplist.c)
+   - add bsd-getgrouplist.h
+   - new files groupaccess.[ch]
+   - build but don't use yet (need to merge auth.c changes)
+	
 20010112
  - (bal) OpenBSD Sync
    - markus@cvs.openbsd.org 2001/01/10 22:56:22

@@ -39,11 +39,11 @@ TARGETS=ssh$(EXEEXT) sshd$(EXEEXT) ssh-add$(EXEEXT) ssh-keygen$(EXEEXT) ssh-keys
 
 LIBSSH_OBJS=atomicio.o authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o cipher.o cli.o compat.o compress.o crc32.o cygwin_util.o deattack.o dispatch.o hmac.o hostfile.o key.o kex.o log.o match.o mpaux.o nchan.o packet.o radix.o rijndael.o entropy.o readpass.o rsa.o ssh-dss.o ssh-rsa.o tildexpand.o ttymodes.o uidswap.o util.o uuencode.o xmalloc.o 
 
-LIBOPENBSD_COMPAT_OBJS=bsd-arc4random.o bsd-base64.o bsd-bindresvport.o bsd-daemon.o bsd-getcwd.o bsd-inet_aton.o bsd-inet_ntoa.o bsd-misc.o bsd-mktemp.o bsd-realpath.o bsd-rresvport.o bsd-setenv.o bsd-sigaction.o bsd-snprintf.o bsd-strlcat.o bsd-strlcpy.o bsd-strsep.o bsd-strtok.o bsd-vis.o bsd-setproctitle.o bsd-waitpid.o fake-getaddrinfo.o fake-getnameinfo.o next-posix.o
+LIBOPENBSD_COMPAT_OBJS=bsd-arc4random.o bsd-base64.o bsd-bindresvport.o bsd-daemon.o bsd-getcwd.o bsd-getgrouplist.o bsd-inet_aton.o bsd-inet_ntoa.o bsd-misc.o bsd-mktemp.o bsd-realpath.o bsd-rresvport.o bsd-setenv.o bsd-sigaction.o bsd-snprintf.o bsd-strlcat.o bsd-strlcpy.o bsd-strsep.o bsd-strtok.o bsd-vis.o bsd-setproctitle.o bsd-waitpid.o fake-getaddrinfo.o fake-getnameinfo.o next-posix.o
 
 SSHOBJS= ssh.o sshconnect.o sshconnect1.o sshconnect2.o log-client.o readconf.o clientloop.o
 
-SSHDOBJS= sshd.o auth.o auth1.o auth2.o auth-skey.o auth2-skey.o auth-rhosts.o auth-options.o auth-krb4.o auth-pam.o auth2-pam.o auth-passwd.o auth-rsa.o auth-rh-rsa.o dh.o pty.o log-server.o login.o loginrec.o servconf.o serverloop.o md5crypt.o session.o
+SSHDOBJS= sshd.o auth.o auth1.o auth2.o auth-skey.o auth2-skey.o auth-rhosts.o auth-options.o auth-krb4.o auth-pam.o auth2-pam.o auth-passwd.o auth-rsa.o auth-rh-rsa.o dh.o pty.o log-server.o login.o loginrec.o servconf.o serverloop.o md5crypt.o session.o groupaccess.o
 
 TROFFMAN	= scp.1 ssh-add.1 ssh-agent.1 ssh-keygen.1 ssh-keyscan.1 ssh.1 sshd.8 sftp-server.8
 CATMAN		= scp.0 ssh-add.0 ssh-agent.0 ssh-keygen.0 ssh-keyscan.0 ssh.0 sshd.0 sftp-server.0
