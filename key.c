@@ -32,21 +32,10 @@
  */
 
 #include "includes.h"
-
-#ifdef HAVE_OPENSSL
-#include <openssl/bn.h>
+#include "ssh.h"
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
 #include <openssl/evp.h>
-#endif
-#ifdef HAVE_SSL
-#include <ssl/bn.h>
-#include <ssl/rsa.h>
-#include <ssl/dsa.h>
-#include <ssl/evp.h>
-#endif
-
-#include "ssh.h"
 #include "xmalloc.h"
 #include "key.h"
 

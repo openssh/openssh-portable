@@ -12,19 +12,7 @@
 #include "includes.h"
 RCSID("$OpenBSD: sshconnect.c,v 1.68 2000/04/14 10:30:33 markus Exp $");
 
-#ifdef HAVE_OPENSSL
 #include <openssl/bn.h>
-#include <openssl/rsa.h>
-#include <openssl/dsa.h>
-#include <openssl/md5.h>
-#endif
-#ifdef HAVE_SSL
-#include <ssl/bn.h>
-#include <ssl/rsa.h>
-#include <ssl/dsa.h>
-#include <ssl/md5.h>
-#endif
-
 #include "xmalloc.h"
 #include "rsa.h"
 #include "ssh.h"
@@ -38,8 +26,13 @@ RCSID("$OpenBSD: sshconnect.c,v 1.68 2000/04/14 10:30:33 markus Exp $");
 #include "readconf.h"
 
 #include "bufaux.h"
+#include <openssl/rsa.h>
+#include <openssl/dsa.h>
 
 #include "ssh2.h"
+#include <openssl/md5.h>
+#include <openssl/dh.h>
+#include <openssl/hmac.h>
 #include "kex.h"
 #include "myproposal.h"
 #include "key.h"

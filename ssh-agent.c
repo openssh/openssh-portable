@@ -21,12 +21,7 @@ RCSID("$OpenBSD: ssh-agent.c,v 1.28 2000/04/14 10:30:33 markus Exp $");
 #include "getput.h"
 #include "mpaux.h"
 
-#ifdef HAVE_OPENSSL
 #include <openssl/md5.h>
-#endif
-#ifdef HAVE_SSL
-#include <ssl/md5.h>
-#endif
 
 typedef struct {
 	int fd;

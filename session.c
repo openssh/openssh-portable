@@ -1247,6 +1247,8 @@ session_pty_req(Session *s)
 	/* Get window size from the packet. */
 	pty_change_window_size(s->ptyfd, s->row, s->col, s->xpixel, s->ypixel);
 
+	/* XXX parse and set terminal modes */
+	xfree(term_modes);
 	return 1;
 }
 
@@ -1286,6 +1288,7 @@ session_input_channel_req(int id, void *arg)
 			success = 1;
 		} else if (strcmp(rtype, "exec") == 0) {
 			char *command = packet_get_string(&len);
+			packet_done();
 			if (s->ttyfd == -1)
 				do_exec_no_pty(s, command, s->pw);
 			else
@@ -1293,8 +1296,7 @@ session_input_channel_req(int id, void *arg)
 			xfree(command);
 			success = 1;
 		} else if (strcmp(rtype, "pty-req") == 0) {
-			if (session_pty_req(s) > 0)
-				success = 1;
+			success =  session_pty_req(s);
 		}
 	}
 	if (strcmp(rtype, "window-change") == 0) {

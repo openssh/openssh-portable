@@ -29,21 +29,12 @@ RCSID("$OpenBSD: sshd.c,v 1.105 2000/04/14 10:30:33 markus Exp $");
 #include "buffer.h"
 
 #include "ssh2.h"
-#ifdef HAVE_OPENSSL
-# include <openssl/dh.h>
-# include <openssl/bn.h>
-# include <openssl/hmac.h>
-# include <openssl/dsa.h>
-# include <openssl/rsa.h>
-#endif
-#ifdef HAVE_SSL
-# include <ssl/dh.h>
-# include <ssl/bn.h>
-# include <ssl/hmac.h>
-# include <ssl/dsa.h>
-# include <ssl/rsa.h>
-#endif
+#include <openssl/dh.h>
+#include <openssl/bn.h>
+#include <openssl/hmac.h>
 #include "kex.h"
+#include <openssl/dsa.h>
+#include <openssl/rsa.h>
 #include "key.h"
 #include "dsa.h"
 

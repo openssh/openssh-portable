@@ -108,6 +108,9 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #include "fake-getnameinfo.h"
 #include "fake-socket.h"
 
+/* Entropy collection */
+#include "entropy.h"
+
 /* Define this to be the path of the xauth program. */
 #ifndef XAUTH_PATH
 #define XAUTH_PATH "/usr/X11R6/bin/xauth"

@@ -21,14 +21,7 @@
 
 #include <unistd.h>
 #include <string.h>
-
-#ifdef HAVE_OPENSSL
 #include <openssl/md5.h>
-#endif
-
-#ifdef HAVE_SSL
-#include <ssl/md5.h>
-#endif
 
 static unsigned char itoa64[] =		/* 0 ... 63 => ascii - 64 */
 	"./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";

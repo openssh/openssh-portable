@@ -17,18 +17,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: packet.c,v 1.18 2000/04/16 01:18:43 damien Exp $");
-
-#ifdef HAVE_OPENSSL
-# include <openssl/bn.h>
-# include <openssl/dh.h>
-# include <openssl/hmac.h>
-#endif /* HAVE_OPENSSL */
-#ifdef HAVE_SSL
-# include <ssl/bn.h>
-# include <ssl/dh.h>
-# include <ssl/hmac.h>
-#endif /* HAVE_SSL */
+RCSID("$Id: packet.c,v 1.19 2000/04/16 02:31:51 damien Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -46,6 +35,9 @@ RCSID("$Id: packet.c,v 1.18 2000/04/16 01:18:43 damien Exp $");
 #include "compat.h"
 #include "ssh2.h"
 
+#include <openssl/bn.h>
+#include <openssl/dh.h>
+#include <openssl/hmac.h>
 #include "buffer.h"
 #include "kex.h"
 #include "hmac.h"

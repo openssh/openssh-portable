@@ -15,18 +15,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: auth-rh-rsa.c,v 1.10 2000/04/16 01:18:39 damien Exp $");
-
-#ifdef HAVE_OPENSSL
-#include <openssl/bn.h>
-#include <openssl/rsa.h>
-#include <openssl/dsa.h>
-#endif
-#ifdef HAVE_SSL
-#include <ssl/bn.h>
-#include <ssl/rsa.h>
-#include <ssl/dsa.h>
-#endif
+RCSID("$Id: auth-rh-rsa.c,v 1.11 2000/04/16 02:31:49 damien Exp $");
 
 #include "packet.h"
 #include "ssh.h"
@@ -34,6 +23,8 @@ RCSID("$Id: auth-rh-rsa.c,v 1.10 2000/04/16 01:18:39 damien Exp $");
 #include "uidswap.h"
 #include "servconf.h"
 
+#include <openssl/rsa.h>
+#include <openssl/dsa.h>
 #include "key.h"
 #include "hostfile.h"
 

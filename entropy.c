@@ -32,16 +32,10 @@
 #include "ssh.h"
 #include "xmalloc.h"
 
-#ifdef HAVE_OPENSSL
-# include <openssl/rand.h>
-# include <openssl/sha.h>
-#endif
-#ifdef HAVE_SSL
-# include <ssl/rand.h>
-# include <ssl/sha.h>
-#endif
+#include <openssl/rand.h>
+#include <openssl/sha.h>
 
-RCSID("$Id: entropy.c,v 1.4 2000/04/08 07:48:56 damien Exp $");
+RCSID("$Id: entropy.c,v 1.5 2000/04/16 02:31:50 damien Exp $");
 
 #ifdef EGD_SOCKET
 #ifndef offsetof

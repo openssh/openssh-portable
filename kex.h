@@ -29,17 +29,6 @@
 #ifndef KEX_H
 #define KEX_H
 
-#include "config.h"
-
-#ifdef HAVE_OPENSSL
-# include <openssl/bn.h>
-# include <openssl/evp.h>
-#endif
-#ifdef HAVE_SSL
-# include <ssl/bn.h>
-# include <ssl/evp.h>
-#endif
-
 #define	KEX_DH1	"diffie-hellman-group1-sha1"
 #define KEX_DSS	"ssh-dss"
 

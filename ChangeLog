@@ -1,3 +1,10 @@
+20000416
+ - Reduce diff against OpenBSD source
+   - All OpenSSL includes are now unconditionally referenced as 
+     openssl/foo.h
+   - Pick up formatting changes
+   - Other minor changed (typecasts, etc) that I missed
+
 20000415
  - OpenBSD CVS updates.
    [ssh.1 ssh.c]

@@ -16,20 +16,11 @@
 #include "includes.h"
 RCSID("$OpenBSD: hostfile.c,v 1.16 2000/04/14 10:30:31 markus Exp $");
 
-#ifdef HAVE_OPENSSL
-#include <openssl/bn.h>
-#include <openssl/rsa.h>
-#include <openssl/dsa.h>
-#endif
-#ifdef HAVE_SSL
-#include <ssl/bn.h>
-#include <ssl/rsa.h>
-#include <ssl/dsa.h>
-#endif
-
 #include "packet.h"
 #include "match.h"
 #include "ssh.h"
+#include <openssl/rsa.h>
+#include <openssl/dsa.h>
 #include "key.h"
 #include "hostfile.h"
 

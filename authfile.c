@@ -15,15 +15,9 @@
  */
 
 #include "includes.h"
-RCSID("$Id: authfile.c,v 1.10 2000/04/16 01:18:40 damien Exp $");
+RCSID("$Id: authfile.c,v 1.11 2000/04/16 02:31:49 damien Exp $");
 
-#ifdef HAVE_OPENSSL
 #include <openssl/bn.h>
-#endif
-#ifdef HAVE_SSL
-#include <ssl/bn.h>
-#endif
-
 #include "xmalloc.h"
 #include "buffer.h"
 #include "bufaux.h"
