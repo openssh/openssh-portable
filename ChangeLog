@@ -13,6 +13,7 @@
    - djm@cvs.openbsd.org 2003/01/13 11:04:04
      [sftp-int.c]
      make cmds[] array static to avoid conflict with BSDI libc.
+     mindrot bug #466. Fix from mdev@idg.nl; ok markus@
 
 20030113
  - (djm) Rework openbsd-compat/setproctitle.c a bit: move emulation type
@@ -1016,4 +1017,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2570 2003/01/14 11:24:05 djm Exp $
+$Id: ChangeLog,v 1.2571 2003/01/14 11:24:19 djm Exp $
