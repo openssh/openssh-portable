@@ -1,4 +1,5 @@
 20020607
+ - (bal) Removed --{enable/disable}-suid-ssh
  - (bal) Missed __progname in ssh-keysign.c  patch by dtucker@zip.com.au
  - (bal) use 'LOGIN_PROGRAM'  not '/usr/bin/login' in session.c patch by
    Bertrand.Velle@apogee-com.fr
@@ -827,4 +828,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2187 2002/06/07 14:49:56 mouring Exp $
+$Id: ChangeLog,v 1.2188 2002/06/07 16:49:11 mouring Exp $
