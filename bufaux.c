@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: bufaux.c,v 1.29 2003/04/08 20:21:28 itojun Exp $");
+RCSID("$OpenBSD: bufaux.c,v 1.30 2003/09/18 13:02:21 miod Exp $");
 
 #include <openssl/bn.h>
 #include "bufaux.h"
@@ -80,7 +80,7 @@ buffer_put_bignum(Buffer *buffer, BIGNUM *value)
 void
 buffer_get_bignum(Buffer *buffer, BIGNUM *value)
 {
-	int bits, bytes;
+	u_int bits, bytes;
 	u_char buf[2], *bin;
 
 	/* Get the number for bits. */
@@ -103,10 +103,10 @@ buffer_get_bignum(Buffer *buffer, BIGNUM *value)
 void
 buffer_put_bignum2(Buffer *buffer, BIGNUM *value)
 {
-	int bytes = BN_num_bytes(value) + 1;
+	u_int bytes = BN_num_bytes(value) + 1;
 	u_char *buf = xmalloc(bytes);
 	int oi;
-	int hasnohigh = 0;
+	u_int hasnohigh = 0;
 
 	buf[0] = '\0';
 	/* Get the value of in binary */

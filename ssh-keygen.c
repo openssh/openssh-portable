@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.108 2003/08/14 16:08:58 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.109 2003/09/18 13:02:21 miod Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -191,8 +191,8 @@ do_convert_to_ssh2(struct passwd *pw)
 static void
 buffer_get_bignum_bits(Buffer *b, BIGNUM *value)
 {
-	int bits = buffer_get_int(b);
-	int bytes = (bits + 7) / 8;
+	u_int bits = buffer_get_int(b);
+	u_int bytes = (bits + 7) / 8;
 
 	if (buffer_len(b) < bytes)
 		fatal("buffer_get_bignum_bits: input buffer too small: "

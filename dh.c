@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: dh.c,v 1.24 2003/04/08 20:21:28 itojun Exp $");
+RCSID("$OpenBSD: dh.c,v 1.25 2003/09/18 13:02:21 miod Exp $");
 
 #include "xmalloc.h"
 
@@ -198,7 +198,7 @@ dh_gen_key(DH *dh, int need)
 
 	if (dh->p == NULL)
 		fatal("dh_gen_key: dh->p == NULL");
-	if (2*need >= BN_num_bits(dh->p))
+	if (need > INT_MAX / 2 || 2 * need >= BN_num_bits(dh->p))
 		fatal("dh_gen_key: group too small: %d (2*need %d)",
 		    BN_num_bits(dh->p), 2*need);
 	do {
