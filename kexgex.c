@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kexgex.c,v 1.21 2002/03/18 17:50:31 provos Exp $");
+RCSID("$OpenBSD: kexgex.c,v 1.22 2002/03/24 17:27:03 stevesk Exp $");
 
 #include <openssl/bn.h>
 
@@ -260,7 +260,7 @@ kexgex_server(Kex *kex)
 {
 	BIGNUM *shared_secret = NULL, *dh_client_pub = NULL;
 	Key *server_host_key;
-	DH *dh = dh;
+	DH *dh;
 	u_char *kbuf, *hash, *signature = NULL, *server_host_key_blob = NULL;
 	u_int sbloblen, klen, kout, slen;
 	int min = -1, max = -1, nbits = -1, type;

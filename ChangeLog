@@ -10,6 +10,9 @@
    - markus@cvs.openbsd.org 2002/03/24 16:01:13
      [packet.c]
      debug->debug3 for extra padding
+   - stevesk@cvs.openbsd.org 2002/03/24 17:27:03
+     [kexgex.c]
+     typo; ok markus@
 
 20020324
  - (stevesk) [session.c] disable LOGIN_NEEDS_TERM until we are sure
@@ -8024,4 +8027,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1980 2002/03/26 02:09:41 mouring Exp $
+$Id: ChangeLog,v 1.1981 2002/03/26 02:20:06 mouring Exp $
