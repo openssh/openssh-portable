@@ -29,6 +29,9 @@ for c in $ciphers; do
 	fi
 done
 
+if ! ${SSH} -oCiphers=acss@openssh.org 2>&1 | grep "Bad SSH2 cipher" >/dev/null
+then
+
 echo "Ciphers acss@openssh.org" >> $OBJ/sshd_proxy
 c=acss@openssh.org
 for m in $macs; do
@@ -39,3 +42,5 @@ for m in $macs; do
 		fail "ssh -2 failed with mac $m cipher $c"
 	fi
 done
+
+fi
