@@ -11,6 +11,8 @@ AC_PROG_INSTALL
 AC_CHECK_PROG(AR, ar, ar)
 AC_PATH_PROG(PERL, perl)
 AC_SUBST(PERL)
+AC_PATH_PROG(ENT, ent)
+AC_SUBST(ENT)
 
 if test -z "$LD" ; then
 	LD=$CC

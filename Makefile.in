@@ -27,6 +27,7 @@ AR=@AR@
 RANLIB=@RANLIB@
 INSTALL=@INSTALL@
 PERL=@PERL@
+ENT=@ENT@
 LDFLAGS=-L. @LDFLAGS@
 
 INSTALL_SSH_PRNG_CMDS=@INSTALL_SSH_PRNG_CMDS@
@@ -136,7 +137,8 @@ install: manpages $(TARGETS)
 		$(INSTALL) -m 644 sshd_config.out $(DESTDIR)$(sysconfdir)/sshd_config; \
 	fi
 	if [ -f ssh_prng_cmds -a ! -z "$(INSTALL_SSH_PRNG_CMDS)" ]; then \
-		$(INSTALL) -m 644 ssh_prng_cmds $(DESTDIR)$(sysconfdir)/ssh_prng_cmds; \
+		$(PERL) fixprogs ssh_prng_cmds $(ENT); \
+		$(INSTALL) -m 644 ssh_prng_cmds.out $(DESTDIR)$(sysconfdir)/ssh_prng_cmds; \
 	fi
 
 host-key: ssh-keygen

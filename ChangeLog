@@ -1,3 +1,15 @@
+20000517
+ - Fix from Andre Lucas <andre.lucas@dial.pipex.com>
+  - Fixes command line printing segfaults (spotter: Bladt Norbert)
+  - Fixes erroneous printing of debug messages to syslog
+  - Fixes utmp for MacOS X (spotter: Aristedes Maniatis)
+  - Gives useful error message if PRNG initialisation fails
+  - Reduced ssh startup delay
+  - Measures cumulative command time rather than the time between reads
+	 after select()
+  - 'fixprogs' perl script to eliminate non-working entropy commands, and
+	 optionally run 'ent' to measure command entropy
+
 20000513
  - Fix for non-recognised DSA keys from Arkadiusz Miskiewicz 
    <misiek@pld.org.pl>

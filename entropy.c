@@ -35,7 +35,7 @@
 #include <openssl/rand.h>
 #include <openssl/sha.h>
 
-RCSID("$Id: entropy.c,v 1.9 2000/05/11 09:10:58 damien Exp $");
+RCSID("$Id: entropy.c,v 1.10 2000/05/17 11:34:08 damien Exp $");
 
 #ifdef EGD_SOCKET
 #ifndef offsetof
@@ -133,6 +133,8 @@ typedef struct
 	char *path;
 	/* argv to pass to executable */
 	char *args[5];
+	/* full command string (debug) */
+	char *cmdstring;
 } entropy_source_t;
 
 double stir_from_system(void);
@@ -211,8 +213,8 @@ stir_from_programs(void)
 
 /* FIXME: turn this off later */
 #if 1
-				debug("Got %0.2f bytes of entropy from %s", entropy_estimate, 
-					entropy_sources[c].path);
+				debug("Got %0.2f bytes of entropy from '%s'", entropy_estimate, 
+					entropy_sources[c].cmdstring);
 #endif
 
 				total_entropy_estimate += entropy_estimate;
@@ -225,9 +227,8 @@ stir_from_programs(void)
 			} else {
 /* FIXME: turn this off later */
 #if 1
-				debug("Command '%s %s %s' disabled (badness %d)",
-					entropy_sources[c].path, entropy_sources[c].args[1],
-					entropy_sources[c].args[2], entropy_sources[c].badness);
+				debug("Command '%s' disabled (badness %d)",
+					entropy_sources[c].cmdstring, entropy_sources[c].badness);
 #endif
 
 				if (entropy_sources[c].badness > 0)
@@ -286,6 +287,17 @@ stir_rusage(int who, double entropy_estimate)
 #endif /* _HAVE_GETRUSAGE */
 }
 
+
+static
+int
+_get_timeval_msec_difference(struct timeval *t1, struct timeval *t2) {
+	int secdiff, usecdiff;
+
+	secdiff = t2->tv_sec - t1->tv_sec;
+	usecdiff = (secdiff*1000000) + (t2->tv_usec - t1->tv_usec);
+	return (int)(usecdiff / 1000);
+}
+
 double
 hash_output_from_command(entropy_source_t *src, char *hash)
 {
@@ -293,9 +305,11 @@ hash_output_from_command(entropy_source_t *src, char *hash)
 	int p[2];
 	fd_set rdset;
 	int cmd_eof = 0, error_abort = 0;
+	struct timeval tv_start, tv_current;
+	int msec_elapsed = 0;
 	pid_t pid;
 	int status;
-	char buf[2048];
+	char buf[16384];
 	int bytes_read;
 	int total_bytes_read;
 	SHA_CTX sha;
@@ -308,6 +322,8 @@ hash_output_from_command(entropy_source_t *src, char *hash)
 	
 	if (pipe(p) == -1)
 		fatal("Couldn't open pipe: %s", strerror(errno));
+
+	(void)gettimeofday(&tv_start, NULL); /* record start time */
 
 	switch (pid = fork()) {
 		case -1: /* Error */
@@ -324,8 +340,8 @@ hash_output_from_command(entropy_source_t *src, char *hash)
 			close(devnull);
 
 			execv(src->path, (char**)(src->args));
-			debug("(child) Couldn't exec '%s %s %s': %s", src->path,
-				src->args[1], src->args[2], strerror(errno));
+			debug("(child) Couldn't exec '%s': %s", src->cmdstring,
+			      strerror(errno));
 			src->badness = src->sticky_badness = 128;
 			_exit(-1);
 		default: /* Parent */
@@ -343,13 +359,24 @@ hash_output_from_command(entropy_source_t *src, char *hash)
 	while (!error_abort && !cmd_eof) {
 		int ret;
 		struct timeval tv;
+		int msec_remaining;
+
+		(void) gettimeofday(&tv_current, 0);
+		msec_elapsed = _get_timeval_msec_difference(
+			&tv_start, &tv_current);
+		if (msec_elapsed >= entropy_timeout_current) {
+			error_abort=1;
+			continue;
+		}
+		msec_remaining = entropy_timeout_current - msec_elapsed;
 
 		FD_ZERO(&rdset);
 		FD_SET(p[0], &rdset);
-		tv.tv_sec = entropy_timeout_current / 1000;
-		tv.tv_usec = (entropy_timeout_current % 1000) * 1000;
+		tv.tv_sec =  msec_remaining / 1000;
+		tv.tv_usec = (msec_remaining % 1000) * 1000;
 
 		ret = select(p[0]+1, &rdset, NULL, NULL, &tv);
+
 		switch (ret) {
 		case 0:
 			/* timer expired */
@@ -363,17 +390,19 @@ hash_output_from_command(entropy_source_t *src, char *hash)
 				error_abort = 1;
 				break;
 			}
-			SHA1_Update(&sha, buf, bytes_read);
-			total_bytes_read += bytes_read;
-			RAND_add(&bytes_read, sizeof(&bytes_read), 0.0);
-			cmd_eof = bytes_read ? 0 : 1;
+			if (bytes_read) {
+				SHA1_Update(&sha, buf, bytes_read);
+				total_bytes_read += bytes_read;
+				RAND_add(&bytes_read, sizeof(&bytes_read), 0.0);
+			} else
+				cmd_eof = 1;
 
 			break;
 
 		case -1:
 		default:
-			error("Command '%s %s': select() failed: %s", src->path, src->args[1],
-				strerror(errno));
+			debug("Command '%s': select() failed: %s", src->cmdstring,
+			      strerror(errno));
 			error_abort = 1;
 			break;
 		} /* switch ret */
@@ -384,11 +413,12 @@ hash_output_from_command(entropy_source_t *src, char *hash)
 	SHA1_Final(hash, &sha);
 
 	close(p[0]);
+
+	debug("Time elapsed: %d msec", msec_elapsed);
 	
 	if (waitpid(pid, &status, 0) == -1) {
-		error("Couldn't wait for child '%s %s' completion: %s", src->path,
-			src->args[1], strerror(errno));
-		/* return(-1); */ /* FIXME: (ATL) this doesn't feel right */
+	       debug("Couldn't wait for child '%s' completion: %s", src->cmdstring,
+		     strerror(errno));
 		return(0.0);
 	}
 
@@ -398,7 +428,7 @@ hash_output_from_command(entropy_source_t *src, char *hash)
 		/* closing p[0] on timeout causes the entropy command to
 		 * SIGPIPE. Take whatever output we got, and mark this command
 		 * as slow */
-		debug("Command %s %s timed out", src->path, src->args[1]);
+		debug("Command '%s' timed out", src->cmdstring);
 		src->sticky_badness *= 2;
 		src->badness = src->sticky_badness;
 		return(total_bytes_read);
@@ -615,6 +645,10 @@ prng_read_commands(char *cmdfilename)
 				continue;
 			}
 
+			/* save the command for debug messages */
+			entcmd[cur_cmd].cmdstring = (char*) xmalloc(strlen(cmd)+1);
+			strncpy(entcmd[cur_cmd].cmdstring, cmd, strlen(cmd)+1);
+			
 			/* split the command args */
 			cp = strtok(cmd, WHITESPACE);
 			arg = 0; argv = NULL;
@@ -712,6 +746,9 @@ seed_rng(void)
 	debug("%i bytes from system calls", (int)stir_from_system());
 	debug("%i bytes from programs", (int)stir_from_programs());
 	debug("OpenSSL random status is now %i\n", RAND_status());
+
+	if (!RAND_status())
+		fatal("Couldn't initialise builtin random number generator -- exiting.");
 
 	if (!prng_seed_loaded)
 	{

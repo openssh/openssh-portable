@@ -18,7 +18,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: login.c,v 1.25 2000/05/01 12:53:53 damien Exp $");
+RCSID("$Id: login.c,v 1.26 2000/05/17 11:34:08 damien Exp $");
 
 #if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
 # include <utmpx.h>
@@ -87,6 +87,7 @@ get_last_login_time(uid_t uid, const char *logname,
 	return ll.ll_time;
 
 #else /* defined(_PATH_LASTLOG) && !defined(DISABLE_LASTLOG) */
+# ifdef HAVE_TYPE_IN_UTMP
 	/* Look in wtmp for the last login */
 	struct utmp  wt;
 	char        *wt_file = _PATH_WTMP;
@@ -111,14 +112,14 @@ get_last_login_time(uid_t uid, const char *logname,
 		if ( wt.ut_type == USER_PROCESS) {
 			if ( !strncmp(logname, wt.ut_user, 8) ) {
 				t = (unsigned long) wt.ut_time;
-#ifdef HAVE_HOST_IN_UTMP
+# ifdef HAVE_HOST_IN_UTMP
 				if (bufsize > sizeof(wt.ut_host) + 1)
 				bufsize = sizeof(wt.ut_host) + 1;
 				strncpy(buf, wt.ut_host, bufsize - 1);
 				buf[bufsize - 1] = 0;
-#else /* HAVE_HOST_IN_UTMP */
+# else /* HAVE_HOST_IN_UTMP */
 				buf[0] = 0;
-#endif /* HAVE_HOST_IN_UTMP */
+# endif /* HAVE_HOST_IN_UTMP */
 			}
 		}
 
@@ -127,6 +128,9 @@ get_last_login_time(uid_t uid, const char *logname,
 	} while (t == 0);
 
 	return t;
+# else
+	return 0;
+# endif /* HAVE_TYPE_IN_UTMP */
 #endif /* defined(_PATH_LASTLOG) && !defined(DISABLE_LASTLOG) */
 }
 
