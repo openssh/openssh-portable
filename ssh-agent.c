@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.60 2001/06/27 05:42:25 markus Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.61 2001/07/04 22:47:19 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.60 2001/06/27 05:42:25 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.61 2001/07/04 22:47:19 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -1008,10 +1008,9 @@ skip:
 		alarm(10);
 	}
 	idtab_init();
-	if (!d_flag) {
+	if (!d_flag)
 		signal(SIGINT, SIG_IGN);
-		signal(SIGPIPE, SIG_IGN);
-	}
+	signal(SIGPIPE, SIG_IGN);
 	signal(SIGHUP, cleanup_handler);
 	signal(SIGTERM, cleanup_handler);
 	while (1) {
