@@ -73,6 +73,11 @@
      add comment:
      key_verify returns 1 for a correct signature, 0 for an incorrect signature
      and -1 on error.
+   - markus@cvs.openbsd.org 2002/05/31 13:20:50
+     [ssh-rsa.c]
+     pad received signature with leading zeros, because RSA_verify expects
+     a signature of RSA_size. the drafts says the signature is transmitted
+     unpadded (e.g. putty does not pad), reported by anakin@pobox.com
 
 20020604
  - (stevesk) [channels.c] bug #164 patch from YOSHIFUJI Hideaki (changed
@@ -757,4 +762,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2164 2002/06/06 20:54:07 mouring Exp $
+$Id: ChangeLog,v 1.2165 2002/06/06 20:55:04 mouring Exp $

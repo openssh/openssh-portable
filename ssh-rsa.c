@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-rsa.c,v 1.18 2002/04/02 20:11:38 markus Exp $");
+RCSID("$OpenBSD: ssh-rsa.c,v 1.19 2002/05/31 13:20:50 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -115,7 +115,7 @@ ssh_rsa_verify(
 	EVP_MD_CTX md;
 	char *ktype;
 	u_char digest[EVP_MAX_MD_SIZE], *sigblob;
-	u_int len, dlen;
+	u_int len, dlen, modlen;
 	int rlen, ret, nid;
 
 	if (key == NULL || key->type != KEY_RSA || key->rsa == NULL) {
@@ -144,6 +144,21 @@ ssh_rsa_verify(
 		error("ssh_rsa_verify: remaining bytes in signature %d", rlen);
 		xfree(sigblob);
 		return -1;
+	}
+	/* RSA_verify expects a signature of RSA_size */
+	modlen = RSA_size(key->rsa);
+	if (len > modlen) {
+		error("ssh_rsa_verify: len %d > modlen %d", len, modlen);
+		xfree(sigblob);
+		return -1;
+	} else if (len < modlen) {
+		int diff = modlen - len;
+		debug("ssh_rsa_verify: add padding: modlen %d > len %d",
+		    modlen, len);
+		sigblob = xrealloc(sigblob, modlen);
+		memmove(sigblob + diff, sigblob, len);
+		memset(sigblob, 0, diff);
+		len = modlen;
 	}
 	nid = (datafellows & SSH_BUG_RSASIGMD5) ? NID_md5 : NID_sha1;
 	if ((evp_md = EVP_get_digestbynid(nid)) == NULL) {
