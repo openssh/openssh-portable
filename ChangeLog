@@ -14,6 +14,7 @@
    <marekm@amelek.gda.pl>
  - (djm) Swapped tests for no_libsocket and no_libnsl in configure.in. 
    Patch from Marek Michalkiewicz <marekm@amelek.gda.pl>
+ - (djm) Doc fixes from Pekka Savola <pekkas@netcore.fi>
 
 20010217
  - (bal) OpenBSD Sync:
@@ -4021,4 +4022,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.789 2001/02/18 01:49:57 djm Exp $
+$Id: ChangeLog,v 1.790 2001/02/18 01:58:24 djm Exp $

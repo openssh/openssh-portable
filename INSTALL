@@ -9,7 +9,9 @@ http://www.freesoftware.com/pub/infozip/zlib/
 OpenSSL 0.9.5a or greater:
 http://www.openssl.org/
 
-RPMs of OpenSSL are available at http://violet.ibs.com.au/openssh/files/support
+RPMs of OpenSSL are available at http://violet.ibs.com.au/openssh/files/support.
+For Red Hat Linux 6.2, they have been released as errata.  RHL7 includes
+these.
 
 OpenSSH can utilise Pluggable Authentication Modules (PAM) if your system
 supports it. PAM is standard on Redhat and Debian Linux, Solaris and
@@ -93,7 +95,7 @@ If you are using PAM, you may need to manually install a PAM
 control file as "/etc/pam.d/sshd" (or wherever your system
 prefers to keep them). A generic PAM configuration is included as
 "contrib/sshd.pam.generic", you may need to edit it before using it on
-your system. If you are using a recent version of Redhat Linux, the
+your system. If you are using a recent version of Red Hat Linux, the
 config file in contrib/redhat/sshd.pam should be more useful. 
 Failure to install a valid PAM file may result in an inability to
 use password authentication.  On HP-UX 11, the standard /etc/pam.conf
@@ -107,8 +109,7 @@ Normally ./configure will search the current $PATH for 'rsh'. You
 may need to specify this option if rsh is not in your path or has a
 different name.
 
---without-pam will disable PAM support. PAM is automatically detected 
-and switched on if found.
+--with-pam enables PAM support.
 
 --enable-gnome-askpass will build the GNOME passphrase dialog. You
 need a working installation of GNOME, including the development
@@ -194,8 +195,9 @@ review it to ensure that it matches your security requirements.
 To generate a host key, run "make host-key". Alternately you can do so
 manually using the following commands: 
 
-    ssh-keygen -b 1024 -f /etc/ssh/ssh_host_key -N ""
-    ssh-keygen -d -f /etc/ssh/ssh_host_dsa_key -N ""
+    ssh-keygen -t rsa1 -f /etc/ssh/ssh_host_key -N ""
+    ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -N ""
+    ssh-keygen -t dsa -f /etc/ssh/ssh_host_dsa_key -N ""
 
 Replacing /etc/ssh with the correct path to the configuration directory.
 (${prefix}/etc or whatever you specified with --sysconfdir during 
@@ -215,4 +217,4 @@ Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
 
 
-$Id: INSTALL,v 1.40 2001/02/12 00:15:41 djm Exp $
+$Id: INSTALL,v 1.41 2001/02/18 01:58:24 djm Exp $
