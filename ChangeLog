@@ -110,6 +110,9 @@
      [ssh.c]
      don't truncate remote ssh-2 commands; from mkubita@securities.cz
      use min, not max for logging, fixes overflow.
+   - deraadt@cvs.openbsd.org 2001/03/02 06:21:01
+     [sshd.8]
+     explain SIGHUP better
 
 20010304
  - (bal) Remove make-ssh-known-hosts.1 since it's no longer valid.
@@ -4302,4 +4305,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.885 2001/03/05 06:52:57 mouring Exp $
+$Id: ChangeLog,v 1.886 2001/03/05 06:55:18 mouring Exp $
