@@ -1215,7 +1215,8 @@ do_setusercontext(struct passwd *pw)
 	{
 
 #ifdef HAVE_SETPCRED
-		setpcred(pw->pw_name, (char **)NULL);
+		if (setpcred(pw->pw_name, (char **)NULL) == -1)
+			fatal("Failed to set process credentials");
 #endif /* HAVE_SETPCRED */
 #ifdef HAVE_LOGIN_CAP
 # ifdef __bsdi__
