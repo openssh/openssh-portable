@@ -10,6 +10,12 @@
    - markus@cvs.openbsd.org 2001/06/12 16:11:26
      [packet.c]
      do not log() packet_set_maxsize
+   - markus@cvs.openbsd.org 2001/06/12 21:21:29
+     [session.c]
+     remove xauth-cookie-in-tmp handling. use default $XAUTHORITY, since
+     we do already trust $HOME/.ssh
+     you can use .ssh/sshrc and .ssh/environment if you want to customize
+     the location of the xauth cookies
 
 20010612
  - scp.c ID update (upstream synced vfsprintf() from us)
@@ -5629,4 +5635,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1283 2001/06/13 04:39:18 mouring Exp $
+$Id: ChangeLog,v 1.1284 2001/06/13 04:41:41 mouring Exp $

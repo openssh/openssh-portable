@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.86 2001/06/12 16:10:38 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.87 2001/06/12 21:21:29 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -135,7 +135,6 @@ void	do_pre_login(Session *s);
 void	do_child(Session *s, const char *command);
 void	do_motd(void);
 int	check_quietlogin(Session *s, const char *command);
-void	xauthfile_cleanup_proc(void *pw);
 
 void	do_authenticated1(Authctxt *authctxt);
 void	do_authenticated2(Authctxt *authctxt);
@@ -148,9 +147,6 @@ extern int debug_flag;
 extern u_int utmp_len;
 extern int startup_pipe;
 extern void destroy_sensitive_data(void);
-
-/* Local Xauthority file. */
-static char *xauthfile;
 
 /* original command from peer. */
 char *original_command = NULL;
@@ -201,35 +197,9 @@ do_authenticated(Authctxt *authctxt)
 	else
 		do_authenticated1(authctxt);
 
-	/* remote user's local Xauthority file and agent socket */
-	if (xauthfile)
-		xauthfile_cleanup_proc(authctxt->pw);
+	/* remove agent socket */
 	if (auth_get_socket_name())
 		auth_sock_cleanup_proc(authctxt->pw);
-}
-
-/*
- * Remove local Xauthority file.
- */
-void
-xauthfile_cleanup_proc(void *_pw)
-{
-	struct passwd *pw = _pw;
-	char *p;
-
-	debug("xauthfile_cleanup_proc called");
-	if (xauthfile != NULL) {
-		temporarily_use_uid(pw);
-		unlink(xauthfile);
-		p = strrchr(xauthfile, '/');
-		if (p != NULL) {
-			*p = '\0';
-			rmdir(xauthfile);
-		}
-		xfree(xauthfile);
-		xauthfile = NULL;
-		restore_uid();
-	}
 }
 
 /*
@@ -1257,8 +1227,6 @@ do_child(Session *s, const char *command)
 	do_pam_environment(&env, &envsize);
 #endif /* USE_PAM */
 
-	if (xauthfile)
-		child_set_env(&env, &envsize, "XAUTHORITY", xauthfile);
 	if (auth_get_socket_name() != NULL)
 		child_set_env(&env, &envsize, SSH_AUTHSOCKET_ENV_NAME,
 			      auth_get_socket_name());
@@ -2008,32 +1976,15 @@ session_setup_x11fwd(Session *s)
 		packet_send_debug("No xauth program; cannot forward with spoofing.");
 		return 0;
 	}
-	if (s->display != NULL || xauthfile != NULL) {
+	if (s->display != NULL) {
 		debug("X11 display already set.");
 		return 0;
 	}
-	xauthfile = xmalloc(MAXPATHLEN);
-	strlcpy(xauthfile, "/tmp/ssh-XXXXXXXX", MAXPATHLEN);
-	temporarily_use_uid(s->pw);
-	if (mkdtemp(xauthfile) == NULL) {
-		error("private X11 dir: mkdtemp %s failed: %s",
-		    xauthfile, strerror(errno));
-		restore_uid();
-		xfree(xauthfile);
-		xauthfile = NULL;
-		return 0;
-	}
-	strlcat(xauthfile, "/cookies", MAXPATHLEN);
-	fd = open(xauthfile, O_RDWR|O_CREAT|O_EXCL, 0600);
-	if (fd >= 0)
-		close(fd);
-	restore_uid();
 	s->display = x11_create_display_inet(s->screen, options.x11_display_offset);
 	if (s->display == NULL) {
-		xauthfile_cleanup_proc(s->pw);
+		debug("x11_create_display_inet failed.");
 		return 0;
 	}
-	fatal_add_cleanup(xauthfile_cleanup_proc, s->pw);
 	return 1;
 }
 
