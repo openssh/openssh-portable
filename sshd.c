@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.228 2002/02/27 21:23:13 stevesk Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.229 2002/03/14 16:38:26 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1252,6 +1252,50 @@ main(int ac, char **av)
 }
 
 /*
+ * Decrypt session_key_int using our private server key and private host key
+ * (key with larger modulus first).
+ */
+static int
+ssh1_session_key(BIGNUM *session_key_int)
+{
+	int rsafail = 0;
+
+	if (BN_cmp(sensitive_data.server_key->rsa->n, sensitive_data.ssh1_host_key->rsa->n) > 0) {
+		/* Server key has bigger modulus. */
+		if (BN_num_bits(sensitive_data.server_key->rsa->n) <
+		    BN_num_bits(sensitive_data.ssh1_host_key->rsa->n) + SSH_KEY_BITS_RESERVED) {
+			fatal("do_connection: %s: server_key %d < host_key %d + SSH_KEY_BITS_RESERVED %d",
+			    get_remote_ipaddr(),
+			    BN_num_bits(sensitive_data.server_key->rsa->n),
+			    BN_num_bits(sensitive_data.ssh1_host_key->rsa->n),
+			    SSH_KEY_BITS_RESERVED);
+		}
+		if (rsa_private_decrypt(session_key_int, session_key_int,
+		    sensitive_data.server_key->rsa) <= 0)
+			rsafail++;
+		if (rsa_private_decrypt(session_key_int, session_key_int,
+		    sensitive_data.ssh1_host_key->rsa) <= 0)
+			rsafail++;
+	} else {
+		/* Host key has bigger modulus (or they are equal). */
+		if (BN_num_bits(sensitive_data.ssh1_host_key->rsa->n) <
+		    BN_num_bits(sensitive_data.server_key->rsa->n) + SSH_KEY_BITS_RESERVED) {
+			fatal("do_connection: %s: host_key %d < server_key %d + SSH_KEY_BITS_RESERVED %d",
+			    get_remote_ipaddr(),
+			    BN_num_bits(sensitive_data.ssh1_host_key->rsa->n),
+			    BN_num_bits(sensitive_data.server_key->rsa->n),
+			    SSH_KEY_BITS_RESERVED);
+		}
+		if (rsa_private_decrypt(session_key_int, session_key_int,
+		    sensitive_data.ssh1_host_key->rsa) < 0)
+			rsafail++;
+		if (rsa_private_decrypt(session_key_int, session_key_int,
+		    sensitive_data.server_key->rsa) < 0)
+			rsafail++;
+	}
+	return (rsafail);
+}
+/*
  * SSH1 key exchange
  */
 static void
@@ -1366,43 +1410,8 @@ do_ssh1_kex(void)
 	packet_set_protocol_flags(protocol_flags);
 	packet_check_eom();
 
-	/*
-	 * Decrypt it using our private server key and private host key (key
-	 * with larger modulus first).
-	 */
-	if (BN_cmp(sensitive_data.server_key->rsa->n, sensitive_data.ssh1_host_key->rsa->n) > 0) {
-		/* Server key has bigger modulus. */
-		if (BN_num_bits(sensitive_data.server_key->rsa->n) <
-		    BN_num_bits(sensitive_data.ssh1_host_key->rsa->n) + SSH_KEY_BITS_RESERVED) {
-			fatal("do_connection: %s: server_key %d < host_key %d + SSH_KEY_BITS_RESERVED %d",
-			    get_remote_ipaddr(),
-			    BN_num_bits(sensitive_data.server_key->rsa->n),
-			    BN_num_bits(sensitive_data.ssh1_host_key->rsa->n),
-			    SSH_KEY_BITS_RESERVED);
-		}
-		if (rsa_private_decrypt(session_key_int, session_key_int,
-		    sensitive_data.server_key->rsa) <= 0)
-			rsafail++;
-		if (rsa_private_decrypt(session_key_int, session_key_int,
-		    sensitive_data.ssh1_host_key->rsa) <= 0)
-			rsafail++;
-	} else {
-		/* Host key has bigger modulus (or they are equal). */
-		if (BN_num_bits(sensitive_data.ssh1_host_key->rsa->n) <
-		    BN_num_bits(sensitive_data.server_key->rsa->n) + SSH_KEY_BITS_RESERVED) {
-			fatal("do_connection: %s: host_key %d < server_key %d + SSH_KEY_BITS_RESERVED %d",
-			    get_remote_ipaddr(),
-			    BN_num_bits(sensitive_data.ssh1_host_key->rsa->n),
-			    BN_num_bits(sensitive_data.server_key->rsa->n),
-			    SSH_KEY_BITS_RESERVED);
-		}
-		if (rsa_private_decrypt(session_key_int, session_key_int,
-		    sensitive_data.ssh1_host_key->rsa) < 0)
-			rsafail++;
-		if (rsa_private_decrypt(session_key_int, session_key_int,
-		    sensitive_data.server_key->rsa) < 0)
-			rsafail++;
-	}
+	/* Decrypt session_key_int using host/server keys */
+	rsafail = ssh1_session_key(session_key_int);
 	/*
 	 * Extract session key from the decrypted integer.  The key is in the
 	 * least significant 256 bits of the integer; the first byte of the

@@ -12,6 +12,9 @@
    - markus@cvs.openbsd.org 2002/03/14 15:24:27
      [sshconnect1.c]
      don't trust size sent by (rogue) server; noted by s.esser@e-matters.de
+   - markus@cvs.openbsd.org 2002/03/14 16:38:26
+     [sshd.c]
+     split out ssh1 session key decryption; ok provos@
 
 20020317
  - (tim) [configure.ac] Assume path given with --with-pid-dir=PATH is wanted,
@@ -7858,4 +7861,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1927 2002/03/22 01:08:07 mouring Exp $
+$Id: ChangeLog,v 1.1928 2002/03/22 01:10:21 mouring Exp $
