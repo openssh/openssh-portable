@@ -17,6 +17,7 @@ Darren Hall <dhall@virage.org> - AIX patches
 David Agraz <dagraz@jahoopa.com> - Build fixes
 David Rankin <drankin@bohemians.lexington.ky.us> - libwrap, AIX, NetBSD fixes
 Gary E. Miller <gem@rellim.com> - SCO support
+HARUYAMA Seigo <haruyama@nt.phys.s.u-tokyo.ac.jp> - Translations & doc fixes
 Holger Trapp <Holger.Trapp@Informatik.TU-Chemnitz.DE> - KRB4/AFS config patch
 Jani Hakala <jahakala@cc.jyu.fi> - Patches
 Jarno Huuskonen <jhuuskon@hytti.uku.fi> - Bugfixes

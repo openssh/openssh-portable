@@ -1,3 +1,7 @@
+[ A Japanese translation of this document is available at
+[ http://www.unixuser.org/%7Eharuyama/security/openssh/index.html
+[ Thanks to HARUYAMA Seigo <haruyama@nt.phys.s.u-tokyo.ac.jp>
+
 This is the port of OpenBSD's excellent OpenSSH to Linux and other
 Unices.
 
