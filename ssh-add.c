@@ -2,15 +2,40 @@
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
- * Created: Thu Apr  6 00:52:24 1995 ylo
  * Adds an identity to the authentication server, or removes an identity.
+ *
+ * As far as I am concerned, the code I have written for this software
+ * can be used freely for any purpose.  Any derived versions of this
+ * software must be clearly marked as such, and if the derived work is
+ * incompatible with the protocol description in the RFC file, it must be
+ * called by a name other than "ssh" or "Secure Shell".
  *
  * SSH2 implementation,
  * Copyright (c) 2000 Markus Friedl. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.20 2000/08/28 03:50:54 deraadt Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.22 2000/09/07 20:27:54 deraadt Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/rsa.h>
@@ -37,8 +62,12 @@ delete_file(AuthenticationConnection *ac, const char *filename)
 
 	public = key_new(KEY_RSA);
 	if (!load_public_key(filename, public, &comment)) {
-		printf("Bad key file %s: %s\n", filename, strerror(errno));
-		return;
+		key_free(public);
+		public = key_new(KEY_DSA);
+		if (!try_load_public_key(filename, public, &comment)) {
+			printf("Bad key file %s\n", filename);
+			return;
+		}
 	}
 	if (ssh_remove_identity(ac, public))
 		fprintf(stderr, "Identity removed: %s (%s)\n", filename, comment);

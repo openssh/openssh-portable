@@ -1,22 +1,20 @@
 /*
- *
- * auth-rsa.c
- *
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
- *
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
- *
- * Created: Mon Mar 27 01:46:52 1995 ylo
- *
  * RSA-based authentication.  This code determines whether to admit a login
  * based on RSA authentication.  This file also contains functions to check
  * validity of the host key.
  *
+ * As far as I am concerned, the code I have written for this software
+ * can be used freely for any purpose.  Any derived versions of this
+ * software must be clearly marked as such, and if the derived work is
+ * incompatible with the protocol description in the RFC file, it must be
+ * called by a name other than "ssh" or "Secure Shell".
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rsa.c,v 1.27 2000/07/07 03:55:03 todd Exp $");
+RCSID("$OpenBSD: auth-rsa.c,v 1.29 2000/09/07 21:13:36 markus Exp $");
 
 #include "rsa.h"
 #include "packet.h"

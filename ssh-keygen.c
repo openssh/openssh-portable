@@ -2,12 +2,17 @@
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
- * Created: Mon Mar 27 02:26:40 1995 ylo
  * Identity and host key generation and maintenance.
+ *
+ * As far as I am concerned, the code I have written for this software
+ * can be used freely for any purpose.  Any derived versions of this
+ * software must be clearly marked as such, and if the derived work is
+ * incompatible with the protocol description in the RFC file, it must be
+ * called by a name other than "ssh" or "Secure Shell".
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.30 2000/08/19 21:34:43 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.31 2000/09/07 20:27:54 deraadt Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>

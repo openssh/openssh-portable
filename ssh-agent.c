@@ -1,18 +1,43 @@
-/*	$OpenBSD: ssh-agent.c,v 1.34 2000/08/31 22:09:34 markus Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.36 2000/09/15 07:13:49 deraadt Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
- * Created: Wed Mar 29 03:46:59 1995 ylo
  * The authentication agent program.
+ *
+ * As far as I am concerned, the code I have written for this software
+ * can be used freely for any purpose.  Any derived versions of this
+ * software must be clearly marked as such, and if the derived work is
+ * incompatible with the protocol description in the RFC file, it must be
+ * called by a name other than "ssh" or "Secure Shell".
  *
  * SSH2 implementation,
  * Copyright (c) 2000 Markus Friedl. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.34 2000/08/31 22:09:34 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.36 2000/09/15 07:13:49 deraadt Exp $");
 
 #include "ssh.h"
 #include "rsa.h"
@@ -757,8 +782,11 @@ main(int ac, char **av)
 			printf("echo Agent pid %d;\n", pid);
 			exit(0);
 		}
-		setenv(SSH_AUTHSOCKET_ENV_NAME, socket_name, 1);
-		setenv(SSH_AGENTPID_ENV_NAME, pidstrbuf, 1);
+		if (setenv(SSH_AUTHSOCKET_ENV_NAME, socket_name, 1) == -1 ||
+		    setenv(SSH_AGENTPID_ENV_NAME, pidstrbuf, 1) == -1) {
+			perror("setenv");
+			exit(1);
+		}
 		execvp(av[0], av);
 		perror(av[0]);
 		exit(1);

@@ -1,19 +1,18 @@
 /*
- *
- * ssh.h
- *
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
- *
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
  *
- * Created: Fri Mar 17 17:09:37 1995 ylo
- *
  * Generic header file for ssh.
  *
+ * As far as I am concerned, the code I have written for this software
+ * can be used freely for any purpose.  Any derived versions of this
+ * software must be clearly marked as such, and if the derived work is
+ * incompatible with the protocol description in the RFC file, it must be
+ * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: ssh.h,v 1.49 2000/08/19 18:48:11 markus Exp $"); */
+/* RCSID("$OpenBSD: ssh.h,v 1.51 2000/09/12 20:53:10 markus Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -450,7 +449,9 @@ typedef enum {
 	SYSLOG_LEVEL_ERROR,
 	SYSLOG_LEVEL_INFO,
 	SYSLOG_LEVEL_VERBOSE,
-	SYSLOG_LEVEL_DEBUG
+	SYSLOG_LEVEL_DEBUG1,
+	SYSLOG_LEVEL_DEBUG2,
+	SYSLOG_LEVEL_DEBUG3
 }       LogLevel;
 /* Initializes logging. */
 void    log_init(char *av0, LogLevel level, SyslogFacility facility, int on_stderr);
@@ -468,6 +469,8 @@ void    error(const char *fmt,...) __attribute__((format(printf, 1, 2)));
 void    log(const char *fmt,...) __attribute__((format(printf, 1, 2)));
 void    verbose(const char *fmt,...) __attribute__((format(printf, 1, 2)));
 void    debug(const char *fmt,...) __attribute__((format(printf, 1, 2)));
+void    debug2(const char *fmt,...) __attribute__((format(printf, 1, 2)));
+void    debug3(const char *fmt,...) __attribute__((format(printf, 1, 2)));
 
 /* same as fatal() but w/o logging */
 void    fatal_cleanup(void);

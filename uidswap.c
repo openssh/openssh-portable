@@ -2,12 +2,17 @@
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
- * Created: Sat Sep  9 01:56:14 1995 ylo
  * Code for uid-swapping.
+ *
+ * As far as I am concerned, the code I have written for this software
+ * can be used freely for any purpose.  Any derived versions of this
+ * software must be clearly marked as such, and if the derived work is
+ * incompatible with the protocol description in the RFC file, it must be
+ * called by a name other than "ssh" or "Secure Shell".
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: uidswap.c,v 1.8 2000/08/28 03:50:54 deraadt Exp $");
+RCSID("$OpenBSD: uidswap.c,v 1.9 2000/09/07 20:27:55 deraadt Exp $");
 
 #include "ssh.h"
 #include "uidswap.h"
