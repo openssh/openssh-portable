@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.137 2001/10/07 17:49:40 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.138 2001/10/08 11:48:57 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1140,7 +1140,7 @@ channel_post_port_listener(Channel *c, fd_set * readset, fd_set * writeset)
 		} else {
 			if (c->host_port == 0) {
 				nextstate = SSH_CHANNEL_DYNAMIC;
-				rtype = "direct-tcpip";
+				rtype = "dynamic-tcpip";
 			} else {
 				nextstate = SSH_CHANNEL_OPENING;
 				rtype = "direct-tcpip";
