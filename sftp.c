@@ -16,7 +16,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.53 2004/06/21 22:30:45 djm Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.54 2004/06/22 01:16:39 djm Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -72,6 +72,7 @@ char *__progname;
 #define LS_TIME_SORT	0x10	/* Sort by mtime */
 #define LS_SIZE_SORT	0x20	/* Sort by file size */
 #define LS_REVERSE_SORT	0x40	/* Reverse sort order */
+#define LS_SHOW_ALL	0x80	/* Don't skip filenames starting with '.' */
 
 #define VIEW_FLAGS	(LS_LONG_VIEW|LS_SHORT_VIEW|LS_NUMERIC_VIEW)
 #define SORT_FLAGS	(LS_NAME_SORT|LS_TIME_SORT|LS_SIZE_SORT)
@@ -378,6 +379,9 @@ parse_ls_flags(const char **cpp, int *lflag)
 			case 'f':
 				*lflag &= ~SORT_FLAGS;
 				break;
+			case 'a':
+				*lflag |= LS_SHOW_ALL;
+				break;
 			default:
 				error("Invalid flag -%c", *cp);
 				return(-1);
@@ -666,8 +670,10 @@ do_ls_dir(struct sftp_conn *conn, char *path, char *strip_path, int lflag)
 		char *tmp;
 
 		/* Count entries for sort and find longest filename */
-		for (n = 0; d[n] != NULL; n++)
-			m = MAX(m, strlen(d[n]->filename));
+		for (n = 0; d[n] != NULL; n++) {
+			if (d[n]->filename[0] != '.' || (lflag & LS_SHOW_ALL))
+				m = MAX(m, strlen(d[n]->filename));
+		}
 
 		/* Add any subpath that also needs to be counted */
 		tmp = path_strip(path, strip_path);
@@ -690,6 +696,9 @@ do_ls_dir(struct sftp_conn *conn, char *path, char *strip_path, int lflag)
 
 	for (n = 0; d[n] != NULL && !interrupted; n++) {
 		char *tmp, *fname;
+
+		if (d[n]->filename[0] == '.' && !(lflag & LS_SHOW_ALL))
+			continue;
 
 		tmp = path_append(path, d[n]->filename);
 		fname = path_strip(tmp, strip_path);
