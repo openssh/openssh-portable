@@ -19,6 +19,9 @@
      [sftp-int.c]
      fix sftp filename parsing for arguments with escaped quotes. bz #517;
      ok markus
+   - djm@cvs.openbsd.org 2003/07/19 00:46:31
+     [regress/sftp-cmds.sh]
+     regress test for sftp arguments with escaped quotes; ok markus
 
 20030714
  - (dtucker) [acconfig.h configure.ac port-aix.c] Older AIXes don't declare
@@ -715,4 +718,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2862 2003/07/19 10:09:21 dtucker Exp $
+$Id: ChangeLog,v 1.2863 2003/07/19 10:11:54 dtucker Exp $

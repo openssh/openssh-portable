@@ -1,4 +1,4 @@
-#	$OpenBSD: sftp-cmds.sh,v 1.4 2003/05/15 04:07:12 mouring Exp $
+#	$OpenBSD: sftp-cmds.sh,v 1.5 2003/07/19 00:46:31 djm Exp $
 #	Placed in the Public Domain.
 
 # XXX - TODO: 
@@ -10,6 +10,10 @@ tid="sftp commands"
 DATA=/bin/ls
 COPY=${OBJ}/copy
 GLOBFILES=`(cd /bin;echo l*)`
+
+# Path with embedded quote
+QUOTECOPY=${COPY}".\"blah\""
+QUOTECOPY_ARG=${COPY}'.\"blah\"'
 
 rm -rf ${COPY} ${COPY}.1 ${COPY}.2 ${COPY}.dd ${COPY}.dd2 ${BATCH}.*
 mkdir ${COPY}.dd
@@ -88,6 +92,12 @@ verbose "$tid: put"
 echo "put $DATA $COPY" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
 	|| fail "put failed"
 cmp $DATA ${COPY} || fail "corrupted copy after put"
+
+rm -f ${QUOTECOPY}
+verbose "$tid: put filename with quotes"
+echo "put $DATA \"$QUOTECOPY_ARG\"" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
+	|| fail "put failed"
+cmp $DATA ${QUOTECOPY} || fail "corrupted copy after put with quotes"
 
 rm -f ${COPY}.dd/*
 verbose "$tid: put to directory"
