@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.72 2000/11/12 19:50:38 markus Exp $
+.\" $OpenBSD: sshd.8,v 1.73 2000/11/22 15:38:30 provos Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -885,6 +885,8 @@ really used for anything; it is only provided for the convenience of
 the user so its contents can be copied to known hosts files.
 These two files are created using
 .Xr ssh-keygen 1 .
+.It Pa /etc/primes
+Contains Diffie-Hellman groups used for the "Diffie-Hellman Group Exchange".
 .It Pa /var/run/sshd.pid
 Contains the process ID of the
 .Nm

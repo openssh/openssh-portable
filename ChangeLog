@@ -4,6 +4,21 @@
  - (djm) Don't fail in defines.h on absence of 64 bit types (we will 
    still fail during compilation of sftp-server).
  - (djm) Fail if ar is not found during configure
+ - (djm) OpenBSD CVS updates:
+   - provos@cvs.openbsd.org  2000/11/22 08:38:31
+     [sshd.8]
+     talk about /etc/primes, okay markus@
+   - markus@cvs.openbsd.org  2000/11/23 14:03:48
+     [ssh.c sshconnect1.c sshconnect2.c]
+     complain about invalid ciphers for ssh1/ssh2, fall back to reasonable
+     defaults
+   - markus@cvs.openbsd.org  2000/11/25 09:42:53
+     [sshconnect1.c]
+     reorder check for illegal ciphers, bugreport from espie@
+   - markus@cvs.openbsd.org  2000/11/25 10:19:34
+     [ssh-keygen.c ssh.h]
+     print keytype when generating a key.
+     reasonable defaults for RSA1/RSA/DSA keys.
 
 20001125
  - (djm) Give up privs when reading seed file

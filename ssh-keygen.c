@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.34 2000/11/15 20:24:43 millert Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.35 2000/11/25 17:19:33 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -67,9 +67,8 @@ int convert_to_ssh2 = 0;
 int convert_from_ssh2 = 0;
 int print_public = 0;
 
-/* key type */
-int dsa_mode = 0;		/* compat */
-char *key_type_name = NULL;
+/* default to RSA for SSH-1 */
+char *key_type_name = "rsa1";
 
 /* argv0 */
 #ifdef HAVE___PROGNAME
@@ -84,9 +83,24 @@ void
 ask_filename(struct passwd *pw, const char *prompt)
 {
 	char buf[1024];
-	snprintf(identity_file, sizeof(identity_file), "%s/%s",
-	    pw->pw_dir,
-	    dsa_mode ? SSH_CLIENT_ID_DSA: SSH_CLIENT_IDENTITY);
+	char *name = NULL;
+
+	switch (key_type_from_name(key_type_name)) {
+	case KEY_RSA1:
+		name = SSH_CLIENT_IDENTITY;
+		break;
+	case KEY_DSA:
+		name = SSH_CLIENT_ID_DSA;
+		break;
+	case KEY_RSA:
+		name = SSH_CLIENT_ID_RSA;
+		break;
+	default:
+		fprintf(stderr, "bad key type");
+		exit(1);
+		break;
+	}
+	snprintf(identity_file, sizeof(identity_file), "%s/%s", pw->pw_dir, name);
 	printf("%s (%s): ", prompt, identity_file);
 	fflush(stdout);
 	if (fgets(buf, sizeof(buf), stdin) == NULL)
@@ -600,10 +614,9 @@ main(int ac, char **av)
 {
 	char dotsshdir[16 * 1024], comment[1024], *passphrase1, *passphrase2;
 	struct passwd *pw;
-	int opt;
+	int opt, type;
 	struct stat st;
 	FILE *f;
-	int type = KEY_RSA1;
 	Key *private;
 	Key *public;
 
@@ -688,12 +701,10 @@ main(int ac, char **av)
 
 		case 'd':
 			key_type_name = "dsa";
-			dsa_mode = 1;
 			break;
 
 		case 't':
 			key_type_name = optarg;
-			dsa_mode = (strcmp(optarg, "dsa") == 0);
 			break;
 
 		case '?':
@@ -724,15 +735,13 @@ main(int ac, char **av)
 
 	arc4random_stir();
 
-	if (key_type_name != NULL) {
-		type = key_type_from_name(key_type_name);
-		if (type == KEY_UNSPEC) {
-			fprintf(stderr, "unknown key type %s\n", key_type_name);
-			exit(1);
-		}
+	type = key_type_from_name(key_type_name);
+	if (type == KEY_UNSPEC) {
+		fprintf(stderr, "unknown key type %s\n", key_type_name);
+		exit(1);
 	}
 	if (!quiet)
-		printf("Generating public/private key pair.\n");
+		printf("Generating public/private %s key pair.\n", key_type_name);
 	private = key_generate(type, bits);
 	if (private == NULL) {
 		fprintf(stderr, "key_generate failed");

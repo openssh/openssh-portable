@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.28 2000/11/12 19:50:38 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.29 2000/11/23 21:03:47 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
@@ -74,14 +74,9 @@ ssh_kex2(char *host, struct sockaddr *hostaddr)
 	Buffer *client_kexinit, *server_kexinit;
 	char *sprop[PROPOSAL_MAX];
 
-	if (options.ciphers == NULL) {
-		if (options.cipher == SSH_CIPHER_3DES) {
-			options.ciphers = "3des-cbc";
-		} else if (options.cipher == SSH_CIPHER_BLOWFISH) {
-			options.ciphers = "blowfish-cbc";
-		} else if (options.cipher == SSH_CIPHER_DES) {
-			fatal("cipher DES not supported for protocol version 2");
-		}
+	if (options.ciphers == (char *)-1) {
+		log("No valid ciphers for protocol version 2 given, using defaults.");
+		options.ciphers = NULL;
 	}
 	if (options.ciphers != NULL) {
 		myproposal[PROPOSAL_ENC_ALGS_CTOS] =

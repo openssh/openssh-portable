@@ -12,7 +12,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: ssh.h,v 1.54 2000/10/11 20:27:24 markus Exp $"); */
+/* RCSID("$OpenBSD: ssh.h,v 1.55 2000/11/25 17:19:33 markus Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -144,6 +144,7 @@
  */
 #define SSH_CLIENT_IDENTITY	".ssh/identity"
 #define SSH_CLIENT_ID_DSA	".ssh/id_dsa"
+#define SSH_CLIENT_ID_RSA	".ssh/id_rsa"
 
 /*
  * Configuration file in user\'s home directory.  This file need not be
