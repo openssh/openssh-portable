@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.128 2002/02/16 00:51:44 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.129 2002/03/18 03:41:08 provos Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -136,7 +136,7 @@ char *aixloginmsg;
 #endif /* WITH_AIXAUTHENTICATE */
 
 #ifdef HAVE_LOGIN_CAP
-static login_cap_t *lc;
+login_cap_t *lc;
 #endif
 
 void
@@ -151,18 +151,6 @@ do_authenticated(Authctxt *authctxt)
 		close(startup_pipe);
 		startup_pipe = -1;
 	}
-#if defined(HAVE_LOGIN_CAP) && defined(HAVE_PW_CLASS_IN_PASSWD)
-	if ((lc = login_getclass(authctxt->pw->pw_class)) == NULL) {
-		error("unable to get login class");
-		return;
-	}
-#ifdef BSD_AUTH
-	if (auth_approval(NULL, lc, authctxt->pw->pw_name, "ssh") <= 0) {
-		packet_disconnect("Approval failure for %s",
-		    authctxt->pw->pw_name);
-	}
-#endif
-#endif
 #ifdef WITH_AIXAUTHENTICATE
 	/* We don't have a pty yet, so just label the line as "ssh" */
 	if (loginsuccess(authctxt->user,

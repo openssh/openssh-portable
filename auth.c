@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth.c,v 1.37 2002/03/17 20:25:56 provos Exp $");
+RCSID("$OpenBSD: auth.c,v 1.38 2002/03/18 03:41:08 provos Exp $");
 
 #ifdef HAVE_LOGIN_H
 #include <login.h>
@@ -443,11 +443,31 @@ secure_filename(FILE *f, const char *file, struct passwd *pw,
 struct passwd *
 getpwnamallow(const char *user)
 {
+#ifdef HAVE_LOGIN_CAP
+	extern login_cap_t *lc;
+#ifdef BSD_AUTH
+	auth_session_t *as;
+#endif
+#endif
 	struct passwd *pw;
 
 	pw = getpwnam(user);
-	if (pw != NULL && !allowed_user(pw))
+	if (pw == NULL || !allowed_user(pw))
+		return (NULL);
+#ifdef HAVE_LOGIN_CAP
+	if ((lc = login_getclass(pw->pw_class)) == NULL) {
+		debug("unable to get login class: %s", user);
+		return (NULL);
+	}
+#ifdef BSD_AUTH
+	if ((as = auth_open()) == NULL || auth_setpwd(as, pw) != 0 ||
+	    auth_approval(NULL, lc, pw->pw_name, "ssh") <= 0) {
+		debug("Approval failure for %s", user);
 		pw = NULL;
-
+	}
+	if (as != NULL)
+		auth_close(as);
+#endif
+#endif
 	return (pw);
 }

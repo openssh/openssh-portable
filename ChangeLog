@@ -41,6 +41,9 @@
      [auth-krb4.c]
      set client to NULL after xfree(), from Rolf Braun 
      <rbraun+ssh@andrew.cmu.edu>
+   - provos@cvs.openbsd.org 2002/03/18 03:41:08
+     [auth.c session.c]
+     move auth_approval into getpwnamallow with help from millert@
 
 20020317
  - (tim) [configure.ac] Assume path given with --with-pid-dir=PATH is wanted,
@@ -7887,4 +7890,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1936 2002/03/22 01:30:40 mouring Exp $
+$Id: ChangeLog,v 1.1937 2002/03/22 01:35:47 mouring Exp $
