@@ -90,6 +90,7 @@ allowed_user(struct passwd * pw)
 #ifdef HAS_SHADOW_EXPIRE
 #define	DAY		(24L * 60 * 60) /* 1 day in seconds */
 	if (!options.use_pam && spw != NULL) {
+		int disabled = 0;
 		time_t today;
 
 		today = time(NULL) / DAY;
@@ -106,13 +107,19 @@ allowed_user(struct passwd * pw)
 			return 0;
 		}
 
-		if (spw->sp_lstchg == 0) {
+#if defined(__hpux) && !defined(HAVE_SECUREWARE)
+		if (iscomsec() && spw->sp_min == 0 && spw->sp_max == 0 &&
+		     spw->sp_warn == 0)
+			disabled = 1;   /* Trusted Mode: expiry disabled */
+#endif
+
+		if (!disabled && spw->sp_lstchg == 0) {
 			logit("User %.100s password has expired (root forced)",
 			    pw->pw_name);
 			return 0;
 		}
 
-		if (spw->sp_max != -1 &&
+		if (!disabled && spw->sp_max != -1 &&
 		    today > spw->sp_lstchg + spw->sp_max) {
 			logit("User %.100s password has expired (password aged)",
 			    pw->pw_name);

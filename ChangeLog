@@ -1,3 +1,6 @@
+20031015
+ - (dtucker) [auth.c] Check for disabled password expiry on HP-UX Trusted Mode.
+
 20031009
  - (dtucker) [sshd_config.5] UsePAM defaults to "no".  ok djm@
 
@@ -1237,4 +1240,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2994.2.48 2003/10/09 04:16:47 dtucker Exp $
+$Id: ChangeLog,v 1.2994.2.49 2003/10/15 07:47:43 dtucker Exp $
