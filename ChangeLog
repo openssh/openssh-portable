@@ -1,13 +1,22 @@
+19991231
+ - Fix password support on systems with a mixture of shadowed and 
+   non-shadowed passwords (e.g. NIS). Report and fix from 
+   HARUYAMA Seigo <haruyama@nt.phys.s.u-tokyo.ac.jp>
+
 19991230
  - OpenBSD CVS updates:
    - [auth-passwd.c]
      check for NULL 1st
  - Removed most of the pam code into its own file auth-pam.[ch]. This 
    cleaned up sshd.c up significantly.
+ - PAM authentication was incorrectly interpreting 
+   "PermitRootLogin without-password". Report from Matthias Andree
+   <ma@dt.e-technik.uni-dortmund.de
  - Several other cleanups
  - Merged Dante SOCKS support patch from David Rankin
   <drankin@bohemians.lexington.ky.us>
  - Updated documentation with ./configure options
+ - Released 1.2.1pre23
 
 19991229
  - Applied another NetBSD portability patch from David Rankin 

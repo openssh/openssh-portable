@@ -11,7 +11,7 @@
 
 #ifndef USE_PAM
 
-RCSID("$Id: auth-passwd.c,v 1.13 1999/12/29 22:48:15 damien Exp $");
+RCSID("$Id: auth-passwd.c,v 1.14 1999/12/30 21:49:13 damien Exp $");
 
 #include "packet.h"
 #include "ssh.h"
@@ -76,14 +76,14 @@ auth_password(struct passwd * pw, const char *password)
 
 #if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
 	spw = getspnam(pw->pw_name);
-	if (spw == NULL) 
-		return(0);
+	if (spw != NULL) 
+	{
+		/* Check for users with no password. */
+		if (strcmp(password, "") == 0 && strcmp(spw->sp_pwdp, "") == 0)
+			return 1;
 
-	/* Check for users with no password. */
-	if (strcmp(password, "") == 0 && strcmp(spw->sp_pwdp, "") == 0)
-		return 1;
-
-	pw_password = spw->sp_pwdp;
+		pw_password = spw->sp_pwdp;
+	}
 #endif /* defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW) */
 
 	if (pw_password[0] != '\0')
