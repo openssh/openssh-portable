@@ -127,9 +127,10 @@ veryclean: distclean
 
 catman-do:
 	@for f in $(TROFFMAN) ; do \
-		echo "$$f -> $${f%%.[18]}.0" ; \
+		base=`echo $$f | sed 's/\..*$$//'` ; \
+		echo "$$f -> $$base.0" ; \
 		nroff -mandoc $$f | cat -v | sed -e 's/.\^H//g' \
-			>$${f%%.[18]}.0 ; \
+			>$$base.0 ; \
 	done
 
 distprep: catman-do

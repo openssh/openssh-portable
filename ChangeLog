@@ -3,6 +3,7 @@
    Takumi Yamane <yamtak@b-session.com>
  - (bal) Checks for getrlimit(), sysconf(), and setdtablesize().  Patch
    by Corinna Vinschen <vinschen@redhat.com>
+ - (djm) Fix catman-do target for non-bash
 
 20001223
  - (bal) Fixed Makefile.in to support recompile of all ssh and sshd objects
