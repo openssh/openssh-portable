@@ -32,7 +32,9 @@ RCSID("$OpenBSD: auth.c,v 1.23 2001/05/24 11:12:42 markus Exp $");
 #include <shadow.h>
 #endif /* defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW) */
 
+#ifdef HAVE_LIBGEN_H
 #include <libgen.h>
+#endif
 
 #include "xmalloc.h"
 #include "match.h"
