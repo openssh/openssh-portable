@@ -14,8 +14,10 @@ dnl Replace `main' with a function in -lutil:
 AC_CHECK_LIB(util, logout, ,AC_MSG_ERROR([*** -lutil missing - this is part of libc. ***]))
 dnl Replace `main' with a function in -lz:
 AC_CHECK_LIB(z, deflate, ,AC_MSG_ERROR([*** zlib missing - please install first ***]))
+dnl check for nsl
+AC_CHECK_LIB(nsl, yp_match, , )
 dnl check for pwdb
-AC_CHECK_LIB(pwdb, pwdb_new, ,AC_MSG_ERROR([*** libpwdb missing - please install first ***]))
+AC_CHECK_LIB(pwdb, pwdb_new, , )
 dnl check for dl
 AC_CHECK_LIB(dl, dlopen, ,AC_MSG_ERROR([*** libdl missing - please install first ***]))
 dnl check for pam
@@ -23,6 +25,7 @@ AC_CHECK_LIB(pam, pam_authenticate, ,AC_MSG_ERROR([*** PAM missing - please inst
 
 dnl Check for stuff in path.
 AC_CHECK_PROG(AR, ar, ar)
+AC_CHECK_PROG(RANLIB, ranlib, ranlib)
 
 dnl Check for ssl headers
 AC_CHECK_HEADER(openssl/bn.h, [AC_DEFINE(HAVE_OPENSSL)], [AC_CHECK_HEADER(ssl/bn.h, [AC_DEFINE(HAVE_SSL)], [AC_MSG_ERROR([*** ssl library missing - please install first ***])])])

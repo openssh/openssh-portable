@@ -6,6 +6,9 @@
  - Make distclean now removed configure script
  - Improved PAM logging
  - Added some debug() calls for PAM
+ - Removed redundant subdirectories
+ - Integrated part of a patch from Dan Brosemer <odin@linuxfreak.com> for 
+   building on Debian.
 
 19991028
  - Further PAM enhancements.
