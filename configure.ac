@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.80 2002/07/18 02:20:08 tim Exp $
+# $Id: configure.ac,v 1.81 2002/07/18 18:44:50 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -1038,7 +1038,16 @@ fi
 
 AC_CACHE_CHECK([for int64_t type], ac_cv_have_int64_t, [
 	AC_TRY_COMPILE(
-		[ #include <sys/types.h> ], 
+		[
+#include <sys/types.h>
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
+#endif
+#include <sys/socket.h>
+#ifdef HAVE_SYS_BITYPES_H
+# include <sys/bitypes.h>
+#endif
+		], 
 		[ int64_t a; a = 1;], 
 		[ ac_cv_have_int64_t="yes" ],
 		[ ac_cv_have_int64_t="no" ]
@@ -1046,33 +1055,6 @@ AC_CACHE_CHECK([for int64_t type], ac_cv_have_int64_t, [
 ])
 if test "x$ac_cv_have_int64_t" = "xyes" ; then
 	AC_DEFINE(HAVE_INT64_T)
-	have_int64_t=1
-fi
-	
-if test -z "$have_int64_t" ; then
-    AC_MSG_CHECKING([for int64_t type in sys/socket.h])
-	AC_TRY_COMPILE(
-		[ #include <sys/socket.h> ], 
-		[ int64_t a; a = 1],
-		[
-			AC_DEFINE(HAVE_INT64_T)
-			AC_MSG_RESULT(yes)
-		],
-		[ AC_MSG_RESULT(no) ]
-	)
-fi
-
-if test -z "$have_int64_t" ; then
-    AC_MSG_CHECKING([for int64_t type in sys/bitypes.h])
-	AC_TRY_COMPILE(
-		[ #include <sys/bitypes.h> ], 
-		[ int64_t a; a = 1],
-		[
-			AC_DEFINE(HAVE_INT64_T)
-			AC_MSG_RESULT(yes)
-		],
-		[ AC_MSG_RESULT(no) ]
-	)
 fi
 
 AC_CACHE_CHECK([for u_intXX_t types], ac_cv_have_u_intxx_t, [

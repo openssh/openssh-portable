@@ -2,6 +2,7 @@
  - (tim) [defines.h] Bug 313 patch by dirk.meyer@dinoex.sub.org
  - (tim) [monitor_mm.c] add missing declaration for xmmap(). Reported
    by ayamura@ayamura.org
+ - (tim) [configure.ac] Bug 267 rework int64_t test.
 
 20020717
  - (bal) aixbff package updated by dtucker@zip.com.au
@@ -1387,4 +1388,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2375 2002/07/18 18:34:29 tim Exp $
+$Id: ChangeLog,v 1.2376 2002/07/18 18:44:50 tim Exp $
