@@ -1,6 +1,8 @@
 20040330
  - (dtucker) [configure.ac] Bug #811: Use "!" for LOCKED_PASSWD_PREFIX on
    Linuxes, since that's what many use.  ok djm@
+ - (dtucker) [auth-pam.c] rename the_authctxt to sshpam_authctxt in auth-pam.c
+   to reduce potential confusion with the one in sshd.c.  ok djm@
 
 20040327
  - (dtucker) [session.c] Bug #817: Clear loginmsg after fork to prevent
@@ -926,4 +928,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3297 2004/03/30 04:03:45 dtucker Exp $
+$Id: ChangeLog,v 1.3298 2004/03/30 10:57:57 dtucker Exp $
