@@ -1,3 +1,6 @@
+20040311
+ - (djm) [configure.ac] Add standard license to configure.ac; ok ben, dtucker
+
 20040310
  - (dtucker) [openbsd-compat/fake-rfc2553.h] Bug #812: #undef getaddrinfo
    before redefining it, silences warnings on Tru64.
@@ -895,4 +898,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3287 2004/03/10 10:06:32 dtucker Exp $
+$Id: ChangeLog,v 1.3288 2004/03/11 03:20:10 djm Exp $
