@@ -6,17 +6,16 @@ need to:
 
 (1) install sectok
 
-	$ cd /usr/src/lib/libsectok
-	$ make obj depend all install includes
-	$ cd /usr/src/usr.bin/sectok
-	$ make obj depend all install
+	Sources are instructions are available from
+	http://www.citi.umich.edu/projects/smartcard/sectok.html
 
 (2) enable SMARTCARD support in OpenSSH:
 
-	$ vi /usr/src/usr.bin/ssh/Makefile.inc
-	and uncomment
-		CFLAGS+=	-DSMARTCARD
-		LDADD+=	-lsectok
+	$ ./configure --with-smartcard [options]
+
+	You can also specify a path to libsectok:
+
+	$ ./configure --with-smartcard=/path/to/libsectok [options]
 
 (3) load the Java Cardlet to the Cyberflex card:
 
