@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.48 2002/04/23 12:48:46 djm Exp $
+# $Id: configure.ac,v 1.49 2002/04/23 12:52:46 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -61,6 +61,7 @@ case "$host" in
 	fi
 	AC_CHECK_FUNC(authenticate, [AC_DEFINE(WITH_AIXAUTHENTICATE)])
 	AC_DEFINE(BROKEN_GETADDRINFO)
+	AC_DEFINE(BROKEN_REALPATH)
 	dnl AIX handles lastlog as part of its login message
 	AC_DEFINE(DISABLE_LASTLOG)
 	;;

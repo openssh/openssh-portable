@@ -2,6 +2,10 @@
  - (djm) Trim ChangeLog to include only post-3.1 changes
  - (djm) Update RPM spec file versions
  - (djm) Redhat spec enables KrbV by default
+ - (djm) Applied OpenSC smartcard updates from Markus & 
+   Antti Tapaninen <aet@cc.hut.fi>
+ - (djm) Define BROKEN_REALPATH for AIX, patch from 
+   Antti Tapaninen <aet@cc.hut.fi>
  - (djm) Bug #222: Fix tests for getaddrinfo on OSF/1. Spotted by
    Robert Urban <urban@spielwiese.de>
  - (djm) Make privsep work with PAM (still experimental)
@@ -476,4 +480,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2073 2002/04/23 11:17:17 djm Exp $
+$Id: ChangeLog,v 1.2074 2002/04/23 12:52:45 djm Exp $
