@@ -24,7 +24,7 @@
 
 #ifdef SMARTCARD
 #include "includes.h"
-RCSID("$OpenBSD: scard.c,v 1.8 2001/07/30 16:06:07 jakob Exp $");
+RCSID("$OpenBSD: scard.c,v 1.9 2001/07/31 08:41:10 jakob Exp $");
 
 #include <openssl/engine.h>
 #include <sectok.h>
@@ -62,7 +62,7 @@ sc_open(void)
 		return SCARD_ERROR_FAIL;
 	}
 	if (! sectok_cardpresent(sc_fd)) {
-		error("smartcard in reader %d not present, skipping",
+		debug("smartcard in reader %d not present, skipping",
 		    sc_reader_num);
 		return SCARD_ERROR_NOCARD;
 	}
@@ -328,13 +328,19 @@ Key *
 sc_get_key(int num)
 {
 	Key *k;
+	int status;
 
 	sc_reader_num = num;
 	k = key_new(KEY_RSA);
 	if (k == NULL) {
 		return NULL;
 	}
-	if (sc_read_pubkey(k) < 0) {
+	status = sc_read_pubkey(k);
+	if (status == SCARD_ERROR_NOCARD) {
+		key_free(k);
+		return NULL;
+	}
+	if (status < 0 ) {
 		error("sc_read_pubkey failed");
 		key_free(k);
 		return NULL;
