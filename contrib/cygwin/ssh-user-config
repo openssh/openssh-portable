@@ -171,8 +171,8 @@ then
     fi
     if request "Do you want to use this identity to login to this machine?"
     then
-      echo "Adding to ${pwdhome}/.ssh/authorized_keys2"
-      cat "${pwdhome}/.ssh/id_rsa.pub" >> "${pwdhome}/.ssh/authorized_keys2"
+      echo "Adding to ${pwdhome}/.ssh/authorized_keys"
+      cat "${pwdhome}/.ssh/id_rsa.pub" >> "${pwdhome}/.ssh/authorized_keys"
     fi
   fi
 fi
@@ -190,8 +190,8 @@ then
     fi
     if request "Do you want to use this identity to login to this machine?"
     then
-      echo "Adding to ${pwdhome}/.ssh/authorized_keys2"
-      cat "${pwdhome}/.ssh/id_dsa.pub" >> "${pwdhome}/.ssh/authorized_keys2"
+      echo "Adding to ${pwdhome}/.ssh/authorized_keys"
+      cat "${pwdhome}/.ssh/id_dsa.pub" >> "${pwdhome}/.ssh/authorized_keys"
     fi
   fi
 fi
