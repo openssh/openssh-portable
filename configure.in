@@ -230,6 +230,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	rsh_path="/usr/bin/rcmd"
 	AC_DEFINE(HAVE_SCO_PROTECTED_PW)
 	AC_DEFINE(DISABLE_SHADOW)
+	AC_DEFINE(HAVE_BOGUS_SYS_QUEUE_H)
 	;;
 *-dec-osf*)
 # This is untested

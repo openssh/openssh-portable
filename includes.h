@@ -32,7 +32,6 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #include <netinet/tcp.h>
 #endif
 #include <arpa/inet.h>
-#include <netdb.h>
 
 #include <stdio.h>
 #include <ctype.h>
@@ -56,8 +55,7 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #ifdef HAVE_NETGROUP_H
 # include <netgroup.h>
 #endif 
-#if defined(HAVE_NETDB_H) && !defined(HAVE_NEXT)
-/* Next includes this as part of another header */
+#if defined(HAVE_NETDB_H)
 # include <netdb.h>
 #endif 
 #ifdef HAVE_ENDIAN_H

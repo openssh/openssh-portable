@@ -21,6 +21,9 @@ Programming:
 
 - Build an automated test suite
 
+- HP/UX has issues with SIGCHILD handling.  There needs to be a wait() defined
+  before reinstall.  Keven Steves <stevesk@pobox.com>
+
 Documentation:
 - More and better
 

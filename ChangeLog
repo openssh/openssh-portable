@@ -1,7 +1,17 @@
+
+20001229
+ - (bal) Fixed spelling of 'authorized_keys' in ssh-copy-id.1 by Christian 
+   Kurz <shorty@debain.org>
+
 20001228
  - (bal) Patch to add libutil.h to loginrec.c only if the platform has
    libutil.h.  Suggested by Pekka Savola <pekka@netcore.fi>
  - (djm) Update to new x11-askpass in RPM spec
+ - (bal) SCO patch to not include <sys/queue.h> since it's unrelated
+   header.  Patch by Tim Rice <tim@multitalents.net>
+ - Updated TODO w/ known HP/UX issue
+ - (bal) removed extra <netdb.h> noticed by Kevin Steves and removed the
+   bad reference to 'NeXT including it else were' on the #ifdef version.
 
 20001227
  - (bal) Typo in configure.in: entut?ent should be endut?ent.  Suggested by 
