@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.1 2001/09/18 05:06:22 djm Exp $
+# $Id: Makefile.in,v 1.2 2001/09/20 18:39:37 tim Exp $
 
 prefix=@prefix@
 datadir=@datadir@
@@ -24,4 +24,4 @@ distclean: clean
 
 install: Ssh.bin
 	$(top_srcdir)/mkinstalldirs $(DESTDIR)$(datadir)
-	$(INSTALL) -m 0644 -s $(srcdir)/Ssh.bin $(DESTDIR)$(datadir)/Ssh.bin
+	$(INSTALL) -m 0644 $(srcdir)/Ssh.bin $(DESTDIR)$(datadir)/Ssh.bin

@@ -1,3 +1,6 @@
+20010920
+ - (tim) [scard/Makefile.in] Don't strip the Java binary
+
 20010919
  - (bal) OpenBSD Sync
    - markus@cvs.openbsd.org 2001/09/19 10:08:51
@@ -6530,4 +6533,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1548 2001/09/20 02:07:50 mouring Exp $
+$Id: ChangeLog,v 1.1549 2001/09/20 18:39:35 tim Exp $
