@@ -11,7 +11,7 @@
 
 #ifndef USE_PAM
 
-RCSID("$Id: auth-passwd.c,v 1.12 1999/12/28 04:09:36 damien Exp $");
+RCSID("$Id: auth-passwd.c,v 1.13 1999/12/29 22:48:15 damien Exp $");
 
 #include "packet.h"
 #include "ssh.h"
@@ -43,12 +43,12 @@ auth_password(struct passwd * pw, const char *password)
 	struct spwd *spw;
 #endif
 
+	/* deny if no user. */
+	if (pw == NULL)
+		return 0;
 	if (pw->pw_uid == 0 && options.permit_root_login == 2)
 		return 0;
 	if (*password == '\0' && options.permit_empty_passwd == 0)
-		return 0;
-	/* deny if no user. */
-	if (pw == NULL)
 		return 0;
 
 #ifdef SKEY
