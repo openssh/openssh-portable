@@ -1,5 +1,8 @@
 20000930
  - (djm) Irix ssh_prng_cmds path fix from Pekka Savola <pekkas@netcore.fi>
+ - (djm) Support in bsd-snprintf.c for long long conversions from 
+   Ben Lindstrom <mouring@pconline.com>
+ - (djm) Cleanup NeXT support from Ben Lindstrom <mouring@pconline.com>
 
 20000929
  - (djm) Fix SSH2 not terminating until all background tasks done problem.
