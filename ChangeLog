@@ -1,3 +1,7 @@
+20000511
+ - Fix for prng_seed permissions checking from Lutz Jaenicke 
+   <Lutz.Jaenicke@aet.TU-Cottbus.DE>
+
 20000509
  - OpenBSD CVS update
   - markus@cvs.openbsd.org

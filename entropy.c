@@ -35,7 +35,7 @@
 #include <openssl/rand.h>
 #include <openssl/sha.h>
 
-RCSID("$Id: entropy.c,v 1.8 2000/05/01 23:56:41 damien Exp $");
+RCSID("$Id: entropy.c,v 1.9 2000/05/11 09:10:58 damien Exp $");
 
 #ifdef EGD_SOCKET
 #ifndef offsetof
@@ -444,7 +444,7 @@ prng_check_seedfile(char *filename) {
 		fatal("PRNG seedfile %.100s is not a regular file", filename);
 
 	/* mode 0600, owned by root or the current user? */
-	if (((st.st_mode & 0177) != 0) || !(st.st_uid == geteuid()))
+	if (((st.st_mode & 0177) != 0) || !(st.st_uid == getuid()))
 		fatal("PRNG seedfile %.100s must be mode 0600, owned by uid %d",
 			 filename, getuid());
 
