@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.20 2001/03/20 18:57:04 markus Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.21 2001/03/21 11:43:44 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -434,5 +434,5 @@ do_authentication()
 	xfree(authctxt);
 
 	/* Perform session preparation. */
-	do_authenticated(pw);
+	do_authenticated(authctxt);
 }
