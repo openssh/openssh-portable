@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kexdh.c,v 1.6 2001/06/23 15:12:18 itojun Exp $");
+RCSID("$OpenBSD: kexdh.c,v 1.7 2001/09/17 19:27:15 stevesk Exp $");
 
 #include <openssl/crypto.h>
 #include <openssl/bn.h>
@@ -44,7 +44,7 @@ kex_dh_hash(
     char *server_version_string,
     char *ckexinit, int ckexinitlen,
     char *skexinit, int skexinitlen,
-    char *serverhostkeyblob, int sbloblen,
+    u_char *serverhostkeyblob, int sbloblen,
     BIGNUM *client_dh_pub,
     BIGNUM *server_dh_pub,
     BIGNUM *shared_secret)
@@ -94,7 +94,7 @@ kexdh_client(Kex *kex)
 	BIGNUM *dh_server_pub = NULL, *shared_secret = NULL;
 	DH *dh;
 	Key *server_host_key;
-	char *server_host_key_blob = NULL, *signature = NULL;
+	u_char *server_host_key_blob = NULL, *signature = NULL;
 	u_char *kbuf, *hash;
 	u_int klen, kout, slen, sbloblen;
 	int dlen, plen;
@@ -174,7 +174,7 @@ kexdh_client(Kex *kex)
 	BN_free(dh_server_pub);
 	DH_free(dh);
 
-	if (key_verify(server_host_key, (u_char *)signature, slen, hash, 20) != 1)
+	if (key_verify(server_host_key, signature, slen, hash, 20) != 1)
 		fatal("key_verify failed for server_host_key");
 	key_free(server_host_key);
 	xfree(signature);
@@ -257,7 +257,7 @@ kexdh_server(Kex *kex)
 	    kex->server_version_string,
 	    buffer_ptr(&kex->peer), buffer_len(&kex->peer),
 	    buffer_ptr(&kex->my), buffer_len(&kex->my),
-	    (char *)server_host_key_blob, sbloblen,
+	    server_host_key_blob, sbloblen,
 	    dh_client_pub,
 	    dh->pub_key,
 	    shared_secret
@@ -280,9 +280,9 @@ kexdh_server(Kex *kex)
 
 	/* send server hostkey, DH pubkey 'f' and singed H */
 	packet_start(SSH2_MSG_KEXDH_REPLY);
-	packet_put_string((char *)server_host_key_blob, sbloblen);
+	packet_put_string(server_host_key_blob, sbloblen);
 	packet_put_bignum2(dh->pub_key);	/* f */
-	packet_put_string((char *)signature, slen);
+	packet_put_string(signature, slen);
 	packet_send();
 
 	xfree(signature);
