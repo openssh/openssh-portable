@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.126 2002/02/14 23:28:00 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.127 2002/02/15 23:11:26 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -657,6 +657,7 @@ do_exec(Session *s, const char *command)
 	original_command = NULL;
 }
 
+
 /* administrative, login(1)-like work */
 void
 do_login(Session *s, const char *command)
@@ -677,7 +678,7 @@ do_login(Session *s, const char *command)
 	if (packet_connection_is_on_socket()) {
 		fromlen = sizeof(from);
 		if (getpeername(packet_get_connection_in(),
-		     (struct sockaddr *) & from, &fromlen) < 0) {
+		    (struct sockaddr *) & from, &fromlen) < 0) {
 			debug("getpeername: %.100s", strerror(errno));
 			fatal_cleanup();
 		}
@@ -883,134 +884,13 @@ void copy_environment(char **source, char ***env, u_int *envsize)
 	}
 }
 
-/*
- * Performs common processing for the child, such as setting up the
- * environment, closing extra file descriptors, setting the user and group
- * ids, and executing the command or shell.
- */
-void
-do_child(Session *s, const char *command)
+static char **
+do_setup_env(Session *s, const char *shell)
 {
-	const char *shell, *hostname = NULL, *cp = NULL;
-	struct passwd *pw = s->pw;
 	char buf[256];
-	char cmd[1024];
-	FILE *f = NULL;
-	u_int envsize, i;
+	u_int i, envsize;
 	char **env;
-	extern char **environ;
-	struct stat st;
-	char *argv[10];
-	int do_xauth;
-
-	do_xauth =
-	    s->display != NULL && s->auth_proto != NULL && s->auth_data != NULL;
-
-	/* remove hostkey from the child's memory */
-	destroy_sensitive_data();
-
-	/* login(1) is only called if we execute the login shell */
-	if (options.use_login && command != NULL)
-		options.use_login = 0;
-
-#if !defined(HAVE_OSF_SIA)
-	if (!options.use_login) {
-# ifdef HAVE_LOGIN_CAP
-		if (!login_getcapbool(lc, "ignorenologin", 0) && pw->pw_uid)
-			f = fopen(login_getcapstr(lc, "nologin", _PATH_NOLOGIN,
-			    _PATH_NOLOGIN), "r");
-# else /* HAVE_LOGIN_CAP */
-		if (pw->pw_uid)
-			f = fopen(_PATH_NOLOGIN, "r");
-# endif /* HAVE_LOGIN_CAP */
-		if (f) {
-			/* /etc/nologin exists.  Print its contents and exit. */
-			while (fgets(buf, sizeof(buf), f))
-				fputs(buf, stderr);
-			fclose(f);
-			exit(254);
-		}
-	}
-#endif /* HAVE_OSF_SIA */
-
-	/* Set login name, uid, gid, and groups. */
-	/* Login(1) does this as well, and it needs uid 0 for the "-h"
-	   switch, so we let login(1) to this for us. */
-	if (!options.use_login) {
-#ifdef HAVE_OSF_SIA
-		session_setup_sia(pw->pw_name, s->ttyfd == -1 ? NULL : s->tty);
-		if (!check_quietlogin(s, command))
-			do_motd();
-#else /* HAVE_OSF_SIA */
-#ifdef HAVE_CYGWIN
-		if (is_winnt) {
-#else
-		if (getuid() == 0 || geteuid() == 0) {
-#endif
-# ifdef HAVE_GETUSERATTR
-			set_limits_from_userattr(pw->pw_name);
-# endif /* HAVE_GETUSERATTR */
-# ifdef HAVE_LOGIN_CAP
-			if (setusercontext(lc, pw, pw->pw_uid,
-			    (LOGIN_SETALL & ~LOGIN_SETPATH)) < 0) {
-				perror("unable to set user context");
-				exit(1);
-			}
-# else /* HAVE_LOGIN_CAP */
-#if defined(HAVE_GETLUID) && defined(HAVE_SETLUID)
-			/* Sets login uid for accounting */
-			if (getluid() == -1 && setluid(pw->pw_uid) == -1)
-				error("setluid: %s", strerror(errno));
-#endif /* defined(HAVE_GETLUID) && defined(HAVE_SETLUID) */
-
-			if (setlogin(pw->pw_name) < 0)
-				error("setlogin failed: %s", strerror(errno));
-			if (setgid(pw->pw_gid) < 0) {
-				perror("setgid");
-				exit(1);
-			}
-			/* Initialize the group list. */
-			if (initgroups(pw->pw_name, pw->pw_gid) < 0) {
-				perror("initgroups");
-				exit(1);
-			}
-			endgrent();
-#  ifdef USE_PAM
-			/*
-			 * PAM credentials may take the form of 
-			 * supplementary groups. These will have been 
-			 * wiped by the above initgroups() call.
-			 * Reestablish them here.
-			 */
-			do_pam_setcred(0);
-#  endif /* USE_PAM */
-#  if defined(WITH_IRIX_PROJECT) || defined(WITH_IRIX_JOBS) || defined(WITH_IRIX_ARRAY)
-			irix_setusercontext(pw);
-#  endif /* defined(WITH_IRIX_PROJECT) || defined(WITH_IRIX_JOBS) || defined(WITH_IRIX_ARRAY) */
-#ifdef _AIX
-			aix_usrinfo(s)
-#endif
-
-			/* Permanently switch to the desired uid. */
-			permanently_set_uid(pw);
-# endif /* HAVE_LOGIN_CAP */
-		}
-#endif /* HAVE_OSF_SIA */
-
-#ifdef HAVE_CYGWIN
-		if (is_winnt)
-#endif
-		if (getuid() != pw->pw_uid || geteuid() != pw->pw_uid)
-			fatal("Failed to set uids to %u.", (u_int) pw->pw_uid);
-	}
-	/*
-	 * Get the shell from the password data.  An empty shell field is
-	 * legal, and means /bin/sh.
-	 */
-	shell = (pw->pw_shell[0] == '\0') ? _PATH_BSHELL : pw->pw_shell;
-#ifdef HAVE_LOGIN_CAP
-	shell = login_getcapstr(lc, "shell", (char *)shell, (char *)shell);
-#endif
+	struct passwd *pw = s->pw;
 
 	/* Initialize the environment. */
 	envsize = 100;
@@ -1060,7 +940,7 @@ do_child(Session *s, const char *command)
 		while (custom_environment) {
 			struct envstring *ce = custom_environment;
 			char *s = ce->s;
-			int i;
+
 			for (i = 0; s[i] != '=' && s[i]; i++)
 				;
 			if (s[i] == '=') {
@@ -1074,7 +954,7 @@ do_child(Session *s, const char *command)
 	}
 
 	snprintf(buf, sizeof buf, "%.50s %d %d",
-		 get_remote_ipaddr(), get_remote_port(), get_local_port());
+	    get_remote_ipaddr(), get_remote_port(), get_local_port());
 	child_set_env(&env, &envsize, "SSH_CLIENT", buf);
 
 	if (s->ttyfd != -1)
@@ -1125,6 +1005,206 @@ do_child(Session *s, const char *command)
 		for (i = 0; env[i]; i++)
 			fprintf(stderr, "  %.200s\n", env[i]);
 	}
+	return env;
+}
+
+/*
+ * Run $HOME/.ssh/rc, /etc/ssh/sshrc, or xauth (whichever is found
+ * first in this order).
+ */
+static void
+do_rc_files(Session *s, const char *shell)
+{
+	FILE *f = NULL;
+	char cmd[1024];
+	int do_xauth;
+	struct stat st;
+
+	do_xauth =
+	    s->display != NULL && s->auth_proto != NULL && s->auth_data != NULL;
+
+	/* ignore _PATH_SSH_USER_RC for subsystems */
+	if (!s->is_subsystem && (stat(_PATH_SSH_USER_RC, &st) >= 0)) {
+		snprintf(cmd, sizeof cmd, "%s -c '%s %s'",
+		    shell, _PATH_BSHELL, _PATH_SSH_USER_RC);
+		if (debug_flag)
+			fprintf(stderr, "Running %s\n", cmd);
+		f = popen(cmd, "w");
+		if (f) {
+			if (do_xauth)
+				fprintf(f, "%s %s\n", s->auth_proto,
+				    s->auth_data);
+			pclose(f);
+		} else
+			fprintf(stderr, "Could not run %s\n",
+			    _PATH_SSH_USER_RC);
+	} else if (stat(_PATH_SSH_SYSTEM_RC, &st) >= 0) {
+		if (debug_flag)
+			fprintf(stderr, "Running %s %s\n", _PATH_BSHELL,
+			    _PATH_SSH_SYSTEM_RC);
+		f = popen(_PATH_BSHELL " " _PATH_SSH_SYSTEM_RC, "w");
+		if (f) {
+			if (do_xauth)
+				fprintf(f, "%s %s\n", s->auth_proto,
+				    s->auth_data);
+			pclose(f);
+		} else
+			fprintf(stderr, "Could not run %s\n",
+			    _PATH_SSH_SYSTEM_RC);
+	} else if (do_xauth && options.xauth_location != NULL) {
+		/* Add authority data to .Xauthority if appropriate. */
+		if (debug_flag) {
+			fprintf(stderr,
+			    "Running %.100s add "
+			    "%.100s %.100s %.100s\n",
+			    options.xauth_location, s->auth_display,
+			    s->auth_proto, s->auth_data);
+		}
+		snprintf(cmd, sizeof cmd, "%s -q -",
+		    options.xauth_location);
+		f = popen(cmd, "w");
+		if (f) {
+			fprintf(f, "add %s %s %s\n",
+			    s->auth_display, s->auth_proto,
+			    s->auth_data);
+			pclose(f);
+		} else {
+			fprintf(stderr, "Could not run %s\n",
+			    cmd);
+		}
+	}
+}
+
+static void
+do_nologin(struct passwd *pw)
+{
+	FILE *f = NULL;
+	char buf[1024];
+
+#ifdef HAVE_LOGIN_CAP
+	if (!login_getcapbool(lc, "ignorenologin", 0) && pw->pw_uid)
+		f = fopen(login_getcapstr(lc, "nologin", _PATH_NOLOGIN,
+		    _PATH_NOLOGIN), "r");
+#else
+	if (pw->pw_uid)
+		f = fopen(_PATH_NOLOGIN, "r");
+#endif
+	if (f) {
+		/* /etc/nologin exists.  Print its contents and exit. */
+		while (fgets(buf, sizeof(buf), f))
+			fputs(buf, stderr);
+		fclose(f);
+		exit(254);
+	}
+}
+
+/* Set login name, uid, gid, and groups. */
+static void
+do_setusercontext(struct passwd *pw)
+{
+#ifdef HAVE_CYGWIN
+	if (iswinnt) {
+#else /* HAVE_CYGWIN */
+	if (getuid() == 0 || geteuid() == 0) {
+#endif /* HAVE_CYGWIN */
+#ifdef HAVE_GETUSERATTR
+		set_limits_from_userattr(pw->pw_name);
+#endif /* HAVE_GETUSERATTR */
+#ifdef HAVE_LOGIN_CAP
+		if (setusercontext(lc, pw, pw->pw_uid,
+		    (LOGIN_SETALL & ~LOGIN_SETPATH)) < 0) {
+			perror("unable to set user context");
+			exit(1);
+		}
+#else
+# if defined(HAVE_GETLUID) && defined(HAVE_SETLUID)
+		/* Sets login uid for accounting */
+		if (getluid() == -1 && setluid(pw->pw_uid) == -1)
+			error("setluid: %s", strerror(errno));
+# endif /* defined(HAVE_GETLUID) && defined(HAVE_SETLUID) */
+
+		if (setlogin(pw->pw_name) < 0)
+			error("setlogin failed: %s", strerror(errno));
+		if (setgid(pw->pw_gid) < 0) {
+			perror("setgid");
+			exit(1);
+		}
+		/* Initialize the group list. */
+		if (initgroups(pw->pw_name, pw->pw_gid) < 0) {
+			perror("initgroups");
+			exit(1);
+		}
+		endgrent();
+# ifdef USE_PAM
+		/*
+		 * PAM credentials may take the form of supplementary groups. 
+		 * These will have been wiped by the above initgroups() call.
+		 * Reestablish them here.
+		 */
+		do_pam_setcred(0);
+# endif /* USE_PAM */
+# if defined(WITH_IRIX_PROJECT) || defined(WITH_IRIX_JOBS) || defined(WITH_IRIX_ARRAY)
+		irix_setusercontext(pw);
+#  endif /* defined(WITH_IRIX_PROJECT) || defined(WITH_IRIX_JOBS) || defined(WITH_IRIX_ARRAY) */
+#ifdef _AIX
+		aix_usrinfo(s)
+#endif
+		/* Permanently switch to the desired uid. */
+		permanently_set_uid(pw);
+#endif
+	}
+	if (getuid() != pw->pw_uid || geteuid() != pw->pw_uid)
+		fatal("Failed to set uids to %u.", (u_int) pw->pw_uid);
+}
+
+/*
+ * Performs common processing for the child, such as setting up the
+ * environment, closing extra file descriptors, setting the user and group
+ * ids, and executing the command or shell.
+ */
+void
+do_child(Session *s, const char *command)
+{
+	extern char **environ;
+	char **env;
+	char *argv[10];
+	const char *shell, *shell0, *hostname = NULL;
+	struct passwd *pw = s->pw;
+	u_int i;
+
+	/* remove hostkey from the child's memory */
+	destroy_sensitive_data();
+
+	/* login(1) is only called if we execute the login shell */
+	if (options.use_login && command != NULL)
+		options.use_login = 0;
+
+	/*
+	 * Login(1) does this as well, and it needs uid 0 for the "-h"
+	 * switch, so we let login(1) to this for us.
+	 */
+	if (!options.use_login) {
+#ifdef HAVE_OSF_SIA
+		session_setup_sia(pw->pw_name, s->ttyfd == -1 ? NULL : s->tty);
+		if (!check_quietlogin(s, command))
+			do_motd();
+#else /* HAVE_OSF_SIA */
+		do_nologin(pw);
+		do_setusercontext(pw);
+#endif /* HAVE_OSF_SIA */
+	}
+
+	/*
+	 * Get the shell from the password data.  An empty shell field is
+	 * legal, and means /bin/sh.
+	 */
+	shell = (pw->pw_shell[0] == '\0') ? _PATH_BSHELL : pw->pw_shell;
+#ifdef HAVE_LOGIN_CAP
+	shell = login_getcapstr(lc, "shell", (char *)shell, (char *)shell);
+#endif
+
+	env = do_setup_env(s, shell);
+
 	/* we have to stash the hostname before we close our socket. */
 	if (options.use_login)
 		hostname = get_remote_name_or_ip(utmp_len,
@@ -1192,71 +1272,32 @@ do_child(Session *s, const char *command)
 #endif
 	}
 
-	/*
-	 * Run $HOME/.ssh/rc, /etc/ssh/sshrc, or xauth (whichever is found
-	 * first in this order).
-	 */
-	if (!options.use_login) {
-		/* ignore _PATH_SSH_USER_RC for subsystems */
-		if (!s->is_subsystem && (stat(_PATH_SSH_USER_RC, &st) >= 0)) {
-			snprintf(cmd, sizeof cmd, "%s -c '%s %s'",
-			    shell, _PATH_BSHELL, _PATH_SSH_USER_RC);
-			if (debug_flag)
-				fprintf(stderr, "Running %s\n", cmd);
-			f = popen(cmd, "w");
-			if (f) {
-				if (do_xauth)
-					fprintf(f, "%s %s\n", s->auth_proto,
-					    s->auth_data);
-				pclose(f);
-			} else
-				fprintf(stderr, "Could not run %s\n",
-				    _PATH_SSH_USER_RC);
-		} else if (stat(_PATH_SSH_SYSTEM_RC, &st) >= 0) {
-			if (debug_flag)
-				fprintf(stderr, "Running %s %s\n", _PATH_BSHELL,
-				    _PATH_SSH_SYSTEM_RC);
-			f = popen(_PATH_BSHELL " " _PATH_SSH_SYSTEM_RC, "w");
-			if (f) {
-				if (do_xauth)
-					fprintf(f, "%s %s\n", s->auth_proto,
-					    s->auth_data);
-				pclose(f);
-			} else
-				fprintf(stderr, "Could not run %s\n",
-				    _PATH_SSH_SYSTEM_RC);
-		} else if (do_xauth && options.xauth_location != NULL) {
-			/* Add authority data to .Xauthority if appropriate. */
-			if (debug_flag) {
-				fprintf(stderr,
-				    "Running %.100s add "
-				    "%.100s %.100s %.100s\n",
-				    options.xauth_location, s->auth_display,
-				    s->auth_proto, s->auth_data);
-			}
-			snprintf(cmd, sizeof cmd, "%s -q -",
-			    options.xauth_location);
-			f = popen(cmd, "w");
-			if (f) {
-				fprintf(f, "add %s %s %s\n",
-				    s->auth_display, s->auth_proto,
-				    s->auth_data);
-				pclose(f);
-			} else {
-				fprintf(stderr, "Could not run %s\n",
-				    cmd);
-			}
-		}
-		/* Get the last component of the shell name. */
-		cp = strrchr(shell, '/');
-		if (cp)
-			cp++;
-		else
-			cp = shell;
-	}
+	if (!options.use_login)
+		do_rc_files(s, shell);
 
 	/* restore SIGPIPE for child */
 	signal(SIGPIPE,  SIG_DFL);
+
+	if (options.use_login) {
+		/* Launch login(1). */
+
+		execl(LOGIN_PROGRAM, "login", "-h", hostname,
+#ifdef LOGIN_NEEDS_TERM
+		    (s->term ? s->term : "unknown"),
+#endif /* LOGIN_NEEDS_TERM */
+		    "-p", "-f", "--", pw->pw_name, (char *)NULL);
+
+		/* Login couldn't be executed, die. */
+
+		perror("login");
+		exit(1);
+	}
+
+	/* Get the last component of the shell name. */
+	if ((shell0 = strrchr(shell, '/')) != NULL)
+		shell0++;
+	else
+		shell0 = shell;
 
 	/*
 	 * If we have no command, execute the shell.  In this case, the shell
@@ -1264,42 +1305,32 @@ do_child(Session *s, const char *command)
 	 * this is a login shell.
 	 */
 	if (!command) {
-		if (!options.use_login) {
-			char buf[256];
+		char argv0[256];
 
-			/* Start the shell.  Set initial character to '-'. */
-			buf[0] = '-';
-			strlcpy(buf + 1, cp, sizeof(buf) - 1);
+		/* Start the shell.  Set initial character to '-'. */
+		argv0[0] = '-';
 
-			/* Execute the shell. */
-			argv[0] = buf;
-			argv[1] = NULL;
-			execve(shell, argv, env);
-
-			/* Executing the shell failed. */
+		if (strlcpy(argv0 + 1, shell0, sizeof(argv0) - 1)
+		    >= sizeof(argv0) - 1) {
+			errno = EINVAL;
 			perror(shell);
 			exit(1);
-
-		} else {
-			/* Launch login(1). */
-
-			execl(LOGIN_PROGRAM, "login", "-h", hostname,
-#ifdef LOGIN_NEEDS_TERM
-			    s->term? s->term : "unknown",
-#endif
-			    "-p", "-f", "--", pw->pw_name, (char *)NULL);
-
-			/* Login couldn't be executed, die. */
-
-			perror("login");
-			exit(1);
 		}
+
+		/* Execute the shell. */
+		argv[0] = argv0;
+		argv[1] = NULL;
+		execve(shell, argv, env);
+
+		/* Executing the shell failed. */
+		perror(shell);
+		exit(1);
 	}
 	/*
 	 * Execute the command using the user's shell.  This uses the -c
 	 * option to execute the command.
 	 */
-	argv[0] = (char *) cp;
+	argv[0] = (char *) shell0;
 	argv[1] = "-c";
 	argv[2] = (char *) command;
 	argv[3] = NULL;
