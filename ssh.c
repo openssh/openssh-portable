@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.194 2003/06/12 19:12:03 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.195 2003/07/02 20:37:48 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -596,6 +596,13 @@ again:
 
 	if (options.hostname != NULL)
 		host = options.hostname;
+
+	/* force lowercase for hostkey matching */
+	if (options.host_key_alias != NULL) {
+		for (p = options.host_key_alias; *p; p++)
+			if (isupper(*p))
+				*p = tolower(*p);
+	}
 
 	if (options.proxy_command != NULL &&
 	    strcmp(options.proxy_command, "none") == 0)
