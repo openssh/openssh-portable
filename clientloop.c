@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.119 2004/05/08 00:21:31 djm Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.120 2004/05/20 10:58:05 dtucker Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -515,7 +515,7 @@ process_cmdline(void)
 		goto out;
 	while (*s && isspace(*s))
 		s++;
-	if (*s == 0)
+	if (*s == '\0')
 		goto out;
 	if (strlen(s) < 2 || s[0] != '-' || !(s[1] == 'L' || s[1] == 'R')) {
 		logit("Invalid command.");
