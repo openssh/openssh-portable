@@ -28,6 +28,10 @@
      [kex.c]
      add support for key exchange guesses; based on work by
      avraham.fraenkel@commatch.com; fixes bug #148; ok deraadt@
+   - markus@cvs.openbsd.org 2003/02/03 08:56:16
+     [sshpty.c]
+     don't call error() for readonly /dev; from soekris list; ok mcbride,
+     henning, deraadt.
 
 20030211
  - (djm) Cygwin needs libcrypt too. Patch from vinschen@redhat.com
@@ -1128,4 +1132,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2600 2003/02/24 00:53:32 djm Exp $
+$Id: ChangeLog,v 1.2601 2003/02/24 00:54:10 djm Exp $
