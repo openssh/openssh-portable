@@ -82,6 +82,9 @@
      [authfile.c channels.c compress.c packet.c sftp-server.c]
      [ssh-agent.c ssh-keygen.c]
      remove unneeded casts and some char->u_char cleanup; ok markus@
+   - stevesk@cvs.openbsd.org 2002/01/03 04:11:08
+     [ssh_config]
+     grammar in comment
 
 
 20020121
@@ -7230,4 +7233,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1746 2002/01/22 12:18:15 djm Exp $
+$Id: ChangeLog,v 1.1747 2002/01/22 12:18:32 djm Exp $
