@@ -13,6 +13,12 @@
    - todd@cvs.openbsd.org 2001/04/03 21:19:38
      [ssh_config]
      id_rsa1/2 -> id_rsa; ok markus@
+   - markus@cvs.openbsd.org 2001/04/03 23:32:12
+     [kex.c kex.h packet.c sshconnect2.c sshd.c]
+     undo parts of recent my changes: main part of keyexchange does not
+     need dispatch-callbacks, since application data is delayed until
+     the keyexchange completes (if i understand the drafts correctly).
+     add some infrastructure for re-keying.
 
 20010403
  - OpenBSD CVS Sync
@@ -4823,4 +4829,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1051 2001/04/04 01:58:48 mouring Exp $
+$Id: ChangeLog,v 1.1052 2001/04/04 02:00:54 mouring Exp $

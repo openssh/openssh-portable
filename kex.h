@@ -1,4 +1,4 @@
-/*	$OpenBSD: kex.h,v 1.18 2001/04/03 19:53:29 markus Exp $	*/
+/*	$OpenBSD: kex.h,v 1.19 2001/04/03 23:32:12 markus Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -59,63 +59,68 @@ enum kex_exchange {
 	DH_GEX_SHA1
 };
 
+#define KEX_INIT_SENT	0x0001
+
 typedef struct Kex Kex;
 typedef struct Mac Mac;
 typedef struct Comp Comp;
 typedef struct Enc Enc;
+typedef struct Newkeys Newkeys;
 
 struct Enc {
-	char		*name;
-	Cipher		*cipher;
-	int		enabled;
+	char	*name;
+	Cipher	*cipher;
+	int	enabled;
 	u_char	*key;
 	u_char	*iv;
 };
 struct Mac {
-	char		*name;
-	int		enabled;
-	EVP_MD		*md;
-	int		mac_len;
+	char	*name;
+	int	enabled;
+	EVP_MD	*md;
+	int	mac_len;
 	u_char	*key;
-	int		key_len;
+	int	key_len;
 };
 struct Comp {
-	int		type;
-	int		enabled;
-	char		*name;
+	int	type;
+	int	enabled;
+	char	*name;
 };
-#define KEX_INIT_SENT	0x0001
+struct Newkeys {
+	Enc	enc;
+	Mac	mac;
+	Comp	comp;
+};
 struct Kex {
-	Enc		enc [MODE_MAX];
-	Mac		mac [MODE_MAX];
-	Comp		comp[MODE_MAX];
-	int		we_need;
-	int		server;
-	char		*name;
-	int		hostkey_type;
-	int		kex_type;
-
-	/* used during kex */
-	Buffer		my;
-	Buffer		peer;
-	int		newkeys;
-	int		flags;
-	void		*state;
-	char		*client_version_string;
-	char		*server_version_string;
-
-	int		(*check_host_key)(Key *hostkey);
-	Key		*(*load_host_key)(int type);
+	u_char	*session_id;
+	int	session_id_len;
+	Newkeys	*keys[MODE_MAX];
+	int	we_need;
+	int	server;
+	char	*name;
+	int	hostkey_type;
+	int	kex_type;
+	Buffer	my;
+	Buffer	peer;
+	int	newkeys;
+	int	flags;
+	char	*client_version_string;
+	char	*server_version_string;
+	int	(*check_host_key)(Key *hostkey);
+	Key	*(*load_host_key)(int type);
 };
 
-void	kex_derive_keys(Kex *k, u_char *hash, BIGNUM *shared_secret);
-void	packet_set_kex(Kex *k);
 Kex	*kex_start(char *proposal[PROPOSAL_MAX]);
 void	kex_send_newkeys(void);
+void	kex_send_kexinit(Kex *kex);
 void	kex_protocol_error(int type, int plen, void *ctxt);
+void	kex_derive_keys(Kex *k, u_char *hash, BIGNUM *shared_secret);
 
 void	kexdh(Kex *);
 void	kexgex(Kex *);
+
+Newkeys *kex_get_newkeys(int mode);
 
 #if defined(DEBUG_KEX) || defined(DEBUG_KEXDH)
 void	dump_digest(char *msg, u_char *digest, int len);

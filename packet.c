@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.56 2001/03/03 21:41:07 millert Exp $");
+RCSID("$OpenBSD: packet.c,v 1.57 2001/04/03 23:32:12 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -121,20 +121,8 @@ static int interactive_mode = 0;
 int use_ssh2_packet_format = 0;
 
 /* Session key information for Encryption and MAC */
-Kex	*kex = NULL;
+Newkeys *newkeys[MODE_MAX];
 
-void
-packet_set_kex(Kex *k)
-{
-	if( k->mac[MODE_IN ].key == NULL ||
-	    k->enc[MODE_IN ].key == NULL ||
-	    k->enc[MODE_IN ].iv  == NULL ||
-	    k->mac[MODE_OUT].key == NULL ||
-	    k->enc[MODE_OUT].key == NULL ||
-	    k->enc[MODE_OUT].iv  == NULL)
-		fatal("bad KEX");
-	kex = k;
-}
 void
 clear_enc_keys(Enc *enc, int len)
 {
@@ -150,6 +138,7 @@ packet_set_ssh2_format(void)
 {
 	DBG(debug("use_ssh2_packet_format"));
 	use_ssh2_packet_format = 1;
+	newkeys[MODE_IN] = newkeys[MODE_OUT] = NULL;
 }
 
 /*
@@ -522,6 +511,41 @@ packet_send1(void)
 	 */
 }
 
+void
+set_newkeys(int mode)
+{
+	Enc *enc;
+	Mac *mac;
+	Comp *comp;
+	CipherContext *cc;
+
+	debug("newkeys: mode %d", mode);
+
+	cc = (mode == MODE_OUT) ? &send_context : &receive_context;
+	if (newkeys[mode] != NULL) {
+		debug("newkeys: rekeying");
+		memset(cc, 0, sizeof(*cc));
+		// free old keys, reset compression cipher-contexts;
+	}
+	newkeys[mode] = kex_get_newkeys(mode);
+	if (newkeys[mode] == NULL)
+		fatal("newkeys: no keys for mode %d", mode);
+	enc  = &newkeys[mode]->enc;
+	mac  = &newkeys[mode]->mac;
+	comp = &newkeys[mode]->comp;
+	if (mac->md != NULL)
+		mac->enabled = 1;
+	DBG(debug("cipher_init_context: %d", mode));
+	cipher_init(cc, enc->cipher, enc->key, enc->cipher->key_len,
+	    enc->iv, enc->cipher->block_size);
+	clear_enc_keys(enc, enc->cipher->key_len);
+	if (comp->type != 0 && comp->enabled == 0) {
+		comp->enabled = 1;
+		if (! packet_compression)
+			packet_start_compression(6);
+	}
+}
+
 /*
  * Finalize packet in SSH2 format (compress, mac, encrypt, enqueue)
  */
@@ -540,10 +564,10 @@ packet_send2(void)
 	Comp *comp = NULL;
 	int block_size;
 
-	if (kex != NULL) {
-		enc  = &kex->enc[MODE_OUT];
-		mac  = &kex->mac[MODE_OUT];
-		comp = &kex->comp[MODE_OUT];
+	if (newkeys[MODE_OUT] != NULL) {
+		enc  = &newkeys[MODE_OUT]->enc;
+		mac  = &newkeys[MODE_OUT]->mac;
+		comp = &newkeys[MODE_OUT]->comp;
 	}
 	block_size = enc ? enc->cipher->block_size : 8;
 
@@ -622,22 +646,8 @@ packet_send2(void)
 		log("outgoing seqnr wraps around");
 	buffer_clear(&outgoing_packet);
 
-	if (type == SSH2_MSG_NEWKEYS) {
-		if (kex==NULL || mac==NULL || enc==NULL || comp==NULL)
-			fatal("packet_send2: no KEX");
-		if (mac->md != NULL)
-			mac->enabled = 1;
-		DBG(debug("cipher_init send_context"));
-		cipher_init(&send_context, enc->cipher,
-		    enc->key, enc->cipher->key_len,
-		    enc->iv, enc->cipher->block_size);
-		clear_enc_keys(enc, kex->we_need);
-		if (comp->type != 0 && comp->enabled == 0) {
-			comp->enabled = 1;
-			if (! packet_compression)
-				packet_start_compression(6);
-		}
-	}
+	if (type == SSH2_MSG_NEWKEYS)
+		set_newkeys(MODE_OUT);
 }
 
 void
@@ -833,10 +843,10 @@ packet_read_poll2(int *payload_len_ptr)
 	Mac *mac   = NULL;
 	Comp *comp = NULL;
 
-	if (kex != NULL) {
-		enc  = &kex->enc[MODE_IN];
-		mac  = &kex->mac[MODE_IN];
-		comp = &kex->comp[MODE_IN];
+	if (newkeys[MODE_IN] != NULL) {
+		enc  = &newkeys[MODE_IN]->enc;
+		mac  = &newkeys[MODE_IN]->mac;
+		comp = &newkeys[MODE_IN]->comp;
 	}
 	maclen = mac && mac->enabled ? mac->mac_len : 0;
 	block_size = enc ? enc->cipher->block_size : 8;
@@ -930,22 +940,8 @@ packet_read_poll2(int *payload_len_ptr)
 	/* extract packet type */
 	type = (u_char)buf[0];
 
-	if (type == SSH2_MSG_NEWKEYS) {
-		if (kex==NULL || mac==NULL || enc==NULL || comp==NULL)
-			fatal("packet_read_poll2: no KEX");
-		if (mac->md != NULL)
-			mac->enabled = 1;
-		DBG(debug("cipher_init receive_context"));
-		cipher_init(&receive_context, enc->cipher,
-		    enc->key, enc->cipher->key_len,
-		    enc->iv, enc->cipher->block_size);
-		clear_enc_keys(enc, kex->we_need);
-		if (comp->type != 0 && comp->enabled == 0) {
-			comp->enabled = 1;
-			if (! packet_compression)
-				packet_start_compression(6);
-		}
-	}
+	if (type == SSH2_MSG_NEWKEYS)
+		set_newkeys(MODE_IN);
 
 #ifdef PACKET_DEBUG
 	fprintf(stderr, "read/plain[%d]:\r\n", type);
@@ -1339,8 +1335,8 @@ packet_inject_ignore(int sumlen)
 
 	have = buffer_len(&outgoing_packet);
 	debug2("packet_inject_ignore: current %d", have);
-	if (kex != NULL)
-	enc  = &kex->enc[MODE_OUT];
+	if (newkeys[MODE_OUT] != NULL)
+		enc  = &newkeys[MODE_OUT]->enc;
 	blocksize = enc ? enc->cipher->block_size : 8;
 	padlen = blocksize - (have % blocksize);
 	if (padlen < 4)

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.26 2001/04/03 19:53:29 markus Exp $");
+RCSID("$OpenBSD: kex.c,v 1.27 2001/04/03 23:32:11 markus Exp $");
 
 #include <openssl/crypto.h>
 
@@ -131,7 +131,7 @@ kex_input_newkeys(int type, int plen, void *ctxt)
 	for (i = 30; i <= 49; i++)
 		dispatch_set(i, &kex_protocol_error);
 	buffer_clear(&kex->peer);
-	buffer_clear(&kex->my);
+	/* buffer_clear(&kex->my); */
 	kex->flags &= ~KEX_INIT_SENT;
 }
 
@@ -152,7 +152,6 @@ kex_input_kexinit(int type, int plen, void *ctxt)
 	int dlen;
 	Kex *kex = (Kex *)ctxt;
 
-	dispatch_set(SSH2_MSG_KEXINIT, &kex_protocol_error);
 	debug("SSH2_MSG_KEXINIT received");
 
 	ptr = packet_get_raw(&dlen);
@@ -274,18 +273,20 @@ choose_hostkeyalg(Kex *k, char *client, char *server)
 }
 
 void
-kex_choose_conf(Kex *k)
+kex_choose_conf(Kex *kex)
 {
+	Newkeys *newkeys;
 	char **my, **peer;
 	char **cprop, **sprop;
+	int nenc, nmac, ncomp;
 	int mode;
 	int ctos;				/* direction: if true client-to-server */
 	int need;
 
-	my   = kex_buf2prop(&k->my);
-	peer = kex_buf2prop(&k->peer);
+	my   = kex_buf2prop(&kex->my);
+	peer = kex_buf2prop(&kex->peer);
 
-	if (k->server) {
+	if (kex->server) {
 		cprop=peer;
 		sprop=my;
 	} else {
@@ -294,42 +295,44 @@ kex_choose_conf(Kex *k)
 	}
 
 	for (mode = 0; mode < MODE_MAX; mode++) {
-		int nenc, nmac, ncomp;
-		ctos = (!k->server && mode == MODE_OUT) || (k->server && mode == MODE_IN);
+		newkeys = xmalloc(sizeof(*newkeys));
+		memset(newkeys, 0, sizeof(*newkeys));
+		kex->keys[mode] = newkeys;
+		ctos = (!kex->server && mode == MODE_OUT) || (kex->server && mode == MODE_IN);
 		nenc  = ctos ? PROPOSAL_ENC_ALGS_CTOS  : PROPOSAL_ENC_ALGS_STOC;
 		nmac  = ctos ? PROPOSAL_MAC_ALGS_CTOS  : PROPOSAL_MAC_ALGS_STOC;
 		ncomp = ctos ? PROPOSAL_COMP_ALGS_CTOS : PROPOSAL_COMP_ALGS_STOC;
-		choose_enc (&k->enc [mode], cprop[nenc],  sprop[nenc]);
-		choose_mac (&k->mac [mode], cprop[nmac],  sprop[nmac]);
-		choose_comp(&k->comp[mode], cprop[ncomp], sprop[ncomp]);
+		choose_enc (&newkeys->enc,  cprop[nenc],  sprop[nenc]);
+		choose_mac (&newkeys->mac,  cprop[nmac],  sprop[nmac]);
+		choose_comp(&newkeys->comp, cprop[ncomp], sprop[ncomp]);
 		debug("kex: %s %s %s %s",
 		    ctos ? "client->server" : "server->client",
-		    k->enc[mode].name,
-		    k->mac[mode].name,
-		    k->comp[mode].name);
+		    newkeys->enc.name,
+		    newkeys->mac.name,
+		    newkeys->comp.name);
 	}
-	choose_kex(k, cprop[PROPOSAL_KEX_ALGS], sprop[PROPOSAL_KEX_ALGS]);
-	choose_hostkeyalg(k, cprop[PROPOSAL_SERVER_HOST_KEY_ALGS],
+	choose_kex(kex, cprop[PROPOSAL_KEX_ALGS], sprop[PROPOSAL_KEX_ALGS]);
+	choose_hostkeyalg(kex, cprop[PROPOSAL_SERVER_HOST_KEY_ALGS],
 	    sprop[PROPOSAL_SERVER_HOST_KEY_ALGS]);
 	need = 0;
 	for (mode = 0; mode < MODE_MAX; mode++) {
-	    if (need < k->enc[mode].cipher->key_len)
-		    need = k->enc[mode].cipher->key_len;
-	    if (need < k->enc[mode].cipher->block_size)
-		    need = k->enc[mode].cipher->block_size;
-	    if (need < k->mac[mode].key_len)
-		    need = k->mac[mode].key_len;
+		newkeys = kex->keys[mode];
+		if (need < newkeys->enc.cipher->key_len)
+			need = newkeys->enc.cipher->key_len;
+		if (need < newkeys->enc.cipher->block_size)
+			need = newkeys->enc.cipher->block_size;
+		if (need < newkeys->mac.key_len)
+			need = newkeys->mac.key_len;
 	}
 	/* XXX need runden? */
-	k->we_need = need;
+	kex->we_need = need;
 
 	kex_prop_free(my);
 	kex_prop_free(peer);
-
 }
 
 u_char *
-derive_key(int id, int need, u_char *hash, BIGNUM *shared_secret)
+derive_key(Kex *kex, int id, int need, u_char *hash, BIGNUM *shared_secret)
 {
 	Buffer b;
 	EVP_MD *evp_md = EVP_sha1();
@@ -346,7 +349,7 @@ derive_key(int id, int need, u_char *hash, BIGNUM *shared_secret)
 	EVP_DigestUpdate(&md, buffer_ptr(&b), buffer_len(&b));	/* shared_secret K */
 	EVP_DigestUpdate(&md, hash, mdsz);		/* transport-06 */
 	EVP_DigestUpdate(&md, &c, 1);			/* key id */
-	EVP_DigestUpdate(&md, hash, mdsz);		/* session id */
+	EVP_DigestUpdate(&md, kex->session_id, kex->session_id_len);
 	EVP_DigestFinal(&md, digest, NULL);
 
 	/* expand */
@@ -365,24 +368,34 @@ derive_key(int id, int need, u_char *hash, BIGNUM *shared_secret)
 	return digest;
 }
 
+Newkeys *x_newkeys[MODE_MAX];
+
 #define NKEYS	6
 void
-kex_derive_keys(Kex *k, u_char *hash, BIGNUM *shared_secret)
+kex_derive_keys(Kex *kex, u_char *hash, BIGNUM *shared_secret)
 {
-	int i;
-	int mode;
-	int ctos;
+	Newkeys *newkeys;
 	u_char *keys[NKEYS];
+	int i, mode, ctos;
 
 	for (i = 0; i < NKEYS; i++)
-		keys[i] = derive_key('A'+i, k->we_need, hash, shared_secret);
+		keys[i] = derive_key(kex, 'A'+i, kex->we_need, hash, shared_secret);
 
+	debug("kex_derive_keys");
 	for (mode = 0; mode < MODE_MAX; mode++) {
-		ctos = (!k->server && mode == MODE_OUT) || (k->server && mode == MODE_IN);
-		k->enc[mode].iv  = keys[ctos ? 0 : 1];
-		k->enc[mode].key = keys[ctos ? 2 : 3];
-		k->mac[mode].key = keys[ctos ? 4 : 5];
+		newkeys = kex->keys[mode];
+		ctos = (!kex->server && mode == MODE_OUT) || (kex->server && mode == MODE_IN);
+		newkeys->enc.iv  = keys[ctos ? 0 : 1];
+		newkeys->enc.key = keys[ctos ? 2 : 3];
+		newkeys->mac.key = keys[ctos ? 4 : 5];
+		x_newkeys[mode] = newkeys;
 	}
+}
+
+Newkeys *
+kex_get_newkeys(int mode)
+{
+	return x_newkeys[mode];
 }
 
 #if defined(DEBUG_KEX) || defined(DEBUG_KEXDH)

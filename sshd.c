@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.186 2001/04/03 19:53:29 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.187 2001/04/03 23:32:12 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1433,6 +1433,9 @@ do_ssh2_kex(void)
 
 	/* start key exchange */
 	dispatch_run(DISPATCH_BLOCK, &kex->newkeys, kex);
+
+	session_id2 = kex->session_id;
+	session_id2_len = kex->session_id_len;
 
 #ifdef DEBUG_KEXDH
 	/* send 1st encrypted/maced/compressed message */
