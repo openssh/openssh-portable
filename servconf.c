@@ -256,6 +256,16 @@ fill_default_server_options(ServerOptions *options)
 	/* Turn privilege separation on by default */
 	if (use_privsep == -1)
 		use_privsep = 1;
+
+#if !defined(HAVE_MMAP) || !defined(MAP_ANON)
+	if (use_privsep && options->compression == 1) {
+		error("This platform does not support both privilege "
+		    "separation and compression");
+		error("Compression disabled");
+		options->compression = 0;
+	}
+#endif
+
 }
 
 /* Keyword tokens. */
