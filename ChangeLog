@@ -27,6 +27,8 @@
  - (tim) Fix typo. s/SETEIUD_BREAKS_SETUID/SETEUID_BREAKS_SETUID/
  - (tim) [configure.ac] Bug 665: move 3 new AC_DEFINES outside of AC_TRY_RUN.
    Report by distler AT golem ph utexas edu.
+ - (dtucker) [contrib/aix/pam.conf] Include example pam.conf for AIX from
+   article by genty at austin.ibm.com, included with the author's permission.
 
 20030919
  - (djm) Bug #683: Remove reference to --with-ipv4-default from INSTALL;
@@ -1163,4 +1165,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3022 2003/09/22 04:38:11 tim Exp $
+$Id: ChangeLog,v 1.3023 2003/09/22 10:41:40 dtucker Exp $
