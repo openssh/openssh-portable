@@ -19,6 +19,7 @@
      rename *-skey.c *-chall.c since the files are not skey specific
  - (djm) Merge patch from Tim Waugh (via Nalin Dahyabhai <nalin@redhat.com>)
    to fix NULL pointer deref and fake authloop breakage in PAM code.
+ - (bal) Updated contrib/cygwin/ by Corinna Vinschen <vinschen@redhat.com>
  
 20010118
  - (bal) Super Sized OpenBSD Resync

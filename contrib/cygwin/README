@@ -20,18 +20,41 @@ of the files has changed from /usr/local to /usr. The global configuration
 files are in /etc now.
 
 If you are installing OpenSSH the first time, you can generate
-global config files, server keys and your own user keys by running
+global config files and server keys by running
    
-   /usr/bin/ssh-config
+   /usr/bin/ssh-host-config
 
-If you are updating your installation you may run the above ssh-config
+Note that this binary archive doesn't contain default config files in /etc.
+That files are only created if ssh-host-config is started.
+
+If you are updating your installation you may run the above ssh-host-config
 as well to move your configuration files to the new location and to
 erase the files at the old location.
 
-Be sure to start the new ssh-config when updating!
+To support testing and unattended installation ssh-host-config got
+some options:
 
-Note that this binary archive doesn't contain default config files in /etc.
-That files are only created if ssh-config is started.
+usage: ssh-host-config [OPTION]...
+Options:
+    --debug      -d        Enable shell's debug output.
+    --yes        -y        Answer all questions with "yes" automatically.
+    --no         -n        Answer all questions with "no" automatically.
+
+You can create the private and public keys for a user now by running
+
+  /usr/bin/ssh-user-config
+
+under the users account.
+
+To support testing and unattended installation ssh-user-config got
+some options as well:
+
+usage: ssh-user-config [OPTION]...
+Options:
+    --debug      -d        Enable shell's debug output.
+    --yes        -y        Answer all questions with "yes" automatically.
+    --no         -n        Answer all questions with "no" automatically.
+    --passphrase -p word   Use "word" as passphrase automatically.
 
 Install sshd as daemon via SRVANY.EXE (recommended on NT/W2K), via inetd
 (results in very slow deamon startup!) or from the command line (recommended

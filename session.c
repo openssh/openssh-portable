@@ -2013,7 +2013,6 @@ do_authenticated2(Authctxt *authctxt)
 		startup_pipe = -1;
 	}
 #if defined(HAVE_LOGIN_CAP) && defined(HAVE_PW_CLASS_IN_PASSWD)
-		/* ISSUE: Is this correct? */
 	if ((lc = login_getclass(authctxt->pw->pw_class)) == NULL) {
 		error("unable to get login class");
 		return;

@@ -1,5 +1,5 @@
 #include "includes.h"
-RCSID("$Id: auth2-pam.c,v 1.4 2001/01/19 04:46:38 djm Exp $");
+RCSID("$Id: auth2-pam.c,v 1.5 2001/01/19 05:37:32 mouring Exp $");
 
 #ifdef USE_PAM
 #include "ssh.h"
@@ -44,10 +44,6 @@ auth2_pam(Authctxt *authctxt)
 	retval = (do_pam_authenticate(0) == PAM_SUCCESS);
 	dispatch_set(SSH2_MSG_USERAUTH_INFO_RESPONSE, NULL);
 
-#if 0		/* ISSUE: No longer valid, but should this still be
-			handled?? */
-	userauth_log(authctxt, retval, method);
-#endif
 	return retval;
 }
 

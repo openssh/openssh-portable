@@ -1,0 +1,200 @@
+#!/bin/sh
+#
+# ssh-user-config, Copyright 2000, Red Hat Inc.
+#
+# This file is part of the Cygwin port of OpenSSH.
+
+progname=$0
+auto_answer=""
+auto_passphrase="no"
+passphrase=""
+
+request()
+{
+  if [ "${auto_answer}" = "yes" ]
+  then
+    return 0
+  elif [ "${auto_answer}" = "no" ]
+  then
+    return 1
+  fi
+
+  answer=""
+  while [ "X${answer}" != "Xyes" -a "X${answer}" != "Xno" ]
+  do
+    echo -n "$1 (yes/no) "
+    read answer
+  done
+  if [ "X${answer}" = "Xyes" ]
+  then
+    return 0
+  else
+    return 1
+  fi
+}
+
+# Check options
+
+while :
+do
+  case $# in
+  0)
+    break
+    ;;
+  esac
+
+  option=$1
+  shift
+
+  case "$option" in
+  -d | --debug )
+    set -x
+    ;;
+
+  -y | --yes )
+    auto_answer=yes
+    ;;
+
+  -n | --no )
+    auto_answer=no
+    ;;
+
+  -p | --passphrase )
+    with_passphrase="yes"
+    passphrase=$1
+    shift
+    ;;
+
+  *)
+    echo "usage: ${progname} [OPTION]..."
+    echo
+    echo "This script creates an OpenSSH user configuration."
+    echo
+    echo "Options:"
+    echo "    --debug      -d        Enable shell's debug output."
+    echo "    --yes        -y        Answer all questions with \"yes\" automatically."
+    echo "    --no         -n        Answer all questions with \"no\" automatically."
+    echo "    --passphrase -p word   Use \"word\" as passphrase automatically."
+    echo
+    exit 1
+    ;;
+
+  esac
+done
+
+# Ask user if user identity should be generated
+
+if [ ! -f /etc/passwd ]
+then
+  echo '/etc/passwd is nonexistant. Please generate an /etc/passwd file'
+  echo 'first using mkpasswd. Check if it contains an entry for you and'
+  echo 'please care for the home directory in your entry as well.'
+  exit 1
+fi
+
+uid=`id -u`
+pwdhome=`awk -F: '{ if ( $3 == '${uid}' ) print $6; }' < /etc/passwd`
+
+if [ "X${pwdhome}" = "X" ]
+then
+  echo 'There is no home directory set for you in /etc/passwd.'
+  echo 'Setting $HOME is not sufficient!'
+  exit 1
+fi
+
+if [ ! -d "${pwdhome}" ]
+then
+  echo "${pwdhome} is set in /etc/passwd as your home directory"
+  echo 'but it is not a valid directory. Cannot create user identity files.'
+  exit 1
+fi
+
+# If home is the root dir, set home to empty string to avoid error messages
+# in subsequent parts of that script.
+if [ "X${pwdhome}" = "X/" ]
+then
+  # But first raise a warning!
+  echo 'Your home directory in /etc/passwd is set to root (/). This is not recommended!'
+  if request "Would you like to proceed anyway?"
+  then
+    pwdhome=''
+  else
+    exit 1
+  fi
+fi
+
+if [ -e "${pwdhome}/.ssh" -a ! -d "${pwdhome}/.ssh" ]
+then
+  echo "${pwdhome}/.ssh is existant but not a directory. Cannot create user identity files."
+  exit 1
+fi
+
+if [ ! -e "${pwdhome}/.ssh" ]
+then
+  mkdir "${pwdhome}/.ssh"
+  if [ ! -e "${pwdhome}/.ssh" ]
+  then
+    echo "Creating users ${pwdhome}/.ssh directory failed"
+    exit 1
+  fi
+fi
+
+if [ ! -f "${pwdhome}/.ssh/identity" ]
+then
+  if request "Shall I create an SSH1 RSA identity file for you?"
+  then
+    echo "Generating ${pwdhome}/.ssh/identity"
+    if [ "${with_passphrase}" = "yes" ]
+    then
+      ssh-keygen -t rsa1 -N "${passphrase}" -f "${pwdhome}/.ssh/identity" > /dev/null
+    else
+      ssh-keygen -t rsa1 -f "${pwdhome}/.ssh/identity" > /dev/null
+    fi
+    if request "Do you want to use this identity to login to this machine?"
+    then
+      echo "Adding to ${pwdhome}/.ssh/authorized_keys"
+      cat "${pwdhome}/.ssh/identity.pub" >> "${pwdhome}/.ssh/authorized_keys"
+    fi
+  fi
+fi
+
+if [ ! -f "${pwdhome}/.ssh/id_rsa" ]
+then
+  if request "Shall I create an SSH2 RSA identity file for you? (yes/no) "
+  then
+    echo "Generating ${pwdhome}/.ssh/id_rsa"
+    if [ "${with_passphrase}" = "yes" ]
+    then
+      ssh-keygen -t rsa -N "${passphrase}" -f "${pwdhome}/.ssh/id_rsa" > /dev/null
+    else
+      ssh-keygen -t rsa -f "${pwdhome}/.ssh/id_rsa" > /dev/null
+    fi
+    if request "Do you want to use this identity to login to this machine?"
+    then
+      echo "Adding to ${pwdhome}/.ssh/authorized_keys2"
+      cat "${pwdhome}/.ssh/id_rsa.pub" >> "${pwdhome}/.ssh/authorized_keys2"
+    fi
+  fi
+fi
+
+if [ ! -f "${pwdhome}/.ssh/id_dsa" ]
+then
+  if request "Shall I create an SSH2 DSA identity file for you? (yes/no) "
+  then
+    echo "Generating ${pwdhome}/.ssh/id_dsa"
+    if [ "${with_passphrase}" = "yes" ]
+    then
+      ssh-keygen -t dsa -N "${passphrase}" -f "${pwdhome}/.ssh/id_dsa" > /dev/null
+    else
+      ssh-keygen -t dsa -f "${pwdhome}/.ssh/id_dsa" > /dev/null
+    fi
+    if request "Do you want to use this identity to login to this machine?"
+    then
+      echo "Adding to ${pwdhome}/.ssh/authorized_keys2"
+      cat "${pwdhome}/.ssh/id_dsa.pub" >> "${pwdhome}/.ssh/authorized_keys2"
+    fi
+  fi
+fi
+
+echo
+echo "Configuration finished. Have fun!"

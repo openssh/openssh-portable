@@ -1,10 +1,8 @@
 #!/bin/sh
 #
-# ssh-config, Copyright 2000, Red Hat Inc.
+# ssh-host-config, Copyright 2000, Red Hat Inc.
 #
 # This file is part of the Cygwin port of OpenSSH.
-
-# set -x
 
 # Subdirectory where the new package is being installed
 PREFIX=/usr
@@ -16,8 +14,19 @@ SYSCONFDIR=/etc
 OLDPREFIX=/usr/local
 OLDSYSCONFDIR=${OLDPREFIX}/etc
 
+progname=$0
+auto_answer=""
+
 request()
 {
+  if [ "${auto_answer}" = "yes" ]
+  then
+    return 0
+  elif [ "${auto_answer}" = "no" ]
+  then
+    return 1
+  fi
+
   answer=""
   while [ "X${answer}" != "Xyes" -a "X${answer}" != "Xno" ]
   do
@@ -31,6 +40,48 @@ request()
     return 1
   fi
 }
+
+# Check options
+
+while :
+do
+  case $# in
+  0)
+    break
+    ;;
+  esac
+
+  option=$1
+  shift
+
+  case "$option" in
+  -d | --debug )
+    set -x
+    ;;
+
+  -y | --yes )
+    auto_answer=yes
+    ;;
+
+  -n | --no )
+    auto_answer=no
+    ;;
+
+  *)
+    echo "usage: ${progname} [OPTION]..."
+    echo
+    echo "This script creates an OpenSSH host configuration."
+    echo
+    echo "Options:"
+    echo "    --debug  -d     Enable shell's debug output."
+    echo "    --yes    -y     Answer all questions with \"yes\" automatically."
+    echo "    --no     -n     Answer all questions with \"no\" automatically."
+    echo
+    exit 1
+    ;;
+
+  esac
+done
 
 # Check for running ssh/sshd processes first. Refuse to do anything while
 # some ssh processes are still running
@@ -71,6 +122,7 @@ fi
 # Check for an old installation in ${OLDPREFIX} unless ${OLDPREFIX} isn't
 # the same as ${PREFIX}
 
+old_install=0
 if [ "${OLDPREFIX}" != "${PREFIX}" ]
 then
   if [ -f "${OLDPREFIX}/sbin/sshd" ]
@@ -116,6 +168,7 @@ then
       rm -f ${OLDPREFIX}/sbin/sshd.exe
       rm -f ${OLDPREFIX}/sbin/sftp-server.exe
     fi
+    old_install=1
   fi
 fi
 
@@ -124,13 +177,19 @@ fi
 if [ ! -f "${SYSCONFDIR}/ssh_host_key" ]
 then
   echo "Generating ${SYSCONFDIR}/ssh_host_key"
-  ssh-keygen -f ${SYSCONFDIR}/ssh_host_key -N ''
+  ssh-keygen -t rsa1 -f ${SYSCONFDIR}/ssh_host_key -N '' > /dev/null
+fi
+
+if [ ! -f "${SYSCONFDIR}/ssh_host_rsa_key" ]
+then
+  echo "Generating ${SYSCONFDIR}/ssh_host_rsa_key"
+  ssh-keygen -t rsa -f ${SYSCONFDIR}/ssh_host_rsa_key -N '' > /dev/null
 fi
 
 if [ ! -f "${SYSCONFDIR}/ssh_host_dsa_key" ]
 then
   echo "Generating ${SYSCONFDIR}/ssh_host_dsa_key"
-  ssh-keygen -d -f ${SYSCONFDIR}/ssh_host_dsa_key -N ''
+  ssh-keygen -t dsa -f ${SYSCONFDIR}/ssh_host_dsa_key -N '' > /dev/null
 fi
 
 # Check if ssh_config exists. If yes, ask for overwriting
@@ -151,7 +210,7 @@ fi
 
 if [ ! -f "${SYSCONFDIR}/ssh_config" ]
 then
-  echo "Creating default ${SYSCONFDIR}/ssh_config file"
+  echo "Generating ${SYSCONFDIR}/ssh_config file"
   cat > ${SYSCONFDIR}/ssh_config << EOF
 # This is ssh client systemwide configuration file.  This file provides 
 # defaults for users, and the values can be changed in per-user configuration
@@ -179,7 +238,6 @@ then
 #   BatchMode no
 #   CheckHostIP yes
 #   StrictHostKeyChecking no
-#   IdentityFile ~/.ssh/identity
 #   Port 22
 #   Protocol 2,1
 #   Cipher 3des
@@ -190,6 +248,11 @@ Host *
         ForwardAgent no
         ForwardX11 no
         FallBackToRsh no
+
+# Try authentification with the following identities
+        IdentityFile ~/.ssh/identity
+        IdentityFile ~/.ssh/id_rsa
+        IdentityFile ~/.ssh/id_dsa
 EOF
 fi
 
@@ -211,15 +274,20 @@ fi
 
 if [ ! -f "${SYSCONFDIR}/sshd_config" ]
 then
-  echo "Creating default ${SYSCONFDIR}/sshd_config file"
+  echo "Generating ${SYSCONFDIR}/sshd_config file"
   cat > ${SYSCONFDIR}/sshd_config << EOF
 # This is ssh server systemwide configuration file.
 
 Port 22
-#Protocol 2,1
+#
+Protocol 2,1
 ListenAddress 0.0.0.0
 #ListenAddress ::
-#HostKey /etc/ssh_host_key
+#
+# Uncomment the following lines according to the used authentication
+HostKey /etc/ssh_host_key
+HostKey /etc/ssh_host_rsa_key
+HostKey /etc/ssh_host_dsa_key
 ServerKeyBits 768
 LoginGraceTime 600
 KeyRegenerationInterval 3600
@@ -262,63 +330,55 @@ UseLogin no
 EOF
 fi
 
-# Ask user if user identity should be generated
-
-if [ "X${HOME}" = "X" ]
+# Add port 22/tcp to services
+_sys="`uname -a`"
+_nt=`expr "$_sys" : "CYGWIN_NT"`
+if [ $_nt -gt 0 ]
 then
-  echo '$HOME is nonexistant. Cannot create user identity files.'
-  exit 1
+  _wservices="${SYSTEMROOT}\\system32\\drivers\\etc\\services"
+  _wserv_tmp="${SYSTEMROOT}\\system32\\drivers\\etc\\srv.out.$$"
+else
+  _wservices="${WINDIR}\\SERVICES"
+  _wserv_tmp="${WINDIR}\\SERV.$$"
 fi
+_services=`cygpath -u "${_wservices}"`
+_serv_tmp=`cygpath -u "${_wserv_tmp}"`
 
-if [ ! -d "${HOME}" ]
-then
-  echo '$HOME is not a valid directory. Cannot create user identity files.'
-  exit 1
-fi
+mount -b -f "${_wservices}" "${_services}"
+mount -b -f "${_wserv_tmp}" "${_serv_tmp}"
 
-# If HOME is the root dir, set HOME to empty string to avoid error messages
-# in subsequent parts of that script.
-if [ "X${HOME}" = "X/" ]
+if [ `grep -q 'sshd[ \t][ \t]*22' "${_services}"; echo $?` -ne 0 ]
 then
-  HOME=''
-fi
-
-if [ -e "${HOME}/.ssh" -a ! -d "${HOME}/.ssh" ]
-then
-  echo '$HOME/.ssh is existant but not a directory. Cannot create user identity files.'
-  exit 1
-fi
-
-if [ ! -e "${HOME}/.ssh" ]
-then
-  mkdir "${HOME}/.ssh"
-  if [ ! -e "${HOME}/.ssh" ]
+  awk '{ if ( $2 ~ /^23\/tcp/ ) print "sshd               22/tcp                           #SSH daemon\r"; print $0; }' < "${_services}" > "${_serv_tmp}"
+  if [ -f "${_serv_tmp}" ]
   then
-    echo "Creating users ${HOME}/.ssh directory failed"
-    exit 1
+    if mv "${_serv_tmp}" "${_services}"
+    then
+      echo "Added sshd to ${_services}"
+    else
+      echo "Adding sshd to ${_services} failed\!"
+    fi
+    rm -f "${_serv_tmp}"
+  else
+    echo "Adding sshd to ${_services} failed\!"
   fi
 fi
 
-if [ ! -f "${HOME}/.ssh/identity" ]
+umount "${_services}"
+umount "${_serv_tmp}"
+
+# Add sshd line to inetd.conf
+if [ -f /etc/inetd.conf ]
 then
-  if request "Shall I create an RSA identity file for you?"
-  then
-    echo "Generating ${HOME}/.ssh/identity"
-    ssh-keygen -f "${HOME}/.ssh/identity"
-  fi
+  grep -q "^[# \t]*sshd" /etc/inetd.conf || echo "# sshd  stream  tcp     nowait  root    /usr/sbin/sshd -i" >> /etc/inetd.conf
 fi
 
-if [ ! -f "${HOME}/.ssh/id_dsa" ]
+if [ "${old_install}" = "1" ]
 then
-  if request "Shall I create an DSA identity file for you? (yes/no) "
-  then
-    echo "Generating ${HOME}/.ssh/id_dsa"
-    ssh-keygen -d -f "${HOME}/.ssh/id_dsa"
-  fi
+  echo
+  echo "Note: If you have used sshd as service or from inetd, don't forget to"
+  echo "      change the path to sshd.exe in the service entry or in inetd.conf."
 fi
 
 echo
-echo "Note: If you have used sshd as service or from inetd, don't forget to"
-echo "      change the path to sshd.exe in the service entry or in inetd.conf."
-echo
-echo "Configuration finished. Have fun!"
+echo "Host configuration finished. Have fun!"

@@ -95,7 +95,7 @@ do_authloop(Authctxt *authctxt)
 #ifdef KRB4
 	    (!options.kerberos_authentication || options.kerberos_or_local_passwd) &&
 #endif
-#ifdef USE_PAM				/* ISSUE: Right?? */
+#ifdef USE_PAM
 	    auth_pam_password(pw, password)) {
 #else
 	    auth_password(pw, "")) {
