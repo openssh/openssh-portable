@@ -3,6 +3,9 @@
    - markus@cvs.openbsd.org 2003/03/17 10:38:38
      [progressmeter.c]
      don't print \n if backgrounded; from ho@
+   - markus@cvs.openbsd.org 2003/03/17 11:43:47
+     [version.h]
+     enter 3.6
 
 20030318
  - (tim) [configure.ac openbsd-compat/bsd-misc.c openbsd-compat/bsd-misc.h]
@@ -1228,4 +1231,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2632 2003/03/19 23:08:05 djm Exp $
+$Id: ChangeLog,v 1.2633 2003/03/19 23:11:34 djm Exp $
