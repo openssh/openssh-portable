@@ -32,6 +32,10 @@
    - markus@cvs.openbsd.org 2003/07/30 07:53:27
      [progressmeter.c]
      whitespace (included with previous import)
+   - markus@cvs.openbsd.org 2003/07/31 09:21:02
+     [auth2-none.c]
+     check whether passwd auth is allowd, similar to proto 1; rob@pitman.co.za
+     ok henning
 
  - (dtucker) [openbsd-compat/bsd-misc.c openbsd-compat/bsd-misc.h]
    Add a tcgetpgrp function.
@@ -774,4 +778,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2875 2003/08/02 14:00:47 dtucker Exp $
+$Id: ChangeLog,v 1.2876 2003/08/02 14:05:01 dtucker Exp $
