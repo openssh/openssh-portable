@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.124 2002/03/22 18:19:54 stevesk Exp $ */
+/* $Id: acconfig.h,v 1.125 2002/04/05 16:11:46 mouring Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -328,6 +328,12 @@
 
 /* Define if you want smartcard support */
 #undef SMARTCARD
+
+/* Define if you want smartcard support using sectok */
+#undef USE_SECTOK
+
+/* Define if you want smartcard support using OpenSC */
+#undef USE_OPENSC
 
 /* Define if you want to use OpenSSL's internally seeded PRNG only */
 #undef OPENSSL_PRNG_ONLY

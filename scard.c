@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-#ifdef SMARTCARD
+#if defined(SMARTCARD) && defined(USE_SECTOK)
 RCSID("$OpenBSD: scard.c,v 1.25 2002/03/26 18:46:59 rees Exp $");
 
 #include <openssl/evp.h>
@@ -554,4 +554,4 @@ done:
 		sectok_close(fd);
 	return (status);
 }
-#endif /* SMARTCARD */
+#endif /* SMARTCARD && USE_SECTOK */

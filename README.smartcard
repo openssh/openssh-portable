@@ -8,18 +8,22 @@ are still subject to change.
 
 To enable this you need to:
 
-(1) install sectok
+(1) install sectok or openSC
 
 	Sources are instructions are available from
 	http://www.citi.umich.edu/projects/smartcard/sectok.html
 
+	or
+
+	http://www.opensc.org/
+
 (2) enable SMARTCARD support in OpenSSH:
 
-	$ ./configure --with-smartcard [options]
+	$ ./configure --with-sectok[=/path/to/libsectok] [options]
 
-	You can also specify a path to libsectok:
+	or
 
-	$ ./configure --with-smartcard=/path/to/libsectok [options]
+	$ ./configure --with-opensc[=/path/to/opensc] [options]
 
 (3) load the Java Cardlet to the Cyberflex card:
 

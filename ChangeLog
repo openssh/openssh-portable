@@ -1,3 +1,9 @@
+20020405
+ - (bal) Patch for OpenSC SmartCard library; ok markus@; patch by
+   Juha Yrjölä <jyrjola@cc.hut.fi>
+ - (bal) Minor documentation update to reflect smartcard library
+   support changes.
+
 20020404
  - (stevesk) [auth-pam.c auth-pam.h auth-passwd.c auth-sia.c auth-sia.h
     auth1.c auth2.c] PAM, OSF_SIA password auth cleanup; from djm.
@@ -8155,4 +8161,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2022 2002/04/04 22:10:38 mouring Exp $
+$Id: ChangeLog,v 1.2023 2002/04/05 16:11:45 mouring Exp $
