@@ -812,6 +812,10 @@ do_child(const char *command, struct passwd * pw, const char *term,
 	struct stat st;
 	char *argv[10];
 
+	/* login(1) is only called if we execute the login shell */
+	if (options.use_login && command != NULL)
+		options.use_login = 0;
+
 #ifndef USE_PAM /* pam_nologin handles this */
 	f = fopen("/etc/nologin", "r");
 	if (f) {

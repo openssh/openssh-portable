@@ -1,4 +1,32 @@
 20000606
+ - (djm) Fix rsh path in RPMs. Report from Jason L Tibbitts III 
+   <tibbs@math.uh.edu>
+ - (djm) OpenBSD CVS updates:
+  - todd@cvs.openbsd.org
+    [sshconnect2.c]
+    teach protocol v2 to count login failures properly and also enable an
+    explanation of why the password prompt comes up again like v1; this is NOT
+    crypto
+  - markus@cvs.openbsd.org  
+    [readconf.c readconf.h servconf.c servconf.h session.c ssh.1 ssh.c sshd.8]
+    xauth_location support; pr 1234
+    [readconf.c sshconnect2.c]
+    typo, unused
+    [session.c]
+    allow use_login only for login sessions, otherwise remote commands are
+    execed with uid==0
+    [sshd.8]
+    document UseLogin better
+    [version.h]
+    OpenSSH 2.1.1
+    [auth-rsa.c]
+    fix match_hostname() logic for auth-rsa: deny access if we have a 
+    negative match or no match at all
+    [channels.c hostfile.c match.c]
+    don't panic if mkdtemp fails for authfwd; jkb@yahoo-inc.com via 
+    kris@FreeBSD.org
+
+20000606
  - (djm) Added --with-cflags, --with-ldflags and --with-libs options to 
    configure.
 

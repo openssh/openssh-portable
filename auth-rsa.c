@@ -16,7 +16,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: auth-rsa.c,v 1.19 2000/04/30 00:00:53 damien Exp $");
+RCSID("$Id: auth-rsa.c,v 1.20 2000/06/07 09:55:44 djm Exp $");
 
 #include "rsa.h"
 #include "packet.h"
@@ -133,6 +133,7 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 	unsigned long linenum = 0;
 	struct stat st;
 	RSA *pk;
+	int mname, mip;
 
 	/* Temporarily use the user's uid. */
 	temporarily_use_uid(pw->pw_uid);
@@ -390,10 +391,17 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 					}
 					patterns[i] = 0;
 					options++;
-					if (!match_hostname(get_canonical_hostname(), patterns,
-						     strlen(patterns)) &&
-					    !match_hostname(get_remote_ipaddr(), patterns,
-						     strlen(patterns))) {
+					/*
+					 * Deny access if we get a negative
+					 * match for the hostname or the ip
+					 * or if we get not match at all
+					 */
+					mname = match_hostname(get_canonical_hostname(),
+					    patterns, strlen(patterns));
+					mip = match_hostname(get_remote_ipaddr(),
+					    patterns, strlen(patterns));
+					if (mname == -1 || mip == -1 ||
+					    (mname != 1 && mip != 1)) {
 						log("RSA authentication tried for %.100s with correct key but not from a permitted host (host=%.200s, ip=%.200s).",
 						    pw->pw_name, get_canonical_hostname(),
 						    get_remote_ipaddr());

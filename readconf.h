@@ -13,7 +13,7 @@
  *
  */
 
-/* RCSID("$Id: readconf.h,v 1.11 2000/05/09 01:03:01 damien Exp $"); */
+/* RCSID("$Id: readconf.h,v 1.12 2000/06/07 09:55:44 djm Exp $"); */
 
 #ifndef READCONF_H
 #define READCONF_H
@@ -30,6 +30,7 @@ typedef struct {
 typedef struct {
 	int     forward_agent;	/* Forward authentication agent. */
 	int     forward_x11;	/* Forward X11 display. */
+	char   *xauth_location;	/* Location for xauth program */
 	int     gateway_ports;	/* Allow remote connects to forwarded ports. */
 	int     use_privileged_port;	/* Don't use privileged port if false. */
 	int     rhosts_authentication;	/* Try rhosts authentication. */

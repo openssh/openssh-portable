@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: match.c,v 1.5 2000/04/16 01:18:43 damien Exp $");
+RCSID("$Id: match.c,v 1.6 2000/06/07 09:55:44 djm Exp $");
 
 #include "ssh.h"
 
@@ -84,8 +84,8 @@ match_pattern(const char *s, const char *pattern)
 /*
  * Tries to match the host name (which must be in all lowercase) against the
  * comma-separated sequence of subpatterns (each possibly preceded by ! to
- * indicate negation).  Returns true if there is a positive match; zero
- * otherwise.
+ * indicate negation).  Returns -1 if negation matches, 1 if there is
+ * a positive match, 0 if there is no match at all.
  */
 
 int
@@ -127,15 +127,15 @@ match_hostname(const char *host, const char *pattern, unsigned int len)
 		/* Try to match the subpattern against the host name. */
 		if (match_pattern(host, sub)) {
 			if (negated)
-				return 0;	/* Fail */
+				return -1;		/* Negative */
 			else
-				got_positive = 1;
+				got_positive = 1;	/* Positive */
 		}
 	}
 
 	/*
 	 * Return success if got a positive match.  If there was a negative
-	 * match, we have already returned zero and never get here.
+	 * match, we have already returned -1 and never get here.
 	 */
 	return got_positive;
 }

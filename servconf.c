@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: servconf.c,v 1.17 2000/05/30 03:44:53 damien Exp $");
+RCSID("$Id: servconf.c,v 1.18 2000/06/07 09:55:44 djm Exp $");
 
 #include "ssh.h"
 #include "servconf.h"
@@ -44,6 +44,7 @@ initialize_server_options(ServerOptions *options)
 	options->check_mail = -1;
 	options->x11_forwarding = -1;
 	options->x11_display_offset = -1;
+	options->xauth_location = NULL;
 	options->strict_modes = -1;
 	options->keepalives = -1;
 	options->log_facility = (SyslogFacility) - 1;
@@ -109,6 +110,10 @@ fill_default_server_options(ServerOptions *options)
 		options->x11_forwarding = 0;
 	if (options->x11_display_offset == -1)
 		options->x11_display_offset = 10;
+#ifdef XAUTH_PATH
+	if (options->xauth_location == NULL)
+		options->xauth_location = XAUTH_PATH;
+#endif /* XAUTH_PATH */
 	if (options->strict_modes == -1)
 		options->strict_modes = 1;
 	if (options->keepalives == -1)
@@ -177,7 +182,7 @@ typedef enum {
 	sStrictModes, sEmptyPasswd, sRandomSeedFile, sKeepAlives, sCheckMail,
 	sUseLogin, sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
 	sIgnoreUserKnownHosts, sHostDSAKeyFile, sCiphers, sProtocol, sPidFile,
-	sGatewayPorts, sDSAAuthentication
+	sGatewayPorts, sDSAAuthentication, sXAuthLocation
 } ServerOpCodes;
 
 /* Textual representation of the tokens. */
@@ -219,6 +224,7 @@ static struct {
 	{ "ignoreuserknownhosts", sIgnoreUserKnownHosts },
 	{ "x11forwarding", sX11Forwarding },
 	{ "x11displayoffset", sX11DisplayOffset },
+	{ "xauthlocation", sXAuthLocation },
 	{ "strictmodes", sStrictModes },
 	{ "permitemptypasswords", sEmptyPasswd },
 	{ "uselogin", sUseLogin },
@@ -365,6 +371,7 @@ parse_int:
 		case sHostDSAKeyFile:
 			charptr = (opcode == sHostKeyFile ) ?
 			    &options->host_key_file : &options->host_dsa_key_file;
+parse_filename:
 			cp = strtok(NULL, WHITESPACE);
 			if (!cp) {
 				fprintf(stderr, "%s line %d: missing file name.\n",
@@ -377,15 +384,7 @@ parse_int:
 
 		case sPidFile:
 			charptr = &options->pid_file;
-			cp = strtok(NULL, WHITESPACE);
-			if (!cp) {
-				fprintf(stderr, "%s line %d: missing file name.\n",
-				    filename, linenum);
-				exit(1);
-			}
-			if (*charptr == NULL)
-				*charptr = tilde_expand_filename(cp, getuid());
-			break;
+			goto parse_filename;
 
 		case sRandomSeedFile:
 			fprintf(stderr, "%s line %d: \"randomseed\" option is obsolete.\n",
@@ -508,6 +507,10 @@ parse_flag:
 			intptr = &options->x11_display_offset;
 			goto parse_int;
 
+		case sXAuthLocation:
+			charptr = &options->xauth_location;
+			goto parse_filename;
+			
 		case sStrictModes:
 			intptr = &options->strict_modes;
 			goto parse_flag;

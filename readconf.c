@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: readconf.c,v 1.15 2000/05/30 03:44:53 damien Exp $");
+RCSID("$Id: readconf.c,v 1.16 2000/06/07 09:55:44 djm Exp $");
 
 #include "ssh.h"
 #include "cipher.h"
@@ -92,7 +92,7 @@ typedef enum {
 	oBadOption,
 	oForwardAgent, oForwardX11, oGatewayPorts, oRhostsAuthentication,
 	oPasswordAuthentication, oRSAAuthentication, oFallBackToRsh, oUseRsh,
-	oSkeyAuthentication,
+	oSkeyAuthentication, oXAuthLocation,
 #ifdef KRB4
 	oKerberosAuthentication,
 #endif /* KRB4 */
@@ -116,6 +116,7 @@ static struct {
 } keywords[] = {
 	{ "forwardagent", oForwardAgent },
 	{ "forwardx11", oForwardX11 },
+	{ "xauthlocation", oXAuthLocation },
 	{ "gatewayports", oGatewayPorts },
 	{ "useprivilegedport", oUsePrivilegedPort },
 	{ "rhostsauthentication", oRhostsAuthentication },
@@ -396,6 +397,10 @@ parse_flag:
 		}
 		break;
 
+	case oXAuthLocation:
+		charptr=&options->xauth_location;
+		goto parse_string;
+
 	case oUser:
 		charptr = &options->user;
 parse_string:
@@ -644,6 +649,7 @@ initialize_options(Options * options)
 	memset(options, 'X', sizeof(*options));
 	options->forward_agent = -1;
 	options->forward_x11 = -1;
+	options->xauth_location = NULL;
 	options->gateway_ports = -1;
 	options->use_privileged_port = -1;
 	options->rhosts_authentication = -1;
@@ -700,6 +706,10 @@ fill_default_options(Options * options)
 		options->forward_agent = 0;
 	if (options->forward_x11 == -1)
 		options->forward_x11 = 0;
+#ifdef XAUTH_PATH
+	if (options->xauth_location == NULL)
+		options->xauth_location = XAUTH_PATH;
+#endif /* XAUTH_PATH */
 	if (options->gateway_ports == -1)
 		options->gateway_ports = 0;
 	if (options->use_privileged_port == -1)

@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: sshd.8,v 1.22 2000/05/09 01:03:03 damien Exp $
+.\" $Id: sshd.8,v 1.23 2000/06/07 09:55:44 djm Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSHD 8
@@ -552,7 +552,10 @@ The default is AUTH.
 .It Cm UseLogin
 Specifies whether
 .Xr login 1
-is used.
+is used for interactive login sessions.
+Note that
+.Xr login 1
+is not never for remote command execution.
 The default is
 .Dq no .
 .It Cm X11DisplayOffset
@@ -569,6 +572,12 @@ The default is
 .Dq no .
 Note that disabling X11 forwarding does not improve security in any
 way, as users can always install their own forwarders.
+.It Cm XAuthLocation
+Specifies the location of the
+.Xr xauth 1
+program.
+The default is
+.Pa /usr/X11R6/bin/xauth .
 .El
 .Sh LOGIN PROCESS
 When a user successfully logs in,

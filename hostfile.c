@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: hostfile.c,v 1.18 2000/04/29 18:11:52 markus Exp $");
+RCSID("$OpenBSD: hostfile.c,v 1.19 2000/06/06 19:32:13 markus Exp $");
 
 #include "packet.h"
 #include "match.h"
@@ -129,7 +129,7 @@ check_host_in_hostfile(const char *filename, const char *host, Key *key, Key *fo
 			;
 
 		/* Check if the host name matches. */
-		if (!match_hostname(host, cp, (unsigned int) (cp2 - cp)))
+		if (match_hostname(host, cp, (unsigned int) (cp2 - cp)) != 1)
 			continue;
 
 		/* Got a match.  Skip host name. */

@@ -13,7 +13,7 @@
  *
  */
 
-/* RCSID("$Id: servconf.h,v 1.11 2000/05/07 02:03:18 damien Exp $"); */
+/* RCSID("$Id: servconf.h,v 1.12 2000/06/07 09:55:44 djm Exp $"); */
 
 #ifndef SERVCONF_H
 #define SERVCONF_H
@@ -47,6 +47,7 @@ typedef struct {
 	int     x11_forwarding;	/* If true, permit inet (spoofing) X11 fwd. */
 	int     x11_display_offset;	/* What DISPLAY number to start
 					 * searching at */
+	char   *xauth_location;	/* Location of xauth program */
 	int     strict_modes;	/* If true, require string home dir modes. */
 	int     keepalives;	/* If true, set SO_KEEPALIVE. */
 	char   *ciphers;	/* Ciphers in order of preference. */

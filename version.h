@@ -1,1 +1,1 @@
-#define SSH_VERSION	"OpenSSH-2.1"
+#define SSH_VERSION	"OpenSSH_2.1.1"

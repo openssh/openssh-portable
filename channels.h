@@ -1,4 +1,4 @@
-/* RCSID("$Id: channels.h,v 1.9 2000/05/07 02:03:15 damien Exp $"); */
+/* RCSID("$Id: channels.h,v 1.10 2000/06/07 09:55:44 djm Exp $"); */
 
 #ifndef CHANNELS_H
 #define CHANNELS_H
@@ -222,10 +222,10 @@ void    auth_request_forwarding(void);
 char   *auth_get_socket_name(void);
 
 /*
- * This if called to process SSH_CMSG_AGENT_REQUEST_FORWARDING on the server.
+ * This is called to process SSH_CMSG_AGENT_REQUEST_FORWARDING on the server.
  * This starts forwarding authentication requests.
  */
-void    auth_input_request_forwarding(struct passwd * pw);
+int     auth_input_request_forwarding(struct passwd * pw);
 
 /* This is called to process an SSH_SMSG_AGENT_OPEN message. */
 void    auth_input_open_request(int type, int plen);
