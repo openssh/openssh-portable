@@ -106,6 +106,10 @@
    - markus@cvs.openbsd.org 2002/01/09 17:16:00
      [channels.c]
      merge channel_pre_open_15/channel_pre_open_20; ok provos@
+   - markus@cvs.openbsd.org 2002/01/09 17:26:35
+     [channels.c nchan.c]
+     replace buffer_consume(b, buffer_len(b)) with buffer_clear(b); 
+     ok provos@
 
 
 20020121
@@ -7254,4 +7258,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1753 2002/01/22 12:20:40 djm Exp $
+$Id: ChangeLog,v 1.1754 2002/01/22 12:21:15 djm Exp $

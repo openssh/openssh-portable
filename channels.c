@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.157 2002/01/09 17:16:00 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.158 2002/01/09 17:26:35 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1270,7 +1270,7 @@ channel_handle_rfd(Channel *c, fd_set * readset, fd_set * writeset)
 				chan_mark_dead(c);
 				return -1;
 			} else if (compat13) {
-				buffer_consume(&c->output, buffer_len(&c->output));
+				buffer_clear(&c->output);
 				c->type = SSH_CHANNEL_INPUT_DRAINING;
 				debug("channel %d: input draining.", c->self);
 			} else {
@@ -1312,7 +1312,7 @@ channel_handle_wfd(Channel *c, fd_set * readset, fd_set * writeset)
 				chan_mark_dead(c);
 				return -1;
 			} else if (compat13) {
-				buffer_consume(&c->output, buffer_len(&c->output));
+				buffer_clear(&c->output);
 				debug("channel %d: input draining.", c->self);
 				c->type = SSH_CHANNEL_INPUT_DRAINING;
 			} else {
@@ -1425,7 +1425,7 @@ channel_post_output_drain_13(Channel *c, fd_set * readset, fd_set * writeset)
 		len = write(c->sock, buffer_ptr(&c->output),
 			    buffer_len(&c->output));
 		if (len <= 0)
-			buffer_consume(&c->output, buffer_len(&c->output));
+			buffer_clear(&c->output);
 		else
 			buffer_consume(&c->output, len);
 	}
@@ -1828,7 +1828,7 @@ channel_input_close(int type, u_int32_t seq, void *ctxt)
 		 * Not a closed channel - mark it as draining, which will
 		 * cause it to be freed later.
 		 */
-		buffer_consume(&c->input, buffer_len(&c->input));
+		buffer_clear(&c->input);
 		c->type = SSH_CHANNEL_OUTPUT_DRAINING;
 	}
 }
