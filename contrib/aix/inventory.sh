@@ -1,9 +1,10 @@
 #!/bin/sh
 #
 # inventory.sh
-# $Id: inventory.sh,v 1.4 2003/08/25 05:01:04 dtucker Exp $
+# $Id: inventory.sh,v 1.5 2003/08/26 03:43:13 dtucker Exp $
 #
 # Originally written by Ben Lindstrom, modified by Darren Tucker to use perl
+# This file is placed into the public domain.
 #
 # This will produce an AIX package inventory file, which looks like:
 #
