@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.16 2002/06/21 05:50:51 djm Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.17 2002/06/22 23:09:51 stevesk Exp $");
 
 #include <openssl/dh.h>
 
@@ -982,13 +982,13 @@ mm_answer_keyverify(int socket, Buffer *m)
 	xfree(signature);
 	xfree(data);
 
+	auth_method = key_blobtype == MM_USERKEY ? "publickey" : "hostbased";
+
 	monitor_reset_key_state();
 
 	buffer_clear(m);
 	buffer_put_int(m, verified);
 	mm_request_send(socket, MONITOR_ANS_KEYVERIFY, m);
-
-	auth_method = key_blobtype == MM_USERKEY ? "publickey" : "hostbased";
 
 	return (verified);
 }
