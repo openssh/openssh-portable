@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.37 2000/12/22 16:49:40 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.38 2000/12/28 18:58:39 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -332,7 +332,6 @@ do_fingerprint(struct passwd *pw)
 	Key *public;
 	char *comment = NULL, *cp, *ep, line[16*1024];
 	int i, skip = 0, num = 1, invalid = 1, success = 0;
-	u_int ignore;
 	struct stat st;
 
 	if (!have_identity)
@@ -350,7 +349,7 @@ do_fingerprint(struct passwd *pw)
 		if (try_load_public_key(identity_file, public, &comment))
 			success = 1;
 		else
-			error("try_load_public_key KEY_UNSPEC failed");
+			debug("try_load_public_key KEY_UNSPEC failed");
 	}
 	if (success) {
 		printf("%d %s %s\n", key_size(public), key_fingerprint(public), comment);
@@ -359,9 +358,6 @@ do_fingerprint(struct passwd *pw)
 		exit(0);
 	}
 
-	/* XXX RSA1 only */
-
-	public = key_new(KEY_RSA1);
 	f = fopen(identity_file, "r");
 	if (f != NULL) {
 		while (fgets(line, sizeof(line), f)) {
@@ -398,13 +394,21 @@ do_fingerprint(struct passwd *pw)
 				*cp++ = '\0';
 			}
 			ep = cp;
-			if (auth_rsa_read_key(&cp, &ignore, public->rsa->e, public->rsa->n)) {
-				invalid = 0;
-				comment = *cp ? cp : comment;
-				printf("%d %s %s\n", key_size(public),
-				    key_fingerprint(public),
-				    comment ? comment : "no comment");
+			public = key_new(KEY_RSA1);
+			if (key_read(public, &cp) != 1) {
+				cp = ep;
+				key_free(public);
+				public = key_new(KEY_UNSPEC);
+				if (key_read(public, &cp) != 1) {
+					key_free(public);
+					continue;
+				}
 			}
+			comment = *cp ? cp : comment;
+			printf("%d %s %s\n", key_size(public),
+			    key_fingerprint(public),
+			    comment ? comment : "no comment");
+			invalid = 0;
 		}
 		fclose(f);
 	}

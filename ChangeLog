@@ -1,3 +1,9 @@
+20001230
+ - (bal) OpenBSD CVS Update
+   - markus@cvs.openbsd.org 2000/12/28 18:58:30
+     [ssh-keygen.c]
+     enable 'ssh-keygen -l -f ~/.ssh/{authorized_keys,known_hosts}{,2}
+ - (bal) Resynced CVS ID with OpenBSD for channel.c and uidswap.c
 
 20001229
  - (bal) Fixed spelling of 'authorized_keys' in ssh-copy-id.1 by Christian 

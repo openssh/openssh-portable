@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.77 2000/12/19 23:17:56 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.78 2000/12/29 11:05:55 markus Exp $");
 
 #include "ssh.h"
 #include "packet.h"
