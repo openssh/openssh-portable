@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-add.1,v 1.23 2001/04/09 15:19:49 markus Exp $
+.\"	$OpenBSD: ssh-add.1,v 1.24 2001/04/10 09:13:21 itojun Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -80,7 +80,7 @@ Deletes all identities from the agent.
 .Sh FILES
 .Bl -tag -width Ds
 .It Pa $HOME/.ssh/identity
-Contains the RSA authentication identity of the user.
+Contains the protocol version 1 RSA authentication identity of the user.
 This file should not be readable by anyone but the user.
 Note that
 .Nm
@@ -92,7 +92,9 @@ This is the default file added by
 .Nm
 when no other files have been specified.
 .It Pa $HOME/.ssh/id_dsa
-Contains the DSA authentication identity of the user.
+Contains the protocol version 2 DSA authentication identity of the user.
+.It Pa $HOME/.ssh/id_rsa
+Contains the protocol version 2 RSA authentication identity of the user.
 .El
 .Sh ENVIRONMENT
 .Bl -tag -width Ds

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.101 2001/04/05 15:45:43 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.102 2001/04/10 09:13:22 itojun Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -212,8 +212,10 @@ If this method fails password authentication is tried.
 The public key method is similar to RSA authentication described
 in the previous section except that the DSA or RSA algorithm is used
 instead.
-The client uses his private key
+The client uses his private key,
 .Pa $HOME/.ssh/id_dsa
+or
+.Pa $HOME/.ssh/id_rsa ,
 to sign the session identifier and sends the result to the server.
 The server checks whether the matching public key is listed in
 .Pa $HOME/.ssh/authorized_keys2
@@ -1136,8 +1138,9 @@ for protocol version 1 or
 for protocol version 2).
 See
 .Xr sshd 8 .
-.It Pa $HOME/.ssh/identity, $HOME/.ssh/id_dsa
-Contains the RSA and the DSA authentication identity of the user.
+.It Pa $HOME/.ssh/identity, $HOME/.ssh/id_dsa, $HOME/.ssh/id_rsa
+Contains the authentication identity of the user.
+They are for protocol 1 RSA, protocol 2 DSA, and protocol 2 RSA, respectively.
 These files
 contain sensitive data and should be readable by the user but not
 accessible by others (read/write/execute).
@@ -1147,7 +1150,7 @@ ignores a private key file if it is accessible by others.
 It is possible to specify a passphrase when
 generating the key; the passphrase will be used to encrypt the
 sensitive part of this file using 3DES.
-.It Pa $HOME/.ssh/identity.pub, $HOME/.ssh/id_dsa.pub
+.It Pa $HOME/.ssh/identity.pub, $HOME/.ssh/id_dsa.pub, $HOME/.ssh/id_rsa.pub
 Contains the public key for authentication (public part of the
 identity file in human-readable form).
 The contents of the
@@ -1155,13 +1158,15 @@ The contents of the
 file should be added to
 .Pa $HOME/.ssh/authorized_keys
 on all machines
-where you wish to log in using RSA authentication.
+where you wish to log in using protocol version 1 RSA authentication.
 The contents of the
 .Pa $HOME/.ssh/id_dsa.pub
+and
+.Pa $HOME/.ssh/id_rsa.pub
 file should be added to
 .Pa $HOME/.ssh/authorized_keys2
 on all machines
-where you wish to log in using DSA authentication.
+where you wish to log in using protocol version 2 DSA/RSA authentication.
 These files are not
 sensitive and can (but need not) be readable by anyone.
 These files are

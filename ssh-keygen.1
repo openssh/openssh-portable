@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.35 2001/03/11 22:33:23 markus Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.36 2001/04/10 09:13:21 itojun Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -89,9 +89,10 @@ option allows you to create a key for use by protocol 2.0.
 Normally each user wishing to use SSH
 with RSA or DSA authentication runs this once to create the authentication
 key in
-.Pa $HOME/.ssh/identity
+.Pa $HOME/.ssh/identity ,
+.Pa $HOME/.ssh/id_dsa
 or
-.Pa $HOME/.ssh/id_dsa .
+.Pa $HOME/.ssh/id_rsa .
 Additionally, the system administrator may use this to generate host keys,
 as seen in
 .Pa /etc/rc .
@@ -191,7 +192,7 @@ OpenSSH format file and print an OpenSSH public key to stdout.
 .Sh FILES
 .Bl -tag -width Ds
 .It Pa $HOME/.ssh/identity
-Contains the RSA authentication identity of the user.
+Contains the protocol version 1 RSA authentication identity of the user.
 This file should not be readable by anyone but the user.
 It is possible to
 specify a passphrase when generating the key; that passphrase will be
@@ -202,14 +203,14 @@ but it is offered as the default file for the private key.
 .Xr sshd 8
 will read this file when a login attempt is made.
 .It Pa $HOME/.ssh/identity.pub
-Contains the public key for authentication.
+Contains the protocol version 1 RSA public key for authentication.
 The contents of this file should be added to
 .Pa $HOME/.ssh/authorized_keys
 on all machines
 where you wish to log in using RSA authentication.
 There is no need to keep the contents of this file secret.
 .It Pa $HOME/.ssh/id_dsa
-Contains the DSA authentication identity of the user.
+Contains the protocol version 2 DSA authentication identity of the user.
 This file should not be readable by anyone but the user.
 It is possible to
 specify a passphrase when generating the key; that passphrase will be
@@ -220,7 +221,25 @@ but it is offered as the default file for the private key.
 .Xr sshd 8
 will read this file when a login attempt is made.
 .It Pa $HOME/.ssh/id_dsa.pub
-Contains the public key for authentication.
+Contains the protocol version 2 DSA public key for authentication.
+The contents of this file should be added to
+.Pa $HOME/.ssh/authorized_keys2
+on all machines
+where you wish to log in using public key authentication.
+There is no need to keep the contents of this file secret.
+.It Pa $HOME/.ssh/id_rsa
+Contains the protocol version 2 RSA authentication identity of the user.
+This file should not be readable by anyone but the user.
+It is possible to
+specify a passphrase when generating the key; that passphrase will be
+used to encrypt the private part of this file using 3DES.
+This file is not automatically accessed by
+.Nm
+but it is offered as the default file for the private key.
+.Xr sshd 8
+will read this file when a login attempt is made.
+.It Pa $HOME/.ssh/id_rsa.pub
+Contains the protocol version 2 RSA public key for authentication.
 The contents of this file should be added to
 .Pa $HOME/.ssh/authorized_keys2
 on all machines

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.112 2001/04/09 18:00:15 stevesk Exp $
+.\" $OpenBSD: sshd.8,v 1.113 2001/04/10 09:13:22 itojun Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -821,9 +821,10 @@ or
 Note that lines in this file are usually several hundred bytes long
 (because of the size of the RSA key modulus).
 You don't want to type them in; instead, copy the
-.Pa identity.pub
-or the
+.Pa identity.pub ,
 .Pa id_dsa.pub
+or the
+.Pa id_rsa.pub
 file and edit it.
 .Pp
 The options (if present) consist of comma-separated option
@@ -1014,6 +1015,8 @@ It is recommended that it not be accessible by others.
 The format of this file is described above.
 Users will place the contents of their
 .Pa id_dsa.pub
+and/or
+.Pa id_rsa.pub
 files into this file, as described in
 .Xr ssh-keygen 1 .
 .It Pa "/etc/ssh_known_hosts" and "$HOME/.ssh/known_hosts"
