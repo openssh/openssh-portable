@@ -57,10 +57,6 @@ AC_CHECK_LIB(pam, pam_authenticate, , )
 dnl Checks for header files.
 AC_CHECK_HEADERS(pty.h endian.h paths.h lastlog.h shadow.h)
 
-dnl Checks for library functions.
-AC_PROG_GCC_TRADITIONAL
-AC_CHECK_FUNCS(openpty strlcpy mkdtemp arc4random setproctitle setlogin)
-
 dnl Check for ut_host field in utmp
 AC_MSG_CHECKING([whether utmp.h has ut_host field])
 AC_EGREP_HEADER(ut_host, utmp.h, 
@@ -68,15 +64,54 @@ AC_EGREP_HEADER(ut_host, utmp.h,
 	[AC_MSG_RESULT(no)]
 )
 
-dnl Check whether user wants GNOME ssh-askpass
-AC_ARG_WITH(gnome-askpass,
-	[  --with-gnome-askpass    Build and use the GNOME passphrase requester],
-	[GNOME_ASKPASS="gnome-ssh-askpass"])
-AC_SUBST(GNOME_ASKPASS)
+dnl Checks for library functions.
+AC_CHECK_FUNCS(openpty strlcpy mkdtemp arc4random setproctitle setlogin)
+
+dnl Check whether use wants to disable the external ssh-askpass
+INSTALL_ASKPASS="yes"
+AC_MSG_CHECKING([whether to enable external ssh-askpass support])
+AC_ARG_WITH(askpass,
+	[  --with-askpass=yes/no   Enable external ssh-askpass support (default=no)],
+	[
+		if test x$withval = xno ; then
+			INSTALL_ASKPASS="no"
+		else
+			INSTALL_ASKPASS="yes"
+		fi
+	]
+)
+if test "x$INSTALL_ASKPASS" = "xyes" ; then
+	AC_DEFINE(USE_EXTERNAL_ASKPASS)
+	AC_SUBST(INSTALL_ASKPASS)
+	AC_MSG_RESULT(yes)
+else
+	AC_MSG_RESULT(no)
+fi
+
+if test "x$INSTALL_ASKPASS" = "xyes" ; then
+	AC_MSG_CHECKING([whether to build GNOME ssh-askpass])
+	dnl Check whether user wants GNOME ssh-askpass
+	AC_ARG_WITH(gnome-askpass,
+		[  --with-gnome-askpass    Build the GNOME passphrase requester (default=no)],
+		[
+			if test x$withval = xno ; then
+				GNOME_ASKPASS="";
+			else
+				GNOME_ASKPASS="gnome-ssh-askpass";
+			fi
+		])
+	AC_SUBST(GNOME_ASKPASS)
+
+	if test -z "$GNOME_ASKPASS" ; then
+		AC_MSG_RESULT(no)
+	else
+		AC_MSG_RESULT(yes)
+	fi
+fi
 
 dnl Check for user-specified random device
 AC_ARG_WITH(random,
-	[  --with-random=FILE      read randomness from FILE (default /dev/urandom)],
+	[  --with-random=FILE      read randomness from FILE (default=/dev/urandom)],
 	[
 		RANDOM_POOL="$withval";
 		AC_DEFINE_UNQUOTED(RANDOM_POOL, "$RANDOM_POOL")
@@ -95,7 +130,7 @@ AC_ARG_WITH(random,
 
 dnl Check for EGD pool file
 AC_ARG_WITH(egd-pool,
-	[  --with-egd-pool=FILE    read randomness from EGD pool FILE],
+	[  --with-egd-pool=FILE    read randomness from EGD pool FILE (default none)],
 	[
 		RANDOM_POOL="$withval";
 		AC_DEFINE(HAVE_EGD)
@@ -104,31 +139,9 @@ AC_ARG_WITH(egd-pool,
 	]
 )
 
+dnl Make sure we have random number support
 if test -z "$RANDOM_POOL" -a -z "$EGD_POOL"; then
 	AC_MSG_ERROR([No random device found, and no EGD random pool specified])
-fi
-
-dnl Check whether use wants to disable the external ssh-askpass
-INSTALL_ASKPASS="yes"
-AC_MSG_CHECKING([whether to enable external ssh-askpass support])
-AC_ARG_WITH(askpass,
-	[  --with-askpass=yes/no   Enable external ssh-askpass support (default=yes)],
-	[
-		if test x$withval = xno ; then
-			INSTALL_ASKPASS="no"
-		else
-			INSTALL_ASKPASS="yes"
-		fi
-		
-	]
-)
-
-if test "x$INSTALL_ASKPASS" = "xyes" ; then
-	AC_DEFINE(USE_EXTERNAL_ASKPASS)
-	AC_SUBST(INSTALL_ASKPASS)
-	AC_MSG_RESULT(yes)
-else
-	AC_MSG_RESULT(no)
 fi
 
 AC_OUTPUT(Makefile)
