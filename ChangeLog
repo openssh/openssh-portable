@@ -4,6 +4,9 @@
    - djm@cvs.openbsd.org 2001/03/23 11:04:07
      [compat.c compat.h sshconnect2.c sshd.c]
      Compat for OpenSSH with broken Rijndael/AES. ok markus@
+   - markus@cvs.openbsd.org 2001/03/23 12:02:49
+     [auth1.c]
+     authctxt is now passed to do_authenticated
 
 20010323
  - OpenBSD CVS Sync                             
@@ -4695,4 +4698,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1011 2001/03/24 00:35:19 mouring Exp $
+$Id: ChangeLog,v 1.1012 2001/03/24 00:37:59 mouring Exp $
