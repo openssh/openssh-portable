@@ -94,6 +94,9 @@
       sftp-client.c sftp-glob.h sftp.c ssh-add.c ssh.c sshconnect2.c sshd.c
       ttymodes.c]
      KNF whitespace
+   - markus@cvs.openbsd.org 2002/03/19 14:27:39
+     [auth.c auth1.c auth2.c]
+     make getpwnamallow() allways call pwcopy()
 
 20020317
  - (tim) [configure.ac] Assume path given with --with-pid-dir=PATH is wanted,
@@ -7940,4 +7943,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1951 2002/03/22 02:54:23 mouring Exp $
+$Id: ChangeLog,v 1.1952 2002/03/22 03:04:08 mouring Exp $
