@@ -4,6 +4,12 @@
 # Version of ssh-askpass
 %define aversion 1.0
 
+# Do we want to disable building of x11-askpass? (1=yes 0=no)
+%define no_x11_askpass 0
+
+# Do we want to disable building of gnome-askpass? (1=yes 0=no)
+%define no_gnome_askpass 0
+
 Summary: OpenSSH free Secure Shell (SSH) implementation
 Name: openssh
 Version: %{oversion}
@@ -21,7 +27,9 @@ Requires: openssl >= 0.9.5a
 BuildPreReq: perl
 BuildPreReq: openssl-devel
 BuildPreReq: tcp_wrappers
+%if %{no_x11_askpass}
 BuildPreReq: gnome-libs-devel
+%endif
 
 %package clients
 Summary: OpenSSH Secure Shell protocol clients
@@ -119,6 +127,8 @@ patented algorithms to seperate libraries (OpenSSL).
 This package contains the GNOME passphrase dialog.
 
 %changelog
+* Wed Jul 12 2000 Damien Miller <djm@mindrot.org>
+- Make building of X11-askpass and gnome-askpass optional
 * Mon Jun 12 2000 Damien Miller <djm@mindrot.org>
 - Glob manpages to catch compressed files
 * Wed Mar 15 2000 Damien Miller <djm@ibs.com.au>
@@ -159,16 +169,20 @@ CFLAGS="$RPM_OPT_FLAGS" \
 
 make
 
+%if ! %{no_x11_askpass}
 cd x11-ssh-askpass-%{aversion}
 xmkmf -a
 make
 cd ..
+%endif
 
+%if ! %{no_gnome_askpass}
 cd contrib
 gcc -O -g `gnome-config --cflags gnome gnomeui` \
         gnome-ssh-askpass.c -o gnome-ssh-askpass \
         `gnome-config --libs gnome gnomeui`
 cd ..
+%endif
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -180,10 +194,14 @@ install -d $RPM_BUILD_ROOT/usr/libexec/ssh
 install -m644 contrib/redhat/sshd.pam $RPM_BUILD_ROOT/etc/pam.d/sshd
 install -m755 contrib/redhat/sshd.init $RPM_BUILD_ROOT/etc/rc.d/init.d/sshd
 
+%if ! %{no_x11_askpass}
 install -s x11-ssh-askpass-%{aversion}/x11-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/ssh/x11-ssh-askpass
 ln -s /usr/libexec/ssh/x11-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/ssh/ssh-askpass
+%endif
 
+%if ! %{no_gnome_askpass}
 install -s contrib/gnome-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/ssh/gnome-ssh-askpass
+%endif
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -239,6 +257,7 @@ fi
 %attr(0600,root,root) %config(noreplace) /etc/pam.d/sshd
 %attr(0755,root,root) %config /etc/rc.d/init.d/sshd
 
+%if ! %{no_x11_askpass}
 %files askpass
 %defattr(-,root,root)
 %doc x11-ssh-askpass-%{aversion}/README
@@ -246,8 +265,11 @@ fi
 %doc x11-ssh-askpass-%{aversion}/SshAskpass*.ad
 %attr(0755,root,root) /usr/libexec/ssh/ssh-askpass
 %attr(0755,root,root) /usr/libexec/ssh/x11-ssh-askpass
+%endif
 
+%if ! %{no_gnome_askpass}
 %files askpass-gnome
 %defattr(-,root,root)
 %attr(0755,root,root) /usr/libexec/ssh/gnome-ssh-askpass
+%endif
 

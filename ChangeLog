@@ -9,6 +9,8 @@
      disable FallBackToRsh by default
  - (djm) Replace in_addr_t with u_int32_t in bsd-inet_aton.c. Report from
    Ben Lindstrom <mouring@pconline.com>
+ - (djm) Make building of X11-Askpass and GNOME-Askpass optional in RPM
+   spec file.
 
 20000711
  - (djm) Fixup for AIX getuserattr() support from Tom Bertelson
