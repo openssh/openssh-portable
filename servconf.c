@@ -215,9 +215,9 @@ fill_default_server_options(ServerOptions *options)
 	if (options->client_alive_count_max == -1)
 		options->client_alive_count_max = 3;
 	if (options->authorized_keys_file == NULL)
-	        options->authorized_keys_file = _PATH_SSH_USER_PERMITTED_KEYS;  
+		options->authorized_keys_file = _PATH_SSH_USER_PERMITTED_KEYS;
 	if (options->authorized_keys_file2 == NULL)
-	        options->authorized_keys_file2 = _PATH_SSH_USER_PERMITTED_KEYS2;
+		options->authorized_keys_file2 = _PATH_SSH_USER_PERMITTED_KEYS2;
 	if (options->pam_authentication_via_kbd_int == -1)
 		options->pam_authentication_via_kbd_int = 0;
 }
