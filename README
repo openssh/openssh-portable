@@ -1,13 +1,15 @@
-This is a Linux port of OpenBSD's excellent OpenSSH.
+This is the Unix port of OpenBSD's excellent OpenSSH.
 
 OpenSSH is based on the last free version of Tatu Ylonen's SSH with
 all patent-encumbered algorithms removed, all known security bugs
 fixed, new features reintroduced and many other clean-ups.
 
-This Linux port basically consists of a few fixes to deal with
-the way that OpenSSL is usually installed on Linux systems, a few
-replacements for OpenBSD library functions and the introduction of PAM
-support. This version tracks changes made to the OpenBSD CVS version.
+This port consists of the re-introduction of autoconf support, PAM
+support (for Linux and Solaris), EGD[1] support, and replacements for
+OpenBSD library functions that are (regrettably) absent from most
+other unices. The only well tested platform currently is Linux, though
+some Solaris support is beginning to filter in. This version actively
+tracks changes in the OpenBSD CVS repository.
 
 The PAM support is now more functional than the popular packages of
 commercial ssh-1.2.x. It checks "account" and "session" modules for
@@ -19,9 +21,11 @@ liberal. Please refer to the source files for details. The code in
 strlcpy.c and mktemp.c is from the OpenBSD project and has its own
 license (again, see source file for details).
 
-OpenSSH depends on Zlib[1], OpenSSL[2] and optionally PAM[3]. To build
-the GNOME[1] passphrase requestor (--with-gnome-askpass), you will
-need the GNOME libraries installed.
+OpenSSH depends on Zlib[2], OpenSSL[3] and optionally PAM[4]. To build
+the GNOME[5] passphrase requestor (--with-gnome-askpass), you will
+need the GNOME libraries installed. If you are building OpenSSH on a
+Unix which lacks a kernel random number pool (/dev/random), you will
+need to install EGD[1].
 
 To build OpenSSH, use the configure script provided. For example:
 
@@ -44,6 +48,7 @@ Niels Kristian Bech Jensen <nkbj@image.dk> - Makefile patch
 Nalin Dahyabhai <nalin.dahyabhai@pobox.com> - PAM environment patch
 Phil Hands <phil@hands.com> - Debian scripts, assorted patches
 Niels Kristian Bech Jensen <nkbj@image.dk> - Makefile patches
+Marc G. Fournier" <marc.fournier@acadiau.ca> - Solaris patches
 
 Miscellania - 
 
@@ -60,8 +65,9 @@ under a X11-style license (see source file for details).
 
 References -
 
-[1] http://www.cdrom.com/pub/infozip/zlib/
-[2] http://www.openssl.org/
-[3] http://www.kernel.org/pub/linux/libs/pam/
-[4] http://www.gnome.org/
+[1] http://www.lothar.com/tech/crypto/
+[2] http://www.cdrom.com/pub/infozip/zlib/
+[3] http://www.openssl.org/
+[4] http://www.kernel.org/pub/linux/libs/pam/ (PAM is standard on Solaris)
+[5] http://www.gnome.org/
 

@@ -1,9 +1,9 @@
 Summary: OpenSSH free Secure Shell (SSH) implementation
 Name: openssh
-Version: 1.2pre9
+Version: 1.2pre10
 Release: 1
 Packager: Damien Miller <djm@ibs.com.au>
-Source0: openssh-%{version}-linux.tar.gz
+Source0: openssh-%{version}.tar.gz
 Copyright: BSD
 Group: Applications/Internet
 BuildRoot: /tmp/openssh-%{version}-buildroot
