@@ -1524,8 +1524,10 @@ do_authloop(struct passwd * pw)
 			return;
 		}
 
-		if (client_user != NULL)
+		if (client_user != NULL) {
 			xfree(client_user);
+			client_user = NULL;
+		}
 
 		if (attempt > AUTH_FAIL_MAX)
 			packet_disconnect(AUTH_FAIL_MSG, pw->pw_name);
