@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.178 2002/06/11 23:03:54 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.179 2002/06/12 01:09:52 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -620,7 +620,7 @@ again:
 #else
 	    original_effective_uid == 0 && options.use_privileged_port,
 #endif
-	    options.proxy_command) < 0)
+	    options.proxy_command) != 0)
 		exit(1);
 
 	/*
