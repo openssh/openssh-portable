@@ -2,6 +2,13 @@
  - (djm) Use sa_family_t in prototype for rresvport_af. Patch from 
    Svante Signell <svante.signell@telia.com>
  - (djm) Autoconf logic to define sa_family_t if it is missing
+ - OpenBSD CVS Updates:
+   - markus@cvs.openbsd.org  2000/06/22 10:32:27
+     [sshd.c]
+     missing atomicio; report from Steve.Marquess@DET.AMEDD.ARMY.MIL
+   - djm@cvs.openbsd.org     2000/06/22 17:55:00
+     [auth-krb4.c key.c radix.c uuencode.c]
+     Missing CVS idents; ok markus
 
 20000622
  - (djm) Automatically generate host key during "make install". Suggested

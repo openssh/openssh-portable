@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.118 2000/05/25 20:45:20 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.119 2000/06/22 16:32:27 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -296,7 +296,7 @@ sshd_exchange_identification(int sock_in, int sock_out)
 
 		/* Read other side\'s version identification. */
 		for (i = 0; i < sizeof(buf) - 1; i++) {
-			if (read(sock_in, &buf[i], 1) != 1) {
+			if (atomicio(read, sock_in, &buf[i], 1) != 1) {
 				log("Did not receive ident string from %s.", get_remote_ipaddr());
 				fatal_cleanup();
 			}

@@ -51,6 +51,7 @@ Phil Karn <karn@ka9q.ampr.org> - Autoconf fix
 Phill Camp <P.S.S.Camp@ukc.ac.uk> - login code fix
 SAKAI Kiyotaka <ksakai@kso.netwk.ntt-at.co.jp> - Multiple bugfixes
 Simon Wilkinson <sxw@dcs.ed.ac.uk> - PAM fixes
+Svante Signell <svante.signell@telia.com> - Bugfixes
 Thomas Neumann <tom@smart.ruhr.de> - Shadow passwords
 Tom Bertelson's <tbert@abac.com> - AIX auth fixes
 Tor-Ake Fransson <torake@hotmail.com> - AIX support

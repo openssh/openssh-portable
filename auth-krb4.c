@@ -9,6 +9,8 @@
 #include "ssh.h"
 #include "servconf.h"
 
+RCSID("$OpenBSD: auth-krb4.c,v 1.15 2000/06/22 23:54:59 djm Exp $");
+
 #ifdef KRB4
 char *ticket = NULL;
 

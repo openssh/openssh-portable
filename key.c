@@ -41,6 +41,8 @@
 #include "dsa.h"
 #include "uuencode.h"
 
+RCSID("$OpenBSD: key.c,v 1.9 2000/06/22 23:55:00 djm Exp $");
+
 #define SSH_DSS "ssh-dss"
 
 Key *
