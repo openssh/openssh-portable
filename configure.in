@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.313.2.1 2001/09/25 06:46:12 djm Exp $
+# $Id: configure.in,v 1.313.2.2 2001/09/25 22:39:38 djm Exp $
 
 AC_INIT(ssh.c)
 
@@ -22,7 +22,8 @@ AC_PATH_PROG(TEST_MINUS_S_SH, ksh)
 AC_PATH_PROG(TEST_MINUS_S_SH, sh)
 
 # System features
-AC_SYS_LARGEFILE
+# Disabled until it works on SCO and HPUX
+#AC_SYS_LARGEFILE
 
 if test -z "$AR" ; then
 	AC_MSG_ERROR([*** 'ar' missing, please install or fix your \$PATH ***])

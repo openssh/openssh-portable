@@ -1,3 +1,6 @@
+20010926
+ - (djm) Disable AC_SYS_LARGEFILE, it breaks on several systems
+
 20010925
  - (djm) Pull in auth-krb5.c from OpenBSD CVS. NB. it is not currently used.
  - (djm) Sync $sysconfdir/moduli
@@ -6569,4 +6572,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1559.2.2 2001/09/25 12:22:54 djm Exp $
+$Id: ChangeLog,v 1.1559.2.3 2001/09/25 22:39:36 djm Exp $
