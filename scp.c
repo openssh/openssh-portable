@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.73 2001/06/10 11:33:02 markus Exp $");
+RCSID("$OpenBSD: scp.c,v 1.74 2001/06/16 08:57:35 markus Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -1052,8 +1052,11 @@ lostconn(signo)
 	int signo;
 {
 	if (!iamremote)
-		fprintf(stderr, "lost connection\n");
-	exit(1);
+		write(STDERR_FILENO, "lost connection\n", 16);
+	if (signo)
+		_exit(1);
+	else
+		exit(1);
 }
 
 
