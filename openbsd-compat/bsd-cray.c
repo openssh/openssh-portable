@@ -35,9 +35,7 @@ char cray_tmpdir[TPATHSIZ+1];		    /* job TMPDIR path */
  * Functions.
  */
 void cray_retain_utmp(struct utmp *, int);
-void cray_create_tmpdir(int, uid_t, gid_t);
-void cray_delete_tmpdir(char *, int , uid_t);
-void cray_job_termination_handler (int);
+void cray_delete_tmpdir(char *, int, uid_t);
 void cray_init_job(struct passwd *);
 void cray_set_tmpdir(struct utmp *);
 
@@ -73,8 +71,8 @@ cray_setup(uid_t uid, char *username)
 	if (p == NULL)
 		fatal("No UDB entry for %.100s", username);
 	if (uid != p->ue_uid)
-		fatal("UDB etnry %.100s uid(%d) does not match uid %d",
-		    username, p->ue_uid, uid);
+		fatal("UDB entry %.100s uid(%d) does not match uid %d",
+		    username, (int) p->ue_uid, (int) uid);
 	for (j = 0; p->ue_acids[j] != -1 && j < MAXVIDS; j++) {
 		accts[naccts] = p->ue_acids[j];
 		naccts++;
@@ -133,13 +131,13 @@ drop_cray_privs()
 
 	memset(&usrv, 0, sizeof(usrv));
 	if (setusrv(&usrv) < 0)
-		fatal("%s(%d): setusrv(): %s\n", __FILE__, __LINE__,
+		fatal("%s(%d): setusrv(): %s", __FILE__, __LINE__,
 		    strerror(errno));
 
 	if ((privstate = priv_init_proc()) != NULL) {
 		result = priv_set_proc(privstate);
 		if (result != 0 )
-			fatal("%s(%d): priv_set_proc(): %s\n",
+			fatal("%s(%d): priv_set_proc(): %s",
 			    __FILE__, __LINE__, strerror(errno));
 		priv_free_proc(privstate);
 	}
@@ -202,7 +200,7 @@ cray_delete_tmpdir(char *login, int jid, uid_t uid)
 		return;
 
 	if ((child = fork()) == 0) {
-		execl(CLEANTMPCMD, CLEANTMPCMD, login, jtmp, 0);
+		execl(CLEANTMPCMD, CLEANTMPCMD, login, jtmp, (char *)NULL);
 		fatal("cray_delete_tmpdir: execl of CLEANTMPCMD failed");
 	}
 
