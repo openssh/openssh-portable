@@ -6,6 +6,9 @@
    - stevesk@cvs.openbsd.org 2001/02/04 08:32:27
      [many files; did this manually to our top-level source dir]
      unexpand and remove end-of-line whitespace; ok markus@
+   - stevesk@cvs.openbsd.org 2001/02/04 15:21:19
+     [sftp-server.c]
+     SSH2_FILEXFER_ATTR_UIDGID support; ok markus@
 
 20010104
  - (bal) I think this is the last of the bsd-*.h that don't belong.
@@ -40,7 +43,7 @@
  - (djm) Makefile.in fixes
  - (stevesk) add mysignal() wrapper and use it for the protocol 2
    SIGCHLD handler.
- - (djm) Use setvbuf() instead of setlinebuf(). Suggest from stevek@
+ - (djm) Use setvbuf() instead of setlinebuf(). Suggest from stevesk@
 
 20010103
  - (bal) Cygwin clean up by Corinna Vinschen <vinschen@redhat.com>

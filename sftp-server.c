@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: sftp-server.c,v 1.15 2001/02/04 11:11:54 djm Exp $");
+RCSID("$OpenBSD: sftp-server.c,v 1.18 2001/02/04 22:21:19 stevesk Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
@@ -561,6 +561,11 @@ process_setstat(void)
 		if (ret == -1)
 			status = errno_to_portable(errno);
 	}
+	if (a->flags & SSH2_FILEXFER_ATTR_UIDGID) {
+		ret = chown(name, a->uid, a->gid);
+		if (ret == -1)
+			status = errno_to_portable(errno);
+	}
 	send_status(id, status);
 	xfree(name);
 }
@@ -598,6 +603,11 @@ process_fsetstat(void)
 #else
 			ret = utimes(name, attrib_to_tv(a));
 #endif
+			if (ret == -1)
+				status = errno_to_portable(errno);
+		}
+		if (a->flags & SSH2_FILEXFER_ATTR_UIDGID) {
+			ret = fchown(fd, a->uid, a->gid);
 			if (ret == -1)
 				status = errno_to_portable(errno);
 		}
