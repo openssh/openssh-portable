@@ -1,3 +1,6 @@
+20011031
+ - (djm) Unsmoke drugs: config files should be noreplace.
+
 20011030
  - (djm) Redhat RPM spec: remove noreplace from config files, allow IPv6 
    by default (can force IPv4 using --define "noipv6 1")
@@ -6789,4 +6792,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1628 2001/10/30 11:03:51 djm Exp $
+$Id: ChangeLog,v 1.1629 2001/10/30 23:31:13 djm Exp $
