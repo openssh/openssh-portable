@@ -25,6 +25,9 @@
    - markus@cvs.openbsd.org 2002/02/06 14:55:16
      [channels.c clientloop.c serverloop.c ssh.c]
      channel_new never returns NULL, mouring@; ok djm@
+   - markus@cvs.openbsd.org 2002/02/07 09:35:39
+     [ssh.c]
+     remove bogus comments
 
 20020205
  - (djm) Cleanup after sync:
@@ -7531,4 +7534,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1835 2002/02/08 11:07:16 djm Exp $
+$Id: ChangeLog,v 1.1836 2002/02/08 11:07:33 djm Exp $
