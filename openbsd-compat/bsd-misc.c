@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$Id: bsd-misc.c,v 1.5 2001/10/10 20:38:56 mouring Exp $");
+RCSID("$Id: bsd-misc.c,v 1.6 2002/05/08 02:51:32 tim Exp $");
 
 char *get_progname(char *argv0)
 {
@@ -99,3 +99,22 @@ int utimes(char *filename, struct timeval *tvp)
 	return(utime(filename, &ub));
 }
 #endif 
+
+#ifndef HAVE_TRUNCATE
+int truncate (const char *path, off_t length)
+{
+	int fd, ret, saverrno;
+
+	fd = open(path, O_WRONLY);
+	if (fd < 0)
+		return -1;
+
+	ret = ftruncate(fd, length);
+	saverrno = errno;
+	(void) close (fd);
+	if (ret == -1)
+		errno = saverrno;
+	return(ret);
+}
+#endif /* HAVE_TRUNCATE */
+

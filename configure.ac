@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.53 2002/04/25 18:17:05 stevesk Exp $
+# $Id: configure.ac,v 1.54 2002/05/08 02:51:32 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -572,7 +572,7 @@ AC_CHECK_FUNCS(arc4random b64_ntop bcopy bindresvport_sa \
 	realpath recvmsg rresvport_af sendmsg setdtablesize setegid \
 	setenv seteuid setlogin setproctitle setresgid setreuid setrlimit \
 	setsid setvbuf sigaction sigvec snprintf socketpair strerror \
-	strlcat strlcpy strmode strsep sysconf tcgetpgrp utimes \
+	strlcat strlcpy strmode strsep sysconf tcgetpgrp truncate utimes \
 	vhangup vsnprintf waitpid __b64_ntop _getpty)
 
 dnl IRIX and Solaris 2.5.1 have dirname() in libgen

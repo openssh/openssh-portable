@@ -1,3 +1,7 @@
+20020507
+ - (tim) [configure.ac openbsd-compat/bsd-misc.c openbsd-compat/bsd-misc.h]
+   Add truncate() emulation to address Bug 208
+
 20020506
  - (djm) Unbreak auth-passwd.c for PAM and SIA
  - (djm) Unbreak PAM auth for protocol 1. Report from Pekka Savola 
@@ -535,4 +539,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2095 2002/05/08 02:27:55 djm Exp $
+$Id: ChangeLog,v 1.2096 2002/05/08 02:51:31 tim Exp $
