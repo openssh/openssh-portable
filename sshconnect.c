@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.112 2001/10/06 00:14:50 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.113 2001/10/06 11:18:19 markus Exp $");
 
 #include <openssl/bn.h>
 
@@ -506,8 +506,8 @@ confirm(const char *prompt)
 	if (f == NULL)
 		return 0;
 	fflush(stdout);
+	fprintf(stderr, "%s", prompt);
 	while (1) {
-		fprintf(stderr, "%s", prompt);
 		if (fgets(buf, sizeof(buf), f) == NULL) {
 			fprintf(stderr, "\n");
 			strlcpy(buf, "no", sizeof buf);
@@ -520,7 +520,7 @@ confirm(const char *prompt)
 		else if (strcmp(buf, "no") == 0)
 			retval = 0;
 		else
-			fprintf(stderr, "Please type 'yes' or 'no'.\n");
+			fprintf(stderr, "Please type 'yes' or 'no': ");
 
 		if (retval != -1) {
 			if (f != stdin)
@@ -703,7 +703,6 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 			    "(yes/no)? ", host, ip, type, fp);
 			xfree(fp);
 			if (!confirm(prompt)) {
-				log("Aborted by user!");
 				goto fail;
 			}
 		}
@@ -821,7 +820,6 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 		} else if (options.strict_host_key_checking == 2) {
 			if (!confirm("Are you sure you want " 
 			    "to continue connecting (yes/no)? ")) {
-				log("Aborted by user!");
 				goto fail;
 			}
 		}

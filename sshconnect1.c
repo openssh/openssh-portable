@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.40 2001/09/27 15:31:17 markus Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.41 2001/10/06 11:18:19 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/evp.h>
@@ -982,7 +982,7 @@ ssh_kex(char *host, struct sockaddr *hostaddr)
 	k.type = KEY_RSA1;
 	k.rsa = host_key;
 	if (verify_host_key(host, hostaddr, &k) == -1)
-		fatal("host_key verification failed");
+		fatal("Host key verification failed.");
 
 	client_flags = SSH_PROTOFLAG_SCREEN_NUMBER | SSH_PROTOFLAG_HOST_IN_FWD_OPEN;
 

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.82 2001/08/31 11:46:39 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.83 2001/10/06 11:18:19 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -75,7 +75,7 @@ static int
 verify_host_key_callback(Key *hostkey)
 {
 	if (verify_host_key(xxx_host, xxx_hostaddr, hostkey) == -1)
-		fatal("verify_host_key failed");
+		fatal("Host key verification failed.");
 	return 0;
 }
 
