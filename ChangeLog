@@ -1,4 +1,10 @@
-20030103
+20030114
+ - (djm) OpenBSD CVS Sync
+   - fgsch@cvs.openbsd.org 2003/01/10 23:23:24
+     [sftp-int.c]
+     typo; from Nils Nordman <nino at nforced dot com>.
+
+20030113
  - (djm) Rework openbsd-compat/setproctitle.c a bit: move emulation type
    detection to configure.ac. Prompted by stevesk@
  - (djm) Bug #467: Add a --disable-strip option to turn off stripping of 
@@ -1000,4 +1006,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2566 2003/01/13 05:55:22 djm Exp $
+$Id: ChangeLog,v 1.2567 2003/01/14 11:22:11 djm Exp $

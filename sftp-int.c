@@ -25,7 +25,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.52 2003/01/10 08:19:07 fgsch Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.53 2003/01/10 23:23:24 fgsch Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -137,7 +137,7 @@ help(void)
 	printf("ls [path]                     Display remote directory listing\n");
 	printf("lumask umask                  Set local umask to 'umask'\n");
 	printf("mkdir path                    Create remote directory\n");
-	printf("preogress                     Toggle display of progress meter\n");
+	printf("progress                      Toggle display of progress meter\n");
 	printf("put local-path [remote-path]  Upload file\n");
 	printf("pwd                           Display remote working directory\n");
 	printf("exit                          Quit sftp\n");
