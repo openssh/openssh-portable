@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.18 2001/02/22 21:59:43 markus Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.19 2001/03/08 18:47:12 stevesk Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -27,7 +27,6 @@ RCSID("$OpenBSD: auth1.c,v 1.18 2001/02/22 21:59:43 markus Exp $");
 
 /* import */
 extern ServerOptions options;
-extern char *forced_command;
 
 #ifdef WITH_AIXAUTHENTICATE
 extern char *aixloginmsg;
