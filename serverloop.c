@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.50 2001/02/19 09:53:32 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.51 2001/02/23 15:34:53 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -245,7 +245,7 @@ retry_select:
 		tvp = &tv;
 	}
 	if (tvp!=NULL)
-		debug2("tvp!=NULL kid %d mili %d", child_terminated, max_time_milliseconds);
+		debug3("tvp!=NULL kid %d mili %d", child_terminated, max_time_milliseconds);
 
 	/* Wait for something to happen, or the timeout to expire. */
 	ret = select((*maxfdp)+1, *readsetp, *writesetp, NULL, tvp);
