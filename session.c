@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.161 2003/08/22 10:56:09 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.162 2003/08/28 12:54:34 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -331,30 +331,6 @@ do_authenticated1(Authctxt *authctxt)
 			if (packet_set_maxsize(packet_get_int()) > 0)
 				success = 1;
 			break;
-
-#ifdef KRB5
-		case SSH_CMSG_HAVE_KERBEROS_TGT:
-			if (!options.kerberos_tgt_passing) {
-				verbose("Kerberos TGT passing disabled.");
-			} else {
-				char *kdata = packet_get_string(&dlen);
-				packet_check_eom();
-
-				/* XXX - 0x41, used for AFS */
-				if (kdata[0] != 0x41) {
-					krb5_data tgt;
-					tgt.data = kdata;
-					tgt.length = dlen;
-
-					if (auth_krb5_tgt(s->authctxt, &tgt))
-						success = 1;
-					else
-						verbose("Kerberos v5 TGT refused for %.100s", s->authctxt->user);
-				}
-				xfree(kdata);
-			}
-			break;
-#endif
 
 		case SSH_CMSG_EXEC_SHELL:
 		case SSH_CMSG_EXEC_CMD:

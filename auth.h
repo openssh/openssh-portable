@@ -1,4 +1,4 @@
-/*	$OpenBSD: auth.h,v 1.44 2003/08/22 10:56:08 markus Exp $	*/
+/*	$OpenBSD: auth.h,v 1.46 2003/08/28 12:54:34 markus Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -62,7 +62,6 @@ struct Authctxt {
 #endif
 #ifdef KRB5
 	krb5_context	 krb5_ctx;
-	krb5_auth_context krb5_auth_ctx;
 	krb5_ccache	 krb5_fwd_ccache;
 	krb5_principal	 krb5_user;
 	char		*krb5_ticket_file;

@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.125 2003/08/22 10:56:09 markus Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.126 2003/08/28 12:54:34 markus Exp $");
 
 #include "ssh.h"
 #include "log.h"
@@ -304,13 +304,12 @@ static struct {
 	{ "kerberosauthentication", sKerberosAuthentication },
 	{ "kerberosorlocalpasswd", sKerberosOrLocalPasswd },
 	{ "kerberosticketcleanup", sKerberosTicketCleanup },
-	{ "kerberostgtpassing", sKerberosTgtPassing },
 #else
 	{ "kerberosauthentication", sUnsupported },
 	{ "kerberosorlocalpasswd", sUnsupported },
 	{ "kerberosticketcleanup", sUnsupported },
-	{ "kerberostgtpassing", sUnsupported },
 #endif
+	{ "kerberostgtpassing", sUnsupported },
 	{ "afstokenpassing", sUnsupported },
 #ifdef GSSAPI
 	{ "gssapiauthentication", sGssAuthentication },

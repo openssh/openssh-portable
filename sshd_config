@@ -1,4 +1,4 @@
-#	$OpenBSD: sshd_config,v 1.64 2003/08/22 10:56:09 markus Exp $
+#	$OpenBSD: sshd_config,v 1.65 2003/08/28 12:54:34 markus Exp $
 
 # This is the sshd server system-wide configuration file.  See
 # sshd_config(5) for more information.
@@ -61,7 +61,6 @@
 #KerberosAuthentication no
 #KerberosOrLocalPasswd yes
 #KerberosTicketCleanup yes
-#KerberosTgtPassing no
 
 # GSSAPI options
 #GSSAPIAuthentication no

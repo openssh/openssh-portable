@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.50 2003/08/13 08:46:30 markus Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.52 2003/08/28 12:54:34 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -49,10 +49,6 @@ get_authname(int type)
 	case SSH_CMSG_AUTH_TIS:
 	case SSH_CMSG_AUTH_TIS_RESPONSE:
 		return "challenge-response";
-#ifdef KRB5
-	case SSH_CMSG_AUTH_KERBEROS:
-		return "kerberos";
-#endif
 	}
 	snprintf(buf, sizeof buf, "bad-auth-msg-%d", type);
 	return buf;
@@ -119,47 +115,6 @@ do_authloop(Authctxt *authctxt)
 
 		/* Process the packet. */
 		switch (type) {
-
-#ifdef KRB5
-		case SSH_CMSG_AUTH_KERBEROS:
-			if (!options.kerberos_authentication) {
-				verbose("Kerberos authentication disabled.");
-			} else {
-				char *kdata = packet_get_string(&dlen);
-				packet_check_eom();
-
-				if (kdata[0] != 4) { /* KRB_PROT_VERSION */
-					krb5_data tkt, reply;
-					tkt.length = dlen;
-					tkt.data = kdata;
-
-					if (PRIVSEP(auth_krb5(authctxt, &tkt,
-					    &client_user, &reply))) {
-						authenticated = 1;
-						snprintf(info, sizeof(info),
-						    " tktuser %.100s",
-						    client_user);
-
- 						/* Send response to client */
- 						packet_start(
-						    SSH_SMSG_AUTH_KERBEROS_RESPONSE);
- 						packet_put_string((char *)
-						    reply.data, reply.length);
- 						packet_send();
- 						packet_write_wait();
-
- 						if (reply.length)
- 							xfree(reply.data);
-					}
-				}
-				xfree(kdata);
-			}
-			break;
-		case SSH_CMSG_HAVE_KERBEROS_TGT:
-			packet_send_debug("Kerberos TGT passing disabled before authentication.");
-			break;
-#endif
-
 		case SSH_CMSG_AUTH_RHOSTS_RSA:
 			if (!options.rhosts_rsa_authentication) {
 				verbose("Rhosts with RSA authentication disabled.");
@@ -336,16 +291,6 @@ do_authentication(void)
 
 	if ((style = strchr(user, ':')) != NULL)
 		*style++ = '\0';
-
-#ifdef KRB5
-	/* XXX - SSH.com Kerberos v5 braindeath. */
-	if ((datafellows & SSH_BUG_K5USER) &&
-	    options.kerberos_authentication) {
-		char *p;
-		if ((p = strchr(user, '@')) != NULL)
-			*p = '\0';
-	}
-#endif
 
 	authctxt = authctxt_new();
 	authctxt->user = user;

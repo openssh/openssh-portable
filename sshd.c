@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.275 2003/08/13 08:46:31 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.276 2003/08/28 12:54:34 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1463,14 +1463,6 @@ main(int ac, char **av)
 
 	sshd_exchange_identification(sock_in, sock_out);
 
-#ifdef KRB5
-	if (!packet_connection_is_ipv4() &&
-	    options.kerberos_authentication) {
-		debug("Kerberos Authentication disabled, only available for IPv4.");
-		options.kerberos_authentication = 0;
-	}
-#endif
-
 	packet_set_nonblocking();
 
         /* prepare buffers to collect authentication messages */
@@ -1634,12 +1626,6 @@ do_ssh1_kex(void)
 		auth_mask |= 1 << SSH_AUTH_RHOSTS_RSA;
 	if (options.rsa_authentication)
 		auth_mask |= 1 << SSH_AUTH_RSA;
-#ifdef KRB5
-	if (options.kerberos_authentication)
-		auth_mask |= 1 << SSH_AUTH_KERBEROS;
-	if (options.kerberos_tgt_passing)
-		auth_mask |= 1 << SSH_PASS_KERBEROS_TGT;
-#endif
 	if (options.challenge_response_authentication == 1)
 		auth_mask |= 1 << SSH_AUTH_TIS;
 	if (options.password_authentication)

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.23 2003/08/22 10:56:09 markus Exp $
+.\" $OpenBSD: sshd_config.5,v 1.24 2003/08/28 12:54:34 markus Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -316,11 +316,9 @@ This avoids infinitely hanging sessions.
 To disable keepalives, the value should be set to
 .Dq no .
 .It Cm KerberosAuthentication
-Specifies whether Kerberos authentication is allowed.
-This can be in the form of a Kerberos ticket, or if
+Specifies whether the password provided by the user for
 .Cm PasswordAuthentication
-is yes, the password provided by the user will be validated through
-the Kerberos KDC.
+will be validated through the Kerberos KDC.
 To use this option, the server needs a
 Kerberos servtab which allows the verification of the KDC's identity.
 Default is
@@ -332,10 +330,6 @@ such as
 .Pa /etc/passwd .
 Default is
 .Dq yes .
-.It Cm KerberosTgtPassing
-Specifies whether a Kerberos TGT may be forwarded to the server.
-Default is
-.Dq no .
 .It Cm KerberosTicketCleanup
 Specifies whether to automatically destroy the user's ticket cache
 file on logout.

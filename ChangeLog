@@ -3,6 +3,12 @@
    - deraadt@cvs.openbsd.org 2003/08/24 17:36:51
      [auth2-gss.c]
      64 bit cleanups; markus ok
+   - markus@cvs.openbsd.org 2003/08/28 12:54:34
+     [auth-krb5.c auth.h auth1.c monitor.c monitor.h monitor_wrap.c]
+     [monitor_wrap.h readconf.c servconf.c session.c ssh_config.5]
+     [sshconnect1.c sshd.c sshd_config sshd_config.5]
+     remove kerberos support from ssh1, since it has been replaced with GSSAPI;
+     but keep kerberos passwd auth for ssh1 and 2; ok djm, hin, henning, ...
 
 20030829
  - (bal) openbsd-compat/ clean up.  Considate headers, add in Id on our
@@ -918,4 +924,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2920 2003/09/02 12:14:07 djm Exp $
+$Id: ChangeLog,v 1.2921 2003/09/02 12:51:17 djm Exp $
