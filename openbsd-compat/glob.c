@@ -37,8 +37,8 @@
 #include "includes.h"
 #include <ctype.h>
 
-long
-get_arg_max()
+static long
+get_arg_max(void)
 {
 #ifdef ARG_MAX
 	return(ARG_MAX);

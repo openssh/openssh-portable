@@ -36,6 +36,7 @@ static char *rcsid = "$OpenBSD: strlcat.c,v 1.5 2001/01/13 16:17:24 millert Exp 
 
 #include <sys/types.h>
 #include <string.h>
+#include "strlcat.h"
 
 /*
  * Appends src to string dst of size siz (unlike strncat, siz is the

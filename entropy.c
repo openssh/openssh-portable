@@ -40,7 +40,7 @@
 #include "pathnames.h"
 #include "log.h"
 
-RCSID("$Id: entropy.c,v 1.36 2001/03/18 22:38:16 djm Exp $");
+RCSID("$Id: entropy.c,v 1.37 2001/06/27 13:36:08 djm Exp $");
 
 #ifndef offsetof
 # define offsetof(type, member) ((size_t) &((type *)0)->member)
@@ -68,7 +68,7 @@ RCSID("$Id: entropy.c,v 1.36 2001/03/18 22:38:16 djm Exp $");
 # define SAVED_IDS_WORK_WITH_SETEUID
 #endif
 
-void
+static void
 check_openssl_version(void) 
 {
 	if (SSLeay() != OPENSSL_VERSION_NUMBER)
@@ -182,7 +182,7 @@ done:
 #else /* !USE_PRNGD */
 #ifdef RANDOM_POOL
 /* Collect entropy from /dev/urandom or pipe */
-int
+static int
 get_random_bytes(unsigned char *buf, int len)
 {
 	int random_pool;
