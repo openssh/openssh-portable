@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.69 2001/07/23 18:14:58 stevesk Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.70 2001/09/20 13:46:48 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -698,7 +698,7 @@ user_key_allowed2(struct passwd *pw, Key *key, char *file)
 		if (!*cp || *cp == '\n' || *cp == '#')
 			continue;
 
-		if (key_read(found, &cp) == -1) {
+		if (key_read(found, &cp) != 1) {
 			/* no key?  check if there are options for this key */
 			int quoted = 0;
 			debug2("user_key_allowed: check options: '%s'", cp);
@@ -712,7 +712,7 @@ user_key_allowed2(struct passwd *pw, Key *key, char *file)
 			/* Skip remaining whitespace. */
 			for (; *cp == ' ' || *cp == '\t'; cp++)
 				;
-			if (key_read(found, &cp) == -1) {
+			if (key_read(found, &cp) != 1) {
 				debug2("user_key_allowed: advance: '%s'", cp);
 				/* still no key?  advance to next line*/
 				continue;
