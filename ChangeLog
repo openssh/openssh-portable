@@ -1,3 +1,9 @@
+20010404
+ - OpenBSD CVS Sync
+   - deraadt@cvs.openbsd.org 2001/04/02 17:32:23
+     [ssh-agent.1]
+     grammar; slade@shore.net
+
 20010403
  - OpenBSD CVS Sync
    - stevesk@cvs.openbsd.org 2001/04/02 14:15:31
@@ -4807,4 +4813,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1047 2001/04/03 13:02:48 stevesk Exp $
+$Id: ChangeLog,v 1.1048 2001/04/04 01:51:25 mouring Exp $
