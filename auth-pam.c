@@ -31,7 +31,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.71 2003/09/13 12:02:05 dtucker Exp $");
+RCSID("$Id: auth-pam.c,v 1.72 2003/09/13 12:12:11 dtucker Exp $");
 
 #ifdef USE_PAM
 #include <security/pam_appl.h>
@@ -276,6 +276,7 @@ static int
 sshpam_init(const char *user)
 {
 	extern u_int utmp_len;
+	extern char *__progname;
 	const char *pam_rhost, *pam_user;
 
 	if (sshpam_handle != NULL) {
