@@ -2,11 +2,14 @@
  - (dtucker) OpenBSD CVS Sync
    - dtucker@cvs.openbsd.org 2003/10/07 01:47:27
      [sshconnect2.c]
-     Don't use logit for banner, since it truncates to MSGBUFSIZ; bz #668 & #707.
-     ok markus@
+     Don't use logit for banner, since it truncates to MSGBUFSIZ; bz #668 &
+     #707.  ok markus@
    - djm@cvs.openbsd.org 2003/10/07 07:04:16
      [sftp-int.c]
      sftp quoting fix from admorten AT umich.edu; ok markus@
+   - deraadt@cvs.openbsd.org 2003/10/07 21:58:28
+     [sshconnect2.c]
+     set ptr to NULL after free
 
 20031007
  - (djm) Delete autom4te.cache after autoreconf
@@ -1302,4 +1305,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3065 2003/10/08 07:34:38 dtucker Exp $
+$Id: ChangeLog,v 1.3066 2003/10/08 07:37:58 dtucker Exp $
