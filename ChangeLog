@@ -3,6 +3,8 @@
    platforms syslog will revert to its default values.  This may result in
    messages from external libraries (eg libwrap) being sent to a different
    facility.
+ - (dtucker) [sshd_config.5] Bug #701: remove warning about
+   keyboard-interactive since this is no longer the case.
 
 20050124
  - (dtucker) OpenBSD CVS Sync
@@ -2049,4 +2051,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3627 2005/02/01 06:35:09 dtucker Exp $
+$Id: ChangeLog,v 1.3628 2005/02/01 08:16:45 dtucker Exp $
