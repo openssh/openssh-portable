@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.12 2002/06/04 19:42:35 markus Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.13 2002/06/04 19:53:40 markus Exp $");
 
 #include <openssl/dh.h>
 
@@ -128,6 +128,8 @@ static int key_blobtype = MM_NOKEY;
 static u_char *hostbased_cuser = NULL;
 static u_char *hostbased_chost = NULL;
 static char *auth_method = "unknown";
+static int session_id2_len = 0;
+static u_char *session_id2 = NULL;
 
 struct mon_table {
 	enum monitor_reqtype type;
@@ -453,6 +455,13 @@ mm_answer_sign(int socket, Buffer *m)
 
 	if (datlen != 20)
 		fatal("%s: data length incorrect: %d", __FUNCTION__, datlen);
+
+	/* save session id, it will be passed on the first call */
+	if (session_id2_len == 0) {
+		session_id2_len = datlen;
+		session_id2 = xmalloc(session_id2_len);
+		memcpy(session_id2, p, session_id2_len);
+	}
 
 	if ((key = get_hostkey_by_index(keyid)) == NULL)
 		fatal("%s: no hostkey from index %d", __FUNCTION__, keyid);
@@ -819,17 +828,25 @@ monitor_valid_userblob(u_char *data, u_int datalen)
 	u_char *p;
 	u_int len;
 	int fail = 0;
-	int session_id2_len = 20 /*XXX should get from [net] */;
 
 	buffer_init(&b);
 	buffer_append(&b, data, datalen);
 
 	if (datafellows & SSH_OLD_SESSIONID) {
+		p = buffer_ptr(&b);
+		len = buffer_len(&b);
+		if ((session_id2 == NULL) ||
+		    (len < session_id2_len) ||
+		    (memcmp(p, session_id2, session_id2_len) != 0))
+			fail++;
 		buffer_consume(&b, session_id2_len);
 	} else {
-		xfree(buffer_get_string(&b, &len));
-		if (len != session_id2_len)
+		p = buffer_get_string(&b, &len);
+		if ((session_id2 == NULL) ||
+		    (len != session_id2_len) ||
+		    (memcmp(p, session_id2, session_id2_len) != 0))
 			fail++;
+		xfree(p);
 	}
 	if (buffer_get_char(&b) != SSH2_MSG_USERAUTH_REQUEST)
 		fail++;
@@ -868,14 +885,17 @@ monitor_valid_hostbasedblob(u_char *data, u_int datalen, u_char *cuser,
 	u_char *p;
 	u_int len;
 	int fail = 0;
-	int session_id2_len = 20 /*XXX should get from [net] */;
 
 	buffer_init(&b);
 	buffer_append(&b, data, datalen);
 
-	xfree(buffer_get_string(&b, &len));
-	if (len != session_id2_len)
+	p = buffer_get_string(&b, &len);
+	if ((session_id2 == NULL) ||
+	    (len != session_id2_len) ||
+	    (memcmp(p, session_id2, session_id2_len) != 0))
 		fail++;
+	xfree(p);
+
 	if (buffer_get_char(&b) != SSH2_MSG_USERAUTH_REQUEST)
 		fail++;
 	p = buffer_get_string(&b, NULL);
@@ -1334,6 +1354,10 @@ mm_get_kex(Buffer *m)
 	kex = xmalloc(sizeof(*kex));
 	memset(kex, 0, sizeof(*kex));
 	kex->session_id = buffer_get_string(m, &kex->session_id_len);
+	if ((session_id2 == NULL) ||
+	    (kex->session_id_len != session_id2_len) ||
+	    (memcmp(kex->session_id, session_id2, session_id2_len) != 0))
+		fatal("mm_get_get: internal error: bad session id");
 	kex->we_need = buffer_get_int(m);
 	kex->server = 1;
 	kex->hostkey_type = buffer_get_int(m);

@@ -87,6 +87,11 @@
    - markus@cvs.openbsd.org 2002/06/04 19:42:35
      [monitor.c]
      only allow enabled authentication methods; ok provos@
+   - markus@cvs.openbsd.org 2002/06/04 19:53:40
+     [monitor.c]
+     save the session id (hash) for ssh2 (it will be passed with the 
+     initial sign request) and verify that this value is used during 
+     authentication; ok provos@
 
 20020604
  - (stevesk) [channels.c] bug #164 patch from YOSHIFUJI Hideaki (changed
@@ -771,4 +776,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2167 2002/06/06 20:57:17 mouring Exp $
+$Id: ChangeLog,v 1.2168 2002/06/06 20:58:19 mouring Exp $
