@@ -78,6 +78,7 @@
      [auth-krb4.c]
      ...sizeof(&adat.session) is not good here.
      henning@, deraadt@, millert@
+ - (djm) Add new object files to Makefile and reorder
 
 20030211
  - (djm) Cygwin needs libcrypt too. Patch from vinschen@redhat.com
@@ -1178,4 +1179,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2615 2003/02/24 01:05:18 djm Exp $
+$Id: ChangeLog,v 1.2616 2003/02/24 01:18:46 djm Exp $

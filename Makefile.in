@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.225 2003/01/13 05:55:23 djm Exp $
+# $Id: Makefile.in,v 1.226 2003/02/24 01:18:47 djm Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -62,11 +62,28 @@ INSTALL_SSH_RAND_HELPER=@INSTALL_SSH_RAND_HELPER@
 
 TARGETS=ssh$(EXEEXT) sshd$(EXEEXT) ssh-add$(EXEEXT) ssh-keygen$(EXEEXT) ssh-keyscan${EXEEXT} ssh-keysign${EXEEXT} ssh-agent$(EXEEXT) scp$(EXEEXT) ssh-rand-helper${EXEEXT} $(SFTP_PROGS)
 
-LIBSSH_OBJS=atomicio.o authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o cipher.o compat.o compress.o crc32.o deattack.o dh.o dispatch.o fatal.o mac.o msg.o hostfile.o key.o kex.o kexdh.o kexgex.o log.o match.o misc.o mpaux.o nchan.o packet.o radix.o rijndael.o entropy.o readpass.o rsa.o scard.o scard-opensc.o ssh-dss.o ssh-rsa.o tildexpand.o ttymodes.o uidswap.o uuencode.o xmalloc.o monitor_wrap.o monitor_fdpass.o
+LIBSSH_OBJS=authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o \
+	cipher.o compat.o compress.o crc32.o deattack.o fatal.o \
+	hostfile.o log.o match.o mpaux.o nchan.o packet.o readpass.o \
+	rsa.o tildexpand.o ttymodes.o xmalloc.o atomicio.o \
+	key.o dispatch.o kex.o mac.o uuencode.o misc.o \
+	rijndael.o ssh-dss.o ssh-rsa.o dh.o kexdh.o kexgex.o \
+	kexdhc.o kexgexc.o scard.o msg.o progressmeter.o \
+	entropy.o
 
-SSHOBJS= ssh.o sshconnect.o sshconnect1.o sshconnect2.o sshtty.o readconf.o clientloop.o
+SSHOBJS= ssh.o readconf.o clientloop.o sshtty.o \
+	sshconnect.o sshconnect1.o sshconnect2.o
 
-SSHDOBJS= sshd.o auth.o auth1.o auth2.o auth2-hostbased.o auth2-kbdint.o auth2-none.o auth2-passwd.o auth2-pubkey.o auth-chall.o auth2-chall.o auth-rhosts.o auth-options.o auth-krb4.o auth-krb5.o auth-pam.o auth2-pam.o auth-passwd.o auth-rsa.o auth-rh-rsa.o auth-sia.o sshpty.o sshlogin.o loginrec.o servconf.o serverloop.o md5crypt.o session.o groupaccess.o auth-skey.o auth-bsdauth.o monitor_mm.o monitor.o
+SSHDOBJS=sshd.o auth-rhosts.o auth-passwd.o auth-rsa.o auth-rh-rsa.o \
+	sshpty.o sshlogin.o servconf.o serverloop.o uidswap.o \
+	auth.o auth1.o auth2.o auth-options.o session.o \
+	auth-chall.o auth2-chall.o groupaccess.o \
+	auth-skey.o auth-bsdauth.o auth2-hostbased.o auth2-kbdint.o \
+	auth2-none.o auth2-passwd.o auth2-pubkey.o \
+	monitor_mm.o monitor.o monitor_wrap.o monitor_fdpass.o \
+	kexdhs.o kexgexs.o \
+	auth-krb5.o auth-krb4.o \
+	loginrec.o auth-pam.o auth-sia.o md5crypt.o
 
 MANPAGES	= scp.1.out ssh-add.1.out ssh-agent.1.out ssh-keygen.1.out ssh-keyscan.1.out ssh.1.out sshd.8.out sftp-server.8.out sftp.1.out ssh-rand-helper.8.out ssh-keysign.8.out sshd_config.5.out ssh_config.5.out
 MANPAGES_IN	= scp.1 ssh-add.1 ssh-agent.1 ssh-keygen.1 ssh-keyscan.1 ssh.1 sshd.8 sftp-server.8 sftp.1 ssh-rand-helper.8 ssh-keysign.8 sshd_config.5 ssh_config.5
