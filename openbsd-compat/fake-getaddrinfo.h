@@ -1,4 +1,4 @@
-/* $Id: fake-getaddrinfo.h,v 1.2 2001/02/09 01:55:36 djm Exp $ */
+/* $Id: fake-getaddrinfo.h,v 1.3 2003/02/05 23:50:43 djm Exp $ */
 
 #ifndef _FAKE_GETADDRINFO_H
 #define _FAKE_GETADDRINFO_H
@@ -37,7 +37,7 @@ int getaddrinfo(const char *hostname, const char *servname,
 #endif /* !HAVE_GETADDRINFO */
 
 #ifndef HAVE_GAI_STRERROR
-char *gai_strerror(int ecode);
+const char *gai_strerror(int ecode);
 #endif /* !HAVE_GAI_STRERROR */
 
 #ifndef HAVE_FREEADDRINFO

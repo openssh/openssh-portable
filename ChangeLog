@@ -1,3 +1,7 @@
+20030206
+ - (djm) Teach fake-getaddrinfo to use getservbyname() when provided a 
+   string service name. Suggested by markus@, review by itojun@
+
 20030131
  - (bal) AIX 4.2.1 lacks nanosleep().  Patch to use nsleep() provided by
    dtucker@zip.com.au
@@ -1090,4 +1094,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2591 2003/02/01 04:43:34 mouring Exp $
+$Id: ChangeLog,v 1.2592 2003/02/05 23:51:06 djm Exp $
