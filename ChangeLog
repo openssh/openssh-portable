@@ -10,6 +10,11 @@
      session.c sftp-client.c sftp.c ssh-agent.1 ssh-keygen.c ssh.c ssh1.h
      sshd.c ttymodes.h]
      spaces
+   - brad@cvs.openbsd.org 2004/07/12 23:34:25
+     [ssh-keyscan.1]
+     Fix incorrect macro, .I -> .Em
+     From: Eric S. Raymond <esr at thyrsus dot com>
+     ok jmc@
 
 20040711
  - (dtucker) [auth-pam.c] Check for zero from waitpid() too, which allows
@@ -1516,4 +1521,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3475 2004/07/17 06:12:08 dtucker Exp $
+$Id: ChangeLog,v 1.3476 2004/07/17 06:13:15 dtucker Exp $
