@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.131 2004/04/27 09:46:37 djm Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.132 2004/05/08 00:01:37 deraadt Exp $");
 
 #include "ssh.h"
 #include "log.h"
@@ -18,7 +18,6 @@ RCSID("$OpenBSD: servconf.c,v 1.131 2004/04/27 09:46:37 djm Exp $");
 #include "xmalloc.h"
 #include "compat.h"
 #include "pathnames.h"
-#include "tildexpand.h"
 #include "misc.h"
 #include "cipher.h"
 #include "kex.h"

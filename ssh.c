@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.212 2004/04/27 09:46:37 djm Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.213 2004/05/08 00:01:37 deraadt Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -62,12 +62,11 @@ RCSID("$OpenBSD: ssh.c,v 1.212 2004/04/27 09:46:37 djm Exp $");
 #include "log.h"
 #include "readconf.h"
 #include "sshconnect.h"
-#include "tildexpand.h"
 #include "dispatch.h"
 #include "misc.h"
 #include "kex.h"
 #include "mac.h"
-#include "sshtty.h"
+#include "sshpty.h"
 #include "match.h"
 
 #ifdef SMARTCARD
