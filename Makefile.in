@@ -112,6 +112,9 @@ catman-do:
 			>$${f%%.[18]}.0 ; \
 	done
 
+distprep: catman-do
+	autoreconf
+
 install: manpages $(TARGETS) install-files host-key
 
 install-files:

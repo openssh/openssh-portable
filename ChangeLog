@@ -3,6 +3,7 @@
  - (djm) Use atomicio in loginrec
  - (djm) Patch from Michael Stone <mstone@cs.loyola.edu> to add support for
    Irix 6.x array sessions, project id's, and system audit trail id.
+ - (djm) Added 'distprep' make target to simplify packaging
 
 20000627
  - (djm) Fixes to login code - not setting li->uid, cleanups
