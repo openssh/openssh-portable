@@ -1,3 +1,6 @@
+20010714
+ - (stevesk) change getopt() declaration
+
 20010713
  - (djm) Enable /etc/nologin check on PAM systems, as some lack the 
    pam_nologin module. Report from William Yodlowsky 
@@ -6025,4 +6028,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1399 2001/07/14 03:22:53 djm Exp $
+$Id: ChangeLog,v 1.1400 2001/07/14 16:05:55 stevesk Exp $
