@@ -2,6 +2,7 @@
  - (djm) Pull in auth-krb5.c from OpenBSD CVS. NB. it is not currently used.
  - (djm) Sync $sysconfdir/moduli
  - (djm) Add AC_SYS_LARGEFILE configure test
+ - (djm) Avoid bad and unportable sprintf usage in compat code
 
 20010923
  - (bal) updated ssh.c to mirror minor getopts 'extern int' formating done
@@ -6568,4 +6569,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1562 2001/09/25 06:39:35 djm Exp $
+$Id: ChangeLog,v 1.1563 2001/09/25 12:21:52 djm Exp $
