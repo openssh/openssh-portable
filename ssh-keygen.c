@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.91 2002/01/18 18:14:17 stevesk Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.92 2002/02/16 20:40:08 stevesk Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -90,21 +90,25 @@ ask_filename(struct passwd *pw, const char *prompt)
 	char buf[1024];
 	char *name = NULL;
 
-	switch (key_type_from_name(key_type_name)) {
-	case KEY_RSA1:
-		name = _PATH_SSH_CLIENT_IDENTITY;
-		break;
-	case KEY_DSA:
-		name = _PATH_SSH_CLIENT_ID_DSA;
-		break;
-	case KEY_RSA:
+	if (key_type_name == NULL)
 		name = _PATH_SSH_CLIENT_ID_RSA;
-		break;
-	default:
-		fprintf(stderr, "bad key type");
-		exit(1);
-		break;
-	}
+	else
+		switch (key_type_from_name(key_type_name)) {
+		case KEY_RSA1:
+			name = _PATH_SSH_CLIENT_IDENTITY;
+			break;
+		case KEY_DSA:
+			name = _PATH_SSH_CLIENT_ID_DSA;
+			break;
+		case KEY_RSA:
+			name = _PATH_SSH_CLIENT_ID_RSA;
+			break;
+		default:
+			fprintf(stderr, "bad key type");
+			exit(1);
+			break;
+		}
+
 	snprintf(identity_file, sizeof(identity_file), "%s/%s", pw->pw_dir, name);
 	fprintf(stderr, "%s (%s): ", prompt, identity_file);
 	fflush(stderr);

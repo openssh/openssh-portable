@@ -20,6 +20,10 @@
    - stevesk@cvs.openbsd.org 2002/02/16 14:53:37
      [ssh-keygen.1]
      -t required now for key generation
+   - stevesk@cvs.openbsd.org 2002/02/16 20:40:08
+     [ssh-keygen.c]
+     default to rsa keyfile path for non key generation operations where
+     keyfile not specified.  fixes core dump in those cases.  ok markus@
 
 20020218
  - (tim) newer config.guess from ftp://ftp.gnu.org/gnu/config/config.guess
@@ -7617,4 +7621,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1859 2002/02/19 04:22:07 djm Exp $
+$Id: ChangeLog,v 1.1860 2002/02/19 04:22:47 djm Exp $
