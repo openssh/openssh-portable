@@ -8,6 +8,7 @@
    - Change binary names to open*
  - Fixed autoconf script to detect PAM on RH6.1
  - Added tests for libpwdb, and OpenBSD functions to autoconf
+ - Released 1.2pre4
 19991027
  - Adapted PAM patch.
  - Released 1.0pre2
