@@ -1,5 +1,6 @@
 20010115
  - (bal) sftp-server.c change to use chmod() if fchmod() does not exist.
+ - (bal) utimes() support via utime() interface on machine that lack utimes().
 
 20010114
  - (stevesk) initial work for OpenBSD "support supplementary group in

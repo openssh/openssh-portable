@@ -80,3 +80,15 @@ const char *strerror(int e)
 		return(sys_errlist[e]);
 }
 #endif
+
+#ifndef HAVE_UTIMES
+int utimes(char *filename, struct timeval *tvp)
+{
+	struct utimbuf ub;
+
+	ub.actime = tvp->tv_sec;
+	ub.modtime = tvp->tv_usec;
+	
+	return(utime(filename, &ub));
+}
+#endif 

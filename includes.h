@@ -85,6 +85,9 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #ifdef HAVE_SYS_SYSMACROS_H
 # include <sys/sysmacros.h>
 #endif
+#ifdef HAVE_UTIME_H
+# include <utime.h>
+#endif
 #ifdef HAVE_VIS_H
 # include <vis.h>
 #endif

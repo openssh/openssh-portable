@@ -313,10 +313,10 @@ AC_CHECK_FUNC(utimes,
 )
 
 # Checks for header files.
-AC_CHECK_HEADERS(bstring.h endian.h floatingpoint.h getopt.h lastlog.h limits.h login.h login_cap.h maillock.h netdb.h netgroup.h netinet/in_systm.h paths.h poll.h pty.h shadow.h security/pam_appl.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h sys/poll.h sys/queue.h sys/select.h sys/stat.h sys/stropts.h sys/sysmacros.h sys/time.h sys/ttcompat.h sys/un.h stddef.h time.h ttyent.h usersec.h util.h utmp.h utmpx.h vis.h)
+AC_CHECK_HEADERS(bstring.h endian.h floatingpoint.h getopt.h lastlog.h limits.h login.h login_cap.h maillock.h netdb.h netgroup.h netinet/in_systm.h paths.h poll.h pty.h shadow.h security/pam_appl.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h sys/poll.h sys/queue.h sys/select.h sys/stat.h sys/stropts.h sys/sysmacros.h sys/time.h sys/ttcompat.h sys/un.h stddef.h time.h ttyent.h usersec.h util.h utime.h utmp.h utmpx.h vis.h)
 
 dnl    Checks for library functions.
-AC_CHECK_FUNCS(arc4random atexit b64_ntop bcopy bindresvport_af clock fchmod freeaddrinfo futimes gai_strerror getcwd getaddrinfo getgrouplist getnameinfo getrlimit getrusage getttyent inet_aton inet_ntoa innetgr login_getcapbool md5_crypt memmove mkdtemp on_exit openpty realpath rresvport_af setdtablesize setenv seteuid setlogin setproctitle setreuid setrlimit setsid sigaction sigvec snprintf strerror strlcat strlcpy strsep strtok_r sysconf vsnprintf vhangup vis waitpid _getpty __b64_ntop)
+AC_CHECK_FUNCS(arc4random atexit b64_ntop bcopy bindresvport_af clock fchmod freeaddrinfo futimes gai_strerror getcwd getaddrinfo getgrouplist getnameinfo getrlimit getrusage getttyent inet_aton inet_ntoa innetgr login_getcapbool md5_crypt memmove mkdtemp on_exit openpty realpath rresvport_af setdtablesize setenv seteuid setlogin setproctitle setreuid setrlimit setsid sigaction sigvec snprintf strerror strlcat strlcpy strsep strtok_r sysconf utimes vsnprintf vhangup vis waitpid _getpty __b64_ntop)
 dnl    Checks for time functions
 AC_CHECK_FUNCS(gettimeofday time)
 dnl    Checks for libutil functions
@@ -825,14 +825,27 @@ if test "x$ac_cv_have_struct_addrinfo" = "xyes" ; then
 	AC_DEFINE(HAVE_STRUCT_ADDRINFO)
 fi
 
+AC_CACHE_CHECK([for struct timeval], ac_cv_have_struct_timeval, [
+	AC_TRY_COMPILE(
+		[ #include <sys/time.h> ], 
+		[ struct timeval tv; tv.tv_sec = 1;], 
+		[ ac_cv_have_struct_timeval="yes" ],
+		[ ac_cv_have_struct_timeval="no" ]
+	)
+])
+if test "x$ac_cv_have_struct_timeval" = "xyes" ; then
+	AC_DEFINE(HAVE_STRUCT_TIMEVAL)
+	have_struct_timeval=1
+fi
+
 # If we don't have int64_t then we can't compile sftp-server.  So don't
 # even attempt to do it. 
 if test "x$ac_cv_have_int64_t" = "xno" -a \
 	"x$ac_cv_sizeof_long_int" != "x8" -a \
 	"x$ac_cv_sizeof_long_long_int" = "x0" ; then
 	NO_SFTP='#'
-	AC_SUBST(NO_SFTP)
 fi
+AC_SUBST(NO_SFTP)
 
 dnl Checks for structure members
 OSSH_CHECK_HEADER_FOR_FIELD(ut_host, utmp.h, HAVE_HOST_IN_UTMP)

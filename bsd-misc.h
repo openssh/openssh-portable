@@ -54,4 +54,17 @@ int seteuid(uid_t euid);
 const char *strerror(int e);
 #endif 
 
+
+#ifndef HAVE_UTIMES
+#ifndef HAVE_STRUCT_TIMEVAL
+struct timeval {
+	long tv_sec;
+	long tv_usec;
+}
+#endif /* HAVE_STRUCT_TIMEVAL */
+
+int utimes(char *filename, struct timeval *tvp);
+#endif /* HAVE_UTIMES */
+
+
 #endif /* _BSD_MISC_H */

@@ -103,6 +103,9 @@
  * message at run-time. */
 #undef RSAREF
 
+/* struct timeval */
+#undef HAVE_STRUCT_TIMEVAL
+
 /* struct utmp and struct utmpx fields */
 #undef HAVE_HOST_IN_UTMP
 #undef HAVE_HOST_IN_UTMPX
