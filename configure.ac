@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.233 2004/11/07 09:14:34 dtucker Exp $
+# $Id: configure.ac,v 1.234 2004/12/09 02:29:59 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -348,12 +348,14 @@ mips-sony-bsd|mips-sony-newsos4)
 	# Attention: always take care to bind libsocket and libnsl before libc,
 	# otherwise you will find lots of "SIOCGPGRP errno 22" on syslog
 	;;
+# UnixWare 1.x, UnixWare 2.x, and others based on code from Univel.
 *-*-sysv4.2*)
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(SETEUID_BREAKS_SETUID)
 	AC_DEFINE(BROKEN_SETREUID)
 	AC_DEFINE(BROKEN_SETREGID)
 	;;
+# UnixWare 7.x, OpenUNIX 8
 *-*-sysv5*)
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(SETEUID_BREAKS_SETUID)
@@ -362,6 +364,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	;;
 *-*-sysv*)
 	;;
+# SCO UNIX and OEM versions of SCO UNIX
 *-*-sco3.2v4*)
 	CPPFLAGS="$CPPFLAGS -Dftruncate=chsize"
 	LIBS="$LIBS -los -lprot -lcrypt_i -lx -ltinfo -lm"
@@ -381,6 +384,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	do_sco3_extra_lib_check=yes
 	TEST_SHELL=ksh
 	;;
+# SCO OpenServer 5.x
 *-*-sco3.2v5*)
 	if test -z "$GCC"; then
 		CFLAGS="$CFLAGS -belf"

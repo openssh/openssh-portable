@@ -1,3 +1,7 @@
+20041208
+ - (tim) [configure.ac] Comment some non obvious platforms in the
+ target-specific case statement. Suggested and OK by dtucker@
+
 20041207
  - (dtucker) [regress/scp.sh] Use portable-friendly $DIFFOPTs in new test.
 
@@ -1923,4 +1927,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3599 2004/12/07 00:26:15 dtucker Exp $
+$Id: ChangeLog,v 1.3600 2004/12/09 02:29:58 tim Exp $
