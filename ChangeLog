@@ -1,4 +1,8 @@
 20010226
+ - (bal) Applied shutdown() patch for sftp.c by  Corinna Vinschen 
+   <vinschen@redhat.com>
+
+20010226
  - (bal) Fixed bsd-snprinf.c so it now honors 'BROKEN_SNPRINTF' again.
  - (djm) Some systems (SCO3, NeXT) have weird saved uid semantics. 
    Based on patch from Tim Rice <tim@multitalents.net>
@@ -4131,4 +4135,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.823 2001/02/26 09:49:58 djm Exp $
+$Id: ChangeLog,v 1.824 2001/02/26 20:04:45 mouring Exp $

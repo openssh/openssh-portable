@@ -246,11 +246,18 @@ main(int argc, char **argv)
 
 	interactive_loop(in, out);
 
+#if !defined(USE_PIPES)
+        shutdown(in, SHUT_RDWR);
+        shutdown(out, SHUT_RDWR);
+#endif
+
 	close(in);
 	close(out);
 
+#if !defined(HAVE_CYGWIN)
 	if (kill(sshpid, SIGHUP) == -1)
 		fatal("Couldn't terminate ssh process: %s", strerror(errno));
+#endif
 
 	if (waitpid(sshpid, NULL, 0) == -1)
 		fatal("Couldn't wait for ssh process: %s", strerror(errno));
