@@ -16,7 +16,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: clientloop.c,v 1.14 2000/05/07 02:03:16 damien Exp $");
+RCSID("$Id: clientloop.c,v 1.15 2000/05/08 03:44:53 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -979,7 +979,12 @@ client_input_channel_open(int type, int plen)
 		char *originator;
 		int originator_port;
 		originator = packet_get_string(NULL);
-		originator_port = packet_get_int();
+		if (packet_remaining() > 0) {
+			originator_port = packet_get_int();
+		} else {
+			debug("buggy server: x11 request w/o originator_port");
+			originator_port = 0;
+		}
 		packet_done();
 		/* XXX check permission */
 		xfree(originator);

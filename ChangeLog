@@ -1,6 +1,13 @@
 20000508
  - Makefile and RPM spec fixes
  - Generate DSA host keys during "make key" or RPM installs
+ - OpenBSD CVS update
+  - markus@cvs.openbsd.org
+    [clientloop.c sshconnect2.c]
+    - make x11-fwd interop w/ ssh-2.0.13
+    [README.openssh2]
+    - interop w/ SecureFX
+ - Release 2.0.0beta2
 
 20000507
  - Remove references to SSLeay.

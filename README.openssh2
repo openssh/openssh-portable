@@ -1,4 +1,4 @@
-$Id: README.openssh2,v 1.4 2000/04/29 13:57:09 damien Exp $
+$Id: README.openssh2,v 1.8 2000/05/07 18:30:03 markus Exp $
 
 howto:
 	1) generate server key:
@@ -25,7 +25,7 @@ works:
 		x11-fwd
 	dss/dsa: host key database in ~/.ssh/known_hosts2
 	client interops w/ sshd2, lshd
-	server interops w/ ssh2, lsh, ssh.com's Windows client, SecureCRT, F-Secure SSH Client 4.0
+	server interops w/ ssh2, lsh, ssh.com's Windows client, SecureCRT, F-Secure SSH Client 4.0, SecureFX (secure ftp)
 	server supports multiple concurrent sessions (e.g. with SSH.com Windows client)
 todo:
 	re-keying
@@ -41,4 +41,4 @@ todo:
 	sftp
 
 -markus
-$Date: 2000/04/29 13:57:09 $
+$Date: 2000/05/07 18:30:03 $
