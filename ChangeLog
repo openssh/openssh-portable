@@ -1,3 +1,6 @@
+20031208
+ - (tim) [configure.ac] Bug 770. Fix --without-rpath.
+
 20031123
  - (djm) [canohost.c] Move IPv4inV6 mapped address normalisation to its own
    function and call it unconditionally
@@ -1532,4 +1535,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3130 2003/11/24 02:33:34 djm Exp $
+$Id: ChangeLog,v 1.3131 2003/12/08 20:35:59 tim Exp $

@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.175 2003/11/22 03:25:16 dtucker Exp $
+# $Id: configure.ac,v 1.176 2003/12/08 20:35:59 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -51,6 +51,18 @@ AC_C_INLINE
 if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 	CFLAGS="$CFLAGS -Wall -Wpointer-arith -Wno-uninitialized"
 fi
+
+AC_ARG_WITH(rpath,
+	[  --without-rpath         Disable auto-added -R linker paths],
+	[
+		if test "x$withval" = "xno" ; then	
+			need_dash_r=""
+		fi
+		if test "x$withval" = "xyes" ; then
+			need_dash_r=1
+		fi
+	]
+)
 
 # Check for some target-specific stuff
 case "$host" in
@@ -228,7 +240,9 @@ mips-sony-bsd|mips-sony-newsos4)
 	;;
 *-*-netbsd*)
 	check_for_libcrypt_before=1
-	need_dash_r=1
+	if test "x$withval" != "xno" ; then	
+		need_dash_r=1
+	fi
 	;;
 *-*-freebsd*)
 	check_for_libcrypt_later=1
@@ -252,8 +266,12 @@ mips-sony-bsd|mips-sony-newsos4)
 	;;
 *-*-solaris*)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
-	LDFLAGS="$LDFLAGS -L/usr/local/lib -R/usr/local/lib"
-	need_dash_r=1
+	if test "x$withval" = "xno" ; then	
+		LDFLAGS="$LDFLAGS -L/usr/local/lib"
+	else
+		LDFLAGS="$LDFLAGS -L/usr/local/lib -R/usr/local/lib"
+		need_dash_r=1
+	fi
 	AC_DEFINE(PAM_SUN_CODEBASE)
 	AC_DEFINE(LOGIN_NEEDS_UTMPX)
 	AC_DEFINE(LOGIN_NEEDS_TERM)
@@ -536,18 +554,6 @@ int main(int argc, char **argv) {
 AC_CHECK_FUNC(getspnam, ,
 	AC_CHECK_LIB(gen, getspnam, LIBS="$LIBS -lgen"))
 AC_SEARCH_LIBS(basename, gen, AC_DEFINE(HAVE_BASENAME))
-
-AC_ARG_WITH(rpath,
-	[  --without-rpath         Disable auto-added -R linker paths],
-	[
-		if test "x$withval" = "xno" ; then	
-			need_dash_r=""
-		fi
-		if test "x$withval" = "xyes" ; then
-			need_dash_r=1
-		fi
-	]
-)
 
 dnl zlib is required
 AC_ARG_WITH(zlib,
