@@ -17,7 +17,6 @@ do
 	fi
 done
 
-
 # Path with embedded quote
 QUOTECOPY=${COPY}".\"blah\""
 QUOTECOPY_ARG=${COPY}'.\"blah\"'
@@ -148,7 +147,7 @@ test -d ${COPY}.dd2 || fail "missing newname after rename directory"
 
 verbose "$tid: ln"
 echo "ln ${COPY}.1 ${COPY}.2" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 || fail "ln failed"
-test -L ${COPY}.2 || fail "missing file after ln"
+test -h ${COPY}.2 || fail "missing file after ln"
 
 verbose "$tid: mkdir"
 echo "mkdir ${COPY}.dd" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
