@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.201 2004/05/02 11:54:31 dtucker Exp $
+.\" $OpenBSD: sshd.8,v 1.202 2004/08/26 16:00:55 markus Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -106,8 +106,6 @@ to use from those offered by the server.
 Next, the server and the client enter an authentication dialog.
 The client tries to authenticate itself using
 .Em .rhosts
-authentication,
-.Em .rhosts
 authentication combined with RSA host
 authentication, RSA challenge-response authentication, or password
 based authentication.
@@ -135,11 +133,6 @@ or
 .Ql \&*NP\&*
 ).
 .Pp
-.Em rhosts
-authentication is normally disabled
-because it is fundamentally insecure, but can be enabled in the server
-configuration file if desired.
-System security is not improved unless
 .Nm rshd ,
 .Nm rlogind ,
 and
@@ -670,7 +663,11 @@ Access controls that should be enforced by tcp-wrappers are defined here.
 Further details are described in
 .Xr hosts_access 5 .
 .It Pa $HOME/.rhosts
-This file contains host-username pairs, separated by a space, one per
+This file is used during
+.Cm RhostsRSAAuthentication
+and
+.Cm HostbasedAuthentication
+and contains host-username pairs, separated by a space, one per
 line.
 The given user on the corresponding host is permitted to log in
 without a password.
@@ -691,7 +688,9 @@ However, this file is
 not used by rlogin and rshd, so using this permits access using SSH only.
 .It Pa /etc/hosts.equiv
 This file is used during
-.Em rhosts
+.Cm RhostsRSAAuthentication
+and
+.Cm HostbasedAuthentication
 authentication.
 In the simplest form, this file contains host names, one per line.
 Users on
@@ -710,7 +709,7 @@ Negated entries start with
 If the client host/user is successfully matched in this file, login is
 automatically permitted provided the client and server user names are the
 same.
-Additionally, successful RSA host authentication is normally required.
+Additionally, successful client host key authentication is required.
 This file must be writable only by root; it is recommended
 that it be world-readable.
 .Pp

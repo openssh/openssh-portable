@@ -16,6 +16,9 @@
    - dtucker@cvs.openbsd.org 2004/08/23 14:29:23
      [ssh-keysign.c]
      Remove duplicate getuid(), suggested by & ok markus@
+   - markus@cvs.openbsd.org 2004/08/26 16:00:55
+     [ssh.1 sshd.8]
+     get rid of references to rhosts authentication; with jmc@
 
 20040828
  - (dtucker) [openbsd-compat/mktemp.c] Remove superfluous Cygwin #ifdef; from
@@ -1683,4 +1686,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3526 2004/08/29 06:32:59 dtucker Exp $
+$Id: ChangeLog,v 1.3527 2004/08/29 06:37:24 dtucker Exp $

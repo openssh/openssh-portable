@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.194 2004/08/12 21:41:13 jakob Exp $
+.\" $OpenBSD: ssh.1,v 1.195 2004/08/26 16:00:55 markus Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -103,35 +103,25 @@ is specified,
 .Ar command
 is executed on the remote host instead of a login shell.
 .Ss SSH protocol version 1
-First, if the machine the user logs in from is listed in
-.Pa /etc/hosts.equiv
-or
-.Pa /etc/shosts.equiv
-on the remote machine, and the user names are
-the same on both sides, the user is immediately permitted to log in.
-Second, if
-.Pa .rhosts
-or
-.Pa .shosts
-exists in the user's home directory on the
-remote machine and contains a line containing the name of the client
-machine and the name of the user on that machine, the user is
-permitted to log in.
-This form of authentication alone is normally not
-allowed by the server because it is not secure.
-.Pp
-The second authentication method is the
+The first authentication method is the
 .Em rhosts
 or
 .Em hosts.equiv
 method combined with RSA-based host authentication.
-It means that if the login would be permitted by
-.Pa $HOME/.rhosts ,
-.Pa $HOME/.shosts ,
-.Pa /etc/hosts.equiv ,
+If the machine the user logs in from is listed in
+.Pa /etc/hosts.equiv
 or
-.Pa /etc/shosts.equiv ,
-and if additionally the server can verify the client's
+.Pa /etc/shosts.equiv
+on the remote machine, and the user names are
+the same on both sides, or if the files
+.Pa $HOME/.rhosts
+or
+.Pa $HOME/.shosts
+exist in the user's home directory on the
+remote machine and contain a line containing the name of the client
+machine and the name of the user on that machine, the user is
+considered for log in.
+Additionally, if the server can verify the client's
 host key (see
 .Pa /etc/ssh/ssh_known_hosts
 and
@@ -147,7 +137,7 @@ spoofing, DNS spoofing and routing spoofing.
 and the rlogin/rsh protocol in general, are inherently insecure and should be
 disabled if security is desired.]
 .Pp
-As a third authentication method,
+As a second authentication method,
 .Nm
 supports RSA based authentication.
 The scheme is based on public-key cryptography: there are cryptosystems
@@ -195,9 +185,6 @@ file corresponds to the conventional
 file, and has one key
 per line, though the lines can be very long).
 After this, the user can log in without giving the password.
-RSA authentication is much more secure than
-.Em rhosts
-authentication.
 .Pp
 The most convenient way to use RSA authentication may be with an
 authentication agent.
@@ -1012,7 +999,9 @@ By default
 is not setuid root.
 .It Pa $HOME/.rhosts
 This file is used in
-.Em rhosts
+.Cm RhostsRSAAuthentication
+and
+.Cm HostbasedAuthentication
 authentication to list the
 host/user pairs that are permitted to log in.
 (Note that this file is
@@ -1031,12 +1020,10 @@ The recommended
 permission for most machines is read/write for the user, and not
 accessible by others.
 .Pp
-Note that by default
+Note that
 .Xr sshd 8
-will be installed so that it requires successful RSA host
-authentication before permitting
-.Em rhosts
-authentication.
+allows authentication only in combination with client host key
+authentication before permitting log in.
 If the server machine does not have the client's host key in
 .Pa /etc/ssh/ssh_known_hosts ,
 it can be stored in
@@ -1049,15 +1036,19 @@ will automatically add the host key to
 This file is used exactly the same way as
 .Pa .rhosts .
 The purpose for
-having this file is to be able to use rhosts authentication with
-.Nm
-without permitting login with
+having this file is to be able to use
+.Cm RhostsRSAAuthentication
+and
+.Cm HostbasedAuthentication
+authentication without permitting login with
 .Xr rlogin
 or
 .Xr rsh 1 .
 .It Pa /etc/hosts.equiv
 This file is used during
-.Em rhosts
+.Cm RhostsRSAAuthentication
+and
+.Cm HostbasedAuthentication
 authentication.
 It contains
 canonical hosts names, one per line (the full format is described in the
@@ -1066,8 +1057,7 @@ manual page).
 If the client host is found in this file, login is
 automatically permitted provided client and server user names are the
 same.
-Additionally, successful RSA host authentication is normally
-required.
+Additionally, successful client host key authentication is required.
 This file should only be writable by root.
 .It Pa /etc/shosts.equiv
 This file is processed exactly as
