@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.16 2001/02/12 16:16:23 markus Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.17 2001/02/13 22:49:40 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -378,8 +378,6 @@ do_authentication()
 	authctxt->user = user;
 	authctxt->style = style;
 
-	setproctitle("%s", user);
-
 	/* Verify that the user is a valid user. */
 	pw = getpwnam(user);
 	if (pw && allowed_user(pw)) {
@@ -390,6 +388,8 @@ do_authentication()
 		pw = NULL;
 	}
 	authctxt->pw = pw;
+
+	setproctitle("%s", pw ? user : "unknown");
 
 #ifdef USE_PAM
 	if (pw)
