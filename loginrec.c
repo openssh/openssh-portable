@@ -140,7 +140,7 @@
 # include <libutil.h>
 #endif
 
-RCSID("$Id: loginrec.c,v 1.61 2004/09/12 05:25:17 djm Exp $");
+RCSID("$Id: loginrec.c,v 1.62 2004/09/12 05:26:01 djm Exp $");
 
 /**
  ** prototypes for helper functions in this file
@@ -1353,10 +1353,7 @@ syslogin_perform_login(struct logininfo *li)
 {
 	struct utmp *ut;
 
-	if ((ut = (struct utmp *)malloc(sizeof(*ut))) == NULL) {
-		logit("%s: couldn't malloc()", __func__);
-		return (0);
-	}
+	ut = xmalloc(sizeof(*ut));
 	construct_utmp(li, ut);
 	login(ut);
 	free(ut);
