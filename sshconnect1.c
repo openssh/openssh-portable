@@ -1271,4 +1271,9 @@ ssh_userauth1(const char *local_user, const char *server_user, char *host,
 		send_afs_tokens();
 	}
 #endif /* AFS */
+
+/* give the compiler something to do for success: */
+#if !defined(KRB5) && !defined(AFS)
+	;
+#endif
 }

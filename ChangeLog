@@ -136,6 +136,11 @@
  - (stevesk) more sync for session.c
  - (stevesk) sync servconf.h (comments)
  - (tim) [contrib/caldera/openssh.spec] sync with Caldera
+ - (tim) [openbsd-compat/dirname.h] Remove ^M causing some compilers to
+	 issue warning (line 1: tokens ignored at end of directive line)
+ - (tim) [sshconnect1.c] give the compiler something to do for success:
+	 if KRB5 and AFS are not defined
+	 (ERROR: "sshconnect1.c", line 1274: Syntax error before or at: })
 
 20010629
  - (bal) Removed net_aton() since we don't use it any more
@@ -5963,4 +5968,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1382 2001/07/05 00:45:28 tim Exp $
+$Id: ChangeLog,v 1.1383 2001/07/05 04:27:20 tim Exp $
