@@ -1,3 +1,6 @@
+20020722
+ - (bal) AIX tty data limiting patch fix by leigh@solinno.co.uk
+
 20020721
  - (stevesk) [auth-pam.c] merge cosmetic changes from solar's
    openssh-3.4p1-owl-password-changing.diff
@@ -1408,4 +1411,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2386 2002/07/21 23:59:40 stevesk Exp $
+$Id: ChangeLog,v 1.2387 2002/07/22 15:28:53 mouring Exp $

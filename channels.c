@@ -186,6 +186,7 @@ channel_register_fds(Channel *c, int rfd, int wfd, int efd,
 	} else {
 		c->isatty = 0;
 	}
+	c->wfd_isatty = isatty(c->wfd);
 
 	/* enable nonblocking mode */
 	if (nonblock) {
@@ -1286,12 +1287,12 @@ channel_handle_wfd(Channel *c, fd_set * readset, fd_set * writeset)
 	    buffer_len(&c->output) > 0) {
 		data = buffer_ptr(&c->output);
 		dlen = buffer_len(&c->output);
-		len = write(c->wfd, data, dlen);
 #ifdef _AIX
 		/* XXX: Later AIX versions can't push as much data to tty */ 
-		if (compat20 && c->isatty && dlen >= 8*1024)
+		if (compat20 && c->wfd_isatty && dlen > 8*1024)
 			dlen = 8*1024;
 #endif
+		len = write(c->wfd, data, dlen);
 		if (len < 0 && (errno == EINTR || errno == EAGAIN))
 			return 1;
 		if (len <= 0) {
