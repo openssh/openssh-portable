@@ -98,10 +98,10 @@ aix_remove_embedded_newlines(char *p)
  * returns 0.
  */
 int
-aix_authenticate(const char *name, const char *password, const char *host)
+sys_auth_passwd(Authctxt *ctxt, const char *password)
 {
-	char *authmsg = NULL, *msg;
-	int authsuccess = 0, reenter, result;
+	char *authmsg = NULL, *host, *msg, *name = ctxt->pw->pw_name;
+	int authsuccess = 0, expired, reenter, result;
 
 	do {
 		result = authenticate((char *)name, (char *)password, &reenter,
@@ -114,7 +114,12 @@ aix_authenticate(const char *name, const char *password, const char *host)
 	if (result == 0) {
 		authsuccess = 1;
 
-	       	/* No pty yet, so just label the line as "ssh" */
+		host = (char *)get_canonical_hostname(options.use_dns);
+
+	       	/*
+		 * Record successful login.  We don't have a pty yet, so just
+		 * label the line as "ssh"
+		 */
 		aix_setauthdb(name);
 	       	if (loginsuccess((char *)name, (char *)host, "ssh", &msg) == 0) {
 			if (msg != NULL) {
@@ -123,6 +128,32 @@ aix_authenticate(const char *name, const char *password, const char *host)
 				xfree(msg);
 			}
 		}
+
+		/*
+		 * Check if the user's password is expired.
+		 */
+                expired = passwdexpired(name, &msg);
+                if (msg && *msg) {
+                        buffer_append(&loginmsg, msg, strlen(msg));
+                        aix_remove_embedded_newlines(msg);
+                }
+                debug3("AIX/passwdexpired returned %d msg %.100s", expired, msg);
+
+		switch (expired) {
+		case 0: /* password not expired */
+			break;
+		case 1: /* expired, password change required */
+			ctxt->force_pwchange = 1;
+			disable_forwarding();
+			break;
+		default: /* user can't change(2) or other error (-1) */
+			logit("Password can't be changed for user %s: %.100s",
+			    name, msg);
+			if (msg)
+				xfree(msg);
+			authsuccess = 0;
+		}
+
 		aix_restoreauthdb();
 	}
 

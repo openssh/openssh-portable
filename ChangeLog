@@ -1,3 +1,8 @@
+20040210
+ - (dtucker) [auth-passwd.c auth.h openbsd-compat/port-aix.c
+    openbsd-compat/port-aix.h] Bug #14: Use do_pwchange to support AIX's
+    native password expiry.
+
 20040207
  - (dtucker) OpenBSD CVS Sync
    - dtucker@cvs.openbsd.org 2004/02/06 23:41:13
@@ -1820,4 +1825,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3217 2004/02/07 01:29:39 dtucker Exp $
+$Id: ChangeLog,v 1.3218 2004/02/10 01:50:19 dtucker Exp $

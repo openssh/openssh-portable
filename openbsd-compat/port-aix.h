@@ -1,4 +1,4 @@
-/* $Id: port-aix.h,v 1.17 2004/02/06 05:17:52 dtucker Exp $ */
+/* $Id: port-aix.h,v 1.18 2004/02/10 01:50:20 dtucker Exp $ */
 
 /*
  *
@@ -36,6 +36,9 @@
 # include <usersec.h>
 #endif
 
+/* For Authctxt */
+#include "auth.h"
+
 /* Some versions define r_type in the above headers, which causes a conflict */
 #ifdef r_type
 # undef r_type
@@ -62,11 +65,12 @@
 void aix_usrinfo(struct passwd *);
 
 #ifdef WITH_AIXAUTHENTICATE
+# define CUSTOM_SYS_AUTH_PASSWD 1
+int sys_auth_passwd(Authctxt *, const char *);
 # define CUSTOM_FAILED_LOGIN 1
 void record_failed_login(const char *, const char *);
 #endif
 
-int aix_authenticate(const char *, const char *, const char *);
 void aix_setauthdb(const char *);
 void aix_restoreauthdb(void);
 void aix_remove_embedded_newlines(char *);

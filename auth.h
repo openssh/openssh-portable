@@ -123,6 +123,7 @@ void	krb5_cleanup_proc(Authctxt *authctxt);
 #endif /* KRB5 */
 
 #include "auth-pam.h"
+void disable_forwarding(void);
 
 void	do_authentication(Authctxt *);
 void	do_authentication2(Authctxt *);

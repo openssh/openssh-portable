@@ -43,14 +43,11 @@ RCSID("$OpenBSD: auth-passwd.c,v 1.31 2004/01/30 09:48:57 markus Exp $");
 #include "servconf.h"
 #include "auth.h"
 #include "auth-options.h"
-#ifdef WITH_AIXAUTHENTICATE
-# include "canohost.h"
-#endif
 
 extern ServerOptions options;
 int sys_auth_passwd(Authctxt *, const char *);
 
-static void
+void
 disable_forwarding(void)
 {
 	no_port_forwarding_flag = 1;
@@ -121,14 +118,7 @@ sys_auth_passwd(Authctxt *authctxt, const char *password)
 		return (auth_close(as));
 	}
 }
-#elif defined(WITH_AIXAUTHENTICATE)
-int
-sys_auth_passwd(Authctxt *authctxt, const char *password)
-{
-	return (aix_authenticate(authctxt->pw->pw_name, password,
-	    get_canonical_hostname(options.use_dns)));
-}
-#else
+#elif !defined(CUSTOM_SYS_AUTH_PASSWD)
 int
 sys_auth_passwd(Authctxt *authctxt, const char *password)
 {
