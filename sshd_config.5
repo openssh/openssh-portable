@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.29 2004/03/08 10:18:57 dtucker Exp $
+.\" $OpenBSD: sshd_config.5,v 1.30 2004/04/27 09:46:37 djm Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -61,6 +61,29 @@ The possible
 keywords and their meanings are as follows (note that
 keywords are case-insensitive and arguments are case-sensitive):
 .Bl -tag -width Ds
+.It Cm AcceptEnv
+Specifies what environment variables sent by the client will be copied into
+the session's
+.Xr environ 7 .
+See
+.Cm SendEnv
+in
+.Xr ssh_config 5
+for how to configure the client.
+Note that environment passingis only supported for protocol 2.
+Variables are specified by name, which may contain the wildcard characters
+.Ql \&*
+and
+.Ql \&? .
+Multiple environment variables may be seperated by whitespace or spread
+across multiple
+.Cm AcceptEnv
+directives.
+Be warned that some enviornment variables could be used to bypass restricted
+user environments.
+For this reason, care should be taken in the use of this directive.
+The default is not to accept any environment variables.
+.Pp
 .It Cm AllowGroups
 This keyword can be followed by a list of group name patterns, separated
 by spaces.

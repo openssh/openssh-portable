@@ -1,4 +1,4 @@
-/*	$OpenBSD: session.h,v 1.21 2003/09/23 20:17:11 markus Exp $	*/
+/*	$OpenBSD: session.h,v 1.22 2004/04/27 09:46:37 djm Exp $	*/
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -53,6 +53,11 @@ struct Session {
 	/* proto 2 */
 	int	chanid;
 	int	is_subsystem;
+	int	num_env;
+	struct {
+		char	*name;
+		char	*val;
+	}	*env;
 };
 
 void	 do_authenticated(Authctxt *);

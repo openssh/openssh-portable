@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.211 2004/04/19 21:51:49 djm Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.212 2004/04/27 09:46:37 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -68,6 +68,7 @@ RCSID("$OpenBSD: ssh.c,v 1.211 2004/04/19 21:51:49 djm Exp $");
 #include "kex.h"
 #include "mac.h"
 #include "sshtty.h"
+#include "match.h"
 
 #ifdef SMARTCARD
 #include "scard.h"
@@ -1055,6 +1056,44 @@ ssh_session2_setup(int id, void *arg)
 		debug("Requesting authentication agent forwarding.");
 		channel_request_start(id, "auth-agent-req@openssh.com", 0);
 		packet_send();
+	}
+
+	/* Transfer any environment variables from client to server */
+	if (options.num_send_env != 0) {
+		int i, j, matched;
+		extern char **environ;
+		char *name, *val;
+
+		debug("Sending environment.");
+		for (i = 0; environ && environ[i] != NULL; i++) {
+			/* Split */
+			name = xstrdup(environ[i]);
+			if ((val = strchr(name, '=')) == NULL) {
+				free(name);
+				continue;
+			}
+			*val++ = '\0';
+
+			matched = 0;
+			for (j = 0; j < options.num_send_env; j++) {
+				if (match_pattern(name, options.send_env[j])) {
+					matched = 1;
+					break;
+				}
+			}
+			if (!matched) {
+				debug3("Ignored env %s", name);
+				free(name);
+				continue;
+			}
+
+			debug("Sending env %s = %s", name, val);
+			channel_request_start(id, "env", 0);
+			packet_put_cstring(name);
+			packet_put_cstring(val);
+			packet_send();
+			free(name);
+		}
 	}
 
 	len = buffer_len(&command);

@@ -4,6 +4,11 @@
      [moduli.c]
      Bugzilla #850: Sophie Germain is the correct name of the French
      mathematician, "Sophie Germaine" isn't; from Luc.Maisonobe@c-s.fr
+   - djm@cvs.openbsd.org 2004/04/27 09:46:37
+     [readconf.c readconf.h servconf.c servconf.h session.c session.h ssh.c
+     ssh_config.5 sshd_config.5]
+     bz #815: implement ability to pass specified environment variables from
+     the client to the server; ok markus@
 
 20040423
  - (dtucker) [configure.ac openbsd-compat/getrrsetbyname.c] Declare h_errno
@@ -1045,4 +1050,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3333 2004/05/02 12:09:00 dtucker Exp $
+$Id: ChangeLog,v 1.3334 2004/05/02 12:11:30 dtucker Exp $

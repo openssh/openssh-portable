@@ -1,4 +1,4 @@
-/*	$OpenBSD: servconf.h,v 1.67 2003/12/23 16:12:10 jakob Exp $	*/
+/*	$OpenBSD: servconf.h,v 1.68 2004/04/27 09:46:37 djm Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -24,6 +24,7 @@
 #define MAX_DENY_GROUPS		256	/* Max # groups on deny list. */
 #define MAX_SUBSYSTEMS		256	/* Max # subsystems. */
 #define MAX_HOSTKEYS		256	/* Max # hostkeys. */
+#define MAX_ACCEPT_ENV		256	/* Max # of env vars. */
 
 /* permit_root_login */
 #define	PERMIT_NOT_SET		-1
@@ -106,6 +107,9 @@ typedef struct {
 	u_int num_subsystems;
 	char   *subsystem_name[MAX_SUBSYSTEMS];
 	char   *subsystem_command[MAX_SUBSYSTEMS];
+
+	u_int num_accept_env;
+	char   *accept_env[MAX_ACCEPT_ENV];
 
 	int	max_startups_begin;
 	int	max_startups_rate;

@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.129 2004/04/18 23:10:26 djm Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.130 2004/04/27 09:46:36 djm Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -106,6 +106,7 @@ typedef enum {
 	oEnableSSHKeysign, oRekeyLimit, oVerifyHostKeyDNS, oConnectTimeout,
 	oAddressFamily, oGssAuthentication, oGssDelegateCreds,
 	oServerAliveInterval, oServerAliveCountMax, oIdentitiesOnly,
+	oSendEnv,
 	oDeprecated, oUnsupported
 } OpCodes;
 
@@ -193,6 +194,7 @@ static struct {
 	{ "addressfamily", oAddressFamily },
 	{ "serveraliveinterval", oServerAliveInterval },
 	{ "serveralivecountmax", oServerAliveCountMax },
+	{ "sendenv", oSendEnv },
 	{ NULL, oBadOption }
 };
 
@@ -749,6 +751,19 @@ parse_int:
 		intptr = &options->server_alive_count_max;
 		goto parse_int;
 
+	case oSendEnv:
+		while ((arg = strdelim(&s)) != NULL && *arg != '\0') {
+			if (strchr(arg, '=') != NULL)
+				fatal("%s line %d: Invalid environment name.",
+				    filename, linenum);
+			if (options->num_send_env >= MAX_SEND_ENV)
+				fatal("%s line %d: too many send env.",
+				    filename, linenum);
+			options->send_env[options->num_send_env++] =
+			    xstrdup(arg);
+		}
+		break;
+
 	case oDeprecated:
 		debug("%s line %d: Deprecated option \"%s\"",
 		    filename, linenum, keyword);
@@ -894,6 +909,7 @@ initialize_options(Options * options)
 	options->verify_host_key_dns = -1;
 	options->server_alive_interval = -1;
 	options->server_alive_count_max = -1;
+	options->num_send_env = 0;
 }
 
 /*

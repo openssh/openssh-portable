@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.172 2004/01/30 09:48:57 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.173 2004/04/27 09:46:37 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -42,6 +42,7 @@ RCSID("$OpenBSD: session.c,v 1.172 2004/01/30 09:48:57 markus Exp $");
 #include "sshpty.h"
 #include "packet.h"
 #include "buffer.h"
+#include "match.h"
 #include "mpaux.h"
 #include "uidswap.h"
 #include "compat.h"
@@ -996,6 +997,10 @@ do_setup_env(Session *s, const char *shell)
 
 	if (!options.use_login) {
 		/* Set basic environment. */
+		for (i = 0; i < s->num_env; i++)
+			child_set_env(&env, &envsize, s->env[i].name, 
+			    s->env[i].val);
+
 		child_set_env(&env, &envsize, "USER", pw->pw_name);
 		child_set_env(&env, &envsize, "LOGNAME", pw->pw_name);
 #ifdef _AIX
@@ -1832,6 +1837,41 @@ session_break_req(Session *s)
 }
 
 static int
+session_env_req(Session *s)
+{
+	char *name, *val;
+	u_int name_len, val_len, i;
+
+	name = packet_get_string(&name_len);
+	val = packet_get_string(&val_len);
+	packet_check_eom();
+
+	/* Don't set too many environment variables */
+	if (s->num_env > 128) {
+		debug2("Ignoring env request %s: too many env vars", name);
+		goto fail;
+	}
+
+	for (i = 0; i < options.num_accept_env; i++) {
+		if (match_pattern(name, options.accept_env[i])) {
+			debug2("Setting env %d: %s=%s", s->num_env, name, val);
+			s->env = xrealloc(s->env, sizeof(*s->env) *
+			    (s->num_env + 1));
+			s->env[s->num_env].name = name;
+			s->env[s->num_env].val = val;
+			s->num_env++;
+			return (1);
+		}
+	}
+	debug2("Ignoring env request %s: disallowed name", name);
+
+ fail:
+	xfree(name);
+	xfree(val);
+	return (0);
+}
+
+static int
 session_auth_agent_req(Session *s)
 {
 	static int called = 0;
@@ -1880,6 +1920,8 @@ session_input_channel_req(Channel *c, const char *rtype)
 			success = session_subsystem_req(s);
 		} else if (strcmp(rtype, "break") == 0) {
 			success = session_break_req(s);
+		} else if (strcmp(rtype, "env") == 0) {
+			success = session_env_req(s);
 		}
 	}
 	if (strcmp(rtype, "window-change") == 0) {
@@ -2017,6 +2059,8 @@ session_exit_message(Session *s, int status)
 void
 session_close(Session *s)
 {
+	int i;
+
 	debug("session_close: session %d pid %ld", s->self, (long)s->pid);
 	if (s->ttyfd != -1)
 		session_pty_cleanup(s);
@@ -2031,6 +2075,12 @@ session_close(Session *s)
 	if (s->auth_proto)
 		xfree(s->auth_proto);
 	s->used = 0;
+	for (i = 0; i < s->num_env; i++) {
+		xfree(s->env[i].name);
+		xfree(s->env[i].val);
+	}
+	if (s->env != NULL)
+		xfree(s->env);
 	session_proctitle(s);
 }
 

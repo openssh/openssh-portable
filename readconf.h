@@ -1,4 +1,4 @@
-/*	$OpenBSD: readconf.h,v 1.61 2004/04/18 23:10:26 djm Exp $	*/
+/*	$OpenBSD: readconf.h,v 1.62 2004/04/27 09:46:37 djm Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -26,6 +26,8 @@ typedef struct {
 	u_short	  host_port;	/* Port to connect on host. */
 }       Forward;
 /* Data structure for representing option data. */
+
+#define MAX_SEND_ENV	256
 
 typedef struct {
 	int     forward_agent;	/* Forward authentication agent. */
@@ -103,6 +105,9 @@ typedef struct {
 	int	identities_only;
 	int	server_alive_interval; 
 	int	server_alive_count_max;
+
+	int     num_send_env;
+	char   *send_env[MAX_SEND_ENV];
 }       Options;
 
 

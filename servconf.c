@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.130 2003/12/23 16:12:10 jakob Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.131 2004/04/27 09:46:37 djm Exp $");
 
 #include "ssh.h"
 #include "log.h"
@@ -101,6 +101,7 @@ initialize_server_options(ServerOptions *options)
 	options->client_alive_count_max = -1;
 	options->authorized_keys_file = NULL;
 	options->authorized_keys_file2 = NULL;
+	options->num_accept_env = 0;
 
 	/* Needs to be accessable in many places */
 	use_privsep = -1;
@@ -266,7 +267,7 @@ typedef enum {
 	sBanner, sUseDNS, sHostbasedAuthentication,
 	sHostbasedUsesNameFromPacketOnly, sClientAliveInterval,
 	sClientAliveCountMax, sAuthorizedKeysFile, sAuthorizedKeysFile2,
-	sGssAuthentication, sGssCleanupCreds,
+	sGssAuthentication, sGssCleanupCreds, sAcceptEnv,
 	sUsePrivilegeSeparation,
 	sDeprecated, sUnsupported
 } ServerOpCodes;
@@ -366,6 +367,7 @@ static struct {
 	{ "authorizedkeysfile", sAuthorizedKeysFile },
 	{ "authorizedkeysfile2", sAuthorizedKeysFile2 },
 	{ "useprivilegeseparation", sUsePrivilegeSeparation},
+	{ "acceptenv", sAcceptEnv },
 	{ NULL, sBadOption }
 };
 
@@ -891,6 +893,19 @@ parse_flag:
 	case sClientAliveCountMax:
 		intptr = &options->client_alive_count_max;
 		goto parse_int;
+
+	case sAcceptEnv:
+		while ((arg = strdelim(&cp)) && *arg != '\0') {
+			if (strchr(arg, '=') != NULL)
+				fatal("%s line %d: Invalid environment name.",
+				    filename, linenum);
+			if (options->num_accept_env >= MAX_ACCEPT_ENV)
+				fatal("%s line %d: too many allow env.",
+				    filename, linenum);
+			options->accept_env[options->num_accept_env++] =
+			    xstrdup(arg);
+		}
+		break;
 
 	case sDeprecated:
 		logit("%s line %d: Deprecated option %s",
