@@ -7,6 +7,8 @@
    - [regress/agent-ptrace.sh] Skip tests if platform doesn't support it or
      gdb cannot be found.
    - [regress/reconfigure/sh] Make path to sshd fully qualified if required.
+   - [regress/rekey.sh] Remove dependence on /dev/zero (not all platforms have
+     it).  The sparse file will take less disk space too.
 
 20030903
  - (djm) OpenBSD CVS Sync
@@ -997,4 +999,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2945 2003/09/04 03:59:48 dtucker Exp $
+$Id: ChangeLog,v 1.2946 2003/09/04 04:02:56 dtucker Exp $

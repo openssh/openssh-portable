@@ -8,7 +8,7 @@ COPY=${OBJ}/copy
 LOG=${OBJ}/log
 
 rm -f ${COPY} ${LOG} ${DATA}
-dd if=/dev/zero of=${DATA} bs=1k count=512 > /dev/null 2>&1
+dd if=/bin/ls${EXEEXT} of=${DATA} bs=1k seek=511 count=1 > /dev/null 2>&1
 
 for s in 16 1k 128k 256k; do
 	trace "rekeylimit ${s}"
