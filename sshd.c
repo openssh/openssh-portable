@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.236 2002/03/20 21:08:08 stevesk Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.237 2002/03/21 21:23:34 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -551,14 +551,51 @@ privsep_preauth_child(void)
 	do_setusercontext(pw);
 }
 
+static Authctxt*
+privsep_preauth(void)
+{
+	Authctxt *authctxt = NULL;
+	int status;
+	pid_t pid;
+
+	/* Set up unprivileged child process to deal with network data */
+	monitor = monitor_init();
+	/* Store a pointer to the kex for later rekeying */
+	monitor->m_pkex = &xxx_kex;
+
+	pid = fork();
+	if (pid == -1) {
+		fatal("fork of unprivileged child failed");
+	} else if (pid != 0) {
+		debug2("Network child is on pid %d", pid);
+
+		close(monitor->m_recvfd);
+		authctxt = monitor_child_preauth(monitor);
+		close(monitor->m_sendfd);
+
+		/* Sync memory */
+		monitor_sync(monitor);
+
+		/* Wait for the child's exit status */
+		waitpid(pid, &status, 0);
+
+		return (authctxt);
+	} else {
+		/* child */
+
+		close(monitor->m_sendfd);
+
+		/* Demote the child */
+		if (getuid() == 0 || geteuid() == 0)
+			privsep_preauth_child();
+	}
+	return (NULL);
+}
+
 static void
-privsep_postauth(Authctxt *authctxt, pid_t pid)
+privsep_postauth(Authctxt *authctxt)
 {
 	extern Authctxt *x_authctxt;
-	int status;
-
-	/* Wait for the child's exit status */
-	waitpid(pid, &status, 0);
 
 	/* XXX - Remote port forwarding */
 	x_authctxt = authctxt;
@@ -584,7 +621,7 @@ privsep_postauth(Authctxt *authctxt, pid_t pid)
 	if (monitor->m_pid == -1)
 		fatal("fork of unprivileged child failed");
 	else if (monitor->m_pid != 0) {
-		debug2("User child is on pid %d", pid);
+		debug2("User child is on pid %d", monitor->m_pid);
 		close(monitor->m_recvfd);
 		monitor_child_postauth(monitor);
 
@@ -603,7 +640,6 @@ privsep_postauth(Authctxt *authctxt, pid_t pid)
 	/* It is safe now to apply the key state */
 	monitor_apply_keystate(monitor);
 }
-
 
 static char *
 list_hostkey_types(void)
@@ -1379,36 +1415,9 @@ main(int ac, char **av)
 
 	packet_set_nonblocking();
 
-	if (!use_privsep)
-		goto skip_privilegeseparation;
-
-	/* Set up unprivileged child process to deal with network data */
-	monitor = monitor_init();
-	/* Store a pointer to the kex for later rekeying */
-	monitor->m_pkex = &xxx_kex;
-
-	pid = fork();
-	if (pid == -1)
-		fatal("fork of unprivileged child failed");
-	else if (pid != 0) {
-		debug2("Network child is on pid %d", pid);
-
-		close(monitor->m_recvfd);
-		authctxt = monitor_child_preauth(monitor);
-		close(monitor->m_sendfd);
-
-		/* Sync memory */
-		monitor_sync(monitor);
-		goto authenticated;
-	} else {
-		close(monitor->m_sendfd);
-
-		/* Demote the child */
-		if (getuid() == 0 || geteuid() == 0)
-			privsep_preauth_child();
-	}
-
- skip_privilegeseparation:
+	if (use_privsep)
+		if ((authctxt = privsep_preauth()) != NULL)
+			goto authenticated;
 
 	/* perform the key exchange */
 	/* authenticate user and start session */
@@ -1419,12 +1428,14 @@ main(int ac, char **av)
 		do_ssh1_kex();
 		authctxt = do_authentication();
 	}
-	if (use_privsep)
+	/*
+	 * If we use privilege separation, the unprivileged child transfers
+	 * the current keystate and exits
+	 */
+	if (use_privsep) {
 		mm_send_keystate(monitor);
-
-	/* If we use privilege separation, the unprivileged child exits */
-	if (use_privsep)
 		exit(0);
+	}
 
  authenticated:
 	/*
@@ -1432,7 +1443,8 @@ main(int ac, char **av)
 	 * file descriptor passing.
 	 */
 	if (use_privsep) {
-		privsep_postauth(authctxt, pid);
+		privsep_postauth(authctxt);
+		/* the monitor process [priv] will not return */
 		if (!compat20)
 			destroy_sensitive_data();
 	}
