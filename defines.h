@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.92 2002/06/24 16:26:49 stevesk Exp $ */
+/* $Id: defines.h,v 1.93 2002/07/18 16:31:52 tim Exp $ */
 
 
 /* Constants */
@@ -102,7 +102,7 @@ SCO Open Server 3 has INADDR_LOOPBACK defined in rpc/rpc.h but
 including rpc/rpc.h breaks Solaris 6
 */
 #ifndef INADDR_LOOPBACK
-#define INADDR_LOOPBACK ((ulong)0x7f000001)
+#define INADDR_LOOPBACK ((u_long)0x7f000001)
 #endif
 
 /* Types */
