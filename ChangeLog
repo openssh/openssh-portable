@@ -1,3 +1,7 @@
+20030908
+ - (tim) [configure.ac openbsd-compat/getrrsetbyname.c] wrap _getshort and
+   _getlong in #ifndef
+
 20030907
  - (dtucker) [agent-ptrace.sh dynamic-forward.sh (all regress/)]
    Put "which" inside quotes.
@@ -1037,4 +1041,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2969 2003/09/07 02:34:54 dtucker Exp $
+$Id: ChangeLog,v 1.2970 2003/09/08 13:33:33 tim Exp $

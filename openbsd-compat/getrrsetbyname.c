@@ -130,6 +130,7 @@ static int count_dns_rr(struct dns_rr *, u_int16_t, u_int16_t);
  * Routines to insert/extract short/long's.
  */
 
+#ifndef HAVE__GETSHORT
 static u_int16_t
 _getshort(msgp)
 	register const u_char *msgp;
@@ -139,7 +140,9 @@ _getshort(msgp)
 	GETSHORT(u, msgp);
 	return (u);
 }
+#endif
 
+#ifndef HAVE__GETLONG
 static u_int32_t
 _getlong(msgp)
 	register const u_char *msgp;
@@ -149,6 +152,7 @@ _getlong(msgp)
 	GETLONG(u, msgp);
 	return (u);
 }
+#endif
 
 int
 getrrsetbyname(const char *hostname, unsigned int rdclass,
