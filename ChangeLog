@@ -6,6 +6,14 @@
      [ssh-keyscan.c]
      from portable - use sysconf to detect fd limit; ok markus@
      (tidy diff by adding SSH_SSFDMAX macro to defines.h)
+   - djm@cvs.openbsd.org 2003/11/23 23:18:45
+     [ssh-keygen.c]
+     consistency PATH_MAX -> MAXPATHLEN; ok markus@
+     (RCS ID sync only)
+   - djm@cvs.openbsd.org 2003/11/23 23:21:21
+     [scp.c]
+     from portable: rename clashing variable limit-> limit_rate; ok markus@
+     (RCS ID sync only)
 
 20031122
  - (dtucker) [channels.c] Make AIX write limit code clearer.  Suggested by djm@
@@ -1519,4 +1527,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3127 2003/11/24 02:07:45 djm Exp $
+$Id: ChangeLog,v 1.3128 2003/11/24 02:09:27 djm Exp $
