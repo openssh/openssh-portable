@@ -1,6 +1,7 @@
 20030409
  - (djm) Bug #539: Specify creation mode with O_CREAT for lastlog. Report 
    from matth@eecs.berkeley.edu
+ - (djm) Make the spec work with Redhat 9.0 (which renames sharutils)
 
 20030402
  - (bal) if IP_TOS is not found or broken don't try to compile in
@@ -1303,4 +1304,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2650 2003/04/09 09:40:33 djm Exp $
+$Id: ChangeLog,v 1.2651 2003/04/09 09:41:25 djm Exp $

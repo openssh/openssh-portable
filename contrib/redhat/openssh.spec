@@ -1,5 +1,5 @@
 %define ver 3.6.1p1
-%define rel 1
+%define rel 2
 
 # OpenSSH privilege separation requires a user & group ID
 %define sshd_uid    74
@@ -87,7 +87,7 @@ PreReq: initscripts >= 5.00
 %else
 PreReq: initscripts >= 5.20
 %endif
-BuildPreReq: perl, openssl-devel, sharutils, tcp_wrappers
+BuildPreReq: perl, openssl-devel, tcp_wrappers
 BuildPreReq: /bin/login
 %if ! %{build6x}
 BuildPreReq: glibc-devel, pam
