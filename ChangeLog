@@ -1,6 +1,8 @@
 20020728
  - (stevesk) [auth-pam.c] should use PAM_MSG_MEMBER(); from solar
  - (stevesk) [CREDITS] solar
+ - (stevesk) [ssh-rand-helper.c] RAND_bytes() and SHA1_Final() unsigned
+   char arg.
 
 20020725
  - (djm) Remove some cruft from INSTALL
@@ -1460,4 +1462,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2407 2002/07/28 20:31:18 stevesk Exp $
+$Id: ChangeLog,v 1.2408 2002/07/28 20:42:23 stevesk Exp $
