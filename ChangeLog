@@ -3,6 +3,8 @@
    Put "which" inside quotes.
  - (dtucker) [dynamic-forward.sh forwarding.sh sftp-batch.sh (all regress/)]
    Add ${EXEEXT}: required to work on Cygwin.
+ - (dtucker) [regress/sftp-batch.sh] Make temporary batch file name more
+   distinctive, so "rm ${BATCH}.*" doesn't match the script itself.
 
 20030906
  - (dtucker) [acconfig.h configure.ac uidswap.c] Prefer setuid/setgid on AIX.
@@ -1030,4 +1032,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2964 2003/09/06 23:28:03 dtucker Exp $
+$Id: ChangeLog,v 1.2965 2003/09/06 23:31:02 dtucker Exp $

@@ -5,7 +5,7 @@ tid="sftp batchfile"
 
 DATA=/bin/ls${EXEEXT}
 COPY=${OBJ}/copy
-BATCH=${OBJ}/sftp-batch
+BATCH=${OBJ}/sftp-batch.tmp
 
 rm -rf ${COPY} ${COPY}.1 ${COPY}.2 ${COPY}.dd ${BATCH}.*
 
