@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.101 2002/12/10 19:26:50 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.102 2002/12/10 19:47:14 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -1314,7 +1314,7 @@ packet_not_very_much_data_to_write(void)
 		return buffer_len(&output) < 128 * 1024;
 }
 
-void
+static void
 packet_set_tos(int interactive)
 {
 	int tos = interactive ? IPTOS_LOWDELAY : IPTOS_THROUGHPUT;

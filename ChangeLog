@@ -62,6 +62,9 @@
    - markus@cvs.openbsd.org 2002/12/10 19:26:50
      [packet.c]
      move tos handling to packet_set_tos; ok provos/henning/deraadt
+   - markus@cvs.openbsd.org 2002/12/10 19:47:14
+     [packet.c]
+     static
 
 20021205
  - (djm) PERL-free fixpaths from stuge-openssh-unix-dev@cdy.org
@@ -897,4 +900,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2532 2002/12/23 02:41:41 mouring Exp $
+$Id: ChangeLog,v 1.2533 2002/12/23 02:42:52 mouring Exp $
