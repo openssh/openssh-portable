@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.40 2003/05/14 08:57:49 markus Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.41 2003/05/24 09:30:40 djm Exp $");
 
 #include <openssl/dh.h>
 
@@ -1164,7 +1164,7 @@ mm_record_login(Session *s, struct passwd *pw)
 static void
 mm_session_close(Session *s)
 {
-	debug3("%s: session %d pid %d", __func__, s->self, s->pid);
+	debug3("%s: session %d pid %ld", __func__, s->self, (long)s->pid);
 	if (s->ttyfd != -1) {
 		debug3("%s: tty %s ptyfd %d",  __func__, s->tty, s->ptyfd);
 		fatal_remove_cleanup(session_pty_cleanup2, (void *)s);

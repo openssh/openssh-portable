@@ -3,6 +3,9 @@
    - djm@cvs.openbsd.org 2003/05/24 09:02:22
      [log.c]
      pass logged data through strnvis; ok markus
+   - djm@cvs.openbsd.org 2003/05/24 09:30:40
+     [authfile.c monitor.c sftp-common.c sshpty.c]
+     cast some types for printing; ok markus@
 
 20030524
  - (dtucker) Correct --osfsia in INSTALL.  Patch by skeleten at shillest.net
@@ -1611,4 +1614,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2750 2003/05/25 04:38:02 djm Exp $
+$Id: ChangeLog,v 1.2751 2003/05/25 04:38:33 djm Exp $
