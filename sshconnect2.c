@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.124 2003/08/25 10:33:33 djm Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.125 2003/10/07 01:47:27 dtucker Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -361,7 +361,8 @@ input_userauth_banner(int type, u_int32_t seq, void *ctxt)
 	debug3("input_userauth_banner");
 	msg = packet_get_string(NULL);
 	lang = packet_get_string(NULL);
-	logit("%s", msg);
+	if (options.log_level > SYSLOG_LEVEL_QUIET)
+		fprintf(stderr, "%s", msg);
 	xfree(msg);
 	xfree(lang);
 }
