@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.51 2001/03/08 21:42:33 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.52 2001/03/10 12:48:27 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -895,7 +895,12 @@ load_identity_file(char *filename)
 	Key *private;
 	char prompt[300], *passphrase;
 	int success = 0, quit, i;
+	struct stat st;
 
+	if (stat(filename, &st) < 0) {
+		debug3("no such identity: %s", filename);
+		return NULL;
+	}
 	private = key_new(KEY_UNSPEC);
 	if (!load_private_key(filename, "", private, NULL)) {
 		if (options.batch_mode) {

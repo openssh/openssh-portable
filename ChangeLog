@@ -1,3 +1,9 @@
+20010311
+ - OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2001/03/10 12:48:27
+     [sshconnect2.c]
+     ignore nonexisting private keys; report rjmooney@mediaone.net
+
 20010310
  - OpenBSD CVS Sync
    - deraadt@cvs.openbsd.org 2001/03/09 03:14:39
@@ -4468,4 +4474,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.933 2001/03/09 19:48:37 mouring Exp $
+$Id: ChangeLog,v 1.934 2001/03/10 17:08:59 mouring Exp $
