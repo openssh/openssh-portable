@@ -16,6 +16,9 @@
    - stevesk@cvs.openbsd.org 2002/03/29 19:16:22
      [sshd.8]
      RSA key modulus size minimum 768; ok markus@
+   - stevesk@cvs.openbsd.org 2002/03/29 19:18:33
+     [auth-rsa.c ssh-rsa.c ssh.h]
+     make RSA modulus minimum #define; ok markus@
 
 20020401
  - (stevesk) [monitor.c] PAM should work again; will *not* work with
@@ -8123,4 +8126,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2011 2002/04/02 20:39:29 mouring Exp $
+$Id: ChangeLog,v 1.2012 2002/04/02 20:43:11 mouring Exp $
