@@ -19,9 +19,9 @@
    - Added support for PAM_TEXT_INFO messages
    - Disable internal /etc/nologin support if PAM enabled
  - Merged latest OpenBSD CVS changes:
+   - [all] replace assert() with error, fatal or packet_disconnect
    - [sshd.c] don't send fail-msg but disconnect if too many authentication
      failures
-   - [sshd.c] replace assert() with error, fatal or packet_disconnect
    - [sshd.c] remove unused argument. ok dugsong
    - [sshd.c] typo
    - [rsa.c] clear buffers used for encryption. ok: niels

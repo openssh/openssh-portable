@@ -13,7 +13,7 @@ Generic header file for ssh.
 
 */
 
-/* RCSID("$Id: ssh.h,v 1.6 1999/11/08 04:30:59 damien Exp $"); */
+/* RCSID("$Id: ssh.h,v 1.7 1999/11/08 05:15:55 damien Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -597,7 +597,7 @@ int ssh_tf_init(uid_t uid);
 
 /* Accept passed Kerberos v4 ticket-granting ticket and AFS tokens. */
 int auth_kerberos_tgt(struct passwd *pw, const char *string);
-int auth_afs_token(char *server_user, uid_t uid, const char *string);
+int auth_afs_token(struct passwd *pw, const char *token_string);
 
 int creds_to_radix(CREDENTIALS *creds, unsigned char *buf);
 int radix_to_creds(const char *buf, CREDENTIALS *creds);

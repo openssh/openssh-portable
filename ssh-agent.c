@@ -16,7 +16,7 @@ The authentication agent program.
 */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.16 1999/10/28 20:41:23 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.17 1999/11/02 19:42:36 markus Exp $");
 
 #include "ssh.h"
 #include "rsa.h"
@@ -136,7 +136,12 @@ process_authentication_challenge(SocketEntry *e)
 	  case 1: /* As of protocol 1.1 */
 	    /* The response is MD5 of decrypted challenge plus session id. */
 	    len = BN_num_bytes(challenge);
-	    assert(len <= 32 && len);
+
+	    if (len <= 0 || len > 32) {
+	      fatal("process_authentication_challenge: "
+		    "bad challenge length %d", len);
+	    }
+
 	    memset(buf, 0, 32);
 	    BN_bn2bin(challenge, buf + 32 - len);
 	    MD5_Init(&md);

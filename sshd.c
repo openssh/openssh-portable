@@ -18,7 +18,7 @@ agent connections.
 */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.11 1999/11/08 04:30:59 damien Exp $");
+RCSID("$Id: sshd.c,v 1.12 1999/11/08 05:15:55 damien Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"

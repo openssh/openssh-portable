@@ -15,7 +15,7 @@ with the other side.  This same code is used both on client and server side.
 */
 
 #include "includes.h"
-RCSID("$Id: packet.c,v 1.1 1999/10/27 03:42:44 damien Exp $");
+RCSID("$Id: packet.c,v 1.2 1999/11/08 05:15:55 damien Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -194,7 +194,6 @@ void
 packet_encrypt(CipherContext *cc, void *dest, void *src, 
 	       unsigned int bytes)
 {
-  assert((bytes % 8) == 0);
   cipher_encrypt(cc, dest, src, bytes);
 }
 
@@ -207,7 +206,8 @@ packet_decrypt(CipherContext *cc, void *dest, void *src,
 {
   int i;
   
-  assert((bytes % 8) == 0);
+  if ((bytes % 8) != 0)
+    fatal("packet_decrypt: bad ciphertext length %d", bytes);
   
   /*
     Cryptographic attack detector for ssh - Modifications for packet.c 
@@ -500,7 +500,11 @@ packet_read_poll(int *payload_len_ptr)
   buffer_consume(&incoming_packet, 8 - len % 8);
 
   /* Test check bytes. */
-  assert(len == buffer_len(&incoming_packet));
+
+  if (len != buffer_len(&incoming_packet))
+    packet_disconnect("packet_read_poll: len %d != buffer_len %d.",
+		      len, buffer_len(&incoming_packet));
+
   ucp = (unsigned char *)buffer_ptr(&incoming_packet) + len - 4;
   stored_checksum = GET_32BIT(ucp);
   if (checksum != stored_checksum)

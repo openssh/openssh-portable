@@ -16,7 +16,7 @@ login (authentication) dialog.
 
 #include "config.h"
 #include "includes.h"
-RCSID("$Id: sshconnect.c,v 1.3 1999/10/28 05:23:30 damien Exp $");
+RCSID("$Id: sshconnect.c,v 1.4 1999/11/08 05:15:55 damien Exp $");
 
 #ifdef HAVE_OPENSSL
 #include <openssl/bn.h>
@@ -457,7 +457,10 @@ respond_to_rsa_challenge(BIGNUM *challenge, RSA *prv)
   /* Compute the response. */
   /* The response is MD5 of decrypted challenge plus session id. */
   len = BN_num_bytes(challenge);
-  assert(len <= sizeof(buf) && len);
+  if (len <= 0 || len > sizeof(buf))
+    packet_disconnect("respond_to_rsa_challenge: bad challenge length %d",
+		      len);
+
   memset(buf, 0, sizeof(buf));
   BN_bn2bin(challenge, buf + sizeof(buf) - len);
   MD5_Init(&md);
@@ -1298,8 +1301,14 @@ void ssh_login(int host_key_valid,
   if (BN_cmp(public_key->n, host_key->n) < 0)
     {
       /* Public key has smaller modulus. */
-      assert(BN_num_bits(host_key->n) >= 
-	     BN_num_bits(public_key->n) + SSH_KEY_BITS_RESERVED);
+      if (BN_num_bits(host_key->n) < 
+	  BN_num_bits(public_key->n) + SSH_KEY_BITS_RESERVED) {
+        fatal("respond_to_rsa_challenge: host_key %d < public_key %d + "
+	      "SSH_KEY_BITS_RESERVED %d",
+	      BN_num_bits(host_key->n),
+              BN_num_bits(public_key->n),
+	      SSH_KEY_BITS_RESERVED);
+      }
 
       rsa_public_encrypt(key, key, public_key);
       rsa_public_encrypt(key, key, host_key);
@@ -1307,8 +1316,14 @@ void ssh_login(int host_key_valid,
   else
     {
       /* Host key has smaller modulus (or they are equal). */
-      assert(BN_num_bits(public_key->n) >=
-	     BN_num_bits(host_key->n) + SSH_KEY_BITS_RESERVED);
+      if (BN_num_bits(public_key->n) < 
+	  BN_num_bits(host_key->n) + SSH_KEY_BITS_RESERVED) {
+        fatal("respond_to_rsa_challenge: public_key %d < host_key %d + "
+	      "SSH_KEY_BITS_RESERVED %d",
+	      BN_num_bits(public_key->n),
+              BN_num_bits(host_key->n),
+	      SSH_KEY_BITS_RESERVED);
+      }
 
       rsa_public_encrypt(key, key, host_key);
       rsa_public_encrypt(key, key, public_key);

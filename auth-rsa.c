@@ -17,7 +17,7 @@ validity of the host key.
 
 #include "config.h"
 #include "includes.h"
-RCSID("$Id: auth-rsa.c,v 1.3 1999/10/28 05:23:30 damien Exp $");
+RCSID("$Id: auth-rsa.c,v 1.4 1999/11/08 05:15:55 damien Exp $");
 
 #include "rsa.h"
 #include "packet.h"
@@ -98,7 +98,9 @@ auth_rsa_challenge_dialog(unsigned int bits, BIGNUM *e, BIGNUM *n)
 
   /* The response is MD5 of decrypted challenge plus session id. */
   len = BN_num_bytes(challenge);
-  assert(len <= 32 && len);
+  if (len <= 0 || len > 32)
+    fatal("auth_rsa_challenge_dialog: bad challenge length %d", len);
+
   memset(buf, 0, 32);
   BN_bn2bin(challenge, buf + 32 - len);
   MD5_Init(&md);
