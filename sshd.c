@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.247 2002/06/22 16:40:19 stevesk Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.248 2002/06/22 20:05:27 stevesk Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1354,7 +1354,7 @@ main(int ac, char **av)
 	 */
 #if 0
 	/* XXX: this breaks Solaris */
-	if (setsid() < 0)
+	if (!debug_flag && !inetd_flag && setsid() < 0)
 		error("setsid: %.100s", strerror(errno));
 #endif
 

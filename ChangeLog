@@ -24,6 +24,10 @@
    - stevesk@cvs.openbsd.org 2002/06/22 16:45:29
      [ssh-agent.1 sshd.8 sshd_config.5]
      use process ID vs. pid/PID/process identifier
+   - stevesk@cvs.openbsd.org 2002/06/22 20:05:27
+     [sshd.c]
+     don't call setsid() if debugging or run from inetd; no "Operation not
+     permitted" errors now; ok millert@ markus@
 
 20020622
  - (djm) Update README.privsep; spotted by fries@
@@ -1033,4 +1037,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2251 2002/06/23 00:35:25 mouring Exp $
+$Id: ChangeLog,v 1.2252 2002/06/23 00:37:10 mouring Exp $
