@@ -57,10 +57,6 @@ RCSID("$OpenBSD: session.c,v 1.128 2002/02/16 00:51:44 markus Exp $");
 #include "canohost.h"
 #include "session.h"
 
-#if defined(HAVE_USERSEC_H)
-#include <usersec.h>
-#endif
-
 #ifdef HAVE_CYGWIN
 #include <windows.h>
 #include <sys/cygwin.h>
@@ -968,11 +964,15 @@ do_setup_env(Session *s, const char *shell)
 		    original_command);
 
 #ifdef _AIX
-	if ((cp = getenv("AUTHSTATE")) != NULL)
-		child_set_env(&env, &envsize, "AUTHSTATE", cp);
-	if ((cp = getenv("KRB5CCNAME")) != NULL)
-		child_set_env(&env, &envsize, "KRB5CCNAME", cp);
-	read_environment_file(&env, &envsize, "/etc/environment");
+	{
+		char *cp;
+
+		if ((cp = getenv("AUTHSTATE")) != NULL)
+			child_set_env(&env, &envsize, "AUTHSTATE", cp);
+		if ((cp = getenv("KRB5CCNAME")) != NULL)
+			child_set_env(&env, &envsize, "KRB5CCNAME", cp);
+		read_environment_file(&env, &envsize, "/etc/environment");
+	}
 #endif
 #ifdef KRB4
 	if (s->authctxt->krb4_ticket_file)

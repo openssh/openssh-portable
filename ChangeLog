@@ -2,6 +2,8 @@
  - (bal) Drop Session *s usage in ports-aix.[ch] and pass just what we
    need to do the jobs (AIX still does not fully compile, but that is
    coming).
+ - (bal) Part two.. Drop unused AIX header, fix up missing char *cp.  All
+   that is left is handling aix_usrinfo().
 
 20020221
  - (bal) Minor session.c fixup for cygwin.  mispelt 'is_winnt' variable.
@@ -7661,4 +7663,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1871 2002/02/24 20:25:46 mouring Exp $
+$Id: ChangeLog,v 1.1872 2002/02/24 20:42:46 mouring Exp $
