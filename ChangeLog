@@ -1,3 +1,7 @@
+20011113
+ - (djm) Fix early (and double) free of remote user when using Kerberos. 
+   Patch from Simon Wilkinson <simon@sxw.org.uk>
+
 20011112
  - (djm) Makefile correctness fix from Mark D. Baushke <mdb@juniper.net>
  - (djm) Cygwin config patch from Corinna Vinschen <vinschen@redhat.com>
@@ -6887,4 +6891,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1657 2001/11/12 00:40:11 djm Exp $
+$Id: ChangeLog,v 1.1658 2001/11/13 00:20:07 djm Exp $

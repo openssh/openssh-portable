@@ -140,7 +140,6 @@ do_authloop(Authctxt *authctxt)
 						snprintf(info, sizeof(info),
 						    " tktuser %.100s",
 						    client_user);
-						xfree(client_user);
 					}
 #endif /* KRB4 */
 				} else {
@@ -154,7 +153,6 @@ do_authloop(Authctxt *authctxt)
 						snprintf(info, sizeof(info),
 						    " tktuser %.100s",
 						    client_user);
-						xfree(client_user);
 					}
 #endif /* KRB5 */
 				}
