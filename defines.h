@@ -53,6 +53,11 @@ enum
 /* If sys/types.h does not supply intXX_t, supply them ourselves */
 /* (or die trying) */
 #ifndef HAVE_INTXX_T
+# if (SIZEOF_CHAR == 1)
+typedef char int8_t;
+# else
+#  error "8 bit int type not found."
+# endif
 # if (SIZEOF_SHORT_INT == 2)
 typedef short int int16_t;
 # else
@@ -78,11 +83,17 @@ typedef long long int int64_t;
 /* If sys/types.h does not supply u_intXX_t, supply them ourselves */
 #ifndef HAVE_U_INTXX_T
 # ifdef HAVE_UINTXX_T
+typedef uint8_t u_int8_t;
 typedef uint16_t u_int16_t;
 typedef uint32_t u_int32_t;
 typedef  uint64_t u_int64_t;
 # define HAVE_U_INTXX_T 1
 # else
+#  if (SIZEOF_CHAR == 1)
+typedef unsigned char u_int8_t;
+#  else
+#   error "8 bit int type not found."
+#  endif
 #  if (SIZEOF_SHORT_INT == 2)
 typedef unsigned short int u_int16_t;
 #  else
@@ -220,7 +231,7 @@ typedef unsigned int size_t;
 #endif
 
 #if !defined(__GNUC__) || (__GNUC__ < 2)
-#  define __attribute__(x)
+# define __attribute__(x)
 #endif /* !defined(__GNUC__) || (__GNUC__ < 2) */
 
 #if defined(HAVE_SECURITY_PAM_APPL_H) && !defined(DISABLE_PAM)

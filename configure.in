@@ -157,6 +157,7 @@ AC_CHECK_FUNC(daemon,
 )
 
 dnl Checks for data types
+AC_CHECK_SIZEOF(char, 1)
 AC_CHECK_SIZEOF(short int, 2)
 AC_CHECK_SIZEOF(int, 4)
 AC_CHECK_SIZEOF(long int, 4)

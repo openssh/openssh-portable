@@ -1,6 +1,8 @@
 20000118
  - Fixed --with-pid-dir option
  - Makefile fix from Gary E. Miller <gem@rellim.com>
+ - Compile fix for HPUX and Solaris from Andre Lucas    
+   <andre.lucas@dial.pipex.com>
 
 20000117
  - Clean up bsd-bindresvport.c. Use arc4random() for picking initial
