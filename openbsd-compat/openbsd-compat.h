@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.11 2001/07/14 03:22:54 djm Exp $ */
+/* $Id: openbsd-compat.h,v 1.12 2001/08/06 23:29:18 mouring Exp $ */
 
 #ifndef _OPENBSD_H
 #define _OPENBSD_H
@@ -37,5 +37,8 @@
 #include "fake-getaddrinfo.h"
 #include "fake-getnameinfo.h"
 #include "fake-socket.h"
+
+/* Routines for a single OS platform */
+#include "bsd-cray.h"
 
 #endif /* _OPENBSD_H */

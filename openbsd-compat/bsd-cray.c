@@ -12,18 +12,24 @@
 #include <utmp.h>
 #include <sys/jtab.h>
 #include <signal.h>
+#include <sys/priv.h>
+#include <sys/secparm.h>
+#include <sys/usrv.h>
+#include <sys/sysv.h>
+#include <sys/sectab.h>
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <pwd.h>
 #include <fcntl.h>
 #include <errno.h>
 
+#include "bsd-cray.h"
+
 char cray_tmpdir[TPATHSIZ+1];               /* job TMPDIR path */
 
 /*
  * Functions.
  */
-int cray_setup(uid_t, char *);
 void cray_retain_utmp(struct utmp *, int);
 void cray_create_tmpdir(int, uid_t, gid_t);
 void cray_delete_tmpdir(char *, int , uid_t);
@@ -31,17 +37,17 @@ void cray_job_termination_handler (int);
 void cray_init_job(struct passwd *);
 void cray_set_tmpdir(struct utmp *);
 
+
 /* 
  * Orignal written by:
  *     Wayne Schroeder
  *     San Diego Supercomputer Center
  *     schroeder@sdsc.edu
 */
-int 
+void
 cray_setup(uid_t uid, char *username)
 {
   	struct udb *p;
-  	extern struct udb *getudb();
 	extern char *setlimits();
   	int i, j;
   	int accts[MAXVIDS];
@@ -52,58 +58,83 @@ cray_setup(uid_t uid, char *username)
   	struct jtab jbuf;
   	int jid;
 
-  	if ((jid = getjtab (&jbuf)) < 0) {
-		debug("getjtab");
-		return -1;
-	}
+  	if ((jid = getjtab (&jbuf)) < 0) fatal("getjtab: no jid");
 
-  	/* Find all of the accounts for a particular user */
-  	err = setudb();    /* open and rewind the Cray User DataBase */
-  	if(err != 0) {
-      		debug("UDB open failure");
-      		return -1;
-    	}
+        err = setudb();    /* open and rewind the Cray User DataBase */
+        if(err != 0) fatal("UDB open failure");
   	naccts = 0;
-  	while ((p = getudb()) != UDB_NULL) {
-      		if (p->ue_uid == -1) break;
-      		if(uid == p->ue_uid) {
-          		for(j = 0; p->ue_acids[j] != -1 && j < MAXVIDS; j++) {
-              			accts[naccts] = p->ue_acids[j];
-              			naccts++;
-            		}
-        	}
+	p = getudbnam(username);
+	if (p == NULL) fatal("No UDB entry for %s", username);
+     	if(uid != p->ue_uid)  
+		fatal("UDB etnry %s uid(%d) does not match uid %d\n",
+		      username, p->ue_uid, uid);
+	for(j = 0; p->ue_acids[j] != -1 && j < MAXVIDS; j++) {
+       		accts[naccts] = p->ue_acids[j];
+       		naccts++;
     	}
-  	endudb();        /* close the udb */
-  	if (naccts == 0 || accts[0] == 0) {
-      		debug("No Cray accounts found");
-      		return -1;
-    	}
+	endudb();        /* close the udb */
+
+  	if (naccts != 0) {
+   	    	/* Perhaps someday we'll prompt users who have multiple accounts
+     	      	   to let them pick one (like CRI's login does), but for now just set 
+     	      	   the account to the first entry. */
+  	    	if (acctid(0, accts[0]) < 0) 
+      			fatal("System call acctid failed, accts[0]=%d",accts[0]);
+	}
  
-  	/* Perhaps someday we'll prompt users who have multiple accounts
-     	   to let them pick one (like CRI's login does), but for now just set 
-     	   the account to the first entry. */
-  	if (acctid(0, accts[0]) < 0) {
-      		debug("System call acctid failed, accts[0]=%d",accts[0]);
-      		return -1;
-    	}
- 
-	/* Now set limits, including CPU time for the (interactive) job and process,
-     	   and set up permissions (for chown etc), etc.  This is via an internal CRI
-     	   routine, setlimits, used by CRI's login. */
+        /* Now set limits, including CPU time for the (interactive) job and process,
+           and set up permissions (for chown etc), etc.  This is via an internal CRI
+           routine, setlimits, used by CRI's login. */
 
   	pid = getpid();
   	sr = setlimits(username, C_PROC, pid, UDBRC_INTER);
-  	if (sr != NULL) {
-      		debug("%.200s", sr);
-      		return -1;
-    	}
-  	sr = setlimits(username, C_JOB, jid, UDBRC_INTER);
-  	if (sr != NULL) {
-      		debug("%.200s", sr);
-      		return -1;
-    	}
+  	if (sr != NULL) fatal("%.200s", sr);
 
-  	return 0;
+  	sr = setlimits(username, C_JOB, jid, UDBRC_INTER);
+  	if (sr != NULL) fatal("%.200s", sr);
+
+}
+
+
+/* 
+ * The rc.* and /etc/sdaemon methods of starting a program on unicos/unicosmk
+ * can have pal privileges that sshd can inherit which
+ * could allow a user to su to root with out a password.
+ * This subroutine clears all privileges.
+ */
+void
+drop_cray_privs()
+{
+#if defined(_SC_CRAY_PRIV_SU)
+	priv_proc_t*   		  privstate;
+        int         		  result;
+        extern      int     	  priv_set_proc();
+        extern      priv_proc_t*  priv_init_proc();
+        struct      usrv    	  usrv;
+
+	/*
+	 * If ether of theses two flags are not set
+ 	 * then don't allow this version of ssh to run.
+         */
+        if (!sysconf(_SC_CRAY_PRIV_SU)) fatal("Not PRIV_SU system.");
+        if (!sysconf(_SC_CRAY_POSIX_PRIV))  fatal("Not POSIX_PRIV.");
+
+        debug ("Dropping privileges.");
+
+	memset(&usrv, 0, sizeof(usrv));
+        if (setusrv(&usrv) < 0) 
+            	fatal ("%s(%d): setusrv(): %s\n", __FILE__, __LINE__, strerror(errno));
+
+	if ((privstate = priv_init_proc()) != NULL) {
+       	    	result = priv_set_proc(privstate);
+            	if ( result != 0 ) fatal ("%s(%d): priv_set_proc(): %s\n",
+                                        __FILE__, __LINE__, strerror(errno));
+            	priv_free_proc(privstate);
+        }
+        debug ("Privileges should be cleared...");
+#else
+Cray systems must be run with _SC_CRAY_PRIV_SU on! 
+#endif
 }
 
 

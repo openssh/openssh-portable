@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.304 2001/07/24 17:00:14 mouring Exp $
+# $Id: configure.in,v 1.305 2001/08/06 23:29:17 mouring Exp $
 
 AC_INIT(ssh.c)
 
@@ -1453,6 +1453,7 @@ if (test -z "$RANDOM_POOL" && test -z "$PRNGD") ; then
 	OSSH_PATH_ENTROPY_PROG(PROG_IFCONFIG, ifconfig)
 	OSSH_PATH_ENTROPY_PROG(PROG_JSTAT, jstat)
 	OSSH_PATH_ENTROPY_PROG(PROG_PS, ps)
+	OSSH_PATH_ENTROPY_PROG(PROG_SAR, sar)
 	OSSH_PATH_ENTROPY_PROG(PROG_W, w)
 	OSSH_PATH_ENTROPY_PROG(PROG_WHO, who)
 	OSSH_PATH_ENTROPY_PROG(PROG_LAST, last)

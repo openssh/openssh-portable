@@ -163,7 +163,7 @@
 #include "log.h"
 #include "atomicio.h"
 
-RCSID("$Id: loginrec.c,v 1.33 2001/05/08 20:33:06 mouring Exp $");
+RCSID("$Id: loginrec.c,v 1.34 2001/08/06 23:29:17 mouring Exp $");
 
 #ifdef HAVE_UTIL_H
 #  include <util.h>
@@ -616,9 +616,15 @@ construct_utmp(struct logininfo *li,
 	switch (li->type) {
 	case LTYPE_LOGIN:
 		ut->ut_type = USER_PROCESS;
+#ifdef _CRAY
+		cray_set_tmpdir(ut);
+#endif
 		break;
 	case LTYPE_LOGOUT:
 		ut->ut_type = DEAD_PROCESS;
+#ifdef _CRAY
+		cray_retain_utmp(ut, li->pid);
+#endif
 		break;
 	}
 # endif

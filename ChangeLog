@@ -98,7 +98,7 @@
      [ssh-keygen.c]
      allow uploading RSA keys for non-default AUT0 (sha1 over passphrase 
      like sectok).
-   - markus@cvs.openbsd.org 2001/08/01 23:38:45
+  - markus@cvs.openbsd.org 2001/08/01 23:38:45
      [scard.c ssh.c]
      support finish rsa keys.
      free public keys after login -> call finish -> close smartcard.
@@ -122,7 +122,7 @@
    - jakob@cvs.openbsd.org 2001/08/02 15:43:57
      [ssh-agent.c ssh.c ssh-keygen.c]
      add /* SMARTCARD */ to #else/#endif. ok markus@
-   - jakob@cvs.openbsd.org 2001/08/02 16:14:05
+  - jakob@cvs.openbsd.org 2001/08/02 16:14:05
      [scard.c ssh-agent.c ssh.c ssh-keygen.c]
      clean up some /* SMARTCARD */. ok markus@
    - mpech@cvs.openbsd.org 2001/08/02 18:37:35
@@ -148,6 +148,8 @@
      [scp.c]
      use alarm vs. setitimer for portable; ok markus@
  - (bal) ssh-keyscan double -lssh hack due to seed_rng().
+ - (bal) Second around of UNICOS patches.  A few other things left. 
+   Patches by William L. Jones <jones@mail.utexas.edu> 
 
 20010803
  - (djm) Fix interrupted read in entropy gatherer. Spotted by markus@ on
@@ -6258,4 +6260,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1466 2001/08/06 22:56:46 mouring Exp $
+$Id: ChangeLog,v 1.1467 2001/08/06 23:29:16 mouring Exp $

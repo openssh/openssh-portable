@@ -679,6 +679,13 @@ main(int ac, char **av)
 	    options.log_facility == -1 ? SYSLOG_FACILITY_AUTH : options.log_facility,
 	    !inetd_flag);
 
+#ifdef _CRAY
+	/* Cray can define user privs drop all prives now!
+	 * Not needed on PRIV_SU systems!
+	 */
+	drop_cray_privs();
+#endif
+
 	seed_rng();
 
 	/* Read server configuration options from the configuration file. */
