@@ -12,8 +12,7 @@ version tracks changes made to the OpenBSD CVS version.
 The PAM support is now more functional than the popular packages of
 commercial ssh-1.2.x. It checks "account" and "session" modules for
 all logins, not just when using password authentication. This code is
-very new and needs further testing. I have also added basic libpwdb 
-support (detected by autoconf).
+very new and needs further testing. 
 
 All new code is released under a XFree style license, which is very
 liberal.  This code is released with no warranties of any kind,

@@ -28,6 +28,7 @@
    - [rsa.c] replace assert() with error, fatal or packet_disconnect
    - [auth-krb4.c] remove unused argument. ok dugsong
  - Fixed coredump after merge of OpenBSD rsa.c patch
+ - Released 1.2pre8
 
 19991102
  - Merged change from OpenBSD CVS
