@@ -1,6 +1,8 @@
 20000709
  - (djm) Only enable PAM_TTY kludge for Linux. Problem report from
    Kevin Steves <stevesk@sweden.hp.com>
+ - (djm) Match prototype and function declaration for rresvport_af.
+   Problem report from Niklas Edmundsson <nikke@ing.umu.se>
 
 20000708
  - (djm) Fix bad fprintf format handling in auth-pam.c. Patch from 

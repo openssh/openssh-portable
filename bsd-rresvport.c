@@ -52,10 +52,8 @@ rresvport(alport)
 }
 #endif
 
-int
-rresvport_af(alport, af)
-	int *alport;
-	sa_family_t af;
+int 
+rresvport_af(int *alport, sa_family_t af)
 {
 	struct sockaddr_storage ss;
 	struct sockaddr *sa;
