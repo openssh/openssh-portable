@@ -131,6 +131,7 @@
      wait for children (i.e. dying sessions), send exit messages,
      cleanup all channels.
  - (bal) forget a few new files in sync up.
+ - (bal) Makefile fix up requires scard.c
 
 20010629
  - (bal) Removed net_aton() since we don't use it any more
@@ -5958,4 +5959,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1377 2001/07/04 05:35:00 mouring Exp $
+$Id: ChangeLog,v 1.1378 2001/07/04 05:40:19 mouring Exp $
