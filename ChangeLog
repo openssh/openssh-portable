@@ -3,6 +3,9 @@
    - deraadt@cvs.openbsd.org 2001/03/05 14:28:47
      [sshd.8]
      alpha order; jcs@rt.fm
+   - stevesk@cvs.openbsd.org 2001/03/05 15:44:51
+     [servconf.c]
+     sync error message; ok markus@
 
 20010305
  - (bal) CVS ID touch up on sshpty.[ch] and sshlogin.[ch]
@@ -4374,4 +4377,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.909 2001/03/06 01:00:03 mouring Exp $
+$Id: ChangeLog,v 1.910 2001/03/06 01:02:41 mouring Exp $
