@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.62 2001/04/29 18:32:52 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.63 2001/04/29 19:16:52 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -894,8 +894,10 @@ server_input_channel_open(int type, int plen, void *ctxt)
 		packet_start(SSH2_MSG_CHANNEL_OPEN_FAILURE);
 		packet_put_int(rchan);
 		packet_put_int(SSH2_OPEN_ADMINISTRATIVELY_PROHIBITED);
-		packet_put_cstring("bla bla");
-		packet_put_cstring("");
+		if (!(datafellows & SSH_BUG_OPENFAILURE)) {
+			packet_put_cstring("bla bla");
+			packet_put_cstring("");
+		}
 		packet_send();
 	}
 	xfree(ctype);

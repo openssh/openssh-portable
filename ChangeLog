@@ -3,6 +3,9 @@
    - markus@cvs.openbsd.org 2001/04/29 18:32:52
      [serverloop.c]
      fix whitespace
+   - markus@cvs.openbsd.org 2001/04/29 19:16:52
+     [channels.c clientloop.c compat.c compat.h serverloop.c]
+     more ssh.com-2.0.x bug-compat; from per@appgate.com
 
 20010429
  - (bal) Updated INSTALL.  PCRE moved to a new place.
@@ -5277,4 +5280,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1181 2001/04/29 19:49:14 mouring Exp $
+$Id: ChangeLog,v 1.1182 2001/04/29 19:52:00 mouring Exp $

@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.65 2001/04/20 07:17:51 djm Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.66 2001/04/29 19:16:52 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1154,8 +1154,10 @@ client_input_channel_open(int type, int plen, void *ctxt)
 		packet_start(SSH2_MSG_CHANNEL_OPEN_FAILURE);
 		packet_put_int(rchan);
 		packet_put_int(SSH2_OPEN_ADMINISTRATIVELY_PROHIBITED);
-		packet_put_cstring("bla bla");
-		packet_put_cstring("");
+		if (!(datafellows & SSH_BUG_OPENFAILURE)) {
+			packet_put_cstring("bla bla");
+			packet_put_cstring("");
+		}
 		packet_send();
 	}
 	xfree(ctype);

@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.109 2001/04/17 12:55:03 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.110 2001/04/29 19:16:52 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -1534,7 +1534,7 @@ channel_input_open_failure(int type, int plen, void *ctxt)
 		    "non-opening channel %d.", id);
 	if (compat20) {
 		reason = packet_get_int();
-		if (packet_remaining() > 0) {
+		if (!(datafellows & SSH_BUG_OPENFAILURE)) {
 			msg  = packet_get_string(NULL);
 			lang = packet_get_string(NULL);
 		}
