@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.5 2001/11/27 01:19:43 tim Exp $
+# $Id: configure.ac,v 1.6 2001/12/07 17:20:48 mouring Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -317,46 +317,6 @@ AC_ARG_WITH(libs,
 	]	
 )
 
-AC_ARG_WITH(pcre,
-	[  --with-pcre[[=PATH]]      Override built in regex library with pcre
-                            (optionally in PATH)],
-	[
-		case "$withval" in
-		no) ;;
-		*)
-			if test "x$withval" != "xyes"; then
-				if test -d "$withval/lib"; then
-					if test -n "${need_dash_r}"; then
-						LDFLAGS="-L${withval}/lib -R${withval}/lib ${LDFLAGS}"
-					else
-						LDFLAGS="-L${withval}/lib ${LDFLAGS}"
-					fi
-				else
-					if test -n "${need_dash_r}"; then
-						LDFLAGS="-L${withval} -R${withval} ${LDFLAGS}"
-					else
-						LDFLAGS="-L${withval} ${LDFLAGS}"
-					fi
-				fi
-				if test -d "$withval/include"; then
-					CPPFLAGS="-I${withval}/include ${CPPFLAGS}"
-				else
-					CPPFLAGS="-I${withval} ${CPPFLAGS}"
-				fi
-			fi
-
-			AC_CHECK_HEADER(pcreposix.h,
-				AC_CHECK_LIB(pcre, pcre_info,[
-					AC_DEFINE(HAVE_LIBPCRE)
-					LIBS="$LIBS -lpcreposix -lpcre"
-					no_comp_check=yes],
-					AC_MSG_ERROR([*** unable to locate pcre library ***])),
-				AC_MSG_ERROR([*** unable to locate pcreposix.h include file ***]))
-			;;
-		esac
-	]	
-)
-
 # Checks for libraries.
 AC_CHECK_FUNC(yp_match, , AC_CHECK_LIB(nsl, yp_match))
 AC_CHECK_FUNC(setsockopt, , AC_CHECK_LIB(socket, setsockopt))
@@ -398,48 +358,6 @@ AC_ARG_WITH(zlib,
 
 AC_CHECK_LIB(z, deflate, ,AC_MSG_ERROR([*** zlib missing - please install first or check config.log ***]))
 
-# We don't want to check if we did an pcre override.
-if test -z "$no_comp_check" ; then
-	AC_CHECK_FUNC(regcomp, 
-		[
-			AC_CHECK_FUNC(regsub, 
-				[
-					has_regcomp=no
-				],
-				[
-					AC_DEFINE(HAVE_REGCOMP)
-					has_regcomp=yes
-				]
-			)
-		],
-		[
-			has_regcomp=no
-		]
-	)
-	# Either regcomp wasn't defined or regsub is defined (which means
-	# that the libc regex is probably an old non-POSIX implementation. 
-	# Now check for -lregex and -lpcreposix to find some usable regex
-	# implementation.
-	if test "$has_regcomp" = "no" ; then
-		AC_CHECK_LIB(regex, regcomp,
-			[
-				AC_DEFINE(HAVE_REGCOMP)
-				LIBS="$LIBS -lregex"
-			],
-			[
-				AC_CHECK_LIB(pcre, pcre_info, 
-				[
-					AC_DEFINE(HAVE_LIBPCRE)
-					LIBS="$LIBS -lpcreposix -lpcre"
-				],
-				[
-					AC_MSG_ERROR([*** No regex library found.])
-				])
-			]
-		)
-	fi
-fi
-
 dnl UnixWare 2.x
 AC_CHECK_FUNC(strcasecmp, 
 	[], [ AC_CHECK_LIB(resolv, strcasecmp, LIBS="$LIBS -lresolv") ]
@@ -459,7 +377,7 @@ AC_FUNC_STRFTIME
 AC_CHECK_HEADERS(bstring.h crypt.h endian.h floatingpoint.h \
 	getopt.h glob.h lastlog.h limits.h login.h \
 	login_cap.h maillock.h netdb.h netgroup.h \
-	netinet/in_systm.h paths.h poll.h pty.h regex.h \
+	netinet/in_systm.h paths.h poll.h pty.h \
 	security/pam_appl.h shadow.h stddef.h stdint.h \
 	strings.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h \
 	sys/poll.h sys/queue.h sys/select.h sys/stat.h \

@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.119 2001/11/03 19:09:33 tim Exp $ */
+/* $Id: acconfig.h,v 1.120 2001/12/07 17:20:48 mouring Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -58,9 +58,6 @@
 
 /* Define if you are on Cygwin */
 #undef HAVE_CYGWIN
-
-/* Define if you lack native POSIX regex and you are using PCRE */
-#undef HAVE_LIBPCRE
 
 /* Define if you have a broken realpath. */
 #undef BROKEN_REALPATH
