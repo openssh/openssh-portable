@@ -11,10 +11,11 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: tildexpand.c,v 1.10 2001/01/21 19:06:01 markus Exp $");
+RCSID("$OpenBSD: tildexpand.c,v 1.11 2001/02/08 19:30:53 itojun Exp $");
 
 #include "xmalloc.h"
 #include "log.h"
+#include "tildexpand.h"
 
 /*
  * Expands tildes in the file name.  Returns data allocated by xmalloc.

@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.48 2001/02/04 15:32:24 stevesk Exp $");
+RCSID("$OpenBSD: packet.c,v 1.49 2001/02/08 19:30:52 itojun Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -455,7 +455,7 @@ packet_put_bignum2(BIGNUM * value)
  */
 
 void
-packet_send1()
+packet_send1(void)
 {
 	char buf[8], *cp;
 	int i, padding, len;
@@ -529,7 +529,7 @@ packet_send1()
  * Finalize packet in SSH2 format (compress, mac, encrypt, enqueue)
  */
 void
-packet_send2()
+packet_send2(void)
 {
 	u_char *macbuf = NULL;
 	char *cp;

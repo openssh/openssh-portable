@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rhosts.c,v 1.20 2001/02/03 10:08:36 markus Exp $");
+RCSID("$OpenBSD: auth-rhosts.c,v 1.21 2001/02/08 19:30:51 itojun Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -23,6 +23,7 @@ RCSID("$OpenBSD: auth-rhosts.c,v 1.20 2001/02/03 10:08:36 markus Exp $");
 #include "log.h"
 #include "servconf.h"
 #include "canohost.h"
+#include "auth.h"
 
 /*
  * This function processes an rhosts-style file (.rhosts, .shosts, or
@@ -188,7 +189,7 @@ auth_rhosts(struct passwd *pw, const char *client_user)
 
 	/* If not logging in as superuser, try /etc/hosts.equiv and shosts.equiv. */
 	if (pw->pw_uid != 0) {
-		if (check_rhosts_file("/etc/hosts.equiv", hostname, ipaddr, client_user,
+		if (check_rhosts_file(_PATH_RHOSTS_EQUIV, hostname, ipaddr, client_user,
 				      pw->pw_name)) {
 			packet_send_debug("Accepted for %.100s [%.100s] by /etc/hosts.equiv.",
 					  hostname, ipaddr);

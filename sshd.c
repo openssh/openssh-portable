@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.163 2001/02/04 23:56:23 deraadt Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.165 2001/02/08 19:30:53 itojun Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -211,7 +211,7 @@ sighup_handler(int sig)
  * Restarts the server.
  */
 void
-sighup_restart()
+sighup_restart(void)
 {
 	log("Received SIGHUP; restarting.");
 	close_listen_socks();
@@ -774,7 +774,7 @@ main(int ac, char **av)
 
 		/* Disconnect from the controlling tty. */
 #ifdef TIOCNOTTY
-		fd = open("/dev/tty", O_RDWR | O_NOCTTY);
+		fd = open(_PATH_TTY, O_RDWR | O_NOCTTY);
 		if (fd >= 0) {
 			(void) ioctl(fd, TIOCNOTTY, NULL);
 			close(fd);
@@ -1347,8 +1347,8 @@ do_ssh1_kex(void)
 		len = BN_num_bytes(session_key_int);
 		if (len < 0 || len > sizeof(session_key)) {
 			error("do_connection: bad session key len from %s: "
-			    "session_key_int %d > sizeof(session_key) %d",
-			    get_remote_ipaddr(), len, (int)sizeof(session_key));
+			    "session_key_int %d > sizeof(session_key) %lu",
+			    get_remote_ipaddr(), len, (u_long)sizeof(session_key));
 			rsafail++;
 		} else {
 			memset(session_key, 0, sizeof(session_key));

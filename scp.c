@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.55 2001/02/08 14:38:54 deraadt Exp $");
+RCSID("$OpenBSD: scp.c,v 1.56 2001/02/08 19:30:52 itojun Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -219,11 +219,13 @@ int pflag, iamremote, iamrecursive, targetshouldbedirectory;
 #define	CMDNEEDS	64
 char cmd[CMDNEEDS];		/* must hold "rcp -r -p -d\0" */
 
+int main(int, char *[]);
 int response(void);
 void rsource(char *, struct stat *);
 void sink(int, char *[]);
 void source(int, char *[]);
 void tolocal(int, char *[]);
+char *cleanhostname(char *);
 void toremote(char *, int, char *[]);
 void usage(void);
 
@@ -1110,7 +1112,7 @@ updateprogressmeter(int ignore)
 }
 
 int
-foregroundproc()
+foregroundproc(void)
 {
 	static pid_t pgrp = -1;
 	int ctty_pgrp;

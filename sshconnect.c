@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.93 2001/02/04 15:32:26 stevesk Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.95 2001/02/08 19:30:52 itojun Exp $");
 
 #include <openssl/bn.h>
 
@@ -322,7 +322,7 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
  * identification string.
  */
 void
-ssh_exchange_identification()
+ssh_exchange_identification(void)
 {
 	char buf[256], remote_version[256];	/* must be same size! */
 	int remote_major, remote_minor, i, mismatch;
@@ -431,7 +431,7 @@ read_yes_or_no(const char *prompt, int defval)
 	if (isatty(STDIN_FILENO))
 		f = stdin;
 	else
-		f = fopen("/dev/tty", "rw");
+		f = fopen(_PATH_TTY, "rw");
 
 	if (f == NULL)
 		return 0;

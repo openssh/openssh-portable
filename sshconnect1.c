@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.22 2001/02/03 10:08:37 markus Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.24 2001/02/08 19:30:52 itojun Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/evp.h>
@@ -56,7 +56,7 @@ extern char *__progname;
  * authenticate using the agent.
  */
 int
-try_agent_authentication()
+try_agent_authentication(void)
 {
 	int type;
 	char *comment;
@@ -380,7 +380,7 @@ try_rhosts_rsa_authentication(const char *local_user, RSA * host_key)
 
 #ifdef KRB4
 int
-try_kerberos_authentication()
+try_kerberos_authentication(void)
 {
 	KTEXT_ST auth;		/* Kerberos data */
 	char *reply;
@@ -497,7 +497,7 @@ try_kerberos_authentication()
 
 #ifdef AFS
 int
-send_kerberos_tgt()
+send_kerberos_tgt(void)
 {
 	CREDENTIALS *creds;
 	char pname[ANAME_SZ], pinst[INST_SZ], prealm[REALM_SZ];
@@ -616,7 +616,7 @@ send_afs_tokens(void)
  * Note that the client code is not tied to s/key or TIS.
  */
 int
-try_challenge_reponse_authentication()
+try_challenge_reponse_authentication(void)
 {
 	int type, i;
 	int payload_len;

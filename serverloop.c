@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.45 2001/02/04 15:32:25 stevesk Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.46 2001/02/08 19:30:52 itojun Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -119,7 +119,7 @@ sigchld_handler2(int sig)
  * to the client.
  */
 void
-make_packets_from_stderr_data()
+make_packets_from_stderr_data(void)
 {
 	int len;
 
@@ -148,7 +148,7 @@ make_packets_from_stderr_data()
  * client.
  */
 void
-make_packets_from_stdout_data()
+make_packets_from_stdout_data(void)
 {
 	int len;
 
@@ -352,7 +352,7 @@ process_output(fd_set * writeset)
  * This is used when the program terminates.
  */
 void
-drain_output()
+drain_output(void)
 {
 	/* Send any buffered stdout data to the client. */
 	if (buffer_len(&stdout_buffer) > 0) {
@@ -377,7 +377,7 @@ drain_output()
 }
 
 void
-process_buffered_input_packets()
+process_buffered_input_packets(void)
 {
 	dispatch_run(DISPATCH_NONBLOCK, NULL, NULL);
 }
@@ -882,7 +882,7 @@ server_input_global_request(int type, int plen, void *ctxt)
 }
 
 void
-server_init_dispatch_20()
+server_init_dispatch_20(void)
 {
 	debug("server_init_dispatch_20");
 	dispatch_init(&dispatch_protocol_error);
@@ -898,7 +898,7 @@ server_init_dispatch_20()
 	dispatch_set(SSH2_MSG_GLOBAL_REQUEST, &server_input_global_request);
 }
 void
-server_init_dispatch_13()
+server_init_dispatch_13(void)
 {
 	debug("server_init_dispatch_13");
 	dispatch_init(NULL);
@@ -913,7 +913,7 @@ server_init_dispatch_13()
 	dispatch_set(SSH_MSG_PORT_OPEN, &channel_input_port_open);
 }
 void
-server_init_dispatch_15()
+server_init_dispatch_15(void)
 {
 	server_init_dispatch_13();
 	debug("server_init_dispatch_15");
@@ -921,7 +921,7 @@ server_init_dispatch_15()
 	dispatch_set(SSH_MSG_CHANNEL_CLOSE_CONFIRMATION, &channel_input_oclose);
 }
 void
-server_init_dispatch()
+server_init_dispatch(void)
 {
 	if (compat20)
 		server_init_dispatch_20();

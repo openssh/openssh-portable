@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.52 2001/02/03 10:08:37 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.55 2001/02/08 19:30:52 itojun Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -56,6 +56,7 @@ RCSID("$OpenBSD: session.c,v 1.52 2001/02/03 10:08:37 markus Exp $");
 #include "login.h"
 #include "serverloop.h"
 #include "canohost.h"
+#include "session.h"
 
 #ifdef WITH_IRIX_PROJECT
 #include <proj.h>
