@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.192 2001/12/25 04:32:58 stevesk Exp $
+# $Id: Makefile.in,v 1.193 2002/01/22 10:57:54 djm Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -42,6 +42,7 @@ EXEEXT=@EXEEXT@
 SSH_MODE= @SSHMODE@
 
 INSTALL_SSH_PRNG_CMDS=@INSTALL_SSH_PRNG_CMDS@
+INSTALL_SSH_RAND_HELPER=@INSTALL_SSH_RAND_HELPER@
 
 @NO_SFTP@SFTP_PROGS=sftp-server$(EXEEXT) sftp$(EXEEXT)
 
@@ -201,7 +202,9 @@ install-files: scard-install
 	$(INSTALL) -m 0755 -s ssh-keygen $(DESTDIR)$(bindir)/ssh-keygen
 	$(INSTALL) -m 0755 -s ssh-keyscan $(DESTDIR)$(bindir)/ssh-keyscan
 	$(INSTALL) -m 0755 -s sshd $(DESTDIR)$(sbindir)/sshd
-	$(INSTALL) -m 0755 -s ssh-rand-helper $(DESTDIR)$(libexecdir)/ssh-rand-helper
+	if test ! -z "$(INSTALL_SSH_RAND_HELPER)" ; then \
+		$(INSTALL) -m 0755 -s ssh-rand-helper $(DESTDIR)$(libexecdir)/ssh-rand-helper ; \
+	fi
 	@NO_SFTP@$(INSTALL) -m 0755 -s sftp $(DESTDIR)$(bindir)/sftp
 	@NO_SFTP@$(INSTALL) -m 0755 -s sftp-server $(DESTDIR)$(SFTP_SERVER)
 	$(INSTALL) -m 644 ssh.1.out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh.1

@@ -45,15 +45,17 @@
  * XXX: we should tell the child how many bytes we need.
  */
 
+RCSID("$Id: entropy.c,v 1.40 2002/01/22 10:57:54 djm Exp $");
+
+#ifndef OPENSSL_PRNG_ONLY
 #define RANDOM_SEED_SIZE 48
-
-RCSID("$Id: entropy.c,v 1.39 2001/12/23 14:41:48 djm Exp $");
-
 static uid_t original_uid, original_euid;
+#endif
 
 void
 seed_rng(void)
 {
+#ifndef OPENSSL_PRNG_ONLY
 	int devnull;
 	int p[2];
 	pid_t pid;
@@ -121,6 +123,10 @@ seed_rng(void)
 
 	RAND_add(buf, sizeof(buf), sizeof(buf));
 	memset(buf, '\0', sizeof(buf));
+
+#endif /* OPENSSL_PRNG_ONLY */
+	if (RAND_status() != 1)
+		fatal("PRNG is not seeded");
 }
 
 void
@@ -134,8 +140,11 @@ init_rng(void)
 		fatal("OpenSSL version mismatch. Built against %lx, you "
 		    "have %lx", OPENSSL_VERSION_NUMBER, SSLeay());
 
+#ifndef OPENSSL_PRNG_ONLY
 	if ((original_uid = getuid()) == -1)
 		fatal("getuid: %s", strerror(errno));
 	if ((original_euid = geteuid()) == -1)
 		fatal("geteuid: %s", strerror(errno));
+#endif
 }
+

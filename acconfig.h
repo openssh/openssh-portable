@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.120 2001/12/07 17:20:48 mouring Exp $ */
+/* $Id: acconfig.h,v 1.121 2002/01/22 10:57:54 djm Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -85,9 +85,6 @@
 
 /* Define if you want IRIX kernel jobs */
 #undef WITH_IRIX_JOBS
-
-/* Location of random number pool  */
-#undef RANDOM_POOL
 
 /* Location of PRNGD/EGD random number socket */
 #undef PRNGD_SOCKET
@@ -325,6 +322,9 @@
 
 /* Define if you want smartcard support */
 #undef SMARTCARD
+
+/* Define if you want to use OpenSSL's internally seeded PRNG only */
+#undef OPENSSL_PRNG_ONLY
 
 @BOTTOM@
 
