@@ -2,6 +2,8 @@
  - (djm) Bug #137, #209: fix make problems for scard/Ssh.bin, do uudecode
    during distprep only
  - (djm) Disable PAM password expiry until a complete fix for bug #188 exists
+ - (djm) Bug #180: Set ToS bits on IPv4-in-IPv6 mapped addresses. Based on 
+   patch from openssh@misc.tecq.org
 
 20020425
  - (stevesk) [defines.h] remove USE_TIMEVAL; unused
@@ -513,4 +515,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2087 2002/04/26 01:27:24 djm Exp $
+$Id: ChangeLog,v 1.2088 2002/04/26 06:54:34 djm Exp $

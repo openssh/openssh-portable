@@ -277,9 +277,14 @@ packet_connection_is_ipv4(void)
 	memset(&to, 0, sizeof(to));
 	if (getsockname(connection_out, (struct sockaddr *)&to, &tolen) < 0)
 		return 0;
-	if (to.ss_family != AF_INET)
-		return 0;
-	return 1;
+	if (to.ss_family == AF_INET)
+		return 1;
+#ifdef IPV4_IN_IPV6
+	if (to.ss_family == AF_INET6 && 
+	    IN6_IS_ADDR_V4MAPPED(&((struct sockaddr_in6 *)&to)->sin6_addr))
+		return 1;
+#endif
+	return 0;
 }
 
 /* Sets the connection into non-blocking mode. */
