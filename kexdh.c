@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kexdh.c,v 1.13 2002/01/25 22:07:40 markus Exp $");
+RCSID("$OpenBSD: kexdh.c,v 1.14 2002/01/31 13:35:11 markus Exp $");
 
 #include <openssl/crypto.h>
 #include <openssl/bn.h>
@@ -121,7 +121,8 @@ kexdh_client(Kex *kex)
 	server_host_key = key_from_blob(server_host_key_blob, sbloblen);
 	if (server_host_key == NULL)
 		fatal("cannot decode server_host_key_blob");
-
+	if (server_host_key->type != kex->hostkey_type)
+		fatal("type mismatch for decoded server_host_key_blob");
 	if (kex->verify_host_key == NULL)
 		fatal("cannot verify server_host_key");
 	if (kex->verify_host_key(server_host_key) == -1)
