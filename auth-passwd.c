@@ -114,9 +114,6 @@ auth_password(struct passwd * pw, const char *password)
 #if defined(HAVE_GETPWANAM) && !defined(DISABLE_SHADOW)
 	struct passwd_adjunct *spw;
 #endif
-# ifdef HAVE_HPUX_TRUSTED_SYSTEM_PW
-	struct pr_passwd *prpw;
-#endif
 #ifdef WITH_AIXAUTHENTICATE
 	char *authmsg;
 	char *loginmsg;
