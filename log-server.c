@@ -15,7 +15,7 @@ to the system log.
 */
 
 #include "includes.h"
-RCSID("$Id: log-server.c,v 1.2 1999/11/11 06:57:39 damien Exp $");
+RCSID("$Id: log-server.c,v 1.3 1999/11/15 04:25:10 damien Exp $");
 
 #include <syslog.h>
 #include "packet.h"
@@ -24,6 +24,7 @@ RCSID("$Id: log-server.c,v 1.2 1999/11/11 06:57:39 damien Exp $");
 
 static LogLevel log_level = SYSLOG_LEVEL_INFO;
 static int log_on_stderr = 0;
+static int log_facility = LOG_AUTH;
 
 /* Initialize the log.
      av0	program name (should be argv[0])
@@ -33,7 +34,6 @@ static int log_on_stderr = 0;
 
 void log_init(char *av0, LogLevel level, SyslogFacility facility, int on_stderr)
 {
-  int log_facility;
   
   switch (level)
     {
@@ -93,8 +93,6 @@ void log_init(char *av0, LogLevel level, SyslogFacility facility, int on_stderr)
     }
 
   log_on_stderr = on_stderr;
-  closelog(); /* Close any previous log. */
-  openlog(av0, LOG_PID, log_facility);
 }
 
 #define MSGBUFSIZE 1024
@@ -106,6 +104,7 @@ do_log(LogLevel level, const char *fmt, va_list args)
   char fmtbuf[MSGBUFSIZE];
   char *txt = NULL;
   int pri = LOG_INFO;
+  extern char *__progname;
 
   if (level > log_level)
     return;
@@ -143,5 +142,7 @@ do_log(LogLevel level, const char *fmt, va_list args)
   }
   if (log_on_stderr)
     fprintf(stderr, "%s\n", msgbuf);
+  openlog(__progname, LOG_PID, log_facility);
   syslog(pri, "%.500s", msgbuf);
+  closelog();
 }

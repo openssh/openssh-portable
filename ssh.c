@@ -18,7 +18,7 @@ Modified to work with SSL by Niels Provos <provos@citi.umich.edu> in Canada.
 */
 
 #include "includes.h"
-RCSID("$Id: ssh.c,v 1.7 1999/11/13 02:28:45 damien Exp $");
+RCSID("$Id: ssh.c,v 1.8 1999/11/15 04:25:10 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -383,8 +383,9 @@ main(int ac, char **av)
 
 	case 'o':
 	  dummy = 1;
-	  process_config_line(&options, host ? host : "", optarg,
-			      "command-line", 0, &dummy);
+	  if (process_config_line(&options, host ? host : "", optarg,
+			          "command-line", 0, &dummy) != 0)
+            exit(1);
 	  break;
 
 	default:

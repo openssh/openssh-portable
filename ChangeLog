@@ -5,6 +5,23 @@
  - Changed to ssh-add.c broke askpass support. Revised it to be a little more
    modular. 
  - Revised autoconf support for enabling/disabling askpass support.
+ - Merged more OpenBSD CVS changes:
+	[auth-krb4.c]
+	  - disconnect if getpeername() fails
+	  - missing xfree(*client)
+	[canohost.c]
+	  - disconnect if getpeername() fails
+	  - fix comment: we _do_ disconnect if ip-options are set
+	[sshd.c]
+	  - disconnect if getpeername() fails
+	  - move checking of remote port to central place
+	[auth-rhosts.c] move checking of remote port to central place
+	[log-server.c] avoid extra fd per sshd, from millert@
+	[readconf.c] print _all_ bad config-options in ssh(1), too
+	[readconf.h] print _all_ bad config-options in ssh(1), too
+	[ssh.c] print _all_ bad config-options in ssh(1), too
+	[sshconnect.c] disconnect if getpeername() fails
+ - OpenBSD's changes to sshd.c broke the PAM stuff, re-merged it.
 
 19991114
  - Solaris compilation fixes (still imcomplete)

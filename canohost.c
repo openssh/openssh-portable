@@ -14,7 +14,7 @@ Functions for returning the canonical host name of the remote site.
 */
 
 #include "includes.h"
-RCSID("$Id: canohost.c,v 1.1 1999/10/27 03:42:43 damien Exp $");
+RCSID("$Id: canohost.c,v 1.2 1999/11/15 04:25:10 damien Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -35,9 +35,8 @@ char *get_remote_hostname(int socket)
   memset(&from, 0, sizeof(from));
   if (getpeername(socket, (struct sockaddr *)&from, &fromlen) < 0)
     {
-      error("getpeername failed: %.100s", strerror(errno));
-      strlcpy(name, "UNKNOWN", sizeof name);
-      goto check_ip_options;
+      debug("getpeername failed: %.100s", strerror(errno));
+      fatal_cleanup();
     }
   
   /* Map the IP address to a host name. */
@@ -99,7 +98,7 @@ char *get_remote_hostname(int socket)
 
  check_ip_options:
   
-  /* If IP options are supported, make sure there are none (log and clear
+  /* If IP options are supported, make sure there are none (log and disconnect
      them if any are found).  Basically we are worried about source routing;
      it can be used to pretend you are somebody (ip-address) you are not.
      That itself may be "almost acceptable" under certain circumstances,
@@ -184,8 +183,8 @@ const char *get_remote_ipaddr()
   memset(&from, 0, sizeof(from));
   if (getpeername(socket, (struct sockaddr *)&from, &fromlen) < 0)
     {
-      error("getpeername failed: %.100s", strerror(errno));
-      return NULL;
+      debug("getpeername failed: %.100s", strerror(errno));
+      fatal_cleanup();
     }
 
   /* Get the IP address in ascii. */
@@ -207,8 +206,8 @@ int get_peer_port(int sock)
   memset(&from, 0, sizeof(from));
   if (getpeername(sock, (struct sockaddr *)&from, &fromlen) < 0)
     {
-      error("getpeername failed: %.100s", strerror(errno));
-      return 0;
+      debug("getpeername failed: %.100s", strerror(errno));
+      fatal_cleanup();
     }
 
   /* Return port number. */

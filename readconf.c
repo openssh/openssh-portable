@@ -14,7 +14,7 @@ Functions for reading the configuration files.
 */
 
 #include "includes.h"
-RCSID("$Id: readconf.c,v 1.2 1999/11/11 06:57:39 damien Exp $");
+RCSID("$Id: readconf.c,v 1.3 1999/11/15 04:25:10 damien Exp $");
 
 #include "ssh.h"
 #include "cipher.h"
@@ -88,6 +88,7 @@ RCSID("$Id: readconf.c,v 1.2 1999/11/11 06:57:39 damien Exp $");
 
 typedef enum
 {
+  oBadOption,
   oForwardAgent, oForwardX11, oGatewayPorts, oRhostsAuthentication,
   oPasswordAuthentication, oRSAAuthentication, oFallBackToRsh, oUseRsh,
 #ifdef KRB4
@@ -222,16 +223,16 @@ static OpCodes parse_token(const char *cp, const char *filename, int linenum)
     if (strcmp(cp, keywords[i].name) == 0)
       return keywords[i].opcode;
 
-  fatal("%.200s line %d: Bad configuration option.",
-	filename, linenum);
-  /*NOTREACHED*/
-  return 0;
+  fprintf(stderr, "%s: line %d: Bad configuration option: %s\n", 
+	  filename, linenum, cp);
+  return oBadOption;
 }
 
 /* Processes a single option line as used in the configuration files.
    This only sets those values that have not already been set. */
 
-void process_config_line(Options *options, const char *host,
+int
+process_config_line(Options *options, const char *host,
 			 char *line, const char *filename, int linenum,
 			 int *activep)
 {
@@ -241,7 +242,7 @@ void process_config_line(Options *options, const char *host,
   /* Skip leading whitespace. */
   cp = line + strspn(line, WHITESPACE);
   if (!*cp || *cp == '\n' || *cp == '#')
-    return;
+    return 0;
 
   /* Get the keyword. (Each line is supposed to begin with a keyword). */
   cp = strtok(cp, WHITESPACE);
@@ -256,7 +257,9 @@ void process_config_line(Options *options, const char *host,
 
   switch (opcode)
     {
-
+    case oBadOption:
+      return -1;		/* don't panic, but count bad options */
+      /*NOTREACHED*/
     case oForwardAgent:
       intptr = &options->forward_agent;
     parse_flag:
@@ -426,7 +429,7 @@ void process_config_line(Options *options, const char *host,
 	*charptr = string;
       else
 	xfree(string);
-      return;
+      return 0;
 
     case oPort:
       intptr = &options->port;
@@ -533,7 +536,7 @@ void process_config_line(Options *options, const char *host,
 	    break;
 	  }
       /* Avoid garbage check below, as strtok already returned NULL. */
-      return;
+      return 0;
 
     case oEscapeChar:
       intptr = &options->escape_char;
@@ -561,13 +564,14 @@ void process_config_line(Options *options, const char *host,
       break;
       
     default:
-      fatal("parse_config_file: Unimplemented opcode %d", opcode);
+      fatal("process_config_line: Unimplemented opcode %d", opcode);
     }
   
   /* Check that there is no garbage at end of line. */
   if (strtok(NULL, WHITESPACE) != NULL)
     fatal("%.200s line %d: garbage at end of line.",
 	  filename, linenum);
+  return 0;
 }
 
 
@@ -580,6 +584,7 @@ void read_config_file(const char *filename, const char *host, Options *options)
   FILE *f;
   char line[1024];
   int active, linenum;
+  int bad_options = 0;
 
   /* Open the file. */
   f = fopen(filename, "r");
@@ -596,10 +601,13 @@ void read_config_file(const char *filename, const char *host, Options *options)
     {
       /* Update line number counter. */
       linenum++;
-
-      process_config_line(options, host, line, filename, linenum, &active);
+      if (process_config_line(options, host, line, filename, linenum, &active) != 0)
+	bad_options++;
     }
   fclose(f);
+  if (bad_options > 0)
+    fatal("%s: terminating, %d bad configuration options\n", 
+          filename, bad_options);
 }
 
 /* Initializes options to special values that indicate that they have not

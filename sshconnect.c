@@ -15,7 +15,7 @@ login (authentication) dialog.
 */
 
 #include "includes.h"
-RCSID("$Id: sshconnect.c,v 1.7 1999/11/12 23:51:58 damien Exp $");
+RCSID("$Id: sshconnect.c,v 1.8 1999/11/15 04:25:10 damien Exp $");
 
 #ifdef HAVE_OPENSSL
 #include <openssl/bn.h>
@@ -730,8 +730,10 @@ int try_kerberos_authentication()
   r = sizeof(foreign);
   memset(&foreign, 0, sizeof(foreign));
    if (getpeername(packet_get_connection_in(),
-		   (struct sockaddr *)&foreign, &r) < 0)
+		   (struct sockaddr *)&foreign, &r) < 0) {
      debug("getpeername failed: %s", strerror(errno));
+     fatal_cleanup();
+   }
    
    /* Get server reply. */
    type = packet_read(&plen);

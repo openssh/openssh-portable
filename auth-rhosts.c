@@ -16,7 +16,7 @@ the login based on rhosts authentication.  This file also processes
 */
 
 #include "includes.h"
-RCSID("$Id: auth-rhosts.c,v 1.2 1999/11/12 04:19:27 damien Exp $");
+RCSID("$Id: auth-rhosts.c,v 1.3 1999/11/15 04:25:10 damien Exp $");
 
 #include "packet.h"
 #include "ssh.h"
@@ -161,7 +161,6 @@ int auth_rhosts(struct passwd *pw, const char *client_user)
   extern ServerOptions options;
   char buf[1024];
   const char *hostname, *ipaddr;
-  int port;
   struct stat st;
   static const char *rhosts_files[] = { ".shosts", ".rhosts", NULL };
   unsigned int rhosts_file_index;
@@ -190,21 +189,6 @@ int auth_rhosts(struct passwd *pw, const char *client_user)
   /* Get the name, address, and port of the remote host.  */
   hostname = get_canonical_hostname();
   ipaddr = get_remote_ipaddr();
-  port = get_remote_port();
-
-  /* Check that the connection comes from a privileged port.
-     Rhosts authentication only makes sense for priviledged programs.
-     Of course, if the intruder has root access on his local machine,
-     he can connect from any port.  So do not use .rhosts
-     authentication from machines that you do not trust. */
-  if (port >= IPPORT_RESERVED ||
-      port < IPPORT_RESERVED / 2)
-    {
-      log("Connection from %.100s from nonpriviledged port %d",
-	  hostname, port);
-      packet_send_debug("Your ssh client is not running as root.");
-      return 0;
-    }
 
   /* If not logging in as superuser, try /etc/hosts.equiv and shosts.equiv. */
   if (pw->pw_uid != 0)
