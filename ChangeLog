@@ -1,3 +1,17 @@
+20000406
+ - OpenBSD CVS update:
+   - [channels.c]
+     close efd on eof
+   - [clientloop.c compat.c ssh.c sshconnect.c myproposal.h]
+     ssh2 client implementation, interops w/ ssh.com and lsh servers.
+   - [sshconnect.c]
+     missing free.
+   - [authfile.c cipher.c cipher.h packet.c sshconnect.c sshd.c]
+     remove unused argument, split cipher_mask()
+   - [clientloop.c]
+     re-order: group ssh1 vs. ssh2
+ - Make Redhat spec require openssl >= 0.9.5a
+
 20000404
  - Add tests for RAND_add function when searching for OpenSSL
  - OpenBSD CVS update:

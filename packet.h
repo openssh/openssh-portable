@@ -13,12 +13,10 @@
  * 
  */
 
-/* RCSID("$Id: packet.h,v 1.11 2000/04/04 04:39:03 damien Exp $"); */
+/* RCSID("$Id: packet.h,v 1.12 2000/04/06 02:32:40 damien Exp $"); */
 
 #ifndef PACKET_H
 #define PACKET_H
-
-#include "config.h"
 
 #ifdef HAVE_OPENSSL
 #include <openssl/bn.h>

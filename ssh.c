@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: ssh.c,v 1.23 2000/04/01 01:09:26 damien Exp $");
+RCSID("$Id: ssh.c,v 1.24 2000/04/06 02:32:40 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -20,6 +20,9 @@ RCSID("$Id: ssh.c,v 1.23 2000/04/01 01:09:26 damien Exp $");
 #include "authfd.h"
 #include "readconf.h"
 #include "uidswap.h"
+
+#include "ssh2.h"
+#include "compat.h"
 #include "channels.h"
 
 #ifdef HAVE___PROGNAME
@@ -40,6 +43,10 @@ int IPv4or6 = AF_UNSPEC;
 int debug_flag = 0;
 
 int tty_flag = 0;
+
+/* don't exec a shell */
+int no_shell_flag = 0;
+int no_tty_flag = 0;
 
 /*
  * Flag indicating that nothing should be read from stdin.  This can be set
@@ -90,6 +97,9 @@ RSA *host_private_key = NULL;
 /* Original real UID. */
 uid_t original_real_uid;
 
+/* command to be executed */
+Buffer command;
+
 /* Prints a help message to the user.  This function never returns. */
 
 void
@@ -104,9 +114,9 @@ usage()
 	fprintf(stderr, "  -k          Disable Kerberos ticket and AFS token forwarding.\n");
 #endif				/* AFS */
 	fprintf(stderr, "  -x          Disable X11 connection forwarding.\n");
-	fprintf(stderr, "  -X          Enable X11 connection forwarding.\n");
 	fprintf(stderr, "  -i file     Identity for RSA authentication (default: ~/.ssh/identity).\n");
 	fprintf(stderr, "  -t          Tty; allocate a tty even if command is given.\n");
+	fprintf(stderr, "  -T          Do not allocate a tty.\n");
 	fprintf(stderr, "  -v          Verbose; display verbose debugging messages.\n");
 	fprintf(stderr, "  -V          Display version number only.\n");
 	fprintf(stderr, "  -P          Don't allocate a privileged port.\n");
@@ -123,6 +133,7 @@ usage()
 	fprintf(stderr, "              These cause %s to listen for connections on a port, and\n", av0);
 	fprintf(stderr, "              forward them to the other side by connecting to host:port.\n");
 	fprintf(stderr, "  -C          Enable compression.\n");
+	fprintf(stderr, "  -N          Do not execute a shell or command.\n");
 	fprintf(stderr, "  -g          Allow remote hosts to connect to forwarded ports.\n");
 	fprintf(stderr, "  -4          Use IPv4 only.\n");
 	fprintf(stderr, "  -6          Use IPv6 only.\n");
@@ -168,23 +179,22 @@ rsh_connect(char *host, char *user, Buffer * command)
 	exit(1);
 }
 
+int ssh_session(void);
+int ssh_session2(void);
+
 /*
  * Main program for the ssh client.
  */
 int
 main(int ac, char **av)
 {
-	int i, opt, optind, type, exit_status, ok, authfd;
+	int i, opt, optind, exit_status, ok;
 	u_short fwd_port, fwd_host_port;
 	char *optarg, *cp, buf[256];
-	Buffer command;
-	struct winsize ws;
 	struct stat st;
 	struct passwd *pw, pwcopy;
-	int interactive = 0, dummy;
-	int have_pty = 0;
+	int dummy;
 	uid_t original_effective_uid;
-	int plen;
 
 	/*
 	 * Save the original real uid.  It will be needed later (uid-swapping
@@ -328,7 +338,7 @@ main(int ac, char **av)
 		case 'V':
 			fprintf(stderr, "SSH Version %s, protocol version %d.%d.\n",
 			    SSH_VERSION, PROTOCOL_MAJOR, PROTOCOL_MINOR);
-			fprintf(stderr, "Compiled with SSL.\n");
+			fprintf(stderr, "Compiled with SSL (0x%8.8lx).\n", SSLeay());
 			if (opt == 'V')
 				exit(0);
 			debug_flag = 1;
@@ -397,6 +407,15 @@ main(int ac, char **av)
 			options.compression = 1;
 			break;
 
+		case 'N':
+			no_shell_flag = 1;
+			no_tty_flag = 1;
+			break;
+
+		case 'T':
+			no_tty_flag = 1;
+			break;
+
 		case 'o':
 			dummy = 1;
 			if (process_config_line(&options, host ? host : "", optarg,
@@ -455,6 +474,10 @@ main(int ac, char **av)
 			fprintf(stderr, "Pseudo-terminal will not be allocated because stdin is not a terminal.\n");
 		tty_flag = 0;
 	}
+	/* force */
+	if (no_tty_flag)
+		tty_flag = 0;
+
 	/* Get user data. */
 	pw = getpwuid(original_real_uid);
 	if (!pw) {
@@ -620,6 +643,23 @@ main(int ac, char **av)
 	if (host_private_key_loaded)
 		RSA_free(host_private_key);	/* Destroys contents safely */
 
+	exit_status = compat20 ? ssh_session2() : ssh_session();
+	packet_close();
+	return exit_status;
+}
+
+int
+ssh_session(void)
+{
+	int type;
+	int i;
+	int plen;
+	int interactive = 0;
+	int have_tty = 0;
+	struct winsize ws;
+	int authfd;
+	char *cp;
+
 	/* Enable compression if requested. */
 	if (options.compression) {
 		debug("Requesting compression at level %d.", options.compression_level);
@@ -673,7 +713,7 @@ main(int ac, char **av)
 		type = packet_read(&plen);
 		if (type == SSH_SMSG_SUCCESS) {
 			interactive = 1;
-			have_pty = 1;
+			have_tty = 1;
 		} else if (type == SSH_SMSG_FAILURE)
 			log("Warning: Remote host failed or refused to allocate a pseudo tty.");
 		else
@@ -802,11 +842,103 @@ main(int ac, char **av)
 	}
 
 	/* Enter the interactive session. */
-	exit_status = client_loop(have_pty, tty_flag ? options.escape_char : -1);
+	return client_loop(have_tty, tty_flag ? options.escape_char : -1);
+}
 
-	/* Close the connection to the remote host. */
-	packet_close();
+void
+init_local_fwd(void)
+{
+	int i;
+	/* Initiate local TCP/IP port forwardings. */
+	for (i = 0; i < options.num_local_forwards; i++) {
+		debug("Connections to local port %d forwarded to remote address %.200s:%d",
+		      options.local_forwards[i].port,
+		      options.local_forwards[i].host,
+		      options.local_forwards[i].host_port);
+		channel_request_local_forwarding(options.local_forwards[i].port,
+					  	 options.local_forwards[i].host,
+						 options.local_forwards[i].host_port,
+						 options.gateway_ports);
+	}
+}
 
-	/* Exit with the status returned by the program on the remote side. */
-	exit(exit_status);
+extern void client_set_session_ident(int id);
+
+void
+client_init(int id, void *arg)
+{
+	int len;
+	debug("client_init id %d arg %d", id, (int)arg);
+
+	if (no_shell_flag)
+		goto done;
+
+	if (tty_flag) {
+		struct winsize ws;
+		char *cp;
+		cp = getenv("TERM");
+		if (!cp)
+			cp = "";
+		/* Store window size in the packet. */
+		if (ioctl(fileno(stdin), TIOCGWINSZ, &ws) < 0)
+			memset(&ws, 0, sizeof(ws));
+
+		channel_request_start(id, "pty-req", 0);
+		packet_put_cstring(cp);
+		packet_put_int(ws.ws_col);
+		packet_put_int(ws.ws_row);
+		packet_put_int(ws.ws_xpixel);
+		packet_put_int(ws.ws_ypixel);
+		packet_put_cstring("");		/* XXX: encode terminal modes */
+		packet_send();
+		/* XXX wait for reply */
+	}
+	len = buffer_len(&command);
+	if (len > 0) {
+		if (len > 900)
+			len = 900;
+		debug("Sending command: %.*s", len, buffer_ptr(&command));
+		channel_request_start(id, "exec", 0);
+		packet_put_string(buffer_ptr(&command), len);
+		packet_send();
+	} else {
+		channel_request(id, "shell", 0);
+	}
+	/* channel_callback(id, SSH2_MSG_OPEN_CONFIGMATION, client_init, 0); */
+done:
+	/* register different callback, etc. XXX */
+	client_set_session_ident(id);
+}
+
+int
+ssh_session2(void)
+{
+	int window, packetmax, id;
+	int in  = dup(STDIN_FILENO);
+	int out = dup(STDOUT_FILENO);
+	int err = dup(STDERR_FILENO);
+
+	if (in < 0 || out < 0 || err < 0)
+		fatal("dump in/out/err failed");
+
+	/* should be pre-session */
+	init_local_fwd();
+	
+	window = 32*1024;
+	if (tty_flag) {
+		packetmax = window/8;
+	} else {
+		window *= 2;
+		packetmax = window/2;
+	}
+
+	id = channel_new(
+	    "session", SSH_CHANNEL_OPENING, in, out, err,
+	    window, packetmax, CHAN_EXTENDED_WRITE, xstrdup("client-session"));
+
+
+	channel_open(id);
+	channel_register_callback(id, SSH2_MSG_CHANNEL_OPEN_CONFIRMATION, client_init, (void *)0);
+
+	return client_loop(tty_flag, tty_flag ? options.escape_char : -1);
 }

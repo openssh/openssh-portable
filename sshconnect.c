@@ -5,27 +5,30 @@
  * Created: Sat Mar 18 22:15:47 1995 ylo
  * Code to connect to a remote host, and to perform the client side of the
  * login (authentication) dialog.
+ *
+ * SSH2 support added by Markus Friedl.
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.58 2000/03/23 22:15:33 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.61 2000/04/04 21:37:27 markus Exp $");
 
 #ifdef HAVE_OPENSSL
+#include <openssl/bn.h>
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
 #include <openssl/md5.h>
-#include <openssl/bn.h>
 #endif
 #ifdef HAVE_SSL
+#include <ssl/bn.h>
 #include <ssl/rsa.h>
 #include <ssl/dsa.h>
 #include <ssl/md5.h>
-#include <ssl/bn.h>
 #endif
 
 #include "xmalloc.h"
 #include "rsa.h"
 #include "ssh.h"
+#include "buffer.h"
 #include "packet.h"
 #include "authfd.h"
 #include "cipher.h"
@@ -33,7 +36,14 @@ RCSID("$OpenBSD: sshconnect.c,v 1.58 2000/03/23 22:15:33 markus Exp $");
 #include "uidswap.h"
 #include "compat.h"
 #include "readconf.h"
+
+#include "bufaux.h"
+
+#include "ssh2.h"
+#include "kex.h"
+#include "myproposal.h"
 #include "key.h"
+#include "dsa.h"
 #include "hostfile.h"
 
 /* Session id for the current session. */
@@ -41,6 +51,9 @@ unsigned char session_id[16];
 
 /* authentications supported by server */
 unsigned int supported_authentications;
+
+static char *client_version_string = NULL;
+static char *server_version_string = NULL;
 
 extern Options options;
 extern char *__progname;
@@ -957,6 +970,21 @@ try_password_authentication(char *prompt)
 	return 0;
 }
 
+char *
+chop(char *s)
+{
+	char *t = s;
+	while (*t) {
+		if(*t == '\n' || *t == '\r') {
+			*t = '\0';
+			return s;
+		}
+		t++;
+	}
+	return s;
+
+}
+
 /*
  * Waits for the server identification string, and sends our own
  * identification string.
@@ -979,7 +1007,7 @@ ssh_exchange_identification()
 		if (buf[i] == '\r') {
 			buf[i] = '\n';
 			buf[i + 1] = 0;
-			break;
+			continue;		/**XXX wait for \n */
 		}
 		if (buf[i] == '\n') {
 			buf[i + 1] = 0;
@@ -987,16 +1015,20 @@ ssh_exchange_identification()
 		}
 	}
 	buf[sizeof(buf) - 1] = 0;
+	server_version_string = xstrdup(buf);
 
 	/*
 	 * Check that the versions match.  In future this might accept
 	 * several versions and set appropriate flags to handle them.
 	 */
-	if (sscanf(buf, "SSH-%d.%d-%[^\n]\n", &remote_major, &remote_minor,
-		   remote_version) != 3)
+	if (sscanf(server_version_string, "SSH-%d.%d-%[^\n]\n",
+	    &remote_major, &remote_minor, remote_version) != 3)
 		fatal("Bad remote protocol version identification: '%.100s'", buf);
 	debug("Remote protocol version %d.%d, remote software version %.100s",
 	      remote_major, remote_minor, remote_version);
+
+/*** XXX option for disabling 2.0 or 1.5 */
+	compat_datafellows(remote_version);
 
 	/* Check if the remote protocol version is too old. */
 	if (remote_major == 1 && remote_minor < 3)
@@ -1010,6 +1042,10 @@ ssh_exchange_identification()
 			options.forward_agent = 0;
 		}
 	}
+	if ((remote_major == 2 && remote_minor == 0) ||
+	    (remote_major == 1 && remote_minor == 99)) {
+		enable_compat20();
+	}
 #if 0
 	/*
 	 * Removed for now, to permit compatibility with latter versions. The
@@ -1020,15 +1056,18 @@ ssh_exchange_identification()
 		fatal("Protocol major versions differ: %d vs. %d",
 		      PROTOCOL_MAJOR, remote_major);
 #endif
-
 	/* Send our own protocol version identification. */
 	snprintf(buf, sizeof buf, "SSH-%d.%d-%.100s\n",
-	    PROTOCOL_MAJOR, PROTOCOL_MINOR, SSH_VERSION);
+	    compat20 ? 2 : PROTOCOL_MAJOR,
+	    compat20 ? 0 : PROTOCOL_MINOR,
+	    SSH_VERSION);
 	if (atomicio(write, connection_out, buf, strlen(buf)) != strlen(buf))
 		fatal("write: %.100s", strerror(errno));
+	client_version_string = xstrdup(buf);
+	chop(client_version_string);
+	chop(server_version_string);
+	debug("Local version string %.100s", client_version_string);
 }
-
-int ssh_cipher_default = SSH_CIPHER_3DES;
 
 int
 read_yes_or_no(const char *prompt, int defval)
@@ -1283,6 +1322,278 @@ check_rsa_host_key(char *host, struct sockaddr *hostaddr, RSA *host_key)
 }
 
 /*
+ * SSH2 key exchange
+ */
+void
+ssh_kex2(char *host, struct sockaddr *hostaddr)
+{
+	Kex *kex;
+	char *cprop[PROPOSAL_MAX];
+	char *sprop[PROPOSAL_MAX];
+	Buffer *client_kexinit;
+	Buffer *server_kexinit;
+	int payload_len, dlen;
+	unsigned int klen, kout;
+	char *ptr;
+	char *signature = NULL;
+	unsigned int slen;
+	char *server_host_key_blob = NULL;
+	Key *server_host_key;
+	unsigned int sbloblen;
+	DH *dh;
+	BIGNUM *dh_server_pub = 0;
+	BIGNUM *shared_secret = 0;
+	int i;
+	unsigned char *kbuf;
+	unsigned char *hash;
+
+/* KEXINIT */
+
+	debug("Sending KEX init.");
+        if (options.cipher == SSH_CIPHER_ARCFOUR ||
+            options.cipher == SSH_CIPHER_3DES_CBC ||
+            options.cipher == SSH_CIPHER_CAST128_CBC ||
+            options.cipher == SSH_CIPHER_BLOWFISH_CBC) {
+		myproposal[PROPOSAL_ENC_ALGS_CTOS] = cipher_name(options.cipher);
+		myproposal[PROPOSAL_ENC_ALGS_STOC] = cipher_name(options.cipher);
+	}
+	if (options.compression) {
+		myproposal[PROPOSAL_COMP_ALGS_CTOS] = "zlib";
+		myproposal[PROPOSAL_COMP_ALGS_STOC] = "zlib";
+	} else {
+		myproposal[PROPOSAL_COMP_ALGS_CTOS] = "none";
+		myproposal[PROPOSAL_COMP_ALGS_STOC] = "none";
+	}
+	for (i = 0; i < PROPOSAL_MAX; i++)
+		cprop[i] = xstrdup(myproposal[i]);
+
+	client_kexinit = kex_init(cprop);
+	packet_start(SSH2_MSG_KEXINIT);
+	packet_put_raw(buffer_ptr(client_kexinit), buffer_len(client_kexinit));	
+	packet_send();
+	packet_write_wait();
+
+	debug("done");
+
+	packet_read_expect(&payload_len, SSH2_MSG_KEXINIT);
+
+	/* save payload for session_id */
+	server_kexinit = xmalloc(sizeof(*server_kexinit));
+	buffer_init(server_kexinit);
+	ptr = packet_get_raw(&payload_len);
+	buffer_append(server_kexinit, ptr, payload_len);
+
+	/* skip cookie */
+	for (i = 0; i < 16; i++)
+		(void) packet_get_char();
+	/* kex init proposal strings */
+	for (i = 0; i < PROPOSAL_MAX; i++) {
+		sprop[i] = packet_get_string(NULL);
+		debug("got kexinit string: %s", sprop[i]);
+	}
+	i = (int) packet_get_char();
+	debug("first kex follow == %d", i);
+	i = packet_get_int();
+	debug("reserved == %d", i);
+
+	debug("done read kexinit");
+	kex = kex_choose_conf(cprop, sprop, 0);
+
+/* KEXDH */
+
+	debug("Sending SSH2_MSG_KEXDH_INIT.");
+
+	/* generate and send 'e', client DH public key */
+	dh = new_dh_group1();
+	packet_start(SSH2_MSG_KEXDH_INIT);
+	packet_put_bignum2(dh->pub_key);
+	packet_send();
+	packet_write_wait();
+
+#ifdef DEBUG_KEXDH
+	fprintf(stderr, "\np= ");
+	bignum_print(dh->p);
+	fprintf(stderr, "\ng= ");
+	bignum_print(dh->g);
+	fprintf(stderr, "\npub= ");
+	bignum_print(dh->pub_key);
+	fprintf(stderr, "\n");
+        DHparams_print_fp(stderr, dh);
+#endif
+
+	debug("Wait SSH2_MSG_KEXDH_REPLY.");
+
+	packet_read_expect(&payload_len, SSH2_MSG_KEXDH_REPLY);
+
+	debug("Got SSH2_MSG_KEXDH_REPLY.");
+
+	/* key, cert */
+	server_host_key_blob = packet_get_string(&sbloblen);
+	server_host_key = dsa_serverkey_from_blob(server_host_key_blob, sbloblen);
+	if (server_host_key == NULL)
+		fatal("cannot decode server_host_key_blob");
+
+	check_host_key(host, hostaddr, server_host_key);
+
+	/* DH paramter f, server public DH key */
+	dh_server_pub = BN_new();
+	if (dh_server_pub == NULL)
+		fatal("dh_server_pub == NULL");
+	packet_get_bignum2(dh_server_pub, &dlen);
+
+#ifdef DEBUG_KEXDH
+	fprintf(stderr, "\ndh_server_pub= ");
+	bignum_print(dh_server_pub);
+	fprintf(stderr, "\n");
+	debug("bits %d", BN_num_bits(dh_server_pub));
+#endif
+
+	/* signed H */
+	signature = packet_get_string(&slen);
+
+	klen = DH_size(dh);
+	kbuf = xmalloc(klen);
+	kout = DH_compute_key(kbuf, dh_server_pub, dh);
+#ifdef DEBUG_KEXDH
+	debug("shared secret: len %d/%d", klen, kout);
+        fprintf(stderr, "shared secret == ");
+        for (i = 0; i< kout; i++)
+                fprintf(stderr, "%02x", (kbuf[i])&0xff);
+        fprintf(stderr, "\n");
+#endif
+        shared_secret = BN_new();
+
+        BN_bin2bn(kbuf, kout, shared_secret);
+	memset(kbuf, 0, klen);
+	xfree(kbuf);
+
+	/* calc and verify H */
+	hash = kex_hash(
+	    client_version_string,
+	    server_version_string,
+	    buffer_ptr(client_kexinit), buffer_len(client_kexinit),
+	    buffer_ptr(server_kexinit), buffer_len(server_kexinit),
+	    server_host_key_blob, sbloblen,
+	    dh->pub_key,
+	    dh_server_pub,
+	    shared_secret
+	);
+	buffer_free(client_kexinit);
+	buffer_free(server_kexinit);
+	xfree(client_kexinit);
+	xfree(server_kexinit);
+#ifdef DEBUG_KEXDH
+        fprintf(stderr, "hash == ");
+        for (i = 0; i< 20; i++)
+                fprintf(stderr, "%02x", (hash[i])&0xff);
+        fprintf(stderr, "\n");
+#endif
+	dsa_verify(server_host_key, (unsigned char *)signature, slen, hash, 20);
+	key_free(server_host_key);
+
+	kex_derive_keys(kex, hash, shared_secret);
+	packet_set_kex(kex);
+
+	/* have keys, free DH */
+	DH_free(dh);
+
+	debug("Wait SSH2_MSG_NEWKEYS.");
+	packet_read_expect(&payload_len, SSH2_MSG_NEWKEYS);
+	debug("GOT SSH2_MSG_NEWKEYS.");
+
+	debug("send SSH2_MSG_NEWKEYS.");
+	packet_start(SSH2_MSG_NEWKEYS);
+	packet_send();
+	packet_write_wait();
+	debug("done: send SSH2_MSG_NEWKEYS.");
+
+	/* send 1st encrypted/maced/compressed message */
+	packet_start(SSH2_MSG_IGNORE);
+	packet_put_cstring("markus");
+	packet_send();
+	packet_write_wait();
+
+	debug("done: KEX2.");
+}
+/*
+ * Authenticate user
+ */
+void
+ssh_userauth2(int host_key_valid, RSA *own_host_key,
+    uid_t original_real_uid, char *host)
+{
+	int type;
+	int plen;
+	unsigned int dlen;
+	int partial;
+	struct passwd *pw;
+	char *server_user, *local_user;
+	char *auths;
+	char *password;
+	char *service = "ssh-connection";		// service name
+
+	debug("send SSH2_MSG_SERVICE_REQUEST");
+	packet_start(SSH2_MSG_SERVICE_REQUEST);
+	packet_put_cstring("ssh-userauth");
+	packet_send();
+	packet_write_wait();
+
+	type = packet_read(&plen);
+	if (type != SSH2_MSG_SERVICE_ACCEPT) {
+		fatal("denied SSH2_MSG_SERVICE_ACCEPT: %d", type);
+	}
+	/* payload empty for ssh-2.0.13 ?? */
+	/* reply = packet_get_string(&payload_len); */
+	debug("got SSH2_MSG_SERVICE_ACCEPT");
+
+	/*XX COMMONCODE: */
+	/* Get local user name.  Use it as server user if no user name was given. */
+	pw = getpwuid(original_real_uid);
+	if (!pw)
+		fatal("User id %d not found from user database.", original_real_uid);
+	local_user = xstrdup(pw->pw_name);
+	server_user = options.user ? options.user : local_user;
+
+	/* INITIAL request for auth */
+	packet_start(SSH2_MSG_USERAUTH_REQUEST);
+	packet_put_cstring(server_user);
+	packet_put_cstring(service);
+	packet_put_cstring("none");
+	packet_send();
+	packet_write_wait();
+
+	for (;;) {
+		type = packet_read(&plen);
+		if (type == SSH2_MSG_USERAUTH_SUCCESS)
+			break;
+		if (type != SSH2_MSG_USERAUTH_FAILURE)
+			fatal("access denied: %d", type);
+		/* SSH2_MSG_USERAUTH_FAILURE means: try again */
+		auths = packet_get_string(&dlen);
+		debug("authentications that can continue: %s", auths);
+		partial = packet_get_char();
+		if (partial)
+			debug("partial success");
+		if (strstr(auths, "password") == NULL)
+			fatal("passwd auth not supported: %s", auths);
+		xfree(auths);
+		/* try passwd */
+		password = read_passphrase("password: ", 0);
+		packet_start(SSH2_MSG_USERAUTH_REQUEST);
+		packet_put_cstring(server_user);
+		packet_put_cstring(service);
+		packet_put_cstring("password");
+		packet_put_char(0);
+		packet_put_cstring(password);
+		memset(password, 0, strlen(password));
+		xfree(password);
+		packet_send();
+		packet_write_wait();
+	}
+	debug("ssh-userauth2 successfull");
+}
+
+/*
  * SSH1 key exchange
  */
 void
@@ -1293,6 +1604,7 @@ ssh_kex(char *host, struct sockaddr *hostaddr)
 	RSA *host_key;
 	RSA *public_key;
 	int bits, rbits;
+	int ssh_cipher_default = SSH_CIPHER_3DES;
 	unsigned char session_key[SSH_SESSION_KEY_LENGTH];
 	unsigned char cookie[8];
 	unsigned int supported_ciphers;
@@ -1427,7 +1739,7 @@ ssh_kex(char *host, struct sockaddr *hostaddr)
 	RSA_free(host_key);
 
 	if (options.cipher == SSH_CIPHER_NOT_SET) {
-		if (cipher_mask() & supported_ciphers & (1 << ssh_cipher_default))
+		if (cipher_mask1() & supported_ciphers & (1 << ssh_cipher_default))
 			options.cipher = ssh_cipher_default;
 		else {
 			debug("Cipher %s not supported, using %.100s instead.",
@@ -1640,12 +1952,16 @@ ssh_login(int host_key_valid, RSA *own_host_key, const char *orighost,
 	/* Put the connection into non-blocking mode. */
 	packet_set_nonblocking();
 
-	supported_authentications = 0;
 	/* key exchange */
-	ssh_kex(host, hostaddr);
-	if (supported_authentications == 0)
-		fatal("supported_authentications == 0.");
-
 	/* authenticate user */
-	ssh_userauth(host_key_valid, own_host_key, original_real_uid, host);
+	if (compat20) {
+		ssh_kex2(host, hostaddr);
+		ssh_userauth2(host_key_valid, own_host_key, original_real_uid, host);
+	} else {
+		supported_authentications = 0;
+		ssh_kex(host, hostaddr);
+		if (supported_authentications == 0)
+			fatal("supported_authentications == 0.");
+		ssh_userauth(host_key_valid, own_host_key, original_real_uid, host);
+	}
 }

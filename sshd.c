@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.96 2000/03/28 21:15:45 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.97 2000/04/04 21:37:27 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -911,7 +911,7 @@ do_ssh1_kex()
 	packet_put_int(SSH_PROTOFLAG_HOST_IN_FWD_OPEN);
 
 	/* Declare which ciphers we support. */
-	packet_put_int(cipher_mask());
+	packet_put_int(cipher_mask1());
 
 	/* Declare supported authentication types. */
 	auth_mask = 0;

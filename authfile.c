@@ -15,7 +15,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: authfile.c,v 1.7 2000/03/02 12:57:18 damien Exp $");
+RCSID("$Id: authfile.c,v 1.8 2000/04/06 02:32:38 damien Exp $");
 
 #ifdef HAVE_OPENSSL
 #include <openssl/bn.h>
@@ -107,7 +107,7 @@ save_private_key(const char *filename, const char *passphrase,
 	/* Allocate space for the private part of the key in the buffer. */
 	buffer_append_space(&encrypted, &cp, buffer_len(&buffer));
 
-	cipher_set_key_string(&cipher, cipher_type, passphrase, 1);
+	cipher_set_key_string(&cipher, cipher_type, passphrase);
 	cipher_encrypt(&cipher, (unsigned char *) cp,
 		       (unsigned char *) buffer_ptr(&buffer),
 		       buffer_len(&buffer));
@@ -286,7 +286,7 @@ load_private_key(const char *filename, const char *passphrase,
 		xfree(buffer_get_string(&buffer, NULL));
 
 	/* Check that it is a supported cipher. */
-	if (((cipher_mask() | SSH_CIPHER_NONE | SSH_AUTHFILE_CIPHER) &
+	if (((cipher_mask1() | SSH_CIPHER_NONE | SSH_AUTHFILE_CIPHER) &
 	     (1 << cipher_type)) == 0) {
 		debug("Unsupported cipher %.100s used in key file %.200s.",
 		      cipher_name(cipher_type), filename);
@@ -298,7 +298,7 @@ load_private_key(const char *filename, const char *passphrase,
 	buffer_append_space(&decrypted, &cp, buffer_len(&buffer));
 
 	/* Rest of the buffer is encrypted.  Decrypt it using the passphrase. */
-	cipher_set_key_string(&cipher, cipher_type, passphrase, 0);
+	cipher_set_key_string(&cipher, cipher_type, passphrase);
 	cipher_decrypt(&cipher, (unsigned char *) cp,
 		       (unsigned char *) buffer_ptr(&buffer),
 		       buffer_len(&buffer));

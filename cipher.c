@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: cipher.c,v 1.15 2000/04/01 01:09:23 damien Exp $");
+RCSID("$Id: cipher.c,v 1.16 2000/04/06 02:32:39 damien Exp $");
 
 #include "ssh.h"
 #include "cipher.h"
@@ -137,16 +137,27 @@ static char *cipher_names[] =
  */
 
 unsigned int 
-cipher_mask()
+cipher_mask1()
 {
 	unsigned int mask = 0;
 	mask |= 1 << SSH_CIPHER_3DES;		/* Mandatory */
 	mask |= 1 << SSH_CIPHER_BLOWFISH;
+	return mask;
+}
+unsigned int 
+cipher_mask2()
+{
+	unsigned int mask = 0;
 	mask |= 1 << SSH_CIPHER_BLOWFISH_CBC;
 	mask |= 1 << SSH_CIPHER_3DES_CBC;
 	mask |= 1 << SSH_CIPHER_ARCFOUR;
 	mask |= 1 << SSH_CIPHER_CAST128_CBC;
 	return mask;
+}
+unsigned int 
+cipher_mask()
+{
+	return cipher_mask1() | cipher_mask2();
 }
 
 /* Returns the name of the cipher. */
@@ -182,8 +193,7 @@ cipher_number(const char *name)
  */
 
 void 
-cipher_set_key_string(CipherContext *context, int cipher,
-		      const char *passphrase, int for_encryption)
+cipher_set_key_string(CipherContext *context, int cipher, const char *passphrase)
 {
 	MD5_CTX md;
 	unsigned char digest[16];
@@ -192,7 +202,7 @@ cipher_set_key_string(CipherContext *context, int cipher,
 	MD5_Update(&md, (const unsigned char *) passphrase, strlen(passphrase));
 	MD5_Final(digest, &md);
 
-	cipher_set_key(context, cipher, digest, 16, for_encryption);
+	cipher_set_key(context, cipher, digest, 16);
 
 	memset(digest, 0, sizeof(digest));
 	memset(&md, 0, sizeof(md));
@@ -201,8 +211,8 @@ cipher_set_key_string(CipherContext *context, int cipher,
 /* Selects the cipher to use and sets the key. */
 
 void 
-cipher_set_key(CipherContext *context, int cipher,
-	       const unsigned char *key, int keylen, int for_encryption)
+cipher_set_key(CipherContext *context, int cipher, const unsigned char *key,
+    int keylen)
 {
 	unsigned char padded[32];
 

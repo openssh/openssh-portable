@@ -17,7 +17,18 @@
  */
 
 #include "includes.h"
-RCSID("$Id: packet.c,v 1.15 2000/04/04 04:57:08 damien Exp $");
+RCSID("$Id: packet.c,v 1.16 2000/04/06 02:32:40 damien Exp $");
+
+#ifdef HAVE_OPENSSL
+# include <openssl/bn.h>
+# include <openssl/dh.h>
+# include <openssl/hmac.h>
+#endif /* HAVE_OPENSSL */
+#ifdef HAVE_SSL
+# include <ssl/bn.h>
+# include <ssl/dh.h>
+# include <ssl/hmac.h>
+#endif /* HAVE_SSL */
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -34,17 +45,6 @@ RCSID("$Id: packet.c,v 1.15 2000/04/04 04:57:08 damien Exp $");
 
 #include "compat.h"
 #include "ssh2.h"
-
-#ifdef HAVE_OPENSSL
-# include <openssl/bn.h>
-# include <openssl/dh.h>
-# include <openssl/hmac.h>
-#endif /* HAVE_OPENSSL */
-#ifdef HAVE_SSL
-# include <ssl/bn.h>
-# include <ssl/dh.h>
-# include <ssl/hmac.h>
-#endif /* HAVE_SSL */
 
 #include "buffer.h"
 #include "kex.h"
@@ -152,8 +152,8 @@ packet_set_connection(int fd_in, int fd_out)
 	connection_in = fd_in;
 	connection_out = fd_out;
 	cipher_type = SSH_CIPHER_NONE;
-	cipher_set_key(&send_context, SSH_CIPHER_NONE, (unsigned char *) "", 0, 1);
-	cipher_set_key(&receive_context, SSH_CIPHER_NONE, (unsigned char *) "", 0, 0);
+	cipher_set_key(&send_context, SSH_CIPHER_NONE, (unsigned char *) "", 0);
+	cipher_set_key(&receive_context, SSH_CIPHER_NONE, (unsigned char *) "", 0);
 	if (!initialized) {
 		initialized = 1;
 		buffer_init(&input);
@@ -352,8 +352,8 @@ packet_set_encryption_key(const unsigned char *key, unsigned int keylen,
 		fatal("keylen too small: %d", keylen);
 
 	/* All other ciphers use the same key in both directions for now. */
-	cipher_set_key(&receive_context, cipher, key, keylen, 0);
-	cipher_set_key(&send_context, cipher, key, keylen, 1);
+	cipher_set_key(&receive_context, cipher, key, keylen);
+	cipher_set_key(&send_context, cipher, key, keylen);
 }
 
 /* Starts constructing a packet to send. */

@@ -11,7 +11,7 @@
  * 
  */
 
-/* RCSID("$Id: cipher.h,v 1.7 2000/04/01 01:09:23 damien Exp $"); */
+/* RCSID("$Id: cipher.h,v 1.8 2000/04/06 02:32:39 damien Exp $"); */
 
 #ifndef CIPHER_H
 #define CIPHER_H
@@ -76,6 +76,8 @@ typedef struct {
  * supported cipher.
  */
 unsigned int cipher_mask();
+unsigned int cipher_mask1();
+unsigned int cipher_mask2();
 
 /* Returns the name of the cipher. */
 const char *cipher_name(int cipher);
@@ -92,7 +94,7 @@ int     cipher_number(const char *name);
  */
 void 
 cipher_set_key(CipherContext * context, int cipher,
-    const unsigned char *key, int keylen, int for_encryption);
+    const unsigned char *key, int keylen);
 void 
 cipher_set_key_iv(CipherContext * context, int cipher,
     const unsigned char *key, int keylen, 
@@ -104,7 +106,7 @@ cipher_set_key_iv(CipherContext * context, int cipher,
  */
 void 
 cipher_set_key_string(CipherContext * context, int cipher,
-    const char *passphrase, int for_encryption);
+    const char *passphrase);
 
 /* Encrypts data using the cipher. */
 void 
