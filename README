@@ -35,7 +35,7 @@ for developers.
 Please refer to the INSTALL document for information on how to install
 OpenSSH on your system.
 
-OpenSSH is developed primarily on Linux, but I am including patches
+This patch is developed primarily on Linux, but I am including patches
 which improve compatability with other unices. The beginnings of
 Solaris support have already been included.
 
