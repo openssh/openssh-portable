@@ -1,3 +1,8 @@
+20050313
+ - (dtucker) [contrib/cygwin/ssh-host-config] Makes the query for the
+   localized name of the local administrators group more reliable.  From
+   vinschen at redhat.com.
+
 20050309
  - (dtucker) [regress/test-exec.sh] Set BIN_SH=xpg4 on OSF1/Digital Unix/Tru64
    so that regress tests behave.  From Chris Adams.
@@ -2321,4 +2326,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3708 2005/03/09 09:12:47 dtucker Exp $
+$Id: ChangeLog,v 1.3709 2005/03/13 10:20:18 dtucker Exp $
