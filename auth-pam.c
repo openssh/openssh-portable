@@ -47,7 +47,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.118 2004/10/16 08:52:44 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.119 2005/01/20 01:43:39 dtucker Exp $");
 
 #ifdef USE_PAM
 #if defined(HAVE_SECURITY_PAM_APPL_H)
@@ -186,6 +186,7 @@ static int sshpam_account_status = -1;
 static char **sshpam_env = NULL;
 static Authctxt *sshpam_authctxt = NULL;
 static const char *sshpam_password = NULL;
+static char badpw[] = "\b\n\r\177INCORRECT";
 
 /* Some PAM implementations don't implement this */
 #ifndef HAVE_PAM_GETENVLIST
@@ -701,6 +702,12 @@ sshpam_query(void *ctx, char **name, char **info,
 				**prompts = NULL;
 			}
 			if (type == PAM_SUCCESS) {
+				if (!sshpam_authctxt->valid ||
+				    (sshpam_authctxt->pw->pw_uid == 0 &&
+				    options.permit_root_login != PERMIT_YES))
+					fatal("Internal error: PAM auth "
+					    "succeeded when it should have "
+					    "failed");
 				import_environments(&buffer);
 				*num = 0;
 				**echo_on = 0;
@@ -746,7 +753,12 @@ sshpam_respond(void *ctx, u_int num, char **resp)
 		return (-1);
 	}
 	buffer_init(&buffer);
-	buffer_put_cstring(&buffer, *resp);
+	if (sshpam_authctxt->valid &&
+	    (sshpam_authctxt->pw->pw_uid != 0 ||
+	     options.permit_root_login == PERMIT_YES))
+		buffer_put_cstring(&buffer, *resp);
+	else
+		buffer_put_cstring(&buffer, badpw);
 	if (ssh_msg_send(ctxt->pam_psock, PAM_AUTHTOK, &buffer) == -1) {
 		buffer_free(&buffer);
 		return (-1);
@@ -1093,7 +1105,6 @@ sshpam_auth_passwd(Authctxt *authctxt, const char *password)
 {
 	int flags = (options.permit_empty_passwd == 0 ?
 	    PAM_DISALLOW_NULL_AUTHTOK : 0);
-	static char badpw[] = "\b\n\r\177INCORRECT";
 
 	if (!options.use_pam || sshpam_handle == NULL)
 		fatal("PAM: %s called when PAM disabled or failed to "
