@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.47 2005/03/07 23:41:54 jmc Exp $
+.\" $OpenBSD: ssh_config.5,v 1.48 2005/03/12 11:55:03 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -571,9 +571,9 @@ Default is 22.
 .It Cm PreferredAuthentications
 Specifies the order in which the client should try protocol 2
 authentication methods.
-This allows a client to prefer one method (e.g.
+This allows a client to prefer one method (e.g.\&
 .Cm keyboard-interactive )
-over another method (e.g.
+over another method (e.g.\&
 .Cm password )
 The default for this option is:
 .Dq hostbased,publickey,keyboard-interactive,password .
