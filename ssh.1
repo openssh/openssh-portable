@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.78 2001/01/28 10:24:04 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.79 2001/01/28 20:36:16 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -924,28 +924,41 @@ The default is
 If this flag is set to
 .Dq yes ,
 .Nm
-ssh will never automatically add host keys to the
+will never automatically add host keys to the
 .Pa $HOME/.ssh/known_hosts
 and
 .Pa $HOME/.ssh/known_hosts2
-files, and refuses to connect hosts whose host key has changed.
+files, and refuses to connect to hosts whose host key has changed.
 This provides maximum protection against trojan horse attacks.
 However, it can be somewhat annoying if you don't have good
 .Pa /etc/ssh_known_hosts
 and
 .Pa /etc/ssh_known_hosts2
 files installed and frequently
-connect new hosts.
-Basically this option forces the user to manually
-add any new hosts.
-Normally this option is disabled, and new hosts
-will automatically be added to the known host files.
+connect to new hosts.
+This option forces the user to manually
+add all new hosts.
+If this flag is set to
+.Dq no ,
+.Nm
+will automatically add new host keys to the
+user known hosts files.
+If this flag is set to
+.Dq ask ,
+new host keys
+will be added to the user known host files only after the user
+has confirmed that is what they really want to do, and
+.Nm
+will refuse to connect to hosts whose host key has changed.
 The host keys of
-known hosts will be verified automatically in either case.
+known hosts will be verified automatically in all cases.
 The argument must be
-.Dq yes
+.Dq yes ,
+.Dq no
 or
-.Dq no .
+.Dq ask .
+The default is
+.Dq ask .
 .It Cm UsePrivilegedPort
 Specifies whether to use a privileged port for outgoing connections.
 The argument must be

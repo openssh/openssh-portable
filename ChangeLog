@@ -11,7 +11,7 @@
      [sshd.c]
      remove -Q, no longer needed
    - stevesk@cvs.openbsd.org 2001/01/28 20:36:16
-     [readconf.c]
+     [readconf.c ssh.1]
      ``StrictHostKeyChecking ask'' documentation and small cleanup.
      ok markus@
    - stevesk@cvs.openbsd.org 2001/01/28 22:27:05
