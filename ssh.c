@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.173 2002/05/23 19:24:30 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.174 2002/05/23 19:39:34 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -683,6 +683,8 @@ again:
 	 * in case we will need it later for combined rsa-rhosts
 	 * authentication. This must be done before releasing extra
 	 * privileges, because the file is only readable by root.
+	 * If we cannot access the private keys, load the public keys
+	 * instead and try to execute the ssh-keysign helper instead.
 	 */
 	sensitive_data.nkeys = 0;
 	sensitive_data.keys = NULL;
