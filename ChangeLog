@@ -26,6 +26,9 @@
    - mickey@cvs.openbsd.org 2004/09/15 18:42:27
      [sshd.c]
      use less doubles in daemons; markus@ ok
+   - deraadt@cvs.openbsd.org 2004/09/15 18:46:04
+     [scp.c]
+     scratch that do { } while (0) wrapper in this case
 
 20041102
  - (dtucker) [configure.ac includes.h] Bug #947: Fix compile error on HP-UX
@@ -1805,4 +1808,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3568 2004/11/05 09:09:09 dtucker Exp $
+$Id: ChangeLog,v 1.3569 2004/11/05 09:10:02 dtucker Exp $
