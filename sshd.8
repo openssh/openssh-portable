@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.185 2002/06/22 16:32:54 stevesk Exp $
+.\" $OpenBSD: sshd.8,v 1.186 2002/06/22 16:45:29 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -589,7 +589,7 @@ and not group or world-writable.
 Contains the process ID of the
 .Nm
 listening for connections (if there are several daemons running
-concurrently for different ports, this contains the pid of the one
+concurrently for different ports, this contains the process ID of the one
 started last).
 The content of this file is not sensitive; it can be world-readable.
 .It Pa $HOME/.ssh/authorized_keys
