@@ -36,7 +36,7 @@
 
 extern char *__progname;
 
-RCSID("$Id: auth-pam.c,v 1.44 2002/04/23 10:28:49 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.45 2002/04/26 01:27:24 djm Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now"
@@ -254,11 +254,13 @@ int do_pam_account(char *username, char *remote_user)
 		case PAM_SUCCESS:
 			/* This is what we want */
 			break;
+#if 0
 		case PAM_NEW_AUTHTOK_REQD:
 			message_cat(&__pam_msg, NEW_AUTHTOK_MSG);
 			/* flag that password change is necessary */
 			password_change_required = 1;
 			break;
+#endif
 		default:
 			log("PAM rejected by account configuration[%d]: "
 			    "%.200s", pam_retval, PAM_STRERROR(__pamh, 

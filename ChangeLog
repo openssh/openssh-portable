@@ -1,6 +1,7 @@
 20020426
  - (djm) Bug #137, #209: fix make problems for scard/Ssh.bin, do uudecode
    during distprep only
+ - (djm) Disable PAM password expiry until a complete fix for bug #188 exists
 
 20020425
  - (stevesk) [defines.h] remove USE_TIMEVAL; unused
@@ -512,4 +513,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2086 2002/04/26 01:25:40 djm Exp $
+$Id: ChangeLog,v 1.2087 2002/04/26 01:27:24 djm Exp $
