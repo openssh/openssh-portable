@@ -17,6 +17,11 @@ OpenSSH can utilise Pluggable Authentication Modules (PAM) if your system
 supports it. PAM is standard on Redhat and Debian Linux, Solaris and
 HP-UX 11.
 
+NB. If you operating system supports /dev/random, you should configure 
+OpenSSL to use it. OpenSSH relies on OpenSSL's direct support of 
+/dev/random. If you don't you will have to rely on ssh-rand-helper, which 
+is inferior to a good kernel-based solution.
+
 PAM:
 http://www.kernel.org/pub/linux/libs/pam/
 
@@ -218,4 +223,4 @@ Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
 
 
-$Id: INSTALL,v 1.51 2002/04/14 13:16:05 djm Exp $
+$Id: INSTALL,v 1.52 2002/04/17 02:23:02 djm Exp $
