@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.195 2004/02/10 05:49:35 dtucker Exp $
+# $Id: configure.ac,v 1.196 2004/02/10 06:15:05 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -165,7 +165,6 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(LOGIN_NO_ENDOPT)
 	AC_DEFINE(LOGIN_NEEDS_UTMPX)
-	AC_DEFINE(DISABLE_UTMP)
 	AC_DEFINE(LOCKED_PASSWD_STRING, "*")
 	AC_DEFINE(SPT_TYPE,SPT_PSTAT)
 	LIBS="$LIBS -lsec -lsecpw"
@@ -181,7 +180,6 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(LOGIN_NO_ENDOPT)
 	AC_DEFINE(LOGIN_NEEDS_UTMPX)
-	AC_DEFINE(DISABLE_UTMP)
 	AC_DEFINE(LOCKED_PASSWD_STRING, "*")
 	AC_DEFINE(SPT_TYPE,SPT_PSTAT)
 	LIBS="$LIBS -lsec"
