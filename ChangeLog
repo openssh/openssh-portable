@@ -5,6 +5,8 @@
    Lutz Jaenicke <Lutz.Jaenicke@aet.TU-Cottbus.DE>
  - (djm) Fixed undefined variables for OSF SIA. Report from 
    Baars, Henk <Hendrik.Baars@nl.origin-it.com>
+ - (djm) Handle EWOULDBLOCK returns from read() and write() in atomicio.c 
+   Fix from Marquess, Steve Mr JMLFDC <Steve.Marquess@DET.AMEDD.ARMY.MIL>
 
 20000702
  - (djm) Fix brace mismatch from Corinna Vinschen <vinschen@cygnus.com>
