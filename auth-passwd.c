@@ -111,6 +111,9 @@ auth_password(struct passwd * pw, const char *password)
 #ifdef HAVE_GETPWANAM
 	struct passwd_adjunct *spw;
 #endif
+# ifdef HAVE_HPUX_TRUSTED_SYSTEM_PW
+	struct pr_passwd *prpw;
+#endif
 #ifdef WITH_AIXAUTHENTICATE
 	char *authmsg;
 	char *loginmsg;
@@ -167,11 +170,16 @@ auth_password(struct passwd * pw, const char *password)
 	}
 #endif
 
-	/* Check for users with no password. */
-	if (strcmp(password, "") == 0 && strcmp(pw->pw_passwd, "") == 0)
-		return 1;
-
+# ifdef HAVE_HPUX_TRUSTED_SYSTEM_PW
+	prpw = getprpwnam(pw->pw_name);
+	pw_password = prpw->ufld.fd_encrypt;
+#else
 	pw_password = pw->pw_passwd;
+#endif
+
+	/* Check for users with no password. */
+	if (strcmp(password, "") == 0 && strcmp(pw_password, "") == 0)
+		return 1;
 
 #if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
 	spw = getspnam(pw->pw_name);

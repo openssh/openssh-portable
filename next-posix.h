@@ -44,7 +44,6 @@ pid_t posix_wait(int *status);				/* new wait() */
 
 /* MISC functions */
 int waitpid(int pid,int *stat_loc,int options);
-#define getpgrp()	getpgrp(0)
 pid_t setsid(void);
 
 /* TC */

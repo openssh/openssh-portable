@@ -98,8 +98,8 @@ allowed_user(struct passwd * pw)
 			return 0;
 
 		/* Check password expiry */
-		if ((spw->sp_lstchg > 0) && (spw->sp_inact > 0) && 
-			(days > (spw->sp_lstchg + spw->sp_inact)))
+		if ((spw->sp_lstchg > 0) && (spw->sp_max > 0) && 
+		    (days > (spw->sp_lstchg + spw->sp_max)))
 			return 0;
 	}
 #else

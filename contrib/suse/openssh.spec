@@ -150,8 +150,9 @@ This package contains the GNOME passphrase dialog.
 
 %build
 CFLAGS="$RPM_OPT_FLAGS" \
-./configure --prefix=/usr --sysconfdir=/etc/ssh --with-gnome-askpass \
-            --with-tcp-wrappers --with-ipv4-default
+./configure --prefix=/usr --sysconfdir=/etc/ssh \
+	--libexecdir=/usr/libexec/ssh --with-gnome-askpass \
+	--with-tcp-wrappers --with-ipv4-default
 make
 
 cd contrib
@@ -167,12 +168,12 @@ install -d $RPM_BUILD_ROOT/etc/ssh/
 install -d $RPM_BUILD_ROOT/etc/pam.d/
 install -d $RPM_BUILD_ROOT/sbin/init.d/
 install -d $RPM_BUILD_ROOT/var/adm/fillup-templates
-install -d $RPM_BUILD_ROOT/usr/libexec/ssh
-install -m644 sshd.pam.generic $RPM_BUILD_ROOT/etc/pam.d/sshd
+install -d $RPM_BUILD_ROOT/usr/libexec/openssh
+install -m644 contrib/sshd.pam.generic $RPM_BUILD_ROOT/etc/pam.d/sshd
 install -m744 contrib/suse/rc.sshd $RPM_BUILD_ROOT/sbin/init.d/sshd
 ln -s ../../sbin/init.d/sshd $RPM_BUILD_ROOT/usr/sbin/rcsshd
-install -s contrib/gnome-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/ssh/gnome-ssh-askpass
-ln -s gnome-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/ssh/ssh-askpass
+install -s contrib/gnome-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/openssh/gnome-ssh-askpass
+ln -s gnome-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/openssh/ssh-askpass
 install -m744 contrib/suse/rc.config.sshd \
    $RPM_BUILD_ROOT/var/adm/fillup-templates
 
@@ -230,7 +231,7 @@ fi
 %attr(0644,root,root) %doc /usr/man/man1/ssh-keygen.1*
 %attr(0644,root,root) %doc /usr/man/man1/scp.1*
 %attr(0755,root,root) %dir /etc/ssh
-%attr(0755,root,root) %dir /usr/libexec/ssh
+%attr(0755,root,root) %dir /usr/libexec/openssh
 
 %files clients
 %defattr(-,root,root)
@@ -247,7 +248,7 @@ fi
 %files server
 %defattr(-,root,root)
 %attr(0755,root,root) /usr/sbin/sshd
-%attr(0755,root,root) /usr/libexec/ssh/sftp-server
+%attr(0755,root,root) /usr/libexec/openssh/sftp-server
 %attr(0644,root,root) %doc /usr/man/man8/sshd.8*
 %attr(0644,root,root) %doc /usr/man/man8/sftp-server.8*
 %attr(0600,root,root) %config /etc/ssh/sshd_config
@@ -258,6 +259,6 @@ fi
 
 %files askpass
 %defattr(-,root,root)
-%attr(0755,root,root) /usr/libexec/ssh/ssh-askpass
-%attr(0755,root,root) /usr/libexec/ssh/gnome-ssh-askpass
+%attr(0755,root,root) /usr/libexec/openssh/ssh-askpass
+%attr(0755,root,root) /usr/libexec/openssh/gnome-ssh-askpass
 

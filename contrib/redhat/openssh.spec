@@ -167,8 +167,8 @@ This package contains the GNOME passphrase dialog.
 
 %build
 
-%configure --sysconfdir=/etc/ssh --with-tcp-wrappers \
-	--with-rsh=/usr/bin/rsh
+%configure --sysconfdir=/etc/ssh --libexecdir=/usr/libexec/openssh \
+	--with-tcp-wrappers --with-rsh=/usr/bin/rsh
 
 make
 
@@ -193,17 +193,17 @@ make install DESTDIR=$RPM_BUILD_ROOT/
 
 install -d $RPM_BUILD_ROOT/etc/pam.d/
 install -d $RPM_BUILD_ROOT/etc/rc.d/init.d
-install -d $RPM_BUILD_ROOT/usr/libexec/ssh
+install -d $RPM_BUILD_ROOT/usr/libexec/openssh
 install -m644 contrib/redhat/sshd.pam $RPM_BUILD_ROOT/etc/pam.d/sshd
 install -m755 contrib/redhat/sshd.init $RPM_BUILD_ROOT/etc/rc.d/init.d/sshd
 
 %if ! %{no_x11_askpass}
-install -s x11-ssh-askpass-%{aversion}/x11-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/ssh/x11-ssh-askpass
-ln -s /usr/libexec/ssh/x11-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/ssh/ssh-askpass
+install -s x11-ssh-askpass-%{aversion}/x11-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/openssh/x11-ssh-askpass
+ln -s /usr/libexec/openssh/x11-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/openssh/ssh-askpass
 %endif
 
 %if ! %{no_gnome_askpass}
-install -s contrib/gnome-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/ssh/gnome-ssh-askpass
+install -s contrib/gnome-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/openssh/gnome-ssh-askpass
 %endif
 
 %clean
@@ -230,7 +230,7 @@ fi
 %attr(0644,root,root) /usr/man/man1/ssh-keygen.1*
 %attr(0644,root,root) /usr/man/man1/scp.1*
 %attr(0755,root,root) %dir /etc/ssh
-%attr(0755,root,root) %dir /usr/libexec/ssh
+%attr(0755,root,root) %dir /usr/libexec/openssh
 
 %files clients
 %defattr(-,root,root)
@@ -258,12 +258,12 @@ fi
 %doc x11-ssh-askpass-%{aversion}/README
 %doc x11-ssh-askpass-%{aversion}/ChangeLog
 %doc x11-ssh-askpass-%{aversion}/SshAskpass*.ad
-%attr(0755,root,root) /usr/libexec/ssh/ssh-askpass
-%attr(0755,root,root) /usr/libexec/ssh/x11-ssh-askpass
+%attr(0755,root,root) /usr/libexec/openssh/ssh-askpass
+%attr(0755,root,root) /usr/libexec/openssh/x11-ssh-askpass
 %endif
 
 %if ! %{no_gnome_askpass}
 %files askpass-gnome
 %defattr(-,root,root)
-%attr(0755,root,root) /usr/libexec/ssh/gnome-ssh-askpass
+%attr(0755,root,root) /usr/libexec/openssh/gnome-ssh-askpass
 %endif

@@ -46,7 +46,9 @@ Juergen Keil <jk@tools.de> - scp bugfixing
 Kees Cook <cook@cpoint.net> - scp fixes
 Kenji Miyake <kenji@miyake.org> - Configure fixes
 Kevin O'Connor <kevin_oconnor@standardandpoors.com> - RSAless operation
+Kevin Steves <stevesk@sweden.hp.com> - HP support, bugfixes, improvements
 Kiyokazu SUTO <suto@ks-and-ks.ne.jp> - Bugfixes
+Larry Jones <larry.jones@sdrc.com> - Bugfixes
 Lutz Jaenicke <Lutz.Jaenicke@aet.TU-Cottbus.DE> - Bugfixes
 Marc G. Fournier <marc.fournier@acadiau.ca> - Solaris patches
 Mark Miller <markm@swoon.net> - Bugfixes
@@ -55,6 +57,7 @@ Michael Stone <mstone@cs.loyola.edu> - Irix enhancements
 Nalin Dahyabhai <nalin.dahyabhai@pobox.com> - PAM environment patch
 Nate Itkin <nitkin@europa.com> - SunOS 4.1.x fixes
 Niels Kristian Bech Jensen <nkbj@image.dk> - Assorted patches
+Pavel Troller <patrol@omni.sinus.cz> - Bugfixes
 Peter Kocks <peter.kocks@baygate.com> - Makefile fixes
 Phil Hands <phil@hands.com> - Debian scripts, assorted patches
 Phil Karn <karn@ka9q.ampr.org> - Autoconf fix

@@ -1,4 +1,16 @@
 20000916
+ - (djm) Shadow expiry check fix from Pavel Troller <patrol@omni.sinus.cz>
+ - (djm) Re-enable int64_t types - we need them for sftp
+ - (djm) Use libexecdir from configure , rather than libexecdir/ssh
+ - (djm) Update Redhat SPEC file accordingly
+ - (djm) Add Kevin Steves <stevesk@sweden.hp.com> HP/UX contrib files
+ - (djm) Add Charles Levert <charles@comm.polymtl.ca> getpgrp patch
+ - (djm) Fix password auth on HP/UX 10.20. Patch from Dirk De Wachter 
+   <Dirk.DeWachter@rug.ac.be>
+ - (djm) Fixprogs and entropy list fixes from Larry Jones 
+   <larry.jones@sdrc.com>
+ - (djm) Fix for SuSE spec file from Takashi YOSHIDA
+   <tyoshida@gemini.rc.kyushu-u.ac.jp>
  - (djm) Merge OpenBSD changes:
    - markus@cvs.openbsd.org  2000/09/05 02:59:57
      [session.c]

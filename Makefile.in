@@ -15,8 +15,7 @@ DESTDIR=
 VPATH=@srcdir@
 
 SSH_PROGRAM=@bindir@/ssh
-LIBEXEC=@libexecdir@/ssh
-ASKPASS_PROGRAM=$(LIBEXEC)/ssh-askpass
+ASKPASS_PROGRAM=$(libexecdir)/ssh-askpass
 
 CC=@CC@
 LD=@LD@
@@ -49,7 +48,7 @@ MANPAGES	= @MANTYPE@
 
 CONFIGFILES=sshd_config ssh_config
 
-PATHSUBS	= -D/etc/ssh_config=$(sysconfdir)/ssh_config -D/etc/known_hosts=$(sysconfdir)/ssh_known_hosts -D/etc/sshd_config=$(sysconfdir)/sshd_config -D/usr/libexec=$(LIBEXEC) -D/etc/shosts.equiv=$(sysconfdir)/shosts.equiv -D/etc/ssh_host_key=$(sysconfdir)/ssh_host_key -D/var/run/sshd.pid=$(piddir)/sshd.pid
+PATHSUBS	= -D/etc/ssh_config=$(sysconfdir)/ssh_config -D/etc/known_hosts=$(sysconfdir)/ssh_known_hosts -D/etc/sshd_config=$(sysconfdir)/sshd_config -D/usr/libexec=$(libexecdir) -D/etc/shosts.equiv=$(sysconfdir)/shosts.equiv -D/etc/ssh_host_key=$(sysconfdir)/ssh_host_key -D/var/run/sshd.pid=$(piddir)/sshd.pid
 
 FIXPATHSCMD	= $(PERL) $(srcdir)/fixpaths $(PATHSUBS)
 
@@ -127,14 +126,14 @@ install-files:
 	./mkinstalldirs $(DESTDIR)$(mandir)
 	./mkinstalldirs $(DESTDIR)$(mandir)/$(mansubdir)1
 	./mkinstalldirs $(DESTDIR)$(mandir)/$(mansubdir)8
-	./mkinstalldirs $(DESTDIR)$(LIBEXEC)
+	./mkinstalldirs $(DESTDIR)$(libexecdir)
 	$(INSTALL) -m 4755 -s ssh $(DESTDIR)$(bindir)/ssh
 	$(INSTALL) -m 0755 -s scp $(DESTDIR)$(bindir)/scp
 	$(INSTALL) -m 0755 -s ssh-add $(DESTDIR)$(bindir)/ssh-add
 	$(INSTALL) -m 0755 -s ssh-agent $(DESTDIR)$(bindir)/ssh-agent
 	$(INSTALL) -m 0755 -s ssh-keygen $(DESTDIR)$(bindir)/ssh-keygen
 	$(INSTALL) -m 0755 -s sshd $(DESTDIR)$(sbindir)/sshd
-	$(INSTALL) -m 0755 -s sftp-server $(DESTDIR)$(LIBEXEC)/sftp-server
+	$(INSTALL) -m 0755 -s sftp-server $(DESTDIR)$(libexecdir)/sftp-server
 	$(INSTALL) -m 644 ssh.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh.1
 	$(INSTALL) -m 644 scp.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/scp.1
 	$(INSTALL) -m 644 ssh-add.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-add.1

@@ -296,6 +296,8 @@ int main(void){char b[5];snprintf(b,5,"123456789");return(b[4]!='\0');}
 	)
 fi
 
+AC_FUNC_GETPGRP
+
 PAM_MSG="no"
 AC_ARG_WITH(pam,
 	[  --without-pam           Disable PAM support ],

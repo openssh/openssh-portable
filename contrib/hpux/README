@@ -1,0 +1,19 @@
+README for OpenSSH HP-UX contrib files
+Kevin Steves <stevesk@sweden.hp.com>
+
+sshd:		configuration file for sshd.rc
+sshd.rc:	SSH startup script
+
+To install:
+
+o Verify paths in sshd.rc match your local installation
+  (WHAT_PATH and WHAT_PID)
+o Customize sshd if needed (SSHD_ARGS)
+o Install:
+
+  # cp sshd /etc/rc.config.d
+  # chmod 444 /etc/rc.config.d/sshd
+  # cp sshd.rc /sbin/init.d
+  # chmod 555 /sbin/init.d/sshd.rc
+  # ln -s /sbin/init.d/sshd.rc /sbin/rc1.d/K100sshd
+  # ln -s /sbin/init.d/sshd.rc /sbin/rc2.d/S900sshd

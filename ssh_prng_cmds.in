@@ -14,6 +14,15 @@
 "ls -alni /tmp"				@PROG_LS@	0.02
 "ls -alni /var/tmp"			@PROG_LS@	0.02
 "ls -alni /usr/tmp"			@PROG_LS@	0.02
+"ls -alTi /var/log"			@PROG_LS@	0.02
+"ls -alTi /var/adm"			@PROG_LS@	0.02
+"ls -alTi /var/mail"			@PROG_LS@	0.02
+"ls -alTi /var/adm/syslog"		@PROG_LS@	0.02
+"ls -alTi /var/spool/mail"		@PROG_LS@	0.02
+"ls -alTi /proc"			@PROG_LS@	0.02
+"ls -alTi /tmp"				@PROG_LS@	0.02
+"ls -alTi /var/tmp"			@PROG_LS@	0.02
+"ls -alTi /usr/tmp"			@PROG_LS@	0.02
 
 "netstat -an"				@PROG_NETSTAT@	0.05
 "netstat -in"				@PROG_NETSTAT@	0.05
