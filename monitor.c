@@ -118,6 +118,10 @@ int mm_answer_sessid(int, Buffer *);
 
 #ifdef USE_PAM
 int mm_answer_pam_start(int, Buffer *);
+int mm_answer_pam_init_ctx(int, Buffer *);
+int mm_answer_pam_query(int, Buffer *);
+int mm_answer_pam_respond(int, Buffer *);
+int mm_answer_pam_free_ctx(int, Buffer *);
 #endif
 
 #ifdef KRB4
@@ -163,6 +167,10 @@ struct mon_table mon_dispatch_proto20[] = {
     {MONITOR_REQ_AUTHPASSWORD, MON_AUTH, mm_answer_authpassword},
 #ifdef USE_PAM
     {MONITOR_REQ_PAM_START, MON_ONCE, mm_answer_pam_start},
+    {MONITOR_REQ_PAM_INIT_CTX, MON_ISAUTH, mm_answer_pam_init_ctx},
+    {MONITOR_REQ_PAM_QUERY, MON_ISAUTH, mm_answer_pam_query},
+    {MONITOR_REQ_PAM_RESPOND, MON_ISAUTH, mm_answer_pam_respond},
+    {MONITOR_REQ_PAM_FREE_CTX, MON_ONCE|MON_AUTHDECIDE, mm_answer_pam_free_ctx},
 #endif
 #ifdef BSD_AUTH
     {MONITOR_REQ_BSDAUTHQUERY, MON_ISAUTH, mm_answer_bsdauthquery},
@@ -205,6 +213,10 @@ struct mon_table mon_dispatch_proto15[] = {
 #endif
 #ifdef USE_PAM
     {MONITOR_REQ_PAM_START, MON_ONCE, mm_answer_pam_start},
+    {MONITOR_REQ_PAM_INIT_CTX, MON_ISAUTH, mm_answer_pam_init_ctx},
+    {MONITOR_REQ_PAM_QUERY, MON_ISAUTH, mm_answer_pam_query},
+    {MONITOR_REQ_PAM_RESPOND, MON_ISAUTH, mm_answer_pam_respond},
+    {MONITOR_REQ_PAM_FREE_CTX, MON_ONCE|MON_AUTHDECIDE, mm_answer_pam_free_ctx},
 #endif
 #ifdef KRB4
     {MONITOR_REQ_KRB4, MON_ONCE|MON_AUTH, mm_answer_krb4},
@@ -285,10 +297,6 @@ monitor_child_preauth(struct monitor *pmonitor)
 			if (authctxt->pw->pw_uid == 0 &&
 			    !auth_root_allowed(auth_method))
 				authenticated = 0;
-#ifdef USE_PAM
-			if (!do_pam_account(authctxt->pw->pw_name, NULL))
-				authenticated = 0;
-#endif
 		}
 
 		if (ent->flags & MON_AUTHDECIDE) {
@@ -746,6 +754,103 @@ mm_answer_pam_start(int socket, Buffer *m)
 	xfree(user);
 
 	return (0);
+}
+
+static void *sshpam_ctxt, *sshpam_authok;
+extern KbdintDevice sshpam_device;
+
+int
+mm_answer_pam_init_ctx(int socket, Buffer *m)
+{
+
+	debug3("%s", __func__);
+	authctxt->user = buffer_get_string(m, NULL);
+	sshpam_ctxt = (sshpam_device.init_ctx)(authctxt);
+	sshpam_authok = NULL;
+	buffer_clear(m);
+	if (sshpam_ctxt != NULL) {
+		monitor_permit(mon_dispatch, MONITOR_REQ_PAM_FREE_CTX, 1);
+		buffer_put_int(m, 1);
+	} else {
+		buffer_put_int(m, 0);
+	}
+	mm_request_send(socket, MONITOR_ANS_PAM_INIT_CTX, m);
+	return (0);
+}
+
+int
+mm_answer_pam_query(int socket, Buffer *m)
+{
+	char *name, *info, **prompts;
+	u_int num, *echo_on;
+	int i, ret;
+
+	debug3("%s", __func__);
+	sshpam_authok = NULL;
+	ret = (sshpam_device.query)(sshpam_ctxt, &name, &info, &num, &prompts, &echo_on);
+	if (ret == 0 && num == 0)
+		sshpam_authok = sshpam_ctxt;
+	if (num > 1 || name == NULL || info == NULL)
+		ret = -1;
+	buffer_clear(m);
+	buffer_put_int(m, ret);
+	buffer_put_cstring(m, name);
+	xfree(name);
+	buffer_put_cstring(m, info);
+	xfree(info);
+	buffer_put_int(m, num);
+	for (i = 0; i < num; ++i) {
+		buffer_put_cstring(m, prompts[i]);
+		xfree(prompts[i]);
+		buffer_put_int(m, echo_on[i]);
+	}
+	if (prompts != NULL)
+		xfree(prompts);
+	if (echo_on != NULL)
+		xfree(echo_on);
+	mm_request_send(socket, MONITOR_ANS_PAM_QUERY, m);
+	return (0);
+}
+
+int
+mm_answer_pam_respond(int socket, Buffer *m)
+{
+	char **resp;
+	u_int num;
+	int i, ret;
+
+	debug3("%s", __func__);
+	sshpam_authok = NULL;
+	num = buffer_get_int(m);
+	if (num > 0) {
+		resp = xmalloc(num * sizeof(char *));
+		for (i = 0; i < num; ++i)
+			resp[i] = buffer_get_string(m, NULL);
+		ret = (sshpam_device.respond)(sshpam_ctxt, num, resp);
+		for (i = 0; i < num; ++i)
+			xfree(resp[i]);
+		xfree(resp);
+	} else {
+		ret = (sshpam_device.respond)(sshpam_ctxt, num, NULL);
+	}
+	buffer_clear(m);
+	buffer_put_int(m, ret);
+	mm_request_send(socket, MONITOR_ANS_PAM_RESPOND, m);
+	auth_method = "keyboard-interactive/pam";
+	if (ret == 0)
+		sshpam_authok = sshpam_ctxt;
+	return (0);
+}
+
+int
+mm_answer_pam_free_ctx(int socket, Buffer *m)
+{
+
+	debug3("%s", __func__);
+	(sshpam_device.free_ctx)(sshpam_ctxt);
+	buffer_clear(m);
+	mm_request_send(socket, MONITOR_ANS_PAM_FREE_CTX, m);
+	return (sshpam_authok == sshpam_ctxt);
 }
 #endif
 

@@ -3,6 +3,8 @@
    "make install".  Patch by roth@feep.net.
  - (dtucker) Bug #536: Test for and work around openpty/controlling tty
    problem on Linux (fixes "could not set controlling tty" errors).
+ - (djm) Merge FreeBSD PAM code: replaces PAM password auth kludge with 
+   proper challenge-response module
 
 20030504
  - (dtucker) Bug #497: Move #include of bsd-cygwin_util.h to openbsd-compat.h.
@@ -1376,4 +1378,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2672 2003/05/10 07:05:46 dtucker Exp $
+$Id: ChangeLog,v 1.2673 2003/05/10 09:28:02 djm Exp $

@@ -1,4 +1,5 @@
 /*	$OpenBSD: monitor_wrap.h,v 1.8 2002/09/26 11:38:43 markus Exp $	*/
+/*	$FreeBSD: src/crypto/openssh/monitor_wrap.h,v 1.3 2002/10/29 10:16:02 des Exp $	*/
 
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
@@ -57,6 +58,10 @@ BIGNUM *mm_auth_rsa_generate_challenge(Key *);
 
 #ifdef USE_PAM
 void mm_start_pam(char *);
+void *mm_sshpam_init_ctx(struct Authctxt *);
+int mm_sshpam_query(void *, char **, char **, u_int *, char ***, u_int **);
+int mm_sshpam_respond(void *, u_int, char **);
+void mm_sshpam_free_ctx(void *);
 #endif
 
 void mm_terminate(void);

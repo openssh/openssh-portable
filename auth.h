@@ -1,4 +1,5 @@
 /*	$OpenBSD: auth.h,v 1.41 2002/09/26 11:38:43 markus Exp $	*/
+/*	$FreeBSD: src/crypto/openssh/auth.h,v 1.10 2003/03/31 13:45:36 des Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -133,7 +134,6 @@ void	krb5_cleanup_proc(void *authctxt);
 #endif /* KRB5 */
 
 #include "auth-pam.h"
-#include "auth2-pam.h"
 
 Authctxt *do_authentication(void);
 Authctxt *do_authentication2(void);
@@ -159,6 +159,7 @@ struct passwd * getpwnamallow(const char *user);
 
 char	*get_challenge(Authctxt *);
 int	verify_response(Authctxt *, const char *);
+void	abandon_challenge_response(Authctxt *);
 
 struct passwd * auth_get_user(void);
 

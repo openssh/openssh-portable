@@ -43,8 +43,8 @@ RCSID("$OpenBSD: auth-passwd.c,v 1.27 2002/05/24 16:45:16 stevesk Exp $");
 #include "servconf.h"
 #include "auth.h"
 
-#if !defined(USE_PAM) && !defined(HAVE_OSF_SIA)
-/* Don't need any of these headers for the PAM or SIA cases */
+#if !defined(HAVE_OSF_SIA)
+/* Don't need any of these headers for the SIA cases */
 # ifdef HAVE_CRYPT_H
 #  include <crypt.h>
 # endif
@@ -78,7 +78,7 @@ RCSID("$OpenBSD: auth-passwd.c,v 1.27 2002/05/24 16:45:16 stevesk Exp $");
 #  include <sys/cygwin.h>
 #  define is_winnt       (GetVersion() < 0x80000000)
 # endif
-#endif /* !USE_PAM && !HAVE_OSF_SIA */
+#endif /* !HAVE_OSF_SIA */
 
 extern ServerOptions options;
 #ifdef WITH_AIXAUTHENTICATE
@@ -94,7 +94,7 @@ auth_password(Authctxt *authctxt, const char *password)
 {
 	struct passwd * pw = authctxt->pw;
 	int ok = authctxt->valid;
-#if !defined(USE_PAM) && !defined(HAVE_OSF_SIA)
+#if !defined(HAVE_OSF_SIA)
 	char *encrypted_password;
 	char *pw_password;
 	char *salt;
@@ -112,7 +112,7 @@ auth_password(Authctxt *authctxt, const char *password)
 	int authsuccess;
 	int reenter = 1;
 # endif
-#endif /* !defined(USE_PAM) && !defined(HAVE_OSF_SIA) */
+#endif /* !defined(HAVE_OSF_SIA) */
 
 	/* deny if no user. */
 	if (pw == NULL)
@@ -124,9 +124,7 @@ auth_password(Authctxt *authctxt, const char *password)
 	if (*password == '\0' && options.permit_empty_passwd == 0)
 		ok = 0;
 
-#if defined(USE_PAM)
-	return auth_pam_password(authctxt, password) && ok;
-#elif defined(HAVE_OSF_SIA)
+#if defined(HAVE_OSF_SIA)
 	if (!ok)
 		return 0;
 	return auth_sia_password(authctxt, password);
@@ -235,5 +233,5 @@ auth_password(Authctxt *authctxt, const char *password)
 
 	/* Authentication is accepted if the encrypted passwords are identical. */
 	return (strcmp(encrypted_password, pw_password) == 0);
-#endif /* !USE_PAM && !HAVE_OSF_SIA */
+#endif /* !HAVE_OSF_SIA */
 }

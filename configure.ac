@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.116 2003/05/10 07:05:46 dtucker Exp $
+# $Id: configure.ac,v 1.117 2003/05/10 09:28:02 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -963,7 +963,7 @@ int main(void) { exit(SSLeay() == OPENSSL_VERSION_NUMBER ? 0 : 1); }
 
 # Some Linux systems (Slackware) need crypt() from libcrypt, *not* the 
 # version in OpenSSL. Skip this for PAM
-if test "x$PAM_MSG" = "xno" -a "x$check_for_libcrypt_later" = "x1"; then
+if test "x$check_for_libcrypt_later" = "x1"; then
 	AC_CHECK_LIB(crypt, crypt, LIBS="$LIBS -lcrypt")
 fi
 
