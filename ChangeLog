@@ -1,6 +1,8 @@
 20040114
  - (dtucker) [auth-pam.c] Have monitor die if PAM authentication thread exits
    unexpectedly.  with & ok djm@
+ - (dtucker) [auth-pam.c] Reset signal handler in pthread_cancel too, add
+   test for case where cleanup has already run.
 
 20040113
  - (dtucker) [auth-pam.c] Relocate struct pam_ctxt and prototypes.  No
@@ -1663,4 +1665,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3167 2004/01/14 11:14:04 dtucker Exp $
+$Id: ChangeLog,v 1.3168 2004/01/14 12:07:56 dtucker Exp $
