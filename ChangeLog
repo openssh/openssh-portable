@@ -1,6 +1,7 @@
 20020123
  - (djm) Fix non-standard shell syntax in autoconf. Patch from 
    Dave Dykstra <dwd@bell-labs.com>
+ - (stevesk) fix --with-zlib=
 
 20020122
  - (djm) autoconf hacking:
@@ -7382,4 +7383,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1790 2002/01/22 21:12:36 djm Exp $
+$Id: ChangeLog,v 1.1791 2002/01/22 21:59:31 stevesk Exp $

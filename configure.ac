@@ -1,4 +1,4 @@
-i# $Id: configure.ac,v 1.14 2002/01/22 21:12:37 djm Exp $
+i# $Id: configure.ac,v 1.15 2002/01/22 21:59:32 stevesk Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -337,7 +337,7 @@ dnl zlib is required
 AC_ARG_WITH(zlib,
 	[  --with-zlib=PATH        Use zlib in PATH],
 	[
-		if test "x$withval" != "xno" ; then
+		if test "x$withval" = "xno" ; then
 			AC_MSG_ERROR([*** zlib is required ***])
 		fi
 		if test -d "$withval/lib"; then
