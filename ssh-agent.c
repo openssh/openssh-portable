@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.58 2001/06/26 05:07:43 markus Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.59 2001/06/26 05:33:34 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.58 2001/06/26 05:07:43 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.59 2001/06/26 05:33:34 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -55,6 +55,11 @@ RCSID("$OpenBSD: ssh-agent.c,v 1.58 2001/06/26 05:07:43 markus Exp $");
 #include "kex.h"
 #include "compat.h"
 #include "log.h"
+
+#ifdef SMARTCARD
+#include <openssl/engine.h>
+#include "scard.h"
+#endif
 
 typedef struct {
 	int fd;
@@ -439,6 +444,106 @@ send:
 	    success ? SSH_AGENT_SUCCESS : SSH_AGENT_FAILURE);
 }
 
+
+#ifdef SMARTCARD
+static void
+process_add_smartcard_key (SocketEntry *e)
+{
+	Idtab *tab;
+	Key *n = NULL, *k = NULL;
+	int success = 0;
+	int sc_reader_num = 0;
+	
+	sc_reader_num = buffer_get_int(&e->input);
+
+	k = sc_get_key(sc_reader_num);
+	if (k == NULL) {
+		error("sc_get_pubkey failed");
+		goto send;
+	}
+	success = 1;
+
+	tab = idtab_lookup(1);
+	if (lookup_private_key(k, NULL, 1) == NULL) {
+		if (tab->nentries == 0)
+			tab->identities = xmalloc(sizeof(Identity));
+		else
+			tab->identities = xrealloc(tab->identities,
+			    (tab->nentries + 1) * sizeof(Identity));
+		n = key_new(KEY_RSA1);
+		BN_copy(n->rsa->n, k->rsa->n);
+		BN_copy(n->rsa->e, k->rsa->e);
+		RSA_set_method(n->rsa, sc_get_engine());
+		tab->identities[tab->nentries].key = n;
+		tab->identities[tab->nentries].comment =
+		    xstrdup("rsa1 smartcard");
+		tab->nentries++;
+	}
+	tab = idtab_lookup(2);
+	if (lookup_private_key(k, NULL, 2) == NULL) {
+		if (tab->nentries == 0)
+			tab->identities = xmalloc(sizeof(Identity));
+		else
+			tab->identities = xrealloc(tab->identities,
+			    (tab->nentries + 1) * sizeof(Identity));
+		n = key_new(KEY_RSA);
+		BN_copy(n->rsa->n, k->rsa->n);
+		BN_copy(n->rsa->e, k->rsa->e);
+		RSA_set_method(n->rsa, sc_get_engine());
+		tab->identities[tab->nentries].key = n;
+		tab->identities[tab->nentries].comment =
+		    xstrdup("rsa smartcard");
+		tab->nentries++;
+	}
+	key_free(k);
+send:
+	buffer_put_int(&e->output, 1);
+	buffer_put_char(&e->output,
+	    success ? SSH_AGENT_SUCCESS : SSH_AGENT_FAILURE);
+}
+
+static void
+process_remove_smartcard_key(SocketEntry *e)
+{
+	Key *k = NULL, *private;
+	int idx;
+	int success = 0;
+	int sc_reader_num = 0;
+
+	sc_reader_num = buffer_get_int(&e->input);
+
+	if ((k = sc_get_key(sc_reader_num)) == NULL) {
+		error("sc_get_pubkey failed");
+	} else {
+		private = lookup_private_key(k, &idx, 1);
+		if (private != NULL) {
+			Idtab *tab = idtab_lookup(1);
+			key_free(tab->identities[idx].key);
+			xfree(tab->identities[idx].comment);
+			if (idx != tab->nentries)
+				tab->identities[idx] = tab->identities[tab->nentries];
+			tab->nentries--;
+			success = 1;
+		}
+		private = lookup_private_key(k, &idx, 2);
+		if (private != NULL) {
+			Idtab *tab = idtab_lookup(2);
+			key_free(tab->identities[idx].key);
+			xfree(tab->identities[idx].comment);
+			if (idx != tab->nentries)
+				tab->identities[idx] = tab->identities[tab->nentries];
+			tab->nentries--;
+			success = 1;
+		}
+		key_free(k);
+	}
+
+	buffer_put_int(&e->output, 1);
+	buffer_put_char(&e->output,
+	    success ? SSH_AGENT_SUCCESS : SSH_AGENT_FAILURE);
+}
+#endif
+
 /* dispatch incoming messages */
 
 static void
@@ -462,6 +567,7 @@ process_message(SocketEntry *e)
 	buffer_consume(&e->input, 4);
 	type = buffer_get_char(&e->input);
 
+	debug("type %d", type);
 	switch (type) {
 	/* ssh1 */
 	case SSH_AGENTC_RSA_CHALLENGE:
@@ -495,6 +601,14 @@ process_message(SocketEntry *e)
 	case SSH2_AGENTC_REMOVE_ALL_IDENTITIES:
 		process_remove_all_identities(e, 2);
 		break;
+#ifdef SMARTCARD
+	case SSH_AGENTC_ADD_SMARTCARD_KEY:
+		process_add_smartcard_key(e);
+		break; 
+	case SSH_AGENTC_REMOVE_SMARTCARD_KEY:
+		process_remove_smartcard_key(e);
+		break; 
+#endif
 	default:
 		/* Unknown message.  Respond with failure. */
 		error("Unknown message %d", type);
