@@ -1,6 +1,10 @@
 20050202
  - (dtucker) [configure.ac openbsd-compat/realpath.c] Sync up with realpath
    rev 1.11 from OpenBSD and make it use fchdir if available.  ok djm@
+ - (dtucker) [auth.c loginrec.h openbsd-compat/{bsd-cray,port-aix}.{c,h}]
+   Make record_failed_login() call provide hostname rather than having the
+   implementations having to do lookups themselves.  Only affects AIX and
+   UNICOS (the latter only uses the "user" parameter anyway).  ok djm@
 
 20050201
  - (dtucker) [log.c] Bug #973: force log_init() to open syslog, since on some
@@ -2055,4 +2059,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3629 2005/02/01 23:43:59 dtucker Exp $
+$Id: ChangeLog,v 1.3630 2005/02/02 06:10:11 dtucker Exp $

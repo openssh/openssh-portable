@@ -50,6 +50,7 @@ RCSID("$OpenBSD: auth.c,v 1.57 2005/01/22 08:17:59 dtucker Exp $");
 #include "misc.h"
 #include "bufaux.h"
 #include "packet.h"
+#include "loginrec.h"
 
 /* import */
 extern ServerOptions options;
@@ -244,7 +245,8 @@ auth_log(Authctxt *authctxt, int authenticated, char *method, char *info)
 
 #ifdef CUSTOM_FAILED_LOGIN
 	if (authenticated == 0 && strcmp(method, "password") == 0)
-		record_failed_login(authctxt->user, "ssh");
+		record_failed_login(authctxt->user,
+		    get_canonical_hostname(options.use_dns), "ssh");
 #endif
 }
 
@@ -468,7 +470,8 @@ getpwnamallow(const char *user)
 		logit("Invalid user %.100s from %.100s",
 		    user, get_remote_ipaddr());
 #ifdef CUSTOM_FAILED_LOGIN
-		record_failed_login(user, "ssh");
+		record_failed_login(user,
+		    get_canonical_hostname(options.use_dns), "ssh");
 #endif
 		return (NULL);
 	}

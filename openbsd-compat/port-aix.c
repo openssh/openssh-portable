@@ -28,8 +28,6 @@
 #include "auth.h"
 #include "ssh.h"
 #include "log.h"
-#include "servconf.h"
-#include "canohost.h"
 #include "xmalloc.h"
 #include "buffer.h"
 
@@ -38,7 +36,6 @@
 #include <uinfo.h>
 #include "port-aix.h"
 
-extern ServerOptions options;
 extern Buffer loginmsg;
 
 # ifdef HAVE_SETAUTHDB
@@ -280,10 +277,8 @@ sys_auth_record_login(const char *user, const char *host, const char *ttynm)
  * record_failed_login: generic "login failed" interface function
  */
 void
-record_failed_login(const char *user, const char *ttyname)
+record_failed_login(const char *user, const char *hostname, const char *ttyname)
 {
-	char *hostname = (char *)get_canonical_hostname(options.use_dns);
-
 	if (geteuid() != 0)
 		return;
 
