@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.52 2001/02/27 10:35:27 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.53 2001/02/28 09:57:06 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -1304,4 +1304,58 @@ packet_set_maxsize(int s)
 	log("packet_set_maxsize: setting to %d", s);
 	max_packet_size = s;
 	return s;
+}
+
+/*
+ * 9.2.  Ignored Data Message
+ * 
+ *   byte      SSH_MSG_IGNORE
+ *   string    data
+ * 
+ * All implementations MUST understand (and ignore) this message at any
+ * time (after receiving the protocol version). No implementation is
+ * required to send them. This message can be used as an additional
+ * protection measure against advanced traffic analysis techniques.
+ */
+/* size of current + ignore message should be n*sumlen bytes (w/o mac) */
+void
+packet_inject_ignore(int sumlen)
+{
+	u_int32_t rand = 0;
+	int i, blocksize, padlen, have, need, nb, mini, nbytes;
+	Enc *enc = NULL;
+
+	if (use_ssh2_packet_format == 0)
+		return;
+
+	have = buffer_len(&outgoing_packet);
+	debug2("packet_inject_ignore: current %d", have);
+	if (kex != NULL)
+	enc  = &kex->enc[MODE_OUT];
+	blocksize = enc ? enc->cipher->block_size : 8;
+	padlen = blocksize - (have % blocksize);
+	if (padlen < 4)
+		padlen += blocksize;
+	have += padlen;
+	have /= blocksize;	/* # of blocks for current message */
+
+	nb   = roundup(sumlen,  blocksize) / blocksize;	/* blocks for both */
+	mini = roundup(5+1+4+4, blocksize) / blocksize; /* minsize ignore msg */
+	need = nb - (have % nb);			/* blocks for ignore */
+	if (need <= mini)
+		need += nb;
+	nbytes = (need - mini) * blocksize;	/* size of ignore payload */
+	debug2("packet_inject_ignore: block %d have %d nb %d mini %d need %d",
+	    blocksize, have, nb, mini, need);
+
+	/* enqueue current message and append a ignore message */
+	packet_send();
+	packet_start(SSH2_MSG_IGNORE);
+	packet_put_int(nbytes);
+	for(i = 0; i < nbytes; i++) {
+		if (i % 4 == 0)
+			rand = arc4random();
+		packet_put_char(rand & 0xff);
+		rand >>= 8;
+	}
 }
