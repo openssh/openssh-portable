@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: bsd-misc.h,v 1.2 2001/02/09 01:55:36 djm Exp $ */
+/* $Id: bsd-misc.h,v 1.3 2001/04/09 14:50:56 stevesk Exp $ */
 
 #ifndef _BSD_MISC_H
 #define _BSD_MISC_H
@@ -51,6 +51,10 @@ int innetgr(const char *netgroup, const char *host,
 #if !defined(HAVE_SETEUID) && defined(HAVE_SETREUID)
 int seteuid(uid_t euid);
 #endif /* !defined(HAVE_SETEUID) && defined(HAVE_SETREUID) */
+
+#if !defined(HAVE_SETEGID) && defined(HAVE_SETRESGID)
+int setegid(uid_t egid);
+#endif /* !defined(HAVE_SETEGID) && defined(HAVE_SETRESGID) */
 
 #if !defined(HAVE_STRERROR) && defined(HAVE_SYS_ERRLIST) && defined(HAVE_SYS_NERR)
 const char *strerror(int e);

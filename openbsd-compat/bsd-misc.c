@@ -26,7 +26,7 @@
 #include "xmalloc.h"
 #include "ssh.h"
 
-RCSID("$Id: bsd-misc.c,v 1.3 2001/03/13 23:38:20 mouring Exp $");
+RCSID("$Id: bsd-misc.c,v 1.4 2001/04/09 14:50:56 stevesk Exp $");
 
 char *get_progname(char *argv0)
 {
@@ -69,6 +69,13 @@ int seteuid(uid_t euid)
 	return(setreuid(-1,euid));
 }
 #endif /* !defined(HAVE_SETEUID) && defined(HAVE_SETREUID) */
+
+#if !defined(HAVE_SETEGID) && defined(HAVE_SETRESGID)
+int setegid(uid_t egid)
+{
+	return(setresgid(-1,egid,-1));
+}
+#endif /* !defined(HAVE_SETEGID) && defined(HAVE_SETRESGID) */
 
 #if !defined(HAVE_STRERROR) && defined(HAVE_SYS_ERRLIST) && defined(HAVE_SYS_NERR)
 const char *strerror(int e)
