@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.156 2002/01/05 10:43:40 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.157 2002/01/09 17:16:00 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -703,28 +703,13 @@ channel_pre_open_13(Channel *c, fd_set * readset, fd_set * writeset)
 }
 
 static void
-channel_pre_open_15(Channel *c, fd_set * readset, fd_set * writeset)
+channel_pre_open(Channel *c, fd_set * readset, fd_set * writeset)
 {
-	/* test whether sockets are 'alive' for read/write */
-	if (c->istate == CHAN_INPUT_OPEN)
-		if (buffer_len(&c->input) < packet_get_maxsize())
-			FD_SET(c->sock, readset);
-	if (c->ostate == CHAN_OUTPUT_OPEN ||
-	    c->ostate == CHAN_OUTPUT_WAIT_DRAIN) {
-		if (buffer_len(&c->output) > 0) {
-			FD_SET(c->sock, writeset);
-		} else if (c->ostate == CHAN_OUTPUT_WAIT_DRAIN) {
-			chan_obuf_empty(c);
-		}
-	}
-}
+	u_int limit = compat20 ? c->remote_window : packet_get_maxsize();
 
-static void
-channel_pre_open_20(Channel *c, fd_set * readset, fd_set * writeset)
-{
 	if (c->istate == CHAN_INPUT_OPEN &&
-	    c->remote_window > 0 &&
-	    buffer_len(&c->input) < c->remote_window)
+	    limit > 0 &&
+	    buffer_len(&c->input) < limit)
 		FD_SET(c->rfd, readset);
 	if (c->ostate == CHAN_OUTPUT_OPEN ||
 	    c->ostate == CHAN_OUTPUT_WAIT_DRAIN) {
@@ -735,7 +720,7 @@ channel_pre_open_20(Channel *c, fd_set * readset, fd_set * writeset)
 		}
 	}
 	/** XXX check close conditions, too */
-	if (c->efd != -1) {
+	if (compat20 && c->efd != -1) {
 		if (c->extended_usage == CHAN_EXTENDED_WRITE &&
 		    buffer_len(&c->extended) > 0)
 			FD_SET(c->efd, writeset);
@@ -867,10 +852,7 @@ channel_pre_x11_open(Channel *c, fd_set * readset, fd_set * writeset)
 
 	if (ret == 1) {
 		c->type = SSH_CHANNEL_OPEN;
-		if (compat20)
-			channel_pre_open_20(c, readset, writeset);
-		else
-			channel_pre_open_15(c, readset, writeset);
+		channel_pre_open(c, readset, writeset);
 	} else if (ret == -1) {
 		log("X11 connection rejected because of wrong authentication.");
 		debug("X11 rejected %d i%d/o%d", c->self, c->istate, c->ostate);
@@ -1422,23 +1404,15 @@ channel_check_window(Channel *c)
 }
 
 static void
-channel_post_open_1(Channel *c, fd_set * readset, fd_set * writeset)
+channel_post_open(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	if (c->delayed)
 		return;
 	channel_handle_rfd(c, readset, writeset);
 	channel_handle_wfd(c, readset, writeset);
-}
-
-static void
-channel_post_open_2(Channel *c, fd_set * readset, fd_set * writeset)
-{
-	if (c->delayed)
+	if (!compat20)
 		return;
-	channel_handle_rfd(c, readset, writeset);
-	channel_handle_wfd(c, readset, writeset);
 	channel_handle_efd(c, readset, writeset);
-
 	channel_check_window(c);
 }
 
@@ -1460,7 +1434,7 @@ channel_post_output_drain_13(Channel *c, fd_set * readset, fd_set * writeset)
 static void
 channel_handler_init_20(void)
 {
-	channel_pre[SSH_CHANNEL_OPEN] =			&channel_pre_open_20;
+	channel_pre[SSH_CHANNEL_OPEN] =			&channel_pre_open;
 	channel_pre[SSH_CHANNEL_X11_OPEN] =		&channel_pre_x11_open;
 	channel_pre[SSH_CHANNEL_PORT_LISTENER] =	&channel_pre_listener;
 	channel_pre[SSH_CHANNEL_RPORT_LISTENER] =	&channel_pre_listener;
@@ -1469,13 +1443,13 @@ channel_handler_init_20(void)
 	channel_pre[SSH_CHANNEL_CONNECTING] =		&channel_pre_connecting;
 	channel_pre[SSH_CHANNEL_DYNAMIC] =		&channel_pre_dynamic;
 
-	channel_post[SSH_CHANNEL_OPEN] =		&channel_post_open_2;
+	channel_post[SSH_CHANNEL_OPEN] =		&channel_post_open;
 	channel_post[SSH_CHANNEL_PORT_LISTENER] =	&channel_post_port_listener;
 	channel_post[SSH_CHANNEL_RPORT_LISTENER] =	&channel_post_port_listener;
 	channel_post[SSH_CHANNEL_X11_LISTENER] =	&channel_post_x11_listener;
 	channel_post[SSH_CHANNEL_AUTH_SOCKET] =		&channel_post_auth_listener;
 	channel_post[SSH_CHANNEL_CONNECTING] =		&channel_post_connecting;
-	channel_post[SSH_CHANNEL_DYNAMIC] =		&channel_post_open_2;
+	channel_post[SSH_CHANNEL_DYNAMIC] =		&channel_post_open;
 }
 
 static void
@@ -1491,19 +1465,19 @@ channel_handler_init_13(void)
 	channel_pre[SSH_CHANNEL_CONNECTING] =		&channel_pre_connecting;
 	channel_pre[SSH_CHANNEL_DYNAMIC] =		&channel_pre_dynamic;
 
-	channel_post[SSH_CHANNEL_OPEN] =		&channel_post_open_1;
+	channel_post[SSH_CHANNEL_OPEN] =		&channel_post_open;
 	channel_post[SSH_CHANNEL_X11_LISTENER] =	&channel_post_x11_listener;
 	channel_post[SSH_CHANNEL_PORT_LISTENER] =	&channel_post_port_listener;
 	channel_post[SSH_CHANNEL_AUTH_SOCKET] =		&channel_post_auth_listener;
 	channel_post[SSH_CHANNEL_OUTPUT_DRAINING] =	&channel_post_output_drain_13;
 	channel_post[SSH_CHANNEL_CONNECTING] =		&channel_post_connecting;
-	channel_post[SSH_CHANNEL_DYNAMIC] =		&channel_post_open_1;
+	channel_post[SSH_CHANNEL_DYNAMIC] =		&channel_post_open;
 }
 
 static void
 channel_handler_init_15(void)
 {
-	channel_pre[SSH_CHANNEL_OPEN] =			&channel_pre_open_15;
+	channel_pre[SSH_CHANNEL_OPEN] =			&channel_pre_open;
 	channel_pre[SSH_CHANNEL_X11_OPEN] =		&channel_pre_x11_open;
 	channel_pre[SSH_CHANNEL_X11_LISTENER] =		&channel_pre_listener;
 	channel_pre[SSH_CHANNEL_PORT_LISTENER] =	&channel_pre_listener;
@@ -1514,9 +1488,9 @@ channel_handler_init_15(void)
 	channel_post[SSH_CHANNEL_X11_LISTENER] =	&channel_post_x11_listener;
 	channel_post[SSH_CHANNEL_PORT_LISTENER] =	&channel_post_port_listener;
 	channel_post[SSH_CHANNEL_AUTH_SOCKET] =		&channel_post_auth_listener;
-	channel_post[SSH_CHANNEL_OPEN] =		&channel_post_open_1;
+	channel_post[SSH_CHANNEL_OPEN] =		&channel_post_open;
 	channel_post[SSH_CHANNEL_CONNECTING] =		&channel_post_connecting;
-	channel_post[SSH_CHANNEL_DYNAMIC] =		&channel_post_open_1;
+	channel_post[SSH_CHANNEL_DYNAMIC] =		&channel_post_open;
 }
 
 static void

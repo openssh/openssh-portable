@@ -103,6 +103,9 @@
    - markus@cvs.openbsd.org 2002/01/09 13:49:27
      [ssh-keygen.c]
      append \n only for public keys
+   - markus@cvs.openbsd.org 2002/01/09 17:16:00
+     [channels.c]
+     merge channel_pre_open_15/channel_pre_open_20; ok provos@
 
 
 20020121
@@ -7251,4 +7254,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1752 2002/01/22 12:20:15 djm Exp $
+$Id: ChangeLog,v 1.1753 2002/01/22 12:20:40 djm Exp $
