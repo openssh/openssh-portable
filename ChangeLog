@@ -4,6 +4,9 @@
  - (dtucker) [acconfig.h configure.ac openbsd-compat/bsd-misc.{c,h}]
    Remove SETGROUPS_NOOP, was only used by Cygwin, which doesn't need it any
    more.  Patch from vinschen at redhat.com.
+ - (dtucker) [Makefile.in] Add a install-nosysconf target for installing the
+   binaries without the config files.  Primarily useful for packaging.
+   Patch from phil at usc.edu.  ok djm@
 
 20050224
  - (djm) [configure.ac] in_addr_t test needs sys/types.h too
@@ -2170,4 +2173,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3665 2005/02/25 23:07:37 dtucker Exp $
+$Id: ChangeLog,v 1.3666 2005/02/25 23:12:38 dtucker Exp $
