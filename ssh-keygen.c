@@ -12,14 +12,10 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.74 2001/08/01 23:33:09 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.75 2001/08/02 00:10:17 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
-
-#ifdef SMARTCARD
-#include <sectok.h>
-#endif
 
 #include "xmalloc.h"
 #include "key.h"
@@ -32,6 +28,11 @@ RCSID("$OpenBSD: ssh-keygen.c,v 1.74 2001/08/01 23:33:09 markus Exp $");
 #include "log.h"
 #include "readpass.h"
 
+#ifdef SMARTCARD
+#include <sectok.h>
+#include <openssl/engine.h>
+#include "scard.h"
+#endif
 
 /* Number of bits in the RSA/DSA key.  This value can be changed on the command line. */
 int bits = 1024;
@@ -410,7 +411,7 @@ get_AUT0(char *aut0)
 }
 
 static void
-do_upload(struct passwd *pw, int reader)
+do_upload(struct passwd *pw, const char *sc_reader_id)
 {
 	Key *prv = NULL;
 	struct stat st;
@@ -441,14 +442,19 @@ do_upload(struct passwd *pw, int reader)
 	COPY_RSA_KEY(dmp1, 4);
 	COPY_RSA_KEY(n, 5);
 	len = BN_num_bytes(prv->rsa->n);
-	fd = sectok_open(reader, STONOWAIT, &sw);
+	fd = sectok_friendly_open(sc_reader_id, STONOWAIT, &sw);
 	if (fd < 0) {
-                error("sectok_open failed: %s", sectok_get_sw(sw));
+		error("sectok_open failed: %s", sectok_get_sw(sw));
+		goto done;
+	}
+	if (! sectok_cardpresent(fd)) {
+		error("smartcard in reader %s not present",
+		    sc_reader_id);
 		goto done;
 	}
 	ret = sectok_reset(fd, 0, NULL, &sw);
 	if (ret <= 0) {
-                error("sectok_reset failed: %s", sectok_get_sw(sw));
+		error("sectok_reset failed: %s", sectok_get_sw(sw));
 		goto done;
 	}
 	if ((cla = cyberflex_inq_class(fd)) < 0) {
@@ -494,6 +500,20 @@ done:
 	if (fd != -1)
 		sectok_close(fd);
 	exit(status);
+}
+
+static void
+do_download(struct passwd *pw, const char *sc_reader_id)
+{
+	Key *pub = NULL;
+
+	pub = sc_get_key(sc_reader_id);
+	if (pub == NULL)
+		fatal("cannot read public key from smartcard");
+	key_write(pub, stdout);
+	key_free(pub);
+	fprintf(stdout, "\n");
+	exit(0);
 }
 #endif
 
@@ -784,10 +804,11 @@ int
 main(int ac, char **av)
 {
 	char dotsshdir[16 * 1024], comment[1024], *passphrase1, *passphrase2;
+	char *reader_id = NULL;
 	Key *private, *public;
 	struct passwd *pw;
-	int opt, type, fd, reader = -1;
 	struct stat st;
+	int opt, type, fd, download = 0;
 	FILE *f;
 
 	extern int optind;
@@ -810,7 +831,7 @@ main(int ac, char **av)
 		exit(1);
 	}
 
-	while ((opt = getopt(ac, av, "deiqpclBRxXyb:f:t:u:P:N:C:")) != -1) {
+	while ((opt = getopt(ac, av, "deiqpclBRxXyb:f:t:u:D:P:N:C:")) != -1) {
 		switch (opt) {
 		case 'b':
 			bits = atoi(optarg);
@@ -870,8 +891,10 @@ main(int ac, char **av)
 		case 't':
 			key_type_name = optarg;
 			break;
+		case 'D':
+			download = 1;
 		case 'u':
-			reader = atoi(optarg); /*XXX*/
+			reader_id = optarg;
 			break;
 		case '?':
 		default:
@@ -898,12 +921,16 @@ main(int ac, char **av)
 		do_convert_from_ssh2(pw);
 	if (print_public)
 		do_print_public(pw);
-	if (reader != -1)
+	if (reader_id != NULL) {
 #ifdef SMARTCARD
-		do_upload(pw, reader);
+		if (download)
+			do_download(pw, reader_id);
+		else
+			do_upload(pw, reader_id);
 #else
 		fatal("no support for smartcards.");
 #endif
+	}
 
 	arc4random_stir();
 
