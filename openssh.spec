@@ -84,7 +84,7 @@ This package contains the GNOME passphrase dialog.
 %build
 
 CFLAGS="$RPM_OPT_FLAGS" \
-	./configure --prefix=/usr --sysconfdir=/etc/ssh --enable-gnome-askpass
+	./configure --prefix=/usr --sysconfdir=/etc/ssh --with-gnome-askpass
 
 make
 
