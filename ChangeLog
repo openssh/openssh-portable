@@ -12,6 +12,9 @@
      [dh.c]
      return group14 when no primes found - fixes hang on empty /etc/moduli;
      ok markus@
+   - dtucker@cvs.openbsd.org 2004/08/11 11:09:54
+     [servconf.c]
+     Fix minor leak; "looks right" deraadt@
 
 20040720
  - (djm) OpenBSD CVS Sync
@@ -1579,4 +1582,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3492 2004/08/12 12:40:59 dtucker Exp $
+$Id: ChangeLog,v 1.3493 2004/08/12 12:41:44 dtucker Exp $
