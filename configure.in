@@ -55,6 +55,8 @@ case "$host" in
 	;;
 *-*-linux*)
 	no_dev_ptmx=1
+	AC_DEFINE(DONT_TRY_OTHER_AF)
+	inet6_default_4in6=yes
 	;;
 *-*-netbsd*)
 	need_dash_r=1
@@ -784,6 +786,26 @@ AC_ARG_WITH(ipv4-default,
 	[
 		if test "x$withval" != "xno" ; then	
 			AC_DEFINE(IPV4_DEFAULT)
+		fi
+	]
+)
+
+AC_MSG_CHECKING([to convert IPv4 in IPv6-mapped addresses])
+AC_ARG_WITH(4in6,
+	[  --with-4in6             Check for and convert IPv4 in IPv6 mapped addresses],
+	[
+		if test "x$withval" != "xno" ; then
+			AC_MSG_RESULT(yes)
+			AC_DEFINE(IPV4_IN_IPV6)
+		else
+			AC_MSG_RESULT(no)
+		fi
+	],[
+		if test "x$inet6_default_4in6" = "xyes"; then
+			AC_MSG_RESULT([yes (default)])
+			AC_DEFINE(IPV4_IN_IPV6)
+		else
+			AC_MSG_RESULT([no (default)])
 		fi
 	]
 )

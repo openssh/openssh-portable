@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: canohost.c,v 1.7 2000/01/14 04:45:48 damien Exp $");
+RCSID("$Id: canohost.c,v 1.8 2000/03/11 09:45:41 damien Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -42,6 +42,30 @@ get_remote_hostname(int socket)
 		debug("getpeername failed: %.100s", strerror(errno));
 		fatal_cleanup();
 	}
+
+#ifdef IPV4_IN_IPV6
+	if (from.ss_family == AF_INET6) {
+		struct sockaddr_in6 *from6 = (struct sockaddr_in6 *)&from;
+
+		/* Detect IPv4 in IPv6 mapped address and convert it to */
+		/* plain (AF_INET) IPv4 address */
+		if (IN6_IS_ADDR_V4MAPPED(&from6->sin6_addr)) {
+			struct sockaddr_in *from4 = (struct sockaddr_in *)&from;
+			struct in_addr addr;
+			u_int16_t port;
+
+			memcpy(&addr, ((char *)&from6->sin6_addr) + 12, sizeof(addr));
+			port = from6->sin6_port;
+
+			memset(&from, 0, sizeof(from));
+			
+			from4->sin_family = AF_INET;
+			memcpy(&from4->sin_addr, &addr, sizeof(addr));
+			from4->sin_port = port;
+		}
+	}
+#endif
+
 	if (getnameinfo((struct sockaddr *)&from, fromlen, ntop, sizeof(ntop),
 	     NULL, 0, NI_NUMERICHOST) != 0)
 		fatal("get_remote_hostname: getnameinfo NI_NUMERICHOST failed");

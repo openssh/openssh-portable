@@ -4,6 +4,7 @@
    [sshd.c]
     - disallow guessing of root password
  - More configure fixes
+ - IPv6 workarounds from Hideaki YOSHIFUJI <yoshfuji@ecei.tohoku.ac.jp>
 
 20000309
  - OpenBSD CVS updates to v1.2.3

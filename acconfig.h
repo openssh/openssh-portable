@@ -153,6 +153,12 @@
 /* getaddrinfo is broken (if present) */
 #undef BROKEN_GETADDRINFO
 
+/* Workaround more Linux IPv6 bugs */
+#undef DONT_TRY_OTHER_AF
+
+/* Detect IPv4 in IPv6 mapped addresses and treat as IPv4 */
+#undef IPV4_IN_IPV6
+
 @BOTTOM@
 
 /* ******************* Shouldn't need to edit below this line ************** */
