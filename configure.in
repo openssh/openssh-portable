@@ -338,7 +338,7 @@ if test "x$prefix" != "xNONE" ; then
 fi
 AC_CACHE_CHECK([for OpenSSL directory], ac_cv_openssldir, [
 
-	for ssldir in "" $tryssldir /usr/local/openssl /usr/lib/openssl /usr/local/ssl /usr/lib/ssl /usr/local /usr/pkg /opt /opt/openssl ; do
+	for ssldir in $tryssldir "" /usr/local/openssl /usr/lib/openssl /usr/local/ssl /usr/lib/ssl /usr/local /usr/pkg /opt /opt/openssl ; do
 		if test ! -z "$ssldir" ; then
 			LDFLAGS="$saved_LDFLAGS -L$ssldir/lib -L$ssldir"
 			CFLAGS="$saved_CFLAGS -I$ssldir/include"

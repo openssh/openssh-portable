@@ -1,4 +1,6 @@
 20000916
+ - (djm) Fix SSL search order from Lutz Jaenicke 
+   <Lutz.Jaenicke@aet.TU-Cottbus.DE>
  - (djm) New SuSE spec from Corinna Vinschen <corinna@vinschen.de>
  - (djm) Update CygWin support from Corinna Vinschen <vinschen@cygnus.com>
  - (djm) Use a real struct sockaddr inside the fake struct sockaddr_storage.
