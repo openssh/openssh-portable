@@ -1,5 +1,5 @@
 #include "includes.h"
-RCSID("$Id: auth2-pam.c,v 1.8 2001/02/07 01:58:33 djm Exp $");
+RCSID("$Id: auth2-pam.c,v 1.9 2001/02/15 00:51:32 djm Exp $");
 
 #ifdef USE_PAM
 #include <security/pam_appl.h>
@@ -38,7 +38,7 @@ auth2_pam(Authctxt *authctxt)
 		fatal("auth2_pam: internal error: no user");
 
 	conv2.appdata_ptr = authctxt;
-	pam_set_conv(&conv2);
+	do_pam_set_conv(&conv2);
 
 	dispatch_set(SSH2_MSG_USERAUTH_INFO_RESPONSE,
 	    &input_userauth_info_response_pam);

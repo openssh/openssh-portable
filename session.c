@@ -719,7 +719,7 @@ do_login(Session *s, const char *command)
 	 * If password change is needed, do it now.
 	 * This needs to occur before the ~/.hushlogin check.
 	 */
-	if (pam_password_change_required()) {
+	if (is_pam_password_change_required()) {
 		print_pam_messages();
 		do_pam_chauthtok();
 	}
@@ -737,7 +737,7 @@ do_login(Session *s, const char *command)
 		return;
 
 #ifdef USE_PAM
-	if (!pam_password_change_required())
+	if (!is_pam_password_change_required())
 		print_pam_messages();
 #endif /* USE_PAM */
 #ifdef WITH_AIXAUTHENTICATE
