@@ -10,6 +10,9 @@
 # Do we want to disable building of gnome-askpass? (1=yes 0=no)
 %define no_gnome_askpass 0
 
+# Do we want to link against a static libcrypto? (1=yes 0=no)
+%define static_libcrypto 0
+
 # Use Redhat 7.0 pam control file
 %define redhat7 0
 
@@ -21,6 +24,10 @@
 # Options for Redhat version:
 # rpm -ba|--rebuild --define "rh7 1"
 %{?rh7:%define redhat7 1}
+
+# Options for static OpenSSL link:
+# rpm -ba|--rebuild --define "static_openssl 1"
+%{?static_openssl:%define static_libcrypto 1}
 
 %define exact_openssl_version   %(rpm -q openssl | cut -d - -f 2)
 
@@ -38,16 +45,18 @@ Copyright: BSD
 Group: Applications/Internet
 BuildRoot: %{_tmppath}/%{name}-%{version}-buildroot
 Obsoletes: ssh
-PreReq: openssl >= 0.9.5a
-PreReq: openssl = %{exact_openssl_version}
-Requires: openssl >= 0.9.5a
-Requires: rpm >= 3.0.5
 BuildPreReq: perl, openssl-devel, tcp_wrappers
-BuildPreReq: /bin/login, /usr/bin/rsh, /usr/include/security/pam_appl.h
+BuildPreReq: /bin/login, /usr/include/security/pam_appl.h
 BuildPreReq: rpm >= 3.0.5
 %if ! %{no_gnome_askpass}
 BuildPreReq: gnome-libs-devel
 %endif
+%if ! %{static_libcrypto}
+PreReq: openssl >= 0.9.5a
+PreReq: openssl = %{exact_openssl_version}
+Requires: openssl >= 0.9.5a
+%endif
+Requires: rpm >= 3.0.5
 
 %package clients
 Summary: OpenSSH Secure Shell protocol clients
@@ -166,6 +175,10 @@ This package contains the GNOME passphrase dialog.
 	--with-ipv4-default \
 	--with-rsh=/usr/bin/rsh \
 	--with-default-path=/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin
+
+%if %{static_libcrypto}
+perl -pi -e "s|-lcrypto|/usr/lib/libcrypto.a|g" Makefile
+%endif
 
 make
 
