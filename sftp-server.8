@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp-server.8,v 1.5 2001/03/02 18:54:31 deraadt Exp $
+.\" $OpenBSD: sftp-server.8,v 1.6 2001/04/22 13:32:26 markus Exp $
 .\"
 .\" Copyright (c) 2000 Markus Friedl.  All rights reserved.
 .\"
@@ -44,10 +44,17 @@ See
 .Xr sshd 8
 for more information.
 .Sh SEE ALSO
+.Xr sftp 1 ,
 .Xr ssh 1 ,
-.Xr ssh-add 1 ,
-.Xr ssh-keygen 1 ,
 .Xr sshd 8
+.Rs
+.%A T. Ylonen
+.%A S. Lehtinen
+.%T "SSH File Transfer Protocol"
+.%N draft-ietf-secsh-filexfer-00.txt
+.%D January 2001
+.%O work in progress material
+.Re
 .Sh AUTHORS
 Markus Friedl <markus@openbsd.org>
 .Sh HISTORY

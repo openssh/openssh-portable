@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.16 2001/04/21 00:55:57 mouring Exp $
+.\" $OpenBSD: sftp.1,v 1.17 2001/04/22 13:32:27 markus Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -206,10 +206,17 @@ Synonym for help.
 .Sh AUTHORS
 Damien Miller <djm@mindrot.org>
 .Sh SEE ALSO
+.Xr scp 1 ,
 .Xr ssh 1 ,
-.Xr sftp-server 8 ,
 .Xr ssh-add 1 ,
 .Xr ssh-keygen 1 ,
-.Xr sshd 8 ,
-.Xr scp 1
-
+.Xr sftp-server 8 ,
+.Xr sshd 8
+.Rs
+.%A T. Ylonen
+.%A S. Lehtinen
+.%T "SSH File Transfer Protocol"
+.%N draft-ietf-secsh-filexfer-00.txt
+.%D January 2001
+.%O work in progress material
+.Re
