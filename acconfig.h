@@ -12,15 +12,6 @@
 /* Define if you want to enable AIX4's authenticate function */
 #undef WITH_AIXAUTHENTICATE
 
-/* Define if you want to disable lastlog support */
-#undef DISABLE_LASTLOG
-
-/* Location of lastlog file */
-#undef LASTLOG_LOCATION
-
-/* If lastlog is a directory */
-#undef LASTLOG_IS_DIR
-
 /* Location of random number pool  */
 #undef RANDOM_POOL
 
