@@ -5,6 +5,9 @@
    - jmc@cvs.openbsd.org 2005/03/02 11:45:01
      [ssh.1]
      missing word;
+   - djm@cvs.openbsd.org 2005/03/04 08:48:06
+     [readconf.c]
+     fix SendEnv config parsing bug found by Roumen Petrov; ok dtucker@
 
 20050302
  - (djm) OpenBSD CVS sync:
@@ -2274,4 +2277,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3690 2005/03/05 00:22:36 djm Exp $
+$Id: ChangeLog,v 1.3691 2005/03/05 00:22:50 djm Exp $
