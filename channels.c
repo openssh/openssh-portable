@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.167 2002/02/06 14:55:15 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.168 2002/02/14 23:27:59 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -644,15 +644,14 @@ channel_register_filter(int id, channel_filter_fn *fn)
 
 void
 channel_set_fds(int id, int rfd, int wfd, int efd,
-    int extusage, int nonblock)
+    int extusage, int nonblock, u_int window_max)
 {
 	Channel *c = channel_lookup(id);
 	if (c == NULL || c->type != SSH_CHANNEL_LARVAL)
 		fatal("channel_activate for non-larval channel %d.", id);
 	channel_register_fds(c, rfd, wfd, efd, extusage, nonblock);
 	c->type = SSH_CHANNEL_OPEN;
-	/* XXX window size? */
-	c->local_window = c->local_window_max = c->local_maxpacket * 2;
+	c->local_window = c->local_window_max = window_max;
 	packet_start(SSH2_MSG_CHANNEL_WINDOW_ADJUST);
 	packet_put_int(c->remote_id);
 	packet_put_int(c->local_window);
