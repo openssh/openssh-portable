@@ -1,3 +1,6 @@
+20010917
+ - (djm) x11-ssh-askpass-1.2.4 in RPM spec, revert workarounds
+
 20010916
  - (djm) Workaround XFree breakage in RPM spec file
  - (bal) OpenBSD CVS Sync
@@ -6449,4 +6452,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1522 2001/09/16 22:17:15 mouring Exp $
+$Id: ChangeLog,v 1.1523 2001/09/17 05:07:23 djm Exp $

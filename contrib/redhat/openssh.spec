@@ -2,7 +2,7 @@
 %define oversion 2.9p1
 
 # Version of ssh-askpass
-%define aversion 1.2.2
+%define aversion 1.2.4
 
 # Do we want to disable building of x11-askpass? (1=yes 0=no)
 %define no_x11_askpass 0
@@ -153,11 +153,7 @@ make
 
 %if ! %{no_x11_askpass}
 pushd x11-ssh-askpass-%{aversion}
-xmkmf
-### Hacks to workaround XFree breakage
-perl -pi -e "s|distclean: |distclean:: |g" Makefile
-make SshAskpass_ad.h
-###
+xmkmf -a
 make
 popd
 %endif
