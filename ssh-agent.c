@@ -35,7 +35,7 @@
 
 #include "includes.h"
 #include "openbsd-compat/fake-queue.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.86 2002/06/05 16:08:07 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.87 2002/06/05 16:48:54 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -66,6 +66,7 @@ typedef struct {
 	sock_type type;
 	Buffer input;
 	Buffer output;
+	Buffer request;
 } SocketEntry;
 
 u_int sockets_alloc = 0;
@@ -190,16 +191,16 @@ process_authentication_challenge1(SocketEntry *e)
 	if ((challenge = BN_new()) == NULL)
 		fatal("process_authentication_challenge1: BN_new failed");
 
-	buffer_get_int(&e->input);				/* ignored */
-	buffer_get_bignum(&e->input, key->rsa->e);
-	buffer_get_bignum(&e->input, key->rsa->n);
-	buffer_get_bignum(&e->input, challenge);
+	buffer_get_int(&e->request);				/* ignored */
+	buffer_get_bignum(&e->request, key->rsa->e);
+	buffer_get_bignum(&e->request, key->rsa->n);
+	buffer_get_bignum(&e->request, challenge);
 
 	/* Only protocol 1.1 is supported */
-	if (buffer_len(&e->input) == 0)
+	if (buffer_len(&e->request) == 0)
 		goto failure;
-	buffer_get(&e->input, session_id, 16);
-	response_type = buffer_get_int(&e->input);
+	buffer_get(&e->request, session_id, 16);
+	response_type = buffer_get_int(&e->request);
 	if (response_type != 1)
 		goto failure;
 
@@ -255,10 +256,10 @@ process_sign_request2(SocketEntry *e)
 
 	datafellows = 0;
 
-	blob = buffer_get_string(&e->input, &blen);
-	data = buffer_get_string(&e->input, &dlen);
+	blob = buffer_get_string(&e->request, &blen);
+	data = buffer_get_string(&e->request, &dlen);
 
-	flags = buffer_get_int(&e->input);
+	flags = buffer_get_int(&e->request);
 	if (flags & SSH_AGENT_OLD_SIGNATURE)
 		datafellows = SSH_BUG_SIGBLOB;
 
@@ -299,16 +300,16 @@ process_remove_identity(SocketEntry *e, int version)
 	switch (version) {
 	case 1:
 		key = key_new(KEY_RSA1);
-		bits = buffer_get_int(&e->input);
-		buffer_get_bignum(&e->input, key->rsa->e);
-		buffer_get_bignum(&e->input, key->rsa->n);
+		bits = buffer_get_int(&e->request);
+		buffer_get_bignum(&e->request, key->rsa->e);
+		buffer_get_bignum(&e->request, key->rsa->n);
 
 		if (bits != key_size(key))
 			log("Warning: identity keysize mismatch: actual %d, announced %d",
 			    key_size(key), bits);
 		break;
 	case 2:
-		blob = buffer_get_string(&e->input, &blen);
+		blob = buffer_get_string(&e->request, &blen);
 		key = key_from_blob(blob, blen);
 		xfree(blob);
 		break;
@@ -374,51 +375,51 @@ process_add_identity(SocketEntry *e, int version)
 	switch (version) {
 	case 1:
 		k = key_new_private(KEY_RSA1);
-		buffer_get_int(&e->input);			/* ignored */
-		buffer_get_bignum(&e->input, k->rsa->n);
-		buffer_get_bignum(&e->input, k->rsa->e);
-		buffer_get_bignum(&e->input, k->rsa->d);
-		buffer_get_bignum(&e->input, k->rsa->iqmp);
+		buffer_get_int(&e->request);			/* ignored */
+		buffer_get_bignum(&e->request, k->rsa->n);
+		buffer_get_bignum(&e->request, k->rsa->e);
+		buffer_get_bignum(&e->request, k->rsa->d);
+		buffer_get_bignum(&e->request, k->rsa->iqmp);
 
 		/* SSH and SSL have p and q swapped */
-		buffer_get_bignum(&e->input, k->rsa->q);	/* p */
-		buffer_get_bignum(&e->input, k->rsa->p);	/* q */
+		buffer_get_bignum(&e->request, k->rsa->q);	/* p */
+		buffer_get_bignum(&e->request, k->rsa->p);	/* q */
 
 		/* Generate additional parameters */
 		rsa_generate_additional_parameters(k->rsa);
 		break;
 	case 2:
-		type_name = buffer_get_string(&e->input, NULL);
+		type_name = buffer_get_string(&e->request, NULL);
 		type = key_type_from_name(type_name);
 		xfree(type_name);
 		switch (type) {
 		case KEY_DSA:
 			k = key_new_private(type);
-			buffer_get_bignum2(&e->input, k->dsa->p);
-			buffer_get_bignum2(&e->input, k->dsa->q);
-			buffer_get_bignum2(&e->input, k->dsa->g);
-			buffer_get_bignum2(&e->input, k->dsa->pub_key);
-			buffer_get_bignum2(&e->input, k->dsa->priv_key);
+			buffer_get_bignum2(&e->request, k->dsa->p);
+			buffer_get_bignum2(&e->request, k->dsa->q);
+			buffer_get_bignum2(&e->request, k->dsa->g);
+			buffer_get_bignum2(&e->request, k->dsa->pub_key);
+			buffer_get_bignum2(&e->request, k->dsa->priv_key);
 			break;
 		case KEY_RSA:
 			k = key_new_private(type);
-			buffer_get_bignum2(&e->input, k->rsa->n);
-			buffer_get_bignum2(&e->input, k->rsa->e);
-			buffer_get_bignum2(&e->input, k->rsa->d);
-			buffer_get_bignum2(&e->input, k->rsa->iqmp);
-			buffer_get_bignum2(&e->input, k->rsa->p);
-			buffer_get_bignum2(&e->input, k->rsa->q);
+			buffer_get_bignum2(&e->request, k->rsa->n);
+			buffer_get_bignum2(&e->request, k->rsa->e);
+			buffer_get_bignum2(&e->request, k->rsa->d);
+			buffer_get_bignum2(&e->request, k->rsa->iqmp);
+			buffer_get_bignum2(&e->request, k->rsa->p);
+			buffer_get_bignum2(&e->request, k->rsa->q);
 
 			/* Generate additional parameters */
 			rsa_generate_additional_parameters(k->rsa);
 			break;
 		default:
-			buffer_clear(&e->input);
+			buffer_clear(&e->request);
 			goto send;
 		}
 		break;
 	}
-	comment = buffer_get_string(&e->input, NULL);
+	comment = buffer_get_string(&e->request, NULL);
 	if (k == NULL) {
 		xfree(comment);
 		goto send;
@@ -452,8 +453,8 @@ process_add_smartcard_key (SocketEntry *e)
 	char *sc_reader_id = NULL, *pin;
 	int i, version, success = 0;
 
-	sc_reader_id = buffer_get_string(&e->input, NULL);
-	pin = buffer_get_string(&e->input, NULL);
+	sc_reader_id = buffer_get_string(&e->request, NULL);
+	pin = buffer_get_string(&e->request, NULL);
 	keys = sc_get_keys(sc_reader_id, pin);
 	xfree(sc_reader_id);
 	xfree(pin);
@@ -494,8 +495,8 @@ process_remove_smartcard_key(SocketEntry *e)
 	char *sc_reader_id = NULL, *pin;
 	int i, version, success = 0;
 
-	sc_reader_id = buffer_get_string(&e->input, NULL);
-	pin = buffer_get_string(&e->input, NULL);
+	sc_reader_id = buffer_get_string(&e->request, NULL);
+	pin = buffer_get_string(&e->request, NULL);
 	keys = sc_get_keys(sc_reader_id, pin);
 	xfree(sc_reader_id);
 	xfree(pin);
@@ -541,12 +542,20 @@ process_message(SocketEntry *e)
 		shutdown(e->fd, SHUT_RDWR);
 		close(e->fd);
 		e->type = AUTH_UNUSED;
+		buffer_free(&e->input);
+		buffer_free(&e->output);
+		buffer_free(&e->request);
 		return;
 	}
 	if (buffer_len(&e->input) < msg_len + 4)
 		return;
+
+	/* move the current input to e->request */
 	buffer_consume(&e->input, 4);
-	type = buffer_get_char(&e->input);
+	buffer_clear(&e->request);
+	buffer_append(&e->request, buffer_ptr(&e->input), msg_len);
+	buffer_consume(&e->input, msg_len);
+	type = buffer_get_char(&e->request);
 
 	debug("type %d", type);
 	switch (type) {
@@ -593,7 +602,7 @@ process_message(SocketEntry *e)
 	default:
 		/* Unknown message.  Respond with failure. */
 		error("Unknown message %d", type);
-		buffer_clear(&e->input);
+		buffer_clear(&e->request);
 		buffer_put_int(&e->output, 1);
 		buffer_put_char(&e->output, SSH_AGENT_FAILURE);
 		break;
@@ -616,6 +625,7 @@ new_socket(sock_type type, int fd)
 			sockets[i].type = type;
 			buffer_init(&sockets[i].input);
 			buffer_init(&sockets[i].output);
+			buffer_init(&sockets[i].request);
 			return;
 		}
 	old_alloc = sockets_alloc;
@@ -630,6 +640,7 @@ new_socket(sock_type type, int fd)
 	sockets[old_alloc].fd = fd;
 	buffer_init(&sockets[old_alloc].input);
 	buffer_init(&sockets[old_alloc].output);
+	buffer_init(&sockets[old_alloc].request);
 }
 
 static int
@@ -727,6 +738,7 @@ after_select(fd_set *readset, fd_set *writeset)
 					sockets[i].type = AUTH_UNUSED;
 					buffer_free(&sockets[i].input);
 					buffer_free(&sockets[i].output);
+					buffer_free(&sockets[i].request);
 					break;
 				}
 				buffer_consume(&sockets[i].output, len);
@@ -745,6 +757,7 @@ after_select(fd_set *readset, fd_set *writeset)
 					sockets[i].type = AUTH_UNUSED;
 					buffer_free(&sockets[i].input);
 					buffer_free(&sockets[i].output);
+					buffer_free(&sockets[i].request);
 					break;
 				}
 				buffer_append(&sockets[i].input, buf, len);
