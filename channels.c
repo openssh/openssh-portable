@@ -2374,6 +2374,13 @@ x11_create_display_inet(int x11_display_offset, int x11_use_localhost,
 					continue;
 				}
 			}
+#ifdef IPV6_V6ONLY
+			if (ai->ai_family == AF_INET6) {
+				int on = 1;
+				if (setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, &on, sizeof(on)) < 0)
+					error("setsockopt IPV6_V6ONLY: %.100s", strerror(errno));
+			}
+#endif
 			if (bind(sock, ai->ai_addr, ai->ai_addrlen) < 0) {
 				debug("bind port %d: %.100s", port, strerror(errno));
 				close(sock);
@@ -2392,7 +2399,12 @@ x11_create_display_inet(int x11_display_offset, int x11_use_localhost,
 			if (num_socks == NUM_SOCKS)
 				break;
 #else
-			break;
+			if (x11_use_localhost) {
+				if (num_socks == NUM_SOCKS)
+					break;
+			} else {
+				break;
+			}
 #endif
 		}
 		freeaddrinfo(aitop);
