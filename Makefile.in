@@ -11,7 +11,8 @@ ASKPASS_PROGRAM=@libdir@/ssh/ssh-askpass
 CC=@CC@
 PATHS=-DETCDIR=\"@sysconfdir@\" -DSSH_PROGRAM=\"$(SSH_PROGRAM)\" -DASKPASS_PROGRAM=\"$(ASKPASS_PROGRAM)\"
 CFLAGS=@CFLAGS@ $(PATHS) @DEFS@
-TARGETS=libssh.a ssh sshd ssh-add ssh-keygen ssh-agent scp
+EXTRA_TARGETS=@GNOME_ASKPASS@
+TARGETS=libssh.a ssh sshd ssh-add ssh-keygen ssh-agent scp $(EXTRA_TARGETS)
 LIBS=@LIBS@
 AR=@AR@
 RANLIB=@RANLIB@
@@ -68,7 +69,11 @@ install:
 	ln -sf ssh $(bindir)/slogin
 	install -s -c scp $(bindir)/scp
 	install -s -c ssh-add $(bindir)/ssh-add
-	install -m755 -c ssh-askpass $(libdir)/ssh/ssh-askpass
+	if [ -z "@GNOME_ASKPASS@"] ; then
+		install -m755 -c ssh-askpass $(libdir)/ssh/ssh-askpass
+	else
+		install -m755 -c gnome-ssh-askpass $(libdir)/ssh/ssh-askpass
+	fi
 	install -s -c ssh-agent $(bindir)/ssh-agent
 	install -s -c ssh-keygen $(bindir)/ssh-keygen
 	install -s -c sshd $(sbindir)/sshd
