@@ -13,6 +13,7 @@
      remove cruft left over from RhostsAuthentication removal;
      ok markus@
  - (djm) [log.c] Correct use of HAVE_OPENLOG_R
+ - (djm) [log.c] Tighten openlog_r tests
 
 20040217
  - (djm) Simplify the license on code I have written. No code changes.
@@ -1882,4 +1883,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3238 2004/02/18 04:42:31 djm Exp $
+$Id: ChangeLog,v 1.3239 2004/02/18 11:59:43 djm Exp $
