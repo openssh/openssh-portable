@@ -32,6 +32,8 @@
    jason at devrandom.org.
  - (dtucker) [regress/scp.sh] Make this work on Cygwin too, which doesn't like
    files ending in .exe that aren't binaries; patch from vinschen at redhat.com.
+ - (dtucker) [Makefile.in] Get regress/Makefile symlink right for out-of-tree
+   builds too, from vinschen at redhat.com.
 
 20040828
  - (dtucker) [openbsd-compat/mktemp.c] Remove superfluous Cygwin #ifdef; from
@@ -1699,4 +1701,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3532 2004/08/29 09:39:09 dtucker Exp $
+$Id: ChangeLog,v 1.3533 2004/08/29 09:52:32 dtucker Exp $
