@@ -23,7 +23,7 @@ void    buffer_put_bignum2(Buffer *, BIGNUM *);
 void	buffer_get_bignum(Buffer *, BIGNUM *);
 void	buffer_get_bignum2(Buffer *, BIGNUM *);
 
-u_int buffer_get_int(Buffer *);
+u_int	buffer_get_int(Buffer *);
 void    buffer_put_int(Buffer *, u_int);
 
 #ifdef HAVE_U_INT64_T
@@ -32,11 +32,9 @@ void	buffer_put_int64(Buffer *, u_int64_t);
 #endif
 
 int     buffer_get_char(Buffer *);
-
 void    buffer_put_char(Buffer *, int);
 
 void   *buffer_get_string(Buffer *, u_int *);
-
 void    buffer_put_string(Buffer *, const void *, u_int);
 void	buffer_put_cstring(Buffer *, const char *);
 

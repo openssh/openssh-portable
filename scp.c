@@ -548,14 +548,13 @@ syserr:			run_err("%s: %s", name, strerror(errno));
 #ifdef HAVE_LONG_LONG_INT
 		snprintf(buf, sizeof buf, "C%04o %lld %s\n",
 		    (u_int) (stb.st_mode & FILEMODEMASK),
-		    (long long) stb.st_size, last);
+		    (long long)stb.st_size, last);
 #else
 		/* XXX: Handle integer overflow? */
 		snprintf(buf, sizeof buf, "C%04o %lu %s\n",
 		    (u_int) (stb.st_mode & FILEMODEMASK),
 		    (u_long) stb.st_size, last);
 #endif
-
 		if (verbose_mode) {
 			fprintf(stderr, "Sending file modes: %s", buf);
 			fflush(stderr);

@@ -42,7 +42,6 @@ RCSID("$OpenBSD: ssh-agent.c,v 1.82 2002/03/04 17:27:39 stevesk Exp $");
 #include "openbsd-compat/fake-queue.h"
 #endif
 
-
 #include <openssl/evp.h>
 #include <openssl/md5.h>
 
