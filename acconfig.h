@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.142 2002/07/07 20:43:36 tim Exp $ */
+/* $Id: acconfig.h,v 1.143 2002/07/09 14:06:40 mouring Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -309,6 +309,9 @@
 
 /* Define if X11 doesn't support AF_UNIX sockets on that system */
 #undef NO_X11_UNIX_SOCKETS
+
+/* Define if the concept of ports only accessible to superusers isn't known */
+#undef NO_IPPORT_RESERVED_CONCEPT
 
 /* Needed for SCO and NeXT */
 #undef BROKEN_SAVED_UIDS

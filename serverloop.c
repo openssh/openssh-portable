@@ -972,8 +972,11 @@ server_input_global_request(int type, u_int32_t seq, void *ctxt)
 
 		/* check permissions */
 		if (!options.allow_tcp_forwarding ||
-		    no_port_forwarding_flag ||
-		    (listen_port < IPPORT_RESERVED && pw->pw_uid != 0)) {
+		    no_port_forwarding_flag
+#ifndef NO_IPPORT_RESERVED_CONCEPT
+		    || (listen_port < IPPORT_RESERVED && pw->pw_uid != 0)
+#endif
+		   ) {
 			success = 0;
 			packet_send_debug("Server has disabled port forwarding.");
 		} else {
