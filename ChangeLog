@@ -9,9 +9,9 @@
    required, please report them.  ok djm@
  - (dtucker) [sshd.c] Bug #757: Clear child's environment to prevent
    accidentally inheriting from root's environment.  ok djm@
- - (dtucker) [openbsd-compat/port-aix.c openbsd-compat/port-aix.h] Restore
-   previous authdb setting after auth calls.  Fixes problems with setpcred
-   failing on accounts that use AFS or NIS password registries.
+ - (dtucker) [openbsd-compat/port-aix.c openbsd-compat/port-aix.h] Bug #796:
+   Restore previous authdb setting after auth calls.  Fixes problems with
+   setpcred failing on accounts that use AFS or NIS password registries.
 
 20040129
  - (dtucker) OpenBSD CVS Sync regress/
@@ -1797,4 +1797,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3210 2004/02/06 05:17:51 dtucker Exp $
+$Id: ChangeLog,v 1.3211 2004/02/06 05:18:47 dtucker Exp $
