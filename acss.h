@@ -1,4 +1,4 @@
-/*	$Id: */
+/*	$Id: acss.h,v 1.2 2004/02/06 04:22:43 dtucker Exp $ */
 /*
  * Copyright (c) 2004 The OpenBSD project
  *

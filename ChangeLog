@@ -1,3 +1,6 @@
+20040206
+ - (dtucker) [acss.c acss.h] Fix $Id tags.
+
 20040129
  - (dtucker) OpenBSD CVS Sync regress/
    - dtucker@cvs.openbsd.org 2003/10/11 11:49:49
@@ -1782,4 +1785,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3204 2004/01/30 03:34:21 dtucker Exp $
+$Id: ChangeLog,v 1.3205 2004/02/06 04:22:43 dtucker Exp $
