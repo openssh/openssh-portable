@@ -2,7 +2,11 @@
  - (djm) Glob manpages in RPM spec files to catch compressed files
  - (djm) Full license in auth-pam.c
  - (djm) Configure fixes from SAKAI Kiyotaka <ksakai@kso.netwk.ntt-at.co.jp>
-
+ - (andre) AIX, lastlog, configure fixes from Tom Bertelson <tbert@abac.com>:
+  - Don't try to retrieve lastlog from wtmp/wtmpx if DISABLE_LASTLOG is
+     def'd
+  - Set AIX to use preformatted manpages
+	
 20000610
  - (djm) Minor doc tweaks
  - (djm) Fix for configure on bash2 from Jim Knoble <jmknoble@jmknoble.cx>
