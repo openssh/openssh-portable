@@ -1,4 +1,4 @@
-#	$OpenBSD: login-timeout.sh,v 1.2 2004/02/29 22:04:45 dtucker Exp $
+#	$OpenBSD: login-timeout.sh,v 1.3 2004/03/08 10:17:12 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="connect after login grace timeout"

@@ -3,6 +3,9 @@
    - dtucker@cvs.openbsd.org 2004/02/29 22:04:45
      [regress/login-timeout.sh]
      Use sudo when restarting daemon during test.  ok markus@
+   - dtucker@cvs.openbsd.org 2004/03/08 10:17:12
+     [regress/login-timeout.sh]
+     Missing OBJ, from tim@.  ok markus@ (Already fixed, ID sync only)
 
 20040418
  - (dtucker) [auth-pam.c] Log username and source host for failed PAM
@@ -988,4 +991,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3317 2004/04/19 12:01:37 dtucker Exp $
+$Id: ChangeLog,v 1.3318 2004/04/19 12:04:21 dtucker Exp $
