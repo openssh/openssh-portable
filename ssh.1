@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.201 2005/03/01 10:40:27 djm Exp $
+.\" $OpenBSD: ssh.1,v 1.202 2005/03/01 14:47:58 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -43,42 +43,35 @@
 .Nd OpenSSH SSH client (remote login program)
 .Sh SYNOPSIS
 .Nm ssh
+.Bk -words
 .Op Fl 1246AaCfgkMNnqsTtVvXxY
 .Op Fl b Ar bind_address
 .Op Fl c Ar cipher_spec
-.Bk -words
 .Op Fl D Ar port
 .Op Fl e Ar escape_char
 .Op Fl F Ar configfile
 .Op Fl i Ar identity_file
-.Oo Fl L Xo
+.Oo Fl L\ \&
 .Sm off
 .Oo Ar bind_address : Oc
-.Ar port :
-.Ar host :
-.Ar hostport
+.Ar port : host : hostport
 .Sm on
-.Xc
 .Oc
 .Op Fl l Ar login_name
 .Op Fl m Ar mac_spec
 .Op Fl O Ar ctl_cmd
 .Op Fl o Ar option
-.Bk -words
 .Op Fl p Ar port
-.Ek
-.Oo Fl R Xo
+.Oo Fl R\ \&
 .Sm off
 .Oo Ar bind_address : Oc
-.Ar port :
-.Ar host :
-.Ar hostport
+.Ar port : host : hostport
 .Sm on
-.Xc
 .Oc
 .Op Fl S Ar ctl_path
 .Oo Ar user Ns @ Oc Ns Ar hostname
 .Op Ar command
+.Ek
 .Sh DESCRIPTION
 .Nm
 (SSH client) is a program for logging into a remote machine and for
@@ -592,7 +585,7 @@ Port forwardings can also be specified in the configuration file.
 IPv6 addresses can be specified with an alternative syntax:
 .Sm off
 .Xo
-.Oo Ar bind_address / Oc
+.Oo Ar bind_address No / Oc
 .Ar port No / Ar host No /
 .Ar hostport
 .Xc
@@ -609,9 +602,9 @@ The
 .Ar bind_address
 of
 .Dq localhost
-indicates that the listening port be bound for local use only, while an 
-empty address or 
-.Dq *
+indicates that the listening port be bound for local use only, while an
+empty address or
+.Sq *
 indicates that the port should be available from all interfaces.
 .It Fl l Ar login_name
 Specifies the user to log in as on the remote machine.
@@ -766,28 +759,29 @@ Privileged ports can be forwarded only when
 logging in as root on the remote machine.
 IPv6 addresses can be specified by enclosing the address in square braces or
 using an alternative syntax:
-.Xo
 .Sm off
-.Oo Ar bind_address / Oc
-.Ar host/port/hostport
-.Sm on
+.Xo
+.Oo Ar bind_address No / Oc
+.Ar host No / Ar port No /
+.Ar hostport
 .Xc .
+.Sm on
 .Pp
 By default, the listening socket on the server will be bound to the loopback
 interface only.
 This may be overriden by specifying a
 .Ar bind_address .
-An empty 
-.Ar bind_address , 
+An empty
+.Ar bind_address ,
 or the address
-.Ql *
+.Ql * ,
 indicates that the remote socket should listen on all interfaces.
 Specifying a remote
 .Ar bind_address
-will only succeed if the server's 
-.Cm GatewayPorts 
+will only succeed if the server's
+.Cm GatewayPorts
 option is enabled (see
-.Xr sshd_config 5 ).
+.Xr sshd_config 5 ) .
 .It Fl S Ar ctl_path
 Specifies the location of a control socket for connection sharing.
 Refer to the description of
