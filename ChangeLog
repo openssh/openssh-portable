@@ -1,5 +1,9 @@
 20001129
  - (djm) Fix(?) the ssh hang-on-logout/data-from-child race
+ - (djm) bsd-rresvport.c bzero -> memset
+ - (djm) Don't fail in defines.h on absence of 64 bit types (we will 
+   still fail during compilation of sftp-server).
+ - (djm) Fail if ar is not found during configure
 
 20001125
  - (djm) Give up privs when reading seed file

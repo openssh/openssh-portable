@@ -15,6 +15,10 @@ AC_PATH_PROG(ENT, ent)
 AC_SUBST(ENT)
 AC_PATH_PROGS(FILEPRIV, filepriv, true, /sbin:/usr/sbin)
 
+if test -z "$AR" ; then
+	AC_MSG_ERROR([*** 'ar' missing, please install or fix your \$PATH ***])
+fi
+
 # Use LOGIN_PROGRAM from environment if possible
 if test ! -z "$LOGIN_PROGRAM" ; then
 	AC_DEFINE_UNQUOTED(LOGIN_PROGRAM_FALLBACK, "$LOGIN_PROGRAM")

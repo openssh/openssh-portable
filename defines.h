@@ -170,8 +170,6 @@ typedef long int int64_t;
 #  if (SIZEOF_LONG_LONG_INT == 8)
 typedef long long int int64_t;
 #   define HAVE_INTXX_T 1
-#  else
-#   error "64 bit int type not found."
 #  endif
 # endif
 #endif
@@ -182,8 +180,6 @@ typedef unsigned long int u_int64_t;
 #  if (SIZEOF_LONG_LONG_INT == 8)
 typedef unsigned long long int u_int64_t;
 #   define HAVE_U_INTXX_T 1
-#  else
-#   error "64 bit int type not found."
 #  endif
 # endif
 #endif
