@@ -97,6 +97,7 @@ static char rcsid[] = "$OpenBSD: glob.c,v 1.16 2001/04/05 18:36:12 deraadt Exp $
 #define	RBRACKET	']'
 #define	SEP		'/'
 #define	STAR		'*'
+#undef TILDE			/* Some platforms may already define it */
 #define	TILDE		'~'
 #define	UNDERSCORE	'_'
 #define	LBRACE		'{'
