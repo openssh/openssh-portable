@@ -3,6 +3,9 @@
    - itojun@cvs.openbsd.org 2002/07/12 13:29:09
      [sshconnect.c]
      print connect failure during debugging mode.
+   - markus@cvs.openbsd.org 2002/07/12 15:50:17
+     [cipher.c]
+     EVP_CIPH_CUSTOM_IV for our own rijndael
 
 20020714
  - (tim) [Makefile.in] replace "id sshd" with "sshd -t"
@@ -1367,4 +1370,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2367 2002/07/15 17:48:11 mouring Exp $
+$Id: ChangeLog,v 1.2368 2002/07/15 17:52:49 mouring Exp $
