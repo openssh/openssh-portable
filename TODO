@@ -1,12 +1,50 @@
-- Replacement for setproctitle()
+Programming:
+- Replacement for setproctitle() - HP/UX support only currently
 
 - Improve PAM support (a pam_lastlog module will cause sshd to exit)
 
-- Better documentation
-
-- Replace the horror in acconfig.h which tries to comphensate for the 
-  lack of u_intXX_t types. There must be a better way.
-
-- Cleanup configure.in
-
 - Complete Tru64 SIA support
+
+- Finish integrating kernel-level auditing code for IRIX and SOLARIS
+  (Gilbert.r.loomis@saic.com)
+
+- Support 64bit ints on machines that lack 'long long' and u_intXX_t
+  (tim@multitalents.net)
+
+Documentation:
+- More and better
+
+- Install FAQ?
+
+- General FAQ on S/Key, TIS, RSA, RSA2, DSA, etc and suggestions on when it
+  would be best to use them.  
+
+- Create a Documentation/ directory?
+
+Clean up configure/makefiles:
+- Clean up configure.in - There are a few double #defined variables
+  left to do.  HAVE_LOGIN is one of them.  Consider NOT looking for information
+  in wtmpx or utmpx or any of that stuff if it's not detected from the start
+
+- Fix Make functionality so that build from a different directory work. 
+  (roth@feep.net)
+
+- Fails to compile when cross compile.
+  (vinschen@redhat.com)
+
+- Replace the whole u_intXX_t evilness in acconfig.h with something better???
+
+- Move all "openbsd-compat" files to it's own directory.  Consider doing the 
+  same with libssh. I don't think we need to split ssh, sshd, etc into their 
+  own directory.
+  (mouring@eviladmin.org)
+
+- Fix up manpages to provide right paths to sshd_config, ssh_config, etc.
+
+Packaging:
+- Solaris: Update packaging scripts and build new sysv startup scripts
+  (gilbert.r.loomis@saic.com)
+
+- HP/UX: Provide DEPOT package scripts.
+  (gilbert.r.loomis@saic.com)
+ 

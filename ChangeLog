@@ -1,3 +1,8 @@
+20001122
+ - (bal) Minor patch to ensure platforms lacking IRIX job limit supports
+   are compilable.
+ - (bal) Updated TODO as of 11/18/2000 with known things to resolve.
+
 20001117
  - (bal) Changed from 'primes' to 'primes.out' for consistancy sake.  It
    has no affect the output.  Patch by Corinna Vinschen <vinschen@redhat.com>
