@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.112 2001/05/19 16:32:16 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.113 2001/05/19 16:46:19 markus Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -898,11 +898,7 @@ The MAC algorithm is used in protocol version 2
 for data integrity protection.
 Multiple algorithms must be comma-separated.
 The default is
-.Pp
-.Bd -literal
-  ``hmac-md5,hmac-sha1,hmac-ripemd160,hmac-ripemd160@openssh.com,
-    hmac-sha1-96,hmac-md5-96''
-.Ed
+.Dq hmac-md5,hmac-sha1,hmac-ripemd160,hmac-sha1-96,hmac-md5-96 .
 .It Cm NumberOfPasswordPrompts
 Specifies the number of password prompts before giving up.
 The argument to this keyword must be an integer.
