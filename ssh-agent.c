@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.80 2002/02/04 00:53:39 stevesk Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.81 2002/02/05 15:50:12 stevesk Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.80 2002/02/04 00:53:39 stevesk Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.81 2002/02/05 15:50:12 stevesk Exp $");
 
 #if defined(HAVE_SYS_QUEUE_H) && !defined(HAVE_BOGUS_SYS_QUEUE_H)
 #include <sys/queue.h>
@@ -722,7 +722,8 @@ after_select(fd_set *readset, fd_set *writeset)
 				sock = accept(sockets[i].fd,
 				    (struct sockaddr *) &sunaddr, &slen);
 				if (sock < 0) {
-					perror("accept from AUTH_SOCKET");
+					error("accept from AUTH_SOCKET: %s",
+					    strerror(errno));
 					break;
 				}
 				new_socket(AUTH_CONNECTION, sock);
@@ -776,7 +777,7 @@ after_select(fd_set *readset, fd_set *writeset)
 }
 
 static void
-cleanup_socket(void)
+cleanup_socket(void *p)
 {
 	if (socket_name[0])
 		unlink(socket_name);
@@ -787,14 +788,14 @@ cleanup_socket(void)
 static void
 cleanup_exit(int i)
 {
-	cleanup_socket();
+	cleanup_socket(NULL);
 	exit(i);
 }
 
 static void
 cleanup_handler(int sig)
 {
-	cleanup_socket();
+	cleanup_socket(NULL);
 	_exit(2);
 }
 
@@ -965,7 +966,7 @@ main(int ac, char **av)
 	pid = fork();
 	if (pid == -1) {
 		perror("fork");
-		exit(1);
+		cleanup_exit(1);
 	}
 	if (pid != 0) {		/* Parent - execute the given command. */
 		close(sock);
@@ -988,9 +989,11 @@ main(int ac, char **av)
 		perror(av[0]);
 		exit(1);
 	}
+	/* child */
+	log_init(__progname, SYSLOG_LEVEL_INFO, SYSLOG_FACILITY_AUTH, 0);
 
 	if (setsid() == -1) {
-		perror("setsid");
+		error("setsid: %s", strerror(errno));
 		cleanup_exit(1);
 	}
 
@@ -1003,16 +1006,13 @@ main(int ac, char **av)
 	/* deny core dumps, since memory contains unencrypted private keys */
 	rlim.rlim_cur = rlim.rlim_max = 0;
 	if (setrlimit(RLIMIT_CORE, &rlim) < 0) {
-		perror("setrlimit rlimit_core failed");
+		error("setrlimit RLIMIT_CORE: %s", strerror(errno));
 		cleanup_exit(1);
 	}
 #endif
 
 skip:
-	if (atexit(cleanup_socket) < 0) {
-		perror("atexit");
-		cleanup_exit(1);
-	}
+	fatal_add_cleanup(cleanup_socket, NULL);
 	new_socket(AUTH_SOCKET, sock);
 	if (ac > 0) {
 		signal(SIGALRM, check_parent_exists);
@@ -1031,7 +1031,7 @@ skip:
 		if (select(max_fd + 1, readsetp, writesetp, NULL, NULL) < 0) {
 			if (errno == EINTR)
 				continue;
-			exit(1);
+			fatal("select: %s", strerror(errno));
 		}
 		after_select(readsetp, writesetp);
 	}
