@@ -259,6 +259,10 @@ main(int ac, char **av)
 	struct passwd *pw;
 	int dummy;
 	uid_t original_effective_uid;
+	extern int optopt;
+	extern int optind;
+	extern int optreset;
+	extern char *optarg;
 
 	__progname = get_progname(av[0]);
 	init_rng();

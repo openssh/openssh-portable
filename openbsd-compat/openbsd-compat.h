@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.10 2001/06/29 12:32:33 mouring Exp $ */
+/* $Id: openbsd-compat.h,v 1.11 2001/07/14 03:22:54 djm Exp $ */
 
 #ifndef _OPENBSD_H
 #define _OPENBSD_H
@@ -25,6 +25,7 @@
 #include "getgrouplist.h"
 #include "glob.h"
 #include "readpassphrase.h"
+#include "getopt.h"
 
 /* Home grown routines */
 #include "bsd-arc4random.h"

@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.112 2001/06/22 21:14:19 stevesk Exp $ */
+/* $Id: acconfig.h,v 1.113 2001/07/14 03:22:53 djm Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -319,6 +319,9 @@
 
 /* Define in your struct dirent expects you to allocate extra space for d_name */
 #undef BROKEN_ONE_BYTE_DIRENT_D_NAME
+
+/* Define if your getopt(3) defines and uses optreset */
+#undef HAVE_GETOPT_OPTRESET
 
 @BOTTOM@
 
