@@ -19,6 +19,12 @@
    - markus@cvs.openbsd.org 2003/09/26 08:19:29
      [sshd.c]
      no need to set the listen sockets to non-block; ok deraadt@
+   - jmc@cvs.openbsd.org 2003/09/29 11:40:51
+     [ssh.1]
+     - add list of options to -o and .Xr ssh_config(5)
+     - some other cleanup
+     requested by deraadt@;
+     ok deraadt@ markus@
 
 20030930
  - (bal) Fix issues in openbsd-compat/realpath.c
@@ -1254,4 +1260,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3048 2003/10/02 06:18:22 dtucker Exp $
+$Id: ChangeLog,v 1.3049 2003/10/02 06:19:47 dtucker Exp $
