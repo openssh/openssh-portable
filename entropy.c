@@ -40,7 +40,7 @@
 #include "pathnames.h"
 #include "log.h"
 
-RCSID("$Id: entropy.c,v 1.33 2001/02/26 22:47:16 djm Exp $");
+RCSID("$Id: entropy.c,v 1.34 2001/02/27 00:00:52 djm Exp $");
 
 #ifndef offsetof
 # define offsetof(type, member) ((size_t) &((type *)0)->member)
@@ -71,8 +71,8 @@ RCSID("$Id: entropy.c,v 1.33 2001/02/26 22:47:16 djm Exp $");
 void check_openssl_version(void) 
 {
 	if (SSLeay() != OPENSSL_VERSION_NUMBER)
-		fatal("OpenSSL version mismatch. Built against %x, you "
-		    "have %x", OPENSSL_VERSION_NUMBER, SSLeay());
+		fatal("OpenSSL version mismatch. Built against %lx, you "
+		    "have %lx", OPENSSL_VERSION_NUMBER, SSLeay());
 }
 
 
