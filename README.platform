@@ -20,7 +20,7 @@ gets it wrong, or if you want to build binaries to work on earlier MLs
 than the build host then you can add "-DBROKEN_GETADDRINFO" to CFLAGS
 to force the previous IPv4-only behaviour.
 
-IPv6 known to work: 5.2ML2 5.2ML5
+IPv6 known to work: 5.1ML7 5.2ML2 5.2ML5
 IPv6 known broken: 4.3.3ML11 5.1ML4
 
 Cygwin
@@ -36,4 +36,4 @@ Currently, sshd does not support BSM auditting.  This can show up as errors
 when editting cron entries via crontab.  See.
 http://bugzilla.mindrot.org/show_bug.cgi?id=125
 
-$Id: README.platform,v 1.3 2005/02/15 10:45:57 dtucker Exp $
+$Id: README.platform,v 1.4 2005/02/15 11:44:05 dtucker Exp $
