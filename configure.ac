@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.113.2.3 2003/08/21 07:38:20 dtucker Exp $
+# $Id: configure.ac,v 1.113.2.4 2003/08/21 07:42:34 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -224,7 +224,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(LOGIN_NEEDS_UTMPX)
 	AC_DEFINE(LOGIN_NEEDS_TERM)
 	AC_DEFINE(PAM_TTY_KLUDGE)
-	AC_DEFINE(STREAMS_PUSH_ACQUIRES_CTTY)
+	AC_DEFINE(SSHD_ACQUIRES_CTTY)
 	# hardwire lastlog location (can't detect it on some versions)
 	conf_lastlog_location="/var/adm/lastlog"
 	AC_MSG_CHECKING(for obsolete utmp and wtmp in solaris2.x)
@@ -251,7 +251,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	LIBS="$LIBS -lc89"
 	AC_DEFINE(USE_PIPES)
-	AC_DEFINE(STREAMS_PUSH_ACQUIRES_CTTY)
+	AC_DEFINE(SSHD_ACQUIRES_CTTY)
 	;;
 *-sni-sysv*)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
@@ -260,7 +260,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	IPADDR_IN_DISPLAY=yes
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(IP_TOS_IS_BROKEN)
-	AC_DEFINE(STREAMS_PUSH_ACQUIRES_CTTY)
+	AC_DEFINE(SSHD_ACQUIRES_CTTY)
 	# /usr/ucblib/libucb.a no longer needed on ReliantUNIX
 	# Attention: always take care to bind libsocket and libnsl before libc,
 	# otherwise you will find lots of "SIOCGPGRP errno 22" on syslog

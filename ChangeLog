@@ -14,6 +14,8 @@
    from OpenBSD.
  - (dtucker) [configure.ac monitor_fdpass.c] Bug #544: ignore invalid cmsg_type
    on Linux 1.x and 2.0 kernels, privsep should now work.
+ - (dtucker) [acconfig.h configure.ac sshd.c] STREAMS_PUSH_ACQUIRES_CTTY ->
+   SSHD_ACQUIRES_CTTY.
 
 20030429
  - (djm) Add back radix.o (used by AFS support), after it went missing from
@@ -1319,4 +1321,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2648.2.7 2003/08/21 07:38:20 dtucker Exp $
+$Id: ChangeLog,v 1.2648.2.8 2003/08/21 07:42:33 dtucker Exp $
