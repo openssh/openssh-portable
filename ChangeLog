@@ -4,6 +4,7 @@
  - (djm) Clean up diff against OpenBSD.
  - (djm) HPUX 11 needs USE_PIPES as well: Kevin Steves 
    <stevesk@sweden.hp.com>
+ - (djm) Quieten the pam delete credentials error message
 
 20000829
  - (djm) Fix ^C ignored issue on Solaris. Diagnosis from Gert 

@@ -34,7 +34,7 @@
 #include "xmalloc.h"
 #include "servconf.h"
 
-RCSID("$Id: auth-pam.c,v 1.11 2000/07/09 12:42:33 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.12 2000/08/29 22:57:50 djm Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: You password has expired, please change it now"
@@ -111,7 +111,7 @@ void pam_cleanup_proc(void *context)
 
 		pam_retval = pam_setcred((pam_handle_t *)pamh, PAM_DELETE_CRED);
 		if (pam_retval != PAM_SUCCESS) {
-			log("Cannot delete credentials: %.200s", 
+			debug("Cannot delete credentials: %.200s", 
 				PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
 		}
 
