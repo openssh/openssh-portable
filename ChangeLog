@@ -59,6 +59,9 @@
    - markus@cvs.openbsd.org 2001/05/28 08:04:39
      [ssh.c]                                   
      fix usage()                               
+   - markus@cvs.openbsd.org 2001/05/28 10:08:55            
+     [authfile.c]                                          
+     key_load_private: set comment to filename for PEM keys
 
 20010528
  - (tim) [conifgure.in] add setvbuf test needed for sftp-int.c
@@ -5489,4 +5492,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1240 2001/06/05 20:44:16 mouring Exp $
+$Id: ChangeLog,v 1.1241 2001/06/05 20:46:32 mouring Exp $
