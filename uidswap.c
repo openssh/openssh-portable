@@ -191,10 +191,12 @@ permanently_set_uid(struct passwd *pw)
 		    (u_int)pw->pw_gid);
 	}
 
+#ifndef HAVE_CYGWIN
 	/* Try restoration of UID if changed (test clearing of saved uid) */
 	if (old_uid != pw->pw_uid && 
 	    (setuid(old_uid) != -1 || seteuid(old_uid) != -1))
 		fatal("%s: was able to restore old [e]uid", __func__);
+#endif
 
 	/* Verify UID drop was successful */
 	if (getuid() != pw->pw_uid || geteuid() != pw->pw_uid) {
