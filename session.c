@@ -72,11 +72,6 @@ RCSID("$OpenBSD: session.c,v 1.55 2001/02/08 19:30:52 itojun Exp $");
 #include <usersec.h>
 #endif
 
-#ifdef HAVE_OSF_SIA
-# include <sia.h>
-# include <siad.h>
-#endif
-
 #ifdef HAVE_CYGWIN
 #include <windows.h>
 #include <sys/cygwin.h>
@@ -1051,21 +1046,8 @@ do_child(const char *command, struct passwd * pw, const char *term,
 	   switch, so we let login(1) to this for us. */
 	if (!options.use_login) {
 #ifdef HAVE_OSF_SIA
-		extern char **saved_argv;
-		extern int saved_argc;
-		char *host = get_canonical_hostname(options.reverse_mapping_check);
-
-		if (sia_become_user(NULL, saved_argc, saved_argv, host,
-		    pw->pw_name, ttyname, 0, NULL, NULL, SIA_BEU_SETLUID) !=
-		    SIASUCCESS) {
-			perror("sia_become_user");
-			exit(1);
-		}
-		if (setreuid(geteuid(), geteuid()) < 0) {
-			perror("setreuid");
-			exit(1);
-		}
 #else /* HAVE_OSF_SIA */
+		session_setup_sia(pw->pw_name, ttyname);
 #ifdef HAVE_CYGWIN
 		if (is_winnt) {
 #else

@@ -6,6 +6,8 @@
    from Nalin Dahyabhai <nalin@redhat.com>
  - (bal) Missing function prototype in bsd-snprintf.c patch by
    Mark Miller <markm@swoon.net>
+ - (djm) Split out and improve OSF SIA auth code. Patch from Chris Adams
+   <cmadams@hiwaay.net> with a little modification and KNF.
 
 20010213
  - (djm) Only test -S potential EGD sockets if they exist and are readable.
@@ -3922,4 +3924,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.757 2001/02/13 14:05:59 mouring Exp $
+$Id: ChangeLog,v 1.758 2001/02/13 14:25:23 djm Exp $

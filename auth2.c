@@ -25,11 +25,6 @@
 #include "includes.h"
 RCSID("$OpenBSD: auth2.c,v 1.40 2001/02/10 12:52:02 markus Exp $");
 
-#ifdef HAVE_OSF_SIA
-# include <sia.h>
-# include <siad.h>
-#endif
-
 #include <openssl/evp.h>
 
 #include "ssh2.h"
@@ -60,10 +55,6 @@ extern int session_id2_len;
 
 #ifdef WITH_AIXAUTHENTICATE
 extern char *aixloginmsg;
-#endif
-#ifdef HAVE_OSF_SIA
-extern int saved_argc;
-extern char **saved_argv;
 #endif
 
 static Authctxt	*x_authctxt = NULL;
@@ -346,10 +337,7 @@ userauth_none(Authctxt *authctxt)
 #ifdef USE_PAM
 	return auth_pam_password(authctxt->pw, "");
 #elif defined(HAVE_OSF_SIA)
-	return (sia_validate_user(NULL, saved_argc, saved_argv,
-	    get_canonical_hostname(options.reverse_mapping_check),
-	    authctxt->user?authctxt->user:"NOUSER", NULL, 0,
-	    NULL, "") == SIASUCCESS);
+	return 0;
 #else /* !HAVE_OSF_SIA && !USE_PAM */
 	return auth_password(authctxt->pw, "");
 #endif /* USE_PAM */
@@ -374,10 +362,7 @@ userauth_passwd(Authctxt *authctxt)
 #ifdef USE_PAM
 	    auth_pam_password(authctxt->pw, password) == 1)
 #elif defined(HAVE_OSF_SIA)
-	    sia_validate_user(NULL, saved_argc, saved_argv,
-	    get_canonical_hostname(options.reverse_mapping_check),
-	    authctxt->user?authctxt->user:"NOUSER", NULL, 0, NULL,
-	    password) == SIASUCCESS)
+	    auth_sia_password(authctxt->user, password) == 1)
 #else /* !USE_PAM && !HAVE_OSF_SIA */
 	    auth_password(authctxt->pw, password) == 1)
 #endif /* USE_PAM */

@@ -12,11 +12,6 @@
 #include "includes.h"
 RCSID("$OpenBSD: auth1.c,v 1.15 2001/02/07 22:35:45 markus Exp $");
 
-#ifdef HAVE_OSF_SIA
-# include <sia.h>
-# include <siad.h>
-#endif
-
 #include "xmalloc.h"
 #include "rsa.h"
 #include "ssh1.h"
@@ -36,10 +31,6 @@ extern char *forced_command;
 #ifdef WITH_AIXAUTHENTICATE
 extern char *aixloginmsg;
 #endif /* WITH_AIXAUTHENTICATE */
-#ifdef HAVE_OSF_SIA
-extern int saved_argc;
-extern char **saved_argv;
-#endif /* HAVE_OSF_SIA */
 
 /*
  * convert ssh auth msg type into description
@@ -98,6 +89,8 @@ do_authloop(Authctxt *authctxt)
 #endif
 #ifdef USE_PAM
 	    auth_pam_password(pw, "")) {
+#elif defined(HAVE_OSF_SIA)
+	    0) {
 #else
 	    auth_password(pw, "")) {
 #endif
@@ -265,11 +258,8 @@ do_authloop(Authctxt *authctxt)
 			authenticated = auth_pam_password(pw, password);
 #elif defined(HAVE_OSF_SIA)
 			/* Do SIA auth with password */
-			if (sia_validate_user(NULL, saved_argc, saved_argv,
-			    get_canonical_hostname(options.reverse_mapping_check),
-			    authctxt->user?authctxt->user:"NOUSER", NULL, 
-			    0, NULL, password) == SIASUCCESS)
-				authenticated = 1;
+			authenticated = auth_sia_password(authctxt->user, 
+			    password);
 #else /* !USE_PAM && !HAVE_OSF_SIA */
 			/* Try authentication with the password. */
 			authenticated = auth_password(pw, password);

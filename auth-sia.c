@@ -1,0 +1,96 @@
+#include "includes.h"
+
+#ifdef HAVE_OSF_SIA
+#include "ssh.h"
+#include "auth-sia.h"
+#include "log.h"
+#include "servconf.h"
+#include "canohost.h"
+
+#include <sia.h>
+#include <siad.h>
+#include <pwd.h>
+#include <signal.h>
+#include <setjmp.h>
+#include <sys/resource.h>
+#include <unistd.h>
+#include <string.h>
+
+extern ServerOptions options;
+extern int saved_argc;
+extern char **saved_argv;
+
+extern int errno;
+
+int
+auth_sia_password(char *user, char *pass)
+{
+	int ret;
+	SIAENTITY *ent = NULL;
+	const char *host;
+
+	host = get_canonical_hostname(options.reverse_mapping_check);
+
+	if (!user || !pass)
+		return(0);
+
+	if (sia_ses_init(&ent, saved_argc, saved_argv, host, user, NULL, 0,
+	    NULL) != SIASUCCESS)
+		return(0);
+
+	if ((ret = sia_ses_authent(NULL, pass, ent)) != SIASUCCESS) {
+		error("couldn't authenticate %s from %s", user, host);
+		if (ret & SIASTOP)
+			sia_ses_release(&ent);
+		return(0);
+	}
+
+	sia_ses_release(&ent);
+
+	return(1);
+}
+
+void
+session_setup_sia(char *user, char *tty)
+{
+	int ret;
+	struct passwd *pw;
+	SIAENTITY *ent = NULL;
+	const char *host;
+
+	host = get_canonical_hostname (options.reverse_mapping_check);
+
+	if (sia_ses_init(&ent, saved_argc, saved_argv, host, user, tty, 0,
+	    NULL) != SIASUCCESS)
+		fatal("sia_ses_init failed");
+
+	if ((pw = getpwnam(user)) == NULL) {
+		sia_ses_release(&ent);
+		fatal("getpwnam(%s) failed: %s", user, strerror(errno));
+	}
+	if (sia_make_entity_pwd(pw, ent) != SIASUCCESS) {
+		sia_ses_release(&ent);
+		fatal("sia_make_entity_pwd failed");
+	}
+
+	ent->authtype = SIA_A_NONE;
+	if (sia_ses_estab(sia_collect_trm, ent) != SIASUCCESS)
+		fatal("couldn't establish session for %s from %s", user,
+		    host);
+
+	if (setpriority(PRIO_PROCESS, 0, 0) == -1) {
+		sia_ses_release(&ent);
+		fatal("setpriority failed: %s", strerror (errno));
+	}
+
+	if (sia_ses_launch(sia_collect_trm, ent) != SIASUCCESS)
+		fatal("couldn't launch session for %s from %s", user, host);
+	
+	sia_ses_release(&ent);
+
+	if (setreuid(geteuid(), geteuid()) < 0)
+		fatal("setreuid failed: %s", strerror (errno));
+}
+
+#endif /* HAVE_OSF_SIA */
+
