@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.65 2001/07/15 16:58:29 stevesk Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.66 2001/07/17 20:48:42 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.65 2001/07/15 16:58:29 stevesk Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.66 2001/07/17 20:48:42 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -656,7 +656,7 @@ new_socket(int type, int fd)
 }
 
 static int
-prepare_select(fd_set **fdrp, fd_set **fdwp, int *fdl)
+prepare_select(fd_set **fdrp, fd_set **fdwp, int *fdl, int *nallocp)
 {
 	u_int i, sz;
 	int n = 0;
@@ -676,15 +676,18 @@ prepare_select(fd_set **fdrp, fd_set **fdwp, int *fdl)
 	}
 
 	sz = howmany(n+1, NFDBITS) * sizeof(fd_mask);
-	if (*fdrp == NULL || n > *fdl) {
+	if (*fdrp == NULL || sz > *nallocp) {
 		if (*fdrp)
 			xfree(*fdrp);
 		if (*fdwp)
 			xfree(*fdwp);
 		*fdrp = xmalloc(sz);
 		*fdwp = xmalloc(sz);
-		*fdl = n;
+		*nallocp = sz;
 	}
+	if (n < *fdl)
+		debug("XXX shrink: %d < %d", n, *fdl);
+	*fdl = n;
 	memset(*fdrp, 0, sz);
 	memset(*fdwp, 0, sz);
 
@@ -824,7 +827,7 @@ usage(void)
 int
 main(int ac, char **av)
 {
-	int sock, c_flag = 0, d_flag = 0, k_flag = 0, s_flag = 0, ch;
+	int sock, c_flag = 0, d_flag = 0, k_flag = 0, s_flag = 0, ch, nalloc;
 	struct sockaddr_un sunaddr;
 #ifdef HAVE_SETRLIMIT
 	struct rlimit rlim;
@@ -1017,8 +1020,10 @@ skip:
 	signal(SIGPIPE, SIG_IGN);
 	signal(SIGHUP, cleanup_handler);
 	signal(SIGTERM, cleanup_handler);
+	nalloc = 0;
+
 	while (1) {
-		prepare_select(&readsetp, &writesetp, &max_fd);
+		prepare_select(&readsetp, &writesetp, &max_fd, &nalloc);
 		if (select(max_fd + 1, readsetp, writesetp, NULL, NULL) < 0) {
 			if (errno == EINTR)
 				continue;

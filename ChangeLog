@@ -12,6 +12,9 @@
    - stevesk@cvs.openbsd.org 2001/07/15 16:58:29
      [ssh-agent.c]                              
      typo in usage; ok markus@
+   - markus@cvs.openbsd.org 2001/07/17 20:48:42                      
+     [ssh-agent.c]                                                   
+     update maxfd if maxfd is closed; report from jmcelroy@dtgnet.com
 
 20010715
  - (bal) Set "BROKEN_GETADDRINFO" for darwin platform.  Reported by
@@ -6051,4 +6054,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1407 2001/07/18 15:53:39 mouring Exp $
+$Id: ChangeLog,v 1.1408 2001/07/18 15:58:08 mouring Exp $
