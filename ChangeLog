@@ -1,3 +1,6 @@
+20010330
+ - (djm) Another openbsd-compat/glob.c sync
+
 20010329
  - OpenBSD CVS Sync
    - stevesk@cvs.openbsd.org 2001/03/26 15:47:59
@@ -4767,4 +4770,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1034 2001/03/29 00:45:12 mouring Exp $
+$Id: ChangeLog,v 1.1035 2001/03/30 00:23:17 djm Exp $
