@@ -31,7 +31,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.102 2004/05/24 01:55:36 dtucker Exp $");
+RCSID("$Id: auth-pam.c,v 1.103 2004/05/30 10:43:59 dtucker Exp $");
 
 #ifdef USE_PAM
 #if defined(HAVE_SECURITY_PAM_APPL_H)
@@ -169,6 +169,7 @@ static int sshpam_cred_established = 0;
 static int sshpam_account_status = -1;
 static char **sshpam_env = NULL;
 static Authctxt *sshpam_authctxt = NULL;
+static const char *sshpam_password = NULL;
 
 /* Some PAM implementations don't implement this */
 #ifndef HAVE_PAM_GETENVLIST
@@ -951,4 +952,100 @@ free_pam_environment(char **env)
 	xfree(env);
 }
 
+/*
+ * "Blind" conversation function for password authentication.  Assumes that
+ * echo-off prompts are for the password and stores messages for later
+ * display.
+ */
+static int
+sshpam_passwd_conv(int n, const struct pam_message **msg,
+    struct pam_response **resp, void *data)
+{
+	struct pam_response *reply;
+	int i;
+	size_t len;
+
+	debug3("PAM: %s called with %d messages", __func__, n);
+
+	*resp = NULL;
+
+	if (n <= 0 || n > PAM_MAX_NUM_MSG)
+		return (PAM_CONV_ERR);
+
+	if ((reply = malloc(n * sizeof(*reply))) == NULL)
+		return (PAM_CONV_ERR);
+	memset(reply, 0, n * sizeof(*reply));
+
+	for (i = 0; i < n; ++i) {
+		switch (PAM_MSG_MEMBER(msg, i, msg_style)) {
+		case PAM_PROMPT_ECHO_OFF:
+			if (sshpam_password == NULL)
+				goto fail;
+			reply[i].resp = xstrdup(sshpam_password);
+			reply[i].resp_retcode = PAM_SUCCESS;
+			break;
+		case PAM_ERROR_MSG:
+		case PAM_TEXT_INFO:
+			len = strlen(PAM_MSG_MEMBER(msg, i, msg));
+			if (len > 0) {
+				buffer_append(&loginmsg,
+				    PAM_MSG_MEMBER(msg, i, msg), len);
+				buffer_append(&loginmsg, "\n", 1);
+			}
+			reply[i].resp = xstrdup("");
+			reply[i].resp_retcode = PAM_SUCCESS;
+			break;
+		default:
+			goto fail;
+		}
+	}
+	*resp = reply;
+	return (PAM_SUCCESS);
+
+ fail: 
+	for(i = 0; i < n; i++) {
+		if (reply[i].resp != NULL)
+			xfree(reply[i].resp);
+	}
+	xfree(reply);
+	return (PAM_CONV_ERR);
+}
+
+static struct pam_conv passwd_conv = { sshpam_passwd_conv, NULL };
+
+/*
+ * Attempt password authentication via PAM
+ */
+int
+sshpam_auth_passwd(Authctxt *authctxt, const char *password)
+{
+	int flags = (options.permit_empty_passwd == 0 ?
+	    PAM_DISALLOW_NULL_AUTHTOK : 0);
+
+	if (!options.use_pam || sshpam_handle == NULL)
+		fatal("PAM: %s called when PAM disabled or failed to "
+		    "initialise.", __func__);
+
+	sshpam_password = password;
+	sshpam_authctxt = authctxt;
+
+	sshpam_err = pam_set_item(sshpam_handle, PAM_CONV,
+	    (const void *)&passwd_conv);
+	if (sshpam_err != PAM_SUCCESS)
+		fatal("PAM: %s: failed to set PAM_CONV: %s", __func__,
+		    pam_strerror(sshpam_handle, sshpam_err));
+
+	sshpam_err = pam_authenticate(sshpam_handle, flags);
+	sshpam_password = NULL;
+	if (sshpam_err == PAM_SUCCESS && authctxt->valid) {
+		debug("PAM: password authentication accepted for %.100s",
+		    authctxt->user);
+               return 1;
+	} else {
+		debug("PAM: password authentication failed for %.100s: %s",
+		    authctxt->valid ? authctxt->user : "an illegal user",
+		    pam_strerror(sshpam_handle, sshpam_err));
+		return 0;
+	}
+}
 #endif /* USE_PAM */

@@ -91,6 +91,10 @@ auth_password(Authctxt *authctxt, const char *password)
 		return ok;
 	}
 #endif
+#ifdef USE_PAM
+	if (options.use_pam)
+		return (sshpam_auth_passwd(authctxt, password) && ok);
+#endif
 #if defined(USE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
 	if (!expire_checked) {
 		expire_checked = 1;

@@ -1,3 +1,7 @@
+20040530
+ - (dtucker) [auth-pam.c auth-pam.h auth-passwd.c]: Bug #874: Re-add PAM 
+   support for PasswordAuthentication=yes.  ok djm@
+
 20040527
  - (dtucker) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec
    contrib/README CREDITS INSTALL] Bug #873: Correct URLs for x11-ssh-askpass
@@ -1163,4 +1167,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3368 2004/05/26 23:59:31 dtucker Exp $
+$Id: ChangeLog,v 1.3369 2004/05/30 10:43:59 dtucker Exp $
