@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: sshd.8,v 1.8 1999/11/21 02:23:53 damien Exp $
+.\" $Id: sshd.8,v 1.9 1999/11/24 13:26:23 damien Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSHD 8
@@ -26,6 +26,7 @@
 .Op Fl h Ar host_key_file
 .Op Fl k Ar key_gen_time
 .Op Fl p Ar port
+.Op Fl V Ar client_protocol_id
 .Sh DESCRIPTION 
 .Nm
 (Secure Shell Daemon) is the daemon program for 
@@ -165,6 +166,13 @@ Quiet mode.  Nothing is sent to the system log.  Normally the beginning,
 authentication, and termination of each connection is logged.
 .It Fl Q
 Do not print an error message if RSA support is missing.
+.It Fl V Ar client_protocol_id
+SSH2 compatibility mode.
+When this options is specified
+.Nm
+assumes the client has sent the given version string
+and skips the
+Protocol Version Identification Exchange.
 .El
 .Sh CONFIGURATION FILE
 .Nm
@@ -320,7 +328,7 @@ The default is 600 (seconds).
 Gives the verbosity level that is used when logging messages from
 .Nm sshd .
 The possible values are:
-QUIET, FATAL, ERROR, INFO, CHAT and DEBUG.
+QUIET, FATAL, ERROR, INFO, VERBOSE and DEBUG.
 The default is INFO.
 Logging with level DEBUG violates the privacy of users
 and is not recommended.

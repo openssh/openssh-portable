@@ -1,3 +1,26 @@
+19991124
+ - Merged very large OpenBSD source code reformat
+ - OpenBSD CVS updates
+   - [channels.c cipher.c compat.c log-client.c scp.c serverloop.c]
+     [ssh.h sshd.8 sshd.c]
+     syslog changes:
+     * Unified Logmessage for all auth-types, for success and for failed
+     * Standard connections get only ONE line in the LOG when level==LOG:
+       Auth-attempts are logged only, if authentication is:
+          a) successfull or
+          b) with passwd or
+          c) we had more than AUTH_FAIL_LOG failues
+     * many log() became verbose()
+     * old behaviour with level=VERBOSE
+   - [readconf.c readconf.h ssh.1 ssh.h sshconnect.c sshd.c]
+     tranfer s/key challenge/response data in SSH_SMSG_AUTH_TIS_CHALLENGE
+     messages. allows use of s/key in windows (ttssh, securecrt) and
+     ssh-1.2.27 clients without 'ssh -v', ok: niels@
+   - [sshd.8]
+     -V, for fallback to openssh in SSH2 compatibility mode
+   - [sshd.c]
+     fix sigchld race; cjc5@po.cwru.edu
+
 19991123
  - Added SuSE package files from Chris Saia <csaia@wtower.com>
  - Restructured package-related files under packages/*

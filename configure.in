@@ -55,7 +55,7 @@ AC_CHECK_LIB(dl, dlopen, , )
 AC_CHECK_LIB(pam, pam_authenticate, , )
 
 dnl Checks for header files.
-AC_CHECK_HEADERS(pty.h endian.h paths.h lastlog.h shadow.h netgroup.h maillock.h utmp.h sys/select.h sys/time.h)
+AC_CHECK_HEADERS(pty.h endian.h paths.h lastlog.h shadow.h netgroup.h maillock.h utmp.h util.h sys/select.h sys/time.h)
 
 dnl Checks for library functions.
 AC_CHECK_FUNCS(openpty strlcpy strlcat mkdtemp arc4random setproctitle setlogin setenv)

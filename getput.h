@@ -1,19 +1,19 @@
 /*
+ * 
+ * getput.h
+ * 
+ * Author: Tatu Ylonen <ylo@cs.hut.fi>
+ * 
+ * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
+ *                    All rights reserved
+ * 
+ * Created: Wed Jun 28 22:36:30 1995 ylo
+ * 
+ * Macros for storing and retrieving data in msb first and lsb first order.
+ * 
+ */
 
-getput.h
-
-Author: Tatu Ylonen <ylo@cs.hut.fi>
-
-Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
-                   All rights reserved
-
-Created: Wed Jun 28 22:36:30 1995 ylo
-
-Macros for storing and retrieving data in msb first and lsb first order.
-
-*/
-
-/* RCSID("$Id: getput.h,v 1.1 1999/10/27 03:42:44 damien Exp $"); */
+/* RCSID("$Id: getput.h,v 1.2 1999/11/24 13:26:22 damien Exp $"); */
 
 #ifndef GETPUT_H
 #define GETPUT_H
@@ -60,5 +60,4 @@ Macros for storing and retrieving data in msb first and lsb first order.
   (cp)[0] = (value); \
   (cp)[1] = (value) >> 8; } while (0)
 
-#endif /* GETPUT_H */
-
+#endif				/* GETPUT_H */

@@ -1,31 +1,18 @@
 /*
-
-ssh-keygen.c
-
-Author: Tatu Ylonen <ylo@cs.hut.fi>
-
-Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
-                   All rights reserved
-
-Created: Mon Mar 27 02:26:40 1995 ylo
-
-Identity and host key generation and maintenance.
-
-*/
+ * Author: Tatu Ylonen <ylo@cs.hut.fi>
+ * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
+ *                    All rights reserved
+ * Created: Mon Mar 27 02:26:40 1995 ylo
+ * Identity and host key generation and maintenance.
+ */
 
 #include "includes.h"
-RCSID("$Id: ssh-keygen.c,v 1.8 1999/11/22 02:22:29 damien Exp $");
+RCSID("$Id: ssh-keygen.c,v 1.9 1999/11/24 13:26:23 damien Exp $");
 
 #include "rsa.h"
 #include "ssh.h"
 #include "xmalloc.h"
 #include "fingerprint.h"
-
-#ifdef HAVE___PROGNAME
-extern char *__progname;
-#else /* HAVE___PROGNAME */
-const char *__progname = "ssh-keygen";
-#endif /* HAVE___PROGNAME */
 
 /* Generated private key. */
 RSA *private_key;
@@ -64,533 +51,493 @@ char *identity_new_passphrase = NULL;
 char *identity_comment = NULL;
 
 /* argv0 */
+#ifdef HAVE___PROGNAME
 extern char *__progname;
+#else /* HAVE___PROGNAME */
+const char *__progname = "ssh-keygen";
+#endif /* HAVE___PROGNAME */
 
 void
 ask_filename(struct passwd *pw, const char *prompt)
 {
-  char buf[1024];
-  snprintf(identity_file, sizeof(identity_file), "%s/%s",
-           pw->pw_dir, SSH_CLIENT_IDENTITY);
-  printf("%s (%s): ", prompt, identity_file);
-  fflush(stdout);
-  if (fgets(buf, sizeof(buf), stdin) == NULL)
-    exit(1);
-  if (strchr(buf, '\n'))
-    *strchr(buf, '\n') = 0;
-  if (strcmp(buf, "") != 0)
-    strlcpy(identity_file, buf, sizeof(identity_file));
-  have_identity = 1;
+	char buf[1024];
+	snprintf(identity_file, sizeof(identity_file), "%s/%s",
+		 pw->pw_dir, SSH_CLIENT_IDENTITY);
+	printf("%s (%s): ", prompt, identity_file);
+	fflush(stdout);
+	if (fgets(buf, sizeof(buf), stdin) == NULL)
+		exit(1);
+	if (strchr(buf, '\n'))
+		*strchr(buf, '\n') = 0;
+	if (strcmp(buf, "") != 0)
+		strlcpy(identity_file, buf, sizeof(identity_file));
+	have_identity = 1;
 }
 
 void
 do_fingerprint(struct passwd *pw)
 {
-  char *comment;
-  RSA *public_key;
-  struct stat st;
+	char *comment;
+	RSA *public_key;
+	struct stat st;
 
-  if (!have_identity)
-    ask_filename(pw, "Enter file in which the key is");
-  if (stat(identity_file, &st) < 0)
-    {
-      perror(identity_file);
-      exit(1);
-    }
-  public_key = RSA_new();
-  if (!load_public_key(identity_file, public_key, &comment)) {
-    char *cp, line[1024];
-    BIGNUM *e, *n;
-    int dummy, invalid = 0;
-    FILE *f = fopen(identity_file, "r");
-    n = BN_new();
-    e = BN_new();
-    if (f && fgets(line, sizeof(line), f)) {
-      cp = line;
-      line[strlen(line)-1] = '\0';
-      if (auth_rsa_read_key(&cp, &dummy, e, n)) {
-        public_key->e = e;
-        public_key->n = n;
-	comment = xstrdup(cp ? cp : "no comment");
-      } else {
-        invalid = 1;
-      } 
-    } else {
-      invalid = 1;
-    }
-    if (invalid) {
-      printf("%s is not a valid key file.\n", identity_file);
-      BN_free(e);
-      BN_free(n);
-      exit(1);
-    }
-  }
-    
-  printf("%d %s %s\n", BN_num_bits(public_key->n),
-	 fingerprint(public_key->e, public_key->n),
-	 comment);
-  RSA_free(public_key);
-  exit(0);
+	if (!have_identity)
+		ask_filename(pw, "Enter file in which the key is");
+	if (stat(identity_file, &st) < 0) {
+		perror(identity_file);
+		exit(1);
+	}
+	public_key = RSA_new();
+	if (!load_public_key(identity_file, public_key, &comment)) {
+		char *cp, line[1024];
+		BIGNUM *e, *n;
+		int dummy, invalid = 0;
+		FILE *f = fopen(identity_file, "r");
+		n = BN_new();
+		e = BN_new();
+		if (f && fgets(line, sizeof(line), f)) {
+			cp = line;
+			line[strlen(line) - 1] = '\0';
+			if (auth_rsa_read_key(&cp, &dummy, e, n)) {
+				public_key->e = e;
+				public_key->n = n;
+				comment = xstrdup(cp ? cp : "no comment");
+			} else {
+				invalid = 1;
+			}
+		} else {
+			invalid = 1;
+		}
+		if (invalid) {
+			printf("%s is not a valid key file.\n", identity_file);
+			BN_free(e);
+			BN_free(n);
+			exit(1);
+		}
+	}
+	printf("%d %s %s\n", BN_num_bits(public_key->n),
+	       fingerprint(public_key->e, public_key->n),
+	       comment);
+	RSA_free(public_key);
+	exit(0);
 }
 
-/* Perform changing a passphrase.  The argument is the passwd structure
-   for the current user. */
-
+/*
+ * Perform changing a passphrase.  The argument is the passwd structure
+ * for the current user.
+ */
 void
 do_change_passphrase(struct passwd *pw)
 {
-  char *comment;
-  char *old_passphrase, *passphrase1, *passphrase2;
-  struct stat st;
-  RSA *private_key;
+	char *comment;
+	char *old_passphrase, *passphrase1, *passphrase2;
+	struct stat st;
+	RSA *private_key;
 
-  if (!have_identity)
-    ask_filename(pw, "Enter file in which the key is");
-  /* Check if the file exists. */
-  if (stat(identity_file, &st) < 0)
-    {
-      perror(identity_file);
-      exit(1);
-    }
-  
-  /* Try to load the public key from the file the verify that it is
-     readable and of the proper format. */
-  public_key = RSA_new();
-  if (!load_public_key(identity_file, public_key, NULL))
-    {
-      printf("%s is not a valid key file.\n", identity_file);
-      exit(1);
-    }
-  /* Clear the public key since we are just about to load the whole file. */
-  RSA_free(public_key);
-
-  /* Try to load the file with empty passphrase. */
-  private_key = RSA_new();
-  if (!load_private_key(identity_file, "", private_key, &comment)) {
-    /* Read passphrase from the user. */
-    if (identity_passphrase)
-      old_passphrase = xstrdup(identity_passphrase);
-    else
-      old_passphrase = read_passphrase("Enter old passphrase: ", 1);
-    /* Try to load using the passphrase. */
-    if (!load_private_key(identity_file, old_passphrase, private_key, &comment))
-      {
-	memset(old_passphrase, 0, strlen(old_passphrase));
-	xfree(old_passphrase);
-	printf("Bad passphrase.\n");
-	exit(1);
-      }
-    /* Destroy the passphrase. */
-    memset(old_passphrase, 0, strlen(old_passphrase));
-    xfree(old_passphrase);
-  }
-  printf("Key has comment '%s'\n", comment);
-  
-  /* Ask the new passphrase (twice). */
-  if (identity_new_passphrase)
-    {
-      passphrase1 = xstrdup(identity_new_passphrase);
-      passphrase2 = NULL;
-    }
-  else
-    {
-      passphrase1 = 
-	read_passphrase("Enter new passphrase (empty for no passphrase): ", 1);
-      passphrase2 = read_passphrase("Enter same passphrase again: ", 1);
-
-      /* Verify that they are the same. */
-      if (strcmp(passphrase1, passphrase2) != 0)
-	{
-	  memset(passphrase1, 0, strlen(passphrase1));
-	  memset(passphrase2, 0, strlen(passphrase2));
-	  xfree(passphrase1);
-	  xfree(passphrase2);
-	  printf("Pass phrases do not match.  Try again.\n");
-	  exit(1);
+	if (!have_identity)
+		ask_filename(pw, "Enter file in which the key is");
+	/* Check if the file exists. */
+	if (stat(identity_file, &st) < 0) {
+		perror(identity_file);
+		exit(1);
 	}
-      /* Destroy the other copy. */
-      memset(passphrase2, 0, strlen(passphrase2));
-      xfree(passphrase2);
-    }
+	/* Try to load the public key from the file the verify that it is
+	   readable and of the proper format. */
+	public_key = RSA_new();
+	if (!load_public_key(identity_file, public_key, NULL)) {
+		printf("%s is not a valid key file.\n", identity_file);
+		exit(1);
+	}
+	/* Clear the public key since we are just about to load the whole file. */
+	RSA_free(public_key);
 
-  /* Save the file using the new passphrase. */
-  if (!save_private_key(identity_file, passphrase1, private_key, comment))
-    {
-      printf("Saving the key failed: %s: %s.\n",
-	     identity_file, strerror(errno));
-      memset(passphrase1, 0, strlen(passphrase1));
-      xfree(passphrase1);
-      RSA_free(private_key);
-      xfree(comment);
-      exit(1);
-    }
-  /* Destroy the passphrase and the copy of the key in memory. */
-  memset(passphrase1, 0, strlen(passphrase1));
-  xfree(passphrase1);
-  RSA_free(private_key); /* Destroys contents */
-  xfree(comment);
+	/* Try to load the file with empty passphrase. */
+	private_key = RSA_new();
+	if (!load_private_key(identity_file, "", private_key, &comment)) {
+		/* Read passphrase from the user. */
+		if (identity_passphrase)
+			old_passphrase = xstrdup(identity_passphrase);
+		else
+			old_passphrase = read_passphrase("Enter old passphrase: ", 1);
+		/* Try to load using the passphrase. */
+		if (!load_private_key(identity_file, old_passphrase, private_key, &comment)) {
+			memset(old_passphrase, 0, strlen(old_passphrase));
+			xfree(old_passphrase);
+			printf("Bad passphrase.\n");
+			exit(1);
+		}
+		/* Destroy the passphrase. */
+		memset(old_passphrase, 0, strlen(old_passphrase));
+		xfree(old_passphrase);
+	}
+	printf("Key has comment '%s'\n", comment);
 
-  printf("Your identification has been saved with the new passphrase.\n");
-  exit(0);
+	/* Ask the new passphrase (twice). */
+	if (identity_new_passphrase) {
+		passphrase1 = xstrdup(identity_new_passphrase);
+		passphrase2 = NULL;
+	} else {
+		passphrase1 =
+			read_passphrase("Enter new passphrase (empty for no passphrase): ", 1);
+		passphrase2 = read_passphrase("Enter same passphrase again: ", 1);
+
+		/* Verify that they are the same. */
+		if (strcmp(passphrase1, passphrase2) != 0) {
+			memset(passphrase1, 0, strlen(passphrase1));
+			memset(passphrase2, 0, strlen(passphrase2));
+			xfree(passphrase1);
+			xfree(passphrase2);
+			printf("Pass phrases do not match.  Try again.\n");
+			exit(1);
+		}
+		/* Destroy the other copy. */
+		memset(passphrase2, 0, strlen(passphrase2));
+		xfree(passphrase2);
+	}
+
+	/* Save the file using the new passphrase. */
+	if (!save_private_key(identity_file, passphrase1, private_key, comment)) {
+		printf("Saving the key failed: %s: %s.\n",
+		       identity_file, strerror(errno));
+		memset(passphrase1, 0, strlen(passphrase1));
+		xfree(passphrase1);
+		RSA_free(private_key);
+		xfree(comment);
+		exit(1);
+	}
+	/* Destroy the passphrase and the copy of the key in memory. */
+	memset(passphrase1, 0, strlen(passphrase1));
+	xfree(passphrase1);
+	RSA_free(private_key);	/* Destroys contents */
+	xfree(comment);
+
+	printf("Your identification has been saved with the new passphrase.\n");
+	exit(0);
 }
 
-/* Change the comment of a private key file. */
-
+/*
+ * Change the comment of a private key file.
+ */
 void
 do_change_comment(struct passwd *pw)
 {
-  char new_comment[1024], *comment;
-  RSA *private_key;
-  char *passphrase;
-  struct stat st;
-  FILE *f;
-  char *tmpbuf;
+	char new_comment[1024], *comment;
+	RSA *private_key;
+	char *passphrase;
+	struct stat st;
+	FILE *f;
+	char *tmpbuf;
 
-  if (!have_identity)
-    ask_filename(pw, "Enter file in which the key is");
-  /* Check if the file exists. */
-  if (stat(identity_file, &st) < 0)
-    {
-      perror(identity_file);
-      exit(1);
-    }
-  
-  /* Try to load the public key from the file the verify that it is
-     readable and of the proper format. */
-  public_key = RSA_new();
-  if (!load_public_key(identity_file, public_key, NULL))
-    {
-      printf("%s is not a valid key file.\n", identity_file);
-      exit(1);
-    }
-
-  private_key = RSA_new();
-  /* Try to load the file with empty passphrase. */
-  if (load_private_key(identity_file, "", private_key, &comment))
-    passphrase = xstrdup("");
-  else
-    {
-      /* Read passphrase from the user. */
-      if (identity_passphrase)
-	passphrase = xstrdup(identity_passphrase);
-      else
-	if (identity_new_passphrase)
-	  passphrase = xstrdup(identity_new_passphrase);
-	else
-	  passphrase = read_passphrase("Enter passphrase: ", 1);
-      /* Try to load using the passphrase. */
-      if (!load_private_key(identity_file, passphrase, private_key, &comment))
-	{
-	  memset(passphrase, 0, strlen(passphrase));
-	  xfree(passphrase);
-	  printf("Bad passphrase.\n");
-	  exit(1);
+	if (!have_identity)
+		ask_filename(pw, "Enter file in which the key is");
+	/* Check if the file exists. */
+	if (stat(identity_file, &st) < 0) {
+		perror(identity_file);
+		exit(1);
 	}
-    }
-  printf("Key now has comment '%s'\n", comment);
-
-  if (identity_comment)
-    {
-      strlcpy(new_comment, identity_comment, sizeof(new_comment));
-    }
-  else
-    {
-      printf("Enter new comment: ");
-      fflush(stdout);
-      if (!fgets(new_comment, sizeof(new_comment), stdin))
-	{
-	  memset(passphrase, 0, strlen(passphrase));
-	  RSA_free(private_key);
-	  exit(1);
+	/* Try to load the public key from the file the verify that it is
+	   readable and of the proper format. */
+	public_key = RSA_new();
+	if (!load_public_key(identity_file, public_key, NULL)) {
+		printf("%s is not a valid key file.\n", identity_file);
+		exit(1);
 	}
-      
-      /* Remove terminating newline from comment. */
-      if (strchr(new_comment, '\n'))
-	*strchr(new_comment, '\n') = 0;
-    }
-      
-  /* Save the file using the new passphrase. */
-  if (!save_private_key(identity_file, passphrase, private_key, new_comment))
-    {
-      printf("Saving the key failed: %s: %s.\n",
-	     identity_file, strerror(errno));
-      memset(passphrase, 0, strlen(passphrase));
-      xfree(passphrase);
-      RSA_free(private_key);
-      xfree(comment);
-      exit(1);
-    }
+	private_key = RSA_new();
+	/* Try to load the file with empty passphrase. */
+	if (load_private_key(identity_file, "", private_key, &comment))
+		passphrase = xstrdup("");
+	else {
+		/* Read passphrase from the user. */
+		if (identity_passphrase)
+			passphrase = xstrdup(identity_passphrase);
+		else if (identity_new_passphrase)
+			passphrase = xstrdup(identity_new_passphrase);
+		else
+			passphrase = read_passphrase("Enter passphrase: ", 1);
+		/* Try to load using the passphrase. */
+		if (!load_private_key(identity_file, passphrase, private_key, &comment)) {
+			memset(passphrase, 0, strlen(passphrase));
+			xfree(passphrase);
+			printf("Bad passphrase.\n");
+			exit(1);
+		}
+	}
+	printf("Key now has comment '%s'\n", comment);
 
-  /* Destroy the passphrase and the private key in memory. */
-  memset(passphrase, 0, strlen(passphrase));
-  xfree(passphrase);
-  RSA_free(private_key);
+	if (identity_comment) {
+		strlcpy(new_comment, identity_comment, sizeof(new_comment));
+	} else {
+		printf("Enter new comment: ");
+		fflush(stdout);
+		if (!fgets(new_comment, sizeof(new_comment), stdin)) {
+			memset(passphrase, 0, strlen(passphrase));
+			RSA_free(private_key);
+			exit(1);
+		}
+		/* Remove terminating newline from comment. */
+		if (strchr(new_comment, '\n'))
+			*strchr(new_comment, '\n') = 0;
+	}
 
-  /* Save the public key in text format in a file with the same name but
-     .pub appended. */
-  strlcat(identity_file, ".pub", sizeof(identity_file));
-  f = fopen(identity_file, "w");
-  if (!f)
-    {
-      printf("Could not save your public key in %s\n", identity_file);
-      exit(1);
-    }
-  fprintf(f, "%d ", BN_num_bits(public_key->n));
-  tmpbuf = BN_bn2dec(public_key->e);
-  fprintf(f, "%s ", tmpbuf);
-  free (tmpbuf);
-  tmpbuf = BN_bn2dec(public_key->n);
-  fprintf(f, "%s %s\n", tmpbuf, new_comment);
-  free (tmpbuf);
-  fclose(f);
+	/* Save the file using the new passphrase. */
+	if (!save_private_key(identity_file, passphrase, private_key, new_comment)) {
+		printf("Saving the key failed: %s: %s.\n",
+		       identity_file, strerror(errno));
+		memset(passphrase, 0, strlen(passphrase));
+		xfree(passphrase);
+		RSA_free(private_key);
+		xfree(comment);
+		exit(1);
+	}
+	/* Destroy the passphrase and the private key in memory. */
+	memset(passphrase, 0, strlen(passphrase));
+	xfree(passphrase);
+	RSA_free(private_key);
 
-  xfree(comment);
+	/* Save the public key in text format in a file with the same name
+	   but .pub appended. */
+	strlcat(identity_file, ".pub", sizeof(identity_file));
+	f = fopen(identity_file, "w");
+	if (!f) {
+		printf("Could not save your public key in %s\n", identity_file);
+		exit(1);
+	}
+	fprintf(f, "%d ", BN_num_bits(public_key->n));
+	tmpbuf = BN_bn2dec(public_key->e);
+	fprintf(f, "%s ", tmpbuf);
+	free(tmpbuf);
+	tmpbuf = BN_bn2dec(public_key->n);
+	fprintf(f, "%s %s\n", tmpbuf, new_comment);
+	free(tmpbuf);
+	fclose(f);
 
-  printf("The comment in your key file has been changed.\n");
-  exit(0);
+	xfree(comment);
+
+	printf("The comment in your key file has been changed.\n");
+	exit(0);
 }
 
 void
 usage(void)
 {
-  printf("ssh-keygen version %s\n", SSH_VERSION);
-  printf("Usage: %s [-b bits] [-p] [-c] [-f file] [-P pass] [-N new-pass] [-C comment]\n", __progname);
-  exit(1);
+	printf("ssh-keygen version %s\n", SSH_VERSION);
+	printf("Usage: %s [-b bits] [-p] [-c] [-f file] [-P pass] [-N new-pass] [-C comment]\n", __progname);
+	exit(1);
 }
 
-/* Main program for key management. */
-
+/*
+ * Main program for key management.
+ */
 int
 main(int ac, char **av)
 {
-  char dotsshdir[16*1024], comment[1024], *passphrase1, *passphrase2;
-  struct passwd *pw;
-  char *tmpbuf;
-  int opt;
-  struct stat st;
-  FILE *f;
-  char hostname[MAXHOSTNAMELEN];
-  extern int optind;
-  extern char *optarg;
+	char dotsshdir[16 * 1024], comment[1024], *passphrase1, *passphrase2;
+	struct passwd *pw;
+	char *tmpbuf;
+	int opt;
+	struct stat st;
+	FILE *f;
+	char hostname[MAXHOSTNAMELEN];
+	extern int optind;
+	extern char *optarg;
 
-  /* check if RSA support exists */
-  if (rsa_alive() == 0) {
-    extern char *__progname;
+	/* check if RSA support exists */
+	if (rsa_alive() == 0) {
+		extern char *__progname;
 
-    fprintf(stderr,
-      "%s: no RSA support in libssl and libcrypto.  See ssl(8).\n",
-      __progname);
-    exit(1);
-  }
-
-  /* Get user\'s passwd structure.  We need this for the home directory. */
-  pw = getpwuid(getuid());
-  if (!pw)
-    {
-      printf("You don't exist, go away!\n");
-      exit(1);
-    }
-
-  /* Parse command line arguments. */
-  while ((opt = getopt(ac, av, "qpclb:f:P:N:C:")) != EOF)
-    {
-      switch (opt)
-	{
-	case 'b':
-	  bits = atoi(optarg);
-	  if (bits < 512 || bits > 32768)
-	    {
-	      printf("Bits has bad value.\n");
-	      exit(1);
-	    }
-	  break;
-
-	case 'l':
-	  print_fingerprint = 1;
-	  break;
-
-	case 'p':
-	  change_passphrase = 1;
-	  break;
-
-	case 'c':
-	  change_comment = 1;
-	  break;
-
-	case 'f':
-	  strlcpy(identity_file, optarg, sizeof(identity_file));
-	  have_identity = 1;
-	  break;
-	  
-	case 'P':
-	  identity_passphrase = optarg;
-	  break;
-
-	case 'N':
-	  identity_new_passphrase = optarg;
-	  break;
-
-	case 'C':
-	  identity_comment = optarg;
-	  break;
-
-        case 'q':
-	  quiet = 1;
-	  break;
-
-	case '?':
-	default:
-	  usage();
+		fprintf(stderr,
+			"%s: no RSA support in libssl and libcrypto.  See ssl(8).\n",
+			__progname);
+		exit(1);
 	}
-    }
-  if (optind < ac)
-    {
-      printf("Too many arguments.\n");
-      usage();
-    }
-  if (change_passphrase && change_comment)
-    {
-      printf("Can only have one of -p and -c.\n");
-      usage();
-    }
-
-  if (print_fingerprint)
-    do_fingerprint(pw);
-
-  /* If the user requested to change the passphrase, do it now.  This
-     function never returns. */
-  if (change_passphrase)
-    do_change_passphrase(pw);
-
-  /* If the user requested to change the comment, do it now.  This function
-     never returns. */
-  if (change_comment)
-    do_change_comment(pw);
-
-  arc4random_stir();
-
-  if (quiet)
-    rsa_set_verbose(0);
-
-  /* Generate the rsa key pair. */
-  private_key = RSA_new();
-  public_key = RSA_new();
-  rsa_generate_key(private_key, public_key, bits);
-
-  if (!have_identity)
-    ask_filename(pw, "Enter file in which to save the key");
-
-  /* Create ~/.ssh directory if it doesn\'t already exist. */
-  snprintf(dotsshdir, sizeof dotsshdir, "%s/%s", pw->pw_dir, SSH_USER_DIR);
-  if (strstr(identity_file, dotsshdir) != NULL &&
-      stat(dotsshdir, &st) < 0) {
-    if (mkdir(dotsshdir, 0755) < 0)
-      error("Could not create directory '%s'.", dotsshdir);
-    else if(!quiet)
-      printf("Created directory '%s'.\n", dotsshdir);
- }
-
-  /* If the file already exists, ask the user to confirm. */
-  if (stat(identity_file, &st) >= 0)
-    {
-      char yesno[3];
-      printf("%s already exists.\n", identity_file);
-      printf("Overwrite (y/n)? ");
-      fflush(stdout);
-      if (fgets(yesno, sizeof(yesno), stdin) == NULL)
-	exit(1);
-      if (yesno[0] != 'y' && yesno[0] != 'Y')
-	exit(1);
-    }
-  
-  /* Ask for a passphrase (twice). */
-  if (identity_passphrase)
-    passphrase1 = xstrdup(identity_passphrase);
-  else
-    if (identity_new_passphrase)
-      passphrase1 = xstrdup(identity_new_passphrase);
-    else
-      {
-      passphrase_again:
-	passphrase1 = 
-	  read_passphrase("Enter passphrase (empty for no passphrase): ", 1);
-	passphrase2 = read_passphrase("Enter same passphrase again: ", 1);
-	if (strcmp(passphrase1, passphrase2) != 0)
-	  {
-	    /* The passphrases do not match.  Clear them and retry. */
-	    memset(passphrase1, 0, strlen(passphrase1));
-	    memset(passphrase2, 0, strlen(passphrase2));
-	    xfree(passphrase1);
-	    xfree(passphrase2);
-	    printf("Passphrases do not match.  Try again.\n");
-	    goto passphrase_again;
-	  }
-	/* Clear the other copy of the passphrase. */
-	memset(passphrase2, 0, strlen(passphrase2));
-	xfree(passphrase2);
-      }
-
-  /* Create default commend field for the passphrase.  The user can later
-     edit this field. */
-  if (identity_comment)
-    {
-      strlcpy(comment, identity_comment, sizeof(comment));
-    }
-  else
-    {
-      if (gethostname(hostname, sizeof(hostname)) < 0)
-	{
-	  perror("gethostname");
-	  exit(1);
+	/* Get user\'s passwd structure.  We need this for the home
+	   directory. */
+	pw = getpwuid(getuid());
+	if (!pw) {
+		printf("You don't exist, go away!\n");
+		exit(1);
 	}
-      snprintf(comment, sizeof comment, "%s@%s", pw->pw_name, hostname);
-    }
+	/* Parse command line arguments. */
+	while ((opt = getopt(ac, av, "qpclb:f:P:N:C:")) != EOF) {
+		switch (opt) {
+		case 'b':
+			bits = atoi(optarg);
+			if (bits < 512 || bits > 32768) {
+				printf("Bits has bad value.\n");
+				exit(1);
+			}
+			break;
 
-  /* Save the key with the given passphrase and comment. */
-  if (!save_private_key(identity_file, passphrase1, private_key, comment))
-    {
-      printf("Saving the key failed: %s: %s.\n",
-	     identity_file, strerror(errno));
-      memset(passphrase1, 0, strlen(passphrase1));
-      xfree(passphrase1);
-      exit(1);
-    }
-  /* Clear the passphrase. */
-  memset(passphrase1, 0, strlen(passphrase1));
-  xfree(passphrase1);
+		case 'l':
+			print_fingerprint = 1;
+			break;
 
-  /* Clear the private key and the random number generator. */
-  RSA_free(private_key);
-  arc4random_stir();
+		case 'p':
+			change_passphrase = 1;
+			break;
 
-  if (!quiet)
-    printf("Your identification has been saved in %s.\n", identity_file);
+		case 'c':
+			change_comment = 1;
+			break;
 
-  /* Save the public key in text format in a file with the same name but
-     .pub appended. */
-  strlcat(identity_file, ".pub", sizeof(identity_file));
-  f = fopen(identity_file, "w");
-  if (!f)
-    {
-      printf("Could not save your public key in %s\n", identity_file);
-      exit(1);
-    }
-  fprintf(f, "%d ", BN_num_bits(public_key->n));
-  tmpbuf = BN_bn2dec(public_key->e);
-  fprintf(f, "%s ", tmpbuf);
-  free(tmpbuf);
-  tmpbuf = BN_bn2dec(public_key->n);
-  fprintf(f, "%s %s\n", tmpbuf, comment);
-  free(tmpbuf);
-  fclose(f);
+		case 'f':
+			strlcpy(identity_file, optarg, sizeof(identity_file));
+			have_identity = 1;
+			break;
 
-  if (!quiet) {
-    printf("Your public key has been saved in %s.\n", identity_file);
-    printf("The key fingerprint is:\n");
-    printf("%d %s %s\n", BN_num_bits(public_key->n),
-	   fingerprint(public_key->e, public_key->n),
-	   comment);
-  }
-  
-  exit(0);
+		case 'P':
+			identity_passphrase = optarg;
+			break;
+
+		case 'N':
+			identity_new_passphrase = optarg;
+			break;
+
+		case 'C':
+			identity_comment = optarg;
+			break;
+
+		case 'q':
+			quiet = 1;
+			break;
+
+		case '?':
+		default:
+			usage();
+		}
+	}
+	if (optind < ac) {
+		printf("Too many arguments.\n");
+		usage();
+	}
+	if (change_passphrase && change_comment) {
+		printf("Can only have one of -p and -c.\n");
+		usage();
+	}
+	if (print_fingerprint)
+		do_fingerprint(pw);
+
+	/* If the user requested to change the passphrase, do it now.
+	   This function never returns. */
+	if (change_passphrase)
+		do_change_passphrase(pw);
+
+	/* If the user requested to change the comment, do it now.  This
+	   function never returns. */
+	if (change_comment)
+		do_change_comment(pw);
+
+	arc4random_stir();
+
+	if (quiet)
+		rsa_set_verbose(0);
+
+	/* Generate the rsa key pair. */
+	private_key = RSA_new();
+	public_key = RSA_new();
+	rsa_generate_key(private_key, public_key, bits);
+
+	if (!have_identity)
+		ask_filename(pw, "Enter file in which to save the key");
+
+	/* Create ~/.ssh directory if it doesn\'t already exist. */
+	snprintf(dotsshdir, sizeof dotsshdir, "%s/%s", pw->pw_dir, SSH_USER_DIR);
+	if (strstr(identity_file, dotsshdir) != NULL &&
+	    stat(dotsshdir, &st) < 0) {
+		if (mkdir(dotsshdir, 0755) < 0)
+			error("Could not create directory '%s'.", dotsshdir);
+		else if (!quiet)
+			printf("Created directory '%s'.\n", dotsshdir);
+	}
+	/* If the file already exists, ask the user to confirm. */
+	if (stat(identity_file, &st) >= 0) {
+		char yesno[3];
+		printf("%s already exists.\n", identity_file);
+		printf("Overwrite (y/n)? ");
+		fflush(stdout);
+		if (fgets(yesno, sizeof(yesno), stdin) == NULL)
+			exit(1);
+		if (yesno[0] != 'y' && yesno[0] != 'Y')
+			exit(1);
+	}
+	/* Ask for a passphrase (twice). */
+	if (identity_passphrase)
+		passphrase1 = xstrdup(identity_passphrase);
+	else if (identity_new_passphrase)
+		passphrase1 = xstrdup(identity_new_passphrase);
+	else {
+passphrase_again:
+		passphrase1 =
+			read_passphrase("Enter passphrase (empty for no passphrase): ", 1);
+		passphrase2 = read_passphrase("Enter same passphrase again: ", 1);
+		if (strcmp(passphrase1, passphrase2) != 0) {
+			/* The passphrases do not match.  Clear them and retry. */
+			memset(passphrase1, 0, strlen(passphrase1));
+			memset(passphrase2, 0, strlen(passphrase2));
+			xfree(passphrase1);
+			xfree(passphrase2);
+			printf("Passphrases do not match.  Try again.\n");
+			goto passphrase_again;
+		}
+		/* Clear the other copy of the passphrase. */
+		memset(passphrase2, 0, strlen(passphrase2));
+		xfree(passphrase2);
+	}
+
+	/* Create default commend field for the passphrase.  The user can
+	   later edit this field. */
+	if (identity_comment) {
+		strlcpy(comment, identity_comment, sizeof(comment));
+	} else {
+		if (gethostname(hostname, sizeof(hostname)) < 0) {
+			perror("gethostname");
+			exit(1);
+		}
+		snprintf(comment, sizeof comment, "%s@%s", pw->pw_name, hostname);
+	}
+
+	/* Save the key with the given passphrase and comment. */
+	if (!save_private_key(identity_file, passphrase1, private_key, comment)) {
+		printf("Saving the key failed: %s: %s.\n",
+		       identity_file, strerror(errno));
+		memset(passphrase1, 0, strlen(passphrase1));
+		xfree(passphrase1);
+		exit(1);
+	}
+	/* Clear the passphrase. */
+	memset(passphrase1, 0, strlen(passphrase1));
+	xfree(passphrase1);
+
+	/* Clear the private key and the random number generator. */
+	RSA_free(private_key);
+	arc4random_stir();
+
+	if (!quiet)
+		printf("Your identification has been saved in %s.\n", identity_file);
+
+	/* Save the public key in text format in a file with the same name
+	   but .pub appended. */
+	strlcat(identity_file, ".pub", sizeof(identity_file));
+	f = fopen(identity_file, "w");
+	if (!f) {
+		printf("Could not save your public key in %s\n", identity_file);
+		exit(1);
+	}
+	fprintf(f, "%d ", BN_num_bits(public_key->n));
+	tmpbuf = BN_bn2dec(public_key->e);
+	fprintf(f, "%s ", tmpbuf);
+	free(tmpbuf);
+	tmpbuf = BN_bn2dec(public_key->n);
+	fprintf(f, "%s %s\n", tmpbuf, comment);
+	free(tmpbuf);
+	fclose(f);
+
+	if (!quiet) {
+		printf("Your public key has been saved in %s.\n", identity_file);
+		printf("The key fingerprint is:\n");
+		printf("%d %s %s\n", BN_num_bits(public_key->n),
+		       fingerprint(public_key->e, public_key->n),
+		       comment);
+	}
+	exit(0);
 }

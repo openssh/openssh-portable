@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: ssh.1,v 1.8 1999/11/18 00:35:13 damien Exp $
+.\" $Id: ssh.1,v 1.9 1999/11/24 13:26:23 damien Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSH 1
@@ -662,6 +662,16 @@ or
 RSA authentication will only be
 attempted if the identity file exists, or an authentication agent is
 running.
+.It Cm SkeyAuthentication
+Specifies whether to use
+.Xr skey 1
+authentication.  The argument to
+this keyword must be
+.Dq yes
+or
+.Dq no .
+The default is
+.Dq no .
 .It Cm CheckHostIP
 If this flag is set to
 .Dq yes ,

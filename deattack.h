@@ -1,4 +1,4 @@
-/* $Id: deattack.h,v 1.1 1999/10/27 03:42:44 damien Exp $
+/*
  * Cryptographic attack detector for ssh - Header file
  *
  * Copyright (c) 1998 CORE SDI S.A., Buenos Aires, Argentina.
@@ -14,7 +14,8 @@
  * SOFTWARE.
  *
  * Ariel Futoransky <futo@core-sdi.com>
- * <http://www.core-sdi.com> */
+ * <http://www.core-sdi.com>
+ */
 
 #ifndef _DEATTACK_H
 #define _DEATTACK_H
@@ -23,5 +24,5 @@
 #define DEATTACK_OK		0
 #define DEATTACK_DETECTED	1
 
-int detect_attack(unsigned char *buf, u_int32_t len, unsigned char IV[8]);
+int     detect_attack(unsigned char *buf, u_int32_t len, unsigned char IV[8]);
 #endif
