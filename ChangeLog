@@ -7,6 +7,7 @@
      [channels.c clientloop.c compat.c compat.h serverloop.c]
      more ssh.com-2.0.x bug-compat; from per@appgate.com
  - (tim) New version of mdoc2man.pl from Mark D. Roth <roth+openssh@feep.net>
+ - (djm) Add .cvsignore files, suggested by Wayne Davison <wayne@blorf.net>
 
 20010429
  - (bal) Updated INSTALL.  PCRE moved to a new place.
@@ -5281,4 +5282,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1183 2001/04/30 01:01:51 tim Exp $
+$Id: ChangeLog,v 1.1184 2001/04/30 03:55:37 djm Exp $
