@@ -35,7 +35,7 @@
 # include <floatingpoint.h>
 #endif /* HAVE_FLOATINGPOINT_H */
 
-RCSID("$Id: entropy.c,v 1.20 2000/09/29 01:12:36 djm Exp $");
+RCSID("$Id: entropy.c,v 1.21 2000/10/16 09:13:43 djm Exp $");
 
 #ifndef offsetof
 # define offsetof(type, member) ((size_t) &((type *)0)->member)
@@ -514,10 +514,10 @@ prng_check_seedfile(char *filename) {
 	/* FIXME raceable: eg replace seed between this stat and subsequent open */
 	/* Not such a problem because we don't trust the seed file anyway */
 	if (lstat(filename, &st) == -1) {
-		/* Fail on hard errors */
+		/* Give up on hard errors */
 		if (errno != ENOENT)
-			fatal("Couldn't stat random seed file \"%s\": %s", filename,
-				strerror(errno));
+			debug("WARNING: Couldn't stat random seed file \"%s\": %s", 
+			   filename, strerror(errno));
 
 		return(0);
 	}
@@ -527,10 +527,12 @@ prng_check_seedfile(char *filename) {
 		fatal("PRNG seedfile %.100s is not a regular file", filename);
 
 	/* mode 0600, owned by root or the current user? */
-	if (((st.st_mode & 0177) != 0) || !(st.st_uid == original_uid))
-		fatal("PRNG seedfile %.100s must be mode 0600, owned by uid %d",
+	if (((st.st_mode & 0177) != 0) || !(st.st_uid == original_uid)) {
+		debug("WARNING: PRNG seedfile %.100s must be mode 0600, owned by uid %d",
 			 filename, getuid());
-
+		return(0);
+	}
+	
 	return(1);
 }
 
@@ -569,15 +571,16 @@ prng_write_seedfile(void) {
 	/* Don't care if the seed doesn't exist */
 	prng_check_seedfile(filename);
 	
-	if ((fd = open(filename, O_WRONLY|O_TRUNC|O_CREAT, 0600)) == -1)
-		fatal("couldn't access PRNG seedfile %.100s (%.100s)", filename, 
-			strerror(errno));
-	
-	if (atomicio(write, fd, &seed, sizeof(seed)) != sizeof(seed))
-		fatal("problem writing PRNG seedfile %.100s (%.100s)", filename, 
-			 strerror(errno));
+	if ((fd = open(filename, O_WRONLY|O_TRUNC|O_CREAT, 0600)) == -1) {
+		debug("WARNING: couldn't access PRNG seedfile %.100s (%.100s)", 
+		   filename, strerror(errno));
+	} else {	
+		if (atomicio(write, fd, &seed, sizeof(seed)) != sizeof(seed))
+			fatal("problem writing PRNG seedfile %.100s (%.100s)", filename, 
+				 strerror(errno));
 
-	close(fd);
+		close(fd);
+	}
 }
 
 void

@@ -33,6 +33,8 @@
  - (djm) Update version in Redhat spec file
  - (djm) Merge some of Nalin Dahyabhai <nalin@redhat.com> changes from the 
    Redhat 7.0 spec file
+ - (djm) Make inability to read/write PRNG seedfile non-fatal
+
 
 20001015
  - (djm) Fix ssh2 hang on background processes at logout.
