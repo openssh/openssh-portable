@@ -487,7 +487,8 @@ do_exec_no_pty(Session *s, const char *command, struct passwd * pw)
 
 	session_proctitle(s);
 
-#ifdef USE_PAM
+#if defined(USE_PAM) && defined(PAM_SUN_CODEBASE)
+	/* Solaris-derived PAMs don't like doing this after the fork() */
 	do_pam_setcred();
 #endif /* USE_PAM */
 
@@ -603,10 +604,11 @@ do_exec_pty(Session *s, const char *command, struct passwd * pw)
 	ptyfd = s->ptyfd;
 	ttyfd = s->ttyfd;
 
-#ifdef USE_PAM
+#if defined(USE_PAM) && defined(PAM_SUN_CODEBASE)
+	/* Solaris-derived PAMs don't like doing this after the fork() */
 	do_pam_session(pw->pw_name, s->tty);
 	do_pam_setcred();
-#endif /* USE_PAM */
+#endif
 
 	/* Fork the child. */
 	if ((pid = fork()) == 0) {
@@ -1032,6 +1034,11 @@ do_child(const char *command, struct passwd * pw, const char *term,
 #endif /* WITH_IRIX_ARRAY */
 #endif /* WITH_IRIX_JOBS */
 
+#if defined(USE_PAM) && !defined(PAM_SUN_CODEBASE)
+	/* Solaris-derived PAMs don't like doing this after the fork() */
+	do_pam_session(pw->pw_name, s->tty);
+	do_pam_setcred();
+#endif
 
 	/* login(1) is only called if we execute the login shell */
 	if (options.use_login && command != NULL)
