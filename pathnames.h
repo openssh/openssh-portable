@@ -1,4 +1,4 @@
-/*	$OpenBSD: pathnames.h,v 1.6 2001/06/08 15:25:40 markus Exp $	*/
+/*	$OpenBSD: pathnames.h,v 1.7 2001/06/22 21:27:08 provos Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -36,6 +36,8 @@
 #define _PATH_HOST_KEY_FILE		ETCDIR "/ssh_host_key"
 #define _PATH_HOST_DSA_KEY_FILE		ETCDIR "/ssh_host_dsa_key"
 #define _PATH_HOST_RSA_KEY_FILE		ETCDIR "/ssh_host_rsa_key"
+#define _PATH_DH_MODULI			ETCDIR "/moduli"
+/* Backwards compatibility */
 #define _PATH_DH_PRIMES			ETCDIR "/primes"
 
 #ifndef _PATH_SSH_PROGRAM

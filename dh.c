@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: dh.c,v 1.14 2001/04/15 08:43:45 markus Exp $");
+RCSID("$OpenBSD: dh.c,v 1.15 2001/06/22 21:27:07 provos Exp $");
 
 #include "xmalloc.h"
 
@@ -108,9 +108,9 @@ choose_dh(int min, int wantbits, int max)
 	int linenum;
 	struct dhgroup dhg;
 
-	f = fopen(_PATH_DH_PRIMES, "r");
-	if (!f) {
-		log("WARNING: %s does not exist, using old prime", _PATH_DH_PRIMES);
+	if ((f = fopen(_PATH_DH_MODULI, "r")) == NULL &&
+	    (f = fopen(_PATH_DH_PRIMES, "r")) == NULL) {
+		log("WARNING: %s does not exist, using old modulus", _PATH_DH_MODULI);
 		return (dh_new_group1());
 	}
 
