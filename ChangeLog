@@ -1,3 +1,7 @@
+20030317
+ - (djm) Fix return value checks for RAND_bytes. Report from 
+   Steve G <linux_4ever@yahoo.com>
+
 20030315
  - (djm) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2003/03/13 11:42:19
@@ -1214,4 +1218,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2629 2003/03/15 00:37:09 djm Exp $
+$Id: ChangeLog,v 1.2630 2003/03/17 05:13:53 djm Exp $
