@@ -57,7 +57,7 @@ This version of SSH is based upon code retrieved from the OpenBSD CVS
 repository on 1999-11-09 which in turn was based on the last free 
 version of SSH released by Tatu Ylonen.
 
-Code in helper.[ch] and gnome-ssh-askpass.c is Copyright 1999 
+Code in bsd-misc.[ch] and gnome-ssh-askpass.c is Copyright 1999 
 Internet Business Solutions and is released under a X11-style 
 license (see source files for details).
 

@@ -9,6 +9,8 @@
  - Calls to pam_setcred, patch from Nalin Dahyabhai 
    <nalin@thermo.stat.ncsu.edu>
  - Detect missing size_t and typedef it.
+ - Rename helper.[ch] to (more appropriate) bsd-misc.[ch]
+ - Minor Makefile cleaning
 
 19991228
  - Replacement for getpagesize() for systems which lack it

@@ -81,7 +81,7 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #endif
 
 #include "version.h"
-#include "helper.h"
+#include "bsd-misc.h"
 #include "bsd-strlcpy.h"
 #include "bsd-strlcat.h"
 #include "bsd-mktemp.h"

@@ -51,7 +51,7 @@ static char rcsid[] = "$OpenBSD: mktemp.c,v 1.13 1998/06/30 23:03:13 deraadt Exp
 #include <ctype.h>
 #include <unistd.h>
 
-#include "helper.h"
+#include "bsd-misc.h"
 
 static int _gettemp(char *, int *, int, int);
 
