@@ -6,6 +6,9 @@
 
 @TOP@
 
+/* Define if your system defines sys_errlist[] */
+#undef HAVE_SYS_ERRLIST
+
 /* Define if your system choked on IP TOS setting */
 #undef IP_TOS_IS_BROKEN
 

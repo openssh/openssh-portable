@@ -15,6 +15,7 @@
 "netstat -an"				@PROG_NETSTAT@	0.05
 "netstat -in"				@PROG_NETSTAT@	0.05
 "netstat -rn"				@PROG_NETSTAT@	0.02
+"netstat -pn"				@PROG_NETSTAT@	0.02
 "netstat -s"				@PROG_NETSTAT@	0.02
 
 "arp -a -n"				@PROG_ARP@	0.02

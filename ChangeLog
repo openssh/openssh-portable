@@ -1,4 +1,4 @@
-20000713
+20000715
  - (djm) OpenBSD CVS updates
    - provos@cvs.openbsd.org  2000/07/13 16:53:22
      [aux.c readconf.c servconf.c ssh.h]
@@ -16,6 +16,9 @@
    - djm@cvs.openbsd.org     2000/07/14 22:01:38
      [ssh-keygen.c ssh.c]
      Always create ~/.ssh with mode 700; ok Markus
+ - Fixes for SunOS 4.1.4 from Gordon Atwood <gordon@cs.ualberta.ca>
+   - Include floatingpoint.h for entropy.c
+   - strerror replacement
 
 20000712
  - (djm) Remove -lresolve for Reliant Unix

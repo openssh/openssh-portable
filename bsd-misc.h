@@ -58,4 +58,8 @@ int innetgr(const char *netgroup, const char *host,
 int seteuid(uid_t euid);
 #endif /* !defined(HAVE_SETEUID) && defined(HAVE_SETREUID) */
 
+#if !defined(HAVE_STRERROR) && defined(HAVE_SYS_ERRLIST)
+const char *strerror(void);
+#endif /* !defined(HAVE_STRERROR) && defined(HAVE_SYS_ERRLIST) */
+
 #endif /* _BSD_MISC_H */

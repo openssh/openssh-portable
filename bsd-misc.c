@@ -157,3 +157,10 @@ int seteuid(uid_t euid)
 	return(setreuid(-1,euid));
 }
 #endif /* !defined(HAVE_SETEUID) && defined(HAVE_SETREUID) */
+
+#if !defined(HAVE_STRERROR) && defined(HAVE_SYS_ERRLIST)
+const char *strerror(void)
+{
+	return(sys_errlist[errno]);
+}
+#endif /* !defined(HAVE_STRERROR) && defined(HAVE_SYS_ERRLIST) */

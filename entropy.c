@@ -35,7 +35,12 @@
 #include <openssl/rand.h>
 #include <openssl/sha.h>
 
-RCSID("$Id: entropy.c,v 1.17 2000/07/09 12:42:33 djm Exp $");
+/* SunOS 4.4.4 needs this */
+#ifdef HAVE_FLOATINGPOINT_H
+# include <floatingpoint.h>
+#endif /* HAVE_FLOATINGPOINT_H */
+
+RCSID("$Id: entropy.c,v 1.18 2000/07/15 04:59:15 djm Exp $");
 
 #ifndef offsetof
 # define offsetof(type, member) ((size_t) &((type *)0)->member)
