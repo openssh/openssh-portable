@@ -33,6 +33,11 @@
    - stevesk@cvs.openbsd.org 2002/02/28 20:56:00
      [auth.c]
      log user not allowed details, from dwd@bell-labs.com; ok markus@
+   - markus@cvs.openbsd.org 2002/03/01 13:12:10
+     [auth.c match.c match.h]
+     undo the 'delay hostname lookup' change
+     match.c must not use compress.c (via canonhost.c/packet.c)
+     thanks to wilfried@
 
 20020226
  - (tim) Bug 12 [configure.ac] add sys/bitypes.h to int64_t tests
@@ -7764,4 +7769,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1900 2002/03/05 01:40:37 mouring Exp $
+$Id: ChangeLog,v 1.1901 2002/03/05 01:42:42 mouring Exp $
