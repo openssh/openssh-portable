@@ -26,6 +26,7 @@
    - [sshd.c] typo
    - [rsa.c] clear buffers used for encryption. ok: niels
    - [rsa.c] replace assert() with error, fatal or packet_disconnect
+   - [auth-krb4.c] remove unused argument. ok dugsong
  - Fixed coredump after merge of OpenBSD rsa.c patch
 
 19991102
