@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.155 2002/06/09 22:15:15 stevesk Exp $
+.\" $OpenBSD: ssh.1,v 1.156 2002/06/10 17:45:20 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -1083,9 +1083,6 @@ Specifies whether to try rhosts based authentication.
 Note that this
 declaration only affects the client side and has no effect whatsoever
 on security.
-Disabling rhosts authentication may reduce
-authentication time on slow connections when rhosts authentication is
-not used.
 Most servers do not permit RhostsAuthentication because it
 is not secure (see
 .Cm RhostsRSAAuthentication ) .
@@ -1094,7 +1091,7 @@ The argument to this keyword must be
 or
 .Dq no .
 The default is
-.Dq yes .
+.Dq no .
 This option applies to protocol version 1 only.
 .It Cm RhostsRSAAuthentication
 Specifies whether to try rhosts based authentication with RSA host
@@ -1104,7 +1101,7 @@ The argument must be
 or
 .Dq no .
 The default is
-.Dq yes .
+.Dq no .
 This option applies to protocol version 1 only and requires
 .Nm
 to be setuid root.
