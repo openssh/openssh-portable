@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.263 2001/03/10 21:50:45 tim Exp $
+# $Id: configure.in,v 1.264 2001/03/12 01:32:12 tim Exp $
 
 AC_INIT(ssh.c)
 
@@ -1060,6 +1060,34 @@ if test "x$ac_cv_have_int64_t" = "xno" -a \
 	"x$ac_cv_sizeof_long_int" != "x8" -a \
 	"x$ac_cv_sizeof_long_long_int" = "x0" ; then
 	NO_SFTP='#'
+else
+dnl test snprintf (broken on SCO w/gcc)
+	AC_TRY_RUN(
+		[
+#include <stdio.h>
+#include <string.h>
+#ifdef HAVE_SNPRINTF
+main()
+{
+	char buf[50];
+	char expected_out[50];
+	int mazsize = 50 ;
+#if (SIZEOF_LONG_INT == 8)
+	long int num = 0x7fffffffffffffff;
+#else
+	long long num = 0x7fffffffffffffff;
+#endif
+	strcpy(expected_out, "9223372036854775807");
+	snprintf(buf, mazsize, "%lld", num);
+	if(strcmp(buf, expected_out) != 0)
+        	exit(1);
+	exit(0);
+}
+#else
+main() { exit(0); }
+#endif
+		], [ true ], [ AC_DEFINE(BROKEN_SNPRINTF) ]
+	)
 fi
 AC_SUBST(NO_SFTP)
 
@@ -1292,7 +1320,7 @@ AC_ARG_WITH(prngd-socket,
 		if test -z "$RANDOM_POOL" ; then
 			AC_MSG_CHECKING(for PRNGD/EGD socket)
 			# Insert other locations here
-			for sock in /var/run/egd-pool /etc/entropy; do
+			for sock in /var/run/egd-pool /dev/egd-pool /etc/entropy; do
 				if test -r $sock && $TEST_MINUS_S_SH -c "test -S $sock -o -p $sock" ; then
 					PRNGD_SOCKET="$sock"
 					AC_DEFINE_UNQUOTED(PRNGD_SOCKET, "$PRNGD_SOCKET")
@@ -1427,7 +1455,6 @@ AC_ARG_WITH(default-path,
 		[
 /* find out what STDPATH is */
 #include <stdio.h>
-#include "config.h"
 #ifdef HAVE_PATHS_H
 # include <paths.h>
 #endif
