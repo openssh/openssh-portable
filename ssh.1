@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.108 2001/04/30 11:18:52 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.109 2001/05/04 14:21:55 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -507,7 +507,7 @@ Causes all warning and diagnostic messages to be suppressed.
 Only fatal errors are displayed.
 .It Fl s
 May be used to request invocation of a subsystem on the remote system. Subsystems are a feature of the SSH2 protocol which facilitate the use 
-of SSH as a secure transport for other application (eg. sftp). The 
+of SSH as a secure transport for other applications (eg. sftp). The 
 subsystem is specified as the remote command.
 .It Fl t
 Force pseudo-tty allocation.
@@ -808,7 +808,7 @@ This option applies to protocol version 2 only and
 is similar to
 .Cm RhostsRSAAuthentication .
 .It Cm HostKeyAlgorithms
-Specfies the protocol version 2 host key algorithms
+Specifies the protocol version 2 host key algorithms
 that the client wants to use in order of preference.
 The default for this option is:
 .Dq ssh-rsa,ssh-dss
