@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.79 2001/06/25 20:26:37 stevesk Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.80 2001/06/26 20:14:11 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -640,6 +640,11 @@ identity_sign_cb(Authctxt *authctxt, Key *key, u_char **sigp, int *lenp,
 	idx = authctxt->last_key_hint;
 	if (idx < 0)
 		return -1;
+
+	/* private key is stored in external hardware */
+	if (options.identity_keys[idx]->flags & KEY_FLAG_EXT) 
+		return key_sign(options.identity_keys[idx], sigp, lenp, data, datalen);
+
 	private = load_identity_file(options.identity_files[idx]);
 	if (private == NULL)
 		return -1;

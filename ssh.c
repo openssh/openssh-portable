@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.126 2001/06/23 15:12:21 itojun Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.127 2001/06/26 20:14:11 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -68,6 +68,11 @@ RCSID("$OpenBSD: ssh.c,v 1.126 2001/06/23 15:12:21 itojun Exp $");
 #include "kex.h"
 #include "mac.h"
 #include "sshtty.h"
+
+#ifdef SMARTCARD
+#include <openssl/engine.h>
+#include "scard.h"
+#endif
 
 #ifdef HAVE___PROGNAME
 extern char *__progname;
@@ -145,6 +150,11 @@ Buffer command;
 
 /* Should we execute a command or invoke a subsystem? */
 int subsystem_flag = 0;
+
+#ifdef SMARTCARD
+/* Smartcard reader id */
+int sc_reader_num = -1;
+#endif
 
 /* Prints a help message to the user.  This function never returns. */
 
@@ -320,7 +330,7 @@ main(int ac, char **av)
 		opt = av[optind][1];
 		if (!opt)
 			usage();
-		if (strchr("eilcmpbLRDo", opt)) {   /* options with arguments */
+		if (strchr("eilcmpbILRDo", opt)) {   /* options with arguments */
 			optarg = av[optind] + 2;
 			if (strcmp(optarg, "") == 0) {
 				if (optind >= ac - 1)
@@ -386,6 +396,13 @@ main(int ac, char **av)
 				fatal("Too many identity files specified (max %d)",
 				    SSH_MAX_IDENTITY_FILES);
 			options.identity_files[options.num_identity_files++] = xstrdup(optarg);
+			break;
+		case 'I':
+#ifdef SMARTCARD
+			sc_reader_num = atoi(optarg);
+#else
+			fprintf(stderr, "no support for smartcards.\n");
+#endif
 			break;
 		case 't':
 			if (tty_flag)
@@ -1140,4 +1157,32 @@ load_public_identity_files(void)
 		options.identity_files[i] = filename;
 		options.identity_keys[i] = public;
 	}
+#ifdef SMARTCARD
+	if (sc_reader_num != -1 &&
+	    options.num_identity_files + 1 < SSH_MAX_IDENTITY_FILES &&
+	    (public = sc_get_key(sc_reader_num)) != NULL ) {
+		Key *new;
+
+		/* XXX ssh1 vs ssh2 */
+		new = key_new(KEY_RSA);
+		new->flags = KEY_FLAG_EXT;
+		BN_copy(new->rsa->n, public->rsa->n);
+		BN_copy(new->rsa->e, public->rsa->e);
+		RSA_set_method(new->rsa, sc_get_engine());
+		i = options.num_identity_files++;
+		options.identity_keys[i] = new;
+		options.identity_files[i] = xstrdup("smartcard rsa key");;
+
+		new = key_new(KEY_RSA1);
+		new->flags = KEY_FLAG_EXT;
+		BN_copy(new->rsa->n, public->rsa->n);
+		BN_copy(new->rsa->e, public->rsa->e);
+		RSA_set_method(new->rsa, sc_get_engine());
+		i = options.num_identity_files++;
+		options.identity_keys[i] = new;
+		options.identity_files[i] = xstrdup("smartcard rsa1 key");;
+
+		key_free(public);
+	}
+#endif
 }

@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.37 2001/06/26 16:15:24 dugsong Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.38 2001/06/26 20:14:11 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/evp.h>
@@ -205,20 +205,17 @@ respond_to_rsa_challenge(BIGNUM * challenge, RSA * prv)
  * the user using it.
  */
 static int
-try_rsa_authentication(const char *authfile)
+try_rsa_authentication(int idx)
 {
 	BIGNUM *challenge;
 	Key *public, *private;
-	char buf[300], *passphrase, *comment;
+	char buf[300], *passphrase, *comment, *authfile;
 	int i, type, quit, plen, clen;
 
-	/* Try to load identification for the authentication key. */
-	/* XXKEYLOAD */
-	public = key_load_public_type(KEY_RSA1, authfile, &comment);
-	if (public == NULL) {
-		/* Could not load it.  Fail. */
-		return 0;
-	}
+	public = options.identity_keys[idx];
+	authfile = options.identity_files[idx];
+	comment = xstrdup(authfile);
+
 	debug("Trying RSA authentication with key '%.100s'", comment);
 
 	/* Tell the server that we are willing to authenticate using this key. */
@@ -226,9 +223,6 @@ try_rsa_authentication(const char *authfile)
 	packet_put_bignum(public->rsa->n);
 	packet_send();
 	packet_write_wait();
-
-	/* We no longer need the public key. */
-	key_free(public);
 
 	/* Wait for server's response. */
 	type = packet_read(&plen);
@@ -255,10 +249,14 @@ try_rsa_authentication(const char *authfile)
 	debug("Received RSA challenge from server.");
 
 	/*
-	 * Load the private key.  Try first with empty passphrase; if it
+	 * If the key is not stored in external hardware, we have to
+	 * load the private key.  Try first with empty passphrase; if it
 	 * fails, ask for a passphrase.
 	 */
-	private = key_load_private_type(KEY_RSA1, authfile, "", NULL);
+	if (public->flags && KEY_FLAG_EXT)
+		private = public;
+	else
+		private = key_load_private_type(KEY_RSA1, authfile, "", NULL);
 	if (private == NULL && !options.batch_mode) {
 		snprintf(buf, sizeof(buf),
 		    "Enter passphrase for RSA key '%.100s': ", comment);
@@ -302,8 +300,9 @@ try_rsa_authentication(const char *authfile)
 	/* Compute and send a response to the challenge. */
 	respond_to_rsa_challenge(challenge, private->rsa);
 
-	/* Destroy the private key. */
-	key_free(private);
+	/* Destroy the private key unless it in external hardware. */
+	if (!(private->flags & KEY_FLAG_EXT))
+		key_free(private);
 
 	/* We no longer need the challenge. */
 	BN_clear_free(challenge);
@@ -1218,7 +1217,7 @@ ssh_userauth1(const char *local_user, const char *server_user, char *host,
 		for (i = 0; i < options.num_identity_files; i++)
 			if (options.identity_keys[i] != NULL &&
 			    options.identity_keys[i]->type == KEY_RSA1 &&
-			    try_rsa_authentication(options.identity_files[i]))
+			    try_rsa_authentication(i))
 				goto success;
 	}
 	/* Try challenge response authentication if the server supports it. */
