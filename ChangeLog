@@ -22,6 +22,7 @@
  - (djm) Trim deprecated options from INSTALL. Mention UsePAM
  - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
  - (djm) Crank version.h and spec version numbers
+ - (djm) Release 3.7.1p2
 
 20030922
  - (dtucker) [Makefile.in] Bug #644: Fix "make clean" for out-of-tree
@@ -1187,4 +1188,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2994.2.33 2003/09/23 09:26:51 djm Exp $
+$Id: ChangeLog,v 1.2994.2.34 2003/09/23 09:33:17 djm Exp $
