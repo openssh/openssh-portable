@@ -1,3 +1,7 @@
+20041019
+ - (dtucker) [uidswap.c] Don't test dropping of gids for the root user or
+   on Cygwin.  Cygwin parts from vinschen at redhat com; ok djm@
+
 20041016
  - (djm) [auth-pam.c] snprintf->strl*, fix server message length calculations;
    ok dtucker@
@@ -1767,4 +1771,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3560 2004/10/16 08:53:28 djm Exp $
+$Id: ChangeLog,v 1.3561 2004/10/19 06:33:33 dtucker Exp $
