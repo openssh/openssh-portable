@@ -86,6 +86,7 @@
  - (djm) Rest of Bug #499: Import a basename() function from OpenBSD libc
  - (djm) Bug #494: Allow multiple accounts on Windows 9x/Me; 
    From vinschen@redhat.com
+ - (djm) Bug #456: Support for NEC SX6 with Unicos; from wendyp@cray.com
 
 20030211
  - (djm) Cygwin needs libcrypt too. Patch from vinschen@redhat.com
@@ -1186,4 +1187,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2620 2003/02/24 02:04:01 djm Exp $
+$Id: ChangeLog,v 1.2621 2003/02/24 04:45:42 djm Exp $

@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.108 2003/02/24 01:55:55 djm Exp $
+# $Id: configure.ac,v 1.109 2003/02/24 04:45:43 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -600,18 +600,20 @@ AC_ARG_WITH(tcp-wrappers,
 	]
 )
 
-dnl    Checks for library functions.
-AC_CHECK_FUNCS(arc4random b64_ntop bcopy basename bindresvport_sa \
-	clock fchmod fchown freeaddrinfo futimes gai_strerror \
-	getaddrinfo getcwd getgrouplist getnameinfo getopt getpeereid\
-	getrlimit getrusage getttyent glob inet_aton inet_ntoa \
-	inet_ntop innetgr login_getcapbool md5_crypt memmove mkdtemp \
-	mmap ngetaddrinfo nsleep openpty ogetaddrinfo pstat readpassphrase \
-	realpath recvmsg rresvport_af sendmsg setdtablesize setegid \
-	setenv seteuid setgroups setlogin setproctitle setresgid setreuid \
-	setrlimit setsid setpcred setvbuf sigaction sigvec snprintf \
-	socketpair strerror strlcat strlcpy strmode strnvis sysconf tcgetpgrp \
-	truncate utimes vhangup vsnprintf waitpid __b64_ntop _getpty)
+dnl    Checks for library functions. Please keep in alphabetical order
+AC_CHECK_FUNCS(\
+	arc4random __b64_ntop b64_ntop __b64_pton b64_pton basename bcopy \
+	bindresvport_sa clock fchmod fchown freeaddrinfo futimes \
+	gai_strerror getaddrinfo getcwd getgrouplist getnameinfo getopt \
+	getpeereid _getpty getrlimit getrusage getttyent glob inet_aton \
+	inet_ntoa inet_ntop innetgr login_getcapbool md5_crypt memmove \
+	mkdtemp mmap ngetaddrinfo nsleep ogetaddrinfo openpty pstat \
+	readpassphrase realpath recvmsg rresvport_af sendmsg setdtablesize \
+	setegid setenv seteuid setgroups setlogin setpcred setproctitle \
+	setresgid setreuid setrlimit setsid setvbuf sigaction sigvec \
+	snprintf socketpair strerror strlcat strlcpy strmode strnvis \
+	sysconf tcgetpgrp truncate utimes vhangup vsnprintf waitpid \
+)
 
 AC_SEARCH_LIBS(nanosleep, rt posix4, AC_DEFINE(HAVE_NANOSLEEP))
 
