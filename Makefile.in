@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.177 2001/06/10 17:43:36 mouring Exp $
+# $Id: Makefile.in,v 1.178 2001/06/27 11:52:33 djm Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -55,8 +55,8 @@ MANPAGES	= scp.1.out ssh-add.1.out ssh-agent.1.out ssh-keygen.1.out ssh-keyscan.
 MANPAGES_IN	= scp.1 ssh-add.1 ssh-agent.1 ssh-keygen.1 ssh-keyscan.1 ssh.1 sshd.8 sftp-server.8 sftp.1
 MANTYPE		= @MANTYPE@
 
-CONFIGFILES=sshd_config.out ssh_config.out primes.out
-CONFIGFILES_IN=sshd_config ssh_config primes
+CONFIGFILES=sshd_config.out ssh_config.out moduli.out
+CONFIGFILES_IN=sshd_config ssh_config moduli
 
 PATHSUBS	= \
 	-D/etc/ssh_config=$(sysconfdir)/ssh_config \
@@ -68,7 +68,7 @@ PATHSUBS	= \
 	-D/etc/ssh_host_dsa_key=$(sysconfdir)/ssh_host_dsa_key \
 	-D/etc/ssh_host_rsa_key=$(sysconfdir)/ssh_host_rsa_key \
 	-D/var/run/sshd.pid=$(piddir)/sshd.pid \
-	-D/etc/primes=$(sysconfdir)/primes \
+	-D/etc/moduli=$(sysconfdir)/moduli \
 	-D/etc/sshrc=$(sysconfdir)/sshrc \
 	-D/usr/X11R6/bin/xauth=$(XAUTH_PATH) \
 	-D/usr/bin:/bin:/usr/sbin:/sbin=@user_path@
@@ -217,10 +217,15 @@ install-files:
 			echo "$(DESTDIR)$(sysconfdir)/ssh_prng_cmds already exists, install will not overwrite"; \
 		fi ; \
 	fi
-	if [ ! -f $(DESTDIR)$(sysconfdir)/primes ]; then \
-		$(INSTALL) -m 644 primes.out $(DESTDIR)$(sysconfdir)/primes; \
+	if [ ! -f $(DESTDIR)$(sysconfdir)/moduli ]; then \
+		if [ -f $(DESTDIR)$(sysconfdir)/primes ]; then \
+			echo "moving $(DESTDIR)$(sysconfdir)/primes to $(DESTDIR)$(sysconfdir)/moduli"; \
+			mv "$(DESTDIR)$(sysconfdir)/primes" "$(DESTDIR)$(sysconfdir)/moduli"; \
+		else ; \
+			$(INSTALL) -m 644 moduli.out $(DESTDIR)$(sysconfdir)/moduli; \
+		fi ; \
 	else \
-		echo "$(DESTDIR)$(sysconfdir)/primes already exists, install will not overwrite"; \
+		echo "$(DESTDIR)$(sysconfdir)/moduli already exists, install will not overwrite"; \
 	fi
 
 host-key: ssh-keygen$(EXEEXT)
