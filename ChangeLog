@@ -25,6 +25,9 @@
      - some other cleanup
      requested by deraadt@;
      ok deraadt@ markus@
+   - markus@cvs.openbsd.org 2003/09/29 20:19:57
+     [servconf.c sshd_config]
+     GSSAPICleanupCreds -> GSSAPICleanupCredentials
 
 20030930
  - (bal) Fix issues in openbsd-compat/realpath.c
@@ -1260,4 +1263,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3049 2003/10/02 06:19:47 dtucker Exp $
+$Id: ChangeLog,v 1.3050 2003/10/02 06:20:54 dtucker Exp $
