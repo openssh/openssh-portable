@@ -29,7 +29,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.3 2001/02/04 15:32:25 stevesk Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.4 2001/02/06 23:30:28 djm Exp $");
 
 #include "ssh.h"
 #include "buffer.h"
@@ -47,6 +47,9 @@ RCSID("$OpenBSD: sftp-client.c,v 1.3 2001/02/04 15:32:25 stevesk Exp $");
 /* How much data to read/write at at time during copies */
 /* XXX: what should this be? */
 #define COPY_SIZE	8192
+
+/* Message ID */
+static u_int msg_id = 1;
 
 void
 send_msg(int fd, Buffer *m)
@@ -255,7 +258,7 @@ do_close(int fd_in, int fd_out, char *handle, u_int handle_len)
 
 	buffer_init(&msg);
 
-	id = arc4random();
+	id = msg_id++;
 	buffer_put_char(&msg, SSH2_FXP_CLOSE);
 	buffer_put_int(&msg, id);
 	buffer_put_string(&msg, handle, handle_len);
@@ -278,7 +281,7 @@ do_ls(int fd_in, int fd_out, char *path)
 	u_int type, id, handle_len, i, expected_id;
 	char *handle;
 
-	id = arc4random();
+	id = msg_id++;
 
 	buffer_init(&msg);
 	buffer_put_char(&msg, SSH2_FXP_OPENDIR);
@@ -295,7 +298,7 @@ do_ls(int fd_in, int fd_out, char *path)
 	for(;;) {
 		int count;
 
-		expected_id = ++id;
+		id = expected_id = msg_id++;
 
 		debug3("Sending SSH2_FXP_READDIR I:%d", id);
 
@@ -365,7 +368,7 @@ do_rm(int fd_in, int fd_out, char *path)
 
 	debug2("Sending SSH2_FXP_REMOVE \"%s\"", path);
 
-	id = arc4random();
+	id = msg_id++;
 	send_string_request(fd_out, id, SSH2_FXP_REMOVE, path, strlen(path));
 	status = get_status(fd_in, id);
 	if (status != SSH2_FX_OK)
@@ -378,7 +381,7 @@ do_mkdir(int fd_in, int fd_out, char *path, Attrib *a)
 {
 	u_int status, id;
 
-	id = arc4random();
+	id = msg_id++;
 	send_string_attrs_request(fd_out, id, SSH2_FXP_MKDIR, path,
 	    strlen(path), a);
 
@@ -394,7 +397,7 @@ do_rmdir(int fd_in, int fd_out, char *path)
 {
 	u_int status, id;
 
-	id = arc4random();
+	id = msg_id++;
 	send_string_request(fd_out, id, SSH2_FXP_RMDIR, path, strlen(path));
 
 	status = get_status(fd_in, id);
@@ -409,7 +412,7 @@ do_stat(int fd_in, int fd_out, char *path)
 {
 	u_int id;
 
-	id = arc4random();
+	id = msg_id++;
 	send_string_request(fd_out, id, SSH2_FXP_STAT, path, strlen(path));
 	return(get_decode_stat(fd_in, id));
 }
@@ -419,7 +422,7 @@ do_lstat(int fd_in, int fd_out, char *path)
 {
 	u_int id;
 
-	id = arc4random();
+	id = msg_id++;
 	send_string_request(fd_out, id, SSH2_FXP_LSTAT, path, strlen(path));
 	return(get_decode_stat(fd_in, id));
 }
@@ -430,7 +433,7 @@ do_fstat(int fd_in, int fd_out, char *handle,
 {
 	u_int id;
 
-	id = arc4random();
+	id = msg_id++;
 	send_string_request(fd_out, id, SSH2_FXP_FSTAT, handle, handle_len);
 	return(get_decode_stat(fd_in, id));
 }
@@ -440,7 +443,7 @@ do_setstat(int fd_in, int fd_out, char *path, Attrib *a)
 {
 	u_int status, id;
 
-	id = arc4random();
+	id = msg_id++;
 	send_string_attrs_request(fd_out, id, SSH2_FXP_SETSTAT, path,
 	    strlen(path), a);
 
@@ -458,7 +461,7 @@ do_fsetstat(int fd_in, int fd_out, char *handle, u_int handle_len,
 {
 	u_int status, id;
 
-	id = arc4random();
+	id = msg_id++;
 	send_string_attrs_request(fd_out, id, SSH2_FXP_FSETSTAT, handle,
 	    handle_len, a);
 
@@ -477,7 +480,7 @@ do_realpath(int fd_in, int fd_out, char *path)
 	char *filename, *longname;
 	Attrib *a;
 
-	expected_id = id = arc4random();
+	expected_id = id = msg_id++;
 	send_string_request(fd_out, id, SSH2_FXP_REALPATH, path,
 	    strlen(path));
 
@@ -525,7 +528,7 @@ do_rename(int fd_in, int fd_out, char *oldpath, char *newpath)
 	buffer_init(&msg);
 
 	/* Send rename request */
-	id = arc4random();
+	id = msg_id++;
 	buffer_put_char(&msg, SSH2_FXP_RENAME);
 	buffer_put_int(&msg, id);
 	buffer_put_cstring(&msg, oldpath);
@@ -588,7 +591,7 @@ do_download(int fd_in, int fd_out, char *remote_path, char *local_path,
 	buffer_init(&msg);
 
 	/* Send open request */
-	id = arc4random();
+	id = msg_id++;
 	buffer_put_char(&msg, SSH2_FXP_OPEN);
 	buffer_put_int(&msg, id);
 	buffer_put_cstring(&msg, remote_path);
@@ -611,7 +614,7 @@ do_download(int fd_in, int fd_out, char *remote_path, char *local_path,
 		u_int len;
 		char *data;
 
-		expected_id = ++id;
+		id = expected_id = msg_id++;
 
 		buffer_clear(&msg);
 		buffer_put_char(&msg, SSH2_FXP_READ);
@@ -713,7 +716,7 @@ do_upload(int fd_in, int fd_out, char *local_path, char *remote_path,
 	buffer_init(&msg);
 
 	/* Send open request */
-	id = arc4random();
+	id = msg_id++;
 	buffer_put_char(&msg, SSH2_FXP_OPEN);
 	buffer_put_int(&msg, id);
 	buffer_put_cstring(&msg, remote_path);
