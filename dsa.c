@@ -28,7 +28,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: dsa.c,v 1.3 2000/04/12 09:39:10 markus Exp $");
+RCSID("$Id: dsa.c,v 1.4 2000/04/14 10:30:31 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -108,7 +108,7 @@ dsa_load_private(char *filename)
 	in = BIO_new(BIO_s_file());
 	if (in == NULL)
 		fatal("BIO_new failed");
-	if (BIO_read_filename(in, filename) <= 0) 
+	if (BIO_read_filename(in, filename) <= 0)
 		fatal("BIO_read failed %s: %s", filename, strerror(errno));
 	fprintf(stderr, "read DSA private key\n");
 	dsa = PEM_read_bio_DSAPrivateKey(in,NULL,NULL,NULL);
@@ -182,9 +182,9 @@ dsa_sign(
 
 	sig = DSA_do_sign(digest, evp_md->md_size, key->dsa);
 
-        rlen = BN_num_bytes(sig->r);
-        slen = BN_num_bytes(sig->s);
-        if (rlen > INTBLOB_LEN || slen > INTBLOB_LEN) {
+	rlen = BN_num_bytes(sig->r);
+	slen = BN_num_bytes(sig->s);
+	if (rlen > INTBLOB_LEN || slen > INTBLOB_LEN) {
 		error("bad sig size %d %d", rlen, slen);
 		DSA_SIG_free(sig);
 		return -1;

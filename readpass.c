@@ -32,7 +32,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: readpass.c,v 1.5 2000/01/22 08:47:21 damien Exp $");
+RCSID("$Id: readpass.c,v 1.6 2000/04/16 01:18:44 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -58,7 +58,7 @@ read_passphrase(const char *prompt, int from_stdin)
 	sigset_t oset, nset;
 	struct sigaction sa, osa;
 	int input, output, echo = 0;
-  
+
 	if (from_stdin) {
 		input = STDIN_FILENO;
 		output = STDERR_FILENO;

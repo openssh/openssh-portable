@@ -1,20 +1,20 @@
 /*
- * 
+ *
  * hostfile.c
- * 
+ *
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
- * 
+ *
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
- * 
+ *
  * Created: Thu Jun 29 07:10:56 1995 ylo
- * 
+ *
  * Functions for manipulating the known hosts files.
- * 
+ *
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: hostfile.c,v 1.15 2000/04/12 09:39:10 markus Exp $");
+RCSID("$OpenBSD: hostfile.c,v 1.16 2000/04/14 10:30:31 markus Exp $");
 
 #ifdef HAVE_OPENSSL
 #include <openssl/bn.h>

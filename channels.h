@@ -1,4 +1,4 @@
-/* RCSID("$Id: channels.h,v 1.6 2000/04/04 04:39:01 damien Exp $"); */
+/* RCSID("$Id: channels.h,v 1.7 2000/04/16 01:18:41 damien Exp $"); */
 
 #ifndef CHANNELS_H
 #define CHANNELS_H
@@ -149,7 +149,7 @@ char   *channel_open_message(void);
  * channel to host:port from remote side.  This never returns if there was an
  * error.
  */
-void 
+void
 channel_request_local_forwarding(u_short port, const char *host,
     u_short remote_port, int gateway_ports);
 
@@ -159,7 +159,7 @@ channel_request_local_forwarding(u_short port, const char *host,
  * there was an error.  This registers that open requests for that port are
  * permitted.
  */
-void 
+void
 channel_request_remote_forwarding(u_short port, const char *host,
     u_short remote_port);
 

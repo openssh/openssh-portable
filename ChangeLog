@@ -1,7 +1,17 @@
+20000415
+ - OpenBSD CVS updates.
+   [ssh.1 ssh.c]
+   - ssh -2
+   [auth.c channels.c clientloop.c packet.c packet.h serverloop.c]
+   [session.c sshconnect.c]
+   - check payload for (illegal) extra data
+   [ALL]
+   whitespace cleanup
+
 20000413
  - INSTALL doc updates
  - Merged OpenBSD updates to include paths.
-
+ 
 20000412
  - OpenBSD CVS updates:
    - [channels.c]

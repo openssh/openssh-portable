@@ -1,31 +1,31 @@
 /*
- * draft-ietf-secsh-architecture-04.txt 
+ * draft-ietf-secsh-architecture-04.txt
  *
  *   Transport layer protocol:
- * 
+ *
  *     1-19     Transport layer generic (e.g. disconnect, ignore, debug,
  *              etc)
  *     20-29    Algorithm negotiation
  *     30-49    Key exchange method specific (numbers can be reused for
  *              different authentication methods)
- * 
+ *
  *   User authentication protocol:
- * 
+ *
  *     50-59    User authentication generic
  *     60-79    User authentication method specific (numbers can be reused
  *              for different authentication methods)
- * 
+ *
  *   Connection protocol:
- * 
+ *
  *     80-89    Connection protocol generic
  *     90-127   Channel related messages
- * 
+ *
  *   Reserved for client protocols:
- * 
+ *
  *     128-191  Reserved
- * 
+ *
  *   Local extensions:
- * 
+ *
  *     192-255  Local extensions
  */
 

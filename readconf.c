@@ -1,20 +1,20 @@
 /*
- * 
+ *
  * readconf.c
- * 
+ *
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
- * 
+ *
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
- * 
+ *
  * Created: Sat Apr 22 00:03:10 1995 ylo
- * 
+ *
  * Functions for reading the configuration files.
- * 
+ *
  */
 
 #include "includes.h"
-RCSID("$Id: readconf.c,v 1.10 2000/04/12 10:17:40 damien Exp $");
+RCSID("$Id: readconf.c,v 1.11 2000/04/16 01:18:44 damien Exp $");
 
 #include "ssh.h"
 #include "cipher.h"
@@ -167,7 +167,7 @@ static struct {
  * error.
  */
 
-void 
+void
 add_local_forward(Options *options, u_short port, const char *host,
 		  u_short host_port)
 {
@@ -188,7 +188,7 @@ add_local_forward(Options *options, u_short port, const char *host,
  * an error.
  */
 
-void 
+void
 add_remote_forward(Options *options, u_short port, const char *host,
 		   u_short host_port)
 {
@@ -207,7 +207,7 @@ add_remote_forward(Options *options, u_short port, const char *host,
  * returns if the token is not known.
  */
 
-static OpCodes 
+static OpCodes
 parse_token(const char *cp, const char *filename, int linenum)
 {
 	unsigned int i;
@@ -567,7 +567,7 @@ parse_int:
  * there is an error.  If the file does not exist, this returns immediately.
  */
 
-void 
+void
 read_config_file(const char *filename, const char *host, Options *options)
 {
 	FILE *f;
@@ -607,7 +607,7 @@ read_config_file(const char *filename, const char *host, Options *options)
  * system config file.  Last, fill_default_options is called.
  */
 
-void 
+void
 initialize_options(Options * options)
 {
 	memset(options, 'X', sizeof(*options));
@@ -658,7 +658,7 @@ initialize_options(Options * options)
  * options for which no value has been specified with their default values.
  */
 
-void 
+void
 fill_default_options(Options * options)
 {
 	if (options->forward_agent == -1)

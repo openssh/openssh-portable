@@ -1,20 +1,20 @@
 /*
- * 
+ *
  * canohost.c
- * 
+ *
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
- * 
+ *
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
- * 
+ *
  * Created: Sun Jul  2 17:52:22 1995 ylo
- * 
+ *
  * Functions for returning the canonical host name of the remote site.
- * 
+ *
  */
 
 #include "includes.h"
-RCSID("$Id: canohost.c,v 1.8 2000/03/11 09:45:41 damien Exp $");
+RCSID("$Id: canohost.c,v 1.9 2000/04/16 01:18:40 damien Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -265,7 +265,7 @@ get_sock_port(int sock, int local)
 
 /* Returns remote/local port number for the current connection. */
 
-int 
+int
 get_port(int local)
 {
 	/*
@@ -279,13 +279,13 @@ get_port(int local)
 	return get_sock_port(packet_get_connection_in(), local);
 }
 
-int 
+int
 get_peer_port(int sock)
 {
 	return get_sock_port(sock, 0);
 }
 
-int 
+int
 get_remote_port()
 {
 	return get_port(0);

@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: xmalloc.c,v 1.2 1999/11/24 13:26:23 damien Exp $");
+RCSID("$Id: xmalloc.c,v 1.3 2000/04/16 01:18:49 damien Exp $");
 
 #include "ssh.h"
 
@@ -34,7 +34,7 @@ xrealloc(void *ptr, size_t new_size)
 	return new_ptr;
 }
 
-void 
+void
 xfree(void *ptr)
 {
 	if (ptr == NULL)

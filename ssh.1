@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: ssh.1,v 1.21 2000/04/13 02:26:37 damien Exp $
+.\" $Id: ssh.1,v 1.22 2000/04/16 01:18:46 damien Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSH 1
@@ -24,7 +24,7 @@
 .Op Ar command
 .Pp
 .Nm ssh
-.Op Fl afgknqtvxCPX46
+.Op Fl afgknqtvxCPX246
 .Op Fl c Ar blowfish | 3des
 .Op Fl e Ar escape_char
 .Op Fl i Ar identity_file
@@ -455,6 +455,10 @@ from the local machine.
 Port forwardings can also be specified in the configuration file.
 Privileged ports can be forwarded only when
 logging in as root on the remote machine.
+.It Fl 2
+Forces
+.Nm
+to use protocol version 2 only.
 .It Fl 4
 Forces
 .Nm

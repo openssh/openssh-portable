@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.104 2000/04/12 09:39:10 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.105 2000/04/14 10:30:33 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -67,7 +67,7 @@ ServerOptions options;
 /* Name of the server configuration file. */
 char *config_file_name = SERVER_CONFIG_FILE;
 
-/* 
+/*
  * Flag indicating whether IPv4 or IPv6.  This can be set on the command line.
  * Default value is AF_UNSPEC means both IPv4 and IPv6.
  */
@@ -162,7 +162,7 @@ close_listen_socks(void)
  * the effect is to reread the configuration file (and to regenerate
  * the server key).
  */
-void 
+void
 sighup_handler(int sig)
 {
 	received_sighup = 1;
@@ -173,7 +173,7 @@ sighup_handler(int sig)
  * Called from the main program after receiving SIGHUP.
  * Restarts the server.
  */
-void 
+void
 sighup_restart()
 {
 	log("Received SIGHUP; restarting.");
@@ -188,7 +188,7 @@ sighup_restart()
  * These close the listen socket; not closing it seems to cause "Address
  * already in use" problems on some machines, which is inconvenient.
  */
-void 
+void
 sigterm_handler(int sig)
 {
 	log("Received signal %d; terminating.", sig);
@@ -200,7 +200,7 @@ sigterm_handler(int sig)
  * SIGCHLD handler.  This is called whenever a child dies.  This will then
  * reap any zombies left by exited c.
  */
-void 
+void
 main_sigchld_handler(int sig)
 {
 	int save_errno = errno;
@@ -216,7 +216,7 @@ main_sigchld_handler(int sig)
 /*
  * Signal handler for the alarm after the login grace period has expired.
  */
-void 
+void
 grace_alarm_handler(int sig)
 {
 	/* Close the connection. */
@@ -233,7 +233,7 @@ grace_alarm_handler(int sig)
  * Thus there should be no concurrency control/asynchronous execution
  * problems.
  */
-void 
+void
 key_regeneration_alarm(int sig)
 {
 	int save_errno = errno;
@@ -266,15 +266,15 @@ key_regeneration_alarm(int sig)
 char *
 chop(char *s)
 {
-        char *t = s;
-        while (*t) {
-                if(*t == '\n' || *t == '\r') {
-                        *t = '\0';
-                        return s;
-                }
-                t++;
-        }
-        return s;
+	char *t = s;
+	while (*t) {
+		if(*t == '\n' || *t == '\r') {
+			*t = '\0';
+			return s;
+		}
+		t++;
+	}
+	return s;
 
 }
 
@@ -337,7 +337,7 @@ sshd_exchange_identification(int sock_in, int sock_out)
 	 */
 	if (sscanf(client_version_string, "SSH-%d.%d-%[^\n]\n",
 	    &remote_major, &remote_minor, remote_version) != 3) {
- 		s = "Protocol mismatch.\n";
+		s = "Protocol mismatch.\n";
 		(void) atomicio(write, sock_out, s, strlen(s));
 		close(sock_in);
 		close(sock_out);
@@ -377,7 +377,7 @@ sshd_exchange_identification(int sock_in, int sock_out)
 			break;
 		}
 		/* FALLTHROUGH */
-	default: 
+	default:
 		mismatch = 1;
 		break;
 	}
@@ -719,8 +719,8 @@ main(int ac, char **av)
 		for (i = 0; i < num_listen_socks; i++)
 			if (listen_socks[i] > maxfd)
 				maxfd = listen_socks[i];
-		fdsetsz = howmany(maxfd, NFDBITS) * sizeof(fd_mask);         
-		fdset = (fd_set *)xmalloc(fdsetsz);                                  
+		fdsetsz = howmany(maxfd, NFDBITS) * sizeof(fd_mask);
+		fdset = (fd_set *)xmalloc(fdsetsz);
 
 		/*
 		 * Stay listening for connections until the system crashes or
@@ -1018,7 +1018,7 @@ do_ssh1_kex()
 	/* Get cipher type and check whether we accept this. */
 	cipher_type = packet_get_char();
 
-        if (!(cipher_mask() & (1 << cipher_type)))
+	if (!(cipher_mask() & (1 << cipher_type)))
 		packet_disconnect("Warning: client selects unsupported cipher.");
 
 	/* Get check bytes from the packet.  These must match those we
@@ -1145,7 +1145,7 @@ do_ssh2_kex()
 /* KEXINIT */
 
 	if (options.ciphers != NULL) {
-		myproposal[PROPOSAL_ENC_ALGS_CTOS] = 
+		myproposal[PROPOSAL_ENC_ALGS_CTOS] =
 		myproposal[PROPOSAL_ENC_ALGS_STOC] = options.ciphers;
 	}
 
@@ -1258,10 +1258,10 @@ do_ssh2_kex()
 	xfree(client_kexinit);
 	xfree(server_kexinit);
 #ifdef DEBUG_KEXDH
-        fprintf(stderr, "hash == ");
-        for (i = 0; i< 20; i++)
-                fprintf(stderr, "%02x", (hash[i])&0xff);
-        fprintf(stderr, "\n");
+	fprintf(stderr, "hash == ");
+	for (i = 0; i< 20; i++)
+		fprintf(stderr, "%02x", (hash[i])&0xff);
+	fprintf(stderr, "\n");
 #endif
 	/* sign H */
 	dsa_sign(server_host_key, &signature, &slen, hash, 20);

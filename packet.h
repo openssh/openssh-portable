@@ -1,19 +1,19 @@
 /*
- * 
+ *
  * packet.h
- * 
+ *
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
- * 
+ *
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
- * 
+ *
  * Created: Sat Mar 18 02:02:14 1995 ylo
- * 
+ *
  * Interface for the packet protocol functions.
- * 
+ *
  */
 
-/* RCSID("$Id: packet.h,v 1.13 2000/04/13 02:26:37 damien Exp $"); */
+/* RCSID("$Id: packet.h,v 1.14 2000/04/16 01:18:44 damien Exp $"); */
 
 #ifndef PACKET_H
 #define PACKET_H
@@ -52,7 +52,7 @@ void    packet_close(void);
  * key is used for both sending and reception.  However, both directions are
  * encrypted independently of each other.  Cipher types are defined in ssh.h.
  */
-void 
+void
 packet_set_encryption_key(const unsigned char *key, unsigned int keylen,
     int cipher_type);
 
@@ -201,11 +201,24 @@ do { \
   } \
 } while (0)
 
+#define packet_done() \
+do { \
+	int _len = packet_remaining(); \
+	if (_len > 0) { \
+		log("Packet integrity error (%d bytes remaining) at %s:%d", \
+		    _len ,__FILE__, __LINE__); \
+		packet_disconnect("Packet integrity error."); \
+	} \
+} while (0)
+
 /* remote host is connected via a socket/ipv4 */
 int	packet_connection_is_on_socket(void);
 int	packet_connection_is_ipv4(void);
 
 /* enable SSH2 packet format */
 void	packet_set_ssh2_format(void);
+
+/* returns remaining payload bytes */
+int	packet_remaining(void);
 
 #endif				/* PACKET_H */

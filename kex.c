@@ -28,7 +28,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: kex.c,v 1.4 2000/04/13 02:26:36 damien Exp $");
+RCSID("$Id: kex.c,v 1.5 2000/04/16 01:18:43 damien Exp $");
 
 #include "ssh.h"
 #include "ssh2.h"
@@ -149,12 +149,12 @@ void
 dump_digest(unsigned char *digest, int len)
 {
 	int i;
-        for (i = 0; i< len; i++){
-                fprintf(stderr, "%02x", digest[i]);
+	for (i = 0; i< len; i++){
+		fprintf(stderr, "%02x", digest[i]);
 		if(i%2!=0)
 			fprintf(stderr, " ");
 	}
-        fprintf(stderr, "\n");
+	fprintf(stderr, "\n");
 }
 
 unsigned char *
@@ -201,7 +201,7 @@ kex_hash(
 	buffer_free(&b);
 
 #ifdef DEBUG_KEX
-        dump_digest(digest, evp_md->md_size);
+	dump_digest(digest, evp_md->md_size);
 #endif
 	return digest;
 }
@@ -345,7 +345,7 @@ choose_kex(Kex *k, char *client, char *server)
 	k->name = get_match(client, server);
 	if (k->name == NULL)
 		fatal("no kex alg");
-    	if (strcmp(k->name, KEX_DH1) != 0)
+	if (strcmp(k->name, KEX_DH1) != 0)
 		fatal("bad kex alg %s", k->name);
 }
 void

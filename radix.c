@@ -1,10 +1,10 @@
 /*
  *   radix.c
- * 
+ *
  *   base-64 encoding pinched from lynx2-7-2, who pinched it from rpem.
  *   Originally written by Mark Riordan 12 August 1990 and 17 Feb 1991
  *   and placed in the public domain.
- * 
+ *
  *   Dug Song <dugsong@UMICH.EDU>
  */
 
@@ -23,7 +23,7 @@ char six2pr[64] = {
 
 unsigned char pr2six[256];
 
-int 
+int
 uuencode(unsigned char *bufin, unsigned int nbytes, char *bufcoded)
 {
 	/* ENC is the basic 1 character encoding function to make a char printing */
@@ -49,7 +49,7 @@ uuencode(unsigned char *bufin, unsigned int nbytes, char *bufcoded)
 	return (outptr - bufcoded);
 }
 
-int 
+int
 uudecode(const char *bufcoded, unsigned char *bufplain, int outbufsize)
 {
 	/* single character decode */
@@ -162,7 +162,7 @@ typedef unsigned short my_u_short;
 }
 
 
-int 
+int
 creds_to_radix(CREDENTIALS *creds, unsigned char *buf)
 {
 	char *p, *s;
@@ -216,7 +216,7 @@ creds_to_radix(CREDENTIALS *creds, unsigned char *buf)
 	return (uuencode((unsigned char *)temp, len, (char *)buf));
 }
 
-int 
+int
 radix_to_creds(const char *buf, CREDENTIALS *creds)
 {
 

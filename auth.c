@@ -5,7 +5,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth.c,v 1.2 2000/04/06 08:55:22 markus Exp $");
+RCSID("$OpenBSD: auth.c,v 1.4 2000/04/14 10:30:29 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -36,9 +36,9 @@ extern char *forced_command;
  * DenyUsers or user's primary group is listed in DenyGroups, false will
  * be returned. If AllowUsers isn't empty and user isn't listed there, or
  * if AllowGroups isn't empty and user isn't listed there, false will be
- * returned. 
+ * returned.
  * If the user's shell is not executable, false will be returned.
- * Otherwise true is returned. 
+ * Otherwise true is returned.
  */
 static int
 allowed_user(struct passwd * pw)
@@ -201,10 +201,10 @@ do_fake_authloop1(char *user)
 				packet_write_wait();
 				continue;
 			} else if (type == SSH_CMSG_AUTH_PASSWORD &&
-			           options.password_authentication &&
-			           (password = packet_get_string(&dlen)) != NULL &&
-			           dlen == 5 &&
-			           strncasecmp(password, "s/key", 5) == 0 ) {
+				   options.password_authentication &&
+				   (password = packet_get_string(&dlen)) != NULL &&
+				   dlen == 5 &&
+				   strncasecmp(password, "s/key", 5) == 0 ) {
 				packet_send_debug(skeyinfo);
 			}
 			if (password != NULL)
@@ -457,20 +457,20 @@ do_authloop(struct passwd * pw)
 			break;
 		}
 
- 		/*
- 		 * Check if the user is logging in as root and root logins
- 		 * are disallowed.
- 		 * Note that root login is allowed for forced commands.
- 		 */
- 		if (authenticated && pw->pw_uid == 0 && !options.permit_root_login) {
- 			if (forced_command) {
- 				log("Root login accepted for forced command.");
- 			} else {
- 				authenticated = 0;
- 				log("ROOT LOGIN REFUSED FROM %.200s",
- 				    get_canonical_hostname());
- 			}
-  		}
+		/*
+		 * Check if the user is logging in as root and root logins
+		 * are disallowed.
+		 * Note that root login is allowed for forced commands.
+		 */
+		if (authenticated && pw->pw_uid == 0 && !options.permit_root_login) {
+			if (forced_command) {
+				log("Root login accepted for forced command.");
+			} else {
+				authenticated = 0;
+				log("ROOT LOGIN REFUSED FROM %.200s",
+				    get_canonical_hostname());
+			}
+		}
 
 		/* Raise logging level */
 		if (authenticated ||
@@ -685,6 +685,7 @@ input_service_request(int type, int plen)
 	unsigned int len;
 	int accept = 0;
 	char *service = packet_get_string(&len);
+	packet_done();
 
 	if (strcmp(service, "ssh-userauth") == 0) {
 		if (!userauth_success) {
@@ -727,6 +728,7 @@ input_userauth_request(int type, int plen)
 	pw = auth_set_user(user, service);
 	if (pw && strcmp(service, "ssh-connection")==0) {
 		if (strcmp(method, "none") == 0 && try == 1) {
+			packet_done();
 #ifdef USE_PAM
 			/* Do PAM auth with password */
 			authenticated = auth_pam_password(pw, "");
@@ -740,6 +742,7 @@ input_userauth_request(int type, int plen)
 			if (c)
 				debug("password change not supported");
 			password = packet_get_string(&len);
+			packet_done();
 #ifdef USE_PAM
 			/* Do PAM auth with password */
 			authenticated = auth_pam_password(pw, password);
@@ -751,11 +754,19 @@ input_userauth_request(int type, int plen)
 			xfree(password);
 		} else if (strcmp(method, "publickey") == 0) {
 			/* XXX TODO */
-			char *pkalg;
-			char *pkblob;
-			c = packet_get_char();
+			char *pkalg, *pkblob, *sig;
+			int have_sig = packet_get_char();
 			pkalg = packet_get_string(&len);
 			pkblob = packet_get_string(&len);
+			if (have_sig) {
+				sig = packet_get_string(&len);
+				/* test for correct signature */
+				packet_done();
+				xfree(sig);
+			} else {
+				packet_done();
+				/* test whether pkalg/pkblob are acceptable */
+			}
 			xfree(pkalg);
 			xfree(pkblob);
 		}
@@ -764,7 +775,6 @@ input_userauth_request(int type, int plen)
 	if (authenticated) {
 		/* turn off userauth */
 		dispatch_set(SSH2_MSG_USERAUTH_REQUEST, &protocol_error);
-		/* success! */
 		packet_start(SSH2_MSG_USERAUTH_SUCCESS);
 		packet_send();
 		packet_write_wait();
@@ -782,7 +792,7 @@ input_userauth_request(int type, int plen)
 	xfree(user);
 	xfree(method);
 }
-void 
+void
 do_authentication2()
 {
 	dispatch_init(&protocol_error);

@@ -1,24 +1,24 @@
 /*
- * 
+ *
  * login.c
- * 
+ *
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
- * 
+ *
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
- * 
+ *
  * Created: Fri Mar 24 14:51:08 1995 ylo
- * 
+ *
  * This file performs some of the things login(1) normally does.  We cannot
  * easily use something like login -p -h host -f user, because there are
  * several different logins around, and it is hard to determined what kind of
  * login the current system has.  Also, we want to be able to execute commands
  * on a tty.
- * 
+ *
  */
 
 #include "includes.h"
-RCSID("$Id: login.c,v 1.22 2000/02/02 08:17:41 damien Exp $");
+RCSID("$Id: login.c,v 1.23 2000/04/16 01:18:43 damien Exp $");
 
 #if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
 # include <utmpx.h>
@@ -49,7 +49,7 @@ RCSID("$Id: login.c,v 1.22 2000/02/02 08:17:41 damien Exp $");
  * is found).  The name of the host used last time is returned in buf.
  */
 
-unsigned long 
+unsigned long
 get_last_login_time(uid_t uid, const char *logname,
 		    char *buf, unsigned int bufsize)
 {
@@ -135,7 +135,7 @@ get_last_login_time(uid_t uid, const char *logname,
  * were more standardized.
  */
 
-void 
+void
 record_login(int pid, const char *ttyname, const char *user, uid_t uid,
 	     const char *host, struct sockaddr * addr)
 {
@@ -273,7 +273,7 @@ record_login(int pid, const char *ttyname, const char *user, uid_t uid,
 
 /* Records that the user has logged out. */
 
-void 
+void
 record_logout(int pid, const char *ttyname)
 {
 #ifdef HAVE_LIBUTIL_LOGIN

@@ -1,19 +1,19 @@
 /*
- * 
+ *
  * readconf.h
- * 
+ *
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
- * 
+ *
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
- * 
+ *
  * Created: Sat Apr 22 00:25:29 1995 ylo
- * 
+ *
  * Functions for reading the configuration file.
- * 
+ *
  */
 
-/* RCSID("$Id: readconf.h,v 1.7 2000/04/12 10:17:40 damien Exp $"); */
+/* RCSID("$Id: readconf.h,v 1.8 2000/04/16 01:18:44 damien Exp $"); */
 
 #ifndef READCONF_H
 #define READCONF_H
@@ -106,7 +106,7 @@ void    fill_default_options(Options * options);
  * only sets those values that have not already been set. Returns 0 for legal
  * options
  */
-int 
+int
 process_config_line(Options * options, const char *host,
     char *line, const char *filename, int linenum,
     int *activep);
@@ -116,7 +116,7 @@ process_config_line(Options * options, const char *host,
  * should already be initialized before this call.  This never returns if
  * there is an error.  If the file does not exist, this returns immediately.
  */
-void 
+void
 read_config_file(const char *filename, const char *host,
     Options * options);
 
@@ -124,7 +124,7 @@ read_config_file(const char *filename, const char *host,
  * Adds a local TCP/IP port forward to options.  Never returns if there is an
  * error.
  */
-void 
+void
 add_local_forward(Options * options, u_short port, const char *host,
     u_short host_port);
 
@@ -132,7 +132,7 @@ add_local_forward(Options * options, u_short port, const char *host,
  * Adds a remote TCP/IP port forward to options.  Never returns if there is
  * an error.
  */
-void 
+void
 add_remote_forward(Options * options, u_short port, const char *host,
     u_short host_port);
 

@@ -1,22 +1,22 @@
 /*
- * 
+ *
  * clientloop.c
- * 
+ *
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
- * 
+ *
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
- * 
- * 
+ *
+ *
  * Created: Sat Sep 23 12:23:57 1995 ylo
- * 
+ *
  * The main loop for the interactive session (client side).
- * 
+ *
  * SSH2 support added by Markus Friedl.
  */
 
 #include "includes.h"
-RCSID("$Id: clientloop.c,v 1.10 2000/04/12 10:17:39 damien Exp $");
+RCSID("$Id: clientloop.c,v 1.11 2000/04/16 01:18:41 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -83,7 +83,7 @@ int	session_ident = -1;
 
 /* Returns the user\'s terminal to normal mode if it had been put in raw mode. */
 
-void 
+void
 leave_raw_mode()
 {
 	if (!in_raw_mode)
@@ -97,7 +97,7 @@ leave_raw_mode()
 
 /* Puts the user\'s terminal in raw mode. */
 
-void 
+void
 enter_raw_mode()
 {
 	struct termios tio;
@@ -123,7 +123,7 @@ enter_raw_mode()
 
 /* Restores stdin to blocking mode. */
 
-void 
+void
 leave_non_blocking()
 {
 	if (in_non_blocking_mode) {
@@ -135,7 +135,7 @@ leave_non_blocking()
 
 /* Puts stdin terminal in non-blocking mode. */
 
-void 
+void
 enter_non_blocking()
 {
 	in_non_blocking_mode = 1;
@@ -148,7 +148,7 @@ enter_non_blocking()
  * flag indicating that the window has changed.
  */
 
-void 
+void
 window_change_handler(int sig)
 {
 	received_window_change_signal = 1;
@@ -160,7 +160,7 @@ window_change_handler(int sig)
  * signals must be trapped to restore terminal modes.
  */
 
-void 
+void
 signal_handler(int sig)
 {
 	if (in_raw_mode)
@@ -177,7 +177,7 @@ signal_handler(int sig)
  * available resolution.
  */
 
-double 
+double
 get_current_time()
 {
 	struct timeval tv;
@@ -191,7 +191,7 @@ get_current_time()
  * not appear to wake up when redirecting from /dev/null.
  */
 
-void 
+void
 client_check_initial_eof_on_stdin()
 {
 	int len;
@@ -245,7 +245,7 @@ client_check_initial_eof_on_stdin()
  * connection.
  */
 
-void 
+void
 client_make_packets_from_stdin_data()
 {
 	unsigned int len;
@@ -276,7 +276,7 @@ client_make_packets_from_stdin_data()
  * appropriate.
  */
 
-void 
+void
 client_check_window_change()
 {
 	struct winsize ws;
@@ -313,7 +313,7 @@ client_check_window_change()
  * one of the file descriptors).
  */
 
-void 
+void
 client_wait_until_can_do_something(fd_set * readset, fd_set * writeset)
 {
 	/*debug("client_wait_until_can_do_something"); */
@@ -380,7 +380,7 @@ client_wait_until_can_do_something(fd_set * readset, fd_set * writeset)
 	}
 }
 
-void 
+void
 client_suspend_self()
 {
 	struct winsize oldws, newws;
@@ -425,7 +425,7 @@ client_suspend_self()
 	enter_raw_mode();
 }
 
-void 
+void
 client_process_net_input(fd_set * readset)
 {
 	int len;
@@ -468,7 +468,7 @@ client_process_net_input(fd_set * readset)
 	}
 }
 
-void 
+void
 client_process_input(fd_set * readset)
 {
 	int len, pid;
@@ -657,7 +657,7 @@ Supported escape sequences:\r\n\
 	}
 }
 
-void 
+void
 client_process_output(fd_set * writeset)
 {
 	int len;
@@ -717,7 +717,7 @@ client_process_output(fd_set * writeset)
  * preparatory phase.
  */
 
-void 
+void
 client_process_buffered_input_packets()
 {
 	dispatch_run(DISPATCH_NONBLOCK, &quit_pending);
@@ -730,7 +730,7 @@ client_process_buffered_input_packets()
  * character for terminating or suspending the session.
  */
 
-int 
+int
 client_loop(int have_pty, int escape_char_arg)
 {
 	extern Options options;
@@ -953,7 +953,7 @@ client_input_exit_status(int type, int plen)
 	quit_pending = 1;
 }
 
-void 
+void
 client_init_dispatch_20()
 {
 	dispatch_init(&dispatch_protocol_error);
@@ -966,7 +966,7 @@ client_init_dispatch_20()
 	dispatch_set(SSH2_MSG_CHANNEL_REQUEST, &channel_input_channel_request);
 	dispatch_set(SSH2_MSG_CHANNEL_WINDOW_ADJUST, &channel_input_window_adjust);
 }
-void 
+void
 client_init_dispatch_13()
 {
 	dispatch_init(NULL);
@@ -983,14 +983,14 @@ client_init_dispatch_13()
 	dispatch_set(SSH_SMSG_STDOUT_DATA, &client_input_stdout_data);
 	dispatch_set(SSH_SMSG_X11_OPEN, &x11_input_open);
 }
-void 
+void
 client_init_dispatch_15()
 {
 	client_init_dispatch_13();
 	dispatch_set(SSH_MSG_CHANNEL_CLOSE, &channel_input_ieof);
 	dispatch_set(SSH_MSG_CHANNEL_CLOSE_CONFIRMATION, & channel_input_oclose);
 }
-void 
+void
 client_init_dispatch()
 {
 	if (compat20)
@@ -1027,6 +1027,7 @@ client_input_channel_req(int id, void *arg)
 	} else if (strcmp(rtype, "exit-status") == 0) {
 		success = 1;
 		exit_status = packet_get_int();
+		packet_done();
 	}
 	if (reply) {
 		packet_start(success ?

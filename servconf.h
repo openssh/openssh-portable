@@ -1,19 +1,19 @@
 /*
- * 
+ *
  * servconf.h
- * 
+ *
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
- * 
+ *
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
- * 
+ *
  * Created: Mon Aug 21 15:35:03 1995 ylo
- * 
+ *
  * Definitions for server configuration data and for the functions reading it.
- * 
+ *
  */
 
-/* RCSID("$Id: servconf.h,v 1.8 2000/04/12 10:17:40 damien Exp $"); */
+/* RCSID("$Id: servconf.h,v 1.9 2000/04/16 01:18:45 damien Exp $"); */
 
 #ifndef SERVCONF_H
 #define SERVCONF_H

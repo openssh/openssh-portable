@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999 Markus Friedl.  All rights reserved.
+ * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -26,77 +26,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 #include "includes.h"
-RCSID("$Id: compat.c,v 1.8 2000/04/16 01:18:42 damien Exp $");
-
+RCSID("$Id: dispatch.c,v 1.3 2000/04/16 01:18:42 damien Exp $");
 #include "ssh.h"
+#include "dispatch.h"
 #include "packet.h"
-#include "xmalloc.h"
-#include "compat.h"
 
-int compat13 = 0;
-int compat20 = 0;
-int datafellows = 0;
+#define DISPATCH_MIN	0
+#define DISPATCH_MAX	255
+
+dispatch_fn *dispatch[DISPATCH_MAX];
 
 void
-enable_compat20(void)
+dispatch_protocol_error(int type, int plen)
 {
-	verbose("Enabling compatibility mode for protocol 2.0");
-	compat20 = 1;
-	packet_set_ssh2_format();
+	error("Hm, dispatch protocol error: type %d plen %d", type, plen);
 }
 void
-enable_compat13(void)
-{
-	verbose("Enabling compatibility mode for protocol 1.3");
-	compat13 = 1;
-}
-/* datafellows bug compatibility */
-void
-compat_datafellows(const char *version)
+dispatch_init(dispatch_fn *dflt)
 {
 	int i;
-	size_t len;
-	static const char *check[] = {
-		"2.0.1",
-		"2.1.0",
-		NULL
-	};
-	for (i = 0; check[i]; i++) {
-		len = strlen(check[i]);
-		if (strlen(version) >= len &&
-		   (strncmp(version, check[i], len) == 0)) {
-			verbose("datafellows: %.200s", version);
-			datafellows = 1;
-			return;
-		}
-	}
+	for (i = 0; i < DISPATCH_MAX; i++)
+		dispatch[i] = dflt;
 }
-
-#define	SEP	","
-int
-proto_spec(const char *spec)
+void
+dispatch_set(int type, dispatch_fn *fn)
 {
-	char *s = xstrdup(spec);
-	char *p;
-	int ret = SSH_PROTO_UNKNOWN;
+	dispatch[type] = fn;
+}
+void
+dispatch_run(int mode, int *done)
+{
+	for (;;) {
+		int plen;
+		int type;
 
-	for ((p = strtok(s, SEP)); p; (p = strtok(NULL, SEP))) {
-		switch(atoi(p)) {
-		case 1:
-			if (ret == SSH_PROTO_UNKNOWN)
-				ret |= SSH_PROTO_1_PREFERRED;
-			ret |= SSH_PROTO_1;
-			break;
-		case 2:
-			ret |= SSH_PROTO_2;
-			break;
-		default:
-			log("ignoring bad proto spec: '%s'.", p);
-			break;
+		if (mode == DISPATCH_BLOCK) {
+			type = packet_read(&plen);
+		} else {
+			type = packet_read_poll(&plen);
+			if (type == SSH_MSG_NONE)
+				return;
 		}
+		if (type > 0 && type < DISPATCH_MAX && dispatch[type] != NULL)
+			(*dispatch[type])(type, plen);
+		else
+			packet_disconnect("protocol error: rcvd type %d", type);	
+		if (done != NULL && *done)
+			return;
 	}
-	xfree(s);
-	return ret;
 }

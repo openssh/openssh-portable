@@ -1,23 +1,23 @@
 /*
- * 
+ *
  * channels.c
- * 
+ *
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
- * 
+ *
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
- * 
+ *
  * Created: Fri Mar 24 16:35:24 1995 ylo
- * 
+ *
  * This file contains functions for generic socket connection forwarding.
  * There is also code for initiating connection forwarding for X11 connections,
  * arbitrary tcp/ip connections, and the authentication agent connection.
- * 
+ *
  * SSH2 support added by Markus Friedl.
  */
 
 #include "includes.h"
-RCSID("$Id: channels.c,v 1.24 2000/04/12 10:17:38 damien Exp $");
+RCSID("$Id: channels.c,v 1.25 2000/04/16 01:18:41 damien Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -109,7 +109,7 @@ static int have_hostname_in_open = 0;
 
 /* Sets specific protocol options. */
 
-void 
+void
 channel_set_options(int hostname_in_open)
 {
 	have_hostname_in_open = hostname_in_open;
@@ -121,7 +121,7 @@ channel_set_options(int hostname_in_open)
  * and the server has no way to know but to trust the client anyway.
  */
 
-void 
+void
 channel_permit_all_opens()
 {
 	all_opens_permitted = 1;
@@ -150,7 +150,7 @@ channel_lookup(int id)
  * remote_name to be freed.
  */
 
-int 
+int
 channel_new(char *ctype, int type, int rfd, int wfd, int efd,
     int window, int maxpack, int extended_usage, char *remote_name)
 {
@@ -226,7 +226,7 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 	debug("channel %d: new [%s]", found, remote_name);
 	return found;
 }
-int 
+int
 channel_allocate(int type, int sock, char *remote_name)
 {
 	return channel_new("", type, sock, sock, -1, 0, 0, 0, remote_name);
@@ -234,7 +234,7 @@ channel_allocate(int type, int sock, char *remote_name)
 
 /* Free the channel and close its socket. */
 
-void 
+void
 channel_free(int id)
 {
 	Channel *c = channel_lookup(id);
@@ -361,7 +361,7 @@ channel_pre_output_draining(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	if (buffer_len(&c->output) == 0)
 		channel_free(c->self);
-	else 
+	else
 		FD_SET(c->sock, writeset);
 }
 
@@ -540,8 +540,10 @@ channel_post_port_listener(Channel *c, fd_set * readset, fd_set * writeset)
 			packet_put_int(newch);
 			packet_put_int(c->local_window_max);
 			packet_put_int(c->local_maxpacket);
+			/* target host and port */
 			packet_put_string(c->path, strlen(c->path));
 			packet_put_int(c->host_port);
+			/* originator host and port */
 			packet_put_cstring(remote_hostname);
 			packet_put_int(remote_port);
 			packet_send();
@@ -782,7 +784,7 @@ channel_handler_init(void)
 		channel_handler_init_15();
 }
 
-void 
+void
 channel_handler(chan_fn *ftab[], fd_set * readset, fd_set * writeset)
 {
 	static int did_init = 0;
@@ -804,13 +806,13 @@ channel_handler(chan_fn *ftab[], fd_set * readset, fd_set * writeset)
 	}
 }
 
-void 
+void
 channel_prepare_select(fd_set * readset, fd_set * writeset)
 {
 	channel_handler(channel_pre, readset, writeset);
 }
 
-void 
+void
 channel_after_select(fd_set * readset, fd_set * writeset)
 {
 	channel_handler(channel_post, readset, writeset);
@@ -818,7 +820,7 @@ channel_after_select(fd_set * readset, fd_set * writeset)
 
 /* If there is data to send to the connection, send some of it now. */
 
-void 
+void
 channel_output_poll()
 {
 	int len, i;
@@ -909,7 +911,7 @@ channel_output_poll()
  * still there.
  */
 
-void 
+void
 channel_input_data(int type, int plen)
 {
 	int id;
@@ -934,6 +936,7 @@ channel_input_data(int type, int plen)
 
 	/* Get the data. */
 	data = packet_get_string(&data_len);
+	packet_done();
 
 	if (compat20){
 		if (data_len > c->local_maxpacket) {
@@ -953,7 +956,7 @@ channel_input_data(int type, int plen)
 	buffer_append(&c->output, data, data_len);
 	xfree(data);
 }
-void 
+void
 channel_input_extended_data(int type, int plen)
 {
 	int id;
@@ -980,6 +983,7 @@ channel_input_extended_data(int type, int plen)
 		return;
 	}
 	data = packet_get_string(&data_len);
+	packet_done();
 	if (data_len > c->local_window) {
 		log("channel %d: rcvd too much extended_data %d, win %d",
 		    c->self, data_len, c->local_window);
@@ -998,7 +1002,7 @@ channel_input_extended_data(int type, int plen)
  * more channel is overfull.
  */
 
-int 
+int
 channel_not_very_much_buffered_data()
 {
 	unsigned int i;
@@ -1022,7 +1026,7 @@ channel_not_very_much_buffered_data()
 	return 1;
 }
 
-void 
+void
 channel_input_ieof(int type, int plen)
 {
 	int id;
@@ -1037,7 +1041,7 @@ channel_input_ieof(int type, int plen)
 	chan_rcvd_ieof(c);
 }
 
-void 
+void
 channel_input_close(int type, int plen)
 {
 	int id;
@@ -1076,7 +1080,7 @@ channel_input_close(int type, int plen)
 }
 
 /* proto version 1.5 overloads CLOSE_CONFIRMATION with OCLOSE */
-void 
+void
 channel_input_oclose(int type, int plen)
 {
 	int id = packet_get_int();
@@ -1087,12 +1091,13 @@ channel_input_oclose(int type, int plen)
 	chan_rcvd_oclose(c);
 }
 
-void 
+void
 channel_input_close_confirmation(int type, int plen)
 {
 	int id = packet_get_int();
 	Channel *c = channel_lookup(id);
 
+	packet_done();
 	if (c == NULL)
 		packet_disconnect("Received close confirmation for "
 		    "out-of-range channel %d.", id);
@@ -1102,7 +1107,7 @@ channel_input_close_confirmation(int type, int plen)
 	channel_free(c->self);
 }
 
-void 
+void
 channel_input_open_confirmation(int type, int plen)
 {
 	int id, remote_id;
@@ -1125,6 +1130,7 @@ channel_input_open_confirmation(int type, int plen)
 	if (compat20) {
 		c->remote_window = packet_get_int();
 		c->remote_maxpacket = packet_get_int();
+		packet_done();
 		if (c->cb_fn != NULL && c->cb_event == type) {
 			debug("callback start");
 			c->cb_fn(c->self, c->cb_arg);
@@ -1135,7 +1141,7 @@ channel_input_open_confirmation(int type, int plen)
 	}
 }
 
-void 
+void
 channel_input_open_failure(int type, int plen)
 {
 	int id;
@@ -1153,8 +1159,11 @@ channel_input_open_failure(int type, int plen)
 	if (compat20) {
 		int reason = packet_get_int();
 		char *msg  = packet_get_string(NULL);
+		char *lang  = packet_get_string(NULL);
 		log("channel_open_failure: %d: reason %d: %s", id, reason, msg);
+		packet_done();
 		xfree(msg);
+		xfree(lang);
 	}
 	/* Free the channel.  This will also close the socket. */
 	channel_free(id);
@@ -1185,7 +1194,7 @@ debug("cb_fn %p cb_event %d", c->cb_fn , c->cb_event);
 	}
 }
 
-void 
+void
 channel_input_window_adjust(int type, int plen)
 {
 	Channel *c;
@@ -1204,6 +1213,7 @@ channel_input_window_adjust(int type, int plen)
 		return;
 	}
 	adjust = packet_get_int();
+	packet_done();
 	debug("channel %d: rcvd adjust %d", id, adjust);
 	c->remote_window += adjust;
 }
@@ -1213,7 +1223,7 @@ channel_input_window_adjust(int type, int plen)
  * might have.
  */
 
-void 
+void
 channel_stop_listening()
 {
 	int i;
@@ -1240,7 +1250,7 @@ channel_stop_listening()
  * descriptors after a fork.
  */
 
-void 
+void
 channel_close_all()
 {
 	int i;
@@ -1252,7 +1262,7 @@ channel_close_all()
 
 /* Returns the maximum file descriptor number used by the channels. */
 
-int 
+int
 channel_max_fd()
 {
 	return channel_max_fd_value;
@@ -1260,7 +1270,7 @@ channel_max_fd()
 
 /* Returns true if any channel is still open. */
 
-int 
+int
 channel_still_open()
 {
 	unsigned int i;
@@ -1347,7 +1357,7 @@ channel_open_message()
  * channel to host:port from remote side.
  */
 
-void 
+void
 channel_request_local_forwarding(u_short port, const char *host,
 				 u_short host_port, int gateway_ports)
 {
@@ -1435,7 +1445,7 @@ channel_request_local_forwarding(u_short port, const char *host,
  * the secure channel to host:port from local side.
  */
 
-void 
+void
 channel_request_remote_forwarding(u_short listen_port, const char *host_to_connect,
 				  u_short port_to_connect)
 {
@@ -1478,7 +1488,7 @@ channel_request_remote_forwarding(u_short listen_port, const char *host_to_conne
  * message if there was an error).  This never returns if there was an error.
  */
 
-void 
+void
 channel_input_port_forward_request(int is_root)
 {
 	u_short port, host_port;
@@ -1562,7 +1572,7 @@ channel_connect_to(const char *host, u_short host_port)
  * or CHANNEL_OPEN_FAILURE.
  */
 
-void 
+void
 channel_input_port_open(int type, int plen)
 {
 	u_short host_port;
@@ -1807,7 +1817,7 @@ connect_local_xsocket(unsigned int dnr)
  * with either SSH_MSG_OPEN_CONFIRMATION or SSH_MSG_OPEN_FAILURE.
  */
 
-void 
+void
 x11_input_open(int type, int plen)
 {
 	int remote_channel, display_number, sock = 0, newch;
@@ -1911,7 +1921,7 @@ x11_input_open(int type, int plen)
 	}
 	freeaddrinfo(aitop);
 	if (!ai) {
-		error("connect %.100s port %d: %.100s", buf, 6000 + display_number, 
+		error("connect %.100s port %d: %.100s", buf, 6000 + display_number,
 		    strerror(errno));
 		goto fail;
 	}
@@ -1945,7 +1955,7 @@ fail:
  * data, and enables authentication spoofing.
  */
 
-void 
+void
 x11_request_forwarding_with_spoofing(const char *proto, const char *data)
 {
 	unsigned int data_len = (unsigned int) strlen(data) / 2;
@@ -2003,7 +2013,7 @@ x11_request_forwarding_with_spoofing(const char *proto, const char *data)
 
 /* Sends a message to the server to request authentication fd forwarding. */
 
-void 
+void
 auth_request_forwarding()
 {
 	packet_start(SSH_CMSG_AGENT_REQUEST_FORWARDING);
@@ -2025,7 +2035,7 @@ auth_get_socket_name()
 
 /* removes the agent forwarding socket */
 
-void 
+void
 cleanup_socket(void)
 {
 	remove(channel_forwarded_auth_socket_name);
@@ -2037,7 +2047,7 @@ cleanup_socket(void)
  * This starts forwarding authentication requests.
  */
 
-void 
+void
 auth_input_request_forwarding(struct passwd * pw)
 {
 	int sock, newch;
@@ -2095,7 +2105,7 @@ auth_input_request_forwarding(struct passwd * pw)
 
 /* This is called to process an SSH_SMSG_AGENT_OPEN message. */
 
-void 
+void
 auth_input_open_request(int type, int plen)
 {
 	int remch, sock, newch;

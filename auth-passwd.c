@@ -11,7 +11,7 @@
 
 #ifndef USE_PAM
 
-RCSID("$Id: auth-passwd.c,v 1.16 2000/01/22 23:32:03 damien Exp $");
+RCSID("$Id: auth-passwd.c,v 1.17 2000/04/16 01:18:39 damien Exp $");
 
 #include "packet.h"
 #include "ssh.h"
@@ -33,7 +33,7 @@ RCSID("$Id: auth-passwd.c,v 1.16 2000/01/22 23:32:03 damien Exp $");
  * Tries to authenticate the user using password.  Returns true if
  * authentication succeeds.
  */
-int 
+int
 auth_password(struct passwd * pw, const char *password)
 {
 	extern ServerOptions options;

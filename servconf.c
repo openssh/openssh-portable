@@ -1,18 +1,18 @@
 /*
- * 
+ *
  * servconf.c
- * 
+ *
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
- * 
+ *
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
- * 
+ *
  * Created: Mon Aug 21 15:48:58 1995 ylo
- * 
+ *
  */
 
 #include "includes.h"
-RCSID("$Id: servconf.c,v 1.11 2000/04/12 10:17:40 damien Exp $");
+RCSID("$Id: servconf.c,v 1.12 2000/04/16 01:18:45 damien Exp $");
 
 #include "ssh.h"
 #include "servconf.h"
@@ -24,7 +24,7 @@ void add_listen_addr(ServerOptions *options, char *addr);
 
 /* Initializes the server options to their default values. */
 
-void 
+void
 initialize_server_options(ServerOptions *options)
 {
 	memset(options, 0, sizeof(*options));
@@ -73,7 +73,7 @@ initialize_server_options(ServerOptions *options)
 	options->protocol = SSH_PROTO_UNKNOWN;
 }
 
-void 
+void
 fill_default_server_options(ServerOptions *options)
 {
 	if (options->num_ports == 0)
@@ -226,7 +226,7 @@ static struct {
  * returns if the token is not known.
  */
 
-static ServerOpCodes 
+static ServerOpCodes
 parse_token(const char *cp, const char *filename,
 	    int linenum)
 {
@@ -244,7 +244,7 @@ parse_token(const char *cp, const char *filename,
 /*
  * add listen address
  */
-void 
+void
 add_listen_addr(ServerOptions *options, char *addr)
 {
 	extern int IPv4or6;
@@ -274,7 +274,7 @@ add_listen_addr(ServerOptions *options, char *addr)
 
 /* Reads the server configuration file. */
 
-void 
+void
 read_server_config(ServerOptions *options, const char *filename)
 {
 	FILE *f;
@@ -310,7 +310,7 @@ read_server_config(ServerOptions *options, const char *filename)
 				    "ListenAdress.\n", filename, linenum);
 			if (options->num_ports >= MAX_PORTS)
 				fatal("%s line %d: too many ports.\n",
-			            filename, linenum);
+				    filename, linenum);
 			cp = strtok(NULL, WHITESPACE);
 			if (!cp)
 				fatal("%s line %d: missing port number.\n",

@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.2 2000/04/06 08:55:22 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.4 2000/04/14 10:30:33 markus Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -113,7 +113,7 @@ xauthfile_cleanup_proc(void *ignore)
  * Function to perform cleanup if we get aborted abnormally (e.g., due to a
  * dropped connection).
  */
-void 
+void
 pty_cleanup_proc(void *session)
 {
 	Session *s=session;
@@ -136,7 +136,7 @@ pty_cleanup_proc(void *session)
  * terminals are allocated, X11, TCP/IP, and authentication agent forwardings
  * are requested, etc.
  */
-void 
+void
 do_authenticated(struct passwd * pw)
 {
 	Session *s;
@@ -366,7 +366,7 @@ do_authenticated(struct passwd * pw)
  * will call do_child from the child, and server_loop from the parent after
  * setting up file descriptors and such.
  */
-void 
+void
 do_exec_no_pty(Session *s, const char *command, struct passwd * pw)
 {
 	int pid;
@@ -487,7 +487,7 @@ do_exec_no_pty(Session *s, const char *command, struct passwd * pw)
  * setting up file descriptors, controlling tty, updating wtmp, utmp,
  * lastlog, and other such operations.
  */
-void 
+void
 do_exec_pty(Session *s, const char *command, struct passwd * pw)
 {
 	FILE *f;
@@ -660,7 +660,7 @@ do_exec_pty(Session *s, const char *command, struct passwd * pw)
  * Sets the value of the given variable in the environment.  If the variable
  * already exists, its value is overriden.
  */
-void 
+void
 child_set_env(char ***envp, unsigned int *envsizep, const char *name,
 	      const char *value)
 {
@@ -701,7 +701,7 @@ child_set_env(char ***envp, unsigned int *envsizep, const char *name,
  * Otherwise, it must consist of empty lines, comments (line starts with '#')
  * and assignments of the form name=value.  No other forms are allowed.
  */
-void 
+void
 read_environment_file(char ***env, unsigned int *envsize,
 		      const char *filename)
 {
@@ -770,7 +770,7 @@ void do_pam_environment(char ***env, int *envsize)
  * environment, closing extra file descriptors, setting the user and group
  * ids, and executing the command or shell.
  */
-void 
+void
 do_child(const char *command, struct passwd * pw, const char *term,
 	 const char *display, const char *auth_proto,
 	 const char *auth_data, const char *ttyname)
@@ -1202,6 +1202,7 @@ session_window_change_req(Session *s)
 	s->row = packet_get_int();
 	s->xpixel = packet_get_int();
 	s->ypixel = packet_get_int();
+	packet_done();
 	pty_change_window_size(s->ptyfd, s->row, s->col, s->xpixel, s->ypixel);
 	return 1;
 }
@@ -1210,14 +1211,17 @@ int
 session_pty_req(Session *s)
 {
 	unsigned int len;
+	char *term_modes;	/* encoded terminal modes */
 
 	if (s->ttyfd != -1)
-		return -1;
+		return 0;
 	s->term = packet_get_string(&len);
 	s->col = packet_get_int();
 	s->row = packet_get_int();
 	s->xpixel = packet_get_int();
 	s->ypixel = packet_get_int();
+	term_modes = packet_get_string(&len);
+	packet_done();
 
 	if (strcmp(s->term, "") == 0) {
 		xfree(s->term);
@@ -1230,7 +1234,8 @@ session_pty_req(Session *s)
 		s->ptyfd = -1;
 		s->ttyfd = -1;
 		error("session_pty_req: session %d alloc failed", s->self);
-		return -1;
+		xfree(term_modes);
+		return 0;
 	}
 	debug("session_pty_req: session %d alloc %s", s->self, s->tty);
 	/*

@@ -1,13 +1,13 @@
 /*
- * 
+ *
  * scp - secure remote copy.  This is basically patched BSD rcp which uses ssh
  * to do the data transfer (instead of using rcmd).
- * 
+ *
  * NOTE: This version should NOT be suid root.  (This uses ssh to do the transfer
  * and ssh has the necessary privileges.)
- * 
+ *
  * 1995 Timo Rinne <tri@iki.fi>, Tatu Ylonen <ylo@cs.hut.fi>
- * 
+ *
 */
 
 /*
@@ -45,7 +45,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: scp.c,v 1.18 2000/03/17 12:40:16 damien Exp $");
+RCSID("$Id: scp.c,v 1.19 2000/04/16 01:18:45 damien Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -109,7 +109,7 @@ char *port = NULL;
  * assigns the input and output file descriptors on success.
  */
 
-int 
+int
 do_cmd(char *host, char *remuser, char *cmd, int *fdin, int *fdout)
 {
 	int pin[2], pout[2], reserved[2];
@@ -194,7 +194,7 @@ do_cmd(char *host, char *remuser, char *cmd, int *fdin, int *fdout)
 	return 0;
 }
 
-void 
+void
 fatal(const char *fmt,...)
 {
 	va_list ap;
@@ -257,10 +257,10 @@ main(argc, argv)
 		switch (ch) {
 		/* User-visible flags. */
 		case '4':
-	       		IPv4 = 1;
+			IPv4 = 1;
 			break;
 		case '6':
-	       		IPv6 = 1;
+			IPv6 = 1;
 			break;
 		case 'p':
 			pflag = 1;
@@ -1008,7 +1008,7 @@ run_err(const char *fmt,...)
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	$Id: scp.c,v 1.18 2000/03/17 12:40:16 damien Exp $
+ *	$Id: scp.c,v 1.19 2000/04/16 01:18:45 damien Exp $
  */
 
 char *

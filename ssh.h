@@ -1,19 +1,19 @@
 /*
- * 
+ *
  * ssh.h
- * 
+ *
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
- * 
+ *
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
- * 
+ *
  * Created: Fri Mar 17 17:09:37 1995 ylo
- * 
+ *
  * Generic header file for ssh.
- * 
+ *
  */
 
-/* RCSID("$Id: ssh.h,v 1.31 2000/04/12 10:17:41 damien Exp $"); */
+/* RCSID("$Id: ssh.h,v 1.32 2000/04/16 01:18:47 damien Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -279,7 +279,7 @@
  * information is not available.  This must be called before record_login.
  * The host from which the user logged in is stored in buf.
  */
-unsigned long 
+unsigned long
 get_last_login_time(uid_t uid, const char *logname,
     char *buf, unsigned int bufsize);
 
@@ -287,7 +287,7 @@ get_last_login_time(uid_t uid, const char *logname,
  * Records that the user has logged in.  This does many things normally done
  * by login(1).
  */
-void 
+void
 record_login(int pid, const char *ttyname, const char *user, uid_t uid,
     const char *host, struct sockaddr *addr);
 
@@ -308,7 +308,7 @@ void    record_logout(int pid, const char *ttyname);
  * and zero on failure.  If the connection is successful, this calls
  * packet_set_connection for the connection.
  */
-int 
+int
 ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
     u_short port, int connection_attempts,
     int anonymous, uid_t original_real_uid,
@@ -323,7 +323,7 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
  * references from the packet module).
  */
 
-void 
+void
 ssh_login(int host_key_valid, RSA * host_key, const char *host,
     struct sockaddr * hostaddr, uid_t original_real_uid);
 
@@ -340,7 +340,7 @@ int     auth_rhosts(struct passwd * pw, const char *client_user);
  * Tries to authenticate the user using the .rhosts file and the host using
  * its host key.  Returns true if authentication succeeds.
  */
-int 
+int
 auth_rhosts_rsa(struct passwd * pw, const char *client_user, RSA* client_host_key);
 
 /*
@@ -409,7 +409,7 @@ char   *read_passphrase(const char *prompt, int from_stdin);
  * precede the key to provide identification of the key without needing a
  * passphrase.
  */
-int 
+int
 save_private_key(const char *filename, const char *passphrase,
     RSA * private_key, const char *comment);
 
@@ -419,7 +419,7 @@ save_private_key(const char *filename, const char *passphrase,
  * comment of the key is returned in comment_return if it is non-NULL; the
  * caller must free the value with xfree.
  */
-int 
+int
 load_public_key(const char *filename, RSA * pub,
     char **comment_return);
 
@@ -430,7 +430,7 @@ load_public_key(const char *filename, RSA * pub,
  * comment_return if it is non-NULL; the caller must free the value with
  * xfree.
  */
-int 
+int
 load_private_key(const char *filename, const char *passphrase,
     RSA * private_key, char **comment_return);
 

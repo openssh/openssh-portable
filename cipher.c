@@ -1,18 +1,18 @@
 /*
- * 
+ *
  * cipher.c
- * 
+ *
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
- * 
+ *
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
- * 
+ *
  * Created: Wed Apr 19 17:41:39 1995 ylo
- * 
+ *
  */
 
 #include "includes.h"
-RCSID("$Id: cipher.c,v 1.18 2000/04/13 02:26:36 damien Exp $");
+RCSID("$Id: cipher.c,v 1.19 2000/04/16 01:18:41 damien Exp $");
 
 #include "ssh.h"
 #include "cipher.h"
@@ -138,7 +138,7 @@ static char *cipher_names[] =
  * supported cipher.
  */
 
-unsigned int 
+unsigned int
 cipher_mask1()
 {
 	unsigned int mask = 0;
@@ -146,7 +146,7 @@ cipher_mask1()
 	mask |= 1 << SSH_CIPHER_BLOWFISH;
 	return mask;
 }
-unsigned int 
+unsigned int
 cipher_mask2()
 {
 	unsigned int mask = 0;
@@ -156,7 +156,7 @@ cipher_mask2()
 	mask |= 1 << SSH_CIPHER_CAST128_CBC;
 	return mask;
 }
-unsigned int 
+unsigned int
 cipher_mask()
 {
 	return cipher_mask1() | cipher_mask2();
@@ -218,7 +218,7 @@ cipher_number(const char *name)
  * passphrase and using the resulting 16 bytes as the key.
  */
 
-void 
+void
 cipher_set_key_string(CipherContext *context, int cipher, const char *passphrase)
 {
 	MD5_CTX md;
@@ -236,7 +236,7 @@ cipher_set_key_string(CipherContext *context, int cipher, const char *passphrase
 
 /* Selects the cipher to use and sets the key. */
 
-void 
+void
 cipher_set_key(CipherContext *context, int cipher, const unsigned char *key,
     int keylen)
 {
@@ -297,9 +297,9 @@ cipher_set_key(CipherContext *context, int cipher, const unsigned char *key,
 	memset(padded, 0, sizeof(padded));
 }
 
-void 
+void
 cipher_set_key_iv(CipherContext * context, int cipher,
-    const unsigned char *key, int keylen, 
+    const unsigned char *key, int keylen,
     const unsigned char *iv, int ivlen)
 {
 	/* Set cipher type. */
@@ -357,7 +357,7 @@ cipher_set_key_iv(CipherContext * context, int cipher,
 
 /* Encrypts data using the cipher. */
 
-void 
+void
 cipher_encrypt(CipherContext *context, unsigned char *dest,
 	       const unsigned char *src, unsigned int len)
 {
@@ -379,14 +379,14 @@ cipher_encrypt(CipherContext *context, unsigned char *dest,
 	case SSH_CIPHER_BLOWFISH:
 		swap_bytes(src, dest, len);
 		BF_cbc_encrypt(dest, dest, len,
-		               &context->u.bf.key, context->u.bf.iv,
+			       &context->u.bf.key, context->u.bf.iv,
 			       BF_ENCRYPT);
 		swap_bytes(dest, dest, len);
 		break;
 
 	case SSH_CIPHER_BLOWFISH_CBC:
 		BF_cbc_encrypt((void *)src, dest, len,
-		               &context->u.bf.key, context->u.bf.iv,
+			       &context->u.bf.key, context->u.bf.iv,
 			       BF_ENCRYPT);
 		break;
 
@@ -412,7 +412,7 @@ cipher_encrypt(CipherContext *context, unsigned char *dest,
 
 /* Decrypts data using the cipher. */
 
-void 
+void
 cipher_decrypt(CipherContext *context, unsigned char *dest,
 	       const unsigned char *src, unsigned int len)
 {

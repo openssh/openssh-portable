@@ -1,21 +1,21 @@
 /*
- * 
+ *
  * log-client.c
- * 
+ *
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
- * 
+ *
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
- * 
+ *
  * Created: Mon Mar 20 21:13:40 1995 ylo
- * 
+ *
  * Client-side versions of debug(), log(), etc.  These print to stderr.
  * This is a stripped down version of log-server.c.
- * 
+ *
  */
 
 #include "includes.h"
-RCSID("$Id: log-client.c,v 1.5 2000/03/09 10:27:50 damien Exp $");
+RCSID("$Id: log-client.c,v 1.6 2000/04/16 01:18:43 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"

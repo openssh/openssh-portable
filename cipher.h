@@ -1,17 +1,17 @@
 /*
- * 
+ *
  * cipher.h
- * 
+ *
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
- * 
+ *
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
- * 
+ *
  * Created: Wed Apr 19 16:50:42 1995 ylo
- * 
+ *
  */
 
-/* RCSID("$Id: cipher.h,v 1.10 2000/04/13 02:26:36 damien Exp $"); */
+/* RCSID("$Id: cipher.h,v 1.11 2000/04/16 01:18:41 damien Exp $"); */
 
 #ifndef CIPHER_H
 #define CIPHER_H
@@ -95,29 +95,29 @@ int     ciphers_valid(const char *names);
  * Selects the cipher to use and sets the key.  If for_encryption is true,
  * the key is setup for encryption; otherwise it is setup for decryption.
  */
-void 
+void
 cipher_set_key(CipherContext * context, int cipher,
     const unsigned char *key, int keylen);
-void 
+void
 cipher_set_key_iv(CipherContext * context, int cipher,
-    const unsigned char *key, int keylen, 
+    const unsigned char *key, int keylen,
     const unsigned char *iv, int ivlen);
 
 /*
  * Sets key for the cipher by computing the MD5 checksum of the passphrase,
  * and using the resulting 16 bytes as the key.
  */
-void 
+void
 cipher_set_key_string(CipherContext * context, int cipher,
     const char *passphrase);
 
 /* Encrypts data using the cipher. */
-void 
+void
 cipher_encrypt(CipherContext * context, unsigned char *dest,
     const unsigned char *src, unsigned int len);
 
 /* Decrypts data using the cipher. */
-void 
+void
 cipher_decrypt(CipherContext * context, unsigned char *dest,
     const unsigned char *src, unsigned int len);
 

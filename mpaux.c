@@ -1,21 +1,21 @@
 /*
- * 
+ *
  * mpaux.c
- * 
+ *
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
- * 
+ *
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
- * 
+ *
  * Created: Sun Jul 16 04:29:30 1995 ylo
- * 
+ *
  * This file contains various auxiliary functions related to multiple
  * precision integers.
- * 
+ *
 */
 
 #include "includes.h"
-RCSID("$Id: mpaux.c,v 1.10 2000/04/13 02:26:36 damien Exp $");
+RCSID("$Id: mpaux.c,v 1.11 2000/04/16 01:18:43 damien Exp $");
 
 #include "getput.h"
 #include "xmalloc.h"

@@ -1,20 +1,20 @@
 /*
- * 
+ *
  * compress.c
- * 
+ *
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
- * 
+ *
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
- * 
+ *
  * Created: Wed Oct 25 22:12:46 1995 ylo
- * 
+ *
  * Interface to packet compression for ssh.
- * 
+ *
  */
 
 #include "includes.h"
-RCSID("$Id: compress.c,v 1.5 2000/04/01 01:09:24 damien Exp $");
+RCSID("$Id: compress.c,v 1.6 2000/04/16 01:18:42 damien Exp $");
 
 #include "ssh.h"
 #include "buffer.h"
@@ -28,7 +28,7 @@ static z_stream outgoing_stream;
  * (as in gzip).
  */
 
-void 
+void
 buffer_compress_init(int level)
 {
 	debug("Enabling compression at level %d.", level);
@@ -40,7 +40,7 @@ buffer_compress_init(int level)
 
 /* Frees any data structures allocated for compression. */
 
-void 
+void
 buffer_compress_uninit()
 {
 	debug("compress outgoing: raw data %lu, compressed %lu, factor %.2f",
@@ -64,7 +64,7 @@ buffer_compress_uninit()
  * receiver.  This appends the compressed data to the output buffer.
  */
 
-void 
+void
 buffer_compress(Buffer * input_buffer, Buffer * output_buffer)
 {
 	char buf[4096];
@@ -108,7 +108,7 @@ buffer_compress(Buffer * input_buffer, Buffer * output_buffer)
  * with that.  This appends the uncompressed data to the output buffer.
  */
 
-void 
+void
 buffer_uncompress(Buffer * input_buffer, Buffer * output_buffer)
 {
 	char buf[4096];

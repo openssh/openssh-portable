@@ -1,17 +1,17 @@
 /*
- * 
+ *
  * bufaux.h
- * 
+ *
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
- * 
+ *
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
- * 
+ *
  * Created: Wed Mar 29 02:18:23 1995 ylo
- * 
+ *
  */
 
-/* RCSID("$Id: bufaux.h,v 1.4 2000/04/01 01:09:23 damien Exp $"); */
+/* RCSID("$Id: bufaux.h,v 1.5 2000/04/16 01:18:40 damien Exp $"); */
 
 #ifndef BUFAUX_H
 #define BUFAUX_H

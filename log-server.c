@@ -1,21 +1,21 @@
 /*
- * 
+ *
  * log-server.c
- * 
+ *
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
- * 
+ *
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
- * 
+ *
  * Created: Mon Mar 20 21:19:30 1995 ylo
- * 
+ *
  * Server-side versions of debug(), log(), etc.  These normally send the output
  * to the system log.
- * 
+ *
  */
 
 #include "includes.h"
-RCSID("$Id: log-server.c,v 1.8 2000/04/01 01:09:24 damien Exp $");
+RCSID("$Id: log-server.c,v 1.9 2000/04/16 01:18:43 damien Exp $");
 
 #include <syslog.h>
 #include "packet.h"
@@ -38,7 +38,7 @@ static int log_facility = LOG_AUTH;
  *   level	logging level
  */
 
-void 
+void
 log_init(char *av0, LogLevel level, SyslogFacility facility, int on_stderr)
 {
 	switch (level) {

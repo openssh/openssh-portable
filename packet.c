@@ -1,14 +1,14 @@
 /*
- * 
+ *
  * packet.c
- * 
+ *
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
- * 
+ *
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
- * 
+ *
  * Created: Sat Mar 18 02:40:40 1995 ylo
- * 
+ *
  * This file contains code implementing the packet protocol and communication
  * with the other side.  This same code is used both on client and server side.
  *
@@ -17,7 +17,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: packet.c,v 1.17 2000/04/13 02:26:37 damien Exp $");
+RCSID("$Id: packet.c,v 1.18 2000/04/16 01:18:43 damien Exp $");
 
 #ifdef HAVE_OPENSSL
 # include <openssl/bn.h>
@@ -529,7 +529,7 @@ packet_send2()
 	unsigned int packet_length = 0;
 	unsigned int i, padlen, len;
 	u_int32_t rand = 0;
-        static unsigned int seqnr = 0;
+	static unsigned int seqnr = 0;
 	int type;
 	Enc *enc   = NULL;
 	Mac *mac   = NULL;
@@ -611,9 +611,9 @@ packet_send2()
 	fprintf(stderr, "encrypted: ");
 	buffer_dump(&output);
 #endif
-        /* increment sequence number for outgoing packets */
-        if (++seqnr == 0)
-                log("outgoing seqnr wraps around");
+	/* increment sequence number for outgoing packets */
+	if (++seqnr == 0)
+		log("outgoing seqnr wraps around");
 	buffer_clear(&outgoing_packet);
 
 	if (type == SSH2_MSG_NEWKEYS) {
@@ -877,7 +877,7 @@ packet_read_poll2(int *payload_len_ptr)
 	 * compute MAC over seqnr and packet,
 	 * increment sequence number for incoming packet
 	 */
-        if (mac && mac->enabled) {
+	if (mac && mac->enabled) {
 		macbuf = hmac( mac->md, seqnr,
 		    (unsigned char *) buffer_ptr(&incoming_packet),
 		    buffer_len(&incoming_packet),
@@ -888,8 +888,8 @@ packet_read_poll2(int *payload_len_ptr)
 		DBG(debug("HMAC #%d ok", seqnr));
 		buffer_consume(&input, mac->mac_len);
 	}
-        if (++seqnr == 0)
-                log("incoming seqnr wraps around");
+	if (++seqnr == 0)
+		log("incoming seqnr wraps around");
 
 	/* get padlen */
 	cp = buffer_ptr(&incoming_packet) + 4;
@@ -1061,6 +1061,12 @@ packet_get_raw(int *length_ptr)
 	if (length_ptr != NULL)
 		*length_ptr = bytes;
 	return buffer_ptr(&incoming_packet);
+}
+
+int
+packet_remaining(void)
+{
+	return buffer_len(&incoming_packet);
 }
 
 /*
