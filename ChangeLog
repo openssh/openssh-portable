@@ -1,3 +1,6 @@
+20000931
+ - (djm) Cygwin fixes from Corinna Vinschen <vinschen@cygnus.com>
+
 20000930
  - (djm) Irix ssh_prng_cmds path fix from Pekka Savola <pekkas@netcore.fi>
  - (djm) Support in bsd-snprintf.c for long long conversions from 

@@ -17,7 +17,7 @@
 
 #ifdef HAVE_CYGWIN
 
-int binary_open(const char *filename, int flags, mode_t mode);
+int binary_open(const char *filename, int flags, ...);
 int binary_pipe(int fd[2]);
 int check_nt_auth(int pwd_authenticated, uid_t uid);
 int check_ntsec(const char *filename);
