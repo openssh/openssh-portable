@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.179 2002/05/04 02:39:35 deraadt Exp $
+.\" $OpenBSD: sshd.8,v 1.180 2002/05/06 23:34:33 millert Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -116,14 +116,14 @@ Rhosts authentication is normally disabled
 because it is fundamentally insecure, but can be enabled in the server
 configuration file if desired.
 System security is not improved unless
-.Xr rshd 8 ,
-.Xr rlogind 8 ,
+.Nm rshd ,
+.Nm rlogind ,
 and
-.Xr rexecd 8
+.Xr rexecd
 are disabled (thus completely disabling
-.Xr rlogin 1
+.Xr rlogin
 and
-.Xr rsh 1
+.Xr rsh
 into the machine).
 .Pp
 .Ss SSH protocol version 2

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.150 2002/03/26 11:34:49 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.151 2002/05/06 23:34:33 millert Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -1451,7 +1451,7 @@ The purpose for
 having this file is to be able to use rhosts authentication with
 .Nm
 without permitting login with
-.Xr rlogin 1
+.Nm rlogin
 or
 .Xr rsh 1 .
 .It Pa /etc/hosts.equiv
@@ -1508,7 +1508,6 @@ created OpenSSH.
 Markus Friedl contributed the support for SSH
 protocol versions 1.5 and 2.0.
 .Sh SEE ALSO
-.Xr rlogin 1 ,
 .Xr rsh 1 ,
 .Xr scp 1 ,
 .Xr sftp 1 ,
