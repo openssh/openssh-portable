@@ -1,4 +1,4 @@
-i# $Id: configure.ac,v 1.12 2002/01/22 11:16:05 djm Exp $
+i# $Id: configure.ac,v 1.13 2002/01/22 12:51:43 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -122,6 +122,7 @@ case "$host" in
 	check_for_libcrypt_later=1
 	AC_DEFINE(DONT_TRY_OTHER_AF)
 	AC_DEFINE(PAM_TTY_KLUDGE)
+	AC_DEFINE(HAVE_BOGUS_SYS_QUEUE_H)
 	inet6_default_4in6=yes
 	;;
 mips-sony-bsd|mips-sony-newsos4)
