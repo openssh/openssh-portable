@@ -1175,6 +1175,7 @@ progressmeter(int flag)
 
 	nspaces = MIN(getttywidth() - 79, sizeof(spaces) - 1);
 
+#ifdef HAVE_LONG_LONG_INT
 	snprintf(buf, sizeof(buf),
 	    "\r%-45.45s%.*s%3d%% %4lld%c%c %3lld.%01d%cB/s",
 	    curfile,
@@ -1188,6 +1189,21 @@ progressmeter(int flag)
 	    (int)((bytespersec % 1024) * 10 / 1024),
 	    prefixes[bi]
 	);
+#else
+	snprintf(buf, sizeof(buf),
+	    "\r%-45.45s%.*s%3d%% %4lld%c%c %3lu.%01d%cB/s",
+	    curfile,
+	    nspaces,
+	    spaces,
+	    ratio,
+	    (u_long)abbrevsize,
+	    prefixes[ai],
+	    ai == 0 ? ' ' : 'B',
+	    (u_long)(bytespersec / 1024),
+	    (int)((bytespersec % 1024) * 10 / 1024),
+	    prefixes[bi]
+	);
+#endif
 
 	if (flag != 1 &&
 	    (statbytes <= 0 || elapsed <= 0.0 || cursize > totalbytes)) {
