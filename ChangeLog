@@ -1,3 +1,7 @@
+19991222
+ - Fix undefined fd_set type in ssh.h from Povl H. Pedersen 
+   <pope@netguide.dk>
+
 19991221
  - Integration of large HPUX patch from Andre Lucas 
    <andre.lucas@dial.pipex.com>. Integrating it had a few other 

@@ -13,7 +13,7 @@
  * 
  */
 
-/* RCSID("$Id: ssh.h,v 1.20 1999/12/13 23:47:16 damien Exp $"); */
+/* RCSID("$Id: ssh.h,v 1.21 1999/12/21 13:12:39 damien Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -21,7 +21,9 @@
 #include <netinet/in.h> /* For struct sockaddr_in */
 #include <pwd.h> /* For struct pw */
 #include <stdarg.h> /* For va_list */
-
+#ifdef HAVE_SYS_SELECT_H
+# include <sys/select.h>
+#endif
 #include "rsa.h"
 #include "cipher.h"
 
