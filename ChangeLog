@@ -1,5 +1,6 @@
 20040126
  - (tim) Typo in regress/README.regress
+ - (tim) [regress/test-exec.sh] RhostsAuthentication is deprecated.
 
 20040124
  - (djm) Typo in openbsd-compat/bsd-openpty.c; from wendyp AT cray.com
@@ -1732,4 +1733,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3188 2004/01/26 17:37:09 tim Exp $
+$Id: ChangeLog,v 1.3189 2004/01/26 22:10:10 tim Exp $
