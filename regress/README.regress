@@ -93,16 +93,8 @@ Failed tests can be difficult to diagnose. Suggestions:
 
 Known Issues.
 
-- If you build with tcpwrappers and try to run the regression tests,
-  your hosts.allow must permit connections from localhost and from
-  "unknown".  This is because some tests are performed via the loopback
-  interface, while others are done with "sshd -i" as a ProxyCommand.  In
-  the latter case, when sshd calls getpeername() on the socket it will
-  fail (because it's not a tcp socket) and will be identified as
-  "unknown", which is then checked against tcpwrappers.
-
 - If your build requires ssh-rand-helper regress tests will fail
   unless ssh-rand-helper is in pre-installed (the path to
   ssh-rand-helper is hard coded).
 
-$Id: README.regress,v 1.7 2004/06/28 05:52:51 dtucker Exp $
+$Id: README.regress,v 1.8 2004/07/21 10:44:06 djm Exp $

@@ -1,8 +1,10 @@
-20040719
+20040720
  - (djm) [log.c] bz #111: Escape more control characters when sending data 
    to syslog; from peak AT argo.troja.mff.cuni.cz
  - (djm) [contrib/redhat/sshd.pam] bz #903: Remove redundant entries; from 
    peak AT argo.troja.mff.cuni.cz
+ - (djm) [regress/README.regress] Remove caveat regarding TCP wrappers, now
+   that sshd is fixed to behave better; suggested by tim
 
 20040719
  - (djm) [openbsd-compat/bsd-arc4random.c] Discard early keystream, like OpenBSD
@@ -1541,4 +1543,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3482 2004/07/21 01:01:41 djm Exp $
+$Id: ChangeLog,v 1.3483 2004/07/21 10:44:05 djm Exp $
