@@ -11,7 +11,7 @@ COPY=$OBJ/ls.copy
 start_sshd
 
 trace "start master, fork to background"
-${SSH} -2 -MS$CTL -F $OBJ/ssh_config -f somehost sleep 60
+${SSH} -2 -MS$CTL -F $OBJ/ssh_config -f somehost sleep 120
 
 rm -f ${COPY}
 trace "ssh transfer over multiplexed connection and check result"
