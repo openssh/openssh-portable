@@ -16,6 +16,9 @@
    - markus@cvs.openbsd.org 2001/04/12 19:39:27
      [readconf.c]
      typo
+   - stevesk@cvs.openbsd.org 2001/04/12 20:09:38
+     [misc.c misc.h readconf.c servconf.c ssh.c sshd.c]
+     robust port validation; ok markus@ jakob@
  - (bal) Added openbsd-compat/inet_ntop.[ch] since HP/UX (and others)
    lack it.
 
@@ -5038,4 +5041,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1104 2001/04/12 23:36:05 mouring Exp $
+$Id: ChangeLog,v 1.1105 2001/04/12 23:39:26 mouring Exp $

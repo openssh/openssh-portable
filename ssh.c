@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.112 2001/04/12 19:15:25 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.113 2001/04/12 20:09:37 stevesk Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -247,7 +247,7 @@ main(int ac, char **av)
 {
 	int i, opt, optind, exit_status, ok;
 	u_short fwd_port, fwd_host_port;
-	char *optarg, *cp, *endofnumber, buf[256];
+	char *optarg, *cp, buf[256];
 	struct stat st;
 	struct passwd *pw;
 	int dummy;
@@ -460,8 +460,8 @@ main(int ac, char **av)
 			}
 			break;
 		case 'p':
-			options.port = strtol(optarg, &endofnumber, 0);
-			if (optarg == endofnumber) {
+			options.port = a2port(optarg);
+			if (options.port == 0) {
 				fprintf(stderr, "Bad port '%s'\n", optarg);
 				exit(1);
 			}
@@ -493,9 +493,9 @@ main(int ac, char **av)
 			break;
 
 		case 'D':
-			fwd_port = strtol(optarg, &endofnumber, 0);
-			if (optarg == endofnumber) {
-				fprintf(stderr, "Bad port '%s'\n", optarg);
+			fwd_port = a2port(optarg);
+			if (fwd_port == 0) {
+				fprintf(stderr, "Bad dynamic port '%s'\n", optarg);
 				exit(1);
 			}
 			add_local_forward(&options, fwd_port, "socks4", 0);

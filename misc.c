@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.c,v 1.4 2001/02/28 17:52:54 deraadt Exp $	*/
+/*	$OpenBSD: misc.c,v 1.5 2001/04/12 20:09:37 stevesk Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: misc.c,v 1.4 2001/02/28 17:52:54 deraadt Exp $");
+RCSID("$OpenBSD: misc.c,v 1.5 2001/04/12 20:09:37 stevesk Exp $");
 
 #include "misc.h"
 #include "log.h"
@@ -114,6 +114,21 @@ pwcopy(struct passwd *pw)
 	copy->pw_dir = xstrdup(pw->pw_dir);
 	copy->pw_shell = xstrdup(pw->pw_shell);
 	return copy;
+}
+
+int a2port(const char *s)
+{
+	long port;
+	char *endp;
+
+	errno = 0;
+	port = strtol(s, &endp, 0);
+	if (s == endp || *endp != '\0' ||
+	    (errno == ERANGE && (port == LONG_MIN || port == LONG_MAX)) ||
+	    port <= 0 || port > 65535)
+		return 0;
+
+	return port;
 }
 
 mysig_t

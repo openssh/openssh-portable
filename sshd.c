@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.192 2001/04/11 16:25:30 lebel Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.193 2001/04/12 20:09:38 stevesk Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -611,7 +611,11 @@ main(int ac, char **av)
 				fprintf(stderr, "too many ports.\n");
 				exit(1);
 			}
-			options.ports[options.num_ports++] = atoi(optarg);
+			options.ports[options.num_ports++] = a2port(optarg);
+			if (options.ports[options.num_ports-1] == 0) {
+				fprintf(stderr, "Bad port number.\n");
+				exit(1);
+			}
 			break;
 		case 'g':
 			options.login_grace_time = atoi(optarg);

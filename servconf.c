@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.75 2001/04/12 19:15:25 markus Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.76 2001/04/12 20:09:37 stevesk Exp $");
 
 #ifdef KRB4
 #include <krb.h>
@@ -31,8 +31,7 @@ RCSID("$OpenBSD: servconf.c,v 1.75 2001/04/12 19:15:25 markus Exp $");
 #include "kex.h"
 #include "mac.h"
 
-/* add listen address */
-void add_listen_addr(ServerOptions *options, char *addr, char *port);
+void add_listen_addr(ServerOptions *options, char *addr, u_short port);
 void add_one_listen_addr(ServerOptions *options, char *addr, u_short port);
 
 /* AF_UNSPEC or AF_INET or AF_INET6 */
@@ -117,7 +116,7 @@ fill_default_server_options(ServerOptions *options)
 	if (options->num_ports == 0)
 		options->ports[options->num_ports++] = SSH_DEFAULT_PORT;
 	if (options->listen_addrs == NULL)
-		add_listen_addr(options, NULL, NULL);
+		add_listen_addr(options, NULL, 0);
 	if (options->pid_file == NULL)
 		options->pid_file = _PATH_SSH_DAEMON_PID_FILE;
 	if (options->server_key_bits == -1)
@@ -312,21 +311,18 @@ parse_token(const char *cp, const char *filename,
 	return sBadOption;
 }
 
-/*
- * add listen address
- */
 void
-add_listen_addr(ServerOptions *options, char *addr, char *port)
+add_listen_addr(ServerOptions *options, char *addr, u_short port)
 {
 	int i;
 
 	if (options->num_ports == 0)
 		options->ports[options->num_ports++] = SSH_DEFAULT_PORT;
-	if (port == NULL)
+	if (port == 0)
 		for (i = 0; i < options->num_ports; i++)
 			add_one_listen_addr(options, addr, options->ports[i]);
 	else
-		add_one_listen_addr(options, addr, atoi(port));
+		add_one_listen_addr(options, addr, port);
 }
 
 void
@@ -400,7 +396,10 @@ read_server_config(ServerOptions *options, const char *filename)
 			if (!arg || *arg == '\0')
 				fatal("%s line %d: missing port number.",
 				    filename, linenum);
-			options->ports[options->num_ports++] = atoi(arg);
+			options->ports[options->num_ports++] = a2port(arg);
+			if (options->ports[options->num_ports-1] == 0)
+				fatal("%s line %d: Badly formatted port number.",
+				    filename, linenum);
 			break;
 
 		case sServerKeyBits:
@@ -438,20 +437,25 @@ parse_int:
 				memmove(p, p+1, strlen(p+1)+1);
 			} else if (((p = strchr(arg, ':')) == NULL) ||
 				    (strchr(p+1, ':') != NULL)) {
-				add_listen_addr(options, arg, NULL);
+				add_listen_addr(options, arg, 0);
 				break;
 			}
 			if (*p == ':') {
+				u_short port;
+
 				p++;
 				if (*p == '\0')
 					fatal("%s line %d: bad inet addr:port usage.",
 					    filename, linenum);
 				else {
 					*(p-1) = '\0';
-					add_listen_addr(options, arg, p);
+					if ((port = a2port(p)) == 0)
+						fatal("%s line %d: bad port number.",
+						    filename, linenum);
+					add_listen_addr(options, arg, port);
 				}
 			} else if (*p == '\0')
-				add_listen_addr(options, arg, NULL);
+				add_listen_addr(options, arg, 0);
 			else
 				fatal("%s line %d: bad inet addr usage.",
 				    filename, linenum);

@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.h,v 1.3 2001/02/22 21:59:44 markus Exp $	*/
+/*	$OpenBSD: misc.h,v 1.4 2001/04/12 20:09:36 stevesk Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -21,6 +21,13 @@ char	*strdelim(char **s);
 void	set_nonblock(int fd);
 
 struct passwd * pwcopy(struct passwd *pw);
+
+/*
+ * Convert ASCII string to TCP/IP port number.
+ * Port must be >0 and <=65535.
+ * Return 0 if invalid.
+ */
+int a2port(const char *s);
 
 /* wrapper for signal interface */
 typedef void (*mysig_t)(int);

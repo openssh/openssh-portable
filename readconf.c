@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.73 2001/04/12 19:39:27 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.74 2001/04/12 20:09:37 stevesk Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -555,10 +555,10 @@ parse_int:
 		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
-		if (arg[0] < '0' || arg[0] > '9')
+		fwd_port = a2port(arg);
+		if (fwd_port == 0)
 			fatal("%.200s line %d: Badly formatted port number.",
 			      filename, linenum);
-		fwd_port = atoi(arg);
 		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing second argument.",
@@ -574,10 +574,10 @@ parse_int:
 		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
-		if (arg[0] < '0' || arg[0] > '9')
+		fwd_port = a2port(arg);
+		if (fwd_port == 0)
 			fatal("%.200s line %d: Badly formatted port number.",
 			      filename, linenum);
-		fwd_port = atoi(arg);
 		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing second argument.",
@@ -594,10 +594,10 @@ parse_int:
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing port argument.",
 			    filename, linenum);
-		if (arg[0] < '0' || arg[0] > '9')
+		fwd_port = a2port(arg);
+		if (fwd_port == 0)
 			fatal("%.200s line %d: Badly formatted port number.",
 			    filename, linenum);
-		fwd_port = atoi(arg);
 		add_local_forward(options, fwd_port, "socks4", 0);
 		break;
 
