@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.257 2002/07/23 16:03:10 stevesk Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.258 2002/09/13 19:23:09 stevesk Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -806,7 +806,6 @@ main(int ac, char **av)
 	const char *remote_ip;
 	int remote_port;
 	FILE *f;
-	struct linger linger;
 	struct addrinfo *ai;
 	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
 	int listen_sock, maxfd;
@@ -1152,17 +1151,12 @@ main(int ac, char **av)
 				continue;
 			}
 			/*
-			 * Set socket options.  We try to make the port
-			 * reusable and have it close as fast as possible
-			 * without waiting in unnecessary wait states on
-			 * close.
+			 * Set socket options.
+			 * Allow local port reuse in TIME_WAIT.
 			 */
-			setsockopt(listen_sock, SOL_SOCKET, SO_REUSEADDR,
-			    &on, sizeof(on));
-			linger.l_onoff = 1;
-			linger.l_linger = 5;
-			setsockopt(listen_sock, SOL_SOCKET, SO_LINGER,
-			    &linger, sizeof(linger));
+			if (setsockopt(listen_sock, SOL_SOCKET, SO_REUSEADDR,
+			    &on, sizeof(on)) == -1)
+				error("setsockopt SO_REUSEADDR: %s", strerror(errno));
 
 			debug("Bind to port %s on %s.", strport, ntop);
 
@@ -1410,16 +1404,6 @@ main(int ac, char **av)
 	signal(SIGQUIT, SIG_DFL);
 	signal(SIGCHLD, SIG_DFL);
 	signal(SIGINT, SIG_DFL);
-
-	/*
-	 * Set socket options for the connection.  We want the socket to
-	 * close as fast as possible without waiting for anything.  If the
-	 * connection is not a socket, these will do nothing.
-	 */
-	/* setsockopt(sock_in, SOL_SOCKET, SO_REUSEADDR, (void *)&on, sizeof(on)); */
-	linger.l_onoff = 1;
-	linger.l_linger = 5;
-	setsockopt(sock_in, SOL_SOCKET, SO_LINGER, &linger, sizeof(linger));
 
 	/* Set keepalives if requested. */
 	if (options.keepalives &&

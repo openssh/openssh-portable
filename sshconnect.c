@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.133 2002/07/29 18:57:30 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.134 2002/09/13 19:23:09 stevesk Exp $");
 
 #include <openssl/bn.h>
 
@@ -229,7 +229,6 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 	int sock = -1, attempt;
 	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
 	struct addrinfo hints, *ai, *aitop;
-	struct linger linger;
 	struct servent *sp;
 	/*
 	 * Did we get only other errors than "Connection refused" (which
@@ -329,15 +328,6 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 	}
 
 	debug("Connection established.");
-
-	/*
-	 * Set socket options.  We would like the socket to disappear as soon
-	 * as it has been closed for whatever reason.
-	 */
-	/* setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void *)&on, sizeof(on)); */
-	linger.l_onoff = 1;
-	linger.l_linger = 5;
-	setsockopt(sock, SOL_SOCKET, SO_LINGER, (void *)&linger, sizeof(linger));
 
 	/* Set keepalives if requested. */
 	if (options.keepalives &&

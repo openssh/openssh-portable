@@ -6,6 +6,10 @@
    - stevesk@cvs.openbsd.org 2002/09/12 19:50:36
      [session.c ssh.1]
      add SSH_CONNECTION and deprecate SSH_CLIENT; bug #384.  ok markus@
+   - stevesk@cvs.openbsd.org 2002/09/13 19:23:09
+     [channels.c sshconnect.c sshd.c]
+     remove use of SO_LINGER, it should not be needed. error check
+     SO_REUSEADDR. fixup comments. ok markus@
 
 20020912
  - (djm) Made GNOME askpass programs return non-zero if cancel button is 
@@ -656,4 +660,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2465 2002/09/19 01:47:55 djm Exp $
+$Id: ChangeLog,v 1.2466 2002/09/19 01:49:37 djm Exp $
