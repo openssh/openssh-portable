@@ -1,4 +1,4 @@
-/* $Id: port-aix.h,v 1.15 2003/09/19 10:43:38 dtucker Exp $ */
+/* $Id: port-aix.h,v 1.16 2003/11/22 03:16:57 dtucker Exp $ */
 
 /*
  *
@@ -51,12 +51,14 @@
 # include <sys/timers.h>
 #endif
 
+void aix_usrinfo(struct passwd *);
+
 #ifdef WITH_AIXAUTHENTICATE
 # define CUSTOM_FAILED_LOGIN 1
 void record_failed_login(const char *, const char *);
-void aix_setauthdb(const char *);
 #endif
 
-void aix_usrinfo(struct passwd *);
+int aix_authenticate(const char *, const char *, const char *);
+void aix_setauthdb(const char *);
 void aix_remove_embedded_newlines(char *);
 #endif /* _AIX */

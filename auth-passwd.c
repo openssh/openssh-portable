@@ -43,9 +43,7 @@ RCSID("$OpenBSD: auth-passwd.c,v 1.30 2003/11/04 08:54:09 djm Exp $");
 #include "servconf.h"
 #include "auth.h"
 #ifdef WITH_AIXAUTHENTICATE
-# include "buffer.h"
 # include "canohost.h"
-extern Buffer loginmsg;
 #endif
 
 extern ServerOptions options;
@@ -89,44 +87,11 @@ auth_password(Authctxt *authctxt, const char *password)
 	}
 # endif
 # ifdef WITH_AIXAUTHENTICATE
-	{
-		char *authmsg = NULL;
-		int reenter = 1;
-		int authsuccess = 0;
-
-		if (authenticate(pw->pw_name, password, &reenter,
-		    &authmsg) == 0 && ok) {
-			char *msg;
-			char *host =
-			    (char *)get_canonical_hostname(options.use_dns);
-
-			authsuccess = 1;
-			aix_remove_embedded_newlines(authmsg);
-
-			debug3("AIX/authenticate succeeded for user %s: %.100s",
-				pw->pw_name, authmsg);
-
-			/* No pty yet, so just label the line as "ssh" */
-			aix_setauthdb(authctxt->user);
-			if (loginsuccess(authctxt->user, host, "ssh",
-			    &msg) == 0) {
-				if (msg != NULL) {
-					debug("%s: msg %s", __func__, msg);
-					buffer_append(&loginmsg, msg,
-					    strlen(msg));
-					xfree(msg);
-				}
-			}
-		} else {
-			debug3("AIX/authenticate failed for user %s: %.100s",
-			    pw->pw_name, authmsg);
-		}
-
-		if (authmsg != NULL)
-			xfree(authmsg);
-
-		return authsuccess;
-	}
+	if (aix_authenticate(pw->pw_name, password,
+	    get_canonical_hostname(options.use_dns)) == 0)
+		return 0;
+	else
+		return ok;
 # endif
 # ifdef BSD_AUTH
 	if (auth_userokay(pw->pw_name, authctxt->style, "auth-ssh",

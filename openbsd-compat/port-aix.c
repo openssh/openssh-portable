@@ -29,6 +29,7 @@
 #include "servconf.h"
 #include "canohost.h"
 #include "xmalloc.h"
+#include "buffer.h"
 
 #ifdef _AIX
 
@@ -36,6 +37,7 @@
 #include "port-aix.h"
 
 extern ServerOptions options;
+extern Buffer loginmsg;
 
 /*
  * AIX has a "usrinfo" area where logname and other stuff is stored - 
@@ -63,7 +65,7 @@ aix_usrinfo(struct passwd *pw)
 	xfree(cp);
 }
 
-#ifdef WITH_AIXAUTHENTICATE
+# ifdef WITH_AIXAUTHENTICATE
 /*
  * Remove embedded newlines in string (if any).
  * Used before logging messages returned by AIX authentication functions
@@ -83,27 +85,68 @@ aix_remove_embedded_newlines(char *p)
 	if (*--p == ' ')
 		*p = '\0';
 }
-#endif /* WITH_AIXAUTHENTICATE */
+
+/*
+ * Do authentication via AIX's authenticate routine.  We loop until the
+ * reenter parameter is 0, but normally authenticate is called only once.
+ *
+ * Note: this function returns 1 on success, whereas AIX's authenticate()
+ * returns 0.
+ */
+int
+aix_authenticate(const char *name, const char *password, const char *host)
+{
+	char *authmsg = NULL, *msg;
+	int authsuccess = 0, reenter, result;
+
+	do {
+		result = authenticate((char *)name, (char *)password, &reenter,
+		    &authmsg);
+		aix_remove_embedded_newlines(authmsg);	
+		debug3("AIX/authenticate result %d, msg %.100s", result,
+		    authmsg);
+	} while (reenter);
+
+	if (result == 0) {
+		authsuccess = 1;
+
+	       	/* No pty yet, so just label the line as "ssh" */
+		aix_setauthdb(name);
+	       	if (loginsuccess((char *)name, (char *)host, "ssh", &msg) == 0) {
+			if (msg != NULL) {
+				debug("%s: msg %s", __func__, msg);
+				buffer_append(&loginmsg, msg, strlen(msg));
+				xfree(msg);
+			}
+		}
+	}
+
+	if (authmsg != NULL)
+		xfree(authmsg);
+
+	return authsuccess;
+}
   
-# ifdef CUSTOM_FAILED_LOGIN
+#  ifdef CUSTOM_FAILED_LOGIN
 /*
  * record_failed_login: generic "login failed" interface function
  */
 void
 record_failed_login(const char *user, const char *ttyname)
 {
-	char *hostname = get_canonical_hostname(options.use_dns);
+	char *hostname = (char *)get_canonical_hostname(options.use_dns);
 
 	if (geteuid() != 0)
 		return;
 
 	aix_setauthdb(user);
-#  ifdef AIX_LOGINFAILED_4ARG
+#   ifdef AIX_LOGINFAILED_4ARG
 	loginfailed((char *)user, hostname, (char *)ttyname, AUDIT_FAIL_AUTH);
-#  else
+#   else
 	loginfailed((char *)user, hostname, (char *)ttyname);
-#  endif
+#   endif
 }
+#  endif /* CUSTOM_FAILED_LOGIN */
 
 /*
  * If we have setauthdb, retrieve the password registry for the user's
@@ -135,8 +178,9 @@ aix_setauthdb(const char *user)
 		debug3("%s: Could not read S_REGISTRY for user: %s", __func__,
 		    strerror(errno));
 	enduserdb();
-#  endif
+#  endif /* HAVE_SETAUTHDB */
 }
-# endif /* CUSTOM_FAILED_LOGIN */
-#endif /* _AIX */
 
+# endif /* WITH_AIXAUTHENTICATE */
+
+#endif /* _AIX */

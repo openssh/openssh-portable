@@ -1,5 +1,8 @@
 20031122
  - (dtucker) [channels.c] Make AIX write limit code clearer.  Suggested by djm@
+ - (dtucker) [auth-passwd.c openbsd-compat/port-aix.c openbsd-compat/port-aix.h]
+   Move AIX specific password authentication code to port-aix.c, call
+   authenticate() until reenter flag is clear.
 
 20031121
  - (djm) OpenBSD CVS Sync
@@ -1501,4 +1504,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3120 2003/11/22 03:10:02 dtucker Exp $
+$Id: ChangeLog,v 1.3121 2003/11/22 03:16:56 dtucker Exp $
