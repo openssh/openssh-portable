@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.48 2001/01/25 08:06:33 deraadt Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.49 2001/01/29 19:47:31 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.48 2001/01/25 08:06:33 deraadt Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.49 2001/01/29 19:47:31 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -198,7 +198,8 @@ process_authentication_challenge1(SocketEntry *e)
 	private = lookup_private_key(key, NULL, 1);
 	if (private != NULL) {
 		/* Decrypt the challenge using the private key. */
-		rsa_private_decrypt(challenge, challenge, private->rsa);
+		if (rsa_private_decrypt(challenge, challenge, private->rsa) <= 0)
+			goto failure;
 
 		/* The response is MD5 of decrypted challenge plus session id. */
 		len = BN_num_bytes(challenge);

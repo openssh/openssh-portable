@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.158 2001/01/28 10:37:26 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.159 2001/01/29 19:47:31 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1186,6 +1186,7 @@ do_ssh1_kex(void)
 {
 	int i, len;
 	int plen, slen;
+	int rsafail = 0;
 	BIGNUM *session_key_int;
 	u_char session_key[SSH_SESSION_KEY_LENGTH];
 	u_char cookie[8];
@@ -1296,7 +1297,7 @@ do_ssh1_kex(void)
 	 * with larger modulus first).
 	 */
 	if (BN_cmp(sensitive_data.server_key->rsa->n, sensitive_data.ssh1_host_key->rsa->n) > 0) {
-		/* Private key has bigger modulus. */
+		/* Server key has bigger modulus. */
 		if (BN_num_bits(sensitive_data.server_key->rsa->n) <
 		    BN_num_bits(sensitive_data.ssh1_host_key->rsa->n) + SSH_KEY_BITS_RESERVED) {
 			fatal("do_connection: %s: server_key %d < host_key %d + SSH_KEY_BITS_RESERVED %d",
@@ -1305,10 +1306,12 @@ do_ssh1_kex(void)
 			    BN_num_bits(sensitive_data.ssh1_host_key->rsa->n),
 			    SSH_KEY_BITS_RESERVED);
 		}
-		rsa_private_decrypt(session_key_int, session_key_int,
-		    sensitive_data.server_key->rsa);
-		rsa_private_decrypt(session_key_int, session_key_int,
-		    sensitive_data.ssh1_host_key->rsa);
+		if (rsa_private_decrypt(session_key_int, session_key_int,
+		    sensitive_data.server_key->rsa) <= 0)
+			rsafail++;
+		if (rsa_private_decrypt(session_key_int, session_key_int,
+		    sensitive_data.ssh1_host_key->rsa) <= 0)
+			rsafail++;
 	} else {
 		/* Host key has bigger modulus (or they are equal). */
 		if (BN_num_bits(sensitive_data.ssh1_host_key->rsa->n) <
@@ -1319,10 +1322,12 @@ do_ssh1_kex(void)
 			    BN_num_bits(sensitive_data.server_key->rsa->n),
 			    SSH_KEY_BITS_RESERVED);
 		}
-		rsa_private_decrypt(session_key_int, session_key_int,
-		    sensitive_data.ssh1_host_key->rsa);
-		rsa_private_decrypt(session_key_int, session_key_int,
-		    sensitive_data.server_key->rsa);
+		if (rsa_private_decrypt(session_key_int, session_key_int,
+		    sensitive_data.ssh1_host_key->rsa) < 0)
+			rsafail++;
+		if (rsa_private_decrypt(session_key_int, session_key_int,
+		    sensitive_data.server_key->rsa) < 0)
+			rsafail++;
 	}
 
 	compute_session_id(session_id, cookie,
@@ -1337,15 +1342,29 @@ do_ssh1_kex(void)
 	 * least significant 256 bits of the integer; the first byte of the
 	 * key is in the highest bits.
 	 */
-	BN_mask_bits(session_key_int, sizeof(session_key) * 8);
-	len = BN_num_bytes(session_key_int);
-	if (len < 0 || len > sizeof(session_key))
-		fatal("do_connection: bad len from %s: session_key_int %d > sizeof(session_key) %d",
-		    get_remote_ipaddr(),
-		    len, sizeof(session_key));
-	memset(session_key, 0, sizeof(session_key));
-	BN_bn2bin(session_key_int, session_key + sizeof(session_key) - len);
-
+	if (!rsafail) {
+		BN_mask_bits(session_key_int, sizeof(session_key) * 8);
+		len = BN_num_bytes(session_key_int);
+		if (len < 0 || len > sizeof(session_key)) {
+			error("do_connection: bad session key len from %s: "
+			    "session_key_int %d > sizeof(session_key) %d",
+			    get_remote_ipaddr(), len, sizeof(session_key));
+			rsafail++;
+		} else {
+			memset(session_key, 0, sizeof(session_key));
+			BN_bn2bin(session_key_int,
+			    session_key + sizeof(session_key) - len);
+		}
+	}
+	if (rsafail) {
+		log("do_connection: generating a fake encryption key");
+		for (i = 0; i < SSH_SESSION_KEY_LENGTH; i++) {
+			if (i % 4 == 0)
+				rand = arc4random();
+			session_key[i] = rand & 0xff;
+			rand >>= 8;
+		}
+	}
 	/* Destroy the decrypted integer.  It is no longer needed. */
 	BN_clear_free(session_key_int);
 

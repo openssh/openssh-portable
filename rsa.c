@@ -60,7 +60,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: rsa.c,v 1.19 2001/01/21 19:05:54 markus Exp $");
+RCSID("$OpenBSD: rsa.c,v 1.20 2001/01/29 19:47:30 markus Exp $");
 
 #include "rsa.h"
 #include "log.h"
@@ -94,7 +94,7 @@ rsa_public_encrypt(BIGNUM *out, BIGNUM *in, RSA *key)
 	xfree(inbuf);
 }
 
-void
+int
 rsa_private_decrypt(BIGNUM *out, BIGNUM *in, RSA *key)
 {
 	u_char *inbuf, *outbuf;
@@ -108,13 +108,14 @@ rsa_private_decrypt(BIGNUM *out, BIGNUM *in, RSA *key)
 	BN_bn2bin(in, inbuf);
 
 	if ((len = RSA_private_decrypt(ilen, inbuf, outbuf, key,
-	    RSA_PKCS1_PADDING)) <= 0)
-		fatal("rsa_private_decrypt() failed");
-
-	BN_bin2bn(outbuf, len, out);
-
+	    RSA_PKCS1_PADDING)) <= 0) {
+		error("rsa_private_decrypt() failed");
+	} else {
+		BN_bin2bn(outbuf, len, out);
+	}
 	memset(outbuf, 0, olen);
 	memset(inbuf, 0, ilen);
 	xfree(outbuf);
 	xfree(inbuf);
+	return len;
 }

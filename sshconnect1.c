@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.20 2001/01/22 23:06:40 markus Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.21 2001/01/29 19:47:31 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/evp.h>
@@ -163,14 +163,17 @@ respond_to_rsa_challenge(BIGNUM * challenge, RSA * prv)
 	int i, len;
 
 	/* Decrypt the challenge using the private key. */
-	rsa_private_decrypt(challenge, challenge, prv);
+	/* XXX think about Bleichenbacher, too */
+	if (rsa_private_decrypt(challenge, challenge, prv) <= 0)
+		packet_disconnect(
+		    "respond_to_rsa_challenge: rsa_private_decrypt failed");
 
 	/* Compute the response. */
 	/* The response is MD5 of decrypted challenge plus session id. */
 	len = BN_num_bytes(challenge);
 	if (len <= 0 || len > sizeof(buf))
-		packet_disconnect("respond_to_rsa_challenge: bad challenge length %d",
-				  len);
+		packet_disconnect(
+		    "respond_to_rsa_challenge: bad challenge length %d", len);
 
 	memset(buf, 0, sizeof(buf));
 	BN_bn2bin(challenge, buf + sizeof(buf) - len);
