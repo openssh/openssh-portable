@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: sftp-server.c,v 1.10 2001/01/10 22:56:22 markus Exp $");
+RCSID("$OpenBSD: sftp-server.c,v 1.13 2001/01/16 20:54:27 markus Exp $");
 
 #include "ssh.h"
 #include "buffer.h"
@@ -189,23 +189,21 @@ encode_attrib(Buffer *b, Attrib *a)
 	}
 }
 
-Attrib *
-stat_to_attrib(struct stat *st)
+void
+stat_to_attrib(struct stat *st, Attrib *a)
 {
-	static Attrib a;
-	attrib_clear(&a);
-	a.flags = 0;
-	a.flags |= SSH2_FILEXFER_ATTR_SIZE;
-	a.size = st->st_size;
-	a.flags |= SSH2_FILEXFER_ATTR_UIDGID;
-	a.uid = st->st_uid;
-	a.gid = st->st_gid;
-	a.flags |= SSH2_FILEXFER_ATTR_PERMISSIONS;
-	a.perm = st->st_mode;
-	a.flags |= SSH2_FILEXFER_ATTR_ACMODTIME;
-	a.atime = st->st_atime;
-	a.mtime = st->st_mtime;
-	return &a;
+	attrib_clear(a);
+	a->flags = 0;
+	a->flags |= SSH2_FILEXFER_ATTR_SIZE;
+	a->size = st->st_size;
+	a->flags |= SSH2_FILEXFER_ATTR_UIDGID;
+	a->uid = st->st_uid;
+	a->gid = st->st_gid;
+	a->flags |= SSH2_FILEXFER_ATTR_PERMISSIONS;
+	a->perm = st->st_mode;
+	a->flags |= SSH2_FILEXFER_ATTR_ACMODTIME;
+	a->atime = st->st_atime;
+	a->mtime = st->st_mtime;
 }
 
 Attrib *
@@ -264,24 +262,21 @@ handle_is_ok(int i, int type)
 int
 handle_to_string(int handle, char **stringp, int *hlenp)
 {
-	char buf[1024];
 	if (stringp == NULL || hlenp == NULL)
 		return -1;
-	snprintf(buf, sizeof buf, "%d", handle);
-	*stringp = xstrdup(buf);
-	*hlenp = strlen(*stringp);
+	*stringp = xmalloc(sizeof(int32_t));
+	PUT_32BIT(*stringp, handle);
+	*hlenp = sizeof(int32_t);
 	return 0;
 }
 
 int
 handle_from_string(char *handle, u_int hlen)
 {
-/* XXX OVERFLOW ? */
-	char *ep;
-	long lval = strtol(handle, &ep, 10);
-	int val = lval;
-	if (*ep != '\0')
+	int val;
+	if (hlen != sizeof(int32_t))
 		return -1;
+	val = GET_32BIT(handle);
 	if (handle_is_ok(val, HANDLE_FILE) ||
 	    handle_is_ok(val, HANDLE_DIR))
 		return val;
@@ -568,7 +563,7 @@ process_write(void)
 void
 process_do_stat(int do_lstat)
 {
-	Attrib *a;
+	Attrib a;
 	struct stat st;
 	u_int32_t id;
 	char *name;
@@ -581,8 +576,8 @@ process_do_stat(int do_lstat)
 	if (ret < 0) {
 		status = errno_to_portable(errno);
 	} else {
-		a = stat_to_attrib(&st);
-		send_attrib(id, a);
+		stat_to_attrib(&st, &a);
+		send_attrib(id, &a);
 		status = SSH2_FX_OK;
 	}
 	if (status != SSH2_FX_OK)
@@ -605,7 +600,7 @@ process_lstat(void)
 void
 process_fstat(void)
 {
-	Attrib *a;
+	Attrib a;
 	struct stat st;
 	u_int32_t id;
 	int fd, ret, handle, status = SSH2_FX_FAILURE;
@@ -619,8 +614,8 @@ process_fstat(void)
 		if (ret < 0) {
 			status = errno_to_portable(errno);
 		} else {
-			a = stat_to_attrib(&st);
-			send_attrib(id, a);
+			stat_to_attrib(&st, &a);
+			send_attrib(id, &a);
 			status = SSH2_FX_OK;
 		}
 	}
@@ -736,18 +731,41 @@ process_opendir(void)
 }
 
 /*
- * XXX, draft-ietf-secsh-filexfer-00.txt says: 
- * The recommended format for the longname field is as follows:
- * -rwxr-xr-x   1 mjos     staff      348911 Mar 25 14:29 t-filexfer
- * 1234567890 123 12345678 12345678 12345678 123456789012
+ * drwxr-xr-x    5 markus   markus       1024 Jan 13 18:39 .ssh
  */
 char *
 ls_file(char *name, struct stat *st)
 {
-	char buf[1024];
-	snprintf(buf, sizeof buf, "0%o %d %d %lld %d %s",
-	    st->st_mode, st->st_uid, st->st_gid, (long long)st->st_size,
-           (int)st->st_mtime, name);
+	int sz = 0;
+	struct passwd *pw;
+	struct group *gr;
+	struct tm *ltime = localtime(&st->st_mtime);
+	char *user, *group;
+	char buf[1024], mode[11+1], tbuf[12+1], ubuf[11+1], gbuf[11+1];
+
+	strmode(st->st_mode, mode);
+	if ((pw = getpwuid(st->st_uid)) != NULL) {
+		user = pw->pw_name;
+	} else {
+		snprintf(ubuf, sizeof ubuf, "%d", st->st_uid);
+		user = ubuf;
+	}
+	if ((gr = getgrgid(st->st_gid)) != NULL) {
+		group = gr->gr_name;
+	} else {
+		snprintf(gbuf, sizeof gbuf, "%d", st->st_gid);
+		group = gbuf;
+	}
+	if (ltime != NULL) {
+		if (time(NULL) - st->st_mtime < (365*24*60*60)/2)
+			sz = strftime(tbuf, sizeof tbuf, "%b %e %H:%M", ltime);
+		else
+			sz = strftime(tbuf, sizeof tbuf, "%b %e  %Y", ltime);
+	}
+	if (sz == 0)
+		tbuf[0] = '\0';
+	snprintf(buf, sizeof buf, "%s %3d %-8.8s %-8.8s %8qd %s %s", mode,
+	    st->st_nlink, user, group, (long long)st->st_size, tbuf, name);
 	return xstrdup(buf);
 }
 
@@ -768,7 +786,6 @@ process_readdir(void)
 	if (dirp == NULL || path == NULL) {
 		send_status(id, SSH2_FX_FAILURE);
 	} else {
-		Attrib *a;
 		struct stat st;
 		char pathname[1024];
 		Stat *stats;
@@ -784,12 +801,12 @@ process_readdir(void)
 			    "%s/%s", path, dp->d_name);
 			if (lstat(pathname, &st) < 0)
 				continue;
-			a = stat_to_attrib(&st);
-			stats[count].attrib = *a;
+			stat_to_attrib(&st, &(stats[count].attrib));
 			stats[count].name = xstrdup(dp->d_name);
 			stats[count].long_name = ls_file(dp->d_name, &st);
 			count++;
 			/* send up to 100 entries in one message */
+			/* XXX check packet size instead */
 			if (count == 100)
 				break;
 		}
@@ -888,15 +905,19 @@ void
 process_rename(void)
 {
 	u_int32_t id;
+	struct stat st;
 	char *oldpath, *newpath;
-	int ret, status;
+	int ret, status = SSH2_FX_FAILURE;
 
 	id = get_int();
 	oldpath = get_string(NULL);
 	newpath = get_string(NULL);
 	TRACE("rename id %d old %s new %s", id, oldpath, newpath);
-	ret = rename(oldpath, newpath);
-	status = (ret == -1) ? errno_to_portable(errno) : SSH2_FX_OK;
+	/* fail if 'newpath' exists */
+	if (stat(newpath, &st) == -1) {
+		ret = rename(oldpath, newpath);
+		status = (ret == -1) ? errno_to_portable(errno) : SSH2_FX_OK;
+	}
 	send_status(id, status);
 	xfree(oldpath);
 	xfree(newpath);
@@ -1006,7 +1027,9 @@ main(int ac, char **av)
 	__progname = get_progname(av[0]);
 	handle_init();
 
+#ifdef DEBUG_SFTP_SERVER
         log_init("sftp-server", SYSLOG_LEVEL_DEBUG1, SYSLOG_FACILITY_AUTH, 0);
+#endif
 
 	in = dup(STDIN_FILENO);
 	out = dup(STDOUT_FILENO);

@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.42 2001/01/09 21:19:50 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.44 2001/01/13 18:36:45 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -1230,9 +1230,16 @@ packet_not_very_much_data_to_write()
 /* Informs that the current session is interactive.  Sets IP flags for that. */
 
 void
-packet_set_interactive(int interactive, int keepalives)
+packet_set_interactive(int interactive)
 {
+	static int called = 0;
+	int lowdelay = IPTOS_LOWDELAY;
+	int throughput = IPTOS_THROUGHPUT;
 	int on = 1;
+
+	if (called)
+		return;
+	called = 1;
 
 	/* Record that we are in interactive mode. */
 	interactive_mode = interactive;
@@ -1240,12 +1247,6 @@ packet_set_interactive(int interactive, int keepalives)
 	/* Only set socket options if using a socket.  */
 	if (!packet_connection_is_on_socket())
 		return;
-	if (keepalives) {
-		/* Set keepalives if requested. */
-		if (setsockopt(connection_in, SOL_SOCKET, SO_KEEPALIVE, (void *) &on,
-		    sizeof(on)) < 0)
-			error("setsockopt SO_KEEPALIVE: %.100s", strerror(errno));
-	}
 	/*
 	 * IPTOS_LOWDELAY and IPTOS_THROUGHPUT are IPv4 only
 	 */
@@ -1256,7 +1257,6 @@ packet_set_interactive(int interactive, int keepalives)
 		 */
 #if defined(IP_TOS) && !defined(IP_TOS_IS_BROKEN)
 		if (packet_connection_is_ipv4()) {
-			int lowdelay = IPTOS_LOWDELAY;
 			if (setsockopt(connection_in, IPPROTO_IP, IP_TOS, 
 			    (void *) &lowdelay, sizeof(lowdelay)) < 0)
 			        error("setsockopt IPTOS_LOWDELAY: %.100s", 
@@ -1272,7 +1272,6 @@ packet_set_interactive(int interactive, int keepalives)
 		 * IPTOS_THROUGHPUT.
 		 */
 #if defined(IP_TOS) && !defined(IP_TOS_IS_BROKEN)
-		int throughput = IPTOS_THROUGHPUT;
 		if (setsockopt(connection_in, IPPROTO_IP, IP_TOS, (void *) &throughput,
 		    sizeof(throughput)) < 0)
 			error("setsockopt IPTOS_THROUGHPUT: %.100s", strerror(errno));

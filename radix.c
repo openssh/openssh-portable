@@ -25,7 +25,7 @@
 #include "includes.h"
 #include "uuencode.h"
 
-RCSID("$OpenBSD: radix.c,v 1.14 2000/12/19 23:17:57 markus Exp $");
+RCSID("$OpenBSD: radix.c,v 1.15 2001/01/16 23:58:09 deraadt Exp $");
 
 #ifdef AFS
 #include <krb.h>
@@ -37,7 +37,7 @@ typedef u_short my_u_short;
 /* Nasty macros from BIND-4.9.2 */
 
 #define GETSHORT(s, cp) { \
-	register my_u_char *t_cp = (my_u_char*)(cp); \
+	register my_u_char *t_cp = (my_u_char *)(cp); \
 	(s) = (((my_u_short)t_cp[0]) << 8) \
 	    | (((my_u_short)t_cp[1])) \
 	    ; \
@@ -45,7 +45,7 @@ typedef u_short my_u_short;
 }
 
 #define GETLONG(l, cp) { \
-	register my_u_char *t_cp = (my_u_char*)(cp); \
+	register my_u_char *t_cp = (my_u_char *)(cp); \
 	(l) = (((my_u_int32_t)t_cp[0]) << 24) \
 	    | (((my_u_int32_t)t_cp[1]) << 16) \
 	    | (((my_u_int32_t)t_cp[2]) << 8) \
@@ -56,7 +56,7 @@ typedef u_short my_u_short;
 
 #define PUTSHORT(s, cp) { \
 	register my_u_short t_s = (my_u_short)(s); \
-	register my_u_char *t_cp = (my_u_char*)(cp); \
+	register my_u_char *t_cp = (my_u_char *)(cp); \
 	*t_cp++ = t_s >> 8; \
 	*t_cp   = t_s; \
 	(cp) += 2; \
@@ -64,7 +64,7 @@ typedef u_short my_u_short;
 
 #define PUTLONG(l, cp) { \
 	register my_u_int32_t t_l = (my_u_int32_t)(l); \
-	register my_u_char *t_cp = (my_u_char*)(cp); \
+	register my_u_char *t_cp = (my_u_char *)(cp); \
 	*t_cp++ = t_l >> 24; \
 	*t_cp++ = t_l >> 16; \
 	*t_cp++ = t_l >> 8; \
@@ -73,9 +73,9 @@ typedef u_short my_u_short;
 }
 
 #define GETSTRING(s, p, p_l) {			\
-    register char* p_targ = (p) + p_l;		\
-    register char* s_c = (s);			\
-    register char* p_c = (p);			\
+    register char *p_targ = (p) + p_l;		\
+    register char *s_c = (s);			\
+    register char *p_c = (p);			\
     while (*p_c && (p_c < p_targ)) {		\
 	*s_c++ = *p_c++;			\
     }						\

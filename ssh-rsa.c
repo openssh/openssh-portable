@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-rsa.c,v 1.3 2001/01/06 11:23:27 markus Exp $");
+RCSID("$OpenBSD: ssh-rsa.c,v 1.4 2001/01/16 19:20:06 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -120,6 +120,11 @@ ssh_rsa_verify(
 
 	if (key == NULL || key->type != KEY_RSA || key->rsa == NULL) {
 		error("ssh_rsa_verify: no RSA key");
+		return -1;
+	}
+	if (BN_num_bits(key->rsa->n) < 768) {
+		error("ssh_rsa_verify: n too small: %d bits",
+		    BN_num_bits(key->rsa->n));
 		return -1;
 	}
 	buffer_init(&b);

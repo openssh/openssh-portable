@@ -46,7 +46,7 @@
 #include "buffer.h"
 #include "bufaux.h"
 
-RCSID("$OpenBSD: key.c,v 1.13 2000/12/19 23:17:56 markus Exp $");
+RCSID("$OpenBSD: key.c,v 1.14 2001/01/16 19:20:06 markus Exp $");
 
 Key *
 key_new(int type)
@@ -555,8 +555,8 @@ key_from_blob(char *blob, int blen)
 	switch(type){
 	case KEY_RSA:
 		key = key_new(type);
-		buffer_get_bignum2(&b, key->rsa->n);
 		buffer_get_bignum2(&b, key->rsa->e);
+		buffer_get_bignum2(&b, key->rsa->n);
 #ifdef DEBUG_PK
 		RSA_print_fp(stderr, key->rsa, 8);
 #endif
@@ -608,8 +608,8 @@ key_to_blob(Key *key, u_char **blobp, u_int *lenp)
 		break;
 	case KEY_RSA:
 		buffer_put_cstring(&b, key_ssh_name(key));
-		buffer_put_bignum2(&b, key->rsa->n);
 		buffer_put_bignum2(&b, key->rsa->e);
+		buffer_put_bignum2(&b, key->rsa->n);
 		break;
 	default:
 		error("key_to_blob: illegal key type %d", key->type);

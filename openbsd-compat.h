@@ -12,6 +12,7 @@
 #include "bsd-misc.h"
 #include "bsd-strlcpy.h"
 #include "bsd-strlcat.h"
+#include "bsd-strmode.h"
 #include "bsd-mktemp.h"
 #include "bsd-snprintf.h"
 #include "bsd-daemon.h"

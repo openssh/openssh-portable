@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.89 2001/01/04 22:41:03 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.90 2001/01/13 18:32:50 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dsa.h>
@@ -187,12 +187,13 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 	    int anonymous, uid_t original_real_uid,
 	    const char *proxy_command)
 {
-	int sock = -1, attempt;
-	struct servent *sp;
-	struct addrinfo hints, *ai, *aitop;
-	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
 	int gaierr;
+	int on = 1;
+	int sock = -1, attempt;
+	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
+	struct addrinfo hints, *ai, *aitop;
 	struct linger linger;
+	struct servent *sp;
 
 	debug("ssh_connect: getuid %u geteuid %u anon %d",
 	      (u_int) getuid(), (u_int) geteuid(), anonymous);
@@ -298,7 +299,13 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 	/* setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void *)&on, sizeof(on)); */
 	linger.l_onoff = 1;
 	linger.l_linger = 5;
-	setsockopt(sock, SOL_SOCKET, SO_LINGER, (void *) &linger, sizeof(linger));
+	setsockopt(sock, SOL_SOCKET, SO_LINGER, (void *)&linger, sizeof(linger));
+
+	/* Set keepalives if requested. */
+	if (options.keepalives &&
+	    setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, (void *)&on,
+	    sizeof(on)) < 0)
+		error("setsockopt SO_KEEPALIVE: %.100s", strerror(errno));
 
 	/* Set the connection. */
 	packet_set_connection(sock, sock);

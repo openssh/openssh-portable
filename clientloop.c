@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.42 2000/12/19 23:17:56 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.43 2001/01/13 19:14:08 markus Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -79,6 +79,7 @@ RCSID("$OpenBSD: clientloop.c,v 1.42 2000/12/19 23:17:56 markus Exp $");
 #include <openssl/rsa.h>
 #include "key.h"
 #include "authfd.h"
+#include "clientloop.h"
 
 /* import options */
 extern Options options;
@@ -1247,9 +1248,9 @@ client_input_channel_req(int id, void *arg)
 }
 
 void
-client_set_session_ident(int id)
+clientloop_set_session_ident(int id)
 {
-	debug2("client_set_session_ident: id %d", id);
+	debug2("clientloop_set_session_ident: id %d", id);
 	session_ident = id;
 	channel_register_callback(id, SSH2_MSG_CHANNEL_REQUEST,
 	    client_input_channel_req, (void *)0);

@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.14 2001/01/08 21:55:41 markus Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.15 2001/01/16 23:58:09 deraadt Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dsa.h>
@@ -577,7 +577,7 @@ send_afs_tokens(void)
 		creds.pinst[0] = '\0';
 
 		/* Encode token, ship it off. */
-		if (creds_to_radix(&creds, (u_char*) buffer, sizeof buffer) <= 0)
+		if (creds_to_radix(&creds, (u_char *) buffer, sizeof buffer) <= 0)
 			break;
 		packet_start(SSH_CMSG_HAVE_AFS_TOKEN);
 		packet_put_string(buffer, strlen(buffer));
@@ -897,8 +897,8 @@ ssh_kex(char *host, struct sockaddr *hostaddr)
  */
 void
 ssh_userauth(
-    const char* local_user,
-    const char* server_user,
+    const char *local_user,
+    const char *server_user,
     char *host,
     int host_key_valid, RSA *own_host_key)
 {

@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.147 2001/01/10 19:43:20 deraadt Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.150 2001/01/13 18:32:51 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -580,7 +580,7 @@ main(int ac, char **av)
 	initialize_server_options(&options);
 
 	/* Parse command-line arguments. */
-	while ((opt = getopt(ac, av, "f:p:b:k:h:g:V:u:dDiqQ46")) != EOF) {
+	while ((opt = getopt(ac, av, "f:p:b:k:h:g:V:u:dDiqQ46")) != -1) {
 		switch (opt) {
 		case '4':
 			IPv4or6 = AF_INET;
@@ -927,7 +927,7 @@ main(int ac, char **av)
 				sighup_restart();
 			if (fdset != NULL)
 				xfree(fdset);
-			fdsetsz = howmany(maxfd, NFDBITS) * sizeof(fd_mask);
+			fdsetsz = howmany(maxfd+1, NFDBITS) * sizeof(fd_mask);
 			fdset = (fd_set *)xmalloc(fdsetsz);
 			memset(fdset, 0, fdsetsz);
 
@@ -938,7 +938,7 @@ main(int ac, char **av)
 					FD_SET(startup_pipes[i], fdset);
 
 			/* Wait in select until there is a connection. */
-			if (select(maxfd + 1, fdset, NULL, NULL, NULL) < 0) {
+			if (select(maxfd+1, fdset, NULL, NULL, NULL) < 0) {
 				if (errno != EINTR)
 					error("select: %.100s", strerror(errno));
 				continue;
@@ -1079,6 +1079,12 @@ main(int ac, char **av)
 	linger.l_onoff = 1;
 	linger.l_linger = 5;
 	setsockopt(sock_in, SOL_SOCKET, SO_LINGER, (void *) &linger, sizeof(linger));
+
+	/* Set keepalives if requested. */
+	if (options.keepalives &&
+	    setsockopt(sock_in, SOL_SOCKET, SO_KEEPALIVE, (void *)&on,
+	    sizeof(on)) < 0)
+		error("setsockopt SO_KEEPALIVE: %.100s", strerror(errno));
 
 	/*
 	 * Register our connection.  This turns encryption off because we do

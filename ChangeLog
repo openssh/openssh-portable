@@ -1,3 +1,70 @@
+20010118
+ - (bal) Super Sized OpenBSD Resync
+   - markus@cvs.openbsd.org 2001/01/11 22:14:20 GMT 2001 by markus
+     [sshd.c]
+     maxfd+1
+   - markus@cvs.openbsd.org 2001/01/13 17:59:18
+     [ssh-keygen.1]
+     small ssh-keygen manpage cleanup; stevesk@pobox.com
+   - markus@cvs.openbsd.org 2001/01/13 18:03:07
+     [scp.c ssh-keygen.c sshd.c]
+     getopt() returns -1 not EOF; stevesk@pobox.com
+   - markus@cvs.openbsd.org 2001/01/13 18:06:54
+     [ssh-keyscan.c]
+     use SSH_DEFAULT_PORT; from stevesk@pobox.com
+   - markus@cvs.openbsd.org 2001/01/13 18:12:47
+     [ssh-keyscan.c]
+     free() -> xfree(); fix memory leak; from stevesk@pobox.com
+   - markus@cvs.openbsd.org 2001/01/13 18:14:13
+     [ssh-add.c]
+     typo, from stevesk@sweden.hp.com
+   - markus@cvs.openbsd.org 2001/01/13 18:32:50
+     [packet.c session.c ssh.c sshconnect.c sshd.c] 
+     split out keepalive from packet_interactive (from dale@accentre.com)
+     set IPTOS_LOWDELAY TCP_NODELAY IPTOS_THROUGHPUT for ssh2, too.
+   - markus@cvs.openbsd.org 2001/01/13 18:36:45
+     [packet.c packet.h]
+     reorder, typo
+   - markus@cvs.openbsd.org 2001/01/13 18:38:00
+     [auth-options.c]
+     fix comment
+   - markus@cvs.openbsd.org 2001/01/13 18:43:31
+     [session.c]
+     Wall
+   - markus@cvs.openbsd.org 2001/01/13 19:14:08 
+     [clientloop.h clientloop.c ssh.c]
+     move callback to headerfile
+   - markus@cvs.openbsd.org 2001/01/15 21:40:10
+     [ssh.c]
+     use log() instead of stderr
+   - markus@cvs.openbsd.org 2001/01/15 21:43:51
+     [dh.c]
+     use error() not stderr!
+   - markus@cvs.openbsd.org 2001/01/15 21:45:29
+     [sftp-server.c]
+     rename must fail if newpath exists, debug off by default
+   - markus@cvs.openbsd.org 2001/01/15 21:46:38
+     [sftp-server.c]
+     readable long listing for sftp-server, ok deraadt@
+   - markus@cvs.openbsd.org 2001/01/16 19:20:06
+     [key.c ssh-rsa.c]
+     make "ssh-rsa" key format for ssh2 confirm to the ietf-drafts; from 
+     galb@vandyke.com.  note that you have to delete older ssh2-rsa keys, 
+     since they are in the wrong format, too. they must be removed from 
+     .ssh/authorized_keys2 and .ssh/known_hosts2, etc.
+     (cd; grep -v ssh-rsa .ssh/authorized_keys2 > TMP && mv TMP 
+     .ssh/authorized_keys2) additionally, we now check that 
+     BN_num_bits(rsa->n) >= 768.
+   - markus@cvs.openbsd.org 2001/01/16 20:54:27
+     [sftp-server.c]
+     remove some statics. simpler handles; idea from nisse@lysator.liu.se
+   - deraadt@cvs.openbsd.org 2001/01/16 23:58:08
+     [bufaux.c radix.c sshconnect.h sshconnect1.c]
+     indent
+ - (bal) Added bsd-strmode.[ch] since some non-OpenBSD platforms may
+   be missing such feature.
+
+ 
 20010117
  - (djm) Only write random seed file at exit
  - (djm) Make PAM support optional, enable with --with-pam

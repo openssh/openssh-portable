@@ -2,10 +2,6 @@
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
- * RSA-based authentication.  This code determines whether to admit a login
- * based on RSA authentication.  This file also contains functions to check
- * validity of the host key.
- *
  * As far as I am concerned, the code I have written for this software
  * can be used freely for any purpose.  Any derived versions of this
  * software must be clearly marked as such, and if the derived work is
@@ -14,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-options.c,v 1.7 2000/12/19 23:17:54 markus Exp $");
+RCSID("$OpenBSD: auth-options.c,v 1.8 2001/01/13 18:38:00 markus Exp $");
 
 #include "ssh.h"
 #include "packet.h"

@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.79 2000/12/27 11:51:54 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.82 2001/01/15 21:40:10 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/dsa.h>
@@ -59,6 +59,7 @@ RCSID("$OpenBSD: ssh.c,v 1.79 2000/12/27 11:51:54 markus Exp $");
 #include "key.h"
 #include "authfd.h"
 #include "authfile.h"
+#include "clientloop.h"
 
 #ifdef HAVE___PROGNAME
 extern char *__progname;
@@ -526,14 +527,14 @@ main(int ac, char **av)
 	/* Do not allocate a tty if stdin is not a tty. */
 	if (!isatty(fileno(stdin)) && !force_tty_flag) {
 		if (tty_flag)
-			fprintf(stderr, "Pseudo-terminal will not be allocated because stdin is not a terminal.\n");
+			log("Pseudo-terminal will not be allocated because stdin is not a terminal.\n");
 		tty_flag = 0;
 	}
 
 	/* Get user data. */
 	pw = getpwuid(original_real_uid);
 	if (!pw) {
-		fprintf(stderr, "You don't exist, go away!\n");
+		log("You don't exist, go away!\n");
 		exit(1);
 	}
 	/* Take a copy of the returned structure. */
@@ -870,8 +871,7 @@ ssh_session(void)
 		}
 	}
 	/* Tell the packet module whether this is an interactive session. */
-	packet_set_interactive(interactive, options.keepalives);
-
+	packet_set_interactive(interactive);
 
 	/* Request authentication agent forwarding if appropriate. */
 	check_agent_present();
@@ -919,12 +919,12 @@ ssh_session(void)
 	return client_loop(have_tty, tty_flag ? options.escape_char : -1, 0);
 }
 
-extern void client_set_session_ident(int id);
-
 void
 ssh_session2_callback(int id, void *arg)
 {
 	int len;
+	int interactive = 0;
+
 	debug("client_init id %d arg %d", id, (int)arg);
 
 	if (no_shell_flag)
@@ -948,6 +948,7 @@ ssh_session2_callback(int id, void *arg)
 		packet_put_int(ws.ws_ypixel);
 		packet_put_cstring("");		/* XXX: encode terminal modes */
 		packet_send();
+		interactive = 1;
 		/* XXX wait for reply */
 	}
 	if (options.forward_x11 &&
@@ -958,6 +959,7 @@ ssh_session2_callback(int id, void *arg)
 		/* Request forwarding with authentication spoofing. */
 		debug("Requesting X11 forwarding with authentication spoofing.");
 		x11_request_forwarding_with_spoofing(id, proto, data);
+		interactive = 1;
 		/* XXX wait for reply */
 	}
 
@@ -982,7 +984,8 @@ ssh_session2_callback(int id, void *arg)
 	/* channel_callback(id, SSH2_MSG_OPEN_CONFIGMATION, client_init, 0); */
 done:
 	/* register different callback, etc. XXX */
-	client_set_session_ident(id);
+	packet_set_interactive(interactive);
+	clientloop_set_session_ident(id);
 }
 
 int

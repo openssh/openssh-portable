@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: bufaux.c,v 1.15 2001/01/10 22:56:22 markus Exp $");
+RCSID("$OpenBSD: bufaux.c,v 1.16 2001/01/16 23:58:08 deraadt Exp $");
 
 #include "ssh.h"
 #include <openssl/bn.h>
@@ -90,7 +90,7 @@ buffer_get_bignum(Buffer *buffer, BIGNUM *value)
 	bytes = (bits + 7) / 8;
 	if (buffer_len(buffer) < bytes)
 		fatal("buffer_get_bignum: input buffer too small");
-	bin = (u_char*) buffer_ptr(buffer);
+	bin = (u_char *) buffer_ptr(buffer);
 	BN_bin2bn(bin, bytes, value);
 	buffer_consume(buffer, bytes);
 
