@@ -180,7 +180,6 @@ CFLAGS="$RPM_OPT_FLAGS" \
 %configure \
             --with-pam \
             --with-tcp-wrappers \
-            --with-ipv4-default \
 	    --with-privsep-path=%{_var}/empty/sshd \
 	    #leave this line for easy edits.
 
@@ -364,4 +363,4 @@ fi
 * Mon Jan 01 1998 ...
 Template Version: 1.31
 
-$Id: openssh.spec,v 1.43.2.4 2003/09/23 09:26:52 djm Exp $
+$Id: openssh.spec,v 1.43.2.5 2003/10/04 05:31:02 tim Exp $
