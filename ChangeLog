@@ -14,6 +14,7 @@
  - (djm) Fix portable-specific uses of verify_reverse_mapping too
  - (djm) Sync openbsd-compat with OpenBSD CVS. 
     - No more 4-term BSD licenses in our tree
+ - (dtucker) [port-aix.c bsd-cray.c] Fix uses of verify_reverse_mapping.
 
 20030602
  - (djm) Fix segv from bad reordering in auth-pam.c
@@ -420,4 +421,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2767 2003/06/03 02:43:14 djm Exp $
+$Id: ChangeLog,v 1.2768 2003/06/03 02:45:27 dtucker Exp $

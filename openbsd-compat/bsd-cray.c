@@ -1,5 +1,5 @@
 /* 
- * $Id: bsd-cray.c,v 1.11 2003/05/18 14:13:38 djm Exp $
+ * $Id: bsd-cray.c,v 1.12 2003/06/03 02:45:27 dtucker Exp $
  *
  * bsd-cray.c
  *
@@ -103,7 +103,7 @@ cray_login_failure(char *username, int errcode)
 	memset(&fsent, '\0', sizeof(fsent));
 	fsent.revision = 0;
 	fsent.uname = username;
-	fsent.host = (char *)get_canonical_hostname(options.verify_reverse_mapping);
+	fsent.host = (char *)get_canonical_hostname(options.use_dns);
 	fsent.ttyn = "sshd";
 	fsent.caller = IA_SSHD;
 	fsent.flags = IA_INTERACTIVE;
@@ -199,7 +199,7 @@ cray_setup (uid_t uid, char *username, const char *command)
 	}
 	hostname[0] = '\0';
 	strlcpy(hostname,
-	   (char *)get_canonical_hostname(options.verify_reverse_mapping),
+	   (char *)get_canonical_hostname(options.use_dns),
 	   MAXHOSTNAMELEN);
 	/*
 	 *  Fetch user's UDB entry.

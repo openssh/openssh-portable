@@ -68,7 +68,7 @@ aix_usrinfo(struct passwd *pw)
 void
 record_failed_login(const char *user, const char *ttyname)
 {
-	char *hostname = get_canonical_hostname(options.verify_reverse_mapping);
+	char *hostname = get_canonical_hostname(options.use_dns);
 
 	loginfailed(user, hostname, ttyname);
 }
