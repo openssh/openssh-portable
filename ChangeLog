@@ -1,3 +1,6 @@
+20000926
+ - (djm) Update X11-askpass to 1.0.2 in RPM spec file
+
 20000924
  - (djm) Merged cleanup patch from Mark Miller <markm@swoon.net>
  - (djm) A bit more cleanup - created cygwin_util.h
