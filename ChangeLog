@@ -1,6 +1,7 @@
 20010105
  - (bal) Disable groupaccess by setting NGROUP_MAX to 0 for platforms
    that don't have NGROUPS_MAX.
+ - (bal) AIX patch for auth1.c by William L. Jones <jones@hpc.utexas.edu>
 
 20010104
  - (bal) I think this is the last of the bsd-*.h that don't belong.
