@@ -39,7 +39,10 @@
    - avsm@cvs.openbsd.org 2003/07/31 15:50:16
      [atomicio.c]
      correct comment: atomicio takes vwrite, not write; deraadt@ ok
-
+   - markus@cvs.openbsd.org 2003/07/31 22:34:03
+     [progressmeter.c]
+     print rate similar old version; round instead truncate;
+     (included in previous progressmeter.c commit)
  - (dtucker) [openbsd-compat/bsd-misc.c openbsd-compat/bsd-misc.h]
    Add a tcgetpgrp function.
  - (dtucker) [Makefile.in moduli.c moduli.h] Add new files and to Makefile.
@@ -781,4 +784,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2877 2003/08/02 14:05:58 dtucker Exp $
+$Id: ChangeLog,v 1.2878 2003/08/02 14:07:35 dtucker Exp $
