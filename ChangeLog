@@ -6,6 +6,9 @@
    - jmc@cvs.openbsd.org 2004/05/04 18:36:07
      [scp.1]
      SendEnv here too;
+   - jmc@cvs.openbsd.org 2004/05/06 11:24:23
+     [ssh_config.5]
+     typo from John Cosimano (PR 3770);
 
 20040502
  - (dtucker) OpenBSD CVS Sync
@@ -1082,4 +1085,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3343 2004/05/13 03:03:04 dtucker Exp $
+$Id: ChangeLog,v 1.3344 2004/05/13 03:03:56 dtucker Exp $
