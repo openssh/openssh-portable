@@ -25,6 +25,9 @@
      [auth.c]
      Populate host for log message for logins denied by AllowUsers and
      DenyUsers (bz #999); ok markus@
+   - markus@cvs.openbsd.org 2005/03/14 11:46:56
+     [buffer.c buffer.h channels.c]
+     limit input buffer size for channels; bugzilla #896; with and ok dtucker@
 
 20050313
  - (dtucker) [contrib/cygwin/ssh-host-config] Makes the query for the
@@ -2359,4 +2362,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3717 2005/03/14 12:17:27 dtucker Exp $
+$Id: ChangeLog,v 1.3718 2005/03/14 12:22:25 dtucker Exp $

@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.213 2005/03/10 22:01:05 deraadt Exp $");
+RCSID("$OpenBSD: channels.c,v 1.214 2005/03/14 11:46:56 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -57,6 +57,8 @@ RCSID("$OpenBSD: channels.c,v 1.213 2005/03/10 22:01:05 deraadt Exp $");
 #include "bufaux.h"
 
 /* -- channel core */
+
+#define CHAN_RBUF	16*1024
 
 /*
  * Pointer to an array containing all allocated channels.  The array is
@@ -712,6 +714,9 @@ channel_pre_open(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	u_int limit = compat20 ? c->remote_window : packet_get_maxsize();
 
+	/* check buffer limits */
+	limit = MIN(limit, (BUFFER_MAX_LEN - BUFFER_MAX_CHUNK - CHAN_RBUF));
+
 	if (c->istate == CHAN_INPUT_OPEN &&
 	    limit > 0 &&
 	    buffer_len(&c->input) < limit)
@@ -1360,7 +1365,7 @@ channel_post_connecting(Channel *c, fd_set * readset, fd_set * writeset)
 static int
 channel_handle_rfd(Channel *c, fd_set * readset, fd_set * writeset)
 {
-	char buf[16*1024];
+	char buf[CHAN_RBUF];
 	int len;
 
 	if (c->rfd != -1 &&
@@ -1454,7 +1459,7 @@ channel_handle_wfd(Channel *c, fd_set * readset, fd_set * writeset)
 static int
 channel_handle_efd(Channel *c, fd_set * readset, fd_set * writeset)
 {
-	char buf[16*1024];
+	char buf[CHAN_RBUF];
 	int len;
 
 /** XXX handle drain efd, too */
