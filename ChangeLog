@@ -37,9 +37,20 @@
    - stevesk@cvs.openbsd.org 2001/02/04 15:12:17
      [sshd.c]
      precedence; ok markus@
-    - deraadt@cvs.openbsd.org 2001/02/04 08:14:15
+   - deraadt@cvs.openbsd.org 2001/02/04 08:14:15
      [ssh.c sshd.c]
      make the alpha happy
+   - markus@cvs.openbsd.org  2001/01/31 13:37:24
+     [channels.c channels.h serverloop.c ssh.c]
+     do not disconnect if local port forwarding fails, e.g. if port is already in
+     use
+   - markus@cvs.openbsd.org  2001/02/01 14:58:09
+     [channels.c]
+     use ipaddr in channel messages, ietf-secsh wants this
+   - markus@cvs.openbsd.org  2001/01/31 12:26:20
+     [channels.c]
+     ssh.com-2.0.1x does not send additional info in CHANNEL_OPEN_FAILURE messages;
+     bug report from edmundo@rano.org
 
 20010104
  - (bal) I think this is the last of the bsd-*.h that don't belong.

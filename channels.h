@@ -32,7 +32,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* RCSID("$OpenBSD: channels.h,v 1.25 2001/01/29 16:55:36 markus Exp $"); */
+/* RCSID("$OpenBSD: channels.h,v 1.26 2001/01/31 20:37:23 markus Exp $"); */
 
 #ifndef CHANNELS_H
 #define CHANNELS_H
@@ -206,10 +206,10 @@ char   *channel_open_message(void);
  * Initiate forwarding of connections to local port "port" through the secure
  * channel to host:port from remote side.
  */
-void
+int
 channel_request_local_forwarding(u_short listen_port,
     const char *host_to_connect, u_short port_to_connect, int gateway_ports);
-void
+int
 channel_request_forwarding(const char *listen_address, u_short listen_port,
     const char *host_to_connect, u_short port_to_connect, int gateway_ports,
     int remote_fwd);

@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.85 2001/01/29 12:36:10 djm Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.88 2001/02/04 15:32:26 stevesk Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -757,19 +757,23 @@ x11_get_proto(char *proto, int proto_len, char *data, int data_len)
 void
 ssh_init_forwarding(void)
 {
+	int success = 0;
 	int i;
+
 	/* Initiate local TCP/IP port forwardings. */
 	for (i = 0; i < options.num_local_forwards; i++) {
 		debug("Connections to local port %d forwarded to remote address %.200s:%d",
 		    options.local_forwards[i].port,
 		    options.local_forwards[i].host,
 		    options.local_forwards[i].host_port);
-		channel_request_local_forwarding(
+		success += channel_request_local_forwarding(
 		    options.local_forwards[i].port,
 		    options.local_forwards[i].host,
 		    options.local_forwards[i].host_port,
 		    options.gateway_ports);
 	}
+	if (i > 0 && success == 0)
+		error("Could not request local forwarding.");
 
 	/* Initiate remote TCP/IP port forwardings. */
 	for (i = 0; i < options.num_remote_forwards; i++) {
