@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.108 2003/06/24 08:23:46 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.109 2003/07/10 14:42:28 markus Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -635,7 +635,14 @@ set_newkeys(int mode)
 			buffer_compress_init_recv();
 		comp->enabled = 1;
 	}
-	*max_blocks = ((u_int64_t)1 << (enc->block_size*2));
+	/*
+	 * The 2^(blocksize*2) limit is too expensive for 3DES,
+	 * blowfish, etc, so enforce a 1GB limit for small blocksizes.
+	 */
+	if (enc->block_size >= 16)
+		*max_blocks = (u_int64_t)1 << (enc->block_size*2);
+	else
+		*max_blocks = ((u_int64_t)1 << 30) / enc->block_size;
 	if (rekey_limit)
 		*max_blocks = MIN(*max_blocks, rekey_limit / enc->block_size);
 }
