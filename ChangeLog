@@ -17,6 +17,9 @@
    - markus@cvs.openbsd.org 2001/07/20 14:46:11
      [ssh-agent.c]
      do not exit() from signal handlers; ok deraadt@
+   - stevesk@cvs.openbsd.org 2001/07/20 18:41:51
+     [ssh.1]
+     "the" command line
 
 20010719
  - (tim) [configure.in] put inet_aton back in AC_CHECK_FUNCS.
@@ -6090,4 +6093,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1420 2001/07/22 20:44:00 mouring Exp $
+$Id: ChangeLog,v 1.1421 2001/07/22 20:45:39 mouring Exp $

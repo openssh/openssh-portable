@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.119 2001/07/19 00:41:44 stevesk Exp $
+.\" $OpenBSD: ssh.1,v 1.120 2001/07/20 18:41:51 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -349,10 +349,10 @@ sent to the server machine (and no cookies are sent in the plain).
 .Pp
 If the user is using an authentication agent, the connection to the agent
 is automatically forwarded to the remote side unless disabled on
-command line or in a configuration file.
+the command line or in a configuration file.
 .Pp
 Forwarding of arbitrary TCP/IP connections over the secure channel can
-be specified either on command line or in a configuration file.
+be specified either on the command line or in a configuration file.
 One possible application of TCP/IP forwarding is a secure connection to an
 electronic purse; another is going through firewalls.
 .Pp
