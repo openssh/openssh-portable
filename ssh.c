@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.228 2004/09/23 13:00:04 djm Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.229 2004/11/07 00:01:46 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -144,6 +144,9 @@ pid_t proxy_command_pid = 0;
 /* fd to control socket */
 int control_fd = -1;
 
+/* Multiplexing control command */
+static u_int mux_command = SSHMUX_COMMAND_OPEN;
+
 /* Only used in control client mode */
 volatile sig_atomic_t control_client_terminate = 0;
 u_int control_server_pid = 0;
@@ -236,7 +239,7 @@ main(int ac, char **av)
 
 again:
 	while ((opt = getopt(ac, av,
-	    "1246ab:c:e:fgi:kl:m:no:p:qstvxACD:F:I:L:MNPR:S:TVXY")) != -1) {
+	    "1246ab:c:e:fgi:kl:m:no:p:qstvxACD:F:I:L:MNO:PR:S:TVXY")) != -1) {
 		switch (opt) {
 		case '1':
 			options.protocol = SSH_PROTO_1;
@@ -269,6 +272,14 @@ again:
 			break;
 		case 'g':
 			options.gateway_ports = 1;
+			break;
+		case 'O':
+			if (strcmp(optarg, "check") == 0)
+				mux_command = SSHMUX_COMMAND_ALIVE_CHECK;
+			else if (strcmp(optarg, "exit") == 0)
+				mux_command = SSHMUX_COMMAND_TERMINATE;
+			else
+				fatal("Invalid multiplex command.");
 			break;
 		case 'P':	/* deprecated */
 			options.use_privileged_port = 0;
@@ -1251,8 +1262,9 @@ control_client(const char *path)
 	struct sockaddr_un addr;
 	int i, r, fd, sock, exitval, num_env, addr_len;
 	Buffer m;
-	char *cp;
+	char *term;
 	extern char **environ;
+	u_int  flags;
 
 	if (stdin_null_flag) {
 		if ((fd = open(_PATH_DEVNULL, O_RDONLY)) == -1)
@@ -1278,26 +1290,52 @@ control_client(const char *path)
 	if (connect(sock, (struct sockaddr*)&addr, addr_len) == -1)
 		fatal("Couldn't connect to %s: %s", path, strerror(errno));
 
-	if ((cp = getenv("TERM")) == NULL)
-		cp = "";
+	if ((term = getenv("TERM")) == NULL)
+		term = "";
+
+	flags = 0;
+	if (tty_flag)
+		flags |= SSHMUX_FLAG_TTY;
+	if (subsystem_flag)
+		flags |= SSHMUX_FLAG_SUBSYS;
 
 	buffer_init(&m);
 
-	/* Get PID of controlee */
+	/* Send our command to server */
+	buffer_put_int(&m, mux_command);
+	buffer_put_int(&m, flags);
+	if (ssh_msg_send(sock, /* version */1, &m) == -1)
+		fatal("%s: msg_send", __func__);
+	buffer_clear(&m);
+
+	/* Get authorisation status and PID of controlee */
 	if (ssh_msg_recv(sock, &m) == -1)
 		fatal("%s: msg_recv", __func__);
-	if (buffer_get_char(&m) != 0)
+	if (buffer_get_char(&m) != 1)
 		fatal("%s: wrong version", __func__);
-	/* Connection allowed? */
 	if (buffer_get_int(&m) != 1)
 		fatal("Connection to master denied");
 	control_server_pid = buffer_get_int(&m);
 
 	buffer_clear(&m);
-	buffer_put_int(&m, tty_flag);
-	buffer_put_int(&m, subsystem_flag);
-	buffer_put_cstring(&m, cp);
 
+	switch (mux_command) {
+	case SSHMUX_COMMAND_ALIVE_CHECK:
+		fprintf(stderr, "Master running (pid=%d)\r\n", 
+		    control_server_pid);
+		exit(0);
+	case SSHMUX_COMMAND_TERMINATE:
+		fprintf(stderr, "Exit request sent.\r\n");
+		exit(0);
+	case SSHMUX_COMMAND_OPEN:
+		/* continue below */
+		break;
+	default:
+		fatal("silly mux_command %d", mux_command);
+	}
+
+	/* SSHMUX_COMMAND_OPEN */
+	buffer_put_cstring(&m, term);
 	buffer_append(&command, "\0", 1);
 	buffer_put_cstring(&m, buffer_ptr(&command));
 
@@ -1319,7 +1357,7 @@ control_client(const char *path)
 			}
 	}
 
-	if (ssh_msg_send(sock, /* version */0, &m) == -1)
+	if (ssh_msg_send(sock, /* version */1, &m) == -1)
 		fatal("%s: msg_send", __func__);
 
 	mm_send_fd(sock, STDIN_FILENO);
@@ -1330,8 +1368,8 @@ control_client(const char *path)
 	buffer_clear(&m);
 	if (ssh_msg_recv(sock, &m) == -1)
 		fatal("%s: msg_recv", __func__);
-	if (buffer_get_char(&m) != 0)
-		fatal("%s: master returned error", __func__);
+	if (buffer_get_char(&m) != 1)
+		fatal("%s: wrong version", __func__);
 	buffer_free(&m);
 
 	signal(SIGHUP, control_client_sighandler);

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.197 2004/10/07 10:10:24 djm Exp $
+.\" $OpenBSD: ssh.1,v 1.198 2004/11/07 00:01:46 djm Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -62,6 +62,7 @@
 .Ek
 .Op Fl l Ar login_name
 .Op Fl m Ar mac_spec
+.Op Fl O Ar ctl_cmd
 .Op Fl o Ar option
 .Bk -words
 .Op Fl p Ar port
@@ -74,7 +75,7 @@
 .Sm on
 .Xc
 .Oc
-.Op Fl S Ar ctl
+.Op Fl S Ar ctl_path
 .Oo Ar user Ns @ Oc Ns Ar hostname
 .Op Ar command
 .Sh DESCRIPTION
@@ -613,6 +614,18 @@ be specified in order of preference.
 See the
 .Cm MACs
 keyword for more information.
+.It Fl O Ar ctl_cmd
+Control an active connection multiplexing master process.
+When the
+.Fl O
+option is specified, the 
+.Ar ctl_cmd
+argument is interpreted and passed to the master process.
+Valid commands are:
+.Dq check
+(check that the master process is running) and 
+.Dq exit
+(request the master to exit).
 .It Fl N
 Do not execute a remote command.
 This is useful for just forwarding ports
@@ -735,7 +748,7 @@ IPv6 addresses can be specified with an alternative syntax:
 .Ar hostport .
 .Xc
 .Sm on
-.It Fl S Ar ctl
+.It Fl S Ar ctl_path
 Specifies the location of a control socket for connection sharing.
 Refer to the description of
 .Cm ControlPath

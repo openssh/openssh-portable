@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.133 2004/10/29 22:53:56 djm Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.134 2004/11/07 00:01:46 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -561,7 +561,7 @@ client_process_control(fd_set * readset)
 	struct sockaddr_storage addr;
 	struct confirm_ctx *cctx;
 	char *cmd;
-	u_int len, env_len;
+	u_int len, env_len, command, flags;
 	uid_t euid;
 	gid_t egid;
 
@@ -591,24 +591,74 @@ client_process_control(fd_set * readset)
 		return;
 	}
 
-	allowed = 1;
-	if (options.control_master == 2)
-		allowed = ask_permission("Allow shared connection to %s? ",
-		    host);
-
 	unset_nonblock(client_fd);
 
+	/* Read command */
 	buffer_init(&m);
+	if (ssh_msg_recv(client_fd, &m) == -1) {
+		error("%s: client msg_recv failed", __func__);
+		close(client_fd);
+		buffer_free(&m);
+		return;
+	}
+	if ((ver = buffer_get_char(&m)) != 1) {
+		error("%s: wrong client version %d", __func__, ver);
+		buffer_free(&m);
+		close(client_fd);
+		return;
+	}
 
+	allowed = 1;
+	command = buffer_get_int(&m);
+	flags = buffer_get_int(&m);
+
+	buffer_clear(&m);
+
+	switch (command) {
+	case SSHMUX_COMMAND_OPEN:
+		if (options.control_master == 2)
+			allowed = ask_permission("Allow shared connection "
+			    "to %s? ", host);
+		/* continue below */
+		break;
+	case SSHMUX_COMMAND_TERMINATE:
+		if (options.control_master == 2)
+			allowed = ask_permission("Terminate shared connection "
+			    "to %s? ", host);
+		if (allowed)
+			quit_pending = 1;
+		/* FALLTHROUGH */	
+	case SSHMUX_COMMAND_ALIVE_CHECK:
+		/* Reply for SSHMUX_COMMAND_TERMINATE and ALIVE_CHECK */
+		buffer_clear(&m);
+		buffer_put_int(&m, allowed);
+		buffer_put_int(&m, getpid());
+		if (ssh_msg_send(client_fd, /* version */1, &m) == -1) {
+			error("%s: client msg_send failed", __func__);
+			close(client_fd);
+			buffer_free(&m);
+			return;
+		}
+		buffer_free(&m);
+		close(client_fd);
+		return;
+	default:
+		error("Unsupported command %d", command);
+		buffer_free(&m);
+		close(client_fd);
+		return;
+	}
+
+	/* Reply for SSHMUX_COMMAND_OPEN */
+	buffer_clear(&m);
 	buffer_put_int(&m, allowed);
 	buffer_put_int(&m, getpid());
-	if (ssh_msg_send(client_fd, /* version */0, &m) == -1) {
+	if (ssh_msg_send(client_fd, /* version */1, &m) == -1) {
 		error("%s: client msg_send failed", __func__);
 		close(client_fd);
 		buffer_free(&m);
 		return;
 	}
-	buffer_clear(&m);
 
 	if (!allowed) {
 		error("Refused control connection");
@@ -617,14 +667,14 @@ client_process_control(fd_set * readset)
 		return;
 	}
 
+	buffer_clear(&m);
 	if (ssh_msg_recv(client_fd, &m) == -1) {
 		error("%s: client msg_recv failed", __func__);
 		close(client_fd);
 		buffer_free(&m);
 		return;
 	}
-
-	if ((ver = buffer_get_char(&m)) != 0) {
+	if ((ver = buffer_get_char(&m)) != 1) {
 		error("%s: wrong client version %d", __func__, ver);
 		buffer_free(&m);
 		close(client_fd);
@@ -633,9 +683,8 @@ client_process_control(fd_set * readset)
 
 	cctx = xmalloc(sizeof(*cctx));
 	memset(cctx, 0, sizeof(*cctx));
-
-	cctx->want_tty = buffer_get_int(&m);
-	cctx->want_subsys = buffer_get_int(&m);
+	cctx->want_tty = (flags & SSHMUX_FLAG_TTY) != 0;
+	cctx->want_subsys = (flags & SSHMUX_FLAG_SUBSYS) != 0;
 	cctx->term = buffer_get_string(&m, &len);
 
 	cmd = buffer_get_string(&m, &len);
@@ -667,14 +716,21 @@ client_process_control(fd_set * readset)
 	if (cctx->want_tty && tcgetattr(new_fd[0], &cctx->tio) == -1)
 		error("%s: tcgetattr: %s", __func__, strerror(errno));
 
+	/* This roundtrip is just for synchronisation of ttymodes */
 	buffer_clear(&m);
-	if (ssh_msg_send(client_fd, /* version */0, &m) == -1) {
+	if (ssh_msg_send(client_fd, /* version */1, &m) == -1) {
 		error("%s: client msg_send failed", __func__);
 		close(client_fd);
 		close(new_fd[0]);
 		close(new_fd[1]);
 		close(new_fd[2]);
 		buffer_free(&m);
+		xfree(cctx->term);
+		if (env_len != 0) {
+			for (i = 0; i < env_len; i++)
+				xfree(cctx->env[i]);
+			xfree(cctx->env);
+		}
 		return;
 	}
 	buffer_free(&m);
