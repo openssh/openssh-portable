@@ -40,6 +40,11 @@
      [sshd.8 sshd.c]
      add -t option to test configuration file and keys; pekkas@netcore.fi
      ok markus@
+   - rees@cvs.openbsd.org 2001/07/26 20:04:27
+     [scard.c ssh-keygen.c]
+     Inquire Cyberflex class for 0xf0 cards
+     change aid to conform to 7816-5
+     remove gratuitous fid selects
 
 20010803
  - (djm) Fix interrupted read in entropy gatherer. Spotted by markus@ on
@@ -6150,4 +6155,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1437 2001/08/06 21:09:07 mouring Exp $
+$Id: ChangeLog,v 1.1438 2001/08/06 21:10:52 mouring Exp $

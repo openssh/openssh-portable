@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.72 2001/07/02 22:40:18 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.73 2001/07/26 20:04:27 rees Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -400,7 +400,6 @@ do_upload(struct passwd *pw, int reader)
 	struct stat st;
 	u_char *elements[NUM_RSA_KEY_ELEMENTS];
 	u_char key_fid[2];
-	u_char atr[256];
 	u_char AUT0[] = {0xad, 0x9f, 0x61, 0xfe, 0xfa, 0x20, 0xce, 0x63};
 	int len, status = 1, i, fd = -1, ret;
 	int sw = 0, cla = 0x00;
@@ -425,12 +424,12 @@ do_upload(struct passwd *pw, int reader)
 	COPY_RSA_KEY(dmp1, 4);
 	COPY_RSA_KEY(n, 5);
 	len = BN_num_bytes(prv->rsa->n);
-	fd = sectok_open(reader, 0, NULL);
+	fd = sectok_open(reader, 0, &sw);
 	if (fd < 0) {
 		error("sectok_open failed");
 		goto done;
 	}
-	ret = sectok_reset(fd, 0, atr, &sw);
+	ret = sectok_reset(fd, 0, NULL, &sw);
 	if (ret <= 0) {
 		error("sectok_reset failed");
 		goto done;

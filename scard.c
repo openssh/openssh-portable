@@ -24,7 +24,7 @@
 
 #ifdef SMARTCARD
 #include "includes.h"
-RCSID("$OpenBSD: scard.c,v 1.6 2001/07/25 11:59:35 markus Exp $");
+RCSID("$OpenBSD: scard.c,v 1.7 2001/07/26 20:04:27 rees Exp $");
 
 #include <openssl/engine.h>
 #include <sectok.h>
@@ -51,7 +51,6 @@ static int cla = 0x00;	/* class */
 static int 
 sc_open(void)
 {
-	u_char atr[256];
 	int sw;
 
 	if (sc_fd >= 0)
@@ -62,11 +61,13 @@ sc_open(void)
 		error("sectok_open failed: %s", sectok_get_sw(sw));
 		return -1;
 	}
-	if (sectok_reset(sc_fd, 0, atr, &sw) <= 0) {
+	if (sectok_reset(sc_fd, 0, NULL, &sw) <= 0) {
 		error("sectok_reset failed: %s", sectok_get_sw(sw));
 		sc_fd = -1;
 		return sc_fd;
 	}
+	if ((cla = cyberflex_inq_class(sc_fd)) < 0)
+		cla = 0;
 
 	debug("sc_open ok %d", sc_fd);
 	return sc_fd;
@@ -75,29 +76,11 @@ sc_open(void)
 static int 
 sc_enable_applet(void)
 {
-	u_char contID[2], aid[MAX_BUF_SIZE];
-	int i, len, sw, aid_len;
+	static u_char aid[] = {0xfc, 0x53, 0x73, 0x68, 0x2e, 0x62, 0x69, 0x6e};
+	int sw = 0;
 
-	len = sw = 0;
-	contID[0] = 0x77;
-	contID[1] = 0x78;
-
-	if (sectok_selectfile(sc_fd, cla, root_fid, &sw) < 0) {
-		error("sectok_selectfile root_fid failed: %s",
-		    sectok_get_sw(sw));
-		sc_close();
-		return -1;
-	}
-	if (sectok_selectfile(sc_fd, cla, contID, &sw) < 0) {
-		error("sectok_selectfile failed: %s", sectok_get_sw(sw));
-		sc_close();
-		return -1;
-	}
-	/* send applet id */
-	for (i = 0; i < sizeof(aid); i++)
-		aid[i] = 0x77;
-	aid_len = 5;
-	sectok_apdu(sc_fd, cla, 0xa4, 0x04, 0, aid_len, aid, 0, NULL, &sw);
+	/* select applet id */
+	sectok_apdu(sc_fd, cla, 0xa4, 0x04, 0, sizeof aid, aid, 0, NULL, &sw);
 	if (!sectok_swOK(sw)) {
 		error("sectok_apdu failed: %s", sectok_get_sw(sw));
 		sc_close();
