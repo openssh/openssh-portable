@@ -1,3 +1,8 @@
+20020305
+   - stevesk@cvs.openbsd.org 2002/03/02 09:34:42
+     [LICENCE]
+     correct copyright dates for scp license; ok markus@
+
 20020304
  - OpenBSD CVS Sync
    - deraadt@cvs.openbsd.org 2002/02/26 18:52:32
@@ -7793,4 +7798,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1907 2002/03/05 03:38:35 mouring Exp $
+$Id: ChangeLog,v 1.1908 2002/03/05 18:03:10 stevesk Exp $
