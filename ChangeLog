@@ -38,6 +38,9 @@
    - jakob@cvs.openbsd.org 2003/05/15 04:08:44
      [readconf.c servconf.c]
      disable kerberos when not supported. ok markus@
+   - markus@cvs.openbsd.org 2003/05/15 04:08:41
+     [ssh.1]
+     ~B is ssh2 only
  - (djm) Always parse UsePAM
  - (djm) Configure glue for DNS support (code doesn't work in portable yet)
  - (djm) Import getrrsetbyname() function from OpenBSD libc (for DNS support)
@@ -1520,4 +1523,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2718 2003/05/15 04:16:41 djm Exp $
+$Id: ChangeLog,v 1.2719 2003/05/15 04:17:28 djm Exp $

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.170 2003/05/14 22:24:42 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.171 2003/05/15 04:08:41 markus Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -302,7 +302,8 @@ to terminate
 .It Cm ~?
 Display a list of escape characters
 .It Cm ~B
-Send a BREAK to the remote system.
+Send a BREAK to the remote system (only useful for SSH protocol version 2
+and if the peer supports it)
 .It Cm ~C
 Open command line (only useful for adding port forwardings using the
 .Fl L
