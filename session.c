@@ -814,7 +814,7 @@ read_environment_file(char ***env, u_int *envsize,
 /*
  * Sets any environment variables which have been specified by PAM
  */
-void do_pam_environment(char ***env, int *envsize)
+void do_pam_environment(char ***env, u_int *envsize)
 {
 	char *equals, var_name[512], var_val[512];
 	char **pam_env;
@@ -843,7 +843,7 @@ void do_pam_environment(char ***env, int *envsize)
 #endif /* USE_PAM */
 
 #ifdef HAVE_CYGWIN
-void copy_environment(char ***env, int *envsize)
+void copy_environment(char ***env, u_int *envsize)
 {
 	char *equals, var_name[512], var_val[512];
 	int i;
