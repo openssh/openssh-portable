@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-common.c,v 1.1 2001/02/04 11:11:54 djm Exp $");
+RCSID("$OpenBSD: sftp-common.c,v 1.2 2001/02/06 23:50:10 markus Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
@@ -121,13 +121,13 @@ fx2txt(int status)
 {
 	switch (status) {
 	case SSH2_FX_OK:
-		return("No Error");
+		return("No error");
 	case SSH2_FX_EOF:
-		return("End of File");
+		return("End of file");
 	case SSH2_FX_NO_SUCH_FILE:
-		return("No Such File");
+		return("No such file or directory");
 	case SSH2_FX_PERMISSION_DENIED:
-		return("Permission Denied");
+		return("Permission denied");
 	case SSH2_FX_FAILURE:
 		return("Failure");
 	case SSH2_FX_BAD_MESSAGE:

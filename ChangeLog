@@ -1,3 +1,67 @@
+20010210
+ - (djm) Sync sftp and scp stuff from OpenBSD:
+   - djm@cvs.openbsd.org     2001/02/07 03:55:13
+     [sftp-client.c]
+     Don't free handles before we are done with them. Based on work from
+     Corinna Vinschen <vinschen@redhat.com>. ok markus@
+   - djm@cvs.openbsd.org     2001/02/06 22:32:53
+     [sftp.1]
+     Punctuation fix from Pekka Savola <pekkas@netcore.fi>
+   - deraadt@cvs.openbsd.org 2001/02/07 04:07:29
+     [sftp.1]
+     pretty up significantly
+   - itojun@cvs.openbsd.org  2001/02/07 06:49:42
+     [sftp.1]
+     .Bl-.El mismatch.  markus ok
+   - djm@cvs.openbsd.org     2001/02/07 06:12:30
+     [sftp-int.c]
+     Check that target is a directory before doing ls; ok markus@
+   - itojun@cvs.openbsd.org  2001/02/07 11:01:18
+     [scp.c sftp-client.c sftp-server.c]
+     unsigned long long -> %llu, not %qu.  markus ok
+   - stevesk@cvs.openbsd.org 2001/02/07 11:10:39
+     [sftp.1 sftp-int.c]
+     more man page cleanup and sync of help text with man page; ok markus@
+   - markus@cvs.openbsd.org  2001/02/07 14:58:34
+     [sftp-client.c]
+     older servers reply with SSH2_FXP_NAME + count==0 instead of EOF
+   - djm@cvs.openbsd.org     2001/02/07 15:27:19
+     [sftp.c]
+     Don't forward agent and X11 in sftp. Suggestion from Roumen Petrov
+     <roumen.petrov@skalasoft.com>
+   - stevesk@cvs.openbsd.org 2001/02/07 15:36:04
+     [sftp-int.c]
+     portable; ok markus@
+   - stevesk@cvs.openbsd.org 2001/02/07 15:55:47
+     [sftp-int.c]
+     lowercase cmds[].c also; ok markus@
+   - markus@cvs.openbsd.org  2001/02/07 17:04:52
+     [pathnames.h sftp.c]
+     allow sftp over ssh protocol 1; ok djm@
+   - deraadt@cvs.openbsd.org 2001/02/08 07:38:55
+     [scp.c]
+     memory leak fix, and snprintf throughout
+   - deraadt@cvs.openbsd.org 2001/02/08 08:02:02
+     [sftp-int.c]
+     plug a memory leak
+   - stevesk@cvs.openbsd.org 2001/02/08 10:11:23
+     [session.c sftp-client.c]
+     %i -> %d
+   - stevesk@cvs.openbsd.org 2001/02/08 10:57:59
+     [sftp-int.c]
+     typo
+   - stevesk@cvs.openbsd.org 2001/02/08 15:28:07
+     [sftp-int.c pathnames.h]
+     _PATH_LS; ok markus@
+   - djm@cvs.openbsd.org     2001/02/09 04:46:25
+     [sftp-int.c]
+     Check for NULL attribs for chown, chmod & chgrp operations, only send
+     relevant attribs back to server; ok markus@
+ - (djm) Update makefile.in for _PATH_SFTP_SERVER
+
+
+
+
 20010209
  - (bal) patch to vis.c to deal with HAVE_VIS right by Robert Mooney 
    <rjmooney@mediaone.net>
@@ -3703,4 +3767,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.709 2001/02/09 11:55:16 djm Exp $
+$Id: ChangeLog,v 1.710 2001/02/09 13:40:03 djm Exp $

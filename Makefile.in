@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.149 2001/02/07 23:07:09 djm Exp $
+# $Id: Makefile.in,v 1.150 2001/02/09 13:40:03 djm Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -16,10 +16,15 @@ DESTDIR=
 VPATH=@srcdir@
 SSH_PROGRAM=@bindir@/ssh
 ASKPASS_PROGRAM=$(libexecdir)/ssh-askpass
+SFTP_SERVER=$(libexecdir)/sftp-server
+
+PATHS= -DETCDIR=\"$(sysconfdir)\" \
+	-D_PATH_SSH_PROGRAM=\"$(SSH_PROGRAM)\" \
+	-D_PATH_SSH_ASKPASS_DEFAULT=\"$(ASKPASS_PROGRAM)\" \
+	-D_PATH_SFTP_SERVER=\"$(SFTP_SERVER)\"
 
 CC=@CC@
 LD=@LD@
-PATHS=-DETCDIR=\"$(sysconfdir)\" -D_PATH_SSH_PROGRAM=\"$(SSH_PROGRAM)\" -D_PATH_SSH_ASKPASS_DEFAULT=\"$(ASKPASS_PROGRAM)\"
 CFLAGS=@CFLAGS@
 CPPFLAGS=@CPPFLAGS@ -I. -I$(srcdir)/openbsd-compat -I$(srcdir) $(PATHS) @DEFS@
 LIBS=@LIBS@
@@ -162,7 +167,7 @@ install-files:
 	$(INSTALL) -m 0775 -s ssh-keyscan $(DESTDIR)$(bindir)/ssh-keyscan
 	$(INSTALL) -m 0755 -s sshd $(DESTDIR)$(sbindir)/sshd
 	@NO_SFTP@$(INSTALL) -m 0755 -s sftp $(DESTDIR)$(bindir)/sftp
-	@NO_SFTP@$(INSTALL) -m 0755 -s sftp-server $(DESTDIR)$(libexecdir)/sftp-server
+	@NO_SFTP@$(INSTALL) -m 0755 -s sftp-server $(DESTDIR)$(SFTP_SERVER)
 	$(INSTALL) -m 644 ssh.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh.1
 	$(INSTALL) -m 644 scp.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/scp.1
 	$(INSTALL) -m 644 ssh-add.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-add.1
@@ -250,7 +255,7 @@ uninstall:
 	-rm -f $(DESTDIR)$(bindir)/ssh-keyscan$(EXEEXT)
 	-rm -f $(DESTDIR)$(bindir)/sftp$(EXEEXT)
 	-rm -f $(DESTDIR)$(sbindir)/sshd$(EXEEXT)
-	-rm -r $(DESTDIR)$(libexecdir)/sftp-server$(EXEEXT)
+	-rm -r $(DESTDIR)$(SFTP_SERVER)$(EXEEXT)
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/ssh.1
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/scp.1
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-add.1

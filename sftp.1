@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.1 2001/02/04 11:11:54 djm Exp $
+.\" $OpenBSD: sftp.1,v 1.5 2001/02/07 18:10:39 stevesk Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller. All rights reserved.
 .\"
@@ -30,7 +30,7 @@
 .Nd Secure file tranfer program
 .Sh SYNOPSIS
 .Nm sftp
-.Op Fl v Li | Fl C
+.Op Fl vC
 .Op Fl o Ar ssh_option
 .Op Ar hostname | user@hostname
 .Sh DESCRIPTION
@@ -44,113 +44,122 @@ It may also use many features of ssh, such as public key authentication and
 compression.
 .Nm
 connects and logs into the specified
-.Ar hostname
+.Ar hostname ,
 then enters an interactive command mode.
 .Pp
 The options are as follows:
 .Bl -tag -width Ds
+.It Fl v
+Raise logging level. This option is also passed to ssh.
 .It Fl C
 Enables compression (via ssh's 
 .Fl C
 flag)
-.It Fl v
-Raise logging level. This option is also passed to ssh.
 .It Fl o Ar ssh_option
 Specify an option to be directly passed to
 .Xr ssh 1 .
 .El
 .Sh INTERACTIVE COMMANDS
-Once in interactive mode
-.Nm ,
+Once in interactive mode,
+.Nm
 understands a set of commands similar to those of 
 .Xr ftp 1 .
 Commands are case insensitive.
 .Bl -tag -width Ds
-.It Ic CD Ar path
+.It Ic cd Ar path
 Change remote directory to 
-.Ar path
-.It Ic LCD Ar path
+.Ar path .
+.It Ic lcd Ar path
 Change local directory to 
-.Ar path
-.It Ic CHGRP Ar grp Ar path
+.Ar path .
+.It Ic chgrp Ar grp Ar path
 Change group of file 
-.Ar path to 
+.Ar path
+to
 .Ar grp .
 .Ar grp
-must be numeric.
-.It Ic CHMOD Ar mode Ar path
+must be a numeric GID.
+.It Ic chmod Ar mode Ar path
 Change permissions of file 
-.Ar path to 
-.Ar mode
-.It Ic CHOWN Ar own Ar path
+.Ar path
+to
+.Ar mode .
+.It Ic chown Ar own Ar path
 Change owner of file 
-.Ar path to 
+.Ar path
+to
 .Ar own .
 .Ar own
 must be a numeric UID.
-.It Ic HELP
-Display help text
-.It Ic GET Ar remote-file Op Ar local-file
+.It Ic help
+Display help text.
+.It Ic get Ar remote-path Op Ar local-path
 Retrieve the
-.Ar remote-file
+.Ar remote-path
 and store it on the local machine.
 If the local
-file name is not specified, it is given the same name it has on the 
+path name is not specified, it is given the same name it has on the 
 remote machine.
-.It Ic LLS Op Ar ls-options Op Ar path
+.It Ic lls Op Ar ls-options Op Ar path
 Display local directory listing of either 
 .Ar path
 or current directory if
 .Ar path
-was not specified.
-.It Ic LMKDIR Ar path
+is not specified.
+.It Ic lmkdir Ar path
 Create local directory specified by
-.Ar path
-.It Ic LPWD
-Print local working directory
-.It Ic LS Op Ar path
+.Ar path .
+.It Ic lpwd
+Print local working directory.
+.It Ic ls Op Ar path
 Display remote directory listing of either
 .Ar path
-or current directory, is
-.Ar path not specified.
-.It Ic LUMASK Ar umask
-Set local umask to 
-.Ar umask
-.It Ic MKDIR Ar path
-Create remote directory specified by
+or current directory if
 .Ar path
-.It Ic PUT local-file Op Ar remote-file
+is not specified.
+.It Ic lumask Ar umask
+Set local umask to 
+.Ar umask .
+.It Ic mkdir Ar path
+Create remote directory specified by
+.Ar path .
+.It Ic put Ar local-path Op Ar remote-path
 Upload
-.Ar local-file
-and store it on the remote machine. If the local file name is not specified, 
+.Ar local-path
+and store it on the remote machine. If the remote path name is not specified, 
 it is given the same name it has on the local machine.
-.It Ic PWD
-Display remote working directory
-.It Ic EXIT
-Quit sftp
-.It Ic QUIT
-Quit sftp
-.It Ic RENAME Ar oldpath Ar newpath
+.It Ic pwd
+Display remote working directory.
+.It Ic exit
+Quit sftp.
+.It Ic quit
+Quit sftp.
+.It Ic rename Ar oldpath Ar newpath
 Rename remote file from
 .Ar oldpath
 to
-.Ar newpath
-.It Ic RMDIR Ar path
+.Ar newpath .
+.It Ic rmdir Ar path
 Remove remote directory specified by
-.Ar path
-.It Ic RM Ar path
+.Ar path .
+.It Ic rm Ar path
 Delete remote file specified by
-.Ar path
+.Ar path .
 .It Ic ! Ar command
 Execute 
 .Ar command
-in local shell
+in local shell.
 .It Ic !
-Escape to local shell
+Escape to local shell.
+.It Ic ?
+Synonym for help.
+.El
 .Sh AUTHORS
 Damien Miller <djm@mindrot.org>
 .Sh SEE ALSO
 .Xr ssh 1 ,
 .Xr ssh-add 1 ,
 .Xr ssh-keygen 1 ,
-.Xr sshd 8
+.Xr sshd 8 ,
+.Xr scp 1
+

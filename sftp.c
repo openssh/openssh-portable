@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.2 2001/02/04 15:32:25 stevesk Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.7 2001/02/08 00:04:52 markus Exp $");
 
 /* XXX: commandline mode */
 /* XXX: copy between two remote hosts (commandline) */
@@ -39,6 +39,10 @@ RCSID("$OpenBSD: sftp.c,v 1.2 2001/02/04 15:32:25 stevesk Exp $");
 #include "sftp-common.h"
 #include "sftp-client.h"
 #include "sftp-int.h"
+
+int use_ssh1 = 0;
+char *ssh_program = _PATH_SSH_PROGRAM;
+char *sftp_server = NULL;
 
 void
 connect_to_server(char **args, int *in, int *out, pid_t *sshpid)
@@ -72,8 +76,8 @@ connect_to_server(char **args, int *in, int *out, pid_t *sshpid)
 		close(*out);
 		close(c_in);
 		close(c_out);
-		execv(_PATH_SSH_PROGRAM, args);
-		fprintf(stderr, "exec: %s", strerror(errno));
+		execv(ssh_program, args);
+		fprintf(stderr, "exec: %s: %s\n", ssh_program, strerror(errno));
 		exit(1);
 	}
 
@@ -87,16 +91,24 @@ make_ssh_args(char *add_arg)
 	static char **args = NULL;
 	static int nargs = 0;
 	char debug_buf[4096];
-	int i;
+	int i, use_subsystem = 1;
+
+	/* no subsystem if protocol 1 or the server-spec contains a '/' */
+	if (use_ssh1 ||
+	    (sftp_server != NULL && strchr(sftp_server, '/') != NULL))
+		use_subsystem = 0;
 
 	/* Init args array */
 	if (args == NULL) {
-		nargs = 4;
+		nargs = use_subsystem ? 6 : 5;
 		i = 0;
 		args = xmalloc(sizeof(*args) * nargs);
 		args[i++] = "ssh";
-		args[i++] = "-oProtocol=2";
-		args[i++] = "-s";
+		args[i++] = use_ssh1 ? "-oProtocol=1" : "-oProtocol=2";
+		if (use_subsystem)
+			args[i++] = "-s";
+		args[i++] = "-oForwardAgent=no";
+		args[i++] = "-oForwardX11=no";
 		args[i++] = NULL;
 	}
 
@@ -110,7 +122,10 @@ make_ssh_args(char *add_arg)
 	}
 
 	/* Otherwise finish up and return the arg array */
-	make_ssh_args("sftp");
+	if (sftp_server != NULL)
+		make_ssh_args(sftp_server);
+	else
+		make_ssh_args("sftp");
 
 	/* XXX: overflow - doesn't grow debug_buf */
 	debug_buf[0] = '\0';
@@ -128,49 +143,70 @@ make_ssh_args(char *add_arg)
 void
 usage(void)
 {
-	fprintf(stderr, "usage: sftp [-vC] [-osshopt=value] [user@]host\n");
+	fprintf(stderr, "usage: sftp [-1vC] [-osshopt=value] [user@]host\n");
 	exit(1);
 }
 
 int
 main(int argc, char **argv)
 {
-	int in, out, i, debug_level, compress_flag;
+	int in, out, ch, debug_level, compress_flag;
 	pid_t sshpid;
-	char *cp;
+	char *host, *userhost;
 	LogLevel ll;
+	extern int optind;
+	extern char *optarg;
 
 	debug_level = compress_flag = 0;
-	for(i = 1; i < argc && argv[i][0] == '-'; i++) {
-		if (!strcmp(argv[i], "-v"))
-			debug_level = MIN(3, debug_level + 1);
-		else if (!strcmp(argv[i], "-C"))
+
+	while ((ch = getopt(argc, argv, "1hvCo:s:S:")) != -1) {
+		switch (ch) {
+		case 'C':
 			compress_flag = 1;
-		else if (!strncmp(argv[i], "-o", 2)) {
-			make_ssh_args(argv[i]);
-		} else {
-			fprintf(stderr, "Unknown option \"%s\"\n", argv[i]);
+			break;
+		case 'v':
+			debug_level = MIN(3, debug_level + 1);
+			break;
+		case 'o':
+			make_ssh_args("-o");
+			make_ssh_args(optarg);
+			break;
+		case '1':
+			use_ssh1 = 1;
+			if (sftp_server == NULL)
+				sftp_server = _PATH_SFTP_SERVER;
+			break;
+		case 's':
+			sftp_server = optarg;
+			break;
+		case 'S':
+			ssh_program = optarg;
+			break;
+		case 'h':
+		default:
 			usage();
 		}
 	}
 
-	if (i == argc || argc > (i + 1))
+	if (optind == argc || argc > (optind + 1))
 		usage();
 
-	if ((cp = strchr(argv[i], '@')) == NULL)
-		cp = argv[i];
+	userhost = argv[optind];
+
+	if ((host = strchr(userhost, '@')) == NULL)
+		host = userhost;
 	else {
-		*cp = '\0';
-		if (!argv[i][0]) {
+		*host = '\0';
+		if (!userhost[0]) {
 			fprintf(stderr, "Missing username\n");
 			usage();
 		}
 		make_ssh_args("-l");
-		make_ssh_args(argv[i]);
-		cp++;
+		make_ssh_args(userhost);
+		host++;
 	}
 
-	if (!*cp) {
+	if (!*host) {
 		fprintf(stderr, "Missing hostname\n");
 		usage();
 	}
@@ -200,9 +236,9 @@ main(int argc, char **argv)
 
 	log_init(argv[0], ll, SYSLOG_FACILITY_USER, 1);
 
-	make_ssh_args(cp);
+	make_ssh_args(host);
 
-	fprintf(stderr, "Connecting to %s...\n", cp);
+	fprintf(stderr, "Connecting to %s...\n", host);
 
 	connect_to_server(make_ssh_args(NULL), &in, &out, &sshpid);
 
@@ -216,7 +252,8 @@ main(int argc, char **argv)
 	if (kill(sshpid, SIGHUP) == -1)
 		fatal("Couldn't terminate ssh process: %s", strerror(errno));
 
-	/* XXX: wait? */
+	if (waitpid(sshpid, NULL, 0) == -1)
+		fatal("Couldn't wait for ssh process: %s", strerror(errno));
 
 	exit(0);
 }
