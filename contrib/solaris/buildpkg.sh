@@ -98,6 +98,19 @@ do
         eval $confvar=`grep "^$confvar=" Makefile | cut -d = -f 2`
 done
 
+
+## Collect value of privsep user
+for confvar in SSH_PRIVSEP_USER
+do
+        eval $confvar=`awk '/#define[ \t]'$confvar'/{print $3}' config.h`
+done
+
+## Set privsep defaults if not defined
+if [ -z "$SSH_PRIVSEP_USER" ]
+then
+        SSH_PRIVSEP_USER=sshd
+fi
+
 ## Extract common info requires for the 'info' part of the package.
 VERSION=`./ssh -V 2>&1 | sed -e 's/,.*//'`
 
@@ -213,6 +226,33 @@ fi
 [ -d $piddir ]  ||  installf ${PKGNAME} \${PKG_INSTALL_ROOT}$TEST_DIR$piddir d 755 root sys
 
 installf -f ${PKGNAME}
+
+if egrep '^[ \t]*UsePrivilegeSeparation[ \t]+no' $sysconfdir/sshd_config >/dev/null
+then
+        echo "UsePrivilegeSeparation disabled in config, not creating PrivSep user"
+        echo "or group."
+else
+        echo "UsePrivilegeSeparation enabled in config (or defaulting to on)."
+
+        # create group if required
+        if cut -f1 -d: /etc/group | egrep '^'$SSH_PRIVSEP_USER'\$' >/dev/null
+        then
+                echo "PrivSep group $SSH_PRIVSEP_USER already exists."
+        else
+                echo "Creating PrivSep group $SSH_PRIVSEP_USER."
+                groupadd $SSH_PRIVSEP_USER
+        fi
+
+        # Create user if required
+        if cut -f1 -d: /etc/passwd | egrep '^'$SSH_PRIVSEP_USER'\$' >/dev/null
+        then
+                echo "PrivSep user $SSH_PRIVSEP_USER already exists."
+        else
+                echo "Creating PrivSep user $SSH_PRIVSEP_USER."
+                useradd -c 'SSHD PrivSep User' -s /bin/false -g $SSH_PRIVSEP_USER $SSH_PRIVSEP_USER
+		passwd -l $SSH_PRIVSEP_USER
+        fi
+fi
 
 [ "\${POST_INS_START}" = "yes" ]  &&  ${TEST_DIR}/etc/init.d/${SYSVINIT_NAME} start
 exit 0
