@@ -1,3 +1,6 @@
+20010402
+ - (stevesk) log.c openbsd sync; missing newlines
+
 20010330
  - (djm) Another openbsd-compat/glob.c sync
  - (djm) OpenBSD CVS Sync
@@ -4792,4 +4795,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1042 2001/03/30 00:50:32 djm Exp $
+$Id: ChangeLog,v 1.1043 2001/04/02 13:45:00 stevesk Exp $

@@ -268,7 +268,7 @@ log_init(char *av0, LogLevel level, SyslogFacility facility, int on_stderr)
 		log_level = level;
 		break;
 	default:
-		fprintf(stderr, "Unrecognized internal syslog level code %d",
+		fprintf(stderr, "Unrecognized internal syslog level code %d\n",
 		    (int) level);
 		exit(1);
 	}
@@ -318,7 +318,7 @@ log_init(char *av0, LogLevel level, SyslogFacility facility, int on_stderr)
 		break;
 	default:
 		fprintf(stderr,
-		    "Unrecognized internal syslog facility code %d",
+		    "Unrecognized internal syslog facility code %d\n",
 		    (int) facility);
 		exit(1);
 	}
