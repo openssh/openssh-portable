@@ -95,6 +95,6 @@ struct rrsetinfo {
 int		getrrsetbyname(const char *, unsigned int, unsigned int, unsigned int, struct rrsetinfo **);
 void		freerrset(struct rrsetinfo *);
 
-#endif /* defined(DNS) && !defined(HAVE_GETRRSETBYNAME) */
+#endif /* !defined(HAVE_GETRRSETBYNAME) */
 
 #endif /* _GETRRSETBYNAME_H */

@@ -575,4 +575,4 @@ count_dns_rr(struct dns_rr *p, u_int16_t class, u_int16_t type)
 	return (n);
 }
 
-#endif /* defined(DNS) && !defined(HAVE_GETRRSETBYNAME) */
+#endif /* !defined(HAVE_GETRRSETBYNAME) */
