@@ -9,6 +9,10 @@
    - djm@cvs.openbsd.org 2004/08/23 11:48:47
      [channels.c]
      typo, spotted by Martin.Kraemer AT Fujitsu-Siemens.com; ok markus
+   - dtucker@cvs.openbsd.org 2004/08/23 14:26:38
+     [ssh-keysign.c ssh.c]
+     Use permanently_set_uid() in ssh and ssh-keysign for consistency, matches
+     change in Portable; ok markus@ (CVS ID sync only)
 
 20040828
  - (dtucker) [openbsd-compat/mktemp.c] Remove superfluous Cygwin #ifdef; from
@@ -1676,4 +1680,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3524 2004/08/29 06:29:44 dtucker Exp $
+$Id: ChangeLog,v 1.3525 2004/08/29 06:31:28 dtucker Exp $
