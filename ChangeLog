@@ -1,3 +1,9 @@
+20020624
+ - OpenBSD CVS Sync
+   - deraadt@cvs.openbsd.org 2002/06/23 03:25:50
+     [tildexpand.c]
+     KNF
+
 20020623
  - (stevesk) [configure.ac] bug #255 LOGIN_NEEDS_UTMPX for AIX.
  - (bal) removed GNUism for getops in ssh-agent since glibc lacks optreset.
@@ -1041,4 +1047,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2253 2002/06/23 00:38:24 mouring Exp $
+$Id: ChangeLog,v 1.2254 2002/06/23 21:20:34 mouring Exp $
