@@ -55,6 +55,10 @@
      [session.c]
      disclose less information from environment files; based on input 
      from djm, and dschultz@uclink.Berkeley.EDU
+   - markus@cvs.openbsd.org 2002/06/26 13:55:37
+     [auth2-chall.c]
+     make sure # of response matches # of queries, fixes int overflow; 
+     from ISS
  - (djm) Require krb5 devel for RPM build w/ KrbV 
  - (djm) Improve PAMAuthenticationViaKbdInt text from Nalin Dahyabhai 
    <nalin@redhat.com>
@@ -1159,4 +1163,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2299 2002/06/26 13:57:59 djm Exp $
+$Id: ChangeLog,v 1.2300 2002/06/26 13:58:39 djm Exp $
