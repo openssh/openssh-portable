@@ -1,8 +1,8 @@
 20010228
  - (djm) Detect endianness in configure and use it in rijndael.c. Fixes
    "Bad packet length" bugs.
- - (djm) Fully revert PAM session patch. All PAM session init is now done 
-   before the final fork().
+ - (djm) Fully revert PAM session patch (again). All PAM session init is 
+   now done before the final fork().
 
 20010227
  - (bal) Applied shutdown() patch for sftp.c by  Corinna Vinschen 
@@ -4164,4 +4164,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.838 2001/02/28 00:46:11 djm Exp $
+$Id: ChangeLog,v 1.839 2001/02/28 00:48:06 djm Exp $
