@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.96 2002/06/08 05:17:01 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.97 2002/06/08 05:40:01 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -670,7 +670,7 @@ parse_int:
 		break;
 
 	case oDeprecated:
-		fatal("%s line %d: Deprecated option \"%s\"",
+		error("%s line %d: Deprecated option \"%s\"",
 		    filename, linenum, keyword);
 		break;
 
