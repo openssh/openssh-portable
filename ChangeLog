@@ -7,6 +7,7 @@
  - Merged OpenBSD CVS changes:
    - [rsa.c] bugfix: use correct size for memset()
    - [sshconnect.c] warn if announced size of modulus 'n' != real size
+ - Added GNOME passphrase requestor (use --with-gnome-askpass)
 
 19991108
  - Removed debian/ directory. This is now being maintained separately.

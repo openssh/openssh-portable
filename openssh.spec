@@ -20,6 +20,8 @@ up to date in terms of security and features, as well as removing all
 patented algorithms to seperate libraries (OpenSSL).
 
 %changelog
+* Tue Nov 09 1999 Damien Miller <djm@ibs.com.au>
+- Use make install
 * Mon Nov 08 1999 Damien Miller <djm@ibs.com.au>
 - Added links for slogin
 - Fixed perms on manpages
@@ -39,38 +41,17 @@ patented algorithms to seperate libraries (OpenSSL).
 
 %build
 
-CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=/usr --sysconfdir=/etc/ssh
+CFLAGS="$RPM_OPT_FLAGS" \
+	./configure --prefix=/usr --sysconfdir=/etc/ssh --enable-gnome-askpass
 
 %install
 rm -rf $RPM_BUILD_ROOT
-mkdir -p $RPM_BUILD_ROOT/usr/bin 
-mkdir -p $RPM_BUILD_ROOT/usr/sbin 
-mkdir -p $RPM_BUILD_ROOT/etc/rc.d/init.d
-mkdir -p $RPM_BUILD_ROOT/etc/pam.d
-mkdir -p $RPM_BUILD_ROOT/etc/ssh
-mkdir -p $RPM_BUILD_ROOT/usr/man/man1
-mkdir -p $RPM_BUILD_ROOT/usr/man/man8
+make install prefix="$RPM_BUILD_ROOT/usr"
 
 install -m644 sshd.pam $RPM_BUILD_ROOT/etc/pam.d/sshd
 install -m755 sshd.init.redhat $RPM_BUILD_ROOT/etc/rc.d/init.d/sshd
 install -m600 ssh_config $RPM_BUILD_ROOT/etc/ssh/ssh_config
 install -m600 sshd_config $RPM_BUILD_ROOT/etc/ssh/sshd_config
-
-install -s -m755 sshd $RPM_BUILD_ROOT/usr/sbin
-install -s -m755 ssh $RPM_BUILD_ROOT/usr/bin
-install -s -m755 scp $RPM_BUILD_ROOT/usr/bin
-install -s -m755 ssh-agent $RPM_BUILD_ROOT/usr/bin
-install -s -m755 ssh-add $RPM_BUILD_ROOT/usr/bin
-install -s -m755 ssh-keygen $RPM_BUILD_ROOT/usr/bin
-ln -s ssh $RPM_BUILD_ROOT/usr/bin/slogin
-
-install -m644 sshd.8 $RPM_BUILD_ROOT/usr/man/man8
-install -m644 ssh.1 $RPM_BUILD_ROOT/usr/man/man1
-install -m644 scp.1 $RPM_BUILD_ROOT/usr/man/man1
-install -m644 ssh-agent.1 $RPM_BUILD_ROOT/usr/man/man1
-install -m644 ssh-add.1 $RPM_BUILD_ROOT/usr/man/man1
-install -m644 ssh-keygen.1 $RPM_BUILD_ROOT/usr/man/man1
-ln -s ssh.1 $RPM_BUILD_ROOT/usr/man/man1/slogin.1
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -103,6 +84,7 @@ fi
 %attr(0755,root,root) /usr/bin/ssh-add
 %attr(0755,root,root) /usr/bin/scp
 %attr(0755,root,root) /usr/bin/slogin
+%attr(0755,root,root) /usr/lib/ssh/ssh-askpass
 
 %attr(0644,root,root) /usr/man/man8/sshd.8
 %attr(0644,root,root) /usr/man/man1/ssh.1
