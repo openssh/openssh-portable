@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.14 2001/04/09 00:42:05 stevesk Exp $
+.\" $OpenBSD: sftp.1,v 1.15 2001/04/12 23:17:54 mouring Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -33,7 +33,11 @@
 .Op Fl vC
 .Op Fl b Ar batchfile
 .Op Fl o Ar ssh_option
-.Op Ar hostname | user@hostname
+.Op Ar host
+.Nm sftp
+.Op [\fIuser\fR@]\fIhost\fR[:\fIfile\fR [\fIfile\fR]]
+.Nm sftp
+.Op [\fIuser\fR@]\fIhost\fR[:\fIdir\fR[\fI/\fR]] 
 .Sh DESCRIPTION
 .Nm
 is an interactive file transfer program, similar to
@@ -47,6 +51,12 @@ compression.
 connects and logs into the specified
 .Ar hostname ,
 then enters an interactive command mode.
+.Pp
+The second usage format will fetch files automaticly if a non-interactive 
+authentication is used, else it do so after an interactive authenication 
+is used.
+.Pp
+The last usage format allows the sftp client to start in a remote directory.
 .Pp
 The options are as follows:
 .Bl -tag -width Ds

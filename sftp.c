@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.13 2001/04/08 20:52:55 deraadt Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.14 2001/04/12 23:17:54 mouring Exp $");
 
 /* XXX: commandline mode */
 /* XXX: copy between two remote hosts (commandline) */
@@ -147,7 +147,7 @@ make_ssh_args(char *add_arg)
 void
 usage(void)
 {
-	fprintf(stderr, "usage: sftp [-1vC] [-b batchfile] [-osshopt=value] [user@]host\n");
+	fprintf(stderr, "usage: sftp [-1vC] [-b batchfile] [-osshopt=value] [user@]host[:file [file]]\n");
 	exit(1);
 }
 
@@ -156,7 +156,8 @@ main(int argc, char **argv)
 {
 	int in, out, ch, debug_level, compress_flag;
 	pid_t sshpid;
-	char *host, *userhost;
+	char *file1 = NULL;
+	char *host, *userhost, *cp, *file2;
 	LogLevel ll;
 	extern int optind;
 	extern char *optarg;
@@ -202,22 +203,27 @@ main(int argc, char **argv)
 		}
 	}
 
-	if (optind == argc || argc > (optind + 1))
+	if (optind == argc || argc > (optind + 2))
 		usage();
 
 	userhost = xstrdup(argv[optind]);
+	file2 = argv[optind+1];
+
+	if ((cp = strchr(userhost, ':')) != NULL) {
+		*cp++ = '\0';
+		file1 = cp;
+	}
 
 	if ((host = strchr(userhost, '@')) == NULL)
 		host = userhost;
 	else {
-		*host = '\0';
+		*host++ = '\0';
 		if (!userhost[0]) {
 			fprintf(stderr, "Missing username\n");
 			usage();
 		}
 		make_ssh_args("-l");
 		make_ssh_args(userhost);
-		host++;
 	}
 
 	if (!*host) {
@@ -256,7 +262,7 @@ main(int argc, char **argv)
 
 	connect_to_server(make_ssh_args(NULL), &in, &out, &sshpid);
 
-	interactive_loop(in, out);
+	interactive_loop(in, out, file1, file2);
 
 #if !defined(USE_PIPES)
         shutdown(in, SHUT_RDWR);

@@ -4,7 +4,6 @@
      [ssh.c]                                                
      show debug output during option processing, report from 
      pekkas@netcore.fi
- - OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2001/04/12 19:15:26
      [auth-rhosts.c auth.h auth2.c buffer.c canohost.c canohost.h 
       compat.c compat.h hostfile.c pathnames.h readconf.c readconf.h 
@@ -19,6 +18,12 @@
    - stevesk@cvs.openbsd.org 2001/04/12 20:09:38
      [misc.c misc.h readconf.c servconf.c ssh.c sshd.c]
      robust port validation; ok markus@ jakob@
+   - mouring@cvs.openbsd.org 2001/04/12 23:17:54
+     [sftp-int.c sftp-int.h sftp.1 sftp.c]
+     Add support for:
+        sftp [user@]host[:file [file]]  - Fetch remote file(s)
+        sftp [user@]host[:dir[/]]       - Start in remote dir/
+     OK deraadt@
  - (bal) Added openbsd-compat/inet_ntop.[ch] since HP/UX (and others)
    lack it.
 
@@ -5041,4 +5046,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1105 2001/04/12 23:39:26 mouring Exp $
+$Id: ChangeLog,v 1.1106 2001/04/13 00:00:14 mouring Exp $

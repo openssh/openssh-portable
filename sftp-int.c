@@ -26,7 +26,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.34 2001/04/11 07:06:22 djm Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.35 2001/04/12 23:17:54 mouring Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -856,9 +856,10 @@ parse_dispatch_command(int in, int out, const char *cmd, char **pwd)
 }
 
 void
-interactive_loop(int fd_in, int fd_out)
+interactive_loop(int fd_in, int fd_out, char *file1, char *file2)
 {
 	char *pwd;
+	char *dir = NULL;
 	char cmd[2048];
 
 	version = do_init(fd_in, fd_out);
@@ -869,6 +870,25 @@ interactive_loop(int fd_in, int fd_out)
 	if (pwd == NULL)
 		fatal("Need cwd");
 
+	if (file1 != NULL) {
+		dir = xstrdup(file1);
+		dir = make_absolute(dir, pwd);
+
+		if (remote_is_dir(fd_in, fd_out, dir) && file2 == NULL) {
+			printf("Changing to: %s\n", dir);
+			snprintf(cmd, sizeof cmd, "cd \"%s\"", dir);
+			parse_dispatch_command(fd_in, fd_out, cmd, &pwd);
+		} else {
+			if (file2 == NULL)
+				snprintf(cmd, sizeof cmd, "get %s", dir);
+			else
+				snprintf(cmd, sizeof cmd, "get %s %s", dir,
+				    file2);
+
+			parse_dispatch_command(fd_in, fd_out, cmd, &pwd);
+			return;
+		}
+	}
 	setvbuf(stdout, NULL, _IOLBF, 0);
 	setvbuf(infile, NULL, _IOLBF, 0);
 
