@@ -24,7 +24,7 @@
 
 #ifdef SMARTCARD
 #include "includes.h"
-RCSID("$OpenBSD: scard.c,v 1.7 2001/07/26 20:04:27 rees Exp $");
+RCSID("$OpenBSD: scard.c,v 1.8 2001/07/30 16:06:07 jakob Exp $");
 
 #include <openssl/engine.h>
 #include <sectok.h>
@@ -56,15 +56,20 @@ sc_open(void)
 	if (sc_fd >= 0)
 		return sc_fd;
 
-	sc_fd = sectok_open(sc_reader_num, 0, &sw);
+	sc_fd = sectok_open(sc_reader_num, STONOWAIT, &sw);
 	if (sc_fd < 0) {
 		error("sectok_open failed: %s", sectok_get_sw(sw));
-		return -1;
+		return SCARD_ERROR_FAIL;
+	}
+	if (! sectok_cardpresent(sc_fd)) {
+		error("smartcard in reader %d not present, skipping",
+		    sc_reader_num);
+		return SCARD_ERROR_NOCARD;
 	}
 	if (sectok_reset(sc_fd, 0, NULL, &sw) <= 0) {
 		error("sectok_reset failed: %s", sectok_get_sw(sw));
 		sc_fd = -1;
-		return sc_fd;
+		return SCARD_ERROR_FAIL;
 	}
 	if ((cla = cyberflex_inq_class(sc_fd)) < 0)
 		cla = 0;
@@ -92,13 +97,19 @@ sc_enable_applet(void)
 static int 
 sc_init(void)
 {
-	if (sc_open() < 0) {
+	int status;
+
+	status = sc_open();
+	if (status == SCARD_ERROR_NOCARD) {
+		return SCARD_ERROR_NOCARD;
+	}
+	if (status < 0 ) {
 		error("sc_open failed");
-		return -1;
+		return status;
 	}
 	if (sc_enable_applet() < 0) {
 		error("sc_enable_applet failed");
-		return -1;
+		return SCARD_ERROR_APPLET;
 	}
 	return 0;
 }
@@ -108,13 +119,15 @@ sc_read_pubkey(Key * k)
 {
 	u_char buf[2], *n;
 	char *p;
-	int len, sw;
+	int len, sw, status;
 
 	len = sw = 0;
 
-	if (sc_fd < 0)
-		if (sc_init() < 0)
-			return -1;
+	if (sc_fd < 0) {
+		status = sc_init();
+		if (status < 0 )
+			return status;
+	}
 
 	/* get key size */
 	sectok_apdu(sc_fd, CLA_SSH, INS_GET_KEYLENGTH, 0, 0, 0, NULL,
@@ -165,14 +178,16 @@ static int
 sc_private_decrypt(int flen, u_char *from, u_char *to, RSA *rsa, int padding)
 {
 	u_char *padded = NULL;
-	int sw, len, olen;
+	int sw, len, olen, status;
 
 	debug("sc_private_decrypt called");
 
 	olen = len = sw = 0;
-	if (sc_fd < 0)
-		if (sc_init() < 0)
+	if (sc_fd < 0) {
+		status = sc_init();
+		if (status < 0 )
 			goto err;
+	}
 	if (padding != RSA_PKCS1_PADDING)
 		goto err;
 
@@ -199,19 +214,21 @@ sc_private_decrypt(int flen, u_char *from, u_char *to, RSA *rsa, int padding)
 err:
 	if (padded)
 		xfree(padded);
-	return olen;
+	return (olen >= 0 ? olen : status);
 }
 
 static int
 sc_private_encrypt(int flen, u_char *from, u_char *to, RSA *rsa, int padding)
 {
 	u_char *padded = NULL;
-	int sw, len;
+	int sw, len, status;
 
 	len = sw = 0;
-	if (sc_fd < 0)
-		if (sc_init() < 0)
+	if (sc_fd < 0) {
+		status = sc_init();
+		if (status < 0 )
 			goto err;
+	}
 	if (padding != RSA_PKCS1_PADDING)
 		goto err;
 
@@ -241,7 +258,7 @@ sc_private_encrypt(int flen, u_char *from, u_char *to, RSA *rsa, int padding)
 err:
 	if (padded)
 		xfree(padded);
-	return len;
+	return (len >= 0 ? len : status);
 }
 
 /* engine for overloading private key operations */
