@@ -111,7 +111,7 @@ void get_random_bytes(unsigned char *buf, int len)
 		fatal("Couldn't create AF_UNIX socket: %s", strerror(errno));
 	
 	if (connect(random_pool, (struct sockaddr*)&addr, addr_len) == -1)
-		fatal("Couldn't connect to EGD socket \"%s\": %s", RANDOM_POOL, strerror(errno));
+		fatal("Couldn't connect to EGD socket \"%s\": %s", addr.sun_path, strerror(errno));
 
 	if (len > 255)
 		fatal("Too many bytes to read from EGD");
