@@ -264,7 +264,6 @@ main(int ac, char **av)
 	struct passwd *pw;
 	int dummy;
 	uid_t original_effective_uid;
-	extern int optopt;
 	extern int optind, optreset;
 	extern char *optarg;
 
