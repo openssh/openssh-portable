@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.154 2003/05/18 10:52:40 djm Exp $ */
+/* $Id: acconfig.h,v 1.155 2003/06/03 00:14:28 djm Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -11,6 +11,7 @@
 /* Define to a Set Process Title type if your system is */
 /* supported by bsd-setproctitle.c */
 #undef SPT_TYPE
+#undef SPT_PADCHAR
 
 /* setgroups() NOOP allowed */
 #undef SETGROUPS_NOOP
@@ -363,10 +364,6 @@
 
 /* Silly mkstemp() */
 #undef HAVE_STRICT_MKSTEMP
-
-/* Setproctitle emulation */
-#undef SETPROCTITLE_STRATEGY
-#undef SETPROCTITLE_PS_PADDING
 
 /* Some systems put this outside of libc */
 #undef HAVE_NANOSLEEP
