@@ -885,62 +885,28 @@ read_environment_file(char ***env, u_int *envsize,
 	fclose(f);
 }
 
-#ifdef USE_PAM
-/*
- * Sets any environment variables which have been specified by PAM
- */
-void do_pam_environment(char ***env, u_int *envsize)
+void copy_environment(char **source, char ***env, u_int *envsize)
 {
-	char *equals, var_name[512], var_val[512];
-	char **pam_env;
+	char *var_name, *var_val;
 	int i;
 
-	if ((pam_env = fetch_pam_environment()) == NULL)
+	if (source == NULL)
 		return;
 
-	for(i = 0; pam_env[i] != NULL; i++) {
-		if ((equals = strstr(pam_env[i], "=")) == NULL)
+	for(i = 0; source[i] != NULL; i++) {
+		var_name = xstrdup(source[i]);
+		if ((var_val = strstr(var_name, "=")) == NULL) {
+			xfree(var_name);
 			continue;
-
-		if (strlen(pam_env[i]) < (sizeof(var_name) - 1)) {
-			memset(var_name, '\0', sizeof(var_name));
-			memset(var_val, '\0', sizeof(var_val));
-
-			strncpy(var_name, pam_env[i], equals - pam_env[i]);
-			strcpy(var_val, equals + 1);
-
-			debug3("PAM environment: %s=%s", var_name, var_val);
-
-			child_set_env(env, envsize, var_name, var_val);
 		}
+		*var_val++ = '\0';
+
+		debug3("Copy environment: %s=%s", var_name, var_val);
+		child_set_env(env, envsize, var_name, var_val);
+		
+		xfree(var_name);
 	}
 }
-#endif /* USE_PAM */
-
-#ifdef HAVE_CYGWIN
-void copy_environment(char ***env, u_int *envsize)
-{
-	char *equals, var_name[512], var_val[512];
-	int i;
-
-	for(i = 0; environ[i] != NULL; i++) {
-		if ((equals = strstr(environ[i], "=")) == NULL)
-			continue;
-
-		if (strlen(environ[i]) < (sizeof(var_name) - 1)) {
-			memset(var_name, '\0', sizeof(var_name));
-			memset(var_val, '\0', sizeof(var_val));
-
-			strncpy(var_name, environ[i], equals - environ[i]);
-			strcpy(var_val, equals + 1);
-
-			debug3("Copy environment: %s=%s", var_name, var_val);
-
-			child_set_env(env, envsize, var_name, var_val);
-		}
-	}
-}
-#endif
 
 #if defined(HAVE_GETUSERATTR)
 /*
@@ -1215,7 +1181,7 @@ do_child(Session *s, const char *command)
 	 * The Windows environment contains some setting which are
 	 * important for a running system. They must not be dropped.
 	 */
-	copy_environment(&env, &envsize);
+	copy_environment(environ, &env, &envsize);
 #endif
 
 	if (!options.use_login) {
@@ -1299,7 +1265,7 @@ do_child(Session *s, const char *command)
 #endif
 #ifdef USE_PAM
 	/* Pull in any environment variables that may have been set by PAM. */
-	do_pam_environment(&env, &envsize);
+	copy_environment(fetch_pam_environment(), &env, &envsize);
 #endif /* USE_PAM */
 
 	if (auth_get_socket_name() != NULL)
