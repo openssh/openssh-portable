@@ -2,6 +2,34 @@
 20001229
  - (bal) Fixed spelling of 'authorized_keys' in ssh-copy-id.1 by Christian 
    Kurz <shorty@debain.org>
+ - (bal) OpenBSD CVS Update
+   - markus@cvs.openbsd.org 2000/12/28 14:25:51
+     [auth.h auth2.c]
+     count authentication failures only
+   - markus@cvs.openbsd.org 2000/12/28 14:25:03
+     [sshconnect.c]
+     fingerprint for MITM attacks, too.
+   - markus@cvs.openbsd.org 2000/12/28 12:03:57
+     [sshd.8 sshd.c]
+     document -D
+   - markus@cvs.openbsd.org 2000/12/27 14:19:21
+     [serverloop.c]
+     less chatty
+   - markus@cvs.openbsd.org 2000/12/27 12:34
+     [auth1.c sshconnect2.c sshd.c]
+     typo
+   - markus@cvs.openbsd.org 2000/12/27 12:30:19
+     [readconf.c readconf.h ssh.1 sshconnect.c]
+     new option: HostKeyAlias: allow the user to record the host key
+     under a different name. This is useful for ssh tunneling over
+     forwarded connections or if you run multiple sshd's on different
+     ports on the same machine.
+   - markus@cvs.openbsd.org 2000/12/27 11:51:53
+     [ssh.1 ssh.c]
+     multiple -t force pty allocation, document ORIGINAL_COMMAND
+   - markus@cvs.openbsd.org 2000/12/27 11:41:31
+     [sshd.8]
+     update for ssh-2
 
 20001228
  - (bal) Patch to add libutil.h to loginrec.c only if the platform has

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.72 2000/12/12 23:11:48 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.74 2000/12/27 12:30:20 markus Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -475,6 +475,11 @@ Force pseudo-tty allocation.
 This can be used to execute arbitrary
 screen-based programs on a remote machine, which can be very useful,
 e.g., when implementing menu services.
+Multiple
+.Fl t
+options force tty allocation, even if
+.Nm
+has no local tty.
 .It Fl T
 Disable pseudo-tty allocation.
 .It Fl v
@@ -484,10 +489,9 @@ Causes
 to print debugging messages about its progress.
 This is helpful in
 debugging connection, authentication, and configuration problems.
-The verbose mode is also used to display
-.Xr skey 1
-challenges, if the user entered "s/key" as password.
-Multiple -v options increases the verbosity.
+Multiple
+.Fl v
+options increases the verbosity.
 Maximum is 3.
 .It Fl x
 Disables X11 forwarding.
@@ -742,6 +746,12 @@ The default is
 .It Cm GlobalKnownHostsFile
 Specifies a file to use instead of
 .Pa /etc/ssh_known_hosts .
+.It Cm HostKeyAlias
+Specifies an alias that should be used instead of the
+real host name when looking up or saving the host key
+the kown_hosts files.
+This option is useful for tunneling ssh connection
+or if you have multiple servers running on a single host.
 .It Cm HostName
 Specifies the real host name to log into.
 This can be used to specify nicknames or abbreviations for hosts.
@@ -1023,6 +1033,10 @@ Identifies the client end of the connection.
 The variable contains
 three space-separated values: client ip-address, client port number,
 and server port number.
+.It Ev SSH_ORIGINAL_COMMAND
+The variable contains the original command line if a forced command
+is executed.
+It can be used to extract the original arguments.
 .It Ev SSH_TTY
 This is set to the name of the tty (path to the device) associated
 with the current shell or command.

@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.142 2000/12/20 19:37:22 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.144 2000/12/28 12:03:58 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -653,6 +653,7 @@ main(int ac, char **av)
 			fprintf(stderr, "  -f file    Configuration file (default %s)\n", SERVER_CONFIG_FILE);
 			fprintf(stderr, "  -d         Debugging mode (multiple -d means more debugging)\n");
 			fprintf(stderr, "  -i         Started from inetd\n");
+			fprintf(stderr, "  -D         Do not fork into daemon mode\n");
 			fprintf(stderr, "  -q         Quiet (no logging)\n");
 			fprintf(stderr, "  -p port    Listen on the specified port (default: 22)\n");
 			fprintf(stderr, "  -k seconds Regenerate server key every this many seconds (default: 3600)\n");
@@ -947,7 +948,7 @@ main(int ac, char **av)
 					/*
 					 * the read end of the pipe is ready
 					 * if the child has closed the pipe
-					 * after successfull authentication
+					 * after successful authentication
 					 * or if the child has died
 					 */
 					close(startup_pipes[i]);

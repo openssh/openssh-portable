@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.23 2000/12/19 23:17:55 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.24 2000/12/28 14:25:51 markus Exp $");
 
 #ifdef HAVE_OSF_SIA
 # include <sia.h>
@@ -124,6 +124,7 @@ do_authentication2()
 	memset(authctxt, 'a', sizeof(*authctxt));
 	authctxt->valid = 0;
 	authctxt->attempt = 0;
+	authctxt->failures = 0;
 	authctxt->success = 0;
 	x_authctxt = authctxt;		/*XXX*/
 
@@ -190,21 +191,14 @@ input_userauth_request(int type, int plen, void *ctxt)
 
 	if (authctxt == NULL)
 		fatal("input_userauth_request: no authctxt");
-	if (authctxt->attempt++ >= AUTH_FAIL_MAX) {
-#ifdef WITH_AIXAUTHENTICATE 
-		loginfailed(authctxt->user?authctxt->user:"NOUSER", 
-			get_canonical_hostname(), "ssh");
-#endif /* WITH_AIXAUTHENTICATE */
-		packet_disconnect("too many failed userauth_requests");
-	}
 
 	user = packet_get_string(NULL);
 	service = packet_get_string(NULL);
 	method = packet_get_string(NULL);
 	debug("userauth-request for user %s service %s method %s", user, service, method);
-	debug("attempt #%d", authctxt->attempt);
+	debug("attempt %d failures %d", authctxt->attempt, authctxt->failures);
 
-	if (authctxt->attempt == 1) { 
+	if (authctxt->attempt++ == 0) {
 		/* setup auth context */
 		struct passwd *pw = NULL;
 		setproctitle("%s", user);
@@ -273,7 +267,7 @@ userauth_log(Authctxt *authctxt, int authenticated, char *method)
 	/* Raise logging level */
 	if (authenticated == 1 ||
 	    !authctxt->valid ||
-	    authctxt->attempt >= AUTH_FAIL_LOG ||
+	    authctxt->failures >= AUTH_FAIL_LOG ||
 	    strcmp(method, "password") == 0)
 		authlog = log;
 
@@ -302,6 +296,7 @@ userauth_log(Authctxt *authctxt, int authenticated, char *method)
 void   
 userauth_reply(Authctxt *authctxt, int authenticated)
 {
+	char *methods;
 	/* XXX todo: check if multiple auth methods are needed */
 	if (authenticated == 1) {
 #ifdef WITH_AIXAUTHENTICATE
@@ -318,7 +313,9 @@ userauth_reply(Authctxt *authctxt, int authenticated)
 		/* now we can break out */
 		authctxt->success = 1;
 	} else if (authenticated == 0) {
-		char *methods = authmethods_get();
+		if (authctxt->failures++ >= AUTH_FAIL_MAX)
+			packet_disconnect("too many failed userauth_requests");
+		methods = authmethods_get();
 		packet_start(SSH2_MSG_USERAUTH_FAILURE);
 		packet_put_cstring(methods);
 		packet_put_char(0);	/* XXX partial success, unused */

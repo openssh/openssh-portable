@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.78 2000/12/19 23:17:58 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.79 2000/12/27 11:51:54 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/dsa.h>
@@ -79,10 +79,11 @@ int debug_flag = 0;
 
 /* Flag indicating whether a tty should be allocated */
 int tty_flag = 0;
+int no_tty_flag = 0;
+int force_tty_flag = 0;
 
 /* don't exec a shell */
 int no_shell_flag = 0;
-int no_tty_flag = 0;
 
 /*
  * Flag indicating that nothing should be read from stdin.  This can be set
@@ -373,6 +374,8 @@ main(int ac, char **av)
 			options.identity_files[options.num_identity_files++] = xstrdup(optarg);
 			break;
 		case 't':
+			if (tty_flag)
+				force_tty_flag = 1;
 			tty_flag = 1;
 			break;
 		case 'v':
@@ -521,7 +524,7 @@ main(int ac, char **av)
 	if (no_tty_flag)
 		tty_flag = 0;
 	/* Do not allocate a tty if stdin is not a tty. */
-	if (!isatty(fileno(stdin))) {
+	if (!isatty(fileno(stdin)) && !force_tty_flag) {
 		if (tty_flag)
 			fprintf(stderr, "Pseudo-terminal will not be allocated because stdin is not a terminal.\n");
 		tty_flag = 0;

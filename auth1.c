@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.8 2000/12/19 23:17:55 markus Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.9 2000/12/27 12:34:49 markus Exp $");
 
 #ifdef HAVE_OSF_SIA
 # include <sia.h>
@@ -71,7 +71,7 @@ get_authname(int type)
 
 /*
  * read packets and try to authenticate local user 'luser'.
- * return if authentication is successfull. not that pw == NULL
+ * return if authentication is successful. not that pw == NULL
  * if the user does not exists or is not allowed to login.
  * each auth method has to 'fake' authentication for nonexisting
  * users.
@@ -469,11 +469,11 @@ do_authentication()
 	} else {
 		/* Loop until the user has been authenticated or the
 		   connection is closed, do_authloop() returns only if
-		   authentication is successfull */
+		   authentication is successful */
 		do_authloop(pw, user);
 	}
 	if (pw == NULL)
-		fatal("internal error, authentication successfull for user '%.100s'", user);
+		fatal("internal error, authentication successful for user '%.100s'", user);
 
 	/* The user has been authenticated and accepted. */
 	packet_start(SSH_SMSG_SUCCESS);

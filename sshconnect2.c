@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.33 2000/12/20 19:37:22 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.34 2000/12/27 12:34:50 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
@@ -548,7 +548,7 @@ ssh_userauth2(const char *server_user, char *host)
 	if (authctxt.agent != NULL)
 		ssh_close_authentication_connection(authctxt.agent);
 
-	debug("ssh-userauth2 successfull: method %s", authctxt.method->name);
+	debug("ssh-userauth2 successful: method %s", authctxt.method->name);
 }
 void
 input_userauth_error(int type, int plen, void *ctxt)
