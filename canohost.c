@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: canohost.c,v 1.21 2001/02/08 19:30:51 itojun Exp $");
+RCSID("$OpenBSD: canohost.c,v 1.22 2001/02/08 22:37:10 markus Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -142,10 +142,10 @@ get_remote_hostname(int socket, int reverse_mapping_check)
 void
 check_ip_options(int socket, char *ipaddr)
 {
-	u_char options[200], *ucp;
-	char text[1024], *cp;
+	u_char options[200];
+	char text[sizeof(options) * 3 + 1];
 	socklen_t option_size;
-	int ipproto;
+	int i, ipproto;
 	struct protoent *ip;
 
 	if ((ip = getprotobyname("ip")) != NULL)
@@ -155,10 +155,10 @@ check_ip_options(int socket, char *ipaddr)
 	option_size = sizeof(options);
 	if (getsockopt(socket, ipproto, IP_OPTIONS, (void *)options,
 	    &option_size) >= 0 && option_size != 0) {
-		cp = text;
-		/* Note: "text" buffer must be at least 3x as big as options. */
-		for (ucp = options; option_size > 0; ucp++, option_size--, cp += 3)
-			sprintf(cp, " %2.2x", *ucp);
+		text[0] = '\0';
+		for (i = 0; i < option_size; i++)
+			snprintf(text + i*3, sizeof(text) - i*3,
+			    " %2.2x", options[i]);
 		log("Connection from %.100s with IP options:%.800s",
 		    ipaddr, text);
 		packet_disconnect("Connection from %.100s with IP options:%.800s",
