@@ -3,6 +3,9 @@
    - markus@cvs.openbsd.org 2001/05/12 19:53:13
      [sftp-server.c]
      readlink does not NULL-terminate; mhe@home.se
+   - deraadt@cvs.openbsd.org 2001/05/15 22:04:01
+     [ssh.1]
+     X11 forwarding details improved
 
 20010512
  - OpenBSD CVS Sync
@@ -5408,4 +5411,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1219 2001/05/17 03:14:57 mouring Exp $
+$Id: ChangeLog,v 1.1220 2001/05/17 03:16:18 mouring Exp $
