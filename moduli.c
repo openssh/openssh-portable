@@ -1,4 +1,4 @@
-/* $OpenBSD: moduli.c,v 1.5 2003/12/22 09:16:57 djm Exp $ */
+/* $OpenBSD: moduli.c,v 1.6 2004/04/22 11:56:57 djm Exp $ */
 /*
  * Copyright 1994 Phil Karn <karn@qualcomm.com>
  * Copyright 1996-1998, 2003 William Allen Simpson <wsimpson@greendragon.com>
@@ -58,7 +58,7 @@
 #define QTYPE_UNSTRUCTURED      (1)
 #define QTYPE_SAFE              (2)
 #define QTYPE_SCHNOOR           (3)
-#define QTYPE_SOPHIE_GERMAINE   (4)
+#define QTYPE_SOPHIE_GERMAIN    (4)
 #define QTYPE_STRONG            (5)
 
 /* Tests: decimal (bit field).
@@ -219,7 +219,7 @@ sieve_large(u_int32_t s)
 }
 
 /*
- * list candidates for Sophie-Germaine primes (where q = (p-1)/2)
+ * list candidates for Sophie-Germain primes (where q = (p-1)/2)
  * to standard output.
  * The list is checked against small known primes (less than 2**30).
  */
@@ -403,7 +403,7 @@ gen_candidates(FILE *out, int memory, int power, BIGNUM *start)
 		debug2("test q = largebase+%u", 2 * j);
 		BN_set_word(q, 2 * j);
 		BN_add(q, q, largebase);
-		if (qfileout(out, QTYPE_SOPHIE_GERMAINE, QTEST_SIEVE,
+		if (qfileout(out, QTYPE_SOPHIE_GERMAIN, QTEST_SIEVE,
 		    largetries, (power - 1) /* MSB */, (0), q) == -1) {
 			ret = -1;
 			break;
@@ -490,8 +490,8 @@ prime_test(FILE *in, FILE *out, u_int32_t trials,
 
 		/* modulus (hex) */
 		switch (in_type) {
-		case QTYPE_SOPHIE_GERMAINE:
-			debug2("%10u: (%u) Sophie-Germaine", count_in, in_type);
+		case QTYPE_SOPHIE_GERMAIN:
+			debug2("%10u: (%u) Sophie-Germain", count_in, in_type);
 			a = q;
 			BN_hex2bn(&a, cp);
 			/* p = 2*q + 1 */

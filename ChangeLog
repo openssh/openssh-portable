@@ -1,3 +1,10 @@
+20050502
+ - (dtucker) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2004/04/22 11:56:57
+     [moduli.c]
+     Bugzilla #850: Sophie Germain is the correct name of the French
+     mathematician, "Sophie Germaine" isn't; from Luc.Maisonobe@c-s.fr
+
 20040423
  - (dtucker) [configure.ac openbsd-compat/getrrsetbyname.c] Declare h_errno
    as extern int if not already declared.  Fixes compile errors on old SCO
@@ -1038,4 +1045,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3332 2004/04/23 08:57:13 dtucker Exp $
+$Id: ChangeLog,v 1.3333 2004/05/02 12:09:00 dtucker Exp $
