@@ -152,6 +152,9 @@
    - markus@cvs.openbsd.org 2002/01/12 13:10:29
      [auth-skey.c]
      undo local change
+   - provos@cvs.openbsd.org 2002/01/13 17:27:07
+     [ssh-agent.c]
+     change to use queue.h macros; okay markus@
 
 
 20020121
@@ -7300,4 +7303,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1766 2002/01/22 12:25:46 djm Exp $
+$Id: ChangeLog,v 1.1767 2002/01/22 12:26:13 djm Exp $
