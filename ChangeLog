@@ -45,6 +45,14 @@
    - markus@cvs.openbsd.org 2003/05/11 20:30:25
      [channels.c clientloop.c serverloop.c session.c ssh.c]
      make channel_new() strdup the 'remote_name' (not the caller); ok theo
+   - markus@cvs.openbsd.org 2003/05/12 16:55:37
+     [sshconnect2.c]
+     for pubkey authentication try the user keys in the following order:
+        1. agent keys that are found in the config file
+        2. other agent keys
+        3. keys that are only listed in the config file
+     this helps when an agent has many keys, where the server might
+     close the connection before the correct key is used. report & ok pb@
 
 20030512
  - (djm) Redhat spec: Don't install profile.d scripts when not 
@@ -1432,4 +1440,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2688 2003/05/14 03:45:42 djm Exp $
+$Id: ChangeLog,v 1.2689 2003/05/14 03:46:00 djm Exp $
