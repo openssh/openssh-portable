@@ -1,3 +1,6 @@
+20010301
+ - (djm) Properly add -lcrypt if needed. 
+
 20010228
  - (djm) Detect endianness in configure and use it in rijndael.c. Fixes
    "Bad packet length" bugs.
@@ -4166,4 +4169,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.841 2001/02/28 01:51:18 djm Exp $
+$Id: ChangeLog,v 1.842 2001/02/28 22:16:11 djm Exp $

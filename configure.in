@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.259 2001/02/28 01:51:19 djm Exp $
+# $Id: configure.in,v 1.260 2001/02/28 22:16:12 djm Exp $
 
 AC_INIT(ssh.c)
 
@@ -749,7 +749,7 @@ fi
 # Some Linux systems (Slackware) need crypt() from libcrypt, *not* the 
 # version in OpenSSL. Skip this for PAM
 if test "x$PAM_MSG" = "xno" -a "x$check_for_libcrypt_later" = "x1"; then
-	AC_CHECK_LIB(crypt, crypt, , )
+	AC_CHECK_LIB(crypt, crypt, LIBS="$LIBS -lcrypt")
 fi
 
 # Cheap hack to ensure NEWS-OS libraries are arranged right.
