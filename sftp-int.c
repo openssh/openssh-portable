@@ -443,7 +443,7 @@ parse_dispatch_command(int in, int out, const char *cmd, char **pwd)
 	int pflag, cmdnum;
 	unsigned long n_arg;
 	Attrib a, *aa;
-	char path_buf[PATH_MAX];
+	char path_buf[MAXPATHLEN];
 
 	path1 = path2 = NULL;
 	cmdnum = parse_args(&cmd, &pflag, &n_arg, &path1, &path2);
