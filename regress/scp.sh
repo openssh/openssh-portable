@@ -5,6 +5,13 @@ tid="scp"
 
 #set -x
 
+# Figure out if diff understands "-N"
+if diff -N ${SRC}/scp.sh ${SRC}/scp.sh 2>/dev/null; then
+	DIFFOPT="-rN"
+else
+	DIFFOPT="-r"
+fi
+
 DATA=/bin/ls
 COPY=${OBJ}/copy
 COPY2=${OBJ}/copy2
@@ -48,14 +55,14 @@ scpclean
 rm -rf ${DIR2}
 cp ${DATA} ${DIR}/copy
 $SCP $scpopts -r ${DIR} somehost:${DIR2} || fail "copy failed"
-diff -rN ${DIR} ${DIR2} || fail "corrupted copy"
+diff ${DIFFOPT} ${DIR} ${DIR2} || fail "corrupted copy"
 
 verbose "$tid: recursive remote dir to local dir"
 scpclean
 rm -rf ${DIR2}
 cp ${DATA} ${DIR}/copy
 $SCP $scpopts -r somehost:${DIR} ${DIR2} || fail "copy failed"
-diff -rN ${DIR} ${DIR2} || fail "corrupted copy"
+diff ${DIFFOPT} ${DIR} ${DIR2} || fail "corrupted copy"
 
 for i in 0 1 2 3 4; do
 	verbose "$tid: disallow bad server #$i"
