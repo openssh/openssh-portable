@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$Id: bsd-misc.c,v 1.7 2002/06/12 16:57:15 mouring Exp $");
+RCSID("$Id: bsd-misc.c,v 1.8 2002/06/13 21:34:58 mouring Exp $");
 
 char *get_progname(char *argv0)
 {
@@ -123,7 +123,7 @@ int truncate (const char *path, off_t length)
  * Cygwin setgroups should be a noop.
  */
 int
-setgroups(size_t size, const git_t *list)
+setgroups(size_t size, const gid_t *list)
 {
 	return 0;
 }

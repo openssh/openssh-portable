@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: bsd-misc.h,v 1.5 2002/06/12 16:57:15 mouring Exp $ */
+/* $Id: bsd-misc.h,v 1.6 2002/06/13 21:34:58 mouring Exp $ */
 
 #ifndef _BSD_MISC_H
 #define _BSD_MISC_H
@@ -77,7 +77,7 @@ int truncate (const char *path, off_t length);
 #endif /* HAVE_TRUNCATE */
 
 #if !defined(HAVE_SETGROUPS) && defined(SETGROUPS_NOOP)
-int setgroups(size_t size, const git_t *list);
+int setgroups(size_t size, const gid_t *list);
 #endif
 
 
