@@ -1,3 +1,6 @@
+20011005
+ - (bal) AES works under Cray, no more hack. 
+
 20011004
  - (bal) nchan2.ms resync.  BSD License applied.
 
@@ -6635,4 +6638,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1582 2001/10/04 21:16:57 mouring Exp $
+$Id: ChangeLog,v 1.1583 2001/10/06 00:08:09 mouring Exp $
