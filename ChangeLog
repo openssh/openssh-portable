@@ -1,6 +1,8 @@
 20010218
  - (bal) Patch for fix FCHMOD reference in ftp-client.c by Tim Rice 
    <tim@multitalents.net> 
+ - (Bal) Patch for lack of RA_RESTART in misc.c for mysignal by
+   stevesk
 
 20010217
  - (bal) OpenBSD Sync:
@@ -4008,4 +4010,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.783 2001/02/17 16:47:47 mouring Exp $
+$Id: ChangeLog,v 1.784 2001/02/17 16:51:07 mouring Exp $
