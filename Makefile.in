@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.191 2001/12/23 14:41:48 djm Exp $
+# $Id: Makefile.in,v 1.192 2001/12/25 04:32:58 stevesk Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -122,8 +122,8 @@ sftp-server$(EXEEXT): $(LIBCOMPAT) libssh.a sftp.o sftp-common.o sftp-server.o
 sftp$(EXEEXT): $(LIBCOMPAT) libssh.a sftp.o sftp-client.o sftp-int.o sftp-common.o sftp-glob.o
 	$(LD) -o $@ sftp.o sftp-client.o sftp-common.o sftp-int.o sftp-glob.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
-ssh-rand-helper${EXEEXT}: $(LIBCOMPAT) ssh-rand-helper.o
-	$(LD) -o $@ ssh-rand-helper.o atomicio.o log.o xmalloc.o $(LDFLAGS) -lopenbsd-compat $(LIBS)
+ssh-rand-helper${EXEEXT}: $(LIBCOMPAT) libssh.a ssh-rand-helper.o
+	$(LD) -o $@ ssh-rand-helper.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
 # test driver for the loginrec code - not built by default
 logintest: logintest.o $(LIBCOMPAT) libssh.a loginrec.o

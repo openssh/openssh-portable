@@ -39,7 +39,13 @@
 #include "pathnames.h"
 #include "log.h"
 
-RCSID("$Id: ssh-rand-helper.c,v 1.1 2001/12/23 14:41:48 djm Exp $");
+#ifdef HAVE___PROGNAME
+extern char *__progname;
+#else
+char *__progname;
+#endif
+
+RCSID("$Id: ssh-rand-helper.c,v 1.2 2001/12/25 04:32:58 stevesk Exp $");
 
 #define RANDOM_SEED_SIZE 48
 
@@ -786,6 +792,7 @@ main(int argc, char **argv)
 	unsigned char buf[48];
 	int ret;
 
+	__progname = get_progname(argv[0]);
 	/* XXX: need some debugging mode */
 	log_init(argv[0], SYSLOG_LEVEL_INFO, SYSLOG_FACILITY_USER, 1);
 

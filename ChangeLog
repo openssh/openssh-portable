@@ -1,3 +1,7 @@
+20011225
+ - (stevesk) [Makefile.in ssh-rand-helper.c]
+   portable lib and __progname support for ssh-rand-helper; ok djm@
+
 20011223
  - (bal) Removed contrib/chroot.diff and noted in contrib/README that it
    was not being maintained.
@@ -7100,4 +7104,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1707 2001/12/24 02:59:19 mouring Exp $
+$Id: ChangeLog,v 1.1708 2001/12/25 04:32:58 stevesk Exp $
