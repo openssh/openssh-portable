@@ -1,4 +1,4 @@
-/*	$OpenBSD: gss-serv.c,v 1.2 2003/08/31 13:30:18 markus Exp $	*/
+/*	$OpenBSD: gss-serv.c,v 1.3 2003/08/31 13:31:57 markus Exp $	*/
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -137,15 +137,15 @@ ssh_gssapi_parse_ename(Gssctxt *ctx, gss_buffer_t ename, gss_buffer_t name)
 	char *tok;
 	OM_uint32 offset;
 	OM_uint32 oidl;
-	
+
 	tok=ename->value;
-	
-	/* 
-	 * Check that ename is long enough for all of the fixed length 
+
+	/*
+	 * Check that ename is long enough for all of the fixed length
 	 * header, and that the initial ID bytes are correct
 	 */
 
-	if (ename->length<6 || memcmp(tok,"\x04\x01", 2)!=0) 
+	if (ename->length<6 || memcmp(tok,"\x04\x01", 2)!=0)
 		return GSS_S_FAILURE;
 
 	/*
@@ -163,27 +163,27 @@ ssh_gssapi_parse_ename(Gssctxt *ctx, gss_buffer_t ename, gss_buffer_t name)
 	 * string is long enough and that the OID matches that in our context
 	 */
 	if (tok[4] != 0x06 || tok[5] != oidl ||
-	    ename->length < oidl+6 ||        
+	    ename->length < oidl+6 ||
 	   !ssh_gssapi_check_oid(ctx,tok+6,oidl))
 		return GSS_S_FAILURE;
 
 	offset = oidl+6;
-	
+
 	if (ename->length < offset+4)
 		return GSS_S_FAILURE;
-		
+
 	name->length = GET_32BIT(tok+offset);
 	offset += 4;
-	
+
 	if (ename->length < offset+name->length)
-        	return GSS_S_FAILURE;
-	
+		return GSS_S_FAILURE;
+
 	name->value = xmalloc(name->length+1);
 	memcpy(name->value,tok+offset,name->length);
 	((char *)name->value)[name->length] = 0;
 
 	return GSS_S_COMPLETE;
-} 
+}
 
 /* Extract the client details from a given context. This can only reliably
  * be called once for a context */
@@ -195,7 +195,7 @@ ssh_gssapi_getclient(Gssctxt *ctx, ssh_gssapi_client *client)
 	int i = 0;
 
 	gss_buffer_desc ename;
-	
+
 	client->mech = NULL;
 
 	while (supported_mechs[i]->name != NULL) {
@@ -206,21 +206,21 @@ ssh_gssapi_getclient(Gssctxt *ctx, ssh_gssapi_client *client)
 		i++;
 	}
 
-	if (client->mech == NULL) 
+	if (client->mech == NULL)
 		return GSS_S_FAILURE;
-	
-	if ((ctx->major = gss_display_name(&ctx->minor, ctx->client, 
+
+	if ((ctx->major = gss_display_name(&ctx->minor, ctx->client,
 	    &client->displayname, NULL))) {
-	        ssh_gssapi_error(ctx);
-	        return (ctx->major);
+		ssh_gssapi_error(ctx);
+		return (ctx->major);
 	}
-	
-	if ((ctx->major = gss_export_name(&ctx->minor, ctx->client, 
+
+	if ((ctx->major = gss_export_name(&ctx->minor, ctx->client,
 	    &ename))) {
 		ssh_gssapi_error(ctx);
 		return (ctx->major);
 	}
-	
+
 	if ((ctx->major = ssh_gssapi_parse_ename(ctx,&ename,
 	    &client->exportedname))) {
 		return (ctx->major);

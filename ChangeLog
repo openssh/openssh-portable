@@ -29,6 +29,9 @@
    - markus@cvs.openbsd.org 2003/08/31 13:30:18
      [gss-serv.c]
      correct string termination in parse_ename(); sxw@inf.ed.ac.uk
+   - markus@cvs.openbsd.org 2003/08/31 13:31:57
+     [gss-serv.c]
+     whitspace KNF
 
 20030829
  - (bal) openbsd-compat/ clean up.  Considate headers, add in Id on our
@@ -944,4 +947,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2927 2003/09/02 12:56:18 djm Exp $
+$Id: ChangeLog,v 1.2928 2003/09/02 12:56:42 djm Exp $
