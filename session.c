@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.100 2001/08/16 19:18:34 jakob Exp $");
+RCSID("$OpenBSD: session.c,v 1.101 2001/09/14 18:59:11 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1685,7 +1685,7 @@ session_subsystem_req(Session *s)
 		if(strcmp(subsys, options.subsystem_name[i]) == 0) {
 			debug("subsystem: exec() %s", options.subsystem_command[i]);
 			s->is_subsystem = 1;
-			do_exec_no_pty(s, options.subsystem_command[i]);
+			do_exec(s, options.subsystem_command[i]);
 			success = 1;
 		}
 	}
