@@ -40,7 +40,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-/* RCSID("$Id: loginrec.h,v 1.5 2001/02/05 12:42:18 stevesk Exp $"); */
+/* RCSID("$Id: loginrec.h,v 1.6 2001/05/08 20:33:06 mouring Exp $"); */
 
 /**
  ** you should use the login_* calls to work around platform dependencies
@@ -110,6 +110,9 @@ void login_set_current_time(struct logininfo *li);
 /* record the entry */
 int login_login (struct logininfo *li);
 int login_logout(struct logininfo *li);
+#ifdef LOGIN_NEEDS_UTMPX
+int login_utmp_only(struct logininfo *li);
+#endif
 
 /** End of public functions */
 

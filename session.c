@@ -127,6 +127,9 @@ void	session_proctitle(Session *s);
 void	do_exec_pty(Session *s, const char *command);
 void	do_exec_no_pty(Session *s, const char *command);
 void	do_login(Session *s, const char *command);
+#ifdef LOGIN_NEEDS_UTMPX
+void	do_pre_login(Session *s);
+#endif
 void	do_child(Session *s, const char *command);
 void	do_motd(void);
 int	check_quietlogin(Session *s, const char *command);
@@ -644,6 +647,10 @@ do_exec_pty(Session *s, const char *command)
 #ifndef HAVE_OSF_SIA
 		if (!(options.use_login && command == NULL))
 			do_login(s, command);
+# ifdef LOGIN_NEEDS_UTMPX
+		else
+			do_pre_login(s);
+# endif
 #endif
 
 		/* Do common processing for the child, such as execing the command. */
@@ -686,6 +693,34 @@ do_exec_pty(Session *s, const char *command)
 		session_pty_cleanup(s);
 	}
 }
+
+#ifdef LOGIN_NEEDS_UTMPX
+void
+do_pre_login(Session *s)
+{
+	socklen_t fromlen;
+	struct sockaddr_storage from;
+	pid_t pid = getpid();
+
+	/*
+	 * Get IP address of client. If the connection is not a socket, let
+	 * the address be 0.0.0.0.
+	 */
+	memset(&from, 0, sizeof(from));
+	if (packet_connection_is_on_socket()) {
+		fromlen = sizeof(from);
+		if (getpeername(packet_get_connection_in(),
+		     (struct sockaddr *) & from, &fromlen) < 0) {
+			debug("getpeername: %.100s", strerror(errno));
+			fatal_cleanup();
+		}
+	}
+
+	record_utmp_only(pid, s->tty, s->pw->pw_name,
+	    get_remote_name_or_ip(utmp_len, options.reverse_mapping_check),
+	    (struct sockaddr *)&from);
+}
+#endif
 
 /* administrative, login(1)-like work */
 void
@@ -1511,6 +1546,9 @@ do_child(Session *s, const char *command)
 			/* Launch login(1). */
 
 			execl(LOGIN_PROGRAM, "login", "-h", hostname,
+#ifdef LOGIN_NEEDS_TERM
+			     s->term? s->term : "unknown",
+#endif
 			     "-p", "-f", "--", pw->pw_name, NULL);
 
 			/* Login couldn't be executed, die. */
