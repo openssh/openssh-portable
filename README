@@ -2,7 +2,8 @@ This is the Unix port of OpenBSD's excellent OpenSSH.
 
 OpenSSH is based on the last free version of Tatu Ylonen's SSH with
 all patent-encumbered algorithms removed, all known security bugs
-fixed, new features reintroduced and many other clean-ups.
+fixed, new features reintroduced and many other clean-ups. More
+information about SSH itself can be found in the file README.Ylonen.
 
 This port consists of the re-introduction of autoconf support, PAM
 support (for Linux and Solaris), EGD[1] support, and replacements for
@@ -13,8 +14,7 @@ tracks changes in the OpenBSD CVS repository.
 
 The PAM support is now more functional than the popular packages of
 commercial ssh-1.2.x. It checks "account" and "session" modules for
-all logins, not just when using password authentication. This code is
-very new and needs further testing.
+all logins, not just when using password authentication.
 
 All new code is released under a XFree style license, which is very
 liberal. Please refer to the source files for details. The code in
@@ -22,18 +22,22 @@ strlcpy.c and mktemp.c is from the OpenBSD project and has its own
 license (again, see source file for details).
 
 OpenSSH depends on Zlib[2], OpenSSL[3] and optionally PAM[4]. To build
-the GNOME[5] passphrase requestor (--with-gnome-askpass), you will
+the GNOME[5] pass-phrase requester (--with-gnome-askpass), you will
 need the GNOME libraries installed. If you are building OpenSSH on a
 Unix which lacks a kernel random number pool (/dev/random), you will
 need to install EGD[1].
 
-There is now a mailing list for this port of OpenSSH. To subscribe, 
-send a message conststing of the word 'SUBSCRIBE' to 
-openssh-unix-dev-request@mindrot.org. This mailing list is intended for
-developers.
+There is now a mailing list for this port of OpenSSH. To
+subscribe, send a message consisting of the word 'SUBSCRIBE' to
+openssh-unix-dev-request@mindrot.org. This mailing list is intended
+for developers.
 
 Please refer to the INSTALL document for information on how to install
 OpenSSH on your system.
+
+OpenSSH is developed primarily on Linux, but I am including patches
+which improve compatability with other unices. The beginnings of
+Solaris support have already been included.
 
 Damien Miller <djm@ibs.com.au>
 Internet Business Solutions
@@ -47,7 +51,7 @@ Niels Kristian Bech Jensen <nkbj@image.dk> - Makefile patch
 Nalin Dahyabhai <nalin.dahyabhai@pobox.com> - PAM environment patch
 Phil Hands <phil@hands.com> - Debian scripts, assorted patches
 Niels Kristian Bech Jensen <nkbj@image.dk> - Makefile patches
-Marc G. Fournier" <marc.fournier@acadiau.ca> - Solaris patches
+Marc G. Fournier <marc.fournier@acadiau.ca> - Solaris patches
 
 Miscellania - 
 
