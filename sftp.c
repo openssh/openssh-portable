@@ -16,7 +16,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.45 2004/03/03 09:31:20 djm Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.46 2004/05/19 12:17:33 djm Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -45,6 +45,9 @@ static pid_t sshpid = -1;
 
 /* This is set to 0 if the progressmeter is not desired. */
 int showprogress = 1;
+
+/* SIGINT received during command processing */
+volatile sig_atomic_t interrupted = 0;
 
 int remote_glob(struct sftp_conn *, const char *, int,
     int (*)(const char *, int), glob_t *); /* proto for sftp-glob.c */
@@ -129,6 +132,24 @@ static const struct CMD cmds[] = {
 };
 
 int interactive_loop(int fd_in, int fd_out, char *file1, char *file2);
+
+static void
+killchild(int signo)
+{
+	if (sshpid > 1)
+		kill(sshpid, SIGTERM);
+
+	_exit(1);
+}
+
+static void
+cmd_interrupt(int signo)
+{
+	const char msg[] = "\rInterrupt  \n";
+
+	write(STDERR_FILENO, msg, sizeof(msg) - 1);
+	interrupted = 1;
+}
 
 static void
 help(void)
@@ -465,7 +486,7 @@ process_get(struct sftp_conn *conn, char *src, char *dst, char *pwd, int pflag)
 		goto out;
 	}
 
-	for (i = 0; g.gl_pathv[i]; i++) {
+	for (i = 0; g.gl_pathv[i] && !interrupted; i++) {
 		if (infer_path(g.gl_pathv[i], &tmp)) {
 			err = -1;
 			goto out;
@@ -534,7 +555,7 @@ process_put(struct sftp_conn *conn, char *src, char *dst, char *pwd, int pflag)
 		goto out;
 	}
 
-	for (i = 0; g.gl_pathv[i]; i++) {
+	for (i = 0; g.gl_pathv[i] && !interrupted; i++) {
 		if (!is_reg(g.gl_pathv[i])) {
 			error("skipping non-regular file %s",
 			    g.gl_pathv[i]);
@@ -621,7 +642,7 @@ do_ls_dir(struct sftp_conn *conn, char *path, char *strip_path, int lflag)
 
 	qsort(d, n, sizeof(*d), sdirent_comp);
 
-	for (n = 0; d[n] != NULL; n++) {
+	for (n = 0; d[n] != NULL && !interrupted; n++) {
 		char *tmp, *fname;
 
 		tmp = path_append(path, d[n]->filename);
@@ -673,6 +694,9 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 		return (-1);
 	}
 
+	if (interrupted)
+		goto out;
+
 	/*
 	 * If the glob returns a single match, which is the same as the
 	 * input glob, and it is a directory, then just list its contents
@@ -706,7 +730,7 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 		colspace = width / columns;
 	}
 
-	for (i = 0; g.gl_pathv[i]; i++) {
+	for (i = 0; g.gl_pathv[i] && !interrupted; i++) {
 		char *fname;
 
 		fname = path_strip(g.gl_pathv[i], strip_path);
@@ -743,6 +767,7 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 	if (!(lflag & LONG_VIEW) && (c != 1))
 		printf("\n");
 
+ out:
 	if (g.gl_pathc)
 		globfree(&g);
 
@@ -952,7 +977,7 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 	case I_RM:
 		path1 = make_absolute(path1, *pwd);
 		remote_glob(conn, path1, GLOB_NOCHECK, NULL, &g);
-		for (i = 0; g.gl_pathv[i]; i++) {
+		for (i = 0; g.gl_pathv[i] && !interrupted; i++) {
 			printf("Removing %s\n", g.gl_pathv[i]);
 			err = do_rm(conn, g.gl_pathv[i]);
 			if (err != 0 && err_abort)
@@ -1041,7 +1066,7 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 		a.flags |= SSH2_FILEXFER_ATTR_PERMISSIONS;
 		a.perm = n_arg;
 		remote_glob(conn, path1, GLOB_NOCHECK, NULL, &g);
-		for (i = 0; g.gl_pathv[i]; i++) {
+		for (i = 0; g.gl_pathv[i] && !interrupted; i++) {
 			printf("Changing mode on %s\n", g.gl_pathv[i]);
 			err = do_setstat(conn, g.gl_pathv[i], &a);
 			if (err != 0 && err_abort)
@@ -1052,7 +1077,7 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 	case I_CHGRP:
 		path1 = make_absolute(path1, *pwd);
 		remote_glob(conn, path1, GLOB_NOCHECK, NULL, &g);
-		for (i = 0; g.gl_pathv[i]; i++) {
+		for (i = 0; g.gl_pathv[i] && !interrupted; i++) {
 			if (!(aa = do_stat(conn, g.gl_pathv[i], 0))) {
 				if (err != 0 && err_abort)
 					break;
@@ -1180,6 +1205,8 @@ interactive_loop(int fd_in, int fd_out, char *file1, char *file2)
 	for (;;) {
 		char *cp;
 
+		signal(SIGINT, SIG_IGN);
+
 		printf("sftp> ");
 
 		/* XXX: use libedit */
@@ -1195,6 +1222,10 @@ interactive_loop(int fd_in, int fd_out, char *file1, char *file2)
 		if (cp)
 			*cp = '\0';
 
+		/* Handle user interrupts gracefully during commands */
+		interrupted = 0;
+		signal(SIGINT, cmd_interrupt);
+
 		err = parse_dispatch_command(conn, cmd, &pwd, batchmode);
 		if (err != 0)
 			break;
@@ -1203,15 +1234,6 @@ interactive_loop(int fd_in, int fd_out, char *file1, char *file2)
 
 	/* err == 1 signifies normal "quit" exit */
 	return (err >= 0 ? 0 : -1);
-}
-
-static void
-killchild(int signo)
-{
-	if (sshpid > 1)
-		kill(sshpid, signo);
-
-	_exit(1);
 }
 
 static void
@@ -1249,6 +1271,14 @@ connect_to_server(char *path, char **args, int *in, int *out)
 		close(*out);
 		close(c_in);
 		close(c_out);
+
+		/*
+		 * The underlying ssh is in the same process group, so we must
+		 * ignore SIGINT if we want to gracefully abort commands, 
+		 * otherwise the signal will make it to the ssh process and 
+		 * kill it too
+		 */
+		signal(SIGINT, SIG_IGN);
 		execv(path, args);
 		fprintf(stderr, "exec: %s: %s\n", path, strerror(errno));
 		exit(1);

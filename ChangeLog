@@ -1,3 +1,10 @@
+20040524
+ - (dtucker) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2004/05/19 12:17:33
+     [sftp-client.c sftp.c]
+     gracefully abort transfers on receipt of SIGINT, also ignore SIGINT while
+     waiting for a command; ok markus@
+
 20040523
  - (djm) [sshd_config] Explain consequences of UsePAM=yes a little better in 
    sshd_config; ok dtucker@
@@ -1126,4 +1133,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3358 2004/05/23 06:22:27 mouring Exp $
+$Id: ChangeLog,v 1.3359 2004/05/24 00:12:19 dtucker Exp $
