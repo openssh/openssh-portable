@@ -150,6 +150,11 @@ typedef unsigned int size_t;
 # define HAVE_SIZE_T
 #endif /* HAVE_SIZE_T */
 
+#ifndef HAVE_SSIZE_T
+typedef int ssize_t;
+# define HAVE_SSIZE_T
+#endif /* HAVE_SSIZE_T */
+
 #if !defined(HAVE_SS_FAMILY_IN_SS) && defined(HAVE___SS_FAMILY_IN_SS)
 # define ss_family __ss_family
 #endif /* !defined(HAVE_SS_FAMILY_IN_SS) && defined(HAVE_SA_FAMILY_IN_SS) */
@@ -216,6 +221,10 @@ typedef unsigned int size_t;
 # define _PATH_DEVNULL "/dev/null"
 #endif
 
+#ifndef MAIL_DIRECTORY
+# define MAIL_DIRECTORY "/var/spool/mail"
+#endif
+
 #ifndef MAILDIR
 # define MAILDIR MAIL_DIRECTORY
 #endif
@@ -279,5 +288,9 @@ typedef unsigned int size_t;
 #if defined(BROKEN_GETADDRINFO) && defined(HAVE_GETADDRINFO)
 # undef HAVE_GETADDRINFO
 #endif /* defined(BROKEN_GETADDRINFO) && defined(HAVE_GETADDRINFO) */
+
+#if !defined(HAVE_MEMMOVE) && defined(HAVE_BCOPY)
+# define memmove(s1, s2, n) bcopy((s2), (s1), (n))
+#endif /* !defined(HAVE_MEMMOVE) && defined(HAVE_BCOPY) */
 
 #endif /* _DEFINES_H */

@@ -45,7 +45,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: scp.c,v 1.22 2000/05/07 02:03:17 damien Exp $");
+RCSID("$Id: scp.c,v 1.23 2000/05/17 12:53:35 damien Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -1008,7 +1008,7 @@ run_err(const char *fmt,...)
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	$Id: scp.c,v 1.22 2000/05/07 02:03:17 damien Exp $
+ *	$Id: scp.c,v 1.23 2000/05/17 12:53:35 damien Exp $
  */
 
 char *
@@ -1235,7 +1235,9 @@ progressmeter(int flag)
 		struct sigaction sa;
 		sa.sa_handler = updateprogressmeter;
 		sigemptyset(&sa.sa_mask);
+#ifdef SA_RESTART
 		sa.sa_flags = SA_RESTART;
+#endif
 		sigaction(SIGALRM, &sa, NULL);
 		alarmtimer(1);
 	} else if (flag == 1) {

@@ -90,11 +90,11 @@ $(MANPAGES) $(CONFIGFILES)::
 	$(FIXPATHSCMD) $(srcdir)/$@
 
 clean:
-	rm -f *.o *.a $(TARGETS) config.status config.cache config.log 
-	rm -f *.out ssh_prng_cmds core
+	rm -f *.o *.a $(TARGETS) config.cache config.log 
+	rm -f *.out core
 
 distclean: clean
-	rm -f Makefile config.h core *~
+	rm -f Makefile config.h config.status ssh_prng_cmds *~
 
 mrproper: distclean
 

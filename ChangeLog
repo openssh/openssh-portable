@@ -25,6 +25,12 @@
     enable nonblocking IO for sshd w/ proto 1, too; split out common code
     [aux.c]
     missing include
+ - Several patches from SAKAI Kiyotaka <ksakai@kso.netwk.ntt-at.co.jp>
+  - INSTALL typo and URL fix
+  - Makefile fix
+  - Solaris fixes
+ - Checking for ssize_t and memmove. Based on patch from SAKAI Kiyotaka 
+   <ksakai@kso.netwk.ntt-at.co.jp>
 
 20000513
  - Fix for non-recognised DSA keys from Arkadiusz Miskiewicz 

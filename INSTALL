@@ -4,7 +4,7 @@
 You will need working installations of Zlib and OpenSSL.
 
 Zlib:
-http://www.cdrom.com/pub/infozip/zlib/
+http://www.freesoftware.com/pub/infozip/zlib/
 
 OpenSSL 0.9.5a or greater:
 http://www.openssl.org/
@@ -90,7 +90,7 @@ need a working installation of GNOME, including the development
 headers, for this to work.
 
 --with-random=/some/file allows you to specify an alternate source of
-random numbers (the default is /dev/urandom). Unless you are absolutly
+random numbers (the default is /dev/urandom). Unless you are absolutely
 sure of what you are doing, it is best to leave this alone.
 
 --with-egd-pool=/some/file allows you to enable Entropy Gathering
@@ -152,7 +152,7 @@ are installed.
 real (AF_INET) IPv4 addresses. Works around some quirks on Linux.
 
 If you need to pass special options to the compiler or linker, you
-can specify these as enviornment variables before running ./configure.
+can specify these as environment variables before running ./configure.
 For example:
 
 CFLAGS="-O -m486" LFLAGS="-s" LIBS="-lrubbish" LD="/usr/foo/ld" ./configure
@@ -186,5 +186,5 @@ for sshd, ssh and ssh-agent.
 
 If you experience problems compiling, installing or running OpenSSH. 
 Please refer to the "reporting bugs" section of the webpage at
-http://violet.ibs.com.au/openssh/
+http://www.openssh.com/
 

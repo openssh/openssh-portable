@@ -507,6 +507,7 @@ main(int ac, char **av)
 	struct sockaddr_un sunaddr;
 	pid_t pid;
 	char *shell, *format, *pidstr, pidstrbuf[1 + 3 * sizeof pid];
+	extern int optind;
 
 	/* check if RSA support exists */
 	if (rsa_alive() == 0) {

@@ -73,6 +73,7 @@ struct utmp * utp;
 	int t = 0;
 	struct utmp * u;
 
+#ifdef HAVE_TYPE_IN_UTMP
 	setutent();
 
 	while((u = getutent()) != NULL) {
@@ -91,6 +92,7 @@ struct utmp * utp;
 	}
 
 	endutent();
+#endif
 	return(-1);
 }
 
@@ -128,6 +130,7 @@ login(utp)
 		/* If no tty was found... */
 		if (tty == -1) {
 			/* ... append it to utmp on login */
+#ifdef HAVE_TYPE_IN_UTMP
 			if (utp->ut_type == USER_PROCESS) {
 				if ((fd = open(_PATH_UTMP, O_WRONLY|O_APPEND, 0)) >= 0) {
 					(void)write(fd, utp, sizeof(struct utmp));
@@ -138,6 +141,7 @@ login(utp)
 				/* Between login and logout */
 				log("No tty slot found at logout");
 			}
+#endif
 		} else {
 			/* Otherwise, tty was found - update at its location */
 #if defined(HAVE_HOST_IN_UTMP)
