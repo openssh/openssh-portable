@@ -73,6 +73,7 @@
      remove fatal callbacks from client code; ok deraadt
  - (bal) "extration" -> "extraction" in ssh-rand-helper.c; repoted by john
 	on #unixhelp@efnet
+ - (tim) [configure.ac] add --disable-etc-default-login option. ok djm
 
 20030919
  - (djm) Bug #683: Remove reference to --with-ipv4-default from INSTALL;
@@ -1209,4 +1210,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3037 2003/09/22 15:36:15 mouring Exp $
+$Id: ChangeLog,v 1.3038 2003/09/23 02:50:14 tim Exp $

@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.164 2003/09/22 04:38:11 tim Exp $
+# $Id: configure.ac,v 1.165 2003/09/23 02:50:14 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -2215,11 +2215,15 @@ else
 fi
 
 # check for /etc/default/login and use it if present.
+AC_ARG_ENABLE(etc-default-login,
+	[  --disable-etc-default-login       Disable using PATH from /etc/default/login [no]],,
+[
 AC_CHECK_FILE("/etc/default/login", [ external_path_file=/etc/default/login ])
 
 if test "x$external_path_file" = "x/etc/default/login"; then
 	AC_DEFINE(HAVE_ETC_DEFAULT_LOGIN)
 fi
+])
 
 dnl BSD systems use /etc/login.conf so --with-default-path= has no effect
 if test $ac_cv_func_login_getcapbool = "yes" -a \
