@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: sftp-server.c,v 1.46 2004/06/21 17:36:31 avsm Exp $");
+RCSID("$OpenBSD: sftp-server.c,v 1.47 2004/06/25 05:38:48 dtucker Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
@@ -839,9 +839,25 @@ process_rename(void)
 		status = errno_to_portable(errno);
 	else if (S_ISREG(sb.st_mode)) {
 		/* Race-free rename of regular files */
-		if (link(oldpath, newpath) == -1)
-			status = errno_to_portable(errno);
-		else if (unlink(oldpath) == -1) {
+		if (link(oldpath, newpath) == -1) {
+			if (errno == EOPNOTSUPP) {
+				struct stat st;
+
+				/*
+				 * fs doesn't support links, so fall back to
+				 * stat+rename.  This is racy.
+				 */
+				if (stat(newpath, &st) == -1) {
+					if (rename(oldpath, newpath) == -1)
+						status =
+						    errno_to_portable(errno);
+					else
+						status = SSH2_FX_OK;
+				}
+			} else {
+				status = errno_to_portable(errno);
+			}
+		} else if (unlink(oldpath) == -1) {
 			status = errno_to_portable(errno);
 			/* clean spare link */
 			unlink(newpath);

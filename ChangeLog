@@ -14,6 +14,10 @@
    - djm@cvs.openbsd.org 2004/06/25 01:25:12
      [regress/test-exec.sh]
      clean reexec-specific junk out of text-exec.sh and simplify; idea markus@
+   - dtucker@cvs.openbsd.org 2004/06/25 05:38:48
+     [sftp-server.c]
+     Fall back to stat+rename if filesystem doesn't doesn't support hard
+     links.  bz#823, ok djm@
  - (dtucker) [configure.ac openbsd-compat/misc.c [openbsd-compat/misc.h]
    Add closefrom() for platforms that don't have it.
  - (dtucker) [sshd.c] add line missing from reexec sync.
@@ -1419,4 +1423,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3449 2004/06/25 04:22:23 dtucker Exp $
+$Id: ChangeLog,v 1.3450 2004/06/25 07:06:02 dtucker Exp $
