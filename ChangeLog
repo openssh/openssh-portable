@@ -1,3 +1,9 @@
+20020903
+ - (djm) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2002/08/12 10:46:35
+     [ssh-agent.c]
+     make ssh-agent setgid, disallow ptrace.
+
 20020820
  - OpenBSD CVS Sync
    - millert@cvs.openbsd.org 2002/08/02 14:43:15
@@ -1538,4 +1544,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2426 2002/08/21 02:54:11 mouring Exp $
+$Id: ChangeLog,v 1.2427 2002/09/04 06:20:26 djm Exp $

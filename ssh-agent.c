@@ -35,7 +35,7 @@
 
 #include "includes.h"
 #include "openbsd-compat/fake-queue.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.98 2002/07/21 18:07:45 stevesk Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.99 2002/08/12 10:46:35 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -942,6 +942,10 @@ main(int ac, char **av)
 	extern char *optarg;
 	pid_t pid;
 	char pidstrbuf[1 + 3 * sizeof pid];
+
+	/* drop */
+	setegid(getgid());
+	setgid(getgid());
 
 	SSLeay_add_all_algorithms();
 
