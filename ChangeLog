@@ -9,6 +9,10 @@
    - markus@cvs.openbsd.org 2001/05/16 20:51:57
      [authfile.c]
      return comments for private pem files, too; report from nolan@naic.edu
+   - markus@cvs.openbsd.org 2001/05/16 21:53:53
+     [clientloop.c]
+     check for open sessions before we call select(); fixes the x11 client
+     bug reported by bowman@math.ualberta.ca
 
 20010512
  - OpenBSD CVS Sync
@@ -5414,4 +5418,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1221 2001/05/17 03:17:55 mouring Exp $
+$Id: ChangeLog,v 1.1222 2001/05/17 03:19:40 mouring Exp $

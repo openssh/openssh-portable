@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.70 2001/05/11 14:59:55 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.71 2001/05/16 21:53:53 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -346,7 +346,13 @@ client_wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp,
 		if (buffer_len(&stderr_buffer) > 0)
 			FD_SET(fileno(stderr), *writesetp);
 	} else {
-		FD_SET(connection_in, *readsetp);
+		/* channel_prepare_select could have closed the last channel */
+		if (session_closed && !channel_still_open()) {
+			if (!packet_have_data_to_write())
+				return;
+		} else {
+			FD_SET(connection_in, *readsetp);
+		}
 	}
 
 	/* Select server connection if have data to write to the server. */
