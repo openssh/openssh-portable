@@ -38,7 +38,7 @@ extern char *__progname;
 
 extern int use_privsep;
 
-RCSID("$Id: auth-pam.c,v 1.53 2002/07/23 00:51:53 stevesk Exp $");
+RCSID("$Id: auth-pam.c,v 1.54 2002/07/28 20:24:08 stevesk Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now."
@@ -156,7 +156,7 @@ static int do_pam_conversation(int num_msg, const struct pam_message **msg,
 				break;
 			case PAM_ERROR_MSG:
 			case PAM_TEXT_INFO:
-				if ((*msg)[count].msg != NULL)
+				if (PAM_MSG_MEMBER(msg, count, msg) != NULL)
 					fprintf(stderr, "%s\n", 
 					    PAM_MSG_MEMBER(msg, count, msg));
 				reply[count].resp = xstrdup("");

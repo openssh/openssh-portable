@@ -1,3 +1,6 @@
+20020728
+ - (stevesk) [auth-pam.c] should use PAM_MSG_MEMBER(); from solar
+
 20020725
  - (djm) Remove some cruft from INSTALL
  - (djm) Latest config.guess and config.sub from ftp://ftp.gnu.org/gnu/config/
@@ -1456,4 +1459,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2405 2002/07/25 04:40:22 djm Exp $
+$Id: ChangeLog,v 1.2406 2002/07/28 20:24:07 stevesk Exp $
