@@ -1,6 +1,7 @@
 19991207
  - sshd Redhat init script patch from Jim Knoble <jmknoble@pobox.com>
    fixes compatability with 4.x and 5.x
+ - Fixed default SSH_ASKPASS
 
 19991204
  - Small cleanup of PAM code in sshd.c

@@ -10,7 +10,7 @@ SSH_PROGRAM=@bindir@/ssh
 ASKPASS_PROGRAM=@libexecdir@/ssh/ssh-askpass
 
 CC=@CC@
-PATHS=-DETCDIR=\"$(sysconfdir)\" -DSSH_PROGRAM=\"$(SSH_PROGRAM)\"
+PATHS=-DETCDIR=\"$(sysconfdir)\" -DSSH_PROGRAM=\"$(SSH_PROGRAM)\" -DSSH_ASKPASS_DEFAULT=\"$(ASKPASS_PROGRAM)\"
 CFLAGS=@CFLAGS@ $(PATHS) @DEFS@
 EXTRA_TARGETS=@GNOME_ASKPASS@
 TARGETS=libssh.a ssh sshd ssh-add ssh-keygen ssh-agent scp $(EXTRA_TARGETS)

@@ -13,7 +13,7 @@
  * 
  */
 
-/* RCSID("$Id: ssh.h,v 1.17 1999/12/06 00:47:29 damien Exp $"); */
+/* RCSID("$Id: ssh.h,v 1.18 1999/12/07 03:54:53 damien Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -173,7 +173,9 @@
  * Default path to ssh-askpass used by ssh-add,
  * environment variable for overwriting the default location
  */
-#define SSH_ASKPASS_DEFAULT	"/usr/X11R6/bin/ssh-askpass"
+#ifndef SSH_ASKPASS_DEFAULT
+# define SSH_ASKPASS_DEFAULT	"/usr/X11R6/bin/ssh-askpass"
+#endif
 #define SSH_ASKPASS_ENV		"SSH_ASKPASS"
 
 /*
