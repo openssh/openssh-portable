@@ -3,6 +3,9 @@
    - markus@cvs.openbsd.org 2004/12/23 17:35:48
      [session.c]
      check for NULL; from mpech
+   - markus@cvs.openbsd.org 2004/12/23 17:38:07
+     [ssh-keygen.c]
+     leak; from mpech
 
 20050118
  - (dtucker) [INSTALL Makefile.in configure.ac survey.sh.in] Implement
@@ -1975,4 +1978,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3609 2005/01/19 23:55:46 dtucker Exp $
+$Id: ChangeLog,v 1.3610 2005/01/19 23:56:31 dtucker Exp $

@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.117 2004/07/11 17:48:47 deraadt Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.118 2004/12/23 17:38:07 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -239,6 +239,7 @@ do_convert_private_ssh2_from_blob(u_char *blob, u_int blen)
 	} else if (strstr(type, "rsa")) {
 		ktype = KEY_RSA;
 	} else {
+		buffer_free(&b);
 		xfree(type);
 		return NULL;
 	}
