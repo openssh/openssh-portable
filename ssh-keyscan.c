@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keyscan.c,v 1.30 2001/10/08 19:05:05 markus Exp $");
+RCSID("$OpenBSD: ssh-keyscan.c,v 1.31 2001/11/16 12:46:13 markus Exp $");
 
 #if defined(HAVE_SYS_QUEUE_H) && !defined(HAVE_BOGUS_SYS_QUEUE_H)
 #include <sys/queue.h>
@@ -647,6 +647,8 @@ do_host(char *host)
 	char *name = strnnsep(&host, " \t\n");
 	int j;
 
+	if (name == NULL)
+		return;
 	for (j = KT_RSA1; j <= KT_RSA; j *= 2) {
 		if (get_keytypes & j) {
 			while (ncon >= MAXCON)
