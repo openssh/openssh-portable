@@ -1531,6 +1531,7 @@ mm_answer_audit_event(int socket, Buffer *m)
 	case LOGIN_EXCEED_MAXTRIES:
 	case LOGIN_ROOT_DENIED:
 	case CONNECTION_CLOSE:
+	case INVALID_USER:
 		audit_event(event);
 		break;
 	default:
