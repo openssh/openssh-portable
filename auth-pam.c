@@ -31,7 +31,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.91 2004/01/14 12:07:56 dtucker Exp $");
+RCSID("$Id: auth-pam.c,v 1.92 2004/01/14 13:15:08 dtucker Exp $");
 
 #ifdef USE_PAM
 #if defined(HAVE_SECURITY_PAM_APPL_H)
@@ -178,6 +178,7 @@ pam_getenvlist(pam_handle_t *pamh)
 void
 pam_password_change_required(int reqd)
 {
+	debug3("%s %d", __func__, reqd);
 	sshpam_new_authtok_reqd = reqd;
 	if (reqd) {
 		no_port_forwarding_flag |= 2;
@@ -197,6 +198,8 @@ import_environments(Buffer *b)
 	char *env;
 	u_int i, num_env;
 	int err;
+
+	debug3("PAM: %s entering", __func__);
 
 	/* Import variables set by do_pam_account */
 	sshpam_account_status = buffer_get_int(b);
@@ -239,6 +242,7 @@ sshpam_thread_conv(int n, const struct pam_message **msg,
 	struct pam_response *reply;
 	int i;
 
+	debug3("PAM: %s entering, %d responses", __func__, n);
 	*resp = NULL;
 
 	ctxt = data;
@@ -397,6 +401,7 @@ sshpam_thread_cleanup(void)
 {
 	struct pam_ctxt *ctxt = cleanup_ctxt;
 
+	debug3("PAM: %s entering", __func__);
 	if (ctxt != NULL && ctxt->pam_thread != 0) {
 		pthread_cancel(ctxt->pam_thread);
 		pthread_join(ctxt->pam_thread, NULL);
@@ -411,6 +416,7 @@ static int
 sshpam_null_conv(int n, const struct pam_message **msg,
     struct pam_response **resp, void *data)
 {
+	debug3("PAM: %s entering, %d responses", __func__, n);
 	return (PAM_CONV_ERR);
 }
 
@@ -491,6 +497,7 @@ sshpam_init_ctx(Authctxt *authctxt)
 	struct pam_ctxt *ctxt;
 	int socks[2];
 
+	debug3("PAM: %s entering", __func__);
 	/* Refuse to start if we don't have PAM enabled */
 	if (!options.use_pam)
 		return NULL;
@@ -535,6 +542,7 @@ sshpam_query(void *ctx, char **name, char **info,
 	char *msg;
 	size_t len;
 
+	debug3("PAM: %s entering", __func__);
 	buffer_init(&buffer);
 	*name = xstrdup("");
 	*info = xstrdup("");
@@ -601,7 +609,7 @@ sshpam_respond(void *ctx, u_int num, char **resp)
 	Buffer buffer;
 	struct pam_ctxt *ctxt = ctx;
 
-	debug2("PAM: %s", __func__);
+	debug2("PAM: %s entering, %d responses", __func__, num);
 	switch (ctxt->pam_done) {
 	case 1:
 		sshpam_authenticated = 1;
@@ -630,6 +638,7 @@ sshpam_free_ctx(void *ctxtp)
 {
 	struct pam_ctxt *ctxt = ctxtp;
 
+	debug3("PAM: %s entering", __func__);
 	sshpam_thread_cleanup();
 	xfree(ctxt);
 	/*
@@ -682,7 +691,7 @@ do_pam_account(void)
 		return (sshpam_account_status);
 
 	sshpam_err = pam_acct_mgmt(sshpam_handle, 0);
-	debug3("%s: pam_acct_mgmt = %d", __func__, sshpam_err);
+	debug3("PAM: %s pam_acct_mgmt = %d", __func__, sshpam_err);
 	
 	if (sshpam_err != PAM_SUCCESS && sshpam_err != PAM_NEW_AUTHTOK_REQD) {
 		sshpam_account_status = 0;
