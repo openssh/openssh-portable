@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keyscan.1,v 1.8 2001/06/23 17:48:18 itojun Exp $
+.\"	$OpenBSD: ssh-keyscan.1,v 1.9 2001/08/02 18:37:35 mpech Exp $
 .\"
 .\" Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
 .\"
@@ -34,17 +34,8 @@ hosts can be collected in tens of seconds, even when some of those
 hosts are down or do not run ssh.  You do not need login access to the
 machines you are scanning, nor does the scanning process involve
 any encryption.
-.Sh SECURITY
-If you make an ssh_known_hosts file using
-.Nm
-without verifying the keys, you will be vulnerable to
-.I man in the middle
-attacks.
-On the other hand, if your security model allows such a risk,
-.Nm
-can help you detect tampered keyfiles or man in the middle attacks which
-have begun after you created your ssh_known_hosts file.
-.Sh OPTIONS
+.Pp
+The options are as follows:
 .Bl -tag -width Ds
 .It Fl t
 Set the timeout for connection attempts.  If
@@ -65,6 +56,16 @@ will read hosts or
 .Pa addrlist namelist
 pairs from the standard input.
 .El
+.Sh SECURITY
+If you make an ssh_known_hosts file using
+.Nm
+without verifying the keys, you will be vulnerable to
+.I man in the middle
+attacks.
+On the other hand, if your security model allows such a risk,
+.Nm
+can help you detect tampered keyfiles or man in the middle attacks which
+have begun after you created your ssh_known_hosts file.
 .Sh EXAMPLES
 Print the host key for machine
 .Pa hostname :
