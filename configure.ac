@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.87 2002/09/12 00:33:00 djm Exp $
+# $Id: configure.ac,v 1.88 2002/09/23 23:54:12 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -497,7 +497,7 @@ AC_TRY_RUN(
 	[
 #include <sys/types.h>
 #include <dirent.h>
-int main(void){struct dirent d;return(sizeof(d.d_name)<=sizeof(char));}
+int main(void){struct dirent d;exit(sizeof(d.d_name)<=sizeof(char));}
 	],
 	[AC_MSG_RESULT(yes)], 
 	[
@@ -528,7 +528,7 @@ AC_ARG_WITH(skey,
 				[
 #include <stdio.h>
 #include <skey.h>
-int main() { char *ff = skey_keyinfo(""); ff=""; return 0; }
+int main() { char *ff = skey_keyinfo(""); ff=""; exit(0); }
 				],
 				[AC_MSG_RESULT(yes)],
 				[
@@ -668,7 +668,7 @@ if test "x$ac_cv_func_snprintf" = "xyes" ; then
 	AC_TRY_RUN(
 		[
 #include <stdio.h>
-int main(void){char b[5];snprintf(b,5,"123456789");return(b[4]!='\0');}
+int main(void){char b[5];snprintf(b,5,"123456789");exit(b[4]!='\0');}
 		],
 		[AC_MSG_RESULT(yes)], 
 		[
@@ -851,7 +851,7 @@ AC_TRY_RUN(
 	[
 #include <string.h>
 #include <openssl/opensslv.h>
-int main(void) { return(SSLeay() == OPENSSL_VERSION_NUMBER ? 0 : 1); }
+int main(void) { exit(SSLeay() == OPENSSL_VERSION_NUMBER ? 0 : 1); }
 	],
 	[
 		AC_MSG_RESULT(yes)
@@ -877,7 +877,7 @@ AC_TRY_RUN(
 	[
 #include <string.h>
 #include <openssl/rand.h>
-int main(void) { return(RAND_status() == 1 ? 0 : 1); }
+int main(void) { exit(RAND_status() == 1 ? 0 : 1); }
 	],
 	[
 		OPENSSL_SEEDS_ITSELF=yes
