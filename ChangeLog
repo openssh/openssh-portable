@@ -95,6 +95,9 @@
    - markus@cvs.openbsd.org 2002/06/04 23:02:06
      [packet.c]
      remove __FUNCTION__
+   - markus@cvs.openbsd.org 2002/06/04 23:05:49
+     [cipher.c monitor.c monitor_fdpass.c monitor_mm.c monitor_wrap.c]
+     __FUNCTION__ -> __func__
 
 20020604
  - (stevesk) [channels.c] bug #164 patch from YOSHIFUJI Hideaki (changed
@@ -779,4 +782,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2169 2002/06/06 20:59:25 mouring Exp $
+$Id: ChangeLog,v 1.2170 2002/06/06 21:40:51 mouring Exp $
