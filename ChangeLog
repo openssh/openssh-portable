@@ -25,6 +25,10 @@
      merge authorized_keys2 into authorized_keys.
      authorized_keys2 is used for backward compat.
      (just append authorized_keys2 to authorized_keys).
+   - provos@cvs.openbsd.org 2001/06/22 21:57:59
+     [dh.c]
+     increase linebuffer to deal with larger moduli; use rewind instead of
+     close/open
 
 20010622
  - (stevesk) handle systems without pw_expire and pw_change.
@@ -5709,4 +5713,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1302 2001/06/25 04:17:12 mouring Exp $
+$Id: ChangeLog,v 1.1303 2001/06/25 04:18:59 mouring Exp $

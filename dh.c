@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: dh.c,v 1.15 2001/06/22 21:27:07 provos Exp $");
+RCSID("$OpenBSD: dh.c,v 1.16 2001/06/22 21:57:59 provos Exp $");
 
 #include "xmalloc.h"
 
@@ -103,7 +103,7 @@ DH *
 choose_dh(int min, int wantbits, int max)
 {
 	FILE *f;
-	char line[1024];
+	char line[2048];
 	int best, bestcount, which;
 	int linenum;
 	struct dhgroup dhg;
@@ -134,16 +134,12 @@ choose_dh(int min, int wantbits, int max)
 		if (dhg.size == best)
 			bestcount++;
 	}
-	fclose (f);
+	rewind(f);
 
 	if (bestcount == 0) {
+		fclose(f);
 		log("WARNING: no suitable primes in %s", _PATH_DH_PRIMES);
 		return (NULL);
-	}
-
-	f = fopen(_PATH_DH_PRIMES, "r");
-	if (!f) {
-		fatal("WARNING: %s disappeared, giving up", _PATH_DH_PRIMES);
 	}
 
 	linenum = 0;
