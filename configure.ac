@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.150 2003/09/11 04:42:56 dtucker Exp $
+# $Id: configure.ac,v 1.151 2003/09/12 05:19:31 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -463,6 +463,47 @@ if test "x$with_tcp_wrappers" != "xno" ; then
     fi
 fi
 
+dnl IRIX and Solaris 2.5.1 have dirname() in libgen
+AC_CHECK_FUNCS(dirname, [AC_CHECK_HEADERS(libgen.h)] ,[
+	AC_CHECK_LIB(gen, dirname,[
+		AC_CACHE_CHECK([for broken dirname],
+			ac_cv_have_broken_dirname, [
+			save_LIBS="$LIBS"
+			LIBS="$LIBS -lgen"
+			AC_TRY_RUN(
+				[
+#include <libgen.h>
+#include <string.h>
+
+int main(int argc, char **argv) {
+    char *s, buf[32];
+
+    strncpy(buf,"/etc", 32);
+    s = dirname(buf);
+    if (!s || strncmp(s, "/", 32) != 0) {
+	exit(1);
+    } else {
+	exit(0);
+    }
+}
+				],
+				[ ac_cv_have_broken_dirname="no" ],
+				[ ac_cv_have_broken_dirname="yes" ]
+			)
+			LIBS="$save_LIBS"
+		])
+		if test "x$ac_cv_have_broken_dirname" = "xno" ; then
+			LIBS="$LIBS -lgen"
+			AC_DEFINE(HAVE_DIRNAME)
+			AC_CHECK_HEADERS(libgen.h)
+		fi
+	])
+])
+
+AC_CHECK_FUNC(getspnam, ,
+	AC_CHECK_LIB(gen, getspnam, LIBS="$LIBS -lgen"))
+AC_SEARCH_LIBS(basename, gen, AC_DEFINE(HAVE_BASENAME))
+
 AC_ARG_WITH(rpath,
 	[  --without-rpath         Disable auto-added -R linker paths],
 	[
@@ -684,47 +725,6 @@ AC_CHECK_DECL(tcsendbreak,
 	[AC_CHECK_FUNCS(tcsendbreak)], 
 	[#include <termios.h>]
 )
-
-dnl IRIX and Solaris 2.5.1 have dirname() in libgen
-AC_CHECK_FUNCS(dirname, [AC_CHECK_HEADERS(libgen.h)] ,[
-	AC_CHECK_LIB(gen, dirname,[
-		AC_CACHE_CHECK([for broken dirname],
-			ac_cv_have_broken_dirname, [
-			save_LIBS="$LIBS"
-			LIBS="$LIBS -lgen"
-			AC_TRY_RUN(
-				[
-#include <libgen.h>
-#include <string.h>
-
-int main(int argc, char **argv) {
-    char *s, buf[32];
-
-    strncpy(buf,"/etc", 32);
-    s = dirname(buf);
-    if (!s || strncmp(s, "/", 32) != 0) {
-	exit(1);
-    } else {
-	exit(0);
-    }
-}
-				],
-				[ ac_cv_have_broken_dirname="no" ],
-				[ ac_cv_have_broken_dirname="yes" ]
-			)
-			LIBS="$save_LIBS"
-		])
-		if test "x$ac_cv_have_broken_dirname" = "xno" ; then
-			LIBS="$LIBS -lgen"
-			AC_DEFINE(HAVE_DIRNAME)
-			AC_CHECK_HEADERS(libgen.h)
-		fi
-	])
-])
-
-AC_CHECK_FUNC(getspnam, ,
-	AC_CHECK_LIB(gen, getspnam, LIBS="$LIBS -lgen"))
-AC_SEARCH_LIBS(basename, gen, AC_DEFINE(HAVE_BASENAME))
 
 dnl    Checks for time functions
 AC_CHECK_FUNCS(gettimeofday time)

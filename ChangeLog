@@ -2,6 +2,8 @@
  - (dtucker) [configure.ac] Bug #588, #615: Move other libgen tests to after
    the dirname test, to allow a broken dirname to be detected correctly.
    Based partially on patch supplied by alex.kiernan at thus.net.  ok djm@
+ - (tim) [configure.ac] Move libgen tests to before libwrap to unbreak
+   UnixWare 2.03 using --with-tcp-wrappers.
 
 20030910
  - (dtucker) [configure.ac] Bug #636: Add support for Cray's new X1 machine.
@@ -1064,4 +1066,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2979 2003/09/11 04:42:55 dtucker Exp $
+$Id: ChangeLog,v 1.2980 2003/09/12 05:19:31 tim Exp $
