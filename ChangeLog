@@ -51,6 +51,10 @@
    - deraadt@cvs.openbsd.org 2002/06/26 13:20:57
      [monitor.c]
      be careful in mm_zalloc
+   - deraadt@cvs.openbsd.org 2002/06/26 13:49:26
+     [session.c]
+     disclose less information from environment files; based on input 
+     from djm, and dschultz@uclink.Berkeley.EDU
  - (djm) Require krb5 devel for RPM build w/ KrbV 
  - (djm) Improve PAMAuthenticationViaKbdInt text from Nalin Dahyabhai 
    <nalin@redhat.com>
@@ -1153,4 +1157,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2296 2002/06/26 13:27:11 djm Exp $
+$Id: ChangeLog,v 1.2297 2002/06/26 13:51:06 djm Exp $
