@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: uidswap.c,v 1.19 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: uidswap.c,v 1.20 2002/04/01 21:50:51 stevesk Exp $");
 
 #include "log.h"
 #include "uidswap.h"

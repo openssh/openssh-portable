@@ -3,6 +3,7 @@
    - deraadt@cvs.openbsd.org 2002/03/30 17:45:46
      [scp.c]
      stretch banners
+ - (bal) CVS ID sync of uidswap.c
  - (bal) OpenBSD CVS Sync (now for the real sync)
    - markus@cvs.openbsd.org 2002/03/27 22:21:45
      [ssh-keygen.c]
@@ -8129,4 +8130,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2013 2002/04/02 20:48:19 mouring Exp $
+$Id: ChangeLog,v 1.2014 2002/04/02 20:53:39 mouring Exp $
