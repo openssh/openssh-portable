@@ -15,6 +15,9 @@
    - jmc@cvs.openbsd.org 2004/04/28 07:02:56
      [sshd_config.5]
      remove unnecessary .Pp;
+   - jmc@cvs.openbsd.org 2004/04/28 07:13:42
+     [sftp.1 ssh.1]
+     add SendEnv to -o list;
 
 20040423
  - (dtucker) [configure.ac openbsd-compat/getrrsetbyname.c] Declare h_errno
@@ -1056,4 +1059,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3336 2004/05/02 12:13:20 dtucker Exp $
+$Id: ChangeLog,v 1.3337 2004/05/02 12:14:03 dtucker Exp $
