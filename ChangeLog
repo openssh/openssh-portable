@@ -4,6 +4,7 @@
    - [sshconnect.h] include fingerprint.h
    - [sshd.c] bugfix: the log() for passwd-auth escaped during logging 
      changes.
+   - [ssh.1] Spell my name right.
  - Added openssh.com info to README
 
 19991117
