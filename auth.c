@@ -81,8 +81,8 @@ allowed_user(struct passwd * pw)
 #ifdef WITH_AIXAUTHENTICATE
 	char *loginmsg;
 #endif /* WITH_AIXAUTHENTICATE */
-#if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW) && \
-	defined(HAS_SHADOW_EXPIRE)
+#if !defined(PAM) && defined(HAVE_SHADOW_H) && \
+	!defined(DISABLE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
   struct spwd *spw;
 
 	/* Shouldn't be called if pw is NULL, but better safe than sorry... */
@@ -94,11 +94,11 @@ allowed_user(struct passwd * pw)
 		int days = time(NULL) / 86400;
 
 		/* Check account expiry */
-		if ((spw->sp_expire > 0) && (days > spw->sp_expire))
+		if ((spw->sp_expire >= 0) && (days > spw->sp_expire))
 			return 0;
 
 		/* Check password expiry */
-		if ((spw->sp_lstchg > 0) && (spw->sp_max > 0) && 
+		if ((spw->sp_lstchg >= 0) && (spw->sp_max >= 0) && 
 		    (days > (spw->sp_lstchg + spw->sp_max)))
 			return 0;
 	}

@@ -3,6 +3,8 @@
    <stevesk@sweden.hp.com>
  - (djm) Redhat spec and manpage fixes from Pekka Savola <pekkas@netcore.fi>
  - (djm) Seperate tests for int64_t and u_int64_t types
+ - (djm) Tweak password expiry checking at suggestion of Kevin Steves 
+   <stevesk@sweden.hp.com>
 
 20000920
  - (djm) Fix bad path substitution. Report from Andrew Miner
