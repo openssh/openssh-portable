@@ -12,7 +12,8 @@ http://www.openssl.org/
 RPMs of OpenSSL are available at http://violet.ibs.com.au/openssh/files/support
 
 OpenSSH can utilise Pluggable Authentication Modules (PAM) if your system
-supports it. PAM is standard on Redhat and Debian Linux and on Solaris.
+supports it. PAM is standard on Redhat and Debian Linux, Solaris and
+HP-UX 11.
 
 PAM:
 http://www.kernel.org/pub/linux/libs/pam/
@@ -74,14 +75,16 @@ make install
 This will install the binaries in /opt/{bin,lib,sbin}, but will place the
 configuration files in /etc/ssh.
 
-If you are using PAM, you will need to manually install a PAM
+If you are using PAM, you may need to manually install a PAM
 control file as "/etc/pam.d/sshd" (or wherever your system
 prefers to keep them). A generic PAM configuration is included as
 "contrib/sshd.pam.generic", you may need to edit it before using it on
 your system. If you are using a recent version of Redhat Linux, the
 config file in contrib/redhat/sshd.pam should be more useful. 
 Failure to install a valid PAM file may result in an inability to
-use password authentication.
+use password authentication.  On HP-UX 11, the standard /etc/pam.conf
+configuration will work with sshd (sshd will match the OTHER service
+name).
 
 There are a few other options to the configure script:
 
