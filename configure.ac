@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.139 2003/08/13 10:48:07 dtucker Exp $
+# $Id: configure.ac,v 1.140 2003/08/21 07:58:29 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -195,56 +195,11 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 *-*-linux*)
 	no_dev_ptmx=1
 	check_for_libcrypt_later=1
+	check_for_openpty_ctty_bug=1
 	AC_DEFINE(DONT_TRY_OTHER_AF)
 	AC_DEFINE(PAM_TTY_KLUDGE)
 	AC_DEFINE(SPT_TYPE,SPT_REUSEARGV)
 	inet6_default_4in6=yes
-	# openpty can be in libutil, needed for controlling tty test
-	AC_SEARCH_LIBS(openpty, util)
-	# make sure that openpty does not reacquire controlling terminal
-	AC_MSG_CHECKING(if openpty correctly handles controlling tty)
-	AC_TRY_RUN(
-		[
-#include <stdio.h>
-#include <sys/fcntl.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-
-int
-main()
-{
-	pid_t pid;
-	int fd, ptyfd, ttyfd, status;
-
-	pid = fork();
-	if (pid < 0) {		/* failed */
-		exit(1);
-	} else if (pid > 0) {	/* parent */
-		waitpid(pid, &status, 0);
-		if (WIFEXITED(status)) 
-			exit(WEXITSTATUS(status));
-		else
-			exit(2);
-	} else {		/* child */
-		close(0); close(1); close(2);
-		setsid();
-		openpty(&ptyfd, &ttyfd, NULL, NULL, NULL);
-		fd = open("/dev/tty", O_RDWR | O_NOCTTY);
-		if (fd >= 0)
-			exit(3);	/* Acquired ctty: broken */
-		else
-			exit(0);	/* Did not acquire ctty: OK */
-	}
-}
-		],
-		[
-			AC_MSG_RESULT(yes)
-		],
-		[
-			AC_MSG_RESULT(no)
-			AC_DEFINE(SSHD_ACQUIRES_CTTY)
-		]
-	)
 	case `uname -r` in
 	1.*|2.0.*)
 		AC_DEFINE(BROKEN_CMSG_TYPE)
@@ -803,6 +758,53 @@ unlink(template); exit(0);
 		AC_DEFINE(HAVE_STRICT_MKSTEMP)
 	] 
 )
+fi
+
+dnl make sure that openpty does not reacquire controlling terminal
+if test ! -z "$check_for_openpty_ctty_bug"; then
+	AC_MSG_CHECKING(if openpty correctly handles controlling tty)
+	AC_TRY_RUN(
+		[
+#include <stdio.h>
+#include <sys/fcntl.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+int
+main()
+{
+	pid_t pid;
+	int fd, ptyfd, ttyfd, status;
+
+	pid = fork();
+	if (pid < 0) {		/* failed */
+		exit(1);
+	} else if (pid > 0) {	/* parent */
+		waitpid(pid, &status, 0);
+		if (WIFEXITED(status)) 
+			exit(WEXITSTATUS(status));
+		else
+			exit(2);
+	} else {		/* child */
+		close(0); close(1); close(2);
+		setsid();
+		openpty(&ptyfd, &ttyfd, NULL, NULL, NULL);
+		fd = open("/dev/tty", O_RDWR | O_NOCTTY);
+		if (fd >= 0)
+			exit(3);	/* Acquired ctty: broken */
+		else
+			exit(0);	/* Did not acquire ctty: OK */
+	}
+}
+		],
+		[
+			AC_MSG_RESULT(yes)
+		],
+		[
+			AC_MSG_RESULT(no)
+			AC_DEFINE(SSHD_ACQUIRES_CTTY)
+		]
+	)
 fi
 
 AC_FUNC_GETPGRP
