@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.231 2004/09/30 11:17:08 dtucker Exp $
+# $Id: configure.ac,v 1.232 2004/11/02 09:30:54 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -220,6 +220,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE(LOCKED_PASSWD_STRING, "*")
 	AC_DEFINE(SPT_TYPE,SPT_PSTAT)
 	check_for_hpux_broken_getaddrinfo=1
+	check_for_conflicting_getspnam=1
 	LIBS="$LIBS -lsec"
 	AC_CHECK_LIB(xnet, t_error, ,AC_MSG_ERROR([*** -lxnet needed on HP-UX - check config.log ***]))
 	;;
@@ -1119,6 +1120,24 @@ main(void)
 		[
 			AC_MSG_RESULT(no)
 			AC_DEFINE(BROKEN_GETADDRINFO)
+		]
+	)
+fi
+
+if test "x$check_for_conflicting_getspnam" = "x1"; then
+	AC_MSG_CHECKING(for conflicting getspnam in shadow.h)
+	AC_COMPILE_IFELSE(
+		[
+#include <shadow.h>
+int main(void) {exit(0);}
+		],
+		[
+			AC_MSG_RESULT(no)
+		],
+		[
+			AC_MSG_RESULT(yes)
+			AC_DEFINE(GETSPNAM_CONFLICTING_DEFS, 1,
+			    [Conflicting defs for getspnam])
 		]
 	)
 fi

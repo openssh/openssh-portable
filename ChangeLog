@@ -1,3 +1,8 @@
+20041102
+ - (dtucker) [configure.ac includes.h] Bug #947: Fix compile error on HP-UX
+   10.x by testing for conflicts in shadow.h and undef'ing _INCLUDE__STDC__
+   only if a conflict is detected.
+
 20041019
  - (dtucker) [uidswap.c] Don't test dropping of gids for the root user or
    on Cygwin.  Cygwin parts from vinschen at redhat com; ok djm@
@@ -1771,4 +1776,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3561 2004/10/19 06:33:33 dtucker Exp $
+$Id: ChangeLog,v 1.3562 2004/11/02 09:30:54 dtucker Exp $
