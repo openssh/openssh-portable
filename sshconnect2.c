@@ -82,7 +82,7 @@ ssh_kex2(char *host, struct sockaddr *hostaddr)
 	xxx_hostaddr = hostaddr;
 
 	if (options.ciphers == (char *)-1) {
-		log("No valid ciphers for protocol version 2 given, using defaults.");
+		logit("No valid ciphers for protocol version 2 given, using defaults.");
 		options.ciphers = NULL;
 	}
 	if (options.ciphers != NULL) {
@@ -349,7 +349,7 @@ input_userauth_failure(int type, u_int32_t seq, void *ctxt)
 	packet_check_eom();
 
 	if (partial != 0)
-		log("Authenticated with partial success.");
+		logit("Authenticated with partial success.");
 	debug("Authentications that can continue: %s", authlist);
 
 	clear_auth_state(authctxt);
@@ -494,7 +494,7 @@ input_userauth_passwd_changereq(int type, u_int32_t seqnr, void *ctxt)
 	info = packet_get_string(NULL);
 	lang = packet_get_string(NULL);
 	if (strlen(info) > 0)
-		log("%s", info);
+		logit("%s", info);
 	xfree(info);
 	xfree(lang);
 	packet_start(SSH2_MSG_USERAUTH_REQUEST);
@@ -526,7 +526,7 @@ input_userauth_passwd_changereq(int type, u_int32_t seqnr, void *ctxt)
 		if (strcmp(password, retype) != 0) {
 			memset(password, 0, strlen(password));
 			xfree(password);
-			log("Mismatch; try again, EOF to quit.");
+			logit("Mismatch; try again, EOF to quit.");
 			password = NULL;
 		}
 		memset(retype, 0, strlen(retype));
@@ -865,9 +865,9 @@ input_userauth_info_req(int type, u_int32_t seq, void *ctxt)
 	inst = packet_get_string(NULL);
 	lang = packet_get_string(NULL);
 	if (strlen(name) > 0)
-		log("%s", name);
+		logit("%s", name);
 	if (strlen(inst) > 0)
-		log("%s", inst);
+		logit("%s", inst);
 	xfree(name);
 	xfree(inst);
 	xfree(lang);

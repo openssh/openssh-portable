@@ -142,12 +142,12 @@ channel_lookup(int id)
 	Channel *c;
 
 	if (id < 0 || id >= channels_alloc) {
-		log("channel_lookup: %d: bad id", id);
+		logit("channel_lookup: %d: bad id", id);
 		return NULL;
 	}
 	c = channels[id];
 	if (c == NULL) {
-		log("channel_lookup: %d: bad id: channel free", id);
+		logit("channel_lookup: %d: bad id: channel free", id);
 		return NULL;
 	}
 	return c;
@@ -575,7 +575,7 @@ channel_send_open(int id)
 	Channel *c = channel_lookup(id);
 
 	if (c == NULL) {
-		log("channel_send_open: %d: bad id", id);
+		logit("channel_send_open: %d: bad id", id);
 		return;
 	}
 	debug2("channel %d: send open", id);
@@ -593,7 +593,7 @@ channel_request_start(int id, char *service, int wantconfirm)
 	Channel *c = channel_lookup(id);
 
 	if (c == NULL) {
-		log("channel_request_start: %d: unknown channel id", id);
+		logit("channel_request_start: %d: unknown channel id", id);
 		return;
 	}
 	debug("channel %d: request %s", id, service) ;
@@ -608,7 +608,7 @@ channel_register_confirm(int id, channel_callback_fn *fn)
 	Channel *c = channel_lookup(id);
 
 	if (c == NULL) {
-		log("channel_register_comfirm: %d: bad id", id);
+		logit("channel_register_comfirm: %d: bad id", id);
 		return;
 	}
 	c->confirm = fn;
@@ -619,7 +619,7 @@ channel_register_cleanup(int id, channel_callback_fn *fn)
 	Channel *c = channel_lookup(id);
 
 	if (c == NULL) {
-		log("channel_register_cleanup: %d: bad id", id);
+		logit("channel_register_cleanup: %d: bad id", id);
 		return;
 	}
 	c->detach_user = fn;
@@ -630,7 +630,7 @@ channel_cancel_cleanup(int id)
 	Channel *c = channel_lookup(id);
 
 	if (c == NULL) {
-		log("channel_cancel_cleanup: %d: bad id", id);
+		logit("channel_cancel_cleanup: %d: bad id", id);
 		return;
 	}
 	c->detach_user = NULL;
@@ -641,7 +641,7 @@ channel_register_filter(int id, channel_filter_fn *fn)
 	Channel *c = channel_lookup(id);
 
 	if (c == NULL) {
-		log("channel_register_filter: %d: bad id", id);
+		logit("channel_register_filter: %d: bad id", id);
 		return;
 	}
 	c->input_filter = fn;
@@ -833,7 +833,7 @@ channel_pre_x11_open_13(Channel *c, fd_set * readset, fd_set * writeset)
 		 * We have received an X11 connection that has bad
 		 * authentication information.
 		 */
-		log("X11 connection rejected because of wrong authentication.");
+		logit("X11 connection rejected because of wrong authentication.");
 		buffer_clear(&c->input);
 		buffer_clear(&c->output);
 		channel_close_fd(&c->sock);
@@ -856,7 +856,7 @@ channel_pre_x11_open(Channel *c, fd_set * readset, fd_set * writeset)
 		c->type = SSH_CHANNEL_OPEN;
 		channel_pre_open(c, readset, writeset);
 	} else if (ret == -1) {
-		log("X11 connection rejected because of wrong authentication.");
+		logit("X11 connection rejected because of wrong authentication.");
 		debug("X11 rejected %d i%d/o%d", c->self, c->istate, c->ostate);
 		chan_read_failed(c);
 		buffer_clear(&c->input);
@@ -1717,11 +1717,11 @@ channel_input_data(int type, u_int32_t seq, void *ctxt)
 
 	if (compat20) {
 		if (data_len > c->local_maxpacket) {
-			log("channel %d: rcvd big packet %d, maxpack %d",
+			logit("channel %d: rcvd big packet %d, maxpack %d",
 			    c->self, data_len, c->local_maxpacket);
 		}
 		if (data_len > c->local_window) {
-			log("channel %d: rcvd too much data %d, win %d",
+			logit("channel %d: rcvd too much data %d, win %d",
 			    c->self, data_len, c->local_window);
 			xfree(data);
 			return;
@@ -1748,7 +1748,7 @@ channel_input_extended_data(int type, u_int32_t seq, void *ctxt)
 	if (c == NULL)
 		packet_disconnect("Received extended_data for bad channel %d.", id);
 	if (c->type != SSH_CHANNEL_OPEN) {
-		log("channel %d: ext data for non open", id);
+		logit("channel %d: ext data for non open", id);
 		return;
 	}
 	if (c->flags & CHAN_EOF_RCVD) {
@@ -1762,13 +1762,13 @@ channel_input_extended_data(int type, u_int32_t seq, void *ctxt)
 	if (c->efd == -1 ||
 	    c->extended_usage != CHAN_EXTENDED_WRITE ||
 	    tcode != SSH2_EXTENDED_DATA_STDERR) {
-		log("channel %d: bad ext data", c->self);
+		logit("channel %d: bad ext data", c->self);
 		return;
 	}
 	data = packet_get_string(&data_len);
 	packet_check_eom();
 	if (data_len > c->local_window) {
-		log("channel %d: rcvd too much extended_data %d, win %d",
+		logit("channel %d: rcvd too much extended_data %d, win %d",
 		    c->self, data_len, c->local_window);
 		xfree(data);
 		return;
@@ -1934,7 +1934,7 @@ channel_input_open_failure(int type, u_int32_t seq, void *ctxt)
 			msg  = packet_get_string(NULL);
 			lang = packet_get_string(NULL);
 		}
-		log("channel %d: open failed: %s%s%s", id,
+		logit("channel %d: open failed: %s%s%s", id,
 		    reason2txt(reason), msg ? ": ": "", msg ? msg : "");
 		if (msg != NULL)
 			xfree(msg);
@@ -1961,7 +1961,7 @@ channel_input_window_adjust(int type, u_int32_t seq, void *ctxt)
 	c = channel_lookup(id);
 
 	if (c == NULL || c->type != SSH_CHANNEL_OPEN) {
-		log("Received window adjust for "
+		logit("Received window adjust for "
 		    "non-open channel %d.", id);
 		return;
 	}
@@ -2167,7 +2167,7 @@ channel_request_remote_forwarding(u_short listen_port,
 			success = 1;
 			break;
 		case SSH_SMSG_FAILURE:
-			log("Warning: Server denied remote port forwarding.");
+			logit("Warning: Server denied remote port forwarding.");
 			break;
 		default:
 			/* Unknown packet */
@@ -2340,7 +2340,7 @@ channel_connect_to(const char *host, u_short port)
 
 	}
 	if (!permit) {
-		log("Received request to connect to host %.100s port %d, "
+		logit("Received request to connect to host %.100s port %d, "
 		    "but the request was denied.", host, port);
 		return -1;
 	}

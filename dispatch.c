@@ -39,7 +39,7 @@ dispatch_fn *dispatch[DISPATCH_MAX];
 void
 dispatch_protocol_error(int type, u_int32_t seq, void *ctxt)
 {
-	log("dispatch_protocol_error: type %d seq %u", type, seq);
+	logit("dispatch_protocol_error: type %d seq %u", type, seq);
 	if (!compat20)
 		fatal("protocol error");
 	packet_start(SSH2_MSG_UNIMPLEMENTED);
@@ -50,7 +50,7 @@ dispatch_protocol_error(int type, u_int32_t seq, void *ctxt)
 void
 dispatch_protocol_ignore(int type, u_int32_t seq, void *ctxt)
 {
-	log("dispatch_protocol_ignore: type %d seq %u", type, seq);
+	logit("dispatch_protocol_ignore: type %d seq %u", type, seq);
 }
 void
 dispatch_init(dispatch_fn *dflt)

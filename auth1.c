@@ -297,7 +297,7 @@ do_authloop(Authctxt *authctxt)
 			 * Any unknown messages will be ignored (and failure
 			 * returned) during authentication.
 			 */
-			log("Unknown message during authentication: type %d", type);
+			logit("Unknown message during authentication: type %d", type);
 			break;
 		}
 #ifdef BSD_AUTH

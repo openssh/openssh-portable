@@ -226,7 +226,7 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 		}
 		/* set tty modes to a sane state for broken clients */
 		if (tcgetattr(*ptyfd, &tio) < 0)
-			log("Getting tty modes for pty failed: %.100s", strerror(errno));
+			logit("Getting tty modes for pty failed: %.100s", strerror(errno));
 		else {
 			tio.c_lflag |= (ECHO | ISIG | ICANON);
 			tio.c_oflag |= (OPOST | ONLCR);
@@ -234,7 +234,7 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 
 			/* Set the new modes for the terminal. */
 			if (tcsetattr(*ptyfd, TCSANOW, &tio) < 0)
-				log("Setting tty modes for pty failed: %.100s", strerror(errno));
+				logit("Setting tty modes for pty failed: %.100s", strerror(errno));
 		}
 
 		return 1;

@@ -188,7 +188,7 @@ proto_spec(const char *spec)
 			ret |= SSH_PROTO_2;
 			break;
 		default:
-			log("ignoring bad proto spec: '%s'.", p);
+			logit("ignoring bad proto spec: '%s'.", p);
 			break;
 		}
 	}

@@ -119,7 +119,7 @@ buffer_put_bignum2(Buffer *buffer, BIGNUM *value)
 		/**XXX should be two's-complement */
 		int i, carry;
 		u_char *uc = buf;
-		log("negativ!");
+		logit("negativ!");
 		for (i = bytes-1, carry = 1; i>=0; i--) {
 			uc[i] ^= 0xff;
 			if (carry)

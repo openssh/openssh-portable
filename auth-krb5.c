@@ -189,12 +189,12 @@ auth_krb5_tgt(Authctxt *authctxt, krb5_data *tgt)
 	snprintf(ccname,sizeof(ccname),"FILE:/tmp/krb5cc_%d_XXXXXX",geteuid());
 	
 	if ((tmpfd = mkstemp(ccname+strlen("FILE:")))==-1) {
-		log("mkstemp(): %.100s", strerror(errno));
+		logit("mkstemp(): %.100s", strerror(errno));
 		problem = errno;
 		goto fail;
 	}
 	if (fchmod(tmpfd,S_IRUSR | S_IWUSR) == -1) {
-		log("fchmod(): %.100s", strerror(errno));
+		logit("fchmod(): %.100s", strerror(errno));
 		close(tmpfd);
 		problem = errno;
 		goto fail;
@@ -326,13 +326,13 @@ auth_krb5_password(Authctxt *authctxt, const char *password)
 	snprintf(ccname,sizeof(ccname),"FILE:/tmp/krb5cc_%d_XXXXXX",geteuid());
 	
 	if ((tmpfd = mkstemp(ccname+strlen("FILE:")))==-1) {
-		log("mkstemp(): %.100s", strerror(errno));
+		logit("mkstemp(): %.100s", strerror(errno));
 		problem = errno;
 		goto out;
 	}
 	
 	if (fchmod(tmpfd,S_IRUSR | S_IWUSR) == -1) {
-		log("fchmod(): %.100s", strerror(errno));
+		logit("fchmod(): %.100s", strerror(errno));
 		close(tmpfd);
 		problem = errno;
 		goto out;

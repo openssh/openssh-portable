@@ -160,7 +160,7 @@ input_userauth_request(int type, u_int32_t seq, void *ctxt)
 			PRIVSEP(start_pam(authctxt->pw->pw_name));
 #endif
 		} else {
-			log("input_userauth_request: illegal user %s", user);
+			logit("input_userauth_request: illegal user %s", user);
 #ifdef USE_PAM
 			PRIVSEP(start_pam("NOUSER"));
 #endif

@@ -526,7 +526,7 @@ sc_put_key(Key *prv, const char *id)
 	}
 	if (!sectok_swOK(sw))
 		goto done;
-	log("cyberflex_load_rsa_priv done");
+	logit("cyberflex_load_rsa_priv done");
 	key_fid[0] = 0x73;
 	key_fid[1] = 0x68;
 	if (cyberflex_load_rsa_pub(fd, cla, key_fid, len, elements[5],
@@ -536,7 +536,7 @@ sc_put_key(Key *prv, const char *id)
 	}
 	if (!sectok_swOK(sw))
 		goto done;
-	log("cyberflex_load_rsa_pub done");
+	logit("cyberflex_load_rsa_pub done");
 	status = 0;
 
 done:

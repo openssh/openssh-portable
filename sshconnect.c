@@ -332,7 +332,7 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 
 	/* Return failure if we didn't get a successful connection. */
 	if (attempt >= connection_attempts) {
-		log("ssh: connect to host %s port %s: %s",
+		logit("ssh: connect to host %s port %s: %s",
 		    host, strport, strerror(errno));
 		return full_failure ? ECONNABORTED : ECONNREFUSED;
 	}
@@ -421,7 +421,7 @@ ssh_exchange_identification(void)
 			enable_compat13();
 			minor1 = 3;
 			if (options.forward_agent) {
-				log("Agent forwarding disabled for protocol 1.3");
+				logit("Agent forwarding disabled for protocol 1.3");
 				options.forward_agent = 0;
 			}
 		}
@@ -612,16 +612,16 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 		debug("Found key in %s:%d", host_file, host_line);
 		if (options.check_host_ip && ip_status == HOST_NEW) {
 			if (readonly)
-				log("%s host key for IP address "
+				logit("%s host key for IP address "
 				    "'%.128s' not in list of known hosts.",
 				    type, ip);
 			else if (!add_host_to_hostfile(user_hostfile, ip,
 			    host_key))
-				log("Failed to add the %s host key for IP "
+				logit("Failed to add the %s host key for IP "
 				    "address '%.128s' to the list of known "
 				    "hosts (%.30s).", type, ip, user_hostfile);
 			else
-				log("Warning: Permanently added the %s host "
+				logit("Warning: Permanently added the %s host "
 				    "key for IP address '%.128s' to the list "
 				    "of known hosts.", type, ip);
 		}
@@ -668,10 +668,10 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 		 * local known_hosts file.
 		 */
 		if (!add_host_to_hostfile(user_hostfile, hostp, host_key))
-			log("Failed to add the host to the list of known "
+			logit("Failed to add the host to the list of known "
 			    "hosts (%.500s).", user_hostfile);
 		else
-			log("Warning: Permanently added '%.200s' (%s) to the "
+			logit("Warning: Permanently added '%.200s' (%s) to the "
 			    "list of known hosts.", hostp, type);
 		break;
 	case HOST_CHANGED:
@@ -774,7 +774,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 			    host_file, host_line);
 		}
 		if (options.strict_host_key_checking == 1) {
-			log(msg);
+			logit(msg);
 			error("Exiting, you have requested strict checking.");
 			goto fail;
 		} else if (options.strict_host_key_checking == 2) {
@@ -783,7 +783,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 			if (!confirm(msg))
 				goto fail;
 		} else {
-			log(msg);
+			logit(msg);
 		}
 	}
 
@@ -881,7 +881,7 @@ show_key_from_file(const char *file, const char *host, int keytype)
 	if ((ret = lookup_key_in_hostfile_by_type(file, host,
 	    keytype, found, &line))) {
 		fp = key_fingerprint(found, SSH_FP_MD5, SSH_FP_HEX);
-		log("WARNING: %s key found for host %s\n"
+		logit("WARNING: %s key found for host %s\n"
 		    "in %s:%d\n"
 		    "%s key fingerprint %s.",
 		    key_type(found), host, file, line,

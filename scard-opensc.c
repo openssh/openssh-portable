@@ -321,7 +321,7 @@ sc_read_pubkey(Key * k, const struct sc_pkcs15_object *cert_obj)
 	debug("sc_read_pubkey() with cert id %02X", cinfo->id.value[0]);
 	r = sc_pkcs15_read_certificate(p15card, cinfo, &cert);
 	if (r) {
-		log("Certificate read failed: %s", sc_strerror(r));
+		logit("Certificate read failed: %s", sc_strerror(r));
 		goto err;
 	}
 	x509 = X509_new();
@@ -331,7 +331,7 @@ sc_read_pubkey(Key * k, const struct sc_pkcs15_object *cert_obj)
 	}
 	p = cert->data;
 	if (!d2i_X509(&x509, &p, cert->data_len)) {
-		log("Unable to parse X.509 certificate");
+		logit("Unable to parse X.509 certificate");
 		r = -1;
 		goto err;
 	}
@@ -341,7 +341,7 @@ sc_read_pubkey(Key * k, const struct sc_pkcs15_object *cert_obj)
 	X509_free(x509);
 	x509 = NULL;
 	if (pubkey->type != EVP_PKEY_RSA) {
-		log("Public key is of unknown type");
+		logit("Public key is of unknown type");
 		r = -1;
 		goto err;
 	}
@@ -413,7 +413,7 @@ sc_get_keys(const char *id, const char *pin)
 		r = sc_pkcs15_get_objects(p15card, SC_PKCS15_TYPE_CERT_X509,
 					  certs, 32);
 		if (r == 0) {
-			log("No certificates found on smartcard");
+			logit("No certificates found on smartcard");
 			r = -1;
 			goto err;
 		} else if (r < 0) {

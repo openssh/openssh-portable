@@ -81,7 +81,7 @@ get_remote_hostname(int socket, int verify_reverse_mapping)
 	    NULL, 0, NI_NAMEREQD) != 0) {
 		/* Host name not found.  Use ip address. */
 #if 0
-		log("Could not reverse map address %.100s.", ntop);
+		logit("Could not reverse map address %.100s.", ntop);
 #endif
 		return xstrdup(ntop);
 	}
@@ -111,7 +111,7 @@ get_remote_hostname(int socket, int verify_reverse_mapping)
 	hints.ai_family = from.ss_family;
 	hints.ai_socktype = SOCK_STREAM;
 	if (getaddrinfo(name, NULL, &hints, &aitop) != 0) {
-		log("reverse mapping checking getaddrinfo for %.700s "
+		logit("reverse mapping checking getaddrinfo for %.700s "
 		    "failed - POSSIBLE BREAKIN ATTEMPT!", name);
 		return xstrdup(ntop);
 	}
@@ -126,7 +126,7 @@ get_remote_hostname(int socket, int verify_reverse_mapping)
 	/* If we reached the end of the list, the address was not there. */
 	if (!ai) {
 		/* Address not found for the host name. */
-		log("Address %.100s maps to %.600s, but this does not "
+		logit("Address %.100s maps to %.600s, but this does not "
 		    "map back to the address - POSSIBLE BREAKIN ATTEMPT!",
 		    ntop, name);
 		return xstrdup(ntop);
@@ -166,7 +166,7 @@ check_ip_options(int socket, char *ipaddr)
 		for (i = 0; i < option_size; i++)
 			snprintf(text + i*3, sizeof(text) - i*3,
 			    " %2.2x", options[i]);
-		log("Connection from %.100s with IP options:%.800s",
+		logit("Connection from %.100s with IP options:%.800s",
 		    ipaddr, text);
 		packet_disconnect("Connection from %.100s with IP options:%.800s",
 		    ipaddr, text);

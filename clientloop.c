@@ -490,13 +490,13 @@ process_cmdline(void)
 	if (*s == 0)
 		goto out;
 	if (strlen(s) < 2 || s[0] != '-' || !(s[1] == 'L' || s[1] == 'R')) {
-		log("Invalid command.");
+		logit("Invalid command.");
 		goto out;
 	}
 	if (s[1] == 'L')
 		local = 1;
 	if (!local && !compat20) {
-		log("Not supported for SSH protocol version 1.");
+		logit("Not supported for SSH protocol version 1.");
 		goto out;
 	}
 	s += 2;
@@ -507,24 +507,24 @@ process_cmdline(void)
 	    sfwd_port, buf, sfwd_host_port) != 3 &&
 	    sscanf(s, "%5[0-9]/%255[^/]/%5[0-9]",
 	    sfwd_port, buf, sfwd_host_port) != 3) {
-		log("Bad forwarding specification.");
+		logit("Bad forwarding specification.");
 		goto out;
 	}
 	if ((fwd_port = a2port(sfwd_port)) == 0 ||
 	    (fwd_host_port = a2port(sfwd_host_port)) == 0) {
-		log("Bad forwarding port(s).");
+		logit("Bad forwarding port(s).");
 		goto out;
 	}
 	if (local) {
 		if (channel_setup_local_fwd_listener(fwd_port, buf,
 		    fwd_host_port, options.gateway_ports) < 0) {
-			log("Port forwarding failed.");
+			logit("Port forwarding failed.");
 			goto out;
 		}
 	} else
 		channel_request_remote_forwarding(fwd_port, buf,
 		    fwd_host_port);
-	log("Forwarding port.");
+	logit("Forwarding port.");
 out:
 	signal(SIGINT, handler);
 	enter_raw_mode();
@@ -577,7 +577,7 @@ process_escapes(Buffer *bin, Buffer *bout, Buffer *berr, char *buf, int len)
 			case 'R':
 				if (compat20) {
 					if (datafellows & SSH_BUG_NOREKEY)
-						log("Server does not support re-keying");
+						logit("Server does not support re-keying");
 					else
 						need_rekeying = 1;
 				}

@@ -44,7 +44,7 @@ userauth_passwd(Authctxt *authctxt)
 	u_int len;
 	change = packet_get_char();
 	if (change)
-		log("password change not supported");
+		logit("password change not supported");
 	password = packet_get_string(&len);
 	packet_check_eom();
 	if (authctxt->valid &&

@@ -910,7 +910,7 @@ parse_flag:
 		goto parse_int;
 
 	case sDeprecated:
-		log("%s line %d: Deprecated option %s",
+		logit("%s line %d: Deprecated option %s",
 		    filename, linenum, arg);
 		while (arg)
 		    arg = strdelim(&cp);

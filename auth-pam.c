@@ -38,7 +38,7 @@ extern char *__progname;
 
 extern int use_privsep;
 
-RCSID("$Id: auth-pam.c,v 1.55 2003/01/22 04:42:26 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.56 2003/04/09 10:59:48 djm Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now."
@@ -182,7 +182,7 @@ void do_pam_cleanup_proc(void *context)
 	if (__pamh && session_opened) {
 		pam_retval = pam_close_session(__pamh, 0);
 		if (pam_retval != PAM_SUCCESS)
-			log("Cannot close PAM session[%d]: %.200s",
+			logit("Cannot close PAM session[%d]: %.200s",
 			    pam_retval, PAM_STRERROR(__pamh, pam_retval));
 	}
 
@@ -196,7 +196,7 @@ void do_pam_cleanup_proc(void *context)
 	if (__pamh) {
 		pam_retval = pam_end(__pamh, pam_retval);
 		if (pam_retval != PAM_SUCCESS)
-			log("Cannot release PAM authentication[%d]: %.200s",
+			logit("Cannot release PAM authentication[%d]: %.200s",
 			    pam_retval, PAM_STRERROR(__pamh, pam_retval));
 	}
 }
@@ -261,7 +261,7 @@ int do_pam_account(char *username, char *remote_user)
 			break;
 #endif
 		default:
-			log("PAM rejected by account configuration[%d]: "
+			logit("PAM rejected by account configuration[%d]: "
 			    "%.200s", pam_retval, PAM_STRERROR(__pamh, 
 			    pam_retval));
 			return(0);

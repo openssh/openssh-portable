@@ -261,7 +261,7 @@ process_authentication_challenge1(SocketEntry *e)
 		/* The response is MD5 of decrypted challenge plus session id. */
 		len = BN_num_bytes(challenge);
 		if (len <= 0 || len > 32) {
-			log("process_authentication_challenge: bad challenge length %d", len);
+			logit("process_authentication_challenge: bad challenge length %d", len);
 			goto failure;
 		}
 		memset(buf, 0, 32);
@@ -350,7 +350,7 @@ process_remove_identity(SocketEntry *e, int version)
 		buffer_get_bignum(&e->request, key->rsa->n);
 
 		if (bits != key_size(key))
-			log("Warning: identity keysize mismatch: actual %u, announced %u",
+			logit("Warning: identity keysize mismatch: actual %u, announced %u",
 			    key_size(key), bits);
 		break;
 	case 2:
