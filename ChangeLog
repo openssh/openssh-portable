@@ -1,3 +1,6 @@
+20040421
+ - (djm) Update config.guess and config.sub to autoconf-2.59 versions; ok tim@
+
 20040420
  - (djm) OpenBSD CVS Sync
    - henning@cvs.openbsd.org 2004/04/08 16:08:21
@@ -1029,4 +1032,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3329 2004/04/20 10:28:55 djm Exp $
+$Id: ChangeLog,v 1.3330 2004/04/21 02:29:13 djm Exp $
