@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 23:55:14 1995 ylo
 .\"
-.\" $Id: ssh-keygen.1,v 1.16 2000/07/11 07:31:38 djm Exp $
+.\" $Id: ssh-keygen.1,v 1.17 2000/09/01 23:08:09 djm Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSH-KEYGEN 1
@@ -23,7 +23,7 @@
 .Op Fl b Ar bits
 .Op Fl N Ar new_passphrase
 .Op Fl C Ar comment
-.Op Fl f Ar keyfile
+.Op Fl f Ar output_keyfile
 .Nm ssh-keygen
 .Fl p
 .Op Fl P Ar old_passphrase
@@ -31,13 +31,13 @@
 .Op Fl f Ar keyfile
 .Nm ssh-keygen
 .Fl x
-.Op Fl f Ar keyfile
+.Op Fl f Ar input_keyfile
 .Nm ssh-keygen
 .Fl X
-.Op Fl f Ar keyfile
+.Op Fl f Ar input_keyfile
 .Nm ssh-keygen
 .Fl y
-.Op Fl f Ar keyfile
+.Op Fl f Ar input_keyfile
 .Nm ssh-keygen
 .Fl c
 .Op Fl P Ar passphrase
@@ -45,7 +45,7 @@
 .Op Fl f Ar keyfile
 .Nm ssh-keygen
 .Fl l
-.Op Fl f Ar keyfile
+.Op Fl f Ar input_keyfile
 .Nm ssh-keygen
 .Fl R
 .Sh DESCRIPTION
