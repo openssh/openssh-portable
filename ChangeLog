@@ -4,6 +4,9 @@
      [sshconnect2.c]
      Don't use logit for banner, since it truncates to MSGBUFSIZ; bz #668 & #707.
      ok markus@
+   - djm@cvs.openbsd.org 2003/10/07 07:04:16
+     [sftp-int.c]
+     sftp quoting fix from admorten AT umich.edu; ok markus@
 
 20031007
  - (djm) Delete autom4te.cache after autoreconf
@@ -1299,4 +1302,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3064 2003/10/08 07:32:02 dtucker Exp $
+$Id: ChangeLog,v 1.3065 2003/10/08 07:34:38 dtucker Exp $

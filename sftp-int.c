@@ -25,7 +25,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.62 2003/08/25 08:13:09 fgsch Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.63 2003/10/07 07:04:16 djm Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -350,6 +350,7 @@ get_pathname(const char **cpp, char **path)
 		/* Search for terminating quote, unescape some chars */
 		for (i = j = 0; i <= strlen(cp); i++) {
 			if (cp[i] == quot) {	/* Found quote */
+				i++;
 				(*path)[j] = '\0';
 				i++;
 				break;
