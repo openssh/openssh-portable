@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999 Markus Friedl.  All rights reserved.
+ * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -28,46 +28,37 @@
  */
 
 #include "includes.h"
-RCSID("$Id: compat.c,v 1.4 2000/04/04 04:39:01 damien Exp $");
+RCSID("$Id: hmac.c,v 1.1 2000/04/03 20:06:15 markus Exp $");
 
+#include "xmalloc.h"
 #include "ssh.h"
-#include "packet.h"
+#include "getput.h"
 
-int compat13 = 0;
-int compat20 = 0;
-int datafellows = 0;
+#if HAVE_OPENSSL
+# include <openssl/hmac.h>
+#endif /* HAVE_OPENSSL */
+#if HAVE_SSL
+# include <ssl/hmac.h>
+#endif /* HAVE_SSL */
 
-void 
-enable_compat20(void)
+unsigned char *
+hmac(
+    EVP_MD *evp_md,
+    unsigned int seqno,
+    unsigned char *data, int datalen,
+    unsigned char *key, int keylen)
 {
-	fatal("protocol 2.0 not implemented");
-}
-void 
-enable_compat13(void)
-{
-	verbose("Enabling compatibility mode for protocol 1.3");
-	compat13 = 1;
-}
-/* datafellows bug compatibility */
-void
-compat_datafellows(const char *version)
-{
-	int i;
-	size_t len;
-	static const char *check[] = {
-		"2.0.1",
-		"2.1.0.beta.9",
-		"2.1.0.pre.3",
-		"2.1.0.public.beta.1",
-		NULL
-	};
-	for (i = 0; check[i]; i++) {
-		len = strlen(check[i]);
-		if (strlen(version) >= len &&
-		   (strncmp(version, check[i], len) == 0)) {
-			log("datafellows: %.200s", version);
-			datafellows = 1;
-			return;
-		}
-	}
+	HMAC_CTX c;
+	static unsigned char m[EVP_MAX_MD_SIZE];
+	unsigned char b[4];
+
+	if (key == NULL)
+		fatal("hmac: no key");
+	HMAC_Init(&c, key, keylen, evp_md);
+	PUT_32BIT(b, seqno);
+	HMAC_Update(&c, b, sizeof b);
+	HMAC_Update(&c, data, datalen);
+	HMAC_Final(&c, m, NULL);
+	HMAC_cleanup(&c);
+	return(m);
 }

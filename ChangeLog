@@ -1,5 +1,13 @@
 20000404
  - Add tests for RAND_add function when searching for OpenSSL
+ - OpenBSD CVS update:
+   - [packet.h packet.c]
+     ssh2 packet format
+   - [packet.h packet.c nchan2.ms nchan.h compat.h compat.c]
+     [channels.h channels.c]
+     channel layer support for ssh2
+   - [kex.h kex.c hmac.h hmac.c dsa.c dsa.h]
+     DSA, keyexchange, algorithm agreement for ssh2
 
 20000403
  - Wrote entropy collection routines for systems that lack /dev/random

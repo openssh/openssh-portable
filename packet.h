@@ -13,7 +13,7 @@
  * 
  */
 
-/* RCSID("$Id: packet.h,v 1.10 2000/03/17 12:40:16 damien Exp $"); */
+/* RCSID("$Id: packet.h,v 1.11 2000/04/04 04:39:03 damien Exp $"); */
 
 #ifndef PACKET_H
 #define PACKET_H
@@ -90,9 +90,12 @@ void    packet_put_int(unsigned int value);
 
 /* Appends an arbitrary precision integer to packet data. */
 void    packet_put_bignum(BIGNUM * value);
+void    packet_put_bignum2(BIGNUM * value);
 
 /* Appends a string to packet data. */
 void    packet_put_string(const char *buf, unsigned int len);
+void    packet_put_cstring(const char *str);
+void    packet_put_raw(const char *buf, unsigned int len);
 
 /*
  * Finalizes and sends the packet.  If the encryption key has been set,
@@ -136,6 +139,8 @@ unsigned int packet_get_int(void);
  * must have been initialized before this call.
  */
 void    packet_get_bignum(BIGNUM * value, int *length_ptr);
+void    packet_get_bignum2(BIGNUM * value, int *length_ptr);
+char	*packet_get_raw(int *length_ptr);
 
 /*
  * Returns a string from the packet data.  The string is allocated using
@@ -201,5 +206,8 @@ do { \
 /* remote host is connected via a socket/ipv4 */
 int	packet_connection_is_on_socket(void);
 int	packet_connection_is_ipv4(void);
+
+/* enable SSH2 packet format */
+void	packet_set_ssh2_format(void);
 
 #endif				/* PACKET_H */

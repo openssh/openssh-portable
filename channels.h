@@ -1,4 +1,4 @@
-/* RCSID("$Id: channels.h,v 1.5 2000/04/01 01:09:23 damien Exp $"); */
+/* RCSID("$Id: channels.h,v 1.6 2000/04/04 04:39:01 damien Exp $"); */
 
 #ifndef CHANNELS_H
 #define CHANNELS_H
@@ -30,6 +30,7 @@ typedef struct Channel {
 	/* peer can be reached over encrypted connection, via packet-sent */
 	int     istate;		/* input from channel (state of receive half) */
 	int     ostate;		/* output to channel  (state of transmit half) */
+	int     flags;		/* close sent/rcvd */
 	int     rfd;		/* read fd */
 	int     wfd;		/* write fd */
 	int     efd;		/* extended fd */
@@ -66,21 +67,30 @@ typedef struct Channel {
 #define CHAN_EXTENDED_READ		1
 #define CHAN_EXTENDED_WRITE		2
 
+void	channel_set_fds(int id, int rfd, int wfd, int efd, int extusage);
 void	channel_open(int id);
+void	channel_request(int id, char *service, int wantconfirm);
+void	channel_request_start(int id, char *service, int wantconfirm);
+void	channel_register_callback(int id, int mtype, channel_callback_fn *fn, void *arg);
+void	channel_register_cleanup(int id, channel_callback_fn *fn);
+void	channel_cancel_cleanup(int id);
 Channel	*channel_lookup(int id);
 
 int
 channel_new(char *ctype, int type, int rfd, int wfd, int efd,
     int window, int maxpack, int extended_usage, char *remote_name);
 
+void	channel_input_channel_request(int type, int plen);
 void	channel_input_close(int type, int plen);
 void	channel_input_close_confirmation(int type, int plen);
 void	channel_input_data(int type, int plen);
+void	channel_input_extended_data(int type, int plen);
 void	channel_input_ieof(int type, int plen);
 void	channel_input_oclose(int type, int plen);
 void	channel_input_open_confirmation(int type, int plen);
 void	channel_input_open_failure(int type, int plen);
 void	channel_input_port_open(int type, int plen);
+void	channel_input_window_adjust(int type, int plen);
 void	channel_input_open(int type, int plen);
 
 /* Sets specific protocol options. */
@@ -217,5 +227,8 @@ void    auth_input_request_forwarding(struct passwd * pw);
 
 /* This is called to process an SSH_SMSG_AGENT_OPEN message. */
 void    auth_input_open_request(int type, int plen);
+
+/* XXX */
+int	channel_connect_to(const char *host, u_short host_port);
 
 #endif

@@ -26,10 +26,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* RCSID("$Id: compat.h,v 1.3 1999/11/25 00:54:59 damien Exp $"); */
+/* RCSID("$Id: compat.h,v 1.4 2000/04/04 04:39:01 damien Exp $"); */
 
 #ifndef COMPAT_H
 #define COMPAT_H
 void    enable_compat13(void);
+void    enable_compat20(void);
+void    compat_datafellows(const char *s);
 extern int compat13;
+extern int compat20;
+extern int datafellows;
 #endif
