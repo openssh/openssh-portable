@@ -1,3 +1,6 @@
+20021205
+ - (djm) PERL-free fixpaths from stuge-openssh-unix-dev@cdy.org
+
 20021122
  - (tim) [configure.ac] fix STDPATH test for IRIX. First reported by
    advax@triumf.ca. This type of solution tested by <herb@sgi.com>
@@ -829,4 +832,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2514 2002/11/22 21:29:01 tim Exp $
+$Id: ChangeLog,v 1.2515 2002/12/05 09:59:33 djm Exp $
