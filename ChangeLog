@@ -21,6 +21,9 @@
      the difference between two pointers is not an int.  Just do the
      safest thing and store the result in a long and then return 0,
      -1, or 1 based on that result.
+   - deraadt@cvs.openbsd.org 2002/06/28 01:50:37
+     [monitor_wrap.c]
+     use ssize_t
 
 20020702
  - (djm) Use PAM_MSG_MEMBER for PAM_TEXT_INFO messages, use xmalloc & 
@@ -1229,4 +1232,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2320 2002/07/04 00:08:23 mouring Exp $
+$Id: ChangeLog,v 1.2321 2002/07/04 00:09:26 mouring Exp $

@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor_wrap.c,v 1.12 2002/06/26 15:00:32 deraadt Exp $");
+RCSID("$OpenBSD: monitor_wrap.c,v 1.13 2002/06/28 01:50:37 deraadt Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dh.h>
@@ -62,8 +62,8 @@ extern Buffer input, output;
 void
 mm_request_send(int socket, enum monitor_reqtype type, Buffer *m)
 {
-	u_char buf[5];
 	u_int mlen = buffer_len(m);
+	u_char buf[5];
 
 	debug3("%s entering: type %d", __func__, type);
 
@@ -79,8 +79,8 @@ void
 mm_request_receive(int socket, Buffer *m)
 {
 	u_char buf[4];
-	ssize_t res;
 	u_int msg_len;
+	ssize_t res;
 
 	debug3("%s entering", __func__);
 
