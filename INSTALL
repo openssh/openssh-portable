@@ -4,7 +4,7 @@
 You will need working installations of Zlib and OpenSSL.
 
 Zlib:
-http://www.freesoftware.com/pub/infozip/zlib/
+http://www.gzip.org/zlib/ 
 
 OpenSSL 0.9.5a or greater:
 http://www.openssl.org/
@@ -230,4 +230,4 @@ Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
 
 
-$Id: INSTALL,v 1.45 2001/05/08 20:42:28 mouring Exp $
+$Id: INSTALL,v 1.46 2001/06/29 12:39:24 mouring Exp $
