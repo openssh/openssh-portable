@@ -1,3 +1,7 @@
+20030427
+ - (bal) Bug #541: return; was dropped by mistake.  Reported by 
+   furrier@iglou.com
+
 20030409
  - (djm) Bug #539: Specify creation mode with O_CREAT for lastlog. Report 
    from matth@eecs.berkeley.edu
@@ -1337,4 +1341,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2658 2003/04/09 11:12:11 djm Exp $
+$Id: ChangeLog,v 1.2659 2003/04/27 17:55:33 mouring Exp $
