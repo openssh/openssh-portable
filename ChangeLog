@@ -2,6 +2,7 @@
  - (dtucker) [configure.ac openbsd-compat/getrrsetbyname.c] Declare h_errno
    as extern int if not already declared.  Fixes compile errors on old SCO
    platforms.  ok tim@
+ - (dtucker) [README.platform] List prereqs for building on Cygwin.
 
 20040418
  - (dtucker) [auth-pam.c] Log username and source host for failed PAM
@@ -988,4 +989,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3316.2.2 2004/04/23 08:50:52 dtucker Exp $
+$Id: ChangeLog,v 1.3316.2.3 2004/04/23 08:56:31 dtucker Exp $
