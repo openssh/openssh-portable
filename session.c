@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.14 2000/05/25 03:10:18 deraadt Exp $");
+RCSID("$OpenBSD: session.c,v 1.17 2000/06/05 19:53:40 markus Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -257,7 +257,10 @@ do_authenticated(struct passwd * pw)
 				packet_send_debug("X11 forwarding disabled in server configuration file.");
 				break;
 			}
-#ifdef XAUTH_PATH
+			if (!options.xauth_location) {
+				packet_send_debug("No xauth program; cannot forward with spoofing.");
+				break;
+			}
 			if (no_x11_forwarding_flag) {
 				packet_send_debug("X11 forwarding not permitted for this authentication.");
 				break;
@@ -298,10 +301,6 @@ do_authenticated(struct passwd * pw)
 			fatal_add_cleanup(xauthfile_cleanup_proc, NULL);
 			success = 1;
 			break;
-#else /* XAUTH_PATH */
-			packet_send_debug("No xauth program; cannot forward with spoofing.");
-			break;
-#endif /* XAUTH_PATH */
 
 		case SSH_CMSG_AGENT_REQUEST_FORWARDING:
 			if (no_agent_forwarding_flag || compat13) {
@@ -309,8 +308,7 @@ do_authenticated(struct passwd * pw)
 				break;
 			}
 			debug("Received authentication agent forwarding request.");
-			auth_input_request_forwarding(pw);
-			success = 1;
+			success = auth_input_request_forwarding(pw);
 			break;
 
 		case SSH_CMSG_PORT_FORWARD_REQUEST:
@@ -805,6 +803,7 @@ do_child(const char *command, struct passwd * pw, const char *term,
 {
 	const char *shell, *cp = NULL;
 	char buf[256];
+	char cmd[1024];
 	FILE *f;
 	unsigned int envsize, i;
 	char **env;
@@ -1039,23 +1038,24 @@ do_child(const char *command, struct passwd * pw, const char *term,
 				pclose(f);
 			} else
 				fprintf(stderr, "Could not run %s\n", SSH_SYSTEM_RC);
-		}
-#ifdef XAUTH_PATH
-		else {
+		} else if (options.xauth_location != NULL) {
 			/* Add authority data to .Xauthority if appropriate. */
 			if (auth_proto != NULL && auth_data != NULL) {
 				char *screen = strchr(display, ':');
 				if (debug_flag) {
 					fprintf(stderr,
 					    "Running %.100s add %.100s %.100s %.100s\n",
-					    XAUTH_PATH, display, auth_proto, auth_data);
+					    options.xauth_location, display,
+					    auth_proto, auth_data);
 					if (screen != NULL)
 						fprintf(stderr,
 						    "Adding %.*s/unix%s %s %s\n",
 						    screen-display, display,
 						    screen, auth_proto, auth_data);
 				}
-				f = popen(XAUTH_PATH " -q -", "w");
+				snprintf(cmd, sizeof cmd, "%s -q -",
+				    options.xauth_location);
+				f = popen(cmd, "w");
 				if (f) {
 					fprintf(f, "add %s %s %s\n", display,
 					    auth_proto, auth_data);
@@ -1064,13 +1064,12 @@ do_child(const char *command, struct passwd * pw, const char *term,
 						    screen-display, display,
 						    screen, auth_proto, auth_data);
 					pclose(f);
-				} else
-					fprintf(stderr, "Could not run %s -q -\n",
-					    XAUTH_PATH);
+				} else {
+					fprintf(stderr, "Could not run %s\n",
+					    cmd);
+				}
 			}
 		}
-#endif /* XAUTH_PATH */
-
 		/* Get the last component of the shell name. */
 		cp = strrchr(shell, '/');
 		if (cp)
