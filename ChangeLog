@@ -1,4 +1,6 @@
 20020205
+ - (djm) Cleanup after sync:
+   - :%s/reverse_mapping_check/verify_reverse_mapping/g
  - (djm) OpenBSD CVS Sync
    - stevesk@cvs.openbsd.org 2002/01/24 21:09:25
      [channels.c misc.c misc.h packet.c]
@@ -7501,4 +7503,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1826 2002/02/05 01:27:58 djm Exp $
+$Id: ChangeLog,v 1.1827 2002/02/05 01:40:46 djm Exp $

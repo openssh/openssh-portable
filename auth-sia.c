@@ -29,7 +29,7 @@ auth_sia_password(char *user, char *pass)
 	SIAENTITY *ent = NULL;
 	const char *host;
 
-	host = get_canonical_hostname(options.reverse_mapping_check);
+	host = get_canonical_hostname(options.verify_reverse_mapping);
 
 	if (!user || !pass)
 		return(0);
@@ -58,7 +58,7 @@ session_setup_sia(char *user, char *tty)
 	SIAENTITY *ent = NULL;
 	const char *host;
 
-	host = get_canonical_hostname (options.reverse_mapping_check);
+	host = get_canonical_hostname (options.verify_reverse_mapping);
 
 	if (sia_ses_init(&ent, saved_argc, saved_argv, host, user, tty, 0,
 	    NULL) != SIASUCCESS) {

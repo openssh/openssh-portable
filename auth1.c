@@ -339,7 +339,7 @@ do_authloop(Authctxt *authctxt)
 		if (authctxt->failures++ > AUTH_FAIL_MAX) {
 #ifdef WITH_AIXAUTHENTICATE
 			loginfailed(authctxt->user,
-			    get_canonical_hostname(options.reverse_mapping_check),
+			    get_canonical_hostname(options.verify_reverse_mapping),
 			    "ssh");
 #endif /* WITH_AIXAUTHENTICATE */
 			packet_disconnect(AUTH_FAIL_MSG, authctxt->user);

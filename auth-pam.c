@@ -35,7 +35,7 @@
 
 extern char *__progname;
 
-RCSID("$Id: auth-pam.c,v 1.41 2001/11/09 20:22:17 stevesk Exp $");
+RCSID("$Id: auth-pam.c,v 1.42 2002/02/05 01:40:47 djm Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now"
@@ -360,7 +360,7 @@ void start_pam(const char *user)
 		fatal("PAM initialisation failed[%d]: %.200s",
 		    pam_retval, PAM_STRERROR(__pamh, pam_retval));
 
-	rhost = get_remote_name_or_ip(utmp_len, options.reverse_mapping_check);
+	rhost = get_remote_name_or_ip(utmp_len, options.verify_reverse_mapping);
 	debug("PAM setting rhost to \"%.200s\"", rhost);
 
 	pam_retval = pam_set_item(__pamh, PAM_RHOST, rhost);

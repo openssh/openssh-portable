@@ -195,7 +195,7 @@ do_authenticated(Authctxt *authctxt)
 #ifdef WITH_AIXAUTHENTICATE
 	/* We don't have a pty yet, so just label the line as "ssh" */
 	if (loginsuccess(authctxt->user,
-	    get_canonical_hostname(options.reverse_mapping_check),
+	    get_canonical_hostname(options.verify_reverse_mapping),
 	    "ssh", &aixloginmsg) < 0)
 		aixloginmsg = NULL;
 #endif /* WITH_AIXAUTHENTICATE */
@@ -656,7 +656,7 @@ do_pre_login(Session *s)
 	}
 
 	record_utmp_only(pid, s->tty, s->pw->pw_name,
-	    get_remote_name_or_ip(utmp_len, options.reverse_mapping_check),
+	    get_remote_name_or_ip(utmp_len, options.verify_reverse_mapping),
 	    (struct sockaddr *)&from);
 }
 #endif
