@@ -37,6 +37,7 @@
      [sftp.c]
      don't show .files by default in ls, add -a option to turn them back on;
      ok markus
+ - (dtucker) [monitor.c] Fix Portable-specific -Wshadow warnings on "socket".
 
 20040620
  - (tim) [configure.ac Makefile.in] Only change TEST_SHELL on broken platforms.
@@ -1359,4 +1360,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3427 2004/06/22 03:09:55 dtucker Exp $
+$Id: ChangeLog,v 1.3428 2004/06/22 03:26:00 dtucker Exp $
