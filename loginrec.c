@@ -163,7 +163,7 @@
 #include "log.h"
 #include "atomicio.h"
 
-RCSID("$Id: loginrec.c,v 1.36 2001/10/22 06:49:23 djm Exp $");
+RCSID("$Id: loginrec.c,v 1.37 2001/10/26 15:56:56 mouring Exp $");
 
 #ifdef HAVE_UTIL_H
 #  include <util.h>
@@ -448,6 +448,7 @@ int
 login_utmp_only(struct logininfo *li)
 {
 	li->type = LTYPE_LOGIN; 
+	login_set_current_time(li);
 # ifdef USE_UTMP
 	utmp_write_entry(li);
 # endif

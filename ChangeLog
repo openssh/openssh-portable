@@ -1,3 +1,7 @@
+20011026
+ - (bal) Set the correct current time in login_utmp_only().  Patch by
+   Wayne Davison <wayned@users.sourceforge.net>
+
 20011025
  - (bal) Use VDISABLE if _POSIX_VDISABLE is set in readpassphrase.c.  Patch
    by todd@
@@ -6763,4 +6767,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1618 2001/10/25 17:01:30 tim Exp $
+$Id: ChangeLog,v 1.1619 2001/10/26 15:56:55 mouring Exp $
