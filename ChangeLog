@@ -1,3 +1,7 @@
+20031219
+ - (dtucker) [defines.h] Bug #458: Define SIZE_T_MAX as UINT_MAX if we
+   typedef size_t ourselves.
+
 20031218
  - (dtucker) [configure.ac] Don't use setre[ug]id on DG-UX, from Tom Orban.
  - (dtucker) [auth-pam.c] Do PAM chauthtok during SSH2 keyboard-interactive
@@ -1612,4 +1616,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3151 2003/12/18 04:34:31 dtucker Exp $
+$Id: ChangeLog,v 1.3152 2003/12/18 23:58:43 dtucker Exp $
