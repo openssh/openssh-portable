@@ -19,6 +19,9 @@
    - markus@cvs.openbsd.org 2002/03/24 18:05:29
      [scard.c]
      we need to figure out AUT0 for sc_private_encrypt, too
+   - stevesk@cvs.openbsd.org 2002/03/24 23:20:00
+     [monitor.c]
+     remove "\n" from fatal()
 
 20020324
  - (stevesk) [session.c] disable LOGIN_NEEDS_TERM until we are sure
@@ -8033,4 +8036,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1983 2002/03/26 02:44:44 mouring Exp $
+$Id: ChangeLog,v 1.1984 2002/03/26 02:49:34 mouring Exp $
