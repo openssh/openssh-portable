@@ -48,7 +48,7 @@
 
 #include "loginrec.h"
 
-RCSID("$Id: logintest.c,v 1.3 2000/06/12 23:40:52 andre Exp $");
+RCSID("$Id: logintest.c,v 1.4 2000/06/13 00:29:34 andre Exp $");
 
 
 int nologtest = 0;
@@ -175,12 +175,12 @@ int testAPI()
     printf("The lastlog times before and after logging in are the "
 	   "same.\nThis indicates that lastlog is ** NOT WORKING "
 	   "CORRECTLY **\n");
-  else if ( abs(t2-t0) >2 )  /* allow a small tolerance for slow systems */
+  else if (t0 != t2)
     printf("** The login time and the lastlog time differ.\n"
 	   "** This indicates that lastlog is either recording the "
 	   "wrong time,\n** or retrieving the wrong entry.\n");
   else
-    printf("lastlog seems to agree with the login time. This is a good thing.\n");
+    printf("lastlog agrees with the login time. This is a good thing.\n");
 
 #endif
 
