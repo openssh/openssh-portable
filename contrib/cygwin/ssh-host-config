@@ -449,7 +449,7 @@ then
 	  echo "Should this script create a new local account 'sshd_server' which has"
 	  if request "the required privileges?"
 	  then
-	    _admingroup=`awk -F: '{if ( $2 == "S-1-5-32-544" ) print $1;}' ${SYSCONFDIR}/group`
+	    _admingroup=`awk -F: '{if ( $1 != "root" && $2 == "S-1-5-32-544" ) print $1;}' ${SYSCONFDIR}/group`
 	    if [ -z "${_admingroup}" ]
 	    then
 	      echo "There's no group with SID S-1-5-32-544 (Local administrators group) in"
