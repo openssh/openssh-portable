@@ -28,8 +28,12 @@ On to the description...
 The portable OpenSSH contains random number collection support for
 systems which lack a kernel entropy pool (/dev/random).
 
-This collector operates by executing the programs listed in
-($etcdir)/ssh_prng_cmds, reading their output and adding it to the
+This collector (as of 3.1 and beyond) comes as an external application
+that allows the local admin to decide on how to implement entropy
+collection.
+
+The default entropy collector operates by executing the programs listed
+in ($etcdir)/ssh_prng_cmds, reading their output and adding it to the
 PRNG supplied by OpenSSL (which is hash-based). It also stirs in the
 output of several system calls and timings from the execution of the
 programs that it runs.
@@ -43,7 +47,7 @@ The random number code will also read and save a seed file to
 number generator at startup. The goal here is to maintain as much 
 randomness between sessions as possible.
 
-The entropy collection code has two main problems:
+The default entropy collection code has two main problems:
 
 1. It is slow.
 
@@ -51,14 +55,13 @@ Executing each program in the list can take a large amount of time,
 especially on slower machines. Additionally some program can take a   
 disproportionate time to execute.                                     
 
-This can be tuned by the administrator. To debug the entropy
-collection is great detail, turn on full debugging ("ssh -v -v -v" or
-"sshd -d -d -d"). This will list each program as it is executed, how
-long it took to execute, its exit status and whether and how much data
-it generated. You can the find the culprit programs which are causing
-the real slow-downs.
+Tuning the default entropy collection code is difficult at this point.
+It requires doing 'times ./ssh-rand-helper'  and modifying the
+($etcdir)/ssh_prng_cmds until you have found the issue.  In the next
+release we will be looking at support '-v' for verbose output to allow
+easier debugging.
 
-The entropy collector will timeout programs which take too long
+The default entropy collector will timeout programs which take too long
 to execute, the actual timeout used can be adjusted with the
 --with-entropy-timeout configure option. OpenSSH will not try to
 re-execute programs which have not been found, have had a non-zero
@@ -79,5 +82,15 @@ up and various other factors.
 To make matters even more complex, some of the commands are reporting
 largely the same data as other commands (eg. the various "ps" calls).
 
-$Id: WARNING.RNG,v 1.4 2001/02/09 01:55:36 djm Exp $
 
+How to avoid the default entropy code?
+
+The best way is to read the OpenSSL documentation and recompile OpenSSL
+to use prngd or egd.  Some platforms (like earily solaris) have 3rd
+party /dev/random devices that can be also used for this task.
+
+If you are forced to use ssh-rand-helper consider still downloading
+prngd/egd and configure OpenSSH using --with-prngd-port=xx or
+--with-prngd-socket=xx (refer to INSTALL for more information).
+
+$Id: WARNING.RNG,v 1.5 2002/04/14 13:16:05 djm Exp $
