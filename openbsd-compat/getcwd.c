@@ -119,7 +119,7 @@ getcwd(char *pt,size_t size)
 			 * path to the beginning of the buffer, but it's always
 			 * been that way and stuff would probably break.
 			 */
-			memmove(bpt, pt, ept - bpt);
+			memmove(pt, bpt, ept - bpt);
 			free(up);
 			return (pt);
 		}
@@ -170,7 +170,7 @@ getcwd(char *pt,size_t size)
 					goto notfound;
 				if (ISDOT(dp))
 					continue;
-				memmove(dp->d_name, bup, dp->d_namlen + 1);
+				memmove(bup, dp->d_name, dp->d_namlen + 1);
 
 				/* Save the first error for later. */
 				if (lstat(up, &s)) {
@@ -202,13 +202,13 @@ getcwd(char *pt,size_t size)
 			pt = npt;
 			bpt = pt + off;
 			ept = pt + ptsize;
-			memmove(bpt, ept - len, len);
+			memmove(ept - len, bpt, len);
 			bpt = ept - len;
 		}
 		if (!first)
 			*--bpt = '/';
 		bpt -= dp->d_namlen;
-		memmove(dp->d_name, bpt, dp->d_namlen);
+		memmove(bpt, dp->d_name, dp->d_namlen);
 		(void)closedir(dir);
 
 		/* Truncate any file name. */
