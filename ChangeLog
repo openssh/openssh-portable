@@ -12,6 +12,8 @@
  - (djm) Use ttyname() to determine name of tty returned by openpty() 
    rather then risking overflow. Patch from Marek Michalkiewicz 
    <marekm@amelek.gda.pl>
+ - (djm) Swapped tests for no_libsocket and no_libnsl in configure.in. 
+   Patch from Marek Michalkiewicz <marekm@amelek.gda.pl>
 
 20010217
  - (bal) OpenBSD Sync:
@@ -4019,4 +4021,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.788 2001/02/18 01:49:35 djm Exp $
+$Id: ChangeLog,v 1.789 2001/02/18 01:49:57 djm Exp $

@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.243 2001/02/16 01:12:41 djm Exp $
+# $Id: configure.in,v 1.244 2001/02/18 01:49:57 djm Exp $
 
 AC_INIT(ssh.c)
 
@@ -317,10 +317,10 @@ AC_ARG_WITH(pcre,
 )
 
 # Checks for libraries.
-if test -z "$no_libsocket" ; then
+if test -z "$no_libnsl" ; then
 	AC_CHECK_LIB(nsl, yp_match, , )
 fi
-if test -z "$no_libnsl" ; then
+if test -z "$no_libsocket" ; then
 	AC_CHECK_LIB(socket, main, , )
 fi
 
