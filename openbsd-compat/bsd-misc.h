@@ -22,14 +22,14 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: bsd-misc.h,v 1.10 2003/08/13 10:48:07 dtucker Exp $ */
+/* $Id: bsd-misc.h,v 1.11 2003/08/21 23:34:42 djm Exp $ */
 
 #ifndef _BSD_MISC_H
 #define _BSD_MISC_H
 
 #include "config.h"
 
-char *get_progname(char *);
+char *ssh_get_progname(char *);
 
 #ifndef HAVE_SETSID
 #define setsid() setpgrp(0, getpid())

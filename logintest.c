@@ -43,7 +43,7 @@
 
 #include "loginrec.h"
 
-RCSID("$Id: logintest.c,v 1.9 2003/06/02 00:42:17 djm Exp $");
+RCSID("$Id: logintest.c,v 1.10 2003/08/21 23:34:41 djm Exp $");
 
 #ifdef HAVE___PROGNAME
 extern char *__progname;
@@ -287,7 +287,7 @@ main(int argc, char *argv[])
 {
 	printf("Platform-independent login recording test driver\n");
 
-	__progname = get_progname(argv[0]);
+	__progname = ssh_get_progname(argv[0]);
 	if (argc == 2) {
 		if (strncmp(argv[1], "-i", 3) == 0)
 			compile_opts_only = 1;

@@ -39,7 +39,7 @@
 #include "pathnames.h"
 #include "log.h"
 
-RCSID("$Id: ssh-rand-helper.c,v 1.12 2003/07/06 05:20:46 dtucker Exp $");
+RCSID("$Id: ssh-rand-helper.c,v 1.13 2003/08/21 23:34:41 djm Exp $");
 
 /* Number of bytes we write out */
 #define OUTPUT_SEED_SIZE	48
@@ -769,7 +769,7 @@ main(int argc, char **argv)
 	extern char *optarg;
 	LogLevel ll;
 
-	__progname = get_progname(argv[0]);
+	__progname = ssh_get_progname(argv[0]);
 	log_init(argv[0], SYSLOG_LEVEL_INFO, SYSLOG_FACILITY_USER, 1);
 
 	ll = SYSLOG_LEVEL_INFO;

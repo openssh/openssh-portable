@@ -809,7 +809,7 @@ main(int ac, char **av)
 	extern int optind;
 	extern char *optarg;
 
-	__progname = get_progname(av[0]);
+	__progname = ssh_get_progname(av[0]);
 
 	SSLeay_add_all_algorithms();
 	log_init(av[0], SYSLOG_LEVEL_INFO, SYSLOG_FACILITY_USER, 1);

@@ -212,7 +212,7 @@ main(int ac, char **av)
 	extern int optind, optreset;
 	extern char *optarg;
 
-	__progname = get_progname(av[0]);
+	__progname = ssh_get_progname(av[0]);
 	init_rng();
 
 	/*

@@ -132,7 +132,7 @@ main(int argc, char **argv)
 	extern int optind;
 	extern char *optarg;
 
-	__progname = get_progname(argv[0]);
+	__progname = ssh_get_progname(argv[0]);
 	args.list = NULL;
 	addargs(&args, "ssh");		/* overwritten with ssh_program */
 	addargs(&args, "-oForwardX11 no");

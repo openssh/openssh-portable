@@ -1030,7 +1030,7 @@ main(int ac, char **av)
 
 	/* XXX should use getopt */
 
-	__progname = get_progname(av[0]);
+	__progname = ssh_get_progname(av[0]);
 	handle_init();
 
 #ifdef DEBUG_SFTP_SERVER

@@ -697,7 +697,7 @@ main(int argc, char **argv)
 	extern int optind;
 	extern char *optarg;
 
-	__progname = get_progname(argv[0]);
+	__progname = ssh_get_progname(argv[0]);
 	init_rng();
 	seed_rng();
 	TAILQ_INIT(&tq);

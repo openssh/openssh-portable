@@ -25,13 +25,13 @@
 #include "includes.h"
 #include "xmalloc.h"
 
-RCSID("$Id: bsd-misc.c,v 1.17 2003/08/13 10:48:07 dtucker Exp $");
+RCSID("$Id: bsd-misc.c,v 1.18 2003/08/21 23:34:42 djm Exp $");
 
 /*
  * NB. duplicate __progname in case it is an alias for argv[0]
  * Otherwise it may get clobbered by setproctitle()
  */
-char *get_progname(char *argv0)
+char *ssh_get_progname(char *argv0)
 {
 #ifdef HAVE___PROGNAME
 	extern char *__progname;
