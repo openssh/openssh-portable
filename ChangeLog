@@ -28,6 +28,8 @@
    a <sys/queue.h> that lacks the TAILQ_* macros. Patch from Todd C. 
    Miller <Todd.Miller@courtesan.com>
  - (djm) Update RPM spec files for 2.5.0p1
+ - (djm) Merge BSD_AUTH support from Markus Friedl and David J. MacKenzie
+   enable with --with-bsd-auth.
  - (stevesk) entropy.c: typo; should be SIGPIPE
 
 20010217
@@ -4036,4 +4038,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.799 2001/02/18 11:34:32 stevesk Exp $
+$Id: ChangeLog,v 1.800 2001/02/18 12:50:38 djm Exp $
