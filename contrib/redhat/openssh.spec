@@ -89,43 +89,41 @@ Requires: openssh = %{version}-%{release}
 Obsoletes: ssh-extras
 
 %description
-SSH (Secure SHell) is a program for logging into and executing
-commands on a remote machine. SSH is intended to replace rlogin and
-rsh, and to provide secure encrypted communications between two
-untrusted hosts over an insecure network. X11 connections and
-arbitrary TCP/IP ports can also be forwarded over the secure channel.
-
-OpenSSH is OpenBSD's version of the last free version of SSH, bringing
-it up to date in terms of security and features, as well as removing
-all patented algorithms to separate libraries.
+OpenSSH is OpenBSD's SSH (Secure SHell) protocol implementation. SSH
+replaces rlogin and rsh, to provide secure encrypted communications
+between two untrusted hosts over an insecure network. X11 connections
+and arbitrary TCP/IP ports can also be forwarded over the secure
+channel. Public key authentication may be used for "passwordless"
+access to servers.
 
 This package includes the core files necessary for both the OpenSSH
 client and server. To make this package useful, you should also
 install openssh-clients, openssh-server, or both.
 
 %description clients
-OpenSSH is a free version of SSH (Secure SHell), a program for logging
-into and executing commands on a remote machine. This package includes
-the clients necessary to make encrypted connections to SSH servers.
-You'll also need to install the openssh package on OpenSSH clients.
+OpenSSH is OpenBSD's SSH (Secure SHell) protocol implementation.
+
+This package includes the clients necessary to make encrypted
+connections to SSH protocol servers.  You'll also need to install the
+openssh package on OpenSSH clients.
 
 %description server
-OpenSSH is a free version of SSH (Secure SHell), a program for logging
-into and executing commands on a remote machine. This package contains
-the secure shell daemon (sshd). The sshd daemon allows SSH clients to
-securely connect to your SSH server. You also need to have the openssh
-package installed.
+OpenSSH is OpenBSD's SSH (Secure SHell) protocol implementation.
+
+This package contains the secure shell daemon (sshd). The sshd daemon
+allows SSH clients to securely connect to your SSH server. You also
+need to have the openssh package installed.
 
 %description askpass
-OpenSSH is a free version of SSH (Secure SHell), a program for logging
-into and executing commands on a remote machine. This package contains
-an X11 passphrase dialog for OpenSSH.
+OpenSSH is OpenBSD's SSH (Secure SHell) protocol implementation.
+
+This package contains an X11 passphrase dialog for OpenSSH.
 
 %description askpass-gnome
-OpenSSH is a free version of SSH (Secure SHell), a program for logging
-into and executing commands on a remote machine. This package contains
-an X11 passphrase dialog for OpenSSH and the GNOME GUI desktop
-environment.
+OpenSSH is OpenBSD's SSH (Secure SHell) protocol implementation.
+
+This package contains an X11 passphrase dialog for OpenSSH and the
+GNOME GUI desktop environment.
 
 %prep
 
