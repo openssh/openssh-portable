@@ -348,7 +348,13 @@ struct winsize {
 
 #if defined(BROKEN_GETADDRINFO) && defined(HAVE_GETADDRINFO)
 # undef HAVE_GETADDRINFO
-#endif /* defined(BROKEN_GETADDRINFO) && defined(HAVE_GETADDRINFO) */
+#endif
+#if defined(BROKEN_GETADDRINFO) && defined(HAVE_FREEADDRINFO)
+# undef HAVE_FREEADDRINFO
+#endif
+#if defined(BROKEN_GETADDRINFO) && defined(HAVE_GAI_STRERROR)
+# undef HAVE_GAI_STRERROR
+#endif
 
 #if !defined(HAVE_MEMMOVE) && defined(HAVE_BCOPY)
 # define memmove(s1, s2, n) bcopy((s2), (s1), (n))

@@ -1,3 +1,7 @@
+20010104
+ - (djm) Fix memory leak on systems with BROKEN_GETADDRINFO. Based on
+   work by Chris Vaughan <vaughan99@yahoo.com>
+
 20010103
  - (bal) fixed up sshconnect.c so it was closer inline with the OpenBSD
    tree (mainly positioning)
