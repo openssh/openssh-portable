@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.146 2001/02/04 13:49:03 djm Exp $
+# $Id: Makefile.in,v 1.147 2001/02/04 13:54:23 djm Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -162,8 +162,8 @@ install-files:
 	$(INSTALL) -m 0755 -s ssh-keygen $(DESTDIR)$(bindir)/ssh-keygen
 	$(INSTALL) -m 0775 -s ssh-keyscan $(DESTDIR)$(bindir)/ssh-keyscan
 	$(INSTALL) -m 0755 -s sshd $(DESTDIR)$(sbindir)/sshd
-	@NO_SFTP@$$(INSTALL) -m 0755 -s sftp $(DESTDIR)$(bindir)/sftp
-	@NO_SFTP@$$(INSTALL) -m 0755 -s sftp-server $(DESTDIR)$(libexecdir)/sftp-server
+	@NO_SFTP@$(INSTALL) -m 0755 -s sftp $(DESTDIR)$(bindir)/sftp
+	@NO_SFTP@$(INSTALL) -m 0755 -s sftp-server $(DESTDIR)$(libexecdir)/sftp-server
 	$(INSTALL) -m 644 ssh.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh.1
 	$(INSTALL) -m 644 scp.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/scp.1
 	$(INSTALL) -m 644 ssh-add.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-add.1
@@ -171,8 +171,8 @@ install-files:
 	$(INSTALL) -m 644 ssh-keygen.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-keygen.1
 	$(INSTALL) -m 644 ssh-keyscan.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-keyscan.1
 	$(INSTALL) -m 644 sshd.[08].out $(DESTDIR)$(mandir)/$(mansubdir)8/sshd.8
-	@NO_SFTP@$$(INSTALL) -m 644 sftp.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/sftp.1
-	@NO_SFTP@$$(INSTALL) -m 644 sftp-server.[08].out $(DESTDIR)$(mandir)/$(mansubdir)8/sftp-server.8
+	@NO_SFTP@$(INSTALL) -m 644 sftp.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/sftp.1
+	@NO_SFTP@$(INSTALL) -m 644 sftp-server.[08].out $(DESTDIR)$(mandir)/$(mansubdir)8/sftp-server.8
 	-rm -f $(DESTDIR)$(bindir)/slogin
 	ln -s ssh$(EXEEXT) $(DESTDIR)$(bindir)/slogin
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/slogin.1
