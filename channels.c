@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.95 2001/02/28 21:27:48 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.96 2001/02/28 21:31:32 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -794,7 +794,7 @@ channel_handle_wfd(Channel *c, fd_set * readset, fd_set * writeset)
 			    !(tio.c_lflag & ECHO) && (tio.c_lflag & ICANON)) {
 				/*
 				 * Simulate echo to reduce the impact of
-				 * traffic analysis. We need too match the
+				 * traffic analysis. We need to match the
 				 * size of a SSH2_MSG_CHANNEL_DATA message
 				 * (4 byte channel id + data)
 				 */
