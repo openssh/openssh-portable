@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.246 2003/09/05 01:35:52 dtucker Exp $
+# $Id: Makefile.in,v 1.247 2003/09/07 02:34:54 dtucker Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -46,6 +46,7 @@ LIBS=@LIBS@
 LIBPAM=@LIBPAM@
 LIBWRAP=@LIBWRAP@
 AR=@AR@
+AWK=@AWK@
 RANLIB=@RANLIB@
 INSTALL=@INSTALL@
 PERL=@PERL@
@@ -173,7 +174,7 @@ $(MANPAGES): $(MANPAGES_IN)
 		manpage=$(srcdir)/`echo $@ | sed 's/\.out$$//'`; \
 	fi; \
 	if test "$(MANTYPE)" = "man"; then \
-		$(FIXPATHSCMD) $${manpage} | $(PERL) $(srcdir)/mdoc2man.pl > $@; \
+		$(FIXPATHSCMD) $${manpage} | $(AWK) -f $(srcdir)/mdoc2man.awk > $@; \
 	else \
 		$(FIXPATHSCMD) $${manpage} > $@; \
 	fi

@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.144 2003/09/06 06:44:39 dtucker Exp $
+# $Id: configure.ac,v 1.145 2003/09/07 02:34:54 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -9,6 +9,7 @@ AC_CANONICAL_HOST
 AC_C_BIGENDIAN
 
 # Checks for programs.
+AC_PROG_AWK
 AC_PROG_CPP
 AC_PROG_RANLIB
 AC_PROG_INSTALL

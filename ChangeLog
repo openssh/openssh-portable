@@ -8,6 +8,8 @@
  - (dtucker) [regress/sftp-cmds.sh] Skip quoted file test on Cygwin.
  - (dtucker) [openbsd-compat/xcrypt.c] #elsif -> #elif
  - (dtucker) [acconfig.h] Typo.
+ - (dtucker) [CREDITS Makefile.in configure.ac mdoc2man.awk mdoc2man.pl]
+   Replace mdoc2man.pl with mdoc2man.awk, provided by Peter Stuge.
 
 20030906
  - (dtucker) [acconfig.h configure.ac uidswap.c] Prefer setuid/setgid on AIX.
@@ -1035,4 +1037,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2968 2003/09/07 01:37:27 dtucker Exp $
+$Id: ChangeLog,v 1.2969 2003/09/07 02:34:54 dtucker Exp $
