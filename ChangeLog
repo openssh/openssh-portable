@@ -14,6 +14,7 @@
    - [regress/sftp-badcmds.sh regress/sftp-cmds.sh regress/sftp.sh
      regress/ssh-com-client.sh regress/ssh-com-sftp.sh regress/stderr-data.sh
      regress/transfer.sh] Use ${EXEEXT} where appropriate.
+   - [regress/sftp.sh] Remove dependency on /dev/stdin.
 
 20030903
  - (djm) OpenBSD CVS Sync
@@ -1004,4 +1005,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2949 2003/09/04 04:54:39 dtucker Exp $
+$Id: ChangeLog,v 1.2950 2003/09/04 05:00:55 dtucker Exp $
