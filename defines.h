@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.66 2001/06/10 17:35:46 mouring Exp $ */
+/* $Id: defines.h,v 1.67 2001/06/28 00:13:48 stevesk Exp $ */
 
 /* Some platforms need this for the _r() functions */
 #if !defined(_REENTRANT) && !defined(SNI)
@@ -335,8 +335,8 @@ struct winsize {
 #endif
 
 /* Define this to be the path of the xauth program. */
-#ifndef XAUTH_PATH
-#define XAUTH_PATH "/usr/X11R6/bin/xauth"
+#ifdef XAUTH_PATH
+#define _PATH_XAUTH XAUTH_PATH
 #endif /* XAUTH_PATH */
 
 #ifndef _PATH_TTY

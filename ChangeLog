@@ -13,6 +13,7 @@
  - (stevesk) for HP-UX 11.X use X/Open socket interface;
     pulls in modern socket prototypes and eliminates a number of compiler
     warnings.  see xopen_networking(7).
+ - (stevesk) fix x11 forwarding from _PATH_XAUTH change
 
 20010625
  - OpenBSD CVS Sync
@@ -5807,4 +5808,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1332 2001/06/27 16:32:24 stevesk Exp $
+$Id: ChangeLog,v 1.1333 2001/06/28 00:13:48 stevesk Exp $

@@ -118,6 +118,11 @@
 #define _PATH_SSH_ASKPASS_DEFAULT	"/usr/X11R6/bin/ssh-askpass"
 #endif
 
+/* xauth for X11 forwarding */
+#ifndef _PATH_XAUTH
+#define _PATH_XAUTH			"/usr/X11R6/bin/xauth"
+#endif
+
 /* for scp */
 #ifndef _PATH_CP
 #define _PATH_CP			"cp"
@@ -154,4 +159,3 @@
 #ifndef SSH_PRNG_COMMAND_FILE
 # define SSH_PRNG_COMMAND_FILE   ETCDIR "/ssh_prng_cmds"
 #endif /* SSH_PRNG_COMMAND_FILE */
-
