@@ -1,4 +1,4 @@
-.\" $OpenBSD: ssh-agent.1,v 1.28 2001/09/05 06:23:07 deraadt Exp $
+.\" $OpenBSD: ssh-agent.1,v 1.29 2001/11/19 18:40:46 stevesk Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -126,6 +126,11 @@ syntax can be generated) which can be evalled in the calling shell.
 Later
 .Xr ssh 1
 looks at these variables and uses them to establish a connection to the agent.
+.Pp
+The agent will never send a private key over its request channel.
+Instead, operations that require a private key will be performed
+by the agent, and the result will be returned to the requester.
+This way, private keys are not exposed to clients using the agent.
 .Pp
 A unix-domain socket is created
 .Pq Pa /tmp/ssh-XXXXXXXX/agent.<pid> ,
