@@ -1,3 +1,9 @@
+20021003
+ - (djm) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2002/10/01 20:34:12
+     [ssh-agent.c]
+     allow root to access the agent, since there is no protection from root.
+
 20020930
  - (djm) Tidy contrib/, add Makefile for GNOME passphrase dialogs, 
    tweak README
@@ -746,4 +752,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2488 2002/09/30 02:00:55 djm Exp $
+$Id: ChangeLog,v 1.2489 2002/10/03 01:54:35 djm Exp $

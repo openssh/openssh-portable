@@ -35,7 +35,7 @@
 
 #include "includes.h"
 #include "openbsd-compat/sys-queue.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.104 2002/09/12 19:11:52 stevesk Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.105 2002/10/01 20:34:12 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -833,7 +833,7 @@ after_select(fd_set *readset, fd_set *writeset)
 					close(sock);
 					break;
 				}
-				if (getuid() != euid) {
+				if ((euid != 0) && (getuid() != euid)) {
 					error("uid mismatch: "
 					    "peer euid %u != uid %u",
 					    (u_int) euid, (u_int) getuid());
