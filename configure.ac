@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.212 2004/04/14 05:26:39 dtucker Exp $
+# $Id: configure.ac,v 1.213 2004/04/14 10:14:26 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -791,6 +791,9 @@ AC_ARG_WITH(tcp-wrappers,
 			AC_MSG_CHECKING(for libwrap)
 			AC_TRY_LINK(
 				[
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include <tcpd.h>
 					int deny_severity = 0, allow_severity = 0;
 				],
