@@ -6,6 +6,9 @@
    - deraadt@cvs.openbsd.org 2001/03/10 12:53:51
      [readconf.c ssh_config]
      default to SSH2, now that m68k runs fast
+   - stevesk@cvs.openbsd.org 2001/03/10 15:02:05
+     [ttymodes.c ttymodes.h]
+     remove unused sgtty macros; ok markus@
 
 20010310
  - OpenBSD CVS Sync
@@ -4477,4 +4480,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.935 2001/03/10 17:15:39 mouring Exp $
+$Id: ChangeLog,v 1.936 2001/03/10 17:17:28 mouring Exp $

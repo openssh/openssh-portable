@@ -15,7 +15,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ttymodes.c,v 1.10 2001/01/21 19:06:01 markus Exp $");
+RCSID("$OpenBSD: ttymodes.c,v 1.11 2001/03/10 15:02:05 stevesk Exp $");
 
 #include "packet.h"
 #include "log.h"
@@ -233,17 +233,11 @@ tty_make_modes(int fd)
   packet_put_char(OP); packet_put_char(tio.c_cc[NAME]);
 #define TTYMODE(NAME, FIELD, OP) \
   packet_put_char(OP); packet_put_char((tio.FIELD & NAME) != 0);
-#define SGTTYCHAR(NAME, OP)
-#define SGTTYMODE(NAME, FIELD, OP)
-#define SGTTYMODEN(NAME, FIELD, OP)
 
 #include "ttymodes.h"
 
 #undef TTYCHAR
 #undef TTYMODE
-#undef SGTTYCHAR
-#undef SGTTYMODE
-#undef SGTTYMODEN
 
 	/* Mark end of mode data. */
 	packet_put_char(TTY_OP_END);
@@ -303,17 +297,11 @@ tty_parse_modes(int fd, int *n_bytes_ptr)
 	  else						\
 	    tio.FIELD &= ~NAME;				\
 	  break;
-#define SGTTYCHAR(NAME, OP)
-#define SGTTYMODE(NAME, FIELD, OP)
-#define SGTTYMODEN(NAME, FIELD, OP)
 
 #include "ttymodes.h"
 
 #undef TTYCHAR
 #undef TTYMODE
-#undef SGTTYCHAR
-#undef SGTTYMODE
-#undef SGTTYMODEN
 
 		default:
 			debug("Ignoring unsupported tty mode opcode %d (0x%x)",
