@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.101 2002/11/07 22:08:07 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.102 2003/02/05 09:02:28 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -268,14 +268,16 @@ parse_token(const char *cp, const char *filename, int linenum)
  * Processes a single option line as used in the configuration files. This
  * only sets those values that have not already been set.
  */
+#define WHITESPACE " \t\r\n"
 
 int
 process_config_line(Options *options, const char *host,
 		    char *line, const char *filename, int linenum,
 		    int *activep)
 {
-	char buf[256], *s, *string, **charptr, *endofnumber, *keyword, *arg;
+	char buf[256], *s, **charptr, *endofnumber, *keyword, *arg;
 	int opcode, *intptr, value;
+	size_t len;
 	u_short fwd_port, fwd_host_port;
 	char sfwd_host_port[6];
 
@@ -488,16 +490,9 @@ parse_string:
 
 	case oProxyCommand:
 		charptr = &options->proxy_command;
-		string = xstrdup("");
-		while ((arg = strdelim(&s)) != NULL && *arg != '\0') {
-			string = xrealloc(string, strlen(string) + strlen(arg) + 2);
-			strcat(string, " ");
-			strcat(string, arg);
-		}
+		len = strspn(s, WHITESPACE "=");
 		if (*activep && *charptr == NULL)
-			*charptr = string;
-		else
-			xfree(string);
+			*charptr = xstrdup(s + len);
 		return 0;
 
 	case oPort:

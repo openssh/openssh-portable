@@ -39,6 +39,9 @@
      [monitor.c monitor_wrap.c]
      skey/bsdauth: use 0 to indicate failure instead of -1, because
      the buffer API only supports unsigned ints.
+   - markus@cvs.openbsd.org 2003/02/05 09:02:28
+     [readconf.c]
+     simplify ProxyCommand parsing, remove strcat/xrealloc; ok henning@, djm@
 
 20030211
  - (djm) Cygwin needs libcrypt too. Patch from vinschen@redhat.com
@@ -1139,4 +1142,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2603 2003/02/24 00:55:46 djm Exp $
+$Id: ChangeLog,v 1.2604 2003/02/24 00:56:27 djm Exp $
