@@ -106,6 +106,10 @@ typedef int64_t quad_t;
 typedef unsigned int socklen_t;
 #endif /* HAVE_SOCKLEN_T */
 
+#ifndef HAVE_SIZE_T
+typedef unsigned int size_t;
+#endif /* HAVE_SIZE_T */
+
 /* Paths */
 
 /* If _PATH_LASTLOG is not defined by system headers, set it to the */

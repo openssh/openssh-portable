@@ -113,6 +113,7 @@
 #undef HAVE_U_INTXX_T
 #undef HAVE_UINTXX_T
 #undef HAVE_SOCKLEN_T
+#undef HAVE_SIZE_T
 
 /* Define if you have /dev/ptmx */
 #undef HAVE_DEV_PTMX

@@ -192,6 +192,18 @@ AC_TRY_COMPILE(
 	[AC_MSG_RESULT(no)]
 )
 
+AC_MSG_CHECKING([For size_t])
+AC_TRY_COMPILE(
+	[#include <sys/types.h>],
+	[#include <sys/socket.h>],
+	[size_t foo; foo = 1235;],
+	[
+		AC_DEFINE(HAVE_SIZE_T)
+		AC_MSG_RESULT(yes)
+	],
+	[AC_MSG_RESULT(no)]
+)
+
 AC_ARG_WITH(pam,
 	[  --without-pam           Disable PAM support ],
 	[
