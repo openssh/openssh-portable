@@ -3,6 +3,9 @@
    - markus@cvs.openbsd.org 2003/09/18 07:52:54
      [sshconnect.c]
      missing {}; bug #656; jclonguet at free.fr
+   - markus@cvs.openbsd.org 2003/09/18 07:54:48
+     [buffer.c]
+     protect against double free; #660;  zardoz at users.sf.net
 
 20030922
  - (dtucker) [Makefile.in] Bug #644: Fix "make clean" for out-of-tree
@@ -1168,4 +1171,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2994.2.28 2003/09/23 08:49:28 dtucker Exp $
+$Id: ChangeLog,v 1.2994.2.29 2003/09/23 08:55:43 dtucker Exp $
