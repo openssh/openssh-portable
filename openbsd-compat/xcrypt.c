@@ -96,7 +96,7 @@ shadow_pw(struct passwd *pw)
 {
 	char *pw_password = pw->pw_passwd;
 
-# if defined(HAVE_SHADOW_H) && !defined(DISABLED_SHADOW)
+# if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
 	struct spwd *spw = getspnam(pw->pw_name);
 
 	if (spw != NULL)

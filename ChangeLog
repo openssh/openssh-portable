@@ -1,3 +1,7 @@
+20030726
+ - (dtucker) [openbsd-compat/xcrypt.c] Fix typo: DISABLED_SHADOW ->
+   DISABLE_SHADOW.  Fixes HP-UX compile error.
+
 20030724
  - (bal) [auth-passwd.c openbsd-compat/Makefile.in openbsd-compat/xcrypt.c 
     openbsd-compat/xcrypt.h] Split off encryption into xcrypt() interface,
@@ -728,4 +732,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2865 2003/07/24 06:52:13 mouring Exp $
+$Id: ChangeLog,v 1.2866 2003/07/26 09:38:30 dtucker Exp $
