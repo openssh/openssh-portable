@@ -266,8 +266,14 @@ AC_ARG_WITH(libs,
 # Checks for libraries.
 AC_CHECK_LIB(z, deflate, ,AC_MSG_ERROR([*** zlib missing - please install first ***]))
 AC_CHECK_LIB(util, login, AC_DEFINE(HAVE_LIBUTIL_LOGIN) LIBS="$LIBS -lutil")
-AC_CHECK_LIB(pcre, pcre_info, 
-	AC_DEFINE(HAVE_LIBPCRE) LIBS="$LIBS -lpcreposix -lpcre")
+
+AC_CHECK_FUNC(regcomp, 
+	[],
+	[
+		AC_CHECK_LIB(pcre, pcre_info, 
+			AC_DEFINE(HAVE_LIBPCRE) LIBS="$LIBS -lpcreposix -lpcre")
+	]
+)
 
 if test -z "$no_libsocket" ; then
 	AC_CHECK_LIB(nsl, yp_match, , )
@@ -1531,6 +1537,7 @@ else
 		RAND_MSG="EGD ($EGD_SOCKET)"
 	else
 		RAND_MSG="Builtin (timeout $entropy_timeout)"
+		BUILTIN_RNG=1
 	fi
 fi
 
@@ -1574,3 +1581,9 @@ echo "        Libraries: ${LIBS}"
 
 echo ""
 
+if test ! -z "$BUILTIN_RNG" ; then
+	echo "WARNING: you are using the builtin random number collection service."
+	echo "Please read WARNING.RNG and request that your OS vendor includes"
+	echo "/dev/random in future versions of their OS."
+	echo ""
+fi

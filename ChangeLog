@@ -1,3 +1,8 @@
+20001025
+ - (djm) Added WARNING.RNG file and modified configure to ask users of the
+   builtin entropy code to read it.
+ - (djm) Prefer builtin regex to PCRE.
+
 20001020
  - (djm) Don't define _REENTRANT for SNI/Reliant Unix
  - (bal) Imported NEWS-OS waitpid() macros into NeXT.  Since implementation
