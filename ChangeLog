@@ -38,6 +38,9 @@
      [sftp.c]
      don't show .files by default in ls, add -a option to turn them back on;
      ok markus
+   - markus@cvs.openbsd.org 2004/06/22 03:12:13
+     [regress/envpass.sh regress/multiplex.sh]
+     more portable env passing tests
  - (dtucker) [monitor.c] Fix Portable-specific -Wshadow warnings on "socket".
  - (dtucker) [defines.h] Define __dead if not already defined.
 
@@ -1362,4 +1365,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3430 2004/06/22 03:37:11 mouring Exp $
+$Id: ChangeLog,v 1.3431 2004/06/22 03:38:56 dtucker Exp $

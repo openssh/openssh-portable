@@ -1,4 +1,4 @@
-#	$OpenBSD: envpass.sh,v 1.1 2004/04/27 09:47:30 djm Exp $
+#	$OpenBSD: envpass.sh,v 1.2 2004/06/22 03:12:13 markus Exp $
 #	Placed in the Public Domain.
 
 tid="environment passing"
@@ -8,7 +8,9 @@ tid="environment passing"
 trace "pass env, don't accept"
 verbose "test $tid: pass env, don't accept"
 _TEST_ENV=blah ${SSH} -oSendEnv="*" -F $OBJ/ssh_proxy otherhost \
-	'[ -z "$_TEST_ENV" ]'
+	sh << 'EOF'
+	test -z $_TEST_ENV
+EOF
 r=$?
 if [ $r -ne 0 ]; then
 	fail "environment found"
@@ -17,7 +19,9 @@ fi
 trace "don't pass env, accept"
 verbose "test $tid: don't pass env, accept"
 ${SSH} -F $OBJ/ssh_proxy otherhost \
-	'[ -z "$_XXX_TEST_A" -a -z "$_XXX_TEST_B" ]'
+	sh << 'EOF'
+	test -z $_XXX_TEST_A && test -z $_XXX_TEST_B
+EOF
 r=$?
 if [ $r -ne 0 ]; then
 	fail "environment found"
@@ -26,7 +30,9 @@ fi
 trace "pass single env, accept single env"
 verbose "test $tid: pass single env, accept single env"
 _XXX_TEST=blah ${SSH} -oSendEnv="_XXX_TEST" -F $OBJ/ssh_proxy otherhost \
-	'[ "x$_XXX_TEST" = "xblah" ]'
+	sh << 'EOF'
+	test X"$_XXX_TEST" = X"blah"
+EOF
 r=$?
 if [ $r -ne 0 ]; then
 	fail "environment not found"
@@ -36,9 +42,10 @@ trace "pass multiple env, accept multiple env"
 verbose "test $tid: pass multiple env, accept multiple env"
 _XXX_TEST_A=1 _XXX_TEST_B=2 ${SSH} -oSendEnv="_XXX_TEST_*" \
     -F $OBJ/ssh_proxy otherhost \
-	'[ "x$_XXX_TEST_A" = "x1" -a "x$_XXX_TEST_B" = "x2" ]'
+	sh << 'EOF'
+	test X"$_XXX_TEST_A" = X"1" -a X"$_XXX_TEST_B" = X"2"
+EOF
 r=$?
 if [ $r -ne 0 ]; then
 	fail "environment not found"
 fi
-

@@ -1,4 +1,4 @@
-#	$OpenBSD: multiplex.sh,v 1.7 2004/06/18 06:15:51 dtucker Exp $
+#	$OpenBSD: multiplex.sh,v 1.8 2004/06/22 03:12:13 markus Exp $
 #	Placed in the Public Domain.
 
 CTL=$OBJ/ctl-sock
@@ -11,12 +11,13 @@ COPY=$OBJ/ls.copy
 start_sshd
 
 trace "start master, fork to background"
-${SSH} -2 -MS$CTL -F $OBJ/ssh_config -oSendEnv="_XXX_TEST"  -f somehost \
-	sleep 120
+${SSH} -2 -MS$CTL -F $OBJ/ssh_config -oSendEnv="_XXX_TEST" -f somehost sleep 120
 
 verbose "test $tid: envpass"
 trace "env passing over multiplexed connection"
-_XXX_TEST=blah ${SSH} -S$CTL otherhost '[ "x$_XXX_TEST" = "xblah" ]'
+_XXX_TEST=blah ${SSH} -oSendEnv="_XXX_TEST" -S$CTL otherhost sh << 'EOF'
+	test X"$_XXX_TEST" = X"blah"
+EOF
 if [ $? -ne 0 ]; then
 	fail "environment not found"
 fi
