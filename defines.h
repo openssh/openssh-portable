@@ -329,18 +329,33 @@ typedef int mode_t;
 #endif
 
 /* FIXME: put default paths back in */
-#if !defined(UTMP_FILE) && defined(_PATH_UTMP)
-#  define UTMP_FILE _PATH_UTMP
+#ifndef UTMP_FILE
+#  ifdef _PATH_UTMP
+#    define UTMP_FILE _PATH_UTMP
+#  else
+#    ifdef CONF_UTMP_FILE
+#      define UTMP_FILE CONF_UTMP_FILE
+#    endif
+#  endif
 #endif
-#if !defined(WTMP_FILE) && defined(_PATH_WTMP)
-#  define WTMP_FILE _PATH_WTMP
+#ifndef WTMP_FILE
+#  ifdef _PATH_WTMP
+#    define WTMP_FILE _PATH_WTMP
+#  else
+#    ifdef CONF_WTMP_FILE
+#      define WTMP_FILE CONF_WTMP_FILE
+#    endif
+#  endif
 #endif
 /* pick up the user's location for lastlog if given */
-#if !defined(LASTLOG_FILE) && defined(_PATH_LASTLOG)
-#  define LASTLOG_FILE _PATH_LASTLOG
-#endif
-#if !defined(LASTLOG_FILE) && defined(CONF_LASTLOG_FILE)
-#  define LASTLOG_FILE CONF_LASTLOG_FILE
+#ifndef LASTLOG_FILE
+#  ifdef _PATH_LASTLOG
+#    define LASTLOG_FILE _PATH_LASTLOG
+#  else
+#    ifdef CONF_LASTLOG_FILE
+#      define LASTLOG_FILE CONF_LASTLOG_FILE
+#    endif
+#  endif
 #endif
 
 

@@ -1,6 +1,8 @@
 20000809
  - (djm) Define AIX hard limits if headers don't. Report from 
    Bill Painter <william.t.painter@lmco.com>
+ - (djm) utmp direct write & SunOS 4 patch from Charles Levert 
+   <charles@comm.polymtl.ca>
 
 20000808
  - (djm) Cleanup Redhat RPMs. Generate keys at runtime rather than install

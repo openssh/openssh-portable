@@ -137,6 +137,11 @@ case "$host" in
 *-*-sunos4*)
 	CFLAGS="$CFLAGS -DSUNOS4"
 	AC_CHECK_FUNCS(getpwanam)
+	conf_utmp_location=/etc/utmp
+	conf_wtmp_location=/var/adm/wtmp
+	conf_lastlog_location=/var/adm/lastlog
+	MANTYPE='$(CATMAN)'
+	mansubdir=cat
 	;;
 *-sni-sysv*)
 	CFLAGS="$CFLAGS -I/usr/local/include"

@@ -12,6 +12,7 @@ Arkadiusz Miskiewicz <misiek@pld.org.pl> - IPv6 compat fixes
 Ben Lindstrom <mouring@pconline.com> - NeXT support
 Ben Taylor <bent@clark.net> - Solaris debugging and fixes
 Bratislav ILICH <bilic@zepter.ru> - Configure fix
+Charles Levert <charles@comm.polymtl.ca> - SunOS 4 & bug fixes
 Chip Salzenberg <chip@valinux.com> - Assorted patches
 Chris Adams <cmadams@hiwaay.net> - OSF SIA support
 Chris Saia <csaia@wtower.com> - SuSE packaging

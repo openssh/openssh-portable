@@ -160,7 +160,7 @@
 #include "xmalloc.h"
 #include "loginrec.h"
 
-RCSID("$Id: loginrec.c,v 1.17 2000/07/11 02:15:54 djm Exp $");
+RCSID("$Id: loginrec.c,v 1.18 2000/08/09 06:34:28 djm Exp $");
 
 /**
  ** prototypes for helper functions in this file
@@ -740,7 +740,7 @@ utmp_write_direct(struct logininfo *li, struct utmp *ut)
 		}
 		
 		(void)lseek(fd, (off_t)(tty * sizeof(struct utmp)), SEEK_SET);
-		if (atomicio(write, fd, ut, sizeof(ut)) != sizeof(ut))
+		if (atomicio(write, fd, ut, sizeof(*ut)) != sizeof(*ut))
 			log("utmp_write_direct: error writing %s: %s",
 			    UTMP_FILE, strerror(errno));
       
