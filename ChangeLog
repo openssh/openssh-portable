@@ -5,6 +5,8 @@
      [sftp-client.c sftp-client.h sftp-glob.c sftp-glob.h sftp-int.c]
      [sftp-int.h sftp.c]
      switch to license.template for code written by me (belated, I know...)
+ - (djm) Bug #698: Specify FILE: for KRB5CCNAME; patch from 
+   stadal@suse.cz and simon@sxw.org.uk
 
 20040212
  - (tim) [Makefile.in regress/sftp-badcmds.sh regress/test-exec.sh]
@@ -1860,4 +1862,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3230 2004/02/17 06:07:59 djm Exp $
+$Id: ChangeLog,v 1.3231 2004/02/17 09:33:52 djm Exp $

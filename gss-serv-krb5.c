@@ -108,6 +108,7 @@ ssh_gssapi_krb5_storecreds(ssh_gssapi_client *client)
 	krb5_error_code problem;
 	krb5_principal princ;
 	OM_uint32 maj_status, min_status;
+	int len;
 
 	if (client->creds == NULL) {
 		debug("No credentials stored");
@@ -178,11 +179,13 @@ ssh_gssapi_krb5_storecreds(ssh_gssapi_client *client)
 
 	client->store.filename = xstrdup(krb5_cc_get_name(krb_context, ccache));
 	client->store.envvar = "KRB5CCNAME";
-	client->store.envval = xstrdup(client->store.filename);
+	len = strlen(client->store.filename) + 6;
+	client->store.envval = xmalloc(len);
+	snprintf(client->store.envval, len, "FILE:%s", client->store.filename);
 
 #ifdef USE_PAM
 	if (options.use_pam)
-		do_pam_putenv(client->store.envvar,client->store.envval);
+		do_pam_putenv(client->store.envvar, client->store.envval);
 #endif
 
 	krb5_cc_close(krb_context, ccache);
