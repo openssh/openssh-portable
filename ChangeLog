@@ -7,6 +7,10 @@
      [monitor_wrap.c]
      Put s/key functions inside #ifdef SKEY same as monitor.c,
      from des@freebsd via bz #330, ok markus@
+   - dtucker@cvs.openbsd.org 2004/07/08 12:47:21
+     [scp.c]
+     Prevent scp from skipping the file following a double-error.
+     bz #863, ok markus@
 
 20040702
  - (dtucker) [mdoc2man.awk] Teach it to ignore .Bk -words, reported by
@@ -1491,4 +1495,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3470 2004/07/08 13:09:42 dtucker Exp $
+$Id: ChangeLog,v 1.3471 2004/07/08 13:11:44 dtucker Exp $
