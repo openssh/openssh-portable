@@ -368,11 +368,7 @@ secure_filename(FILE *f, const char *file, struct passwd *pw,
 	char *cp;
 	struct stat st;
 
-	strlcpy(homedir, pw->pw_dir, sizeof(homedir));
-	if ((cp = dirname(homedir)) == NULL)
-		strlcpy(homedir, "/", sizeof(homedir));
-	else
-		memmove(homedir, cp, strlen(cp));
+	strlcpy(homedir, dirname(pw->pw_dir), sizeof(homedir));
 
 	if (realpath(file, buf) == NULL) {
 		snprintf(err, errlen, "realpath %s failed: %s", file,

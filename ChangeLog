@@ -2,6 +2,7 @@
  - (djm) Enable /etc/nologin check on PAM systems, as some lack the 
    pam_nologin module. Report from William Yodlowsky 
    <bsd@openbsd.rutgers.edu>
+ - (djm) Revert dirname fix, a better one is on its way.
 
 20010711
  - (djm) dirname(3) may modify its argument on glibc and other systems. 
@@ -5977,4 +5978,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1385 2001/07/14 01:54:05 djm Exp $
+$Id: ChangeLog,v 1.1386 2001/07/14 01:55:15 djm Exp $
