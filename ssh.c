@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.136 2001/08/02 15:43:57 jakob Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.137 2001/08/02 16:14:05 jakob Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -72,7 +72,7 @@ RCSID("$OpenBSD: ssh.c,v 1.136 2001/08/02 15:43:57 jakob Exp $");
 #ifdef SMARTCARD
 #include <openssl/engine.h>
 #include "scard.h"
-#endif /* SMARTCARD */
+#endif
 
 #ifdef HAVE___PROGNAME
 extern char *__progname;
@@ -171,7 +171,7 @@ usage(void)
 	    "(default: ~/.ssh/identity)\n");
 #ifdef SMARTCARD
 	fprintf(stderr, "  -I reader   Set smartcard reader.\n");
-#endif /* SMARTCARD */
+#endif
 	fprintf(stderr, "  -t          Tty; allocate a tty even if command is given.\n");
 	fprintf(stderr, "  -T          Do not allocate a tty.\n");
 	fprintf(stderr, "  -v          Verbose; display verbose debugging messages.\n");
@@ -376,9 +376,9 @@ again:
 		case 'I':
 #ifdef SMARTCARD
 			options.smartcard_device = xstrdup(optarg);
-#else /* SMARTCARD */
+#else
 			fprintf(stderr, "no support for smartcards.\n");
-#endif /* SMARTCARD */
+#endif
 			break;
 		case 't':
 			if (tty_flag)

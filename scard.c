@@ -24,7 +24,7 @@
 
 #ifdef SMARTCARD
 #include "includes.h"
-RCSID("$OpenBSD: scard.c,v 1.12 2001/08/01 23:38:45 markus Exp $");
+RCSID("$OpenBSD: scard.c,v 1.13 2001/08/02 16:14:05 jakob Exp $");
 
 #include <openssl/engine.h>
 #include <sectok.h>
@@ -369,4 +369,4 @@ sc_get_key(const char *id)
 	return k;
 	sc_close();
 }
-#endif
+#endif /* SMARTCARD */
