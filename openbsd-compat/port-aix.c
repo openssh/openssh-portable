@@ -36,6 +36,10 @@
 #include <uinfo.h>
 #include "port-aix.h"
 
+/* These should be in the system headers but are not. */
+int usrinfo(int, char *, int);
+int setauthdb(const char *, char *);
+
 extern Buffer loginmsg;
 
 # ifdef HAVE_SETAUTHDB
@@ -49,6 +53,8 @@ static char old_registry[REGISTRY_SIZE] = "";
  * NOTE: TTY= should be set, but since no one uses it and it's hard to
  * acquire due to privsep code.  We will just drop support.
  */
+
+
 void
 aix_usrinfo(struct passwd *pw)
 {
@@ -260,10 +266,10 @@ sys_auth_record_login(const char *user, const char *host, const char *ttynm)
 	int success = 0;
 
 	aix_setauthdb(user);
-	if (loginsuccess((char *)user, host, ttynm, &msg) == 0) {
+	if (loginsuccess((char *)user, (char *)host, (char *)ttynm, &msg) == 0) {
 		success = 1;
 		if (msg != NULL) {
-			debug("AIX/loginsuccess: msg %s", __func__, msg);
+			debug("AIX/loginsuccess: msg %s", msg);
 			buffer_append(&loginmsg, msg, strlen(msg));
 			xfree(msg);
 		}
@@ -284,9 +290,10 @@ record_failed_login(const char *user, const char *hostname, const char *ttyname)
 
 	aix_setauthdb(user);
 #   ifdef AIX_LOGINFAILED_4ARG
-	loginfailed((char *)user, hostname, (char *)ttyname, AUDIT_FAIL_AUTH);
+	loginfailed((char *)user, (char *)hostname, (char *)ttyname,
+	    AUDIT_FAIL_AUTH);
 #   else
-	loginfailed((char *)user, hostname, (char *)ttyname);
+	loginfailed((char *)user, (char *)hostname, (char *)ttyname);
 #   endif
 	aix_restoreauthdb();
 }
