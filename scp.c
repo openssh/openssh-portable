@@ -938,21 +938,25 @@ bad:			run_err("%s: %s", np, strerror(errno));
 		if (pflag) {
 			if (exists || omode != mode)
 #ifdef HAVE_FCHMOD
-				if (fchmod(ofd, omode))
+				if (fchmod(ofd, omode)) {
 #else /* HAVE_FCHMOD */
-				if (chmod(np, omode))
+				if (chmod(np, omode)) {
 #endif /* HAVE_FCHMOD */
 					run_err("%s: set mode: %s",
 					    np, strerror(errno));
+					wrerr = DISPLAYED;
+				}
 		} else {
 			if (!exists && omode != mode)
 #ifdef HAVE_FCHMOD
-				if (fchmod(ofd, omode & ~mask))
+				if (fchmod(ofd, omode & ~mask)) {
 #else /* HAVE_FCHMOD */
-				if (chmod(np, omode & ~mask))
+				if (chmod(np, omode & ~mask)) {
 #endif /* HAVE_FCHMOD */
 					run_err("%s: set mode: %s",
 					    np, strerror(errno));
+					wrerr = DISPLAYED;
+				}
 		}
 		if (close(ofd) == -1) {
 			wrerr = YES;
