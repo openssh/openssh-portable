@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: dh.c,v 1.25 2003/09/18 13:02:21 miod Exp $");
+RCSID("$OpenBSD: dh.c,v 1.26 2003/12/16 15:51:54 markus Exp $");
 
 #include "xmalloc.h"
 
@@ -279,11 +279,9 @@ int
 dh_estimate(int bits)
 {
 
-	if (bits < 64)
-		return (512);	/* O(2**63) */
-	if (bits < 128)
+	if (bits <= 128)
 		return (1024);	/* O(2**86) */
-	if (bits < 192)
+	if (bits <= 192)
 		return (2048);	/* O(2**116) */
 	return (4096);		/* O(2**156) */
 }
