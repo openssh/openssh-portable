@@ -9,6 +9,10 @@
    - markus@cvs.openbsd.org 2003/10/21 09:50:06
      [auth2-gss.c]
      make sure the doid is larger than 2
+   - avsm@cvs.openbsd.org 2003/10/26 16:57:43
+     [sshconnect2.c]
+     rename 'supported' static var in userauth_gssapi() to 'gss_supported'
+     to avoid shadowing the global version.  markus@ ok
 
 20031021
  - (dtucker) [INSTALL] Some system crypt() functions support MD5 passwords
@@ -1383,4 +1387,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3088 2003/11/03 09:05:03 dtucker Exp $
+$Id: ChangeLog,v 1.3089 2003/11/03 09:06:14 dtucker Exp $

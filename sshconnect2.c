@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.127 2003/10/11 08:26:43 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.128 2003/10/26 16:57:43 avsm Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -480,7 +480,7 @@ int
 userauth_gssapi(Authctxt *authctxt)
 {
 	Gssctxt *gssctxt = NULL;
-	static gss_OID_set supported = NULL;
+	static gss_OID_set gss_supported = NULL;
 	static int mech = 0;
 	OM_uint32 min;
 	int ok = 0;
@@ -488,18 +488,18 @@ userauth_gssapi(Authctxt *authctxt)
 	/* Try one GSSAPI method at a time, rather than sending them all at
 	 * once. */
 
-	if (supported == NULL)
-		gss_indicate_mechs(&min, &supported);
+	if (gss_supported == NULL)
+		gss_indicate_mechs(&min, &gss_supported);
 
 	/* Check to see if the mechanism is usable before we offer it */
-	while (mech<supported->count && !ok) {
+	while (mech < gss_supported->count && !ok) {
 		if (gssctxt)
 			ssh_gssapi_delete_ctx(&gssctxt);
 		ssh_gssapi_build_ctx(&gssctxt);
-		ssh_gssapi_set_oid(gssctxt, &supported->elements[mech]);
+		ssh_gssapi_set_oid(gssctxt, &gss_supported->elements[mech]);
 
 		/* My DER encoding requires length<128 */
-		if (supported->elements[mech].length < 128 &&
+		if (gss_supported->elements[mech].length < 128 &&
 		    !GSS_ERROR(ssh_gssapi_import_name(gssctxt,
 		    authctxt->host))) {
 			ok = 1; /* Mechanism works */
@@ -521,14 +521,14 @@ userauth_gssapi(Authctxt *authctxt)
 
 	/* Some servers encode the OID incorrectly (as we used to) */
 	if (datafellows & SSH_BUG_GSSAPI_BER) {
-		packet_put_string(supported->elements[mech].elements,
-		    supported->elements[mech].length);
+		packet_put_string(gss_supported->elements[mech].elements,
+		    gss_supported->elements[mech].length);
 	} else {
-		packet_put_int((supported->elements[mech].length)+2);
+		packet_put_int((gss_supported->elements[mech].length)+2);
 		packet_put_char(SSH_GSS_OIDTYPE);
-		packet_put_char(supported->elements[mech].length);
-		packet_put_raw(supported->elements[mech].elements,
-		    supported->elements[mech].length);
+		packet_put_char(gss_supported->elements[mech].length);
+		packet_put_raw(gss_supported->elements[mech].elements,
+		    gss_supported->elements[mech].length);
 	}
 
 	packet_send();
