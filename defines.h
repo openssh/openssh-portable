@@ -187,6 +187,11 @@ typedef int ssize_t;
 # define HAVE_SSIZE_T
 #endif /* HAVE_SSIZE_T */
 
+#ifndef HAVE_SA_FAMILY_T
+typedef int sa_family_t;
+# define HAVE_SA_FAMILY_T
+#endif /* HAVE_SA_FAMILY_T */
+
 #ifndef HAVE_PID_T
 typedef int pid_t;
 # define HAVE_PID_T

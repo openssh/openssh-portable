@@ -4,7 +4,7 @@
 #include "config.h"
 
 #ifndef HAVE_RRESVPORT_AF
-int rresvport_af(int *alport, int af);
+int rresvport_af(int *alport, sa_family_t af);
 #endif /* !HAVE_RRESVPORT_AF */
 
 #endif /* _BSD_RRESVPORT_H */

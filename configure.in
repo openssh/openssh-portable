@@ -502,6 +502,21 @@ if test "x$ac_cv_have_ssize_t" = "xyes" ; then
 	AC_DEFINE(HAVE_SSIZE_T)
 fi
 
+AC_CACHE_CHECK([for sa_family_t], ac_cv_have_sa_family_t, [
+	AC_TRY_COMPILE(
+		[
+#include <sys/types.h>
+#include <sys/socket.h>
+		],
+		[ sa_family_t foo; foo = 1235; ],
+		[ ac_cv_have_sa_family_t="yes" ],
+		[ ac_cv_have_sa_family_t="no" ]
+	)
+])
+if test "x$ac_cv_have_sa_family_t" = "xyes" ; then
+	AC_DEFINE(HAVE_SA_FAMILY_T)
+fi
+
 AC_CACHE_CHECK([for pid_t], ac_cv_have_pid_t, [
 	AC_TRY_COMPILE(
 		[
