@@ -12,10 +12,14 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.65 2001/06/24 05:35:33 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.66 2001/06/26 02:47:07 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
+
+#ifdef SMARTCARD
+#include <sectok.h>
+#endif
 
 #include "xmalloc.h"
 #include "key.h"
@@ -27,6 +31,7 @@ RCSID("$OpenBSD: ssh-keygen.c,v 1.65 2001/06/24 05:35:33 markus Exp $");
 #include "pathnames.h"
 #include "log.h"
 #include "readpass.h"
+
 
 /* Number of bits in the RSA/DSA key.  This value can be changed on the command line. */
 int bits = 1024;
@@ -375,6 +380,92 @@ do_print_public(struct passwd *pw)
 	exit(0);
 }
 
+#define NUM_RSA_KEY_ELEMENTS 5+1
+#define COPY_RSA_KEY(x, i) \
+	do { \
+		len = BN_num_bytes(prv->rsa->x); \
+		elements[i] = xmalloc(len); \
+error("#bytes %d", len); \
+		if (BN_bn2bin(prv->rsa->x, elements[i]) < 0) \
+			goto done; \
+	} while(0)
+
+static void
+do_upload(struct passwd *pw, int reader)
+{
+#ifndef SMARTCARD
+	fatal("no support for smartcards.");
+#else
+	Key *prv = NULL;
+	struct stat st;
+	u_char *elements[NUM_RSA_KEY_ELEMENTS];
+	u_char key_fid[2];
+        u_char atr[256];
+	u_char AUT0[] = {0xad, 0x9f, 0x61, 0xfe, 0xfa, 0x20, 0xce, 0x63};
+	int len, status = 1, i, fd = -1, ret;
+	int cla = 0x00;
+
+	if (!have_identity)
+		ask_filename(pw, "Enter file in which the key is");
+	if (stat(identity_file, &st) < 0) {
+		perror(identity_file);
+		goto done;
+	}
+	prv = load_identity(identity_file);
+	if (prv == NULL) {
+		error("load failed");
+		goto done;
+	}
+{
+	prv->type = KEY_RSA;
+	key_write(prv, stderr);
+}
+	for (i = 0; i < NUM_RSA_KEY_ELEMENTS; i++)
+		elements[i] = NULL;
+	COPY_RSA_KEY(q, 0);
+	COPY_RSA_KEY(p, 1);
+	COPY_RSA_KEY(iqmp, 2);
+	COPY_RSA_KEY(dmq1, 3);
+	COPY_RSA_KEY(dmp1, 4);
+	COPY_RSA_KEY(n, 5);
+	len = BN_num_bytes(prv->rsa->n);
+        fd = scopen(reader, 0, NULL);
+        if (fd < 0) {
+                error("scopen failed %d.", fd);
+		goto done;
+        }
+        ret = screset(fd, atr, NULL);
+        if (ret <= 0) {
+                error("screset failed.");
+		goto done;
+        }
+	if (cyberflex_verify_AUT0(fd, cla, AUT0, sizeof(AUT0)) < 0) {
+		error("cyberflex_verify_AUT0 failed");
+		goto done;
+	}
+	key_fid[0] = 0x00;
+	key_fid[1] = 0x12;
+	if (cyberflex_load_rsa_priv(fd, cla, key_fid, 5, 8*len, elements) < 0)
+		goto done;
+	log("cyberflex_load_rsa_priv done");
+	key_fid[0] = 0x73;
+	key_fid[1] = 0x68;
+	if (cyberflex_load_rsa_pub(fd, cla, key_fid, len, elements[5]) < 0)
+		goto done;
+	log("cyberflex_load_rsa_pub done");
+	status = 0;
+	log("loading key done");
+done:
+	if (prv)
+		key_free(prv);
+	for (i = 0; i < NUM_RSA_KEY_ELEMENTS; i++)
+		xfree(elements[i]);
+	if (fd != -1)
+		scclose(fd);
+	exit(status);
+#endif
+}
+
 static void
 do_fingerprint(struct passwd *pw)
 {
@@ -664,7 +755,7 @@ main(int ac, char **av)
 	char dotsshdir[16 * 1024], comment[1024], *passphrase1, *passphrase2;
 	Key *private, *public;
 	struct passwd *pw;
-	int opt, type, fd;
+	int opt, type, fd, reader = -1;
 	struct stat st;
 	FILE *f;
 
@@ -688,7 +779,7 @@ main(int ac, char **av)
 		exit(1);
 	}
 
-	while ((opt = getopt(ac, av, "deiqpclBRxXyb:f:t:P:N:C:")) != -1) {
+	while ((opt = getopt(ac, av, "deiqpclBRxXyb:f:t:u:P:N:C:")) != -1) {
 		switch (opt) {
 		case 'b':
 			bits = atoi(optarg);
@@ -697,73 +788,60 @@ main(int ac, char **av)
 				exit(1);
 			}
 			break;
-
 		case 'l':
 			print_fingerprint = 1;
 			break;
-
 		case 'B':
 			print_bubblebabble = 1;
 			break;
-
 		case 'p':
 			change_passphrase = 1;
 			break;
-
 		case 'c':
 			change_comment = 1;
 			break;
-
 		case 'f':
 			strlcpy(identity_file, optarg, sizeof(identity_file));
 			have_identity = 1;
 			break;
-
 		case 'P':
 			identity_passphrase = optarg;
 			break;
-
 		case 'N':
 			identity_new_passphrase = optarg;
 			break;
-
 		case 'C':
 			identity_comment = optarg;
 			break;
-
 		case 'q':
 			quiet = 1;
 			break;
-
 		case 'R':
 			/* unused */
 			exit(0);
 			break;
-
 		case 'e':
 		case 'x':
 			/* export key */
 			convert_to_ssh2 = 1;
 			break;
-
 		case 'i':
 		case 'X':
 			/* import key */
 			convert_from_ssh2 = 1;
 			break;
-
 		case 'y':
 			print_public = 1;
 			break;
-
 		case 'd':
 			key_type_name = "dsa";
 			break;
-
 		case 't':
 			key_type_name = optarg;
 			break;
-
+		case 'u':
+			reader = atoi(optarg); /*XXX*/
+			break;
 		case '?':
 		default:
 			usage();
@@ -789,6 +867,8 @@ main(int ac, char **av)
 		do_convert_from_ssh2(pw);
 	if (print_public)
 		do_print_public(pw);
+	if (reader != -1)
+		do_upload(pw, reader);
 
 	arc4random_stir();
 

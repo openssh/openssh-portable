@@ -16,6 +16,9 @@
    - stevesk@cvs.openbsd.org 2001/06/25 20:26:37
      [auth2.c sshconnect2.c]
      prototype cleanup; ok markus@
+   - markus@cvs.openbsd.org 2001/06/26 02:47:07
+     [ssh-keygen.c]
+     allow loading a private RSA key to a cyberflex card.
 
 20010629
  - (bal) Removed net_aton() since we don't use it any more
@@ -5843,4 +5846,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1348 2001/07/04 03:42:30 mouring Exp $
+$Id: ChangeLog,v 1.1349 2001/07/04 03:44:03 mouring Exp $
