@@ -32,16 +32,12 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* RCSID("$OpenBSD: cipher.h,v 1.30 2002/02/14 23:41:01 markus Exp $"); */
+/* RCSID("$OpenBSD: cipher.h,v 1.31 2002/02/18 13:05:32 markus Exp $"); */
 
 #ifndef CIPHER_H
 #define CIPHER_H
 
-#include <openssl/des.h>
-#include <openssl/blowfish.h>
-#include <openssl/rc4.h>
-#include <openssl/cast.h>
-#include "rijndael.h"
+#include <openssl/evp.h>
 /*
  * Cipher types for SSH-1.  New types can be added, but old types should not
  * be removed for compatibility.  The maximum allowed value is 31.
@@ -67,36 +63,8 @@ typedef struct CipherContext CipherContext;
 
 struct Cipher;
 struct CipherContext {
-	union {
-		struct {
-			des_key_schedule key;
-			des_cblock iv;
-		}	des;
-		struct {
-			des_key_schedule key1;
-			des_key_schedule key2;
-			des_key_schedule key3;
-			des_cblock iv1;
-			des_cblock iv2;
-			des_cblock iv3;
-		}       des3;
-		struct {
-			struct bf_key_st key;
-			u_char iv[8];
-		}       bf;
-		struct {
-			CAST_KEY key;
-			u_char iv[8];
-		} cast;
-		struct {
-			u_char iv[16];
-			rijndael_ctx enc;
-			rijndael_ctx dec;
-		} rijndael;
-		RC4_KEY rc4;
-	}       u;
 	int	plaintext;
-	int	encrypt;
+	EVP_CIPHER_CTX evp;
 	Cipher *cipher;
 };
 
