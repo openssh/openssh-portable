@@ -479,12 +479,10 @@ load_private_key(const char *filename, const char *passphrase, Key *key,
 	if (fd < 0)
 		return 0;
 
-#ifndef HAVE_CYGWIN
-	/*
-	 * check owner and modes.
-	 * This won't work on Windows under all circumstances so we drop
-	 * that check for now.
-	 */
+	/* check owner and modes.  */
+#ifdef HAVE_CYGWIN
+        if (check_ntsec(filename))
+#endif
 	if (fstat(fd, &st) < 0 ||
 	    (st.st_uid != 0 && st.st_uid != getuid()) ||
 	    (st.st_mode & 077) != 0) {
@@ -497,7 +495,6 @@ load_private_key(const char *filename, const char *passphrase, Key *key,
 		error("It is recommended that your private key files are NOT accessible by others.");
 		return 0;
 	}
-#endif
 	switch (key->type) {
 	case KEY_RSA:
 		if (key->rsa->e != NULL) {

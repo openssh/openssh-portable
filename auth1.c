@@ -29,11 +29,6 @@ RCSID("$OpenBSD: auth1.c,v 1.4 2000/09/07 20:27:49 deraadt Exp $");
 # include <siad.h>
 #endif
 
-#ifdef HAVE_CYGWIN
-#include <windows.h>
-#define is_winnt       (GetVersion() < 0x80000000)
-#endif
-
 /* import */
 extern ServerOptions options;
 extern char *forced_command;
@@ -383,16 +378,8 @@ do_authloop(struct passwd * pw)
 		}
 
 #ifdef HAVE_CYGWIN
-		/*
-		 * The only authentication which is able to change the user
-		 * context on NT systems is the password authentication. So
-		 * we deny all requsts for changing the user context if another
-		 * authentication method is used.
-		 * This may change in future when a special openssh
-		 * subauthentication package is available.
-		 */
-		if (is_winnt && type != SSH_CMSG_AUTH_PASSWORD &&
-		    authenticated && geteuid() != pw->pw_uid) {
+		if (authenticated &&
+		    !check_nt_auth(type == SSH_CMSG_AUTH_PASSWORD,pw->pw_uid)) {
 			packet_disconnect("Authentication rejected for uid %d.",
 					  (int) pw->pw_uid);
 			authenticated = 0;

@@ -182,6 +182,15 @@ input_userauth_request(int type, int plen)
 			authenticated =	ssh2_auth_pubkey(pw, service);
 		}
 	}
+
+#ifdef HAVE_CYGWIN
+	if (authenticated && !check_nt_auth(strcmp(method, "password") == 0, pw->pw_uid)) {
+		packet_disconnect("Authentication rejected for uid %d.",
+				  (int) pw->pw_uid);
+		authenticated = 0;
+	}
+#endif
+
 	if (authenticated && pw && pw->pw_uid == 0 && !options.permit_root_login) {
 		authenticated = 0;
 		log("ROOT LOGIN REFUSED FROM %.200s",
@@ -189,8 +198,8 @@ input_userauth_request(int type, int plen)
 	}
 
 #ifdef USE_PAM
-		if (authenticated && !do_pam_account(pw->pw_name, NULL))
-			authenticated = 0;
+	if (authenticated && !do_pam_account(pw->pw_name, NULL))
+		authenticated = 0;
 #endif /* USE_PAM */
 
 	/* Raise logging level */

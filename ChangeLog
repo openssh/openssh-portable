@@ -1,4 +1,5 @@
 20000916
+ - (djm) Update CygWin support from Corinna Vinschen <vinschen@cygnus.com>
  - (djm) Use a real struct sockaddr inside the fake struct sockaddr_storage.
    Patch from Larry Jones <larry.jones@sdrc.com>
  - (djm) Add Steve VanDevender's <stevev@darkwing.uoregon.edu> PAM 
