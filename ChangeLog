@@ -1,3 +1,7 @@
+20010126
+ - (bal) SSH_PROGRAM vs _PATH_SSH_PROGRAM fix pointed out by Roumen 
+   Petrov <roumen.petrov@skalasoft.com>
+
 20010125
  - (djm) Sync bsd-* support files:
    - deraadt@cvs.openbsd.org 2000/01/26 03:43:20

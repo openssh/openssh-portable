@@ -35,7 +35,9 @@
 #define _PATH_HOST_DSA_KEY_FILE		ETCDIR "/ssh_host_dsa_key"
 #define _PATH_DH_PRIMES			ETCDIR "/primes"
 
+#ifndef _PATH_SSH_PROGRAM
 #define _PATH_SSH_PROGRAM		"/usr/bin/ssh"
+#endif
 
 /*
  * The process id of the daemon listening for connections is saved here to
