@@ -28,9 +28,9 @@
  * gnome-ssh-askpass before calling "ssh-add < /dev/null". 
  *
  * There is only one run-time option: if you set the environment variable
- * "GNOME_SSH_ASKPASS_NOGRAB=true" then gnome-ssh-askpass will not grab
- * the X server. I have found this necessary to avoid server hangs with
- * X input extensions (e.g. kinput2) enabled. - djm
+ * "GNOME_SSH_ASKPASS_GRAB_SERVER=true" then gnome-ssh-askpass will grab
+ * the X server. This may have some benefit to security if you don't trust
+  * your X server. We grab the keyboard and pointer anyway.
  */
 
 /*
@@ -71,7 +71,7 @@ passphrase_dialog(char *message)
 	int result, i, grab_server;
 	GtkWidget *dialog, *entry, *label;
 
-	grab_server = (getenv("GNOME_SSH_ASKPASS_NOGRAB") == NULL);
+	grab_server = (getenv("GNOME_SSH_ASKPASS_GRAB_SERVER") != NULL);
 
 	dialog = gnome_dialog_new("OpenSSH", GNOME_STOCK_BUTTON_OK,
 	    GNOME_STOCK_BUTTON_CANCEL, NULL);

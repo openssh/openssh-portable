@@ -1,3 +1,7 @@
+20020125
+ - (djm) Don't grab Xserver by default. x11-ssh-askpass doesn't and grabbing
+   can cause deadlocks with kinput2
+
 20020124
  - (stevesk) Makefile.in: bug #61; delete commented line for now.
 
@@ -7390,4 +7394,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1794 2002/01/23 23:26:43 stevesk Exp $
+$Id: ChangeLog,v 1.1795 2002/01/24 13:46:04 djm Exp $
