@@ -177,7 +177,7 @@ CFLAGS="$RPM_OPT_FLAGS -Os"; export CFLAGS
 	--with-rsh=%{_bindir}/rsh \
 	--with-default-path=/usr/local/bin:/bin:/usr/bin \
 	--with-superuser-path=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin \
-	--with-privsep-path=%{_var}/empty/sshd
+	--with-privsep-path=%{_var}/empty/sshd \
 %if %{scard}
 	--with-smartcard \
 %endif
