@@ -685,7 +685,11 @@ process_fsetstat(void)
 		status = SSH2_FX_FAILURE;
 	} else {
 		if (a->flags & SSH2_FILEXFER_ATTR_PERMISSIONS) {
+#ifdef HAVE_FCHMOD
 			ret = fchmod(fd, a->perm & 0777);
+#else
+			ret = chmod(name, a->perm & 077);
+#endif
 			if (ret == -1)
 				status = errno_to_portable(errno);
 		}

@@ -1,3 +1,6 @@
+20010115
+ - (bal) sftp-server.c change to use chmod() if fchmod() does not exist.
+
 20010114
  - (stevesk) initial work for OpenBSD "support supplementary group in
    {Allow,Deny}Groups" patch:
