@@ -1,3 +1,7 @@
+20020327
+ - (bal) 'pw' should be 'authctxt->pw' in auth1.c spotted by 
+   kent@lysator.liu.se
+
 20020325
  - (stevesk) import OpenBSD <sys/tree.h> as "openbsd-compat/tree.h"
  - (bal) OpenBSD CVS Sync
@@ -8060,4 +8064,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1991 2002/03/26 03:42:20 mouring Exp $
+$Id: ChangeLog,v 1.1992 2002/03/27 16:50:03 mouring Exp $
