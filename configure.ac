@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.224 2004/07/19 17:19:27 tim Exp $
+# $Id: configure.ac,v 1.225 2004/08/15 08:40:59 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -517,16 +517,16 @@ int main(){exit(0);}
 )
 
 # Checks for header files.
-AC_CHECK_HEADERS(bstring.h crypt.h endian.h features.h floatingpoint.h \
-	getopt.h glob.h ia.h lastlog.h limits.h login.h \
-	login_cap.h maillock.h netdb.h netgroup.h \
+AC_CHECK_HEADERS(bstring.h crypt.h dirent.h endian.h features.h \
+	floatingpoint.h getopt.h glob.h ia.h lastlog.h limits.h login.h \
+	login_cap.h maillock.h ndir.h netdb.h netgroup.h \
 	netinet/in_systm.h pam/pam_appl.h paths.h pty.h readpassphrase.h \
 	rpc/types.h security/pam_appl.h shadow.h stddef.h stdint.h \
-	strings.h sys/strtio.h sys/audit.h sys/bitypes.h sys/bsdtty.h \
-	sys/cdefs.h sys/mman.h sys/prctl.h sys/pstat.h sys/ptms.h \
-	sys/select.h sys/stat.h sys/stream.h sys/stropts.h \
-	sys/sysmacros.h sys/time.h sys/timers.h sys/un.h time.h tmpdir.h \
-	ttyent.h usersec.h util.h utime.h utmp.h utmpx.h vis.h)
+	strings.h sys/dir.h sys/strtio.h sys/audit.h sys/bitypes.h \
+	sys/bsdtty.h sys/cdefs.h sys/mman.h sys/ndir.h sys/prctl.h \
+	sys/pstat.h sys/ptms.h sys/select.h sys/stat.h sys/stream.h \
+	sys/stropts.h sys/sysmacros.h sys/time.h sys/timers.h sys/un.h \
+	time.h tmpdir.h ttyent.h usersec.h util.h utime.h utmp.h utmpx.h vis.h)
 
 # Checks for libraries.
 AC_CHECK_FUNC(yp_match, , AC_CHECK_LIB(nsl, yp_match))
@@ -731,6 +731,14 @@ int main(void){struct dirent d;exit(sizeof(d.d_name)<=sizeof(char));}
 	]
 )
 
+AC_MSG_CHECKING([for /proc/pid/fd directory])
+if test -d "/proc/$$/fd" ; then
+	AC_DEFINE(HAVE_PROC_PID)
+	AC_MSG_RESULT(yes)
+else
+	AC_MSG_RESULT(no)
+fi
+
 # Check whether user wants S/Key support
 SKEY_MSG="no"
 AC_ARG_WITH(skey,
@@ -833,8 +841,8 @@ AC_ARG_WITH(tcp-wrappers,
 dnl    Checks for library functions. Please keep in alphabetical order
 AC_CHECK_FUNCS(\
 	arc4random __b64_ntop b64_ntop __b64_pton b64_pton bcopy \
-	bindresvport_sa clock closefrom fchmod fchown freeaddrinfo futimes \
-	getaddrinfo getcwd getgrouplist getnameinfo getopt \
+	bindresvport_sa clock closefrom dirfd fchmod fchown freeaddrinfo \
+	futimes getaddrinfo getcwd getgrouplist getnameinfo getopt \
 	getpeereid _getpty getrlimit getttyent glob inet_aton \
 	inet_ntoa inet_ntop innetgr login_getcapbool md5_crypt memmove \
 	mkdtemp mmap ngetaddrinfo nsleep ogetaddrinfo openlog_r openpty \

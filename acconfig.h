@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.178 2004/06/28 06:01:20 dtucker Exp $ */
+/* $Id: acconfig.h,v 1.179 2004/08/15 08:40:59 djm Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -453,6 +453,9 @@
 
 /* Define if your resolver libs need this for getrrsetbyname */
 #undef BIND_8_COMPAT
+
+/* Define if you have /proc/$pid/fd */
+#undef HAVE_PROC_PID
 
 @BOTTOM@
 

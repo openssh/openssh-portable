@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 1999-2004 Damien Miller <djm@mindrot.org>
  *
@@ -17,7 +18,7 @@
 #include "includes.h"
 #include "xmalloc.h"
 
-RCSID("$Id: bsd-misc.c,v 1.24 2004/08/13 08:37:21 dtucker Exp $");
+RCSID("$Id: bsd-misc.c,v 1.25 2004/08/15 08:41:00 djm Exp $");
 
 #ifndef HAVE___PROGNAME
 char *__progname;
@@ -195,22 +196,6 @@ tcsendbreak(int fd, int duration)
 # endif
 }
 #endif /* HAVE_TCSENDBREAK */
-
-#ifndef HAVE_CLOSEFROM
-int
-closefrom(int fd)
-{
-	int i, result = 0, err = 0;
-
-	for (i = fd; i < 128; i++)
-		if (close(i) != 0) {
-			err = errno;
-			result = -1;
-		}
-	errno = err;
-	return result;
-}
-#endif /* HAVE_CLOSEFROM */
 
 mysig_t
 mysignal(int sig, mysig_t act)

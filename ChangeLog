@@ -1,6 +1,10 @@
 20040815
  - (dtucker) [Makefile.in ssh-keysign.c ssh.c] Use permanently_set_uid() since
    it does the right thing on all platforms.  ok djm@
+ - (djm) [acconfig.h configure.ac openbsd-compat/Makefile.in 
+   openbsd-compat/bsd-closefrom.c openbsd-compat/bsd-misc.c 
+   openbsd-compat/bsd-misc.h openbsd-compat/openbsd-compat.h] Use smarter 
+   closefrom() replacement from sudo; ok dtucker@
 
 20040814
  - (dtucker) [auth-krb5.c gss-serv-krb5.c openbsd-compat/xmmap.c]
@@ -1635,4 +1639,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3509 2004/08/15 07:23:34 dtucker Exp $
+$Id: ChangeLog,v 1.3510 2004/08/15 08:40:59 djm Exp $
