@@ -1,6 +1,0 @@
-IDENT=sshd
-SHORT="sshd"
-DESCRIPTIVE="@OPENSSH_VERSION@"
-DAEMON=/usr/sbin/sshd
-# DAEMON_ARGS="-p some_other_port"
-ONBOOT=yes
