@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: cipher.c,v 1.55 2002/04/03 09:26:11 markus Exp $");
+RCSID("$OpenBSD: cipher.c,v 1.56 2002/05/16 22:02:50 markus Exp $");
 
 #include "xmalloc.h"
 #include "log.h"
@@ -49,16 +49,16 @@ RCSID("$OpenBSD: cipher.c,v 1.55 2002/04/03 09:26:11 markus Exp $");
 #define EVP_CIPHER_CTX_get_app_data(e)          ((e)->app_data)
 #endif
 
-static EVP_CIPHER *evp_ssh1_3des(void);
-static EVP_CIPHER *evp_ssh1_bf(void);
-static EVP_CIPHER *evp_rijndael(void);
+static const EVP_CIPHER *evp_ssh1_3des(void);
+static const EVP_CIPHER *evp_ssh1_bf(void);
+static const EVP_CIPHER *evp_rijndael(void);
 
 struct Cipher {
 	char	*name;
 	int	number;		/* for ssh1 only */
 	u_int	block_size;
 	u_int	key_len;
-	EVP_CIPHER	*(*evptype)(void);
+	const EVP_CIPHER	*(*evptype)(void);
 } ciphers[] = {
 	{ "none", 		SSH_CIPHER_NONE, 8, 0, EVP_enc_null },
 	{ "des", 		SSH_CIPHER_DES, 8, 8, EVP_des_cbc },
@@ -379,7 +379,7 @@ ssh1_3des_cleanup(EVP_CIPHER_CTX *ctx)
 	}
 	return (1);
 }
-static EVP_CIPHER *
+static const EVP_CIPHER *
 evp_ssh1_3des(void)
 {
 	static EVP_CIPHER ssh1_3des;
@@ -431,7 +431,7 @@ bf_ssh1_cipher(EVP_CIPHER_CTX *ctx, u_char *out, const u_char *in, u_int len)
 	swap_bytes(out, out, len);
 	return (ret);
 }
-static EVP_CIPHER *
+static const EVP_CIPHER *
 evp_ssh1_bf(void)
 {
 	static EVP_CIPHER ssh1_bf;
@@ -529,7 +529,7 @@ ssh_rijndael_cleanup(EVP_CIPHER_CTX *ctx)
 	}
 	return (1);
 }
-static EVP_CIPHER *
+static const EVP_CIPHER *
 evp_rijndael(void)
 {
 	static EVP_CIPHER rijndal_cbc;
