@@ -17,6 +17,9 @@
      remove the CONSTRAIN_IDENTITY messages and introduce a new
      ADD_ID message with contraints instead. contraints can be
      only added together with the private key.
+   - itojun@cvs.openbsd.org 2002/06/16 21:30:58
+     [ssh-keyscan.c]
+     use TAILQ_xx macro.  from lukem@netbsd.  markus ok
 
 20020613
  - (bal) typo of setgroup for cygwin.  Patch by vinschen@redhat.com
@@ -945,4 +948,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2221 2002/06/21 00:08:39 mouring Exp $
+$Id: ChangeLog,v 1.2222 2002/06/21 00:09:54 mouring Exp $
