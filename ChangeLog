@@ -2,6 +2,8 @@
  - (dtucker) [configure.ac] Define HAVE_SO_PEERCRED if we have it.  ok djm@
  - (dtucker) [auth-sia.c] Constify sys_auth_passwd, fixes build error on
    Tru64.  Patch from cmadams at hiwaay.net.
+ - (dtucker) [auth-passwd.c auth-sia.h] Remove duplicate definitions of
+   sys_auth_passwd, pointed out by cmadams at hiwaay.net.
 
 20050403
  - (djm) OpenBSD CVS Sync
@@ -2425,4 +2427,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3739 2005/04/05 10:58:37 dtucker Exp $
+$Id: ChangeLog,v 1.3740 2005/04/05 11:00:47 dtucker Exp $
