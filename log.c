@@ -34,7 +34,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: log.c,v 1.19 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: log.c,v 1.20 2002/01/17 04:27:37 stevesk Exp $");
 
 #include "log.h"
 #include "xmalloc.h"
@@ -68,7 +68,7 @@ static struct {
 	{ "LOCAL5",	SYSLOG_FACILITY_LOCAL5 },
 	{ "LOCAL6",	SYSLOG_FACILITY_LOCAL6 },
 	{ "LOCAL7",	SYSLOG_FACILITY_LOCAL7 },
-	{ NULL, 0 }
+	{ NULL, (SyslogFacility)0 }
 };
 
 static struct {
@@ -85,7 +85,7 @@ static struct {
 	{ "DEBUG1",	SYSLOG_LEVEL_DEBUG1 },
 	{ "DEBUG2",	SYSLOG_LEVEL_DEBUG2 },
 	{ "DEBUG3",	SYSLOG_LEVEL_DEBUG3 },
-	{ NULL, 0 }
+	{ NULL, (LogLevel)0 }
 };
 
 static void	 do_log(LogLevel level, const char *fmt, va_list args);
