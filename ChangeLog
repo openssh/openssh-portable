@@ -23,6 +23,10 @@
    - markus@cvs.openbsd.org 2001/10/30 20:29:09
      [ssh.1]
      ssh.1
+   - markus@cvs.openbsd.org 2001/11/07 16:03:17
+     [packet.c packet.h sshconnect2.c]
+     pad using the padding field from the ssh2 packet instead of sending
+     extra ignore messages. tested against several other ssh servers.
 
 20011109
  - (stevesk) auth-pam.c: use do_pam_authenticate(PAM_DISALLOW_NULL_AUTHTOK)
@@ -6832,4 +6836,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1641 2001/11/12 00:02:25 djm Exp $
+$Id: ChangeLog,v 1.1642 2001/11/12 00:02:52 djm Exp $

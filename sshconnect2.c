@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.84 2001/10/29 19:27:15 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.85 2001/11/07 16:03:17 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -460,7 +460,7 @@ userauth_passwd(Authctxt *authctxt)
 	packet_put_cstring(password);
 	memset(password, 0, strlen(password));
 	xfree(password);
-	packet_inject_ignore(64);
+	packet_add_padding(64);
 	packet_send();
 	return 1;
 }
@@ -817,7 +817,7 @@ input_userauth_info_req(int type, int plen, void *ctxt)
 	}
 	packet_done(); /* done with parsing incoming message. */
 
-	packet_inject_ignore(64);
+	packet_add_padding(64);
 	packet_send();
 }
 

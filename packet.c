@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.70 2001/09/27 11:59:37 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.71 2001/11/07 16:03:17 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -114,6 +114,9 @@ static int interactive_mode = 0;
 
 /* Session key information for Encryption and MAC */
 Newkeys *newkeys[MODE_MAX];
+
+/* roundup current message to extra_pad bytes */
+static u_char extra_pad = 0;
 
 /*
  * Sets the descriptors used for communication.  Disables encryption until
@@ -485,9 +488,10 @@ packet_send2(void)
 {
 	static u_int32_t seqnr = 0;
 	u_char type, *ucp, *macbuf = NULL;
+	u_char padlen, pad;
 	char *cp;
 	u_int packet_length = 0;
-	u_int i, padlen, len;
+	u_int i, len;
 	u_int32_t rand = 0;
 	Enc *enc   = NULL;
 	Mac *mac   = NULL;
@@ -533,6 +537,15 @@ packet_send2(void)
 	padlen = block_size - (len % block_size);
 	if (padlen < 4)
 		padlen += block_size;
+	if (extra_pad) {
+		/* will wrap if extra_pad+padlen > 255 */
+		extra_pad  = roundup(extra_pad, block_size);
+		pad = extra_pad - ((len + padlen) % extra_pad);
+		debug("packet_send2: adding %d (len %d padlen %d extra_pad %d)",
+		    pad, len, padlen, extra_pad);
+		padlen += pad;
+		extra_pad = 0;
+	}
 	buffer_append_space(&outgoing_packet, &cp, padlen);
 	if (enc && enc->cipher->number != SSH_CIPHER_NONE) {
 		/* random padding */
@@ -1109,6 +1122,7 @@ packet_write_poll()
 			else
 				fatal("Write failed: %.100s", strerror(errno));
 		}
+debug("packet_write_poll: sent %d bytes", len);
 		buffer_consume(&output, len);
 	}
 }
@@ -1238,6 +1252,13 @@ packet_set_maxsize(int s)
 	return s;
 }
 
+/* roundup current message to pad bytes */
+void
+packet_add_padding(u_char pad)
+{
+	extra_pad = pad;
+}
+
 /*
  * 9.2.  Ignored Data Message
  *
@@ -1249,41 +1270,6 @@ packet_set_maxsize(int s)
  * required to send them. This message can be used as an additional
  * protection measure against advanced traffic analysis techniques.
  */
-/* size of current + ignore message should be n*sumlen bytes (w/o mac) */
-void
-packet_inject_ignore(int sumlen)
-{
-	int blocksize, padlen, have, need, nb, mini, nbytes;
-	Enc *enc = NULL;
-
-	if (compat20 == 0)
-		return;
-
-	have = buffer_len(&outgoing_packet);
-	debug2("packet_inject_ignore: current %d", have);
-	if (newkeys[MODE_OUT] != NULL)
-		enc  = &newkeys[MODE_OUT]->enc;
-	blocksize = enc ? enc->cipher->block_size : 8;
-	padlen = blocksize - (have % blocksize);
-	if (padlen < 4)
-		padlen += blocksize;
-	have += padlen;
-	have /= blocksize;	/* # of blocks for current message */
-
-	nb   = roundup(sumlen,  blocksize) / blocksize;	/* blocks for both */
-	mini = roundup(5+1+4+4, blocksize) / blocksize; /* minsize ignore msg */
-	need = nb - (have % nb);			/* blocks for ignore */
-	if (need <= mini)
-		need += nb;
-	nbytes = (need - mini) * blocksize;	/* size of ignore payload */
-	debug2("packet_inject_ignore: block %d have %d nb %d mini %d need %d",
-	    blocksize, have, nb, mini, need);
-
-	/* enqueue current message and append a ignore message */
-	packet_send();
-	packet_send_ignore(nbytes);
-}
-
 void
 packet_send_ignore(int nbytes)
 {
