@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.94 2002/01/10 11:13:29 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.95 2002/01/16 13:17:51 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -991,11 +991,8 @@ server_input_global_request(int type, u_int32_t seq, void *ctxt)
 			packet_send_debug("Server has disabled port forwarding.");
 		} else {
 			/* Start listening on the port */
-			success = channel_request_forwarding(
-			    listen_address, listen_port,
-			    /*unspec host_to_connect*/ "<unspec host>",
-			    /*unspec port_to_connect*/ 0,
-			    options.gateway_ports, /*remote*/ 1);
+			success = channel_setup_remote_fwd_listener(
+			    listen_address, listen_port, options.gateway_ports);
 		}
 		xfree(listen_address);
 	}

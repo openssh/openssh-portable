@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.157 2001/12/28 15:06:00 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.158 2002/01/16 13:17:51 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -841,7 +841,7 @@ ssh_init_forwarding(void)
 		    options.local_forwards[i].port,
 		    options.local_forwards[i].host,
 		    options.local_forwards[i].host_port);
-		success += channel_request_local_forwarding(
+		success += channel_setup_local_fwd_listener(
 		    options.local_forwards[i].port,
 		    options.local_forwards[i].host,
 		    options.local_forwards[i].host_port,

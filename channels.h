@@ -32,7 +32,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* RCSID("$OpenBSD: channels.h,v 1.59 2002/01/14 13:57:03 markus Exp $"); */
+/* RCSID("$OpenBSD: channels.h,v 1.60 2002/01/16 13:17:51 markus Exp $"); */
 
 #ifndef CHANNEL_H
 #define CHANNEL_H
@@ -190,10 +190,8 @@ void     channel_input_port_forward_request(int, int);
 int	 channel_connect_to(const char *, u_short);
 int	 channel_connect_by_listen_address(u_short);
 void	 channel_request_remote_forwarding(u_short, const char *, u_short);
-int	 channel_request_local_forwarding(u_short, const char *, u_short, int);
-int
-channel_request_forwarding(const char *, u_short, const char *, u_short, int,
-    int);
+int	 channel_setup_local_fwd_listener(u_short, const char *, u_short, int);
+int	 channel_setup_remote_fwd_listener(const char *, u_short, int);
 
 /* x11 forwarding */
 

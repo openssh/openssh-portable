@@ -182,6 +182,9 @@
    - markus@cvs.openbsd.org 2002/01/14 13:57:03
      [channels.h nchan.c]
      (c) 2002
+   - markus@cvs.openbsd.org 2002/01/16 13:17:51
+     [channels.c channels.h serverloop.c ssh.c]
+     wrapper for channel_setup_fwd_listener
 
 20020121
  - (djm) Rework ssh-rand-helper:
@@ -7329,4 +7332,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1774 2002/01/22 12:29:03 djm Exp $
+$Id: ChangeLog,v 1.1775 2002/01/22 12:29:22 djm Exp $

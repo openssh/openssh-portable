@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.159 2002/01/14 13:55:55 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.160 2002/01/16 13:17:51 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -2037,53 +2037,30 @@ channel_set_af(int af)
 	IPv4or6 = af;
 }
 
-/*
- * Initiate forwarding of connections to local port "port" through the secure
- * channel to host:port from remote side.
- */
-int
-channel_request_local_forwarding(u_short listen_port, const char *host_to_connect,
-    u_short port_to_connect, int gateway_ports)
-{
-	return channel_request_forwarding(
-	    NULL, listen_port,
-	    host_to_connect, port_to_connect,
-	    gateway_ports, /*remote_fwd*/ 0);
-}
-
-/*
- * If 'remote_fwd' is true we have a '-R style' listener for protocol 2
- * (SSH_CHANNEL_RPORT_LISTENER).
- */
-int
-channel_request_forwarding(
-    const char *listen_address, u_short listen_port,
-    const char *host_to_connect, u_short port_to_connect,
-    int gateway_ports, int remote_fwd)
+static int
+channel_setup_fwd_listener(int type, const char *listen_addr, u_short listen_port,
+    const char *host_to_connect, u_short port_to_connect, int gateway_ports)
 {
 	Channel *c;
-	int success, sock, on = 1, type;
+	int success, sock, on = 1;
 	struct addrinfo hints, *ai, *aitop;
-	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
 	const char *host;
+	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
 	struct linger linger;
 
 	success = 0;
+	host = (type == SSH_CHANNEL_RPORT_LISTENER) ?
+	    listen_addr : host_to_connect;
 
-	if (remote_fwd) {
-		host = listen_address;
-		type = SSH_CHANNEL_RPORT_LISTENER;
-	} else {
-		host = host_to_connect;
-		type = SSH_CHANNEL_PORT_LISTENER;
+	if (host == NULL) {
+		error("No forward host name.");
+		return success;
 	}
-
 	if (strlen(host) > SSH_CHANNEL_PATH_LEN - 1) {
 		error("Forward host name too long.");
 		return success;
 	}
 
-	/* XXX listen_address is currently ignored */
 	/*
 	 * getaddrinfo returns a loopback address if the hostname is
 	 * set to NULL and hints.ai_flags is not AI_PASSIVE
@@ -2101,7 +2078,7 @@ channel_request_forwarding(
 			continue;
 		if (getnameinfo(ai->ai_addr, ai->ai_addrlen, ntop, sizeof(ntop),
 		    strport, sizeof(strport), NI_NUMERICHOST|NI_NUMERICSERV) != 0) {
-			error("channel_request_forwarding: getnameinfo failed");
+			error("channel_setup_fwd_listener: getnameinfo failed");
 			continue;
 		}
 		/* Create a port to listen for the host. */
@@ -2143,7 +2120,7 @@ channel_request_forwarding(
 		    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT,
 		    0, xstrdup("port listener"), 1);
 		if (c == NULL) {
-			error("channel_request_forwarding: channel_new failed");
+			error("channel_setup_fwd_listener: channel_new failed");
 			close(sock);
 			continue;
 		}
@@ -2153,10 +2130,28 @@ channel_request_forwarding(
 		success = 1;
 	}
 	if (success == 0)
-		error("channel_request_forwarding: cannot listen to port: %d",
+		error("channel_setup_fwd_listener: cannot listen to port: %d",
 		    listen_port);
 	freeaddrinfo(aitop);
 	return success;
+}
+
+/* protocol local port fwd, used by ssh (and sshd in v1) */
+int
+channel_setup_local_fwd_listener(u_short listen_port,
+    const char *host_to_connect, u_short port_to_connect, int gateway_ports)
+{
+	return channel_setup_fwd_listener(SSH_CHANNEL_PORT_LISTENER,
+	    NULL, listen_port, host_to_connect, port_to_connect, gateway_ports);
+}
+
+/* protocol v2 remote port fwd, used by sshd */
+int
+channel_setup_remote_fwd_listener(const char *listen_address,
+    u_short listen_port, int gateway_ports)
+{
+	return channel_setup_fwd_listener(SSH_CHANNEL_RPORT_LISTENER,
+	    listen_address, listen_port, NULL, 0, gateway_ports);
 }
 
 /*
@@ -2244,7 +2239,7 @@ channel_input_port_forward_request(int is_root, int gateway_ports)
 				  port);
 #endif
 	/* Initiate forwarding */
-	channel_request_local_forwarding(port, hostname, host_port, gateway_ports);
+	channel_setup_local_fwd_listener(port, hostname, host_port, gateway_ports);
 
 	/* Free the argument string. */
 	xfree(hostname);
