@@ -163,7 +163,7 @@
 #include "log.h"
 #include "atomicio.h"
 
-RCSID("$Id: loginrec.c,v 1.39 2002/02/25 01:56:47 tim Exp $");
+RCSID("$Id: loginrec.c,v 1.40 2002/04/23 13:09:19 djm Exp $");
 
 #ifdef HAVE_UTIL_H
 #  include <util.h>
@@ -563,6 +563,11 @@ line_abbrevname(char *dst, const char *src, int dstsize)
 	/* Always skip prefix if present */
 	if (strncmp(src, "/dev/", 5) == 0)
 		src += 5;
+
+#ifdef WITH_ABBREV_NO_TTY
+	if (strncmp(src, "tty", 3) == 0)
+		src += 3;
+#endif
 
 	len = strlen(src);
 

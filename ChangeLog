@@ -6,6 +6,9 @@
    Antti Tapaninen <aet@cc.hut.fi>
  - (djm) Define BROKEN_REALPATH for AIX, patch from 
    Antti Tapaninen <aet@cc.hut.fi>
+ - (djm) Bug #214: Fix utmp for Irix (don't strip "tty"). Patch from 
+   Kevin Taylor <no@nowhere.org> (??) via Philipp Grau
+   <phgrau@zedat.fu-berlin.de>
  - (djm) Bug #213: Simplify CMSG_ALIGN macros to avoid symbol clashes. 
    Reported by Doug Manton <dmanton@emea.att.com>
  - (djm) Bug #222: Fix tests for getaddrinfo on OSF/1. Spotted by
@@ -482,4 +485,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2075 2002/04/23 12:59:51 djm Exp $
+$Id: ChangeLog,v 1.2076 2002/04/23 13:09:19 djm Exp $

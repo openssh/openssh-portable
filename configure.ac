@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.49 2002/04/23 12:52:46 djm Exp $
+# $Id: configure.ac,v 1.50 2002/04/23 13:09:19 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -107,6 +107,7 @@ case "$host" in
 	LDFLAGS="$LDFLAGS"
 	PATH="$PATH:/usr/etc"
 	AC_DEFINE(BROKEN_INET_NTOA)
+	AC_DEFINE(WITH_ABBREV_NO_TTY)
 	;;
 *-*-irix6*)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
@@ -117,6 +118,7 @@ case "$host" in
 	AC_DEFINE(WITH_IRIX_AUDIT)
 	AC_CHECK_FUNC(jlimit_startjob, [AC_DEFINE(WITH_IRIX_JOBS)])
 	AC_DEFINE(BROKEN_INET_NTOA)
+	AC_DEFINE(WITH_ABBREV_NO_TTY)
 	;;
 *-*-linux*)
 	no_dev_ptmx=1

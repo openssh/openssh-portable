@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.131 2002/04/13 01:04:41 djm Exp $ */
+/* $Id: acconfig.h,v 1.132 2002/04/23 13:09:19 djm Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -345,6 +345,9 @@
 
 /* Define if you want to use OpenSSL's internally seeded PRNG only */
 #undef OPENSSL_PRNG_ONLY
+
+/* Define if you shouldn't strip 'tty' from your ttyname in [uw]tmp */
+#undef WITH_ABBREV_NO_TTY
 
 @BOTTOM@
 
