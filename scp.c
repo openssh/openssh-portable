@@ -47,7 +47,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.36 2000/08/24 21:46:59 deraadt Exp $");
+RCSID("$OpenBSD: scp.c,v 1.37 2000/09/01 15:25:13 deraadt Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -262,7 +262,7 @@ main(argc, argv)
 	extern int optind;
 
 	fflag = tflag = 0;
-	while ((ch = getopt(argc, argv, "dfprtvBCc:i:P:q46S")) != EOF)
+	while ((ch = getopt(argc, argv, "dfprtvBCc:i:P:q46S:")) != EOF)
 		switch (ch) {
 		/* User-visible flags. */
 		case '4':

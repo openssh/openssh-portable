@@ -15,8 +15,8 @@ DESTDIR=
 VPATH=@srcdir@
 
 SSH_PROGRAM=@bindir@/ssh
-ASKPASS_LOCATION=@libexecdir@/ssh
-ASKPASS_PROGRAM=$(ASKPASS_LOCATION)/ssh-askpass
+LIBEXEC=@libexecdir@/ssh
+ASKPASS_PROGRAM=$(LIBEXEC)/ssh-askpass
 
 CC=@CC@
 LD=@LD@
@@ -32,7 +32,7 @@ LDFLAGS=-L. @LDFLAGS@
 
 INSTALL_SSH_PRNG_CMDS=@INSTALL_SSH_PRNG_CMDS@
 
-TARGETS=ssh sshd ssh-add ssh-keygen ssh-agent scp $(EXTRA_TARGETS)
+TARGETS=ssh sshd ssh-add ssh-keygen ssh-agent scp sftp-server $(EXTRA_TARGETS)
 
 LIBSSH_OBJS=atomicio.o authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o cipher.o compat.o compress.o crc32.o deattack.o dispatch.o dsa.o hmac.o hostfile.o key.o kex.o log.o match.o mpaux.o nchan.o packet.o radix.o entropy.o readpass.o rsa.o tildexpand.o ttymodes.o uidswap.o util.o uuencode.o xmalloc.o 
 
@@ -42,13 +42,13 @@ SSHOBJS= ssh.o sshconnect.o sshconnect1.o sshconnect2.o log-client.o readconf.o 
 
 SSHDOBJS= sshd.o auth.o auth1.o auth2.o auth-rhosts.o auth-options.o auth-krb4.o auth-pam.o auth-passwd.o auth-rsa.o auth-rh-rsa.o pty.o log-server.o login.o loginrec.o servconf.o serverloop.o md5crypt.o session.o
 
-TROFFMAN	= scp.1 ssh-add.1 ssh-agent.1 ssh-keygen.1 ssh.1 sshd.8
-CATMAN		= scp.0 ssh-add.0 ssh-agent.0 ssh-keygen.0 ssh.0 sshd.0
+TROFFMAN	= scp.1 ssh-add.1 ssh-agent.1 ssh-keygen.1 ssh.1 sshd.8 sftp-server.8
+CATMAN		= scp.0 ssh-add.0 ssh-agent.0 ssh-keygen.0 ssh.0 sshd.0 sftp-server.0
 MANPAGES	= @MANTYPE@
 
 CONFIGFILES=sshd_config ssh_config
 
-PATHSUBS	= -D/etc/ssh_config=$(sysconfdir)/ssh_config -D/etc/known_hosts=$(sysconfdir)/ssh_known_hosts -D/etc/sshd_config=$(sysconfdir)/sshd_config -D/etc/shosts.equiv=$(sysconfdir)/shosts.equiv -D/etc/ssh_host_key=$(sysconfdir)/ssh_host_key -D/var/run/sshd.pid=$(piddir)/sshd.pid
+PATHSUBS	= -D/etc/ssh_config=$(sysconfdir)/ssh_config -D/etc/known_hosts=$(sysconfdir)/ssh_known_hosts -D/etc/sshd_config=$(sysconfdir)/sshd_config -D/usr/libexec=$(LIBEXEC) -D/etc/shosts.equiv=$(sysconfdir)/shosts.equiv -D/etc/ssh_host_key=$(sysconfdir)/ssh_host_key -D/var/run/sshd.pid=$(piddir)/sshd.pid
 
 FIXPATHSCMD	= $(PERL) $(srcdir)/fixpaths $(PATHSUBS)
 
@@ -85,6 +85,9 @@ ssh-agent: libopenbsd-compat.a libssh.a ssh-agent.o log-client.o
 
 ssh-keygen: libopenbsd-compat.a libssh.a ssh-keygen.o log-client.o
 	$(LD) -o $@ ssh-keygen.o log-client.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
+
+sftp-server: libopenbsd-compat.a libssh.a sftp-server.o log-server.o
+	$(LD) -o $@ sftp-server.o log-server.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
 # test driver for the loginrec code - not built by default
 logintest: logintest.o libopenbsd-compat.a libssh.a log-client.o loginrec.o
@@ -123,18 +126,21 @@ install-files:
 	./mkinstalldirs $(DESTDIR)$(mandir)
 	./mkinstalldirs $(DESTDIR)$(mandir)/$(mansubdir)1
 	./mkinstalldirs $(DESTDIR)$(mandir)/$(mansubdir)8
+	./mkinstalldirs $(DESTDIR)$(LIBEXEC)
 	$(INSTALL) -m 4755 -s ssh $(DESTDIR)$(bindir)/ssh
 	$(INSTALL) -m 0755 -s scp $(DESTDIR)$(bindir)/scp
 	$(INSTALL) -m 0755 -s ssh-add $(DESTDIR)$(bindir)/ssh-add
 	$(INSTALL) -m 0755 -s ssh-agent $(DESTDIR)$(bindir)/ssh-agent
 	$(INSTALL) -m 0755 -s ssh-keygen $(DESTDIR)$(bindir)/ssh-keygen
 	$(INSTALL) -m 0755 -s sshd $(DESTDIR)$(sbindir)/sshd
+	$(INSTALL) -m 0755 -s sftp-server $(DESTDIR)$(LIBEXEC)/sftp-server
 	$(INSTALL) -m 644 ssh.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh.1
 	$(INSTALL) -m 644 scp.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/scp.1
 	$(INSTALL) -m 644 ssh-add.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-add.1
 	$(INSTALL) -m 644 ssh-agent.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-agent.1
 	$(INSTALL) -m 644 ssh-keygen.[01].out $(DESTDIR)$(mandir)/$(mansubdir)1/ssh-keygen.1
 	$(INSTALL) -m 644 sshd.[08].out $(DESTDIR)$(mandir)/$(mansubdir)8/sshd.8
+	$(INSTALL) -m 644 sftp-server.[08].out $(DESTDIR)$(mandir)/$(mansubdir)8/sftp-server.8
 	-rm -f $(DESTDIR)$(bindir)/slogin
 	ln -s ssh $(DESTDIR)$(bindir)/slogin
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/slogin.1

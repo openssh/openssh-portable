@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: sshd.8,v 1.27 2000/08/29 00:33:51 djm Exp $
+.\" $Id: sshd.8,v 1.28 2000/09/05 02:34:54 djm Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSHD 8
@@ -589,6 +589,11 @@ The default is
 .It Cm Subsystem
 Configures an external subsystem (e.g. file transfer daemon).
 Arguments should be a subsystem name and a command to execute upon subsystem request. 
+The command
+.Xr sftp-server 8
+implements the
+.Dq sftp
+file transfer subsystem.
 By default no subsystems are defined.
 Note that this option applies to protocol version 2 only.
 .It Cm SyslogFacility
@@ -1031,6 +1036,7 @@ Niels Provos, Theo de Raadt, and Dug Song.
 The support for SSH protocol 2 was written by Markus Friedl.
 .Sh SEE ALSO
 .Xr scp 1 ,
+.Xr sftp-server 8 ,
 .Xr ssh 1 ,
 .Xr ssh-add 1 ,
 .Xr ssh-agent 1 ,

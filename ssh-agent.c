@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.33 2000/08/19 21:34:43 markus Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.34 2000/08/31 22:09:34 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.33 2000/08/19 21:34:43 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.34 2000/08/31 22:09:34 markus Exp $");
 
 #include "ssh.h"
 #include "rsa.h"
@@ -219,6 +219,7 @@ process_sign_request2(SocketEntry *e)
 	
 	blob = buffer_get_string(&e->input, &blen);
 	data = buffer_get_string(&e->input, &dlen);
+	buffer_get_int(&e->input);			/* flags, unused */
 
 	key = dsa_key_from_blob(blob, blen);
 	if (key != NULL) {

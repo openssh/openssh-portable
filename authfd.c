@@ -17,7 +17,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfd.c,v 1.25 2000/08/19 21:34:42 markus Exp $");
+RCSID("$OpenBSD: authfd.c,v 1.26 2000/08/31 22:09:34 markus Exp $");
 
 #include "ssh.h"
 #include "rsa.h"
@@ -359,6 +359,7 @@ ssh_agent_sign(AuthenticationConnection *auth,
 	buffer_put_char(&msg, SSH2_AGENTC_SIGN_REQUEST);
 	buffer_put_string(&msg, blob, blen);
 	buffer_put_string(&msg, data, datalen);
+	buffer_put_int(&msg, 0);				/* flags, unused */
 	xfree(blob);
 
 	if (ssh_request_reply(auth, &msg, &msg) == 0) {

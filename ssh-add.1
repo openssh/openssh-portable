@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 23:55:14 1995 ylo
 .\"
-.\" $Id: ssh-add.1,v 1.15 2000/08/29 00:33:51 djm Exp $
+.\" $Id: ssh-add.1,v 1.16 2000/09/05 02:34:54 djm Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSH-ADD 1
@@ -65,7 +65,7 @@ This is the default file added by
 when no other files have been specified.
 .It Pa $HOME/.ssh/id_dsa
 Contains the DSA authentication identity of the user.
-.Pp
+.El
 .Sh ENVIRONMENT
 .Bl -tag -width Ds
 .It Ev "DISPLAY" and "SSH_ASKPASS"
@@ -91,6 +91,7 @@ or related script.
 may be necessary to redirect the input from
 .Pa /dev/null
 to make this work.)
+.El
 .Sh AUTHOR
 Tatu Ylonen <ylo@cs.hut.fi>
 .Pp

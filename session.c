@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.31 2000/08/28 03:50:54 deraadt Exp $");
+RCSID("$OpenBSD: session.c,v 1.35 2000/09/04 19:07:21 markus Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -113,6 +113,9 @@ extern int startup_pipe;
 /* Local Xauthority file. */
 static char *xauthfile;
 
+/* original command from peer. */
+char *original_command = NULL; 
+
 /* data */
 #define MAX_SESSIONS 10
 Session	sessions[MAX_SESSIONS];
@@ -177,7 +180,7 @@ void
 do_authenticated(struct passwd * pw)
 {
 	Session *s;
-	int type;
+	int type, fd;
 	int compression_level = 0, enable_compression_after_reply = 0;
 	int have_pty = 0;
 	char *command;
@@ -332,7 +335,9 @@ do_authenticated(struct passwd * pw)
 				break;
 			}
 			strlcat(xauthfile, "/cookies", MAXPATHLEN);
-			open(xauthfile, O_RDWR|O_CREAT|O_EXCL, 0600);
+			fd = open(xauthfile, O_RDWR|O_CREAT|O_EXCL, 0600);
+			if (fd >= 0)
+				close(fd);
 			restore_uid();
 			fatal_add_cleanup(xauthfile_cleanup_proc, NULL);
 			success = 1;
@@ -377,6 +382,7 @@ do_authenticated(struct passwd * pw)
 				packet_integrity_check(plen, 0, type);
 			}
 			if (forced_command != NULL) {
+				original_command = command;
 				command = forced_command;
 				debug("Forced command '%.500s'", forced_command);
 			}
@@ -638,6 +644,7 @@ do_login(Session *s)
 	FILE *f;
 	char *time_string;
 	char buf[256];
+	char hostname[MAXHOSTNAMELEN];
 	socklen_t fromlen;
 	struct sockaddr_storage from;
 	struct stat st;
@@ -658,6 +665,10 @@ do_login(Session *s)
 			fatal_cleanup();
 		}
 	}
+
+	/* Get the time and hostname when the user last logged in. */
+	last_login_time = get_last_login_time(pw->pw_uid, pw->pw_name,
+	    hostname, sizeof(hostname));
 
 	/* Record that there was a login on that tty from the remote host. */
 	record_login(pid, s->tty, pw->pw_name, pw->pw_uid,
@@ -680,12 +691,6 @@ do_login(Session *s)
 		printf("%s\n", aixloginmsg);
 #endif /* WITH_AIXAUTHENTICATE */
 
-	/*
-	 * Get the time when the user last logged in.  'buf' will be set
-	 * to contain the hostname the last login was from. 
-	 */
-	last_login_time = get_last_login_time(pw->pw_uid, pw->pw_name,
-	    buf, sizeof(buf));
 	if (last_login_time != 0) {
 		time_string = ctime(&last_login_time);
 		if (strchr(time_string, '\n'))
@@ -911,7 +916,7 @@ do_child(const char *command, struct passwd * pw, const char *term,
 	 const char *display, const char *auth_proto,
 	 const char *auth_data, const char *ttyname)
 {
-	const char *shell, *hostname, *cp = NULL;
+	const char *shell, *hostname = NULL, *cp = NULL;
 	char buf[256];
 	char cmd[1024];
 	FILE *f = NULL;
@@ -1089,6 +1094,9 @@ do_child(const char *command, struct passwd * pw, const char *term,
 		child_set_env(&env, &envsize, "TERM", term);
 	if (display)
 		child_set_env(&env, &envsize, "DISPLAY", display);
+	if (original_command)
+		child_set_env(&env, &envsize, "SSH_ORIGINAL_COMMAND",
+		    original_command);
 
 #ifdef _AIX
 	{
@@ -1511,6 +1519,7 @@ session_subsystem_req(Session *s)
 int
 session_x11_req(Session *s)
 {
+	int fd;
 	if (no_x11_forwarding_flag) {
 		debug("X11 forwarding disabled in user configuration file.");
 		return 0;
@@ -1555,7 +1564,9 @@ session_x11_req(Session *s)
 		return 0;
 	}
 	strlcat(xauthfile, "/cookies", MAXPATHLEN);
-	open(xauthfile, O_RDWR|O_CREAT|O_EXCL, 0600);
+	fd = open(xauthfile, O_RDWR|O_CREAT|O_EXCL, 0600);
+	if (fd >= 0)
+		close(fd);
 	restore_uid();
 	fatal_add_cleanup(xauthfile_cleanup_proc, s);
 	return 1;
@@ -1582,7 +1593,7 @@ session_exec_req(Session *s)
 	char *command = packet_get_string(&len);
 	packet_done();
 	if (forced_command) {
-		xfree(command);
+		original_command = command;
 		command = forced_command;
 		debug("Forced command '%.500s'", forced_command);
 	}

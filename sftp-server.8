@@ -1,0 +1,33 @@
+.\" $OpenBSD: sftp-server.8,v 1.1 2000/08/31 21:52:23 markus Exp $
+.Dd August 30, 2000
+.Dt SFTP-SERVER 8
+.Os
+.Sh NAME
+.Nm sftp-server
+.Nd SFTP server subsystem
+.Sh SYNOPSIS
+.Nm sftp-server
+.Sh DESCRIPTION
+.Nm
+is a program that speaks the server side of SFTP protocol
+to stdout and expects client requests from stdin.
+.Nm
+is not intended to be called directly, but from
+.Xr sshd 8 
+using the
+.Cm Subsystem
+option.
+See
+.Xr sshd 8 
+for more information.
+.Sh HISTORY
+.Nm
+first appeared in
+.Ox 2.8 .
+.Sh AUTHOR
+Markus Friedl <markus@openbsd.org>
+.Sh SEE ALSO
+.Xr ssh 1 ,
+.Xr ssh-add 1 ,
+.Xr ssh-keygen 1 ,
+.Xr sshd 8 ,

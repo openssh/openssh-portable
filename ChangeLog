@@ -1,3 +1,43 @@
+20000905
+ - (djm) Import OpenBSD CVS changes
+   - markus@cvs.openbsd.org  2000/08/31 15:52:24
+     [Makefile sshd.8 sshd_config sftp-server.8 sftp-server.c]
+     implement a SFTP server. interops with sftp2, scp2 and the windows
+     client from ssh.com
+   - markus@cvs.openbsd.org  2000/08/31 15:56:03
+     [README.openssh2]
+     sync
+   - markus@cvs.openbsd.org  2000/08/31 16:05:42
+     [session.c]
+     Wall
+   - markus@cvs.openbsd.org  2000/08/31 16:09:34
+     [authfd.c ssh-agent.c]
+     add a flag to SSH2_AGENTC_SIGN_REQUEST for future extensions
+   - deraadt@cvs.openbsd.org 2000/09/01 09:25:13
+     [scp.1 scp.c]
+     cleanup and fix -S support; stevesk@sweden.hp.com
+   - markus@cvs.openbsd.org  2000/09/01 16:29:32
+     [sftp-server.c]
+     portability fixes
+   - markus@cvs.openbsd.org  2000/09/01 16:32:41
+     [sftp-server.c]
+     fix cast; mouring@pconline.com
+   - itojun@cvs.openbsd.org  2000/09/03 09:23:28
+     [ssh-add.1 ssh.1]
+     add missing .El against .Bl.
+   - markus@cvs.openbsd.org  2000/09/04 13:03:41
+     [session.c]
+     missing close; ok theo
+   - markus@cvs.openbsd.org  2000/09/04 13:07:21
+     [session.c]
+     fix get_last_login_time order; from andre@van-veen.de
+   - markus@cvs.openbsd.org  2000/09/04 13:10:09
+     [sftp-server.c]
+     more cast fixes; from mouring@pconline.com
+   - markus@cvs.openbsd.org  2000/09/04 13:06:04
+     [session.c]
+     set SSH_ORIGINAL_COMMAND; from Leakin@dfw.nostrum.com, bet@rahul.net
+ - (djm) Cleanup after import. Fix sftp-server compilation, Makefile
 20000903
  - (djm) Fix Redhat init script
 
