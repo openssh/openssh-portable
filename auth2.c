@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.59 2001/05/30 12:55:06 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.60 2001/05/30 23:31:14 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -88,7 +88,6 @@ hostbased_key_allowed(struct passwd *pw, const char *cuser, char *chost,
 
 /* auth */
 void	userauth_banner(void);
-void	userauth_reply(Authctxt *authctxt, int authenticated);
 int	userauth_none(Authctxt *authctxt);
 int	userauth_passwd(Authctxt *authctxt);
 int	userauth_pubkey(Authctxt *authctxt);
@@ -255,6 +254,8 @@ input_userauth_request(int type, int plen, void *ctxt)
 void
 userauth_finish(Authctxt *authctxt, int authenticated, char *method)
 {
+	char *methods;
+
 	if (!authctxt->valid && authenticated)
 		fatal("INTERNAL ERROR: authenticated invalid user %s",
 		    authctxt->user);
@@ -273,8 +274,29 @@ userauth_finish(Authctxt *authctxt, int authenticated, char *method)
 	/* Log before sending the reply */
 	auth_log(authctxt, authenticated, method, " ssh2");
 
-	if (!authctxt->postponed)
-		userauth_reply(authctxt, authenticated);
+	if (authctxt->postponed)
+		return;
+
+	/* XXX todo: check if multiple auth methods are needed */
+	if (authenticated == 1) {
+		/* turn off userauth */
+		dispatch_set(SSH2_MSG_USERAUTH_REQUEST, &protocol_error);
+		packet_start(SSH2_MSG_USERAUTH_SUCCESS);
+		packet_send();
+		packet_write_wait();
+		/* now we can break out */
+		authctxt->success = 1;
+	} else {
+		if (authctxt->failures++ > AUTH_FAIL_MAX)
+			packet_disconnect(AUTH_FAIL_MSG, authctxt->user);
+		methods = authmethods_get();
+		packet_start(SSH2_MSG_USERAUTH_FAILURE);
+		packet_put_cstring(methods);
+		packet_put_char(0);	/* XXX partial success, unused */
+		packet_send();
+		packet_write_wait();
+		xfree(methods);
+	}
 }
 
 void
@@ -306,40 +328,6 @@ done:
 		xfree(banner);
 	close(fd);
 	return;
-}
-
-void
-userauth_reply(Authctxt *authctxt, int authenticated)
-{
-	char *methods;
-
-	/* XXX todo: check if multiple auth methods are needed */
-	if (authenticated == 1) {
-#ifdef WITH_AIXAUTHENTICATE
-		/* We don't have a pty yet, so just label the line as "ssh" */
-		if (loginsuccess(authctxt->user?authctxt->user:"NOUSER",
-		    get_canonical_hostname(options.reverse_mapping_check),
-		    "ssh", &aixloginmsg) < 0)
-			aixloginmsg = NULL;
-#endif /* WITH_AIXAUTHENTICATE */
-		/* turn off userauth */
-		dispatch_set(SSH2_MSG_USERAUTH_REQUEST, &protocol_error);
-		packet_start(SSH2_MSG_USERAUTH_SUCCESS);
-		packet_send();
-		packet_write_wait();
-		/* now we can break out */
-		authctxt->success = 1;
-	} else {
-		if (authctxt->failures++ > AUTH_FAIL_MAX)
-			packet_disconnect(AUTH_FAIL_MSG, authctxt->user);
-		methods = authmethods_get();
-		packet_start(SSH2_MSG_USERAUTH_FAILURE);
-		packet_put_cstring(methods);
-		packet_put_char(0);	/* XXX partial success, unused */
-		packet_send();
-		packet_write_wait();
-		xfree(methods);
-	}
 }
 
 int
