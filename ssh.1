@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.162 2002/08/12 17:30:35 stevesk Exp $
+.\" $OpenBSD: ssh.1,v 1.163 2002/08/17 23:07:14 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -353,9 +353,17 @@ the connection is opened.
 The real authentication cookie is never
 sent to the server machine (and no cookies are sent in the plain).
 .Pp
-If the user is using an authentication agent, the connection to the agent
-is automatically forwarded to the remote side unless disabled on
-the command line or in a configuration file.
+If the
+.Cm ForwardAgent
+variable is set to
+.Dq yes
+(or, see the description of the
+.Fl A
+and
+.Fl a
+options described later) and 
+the user is using an authentication agent, the connection to the agent
+is automatically forwarded to the remote side.
 .Pp
 Forwarding of arbitrary TCP/IP connections over the secure channel can
 be specified either on the command line or in a configuration file.
