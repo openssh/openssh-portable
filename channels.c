@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.146 2001/12/06 18:20:32 stevesk Exp $");
+RCSID("$OpenBSD: channels.c,v 1.147 2001/12/08 17:49:28 stevesk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -54,6 +54,7 @@ RCSID("$OpenBSD: channels.c,v 1.146 2001/12/06 18:20:32 stevesk Exp $");
 #include "canohost.h"
 #include "key.h"
 #include "authfd.h"
+#include "pathnames.h"
 
 
 /* -- channel core */
@@ -2491,34 +2492,21 @@ x11_create_display_inet(int x11_display_offset, int gateway_ports)
 	return display_number;
 }
 
-#ifndef X_UNIX_PATH
-#define X_UNIX_PATH "/tmp/.X11-unix/X"
-#endif
-
 static int
 connect_local_xsocket(u_int dnr)
 {
-	static const char *const x_sockets[] = {
-		X_UNIX_PATH "%u",
-		"/var/X/.X11-unix/X" "%u",
-		"/usr/spool/sockets/X11/" "%u",
-		NULL
-	};
 	int sock;
 	struct sockaddr_un addr;
-	const char *const * path;
 
-	for (path = x_sockets; *path; ++path) {
-		sock = socket(AF_UNIX, SOCK_STREAM, 0);
-		if (sock < 0)
-			error("socket: %.100s", strerror(errno));
-		memset(&addr, 0, sizeof(addr));
-		addr.sun_family = AF_UNIX;
-		snprintf(addr.sun_path, sizeof addr.sun_path, *path, dnr);
-		if (connect(sock, (struct sockaddr *) & addr, sizeof(addr)) == 0)
-			return sock;
-		close(sock);
-	}
+	sock = socket(AF_UNIX, SOCK_STREAM, 0);
+	if (sock < 0)
+		error("socket: %.100s", strerror(errno));
+	memset(&addr, 0, sizeof(addr));
+	addr.sun_family = AF_UNIX;
+	snprintf(addr.sun_path, sizeof addr.sun_path, _PATH_UNIX_X, dnr);
+	if (connect(sock, (struct sockaddr *) & addr, sizeof(addr)) == 0)
+		return sock;
+	close(sock);
 	error("connect %.100s: %.100s", addr.sun_path, strerror(errno));
 	return -1;
 }

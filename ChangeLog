@@ -3,6 +3,11 @@
    server. I have found this necessary to avoid server hangs with X input
    extensions (e.g. kinput2). Enable by setting the environment variable
    "GNOME_SSH_ASKPASS_NOGRAB"
+  - OpenBSD CVS Sync
+   - stevesk@cvs.openbsd.org 2001/12/08 17:49:28
+     [channels.c pathnames.h]
+     use only one path to X11 UNIX domain socket vs. an array of paths
+     to try.  report from djast@cs.toronto.edu.  ok markus@
 
 20011219
  - (stevesk) OpenBSD CVS sync X11 localhost display
@@ -7031,4 +7036,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1693 2001/12/20 23:28:07 djm Exp $
+$Id: ChangeLog,v 1.1694 2001/12/21 01:39:51 djm Exp $
