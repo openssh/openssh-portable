@@ -98,7 +98,7 @@ BuildPreReq: db1-devel, /usr/include/security/pam_appl.h
 BuildPreReq: XFree86-devel
 %endif
 %if ! %{no_gnome_askpass}
-BuildPreReq: gnome-libs-devel
+BuildPreReq: pkgconfig
 %endif
 %if %{kerberos5}
 BuildPreReq: krb5-devel
@@ -234,22 +234,12 @@ popd
 %if ! %{no_gnome_askpass}
 pushd contrib
 if [ $gtk2 = yes ] ; then
-	gcc $RPM_OPT_FLAGS `pkg-config --cflags gtk+-2.0` \
-	    gnome-ssh-askpass2.c -o gnome-ssh-askpass \
-	    `pkg-config --libs gtk+-2.0`
+	make gnome-ssh-askpass2
+	mv gnome-ssh-askpass2 gnome-ssh-askpass
 else
-	gcc $RPM_OPT_FLAGS `gnome-config --cflags gnome gnomeui` \
-	    gnome-ssh-askpass1.c -o gnome-ssh-askpass \
-	    `gnome-config --libs gnome gnomeui`
+	make gnome-ssh-askpass1
+	mv gnome-ssh-askpass1 gnome-ssh-askpass
 fi
-popd
-%endif
-
-%if ! %{no_gnome_askpass}
-pushd contrib
-gcc $RPM_OPT_FLAGS `gnome-config --cflags gnome gnomeui` \
-        gnome-ssh-askpass.c -o gnome-ssh-askpass \
-        `gnome-config --libs gnome gnomeui`
 popd
 %endif
 
@@ -406,6 +396,9 @@ fi
 %endif
 
 %changelog
+* Mon Sep 30 2002 Damien Miller <djm@mindrot.org>
+- Use contrib/ Makefile for building askpass programs
+
 * Fri Jun 21 2002 Damien Miller <djm@mindrot.org>
 - Merge in spec changes from seba@iq.pl (Sebastian Pachuta)
 - Add new {ssh,sshd}_config.5 manpages
