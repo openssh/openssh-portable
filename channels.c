@@ -16,7 +16,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: channels.c,v 1.13 1999/12/21 00:18:08 damien Exp $");
+RCSID("$Id: channels.c,v 1.14 1999/12/27 12:54:55 damien Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -251,7 +251,7 @@ redo:
 				packet_put_int(ch->remote_id);
 				packet_send();
 				ch->type = SSH_CHANNEL_CLOSED;
-				debug("Closing channel %d after input drain.", i);
+				debug("Closing channel %d after input drain.", ch->self);
 				break;
 			}
 			break;
@@ -443,17 +443,16 @@ channel_after_select(fd_set * readset, fd_set * writeset)
 			 * for connections from clients.
 			 */
 			if (FD_ISSET(ch->sock, readset)) {
-				int nchan;
-				len = sizeof(addr);
-				newsock = accept(ch->sock, &addr, &len);
+				addrlen = sizeof(addr);
+				newsock = accept(ch->sock, &addr, &addrlen);
 				if (newsock < 0) {
 					error("accept from auth socket: %.100s", strerror(errno));
 					break;
 				}
-				nchan = channel_allocate(SSH_CHANNEL_OPENING, newsock,
+				newch = channel_allocate(SSH_CHANNEL_OPENING, newsock,
 					xstrdup("accepted auth socket"));
 				packet_start(SSH_SMSG_AGENT_OPEN);
-				packet_put_int(nchan);
+				packet_put_int(newch);
 				packet_send();
 			}
 			break;
@@ -547,8 +546,8 @@ channel_output_poll()
 					len = 512;
 			} else {
 				/* Keep the packets at reasonable size. */
-				if (len > 16384)
-					len = 16384;
+				if (len > packet_get_maxsize()/2)
+					len = packet_get_maxsize()/2;
 			}
 			packet_start(SSH_MSG_CHANNEL_DATA);
 			packet_put_int(ch->remote_id);

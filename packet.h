@@ -13,7 +13,7 @@
  * 
  */
 
-/* RCSID("$Id: packet.h,v 1.7 1999/11/25 00:54:59 damien Exp $"); */
+/* RCSID("$Id: packet.h,v 1.8 1999/12/27 12:54:55 damien Exp $"); */
 
 #ifndef PACKET_H
 #define PACKET_H
@@ -151,7 +151,7 @@ char   *packet_get_string(unsigned int *length_ptr);
  * The error message should not contain a newline.  The total length of the
  * message must not exceed 1024 bytes.
  */
-void    packet_disconnect(const char *fmt,...);
+void    packet_disconnect(const char *fmt,...) __attribute__((format(printf, 1, 2)));;
 
 /*
  * Sends a diagnostic message to the other side.  This message can be sent at
@@ -163,7 +163,7 @@ void    packet_disconnect(const char *fmt,...);
  * remote side protocol flags do not indicate that it supports SSH_MSG_DEBUG,
  * this will do nothing.
  */
-void    packet_send_debug(const char *fmt,...);
+void    packet_send_debug(const char *fmt,...) __attribute__((format(printf, 1, 2)));;
 
 /* Checks if there is any buffered output, and tries to write some of the output. */
 void    packet_write_poll(void);

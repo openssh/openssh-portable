@@ -9,6 +9,11 @@
  - Explained spurious PAM auth warning workaround in UPGRADING
  - Use last few chars of tty line as ut_id
  - New SuSE RPM spec file from Chris Saia <csaia@wtower.com>
+ - OpenBSD CVS updates:
+   - [packet.h auth-rhosts.c]
+     check format string for packet_disconnect and packet_send_debug, too
+   - [channels.c]
+     use packet_get_maxsize for channels. consistence.
 
 19991226
  - Enabled utmpx support by default for Solaris
