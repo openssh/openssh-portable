@@ -1,4 +1,4 @@
-/* $OpenBSD: moduli.c,v 1.2 2003/11/21 11:57:03 djm Exp $ */
+/* $OpenBSD: moduli.c,v 1.3 2003/12/07 06:34:18 djm Exp $ */
 /*
  * Copyright 1994 Phil Karn <karn@qualcomm.com>
  * Copyright 1996-1998, 2003 William Allen Simpson <wsimpson@greendragon.com>
@@ -43,15 +43,6 @@
 #include "log.h"
 
 #include <openssl/bn.h>
-
-
-/*
- * Debugging defines
- */
-
-/* define DEBUG_LARGE 1 */
-/* define DEBUG_SMALL 1 */
-/* define DEBUG_TEST  1 */
 
 /*
  * File output defines
