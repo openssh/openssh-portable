@@ -22,6 +22,9 @@
    - markus@cvs.openbsd.org 2002/11/05 20:10:37
      [sftp-client.c]
      typo; GaryF@livevault.com
+   - markus@cvs.openbsd.org 2002/11/07 16:28:47
+     [sshd.c]
+     log to stderr if -ie is given, bug #414, prj@po.cwru.edu
 
 20021021
  - (djm) Bug #400: Kill ssh-rand-helper children on timeout, patch from 
@@ -799,4 +802,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2506 2002/11/09 15:48:49 mouring Exp $
+$Id: ChangeLog,v 1.2507 2002/11/09 15:50:03 mouring Exp $

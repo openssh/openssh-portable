@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.260 2002/09/27 10:42:09 mickey Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.261 2002/11/07 16:28:47 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -944,7 +944,7 @@ main(int ac, char **av)
 	    SYSLOG_LEVEL_INFO : options.log_level,
 	    options.log_facility == SYSLOG_FACILITY_NOT_SET ?
 	    SYSLOG_FACILITY_AUTH : options.log_facility,
-	    !inetd_flag);
+	    log_stderr || !inetd_flag);
 
 #ifdef _UNICOS
 	/* Cray can define user privs drop all prives now!
