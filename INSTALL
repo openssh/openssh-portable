@@ -109,12 +109,15 @@ it if lastlog is installed in a different place.
 
 --without-lastlog will disable lastlog support entirely.
 
---with-kerberos4 will enable Kerberos IV support. You will need to
-have the Kerberos libraries and header files installed for this to
-work.
+--with-kerberos4=PATH will enable Kerberos IV support. You will need
+to have the Kerberos libraries and header files installed for this
+to work. Use the optional PATH argument to specify the root of your
+Kerberos installation.
 
---with-afs will enable AFS support. You will need to have the Kerberos
-IV and the AFS libraries and header files installed for this to work.
+--with-afs=PATH will enable AFS support. You will need to have the
+Kerberos IV and the AFS libraries and header files installed for this
+to work.  Use the optional PATH argument to specify the root of your
+AFS installation. AFS requires Kerberos support to be enabled.
 
 --with-skey will enable S/Key one time password support. You will need
 the S/Key libraries and header files installed for this to work.

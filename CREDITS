@@ -13,6 +13,7 @@ Dan Brosemer <odin@linuxfreak.com> - Autoconf support, build fixes
 Darren Hall <dhall@virage.org> - AIX patches
 David Agraz <dagraz@jahoopa.com> - Build fixes
 David Rankin <drankin@bohemians.lexington.ky.us> - libwrap, NetBSD fixes
+Holger Trapp <Holger.Trapp@Informatik.TU-Chemnitz.DE> - KRB4/AFS config patch
 Jani Hakala <jahakala@cc.jyu.fi> - Patches
 Jim Knoble <jmknoble@pobox.com> - Many patches
 jonchen (email unknown) - the original author of PAM support of SSH

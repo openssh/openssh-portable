@@ -21,7 +21,6 @@ CFLAGS=@CFLAGS@ $(PATHS) @DEFS@
 EXTRA_TARGETS=@GNOME_ASKPASS@
 TARGETS=libssh.a ssh sshd ssh-add ssh-keygen ssh-agent scp $(EXTRA_TARGETS)
 LIBS=@LIBS@
-LIBWRAP=@LIBWRAP@
 AR=@AR@
 RANLIB=@RANLIB@
 INSTALL=@INSTALL@
@@ -72,7 +71,7 @@ ssh: $(SSHOBJS) libssh.a
 	$(CC) -o $@ $(SSHOBJS) $(LDFLAGS) -lssh $(LIBS)
 
 sshd:	$(SSHDOBJS) libssh.a
-	$(CC) -o $@ $(SSHDOBJS) $(LDFLAGS) -lssh $(LIBS) $(LIBWRAP)
+	$(CC) -o $@ $(SSHDOBJS) $(LDFLAGS) -lssh $(LIBS)
 
 scp:	scp.o libssh.a
 	$(CC) -o $@ scp.o $(LDFLAGS) -lssh $(LIBS) 

@@ -1,3 +1,8 @@
+20000106
+ - Documentation update & cleanup
+ - Better KrbIV / AFS detection, based on patch from:
+   Holger Trapp <Holger.Trapp@Informatik.TU-Chemnitz.DE>
+
 20000105
  - Fixed annoying DES corruption problem. libcrypt has been 
    overriding symbols in libcrypto. Removed libcrypt and crypt.h
