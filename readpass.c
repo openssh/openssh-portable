@@ -32,10 +32,11 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readpass.c,v 1.18 2001/06/23 15:12:19 itojun Exp $");
+RCSID("$OpenBSD: readpass.c,v 1.19 2001/06/24 05:35:33 markus Exp $");
+
+#include <readpassphrase.h>
 
 #include "xmalloc.h"
-#include "cli.h"
 #include "readpass.h"
 #include "pathnames.h"
 #include "log.h"
@@ -84,27 +85,24 @@ ssh_askpass(char *askpass, const char *msg)
 	return pass;
 }
 
-
 /*
- * Reads a passphrase from /dev/tty with echo turned off.  Returns the
- * passphrase (allocated with xmalloc), being very careful to ensure that
- * no other userland buffer is storing the password.
- */
-/*
- * Note:  the funcationallity of this routing has been moved to
- * cli_read_passphrase().  This routing remains to maintain
- * compatibility with existing code.
+ * Reads a passphrase from /dev/tty with echo turned off/on.  Returns the
+ * passphrase (allocated with xmalloc).  Exits if EOF is encountered. If
+ * RP_ALLOW_STDIN is set, the passphrase will be read from stdin if no
+ * tty is available
  */
 char *
-read_passphrase(const char *prompt, int from_stdin)
+read_passphrase(const char *prompt, int flags)
 {
-	char *askpass = NULL;
-	int use_askpass = 0, ttyfd;
+	char *askpass = NULL, *ret, buf[1024];
+	int rppflags, use_askpass = 0, ttyfd;
 
-	if (from_stdin) {
+	rppflags = (flags & RP_ECHO) ? RPP_ECHO_ON : RPP_ECHO_OFF;
+	if (flags & RP_ALLOW_STDIN) {
 		if (!isatty(STDIN_FILENO))
 			use_askpass = 1;
 	} else {
+		rppflags |= RPP_REQUIRE_TTY;
 		ttyfd = open("/dev/tty", O_RDWR);
 		if (ttyfd >= 0)
 			close(ttyfd);
@@ -120,5 +118,10 @@ read_passphrase(const char *prompt, int from_stdin)
 		return ssh_askpass(askpass, prompt);
 	}
 
-	return cli_read_passphrase(prompt, from_stdin, 0);
+	if (readpassphrase(prompt, buf, sizeof buf, rppflags) == NULL)
+		return NULL;
+
+	ret = xstrdup(buf);
+	memset(buf, 'x', sizeof buf);
+	return ret;
 }

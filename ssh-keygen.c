@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.64 2001/06/23 17:05:22 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.65 2001/06/24 05:35:33 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -123,7 +123,8 @@ load_identity(char *filename)
 		if (identity_passphrase)
 			pass = xstrdup(identity_passphrase);
 		else
-			pass = read_passphrase("Enter passphrase: ", 1);
+			pass = read_passphrase("Enter passphrase: ",
+			    RP_ALLOW_STDIN);
 		prv = key_load_private(filename, pass, NULL);
 		memset(pass, 0, strlen(pass));
 		xfree(pass);
@@ -491,8 +492,11 @@ do_change_passphrase(struct passwd *pw)
 		if (identity_passphrase)
 			old_passphrase = xstrdup(identity_passphrase);
 		else
-			old_passphrase = read_passphrase("Enter old passphrase: ", 1);
-		private = key_load_private(identity_file, old_passphrase , &comment);
+			old_passphrase =
+			    read_passphrase("Enter old passphrase: ",
+			    RP_ALLOW_STDIN);
+		private = key_load_private(identity_file, old_passphrase,
+		    &comment);
 		memset(old_passphrase, 0, strlen(old_passphrase));
 		xfree(old_passphrase);
 		if (private == NULL) {
@@ -508,8 +512,10 @@ do_change_passphrase(struct passwd *pw)
 		passphrase2 = NULL;
 	} else {
 		passphrase1 =
-			read_passphrase("Enter new passphrase (empty for no passphrase): ", 1);
-		passphrase2 = read_passphrase("Enter same passphrase again: ", 1);
+			read_passphrase("Enter new passphrase (empty for no "
+			    "passphrase): ", RP_ALLOW_STDIN);
+		passphrase2 = read_passphrase("Enter same passphrase again: ",
+		     RP_ALLOW_STDIN);
 
 		/* Verify that they are the same. */
 		if (strcmp(passphrase1, passphrase2) != 0) {
@@ -570,7 +576,8 @@ do_change_comment(struct passwd *pw)
 		else if (identity_new_passphrase)
 			passphrase = xstrdup(identity_new_passphrase);
 		else
-			passphrase = read_passphrase("Enter passphrase: ", 1);
+			passphrase = read_passphrase("Enter passphrase: ",
+			    RP_ALLOW_STDIN);
 		/* Try to load using the passphrase. */
 		private = key_load_private(identity_file, passphrase, &comment);
 		if (private == NULL) {
@@ -830,10 +837,15 @@ main(int ac, char **av)
 	else {
 passphrase_again:
 		passphrase1 =
-			read_passphrase("Enter passphrase (empty for no passphrase): ", 1);
-		passphrase2 = read_passphrase("Enter same passphrase again: ", 1);
+			read_passphrase("Enter passphrase (empty for no "
+			    "passphrase): ", RP_ALLOW_STDIN);
+		passphrase2 = read_passphrase("Enter same passphrase again: ",
+		    RP_ALLOW_STDIN);
 		if (strcmp(passphrase1, passphrase2) != 0) {
-			/* The passphrases do not match.  Clear them and retry. */
+			/*
+			 * The passphrases do not match.  Clear them and
+			 * retry.
+			 */
 			memset(passphrase1, 0, strlen(passphrase1));
 			memset(passphrase2, 0, strlen(passphrase2));
 			xfree(passphrase1);
