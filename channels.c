@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.74 2000/11/30 22:54:31 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.75 2000/12/05 20:34:09 markus Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -343,6 +343,13 @@ void
 channel_pre_listener(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	FD_SET(c->sock, readset);
+}
+
+void
+channel_pre_connecting(Channel *c, fd_set * readset, fd_set * writeset)
+{
+	debug3("channel %d: waiting for connection", c->self);
+	FD_SET(c->sock, writeset);
 }
 
 void
@@ -685,6 +692,28 @@ channel_post_auth_listener(Channel *c, fd_set * readset, fd_set * writeset)
 	}
 }
 
+void
+channel_post_connecting(Channel *c, fd_set * readset, fd_set * writeset)
+{
+	if (FD_ISSET(c->sock, writeset)) {
+		int err = 0;
+		int sz = sizeof(err);
+		c->type = SSH_CHANNEL_OPEN;
+                if (getsockopt(c->sock, SOL_SOCKET, SO_ERROR, (char *)&err, &sz) < 0) {
+			debug("getsockopt SO_ERROR failed");
+		} else {
+			if (err == 0) {
+				debug("channel %d: connected)", c->self);
+			} else {
+				debug("channel %d: not connected: %s",
+				    c->self, strerror(err));
+				chan_read_failed(c);
+				chan_write_failed(c);
+			}
+		}
+	}
+}
+
 int
 channel_handle_rfd(Channel *c, fd_set * readset, fd_set * writeset)
 {
@@ -843,12 +872,14 @@ channel_handler_init_20(void)
 	channel_pre[SSH_CHANNEL_RPORT_LISTENER] =	&channel_pre_listener;
 	channel_pre[SSH_CHANNEL_X11_LISTENER] =		&channel_pre_listener;
 	channel_pre[SSH_CHANNEL_AUTH_SOCKET] =		&channel_pre_listener;
+	channel_pre[SSH_CHANNEL_CONNECTING] =		&channel_pre_connecting;
 
 	channel_post[SSH_CHANNEL_OPEN] =		&channel_post_open_2;
 	channel_post[SSH_CHANNEL_PORT_LISTENER] =	&channel_post_port_listener;
 	channel_post[SSH_CHANNEL_RPORT_LISTENER] =	&channel_post_port_listener;
 	channel_post[SSH_CHANNEL_X11_LISTENER] =	&channel_post_x11_listener;
 	channel_post[SSH_CHANNEL_AUTH_SOCKET] =		&channel_post_auth_listener;
+	channel_post[SSH_CHANNEL_CONNECTING] =		&channel_post_connecting;
 }
 
 void
@@ -861,12 +892,14 @@ channel_handler_init_13(void)
 	channel_pre[SSH_CHANNEL_AUTH_SOCKET] =		&channel_pre_listener;
 	channel_pre[SSH_CHANNEL_INPUT_DRAINING] =	&channel_pre_input_draining;
 	channel_pre[SSH_CHANNEL_OUTPUT_DRAINING] =	&channel_pre_output_draining;
+	channel_pre[SSH_CHANNEL_CONNECTING] =		&channel_pre_connecting;
 
 	channel_post[SSH_CHANNEL_OPEN] =		&channel_post_open_1;
 	channel_post[SSH_CHANNEL_X11_LISTENER] =	&channel_post_x11_listener;
 	channel_post[SSH_CHANNEL_PORT_LISTENER] =	&channel_post_port_listener;
 	channel_post[SSH_CHANNEL_AUTH_SOCKET] =		&channel_post_auth_listener;
 	channel_post[SSH_CHANNEL_OUTPUT_DRAINING] =	&channel_post_output_drain_13;
+	channel_post[SSH_CHANNEL_CONNECTING] =		&channel_post_connecting;
 }
 
 void
@@ -877,11 +910,13 @@ channel_handler_init_15(void)
 	channel_pre[SSH_CHANNEL_X11_LISTENER] =		&channel_pre_listener;
 	channel_pre[SSH_CHANNEL_PORT_LISTENER] =	&channel_pre_listener;
 	channel_pre[SSH_CHANNEL_AUTH_SOCKET] =		&channel_pre_listener;
+	channel_pre[SSH_CHANNEL_CONNECTING] =		&channel_pre_connecting;
 
 	channel_post[SSH_CHANNEL_X11_LISTENER] =	&channel_post_x11_listener;
 	channel_post[SSH_CHANNEL_PORT_LISTENER] =	&channel_post_port_listener;
 	channel_post[SSH_CHANNEL_AUTH_SOCKET] =		&channel_post_auth_listener;
 	channel_post[SSH_CHANNEL_OPEN] =		&channel_post_open_1;
+	channel_post[SSH_CHANNEL_CONNECTING] =		&channel_post_connecting;
 }
 
 void
@@ -1397,6 +1432,7 @@ channel_still_open()
 		case SSH_CHANNEL_RPORT_LISTENER:
 		case SSH_CHANNEL_CLOSED:
 		case SSH_CHANNEL_AUTH_SOCKET:
+		case SSH_CHANNEL_CONNECTING: 	/* XXX ??? */
 			continue;
 		case SSH_CHANNEL_LARVAL:
 			if (!compat20)
@@ -1446,6 +1482,7 @@ channel_open_message()
 			continue;
 		case SSH_CHANNEL_LARVAL:
 		case SSH_CHANNEL_OPENING:
+		case SSH_CHANNEL_CONNECTING:
 		case SSH_CHANNEL_OPEN:
 		case SSH_CHANNEL_X11_OPEN:
 		case SSH_CHANNEL_INPUT_DRAINING:
@@ -1702,8 +1739,11 @@ channel_connect_to(const char *host, u_short host_port)
 			error("socket: %.100s", strerror(errno));
 			continue;
 		}
+		if (fcntl(sock, F_SETFL, O_NDELAY) < 0)
+			fatal("connect_to: F_SETFL: %s", strerror(errno));
 		/* Connect to the host/port. */
-		if (connect(sock, ai->ai_addr, ai->ai_addrlen) < 0) {
+		if (connect(sock, ai->ai_addr, ai->ai_addrlen) < 0 &&
+		    errno != EINPROGRESS) {
 			error("connect %.100s port %s: %.100s", ntop, strport,
 			    strerror(errno));
 			close(sock);
@@ -1789,7 +1829,9 @@ channel_input_port_open(int type, int plen, void *ctxt)
 	sock = denied ? -1 : channel_connect_to(host, host_port);
 	if (sock > 0) {
 		/* Allocate a channel for this connection. */
-		newch = channel_allocate(SSH_CHANNEL_OPEN, sock, originator_string);
+		newch = channel_allocate(SSH_CHANNEL_CONNECTING,
+		    sock, originator_string);
+/*XXX delay answer? */
 		channels[newch].remote_id = remote_channel;
 
 		packet_start(SSH_MSG_CHANNEL_OPEN_CONFIRMATION);

@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.40 2000/11/06 23:04:56 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.41 2000/12/05 20:34:10 markus Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -1041,7 +1041,7 @@ client_request_forwarded_tcpip(const char *request_type, int rchan)
 	sock = channel_connect_by_listen_adress(listen_port);
 	if (sock >= 0) {
 		newch = channel_new("forwarded-tcpip",
-		    SSH_CHANNEL_OPEN, sock, sock, -1,
+		    SSH_CHANNEL_CONNECTING, sock, sock, -1,
 		    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_WINDOW_DEFAULT, 0,
 		    xstrdup(originator_address), 1);
 		c = channel_lookup(newch);

@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.135 2000/11/29 21:11:59 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.136 2000/12/05 16:47:28 todd Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -881,9 +881,9 @@ main(int ac, char **av)
 
 		if (!debug_flag) {
 			/*
-			 * Record our pid in /etc/sshd_pid to make it easier
-			 * to kill the correct sshd.  We don\'t want to do
-			 * this before the bind above because the bind will
+			 * Record our pid in /var/run/sshd.pid to make it
+			 * easier to kill the correct sshd.  We don't want to
+			 * do this before the bind above because the bind will
 			 * fail if there already is a daemon, and this will
 			 * overwrite any old pid in the file.
 			 */

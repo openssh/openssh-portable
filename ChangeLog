@@ -1,3 +1,12 @@
+20001206
+ - (bal) OpenSSH CVS updates:
+   - markus@cvs.openbsd.org 2000/12/05 20:34:09
+     [channels.c channels.h clientloop.c serverloop.c]
+     async connects for -R/-L; ok deraadt@
+   - todd@cvs.openssh.org 2000/12/05 16:47:28
+     [sshd.c]
+     tweak comment to reflect real location of pid file; ok provos@
+
 20001205
  - (bal) OpenSSH CVS updates:
    - markus@cvs.openbsd.org 2000/12/04 19:24:02
@@ -16,7 +25,8 @@
      remove fallback to SSH_BUG_HMAC now that the drafts are updated
    - markus@cvs.openbsd.org 2000/12/03 11:27:55
      [compat.c]
-     correctly match "2.1.0.pl2 SSH" etc; from pekkas@netcore.fi/bugzilla.redhat
+     correctly match "2.1.0.pl2 SSH" etc; from 
+     pekkas@netcore.fi/bugzilla.redhat
    - markus@cvs.openbsd.org 2000/12/03 11:15:03
      [auth2.c compat.c compat.h sshconnect2.c]
      support f-secure/ssh.com 2.0.12; ok niels@

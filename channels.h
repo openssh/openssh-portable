@@ -32,7 +32,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* RCSID("$OpenBSD: channels.h,v 1.23 2000/11/06 23:04:56 markus Exp $"); */
+/* RCSID("$OpenBSD: channels.h,v 1.24 2000/12/05 20:34:10 markus Exp $"); */
 
 #ifndef CHANNELS_H
 #define CHANNELS_H
@@ -50,7 +50,8 @@
 #define SSH_CHANNEL_OUTPUT_DRAINING	9	/* sending remaining data to app */
 #define SSH_CHANNEL_LARVAL		10	/* larval session */
 #define SSH_CHANNEL_RPORT_LISTENER	11	/* Listening to a R-style port  */
-#define SSH_CHANNEL_MAX_TYPE		12
+#define SSH_CHANNEL_CONNECTING		12
+#define SSH_CHANNEL_MAX_TYPE		13
 
 /*
  * Data structure for channel data.  This is iniailized in channel_allocate

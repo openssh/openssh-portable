@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.35 2000/11/06 23:04:56 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.36 2000/12/05 20:34:10 markus Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -750,7 +750,7 @@ server_request_direct_tcpip(char *ctype)
 	xfree(originator);
 	if (sock < 0)
 		return NULL;
-	newch = channel_new(ctype, SSH_CHANNEL_OPEN,
+	newch = channel_new(ctype, SSH_CHANNEL_CONNECTING,
 	    sock, sock, -1, CHAN_TCP_WINDOW_DEFAULT,
 	    CHAN_TCP_PACKET_DEFAULT, 0, xstrdup("direct-tcpip"), 1);
 	return (newch >= 0) ? channel_lookup(newch) : NULL;
