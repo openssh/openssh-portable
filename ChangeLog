@@ -9,6 +9,9 @@
    - markus@cvs.openbsd.org 2001/04/10 12:15:23
      [channels.c]                              
      debug cleanup                             
+   - djm@cvs.openbsd.org 2001/04/11 07:06:22
+     [sftp-int.c]
+     'mget' and 'mput' aliases; ok markus@
 
 20010410
  - OpenBSD CVS Sync
@@ -5002,4 +5005,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1096 2001/04/11 16:08:34 mouring Exp $
+$Id: ChangeLog,v 1.1097 2001/04/11 23:05:17 mouring Exp $
