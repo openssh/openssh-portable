@@ -172,8 +172,8 @@ configure are used for the Cygwin binary distribution:
 	--sysconfdir=/etc \
 	--libexecdir='${exec_prefix}/sbin'
 
-You must have installed the zlib, openssl and regex packages to
-be able to build OpenSSH!
+You must have installed the zlib and openssl packages to be able to
+build OpenSSH!
 
 Please send requests, error reports etc. to cygwin@cygwin.com.
 

@@ -93,7 +93,7 @@ mkdir -p $DESTDIR/{etc/pam.d,%{SVIcdir},%{SVIdir}}
 # enabling X11 forwarding on the server is convenient and okay,
 # on the client side we consider it a potential security risk!
 %{fixUP} -vT  $DESTDIR/etc/ssh/sshd_config -e '
-   s/X11Forwarding no/X11Forwarding yes/i'
+   s/#X11Forwarding no/X11Forwarding yes/i'
 
 install -m644 contrib/caldera/sshd.pam $DESTDIR/etc/pam.d/sshd
 # FIXME: disabled, find out why this doesn't work with NIS
@@ -171,7 +171,7 @@ EOF
 if [ -x %{LSBinit}-install ]; then
   %{LSBinit}-install sshd
 else
-  lisa --SysV-init install sshd S55 3:4:5 K45 0:1:2:6
+  lisa --SysV-init install sshd S55 2:3:4:5 K45 0:1:6
 fi
 
 ! %{SVIdir}/sshd status || %{SVIdir}/sshd restart
@@ -224,4 +224,4 @@ by Jim Knoble <jmknoble@pobox.com>.
 %ChangeLog
 * Mon Jan 01 1998 ...
 
-$Id: openssh.spec,v 1.28 2002/04/23 11:15:32 djm Exp $
+$Id: openssh.spec,v 1.29 2002/04/30 03:53:13 tim Exp $

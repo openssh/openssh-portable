@@ -1,3 +1,9 @@
+20020429
+ - (tim) [contrib/caldera/openssh.spec] update fixUP to reflect changes in
+   sshd_config.
+ - (tim) [contrib/cygwin/README] remove reference to regex.
+   patch from Corinna Vinschen <vinschen@redhat.com>
+
 20020426
  - (djm) Bug #137, #209: fix make problems for scard/Ssh.bin, do uudecode
    during distprep only
@@ -515,4 +521,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2088 2002/04/26 06:54:34 djm Exp $
+$Id: ChangeLog,v 1.2089 2002/04/30 03:53:12 tim Exp $
