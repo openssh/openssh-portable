@@ -103,6 +103,36 @@ install: all
 		$(INSTALL) -m644 sshd_config $(sysconfdir)/sshd_config; \
 	fi
 
+uninstallall:	uninstall
+	-rm -f $(sysconfdir)/ssh_config
+	-rm -f $(sysconfdir)/sshd_config
+	-rmdir $(sysconfdir)
+	-rmdir $(bindir)
+	-rmdir $(sbindir)
+	-rmdir $(mandir)/man1
+	-rmdir $(mandir)/man8
+	-rmdir $(mandir)
+	-rmdir $(libexecdir)
+
+uninstall: 
+	-rm -f $(bindir)/ssh
+	-rm -f $(bindir)/scp
+	-rm -f $(bindir)/ssh-add
+	-rm -f $(bindir)/ssh-agent
+	-rm -f $(bindir)/ssh-keygen
+	-rm -f $(sbindir)/sshd
+	-rm -f $(mandir)/man1/ssh.1
+	-rm -f $(mandir)/man1/scp.1
+	-rm -f $(mandir)/man1/ssh-add.1
+	-rm -f $(mandir)/man1/ssh-agent.1
+	-rm -f $(mandir)/man1/ssh-keygen.1
+	-rm -f $(mandir)/man8/sshd.8
+	-rm -f $(bindir)/slogin
+	-rm -f $(mandir)/man1/slogin.1
+	-rm -f $(mandir)/man1/slogin.1
+	-rm -f ${ASKPASS_PROGRAM}
+	-rmdir $(libexecdir)/ssh ;
+
 distclean: clean
 	rm -f Makefile config.h core *~
 

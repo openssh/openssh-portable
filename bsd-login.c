@@ -45,47 +45,59 @@ static char *rcsid = "$OpenBSD: login.c,v 1.5 1998/07/13 02:11:12 millert Exp $"
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <utmp.h>
+#ifdef HAVE_UTMPX_H
+# include <utmpx.h>
+#endif
+#ifdef HAVE_UTMP_H
+# include <utmp.h>
+#endif
 #include <stdio.h>
 
 void
 login(utp)
-	struct utmp *utp;
+	struct UTMP_STR *utp;
 {
-	struct utmp old_ut;
+	struct UTMP_STR old_ut;
 	register int fd;
 	int tty;
 
 #ifndef UT_LINESIZE
 # define UT_LINESIZE (sizeof(old_ut.ut_line))
-# define UT_NAMESIZE (sizeof(old_ut.ut_name))
+# ifdef HAVE_UTMPX_H
+#  define UT_NAMESIZE (sizeof(old_ut.ut_user))
+# else
+#  define UT_NAMESIZE (sizeof(old_ut.ut_name))
+# endif
 # ifdef HAVE_HOST_IN_UTMP
+#  define UT_HOSTSIZE (sizeof(old_ut.ut_host))
+# endif
+# ifdef HAVE_HOST_IN_UTMPX
 #  define UT_HOSTSIZE (sizeof(old_ut.ut_host))
 # endif
 #endif
 
 	tty = ttyslot();
 	if (tty > 0 && (fd = open(_PATH_UTMP, O_RDWR|O_CREAT, 0644)) >= 0) {
-#ifdef HAVE_HOST_IN_UTMP
-		(void)lseek(fd, (off_t)(tty * sizeof(struct utmp)), SEEK_SET);
+#ifdef HAVE_HOST_IN_UTMP || HAVE_HOST_IN_UTMPX
+		(void)lseek(fd, (off_t)(tty * sizeof(struct UTMP_STR)), SEEK_SET);
 		/*
 		 * Prevent luser from zero'ing out ut_host.
 		 * If the new ut_line is empty but the old one is not
 		 * and ut_line and ut_name match, preserve the old ut_line.
 		 */
-		if (read(fd, &old_ut, sizeof(struct utmp)) ==
-		    sizeof(struct utmp) && utp->ut_host[0] == '\0' &&
+		if (read(fd, &old_ut, sizeof(struct UTMP_STR)) ==
+		    sizeof(struct UTMP_STR) && utp->ut_host[0] == '\0' &&
 		    old_ut.ut_host[0] != '\0' &&
 		    strncmp(old_ut.ut_line, utp->ut_line, UT_LINESIZE) == 0 &&
 		    strncmp(old_ut.ut_name, utp->ut_name, UT_NAMESIZE) == 0)
 			(void)memcpy(utp->ut_host, old_ut.ut_host, UT_HOSTSIZE);
-#endif /* HAVE_HOST_IN_UTMP */
-		(void)lseek(fd, (off_t)(tty * sizeof(struct utmp)), SEEK_SET);
-		(void)write(fd, utp, sizeof(struct utmp));
+#endif /* HAVE_HOST_IN_UTMP || HAVE_HOST_IN_UTMPX */
+		(void)lseek(fd, (off_t)(tty * sizeof(struct UTMP_STR)), SEEK_SET);
+		(void)write(fd, utp, sizeof(struct UTMP_STR));
 		(void)close(fd);
 	}
 	if ((fd = open(_PATH_WTMP, O_WRONLY|O_APPEND, 0)) >= 0) {
-		(void)write(fd, utp, sizeof(struct utmp));
+		(void)write(fd, utp, sizeof(struct UTMP_STR));
 		(void)close(fd);
 	}
 }

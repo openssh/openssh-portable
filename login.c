@@ -18,9 +18,14 @@
  */
 
 #include "includes.h"
-RCSID("$Id: login.c,v 1.5 1999/11/25 02:08:31 damien Exp $");
+RCSID("$Id: login.c,v 1.6 1999/12/08 23:16:55 damien Exp $");
 
-#include <utmp.h>
+#ifdef HAVE_UTMPX_H
+# include <utmpx.h>
+#endif
+#ifdef HAVE_UTMP_H
+# include <utmp.h>
+#endif
 #include "ssh.h"
 
 #ifdef HAVE_UTIL_H
@@ -83,15 +88,20 @@ record_login(int pid, const char *ttyname, const char *user, uid_t uid,
 	int fd;
 	struct lastlog ll;
 	char *lastlog;
-	struct utmp u;
+	struct UTMP_STR u;
 	const char *utmp, *wtmp;
 
 	/* Construct an utmp/wtmp entry. */
 	memset(&u, 0, sizeof(u));
 	strncpy(u.ut_line, ttyname + 5, sizeof(u.ut_line));
+#ifdef HAVE_UTMPX_H
+	u.ut_tv.tv_sec = time(NULL);
+	strncpy(u.ut_user, user, sizeof(u.ut_name));
+#else
 	u.ut_time = time(NULL);
 	strncpy(u.ut_name, user, sizeof(u.ut_name));
-#ifdef HAVE_HOST_IN_UTMP
+#endif
+#if defined(HAVE_HOST_IN_UTMP) || defined(HAVE_HOST_IN_UTMPX)
 	strncpy(u.ut_host, host, sizeof(u.ut_host));
 #endif
 

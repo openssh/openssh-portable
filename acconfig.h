@@ -24,6 +24,9 @@
 /* Define is utmp.h has a ut_host field */
 #undef HAVE_HOST_IN_UTMP
 
+/* Define is utmpx.h has a ut_host field */
+#undef HAVE_HOST_IN_UTMPX
+
 /* Define is libutil has login() function */
 #undef HAVE_LIBUTIL_LOGIN
 
@@ -85,6 +88,10 @@
 # include <utmp.h> /* For _PATH_XXX */
 #endif 
 
+#ifdef HAVE_UTMPX_H
+# include <utmpx.h> /* For _PATH_XXX */
+#endif 
+
 #ifdef HAVE_SYS_TIME_H
 # include <sys/time.h> /* For timersub */
 #endif
@@ -96,13 +103,13 @@
 #ifndef SHUT_RDWR
 enum
 {
-  SHUT_RD = 0,    /* No more receptions.  */
-#define SHUT_RD   SHUT_RD
-  SHUT_WR,    /* No more transmissions.  */
-#define SHUT_WR   SHUT_WR
-  SHUT_RDWR   /* No more receptions or transmissions.  */
-#define SHUT_RDWR SHUT_RDWR
+  SHUT_RD = 0,		/* No more receptions.  */
+  SHUT_WR,			/* No more transmissions.  */
+  SHUT_RDWR			/* No more receptions or transmissions.  */
 };
+# define SHUT_RD   SHUT_RD
+# define SHUT_WR   SHUT_WR
+# define SHUT_RDWR SHUT_RDWR
 #endif
 
 /* If sys/types.h does not supply intXX_t, supply them ourselves */
@@ -164,25 +171,44 @@ enum
 # define quad_t int64_t
 #endif
 
+/* If _PATH_LASTLOG is not defined by system headers, set it to the */
+/* lastlog file detected by autoconf */
 #ifndef _PATH_LASTLOG
 # ifdef LASTLOG_LOCATION
 #  define _PATH_LASTLOG LASTLOG_LOCATION
 # endif
 #endif
 
+/* Use utmpx if supported */
+#ifdef HAVE_UTMPX_H
+# define UTMP_STR utmpx
+#else 
+# ifdef HAVE_UTMP_H
+#  define UTMP_STR utmp
+# endif
+#endif
+
 #ifndef _PATH_UTMP
-# ifdef UTMP_FILE
-#  define _PATH_UTMP UTMP_FILE
+# ifdef UTMPX_FILE
+#  define _PATH_UTMP UTMPX_FILE
 # else
-#  define _PATH_UTMP "/var/adm/utmp"
+#  ifdef UTMP_FILE
+#   define _PATH_UTMP UTMP_FILE
+#  else
+#   define _PATH_UTMP "/var/adm/utmp"
+#  endif
 # endif
 #endif
 
 #ifndef _PATH_WTMP
-# ifdef WTMP_FILE
-#  define _PATH_WTMP WTMP_FILE
+# ifdef WTMPX_FILE
+#  define _PATH_WTMP WTMPX_FILE
 # else
-#  define _PATH_WTMP "/var/adm/wtmp"
+#  ifdef WTMP_FILE
+#   define _PATH_WTMP WTMP_FILE
+#  else
+#   define _PATH_WTMP "/var/adm/wtmp"
+#  endif
 # endif
 #endif
 
@@ -219,9 +245,9 @@ enum
          (result)->tv_usec += 1000000;                        \
       }                                                       \
    } while (0)
-
 #endif
 
+/* In older versions of libpam, pam_strerror takes a single argument */
 #ifdef HAVE_OLD_PAM
 # define PAM_STRERROR(a,b) pam_strerror((b))
 #else
@@ -231,3 +257,4 @@ enum
 #ifndef __P
 # define __P(x) x
 #endif
+

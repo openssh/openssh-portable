@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.35 1999/12/07 04:38:32 damien Exp $");
+RCSID("$Id: sshd.c,v 1.36 1999/12/08 23:16:55 damien Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -138,7 +138,8 @@ void do_child(const char *command, struct passwd * pw, const char *term,
 #ifdef HAVE_LIBPAM
 static int pamconv(int num_msg, const struct pam_message **msg,
 	  struct pam_response **resp, void *appdata_ptr);
-void do_pam_account_and_session(char *username, char *remote_user);
+void do_pam_account(char *username, char *remote_user);
+void do_pam_session(char *username, char *ttyname);
 void pam_cleanup_proc(void *context);
 
 static struct pam_conv conv = {
@@ -228,7 +229,7 @@ void pam_cleanup_proc(void *context)
 	}
 }
 
-void do_pam_account_and_session(char *username, char *remote_user)
+void do_pam_account(char *username, char *remote_user)
 {
 	int pam_retval;
 
@@ -254,12 +255,22 @@ void do_pam_account_and_session(char *username, char *remote_user)
 		log("PAM rejected by account configuration: %.200s", PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
 		do_fake_authloop(username);
 	}
+}
+
+void do_pam_session(char *username, char *ttyname)
+{
+	int pam_retval;
+
+	if (ttyname != NULL) {
+		debug("PAM setting tty to \"%.200s\"", ttyname);
+		pam_retval = pam_set_item((pam_handle_t *)pamh, PAM_TTY, ttyname);
+		if (pam_retval != PAM_SUCCESS)
+			fatal("PAM set tty failed: %.200s", PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
+	}
 
 	pam_retval = pam_open_session((pam_handle_t *)pamh, 0);
-	if (pam_retval != PAM_SUCCESS) {
-		log("PAM session setup failed: %.200s", PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
-		do_fake_authloop(username);
-	}
+	if (pam_retval != PAM_SUCCESS)
+		fatal("PAM session setup failed: %.200s", PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
 }
 #endif /* HAVE_LIBPAM */
 
@@ -1476,12 +1487,16 @@ do_authloop(struct passwd * pw)
 			pam_retval = pam_authenticate((pam_handle_t *)pamh, 0);
 			if (pam_retval == PAM_SUCCESS) {
 				log("PAM Password authentication accepted for user \"%.100s\"", pw->pw_name);
+				memset(password, 0, strlen(password));
+				xfree(password);
 				authenticated = 1;
 				break;
 			}
 
 			log("PAM Password authentication for \"%.100s\" failed: %s", 
 				pw->pw_name, PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
+			memset(password, 0, strlen(password));
+			xfree(password);
 			break;
 #else /* HAVE_LIBPAM */
 			/* Try authentication with the password. */
@@ -1561,30 +1576,18 @@ do_authloop(struct passwd * pw)
 			packet_disconnect(AUTH_FAIL_MSG, pw->pw_name);
 #else /* HAVE_LIBPAM */
 		if (authenticated) {
-			do_pam_account_and_session(pw->pw_name, client_user);
+			do_pam_account(pw->pw_name, client_user);
 
-			/* Clean up */
 			if (client_user != NULL)
 				xfree(client_user);
 
-			if (password != NULL) {
-				memset(password, 0, strlen(password));
-				xfree(password);
-			}
-			
 			return;
 		}
 
 		if (attempt > AUTH_FAIL_MAX) {
-			/* Clean up */
 			if (client_user != NULL)
 				xfree(client_user);
 
-			if (password != NULL) {
-				memset(password, 0, strlen(password));
-				xfree(password);
-			}
-			
 			packet_disconnect(AUTH_FAIL_MSG, pw->pw_name);
 		}
 #endif /* HAVE_LIBPAM */
@@ -1785,6 +1788,12 @@ do_authenticated(struct passwd * pw)
 
 			/* Indicate that we now have a pty. */
 			have_pty = 1;
+
+#ifdef HAVE_LIBPAM
+			/* do the pam_open_session since we have the pty */
+			do_pam_session(pw->pw_name,ttyname);
+#endif /* HAVE_LIBPAM */
+
 			break;
 
 		case SSH_CMSG_X11_REQUEST_FORWARDING:

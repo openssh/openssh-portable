@@ -1,3 +1,10 @@
+19991209
+ - Import of patch from Ben Taylor <bent@clark.net>:
+   - Improved PAM support
+   - "uninstall" rule for Makefile
+   - utmpx support
+   - Should fix PAM problems on Solaris
+
 19991208
  - Compile fix for Solaris with /dev/ptmx from 
    David Agraz <dagraz@jahoopa.com>

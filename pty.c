@@ -14,10 +14,14 @@
  */
 
 #include "includes.h"
-RCSID("$Id: pty.c,v 1.7 1999/12/07 21:53:52 damien Exp $");
+RCSID("$Id: pty.c,v 1.8 1999/12/08 23:16:55 damien Exp $");
 
 #include "pty.h"
 #include "ssh.h"
+
+#ifdef HAVE_DEV_PTMX
+#include <sys/stropts.h>
+#endif /* HAVE_DEV_PTMX */
 
 /* Pty allocated with _getpty gets broken if we do I_PUSH:es to it. */
 #if defined(HAVE__GETPTY) || defined(HAVE_OPENPTY)

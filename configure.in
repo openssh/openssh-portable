@@ -56,7 +56,7 @@ AC_CHECK_LIB(dl, dlopen, , )
 AC_CHECK_LIB(pam, pam_authenticate, , )
 
 dnl Checks for header files.
-AC_CHECK_HEADERS(endian.h lastlog.h login.h maillock.h netgroup.h paths.h pty.h shadow.h util.h utmp.h sys/select.h sys/stropts.h sys/time.h)
+AC_CHECK_HEADERS(endian.h lastlog.h login.h maillock.h netgroup.h paths.h pty.h shadow.h util.h utmp.h utmpx.h sys/select.h sys/stropts.h sys/time.h)
 
 dnl Checks for library functions.
 AC_CHECK_FUNCS(arc4random mkdtemp openpty _getpty setenv setlogin setproctitle snprintf strlcat strlcpy vsnprintf)
@@ -195,6 +195,13 @@ dnl Check for ut_host field in utmp
 AC_MSG_CHECKING([whether utmp.h has ut_host field])
 AC_EGREP_HEADER(ut_host, utmp.h, 
 	[AC_DEFINE(HAVE_HOST_IN_UTMP) AC_MSG_RESULT(yes); ], 
+	[AC_MSG_RESULT(no)]
+)
+
+dnl Check for ut_host field in utmpx
+AC_MSG_CHECKING([whether utmpx.h has ut_host field])
+AC_EGREP_HEADER(ut_host, utmpx.h, 
+	[AC_DEFINE(HAVE_HOST_IN_UTMPX) AC_MSG_RESULT(yes); ], 
 	[AC_MSG_RESULT(no)]
 )
 
