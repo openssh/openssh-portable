@@ -47,6 +47,9 @@
    - stevesk@cvs.openbsd.org 2002/05/28 21:24:00
      [uidswap.c]
      use correct function name in fatal()
+   - stevesk@cvs.openbsd.org 2002/05/29 03:06:30
+     [ssh.1 sshd.8]
+     spelling
 
 20020604
  - (stevesk) [channels.c] bug #164 patch from YOSHIFUJI Hideaki (changed
@@ -731,4 +734,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2158 2002/06/06 20:44:06 mouring Exp $
+$Id: ChangeLog,v 1.2159 2002/06/06 20:45:33 mouring Exp $
