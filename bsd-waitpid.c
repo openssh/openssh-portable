@@ -25,7 +25,7 @@
 #ifndef HAVE_WAITPID 
 #include <errno.h>
 #include <sys/wait.h>
-#include <bsd-waitpid.h>
+#include "bsd-waitpid.h"
 
 pid_t
 waitpid(int pid, int *stat_loc, int options)

@@ -11,6 +11,8 @@
  - (bal) Reworked NEWS-OS and NeXT ports to extract waitpid() and
    setsid() into more common files
  - (stevesk) pty.c: use __hpux to identify HP-UX.
+ - (bal) Missed auth-skey.o in Makefile.in and minor correction to
+   bsd-waitpid.c
 
 20001029
  - (stevesk) Fix typo in auth.c: USE_PAM not PAM
