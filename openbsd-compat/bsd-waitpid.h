@@ -1,4 +1,6 @@
 /*
+ * Copyright (c) 2000 Ben Lindstrom.  All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -21,7 +23,7 @@
  *
  */
 
-/* $Id: bsd-waitpid.h,v 1.3 2003/05/18 14:13:39 djm Exp $ */
+/* $Id: bsd-waitpid.h,v 1.4 2003/06/01 03:23:57 mouring Exp $ */
 
 #ifndef _BSD_WAITPID_H
 #define _BSD_WAITPID_H

@@ -1,6 +1,6 @@
-/* XXX - author */
-
 /*
+ * Copyright (c) 2000,2001 Ben Lindstrom.  All rights reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$Id: bsd-nextstep.c,v 1.5 2003/05/18 14:13:39 djm Exp $");
+RCSID("$Id: bsd-nextstep.c,v 1.6 2003/06/01 03:23:57 mouring Exp $");
 
 #ifdef HAVE_NEXT
 #include <errno.h>
