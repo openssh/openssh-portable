@@ -17,6 +17,9 @@
  - Only display public key comment when presenting ssh-askpass dialog
  - Released 1.2pre14
 
+ - Configure, Make and changelog corrections from Tudor Bosman 
+   <tudorb@jm.nu> and Niels Kristian Bech Jensen <nkbj@image.dk>
+
 19991121
  - OpenBSD CVS Changes:
    - [channels.c]
@@ -60,7 +63,7 @@
  - EGD uses a socket, not a named pipe. Duh.
  - Fix includes in fingerprint.c
  - Fix scp progress bar bug again.
- - Move scp from ${libdir}/ssh to ${libexecdir}/ssh at request of 
+ - Move ssh-askpass from ${libdir}/ssh to ${libexecdir}/ssh at request of 
    David Rankin <drankin@bohemians.lexington.ky.us>
  - Added autoconf option to enable Kerberos 4 support (untested)
  - Added autoconf option to enable AFS support (untested)

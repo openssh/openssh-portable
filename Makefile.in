@@ -2,7 +2,6 @@ prefix=@prefix@
 exec_prefix=@exec_prefix@
 bindir=@bindir@
 sbindir=@sbindir@
-libdir=@libdir@
 libexecdir=@libexecdir@
 mandir=@mandir@
 sysconfdir=@sysconfdir@
@@ -83,7 +82,7 @@ install: all
 	ln -sf ssh.1 $(mandir)/man1/slogin.1
 
 	if [ "x@INSTALL_ASKPASS@" = "xyes" ] ; then \
-		install -d $(libdir) ; \
+		install -d $(libexecdir) ; \
 		install -d $(libexecdir)/ssh ; \
 		if [ -z "@GNOME_ASKPASS@" ] ; then \
 			install -m755 -c ssh-askpass ${ASKPASS_PROGRAM}; \

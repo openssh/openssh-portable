@@ -284,7 +284,7 @@ AC_ARG_WITH(skey,
 )
 
 dnl Check whether user wants TCP wrappers support
-AC_ARG_WITH(skey,
+AC_ARG_WITH(tcp-wrappers,
 	[  --with-tcp-wrappers     Enable tcpwrappers support],
 	[
 		AC_DEFINE(LIBWRAP)
@@ -293,7 +293,7 @@ AC_ARG_WITH(skey,
 )
 
 dnl Check whether to enable MD5 passwords
-AC_ARG_WITH(md5passwords,
+AC_ARG_WITH(md5-passwords,
 	[  --with-md5-passwords    Enable use of MD5 passwords],
 	[AC_DEFINE(HAVE_MD5_PASSWORDS)]
 )
