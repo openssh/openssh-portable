@@ -1,6 +1,7 @@
 20000831
  - (djm) Workaround SIGPIPE problems on SCO. Fix from Aran Cox 
    <acox@cv.telegroup.com>
+ - (djm) Pick up new version (2.2.0) from OpenBSD CVS
 
 20000830
  - (djm) Compile warning fixes from Mark Miller <markm@swoon.net>
