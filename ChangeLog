@@ -19,6 +19,9 @@
    - stevesk@cvs.openbsd.org 2001/09/19 21:04:53
      [sshd.8]
      missing -t in usage
+   - stevesk@cvs.openbsd.org 2001/09/19 21:41:57
+     [sshd.8]
+     don't advertise -V in usage; ok markus@
 
 20010918
  - (djm) Configure support for smartcards. Based on Ben's work.
@@ -6526,4 +6529,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1546 2001/09/20 01:06:08 mouring Exp $
+$Id: ChangeLog,v 1.1547 2001/09/20 01:07:57 mouring Exp $
