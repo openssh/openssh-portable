@@ -75,7 +75,7 @@ $(SSHDOBJS): config.h
 $(LIBOPENBSD_COMPAT_OBJS): config.h
 
 .c.o:
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o $<
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
 
 libopenbsd-compat.a: $(LIBOPENBSD_COMPAT_OBJS)
 	$(AR) rv $@ $(LIBOPENBSD_COMPAT_OBJS)
