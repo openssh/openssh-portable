@@ -59,7 +59,7 @@ case "$host" in
 		CFLAGS="$CFLAGS -Ae"
 	fi
 	CFLAGS="$CFLAGS -D_HPUX_SOURCE"
-	AC_DEFINE(IPADDR_IN_DISPLAY)
+	IPADDR_IN_DISPLAY=yes
 	AC_DEFINE(USE_PIPES)
 	AC_MSG_CHECKING(for HPUX trusted system password database)
 	if test -f /tcb/files/auth/system/default; then
@@ -76,7 +76,7 @@ case "$host" in
 	;;
 *-*-hpux11*)
 	CFLAGS="$CFLAGS -D_HPUX_SOURCE"
-	AC_DEFINE(IPADDR_IN_DISPLAY)
+	IPADDR_IN_DISPLAY=yes
 	AC_DEFINE(USE_PIPES)
 	AC_MSG_CHECKING(for HPUX trusted system password database)
 	if test -f /tcb/files/auth/system/default; then
@@ -1094,16 +1094,21 @@ if test -z "$disable_shadow" ; then
 fi
 
 # Use ip address instead of hostname in $DISPLAY
-DISPLAY_HACK_MSG="no" 
-AC_ARG_WITH(ipaddr-display,
-	[  --with-ipaddr-display   Use ip address instead of hostname in \$DISPLAY],
-	[
-		if test "x$withval" != "xno" ; then	
-			AC_DEFINE(IPADDR_IN_DISPLAY)
-			DISPLAY_HACK_MSG="yes" 
-		fi
-	]
-)
+if test ! -z "$IPADDR_IN_DISPLAY" ; then
+	DISPLAY_HACK_MSG="yes"
+	AC_DEFINE(IPADDR_IN_DISPLAY)
+else
+	DISPLAY_HACK_MSG="no" 
+	AC_ARG_WITH(ipaddr-display,
+		[  --with-ipaddr-display   Use ip address instead of hostname in \$DISPLAY],
+		[
+			if test "x$withval" != "xno" ; then	
+				AC_DEFINE(IPADDR_IN_DISPLAY)
+				DISPLAY_HACK_MSG="yes" 
+			fi
+		]
+	)
+fi
 
 # Whether to mess with the default path
 SERVER_PATH_MSG="(default)" 
