@@ -56,6 +56,7 @@ Peter Kocks <peter.kocks@baygate.com> - Makefile fixes
 Phil Hands <phil@hands.com> - Debian scripts, assorted patches
 Phil Karn <karn@ka9q.ampr.org> - Autoconf fix
 Phill Camp <P.S.S.Camp@ukc.ac.uk> - login code fix
+Rip Loomis <loomisg@cist.saic.com> - Solaris package support, fixes
 SAKAI Kiyotaka <ksakai@kso.netwk.ntt-at.co.jp> - Multiple bugfixes
 Simon Wilkinson <sxw@dcs.ed.ac.uk> - PAM fixes
 Svante Signell <svante.signell@telia.com> - Bugfixes

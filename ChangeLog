@@ -39,6 +39,7 @@
      [session.c sshd.8 sshd.c]
       sshd -u len, similar to telnetd
  - (djm) Lastlog was not getting closed after writing login entry
+ - (djm) Add Solaris package support from Rip Loomis <loomisg@cist.saic.com>
 
 20000816
  - (djm) Replacement for inet_ntoa for Irix (which breaks on gcc)

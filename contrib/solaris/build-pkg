@@ -1,0 +1,207 @@
+#!/bin/sh
+
+# OpenSSH solaris build script and supporting data files
+# Copyright (c) 2000 Rip Loomis and
+#   Science Applications International Corporation (SAIC)
+#   (http://www.cist-east.saic.com).  All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+# 3. The name of the author may not be used to endorse or promote products
+#    derived from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+# IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+# OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+# IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+# NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+# THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# Obviously, without all the hard work of the OpenBSD OpenSSH developers
+# and the OpenSSH Portability Team, these scripts would be pointless...
+# so thanks again folks!
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+#### Known issues
+# These methods are generally based on a "default" compilation of
+# OpenSSH on Solaris--so the more things that you change from the default,
+# the greater the chance that something in the script won't be able to
+# handle the changes.  In general, though, most things should be determined
+# from your compile environment--the architecture, SSH version, and
+# other related data should all get picked up by this script.  The script
+# and data files were last updated to match OpenSSH 2.1.1p4.
+#
+# All building and packaging is done under a temporary directory that is
+# itself created under the contrib/solaris directory--so there shouldn't
+# be any special security issues (or need for root access during the
+# packaging process).  The temporary directory is defined below as
+# ${BUILDDIR}.
+#
+# The permissions on the installed files are based on how we prefer to
+# do things here--so nothing is installed SetUID to root.
+#
+# The post-install script makes a good-faith attempt to install a
+# functional configuration on your system.  I would be interested in hearing
+# of any failure modes that are found, as I tried to compensate for all
+# the ones that showed up here when we started replacing all the
+# different installed versions of SSH.
+
+#### Body of the script (finally!)
+# We expect to be building the solaris package under the contrib/solaris
+# directory--but the build-package script might be run with a relative
+# path by a user in the main SSH directory...so we try to handle this
+# case.  Note that this is still a quick and dirty solution, not robust.
+
+if [ -f sshd.c ]; then
+   cd contrib/solaris >/dev/null
+fi
+
+# Locations of standard binaries
+UNAME=/usr/bin/uname
+SED=/usr/bin/sed
+PWD=/usr/bin/pwd
+CUT=/usr/bin/cut
+STRIP=/usr/ccs/bin/strip
+PKGMK=/usr/bin/pkgmk
+PKGTRANS=/usr/bin/pkgtrans
+GREP=/usr/bin/grep
+DATE=/usr/bin/date
+
+CURRDIR=`${PWD}`
+BUILDDIR=${CURRDIR}/build-SSH-package
+# If you really want to name the package "ssh" then go ahead, but the
+# Sun convention is that the first 2-4 characters are supposed to be
+# uppercase representing the company or organization that produced the
+# software, and the next 3-5 characters are supposed to be lowercase
+# identifying the specific software.  The best package names I could
+# come up with were "OBSDssh" or "OPENssh", given those constraints.
+PKGNAME="OPENssh"
+# PSTAMP is a standard setting in the 'pkginfo' file that helps to identify
+# the time and location that the packaging was done.
+PSTAMP="`${UNAME} -n`-`${DATE} +%Y-%m-%d-%H%M`"
+# The several lines below are designed to pull the relevant information
+# out of the Makefile.  It may be simpler to hard-code this if you have
+# made changes and these lines don't find them. 
+prefix=`${GREP} "^prefix=" ../../Makefile | ${CUT} -d = -f 2`
+execprefix=`${GREP} "^execprefix=" ../../Makefile | ${CUT} -d = -f 2`
+INSTROOT=${prefix:=/usr/local}
+ETCDIR=`${GREP} "^ETCDIR=" ../../Makefile | ${CUT} -d = -f 2`
+PIDDIR=`${GREP} "^piddir=" ../../Makefile | ${CUT} -d = -f 2`
+
+if [ ! -f ../../sshd ]; then
+   echo "Unable to locate sshd binary where I expected, and can't continue."
+   echo "Verify that the SSH configure/make has been completed, and that"
+   echo "  this script is being run from within the SSH source tree."
+   exit 1
+fi
+
+
+VERSION=`${GREP} "SSH_VERSION" ../../version.h | ${CUT} -f 2 | sed -e 's/"//g' -e 's/OpenSSH_//g'`
+# Extra shenanigans to compensate for Sun marketeer tricks with Solaris
+# version numbering...
+OSMINOR=`${UNAME} -r | ${CUT} -f 2 -d .`
+if [ $OSMINOR -gt 6 ]; then
+    OSVERSION=$OSMINOR
+else
+    OSVERSION=`${UNAME} -r | ${SED} 's/5/2/'`
+fi
+ARCH=`$UNAME -p`
+SHORTINSTROOT=""
+if [ "$INSTROOT" = "/usr/local" ]; then
+  SHORTINSTROOT="-local"
+else
+  if [ "$INSTROOT" = "/opt" ]; then
+    SHORTINSTROOT="-opt"
+  fi
+fi
+
+DESTFILE="${PKGNAME}-${VERSION}-sol${OSVERSION}-${ARCH}${SHORTINSTROOT}"
+
+echo "Building Solaris package of OpenSSH ${VERSION} in\n\t${BUILDDIR}."
+echo "Binaries were compiled for Solaris ${OSVERSION} (${ARCH})"
+echo "The installable package will be named ${DESTFILE}."
+echo "When installed, the package will be located under ${INSTROOT}."
+echo ""
+
+echo "Cleaning up old build files..."
+rm -rf $BUILDDIR
+mkdir $BUILDDIR
+cd $BUILDDIR
+
+echo "Setting up build directories..."
+mkdir -p ${BUILDDIR}/man/man1
+# Need manpages for sshd_config(5) and ssh_config(5), but we don't yet have.
+#mkdir -p ${BUILDDIR}/man/man5
+mkdir -p ${BUILDDIR}/man/man8
+mkdir -p ${BUILDDIR}/etc
+mkdir -p ${BUILDDIR}/bin
+mkdir -p ${BUILDDIR}/sbin
+
+echo "Populating build directories..."
+cp -p ../../../sshd sbin
+cp -p ../../../ssh-keygen bin
+cp -p ../../../ssh bin
+cp -p ../../../ssh-add bin
+cp -p ../../../ssh-agent bin
+cp -p ../../../scp bin
+cp -p ../../../scp.1 man/man1/scp.1
+cp -p ../../../ssh-add.1 man/man1/ssh-add.1
+cp -p ../../../ssh-agent.1 man/man1/ssh-agent.1
+cp -p ../../../ssh-keygen.1 man/man1/ssh-keygen.1
+cp -p ../../../ssh.1 man/man1/ssh.1
+cp -p ../../../sshd.8 man/man8/sshd.8
+cp -p ../../../sshd_config.out etc/sshd_config.default 
+cp -p ../../../ssh_config.out etc/ssh_config.default
+cp -p ../../../ssh_prng_cmds etc/ssh_prng_cmds.default
+
+# One of the annoying things about the Solaris packaging process is that
+# there's no simple way to prototype on the fly--so make sure you edit
+# the prototype file if you add/subtract files from the mix.
+cp -p ../prototype .
+cp -p ../preremove .
+
+echo "Creating compile-dependent files from their prototypes"
+$SED -e "s/%%PKGNAME%%/${PKGNAME}/g" -e "s|%%BASEDIR%%|${INSTROOT}|g" -e "s/%%VERSION%%/${VERSION}/g" -e "s/%%ARCH%%/${ARCH}/g" -e "s/%%OSVERSION%%/${OSVERSION}/g" <../pkginfo.in >./pkginfo
+$SED -e "s/%%PKGNAME%%/${PKGNAME}/g" -e "s/%%OSMINOR%%/${OSMINOR}/g" -e "s/%%OSVERSION%%/${OSVERSION}/g" <../checkinstall.in >./checkinstall
+$SED -e "s|%%PIDDIR%%|${PIDDIR}|g" <../postinstall.in >./postinstall
+$SED -e "s|%%PIDDIR%%|${PIDDIR}|g" <../sshd-initscript.in > etc/sshd-initscript
+
+echo "Stripping binaries"
+${STRIP} bin/ssh
+${STRIP} bin/ssh-add
+${STRIP} bin/ssh-agent
+${STRIP} bin/ssh-keygen
+${STRIP} sbin/sshd
+${STRIP} bin/scp
+
+echo ""
+echo "Building Package"
+
+cd ${BUILDDIR}
+$PKGMK -o -r . -p ${PSTAMP} -d ${BUILDDIR}
+
+if [ $? -gt 0 ]; then
+   echo "Error performing pkgmk--cannot continue."
+   exit 1
+fi
+
+echo ""
+echo "Translating Package Tree into Installable Image"
+$PKGTRANS -s ${BUILDDIR} ${BUILDDIR}/${DESTFILE} OPENssh
+
+if [ $? -gt 0 ]; then
+   echo "Error performing pkgtrans--cannot continue."
+   exit 1
+fi
+
+echo "Done.  Package is in ${BUILDDIR}/${DESTFILE} !"

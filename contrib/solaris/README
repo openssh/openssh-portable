@@ -1,0 +1,82 @@
+README for OpenSSH Solaris packaging scripts
+Rip Loomis <loomisg@saic.com> - 2000-08-02
+
+To use, simply expand this tarball under your main
+OpenSSH source directory--it will create a
+contrib/solaris subdirectory.  Run configure and
+make in OpenSSH as before.  Then, from either
+that directory or the main OpenSSH source directory,
+run the command "build-pkg" (specifying the
+appropriate path of course.)  A subdirectory
+will be created as contrib/solaris/build-SSH-package,
+and after the build is done the package will be
+present in that build-SSH-package directory
+with a name of the form
+OPENssh-$SSHversion-$arch-$OSversion[-$installLocation]
+
+The build and install scripts should take into account
+most possible situations (existing SSH installation,
+differences in Solaris version between build and
+target systems, changes you have made to the default
+configuration, etc.)  I would appreciate any feedback
+or comments.
+
+Copyright information is included below, followed by the known issue list.
+Both are taken verbatim from the "build-pkg" script.
+
+# OpenSSH solaris build script and supporting data files
+# Copyright (c) 2000 Rip Loomis and
+#   Science Applications International Corporation (SAIC)
+#   (http://www.cist-east.saic.com).  All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+# 3. The name of the author may not be used to endorse or promote products
+#    derived from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+# IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+# OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+# IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+# NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+# THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# Obviously, without all the hard work of the OpenBSD OpenSSH developers
+# and the OpenSSH Portability Team, these scripts would be pointless...
+# so thanks again folks!
+#=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+#### Known issues
+# These methods are generally based on a "default" compilation of
+# OpenSSH on Solaris--so the more things that you change from the default,
+# the greater the chance that something in the script won't be able to
+# handle the changes.  In general, though, most things should be determined
+# from your compile environment--the architecture, SSH version, and
+# other related data should all get picked up by this script.  The script
+# and data files were last updated to match OpenSSH 2.1.1p4.
+#
+# All building and packaging is done under a temporary directory that is
+# itself created under the contrib/solaris directory--so there shouldn't
+# be any special security issues (or need for root access during the
+# packaging process).  The temporary directory is defined below as
+# ${BUILDDIR}.
+#
+# The permissions on the installed files are based on how we prefer to
+# do things here--so nothing is installed SetUID to root.
+#
+# The post-install script makes a good-faith attempt to install a
+# functional configuration on your system.  I would be interested in hearing
+# of any failure modes that are found, as I tried to compensate for all
+# the ones that showed up here when we started replacing all the
+# different installed versions of SSH.
+

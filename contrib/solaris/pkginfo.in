@@ -1,0 +1,17 @@
+CLASSES=none
+BASEDIR="%%BASEDIR%%"
+PATH=/sbin:/usr/sbin:/usr/bin:/usr/sadm/install/bin
+OAMBASE=/usr/sadm/sysadm
+PKG=%%PKGNAME%%
+NAME="OpenSSH %%VERSION%% %%ARCH%%"
+DESC="Secure Shell remote access utility; replaces telnet and rlogin/rsh.  OpenBSD version ported to Solaris.  Compiled on Solaris %%OSVERSION%%"
+ARCH="%%ARCH%%"
+VERSION="%%VERSION%%"
+CATEGORY=utility,application
+VENDOR="Software produced by OpenSSH Portability Team, http://www.openssh.com/portable.html"
+EMAIL="OpenSSH Development List <openssh-unix-dev@mindrot.org>"
+PKGINST=%%PKGNAME%%
+PKGSAV=/var/sadm/pkg/%%PKGNAME%%/save
+ISTATES="S s 1 2 3"
+RSTATES="S s 1 2 3"
+UPDATE=0

@@ -1,0 +1,198 @@
+# PostInstall script for OPENssh
+INSTALLF="/usr/sbin/installf"
+
+instbackup() {
+    _DIRECTORY=$1
+    _FILEBASE=$2
+    $INSTALLF $PKGINST ${_DIRECTORY}/${_FILEBASE}
+    _SUFFIX=`/usr/bin/date +%Y-%m-%d-%H%M`
+    if [ -f ${_DIRECTORY}/${_FILEBASE} ]; then
+	echo "   Backing up file ${_FILEBASE}..."
+	if [ -f ${_DIRECTORY}/${_FILEBASE}.orig ]; then
+	    $INSTALLF $PKGINST ${_DIRECTORY}/${_FILEBASE}.orig.${_SUFFIX}
+	    cp -p ${_DIRECTORY}/${_FILEBASE} ${_DIRECTORY}/${_FILEBASE}.orig.${_SUFFIX}
+	    echo "   Saved as ${_DIRECTORY}/${_FILEBASE}.orig.${_SUFFIX}."
+	else 
+            $INSTALLF $PKGINST ${_DIRECTORY}/${_FILEBASE}.orig
+            cp -p ${_DIRECTORY}/${_FILEBASE} ${_DIRECTORY}/${_FILEBASE}.orig
+            echo "   Saved as ${_DIRECTORY}/${_FILEBASE}.orig."
+	fi
+    fi
+    cp -p ${_DIRECTORY}/${_FILEBASE}.default ${_DIRECTORY}/${_FILEBASE}
+    echo "Installed new ${_DIRECTORY}/${_FILEBASE} configuration file."
+} 
+
+### Main body of script
+
+echo ""
+echo "Beginning postinstall script--this script should leave you with a"
+echo "functional and operational configuration of OpenSSH."
+echo ""
+
+if [ ! "${UPDATE}" = "1" ]; then
+    echo "Performing a \"fresh\" installation of OpenSSH."
+    ### Install init script and create symlinks
+    $INSTALLF $PKGINST ${PKG_INSTALL_ROOT}/etc/init.d/sshd f 0500 root sys || exit 2
+    cp -p ${CONFDIR}/sshd-initscript ${PKG_INSTALL_ROOT}/etc/init.d/sshd
+    $INSTALLF $PKGINST ${PKG_INSTALL_ROOT}/etc/rc2.d/S72local_sshd=/etc/init.d/sshd s || exit 2
+    $INSTALLF $PKGINST ${PKG_INSTALL_ROOT}/etc/rc1.d/K30local_sshd=/etc/init.d/sshd s || exit 2
+    $INSTALLF $PKGINST ${PKG_INSTALL_ROOT}/etc/rc0.d/K30local_sshd=/etc/init.d/sshd s || exit 2
+
+    ### The initial package installation leaves default versions of
+    ### ssh_prng_cmds, ssh_config, and sshd_config in ${CONFDIR}.  Now
+    ### we need to decide whether to install them.  Since this is *not*
+    ### an update install, we don't ask, but simply back up the old ones
+    ### and put the new ones in their place.
+    instbackup ${CONFDIR} ssh_prng_cmds
+    instbackup ${CONFDIR} ssh_config
+    instbackup ${CONFDIR} sshd_config
+
+    ### If no existing sshd_config and host key, then create
+    if [ ! -f "${CONFDIR}/ssh_host_key" ]; then
+	echo "Creating new RSA public/private host key pair for SSH-1."
+	$INSTALLF $PKGINST ${CONFDIR}/ssh_host_key
+	$INSTALLF $PKGINST ${CONFDIR}/ssh_host_key.pub
+	### If there is *anything* there then leave it, otherwise look
+	### in some reasonable alternate locations before giving up.
+	### It's worth spending some extra time looking for the old one
+	### to avoid a bunch of "host identification has changed" warnings.
+        ### Note that some old keys from the commercial SSH might not
+        ### be compatible, but we don't test for that.
+	if [ -f "${PKG_INSTALL_ROOT}/etc/ssh_host_key" ]; then
+	   mv ${PKG_INSTALL_ROOT}/etc/ssh_host_key ${CONFDIR}
+	elif [ -f "${PKG_INSTALL_ROOT}/usr/local/etc/ssh_host_key" ]; then
+	   mv ${PKG_INSTALL_ROOT}/usr/local/etc/ssh_host_key ${CONFDIR}
+	else
+	   ${DESTBIN}/ssh-keygen -b 1024 -f ${CONFDIR}/ssh_host_key -N ''
+	fi
+    else
+        echo "Using existing RSA public/private host key pair for SSH-1."
+    fi
+    if [ ! -f "${CONFDIR}/ssh_host_dsa_key" ]; then
+        echo "Creating new DSA public/private host key pair for SSH-2."
+        $INSTALLF $PKGINST ${CONFDIR}/ssh_host_dsa_key
+        $INSTALLF $PKGINST ${CONFDIR}/ssh_host_dsa_key.pub
+        ### If there is *anything* there then leave it, otherwise look
+        ### in some reasonable alternate locations before giving up.
+        ### It's worth spending some extra time looking for the old one
+        ### to avoid a bunch of "host identification has changed" warnings.
+	### Note that some old keys from the commercial SSH2 might not
+	### be compatible, but we don't test for that.
+        if [ -f "${PKG_INSTALL_ROOT}/etc/ssh_host_dsa_key" ]; then
+           mv ${PKG_INSTALL_ROOT}/etc/ssh_host_dsa_key ${CONFDIR}
+        elif [ -f "${PKG_INSTALL_ROOT}/usr/local/etc/ssh_host_dsa_key" ]; then
+           mv ${PKG_INSTALL_ROOT}/usr/local/etc/ssh_host_dsa_key ${CONFDIR}
+        else
+           ${DESTBIN}/ssh-keygen -d -f ${CONFDIR}/ssh_host_dsa_key -N ''
+        fi
+    else
+        echo "Using existing DSA public/private host key pair for SSH-2."
+    fi
+else
+    echo "Performing an \"update\" installation of OpenSSH."
+    ### Okay, this part *is* an update install...so we need to ensure
+    ### we don't overwrite any of the existing files.
+
+    ### Install init script and create symlinks
+    if [ ! -f ${PKG_INSTALL_ROOT}/etc/init.d/sshd ]; then
+	echo "Installing init script in  ${PKG_INSTALL_ROOT}/etc/init.d/sshd"
+       $INSTALLF $PKGINST ${PKG_INSTALL_ROOT}/etc/init.d/sshd || exit 2
+	cp -p ${CONFDIR}/sshd-initscript ${PKG_INSTALL_ROOT}/etc/init.d/sshd
+	chown root:root ${PKG_INSTALL_ROOT}/etc/init.d/sshd
+	chmod 500 ${PKG_INSTALL_ROOT}/etc/init.d/sshd
+    fi
+    if [ ! -r ${PKG_INSTALL_ROOT}/etc/rc2.d/S72local_sshd ]; then
+       $INSTALLF $PKGINST ${PKG_INSTALL_ROOT}/etc/rc2.d/S72local_sshd=/etc/init.d/sshd s || exit 2
+    fi
+    if [ ! -r ${PKG_INSTALL_ROOT}/etc/rc2.d/K30local_sshd ]; then
+       $INSTALLF $PKGINST /etc/rc0.d/K30local_sshd=/etc/init.d/sshd s || exit 2
+    fi 
+
+    ### The initial package installation leaves default versions of
+    ### ssh_prng_cmds, ssh_config, and sshd_config in ${CONFDIR}.  Now
+    ### we need to decide whether to install them.  Since this is
+    ### an update install, we only install the new files if the old
+    ### files somehow don't exist.
+    NEWCONF=0
+    if [ ! -r "${CONFDIR}/ssh_prng_cmds" ]; then
+       instbackup ${CONFDIR} ssh_prng_cmds
+        NEWCONF=1
+    fi
+    if [ ! -r "${CONFDIR}/ssh_config" ]; then
+       instbackup ${CONFDIR} ssh_config
+        NEWCONF=1
+    fi
+    if [ ! -r "${CONFDIR}/ssh_config" ]; then
+       instbackup ${CONFDIR} sshd_config
+        NEWCONF=1
+    fi
+    if [ $NEWCONF -eq 0 ]; then
+        echo "Your existing SSH configuration files have not been altered."
+    else
+        echo "Your other existing SSH configuration files have not been altered."
+    fi
+
+    ### If no existing sshd_config and host key, then create
+    if [ ! -f "${CONFDIR}/ssh_host_key" ]; then
+        echo "Creating new RSA public/private host key pair for SSH-1."
+        $INSTALLF $PKGINST ${CONFDIR}/ssh_host_key
+        $INSTALLF $PKGINST ${CONFDIR}/ssh_host_key.pub
+        ### If there is *anything* there then leave it, otherwise look
+        ### in some reasonable alternate locations before giving up.
+        ### It's worth spending some extra time looking for the old one
+        ### to avoid a bunch of "host identification has changed" warnings.
+        ### Note that some old keys from the commercial SSH might not
+        ### be compatible, but we don't test for that.
+        if [ -f "${PKG_INSTALL_ROOT}/etc/ssh_host_key" ]; then
+           mv ${PKG_INSTALL_ROOT}/etc/ssh_host_key ${CONFDIR}
+        elif [ -f "${PKG_INSTALL_ROOT}/usr/local/etc/ssh_host_key" ]; then
+           mv ${PKG_INSTALL_ROOT}/usr/local/etc/ssh_host_key ${CONFDIR}
+        else
+           ${DESTBIN}/ssh-keygen -b 1024 -f ${CONFDIR}/ssh_host_key -N ''
+        fi
+    else
+        echo "Using existing RSA public/private host key pair for SSH-1."
+    fi
+    if [ ! -f "${CONFDIR}/ssh_host_dsa_key" ]; then
+        echo "Creating new DSA public/private host key pair for SSH-2."
+        $INSTALLF $PKGINST ${CONFDIR}/ssh_host_dsa_key
+        $INSTALLF $PKGINST ${CONFDIR}/ssh_host_dsa_key.pub
+        ### If there is *anything* there then leave it, otherwise look
+        ### in some reasonable alternate locations before giving up.
+        ### It's worth spending some extra time looking for the old one
+        ### to avoid a bunch of "host identification has changed" warnings.
+        ### Note that some old keys from the commercial SSH2 might not
+        ### be compatible, but we don't test for that.
+        if [ -f "${PKG_INSTALL_ROOT}/etc/ssh_host_dsa_key" ]; then
+           mv ${PKG_INSTALL_ROOT}/etc/ssh_host_dsa_key ${CONFDIR}
+        elif [ -f "${PKG_INSTALL_ROOT}/usr/local/etc/ssh_host_dsa_key" ]; then
+           mv ${PKG_INSTALL_ROOT}/usr/local/etc/ssh_host_dsa_key ${CONFDIR}
+        else
+           ${DESTBIN}/ssh-keygen -d -f ${CONFDIR}/ssh_host_dsa_key -N ''
+        fi
+    else
+        echo "Using existing DSA public/private host key pair for SSH-2."
+    fi
+fi
+
+if [ ! -d %%PIDDIR%% ]; then
+    $INSTALLF $PKGINST %%PIDDIR%%
+    mkdir -p %%PIDDIR%%
+    chown root:sys %%PIDDIR%%
+    chmod 755 %%PIDDIR%%
+fi
+
+$INSTALLF -f $PKGINST || exit 2
+
+if [ "X${PKG_INSTALL_ROOT}" = "X" ]; then
+   ### We're doing a local install, rather than an install for
+   ### old-style diskless clients.
+   echo "Stopping any current sshd process, and then starting the new sshd."
+   /etc/init.d/sshd stop
+   /etc/init.d/sshd start
+else
+   echo "Not restarting sshd, since this appears to be a remote install"
+   echo "for support of diskless clients."
+fi
+
+exit 0

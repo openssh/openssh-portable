@@ -1,0 +1,37 @@
+#!/bin/sh
+echo "Checking SunOS revision..."
+MINOR=`/bin/uname -r | /bin/cut -d "." -f 2`
+if [ ${MINOR} -lt %%OSMINOR%% ]; then
+   echo "This package was created on Solaris %%OSVERSION%%, and will probably"
+   echo "  not function correctly on older versions of Solaris."
+   echo "** Unable to continue. **"
+   exit 3
+fi
+echo "\t...revision okay."
+
+echo "Checking for existing SSH installation..."
+if [ -f /etc/sshd_config -o -f /usr/local/etc/sshd_config ]; then
+   UPDATE=1
+fi
+if [ -f /etc/ssh_host_key -o -f /usr/local/etc/ssh_host_key ]; then
+   UPDATE=1
+fi
+
+if [ ${UPDATE} -eq 1 ]; then
+   echo "Performing an \"update\" installation of %%PKGNAME%%"
+else
+   echo "Performing a \"fresh\" installation of %%PKGNAME%%"
+fi
+echo ""
+
+# We derive these at install time in case the package is relocated.
+CONFDIR="${BASEDIR}/etc"
+DESTBIN="${BASEDIR}/bin"
+
+# make parameters available to installation service, and
+# so to any other packaging scripts
+cat >$1 <<!
+CONFDIR='$CONFDIR'
+DESTBIN='$DESTBIN'
+UPDATE='$UPDATE'
+!

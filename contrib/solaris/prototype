@@ -1,0 +1,26 @@
+i pkginfo
+i checkinstall
+i postinstall
+i preremove
+d none man 0755 root sys 
+d none man/man1 0755 root sys
+f none man/man1/scp.1 0644 root sys
+f none man/man1/ssh-add.1 0644 root sys
+f none man/man1/ssh-agent.1 0644 root sys
+f none man/man1/ssh-keygen.1 0644 root sys
+f none man/man1/ssh.1 0644 root sys
+d none man/man8 0755 root sys
+f none man/man8/sshd.8 0644 root sys
+d none etc 0755 root sys
+f none etc/sshd_config.default 0644 root sys
+f none etc/ssh_config.default 0644 root sys
+f none etc/ssh_prng_cmds.default 0644 root sys
+f none etc/sshd-initscript 0755 root sys
+d none bin 0755 root sys
+f none bin/ssh-keygen 0755 root sys
+f none bin/ssh 0755 root sys
+f none bin/ssh-add 0755 root sys
+f none bin/ssh-agent 0755 root sys
+f none bin/scp 0755 root sys
+d none sbin 0755 root sys
+f none sbin/sshd 0755 root sys
