@@ -1,6 +1,7 @@
 20040211
  - (dtucker) [auth-passwd.c auth-shadow.c] Only enable shadow expiry check
    if HAS_SHADOW_EXPIRY is set.
+ - (tim) [configure.ac] Fix comment to match code changes in ver 1.117
 
 20040210
  - (dtucker) [auth-passwd.c auth.h openbsd-compat/port-aix.c
@@ -1844,4 +1845,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3225 2004/02/11 07:48:52 dtucker Exp $
+$Id: ChangeLog,v 1.3226 2004/02/11 22:46:40 tim Exp $

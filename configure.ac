@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.196 2004/02/10 06:15:05 dtucker Exp $
+# $Id: configure.ac,v 1.197 2004/02/11 22:46:40 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -1158,7 +1158,7 @@ Also see contrib/findssl.sh for help identifying header/library mismatches.])
 )
 
 # Some Linux systems (Slackware) need crypt() from libcrypt, *not* the
-# version in OpenSSL. Skip this for PAM
+# version in OpenSSL.
 if test "x$check_for_libcrypt_later" = "x1"; then
 	AC_CHECK_LIB(crypt, crypt, LIBS="$LIBS -lcrypt")
 fi
