@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: sftp-server.c,v 1.34 2002/06/06 17:12:44 markus Exp $");
+RCSID("$OpenBSD: sftp-server.c,v 1.35 2002/06/06 17:30:11 markus Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
@@ -368,7 +368,7 @@ process_init(void)
 {
 	Buffer msg;
 
-	version = buffer_get_int(&iqueue);
+	version = get_int();
 	TRACE("client version %d", version);
 	buffer_init(&msg);
 	buffer_put_char(&msg, SSH2_FXP_VERSION);
