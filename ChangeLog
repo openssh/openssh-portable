@@ -18,6 +18,7 @@
    -Wshadow change.
  - (dtucker) [auth.c openbsd-compat/port-aix.c openbsd-compat/port-aix.h]
    Move loginrestrictions test to port-aix.c, replace with a generic hook.
+ - (tim) [regress/try-ciphers.sh] "if ! some_command" is not portable.
 
 20040622
  - (bal) [auth-passwd.c auth1.c] Clean up unused variables.
@@ -1390,4 +1391,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3439 2004/06/23 03:45:24 dtucker Exp $
+$Id: ChangeLog,v 1.3440 2004/06/23 03:53:02 tim Exp $
