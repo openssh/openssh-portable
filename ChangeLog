@@ -1,3 +1,6 @@
+20020622
+ - (djm) Update README.privsep; spotted by fries@
+
 20020621
  - (djm) Sync:
    - djm@cvs.openbsd.org 2002/06/21 05:50:51
@@ -1000,4 +1003,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2238 2002/06/21 06:42:41 djm Exp $
+$Id: ChangeLog,v 1.2239 2002/06/21 14:45:50 djm Exp $

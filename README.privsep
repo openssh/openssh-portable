@@ -1,13 +1,12 @@
-Privilege separation, or privsep, is an experimental feature in
-OpenSSH in which operations that require root privilege are performed
-by a separate privileged monitor process.  Its purpose is to prevent
-privilege escalation by containing corruption to an unprivileged
-process.  More information is available at:
+Privilege separation, or privsep, is method in OpenSSH by which
+operations that require root privilege are performed by a separate
+privileged monitor process.  Its purpose is to prevent privilege
+escalation by containing corruption to an unprivileged process.  
+More information is available at:
 	http://www.citi.umich.edu/u/provos/ssh/privsep.html
 
-Privilege separation is not enabled by default, and may be enabled by
-specifying "UsePrivilegeSeparation yes" in sshd_config; see the
-UsePrivilegeSeparation option in sshd(8).
+Privilege separation is now enabled by default; see the
+UsePrivilegeSeparation option in sshd_config(5).
 
 When privsep is enabled, the pre-authentication sshd process will
 chroot(2) to "/var/empty" and change its privileges to the "sshd" user
@@ -34,8 +33,8 @@ privsep user and chroot directory:
 Privsep requires operating system support for file descriptor passing
 and mmap(MAP_ANON).
 
-PAM-enabled OpenSSH is known to function with privsep on Linux and
-Solaris 8.  It does not function on HP-UX with a trusted system
+PAM-enabled OpenSSH is known to function with privsep on Linux.  
+It does not function on HP-UX with a trusted system
 configuration.  PAMAuthenticationViaKbdInt does not function with
 privsep.
 
@@ -54,4 +53,4 @@ process 1005 is the sshd process listening for new connections.
 process 6917 is the privileged monitor process, 6919 is the user owned
 sshd process and 6921 is the shell process.
 
-$Id: README.privsep,v 1.5 2002/05/22 01:02:15 djm Exp $
+$Id: README.privsep,v 1.6 2002/06/21 14:45:50 djm Exp $
