@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.129 2004/07/11 17:48:47 deraadt Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.130 2004/08/11 21:43:04 avsm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -348,7 +348,7 @@ server_alive_check(void)
  */
 static void
 client_wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp,
-    int *maxfdp, int *nallocp, int rekeying)
+    int *maxfdp, u_int *nallocp, int rekeying)
 {
 	struct timeval tv, *tvp;
 	int ret;
@@ -1147,7 +1147,8 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 {
 	fd_set *readset = NULL, *writeset = NULL;
 	double start_time, total_time;
-	int max_fd = 0, max_fd2 = 0, len, rekeying = 0, nalloc = 0;
+	int max_fd = 0, max_fd2 = 0, len, rekeying = 0;
+	u_int nalloc = 0;
 	char buf[100];
 
 	debug("Entering interactive session.");

@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.h,v 1.16 2004/06/17 15:10:14 djm Exp $	*/
+/*	$OpenBSD: misc.h,v 1.17 2004/08/11 21:43:05 avsm Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -29,8 +29,8 @@ struct passwd *pwcopy(struct passwd *);
 typedef struct arglist arglist;
 struct arglist {
 	char    **list;
-	int     num;
-	int     nalloc;
+	u_int   num;
+	u_int   nalloc;
 };
 void	 addargs(arglist *, char *, ...) __attribute__((format(printf, 2, 3)));
 

@@ -1,4 +1,4 @@
-/*	$OpenBSD: channels.h,v 1.73 2004/06/13 15:03:02 djm Exp $	*/
+/*	$OpenBSD: channels.h,v 1.74 2004/08/11 21:43:04 avsm Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -184,7 +184,7 @@ void	 channel_input_window_adjust(int, u_int32_t, void *);
 
 /* file descriptor handling (read/write) */
 
-void	 channel_prepare_select(fd_set **, fd_set **, int *, int*, int);
+void	 channel_prepare_select(fd_set **, fd_set **, int *, u_int*, int);
 void     channel_after_select(fd_set *, fd_set *);
 void     channel_output_poll(void);
 

@@ -1,6 +1,10 @@
 20040813
  - (dtucker) [openbsd-compat/bsd-misc.c] Typo in #ifdef; from vinschen at
    redhat.com
+- (dtucker) OpenBSD CVS Sync
+   - avsm@cvs.openbsd.org 2004/08/11 21:43:05
+     [channels.c channels.h clientloop.c misc.c misc.h serverloop.c ssh-agent.c]
+     some signed/unsigned int comparison cleanups; markus@ ok
 
 20040812
  - (dtucker) [sshd.c] Remove duplicate variable imported during sync.
@@ -1598,4 +1602,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3498 2004/08/13 08:37:21 dtucker Exp $
+$Id: ChangeLog,v 1.3499 2004/08/13 11:18:00 dtucker Exp $
