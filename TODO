@@ -9,5 +9,3 @@
 
 - Cleanup configure.in
 
-- Load / write random seed on startup / exit
-
