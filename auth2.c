@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.84 2002/02/04 11:58:10 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.85 2002/02/24 19:14:59 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -398,7 +398,8 @@ userauth_pubkey(Authctxt *authctxt)
 {
 	Buffer b;
 	Key *key = NULL;
-	char *pkalg, *pkblob, *sig;
+	char *pkalg;
+	u_char *pkblob, *sig;
 	u_int alen, blen, slen;
 	int have_sig, pktype;
 	int authenticated = 0;
@@ -512,7 +513,8 @@ userauth_hostbased(Authctxt *authctxt)
 {
 	Buffer b;
 	Key *key = NULL;
-	char *pkalg, *pkblob, *sig, *cuser, *chost, *service;
+	char *pkalg, *cuser, *chost, *service;
+	u_char *pkblob, *sig;
 	u_int alen, blen, slen;
 	int pktype;
 	int authenticated = 0;
@@ -794,4 +796,3 @@ hostbased_key_allowed(struct passwd *pw, const char *cuser, char *chost,
 
 	return (host_status == HOST_OK);
 }
-

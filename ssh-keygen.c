@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.92 2002/02/16 20:40:08 stevesk Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.93 2002/02/24 19:14:59 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -196,7 +196,7 @@ buffer_get_bignum_bits(Buffer *b, BIGNUM *value)
 }
 
 static Key *
-do_convert_private_ssh2_from_blob(u_char *blob, int blen)
+do_convert_private_ssh2_from_blob(u_char *blob, u_int blen)
 {
 	Buffer b;
 	Key *key = NULL;

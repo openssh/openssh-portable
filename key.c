@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: key.c,v 1.39 2002/01/25 22:07:40 markus Exp $");
+RCSID("$OpenBSD: key.c,v 1.40 2002/02/24 19:14:59 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -176,7 +176,7 @@ key_fingerprint_raw(Key *k, enum fp_type dgst_type, u_int *dgst_raw_length)
 	EVP_MD_CTX ctx;
 	u_char *blob = NULL;
 	u_char *retval = NULL;
-	int len = 0;
+	u_int len = 0;
 	int nlen, elen;
 
 	*dgst_raw_length = 0;
@@ -488,8 +488,9 @@ key_read(Key *ret, char **cpp)
 int
 key_write(Key *key, FILE *f)
 {
-	int success = 0;
-	u_int bits = 0;
+	int n, success = 0;
+	u_int len, bits = 0;
+	u_char *blob, *uu;
 
 	if (key->type == KEY_RSA1 && key->rsa != NULL) {
 		/* size of modulus 'n' */
@@ -503,8 +504,6 @@ key_write(Key *key, FILE *f)
 		}
 	} else if ((key->type == KEY_DSA && key->dsa != NULL) ||
 	    (key->type == KEY_RSA && key->rsa != NULL)) {
-		int len, n;
-		u_char *blob, *uu;
 		key_to_blob(key, &blob, &len);
 		uu = xmalloc(2*len);
 		n = uuencode(blob, len, uu, 2*len);
@@ -763,8 +762,8 @@ key_to_blob(Key *key, u_char **blobp, u_int *lenp)
 int
 key_sign(
     Key *key,
-    u_char **sigp, int *lenp,
-    u_char *data, int datalen)
+    u_char **sigp, u_int *lenp,
+    u_char *data, u_int datalen)
 {
 	switch (key->type) {
 	case KEY_DSA:
@@ -783,8 +782,8 @@ key_sign(
 int
 key_verify(
     Key *key,
-    u_char *signature, int signaturelen,
-    u_char *data, int datalen)
+    u_char *signature, u_int signaturelen,
+    u_char *data, u_int datalen)
 {
 	if (signaturelen == 0)
 		return -1;

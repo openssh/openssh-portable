@@ -38,6 +38,10 @@
    - markus@cvs.openbsd.org 2002/02/24 18:31:09
      [uuencode.c]
      typo in comment
+   - markus@cvs.openbsd.org 2002/02/24 19:14:59
+     [auth2.c authfd.c authfd.h authfile.c kexdh.c kexgex.c key.c key.h 
+      ssh-dss.c ssh-dss.h ssh-keygen.c ssh-rsa.c ssh-rsa.h sshconnect2.c]
+     signed vs. unsigned: make size arguments u_int, ok stevesk@
 
 20020225
  - (bal) Last AIX patch.  Moved aix_usrinfo() outside of do_setuserconext()
@@ -7711,4 +7715,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1884 2002/02/26 18:07:26 mouring Exp $
+$Id: ChangeLog,v 1.1885 2002/02/26 18:09:42 mouring Exp $

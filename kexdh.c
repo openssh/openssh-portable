@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kexdh.c,v 1.15 2002/02/23 17:59:02 markus Exp $");
+RCSID("$OpenBSD: kexdh.c,v 1.16 2002/02/24 19:14:59 markus Exp $");
 
 #include <openssl/crypto.h>
 #include <openssl/bn.h>
@@ -201,7 +201,7 @@ kexdh_server(Kex *kex)
 	Key *server_host_key;
 	u_char *kbuf, *hash, *signature = NULL, *server_host_key_blob = NULL;
 	u_int sbloblen, klen, kout;
-	int slen;
+	u_int slen;
 
 	/* generate server DH public key */
 	dh = dh_new_group1();

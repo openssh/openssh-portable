@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-rsa.h,v 1.5 2001/06/26 17:27:25 markus Exp $	*/
+/*	$OpenBSD: ssh-rsa.h,v 1.6 2002/02/24 19:14:59 markus Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -26,7 +26,7 @@
 #ifndef SSH_RSA_H
 #define SSH_RSA_H
 
-int	 ssh_rsa_sign(Key *, u_char **, int *, u_char *, int);
-int	 ssh_rsa_verify(Key *, u_char *, int, u_char *, int);
+int	 ssh_rsa_sign(Key *, u_char **, u_int *, u_char *, u_int);
+int	 ssh_rsa_verify(Key *, u_char *, u_int, u_char *, u_int);
 
 #endif

@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kexgex.c,v 1.18 2002/02/23 17:59:02 markus Exp $");
+RCSID("$OpenBSD: kexgex.c,v 1.19 2002/02/24 19:14:59 markus Exp $");
 
 #include <openssl/bn.h>
 
@@ -261,8 +261,8 @@ kexgex_server(Kex *kex)
 	Key *server_host_key;
 	DH *dh = dh;
 	u_char *kbuf, *hash, *signature = NULL, *server_host_key_blob = NULL;
-	u_int sbloblen, klen, kout;
-	int min = -1, max = -1, nbits = -1, type, slen;
+	u_int sbloblen, klen, kout, slen;
+	int min = -1, max = -1, nbits = -1, type;
 
 	if (kex->load_host_key == NULL)
 		fatal("Cannot load hostkey");

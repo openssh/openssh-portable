@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.95 2002/02/03 17:59:23 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.96 2002/02/24 19:14:59 markus Exp $");
 
 #include "ssh.h"
 #include "ssh2.h"
@@ -138,7 +138,7 @@ typedef struct Authmethod Authmethod;
 
 typedef int sign_cb_fn(
     Authctxt *authctxt, Key *key,
-    u_char **sigp, int *lenp, u_char *data, int datalen);
+    u_char **sigp, u_int *lenp, u_char *data, u_int datalen);
 
 struct Authctxt {
 	const char *server_user;
@@ -353,8 +353,10 @@ input_userauth_pk_ok(int type, u_int32_t seq, void *ctxt)
 	Authctxt *authctxt = ctxt;
 	Key *key = NULL;
 	Buffer b;
-	int pktype, alen, blen, sent = 0;
-	char *pkalg, *pkblob, *fp;
+	int pktype, sent = 0;
+	u_int alen, blen;
+	char *pkalg, *fp;
+	u_char *pkblob;
 
 	if (authctxt == NULL)
 		fatal("input_userauth_pk_ok: no authentication context");
@@ -480,7 +482,7 @@ sign_and_send_pubkey(Authctxt *authctxt, Key *k, sign_cb_fn *sign_callback)
 {
 	Buffer b;
 	u_char *blob, *signature;
-	int bloblen, slen;
+	u_int bloblen, slen;
 	int skip = 0;
 	int ret = -1;
 	int have_sig = 1;
@@ -632,8 +634,8 @@ load_identity_file(char *filename)
 }
 
 static int
-identity_sign_cb(Authctxt *authctxt, Key *key, u_char **sigp, int *lenp,
-    u_char *data, int datalen)
+identity_sign_cb(Authctxt *authctxt, Key *key, u_char **sigp, u_int *lenp,
+    u_char *data, u_int datalen)
 {
 	Key *private;
 	int idx, ret;
@@ -655,15 +657,15 @@ identity_sign_cb(Authctxt *authctxt, Key *key, u_char **sigp, int *lenp,
 }
 
 static int
-agent_sign_cb(Authctxt *authctxt, Key *key, u_char **sigp, int *lenp,
-    u_char *data, int datalen)
+agent_sign_cb(Authctxt *authctxt, Key *key, u_char **sigp, u_int *lenp,
+    u_char *data, u_int datalen)
 {
 	return ssh_agent_sign(authctxt->agent, key, sigp, lenp, data, datalen);
 }
 
 static int
-key_sign_cb(Authctxt *authctxt, Key *key, u_char **sigp, int *lenp,
-    u_char *data, int datalen)
+key_sign_cb(Authctxt *authctxt, Key *key, u_char **sigp, u_int *lenp,
+    u_char *data, u_int datalen)
 {
 	return key_sign(key, sigp, lenp, data, datalen);
 }

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-rsa.c,v 1.15 2002/01/25 21:42:11 markus Exp $");
+RCSID("$OpenBSD: ssh-rsa.c,v 1.16 2002/02/24 19:14:59 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -40,8 +40,8 @@ RCSID("$OpenBSD: ssh-rsa.c,v 1.15 2002/01/25 21:42:11 markus Exp $");
 int
 ssh_rsa_sign(
     Key *key,
-    u_char **sigp, int *lenp,
-    u_char *data, int datalen)
+    u_char **sigp, u_int *lenp,
+    u_char *data, u_int datalen)
 {
 	const EVP_MD *evp_md;
 	EVP_MD_CTX md;
@@ -110,8 +110,8 @@ ssh_rsa_sign(
 int
 ssh_rsa_verify(
     Key *key,
-    u_char *signature, int signaturelen,
-    u_char *data, int datalen)
+    u_char *signature, u_int signaturelen,
+    u_char *data, u_int datalen)
 {
 	Buffer b;
 	const EVP_MD *evp_md;

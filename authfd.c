@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfd.c,v 1.47 2002/01/18 18:14:17 stevesk Exp $");
+RCSID("$OpenBSD: authfd.c,v 1.48 2002/02/24 19:14:59 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -374,8 +374,8 @@ ssh_decrypt_challenge(AuthenticationConnection *auth,
 int
 ssh_agent_sign(AuthenticationConnection *auth,
     Key *key,
-    u_char **sigp, int *lenp,
-    u_char *data, int datalen)
+    u_char **sigp, u_int *lenp,
+    u_char *data, u_int datalen)
 {
 	extern int datafellows;
 	Buffer msg;
