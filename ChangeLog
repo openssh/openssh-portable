@@ -4,6 +4,8 @@
  - (bal) [configure.ac defines.h loginrec.c sshd.c sshpty.c] Partial sync
    with Cray (mostly #ifdef renaming).  Patch by wendyp@cray.com.
  - (bal) [configure.ac]  Missing ;; from cray patch.
+ - (bal) [monitor_mm.c openbsd-compat/xmmap.h] Move xmmap() defines
+   into it's own header.
 
 20020721
  - (stevesk) [auth-pam.c] merge cosmetic changes from solar's
@@ -1415,4 +1417,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2390 2002/07/23 00:00:05 mouring Exp $
+$Id: ChangeLog,v 1.2391 2002/07/23 00:03:33 mouring Exp $
