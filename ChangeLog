@@ -20,6 +20,12 @@
    - markus@cvs.openbsd.org  2000/09/28 12:03:18
      [channels.c]
      debug -> debug2 cleanup
+ - (djm) Irix strips "/dev/tty" from [uw]tmp entries (other systems only 
+   strip "/dev/"). Fix loginrec.c based on patch from Alain St-Denis
+   <Alain.St-Denis@ec.gc.ca>
+ - (djm) Fix 9 character passphrase failure with gnome-ssh-askpass. 
+   Problem was caused by interrupted read in ssh-add. Report from Donald 
+   J. Barry <don@astro.cornell.edu>
 
 20000929
  - (djm) Fix SSH2 not terminating until all background tasks done problem.

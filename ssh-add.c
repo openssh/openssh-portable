@@ -117,7 +117,7 @@ ssh_askpass(char *askpass, char *msg)
 		fatal("ssh_askpass: exec(%s): %s", askpass, strerror(errno));
 	}
 	close(p[1]);
-	len = read(p[0], buf, sizeof buf);
+	len = atomicio(read, p[0], buf, sizeof buf);
 	close(p[0]);
 	while (waitpid(pid, &status, 0) < 0)
 		if (errno != EINTR)

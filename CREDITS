@@ -3,6 +3,7 @@ Tatu Ylonen <ylo@cs.hut.fi> - Creator of SSH
 Aaron Campbell, Bob Beck, Markus Friedl, Niels Provos, 
 Theo de Raadt, and Dug Song - Creators of OpenSSH
 
+Alain St-Denis <Alain.St-Denis@ec.gc.ca> - Irix fix
 Alexandre Oliva <oliva@lsd.ic.unicamp.br> - AIX fixes
 Andre Lucas <andre.lucas@dial.pipex.com> - new login code, many fixes
 Andreas Steinmetz <ast@domdv.de> - Shadow password expiry support
