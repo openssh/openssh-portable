@@ -9,6 +9,9 @@
    - markus@cvs.openbsd.org 2002/04/20 09:14:58
      [bufaux.c bufaux.h]
      add buffer_{get,put}_short
+   - markus@cvs.openbsd.org 2002/04/20 09:17:19
+     [radix.c]
+     rewrite using the buffer_* API, fixes overflow; ok deraadt@
 
 20020421
  - (tim) [entropy.c.] Portability fix for SCO Unix 3.2v4.x (SCO OSR 3.0).
@@ -8275,4 +8278,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2064 2002/04/23 10:42:36 djm Exp $
+$Id: ChangeLog,v 1.2065 2002/04/23 10:46:56 djm Exp $
