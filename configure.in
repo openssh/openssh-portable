@@ -1641,7 +1641,7 @@ fi
 
 AC_EXEEXT
 
-AC_OUTPUT(Makefile ssh_prng_cmds)
+AC_OUTPUT(Makefile openbsd-compat/Makefile ssh_prng_cmds)
 
 # Print summary of options
 

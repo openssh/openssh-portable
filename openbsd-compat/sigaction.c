@@ -35,7 +35,7 @@
 
 #include <signal.h>
 #include "config.h"
-#include "bsd-sigaction.h"
+#include "sigaction.h"
 
 /* This file provides sigaction() emulation using sigvec() */
 /* Use only if this is non POSIX system */

@@ -58,7 +58,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "bsd-base64.h"
+#include "base64.h"
 
 #define Assert(Cond) if (!(Cond)) abort()
 

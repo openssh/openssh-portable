@@ -1,4 +1,4 @@
-20000131
+20010131
  - (djm) OpenBSD CVS Sync:
    - djm@cvs.openbsd.org     2001/01/30 15:48:53
      [sshconnect.c]
@@ -8,8 +8,11 @@
    respectively.
  - (djm) Don't log SSH2 PAM KbdInt responses to debug, they may contain
    passwords.
+ - (bal) Reorder.  Move all bsd-*, fake-*, next-*, and cygwin* stuff to
+   openbsd-compat/.  And resolve all ./configure and Makefile.in issues
+   assocated.
 
-20000130
+20010130
  - (djm) OpenBSD CVS Sync:
    - markus@cvs.openbsd.org  2001/01/29 09:55:37
      [channels.c channels.h clientloop.c serverloop.c]
@@ -26,7 +29,7 @@
      Allow invocation of sybsystem by commandline (-s); ok markus@
  - (stevesk) configure.in: remove duplicate PROG_LS
 
-20000129
+20010129
  - (stevesk) sftp-server.c: use %lld vs. %qd
 
 20010128

@@ -21,7 +21,7 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 
 #include "config.h"
 
-#include "next-posix.h"
+#include "bsd-nextstep.h"
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -95,7 +95,7 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #endif
 #include "version.h"
 #include "openbsd-compat.h"
-#include "cygwin_util.h"
+#include "bsd-cygwin_util.h"
 #include "entropy.h"
 
 #endif /* INCLUDES_H */
