@@ -33,7 +33,7 @@ if [ -z "`eval $GET_ID`" ]; then
   exit 1
 fi
 
-{ eval "$GET_ID" ; } | ssh $1 "test -d .ssh || mkdir .ssh ; cat >> .ssh/authorized_keys ; chmod g-w . .ssh .ssh/authorized_keys"
+{ eval "$GET_ID" ; } | ssh $1 "umask 077; test -d .ssh || mkdir .ssh ; cat >> .ssh/authorized_keys"
 
 cat <<EOF
 Now try logging into the machine, with "ssh '$1'", and check in:

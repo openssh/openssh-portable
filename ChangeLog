@@ -1,3 +1,7 @@
+20011007
+ - (bal) ssh-copy-id corrected permissions for .ssh/ and authorized_keys.
+   Prompted by Matthew Vernon <matthew@sel.cam.ac.uk> 
+
 20011005
  - (bal) AES works under Cray, no more hack. 
 
@@ -6638,4 +6642,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1583 2001/10/06 00:08:09 mouring Exp $
+$Id: ChangeLog,v 1.1584 2001/10/08 01:54:24 mouring Exp $
