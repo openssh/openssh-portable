@@ -1,4 +1,4 @@
-#	$OpenBSD: sshd_config,v 1.30 2001/02/03 10:19:51 markus Exp $
+#	$OpenBSD: sshd_config,v 1.32 2001/02/06 22:07:50 deraadt Exp $
 
 # This is the sshd server system-wide configuration file.  See sshd(8)
 # for more information.
@@ -42,7 +42,7 @@ PasswordAuthentication yes
 PermitEmptyPasswords no
 
 # Uncomment to disable s/key passwords 
-#ChallengeResposeAuthentication no
+#ChallengeResponseAuthentication no
 
 # To change Kerberos options
 #KerberosAuthentication no
@@ -56,8 +56,8 @@ PermitEmptyPasswords no
 #CheckMail yes
 #UseLogin no
 
-# Uncomment if you want to enable sftp
-#Subsystem	sftp	/usr/libexec/sftp-server
 #MaxStartups 10:30:60
 #Banner /etc/issue.net
 #ReverseMappingCheck yes
+
+Subsystem	sftp	/usr/libexec/sftp-server

@@ -77,6 +77,12 @@
      [sshconnect.c]
      don't connect if batch_mode is true and stricthostkeychecking set to 
     'ask'
+   - djm@cvs.openbsd.org 2001/02/04 21:26:07
+     [sshd_config]
+     type: ok markus@
+   - deraadt@cvs.openbsd.org 2001/02/06 22:07:50
+     [sshd_config]
+     enable sftp-server by default
  - (bal) fixed sftp-client.c.  Return 'status' instead of '0'  
    (from the OpenBSD tree)
  - (bal) Synced ssh.1, ssh-add.1 and sshd.8 w/ OpenBSD
@@ -3864,4 +3870,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.733 2001/02/10 23:21:09 mouring Exp $
+$Id: ChangeLog,v 1.734 2001/02/10 23:26:35 mouring Exp $
