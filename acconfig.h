@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.123 2002/03/22 17:23:26 stevesk Exp $ */
+/* $Id: acconfig.h,v 1.124 2002/03/22 18:19:54 stevesk Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -180,6 +180,12 @@
 
 /* Define if libc defines __progname */
 #undef HAVE___PROGNAME
+
+/* Define if compiler implements __FUNCTION__ */
+#undef HAVE___FUNCTION__
+
+/* Define if compiler implements __func__ */
+#undef HAVE___func__
 
 /* Define if you want Kerberos 4 support */
 #undef KRB4

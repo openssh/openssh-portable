@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.27 2002/03/22 17:23:26 stevesk Exp $
+# $Id: configure.ac,v 1.28 2002/03/22 18:19:54 stevesk Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -1601,6 +1601,32 @@ AC_CACHE_CHECK([if libc defines __progname], ac_cv_libc_defines___progname, [
 ])
 if test "x$ac_cv_libc_defines___progname" = "xyes" ; then
 	AC_DEFINE(HAVE___PROGNAME)
+fi
+
+AC_CACHE_CHECK([whether $CC implements __FUNCTION__], ac_cv_cc_implements___FUNCTION__, [
+	AC_TRY_LINK([
+#include <stdio.h>
+], 
+		[ printf("%s", __FUNCTION__); ], 
+		[ ac_cv_cc_implements___FUNCTION__="yes" ],
+		[ ac_cv_cc_implements___FUNCTION__="no" ]
+	)
+])
+if test "x$ac_cv_cc_implements___FUNCTION__" = "xyes" ; then
+	AC_DEFINE(HAVE___FUNCTION__)
+fi
+
+AC_CACHE_CHECK([whether $CC implements __func__], ac_cv_cc_implements___func__, [
+	AC_TRY_LINK([
+#include <stdio.h>
+], 
+		[ printf("%s", __func__); ], 
+		[ ac_cv_cc_implements___func__="yes" ],
+		[ ac_cv_cc_implements___func__="no" ]
+	)
+])
+if test "x$ac_cv_cc_implements___func__" = "xyes" ; then
+	AC_DEFINE(HAVE___func__)
 fi
 
 AC_CACHE_CHECK([whether getopt has optreset support],

@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.81 2002/03/08 03:11:08 mouring Exp $ */
+/* $Id: defines.h,v 1.82 2002/03/22 18:19:54 stevesk Exp $ */
 
 /* Necessary headers */
 
@@ -488,6 +488,12 @@ struct winsize {
 /* OPENSSL_free() is Free() in versions before OpenSSL 0.9.6 */
 #if !defined(OPENSSL_VERSION_NUMBER) || (OPENSSL_VERSION_NUMBER < 0x0090600f)
 # define OPENSSL_free(x) Free(x)
+#endif
+
+#if defined(HAVE___func__)
+#  define __FUNCTION__ __func__
+#elif !defined(HAVE___FUNCTION__)
+#  define __FUNCTION__ ""
 #endif
 
 /*
