@@ -1,28 +1,31 @@
+19991122
+ - Make <enter> close gnome-ssh-askpass (Debian bug #50299)
+
 19991121
-  - OpenBSD CVS Changes
-    - [channels.c]
-      make this compile, bad markus
-    - [log.c readconf.c servconf.c ssh.h]
-      bugfix: loglevels are per host in clientconfig,
-      factor out common log-level parsing code.
-    - [servconf.c]
-      remove unused index (-Wall)
-    - [ssh-agent.c]
-      only one 'extern char *__progname'
-    - [sshd.8]
-      document SIGHUP, -Q to synopsis
-    - [sshconnect.c serverloop.c sshd.c packet.c packet.h]
-      [channels.c clientloop.c]
-      SSH_CMSG_MAX_PACKET_SIZE, some clients use this, some need this, niels@
-      [hope this time my ISP stays alive during commit]
-    - [OVERVIEW README] typos; green@freebsd
-    - [ssh-keygen.c]
-      replace xstrdup+strcat with strlcat+fixed buffer, fixes OF (bad me)
-      exit if writing the key fails (no infinit loop)
-      print usage() everytime we get bad options
-    - [ssh-keygen.c] overflow, djm@mindrot.org
-    - [sshd.c] fix sigchld race; cjc5@po.cwru.edu
-      
+ - OpenBSD CVS Changes
+   - [channels.c]
+     make this compile, bad markus
+   - [log.c readconf.c servconf.c ssh.h]
+     bugfix: loglevels are per host in clientconfig,
+     factor out common log-level parsing code.
+   - [servconf.c]
+     remove unused index (-Wall)
+   - [ssh-agent.c]
+     only one 'extern char *__progname'
+   - [sshd.8]
+     document SIGHUP, -Q to synopsis
+   - [sshconnect.c serverloop.c sshd.c packet.c packet.h]
+     [channels.c clientloop.c]
+     SSH_CMSG_MAX_PACKET_SIZE, some clients use this, some need this, niels@
+     [hope this time my ISP stays alive during commit]
+   - [OVERVIEW README] typos; green@freebsd
+   - [ssh-keygen.c]
+     replace xstrdup+strcat with strlcat+fixed buffer, fixes OF (bad me)
+     exit if writing the key fails (no infinit loop)
+     print usage() everytime we get bad options
+   - [ssh-keygen.c] overflow, djm@mindrot.org
+   - [sshd.c] fix sigchld race; cjc5@po.cwru.edu
+     
 19991120
  - Merged more Solaris support from Marc G. Fournier 
    <marc.fournier@acadiau.ca>

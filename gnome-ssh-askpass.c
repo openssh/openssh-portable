@@ -74,6 +74,9 @@ int passphrase_dialog(char **passphrase_p, char *message)
 	gdk_pointer_grab(dialog->window, TRUE, 0, NULL, NULL, GDK_CURRENT_TIME);
 	gdk_keyboard_grab(dialog->window, FALSE, GDK_CURRENT_TIME);
 
+	/* Make <enter> close dialog */
+	gnome_dialog_editable_enters(GNOME_DIALOG(dialog), GTK_EDITABLE(entry));
+
 	/* Run dialog */
 	result = gnome_dialog_run(GNOME_DIALOG(dialog));
 		
