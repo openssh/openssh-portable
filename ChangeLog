@@ -24,6 +24,9 @@
      [sftp-client.c]
      Let overlapped upload path handle servers which reorder ACKs. This may be
      permitted by the protocol spec; ok markus@
+   - markus@cvs.openbsd.org 2002/02/13 00:28:13
+     [sftp-server.c]
+     handle SSH2_FILEXFER_ATTR_SIZE in SSH2_FXP_(F)SETSTAT; ok djm@
 
 20020210
  - (djm) OpenBSD CVS Sync
@@ -7571,4 +7574,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1845 2002/02/13 03:04:37 djm Exp $
+$Id: ChangeLog,v 1.1846 2002/02/13 03:05:00 djm Exp $

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
+ * Copyright (c) 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: sftp-server.c,v 1.32 2001/12/29 21:56:01 stevesk Exp $");
+RCSID("$OpenBSD: sftp-server.c,v 1.33 2002/02/13 00:28:13 markus Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
@@ -589,6 +589,11 @@ process_setstat(void)
 	name = get_string(NULL);
 	a = get_attrib();
 	TRACE("setstat id %d name %s", id, name);
+	if (a->flags & SSH2_FILEXFER_ATTR_SIZE) {
+		ret = truncate(name, a->size);
+		if (ret == -1)
+			status = errno_to_portable(errno);
+	}
 	if (a->flags & SSH2_FILEXFER_ATTR_PERMISSIONS) {
 		ret = chmod(name, a->perm & 0777);
 		if (ret == -1)
@@ -626,6 +631,11 @@ process_fsetstat(void)
 	if (fd < 0 || name == NULL) {
 		status = SSH2_FX_FAILURE;
 	} else {
+		if (a->flags & SSH2_FILEXFER_ATTR_SIZE) {
+			ret = ftruncate(fd, a->size);
+			if (ret == -1)
+				status = errno_to_portable(errno);
+		}
 		if (a->flags & SSH2_FILEXFER_ATTR_PERMISSIONS) {
 #ifdef HAVE_FCHMOD
 			ret = fchmod(fd, a->perm & 0777);
