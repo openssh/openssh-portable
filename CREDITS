@@ -26,6 +26,7 @@ Chun-Chung Chen <cjj@u.washington.edu> - RPM fixes
 Corinna Vinschen <vinschen@cygnus.com> - Cygwin support
 Dan Brosemer <odin@linuxfreak.com> - Autoconf support, build fixes
 Darren Hall <dhall@virage.org> - AIX patches
+Darren Tucker <dtucker@zip.com.au> - AIX BFF package scripts
 David Agraz <dagraz@jahoopa.com> - Build fixes
 David Del Piero <David.DelPiero@qed.qld.gov.au> - bug fixes
 David Hesprich <darkgrue@gue-tech.org> - Configure fixes
@@ -89,5 +90,5 @@ Apologies to anyone I have missed.
 
 Damien Miller <djm@mindrot.org>
 
-$Id: CREDITS,v 1.64 2001/12/24 03:17:21 djm Exp $
+$Id: CREDITS,v 1.65 2002/03/05 03:38:35 mouring Exp $
 

@@ -61,7 +61,8 @@
    - markus@cvs.openbsd.org 2002/03/04 19:37:58
      [channels.c]
      off by one; thanks to joost@pine.nl
-
+ - (bal) Added contrib/aix/ to support BFF package generation provided
+   by Darren Tucker <dtucker@zip.com.au>
 20020226
  - (tim) Bug 12 [configure.ac] add sys/bitypes.h to int64_t tests
    based on patch by mooney@dogbert.cc.ndsu.nodak.edu (Tim Mooney)
@@ -7792,4 +7793,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1906 2002/03/05 01:57:44 mouring Exp $
+$Id: ChangeLog,v 1.1907 2002/03/05 03:38:35 mouring Exp $
