@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.79 2002/07/14 20:36:50 tim Exp $
+# $Id: configure.ac,v 1.80 2002/07/18 02:20:08 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -1818,7 +1818,12 @@ AC_ARG_WITH(xauth,
 		fi
 	],
 	[
-		AC_PATH_PROG(xauth_path, xauth,,$PATH:/usr/X/bin:/usr/bin/X11:/usr/X11R6/bin:/usr/openwin/bin)
+		TestPath="$PATH"
+		TestPath="${TestPath}${PATH_SEPARATOR}/usr/X/bin"
+		TestPath="${TestPath}${PATH_SEPARATOR}/usr/bin/X11"
+		TestPath="${TestPath}${PATH_SEPARATOR}/usr/X11R6/bin"
+		TestPath="${TestPath}${PATH_SEPARATOR}/usr/openwin/bin"
+		AC_PATH_PROG(xauth_path, xauth, , $TestPath)
 		if (test ! -z "$xauth_path" && test -x "/usr/openwin/bin/xauth") ; then
 			xauth_path="/usr/openwin/bin/xauth"
 		fi
@@ -1872,7 +1877,8 @@ AC_ARG_WITH(mantype,
 	]
 )
 if test -z "$MANTYPE"; then
-	AC_PATH_PROGS(NROFF, nroff awf, /bin/false, /usr/bin:/usr/ucb)
+	TestPath="/usr/bin${PATH_SEPARATOR}/usr/ucb"
+	AC_PATH_PROGS(NROFF, nroff awf, /bin/false, $TestPath)
 	if ${NROFF} -mdoc ${srcdir}/ssh.1 >/dev/null 2>&1; then
 		MANTYPE=doc
 	elif ${NROFF} -man ${srcdir}/ssh.1 >/dev/null 2>&1; then
