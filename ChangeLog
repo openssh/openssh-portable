@@ -7,6 +7,8 @@
  - (bal) if mmap() is substandard, don't allow compression on server side.
    Post 'event' we will add more options.
  - (tim) [contrib/caldera/openssh.spec] Sync with Caldera
+ - (bal) moved aix_usrinfo() and noted not setting real TTY.  Patch by
+   dtucker@zip.com.au
 
 20020624
  - OpenBSD CVS Sync
@@ -1092,4 +1094,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2270 2002/06/25 17:07:25 tim Exp $
+$Id: ChangeLog,v 1.2271 2002/06/25 17:12:26 mouring Exp $
