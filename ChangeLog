@@ -15,6 +15,7 @@
      listen sock now.
    - [sshd.c]
      make that a fatal
+ - Released 1.2pre17
 
 19991208
  - Compile fix for Solaris with /dev/ptmx from 
