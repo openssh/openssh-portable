@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: nchan.c,v 1.37 2002/01/13 21:31:20 markus Exp $");
+RCSID("$OpenBSD: nchan.c,v 1.38 2002/01/14 13:22:35 markus Exp $");
 
 #include "ssh1.h"
 #include "ssh2.h"
@@ -191,10 +191,12 @@ chan_write_failed1(Channel *c)
 	debug("channel %d: write failed", c->self);
 	switch (c->ostate) {
 	case CHAN_OUTPUT_OPEN:
+		chan_shutdown_write(c);
 		chan_send_oclose1(c);
 		chan_set_ostate(c, CHAN_OUTPUT_WAIT_IEOF);
 		break;
 	case CHAN_OUTPUT_WAIT_DRAIN:
+		chan_shutdown_write(c);
 		chan_send_oclose1(c);
 		chan_set_ostate(c, CHAN_OUTPUT_CLOSED);
 		break;
@@ -215,6 +217,7 @@ chan_obuf_empty1(Channel *c)
 	}
 	switch (c->ostate) {
 	case CHAN_OUTPUT_WAIT_DRAIN:
+		chan_shutdown_write(c);
 		chan_send_oclose1(c);
 		chan_set_ostate(c, CHAN_OUTPUT_CLOSED);
 		break;
@@ -248,7 +251,6 @@ chan_send_oclose1(Channel *c)
 	switch (c->ostate) {
 	case CHAN_OUTPUT_OPEN:
 	case CHAN_OUTPUT_WAIT_DRAIN:
-		chan_shutdown_write(c);
 		buffer_clear(&c->output);
 		packet_start(SSH_MSG_CHANNEL_OUTPUT_CLOSE);
 		packet_put_int(c->remote_id);
