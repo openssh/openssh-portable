@@ -267,9 +267,9 @@ do_authloop(Authctxt *authctxt)
 			/* Do SIA auth with password */
 			if (sia_validate_user(NULL, saved_argc, saved_argv,
 			    get_canonical_hostname(options.reverse_mapping_check),
-			    pw->pw_name, NULL, 0, NULL, password) == SIASUCCESS) {
+			    authctxt->user?authctxt->user:"NOUSER", NULL, 
+			    0, NULL, password) == SIASUCCESS)
 				authenticated = 1;
-			}
 #else /* !USE_PAM && !HAVE_OSF_SIA */
 			/* Try authentication with the password. */
 			authenticated = auth_password(pw, password);
