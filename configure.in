@@ -158,11 +158,15 @@ dnl Look for lastlog location
 AC_MSG_CHECKING([location of lastlog file])
 for lastlog in /var/log/lastlog /var/adm/lastlog /etc/security/lastlog ; do
 	if test -f $lastlog ; then
+		gotlastlog="yes"
 		AC_MSG_RESULT($lastlog)
 		AC_DEFINE_UNQUOTED(LASTLOG_LOCATION, "$lastlog")
 		break
 	fi
 done
+if test -z "$gotlastlog" ; then
+	AC_MSG_ERROR([*** Cannot find lastlog ***])
+fi	
 
 AC_MSG_CHECKING([whether libc defines __progname])
 AC_TRY_LINK([], 
