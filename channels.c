@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.104 2001/04/10 07:46:58 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.105 2001/04/10 12:15:23 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -420,7 +420,7 @@ channel_pre_input_draining(Channel *c, fd_set * readset, fd_set * writeset)
 		packet_put_int(c->remote_id);
 		packet_send();
 		c->type = SSH_CHANNEL_CLOSED;
-		debug("Closing channel %d after input drain.", c->self);
+		debug("channel %d: closing after input drain.", c->self);
 	}
 }
 
@@ -641,7 +641,7 @@ channel_pre_dynamic(Channel *c, fd_set * readset, fd_set * writeset)
 	have = buffer_len(&c->input);
 
 	debug2("channel %d: pre_dynamic: have %d", c->self, have);
-	buffer_dump(&c->input);
+	/* buffer_dump(&c->input); */
 	/* check if the fixed size part of the packet is in buffer. */
 	if (have < 4) {
 		/* need more */
@@ -907,7 +907,7 @@ channel_handle_rfd(Channel *c, fd_set * readset, fd_set * writeset)
 			} else if (compat13) {
 				buffer_consume(&c->output, buffer_len(&c->output));
 				c->type = SSH_CHANNEL_INPUT_DRAINING;
-				debug("Channel %d status set to input draining.", c->self);
+				debug("channel %d: status set to input draining.", c->self);
 			} else {
 				chan_read_failed(c);
 			}
@@ -915,7 +915,7 @@ channel_handle_rfd(Channel *c, fd_set * readset, fd_set * writeset)
 		}
 		if(c->input_filter != NULL) {
 			if (c->input_filter(c, buf, len) == -1) {
-				debug("filter stops channel %d", c->self);
+				debug("channel %d: filter stops", c->self);
 				chan_read_failed(c);
 			}
 		} else {
@@ -945,7 +945,7 @@ channel_handle_wfd(Channel *c, fd_set * readset, fd_set * writeset)
 				return -1;
 			} else if (compat13) {
 				buffer_consume(&c->output, buffer_len(&c->output));
-				debug("Channel %d status set to input draining.", c->self);
+				debug("channel %d: status set to input draining.", c->self);
 				c->type = SSH_CHANNEL_INPUT_DRAINING;
 			} else {
 				chan_write_failed(c);
