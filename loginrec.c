@@ -163,7 +163,7 @@
 #include "log.h"
 #include "atomicio.h"
 
-RCSID("$Id: loginrec.c,v 1.49 2003/04/09 10:59:49 djm Exp $");
+RCSID("$Id: loginrec.c,v 1.50 2003/04/09 11:12:52 djm Exp $");
 
 #ifdef HAVE_UTIL_H
 #  include <util.h>
@@ -1453,7 +1453,7 @@ lastlog_openseek(struct logininfo *li, int *fd, int filemode)
 			return 0;
 	}
 
-	*fd = open(lastlog_file, filemode);
+	*fd = open(lastlog_file, filemode, 0600);
 	if ( *fd < 0) {
 		debug("lastlog_openseek: Couldn't open %s: %s",
 		    lastlog_file, strerror(errno));
@@ -1483,7 +1483,7 @@ lastlog_perform_login(struct logininfo *li)
 	/* create our struct lastlog */
 	lastlog_construct(li, &last);
 
-	if (!lastlog_openseek(li, &fd, O_RDWR|O_CREAT, 0600))
+	if (!lastlog_openseek(li, &fd, O_RDWR|O_CREAT))
 		return(0);
 
 	/* write the entry */
