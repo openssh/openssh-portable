@@ -1,3 +1,7 @@
+19991102
+ - Merged change from OpenBSD CVS
+  - One-line cleanup in sshd.c
+
 19991030
  - Integrated debian package support from Dan Brosemer <odin@linuxfreak.com>
  - Merged latest updates for OpenBSD CVS:
