@@ -7,6 +7,10 @@
   - ID sync for auth-passwd.c
  - (djm) Warn and disable compression on platforms which can't handle both
    useprivilegeseparation=yes and compression=yes
+ - (djm) contrib/redhat/openssh.spec hacking:
+   - Merge in spec changes from seba@iq.pl (Sebastian Pachuta)
+   - Add new {ssh,sshd}_config.5 manpages
+   - Add new ssh-keysign program and remove setuid from ssh client
 
 20020620
  - (bal) Fixed AIX environment handling, use setpcred() instead of existing
@@ -996,4 +1000,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2237 2002/06/21 06:20:44 djm Exp $
+$Id: ChangeLog,v 1.2238 2002/06/21 06:42:41 djm Exp $
