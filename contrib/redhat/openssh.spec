@@ -97,6 +97,10 @@ BuildPreReq: XFree86-devel
 %if ! %{no_gnome_askpass}
 BuildPreReq: gnome-libs-devel
 %endif
+%if %{kerberos5}
+BuildPreReq: krb5-devel
+BuildPreReq: krb5-libs
+%endif
 
 %package clients
 Summary: OpenSSH clients.
