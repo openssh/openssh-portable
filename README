@@ -37,6 +37,9 @@ openssh-unix-dev-request@mindrot.org. This mailing list is intended
 for developers who wish to improve on this port or extend it to other
 Unices.
 
+Please send bug reports to the mailing list, or to myself 
+(djm@ibs.com.au).
+
 Please refer to the INSTALL document for information on how to install
 OpenSSH on your system.
 

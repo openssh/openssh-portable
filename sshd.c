@@ -11,9 +11,15 @@
  */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.38 1999/12/13 23:47:16 damien Exp $");
+RCSID("$Id: sshd.c,v 1.39 1999/12/14 04:43:03 damien Exp $");
 
-#include <poll.h>
+#ifdef HAVE_POLL_H
+# include <poll.h>
+#else /* HAVE_POLL_H */
+# ifdef HAVE_SYS_POLL_H
+#  include <sys/poll.h>
+# endif /* HAVE_SYS_POLL_H */
+#endif /* HAVE_POLL_H */
 
 #include "xmalloc.h"
 #include "rsa.h"

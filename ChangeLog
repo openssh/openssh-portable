@@ -17,6 +17,8 @@
    - [version.h]
      OpenSSH-1.2.1
  - Clean up broken includes in pty.c
+ - Some older systems don't have poll.h, they use sys/poll.h instead
+ - Doc updates
 
 19991211
  - Fix compilation on systems with AFS. Reported by 

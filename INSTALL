@@ -113,6 +113,17 @@ To generate a host key, issue the following command: (replacing
 
 /usr/bin/ssh-keygen -b 1024 -f /etc/ssh/ssh_host_key -N ''
 
+Replacing /etc/ssh with the correct path to the configuration directory.
+(${prefix}/etc or whatever you specified with --sysconfdir during 
+configuration)
+
 For more information on configuration, please refer to the manual pages 
 for sshd, ssh and ssh-agent.
+
+4. Problems?
+------------
+
+If you experience problems compiling, installing or running OpenSSH. 
+Please refer to the "reporting bugs" section of the webpage at
+http://violet.ibs.com.au/openssh/
 
