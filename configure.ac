@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.89.2.1 2002/10/05 00:14:07 mouring Exp $
+# $Id: configure.ac,v 1.89.2.2 2002/10/16 00:25:40 mouring Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -605,8 +605,11 @@ AC_CHECK_FUNCS(arc4random b64_ntop bcopy bindresvport_sa \
 	realpath recvmsg rresvport_af sendmsg setdtablesize setegid \
 	setenv seteuid setgroups setlogin setproctitle setresgid setreuid \
 	setrlimit setsid setpcred setvbuf sigaction sigvec snprintf \
-	socketpair strerror strlcat strlcpy strmode strsep sysconf tcgetpgrp \
+	socketpair strerror strlcat strlcpy strmode sysconf tcgetpgrp \
 	truncate utimes vhangup vsnprintf waitpid __b64_ntop _getpty)
+
+dnl Make sure strsep prototype is defined before defining HAVE_STRSEP
+AC_CHECK_DECL(strsep, [AC_CHECK_FUNCS(strsep)])
 
 dnl IRIX and Solaris 2.5.1 have dirname() in libgen
 AC_CHECK_FUNCS(dirname, [AC_CHECK_HEADERS(libgen.h)] ,[
