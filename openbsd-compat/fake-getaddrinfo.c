@@ -10,10 +10,8 @@
  */
 
 #include "includes.h"
-#include "xmalloc.h"
-#include "ssh.h"
 
-RCSID("$Id: fake-getaddrinfo.c,v 1.9 2003/06/04 23:48:33 djm Exp $");
+RCSID("$Id: fake-getaddrinfo.c,v 1.10 2003/06/05 00:04:12 djm Exp $");
 
 #ifndef HAVE_GAI_STRERROR
 char *
@@ -52,7 +50,9 @@ addrinfo *malloc_ai(int port, u_long addr, const struct addrinfo *hints)
 {
 	struct addrinfo *ai;
 
-	ai = xmalloc(sizeof(*ai) + sizeof(struct sockaddr_in));
+	ai = malloc(sizeof(*ai) + sizeof(struct sockaddr_in));
+	if (ai == NULL)
+		return (NULL);
 	
 	memset(ai, '\0', sizeof(*ai) + sizeof(struct sockaddr_in));
 	
@@ -105,16 +105,22 @@ getaddrinfo(const char *hostname, const char *servname,
 		if (hostname && inet_aton(hostname, &in) != 0)
 			addr = in.s_addr;
 		*res = malloc_ai(port, addr, hints);
+		if (*res == NULL) 
+			return (EAI_MEMORY);
 		return (0);
 	}
 		
 	if (!hostname) {
 		*res = malloc_ai(port, htonl(0x7f000001), hints);
+		if (*res == NULL) 
+			return (EAI_MEMORY);
 		return (0);
 	}
 	
 	if (inet_aton(hostname, &in)) {
 		*res = malloc_ai(port, in.s_addr, hints);
+		if (*res == NULL) 
+			return (EAI_MEMORY);
 		return (0);
 	}
 	
@@ -126,11 +132,16 @@ getaddrinfo(const char *hostname, const char *servname,
 	if (hp && hp->h_name && hp->h_name[0] && hp->h_addr_list[0]) {
 		struct addrinfo *cur, *prev;
 
-		cur = prev = NULL;
+		cur = prev = *res = NULL;
 		for (i = 0; hp->h_addr_list[i]; i++) {
 			struct in_addr *in = (struct in_addr *)hp->h_addr_list[i];
 
 			cur = malloc_ai(port, in->s_addr, hints);
+			if (cur == NULL) {
+				if (*res != NULL)
+					freeaddrinfo(*res);
+				return (EAI_MEMORY);
+			}
 			if (prev)
 				prev->ai_next = cur;
 			else
