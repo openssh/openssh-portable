@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.185 2004/01/22 01:05:35 dtucker Exp $
+# $Id: configure.ac,v 1.186 2004/01/23 06:13:33 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -588,6 +588,26 @@ AC_ARG_WITH(zlib,
 )
 
 AC_CHECK_LIB(z, deflate, ,AC_MSG_ERROR([*** zlib missing - please install first or check config.log ***]))
+AC_CHECK_HEADER([zlib.h], ,AC_MSG_ERROR([*** zlib.h missing - please install first or check config.log ***]))
+AC_MSG_CHECKING(for zlib 1.1.4 or greater)
+AC_TRY_RUN([
+#include <zlib.h>
+int main()
+{
+	int a, b, c, v;
+	if (sscanf(ZLIB_VERSION, "%d.%d.%d", &a, &b, &c) != 3)
+		exit(1);
+	v = a*1000000 + b*1000 + c;
+	if (v >= 1001004)
+		exit(0);
+	exit(2);
+}
+	],
+	AC_MSG_RESULT(yes),
+	[ AC_MSG_RESULT(no)
+	  AC_MSG_ERROR([*** zlib too old - check config.log ***]) ]
+)
+	
 
 dnl UnixWare 2.x
 AC_CHECK_FUNC(strcasecmp,

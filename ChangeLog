@@ -4,6 +4,8 @@
  - (djm) Bug #776: Update contrib/redhat/openssh.spec to dynamically detect
    Kerberos location (and thus work with Fedora Core 1);
    from jason AT devrandom.org
+ - (dtucker) [configure.ac] Bug #788: Test for zlib.h presence and for
+   zlib >= 1.1.4.  Partly from jbasney at ncsa.uiuc.edu.  ok djm@
 
 20040122
  - (dtucker) [configure.ac] Use krb5-config where available for Kerberos/
@@ -1716,4 +1718,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3182 2004/01/23 05:30:03 djm Exp $
+$Id: ChangeLog,v 1.3183 2004/01/23 06:13:33 dtucker Exp $
