@@ -11,6 +11,9 @@
    - markus@cvs.openbsd.org 2002/03/26 15:23:40
      [bufaux.c]
      do not talk about packets in bufaux
+   - markus@cvs.openbsd.org 2002/03/26 15:58:46
+     [readpass.c readpass.h sshconnect2.c]
+     client side support for PASSWD_CHANGEREQ
 
 20020325
  - (stevesk) import OpenBSD <sys/tree.h> as "openbsd-compat/tree.h"
@@ -8074,4 +8077,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1995 2002/03/27 17:23:44 mouring Exp $
+$Id: ChangeLog,v 1.1996 2002/03/27 17:28:46 mouring Exp $

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.98 2002/03/19 10:49:35 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.99 2002/03/26 15:58:46 markus Exp $");
 
 #include "ssh.h"
 #include "ssh2.h"
@@ -172,6 +172,7 @@ void	input_userauth_banner(int, u_int32_t, void *);
 void	input_userauth_error(int, u_int32_t, void *);
 void	input_userauth_info_req(int, u_int32_t, void *);
 void	input_userauth_pk_ok(int, u_int32_t, void *);
+void	input_userauth_passwd_changereq(int, u_int32_t, void *);
 
 int	userauth_none(Authctxt *);
 int	userauth_pubkey(Authctxt *);
@@ -439,7 +440,7 @@ int
 userauth_passwd(Authctxt *authctxt)
 {
 	static int attempt = 0;
-	char prompt[80];
+	char prompt[150];
 	char *password;
 
 	if (attempt++ >= options.number_of_password_prompts)
@@ -461,13 +462,85 @@ userauth_passwd(Authctxt *authctxt)
 	xfree(password);
 	packet_add_padding(64);
 	packet_send();
+
+	dispatch_set(SSH2_MSG_USERAUTH_PASSWD_CHANGEREQ, 
+	    &input_userauth_passwd_changereq);
+
 	return 1;
+}
+/*
+ * parse PASSWD_CHANGEREQ, prompt user and send SSH2_MSG_USERAUTH_REQUEST
+ */
+void
+input_userauth_passwd_changereq(int type, uint32_t seqnr, void *ctxt)
+{
+	Authctxt *authctxt = ctxt;
+	char *info, *lang, *password = NULL, *retype = NULL;
+	char prompt[150];
+
+	debug2("input_userauth_passwd_changereq");
+
+	if (authctxt == NULL)
+		fatal("input_userauth_passwd_changereq: "
+		    "no authentication context");
+
+	info = packet_get_string(NULL);
+	lang = packet_get_string(NULL);
+	if (strlen(info) > 0)
+		log("%s", info);
+	xfree(info);
+	xfree(lang);
+	packet_start(SSH2_MSG_USERAUTH_REQUEST);
+	packet_put_cstring(authctxt->server_user);
+	packet_put_cstring(authctxt->service);
+	packet_put_cstring(authctxt->method->name);
+	packet_put_char(1);			/* additional info */
+	snprintf(prompt, sizeof(prompt), 
+	    "Enter %.30s@%.128s's old password: ",
+	    authctxt->server_user, authctxt->host);
+	password = read_passphrase(prompt, 0);
+	packet_put_cstring(password);
+	memset(password, 0, strlen(password));
+	xfree(password);
+	password = NULL;
+	while (password == NULL) {
+		snprintf(prompt, sizeof(prompt), 
+		    "Enter %.30s@%.128s's new password: ",
+		    authctxt->server_user, authctxt->host);
+		password = read_passphrase(prompt, RP_ALLOW_EOF);
+		if (password == NULL) {
+			/* bail out */
+			return;
+		}
+		snprintf(prompt, sizeof(prompt), 
+		    "Retype %.30s@%.128s's new password: ",
+		    authctxt->server_user, authctxt->host);
+		retype = read_passphrase(prompt, 0);
+		if (strcmp(password, retype) != 0) {
+			memset(password, 0, strlen(password));
+			xfree(password);
+			log("Mismatch; try again, EOF to quit.");
+			password = NULL;
+		}
+		memset(retype, 0, strlen(retype));
+		xfree(retype);
+	}
+	packet_put_cstring(password);
+	memset(password, 0, strlen(password));
+	xfree(password);
+	packet_add_padding(64);
+	packet_send();
+	
+	dispatch_set(SSH2_MSG_USERAUTH_PASSWD_CHANGEREQ, 
+	    &input_userauth_passwd_changereq);
 }
 
 static void
 clear_auth_state(Authctxt *authctxt)
 {
 	/* XXX clear authentication state */
+	dispatch_set(SSH2_MSG_USERAUTH_PASSWD_CHANGEREQ, NULL);
+
 	if (authctxt->last_key != NULL && authctxt->last_key_hint == -1) {
 		debug3("clear_auth_state: key_free %p", authctxt->last_key);
 		key_free(authctxt->last_key);
