@@ -7,6 +7,7 @@
  - (djm) Merge openssh-TODO.patch from Redhat (null) beta
  - (djm) Add gnome-ssh-askpass2.c (gtk2) by merge with patch from 
     Nalin Dahyabhai <nalin@redhat.com>
+ - (djm) Add support for building gtk2 password requestor from Redhat beta
 
 20020903
  - (djm) Patch from itojun@ for Darwin OS: test getaddrinfo, reorder libcrypt
@@ -1607,4 +1608,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2447 2002/09/05 06:46:24 djm Exp $
+$Id: ChangeLog,v 1.2448 2002/09/05 06:53:20 djm Exp $

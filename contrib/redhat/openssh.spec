@@ -20,6 +20,9 @@
 # Do we want smartcard support (1=yes 0=no)
 %define scard 0
 
+# Use GTK2 instead of GNOME in gnome-ssh-askpass
+%define gtk2 0
+
 # Is this build for RHL 6.x?
 %define build6x 0
 
@@ -217,6 +220,28 @@ pushd x11-ssh-askpass-%{aversion}
 %configure --libexecdir=%{_libexecdir}/openssh
 xmkmf -a
 make
+popd
+%endif
+
+# Define a variable to toggle gnome1/gtk2 building.  This is necessary
+# because RPM doesn't handle nested %if statements.
+%if %{gtk2}
+	gtk2=yes
+%else
+	gtk2=no
+%endif
+
+%if ! %{no_gnome_askpass}
+pushd contrib
+if [ $gtk2 = yes ] ; then
+	gcc $RPM_OPT_FLAGS `pkg-config --cflags gtk+-2.0` \
+	    gnome-ssh-askpass2.c -o gnome-ssh-askpass \
+	    `pkg-config --libs gtk+-2.0`
+else
+	gcc $RPM_OPT_FLAGS `gnome-config --cflags gnome gnomeui` \
+	    gnome-ssh-askpass1.c -o gnome-ssh-askpass \
+	    `gnome-config --libs gnome gnomeui`
+fi
 popd
 %endif
 
