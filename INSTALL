@@ -29,12 +29,8 @@ passphrase requester. This is maintained separately at:
 
 http://www.ntrnet.net/~jmknoble/software/x11-ssh-askpass/index.html
 
-If you are planning to use OpenSSH on a Unix which lacks a Kernel random
-number generator (/dev/urandom), you may want to install the Entropy
-Gathering Daemon (or similar). You will also need to specify the 
---with-egd-pool option to ./configure. OpenSSH 2.0 includes some 
-peliminary built-in randomness collection, but it is not as well 
-tested as EGD.
+The Entropy Gathering Daemon (EGD) is supported if you have a system which
+lacks /dev/random and don't want to use OpenSSH's internal entropy collection.
 
 EGD:
 http://www.lothar.com/tech/crypto/
@@ -98,10 +94,9 @@ random numbers (the default is /dev/urandom). Unless you are absolutly
 sure of what you are doing, it is best to leave this alone.
 
 --with-egd-pool=/some/file allows you to enable Entropy Gathering
-Daemon support and to specify a EGD pool socket. You may want to
-use this if your Unix does not support the /dev/urandom device (or
-similar). The file argument refers to the EGD pool file, not the 
-EGD program itself. Please refer to the EGD documentation.
+Daemon support and to specify a EGD pool socket. Use this if your
+Unix lacks /dev/random and you don't want to use OpenSSH's builtin
+entropy collection support.
 
 --with-lastlog=FILE will specify the location of the lastlog file. 
 ./configure searches a few locations for lastlog, but may not find

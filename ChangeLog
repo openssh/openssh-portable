@@ -22,6 +22,7 @@
     [version.h]
     - OpenSSH-2.1
  - Moved all the bsd-* and fake-* stuff into new libopenbsd-compat.a
+ - Doc updates
 
 20000508
  - Makefile and RPM spec fixes

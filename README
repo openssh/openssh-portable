@@ -3,11 +3,11 @@
 [ Thanks to HARUYAMA Seigo <haruyama@nt.phys.s.u-tokyo.ac.jp>
 
 ******* IMPORTANT
-* On systmes which lack a /dev/random driver, this port of
-* OpenSSH-1.2.2 was not correctly seeding OpenSSL's random number
+* On systmes which lack a /dev/random driver, version of this port
+* prior to 1.2.2 were not correctly seeding OpenSSL's random number
 * pool. This resulted in lower quality RSA keys being generated. If
-* you generated host or user keys with v1.2.2, please generate new
-* ones using a more recent version.
+* you generated host or user keys with v1.2.2 or previous versions, 
+* please generate new ones using a more recent version.
 
 This is the port of OpenBSD's excellent OpenSSH to Linux and other
 Unices.
@@ -21,20 +21,17 @@ Markus Friedl, Niels Provos, Theo de Raadt, and Dug Song. It has a
 homepage at http://www.openssh.com/
 
 This port consists of the re-introduction of autoconf support, PAM
-support (for Linux and Solaris), EGD[1] support, SOCKS support (using
-the Dante [6] libraries and replacements for OpenBSD library functions
-that are (regrettably) absent from other unices. This port has been
-best tested on Linux, Solaris, HPUX, NetBSD and Irix. Support for AIX,
-SCO, NeXT and other Unices is underway. This version actively tracks
-changes in the OpenBSD CVS repository.
+support (for Linux and Solaris), EGD[1] support and replacements for 
+OpenBSD library functions that are (regrettably) absent from other 
+unices. This port has been best tested on Linux, Solaris, HPUX, NetBSD 
+and Irix. Support for AIX, SCO, NeXT and other Unices is underway. 
+This version actively tracks changes in the OpenBSD CVS repository.
 
 The PAM support is now more functional than the popular packages of
 commercial ssh-1.2.x. It checks "account" and "session" modules for
 all logins, not just when using password authentication.
 
-OpenSSH depends on Zlib[2], OpenSSL[3] and optionally PAM[4] and
-Dante[6]. To build the GNOME[5] pass-phrase requester
-(--with-gnome-askpass), you will need the GNOME libraries installed.
+OpenSSH depends on Zlib[2], OpenSSL[3] and optionally PAM[4].
 
 There is now several mailing lists for this port of OpenSSH. Please
 refer to http://violet.ibs.com.au/openssh/list.html for details on how
@@ -63,6 +60,4 @@ References -
 [2] http://www.cdrom.com/pub/infozip/zlib/
 [3] http://www.openssl.org/
 [4] http://www.kernel.org/pub/linux/libs/pam/ (PAM is standard on Solaris)
-[5] http://www.gnome.org/
-[6] http://www.inet.no/dante
 
