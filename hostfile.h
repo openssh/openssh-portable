@@ -1,4 +1,4 @@
-/*	$OpenBSD: hostfile.h,v 1.7 2001/02/08 19:30:51 itojun Exp $	*/
+/*	$OpenBSD: hostfile.h,v 1.8 2001/06/26 06:32:53 itojun Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -15,7 +15,7 @@
 #define HOSTFILE_H
 
 int
-auth_rsa_read_key(char **cpp, u_int *bitsp, BIGNUM * e, BIGNUM * n);
+auth_rsa_read_key(char **, u_int *, BIGNUM *, BIGNUM *);
 
 /*
  * Checks whether the given host is already in the list of our known hosts.
@@ -28,13 +28,12 @@ typedef enum {
 }       HostStatus;
 
 HostStatus
-check_host_in_hostfile(const char *filename, const char *host, Key *key,
-    Key *found, int *line);
+check_host_in_hostfile(const char *, const char *, Key *, Key *, int *);
 
 /*
  * Appends an entry to the host file.  Returns false if the entry could not
  * be appended.
  */
-int	add_host_to_hostfile(const char *filename, const char *host, Key *key);
+int	add_host_to_hostfile(const char *, const char *, Key *);
 
 #endif

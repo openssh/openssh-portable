@@ -21,7 +21,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* RCSID("$OpenBSD: compat.h,v 1.26 2001/06/25 08:25:37 markus Exp $"); */
+/* RCSID("$OpenBSD: compat.h,v 1.27 2001/06/26 06:32:50 itojun Exp $"); */
 
 #ifndef COMPAT_H
 #define COMPAT_H
@@ -53,9 +53,9 @@
 
 void    enable_compat13(void);
 void    enable_compat20(void);
-void    compat_datafellows(const char *s);
-int	proto_spec(const char *spec);
-char	*compat_cipher_proposal(char *cipher_prop);
+void    compat_datafellows(const char *);
+int	proto_spec(const char *);
+char	*compat_cipher_proposal(char *);
 extern int compat13;
 extern int compat20;
 extern int datafellows;

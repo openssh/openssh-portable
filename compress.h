@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: compress.h,v 1.8 2001/04/05 10:39:02 markus Exp $"); */
+/* RCSID("$OpenBSD: compress.h,v 1.9 2001/06/26 06:32:50 itojun Exp $"); */
 
 #ifndef COMPRESS_H
 #define COMPRESS_H
@@ -20,7 +20,7 @@
  * Initializes compression; level is compression level from 1 to 9 (as in
  * gzip).
  */
-void	buffer_compress_init_send(int level);
+void	buffer_compress_init_send(int);
 void	buffer_compress_init_recv(void);
 
 /* Frees any data structures allocated by buffer_compress_init. */
@@ -34,7 +34,7 @@ void    buffer_compress_uninit(void);
  * order since they together form a single compression stream) by the
  * receiver.  This appends the compressed data to the output buffer.
  */
-void    buffer_compress(Buffer * input_buffer, Buffer * output_buffer);
+void    buffer_compress(Buffer *, Buffer *);
 
 /*
  * Uncompresses the contents of input_buffer into output_buffer.  All packets
@@ -44,6 +44,6 @@ void    buffer_compress(Buffer * input_buffer, Buffer * output_buffer);
  * buffer_compress was called, and in the same order that buffers compressed
  * with that.  This appends the uncompressed data to the output buffer.
  */
-void    buffer_uncompress(Buffer * input_buffer, Buffer * output_buffer);
+void    buffer_uncompress(Buffer *, Buffer *);
 
 #endif				/* COMPRESS_H */

@@ -38,6 +38,15 @@
    - markus@cvs.openbsd.org 2001/06/26 05:50:11
      [auth2.c]
      new interface for secure_filename()
+   - itojun@cvs.openbsd.org 2001/06/26 06:32:58
+     [atomicio.h authfd.h authfile.h auth.h auth-options.h bufaux.h 
+      buffer.h canohost.h channels.h cipher.h clientloop.h compat.h 
+      compress.h crc32.h deattack.h dh.h dispatch.h groupaccess.h 
+      hostfile.h kex.h key.h log.h mac.h match.h misc.h mpaux.h packet.h 
+      radix.h readconf.h readpass.h rsa.h]
+     prototype pedant.  not very creative...
+     - () -> (void)
+     - no variable names
 
 20010629
  - (bal) Removed net_aton() since we don't use it any more
@@ -5865,4 +5874,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1355 2001/07/04 03:56:56 mouring Exp $
+$Id: ChangeLog,v 1.1356 2001/07/04 04:02:36 mouring Exp $

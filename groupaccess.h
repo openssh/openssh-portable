@@ -1,4 +1,4 @@
-/*	$OpenBSD: groupaccess.h,v 1.2 2001/01/29 01:58:15 niklas Exp $	*/
+/*	$OpenBSD: groupaccess.h,v 1.3 2001/06/26 06:32:52 itojun Exp $	*/
 
 /*
  * Copyright (c) 2001 Kevin Steves.  All rights reserved.
@@ -33,13 +33,13 @@
  * Initialize group access list for user with primary (base) and
  * supplementary groups.  Return the number of groups in the list.
  */
-int ga_init(const char *user, gid_t base);
+int ga_init(const char *, gid_t);
 
 /*
  * Return 1 if one of user's groups is contained in groups.
  * Return 0 otherwise.  Use match_pattern() for string comparison.
  */
-int ga_match(char * const *groups, int ngroups);
+int ga_match(char * const *, int);
 
 /*
  * Free memory allocated for group access list.

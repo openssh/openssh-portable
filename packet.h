@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: packet.h,v 1.23 2001/05/28 23:58:35 markus Exp $"); */
+/* RCSID("$OpenBSD: packet.h,v 1.24 2001/06/26 06:32:57 itojun Exp $"); */
 
 #ifndef PACKET_H
 #define PACKET_H
@@ -23,7 +23,7 @@
  * packet_set_encryption_key is called.  It is permissible that fd_in and
  * fd_out are the same descriptor; in that case it is assumed to be a socket.
  */
-void    packet_set_connection(int fd_in, int fd_out);
+void    packet_set_connection(int, int);
 
 /* Puts the connection file descriptors into non-blocking mode. */
 void    packet_set_nonblocking(void);
@@ -46,32 +46,31 @@ void    packet_close(void);
  * encrypted independently of each other.  Cipher types are defined in ssh.h.
  */
 void
-packet_set_encryption_key(const u_char *key, u_int keylen,
-    int cipher_type);
+packet_set_encryption_key(const u_char *, u_int, int);
 
 /*
  * Sets remote side protocol flags for the current connection.  This can be
  * called at any time.
  */
-void    packet_set_protocol_flags(u_int flags);
+void    packet_set_protocol_flags(u_int);
 
 /* Returns the remote protocol flags set earlier by the above function. */
 u_int packet_get_protocol_flags(void);
 
 /* Enables compression in both directions starting from the next packet. */
-void    packet_start_compression(int level);
+void    packet_start_compression(int);
 
 /*
  * Informs that the current session is interactive.  Sets IP flags for
  * optimal performance in interactive use.
  */
-void    packet_set_interactive(int interactive);
+void    packet_set_interactive(int);
 
 /* Returns true if the current connection is interactive. */
 int     packet_is_interactive(void);
 
 /* Starts constructing a packet to send. */
-void    packet_start(u_char type);
+void    packet_start(u_char);
 
 /* Appends a character to the packet data. */
 void    packet_put_char(int ch);
@@ -175,14 +174,14 @@ int     packet_not_very_much_data_to_write(void);
 
 /* maximum packet size, requested by client with SSH_CMSG_MAX_PACKET_SIZE */
 extern int max_packet_size;
-int     packet_set_maxsize(int s);
+int     packet_set_maxsize(int);
 #define packet_get_maxsize() max_packet_size
 
 /* Stores tty modes from the fd or tiop into current packet. */
-void    tty_make_modes(int fd, struct termios *tiop);
+void    tty_make_modes(int, struct termios *);
 
 /* Parses tty modes for the fd from the current packet. */
-void    tty_parse_modes(int fd, int *n_bytes_ptr);
+void    tty_parse_modes(int, int *);
 
 #define packet_integrity_check(payload_len, expected_len, type) \
 do { \
@@ -212,9 +211,9 @@ int	packet_connection_is_ipv4(void);
 int	packet_remaining(void);
 
 /* append an ignore message */
-void	packet_send_ignore(int nbytes);
+void	packet_send_ignore(int);
 
 /* add an ignore message and make sure size (current+ignore) = n*sumlen */
-void	packet_inject_ignore(int sumlen);
+void	packet_inject_ignore(int);
 
 #endif				/* PACKET_H */

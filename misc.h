@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.h,v 1.8 2001/05/19 19:43:57 stevesk Exp $	*/
+/*	$OpenBSD: misc.h,v 1.9 2001/06/26 06:32:56 itojun Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -12,27 +12,27 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 /* remove newline at end of string */
-char	*chop(char *s);
+char	*chop(char *);
 
 /* return next token in configuration line */
-char	*strdelim(char **s);
+char	*strdelim(char **);
 
 /* set/unset filedescriptor to non-blocking */
-void	set_nonblock(int fd);
-void	unset_nonblock(int fd);
+void	set_nonblock(int);
+void	unset_nonblock(int);
 
-struct passwd * pwcopy(struct passwd *pw);
+struct passwd * pwcopy(struct passwd *);
 
 /*
  * Convert ASCII string to TCP/IP port number.
  * Port must be >0 and <=65535.
  * Return 0 if invalid.
  */
-int a2port(const char *s);
+int a2port(const char *);
 
 /* code from scp.c/rcp.c */
-char *cleanhostname(char *host);
-char *colon(char *cp);
+char *cleanhostname(char *);
+char *colon(char *);
 
 /*
  * Convert a time string into seconds; format is
@@ -56,7 +56,7 @@ char *colon(char *cp);
  * Return -1 if time string is invalid.
  */
 
-long convtime(const char *s);
+long convtime(const char *);
 
 /* function to assist building execv() arguments */
 typedef struct arglist arglist;
@@ -66,7 +66,7 @@ struct arglist {
         int     nalloc;
 };
 
-void addargs(arglist *args, char *fmt, ...) __attribute__((format(printf, 2, 3)));
+void addargs(arglist *, char *, ...) __attribute__((format(printf, 2, 3)));
 
 /* wrapper for signal interface */
 typedef void (*mysig_t)(int);

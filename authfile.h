@@ -10,27 +10,24 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* $OpenBSD: authfile.h,v 1.6 2001/03/26 08:07:08 markus Exp $ */
+/* $OpenBSD: authfile.h,v 1.7 2001/06/26 06:32:48 itojun Exp $ */
 
 #ifndef AUTHFILE_H
 #define AUTHFILE_H
 
 int
-key_save_private(Key *key, const char *filename, const char *passphrase,
-    const char *comment);
+key_save_private(Key *, const char *, const char *, const char *);
 
 Key *
-key_load_public(const char *filename, char **commentp);
+key_load_public(const char *, char **);
 
 Key *
-key_load_public_type(int type, const char *filename, char **commentp);
+key_load_public_type(int, const char *, char **);
 
 Key *
-key_load_private(const char *filename, const char *passphrase,
-    char **commentp);
+key_load_private(const char *, const char *, char **);
 
 Key *
-key_load_private_type(int type, const char *filename, const char *passphrase,
-    char **commentp);
+key_load_private_type(int, const char *, const char *, char **);
 
 #endif

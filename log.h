@@ -1,4 +1,4 @@
-/*	$OpenBSD: log.h,v 1.2 2001/01/29 01:58:16 niklas Exp $	*/
+/*	$OpenBSD: log.h,v 1.3 2001/06/26 06:32:55 itojun Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -46,23 +46,23 @@ typedef enum {
 	SYSLOG_LEVEL_DEBUG3
 }       LogLevel;
 /* Initializes logging. */
-void    log_init(char *av0, LogLevel level, SyslogFacility facility, int on_stderr);
+void    log_init(char *, LogLevel, SyslogFacility, int);
 
 /* Logging implementation, depending on server or client */
-void    do_log(LogLevel level, const char *fmt, va_list args);
+void    do_log(LogLevel, const char *, va_list);
 
 /* name to facility/level */
-SyslogFacility log_facility_number(char *name);
-LogLevel log_level_number(char *name);
+SyslogFacility log_facility_number(char *);
+LogLevel log_level_number(char *);
 
 /* Output a message to syslog or stderr */
-void    fatal(const char *fmt,...) __attribute__((format(printf, 1, 2)));
-void    error(const char *fmt,...) __attribute__((format(printf, 1, 2)));
-void    log(const char *fmt,...) __attribute__((format(printf, 1, 2)));
-void    verbose(const char *fmt,...) __attribute__((format(printf, 1, 2)));
-void    debug(const char *fmt,...) __attribute__((format(printf, 1, 2)));
-void    debug2(const char *fmt,...) __attribute__((format(printf, 1, 2)));
-void    debug3(const char *fmt,...) __attribute__((format(printf, 1, 2)));
+void    fatal(const char *, ...) __attribute__((format(printf, 1, 2)));
+void    error(const char *, ...) __attribute__((format(printf, 1, 2)));
+void    log(const char *, ...) __attribute__((format(printf, 1, 2)));
+void    verbose(const char *, ...) __attribute__((format(printf, 1, 2)));
+void    debug(const char *, ...) __attribute__((format(printf, 1, 2)));
+void    debug2(const char *, ...) __attribute__((format(printf, 1, 2)));
+void    debug3(const char *, ...) __attribute__((format(printf, 1, 2)));
 
 /* same as fatal() but w/o logging */
 void    fatal_cleanup(void);
@@ -72,9 +72,9 @@ void    fatal_cleanup(void);
  * before exiting. It is permissible to call fatal_remove_cleanup for the
  * function itself from the function.
  */
-void    fatal_add_cleanup(void (*proc) (void *context), void *context);
+void    fatal_add_cleanup(void (*) (void *), void *);
 
 /* Removes a cleanup function to be called at fatal(). */
-void    fatal_remove_cleanup(void (*proc) (void *context), void *context);
+void    fatal_remove_cleanup(void (*) (void *), void *);
 
 #endif

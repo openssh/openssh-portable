@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: readconf.h,v 1.32 2001/05/18 14:13:29 markus Exp $"); */
+/* RCSID("$OpenBSD: readconf.h,v 1.33 2001/06/26 06:32:58 itojun Exp $"); */
 
 #ifndef READCONF_H
 #define READCONF_H
@@ -107,13 +107,13 @@ typedef struct {
  * are processed in the following order: command line, user config file,
  * system config file.  Last, fill_default_options is called.
  */
-void    initialize_options(Options * options);
+void    initialize_options(Options *);
 
 /*
  * Called after processing other sources of option data, this fills those
  * options for which no value has been specified with their default values.
  */
-void    fill_default_options(Options * options);
+void    fill_default_options(Options *);
 
 /*
  * Processes a single option line as used in the configuration files. This
@@ -121,9 +121,7 @@ void    fill_default_options(Options * options);
  * options
  */
 int
-process_config_line(Options * options, const char *host,
-    char *line, const char *filename, int linenum,
-    int *activep);
+process_config_line(Options *, const char *, char *, const char *, int, int *);
 
 /*
  * Reads the config file and modifies the options accordingly.  Options
@@ -131,23 +129,20 @@ process_config_line(Options * options, const char *host,
  * there is an error.  If the file does not exist, this returns immediately.
  */
 void
-read_config_file(const char *filename, const char *host,
-    Options * options);
+read_config_file(const char *, const char *, Options *);
 
 /*
  * Adds a local TCP/IP port forward to options.  Never returns if there is an
  * error.
  */
 void
-add_local_forward(Options * options, u_short port, const char *host,
-    u_short host_port);
+add_local_forward(Options *, u_short, const char *, u_short);
 
 /*
  * Adds a remote TCP/IP port forward to options.  Never returns if there is
  * an error.
  */
 void
-add_remote_forward(Options * options, u_short port, const char *host,
-    u_short host_port);
+add_remote_forward(Options *, u_short, const char *, u_short);
 
 #endif				/* READCONF_H */

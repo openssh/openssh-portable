@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: authfd.h,v 1.17 2001/06/26 04:59:59 markus Exp $"); */
+/* RCSID("$OpenBSD: authfd.h,v 1.18 2001/06/26 06:32:47 itojun Exp $"); */
 
 #ifndef AUTHFD_H
 #define AUTHFD_H
@@ -62,7 +62,7 @@ int     ssh_get_authentication_socket(void);
  * ssh_get_authentication_socket().  Depending on the way the descriptor was
  * obtained, this may close the descriptor.
  */
-void    ssh_close_authentication_socket(int authfd);
+void    ssh_close_authentication_socket(int);
 
 /*
  * Opens and connects a private socket for communication with the
@@ -76,19 +76,19 @@ AuthenticationConnection *ssh_get_authentication_connection(void);
  * Closes the connection to the authentication agent and frees any associated
  * memory.
  */
-void    ssh_close_authentication_connection(AuthenticationConnection *auth);
+void    ssh_close_authentication_connection(AuthenticationConnection *);
 
 /*
  * Returns the number authentication identity held by the agent.
  */
-int	ssh_get_num_identities(AuthenticationConnection *auth, int version);
+int	ssh_get_num_identities(AuthenticationConnection *, int);
 
 /*
  * Returns the first authentication identity held by the agent or NULL if
  * no identies are available. Caller must free comment and key.
  * Note that you cannot mix calls with different versions.
  */
-Key	*ssh_get_first_identity(AuthenticationConnection *auth, char **comment, int version);
+Key	*ssh_get_first_identity(AuthenticationConnection *, char **, int);
 
 /*
  * Returns the next authentication identity for the agent.  Other functions
@@ -96,25 +96,20 @@ Key	*ssh_get_first_identity(AuthenticationConnection *auth, char **comment, int 
  * function.  This returns NULL if there are no more identities.  The caller
  * must free key and comment after a successful return.
  */
-Key	*ssh_get_next_identity(AuthenticationConnection *auth, char **comment, int version);
+Key	*ssh_get_next_identity(AuthenticationConnection *, char **, int);
 
 /*
  * Requests the agent to decrypt the given challenge.  Returns true if the
  * agent claims it was able to decrypt it.
  */
 int
-ssh_decrypt_challenge(AuthenticationConnection *auth,
-    Key *key, BIGNUM * challenge,
-    u_char session_id[16],
-    u_int response_type,
-    u_char response[16]);
+ssh_decrypt_challenge(AuthenticationConnection *, Key *, BIGNUM *, u_char[16],
+    u_int, u_char[16]);
 
 /* Requests the agent to sign data using key */
 int
-ssh_agent_sign(AuthenticationConnection *auth,
-    Key *key,
-    u_char **sigp, int *lenp,
-    u_char *data, int datalen);
+ssh_agent_sign(AuthenticationConnection *, Key *, u_char **, int *,
+    u_char *, int);
 
 /*
  * Adds an identity to the authentication server.  This call is not meant to
@@ -122,23 +117,22 @@ ssh_agent_sign(AuthenticationConnection *auth,
  * successfully added.
  */
 int
-ssh_add_identity(AuthenticationConnection *auth, Key *key,
-    const char *comment);
+ssh_add_identity(AuthenticationConnection *, Key *, const char *);
 
 /*
  * Removes the identity from the authentication server.  This call is not
  * meant to be used by normal applications.  This returns true if the
  * identity was successfully added.
  */
-int     ssh_remove_identity(AuthenticationConnection *auth, Key *key);
+int     ssh_remove_identity(AuthenticationConnection *, Key *);
 
 /*
  * Removes all identities from the authentication agent.  This call is not
  * meant to be used by normal applications.  This returns true if the
  * operation was successful.
  */
-int	ssh_remove_all_identities(AuthenticationConnection *auth, int version);
+int	ssh_remove_all_identities(AuthenticationConnection *, int);
 
-int	ssh_update_card(AuthenticationConnection *auth, int add, int reader_id);
+int	ssh_update_card(AuthenticationConnection *, int, int);
 
 #endif				/* AUTHFD_H */
