@@ -6,9 +6,6 @@
 
 @TOP@
 
-/* SSL directory.  */
-#undef ssldir
-
 /* Define if you want to disable PAM support */
 #undef DISABLE_PAM
 

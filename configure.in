@@ -3,7 +3,11 @@ AC_INIT(ssh.c)
 AC_CONFIG_HEADER(config.h)
 AC_CANONICAL_HOST
 
-dnl Checks for programs.
+# C Compiler features
+if test "$GCC" = "yes"; then CFLAGS="$CFLAGS -Wall"; fi
+AC_C_INLINE
+
+# Checks for programs.
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_RANLIB
@@ -12,78 +16,7 @@ AC_CHECK_PROG(AR, ar, ar)
 AC_PATH_PROG(PERL, perl)
 AC_SUBST(PERL)
 
-AC_ARG_WITH(rsh,
-	[  --with-rsh=PATH         Specify path to remote shell program ],
-	[
-		if test "x$withval" != "$xno" ; then
-			AC_DEFINE_UNQUOTED(RSH_PATH, "$withval")
-		fi
-	],
-	[
-		AC_PATH_PROG(rsh_path, rsh)
-	]
-)
-
-AC_ARG_WITH(xauth,
-	[  --with-xauth=PATH       Specify path to xauth program ],
-	[
-		if test "x$withval" != "$xno" ; then
-			AC_DEFINE_UNQUOTED(XAUTH_PATH, "$withval")
-		fi
-	],
-	[
-		AC_PATH_PROG(xauth_path, xauth)
-		if test ! -z "$xauth_path" -a -x "/usr/openwin/bin/xauth" ; then
-			xauth_path="/usr/openwin/bin/xauth"
-		fi
-	]
-)
-
-if test ! -z "$xauth_path" ; then
-	AC_DEFINE_UNQUOTED(XAUTH_PATH, "$xauth_path")
-fi
-if test ! -z "$rsh_path" ; then
-	AC_DEFINE_UNQUOTED(RSH_PATH, "$rsh_path")
-fi
-
-if test "$GCC" = "yes"; then CFLAGS="$CFLAGS -Wall"; fi
-
-AC_C_INLINE
-
-AC_ARG_WITH(ssl-dir,
-	[  --with-ssl-dir=PATH     Specify path to OpenSSL installation ],
-	[
-		if test "x$withval" != "$xno" ; then
-			ssldir=$withval
-		fi
-	]
-)
-
-AC_MSG_CHECKING([for OpenSSL/SSLeay directory])
-for ssldir in $ssldir $prefix /usr /usr/local/openssl /usr/lib/openssl /usr/local/ssl /usr/lib/ssl /usr/local $prefix /usr/pkg ; do
-	if test -f "$ssldir/include/openssl/crypto.h"; then
-		AC_DEFINE(HAVE_OPENSSL)
-		GOT_SSL="yes"
-		break
-	fi
-	if test -f "$ssldir/include/ssl/crypto.h"; then
-		AC_DEFINE(HAVE_SSL)
-		GOT_SSL="yes"
-		break
-	fi
-done
-if test -z "$GOT_SSL" ; then
-	AC_MSG_ERROR([Could not find SSLeay / OpenSSL libraries, please install])	
-fi
-AC_SUBST(ssldir)
-AC_DEFINE_UNQUOTED(ssldir, "$ssldir")
-if test "$ssldir" != "/usr"; then
-	CFLAGS="$CFLAGS -I$ssldir/include"
-	LDFLAGS="$LDFLAGS -L$ssldir/lib"
-fi
-AC_MSG_RESULT($ssldir)
-
-dnl Check for some target-specific stuff
+# Check for some target-specific stuff
 case "$host" in
 *-*-aix*)
 	AFS_LIBS="-lld"
@@ -124,11 +57,10 @@ case "$host" in
 	no_dev_ptmx=1
 	;;
 *-*-netbsd*)
-	if test "$GOT_SSL" = "yes"; then
-		LDFLAGS="$LDFLAGS -R$ssldir/lib"
-	fi
+	need_dash_r=1
 	;;
 *-*-solaris*)
+	need_dash_r=1
 	AC_DEFINE(USE_UTMPX)
 	;;
 *-*-sysv*)
@@ -139,17 +71,7 @@ case "$host" in
 	;;
 esac
 
-dnl Check for RSAref library.
-AC_MSG_CHECKING([for RSAref library])
-saved_LIBS="$LIBS"
-LIBS="$saved_LIBS -lRSAglue -lrsaref"
-AC_TRY_LINK([], [],
-[AC_MSG_RESULT(yes);
- AC_DEFINE(RSAREF)],
-[AC_MSG_RESULT(no)]; LIBS="$saved_LIBS")
-
-dnl Checks for libraries.
-AC_CHECK_LIB(crypto, CRYPTO_lock, ,AC_MSG_ERROR([*** libcrypto missing - please install first ***]))
+# Checks for libraries.
 AC_CHECK_LIB(z, deflate, ,AC_MSG_ERROR([*** zlib missing - please install first ***]))
 AC_CHECK_LIB(util, login, AC_DEFINE(HAVE_LIBUTIL_LOGIN) LIBS="$LIBS -lutil")
 
@@ -160,10 +82,10 @@ if test -z "$no_libnsl" ; then
 	AC_CHECK_LIB(socket, main, , )
 fi
 
-dnl Checks for header files.
+# Checks for header files.
 AC_CHECK_HEADERS(bstring.h endian.h lastlog.h login.h maillock.h netdb.h netgroup.h paths.h poll.h pty.h shadow.h security/pam_appl.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h sys/poll.h sys/select.h sys/stropts.h sys/sysmacros.h sys/time.h sys/ttcompat.h stddef.h util.h utmp.h utmpx.h)
 
-dnl Checks for library functions.
+# Checks for library functions.
 AC_CHECK_FUNCS(arc4random bindresvport_af freeaddrinfo gai_strerror getaddrinfo getpagesize getnameinfo innetgr md5_crypt mkdtemp openpty rresvport_af setenv seteuid setlogin setproctitle setreuid snprintf strlcat strlcpy updwtmpx vsnprintf _getpty)
 
 AC_CHECK_FUNC(login, 
@@ -176,14 +98,114 @@ AC_CHECK_FUNC(daemon,
 	[AC_CHECK_LIB(bsd, daemon, [LIBS="$LIBS -lbsd"; AC_DEFINE(HAVE_DAEMON)])]
 )
 
-dnl Checks for data types
+AC_ARG_WITH(pam,
+	[  --without-pam           Disable PAM support ],
+	[
+		if test "x$withval" = "xno" ; then
+			no_pam=1
+			AC_DEFINE(DISABLE_PAM)
+		fi
+	]
+)
+if test -z "$no_pam" -a "x$ac_cv_header_security_pam_appl_h" = "xyes" ; then
+	AC_CHECK_LIB(dl, dlopen, , )
+	LIBS="$LIBS -lpam"
+
+	# Check PAM strerror arguments (old PAM)
+	AC_MSG_CHECKING([whether pam_strerror takes only one argument])
+	AC_TRY_COMPILE(
+		[
+			#include <stdlib.h>
+			#include <security/pam_appl.h>
+		], 
+		[(void)pam_strerror((pam_handle_t *)NULL, -1);], 
+		[AC_MSG_RESULT(no)],
+		[
+			AC_DEFINE(HAVE_OLD_PAM)
+			AC_MSG_RESULT(yes)
+		]
+	) 
+fi
+
+# The big search for OpenSSL
+AC_ARG_WITH(ssl-dir,
+	[  --with-ssl-dir=PATH     Specify path to OpenSSL installation ],
+	[
+		if test "x$withval" != "$xno" ; then
+			tryssldir=$withval
+		fi
+	]
+)
+
+saved_LIBS="$LIBS"
+saved_CFLAGS="$CFLAGS"
+if test "x$prefix" != "xNONE" ; then
+	tryssldir="$tryssldir $prefix"
+fi
+AC_MSG_CHECKING([for OpenSSL/SSLeay directory])
+for ssldir in "" $tryssldir /usr /usr/local/openssl /usr/lib/openssl /usr/local/ssl /usr/lib/ssl /usr/local /usr/pkg /opt /opt/openssl ; do
+	if test ! -z "$ssldir" ; then
+		LIBS="$saved_LIBS -L$ssldir"
+		CFLAGS="$CFLAGS -I$ssldir/include"
+		if test "x$need_dash_r" = "x1" ; then
+			LIBS="$LIBS -R$ssldir"
+		fi
+	fi
+	LIBS="$LIBS -lcrypto"
+
+	AC_TRY_RUN(
+		[
+			#include <openssl/rsa.h>
+			#include <openssl/bn.h>
+			#include <openssl/sha.h>
+			int main(void) 
+			{RSA *key;key=RSA_generate_key(32,3,NULL,NULL);return(key==NULL);}
+		],
+		[
+			AC_DEFINE(HAVE_OPENSSL)
+			found_crypto=1
+			break;
+		], []
+	)
+	AC_TRY_RUN(
+		[
+			#include <ssl/rsa.h>
+			#include <ssl/bn.h>
+			#include <ssl/sha.h>
+			int main(void) 
+			{RSA *key;key=RSA_generate_key(32,3,NULL,NULL);return(key==NULL);}
+		],
+		[
+			AC_DEFINE(HAVE_SSL)
+			found_crypto=1
+			break;
+		], []
+	)
+done
+
+if test -z "$found_crypto" ; then
+	AC_MSG_ERROR([Could not find working SSLeay / OpenSSL libraries, please install])	
+fi
+if test -z "$ssldir" ; then
+	ssldir="(system)"
+else
+	CFLAGS="$CFLAGS -I$ssldir/include"
+	LDFLAGS="$LDFLAGS -L$ssldir/lib"
+	if test "x$need_dash_r" = "x1" ; then
+		LDFLAGS="$LDFLAGS -R$ssldir"
+	fi
+fi
+LIBS="$saved_LIBS -lcrypto"
+AC_MSG_RESULT($ssldir)
+
+# Checks for data types
 AC_CHECK_SIZEOF(char, 1)
 AC_CHECK_SIZEOF(short int, 2)
 AC_CHECK_SIZEOF(int, 4)
 AC_CHECK_SIZEOF(long int, 4)
 AC_CHECK_SIZEOF(long long int, 8)
 
-dnl More checks for data types
+# More checks for data types
 AC_MSG_CHECKING([for intXX_t types])
 AC_TRY_COMPILE(
 	[#include <sys/types.h>], 
@@ -316,89 +338,7 @@ AC_TRY_COMPILE(
 	[AC_MSG_RESULT(no)]
 )
 
-AC_ARG_WITH(pam,
-	[  --without-pam           Disable PAM support ],
-	[
-		if test "x$withval" = "xno" ; then
-			no_pam=1
-			AC_DEFINE(DISABLE_PAM)
-		fi
-	]
-)
-
-if test -z "$no_pam" -a "x$ac_cv_header_security_pam_appl_h" = "xyes" ; then
-	AC_CHECK_LIB(dl, dlopen, , )
-	LIBS="$LIBS -lpam"
-	dnl Check PAM strerror arguments
-	AC_MSG_CHECKING([whether pam_strerror takes only one argument])
-	AC_TRY_COMPILE(
-		[
-			#include <stdlib.h>
-			#include <security/pam_appl.h>
-		], 
-		[(void)pam_strerror((pam_handle_t *)NULL, -1);], 
-		[AC_MSG_RESULT(no)],
-		[
-			AC_DEFINE(HAVE_OLD_PAM)
-			AC_MSG_RESULT(yes)
-		]
-	) 
-fi
-
-AC_MSG_CHECKING([whether to build GNOME ssh-askpass])
-dnl Check whether user wants GNOME ssh-askpass
-AC_ARG_WITH(gnome-askpass,
-	[  --with-gnome-askpass    Build the GNOME passphrase requester (default=no)],
-	[
-		if test x$withval = xno ; then
-			GNOME_ASKPASS="";
-		else
-			GNOME_ASKPASS="gnome-ssh-askpass";
-		fi
-	])
-AC_SUBST(GNOME_ASKPASS)
-
-if test -z "$GNOME_ASKPASS" ; then
-	AC_MSG_RESULT(no)
-else
-	AC_MSG_RESULT(yes)
-fi
-
-dnl Check for user-specified random device
-AC_ARG_WITH(random,
-	[  --with-random=FILE      read randomness from FILE (default=/dev/urandom)],
-	[
-		RANDOM_POOL="$withval";
-		AC_DEFINE_UNQUOTED(RANDOM_POOL, "$RANDOM_POOL")
-	],
-	[
-		dnl Check for random device
-		AC_CHECK_FILE("/dev/urandom",
-			[
-				RANDOM_POOL="/dev/urandom"; 
-				AC_SUBST(RANDOM_POOL)
-				AC_DEFINE_UNQUOTED(RANDOM_POOL, "$RANDOM_POOL")
-			]
-		)
-	]
-)
-
-dnl Check for EGD pool file
-AC_ARG_WITH(egd-pool,
-	[  --with-egd-pool=FILE    read randomness from EGD pool FILE (default none)],
-	[
-		RANDOM_POOL="$withval";
-		AC_DEFINE(HAVE_EGD)
-		AC_SUBST(RANDOM_POOL)
-		AC_DEFINE_UNQUOTED(RANDOM_POOL, "$RANDOM_POOL")
-	]
-)
-
-dnl Make sure we have random number support
-if test -z "$RANDOM_POOL" -a -z "$EGD_POOL"; then
-	AC_MSG_ERROR([No random device found, and no EGD random pool specified])
-fi
-
+# Checks for structure members
 AC_MSG_CHECKING([whether utmp.h has ut_host field])
 AC_EGREP_HEADER(ut_host, utmp.h, 
 	[AC_DEFINE(HAVE_HOST_IN_UTMP) AC_MSG_RESULT(yes); ], 
@@ -482,7 +422,60 @@ AC_TRY_COMPILE(
 	[AC_MSG_RESULT(no)]
 )
 
-dnl Look for lastlog location
+AC_MSG_CHECKING([whether libc defines __progname])
+AC_TRY_LINK([], 
+	[extern char *__progname; printf("%s", __progname);], 
+	[
+		AC_DEFINE(HAVE___PROGNAME)
+		AC_MSG_RESULT(yes)
+	], 
+	[
+		AC_MSG_RESULT(no)
+	]
+)
+
+# Looking for programs, paths and files
+AC_ARG_WITH(rsh,
+	[  --with-rsh=PATH         Specify path to remote shell program ],
+	[
+		if test "x$withval" != "$xno" ; then
+			AC_DEFINE_UNQUOTED(RSH_PATH, "$withval")
+		fi
+	],
+	[
+		AC_PATH_PROG(rsh_path, rsh)
+	]
+)
+
+AC_ARG_WITH(xauth,
+	[  --with-xauth=PATH       Specify path to xauth program ],
+	[
+		if test "x$withval" != "$xno" ; then
+			AC_DEFINE_UNQUOTED(XAUTH_PATH, "$withval")
+		fi
+	],
+	[
+		AC_PATH_PROG(xauth_path, xauth)
+		if test ! -z "$xauth_path" -a -x "/usr/openwin/bin/xauth" ; then
+			xauth_path="/usr/openwin/bin/xauth"
+		fi
+	]
+)
+
+if test ! -z "$xauth_path" ; then
+	AC_DEFINE_UNQUOTED(XAUTH_PATH, "$xauth_path")
+fi
+if test ! -z "$rsh_path" ; then
+	AC_DEFINE_UNQUOTED(RSH_PATH, "$rsh_path")
+fi
+
+# Check for mail directory (last resort if we cannot get it from headers)
+if test ! -z "$MAIL" ; then
+	maildir=`dirname $MAIL`
+	AC_DEFINE_UNQUOTED(MAIL_DIRECTORY, "$maildir")
+fi
+
+# Look for lastlog location
 AC_ARG_WITH(lastlog,
 	[  --with-lastlog=FILE     Location of lastlog file],
 	[
@@ -524,6 +517,67 @@ if test ! -z "$nolastlog" ; then
 	AC_DEFINE(DISABLE_LASTLOG)
 fi
 
+if test -z "$no_dev_ptmx" ; then
+	AC_CHECK_FILE("/dev/ptmx", AC_DEFINE_UNQUOTED(HAVE_DEV_PTMX))
+fi
+AC_CHECK_FILE("/dev/ptc", AC_DEFINE_UNQUOTED(HAVE_DEV_PTS_AND_PTC))
+
+# Options from here on. Some of these are preset by platform above
+
+# Check whether user wants GNOME ssh-askpass
+AC_MSG_CHECKING([whether to build GNOME ssh-askpass])
+AC_ARG_WITH(gnome-askpass,
+	[  --with-gnome-askpass    Build the GNOME passphrase requester (default=no)],
+	[
+		if test x$withval = xno ; then
+			GNOME_ASKPASS="";
+		else
+			GNOME_ASKPASS="gnome-ssh-askpass";
+		fi
+	])
+AC_SUBST(GNOME_ASKPASS)
+
+if test -z "$GNOME_ASKPASS" ; then
+	AC_MSG_RESULT(no)
+else
+	AC_MSG_RESULT(yes)
+fi
+
+# Check for user-specified random device, otherwise check /dev/urandom
+AC_ARG_WITH(random,
+	[  --with-random=FILE      read randomness from FILE (default=/dev/urandom)],
+	[
+		RANDOM_POOL="$withval";
+		AC_DEFINE_UNQUOTED(RANDOM_POOL, "$RANDOM_POOL")
+	],
+	[
+		# Check for random device
+		AC_CHECK_FILE("/dev/urandom",
+			[
+				RANDOM_POOL="/dev/urandom"; 
+				AC_SUBST(RANDOM_POOL)
+				AC_DEFINE_UNQUOTED(RANDOM_POOL, "$RANDOM_POOL")
+			]
+		)
+	]
+)
+
+# Check for EGD pool file
+AC_ARG_WITH(egd-pool,
+	[  --with-egd-pool=FILE    read randomness from EGD pool FILE (default none)],
+	[
+		RANDOM_POOL="$withval";
+		AC_DEFINE(HAVE_EGD)
+		AC_SUBST(RANDOM_POOL)
+		AC_DEFINE_UNQUOTED(RANDOM_POOL, "$RANDOM_POOL")
+	]
+)
+
+# Make sure we have some random number support
+if test -z "$RANDOM_POOL" -a -z "$EGD_POOL"; then
+	AC_MSG_ERROR([No random device found, and no EGD random pool specified])
+fi
+
 AC_ARG_WITH(catman,
 	[  --with-catman=man|cat   Install preformatted manpages[no]],
 	[
@@ -543,24 +597,7 @@ AC_ARG_WITH(catman,
 AC_SUBST(MANTYPE)
 AC_SUBST(mansubdir)
 
-if test -z "$no_dev_ptmx" ; then
-	AC_CHECK_FILE("/dev/ptmx", AC_DEFINE_UNQUOTED(HAVE_DEV_PTMX))
-fi
-AC_CHECK_FILE("/dev/ptc", AC_DEFINE_UNQUOTED(HAVE_DEV_PTS_AND_PTC))
-
-AC_MSG_CHECKING([whether libc defines __progname])
-AC_TRY_LINK([], 
-	[extern char *__progname; printf("%s", __progname);], 
-	[
-		AC_DEFINE(HAVE___PROGNAME)
-		AC_MSG_RESULT(yes)
-	], 
-	[
-		AC_MSG_RESULT(no)
-	]
-)
-
-dnl Check whether user wants Kerberos support
+# Check whether user wants Kerberos support
 AC_ARG_WITH(kerberos4,
 	[  --with-kerberos4=PATH   Enable Kerberos 4 support],
 	[
@@ -592,7 +629,7 @@ AC_ARG_WITH(kerberos4,
 	]
 )
 
-dnl Check whether user wants AFS support
+# Check whether user wants AFS support
 AC_ARG_WITH(afs,
 	[  --with-afs=PATH         Enable AFS support],
 	[
@@ -617,7 +654,7 @@ AC_ARG_WITH(afs,
 )
 LIBS="$LIBS $KLIBS"
 
-dnl Check whether user wants S/Key support
+# Check whether user wants S/Key support
 AC_ARG_WITH(skey,
 	[  --with-skey             Enable S/Key support],
 	[
@@ -628,7 +665,7 @@ AC_ARG_WITH(skey,
 	]
 )
 
-dnl Check whether user wants TCP wrappers support
+# Check whether user wants TCP wrappers support
 AC_ARG_WITH(tcp-wrappers,
 	[  --with-tcp-wrappers     Enable tcpwrappers support],
 	[
@@ -639,7 +676,7 @@ AC_ARG_WITH(tcp-wrappers,
 	]
 )
 
-dnl Check whether to enable MD5 passwords
+# Check whether to enable MD5 passwords
 AC_ARG_WITH(md5-passwords,
 	[  --with-md5-passwords    Enable use of MD5 passwords],
 	[
@@ -649,7 +686,7 @@ AC_ARG_WITH(md5-passwords,
 	]
 )
 
-dnl Check whether to enable utmpx support
+# Check whether to enable utmpx support
 AC_ARG_WITH(utmpx,
 	[  --with-utmpx            Enable utmpx support],
 	[
@@ -659,7 +696,7 @@ AC_ARG_WITH(utmpx,
 	]
 )
 
-dnl Whether to disable shadow password support
+# Whether to disable shadow password support
 AC_ARG_WITH(shadow,
 	[  --without-shadow        Disable shadow password support],
 	[
@@ -669,7 +706,7 @@ AC_ARG_WITH(shadow,
 	]
 )
 
-dnl Use ip address instead of hostname in $DISPLAY
+# Use ip address instead of hostname in $DISPLAY
 AC_ARG_WITH(ipaddr-display,
 	[  --with-ipaddr-display   Use ip address instead of hostname in \$DISPLAY],
 	[
@@ -679,6 +716,7 @@ AC_ARG_WITH(ipaddr-display,
 	]
 )
 
+# Whether to mess with the default path
 AC_ARG_WITH(default-path,
 	[  --with-default-path=PATH Specify default \$PATH environment for server],
 	[
@@ -688,6 +726,7 @@ AC_ARG_WITH(default-path,
 	]
 )
 
+# Whether to force IPv4 by default (needed on broken glibc Linux)
 AC_ARG_WITH(ipv4-default,
 	[  --with-ipv4-default     Use IPv4 by connections unless '-6' specified],
 	[
@@ -697,6 +736,7 @@ AC_ARG_WITH(ipv4-default,
 	]
 )
 
+# Where to place sshd.pid
 piddir=/var/run
 AC_ARG_WITH(pid-dir,
 	[  --with-pid-dir=PATH     Specify location of ssh.pid file],
@@ -709,12 +749,4 @@ AC_ARG_WITH(pid-dir,
 AC_DEFINE_UNQUOTED(PIDDIR, "$piddir")
 AC_SUBST(piddir)
 
-dnl Check for mail directory (last resort if we cannot get it from headers)
-if test ! -z "$MAIL" ; then
-	maildir=`dirname $MAIL`
-	AC_DEFINE_UNQUOTED(MAIL_DIRECTORY, "$maildir")
-fi
-
 AC_OUTPUT(Makefile)
-
-

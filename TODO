@@ -10,3 +10,5 @@
 - Move all compatability cruft (bsd-*, fake-*) into subordinate library
 
 - Cleanup configure.in
+
+- A good source of strong random numbers. Waiting on a Yarrow port.

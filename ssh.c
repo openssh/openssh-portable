@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: ssh.c,v 1.19 2000/02/07 02:20:26 damien Exp $");
+RCSID("$Id: ssh.c,v 1.20 2000/03/02 12:09:21 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -325,11 +325,7 @@ main(int ac, char **av)
 		case 'V':
 			fprintf(stderr, "SSH Version %s, protocol version %d.%d.\n",
 			    SSH_VERSION, PROTOCOL_MAJOR, PROTOCOL_MINOR);
-#ifndef RSAREF
 			fprintf(stderr, "Compiled with SSL.\n");
-#else
-			fprintf(stderr, "Compiled with SSL (RSAref version).\n");
-#endif
 			if (opt == 'V')
 				exit(0);
 			debug_flag = 1;

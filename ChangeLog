@@ -1,3 +1,11 @@
+20000302
+ - Big cleanup of autoconf code
+   - Rearranged to be a little more logical
+   - Added -R option for Solaris
+   - Rewrote OpenSSL detection code. Now uses AC_TRY_RUN with a test program
+     to detect library and header location _and_ ensure library has proper
+     RSA support built in (this is a problem with OpenSSL 0.9.5).
+
 20000207
  - Removed SOCKS code. Will support through a ProxyCommand.
 
