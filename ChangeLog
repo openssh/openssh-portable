@@ -17,6 +17,8 @@
  - Patch from Christos Zoulas <christos@zoulas.com>
    - Try $prefix first when looking for OpenSSL.
    - Include sys/types.h when including sys/socket.h in test programs
+ - Substitute PID directory in sshd.8. Suggestion from Andrew 
+   Stribblehill <a.d.stribblehill@durham.ac.uk>
 
 20000116
  - Renamed --with-xauth-path to --with-xauth

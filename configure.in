@@ -661,14 +661,17 @@ AC_ARG_WITH(default-path,
 	]
 )
 
+piddir=/var/run
 AC_ARG_WITH(pid-dir,
 	[  --with-pid-dir=PATH     Specify location of ssh.pid file],
 	[
 		if test "x$withval" != "xno" ; then	
-			AC_DEFINE_UNQUOTED(PID_DIR, "$withval")
+			piddir=$withval
 		fi
 	]
 )
+AC_DEFINE_UNQUOTED(PID_DIR, "$piddir")
+AC_SUBST(piddir)
 
 dnl Check for mail directory (last resort if we cannot get it from headers)
 if test ! -z "$MAIL" ; then
