@@ -15,11 +15,17 @@ supports it. PAM is standard on Redhat and Debian Linux and on Solaris.
 PAM:
 http://www.kernel.org/pub/linux/libs/pam/
 
-If you wish to build the GNOME passphrase requestor, you will need the GNOME
+If you wish to build the GNOME passphrase requester, you will need the GNOME
 libraries and headers.
 
 GNOME:
 http://www.gnome.org/
+
+Alternatly Jim Knoble <jmknoble@pobox.com> has written an excellent X11
+passphrase requester. This is maintained seperatly at:
+
+http://www.pobox.com/~jmknoble/jmk/
+
 
 If you are planning to use OpenSSH on a Unix which lacks a Kernel random
 number generator (/dev/urandom), you will need to install the Entropy
