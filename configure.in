@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.269 2001/03/28 04:35:30 djm Exp $
+# $Id: configure.in,v 1.270 2001/03/28 04:37:06 djm Exp $
 
 AC_INIT(ssh.c)
 
@@ -1215,15 +1215,31 @@ AC_ARG_WITH(kerberos4,
 			fi
 
 			AC_CHECK_HEADERS(krb.h)
-			AC_CHECK_LIB(krb, main)
 			if test "$ac_cv_header_krb_h" != yes; then
 				AC_MSG_WARN([Cannot find krb.h, build may fail])
 			fi
+			AC_CHECK_LIB(krb, main)
 			if test "$ac_cv_lib_krb_main" != yes; then
-				AC_MSG_WARN([Cannot find libkrb, build may fail])
+				AC_CHECK_LIB(krb4, main)
+				if test "$ac_cv_lib_krb4_main" != yes; then
+					AC_MSG_WARN([Cannot find libkrb nor libkrb4, build may fail])
+				else
+					KLIBS="-lkrb4"
+				fi
+			else
+				KLIBS="-lkrb"
 			fi
-
-			KLIBS="-lkrb -ldes"
+			AC_CHECK_LIB(des, des_cbc_encrypt)
+			if test "$ac_cv_lib_des_des_cbc_encrypt" != yes; then
+				AC_CHECK_LIB(des425, des_cbc_encrypt)
+				if test "$ac_cv_lib_des425_des_cbc_encrypt" != yes; then
+					AC_MSG_WARN([Cannot find libdes nor libdes425, build may fail])
+				else
+					KLIBS="-ldes425"
+				fi
+			else
+				KLIBS="-ldes"
+			fi
 			AC_CHECK_LIB(resolv, dn_expand, , )
 			KRB4=yes
 			KRB4_MSG="yes" 
