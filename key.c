@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: key.c,v 1.15 2001/01/21 19:05:50 markus Exp $");
+RCSID("$OpenBSD: key.c,v 1.16 2001/01/22 16:55:21 stevesk Exp $");
 
 #include <openssl/evp.h>
 
@@ -258,7 +258,7 @@ write_bignum(FILE *f, BIGNUM *num)
 		return 0;
 	}
 	fprintf(f, " %s", buf);
-	free(buf);
+	xfree(buf);
 	return 1;
 }
 

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.37 2001/01/21 19:06:00 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.38 2001/01/22 17:22:28 stevesk Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -248,6 +248,7 @@ ssh_dh1_client(Kex *kex, char *host, struct sockaddr *hostaddr,
 	);
 	xfree(server_host_key_blob);
 	DH_free(dh);
+	BN_free(dh_server_pub);
 #ifdef DEBUG_KEXDH
 	fprintf(stderr, "hash == ");
 	for (i = 0; i< 20; i++)
@@ -257,8 +258,10 @@ ssh_dh1_client(Kex *kex, char *host, struct sockaddr *hostaddr,
 	if (key_verify(server_host_key, (u_char *)signature, slen, hash, 20) != 1)
 		fatal("key_verify failed for server_host_key");
 	key_free(server_host_key);
+	xfree(signature);
 
 	kex_derive_keys(kex, hash, shared_secret);
+	BN_clear_free(shared_secret);
 	packet_set_kex(kex);
 
 	/* save session id */
@@ -420,6 +423,7 @@ ssh_dhgex_client(Kex *kex, char *host, struct sockaddr *hostaddr,
 	);
 	xfree(server_host_key_blob);
 	DH_free(dh);
+	BN_free(dh_server_pub);
 #ifdef DEBUG_KEXDH
 	fprintf(stderr, "hash == ");
 	for (i = 0; i< 20; i++)
@@ -429,8 +433,10 @@ ssh_dhgex_client(Kex *kex, char *host, struct sockaddr *hostaddr,
 	if (key_verify(server_host_key, (u_char *)signature, slen, hash, 20) != 1)
 		fatal("key_verify failed for server_host_key");
 	key_free(server_host_key);
+	xfree(signature);
 
 	kex_derive_keys(kex, hash, shared_secret);
+	BN_clear_free(shared_secret);
 	packet_set_kex(kex);
 
 	/* save session id */

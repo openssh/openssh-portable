@@ -2,6 +2,20 @@
  - (bal) regexp.h typo in configure.in.  Should have been regex.h
  - (bal) SSH_USER_DIR to _PATH_SSH_USER_DIR patch by stevesk@
  - (bal) SSH_ASKPASS_DEFAULT to _PATH_SSH_ASKPASS_DEFAULT 
+ - (bal) OpenBSD Resync
+   - markus@cvs.openbsd.org 2001/01/22 8:15:00
+     [auth-krb4.c sshconnect1.c]
+     only AFS needs radix.[ch]
+   - markus@cvs.openbsd.org 2001/01/22 8:32:53
+     [auth2.c]
+     no need to include; from mouring@etoh.eviladmin.org
+   - stevesk@cvs.openbsd.org 2001/01/22 16:55:21
+     [key.c]
+     free() -> xfree(); ok markus@
+   - stevesk@cvs.openbsd.org 2001/01/22 17:22:28
+     [sshconnect2.c sshd.c]
+     fix memory leaks in SSH2 key exchange; ok markus@
+
 
 20010122
  - (bal) OpenBSD Resync
