@@ -34,7 +34,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.82 2002/03/04 17:27:39 stevesk Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.83 2002/03/21 22:44:05 rees Exp $");
 
 #if defined(HAVE_SYS_QUEUE_H) && !defined(HAVE_BOGUS_SYS_QUEUE_H)
 #include <sys/queue.h>
@@ -454,12 +454,14 @@ process_add_smartcard_key (SocketEntry *e)
 {
 	Idtab *tab;
 	Key *n = NULL, *k = NULL;
-	char *sc_reader_id = NULL;
+	char *sc_reader_id = NULL, *pin;
 	int success = 0;
 
 	sc_reader_id = buffer_get_string(&e->input, NULL);
-	k = sc_get_key(sc_reader_id);
+	pin = buffer_get_string(&e->input, NULL);
+	k = sc_get_key(sc_reader_id, pin);
 	xfree(sc_reader_id);
+	xfree(pin);
 
 	if (k == NULL) {
 		error("sc_get_pubkey failed");
@@ -505,11 +507,13 @@ process_remove_smartcard_key(SocketEntry *e)
 {
 	Key *k = NULL;
 	int success = 0;
-	char *sc_reader_id = NULL;
+	char *sc_reader_id = NULL, *pin;
 
 	sc_reader_id = buffer_get_string(&e->input, NULL);
-	k = sc_get_key(sc_reader_id);
+	pin = buffer_get_string(&e->input, NULL);
+	k = sc_get_key(sc_reader_id, pin);
 	xfree(sc_reader_id);
+	xfree(pin);
 
 	if (k == NULL) {
 		error("sc_get_pubkey failed");

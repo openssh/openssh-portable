@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.52 2002/03/21 10:21:20 markus Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.53 2002/03/21 22:44:05 rees Exp $");
 
 #include <openssl/evp.h>
 
@@ -176,7 +176,13 @@ add_file(AuthenticationConnection *ac, const char *filename)
 static int
 update_card(AuthenticationConnection *ac, int add, const char *id)
 {
-	if (ssh_update_card(ac, add, id)) {
+	char *pin;
+
+	pin = read_passphrase("Enter passphrase for smartcard: ", RP_ALLOW_STDIN);
+	if (pin == NULL)
+		return -1;
+
+	if (ssh_update_card(ac, add, id, pin)) {
 		fprintf(stderr, "Card %s: %s\n",
 		    add ? "added" : "removed", id);
 		return 0;

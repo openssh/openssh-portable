@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.165 2002/03/19 10:49:35 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.166 2002/03/21 22:44:05 rees Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -1193,7 +1193,7 @@ load_public_identity_files(void)
 #ifdef SMARTCARD
 	if (options.smartcard_device != NULL &&
 	    options.num_identity_files + 1 < SSH_MAX_IDENTITY_FILES &&
-	    (public = sc_get_key(options.smartcard_device)) != NULL ) {
+	    (public = sc_get_key(options.smartcard_device, NULL)) != NULL ) {
 		Key *new;
 
 		if (options.num_identity_files + 2 > SSH_MAX_IDENTITY_FILES)

@@ -1,4 +1,4 @@
-/*	$OpenBSD: authfd.h,v 1.23 2002/03/04 17:27:39 stevesk Exp $	*/
+/*	$OpenBSD: authfd.h,v 1.24 2002/03/21 22:44:05 rees Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -67,7 +67,7 @@ Key	*ssh_get_next_identity(AuthenticationConnection *, char **, int);
 int	 ssh_add_identity(AuthenticationConnection *, Key *, const char *);
 int	 ssh_remove_identity(AuthenticationConnection *, Key *);
 int	 ssh_remove_all_identities(AuthenticationConnection *, int);
-int	 ssh_update_card(AuthenticationConnection *, int, const char *);
+int	 ssh_update_card(AuthenticationConnection *, int, const char *, const char *);
 
 int
 ssh_decrypt_challenge(AuthenticationConnection *, Key *, BIGNUM *, u_char[16],

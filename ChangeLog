@@ -139,6 +139,9 @@
    - rees@cvs.openbsd.org 2002/03/21 21:54:34
      [scard.c scard.h ssh-keygen.c]
      Add PIN-protection for secret key.
+   - rees@cvs.openbsd.org 2002/03/21 22:44:05
+     [authfd.c authfd.h ssh-add.c ssh-agent.c ssh.c]
+     Add PIN-protection for secret key.
 
 20020317
  - (tim) [configure.ac] Assume path given with --with-pid-dir=PATH is wanted,
@@ -7985,4 +7988,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1964 2002/03/22 03:47:38 mouring Exp $
+$Id: ChangeLog,v 1.1965 2002/03/22 03:51:06 mouring Exp $
