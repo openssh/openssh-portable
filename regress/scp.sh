@@ -73,7 +73,7 @@ if [ ! -z "$SUDO" ]; then
 	chmod 660 ${DIR2}/copy
 	$SUDO chown root ${DIR2}/copy
 	$SCP -p $scpopts somehost:${DIR}/\* ${DIR2} >/dev/null 2>&1
-	diff -rN ${DIR} ${DIR2} || fail "corrupted copy"
+	diff ${DIFFOPT} ${DIR} ${DIR2} || fail "corrupted copy"
 	$SUDO rm ${DIR2}/copy
 fi
 
