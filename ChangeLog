@@ -51,6 +51,9 @@
      were not being updated if they had changed after ~^Z suspends and SIGWINCH
      was not being processed unless the first connection had requested a tty;
      ok markus
+   - djm@cvs.openbsd.org 2004/10/29 22:53:56
+     [clientloop.c misc.h readpass.c ssh-agent.c]
+     factor out common permission-asking code to separate function; ok markus@
 
 20041102
  - (dtucker) [configure.ac includes.h] Bug #947: Fix compile error on HP-UX
@@ -1830,4 +1833,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3575 2004/11/05 09:35:44 dtucker Exp $
+$Id: ChangeLog,v 1.3576 2004/11/05 09:38:03 dtucker Exp $

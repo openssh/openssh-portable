@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.132 2004/10/29 21:47:15 djm Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.133 2004/10/29 22:53:56 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -592,24 +592,9 @@ client_process_control(fd_set * readset)
 	}
 
 	allowed = 1;
-	if (options.control_master == 2) {
-		char *p, prompt[1024];
-
-		allowed = 0;
-		snprintf(prompt, sizeof(prompt),
-		    "Allow shared connection to %s? ", host);
-		p = read_passphrase(prompt, RP_USE_ASKPASS|RP_ALLOW_EOF);
-		if (p != NULL) {
-			/*
-			 * Accept empty responses and responses consisting
-			 * of the word "yes" as affirmative.
-			 */
-			if (*p == '\0' || *p == '\n' ||
-			    strcasecmp(p, "yes") == 0)
-				allowed = 1;
-			xfree(p);
-		}
-	}
+	if (options.control_master == 2)
+		allowed = ask_permission("Allow shared connection to %s? ",
+		    host);
 
 	unset_nonblock(client_fd);
 
