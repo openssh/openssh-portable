@@ -22,6 +22,8 @@
  - Reformat Makefile a little
  - Moved RC4 routines from rc4.[ch] into helper.c
  - Added autoconf code to detect /dev/ptmx (Solaris) and /dev/ptc (AIX)
+ - Updated SuSE spec from Chris Saia <csaia@wtower.com>
+ - Tweaked Redhat spec
 
 19991204
  - Small cleanup of PAM code in sshd.c
