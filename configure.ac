@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.17 2002/01/31 06:14:03 tim Exp $
+# $Id: configure.ac,v 1.18 2002/02/13 12:06:57 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -332,6 +332,18 @@ fi
 
 AC_CHECK_FUNC(getspnam, ,
 	AC_CHECK_LIB(gen, getspnam, LIBS="$LIBS -lgen"))
+
+AC_ARG_WITH(rpath,
+	[  --without-rpath         Disable auto-added -R linker paths],
+	[
+		if test "x$withval" = "xno" ; then	
+			need_dash_r=""
+		fi
+		if test "x$withval" = "xyes" ; then
+			need_dash_r=1
+		fi
+	]
+)
 
 dnl zlib is required
 AC_ARG_WITH(zlib,
