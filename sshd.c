@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.210 2001/11/14 20:45:08 deraadt Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.211 2001/11/19 11:20:21 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -185,6 +185,10 @@ int session_id2_len = 0;
 /* record remote hostname or ip */
 u_int utmp_len = MAXHOSTNAMELEN;
 
+/* options.max_startup sized array of fd ints */
+int *startup_pipes = NULL;
+int startup_pipe;		/* in child */
+
 /* Prototypes for various functions defined later in this file. */
 void destroy_sensitive_data(void);
 
@@ -201,6 +205,16 @@ close_listen_socks(void)
 	for (i = 0; i < num_listen_socks; i++)
 		close(listen_socks[i]);
 	num_listen_socks = -1;
+}
+
+static void
+close_startup_pipes(void)
+{
+	int i;
+	if (startup_pipes)
+		for (i = 0; i < options.max_startups; i++)
+			if (startup_pipes[i] != -1)
+				close(startup_pipes[i]);
 }
 
 /*
@@ -227,6 +241,7 @@ sighup_restart(void)
 {
 	log("Received SIGHUP; restarting.");
 	close_listen_socks();
+	close_startup_pipes();
 	execv(saved_argv[0], saved_argv);
 	log("RESTART FAILED: av[0]='%.100s', error: %.100s.", saved_argv[0], strerror(errno));
 	exit(1);
@@ -527,9 +542,6 @@ drop_connection(int startups)
 	debug("drop_connection: p %g, r %g", p, r);
 	return (r < p) ? 1 : 0;
 }
-
-int *startup_pipes = NULL;	/* options.max_startup sized array of fd ints */
-int startup_pipe;		/* in child */
 
 /*
  * Main program for the daemon.
@@ -1058,9 +1070,7 @@ main(int ac, char **av)
 						 * the connection.
 						 */
 						startup_pipe = startup_p[1];
-						for (j = 0; j < options.max_startups; j++)
-							if (startup_pipes[j] != -1)
-								close(startup_pipes[j]);
+						close_startup_pipes();
 						close_listen_socks();
 						sock_in = newsock;
 						sock_out = newsock;
