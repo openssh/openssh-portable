@@ -193,6 +193,15 @@ auth_input_request_forwarding(struct passwd * pw)
 	return 1;
 }
 
+static void
+display_loginmsg(void)
+{
+	if (buffer_len(&loginmsg) > 0) {
+		buffer_append(&loginmsg, "\0", 1);
+		printf("%s\n", (char *)buffer_ptr(&loginmsg));
+		buffer_clear(&loginmsg);
+	}
+}
 
 void
 do_authenticated(Authctxt *authctxt)
@@ -389,12 +398,8 @@ do_exec_no_pty(Session *s, const char *command)
 	session_proctitle(s);
 
 #if defined(USE_PAM)
-	if (options.use_pam) {
+	if (options.use_pam)
 		do_pam_setcred(1);
-		if (is_pam_password_change_required())
-			packet_disconnect("Password change required but no "
-			    "TTY available");
-	}
 #endif /* USE_PAM */
 
 	/* Fork the child. */
@@ -698,9 +703,10 @@ do_login(Session *s, const char *command)
 	 * If password change is needed, do it now.
 	 * This needs to occur before the ~/.hushlogin check.
 	 */
-	if (options.use_pam && is_pam_password_change_required()) {
-		print_pam_messages();
+	if (options.use_pam && !use_privsep && s->authctxt->force_pwchange) {
+		display_loginmsg();
 		do_pam_chauthtok();
+		s->authctxt->force_pwchange = 0;
 		/* XXX - signal [net] parent to enable forwardings */
 	}
 #endif
@@ -708,17 +714,7 @@ do_login(Session *s, const char *command)
 	if (check_quietlogin(s, command))
 		return;
 
-#ifdef USE_PAM
-	if (options.use_pam && !is_pam_password_change_required())
-		print_pam_messages();
-#endif /* USE_PAM */
-
-	/* display post-login message */
-	if (buffer_len(&loginmsg) > 0) {
-		buffer_append(&loginmsg, "\0", 1);
-		printf("%s\n", (char *)buffer_ptr(&loginmsg));
-	}
-	buffer_free(&loginmsg);
+	display_loginmsg();
 
 #ifndef NO_SSH_LASTLOG
 	if (options.print_lastlog && s->last_login_time != 0) {
