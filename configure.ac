@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.42 2002/04/10 23:17:05 stevesk Exp $
+# $Id: configure.ac,v 1.43 2002/04/12 17:26:23 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -1015,7 +1015,7 @@ AC_DEFINE_UNQUOTED(SSH_PRIVSEP_USER, "$ssh_privsep_user")
 
 OPATH=$PATH
 PATH=/bin:/usr/bin
-/bin/test -L /bin 2> /dev/null && PATH=/usr/bin
+test -h /bin 2> /dev/null && PATH=/usr/bin
 test -d /sbin && PATH=$PATH:/sbin
 test -d /usr/sbin && PATH=$PATH:/usr/sbin
 PATH=$PATH:/etc:$OPATH
@@ -1580,6 +1580,7 @@ AC_CACHE_CHECK([for msg_accrights field in struct msghdr],
 		ac_cv_have_accrights_in_msghdr, [
 	AC_TRY_COMPILE(
 		[
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/uio.h>
 		],
@@ -1596,6 +1597,7 @@ AC_CACHE_CHECK([for msg_control field in struct msghdr],
 		ac_cv_have_control_in_msghdr, [
 	AC_TRY_COMPILE(
 		[
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/uio.h>
 		],
