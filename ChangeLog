@@ -1,3 +1,6 @@
+20010406
+ - (stevesk) logintest.c: fix for systems without __progname
+
 20010405
  - OpenBSD CVS Sync                                              
    - markus@cvs.openbsd.org 2001/04/04 09:48:35                  
@@ -4869,4 +4872,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1062 2001/04/05 17:15:08 stevesk Exp $
+$Id: ChangeLog,v 1.1063 2001/04/05 23:05:22 stevesk Exp $

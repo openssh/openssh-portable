@@ -48,8 +48,13 @@
 
 #include "loginrec.h"
 
-RCSID("$Id: logintest.c,v 1.7 2001/02/05 12:42:18 stevesk Exp $");
+RCSID("$Id: logintest.c,v 1.8 2001/04/05 23:05:22 stevesk Exp $");
 
+#ifdef HAVE___PROGNAME
+extern char *__progname;
+#else
+char *__progname;
+#endif
 
 #define PAUSE_BEFORE_LOGOUT 3
 
@@ -287,6 +292,7 @@ main(int argc, char *argv[])
 {
 	printf("Platform-independent login recording test driver\n");
 
+	__progname = get_progname(argv[0]);
 	if (argc == 2) {
 		if (strncmp(argv[1], "-i", 3) == 0)
 			compile_opts_only = 1;
