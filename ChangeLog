@@ -1,6 +1,8 @@
 20020625
  - (stevesk) [INSTALL acconfig.h configure.ac defines.h] remove --with-rsh
  - (stevesk) [README.privsep] minor updates
+ - (djm) Create privsep directory and warn if privsep user is missing 
+   during make install
 
 20020624
  - OpenBSD CVS Sync
@@ -1086,4 +1088,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2266 2002/06/24 16:49:22 stevesk Exp $
+$Id: ChangeLog,v 1.2267 2002/06/25 00:24:47 djm Exp $

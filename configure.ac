@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.69 2002/06/24 16:26:49 stevesk Exp $
+# $Id: configure.ac,v 1.70 2002/06/25 00:24:48 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -906,16 +906,17 @@ AC_ARG_WITH(entropy-timeout,
 )
 AC_DEFINE_UNQUOTED(ENTROPY_TIMEOUT_MSEC, $entropy_timeout)
 
-ssh_privsep_user=sshd
+SSH_PRIVSEP_USER=sshd
 AC_ARG_WITH(privsep-user,
 	[  --with-privsep-user=user Specify non-privileged user for privilege separation],
 	[
 		if test -n "$withval"; then
-			ssh_privsep_user=$withval
+			SSH_PRIVSEP_USER=$withval
 		fi
 	]	
 )
-AC_DEFINE_UNQUOTED(SSH_PRIVSEP_USER, "$ssh_privsep_user")
+AC_DEFINE_UNQUOTED(SSH_PRIVSEP_USER, "$SSH_PRIVSEP_USER")
+AC_SUBST(SSH_PRIVSEP_USER)
 
 # We do this little dance with the search path to insure
 # that programs that we select for use by installed programs
