@@ -5,6 +5,12 @@
  - Removed "nullok" directive from default PAM configuration files. 
    Added information on enabling EmptyPasswords on openssh+PAM in 
    UPGRADING file.
+ - OpenBSD CVS updates
+   - [ssh-agent.c]
+     cleanup_exit() for SIGTERM/SIGHUP, too. from fgsch@ and 
+     dgaudet@arctic.org
+   - [sshconnect.c]
+     compare correct version for 1.3 compat mode
 
 20000102
  - Prevent multiple inclusion of config.h and defines.h. Suggested
