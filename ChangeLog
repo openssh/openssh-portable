@@ -1,3 +1,10 @@
+20010722
+ - (bal) Starting the Unicossmk merger.  File merged TODO, configure.in,
+ 	 myproposal.h, ssh_prng_cmds.in, and openbsd-compat/Makefile.in.
+	 Added openbsd-compat/bsd-cray.c.  Rest will be merged after
+	 approval.  Selective patches from William L. Jones 
+	 <jones@mail.utexas.edu> 
+
 20010719
  - (tim) [configure.in] put inet_aton back in AC_CHECK_FUNCS.
 	 report from Mark Miller <markm@swoon.net>
@@ -6070,4 +6077,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1415 2001/07/20 03:33:46 tim Exp $
+$Id: ChangeLog,v 1.1416 2001/07/22 19:32:00 mouring Exp $

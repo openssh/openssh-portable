@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.302 2001/07/20 03:33:47 tim Exp $
+# $Id: configure.in,v 1.303 2001/07/22 19:32:01 mouring Exp $
 
 AC_INIT(ssh.c)
 
@@ -241,6 +241,13 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_CHECK_FUNCS(getluid setluid)
 	MANTYPE=man
 	;;
+*-*-unicos*)
+        no_libsocket=1
+        no_libnsl=1
+	AC_DEFINE(USE_PIPES)
+	LDFLAGS="$LDFLAGS -L/usr/local/lib"
+        LIBS="$LIBS -lgen -lrsc"
+        ;;
 *-dec-osf*)
 	AC_MSG_CHECKING(for Digital Unix SIA)
 	no_osfsia=""
@@ -1444,6 +1451,7 @@ if (test -z "$RANDOM_POOL" && test -z "$PRNGD") ; then
 	OSSH_PATH_ENTROPY_PROG(PROG_NETSTAT, netstat)
 	OSSH_PATH_ENTROPY_PROG(PROG_ARP, arp)
 	OSSH_PATH_ENTROPY_PROG(PROG_IFCONFIG, ifconfig)
+	OSSH_PATH_ENTROPY_PROG(PROG_JSTAT, jstat)
 	OSSH_PATH_ENTROPY_PROG(PROG_PS, ps)
 	OSSH_PATH_ENTROPY_PROG(PROG_W, w)
 	OSSH_PATH_ENTROPY_PROG(PROG_WHO, who)

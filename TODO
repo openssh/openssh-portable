@@ -55,6 +55,8 @@ Programming:
   - utmp/wtmp get corrupted (something in loginrec?)
   - can't build with PAM (no 64-bit libpam yet)
 
+- Modify rijndael to support Cray 64bit machines.
+
 Documentation:
 - More and better
 
@@ -87,4 +89,4 @@ Packaging:
 - HP-UX: Provide DEPOT package scripts.
   (gilbert.r.loomis@saic.com)
 
-$Id: TODO,v 1.41 2001/06/15 04:23:13 stevesk Exp $
+$Id: TODO,v 1.42 2001/07/22 19:32:01 mouring Exp $
