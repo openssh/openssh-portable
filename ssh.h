@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh.h,v 1.68 2002/05/08 21:06:34 deraadt Exp $	*/
+/*	$OpenBSD: ssh.h,v 1.69 2002/05/11 20:24:48 stevesk Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -101,7 +101,7 @@
 
 /*
  * unprivileged user when UsePrivilegeSeparation=yes;
- * sshd will change its pivileges to this user and its
+ * sshd will change its privileges to this user and its
  * primary group.
  */
 #ifndef SSH_PRIVSEP_USER

@@ -7,6 +7,9 @@
    - deraadt@cvs.openbsd.org 2002/05/08 21:06:34
      [ssh.h]
      move to sshd.sshd instead
+   - stevesk@cvs.openbsd.org 2002/05/11 20:24:48
+     [ssh.h]
+     typo in comment
 
 20020514
  - (stevesk) [README.privsep] PAM+privsep works with Solaris 8.
@@ -611,4 +614,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2123 2002/05/15 16:08:48 mouring Exp $
+$Id: ChangeLog,v 1.2124 2002/05/15 16:09:57 mouring Exp $
