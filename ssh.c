@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.93 2001/02/08 19:30:52 itojun Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.94 2001/02/10 01:46:28 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -287,21 +287,6 @@ main(int ac, char **av)
 
 	/* Parse command-line arguments. */
 	host = NULL;
-
-	/* If program name is not one of the standard names, use it as host name. */
-	cp = __progname;
-#ifdef HAVE_CYGWIN
-	if (strcasecmp(cp, "rsh") && strcasecmp(cp, "ssh") &&
-	    strcasecmp(cp, "rlogin") && strcasecmp(cp, "slogin") &&
-	    strcasecmp(cp, "remsh") &&
-	    strcasecmp(cp, "rsh.exe") && strcasecmp(cp, "ssh.exe") &&
-	    strcasecmp(cp, "rlogin.exe") && strcasecmp(cp, "slogin.exe") &&
-	    strcasecmp(cp, "remsh.exe"))
-#else
-	if (strcmp(cp, "rsh") && strcmp(cp, "ssh") && strcmp(cp, "rlogin") &&
-	    strcmp(cp, "slogin") && strcmp(cp, "remsh"))
-#endif
-		host = cp;
 
 	for (optind = 1; optind < ac; optind++) {
 		if (av[optind][0] != '-') {
