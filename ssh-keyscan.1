@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keyscan.1,v 1.4 2001/03/01 03:38:33 deraadt Exp $
+.\"	$OpenBSD: ssh-keyscan.1,v 1.5 2001/04/18 16:21:05 ian Exp $
 .\"
 .\" Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
 .\"
@@ -33,7 +33,7 @@ uses non-blocking socket I/O to contact as many hosts as possible in
 parallel, so it is very efficient.  The keys from a domain of 1,000
 hosts can be collected in tens of seconds, even when some of those
 hosts are down or do not run ssh.  You do not need login access to the
-machines you are scanning, nor does does the scanning process involve
+machines you are scanning, nor does the scanning process involve
 any encryption.
 .Sh SECURITY
 If you make an ssh_known_hosts file using
