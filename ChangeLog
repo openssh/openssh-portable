@@ -8,6 +8,7 @@
    Mark Miller <markm@swoon.net>
  - (djm) Split out and improve OSF SIA auth code. Patch from Chris Adams
    <cmadams@hiwaay.net> with a little modification and KNF.
+ - (stevesk) fix for SIA patch, misplaced session_setup_sia()
 
 20010213
  - (djm) Only test -S potential EGD sockets if they exist and are readable.
@@ -3924,4 +3925,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.758 2001/02/13 14:25:23 djm Exp $
+$Id: ChangeLog,v 1.759 2001/02/13 18:45:00 stevesk Exp $

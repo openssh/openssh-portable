@@ -1046,8 +1046,8 @@ do_child(const char *command, struct passwd * pw, const char *term,
 	   switch, so we let login(1) to this for us. */
 	if (!options.use_login) {
 #ifdef HAVE_OSF_SIA
-#else /* HAVE_OSF_SIA */
 		session_setup_sia(pw->pw_name, ttyname);
+#else /* HAVE_OSF_SIA */
 #ifdef HAVE_CYGWIN
 		if (is_winnt) {
 #else
