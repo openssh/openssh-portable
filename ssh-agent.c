@@ -35,7 +35,7 @@
 
 #include "includes.h"
 #include "openbsd-compat/sys-queue.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.109 2003/04/08 20:21:29 itojun Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.110 2003/06/11 11:18:38 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -580,13 +580,29 @@ static void
 process_add_smartcard_key (SocketEntry *e)
 {
 	char *sc_reader_id = NULL, *pin;
-	int i, version, success = 0;
+	int i, version, success = 0, death = 0, confirm = 0;
 	Key **keys, *k;
 	Identity *id;
 	Idtab *tab;
 
 	sc_reader_id = buffer_get_string(&e->request, NULL);
 	pin = buffer_get_string(&e->request, NULL);
+
+	while (buffer_len(&e->request)) {
+		switch (buffer_get_char(&e->request)) {
+		case SSH_AGENT_CONSTRAIN_LIFETIME:
+			death = time(NULL) + buffer_get_int(&e->request);
+			break;
+		case SSH_AGENT_CONSTRAIN_CONFIRM:
+			confirm = 1;
+			break;
+		default:
+			break;
+		}
+	}
+	if (lifetime && !death)
+		death = time(NULL) + lifetime;
+
 	keys = sc_get_keys(sc_reader_id, pin);
 	xfree(sc_reader_id);
 	xfree(pin);
@@ -603,8 +619,8 @@ process_add_smartcard_key (SocketEntry *e)
 			id = xmalloc(sizeof(Identity));
 			id->key = k;
 			id->comment = xstrdup("smartcard key");
-			id->death = 0;
-			id->confirm = 0;
+			id->death = death;
+			id->confirm = confirm;
 			TAILQ_INSERT_TAIL(&tab->idlist, id, next);
 			tab->nentries++;
 			success = 1;
@@ -748,6 +764,7 @@ process_message(SocketEntry *e)
 		break;
 #ifdef SMARTCARD
 	case SSH_AGENTC_ADD_SMARTCARD_KEY:
+	case SSH_AGENTC_ADD_SMARTCARD_KEY_CONSTRAINED:
 		process_add_smartcard_key(e);
 		break;
 	case SSH_AGENTC_REMOVE_SMARTCARD_KEY:

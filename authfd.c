@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfd.c,v 1.59 2003/04/08 20:21:28 itojun Exp $");
+RCSID("$OpenBSD: authfd.c,v 1.60 2003/06/11 11:18:38 djm Exp $");
 
 #include <openssl/evp.h>
 
@@ -589,16 +589,33 @@ ssh_remove_identity(AuthenticationConnection *auth, Key *key)
 }
 
 int
-ssh_update_card(AuthenticationConnection *auth, int add, const char *reader_id, const char *pin)
+ssh_update_card(AuthenticationConnection *auth, int add, 
+    const char *reader_id, const char *pin, u_int life, u_int confirm)
 {
 	Buffer msg;
-	int type;
+	int type, constrained = (life || confirm);
+
+	if (add) {
+		type = constrained ?
+		    SSH_AGENTC_ADD_SMARTCARD_KEY_CONSTRAINED :
+		    SSH_AGENTC_ADD_SMARTCARD_KEY;
+	} else
+		type = SSH_AGENTC_REMOVE_SMARTCARD_KEY;
 
 	buffer_init(&msg);
-	buffer_put_char(&msg, add ? SSH_AGENTC_ADD_SMARTCARD_KEY :
-	    SSH_AGENTC_REMOVE_SMARTCARD_KEY);
+	buffer_put_char(&msg, type);
 	buffer_put_cstring(&msg, reader_id);
 	buffer_put_cstring(&msg, pin);
+	
+	if (constrained) {
+		if (life != 0) {
+			buffer_put_char(&msg, SSH_AGENT_CONSTRAIN_LIFETIME);
+			buffer_put_int(&msg, life);
+		}
+		if (confirm != 0)
+			buffer_put_char(&msg, SSH_AGENT_CONSTRAIN_CONFIRM);
+	}
+
 	if (ssh_request_reply(auth, &msg, &msg) == 0) {
 		buffer_free(&msg);
 		return 0;

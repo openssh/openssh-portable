@@ -18,6 +18,10 @@
    - jakob@cvs.openbsd.org 2003/06/11 10:18:47
      [dns.c]
      sync with check_host_key() change
+   - djm@cvs.openbsd.org 2003/06/11 11:18:38
+     [authfd.c authfd.h ssh-add.c ssh-agent.c]
+     make agent constraints (lifetime, confirm) work with smartcard keys; 
+     ok markus@
 
 
 20030609
@@ -502,4 +506,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2796 2003/06/11 12:05:45 djm Exp $
+$Id: ChangeLog,v 1.2797 2003/06/11 12:06:33 djm Exp $
