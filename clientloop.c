@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.47 2001/01/29 19:42:35 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.48 2001/02/06 22:43:02 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -126,7 +126,6 @@ static u_long stdin_bytes, stdout_bytes, stderr_bytes;
 static u_int buffer_high;/* Soft max buffer size. */
 static int connection_in;	/* Connection to server (input). */
 static int connection_out;	/* Connection to server (output). */
-
 
 void	client_init_dispatch(void);
 int	session_ident = -1;
@@ -834,12 +833,15 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 	if (have_pty)
 		enter_raw_mode();
 
-	/* Check if we should immediately send eof on stdin. */
-	if (!compat20)
+	if (compat20) {
+		session_ident = ssh2_chan_id;
+		if (escape_char != -1)
+			channel_register_filter(session_ident,
+			    simple_escape_filter);
+	} else {
+		/* Check if we should immediately send eof on stdin. */
 		client_check_initial_eof_on_stdin();
-
-	if (compat20 && escape_char != -1)
-		channel_register_filter(ssh2_chan_id, simple_escape_filter);
+	}
 
 	/* Main loop of the client for the interactive session mode. */
 	while (!quit_pending) {
@@ -1155,6 +1157,42 @@ client_input_channel_open(int type, int plen, void *ctxt)
 	}
 	xfree(ctype);
 }
+void
+client_input_channel_req(int type, int plen, void *ctxt)
+{
+	Channel *c = NULL;
+	int id, reply, success = 0;
+	char *rtype;
+
+	id = packet_get_int();
+	rtype = packet_get_string(NULL);
+	reply = packet_get_char();
+
+	debug("client_input_channel_req: channel %d rtype %s reply %d",
+	    id, rtype, reply);
+
+	if (session_ident == -1) {
+		error("client_input_channel_req: no channel %d", session_ident);
+	} else if (id != session_ident) {
+		error("client_input_channel_req: channel %d: wrong channel: %d",
+		    session_ident, id);
+	}
+	c = channel_lookup(id);
+	if (c == NULL) {
+		error("client_input_channel_req: channel %d: unknown channel", id);
+	} else if (strcmp(rtype, "exit-status") == 0) {
+		success = 1;
+		exit_status = packet_get_int();
+		packet_done();
+	}
+	if (reply) {
+		packet_start(success ?
+		    SSH2_MSG_CHANNEL_SUCCESS : SSH2_MSG_CHANNEL_FAILURE);
+		packet_put_int(c->remote_id);
+		packet_send();
+	}
+	xfree(rtype);
+}
 
 void
 client_init_dispatch_20()
@@ -1167,7 +1205,7 @@ client_init_dispatch_20()
 	dispatch_set(SSH2_MSG_CHANNEL_OPEN, &client_input_channel_open);
 	dispatch_set(SSH2_MSG_CHANNEL_OPEN_CONFIRMATION, &channel_input_open_confirmation);
 	dispatch_set(SSH2_MSG_CHANNEL_OPEN_FAILURE, &channel_input_open_failure);
-	dispatch_set(SSH2_MSG_CHANNEL_REQUEST, &channel_input_channel_request);
+	dispatch_set(SSH2_MSG_CHANNEL_REQUEST, &client_input_channel_req);
 	dispatch_set(SSH2_MSG_CHANNEL_WINDOW_ADJUST, &channel_input_window_adjust);
 }
 void
@@ -1205,50 +1243,4 @@ client_init_dispatch()
 		client_init_dispatch_13();
 	else
 		client_init_dispatch_15();
-}
-
-void
-client_input_channel_req(int id, void *arg)
-{
-	Channel *c = NULL;
-	u_int len;
-	int success = 0;
-	int reply;
-	char *rtype;
-
-	rtype = packet_get_string(&len);
-	reply = packet_get_char();
-
-	debug("client_input_channel_req: rtype %s reply %d", rtype, reply);
-
-	c = channel_lookup(id);
-	if (c == NULL)
-		fatal("client_input_channel_req: channel %d: bad channel", id);
-
-	if (session_ident == -1) {
-		error("client_input_channel_req: no channel %d", id);
-	} else if (id != session_ident) {
-		error("client_input_channel_req: bad channel %d != %d",
-		    id, session_ident);
-	} else if (strcmp(rtype, "exit-status") == 0) {
-		success = 1;
-		exit_status = packet_get_int();
-		packet_done();
-	}
-	if (reply) {
-		packet_start(success ?
-		    SSH2_MSG_CHANNEL_SUCCESS : SSH2_MSG_CHANNEL_FAILURE);
-		packet_put_int(c->remote_id);
-		packet_send();
-	}
-	xfree(rtype);
-}
-
-void
-clientloop_set_session_ident(int id)
-{
-	debug2("clientloop_set_session_ident: id %d", id);
-	session_ident = id;
-	channel_register_callback(id, SSH2_MSG_CHANNEL_REQUEST,
-	    client_input_channel_req, (void *)0);
 }

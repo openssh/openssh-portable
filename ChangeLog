@@ -21,6 +21,9 @@
    - deraadt@cvs.openbsd.org 2001/02/08 14:38:54
      [scp.c]
      memory leak fix, and snprintf throughout
+   - markus@cvs.openbsd.org 2001/02/06 22:43:02
+     [clientloop.c]
+     remove confusing callback code
 
 20010208
  - (djm) Don't delete external askpass program in make uninstall target.
