@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.57 2004/05/23 23:59:53 dtucker Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.58 2004/07/21 10:33:31 djm Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -306,7 +306,7 @@ do_authentication(Authctxt *authctxt)
 		authctxt->pw = fakepw();
 	}
 
-	setproctitle("%s%s", authctxt->pw ? user : "unknown",
+	setproctitle("%s%s", authctxt->valid ? user : "unknown",
 	    use_privsep ? " [net]" : "");
 
 #ifdef USE_PAM

@@ -4,6 +4,9 @@
      [auth.c]
      s/Illegal user/Invalid user/; many requests; ok djm, millert, niklas,
      miod, ...
+   - djm@cvs.openbsd.org 2004/07/21 10:33:31
+     [auth1.c auth2.c]
+     bz#899: Don't display invalid usernames in setproctitle
 
 20040720
  - (djm) [log.c] bz #111: Escape more control characters when sending data 
@@ -1550,4 +1553,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3484 2004/07/21 10:48:24 djm Exp $
+$Id: ChangeLog,v 1.3485 2004/07/21 10:48:53 djm Exp $
