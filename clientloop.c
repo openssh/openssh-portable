@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.67 2001/05/04 23:47:34 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.68 2001/05/06 21:45:14 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -936,25 +936,21 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 		buffer_append(&stderr_buffer, buf, strlen(buf));
 	}
 	/* Output any buffered data for stdout. */
-	while (buffer_len(&stdout_buffer) > 0) {
-		len = write(fileno(stdout), buffer_ptr(&stdout_buffer),
+	if (buffer_len(&stdout_buffer) > 0) {
+		len = atomicio(write, fileno(stdout), buffer_ptr(&stdout_buffer),
 		    buffer_len(&stdout_buffer));
-		if (len <= 0) {
+		if (len != buffer_len(&stdout_buffer))
 			error("Write failed flushing stdout buffer.");
-			break;
-		}
 		buffer_consume(&stdout_buffer, len);
 		stdout_bytes += len;
 	}
 
 	/* Output any buffered data for stderr. */
-	while (buffer_len(&stderr_buffer) > 0) {
-		len = write(fileno(stderr), buffer_ptr(&stderr_buffer),
+	if (buffer_len(&stderr_buffer) > 0) {
+		len = atomicio(write, fileno(stderr), buffer_ptr(&stderr_buffer),
 		    buffer_len(&stderr_buffer));
-		if (len <= 0) {
+		if (len != buffer_len(&stderr_buffer))
 			error("Write failed flushing stderr buffer.");
-			break;
-		}
 		buffer_consume(&stderr_buffer, len);
 		stderr_bytes += len;
 	}
