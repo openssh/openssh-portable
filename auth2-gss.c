@@ -1,4 +1,4 @@
-/*	$OpenBSD: auth2-gss.c,v 1.1 2003/08/22 10:56:08 markus Exp $	*/
+/*	$OpenBSD: auth2-gss.c,v 1.2 2003/08/24 17:36:51 deraadt Exp $	*/
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -175,12 +175,14 @@ input_gssapi_errtok(int type, u_int32_t plen, void *ctxt)
 	gss_buffer_desc send_tok = GSS_C_EMPTY_BUFFER;
 	gss_buffer_desc recv_tok;
 	OM_uint32 maj_status;
+	u_int len;
 
 	if (authctxt == NULL || (authctxt->methoddata == NULL && !use_privsep))
 		fatal("No authentication or GSSAPI context");
 
 	gssctxt = authctxt->methoddata;
-	recv_tok.value = packet_get_string(&recv_tok.length);
+	recv_tok.value = packet_get_string(&len);
+	recv_tok.length = len;
 
 	packet_check_eom();
 

@@ -1,4 +1,10 @@
 20030829
+ - (djm) OpenBSD CVS Sync
+   - deraadt@cvs.openbsd.org 2003/08/24 17:36:51
+     [auth2-gss.c]
+     64 bit cleanups; markus ok
+
+20030829
  - (bal) openbsd-compat/ clean up.  Considate headers, add in Id on our
    files, and added missing license to header.
 
@@ -912,4 +918,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2919 2003/08/30 00:11:56 mouring Exp $
+$Id: ChangeLog,v 1.2920 2003/09/02 12:14:07 djm Exp $
