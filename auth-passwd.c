@@ -110,6 +110,7 @@ auth_password(Authctxt *authctxt, const char *password)
 				pw->pw_name, authmsg);
 
 	        	/* No pty yet, so just label the line as "ssh" */
+			aix_setauthdb(authctxt->user);
 	        	if (loginsuccess(authctxt->user, host, "ssh", 
 			    &msg) == 0) {
 				if (msg != NULL) {
