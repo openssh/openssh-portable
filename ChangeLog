@@ -4,6 +4,31 @@
  - (djm) Rework search for OpenSSL location. Skip directories which don't
    exist, don't add -L$ssldir/lib if it doesn't exist. Should help SCO
    with its limit of 6 -L options.
+ - OpenBSD CVS Sync:
+   - reinhard@cvs.openbsd.org        2001/02/17 08:24:40
+     [sftp.1]
+     typo
+   - deraadt@cvs.openbsd.org 2001/02/17 16:28:58
+     [ssh.c]
+     cleanup -V output; noted by millert
+   - deraadt@cvs.openbsd.org 2001/02/17 16:48:48
+     [sshd.8]
+     it's the OpenSSH one
+   - markus@cvs.openbsd.org  2001/02/18 11:33:54
+     [dispatch.c]
+     typo, SSH2_MSG_KEXINIT, from aspa@kronodoc.fi
+   - markus@cvs.openbsd.org  2001/02/19 02:53:32
+     [compat.c compat.h serverloop.c]
+     ssh-1.2.{18-22} has broken handling of ignore messages; report from
+     itojun@
+   - markus@cvs.openbsd.org  2001/02/19 03:35:23
+     [version.h]
+     OpenSSH_2.5.1 adds bug compat with 1.2.{18-22}
+   - deraadt@cvs.openbsd.org 2001/02/19 03:36:25
+     [scp.c]
+     np is changed by recursion; vinschen@redhat.com
+ - Update versions in RPM spec files
+ - Release 2.5.1p1
 
 20010218
  - (bal) Patch for fix FCHMOD reference in ftp-client.c by Tim Rice 
@@ -4045,4 +4070,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.802 2001/02/19 01:56:39 djm Exp $
+$Id: ChangeLog,v 1.803 2001/02/19 10:51:49 djm Exp $
