@@ -1,4 +1,4 @@
-/*	$OpenBSD: rijndael.c,v 1.7 2001/02/04 15:32:24 stevesk Exp $	*/
+/*	$OpenBSD: rijndael.c,v 1.8 2001/07/30 16:23:30 stevesk Exp $	*/
 
 /* This is an independent implementation of the encryption algorithm:   */
 /*                                                                      */
@@ -6,13 +6,26 @@
 /*                                                                      */
 /* which is a candidate algorithm in the Advanced Encryption Standard   */
 /* programme of the US National Institute of Standards and Technology.  */
-/*                                                                      */
-/* Copyright in this implementation is held by Dr B R Gladman but I     */
-/* hereby give permission for its free direct or derivative use subject */
-/* to acknowledgment of its origin and compliance with any conditions   */
-/* that the originators of the algorithm place on its exploitation.     */
-/*                                                                      */
-/* Dr Brian Gladman (gladman@seven77.demon.co.uk) 14th January 1999     */
+
+/*
+   -----------------------------------------------------------------------
+   Copyright (c) 2001 Dr Brian Gladman <brg@gladman.uk.net>, Worcester, UK
+   
+   TERMS
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+   1. Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+   2. Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+
+   This software is provided 'as is' with no guarantees of correctness or
+   fitness for purpose.
+   -----------------------------------------------------------------------
+*/
 
 /* Timing data for Rijndael (rijndael.c)
 

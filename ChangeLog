@@ -61,6 +61,17 @@
    - jakob@cvs.openbsd.org 2001/07/30 16:06:07
      [scard.c scard.h]
      better errorcodes from sc_*; ok markus@
+   - stevesk@cvs.openbsd.org 2001/07/30 16:23:30
+     [rijndael.c rijndael.h]
+     new BSD-style license:
+     Brian Gladman <brg@gladman.plus.com>:
+     >I have updated my code at:
+     >http://fp.gladman.plus.com/cryptography_technology/rijndael/index.htm
+     >with a copyright notice as follows:
+     >[...]
+     >I am not sure which version of my old code you are using but I am
+     >happy for the notice above to be substituted for my existing copyright
+     >intent if this meets your purpose.
 
 20010803
  - (djm) Fix interrupted read in entropy gatherer. Spotted by markus@ on
@@ -6171,4 +6182,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1443 2001/08/06 21:22:10 mouring Exp $
+$Id: ChangeLog,v 1.1444 2001/08/06 21:24:11 mouring Exp $
