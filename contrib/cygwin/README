@@ -212,8 +212,8 @@ in the Cygwin binary distribution, install like this:
 	cd /tmp/cygwin-ssh
 	find * \! -type d | tar cvjfT my-openssh.tar.bz2 -
 	
-You must have installed the zlib and openssl-devel packages to be able to
-build OpenSSH!
+You must have installed the zlib, the openssl-devel and the minires-devel
+packages to be able to build OpenSSH!
 
 Please send requests, error reports etc. to cygwin@cygwin.com.
 
