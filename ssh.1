@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.185 2004/05/02 11:57:52 dtucker Exp $
+.\" $OpenBSD: ssh.1,v 1.186 2004/05/21 11:33:11 djm Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -302,11 +302,18 @@ Display a list of escape characters.
 Send a BREAK to the remote system
 (only useful for SSH protocol version 2 and if the peer supports it).
 .It Cm ~C
-Open command line (only useful for adding port forwardings using the
+Open command line.
+Currently this allows the addition of port forwardings using the
 .Fl L
 and
 .Fl R
-options).
+options (see below).
+It also allows the cancellation of existing remote port-forwardings 
+using
+.Fl KR Ar hostport .
+Basic help is available, using the 
+.Fl ?
+option.
 .It Cm ~R
 Request rekeying of the connection
 (only useful for SSH protocol version 2 and if the peer supports it).

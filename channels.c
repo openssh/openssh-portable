@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.201 2004/05/11 19:01:43 deraadt Exp $");
+RCSID("$OpenBSD: channels.c,v 1.202 2004/05/21 11:33:11 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -2228,6 +2228,26 @@ channel_setup_fwd_listener(int type, const char *listen_addr, u_short listen_por
 	return success;
 }
 
+int
+channel_cancel_rport_listener(const char *host, u_short port)
+{
+	int i, found = 0;
+
+	for(i = 0; i < channels_alloc; i++) {
+		Channel *c = channels[i];
+
+		if (c != NULL && c->type == SSH_CHANNEL_RPORT_LISTENER &&
+		    strncmp(c->path, host, sizeof(c->path)) == 0 &&
+	    	    c->listening_port == port) {
+			debug2("%s: close clannel %d", __func__, i);
+			channel_free(c);
+			found = 1;
+		}
+	}
+
+	return (found);
+}
+
 /* protocol local port fwd, used by ssh (and sshd in v1) */
 int
 channel_setup_local_fwd_listener(u_short listen_port,
@@ -2305,6 +2325,42 @@ channel_request_remote_forwarding(u_short listen_port,
 }
 
 /*
+ * Request cancellation of remote forwarding of connection host:port from 
+ * local side.
+ */
+
+void
+channel_request_rforward_cancel(u_short port)
+{
+	int i;
+	const char *address_to_bind = "0.0.0.0";
+
+	if (!compat20)
+		return;
+
+	for (i = 0; i < num_permitted_opens; i++) {
+		if (permitted_opens[i].host_to_connect != NULL && 
+		    permitted_opens[i].listen_port == port)
+			break;
+	}
+	if (i >= num_permitted_opens) {
+		debug("%s: requested forward not found", __func__);
+		return;
+	}
+	packet_start(SSH2_MSG_GLOBAL_REQUEST);
+	packet_put_cstring("cancel-tcpip-forward");
+	packet_put_char(0);
+	packet_put_cstring(address_to_bind);
+	packet_put_int(port);
+	packet_send();
+
+	permitted_opens[i].listen_port = 0;
+	permitted_opens[i].port_to_connect = 0;
+	free(permitted_opens[i].host_to_connect);
+	permitted_opens[i].host_to_connect = NULL;
+}
+
+/*
  * This is called after receiving CHANNEL_FORWARDING_REQUEST.  This initates
  * listening for the port, and sends back a success reply (or disconnect
  * message if there was an error).  This never returns if there was an error.
@@ -2373,7 +2429,8 @@ channel_clear_permitted_opens(void)
 	int i;
 
 	for (i = 0; i < num_permitted_opens; i++)
-		xfree(permitted_opens[i].host_to_connect);
+		if (permitted_opens[i].host_to_connect != NULL)
+			xfree(permitted_opens[i].host_to_connect);
 	num_permitted_opens = 0;
 
 }
@@ -2441,7 +2498,8 @@ channel_connect_by_listen_address(u_short listen_port)
 	int i;
 
 	for (i = 0; i < num_permitted_opens; i++)
-		if (permitted_opens[i].listen_port == listen_port)
+		if (permitted_opens[i].host_to_connect != NULL &&
+		    permitted_opens[i].listen_port == listen_port)
 			return connect_to(
 			    permitted_opens[i].host_to_connect,
 			    permitted_opens[i].port_to_connect);
@@ -2459,7 +2517,8 @@ channel_connect_to(const char *host, u_short port)
 	permit = all_opens_permitted;
 	if (!permit) {
 		for (i = 0; i < num_permitted_opens; i++)
-			if (permitted_opens[i].port_to_connect == port &&
+			if (permitted_opens[i].host_to_connect != NULL &&
+			    permitted_opens[i].port_to_connect == port &&
 			    strcmp(permitted_opens[i].host_to_connect, host) == 0)
 				permit = 1;
 

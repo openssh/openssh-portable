@@ -10,6 +10,11 @@
    - markus@cvs.openbsd.org 2004/05/21 08:43:03
      [kex.h moduli.c tildexpand.c]
      add prototypes for -Wall; ok djm
+   - djm@cvs.openbsd.org 2004/05/21 11:33:11
+     [channels.c channels.h clientloop.c serverloop.c ssh.1]
+     bz #756: add support for the cancel-tcpip-forward request for the server and
+     the client (through the ~C commandline). reported by z3p AT twistedmatrix.com;
+     ok markus@
 
 20040523
  - (djm) [sshd_config] Explain consequences of UsePAM=yes a little better in 
@@ -1139,4 +1144,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3361 2004/05/24 00:14:24 dtucker Exp $
+$Id: ChangeLog,v 1.3362 2004/05/24 00:18:05 dtucker Exp $

@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.115 2004/01/19 21:25:15 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.116 2004/05/21 11:33:11 djm Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -991,6 +991,17 @@ server_input_global_request(int type, u_int32_t seq, void *ctxt)
 			    listen_address, listen_port, options.gateway_ports);
 		}
 		xfree(listen_address);
+	} else if (strcmp(rtype, "cancel-tcpip-forward") == 0) {
+		char *cancel_address;
+		u_short cancel_port;
+
+		cancel_address = packet_get_string(NULL);
+		cancel_port = (u_short)packet_get_int();
+		debug("%s: cancel-tcpip-forward addr %s port %d", __func__,
+		    cancel_address, cancel_port);
+
+		success = channel_cancel_rport_listener(cancel_address,
+		    cancel_port);
 	}
 	if (want_reply) {
 		packet_start(success ?

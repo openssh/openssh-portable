@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.120 2004/05/20 10:58:05 dtucker Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.121 2004/05/21 11:33:11 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -506,6 +506,7 @@ process_cmdline(void)
 	char *s, *cmd;
 	u_short fwd_port, fwd_host_port;
 	char buf[1024], sfwd_port[6], sfwd_host_port[6];
+	int delete = 0;
 	int local = 0;
 
 	leave_raw_mode();
@@ -515,44 +516,77 @@ process_cmdline(void)
 		goto out;
 	while (*s && isspace(*s))
 		s++;
+	if (*s == '-')
+		s++;	/* Skip cmdline '-', if any */
 	if (*s == '\0')
 		goto out;
-	if (strlen(s) < 2 || s[0] != '-' || !(s[1] == 'L' || s[1] == 'R')) {
+
+	if (*s == '?') {
+		logit("Commands:");
+		logit("      -Lport:host:hostport    Request local forward");
+		logit("      -Rport:host:hostport    Request remote forward");
+		logit("      -KRhostport             Cancel remote forward");
+		goto out;
+	}
+
+	if (*s == 'K') {
+		delete = 1;
+		s++;
+	}
+	if (*s != 'L' && *s != 'R') {
 		logit("Invalid command.");
 		goto out;
 	}
-	if (s[1] == 'L')
+	if (*s == 'L')
 		local = 1;
-	if (!local && !compat20) {
+	if (local && delete) {
+		logit("Not supported.");
+		goto out;
+	}
+	if ((!local || delete) && !compat20) {
 		logit("Not supported for SSH protocol version 1.");
 		goto out;
 	}
-	s += 2;
+
+	s++;
 	while (*s && isspace(*s))
 		s++;
 
-	if (sscanf(s, "%5[0-9]:%255[^:]:%5[0-9]",
-	    sfwd_port, buf, sfwd_host_port) != 3 &&
-	    sscanf(s, "%5[0-9]/%255[^/]/%5[0-9]",
-	    sfwd_port, buf, sfwd_host_port) != 3) {
-		logit("Bad forwarding specification.");
-		goto out;
-	}
-	if ((fwd_port = a2port(sfwd_port)) == 0 ||
-	    (fwd_host_port = a2port(sfwd_host_port)) == 0) {
-		logit("Bad forwarding port(s).");
-		goto out;
-	}
-	if (local) {
-		if (channel_setup_local_fwd_listener(fwd_port, buf,
-		    fwd_host_port, options.gateway_ports) < 0) {
-			logit("Port forwarding failed.");
+	if (delete) {
+		if (sscanf(s, "%5[0-9]", sfwd_host_port) != 1) {
+			logit("Bad forwarding specification.");
 			goto out;
 		}
-	} else
-		channel_request_remote_forwarding(fwd_port, buf,
-		    fwd_host_port);
-	logit("Forwarding port.");
+		if ((fwd_host_port = a2port(sfwd_host_port)) == 0) {
+			logit("Bad forwarding port(s).");
+			goto out;
+		}
+		channel_request_rforward_cancel(fwd_host_port);
+	} else {
+		if (sscanf(s, "%5[0-9]:%255[^:]:%5[0-9]",
+		    sfwd_port, buf, sfwd_host_port) != 3 &&
+		    sscanf(s, "%5[0-9]/%255[^/]/%5[0-9]",
+		    sfwd_port, buf, sfwd_host_port) != 3) {
+			logit("Bad forwarding specification.");
+			goto out;
+		}
+		if ((fwd_port = a2port(sfwd_port)) == 0 ||
+		    (fwd_host_port = a2port(sfwd_host_port)) == 0) {
+			logit("Bad forwarding port(s).");
+			goto out;
+		}
+		if (local) {
+			if (channel_setup_local_fwd_listener(fwd_port, buf,
+			    fwd_host_port, options.gateway_ports) < 0) {
+				logit("Port forwarding failed.");
+				goto out;
+			}
+		} else
+			channel_request_remote_forwarding(fwd_port, buf,
+			    fwd_host_port);
+		logit("Forwarding port.");
+	}
+
 out:
 	signal(SIGINT, handler);
 	enter_raw_mode();
