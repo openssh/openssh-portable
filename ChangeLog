@@ -1,3 +1,9 @@
+20010919
+ - (bal) OpenbSD Sycn
+   - markus@cvs.openbsd.org 2001/09/19 10:08:51
+     [sshd.8]
+     command=xxx applies to subsystem now, too
+
 20010918
  - (djm) Configure support for smartcards. Based on Ben's work.
  - (djm) Revert setgroups call, it causes problems on OS-X
@@ -6504,4 +6510,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1541 2001/09/18 16:08:24 stevesk Exp $
+$Id: ChangeLog,v 1.1542 2001/09/20 00:54:01 mouring Exp $

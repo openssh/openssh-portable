@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.148 2001/09/14 18:56:04 markus Exp $
+.\" $OpenBSD: sshd.8,v 1.149 2001/09/19 10:08:51 markus Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -1007,6 +1007,7 @@ to restrict certain RSA keys to perform just a specific operation.
 An example might be a key that permits remote backups but nothing else.
 Note that the client may specify TCP/IP and/or X11
 forwarding unless they are explicitly prohibited.
+Note that this option applies to shell, command or subsystem execution.
 .It Cm environment="NAME=value"
 Specifies that the string is to be added to the environment when
 logging in using this key.
