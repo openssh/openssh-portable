@@ -12,6 +12,9 @@
      [ssh_config.5]
      wording;
      ok markus@
+   - dtucker@cvs.openbsd.org 2005/01/30 11:18:08
+     [monitor.c]
+     Make code match intent; ok djm@
 
 20050208
  - (dtucker) [regress/test-exec.sh] Bug #912: Set _POSIX2_VERSION for the
@@ -2101,4 +2104,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3642 2005/02/08 22:51:08 dtucker Exp $
+$Id: ChangeLog,v 1.3643 2005/02/08 22:52:17 dtucker Exp $
