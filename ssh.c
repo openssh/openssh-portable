@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.147 2001/10/08 19:05:05 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.148 2001/10/24 08:41:20 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -130,14 +130,6 @@ char *host;
 
 /* socket address the host resolves to */
 struct sockaddr_storage hostaddr;
-
-/*
- * Flag to indicate that we have received a window change signal which has
- * not yet been processed.  This will cause a message indicating the new
- * window size to be sent to the server a little later.  This is volatile
- * because this is updated in a signal handler.
- */
-volatile int received_window_change_signal = 0;
 
 /* Private host keys. */
 struct {
