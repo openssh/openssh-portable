@@ -1,3 +1,9 @@
+20030116
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2003/01/16 03:41:55
+     [sftp-int.c]
+     explicitly use first glob result
+
 20030114
  - (djm) OpenBSD CVS Sync
    - fgsch@cvs.openbsd.org 2003/01/10 23:23:24
@@ -1021,4 +1027,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2572 2003/01/14 11:24:47 djm Exp $
+$Id: ChangeLog,v 1.2573 2003/01/16 04:39:13 djm Exp $

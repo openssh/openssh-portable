@@ -25,7 +25,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.55 2003/01/14 10:58:00 djm Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.56 2003/01/16 03:41:55 djm Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -505,7 +505,7 @@ process_put(struct sftp_conn *conn, char *src, char *dst, char *pwd, int pflag)
 
 	/* Only one match, dst may be file, directory or unspecified */
 	if (g.gl_pathv[0] && g.gl_matchc == 1) {
-		if (!is_reg(g.gl_pathv[i])) {
+		if (!is_reg(g.gl_pathv[0])) {
 			error("Can't upload %s: not a regular file",
 			    g.gl_pathv[0]);
 			err = 1;
