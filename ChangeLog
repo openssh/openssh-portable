@@ -105,6 +105,10 @@
  - (djm) Set PAM_RHOST earlier, patch from Andrew Bartlett 
    <abartlet@pcug.org.au>
  - (stevesk) misc.c: ssh.h not needed.
+ - (stevesk) OpenBSD sync:
+   - stevesk@cvs.openbsd.org 2001/02/11 06:15:57
+     [LICENSE]
+     typos and small cleanup; ok deraadt@
 
 20010210
  - (djm) Sync sftp and scp stuff from OpenBSD:
@@ -3888,4 +3892,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.742 2001/02/11 14:34:10 stevesk Exp $
+$Id: ChangeLog,v 1.743 2001/02/11 16:43:05 stevesk Exp $
