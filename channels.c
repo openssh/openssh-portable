@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.195 2003/09/16 21:02:40 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.196 2003/09/19 11:31:33 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -217,7 +217,6 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 		channels = xmalloc(channels_alloc * sizeof(Channel *));
 		for (i = 0; i < channels_alloc; i++)
 			channels[i] = NULL;
-		fatal_add_cleanup((void (*) (void *)) channel_free_all, NULL);
 	}
 	/* Try to find a free slot where to put the new channel. */
 	for (found = -1, i = 0; i < channels_alloc; i++)
