@@ -492,6 +492,13 @@ do_exec_no_pty(Session *s, const char *command)
 	close(err[0]);
 
 	/*
+	 * Clear loginmsg, since it's the child's responsibility to display
+	 * it to the user, otherwise multiple sessions may accumulate
+	 * multiple copies of the login messages.
+	 */
+	buffer_clear(&loginmsg);
+
+	/*
 	 * Enter the interactive session.  Note: server_loop must be able to
 	 * handle the case that fdin and fdout are the same.
 	 */

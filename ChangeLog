@@ -1,3 +1,7 @@
+20040327
+ - (dtucker) [session.c] Bug #817: Clear loginmsg after fork to prevent
+   duplicate login messages for mutli-session logins.  ok djm@
+
 20040322
  - (djm) [sshd.c] Drop supplemental groups if started as root
  - (djm) OpenBSD CVS Sync
@@ -918,4 +922,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3295 2004/03/21 22:40:01 djm Exp $
+$Id: ChangeLog,v 1.3296 2004/03/27 05:44:21 dtucker Exp $
