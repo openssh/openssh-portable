@@ -10,6 +10,9 @@
      [channels.c sshconnect.c sshd.c]
      remove use of SO_LINGER, it should not be needed. error check
      SO_REUSEADDR. fixup comments. ok markus@
+   - stevesk@cvs.openbsd.org 2002/09/16 19:55:33
+     [session.c]
+     log when _PATH_NOLOGIN exists; ok markus@
 
 20020912
  - (djm) Made GNOME askpass programs return non-zero if cancel button is 
@@ -660,4 +663,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2466 2002/09/19 01:49:37 djm Exp $
+$Id: ChangeLog,v 1.2467 2002/09/19 01:50:48 djm Exp $
