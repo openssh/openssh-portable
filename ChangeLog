@@ -1,3 +1,7 @@
+20040619
+ - (dtucker) [auth-pam.c] Don't use PAM namespace for
+    pam_password_change_required either.
+
 20040618
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2004/06/17 14:52:48
@@ -1309,4 +1313,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3414 2004/06/18 12:23:22 djm Exp $
+$Id: ChangeLog,v 1.3415 2004/06/19 02:54:38 dtucker Exp $
