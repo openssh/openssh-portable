@@ -1,3 +1,7 @@
+20020225
+ - (bal) Last AIX patch.  Moved aix_usrinfo() outside of do_setuserconext()
+   since we need more session information than provided by that function.
+
 20020224
  - (bal) Drop Session *s usage in ports-aix.[ch] and pass just what we
    need to do the jobs (AIX still does not fully compile, but that is
@@ -7666,4 +7670,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1873 2002/02/25 01:56:46 tim Exp $
+$Id: ChangeLog,v 1.1874 2002/02/25 15:48:02 mouring Exp $

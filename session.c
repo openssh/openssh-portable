@@ -1146,9 +1146,6 @@ do_setusercontext(struct passwd *pw)
 # if defined(WITH_IRIX_PROJECT) || defined(WITH_IRIX_JOBS) || defined(WITH_IRIX_ARRAY)
 		irix_setusercontext(pw);
 #  endif /* defined(WITH_IRIX_PROJECT) || defined(WITH_IRIX_JOBS) || defined(WITH_IRIX_ARRAY) */
-#ifdef _AIX
-		aix_usrinfo(s)
-#endif
 		/* Permanently switch to the desired uid. */
 		permanently_set_uid(pw);
 #endif
@@ -1190,6 +1187,9 @@ do_child(Session *s, const char *command)
 			do_motd();
 #else /* HAVE_OSF_SIA */
 		do_nologin(pw);
+# ifdef _AIX
+		aix_usrinfo(pw, s->tty, s->ttyfd);
+# endif /* _AIX */
 		do_setusercontext(pw);
 #endif /* HAVE_OSF_SIA */
 	}
