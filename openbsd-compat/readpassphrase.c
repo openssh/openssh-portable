@@ -42,6 +42,11 @@ static char rcsid[] = "$OpenBSD: readpassphrase.c,v 1.5 2001/06/27 13:23:30 djm 
 # define _T_FLUSH	(TCSAFLUSH)
 #endif
 
+/* SunOS 4.x which lacks _POSIX_VDISABLE, but has VDISABLE */
+#if !defined(_POSIX_VDISABLE) && defined(VDISABLE)
+#  define _POSIX_VDISABLE       VDISABLE
+#endif
+
 char *
 readpassphrase(prompt, buf, bufsiz, flags)
 	const char *prompt;

@@ -1,3 +1,7 @@
+20011025
+ - (bal) Use VDISABLE if _POSIX_VDISABLE is set in readpassphrase.c.  Patch
+   by todd@
+
 20011024
  - (bal) Should be 3.0p1 not 3.0p2.  Corrected version.h already.
  - (tim) configure.in -> configure.ac
@@ -6756,4 +6760,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1616 2001/10/25 04:15:26 tim Exp $
+$Id: ChangeLog,v 1.1617 2001/10/25 15:02:35 mouring Exp $
