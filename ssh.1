@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.141 2001/11/08 17:49:53 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.142 2001/12/28 22:37:48 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -971,8 +971,9 @@ Only the superuser can forward privileged ports.
 Gives the verbosity level that is used when logging messages from
 .Nm ssh .
 The possible values are:
-QUIET, FATAL, ERROR, INFO, VERBOSE and DEBUG.
-The default is INFO.
+QUIET, FATAL, ERROR, INFO, VERBOSE, DEBUG, DEBUG1, DEBUG2 and DEBUG3.
+The default is INFO.  DEBUG and DEBUG1 are equivalent.  DEBUG2
+and DEBUG3 each specify higher levels of verbose output.
 .It Cm MACs
 Specifies the MAC (message authentication code) algorithms
 in order of preference.

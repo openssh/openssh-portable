@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.158 2001/12/27 18:22:53 stevesk Exp $
+.\" $OpenBSD: sshd.8,v 1.159 2001/12/28 22:37:48 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -620,9 +620,10 @@ The default is 600 (seconds).
 Gives the verbosity level that is used when logging messages from
 .Nm sshd .
 The possible values are:
-QUIET, FATAL, ERROR, INFO, VERBOSE and DEBUG.
-The default is INFO.
-Logging with level DEBUG violates the privacy of users
+QUIET, FATAL, ERROR, INFO, VERBOSE, DEBUG, DEBUG1, DEBUG2 and DEBUG3.
+The default is INFO.  DEBUG and DEBUG1 are equivalent.  DEBUG2
+and DEBUG3 each specify higher levels of debugging output.
+Logging with a DEBUG level violates the privacy of users
 and is not recommended.
 .It Cm MACs
 Specifies the available MAC (message authentication code) algorithms.
