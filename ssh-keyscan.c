@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keyscan.c,v 1.20 2001/03/05 15:37:27 deraadt Exp $");
+RCSID("$OpenBSD: ssh-keyscan.c,v 1.21 2001/03/06 01:06:03 millert Exp $");
 
 #if defined(HAVE_SYS_QUEUE_H) && !defined(HAVE_BOGUS_SYS_QUEUE_H)
 #include <sys/queue.h>
@@ -411,23 +411,27 @@ conrecycle(int s)
 void
 congreet(int s)
 {
-	char buf[80];
+	char buf[80], *cp;
+	size_t bufsiz;
 	int n;
 	con *c = &fdcon[s];
 
-	n = read(s, buf, sizeof(buf));
+	bufsiz = sizeof(buf);
+	cp = buf;
+	while (bufsiz-- && (n = read(s, cp, 1)) == 1 && *cp != '\n' && *cp != '\r')
+		cp++;
 	if (n < 0) {
 		if (errno != ECONNREFUSED)
 			error("read (%s): %s", c->c_name, strerror(errno));
 		conrecycle(s);
 		return;
 	}
-	if (buf[n - 1] != '\n') {
+	if (*cp != '\n' && *cp != '\r') {
 		error("%s: bad greeting", c->c_name);
 		confree(s);
 		return;
 	}
-	buf[n - 1] = '\0';
+	*cp = '\0';
 	fprintf(stderr, "# %s %s\n", c->c_name, buf);
 	n = snprintf(buf, sizeof buf, "SSH-1.5-OpenSSH-keyscan\r\n");
 	if (atomicio(write, s, buf, n) != n) {

@@ -33,6 +33,10 @@
    - deraadt@cvs.openbsd.org 2001/03/06 00:33:04
      [authfd.c cli.c ssh-agent.c]
      EINTR/EAGAIN handling is required in more cases
+   - millert@cvs.openbsd.org 2001/03/06 01:06:03
+     [ssh-keyscan.c]
+     Don't assume we wil get the version string all in one read().
+     deraadt@ OK'd
 
 20010305
  - (bal) CVS ID touch up on sshpty.[ch] and sshlogin.[ch]
@@ -4404,4 +4408,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.916 2001/03/06 03:31:34 mouring Exp $
+$Id: ChangeLog,v 1.917 2001/03/06 03:33:04 mouring Exp $
