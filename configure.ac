@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.207 2004/03/30 04:03:46 dtucker Exp $
+# $Id: configure.ac,v 1.208 2004/04/06 11:31:13 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -235,6 +235,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE(SETEUID_BREAKS_SETUID)
 	AC_DEFINE(BROKEN_SETREUID)
 	AC_DEFINE(BROKEN_SETREGID)
+	AC_DEFINE(BROKEN_UPDWTMPX)
 	AC_DEFINE(WITH_ABBREV_NO_TTY)
 	AC_DEFINE(LOCKED_PASSWD_STRING, "*LK*")
 	;;

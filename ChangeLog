@@ -1,3 +1,7 @@
+20040406
+ - (dtucker) [acconfig.h configure.ac defines.h] Bug #820: don't use
+   updwtmpx() on IRIX since it seems to clobber utmp.  ok djm@
+
 20040330
  - (dtucker) [configure.ac] Bug #811: Use "!" for LOCKED_PASSWD_PREFIX on
    Linuxes, since that's what many use.  ok djm@
@@ -930,4 +934,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3299 2004/03/31 05:17:54 djm Exp $
+$Id: ChangeLog,v 1.3300 2004/04/06 11:31:12 dtucker Exp $

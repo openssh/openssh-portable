@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.111 2004/03/04 11:59:37 dtucker Exp $ */
+/* $Id: defines.h,v 1.112 2004/04/06 11:31:13 dtucker Exp $ */
 
 
 /* Constants */
@@ -505,6 +505,10 @@ struct winsize {
 #endif
 #if defined(BROKEN_GETADDRINFO) && defined(HAVE_GAI_STRERROR)
 # undef HAVE_GAI_STRERROR
+#endif
+
+#if defined(BROKEN_UPDWTMPX) && defined(HAVE_UPDWTMPX)
+# undef HAVE_UPDWTMPX
 #endif
 
 #if !defined(HAVE_MEMMOVE) && defined(HAVE_BCOPY)

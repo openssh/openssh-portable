@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.173 2004/02/06 05:24:31 dtucker Exp $ */
+/* $Id: acconfig.h,v 1.174 2004/04/06 11:31:13 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -346,6 +346,9 @@
 
 /* getaddrinfo is broken (if present) */
 #undef BROKEN_GETADDRINFO
+
+/* updwtmpx is broken (if present) */
+#undef BROKEN_UPDWTMPX
 
 /* Workaround more Linux IPv6 quirks */
 #undef DONT_TRY_OTHER_AF
