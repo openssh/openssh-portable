@@ -1,5 +1,6 @@
 20030924
  - (djm) Update version.h and spec files for HEAD
+ - (dtucker) [configure.ac] IRIX5 needs the same setre[ug]id defines as IRIX6.
 
 20030923
  - (dtucker) [Makefile.in] Bug #644: Fix "make clean" for out-of-tree
@@ -1222,4 +1223,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3040 2003/09/23 22:30:18 djm Exp $
+$Id: ChangeLog,v 1.3041 2003/09/24 10:03:48 dtucker Exp $

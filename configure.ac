@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.166 2003/09/23 12:12:38 djm Exp $
+# $Id: configure.ac,v 1.167 2003/09/24 10:03:48 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -189,6 +189,9 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	LDFLAGS="$LDFLAGS"
 	PATH="$PATH:/usr/etc"
 	AC_DEFINE(BROKEN_INET_NTOA)
+	AC_DEFINE(SETEUID_BREAKS_SETUID)
+	AC_DEFINE(BROKEN_SETREUID)
+	AC_DEFINE(BROKEN_SETREGID)
 	AC_DEFINE(WITH_ABBREV_NO_TTY)
 	AC_DEFINE(LOCKED_PASSWD_STRING, "*LK*")
 	;;
