@@ -29,6 +29,12 @@
      [channels.c channels.h session.c]
      move creation of agent socket to session.c; no need for uidswapping
      in channel.c.
+   - markus@cvs.openbsd.org 2002/06/11 04:14:26
+     [ssh.c sshconnect.c sshconnect.h]
+     no longer use uidswap.[ch] from the ssh client
+     run less code with euid==0 if ssh is installed setuid root
+     just switch the euid, don't switch the complete set of groups
+     (this is only needed by sshd). ok provos@
 
 20020609
  - (bal) OpenBSD CVS Sync
@@ -894,4 +900,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2207 2002/06/11 15:59:02 mouring Exp $
+$Id: ChangeLog,v 1.2208 2002/06/11 16:37:51 mouring Exp $

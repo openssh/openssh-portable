@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.176 2002/06/08 05:17:01 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.177 2002/06/11 04:14:26 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -53,7 +53,6 @@ RCSID("$OpenBSD: ssh.c,v 1.176 2002/06/08 05:17:01 markus Exp $");
 #include "xmalloc.h"
 #include "packet.h"
 #include "buffer.h"
-#include "uidswap.h"
 #include "channels.h"
 #include "key.h"
 #include "authfd.h"
@@ -136,6 +135,7 @@ Sensitive sensitive_data;
 
 /* Original real UID. */
 uid_t original_real_uid;
+uid_t original_effective_uid;
 
 /* command to be executed */
 Buffer command;
@@ -217,7 +217,6 @@ main(int ac, char **av)
 	struct stat st;
 	struct passwd *pw;
 	int dummy;
-	uid_t original_effective_uid;
 	extern int optind, optreset;
 	extern char *optarg;
 
@@ -256,7 +255,7 @@ main(int ac, char **av)
 	 * them when the port has been created (actually, when the connection
 	 * has been made, as we may need to create the port several times).
 	 */
-	temporarily_use_uid(pw);
+	PRIV_END;
 
 	/*
 	 * Set our umask to something reasonable, as some files are created
@@ -612,15 +611,12 @@ again:
 		    "originating port will not be trusted.");
 		options.rhosts_authentication = 0;
 	}
-	/* Restore our superuser privileges. */
-	restore_uid();
-
 	/* Open a connection to the remote host. */
 
 	cerr = ssh_connect(host, &hostaddr, options.port, IPv4or6,
 	    options.connection_attempts,
-	    original_effective_uid != 0 || !options.use_privileged_port,
-	    pw, options.proxy_command);
+	    original_effective_uid == 0 && options.use_privileged_port,
+	    options.proxy_command);
 
 	/*
 	 * If we successfully made the connection, load the host private key
@@ -637,12 +633,15 @@ again:
 	    options.hostbased_authentication)) {
 		sensitive_data.nkeys = 3;
 		sensitive_data.keys = xmalloc(sensitive_data.nkeys*sizeof(Key));
+
+		PRIV_START;
 		sensitive_data.keys[0] = key_load_private_type(KEY_RSA1,
 		    _PATH_HOST_KEY_FILE, "", NULL);
 		sensitive_data.keys[1] = key_load_private_type(KEY_DSA,
 		    _PATH_HOST_DSA_KEY_FILE, "", NULL);
 		sensitive_data.keys[2] = key_load_private_type(KEY_RSA,
 		    _PATH_HOST_RSA_KEY_FILE, "", NULL);
+		PRIV_END;
 
 		if (sensitive_data.keys[0] == NULL &&
 		    sensitive_data.keys[1] == NULL &&
@@ -661,7 +660,8 @@ again:
 	 * user's home directory if it happens to be on a NFS volume where
 	 * root is mapped to nobody.
 	 */
-	permanently_set_uid(pw);
+	seteuid(original_real_uid);
+	setuid(original_real_uid);
 
 	/*
 	 * Now that we are back to our own permissions, create ~/.ssh
