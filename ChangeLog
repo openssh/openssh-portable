@@ -1,4 +1,13 @@
+20001228
+ - (bal) Patch to add libutil.h to loginrec.c only if the platform has
+   libutil.h.  Suggested by Pekka Savola <pekka@netcore.fi>
+
 20001227
+ - (bal) Typo in configure.in: entut?ent should be endut?ent.  Suggested by 
+   Takumi Yamane <yamtak@b-session.com>
+ - (bal) Checks for getrlimit(), sysconf(), and setdtablesize().  Patch
+   by Corinna Vinschen <vinschen@redhat.com>
+ - (djm) Fix catman-do target for non-bash
  - (bal) Typo in configure.in: entut?ent should be endut?ent.  Suggested by 
    Takumi Yamane <yamtak@b-session.com>
  - (bal) Checks for getrlimit(), sysconf(), and setdtablesize().  Patch

@@ -309,6 +309,7 @@ AC_CHECK_FUNCS(arc4random atexit b64_ntop bcopy bindresvport_af clock fchmod fre
 dnl    Checks for time functions
 AC_CHECK_FUNCS(gettimeofday time)
 dnl    Checks for libutil functions
+AC_CHECK_HEADERS(libutil.h)
 AC_CHECK_FUNCS(login logout updwtmp logwtmp)
 dnl    Checks for utmp functions
 AC_CHECK_FUNCS(endutent getutent getutid getutline pututline setutent)

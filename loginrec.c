@@ -161,10 +161,14 @@
 #include "xmalloc.h"
 #include "loginrec.h"
 
-RCSID("$Id: loginrec.c,v 1.28 2000/12/01 21:19:51 mouring Exp $");
+RCSID("$Id: loginrec.c,v 1.29 2000/12/28 00:07:07 mouring Exp $");
 
 #ifdef HAVE_UTIL_H
 #  include <util.h>
+#endif
+
+#ifdef HAVE_LIBUTIL_H
+#   include <libutil.h>
 #endif
 
 /**
