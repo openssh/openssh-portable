@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.126 2003/10/07 21:58:28 deraadt Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.127 2003/10/11 08:26:43 markus Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -453,7 +453,12 @@ input_userauth_pk_ok(int type, u_int32_t seq, void *ctxt)
 	debug2("input_userauth_pk_ok: fp %s", fp);
 	xfree(fp);
 
-	TAILQ_FOREACH(id, &authctxt->keys, next) {
+	/*
+	 * search keys in the reverse order, because last candidate has been
+	 * moved to the end of the queue.  this also avoids confusion by
+	 * duplicate keys
+	 */
+	TAILQ_FOREACH_REVERSE(id, &authctxt->keys, next, idlist) {
 		if (key_equal(key, id->key)) {
 			sent = sign_and_send_pubkey(authctxt, id);
 			break;
@@ -1086,6 +1091,7 @@ userauth_pubkey(Authctxt *authctxt)
 	while ((id = TAILQ_FIRST(&authctxt->keys))) {
 		if (id->tried++)
 			return (0);
+		/* move key to the end of the queue */
 		TAILQ_REMOVE(&authctxt->keys, id, next);
 		TAILQ_INSERT_TAIL(&authctxt->keys, id, next);
 		/*

@@ -16,6 +16,9 @@
      remote x11 clients are now untrusted by default, uses xauth(8) to generate
      untrusted cookies; ForwardX11Trusted=yes restores old behaviour.
      ok deraadt; feedback and ok djm/fries
+   - markus@cvs.openbsd.org 2003/10/11 08:26:43
+     [sshconnect2.c]
+     search keys in reverse order; fixes #684
 
 20031009
  - (dtucker) [sshd_config.5] UsePAM defaults to "no".  ok djm@
@@ -1333,4 +1336,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3072 2003/10/15 05:54:32 dtucker Exp $
+$Id: ChangeLog,v 1.3073 2003/10/15 05:55:59 dtucker Exp $
