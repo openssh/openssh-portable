@@ -35,6 +35,9 @@
    - markus@cvs.openbsd.org 2002/02/24 16:58:32
      [packet.c]
      make 'cp' unsigned and merge with 'ucp'; ok stevesk@
+   - markus@cvs.openbsd.org 2002/02/24 18:31:09
+     [uuencode.c]
+     typo in comment
 
 20020225
  - (bal) Last AIX patch.  Moved aix_usrinfo() outside of do_setuserconext()
@@ -7708,4 +7711,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1883 2002/02/26 18:04:38 mouring Exp $
+$Id: ChangeLog,v 1.1884 2002/02/26 18:07:26 mouring Exp $
