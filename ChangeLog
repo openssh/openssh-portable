@@ -1,7 +1,8 @@
 20021021
+ - (djm) Bug #400: Kill ssh-rand-helper children on timeout, patch from 
+   dtucker@zip.com.au
  - (djm) Bug #317: FreeBSD needs libutil.h for openpty() Report from 
    dirk.meyer@dinoex.sub.org
- - (djm) Bug #317: FreeBSD needs libutil.h for openpty()
 
 20021015
  - (bal) Fix bug id 383 and only call loginrestrict for AIX if not root.
@@ -773,4 +774,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2498 2002/10/21 00:50:25 djm Exp $
+$Id: ChangeLog,v 1.2499 2002/10/21 10:26:16 djm Exp $
