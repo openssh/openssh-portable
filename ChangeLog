@@ -1,5 +1,7 @@
 20001218
  - (stevesk) rsa.c: entropy.h not needed.
+ - (bal) split CFLAGS into CFLAGS and CPPFLAGS in configure.in and Makefile.
+   Suggested by Wilfredo Sanchez <wsanchez@apple.com>
 
 20001216
  - (stevesk) OpenBSD CVS updates:

@@ -41,13 +41,11 @@ if test "$GCC" = "yes"; then
 	CFLAGS="$CFLAGS -Wall"
 fi
 
-CFLAGS="$CFLAGS -I. -I${srcdir-.}"
-
 # Check for some target-specific stuff
 case "$host" in
 *-*-aix*)
 	AFS_LIBS="-lld"
-	CFLAGS="$CFLAGS -I/usr/local/include"
+	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	if (test "$LD" != "gcc" && test -z "$blibpath"); then
 		blibpath="/usr/lib:/lib:/usr/local/lib"
@@ -77,7 +75,7 @@ case "$host" in
 	if test -z "$GCC"; then
 		CFLAGS="$CFLAGS -Ae"
 	fi
-	CFLAGS="$CFLAGS -D_HPUX_SOURCE"
+	CPPFLAGS="$CPPFLAGS -D_HPUX_SOURCE"
 	IPADDR_IN_DISPLAY=yes
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(DISABLE_SHADOW)
@@ -88,7 +86,7 @@ case "$host" in
 	mansubdir=cat
 	;;
 *-*-hpux11*)
-	CFLAGS="$CFLAGS -D_HPUX_SOURCE"
+	CPPFLAGS="$CPPFLAGS -D_HPUX_SOURCE"
 	IPADDR_IN_DISPLAY=yes
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(DISABLE_SHADOW)
@@ -99,7 +97,7 @@ case "$host" in
 	mansubdir=cat
 	;;
 *-*-irix5*)
-	CFLAGS="$CFLAGS -I/usr/local/include"
+	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS"
 	PATH="$PATH:/usr/etc"
 	MANTYPE='$(CATMAN)'
@@ -108,7 +106,7 @@ case "$host" in
 	AC_DEFINE(BROKEN_INET_NTOA)
 	;;
 *-*-irix6*)
-	CFLAGS="$CFLAGS -I/usr/local/include"
+	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS"
 	PATH="$PATH:/usr/etc"
 	MANTYPE='$(CATMAN)'
@@ -145,10 +143,10 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(HAVE_NEXT)
 	AC_DEFINE(BROKEN_REALPATH)
 	AC_DEFINE(USE_PIPES)
-	CFLAGS="$CFLAGS -I/usr/local/include"
+	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	;;
 *-*-solaris*)
-	CFLAGS="$CFLAGS -I/usr/local/include"
+	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib -R/usr/local/lib -L/usr/ucblib -R/usr/ucblib"
 	need_dash_r=1
 	# hardwire lastlog location (can't detect it on some versions)
@@ -164,7 +162,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	fi
 	;;
 *-*-sunos4*)
-	CFLAGS="$CFLAGS -DSUNOS4"
+	CPPFLAGS="$CPPFLAGS -DSUNOS4"
 	AC_CHECK_FUNCS(getpwanam)
 	conf_utmp_location=/etc/utmp
 	conf_wtmp_location=/var/adm/wtmp
@@ -174,7 +172,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	mansubdir=cat
 	;;
 *-sni-sysv*)
-	CFLAGS="$CFLAGS -I/usr/local/include"
+	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib -L/usr/ucblib"
 	MANTYPE='$(CATMAN)'
 	AC_DEFINE(IP_TOS_IS_BROKEN)
@@ -182,7 +180,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	LIBS="$LIBS -lgen -lnsl -lucb"
 	;;
 *-*-sysv4.2*)
-	CFLAGS="$CFLAGS -I/usr/local/include"
+	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	MANTYPE='$(CATMAN)'
 	mansubdir=cat
@@ -190,7 +188,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	enable_suid_ssh=no
 	;;
 *-*-sysv5*)
-	CFLAGS="$CFLAGS -I/usr/local/include"
+	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	MANTYPE='$(CATMAN)'
 	mansubdir=cat
@@ -198,7 +196,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	enable_suid_ssh=no
 	;;
 *-*-sysv*)
-	CFLAGS="$CFLAGS -I/usr/local/include"
+	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	MANTYPE='$(CATMAN)'
 	mansubdir=cat
@@ -206,7 +204,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	;;
 *-*-sco3.2v4*)
 	AC_DEFINE(USE_PIPES)
-	CFLAGS="$CFLAGS -Dftruncate=chsize -I/usr/local/include"
+	CPPFLAGS="$CPPFLAGS -Dftruncate=chsize -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	MANTYPE='$(CATMAN)'
 	mansubdir=cat
@@ -219,7 +217,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(DISABLE_SHADOW)
 	;;
 *-*-sco3.2v5*)
-	CFLAGS="$CFLAGS -I/usr/local/include"
+	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	MANTYPE='$(CATMAN)'
 	mansubdir=cat
@@ -253,6 +251,14 @@ AC_ARG_WITH(cflags,
 			CFLAGS="$CFLAGS $withval"
 		fi
 	]	
+)
+AC_ARG_WITH(cppflags,
+	[  --with-cppflags         Specify additional flags to pass to preprocessor] ,
+	[
+		if test "x$withval" != "xno"; then
+			CPPFLAGS="$CPPFLAGS $withval"
+		fi
+	]
 )
 AC_ARG_WITH(ldflags,
 	[  --with-ldflags          Specify additional flags to pass to linker],
@@ -396,7 +402,7 @@ AC_ARG_WITH(ssl-dir,
 
 saved_LIBS="$LIBS"
 saved_LDFLAGS="$LDFLAGS"
-saved_CFLAGS="$CFLAGS"
+saved_CPPFLAGS="$CPPFLAGS"
 if test "x$prefix" != "xNONE" ; then
 	tryssldir="$tryssldir $prefix"
 fi
@@ -405,7 +411,7 @@ AC_CACHE_CHECK([for OpenSSL directory], ac_cv_openssldir, [
 	for ssldir in $tryssldir "" /usr/local/openssl /usr/lib/openssl /usr/local/ssl /usr/lib/ssl /usr/local /usr/pkg /opt /opt/openssl ; do
 		if test ! -z "$ssldir" ; then
 			LDFLAGS="$saved_LDFLAGS -L$ssldir/lib -L$ssldir"
-			CFLAGS="$saved_CFLAGS -I$ssldir/include"
+			CPPFLAGS="$saved_CPPFLAGS -I$ssldir/include"
 			if test ! -z "$need_dash_r" ; then
 				LDFLAGS="$LDFLAGS -R$ssldir/lib -R$ssldir"
 			fi
@@ -454,7 +460,7 @@ if (test ! -z "$ac_cv_openssldir" && test "x$ac_cv_openssldir" != "x(system)") ;
 	AC_DEFINE(HAVE_OPENSSL)
 	dnl Need to recover ssldir - test above runs in subshell
 	ssldir=$ac_cv_openssldir
-	CFLAGS="$saved_CFLAGS -I$ssldir/include"
+	CPPFLAGS="$saved_CPPFLAGS -I$ssldir/include"
 	LDFLAGS="$saved_LDFLAGS -L$ssldir/lib -L$ssldir"
 	if test ! -z "$need_dash_r" ; then
 		LDFLAGS="$LDFLAGS -R$ssldir/lib -R$ssldir"
@@ -1057,7 +1063,7 @@ AC_ARG_WITH(kerberos4,
 		if test "x$withval" != "xno" ; then
 	
 			if test "x$withval" != "xyes" ; then
-				CFLAGS="$CFLAGS -I${withval}/include"
+				CPPFLAGS="$CPPFLAGS -I${withval}/include"
 				LDFLAGS="$LDFLAGS -L${withval}/lib"
 				if test ! -z "$need_dash_r" ; then
 					LDFLAGS="$LDFLAGS -R${withval}/lib"
@@ -1067,7 +1073,7 @@ AC_ARG_WITH(kerberos4,
 				fi
 			else
 				if test -d /usr/include/kerberosIV ; then
-					CFLAGS="$CFLAGS -I/usr/include/kerberosIV"
+					CPPFLAGS="$CPPFLAGS -I/usr/include/kerberosIV"
 				fi
 			fi
 
@@ -1097,7 +1103,7 @@ AC_ARG_WITH(afs,
 		if test "x$withval" != "xno" ; then
 
 			if test "x$withval" != "xyes" ; then
-				CFLAGS="$CFLAGS -I${withval}/include"
+				CPPFLAGS="$CPPFLAGS -I${withval}/include"
 				LDFLAGS="$LDFLAGS -L${withval}/lib"
 			fi
 
@@ -1124,7 +1130,7 @@ AC_ARG_WITH(skey,
 		if test "x$withval" != "xno" ; then
 
 			if test "x$withval" != "xyes" ; then
-				CFLAGS="$CFLAGS -I${withval}/include"
+				CPPFLAGS="$CPPFLAGS -I${withval}/include"
 				LDFLAGS="$LDFLAGS -L${withval}/lib"
 			fi
 
@@ -1599,11 +1605,12 @@ echo "       Translate v4 in v6 hack: $IPV4_IN6_HACK_MSG"
 
 echo ""
 
-echo "             Host: ${host}"
-echo "         Compiler: ${CC}"
-echo "   Compiler flags: ${CFLAGS}"
-echo "     Linker flags: ${LDFLAGS}"
-echo "        Libraries: ${LIBS}"
+echo "              Host: ${host}"
+echo "          Compiler: ${CC}"
+echo "    Compiler flags: ${CFLAGS}"
+echo "Preprocessor flags: ${CPPFLAGS}"
+echo "      Linker flags: ${LDFLAGS}"
+echo "         Libraries: ${LIBS}"
 
 echo ""
 
