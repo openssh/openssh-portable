@@ -21,3 +21,4 @@ remotehost# httpd
 remotehost# logout
 (ssh hangs at logout forever)
 
+This appears to be a problem in the server.
