@@ -1,3 +1,6 @@
+20040217
+ - (djm) Simplify the license on code I have written. No code changes.
+
 20040212
  - (tim) [Makefile.in regress/sftp-badcmds.sh regress/test-exec.sh]
    Portablity fixes. Data sftp transfers needs to be world readable. Some
@@ -1852,4 +1855,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3228 2004/02/12 17:27:21 tim Exp $
+$Id: ChangeLog,v 1.3229 2004/02/17 05:49:41 djm Exp $
