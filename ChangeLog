@@ -1,3 +1,10 @@
+20010418
+ - OpenBSD CVS Sync                            
+   - markus@cvs.openbsd.org 2001/04/17 19:34:25
+     [session.c]                               
+     move auth_approval to do_authenticated(). 
+     do_child(): nuke hostkeys from memory     
+     don't source .ssh/rc for subsystems.      
 20010417
   - (bal) Add perl5 check for HP/UX, Removed GNUness from Makefile.in
     and temporary commented out 'catman-do:' since it is broken.  Patches
@@ -5145,4 +5152,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1135 2001/04/17 18:14:34 mouring Exp $
+$Id: ChangeLog,v 1.1136 2001/04/18 15:29:33 mouring Exp $
