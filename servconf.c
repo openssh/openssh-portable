@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.113 2002/07/30 17:03:55 markus Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.114 2002/08/21 19:38:06 stevesk Exp $");
 
 #if defined(KRB4)
 #include <krb.h>
@@ -159,7 +159,7 @@ fill_default_server_options(ServerOptions *options)
 	if (options->server_key_bits == -1)
 		options->server_key_bits = 768;
 	if (options->login_grace_time == -1)
-		options->login_grace_time = 600;
+		options->login_grace_time = 60;
 	if (options->key_regeneration_time == -1)
 		options->key_regeneration_time = 3600;
 	if (options->permit_root_login == PERMIT_NOT_SET)
