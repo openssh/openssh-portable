@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-add.1,v 1.33 2002/06/05 21:55:44 markus Exp $
+.\"	$OpenBSD: ssh-add.1,v 1.34 2002/06/10 17:36:22 stevesk Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -90,7 +90,9 @@ Lock the agent with a password.
 Unlock the agent.
 .It Fl t Ar life
 Set a maximum lifetime when adding identities to an agent.
-The lifetime is specified in seconds.
+The lifetime may be specified in seconds or in a time format
+specified in
+.Xr sshd 8 .
 .It Fl s Ar reader
 Add key in smartcard
 .Ar reader .

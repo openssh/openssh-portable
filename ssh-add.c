@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.56 2002/06/05 21:55:44 markus Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.57 2002/06/10 17:36:23 stevesk Exp $");
 
 #include <openssl/evp.h>
 
@@ -48,6 +48,7 @@ RCSID("$OpenBSD: ssh-add.c,v 1.56 2002/06/05 21:55:44 markus Exp $");
 #include "authfile.h"
 #include "pathnames.h"
 #include "readpass.h"
+#include "misc.h"
 
 #ifdef HAVE___PROGNAME
 extern char *__progname;
@@ -67,7 +68,7 @@ static char *default_files[] = {
 };
 
 /* Default lifetime (0 == forever) */
-static u_int lifetime = 0;
+static int lifetime = 0;
 
 /* we keep a cache of one passphrases */
 static char *pass = NULL;
@@ -352,7 +353,11 @@ main(int argc, char **argv)
 			sc_reader_id = optarg;
 			break;
 		case 't':
-			lifetime = atoi(optarg);
+			if ((lifetime = convtime(optarg)) == -1) {
+				fprintf(stderr, "Invalid lifetime\n");
+				ret = 1;
+				goto done;
+			}
 			break;
 		default:
 			usage();
