@@ -489,11 +489,10 @@ chan_shutdown_read(Channel *c)
 		/*
 		 * shutdown(sock, SHUT_READ) may return ENOTCONN if the
 		 * write side has been closed already. (bug on Linux)
+		 * HP-UX will return EINVAL.
 		 */
 		if (shutdown(c->sock, SHUT_RD) < 0
-		    && (errno != ENOTCONN
-			|| c->ostate == CHAN_OUTPUT_OPEN
-			|| c->ostate == CHAN_OUTPUT_WAIT_DRAIN))
+		    && (errno != ENOTCONN && errno != EINVAL))
 			error("channel %d: chan_shutdown_read: shutdown() failed for fd%d [i%d o%d]: %.100s",
 			    c->self, c->sock, c->istate, c->ostate, strerror(errno));
 	} else {

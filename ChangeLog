@@ -1,3 +1,7 @@
+20010404
+ - (stevesk) nchan.c: remove ostate checks and add EINVAL to
+    shutdown(SHUT_RD) error() bypass for HP-UX.
+
 20010330
  - (djm) Another openbsd-compat/glob.c sync
  - (djm) Document default protocol order in config files
@@ -4696,4 +4700,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.991.2.18 2001/03/30 01:01:42 djm Exp $
+$Id: ChangeLog,v 1.991.2.19 2001/04/04 15:00:19 stevesk Exp $
