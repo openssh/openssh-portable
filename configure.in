@@ -662,6 +662,15 @@ AC_ARG_WITH(default-path,
 	]
 )
 
+AC_ARG_WITH(ipv4-default,
+	[  --with-ipv4-default     Use IPv4 by connections unless '-6' specified],
+	[
+		if test "x$withval" != "xno" ; then	
+			AC_DEFINE(IPV4_DEFAULT)
+		fi
+	]
+)
+
 piddir=/var/run
 AC_ARG_WITH(pid-dir,
 	[  --with-pid-dir=PATH     Specify location of ssh.pid file],

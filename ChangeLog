@@ -1,6 +1,9 @@
 20000119
  - SCO compile fixes from Gary E. Miller <gem@rellim.com>
  - Compile fix from Darren_Hall@progressive.com
+ - Linux/glibc-2.1.2 takes a *long* time to look up names for AF_UNSPEC
+   addresses using getaddrinfo(). Added a configure switch to make the
+   default lookup mode AF_INET
 
 20000118
  - Fixed --with-pid-dir option

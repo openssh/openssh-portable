@@ -135,6 +135,9 @@
 /* Specify location of ssh.pid */
 #undef PIDDIR
 
+/* Use IPv4 for connection by default, IPv6 can still if explicity asked */
+#undef IPV4_DEFAULT
+
 @BOTTOM@
 
 /* ******************* Shouldn't need to edit below this line ************** */
