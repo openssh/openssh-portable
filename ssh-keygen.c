@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.67 2001/06/27 05:35:42 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.68 2001/06/27 05:42:25 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -264,7 +264,7 @@ do_convert_private_ssh2_from_blob(char *blob, int blen)
 		buffer_get_bignum_bits(&b, key->rsa->iqmp);
 		buffer_get_bignum_bits(&b, key->rsa->q);
 		buffer_get_bignum_bits(&b, key->rsa->p);
-		generate_additional_parameters(key->rsa);
+		rsa_generate_additional_parameters(key->rsa);
 		break;
 	}
 	rlen = buffer_len(&b);

@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.59 2001/06/26 05:33:34 markus Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.60 2001/06/27 05:42:25 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.59 2001/06/26 05:33:34 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.60 2001/06/27 05:42:25 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -385,7 +385,7 @@ process_add_identity(SocketEntry *e, int version)
 		buffer_get_bignum(&e->input, k->rsa->p);	/* q */
 
 		/* Generate additional parameters */
-		generate_additional_parameters(k->rsa);
+		rsa_generate_additional_parameters(k->rsa);
 		break;
 	case 2:
 		type_name = buffer_get_string(&e->input, NULL);
@@ -410,7 +410,7 @@ process_add_identity(SocketEntry *e, int version)
 			buffer_get_bignum2(&e->input, k->rsa->q);
 
 			/* Generate additional parameters */
-			generate_additional_parameters(k->rsa);
+			rsa_generate_additional_parameters(k->rsa);
 			break;
 		default:
 			buffer_clear(&e->input);

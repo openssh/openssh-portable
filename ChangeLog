@@ -89,6 +89,10 @@
    - markus@cvs.openbsd.org 2001/06/27 05:35:42
      [ssh-keygen.c]
      use cyberflex_inq_class to inquire class.
+   - markus@cvs.openbsd.org 2001/06/27 05:42:25
+     [rsa.c rsa.h ssh-agent.c ssh-keygen.c]
+     s/generate_additional_parameters/rsa_generate_additional_parameters/
+     http://www.humppa.com/
  
 20010629
  - (bal) Removed net_aton() since we don't use it any more
@@ -5916,4 +5920,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1364 2001/07/04 05:00:11 mouring Exp $
+$Id: ChangeLog,v 1.1365 2001/07/04 05:02:23 mouring Exp $
