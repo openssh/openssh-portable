@@ -4,6 +4,10 @@
  - Revert __snprintf -> snprintf aliasing. Apparently Solaris 
    __snprintf isn't. Report from Theo de Raadt <theo@cvs.openbsd.org>
  - Document location of Redhat PAM file in INSTALL.
+ - Fixed X11 forwarding bug on Linux. libc advertises AF_INET6 
+   INADDR_ANY_INIT addresses via getaddrinfo, but may not be able to 
+   deliver (no IPv6 kernel kernel support)
+ - Released 1.2.1pre27
 
 20000116
  - Renamed --with-xauth-path to --with-xauth

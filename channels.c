@@ -16,7 +16,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: channels.c,v 1.15 2000/01/14 04:45:48 damien Exp $");
+RCSID("$Id: channels.c,v 1.16 2000/01/17 02:22:55 damien Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -1187,8 +1187,13 @@ x11_create_display_inet(int screen_number, int x11_display_offset)
 				continue;
 			sock = socket(ai->ai_family, SOCK_STREAM, 0);
 			if (sock < 0) {
-				error("socket: %.100s", strerror(errno));
-				return NULL;
+				if (errno != EINVAL) {
+					error("socket: %.100s", strerror(errno));
+					return NULL;
+				} else {
+					debug("Socket family %d not supported [X11 disp create]", ai->ai_family);
+					continue;
+				}
 			}
 			if (bind(sock, ai->ai_addr, ai->ai_addrlen) < 0) {
 				debug("bind port %d: %.100s", port, strerror(errno));
