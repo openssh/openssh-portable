@@ -182,6 +182,9 @@ pwcopy(struct passwd *pw)
 #ifdef HAVE_PW_CLASS_IN_PASSWD
 	copy->pw_class = xstrdup(pw->pw_class);
 #endif
+#ifdef HAVE_CYGWIN
+	copy->pw_gecos = xstrdup(pw->pw_gecos);
+#endif
 	copy->pw_dir = xstrdup(pw->pw_dir);
 	copy->pw_shell = xstrdup(pw->pw_shell);
 	return copy;
