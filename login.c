@@ -18,7 +18,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: login.c,v 1.9 1999/12/21 10:30:56 damien Exp $");
+RCSID("$Id: login.c,v 1.10 1999/12/22 05:09:48 damien Exp $");
 
 #if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
 # include <utmpx.h>
@@ -53,7 +53,7 @@ unsigned long
 get_last_login_time(uid_t uid, const char *logname,
 		    char *buf, unsigned int bufsize)
 {
-#if defined(HAVE_LASTLOG_H) && !defined(DISABLE_LASTLOG)
+#if defined(_PATH_LASTLOG) && !defined(DISABLE_LASTLOG)
 	struct lastlog ll;
 	char *lastlog;
 	int fd;
@@ -76,7 +76,7 @@ get_last_login_time(uid_t uid, const char *logname,
 	buf[bufsize - 1] = 0;
 	return ll.ll_time;
 
-#else /* defined(HAVE_LASTLOG_H) && !defined(DISABLE_LASTLOG) */
+#else /* defined(_PATH_LASTLOG) && !defined(DISABLE_LASTLOG) */
 	/* Look in wtmp for the last login */
 	struct utmp  wt;
 	char        *wt_file = _PATH_WTMP;
@@ -101,10 +101,14 @@ get_last_login_time(uid_t uid, const char *logname,
 		if ( wt.ut_type == USER_PROCESS) {
 			if ( !strncmp(logname, wt.ut_user, 8) ) {
 				t = (unsigned long) wt.ut_time;
+#ifdef HAVE_HOST_IN_UTMP
 				if (bufsize > sizeof(wt.ut_host) + 1)
 				bufsize = sizeof(wt.ut_host) + 1;
 				strncpy(buf, wt.ut_host, bufsize - 1);
 				buf[bufsize - 1] = 0;
+#else /* HAVE_HOST_IN_UTMP */
+				buf[0] = 0;
+#endif /* HAVE_HOST_IN_UTMP */
 			}
 		}
 
@@ -113,7 +117,7 @@ get_last_login_time(uid_t uid, const char *logname,
 	} while (t == 0);
 
 	return t;
-#endif /* defined(HAVE_LASTLOG_H) && !defined(DISABLE_LASTLOG) */
+#endif /* defined(_PATH_LASTLOG) && !defined(DISABLE_LASTLOG) */
 }
 
 /*
@@ -125,10 +129,10 @@ void
 record_login(int pid, const char *ttyname, const char *user, uid_t uid,
 	     const char *host, struct sockaddr_in * addr)
 {
-#if defined(HAVE_LASTLOG_H) && !defined(DISABLE_LASTLOG)
+#if defined(_PATH_LASTLOG) && !defined(DISABLE_LASTLOG)
 	struct lastlog ll;
 	char *lastlog;
-#endif /* defined(HAVE_LASTLOG_H) && !defined(DISABLE_LASTLOG) */
+#endif /* defined(_PATH_LASTLOG) && !defined(DISABLE_LASTLOG) */
 	struct UTMP_STR u;
 	const char *utmp, *wtmp;
 
@@ -152,7 +156,7 @@ record_login(int pid, const char *ttyname, const char *user, uid_t uid,
 
 	login(&u);
 
-#if defined(HAVE_LASTLOG_H) && !defined(DISABLE_LASTLOG)
+#if defined(_PATH_LASTLOG) && !defined(DISABLE_LASTLOG)
 	lastlog = _PATH_LASTLOG;
 
 	/* Update lastlog unless actually recording a logout. */
@@ -176,7 +180,7 @@ record_login(int pid, const char *ttyname, const char *user, uid_t uid,
 			close(fd);
 		}
 	}
-#endif /* defined(HAVE_LASTLOG_H) && !defined(DISABLE_LASTLOG) */
+#endif /* defined(_PATH_LASTLOG) && !defined(DISABLE_LASTLOG) */
 }
 
 /* Records that the user has logged out. */

@@ -1,6 +1,8 @@
 19991222
  - Fix undefined fd_set type in ssh.h from Povl H. Pedersen 
    <pope@netguide.dk>
+ - Fix login.c breakage on systems which lack ut_host in struct
+   utmp. Reported by Willard Dawson <willard.dawson@sbs.siemens.com>
 
 19991221
  - Integration of large HPUX patch from Andre Lucas 
