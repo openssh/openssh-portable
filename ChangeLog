@@ -1,3 +1,12 @@
+20030811
+ - (dtucker) OpenBSD CVS Sync
+   (thanks to Simon Wilkinson for help with this -dt)
+   - markus@cvs.openbsd.org 2003/07/16 15:02:06
+     [auth-krb5.c]
+     mcc -> fcc; from Love Hörnquist Åstrand <lha@it.su.se>
+     otherwise the kerberos credentinal is stored in a memory cache
+     in the privileged sshd. ok jabob@, hin@ (some time ago)
+
 20030808
  - (dtucker) [openbsd-compat/fake-rfc2553.h] Older Linuxes have AI_PASSIVE and
    AI_CANONNAME in netdb.h but not AI_NUMERICHOST, so check each definition
@@ -804,4 +813,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2886 2003/08/08 03:43:37 dtucker Exp $
+$Id: ChangeLog,v 1.2887 2003/08/11 12:55:36 dtucker Exp $

@@ -28,7 +28,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-krb5.c,v 1.10 2002/11/21 23:03:51 deraadt Exp $");
+RCSID("$OpenBSD: auth-krb5.c,v 1.11 2003/07/16 15:02:06 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -265,6 +265,7 @@ auth_krb5_password(Authctxt *authctxt, const char *password)
 	int tmpfd;
 #endif	
 	krb5_error_code problem;
+	krb5_ccache ccache = NULL;
 
 	if (authctxt->pw == NULL)
 		return (0);
@@ -281,21 +282,33 @@ auth_krb5_password(Authctxt *authctxt, const char *password)
 		goto out;
 
 #ifdef HEIMDAL
-	problem = krb5_cc_gen_new(authctxt->krb5_ctx, &krb5_mcc_ops,
-	    &authctxt->krb5_fwd_ccache);
+	problem = krb5_cc_gen_new(authctxt->krb5_ctx, &krb5_mcc_ops, &ccache);
 	if (problem)
 		goto out;
 
-	problem = krb5_cc_initialize(authctxt->krb5_ctx,
-	    authctxt->krb5_fwd_ccache, authctxt->krb5_user);
+	problem = krb5_cc_initialize(authctxt->krb5_ctx, ccache,
+		authctxt->krb5_user);
 	if (problem)
 		goto out;
 
 	restore_uid();
+	
 	problem = krb5_verify_user(authctxt->krb5_ctx, authctxt->krb5_user,
-	    authctxt->krb5_fwd_ccache, password, 1, NULL);
+	    ccache, password, 1, NULL);
+	
 	temporarily_use_uid(authctxt->pw);
 
+	if (problem)
+		goto out;
+	problem = krb5_cc_gen_new(authctxt->krb5_ctx, &krb5_fcc_ops,
+	    &authctxt->krb5_fwd_ccache);
+	if (problem)
+		goto out;
+
+	problem = krb5_cc_copy_cache(authctxt->krb5_ctx, ccache,
+	    authctxt->krb5_fwd_ccache);
+	krb5_cc_destroy(authctxt->krb5_ctx, ccache);
+	ccache = NULL;
 	if (problem)
 		goto out;
 
@@ -361,6 +374,9 @@ auth_krb5_password(Authctxt *authctxt, const char *password)
 	restore_uid();
 
 	if (problem) {
+		if (ccache)
+			krb5_cc_destroy(authctxt->krb5_ctx, ccache);
+
 		if (authctxt->krb5_ctx != NULL && problem!=-1)
 			debug("Kerberos password authentication failed: %s",
 			    krb5_get_err_text(authctxt->krb5_ctx, problem));
