@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.76 2001/05/19 00:36:40 djm Exp $");
+RCSID("$OpenBSD: session.c,v 1.77 2001/05/30 12:55:13 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -45,8 +45,7 @@ RCSID("$OpenBSD: session.c,v 1.76 2001/05/19 00:36:40 djm Exp $");
 #include "mpaux.h"
 #include "uidswap.h"
 #include "compat.h"
-#include "channels.h"
-#include "nchan.h"
+#include "channel.h"
 #include "bufaux.h"
 #include "auth.h"
 #include "auth-options.h"

@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.65 2001/05/08 19:17:31 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.66 2001/05/30 12:55:12 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -43,7 +43,7 @@ RCSID("$OpenBSD: serverloop.c,v 1.65 2001/05/08 19:17:31 markus Exp $");
 #include "log.h"
 #include "servconf.h"
 #include "sshpty.h"
-#include "channels.h"
+#include "channel.h"
 #include "compat.h"
 #include "ssh1.h"
 #include "ssh2.h"

@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.62 2001/05/28 23:58:35 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.63 2001/05/30 12:55:11 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -48,7 +48,7 @@ RCSID("$OpenBSD: packet.c,v 1.62 2001/05/28 23:58:35 markus Exp $");
 
 #include "compress.h"
 #include "deattack.h"
-#include "channels.h"
+#include "channel.h"
 
 #include "compat.h"
 #include "ssh1.h"
@@ -245,7 +245,6 @@ void
 packet_set_protocol_flags(u_int protocol_flags)
 {
 	remote_protocol_flags = protocol_flags;
-	channel_set_options((protocol_flags & SSH_PROTOFLAG_HOST_IN_FWD_OPEN) != 0);
 }
 
 /* Returns the remote protocol flags set earlier by the above function. */

@@ -1,7 +1,14 @@
+20010609
+ - OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2001/05/30 12:55:13
+     [auth-options.c auth2.c channels.c channels.h clientloop.c nchan.c 
+      packet.c serverloop.c session.c ssh.c ssh1.h]
+     channel layer cleanup: merge header files and split .c files
+
 20010606
- - OpenBSD CVS Sync                                                             
-   - markus@cvs.openbsd.org 2001/05/17 21:34:15                                 
-     [ssh.1]                                                                    
+ - OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2001/05/17 21:34:15 
+     [ssh.1]
      no spaces in PreferredAuthentications; 
      meixner@rbg.informatik.tu-darmstadt.de
    - markus@cvs.openbsd.org 2001/05/18 14:13:29
@@ -42,7 +49,7 @@
    - stevesk@cvs.openbsd.org 2001/05/19 19:57:09
      [channels.c]                               
      typo in error message                      
-   - markus@cvs.openbsd.org 2001/05/20 17:20:36                                 
+   - markus@cvs.openbsd.org 2001/05/20 17:20:36
      [auth-rsa.c auth.c auth.h auth2.c servconf.c servconf.h sshd.8
       sshd_config]
      configurable authorized_keys{,2} location; originally from peter@; 
@@ -5508,4 +5515,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1246 2001/06/05 21:13:57 mouring Exp $
+$Id: ChangeLog,v 1.1247 2001/06/09 00:17:10 mouring Exp $

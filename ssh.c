@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.120 2001/05/28 08:04:39 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.121 2001/05/30 12:55:13 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -53,7 +53,7 @@ RCSID("$OpenBSD: ssh.c,v 1.120 2001/05/28 08:04:39 markus Exp $");
 #include "packet.h"
 #include "buffer.h"
 #include "uidswap.h"
-#include "channels.h"
+#include "channel.h"
 #include "key.h"
 #include "authfd.h"
 #include "authfile.h"
