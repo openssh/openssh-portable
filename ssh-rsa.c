@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-rsa.c,v 1.7 2001/03/27 10:34:08 markus Exp $");
+RCSID("$OpenBSD: ssh-rsa.c,v 1.8 2001/03/27 10:57:00 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -34,6 +34,7 @@ RCSID("$OpenBSD: ssh-rsa.c,v 1.7 2001/03/27 10:34:08 markus Exp $");
 #include "bufaux.h"
 #include "key.h"
 #include "ssh-rsa.h"
+#include "compat.h"
 
 /* RSASSA-PKCS1-v1_5 (PKCS #1 v2.0 signature) with SHA1 */
 int
@@ -53,7 +54,7 @@ ssh_rsa_sign(
 		error("ssh_rsa_sign: no RSA key");
 		return -1;
 	}
-	nid = NID_sha1;
+	nid = (datafellows & SSH_BUG_RSASIGMD5) ? NID_md5 : NID_sha1;
 	if ((evp_md = EVP_get_digestbynid(nid)) == NULL) {
 		error("ssh_rsa_sign: EVP_get_digestbynid %d failed", nid);
 		return -1;
@@ -147,7 +148,7 @@ ssh_rsa_verify(
 		error("ssh_rsa_verify: remaining bytes in signature %d", rlen);
 		return -1;
 	}
-	nid = NID_sha1;
+	nid = (datafellows & SSH_BUG_RSASIGMD5) ? NID_md5 : NID_sha1;
 	if ((evp_md = EVP_get_digestbynid(nid)) == NULL) {
 		xfree(sigblob);
 		error("ssh_rsa_verify: EVP_get_digestbynid %d failed", nid);

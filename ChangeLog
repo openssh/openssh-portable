@@ -12,6 +12,10 @@
    - markus@cvs.openbsd.org 2001/03/27 10:34:08
      [ssh-rsa.c sshd.c]
      use EVP_get_digestbynid, reorder some calls and fix missing free.
+   - markus@cvs.openbsd.org 2001/03/27 10:57:00
+     [compat.c compat.h ssh-rsa.c]
+     some older systems use NID_md5 instead of NID_sha1 for RSASSA-PKCS1-v1_5
+     signatures in SSH protocol 2, ok djm@
 
 20010328
  - (djm) Reorder tests and library inclusion for Krb4/AFS to try to 
@@ -4750,4 +4754,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1029 2001/03/29 00:31:20 mouring Exp $
+$Id: ChangeLog,v 1.1030 2001/03/29 00:32:56 mouring Exp $

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: compat.c,v 1.40 2001/03/23 11:04:06 djm Exp $");
+RCSID("$OpenBSD: compat.c,v 1.41 2001/03/27 10:57:00 markus Exp $");
 
 #ifdef HAVE_LIBPCRE
 #  include <pcreposix.h>
@@ -75,18 +75,22 @@ compat_datafellows(const char *version)
 		{ "^OpenSSH",		0 },
 		{ "MindTerm",		0 },
 		{ "^2\\.1\\.0",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
-					SSH_OLD_SESSIONID|SSH_BUG_DEBUG },
+					SSH_OLD_SESSIONID|SSH_BUG_DEBUG|
+					SSH_BUG_RSASIGMD5 },
 		{ "^2\\.1 ",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
-					SSH_OLD_SESSIONID|SSH_BUG_DEBUG },
+					SSH_OLD_SESSIONID|SSH_BUG_DEBUG|
+					SSH_BUG_RSASIGMD5 },
 		{ "^2\\.0\\.1[3-9]",	SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
 					SSH_OLD_SESSIONID|SSH_BUG_DEBUG|
 					SSH_BUG_PKSERVICE|SSH_BUG_X11FWD|
-					SSH_BUG_PKOK },
+					SSH_BUG_PKOK|SSH_BUG_RSASIGMD5 },
 		{ "^2\\.0\\.",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
 					SSH_OLD_SESSIONID|SSH_BUG_DEBUG|
 					SSH_BUG_PKSERVICE|SSH_BUG_X11FWD|
-					SSH_BUG_PKAUTH|SSH_BUG_PKOK },
-		{ "^2\\.[23]\\.0",	SSH_BUG_HMAC },
+					SSH_BUG_PKAUTH|SSH_BUG_PKOK|
+					SSH_BUG_RSASIGMD5 },
+		{ "^2\\.[23]\\.0",	SSH_BUG_HMAC|SSH_BUG_RSASIGMD5 },
+		{ "^2\\.3\\.",		SSH_BUG_RSASIGMD5 },
 		{ "^2\\.[2-9]\\.",	0 },
 		{ "^2\\.4$",		SSH_OLD_SESSIONID },	/* Van Dyke */
 		{ "^3\\.0 SecureCRT",	SSH_OLD_SESSIONID },
