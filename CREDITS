@@ -3,9 +3,10 @@ Tatu Ylonen <ylo@cs.hut.fi> - Creator of SSH
 Aaron Campbell, Bob Beck, Markus Friedl, Niels Provos, 
 Theo de Raadt, and Dug Song - Creators of OpenSSH
 
-Andrew Stribblehill <a.d.stribblehill@durham.ac.uk> - Bugfixes
 Andre Lucas <andre.lucas@dial.pipex.com> - new login code, many fixes
+Andreas Steinmetz <ast@domdv.de> - Shadow password expiry support
 Andrew McGill <andrewm@datrix.co.za> - SCO fixes
+Andrew Stribblehill <a.d.stribblehill@durham.ac.uk> - Bugfixes
 Andy Sloane <andy@guildsoftware.com> - bugfixes
 Arkadiusz Miskiewicz <misiek@pld.org.pl> - IPv6 compat fixes
 Ben Lindstrom <mouring@pconline.com> - NeXT support
@@ -35,7 +36,7 @@ IWAMURO Motonori <iwa@mmp.fujitsu.co.jp> - bugfixes
 Jani Hakala <jahakala@cc.jyu.fi> - Patches
 Jarno Huuskonen <jhuuskon@hytti.uku.fi> - Bugfixes
 Jim Knoble <jmknoble@pobox.com> - Many patches
-jonchen (email unknown) - the original author of PAM support of SSH
+Jonchen (email unknown) - the original author of PAM support of SSH
 Juergen Keil <jk@tools.de> - scp bugfixing
 Kees Cook <cook@cpoint.net> - scp fixes
 Kenji Miyake <kenji@miyake.org> - Configure fixes

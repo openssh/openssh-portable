@@ -22,6 +22,9 @@ RCSID("$OpenBSD: auth.c,v 1.7 2000/05/17 21:37:24 deraadt Exp $");
 #ifdef HAVE_LOGIN_H
 #include <login.h>
 #endif
+#if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
+#include <shadow.h>
+#endif /* defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW) */
 
 #include "bufaux.h"
 #include "ssh2.h"
@@ -53,10 +56,31 @@ allowed_user(struct passwd * pw)
 #ifdef WITH_AIXAUTHENTICATE
 	char *loginmsg;
 #endif /* WITH_AIXAUTHENTICATE */
+#if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW) && \
+	defined(HAS_SHADOW_EXPIRE)
+  struct spwd *spw;
 
 	/* Shouldn't be called if pw is NULL, but better safe than sorry... */
 	if (!pw)
 		return 0;
+
+	spw = getspnam(pw->pw_name);
+	if (spw == NULL)
+		return 0;
+	
+	/* Check account expiry */
+	if ((spw->sp_expire > 0) && ((time(NULL) / 86400) > spw->sp_expire))
+		return 0;
+
+	/* Check password expiry */
+	if ((spw->sp_lstchg > 0) && (spw->sp_inact > 0) && 
+		((time(NULL) / 86400) > (spw->sp_lstchg + spw->sp_inact)))
+		return 0;
+#else
+	/* Shouldn't be called if pw is NULL, but better safe than sorry... */
+	if (!pw)
+		return 0;
+#endif
 
 	/*
 	 * Get the shell from the password data.  An empty shell field is

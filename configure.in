@@ -236,6 +236,8 @@ if (test -z "$no_pam" && test "x$ac_cv_header_security_pam_appl_h" = "xyes") ; t
 
 	AC_CHECK_FUNCS(pam_getenvlist)
 
+	disable_shadow=yes
+
 	PAM_MSG="yes"
 
 	# Check PAM strerror arguments (old PAM)
@@ -933,9 +935,29 @@ AC_ARG_WITH(shadow,
 	[
 		if test "x$withval" = "xno" ; then	
 			AC_DEFINE(DISABLE_SHADOW)
+			disable_shadow=yes
 		fi
 	]
 )
+
+if test -z "$disable_shadow" ; then
+	AC_MSG_CHECKING([if the systems has expire shadow information])
+	AC_TRY_COMPILE(
+	[
+#include <sys/types.h>
+#include <shadow.h>
+	struct spwd sp;
+	],[ sp.sp_expire = sp.sp_lstchg = sp.sp_inact = 0; ],
+	[ sp_expire_available=yes ], []
+	)
+
+	if test "x$sp_expire_available" = "xyes" ; then
+		AC_MSG_RESULT(yes)
+		AC_DEFINE(HAS_SHADOW_EXPIRE)
+	else
+		AC_MSG_RESULT(no)
+	fi
+fi
 
 # Use ip address instead of hostname in $DISPLAY
 DISPLAY_HACK_MSG="no" 

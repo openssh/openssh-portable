@@ -133,6 +133,9 @@
 /* Define if you want to disable shadow passwords */
 #undef DISABLE_SHADOW
 
+/* Define if you want to use shadow password expire field */
+#undef HAS_SHADOW_EXPIRE
+
 /* Define if you want have trusted HPUX */
 #undef HAVE_HPUX_TRUSTED_SYSTEM_PW
 

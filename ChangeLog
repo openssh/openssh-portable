@@ -1,5 +1,7 @@
 20000626
  - (djm) Better fix to aclocal tests from Garrick James <garrick@james.net>
+ - (djm) Account expiry support from Andreas Steinmetz <ast@domdv.de>
+ - (djm) Added password expiry checking (no password change support)
  - OpenBSD CVS update
    - provos@cvs.openbsd.org  2000/06/25 14:17:58
      [channels.c]
