@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.54 2003/02/16 17:09:57 markus Exp $");
+RCSID("$OpenBSD: kex.c,v 1.55 2003/04/01 10:31:26 markus Exp $");
 
 #include <openssl/crypto.h>
 
@@ -392,7 +392,8 @@ kex_choose_conf(Kex *kex)
 	kex->we_need = need;
 
 	/* ignore the next message if the proposals do not match */
-	if (first_kex_follows && !proposals_match(my, peer)) {
+	if (first_kex_follows && !proposals_match(my, peer) && 
+	   !(datafellows & SSH_BUG_FIRSTKEX)) {
 		type = packet_read();
 		debug2("skipping next packet (type %u)", type);
 	}

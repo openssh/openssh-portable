@@ -24,6 +24,10 @@
      [clientloop.c monitor.c monitor_wrap.c packet.c packet.h readconf.c]
      [readconf.h serverloop.c sshconnect2.c]
      backout rekeying changes (for 3.6.1)
+   - markus@cvs.openbsd.org 2003/04/01 10:31:26
+     [compat.c compat.h kex.c]
+     bugfix causes stalled connections for ssh.com < 3.0; noticed by ho@; 
+     tested by ho@ and myself
 
 20030326
  - (djm) OpenBSD CVS Sync
@@ -1286,4 +1290,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2644 2003/04/01 11:43:39 djm Exp $
+$Id: ChangeLog,v 1.2645 2003/04/01 11:44:37 djm Exp $
