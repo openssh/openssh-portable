@@ -7,6 +7,9 @@
    - jakob@cvs.openbsd.org 2003/05/15 14:02:47
      [readconf.c servconf.c]
      warn for unsupported config option. ok markus@
+   - markus@cvs.openbsd.org 2003/05/15 14:09:21
+     [auth2-krb5.c]
+     fix 64bit issue; report itojun@
 
 20030515
  - (djm) OpenBSD CVS Sync
@@ -1538,4 +1541,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2725 2003/05/16 01:38:32 djm Exp $
+$Id: ChangeLog,v 1.2726 2003/05/16 01:38:46 djm Exp $

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2-krb5.c,v 1.1 2003/05/14 02:15:47 markus Exp $");
+RCSID("$OpenBSD: auth2-krb5.c,v 1.2 2003/05/15 14:09:21 markus Exp $");
 
 #ifdef KRB5
 
@@ -44,10 +44,12 @@ static int
 userauth_kerberos(Authctxt *authctxt)
 {
 	krb5_data tkt, reply;
+	u_int dlen;
 	char *client = NULL;
 	int authenticated = 0;
 
-	tkt.data = packet_get_string(&tkt.length);
+	tkt.data = packet_get_string(&dlen);
+	tkt.length = dlen;
 	packet_check_eom();
 
 	if (PRIVSEP(auth_krb5(authctxt, &tkt, &client, &reply))) {
