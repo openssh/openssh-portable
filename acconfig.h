@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.176 2004/04/14 05:26:39 dtucker Exp $ */
+/* $Id: acconfig.h,v 1.177 2004/04/15 23:22:40 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -205,7 +205,7 @@
 /* Define if you don't want to use lastlog in session.c */
 #undef NO_SSH_LASTLOG
 
-/* Definite if have krb5_init_ets */
+/* Define if have krb5_init_ets */
 #undef KRB5_INIT_ETS
 
 /* Define if you don't want to use utmp */
