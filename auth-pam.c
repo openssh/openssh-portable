@@ -31,7 +31,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.75 2003/10/07 01:30:16 dtucker Exp $");
+RCSID("$Id: auth-pam.c,v 1.76 2003/10/09 04:20:15 dtucker Exp $");
 
 #ifdef USE_PAM
 #include <security/pam_appl.h>
@@ -439,6 +439,7 @@ sshpam_query(void *ctx, char **name, char **info,
 				return (0);
 			}
 			error("PAM: %s", msg);
+			/* FALLTHROUGH */
 		default:
 			*num = 0;
 			**echo_on = 0;
