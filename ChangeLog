@@ -14,6 +14,8 @@
    - djm@cvs.openbsd.org 2003/06/04 10:23:48
      [sshd.c]
      remove duplicated group-dropping code; ok markus@
+ - (djm) Update to fix of bug #584: lock card before return. 
+   From larsch@trustcenter.de
 
 20030603
  - (djm) Replace setproctitle replacement with code derived from 
@@ -442,4 +444,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2775 2003/06/04 10:32:12 djm Exp $
+$Id: ChangeLog,v 1.2776 2003/06/04 12:12:17 djm Exp $

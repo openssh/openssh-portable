@@ -135,6 +135,7 @@ sc_prkey_op_init(RSA *rsa, struct sc_pkcs15_object **key_obj_out)
 					  &pin_obj);
 	if (r == SC_ERROR_OBJECT_NOT_FOUND) {
 		/* no pin required */
+		sc_lock(card);
 		*key_obj_out = key_obj;
 		return 0;
 	} else if (r) {
