@@ -54,6 +54,7 @@
      more u_* fixes
  - (bal) Imported missing fatal.c and fixed up Makefile.in
  - (tim) [configure.ac] correction to Bug 123 fix
+     [configure.ac] correction to sig_atomic_t test
 
 20020225
  - (bal) Last AIX patch.  Moved aix_usrinfo() outside of do_setuserconext()
@@ -7727,4 +7728,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1889 2002/02/27 06:05:11 tim Exp $
+$Id: ChangeLog,v 1.1890 2002/02/27 06:12:34 tim Exp $

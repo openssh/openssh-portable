@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.22 2002/02/27 06:05:12 tim Exp $
+# $Id: configure.ac,v 1.23 2002/02/27 06:12:35 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -1253,7 +1253,7 @@ fi
 
 TYPE_SOCKLEN_T
 
-AC_CHECK_TYPES(sig_atomic_t)
+AC_CHECK_TYPES(sig_atomic_t,,,[#include <signal.h>])
 
 AC_CACHE_CHECK([for size_t], ac_cv_have_size_t, [
 	AC_TRY_COMPILE(
