@@ -13,6 +13,8 @@
    uids. Based on problem report from Jim Watt <jimw@peisj.pebio.com>
  - (djm) More NeXT compatibility from Ben Lindstrom <mouring@pconline.com>
    Including sigaction() et al. replacements
+ - (djm) AIX getuserattr() session initialisation from Tom Bertelson 
+   <tbert@abac.com>
 
 20000708
  - (djm) Fix bad fprintf format handling in auth-pam.c. Patch from 
