@@ -23,6 +23,11 @@
      [multiplex.sh]
      Use -S for scp/sftp to force the use of the ssh being tested.
      ok djm@,markus@
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2004/06/18 10:40:19
+     [ssh.c]
+     delay signal handler setup until we have finished talking to the master.
+     allow interrupting of setup (e.g. if master is stuck); ok markus@
 
 20040617
  - (dtucker) [regress/scp.sh] diff -N is not portable (but needed for some
@@ -1296,4 +1301,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3411 2004/06/18 06:25:35 dtucker Exp $
+$Id: ChangeLog,v 1.3412 2004/06/18 12:20:57 djm Exp $

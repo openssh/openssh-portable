@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.217 2004/06/17 23:56:57 djm Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.218 2004/06/18 10:40:19 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -1256,10 +1256,6 @@ control_client(const char *path)
 	if ((cp = getenv("TERM")) == NULL)
 		cp = "";
 
-	signal(SIGINT, control_client_sighandler);
-	signal(SIGTERM, control_client_sighandler);
-	signal(SIGWINCH, control_client_sigrelay);
-
 	buffer_init(&m);
 
 	/* Get PID of controlee */
@@ -1301,6 +1297,10 @@ control_client(const char *path)
 	if (buffer_get_char(&m) != 0)
 		fatal("%s: master returned error", __func__);
 	buffer_free(&m);
+
+	signal(SIGINT, control_client_sighandler);
+	signal(SIGTERM, control_client_sighandler);
+	signal(SIGWINCH, control_client_sigrelay);
 
 	if (tty_flag)
 		enter_raw_mode();
