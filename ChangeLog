@@ -1,5 +1,6 @@
 20020415
  - (djm) Unbreak "make install". Fix from Darren Tucker <dtucker@zip.com.au>
+ - (stevesk) bsd-cygwin_util.[ch] BSD license from Corinna Vinschen
 
 20020414
  - (djm) ssh-rand-helper improvements
@@ -8244,4 +8245,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2054 2002/04/15 03:23:59 djm Exp $
+$Id: ChangeLog,v 1.2055 2002/04/15 22:00:51 stevesk Exp $
