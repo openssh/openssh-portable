@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rsa.c,v 1.53 2002/03/25 09:21:13 markus Exp $");
+RCSID("$OpenBSD: auth-rsa.c,v 1.54 2002/03/26 23:13:03 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/md5.h>
@@ -77,6 +77,13 @@ auth_rsa_verify_response(Key *key, BIGNUM *challenge, u_char response[16])
 	u_char buf[32], mdbuf[16];
 	MD5_CTX md;
 	int len;
+
+	/* don't allow short keys */
+	if (BN_num_bits(key->rsa->n) < 768) {
+		error("auth_rsa_verify_response: n too small: %d bits",
+		    BN_num_bits(key->rsa->n));
+		return (0);
+	}
 
 	/* The response is MD5 of decrypted challenge plus session id. */
 	len = BN_num_bytes(challenge);

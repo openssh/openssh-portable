@@ -17,6 +17,9 @@
    - markus@cvs.openbsd.org 2002/03/26 22:50:39
      [channels.h]
      CHANNEL_EFD_OUTPUT_ACTIVE is false for CHAN_CLOSE_RCVD, too
+   - markus@cvs.openbsd.org 2002/03/26 23:13:03
+     [auth-rsa.c]
+     disallow RSA keys < 768 for protocol 1, too (rhosts-rsa and rsa auth)
 
 20020325
  - (stevesk) import OpenBSD <sys/tree.h> as "openbsd-compat/tree.h"
@@ -8080,4 +8083,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1998 2002/03/27 17:36:41 mouring Exp $
+$Id: ChangeLog,v 1.1999 2002/03/27 17:38:43 mouring Exp $
