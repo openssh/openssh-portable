@@ -20,6 +20,8 @@
      keep track of both maxfd and the size of the malloc'ed fdsets.
      update maxfd if maxfd gets closed.
  - (bal) Cleaned up trailing spaces in ChangeLog.
+ - (bal) Allow sshd to switch user context without password for Cygwin.
+         Patch by Corinna Vinschen <vinschen@redhat.com>
 
 20010715
  - (bal) Set "BROKEN_GETADDRINFO" for darwin platform.  Reported by
@@ -6059,4 +6061,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1410 2001/07/18 16:05:50 mouring Exp $
+$Id: ChangeLog,v 1.1411 2001/07/18 16:19:48 mouring Exp $

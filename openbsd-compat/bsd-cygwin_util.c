@@ -15,15 +15,19 @@
 
 #include "includes.h"
 
-RCSID("$Id: bsd-cygwin_util.c,v 1.4 2001/04/13 14:28:42 djm Exp $");
+RCSID("$Id: bsd-cygwin_util.c,v 1.5 2001/07/18 16:19:49 mouring Exp $");
 
 #ifdef HAVE_CYGWIN
 
 #include <fcntl.h>
 #include <stdlib.h>
+#include <sys/utsname.h>
 #include <sys/vfs.h>
 #include <windows.h>
 #define is_winnt       (GetVersion() < 0x80000000)
+
+#define ntsec_on(c)	((c) && strstr((c),"ntsec") && !strstr((c),"nontsec"))
+#define ntea_on(c)	((c) && strstr((c),"ntea") && !strstr((c),"nontea"))
 
 #if defined(open) && open == binary_open
 # undef open
@@ -61,12 +65,34 @@ int check_nt_auth(int pwd_authenticated, uid_t uid)
 	* context on NT systems is the password authentication. So
 	* we deny all requsts for changing the user context if another
 	* authentication method is used.
-	* This may change in future when a special openssh
-	* subauthentication package is available.
+	*
+	* This doesn't apply to Cygwin versions >= 1.3.2 anymore which
+	* uses the undocumented NtCreateToken() call to create a user
+	* token if the process has the appropriate privileges and if
+	* CYGWIN ntsec setting is on.
 	*/
-	if (is_winnt && !pwd_authenticated && geteuid() != uid)
-		return 0;
-	
+	static int has_create_token = -1;
+
+	if (is_winnt) {
+		if (has_create_token < 0) {
+			struct utsname uts;
+		        int major_high = 0, major_low = 0, minor = 0;
+			char *cygwin = getenv("CYGWIN");
+
+			has_create_token = 0;
+			if (ntsec_on(cygwin) && !uname(&uts)) {
+				sscanf(uts.release, "%d.%d.%d",
+				       &major_high, &major_low, &minor);
+				if (major_high > 1 ||
+				    (major_high == 1 && (major_low > 3 ||
+				     (major_low == 3 && minor >= 2))))
+					has_create_token = 1;
+			}
+		}
+		if (has_create_token < 1 &&
+		    !pwd_authenticated && geteuid() != uid)
+			return 0;
+	}
 	return 1;
 }
 
@@ -82,12 +108,9 @@ int check_ntsec(const char *filename)
 		return 0;
 
 	/* Evaluate current CYGWIN settings. */
-	if ((cygwin = getenv("CYGWIN")) != NULL) {
-		if (strstr(cygwin, "ntea") && !strstr(cygwin, "nontea"))
-			allow_ntea = 1;
-		if (strstr(cygwin, "ntsec") && !strstr(cygwin, "nontsec"))
-			allow_ntsec = 1;
-	}
+	cygwin = getenv("CYGWIN");
+	allow_ntea = ntea_on(cygwin);
+	allow_ntsec = ntsec_on(cygwin);
 
 	/*
 	 * `ntea' is an emulation of POSIX attributes. It doesn't support
