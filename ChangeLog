@@ -15,6 +15,9 @@
      bz #756: add support for the cancel-tcpip-forward request for the server and
      the client (through the ~C commandline). reported by z3p AT twistedmatrix.com;
      ok markus@
+   - djm@cvs.openbsd.org 2004/05/22 06:32:12
+     [clientloop.c ssh.1]
+     use '-h' for help in ~C commandline instead of '-?'; inspired by jmc@
 
 20040523
  - (djm) [sshd_config] Explain consequences of UsePAM=yes a little better in 
@@ -1144,4 +1147,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3362 2004/05/24 00:18:05 dtucker Exp $
+$Id: ChangeLog,v 1.3363 2004/05/24 00:34:36 dtucker Exp $
