@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.143 2003/05/26 12:54:40 djm Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.144 2003/06/04 08:25:18 djm Exp $");
 
 #include <openssl/bn.h>
 
@@ -796,13 +796,24 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 
 		/*
 		 * If strict host key checking has not been requested, allow
-		 * the connection but without password authentication or
+		 * the connection but without MITM-able authentication or
 		 * agent forwarding.
 		 */
 		if (options.password_authentication) {
 			error("Password authentication is disabled to avoid "
 			    "man-in-the-middle attacks.");
 			options.password_authentication = 0;
+		}
+		if (options.kbd_interactive_authentication) {
+			error("Keyboard-interactive authentication is disabled"
+			    " to avoid man-in-the-middle attacks.");
+			options.kbd_interactive_authentication = 0;
+			options.challenge_response_authentication = 0;
+		}
+		if (options.challenge_response_authentication) {
+			error("Challenge/response authentication is disabled"
+			    " to avoid man-in-the-middle attacks.");
+			options.challenge_response_authentication = 0;
 		}
 		if (options.forward_agent) {
 			error("Agent forwarding is disabled to avoid "

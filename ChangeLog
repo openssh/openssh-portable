@@ -5,6 +5,12 @@
    Patch from larsch@trustcenter.de; ok markus@
  - (djm) Bug #584: scard-opensc.c doesn't work without PIN. Patch from 
    larsch@trustcenter.de; ok markus@
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2003/06/04 08:25:18
+     [sshconnect.c]
+     disable challenge/response and keyboard-interactive auth methods 
+     upon hostkey mismatch. based on patch from fcusack AT fcusack.com. 
+     bz #580; ok markus@
 
 20030603
  - (djm) Replace setproctitle replacement with code derived from 
@@ -433,4 +439,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2773 2003/06/04 09:22:06 djm Exp $
+$Id: ChangeLog,v 1.2774 2003/06/04 10:31:53 djm Exp $
