@@ -3,6 +3,8 @@
  - (bal) Added mdoc2man.pl from Mark Roth <roth@feep.net>
  - (bal) Removed reference to liblogin from contrib/README.  It was
    integrated into OpenSSH a long while ago.
+ - (stevesk) remove erroneous #ifdef sgi code.
+   Michael Stone <mstone@cs.loyola.edu>
 
 20010221
  - (bal) Removed -L/usr/ucblib -R/usr/ucblib for Solaris platform.
@@ -4096,4 +4098,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.811 2001/02/22 06:20:10 mouring Exp $
+$Id: ChangeLog,v 1.812 2001/02/22 21:23:21 stevesk Exp $
