@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: dh.c,v 1.7 2001/03/04 17:42:28 millert Exp $");
+RCSID("$OpenBSD: dh.c,v 1.8 2001/03/05 17:58:22 stevesk Exp $");
 
 #include "xmalloc.h"
 
@@ -135,7 +135,7 @@ choose_dh(int minbits)
 
 	f = fopen(_PATH_DH_PRIMES, "r");
 	if (!f) {
-		fatal("WARNING: %s dissappeared, giving up", _PATH_DH_PRIMES);
+		fatal("WARNING: %s disappeared, giving up", _PATH_DH_PRIMES);
 	}
 
 	linenum = 0;
