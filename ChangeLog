@@ -92,6 +92,10 @@
    - stevesk@cvs.openbsd.org 2002/02/04 20:41:16
      [ssh-add.1]
      more sync for default ssh-add identities; ok markus@
+   - djm@cvs.openbsd.org 2002/02/04 21:53:12
+     [sftp.1 sftp.c]
+     Add "-P" option to directly connect to a local sftp-server. Should be 
+     useful for regression testing; ok markus@
 
 20020130
  - (djm) Delay PRNG seeding until we need it in ssh-keygen, from markus@
@@ -7494,4 +7498,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1824 2002/02/05 01:26:58 djm Exp $
+$Id: ChangeLog,v 1.1825 2002/02/05 01:27:31 djm Exp $

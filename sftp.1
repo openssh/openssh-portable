@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.26 2001/09/17 20:38:09 stevesk Exp $
+.\" $OpenBSD: sftp.1,v 1.27 2002/02/04 21:53:11 djm Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -34,6 +34,7 @@
 .Op Fl b Ar batchfile
 .Op Fl F Ar ssh_config
 .Op Fl o Ar ssh_option
+.Op Fl P Ar sftp_server path
 .Op Fl s Ar subsystem | sftp_server
 .Op Fl S Ar program
 .Ar host
@@ -65,6 +66,12 @@ The options are as follows:
 .Bl -tag -width Ds
 .It Fl 1
 Specify the use of protocol version 1.
+.It Fl P Ar sftp_server path
+Connect directly to a local 
+.Nm sftp-server 
+(rather than via
+.Nm ssh )
+This option may be useful in debugging the client and server.
 .It Fl b Ar batchfile
 Batch mode reads a series of commands from an input
 .Ar batchfile
