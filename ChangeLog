@@ -24,6 +24,10 @@
      [scp.c]
      call okname() only when using system(3) for remote-remote copy;
      fixes bugs #483, #472; ok deraadt@, mouring@
+   - markus@cvs.openbsd.org 2003/02/02 10:56:08
+     [kex.c]
+     add support for key exchange guesses; based on work by
+     avraham.fraenkel@commatch.com; fixes bug #148; ok deraadt@
 
 20030211
  - (djm) Cygwin needs libcrypt too. Patch from vinschen@redhat.com
@@ -1124,4 +1128,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2599 2003/02/24 00:52:58 djm Exp $
+$Id: ChangeLog,v 1.2600 2003/02/24 00:53:32 djm Exp $

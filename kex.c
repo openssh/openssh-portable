@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.52 2002/11/21 22:45:31 markus Exp $");
+RCSID("$OpenBSD: kex.c,v 1.53 2003/02/02 10:56:08 markus Exp $");
 
 #include <openssl/crypto.h>
 
@@ -74,7 +74,7 @@ kex_prop2buf(Buffer *b, char *proposal[PROPOSAL_MAX])
 
 /* parse buffer and return algorithm proposal */
 static char **
-kex_buf2prop(Buffer *raw)
+kex_buf2prop(Buffer *raw, int *first_kex_follows)
 {
 	Buffer b;
 	int i;
@@ -94,6 +94,8 @@ kex_buf2prop(Buffer *raw)
 	}
 	/* first kex follows / reserved */
 	i = buffer_get_char(&b);
+	if (first_kex_follows != NULL)
+		*first_kex_follows = i;
 	debug2("kex_parse_kexinit: first_kex_follows %d ", i);
 	i = buffer_get_int(&b);
 	debug2("kex_parse_kexinit: reserved %d ", i);
@@ -317,6 +319,30 @@ choose_hostkeyalg(Kex *k, char *client, char *server)
 	xfree(hostkeyalg);
 }
 
+static int 
+proposals_match(char *my[PROPOSAL_MAX], char *peer[PROPOSAL_MAX])
+{
+	static int check[] = {
+		PROPOSAL_KEX_ALGS, PROPOSAL_SERVER_HOST_KEY_ALGS, -1
+	};
+	int *idx;
+	char *p;
+
+	for (idx = &check[0]; *idx != -1; idx++) {
+		if ((p = strchr(my[*idx], ',')) != NULL)
+			*p = '\0';
+		if ((p = strchr(peer[*idx], ',')) != NULL)
+			*p = '\0';
+		if (strcmp(my[*idx], peer[*idx]) != 0) {
+			debug2("proposal mismatch: my %s peer %s",
+			    my[*idx], peer[*idx]);
+			return (0);
+		}
+	}
+	debug2("proposals match");
+	return (1);
+}
+
 static void
 kex_choose_conf(Kex *kex)
 {
@@ -327,9 +353,10 @@ kex_choose_conf(Kex *kex)
 	int mode;
 	int ctos;				/* direction: if true client-to-server */
 	int need;
+	int first_kex_follows, type;
 
-	my   = kex_buf2prop(&kex->my);
-	peer = kex_buf2prop(&kex->peer);
+	my   = kex_buf2prop(&kex->my, NULL);
+	peer = kex_buf2prop(&kex->peer, &first_kex_follows);
 
 	if (kex->server) {
 		cprop=peer;
@@ -372,6 +399,12 @@ kex_choose_conf(Kex *kex)
 	}
 	/* XXX need runden? */
 	kex->we_need = need;
+
+	/* ignore the next message if the proposals do not match */
+	if (first_kex_follows && !proposals_match(my, peer)) {
+		type = packet_read();
+		debug2("skipping next packet (type %u)", type);
+	}
 
 	kex_prop_free(my);
 	kex_prop_free(peer);
