@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.92 2001/02/16 13:38:18 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.93 2001/02/28 08:54:55 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -824,7 +824,14 @@ channel_handle_efd(Channel *c, fd_set * readset, fd_set * writeset)
 			    buffer_len(&c->extended));
 			debug2("channel %d: written %d to efd %d",
 			    c->self, len, c->efd);
-			if (len > 0) {
+			if (len < 0 && (errno == EINTR || errno == EAGAIN))
+				return 1;
+			if (len <= 0) {
+				debug2("channel %d: closing write-efd %d",
+				    c->self, c->efd);
+				close(c->efd);
+				c->efd = -1;
+			} else {
 				buffer_consume(&c->extended, len);
 				c->local_consumed += len;
 			}
@@ -833,19 +840,22 @@ channel_handle_efd(Channel *c, fd_set * readset, fd_set * writeset)
 			len = read(c->efd, buf, sizeof(buf));
 			debug2("channel %d: read %d from efd %d",
 			     c->self, len, c->efd);
-			if (len == 0) {
-				debug("channel %d: closing efd %d",
+			if (len < 0 && (errno == EINTR || errno == EAGAIN))
+				return 1;
+			if (len <= 0) {
+				debug2("channel %d: closing read-efd %d",
 				    c->self, c->efd);
 				close(c->efd);
 				c->efd = -1;
-			} else if (len > 0)
+			} else {
 				buffer_append(&c->extended, buf, len);
+			}
 		}
 	}
 	return 1;
 }
 int
-channel_check_window(Channel *c, fd_set * readset, fd_set * writeset)
+channel_check_window(Channel *c)
 {
 	if (!(c->flags & (CHAN_CLOSE_SENT|CHAN_CLOSE_RCVD)) &&
 	    c->local_window < c->local_window_max/2 &&
@@ -876,7 +886,8 @@ channel_post_open_2(Channel *c, fd_set * readset, fd_set * writeset)
 	channel_handle_rfd(c, readset, writeset);
 	channel_handle_wfd(c, readset, writeset);
 	channel_handle_efd(c, readset, writeset);
-	channel_check_window(c, readset, writeset);
+
+	channel_check_window(c);
 }
 
 void
@@ -984,7 +995,24 @@ channel_handler(chan_fn *ftab[], fd_set * readset, fd_set * writeset)
 		if (ftab[c->type] == NULL)
 			continue;
 		(*ftab[c->type])(c, readset, writeset);
-		chan_delete_if_full_closed(c);
+		if (chan_is_dead(c)) {
+			/*
+			 * we have to remove the fd's from the select mask
+			 * before the channels are free'd and the fd's are
+			 * closed
+			 */
+			if (c->wfd != -1)
+				FD_CLR(c->wfd, writeset);
+			if (c->rfd != -1)
+				FD_CLR(c->rfd, readset);
+			if (c->efd != -1) {
+				if (c->extended_usage == CHAN_EXTENDED_READ)
+					FD_CLR(c->efd, readset);
+				if (c->extended_usage == CHAN_EXTENDED_WRITE)
+					FD_CLR(c->efd, writeset);
+			}
+			channel_free(c->self);
+		}
 	}
 }
 
@@ -1037,19 +1065,18 @@ channel_output_poll()
 		} else {
 			if (c->type != SSH_CHANNEL_OPEN)
 				continue;
-			if (c->istate != CHAN_INPUT_OPEN &&
-			    c->istate != CHAN_INPUT_WAIT_DRAIN)
-				continue;
 		}
 		if (compat20 &&
 		    (c->flags & (CHAN_CLOSE_SENT|CHAN_CLOSE_RCVD))) {
+			/* XXX is this true? */
 			debug("channel: %d: no data after CLOSE", c->self);
 			continue;
 		}
 
 		/* Get the amount of buffered data for this channel. */
-		len = buffer_len(&c->input);
-		if (len > 0) {
+		if ((c->istate == CHAN_INPUT_OPEN ||
+		    c->istate == CHAN_INPUT_WAIT_DRAIN) &&
+		    (len = buffer_len(&c->input)) > 0) {
 			/* Send some data for the other side over the secure connection. */
 			if (compat20) {
 				if (len > c->remote_window)
@@ -1089,6 +1116,9 @@ channel_output_poll()
 		    c->remote_window > 0 &&
 		    (len = buffer_len(&c->extended)) > 0 &&
 		    c->extended_usage == CHAN_EXTENDED_READ) {
+			debug2("channel %d: rwin %d elen %d euse %d",
+			    c->self, c->remote_window, buffer_len(&c->extended),
+			    c->extended_usage);
 			if (len > c->remote_window)
 				len = c->remote_window;
 			if (len > c->remote_maxpacket)
@@ -1100,6 +1130,7 @@ channel_output_poll()
 			packet_send();
 			buffer_consume(&c->extended, len);
 			c->remote_window -= len;
+			debug2("channel %d: sent ext data %d", c->self, len);
 		}
 	}
 }

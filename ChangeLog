@@ -68,6 +68,10 @@
    - markus@cvs.openbsd.org 2001/02/28 08:45:39
      [clientloop.c]
      fix byte counts for ssh protocol v1
+   - markus@cvs.openbsd.org 2001/02/28 08:54:55
+     [channels.c nchan.c nchan.h]
+     make sure remote stderr does not get truncated.
+     remove closed fd's from the select mask.
 
 20010304
  - (bal) Remove make-ssh-known-hosts.1 since it's no longer valid.
@@ -4260,4 +4264,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.871 2001/03/05 06:14:02 mouring Exp $
+$Id: ChangeLog,v 1.872 2001/03/05 06:16:11 mouring Exp $
