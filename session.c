@@ -1205,11 +1205,11 @@ do_nologin(struct passwd *pw)
 void
 do_setusercontext(struct passwd *pw)
 {
-#ifdef HAVE_CYGWIN
-	if (is_winnt) {
-#else /* HAVE_CYGWIN */
-	if (getuid() == 0 || geteuid() == 0) {
+#ifndef HAVE_CYGWIN
+	if (getuid() == 0 || geteuid() == 0)
 #endif /* HAVE_CYGWIN */
+	{
+
 #ifdef HAVE_SETPCRED
 		setpcred(pw->pw_name);
 #endif /* HAVE_SETPCRED */
@@ -1259,6 +1259,10 @@ do_setusercontext(struct passwd *pw)
 		permanently_set_uid(pw);
 #endif
 	}
+
+#ifdef HAVE_CYGWIN
+	if (is_winnt)
+#endif
 	if (getuid() != pw->pw_uid || geteuid() != pw->pw_uid)
 		fatal("Failed to set uids to %u.", (u_int) pw->pw_uid);
 }
