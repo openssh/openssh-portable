@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: bufaux.c,v 1.20 2001/12/19 17:16:13 stevesk Exp $");
+RCSID("$OpenBSD: bufaux.c,v 1.21 2001/12/28 14:13:13 markus Exp $");
 
 #include <openssl/bn.h>
 #include "bufaux.h"
@@ -77,7 +77,7 @@ buffer_put_bignum(Buffer *buffer, BIGNUM *value)
 /*
  * Retrieves an BIGNUM from the buffer.
  */
-int
+void
 buffer_get_bignum(Buffer *buffer, BIGNUM *value)
 {
 	int bits, bytes;
@@ -93,8 +93,6 @@ buffer_get_bignum(Buffer *buffer, BIGNUM *value)
 	bin = (u_char *) buffer_ptr(buffer);
 	BN_bin2bn(bin, bytes, value);
 	buffer_consume(buffer, bytes);
-
-	return 2 + bytes;
 }
 
 /*
@@ -130,7 +128,7 @@ buffer_put_bignum2(Buffer *buffer, BIGNUM *value)
 	xfree(buf);
 }
 
-int
+void
 buffer_get_bignum2(Buffer *buffer, BIGNUM *value)
 {
 	/**XXX should be two's-complement */
@@ -138,7 +136,6 @@ buffer_get_bignum2(Buffer *buffer, BIGNUM *value)
 	u_char *bin = (u_char *)buffer_get_string(buffer, (u_int *)&len);
 	BN_bin2bn(bin, len, value);
 	xfree(bin);
-	return len;
 }
 
 /*

@@ -63,6 +63,9 @@
    - markus@cvs.openbsd.org 2001/12/28 13:57:33
      [auth1.c kexdh.c kexgex.c packet.c packet.h sshconnect1.c sshd.c]
      packet_get_bignum* no longer returns a size
+   - markus@cvs.openbsd.org 2001/12/28 14:13:13
+     [bufaux.c bufaux.h packet.c]
+     buffer_get_bignum: int -> void
 
 
 20020121
@@ -7211,4 +7214,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1741 2002/01/22 12:14:44 djm Exp $
+$Id: ChangeLog,v 1.1742 2002/01/22 12:15:57 djm Exp $

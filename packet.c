@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.80 2001/12/28 13:57:33 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.81 2001/12/28 14:13:13 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -1002,13 +1002,13 @@ packet_get_int(void)
 void
 packet_get_bignum(BIGNUM * value)
 {
-	(void)buffer_get_bignum(&incoming_packet, value);
+	buffer_get_bignum(&incoming_packet, value);
 }
 
 void
 packet_get_bignum2(BIGNUM * value)
 {
-	(void)buffer_get_bignum2(&incoming_packet, value);
+	buffer_get_bignum2(&incoming_packet, value);
 }
 
 void *
