@@ -9,6 +9,9 @@
      [authfd.c authfd.h ssh-add.c ssh-agent.c]
      break agent key lifetime protocol and allow other contraints for key
      usage.
+   - markus@cvs.openbsd.org 2002/06/15 00:07:38
+     [authfd.c authfd.h ssh-add.c ssh-agent.c]
+     fix stupid typo
 
 20020613
  - (bal) typo of setgroup for cygwin.  Patch by vinschen@redhat.com
@@ -937,4 +940,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2219 2002/06/21 00:04:48 mouring Exp $
+$Id: ChangeLog,v 1.2220 2002/06/21 00:06:54 mouring Exp $

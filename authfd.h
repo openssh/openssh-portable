@@ -1,4 +1,4 @@
-/*	$OpenBSD: authfd.h,v 1.27 2002/06/15 00:01:36 markus Exp $	*/
+/*	$OpenBSD: authfd.h,v 1.28 2002/06/15 00:07:38 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -47,10 +47,10 @@
 #define SSH_AGENTC_UNLOCK		        23
 
 /* constrain key usage */
-#define	SSH_AGENTC_CONTRAIN_IDENTITY1		24
-#define	SSH_AGENTC_CONTRAIN_IDENTITY		25
+#define	SSH_AGENTC_CONSTRAIN_IDENTITY1		24
+#define	SSH_AGENTC_CONSTRAIN_IDENTITY		25
 
-#define	SSH_AGENT_CONTRAIN_LIFETIME		1
+#define	SSH_AGENT_CONSTRAIN_LIFETIME		1
 
 /* extended failure messages */
 #define SSH2_AGENT_FAILURE			30
@@ -75,7 +75,7 @@ int	 ssh_get_num_identities(AuthenticationConnection *, int);
 Key	*ssh_get_first_identity(AuthenticationConnection *, char **, int);
 Key	*ssh_get_next_identity(AuthenticationConnection *, char **, int);
 int	 ssh_add_identity(AuthenticationConnection *, Key *, const char *);
-int	 ssh_contrain_identity(AuthenticationConnection *, Key *, u_int);
+int	 ssh_constrain_identity(AuthenticationConnection *, Key *, u_int);
 int	 ssh_remove_identity(AuthenticationConnection *, Key *);
 int	 ssh_remove_all_identities(AuthenticationConnection *, int);
 int	 ssh_lock_agent(AuthenticationConnection *, int, const char *);

@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfd.c,v 1.52 2002/06/15 00:01:36 markus Exp $");
+RCSID("$OpenBSD: authfd.c,v 1.53 2002/06/15 00:07:38 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -552,7 +552,7 @@ ssh_remove_identity(AuthenticationConnection *auth, Key *key)
 }
 
 int
-ssh_contrain_identity(AuthenticationConnection *auth, Key *key, u_int life)
+ssh_constrain_identity(AuthenticationConnection *auth, Key *key, u_int life)
 {
 	Buffer msg;
 	int type;
@@ -562,20 +562,20 @@ ssh_contrain_identity(AuthenticationConnection *auth, Key *key, u_int life)
 	buffer_init(&msg);
 
 	if (key->type == KEY_RSA1) {
-		buffer_put_char(&msg, SSH_AGENTC_CONTRAIN_IDENTITY1);
+		buffer_put_char(&msg, SSH_AGENTC_CONSTRAIN_IDENTITY1);
 		buffer_put_int(&msg, BN_num_bits(key->rsa->n));
 		buffer_put_bignum(&msg, key->rsa->e);
 		buffer_put_bignum(&msg, key->rsa->n);
 	} else if (key->type == KEY_DSA || key->type == KEY_RSA) {
 		key_to_blob(key, &blob, &blen);
-		buffer_put_char(&msg, SSH_AGENTC_CONTRAIN_IDENTITY);
+		buffer_put_char(&msg, SSH_AGENTC_CONSTRAIN_IDENTITY);
 		buffer_put_string(&msg, blob, blen);
 		xfree(blob);
 	} else {
 		buffer_free(&msg);
 		return 0;
 	}
-	buffer_put_char(&msg, SSH_AGENT_CONTRAIN_LIFETIME);
+	buffer_put_char(&msg, SSH_AGENT_CONSTRAIN_LIFETIME);
 	buffer_put_int(&msg, life);
 
 	if (ssh_request_reply(auth, &msg, &msg) == 0) {
