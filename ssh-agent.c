@@ -35,7 +35,7 @@
 
 #include "includes.h"
 #include "openbsd-compat/fake-queue.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.102 2002/08/22 20:57:19 stevesk Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.103 2002/09/10 20:24:47 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -810,6 +810,8 @@ after_select(fd_set *readset, fd_set *writeset)
 	char buf[1024];
 	int len, sock;
 	u_int i;
+	uid_t euid;
+	gid_t egid;
 
 	for (i = 0; i < sockets_alloc; i++)
 		switch (sockets[i].type) {
@@ -823,6 +825,19 @@ after_select(fd_set *readset, fd_set *writeset)
 				if (sock < 0) {
 					error("accept from AUTH_SOCKET: %s",
 					    strerror(errno));
+					break;
+				}
+				if (getpeereid(sock, &euid, &egid) < 0) {
+					error("getpeereid %d failed: %s",
+					    sock, strerror(errno));
+					close(sock);
+					break;
+				}
+				if (getuid() != euid) {
+					error("uid mismatch: "
+					    "peer euid %d != uid %d",
+					    (int) euid, (int) getuid());
+					close(sock);
 					break;
 				}
 				new_socket(AUTH_CONNECTION, sock);

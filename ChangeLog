@@ -11,6 +11,10 @@
    - markus@cvs.openbsd.org 2002/09/09 14:54:15
      [channels.c kex.h key.c monitor.c monitor_wrap.c radix.c uuencode.c]
      signed vs unsigned from -pedantic; ok henning@
+   - markus@cvs.openbsd.org 2002/09/10 20:24:47
+     [ssh-agent.c]
+     check the euid of the connecting process with getpeereid(2); 
+     ok provos deraadt stevesk
 
 20020911
  - (djm) Sync openbsd-compat with OpenBSD -current
@@ -1631,4 +1635,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2454 2002/09/11 23:49:15 djm Exp $
+$Id: ChangeLog,v 1.2455 2002/09/11 23:51:10 djm Exp $
