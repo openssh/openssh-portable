@@ -41,6 +41,16 @@ RCSID("$OpenBSD: session.c,v 1.23 2000/07/11 08:11:33 deraadt Exp $");
 # include <siad.h>
 #endif
 
+/* AIX limits */
+#if defined(HAVE_GETUSERATTR) && !defined(S_UFSIZE_HARD) && defined(S_UFSIZE)
+# define S_UFSIZE_HARD  S_UFSIZE
+# define S_UCPU_HARD  S_UCPU
+# define S_UDATA_HARD  S_UDATA
+# define S_USTACK_HARD  S_USTACK
+# define S_URSS_HARD  S_URSS
+# define S_UCORE_HARD  S_UCORE
+#endif
+
 /* types */
 
 #define TTYSZ 64
@@ -591,8 +601,8 @@ do_exec_pty(Session *s, const char *command, struct passwd * pw)
 			}
 		}
 		/* Record that there was a login on that terminal. */
-		record_login(pid, s->tty, pw->pw_name, pw->pw_uid, hostname,
-			     (struct sockaddr *)&from);
+		record_login(pid, s->tty, pw->pw_name, pw->pw_uid, hostname, 
+		     (struct sockaddr *)&from);
 
 		/* Check if .hushlogin exists. */
 		snprintf(line, sizeof line, "%.200s/.hushlogin", pw->pw_dir);
