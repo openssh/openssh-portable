@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.29 2002/02/06 14:22:42 markus Exp $
+.\" $OpenBSD: sftp.1,v 1.30 2002/02/12 12:32:27 djm Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -37,6 +37,7 @@
 .Op Fl B Ar buffer_size
 .Op Fl F Ar ssh_config
 .Op Fl P Ar sftp_server path
+.Op Fl R Ar num_requests
 .Op Fl S Ar program
 .Ar host
 .Nm sftp
@@ -118,6 +119,10 @@ Connect directly to a local
 (rather than via
 .Nm ssh )
 This option may be useful in debugging the client and server.
+.It Fl R Ar num_requests
+Specify how many requests may be outstanding at any one time. Increasing 
+this may slightly improve file transfer speed but will increase memory
+usage. The default is 16 outstanding requests.
 .It Fl S Ar program
 Name of the
 .Ar program

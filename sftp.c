@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.25 2002/02/06 14:27:23 mpech Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.26 2002/02/12 12:32:27 djm Exp $");
 
 /* XXX: short-form remote directory listings (like 'ls -C') */
 
@@ -47,6 +47,7 @@ char *__progname;
 
 FILE* infile;
 size_t copy_buffer_len = 32768;
+size_t num_requests = 16;
 
 static void
 connect_to_server(char *path, char **args, int *in, int *out, pid_t *sshpid)
@@ -125,7 +126,7 @@ main(int argc, char **argv)
 	ll = SYSLOG_LEVEL_INFO;
 	infile = stdin;		/* Read from STDIN unless changed by -b */
 
-	while ((ch = getopt(argc, argv, "1hvCo:s:S:b:B:F:P:")) != -1) {
+	while ((ch = getopt(argc, argv, "1hvCo:s:S:b:B:F:P:R:")) != -1) {
 		switch (ch) {
 		case 'C':
 			addargs(&args, "-C");
@@ -167,6 +168,12 @@ main(int argc, char **argv)
 			copy_buffer_len = strtol(optarg, &cp, 10);
 			if (copy_buffer_len == 0 || *cp != '\0')
 				fatal("Invalid buffer size \"%s\"", optarg);
+			break;
+		case 'R':
+			num_requests = strtol(optarg, &cp, 10);
+			if (num_requests == 0 || *cp != '\0')
+				fatal("Invalid number of requests \"%s\"", 
+				    optarg);
 			break;
 		case 'h':
 		default:

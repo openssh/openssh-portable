@@ -16,6 +16,10 @@
    - markus@cvs.openbsd.org 2002/02/11 16:21:42
      [match.c]
      support up to 40 algorithms per proposal
+   - djm@cvs.openbsd.org 2002/02/12 12:32:27
+     [sftp.1 sftp.c sftp-client.c sftp-client.h sftp-int.c]
+     Perform multiple overlapping read/write requests in file transfer. Mostly
+     done by Tobias Ringstrom <tori@ringstrom.mine.nu>; ok markus@
 
 20020210
  - (djm) OpenBSD CVS Sync
@@ -7563,4 +7567,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1843 2002/02/13 02:55:30 djm Exp $
+$Id: ChangeLog,v 1.1844 2002/02/13 03:03:56 djm Exp $

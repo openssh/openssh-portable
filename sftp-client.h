@@ -1,4 +1,4 @@
-/* $OpenBSD: sftp-client.h,v 1.7 2002/02/05 00:00:46 djm Exp $ */
+/* $OpenBSD: sftp-client.h,v 1.8 2002/02/12 12:32:27 djm Exp $ */
 
 /*
  * Copyright (c) 2001-2002 Damien Miller.  All rights reserved.
@@ -94,10 +94,10 @@ char *do_readlink(int, int, char *);
  * Download 'remote_path' to 'local_path'. Preserve permissions and times
  * if 'pflag' is set
  */
-int do_download(int, int, char *, char *, int, size_t);
+int do_download(int, int, char *, char *, int, size_t, int);
 
 /*
  * Upload 'local_path' to 'remote_path'. Preserve permissions and times
  * if 'pflag' is set
  */
-int do_upload(int, int, char *, char *, int , size_t);
+int do_upload(int, int, char *, char *, int , size_t, int);
