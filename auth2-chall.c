@@ -23,7 +23,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: auth2-chall.c,v 1.5 2001/05/18 14:13:28 markus Exp $");
+RCSID("$OpenBSD: auth2-chall.c,v 1.6 2001/06/03 20:06:11 markus Exp $");
 
 #include "ssh2.h"
 #include "auth.h"
@@ -149,7 +149,7 @@ auth2_challenge(Authctxt *authctxt, char *devs)
 	    authctxt->user ? authctxt->user : "<nouser>",
 	    devs ? devs : "<no devs>");
 
-	if (!authctxt->valid || authctxt->user == NULL || !devs)
+	if (authctxt->user == NULL || !devs)
 		return 0;
 	if (authctxt->kbdintctxt == NULL) 
 		authctxt->kbdintctxt = kbdint_alloc(devs);
