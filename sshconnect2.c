@@ -947,9 +947,9 @@ ssh_keysign(Key *key, u_char **sigp, u_int *lenp,
 	buffer_init(&b);
 	buffer_put_int(&b, packet_get_connection_in()); /* send # of socket */
 	buffer_put_string(&b, data, datalen);
-	msg_send(to[1], version, &b);
+	ssh_msg_send(to[1], version, &b);
 
-	if (msg_recv(from[0], &b) < 0) {
+	if (ssh_msg_recv(from[0], &b) < 0) {
 		error("ssh_keysign: no reply");
 		buffer_clear(&b);
 		return -1;
