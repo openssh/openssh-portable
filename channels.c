@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.198 2003/11/21 11:57:03 djm Exp $");
+RCSID("$OpenBSD: channels.c,v 1.199 2003/12/02 17:01:14 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -2195,7 +2195,7 @@ channel_setup_fwd_listener(int type, const char *listen_addr, u_short listen_por
 			continue;
 		}
 		/* Start listening for connections on the socket. */
-		if (listen(sock, 5) < 0) {
+		if (listen(sock, SSH_LISTEN_BACKLOG) < 0) {
 			error("listen: %.100s", strerror(errno));
 			close(sock);
 			continue;
@@ -2550,7 +2550,7 @@ x11_create_display_inet(int x11_display_offset, int x11_use_localhost,
 	/* Start listening for connections on the socket. */
 	for (n = 0; n < num_socks; n++) {
 		sock = socks[n];
-		if (listen(sock, 5) < 0) {
+		if (listen(sock, SSH_LISTEN_BACKLOG) < 0) {
 			error("listen: %.100s", strerror(errno));
 			close(sock);
 			return -1;

@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.168 2003/11/21 11:57:03 djm Exp $");
+RCSID("$OpenBSD: session.c,v 1.169 2003/12/02 17:01:15 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -177,7 +177,7 @@ auth_input_request_forwarding(struct passwd * pw)
 	restore_uid();
 
 	/* Start listening on the socket. */
-	if (listen(sock, 5) < 0)
+	if (listen(sock, SSH_LISTEN_BACKLOG) < 0)
 		packet_disconnect("listen: %.100s", strerror(errno));
 
 	/* Allocate a channel for the authentication agent socket. */

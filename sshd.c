@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.281 2003/11/10 16:23:41 jakob Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.282 2003/12/02 17:01:15 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1161,7 +1161,7 @@ main(int ac, char **av)
 
 			/* Start listening on the port. */
 			logit("Server listening on %s port %s.", ntop, strport);
-			if (listen(listen_sock, 5) < 0)
+			if (listen(listen_sock, SSH_LISTEN_BACKLOG) < 0)
 				fatal("listen: %.100s", strerror(errno));
 
 		}

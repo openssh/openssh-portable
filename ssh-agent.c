@@ -35,7 +35,7 @@
 
 #include "includes.h"
 #include "openbsd-compat/sys-queue.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.116 2003/11/21 11:57:03 djm Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.117 2003/12/02 17:01:15 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -1138,7 +1138,7 @@ main(int ac, char **av)
 #ifdef HAVE_CYGWIN
 	umask(prev_mask);
 #endif
-	if (listen(sock, 128) < 0) {
+	if (listen(sock, SSH_LISTEN_BACKLOG) < 0) {
 		perror("listen");
 		cleanup_exit(1);
 	}
