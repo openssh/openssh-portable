@@ -34,6 +34,7 @@
      [sshd.c]
      set_nonblock() instead of fnctl(...,O_NONBLOCK); "looks sane" deraadt@
  - (djm) Fix Makefile.in for connection sharing changes
+ - (djm) [ssh.c] Use separate var for address length
 
 20040603
  - (dtucker) [auth-pam.c] Don't use pam_* namespace for sshd's PAM functions.
@@ -1218,4 +1219,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3384 2004/06/15 00:44:40 djm Exp $
+$Id: ChangeLog,v 1.3385 2004/06/15 01:14:45 djm Exp $

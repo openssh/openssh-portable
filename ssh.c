@@ -1042,13 +1042,14 @@ ssh_control_listener(void)
 {
 	struct sockaddr_un addr;
 	mode_t old_umask;
-	
+	int addr_len;
+
 	if (options.control_path == NULL || options.control_master != 1)
 		return;
 
 	memset(&addr, '\0', sizeof(addr));
 	addr.sun_family = AF_UNIX;
-	addr.sun_len = offsetof(struct sockaddr_un, sun_path) +
+	addr_len = offsetof(struct sockaddr_un, sun_path) +
 	    strlen(options.control_path) + 1;
 
 	if (strlcpy(addr.sun_path, options.control_path,
@@ -1059,7 +1060,7 @@ ssh_control_listener(void)
 		fatal("%s socket(): %s\n", __func__, strerror(errno));
 
 	old_umask = umask(0177);
-	if (bind(control_fd, (struct sockaddr*)&addr, addr.sun_len) == -1) {
+	if (bind(control_fd, (struct sockaddr*)&addr, addr_len) == -1) {
 		control_fd = -1;
 		if (errno == EINVAL)
 			fatal("ControlSocket %s already exists",
@@ -1229,13 +1230,13 @@ static void
 control_client(const char *path)
 {
 	struct sockaddr_un addr;
-	int r, sock, exitval;
+	int r, sock, exitval, addr_len;
 	Buffer m;
 	char *cp;
 	
 	memset(&addr, '\0', sizeof(addr));
 	addr.sun_family = AF_UNIX;
-	addr.sun_len = offsetof(struct sockaddr_un, sun_path) +
+	addr_len = offsetof(struct sockaddr_un, sun_path) +
 	    strlen(path) + 1;
 
 	if (strlcpy(addr.sun_path, path,
@@ -1245,7 +1246,7 @@ control_client(const char *path)
 	if ((sock = socket(PF_UNIX, SOCK_STREAM, 0)) < 0)
 		fatal("%s socket(): %s", __func__, strerror(errno));
 
-	if (connect(sock, (struct sockaddr*)&addr, addr.sun_len) == -1)
+	if (connect(sock, (struct sockaddr*)&addr, addr_len) == -1)
 		fatal("Couldn't connect to %s: %s", path, strerror(errno));
 
 	if ((cp = getenv("TERM")) == NULL)
