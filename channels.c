@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.128 2001/06/25 08:25:35 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.129 2001/06/29 18:40:28 stevesk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1142,7 +1142,7 @@ static void
 channel_post_connecting(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	int err = 0;
-	int sz = sizeof(err);
+	socklen_t sz = sizeof(err);
 
 	if (FD_ISSET(c->sock, writeset)) {
 		if (getsockopt(c->sock, SOL_SOCKET, SO_ERROR, (char *)&err,
