@@ -133,6 +133,7 @@
  - (bal) forget a few new files in sync up.
  - (bal) Makefile fix up requires scard.c
  - (stevesk) sync misc.h
+ - (stevesk) more sync for session.c
 
 20010629
  - (bal) Removed net_aton() since we don't use it any more
@@ -5960,4 +5961,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1379 2001/07/04 17:25:54 stevesk Exp $
+$Id: ChangeLog,v 1.1380 2001/07/04 18:23:03 stevesk Exp $

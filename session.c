@@ -121,20 +121,21 @@ struct Session {
 /* func */
 
 Session *session_new(void);
-void  session_set_fds(Session *, int, int, int);
-static void   session_pty_cleanup(void *);
-void  session_proctitle(Session *);
-int   session_setup_x11fwd(Session *);
-void  do_exec_pty(Session *, const char *);
-void  do_exec_no_pty(Session *, const char *);
-void  do_exec(Session *, const char *);
-void  do_login(Session *, const char *);
-void  do_child(Session *, const char *);
+void	session_set_fds(Session *, int, int, int);
+static void	session_pty_cleanup(void *);
+void	session_proctitle(Session *);
+int	session_setup_x11fwd(Session *);
+void	do_exec_pty(Session *, const char *);
+void	do_exec_no_pty(Session *, const char *);
+void	do_exec(Session *, const char *);
+void	do_login(Session *, const char *);
+void	do_child(Session *, const char *);
 void	do_motd(void);
+int	check_quietlogin(Session *, const char *);
 
 static void do_authenticated1(Authctxt *);
 static void do_authenticated2(Authctxt *);
- 
+
 static void session_close(Session *);
 static int session_pty_req(Session *);
 
@@ -670,30 +671,6 @@ do_exec(Session *s, const char *command)
 	original_command = NULL;
 }
 
-/*
- * Check for quiet login, either .hushlogin or command given.
- */
-static int
-check_quietlogin(Session *s, const char *command)
-{
-	char buf[256];
-	struct passwd *pw = s->pw;
-	struct stat st;
-
-	/* Return 1 if .hushlogin exists or a command given. */
-	if (command != NULL)
-		return 1;
-	snprintf(buf, sizeof(buf), "%.200s/.hushlogin", pw->pw_dir);
-#ifdef HAVE_LOGIN_CAP
-	if (login_getcapbool(lc, "hushlogin", 0) || stat(buf, &st) >= 0)
-		return 1;
-#else
-	if (stat(buf, &st) >= 0)
-		return 1;
-#endif
-	return 0;
-}
-
 /* administrative, login(1)-like work */
 void
 do_login(Session *s, const char *command)
@@ -790,6 +767,31 @@ do_motd(void)
 			fclose(f);
 		}
 	}
+}
+
+
+/*
+ * Check for quiet login, either .hushlogin or command given.
+ */
+int
+check_quietlogin(Session *s, const char *command)
+{
+	char buf[256];
+	struct passwd *pw = s->pw;
+	struct stat st;
+
+	/* Return 1 if .hushlogin exists or a command given. */
+	if (command != NULL)
+		return 1;
+	snprintf(buf, sizeof(buf), "%.200s/.hushlogin", pw->pw_dir);
+#ifdef HAVE_LOGIN_CAP
+	if (login_getcapbool(lc, "hushlogin", 0) || stat(buf, &st) >= 0)
+		return 1;
+#else
+	if (stat(buf, &st) >= 0)
+		return 1;
+#endif
+	return 0;
 }
 
 /*
