@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.39 2001/07/05 20:32:47 stevesk Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.40 2001/09/27 15:31:17 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/evp.h>
@@ -820,9 +820,9 @@ try_challenge_response_authentication(void)
 	u_int clen;
 	char prompt[1024];
 	char *challenge, *response;
-	
-	debug("Doing challenge reponse authentication.");
-	
+
+	debug("Doing challenge response authentication.");
+
 	for (i = 0; i < options.number_of_password_prompts; i++) {
 		/* request a challenge */
 		packet_start(SSH_CMSG_AUTH_TIS);
