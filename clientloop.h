@@ -1,3 +1,5 @@
+/*	$OpenBSD: clientloop.h,v 1.3 2001/01/29 01:58:15 niklas Exp $	*/
+
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland

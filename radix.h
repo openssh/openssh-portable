@@ -1,3 +1,5 @@
+/*	$OpenBSD: radix.h,v 1.2 2001/01/29 01:58:17 niklas Exp $	*/
+
 /*
  * Copyright (c) 1999 Dug Song.  All rights reserved.
  *

@@ -1,3 +1,5 @@
+#	$OpenBSD: sshd_config,v 1.27 2001/01/29 01:58:19 niklas Exp $
+
 # This is ssh server systemwide configuration file.
 
 Port 22

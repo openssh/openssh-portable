@@ -1,3 +1,5 @@
+/*	$OpenBSD: kex.h,v 1.12 2001/01/29 01:58:16 niklas Exp $	*/
+
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *

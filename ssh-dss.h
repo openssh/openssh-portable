@@ -1,3 +1,5 @@
+/*	$OpenBSD: ssh-dss.h,v 1.3 2001/01/29 01:58:18 niklas Exp $	*/
+
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *

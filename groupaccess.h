@@ -1,3 +1,5 @@
+/*	$OpenBSD: groupaccess.h,v 1.2 2001/01/29 01:58:15 niklas Exp $	*/
+
 /*
  * Copyright (c) 2001 Kevin Steves.  All rights reserved.
  *
