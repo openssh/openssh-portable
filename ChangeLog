@@ -13,6 +13,7 @@
    - markus@cvs.openbsd.org 2003/05/14 22:24:42
      [clientloop.c session.c ssh.1]
      allow to send a BREAK to the remote system; ok various
+ - (djm) Configure glue for DNS support (code doesn't work in portable yet)
 
 20030514
  - (djm) Bug #117: Don't lie to PAM about username
@@ -1488,4 +1489,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2703 2003/05/15 00:20:13 djm Exp $
+$Id: ChangeLog,v 1.2704 2003/05/15 00:53:49 djm Exp $

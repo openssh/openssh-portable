@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.117 2003/05/10 09:28:02 djm Exp $
+# $Id: configure.ac,v 1.118 2003/05/15 00:53:49 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -1804,7 +1804,6 @@ if test "x$ac_cv_libc_defines_sys_nerr" = "xyes" ; then
 fi
 
 SCARD_MSG="no" 
-
 # Check whether user wants sectok support
 AC_ARG_WITH(sectok,
 	[  --with-sectok           Enable smartcard support using libsectok],
@@ -1853,6 +1852,32 @@ if test x$opensc_config_prefix != x ; then
     SCARD_MSG="yes, using OpenSC" 
   fi
 fi
+
+# Check whether user wants DNS support
+DNS_MSG="no" 
+AC_ARG_WITH(dns,
+	[  --with-dns              Support for fetching keys from DNS (experimental)],
+	[
+		if test "x$withval" != "xno" ; then
+			AC_DEFINE(DNS)
+			DNS_MSG="yes" 
+		fi
+	]
+)
+
+LWRES_MSG=""
+AC_ARG_WITH(lwres,
+	[  --with-lwres            Use lwres library/headers for DNS support],
+	[
+		if test "x$withval" != "xno" -a "x$DNS_MSG" = "xyes"; then
+			AC_DEFINE(LWRES)
+			LWRES_MSG="(using liblwres)" 
+			AC_SEARCH_LIBS(lwres_herror, lwres)
+		fi
+	]
+)
+
+
 
 # Check whether user wants Kerberos 5 support
 KRB5_MSG="no" 
@@ -2578,7 +2603,8 @@ if test ! -z "$superuser_path" ; then
 echo "          sshd superuser user PATH: $J"
 fi
 echo "                    Manpage format: $MANTYPE"
-echo "                       PAM support: ${PAM_MSG}"
+echo "                       DNS support: $DNS_MSG $LWRES_MSG"
+echo "                       PAM support: $PAM_MSG"
 echo "                KerberosIV support: $KRB4_MSG"
 echo "                 KerberosV support: $KRB5_MSG"
 echo "                 Smartcard support: $SCARD_MSG"

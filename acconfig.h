@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.151 2003/05/10 07:05:46 dtucker Exp $ */
+/* $Id: acconfig.h,v 1.152 2003/05/15 00:53:49 djm Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -379,6 +379,12 @@
 
 /* Define if cmsg_type is not passed correctly */
 #undef BROKEN_CMSG_TYPE
+
+/* Define if DNS support is to be activated */
+#undef DNS
+
+/* Define if -llwres is to be used */
+#undef LWRES
 
 @BOTTOM@
 
