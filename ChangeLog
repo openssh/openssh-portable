@@ -3,6 +3,8 @@
  - Added -blibpath handling for AIX to work around stupid runtime linking.
    Problem elucidated by gshapiro@SENDMAIL.ORG by way of Jim Knoble
    <jmknoble@pobox.com>
+ - Checks for 64 bit int types. Problem report from Mats Fredholm
+   <matsf@init.se>
 
 20000316
  - Fixed configure not passing LDFLAGS to Solaris. Report from David G. 

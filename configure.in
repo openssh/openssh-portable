@@ -264,7 +264,7 @@ AC_CHECK_SIZEOF(long long int, 8)
 AC_MSG_CHECKING([for intXX_t types])
 AC_TRY_COMPILE(
 	[#include <sys/types.h>], 
-	[int16_t a; int32_t b; a = 1235; b = 1235;], 
+	[int8_t a; int16_t b; int32_t c; int64_t d; a = b = c = d = 1;], 
 	[
 		AC_DEFINE(HAVE_INTXX_T)
 		AC_MSG_RESULT(yes)
@@ -276,7 +276,7 @@ AC_TRY_COMPILE(
 AC_MSG_CHECKING([for u_intXX_t types])
 AC_TRY_COMPILE(
 	[#include <sys/types.h>], 
-	[u_int16_t c; u_int32_t d; c = 1235; d = 1235;], 
+	[u_int8_t a; u_int16_t b; u_int32_t c; u_int64_t d; a = b = c = d = 1;], 
 	[
 		AC_DEFINE(HAVE_U_INTXX_T)
 		AC_MSG_RESULT(yes)
@@ -292,10 +292,9 @@ then
 	AC_TRY_COMPILE(
 		[#include <sys/bitypes.h>], 
 		[
-			u_int16_t c; u_int32_t d; 
-			int16_t e; int32_t f;
-			c = 1235; d = 1235;
-			e = 1235; f = 1235;
+			int8_t a; int16_t b; int32_t c; int64_t d;
+			u_int8_t e; u_int16_t f; u_int32_t g; u_int64_t h; 
+			a = b = c = d = e = f = g = h = 1;
 		], 
 		[
 			AC_DEFINE(HAVE_U_INTXX_T)
@@ -306,16 +305,18 @@ then
 	) 
 fi
 
-AC_MSG_CHECKING([for uintXX_t types])
-AC_TRY_COMPILE(
-	[#include <sys/types.h>], 
-	[uint16_t c; uint32_t d; c = 1235; d = 1235;], 
-	[
-		AC_DEFINE(HAVE_UINTXX_T)
-		AC_MSG_RESULT(yes)
-	],
-	[AC_MSG_RESULT(no)]
-) 
+if test -z "$have_u_intxx_t" ; then
+	AC_MSG_CHECKING([for uintXX_t types])
+	AC_TRY_COMPILE(
+		[#include <sys/types.h>], 
+		[uint8_t a; uint16_t b; uint32_t c; uint64_t d; a = b = c = d = 1;], 
+		[
+			AC_DEFINE(HAVE_UINTXX_T)
+			AC_MSG_RESULT(yes)
+		],
+		[AC_MSG_RESULT(no)]
+	) 
+fi
 
 AC_MSG_CHECKING([for socklen_t])
 AC_TRY_COMPILE(
