@@ -1067,7 +1067,7 @@ do_setup_env(Session *s, const char *shell)
 	/* read $HOME/.ssh/environment. */
 	if (options.permit_user_env && !options.use_login) {
 		snprintf(buf, sizeof buf, "%.200s/.ssh/environment",
-		    pw->pw_dir);
+		    strcmp(pw->pw_dir, "/") ? pw->pw_dir : "");
 		read_environment_file(&env, &envsize, buf);
 	}
 	if (debug_flag) {

@@ -1,3 +1,7 @@
+20020910
+ - (djm) Bug #365: Read /.ssh/environment properly under CygWin. 
+   Patch from Mark Bradshaw <bradshaw@staff.crosswalk.com>
+
 20020905 
  - (djm) OpenBSD CVS Sync
    - stevesk@cvs.openbsd.org 2002/09/04 18:52:42
@@ -1608,4 +1612,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2448 2002/09/05 06:53:20 djm Exp $
+$Id: ChangeLog,v 1.2449 2002/09/10 11:43:53 djm Exp $
