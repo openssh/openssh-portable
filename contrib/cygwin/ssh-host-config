@@ -568,7 +568,7 @@ then
     [ -z "${_cygwin}" ] && _cygwin="binmode ntsec tty"
     if cygrunsrv -I sshd -d "CYGWIN sshd" -p /usr/sbin/sshd -a -D -e "CYGWIN=${_cygwin}"
     then
-      chown system /${SYSCONFDIR}/ssh*
+      chown system ${SYSCONFDIR}/ssh*
       echo
       echo "The service has been installed under LocalSystem account."
     fi

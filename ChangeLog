@@ -1,6 +1,8 @@
 20020705
  - (tim) [configure.ac] AIX 4.2.1 has authenticate() in libs.
    Reported by Darren Tucker <dtucker@zip.com.au>
+ - (tim) [contrib/cygwin/ssh-host-config] double slash corrction
+   from vinschen@redhat.com
 
 20020704
  - (bal) Limit data to TTY for AIX only (Newer versions can't handle the
@@ -1278,4 +1280,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2336 2002/07/05 14:12:33 tim Exp $
+$Id: ChangeLog,v 1.2337 2002/07/05 23:22:32 tim Exp $
