@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.53 2001/02/09 01:55:36 djm Exp $ */
+/* $Id: defines.h,v 1.54 2001/02/09 11:55:17 djm Exp $ */
 
 /* Some platforms need this for the _r() functions */
 #if !defined(_REENTRANT) && !defined(SNI)
@@ -302,6 +302,10 @@ struct winsize {
 #ifndef XAUTH_PATH
 #define XAUTH_PATH "/usr/X11R6/bin/xauth"
 #endif /* XAUTH_PATH */
+
+#ifndef _PATH_TTY
+# define _PATH_TTY "/dev/tty"
+#endif
 
 /* Macros */
 
