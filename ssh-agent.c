@@ -35,7 +35,7 @@
 
 #include "includes.h"
 #include "openbsd-compat/fake-queue.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.85 2002/04/02 11:49:39 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.86 2002/06/05 16:08:07 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -803,6 +803,7 @@ usage(void)
 	fprintf(stderr, "  -s          Generate Bourne shell commands on stdout.\n");
 	fprintf(stderr, "  -k          Kill the current agent.\n");
 	fprintf(stderr, "  -d          Debug mode.\n");
+	fprintf(stderr, "  -a socket   Bind agent socket to given name.\n");
 	exit(1);
 }
 
@@ -819,6 +820,7 @@ main(int ac, char **av)
 #endif
 	pid_t pid;
 	char *shell, *format, *pidstr, pidstrbuf[1 + 3 * sizeof pid];
+	char *agentsocket = NULL;
 	extern int optind;
 	fd_set *readsetp = NULL, *writesetp = NULL;
 
@@ -829,9 +831,9 @@ main(int ac, char **av)
 	seed_rng();
 
 #ifdef __GNU_LIBRARY__
-	while ((ch = getopt(ac, av, "+cdks")) != -1) {
+	while ((ch = getopt(ac, av, "+cdksa:")) != -1) {
 #else /* __GNU_LIBRARY__ */
-	while ((ch = getopt(ac, av, "cdks")) != -1) {
+	while ((ch = getopt(ac, av, "cdksa:")) != -1) {
 #endif /* __GNU_LIBRARY__ */
 		switch (ch) {
 		case 'c':
@@ -851,6 +853,9 @@ main(int ac, char **av)
 			if (d_flag)
 				usage();
 			d_flag++;
+			break;
+		case 'a':
+			agentsocket = optarg;
 			break;
 		default:
 			usage();
@@ -892,14 +897,20 @@ main(int ac, char **av)
 	}
 	parent_pid = getpid();
 
-	/* Create private directory for agent socket */
-	strlcpy(socket_dir, "/tmp/ssh-XXXXXXXX", sizeof socket_dir);
-	if (mkdtemp(socket_dir) == NULL) {
-		perror("mkdtemp: private socket dir");
-		exit(1);
+	if (agentsocket == NULL) {
+		/* Create private directory for agent socket */
+		strlcpy(socket_dir, "/tmp/ssh-XXXXXXXX", sizeof socket_dir);
+		if (mkdtemp(socket_dir) == NULL) {
+			perror("mkdtemp: private socket dir");
+			exit(1);
+		}
+		snprintf(socket_name, sizeof socket_name, "%s/agent.%d", socket_dir,
+		    parent_pid);
+	} else {
+		/* Try to use specified agent socket */
+		socket_dir[0] = '\0';
+		strlcpy(socket_name, agentsocket, sizeof socket_name);
 	}
-	snprintf(socket_name, sizeof socket_name, "%s/agent.%d", socket_dir,
-	    parent_pid);
 
 	/*
 	 * Create socket early so it will exist before command gets run from

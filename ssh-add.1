@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-add.1,v 1.30 2002/02/04 20:41:16 stevesk Exp $
+.\"	$OpenBSD: ssh-add.1,v 1.31 2002/06/05 16:35:45 markus Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -129,6 +129,9 @@ or related script.
 may be necessary to redirect the input from
 .Pa /dev/null
 to make this work.)
+.It Ev SSH_AUTH_SOCK
+Identifies the path of a unix-domain socket used to communicate with the
+agent.
 .El
 .Sh DIAGNOSTICS
 Exit status is 0 on success, 1 if the specified command fails,
