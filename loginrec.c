@@ -47,9 +47,9 @@
  **   IRIX
  **   NetBSD
  **   HP-UX 11
+ **   AIX
  **
  ** Platforms with known problems:
- **   AIX (need to port AIX stuff from old login code
  **   NeXT
  **
  **/
@@ -78,7 +78,7 @@
 #include "xmalloc.h"
 #include "loginrec.h"
 
-RCSID("$Id: loginrec.c,v 1.1 2000/06/03 14:57:40 andre Exp $");
+RCSID("$Id: loginrec.c,v 1.2 2000/06/03 16:18:19 andre Exp $");
 
 
 /**
