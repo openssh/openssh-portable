@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth.c,v 1.26 2001/06/27 04:48:52 markus Exp $");
+RCSID("$OpenBSD: auth.c,v 1.27 2001/07/11 18:26:15 markus Exp $");
 
 #ifdef HAVE_LOGIN_H
 #include <login.h>
@@ -363,12 +363,9 @@ secure_filename(FILE *f, const char *file, struct passwd *pw,
     char *err, size_t errlen)
 {
 	uid_t uid = pw->pw_uid;
-	char homedir[MAXPATHLEN];
 	char buf[MAXPATHLEN];
 	char *cp;
 	struct stat st;
-
-	strlcpy(homedir, dirname(pw->pw_dir), sizeof(homedir));
 
 	if (realpath(file, buf) == NULL) {
 		snprintf(err, errlen, "realpath %s failed: %s", file,
@@ -385,8 +382,6 @@ secure_filename(FILE *f, const char *file, struct passwd *pw,
 		return -1;
 	}
 
-	debug3("secure_filename: terminating check at '%s'", homedir);
-
 	/* for each component of the canonical path, walking upwards */
 	for (;;) {
 		if ((cp = dirname(buf)) == NULL) {
@@ -394,10 +389,6 @@ secure_filename(FILE *f, const char *file, struct passwd *pw,
 			return -1;
 		}
 		strlcpy(buf, cp, sizeof(buf));
-
-		/* If are passed the homedir then we can stop */
-		if (strcmp(buf, homedir) == 0)
-			break;
 
 		debug3("secure_filename: checking '%s'", buf);
 		if (stat(buf, &st) < 0 ||
@@ -408,6 +399,12 @@ secure_filename(FILE *f, const char *file, struct passwd *pw,
 			return -1;
 		}
 
+		/* If are passed the homedir then we can stop */
+		if (strcmp(pw->pw_dir, buf) == 0) {
+			debug3("secure_filename: terminating check at '%s'",
+			    buf);
+			break;
+		}
 		/*
 		 * dirname should always complete with a "/" path,
 		 * but we can be paranoid and check for "." too
