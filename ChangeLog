@@ -46,6 +46,7 @@
  - (dtucker) [openbsd-compat/bsd-misc.c openbsd-compat/bsd-misc.h]
    Add a tcgetpgrp function.
  - (dtucker) [Makefile.in moduli.c moduli.h] Add new files and to Makefile.
+ - (dtucker) [openbsd-compat/bsd-misc.c] Fix cut-and-paste bug in tcgetpgrp.
 
 20030730
  - (djm) [auth-pam.c] Don't use crappy APIs like sprintf. Thanks bal
@@ -784,4 +785,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2878 2003/08/02 14:07:35 dtucker Exp $
+$Id: ChangeLog,v 1.2879 2003/08/02 14:36:16 dtucker Exp $

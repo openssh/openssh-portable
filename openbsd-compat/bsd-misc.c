@@ -25,7 +25,7 @@
 #include "includes.h"
 #include "xmalloc.h"
 
-RCSID("$Id: bsd-misc.c,v 1.15 2003/08/02 13:33:48 dtucker Exp $");
+RCSID("$Id: bsd-misc.c,v 1.16 2003/08/02 14:36:16 dtucker Exp $");
 
 /*
  * NB. duplicate __progname in case it is an alias for argv[0]
@@ -173,7 +173,7 @@ tcgetpgrp(int fd)
 {
 	int ctty_pgrp;
 
-	if (ioctl(STDOUT_FILENO, TIOCGPGRP, &ctty_pgrp) == -1)
+	if (ioctl(fd, TIOCGPGRP, &ctty_pgrp) == -1)
 		return(-1);
 	else
 		return(ctty_pgrp);
