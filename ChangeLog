@@ -16,6 +16,9 @@
    - itojun@cvs.openbsd.org 2003/04/03 10:17:35
      [progressmeter.c]
      remove $OpenBSD$, as other *.c does not have it.
+   - markus@cvs.openbsd.org 2003/04/07 08:29:57
+     [monitor_wrap.c]
+     typo: get correct counters; introduced during rekeying change.
 
 20030402
  - (bal) if IP_TOS is not found or broken don't try to compile in
@@ -1318,4 +1321,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2654 2003/04/09 10:50:59 djm Exp $
+$Id: ChangeLog,v 1.2655 2003/04/09 10:51:24 djm Exp $
