@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.154 2002/06/08 05:17:01 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.155 2002/06/09 22:15:15 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -1105,7 +1105,9 @@ or
 .Dq no .
 The default is
 .Dq yes .
-This option applies to protocol version 1 only.
+This option applies to protocol version 1 only and requires
+.Nm
+to be setuid root.
 .It Cm RSAAuthentication
 Specifies whether to try RSA authentication.
 The argument to this keyword must be
@@ -1376,9 +1378,23 @@ and are used for
 .Cm RhostsRSAAuthentication
 and
 .Cm HostbasedAuthentication .
-Since they are readable only by root
+If the protocol version 1
+.Cm RhostsRSAAuthentication
+method is used, 
 .Nm
-must be setuid root if these authentication methods are desired.
+must be setuid root, since the host key is readable only by root.
+For protocol version 2,
+.Nm
+uses
+.Xr ssh-keysign 8
+to access the host keys for
+.Cm HostbasedAuthentication .
+This eliminates the requirement that
+.Nm
+be setuid root when that authentication method is used.
+By default
+.Nm
+is not setuid root.
 .It Pa $HOME/.rhosts
 This file is used in
 .Pa \&.rhosts
@@ -1483,6 +1499,7 @@ protocol versions 1.5 and 2.0.
 .Xr ssh-agent 1 ,
 .Xr ssh-keygen 1 ,
 .Xr telnet 1 ,
+.Xr ssh-keysign 8,
 .Xr sshd 8
 .Rs
 .%A T. Ylonen
