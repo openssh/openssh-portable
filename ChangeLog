@@ -1,3 +1,7 @@
+20020710
+ - (tim) [contrib/cygwin/ssh-host-config] explicitely sets the permissions
+   on /var/empty to 755 Patch by vinschen@redhat.com
+
 20020709
  - (bal) NO_IPPORT_RESERVED_CONCEPT used instead of CYGWIN so other platforms
    lacking that concept can share it. Patch by vinschen@redhat.com
@@ -1320,4 +1324,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2352 2002/07/09 14:06:40 mouring Exp $
+$Id: ChangeLog,v 1.2353 2002/07/10 14:40:11 tim Exp $

@@ -163,6 +163,7 @@ else
   # On NT change ownership of that dir to user "system"
   if [ $_nt -gt 0 ]
   then
+    chmod 755 /var/empty
     chown system.system /var/empty
   fi
 fi
