@@ -8,6 +8,10 @@
      [auth.c auth1.c auth2.c cipher.c cipher.h key.c session.c ssh.c
      sshconnect1.c]
      more s/illegal/invalid/
+   - djm@cvs.openbsd.org 2004/08/04 10:37:52
+     [dh.c]
+     return group14 when no primes found - fixes hang on empty /etc/moduli;
+     ok markus@
 
 20040720
  - (djm) OpenBSD CVS Sync
@@ -1575,4 +1579,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3491 2004/08/12 12:40:24 dtucker Exp $
+$Id: ChangeLog,v 1.3492 2004/08/12 12:40:59 dtucker Exp $
