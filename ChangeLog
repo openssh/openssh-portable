@@ -34,6 +34,12 @@
    - markus@cvs.openbsd.org 2001/07/10 21:49:12
      [readpass.c]
      don't panic if fork or pipe fail (just return an empty passwd).
+   - itojun@cvs.openbsd.org 2001/07/11 00:24:53
+     [servconf.c]
+     make it compilable in all 4 combination of KRB4/KRB5 settings.  
+     dugsong ok
+     XXX isn't it sensitive to the order of -I/usr/include/kerberosIV and
+     -I/usr/include/kerberosV?
 
 20010711
  - (djm) dirname(3) may modify its argument on glibc and other systems. 
@@ -6009,4 +6015,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1395 2001/07/14 02:19:56 djm Exp $
+$Id: ChangeLog,v 1.1396 2001/07/14 02:20:32 djm Exp $
