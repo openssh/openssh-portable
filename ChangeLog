@@ -39,6 +39,7 @@
    - markus@cvs.openbsd.org 2002/04/02 20:11:38
      [ssh-rsa.c]
      ignore SSH_BUG_SIGBLOB for ssh-rsa; #187
+ - (bal) mispelling in uidswap.c (portable only)
 
 20020401
  - (stevesk) [monitor.c] PAM should work again; will *not* work with
@@ -8146,4 +8147,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2019 2002/04/03 03:03:04 mouring Exp $
+$Id: ChangeLog,v 1.2020 2002/04/03 03:36:54 mouring Exp $
