@@ -19,6 +19,7 @@ ASKPASS_LOCATION=@libexecdir@/ssh
 ASKPASS_PROGRAM=$(ASKPASS_LOCATION)/ssh-askpass
 
 CC=@CC@
+LD=@LD@
 PATHS=-DETCDIR=\"$(sysconfdir)\" -DSSH_PROGRAM=\"$(SSH_PROGRAM)\" -DSSH_ASKPASS_DEFAULT=\"$(ASKPASS_PROGRAM)\"
 CFLAGS=@CFLAGS@ $(PATHS) @DEFS@
 LIBS=@LIBS@
@@ -55,22 +56,22 @@ libssh.a: $(LIBOBJS)
 	$(RANLIB) $@
 
 ssh: libssh.a $(SSHOBJS)
-	$(CC) -o $@ $(SSHOBJS) $(LDFLAGS) -lssh $(LIBS)
+	$(LD) -o $@ $(SSHOBJS) $(LDFLAGS) -lssh $(LIBS)
 
 sshd: libssh.a	$(SSHDOBJS)
-	$(CC) -o $@ $(SSHDOBJS) $(LDFLAGS) -lssh $(LIBS)
+	$(LD) -o $@ $(SSHDOBJS) $(LDFLAGS) -lssh $(LIBS)
 
 scp: libssh.a scp.o
-	$(CC) -o $@ scp.o $(LDFLAGS) -lssh $(LIBS) 
+	$(LD) -o $@ scp.o $(LDFLAGS) -lssh $(LIBS) 
 
 ssh-add: libssh.a ssh-add.o log-client.o
-	$(CC) -o $@ ssh-add.o log-client.o $(LDFLAGS) -lssh $(LIBS) 
+	$(LD) -o $@ ssh-add.o log-client.o $(LDFLAGS) -lssh $(LIBS) 
 
 ssh-agent: libssh.a ssh-agent.o log-client.o
-	$(CC) -o $@ ssh-agent.o log-client.o $(LDFLAGS) -lssh $(LIBS) 
+	$(LD) -o $@ ssh-agent.o log-client.o $(LDFLAGS) -lssh $(LIBS) 
 
 ssh-keygen: libssh.a ssh-keygen.o log-client.o
-	$(CC) -o $@ ssh-keygen.o log-client.o $(LDFLAGS) -lssh $(LIBS) 
+	$(LD) -o $@ ssh-keygen.o log-client.o $(LDFLAGS) -lssh $(LIBS) 
 
 $(MANPAGES) $(CONFIGFILES)::
 	$(FIXPATHSCMD) $(srcdir)/$@

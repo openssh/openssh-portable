@@ -4,10 +4,6 @@ AC_CONFIG_HEADER(config.h)
 AC_PROG_CC
 AC_CANONICAL_HOST
 
-# C Compiler features
-if test "$GCC" = "yes"; then CFLAGS="$CFLAGS -Wall"; fi
-AC_C_INLINE
-
 # Checks for programs.
 AC_PROG_CPP
 AC_PROG_RANLIB
@@ -15,6 +11,17 @@ AC_PROG_INSTALL
 AC_CHECK_PROG(AR, ar, ar)
 AC_PATH_PROG(PERL, perl)
 AC_SUBST(PERL)
+
+if test -z "$LD" ; then
+	LD=$CC
+fi
+AC_SUBST(LD)
+	
+# C Compiler features
+AC_C_INLINE
+if test "$GCC" = "yes"; then 
+	CFLAGS="$CFLAGS -Wall"
+fi
 
 # Check for some target-specific stuff
 case "$host" in
