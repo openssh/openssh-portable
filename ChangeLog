@@ -156,6 +156,9 @@
    - stevesk@cvs.openbsd.org 2001/03/04 11:16:06
      [servconf.c sshd.8]
      kill obsolete RandomSeed; ok markus@ deraadt@
+   - stevesk@cvs.openbsd.org 2001/03/04 12:54:04
+     [sshd.8]
+     spelling
 
 20010304
  - (bal) Remove make-ssh-known-hosts.1 since it's no longer valid.
@@ -4348,4 +4351,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.900 2001/03/05 07:42:03 mouring Exp $
+$Id: ChangeLog,v 1.901 2001/03/05 07:43:27 mouring Exp $
