@@ -16,31 +16,11 @@ Obsoletes: ssh
 #   TCP Wrappers (nkitb),
 #   and Gnome (glibdev, gtkdev, and gnlibsd)
 #
-BuildPrereq: openssl-devel
+BuildPrereq: openssl
 BuildPrereq: nkitb
 BuildPrereq: glibdev
 BuildPrereq: gtkdev
 BuildPrereq: gnlibsd
-
-%package clients
-Summary: OpenSSH Secure Shell protocol clients
-Requires: openssh
-Group: Applications/Internet
-Obsoletes: ssh-clients
-
-%package server
-Summary: OpenSSH Secure Shell protocol server (sshd)
-Requires: openssh
-Group: System Environment/Daemons
-PreReq: openssh
-Obsoletes: ssh-server
-
-%package askpass
-Summary: OpenSSH GNOME passphrase dialog
-Group: Applications/Internet
-Requires: openssh
-Obsoletes: ssh-extras
-Obsoletes: ssh-askpass
 
 %description
 Ssh (Secure Shell) a program for logging into a remote machine and for
@@ -53,51 +33,9 @@ OpenSSH is OpenBSD's rework of the last free version of SSH, bringing it
 up to date in terms of security and features, as well as removing all 
 patented algorithms to seperate libraries (OpenSSL).
 
-This package includes the core files necessary for both the OpenSSH
-client and server.  To make this package useful, you should also
-install openssh-clients, openssh-server, or both.
-
-%description clients
-Ssh (Secure Shell) a program for logging into a remote machine and for
-executing commands in a remote machine.  It is intended to replace
-rlogin and rsh, and provide secure encrypted communications between
-two untrusted hosts over an insecure network.  X11 connections and
-arbitrary TCP/IP ports can also be forwarded over the secure channel.
-
-OpenSSH is OpenBSD's rework of the last free version of SSH, bringing it
-up to date in terms of security and features, as well as removing all 
-patented algorithms to seperate libraries (OpenSSL).
-
-This package includes the clients necessary to make encrypted connections
-to SSH servers.
-
-%description server
-Ssh (Secure Shell) a program for logging into a remote machine and for
-executing commands in a remote machine.  It is intended to replace
-rlogin and rsh, and provide secure encrypted communications between
-two untrusted hosts over an insecure network.  X11 connections and
-arbitrary TCP/IP ports can also be forwarded over the secure channel.
-
-OpenSSH is OpenBSD's rework of the last free version of SSH, bringing it
-up to date in terms of security and features, as well as removing all 
-patented algorithms to seperate libraries (OpenSSL).
-
-This package contains the secure shell daemon. The sshd is the server 
-part of the secure shell protocol and allows ssh clients to connect to 
-your host.
-
-%description askpass
-Ssh (Secure Shell) a program for logging into a remote machine and for
-executing commands in a remote machine.  It is intended to replace
-rlogin and rsh, and provide secure encrypted communications between
-two untrusted hosts over an insecure network.  X11 connections and
-arbitrary TCP/IP ports can also be forwarded over the secure channel.
-
-OpenSSH is OpenBSD's rework of the last free version of SSH, bringing it
-up to date in terms of security and features, as well as removing all 
-patented algorithms to seperate libraries (OpenSSL).
-
-This package contains the GNOME passphrase dialog.
+This package includes all files necessary for both the OpenSSH
+client and server. Additionally, this package contains the GNOME
+passphrase dialog.
 
 %changelog
 * Mon Jun 12 2000 Damien Miller <djm@mindrot.org>
@@ -150,9 +88,8 @@ This package contains the GNOME passphrase dialog.
 
 %build
 CFLAGS="$RPM_OPT_FLAGS" \
-./configure --prefix=/usr --sysconfdir=/etc/ssh \
-	--libexecdir=/usr/libexec/ssh --with-gnome-askpass \
-	--with-tcp-wrappers --with-ipv4-default
+./configure --prefix=/usr --sysconfdir=/etc/ssh --with-gnome-askpass \
+            --with-tcp-wrappers --with-ipv4-default --libexecdir=/usr/lib/ssh
 make
 
 cd contrib
@@ -168,19 +105,19 @@ install -d $RPM_BUILD_ROOT/etc/ssh/
 install -d $RPM_BUILD_ROOT/etc/pam.d/
 install -d $RPM_BUILD_ROOT/sbin/init.d/
 install -d $RPM_BUILD_ROOT/var/adm/fillup-templates
-install -d $RPM_BUILD_ROOT/usr/libexec/openssh
+install -d $RPM_BUILD_ROOT/usr/lib/ssh
 install -m644 contrib/sshd.pam.generic $RPM_BUILD_ROOT/etc/pam.d/sshd
 install -m744 contrib/suse/rc.sshd $RPM_BUILD_ROOT/sbin/init.d/sshd
 ln -s ../../sbin/init.d/sshd $RPM_BUILD_ROOT/usr/sbin/rcsshd
-install -s contrib/gnome-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/openssh/gnome-ssh-askpass
-ln -s gnome-ssh-askpass $RPM_BUILD_ROOT/usr/libexec/openssh/ssh-askpass
+install -s contrib/gnome-ssh-askpass $RPM_BUILD_ROOT/usr/lib/ssh/gnome-ssh-askpass
+ln -s gnome-ssh-askpass $RPM_BUILD_ROOT/usr/lib/ssh/ssh-askpass
 install -m744 contrib/suse/rc.config.sshd \
    $RPM_BUILD_ROOT/var/adm/fillup-templates
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%post server
+%post
 if [ "$1" = 1 ]; then
   echo "Creating SSH stop/start scripts in the rc directories..."
   ln -s ../sshd /sbin/init.d/rc2.d/K20sshd
@@ -210,7 +147,7 @@ then
 	/usr/sbin/rcsshd restart >&2
 fi
 
-%preun server
+%preun
 if [ "$1" = 0 ]
 then
         echo "Stopping the SSH daemon..."
@@ -226,39 +163,28 @@ fi
 %defattr(-,root,root)
 %doc COPYING.Ylonen ChangeLog OVERVIEW README* 
 %doc RFC.nroff TODO UPGRADING CREDITS
-%attr(0755,root,root) /usr/bin/ssh-keygen
-%attr(0755,root,root) /usr/bin/scp
-%attr(0644,root,root) %doc /usr/man/man1/ssh-keygen.1*
-%attr(0644,root,root) %doc /usr/man/man1/scp.1*
 %attr(0755,root,root) %dir /etc/ssh
-%attr(0755,root,root) %dir /usr/libexec/openssh
-
-%files clients
-%defattr(-,root,root)
-%attr(4755,root,root) /usr/bin/ssh
-%attr(0755,root,root) /usr/bin/ssh-agent
-%attr(0755,root,root) /usr/bin/ssh-add
-%attr(0644,root,root) %doc /usr/man/man1/ssh.1*
-%attr(0644,root,root) %doc /usr/man/man1/ssh-agent.1*
-%attr(0644,root,root) %doc /usr/man/man1/ssh-add.1*
 %attr(0644,root,root) %config /etc/ssh/ssh_config
-%attr(-,root,root) /usr/bin/slogin
-%attr(-,root,root) %doc /usr/man/man1/slogin.1*
-
-%files server
-%defattr(-,root,root)
-%attr(0755,root,root) /usr/sbin/sshd
-%attr(0755,root,root) /usr/libexec/openssh/sftp-server
-%attr(0644,root,root) %doc /usr/man/man8/sshd.8*
-%attr(0644,root,root) %doc /usr/man/man8/sftp-server.8*
 %attr(0600,root,root) %config /etc/ssh/sshd_config
 %attr(0644,root,root) %config /etc/pam.d/sshd
 %attr(0755,root,root) %config /sbin/init.d/sshd
+%attr(0755,root,root) /usr/bin/ssh-keygen
+%attr(0755,root,root) /usr/bin/scp
+%attr(4755,root,root) /usr/bin/ssh
+%attr(-,root,root) /usr/bin/slogin
+%attr(0755,root,root) /usr/bin/ssh-agent
+%attr(0755,root,root) /usr/bin/ssh-add
+%attr(0755,root,root) /usr/sbin/sshd
 %attr(-,root,root) /usr/sbin/rcsshd
+%attr(0755,root,root) %dir /usr/lib/ssh
+%attr(0755,root,root) /usr/lib/ssh/ssh-askpass
+%attr(0755,root,root) /usr/lib/ssh/gnome-ssh-askpass
+%attr(0644,root,root) %doc /usr/man/man1/scp.1*
+%attr(0644,root,root) %doc /usr/man/man1/ssh.1*
+%attr(-,root,root) %doc /usr/man/man1/slogin.1*
+%attr(0644,root,root) %doc /usr/man/man1/ssh-agent.1*
+%attr(0644,root,root) %doc /usr/man/man1/ssh-add.1*
+%attr(0644,root,root) %doc /usr/man/man1/ssh-keygen.1*
+%attr(0644,root,root) %doc /usr/man/man8/sshd.8*
 %attr(0644,root,root) /var/adm/fillup-templates/rc.config.sshd
-
-%files askpass
-%defattr(-,root,root)
-%attr(0755,root,root) /usr/libexec/openssh/ssh-askpass
-%attr(0755,root,root) /usr/libexec/openssh/gnome-ssh-askpass
 
