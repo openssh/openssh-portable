@@ -1,3 +1,7 @@
+20010228
+ - (djm) Detect endianness in configure and use it in rijndael.c. Fixes
+   "Bad packet length" bugs.
+
 20010227
  - (bal) Applied shutdown() patch for sftp.c by  Corinna Vinschen 
    <vinschen@redhat.com>
@@ -4158,4 +4162,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.836 2001/02/27 03:42:58 djm Exp $
+$Id: ChangeLog,v 1.837 2001/02/27 21:14:40 djm Exp $

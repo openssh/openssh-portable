@@ -58,7 +58,7 @@ void gen_tabs	__P((void));
 
 #define byte(x,n)   ((u1byte)((x) >> (8 * n)))
 
-#if BYTE_ORDER != LITTLE_ENDIAN
+#ifdef WORDS_BIGENDIAN
 #define BYTE_SWAP
 #endif
 
