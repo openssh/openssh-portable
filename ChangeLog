@@ -11,6 +11,8 @@
      [sftp-batch.sh]
  - (dtucker) [configure.ac] Add --without-zlib-version-check.  Feedback from
    tim@, ok several
+ - (dtucker) [configure.ac openbsd-compat/bsd-cray.c openbsd-compat/bsd-cray.h]
+   Bug #775: Cray fixes from wendy at cray.com
 
 20040128
  - (dtucker) [regress/README.regress] Add tcpwrappers issue, noted by tim@
@@ -1780,4 +1782,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3203 2004/01/30 03:20:59 dtucker Exp $
+$Id: ChangeLog,v 1.3204 2004/01/30 03:34:21 dtucker Exp $
