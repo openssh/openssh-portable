@@ -396,7 +396,6 @@ do_exec_no_pty(Session *s, const char *command)
 
 #if defined(USE_PAM)
 	if (options.use_pam) {
-		do_pam_session(s->pw->pw_name, NULL);
 		do_pam_setcred(1);
 		if (is_pam_password_change_required())
 			packet_disconnect("Password change required but no "
@@ -525,7 +524,7 @@ do_exec_pty(Session *s, const char *command)
 
 #if defined(USE_PAM)
 	if (options.use_pam) {
-		do_pam_session(s->pw->pw_name, s->tty);
+		do_pam_set_tty(s->tty);
 		do_pam_setcred(1);
 	}
 #endif
@@ -1205,8 +1204,10 @@ do_setusercontext(struct passwd *pw)
 		 * These will have been wiped by the above initgroups() call.
 		 * Reestablish them here.
 		 */
-		if (options.use_pam)
+		if (options.use_pam) {
+			do_pam_session();
 			do_pam_setcred(0);
+		}
 # endif /* USE_PAM */
 # if defined(WITH_IRIX_PROJECT) || defined(WITH_IRIX_JOBS) || defined(WITH_IRIX_ARRAY)
 		irix_setusercontext(pw);
