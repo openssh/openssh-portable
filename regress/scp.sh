@@ -12,16 +12,16 @@ else
 	DIFFOPT="-r"
 fi
 
-DATA=/bin/ls
+DATA=/bin/ls${EXEEXT}
 COPY=${OBJ}/copy
 COPY2=${OBJ}/copy2
 DIR=${COPY}.dd
 DIR2=${COPY}.dd2
 
 SRC=`dirname ${SCRIPT}`
-cp ${SRC}/scp-ssh-wrapper.sh ${OBJ}/scp-ssh-wrapper.exe
-chmod 755 ${OBJ}/scp-ssh-wrapper.exe
-scpopts="-q -S ${OBJ}/scp-ssh-wrapper.exe"
+cp ${SRC}/scp-ssh-wrapper.sh ${OBJ}/scp-ssh-wrapper.scp
+chmod 755 ${OBJ}/scp-ssh-wrapper.scp
+scpopts="-q -S ${OBJ}/scp-ssh-wrapper.scp"
 
 scpclean() {
 	rm -rf ${COPY} ${COPY2} ${DIR} ${DIR2}
@@ -79,4 +79,4 @@ for i in 0 1 2 3 4; do
 done
 
 scpclean
-rm -f ${OBJ}/scp-ssh-wrapper.exe
+rm -f ${OBJ}/scp-ssh-wrapper.scp
