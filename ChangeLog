@@ -2,6 +2,7 @@
  - (djm) Update config.guess and config.sub with latest versions (from
    ftp://ftp.gnu.org/gnu/config/) to allow configure on ia64-hpux.
    Suggested by Jason Mader <jason@ncac.gwu.edu>
+ - (bal) White Space and #ifdef sync with OpenBSD
 
 20010505
  - OpenBSD CVS Sync
@@ -5347,4 +5348,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1200 2001/05/06 00:54:15 djm Exp $
+$Id: ChangeLog,v 1.1201 2001/05/06 02:53:25 mouring Exp $

@@ -117,8 +117,7 @@ restore_uid(void)
 #ifdef SAVED_IDS_WORK_WITH_SETEUID
 	/* Set the effective uid back to the saved privileged uid. */
 	if (seteuid(saved_euid) < 0)
-		fatal("seteuid %u: %.100s", (u_int) saved_euid, 
-		    strerror(errno));
+		fatal("seteuid %u: %.100s", (u_int) saved_euid, strerror(errno));
 	if (setegid(saved_egid) < 0)
 		fatal("setegid %u: %.100s", (u_int) saved_egid, 
 		    strerror(errno));

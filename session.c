@@ -1404,13 +1404,12 @@ do_child(Session *s, const char *command)
 					    s->auth_data);
 				pclose(f);
 			} else
-				fprintf(stderr, "Could not run %s\n", 
+				fprintf(stderr, "Could not run %s\n",
 				    _PATH_SSH_USER_RC);
 		} else if (stat(_PATH_SSH_SYSTEM_RC, &st) >= 0) {
 			if (debug_flag)
 				fprintf(stderr, "Running %s %s\n", _PATH_BSHELL,
 				    _PATH_SSH_SYSTEM_RC);
-
 			f = popen(_PATH_BSHELL " " _PATH_SSH_SYSTEM_RC, "w");
 			if (f) {
 				if (do_xauth)
