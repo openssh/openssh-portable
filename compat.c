@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: compat.c,v 1.39 2001/03/18 23:30:55 deraadt Exp $");
+RCSID("$OpenBSD: compat.c,v 1.40 2001/03/23 11:04:06 djm Exp $");
 
 #ifdef HAVE_LIBPCRE
 #  include <pcreposix.h>
@@ -69,7 +69,9 @@ compat_datafellows(const char *version)
 	} check[] = {
 		{ "^OpenSSH[-_]2\\.[012]",
 					SSH_OLD_SESSIONID|SSH_BUG_BANNER },
-		{ "^OpenSSH_2\\.3\\.0", SSH_BUG_BANNER },
+		{ "^OpenSSH_2\\.3\\.0", SSH_BUG_BANNER|SSH_BUG_BIGENDIANAES },
+		{ "^OpenSSH_2\\.5\\.[01]p1",
+					SSH_BUG_BIGENDIANAES },
 		{ "^OpenSSH",		0 },
 		{ "MindTerm",		0 },
 		{ "^2\\.1\\.0",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
@@ -148,4 +150,34 @@ proto_spec(const char *spec)
 	}
 	xfree(s);
 	return ret;
+}
+
+char *
+compat_cipher_proposal(char *cipher_prop)
+{
+	char *orig_prop, *fix_ciphers;
+	char *cp, *tmp;
+	size_t len;
+
+	if (!(datafellows & SSH_BUG_BIGENDIANAES))
+		return(cipher_prop);
+
+	len = strlen(cipher_prop) + 1;
+	fix_ciphers = xmalloc(len);
+	*fix_ciphers = '\0';
+	tmp = orig_prop = xstrdup(cipher_prop);
+	while((cp = strsep(&tmp, ",")) != NULL) {
+		if (strncmp(cp, "aes", 3) && strncmp(cp, "rijndael", 8)) {
+			if (*fix_ciphers)
+				strlcat(fix_ciphers, ",", len);
+			strlcat(fix_ciphers, cp, len);
+		}
+	}
+	xfree(orig_prop);
+	debug2("Original cipher proposal: %s", cipher_prop);
+	debug2("Compat cipher proposal: %s", fix_ciphers);
+	if (!*fix_ciphers)
+		fatal("No available ciphers found.");
+
+	return(fix_ciphers);
 }
