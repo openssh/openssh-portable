@@ -1,3 +1,10 @@
+20010928
+ - (djm) OpenBSD CVS sync:
+   - djm@cvs.openbsd.org 2001/09/28 09:49:31
+     [scard.c]
+     Fix segv when smartcard communication error occurs during key load. 
+     ok markus@
+
 20010927
  - (stevesk) session.c: declare do_pre_login() before use
    wayned@users.sourceforge.net
@@ -6573,4 +6580,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1564 2001/09/27 19:50:26 stevesk Exp $
+$Id: ChangeLog,v 1.1565 2001/09/28 09:51:54 djm Exp $
