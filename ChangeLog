@@ -13,6 +13,10 @@
    - millert@cvs.openbsd.org 2003/12/29 16:39:50
      [sshd_config]
      KeepAlive has been obsoleted, use TCPKeepAlive instead; markus@ OK
+   - dtucker@cvs.openbsd.org 2003/12/31 00:24:50
+     [auth2-passwd.c]
+     Ignore password change request during password auth (which we currently
+     don't support) and discard proposed new password.  corrections/ok markus@
 
 20031219
  - (dtucker) [defines.h] Bug #458: Define SIZE_T_MAX as UINT_MAX if we
@@ -1632,4 +1636,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3156 2003/12/31 00:38:32 dtucker Exp $
+$Id: ChangeLog,v 1.3157 2003/12/31 00:43:24 dtucker Exp $
