@@ -40,6 +40,12 @@ RCSID("$OpenBSD: sftp.c,v 1.9 2001/03/03 23:52:22 markus Exp $");
 #include "sftp-client.h"
 #include "sftp-int.h"
 
+#ifdef HAVE___PROGNAME
+extern char *__progname;
+#else
+char *__progname;
+#endif
+
 int use_ssh1 = 0;
 char *ssh_program = _PATH_SSH_PROGRAM;
 char *sftp_server = NULL;
@@ -154,6 +160,7 @@ main(int argc, char **argv)
 	extern int optind;
 	extern char *optarg;
 
+	__progname = get_progname(argv[0]);
 	debug_level = compress_flag = 0;
 
 	while ((ch = getopt(argc, argv, "1hvCo:s:S:")) != -1) {
