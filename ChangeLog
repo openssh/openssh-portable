@@ -3,6 +3,8 @@
    djast AT cs.toronto.edu
  - (djm) Bug #661: Remove duplicate check for basename; from 
    bugzilla-openssh AT thewrittenword.com
+ - (djm) Bug #641: Allow RedHat RPM building without GTK-2; Patch from
+   jason AT devrandom.org
 
 20030918
  - (djm) Bug #652: Fix empty password auth
@@ -1124,4 +1126,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3003 2003/09/19 06:41:01 djm Exp $
+$Id: ChangeLog,v 1.3004 2003/09/19 06:58:21 djm Exp $
