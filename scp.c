@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.95 2002/12/05 11:08:35 markus Exp $");
+RCSID("$OpenBSD: scp.c,v 1.96 2002/12/13 15:20:52 markus Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -1119,13 +1119,19 @@ foregroundproc(void)
 void
 progressmeter(int flag)
 {
+	static const char spaces[] = "                          "
+	    "                                                   "
+	    "                                                   "
+	    "                                                   "
+	    "                                                   "
+	    "                                                   ";
 	static const char prefixes[] = " KMGTP";
 	static struct timeval lastupdate;
 	static off_t lastsize;
 	struct timeval now, td, wait;
-	off_t cursize, abbrevsize;
+	off_t cursize, abbrevsize, bytespersec;
 	double elapsed;
-	int ratio, barlength, i, remaining;
+	int ratio, remaining, i, ai, bi, nspaces;
 	char buf[512];
 
 	if (flag == -1) {
@@ -1145,44 +1151,43 @@ progressmeter(int flag)
 	} else
 		ratio = 100;
 
-	snprintf(buf, sizeof(buf), "\r%-20.20s %3d%% ", curfile, ratio);
-
-	barlength = getttywidth() - 51;
-	if (barlength > 0) {
-		i = barlength * ratio / 100;
-		snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
-		    "|%.*s%*s|", i,
-		    "*******************************************************"
-		    "*******************************************************"
-		    "*******************************************************"
-		    "*******************************************************"
-		    "*******************************************************"
-		    "*******************************************************"
-		    "*******************************************************",
-		    barlength - i, "");
-	}
-	i = 0;
 	abbrevsize = cursize;
-	while (abbrevsize >= 100000 && i < sizeof(prefixes)) {
-		i++;
+	for (ai = 0; abbrevsize >= 10000 && ai < sizeof(prefixes); ai++)
 		abbrevsize >>= 10;
-	}
-	snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf), " %5lu %c%c ",
-	    (unsigned long) abbrevsize, prefixes[i],
-	    prefixes[i] == ' ' ? ' ' : 'B');
 
 	timersub(&now, &lastupdate, &wait);
 	if (cursize > lastsize) {
 		lastupdate = now;
 		lastsize = cursize;
-		if (wait.tv_sec >= STALLTIME) {
-			start.tv_sec += wait.tv_sec;
-			start.tv_usec += wait.tv_usec;
-		}
 		wait.tv_sec = 0;
 	}
 	timersub(&now, &start, &td);
 	elapsed = td.tv_sec + (td.tv_usec / 1000000.0);
+
+	bytespersec = 0;
+	if (statbytes > 0) {
+		bytespersec = statbytes;
+		if (elapsed > 0.0)
+			bytespersec /= elapsed;
+	}
+	for (bi = 1; bytespersec >= 1024000 && bi < sizeof(prefixes); bi++)
+		bytespersec >>= 10;
+
+	nspaces = MIN(getttywidth() - 79, sizeof(spaces) - 1);
+
+	snprintf(buf, sizeof(buf),
+	    "\r%-45.45s%.*s%3d%% %4lld%c%c %3lld.%01d%cB/s",
+	    curfile,
+	    nspaces,
+	    spaces,
+	    ratio,
+	    (long long)abbrevsize,
+	    prefixes[ai],
+	    ai == 0 ? ' ' : 'B',
+	    (long long)(bytespersec / 1024),
+	    (int)((bytespersec % 1024) * 10 / 1024),
+	    prefixes[bi]
+	);
 
 	if (flag != 1 &&
 	    (statbytes <= 0 || elapsed <= 0.0 || cursize > totalbytes)) {

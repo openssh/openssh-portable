@@ -20,17 +20,17 @@
      [auth-krb5.c auth1.c hostfile.h monitor_wrap.c sftp-client.c sftp-int.c ssh-add.c ssh-rsa.c 
       sshconnect.c]
      KNF
-  - markus@cvs.openbsd.org 2002/11/21 23:04:33
+   - markus@cvs.openbsd.org 2002/11/21 23:04:33
      [ssh.c]
      debug->debug2
-  - stevesk@cvs.openbsd.org 2002/11/24 21:46:24
+   - stevesk@cvs.openbsd.org 2002/11/24 21:46:24
      [ssh-keysign.8]
      typo: "the the"
    - wcobb@cvs.openbsd.org 2002/11/26 00:45:03
      [scp.c ssh-keygen.c]
      Remove unnecessary fflush(stderr) calls, stderr is unbuffered by default.
      ok markus@
-  - stevesk@cvs.openbsd.org 2002/11/26 02:35:30
+   - stevesk@cvs.openbsd.org 2002/11/26 02:35:30
      [ssh-keygen.1]
      remove outdated statement; ok markus@ deraadt@
    - stevesk@cvs.openbsd.org 2002/11/26 02:38:54
@@ -48,7 +48,7 @@
      [scp.c]
      use roundup() similar to rcp/util.c and avoid problems with strange
      filesystem block sizes, noted by tjr@freebsd.org; ok djm@
-  - djm@cvs.openbsd.org 2002/12/06 05:20:02
+   - djm@cvs.openbsd.org 2002/12/06 05:20:02
      [sftp.1]
      Fix cut'n'paste error, spotted by matthias.riese@b-novative.de; ok deraadt@
    - millert@cvs.openbsd.org 2002/12/09 16:50:30
@@ -68,6 +68,13 @@
    - markus@cvs.openbsd.org 2002/12/13 10:03:15
      [channels.c misc.c sshconnect2.c]
      cleanup debug messages, more useful information for the client user.
+   - markus@cvs.openbsd.org 2002/12/13 15:20:52
+     [scp.c]
+     1) include stalling time in total time
+     2) truncate filenames to 45 instead of 20 characters
+     3) print rate instead of progress bar, no more stars
+     4) scale output to tty width
+     based on a patch from Niels; ok fries@ lebel@ fgs@ millert@
 
 20021205
  - (djm) PERL-free fixpaths from stuge-openssh-unix-dev@cdy.org
@@ -903,4 +910,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2534 2002/12/23 02:44:36 mouring Exp $
+$Id: ChangeLog,v 1.2535 2002/12/23 02:53:08 mouring Exp $
