@@ -1,3 +1,7 @@
+20040304
+ - (dtucker) [auth-pam.c] Don't try to export PAM when compiled with
+   -DUSE_POSIX_THREADS.  From antoine.verheijen at ualbert ca.  ok djm@
+
 20040229
  - (tim) [configure.ac] Put back bits mistakenly removed from Rev 1.188
 
@@ -1932,4 +1936,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3257.2.1 2004/02/29 23:54:27 tim Exp $
+$Id: ChangeLog,v 1.3257.2.2 2004/03/04 08:53:16 dtucker Exp $
