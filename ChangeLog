@@ -1,6 +1,8 @@
 20000305
  - Fix DEC compile fix
  - Explicitly seed OpenSSL's PRNG before checking rsa_alive()
+ - Check for getpagesize in libucb.a if not found in libc. Fix for old
+   Solaris from Andre Lucas <andre.lucas@dial.pipex.com>
 
 20000303
  - Added "make host-key" target, Suggestion from Dominik Brettnacher

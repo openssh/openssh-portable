@@ -92,6 +92,9 @@
 /* Define if your libraries define daemon() */
 #undef HAVE_DAEMON
 
+/* Define if your libraries define getpagesize() */
+#undef HAVE_GETPAGESIZE
+
 /* Define if xauth is found in your path */
 #undef XAUTH_PATH
 
