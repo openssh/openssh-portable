@@ -1,3 +1,5 @@
+/* OPENBSD ORIGINAL: lib/libc/stdlib/realpath.c */
+
 /*
  * Copyright (c) 1994
  *	The Regents of the University of California.  All rights reserved.

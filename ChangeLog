@@ -17,6 +17,8 @@
    - dtucker@cvs.openbsd.org 2003/11/24 00:16:35
      [ssh.1 ssh.c]
      Make ssh -k mean GSSAPIDelegateCredentials=no. Suggestion & ok markus@
+ - (djm) Annotate OpenBSD-derived files in openbsd-compat/ with original 
+   source file path (in OpenBSD tree).
 
 20031122
  - (dtucker) [channels.c] Make AIX write limit code clearer.  Suggested by djm@
@@ -1530,4 +1532,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3129 2003/11/24 02:10:09 djm Exp $
+$Id: ChangeLog,v 1.3130 2003/11/24 02:33:34 djm Exp $

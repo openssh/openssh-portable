@@ -1,3 +1,5 @@
+/* OPENBSD ORIGINAL: lib/libc/net/getrrsetbyname.c */
+
 /* $OpenBSD: getrrsetbyname.c,v 1.7 2003/03/07 07:34:14 itojun Exp $ */
 
 /*

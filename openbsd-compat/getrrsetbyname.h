@@ -1,3 +1,5 @@
+/* OPENBSD BASED ON : include/netdb.h */
+
 /* $OpenBSD: getrrsetbyname.c,v 1.4 2001/08/16 18:16:43 ho Exp $ */
 
 /*
