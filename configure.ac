@@ -1,4 +1,4 @@
-i# $Id: configure.ac,v 1.13 2002/01/22 12:51:43 djm Exp $
+i# $Id: configure.ac,v 1.14 2002/01/22 21:12:37 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -915,10 +915,12 @@ AC_ARG_WITH(prngd-socket,
 			if test ! -z "$PRNGD_PORT" ; then
 				AC_MSG_ERROR(You may not specify both a PRNGD/EGD port and socket)
 			fi
-			if ! echo "$withval" | grep -q '^/' ; then 
+			if echo "$withval" | grep '^/' >/dev/null 2>&1 ; then 
+				# Good
+			else
 				AC_MSG_ERROR(You must specify an absolute path to the entropy socket)
 			fi			
-			if ! test -r "$withval" ; then
+			if test ! -r "$withval" ; then
 				AC_MSG_WARN(Entropy socket is not readable)
 			fi
 			PRNGD_SOCKET="$withval"
