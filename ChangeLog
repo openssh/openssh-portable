@@ -31,6 +31,8 @@
  - (dtucker) [configure.ac] Don't set DISABLE_SHADOW when configuring
    --with-pam.  ok djm@
  - (dtucker) [ssh-gss.h] Prototype change missed in sync.
+ - (dtucker) [session.c] Fix bus errors on some 64-bit Solaris configurations.
+   Based on patches by Matthias Koeppe and Thomas Baden.  ok djm@
 
 20030930
  - (bal) Fix issues in openbsd-compat/realpath.c
@@ -1266,4 +1268,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3052 2003/10/02 07:32:30 dtucker Exp $
+$Id: ChangeLog,v 1.3053 2003/10/02 10:07:09 dtucker Exp $

@@ -906,7 +906,7 @@ read_etc_default_login(char ***env, u_int *envsize, uid_t uid)
 {
 	char **tmpenv = NULL, *var;
 	u_int i, tmpenvsize = 0;
-	mode_t mask;
+	u_long mask;
 
 	/*
 	 * We don't want to copy the whole file to the child's environment,
@@ -927,7 +927,7 @@ read_etc_default_login(char ***env, u_int *envsize, uid_t uid)
 	
 	if ((var = child_get_env(tmpenv, "UMASK")) != NULL)
 		if (sscanf(var, "%5lo", &mask) == 1)
-			umask(mask);
+			umask((mode_t)mask);
 	
 	for (i = 0; tmpenv[i] != NULL; i++)
 		xfree(tmpenv[i]);
