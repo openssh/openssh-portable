@@ -36,6 +36,8 @@ case "$host" in
 	fi
 	AC_CHECK_FUNC(authenticate, [AC_DEFINE(WITH_AIXAUTHENTICATE)])
 	AC_DEFINE(BROKEN_GETADDRINFO)
+	MANTYPE='$(CATMAN)'
+	mansubdir=cat
 	dnl AIX handles lastlog as part of its login message
 	AC_DEFINE(DISABLE_LASTLOG)
 	;;
@@ -994,7 +996,7 @@ AC_TRY_COMPILE([
 		[ char *lastlog = _PATH_LASTLOG; ],
 		[ AC_MSG_RESULT(yes) ],
 		[
-			AC_MSG_RESULT(no),
+			AC_MSG_RESULT(no)
 			system_lastlog_path=no
 		])
 	]
