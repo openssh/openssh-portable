@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.21 2002/02/26 16:40:49 tim Exp $
+# $Id: configure.ac,v 1.22 2002/02/27 06:05:12 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -649,7 +649,12 @@ AC_ARG_WITH(pam,
 			PAM_MSG="yes"
 
 			AC_DEFINE(USE_PAM)
-			AC_SUBST(LIBPAM, ["-lpam -ldl"])
+			if test $ac_cv_lib_dl_dlopen = yes; then
+				LIBPAM="-lpam -ldl"
+			else
+				LIBPAM="-lpam"
+			fi
+			AC_SUBST(LIBPAM)
 		fi
 	]
 )
@@ -2250,7 +2255,10 @@ fi
 
 dnl remove pam and dl because they are in $LIBPAM
 if test "$PAM_MSG" = yes ; then
-	LIBS=`echo $LIBS | sed 's/-lpam -ldl //'`
+	LIBS=`echo $LIBS | sed 's/-lpam //'`
+fi
+if test "$ac_cv_lib_pam_pam_set_item" = yes ; then
+	LIBS=`echo $LIBS | sed 's/-ldl //'`
 fi
 
 AC_EXEEXT

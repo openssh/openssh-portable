@@ -13,6 +13,7 @@
    reported by peak@argo.troja.mff.cuni.cz (Pavel Kankovsky)
    [configure.ac defines.h] modify previous SCO3 fix to not break Solaris 7
    [acconfig.h] remove unused HAVE_REGCOMP
+   [configure.ac] put back in search for prngd-socket
  - (stevesk) openbsd-compat/base64.h: typo in comment
  - (bal) Update sshd_config CVSID
  - (bal) OpenBSD CVS Sync
@@ -52,6 +53,7 @@
      [ssh-keygen.c sshconnect2.c uuencode.c uuencode.h]
      more u_* fixes
  - (bal) Imported missing fatal.c and fixed up Makefile.in
+ - (tim) [configure.ac] correction to Bug 123 fix
 
 20020225
  - (bal) Last AIX patch.  Moved aix_usrinfo() outside of do_setuserconext()
@@ -7725,4 +7727,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1888 2002/02/26 19:24:21 mouring Exp $
+$Id: ChangeLog,v 1.1889 2002/02/27 06:05:11 tim Exp $
