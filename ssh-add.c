@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.41 2001/06/25 08:25:40 markus Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.42 2001/06/26 04:59:59 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -150,6 +150,17 @@ add_file(AuthenticationConnection *ac, const char *filename)
 }
 
 static void
+update_card(AuthenticationConnection *ac, int add, int id)
+{
+	if (ssh_update_card(ac, add, id))
+		fprintf(stderr, "Card %s: %d\n",
+		     add ? "added" : "removed", id);
+	else
+		fprintf(stderr, "Could not %s card: %d\n",
+		     add ? "add" : "remove", id);
+}
+
+static void
 list_identities(AuthenticationConnection *ac, int do_fp)
 {
 	Key *key;
@@ -181,6 +192,18 @@ list_identities(AuthenticationConnection *ac, int do_fp)
 		printf("The agent has no identities.\n");
 }
 
+static void
+usage(void)
+{
+	printf("Usage: ssh-add [options]\n");
+	printf("    -l, -L        : list identities\n");
+	printf("    -d            : delete identity\n");
+	printf("    -D            : delete all identities\n");
+	printf("    -s reader_num : add key in the smartcard in reader_num.\n");
+	printf("    -e reader_num : remove key in the smartcard in reader_num.\n");
+	exit (1);
+}
+
 int
 main(int argc, char **argv)
 {
@@ -190,6 +213,8 @@ main(int argc, char **argv)
 	int no_files = 1;
 	int i;
 	int deleting = 0;
+	int sc_mode = 0;
+	int sc_reader_num = 0;
 
 	__progname = get_progname(argv[0]);
 	init_rng();
@@ -220,11 +245,36 @@ main(int argc, char **argv)
 			no_files = 0;
 			continue;
 		}
+		if (strcmp(argv[i], "-s") == 0) {
+			sc_mode = 1;
+			deleting = 0; 
+			i++;
+			if (i >= argc)
+				usage();
+			sc_reader_num = atoi(argv[i]);
+			continue; 
+		}
+		if (strcmp(argv[i], "-e") == 0) {
+			sc_mode = 1;
+			deleting = 1; 
+			i++;
+			if (i >= argc)
+				usage();
+			sc_reader_num = atoi(argv[i]);
+			continue; 
+		}
+		if (sc_mode == 1)
+			update_card(ac, !deleting, sc_reader_num);
 		no_files = 0;
 		if (deleting)
 			delete_file(ac, argv[i]);
 		else
 			add_file(ac, argv[i]);
+	}
+	if (sc_mode == 1) {
+		update_card(ac, !deleting, sc_reader_num);
+		ssh_close_authentication_connection(ac);
+		exit(0);
 	}
 	if (no_files) {
 		pw = getpwuid(getuid());

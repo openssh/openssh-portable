@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: authfd.h,v 1.16 2000/12/20 19:37:21 markus Exp $"); */
+/* RCSID("$OpenBSD: authfd.h,v 1.17 2001/06/26 04:59:59 markus Exp $"); */
 
 #ifndef AUTHFD_H
 #define AUTHFD_H
@@ -37,6 +37,10 @@
 #define SSH2_AGENTC_ADD_IDENTITY		17
 #define SSH2_AGENTC_REMOVE_IDENTITY		18
 #define SSH2_AGENTC_REMOVE_ALL_IDENTITIES	19
+
+/* smartcard */
+#define SSH_AGENTC_ADD_SMARTCARD_KEY		20
+#define SSH_AGENTC_REMOVE_SMARTCARD_KEY	        21
 
 /* additional error code for ssh.com's ssh-agent2 */
 #define SSH_COM_AGENT2_FAILURE                   102
@@ -133,6 +137,8 @@ int     ssh_remove_identity(AuthenticationConnection *auth, Key *key);
  * meant to be used by normal applications.  This returns true if the
  * operation was successful.
  */
-int     ssh_remove_all_identities(AuthenticationConnection *auth, int version);
+int	ssh_remove_all_identities(AuthenticationConnection *auth, int version);
+
+int	ssh_update_card(AuthenticationConnection *auth, int add, int reader_id);
 
 #endif				/* AUTHFD_H */

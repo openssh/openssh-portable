@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfd.c,v 1.41 2001/06/23 15:12:17 itojun Exp $");
+RCSID("$OpenBSD: authfd.c,v 1.42 2001/06/26 04:59:59 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -525,6 +525,25 @@ ssh_remove_identity(AuthenticationConnection *auth, Key *key)
 		buffer_free(&msg);
 		return 0;
 	}
+	if (ssh_request_reply(auth, &msg, &msg) == 0) {
+		buffer_free(&msg);
+		return 0;
+	}
+	type = buffer_get_char(&msg);
+	buffer_free(&msg);
+	return decode_reply(type);
+}
+
+int
+ssh_update_card(AuthenticationConnection *auth, int add, int reader_id)
+{
+	Buffer msg;
+	int type;
+
+	buffer_init(&msg);
+	buffer_put_char(&msg, add ? SSH_AGENTC_ADD_SMARTCARD_KEY :
+	    SSH_AGENTC_REMOVE_SMARTCARD_KEY);
+	buffer_put_int(&msg, reader_id);
 	if (ssh_request_reply(auth, &msg, &msg) == 0) {
 		buffer_free(&msg);
 		return 0;
