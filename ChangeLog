@@ -6,6 +6,7 @@
    rename handling for Linux which returns EPERM for link() on (at least some)
    filesystems that do not support hard links.  sftp-server will fall back to
    stat+rename() in such cases.
+ - (dtucker) [openbsd-compat/port-aix.c] Missing __func__.
 
 20040626
  - (djm) OpenBSD CVS Sync
@@ -1442,4 +1443,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3456 2004/06/28 06:01:19 dtucker Exp $
+$Id: ChangeLog,v 1.3457 2004/06/28 08:11:19 dtucker Exp $

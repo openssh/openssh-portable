@@ -181,7 +181,7 @@ sys_auth_allowed_user(struct passwd *pw)
 	 * loginrestrictions will always fail due to insufficient privilege).
 	 */
 	if (pw->pw_uid == 0 || geteuid() != 0) {
-		debug3("%s: not checking");
+		debug3("%s: not checking", __func__);
 		return 1;
 	}
 
