@@ -91,15 +91,20 @@ make install
 This will install the binaries in /opt/{bin,lib,sbin}, but will place the
 configuration files in /etc/ssh.
 
-If you are using PAM, you may need to manually install a PAM
-control file as "/etc/pam.d/sshd" (or wherever your system
-prefers to keep them). A generic PAM configuration is included as
-"contrib/sshd.pam.generic", you may need to edit it before using it on
-your system. If you are using a recent version of Red Hat Linux, the
-config file in contrib/redhat/sshd.pam should be more useful. 
-Failure to install a valid PAM file may result in an inability to
-use password authentication.  On HP-UX 11, the standard /etc/pam.conf
-configuration will work with sshd (sshd will match the OTHER service
+If you are using PAM, you may need to manually install a PAM control
+file as "/etc/pam.d/sshd" (or wherever your system prefers to keep
+them).  Note that the service name used to start PAM is __progname,
+which is the basename of the path of your sshd (e.g., the service name
+for /usr/sbin/osshd will be osshd).  If you have renamed your sshd
+executable, your PAM configuration may need to be modified.
+
+A generic PAM configuration is included as "contrib/sshd.pam.generic",
+you may need to edit it before using it on your system. If you are
+using a recent version of Red Hat Linux, the config file in
+contrib/redhat/sshd.pam should be more useful.  Failure to install a
+valid PAM file may result in an inability to use password
+authentication.  On HP-UX 11 and Solaris, the standard /etc/pam.conf
+configuration will work with sshd (sshd will match the other service
 name).
 
 There are a few other options to the configure script:
@@ -222,4 +227,4 @@ Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
 
 
-$Id: INSTALL,v 1.42 2001/03/03 13:29:21 djm Exp $
+$Id: INSTALL,v 1.43 2001/04/20 20:56:21 stevesk Exp $
