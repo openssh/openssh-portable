@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keysign.c,v 1.14 2003/11/17 09:45:39 djm Exp $");
+RCSID("$OpenBSD: ssh-keysign.c,v 1.15 2004/01/19 21:25:15 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/rand.h>
@@ -126,6 +126,7 @@ valid_request(struct passwd *pw, char *host, Key **ret, u_char *data,
 	/* end of message */
 	if (buffer_len(&b) != 0)
 		fail++;
+	buffer_free(&b);
 
 	debug3("valid_request: fail %d", fail);
 

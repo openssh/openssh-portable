@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.133 2003/11/21 11:57:03 djm Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.134 2004/01/19 21:25:15 markus Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -1267,7 +1267,7 @@ ssh_keysign(Key *key, u_char **sigp, u_int *lenp,
 
 	if (ssh_msg_recv(from[0], &b) < 0) {
 		error("ssh_keysign: no reply");
-		buffer_clear(&b);
+		buffer_free(&b);
 		return -1;
 	}
 	close(from[0]);
@@ -1279,11 +1279,11 @@ ssh_keysign(Key *key, u_char **sigp, u_int *lenp,
 
 	if (buffer_get_char(&b) != version) {
 		error("ssh_keysign: bad version");
-		buffer_clear(&b);
+		buffer_free(&b);
 		return -1;
 	}
 	*sigp = buffer_get_string(&b, lenp);
-	buffer_clear(&b);
+	buffer_free(&b);
 
 	return 0;
 }

@@ -20,6 +20,9 @@
      fake consumption for half closed channels since the peer is waiting for
      window adjust messages; bugzilla #790 Matthew Dillon; test + ok dtucker@
      reproduce with sh -c 'ulimit -f 10; ssh host -n od /bsd | cat > foo'
+   - markus@cvs.openbsd.org 2004/01/19 21:25:15
+     [auth2-hostbased.c auth2-pubkey.c serverloop.c ssh-keysign.c sshconnect2.c]
+     fix mem leaks; some fixes from Pete Flugstad; tested dtucker@
 
 20040114
  - (dtucker) [auth-pam.c] Have monitor die if PAM authentication thread exits
@@ -1689,4 +1692,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3174 2004/01/21 00:02:09 djm Exp $
+$Id: ChangeLog,v 1.3175 2004/01/21 00:02:50 djm Exp $

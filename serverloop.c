@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.114 2003/12/09 15:28:43 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.115 2004/01/19 21:25:15 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -850,7 +850,7 @@ server_input_window_size(int type, u_int32_t seq, void *ctxt)
 }
 
 static Channel *
-server_request_direct_tcpip(char *ctype)
+server_request_direct_tcpip(void)
 {
 	Channel *c;
 	int sock;
@@ -872,14 +872,14 @@ server_request_direct_tcpip(char *ctype)
 	xfree(originator);
 	if (sock < 0)
 		return NULL;
-	c = channel_new(ctype, SSH_CHANNEL_CONNECTING,
+	c = channel_new("direct-tcpip", SSH_CHANNEL_CONNECTING,
 	    sock, sock, -1, CHAN_TCP_WINDOW_DEFAULT,
 	    CHAN_TCP_PACKET_DEFAULT, 0, "direct-tcpip", 1);
 	return c;
 }
 
 static Channel *
-server_request_session(char *ctype)
+server_request_session(void)
 {
 	Channel *c;
 
@@ -891,7 +891,7 @@ server_request_session(char *ctype)
 	 * SSH_CHANNEL_LARVAL.  Additionally, a callback for handling all
 	 * CHANNEL_REQUEST messages is registered.
 	 */
-	c = channel_new(ctype, SSH_CHANNEL_LARVAL,
+	c = channel_new("session", SSH_CHANNEL_LARVAL,
 	    -1, -1, -1, /*window size*/0, CHAN_SES_PACKET_DEFAULT,
 	    0, "server-session", 1);
 	if (session_open(the_authctxt, c->self) != 1) {
@@ -920,9 +920,9 @@ server_input_channel_open(int type, u_int32_t seq, void *ctxt)
 	    ctype, rchan, rwindow, rmaxpack);
 
 	if (strcmp(ctype, "session") == 0) {
-		c = server_request_session(ctype);
+		c = server_request_session();
 	} else if (strcmp(ctype, "direct-tcpip") == 0) {
-		c = server_request_direct_tcpip(ctype);
+		c = server_request_direct_tcpip();
 	}
 	if (c != NULL) {
 		debug("server_input_channel_open: confirm %s", ctype);
