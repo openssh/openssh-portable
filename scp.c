@@ -1212,7 +1212,7 @@ progressmeter(int flag)
 	if (flag == -1) {
 		struct sigaction sa;
 		sa.sa_handler = updateprogressmeter;
-		sigemptyset(&sa.sa_mask);
+		sigemptyset((sigset_t *)&sa.sa_mask);
 #ifdef SA_RESTART
 		sa.sa_flags = SA_RESTART;
 #endif

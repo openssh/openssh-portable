@@ -10,15 +10,10 @@
 #include <libc.h>
 #include <sys/dir.h>
 
-#define NAME_MAX 255
-struct dirent {
-	off_t   d_off;
-	unsigned long   d_fileno;
-	unsigned short  d_reclen;
-	unsigned short  d_namlen;
-	char    d_name[NAME_MAX + 1];
-};
+/* readdir() returns struct direct (BSD) not struct dirent (POSIX) */
+#define dirent direct                                                
 
+/* POSIX utime() struct */
 struct utimbuf {
 	time_t  actime;
 	time_t  modtime;
@@ -32,15 +27,22 @@ struct utimbuf {
 #undef WIFSTOPPED
 #undef WIFSIGNALED
 
-#define _W_INT(w)	(*(int*)&(w))	/* convert union wait to int */
-#define WIFEXITED(w)	(!((_W_INT(w)) & 0377))
-#define WIFSTOPPED(w)	((_W_INT(w)) & 0100)
+#define WIFEXITED(w)	(!((w) & 0377))
+#define WIFSTOPPED(w)	((w) & 0100)
 #define WIFSIGNALED(w)	(!WIFEXITED(w) && !WIFSTOPPED(w))
-#define WEXITSTATUS(w)	(int)(WIFEXITED(w) ? ((_W_INT(w) >> 8) & 0377) : -1)
-#define WTERMSIG(w)	(int)(WIFSIGNALED(w) ? (_W_INT(w) & 0177) : -1)
+#define WEXITSTATUS(w)	(int)(WIFEXITED(w) ? ((w >> 8) & 0377) : -1)
+#define WTERMSIG(w)	(int)(WIFSIGNALED(w) ? (w & 0177) : -1)
 #define WCOREFLAG	0x80
-#define WCOREDUMP(w) 	((_W_INT(w)) & WCOREFLAG)
+#define WCOREDUMP(w) 	((w) & WCOREFLAG)
 
+/* POSIX "wrapper" functions to replace to BSD functions */
+int posix_utime(char *filename, struct utimbuf *buf);	/* new utime() */
+#define utime posix_utime
+
+pid_t posix_wait(int *status);				/* new wait() */
+#define wait posix_wait	
+
+/* MISC functions */
 int waitpid(int pid,int *stat_loc,int options);
 #define getpgrp()	getpgrp(0)
 pid_t setsid(void);

@@ -2,7 +2,35 @@
 
 #ifdef HAVE_NEXT
 #include <errno.h>
+#include <sys/wait.h>
 #include "next-posix.h"
+
+pid_t 
+posix_wait(int *status)
+{
+	#undef wait			/* Use NeXT's wait() function */
+	union wait statusp;
+	pid_t wait_pid;
+
+	wait_pid = wait(&statusp);
+	status = (int *) statusp.w_status;
+
+	return wait_pid;
+}
+
+
+int                                          
+posix_utime(char *filename,struct utimbuf *buf)
+{                                            
+        time_t timep[2];                     
+                                             
+        timep[0] = buf->actime;              
+        timep[1] = buf->modtime;             
+
+        #undef utime			/* Use NeXT's utime() function */ 
+        return utime(filename,timep);        
+}                                            
+
 
 int
 waitpid(int	pid, int	*stat_loc, int	options)

@@ -47,6 +47,7 @@ Kevin O'Connor <kevin_oconnor@standardandpoors.com> - RSAless operation
 Kiyokazu SUTO <suto@ks-and-ks.ne.jp> - Bugfixes
 Lutz Jaenicke <Lutz.Jaenicke@aet.TU-Cottbus.DE> - Bugfixes
 Marc G. Fournier <marc.fournier@acadiau.ca> - Solaris patches
+Mark Miller <markm@swoon.net> - Bugfixes
 Matt Richards <v2matt@btv.ibm.com> - AIX patches
 Michael Stone <mstone@cs.loyola.edu> - Irix enhancements
 Nalin Dahyabhai <nalin.dahyabhai@pobox.com> - PAM environment patch

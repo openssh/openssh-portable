@@ -126,7 +126,6 @@ case "$host" in
 	MAIL=/usr/spool/mail
 	AC_DEFINE(HAVE_NEXT)
 	CFLAGS="$CFLAGS -I/usr/local/include"
-	AC_MSG_WARN([*** Tested: PA-RISC/m68k  Untested: Sparc/Intel])
 	;;
 *-*-solaris*)
 	CFLAGS="$CFLAGS -I/usr/local/include"
