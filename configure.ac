@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.232 2004/11/02 09:30:54 dtucker Exp $
+# $Id: configure.ac,v 1.233 2004/11/07 09:14:34 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -852,6 +852,22 @@ AC_ARG_WITH(tcp-wrappers,
 			LIBS="$saved_LIBS"
 		fi
 	]
+)
+
+# Check whether user wants libedit support
+LIBEDIT_MSG="no"
+AC_ARG_WITH(libedit,
+	[  --with-libedit[[=PATH]]      Enable libedit support for sftp],
+	[ if test "x$withval" != "xno" ; then
+		AC_CHECK_LIB(edit, el_init,
+			[ AC_DEFINE(USE_LIBEDIT, [], [Use libedit for sftp])
+			  LIBEDIT="-ledit -lcurses"
+			  LIBEDIT_MSG="yes"
+			  AC_SUBST(LIBEDIT)
+			],
+			[], [-lcurses]
+		)
+	fi ]
 )
 
 dnl    Checks for library functions. Please keep in alphabetical order
@@ -3046,6 +3062,7 @@ echo "                 Smartcard support: $SCARD_MSG"
 echo "                     S/KEY support: $SKEY_MSG"
 echo "              TCP Wrappers support: $TCPW_MSG"
 echo "              MD5 password support: $MD5_MSG"
+echo "                   libedit support: $LIBEDIT_MSG"
 echo "       IP address in \$DISPLAY hack: $DISPLAY_HACK_MSG"
 echo "           Translate v4 in v6 hack: $IPV4_IN6_HACK_MSG"
 echo "                  BSD Auth support: $BSD_AUTH_MSG"

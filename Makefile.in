@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.265 2004/08/30 11:33:02 dtucker Exp $
+# $Id: Makefile.in,v 1.266 2004/11/07 09:14:34 dtucker Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -43,6 +43,7 @@ LD=@LD@
 CFLAGS=@CFLAGS@
 CPPFLAGS=-I. -I$(srcdir) @CPPFLAGS@ $(PATHS) @DEFS@
 LIBS=@LIBS@
+LIBEDIT=@LIBEDIT@
 LIBPAM=@LIBPAM@
 LIBWRAP=@LIBWRAP@
 AR=@AR@
@@ -158,7 +159,7 @@ sftp-server$(EXEEXT): $(LIBCOMPAT) libssh.a sftp.o sftp-common.o sftp-server.o
 	$(LD) -o $@ sftp-server.o sftp-common.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
 sftp$(EXEEXT): $(LIBCOMPAT) libssh.a sftp.o sftp-client.o sftp-common.o sftp-glob.o progressmeter.o
-	$(LD) -o $@ progressmeter.o sftp.o sftp-client.o sftp-common.o sftp-glob.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
+	$(LD) -o $@ progressmeter.o sftp.o sftp-client.o sftp-common.o sftp-glob.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) $(LIBEDIT)
 
 ssh-rand-helper${EXEEXT}: $(LIBCOMPAT) libssh.a ssh-rand-helper.o
 	$(LD) -o $@ ssh-rand-helper.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
