@@ -6,9 +6,9 @@ tid="dynamic forwarding"
 PORT=4242
 FWDPORT=4243
 
-if [ -x `which nc 2>&1` ] && nc -h 2>&1 | grep "x proxy address" >/dev/null; then
+if [ -x "`which nc 2>&1`" ] && nc -h 2>&1 | grep "x proxy address" >/dev/null; then
 	proxycmd="nc -x 127.0.0.1:$FWDPORT -X"
-elif [ -x `which connect 2>&1` ]; then
+elif [ -x "`which connect 2>&1`" ]; then
 	proxycmd="connect -S 127.0.0.1:$FWDPORT -"
 else
 	echo "skipped (no suitable ProxyCommand found)"

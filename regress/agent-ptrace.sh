@@ -3,7 +3,7 @@
 
 tid="disallow agent ptrace attach"
 
-if [ -x `which uname 2>&1` ]; then
+if [ -x "`which uname 2>&1`" ]; then
 	case `uname` in
 	Linux|HP-UX|SunOS|NetBSD|AIX|CYGWIN*)
 		echo "skipped (not supported on this platform)"
@@ -12,7 +12,7 @@ if [ -x `which uname 2>&1` ]; then
 	esac
 fi
 
-if [ ! -x `which gdb 2>&1` ]; then
+if [ ! -x "`which gdb 2>&1`" ]; then
 	echo "skipped (gdb not found)"
 	exit 0
 fi
