@@ -41,7 +41,7 @@ struct addrinfo *ai;
   do {
     next = ai->ai_next;
     free(ai);
-  } while (ai = next);
+  } while (NULL != (ai = next));
 }
 #endif /* !HAVE_FREEADDRINFO */
 
@@ -53,8 +53,8 @@ u_long addr;
 {
   struct addrinfo *ai;
 
-  if (ai = (struct addrinfo *)malloc(sizeof(struct addrinfo) +
-				     sizeof(struct sockaddr_in))) {
+  if (NULL != (ai = (struct addrinfo *)malloc(sizeof(struct addrinfo) +
+				     sizeof(struct sockaddr_in)))) {
     memset(ai, 0, sizeof(struct addrinfo) + sizeof(struct sockaddr_in));
     ai->ai_addr = (struct sockaddr *)(ai + 1);
     /* XXX -- ssh doesn't use sa_len */
@@ -83,25 +83,25 @@ struct addrinfo **res;
   else
     port = 0;
   if (hints && hints->ai_flags & AI_PASSIVE)
-    if (*res = malloc_ai(port, htonl(0x00000000)))
+    if (NULL != (*res = malloc_ai(port, htonl(0x00000000))))
       return 0;
     else
       return EAI_MEMORY;
   if (!hostname)
-    if (*res = malloc_ai(port, htonl(0x7f000001)))
+    if (NULL != (*res = malloc_ai(port, htonl(0x7f000001))))
       return 0;
     else
       return EAI_MEMORY;
   if (inet_addr(hostname) != -1)
-    if (*res = malloc_ai(port, inet_addr(hostname)))
+    if (NULL != (*res = malloc_ai(port, inet_addr(hostname))))
       return 0;
     else
       return EAI_MEMORY;
   if ((hp = gethostbyname(hostname)) &&
       hp->h_name && hp->h_name[0] && hp->h_addr_list[0]) {
     for (i = 0; hp->h_addr_list[i]; i++)
-      if (cur = malloc_ai(port,
-			  ((struct in_addr *)hp->h_addr_list[i])->s_addr)) {
+      if (NULL != (cur = malloc_ai(port, 
+			((struct in_addr *)hp->h_addr_list[i])->s_addr))) {
 	if (prev)
 	  prev->ai_next = cur;
 	else

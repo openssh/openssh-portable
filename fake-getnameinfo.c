@@ -46,8 +46,8 @@ int flags;
 	return 0;
       }
     else
-      if (hp = gethostbyaddr((char *)&sin->sin_addr, sizeof(struct in_addr),
-			     AF_INET))
+      if (NULL != (hp = gethostbyaddr((char *)&sin->sin_addr, 
+			sizeof(struct in_addr), AF_INET)))
 	if (strlen(hp->h_name) > hostlen)
 	  return EAI_MEMORY;
 	else {

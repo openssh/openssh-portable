@@ -41,7 +41,7 @@
 # include <ssl/sha.h>
 #endif
 
-RCSID("$Id: entropy.c,v 1.3 2000/04/04 05:04:10 damien Exp $");
+RCSID("$Id: entropy.c,v 1.4 2000/04/08 07:48:56 damien Exp $");
 
 #ifdef EGD_SOCKET
 #ifndef offsetof
@@ -197,7 +197,6 @@ entropy_source_t entropy_sources[] = {
 #endif
 	{ 0.000, NULL,          { NULL, NULL, NULL, NULL, NULL } },
 };
-
 
 double 
 stir_from_system(void)

@@ -9,6 +9,8 @@
 
 #include <netinet/in.h> /* For IPv6 macros */
 
+#include <netinet/ip.h> /* For IPTOS macros */
+
 #ifdef HAVE_SYS_BITYPES_H
 # include <sys/bitypes.h> /* For u_intXX_t */
 #endif 
@@ -54,6 +56,14 @@ enum
 # define SHUT_WR   SHUT_WR
 # define SHUT_RDWR SHUT_RDWR
 #endif
+
+#ifndef IPTOS_LOWDELAY
+# define IPTOS_LOWDELAY          0x10
+# define IPTOS_THROUGHPUT        0x08
+# define IPTOS_RELIABILITY       0x04
+# define IPTOS_LOWCOST           0x02
+# define IPTOS_MINCOST           IPTOS_LOWCOST
+#endif /* IPTOS_LOWDELAY */
 
 /* Types */
 
