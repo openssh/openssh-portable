@@ -70,6 +70,7 @@ Simon Wilkinson <sxw@dcs.ed.ac.uk> - PAM fixes
 Svante Signell <svante.signell@telia.com> - Bugfixes
 Thomas Neumann <tom@smart.ruhr.de> - Shadow passwords
 Tim Rice <tim@multitalents.net> - Portability & SCO fixes
+Tobias Oetiker <oetiker@ee.ethz.ch> - Bugfixes
 Tom Bertelson's <tbert@abac.com> - AIX auth fixes
 Tor-Ake Fransson <torake@hotmail.com> - AIX support
 Tudor Bosman <tudorb@jm.nu> - MD5 password support
