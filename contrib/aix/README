@@ -25,6 +25,10 @@ Other notes:
 The script treats all packages as USR packages (not ROOT+USR when
 appropriate).  It seems to work, though......
 
+If there are any patches to this that have not yet been integrated they
+may be found at http://www.zip.com.au/~dtucker/openssh/ or
+http://home.usf.advantra.com.au/~dtucker/openssh/.
+
 
 Disclaimer:
 

@@ -25,6 +25,7 @@
    - markus@cvs.openbsd.org 2002/06/25 18:51:04
      [sshd.c]
      lightweight do_setusercontext after chroot()
+ - (bal) Updated AIX package build.  Patch by dtucker@zip.com.au
 
 20020625
  - (stevesk) [INSTALL acconfig.h configure.ac defines.h] remove --with-rsh
@@ -1124,4 +1125,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2281 2002/06/25 23:24:18 mouring Exp $
+$Id: ChangeLog,v 1.2282 2002/06/25 23:38:47 mouring Exp $
