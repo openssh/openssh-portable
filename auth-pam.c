@@ -36,7 +36,7 @@
 
 extern char *__progname;
 
-RCSID("$Id: auth-pam.c,v 1.45 2002/04/26 01:27:24 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.46 2002/05/08 02:27:56 djm Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now"
@@ -298,6 +298,9 @@ void do_pam_session(char *username, const char *ttyname)
 void do_pam_setcred(int init)
 {
 	int pam_retval;
+
+	if (__pamh == NULL)
+		return;
 
 	do_pam_set_conv(&conv);
 

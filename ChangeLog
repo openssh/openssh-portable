@@ -2,7 +2,9 @@
  - (djm) Unbreak auth-passwd.c for PAM and SIA
  - (djm) Unbreak PAM auth for protocol 1. Report from Pekka Savola 
    <pekkas@netcore.fi>
-
+ - (djm) Don't reinitialise PAM credentials before we have started PAM.
+   Report from Pekka Savola <pekkas@netcore.fi>
+   
 20020506
  - (bal) Fixed auth-passwd.c to resolve PermitEmptyPassword issue
  
@@ -533,4 +535,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2094 2002/05/08 02:24:42 djm Exp $
+$Id: ChangeLog,v 1.2095 2002/05/08 02:27:55 djm Exp $
