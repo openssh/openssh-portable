@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.132 2002/03/19 10:49:35 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.133 2002/03/28 15:34:51 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -648,9 +648,11 @@ do_login(Session *s, const char *command)
 	}
 
 	/* Record that there was a login on that tty from the remote host. */
-	record_login(pid, s->tty, pw->pw_name, pw->pw_uid,
-	    get_remote_name_or_ip(utmp_len, options.verify_reverse_mapping),
-	    (struct sockaddr *)&from);
+	if (!use_privsep)
+		record_login(pid, s->tty, pw->pw_name, pw->pw_uid,
+		    get_remote_name_or_ip(utmp_len,
+		    options.verify_reverse_mapping),
+		    (struct sockaddr *)&from);
 
 #ifdef USE_PAM
 	/*

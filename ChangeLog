@@ -7,6 +7,9 @@
    - markus@cvs.openbsd.org 2002/03/27 22:21:45
      [ssh-keygen.c]
      try to import keys with extra trailing === (seen with ssh.com < 2.0.12)
+   - markus@cvs.openbsd.org 2002/03/28 15:34:51
+     [session.c]
+     do not call record_login twice (for use_privsep)
 
 20020401
  - (stevesk) [monitor.c] PAM should work again; will *not* work with
@@ -8114,4 +8117,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2008 2002/04/02 20:26:26 mouring Exp $
+$Id: ChangeLog,v 1.2009 2002/04/02 20:32:46 mouring Exp $
