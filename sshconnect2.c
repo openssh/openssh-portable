@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.128 2003/10/26 16:57:43 avsm Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.129 2003/11/02 11:01:03 markus Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -519,17 +519,11 @@ userauth_gssapi(Authctxt *authctxt)
 
 	packet_put_int(1);
 
-	/* Some servers encode the OID incorrectly (as we used to) */
-	if (datafellows & SSH_BUG_GSSAPI_BER) {
-		packet_put_string(gss_supported->elements[mech].elements,
-		    gss_supported->elements[mech].length);
-	} else {
-		packet_put_int((gss_supported->elements[mech].length)+2);
-		packet_put_char(SSH_GSS_OIDTYPE);
-		packet_put_char(gss_supported->elements[mech].length);
-		packet_put_raw(gss_supported->elements[mech].elements,
-		    gss_supported->elements[mech].length);
-	}
+	packet_put_int((gss_supported->elements[mech].length) + 2);
+	packet_put_char(SSH_GSS_OIDTYPE);
+	packet_put_char(gss_supported->elements[mech].length);
+	packet_put_raw(gss_supported->elements[mech].elements,
+	    gss_supported->elements[mech].length);
 
 	packet_send();
 
@@ -560,19 +554,17 @@ input_gssapi_response(int type, u_int32_t plen, void *ctxt)
 	/* Setup our OID */
 	oidv = packet_get_string(&oidlen);
 
-	if (datafellows & SSH_BUG_GSSAPI_BER) {
-		if (!ssh_gssapi_check_oid(gssctxt, oidv, oidlen))
-			fatal("Server returned different OID than expected");
-	} else {
-		if(oidv[0] != SSH_GSS_OIDTYPE || oidv[1] != oidlen-2) {
-			debug("Badly encoded mechanism OID received");
-			userauth(authctxt, NULL);
-			xfree(oidv);
-			return;
-		}
-		if (!ssh_gssapi_check_oid(gssctxt, oidv+2, oidlen-2))
-			fatal("Server returned different OID than expected");
+	if (oidlen <= 2 ||
+	    oidv[0] != SSH_GSS_OIDTYPE ||
+	    oidv[1] != oidlen - 2) {
+		debug("Badly encoded mechanism OID received");
+		userauth(authctxt, NULL);
+		xfree(oidv);
+		return;
 	}
+
+	if (!ssh_gssapi_check_oid(gssctxt, oidv + 2, oidlen - 2))
+		fatal("Server returned different OID than expected");
 
 	packet_check_eom();
 

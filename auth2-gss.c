@@ -1,4 +1,4 @@
-/*	$OpenBSD: auth2-gss.c,v 1.4 2003/10/21 09:50:06 markus Exp $	*/
+/*	$OpenBSD: auth2-gss.c,v 1.5 2003/11/02 11:01:03 markus Exp $	*/
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -78,19 +78,19 @@ userauth_gssapi(Authctxt *authctxt)
 		if (doid)
 			xfree(doid);
 
+		present = 0;
 		doid = packet_get_string(&len);
-		if (len <= 2)
-			packet_disconnect("Short OID received");
 
-		if (doid[0] != SSH_GSS_OIDTYPE || doid[1] != len-2) {
-			logit("Mechanism OID received using the old encoding form");
-			oid.elements = doid;
-			oid.length = len;
+		if (len > 2 && 
+		   doid[0] == SSH_GSS_OIDTYPE &&
+		   doid[1] == len - 2) {
+                        oid.elements = doid + 2;
+                        oid.length   = len - 2;
+			gss_test_oid_set_member(&ms, &oid, supported,
+			    &present);
 		} else {
-			oid.elements = doid + 2;
-			oid.length   = len - 2;
+			logit("Badly formed OID received");
 		}
-		gss_test_oid_set_member(&ms, &oid, supported, &present);
 	} while (mechs > 0 && !present);
 
 	gss_release_oid_set(&ms, &supported);
@@ -109,7 +109,7 @@ userauth_gssapi(Authctxt *authctxt)
 
 	packet_start(SSH2_MSG_USERAUTH_GSSAPI_RESPONSE);
 
-	/* Return OID in same format as we received it*/
+	/* Return the OID that we received */
 	packet_put_string(doid, len);
 
 	packet_send();
