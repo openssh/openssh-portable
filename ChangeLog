@@ -15,6 +15,12 @@
    - stevesk@cvs.openbsd.org 2002/06/27 19:49:08
      [ssh-keyscan.c]
      use convtime(); ok markus@
+   - millert@cvs.openbsd.org 2002/06/28 01:49:31
+     [monitor_mm.c]
+     tree(3) wants an int return value for its compare functions and
+     the difference between two pointers is not an int.  Just do the
+     safest thing and store the result in a long and then return 0,
+     -1, or 1 based on that result.
 
 20020702
  - (djm) Use PAM_MSG_MEMBER for PAM_TEXT_INFO messages, use xmalloc & 
@@ -1223,4 +1229,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2319 2002/07/04 00:07:13 mouring Exp $
+$Id: ChangeLog,v 1.2320 2002/07/04 00:08:23 mouring Exp $
