@@ -44,6 +44,9 @@
    - dtucker@cvs.openbsd.org 2004/11/25 09:39:27
      [test-exec.sh]
      Remove obsolete RhostsAuthentication from test config; ok markus@
+   - dtucker@cvs.openbsd.org 2004/12/06 10:49:56
+     [test-exec.sh]
+     Check if TEST_SSH_SSHD is a full path to sshd before searching; ok markus@
 
 20041203
  - (dtucker) OpenBSD CVS Sync
@@ -1917,4 +1920,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3597 2004/12/06 12:13:50 dtucker Exp $
+$Id: ChangeLog,v 1.3598 2004/12/06 12:16:29 dtucker Exp $

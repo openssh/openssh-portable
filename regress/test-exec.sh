@@ -1,4 +1,4 @@
-#	$OpenBSD: test-exec.sh,v 1.24 2004/11/25 09:39:27 dtucker Exp $
+#	$OpenBSD: test-exec.sh,v 1.25 2004/12/06 10:49:56 dtucker Exp $
 #	Placed in the Public Domain.
 
 #SUDO=sudo
@@ -83,7 +83,9 @@ if [ "x$TEST_SSH_SCP" != "x" ]; then
 fi
 
 # Path to sshd must be absolute for rexec
-SSHD=`which sshd`
+if [ ! -x /$SSHD ]; then
+	SSHD=`which sshd`
+fi
 
 # these should be used in tests
 export SSH SSHD SSHAGENT SSHADD SSHKEYGEN SSHKEYSCAN SFTP SFTPSERVER SCP
