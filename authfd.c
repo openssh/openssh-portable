@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfd.c,v 1.35 2001/02/04 15:32:22 stevesk Exp $");
+RCSID("$OpenBSD: authfd.c,v 1.36 2001/03/01 02:11:25 deraadt Exp $");
 
 #include <openssl/evp.h>
 
@@ -75,10 +75,9 @@ ssh_get_authentication_socket(void)
 
 	sunaddr.sun_family = AF_UNIX;
 	strlcpy(sunaddr.sun_path, authsocket, sizeof(sunaddr.sun_path));
-#ifdef HAVE_SUN_LEN_IN_SOCKADDR_UN
-	sunaddr.sun_len = len = SUN_LEN(&sunaddr)+1;
-#else /* HAVE_SUN_LEN_IN_SOCKADDR_UN */
 	len = SUN_LEN(&sunaddr)+1;
+#ifdef HAVE_SUN_LEN_IN_SOCKADDR_UN
+	sunaddr.sun_len = len;
 #endif /* HAVE_SUN_LEN_IN_SOCKADDR_UN */
 
 	sock = socket(AF_UNIX, SOCK_STREAM, 0);

@@ -92,6 +92,9 @@
    - markus@cvs.openbsd.org 2001/02/28 21:31:32
      [channels.c]
      typo
+   - deraadt@cvs.openbsd.org 2001/03/01 02:11:25
+     [authfd.c]
+     split line so that p will have an easier time next time around
 
 20010304
  - (bal) Remove make-ssh-known-hosts.1 since it's no longer valid.
@@ -4284,4 +4287,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.878 2001/03/05 06:29:44 mouring Exp $
+$Id: ChangeLog,v 1.879 2001/03/05 06:33:23 mouring Exp $
