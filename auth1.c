@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.9 2000/12/27 12:34:49 markus Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.10 2001/01/07 19:06:25 markus Exp $");
 
 #ifdef HAVE_OSF_SIA
 # include <sia.h>
@@ -479,6 +479,7 @@ do_authentication()
 	packet_start(SSH_SMSG_SUCCESS);
 	packet_send();
 	packet_write_wait();
+	xfree(user);
 
 #ifdef WITH_AIXAUTHENTICATE
 	/* We don't have a pty yet, so just label the line as "ssh" */

@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.145 2001/01/04 22:25:58 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.146 2001/01/07 11:28:07 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -673,7 +673,7 @@ main(int ac, char **av)
 	 * key (unless started from inetd)
 	 */
 	log_init(__progname,
-	    options.log_level == -1 ? SYSLOG_LEVEL_INFO : options.log_level,
+	    options.log_level == -1 ? SYSLOG_LEVEL_NOTICE : options.log_level,
 	    options.log_facility == -1 ? SYSLOG_FACILITY_AUTH : options.log_facility,
 	    !silent && !inetd_flag);
 

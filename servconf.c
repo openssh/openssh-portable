@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.55 2000/12/19 23:17:57 markus Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.56 2001/01/07 11:28:06 markus Exp $");
 
 #include "ssh.h"
 #include "servconf.h"
@@ -129,7 +129,7 @@ fill_default_server_options(ServerOptions *options)
 	if (options->log_facility == (SyslogFacility) (-1))
 		options->log_facility = SYSLOG_FACILITY_AUTH;
 	if (options->log_level == (LogLevel) (-1))
-		options->log_level = SYSLOG_LEVEL_INFO;
+		options->log_level = SYSLOG_LEVEL_NOTICE;
 	if (options->rhosts_authentication == -1)
 		options->rhosts_authentication = 0;
 	if (options->rhosts_rsa_authentication == -1)
