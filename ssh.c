@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.219 2004/06/18 10:55:43 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.220 2004/06/20 17:36:59 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -1227,11 +1227,30 @@ control_client_sigrelay(int signo)
 		kill(control_server_pid, signo);
 }
 
+static int
+env_permitted(char *env)
+{
+	int i;
+	char name[1024], *cp;
+
+	strlcpy(name, env, sizeof(name));
+	if ((cp = strchr(name, '=')) == NULL)
+		return (0);
+
+	*cp = '\0';
+
+	for (i = 0; i < options.num_send_env; i++)
+		if (match_pattern(name, options.send_env[i]))
+			return (1);
+
+	return (0);
+}
+
 static void
 control_client(const char *path)
 {
 	struct sockaddr_un addr;
-	int i, r, sock, exitval, addr_len;
+	int i, r, sock, exitval, num_env, addr_len;
 	Buffer m;
 	char *cp;
 	extern char **environ;
@@ -1274,12 +1293,21 @@ control_client(const char *path)
 	buffer_append(&command, "\0", 1);
 	buffer_put_cstring(&m, buffer_ptr(&command));
 
-	/* Pass environment */
-	for (i = 0; environ != NULL && environ[i] != NULL; i++)
-		;
-	buffer_put_int(&m, i);
-	for (i = 0; environ != NULL && environ[i] != NULL; i++)
-		buffer_put_cstring(&m, environ[i]);
+	if (options.num_send_env == 0 || environ == NULL) {
+		buffer_put_int(&m, 0);
+	} else {	
+		/* Pass environment */
+		num_env = 0;
+		for (i = 0; environ[i] != NULL; i++)
+			if (env_permitted(environ[i]))
+				num_env++; /* Count */
+			
+		buffer_put_int(&m, num_env);
+
+		for (i = 0; environ[i] != NULL && num_env >= 0; i++, num_env--)
+			if (env_permitted(environ[i]))
+				buffer_put_cstring(&m, environ[i]);
+	}
 
 	if (ssh_msg_send(sock, /* version */0, &m) == -1)
 		fatal("%s: msg_send", __func__);
