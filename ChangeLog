@@ -1,3 +1,8 @@
+20000123
+ - OpenBSD CVS:
+   - [packet.c]
+     getsockname() requires initialized tolen; andy@guildsoftware.com
+
 20000122
  - Fix compilation of bsd-snprintf.c on Solaris, fix from Ben Taylor
    <bent@clark.net>
