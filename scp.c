@@ -42,11 +42,11 @@ and ssh has the necessary privileges.)
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	$Id: scp.c,v 1.5 1999/11/12 05:28:02 damien Exp $
+ *	$Id: scp.c,v 1.6 1999/11/13 02:22:46 damien Exp $
  */
 
 #include "includes.h"
-RCSID("$Id: scp.c,v 1.5 1999/11/12 05:28:02 damien Exp $");
+RCSID("$Id: scp.c,v 1.6 1999/11/13 02:22:46 damien Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -70,7 +70,7 @@ static struct timeval start;
 volatile unsigned long statbytes;
 
 /* Total size of current file. */
-unsigned long totalbytes = 0;
+off_t totalbytes = 0;
 
 /* Name of current file being transferred. */
 char *curfile;
@@ -976,7 +976,7 @@ run_err(const char *fmt, ...)
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	$Id: scp.c,v 1.5 1999/11/12 05:28:02 damien Exp $
+ *	$Id: scp.c,v 1.6 1999/11/13 02:22:46 damien Exp $
  */
 
 char *
@@ -1131,8 +1131,8 @@ progressmeter(int flag)
 	}   
 	(void)gettimeofday(&now, (struct timezone *)0);
 	cursize = statbytes;
-	if ((totalbytes >> 10) != 0) {
-		ratio = (cursize >> 10) * 100 / (totalbytes >> 10);
+	if (totalbytes != 0) {
+		ratio = cursize * 100 / totalbytes;
 		ratio = MAX(ratio, 0);
 		ratio = MIN(ratio, 100);
 	}
