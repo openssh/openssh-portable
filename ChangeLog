@@ -1,6 +1,7 @@
 20021015
  - (bal) Fix bug id 383 and only call loginrestrict for AIX if not root.
  - (bal) More advanced strsep test by Darren Tucker <dtucker@zip.com.au>
+ - (tim) [contrib/caldera/openssh.spec] make ssh-agent setgid nobody
 
 20021004
  - (bal) Disable post-authentication Privsep for OSF/1.  It conflicts with
@@ -765,4 +766,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2491.2.4 2002/10/16 00:25:37 mouring Exp $
+$Id: ChangeLog,v 1.2491.2.5 2002/10/16 00:40:23 tim Exp $
