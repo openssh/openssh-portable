@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.193 2002/01/22 10:57:54 djm Exp $
+# $Id: Makefile.in,v 1.194 2002/01/23 23:26:44 stevesk Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -220,7 +220,6 @@ install-files: scard-install
 	ln -s ssh$(EXEEXT) $(DESTDIR)$(bindir)/slogin
 	-rm -f $(DESTDIR)$(mandir)/$(mansubdir)1/slogin.1
 	ln -s ssh.1 $(DESTDIR)$(mandir)/$(mansubdir)1/slogin.1
-	#@FILEPRIV@ -f dev,filesys,driver $(DESTDIR)$(bindir)/ssh $(DESTDIR)$(bindir)/slogin
 	if [ ! -d $(DESTDIR)$(sysconfdir) ]; then \
 		$(srcdir)/mkinstalldirs $(DESTDIR)$(sysconfdir); \
 	fi
