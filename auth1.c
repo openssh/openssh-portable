@@ -29,10 +29,6 @@ RCSID("$OpenBSD: auth1.c,v 1.25 2001/06/26 16:15:23 dugsong Exp $");
 /* import */
 extern ServerOptions options;
 
-#ifdef WITH_AIXAUTHENTICATE
-extern char *aixloginmsg;
-#endif /* WITH_AIXAUTHENTICATE */
-
 /*
  * convert ssh auth msg type into description
  */
@@ -427,14 +423,6 @@ do_authentication()
 	packet_start(SSH_SMSG_SUCCESS);
 	packet_send();
 	packet_write_wait();
-
-#ifdef WITH_AIXAUTHENTICATE
-	/* We don't have a pty yet, so just label the line as "ssh" */
-	if (loginsuccess(authctxt->user,
-	    get_canonical_hostname(options.reverse_mapping_check),
-	    "ssh", &aixloginmsg) < 0)
-		aixloginmsg = NULL;
-#endif /* WITH_AIXAUTHENTICATE */
 
 	/* Perform session preparation. */
 	do_authenticated(authctxt);

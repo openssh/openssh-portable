@@ -159,7 +159,6 @@ const char *original_command = NULL;
 Session	sessions[MAX_SESSIONS];
 
 #ifdef WITH_AIXAUTHENTICATE
-/* AIX's lastlogin message, set in auth1.c */
 char *aixloginmsg;
 #endif /* WITH_AIXAUTHENTICATE */
 
@@ -191,6 +190,14 @@ do_authenticated(Authctxt *authctxt)
 	}
 #endif
 #endif
+#ifdef WITH_AIXAUTHENTICATE
+	/* We don't have a pty yet, so just label the line as "ssh" */
+	if (loginsuccess(authctxt->user,
+	    get_canonical_hostname(options.reverse_mapping_check),
+	    "ssh", &aixloginmsg) < 0)
+		aixloginmsg = NULL;
+#endif /* WITH_AIXAUTHENTICATE */
+
 	/* setup the channel layer */
 	if (!no_port_forwarding_flag && options.allow_tcp_forwarding)
 		channel_permit_all_opens();

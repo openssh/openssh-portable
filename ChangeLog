@@ -1,6 +1,10 @@
 20011113
  - (djm) Fix early (and double) free of remote user when using Kerberos. 
    Patch from Simon Wilkinson <simon@sxw.org.uk>
+ - (djm) AIX login{success,failed} changes. Move loginsuccess call to 
+   do_authenticated. Call loginfailed for protocol 2 failures > MAX like 
+   we do for protocol 1. Reports from Ralf Wenk <wera0003@fh-karlsruhe.de>,
+   K.Wolkersdorfer@fz-juelich.de and others
 
 20011112
  - (djm) Makefile correctness fix from Mark D. Baushke <mdb@juniper.net>
@@ -6891,4 +6895,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1658 2001/11/13 00:20:07 djm Exp $
+$Id: ChangeLog,v 1.1659 2001/11/13 12:46:18 djm Exp $
