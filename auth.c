@@ -80,6 +80,9 @@ allowed_user(struct passwd * pw)
 #endif /* WITH_AIXAUTHENTICATE */
 #if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
 	struct spwd *spw;
+#if !defined(USE_PAM) && defined(HAS_SHADOW_EXPIRE)
+	time_t today;
+#endif
 #endif
 
 	/* Shouldn't be called if pw is NULL, but better safe than sorry... */
@@ -106,7 +109,7 @@ allowed_user(struct passwd * pw)
 #if !defined(USE_PAM) && defined(HAVE_SHADOW_H) && \
     !defined(DISABLE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
 #define	DAY		(24L * 60 * 60) /* 1 day in seconds */
-	time_t today = time(NULL) / DAY;
+	today = time(NULL) / DAY;
 	debug3("allowed_user: today %d sp_expire %d sp_lstchg %d"
 	    " sp_max %d", (int)today, (int)spw->sp_expire,
 	    (int)spw->sp_lstchg, (int)spw->sp_max);
