@@ -71,7 +71,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.104 2003/06/04 12:18:49 djm Exp $");
+RCSID("$OpenBSD: scp.c,v 1.105 2003/06/04 12:40:39 djm Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -107,7 +107,16 @@ int showprogress = 1;
 char *ssh_program = _PATH_SSH_PROGRAM;
 
 /* This is used to store the pid of ssh_program */
-pid_t do_cmd_pid;
+pid_t do_cmd_pid = -1;
+
+static void
+killchild(int signo)
+{
+	if (do_cmd_pid > 1)
+		kill(do_cmd_pid, signo);
+
+	_exit(1);
+}
 
 /*
  * This function executes the given command as the specified user on the
@@ -170,6 +179,9 @@ do_cmd(char *host, char *remuser, char *cmd, int *fdin, int *fdout, int argc)
 	*fdout = pin[1];
 	close(pout[1]);
 	*fdin = pout[0];
+	signal(SIGTERM, killchild);
+	signal(SIGINT, killchild);
+	signal(SIGHUP, killchild);
 	return 0;
 }
 
