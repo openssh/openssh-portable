@@ -795,7 +795,7 @@ int
 main(int ac, char **av)
 {
 	char dotsshdir[MAXPATHLEN], comment[1024], *passphrase1, *passphrase2;
-	char out_file[PATH_MAX], *reader_id = NULL;
+	char out_file[MAXPATHLEN], *reader_id = NULL;
 	char *resource_record_hostname = NULL;
 	Key *private, *public;
 	struct passwd *pw;

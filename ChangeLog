@@ -3,6 +3,7 @@
    _getlong in #ifndef
  - (tim) [configure.ac acconfig.h openbsd-compat/getrrsetbyname.c] test for
    HEADER.ad in arpa/nameser.h
+ - (tim) [ssh-keygen.c] s/PATH_MAX/MAXPATHLEN/ ok mouring@
 
 20030907
  - (dtucker) [agent-ptrace.sh dynamic-forward.sh (all regress/)]
@@ -1043,4 +1044,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2971 2003/09/08 21:35:16 tim Exp $
+$Id: ChangeLog,v 1.2972 2003/09/08 23:11:33 tim Exp $
