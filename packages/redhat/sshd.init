@@ -21,8 +21,16 @@ case "$1" in
   start)
 	echo -n "Starting sshd: "
 	if [ ! -f /var/run/sshd.pid ] ; then
-   	/usr/sbin/sshd && success "sshd startup" || failure "sshd startup"
-		RETVAL=$?
+	  case "`type -type success`" in
+	    function)
+	      /usr/sbin/sshd && success "sshd startup" || failure "sshd startup"
+	      RETVAL=$?
+	    ;;
+	    *)
+	      /usr/sbin/sshd && echo -n "sshd "
+	      RETVAL=$?
+	    ;;
+	  esac
 	fi
 	echo
 	;;
