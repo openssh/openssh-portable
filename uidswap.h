@@ -1,4 +1,4 @@
-/*	$OpenBSD: uidswap.h,v 1.7 2001/04/06 21:00:17 markus Exp $	*/
+/*	$OpenBSD: uidswap.h,v 1.8 2001/06/26 06:33:06 itojun Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -19,7 +19,7 @@
  * Temporarily changes to the given uid.  If the effective user id is not
  * root, this does nothing.  This call cannot be nested.
  */
-void    temporarily_use_uid(struct passwd *pw);
+void    temporarily_use_uid(struct passwd *);
 
 /*
  * Restores the original effective user id after temporarily_use_uid().
@@ -31,6 +31,6 @@ void    restore_uid(void);
  * Permanently sets all uids to the given uid.  This cannot be called while
  * temporarily_use_uid is effective.  This must also clear any saved uids.
  */
-void    permanently_set_uid(struct passwd *pw);
+void    permanently_set_uid(struct passwd *);
 
 #endif				/* UIDSWAP_H */

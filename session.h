@@ -1,4 +1,4 @@
-/*	$OpenBSD: session.h,v 1.7 2001/06/25 08:25:39 markus Exp $	*/
+/*	$OpenBSD: session.h,v 1.8 2001/06/26 06:33:01 itojun Exp $	*/
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -26,11 +26,11 @@
 #ifndef SESSION_H
 #define SESSION_H
 
-void	do_authenticated(Authctxt *ac);
+void	do_authenticated(Authctxt *);
 
-int	session_open(int id);
-void	session_input_channel_req(int id, void *arg);
-void	session_close_by_pid(pid_t pid, int status);
-void	session_close_by_channel(int id, void *arg);
+int	session_open(int);
+void	session_input_channel_req(int, void *);
+void	session_close_by_pid(pid_t, int);
+void	session_close_by_channel(int, void *);
 
 #endif

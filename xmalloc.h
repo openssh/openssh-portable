@@ -14,21 +14,21 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: xmalloc.h,v 1.5 2000/09/07 20:27:56 deraadt Exp $"); */
+/* RCSID("$OpenBSD: xmalloc.h,v 1.6 2001/06/26 06:33:07 itojun Exp $"); */
 
 #ifndef XMALLOC_H
 #define XMALLOC_H
 
 /* Like malloc, but calls fatal() if out of memory. */
-void   *xmalloc(size_t size);
+void   *xmalloc(size_t);
 
 /* Like realloc, but calls fatal() if out of memory. */
-void   *xrealloc(void *ptr, size_t new_size);
+void   *xrealloc(void *, size_t);
 
 /* Frees memory allocated using xmalloc or xrealloc. */
-void    xfree(void *ptr);
+void    xfree(void *);
 
 /* Allocates memory using xmalloc, and copies the string into that memory. */
-char   *xstrdup(const char *str);
+char   *xstrdup(const char *);
 
 #endif				/* XMALLOC_H */

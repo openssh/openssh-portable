@@ -1,4 +1,4 @@
-/*	$OpenBSD: sftp-common.h,v 1.1 2001/02/04 11:11:54 djm Exp $	*/
+/*	$OpenBSD: sftp-common.h,v 1.2 2001/06/26 06:33:01 itojun Exp $	*/
 
 /*
  * Copyright (c) 2001 Markus Friedl.  All rights reserved.
@@ -39,17 +39,17 @@ struct Attrib {
 };
 
 /* Clear contents of attributes structure */
-void attrib_clear(Attrib *a);
+void attrib_clear(Attrib *);
 
 /* Convert from struct stat to filexfer attribs */
-void stat_to_attrib(struct stat *st, Attrib *a);
+void stat_to_attrib(struct stat *, Attrib *);
 
 /* Decode attributes in buffer */
-Attrib *decode_attrib(Buffer *b);
+Attrib *decode_attrib(Buffer *);
 
 /* Encode attributes to buffer */
-void encode_attrib(Buffer *b, Attrib *a);
+void encode_attrib(Buffer *, Attrib *);
 
 /* Convert from SSH2_FX_ status to text error message */
-const char *fx2txt(int status);
+const char *fx2txt(int);
 

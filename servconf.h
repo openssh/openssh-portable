@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: servconf.h,v 1.44 2001/06/23 02:34:31 markus Exp $"); */
+/* RCSID("$OpenBSD: servconf.h,v 1.45 2001/06/26 06:33:00 itojun Exp $"); */
 
 #ifndef SERVCONF_H
 #define SERVCONF_H
@@ -132,15 +132,15 @@ typedef struct {
  * Initializes the server options to special values that indicate that they
  * have not yet been set.
  */
-void    initialize_server_options(ServerOptions * options);
+void    initialize_server_options(ServerOptions *);
 
 /*
  * Reads the server configuration file.  This only sets the values for those
  * options that have the special value indicating they have not been set.
  */
-void    read_server_config(ServerOptions * options, const char *filename);
+void    read_server_config(ServerOptions *, const char *);
 
 /* Sets values for those values that have not yet been set. */
-void    fill_default_server_options(ServerOptions * options);
+void    fill_default_server_options(ServerOptions *);
 
 #endif				/* SERVCONF_H */

@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshlogin.h,v 1.1 2001/03/04 01:46:30 djm Exp $	*/
+/*	$OpenBSD: sshlogin.h,v 1.2 2001/06/26 06:33:04 itojun Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -20,30 +20,29 @@
  * The host from which the user logged in is stored in buf.
  */
 u_long
-get_last_login_time(uid_t uid, const char *logname,
-    char *buf, u_int bufsize);
+get_last_login_time(uid_t, const char *, char *, u_int);
 
 /*
  * Records that the user has logged in.  This does many things normally done
  * by login(1).
  */
 void
-record_login(pid_t pid, const char *ttyname, const char *user, uid_t uid,
-    const char *host, struct sockaddr *addr);
+record_login(pid_t, const char *, const char *, uid_t, const char *,
+		struct sockaddr *);
 
 #ifdef LOGIN_NEEDS_UTMPX
 /*
  * Record just the utmp info for /bin/login.
  */
 void
-record_utmp_only(pid_t pid, const char *ttyname, const char *user,
-		 const char *host, struct sockaddr * addr);
+record_utmp_only(pid_t, const char *, const char *, const char *, 
+		struct sockaddr *);
 #endif
 
 /*
  * Records that the user has logged out.  This does many thigs normally done
  * by login(1) or init.
  */
-void    record_logout(pid_t pid, const char *ttyname);
+void    record_logout(pid_t, const char *);
 
 #endif
