@@ -1,3 +1,7 @@
+20010213
+ - (bal) added NeXT work around for bsd-snprintf.c in bsd-nextstep.h.
+ - (bal) added TODO item to clean up and sort out 'varargs' from 'stdargs'
+
 20010212
  - (djm) Update Redhat specfile to allow --define "skip_x11_askpass 1", 
    --define "skip_gnome_askpass 1", --define "rh7 1" and make the 
@@ -3904,4 +3908,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.749 2001/02/12 15:07:52 stevesk Exp $
+$Id: ChangeLog,v 1.750 2001/02/12 15:57:18 mouring Exp $
