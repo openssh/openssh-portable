@@ -21,6 +21,10 @@
    - djm@cvs.openbsd.org 2004/08/13 02:51:48
      [monitor_fdpass.c]
      extra check for no message case; ok markus, deraadt, hshoexer, henning
+   - dtucker@cvs.openbsd.org 2004/08/13 11:09:24
+     [servconf.c]
+     Fix line numbers off-by-one in error messages, from tortay at cc.in2p3.fr
+     ok markus@, djm@
 
 20040812
  - (dtucker) [sshd.c] Remove duplicate variable imported during sync.
@@ -1618,4 +1622,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3504 2004/08/13 11:29:02 dtucker Exp $
+$Id: ChangeLog,v 1.3505 2004/08/13 11:30:24 dtucker Exp $
