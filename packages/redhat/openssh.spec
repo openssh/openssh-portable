@@ -9,6 +9,9 @@ Group: Applications/Internet
 BuildRoot: /tmp/openssh-%{version}-buildroot
 Obsoletes: ssh
 PreReq: openssl
+BuildPreReq: openssl
+BuildPreReq: tcp_wrappers
+BuildPreReq: gnome-libs
 
 %package clients
 Summary: OpenSSH Secure Shell protocol clients
@@ -114,7 +117,8 @@ This package contains the GNOME passphrase dialog.
 %build
 
 CFLAGS="$RPM_OPT_FLAGS" \
-	./configure --prefix=/usr --sysconfdir=/etc/ssh --with-gnome-askpass
+	./configure --prefix=/usr --sysconfdir=/etc/ssh \
+                    --with-gnome-askpass --with-tcp-wrappers
 
 make
 
