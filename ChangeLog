@@ -17,6 +17,7 @@
      [channels.c nchan.c]
      more select() error fixes (don't set rfd/wfd to -1).
  - (bal) Enabled USE_PIPES for Cygwin on Corinna Vinschen <vinschen@redhat.com>
+ - (bal) Corrected on_exit() emulation via atexit().  
 
 20010512
  - OpenBSD CVS Sync
@@ -5422,4 +5423,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1224 2001/05/17 03:32:50 mouring Exp $
+$Id: ChangeLog,v 1.1225 2001/05/17 03:40:05 mouring Exp $

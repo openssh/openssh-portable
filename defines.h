@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.64 2001/05/12 00:08:38 mouring Exp $ */
+/* $Id: defines.h,v 1.65 2001/05/17 03:40:05 mouring Exp $ */
 
 /* Some platforms need this for the _r() functions */
 #if !defined(_REENTRANT) && !defined(SNI)
@@ -418,7 +418,7 @@ struct winsize {
 #endif /* !defined(HAVE_MEMMOVE) && defined(HAVE_BCOPY) */
 
 #if !defined(HAVE_ATEXIT) && defined(HAVE_ON_EXIT)
-# define atexit(a) on_exit(a, NULL)
+# define atexit(a, NULL) on_exit(a, NULL)
 #else
 # if defined(HAVE_XATEXIT)
 #  define atexit(a) xatexit(a)
