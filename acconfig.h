@@ -52,6 +52,9 @@
 /* Define if you are on Cygwin */
 #undef HAVE_CYGWIN
 
+/* Define if you lack native POSIX regex and you are using GNU rx library */
+#undef HAVE_LIBRX
+
 /* Define if you are on NeXT */
 #undef HAVE_NEXT
 

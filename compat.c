@@ -29,7 +29,11 @@ RCSID("$OpenBSD: compat.c,v 1.24 2000/10/10 20:20:45 markus Exp $");
 #include "packet.h"
 #include "xmalloc.h"
 #include "compat.h"
-#include <regex.h>
+#ifdef HAVE_LIBRX
+#  include <rxposix.h>
+#else /* Use native regex libraries */
+#  include <regex.h>
+#endif /* HAVE_LIBRX */
 
 int compat13 = 0;
 int compat20 = 0;

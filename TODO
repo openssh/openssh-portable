@@ -9,6 +9,4 @@
 
 - Cleanup configure.in
 
-- utmp/wtmp logging does not work on NeXT
-
 - Complete Tru64 SIA support

@@ -40,6 +40,13 @@ ftp://ftp.gnu.org/gnu/make/
 OpenSSH has only been tested with GNU make. It may work with other
 'make' programs, but you are on your own.
 
+GNU rx:
+ftp:://ftp.gnu.org/gnu/rx/
+
+Most platforms do not required this.  However older 4.3 BSD do not
+have a posix regex library. 
+
+
 2. Building / Installation
 --------------------------
 

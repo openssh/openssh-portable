@@ -256,6 +256,7 @@ AC_ARG_WITH(libs,
 # Checks for libraries.
 AC_CHECK_LIB(z, deflate, ,AC_MSG_ERROR([*** zlib missing - please install first ***]))
 AC_CHECK_LIB(util, login, AC_DEFINE(HAVE_LIBUTIL_LOGIN) LIBS="$LIBS -lutil")
+AC_CHECK_LIB(rx, regcomp, AC_DEFINE(HAVE_LIBRX) LIBS="$LIBS -lrx")
 
 if test -z "$no_libsocket" ; then
 	AC_CHECK_LIB(nsl, yp_match, , )

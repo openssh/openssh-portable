@@ -1,4 +1,5 @@
 20001014
+ - (bal) Add support for GNU rx library for those lacking regexp support 
  - (djm) Don't accept PAM_PROMPT_ECHO_ON messages during initial auth
  - (djm) Revert SSH2 serverloop hack, will find a better way.
  - (djm) Add workaround for Linux 2.4's gratuitious errno change. Patch
