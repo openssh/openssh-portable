@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.32 2001/05/18 14:13:29 markus Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.33 2001/06/07 20:23:05 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/evp.h>
@@ -332,7 +332,7 @@ try_rhosts_rsa_authentication(const char *local_user, Key * host_key)
 
 	/* Tell the server that we are willing to authenticate using this key. */
 	packet_start(SSH_CMSG_AUTH_RHOSTS_RSA);
-	packet_put_string(local_user, strlen(local_user));
+	packet_put_cstring(local_user);
 	packet_put_int(BN_num_bits(host_key->rsa->n));
 	packet_put_bignum(host_key->rsa->e);
 	packet_put_bignum(host_key->rsa->n);
@@ -527,7 +527,7 @@ send_kerberos_tgt(void)
 	xfree(creds);
 
 	packet_start(SSH_CMSG_HAVE_KERBEROS_TGT);
-	packet_put_string(buffer, strlen(buffer));
+	packet_put_cstring(buffer);
 	packet_send();
 	packet_write_wait();
 
@@ -594,7 +594,7 @@ send_afs_tokens(void)
 		if (creds_to_radix(&creds, (u_char *) buffer, sizeof buffer) <= 0)
 			break;
 		packet_start(SSH_CMSG_HAVE_AFS_TOKEN);
-		packet_put_string(buffer, strlen(buffer));
+		packet_put_cstring(buffer);
 		packet_send();
 		packet_write_wait();
 
@@ -922,7 +922,7 @@ ssh_userauth1(const char *local_user, const char *server_user, char *host,
 
 	/* Send the name of the user to log in as on the server. */
 	packet_start(SSH_CMSG_USER);
-	packet_put_string(server_user, strlen(server_user));
+	packet_put_cstring(server_user);
 	packet_send();
 	packet_write_wait();
 
@@ -980,7 +980,7 @@ ssh_userauth1(const char *local_user, const char *server_user, char *host,
 	    options.rhosts_authentication) {
 		debug("Trying rhosts authentication.");
 		packet_start(SSH_CMSG_AUTH_RHOSTS);
-		packet_put_string(local_user, strlen(local_user));
+		packet_put_cstring(local_user);
 		packet_send();
 		packet_write_wait();
 

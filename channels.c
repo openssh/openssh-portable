@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.124 2001/06/05 10:24:32 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.125 2001/06/07 20:23:04 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1019,7 +1019,7 @@ channel_post_x11_listener(Channel *c, fd_set * readset, fd_set * writeset)
 			packet_put_int(nc->self);
 			if (packet_get_protocol_flags() &
 			    SSH_PROTOFLAG_HOST_IN_FWD_OPEN)
-				packet_put_string(buf, strlen(buf));
+				packet_put_cstring(buf);
 			packet_send();
 		}
 		xfree(remote_ipaddr);

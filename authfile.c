@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfile.c,v 1.35 2001/05/29 12:31:27 markus Exp $");
+RCSID("$OpenBSD: authfile.c,v 1.36 2001/06/07 20:23:03 markus Exp $");
 
 #include <openssl/err.h>
 #include <openssl/evp.h>
@@ -125,7 +125,7 @@ key_save_private_rsa1(Key *key, const char *filename, const char *passphrase,
 	buffer_put_int(&encrypted, BN_num_bits(key->rsa->n));
 	buffer_put_bignum(&encrypted, key->rsa->n);
 	buffer_put_bignum(&encrypted, key->rsa->e);
-	buffer_put_string(&encrypted, comment, strlen(comment));
+	buffer_put_cstring(&encrypted, comment);
 
 	/* Allocate space for the private part of the key in the buffer. */
 	buffer_append_space(&encrypted, &cp, buffer_len(&buffer));

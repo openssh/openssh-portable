@@ -66,7 +66,10 @@
      [auth2.c]
      style is used for bsdauth.
      disconnect on user/service change (ietf-drafts)
-
+   - markus@cvs.openbsd.org 2001/06/07 20:23:05
+     [authfd.c authfile.c channels.c kexdh.c kexgex.c packet.c ssh.c 
+      sshconnect.c sshconnect1.c]
+     use xxx_put_cstring()
 20010606
  - OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2001/05/17 21:34:15 
@@ -5577,4 +5580,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1266 2001/06/09 01:40:00 mouring Exp $
+$Id: ChangeLog,v 1.1267 2001/06/09 01:42:01 mouring Exp $

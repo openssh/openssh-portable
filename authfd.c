@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfd.c,v 1.39 2001/04/05 10:42:48 markus Exp $");
+RCSID("$OpenBSD: authfd.c,v 1.40 2001/06/07 20:23:03 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -432,7 +432,7 @@ ssh_encode_identity_rsa1(Buffer *b, RSA *key, const char *comment)
 	buffer_put_bignum(b, key->iqmp);	/* ssh key->u */
 	buffer_put_bignum(b, key->q);	/* ssh key->p, SSL key->q */
 	buffer_put_bignum(b, key->p);	/* ssh key->q, SSL key->p */
-	buffer_put_string(b, comment, strlen(comment));
+	buffer_put_cstring(b, comment);
 }
 
 void

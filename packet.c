@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.64 2001/05/31 10:30:16 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.65 2001/06/07 20:23:04 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -333,7 +333,7 @@ packet_put_string(const char *buf, u_int len)
 void
 packet_put_cstring(const char *str)
 {
-	buffer_put_string(&outgoing_packet, str, strlen(str));
+	buffer_put_cstring(&outgoing_packet, str);
 }
 void
 packet_put_raw(const char *buf, u_int len)
@@ -1079,7 +1079,7 @@ packet_disconnect(const char *fmt,...)
 		packet_put_cstring("");
 	} else {
 		packet_start(SSH_MSG_DISCONNECT);
-		packet_put_string(buf, strlen(buf));
+		packet_put_cstring(buf);
 	}
 	packet_send();
 	packet_write_wait();
