@@ -40,7 +40,7 @@
 #include "pathnames.h"
 #include "log.h"
 
-RCSID("$Id: entropy.c,v 1.37 2001/06/27 13:36:08 djm Exp $");
+RCSID("$Id: entropy.c,v 1.38 2001/08/06 06:51:49 djm Exp $");
 
 #ifndef offsetof
 # define offsetof(type, member) ((size_t) &((type *)0)->member)
@@ -505,7 +505,9 @@ hash_output_from_command(entropy_source_t *src, char *hash)
 			break;
 		case 1:
 			/* command input */
-			bytes_read = read(p[0], buf, sizeof(buf));
+			do {
+				bytes_read = read(p[0], buf, sizeof(buf));
+			} while (bytes_read == -1 && errno == EINTR);
 			RAND_add(&bytes_read, sizeof(&bytes_read), 0.0);
 			if (bytes_read == -1) {
 				error_abort = 1;

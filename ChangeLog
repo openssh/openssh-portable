@@ -1,3 +1,7 @@
+20010803
+ - (djm) Fix interrupted read in entropy gatherer. Spotted by markus@ on
+   a fast UltraSPARC.
+
 20010726
  - (stevesk) use mysignal() in protocol 1 loop now that the SIGCHLD
    handler has converged.
@@ -6103,4 +6107,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1424 2001/07/26 17:51:49 stevesk Exp $
+$Id: ChangeLog,v 1.1425 2001/08/06 06:51:49 djm Exp $
