@@ -1,5 +1,9 @@
 20020714
  - (tim) [Makefile.in] replace "id sshd" with "sshd -t"
+ - (bal/tim) [acconfig.h configure.ac monitor_mm.c servconf.c
+   openbsd-compat/Makefile.in] support compression on platforms that
+   have no/broken MAP_ANON. Moved code to openbsd-compat/xmmap.c
+   Based on patch from nalin@redhat.com of code extracted from Owl's package
 
 20020712
  - (tim) [Makefile.in] quiet down install-files: and check-user:
@@ -1352,4 +1356,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2362 2002/07/14 17:02:20 tim Exp $
+$Id: ChangeLog,v 1.2363 2002/07/14 20:36:49 tim Exp $

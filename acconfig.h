@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.143 2002/07/09 14:06:40 mouring Exp $ */
+/* $Id: acconfig.h,v 1.144 2002/07/14 20:36:50 tim Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -357,9 +357,6 @@
 
 /* Path that unprivileged child will chroot() to in privep mode */
 #undef PRIVSEP_PATH
-
-/* Define if you have the `mmap' function that supports MAP_ANON|SHARED */
-#undef HAVE_MMAP_ANON_SHARED
 
 /* Define if your platform needs to skip post auth file descriptor passing */
 #undef DISABLE_FD_PASSING

@@ -91,15 +91,9 @@ mm_create(struct mm_master *mmalloc, size_t size)
 	 */
 	mm->mmalloc = mmalloc;
 
-#ifdef HAVE_MMAP_ANON_SHARED
-	address = mmap(NULL, size, PROT_WRITE|PROT_READ, MAP_ANON|MAP_SHARED,
-	    -1, 0);
+	address = xmmap(size);
 	if (address == MAP_FAILED)
 		fatal("mmap(%lu): %s", (u_long)size, strerror(errno));
-#else
-	fatal("%s: UsePrivilegeSeparation=yes and Compression=yes not supported",
-	    __func__);
-#endif
 
 	mm->address = address;
 	mm->size = size;
@@ -137,7 +131,7 @@ mm_destroy(struct mm_master *mm)
 	mm_freelist(mm->mmalloc, &mm->rb_free);
 	mm_freelist(mm->mmalloc, &mm->rb_allocated);
 
-#ifdef HAVE_MMAP_ANON_SHARED
+#ifdef HAVE_MMAP
 	if (munmap(mm->address, mm->size) == -1)
 		fatal("munmap(%p, %lu): %s", mm->address, (u_long)mm->size,
 		    strerror(errno));
