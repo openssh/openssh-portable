@@ -8,6 +8,9 @@
      ssh: remove wrong option from list
      sftp-server: Subsystem is documented in ssh_config(5), not sshd(8)
      ok deraadt@ markus@
+   - markus@cvs.openbsd.org 2003/10/08 15:21:24
+     [readconf.c ssh_config.5]
+     default GSS API to no in client, too; ok jakob, deraadt@
 
 20031009
  - (dtucker) [sshd_config.5] UsePAM defaults to "no".  ok djm@
@@ -1325,4 +1328,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3070 2003/10/15 05:50:42 dtucker Exp $
+$Id: ChangeLog,v 1.3071 2003/10/15 05:52:03 dtucker Exp $

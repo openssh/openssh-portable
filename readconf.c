@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.121 2003/09/01 18:15:50 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.122 2003/10/08 15:21:24 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -885,7 +885,7 @@ fill_default_options(Options * options)
 	if (options->challenge_response_authentication == -1)
 		options->challenge_response_authentication = 1;
 	if (options->gss_authentication == -1)
-		options->gss_authentication = 1;
+		options->gss_authentication = 0;
 	if (options->gss_deleg_creds == -1)
 		options->gss_deleg_creds = 0;
 	if (options->password_authentication == -1)
