@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.81 2002/01/11 13:39:36 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.82 2002/01/13 17:57:37 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -588,31 +588,22 @@ static char *
 authmethods_get(void)
 {
 	Authmethod *method = NULL;
-	u_int size = 0;
+	Buffer b;
 	char *list;
 
+	buffer_init(&b);
 	for (method = authmethods; method->name != NULL; method++) {
 		if (strcmp(method->name, "none") == 0)
 			continue;
 		if (method->enabled != NULL && *(method->enabled) != 0) {
-			if (size != 0)
-				size += strlen(DELIM);
-			size += strlen(method->name);
+			if (buffer_len(&b) > 0)
+				buffer_append(&b, ",", 1);
+			buffer_append(&b, method->name, strlen(method->name));
 		}
 	}
-	size++;			/* trailing '\0' */
-	list = xmalloc(size);
-	list[0] = '\0';
-
-	for (method = authmethods; method->name != NULL; method++) {
-		if (strcmp(method->name, "none") == 0)
-			continue;
-		if (method->enabled != NULL && *(method->enabled) != 0) {
-			if (list[0] != '\0')
-				strlcat(list, DELIM, size);
-			strlcat(list, method->name, size);
-		}
-	}
+	buffer_append(&b, "\0", 1);
+	list = xstrdup(buffer_ptr(&b));
+	buffer_free(&b);
 	return list;
 }
 

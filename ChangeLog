@@ -155,6 +155,10 @@
    - provos@cvs.openbsd.org 2002/01/13 17:27:07
      [ssh-agent.c]
      change to use queue.h macros; okay markus@
+   - markus@cvs.openbsd.org 2002/01/13 17:57:37
+     [auth2.c auth2-chall.c compat.c sshconnect2.c sshd.c]
+     use buffer API and avoid static strings of fixed size; 
+     ok provos@/mouring@
 
 
 20020121
@@ -7303,4 +7307,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1767 2002/01/22 12:26:13 djm Exp $
+$Id: ChangeLog,v 1.1768 2002/01/22 12:26:38 djm Exp $

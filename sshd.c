@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.222 2001/12/28 14:50:54 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.223 2002/01/13 17:57:37 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -480,9 +480,11 @@ destroy_sensitive_data(void)
 static char *
 list_hostkey_types(void)
 {
-	static char buf[1024];
+	Buffer b;
+	char *p;
 	int i;
-	buf[0] = '\0';
+
+	buffer_init(&b);
 	for (i = 0; i < options.num_host_key_files; i++) {
 		Key *key = sensitive_data.host_keys[i];
 		if (key == NULL)
@@ -490,16 +492,18 @@ list_hostkey_types(void)
 		switch (key->type) {
 		case KEY_RSA:
 		case KEY_DSA:
-			strlcat(buf, key_ssh_name(key), sizeof buf);
-			strlcat(buf, ",", sizeof buf);
+			if (buffer_len(&b) > 0)
+				buffer_append(&b, ",", 1);
+			p = key_ssh_name(key);
+			buffer_append(&b, p, strlen(p));
 			break;
 		}
 	}
-	i = strlen(buf);
-	if (i > 0 && buf[i-1] == ',')
-		buf[i-1] = '\0';
-	debug("list_hostkey_types: %s", buf);
-	return buf;
+	buffer_append(&b, "\0", 1);
+	p = xstrdup(buffer_ptr(&b));
+	buffer_free(&b);
+	debug("list_hostkey_types: %s", p);
+	return p;
 }
 
 static Key *

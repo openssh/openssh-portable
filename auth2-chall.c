@@ -23,10 +23,11 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: auth2-chall.c,v 1.15 2002/01/11 23:02:51 markus Exp $");
+RCSID("$OpenBSD: auth2-chall.c,v 1.16 2002/01/13 17:57:37 markus Exp $");
 
 #include "ssh2.h"
 #include "auth.h"
+#include "buffer.h"
 #include "packet.h"
 #include "xmalloc.h"
 #include "dispatch.h"
@@ -68,22 +69,25 @@ static KbdintAuthctxt *
 kbdint_alloc(const char *devs)
 {
 	KbdintAuthctxt *kbdintctxt;
+	Buffer b;
 	int i;
-	char buf[1024];
 
 	kbdintctxt = xmalloc(sizeof(KbdintAuthctxt));
 	if (strcmp(devs, "") == 0) {
-		buf[0] = '\0';
+		buffer_init(&b);
 		for (i = 0; devices[i]; i++) {
-			if (i != 0)
-				strlcat(buf, ",", sizeof(buf));
-			strlcat(buf, devices[i]->name, sizeof(buf));
+			if (buffer_len(&b) > 0)
+				buffer_append(&b, ",", 1);
+			buffer_append(&b, devices[i]->name,
+			    strlen(devices[i]->name));
 		}
-		debug("kbdint_alloc: devices '%s'", buf);
-		kbdintctxt->devices = xstrdup(buf);
+		buffer_append(&b, "\0", 1);
+		kbdintctxt->devices = xstrdup(buffer_ptr(&b));
+		buffer_free(&b);
 	} else {
 		kbdintctxt->devices = xstrdup(devs);
 	}
+	debug("kbdint_alloc: devices '%s'", kbdintctxt->devices);
 	kbdintctxt->ctxt = NULL;
 	kbdintctxt->device = NULL;
 

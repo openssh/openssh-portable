@@ -23,8 +23,9 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: compat.c,v 1.56 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: compat.c,v 1.57 2002/01/13 17:57:37 markus Exp $");
 
+#include "buffer.h"
 #include "packet.h"
 #include "xmalloc.h"
 #include "compat.h"
@@ -182,24 +183,25 @@ proto_spec(const char *spec)
 char *
 compat_cipher_proposal(char *cipher_prop)
 {
+	Buffer b;
 	char *orig_prop, *fix_ciphers;
 	char *cp, *tmp;
-	size_t len;
 
 	if (!(datafellows & SSH_BUG_BIGENDIANAES))
 		return(cipher_prop);
 
-	len = strlen(cipher_prop) + 1;
-	fix_ciphers = xmalloc(len);
-	*fix_ciphers = '\0';
+	buffer_init(&b);
 	tmp = orig_prop = xstrdup(cipher_prop);
 	while ((cp = strsep(&tmp, ",")) != NULL) {
 		if (strncmp(cp, "aes", 3) && strncmp(cp, "rijndael", 8)) {
-			if (*fix_ciphers)
-				strlcat(fix_ciphers, ",", len);
-			strlcat(fix_ciphers, cp, len);
+			if (buffer_len(&b) > 0)
+				buffer_append(&b, ",", 1);
+			buffer_append(&b, cp, strlen(cp));
 		}
 	}
+	buffer_append(&b, "\0", 1);
+	fix_ciphers = xstrdup(buffer_ptr(&b));
+	buffer_free(&b);
 	xfree(orig_prop);
 	debug2("Original cipher proposal: %s", cipher_prop);
 	debug2("Compat cipher proposal: %s", fix_ciphers);

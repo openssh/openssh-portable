@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.92 2001/12/28 15:06:00 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.93 2002/01/13 17:57:37 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -991,22 +991,23 @@ authmethod_get(char *authlist)
 	}
 }
 
-
-#define	DELIM	","
-
 static char *
 authmethods_get(void)
 {
 	Authmethod *method = NULL;
-	char buf[1024];
+	Buffer b;
+	char *list;
 
-	buf[0] = '\0';
+	buffer_init(&b);
 	for (method = authmethods; method->name != NULL; method++) {
 		if (authmethod_is_enabled(method)) {
-			if (buf[0] != '\0')
-				strlcat(buf, DELIM, sizeof buf);
-			strlcat(buf, method->name, sizeof buf);
+			if (buffer_len(&b) > 0)
+				buffer_append(&b, ",", 1);
+			buffer_append(&b, method->name, strlen(method->name));
 		}
 	}
-	return xstrdup(buf);
+	buffer_append(&b, "\0", 1);
+	list = xstrdup(buffer_ptr(&b));
+	buffer_free(&b);
+	return list;
 }
