@@ -92,7 +92,7 @@ clean:
 manpages:
 	$(PERL) $(FIXPATHS) -Dsysconfdir=${sysconfdir} $(srcdir)/*.[18].in $(srcdir)/ssh*_config.in
 
-install: all
+install: manpages all
 	$(INSTALL) -d $(bindir)
 	$(INSTALL) -d $(sbindir)
 	$(INSTALL) -d $(mandir)

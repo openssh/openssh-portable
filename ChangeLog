@@ -3,6 +3,7 @@
    by Andre Lucas <andre.lucas@dial.pipex.com>
  - Properly clean up on exit of ssh-agent. Patch from Dean Gaudet
    <dgaudet@arctic.org>
+ - Run fixpaths before install. (Andre Lucas)
 
 19991231
  - Fix password support on systems with a mixture of shadowed and 
