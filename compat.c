@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: compat.c,v 1.57 2002/01/13 17:57:37 markus Exp $");
+RCSID("$OpenBSD: compat.c,v 1.58 2002/01/21 22:30:12 markus Exp $");
 
 #include "buffer.h"
 #include "packet.h"
@@ -193,7 +193,7 @@ compat_cipher_proposal(char *cipher_prop)
 	buffer_init(&b);
 	tmp = orig_prop = xstrdup(cipher_prop);
 	while ((cp = strsep(&tmp, ",")) != NULL) {
-		if (strncmp(cp, "aes", 3) && strncmp(cp, "rijndael", 8)) {
+		if (strncmp(cp, "aes", 3) != 0) {
 			if (buffer_len(&b) > 0)
 				buffer_append(&b, ",", 1);
 			buffer_append(&b, cp, strlen(cp));

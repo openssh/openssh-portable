@@ -215,6 +215,10 @@
      [sshconnect.c]
      use read_passphrase+ECHO in confirm(), allows use of ssh-askpass
      for hostkey confirm.
+   - markus@cvs.openbsd.org 2002/01/21 22:30:12
+     [cipher.c compat.c myproposal.h]
+     remove "rijndael-*", just use "aes-" since this how rijndael is called
+     in the drafts; ok stevesk@
 
 20020121
  - (djm) Rework ssh-rand-helper:
@@ -7362,4 +7366,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1783 2002/01/22 12:34:12 djm Exp $
+$Id: ChangeLog,v 1.1784 2002/01/22 12:34:35 djm Exp $
