@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.137 2001/08/02 16:14:05 jakob Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.138 2001/08/11 22:51:27 jakob Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -709,7 +709,7 @@ again:
 	 * Now that we are back to our own permissions, create ~/.ssh
 	 * directory if it doesn\'t already exist.
 	 */
-	snprintf(buf, sizeof buf, "%.100s/%.100s", pw->pw_dir, _PATH_SSH_USER_DIR);
+	snprintf(buf, sizeof buf, "%.100s%s%.100s", pw->pw_dir, strcmp(pw->pw_dir, "/") ? "/" : "", _PATH_SSH_USER_DIR);
 	if (stat(buf, &st) < 0)
 		if (mkdir(buf, 0700) < 0)
 			error("Could not create directory '%.200s'.", buf);

@@ -16,6 +16,10 @@
    - markus@cvs.openbsd.org 2001/08/08 21:34:19
      [uidswap.c]
      undo last change; does not work for sshd
+   - jakob@cvs.openbsd.org 2001/08/11 22:51:27
+     [ssh.c tildexpand.c]
+     fix more paths beginning with "//"; <bradshaw@staff.crosswalk.com>. 
+     ok markus@
 
 20010814
  - (stevesk) sshpty.c, cray.[ch]: whitespace, formatting and cleanup
@@ -6305,4 +6309,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1479 2001/08/15 23:17:22 mouring Exp $
+$Id: ChangeLog,v 1.1480 2001/08/15 23:19:21 mouring Exp $
