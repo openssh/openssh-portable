@@ -1153,9 +1153,9 @@ do_setusercontext(struct passwd *pw)
 #else /* HAVE_CYGWIN */
 	if (getuid() == 0 || geteuid() == 0) {
 #endif /* HAVE_CYGWIN */
-#ifdef HAVE_GETUSERATTR
-		set_limits_from_userattr(pw->pw_name);
-#endif /* HAVE_GETUSERATTR */
+#ifdef HAVE_SETPCRED
+		setpcred(pw->pw_name);
+#endif /* HAVE_SETPCRED */
 #ifdef HAVE_LOGIN_CAP
 		if (setusercontext(lc, pw, pw->pw_uid,
 		    (LOGIN_SETALL & ~LOGIN_SETPATH)) < 0) {

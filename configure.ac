@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.66 2002/06/12 16:57:15 mouring Exp $
+# $Id: configure.ac,v 1.67 2002/06/21 00:01:19 mouring Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -571,9 +571,9 @@ AC_CHECK_FUNCS(arc4random b64_ntop bcopy bindresvport_sa \
 	mkdtemp mmap ngetaddrinfo openpty ogetaddrinfo readpassphrase \
 	realpath recvmsg rresvport_af sendmsg setdtablesize setegid \
 	setenv seteuid setgroups setlogin setproctitle setresgid setreuid \
-	setrlimit setsid setvbuf sigaction sigvec snprintf socketpair \
-	strerror strlcat strlcpy strmode strsep sysconf tcgetpgrp truncate \
-	utimes vhangup vsnprintf waitpid __b64_ntop _getpty)
+	setrlimit setsid setpcred setvbuf sigaction sigvec snprintf \
+	socketpair strerror strlcat strlcpy strmode strsep sysconf tcgetpgrp \
+	truncate utimes vhangup vsnprintf waitpid __b64_ntop _getpty)
 
 dnl IRIX and Solaris 2.5.1 have dirname() in libgen
 AC_CHECK_FUNCS(dirname, [AC_CHECK_HEADERS(libgen.h)] ,[
@@ -620,11 +620,6 @@ AC_CHECK_FUNCS(utmpname)
 dnl    Checks for utmpx functions
 AC_CHECK_FUNCS(endutxent getutxent getutxid getutxline pututxline )
 AC_CHECK_FUNCS(setutxent utmpxname)
-
-AC_CHECK_FUNC(getuserattr, 
-	[AC_DEFINE(HAVE_GETUSERATTR)],
-	[AC_CHECK_LIB(s, getuserattr, [LIBS="$LIBS -ls"; AC_DEFINE(HAVE_GETUSERATTR)])]
-)
 
 AC_CHECK_FUNC(daemon, 
 	[AC_DEFINE(HAVE_DAEMON)],
