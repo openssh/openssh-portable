@@ -1,6 +1,6 @@
 /*
 **
-** OpenBSD emulation routines
+** OpenBSD replacement routines
 **
 ** Damien Miller <djm@ibs.com.au>
 ** 
@@ -33,8 +33,8 @@
 **
 */
 
-#ifndef _HELPER_H
-#define _HELPER_H
+#ifndef _BSD_MISC_H
+#define _BSD_MISC_H
 
 #include "config.h"
 
@@ -51,4 +51,4 @@ void setproctitle(const char *fmt, ...);
 int setenv(const char *name, const char *value, int overwrite);
 #endif /* !HAVE_SETENV */
 
-#endif /* _HELPER_H */
+#endif /* _BSD_MISC_H */

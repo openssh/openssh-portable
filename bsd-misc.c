@@ -48,7 +48,7 @@
 #include "xmalloc.h"
 #include "ssh.h"
 #include "config.h"
-#include "helper.h"
+#include "bsd-misc.h"
 
 #ifndef offsetof
 #define offsetof(type, member) ((size_t) &((type *)0)->member)
