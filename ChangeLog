@@ -46,6 +46,9 @@
      [scp.c]
      clear the malloc'd buffer, otherwise source() will leak malloc'd 
      memory; ok theo@
+   - stevesk@cvs.openbsd.org 2001/08/29 23:02:21
+     [sshd.8]
+     add text about -u0 preventing DNS requests; ok markus@
 
 20010815
  - (bal) Fixed stray code in readconf.c that went in by mistake.
@@ -6369,4 +6372,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1498 2001/09/12 17:49:48 mouring Exp $
+$Id: ChangeLog,v 1.1499 2001/09/12 17:51:55 mouring Exp $

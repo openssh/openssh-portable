@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.143 2001/08/22 16:30:02 stevesk Exp $
+.\" $OpenBSD: sshd.8,v 1.144 2001/08/29 23:02:21 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -268,6 +268,18 @@ indicates that only dotted decimal addresses
 should be put into the
 .Pa utmp
 file.
+.Fl u0
+is also be used to prevent
+.Nm
+from making DNS requests unless the authentication
+mechanism or configuration requires it.
+Authentication mechanisms that may require DNS include
+.Cm RhostsAuthentication ,
+.Cm RhostsRSAAuthentication ,
+.Cm HostbasedAuthentication
+and using a
+.Cm from="pattern-list"
+option in a key file.
 .It Fl D
 When this option is specified
 .Nm
