@@ -4,6 +4,9 @@
    coming).
  - (bal) Part two.. Drop unused AIX header, fix up missing char *cp.  All
    that is left is handling aix_usrinfo().
+ - (tim) [loginrec.c session.c sshlogin.c sshlogin.h] Bug 84
+   patch by wknox@mitre.org (William Knox).
+   [sshlogin.h] declare record_utmp_only for session.c
 
 20020221
  - (bal) Minor session.c fixup for cygwin.  mispelt 'is_winnt' variable.
@@ -7663,4 +7666,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1872 2002/02/24 20:42:46 mouring Exp $
+$Id: ChangeLog,v 1.1873 2002/02/25 01:56:46 tim Exp $

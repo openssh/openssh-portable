@@ -163,7 +163,7 @@
 #include "log.h"
 #include "atomicio.h"
 
-RCSID("$Id: loginrec.c,v 1.38 2001/10/30 02:50:40 tim Exp $");
+RCSID("$Id: loginrec.c,v 1.39 2002/02/25 01:56:47 tim Exp $");
 
 #ifdef HAVE_UTIL_H
 #  include <util.h>
@@ -701,6 +701,8 @@ construct_utmpx(struct logininfo *li, struct utmpx *utx)
 	line_stripname(utx->ut_line, li->line, sizeof(utx->ut_line));
 	set_utmpx_time(li, utx);
 	utx->ut_pid = li->pid;
+	/* strncpy(): Don't necessarily want null termination */
+	strncpy(utx->ut_name, li->username, MIN_SIZEOF(utx->ut_name, li->username));
 
 	if (li->type == LTYPE_LOGOUT)
 		return;
@@ -710,8 +712,6 @@ construct_utmpx(struct logininfo *li, struct utmpx *utx)
 	 * for logouts.
 	 */
 
-	/* strncpy(): Don't necessarily want null termination */
-	strncpy(utx->ut_name, li->username, MIN_SIZEOF(utx->ut_name, li->username));
 # ifdef HAVE_HOST_IN_UTMPX
 	strncpy(utx->ut_host, li->hostname, MIN_SIZEOF(utx->ut_host, li->hostname));
 # endif
@@ -942,9 +942,7 @@ utmpx_perform_logout(struct logininfo *li)
 {
 	struct utmpx utx;
 
-	memset(&utx, '\0', sizeof(utx));
-	set_utmpx_time(li, &utx);
-	line_stripname(utx.ut_line, li->line, sizeof(utx.ut_line));
+	construct_utmpx(li, &utx);
 # ifdef HAVE_ID_IN_UTMPX
 	line_abbrevname(utx.ut_id, li->line, sizeof(utx.ut_id));
 # endif

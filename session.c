@@ -1677,7 +1677,7 @@ session_pty_cleanup(void *session)
 
 	/* Record that the user has logged out. */
 	if (s->pid != 0)
-		record_logout(s->pid, s->tty);
+		record_logout(s->pid, s->tty, s->pw->pw_name);
 
 	/* Release the pseudo-tty. */
 	pty_release(s->tty);
