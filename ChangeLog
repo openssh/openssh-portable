@@ -11,6 +11,9 @@
    - markus@cvs.openbsd.org 2001/10/24 08:51:35
      [clientloop.c ssh.c]
      ignore SIGPIPE early, makes ssh work if agent dies, netbsd-pr via itojun@
+   - markus@cvs.openbsd.org 2001/10/24 19:57:40
+     [clientloop.c]
+     make ~& (backgrounding) work again for proto v1; add support ~& for v2, too
 
 20011109
  - (stevesk) auth-pam.c: use do_pam_authenticate(PAM_DISALLOW_NULL_AUTHTOK)
@@ -6820,4 +6823,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1637 2001/11/11 23:52:03 djm Exp $
+$Id: ChangeLog,v 1.1638 2001/11/11 23:52:25 djm Exp $
