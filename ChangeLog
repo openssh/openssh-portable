@@ -30,6 +30,8 @@
    - markus@cvs.openbsd.org 2000/12/27 11:41:31
      [sshd.8]
      update for ssh-2
+ - (stevesk) compress.[ch] sync with openbsd; missed in prototype
+   fix merge.
 
 20001228
  - (bal) Patch to add libutil.h to loginrec.c only if the platform has

@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: compress.c,v 1.10 2000/12/19 23:17:56 markus Exp $");
+RCSID("$OpenBSD: compress.c,v 1.11 2000/12/20 19:37:21 markus Exp $");
 
 #include "ssh.h"
 #include "buffer.h"
@@ -39,7 +39,7 @@ buffer_compress_init(int level)
 /* Frees any data structures allocated for compression. */
 
 void
-buffer_compress_uninit()
+buffer_compress_uninit(void)
 {
 	debug("compress outgoing: raw data %lu, compressed %lu, factor %.2f",
 	      outgoing_stream.total_in, outgoing_stream.total_out,
