@@ -28,6 +28,9 @@
    - markus@cvs.openbsd.org 2002/06/09 04:33:27
      [sshconnect.c]
      abort() - > fatal()
+ - (bal) RCSID tag updates on channels.c, clientloop.c, nchan.c,
+   sftp-client.c, ssh-agenet.c, ssh-keygen.c and connect.h (we did unexpand
+   independant of them)
 
 20020607
  - (bal) Removed --{enable/disable}-suid-ssh
@@ -859,4 +862,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2197 2002/06/09 20:16:22 mouring Exp $
+$Id: ChangeLog,v 1.2198 2002/06/09 20:20:58 mouring Exp $
