@@ -3,6 +3,9 @@
    - markus@cvs.openbsd.org 2003/08/14 16:08:58
      [ssh-keygen.c]
      exit after primetest, ok djm@
+ - (dtucker) [defines.h] Put CMSG_DATA, CMSG_FIRSTHDR with other CMSG* macros,
+   change CMSG_DATA to use __CMSG_ALIGN (and thus work properly), reformat for
+   consistency.
 
 20030813
  - (dtucker) [session.c] Remove #ifdef TIOCSBRK kludge.
@@ -840,4 +843,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2894 2003/08/21 06:44:07 dtucker Exp $
+$Id: ChangeLog,v 1.2895 2003/08/21 06:49:41 dtucker Exp $

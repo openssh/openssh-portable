@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.100 2003/08/07 05:58:28 dtucker Exp $ */
+/* $Id: defines.h,v 1.101 2003/08/21 06:49:41 dtucker Exp $ */
 
 
 /* Constants */
@@ -437,6 +437,23 @@ struct winsize {
 #define	CMSG_SPACE(len)	(__CMSG_ALIGN(sizeof(struct cmsghdr)) + __CMSG_ALIGN(len))
 #endif
 
+/* given pointer to struct cmsghdr, return pointer to data */
+#ifndef CMSG_DATA
+#define CMSG_DATA(cmsg) ((u_char *)(cmsg) + __CMSG_ALIGN(sizeof(struct cmsghdr)))
+#endif /* CMSG_DATA */
+
+/*
+ * RFC 2292 requires to check msg_controllen, in case that the kernel returns
+ * an empty list for some reasons.
+ */
+#ifndef CMSG_FIRSTHDR
+#define CMSG_FIRSTHDR(mhdr) \
+	((mhdr)->msg_controllen >= sizeof(struct cmsghdr) ? \
+	 (struct cmsghdr *)(mhdr)->msg_control : \
+	 (struct cmsghdr *)NULL)
+#endif /* CMSG_FIRSTHDR */
+
+
 /* Function replacement / compatibility hacks */
 
 #if !defined(HAVE_GETADDRINFO) && (defined(HAVE_OGETADDRINFO) || defined(HAVE_NGETADDRINFO))
@@ -576,23 +593,5 @@ struct winsize {
 #endif
 
 /** end of login recorder definitions */
-
-#ifndef CMSG_DATA
-/* given pointer to struct cmsghdr, return pointer to data */
-#define CMSG_DATA(cmsg) \
-	((u_char *)(cmsg) +  (((u_int)(sizeof(struct cmsghdr)) \
-	 (sizeof(int) - 1)) &~ (sizeof(int) - 1)))
-#endif /* CMSG_DATA */
-
-#ifndef CMSG_FIRSTHDR
-/*
- * RFC 2292 requires to check msg_controllen, in case that the kernel returns
- * an empty list for some reasons.
- */
-# define CMSG_FIRSTHDR(mhdr) \
-	((mhdr)->msg_controllen >= sizeof(struct cmsghdr) ? \
-	 (struct cmsghdr *)(mhdr)->msg_control : \
-	 (struct cmsghdr *)NULL)
-#endif /* CMSG_FIRSTHDR */
 
 #endif /* _DEFINES_H */
