@@ -1,5 +1,6 @@
 20010430
  - (djm) Add .cvsignore files, suggested by Wayne Davison <wayne@blorf.net>
+ - (tim) [contrib/caldera/openssh.spec] add Requires line for Caldera 3.1
 
 20010429
  - (bal) Updated INSTALL.  PCRE moved to a new place.
@@ -5276,4 +5277,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1179.2.5 2001/04/30 03:51:27 djm Exp $
+$Id: ChangeLog,v 1.1179.2.6 2001/04/30 18:15:53 tim Exp $
