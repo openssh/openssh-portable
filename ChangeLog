@@ -49,6 +49,9 @@
    - stevesk@cvs.openbsd.org 2001/08/29 23:02:21
      [sshd.8]
      add text about -u0 preventing DNS requests; ok markus@
+   - stevesk@cvs.openbsd.org 2001/08/29 23:13:10
+     [ssh.1 ssh.c]
+     document -D and DynamicForward; ok markus@
 
 20010815
  - (bal) Fixed stray code in readconf.c that went in by mistake.
@@ -6372,4 +6375,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1499 2001/09/12 17:51:55 mouring Exp $
+$Id: ChangeLog,v 1.1500 2001/09/12 17:54:24 mouring Exp $

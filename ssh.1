@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.132 2001/08/28 15:39:48 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.133 2001/08/29 23:13:11 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -606,6 +606,20 @@ Privileged ports can be forwarded only when
 logging in as root on the remote machine.
 IPv6 addresses can be specified with an alternative syntax:
 .Ar port/host/hostport
+.It Fl D Ar port
+Specifies a local
+.Dq dynamic
+application-level port forwarding.
+This works by allocating a socket to listen to
+.Ar port
+on the local side, and whenever a connection is made to this port, the
+connection is forwarded over the secure channel, and the application
+protocol is then used to determine where to connect to from the
+remote machine.  Currently the SOCKS4 protocol is supported, and
+.Nm
+will act as a SOCKS4 server.
+Only root can forward privileged ports.
+Dynamic port forwardings can also be specified in the configuration file.
 .It Fl 1
 Forces
 .Nm
@@ -773,6 +787,17 @@ back to rsh or exiting.
 The argument must be an integer.
 This may be useful in scripts if the connection sometimes fails.
 The default is 1.
+.It Cm DynamicForward
+Specifies that a TCP/IP port on the local machine be forwarded
+over the secure channel, and the application
+protocol is then used to determine where to connect to from the
+remote machine.  The argument must be a port number.
+Currently the SOCKS4 protocol is supported, and
+.Nm
+will act as a SOCKS4 server.
+Multiple forwardings may be specified, and
+additional forwardings can be given on the command line.  Only
+the superuser can forward privileged ports.
 .It Cm EscapeChar
 Sets the escape character (default:
 .Ql ~ ) .
