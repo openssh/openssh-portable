@@ -16,7 +16,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.51 2004/06/21 17:36:31 avsm Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.52 2004/06/21 22:04:50 djm Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -49,6 +49,9 @@ int showprogress = 1;
 /* SIGINT received during command processing */
 volatile sig_atomic_t interrupted = 0;
 
+/* I wish qsort() took a separate ctx for the comparison function...*/
+int sort_flag;
+
 int remote_glob(struct sftp_conn *, const char *, int,
     int (*)(const char *, int), glob_t *); /* proto for sftp-glob.c */
 
@@ -61,11 +64,17 @@ char *__progname;
 /* Separators for interactive commands */
 #define WHITESPACE " \t\r\n"
 
-/* Define what type of ls view */
-#define LONG_VIEW	1	/* Full view ala ls -l */
-#define SHORT_VIEW	2	/* Single row view ala ls -1 */
-#define NUMERIC_VIEW	4	/* Long view with numeric uid/gid */
+/* ls flags */
+#define LONG_VIEW	0x01	/* Full view ala ls -l */
+#define SHORT_VIEW	0x02	/* Single row view ala ls -1 */
+#define NUMERIC_VIEW	0x04	/* Long view with numeric uid/gid */
+#define NAME_SORT	0x08	/* Sort by name (default) */
+#define TIME_SORT	0x10	/* Sort by mtime */
+#define SIZE_SORT	0x20	/* Sort by file size */
+#define REVERSE_SORT	0x40	/* Reverse sort order */
+
 #define VIEW_FLAGS	(LONG_VIEW|SHORT_VIEW|NUMERIC_VIEW)
+#define SORT_FLAGS	(NAME_SORT|TIME_SORT|SIZE_SORT)
 
 /* Commands for interactive mode */
 #define I_CHDIR		1
@@ -336,6 +345,9 @@ parse_ls_flags(const char **cpp, int *lflag)
 {
 	const char *cp = *cpp;
 
+	/* Defaults */
+	*lflag = NAME_SORT;
+
 	/* Check for flags */
 	if (cp++[0] == '-') {
 		for(; strchr(WHITESPACE, *cp) == NULL; cp++) {
@@ -351,6 +363,20 @@ parse_ls_flags(const char **cpp, int *lflag)
 			case 'n':
 				*lflag &= ~VIEW_FLAGS;
 				*lflag |= NUMERIC_VIEW|LONG_VIEW;
+				break;
+			case 'S':
+				*lflag &= ~SORT_FLAGS;
+				*lflag |= SIZE_SORT;
+				break;
+			case 't':
+				*lflag &= ~SORT_FLAGS;
+				*lflag |= TIME_SORT;
+				break;
+			case 'r':
+				*lflag |= REVERSE_SORT;
+				break;
+			case 'f':
+				*lflag &= ~SORT_FLAGS;
 				break;
 			default:
 				error("Invalid flag -%c", *cp);
@@ -611,8 +637,17 @@ sdirent_comp(const void *aa, const void *bb)
 {
 	SFTP_DIRENT *a = *(SFTP_DIRENT **)aa;
 	SFTP_DIRENT *b = *(SFTP_DIRENT **)bb;
+	int rmul = sort_flag & REVERSE_SORT ? -1 : 1;
 
-	return (strcmp(a->filename, b->filename));
+#define NCMP(a,b) (a == b ? 0 : (a < b ? 1 : -1))
+	if (sort_flag & NAME_SORT)
+		return (rmul * strcmp(a->filename, b->filename));
+	else if (sort_flag & TIME_SORT)
+		return (rmul * NCMP(a->a.mtime, b->a.mtime));
+	else if (sort_flag & SIZE_SORT)
+		return (rmul * NCMP(a->a.size, b->a.size));
+
+	fatal("Unknown ls sort type");
 }
 
 /* sftp ls.1 replacement for directories */
@@ -648,7 +683,10 @@ do_ls_dir(struct sftp_conn *conn, char *path, char *strip_path, int lflag)
 		colspace = MIN(colspace, width);
 	}
 
-	qsort(d, n, sizeof(*d), sdirent_comp);
+	if (lflag & SORT_FLAGS) {
+		sort_flag = lflag & (SORT_FLAGS|REVERSE_SORT);
+		qsort(d, n, sizeof(*d), sdirent_comp);
+	}
 
 	for (n = 0; d[n] != NULL && !interrupted; n++) {
 		char *tmp, *fname;
