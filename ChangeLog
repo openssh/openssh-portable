@@ -2,6 +2,8 @@
  - (djm) Fix ^C ignored issue on Solaris. Diagnosis from Gert 
    Doering <gert@greenie.muc.de>, John Horne <J.Horne@plymouth.ac.uk> and 
    Garrick James <garrick@james.net>
+ - (djm) Check for SCO pty naming style (ptyp%d/ttyp%d). Based on fix from
+   Bastian Trompetter <btrompetter@firemail.de>
  - More OpenBSD updates:
    - deraadt@cvs.openbsd.org 2000/08/24 15:46:59
      [scp.c]

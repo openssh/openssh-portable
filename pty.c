@@ -162,12 +162,19 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 	for (i = 0; i < num_ptys; i++) {
 		snprintf(buf, sizeof buf, "/dev/pty%c%c", ptymajors[i / num_minors],
 			 ptyminors[i % num_minors]);
-		*ptyfd = open(buf, O_RDWR | O_NOCTTY);
-		if (*ptyfd < 0)
-			continue;
 		snprintf(namebuf, namebuflen, "/dev/tty%c%c",
 		    ptymajors[i / num_minors], ptyminors[i % num_minors]);
 
+		*ptyfd = open(buf, O_RDWR | O_NOCTTY);
+		if (*ptyfd < 0) {
+			/* Try SCO style naming */
+			snprintf(buf, sizeof buf, "/dev/ptyp%d", i);
+			snprintf(namebuf, namebuflen, "/dev/ttyp%d", i);
+			*ptyfd = open(buf, O_RDWR | O_NOCTTY);
+			if (*ptyfd < 0)
+				continue;
+		}	
+			
 		/* Open the slave side. */
 		*ttyfd = open(namebuf, O_RDWR | O_NOCTTY);
 		if (*ttyfd < 0) {
