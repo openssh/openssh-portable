@@ -1,3 +1,6 @@
+20000830
+ - (djm) Compile warning fixes from Mark Miller <markm@swoon.net>
+
 20000829
  - (djm) Fix ^C ignored issue on Solaris. Diagnosis from Gert 
    Doering <gert@greenie.muc.de>, John Horne <J.Horne@plymouth.ac.uk> and 

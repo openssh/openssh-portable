@@ -34,25 +34,13 @@
  * SUCH DAMAGE.
  */
 
-#include "config.h"
+#include "includes.h"
 
 #ifndef HAVE_MKDTEMP
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char rcsid[] = "$OpenBSD: mktemp.c,v 1.13 1998/06/30 23:03:13 deraadt Exp $";
 #endif /* LIBC_SCCS and not lint */
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <unistd.h>
-
-#include "bsd-misc.h"
-#include "bsd-arc4random.h"
 
 static int _gettemp(char *, int *, int, int);
 

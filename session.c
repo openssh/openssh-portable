@@ -1837,7 +1837,9 @@ session_proctitle(Session *s)
 void
 do_authenticated2(void)
 {
+#ifdef HAVE_LOGIN_CAP
 	struct passwd *pw;
+#endif
 
 	/*
 	 * Cancel the alarm we set to limit the time taken for
