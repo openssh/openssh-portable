@@ -37,6 +37,10 @@
      [auth.h auth1.c auth2.c sshd.c]
      have the authentication functions return the authentication context
      and then do_authenticated; okay millert@
+   - dugsong@cvs.openbsd.org 2002/03/18 01:30:10
+     [auth-krb4.c]
+     set client to NULL after xfree(), from Rolf Braun 
+     <rbraun+ssh@andrew.cmu.edu>
 
 20020317
  - (tim) [configure.ac] Assume path given with --with-pid-dir=PATH is wanted,
@@ -7883,4 +7887,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1935 2002/03/22 01:27:35 mouring Exp $
+$Id: ChangeLog,v 1.1936 2002/03/22 01:30:40 mouring Exp $
