@@ -23,6 +23,7 @@
  - (tim) [openbsd-compat/getrrsetbyname.c] Make gcc 2.7.2.3 happy.  ok djm@
  - (djm) Crank RPM spec versions
  - (dtucker) [README] Add pointer to release notes.  ok djm@
+ - (dtucker) {README.platform] Add platform-specific notes.
 
 20040223
  - (dtucker) [session.c] Bug #789: Only make setcred call for !privsep in the
@@ -1926,4 +1927,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3254 2004/02/24 05:13:24 dtucker Exp $
+$Id: ChangeLog,v 1.3255 2004/02/24 05:14:41 dtucker Exp $
