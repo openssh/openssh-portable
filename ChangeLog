@@ -1,6 +1,11 @@
 20030719
  - (dtucker) [configure.ac] Bug #620: Define BROKEN_GETADDRINFO for
    Solaris/x86.  Patch from jrhett at isite.net.
+ - (dtucker) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2003/07/14 12:36:37
+     [sshd.c]
+     remove undocumented -V option. would be only useful if openssh is used
+     as ssh v1 server for ssh.com's ssh v2.
 
 20030714
  - (dtucker) [acconfig.h configure.ac port-aix.c] Older AIXes don't declare
@@ -697,4 +702,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2857 2003/07/19 09:49:45 dtucker Exp $
+$Id: ChangeLog,v 1.2858 2003/07/19 09:52:28 dtucker Exp $

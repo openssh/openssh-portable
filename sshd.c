@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.271 2003/06/28 16:23:06 deraadt Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.272 2003/07/14 12:36:37 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -370,39 +370,37 @@ sshd_exchange_identification(int sock_in, int sock_out)
 	snprintf(buf, sizeof buf, "SSH-%d.%d-%.100s\n", major, minor, SSH_VERSION);
 	server_version_string = xstrdup(buf);
 
-	if (client_version_string == NULL) {
-		/* Send our protocol version identification. */
-		if (atomicio(vwrite, sock_out, server_version_string,
-		    strlen(server_version_string))
-		    != strlen(server_version_string)) {
-			logit("Could not write ident string to %s", get_remote_ipaddr());
+	/* Send our protocol version identification. */
+	if (atomicio(vwrite, sock_out, server_version_string,
+	    strlen(server_version_string))
+	    != strlen(server_version_string)) {
+		logit("Could not write ident string to %s", get_remote_ipaddr());
+		fatal_cleanup();
+	}
+
+	/* Read other sides version identification. */
+	memset(buf, 0, sizeof(buf));
+	for (i = 0; i < sizeof(buf) - 1; i++) {
+		if (atomicio(read, sock_in, &buf[i], 1) != 1) {
+			logit("Did not receive identification string from %s",
+			    get_remote_ipaddr());
 			fatal_cleanup();
 		}
-
-		/* Read other sides version identification. */
-		memset(buf, 0, sizeof(buf));
-		for (i = 0; i < sizeof(buf) - 1; i++) {
-			if (atomicio(read, sock_in, &buf[i], 1) != 1) {
-				logit("Did not receive identification string from %s",
-				    get_remote_ipaddr());
-				fatal_cleanup();
-			}
-			if (buf[i] == '\r') {
-				buf[i] = 0;
-				/* Kludge for F-Secure Macintosh < 1.0.2 */
-				if (i == 12 &&
-				    strncmp(buf, "SSH-1.5-W1.0", 12) == 0)
-					break;
-				continue;
-			}
-			if (buf[i] == '\n') {
-				buf[i] = 0;
+		if (buf[i] == '\r') {
+			buf[i] = 0;
+			/* Kludge for F-Secure Macintosh < 1.0.2 */
+			if (i == 12 &&
+			    strncmp(buf, "SSH-1.5-W1.0", 12) == 0)
 				break;
-			}
+			continue;
 		}
-		buf[sizeof(buf) - 1] = 0;
-		client_version_string = xstrdup(buf);
+		if (buf[i] == '\n') {
+			buf[i] = 0;
+			break;
+		}
 	}
+	buf[sizeof(buf) - 1] = 0;
+	client_version_string = xstrdup(buf);
 
 	/*
 	 * Check that the versions match.  In future this might accept
@@ -841,7 +839,7 @@ main(int ac, char **av)
 	initialize_server_options(&options);
 
 	/* Parse command-line arguments. */
-	while ((opt = getopt(ac, av, "f:p:b:k:h:g:V:u:o:dDeiqtQ46")) != -1) {
+	while ((opt = getopt(ac, av, "f:p:b:k:h:g:u:o:dDeiqtQ46")) != -1) {
 		switch (opt) {
 		case '4':
 			IPv4or6 = AF_INET;
@@ -911,11 +909,6 @@ main(int ac, char **av)
 				exit(1);
 			}
 			options.host_key_files[options.num_host_key_files++] = optarg;
-			break;
-		case 'V':
-			client_version_string = optarg;
-			/* only makes sense with inetd_flag, i.e. no listen() */
-			inetd_flag = 1;
 			break;
 		case 't':
 			test_flag = 1;
