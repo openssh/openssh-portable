@@ -45,7 +45,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: scp.c,v 1.10 1999/11/25 00:54:59 damien Exp $");
+RCSID("$Id: scp.c,v 1.11 1999/11/25 01:31:26 damien Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -78,7 +78,7 @@ char *curfile;
 int verbose_mode = 0;
 
 /* This is set to non-zero if compression is desired. */
-int compress = 0;
+int compress_flag = 0;
 
 /* This is set to zero if the progressmeter is not desired. */
 int showprogress = 1;
@@ -147,7 +147,7 @@ do_cmd(char *host, char *remuser, char *cmd, int *fdin, int *fdout)
 		args[i++] = "-oFallBackToRsh no";
 		if (verbose_mode)
 			args[i++] = "-v";
-		if (compress)
+		if (compress_flag)
 			args[i++] = "-C";
 		if (batchmode)
 			args[i++] = "-oBatchMode yes";
@@ -279,7 +279,7 @@ main(argc, argv)
 			batchmode = 1;
 			break;
 		case 'C':
-			compress = 1;
+			compress_flag = 1;
 			break;
 		case 'q':
 			showprogress = 0;
@@ -974,7 +974,7 @@ run_err(const char *fmt,...)
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	$Id: scp.c,v 1.10 1999/11/25 00:54:59 damien Exp $
+ *	$Id: scp.c,v 1.11 1999/11/25 01:31:26 damien Exp $
  */
 
 char *

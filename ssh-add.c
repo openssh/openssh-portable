@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: ssh-add.c,v 1.14 1999/11/25 00:54:59 damien Exp $");
+RCSID("$Id: ssh-add.c,v 1.15 1999/11/25 01:31:26 damien Exp $");
 
 #include "rsa.h"
 #include "ssh.h"
@@ -203,8 +203,6 @@ main(int argc, char **argv)
 
 	/* check if RSA support exists */
 	if (rsa_alive() == 0) {
-		extern char *__progname;
-
 		fprintf(stderr,
 			"%s: no RSA support in libssl and libcrypto.  See ssl(8).\n",
 			__progname);

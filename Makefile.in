@@ -17,6 +17,8 @@ TARGETS=libssh.a ssh sshd ssh-add ssh-keygen ssh-agent scp $(EXTRA_TARGETS)
 LIBS=@LIBS@
 AR=@AR@
 RANLIB=@RANLIB@
+INSTALL=@INSTALL@
+LFLAGS=@LDFLAGS@
 
 GNOME_CFLAGS=`gnome-config --cflags gnome gnomeui`
 GNOME_LIBS=`gnome-config --libs gnome gnomeui`
@@ -61,40 +63,40 @@ clean:
 	rm -f *.o core $(TARGETS) config.status config.cache config.log
 
 install: all
-	install -d $(bindir)
-	install -d $(sbindir)
-	install -d $(mandir)
-	install -d $(mandir)/man1
-	install -d $(mandir)/man8
-	install -s -c ssh $(bindir)/ssh
-	install -s -c scp $(bindir)/scp
-	install -s -c ssh-add $(bindir)/ssh-add
-	install -s -c ssh-agent $(bindir)/ssh-agent
-	install -s -c ssh-keygen $(bindir)/ssh-keygen
-	install -s -c sshd $(sbindir)/sshd
-	install -m644 -c ssh.1 $(mandir)/man1/ssh.1
-	install -m644 -c scp.1 $(mandir)/man1/scp.1
-	install -m644 -c ssh-add.1 $(mandir)/man1/ssh-add.1
-	install -m644 -c ssh-agent.1 $(mandir)/man1/ssh-agent.1
-	install -m644 -c ssh-keygen.1 $(mandir)/man1/ssh-keygen.1
-	install -m644 -c sshd.8 $(mandir)/man8/sshd.8
+	$(INSTALL) -d $(bindir)
+	$(INSTALL) -d $(sbindir)
+	$(INSTALL) -d $(mandir)
+	$(INSTALL) -d $(mandir)/man1
+	$(INSTALL) -d $(mandir)/man8
+	$(INSTALL) -s -c ssh $(bindir)/ssh
+	$(INSTALL) -s -c scp $(bindir)/scp
+	$(INSTALL) -s -c ssh-add $(bindir)/ssh-add
+	$(INSTALL) -s -c ssh-agent $(bindir)/ssh-agent
+	$(INSTALL) -s -c ssh-keygen $(bindir)/ssh-keygen
+	$(INSTALL) -s -c sshd $(sbindir)/sshd
+	$(INSTALL) -m644 -c ssh.1 $(mandir)/man1/ssh.1
+	$(INSTALL) -m644 -c scp.1 $(mandir)/man1/scp.1
+	$(INSTALL) -m644 -c ssh-add.1 $(mandir)/man1/ssh-add.1
+	$(INSTALL) -m644 -c ssh-agent.1 $(mandir)/man1/ssh-agent.1
+	$(INSTALL) -m644 -c ssh-keygen.1 $(mandir)/man1/ssh-keygen.1
+	$(INSTALL) -m644 -c sshd.8 $(mandir)/man8/sshd.8
 	ln -sf ssh $(bindir)/slogin
 	ln -sf ssh.1 $(mandir)/man1/slogin.1
 
 	if [ "x@INSTALL_ASKPASS@" = "xyes" ] ; then \
-		install -d $(libexecdir) ; \
-		install -d $(libexecdir)/ssh ; \
+		$(INSTALL) -d $(libexecdir) ; \
+		$(INSTALL) -d $(libexecdir)/ssh ; \
 		if [ -z "@GNOME_ASKPASS@" ] ; then \
-			install -m755 -c ssh-askpass ${ASKPASS_PROGRAM}; \
+			$(INSTALL) -m755 -c ssh-askpass ${ASKPASS_PROGRAM}; \
 		else \
-			install -m755 -c gnome-ssh-askpass ${ASKPASS_PROGRAM}; \
+			$(INSTALL) -m755 -c gnome-ssh-askpass ${ASKPASS_PROGRAM}; \
 		fi ; \
 	fi
 
 	if [ ! -f $(sysconfdir)/ssh_config -a ! -f $(sysconfdir)/sshd_config ]; then \
-		install -d $(sysconfdir); \
-		install -m644 ssh_config $(sysconfdir)/ssh_config; \
-		install -m644 sshd_config $(sysconfdir)/sshd_config; \
+		$(INSTALL) -d $(sysconfdir); \
+		$(INSTALL) -m644 ssh_config $(sysconfdir)/ssh_config; \
+		$(INSTALL) -m644 sshd_config $(sysconfdir)/sshd_config; \
 	fi
 
 distclean: clean
