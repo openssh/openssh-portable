@@ -1,3 +1,7 @@
+20011029
+ - (tim) [TODO defines.h loginrec.c] Change the references to configure.in
+   to configure.ac
+
 20011028
  - (djm) Avoid bug in Solaris PAM libs
  - (djm) Disconnect if no tty and PAM reports password expired
@@ -6781,4 +6785,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1626 2001/10/28 18:10:22 stevesk Exp $
+$Id: ChangeLog,v 1.1627 2001/10/30 02:50:39 tim Exp $

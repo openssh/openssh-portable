@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.73 2001/10/22 00:53:59 tim Exp $ */
+/* $Id: defines.h,v 1.74 2001/10/30 02:50:40 tim Exp $ */
 
 /* Necessary headers */
 
@@ -454,7 +454,7 @@ struct winsize {
  * Define this to use pipes instead of socketpairs for communicating with the
  * client program.  Socketpairs do not seem to work on all systems.
  *
- * configure.in sets this for a few OS's which are known to have problems
+ * configure.ac sets this for a few OS's which are known to have problems
  * but you may need to set it yourself
  */
 /* #define USE_PIPES 1 */

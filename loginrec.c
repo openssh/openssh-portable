@@ -123,7 +123,7 @@
   symbols for the platform.
 
   Use logintest to check which symbols are defined before modifying
-  configure.in and loginrec.c. (You have to build logintest yourself
+  configure.ac and loginrec.c. (You have to build logintest yourself
   with 'make logintest' as it's not built by default.)
 
   Otherwise, patches to the specific method(s) are very helpful!
@@ -163,7 +163,7 @@
 #include "log.h"
 #include "atomicio.h"
 
-RCSID("$Id: loginrec.c,v 1.37 2001/10/26 15:56:56 mouring Exp $");
+RCSID("$Id: loginrec.c,v 1.38 2001/10/30 02:50:40 tim Exp $");
 
 #ifdef HAVE_UTIL_H
 #  include <util.h>

@@ -62,7 +62,7 @@ Documentation:
 - Create a Documentation/ directory?
 
 Clean up configure/makefiles:
-- Clean up configure.in - There are a few double #defined variables
+- Clean up configure.ac - There are a few double #defined variables
   left to do.  HAVE_LOGIN is one of them.  Consider NOT looking for
   information in wtmpx or utmpx or any of that stuff if it's not detected
   from the start
@@ -83,4 +83,4 @@ Packaging:
 - HP-UX: Provide DEPOT package scripts.
   (gilbert.r.loomis@saic.com)
 
-$Id: TODO,v 1.44 2001/10/08 02:53:55 mouring Exp $
+$Id: TODO,v 1.45 2001/10/30 02:50:40 tim Exp $
