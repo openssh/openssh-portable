@@ -31,7 +31,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.96 2004/03/04 08:54:10 dtucker Exp $");
+RCSID("$Id: auth-pam.c,v 1.97 2004/03/04 09:03:54 dtucker Exp $");
 
 #ifdef USE_PAM
 #if defined(HAVE_SECURITY_PAM_APPL_H)
@@ -117,6 +117,7 @@ pthread_create(sp_pthread_t *thread, const void *attr __unused,
 {
 	pid_t pid;
 
+	sshpam_thread_status = -1;
 	switch ((pid = fork())) {
 	case -1:
 		error("fork(): %s", strerror(errno));
