@@ -49,6 +49,9 @@
      [ssh.c]
      If smart card support is compiled in and a smart card is being used
      for authentication, make it the first method used.  markus@ OK
+   - deraadt@cvs.openbsd.org 2001/07/27 17:26:16
+     [scp.c]
+     shorten lines
 
 20010803
  - (djm) Fix interrupted read in entropy gatherer. Spotted by markus@ on
@@ -6159,4 +6162,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1439 2001/08/06 21:12:42 mouring Exp $
+$Id: ChangeLog,v 1.1440 2001/08/06 21:17:12 mouring Exp $
