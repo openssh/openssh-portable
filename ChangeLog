@@ -7,6 +7,10 @@
    - markus@cvs.openbsd.org 2001/04/05 10:39:03
      [compress.c compress.h packet.c]
      reset compress state per direction when rekeying.
+   - markus@cvs.openbsd.org 2001/04/05 10:39:48
+     [version.h]
+     temporary version 2.5.4 (supports rekeying).
+     this is not an official release.
 
 20010405
  - OpenBSD CVS Sync                                              
@@ -4879,4 +4883,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1065 2001/04/05 23:20:46 mouring Exp $
+$Id: ChangeLog,v 1.1066 2001/04/05 23:22:25 mouring Exp $
