@@ -9,6 +9,10 @@
      - add -O
      - sync -S w/ manpage
      - remove -h
+ - (dtucker) [auth1.c auth2.c] If the user successfully authenticates but is
+   subsequently denied by the PAM auth stack, send the PAM message to the
+   user via packet_disconnect (Protocol 1) or userauth_banner (Protocol 2).
+   ok djm@
 
 20041107
  - (dtucker) OpenBSD CVS Sync
@@ -1866,4 +1870,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3583 2004/12/03 03:10:19 dtucker Exp $
+$Id: ChangeLog,v 1.3584 2004/12/03 03:33:47 dtucker Exp $

@@ -220,13 +220,14 @@ userauth_finish(Authctxt *authctxt, int authenticated, char *method)
 #ifdef USE_PAM
 	if (options.use_pam && authenticated) {
 		if (!PRIVSEP(do_pam_account())) {
-			authenticated = 0;
 			/* if PAM returned a message, send it to the user */
 			if (buffer_len(&loginmsg) > 0) {
 				buffer_append(&loginmsg, "\0", 1);
 				userauth_send_banner(buffer_ptr(&loginmsg));
-				buffer_clear(&loginmsg);
+				packet_write_wait();
 			}
+			fatal("Access denied for user %s by PAM account "
+			   "configuration", authctxt->user);
 		}
 	}
 #endif
