@@ -18,6 +18,9 @@
    - markus@cvs.openbsd.org 2001/12/10 20:34:31
      [ssh-keyscan.c]
      check that server supports v1 for -t rsa1, report from wirth@dfki.de
+   - jakob@cvs.openbsd.org 2001/12/18 10:04:21
+     [auth.h hostfile.c hostfile.h]
+     remove auth_rsa_read_key, make hostfile_ready_key non static; ok markus@
 
 20011219
  - (stevesk) OpenBSD CVS sync X11 localhost display
@@ -7046,4 +7049,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1697 2001/12/21 01:45:43 djm Exp $
+$Id: ChangeLog,v 1.1698 2001/12/21 01:47:09 djm Exp $
