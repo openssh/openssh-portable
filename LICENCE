@@ -181,6 +181,7 @@ OpenSSH contains no GPL code.
 	Wesley Griffin
 	Per Allansson
 	Nils Nordman
+	Simon Wilkinson
 
     Portable OpenSSH additionally includes code from the following copyright 
     holders, also under the 2-term BSD license:
@@ -328,4 +329,4 @@ OpenSSH contains no GPL code.
 
 
 ------
-$OpenBSD: LICENCE,v 1.16 2003/07/29 18:24:00 markus Exp $
+$OpenBSD: LICENCE,v 1.17 2003/08/22 20:55:06 markus Exp $

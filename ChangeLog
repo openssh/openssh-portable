@@ -16,6 +16,9 @@
    - markus@cvs.openbsd.org 2003/08/22 13:22:27
      [auth2.c] (auth2-krb5.c removed)
      nuke "kerberos-2@ssh.com"
+   - markus@cvs.openbsd.org 2003/08/22 20:55:06
+     [LICENCE]
+     add Simon Wilkinson
  - (dtucker) [Makefile.in acconfig.h auth-krb5.c auth-pam.c auth-pam.h
    configure.ac defines.h gss-serv-krb5.c session.c ssh-gss.h sshconnect1.c
    sshconnect2.c] Add Portable GSSAPI support, patch by Simon Wilkinson.
@@ -891,4 +894,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2910 2003/08/26 02:08:15 dtucker Exp $
+$Id: ChangeLog,v 1.2911 2003/08/26 02:09:53 dtucker Exp $
