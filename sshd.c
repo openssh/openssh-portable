@@ -210,9 +210,6 @@ int startup_pipe;		/* in child */
 int use_privsep;
 struct monitor *pmonitor = NULL;
 
-/* message to be displayed after login */
-Buffer loginmsg;
-
 /* global authentication context */
 Authctxt *the_authctxt = NULL;
 

@@ -1,3 +1,6 @@
+20040812
+ - (dtucker) [sshd.c] Remove duplicate variable imported during sync.
+
 20040720
  - (djm) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2004/07/21 08:56:12
@@ -1564,4 +1567,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3488 2004/07/21 11:53:34 djm Exp $
+$Id: ChangeLog,v 1.3489 2004/08/12 12:16:55 dtucker Exp $
