@@ -97,4 +97,8 @@ Known Issues.
   unless ssh-rand-helper is in pre-installed (the path to
   ssh-rand-helper is hard coded).
 
-$Id: README.regress,v 1.8 2004/07/21 10:44:06 djm Exp $
+- Recent GNU coreutils deprecate "head -[n]": this will cause the yes-head
+  test to fail.  The old behaviour can be restored by setting (and
+  exporting) _POSIX2_VERSION=199209 before running the tests.
+
+$Id: README.regress,v 1.9 2004/08/17 12:31:33 dtucker Exp $

@@ -1,3 +1,6 @@
+20040817
+ - (dtucker) [regress/README.regress] Note compatibility issues with GNU head.
+
 20040816
  - (dtucker) [acconfig.h auth-pam.c configure.ac] Set real uid to non-root
    to convince Solaris PAM to honour password complexity rules.  ok djm@
@@ -1645,4 +1648,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3513 2004/08/16 13:12:05 dtucker Exp $
+$Id: ChangeLog,v 1.3514 2004/08/17 12:31:32 dtucker Exp $
