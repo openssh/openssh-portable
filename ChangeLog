@@ -48,6 +48,9 @@
    - markus@cvs.openbsd.org 2002/06/20 23:05:56
      [servconf.c servconf.h session.c sshd.c]
      allow Compression=yes/no in sshd_config
+   - markus@cvs.openbsd.org 2002/06/20 23:37:12
+     [sshd_config]
+     add Compression
  - (bal) Cygwin special handling of empty passwords wrong.  Patch by
    vinschen@redhat.com
 
@@ -978,4 +981,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2230 2002/06/21 01:09:47 mouring Exp $
+$Id: ChangeLog,v 1.2231 2002/06/21 01:11:36 mouring Exp $
