@@ -1,3 +1,9 @@
+20040224
+ - (dtucker) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2004/02/19 21:15:04
+     [sftp-server.c]
+     switch to new license.template
+
 20040223
  - (dtucker) [session.c] Bug #789: Only make setcred call for !privsep in the
    non-interactive path.  ok djm@
@@ -1900,4 +1906,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3243 2004/02/23 13:01:27 dtucker Exp $
+$Id: ChangeLog,v 1.3244 2004/02/23 22:19:15 dtucker Exp $
