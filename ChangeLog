@@ -85,6 +85,9 @@
    - stevesk@cvs.openbsd.org 2002/01/03 04:11:08
      [ssh_config]
      grammar in comment
+   - stevesk@cvs.openbsd.org 2002/01/04 17:59:17
+     [readconf.c servconf.c]
+     remove #ifdef _PATH_XAUTH/#endif; ok markus@
 
 
 20020121
@@ -7233,4 +7236,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1747 2002/01/22 12:18:32 djm Exp $
+$Id: ChangeLog,v 1.1748 2002/01/22 12:18:49 djm Exp $

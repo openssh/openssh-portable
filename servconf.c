@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.95 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.96 2002/01/04 17:59:17 stevesk Exp $");
 
 #if defined(KRB4) || defined(KRB5)
 #include <krb.h>
@@ -154,10 +154,8 @@ fill_default_server_options(ServerOptions *options)
 		options->x11_forwarding = 0;
 	if (options->x11_display_offset == -1)
 		options->x11_display_offset = 10;
-#ifdef _PATH_XAUTH
 	if (options->xauth_location == NULL)
 		options->xauth_location = _PATH_XAUTH;
-#endif
 	if (options->strict_modes == -1)
 		options->strict_modes = 1;
 	if (options->keepalives == -1)

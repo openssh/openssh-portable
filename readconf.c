@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.93 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.94 2002/01/04 17:59:17 stevesk Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -815,10 +815,8 @@ fill_default_options(Options * options)
 		options->forward_agent = 0;
 	if (options->forward_x11 == -1)
 		options->forward_x11 = 0;
-#ifdef _PATH_XAUTH
 	if (options->xauth_location == NULL)
 		options->xauth_location = _PATH_XAUTH;
-#endif
 	if (options->gateway_ports == -1)
 		options->gateway_ports = 0;
 	if (options->use_privileged_port == -1)
