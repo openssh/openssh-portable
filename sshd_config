@@ -1,4 +1,4 @@
-#	$OpenBSD: sshd_config,v 1.50 2002/04/21 16:19:27 stevesk Exp $
+#	$OpenBSD: sshd_config,v 1.51 2002/04/22 16:16:53 markus Exp $
 
 # This is the sshd server system-wide configuration file.  See sshd(8)
 # for more information.
@@ -60,8 +60,7 @@
 #ChallengeResponseAuthentication yes
 
 # Kerberos options
-# KerberosAuthentication automatically enabled if keyfile exists
-#KerberosAuthentication yes
+#KerberosAuthentication no
 #KerberosOrLocalPasswd yes
 #KerberosTicketCleanup yes
 

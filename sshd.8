@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.177 2002/04/21 16:19:27 stevesk Exp $
+.\" $OpenBSD: sshd.8,v 1.178 2002/04/22 16:16:53 markus Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -571,7 +571,7 @@ the Kerberos KDC.
 To use this option, the server needs a
 Kerberos servtab which allows the verification of the KDC's identity.
 Default is
-.Dq yes .
+.Dq no .
 .It Cm KerberosOrLocalPasswd
 If set then if password authentication through Kerberos fails then
 the password will be validated via any additional local mechanism

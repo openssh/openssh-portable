@@ -21,6 +21,9 @@
    - markus@cvs.openbsd.org 2002/04/22 06:15:47
      [radix.c]
      fix check for overflow
+   - markus@cvs.openbsd.org 2002/04/22 16:16:53
+     [servconf.c sshd.8 sshd_config]
+     do not auto-enable KerberosAuthentication; ok djm@, provos@, deraadt@
 
 20020421
  - (tim) [entropy.c.] Portability fix for SCO Unix 3.2v4.x (SCO OSR 3.0).
@@ -8287,4 +8290,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2068 2002/04/23 11:00:33 djm Exp $
+$Id: ChangeLog,v 1.2069 2002/04/23 11:04:51 djm Exp $
