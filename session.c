@@ -623,7 +623,7 @@ do_exec_pty(Session *s, const char *command)
 }
 
 #ifdef LOGIN_NEEDS_UTMPX
-void
+static void
 do_pre_login(Session *s)
 {
 	socklen_t fromlen;

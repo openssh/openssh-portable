@@ -1,3 +1,6 @@
+20010915
+ - (djm) Make do_pre_login static to avoid prototype #ifdef hell
+
 20010914
  - (bal) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2001/09/13
@@ -6428,4 +6431,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1514 2001/09/14 23:14:25 mouring Exp $
+$Id: ChangeLog,v 1.1515 2001/09/15 02:25:53 djm Exp $
