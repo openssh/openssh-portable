@@ -1080,6 +1080,12 @@ do_child(const char *command, struct passwd * pw, const char *term,
 			}
 #endif
 # else /* HAVE_LOGIN_CAP */
+#if defined(HAVE_GETLUID) && defined(HAVE_SETLUID)
+			/* Sets login uid for accounting */
+			if (getluid() == -1 && setluid(pw->pw_uid) == -1)
+				error("setluid: %s", strerror(errno));
+#endif /* defined(HAVE_GETLUID) && defined(HAVE_SETLUID) */
+
 			if (setlogin(pw->pw_name) < 0)
 				error("setlogin failed: %s", strerror(errno));
 			if (setgid(pw->pw_gid) < 0) {
@@ -1130,12 +1136,6 @@ do_child(const char *command, struct passwd * pw, const char *term,
 # endif /* HAVE_LOGIN_CAP */
 		}
 #endif /* HAVE_OSF_SIA */
-
-#if defined(HAVE_GETLUID) && defined(HAVE_SETLUID)
-	/* Sets login uid for accounting */
-	if (getluid() == -1 && setluid(pw->pw_uid) == -1)
-		error("setluid: %s", strerror(errno));
-#endif /* defined(HAVE_GETLUID) && defined(HAVE_SETLUID) */
 
 #ifdef HAVE_CYGWIN
 		if (is_winnt)

@@ -1,3 +1,6 @@
+20010222                                                             
+ - (bal) Corrected SCO luid patch by svaughan <svaughan@asterion.com>
+
 20010221
  - (bal) Removed -L/usr/ucblib -R/usr/ucblib for Solaris platform.
  - (bal) Fixed OpenSSL rework to use $saved_*.  Patch by Tim Rice 
@@ -4090,4 +4093,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.809 2001/02/21 16:36:51 stevesk Exp $
+$Id: ChangeLog,v 1.810 2001/02/21 20:00:28 mouring Exp $
