@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.188 2002/11/27 17:53:35 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.189 2002/12/09 16:50:30 millert Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -505,12 +505,11 @@ again:
 			host = ++cp;
 		} else
 			host = *av;
-		ac--, av++;
-		if (ac > 0) {
-			optind = 0;
-			optreset = 1;
+		if (ac > 1) {
+			optind = optreset = 1;
 			goto again;
 		}
+		ac--, av++;
 	}
 
 	/* Check that we got a host name. */
