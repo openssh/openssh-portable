@@ -56,6 +56,14 @@ login(utp)
 	register int fd;
 	int tty;
 
+#ifndef UT_LINESIZE
+# define UT_LINESIZE (sizeof(old_ut.ut_line))
+# define UT_NAMESIZE (sizeof(old_ut.ut_name))
+# ifdef HAVE_HOST_IN_UTMP
+#  define UT_HOSTSIZE (sizeof(old_ut.ut_host))
+# endif
+#endif
+
 	tty = ttyslot();
 	if (tty > 0 && (fd = open(_PATH_UTMP, O_RDWR|O_CREAT, 0644)) >= 0) {
 #ifdef HAVE_HOST_IN_UTMP

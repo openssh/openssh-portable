@@ -18,7 +18,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: login.c,v 1.4 1999/11/25 00:54:59 damien Exp $");
+RCSID("$Id: login.c,v 1.5 1999/11/25 02:08:31 damien Exp $");
 
 #include <utmp.h>
 #include "ssh.h"
@@ -28,6 +28,9 @@ RCSID("$Id: login.c,v 1.4 1999/11/25 00:54:59 damien Exp $");
 #endif
 #ifdef HAVE_LASTLOG_H
 # include <lastlog.h>
+#endif
+#ifdef HAVE_LOGIN_H
+# include <login.h>
 #endif
 
 /*

@@ -24,6 +24,7 @@
  - Added BSD compatible install program and autoconf test, thanks to
    Niels Kristian Bech Jensen <nkbj@image.dk>
  - Solaris fixing, thanks to Ben Taylor <bent@clark.net>
+ - Merged beginnings of AIX support from Tor-Ake Fransson <torake@hotmail.com>
 
 19991124
  - Merged very large OpenBSD source code reformat
