@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.103 2002/03/18 23:52:51 stevesk Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.104 2002/03/19 03:03:43 stevesk Exp $");
 
 #if defined(KRB4) || defined(KRB5)
 #include <krb.h>
@@ -115,7 +115,6 @@ initialize_server_options(ServerOptions *options)
 
 	options->unprivileged_user = -1;
 	options->unprivileged_group = -1;
-	options->unprivileged_dir = NULL;
 
 	/* Needs to be accessable in many places */
 	use_privsep = -1;
@@ -252,8 +251,6 @@ fill_default_server_options(ServerOptions *options)
 		options->unprivileged_user = 32767;
 	if (options->unprivileged_group == -1)
 		options->unprivileged_group = 32767;
-	if (options->unprivileged_dir == NULL)
-		options->unprivileged_dir = "/var/empty";
 }
 
 /* Keyword tokens. */
@@ -286,7 +283,7 @@ typedef enum {
 	sBanner, sVerifyReverseMapping, sHostbasedAuthentication,
 	sHostbasedUsesNameFromPacketOnly, sClientAliveInterval,
 	sClientAliveCountMax, sAuthorizedKeysFile, sAuthorizedKeysFile2,
-	sUsePrivilegeSeparation, sUnprivUser, sUnprivGroup, sUnprivDir,
+	sUsePrivilegeSeparation, sUnprivUser, sUnprivGroup,
 	sDeprecated
 } ServerOpCodes;
 
@@ -365,7 +362,6 @@ static struct {
 	{ "useprivilegeseparation", sUsePrivilegeSeparation},
 	{ "unprivuser", sUnprivUser},
 	{ "unprivgroup", sUnprivGroup},
-	{ "unprivdir", sUnprivDir},
 	{ NULL, sBadOption }
 };
 
@@ -753,10 +749,6 @@ parse_flag:
 	case sUnprivGroup:
 		intptr = &options->unprivileged_group;
 		goto parse_int;
-
-	case sUnprivDir:
-		charptr = &options->unprivileged_dir;
-		goto parse_filename;
 
 	case sAllowUsers:
 		while ((arg = strdelim(&cp)) && *arg != '\0') {

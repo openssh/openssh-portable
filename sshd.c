@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.231 2002/03/18 17:50:31 provos Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.232 2002/03/19 03:03:43 stevesk Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -533,8 +533,9 @@ privsep_preauth_child(void)
 	demote_sensitive_data();
 
 	/* Change our root directory*/
-	if (chroot(options.unprivileged_dir) == -1)
-		fatal("chroot(/var/empty)");
+	if (chroot(_PATH_PRIVSEP_CHROOT_DIR) == -1)
+		fatal("chroot(\"%s\"): %s", _PATH_PRIVSEP_CHROOT_DIR,
+		    strerror(errno));
 	if (chdir("/") == -1)
 		fatal("chdir(/)");
 		
