@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.58 2004/05/09 01:19:28 djm Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.59 2004/06/21 17:36:31 avsm Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -476,7 +476,7 @@ ssh_kex(char *host, struct sockaddr *hostaddr)
 	u_char cookie[8];
 	u_int supported_ciphers;
 	u_int server_flags, client_flags;
-	u_int32_t rand = 0;
+	u_int32_t rnd = 0;
 
 	debug("Waiting for server public key.");
 
@@ -540,9 +540,9 @@ ssh_kex(char *host, struct sockaddr *hostaddr)
 	 */
 	for (i = 0; i < 32; i++) {
 		if (i % 4 == 0)
-			rand = arc4random();
-		session_key[i] = rand & 0xff;
-		rand >>= 8;
+			rnd = arc4random();
+		session_key[i] = rnd & 0xff;
+		rnd >>= 8;
 	}
 
 	/*

@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.115 2004/05/09 00:06:47 djm Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.116 2004/06/21 17:36:31 avsm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -192,8 +192,8 @@ do_convert_to_ssh2(struct passwd *pw)
 static void
 buffer_get_bignum_bits(Buffer *b, BIGNUM *value)
 {
-	u_int bits = buffer_get_int(b);
-	u_int bytes = (bits + 7) / 8;
+	u_int bignum_bits = buffer_get_int(b);
+	u_int bytes = (bignum_bits + 7) / 8;
 
 	if (buffer_len(b) < bytes)
 		fatal("buffer_get_bignum_bits: input buffer too small: "
@@ -630,7 +630,7 @@ do_change_passphrase(struct passwd *pw)
  * Print the SSHFP RR.
  */
 static void
-do_print_resource_record(struct passwd *pw, char *hostname)
+do_print_resource_record(struct passwd *pw, char *hname)
 {
 	Key *public;
 	char *comment = NULL;
@@ -644,7 +644,7 @@ do_print_resource_record(struct passwd *pw, char *hostname)
 	}
 	public = key_load_public(identity_file, &comment);
 	if (public != NULL) {
-		export_dns_rr(hostname, public, stdout, print_generic);
+		export_dns_rr(hname, public, stdout, print_generic);
 		key_free(public);
 		xfree(comment);
 		exit(0);

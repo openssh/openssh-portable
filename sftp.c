@@ -16,7 +16,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.50 2004/06/20 18:53:39 djm Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.51 2004/06/21 17:36:31 avsm Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -277,13 +277,13 @@ path_append(char *p1, char *p2)
 static char *
 make_absolute(char *p, char *pwd)
 {
-	char *abs;
+	char *abs_str;
 
 	/* Derelativise */
 	if (p && p[0] != '/') {
-		abs = path_append(pwd, p);
+		abs_str = path_append(pwd, p);
 		xfree(p);
-		return(abs);
+		return(abs_str);
 	} else
 		return(p);
 }

@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.220 2004/06/20 17:36:59 djm Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.221 2004/06/21 17:36:31 avsm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -807,17 +807,17 @@ x11_get_proto(char **_proto, char **_data)
 	 * for the local connection.
 	 */
 	if (!got_data) {
-		u_int32_t rand = 0;
+		u_int32_t rnd = 0;
 
 		logit("Warning: No xauth data; "
 		    "using fake authentication data for X11 forwarding.");
 		strlcpy(proto, SSH_X11_PROTO, sizeof proto);
 		for (i = 0; i < 16; i++) {
 			if (i % 4 == 0)
-				rand = arc4random();
+				rnd = arc4random();
 			snprintf(data + 2 * i, sizeof data - 2 * i, "%02x",
-			    rand & 0xff);
-			rand >>= 8;
+			    rnd & 0xff);
+			rnd >>= 8;
 		}
 	}
 }

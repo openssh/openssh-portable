@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.206 2004/06/18 11:11:54 djm Exp $");
+RCSID("$OpenBSD: channels.c,v 1.207 2004/06/21 17:36:31 avsm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -2903,7 +2903,7 @@ x11_request_forwarding_with_spoofing(int client_session_id,
 	char *new_data;
 	int screen_number;
 	const char *cp;
-	u_int32_t rand = 0;
+	u_int32_t rnd = 0;
 
 	cp = getenv("DISPLAY");
 	if (cp)
@@ -2928,10 +2928,10 @@ x11_request_forwarding_with_spoofing(int client_session_id,
 		if (sscanf(data + 2 * i, "%2x", &value) != 1)
 			fatal("x11_request_forwarding: bad authentication data: %.100s", data);
 		if (i % 4 == 0)
-			rand = arc4random();
+			rnd = arc4random();
 		x11_saved_data[i] = value;
-		x11_fake_data[i] = rand & 0xff;
-		rand >>= 8;
+		x11_fake_data[i] = rnd & 0xff;
+		rnd >>= 8;
 	}
 	x11_saved_data_len = data_len;
 	x11_fake_data_len = data_len;

@@ -10,6 +10,14 @@
    - djm@cvs.openbsd.org 2004/06/20 19:28:12
      [sftp.1]
      mention new -n flag
+   - avsm@cvs.openbsd.org 2004/06/21 17:36:31
+     [auth-rsa.c auth2-gss.c auth2-pubkey.c authfile.c canohost.c channels.c
+     cipher.c dns.c kex.c monitor.c monitor_fdpass.c monitor_wrap.c
+     monitor_wrap.h nchan.c packet.c progressmeter.c scp.c sftp-server.c sftp.c
+     ssh-gss.h ssh-keygen.c ssh.c sshconnect.c sshconnect1.c sshlogin.c
+     sshpty.c]
+     make ssh -Wshadow clean, no functional changes
+     markus@ ok
 
 20040620
  - (tim) [configure.ac Makefile.in] Only change TEST_SHELL on broken platforms.
@@ -1332,4 +1340,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3420 2004/06/22 02:31:23 dtucker Exp $
+$Id: ChangeLog,v 1.3421 2004/06/22 02:56:01 dtucker Exp $

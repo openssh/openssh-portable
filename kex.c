@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.59 2004/06/13 12:53:24 djm Exp $");
+RCSID("$OpenBSD: kex.c,v 1.60 2004/06/21 17:36:31 avsm Exp $");
 
 #include <openssl/crypto.h>
 
@@ -148,7 +148,7 @@ kex_finish(Kex *kex)
 void
 kex_send_kexinit(Kex *kex)
 {
-	u_int32_t rand = 0;
+	u_int32_t rnd = 0;
 	u_char *cookie;
 	int i;
 
@@ -168,9 +168,9 @@ kex_send_kexinit(Kex *kex)
 	cookie = buffer_ptr(&kex->my);
 	for (i = 0; i < KEX_COOKIE_LEN; i++) {
 		if (i % 4 == 0)
-			rand = arc4random();
-		cookie[i] = rand;
-		rand >>= 8;
+			rnd = arc4random();
+		cookie[i] = rnd;
+		rnd >>= 8;
 	}
 	packet_start(SSH2_MSG_KEXINIT);
 	packet_put_raw(buffer_ptr(&kex->my), buffer_len(&kex->my));

@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfile.c,v 1.56 2004/05/11 19:01:43 deraadt Exp $");
+RCSID("$OpenBSD: authfile.c,v 1.57 2004/06/21 17:36:31 avsm Exp $");
 
 #include <openssl/err.h>
 #include <openssl/evp.h>
@@ -72,7 +72,7 @@ key_save_private_rsa1(Key *key, const char *filename, const char *passphrase,
 	int fd, i, cipher_num;
 	CipherContext ciphercontext;
 	Cipher *cipher;
-	u_int32_t rand;
+	u_int32_t rnd;
 
 	/*
 	 * If the passphrase is empty, use SSH_CIPHER_NONE to ease converting
@@ -87,9 +87,9 @@ key_save_private_rsa1(Key *key, const char *filename, const char *passphrase,
 	buffer_init(&buffer);
 
 	/* Put checkbytes for checking passphrase validity. */
-	rand = arc4random();
-	buf[0] = rand & 0xff;
-	buf[1] = (rand >> 8) & 0xff;
+	rnd = arc4random();
+	buf[0] = rnd & 0xff;
+	buf[1] = (rnd >> 8) & 0xff;
 	buf[2] = buf[0];
 	buf[3] = buf[1];
 	buffer_append(&buffer, buf, 4);

@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: sftp-server.c,v 1.45 2004/02/19 21:15:04 markus Exp $");
+RCSID("$OpenBSD: sftp-server.c,v 1.46 2004/06/21 17:36:31 avsm Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
@@ -260,7 +260,7 @@ send_msg(Buffer *m)
 }
 
 static void
-send_status(u_int32_t id, u_int32_t error)
+send_status(u_int32_t id, u_int32_t status)
 {
 	Buffer msg;
 	const char *status_messages[] = {
@@ -276,14 +276,14 @@ send_status(u_int32_t id, u_int32_t error)
 		"Unknown error"			/* Others */
 	};
 
-	TRACE("sent status id %u error %u", id, error);
+	TRACE("sent status id %u error %u", id, status);
 	buffer_init(&msg);
 	buffer_put_char(&msg, SSH2_FXP_STATUS);
 	buffer_put_int(&msg, id);
-	buffer_put_int(&msg, error);
+	buffer_put_int(&msg, status);
 	if (version >= 3) {
 		buffer_put_cstring(&msg,
-		    status_messages[MIN(error,SSH2_FX_MAX)]);
+		    status_messages[MIN(status,SSH2_FX_MAX)]);
 		buffer_put_cstring(&msg, "");
 	}
 	send_msg(&msg);
@@ -863,20 +863,20 @@ process_readlink(void)
 {
 	u_int32_t id;
 	int len;
-	char link[MAXPATHLEN];
+	char buf[MAXPATHLEN];
 	char *path;
 
 	id = get_int();
 	path = get_string(NULL);
 	TRACE("readlink id %u path %s", id, path);
-	if ((len = readlink(path, link, sizeof(link) - 1)) == -1)
+	if ((len = readlink(path, buf, sizeof(buf) - 1)) == -1)
 		send_status(id, errno_to_portable(errno));
 	else {
 		Stat s;
 
-		link[len] = '\0';
+		buf[len] = '\0';
 		attrib_clear(&s.attrib);
-		s.name = s.long_name = link;
+		s.name = s.long_name = buf;
 		send_names(id, 1, &s);
 	}
 	xfree(path);

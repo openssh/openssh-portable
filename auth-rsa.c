@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rsa.c,v 1.59 2004/05/09 01:19:27 djm Exp $");
+RCSID("$OpenBSD: auth-rsa.c,v 1.60 2004/06/21 17:36:31 avsm Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/md5.h>
@@ -203,7 +203,7 @@ auth_rsa_key_allowed(struct passwd *pw, BIGNUM *client_n, Key **rkey)
 	 */
 	while (fgets(line, sizeof(line), f)) {
 		char *cp;
-		char *options;
+		char *key_options;
 
 		linenum++;
 
@@ -221,7 +221,7 @@ auth_rsa_key_allowed(struct passwd *pw, BIGNUM *client_n, Key **rkey)
 		 */
 		if (*cp < '0' || *cp > '9') {
 			int quoted = 0;
-			options = cp;
+			key_options = cp;
 			for (; *cp && (quoted || (*cp != ' ' && *cp != '\t')); cp++) {
 				if (*cp == '\\' && cp[1] == '"')
 					cp++;	/* Skip both */
@@ -229,7 +229,7 @@ auth_rsa_key_allowed(struct passwd *pw, BIGNUM *client_n, Key **rkey)
 					quoted = !quoted;
 			}
 		} else
-			options = NULL;
+			key_options = NULL;
 
 		/* Parse the key from the line. */
 		if (hostfile_read_key(&cp, &bits, key) == 0) {
@@ -254,7 +254,7 @@ auth_rsa_key_allowed(struct passwd *pw, BIGNUM *client_n, Key **rkey)
 		 * If our options do not allow this key to be used,
 		 * do not send challenge.
 		 */
-		if (!auth_parse_options(pw, options, file, linenum))
+		if (!auth_parse_options(pw, key_options, file, linenum))
 			continue;
 
 		/* break out, this key is allowed */

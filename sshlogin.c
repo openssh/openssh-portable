@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshlogin.c,v 1.7 2003/06/12 07:57:38 markus Exp $");
+RCSID("$OpenBSD: sshlogin.c,v 1.8 2004/06/21 17:36:31 avsm Exp $");
 
 #include "loginrec.h"
 
@@ -64,12 +64,12 @@ get_last_login_time(uid_t uid, const char *logname,
  * systems were more standardized.
  */
 void
-record_login(pid_t pid, const char *ttyname, const char *user, uid_t uid,
+record_login(pid_t pid, const char *tty, const char *user, uid_t uid,
     const char *host, struct sockaddr * addr, socklen_t addrlen)
 {
 	struct logininfo *li;
 
-	li = login_alloc_entry(pid, user, host, ttyname);
+	li = login_alloc_entry(pid, user, host, tty);
 	login_set_addr(li, addr, addrlen);
 	login_login(li);
 	login_free_entry(li);
@@ -91,11 +91,11 @@ record_utmp_only(pid_t pid, const char *ttyname, const char *user,
 
 /* Records that the user has logged out. */
 void
-record_logout(pid_t pid, const char *ttyname, const char *user)
+record_logout(pid_t pid, const char *tty, const char *user)
 {
 	struct logininfo *li;
 
-	li = login_alloc_entry(pid, user, NULL, ttyname);
+	li = login_alloc_entry(pid, user, NULL, tty);
 	login_logout(li);
 	login_free_entry(li);
 }

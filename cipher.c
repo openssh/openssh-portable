@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: cipher.c,v 1.68 2004/01/23 19:26:33 hshoexer Exp $");
+RCSID("$OpenBSD: cipher.c,v 1.69 2004/06/21 17:36:31 avsm Exp $");
 
 #include "xmalloc.h"
 #include "log.h"
@@ -166,25 +166,25 @@ int
 ciphers_valid(const char *names)
 {
 	Cipher *c;
-	char *ciphers, *cp;
+	char *cipher_list, *cp;
 	char *p;
 
 	if (names == NULL || strcmp(names, "") == 0)
 		return 0;
-	ciphers = cp = xstrdup(names);
+	cipher_list = cp = xstrdup(names);
 	for ((p = strsep(&cp, CIPHER_SEP)); p && *p != '\0';
 	    (p = strsep(&cp, CIPHER_SEP))) {
 		c = cipher_by_name(p);
 		if (c == NULL || c->number != SSH_CIPHER_SSH2) {
 			debug("bad cipher %s [%s]", p, names);
-			xfree(ciphers);
+			xfree(cipher_list);
 			return 0;
 		} else {
 			debug3("cipher ok: %s [%s]", p, names);
 		}
 	}
 	debug3("ciphers ok: [%s]", names);
-	xfree(ciphers);
+	xfree(cipher_list);
 	return 1;
 }
 
@@ -213,7 +213,7 @@ cipher_name(int id)
 void
 cipher_init(CipherContext *cc, Cipher *cipher,
     const u_char *key, u_int keylen, const u_char *iv, u_int ivlen,
-    int encrypt)
+    int do_encrypt)
 {
 	static int dowarn = 1;
 #ifdef SSH_OLD_EVP
@@ -255,7 +255,7 @@ cipher_init(CipherContext *cc, Cipher *cipher,
 	    (encrypt == CIPHER_ENCRYPT));
 #else
 	if (EVP_CipherInit(&cc->evp, type, NULL, (u_char *)iv,
-	    (encrypt == CIPHER_ENCRYPT)) == 0)
+	    (do_encrypt == CIPHER_ENCRYPT)) == 0)
 		fatal("cipher_init: EVP_CipherInit failed for %s",
 		    cipher->name);
 	klen = EVP_CIPHER_CTX_key_length(&cc->evp);
@@ -302,7 +302,7 @@ cipher_cleanup(CipherContext *cc)
 
 void
 cipher_set_key_string(CipherContext *cc, Cipher *cipher,
-    const char *passphrase, int encrypt)
+    const char *passphrase, int do_encrypt)
 {
 	MD5_CTX md;
 	u_char digest[16];
@@ -311,7 +311,7 @@ cipher_set_key_string(CipherContext *cc, Cipher *cipher,
 	MD5_Update(&md, (const u_char *)passphrase, strlen(passphrase));
 	MD5_Final(digest, &md);
 
-	cipher_init(cc, cipher, digest, 16, NULL, 0, encrypt);
+	cipher_init(cc, cipher, digest, 16, NULL, 0, do_encrypt);
 
 	memset(digest, 0, sizeof(digest));
 	memset(&md, 0, sizeof(md));

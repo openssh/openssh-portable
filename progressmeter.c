@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: progressmeter.c,v 1.20 2004/05/11 19:01:43 deraadt Exp $");
+RCSID("$OpenBSD: progressmeter.c,v 1.21 2004/06/21 17:36:31 avsm Exp $");
 
 #include "progressmeter.h"
 #include "atomicio.h"
@@ -224,7 +224,7 @@ update_progress_meter(int ignore)
 }
 
 void
-start_progress_meter(char *f, off_t filesize, off_t *stat)
+start_progress_meter(char *f, off_t filesize, off_t *ctr)
 {
 	struct winsize winsize;
 
@@ -232,7 +232,7 @@ start_progress_meter(char *f, off_t filesize, off_t *stat)
 	file = f;
 	end_pos = filesize;
 	cur_pos = 0;
-	counter = stat;
+	counter = ctr;
 	stalled = 0;
 	bytes_per_second = 0;
 
