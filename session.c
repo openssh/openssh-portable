@@ -129,6 +129,9 @@ void	do_exec_pty(Session *, const char *);
 void	do_exec_no_pty(Session *, const char *);
 void	do_exec(Session *, const char *);
 void	do_login(Session *, const char *);
+#ifdef LOGIN_NEEDS_UTMPX
+static void	do_pre_login(Session *s);
+#endif
 void	do_child(Session *, const char *);
 void	do_motd(void);
 int	check_quietlogin(Session *, const char *);
