@@ -234,6 +234,7 @@ fdlim_set(int lim)
 #if defined(HAVE_SETRLIMIT) && defined(RLIMIT_NOFILE)
 	struct rlimit rlfd;
 #endif
+
 	if (lim <= 0)
 		return (-1);
 #if defined(HAVE_SETRLIMIT) && defined(RLIMIT_NOFILE)

@@ -25,6 +25,7 @@
    - stevesk@cvs.openbsd.org 2002/07/06 17:47:58
      [ssh-keyscan.c]
      unused variable
+ - (bal) Minor KNF on ssh-keyscan.c
 
 20020705
  - (tim) [configure.ac] AIX 4.2.1 has authenticate() in libs.
@@ -1308,4 +1309,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2347 2002/07/07 22:19:13 mouring Exp $
+$Id: ChangeLog,v 1.2348 2002/07/07 22:25:29 mouring Exp $
