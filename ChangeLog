@@ -1,5 +1,6 @@
 20021015
  - (bal) Fix bug id 383 and only call loginrestrict for AIX if not root.
+ - (bal) More advanced strsep test by Darren Tucker <dtucker@zip.com.au>
 
 20021015
  - (tim) [contrib/caldera/openssh.spec] make ssh-agent setgid nobody
@@ -767,4 +768,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2495 2002/10/16 00:13:52 mouring Exp $
+$Id: ChangeLog,v 1.2496 2002/10/16 00:24:03 mouring Exp $
