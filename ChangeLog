@@ -1,5 +1,7 @@
 20000929
  - (djm) Fix SSH2 not terminating until all background tasks done problem.
+ - (djm) Another off-by-one fix from Pavel Kankovsky 
+   <peak@argo.troja.mff.cuni.cz> 
 
 20000926
  - (djm) Update X11-askpass to 1.0.2 in RPM spec file
