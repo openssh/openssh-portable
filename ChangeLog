@@ -17,6 +17,7 @@
      syslog priority changes:
              fatal() LOG_ERR  -> LOG_CRIT
              log()   LOG_INFO -> LOG_NOTICE
+ - Updated TODO
 
 20010107
  - (bal) OpenBSD Sync

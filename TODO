@@ -10,8 +10,8 @@ Programming:
 - Finish integrating kernel-level auditing code for IRIX and SOLARIS
   (Gilbert.r.loomis@saic.com)
 
-- Support 64bit ints on machines that lack 'long long' and u_intXX_t
-  (tim@multitalents.net)
+- sftp-server:  Rework to step down to 32bit ints if the platform
+  lacks 'long long' == 64bit (Notable SCO w/ SCO compiler)
 
 - Linux hangs for 20 seconds when you do "sleep 20&exit".  All current
   solutions break scp or leaves processes hanging around after the ssh
