@@ -72,68 +72,52 @@ int
 allowed_user(struct passwd * pw)
 {
 	struct stat st;
-	const char *hostname = NULL, *ipaddr = NULL, *passwd;
+	const char *hostname = NULL, *ipaddr = NULL;
 	char *shell;
 	int i;
 #ifdef WITH_AIXAUTHENTICATE
 	char *loginmsg;
 #endif /* WITH_AIXAUTHENTICATE */
-#if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
+#if !defined(USE_PAM) && defined(HAVE_SHADOW_H) && \
+    !defined(DISABLE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
 	struct spwd *spw;
-#if !defined(USE_PAM) && defined(HAS_SHADOW_EXPIRE)
 	time_t today;
-#endif
 #endif
 
 	/* Shouldn't be called if pw is NULL, but better safe than sorry... */
 	if (!pw || !pw->pw_name)
 		return 0;
 
-	/* Grab the password for locked account checking */
-#if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
-	spw = getspnam(pw->pw_name);
-	if (!spw)
-		return 0;
-	passwd = spw->sp_pwdp;
-#else
-	passwd = pw->pw_passwd;
-#endif
-
-	/* check for locked account */
-	if (strcmp(passwd, "*LK*") == 0 || passwd[0] == '!') {
-		log("User %.100s not allowed because account is locked",
-		    pw->pw_name);
-		return 0;
-	}
-
 #if !defined(USE_PAM) && defined(HAVE_SHADOW_H) && \
     !defined(DISABLE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
 #define	DAY		(24L * 60 * 60) /* 1 day in seconds */
-	today = time(NULL) / DAY;
-	debug3("allowed_user: today %d sp_expire %d sp_lstchg %d"
-	    " sp_max %d", (int)today, (int)spw->sp_expire,
-	    (int)spw->sp_lstchg, (int)spw->sp_max);
+	if ((spw = getspnam(pw->pw_name)) != NULL) {
+		today = time(NULL) / DAY;
+		debug3("allowed_user: today %d sp_expire %d sp_lstchg %d"
+		    " sp_max %d", (int)today, (int)spw->sp_expire,
+		    (int)spw->sp_lstchg, (int)spw->sp_max);
 
-	/*
-	 * We assume account and password expiration occurs the
-	 * day after the day specified.
-	 */
-	if (spw->sp_expire != -1 && today > spw->sp_expire) {
-		log("Account %.100s has expired", pw->pw_name);
-		return 0;
-	}
+		/*
+		 * We assume account and password expiration occurs the
+		 * day after the day specified.
+		 */
+		if (spw->sp_expire != -1 && today > spw->sp_expire) {
+			log("Account %.100s has expired", pw->pw_name);
+			return 0;
+		}
 
-	if (spw->sp_lstchg == 0) {
-		log("User %.100s password has expired (root forced)",
-		    pw->pw_name);
-		return 0;
-	}
+		if (spw->sp_lstchg == 0) {
+			log("User %.100s password has expired (root forced)",
+			    pw->pw_name);
+			return 0;
+		}
 
-	if (spw->sp_max != -1 &&
-	    today > spw->sp_lstchg + spw->sp_max) {
-		log("User %.100s password has expired (password aged)",
-		    pw->pw_name);
-		return 0;
+		if (spw->sp_max != -1 &&
+		    today > spw->sp_lstchg + spw->sp_max) {
+			log("User %.100s password has expired (password aged)",
+			    pw->pw_name);
+			return 0;
+		}
 	}
 #endif
 
@@ -222,7 +206,7 @@ allowed_user(struct passwd * pw)
 	 * PermitRootLogin to control logins via ssh), or if running as
 	 * non-root user (since loginrestrictions will always fail).
 	 */
-	if ( (pw->pw_uid != 0) && (geteuid() == 0) &&
+	if ((pw->pw_uid != 0) && (geteuid() == 0) &&
 	    loginrestrictions(pw->pw_name, S_RLOGIN, NULL, &loginmsg) != 0) {
 		int loginrestrict_errno = errno;
 

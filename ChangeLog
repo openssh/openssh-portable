@@ -1,3 +1,6 @@
+20030118
+ - (djm) Revert fix for Bug #442 for now.
+
 20030117
  - (djm) Bug #470: Detect strnvis, not strvis in configure.
     From d_wllms@lanl.gov
@@ -1031,4 +1034,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2574 2003/01/16 23:31:38 djm Exp $
+$Id: ChangeLog,v 1.2575 2003/01/18 05:24:06 djm Exp $
