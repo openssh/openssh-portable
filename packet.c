@@ -1314,6 +1314,8 @@ packet_not_very_much_data_to_write(void)
 		return buffer_len(&output) < 128 * 1024;
 }
 
+
+#if defined(IP_TOS) && !defined(IP_TOS_IS_BROKEN)
 static void
 packet_set_tos(int interactive)
 {
@@ -1327,6 +1329,7 @@ packet_set_tos(int interactive)
 		error("setsockopt IP_TOS %d: %.100s:",
 		    tos, strerror(errno));
 }
+#endif
 
 /* Informs that the current session is interactive.  Sets IP flags for that. */
 

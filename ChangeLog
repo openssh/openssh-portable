@@ -1,3 +1,7 @@
+20030402
+ - (bal) if IP_TOS is not found or broken don't try to compile in
+   packet_set_tos() function call.  bug #527
+
 20030401
  - (djm) OpenBSD CVS Sync
    - jmc@cvs.openbsd.org 2003/03/28 10:11:43
@@ -1295,4 +1299,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2648 2003/04/01 11:47:16 djm Exp $
+$Id: ChangeLog,v 1.2649 2003/04/02 15:18:22 mouring Exp $
