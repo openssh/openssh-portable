@@ -1,6 +1,8 @@
 20040406
  - (dtucker) [acconfig.h configure.ac defines.h] Bug #820: don't use
    updwtmpx() on IRIX since it seems to clobber utmp.  ok djm@
+ - (dtucker) [configure.ac] Bug #816, #748 (again): Attempt to detect
+   broken getaddrinfo and friends on HP-UX.  ok djm@
 
 20040330
  - (dtucker) [configure.ac] Bug #811: Use "!" for LOCKED_PASSWD_PREFIX on
@@ -934,4 +936,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3300 2004/04/06 11:31:12 dtucker Exp $
+$Id: ChangeLog,v 1.3301 2004/04/06 11:39:02 dtucker Exp $

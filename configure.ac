@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.208 2004/04/06 11:31:13 dtucker Exp $
+# $Id: configure.ac,v 1.209 2004/04/06 11:39:02 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -209,10 +209,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE(DISABLE_UTMP)
 	AC_DEFINE(LOCKED_PASSWD_STRING, "*")
 	AC_DEFINE(SPT_TYPE,SPT_PSTAT)
-	case "$host" in
-	*-*-hpux11.11*)
-		AC_DEFINE(BROKEN_GETADDRINFO);;
-	esac
+	check_for_hpux_broken_getaddrinfo=1
 	LIBS="$LIBS -lsec"
 	AC_CHECK_LIB(xnet, t_error, ,AC_MSG_ERROR([*** -lxnet needed on HP-UX - check config.log ***]))
 	;;
@@ -981,6 +978,76 @@ main()
 		[
 			AC_MSG_RESULT(no)
 			AC_DEFINE(SSHD_ACQUIRES_CTTY)
+		]
+	)
+fi
+
+check_for_hpux_broken_getaddrinfo=1
+
+if test "x$ac_cv_func_getaddrinfo" = "xyes" -a "x$check_for_hpux_broken_getaddrinfo" = "x1"; then
+	AC_MSG_CHECKING(if getaddrinfo seems to work)
+	AC_TRY_RUN(
+		[
+#include <stdio.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <errno.h>
+#include <netinet/in.h>
+
+#define TEST_PORT "2222"
+
+int
+main(void)
+{
+	int err, sock;
+	struct addrinfo *gai_ai, *ai, hints;
+	char ntop[NI_MAXHOST], strport[NI_MAXSERV], *name = NULL;
+
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = PF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
+
+	err = getaddrinfo(name, TEST_PORT, &hints, &gai_ai);
+	if (err != 0) {
+		fprintf(stderr, "getaddrinfo failed (%s)", gai_strerror(err));
+		exit(1);
+	}
+
+	for (ai = gai_ai; ai != NULL; ai = ai->ai_next) {
+		if (ai->ai_family != AF_INET6)
+			continue;
+
+		err = getnameinfo(ai->ai_addr, ai->ai_addrlen, ntop,
+		    sizeof(ntop), strport, sizeof(strport),
+		    NI_NUMERICHOST|NI_NUMERICSERV);
+
+		if (err != 0) {
+			if (err == EAI_SYSTEM)
+				perror("getnameinfo EAI_SYSTEM");
+			else
+				fprintf(stderr, "getnameinfo failed: %s\n",
+				    gai_strerror(err));
+			exit(2);
+		}
+
+		sock = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+		if (sock < 0)
+			perror("socket");
+		if (bind(sock, ai->ai_addr, ai->ai_addrlen) < 0) {
+			if (errno == EBADF)
+				exit(3);
+		}
+	}
+	exit(0);
+}
+		],
+		[
+			AC_MSG_RESULT(yes)
+		],
+		[
+			AC_MSG_RESULT(no)
+			AC_DEFINE(BROKEN_GETADDRINFO)
 		]
 	)
 fi
