@@ -92,6 +92,9 @@
      save the session id (hash) for ssh2 (it will be passed with the 
      initial sign request) and verify that this value is used during 
      authentication; ok provos@
+   - markus@cvs.openbsd.org 2002/06/04 23:02:06
+     [packet.c]
+     remove __FUNCTION__
 
 20020604
  - (stevesk) [channels.c] bug #164 patch from YOSHIFUJI Hideaki (changed
@@ -776,4 +779,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2168 2002/06/06 20:58:19 mouring Exp $
+$Id: ChangeLog,v 1.2169 2002/06/06 20:59:25 mouring Exp $

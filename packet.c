@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.93 2002/03/24 16:01:13 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.94 2002/06/04 23:02:06 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -263,7 +263,7 @@ packet_set_seqnr(int mode, u_int32_t seqnr)
 	else if (mode == MODE_OUT)
 		send_seqnr = seqnr;
 	else
-		fatal("%s: bad mode %d", __FUNCTION__, mode);
+		fatal("packet_set_seqnr: bad mode %d", mode);
 }
 
 /* returns 1 if connection is via ipv4 */
