@@ -1061,7 +1061,7 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 
 		if (id == startid || len == 0 ||
 		    id - ackid >= conn->num_requests) {
-		    	u_int r_id;
+			u_int r_id;
 
 			buffer_clear(&msg);
 			get_msg(conn->fd_in, &msg);

@@ -323,7 +323,7 @@ auth_krb5_password(Authctxt *authctxt, const char *password)
 	
 	if (!krb5_kuserok(authctxt->krb5_ctx, authctxt->krb5_user, 
 			  authctxt->pw->pw_name)) {
-	 	problem = -1;
+		problem = -1;
 		goto out;
 	} 
 

@@ -28,9 +28,9 @@
 
 typedef struct Sensitive Sensitive;
 struct Sensitive {
-        Key     **keys;
-        int     nkeys;
-        int     external_keysign;
+	Key     **keys;
+	int     nkeys;
+	int     external_keysign;
 };
 
 int

@@ -617,7 +617,7 @@ process_remove_smartcard_key(SocketEntry *e)
 		version = k->type == KEY_RSA1 ? 1 : 2;
 		if ((id = lookup_identity(k, version)) != NULL) {
 			tab = idtab_lookup(version);
-                        TAILQ_REMOVE(&tab->idlist, id, next);
+			TAILQ_REMOVE(&tab->idlist, id, next);
 			tab->nentries--;
 			free_identity(id);
 			success = 1;

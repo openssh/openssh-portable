@@ -164,8 +164,8 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 #else /* HAVE_DEV_PTS_AND_PTC */
 #ifdef _CRAY
 	char buf[64];
-  	int i;
-  	int highpty;
+	int i;
+	int highpty;
 
 #ifdef _SC_CRAY_NPTY
 	highpty = sysconf(_SC_CRAY_NPTY);
@@ -289,7 +289,7 @@ pty_make_controlling_tty(int *ttyfd, const char *ttyname)
 	if (fd < 0)
 		error("%.100s: %.100s", ttyname, strerror(errno));
 	close(*ttyfd);
-       	*ttyfd = fd;
+	*ttyfd = fd;
 #else /* _CRAY */
 
 	/* First disconnect from the old controlling tty. */

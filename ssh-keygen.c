@@ -416,7 +416,7 @@ do_upload(struct passwd *pw, const char *sc_reader_id)
 	key_free(prv);
 	if (ret < 0)
 		exit(1);
-        log("loading key done");
+	log("loading key done");
 	exit(0);
 }
 

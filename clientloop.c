@@ -481,7 +481,7 @@ process_cmdline(void)
 	int local = 0;
 
 	leave_raw_mode();
- 	handler = signal(SIGINT, SIG_IGN);
+	handler = signal(SIGINT, SIG_IGN);
 	cmd = s = read_passphrase("\r\nssh> ", RP_ECHO);
 	if (s == NULL)
 		goto out;

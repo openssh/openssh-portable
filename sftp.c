@@ -238,8 +238,8 @@ main(int argc, char **argv)
 	interactive_loop(in, out, file1, file2);
 
 #if !defined(USE_PIPES)
-        shutdown(in, SHUT_RDWR);
-        shutdown(out, SHUT_RDWR);
+	shutdown(in, SHUT_RDWR);
+	shutdown(out, SHUT_RDWR);
 #endif
 
 	close(in);
