@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.111 2003/05/15 14:55:25 djm Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.112 2003/05/16 03:27:12 djm Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -107,6 +107,7 @@ typedef enum {
 	oHostKeyAlgorithms, oBindAddress, oSmartcardDevice,
 	oClearAllForwardings, oNoHostAuthenticationForLocalhost,
 	oEnableSSHKeysign, oRekeyLimit, oVerifyHostKeyDNS, oConnectTimeout,
+	oAddressFamily,
 	oDeprecated, oUnsupported
 } OpCodes;
 
@@ -194,6 +195,7 @@ static struct {
 	{ "nohostauthenticationforlocalhost", oNoHostAuthenticationForLocalhost },
 	{ "rekeylimit", oRekeyLimit },
 	{ "connecttimeout", oConnectTimeout },
+	{ "addressfamily", oAddressFamily },
 	{ NULL, oBadOption }
 };
 
@@ -286,6 +288,7 @@ process_config_line(Options *options, const char *host,
 	size_t len;
 	u_short fwd_port, fwd_host_port;
 	char sfwd_host_port[6];
+	extern int IPv4or6;
 
 	/* Strip trailing whitespace */
 	for(len = strlen(line) - 1; len > 0; len--) {
@@ -718,6 +721,18 @@ parse_int:
 		}
 		if (*activep && *intptr == -1)
 			*intptr = value;
+		break;
+
+	case oAddressFamily:
+		arg = strdelim(&s);
+		if (strcasecmp(arg, "inet") == 0)
+			IPv4or6 = AF_INET;
+		else if (strcasecmp(arg, "inet6") == 0)
+			IPv4or6 = AF_INET6;
+		else if (strcasecmp(arg, "any") == 0)
+			IPv4or6 = AF_UNSPEC;
+		else
+			fatal("Unsupported AddressFamily \"%s\"", arg);
 		break;
 
 	case oEnableSSHKeysign:

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.9 2003/05/15 14:55:25 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.10 2003/05/16 03:27:12 djm Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -115,6 +115,13 @@ The host is the
 .Ar hostname
 argument given on the command line (i.e., the name is not converted to
 a canonicalized host name before matching).
+.It Cm AddressFamily
+Specifies which address family to use when connecting. Valid arguments are
+.Dq any ,
+.Dq inet
+(Use IPv4 only) or
+.Dq inet6
+(Use IPv6 only.)
 .It Cm AFSTokenPassing
 Specifies whether to pass AFS tokens to remote host.
 The argument to this keyword must be
