@@ -1,6 +1,6 @@
 Summary: OpenSSH free Secure Shell (SSH) implementation
 Name: openssh
-Version: 1.2pre6
+Version: 1.2pre7
 Release: 1
 Packager: Damien Miller <djm@ibs.com.au>
 Source0: openssh-%{version}-linux.tar.gz
@@ -20,6 +20,8 @@ up to date in terms of security and features, as well as removing all
 patented algorithms to seperate libraries (OpenSSL).
 
 %changelog
+* Sat Oct 30 1999 Damien Miller <djm@ibs.com.au>
+- Renamed init script
 * Fri Oct 29 1999 Damien Miller <djm@ibs.com.au>
 - Back to old binary names
 * Thu Oct 28 1999 Damien Miller <djm@ibs.com.au>
@@ -48,7 +50,7 @@ mkdir -p $RPM_BUILD_ROOT/usr/man/man1
 mkdir -p $RPM_BUILD_ROOT/usr/man/man8
 
 install -m644 sshd.pam $RPM_BUILD_ROOT/etc/pam.d/sshd
-install -m755 sshd.init $RPM_BUILD_ROOT/etc/rc.d/init.d/sshd
+install -m755 sshd.init.redhat $RPM_BUILD_ROOT/etc/rc.d/init.d/sshd
 install -m600 ssh_config $RPM_BUILD_ROOT/etc/ssh/ssh_config
 install -m600 sshd_config $RPM_BUILD_ROOT/etc/ssh/sshd_config
 

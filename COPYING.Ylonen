@@ -24,7 +24,7 @@ restrictive); see below for details.
 [ The make-ssh-known-hosts script is no longer included. ]
 [ TSS has been removed. ]
 [ MD5 is now external. ]
-[ RC4 support has been removed. ]
+[ RC4 support has been removed (RC4 is used internally for arc4random). ]
 [ Blowfish is now external. ]
 
 The 32-bit CRC implementation in crc32.c is due to Gary S. Brown.
