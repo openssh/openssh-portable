@@ -13,7 +13,7 @@
 #if defined(HAVE_MD5_PASSWORDS) && !defined(HAVE_MD5_CRYPT)
 #include <openssl/md5.h>
 
-RCSID("$Id: md5crypt.c,v 1.6 2003/05/18 14:46:46 djm Exp $");
+RCSID("$Id: md5crypt.c,v 1.7 2003/05/30 06:58:23 dtucker Exp $");
 
 /* 0 ... 63 => ascii - 64 */
 static unsigned char itoa64[] =
@@ -157,7 +157,7 @@ md5_crypt(const char *pw, const char *salt)
 	memset(salt_copy, 0, sizeof(salt_copy));
 	memset(&ctx, 0, sizeof(ctx));
 	memset(&ctx1, 0, sizeof(ctx1));
-	(void)to64(0, 4)
+	(void)to64(0, 4);
 
 	return (passwd);
 }

@@ -1,3 +1,7 @@
+20030530
+ - (dtucker) Add missing semicolon in md5crypt.c, patch from openssh at
+   roumenpetrov.info
+
 20030526
  - (djm) Avoid auth2-chall.c warning when compiling without 
    PAM, BSD_AUTH and SKEY
@@ -1618,4 +1622,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2752 2003/05/26 11:36:13 djm Exp $
+$Id: ChangeLog,v 1.2753 2003/05/30 06:58:22 dtucker Exp $
