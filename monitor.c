@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.41 2003/05/24 09:30:40 djm Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.42 2003/06/02 09:17:34 markus Exp $");
 
 #include <openssl/dh.h>
 
@@ -1157,7 +1157,7 @@ mm_record_login(Session *s, struct passwd *pw)
 	}
 	/* Record that there was a login on that tty from the remote host. */
 	record_login(s->pid, s->tty, pw->pw_name, pw->pw_uid,
-	    get_remote_name_or_ip(utmp_len, options.verify_reverse_mapping),
+	    get_remote_name_or_ip(utmp_len, options.use_dns),
 	    (struct sockaddr *)&from, fromlen);
 }
 

@@ -144,22 +144,24 @@ auth_password(Authctxt *authctxt, const char *password)
 		HANDLE hToken = cygwin_logon_user(pw, password);
 
 		if (hToken == INVALID_HANDLE_VALUE)
-			return 0;
+			return (0);
 		cygwin_set_impersonation_token(hToken);
-		return 1;
+		return (1);
 	}
 # endif
 # ifdef WITH_AIXAUTHENTICATE
 	authsuccess = (authenticate(pw->pw_name,password,&reenter,&authmsg) == 0);
 
-	if (authsuccess)
+	if (authsuccess) {
 	        /* We don't have a pty yet, so just label the line as "ssh" */
 	        if (loginsuccess(authctxt->user,
-			get_canonical_hostname(options.verify_reverse_mapping),
-			"ssh", &aixloginmsg) < 0)
-				aixloginmsg = NULL;
+		    get_canonical_hostname(options.use_dns),
+		    "ssh", &aixloginmsg) < 0) {
+			aixloginmsg = NULL;
+		}
+	}
 
-	return(authsuccess);
+	return (authsuccess);
 # endif
 # ifdef KRB4
 	if (options.kerberos_authentication == 1) {

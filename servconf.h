@@ -1,4 +1,4 @@
-/*	$OpenBSD: servconf.h,v 1.60 2003/05/15 01:48:10 jakob Exp $	*/
+/*	$OpenBSD: servconf.h,v 1.61 2003/06/02 09:17:34 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -112,7 +112,7 @@ typedef struct {
 	int	max_startups_rate;
 	int	max_startups;
 	char   *banner;			/* SSH-2 banner message */
-	int	verify_reverse_mapping;	/* cross-check ip and dns */
+	int	use_dns;
 	int	client_alive_interval;	/*
 					 * poke the client this often to
 					 * see if it's still there

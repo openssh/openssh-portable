@@ -31,7 +31,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.63 2003/06/02 01:04:39 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.64 2003/06/03 00:25:48 djm Exp $");
 
 #ifdef USE_PAM
 #include <security/pam_appl.h>
@@ -299,8 +299,7 @@ sshpam_init(const char *user)
 		sshpam_handle = NULL;
 		return (-1);
 	}
-	pam_rhost = get_remote_name_or_ip(utmp_len,
-	    options.verify_reverse_mapping);
+	pam_rhost = get_remote_name_or_ip(utmp_len, options.use_dns);
 	debug("PAM: setting PAM_RHOST to \"%s\"", pam_rhost);
 	sshpam_err = pam_set_item(sshpam_handle, PAM_RHOST, pam_rhost);
 	if (sshpam_err != PAM_SUCCESS) {

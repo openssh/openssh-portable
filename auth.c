@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth.c,v 1.47 2003/04/08 20:21:28 itojun Exp $");
+RCSID("$OpenBSD: auth.c,v 1.48 2003/06/02 09:17:34 markus Exp $");
 
 #ifdef HAVE_LOGIN_H
 #include <login.h>
@@ -141,7 +141,7 @@ allowed_user(struct passwd * pw)
 	}
 
 	if (options.num_deny_users > 0 || options.num_allow_users > 0) {
-		hostname = get_canonical_hostname(options.verify_reverse_mapping);
+		hostname = get_canonical_hostname(options.use_dns);
 		ipaddr = get_remote_ipaddr();
 	}
 

@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rhosts.c,v 1.30 2003/05/17 03:25:58 itojun Exp $");
+RCSID("$OpenBSD: auth-rhosts.c,v 1.31 2003/06/02 09:17:34 markus Exp $");
 
 #include "packet.h"
 #include "uidswap.h"
@@ -156,7 +156,7 @@ auth_rhosts(struct passwd *pw, const char *client_user)
 {
 	const char *hostname, *ipaddr;
 
-	hostname = get_canonical_hostname(options.verify_reverse_mapping);
+	hostname = get_canonical_hostname(options.use_dns);
 	ipaddr = get_remote_ipaddr();
 	return auth_rhosts2(pw, client_user, hostname, ipaddr);
 }

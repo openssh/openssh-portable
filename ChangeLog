@@ -1,6 +1,17 @@
 20030603
  - (djm) Replace setproctitle replacement with code derived from 
    UCB sendmail
+ - (djm) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2003/06/02 09:17:34
+     [auth2-hostbased.c auth.c auth-options.c auth-rhosts.c auth-rh-rsa.c]
+     [canohost.c monitor.c servconf.c servconf.h session.c sshd_config]
+     [sshd_config.5]
+     deprecate VerifyReverseMapping since it's dangerous if combined
+     with IP based access control as noted by Mike Harding; replace with
+     a UseDNS option, UseDNS is on by default and includes the
+     VerifyReverseMapping check; with itojun@, provos@, jakob@ and deraadt@
+     ok deraadt@, djm@
+ - (djm) Fix portable-specific uses of verify_reverse_mapping too
 
 20030602
  - (djm) Fix segv from bad reordering in auth-pam.c
@@ -1648,4 +1659,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2764 2003/06/03 00:14:28 djm Exp $
+$Id: ChangeLog,v 1.2765 2003/06/03 00:25:48 djm Exp $
