@@ -1,3 +1,15 @@
+20010103
+ - (bal) fixed up sshconnect.c so it was closer inline with the OpenBSD
+   tree (mainly positioning)
+ - (bal) OpenSSH CVS Update
+   - markus@cvs.openbsd.org 2001/01/02 20:41:02
+     [packet.c]
+     log remote ip on disconnect; PR 1600 from jcs@rt.fm
+   - markus@cvs.openbsd.org 2001/01/02 20:50:56
+     [sshconnect.c]
+     strict_host_key_checking for host_status != HOST_CHANGED && 
+     ip_status == HOST_CHANGED
+
 20010102
  - (bal) OpenBSD CVS Update
    - markus@cvs.openbsd.org 2001/01/01 14:52:49

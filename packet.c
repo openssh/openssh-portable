@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.40 2000/12/19 23:17:57 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.41 2001/01/02 20:41:02 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -979,7 +979,8 @@ packet_read_poll(int *payload_len_ptr)
 			case SSH2_MSG_DISCONNECT:
 				reason = packet_get_int();
 				msg = packet_get_string(NULL);
-				log("Received disconnect: %d: %.900s", reason, msg);
+				log("Received disconnect from %s: %d: %.400s", get_remote_ipaddr(),
+					reason, msg);
 				xfree(msg);
 				fatal_cleanup();
 				break;
@@ -998,7 +999,8 @@ packet_read_poll(int *payload_len_ptr)
 				break;
 			case SSH_MSG_DISCONNECT:
 				msg = packet_get_string(NULL);
-				log("Received disconnect: %.900s", msg);
+				log("Received disconnect from %s: %.400s", get_remote_ipaddr(),
+					msg);
 				fatal_cleanup();
 				xfree(msg);
 				break;
