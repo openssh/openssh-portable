@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.258 2001/02/28 01:49:38 djm Exp $
+# $Id: configure.in,v 1.259 2001/02/28 01:51:19 djm Exp $
 
 AC_INIT(ssh.c)
 
@@ -1280,7 +1280,7 @@ AC_ARG_WITH(egd-pool,
 		if test -z "$RANDOM_POOL" ; then
 			AC_MSG_CHECKING(for PRNGD/EGD socket)
 			# Insert other locations here
-			for egdsock in /var/run/egd-pool /tmp/egd-pool /etc/entropy /tmp/entropy ; do
+			for egdsock in /var/run/egd-pool /etc/entropy; do
 				if test -r $egdsock && $TEST_MINUS_S_SH -c "test -S $egdsock -o -p $egdsock" ; then
 					EGD_SOCKET="$egdsock"
 					AC_DEFINE_UNQUOTED(EGD_SOCKET, "$EGD_SOCKET")

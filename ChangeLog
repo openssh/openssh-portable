@@ -4,6 +4,7 @@
  - (djm) Fully revert PAM session patch (again). All PAM session init is 
    now done before the final fork().
  - (djm) EGD detection patch from Tim Rice <tim@multitalents.net>
+ - (djm) Remove /tmp from EGD socket search list
 
 20010227
  - (bal) Applied shutdown() patch for sftp.c by  Corinna Vinschen 
@@ -4165,4 +4166,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.840 2001/02/28 01:49:38 djm Exp $
+$Id: ChangeLog,v 1.841 2001/02/28 01:51:18 djm Exp $
