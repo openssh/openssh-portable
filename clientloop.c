@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.110 2003/05/11 20:30:24 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.111 2003/05/14 22:24:42 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -574,6 +574,19 @@ process_escapes(Buffer *bin, Buffer *bout, Buffer *berr, char *buf, int len)
 				/* We have been continued. */
 				continue;
 
+			case 'B':
+				if (compat20) {
+					snprintf(string, sizeof string,
+					    "%cB\r\n", escape_char);
+					buffer_append(berr, string,
+					    strlen(string));
+					channel_request_start(session_ident,
+					    "break", 0);
+					packet_put_int(1000);
+					packet_send();
+				}
+				continue;
+
 			case 'R':
 				if (compat20) {
 					if (datafellows & SSH_BUG_NOREKEY)
@@ -636,6 +649,7 @@ process_escapes(Buffer *bin, Buffer *bout, Buffer *berr, char *buf, int len)
 "%c?\r\n\
 Supported escape sequences:\r\n\
 %c.  - terminate connection\r\n\
+%cB  - send a BREAK to the remote system\r\n\
 %cC  - open a command line\r\n\
 %cR  - Request rekey (SSH protocol 2 only)\r\n\
 %c^Z - suspend ssh\r\n\
@@ -646,7 +660,7 @@ Supported escape sequences:\r\n\
 (Note that escapes are only recognized immediately after newline.)\r\n",
 				    escape_char, escape_char, escape_char, escape_char,
 				    escape_char, escape_char, escape_char, escape_char,
-				    escape_char, escape_char);
+				    escape_char, escape_char, escape_char);
 				buffer_append(berr, string, strlen(string));
 				continue;
 

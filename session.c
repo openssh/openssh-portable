@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.156 2003/05/11 20:30:25 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.157 2003/05/14 22:24:42 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1743,6 +1743,26 @@ session_exec_req(Session *s)
 }
 
 static int
+session_break_req(Session *s)
+{
+	u_int break_length;
+
+	break_length = packet_get_int();
+	packet_check_eom();
+
+	if (s->ttyfd == -1)
+		return 0;
+	/* we will sleep from 500ms to 3000ms */
+	break_length = MIN(break_length, 3000);
+	break_length = MAX(break_length,  500);
+	ioctl(s->ttyfd, TIOCSBRK, NULL);
+	/* should we care about EINTR? */
+	usleep(break_length * 1000);
+	ioctl(s->ttyfd, TIOCCBRK, NULL);
+	return 1;
+}
+
+static int
 session_auth_agent_req(Session *s)
 {
 	static int called = 0;
@@ -1789,6 +1809,8 @@ session_input_channel_req(Channel *c, const char *rtype)
 			success = session_auth_agent_req(s);
 		} else if (strcmp(rtype, "subsystem") == 0) {
 			success = session_subsystem_req(s);
+		} else if (strcmp(rtype, "break") == 0) {
+			success = session_break_req(s);
 		}
 	}
 	if (strcmp(rtype, "window-change") == 0) {
