@@ -1263,7 +1263,7 @@ do_ssh1_kex()
 	if (len < 0 || len > sizeof(session_key))
 		fatal("do_connection: bad len from %s: session_key_int %d > sizeof(session_key) %d",
 		      get_remote_ipaddr(),
-		      len, sizeof(session_key));
+		      len, (int) sizeof(session_key));
 	memset(session_key, 0, sizeof(session_key));
 	BN_bn2bin(session_key_int, session_key + sizeof(session_key) - len);
 

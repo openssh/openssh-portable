@@ -38,6 +38,10 @@
  *    missing.  Some systems only have snprintf() but not vsnprintf(), so
  *    the code is now broken down under HAVE_SNPRINTF and HAVE_VSNPRINTF.
  *
+ *  Ben Lindstrom <mouring@pconline.com> 09/27/00 for OpenSSH
+ *    Welcome to the world of %lld and %qd support.  With other
+ *    long long support.  This is needed for sftp-server to work
+ *    right.
  **************************************************************/
 
 #include "config.h"
@@ -111,9 +115,10 @@ static void dopr_outch (char *buffer, size_t *currlen, size_t maxlen, char c );
 #define DP_F_UNSIGNED 	(1 << 6)
 
 /* Conversion Flags */
-#define DP_C_SHORT   1
-#define DP_C_LONG    2
-#define DP_C_LDOUBLE 3
+#define DP_C_SHORT     1
+#define DP_C_LONG      2
+#define DP_C_LDOUBLE   3
+#define DP_C_LONG_LONG 4
 
 #define char_to_int(p) (p - '0')
 #ifndef MAX
@@ -222,7 +227,6 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args)
 	state = DP_S_MOD;
       break;
     case DP_S_MOD:
-      /* Currently, we don't support Long Long, bummer */
       switch (ch) 
       {
       case 'h':
@@ -232,7 +236,15 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args)
       case 'l':
 	cflags = DP_C_LONG;
 	ch = *format++;
+        if (ch == 'l') {
+           cflags = DP_C_LONG_LONG;
+           ch = *format++;
+        }
 	break;
+      case 'q':
+	cflags = DP_C_LONG_LONG;
+        ch = *format++;
+        break;
       case 'L':
 	cflags = DP_C_LDOUBLE;
 	ch = *format++;
@@ -251,6 +263,8 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args)
 	  value = va_arg (args, short int);
 	else if (cflags == DP_C_LONG)
 	  value = va_arg (args, long int);
+	else if (cflags == DP_C_LONG_LONG)
+	  value = va_arg (args, long long);
 	else
 	  value = va_arg (args, int);
 	fmtint (buffer, &currlen, maxlen, value, 10, min, max, flags);
@@ -261,6 +275,8 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args)
 	  value = va_arg (args, unsigned short int);
 	else if (cflags == DP_C_LONG)
 	  value = va_arg (args, unsigned long int);
+	else if (cflags == DP_C_LONG_LONG)
+	  value = va_arg (args, unsigned long long);
 	else
 	  value = va_arg (args, unsigned int);
 	fmtint (buffer, &currlen, maxlen, value, 8, min, max, flags);
@@ -271,6 +287,8 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args)
 	  value = va_arg (args, unsigned short int);
 	else if (cflags == DP_C_LONG)
 	  value = va_arg (args, unsigned long int);
+	else if (cflags == DP_C_LONG_LONG)
+	  value = va_arg (args, unsigned long long);
 	else
 	  value = va_arg (args, unsigned int);
 	fmtint (buffer, &currlen, maxlen, value, 10, min, max, flags);
@@ -283,6 +301,8 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args)
 	  value = va_arg (args, unsigned short int);
 	else if (cflags == DP_C_LONG)
 	  value = va_arg (args, unsigned long int);
+	else if (cflags == DP_C_LONG_LONG)
+	  value = va_arg (args, unsigned long long);
 	else
 	  value = va_arg (args, unsigned int);
 	fmtint (buffer, &currlen, maxlen, value, 16, min, max, flags);
@@ -337,6 +357,12 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args)
 	  num = va_arg (args, long int *);
 	  *num = currlen;
         } 
+	else if (cflags == DP_C_LONG_LONG)
+        {
+	  long long *num;
+	  num = va_arg (args, long long *);
+          *num = currlen;
+        }
 	else 
 	{
 	  int *num;
@@ -747,9 +773,11 @@ int main (void)
     "%+22.33d",
     "%01.3d",
     "%4d",
+    "%lld",
+    "%qd",
     NULL
   };
-  long int_nums[] = { -1, 134, 91340, 341, 0203, 0};
+  long long int_nums[] = { -1, 134, 91340, 341, 0203, 0, 9999999 };
   int x, y;
   int fail = 0;
   int num = 0;

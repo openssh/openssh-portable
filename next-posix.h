@@ -1,5 +1,24 @@
 /*
- * Defines and prototypes specific to NeXT system
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
 #ifndef _NEXT_POSIX_H
@@ -9,14 +28,8 @@
 
 #include <sys/dir.h>
 
-/* readdir() returns struct direct (BSD) not struct dirent (POSIX) */
+/* NeXT's Readdir() is BSD (struct direct) not POSIX (struct dirent) */
 #define dirent direct
-
-/* POSIX utime() struct */
-struct utimbuf {
-	time_t  actime;
-	time_t  modtime;
-};
 
 /* FILE */
 #define O_NONBLOCK	00004	/* non-blocking open */
@@ -31,19 +44,14 @@ struct utimbuf {
 #define WIFSIGNALED(w)	(!WIFEXITED(w) && !WIFSTOPPED(w))
 #define WEXITSTATUS(w)	(int)(WIFEXITED(w) ? (((w) >> 8) & 0377) : -1)
 #define WTERMSIG(w)	(int)(WIFSIGNALED(w) ? ((w) & 0177) : -1)
-#define WCOREFLAG	0x80
-#define WCOREDUMP(w) 	((w) & WCOREFLAG)
 
-/* POSIX "wrapper" functions to replace to BSD functions */
-int posix_utime(char *filename, struct utimbuf *buf);	/* new utime() */
-#define utime posix_utime
-
-pid_t posix_wait(int *status);				/* new wait() */
-#define wait posix_wait	
+/* Swap out the next 'BSDish' wait() for a more POSIX complient one */
+pid_t posix_wait(int *status);
+#define wait(a) posix_wait(a)
 
 /* MISC functions */
-int waitpid(int pid, int *stat_loc, int options);
-pid_t setsid(void);
+#define setsid() setpgrp(0, getpid())
+pid_t waitpid(int pid, int *stat_loc, int options);
 
 /* TERMCAP */
 int tcgetattr(int fd, struct termios *t);
@@ -54,5 +62,4 @@ speed_t cfgetispeed(const struct termios *t);
 int cfsetospeed(struct termios *t, int speed);
 
 #endif /* HAVE_NEXT */
-
 #endif /* _NEXT_POSIX_H */
