@@ -11,9 +11,16 @@ or http proxy which supports the CONNECT method (eg. Squid).
 In this directory
 -----------------
 
+SecurID.diff
+
+This patch from Theo Schlossnagle <jesus@omniti.com> adds SecurID support
+to portable OpenSSH. Please refer to the text at the start of the patch
+and to the author's homepage at http://www.omniti.com/~jesus/projects/ for
+more details.
+
 chroot.diff:
 
-Ricardo Cerqueira's <rmcc@clix.pt> patch to enable chrooting using the
+Ricardo Cerqueira <rmcc@novis.pt> patch to enable chrooting using the
 wu-ftpd style magic home directories (containing '/./'). More details in
 the head of the patch itself.
 
@@ -24,8 +31,8 @@ your public key to a remote machine's ~/.ssh/authorized_keys file.
 
 gnome-ssh-askpass:
 
-A GNOME passphrase requester of my own creation. Compilation instructions
-are in the top of the file.
+A GNOME passphrase requester from Damien Miller <djm@mindrot.org> with help
+from several others. Compilation instructions are in the top of the file.
 
 sshd.pam.generic:
 
@@ -42,9 +49,11 @@ Converts mdoc formated manpages into normal manpages.  This can be used
 on Solaris machines to provide manpages that are not preformated. 
 Contributed by Mark D. Roth <roth@feep.net>
 
-redhat:
+redhat/
 
-RPM spec file an scripts for building Redhat packages
+Files useful for operation on Redhat Linux systems. NB. it is recommended
+that you use the prepackaged RPM versions on Redhat, as they have been 
+better tested.
 
 suse:
 
@@ -59,4 +68,5 @@ X11 SSH Askpass:
 Jim Knoble <jmknoble@pobox.com> has written an excellent X11
 passphrase requester. This is highly recommended:
 
-http://www.ntrnet.net/~jmknoble/software/x11-ssh-askpass/index.html
+http://www.ntrnet.net/~jmknoble/software/x11-ssh-askpass/
+
