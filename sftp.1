@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.10 2001/03/06 06:11:44 deraadt Exp $
+.\" $OpenBSD: sftp.1,v 1.11 2001/03/06 15:10:42 deraadt Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -50,12 +50,6 @@ then enters an interactive command mode.
 .Pp
 The options are as follows:
 .Bl -tag -width Ds
-.It Fl v
-Raise logging level. This option is also passed to ssh.
-.It Fl C
-Enables compression (via ssh's 
-.Fl C
-flag)
 .It Fl b Ar batchfile
 Batch mode reads a series of commands from an input
 .Fn batchfile
@@ -67,9 +61,15 @@ commands fail:
 .Pa get, put, rename, rm, mkdir, chdir, lchdir
 and
 .Pa lmkdir.
+.It Fl C
+Enables compression (via ssh's 
+.Fl C
+flag)
 .It Fl o Ar ssh_option
 Specify an option to be directly passed to
 .Xr ssh 1 .
+.It Fl v
+Raise logging level. This option is also passed to ssh.
 .El
 .Sh INTERACTIVE COMMANDS
 Once in interactive mode,
@@ -104,8 +104,8 @@ to
 .Ar own .
 .Ar own
 must be a numeric UID.
-.It Ic help
-Display help text.
+.It Ic exit
+Quit sftp.
 .It Xo Ic get
 .Op Ar flags
 .Ar remote-path
@@ -120,6 +120,8 @@ remote machine. If the
 .Fl P
 flag is specified, then the file's full permission and access time are
 copied too.
+.It Ic help
+Display help text.
 .It Ic lls Op Ar ls-options Op Ar path
 Display local directory listing of either 
 .Ar path
@@ -157,8 +159,6 @@ flag is specified, then the file's full permission and access time are
 copied too.
 .It Ic pwd
 Display remote working directory.
-.It Ic exit
-Quit sftp.
 .It Ic quit
 Quit sftp.
 .It Ic rename Ar oldpath Ar newpath
