@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfd.c,v 1.43 2001/08/01 22:03:33 markus Exp $");
+RCSID("$OpenBSD: authfd.c,v 1.44 2001/08/07 10:37:46 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -58,7 +58,8 @@ int	decode_reply(int type);
 
 /* macro to check for "agent failure" message */
 #define agent_failed(x) \
-    ((x == SSH_AGENT_FAILURE) || (x == SSH_COM_AGENT2_FAILURE))
+    ((x == SSH_AGENT_FAILURE) || (x == SSH_COM_AGENT2_FAILURE) || \
+     (x == SSH2_AGENT_FAILURE))
 
 /* Returns the number of the authentication fd, or -1 if there is none. */
 
@@ -585,6 +586,7 @@ decode_reply(int type)
 	switch (type) {
 	case SSH_AGENT_FAILURE:
 	case SSH_COM_AGENT2_FAILURE:
+	case SSH2_AGENT_FAILURE:
 		log("SSH_AGENT_FAILURE");
 		return 0;
 	case SSH_AGENT_SUCCESS:

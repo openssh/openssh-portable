@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: authfd.h,v 1.20 2001/08/01 22:03:33 markus Exp $"); */
+/* RCSID("$OpenBSD: authfd.h,v 1.21 2001/08/07 10:37:46 markus Exp $"); */
 
 #ifndef AUTHFD_H
 #define AUTHFD_H
@@ -41,6 +41,9 @@
 /* smartcard */
 #define SSH_AGENTC_ADD_SMARTCARD_KEY		20
 #define SSH_AGENTC_REMOVE_SMARTCARD_KEY	        21
+
+/* extended failure messages */
+#define SSH2_AGENT_FAILURE			30
 
 /* additional error code for ssh.com's ssh-agent2 */
 #define SSH_COM_AGENT2_FAILURE                  102

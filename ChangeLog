@@ -1,5 +1,9 @@
 20010815
  - (bal) Fixed stray code in readconf.c that went in by mistake.
+ - OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2001/08/07 10:37:46
+     [authfd.c authfd.h]
+     extended failure messages from galb@vandyke.com
 
 20010814
  - (stevesk) sshpty.c, cray.[ch]: whitespace, formatting and cleanup
@@ -6289,4 +6293,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1475 2001/08/15 22:58:59 mouring Exp $
+$Id: ChangeLog,v 1.1476 2001/08/15 23:04:50 mouring Exp $
