@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.199 2003/12/02 17:01:14 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.200 2004/01/19 09:24:21 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1817,12 +1817,24 @@ channel_input_data(int type, u_int32_t seq, void *ctxt)
 	    c->type != SSH_CHANNEL_X11_OPEN)
 		return;
 
-	/* same for protocol 1.5 if output end is no longer open */
-	if (!compat13 && c->ostate != CHAN_OUTPUT_OPEN)
-		return;
-
 	/* Get the data. */
 	data = packet_get_string(&data_len);
+
+	/*
+	 * Ignore data for protocol > 1.3 if output end is no longer open.
+	 * For protocol 2 the sending side is reducing its window as it sends
+	 * data, so we must 'fake' consumption of the data in order to ensure
+	 * that window updates are sent back.  Otherwise the connection might
+	 * deadlock.
+	 */
+	if (!compat13 && c->ostate != CHAN_OUTPUT_OPEN) {
+		if (compat20) {
+			c->local_window -= data_len;
+			c->local_consumed += data_len;
+		}
+		xfree(data);
+		return;
+	}
 
 	if (compat20) {
 		if (data_len > c->local_maxpacket) {

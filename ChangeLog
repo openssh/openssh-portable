@@ -15,6 +15,11 @@
    - markus@cvs.openbsd.org 2004/01/13 19:45:15
      [compress.c]
      cast for portability; millert@
+   - markus@cvs.openbsd.org 2004/01/19 09:24:21
+     [channels.c]
+     fake consumption for half closed channels since the peer is waiting for
+     window adjust messages; bugzilla #790 Matthew Dillon; test + ok dtucker@
+     reproduce with sh -c 'ulimit -f 10; ssh host -n od /bsd | cat > foo'
 
 20040114
  - (dtucker) [auth-pam.c] Have monitor die if PAM authentication thread exits
@@ -1684,4 +1689,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3173 2004/01/21 00:01:23 djm Exp $
+$Id: ChangeLog,v 1.3174 2004/01/21 00:02:09 djm Exp $
