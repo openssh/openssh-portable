@@ -1,8 +1,12 @@
 How to use smartcards with OpenSSH?
 
 OpenSSH contains experimental support for authentication using
-Cyberflex smartcards and TODOS card readers. To enable this you
-need to:
+Cyberflex smartcards and TODOS card readers. 
+
+WARNING: Smartcard support is still in development. Keyfile formats, etc
+are still subject to change.
+
+To enable this you need to:
 
 (1) install sectok
 
