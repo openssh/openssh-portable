@@ -1,3 +1,7 @@
+20010318
+ - (bal) Fixed scp type casing issue which causes "scp: protocol error: 
+   size not delimited" fatal errors when tranfering.
+
 20010317
  - Support usrinfo() on AIX. Based on patch from Gert Doering 
    <gert@greenie.muc.de>
@@ -4586,4 +4590,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.968 2001/03/17 01:15:38 mouring Exp $
+$Id: ChangeLog,v 1.969 2001/03/17 18:07:46 mouring Exp $
