@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.71 2001/05/19 16:05:41 markus Exp $");
+RCSID("$OpenBSD: scp.c,v 1.72 2001/06/03 19:38:42 markus Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -265,6 +265,7 @@ main(argc, argv)
 			ssh_program = xstrdup(optarg);
 			break;
 		case 'v':
+			addargs(&args, "-v");
 			verbose_mode = 1;
 			break;
 		case 'q':
