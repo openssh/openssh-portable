@@ -8,6 +8,7 @@
  - (stevesk) remove configure support for poll.h; it was removed
    from sshd.c a long time ago.
  - (stevesk) --with-privsep-user; default sshd
+ - (stevesk) wrap munmap() with HAVE_MMAP also.
 
 20020406
  - (djm) Typo in Suse SPEC file. Fix from Carsten Grohmann 
@@ -8198,4 +8199,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2038 2002/04/07 19:22:55 stevesk Exp $
+$Id: ChangeLog,v 1.2039 2002/04/07 22:36:49 stevesk Exp $

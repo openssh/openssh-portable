@@ -130,8 +130,13 @@ mm_destroy(struct mm_master *mm)
 	mm_freelist(mm->mmalloc, &mm->rb_free);
 	mm_freelist(mm->mmalloc, &mm->rb_allocated);
 
+#ifdef HAVE_MMAP
 	if (munmap(mm->address, mm->size) == -1)
 		fatal("munmap(%p, %lu)", mm->address, (u_long)mm->size);
+#else
+	fatal("%s: UsePrivilegeSeparation=yes not supported",
+	    __FUNCTION__);
+#endif
 	if (mm->mmalloc == NULL)
 		xfree(mm);
 	else
