@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-passwd.c,v 1.32 2005/01/21 08:32:02 otto Exp $");
+RCSID("$OpenBSD: auth-passwd.c,v 1.33 2005/01/24 11:47:13 dtucker Exp $");
 
 #include "packet.h"
 #include "buffer.h"
@@ -131,7 +131,7 @@ warn_expiry(Authctxt *authctxt, auth_session_t *as)
 
 	pwtimeleft = auth_check_change(as);
 	actimeleft = auth_check_expire(as);
-#if HAVE_LOGIN_CAP
+#ifdef HAVE_LOGIN_CAP
 	if (authctxt->valid) {
 		pwwarntime = login_getcaptime(lc, "password-warn", TWO_WEEKS,
 		    TWO_WEEKS);

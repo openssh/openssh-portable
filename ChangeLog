@@ -22,6 +22,9 @@
    - dtucker@cvs.openbsd.org 2005/01/24 10:29:06
      [moduli]
      Import new moduli; requested by deraadt@ a week ago
+   - dtucker@cvs.openbsd.org 2005/01/24 11:47:13
+     [auth-passwd.c]
+     #if -> #ifdef so builds without HAVE_LOGIN_CAP work too; ok djm@ otto@
 
 20050120
  - (dtucker) OpenBSD CVS Sync
@@ -2040,4 +2043,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3625 2005/01/24 11:00:40 dtucker Exp $
+$Id: ChangeLog,v 1.3626 2005/01/24 11:50:47 dtucker Exp $
