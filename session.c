@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.120 2002/01/29 14:32:03 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.121 2002/01/29 16:29:02 stevesk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1646,7 +1646,7 @@ session_subsystem_req(Session *s)
 	int i;
 
 	packet_check_eom();
-	log("subsystem request for %s", subsys);
+	log("subsystem request for %.100s", subsys);
 
 	for (i = 0; i < options.num_subsystems; i++) {
 		if (strcmp(subsys, options.subsystem_name[i]) == 0) {
@@ -1664,7 +1664,7 @@ session_subsystem_req(Session *s)
 	}
 
 	if (!success)
-		log("subsystem request for %s failed, subsystem not found",
+		log("subsystem request for %.100s failed, subsystem not found",
 		    subsys);
 
 	xfree(subsys);
