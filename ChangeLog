@@ -9,6 +9,9 @@
    - markus@cvs.openbsd.org 2001/03/26 23:23:24
      [rsa.c rsa.h ssh-agent.c ssh-keygen.c]
      try to read private f-secure ssh v2 rsa keys.
+   - markus@cvs.openbsd.org 2001/03/27 10:34:08
+     [ssh-rsa.c sshd.c]
+     use EVP_get_digestbynid, reorder some calls and fix missing free.
 
 20010328
  - (djm) Reorder tests and library inclusion for Krb4/AFS to try to 
@@ -4747,4 +4750,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1028 2001/03/29 00:29:54 mouring Exp $
+$Id: ChangeLog,v 1.1029 2001/03/29 00:31:20 mouring Exp $

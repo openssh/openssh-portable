@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.179 2001/03/26 08:07:09 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.180 2001/03/27 10:34:08 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -648,6 +648,7 @@ main(int ac, char **av)
 			exit(1);
 		}
 	}
+	SSLeay_add_all_algorithms();
 
 	/*
 	 * Force logging to stderr until we have loaded the private host
