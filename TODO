@@ -90,8 +90,9 @@ Packaging:
 
 PrivSep Issues:
 - mmap() issues.
-  + No/broken MAP_ANON
-  + broken /dev/zero parse
+  + /dev/zero solution (Solaris)
+  + No/broken MAP_ANON (Irix)
+  + broken /dev/zero parse (Linux)
 - PAM 
   + See above PAM notes
 - AIX
@@ -101,4 +102,4 @@ PrivSep Issues:
 - Cygwin
   + Privsep for Pre-auth only (no fd passing)
 
-$Id: TODO,v 1.48 2002/06/25 14:01:55 mouring Exp $
+$Id: TODO,v 1.49 2002/06/25 14:14:30 mouring Exp $
