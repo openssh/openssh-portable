@@ -29,7 +29,7 @@
 
 #include "config.h"
 
-#ifndef HAVE_BINRESVPORT_AF
+#ifndef HAVE_BINDRESVPORT_AF
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char *rcsid = "$OpenBSD: bindresvport.c,v 1.11 1999/12/17 19:22:08 deraadt Exp $";
@@ -109,4 +109,4 @@ bindresvport_af(sd, sa, af)
 	return (error);
 }
 
-#endif /* HAVE_BINRESVPORT_AF */
+#endif /* HAVE_BINDRESVPORT_AF */
