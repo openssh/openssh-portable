@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.70 2001/06/29 07:06:34 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.71 2001/06/29 07:11:01 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -405,6 +405,8 @@ do_upload(struct passwd *pw, int reader)
 	int len, status = 1, i, fd = -1, ret;
 	int r1 = 0, r2 = 0, cla = 0x00;
 
+	for (i = 0; i < NUM_RSA_KEY_ELEMENTS; i++)
+		elements[i] = NULL;
 	if (!have_identity)
 		ask_filename(pw, "Enter file in which the key is");
 	if (stat(identity_file, &st) < 0) {
@@ -416,8 +418,6 @@ do_upload(struct passwd *pw, int reader)
 		error("load failed");
 		goto done;
 	}
-	for (i = 0; i < NUM_RSA_KEY_ELEMENTS; i++)
-		elements[i] = NULL;
 	COPY_RSA_KEY(q, 0);
 	COPY_RSA_KEY(p, 1);
 	COPY_RSA_KEY(iqmp, 2);
