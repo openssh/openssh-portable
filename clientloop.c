@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.115 2003/09/23 20:41:11 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.116 2003/12/09 23:45:32 dtucker Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -88,6 +88,9 @@ extern Options options;
 
 /* Flag indicating that stdin should be redirected from /dev/null. */
 extern int stdin_null_flag;
+
+/* Flag indicating that no shell has been requested */
+extern int no_shell_flag;
 
 /*
  * Name of the host we are connecting to.  This is the name given on the
@@ -1030,6 +1033,16 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 		unset_nonblock(fileno(stdout));
 	if (!isatty(fileno(stderr)))
 		unset_nonblock(fileno(stderr));
+
+	/*
+	 * If there was no shell or command requested, there will be no remote
+	 * exit status to be returned.  In that case, clear error code if the
+	 * connection was deliberately terminated at this end.
+	 */
+	if (no_shell_flag && received_signal == SIGTERM) {
+		received_signal = 0;
+		exit_status = 0;
+	}
 
 	if (received_signal)
 		fatal("Killed by signal %d.", (int) received_signal);
