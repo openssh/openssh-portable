@@ -6,6 +6,9 @@
    - markus@cvs.openbsd.org 2001/04/15 08:43:47
      [dh.c sftp-glob.c sftp-glob.h sftp-int.c sshconnect2.c sshd.c]
      some unused variable and typos; from tomh@po.crl.go.jp
+   - markus@cvs.openbsd.org 2001/04/15 16:58:03
+     [authfile.c ssh-keygen.c sshd.c]
+     don't use errno for key_{load,save}_private; discussion w/ solar@openwall
  - (djm) Convert mandoc manpages to man automatically. Patch from Mark D.
    Roth <roth+openssh@feep.net>
 
@@ -5093,4 +5096,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1119 2001/04/16 00:41:46 djm Exp $
+$Id: ChangeLog,v 1.1120 2001/04/16 02:00:02 mouring Exp $

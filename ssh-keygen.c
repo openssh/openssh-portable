@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.55 2001/04/05 10:42:54 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.56 2001/04/15 16:58:03 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -512,8 +512,7 @@ do_change_passphrase(struct passwd *pw)
 
 	/* Save the file using the new passphrase. */
 	if (!key_save_private(private, identity_file, passphrase1, comment)) {
-		printf("Saving the key failed: %s: %s.\n",
-		       identity_file, strerror(errno));
+		printf("Saving the key failed: %s.\n", identity_file);
 		memset(passphrase1, 0, strlen(passphrase1));
 		xfree(passphrase1);
 		key_free(private);
@@ -591,8 +590,7 @@ do_change_comment(struct passwd *pw)
 
 	/* Save the file using the new passphrase. */
 	if (!key_save_private(private, identity_file, passphrase, new_comment)) {
-		printf("Saving the key failed: %s: %s.\n",
-		       identity_file, strerror(errno));
+		printf("Saving the key failed: %s.\n", identity_file);
 		memset(passphrase, 0, strlen(passphrase));
 		xfree(passphrase);
 		key_free(private);
@@ -838,8 +836,7 @@ passphrase_again:
 
 	/* Save the key with the given passphrase and comment. */
 	if (!key_save_private(private, identity_file, passphrase1, comment)) {
-		printf("Saving the key failed: %s: %s.\n",
-		    identity_file, strerror(errno));
+		printf("Saving the key failed: %s.\n", identity_file);
 		memset(passphrase1, 0, strlen(passphrase1));
 		xfree(passphrase1);
 		exit(1);

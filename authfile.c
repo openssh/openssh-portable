@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfile.c,v 1.30 2001/03/26 23:12:42 markus Exp $");
+RCSID("$OpenBSD: authfile.c,v 1.31 2001/04/15 16:58:03 markus Exp $");
 
 #include <openssl/err.h>
 #include <openssl/evp.h>
@@ -140,11 +140,13 @@ key_save_private_rsa1(Key *key, const char *filename, const char *passphrase,
 	buffer_free(&buffer);
 
 	fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0600);
-	if (fd < 0)
+	if (fd < 0) {
+		error("open %s failed: %s.", filename, strerror(errno));
 		return 0;
+	}
 	if (write(fd, buffer_ptr(&encrypted), buffer_len(&encrypted)) !=
 	    buffer_len(&encrypted)) {
-		debug("Write to key file %.200s failed: %.100s", filename,
+		error("write to key file %s failed: %s", filename,
 		      strerror(errno));
 		buffer_free(&encrypted);
 		close(fd);
@@ -169,18 +171,17 @@ key_save_private_pem(Key *key, const char *filename, const char *_passphrase,
 	EVP_CIPHER *cipher = (len > 0) ? EVP_des_ede3_cbc() : NULL;
 
 	if (len > 0 && len <= 4) {
-		error("passphrase too short: %d bytes", len);
-		errno = 0;
+		error("passphrase too short: have %d bytes, need > 4", len);
 		return 0;
 	}
 	fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0600);
 	if (fd < 0) {
-		debug("open %s failed", filename);
+		error("open %s failed: %s.", filename, strerror(errno));
 		return 0;
 	}
 	fp = fdopen(fd, "w");
 	if (fp == NULL ) {
-		debug("fdopen %s failed", filename);
+		error("fdopen %s failed: %s.", filename, strerror(errno));
 		close(fd);
 		return 0;
 	}
@@ -215,6 +216,7 @@ key_save_private(Key *key, const char *filename, const char *passphrase,
 	default:
 		break;
 	}
+	error("key_save_private: cannot save key type %d", key->type);
 	return 0;
 }
 
@@ -248,7 +250,7 @@ key_load_public_rsa1(int fd, const char *filename, char **commentp)
 
 	/* Check that it is at least big enough to contain the ID string. */
 	if (len < sizeof(authfile_id_string)) {
-		debug3("Bad RSA1 key file %.200s.", filename);
+		debug3("No RSA1 key file %.200s.", filename);
 		buffer_free(&buffer);
 		return NULL;
 	}
@@ -258,7 +260,7 @@ key_load_public_rsa1(int fd, const char *filename, char **commentp)
 	 */
 	for (i = 0; i < sizeof(authfile_id_string); i++)
 		if (buffer_get_char(&buffer) != authfile_id_string[i]) {
-			debug3("Bad RSA1 key file %.200s.", filename);
+			debug3("No RSA1 key file %.200s.", filename);
 			buffer_free(&buffer);
 			return NULL;
 		}
@@ -334,7 +336,7 @@ key_load_private_rsa1(int fd, const char *filename, const char *passphrase,
 
 	/* Check that it is at least big enough to contain the ID string. */
 	if (len < sizeof(authfile_id_string)) {
-		debug3("Bad RSA1 key file %.200s.", filename);
+		debug3("No RSA1 key file %.200s.", filename);
 		buffer_free(&buffer);
 		close(fd);
 		return NULL;
@@ -345,7 +347,7 @@ key_load_private_rsa1(int fd, const char *filename, const char *passphrase,
 	 */
 	for (i = 0; i < sizeof(authfile_id_string); i++)
 		if (buffer_get_char(&buffer) != authfile_id_string[i]) {
-			debug3("Bad RSA1 key file %.200s.", filename);
+			debug3("No RSA1 key file %.200s.", filename);
 			buffer_free(&buffer);
 			close(fd);
 			return NULL;
@@ -439,13 +441,13 @@ key_load_private_pem(int fd, int type, const char *passphrase,
 
 	fp = fdopen(fd, "r");
 	if (fp == NULL) {
-		error("fdopen failed");
+		error("fdopen failed: %s", strerror(errno));
 		close(fd);
 		return NULL;
 	}
 	pk = PEM_read_PrivateKey(fp, NULL, NULL, (char *)passphrase);
 	if (pk == NULL) {
-		debug("PEM_read_PrivateKey failed");
+		error("PEM_read_PrivateKey failed");
 		(void)ERR_get_error();
 	} else if (pk->type == EVP_PKEY_RSA &&
 	     (type == KEY_UNSPEC||type==KEY_RSA)) {
@@ -514,7 +516,7 @@ key_load_private_type(int type, const char *filename, const char *passphrase,
 	if (fd < 0)
 		return NULL;
 	if (!key_perm_ok(fd, filename)) {
-		debug("bad permissions: ignore key: %s", filename);
+		error("bad permissions: ignore key: %s", filename);
 		close(fd);
 		return NULL;
 	}
@@ -548,7 +550,7 @@ key_load_private(const char *filename, const char *passphrase,
 	if (fd < 0)
 		return NULL;
 	if (!key_perm_ok(fd, filename)) {
-		debug("bad permissions: ignore key: %s", filename);
+		error("bad permissions: ignore key: %s", filename);
 		close(fd);
 		return NULL;
 	}

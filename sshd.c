@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.194 2001/04/15 08:43:47 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.195 2001/04/15 16:58:03 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -700,8 +700,8 @@ main(int ac, char **av)
 		key = key_load_private(options.host_key_files[i], "", NULL);
 		sensitive_data.host_keys[i] = key;
 		if (key == NULL) {
-			error("Could not load host key: %.200s: %.100s",
-			    options.host_key_files[i], strerror(errno));
+			error("Could not load host key: %s",
+			    options.host_key_files[i]);
 			sensitive_data.host_keys[i] = NULL;
 			continue;
 		}
