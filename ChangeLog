@@ -1,14 +1,15 @@
-20010107
+20010207
  - (bal) Save the whole path to AR in configure.  Some Solaris 2.7 installs
    seem lose track of it while in openbsd-compat/  (two confirmed reports)
  - (djm) Much KNF on PAM code
- - (djm) Revise auth-pam.c conversation function to be a little more readable.
+ - (djm) Revise auth-pam.c conversation function to be a little more
+   readable.
  - (djm) Revise kbd-int PAM conversation function to fold all text messages
    to before first prompt. Fixes hangs if last pam_message did not require
    a reply.
  - (djm) Fix password changing when using PAM kbd-int authentication
 
-20010105
+20010205
  - (bal) Disable groupaccess by setting NGROUPS_MAX to 0 for platforms
    that don't have NGROUPS_MAX.
  - (bal) AIX patch for auth1.c by William L. Jones <jones@hpc.utexas.edu>
@@ -52,15 +53,15 @@
      make the alpha happy
    - markus@cvs.openbsd.org  2001/01/31 13:37:24
      [channels.c channels.h serverloop.c ssh.c]
-     do not disconnect if local port forwarding fails, e.g. if port is already in
-     use
+     do not disconnect if local port forwarding fails, e.g. if port is 
+     already in use
    - markus@cvs.openbsd.org  2001/02/01 14:58:09
      [channels.c]
      use ipaddr in channel messages, ietf-secsh wants this
    - markus@cvs.openbsd.org  2001/01/31 12:26:20
      [channels.c]
-     ssh.com-2.0.1x does not send additional info in CHANNEL_OPEN_FAILURE messages;
-     bug report from edmundo@rano.org
+     ssh.com-2.0.1x does not send additional info in CHANNEL_OPEN_FAILURE 
+     messages; bug report from edmundo@rano.org
    - markus@cvs.openbsd.org  2001/01/31 13:48:09
      [sshconnect2.c]
      unused
@@ -68,7 +69,7 @@
      [sftp-client.c sftp-server.c]
      make gcc on the alpha even happier
 
-20010104
+20010204
  - (bal) I think this is the last of the bsd-*.h that don't belong.
  - (bal) Minor Makefile fix
  - (bal) openbsd-compat/Makefile minor fix.  Ensure dependancies are done
@@ -103,20 +104,20 @@
    SIGCHLD handler.
  - (djm) Use setvbuf() instead of setlinebuf(). Suggest from stevesk@
 
-20010103
+20010203
  - (bal) Cygwin clean up by Corinna Vinschen <vinschen@redhat.com>
  - (bal) renamed queue.h to fake-queue.h (even if it's an OpenBSD
    based file) to ensure #include space does not get confused.
  - (bal) Minor Makefile.in tweak.  dirname may not exist on some
    platforms so builds fail.  (NeXT being a well known one)
 
-20010102
+20010202
  - (bal) Makefile fix where sourcedir != builddir by Corinna Vinschen
    <vinschen@redhat.com>
  - (bal) Makefile fix to use $(MAKE) instead of 'make'  for platforms
    that use 'gmake'.   Patch by Tim Rice <tim@multitalents.net>
 
-20010101
+20010201
  - (bal) Minor fix to Makefile to stop rebuilding executables if no
    changes have occured to any of the supporting code.  Patch by
    Roumen Petrov <roumen.petrov@skalasoft.com>
@@ -448,12 +449,12 @@
    - markus@cvs.openbsd.org 2001/01/10 22:56:22
      [bufaux.h bufaux.c sftp-server.c sftp.h getput.h]
      cleanup sftp-server implementation:
-	     add buffer_get_int64, buffer_put_int64, GET_64BIT, PUT_64BIT
-	     parse SSH2_FILEXFER_ATTR_EXTENDED
-	     send SSH2_FX_EOF if readdir returns no more entries
-	     reply to SSH2_FXP_EXTENDED message
-	     use #defines from the draft
-	     move #definations to sftp.h
+     add buffer_get_int64, buffer_put_int64, GET_64BIT, PUT_64BIT
+     parse SSH2_FILEXFER_ATTR_EXTENDED
+     send SSH2_FX_EOF if readdir returns no more entries
+     reply to SSH2_FXP_EXTENDED message
+     use #defines from the draft
+     move #definations to sftp.h
      more info:
      http://www.ietf.org/internet-drafts/draft-ietf-secsh-filexfer-00.txt
    - markus@cvs.openbsd.org 2001/01/10 19:43:20
