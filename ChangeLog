@@ -23,6 +23,9 @@
    - stevesk@cvs.openbsd.org 2001/03/28 19:56:23
      [scp.c]
      start to sync scp closer to rcp; ok markus@
+   - stevesk@cvs.openbsd.org 2001/03/28 20:04:38
+     [scp.c]
+     usage more like rcp and add missing -B to usage; ok markus@
 
 20010328
  - (djm) Reorder tests and library inclusion for Krb4/AFS to try to 
@@ -4761,4 +4764,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1032 2001/03/29 00:39:55 mouring Exp $
+$Id: ChangeLog,v 1.1033 2001/03/29 00:43:54 mouring Exp $
