@@ -7,7 +7,9 @@
      [deattack.c]
      so that large packets do not wrap "n"; from netbsd
  - (bal) rijndel.c - fix up RCSID to match OpenBSD tree
- - (bal) auth2-skey.c - Checked in.  Missing from portable tree
+ - (bal) auth2-skey.c - Checked in.  Missing from portable tree.
+ - (bal) Reworked NEWS-OS and NeXT ports to extract waitpid() and
+   setsid() into more common files
 
 20001029
  - (stevesk) Fix typo in auth.c: USE_PAM not PAM

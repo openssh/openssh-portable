@@ -27,6 +27,11 @@
 
 #include "config.h"
 
+#ifndef HAVE_SETSID
+#define setsid() setpgrp(0, getpid())
+#endif /* !HAVE_SETSID */
+
+
 #ifndef HAVE_SETENV
 int setenv(const char *name, const char *value, int overwrite);
 #endif /* !HAVE_SETENV */

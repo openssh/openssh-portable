@@ -22,6 +22,7 @@
 #include "bsd-strsep.h"
 #include "bsd-strtok.h"
 #include "bsd-vis.h"
+#include "bsd-waitpid.h"
 #include "bsd-setproctitle.h"
 
 /* rfc2553 socket API replacements */

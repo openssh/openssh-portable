@@ -18,83 +18,30 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
  */
 
-#include "includes.h"
+#ifndef _BSD_WAITPID_H
+#define _BSD_WAITPID_H
 
-#ifdef HAVE_NEXT
-#include <errno.h>
-#include <sys/wait.h>
-#include "next-posix.h"
+#ifndef HAVE_WAITPID
+/* Clean out any potental issues */
+#undef WIFEXITED
+#undef WIFSTOPPED
+#undef WIFSIGNALED
 
-pid_t 
-posix_wait(int *status)
-{
-	union wait statusp;
-	pid_t wait_pid;
+/* Define required functions to mimic a POSIX look and feel */
+#define _W_INT(w)	(*(int*)&(w))	/* convert union wait to int */
+#define WIFEXITED(w)	(!((_W_INT(w)) & 0377))
+#define WIFSTOPPED(w)	((_W_INT(w)) & 0100)
+#define WIFSIGNALED(w)	(!WIFEXITED(w) && !WIFSTOPPED(w))
+#define WEXITSTATUS(w)	(int)(WIFEXITED(w) ? ((_W_INT(w) >> 8) & 0377) : -1)
+#define WTERMSIG(w)	(int)(WIFSIGNALED(w) ? (_W_INT(w) & 0177) : -1)
+#define WCOREFLAG	0x80
+#define WCOREDUMP(w) 	((_W_INT(w)) & WCOREFLAG)
 
-	#undef wait			/* Use NeXT's wait() function */
-	wait_pid = wait(&statusp);
-	status = (int *) statusp.w_status;
+/* Prototype */
+pid_t waitpid(int pid, int *stat_loc, int options);
 
-	return wait_pid;
-}
-
-int
-tcgetattr(int fd, struct termios *t)
-{
-	return (ioctl(fd, TIOCGETA, t));
-}
-
-int
-tcsetattr(int fd, int opt, const struct termios *t)
-{
-	struct termios localterm;
-
-	if (opt & TCSASOFT) {
-		localterm = *t;
-		localterm.c_cflag |= CIGNORE;
-		t = &localterm;
-	}
-	switch (opt & ~TCSASOFT) {
-	case TCSANOW:
-		return (ioctl(fd, TIOCSETA, t));
-	case TCSADRAIN:
-		return (ioctl(fd, TIOCSETAW, t));
-	case TCSAFLUSH:
-		return (ioctl(fd, TIOCSETAF, t));
-	default:
-		errno = EINVAL;
-		return (-1);
-	}
-}
-
-int tcsetpgrp(int fd, pid_t pgrp)
-{
-	return (ioctl(fd, TIOCSPGRP, &pgrp));
-}
-
-speed_t cfgetospeed(const struct termios *t)
-{
-	return (t->c_ospeed);
-}
-
-speed_t cfgetispeed(const struct termios *t)
-{
-	return (t->c_ispeed);
-}
-
-int
-cfsetospeed(struct termios *t,int speed)
-{
-	t->c_ospeed = speed;
-	return (0);
-}
-
-int
-cfsetispeed(struct termios *t, int speed)
-{
-	t->c_ispeed = speed;
-	return (0);
-}
-#endif /* HAVE_NEXT */
+#endif /* !HAVE_WAITPID */
+#endif /* _BSD_WAITPID_H */

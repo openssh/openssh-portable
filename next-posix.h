@@ -25,7 +25,6 @@
 #define _NEXT_POSIX_H
 
 #ifdef HAVE_NEXT
-
 #include <sys/dir.h>
 
 /* NeXT's readdir() is BSD (struct direct) not POSIX (struct dirent) */
@@ -34,27 +33,9 @@
 /* FILE */
 #define O_NONBLOCK	00004	/* non-blocking open */
 
-/* WAITPID */
-#undef WIFEXITED
-#undef WIFSTOPPED
-#undef WIFSIGNALED
-
-#define _W_INT(w)	(*(int*)&(w))	/* convert union wait to int */
-#define WIFEXITED(w)	(!((_W_INT(w)) & 0377))
-#define WIFSTOPPED(w)	((_W_INT(w)) & 0100)
-#define WIFSIGNALED(w)	(!WIFEXITED(w) && !WIFSTOPPED(w))
-#define WEXITSTATUS(w)	(int)(WIFEXITED(w) ? ((_W_INT(w) >> 8) & 0377) : -1)
-#define WTERMSIG(w)	(int)(WIFSIGNALED(w) ? (_W_INT(w) & 0177) : -1)
-#define WCOREFLAG	0x80
-#define WCOREDUMP(w) 	((_W_INT(w)) & WCOREFLAG)
-
 /* Swap out NeXT's BSD wait() for a more POSIX complient one */
 pid_t posix_wait(int *status);
 #define wait(a) posix_wait(a)
-
-/* MISC functions */
-#define setsid() setpgrp(0, getpid())
-pid_t waitpid(int pid, int *stat_loc, int options);
 
 /* TERMCAP */
 int tcgetattr(int fd, struct termios *t);
