@@ -6,6 +6,9 @@
    - markus@cvs.openbsd.org 2001/09/14
      [session.c]
      command=xxx overwrites subsystems, too
+   - markus@cvs.openbsd.org 2001/09/14
+     [sshd.c]
+     typo
 
 20010913
  - (bal) OpenBSD CVS Sync
@@ -6425,4 +6428,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1513 2001/09/14 23:12:07 mouring Exp $
+$Id: ChangeLog,v 1.1514 2001/09/14 23:14:25 mouring Exp $
