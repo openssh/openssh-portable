@@ -5,7 +5,7 @@ CTL=$OBJ/ctl-sock
 
 tid="connection multiplexing"
 
-DATA=/bin/ls
+DATA=/bin/ls${EXEEXT}
 COPY=$OBJ/ls.copy
 
 start_sshd
