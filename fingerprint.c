@@ -1,9 +1,15 @@
 #include "includes.h"
-RCSID("$Id: fingerprint.c,v 1.1 1999/11/16 22:49:28 markus Exp $");
+RCSID("$Id: fingerprint.c,v 1.1 1999/11/17 06:29:08 damien Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
+
+#ifdef HAVE_OPENSSL
+#include <openssl/md5.h>
+#endif
+#ifdef HAVE_SSL
 #include <ssl/md5.h>
+#endif
 
 #define FPRINT "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x"
 

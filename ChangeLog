@@ -1,10 +1,13 @@
 19991119
  - Merged PAM buffer overrun patch from Chip Salzenberg <chip@valinux.com>
+   (off-by-one error - doesn't appear to be easily exploitable)
  - Merged OpenBSD CVS changes
    - [auth-rhosts.c auth-rsa.c ssh-agent.c sshconnect.c sshd.c]
      more %d vs. %s in fmt-strings
    - [authfd.c]
      Integers should not be printed with %s
+ - EGD uses a socket, not a named pipe. Duh.
+ - Fix includes in fingerprint.c
 
 19991118
  - Merged OpenBSD CVS changes

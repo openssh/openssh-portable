@@ -41,6 +41,8 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/un.h>
 #include <fcntl.h>
 
 #include "rc4.h"
@@ -48,6 +50,10 @@
 #include "ssh.h"
 #include "config.h"
 #include "helper.h"
+
+#ifndef offsetof
+#define offsetof(type, member) ((size_t) &((type *)0)->member)
+#endif
 
 #ifndef HAVE_ARC4RANDOM
 
@@ -80,17 +86,33 @@ void arc4random_stir(void)
 
 void get_random_bytes(unsigned char *buf, int len)
 {
-	int random_pool;
+	static int random_pool;
 	int c;
 #ifdef HAVE_EGD
 	char egd_message[2] = { 0x02, 0x00 };
-#endif /* HAVE_EGD */
+	struct sockaddr_un addr;
+	int addr_len;
+
+	memset(&addr, '\0', sizeof(addr));
+	addr.sun_family = AF_UNIX;
 	
-	random_pool = open(RANDOM_POOL, O_RDONLY);
+	/* FIXME: compile time check? */
+	if (sizeof(RANDOM_POOL) > sizeof(addr.sun_path))
+		fatal("Random pool path is too long");
+	
+	strncpy(addr.sun_path, RANDOM_POOL, sizeof(addr.sun_path - 1));
+	addr.sun_path[sizeof(addr.sun_path - 1)] = '\0';
+	
+	addr_len = offsetof(struct sockaddr_un, sun_path) + sizeof(RANDOM_POOL);
+	
+	random_pool = socket(AF_UNIX, SOCK_STREAM, 0);
+	
 	if (random_pool == -1)
-		fatal("Couldn't open random pool \"%s\": %s", RANDOM_POOL, strerror(errno));
+		fatal("Couldn't create AF_UNIX socket: %s", strerror(errno));
 	
-#ifdef HAVE_EGD
+	if (connect(random_pool, (struct sockaddr*)&addr, addr_len) == -1)
+		fatal("Couldn't connect to EGD socket \"%s\": %s", RANDOM_POOL, strerror(errno));
+
 	if (len > 255)
 		fatal("Too many bytes to read from EGD");
 	
@@ -99,6 +121,13 @@ void get_random_bytes(unsigned char *buf, int len)
 	c = write(random_pool, egd_message, sizeof(egd_message));
 	if (c == -1)
 		fatal("Couldn't write to EGD socket \"%s\": %s", RANDOM_POOL, strerror(errno));
+
+#else /* HAVE_EGD */
+
+	random_pool = open(RANDOM_POOL, O_RDONLY);
+	if (random_pool == -1)
+		fatal("Couldn't open random pool \"%s\": %s", RANDOM_POOL, strerror(errno));
+
 #endif /* HAVE_EGD */
 
 	c = read(random_pool, buf, len);
