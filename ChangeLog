@@ -17,6 +17,9 @@
    - markus@cvs.openbsd.org 2001/03/21 11:43:45
      [auth1.c auth2.c session.c session.h]
      merge common ssh v1/2 code
+   - jakob@cvs.openbsd.org 2001/03/21 14:20:45
+     [ssh-keygen.c]
+     add -B flag to usage
 
 20010321
  - (djm) Fix ttyname breakage for AIX and Tru64. Patch from Steve 
@@ -4676,4 +4679,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1006 2001/03/22 02:04:08 mouring Exp $
+$Id: ChangeLog,v 1.1007 2001/03/22 02:05:32 mouring Exp $
