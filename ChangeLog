@@ -10,6 +10,8 @@
    Marc G. Fournier <marc.fournier@acadiau.ca>
  - Fill in ut_utaddr utmp field. Report from Benjamin Charron
    <iretd@bigfoot.com>
+ - Really fix broken default path. Fix from Jim Knoble 
+   <jmknoble@pobox.com>
 
 19991230
  - OpenBSD CVS updates:

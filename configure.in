@@ -495,7 +495,7 @@ AC_ARG_WITH(ipaddr-display,
 	]
 )
 
-AC_ARG_WITH(path,
+AC_ARG_WITH(default-path,
 	[  --with-default-path=PATH Specify default \$PATH environment for server],
 	[
 		if test "x$withval" != "xno" ; then	
