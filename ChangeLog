@@ -17,6 +17,11 @@
      [sftp-client.c]
      Simplify and avoid redundancy in packet send and receive 
      functions; ok fgs@
+   - djm@cvs.openbsd.org 2003/01/10 10:29:35
+     [scp.c]
+     Don't ftruncate after write error, creating sparse files of 
+     incorrect length
+     mindrot bug #403, reported by rusr@cup.hp.com; ok markus@
 
 20030108
  - (djm) Sync openbsd-compat/ with OpenBSD -current
@@ -985,4 +990,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2561 2003/01/10 10:43:58 djm Exp $
+$Id: ChangeLog,v 1.2562 2003/01/10 10:44:48 djm Exp $

@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.97 2003/01/10 08:19:07 fgsch Exp $");
+RCSID("$OpenBSD: scp.c,v 1.98 2003/01/10 10:29:35 djm Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -864,7 +864,7 @@ bad:			run_err("%s: %s", np, strerror(errno));
 			wrerr = YES;
 			wrerrno = j >= 0 ? EIO : errno;
 		}
-		if (ftruncate(ofd, size)) {
+		if (wrerr == NO && ftruncate(ofd, size) != 0) {
 			run_err("%s: truncate: %s", np, strerror(errno));
 			wrerr = DISPLAYED;
 		}
