@@ -24,6 +24,11 @@
    - markus@cvs.openbsd.org 2002/04/22 16:16:53
      [servconf.c sshd.8 sshd_config]
      do not auto-enable KerberosAuthentication; ok djm@, provos@, deraadt@
+   - markus@cvs.openbsd.org 2002/04/22 21:04:52
+     [channels.c clientloop.c clientloop.h ssh.c]
+     request reply (success/failure) for -R style fwd in protocol v2,
+     depends on ordered replies.
+     fixes http://bugzilla.mindrot.org/show_bug.cgi?id=215; ok provos@
 
 20020421
  - (tim) [entropy.c.] Portability fix for SCO Unix 3.2v4.x (SCO OSR 3.0).
@@ -8290,4 +8295,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2069 2002/04/23 11:04:51 djm Exp $
+$Id: ChangeLog,v 1.2070 2002/04/23 11:09:44 djm Exp $

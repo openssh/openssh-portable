@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.169 2002/03/26 11:37:05 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.170 2002/04/22 21:04:52 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -145,6 +145,9 @@ Buffer command;
 
 /* Should we execute a command or invoke a subsystem? */
 int subsystem_flag = 0;
+
+/* # of replies received for global requests */
+static int client_global_request_id = 0;
 
 /* Prints a help message to the user.  This function never returns. */
 
@@ -1039,6 +1042,27 @@ client_subsystem_reply(int type, u_int32_t seq, void *ctxt)
 	if (type == SSH2_MSG_CHANNEL_FAILURE)
 		fatal("Request for subsystem '%.*s' failed on channel %d",
 		    len, (u_char *)buffer_ptr(&command), id);
+}
+
+void
+client_global_request_reply(int type, u_int32_t seq, void *ctxt)
+{
+	int i;
+
+	i = client_global_request_id++;
+	if (i >= options.num_remote_forwards) {
+		debug("client_global_request_reply: too many replies %d > %d",
+		    i, options.num_remote_forwards);
+		return;
+	}
+	debug("remote forward %s for: listen %d, connect %s:%d",
+	    type == SSH2_MSG_REQUEST_SUCCESS ? "success" : "failure",
+	    options.remote_forwards[i].port,
+	    options.remote_forwards[i].host,
+	    options.remote_forwards[i].host_port);
+	if (type == SSH2_MSG_REQUEST_FAILURE)
+		log("Warning: remote port forwarding failed for listen port %d",
+		    options.remote_forwards[i].port);
 }
 
 /* request pty/x11/agent/tcpfwd/shell for channel */

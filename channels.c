@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.172 2002/03/25 21:13:51 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.173 2002/04/22 21:04:52 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -2130,7 +2130,7 @@ channel_request_remote_forwarding(u_short listen_port,
 		const char *address_to_bind = "0.0.0.0";
 		packet_start(SSH2_MSG_GLOBAL_REQUEST);
 		packet_put_cstring("tcpip-forward");
-		packet_put_char(0);			/* boolean: want reply */
+		packet_put_char(1);			/* boolean: want reply */
 		packet_put_cstring(address_to_bind);
 		packet_put_int(listen_port);
 		packet_send();
