@@ -183,6 +183,7 @@ getline(Linebuf * lb)
 static int
 fdlim_get(int hard)
 {
+#if defined(HAVE_GETRLIMIT)
 	struct rlimit rlfd;
 	if (getrlimit(RLIMIT_NOFILE, &rlfd) < 0)
 		return (-1);
@@ -190,19 +191,30 @@ fdlim_get(int hard)
 		return 10000;
 	else
 		return hard ? rlfd.rlim_max : rlfd.rlim_cur;
+#elif defined (HAVE_SYSCONF)
+	return sysconf (_SC_OPEN_MAX);
+#else
+	return 10000;
+#endif
 }
 
 static int
 fdlim_set(int lim)
 {
+#if defined(HAVE_SETRLIMIT)
 	struct rlimit rlfd;
+#endif
 	if (lim <= 0)
 		return (-1);
+#if defined(HAVE_SETRLIMIT)
 	if (getrlimit(RLIMIT_NOFILE, &rlfd) < 0)
 		return (-1);
 	rlfd.rlim_cur = lim;
 	if (setrlimit(RLIMIT_NOFILE, &rlfd) < 0)
 		return (-1);
+#elif defined (HAVE_SETDTABLESIZE)
+	setdtablesize (lim);
+#endif
 	return (0);
 }
 

@@ -674,7 +674,9 @@ main(int ac, char **av)
 	fd_set readset, writeset;
 	int sock, c_flag = 0, k_flag = 0, s_flag = 0, ch;
 	struct sockaddr_un sunaddr;
+#ifdef HAVE_SETRLIMIT
 	struct rlimit rlim;
+#endif
 	pid_t pid;
 	char *shell, *format, *pidstr, pidstrbuf[1 + 3 * sizeof pid];
 	extern int optind;
@@ -805,12 +807,14 @@ main(int ac, char **av)
 	close(1);
 	close(2);
 
+#ifdef HAVE_SETRLIMIT
 	/* deny core dumps, since memory contains unencrypted private keys */
 	rlim.rlim_cur = rlim.rlim_max = 0;
 	if (setrlimit(RLIMIT_CORE, &rlim) < 0) {
 		perror("setrlimit rlimit_core failed");
 		cleanup_exit(1);
 	}
+#endif
 	if (setsid() == -1) {
 		perror("setsid");
 		cleanup_exit(1);
