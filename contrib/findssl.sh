@@ -1,5 +1,7 @@
 #!/bin/sh
 #
+# $Id: findssl.sh,v 1.3 2004/12/13 07:08:33 dtucker Exp $
+#
 # findssl.sh
 #	Search for all instances of OpenSSL headers and libraries
 #	and print their versions.
@@ -9,10 +11,11 @@
 #	Written by Darren Tucker (dtucker at zip dot com dot au)
 #	This file is placed in the public domain.
 #
-# $Id: findssl.sh,v 1.2 2003/11/21 12:48:56 djm Exp $
+#	Release history:
 #	2002-07-27: Initial release.
 #	2002-08-04: Added public domain notice.
 #	2003-06-24: Incorporated readme, set library paths. First cvs version.
+#	2004-12-13: Add traps to cleanup temp files, from Amarendra Godbole.
 #
 # "OpenSSL headers do not match your library" are usually caused by
 # OpenSSH's configure picking up an older version of OpenSSL headers
@@ -62,6 +65,11 @@
 #
 CC=gcc
 STATIC=-static
+
+#
+# Cleanup on interrupt
+#
+trap 'rm -f conftest.c' INT HUP TERM
 
 #
 # Set up conftest C source
