@@ -32,6 +32,7 @@
 
 #include <uinfo.h>
 #include <../xmalloc.h>
+#include "port-aix.h"
 
 extern ServerOptions options;
 
@@ -92,10 +93,47 @@ record_failed_login(const char *user, const char *ttyname)
 {
 	char *hostname = get_canonical_hostname(options.use_dns);
 
+	if (geteuid() != 0)
+		return;
+
+	aix_setauthdb(user);
 #  ifdef AIX_LOGINFAILED_4ARG
 	loginfailed((char *)user, hostname, (char *)ttyname, AUDIT_FAIL_AUTH);
 #  else
 	loginfailed((char *)user, hostname, (char *)ttyname);
+#  endif
+}
+
+/*
+ * If we have setauthdb, retrieve the password registry for the user's
+ * account then feed it to setauthdb.  This may load registry-specific method
+ * code.  If we don't have setauthdb or have already called it this is a no-op.
+ */
+void
+aix_setauthdb(const char *user)
+{
+#  ifdef HAVE_SETAUTHDB
+	static char *registry = NULL;
+
+	if (registry != NULL)	/* have already done setauthdb */
+		return;
+
+	if (setuserdb(S_READ) == -1) {
+		debug3("%s: Could not open userdb to read", __func__);
+		return;
+	}
+	
+	if (getuserattr((char *)user, S_REGISTRY, &registry, SEC_CHAR) == 0) {
+		if (setauthdb(registry, NULL) == 0)
+			debug3("%s: AIX/setauthdb set registry %s", __func__,
+			    registry);
+		else 
+			debug3("%s: AIX/setauthdb set registry %s failed: %s",
+			    __func__, registry, strerror(errno));
+	} else
+		debug3("%s: Could not read S_REGISTRY for user: %s", __func__,
+		    strerror(errno));
+	enduserdb();
 #  endif
 }
 # endif /* CUSTOM_FAILED_LOGIN */
