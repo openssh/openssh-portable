@@ -1,6 +1,7 @@
 20011028
  - (djm) Avoid bug in Solaris PAM libs
  - (djm) Disconnect if no tty and PAM reports password expired
+ - (djm) Fix for PAM password changes being echoed (from stevesk)
 
 20011027
  - (tim) [configure.ac] Fixes for ReliantUNIX (don't use libucb)
@@ -6778,4 +6779,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1623 2001/10/28 11:34:52 djm Exp $
+$Id: ChangeLog,v 1.1624 2001/10/28 11:36:55 djm Exp $
