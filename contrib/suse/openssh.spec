@@ -247,7 +247,9 @@ fi
 %files server
 %defattr(-,root,root)
 %attr(0755,root,root) /usr/sbin/sshd
+%attr(0755,root,root) /usr/libexec/ssh/sftp-server
 %attr(0644,root,root) %doc /usr/man/man8/sshd.8*
+%attr(0644,root,root) %doc /usr/man/man8/sftp-server.8*
 %attr(0600,root,root) %config /etc/ssh/sshd_config
 %attr(0644,root,root) %config /etc/pam.d/sshd
 %attr(0755,root,root) %config /sbin/init.d/sshd

@@ -1,5 +1,5 @@
 # Version of OpenSSH
-%define oversion 2.2.0p1
+%define oversion 2.2.0p2
 
 # Version of ssh-askpass
 %define aversion 1.0.1
@@ -127,6 +127,8 @@ patented algorithms to seperate libraries (OpenSSL).
 This package contains the GNOME passphrase dialog.
 
 %changelog
+* Tue Sep 05 2000 Damien Miller <djm@mindrot.org>
+- Use RPM configure macro
 * Tue Aug 08 2000 Damien Miller <djm@mindrot.org>
 - Some surgery to sshd.init (generate keys at runtime)
 - Cleanup of groups and removal of keygen calls
@@ -161,14 +163,12 @@ This package contains the GNOME passphrase dialog.
 
 %prep
 
-%setup -a 1
+%setup -q -a 1
 
 %build
 
-CFLAGS="$RPM_OPT_FLAGS" \
-	./configure --prefix=/usr --sysconfdir=/etc/ssh \
-               --with-tcp-wrappers --with-ipv4-default \
-					--with-rsh=/usr/bin/rsh
+%configure --sysconfdir=/etc/ssh --with-tcp-wrappers \
+	--with-rsh=/usr/bin/rsh
 
 make
 
