@@ -6,9 +6,13 @@
    inherited by the child.  ok djm@
  - (dtucker) [auth-pam.c auth-pam.h auth1.c auth2.c monitor.c monitor_wrap.c
    monitor_wrap.h] Bug #808: Ensure force_pwchange is correctly initialized
-   even if keyboard-interactive is not used by the client.  Prevents segfaults
-   in some cases where the user's password is expired (note this is not
-   considered a security exposure).  ok djm@
+   even if keyboard-interactive is not used by the client.  Prevents 
+   segfaults in some cases where the user's password is expired (note this 
+   is not considered a security exposure).  ok djm@
+ - (djm) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2004/03/03 06:47:52
+     [sshd.c]
+     change proctiltle after accept(2); ok henning, deraadt, djm
 
 20040307
  - (tim) [regress/login-timeout.sh] fix building outside of source tree.
@@ -869,4 +873,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3279 2004/03/08 12:04:06 dtucker Exp $
+$Id: ChangeLog,v 1.3280 2004/03/08 12:11:25 djm Exp $
