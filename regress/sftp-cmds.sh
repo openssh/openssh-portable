@@ -1,8 +1,7 @@
-#	$OpenBSD: sftp-cmds.sh,v 1.3 2003/04/04 09:34:22 djm Exp $
+#	$OpenBSD: sftp-cmds.sh,v 1.4 2003/05/15 04:07:12 mouring Exp $
 #	Placed in the Public Domain.
 
 # XXX - TODO: 
-# - globbed operations
 # - chmod / chown / chgrp
 # - -p flag for get & put
 
@@ -10,8 +9,10 @@ tid="sftp commands"
 
 DATA=/bin/ls
 COPY=${OBJ}/copy
+GLOBFILES=`(cd /bin;echo l*)`
 
 rm -rf ${COPY} ${COPY}.1 ${COPY}.2 ${COPY}.dd ${COPY}.dd2 ${BATCH}.*
+mkdir ${COPY}.dd
 
 verbose "$tid: lls"
 echo "lls ${OBJ}" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
@@ -54,11 +55,67 @@ echo "get $DATA $COPY" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
 	|| fail "get failed"
 cmp $DATA ${COPY} || fail "corrupted copy after get"
 
+rm -f ${COPY}.dd/*
+verbose "$tid: get to directory"
+echo "get $DATA ${COPY}.dd" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
+        || fail "get failed"
+cmp $DATA ${COPY}.dd/ls || fail "corrupted copy after get"
+
+rm -f ${COPY}.dd/*
+verbose "$tid: glob get to directory"
+echo "get /bin/l* ${COPY}.dd" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
+        || fail "get failed"
+for x in $GLOBFILES; do
+        cmp /bin/$x ${COPY}.dd/$x || fail "corrupted copy after get"
+done
+
+rm -f ${COPY}.dd/*
+verbose "$tid: get to local dir"
+echo "lcd ${COPY}.dd\nget $DATA" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
+        || fail "get failed"
+cmp $DATA ${COPY}.dd/ls || fail "corrupted copy after get"
+
+rm -f ${COPY}.dd/*
+verbose "$tid: glob get to local dir"
+echo "lcd ${COPY}.dd\nget /bin/l*" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
+        || fail "get failed"
+for x in $GLOBFILES; do
+        cmp /bin/$x ${COPY}.dd/$x || fail "corrupted copy after get"
+done
+
 rm -f ${COPY}
 verbose "$tid: put"
 echo "put $DATA $COPY" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
 	|| fail "put failed"
 cmp $DATA ${COPY} || fail "corrupted copy after put"
+
+rm -f ${COPY}.dd/*
+verbose "$tid: put to directory"
+echo "put $DATA ${COPY}.dd" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
+	|| fail "put failed"
+cmp $DATA ${COPY}.dd/ls || fail "corrupted copy after put"
+
+rm -f ${COPY}.dd/*
+verbose "$tid: glob put to directory"
+echo "put /bin/l* ${COPY}.dd" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
+	|| fail "put failed"
+for x in $GLOBFILES; do
+	cmp /bin/$x ${COPY}.dd/$x || fail "corrupted copy after put"
+done
+
+rm -f ${COPY}.dd/*
+verbose "$tid: put to local dir"
+echo "cd ${COPY}.dd\nput $DATA" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
+	|| fail "put failed"
+cmp $DATA ${COPY}.dd/ls || fail "corrupted copy after put"
+
+rm -f ${COPY}.dd/*
+verbose "$tid: glob put to local dir"
+echo "cd ${COPY}.dd\nput /bin/l*" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
+	|| fail "put failed"
+for x in $GLOBFILES; do
+        cmp /bin/$x ${COPY}.dd/$x || fail "corrupted copy after put"
+done
 
 verbose "$tid: rename"
 echo "rename $COPY ${COPY}.1" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
@@ -66,7 +123,6 @@ echo "rename $COPY ${COPY}.1" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
 test -f ${COPY}.1 || fail "missing file after rename"
 cmp $DATA ${COPY}.1 >/dev/null 2>&1 || fail "corrupted copy after rename"
 
-mkdir ${COPY}.dd
 verbose "$tid: rename directory"
 echo "rename ${COPY}.dd ${COPY}.dd2" | ${SFTP} -P ${SFTPSERVER} >/dev/null 2>&1 \
 	|| fail "rename directory failed"

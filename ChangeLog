@@ -36,6 +36,9 @@
    - markus@cvs.openbsd.org 2003/05/14 22:08:27
      [ssh-com-client.sh ssh-com-keygen.sh ssh-com-sftp.sh ssh-com.sh]
      test against some new commerical versions
+   - mouring@cvs.openbsd.org 2003/05/15 04:07:12
+     [sftp-cmds.sh]
+     Advanced put/get testing for sftp.  OK @djm
 
 20030614
  - (djm) Update license on fake-rfc2553.[ch]; ok itojun@
@@ -551,4 +554,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2813 2003/06/18 12:36:48 dtucker Exp $
+$Id: ChangeLog,v 1.2814 2003/06/18 12:41:41 dtucker Exp $
