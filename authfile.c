@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfile.c,v 1.42 2001/12/19 17:16:13 stevesk Exp $");
+RCSID("$OpenBSD: authfile.c,v 1.43 2001/12/27 18:22:16 markus Exp $");
 
 #include <openssl/err.h>
 #include <openssl/evp.h>
@@ -316,8 +316,6 @@ key_load_private_rsa1(int fd, const char *filename, const char *passphrase,
 	char *cp;
 	CipherContext ciphercontext;
 	Cipher *cipher;
-	BN_CTX *ctx;
-	BIGNUM *aux;
 	Key *prv = NULL;
 
 	len = lseek(fd, (off_t) 0, SEEK_END);
@@ -406,17 +404,7 @@ key_load_private_rsa1(int fd, const char *filename, const char *passphrase,
 	buffer_get_bignum(&decrypted, prv->rsa->p);		/* q */
 
 	/* calculate p-1 and q-1 */
-	ctx = BN_CTX_new();
-	aux = BN_new();
-
-	BN_sub(aux, prv->rsa->q, BN_value_one());
-	BN_mod(prv->rsa->dmq1, prv->rsa->d, aux, ctx);
-
-	BN_sub(aux, prv->rsa->p, BN_value_one());
-	BN_mod(prv->rsa->dmp1, prv->rsa->d, aux, ctx);
-
-	BN_clear_free(aux);
-	BN_CTX_free(ctx);
+	rsa_generate_additional_parameters(prv->rsa);
 
 	buffer_free(&decrypted);
 	close(fd);

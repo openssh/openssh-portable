@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.217 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.218 2001/12/27 18:22:16 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1352,7 +1352,8 @@ do_ssh1_kex(void)
 	debug("Encryption type: %.200s", cipher_name(cipher_type));
 
 	/* Get the encrypted integer. */
-	session_key_int = BN_new();
+	if ((session_key_int = BN_new()) == NULL)
+		fatal("do_ssh1_kex: BN_new failed");
 	packet_get_bignum(session_key_int, &slen);
 
 	protocol_flags = packet_get_int();

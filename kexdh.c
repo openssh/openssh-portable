@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kexdh.c,v 1.7 2001/09/17 19:27:15 stevesk Exp $");
+RCSID("$OpenBSD: kexdh.c,v 1.8 2001/12/27 18:22:16 markus Exp $");
 
 #include <openssl/crypto.h>
 #include <openssl/bn.h>
@@ -129,8 +129,7 @@ kexdh_client(Kex *kex)
 		fatal("server_host_key verification failed");
 
 	/* DH paramter f, server public DH key */
-	dh_server_pub = BN_new();
-	if (dh_server_pub == NULL)
+	if ((dh_server_pub = BN_new()) == NULL)
 		fatal("dh_server_pub == NULL");
 	packet_get_bignum2(dh_server_pub, &dlen);
 
@@ -154,7 +153,8 @@ kexdh_client(Kex *kex)
 #ifdef DEBUG_KEXDH
 	dump_digest("shared secret", kbuf, kout);
 #endif
-	shared_secret = BN_new();
+	if ((shared_secret = BN_new()) == NULL)
+		fatal("kexdh_client: BN_new failed");
 	BN_bin2bn(kbuf, kout, shared_secret);
 	memset(kbuf, 0, klen);
 	xfree(kbuf);
@@ -217,8 +217,7 @@ kexdh_server(Kex *kex)
 		fatal("Unsupported hostkey type %d", kex->hostkey_type);
 
 	/* key, cert */
-	dh_client_pub = BN_new();
-	if (dh_client_pub == NULL)
+	if ((dh_client_pub = BN_new()) == NULL)
 		fatal("dh_client_pub == NULL");
 	packet_get_bignum2(dh_client_pub, &dlen);
 
@@ -244,7 +243,8 @@ kexdh_server(Kex *kex)
 #ifdef DEBUG_KEXDH
 	dump_digest("shared secret", kbuf, kout);
 #endif
-	shared_secret = BN_new();
+	if ((shared_secret = BN_new()) == NULL)
+		fatal("kexdh_server: BN_new failed");
 	BN_bin2bn(kbuf, kout, shared_secret);
 	memset(kbuf, 0, klen);
 	xfree(kbuf);

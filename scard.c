@@ -24,7 +24,7 @@
 
 #include "includes.h"
 #ifdef SMARTCARD
-RCSID("$OpenBSD: scard.c,v 1.16 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: scard.c,v 1.17 2001/12/27 18:22:16 markus Exp $");
 
 #include <openssl/engine.h>
 #include <sectok.h>
@@ -320,7 +320,8 @@ sc_get_engine(void)
 	smart_rsa.rsa_sign	= def->rsa_sign;
 	smart_rsa.rsa_verify	= def->rsa_verify;
 
-	smart_engine = ENGINE_new();
+	if ((smart_engine = ENGINE_new()) == NULL)
+		fatal("ENGINE_new failed");
 
 	ENGINE_set_id(smart_engine, "sectok");
 	ENGINE_set_name(smart_engine, "libsectok");

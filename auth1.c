@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.28 2001/12/25 18:53:00 markus Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.29 2001/12/27 18:22:16 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -66,7 +66,7 @@ do_authloop(Authctxt *authctxt)
 {
 	int authenticated = 0;
 	u_int bits;
-	RSA *client_host_key;
+	Key *client_host_key;
 	BIGNUM *n;
 	char *client_user, *password;
 	char info[1024];
@@ -202,24 +202,20 @@ do_authloop(Authctxt *authctxt)
 			client_user = packet_get_string(&ulen);
 
 			/* Get the client host key. */
-			client_host_key = RSA_new();
-			if (client_host_key == NULL)
-				fatal("RSA_new failed");
-			client_host_key->e = BN_new();
-			client_host_key->n = BN_new();
-			if (client_host_key->e == NULL || client_host_key->n == NULL)
-				fatal("BN_new failed");
+			client_host_key = key_new(KEY_RSA1);
 			bits = packet_get_int();
-			packet_get_bignum(client_host_key->e, &elen);
-			packet_get_bignum(client_host_key->n, &nlen);
+			packet_get_bignum(client_host_key->rsa->e, &elen);
+			packet_get_bignum(client_host_key->rsa->n, &nlen);
 
-			if (bits != BN_num_bits(client_host_key->n))
+			if (bits != BN_num_bits(client_host_key->rsa->n))
 				verbose("Warning: keysize mismatch for client_host_key: "
-				    "actual %d, announced %d", BN_num_bits(client_host_key->n), bits);
+				    "actual %d, announced %d",
+				     BN_num_bits(client_host_key->rsa->n), bits);
 			packet_integrity_check(plen, (4 + ulen) + 4 + elen + nlen, type);
 
-			authenticated = auth_rhosts_rsa(pw, client_user, client_host_key);
-			RSA_free(client_host_key);
+			authenticated = auth_rhosts_rsa(pw, client_user,
+			    client_host_key->rsa);
+			key_free(client_host_key);
 
 			snprintf(info, sizeof info, " ruser %.100s", client_user);
 			break;
@@ -230,9 +226,8 @@ do_authloop(Authctxt *authctxt)
 				break;
 			}
 			/* RSA authentication requested. */
-			n = BN_new();
-			if (n == NULL)
-				fatal("BN_new failed");
+			if ((n = BN_new()) == NULL)
+				fatal("do_authloop: BN_new failed");
 			packet_get_bignum(n, &nlen);
 			packet_integrity_check(plen, nlen, type);
 			authenticated = auth_rsa(pw, n);

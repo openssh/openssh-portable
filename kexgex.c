@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kexgex.c,v 1.10 2001/12/05 10:06:12 deraadt Exp $");
+RCSID("$OpenBSD: kexgex.c,v 1.11 2001/12/27 18:22:16 markus Exp $");
 
 #include <openssl/bn.h>
 
@@ -183,8 +183,7 @@ kexgex_client(Kex *kex)
 		fatal("server_host_key verification failed");
 
 	/* DH paramter f, server public DH key */
-	dh_server_pub = BN_new();
-	if (dh_server_pub == NULL)
+	if ((dh_server_pub = BN_new()) == NULL)
 		fatal("dh_server_pub == NULL");
 	packet_get_bignum2(dh_server_pub, &dlen);
 
@@ -208,7 +207,8 @@ kexgex_client(Kex *kex)
 #ifdef DEBUG_KEXDH
 	dump_digest("shared secret", kbuf, kout);
 #endif
-	shared_secret = BN_new();
+	if ((shared_secret = BN_new()) == NULL)
+		fatal("kexgex_client: BN_new failed");
 	BN_bin2bn(kbuf, kout, shared_secret);
 	memset(kbuf, 0, klen);
 	xfree(kbuf);
@@ -315,8 +315,7 @@ kexgex_server(Kex *kex)
 	packet_read_expect(&plen, SSH2_MSG_KEX_DH_GEX_INIT);
 
 	/* key, cert */
-	dh_client_pub = BN_new();
-	if (dh_client_pub == NULL)
+	if ((dh_client_pub = BN_new()) == NULL)
 		fatal("dh_client_pub == NULL");
 	packet_get_bignum2(dh_client_pub, &dlen);
 
@@ -342,7 +341,8 @@ kexgex_server(Kex *kex)
 #ifdef DEBUG_KEXDH
 	dump_digest("shared secret", kbuf, kout);
 #endif
-	shared_secret = BN_new();
+	if ((shared_secret = BN_new()) == NULL)
+		fatal("kexgex_server: BN_new failed");
 	BN_bin2bn(kbuf, kout, shared_secret);
 	memset(kbuf, 0, klen);
 	xfree(kbuf);

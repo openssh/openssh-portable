@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rsa.c,v 1.46 2001/12/18 10:06:24 jakob Exp $");
+RCSID("$OpenBSD: auth-rsa.c,v 1.47 2001/12/27 18:22:16 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/md5.h>
@@ -68,12 +68,15 @@ auth_rsa_challenge_dialog(RSA *pk)
 	u_int i;
 	int plen, len;
 
-	encrypted_challenge = BN_new();
-	challenge = BN_new();
+	if ((encrypted_challenge = BN_new()) == NULL)
+		fatal("auth_rsa_challenge_dialog: BN_new() failed");
+	if ((challenge = BN_new()) == NULL)
+		fatal("auth_rsa_challenge_dialog: BN_new() failed");
 
 	/* Generate a random challenge. */
 	BN_rand(challenge, 256, 0, 0);
-	ctx = BN_CTX_new();
+	if ((ctx = BN_CTX_new()) == NULL)
+		fatal("auth_rsa_challenge_dialog: BN_CTX_new() failed");
 	BN_mod(challenge, challenge, pk->n, ctx);
 	BN_CTX_free(ctx);
 

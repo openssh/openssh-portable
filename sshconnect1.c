@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.42 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.43 2001/12/27 18:22:16 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/evp.h>
@@ -76,8 +76,8 @@ try_agent_authentication(void)
 	if (!auth)
 		return 0;
 
-	challenge = BN_new();
-
+	if ((challenge = BN_new()) == NULL)
+		fatal("try_agent_authentication: BN_new failed");
 	/* Loop through identities served by the agent. */
 	for (key = ssh_get_first_identity(auth, &comment, 1);
 	    key != NULL;
@@ -241,7 +241,8 @@ try_rsa_authentication(int idx)
 		packet_disconnect("Protocol error during RSA authentication: %d", type);
 
 	/* Get the challenge from the packet. */
-	challenge = BN_new();
+	if ((challenge = BN_new()) == NULL)
+		fatal("try_rsa_authentication: BN_new failed");
 	packet_get_bignum(challenge, &clen);
 
 	packet_integrity_check(plen, clen, type);
@@ -355,7 +356,8 @@ try_rhosts_rsa_authentication(const char *local_user, Key * host_key)
 		packet_disconnect("Protocol error during RSA authentication: %d", type);
 
 	/* Get the challenge from the packet. */
-	challenge = BN_new();
+	if ((challenge = BN_new()) == NULL)
+		fatal("try_rhosts_rsa_authentication: BN_new failed");
 	packet_get_bignum(challenge, &clen);
 
 	packet_integrity_check(plen, clen, type);
@@ -912,9 +914,7 @@ ssh_kex(char *host, struct sockaddr *hostaddr)
 {
 	int i;
 	BIGNUM *key;
-	RSA *host_key;
-	RSA *public_key;
-	Key k;
+	Key *host_key, *server_key;
 	int bits, rbits;
 	int ssh_cipher_default = SSH_CIPHER_3DES;
 	u_char session_key[SSH_SESSION_KEY_LENGTH];
@@ -934,32 +934,28 @@ ssh_kex(char *host, struct sockaddr *hostaddr)
 		cookie[i] = packet_get_char();
 
 	/* Get the public key. */
-	public_key = RSA_new();
-	bits = packet_get_int();/* bits */
-	public_key->e = BN_new();
-	packet_get_bignum(public_key->e, &clen);
+	server_key = key_new(KEY_RSA1);
+	bits = packet_get_int();
+	packet_get_bignum(server_key->rsa->e, &clen);
 	sum_len += clen;
-	public_key->n = BN_new();
-	packet_get_bignum(public_key->n, &clen);
+	packet_get_bignum(server_key->rsa->n, &clen);
 	sum_len += clen;
 
-	rbits = BN_num_bits(public_key->n);
+	rbits = BN_num_bits(server_key->rsa->n);
 	if (bits != rbits) {
 		log("Warning: Server lies about size of server public key: "
 		    "actual size is %d bits vs. announced %d.", rbits, bits);
 		log("Warning: This may be due to an old implementation of ssh.");
 	}
 	/* Get the host key. */
-	host_key = RSA_new();
-	bits = packet_get_int();/* bits */
-	host_key->e = BN_new();
-	packet_get_bignum(host_key->e, &clen);
+	host_key = key_new(KEY_RSA1);
+	bits = packet_get_int();
+	packet_get_bignum(host_key->rsa->e, &clen);
 	sum_len += clen;
-	host_key->n = BN_new();
-	packet_get_bignum(host_key->n, &clen);
+	packet_get_bignum(host_key->rsa->n, &clen);
 	sum_len += clen;
 
-	rbits = BN_num_bits(host_key->n);
+	rbits = BN_num_bits(host_key->rsa->n);
 	if (bits != rbits) {
 		log("Warning: Server lies about size of server host key: "
 		    "actual size is %d bits vs. announced %d.", rbits, bits);
@@ -974,19 +970,17 @@ ssh_kex(char *host, struct sockaddr *hostaddr)
 	supported_authentications = packet_get_int();
 
 	debug("Received server public key (%d bits) and host key (%d bits).",
-	    BN_num_bits(public_key->n), BN_num_bits(host_key->n));
+	    BN_num_bits(server_key->rsa->n), BN_num_bits(host_key->rsa->n));
 
 	packet_integrity_check(payload_len,
 	    8 + 4 + sum_len + 0 + 4 + 0 + 0 + 4 + 4 + 4,
 	    SSH_SMSG_PUBLIC_KEY);
-	k.type = KEY_RSA1;
-	k.rsa = host_key;
-	if (verify_host_key(host, hostaddr, &k) == -1)
+	if (verify_host_key(host, hostaddr, host_key) == -1)
 		fatal("Host key verification failed.");
 
 	client_flags = SSH_PROTOFLAG_SCREEN_NUMBER | SSH_PROTOFLAG_HOST_IN_FWD_OPEN;
 
-	compute_session_id(session_id, cookie, host_key->n, public_key->n);
+	compute_session_id(session_id, cookie, host_key->rsa->n, server_key->rsa->n);
 
 	/* Generate a session key. */
 	arc4random_stir();
@@ -1008,7 +1002,8 @@ ssh_kex(char *host, struct sockaddr *hostaddr)
 	 * is the highest byte of the integer.  The session key is xored with
 	 * the first 16 bytes of the session id.
 	 */
-	key = BN_new();
+	if ((key = BN_new()) == NULL)
+		fatal("respond_to_rsa_challenge: BN_new failed");
 	BN_set_word(key, 0);
 	for (i = 0; i < SSH_SESSION_KEY_LENGTH; i++) {
 		BN_lshift(key, key, 8);
@@ -1022,35 +1017,35 @@ ssh_kex(char *host, struct sockaddr *hostaddr)
 	 * Encrypt the integer using the public key and host key of the
 	 * server (key with smaller modulus first).
 	 */
-	if (BN_cmp(public_key->n, host_key->n) < 0) {
+	if (BN_cmp(server_key->rsa->n, host_key->rsa->n) < 0) {
 		/* Public key has smaller modulus. */
-		if (BN_num_bits(host_key->n) <
-		    BN_num_bits(public_key->n) + SSH_KEY_BITS_RESERVED) {
-			fatal("respond_to_rsa_challenge: host_key %d < public_key %d + "
+		if (BN_num_bits(host_key->rsa->n) <
+		    BN_num_bits(server_key->rsa->n) + SSH_KEY_BITS_RESERVED) {
+			fatal("respond_to_rsa_challenge: host_key %d < server_key %d + "
 			    "SSH_KEY_BITS_RESERVED %d",
-			    BN_num_bits(host_key->n),
-			    BN_num_bits(public_key->n),
+			    BN_num_bits(host_key->rsa->n),
+			    BN_num_bits(server_key->rsa->n),
 			    SSH_KEY_BITS_RESERVED);
 		}
-		rsa_public_encrypt(key, key, public_key);
-		rsa_public_encrypt(key, key, host_key);
+		rsa_public_encrypt(key, key, server_key->rsa);
+		rsa_public_encrypt(key, key, host_key->rsa);
 	} else {
 		/* Host key has smaller modulus (or they are equal). */
-		if (BN_num_bits(public_key->n) <
-		    BN_num_bits(host_key->n) + SSH_KEY_BITS_RESERVED) {
-			fatal("respond_to_rsa_challenge: public_key %d < host_key %d + "
+		if (BN_num_bits(server_key->rsa->n) <
+		    BN_num_bits(host_key->rsa->n) + SSH_KEY_BITS_RESERVED) {
+			fatal("respond_to_rsa_challenge: server_key %d < host_key %d + "
 			    "SSH_KEY_BITS_RESERVED %d",
-			    BN_num_bits(public_key->n),
-			    BN_num_bits(host_key->n),
+			    BN_num_bits(server_key->rsa->n),
+			    BN_num_bits(host_key->rsa->n),
 			    SSH_KEY_BITS_RESERVED);
 		}
-		rsa_public_encrypt(key, key, host_key);
-		rsa_public_encrypt(key, key, public_key);
+		rsa_public_encrypt(key, key, host_key->rsa);
+		rsa_public_encrypt(key, key, server_key->rsa);
 	}
 
 	/* Destroy the public keys since we no longer need them. */
-	RSA_free(public_key);
-	RSA_free(host_key);
+	key_free(server_key);
+	key_free(host_key);
 
 	if (options.cipher == SSH_CIPHER_NOT_SET) {
 		if (cipher_mask_ssh1(1) & supported_ciphers & (1 << ssh_cipher_default))

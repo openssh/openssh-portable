@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-dss.c,v 1.10 2001/12/05 10:06:12 deraadt Exp $");
+RCSID("$OpenBSD: ssh-dss.c,v 1.11 2001/12/27 18:22:16 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/evp.h>
@@ -158,9 +158,12 @@ ssh_dss_verify(
 	}
 
 	/* parse signature */
-	sig = DSA_SIG_new();
-	sig->r = BN_new();
-	sig->s = BN_new();
+	if ((sig = DSA_SIG_new()) == NULL)
+		fatal("ssh_dss_verify: DSA_SIG_new failed");
+	if ((sig->r = BN_new()) == NULL)
+		fatal("ssh_dss_verify: BN_new failed");
+	if ((sig->s = BN_new()) == NULL)
+		fatal("ssh_dss_verify: BN_new failed");
 	BN_bin2bn(sigblob, INTBLOB_LEN, sig->r);
 	BN_bin2bn(sigblob+ INTBLOB_LEN, INTBLOB_LEN, sig->s);
 

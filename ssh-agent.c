@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.75 2001/12/19 07:18:56 deraadt Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.76 2001/12/27 18:22:16 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.75 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.76 2001/12/27 18:22:16 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -186,7 +186,8 @@ process_authentication_challenge1(SocketEntry *e)
 
 	buffer_init(&msg);
 	key = key_new(KEY_RSA1);
-	challenge = BN_new();
+	if ((challenge = BN_new()) == NULL)
+		fatal("process_authentication_challenge1: BN_new failed");
 
 	buffer_get_int(&e->input);				/* ignored */
 	buffer_get_bignum(&e->input, key->rsa->e);

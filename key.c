@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: key.c,v 1.37 2001/12/25 18:49:56 markus Exp $");
+RCSID("$OpenBSD: key.c,v 1.38 2001/12/27 18:22:16 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -60,22 +60,25 @@ key_new(int type)
 	switch (k->type) {
 	case KEY_RSA1:
 	case KEY_RSA:
-		rsa = RSA_new();
-		rsa->n = BN_new();
-		rsa->e = BN_new();
-		if (rsa == NULL || rsa->n == NULL || rsa->e == NULL)
-			fatal("key_new: malloc failure");
+		if ((rsa = RSA_new()) == NULL)
+			fatal("key_new: RSA_new failed");
+		if ((rsa->n = BN_new()) == NULL)
+			fatal("key_new: BN_new failed");
+		if ((rsa->e = BN_new()) == NULL)
+			fatal("key_new: BN_new failed");
 		k->rsa = rsa;
 		break;
 	case KEY_DSA:
-		dsa = DSA_new();
-		dsa->p = BN_new();
-		dsa->q = BN_new();
-		dsa->g = BN_new();
-		dsa->pub_key = BN_new();
-		if (dsa == NULL || dsa->p == NULL || dsa->q == NULL ||
-		    dsa->g == NULL || dsa->pub_key == NULL)
-			fatal("key_new: malloc failure");
+		if ((dsa = DSA_new()) == NULL)
+			fatal("key_new: DSA_new failed");
+		if ((dsa->p = BN_new()) == NULL)
+			fatal("key_new: BN_new failed");
+		if ((dsa->q = BN_new()) == NULL)
+			fatal("key_new: BN_new failed");
+		if ((dsa->g = BN_new()) == NULL)
+			fatal("key_new: BN_new failed");
+		if ((dsa->pub_key = BN_new()) == NULL)
+			fatal("key_new: BN_new failed");
 		k->dsa = dsa;
 		break;
 	case KEY_UNSPEC:
@@ -93,15 +96,22 @@ key_new_private(int type)
 	switch (k->type) {
 	case KEY_RSA1:
 	case KEY_RSA:
-		k->rsa->d = BN_new();
-		k->rsa->iqmp = BN_new();
-		k->rsa->q = BN_new();
-		k->rsa->p = BN_new();
-		k->rsa->dmq1 = BN_new();
-		k->rsa->dmp1 = BN_new();
+		if ((k->rsa->d = BN_new()) == NULL)
+			fatal("key_new_private: BN_new failed");
+		if ((k->rsa->iqmp = BN_new()) == NULL)
+			fatal("key_new_private: BN_new failed");
+		if ((k->rsa->q = BN_new()) == NULL)
+			fatal("key_new_private: BN_new failed");
+		if ((k->rsa->p = BN_new()) == NULL)
+			fatal("key_new_private: BN_new failed");
+		if ((k->rsa->dmq1 = BN_new()) == NULL)
+			fatal("key_new_private: BN_new failed");
+		if ((k->rsa->dmp1 = BN_new()) == NULL)
+			fatal("key_new_private: BN_new failed");
 		break;
 	case KEY_DSA:
-		k->dsa->priv_key = BN_new();
+		if ((k->dsa->priv_key = BN_new()) == NULL)
+			fatal("key_new_private: BN_new failed");
 		break;
 	case KEY_UNSPEC:
 		break;
