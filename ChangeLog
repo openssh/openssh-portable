@@ -3,6 +3,8 @@
    the superuser receives.
  - (djm) Bug #231: UsePrivilegeSeparation turns off Banner.
  - (djm) Add --with-privsep-path configure option
+ - (djm) Update RPM spec file: different superuser path, use
+   /var/empty/sshd for privsep
 
 20020511
  - (tim) [configure.ac] applied a rework of djm's OpenSSL search cleanup patch.
@@ -573,4 +575,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2109 2002/05/13 03:15:42 djm Exp $
+$Id: ChangeLog,v 1.2110 2002/05/13 03:26:57 djm Exp $

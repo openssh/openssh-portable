@@ -175,6 +175,9 @@ CFLAGS="$RPM_OPT_FLAGS -Os"; export CFLAGS
 	--datadir=%{_datadir}/openssh \
 	--with-tcp-wrappers \
 	--with-rsh=%{_bindir}/rsh \
+	--with-default-path=/usr/local/bin:/bin:/usr/bin \
+	--with-superuser-path=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin \
+	--with-privsep-path=%{_var}/empty/sshd
 %if %{scard}
 	--with-smartcard \
 %endif
@@ -186,6 +189,7 @@ CFLAGS="$RPM_OPT_FLAGS -Os"; export CFLAGS
 %else
 	--with-pam --with-kerberos5=/usr/kerberos
 %endif
+
 
 %if %{static_libcrypto}
 perl -pi -e "s|-lcrypto|%{_libdir}/libcrypto.a|g" Makefile
@@ -213,7 +217,7 @@ popd
 rm -rf $RPM_BUILD_ROOT
 mkdir -p -m755 $RPM_BUILD_ROOT%{_sysconfdir}/ssh
 mkdir -p -m755 $RPM_BUILD_ROOT%{_libexecdir}/openssh
-mkdir -p -m755 $RPM_BUILD_ROOT%{_var}/run/empty-sshd
+mkdir -p -m755 $RPM_BUILD_ROOT%{_var}/empty/sshd
 
 make install DESTDIR=$RPM_BUILD_ROOT
 
@@ -275,7 +279,7 @@ fi
 
 %pre server
 %{_sbindir}/groupadd -r -g %{sshd_gid} sshd 2>/dev/null || :
-%{_sbindir}/useradd -d /var/run/empty-sshd -s /bin/false -u %{sshd_uid} \
+%{_sbindir}/useradd -d /var/empty/sshd -s /bin/false -u %{sshd_uid} \
 	-g sshd -M -r sshd 2>/dev/null || :
 
 %post server
@@ -329,7 +333,7 @@ fi
 %if ! %{rescue}
 %files server
 %defattr(-,root,root)
-%dir %attr(0111,root,root) %{_var}/run/empty-sshd
+%dir %attr(0111,root,root) %{_var}/empty/sshd
 %attr(0755,root,root) %{_sbindir}/sshd
 %attr(0755,root,root) %{_libexecdir}/openssh/sftp-server
 %attr(0644,root,root) %{_mandir}/man8/sshd.8*
