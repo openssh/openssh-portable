@@ -16,7 +16,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.46 2004/05/19 12:17:33 djm Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.47 2004/05/26 08:59:57 djm Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -1265,7 +1265,7 @@ connect_to_server(char *path, char **args, int *in, int *out)
 		if ((dup2(c_in, STDIN_FILENO) == -1) ||
 		    (dup2(c_out, STDOUT_FILENO) == -1)) {
 			fprintf(stderr, "dup2: %s\n", strerror(errno));
-			exit(1);
+			_exit(1);
 		}
 		close(*in);
 		close(*out);
@@ -1281,7 +1281,7 @@ connect_to_server(char *path, char **args, int *in, int *out)
 		signal(SIGINT, SIG_IGN);
 		execv(path, args);
 		fprintf(stderr, "exec: %s: %s\n", path, strerror(errno));
-		exit(1);
+		_exit(1);
 	}
 
 	signal(SIGTERM, killchild);
