@@ -1,3 +1,10 @@
+20050314
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2005/03/10 10:15:02
+     [readconf.c]
+     Check listen addresses for null, prevents xfree from dying during
+     ClearAllForwardings (bz #996).  From  Craig Leres, ok markus@
+
 20050313
  - (dtucker) [contrib/cygwin/ssh-host-config] Makes the query for the
    localized name of the local administrators group more reliable.  From
@@ -2326,4 +2333,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3709 2005/03/13 10:20:18 dtucker Exp $
+$Id: ChangeLog,v 1.3710 2005/03/14 11:58:40 dtucker Exp $
