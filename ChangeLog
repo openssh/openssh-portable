@@ -1,4 +1,10 @@
 20010224
+ - (bal) Missed part of the UNIX sockets patch.  Patch by Corinna 
+   Vinschen <vinschen@redhat.com>
+ - (bal) Reorder where 'strftime' is detected to resolve linking
+   issues on SCO.  Patch by Tim Rice <tim@multitalents.net>
+
+20010224
  - (bal) pam_stack fix to correctly detect between RH7 and older RHs.
    Patch by Pekka Savola <pekkas@netcore.fi>
  - (bal) Renamed sigaction.[ch] to sigact.[ch].  Causes problems with
@@ -4114,4 +4120,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.818 2001/02/24 00:55:04 mouring Exp $
+$Id: ChangeLog,v 1.819 2001/02/24 21:41:10 mouring Exp $

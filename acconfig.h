@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.102 2001/02/18 06:01:00 djm Exp $ */
+/* $Id: acconfig.h,v 1.103 2001/02/24 21:41:10 mouring Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -292,6 +292,9 @@
 
 /* Define if you have BSD auth support */
 #undef BSD_AUTH
+
+/* Define if X11 doesn't support AF_UNIX sockets on that system */
+#undef NO_X11_UNIX_SOCKETS
 
 @BOTTOM@
 
