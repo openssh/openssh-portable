@@ -1,3 +1,7 @@
+20011019
+ - (bal) Fixed up init.d symlink issue and piddir stuff.  Patches by
+   Zoran Milojevic <Zoran.Milojevic@SS8.com> and j.petersen@msh.de 
+
 20011012
  - (djm) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2001/10/10 22:18:47
@@ -6721,4 +6725,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1608 2001/10/12 21:52:39 mouring Exp $
+$Id: ChangeLog,v 1.1609 2001/10/19 20:36:23 mouring Exp $

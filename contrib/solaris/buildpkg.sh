@@ -24,6 +24,7 @@ make install-nokeys DESTDIR=$FAKE_ROOT
 ## Fill in some details, like prefix and sysconfdir
 ETCDIR=`grep "^sysconfdir=" Makefile | sed 's/sysconfdir=//'`
 PREFIX=`grep "^prefix=" Makefile | cut -d = -f 2`        
+PIDDIR=`grep "^piddir=" Makefile | cut -d = -f 2`        
 cd $FAKE_ROOT
 
 ## Setup our run level stuff while we are at it.
@@ -37,12 +38,14 @@ mkdir -p $FAKE_ROOT/etc/rc2.d
 ## setup our initscript correctly
 sed -e "s#%%configDir%%#$ETCDIR#g" 		\
     -e "s#%%openSSHDir%%#$PREFIX#g"	\
+    -e "s#%%pidDir%%#$PIDDIR#g"	\
 	../opensshd.in	> $FAKE_ROOT/etc/init.d/opensshd
 chmod 711 $FAKE_ROOT/etc/init.d/opensshd
 
-ln -s $FAKE_ROOT/etc/init.d/opensshd $FAKE_ROOT/etc/rcS.d/K30opensshd
-ln -s $FAKE_ROOT/etc/init.d/opensshd $FAKE_ROOT/etc/rc1.d/K30opensshd
-ln -s $FAKE_ROOT/etc/init.d/opensshd $FAKE_ROOT/etc/rc2.d/S98opensshd
+ln -s ../init.d/opensshd $FAKE_ROOT/etc/rcS.d/K30opensshd
+ln -s ../init.d/opensshd $FAKE_ROOT/etc/rc0.d/K30opensshd
+ln -s ../init.d/opensshd $FAKE_ROOT/etc/rc1.d/K30opensshd
+ln -s ../init.d/opensshd $FAKE_ROOT/etc/rc2.d/S98opensshd
 
 
 ## Ok, this is outright wrong, but it will work.  I'm tired of pkgmk

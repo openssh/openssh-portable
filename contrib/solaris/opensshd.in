@@ -5,14 +5,16 @@
 
 AWK=/usr/bin/awk
 CAT=/usr/bin/cat
-EGREP=/usr/bin/egrep
 KILL=/usr/bin/kill
 PS=/usr/bin/ps
+XARGS=/usr/bin/xargs
 
 prefix=%%openSSHDir%%
 etcdir=%%configDir%%
+piddir=%%pidDir%%
 
 SSHD=$prefix/sbin/sshd
+PIDFILE=$piddir/sshd.pid
 SSH_KEYGEN=$prefix/bin/ssh-keygen
 HOST_KEY_RSA1=$etcdir/ssh_host_key
 HOST_KEY_DSA=$etcdir/ssh_host_dsa_key
@@ -21,28 +23,28 @@ HOST_KEY_RSA=$etcdir/ssh_host_rsa_key
 killproc() {
    _procname=$1
    _signal=$2
-   ${PGREP} ${_procname} | ${HEAD} -1 | ${XARGS} -t -I {} ${KILL} -${_signal} {}
+   ${PS} -u root | ${AWK} '/'"$_procname"'$/ {print $1}' | ${XARGS} ${KILL}
 }
 
 
 checkkeys() {
     if [ ! -f $HOST_KEY_RSA1 ]; then
-        $SSH_KEYGEN -t rsa1 -f $HOST_KEY_RSA1 -N ""
+        ${SSH_KEYGEN} -t rsa1 -f ${HOST_KEY_RSA1} -N ""
     fi
     if [ ! -f $HOST_KEY_DSA ]; then
-        $SSH_KEYGEN -t dsa -f $HOST_KEY_DSA -N ""
+        ${SSH_KEYGEN} -t dsa -f ${HOST_KEY_DSA} -N ""
     fi
     if [ ! -f $HOST_KEY_RSA ]; then
-        $SSH_KEYGEN -t rsa -f $HOST_KEY_RSA -N ""
+        ${SSH_KEYGEN} -t rsa -f ${HOST_KEY_RSA} -N ""
     fi
 }
 
 stop_service() {
     if [  -r $PIDFILE  -a  ! -z ${PIDFILE}  ]; then
-        PID=`cat ${PIDFILE}`
+        PID=`${CAT} ${PIDFILE}`
     fi
     if [  ${PID:=0} -gt 1 -a  ! "X$PID" = "X "  ]; then
-        $KILL $PID
+        ${KILL} ${PID}
     else
         echo "Unable to read PID file, killing using alternate method"
         killproc sshd TERM
