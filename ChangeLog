@@ -1,5 +1,6 @@
 20020712
  - (tim) [Makefile.in] quiet down install-files: and check-user:
+ - (tim) [configure.ac] remove unused filepriv line
 
 20020710
  - (tim) [contrib/cygwin/ssh-host-config] explicitely sets the permissions
@@ -1348,4 +1349,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2360 2002/07/12 16:04:06 tim Exp $
+$Id: ChangeLog,v 1.2361 2002/07/13 01:11:24 tim Exp $

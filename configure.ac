@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.77 2002/07/09 14:06:40 mouring Exp $
+# $Id: configure.ac,v 1.78 2002/07/13 01:11:25 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -17,7 +17,6 @@ AC_PATH_PROGS(PERL, perl5 perl)
 AC_SUBST(PERL)
 AC_PATH_PROG(ENT, ent)
 AC_SUBST(ENT)
-AC_PATH_PROGS(FILEPRIV, filepriv, true, /sbin:/usr/sbin)
 AC_PATH_PROG(TEST_MINUS_S_SH, bash)
 AC_PATH_PROG(TEST_MINUS_S_SH, ksh)
 AC_PATH_PROG(TEST_MINUS_S_SH, sh)
