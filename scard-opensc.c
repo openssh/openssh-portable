@@ -474,4 +474,30 @@ sc_put_key(Key *prv, const char *id)
 	return -1;
 }
 
+char *
+sc_get_key_label(Key *key)
+{
+	int r;
+	const struct sc_priv_data *priv;
+	struct sc_pkcs15_object *key_obj;
+
+	priv = (const struct sc_priv_data *) RSA_get_app_data(key->rsa);
+	if (priv == NULL || p15card == NULL) {
+		logit("SmartCard key not loaded");
+		/* internal error => return default label */
+		return xstrdup("smartcard key");
+	}
+	r = sc_pkcs15_find_prkey_by_id(p15card, &priv->cert_id, &key_obj);
+	if (r) {
+		logit("Unable to find private key from SmartCard: %s",
+		      sc_strerror(r));
+		return xstrdup("smartcard key");
+	}
+	if (key_obj == NULL || key_obj->label == NULL)
+		/* the optional PKCS#15 label does not exists
+		 * => return the default label */
+		return xstrdup("smartcard key");
+	return xstrdup(key_obj->label);
+}
+
 #endif /* SMARTCARD */

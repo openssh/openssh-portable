@@ -1,4 +1,8 @@
 20030628
+ - (djm) Bug #591: use PKCS#15 private key label as a comment in case 
+   of OpenSC. Report and patch from larsch@trustcenter.de
+
+20030628
  - (dtucker) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2003/06/23 09:02:44
      [ssh_config.5]
@@ -603,4 +607,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2829 2003/06/28 02:54:33 dtucker Exp $
+$Id: ChangeLog,v 1.2830 2003/06/28 08:02:47 djm Exp $
