@@ -92,6 +92,9 @@
      [sshconnect1.c]
      consistent with ssh2: skip key if empty passphrase is entered,
      retry num_of_passwd_prompt times if passphrase is wrong. ok fgsch@
+   - markus@cvs.openbsd.org 2001/06/24 05:25:10
+     [auth-options.c match.c match.h]
+     move ip+hostname check to match.c
 
 20010622
  - (stevesk) handle systems without pw_expire and pw_change.
@@ -5776,4 +5779,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1319 2001/06/25 05:16:02 mouring Exp $
+$Id: ChangeLog,v 1.1320 2001/06/25 05:17:53 mouring Exp $

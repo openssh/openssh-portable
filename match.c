@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: match.c,v 1.12 2001/03/10 17:51:04 markus Exp $");
+RCSID("$OpenBSD: match.c,v 1.13 2001/06/24 05:25:10 markus Exp $");
 
 #include "match.h"
 #include "xmalloc.h"
@@ -162,7 +162,32 @@ match_hostname(const char *host, const char *pattern, u_int len)
 	return got_positive;
 }
 
+/*
+ * returns 0 if we get a negative match for the hostname or the ip
+ * or if we get no match at all.  returns 1 otherwise.
+ */
+int
+match_host_and_ip(const char *host, const char *ipaddr,
+    const char *patterns)
+{
+	int mhost, mip;
 
+	/* negative ipaddr match */
+	if ((mip = match_hostname(ipaddr, patterns, strlen(patterns))) == -1)
+		return 0;
+	/* negative hostname match */
+	if ((mhost = match_hostname(host, patterns, strlen(patterns))) == -1)
+		return 0;
+	/* no match at all */
+	if (mhost == 0 && mip == 0)
+		return 0;
+	return 1;
+}
+
+/*
+ * Returns first item from client-list that is also supported by server-list,
+ * caller must xfree() returned string.
+ */
 #define	MAX_PROP	20
 #define	SEP	","
 char *

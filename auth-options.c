@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-options.c,v 1.18 2001/05/31 10:30:12 markus Exp $");
+RCSID("$OpenBSD: auth-options.c,v 1.19 2001/06/24 05:25:09 markus Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -167,7 +167,6 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 		}
 		cp = "from=\"";
 		if (strncasecmp(opts, cp, strlen(cp)) == 0) {
-			int mname, mip;
 			const char *remote_ip = get_remote_ipaddr();
 			const char *remote_host = get_canonical_hostname(
 			    options.reverse_mapping_check);
@@ -195,18 +194,9 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 			}
 			patterns[i] = 0;
 			opts++;
-			/*
-			 * Deny access if we get a negative
-			 * match for the hostname or the ip
-			 * or if we get not match at all
-			 */
-			mname = match_hostname(remote_host, patterns,
-			    strlen(patterns));
-			mip = match_hostname(remote_ip, patterns,
-			    strlen(patterns));
-			xfree(patterns);
-			if (mname == -1 || mip == -1 ||
-			    (mname != 1 && mip != 1)) {
+			if (match_host_and_ip(remote_host, remote_ip,
+			    patterns) != 1) {
+				xfree(patterns);
 				log("Authentication tried for %.100s with "
 				    "correct key but not from a permitted "
 				    "host (host=%.200s, ip=%.200s).",
@@ -217,6 +207,7 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 				/* deny access */
 				return 0;
 			}
+			xfree(patterns);
 			/* Host name matches. */
 			goto next_option;
 		}
