@@ -7,6 +7,9 @@
  - (stevesk) [auth2.c] merge cleanup/sync
  - (stevesk) [defines.h] hp-ux 11 has ancillary data style fd passing, but
    is missing CMSG_LEN() and CMSG_SPACE() macros.
+ - (stevesk) [defines.h] #define MAP_ANON MAP_ANONYMOUS for HP-UX; other
+   platforms may need this--I'm not sure.  mmap() issues will need to be
+   addressed further.
 
 20020321
  - (bal) OpenBSD CVS Sync
@@ -8001,4 +8004,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1972 2002/03/22 20:53:32 stevesk Exp $
+$Id: ChangeLog,v 1.1973 2002/03/22 21:08:03 stevesk Exp $

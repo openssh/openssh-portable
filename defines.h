@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.83 2002/03/22 20:53:32 stevesk Exp $ */
+/* $Id: defines.h,v 1.84 2002/03/22 21:08:04 stevesk Exp $ */
 
 /* Necessary headers */
 
@@ -438,6 +438,10 @@ struct winsize {
 /* *-*-nto-qnx doesn't define this macro in the system headers */
 #ifdef MISSING_HOWMANY
 # define howmany(x,y)	(((x)+((y)-1))/(y))
+#endif
+
+#ifdef __hpux
+#define MAP_ANON MAP_ANONYMOUS
 #endif
 
 #ifndef ALIGNBYTES
