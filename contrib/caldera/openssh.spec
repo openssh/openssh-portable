@@ -1,8 +1,8 @@
-%define askpass		1.2.0
+%define askpass		1.2.2
 
 Name        	: openssh
-Version     	: 2.9p1
-Release     	: 1
+Version     	: 2.9p2
+Release     	: 3
 Group       	: System/Network
 
 Summary     	: OpenSSH free Secure Shell (SSH) implementation.
@@ -11,6 +11,7 @@ Summary(es) 	: OpenSSH implementación libre de Secure Shell (SSH).
 Summary(fr) 	: Implémentation libre du shell sécurisé OpenSSH (SSH).
 Summary(it) 	: Implementazione gratuita OpenSSH della Secure Shell.
 Summary(pt) 	: Implementação livre OpenSSH do protocolo 'Secure Shell' (SSH).
+Summary(pt_BR) 	: Implementação livre OpenSSH do protocolo Secure Shell (SSH).
 
 Copyright   	: BSD
 Packager    	: Stephan Seyboth <sps@caldera.de>
@@ -18,14 +19,12 @@ Packager    	: Stephan Seyboth <sps@caldera.de>
 URL         	: http://www.openssh.com/
 
 Obsoletes   	: ssh, ssh-clients, openssh-clients
- 
-# uncomment for >= Caldera 3.1
-#Requires    	: SysVinit-scripts >= 1.07
 
 BuildRoot   	: /tmp/%{Name}-%{Version}
 
 Source0: ftp://ftp.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-%{Version}.tar.gz
 Source1: http://www.ntrnet.net/~jmknoble/software/x11-ssh-askpass/x11-ssh-askpass-%{askpass}.tar.gz
+Source2: http://www.openssh.com/openssh-faq.html
 
 
 %Package server
@@ -34,11 +33,12 @@ Requires    	: openssh = %{Version}
 Obsoletes   	: ssh-server
 
 Summary     	: OpenSSH Secure Shell protocol server (sshd).
-Summary(de) 	: OpenSSH Secure Shell Protocol Server (sshd).
+Summary(de) 	: OpenSSH Secure Shell Protocol-Server (sshd).
 Summary(es) 	: Servidor del protocolo OpenSSH Secure Shell (sshd).
 Summary(fr) 	: Serveur de protocole du shell sécurisé OpenSSH (sshd).
 Summary(it) 	: Server OpenSSH per il protocollo Secure Shell (sshd).
 Summary(pt) 	: Servidor do protocolo 'Secure Shell' OpenSSH (sshd).
+Summary(pt_BR) 	: Servidor do protocolo Secure Shell OpenSSH (sshd).
 
 
 %Package askpass
@@ -52,6 +52,7 @@ Summary(es) 	: Aplicación de petición de frase clave OpenSSH X11.
 Summary(fr) 	: Dialogue pass-phrase X11 d'OpenSSH.
 Summary(it) 	: Finestra di dialogo X11 per la frase segreta di OpenSSH.
 Summary(pt) 	: Diálogo de pedido de senha para X11 do OpenSSH.
+Summary(pt_BR) 	: Diálogo de pedido de senha para X11 do OpenSSH.
 
 
 %Description
@@ -94,7 +95,14 @@ OpenSSH (Secure Shell) fornece acesso a um sistema remoto. Substitui o
 telnet, rlogin, rexec, e o rsh e fornece comunicações seguras e cifradas
 entre duas máquinas sem confiança mútua sobre uma rede insegura.
 Ligações X11 e portos TCP/IP arbitrários também poder ser reenviados
-pelos porto seguro.
+pelo canal seguro.
+
+%Description -l pt_BR
+O OpenSSH (Secure Shell) fornece acesso a um sistema remoto. Substitui o
+telnet, rlogin, rexec, e o rsh e fornece comunicações seguras e criptografadas
+entre duas máquinas sem confiança mútua sobre uma rede insegura.
+Ligações X11 e portas TCP/IP arbitrárias também podem ser reenviadas
+pelo canal seguro.
 
 %Description server
 This package installs the sshd, the server portion of OpenSSH. 
@@ -112,6 +120,9 @@ Ce paquetage installe le 'sshd', partie serveur de OpenSSH.
 Questo pacchetto installa sshd, il server di OpenSSH.
 
 %Description -l pt server
+Este pacote intala o sshd, o servidor do OpenSSH.
+
+%Description -l pt_BR server
 Este pacote intala o sshd, o servidor do OpenSSH.
 
 %Description askpass
@@ -133,6 +144,9 @@ Questo pacchetto contiene una finestra di X11 che chiede la frase segreta.
 %Description -l pt askpass
 Este pacote contém um diálogo de senha para o X11.
 
+%Description -l pt_BR askpass
+Este pacote contem um diálogo de frase-senha para o X11.
+
 %Prep
 %setup
 %setup -D -T -a1
@@ -151,7 +165,9 @@ CFLAGS="$RPM_OPT_FLAGS" \
 make
 
 cd x11-ssh-askpass-%{askpass}
-xmkmf -a
+./configure
+xmkmf
+make includes
 make
 
 
@@ -169,8 +185,9 @@ make -C x11-ssh-askpass-%{askpass} DESTDIR="$DESTDIR" \
 NV="$DESTDIR%{_defaultdocdir}/%{Name}-%{Version}"
 mkdir -p $NV
 cp -a CREDITS ChangeLog LICENCE OVERVIEW README* TODO $NV
+cp %{SOURCE2} $NV/faq.html
 mkdir -p $NV/x11-ssh-askpass-%{askpass}
-cp -a x11-ssh-askpass-%{askpass}/{README,ChangeLog,SshAskpass*.ad} \
+cp -a x11-ssh-askpass-%{askpass}/{README,ChangeLog,TODO,SshAskpass*.ad} \
       $NV/x11-ssh-askpass-%{askpass}
 
 
@@ -181,6 +198,17 @@ mkdir -p $DESTDIR/{etc/pam.d,%{SVIcdir},%{SVIdir}}
 # on the client side it's a potential security risk!
 %{fixUP} -vg  $DESTDIR/etc/ssh/sshd_config 'X11Forwarding no' \
                                            'X11Forwarding yes'
+
+cat <<-EOF >> $DESTDIR/etc/ssh/ssh_config
+	
+	# This retains the old behaviour of trying the SSH1 protocol
+	# before the more secure SSH2 one. Note that the SSH2 keys are
+	# stored in a different format so you will have to generate and
+	# distribute a new public/private key pair to migrate. See the
+	# ssh(1) man-page for details
+	Host *
+	Protocol 1,2
+EOF
 
 install -m644 contrib/caldera/sshd.pam $DESTDIR/etc/pam.d/sshd
 # FIXME: disabled, find out why this doesn't work with nis
@@ -281,4 +309,4 @@ fi
 * Mon Jan 01 1998 ...
 Template Version: 1.31
 
-$Id: openssh.spec,v 1.16 2001/04/30 18:00:13 tim Exp $
+$Id: openssh.spec,v 1.17 2001/07/05 00:45:29 tim Exp $
