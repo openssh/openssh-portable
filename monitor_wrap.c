@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor_wrap.c,v 1.11 2002/06/19 18:01:00 markus Exp $");
+RCSID("$OpenBSD: monitor_wrap.c,v 1.12 2002/06/26 15:00:32 deraadt Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dh.h>
@@ -411,7 +411,7 @@ mm_newkeys_from_blob(u_char *blob, int blen)
 	enc->key = buffer_get_string(&b, &enc->key_len);
 	enc->iv = buffer_get_string(&b, &len);
 	if (len != enc->block_size)
-		fatal("%s: bad ivlen: expected %d != %d", __func__,
+		fatal("%s: bad ivlen: expected %u != %u", __func__,
 		    enc->block_size, len);
 
 	if (enc->name == NULL || cipher_by_name(enc->name) != enc->cipher)
@@ -425,7 +425,7 @@ mm_newkeys_from_blob(u_char *blob, int blen)
 	mac->enabled = buffer_get_int(&b);
 	mac->key = buffer_get_string(&b, &len);
 	if (len > mac->key_len)
-		fatal("%s: bad mac key length: %d > %d", __func__, len,
+		fatal("%s: bad mac key length: %u > %d", __func__, len,
 		    mac->key_len);
 	mac->key_len = len;
 
@@ -436,7 +436,7 @@ mm_newkeys_from_blob(u_char *blob, int blen)
 
 	len = buffer_len(&b);
 	if (len != 0)
-		error("newkeys_from_blob: remaining bytes in blob %d", len);
+		error("newkeys_from_blob: remaining bytes in blob %u", len);
 	buffer_free(&b);
 	return (newkey);
 }
