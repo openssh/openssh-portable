@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.98 2001/03/04 17:42:28 millert Exp $");
+RCSID("$OpenBSD: channels.c,v 1.99 2001/03/16 19:06:29 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -139,18 +139,6 @@ void
 channel_set_options(int hostname_in_open)
 {
 	have_hostname_in_open = hostname_in_open;
-}
-
-/*
- * Permits opening to any host/port in SSH_MSG_PORT_OPEN.  This is usually
- * called by the server, because the user could connect to any port anyway,
- * and the server has no way to know but to trust the client anyway.
- */
-
-void
-channel_permit_all_opens()
-{
-	all_opens_permitted = 1;
 }
 
 /* lookup channel by id */
@@ -1791,9 +1779,47 @@ channel_input_port_forward_request(int is_root, int gateway_ports)
 	xfree(hostname);
 }
 
-/* XXX move to aux.c */
+/*
+ * Permits opening to any host/port if permitted_opens[] is empty.  This is
+ * usually called by the server, because the user could connect to any port
+ * anyway, and the server has no way to know but to trust the client anyway.
+ */
+void
+channel_permit_all_opens()
+{
+	if (num_permitted_opens == 0)
+		all_opens_permitted = 1;
+}
+
+void 
+channel_add_permitted_opens(char *host, int port)
+{
+	if (num_permitted_opens >= SSH_MAX_FORWARDS_PER_DIRECTION)
+		fatal("channel_request_remote_forwarding: too many forwards");
+	debug("allow port forwarding to host %s port %d", host, port);
+
+	permitted_opens[num_permitted_opens].host_to_connect = xstrdup(host);
+	permitted_opens[num_permitted_opens].port_to_connect = port;
+	num_permitted_opens++;
+
+	all_opens_permitted = 0;
+}
+
+void 
+channel_clear_permitted_opens(void)
+{
+	int i;
+
+	for (i = 0; i < num_permitted_opens; i++)
+		xfree(permitted_opens[i].host_to_connect);
+	num_permitted_opens = 0;
+
+}
+
+
+/* return socket to remote host, port */
 int
-channel_connect_to(const char *host, u_short host_port)
+connect_to(const char *host, u_short port)
 {
 	struct addrinfo hints, *ai, *aitop;
 	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
@@ -1803,9 +1829,10 @@ channel_connect_to(const char *host, u_short host_port)
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = IPv4or6;
 	hints.ai_socktype = SOCK_STREAM;
-	snprintf(strport, sizeof strport, "%d", host_port);
+	snprintf(strport, sizeof strport, "%d", port);
 	if ((gaierr = getaddrinfo(host, strport, &hints, &aitop)) != 0) {
-		error("%.100s: unknown host (%s)", host, gai_strerror(gaierr));
+		error("connect_to %.100s: unknown host (%s)", host,
+		    gai_strerror(gaierr));
 		return -1;
 	}
 	for (ai = aitop; ai; ai = ai->ai_next) {
@@ -1813,10 +1840,9 @@ channel_connect_to(const char *host, u_short host_port)
 			continue;
 		if (getnameinfo(ai->ai_addr, ai->ai_addrlen, ntop, sizeof(ntop),
 		    strport, sizeof(strport), NI_NUMERICHOST|NI_NUMERICSERV) != 0) {
-			error("channel_connect_to: getnameinfo failed");
+			error("connect_to: getnameinfo failed");
 			continue;
 		}
-		/* Create the socket. */
 		sock = socket(ai->ai_family, SOCK_STREAM, 0);
 		if (sock < 0) {
 			error("socket: %.100s", strerror(errno));
@@ -1824,10 +1850,9 @@ channel_connect_to(const char *host, u_short host_port)
 		}
 		if (fcntl(sock, F_SETFL, O_NONBLOCK) < 0)
 			fatal("connect_to: F_SETFL: %s", strerror(errno));
-		/* Connect to the host/port. */
 		if (connect(sock, ai->ai_addr, ai->ai_addrlen) < 0 &&
 		    errno != EINPROGRESS) {
-			error("connect %.100s port %s: %.100s", ntop, strport,
+			error("connect_to %.100s port %s: %.100s", ntop, strport,
 			    strerror(errno));
 			close(sock);
 			continue;	/* fail -- try next */
@@ -1837,24 +1862,48 @@ channel_connect_to(const char *host, u_short host_port)
 	}
 	freeaddrinfo(aitop);
 	if (!ai) {
-		error("connect %.100s port %d: failed.", host, host_port);
+		error("connect_to %.100s port %d: failed.", host, port);
 		return -1;
 	}
 	/* success */
 	return sock;
 }
+
 int
 channel_connect_by_listen_adress(u_short listen_port)
 {
 	int i;
+
 	for (i = 0; i < num_permitted_opens; i++)
 		if (permitted_opens[i].listen_port == listen_port)
-			return channel_connect_to(
+			return connect_to(
 			    permitted_opens[i].host_to_connect,
 			    permitted_opens[i].port_to_connect);
 	error("WARNING: Server requests forwarding for unknown listen_port %d",
 	    listen_port);
 	return -1;
+}
+
+/* Check if connecting to that port is permitted and connect. */
+int
+channel_connect_to(const char *host, u_short port)
+{
+	int i, permit;
+
+	permit = all_opens_permitted;
+	if (!permit) {
+		for (i = 0; i < num_permitted_opens; i++)
+			if (permitted_opens[i].port_to_connect == port &&
+			    strcmp(permitted_opens[i].host_to_connect, host) == 0)
+				permit = 1;
+
+	}
+	if (!permit) {
+		log("Received request to connect to host %.100s port %d, "
+		    "but the request was denied.", host, port);
+		return -1;
+	}
+	return connect_to(host, port);
 }
 
 /*
@@ -1868,55 +1917,25 @@ channel_input_port_open(int type, int plen, void *ctxt)
 {
 	u_short host_port;
 	char *host, *originator_string;
-	int remote_channel, sock = -1, newch, i, denied;
-	u_int host_len, originator_len;
+	int remote_channel, sock = -1, newch;
 
-	/* Get remote channel number. */
 	remote_channel = packet_get_int();
-
-	/* Get host name to connect to. */
-	host = packet_get_string(&host_len);
-
-	/* Get port to connect to. */
+	host = packet_get_string(NULL);
 	host_port = packet_get_int();
 
-	/* Get remote originator name. */
 	if (have_hostname_in_open) {
-		originator_string = packet_get_string(&originator_len);
-		originator_len += 4;	/* size of packet_int */
+		originator_string = packet_get_string(NULL);
 	} else {
 		originator_string = xstrdup("unknown (remote did not supply name)");
-		originator_len = 0;	/* no originator supplied */
 	}
-
-	packet_integrity_check(plen,
-	    4 + 4 + host_len + 4 + originator_len, SSH_MSG_PORT_OPEN);
-
-	/* Check if opening that port is permitted. */
-	denied = 0;
-	if (!all_opens_permitted) {
-		/* Go trough all permitted ports. */
-		for (i = 0; i < num_permitted_opens; i++)
-			if (permitted_opens[i].port_to_connect == host_port &&
-			    strcmp(permitted_opens[i].host_to_connect, host) == 0)
-				break;
-
-		/* Check if we found the requested port among those permitted. */
-		if (i >= num_permitted_opens) {
-			/* The port is not permitted. */
-			log("Received request to connect to %.100s:%d, but the request was denied.",
-			    host, host_port);
-			denied = 1;
-		}
-	}
-	sock = denied ? -1 : channel_connect_to(host, host_port);
-	if (sock > 0) {
-		/* Allocate a channel for this connection. */
+	packet_done();
+	sock = channel_connect_to(host, host_port);
+	if (sock != -1) {
 		newch = channel_allocate(SSH_CHANNEL_CONNECTING,
 		    sock, originator_string);
-/*XXX delay answer? */
 		channels[newch].remote_id = remote_channel;
 
+		/*XXX delay answer? */
 		packet_start(SSH_MSG_CHANNEL_OPEN_CONFIRMATION);
 		packet_put_int(remote_channel);
 		packet_put_int(newch);

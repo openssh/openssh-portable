@@ -18,6 +18,10 @@
    - markus@cvs.openbsd.org 2001/03/16 13:44:24
      [sftp-int.c]
      discourage strcat/strcpy
+   - markus@cvs.openbsd.org 2001/03/16 19:06:30
+     [auth-options.c channels.c channels.h serverloop.c session.c]
+     implement "permitopen" key option, restricts -L style forwarding to
+     to specified host:port pairs. based on work by harlan@genua.de
 
 20010315
  - OpenBSD CVS Sync
@@ -4580,4 +4584,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.966 2001/03/17 00:37:31 mouring Exp $
+$Id: ChangeLog,v 1.967 2001/03/17 00:47:54 mouring Exp $

@@ -32,10 +32,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* RCSID("$OpenBSD: channels.h,v 1.27 2001/02/15 23:19:59 markus Exp $"); */
+/* RCSID("$OpenBSD: channels.h,v 1.28 2001/03/16 19:06:29 markus Exp $"); */
 
 #ifndef CHANNELS_H
 #define CHANNELS_H
+
+#include "buffer.h"
 
 /* Definitions for channel types. */
 #define SSH_CHANNEL_FREE		0	/* This channel is free (unused). */
@@ -226,11 +228,17 @@ channel_request_remote_forwarding(u_short port, const char *host,
     u_short remote_port);
 
 /*
- * Permits opening to any host/port in SSH_MSG_PORT_OPEN.  This is usually
- * called by the server, because the user could connect to any port anyway,
- * and the server has no way to know but to trust the client anyway.
+ * Permits opening to any host/port if permitted_opens[] is empty.  This is
+ * usually called by the server, because the user could connect to any port
+ * anyway, and the server has no way to know but to trust the client anyway.
  */
 void    channel_permit_all_opens(void);
+
+/* Add host/port to list of allowed targets for port forwarding */
+void	channel_add_permitted_opens(char *host, int port);
+
+/* Flush list */
+void	channel_clear_permitted_opens(void);
 
 /*
  * This is called after receiving CHANNEL_FORWARDING_REQUEST.  This initates

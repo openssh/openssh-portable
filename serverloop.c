@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.54 2001/03/04 01:46:30 djm Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.55 2001/03/16 19:06:29 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -756,11 +756,6 @@ server_request_direct_tcpip(char *ctype)
 	   originator, originator_port, target, target_port);
 
 	/* XXX check permission */
-	if (no_port_forwarding_flag || !options.allow_tcp_forwarding) {
-		xfree(target);
-		xfree(originator);
-		return NULL;
-	}
 	sock = channel_connect_to(target, target_port);
 	xfree(target);
 	xfree(originator);
@@ -858,6 +853,7 @@ server_input_global_request(int type, int plen, void *ctxt)
 	want_reply = packet_get_char();
 	debug("server_input_global_request: rtype %s want_reply %d", rtype, want_reply);
 
+	/* -R style forwarding */
 	if (strcmp(rtype, "tcpip-forward") == 0) {
 		struct passwd *pw;
 		char *listen_address;
