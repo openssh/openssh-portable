@@ -1,3 +1,7 @@
+20031113
+ - (dtucker) [sshd_config] Clarify UsePAM consequences a little more, from
+   current.
+
 20031103
  - (dtucker) [contrib/cygwin/ssh-host-config] Ensure entries in /etc/services
    are created correctly with CRLF line terminations.  Patch from vinschen at
@@ -1261,4 +1265,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2994.2.56 2003/11/03 11:55:36 dtucker Exp $
+$Id: ChangeLog,v 1.2994.2.57 2003/11/12 23:55:12 dtucker Exp $
