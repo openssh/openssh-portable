@@ -35,6 +35,10 @@
      spelling (occurance -> occurrence);
      use prompt before examples;
      grammar;
+   - djm@cvs.openbsd.org 2005/03/02 01:00:06
+     [sshconnect.c]
+     fix addition of new hashed hostnames when CheckHostIP=yes;
+     found and ok dtucker@
 
 20050301
  - (djm) OpenBSD CVS sync:
@@ -2254,4 +2258,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3684 2005/03/02 01:05:06 djm Exp $
+$Id: ChangeLog,v 1.3685 2005/03/02 01:06:51 djm Exp $
