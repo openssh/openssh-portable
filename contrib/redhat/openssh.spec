@@ -43,11 +43,6 @@
 %define noip6 1
 %endif
 
-# Turn off some stuff for resuce builds
-%if %{rescue}
-%define kerberos5 0
-%endif
-
 # Options for static OpenSSL link:
 # rpm -ba|--rebuild --define "static_openssl 1"
 %{?static_openssl:%define static_libcrypto 1}
@@ -63,6 +58,11 @@
 # Is this a build for the rescue CD (without PAM, with MD5)? (1=yes 0=no)
 %define rescue 0
 %{?build_rescue:%define rescue 1}
+
+# Turn off some stuff for resuce builds
+%if %{rescue}
+%define kerberos5 0
+%endif
 
 Summary: The OpenSSH implementation of SSH protocol versions 1 and 2.
 Name: openssh
