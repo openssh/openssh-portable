@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.63 2002/09/19 15:51:23 markus Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.64 2002/11/21 23:03:51 deraadt Exp $");
 
 #include <openssl/evp.h>
 
@@ -169,7 +169,7 @@ add_file(AuthenticationConnection *ac, const char *filename)
 		fprintf(stderr, "Identity added: %s (%s)\n", filename, comment);
 		ret = 0;
 		if (lifetime != 0)
-                        fprintf(stderr,
+			fprintf(stderr,
 			    "Lifetime set to %d seconds\n", lifetime);
 	} else if (ssh_add_identity(ac, private, comment)) {
 		fprintf(stderr, "Identity added: %s (%s)\n", filename, comment);

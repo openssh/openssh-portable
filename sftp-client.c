@@ -28,7 +28,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.36 2002/11/05 20:10:37 markus Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.37 2002/11/21 23:03:51 deraadt Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -857,9 +857,9 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 			    (unsigned long long)req->offset + len - 1);
 			if (len > req->len)
 				fatal("Received more data than asked for "
-				      "%u > %u", len, req->len);
+				    "%u > %u", len, req->len);
 			if ((lseek(local_fd, req->offset, SEEK_SET) == -1 ||
-			     atomicio(write, local_fd, data, len) != len) &&
+			    atomicio(write, local_fd, data, len) != len) &&
 			    !write_error) {
 				write_errno = errno;
 				write_error = 1;
@@ -930,7 +930,7 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 		if (pflag && chmod(local_path, mode) == -1)
 #endif /* HAVE_FCHMOD */
 			error("Couldn't set mode on \"%s\": %s", local_path,
-			      strerror(errno));
+			    strerror(errno));
 		if (pflag && (a->flags & SSH2_FILEXFER_ATTR_ACMODTIME)) {
 			struct timeval tv[2];
 			tv[0].tv_sec = a->atime;
@@ -938,7 +938,7 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 			tv[0].tv_usec = tv[1].tv_usec = 0;
 			if (utimes(local_path, tv) == -1)
 				error("Can't set times on \"%s\": %s",
-				      local_path, strerror(errno));
+				    local_path, strerror(errno));
 		}
 	}
 	close(local_fd);
@@ -1047,7 +1047,7 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 			buffer_put_string(&msg, data, len);
 			send_msg(conn->fd_out, &msg);
 			debug3("Sent message SSH2_FXP_WRITE I:%u O:%llu S:%u",
-			       id, (unsigned long long)offset, len);
+			    id, (unsigned long long)offset, len);
 		} else if (TAILQ_FIRST(&acks) == NULL)
 			break;
 
@@ -1081,7 +1081,7 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 
 			if (status != SSH2_FX_OK) {
 				error("Couldn't write to remote file \"%s\": %s",
-				      remote_path, fx2txt(status));
+				    remote_path, fx2txt(status));
 				do_close(conn, handle, handle_len);
 				close(local_fd);
 				goto done;

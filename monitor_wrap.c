@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor_wrap.c,v 1.19 2002/09/26 11:38:43 markus Exp $");
+RCSID("$OpenBSD: monitor_wrap.c,v 1.20 2002/11/21 23:03:51 deraadt Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dh.h>
@@ -969,7 +969,7 @@ mm_auth_krb4(Authctxt *authctxt, void *_auth, char **client, void *_reply)
 		xfree(p);
 	}
 	buffer_free(&m);
-	return (success); 
+	return (success);
 }
 #endif
 

@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.136 2002/11/21 22:45:31 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.137 2002/11/21 23:03:51 deraadt Exp $");
 
 #include <openssl/bn.h>
 
@@ -649,10 +649,10 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 			    "%s key fingerprint is %s.\n"
 			    "Are you sure you want to continue connecting "
 			    "(yes/no)? ",
-			     host, ip,
-			     has_keys ? ",\nbut keys of different type are already "
-			     "known for this host." : ".",
-			     type, fp);
+			    host, ip,
+			    has_keys ? ",\nbut keys of different type are already "
+			    "known for this host." : ".",
+			    type, fp);
 			xfree(fp);
 			if (!confirm(msg))
 				goto fail;

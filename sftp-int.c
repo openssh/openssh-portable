@@ -25,7 +25,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.49 2002/09/12 00:13:06 djm Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.50 2002/11/21 23:03:51 deraadt Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -550,7 +550,7 @@ sdirent_comp(const void *aa, const void *bb)
 	SFTP_DIRENT *a = *(SFTP_DIRENT **)aa;
 	SFTP_DIRENT *b = *(SFTP_DIRENT **)bb;
 
-	return (strcmp(a->filename, b->filename));	
+	return (strcmp(a->filename, b->filename));
 }
 
 /* sftp ls.1 replacement for directories */
@@ -563,7 +563,7 @@ do_ls_dir(struct sftp_conn *conn, char *path, char *strip_path, int lflag)
 	if ((n = do_readdir(conn, path, &d)) != 0)
 		return (n);
 
-	/* Count entries for sort */	
+	/* Count entries for sort */
 	for (n = 0; d[n] != NULL; n++)
 		;
 
@@ -571,7 +571,7 @@ do_ls_dir(struct sftp_conn *conn, char *path, char *strip_path, int lflag)
 
 	for (n = 0; d[n] != NULL; n++) {
 		char *tmp, *fname;
-		
+
 		tmp = path_append(path, d[n]->filename);
 		fname = path_strip(tmp, strip_path);
 		xfree(tmp);
@@ -589,7 +589,7 @@ do_ls_dir(struct sftp_conn *conn, char *path, char *strip_path, int lflag)
 			/* XXX - multicolumn display would be nice here */
 			printf("%s\n", fname);
 		}
-		
+
 		xfree(fname);
 	}
 
@@ -599,7 +599,7 @@ do_ls_dir(struct sftp_conn *conn, char *path, char *strip_path, int lflag)
 
 /* sftp ls.1 replacement which handles path globs */
 static int
-do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path, 
+do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
     int lflag)
 {
 	glob_t g;
@@ -609,23 +609,23 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 
 	memset(&g, 0, sizeof(g));
 
-	if (remote_glob(conn, path, GLOB_MARK|GLOB_NOCHECK|GLOB_BRACE, 
+	if (remote_glob(conn, path, GLOB_MARK|GLOB_NOCHECK|GLOB_BRACE,
 	    NULL, &g)) {
 		error("Can't ls: \"%s\" not found", path);
 		return (-1);
 	}
 
 	/*
-	 * If the glob returns a single match, which is the same as the 
+	 * If the glob returns a single match, which is the same as the
 	 * input glob, and it is a directory, then just list its contents
 	 */
-	if (g.gl_pathc == 1 && 
+	if (g.gl_pathc == 1 &&
 	    strncmp(path, g.gl_pathv[0], strlen(g.gl_pathv[0]) - 1) == 0) {
 		if ((a = do_lstat(conn, path, 1)) == NULL) {
 			globfree(&g);
 	    		return (-1);
 		}
-		if ((a->flags & SSH2_FILEXFER_ATTR_PERMISSIONS) && 
+		if ((a->flags & SSH2_FILEXFER_ATTR_PERMISSIONS) &&
 		    S_ISDIR(a->perm)) {
 			globfree(&g);
 			return (do_ls_dir(conn, path, strip_path, lflag));
@@ -640,8 +640,8 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 		if (lflag) {
 			/*
 			 * XXX: this is slow - 1 roundtrip per path
-			 * A solution to this is to fork glob() and 
-			 * build a sftp specific version which keeps the 
+			 * A solution to this is to fork glob() and
+			 * build a sftp specific version which keeps the
 			 * attribs (which currently get thrown away)
 			 * that the server returns as well as the filenames.
 			 */
@@ -666,7 +666,7 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 }
 
 static int
-parse_args(const char **cpp, int *pflag, int *lflag, 
+parse_args(const char **cpp, int *pflag, int *lflag,
     unsigned long *n_arg, char **path1, char **path2)
 {
 	const char *cmd, *cp = *cpp;
@@ -900,7 +900,7 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd)
 			do_globbed_ls(conn, *pwd, *pwd, lflag);
 			break;
 		}
-		
+
 		/* Strip pwd off beginning of non-absolute paths */
 		tmp = NULL;
 		if (*path1 != '/')
