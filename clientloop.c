@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.94 2001/12/28 15:06:00 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.95 2002/01/10 11:24:04 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1236,6 +1236,24 @@ client_input_channel_req(int type, u_int32_t seq, void *ctxt)
 	}
 	xfree(rtype);
 }
+static void
+client_input_global_request(int type, u_int32_t seq, void *ctxt)
+{
+	char *rtype;
+	int want_reply;
+	int success = 0;
+
+	rtype = packet_get_string(NULL);
+	want_reply = packet_get_char();
+	debug("client_input_global_request: rtype %s want_reply %d", rtype, want_reply);
+	if (want_reply) {
+		packet_start(success ?
+		    SSH2_MSG_REQUEST_SUCCESS : SSH2_MSG_REQUEST_FAILURE);
+		packet_send();
+		packet_write_wait();
+	}
+	xfree(rtype);
+}
 
 static void
 client_init_dispatch_20(void)
@@ -1250,6 +1268,7 @@ client_init_dispatch_20(void)
 	dispatch_set(SSH2_MSG_CHANNEL_OPEN_FAILURE, &channel_input_open_failure);
 	dispatch_set(SSH2_MSG_CHANNEL_REQUEST, &client_input_channel_req);
 	dispatch_set(SSH2_MSG_CHANNEL_WINDOW_ADJUST, &channel_input_window_adjust);
+	dispatch_set(SSH2_MSG_GLOBAL_REQUEST, &client_input_global_request);
 
 	/* rekeying */
 	dispatch_set(SSH2_MSG_KEXINIT, &kex_input_kexinit);
