@@ -1,4 +1,4 @@
-/*	$OpenBSD: auth.h,v 1.30 2002/03/14 16:56:33 markus Exp $	*/
+/*	$OpenBSD: auth.h,v 1.31 2002/03/16 17:22:09 markus Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -92,7 +92,7 @@ int     auth_rhosts(struct passwd *, const char *);
 int
 auth_rhosts2(struct passwd *, const char *, const char *, const char *);
 
-int	 auth_rhosts_rsa(struct passwd *, const char *, Key *);
+int	 auth_rhosts_rsa(struct passwd *, char *, Key *);
 int      auth_password(Authctxt *, const char *);
 int      auth_rsa(struct passwd *, BIGNUM *);
 int      auth_rsa_challenge_dialog(Key *);
