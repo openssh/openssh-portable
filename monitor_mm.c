@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor_mm.c,v 1.7 2002/06/28 01:49:31 millert Exp $");
+RCSID("$OpenBSD: monitor_mm.c,v 1.8 2002/08/02 14:43:15 millert Exp $");
 
 #ifdef HAVE_SYS_MMAN_H
 #include <sys/mman.h>
@@ -167,8 +167,10 @@ mm_malloc(struct mm_master *mm, size_t size)
 
 	if (size == 0)
 		fatal("mm_malloc: try to allocate 0 space");
+	if (size > SIZE_T_MAX - MM_MINSIZE + 1)
+		fatal("mm_malloc: size too big");
 
-	size = ((size + MM_MINSIZE - 1) / MM_MINSIZE) * MM_MINSIZE;
+	size = ((size + (MM_MINSIZE - 1)) / MM_MINSIZE) * MM_MINSIZE;
 
 	RB_FOREACH(mms, mmtree, &mm->rb_free) {
 		if (mms->size >= size)
