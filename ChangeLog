@@ -9,6 +9,9 @@
      [clientloop.c kex.c kex.h serverloop.c sshconnect2.c sshd.c]       
      enable server side rekeying + some rekey related clientup.         
      todo: we should not send any non-KEX messages after we send KEXINIT
+   - markus@cvs.openbsd.org 2001/04/04 15:50:55
+     [compat.c]
+     f-secure 1.3.2 does not handle IGNORE; from milliondl@ornl.gov
 
 20010404
  - OpenBSD CVS Sync
@@ -4848,4 +4851,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1056 2001/04/04 17:57:54 mouring Exp $
+$Id: ChangeLog,v 1.1057 2001/04/04 23:43:26 mouring Exp $

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: compat.c,v 1.42 2001/03/27 17:46:49 provos Exp $");
+RCSID("$OpenBSD: compat.c,v 1.43 2001/04/04 15:50:55 markus Exp $");
 
 #ifdef HAVE_LIBPCRE
 #  include <pcreposix.h>
@@ -101,6 +101,7 @@ compat_datafellows(const char *version)
 		{ "^1\\.7 SecureFX",	SSH_OLD_SESSIONID },
 		{ "^1\\.2\\.1[89]",	SSH_BUG_IGNOREMSG },
 		{ "^1\\.2\\.2[012]",	SSH_BUG_IGNOREMSG },
+		{ "^1\\.3\\.2",		SSH_BUG_IGNOREMSG },	/* f-secure */
 		{ "^SSH Compatible Server",			/* Netscreen */
 					SSH_BUG_PASSWORDPAD },
 		{ "^OSU_0",		SSH_BUG_PASSWORDPAD },
