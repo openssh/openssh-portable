@@ -89,6 +89,10 @@ RCSID("$OpenBSD: session.c,v 1.59 2001/03/04 01:46:30 djm Exp $");
 # define S_UNOFILE_HARD	S_UNOFILE "_hard"
 #endif
 
+#ifdef _AIX
+# include <uinfo.h>
+#endif
+
 /* types */
 
 #define TTYSZ 64
@@ -1135,6 +1139,23 @@ do_child(const char *command, struct passwd * pw, const char *term,
 					debug("error setting satid: %.100s", strerror(errno));
 			}
 #endif /* WITH_IRIX_AUDIT */
+
+#ifdef _AIX
+			/*
+			 * AIX has a "usrinfo" area where logname and
+			 * other stuff is stored - a few applications
+			 * actually use this and die if it's not set
+			 */
+			cp = xmalloc(22 + strlen(ttyname) + 
+			    2 * strlen(pw->pw_name));
+			i = sprintf(cp, "LOGNAME=%s%cNAME=%s%cTTY=%s%c%c",
+			    pw->pw_name, 0, pw->pw_name, 0, ttyname, 0,0);
+			if (usrinfo(SETUINFO, cp, i) == -1)
+				fatal("Couldn't set usrinfo: %s", 
+				    strerror(errno));
+			debug3("AIX/UsrInfo: set len %d", i);
+			xfree(cp);
+#endif
 
 			/* Permanently switch to the desired uid. */
 			permanently_set_uid(pw->pw_uid);
