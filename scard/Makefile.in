@@ -1,0 +1,27 @@
+# $Id: Makefile.in,v 1.1 2001/09/18 05:06:22 djm Exp $
+
+prefix=@prefix@
+datadir=@datadir@
+srcdir=@srcdir@
+top_srcdir=@top_srcdir@
+
+INSTALL=@INSTALL@
+
+VPATH=@srcdir@
+
+all:
+
+Ssh.bin:  Ssh.bin.uu
+	uudecode Ssh.bin.uu
+
+clean:
+	rm -rf Ssh.bin
+
+distprep: Ssh.bin
+
+distclean: clean
+	rm -f Makefile *~
+
+install: Ssh.bin
+	$(top_srcdir)/mkinstalldirs $(DESTDIR)$(datadir)
+	$(INSTALL) -m 0644 -s $(srcdir)/Ssh.bin $(DESTDIR)$(datadir)/Ssh.bin

@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.310 2001/09/18 04:01:12 djm Exp $
+# $Id: configure.in,v 1.311 2001/09/18 05:06:22 djm Exp $
 
 AC_INIT(ssh.c)
 
@@ -2058,7 +2058,7 @@ fi
 
 AC_EXEEXT
 
-AC_OUTPUT(Makefile openbsd-compat/Makefile ssh_prng_cmds)
+AC_OUTPUT(Makefile openbsd-compat/Makefile scard/Makefile ssh_prng_cmds)
 
 # Print summary of options
 

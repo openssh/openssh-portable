@@ -1,10 +1,11 @@
-# $Id: Makefile.in,v 1.185 2001/09/17 21:34:33 tim Exp $
+# $Id: Makefile.in,v 1.186 2001/09/18 05:06:22 djm Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 bindir=@bindir@
 sbindir=@sbindir@
 libexecdir=@libexecdir@
+datadir=@datadir@
 mandir=@mandir@
 mansubdir=@mansubdir@
 sysconfdir=@sysconfdir@
@@ -149,6 +150,7 @@ distclean:
 	rm -f *.out core
 	rm -f Makefile config.h config.status ssh_prng_cmds *~
 	(cd openbsd-compat; $(MAKE) distclean)
+	(cd scard; $(MAKE) distclean)
 
 veryclean:
 	rm -f configure config.h.in *.0
@@ -169,14 +171,19 @@ catman-do:
 
 distprep: catman-do
 	autoreconf
+	(cd scard ; $(MAKE) -f Makefile.in distprep)
 
 install: $(CONFIGFILES) $(MANPAGES) $(TARGETS) install-files host-key
 install-nokeys: $(CONFIGFILES) $(MANPAGES) $(TARGETS) install-files
 
-install-files:
+scard-install:
+	(cd scard; $(MAKE) DESTDIR=$(DESTDIR) install)
+
+install-files: scard-install
 	$(srcdir)/mkinstalldirs $(DESTDIR)$(bindir)
 	$(srcdir)/mkinstalldirs $(DESTDIR)$(sbindir)
 	$(srcdir)/mkinstalldirs $(DESTDIR)$(mandir)
+	$(srcdir)/mkinstalldirs $(DESTDIR)$(datadir)
 	$(srcdir)/mkinstalldirs $(DESTDIR)$(mandir)/$(mansubdir)1
 	$(srcdir)/mkinstalldirs $(DESTDIR)$(mandir)/$(mansubdir)8
 	$(srcdir)/mkinstalldirs $(DESTDIR)$(libexecdir)

@@ -2,6 +2,8 @@
  - (djm) Configure support for smartcards. Based on Ben's work.
  - (djm) Revert setgroups call, it causes problems on OS-X
  - (djm) Avoid warning on BSDgetopt
+ - (djm) More makefile infrastructre for smartcard support, also based
+   on Ben's work
 
 20010917
  - (djm) x11-ssh-askpass-1.2.4 in RPM spec, revert workarounds
@@ -6462,4 +6464,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1527 2001/09/18 05:05:20 djm Exp $
+$Id: ChangeLog,v 1.1528 2001/09/18 05:06:21 djm Exp $
