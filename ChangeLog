@@ -1,3 +1,7 @@
+20040923
+ - (dtucker) [openbsd-compat/bsd-snprintf.c] Previous change was off by one,
+   which could have caused the justification to be wrong.  ok djm@
+
 20040921
  - (dtucker) [openbsd-compat/bsd-snprintf.c] Check for max length too.
    ok djm@
@@ -1750,4 +1754,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3554 2004/09/21 11:35:55 dtucker Exp $
+$Id: ChangeLog,v 1.3555 2004/09/23 11:35:09 dtucker Exp $
