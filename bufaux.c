@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: bufaux.c,v 1.21 2001/12/28 14:13:13 markus Exp $");
+RCSID("$OpenBSD: bufaux.c,v 1.22 2002/01/18 18:14:17 stevesk Exp $");
 
 #include <openssl/bn.h>
 #include "bufaux.h"
@@ -90,7 +90,7 @@ buffer_get_bignum(Buffer *buffer, BIGNUM *value)
 	bytes = (bits + 7) / 8;
 	if (buffer_len(buffer) < bytes)
 		fatal("buffer_get_bignum: input buffer too small");
-	bin = (u_char *) buffer_ptr(buffer);
+	bin = buffer_ptr(buffer);
 	BN_bin2bn(bin, bytes, value);
 	buffer_consume(buffer, bytes);
 }
@@ -133,7 +133,7 @@ buffer_get_bignum2(Buffer *buffer, BIGNUM *value)
 {
 	/**XXX should be two's-complement */
 	int len;
-	u_char *bin = (u_char *)buffer_get_string(buffer, (u_int *)&len);
+	u_char *bin = buffer_get_string(buffer, (u_int *)&len);
 	BN_bin2bn(bin, len, value);
 	xfree(bin);
 }

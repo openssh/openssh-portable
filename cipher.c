@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: cipher.c,v 1.48 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: cipher.c,v 1.49 2002/01/18 18:14:17 stevesk Exp $");
 
 #include "xmalloc.h"
 #include "log.h"
@@ -308,7 +308,7 @@ rijndael_cbc_encrypt(CipherContext *cc, u_char *dest, const u_char *src,
 	if (len % RIJNDAEL_BLOCKSIZE)
 		fatal("rijndael_cbc_encrypt: bad len %d", len);
 	cnow  = dest;
-	plain = (u_char *) src;
+	plain = (u_char *)src;
 	cprev = iv;
 	for (i = 0; i < blocks; i++, plain+=RIJNDAEL_BLOCKSIZE,
 	    cnow+=RIJNDAEL_BLOCKSIZE) {

@@ -204,6 +204,9 @@
    - stevesk@cvs.openbsd.org 2002/01/18 17:14:16
      [sshd.8]
      correct Ciphers default; paola.mannaro@ubs.com
+   - stevesk@cvs.openbsd.org 2002/01/18 18:14:17
+     [authfd.c bufaux.c buffer.c cipher.c packet.c ssh-agent.c ssh-keygen.c]
+     unneeded cast cleanup; ok markus@
 
 20020121
  - (djm) Rework ssh-rand-helper:
@@ -7351,4 +7354,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1780 2002/01/22 12:33:15 djm Exp $
+$Id: ChangeLog,v 1.1781 2002/01/22 12:33:31 djm Exp $

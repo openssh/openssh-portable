@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.84 2002/01/11 10:31:05 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.85 2002/01/18 18:14:17 stevesk Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -130,8 +130,8 @@ packet_set_connection(int fd_in, int fd_out)
 		fatal("packet_set_connection: cannot load cipher 'none'");
 	connection_in = fd_in;
 	connection_out = fd_out;
-	cipher_init(&send_context, none, (u_char *) "", 0, NULL, 0);
-	cipher_init(&receive_context, none, (u_char *) "", 0, NULL, 0);
+	cipher_init(&send_context, none, "", 0, NULL, 0);
+	cipher_init(&receive_context, none, "", 0, NULL, 0);
 	newkeys[MODE_IN] = newkeys[MODE_OUT] = NULL;
 	if (!initialized) {
 		initialized = 1;
