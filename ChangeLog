@@ -1,3 +1,8 @@
+20000326
+ - Better tests for OpenSSL w/ RSAref
+ - Added replacement setenv() function from OpenBSD libc. Suggested by 
+   Ben Lindstrom <mouring@pconline.com>
+
 20000324
  - Released 1.2.3
 
