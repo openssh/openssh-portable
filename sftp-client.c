@@ -28,7 +28,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.35 2002/09/11 22:41:49 djm Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.36 2002/11/05 20:10:37 markus Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -660,7 +660,7 @@ do_symlink(struct sftp_conn *conn, char *oldpath, char *newpath)
 
 	status = get_status(conn->fd_in, id);
 	if (status != SSH2_FX_OK)
-		error("Couldn't rename file \"%s\" to \"%s\": %s", oldpath,
+		error("Couldn't symlink file \"%s\" to \"%s\": %s", oldpath,
 		    newpath, fx2txt(status));
 
 	return(status);

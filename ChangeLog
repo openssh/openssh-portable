@@ -19,6 +19,9 @@
    - markus@cvs.openbsd.org 2002/11/05 19:45:20
      [monitor.c]
      handle overflows for size_t larger than u_int; siw@goneko.de, bug #425
+   - markus@cvs.openbsd.org 2002/11/05 20:10:37
+     [sftp-client.c]
+     typo; GaryF@livevault.com
 
 20021021
  - (djm) Bug #400: Kill ssh-rand-helper children on timeout, patch from 
@@ -796,4 +799,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2505 2002/11/09 15:47:47 mouring Exp $
+$Id: ChangeLog,v 1.2506 2002/11/09 15:48:49 mouring Exp $
