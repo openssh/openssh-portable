@@ -3,7 +3,7 @@
 
 tid="sftp batchfile"
 
-DATA=/bin/ls
+DATA=/bin/ls${EXEEXT}
 COPY=${OBJ}/copy
 BATCH=${OBJ}/sftp-batch
 

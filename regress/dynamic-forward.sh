@@ -5,6 +5,7 @@ tid="dynamic forwarding"
 
 PORT=4242
 FWDPORT=4243
+DATA=/bin/ls${EXEEXT}
 
 if [ -x "`which nc 2>&1`" ] && nc -h 2>&1 | grep "x proxy address" >/dev/null; then
 	proxycmd="nc -x 127.0.0.1:$FWDPORT -X"
@@ -28,9 +29,9 @@ for p in 1 2; do
 		trace "testing ssh protocol $p socks version $s host $h"
 		${SSH} -F $OBJ/ssh_config \
 			-o "ProxyCommand ${proxycmd}${s} $h $PORT" \
-			somehost cat /bin/ls > $OBJ/ls.copy
-		test -f $OBJ/ls.copy	 || fail "failed copy /bin/ls"
-		cmp /bin/ls $OBJ/ls.copy || fail "corrupted copy of /bin/ls"
+			somehost cat $DATA > $OBJ/ls.copy
+		test -f $OBJ/ls.copy	 || fail "failed copy $DATA"
+		cmp $DATA $OBJ/ls.copy || fail "corrupted copy of $DATA"
 	    done
 	done
 
