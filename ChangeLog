@@ -9,6 +9,9 @@
    - markus@cvs.openbsd.org 2001/06/16 08:57:35
      [scp.c]
      no stdio or exit() in signal handlers.
+   - markus@cvs.openbsd.org 2001/06/16 08:58:34
+     [misc.c]
+     copy pw_expire and pw_change, too.
 
 20010615
  - (stevesk) don't set SA_RESTART and set SIGCHLD to SIG_DFL
@@ -5661,4 +5664,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1291 2001/06/21 03:08:58 mouring Exp $
+$Id: ChangeLog,v 1.1292 2001/06/21 03:11:27 mouring Exp $

@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.c,v 1.10 2001/06/16 08:49:38 markus Exp $	*/
+/*	$OpenBSD: misc.c,v 1.11 2001/06/16 08:58:34 markus Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: misc.c,v 1.10 2001/06/16 08:49:38 markus Exp $");
+RCSID("$OpenBSD: misc.c,v 1.11 2001/06/16 08:58:34 markus Exp $");
 
 #include "misc.h"
 #include "log.h"
@@ -131,6 +131,8 @@ pwcopy(struct passwd *pw)
 	copy->pw_gecos = xstrdup(pw->pw_gecos);
 	copy->pw_uid = pw->pw_uid;
 	copy->pw_gid = pw->pw_gid;
+	copy->pw_expire = pw->pw_expire;
+	copy->pw_change = pw->pw_change;
 #ifdef HAVE_PW_CLASS_IN_PASSWD
 	copy->pw_class = xstrdup(pw->pw_class);
 #endif
