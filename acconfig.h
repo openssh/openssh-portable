@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.145 2002/09/26 00:38:48 tim Exp $ */
+/* $Id: acconfig.h,v 1.146 2003/01/07 04:18:33 djm Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -363,6 +363,9 @@
 
 /* Define if your platform needs to skip post auth file descriptor passing */
 #undef DISABLE_FD_PASSING
+
+/* Silly mkstemp() */
+#undef HAVE_STRICT_MKSTEMP
 
 @BOTTOM@
 

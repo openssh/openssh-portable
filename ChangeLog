@@ -3,6 +3,8 @@
    Based on fix from yoshfuji@linux-ipv6.org
  - (djm) Bug #442: Check for and deny access to accounts with locked 
    passwords. Patch from dtucker@zip.com.au
+ - (djm) Bug #26: Use local mkstemp() rather than glibc's silly one. Fixes
+   Can't pass KRB4 TGT passing. Fix from: jan.iven@cern.ch
 
 20030103
  - (djm) Bug #461: ssh-copy-id fails with no arguments. Patch from 
@@ -931,4 +933,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2542 2003/01/07 01:19:32 djm Exp $
+$Id: ChangeLog,v 1.2543 2003/01/07 04:18:32 djm Exp $
