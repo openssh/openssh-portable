@@ -71,7 +71,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.107 2003/06/28 16:23:06 deraadt Exp $");
+RCSID("$OpenBSD: scp.c,v 1.108 2003/07/18 01:54:25 deraadt Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -298,7 +298,7 @@ main(int argc, char **argv)
 	argv += optind;
 
 	if ((pwd = getpwuid(userid = getuid())) == NULL)
-		fatal("unknown user %d", (int) userid);
+		fatal("unknown user %u", (u_int) userid);
 
 	if (!isatty(STDERR_FILENO))
 		showprogress = 0;

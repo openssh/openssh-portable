@@ -12,6 +12,9 @@
    - markus@cvs.openbsd.org 2003/07/16 10:36:28
      [sshtty.c]
      clear IUCLC in enter_raw_mode; from rob@pitman.co.za; ok deraadt@, fgs@
+   - deraadt@cvs.openbsd.org 2003/07/18 01:54:25
+     [scp.c]
+     userid is unsigned, but well, force it anyways; andrushock@korovino.net
 
 20030714
  - (dtucker) [acconfig.h configure.ac port-aix.c] Older AIXes don't declare
@@ -708,4 +711,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2860 2003/07/19 09:56:18 dtucker Exp $
+$Id: ChangeLog,v 1.2861 2003/07/19 10:07:45 dtucker Exp $
