@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.97 2001/06/27 02:12:53 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.98 2001/07/02 13:59:15 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1957,6 +1957,22 @@ session_close_by_pid(pid_t pid, int status)
 	if (s->chanid != -1)
 		session_exit_message(s, status);
 	session_close(s);
+}
+
+int
+session_have_children(void)
+{
+	int i;
+
+	for(i = 0; i < MAX_SESSIONS; i++) {
+		Session *s = &sessions[i];
+		if (s->used && s->pid != -1) {
+			debug("session_have_children: id %d pid %d", i, s->pid);
+			return 1;
+		}
+	}
+	debug("session_have_children: no more children");
+	return 0;
 }
 
 /*
