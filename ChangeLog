@@ -27,6 +27,12 @@
      Patch originally by Dan Astorian, but worked on by several people
      Adds GatewayPorts=clientspecified option on server to allow remote 
      forwards to bind to client-specified ports.
+   - djm@cvs.openbsd.org 2005/03/01 10:40:27
+     [hostfile.c hostfile.h readconf.c readconf.h ssh.1 ssh_config.5]
+     [sshconnect.c sshd.8]
+     add support for hashing host names and addresses added to known_hosts
+     files, to improve privacy of which hosts user have been visiting; ok 
+     markus@ deraadt@
 
 20050226
  - (dtucker) [openbsd-compat/bsd-openpty.c openbsd-compat/inet_ntop.c]
@@ -2203,4 +2209,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3672 2005/03/01 10:24:33 djm Exp $
+$Id: ChangeLog,v 1.3673 2005/03/01 10:47:37 djm Exp $

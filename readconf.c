@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.135 2005/03/01 10:09:52 djm Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.136 2005/03/01 10:40:26 djm Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -106,7 +106,7 @@ typedef enum {
 	oEnableSSHKeysign, oRekeyLimit, oVerifyHostKeyDNS, oConnectTimeout,
 	oAddressFamily, oGssAuthentication, oGssDelegateCreds,
 	oServerAliveInterval, oServerAliveCountMax, oIdentitiesOnly,
-	oSendEnv, oControlPath, oControlMaster,
+	oSendEnv, oControlPath, oControlMaster, oHashKnownHosts,
 	oDeprecated, oUnsupported
 } OpCodes;
 
@@ -197,6 +197,7 @@ static struct {
 	{ "sendenv", oSendEnv },
 	{ "controlpath", oControlPath },
 	{ "controlmaster", oControlMaster },
+	{ "hashknownhosts", oHashKnownHosts },
 	{ NULL, oBadOption }
 };
 
@@ -790,6 +791,10 @@ parse_int:
 		intptr = &options->control_master;
 		goto parse_yesnoask;
 
+	case oHashKnownHosts:
+		intptr = &options->hash_known_hosts;
+		goto parse_flag;
+
 	case oDeprecated:
 		debug("%s line %d: Deprecated option \"%s\"",
 		    filename, linenum, keyword);
@@ -933,6 +938,7 @@ initialize_options(Options * options)
 	options->num_send_env = 0;
 	options->control_path = NULL;
 	options->control_master = -1;
+	options->hash_known_hosts = -1;
 }
 
 /*
@@ -1055,6 +1061,8 @@ fill_default_options(Options * options)
 		options->server_alive_count_max = 3;
 	if (options->control_master == -1)
 		options->control_master = 0;
+	if (options->hash_known_hosts == -1)
+		options->hash_known_hosts = 0;
 	/* options->proxy_command should not be set by default */
 	/* options->user will be set in the main program if appropriate */
 	/* options->hostname will be set in the main program if appropriate */

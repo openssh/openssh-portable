@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.159 2005/01/05 08:51:32 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.160 2005/03/01 10:40:27 djm Exp $");
 
 #include <openssl/bn.h>
 
@@ -678,7 +678,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 				    "'%.128s' not in list of known hosts.",
 				    type, ip);
 			else if (!add_host_to_hostfile(user_hostfile, ip,
-			    host_key))
+			    host_key, options.hash_known_hosts))
 				logit("Failed to add the %s host key for IP "
 				    "address '%.128s' to the list of known "
 				    "hosts (%.30s).", type, ip, user_hostfile);
@@ -744,7 +744,8 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 		 * If not in strict mode, add the key automatically to the
 		 * local known_hosts file.
 		 */
-		if (!add_host_to_hostfile(user_hostfile, hostp, host_key))
+		if (!add_host_to_hostfile(user_hostfile, hostp, host_key,
+		    options.hash_known_hosts))
 			logit("Failed to add the host to the list of known "
 			    "hosts (%.500s).", user_hostfile);
 		else

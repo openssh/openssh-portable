@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.204 2005/02/25 10:55:13 jmc Exp $
+.\" $OpenBSD: sshd.8,v 1.205 2005/03/01 10:40:27 djm Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -553,6 +553,14 @@ to indicate negation: if the host name matches a negated
 pattern, it is not accepted (by that line) even if it matched another
 pattern on the line.
 .Pp
+Alternately, hostnames may be stored in a hashed form which hides host names
+and addresses should the file's contents be disclosed. Hashed hostnames start
+with a 
+.Ql \&|
+character.
+Only one hashed hostname may appear on a single line and none of the above
+negation or wildcard operators may be applied.
+.Pp
 Bits, exponent, and modulus are taken directly from the RSA host key; they
 can be obtained, e.g., from
 .Pa /etc/ssh/ssh_host_key.pub .
@@ -583,6 +591,11 @@ and adding the host names at the front.
 .Bd -literal
 closenet,...,130.233.208.41 1024 37 159...93 closenet.hut.fi
 cvs.openbsd.org,199.185.137.3 ssh-rsa AAAA1234.....=
+.Ed
+.Bd -literal
+# A hashed hostname
+|1|JfKTdBh7rNbXkVAQCRp4OQoPfmI=|USECr3SWf1JUPsms5AqfD5QfxkM= ssh-rsa
+AAAA1234.....=
 .Ed
 .Sh FILES
 .Bl -tag -width Ds
