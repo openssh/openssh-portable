@@ -56,6 +56,8 @@ RCSID("$OpenBSD: session.c,v 1.128 2002/02/16 00:51:44 markus Exp $");
 #include "serverloop.h"
 #include "canohost.h"
 #include "session.h"
+#include "monitor.h"
+#include "monitor_wrap.h"
 
 #ifdef HAVE_CYGWIN
 #include <windows.h>
@@ -63,39 +65,15 @@ RCSID("$OpenBSD: session.c,v 1.128 2002/02/16 00:51:44 markus Exp $");
 #define is_winnt       (GetVersion() < 0x80000000)
 #endif
 
-/* types */
-
-#define TTYSZ 64
-typedef struct Session Session;
-struct Session {
-	int	used;
-	int	self;
-	struct passwd *pw;
-	Authctxt *authctxt;
-	pid_t	pid;
-	/* tty */
-	char	*term;
-	int	ptyfd, ttyfd, ptymaster;
-	int	row, col, xpixel, ypixel;
-	char	tty[TTYSZ];
-	/* X11 */
-	int	display_number;
-	char	*display;
-	int	screen;
-	char	*auth_display;
-	char	*auth_proto;
-	char	*auth_data;
-	int	single_connection;
-	/* proto 2 */
-	int	chanid;
-	int	is_subsystem;
-};
+/* Imports */
+extern int use_privsep;
+extern int mm_recvfd;
 
 /* func */
 
 Session *session_new(void);
 void	session_set_fds(Session *, int, int, int);
-static void	session_pty_cleanup(void *);
+void	session_pty_cleanup(void *);
 void	session_proctitle(Session *);
 int	session_setup_x11fwd(Session *);
 void	do_exec_pty(Session *, const char *);
@@ -112,7 +90,6 @@ int	check_quietlogin(Session *, const char *);
 static void do_authenticated1(Authctxt *);
 static void do_authenticated2(Authctxt *);
 
-static void session_close(Session *);
 static int session_pty_req(Session *);
 
 /* import */
@@ -1448,7 +1425,8 @@ session_pty_req(Session *s)
 {
 	u_int len;
 	int n_bytes;
-
+	int res;
+	
 	if (no_pty_flag) {
 		debug("Allocating a pty not permitted for this authentication.");
 		return 0;
@@ -1477,7 +1455,15 @@ session_pty_req(Session *s)
 
 	/* Allocate a pty and open it. */
 	debug("Allocating pty.");
-	if (!pty_allocate(&s->ptyfd, &s->ttyfd, s->tty, sizeof(s->tty))) {
+	if (!use_privsep) {
+		res = pty_allocate(&s->ptyfd, &s->ttyfd, s->tty,
+			sizeof(s->tty));
+		if (res)
+			pty_setowner(s->pw, s->tty);
+	} else 
+		res = mm_pty_allocown(mm_recvfd,
+		    &s->ptyfd, &s->ttyfd, s->tty, sizeof(s->tty));
+	if (!res) {
 		if (s->term)
 			xfree(s->term);
 		s->term = NULL;
@@ -1498,7 +1484,6 @@ session_pty_req(Session *s)
 	 * time in case we call fatal() (e.g., the connection gets closed).
 	 */
 	fatal_add_cleanup(session_pty_cleanup, (void *)s);
-	pty_setowner(s->pw, s->tty);
 
 	/* Set window size from the packet. */
 	pty_change_window_size(s->ptyfd, s->row, s->col, s->xpixel, s->ypixel);
@@ -1661,7 +1646,7 @@ session_set_fds(Session *s, int fdin, int fdout, int fderr)
  * Function to perform pty cleanup. Also called if we get aborted abnormally
  * (e.g., due to a dropped connection).
  */
-static void
+void
 session_pty_cleanup(void *session)
 {
 	Session *s = session;
@@ -1739,7 +1724,7 @@ session_exit_message(Session *s, int status)
 	s->chanid = -1;
 }
 
-static void
+void
 session_close(Session *s)
 {
 	debug("session_close: session %d pid %d", s->self, s->pid);

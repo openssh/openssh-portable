@@ -26,6 +26,32 @@
 #ifndef SESSION_H
 #define SESSION_H
 
+#define TTYSZ 64
+typedef struct Session Session;
+struct Session {
+	int	used;
+	int	self;
+	struct passwd *pw;
+	Authctxt *authctxt;
+	pid_t	pid;
+	/* tty */
+	char	*term;
+	int	ptyfd, ttyfd, ptymaster;
+	int	row, col, xpixel, ypixel;
+	char	tty[TTYSZ];
+	/* X11 */
+	int	display_number;
+	char	*display;
+	int	screen;
+	char	*auth_display;
+	char	*auth_proto;
+	char	*auth_data;
+	int	single_connection;
+	/* proto 2 */
+	int	chanid;
+	int	is_subsystem;
+};
+
 void	 do_authenticated(Authctxt *);
 
 int	 session_open(Authctxt*, int);
@@ -34,4 +60,6 @@ void	 session_close_by_pid(pid_t, int);
 void	 session_close_by_channel(int, void *);
 void	 session_destroy_all(void);
 
+Session	*session_new(void);
+void	 session_close(Session *);
 #endif
