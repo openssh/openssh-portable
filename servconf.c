@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.97 2002/01/04 18:14:16 stevesk Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.98 2002/01/22 02:52:41 stevesk Exp $");
 
 #if defined(KRB4) || defined(KRB5)
 #include <krb.h>
@@ -429,7 +429,7 @@ process_server_config_line(ServerOptions *options, char *line,
 			return 0;
 		if (options->listen_addrs != NULL)
 			fatal("%s line %d: ports must be specified before "
-			    "ListenAdress.", filename, linenum);
+			    "ListenAddress.", filename, linenum);
 		if (options->num_ports >= MAX_PORTS)
 			fatal("%s line %d: too many ports.",
 			    filename, linenum);
