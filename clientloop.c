@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.53 2001/03/06 01:08:27 millert Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.54 2001/04/04 00:06:53 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -73,6 +73,7 @@ RCSID("$OpenBSD: clientloop.c,v 1.53 2001/03/06 01:08:27 millert Exp $");
 #include "buffer.h"
 #include "bufaux.h"
 #include "key.h"
+#include "kex.h"
 #include "log.h"
 #include "readconf.h"
 #include "clientloop.h"
@@ -129,6 +130,9 @@ static int connection_out;	/* Connection to server (output). */
 
 void	client_init_dispatch(void);
 int	session_ident = -1;
+
+/*XXX*/
+extern Kex *xxx_kex;
 
 /* Returns the user\'s terminal to normal mode if it had been put in raw mode. */
 
@@ -548,6 +552,11 @@ process_escapes(Buffer *bin, Buffer *bout, Buffer *berr, char *buf, int len)
 				/* We have been continued. */
 				continue;
 
+			case 'R':
+				debug("Rekeying");
+				kex_send_kexinit(xxx_kex);
+				continue;
+
 			case '&':
 				/* XXX does not work yet with proto 2 */
 				if (compat20)
@@ -762,7 +771,7 @@ client_process_output(fd_set * writeset)
 void
 client_process_buffered_input_packets(void)
 {
-	dispatch_run(DISPATCH_NONBLOCK, &quit_pending, NULL);
+	dispatch_run(DISPATCH_NONBLOCK, &quit_pending, compat20 ? xxx_kex : NULL);
 }
 
 /* scan buf[] for '~' before sending data to the peer */
@@ -1196,7 +1205,10 @@ client_input_channel_req(int type, int plen, void *ctxt)
 void
 client_init_dispatch_20(void)
 {
-	dispatch_init(&dispatch_protocol_error);
+	int i;
+	/* dispatch_init(&dispatch_protocol_error); */
+	for (i = 50; i <= 254; i++)
+		dispatch_set(i, &dispatch_protocol_error);
 	dispatch_set(SSH2_MSG_CHANNEL_CLOSE, &channel_input_oclose);
 	dispatch_set(SSH2_MSG_CHANNEL_DATA, &channel_input_data);
 	dispatch_set(SSH2_MSG_CHANNEL_EOF, &channel_input_ieof);

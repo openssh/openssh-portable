@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.62 2001/04/03 23:32:12 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.63 2001/04/04 00:06:54 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -69,6 +69,8 @@ int session_id2_len = 0;
 char *xxx_host;
 struct sockaddr *xxx_hostaddr;
 
+Kex *xxx_kex = NULL;
+
 int
 check_host_key_callback(Key *hostkey)
 {
@@ -113,6 +115,8 @@ ssh_kex2(char *host, struct sockaddr *hostaddr)
 	kex->client_version_string=client_version_string;
 	kex->server_version_string=server_version_string;
 	kex->check_host_key=&check_host_key_callback;
+
+	xxx_kex = kex;
 
 	/* start key exchange */
 	dispatch_run(DISPATCH_BLOCK, &kex->newkeys, kex);
