@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor_wrap.c,v 1.33 2003/10/11 11:36:23 markus Exp $");
+RCSID("$OpenBSD: monitor_wrap.c,v 1.34 2003/10/15 09:48:45 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dh.h>
@@ -73,7 +73,7 @@ mm_is_monitor(void)
 	 * m_pid is only set in the privileged part, and
 	 * points to the unprivileged child.
 	 */
-	return (pmonitor->m_pid > 0);
+	return (pmonitor && pmonitor->m_pid > 0);
 }
 
 void

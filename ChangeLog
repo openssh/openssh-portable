@@ -2,6 +2,10 @@
  - (dtucker) [contrib/cygwin/ssh-host-config] Ensure entries in /etc/services
    are created correctly with CRLF line terminations.  Patch from vinschen at
    redhat.com.
+ - (dtucker) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2003/10/15 09:48:45
+     [monitor_wrap.c]
+     check pmonitor != NULL
 
 20031021
  - (dtucker) [INSTALL] Some system crypt() functions support MD5 passwords
@@ -1376,4 +1380,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3086 2003/11/03 07:59:29 dtucker Exp $
+$Id: ChangeLog,v 1.3087 2003/11/03 09:03:25 dtucker Exp $
