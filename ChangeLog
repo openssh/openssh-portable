@@ -7,6 +7,8 @@
    searching libraries for it.  Fixes build errors on NCR MP-RAS.
  - (dtucker) [configure.ac] Define STREAMS_PUSH_ACQUIRES_CTTY for NCR MP-RAS
    and Reliant Unix.  Fixes "can't set controlling tty errors".
+ - (dtucker) [openbsd-compat/realpath.c] strcat -> strlcat, rootd -> needslash
+   to fix check for ENAMETOOLONG (OpenBSD realpath.c rev 1.10).
 
 20030429
  - (djm) Add back radix.o (used by AFS support), after it went missing from
@@ -1312,4 +1314,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2648.2.4 2003/08/21 06:16:21 dtucker Exp $
+$Id: ChangeLog,v 1.2648.2.5 2003/08/21 06:41:41 dtucker Exp $
