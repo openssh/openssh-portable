@@ -244,7 +244,7 @@ enum
 #endif
 
 #ifndef _PATH_STDPATH
-# define _PATH_STDPATH "/usr/bin:/bin:/usr/sbin:/sbin:"
+# define _PATH_STDPATH "/usr/bin:/bin:/usr/sbin:/sbin"
 #endif
 
 #ifndef _PATH_DEVNULL
