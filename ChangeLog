@@ -1,6 +1,10 @@
 20050305
  - (djm) [contrib/cygwin/README] Improve Cygwin build documentation. Patch 
    from vinschen at redhat.com
+ - (djm) OpenBSD CVS Sync
+   - jmc@cvs.openbsd.org 2005/03/02 11:45:01
+     [ssh.1]
+     missing word;
 
 20050302
  - (djm) OpenBSD CVS sync:
@@ -2270,4 +2274,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3689 2005/03/05 00:20:40 djm Exp $
+$Id: ChangeLog,v 1.3690 2005/03/05 00:22:36 djm Exp $
