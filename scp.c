@@ -71,7 +71,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.110 2003/10/08 08:27:36 jmc Exp $");
+RCSID("$OpenBSD: scp.c,v 1.111 2003/11/12 10:12:15 dtucker Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -273,6 +273,7 @@ main(int argc, char **argv)
 			verbose_mode = 1;
 			break;
 		case 'q':
+			addargs(&args, "-q");
 			showprogress = 0;
 			break;
 
