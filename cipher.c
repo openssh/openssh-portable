@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: cipher.c,v 1.43 2001/02/04 15:32:23 stevesk Exp $");
+RCSID("$OpenBSD: cipher.c,v 1.44 2001/05/28 22:51:10 markus Exp $");
 
 #include "xmalloc.h"
 #include "log.h"
@@ -100,6 +100,7 @@ des3_setkey(CipherContext *cc, const u_char *key, u_int keylen)
 void
 des3_setiv(CipherContext *cc, const u_char *iv, u_int ivlen)
 {
+	memset(cc->u.des3.iv1, 0, sizeof(cc->u.des3.iv1));
 	memset(cc->u.des3.iv2, 0, sizeof(cc->u.des3.iv2));
 	memset(cc->u.des3.iv3, 0, sizeof(cc->u.des3.iv3));
 	if (iv == NULL)
@@ -149,29 +150,23 @@ void
 des3_ssh1_encrypt(CipherContext *cc, u_char *dest, const u_char *src,
     u_int len)
 {
-	des_cblock iv1;
-	des_cblock *iv2 = &cc->u.des3.iv2;
-	des_cblock *iv3 = &cc->u.des3.iv3;
-
-	memcpy(&iv1, iv2, 8);
-
-	des_ncbc_encrypt(src,  dest, len, cc->u.des3.key1, &iv1, DES_ENCRYPT);
-	des_ncbc_encrypt(dest, dest, len, cc->u.des3.key2, iv2, DES_DECRYPT);
-	des_ncbc_encrypt(dest, dest, len, cc->u.des3.key3, iv3, DES_ENCRYPT);
+	des_ncbc_encrypt(src,  dest, len, cc->u.des3.key1, &cc->u.des3.iv1,
+	    DES_ENCRYPT);
+	des_ncbc_encrypt(dest, dest, len, cc->u.des3.key2, &cc->u.des3.iv2,
+	    DES_DECRYPT);
+	des_ncbc_encrypt(dest, dest, len, cc->u.des3.key3, &cc->u.des3.iv3,
+	    DES_ENCRYPT);
 }
 void
 des3_ssh1_decrypt(CipherContext *cc, u_char *dest, const u_char *src,
     u_int len)
 {
-	des_cblock iv1;
-	des_cblock *iv2 = &cc->u.des3.iv2;
-	des_cblock *iv3 = &cc->u.des3.iv3;
-
-	memcpy(&iv1, iv2, 8);
-
-	des_ncbc_encrypt(src,  dest, len, cc->u.des3.key3, iv3, DES_DECRYPT);
-	des_ncbc_encrypt(dest, dest, len, cc->u.des3.key2, iv2, DES_ENCRYPT);
-	des_ncbc_encrypt(dest, dest, len, cc->u.des3.key1, &iv1, DES_DECRYPT);
+	des_ncbc_encrypt(src,  dest, len, cc->u.des3.key3, &cc->u.des3.iv3,
+	    DES_DECRYPT);
+	des_ncbc_encrypt(dest, dest, len, cc->u.des3.key2, &cc->u.des3.iv2,
+	    DES_ENCRYPT);
+	des_ncbc_encrypt(dest, dest, len, cc->u.des3.key1, &cc->u.des3.iv1,
+	    DES_DECRYPT);
 }
 
 /* Blowfish */
