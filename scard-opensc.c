@@ -135,7 +135,11 @@ sc_prkey_op_init(RSA *rsa, struct sc_pkcs15_object **key_obj_out)
 					  &pin_obj);
 	if (r == SC_ERROR_OBJECT_NOT_FOUND) {
 		/* no pin required */
-		sc_lock(card);
+		r = sc_lock(card);
+		if (r) {
+			error("Unable to lock smartcard: %s", sc_strerror(r));
+			goto err;
+		}
 		*key_obj_out = key_obj;
 		return 0;
 	} else if (r) {
@@ -429,9 +433,14 @@ sc_get_keys(const char *id, const char *pin)
 		}
 		key_count = r;
 	}
-	/* FIXME: only keep entries with a corresponding private key */
 	keys = xmalloc(sizeof(Key *) * (key_count*2+1));
 	for (i = 0; i < key_count; i++) {
+		sc_pkcs15_object_t *tmp_obj = NULL;
+		cert_id = ((sc_pkcs15_cert_info_t *)(certs[i]->data))->id;
+		if (sc_pkcs15_find_prkey_by_id(p15card, &cert_id, &tmp_obj))
+			/* skip the public key (certificate) if no
+			 * corresponding private key is present */
+			continue;
 		k = key_new(KEY_RSA);
 		if (k == NULL)
 			break;
