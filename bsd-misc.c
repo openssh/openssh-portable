@@ -121,7 +121,6 @@ void arc4random_stir(void)
 
 	seed_rng();
 	RAND_bytes(rand_buf, sizeof(rand_buf));
-	seed_rng();
 	
 	rc4_key(rc4, rand_buf, sizeof(rand_buf));
 	memset(rand_buf, 0, sizeof(rand_buf));

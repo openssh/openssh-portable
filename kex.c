@@ -28,7 +28,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: kex.c,v 1.1 2000/04/04 04:39:02 damien Exp $");
+RCSID("$Id: kex.c,v 1.2 2000/04/04 04:57:08 damien Exp $");
 
 #include "ssh.h"
 #include "ssh2.h"
@@ -111,7 +111,6 @@ new_dh_group1()
 	seed_rng();
 	if (DH_generate_key(dh) == 0)
 		fatal("DH_generate_key");
-	seed_rng();
 
 	return dh;
 }

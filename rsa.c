@@ -35,7 +35,7 @@
 */
 
 #include "includes.h"
-RCSID("$Id: rsa.c,v 1.12 2000/04/03 04:50:46 damien Exp $");
+RCSID("$Id: rsa.c,v 1.13 2000/04/04 04:57:08 damien Exp $");
 
 #include "rsa.h"
 #include "ssh.h"
@@ -95,8 +95,6 @@ rsa_generate_key(RSA *prv, RSA *pub, unsigned int bits)
 	}
 	if (key == NULL)
 		fatal("rsa_generate_key: key generation failed.");
-
-	seed_rng();
 
 	/* Copy public key parameters */
 	pub->n = BN_new();
