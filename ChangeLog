@@ -31,6 +31,7 @@
      - more strict prototypes, include necessary headers
      - use paths.h/pathnames.h decls
      - size_t typecase to int -> u_long
+ - (bal) Missing 'const' in readpass.h
 
 20010208
  - (djm) Don't delete external askpass program in make uninstall target.
@@ -3684,4 +3685,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.705 2001/02/09 02:11:24 mouring Exp $
+$Id: ChangeLog,v 1.706 2001/02/09 02:23:10 mouring Exp $

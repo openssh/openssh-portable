@@ -17,4 +17,4 @@
  * passphrase (allocated with xmalloc).  Exits if EOF is encountered. If
  * from_stdin is true, the passphrase will be read from stdin instead.
  */
-char   *read_passphrase(char *prompt, int from_stdin);
+char   *read_passphrase(const char *prompt, int from_stdin);
