@@ -42,14 +42,12 @@ RCSID("$OpenBSD: auth-passwd.c,v 1.27 2002/05/24 16:45:16 stevesk Exp $");
 #include "log.h"
 #include "servconf.h"
 #include "auth.h"
+#include "canohost.h"
 
 #if !defined(HAVE_OSF_SIA)
 /* Don't need any of these headers for the SIA cases */
 # ifdef HAVE_CRYPT_H
 #  include <crypt.h>
-# endif
-# ifdef WITH_AIXAUTHENTICATE
-#  include <login.h>
 # endif
 # ifdef __hpux
 #  include <hpsecurity.h>

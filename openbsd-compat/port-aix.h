@@ -26,6 +26,15 @@
 
 #ifdef _AIX
 
+#ifdef WITH_AIXAUTHENTICATE
+# include <login.h>
+# include <userpw.h>
+# include <usersec.h>
+# ifdef HAVE_SYS_AUDIT_H
+#  include <sys/audit.h>
+# endif
+#endif
+
 /* AIX 4.2.x doesn't have nanosleep but does have nsleep which is equivalent */
 #if !defined(HAVE_NANOSLEEP) && defined(HAVE_NSLEEP)
 # define nanosleep(a,b) nsleep(a,b)

@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.131 2003/07/07 09:44:01 dtucker Exp $
+# $Id: configure.ac,v 1.132 2003/07/08 10:52:13 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -75,12 +75,25 @@ case "$host" in
 		AC_MSG_RESULT($blibflags)
 	fi
 	LDFLAGS="$saved_LDFLAGS"
-	AC_CHECK_FUNC(authenticate, [AC_DEFINE(WITH_AIXAUTHENTICATE)],
+	# Check for authenticate.  Might be in libs.a on older AIXes
+	AC_CHECK_FUNC(authenticate, [with_aixauthenticate=1],
 		[AC_CHECK_LIB(s,authenticate,
-			[ AC_DEFINE(WITH_AIXAUTHENTICATE)
+			[ 	with_aixaixauthenticate=1
 				LIBS="$LIBS -ls"
 			])
 		])
+	# Check if loginfailed takes 3 arguments (AIX <= 5.1)
+	if (test "x$with_aixauthenticate" = "x1" ); then
+		AC_DEFINE(WITH_AIXAUTHENTICATE)
+		AC_MSG_CHECKING(if loginfailed takes 3 arguments)
+		AC_TRY_COMPILE(
+			[#include <usersec.h>],
+			[(void)loginfailed("user","host","tty");],
+ 			[AC_MSG_RESULT(yes)
+			 AC_DEFINE(AIX_LOGINFAILED_3ARG)],
+			[AC_MSG_RESULT(no)]
+		)
+	fi
 	AC_DEFINE(BROKEN_GETADDRINFO)
 	AC_DEFINE(BROKEN_REALPATH)
 	dnl AIX handles lastlog as part of its login message
@@ -456,8 +469,8 @@ AC_CHECK_HEADERS(bstring.h crypt.h endian.h features.h floatingpoint.h \
 	login_cap.h maillock.h netdb.h netgroup.h \
 	netinet/in_systm.h paths.h pty.h readpassphrase.h \
 	rpc/types.h security/pam_appl.h shadow.h stddef.h stdint.h \
-	strings.h sys/strtio.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h \
-	sys/mman.h sys/pstat.h sys/select.h sys/stat.h \
+	strings.h sys/strtio.h sys/audit.h sys/bitypes.h sys/bsdtty.h \
+	sys/cdefs.h sys/mman.h sys/pstat.h sys/select.h sys/stat.h \
 	sys/stropts.h sys/sysmacros.h sys/time.h sys/timers.h \
 	sys/un.h time.h tmpdir.h ttyent.h usersec.h \
 	util.h utime.h utmp.h utmpx.h)

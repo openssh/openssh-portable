@@ -1215,7 +1215,7 @@ do_setusercontext(struct passwd *pw)
 	{
 
 #ifdef HAVE_SETPCRED
-		setpcred(pw->pw_name);
+		setpcred(pw->pw_name, (char **)NULL);
 #endif /* HAVE_SETPCRED */
 #ifdef HAVE_LOGIN_CAP
 # ifdef __bsdi__

@@ -70,7 +70,11 @@ record_failed_login(const char *user, const char *ttyname)
 {
 	char *hostname = get_canonical_hostname(options.use_dns);
 
-	loginfailed(user, hostname, ttyname);
+#  ifdef AIX_LOGINFAILED_3ARG
+	loginfailed((char *)user, hostname, (char *)ttyname);
+#  else
+	loginfailed((char *)user, hostname, (char *)ttyname, AUDIT_FAIL_AUTH);
+#  endif
 }
 # endif /* CUSTOM_FAILED_LOGIN */
 #endif /* _AIX */
