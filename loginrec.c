@@ -170,7 +170,7 @@
 #include "xmalloc.h"
 #include "loginrec.h"
 
-RCSID("$Id: loginrec.c,v 1.5 2000/06/12 22:21:44 andre Exp $");
+RCSID("$Id: loginrec.c,v 1.6 2000/06/13 11:23:17 djm Exp $");
 
 /**
  ** prototypes for helper functions in this file
@@ -438,7 +438,7 @@ line_fullname(char *dst, const char *src, int dstsize)
 	if ((strncmp(src, "/dev/", 5) == 0) || (dstsize < (strlen(src) + 5)))
 		strlcpy(dst, src, dstsize);
 	else {
-		strlcpy(dst, "/dev/", 5);
+		strlcpy(dst, "/dev/", dstsize);
 		strlcat(dst, src, dstsize);
 	}
 	return dst;
@@ -958,9 +958,9 @@ wtmp_get_entry(struct logininfo *li)
 			li->tv_sec = ut.ut_tv.tv_sec;
 #  endif
 #endif
-			line_fullname(li->line, ut.ut_line, sizeof(ut.ut_line));
+			line_fullname(li->line, ut.ut_line, sizeof(li->line));
 #ifdef HAVE_HOST_IN_UTMP
-			strlcpy(li->hostname, ut.ut_host, sizeof(ut.ut_host));
+			strlcpy(li->hostname, ut.ut_host, sizeof(li->hostname));
 #endif
 		}
 		if (lseek(fd, (off_t)(0-2*sizeof(struct utmp)), SEEK_CUR) == -1) {
@@ -1096,9 +1096,9 @@ wtmpx_get_entry(struct logininfo *li)
 			li->tv_sec = utx.ut_time;
 #  endif
 #endif
-			line_fullname(li->line, utx.ut_line, sizeof(utx.ut_line));
+			line_fullname(li->line, utx.ut_line, sizeof(li->line));
 #ifdef HAVE_HOST_IN_UTMPX
-			strlcpy(li->hostname, utx.ut_host, sizeof(utx.ut_line));
+			strlcpy(li->hostname, utx.ut_host, sizeof(li->hostname));
 #endif
 		}
 		if (lseek(fd, (off_t)(0-2*sizeof(struct utmpx)), SEEK_CUR) == -1) {

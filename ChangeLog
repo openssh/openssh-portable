@@ -2,6 +2,8 @@
  - (djm) Fixes from Andrew McGill <andrewm@datrix.co.za>:
   - Platform define for SCO 3.x which breaks on /dev/ptmx
   - Detect and try to fix missing MAXPATHLEN
+ - (djm) Fix short copy in loginrec.c (based on patch from Phill Camp
+   <P.S.S.Camp@ukc.ac.uk>
 
 20000612
  - (djm) Glob manpages in RPM spec files to catch compressed files

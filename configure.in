@@ -1162,4 +1162,3 @@ fi
 
 AC_OUTPUT(Makefile ssh_prng_cmds)
 
-

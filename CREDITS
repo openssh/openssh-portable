@@ -47,6 +47,7 @@ Niels Kristian Bech Jensen <nkbj@image.dk> - Assorted patches
 Peter Kocks <peter.kocks@baygate.com> - Makefile fixes
 Phil Hands <phil@hands.com> - Debian scripts, assorted patches
 Phil Karn <karn@ka9q.ampr.org> - Autoconf fix
+Phill Camp <P.S.S.Camp@ukc.ac.uk> - login code fix
 SAKAI Kiyotaka <ksakai@kso.netwk.ntt-at.co.jp> - Multiple bugfixes
 Simon Wilkinson <sxw@dcs.ed.ac.uk> - PAM fixes
 Thomas Neumann <tom@smart.ruhr.de> - Shadow passwords
