@@ -31,7 +31,7 @@
  * SUCH DAMAGE.
  */
 #include "config.h"
-#if !defined(HAVE_STRVIS)
+#if !defined(HAVE_STRNVIS)
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char rcsid[] = "$OpenBSD: vis.c,v 1.8 2002/02/19 19:39:36 millert Exp $";

@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.100 2003/01/13 05:55:23 djm Exp $
+# $Id: configure.ac,v 1.101 2003/01/16 23:31:38 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -606,7 +606,7 @@ AC_CHECK_FUNCS(arc4random b64_ntop bcopy bindresvport_sa \
 	realpath recvmsg rresvport_af sendmsg setdtablesize setegid \
 	setenv seteuid setgroups setlogin setproctitle setresgid setreuid \
 	setrlimit setsid setpcred setvbuf sigaction sigvec snprintf \
-	socketpair strerror strlcat strlcpy strmode strvis sysconf \
+	socketpair strerror strlcat strlcpy strmode strnvis sysconf \
 	tcgetpgrp truncate utimes vhangup vsnprintf waitpid __b64_ntop \
 	_getpty)
 

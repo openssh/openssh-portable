@@ -36,7 +36,7 @@
  *	@(#)vis.h	5.9 (Berkeley) 4/3/91
  */
 #include "config.h"
-#if !defined(HAVE_STRVIS)
+#if !defined(HAVE_STRNVIS)
 
 #ifndef _VIS_H_
 #define	_VIS_H_
@@ -88,4 +88,4 @@ int	unvis(char *, char, int *, int);
 
 #endif /* !_VIS_H_ */
 
-#endif /* !HAVE_STRVIS */
+#endif /* !HAVE_STRNVIS */
