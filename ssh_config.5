@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.22 2003/10/11 08:24:08 markus Exp $
+.\" $OpenBSD: ssh_config.5,v 1.23 2003/10/12 13:12:13 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -186,7 +186,6 @@ Specifies the ciphers allowed for protocol version 2
 in order of preference.
 Multiple ciphers must be comma-separated.
 The default is
-.Pp
 .Bd -literal
   ``aes128-cbc,3des-cbc,blowfish-cbc,cast128-cbc,arcfour,
     aes192-cbc,aes256-cbc''
@@ -260,6 +259,7 @@ or
 .Dq no .
 The default is
 .Dq no .
+This option should be placed in the non-hostspecific section.
 See
 .Xr ssh-keysign 8
 for more information.
