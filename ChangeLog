@@ -38,6 +38,9 @@
    - markus@cvs.openbsd.org 2003/09/01 12:50:46
      [readconf.c]
      rm gssapidelegatecreds alias; never supported before
+   - markus@cvs.openbsd.org 2003/09/01 13:52:18
+     [ssh.h]
+     rm whitespace
 
 20030829
  - (bal) openbsd-compat/ clean up.  Considate headers, add in Id on our
@@ -953,4 +956,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2930 2003/09/02 12:57:27 djm Exp $
+$Id: ChangeLog,v 1.2931 2003/09/02 12:57:54 djm Exp $

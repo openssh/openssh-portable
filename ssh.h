@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh.h,v 1.73 2003/07/22 13:35:22 markus Exp $	*/
+/*	$OpenBSD: ssh.h,v 1.74 2003/09/01 13:52:18 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -104,4 +104,3 @@
 #define SSH_RSA_MINIMUM_MODULUS_SIZE	768
 
 #endif				/* SSH_H */
-
