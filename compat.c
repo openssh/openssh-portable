@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: compat.c,v 1.68 2003/08/22 10:56:09 markus Exp $");
+RCSID("$OpenBSD: compat.c,v 1.69 2003/08/29 10:03:15 markus Exp $");
 
 #include "buffer.h"
 #include "packet.h"
@@ -135,12 +135,9 @@ compat_datafellows(const char *version)
 		  "1.2.19*,"
 		  "1.2.20*,"
 		  "1.2.21*,"
-		  "1.2.22*",		SSH_BUG_IGNOREMSG|SSH_BUG_K5USER },
+		  "1.2.22*",		SSH_BUG_IGNOREMSG },
 		{ "1.3.2*",		/* F-Secure */
-					SSH_BUG_IGNOREMSG|SSH_BUG_K5USER },
-		{ "1.2.1*,"
-		  "1.2.2*,"
-		  "1.2.3*",		SSH_BUG_K5USER },
+					SSH_BUG_IGNOREMSG },
 		{ "*SSH Compatible Server*",			/* Netscreen */
 					SSH_BUG_PASSWORDPAD },
 		{ "*OSU_0*,"
