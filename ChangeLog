@@ -1,3 +1,9 @@
+20050403
+ - (djm) OpenBSD CVS Sync
+   - deraadt@cvs.openbsd.org 2005/03/31 18:39:21
+     [scp.c]
+     copy argv[] element instead of smashing the one that ps will see; ok otto
+
 20050331
  - (dtucker) OpenBSD CVS Sync
    - jmc@cvs.openbsd.org 2005/03/16 11:10:38
@@ -2408,4 +2414,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3734 2005/03/31 13:52:04 dtucker Exp $
+$Id: ChangeLog,v 1.3735 2005/04/03 00:16:11 djm Exp $
