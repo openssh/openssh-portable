@@ -161,7 +161,7 @@
 #include "xmalloc.h"
 #include "loginrec.h"
 
-RCSID("$Id: loginrec.c,v 1.25 2000/09/23 03:12:25 djm Exp $");
+RCSID("$Id: loginrec.c,v 1.26 2000/09/30 10:34:44 djm Exp $");
 
 /**
  ** prototypes for helper functions in this file
@@ -494,9 +494,9 @@ char *
 line_fullname(char *dst, const char *src, int dstsize)
 {
 	memset(dst, '\0', dstsize);
-	if ((strncmp(src, "/dev/", 5) == 0) || (dstsize < (strlen(src) + 5)))
+	if ((strncmp(src, "/dev/", 5) == 0) || (dstsize < (strlen(src) + 5))) {
 		strlcpy(dst, src, dstsize);
-	else {
+	} else {
 		strlcpy(dst, "/dev/", dstsize);
 		strlcat(dst, src, dstsize);
 	}
@@ -508,8 +508,13 @@ char *
 line_stripname(char *dst, const char *src, int dstsize)
 {
 	memset(dst, '\0', dstsize);
+#ifdef sgi
+	if (strncmp(src, "/dev/tty", 8) == 0)
+		strlcpy(dst, src + 8, dstsize);
+#else
 	if (strncmp(src, "/dev/", 5) == 0)
-		strlcpy(dst, &src[5], dstsize);
+		strlcpy(dst, src + 5, dstsize);
+#endif
 	else
 		strlcpy(dst, src, dstsize);
 	return dst;
@@ -529,8 +534,13 @@ line_abbrevname(char *dst, const char *src, int dstsize)
 	memset(dst, '\0', dstsize);
 	
 	/* Always skip prefix if present */
+#ifdef sgi
+	if (strncmp(src, "/dev/tty", 8) == 0)
+		src += 8;
+#else
 	if (strncmp(src, "/dev/", 5) == 0)
 		src += 5;
+#endif
 		
 	len = strlen(src);
 
