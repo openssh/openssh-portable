@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.113 2001/05/04 23:47:33 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.114 2001/05/08 19:17:30 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -842,22 +842,47 @@ channel_post_auth_listener(Channel *c, fd_set * readset, fd_set * writeset)
 void
 channel_post_connecting(Channel *c, fd_set * readset, fd_set * writeset)
 {
+	int err = 0;
+	int sz = sizeof(err);
+
 	if (FD_ISSET(c->sock, writeset)) {
-		int err = 0;
-		int sz = sizeof(err);
-		c->type = SSH_CHANNEL_OPEN;
-		if (getsockopt(c->sock, SOL_SOCKET, SO_ERROR, (char *)&err, &sz) < 0) {
-			debug("getsockopt SO_ERROR failed");
-		} else {
-			if (err == 0) {
-				debug("channel %d: connected", c->self);
-			} else {
-				debug("channel %d: not connected: %s",
-				    c->self, strerror(err));
-				chan_read_failed(c);
-				chan_write_failed(c);
-			}
+		if (getsockopt(c->sock, SOL_SOCKET, SO_ERROR, (char *)&err,
+		    &sz) < 0) {
+			err = errno;
+			error("getsockopt SO_ERROR failed");
 		}
+		if (err == 0) {
+			debug("channel %d: connected", c->self);
+			c->type = SSH_CHANNEL_OPEN;
+			if (compat20) {
+				packet_start(SSH2_MSG_CHANNEL_OPEN_CONFIRMATION);
+				packet_put_int(c->remote_id);
+				packet_put_int(c->self);
+				packet_put_int(c->local_window);
+				packet_put_int(c->local_maxpacket);
+			} else {
+				packet_start(SSH_MSG_CHANNEL_OPEN_CONFIRMATION);
+				packet_put_int(c->remote_id);
+				packet_put_int(c->self);
+			}
+		} else {
+			debug("channel %d: not connected: %s",
+			    c->self, strerror(err));
+			if (compat20) {
+				packet_start(SSH2_MSG_CHANNEL_OPEN_FAILURE);
+				packet_put_int(c->remote_id);
+				packet_put_int(SSH2_OPEN_CONNECT_FAILED);
+				if (!(datafellows & SSH_BUG_OPENFAILURE)) {
+					packet_put_cstring(strerror(err));
+					packet_put_cstring("");
+				}
+			} else {
+				packet_start(SSH_MSG_CHANNEL_OPEN_FAILURE);
+				packet_put_int(c->remote_id);
+			}
+			chan_mark_dead(c);
+		}
+		packet_send();
 	}
 }
 
@@ -1521,6 +1546,22 @@ channel_input_open_confirmation(int type, int plen, void *ctxt)
 	}
 }
 
+char *
+reason2txt(int reason)
+{
+	switch(reason) {
+	case SSH2_OPEN_ADMINISTRATIVELY_PROHIBITED:
+		return "administratively prohibited";
+	case SSH2_OPEN_CONNECT_FAILED:
+		return "connect failed";
+	case SSH2_OPEN_UNKNOWN_CHANNEL_TYPE:
+		return "unknown channel type";
+	case SSH2_OPEN_RESOURCE_SHORTAGE:
+		return "resource shortage";
+	}
+	return "unkown reason";
+}
+
 void
 channel_input_open_failure(int type, int plen, void *ctxt)
 {
@@ -1544,8 +1585,8 @@ channel_input_open_failure(int type, int plen, void *ctxt)
 			lang = packet_get_string(NULL);
 		}
 		packet_done();
-		log("channel_open_failure: %d: reason %d %s", id,
-		    reason, msg ? msg : "<no additional info>");
+		log("channel %d: open failed: %s%s%s", id,
+		    reason2txt(reason), msg ? ": ": "", msg ? msg : "");
 		if (msg != NULL)
 			xfree(msg);
 		if (lang != NULL)
@@ -1671,7 +1712,7 @@ channel_still_open()
 		case SSH_CHANNEL_CLOSED:
 		case SSH_CHANNEL_AUTH_SOCKET:
 		case SSH_CHANNEL_DYNAMIC:
-		case SSH_CHANNEL_CONNECTING: 	/* XXX ??? */
+		case SSH_CHANNEL_CONNECTING:
 			continue;
 		case SSH_CHANNEL_LARVAL:
 			if (!compat20)
@@ -1713,10 +1754,10 @@ channel_find_open()
 		case SSH_CHANNEL_PORT_LISTENER:
 		case SSH_CHANNEL_RPORT_LISTENER:
 		case SSH_CHANNEL_OPENING:
+		case SSH_CHANNEL_CONNECTING:
 			continue;
 		case SSH_CHANNEL_LARVAL:
 		case SSH_CHANNEL_AUTH_SOCKET:
-		case SSH_CHANNEL_CONNECTING: 	/* XXX ??? */
 		case SSH_CHANNEL_OPEN:
 		case SSH_CHANNEL_X11_OPEN:
 			return i;
@@ -2168,13 +2209,8 @@ channel_input_port_open(int type, int plen, void *ctxt)
 	if (c == NULL) {
 		packet_start(SSH_MSG_CHANNEL_OPEN_FAILURE);
 		packet_put_int(remote_id);
-	} else {
-		/*XXX delay answer? */
-		packet_start(SSH_MSG_CHANNEL_OPEN_CONFIRMATION);
-		packet_put_int(remote_id);
-		packet_put_int(c->self);
+		packet_send();
 	}
-	packet_send();
 	xfree(host);
 }
 
