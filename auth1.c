@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.41 2002/06/19 00:27:55 deraadt Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.42 2002/08/22 21:33:58 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -301,7 +301,8 @@ do_authloop(Authctxt *authctxt)
 		}
 #else
 		/* Special handling for root */
-		if (authenticated && authctxt->pw->pw_uid == 0 &&
+		if (!use_privsep &&
+		    authenticated && authctxt->pw->pw_uid == 0 &&
 		    !auth_root_allowed(get_authname(type)))
 			authenticated = 0;
 #endif
