@@ -32,6 +32,9 @@
    - deraadt@cvs.openbsd.org 2002/06/23 21:06:41
      [channels.c channels.h session.c session.h]
      display, screen, row, col, xpixel, ypixel are u_int; markus ok
+   - deraadt@cvs.openbsd.org 2002/06/23 21:10:02
+     [packet.c]
+     packet_get_int() returns unsigned for reason & seqnr
   - (bal) Also fixed IPADDR_IN_DISPLAY case where display, screen, row, col,
     xpixel are u_int.
 
@@ -1079,4 +1082,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2263 2002/06/23 21:48:28 mouring Exp $
+$Id: ChangeLog,v 1.2264 2002/06/23 21:49:25 mouring Exp $
