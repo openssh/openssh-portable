@@ -669,14 +669,14 @@ process_fsetstat(void)
 	int handle, fd, ret;
 	int status = SSH2_FX_OK;
 	char *name;
-	
+
 	id = get_int();
 	handle = get_handle();
 	a = get_attrib();
 	TRACE("fsetstat id %d handle %d", id, handle);
 	fd = handle_to_fd(handle);
 	name = handle_to_name(handle);
-	if ((fd < 0) || (name == NULL)) {
+	if (fd < 0 || name == NULL) {
 		status = SSH2_FX_FAILURE;
 	} else {
 		if (a->flags & SSH2_FILEXFER_ATTR_PERMISSIONS) {
