@@ -939,6 +939,13 @@ main(int ac, char **av)
 	    SYSLOG_FACILITY_AUTH : options.log_facility,
 	    log_stderr || !inetd_flag);
 
+#ifdef _AIX
+	/*
+	 * Unset KRB5CCNAME, otherwise the user's session may inherit it from
+	 * root's environment
+	 */ 
+	unsetenv("KRB5CCNAME");
+#endif /* _AIX */
 #ifdef _UNICOS
 	/* Cray can define user privs drop all prives now!
 	 * Not needed on PRIV_SU systems!
