@@ -2,9 +2,15 @@
 #	Placed in the Public Domain.
 
 PORT=4242
-USER=`id -un`
-SUDO=
 #SUDO=sudo
+
+if [ -x /usr/ucb/whoami ]; then
+	USER=`/usr/ucb/whoami`
+elif [ -x "`which whoami 2>&1`" ]; then
+	USER=`whoami`
+else
+	USER=`id -un`
+fi
 
 OBJ=$1
 if [ "x$OBJ" = "x" ]; then
@@ -141,6 +147,7 @@ cat << EOF > $OBJ/sshd_config
 	PidFile			$PIDFILE
 	AuthorizedKeysFile	$OBJ/authorized_keys_%u
 	LogLevel		QUIET
+	StrictModes		no
 EOF
 
 # server config for proxy connects
@@ -200,7 +207,7 @@ chmod 644 $OBJ/authorized_keys_$USER
 # create a proxy version of the client config
 (
 	cat $OBJ/ssh_config
-	echo proxycommand ${SSHD} -i -f $OBJ/sshd_proxy
+	echo proxycommand ${SUDO} ${SSHD} -i -f $OBJ/sshd_proxy
 ) > $OBJ/ssh_proxy
 
 # check proxy config
@@ -214,7 +221,7 @@ start_sshd ()
 
 	trace "wait for sshd"
 	i=0;
-	while [ ! -f $PIDFILE -a $i -lt 5 ]; do
+	while [ ! -f $PIDFILE -a $i -lt 10 ]; do
 		i=`expr $i + 1`
 		sleep $i
 	done
