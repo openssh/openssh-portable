@@ -28,6 +28,9 @@
    - markus@cvs.openbsd.org  2001/02/04 08:10:44
      [ssh.1]
      typo; dpo@club-internet.fr
+   - stevesk@cvs.openbsd.org 2001/02/04 06:30:12
+     [auth2.c authfd.c packet.c]
+     remove duplicate #include's; ok markus@
 
 20010104
  - (bal) I think this is the last of the bsd-*.h that don't belong.

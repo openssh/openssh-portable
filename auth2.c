@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.34 2001/01/22 23:06:39 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.36 2001/02/04 15:32:22 stevesk Exp $");
 
 #ifdef HAVE_OSF_SIA
 # include <sia.h>
@@ -46,7 +46,6 @@ RCSID("$OpenBSD: auth2.c,v 1.34 2001/01/22 23:06:39 markus Exp $");
 #include "auth.h"
 #include "session.h"
 #include "dispatch.h"
-#include "auth.h"
 #include "key.h"
 #include "cipher.h"
 #include "kex.h"
