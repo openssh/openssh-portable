@@ -4,6 +4,9 @@
      [sshd.c]
      add SYSLOG_FACILITY_NOT_SET = -1, SYSLOG_LEVEL_NOT_SET = -1,
      fixes arm/netbsd; based on patch from bjh21@netbsd.org; ok djm@
+   - stevesk@cvs.openbsd.org 2002/02/04 20:41:16
+     [ssh-agent.1]
+     more sync for default ssh-add identities; ok markus@
 
 20020205
  - (djm) Cleanup after sync:
@@ -7510,4 +7513,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1828 2002/02/08 11:01:54 djm Exp $
+$Id: ChangeLog,v 1.1829 2002/02/08 11:02:16 djm Exp $
