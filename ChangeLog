@@ -2,6 +2,10 @@
  - (bal) Updated contrib/cygwin/  patch by vinschen@redhat.com 
  - (bal) minor correction to utimes() replacement.  Patch by
    onoe@sm.sony.co.jp
+ - OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2002/06/27 08:49:44
+     [dh.c ssh-keyscan.c sshconnect.c]
+     more checks for NULL pointers; from grendel@zeitbombe.org; ok deraadt@
 
 20020702
  - (djm) Use PAM_MSG_MEMBER for PAM_TEXT_INFO messages, use xmalloc & 
@@ -1210,4 +1214,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2315 2002/07/03 23:50:00 mouring Exp $
+$Id: ChangeLog,v 1.2316 2002/07/04 00:03:56 mouring Exp $
