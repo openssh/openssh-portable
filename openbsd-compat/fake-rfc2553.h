@@ -6,7 +6,7 @@
  * that ai_family is AF_INET. Don't use it for another purpose.
  */
 
-/* $Id: fake-rfc2553.h,v 1.1 2003/06/05 08:52:48 djm Exp $ */
+/* $Id: fake-rfc2553.h,v 1.2 2003/06/05 12:20:11 dtucker Exp $ */
 
 #ifndef _FAKE_RFC2553_H
 #define _FAKE_RFC2553_H
@@ -78,6 +78,7 @@ struct sockaddr_in6 {
 #ifndef EAI_NODATA
 # define EAI_NODATA	1
 # define EAI_MEMORY	2
+# define EAI_NONAME	3
 #endif
 
 #ifndef HAVE_STRUCT_ADDRINFO
