@@ -35,7 +35,7 @@
 
 #include "includes.h"
 #include "openbsd-compat/fake-queue.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.87 2002/06/05 16:48:54 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.88 2002/06/05 19:57:12 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -94,6 +94,10 @@ pid_t parent_pid = -1;
 /* pathname and directory for AUTH_SOCKET */
 char socket_name[1024];
 char socket_dir[1024];
+
+/* locking */
+int locked = 0;
+char *lock_passwd = NULL;
 
 #ifdef HAVE___PROGNAME
 extern char *__progname;
@@ -442,6 +446,48 @@ send:
 	    success ? SSH_AGENT_SUCCESS : SSH_AGENT_FAILURE);
 }
 
+/* XXX todo: encrypt sensitive data with passphrase */
+static void
+process_lock_agent(SocketEntry *e, int lock)
+{
+	char *passwd;
+	int success = 0;
+
+	passwd = buffer_get_string(&e->request, NULL);
+	if (locked && !lock && strcmp(passwd, lock_passwd) == 0) {
+		locked = 0;
+		memset(lock_passwd, 0, strlen(lock_passwd));
+		xfree(lock_passwd);
+		lock_passwd = NULL;
+		success = 1;
+	} else if (!locked && lock) {
+		locked = 1;
+		lock_passwd = xstrdup(passwd);
+		success = 1;
+	}
+	memset(passwd, 0, strlen(passwd));
+	xfree(passwd);
+ 
+	buffer_put_int(&e->output, 1);
+	buffer_put_char(&e->output,
+	    success ? SSH_AGENT_SUCCESS : SSH_AGENT_FAILURE);
+	return;
+}
+
+static void
+no_identities(SocketEntry *e, u_int type)
+{
+	Buffer msg;
+
+	buffer_init(&msg);
+	buffer_put_char(&msg,
+	    (type == SSH_AGENTC_REQUEST_RSA_IDENTITIES) ?
+	    SSH_AGENT_RSA_IDENTITIES_ANSWER : SSH2_AGENT_IDENTITIES_ANSWER);
+	buffer_put_int(&msg, 0);
+	buffer_put_int(&e->output, buffer_len(&msg));
+	buffer_append(&e->output, buffer_ptr(&msg), buffer_len(&msg));
+	buffer_free(&msg);
+}
 
 #ifdef SMARTCARD
 static void
@@ -557,8 +603,29 @@ process_message(SocketEntry *e)
 	buffer_consume(&e->input, msg_len);
 	type = buffer_get_char(&e->request);
 
+	/* check wheter agent is locked */
+	if (locked && type != SSH_AGENTC_UNLOCK) {
+		buffer_clear(&e->request);
+		switch (type) {
+		case SSH_AGENTC_REQUEST_RSA_IDENTITIES:
+		case SSH2_AGENTC_REQUEST_IDENTITIES:
+			/* send empty lists */
+			no_identities(e, type);
+			break;
+		default:
+			/* send a fail message for all other request types */
+			buffer_put_int(&e->output, 1);
+			buffer_put_char(&e->output, SSH_AGENT_FAILURE);
+		}
+		return;
+	}
+
 	debug("type %d", type);
 	switch (type) {
+	case SSH_AGENTC_LOCK:
+	case SSH_AGENTC_UNLOCK:
+		process_lock_agent(e, type == SSH_AGENTC_LOCK);
+		break;
 	/* ssh1 */
 	case SSH_AGENTC_RSA_CHALLENGE:
 		process_authentication_challenge1(e);

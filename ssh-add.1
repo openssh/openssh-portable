@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-add.1,v 1.31 2002/06/05 16:35:45 markus Exp $
+.\"	$OpenBSD: ssh-add.1,v 1.32 2002/06/05 19:57:12 markus Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -45,7 +45,7 @@
 .Nd adds RSA or DSA identities to the authentication agent
 .Sh SYNOPSIS
 .Nm ssh-add
-.Op Fl lLdD
+.Op Fl lLdDxX
 .Op Ar
 .Nm ssh-add
 .Fl s Ar reader
@@ -83,6 +83,10 @@ Lists public key parameters of all identities currently represented by the agent
 Instead of adding the identity, removes the identity from the agent.
 .It Fl D
 Deletes all identities from the agent.
+.It Fl x
+Lock the agent with a password.
+.It Fl X
+Unlock the agent.
 .It Fl s Ar reader
 Add key in smartcard
 .Ar reader .

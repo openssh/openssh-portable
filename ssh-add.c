@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.53 2002/03/21 22:44:05 rees Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.54 2002/06/05 19:57:12 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -229,6 +229,34 @@ list_identities(AuthenticationConnection *ac, int do_fp)
 }
 
 static int
+lock_agent(AuthenticationConnection *ac, int lock)
+{
+	char prompt[100], *p1, *p2;
+	int passok = 1, ret = -1;
+ 
+	strlcpy(prompt, "Enter lock password: ", sizeof(prompt));
+	p1 = read_passphrase(prompt, RP_ALLOW_STDIN);
+	if (lock) {
+		strlcpy(prompt, "Again: ", sizeof prompt);
+		p2 = read_passphrase(prompt, RP_ALLOW_STDIN);
+		if (strcmp(p1, p2) != 0) {
+			fprintf(stderr, "Passwords do not match.\n");
+			passok = 0;
+		}
+		memset(p2, 0, strlen(p2));
+		xfree(p2);
+	}
+	if (passok && ssh_lock_agent(ac, lock, p1)) {
+		fprintf(stderr, "Agent %slocked.\n", lock ? "" : "un");
+		ret = 0;
+	} else
+		fprintf(stderr, "Failed to %slock agent.\n", lock ? "" : "un");
+	memset(p1, 0, strlen(p1));
+	xfree(p1);
+	return -1;
+}
+
+static int
 do_file(AuthenticationConnection *ac, int deleting, char *file)
 {
 	if (deleting) {
@@ -277,11 +305,17 @@ main(int argc, char **argv)
 		fprintf(stderr, "Could not open a connection to your authentication agent.\n");
 		exit(2);
 	}
-	while ((ch = getopt(argc, argv, "lLdDe:s:")) != -1) {
+	while ((ch = getopt(argc, argv, "lLdDxXe:s:")) != -1) {
 		switch (ch) {
 		case 'l':
 		case 'L':
 			if (list_identities(ac, ch == 'l' ? 1 : 0) == -1)
+				ret = 1;
+			goto done;
+			break;
+		case 'x':
+		case 'X':
+			if (lock_agent(ac, ch == 'x' ? 1 : 0) == -1)
 				ret = 1;
 			goto done;
 			break;

@@ -1,4 +1,4 @@
-/*	$OpenBSD: authfd.h,v 1.24 2002/03/21 22:44:05 rees Exp $	*/
+/*	$OpenBSD: authfd.h,v 1.25 2002/06/05 19:57:12 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -42,6 +42,10 @@
 #define SSH_AGENTC_ADD_SMARTCARD_KEY		20
 #define SSH_AGENTC_REMOVE_SMARTCARD_KEY	        21
 
+/* lock/unlock the agent */
+#define SSH_AGENTC_LOCK				22
+#define SSH_AGENTC_UNLOCK		        23
+
 /* extended failure messages */
 #define SSH2_AGENT_FAILURE			30
 
@@ -67,6 +71,7 @@ Key	*ssh_get_next_identity(AuthenticationConnection *, char **, int);
 int	 ssh_add_identity(AuthenticationConnection *, Key *, const char *);
 int	 ssh_remove_identity(AuthenticationConnection *, Key *);
 int	 ssh_remove_all_identities(AuthenticationConnection *, int);
+int	 ssh_lock_agent(AuthenticationConnection *, int, const char *);
 int	 ssh_update_card(AuthenticationConnection *, int, const char *, const char *);
 
 int

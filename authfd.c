@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfd.c,v 1.49 2002/03/21 22:44:05 rees Exp $");
+RCSID("$OpenBSD: authfd.c,v 1.50 2002/06/05 19:57:12 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -205,6 +205,26 @@ ssh_close_authentication_connection(AuthenticationConnection *auth)
 	buffer_free(&auth->identities);
 	close(auth->fd);
 	xfree(auth);
+}
+
+/* Lock/unlock agent */
+int
+ssh_lock_agent(AuthenticationConnection *auth, int lock, const char *password)
+{
+	int type;
+	Buffer msg;
+
+	buffer_init(&msg);
+	buffer_put_char(&msg, lock ? SSH_AGENTC_LOCK : SSH_AGENTC_UNLOCK);
+	buffer_put_cstring(&msg, password);
+
+	if (ssh_request_reply(auth, &msg, &msg) == 0) {
+		buffer_free(&msg);
+		return 0;
+	}
+	type = buffer_get_char(&msg);
+	buffer_free(&msg);
+	return decode_reply(type);
 }
 
 /*
