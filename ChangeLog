@@ -13,6 +13,9 @@
    - itojun@cvs.openbsd.org 2002/07/09 12:04:02
      [sshconnect.c]
      ed static function (less warnings)
+   - stevesk@cvs.openbsd.org 2002/07/09 17:46:25
+     [sshd_config.5]
+     clarify no preference ordering in protocol list; ok markus@
 
 20020709
  - (bal) NO_IPPORT_RESERVED_CONCEPT used instead of CYGWIN so other platforms
@@ -1336,4 +1339,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2356 2002/07/11 03:58:11 mouring Exp $
+$Id: ChangeLog,v 1.2357 2002/07/11 03:59:18 mouring Exp $
