@@ -32,7 +32,10 @@
    - djm@cvs.openbsd.org 2004/06/14 01:44:39
      [channels.c clientloop.c misc.c misc.h packet.c ssh-agent.c ssh-keyscan.c]
      [sshd.c]
-     set_nonblock() instead of fcntl(...,O_NONBLOCK); "looks sane" deraadt@
+     set_nonblock() instead of fnctl(...,O_NONBLOCK); "looks sane" deraadt@
+   - djm@cvs.openbsd.org 2004/06/15 05:45:04
+     [clientloop.c]
+     missed one unset_nonblock; spotted by Tim Rice
  - (djm) Fix Makefile.in for connection sharing changes
  - (djm) [ssh.c] Use separate var for address length
 
@@ -1219,4 +1222,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3386 2004/06/15 04:25:33 tim Exp $
+$Id: ChangeLog,v 1.3387 2004/06/15 05:47:51 djm Exp $
