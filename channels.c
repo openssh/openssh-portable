@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.129 2001/06/29 18:40:28 stevesk Exp $");
+RCSID("$OpenBSD: channels.c,v 1.130 2001/06/30 18:08:39 stevesk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -2270,7 +2270,7 @@ connect_to(const char *host, u_short port)
 }
 
 int
-channel_connect_by_listen_adress(u_short listen_port)
+channel_connect_by_listen_address(u_short listen_port)
 {
 	int i;
 

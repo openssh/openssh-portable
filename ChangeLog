@@ -111,6 +111,9 @@
    - stevesk@cvs.openbsd.org 2001/06/29 18:40:28
      [channels.c]
      use socklen_t for getsockopt arg #5; ok markus@
+   - stevesk@cvs.openbsd.org 2001/06/30 18:08:40
+     [channels.c channels.h clientloop.c]
+     adress -> address; ok markus@
  
 20010629
  - (bal) Removed net_aton() since we don't use it any more
@@ -5938,4 +5941,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1371 2001/07/04 05:13:35 mouring Exp $
+$Id: ChangeLog,v 1.1372 2001/07/04 05:15:15 mouring Exp $
