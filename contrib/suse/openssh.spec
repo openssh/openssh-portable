@@ -216,7 +216,7 @@ fi
 
 %files
 %defattr(-,root,root)
-%doc COPYING.Ylonen ChangeLog OVERVIEW README README.Ylonen 
+%doc COPYING.Ylonen ChangeLog OVERVIEW README* 
 %doc RFC.nroff TODO UPGRADING CREDITS
 %attr(0755,root,root) /usr/bin/ssh-keygen
 %attr(0755,root,root) /usr/bin/scp

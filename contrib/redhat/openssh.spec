@@ -203,7 +203,7 @@ fi
 
 %files
 %defattr(-,root,root)
-%doc ChangeLog OVERVIEW COPYING.Ylonen README README.Ylonen INSTALL 
+%doc ChangeLog OVERVIEW COPYING.Ylonen README* INSTALL 
 %doc CREDITS UPGRADING
 %attr(0755,root,root) /usr/bin/ssh-keygen
 %attr(0755,root,root) /usr/bin/scp
