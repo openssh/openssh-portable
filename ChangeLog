@@ -3,6 +3,7 @@
  - (tim) [monitor_mm.c] add missing declaration for xmmap(). Reported
    by ayamura@ayamura.org
  - (tim) [configure.ac] Bug 267 rework int64_t test.
+ - (tim) [includes.h] Bug 267 add stdint.h
 
 20020717
  - (bal) aixbff package updated by dtucker@zip.com.au
@@ -1388,4 +1389,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2376 2002/07/18 18:44:50 tim Exp $
+$Id: ChangeLog,v 1.2377 2002/07/18 18:49:32 tim Exp $
