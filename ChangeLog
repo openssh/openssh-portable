@@ -78,6 +78,9 @@
    - stevesk@cvs.openbsd.org 2002/02/03 23:22:59
      [ssh-agent.1]
      ssh-add also adds $HOME/.ssh/id_rsa and $HOME/.ssh/id_dsa now.
+   - stevesk@cvs.openbsd.org 2002/02/04 00:53:39
+     [ssh-agent.c]
+     unneeded includes
 
 20020130
  - (djm) Delay PRNG seeding until we need it in ssh-keygen, from markus@
@@ -7480,4 +7483,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1820 2002/02/05 01:24:19 djm Exp $
+$Id: ChangeLog,v 1.1821 2002/02/05 01:25:28 djm Exp $
