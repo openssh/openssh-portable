@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.42 2000/10/14 10:07:21 markus Exp $");
+RCSID("$OpenBSD: scp.c,v 1.43 2000/10/18 18:23:02 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -838,8 +838,10 @@ bad:			run_err("%s: %s", np, strerror(errno));
 				amt = size - i;
 			count += amt;
 			do {
-				j = atomicio(read, remin, cp, amt);
-				if (j <= 0) {
+				j = read(remin, cp, amt);
+				if (j == -1 && (errno == EINTR || errno == EAGAIN)) {
+					continue;
+				} else if (j <= 0) {
 					run_err("%s", j ? strerror(errno) :
 						"dropped connection");
 					exit(1);

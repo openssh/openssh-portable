@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.68 2000/10/11 20:27:24 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.69 2000/10/27 07:32:19 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/dsa.h>
@@ -1008,6 +1008,14 @@ ssh_session2(void)
 	if (in < 0 || out < 0 || err < 0)
 		fatal("dup() in/out/err failed");
 
+	/* enable nonblocking unless tty */
+	if (!isatty(in))
+		set_nonblock(in);
+	if (!isatty(out))
+		set_nonblock(out);
+	if (!isatty(err))
+		set_nonblock(err);
+
 	/* should be pre-session */
 	init_local_fwd();
 	
@@ -1025,7 +1033,7 @@ ssh_session2(void)
 	id = channel_new(
 	    "session", SSH_CHANNEL_OPENING, in, out, err,
 	    window, packetmax, CHAN_EXTENDED_WRITE,
-	    xstrdup("client-session"));
+	    xstrdup("client-session"), /*nonblock*/0);
 
 	channel_open(id);
 	channel_register_callback(id, SSH2_MSG_CHANNEL_OPEN_CONFIRMATION, client_init, (void *)0);

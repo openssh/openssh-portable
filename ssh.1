@@ -34,6 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
+.\" $OpenBSD: ssh.1,v 1.64 2000/10/16 21:46:31 markus Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -367,7 +368,7 @@ It is believed to be secure.
 (triple-des) is an encrypt-decrypt-encrypt triple with three different keys.
 It is presumably more secure than the
 .Ar des
-cipher which is no longer supported in
+cipher which is no longer fully supported in
 .Nm ssh .
 .Ar blowfish
 is a fast block cipher, it appears very secure and is much faster than
@@ -628,9 +629,9 @@ If the option is set to
 the check will not be executed.
 .It Cm Cipher
 Specifies the cipher to use for encrypting the session
-in protocol version 1
+in protocol version 1.
 Currently,
-.Dq blowfish ,
+.Dq blowfish 
 and
 .Dq 3des
 are supported.

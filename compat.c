@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: compat.c,v 1.25 2000/10/14 12:16:56 markus Exp $");
+RCSID("$OpenBSD: compat.c,v 1.26 2000/10/26 18:38:28 markus Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -72,7 +72,10 @@ compat_datafellows(const char *version)
 					SSH_BUG_PUBKEYAUTH|SSH_BUG_X11FWD },
 		{ "^2\\.[23]\\.0 ",	SSH_BUG_HMAC},
 		{ "^2\\.[2-9]\\.",	0 },
-		{ "^2\\.",		SSH_BUG_HMAC},		/* XXX fallback */
+		{ "^2\\.4$",		SSH_OLD_SESSIONID}, /* Van Dyke */
+		{ "^3\\.0 SecureCRT",	SSH_OLD_SESSIONID},
+		{ "^1\\.7 SecureFX",	SSH_OLD_SESSIONID},
+		{ "^2\\.",		SSH_BUG_HMAC},	/* XXX fallback */
 		{ NULL,			0 }
 	};
 	/* process table, return first match */

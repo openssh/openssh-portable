@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.26 2000/10/14 12:16:56 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.27 2000/10/19 16:45:16 provos Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
@@ -979,7 +979,7 @@ authmethod_lookup(const char *name)
 Authmethod *
 authmethod_get(char *authlist)
 {
-	char *name = NULL;
+	char *name = NULL, *authname_old;
 	Authmethod *method = NULL;
 	
 	/* Use a suitable default if we're passed a nil list.  */
@@ -1013,16 +1013,17 @@ authmethod_get(char *authlist)
 		method = NULL;
 	}
 
-	if (authname_current != NULL)
-		xfree(authname_current);
-
+	authname_old = authname_current;
 	if (method != NULL) {
 		debug("next auth method to try is %s", name);
 		authname_current = xstrdup(name);
-		return method;
 	} else {
 		debug("no more auth methods to try");
 		authname_current = NULL;
-		return NULL;
 	}
+
+	if (authname_old != NULL)
+		xfree(authname_old);
+
+	return (method);
 }

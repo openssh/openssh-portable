@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.37 2000/09/26 19:59:58 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.39 2000/10/27 07:48:22 markus Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -74,6 +74,10 @@ RCSID("$OpenBSD: clientloop.c,v 1.37 2000/09/26 19:59:58 markus Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
+
+
+/* import options */
+extern Options options;
 
 /* Flag indicating that stdin should be redirected from /dev/null. */
 extern int stdin_null_flag;
@@ -790,7 +794,6 @@ simple_escape_filter(Channel *c, char *buf, int len)
 int
 client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 {
-	extern Options options;
 	double start_time, total_time;
 	int len;
 	char buf[100];
@@ -1033,7 +1036,7 @@ client_input_channel_open(int type, int plen, void *ctxt)
 	debug("client_input_channel_open: ctype %s rchan %d win %d max %d",
 	    ctype, rchan, rwindow, rmaxpack);
 
-	if (strcmp(ctype, "x11") == 0) {
+	if (strcmp(ctype, "x11") == 0 && options.forward_x11) {
 		int sock;
 		char *originator;
 		int originator_port;
@@ -1052,7 +1055,7 @@ client_input_channel_open(int type, int plen, void *ctxt)
 		if (sock >= 0) {
 			id = channel_new("x11", SSH_CHANNEL_X11_OPEN,
 			    sock, sock, -1, CHAN_X11_WINDOW_DEFAULT,
-			    CHAN_X11_PACKET_DEFAULT, 0, xstrdup("x11"));
+			    CHAN_X11_PACKET_DEFAULT, 0, xstrdup("x11"), 1);
 			c = channel_lookup(id);
 		}
 	}
@@ -1105,11 +1108,14 @@ client_init_dispatch_13()
 	dispatch_set(SSH_MSG_CHANNEL_OPEN_CONFIRMATION, &channel_input_open_confirmation);
 	dispatch_set(SSH_MSG_CHANNEL_OPEN_FAILURE, &channel_input_open_failure);
 	dispatch_set(SSH_MSG_PORT_OPEN, &channel_input_port_open);
-	dispatch_set(SSH_SMSG_AGENT_OPEN, &auth_input_open_request);
 	dispatch_set(SSH_SMSG_EXITSTATUS, &client_input_exit_status);
 	dispatch_set(SSH_SMSG_STDERR_DATA, &client_input_stderr_data);
 	dispatch_set(SSH_SMSG_STDOUT_DATA, &client_input_stdout_data);
-	dispatch_set(SSH_SMSG_X11_OPEN, &x11_input_open);
+
+	dispatch_set(SSH_SMSG_AGENT_OPEN, options.forward_agent ?
+	    &auth_input_open_request : &deny_input_open);
+	dispatch_set(SSH_SMSG_X11_OPEN, options.forward_x11 ?
+	    &x11_input_open : &deny_input_open);
 }
 void
 client_init_dispatch_15()

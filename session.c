@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.40 2000/10/15 14:14:01 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.42 2000/10/27 07:32:18 markus Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -119,7 +119,7 @@ void	session_pty_cleanup(Session *s);
 void	session_proctitle(Session *s);
 void	do_exec_pty(Session *s, const char *command, struct passwd * pw);
 void	do_exec_no_pty(Session *s, const char *command, struct passwd * pw);
-void	do_login(Session *s);
+void	do_login(Session *s, const char *command);
 
 void
 do_child(const char *command, struct passwd * pw, const char *term,
@@ -627,8 +627,8 @@ do_exec_pty(Session *s, const char *command, struct passwd * pw)
 		close(ttyfd);
 
 		/* record login, etc. similar to login(1) */
-		if (command == NULL && !options.use_login)
-			do_login(s);
+		if (!(options.use_login && command == NULL))
+			do_login(s, command);
 
 		/* Do common processing for the child, such as execing the command. */
 		do_child(command, pw, s->term, s->display, s->auth_proto,
@@ -684,7 +684,7 @@ get_remote_name_or_ip(void)
 
 /* administrative, login(1)-like work */
 void
-do_login(Session *s)
+do_login(Session *s, const char *command)
 {
 	FILE *f;
 	char *time_string;
@@ -731,7 +731,9 @@ do_login(Session *s)
 	}
 #endif
 
-	/* Done if .hushlogin exists. */
+	/* Done if .hushlogin exists or a command given. */
+	if (command != NULL)
+		return;
 	snprintf(buf, sizeof(buf), "%.200s/.hushlogin", pw->pw_dir);
 #ifdef HAVE_LOGIN_CAP
 	if (login_getcapbool(lc, "hushlogin", 0) || stat(buf, &st) >= 0)
@@ -1778,7 +1780,8 @@ session_set_fds(Session *s, int fdin, int fdout, int fderr)
 		fatal("no channel for session %d", s->self);
 	channel_set_fds(s->chanid,
 	    fdout, fdin, fderr,
-	    fderr == -1 ? CHAN_EXTENDED_IGNORE : CHAN_EXTENDED_READ);
+	    fderr == -1 ? CHAN_EXTENDED_IGNORE : CHAN_EXTENDED_READ,
+	    1);
 }
 
 void

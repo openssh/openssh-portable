@@ -2,6 +2,46 @@
  - (djm) fix select hack in serverloop.c from Philippe WILLEM 
    <Philippe.WILLEM@urssaf.fr>
  - (djm) Fix mangled AIXAUTHENTICATE code
+ - (djm) Sync with OpenBSD:
+   - markus@cvs.openbsd.org  2000/10/16 15:46:32
+     [ssh.1]
+     fixes from pekkas@netcore.fi
+   - markus@cvs.openbsd.org  2000/10/17 14:28:11
+     [atomicio.c]
+     return number of characters processed; ok deraadt@
+   - markus@cvs.openbsd.org  2000/10/18 12:04:02
+     [atomicio.c]
+     undo
+   - markus@cvs.openbsd.org  2000/10/18 12:23:02
+     [scp.c]
+     replace atomicio(read,...) with read(); ok deraadt@
+   - markus@cvs.openbsd.org  2000/10/18 12:42:00
+     [session.c]
+     restore old record login behaviour
+   - deraadt@cvs.openbsd.org 2000/10/19 10:41:13
+     [auth-skey.c]
+     fmt string problem in unused code
+   - provos@cvs.openbsd.org  2000/10/19 10:45:16
+     [sshconnect2.c]
+     don't reference freed memory. okay deraadt@
+   - markus@cvs.openbsd.org  2000/10/21 11:04:23
+     [canohost.c]
+     typo, eramore@era-t.ericsson.se; ok niels@
+   - markus@cvs.openbsd.org  2000/10/23 13:31:55
+     [cipher.c]
+     non-alignment dependent swap_bytes(); from
+     simonb@wasabisystems.com/netbsd
+   - markus@cvs.openbsd.org  2000/10/26 12:38:28
+     [compat.c]
+     add older vandyke products
+   - markus@cvs.openbsd.org  2000/10/27 01:32:19
+     [channels.c channels.h clientloop.c serverloop.c session.c]
+     [ssh.c util.c]
+     enable non-blocking IO on channels, and tty's (except for the 
+     client ttys).
+   - markus@cvs.openbsd.org  2000/10/27 01:48:22
+     channels.c channels.h clientloop.c
+     deny agent/x11 forwarding unless requested; thanks to jwl@pobox.com
 
 20001027
  - (djm) Increase REKEY_BYTES to 2^24 for arc4random

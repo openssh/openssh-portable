@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.70 2000/09/28 18:03:18 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.72 2000/10/27 07:48:22 markus Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -174,7 +174,8 @@ channel_lookup(int id)
  */
 
 void
-channel_register_fds(Channel *c, int rfd, int wfd, int efd, int extusage)
+channel_register_fds(Channel *c, int rfd, int wfd, int efd,
+    int extusage, int nonblock)
 {
 	/* Update the maximum file descriptor value. */
 	if (rfd > channel_max_fd_value)
@@ -190,12 +191,16 @@ channel_register_fds(Channel *c, int rfd, int wfd, int efd, int extusage)
 	c->sock = (rfd == wfd) ? rfd : -1;
 	c->efd = efd;
 	c->extended_usage = extusage;
-	if (rfd != -1)
-		set_nonblock(rfd);
-	if (wfd != -1)
-		set_nonblock(wfd);
-	if (efd != -1)
-		set_nonblock(efd);
+
+	/* enable nonblocking mode */
+	if (nonblock) {
+		if (rfd != -1)
+			set_nonblock(rfd);
+		if (wfd != -1)
+			set_nonblock(wfd);
+		if (efd != -1)
+			set_nonblock(efd);
+	}
 }
 
 /*
@@ -205,7 +210,7 @@ channel_register_fds(Channel *c, int rfd, int wfd, int efd, int extusage)
 
 int
 channel_new(char *ctype, int type, int rfd, int wfd, int efd,
-    int window, int maxpack, int extusage, char *remote_name)
+    int window, int maxpack, int extusage, char *remote_name, int nonblock)
 {
 	int i, found;
 	Channel *c;
@@ -245,7 +250,7 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 	buffer_init(&c->output);
 	buffer_init(&c->extended);
 	chan_init_iostates(c);
-	channel_register_fds(c, rfd, wfd, efd, extusage);
+	channel_register_fds(c, rfd, wfd, efd, extusage, nonblock);
 	c->self = found;
 	c->type = type;
 	c->ctype = ctype;
@@ -269,7 +274,7 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 int
 channel_allocate(int type, int sock, char *remote_name)
 {
-	return channel_new("", type, sock, sock, -1, 0, 0, 0, remote_name);
+	return channel_new("", type, sock, sock, -1, 0, 0, 0, remote_name, 1);
 }
 
 
@@ -548,7 +553,7 @@ channel_post_x11_listener(Channel *c, fd_set * readset, fd_set * writeset)
 		newch = channel_new("x11",
 		    SSH_CHANNEL_OPENING, newsock, newsock, -1,
 		    c->local_window_max, c->local_maxpacket,
-		    0, xstrdup(buf));
+		    0, xstrdup(buf), 1);
 		if (compat20) {
 			packet_start(SSH2_MSG_CHANNEL_OPEN);
 			packet_put_cstring("x11");
@@ -606,7 +611,7 @@ channel_post_port_listener(Channel *c, fd_set * readset, fd_set * writeset)
 		newch = channel_new("direct-tcpip",
 		    SSH_CHANNEL_OPENING, newsock, newsock, -1,
 		    c->local_window_max, c->local_maxpacket,
-		    0, xstrdup(buf));
+		    0, xstrdup(buf), 1);
 		if (compat20) {
 			packet_start(SSH2_MSG_CHANNEL_OPEN);
 			packet_put_cstring("direct-tcpip");
@@ -1514,7 +1519,7 @@ channel_request_local_forwarding(u_short port, const char *host,
 		    "port listener", SSH_CHANNEL_PORT_LISTENER,
 		    sock, sock, -1,
 		    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT,
-		    0, xstrdup("port listener"));
+		    0, xstrdup("port listener"), 1);
 		strlcpy(channels[ch].path, host, sizeof(channels[ch].path));
 		channels[ch].host_port = host_port;
 		channels[ch].listening_port = port;
@@ -1859,7 +1864,7 @@ x11_create_display_inet(int screen_number, int x11_display_offset)
 		(void) channel_new("x11 listener",
 		    SSH_CHANNEL_X11_LISTENER, sock, sock, -1,
 		    CHAN_X11_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT,
-		    0, xstrdup("X11 inet listener"));
+		    0, xstrdup("X11 inet listener"), 1);
 	}
 
 	/* Return a suitable value for the DISPLAY environment variable. */
@@ -2043,6 +2048,28 @@ x11_input_open(int type, int plen, void *ctxt)
 		packet_put_int(newch);
 		packet_send();
 	}
+}
+
+/* dummy protocol handler that denies SSH-1 requests (agent/x11) */
+void
+deny_input_open(int type, int plen, void *ctxt)
+{
+	int rchan = packet_get_int();
+	switch(type){
+	case SSH_SMSG_AGENT_OPEN:
+		error("Warning: ssh server tried agent forwarding.");
+		break;
+	case SSH_SMSG_X11_OPEN:
+		error("Warning: ssh server tried X11 forwarding.");
+		break;
+	default:
+		error("deny_input_open: type %d plen %d", type, plen);
+		break;
+	}
+	error("Warning: this is probably a break in attempt by a malicious server.");
+	packet_start(SSH_MSG_CHANNEL_OPEN_FAILURE);
+	packet_put_int(rchan);
+	packet_send();
 }
 
 /*
@@ -2349,13 +2376,13 @@ channel_register_filter(int id, channel_filter_fn *fn)
 }
 
 void
-channel_set_fds(int id, int rfd, int wfd, int efd, int extusage)
+channel_set_fds(int id, int rfd, int wfd, int efd,
+    int extusage, int nonblock)
 {
 	Channel *c = channel_lookup(id);
 	if (c == NULL || c->type != SSH_CHANNEL_LARVAL)
 		fatal("channel_activate for non-larval channel %d.", id);
-
-	channel_register_fds(c, rfd, wfd, efd, extusage);
+	channel_register_fds(c, rfd, wfd, efd, extusage, nonblock);
 	c->type = SSH_CHANNEL_OPEN;
 	/* XXX window size? */
 	c->local_window = c->local_window_max = c->local_maxpacket * 2;

@@ -32,7 +32,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* RCSID("$OpenBSD: channels.h,v 1.20 2000/09/21 11:25:33 markus Exp $"); */
+/* RCSID("$OpenBSD: channels.h,v 1.22 2000/10/27 07:48:22 markus Exp $"); */
 
 #ifndef CHANNELS_H
 #define CHANNELS_H
@@ -117,7 +117,6 @@ struct Channel {
 #define CHAN_X11_PACKET_DEFAULT	(CHAN_X11_WINDOW_DEFAULT/2)
 
 
-void	channel_set_fds(int id, int rfd, int wfd, int efd, int extusage);
 void	channel_open(int id);
 void	channel_request(int id, char *service, int wantconfirm);
 void	channel_request_start(int id, char *service, int wantconfirm);
@@ -129,7 +128,13 @@ Channel	*channel_lookup(int id);
 
 int
 channel_new(char *ctype, int type, int rfd, int wfd, int efd,
-    int window, int maxpack, int extended_usage, char *remote_name);
+    int window, int maxpack, int extended_usage, char *remote_name,
+    int nonblock);
+void
+channel_set_fds(int id, int rfd, int wfd, int efd,
+    int extusage, int nonblock);
+
+void	deny_input_open(int type, int plen, void *ctxt);
 
 void	channel_input_channel_request(int type, int plen, void *ctxt);
 void	channel_input_close(int type, int plen, void *ctxt);
