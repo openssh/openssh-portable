@@ -1,6 +1,11 @@
 20030514
  - (djm) Bug #117: Don't lie to PAM about username
  - (djm) RCSID sync w/ OpenBSD
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2003/04/09 12:00:37
+     [readconf.c]
+     strip trailing whitespace from config lines before parsing. 
+     Fixes bz 528; ok markus@
 
 20030512
  - (djm) Redhat spec: Don't install profile.d scripts when not 
@@ -1388,4 +1393,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2677 2003/05/14 03:40:06 djm Exp $
+$Id: ChangeLog,v 1.2678 2003/05/14 03:40:54 djm Exp $
