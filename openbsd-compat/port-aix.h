@@ -35,6 +35,11 @@
 # endif
 #endif
 
+/* Some versions define r_type in the above headers, which causes a conflict */
+#ifdef r_type
+# undef r_type
+#endif
+
 /* AIX 4.2.x doesn't have nanosleep but does have nsleep which is equivalent */
 #if !defined(HAVE_NANOSLEEP) && defined(HAVE_NSLEEP)
 # define nanosleep(a,b) nsleep(a,b)

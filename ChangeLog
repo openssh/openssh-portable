@@ -1,6 +1,8 @@
 20030714
  - (dtucker) [acconfig.h configure.ac port-aix.c] Older AIXes don't declare
    loginfailed at all, so assume 3-arg loginfailed if not declared.
+ - (dtucker) [port-aix.h] Work around name collision on AIX for r_type by
+   undef'ing it.
 
 20030708
  - (dtucker) [acconfig.h auth-passwd.c configure.ac session.c port-aix.[ch]]
@@ -674,4 +676,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2850 2003/07/14 06:21:44 dtucker Exp $
+$Id: ChangeLog,v 1.2851 2003/07/14 06:26:51 dtucker Exp $
