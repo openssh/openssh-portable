@@ -60,6 +60,9 @@
    - markus@cvs.openbsd.org 2003/02/12 09:33:04
      [key.c key.h ssh-dss.c ssh-rsa.c]
      merge ssh-dss.h ssh-rsa.h into key.h; ok deraadt@
+   - markus@cvs.openbsd.org 2003/02/12 21:39:50
+     [crc32.c crc32.h]
+     replace crc32.c with a BSD licensed version; noted by David Turner
 
 20030211
  - (djm) Cygwin needs libcrypt too. Patch from vinschen@redhat.com
@@ -1160,4 +1163,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2610 2003/02/24 01:01:40 djm Exp $
+$Id: ChangeLog,v 1.2611 2003/02/24 01:02:12 djm Exp $
