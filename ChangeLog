@@ -5,6 +5,9 @@
      Make it clear that the example entries in ssh_config are only some of the
      commonly-used options and refer the user to ssh_config(5) for more
      details; ok djm@
+   - jmc@cvs.openbsd.org 2005/01/28 15:05:43
+     [ssh_config.5]
+     grammar;
 
 20050208
  - (dtucker) [regress/test-exec.sh] Bug #912: Set _POSIX2_VERSION for the
@@ -2094,4 +2097,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3640 2005/02/08 22:46:47 dtucker Exp $
+$Id: ChangeLog,v 1.3641 2005/02/08 22:48:57 dtucker Exp $
