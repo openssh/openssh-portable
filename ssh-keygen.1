@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.48 2001/08/02 15:07:23 jakob Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.49 2001/09/05 06:23:07 deraadt Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -89,7 +89,7 @@ generates, manages and converts authentication keys for
 defaults to generating a RSA1 key for use by SSH protocol version 1.
 Specifying the
 .Fl t
-option allows you to create a key for use by SSH protocol version 2.
+option instead creates a key for use by SSH protocol version 2.
 .Pp
 Normally each user wishing to use SSH
 with RSA or DSA authentication runs this once to create the authentication
@@ -121,7 +121,7 @@ option.
 .Pp
 There is no way to recover a lost passphrase.
 If the passphrase is
-lost or forgotten, you will have to generate a new key and copy the
+lost or forgotten, a new key must be generated and copied to the
 corresponding public key to other machines.
 .Pp
 For RSA1 keys,
@@ -228,7 +228,7 @@ Contains the protocol version 1 RSA public key for authentication.
 The contents of this file should be added to
 .Pa $HOME/.ssh/authorized_keys
 on all machines
-where you wish to log in using RSA authentication.
+where the user wishes to log in using RSA authentication.
 There is no need to keep the contents of this file secret.
 .It Pa $HOME/.ssh/id_dsa
 Contains the protocol version 2 DSA authentication identity of the user.
@@ -246,7 +246,7 @@ Contains the protocol version 2 DSA public key for authentication.
 The contents of this file should be added to
 .Pa $HOME/.ssh/authorized_keys
 on all machines
-where you wish to log in using public key authentication.
+where the user wishes to log in using public key authentication.
 There is no need to keep the contents of this file secret.
 .It Pa $HOME/.ssh/id_rsa
 Contains the protocol version 2 RSA authentication identity of the user.
@@ -264,7 +264,7 @@ Contains the protocol version 2 RSA public key for authentication.
 The contents of this file should be added to
 .Pa $HOME/.ssh/authorized_keys
 on all machines
-where you wish to log in using public key authentication.
+where the user wishes to log in using public key authentication.
 There is no need to keep the contents of this file secret.
 .El
 .Sh AUTHORS

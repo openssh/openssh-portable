@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.146 2001/08/30 20:36:34 stevesk Exp $
+.\" $OpenBSD: sshd.8,v 1.147 2001/09/05 06:23:07 deraadt Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -325,7 +325,7 @@ and
 .Ql ?
 can be used as
 wildcards in the patterns.
-Only group names are valid; a numerical group ID isn't recognized.
+Only group names are valid; a numerical group ID is not recognized.
 By default login is allowed regardless of the group list.
 .Pp
 .It Cm AllowTcpForwarding
@@ -346,10 +346,10 @@ and
 .Ql ?
 can be used as
 wildcards in the patterns.
-Only user names are valid; a numerical user ID isn't recognized.
+Only user names are valid; a numerical user ID is not recognized.
 By default login is allowed regardless of the user name.
 If the pattern takes the form USER@HOST then USER and HOST
-are separately checked, allowing you to restrict logins to particular
+are separately checked, restricting logins to particular
 users from particular hosts.
 .Pp
 .It Cm AuthorizedKeysFile
@@ -408,13 +408,13 @@ to note that the use of client alive messages is very different from
 encrypted channel and therefore will not be spoofable. The TCP keepalive
 option enabled by
 .Cm Keepalive
-is spoofable. You want to use the client
-alive mechanism when you are basing something important on
-clients having an active connection to the server.
+is spoofable. The client alive mechanism is valuable when the client or
+server depend on knowing when a connection has become inactive.
 .Pp
-The default value is 3. If you set
+The default value is 3. If
 .Cm ClientAliveInterval
-(above) to 15, and leave this value at the default, unresponsive ssh clients
+(above) is set to 15, and
+.Cm Keepalive is left at the default, unresponsive ssh clients
 will be disconnected after approximately 45 seconds.
 .It Cm DenyGroups
 This keyword can be followed by a number of group names, separated
@@ -426,7 +426,7 @@ and
 .Ql ?
 can be used as
 wildcards in the patterns.
-Only group names are valid; a numerical group ID isn't recognized.
+Only group names are valid; a numerical group ID is not recognized.
 By default login is allowed regardless of the group list.
 .Pp
 .It Cm DenyUsers
@@ -437,7 +437,7 @@ Login is disallowed for user names that match one of the patterns.
 and
 .Ql ?
 can be used as wildcards in the patterns.
-Only user names are valid; a numerical user ID isn't recognized.
+Only user names are valid; a numerical user ID is not recognized.
 By default login is allowed regardless of the user name.
 .It Cm GatewayPorts
 Specifies whether remote hosts are allowed to connect to ports
@@ -998,8 +998,8 @@ authentication.
 The command supplied by the user (if any) is ignored.
 The command is run on a pty if the connection requests a pty;
 otherwise it is run without a tty.
-Note that if you want a 8-bit clean channel,
-you must not request a pty or should specify
+If a 8-bit clean channel is required,
+one must not request a pty or should specify
 .Cm no-pty .
 A quote may be included in the command by quoting it with a backslash.
 This option might be useful

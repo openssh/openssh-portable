@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.23 2001/08/14 17:54:29 stevesk Exp $
+.\" $OpenBSD: sftp.1,v 1.24 2001/09/05 06:23:07 deraadt Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -85,8 +85,8 @@ in the format used in the
 configuration file. This is useful for specifying options
 for which there is no separate
 .Nm sftp
-command-line flag.  For example, to force the use of protocol
-version 1 you may specify
+command-line flag.  For example, forcing the use of protocol
+version 1 is specified using
 .Ic sftp -oProtocol=1 .
 .It Fl v
 Raise logging level. This option is also passed to ssh.

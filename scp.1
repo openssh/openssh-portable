@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sun May  7 00:14:37 1995 ylo
 .\"
-.\" $OpenBSD: scp.1,v 1.17 2001/08/14 17:54:29 stevesk Exp $
+.\" $OpenBSD: scp.1,v 1.18 2001/09/05 06:23:07 deraadt Exp $
 .\"
 .Dd September 25, 1999
 .Dt SCP 1
@@ -115,8 +115,8 @@ in the format used in the
 configuration file. This is useful for specifying options
 for which there is no separate
 .Nm scp
-command-line flag.  For example, to force the use of protocol
-version 1 you may specify
+command-line flag.  For example, forcing the use of protocol
+version 1 is specified using
 .Ic scp -oProtocol=1 .
 .It Fl 4
 Forces

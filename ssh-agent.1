@@ -1,4 +1,4 @@
-.\" $OpenBSD: ssh-agent.1,v 1.27 2001/08/23 18:02:48 stevesk Exp $
+.\" $OpenBSD: ssh-agent.1,v 1.28 2001/09/05 06:23:07 deraadt Exp $
 .\"
 .\" Author: Tatu Ylonen <ylo@cs.hut.fi>
 .\" Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -116,9 +116,9 @@ remote logins, and the user can thus use the privileges given by the
 identities anywhere in the network in a secure way.
 .Pp
 There are two main ways to get an agent setup:
-Either you let the agent
-start a new subcommand into which some environment variables are exported, or
-you let the agent print the needed shell commands (either
+Either the agent starts a new subcommand into which some environment
+variables are exported, or the agent prints the needed shell commands
+(either
 .Xr sh 1
 or
 .Xr csh 1

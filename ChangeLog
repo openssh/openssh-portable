@@ -80,6 +80,9 @@
    - stevesk@cvs.openbsd.org 2001/09/03 20:58:33
      [readconf.c readconf.h ssh.c]
      fatal() for nonexistent -Fssh_config. ok markus@
+   - deraadt@cvs.openbsd.org 2001/09/05 06:23:07
+     [scp.1 sftp.1 ssh.1 ssh-agent.1 sshd.8 ssh-keygen.1 ssh-keyscan.1]
+     avoid first person in manual pages
 
 20010815
  - (bal) Fixed stray code in readconf.c that went in by mistake.
@@ -6403,4 +6406,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1508 2001/09/12 18:32:20 mouring Exp $
+$Id: ChangeLog,v 1.1509 2001/09/12 18:35:30 mouring Exp $

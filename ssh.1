@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.136 2001/08/30 16:04:35 stevesk Exp $
+.\" $OpenBSD: ssh.1,v 1.137 2001/09/05 06:23:07 deraadt Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -495,7 +495,7 @@ needs to ask for a password or passphrase; see also the
 option.)
 .It Fl N
 Do not execute a remote command.
-This is useful if you just want to forward ports
+This is useful for just forwarding ports
 (protocol version 2 only).
 .It Fl o Ar option
 Can be used to give options in the format used in the configuration file.
@@ -507,7 +507,7 @@ This can be specified on a
 per-host basis in the configuration file.
 .It Fl P
 Use a non-privileged port for outgoing connections.
-This can be used if your firewall does
+This can be used if a firewall does
 not permit connections from privileged ports.
 Note that this option turns off
 .Cm RhostsAuthentication
@@ -711,8 +711,8 @@ This option applies to protocol version 1 only.
 If set to
 .Dq yes ,
 passphrase/password querying will be disabled.
-This option is useful in scripts and other batch jobs where you have no
-user to supply the password.
+This option is useful in scripts and other batch jobs where no user
+is present to supply the password.
 The argument must be
 .Dq yes
 or
@@ -890,7 +890,7 @@ Specifies an alias that should be used instead of the
 real host name when looking up or saving the host key
 in the host key database files.
 This option is useful for tunneling ssh connections
-or if you have multiple servers running on a single host.
+or for multiple servers running on a single host.
 .It Cm HostName
 Specifies the real host name to log into.
 This can be used to specify nicknames or abbreviations for hosts.
@@ -1109,11 +1109,11 @@ If this flag is set to
 will never automatically add host keys to the
 .Pa $HOME/.ssh/known_hosts
 file, and refuses to connect to hosts whose host key has changed.
-This provides maximum protection against trojan horse attacks.
-However, it can be somewhat annoying if you don't have good
+This provides maximum protection against trojan horse attacks,
+however, can be annoying when the
 .Pa /etc/ssh_known_hosts
-files installed and frequently
-connect to new hosts.
+file is poorly maintained, or connections to new hosts are
+frequently made.
 This option forces the user to manually
 add all new hosts.
 If this flag is set to
@@ -1145,16 +1145,16 @@ or
 .Dq no .
 The default is
 .Dq no .
-Note that you need to set this option to
+Note that this option must be set to
 .Dq yes
-if you want to use
+if
 .Cm RhostsAuthentication
 and
 .Cm RhostsRSAAuthentication
-with older servers.
+authentications are needed with older servers.
 .It Cm User
 Specifies the user to log in as.
-This can be useful if you have a different user name on different machines.
+This can be useful when a different user name is used on different machines.
 This saves the trouble of
 having to remember to give the user name on the command line.
 .It Cm UserKnownHostsFile
@@ -1302,7 +1302,7 @@ The contents of the
 file should be added to
 .Pa $HOME/.ssh/authorized_keys
 on all machines
-where you wish to log in using protocol version 1 RSA authentication.
+where the user wishes to log in using protocol version 1 RSA authentication.
 The contents of the
 .Pa $HOME/.ssh/id_dsa.pub
 and
@@ -1310,7 +1310,7 @@ and
 file should be added to
 .Pa $HOME/.ssh/authorized_keys
 on all machines
-where you wish to log in using protocol version 2 DSA/RSA authentication.
+where the user wishes to log in using protocol version 2 DSA/RSA authentication.
 These files are not
 sensitive and can (but need not) be readable by anyone.
 These files are
@@ -1388,9 +1388,9 @@ Note that by default
 .Xr sshd 8
 will be installed so that it requires successful RSA host
 authentication before permitting \s+2.\s0rhosts authentication.
-If your server machine does not have the client's host key in
+If the server machine does not have the client's host key in
 .Pa /etc/ssh_known_hosts ,
-you can store it in
+it can be stored in
 .Pa $HOME/.ssh/known_hosts .
 The easiest way to do this is to
 connect back to the client from the server machine using ssh; this

@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keyscan.1,v 1.11 2001/08/23 18:08:59 stevesk Exp $
+.\"	$OpenBSD: ssh-keyscan.1,v 1.12 2001/09/05 06:23:07 deraadt Exp $
 .\"
 .\" Copyright 1995, 1996 by David Mazieres <dm@lcs.mit.edu>.
 .\"
@@ -35,9 +35,9 @@ scripts.
 uses non-blocking socket I/O to contact as many hosts as possible in
 parallel, so it is very efficient.  The keys from a domain of 1,000
 hosts can be collected in tens of seconds, even when some of those
-hosts are down or do not run ssh.  You do not need login access to the
-machines you are scanning, nor does the scanning process involve
-any encryption.
+hosts are down or do not run ssh.  For scanning, one does not need
+login access to the machines that are being scanned, nor does the
+scanning process involve any encryption.
 .Pp
 The options are as follows:
 .Bl -tag -width Ds
@@ -88,15 +88,15 @@ Forces
 to use IPv6 addresses only.
 .El
 .Sh SECURITY
-If you make an ssh_known_hosts file using
+If a ssh_known_hosts file is constructed using
 .Nm
-without verifying the keys, you will be vulnerable to
+without verifying the keys, users will be vulnerable to
 .I man in the middle
 attacks.
-On the other hand, if your security model allows such a risk,
+On the other hand, if the security model allows such a risk,
 .Nm
-can help you detect tampered keyfiles or man in the middle attacks which
-have begun after you created your ssh_known_hosts file.
+can help in the detection of tampered keyfiles or man in the middle
+attacks which have begun after the ssh_known_hosts file was created.
 .Sh EXAMPLES
 .Pp
 Print the
