@@ -32,7 +32,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readpass.c,v 1.22 2001/07/14 15:10:16 stevesk Exp $");
+RCSID("$OpenBSD: readpass.c,v 1.23 2001/11/08 10:51:08 markus Exp $");
 
 #include "xmalloc.h"
 #include "readpass.h"
@@ -45,7 +45,7 @@ ssh_askpass(char *askpass, const char *msg)
 {
 	pid_t pid;
 	size_t len;
-	char *nl, *pass;
+	char *pass;
 	int p[2], status;
 	char buf[1024];
 
@@ -71,16 +71,15 @@ ssh_askpass(char *askpass, const char *msg)
 		fatal("ssh_askpass: exec(%s): %s", askpass, strerror(errno));
 	}
 	close(p[1]);
-	len = read(p[0], buf, sizeof buf);
+	len = read(p[0], buf, sizeof buf -1);
 	close(p[0]);
 	while (waitpid(pid, &status, 0) < 0)
 		if (errno != EINTR)
 			break;
 	if (len <= 1)
 		return xstrdup("");
-	nl = strchr(buf, '\n');
-	if (nl)
-		*nl = '\0';
+	buf[len] = '\0';
+	buf[strcspn(buf, "\r\n")] = '\0';
 	pass = xstrdup(buf);
 	memset(buf, 0, sizeof(buf));
 	return pass;

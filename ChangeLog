@@ -42,6 +42,9 @@
    - markus@cvs.openbsd.org 2001/11/07 22:53:21
      [channels.h]
      crank c->path to 256 so they can hold a full hostname; dwd@bell-labs.com
+   - markus@cvs.openbsd.org 2001/11/08 10:51:08
+     [readpass.c]
+     don't strdup too much data; from gotoh@taiyo.co.jp; ok millert.
 
 20011109
  - (stevesk) auth-pam.c: use do_pam_authenticate(PAM_DISALLOW_NULL_AUTHTOK)
@@ -6851,4 +6854,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1647 2001/11/12 00:04:54 djm Exp $
+$Id: ChangeLog,v 1.1648 2001/11/12 00:05:20 djm Exp $
