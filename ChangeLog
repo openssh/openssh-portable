@@ -1,3 +1,9 @@
+20040708
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2004/07/03 05:11:33
+     [sshlogin.c] (RCSID sync only, the corresponding code is not in Portable)
+     Use '\0' not 0 for string; ok djm@, deraadt@
+
 20040702
  - (dtucker) [mdoc2man.awk] Teach it to ignore .Bk -words, reported by
    strube at physik3.gwdg.de a long time ago.
@@ -1481,4 +1487,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3468 2004/07/02 08:43:09 dtucker Exp $
+$Id: ChangeLog,v 1.3469 2004/07/08 13:08:26 dtucker Exp $
