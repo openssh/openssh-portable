@@ -14,6 +14,9 @@
      [readconf.c]
      do not dump core for 'ssh -o proxycommand host'; ok deraadt@
  - (dtucker) [regress/dynamic-forward.sh] Import new regression test.
+ - (dtucker) [configure.ac] Bug #570: Have ./configure --enable-FEATURE 
+   actually enable the feature, for those normally disabled.  Patch by
+   openssh (at) roumenpetrov.info.
 
 20030624
  - (dtucker) Have configure refer the user to config.log and
@@ -600,4 +603,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2828 2003/06/28 02:42:09 dtucker Exp $
+$Id: ChangeLog,v 1.2829 2003/06/28 02:54:33 dtucker Exp $
