@@ -7,6 +7,9 @@
    - provos@cvs.openbsd.org 2001/03/28 22:04:57
      [dh.c]
      more sanity checking on primes file
+   - markus@cvs.openbsd.org 2001/03/28 22:43:31
+     [auth.h auth2.c auth2-chall.c]
+     check auth_root_allowed for kbd-int auth, too.
 
 20010329
  - OpenBSD CVS Sync
@@ -4777,4 +4780,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1037 2001/03/30 00:47:43 djm Exp $
+$Id: ChangeLog,v 1.1038 2001/03/30 00:48:31 djm Exp $

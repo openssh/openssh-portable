@@ -21,7 +21,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $OpenBSD: auth.h,v 1.13 2001/03/20 18:57:04 markus Exp $
+ * $OpenBSD: auth.h,v 1.14 2001/03/28 22:43:31 markus Exp $
  */
 #ifndef AUTH_H
 #define AUTH_H
@@ -121,7 +121,7 @@ void	do_authentication2(void);
 
 Authctxt *authctxt_new(void);
 void	auth_log(Authctxt *authctxt, int authenticated, char *method, char *info);
-void	userauth_reply(Authctxt *authctxt, int authenticated);
+void	userauth_finish(Authctxt *authctxt, int authenticated, char *method);
 int	auth_root_allowed(char *method);
 
 int	auth2_challenge(Authctxt *authctxt, char *devs);

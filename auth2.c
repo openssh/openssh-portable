@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.48 2001/03/21 11:43:44 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.49 2001/03/28 22:43:31 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -81,6 +81,7 @@ char	*authmethods_get(void);
 
 /* auth */
 void	userauth_banner(void);
+void	userauth_reply(Authctxt *authctxt, int authenticated);
 int	userauth_none(Authctxt *authctxt);
 int	userauth_passwd(Authctxt *authctxt);
 int	userauth_pubkey(Authctxt *authctxt);
@@ -231,6 +232,16 @@ input_userauth_request(int type, int plen, void *ctxt)
 		debug2("input_userauth_request: try method %s", method);
 		authenticated =	m->userauth(authctxt);
 	}
+	userauth_finish(authctxt, authenticated, method);
+
+	xfree(service);
+	xfree(user);
+	xfree(method);
+}
+
+void
+userauth_finish(Authctxt *authctxt, int authenticated, char *method)
+{
 	if (!authctxt->valid && authenticated)
 		fatal("INTERNAL ERROR: authenticated invalid user %s",
 		    authctxt->user);
@@ -251,10 +262,6 @@ input_userauth_request(int type, int plen, void *ctxt)
 
 	if (!authctxt->postponed)
 		userauth_reply(authctxt, authenticated);
-
-	xfree(service);
-	xfree(user);
-	xfree(method);
 }
 
 void
