@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.169 2002/02/28 20:36:42 stevesk Exp $
+.\" $OpenBSD: sshd.8,v 1.170 2002/02/28 20:46:10 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -293,6 +293,11 @@ Authentication mechanisms that may require DNS include
 and using a
 .Cm from="pattern-list"
 option in a key file.
+Configuration options that require DNS include using a
+USER@HOST pattern in
+.Cm AllowUsers
+or
+.Cm DenyUsers .
 .It Fl D
 When this option is specified
 .Nm

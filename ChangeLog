@@ -27,6 +27,9 @@
    - stevesk@cvs.openbsd.org 2002/02/28 20:36:42
      [sshd.8]
      DenyUsers allows user@host pattern also
+   - stevesk@cvs.openbsd.org 2002/02/28 20:46:10
+     [sshd.8]
+     -u0 DNS for user@host
 
 20020226
  - (tim) Bug 12 [configure.ac] add sys/bitypes.h to int64_t tests
@@ -7758,4 +7761,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1898 2002/03/05 01:37:12 mouring Exp $
+$Id: ChangeLog,v 1.1899 2002/03/05 01:38:57 mouring Exp $
