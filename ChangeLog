@@ -3,6 +3,11 @@
    - deraadt@cvs.openbsd.org 2002/02/26 18:52:32
      [sftp.1]
      Ic cannot have that many arguments; spotted by mouring@etoh.eviladmin.org
+   - mouring@cvs.openbsd.org 2002/02/26 19:04:37
+     [sftp.1]
+     > Ic cannot have that many arguments; spotted by mouring@etoh.eviladmin.org
+     Last Ic on the first line should not have a space between it and the final
+     comma.
 
 20020226
  - (tim) Bug 12 [configure.ac] add sys/bitypes.h to int64_t tests
@@ -7734,4 +7739,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1891 2002/03/05 01:23:13 mouring Exp $
+$Id: ChangeLog,v 1.1892 2002/03/05 01:24:52 mouring Exp $
