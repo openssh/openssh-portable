@@ -7,6 +7,7 @@
    Use permanently_set_uid for SIA, only define DISABLE_FD_PASSING when SIA
    is enabled, rely on SIA to check for locked accounts if enabled.  ok djm@
  - (djm) [scp.c] Rename limitbw -> limit_rate to match upstreamed patch
+ - (djm) [sftp-int.c] Remove duplicated code from bogus sync
 
 20031121
  - (djm) OpenBSD CVS Sync
@@ -1508,4 +1509,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3123 2003/11/22 03:39:04 djm Exp $
+$Id: ChangeLog,v 1.3124 2003/11/22 03:48:49 djm Exp $
