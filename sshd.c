@@ -1740,12 +1740,6 @@ do_authenticated(struct passwd * pw)
 
 			/* Indicate that we now have a pty. */
 			have_pty = 1;
-
-#ifdef USE_PAM
-			/* do the pam_open_session since we have the pty */
-			do_pam_session(pw->pw_name, ttyname);
-#endif /* USE_PAM */
-
 			break;
 
 		case SSH_CMSG_X11_REQUEST_FORWARDING:
@@ -1821,9 +1815,6 @@ do_authenticated(struct passwd * pw)
 			packet_set_interactive(have_pty || display != NULL,
 					       options.keepalives);
 
-#ifdef USE_PAM
-			do_pam_setcred();
-#endif /* USE_PAM */
 			if (forced_command != NULL)
 				goto do_forced_command;
 			debug("Forking shell.");
@@ -1839,9 +1830,6 @@ do_authenticated(struct passwd * pw)
 			packet_set_interactive(have_pty || display != NULL,
 					       options.keepalives);
 
-#ifdef USE_PAM
-			do_pam_setcred();
-#endif /* USE_PAM */
 			if (forced_command != NULL)
 				goto do_forced_command;
 			/* Get command from the packet. */
@@ -1928,6 +1916,10 @@ do_exec_no_pty(const char *command, struct passwd * pw,
 #endif /* USE_PIPES */
 
 	setproctitle("%s@notty", pw->pw_name);
+
+#ifdef USE_PAM
+			do_pam_setcred();
+#endif /* USE_PAM */
 
 	/* Fork the child. */
 	if ((pid = fork()) == 0) {
@@ -2066,6 +2058,11 @@ do_exec_pty(const char *command, int ptyfd, int ttyfd,
 						      buf, sizeof(buf));
 	}
 	setproctitle("%s@%s", pw->pw_name, strrchr(ttyname, '/') + 1);
+
+#ifdef USE_PAM
+			do_pam_session(pw->pw_name, ttyname);
+			do_pam_setcred();
+#endif /* USE_PAM */
 
 	/* Fork the child. */
 	if ((pid = fork()) == 0) {

@@ -1,6 +1,8 @@
 20000125
  - Fix NULL pointer dereference in login.c. Fix from Andre Lucas 
    <andre.lucas@dial.pipex.com>
+ - Reorder PAM initialisation so it does not mess up lastlog. Reported
+   by Andre Lucas <andre.lucas@dial.pipex.com>
 
 20000124
  - Pick up version 1.2.2 from OpenBSD CVS (no changes, just version number
