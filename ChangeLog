@@ -29,6 +29,7 @@
    Report by distler AT golem ph utexas edu.
  - (dtucker) [contrib/aix/pam.conf] Include example pam.conf for AIX from
    article by genty at austin.ibm.com, included with the author's permission.
+ - (tim) [configure.ac] add --disable-etc-default-login option. ok djm
 
 20030919
  - (djm) Bug #683: Remove reference to --with-ipv4-default from INSTALL;
@@ -1161,4 +1162,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2994.2.26 2003/09/22 10:42:16 dtucker Exp $
+$Id: ChangeLog,v 1.2994.2.27 2003/09/23 02:51:36 tim Exp $
