@@ -1,3 +1,9 @@
+20020402
+ - (bal) Hand Sync of scp.c (reverted to upstream code)
+   - deraadt@cvs.openbsd.org 2002/03/30 17:45:46
+     [scp.c]
+     stretch banners
+
 20020401
  - (stevesk) [monitor.c] PAM should work again; will *not* work with
    UsePrivilegeSeparation=yes.
@@ -8104,4 +8110,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2006 2002/04/02 03:24:56 stevesk Exp $
+$Id: ChangeLog,v 1.2007 2002/04/02 20:17:43 mouring Exp $

@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.86 2001/12/05 03:56:39 itojun Exp $");
+RCSID("$OpenBSD: scp.c,v 1.87 2002/03/30 17:45:46 deraadt Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -93,14 +93,6 @@ char *__progname;
 #define STALLTIME	5
 /* alarm() interval for updating progress meter */
 #define PROGRESSTIME	1
-
-/* Progress meter bar */
-#define BAR \
-	"************************************************************"\
-	"************************************************************"\
-	"************************************************************"\
-	"************************************************************"
-#define MAX_BARLENGTH (sizeof(BAR) - 1)
 
 /* Visual statistics about files as they are transferred. */
 void progressmeter(int);
@@ -1116,7 +1108,7 @@ progressmeter(int flag)
 	off_t cursize, abbrevsize;
 	double elapsed;
 	int ratio, barlength, i, remaining;
-	char buf[256];
+	char buf[512];
 
 	if (flag == -1) {
 		(void) gettimeofday(&start, (struct timezone *) 0);
@@ -1138,11 +1130,18 @@ progressmeter(int flag)
 	snprintf(buf, sizeof(buf), "\r%-20.20s %3d%% ", curfile, ratio);
 
 	barlength = getttywidth() - 51;
-	barlength = (barlength <= MAX_BARLENGTH)?barlength:MAX_BARLENGTH;
 	if (barlength > 0) {
 		i = barlength * ratio / 100;
 		snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
-			 "|%.*s%*s|", i, BAR, barlength - i, "");
+		    "|%.*s%*s|", i,
+		    "*******************************************************"
+		    "*******************************************************"
+		    "*******************************************************"
+		    "*******************************************************"
+		    "*******************************************************"
+		    "*******************************************************"
+		    "*******************************************************",
+		    barlength - i, "");
 	}
 	i = 0;
 	abbrevsize = cursize;
