@@ -18,6 +18,9 @@
    - jmc@cvs.openbsd.org 2005/03/12 11:55:03
      [ssh_config.5]
      escape `.' at eol to avoid double spacing issues;
+   - dtucker@cvs.openbsd.org 2005/03/14 10:09:03
+     [ssh-keygen.1]
+     Correct description of -H (bz #997);  ok markus@, punctuation jmc@
 
 20050313
  - (dtucker) [contrib/cygwin/ssh-host-config] Makes the query for the
@@ -2352,4 +2355,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3715 2005/03/14 12:14:20 dtucker Exp $
+$Id: ChangeLog,v 1.3716 2005/03/14 12:15:58 dtucker Exp $
