@@ -2,6 +2,27 @@
  - (bal) Resync CVS ID of cli.c
  - (stevesk) auth1.c: free should be after WITH_AIXAUTHENTICATE
    code.
+ - (bal) OpenBSD Sync
+   - markus@cvs.openbsd.org 2001/01/08 22:29:05
+     [auth2.c compat.c compat.h servconf.c servconf.h sshd.8
+      sshd_config version.h]
+     implement option 'Banner /etc/issue.net' for ssh2, move version to
+     2.3.1 (needed for bugcompat detection, 2.3.0 would fail if Banner
+     is enabled).
+   - markus@cvs.openbsd.org 2001/01/08 22:03:23
+     [channels.c ssh-keyscan.c]
+     O_NDELAY -> O_NONBLOCK; thanks stevesk@pobox.com
+   - markus@cvs.openbsd.org 2001/01/08 21:55:41
+     [sshconnect1.c]
+     more cleanups and fixes from stevesk@pobox.com:
+     1) try_agent_authentication() for loop will overwrite key just
+        allocated with key_new(); don't alloc
+     2) call ssh_close_authentication_connection() before exit
+        try_agent_authentication()
+     3) free mem on bad passphrase in try_rsa_authentication()
+   - markus@cvs.openbsd.org 2001/01/08 21:48:17
+     [kex.c]
+     missing free; thanks stevesk@pobox.com
 
 20010108
  - (bal) Fixed another typo in cli.c

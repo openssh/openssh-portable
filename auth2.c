@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.24 2000/12/28 14:25:51 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.25 2001/01/08 22:29:05 markus Exp $");
 
 #ifdef HAVE_OSF_SIA
 # include <sia.h>
@@ -92,6 +92,7 @@ int	user_key_allowed(struct passwd *pw, Key *key);
 char	*authmethods_get(void);
 
 /* auth */
+void	userauth_banner(void);
 int	userauth_none(Authctxt *authctxt);
 int	userauth_passwd(Authctxt *authctxt);
 int	userauth_pubkey(Authctxt *authctxt);
@@ -257,6 +258,39 @@ input_userauth_request(int type, int plen, void *ctxt)
 	xfree(method);
 }
 
+void
+userauth_banner(void)
+{
+	struct stat st;
+	char *banner = NULL;
+	off_t len, n;
+	int fd;
+
+	if (options.banner == NULL || (datafellows & SSH_BUG_BANNER))
+		return;
+	if ((fd = open(options.banner, O_RDONLY)) < 0) {
+		error("userauth_banner: open %s failed: %s",
+		    options.banner, strerror(errno));
+		return;
+	}
+	if (fstat(fd, &st) < 0)
+		goto done;
+	len = st.st_size;
+	banner = xmalloc(len + 1);
+	if ((n = read(fd, banner, len)) < 0)
+		goto done;
+	banner[n] = '\0';
+	packet_start(SSH2_MSG_USERAUTH_BANNER);
+	packet_put_cstring(banner);
+	packet_put_cstring("");		/* language, unused */
+	packet_send();
+	debug("userauth_banner: sent");
+done:
+	if (banner)
+		xfree(banner);
+	close(fd);
+	return;
+}
 
 void
 userauth_log(Authctxt *authctxt, int authenticated, char *method)
@@ -335,6 +369,7 @@ userauth_none(Authctxt *authctxt)
 	if (m != NULL)
 		m->enabled = NULL;
 	packet_done();
+        userauth_banner();
 
 	if (authctxt->valid == 0)
 		return(0);

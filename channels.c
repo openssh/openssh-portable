@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.79 2000/12/29 22:19:13 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.80 2001/01/08 22:03:23 markus Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -1743,7 +1743,7 @@ channel_connect_to(const char *host, u_short host_port)
 			error("socket: %.100s", strerror(errno));
 			continue;
 		}
-		if (fcntl(sock, F_SETFL, O_NDELAY) < 0)
+		if (fcntl(sock, F_SETFL, O_NONBLOCK) < 0)
 			fatal("connect_to: F_SETFL: %s", strerror(errno));
 		/* Connect to the host/port. */
 		if (connect(sock, ai->ai_addr, ai->ai_addrlen) < 0 &&

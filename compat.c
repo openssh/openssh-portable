@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: compat.c,v 1.32 2000/12/09 23:51:11 provos Exp $");
+RCSID("$OpenBSD: compat.c,v 1.33 2001/01/08 22:29:05 markus Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -62,7 +62,10 @@ compat_datafellows(const char *version)
 		char	*pat;
 		int	bugs;
 	} check[] = {
-		{ "^OpenSSH[-_]2\\.[012]",	SSH_OLD_SESSIONID },
+		{ "^OpenSSH[-_]2\\.[012]",
+					SSH_OLD_SESSIONID|SSH_BUG_BANNER },
+		{ "^OpenSSH_2\\.3\\.0", SSH_BUG_BANNER },
+		{ "^OpenSSH",		0 },
 		{ "MindTerm",		0 },
 		{ "^2\\.1\\.0",		SSH_BUG_SIGBLOB|SSH_BUG_HMAC|
 					SSH_OLD_SESSIONID|SSH_BUG_DEBUG },

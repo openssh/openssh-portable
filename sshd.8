@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.79 2001/01/07 11:28:07 markus Exp $
+.\" $OpenBSD: sshd.8,v 1.80 2001/01/08 22:29:05 markus Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -332,6 +332,13 @@ can be used as
 wildcards in the patterns.
 Only user names are valid; a numerical user ID isn't recognized.
 By default login is allowed regardless of the user name.
+.Pp
+.It Cm Banner
+In some jurisdictions, sending a warning message before authentication
+may be relevant for getting legal protection.
+The contents of the specified file are sent to the remote user before
+authentication is allowed.
+This option is only available for protocol version 2.
 .Pp
 .It Cm Ciphers
 Specifies the ciphers allowed for protocol version 2.

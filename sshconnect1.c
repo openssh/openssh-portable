@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.13 2000/12/19 23:17:58 markus Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.14 2001/01/08 21:55:41 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dsa.h>
@@ -62,7 +62,6 @@ try_agent_authentication()
 		return 0;
 
 	challenge = BN_new();
-	key = key_new(KEY_RSA1);
 
 	/* Loop through identities served by the agent. */
 	for (key = ssh_get_first_identity(auth, &comment, 1);
@@ -125,6 +124,7 @@ try_agent_authentication()
 
 		/* The server returns success if it accepted the authentication. */
 		if (type == SSH_SMSG_SUCCESS) {
+			ssh_close_authentication_connection(auth);
 			BN_clear_free(challenge);
 			debug("RSA authentication accepted by server.");
 			return 1;
@@ -134,6 +134,7 @@ try_agent_authentication()
 			packet_disconnect("Protocol error waiting RSA auth response: %d",
 					  type);
 	}
+	ssh_close_authentication_connection(auth);
 	BN_clear_free(challenge);
 	debug("RSA authentication using agent refused.");
 	return 0;
@@ -270,6 +271,8 @@ try_rsa_authentication(const char *authfile)
 			/* Expect the server to reject it... */
 			packet_read_expect(&plen, SSH_SMSG_FAILURE);
 			xfree(comment);
+			key_free(private);
+			BN_clear_free(challenge);
 			return 0;
 		}
 		/* Destroy the passphrase. */

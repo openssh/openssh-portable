@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.56 2001/01/07 11:28:06 markus Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.57 2001/01/08 22:29:05 markus Exp $");
 
 #include "ssh.h"
 #include "servconf.h"
@@ -78,6 +78,7 @@ initialize_server_options(ServerOptions *options)
 	options->max_startups_begin = -1;
 	options->max_startups_rate = -1;
 	options->max_startups = -1;
+	options->banner = NULL;
 }
 
 void
@@ -198,6 +199,7 @@ typedef enum {
 	sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
 	sIgnoreUserKnownHosts, sCiphers, sProtocol, sPidFile,
 	sGatewayPorts, sPubkeyAuthentication, sXAuthLocation, sSubsystem, sMaxStartups,
+	sBanner
 } ServerOpCodes;
 
 /* Textual representation of the tokens. */
@@ -257,6 +259,7 @@ static struct {
 	{ "gatewayports", sGatewayPorts },
 	{ "subsystem", sSubsystem },
 	{ "maxstartups", sMaxStartups },
+	{ "banner", sBanner },
 	{ NULL, 0 }
 };
 
@@ -697,6 +700,10 @@ parse_flag:
 			intptr = &options->max_startups;
 			goto parse_int;
 
+		case sBanner:
+			charptr = &options->banner;
+			goto parse_filename;
+			
 		default:
 			fprintf(stderr, "%s line %d: Missing handler for opcode %s (%d)\n",
 				filename, linenum, arg, opcode);
