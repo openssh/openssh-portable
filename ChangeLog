@@ -6,6 +6,8 @@
  - (djm) Tweak password expiry checking at suggestion of Kevin Steves 
    <stevesk@sweden.hp.com>
  - (djm) NeXT patch from Ben Lindstrom <mouring@pconline.com>
+ - (djm) Use printf %lld instead of %qd in sftp-server.c. Fix from 
+   Michael Stone <mstone@cs.loyola.edu>
 
 20000920
  - (djm) Fix bad path substitution. Report from Andrew Miner
