@@ -1,3 +1,9 @@
+20030821
+ - (dtucker) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2003/08/14 16:08:58
+     [ssh-keygen.c]
+     exit after primetest, ok djm@
+
 20030813
  - (dtucker) [session.c] Remove #ifdef TIOCSBRK kludge.
  - (dtucker) OpenBSD CVS Sync
@@ -834,4 +840,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2893 2003/08/13 10:48:07 dtucker Exp $
+$Id: ChangeLog,v 1.2894 2003/08/21 06:44:07 dtucker Exp $
