@@ -95,6 +95,7 @@ case "$host" in
 *-*-irix5*)
 	CFLAGS="$CFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS"
+	PATH="$PATH:/usr/etc"
 	MANTYPE='$(CATMAN)'
 	no_libsocket=1
 	no_libnsl=1
@@ -103,6 +104,7 @@ case "$host" in
 *-*-irix6*)
 	CFLAGS="$CFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS"
+	PATH="$PATH:/usr/etc"
 	MANTYPE='$(CATMAN)'
 	AC_DEFINE(WITH_IRIX_ARRAY)
 	AC_DEFINE(WITH_IRIX_PROJECT)
