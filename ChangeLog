@@ -19,6 +19,7 @@
  - Merged bsd-login ttyslot and AIX utmp patch from Gert Doering
    <gd@hilb1.medat.de>
  - Add some missing ifdefs to auth2.c
+ - Deprecate perl-tk askpass.
 
 20000430
  - Merge HP-UX fixes and TCB support from Ged Lodder <lodder@yacc.com.au>
