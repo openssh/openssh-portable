@@ -479,13 +479,12 @@ do_authentication()
 	packet_start(SSH_SMSG_SUCCESS);
 	packet_send();
 	packet_write_wait();
-	xfree(user);
-
 #ifdef WITH_AIXAUTHENTICATE
 	/* We don't have a pty yet, so just label the line as "ssh" */
 	if (loginsuccess(user,get_canonical_hostname(),"ssh",&aixloginmsg) < 0)
 		aixloginmsg = NULL;
 #endif /* WITH_AIXAUTHENTICATE */
+	xfree(user);
 
 	/* Perform session preparation. */
 	do_authenticated(pw);

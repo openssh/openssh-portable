@@ -1,5 +1,7 @@
 20010109
  - (bal) Resync CVS ID of cli.c
+ - (stevesk) auth1.c: free should be after WITH_AIXAUTHENTICATE
+   code.
 
 20010108
  - (bal) Fixed another typo in cli.c
