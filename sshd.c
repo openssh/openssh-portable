@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.254 2002/06/30 21:54:16 deraadt Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.255 2002/06/30 21:59:45 deraadt Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -550,7 +550,7 @@ privsep_preauth_child(void)
 	memset(pw->pw_passwd, 0, strlen(pw->pw_passwd));
 	endpwent();
 
-	/* Change our root directory*/
+	/* Change our root directory */
 	if (chroot(_PATH_PRIVSEP_CHROOT_DIR) == -1)
 		fatal("chroot(\"%s\"): %s", _PATH_PRIVSEP_CHROOT_DIR,
 		    strerror(errno));
@@ -573,7 +573,7 @@ privsep_preauth_child(void)
 #endif
 }
 
-static Authctxt*
+static Authctxt *
 privsep_preauth(void)
 {
 	Authctxt *authctxt = NULL;
@@ -958,7 +958,8 @@ main(int ac, char **av)
 	debug("sshd version %.100s", SSH_VERSION);
 
 	/* load private host keys */
-	sensitive_data.host_keys = xmalloc(options.num_host_key_files*sizeof(Key*));
+	sensitive_data.host_keys = xmalloc(options.num_host_key_files *
+	    sizeof(Key *));
 	for (i = 0; i < options.num_host_key_files; i++)
 		sensitive_data.host_keys[i] = NULL;
 	sensitive_data.server_key = NULL;

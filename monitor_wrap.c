@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor_wrap.c,v 1.13 2002/06/28 01:50:37 deraadt Exp $");
+RCSID("$OpenBSD: monitor_wrap.c,v 1.14 2002/06/30 21:59:45 deraadt Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dh.h>
@@ -207,7 +207,7 @@ mm_getpwnamallow(const char *login)
 	return (pw);
 }
 
-char* mm_auth2_read_banner(void)
+char *mm_auth2_read_banner(void)
 {
 	Buffer m;
 	char *banner;
@@ -705,7 +705,7 @@ mm_chall_setup(char **name, char **infotxt, u_int *numprompts,
 	*name = xstrdup("");
 	*infotxt = xstrdup("");
 	*numprompts = 1;
-	*prompts = xmalloc(*numprompts * sizeof(char*));
+	*prompts = xmalloc(*numprompts * sizeof(char *));
 	*echo_on = xmalloc(*numprompts * sizeof(u_int));
 	(*echo_on)[0] = 0;
 }

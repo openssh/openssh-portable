@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.105 2002/06/23 03:30:17 deraadt Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.106 2002/06/30 21:59:45 deraadt Exp $");
 
 #include "ssh.h"
 #include "ssh2.h"
@@ -422,7 +422,7 @@ input_userauth_pk_ok(int type, u_int32_t seq, void *ctxt)
 	clear_auth_state(authctxt);
 	dispatch_set(SSH2_MSG_USERAUTH_PK_OK, NULL);
 
-	/* try another method if we did not send a packet*/
+	/* try another method if we did not send a packet */
 	if (sent == 0)
 		userauth(authctxt, NULL);
 

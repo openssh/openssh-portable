@@ -33,6 +33,11 @@
    - deraadt@cvs.openbsd.org 2002/06/30 21:54:16
      [auth2.c session.c sshd.c]
      lint asks that we use names that do not overlap
+   - deraadt@cvs.openbsd.org 2002/06/30 21:59:45
+     [auth-bsdauth.c auth-skey.c auth2-chall.c clientloop.c key.c
+      monitor_wrap.c monitor_wrap.h scard.h session.h sftp-glob.c ssh.c
+      sshconnect2.c sshd.c]
+     minor KNF
 
 20020702
  - (djm) Use PAM_MSG_MEMBER for PAM_TEXT_INFO messages, use xmalloc & 
@@ -1241,4 +1246,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2324 2002/07/04 00:12:53 mouring Exp $
+$Id: ChangeLog,v 1.2325 2002/07/04 00:14:17 mouring Exp $
