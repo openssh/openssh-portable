@@ -545,9 +545,17 @@ syserr:			run_err("%s: %s", name, strerror(errno));
 				goto next;
 		}
 #define	FILEMODEMASK	(S_ISUID|S_ISGID|S_IRWXU|S_IRWXG|S_IRWXO)
+#ifdef HAVE_INT64_T
 		snprintf(buf, sizeof buf, "C%04o %lld %s\n",
 		    (u_int) (stb.st_mode & FILEMODEMASK),
 		    (long long) stb.st_size, last);
+#else
+		/* XXX: Handle integer overflow? */
+		snprintf(buf, sizeof buf, "C%04o %ld %s\n",
+		    (u_int) (stb.st_mode & FILEMODEMASK),
+		    (long) stb.st_size, last);
+#endif
+
 		if (verbose_mode) {
 			fprintf(stderr, "Sending file modes: %s", buf);
 			fflush(stderr);
