@@ -36,15 +36,14 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-passwd.c,v 1.19 2001/01/18 16:59:59 markus Exp $");
+RCSID("$OpenBSD: auth-passwd.c,v 1.20 2001/01/21 19:05:42 markus Exp $");
 
 #if !defined(USE_PAM) && !defined(HAVE_OSF_SIA)
 
 #include "packet.h"
-#include "ssh.h"
-#include "servconf.h"
 #include "xmalloc.h"
-
+#include "log.h"
+#include "servconf.h"
 #include "auth.h"
 
 #ifdef WITH_AIXAUTHENTICATE

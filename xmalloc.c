@@ -13,9 +13,10 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: xmalloc.c,v 1.8 2000/09/07 20:27:55 deraadt Exp $");
+RCSID("$OpenBSD: xmalloc.c,v 1.9 2001/01/21 19:06:02 markus Exp $");
 
-#include "ssh.h"
+#include "xmalloc.h"
+#include "log.h"
 
 void *
 xmalloc(size_t size)

@@ -13,29 +13,33 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.90 2001/01/13 18:32:50 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.91 2001/01/21 19:05:59 markus Exp $");
 
 #include <openssl/bn.h>
-#include <openssl/dsa.h>
-#include <openssl/rsa.h>
 
+#include "ssh.h"
 #include "xmalloc.h"
 #include "rsa.h"
-#include "ssh.h"
 #include "buffer.h"
 #include "packet.h"
 #include "uidswap.h"
 #include "compat.h"
-#include "readconf.h"
 #include "key.h"
 #include "sshconnect.h"
 #include "hostfile.h"
+#include "log.h"
+#include "readconf.h"
+#include "atomicio.h"
+#include "misc.h"
 
 char *client_version_string = NULL;
 char *server_version_string = NULL;
 
 extern Options options;
 extern char *__progname;
+
+/* AF_UNSPEC or AF_INET or AF_INET6 */
+extern int IPv4or6;
 
 /*
  * Connect to the given ssh server using a proxy command.

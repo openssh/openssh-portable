@@ -75,14 +75,12 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.49 2001/01/13 18:03:07 markus Exp $");
+RCSID("$OpenBSD: scp.c,v 1.51 2001/01/21 19:05:55 markus Exp $");
 
-#include "ssh.h"
 #include "xmalloc.h"
-
-#ifndef _PATH_CP
-#define _PATH_CP "cp"
-#endif
+#include "atomicio.h"
+#include "pathnames.h"
+#include "log.h"
 
 #ifdef HAVE___PROGNAME
 extern char *__progname;
@@ -130,7 +128,7 @@ int verbose_mode = 0;
 int showprogress = 1;
 
 /* This is the program to execute for the secured connection. ("ssh" or -S) */
-char *ssh_program = SSH_PROGRAM;
+char *ssh_program = _PATH_SSH_PROGRAM;
 
 /* This is the list of arguments that scp passes to ssh */
 struct {

@@ -12,11 +12,11 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: buffer.c,v 1.9 2000/12/19 23:17:55 markus Exp $");
+RCSID("$OpenBSD: buffer.c,v 1.10 2001/01/21 19:05:45 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
-#include "ssh.h"
+#include "log.h"
 
 /* Initializes the buffer structure. */
 

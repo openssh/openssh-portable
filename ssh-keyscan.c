@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keyscan.c,v 1.9 2001/01/13 18:12:47 markus Exp $");
+RCSID("$OpenBSD: ssh-keyscan.c,v 1.11 2001/01/21 19:05:57 markus Exp $");
 
 #if defined(HAVE_SYS_QUEUE_H)  &&  !defined(HAVE_BOGUS_SYS_QUEUE_H)
 #include <sys/queue.h>
@@ -18,14 +18,14 @@ RCSID("$OpenBSD: ssh-keyscan.c,v 1.9 2001/01/13 18:12:47 markus Exp $");
 #include <errno.h>
 
 #include <openssl/bn.h>
-#include <openssl/rsa.h>
-#include <openssl/dsa.h>
 
 #include "xmalloc.h"
 #include "ssh.h"
+#include "ssh1.h"
 #include "key.h"
 #include "buffer.h"
 #include "bufaux.h"
+#include "log.h"
 
 static int argno = 1;		/* Number of argument currently being parsed */
 

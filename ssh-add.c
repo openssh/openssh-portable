@@ -35,18 +35,19 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.24 2001/01/13 18:14:13 markus Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.27 2001/01/21 19:05:56 markus Exp $");
 
 #include <openssl/evp.h>
-#include <openssl/rsa.h>
-#include <openssl/dsa.h>
 
-#include "rsa.h"
 #include "ssh.h"
+#include "rsa.h"
+#include "log.h"
 #include "xmalloc.h"
 #include "key.h"
 #include "authfd.h"
 #include "authfile.h"
+#include "pathnames.h"
+#include "readpass.h"
 
 #ifdef HAVE___PROGNAME
 extern char *__progname;
@@ -103,6 +104,8 @@ ssh_askpass(char *askpass, char *msg)
 	int p[2], status;
 	char buf[1024];
 
+	if (fflush(stdout) != 0)
+		error("ssh_askpass: fflush: %s", strerror(errno));
 	if (askpass == NULL)
 		fatal("internal error: askpass undefined");
 	if (pipe(p) < 0)
@@ -117,9 +120,7 @@ ssh_askpass(char *askpass, char *msg)
 		fatal("ssh_askpass: exec(%s): %s", askpass, strerror(errno));
 	}
 	close(p[1]);
-	buf[0] = '\0';
-	atomicio(read, p[0], buf, sizeof buf);
-	len = strlen(buf);
+	len = read(p[0], buf, sizeof buf);
 	close(p[0]);
 	while (waitpid(pid, &status, 0) < 0)
 		if (errno != EINTR)
@@ -166,7 +167,7 @@ add_file(AuthenticationConnection *ac, const char *filename)
 		if (getenv(SSH_ASKPASS_ENV))
 			askpass = getenv(SSH_ASKPASS_ENV);
 		else
-			askpass = SSH_ASKPASS_DEFAULT;
+			askpass = _PATH_SSH_ASKPASS_DEFAULT;
 	}
 
 	/* At first, try empty passphrase */
@@ -291,7 +292,7 @@ main(int argc, char **argv)
 			ssh_close_authentication_connection(ac);
 			exit(1);
 		}
-		snprintf(buf, sizeof buf, "%s/%s", pw->pw_dir, SSH_CLIENT_IDENTITY);
+		snprintf(buf, sizeof buf, "%s/%s", pw->pw_dir, _PATH_SSH_CLIENT_IDENTITY);
 		if (deleting)
 			delete_file(ac, buf);
 		else

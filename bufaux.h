@@ -10,12 +10,13 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: bufaux.h,v 1.10 2001/01/10 22:56:22 markus Exp $"); */
+/* RCSID("$OpenBSD: bufaux.h,v 1.11 2001/01/21 19:05:45 markus Exp $"); */
 
 #ifndef BUFAUX_H
 #define BUFAUX_H
 
 #include "buffer.h"
+#include <openssl/bn.h>
 
 /*
  * Stores an BIGNUM in the buffer with a 2-byte msb first bit count, followed

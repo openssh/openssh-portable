@@ -160,8 +160,10 @@
 #include "ssh.h"
 #include "xmalloc.h"
 #include "loginrec.h"
+#include "log.h"
+#include "atomicio.h"
 
-RCSID("$Id: loginrec.c,v 1.29 2000/12/28 00:07:07 mouring Exp $");
+RCSID("$Id: loginrec.c,v 1.30 2001/01/22 05:34:42 mouring Exp $");
 
 #ifdef HAVE_UTIL_H
 #  include <util.h>

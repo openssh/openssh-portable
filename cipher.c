@@ -35,10 +35,11 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: cipher.c,v 1.41 2000/12/19 23:17:56 markus Exp $");
+RCSID("$OpenBSD: cipher.c,v 1.42 2001/01/21 19:05:46 markus Exp $");
 
-#include "ssh.h"
 #include "xmalloc.h"
+#include "log.h"
+#include "cipher.h"
 
 #include <openssl/md5.h>
 

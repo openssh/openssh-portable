@@ -1382,7 +1382,7 @@ if test ! -d $piddir ; then
 	esac
 fi
 
-AC_DEFINE_UNQUOTED(PIDDIR, "$piddir")
+AC_DEFINE_UNQUOTED(_PATH_SSH_PIDDIR, "$piddir")
 AC_SUBST(piddir)
 
 dnl allow user to disable some login recording features

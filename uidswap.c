@@ -12,9 +12,9 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: uidswap.c,v 1.12 2000/12/29 10:48:56 markus Exp $");
+RCSID("$OpenBSD: uidswap.c,v 1.13 2001/01/21 19:06:01 markus Exp $");
 
-#include "ssh.h"
+#include "log.h"
 #include "uidswap.h"
 
 /*

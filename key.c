@@ -31,12 +31,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 #include "includes.h"
-#include "ssh.h"
-#include <openssl/rsa.h>
-#include <openssl/dsa.h>
+RCSID("$OpenBSD: key.c,v 1.15 2001/01/21 19:05:50 markus Exp $");
+
 #include <openssl/evp.h>
+
 #include "xmalloc.h"
 #include "key.h"
 #include "rsa.h"
@@ -45,8 +44,7 @@
 #include "uuencode.h"
 #include "buffer.h"
 #include "bufaux.h"
-
-RCSID("$OpenBSD: key.c,v 1.14 2001/01/16 19:20:06 markus Exp $");
+#include "log.h"
 
 Key *
 key_new(int type)

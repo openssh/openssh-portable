@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.82 2001/01/18 16:20:22 markus Exp $
+.\" $OpenBSD: sshd.8,v 1.83 2001/01/19 16:48:14 markus Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -394,7 +394,7 @@ Specifies the file containing the private host keys (default
 used by SSH protocol versions 1 and 2.
 Note that
 .Nm
-if this file is group/world-accessible.
+will refuse to use a file if it is group/world-accessible.
 It is possible to have multiple host key files.
 .Dq rsa1
 keys are used for version 1 and

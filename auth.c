@@ -23,13 +23,8 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth.c,v 1.13 2001/01/18 16:59:59 markus Exp $");
+RCSID("$OpenBSD: auth.c,v 1.14 2001/01/21 19:05:43 markus Exp $");
 
-#include "xmalloc.h"
-#include "ssh.h"
-#include "match.h"
-#include "servconf.h"
-#include "groupaccess.h"
 #ifdef HAVE_LOGIN_H
 #include <login.h>
 #endif
@@ -37,8 +32,14 @@ RCSID("$OpenBSD: auth.c,v 1.13 2001/01/18 16:59:59 markus Exp $");
 #include <shadow.h>
 #endif /* defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW) */
 
+#include "xmalloc.h"
+#include "match.h"
+#include "groupaccess.h"
+#include "log.h"
+#include "servconf.h"
 #include "auth.h"
 #include "auth-options.h"
+#include "canohost.h"
 
 /* import */
 extern ServerOptions options;

@@ -36,15 +36,13 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: hostfile.c,v 1.23 2000/12/21 15:10:16 markus Exp $");
+RCSID("$OpenBSD: hostfile.c,v 1.24 2001/01/21 19:05:49 markus Exp $");
 
 #include "packet.h"
 #include "match.h"
-#include "ssh.h"
-#include <openssl/rsa.h>
-#include <openssl/dsa.h>
 #include "key.h"
 #include "hostfile.h"
+#include "log.h"
 
 /*
  * Parses an RSA (number of bits, e, n) or DSA key from a string.  Moves the

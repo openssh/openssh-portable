@@ -12,13 +12,17 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.54 2001/01/18 16:20:22 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.58 2001/01/21 19:05:53 markus Exp $");
 
 #include "ssh.h"
-#include "readconf.h"
-#include "match.h"
 #include "xmalloc.h"
 #include "compat.h"
+#include "cipher.h"
+#include "pathnames.h"
+#include "log.h"
+#include "readconf.h"
+#include "match.h"
+#include "misc.h"
 
 /* Format of the configuration file:
 
@@ -247,7 +251,7 @@ process_config_line(Options *options, const char *host,
 	/* Ignore leading whitespace. */
 	if (*keyword == '\0')
 		keyword = strdelim(&s);
-	if (!*keyword || *keyword == '\n' || *keyword == '#')
+	if (keyword == NULL || !*keyword || *keyword == '\n' || *keyword == '#')
 		return 0;
 
 	opcode = parse_token(keyword, filename, linenum);
@@ -599,8 +603,7 @@ parse_int:
 	}
 
 	/* Check that there is no garbage at end of line. */
-	if ((arg = strdelim(&s)) != NULL && *arg != '\0')
-	{
+	if ((arg = strdelim(&s)) != NULL && *arg != '\0') {
 		fatal("%.200s line %d: garbage at end of line; \"%.200s\".",
 		      filename, linenum, arg);
 	}
@@ -782,27 +785,27 @@ fill_default_options(Options * options)
 	if (options->num_identity_files == 0) {
 		if (options->protocol & SSH_PROTO_1) {
 			options->identity_files[options->num_identity_files] =
-			    xmalloc(2 + strlen(SSH_CLIENT_IDENTITY) + 1);
+			    xmalloc(2 + strlen(_PATH_SSH_CLIENT_IDENTITY) + 1);
 			sprintf(options->identity_files[options->num_identity_files++],
-			    "~/%.100s", SSH_CLIENT_IDENTITY);
+			    "~/%.100s", _PATH_SSH_CLIENT_IDENTITY);
 		}
 		if (options->protocol & SSH_PROTO_2) {
 			options->identity_files[options->num_identity_files] =
-			    xmalloc(2 + strlen(SSH_CLIENT_ID_DSA) + 1);
+			    xmalloc(2 + strlen(_PATH_SSH_CLIENT_ID_DSA) + 1);
 			sprintf(options->identity_files[options->num_identity_files++],
-			    "~/%.100s", SSH_CLIENT_ID_DSA);
+			    "~/%.100s", _PATH_SSH_CLIENT_ID_DSA);
 		}
 	}
 	if (options->escape_char == -1)
 		options->escape_char = '~';
 	if (options->system_hostfile == NULL)
-		options->system_hostfile = SSH_SYSTEM_HOSTFILE;
+		options->system_hostfile = _PATH_SSH_SYSTEM_HOSTFILE;
 	if (options->user_hostfile == NULL)
-		options->user_hostfile = SSH_USER_HOSTFILE;
+		options->user_hostfile = _PATH_SSH_USER_HOSTFILE;
 	if (options->system_hostfile2 == NULL)
-		options->system_hostfile2 = SSH_SYSTEM_HOSTFILE2;
+		options->system_hostfile2 = _PATH_SSH_SYSTEM_HOSTFILE2;
 	if (options->user_hostfile2 == NULL)
-		options->user_hostfile2 = SSH_USER_HOSTFILE2;
+		options->user_hostfile2 = _PATH_SSH_USER_HOSTFILE2;
 	if (options->log_level == (LogLevel) - 1)
 		options->log_level = SYSLOG_LEVEL_INFO;
 	/* options->proxy_command should not be set by default */

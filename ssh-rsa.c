@@ -23,18 +23,15 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-rsa.c,v 1.4 2001/01/16 19:20:06 markus Exp $");
-
-#include "ssh.h"
-#include "xmalloc.h"
-#include "buffer.h"
-#include "bufaux.h"
+RCSID("$OpenBSD: ssh-rsa.c,v 1.5 2001/01/21 19:05:58 markus Exp $");
 
 #include <openssl/evp.h>
-#include <openssl/dsa.h>
-#include <openssl/rsa.h>
 #include <openssl/err.h>
 
+#include "xmalloc.h"
+#include "log.h"
+#include "buffer.h"
+#include "bufaux.h"
 #include "key.h"
 
 /* RSASSA-PKCS1-v1_5 (PKCS #1 v2.0 signature) with SHA1 */

@@ -13,25 +13,36 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.16 2001/01/18 17:00:00 markus Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.18 2001/01/21 19:06:00 markus Exp $");
 
 #include <openssl/bn.h>
-#include <openssl/dsa.h>
-#include <openssl/rsa.h>
 #include <openssl/evp.h>
 
+#ifdef KRB4
+#include <krb.h>
+#include "radix.h"
+#endif
+#ifdef AFS
+#include <kafs.h>
+#endif
+
+#include "ssh.h"
+#include "ssh1.h"
 #include "xmalloc.h"
 #include "rsa.h"
-#include "ssh.h"
 #include "buffer.h"
 #include "packet.h"
 #include "mpaux.h"
 #include "uidswap.h"
+#include "log.h"
 #include "readconf.h"
 #include "key.h"
 #include "authfd.h"
 #include "sshconnect.h"
 #include "authfile.h"
+#include "readpass.h"
+#include "cipher.h"
+#include "canohost.h"
 
 /* Session id for the current session. */
 u_char session_id[16];

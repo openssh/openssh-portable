@@ -24,9 +24,6 @@
 
 #include "includes.h"
 
-#include "ssh.h"
-#include "xmalloc.h"
-
 #include <openssl/rand.h>
 #include <openssl/sha.h>
 
@@ -35,7 +32,12 @@
 # include <floatingpoint.h>
 #endif /* HAVE_FLOATINGPOINT_H */
 
-RCSID("$Id: entropy.c,v 1.23 2001/01/16 22:37:15 djm Exp $");
+#include "ssh.h"
+#include "xmalloc.h"
+#include "atomicio.h"
+#include "log.h"
+
+RCSID("$Id: entropy.c,v 1.24 2001/01/22 05:34:41 mouring Exp $");
 
 #ifndef offsetof
 # define offsetof(type, member) ((size_t) &((type *)0)->member)

@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.11 2001/01/18 16:59:59 markus Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.13 2001/01/21 19:05:43 markus Exp $");
 
 #ifdef HAVE_OSF_SIA
 # include <sia.h>
@@ -19,10 +19,11 @@ RCSID("$OpenBSD: auth1.c,v 1.11 2001/01/18 16:59:59 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
-#include "ssh.h"
+#include "ssh1.h"
 #include "packet.h"
 #include "buffer.h"
 #include "mpaux.h"
+#include "log.h"
 #include "servconf.h"
 #include "compat.h"
 #include "auth.h"
@@ -278,11 +279,6 @@ do_authloop(Authctxt *authctxt)
 			xfree(password);
 			break;
 
-#ifdef SKEY			/* ISSUE: Is this right?  we don't define
-					having skey_authentication in
-					servconf.h by default so I assume
-					we need to deal with this via #ifdef
-					in some reasonable way */
 		case SSH_CMSG_AUTH_TIS:
 			debug("rcvd SSH_CMSG_AUTH_TIS");
 			if (options.skey_authentication == 1) {
@@ -297,6 +293,7 @@ do_authloop(Authctxt *authctxt)
 				}
 			}
 			break;
+
 		case SSH_CMSG_AUTH_TIS_RESPONSE:
 			debug("rcvd SSH_CMSG_AUTH_TIS_RESPONSE");
 			if (options.skey_authentication == 1) {
@@ -308,7 +305,6 @@ do_authloop(Authctxt *authctxt)
 				xfree(response);
 			}
 			break;
-#endif					/* ISSUE: End of wrong SKEY defines */
 
 		default:
 			/*

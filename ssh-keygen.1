@@ -71,8 +71,6 @@
 .Nm ssh-keygen
 .Fl l
 .Op Fl f Ar input_keyfile
-.Nm ssh-keygen
-.Fl R
 .Sh DESCRIPTION
 .Nm
 generates and manages authentication keys for
@@ -172,10 +170,6 @@ Provides the new comment.
 Provides the new passphrase.
 .It Fl P Ar passphrase
 Provides the (old) passphrase.
-.It Fl R
-If RSA support is functional, immediately exits with code 0.  If RSA
-support is not functional, exits with code 1.  This flag will be
-removed once the RSA patent expires.
 .It Fl x
 This option will read a private
 OpenSSH DSA format file and print a SSH2-compatible public key to stdout.

@@ -25,10 +25,6 @@
 #include "includes.h"
 RCSID("$OpenBSD: compat.c,v 1.33 2001/01/08 22:29:05 markus Exp $");
 
-#include "ssh.h"
-#include "packet.h"
-#include "xmalloc.h"
-#include "compat.h"
 #ifdef HAVE_LIBPCRE
 #  include <pcreposix.h>
 #else /* Use native regex libraries */
@@ -42,6 +38,11 @@ RCSID("$OpenBSD: compat.c,v 1.33 2001/01/08 22:29:05 markus Exp $");
 #    endif
 #  endif
 #endif /* HAVE_LIBPCRE */
+
+#include "packet.h"
+#include "xmalloc.h"
+#include "compat.h"
+#include "log.h"
 
 int compat13 = 0;
 int compat20 = 0;

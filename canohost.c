@@ -12,11 +12,11 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: canohost.c,v 1.17 2000/12/19 23:17:55 markus Exp $");
+RCSID("$OpenBSD: canohost.c,v 1.18 2001/01/21 19:05:45 markus Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
-#include "ssh.h"
+#include "log.h"
 
 /*
  * Return the canonical name of the host at the other end of the socket. The

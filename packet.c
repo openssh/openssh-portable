@@ -37,13 +37,12 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.44 2001/01/13 18:36:45 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.46 2001/01/21 19:05:53 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
 #include "packet.h"
 #include "bufaux.h"
-#include "ssh.h"
 #include "crc32.h"
 #include "getput.h"
 
@@ -52,6 +51,7 @@ RCSID("$OpenBSD: packet.c,v 1.44 2001/01/13 18:36:45 markus Exp $");
 #include "channels.h"
 
 #include "compat.h"
+#include "ssh1.h"
 #include "ssh2.h"
 
 #include <openssl/bn.h>
@@ -61,6 +61,8 @@ RCSID("$OpenBSD: packet.c,v 1.44 2001/01/13 18:36:45 markus Exp $");
 #include "cipher.h"
 #include "kex.h"
 #include "hmac.h"
+#include "log.h"
+#include "canohost.h"
 
 #ifdef PACKET_DEBUG
 #define DBG(x) x

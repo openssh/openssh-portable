@@ -25,9 +25,9 @@
 #include "includes.h"
 
 #include "groupaccess.h"
-#include "ssh.h"
 #include "xmalloc.h"
 #include "match.h"
+#include "log.h"
 
 static int ngroups;
 static char *groups_byname[NGROUPS_MAX + 1];	/* +1 for base/primary group */

@@ -1,14 +1,16 @@
 #include "includes.h"
-RCSID("$Id: auth2-pam.c,v 1.5 2001/01/19 05:37:32 mouring Exp $");
+RCSID("$Id: auth2-pam.c,v 1.6 2001/01/22 05:34:40 mouring Exp $");
 
 #ifdef USE_PAM
+#include <security/pam_appl.h>
+
 #include "ssh.h"
 #include "ssh2.h"
 #include "auth.h"
 #include "packet.h"
 #include "xmalloc.h"
 #include "dispatch.h"
-#include <security/pam_appl.h>
+#include "log.h"
 
 struct {
 	int finished, num_received, num_expected;
@@ -31,7 +33,6 @@ int
 auth2_pam(Authctxt *authctxt)
 {
 	int retval = -1;
-	char *method = "PAM";
 
 	if (authctxt->user == NULL)
 		fatal("auth2_pam: internal error: no user");

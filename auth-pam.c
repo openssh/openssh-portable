@@ -27,9 +27,12 @@
 #ifdef USE_PAM
 #include "ssh.h"
 #include "xmalloc.h"
+#include "log.h"
 #include "servconf.h"
+#include "canohost.h"
+#include "readpass.h"
 
-RCSID("$Id: auth-pam.c,v 1.21 2001/01/19 04:46:38 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.22 2001/01/22 05:34:40 mouring Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now"

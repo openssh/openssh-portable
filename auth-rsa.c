@@ -14,21 +14,23 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rsa.c,v 1.34 2000/12/19 23:17:55 markus Exp $");
-
-#include "rsa.h"
-#include "packet.h"
-#include "xmalloc.h"
-#include "ssh.h"
-#include "mpaux.h"
-#include "uidswap.h"
-#include "match.h"
-#include "servconf.h"
-#include "auth-options.h"
+RCSID("$OpenBSD: auth-rsa.c,v 1.38 2001/01/21 19:05:42 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/md5.h>
 
+#include "rsa.h"
+#include "packet.h"
+#include "xmalloc.h"
+#include "ssh1.h"
+#include "mpaux.h"
+#include "uidswap.h"
+#include "match.h"
+#include "auth-options.h"
+#include "pathnames.h"
+#include "log.h"
+#include "servconf.h"
+#include "auth.h"
 
 /* import */
 extern ServerOptions options;
@@ -120,7 +122,7 @@ auth_rsa_challenge_dialog(RSA *pk)
 int
 auth_rsa(struct passwd *pw, BIGNUM *client_n)
 {
-	char line[8192], file[1024];
+	char line[8192], file[MAXPATHLEN];
 	int authenticated;
 	u_int bits;
 	FILE *f;
@@ -137,7 +139,7 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 
 	/* The authorized keys. */
 	snprintf(file, sizeof file, "%.500s/%.100s", pw->pw_dir,
-		 SSH_USER_PERMITTED_KEYS);
+		 _PATH_SSH_USER_PERMITTED_KEYS);
 
 	/* Fail quietly if file does not exist */
 	if (stat(file, &st) < 0) {
@@ -165,10 +167,10 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 				 "bad ownership or modes for '%s'.", pw->pw_name, file);
 			fail = 1;
 		} else {
-			/* Check path to SSH_USER_PERMITTED_KEYS */
+			/* Check path to _PATH_SSH_USER_PERMITTED_KEYS */
 			int i;
 			static const char *check[] = {
-				"", SSH_USER_DIR, NULL
+				"", _PATH_SSH_USER_DIR, NULL
 			};
 			for (i = 0; check[i]; i++) {
 				snprintf(line, sizeof line, "%.500s/%.100s", pw->pw_dir, check[i]);
@@ -235,9 +237,9 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 		/* Parse the key from the line. */
 		if (!auth_rsa_read_key(&cp, &bits, pk->e, pk->n)) {
 			debug("%.100s, line %lu: bad key syntax",
-			      SSH_USER_PERMITTED_KEYS, linenum);
+			    file, linenum);
 			packet_send_debug("%.100s, line %lu: bad key syntax",
-					  SSH_USER_PERMITTED_KEYS, linenum);
+			    file, linenum);
 			continue;
 		}
 		/* cp now points to the comment part. */
@@ -257,7 +259,7 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 		 * If our options do not allow this key to be used,
 		 * do not send challenge.
 		 */
-		if (!auth_parse_options(pw, options, linenum))
+		if (!auth_parse_options(pw, options, file, linenum))
 			continue;
 
 		/* Perform the challenge-response dialog for this key. */

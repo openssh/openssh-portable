@@ -268,7 +268,7 @@
 #undef USER_PATH
 
 /* Specify location of ssh.pid */
-#undef PIDDIR
+#undef _PATH_SSH_PIDDIR
 
 /* Use IPv4 for connection by default, IPv6 can still if explicity asked */
 #undef IPV4_DEFAULT

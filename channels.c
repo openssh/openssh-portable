@@ -40,24 +40,24 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.80 2001/01/08 22:03:23 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.82 2001/01/21 19:05:46 markus Exp $");
+
+#include <openssl/rsa.h>
+#include <openssl/dsa.h>
 
 #include "ssh.h"
+#include "ssh1.h"
+#include "ssh2.h"
 #include "packet.h"
 #include "xmalloc.h"
 #include "buffer.h"
 #include "uidswap.h"
-#include "readconf.h"
-#include "servconf.h"
-
+#include "log.h"
+#include "misc.h"
 #include "channels.h"
 #include "nchan.h"
 #include "compat.h"
-
-#include "ssh2.h"
-
-#include <openssl/rsa.h>
-#include <openssl/dsa.h>
+#include "canohost.h"
 #include "key.h"
 #include "authfd.h"
 
@@ -129,6 +129,9 @@ static int all_opens_permitted = 0;
 
 /* This is set to true if both sides support SSH_PROTOFLAG_HOST_IN_FWD_OPEN. */
 static int have_hostname_in_open = 0;
+
+/* AF_UNSPEC or AF_INET or AF_INET6 */
+extern int IPv4or6;
 
 /* Sets specific protocol options. */
 

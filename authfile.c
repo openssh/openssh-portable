@@ -36,20 +36,19 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfile.c,v 1.24 2000/12/20 19:26:56 markus Exp $");
+RCSID("$OpenBSD: authfile.c,v 1.25 2001/01/21 19:05:44 markus Exp $");
 
-#include <openssl/bn.h>
-#include <openssl/dsa.h>
-#include <openssl/rsa.h>
 #include <openssl/err.h>
-#include <openssl/pem.h>
 #include <openssl/evp.h>
+#include <openssl/pem.h>
 
+#include "cipher.h"
 #include "xmalloc.h"
 #include "buffer.h"
 #include "bufaux.h"
-#include "ssh.h"
 #include "key.h"
+#include "ssh.h"
+#include "log.h"
 
 /* Version identification string for identity files. */
 #define AUTHFILE_ID_STRING "SSH PRIVATE KEY FILE FORMAT 1.1\n"

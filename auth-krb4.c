@@ -23,14 +23,18 @@
  */
 
 #include "includes.h"
-#include "packet.h"
-#include "xmalloc.h"
-#include "ssh.h"
-#include "servconf.h"
-
-RCSID("$OpenBSD: auth-krb4.c,v 1.20 2000/12/19 23:17:54 markus Exp $");
+RCSID("$OpenBSD: auth-krb4.c,v 1.22 2001/01/21 19:05:41 markus Exp $");
 
 #ifdef KRB4
+#include "ssh.h"
+#include "ssh1.h"
+#include "packet.h"
+#include "xmalloc.h"
+#include "log.h"
+#include "servconf.h"
+#include "auth.h"
+#include "radix.h"
+
 char *ticket = NULL;
 
 extern ServerOptions options;

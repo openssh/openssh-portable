@@ -23,19 +23,16 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-dss.c,v 1.2 2000/12/19 23:17:58 markus Exp $");
+RCSID("$OpenBSD: ssh-dss.c,v 1.4 2001/01/21 19:05:57 markus Exp $");
 
-#include "ssh.h"
+#include <openssl/bn.h>
+#include <openssl/evp.h>
+
 #include "xmalloc.h"
 #include "buffer.h"
 #include "bufaux.h"
 #include "compat.h"
-
-#include <openssl/bn.h>
-#include <openssl/rsa.h>
-#include <openssl/dsa.h>
-#include <openssl/evp.h>
-
+#include "log.h"
 #include "key.h"
 
 #define INTBLOB_LEN	20
@@ -54,7 +51,7 @@ ssh_dss_sign(
 	EVP_MD_CTX md;
 	u_int rlen;
 	u_int slen;
-	u_int len;
+	u_int len, dlen;
 	u_char sigblob[SIGBLOB_LEN];
 	Buffer b;
 
@@ -62,15 +59,18 @@ ssh_dss_sign(
 		error("ssh_dss_sign: no DSA key");
 		return -1;
 	}
-	digest = xmalloc(evp_md->md_size);
+	dlen = evp_md->md_size;
+	digest = xmalloc(dlen);
 	EVP_DigestInit(&md, evp_md);
 	EVP_DigestUpdate(&md, data, datalen);
 	EVP_DigestFinal(&md, digest, NULL);
 
-	sig = DSA_do_sign(digest, evp_md->md_size, key->dsa);
+	sig = DSA_do_sign(digest, dlen, key->dsa);
 	if (sig == NULL) {
 		fatal("ssh_dss_sign: cannot sign");
 	}
+	memset(digest, 0, dlen);
+	xfree(digest);
 
 	rlen = BN_num_bytes(sig->r);
 	slen = BN_num_bytes(sig->s);

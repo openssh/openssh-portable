@@ -23,34 +23,34 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.28 2001/01/18 17:00:00 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.32 2001/01/21 19:05:44 markus Exp $");
 
 #ifdef HAVE_OSF_SIA
 # include <sia.h>
 # include <siad.h>
 #endif
 
-#include <openssl/dsa.h>
-#include <openssl/rsa.h>
 #include <openssl/evp.h>
 
+#include "ssh2.h"
 #include "xmalloc.h"
 #include "rsa.h"
-#include "ssh.h"
 #include "pty.h"
 #include "packet.h"
 #include "buffer.h"
+#include "log.h"
 #include "servconf.h"
 #include "compat.h"
 #include "channels.h"
 #include "bufaux.h"
-#include "ssh2.h"
 #include "auth.h"
 #include "session.h"
 #include "dispatch.h"
 #include "auth.h"
+#include "cipher.h"
 #include "key.h"
 #include "kex.h"
+#include "pathnames.h"
 
 #include "uidswap.h"
 #include "auth-options.h"
@@ -583,7 +583,7 @@ authmethod_lookup(const char *name)
 int
 user_key_allowed(struct passwd *pw, Key *key)
 {
-	char line[8192], file[1024];
+	char line[8192], file[MAXPATHLEN];
 	int found_key = 0;
 	FILE *f;
 	u_long linenum = 0;
@@ -598,7 +598,7 @@ user_key_allowed(struct passwd *pw, Key *key)
 
 	/* The authorized keys. */
 	snprintf(file, sizeof file, "%.500s/%.100s", pw->pw_dir,
-	    SSH_USER_PERMITTED_KEYS2);
+	    _PATH_SSH_USER_PERMITTED_KEYS2);
 
 	/* Fail quietly if file does not exist */
 	if (stat(file, &st) < 0) {
@@ -626,10 +626,10 @@ user_key_allowed(struct passwd *pw, Key *key)
 			    key_type(key), pw->pw_name, file);
 			fail = 1;
 		} else {
-			/* Check path to SSH_USER_PERMITTED_KEYS */
+			/* Check path to _PATH_SSH_USER_PERMITTED_KEYS */
 			int i;
 			static const char *check[] = {
-				"", SSH_USER_DIR, NULL
+				"", _PATH_SSH_USER_DIR, NULL
 			};
 			for (i = 0; check[i]; i++) {
 				snprintf(line, sizeof line, "%.500s/%.100s",
@@ -686,7 +686,7 @@ user_key_allowed(struct passwd *pw, Key *key)
 			}
 		}
 		if (key_equal(found, key) &&
-		    auth_parse_options(pw, options, linenum) == 1) {
+		    auth_parse_options(pw, options, file, linenum) == 1) {
 			found_key = 1;
 			debug("matching key found: file %s, line %ld",
 			    file, linenum);

@@ -40,32 +40,36 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.153 2001/01/19 12:45:27 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.155 2001/01/21 19:06:00 markus Exp $");
 
+#include <openssl/dh.h>
+#include <openssl/bn.h>
+#include <openssl/hmac.h>
+
+#include "ssh.h"
+#include "ssh1.h"
+#include "ssh2.h"
 #include "xmalloc.h"
 #include "rsa.h"
-#include "ssh.h"
 #include "pty.h"
 #include "packet.h"
 #include "mpaux.h"
+#include "log.h"
 #include "servconf.h"
 #include "uidswap.h"
 #include "compat.h"
 #include "buffer.h"
-
-#include "ssh2.h"
-#include <openssl/dh.h>
-#include <openssl/bn.h>
-#include <openssl/hmac.h>
+#include "cipher.h"
 #include "kex.h"
-#include <openssl/dsa.h>
-#include <openssl/rsa.h>
 #include "key.h"
 #include "dh.h"
-
-#include "auth.h"
 #include "myproposal.h"
 #include "authfile.h"
+#include "pathnames.h"
+#include "atomicio.h"
+#include "canohost.h"
+#include "auth.h"
+#include "misc.h"
 
 #ifdef LIBWRAP
 #include <tcpd.h>
@@ -88,7 +92,7 @@ char *__progname;
 ServerOptions options;
 
 /* Name of the server configuration file. */
-char *config_file_name = SERVER_CONFIG_FILE;
+char *config_file_name = _PATH_SERVER_CONFIG_FILE;
 
 /*
  * Flag indicating whether IPv4 or IPv6.  This can be set on the command line.
@@ -643,7 +647,7 @@ main(int ac, char **av)
 			fprintf(stderr, "sshd version %s\n", SSH_VERSION);
 			fprintf(stderr, "Usage: %s [options]\n", __progname);
 			fprintf(stderr, "Options:\n");
-			fprintf(stderr, "  -f file    Configuration file (default %s)\n", SERVER_CONFIG_FILE);
+			fprintf(stderr, "  -f file    Configuration file (default %s)\n", _PATH_SERVER_CONFIG_FILE);
 			fprintf(stderr, "  -d         Debugging mode (multiple -d means more debugging)\n");
 			fprintf(stderr, "  -i         Started from inetd\n");
 			fprintf(stderr, "  -D         Do not fork into daemon mode\n");
@@ -653,7 +657,7 @@ main(int ac, char **av)
 			fprintf(stderr, "  -g seconds Grace period for authentication (default: 600)\n");
 			fprintf(stderr, "  -b bits    Size of server RSA key (default: 768 bits)\n");
 			fprintf(stderr, "  -h file    File from which to read host key (default: %s)\n",
-			    HOST_KEY_FILE);
+			    _PATH_HOST_KEY_FILE);
 			fprintf(stderr, "  -u len     Maximum hostname length for utmp recording\n");
 			fprintf(stderr, "  -4         Use IPv4 only\n");
 			fprintf(stderr, "  -6         Use IPv6 only\n");

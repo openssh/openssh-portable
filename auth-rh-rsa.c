@@ -13,18 +13,19 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rh-rsa.c,v 1.19 2000/12/21 15:10:16 markus Exp $");
+RCSID("$OpenBSD: auth-rh-rsa.c,v 1.21 2001/01/21 19:05:42 markus Exp $");
 
 #include "packet.h"
-#include "ssh.h"
 #include "xmalloc.h"
 #include "uidswap.h"
+#include "log.h"
 #include "servconf.h"
-
-#include <openssl/rsa.h>
-#include <openssl/dsa.h>
 #include "key.h"
 #include "hostfile.h"
+#include "pathnames.h"
+#include "auth.h"
+#include "tildexpand.h"
+#include "canohost.h"
 
 /*
  * Tries to authenticate the user using the .rhosts file and the host using
@@ -59,15 +60,15 @@ auth_rhosts_rsa(struct passwd *pw, const char *client_user, RSA *client_host_key
 	found = key_new(KEY_RSA1);
 
 	/* Check if we know the host and its host key. */
-	host_status = check_host_in_hostfile(SSH_SYSTEM_HOSTFILE, canonical_hostname,
+	host_status = check_host_in_hostfile(_PATH_SSH_SYSTEM_HOSTFILE, canonical_hostname,
 	    client_key, found, NULL);
 
 	/* Check user host file unless ignored. */
 	if (host_status != HOST_OK && !options.ignore_user_known_hosts) {
 		struct stat st;
-		char *user_hostfile = tilde_expand_filename(SSH_USER_HOSTFILE, pw->pw_uid);
+		char *user_hostfile = tilde_expand_filename(_PATH_SSH_USER_HOSTFILE, pw->pw_uid);
 		/*
-		 * Check file permissions of SSH_USER_HOSTFILE, auth_rsa()
+		 * Check file permissions of _PATH_SSH_USER_HOSTFILE, auth_rsa()
 		 * did already check pw->pw_dir, but there is a race XXX
 		 */
 		if (options.strict_modes &&

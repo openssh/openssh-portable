@@ -23,18 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.17 2001/01/08 21:48:17 markus Exp $");
-
-#include "ssh.h"
-#include "ssh2.h"
-#include "xmalloc.h"
-#include "buffer.h"
-#include "bufaux.h"
-#include "packet.h"
-#include "compat.h"
-
-#include <openssl/bn.h>
-#include <openssl/dh.h>
+RCSID("$OpenBSD: kex.c,v 1.18 2001/01/21 19:05:49 markus Exp $");
 
 #include <openssl/crypto.h>
 #include <openssl/bio.h>
@@ -42,8 +31,16 @@ RCSID("$OpenBSD: kex.c,v 1.17 2001/01/08 21:48:17 markus Exp $");
 #include <openssl/dh.h>
 #include <openssl/pem.h>
 
+#include "ssh2.h"
+#include "xmalloc.h"
+#include "buffer.h"
+#include "bufaux.h"
+#include "packet.h"
+#include "compat.h"
+#include "cipher.h"
 #include "kex.h"
 #include "key.h"
+#include "log.h"
 
 #define KEX_COOKIE_LEN	16
 

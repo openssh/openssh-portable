@@ -28,6 +28,7 @@
 RCSID("$OpenBSD: util.c,v 1.6 2000/10/27 07:32:19 markus Exp $");
 
 #include "ssh.h"
+#include "log.h"
 
 char *
 chop(char *s)

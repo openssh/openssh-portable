@@ -24,10 +24,10 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: atomicio.c,v 1.7 2000/10/18 18:04:02 markus Exp $");
+RCSID("$OpenBSD: atomicio.c,v 1.8 2001/01/21 19:05:40 markus Exp $");
 
 #include "xmalloc.h"
-#include "ssh.h"
+#include "atomicio.h"
 
 /*
  * ensure all of data on socket comes through. f==read || f==write
