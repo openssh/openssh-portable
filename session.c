@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.95 2001/06/25 08:25:39 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.96 2001/06/26 16:15:24 dugsong Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -99,7 +99,8 @@ typedef struct Session Session;
 struct Session {
 	int	used;
 	int	self;
-	struct	passwd *pw;
+	struct passwd *pw;
+	Authctxt *authctxt;
 	pid_t	pid;
 	/* tty */
 	char	*term;
@@ -198,6 +199,14 @@ do_authenticated(Authctxt *authctxt)
 	/* remove agent socket */
 	if (auth_get_socket_name())
 		auth_sock_cleanup_proc(authctxt->pw);
+#ifdef KRB4
+	if (options.kerberos_ticket_cleanup)
+		krb4_cleanup_proc(authctxt);
+#endif
+#ifdef KRB5
+	if (options.kerberos_ticket_cleanup)
+		krb5_cleanup_proc(authctxt);
+#endif
 }
 
 /*
@@ -216,6 +225,7 @@ do_authenticated1(Authctxt *authctxt)
 	u_int proto_len, data_len, dlen;
 
 	s = session_new();
+	s->authctxt = authctxt;
 	s->pw = authctxt->pw;
 
 	/*
@@ -300,6 +310,58 @@ do_authenticated1(Authctxt *authctxt)
 			if (packet_set_maxsize(packet_get_int()) > 0)
 				success = 1;
 			break;
+			
+#if defined(AFS) || defined(KRB5)
+		case SSH_CMSG_HAVE_KERBEROS_TGT:
+			if (!options.kerberos_tgt_passing) {
+				verbose("Kerberos TGT passing disabled.");
+			} else {
+				char *kdata = packet_get_string(&dlen);
+				packet_integrity_check(plen, 4 + dlen, type);
+				
+				/* XXX - 0x41, see creds_to_radix version */
+				if (kdata[0] != 0x41) {
+#ifdef KRB5
+					krb5_data tgt;
+					tgt.data = kdata;
+					tgt.length = dlen;
+					
+					if (auth_krb5_tgt(s->authctxt, &tgt))
+						success = 1;
+					else
+						verbose("Kerberos v5 TGT refused for %.100s", s->authctxt->user);
+#endif /* KRB5 */
+				} else {
+#ifdef AFS
+					if (auth_krb4_tgt(s->authctxt, kdata))
+						success = 1;
+					else
+						verbose("Kerberos v4 TGT refused for %.100s", s->authctxt->user);
+#endif /* AFS */
+				}
+				xfree(kdata);
+			}
+			break;
+#endif /* AFS || KRB5 */
+			
+#ifdef AFS
+		case SSH_CMSG_HAVE_AFS_TOKEN:
+			if (!options.afs_token_passing || !k_hasafs()) {
+				verbose("AFS token passing disabled.");
+			} else {
+				/* Accept AFS token. */
+				char *token = packet_get_string(&dlen);
+				packet_integrity_check(plen, 4 + dlen, type);
+				
+				if (auth_afs_token(s->authctxt, token))
+					success = 1;
+				else
+					verbose("AFS token refused for %.100s",
+					    s->authctxt->user);
+				xfree(token);
+			}
+			break;
+#endif /* AFS */
 
 		case SSH_CMSG_EXEC_SHELL:
 		case SSH_CMSG_EXEC_CMD:
@@ -615,7 +677,7 @@ static int
 check_quietlogin(Session *s, const char *command)
 {
 	char buf[256];
-	struct passwd * pw = s->pw;
+	struct passwd *pw = s->pw;
 	struct stat st;
 
 	/* Return 1 if .hushlogin exists or a command given. */
@@ -955,7 +1017,7 @@ void
 do_child(Session *s, const char *command)
 {
 	const char *shell, *hostname = NULL, *cp = NULL;
-	struct passwd * pw = s->pw;
+	struct passwd *pw = s->pw;
 	char buf[256];
 	char cmd[1024];
 	FILE *f = NULL;
@@ -1134,10 +1196,10 @@ do_child(Session *s, const char *command)
 	/* Try to get AFS tokens for the local cell. */
 	if (k_hasafs()) {
 		char cell[64];
-
+		
 		if (k_afs_cell_of_file(pw->pw_dir, cell, sizeof(cell)) == 0)
 			krb_afslog(cell, 0);
-
+		
 		krb_afslog(0, 0);
 	}
 #endif /* AFS */
@@ -1221,16 +1283,16 @@ do_child(Session *s, const char *command)
 		child_set_env(&env, &envsize, "KRB5CCNAME", cp);
 	read_environment_file(&env, &envsize, "/etc/environment");
 #endif
-
 #ifdef KRB4
-	{
-		extern char *ticket;
-
-		if (ticket)
-			child_set_env(&env, &envsize, "KRBTKFILE", ticket);
-	}
-#endif /* KRB4 */
-
+	if (s->authctxt->krb4_ticket_file)
+		child_set_env(&env, &envsize, "KRBTKFILE",
+		    s->authctxt->krb4_ticket_file);
+#endif
+#ifdef KRB5
+	if (s->authctxt->krb5_ticket_file)
+		child_set_env(&env, &envsize, "KRB5CCNAME",
+		    s->authctxt->krb5_ticket_file);
+#endif
 #ifdef USE_PAM
 	/* Pull in any environment variables that may have been set by PAM. */
 	do_pam_environment(&env, &envsize);

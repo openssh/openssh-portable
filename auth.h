@@ -21,7 +21,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $OpenBSD: auth.h,v 1.20 2001/06/26 06:32:47 itojun Exp $
+ * $OpenBSD: auth.h,v 1.21 2001/06/26 16:15:23 dugsong Exp $
  */
 #ifndef AUTH_H
 #define AUTH_H
@@ -36,23 +36,36 @@
 #ifdef BSD_AUTH
 #include <bsd_auth.h>
 #endif
+#ifdef KRB5
+#include <krb5.h>
+#endif
 
 typedef struct Authctxt Authctxt;
 typedef struct KbdintDevice KbdintDevice;
 
 struct Authctxt {
-	int success;
-	int postponed;
-	int valid;
-	int attempt;
-	int failures;
-	char *user;
-	char *service;
-	struct passwd *pw;
-	char *style;
-	void *kbdintctxt;
+	int		 success;
+	int		 postponed;
+	int		 valid;
+	int		 attempt;
+	int		 failures;
+	char		*user;
+	char		*service;
+	struct passwd	*pw;
+	char		*style;
+	void		*kbdintctxt;
 #ifdef BSD_AUTH
-	auth_session_t *as;
+	auth_session_t	*as;
+#endif
+#ifdef KRB4
+	char		*krb4_ticket_file;
+#endif
+#ifdef KRB5
+	krb5_context	 krb5_ctx;
+	krb5_auth_context krb5_auth_ctx;
+	krb5_ccache	 krb5_fwd_ccache;
+	krb5_principal	 krb5_user;
+	char		*krb5_ticket_file;
 #endif
 };
 
@@ -125,20 +138,26 @@ int     auth_rsa_challenge_dialog(RSA *);
  * if the client could not be authenticated, and 1 if authentication was
  * successful.  This may exit if there is a serious protocol violation.
  */
-int     auth_krb4(const char *, KTEXT, char **);
-int     krb4_init(uid_t);
+int     auth_krb4(Authctxt *, KTEXT, char **);
+int	auth_krb4_password(Authctxt *, const char *);
 void    krb4_cleanup_proc(void *);
-int	auth_krb4_password(struct passwd *, const char *);
 
 #ifdef AFS
 #include <kafs.h>
 
 /* Accept passed Kerberos v4 ticket-granting ticket and AFS tokens. */
-int     auth_kerberos_tgt(struct passwd *, const char *);
-int     auth_afs_token(struct passwd *, const char *);
+int     auth_krb4_tgt(Authctxt *, const char *);
+int     auth_afs_token(Authctxt *, const char *);
 #endif				/* AFS */
 
 #endif				/* KRB4 */
+
+#ifdef KRB5
+int	auth_krb5(Authctxt *authctxt, krb5_data *auth, char **client);
+int	auth_krb5_tgt(Authctxt *authctxt, krb5_data *tgt);
+int	auth_krb5_password(Authctxt *authctxt, const char *password);
+void	krb5_cleanup_proc(void *authctxt);
+#endif /* KRB5 */
 
 #include "auth-pam.h"
 #include "auth2-pam.h"

@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-passwd.c,v 1.22 2001/03/20 18:57:04 markus Exp $");
+RCSID("$OpenBSD: auth-passwd.c,v 1.23 2001/06/26 16:15:23 dugsong Exp $");
 
 #if !defined(USE_PAM) && !defined(HAVE_OSF_SIA)
 
@@ -128,14 +128,14 @@ auth_password(Authctxt *authctxt, const char *password)
 #endif
 	if (*password == '\0' && options.permit_empty_passwd == 0)
 		return 0;
-#ifdef BSD_AUTH
-	if (auth_userokay(pw->pw_name, authctxt->style, "auth-ssh",
-	    (char *)password) == 0)
-		return 0;
-	else
-		return 1;
+#ifdef KRB5
+	if (options.kerberos_authentication == 1) {
+		int ret = auth_krb5_password(authctxt, password);
+		if (ret == 1 || ret == 0)
+			return ret;
+		/* Fall back to ordinary passwd authentication. */
+	}
 #endif
-
 #ifdef HAVE_CYGWIN
 	if (is_winnt) {
 		HANDLE hToken = cygwin_logon_user(pw, password);
@@ -146,21 +146,24 @@ auth_password(Authctxt *authctxt, const char *password)
 		return 1;
 	}
 #endif
-
 #ifdef WITH_AIXAUTHENTICATE
 	return (authenticate(pw->pw_name,password,&reenter,&authmsg) == 0);
 #endif
-
 #ifdef KRB4
 	if (options.kerberos_authentication == 1) {
-		int ret = auth_krb4_password(pw, password);
+		int ret = auth_krb4_password(authctxt, password);
 		if (ret == 1 || ret == 0)
 			return ret;
 		/* Fall back to ordinary passwd authentication. */
 	}
 #endif
-
-
+#ifdef BSD_AUTH
+	if (auth_userokay(pw->pw_name, authctxt->style, "auth-ssh",
+	    (char *)password) == 0)
+		return 0;
+	else
+		return 1;
+#endif
 	pw_password = pw->pw_passwd;
 
 	/*

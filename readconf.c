@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.81 2001/06/23 02:34:30 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.82 2001/06/26 16:15:23 dugsong Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -96,11 +96,14 @@ typedef enum {
 	oForwardAgent, oForwardX11, oGatewayPorts, oRhostsAuthentication,
 	oPasswordAuthentication, oRSAAuthentication, oFallBackToRsh, oUseRsh,
 	oChallengeResponseAuthentication, oXAuthLocation,
-#ifdef KRB4
+#if defined(KRB4) || defined(KRB5)
 	oKerberosAuthentication,
-#endif /* KRB4 */
+#endif
+#if defined(AFS) || defined(KRB5)
+	oKerberosTgtPassing,
+#endif
 #ifdef AFS
-	oKerberosTgtPassing, oAFSTokenPassing,
+	oAFSTokenPassing,
 #endif
 	oIdentityFile, oHostName, oPort, oCipher, oRemoteForward, oLocalForward,
 	oUser, oHost, oEscapeChar, oRhostsRSAAuthentication, oProxyCommand,
@@ -137,11 +140,13 @@ static struct {
 	{ "challengeresponseauthentication", oChallengeResponseAuthentication },
 	{ "skeyauthentication", oChallengeResponseAuthentication }, /* alias */
 	{ "tisauthentication", oChallengeResponseAuthentication },  /* alias */
-#ifdef KRB4
+#if defined(KRB4) || defined(KRB5)
 	{ "kerberosauthentication", oKerberosAuthentication },
-#endif /* KRB4 */
-#ifdef AFS
+#endif
+#if defined(AFS) || defined(KRB5)
 	{ "kerberostgtpassing", oKerberosTgtPassing },
+#endif
+#ifdef AFS
 	{ "afstokenpassing", oAFSTokenPassing },
 #endif
 	{ "fallbacktorsh", oFallBackToRsh },
@@ -335,23 +340,21 @@ parse_flag:
 	case oChallengeResponseAuthentication:
 		intptr = &options->challenge_response_authentication;
 		goto parse_flag;
-
-#ifdef KRB4
+#if defined(KRB4) || defined(KRB5)
 	case oKerberosAuthentication:
 		intptr = &options->kerberos_authentication;
 		goto parse_flag;
-#endif /* KRB4 */
-
-#ifdef AFS
+#endif
+#if defined(AFS) || defined(KRB5)
 	case oKerberosTgtPassing:
 		intptr = &options->kerberos_tgt_passing;
 		goto parse_flag;
-
+#endif
+#ifdef AFS
 	case oAFSTokenPassing:
 		intptr = &options->afs_token_passing;
 		goto parse_flag;
 #endif
-
 	case oFallBackToRsh:
 		intptr = &options->fallback_to_rsh;
 		goto parse_flag;
@@ -724,11 +727,13 @@ initialize_options(Options * options)
 	options->rsa_authentication = -1;
 	options->pubkey_authentication = -1;
 	options->challenge_response_authentication = -1;
-#ifdef KRB4
+#if defined(KRB4) || defined(KRB5)
 	options->kerberos_authentication = -1;
 #endif
-#ifdef AFS
+#if defined(AFS) || defined(KRB5)
 	options->kerberos_tgt_passing = -1;
+#endif
+#ifdef AFS
 	options->afs_token_passing = -1;
 #endif
 	options->password_authentication = -1;
@@ -799,16 +804,18 @@ fill_default_options(Options * options)
 		options->pubkey_authentication = 1;
 	if (options->challenge_response_authentication == -1)
 		options->challenge_response_authentication = 0;
-#ifdef KRB4
+#if defined(KRB4) || defined(KRB5)
 	if (options->kerberos_authentication == -1)
 		options->kerberos_authentication = 1;
-#endif /* KRB4 */
-#ifdef AFS
+#endif
+#if defined(AFS) || defined(KRB5)
 	if (options->kerberos_tgt_passing == -1)
 		options->kerberos_tgt_passing = 1;
+#endif
+#ifdef AFS
 	if (options->afs_token_passing == -1)
 		options->afs_token_passing = 1;
-#endif /* AFS */
+#endif
 	if (options->password_authentication == -1)
 		options->password_authentication = 1;
 	if (options->kbd_interactive_authentication == -1)

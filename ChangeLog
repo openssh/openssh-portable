@@ -54,6 +54,11 @@
      prototype pedant.  not very creative...
      - () -> (void)
      - no variable names
+   - dugsong@cvs.openbsd.org 2001/06/26 16:15:25
+     [auth1.c auth.h auth-krb4.c auth-passwd.c readconf.c readconf.h 
+      servconf.c servconf.h session.c sshconnect1.c sshd.c]
+     Kerberos v5 support for SSH1, mostly from Assar Westerlund 
+     <assar@freebsd.org> and Bjorn Gronvall <bg@sics.se>. markus@ ok
 
 20010629
  - (bal) Removed net_aton() since we don't use it any more
@@ -5881,4 +5886,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1357 2001/07/04 04:07:12 mouring Exp $
+$Id: ChangeLog,v 1.1358 2001/07/04 04:21:14 mouring Exp $

@@ -10,13 +10,10 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.84 2001/06/23 15:12:19 itojun Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.85 2001/06/26 16:15:24 dugsong Exp $");
 
 #ifdef KRB4
 #include <krb.h>
-#endif
-#ifdef AFS
-#include <kafs.h>
 #endif
 
 #include "ssh.h"
@@ -70,13 +67,15 @@ initialize_server_options(ServerOptions *options)
 	options->hostbased_uses_name_from_packet_only = -1;
 	options->rsa_authentication = -1;
 	options->pubkey_authentication = -1;
-#ifdef KRB4
+#if defined(KRB4) || defined(KRB5)
 	options->kerberos_authentication = -1;
 	options->kerberos_or_local_passwd = -1;
 	options->kerberos_ticket_cleanup = -1;
 #endif
-#ifdef AFS
+#if defined(AFS) || defined(KRB5)
 	options->kerberos_tgt_passing = -1;
+#endif
+#ifdef AFS
 	options->afs_token_passing = -1;
 #endif
 	options->password_authentication = -1;
@@ -170,20 +169,22 @@ fill_default_server_options(ServerOptions *options)
 		options->rsa_authentication = 1;
 	if (options->pubkey_authentication == -1)
 		options->pubkey_authentication = 1;
-#ifdef KRB4
+#if defined(KRB4) || defined(KRB5)
 	if (options->kerberos_authentication == -1)
 		options->kerberos_authentication = (access(KEYFILE, R_OK) == 0);
 	if (options->kerberos_or_local_passwd == -1)
 		options->kerberos_or_local_passwd = 1;
 	if (options->kerberos_ticket_cleanup == -1)
 		options->kerberos_ticket_cleanup = 1;
-#endif /* KRB4 */
-#ifdef AFS
+#endif
+#if defined(AFS) || defined(KRB5)
 	if (options->kerberos_tgt_passing == -1)
 		options->kerberos_tgt_passing = 0;
+#endif
+#ifdef AFS	
 	if (options->afs_token_passing == -1)
 		options->afs_token_passing = k_hasafs();
-#endif /* AFS */
+#endif
 	if (options->password_authentication == -1)
 		options->password_authentication = 1;
 	if (options->kbd_interactive_authentication == -1)
@@ -224,11 +225,14 @@ typedef enum {
 	sPort, sHostKeyFile, sServerKeyBits, sLoginGraceTime, sKeyRegenerationTime,
 	sPermitRootLogin, sLogFacility, sLogLevel,
 	sRhostsAuthentication, sRhostsRSAAuthentication, sRSAAuthentication,
-#ifdef KRB4
+#if defined(KRB4) || defined(KRB5)
 	sKerberosAuthentication, sKerberosOrLocalPasswd, sKerberosTicketCleanup,
 #endif
+#if defined(AFS) || defined(KRB5)
+	sKerberosTgtPassing,
+#endif
 #ifdef AFS
-	sKerberosTgtPassing, sAFSTokenPassing,
+	sAFSTokenPassing,
 #endif
 	sChallengeResponseAuthentication,
 	sPasswordAuthentication, sKbdInteractiveAuthentication, sListenAddress,
@@ -267,13 +271,15 @@ static struct {
 	{ "rsaauthentication", sRSAAuthentication },
 	{ "pubkeyauthentication", sPubkeyAuthentication },
 	{ "dsaauthentication", sPubkeyAuthentication },			/* alias */
-#ifdef KRB4
+#if defined(KRB4) || defined(KRB5)
 	{ "kerberosauthentication", sKerberosAuthentication },
 	{ "kerberosorlocalpasswd", sKerberosOrLocalPasswd },
 	{ "kerberosticketcleanup", sKerberosTicketCleanup },
 #endif
-#ifdef AFS
+#if defined(AFS) || defined(KRB5)
 	{ "kerberostgtpassing", sKerberosTgtPassing },
+#endif
+#ifdef AFS
 	{ "afstokenpassing", sAFSTokenPassing },
 #endif
 	{ "passwordauthentication", sPasswordAuthentication },
@@ -584,8 +590,7 @@ parse_flag:
 		case sPubkeyAuthentication:
 			intptr = &options->pubkey_authentication;
 			goto parse_flag;
-
-#ifdef KRB4
+#if defined(KRB4) || defined(KRB5)
 		case sKerberosAuthentication:
 			intptr = &options->kerberos_authentication;
 			goto parse_flag;
@@ -598,12 +603,12 @@ parse_flag:
 			intptr = &options->kerberos_ticket_cleanup;
 			goto parse_flag;
 #endif
-
-#ifdef AFS
+#if defined(AFS) || defined(KRB5)
 		case sKerberosTgtPassing:
 			intptr = &options->kerberos_tgt_passing;
 			goto parse_flag;
-
+#endif
+#ifdef AFS
 		case sAFSTokenPassing:
 			intptr = &options->afs_token_passing;
 			goto parse_flag;

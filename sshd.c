@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.201 2001/06/23 19:12:43 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.202 2001/06/26 16:15:25 dugsong Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1160,13 +1160,13 @@ main(int ac, char **av)
 		    "originating port not trusted.");
 		options.rhosts_authentication = 0;
 	}
-#ifdef KRB4
+#if defined(KRB4) && !defined(KRB5)
 	if (!packet_connection_is_ipv4() &&
 	    options.kerberos_authentication) {
 		debug("Kerberos Authentication disabled, only available for IPv4.");
 		options.kerberos_authentication = 0;
 	}
-#endif /* KRB4 */
+#endif /* KRB4 && !KRB5 */
 #ifdef AFS
 	/* If machine has AFS, set process authentication group. */
 	if (k_hasafs()) {
@@ -1186,13 +1186,6 @@ main(int ac, char **av)
 		do_ssh1_kex();
 		do_authentication();
 	}
-
-#ifdef KRB4
-	/* Cleanup user's ticket cache file. */
-	if (options.kerberos_ticket_cleanup)
-		(void) dest_tkt();
-#endif /* KRB4 */
-
 	/* The connection has been terminated. */
 	verbose("Closing connection to %.100s", remote_ip);
 
@@ -1268,13 +1261,15 @@ do_ssh1_kex(void)
 		auth_mask |= 1 << SSH_AUTH_RHOSTS_RSA;
 	if (options.rsa_authentication)
 		auth_mask |= 1 << SSH_AUTH_RSA;
-#ifdef KRB4
+#if defined(KRB4) || defined(KRB5)
 	if (options.kerberos_authentication)
 		auth_mask |= 1 << SSH_AUTH_KERBEROS;
 #endif
-#ifdef AFS
+#if defined(AFS) || defined(KRB5)
 	if (options.kerberos_tgt_passing)
 		auth_mask |= 1 << SSH_PASS_KERBEROS_TGT;
+#endif
+#ifdef AFS
 	if (options.afs_token_passing)
 		auth_mask |= 1 << SSH_PASS_AFS_TOKEN;
 #endif
