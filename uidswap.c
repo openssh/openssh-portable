@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: uidswap.c,v 1.15 2001/04/08 11:24:33 markus Exp $");
+RCSID("$OpenBSD: uidswap.c,v 1.16 2001/04/20 16:32:22 markus Exp $");
 
 #include "log.h"
 #include "uidswap.h"
@@ -81,7 +81,7 @@ temporarily_use_uid(struct passwd *pw)
 }
   
 /*
- * Restores to the original uid.
+ * Restores to the original (privileged) uid.
  */
 void
 restore_uid(void)
@@ -92,7 +92,7 @@ restore_uid(void)
 		return;
 	if (!temporarily_use_uid_effective)
 		fatal("restore_uid: temporarily_use_uid not effective");
-	/* Set the effective uid back to the saved uid. */
+	/* Set the effective uid back to the saved privileged uid. */
 	if (seteuid(saved_euid) < 0)
 		fatal("seteuid %u: %.100s", (u_int) saved_euid, strerror(errno));
 	if (setgroups(saved_egroupslen, saved_egroups) < 0)
@@ -111,8 +111,8 @@ permanently_set_uid(struct passwd *pw)
 {
 	if (temporarily_use_uid_effective)
 		fatal("restore_uid: temporarily_use_uid effective");
-	if (setuid(pw->pw_uid) < 0)
-		fatal("setuid %u: %.100s", (u_int) pw->pw_uid, strerror(errno));
 	if (setgid(pw->pw_gid) < 0)
 		fatal("setgid %u: %.100s", (u_int) pw->pw_gid, strerror(errno));
+	if (setuid(pw->pw_uid) < 0)
+		fatal("setuid %u: %.100s", (u_int) pw->pw_uid, strerror(errno));
 }
