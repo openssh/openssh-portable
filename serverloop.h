@@ -1,4 +1,4 @@
-/*	$OpenBSD: serverloop.h,v 1.4 2001/06/26 17:27:24 markus Exp $	*/
+/*	$OpenBSD: serverloop.h,v 1.5 2001/06/27 02:12:53 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -22,6 +22,6 @@
 #define SERVERLOOP_H
 
 void    server_loop(pid_t, int, int, int);
-void    server_loop2(void);
+void    server_loop2(Authctxt *);
 
 #endif

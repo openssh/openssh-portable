@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.71 2001/06/25 08:25:39 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.72 2001/06/27 02:12:52 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -59,6 +59,7 @@ extern ServerOptions options;
 
 /* XXX */
 extern Kex *xxx_kex;
+static Authctxt *xxx_authctxt;
 
 static Buffer stdin_buffer;	/* Buffer for stdin data. */
 static Buffer stdout_buffer;	/* Buffer for stdout data. */
@@ -658,7 +659,7 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 }
 
 void
-server_loop2(void)
+server_loop2(Authctxt *authctxt)
 {
 	fd_set *readset = NULL, *writeset = NULL;
 	int rekeying = 0, max_fd, status;
@@ -672,6 +673,7 @@ server_loop2(void)
 	connection_out = packet_get_connection_out();
 
 	max_fd = MAX(connection_in, connection_out);
+	xxx_authctxt = authctxt;
 
 	server_init_dispatch();
 
@@ -818,7 +820,7 @@ server_request_session(char *ctype)
 		error("server_request_session: channel_new failed");
 		return NULL;
 	}
-	if (session_open(c->self) != 1) {
+	if (session_open(xxx_authctxt, c->self) != 1) {
 		debug("session open failed, free channel %d", c->self);
 		channel_free(c);
 		return NULL;

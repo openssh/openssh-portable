@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.96 2001/06/26 16:15:24 dugsong Exp $");
+RCSID("$OpenBSD: session.c,v 1.97 2001/06/27 02:12:53 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -547,9 +547,9 @@ do_exec_pty(Session *s, const char *command)
 
 	/* Fork the child. */
 	if ((pid = fork()) == 0) {
+
 		/* Child.  Reinitialize the log because the pid has changed. */
 		log_init(__progname, options.log_level, options.log_facility, log_stderr);
-
 		/* Close the master side of the pseudo tty. */
 		close(ptyfd);
 
@@ -1562,7 +1562,7 @@ session_dump(void)
 }
 
 int
-session_open(int chanid)
+session_open(Authctxt *authctxt, int chanid)
 {
 	Session *s = session_new();
 	debug("session_open: channel %d", chanid);
@@ -1570,7 +1570,8 @@ session_open(int chanid)
 		error("no more sessions");
 		return 0;
 	}
-	s->pw = auth_get_user();
+	s->authctxt = authctxt;
+	s->pw = authctxt->pw;
 	if (s->pw == NULL)
 		fatal("no user for session %d", s->self);
 	debug("session_open: session %d: link with channel %d", s->self, chanid);
@@ -2052,5 +2053,5 @@ session_setup_x11fwd(Session *s)
 static void
 do_authenticated2(Authctxt *authctxt)
 {
-	server_loop2();
+	server_loop2(authctxt);
 }

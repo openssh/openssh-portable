@@ -76,6 +76,13 @@
    - dugsong@cvs.openbsd.org 2001/06/26 17:41:49
      [servconf.c]
      #include <kafs.h>
+   - markus@cvs.openbsd.org 2001/06/26 20:14:11
+     [key.c key.h ssh.c sshconnect1.c sshconnect2.c]
+     add smartcard support to the client, too (now you can use both
+     the agent and the client).
+   - markus@cvs.openbsd.org 2001/06/27 02:12:54
+     [serverloop.c serverloop.h session.c session.h]
+     quick hack to make ssh2 work again.
  
 20010629
  - (bal) Removed net_aton() since we don't use it any more
@@ -5903,4 +5910,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1361 2001/07/04 04:48:36 mouring Exp $
+$Id: ChangeLog,v 1.1362 2001/07/04 04:53:53 mouring Exp $
