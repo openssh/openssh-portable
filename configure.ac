@@ -1,4 +1,4 @@
-i# $Id: configure.ac,v 1.9 2002/01/05 23:24:28 stevesk Exp $
+i# $Id: configure.ac,v 1.10 2002/01/14 08:01:06 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -1538,6 +1538,12 @@ AC_ARG_WITH(random,
 	[
 		if test "x$withval" != "xno" ; then
 			RANDOM_POOL="$withval";
+			if ! echo "$RANDOM_POOL" | grep -q '^/' ; then 
+				AC_MSG_ERROR(You must specify an absolute path to the random device)
+			fi			
+			if ! test -r "$RANDOM_POOL" ; then
+				AC_MSG_WARN(Random device is not readable)
+			fi
 			AC_DEFINE_UNQUOTED(RANDOM_POOL, "$RANDOM_POOL")
 		fi
 	],
@@ -1570,6 +1576,12 @@ AC_ARG_WITH(prngd-socket,
 	[
 		if test "x$withval" != "xno" ; then
 			PRNGD_SOCKET="$withval"
+			if echo "$PRNGD_SOCKET" | grep -q '^/' ; then 
+				AC_MSG_ERROR(You must specify an absolute path to the entropy socket)
+			fi			
+			if ! test -r "$PRNGD_SOCKET" ; then
+				AC_MSG_WARN(Entropy socket is not readable)
+			fi
 			AC_DEFINE_UNQUOTED(PRNGD_SOCKET, "$PRNGD_SOCKET")
 		fi
 	],
