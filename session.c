@@ -1898,13 +1898,12 @@ session_exit_message(Session *s, int status)
 	 * interested in data we write.
 	 * Note that we must not call 'chan_read_failed', since there could
 	 * be some more data waiting in the pipe.
-	 * djm - This is no longer true as we have allowed one pass through 
-	 * the select loop before killing the connection
 	 */
 	if (c->ostate != CHAN_OUTPUT_CLOSED)
 		chan_write_failed(c);
 	if (c->istate != CHAN_INPUT_CLOSED)
-		chan_read_failed(c);
+		c->istate = CHAN_INPUT_WAIT_DRAIN;
+
 	s->chanid = -1;
 }
 

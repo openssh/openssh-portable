@@ -1,3 +1,6 @@
+20001129
+ - (djm) Fix(?) the ssh hang-on-logout/data-from-child race
+
 20001125
  - (djm) Give up privs when reading seed file
 
