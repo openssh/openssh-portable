@@ -31,7 +31,7 @@ case "$host" in
 	AFS_LIBS="-lld"
 	CFLAGS="$CFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
-	if test "$LD" != "gcc" -a -z "$blibpath"; then
+	if (test "$LD" != "gcc" && test -z "$blibpath"); then
 		blibpath="/usr/lib:/lib:/usr/local/lib"
 	fi
 	AC_CHECK_FUNC(authenticate, [AC_DEFINE(WITH_AIXAUTHENTICATE)])
@@ -230,7 +230,7 @@ AC_ARG_WITH(pam,
 		fi
 	]
 )
-if test -z "$no_pam" -a "x$ac_cv_header_security_pam_appl_h" = "xyes" ; then
+if (test -z "$no_pam" && test "x$ac_cv_header_security_pam_appl_h" = "xyes") ; then
 	AC_CHECK_LIB(dl, dlopen, , )
 	LIBS="$LIBS -lpam"
 
@@ -321,7 +321,7 @@ int main(void)
 	ac_cv_openssldir=$ssldir
 ])
 
-if test ! -z "$ac_cv_openssldir" -a ! "x$ac_cv_openssldir" = "x(system)" ; then
+if (test ! -z "$ac_cv_openssldir" && test "x$ac_cv_openssldir" != "x(system)") ; then
 	AC_DEFINE(HAVE_OPENSSL)
 	dnl Need to recover ssldir - test above runs in subshell
 	ssldir=$ac_cv_openssldir
@@ -421,8 +421,8 @@ if test "x$ac_cv_have_u_intxx_t" = "xyes" ; then
 fi
 
 
-if test -z "$have_u_intxx_t" -o -z "$have_intxx_t" -a \
-           "x$ac_cv_header_sys_bitypes_h" = "xyes"
+if (test -z "$have_u_intxx_t" || test -z "$have_intxx_t" && \
+           test "x$ac_cv_header_sys_bitypes_h" = "xyes")
 then
 	AC_MSG_CHECKING([for intXX_t and u_intXX_t types in sys/bitypes.h])
 	AC_TRY_COMPILE(
@@ -679,7 +679,7 @@ AC_ARG_WITH(xauth,
 	],
 	[
 		AC_PATH_PROG(xauth_path, xauth)
-		if test ! -z "$xauth_path" -a -x "/usr/openwin/bin/xauth" ; then
+		if (test ! -z "$xauth_path" && test -x "/usr/openwin/bin/xauth") ; then
 			xauth_path="/usr/openwin/bin/xauth"
 		fi
 	]
@@ -750,7 +750,7 @@ AC_ARG_WITH(egd-pool,
 # detect pathnames for entropy gathering commands, if we need them
 INSTALL_SSH_PRNG_CMDS=""
 rm -f prng_commands
-if test -z "$RANDOM_POOL" -a -z "$EGD_SOCKET" ; then
+if (test -z "$RANDOM_POOL" && test -z "$EGD_SOCKET") ; then
 	# Use these commands to collect entropy
 	OSSH_PATH_ENTROPY_PROG(PROG_LS, ls)
 	OSSH_PATH_ENTROPY_PROG(PROG_NETSTAT, netstat)
@@ -1077,7 +1077,7 @@ AC_TRY_COMPILE([
 if test -z "$conf_lastlog_location"; then
 	if test x"$system_lastlog_path" = x"no" ; then
 		for f in /var/log/lastlog /usr/adm/lastlog /var/adm/lastlog /etc/security/lastlog ; do
-				if test -d "$f" -o -f "$f" ; then
+				if (test -d "$f" || test -f "$f") ; then
 					conf_lastlog_location=$f
 				fi
 		done

@@ -1,3 +1,8 @@
+20000620
+ - (djm) Replace use of '-o' and '-a' logical operators in configure tests
+   with '||' and '&&'. As suggested by Jim Knoble <jmknoble@pint-stowp.cx> 
+   to fix SCO Unixware problem reported by Gary E. Miller <gem@rellim.com>
+
 20000618
  - (djm) Add summary of configure options to end of ./configure run
  - (djm) Not all systems define RUSAGE_SELF & RUSAGE_CHILDREN. Report from 
