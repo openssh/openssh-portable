@@ -1,6 +1,8 @@
 20030821
  - (dtucker) [regress/authorized_keys_root regress/copy.1 regress/copy.2]
    Remove temp data files from cvs.
+ - (dtucker) [sshd.c] Bug #529: sshd doesn't work correctly after SIGHUP
+   (copy argv correctly), fix by djm from -current.
 
 20030429
  - (djm) Add back radix.o (used by AFS support), after it went missing from
@@ -1306,4 +1308,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2648.2.2 2003/08/21 06:08:13 dtucker Exp $
+$Id: ChangeLog,v 1.2648.2.3 2003/08/21 06:11:30 dtucker Exp $
