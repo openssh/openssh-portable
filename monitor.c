@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.42 2003/06/02 09:17:34 markus Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.43 2003/06/12 07:57:38 markus Exp $");
 
 #include <openssl/dh.h>
 
@@ -93,7 +93,7 @@ struct {
 	u_int olen;
 } child_state;
 
-/* Functions on the montior that answer unprivileged requests */
+/* Functions on the monitor that answer unprivileged requests */
 
 int mm_answer_moduli(int, Buffer *);
 int mm_answer_sign(int, Buffer *);
