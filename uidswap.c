@@ -16,6 +16,7 @@ RCSID("$OpenBSD: uidswap.c,v 1.24 2003/05/29 16:58:45 deraadt Exp $");
 
 #include "log.h"
 #include "uidswap.h"
+#include "xmalloc.h"
 
 /*
  * Note: all these functions must work in all of the following cases:
@@ -38,7 +39,7 @@ static gid_t	saved_egid = 0;
 /* Saved effective uid. */
 static int	privileged = 0;
 static int	temporarily_use_uid_effective = 0;
-static gid_t	saved_egroups[NGROUPS_MAX], user_groups[NGROUPS_MAX];
+static gid_t	*saved_egroups = NULL, *user_groups = NULL;
 static int	saved_egroupslen = -1, user_groupslen = -1;
 
 /*
@@ -68,18 +69,38 @@ temporarily_use_uid(struct passwd *pw)
 
 	privileged = 1;
 	temporarily_use_uid_effective = 1;
-	saved_egroupslen = getgroups(NGROUPS_MAX, saved_egroups);
+
+	saved_egroupslen = getgroups(0, NULL);
 	if (saved_egroupslen < 0)
 		fatal("getgroups: %.100s", strerror(errno));
+	if (saved_egroupslen > 0) {
+		saved_egroups = xrealloc(saved_egroups,
+		    saved_egroupslen * sizeof(gid_t));
+		if (getgroups(saved_egroupslen, saved_egroups) < 0)
+			fatal("getgroups: %.100s", strerror(errno));
+	} else { /* saved_egroupslen == 0 */
+		if (saved_egroups)
+			xfree(saved_egroups);
+	}
 
 	/* set and save the user's groups */
 	if (user_groupslen == -1) {
 		if (initgroups(pw->pw_name, pw->pw_gid) < 0)
 			fatal("initgroups: %s: %.100s", pw->pw_name,
 			    strerror(errno));
-		user_groupslen = getgroups(NGROUPS_MAX, user_groups);
+
+		user_groupslen = getgroups(0, NULL);
 		if (user_groupslen < 0)
 			fatal("getgroups: %.100s", strerror(errno));
+		if (user_groupslen > 0) {
+			user_groups = xrealloc(user_groups,
+			    user_groupslen * sizeof(gid_t));
+			if (getgroups(user_groupslen, user_groups) < 0)
+				fatal("getgroups: %.100s", strerror(errno));
+		} else { /* user_groupslen == 0 */
+			if (user_groups)
+				xfree(user_groups);
+		}
 	}
 	/* Set the effective uid to the given (unprivileged) uid. */
 	if (setgroups(user_groupslen, user_groups) < 0)
