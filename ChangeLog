@@ -5,6 +5,11 @@
      Check listen addresses for null, prevents xfree from dying during
      ClearAllForwardings (bz #996).  From  Craig Leres, ok markus@
 
+20050313
+ - (dtucker) [contrib/cygwin/ssh-host-config] Makes the query for the
+   localized name of the local administrators group more reliable.  From
+   vinschen at redhat.com.
+
 20050312
  - (dtucker) [regress/test-exec.sh] DEBUG can cause problems where debug
    output ends up in the client's output, causing regress failures.  Found
@@ -2333,4 +2338,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3707.2.3 2005/03/14 11:58:11 dtucker Exp $
+$Id: ChangeLog,v 1.3707.2.4 2005/03/14 12:04:51 dtucker Exp $
