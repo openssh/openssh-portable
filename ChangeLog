@@ -16,6 +16,9 @@
      [scp.c]                                              
      ftruncate() instead of open()+O_TRUNC like rcp.c does
      allows scp /path/to/file localhost:/path/to/file     
+   - markus@cvs.openbsd.org 2001/05/19 16:08:43 
+     [sshd.8]                                   
+     sort options; Matthew.Stier@fnc.fujitsu.com
 
 20010528
  - (tim) [conifgure.in] add setvbuf test needed for sftp-int.c
@@ -5446,4 +5449,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1230 2001/06/05 19:31:41 mouring Exp $
+$Id: ChangeLog,v 1.1231 2001/06/05 19:33:22 mouring Exp $
