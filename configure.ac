@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.248 2005/02/25 23:07:38 dtucker Exp $
+# $Id: configure.ac,v 1.249 2005/03/07 06:34:46 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -897,7 +897,7 @@ AC_ARG_WITH(audit,
 		AC_CHECK_FUNCS(getaudit, [],
 		    [AC_MSG_ERROR(BSM enabled and required function not found)])
 		# These are optional
-		AC_CHECK_FUNCS(getaudit_addr gettext)
+		AC_CHECK_FUNCS(getaudit_addr)
 		AC_DEFINE(USE_BSM_AUDIT, [], [Use BSM audit module])
 		;;
 	  debug)
