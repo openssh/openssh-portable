@@ -8,6 +8,7 @@
      [buffer.c]
      do not expand buffer before attempting to reallocate it; markus ok
  - (tim) [configure.ac] Fix portability issues.
+ - (bal) Missed dead header in inet_ntoa.c
 
 20030914
  - (dtucker) [Makefile regress/Makefile] Fix portability issues preventing
@@ -1104,4 +1105,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2995 2003/09/16 05:40:49 tim Exp $
+$Id: ChangeLog,v 1.2996 2003/09/16 17:23:29 mouring Exp $
