@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.119 2001/05/24 18:57:53 stevesk Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.120 2001/05/28 08:04:39 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -156,12 +156,12 @@ usage(void)
 	fprintf(stderr, "  -l user     Log in using this user name.\n");
 	fprintf(stderr, "  -n          Redirect input from " _PATH_DEVNULL ".\n");
 	fprintf(stderr, "  -A          Enable authentication agent forwarding.\n");
-	fprintf(stderr, "  -a          Disable authentication agent forwarding.\n");
+	fprintf(stderr, "  -a          Disable authentication agent forwarding (default).\n");
 #ifdef AFS
 	fprintf(stderr, "  -k          Disable Kerberos ticket and AFS token forwarding.\n");
 #endif				/* AFS */
 	fprintf(stderr, "  -X          Enable X11 connection forwarding.\n");
-	fprintf(stderr, "  -x          Disable X11 connection forwarding.\n");
+	fprintf(stderr, "  -x          Disable X11 connection forwarding (default).\n");
 	fprintf(stderr, "  -i file     Identity for public key authentication "
 	    "(default: ~/.ssh/identity)\n");
 	fprintf(stderr, "  -t          Tty; allocate a tty even if command is given.\n");
@@ -174,8 +174,7 @@ usage(void)
 	fprintf(stderr, "  -f          Fork into background after authentication.\n");
 	fprintf(stderr, "  -e char     Set escape character; ``none'' = disable (default: ~).\n");
 
-	fprintf(stderr, "  -c cipher   Select encryption algorithm: "
-	    "``3des'', ``blowfish''\n");
+	fprintf(stderr, "  -c cipher   Select encryption algorithm\n");
 	fprintf(stderr, "  -m macs     Specify MAC algorithms for protocol version 2.\n");
 	fprintf(stderr, "  -p port     Connect to this port.  Server must be on the same port.\n");
 	fprintf(stderr, "  -L listen-port:host:port   Forward local port to remote address\n");
@@ -191,7 +190,7 @@ usage(void)
 	fprintf(stderr, "  -6          Use IPv6 only.\n");
 	fprintf(stderr, "  -o 'option' Process the option as if it was read from a configuration file.\n");
 	fprintf(stderr, "  -s          Invoke command (mandatory) as SSH2 subsystem.\n");
-	fprintf(stderr, "  -b          Local IP address.\n");
+	fprintf(stderr, "  -b addr     Local IP address.\n");
 	exit(1);
 }
 

@@ -56,6 +56,9 @@
    - markus@cvs.openbsd.org 2001/05/25 14:37:32
      [ssh-keygen.c]                            
      use -P for -e and -y, too.                
+   - markus@cvs.openbsd.org 2001/05/28 08:04:39
+     [ssh.c]                                   
+     fix usage()                               
 
 20010528
  - (tim) [conifgure.in] add setvbuf test needed for sftp-int.c
@@ -5486,4 +5489,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1239 2001/06/05 20:35:09 mouring Exp $
+$Id: ChangeLog,v 1.1240 2001/06/05 20:44:16 mouring Exp $
