@@ -635,8 +635,10 @@ do_exec_pty(Session *s, const char *command)
 		close(ttyfd);
 
 		/* record login, etc. similar to login(1) */
+#ifndef HAVE_OSF_SIA
 		if (!(options.use_login && command == NULL))
 			do_login(s, command);
+#endif
 
 		/* Do common processing for the child, such as execing the command. */
 		do_child(s, command);
@@ -1052,7 +1054,7 @@ do_child(Session *s, const char *command)
 	if (options.use_login && command != NULL)
 		options.use_login = 0;
 
-#ifndef USE_PAM /* pam_nologin handles this */
+#if !defined(USE_PAM) && !defined(HAVE_OSF_SIA)
 	if (!options.use_login) {
 # ifdef HAVE_LOGIN_CAP
 		if (!login_getcapbool(lc, "ignorenologin", 0) && pw->pw_uid)
@@ -1070,7 +1072,7 @@ do_child(Session *s, const char *command)
 			exit(254);
 		}
 	}
-#endif /* USE_PAM */
+#endif /* USE_PAM || HAVE_OSF_SIA */
 
 	/* Set login name, uid, gid, and groups. */
 	/* Login(1) does this as well, and it needs uid 0 for the "-h"
@@ -1078,6 +1080,8 @@ do_child(Session *s, const char *command)
 	if (!options.use_login) {
 #ifdef HAVE_OSF_SIA
 		session_setup_sia(pw->pw_name, s->ttyfd == -1 ? NULL : s->tty);
+		if (!check_quietlogin(s, command))
+			do_motd();
 #else /* HAVE_OSF_SIA */
 #ifdef HAVE_CYGWIN
 		if (is_winnt) {
