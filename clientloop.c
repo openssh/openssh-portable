@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.52 2001/02/28 08:45:39 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.53 2001/03/06 01:08:27 millert Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -491,7 +491,7 @@ client_process_net_input(fd_set * readset)
 		 * There is a kernel bug on Solaris that causes select to
 		 * sometimes wake up even though there is no data available.
 		 */
-		if (len < 0 && errno == EAGAIN)
+		if (len < 0 && (errno == EAGAIN || errno == EINTR))
 			len = 0;
 
 		if (len < 0) {
