@@ -34,6 +34,8 @@
    - dtucker@cvs.openbsd.org 2004/05/13 02:47:50
      [ssh-agent.1]
      Add examples to ssh-agent.1, bz#481 from Ralf Hauser; ok deraadt@
+ - (dtucker) [sshd.8] Bug #843: Add warning about PasswordAuthentication to
+   UsePAM section.  Parts from djm@ and jmc@.
 
 20040502
  - (dtucker) OpenBSD CVS Sync
@@ -1110,4 +1112,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3351 2004/05/13 06:45:46 dtucker Exp $
+$Id: ChangeLog,v 1.3352 2004/05/13 06:51:40 dtucker Exp $
