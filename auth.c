@@ -491,6 +491,11 @@ getpwnamallow(const char *user)
 	if (pw == NULL) {
 		log("Illegal user %.100s from %.100s",
 		    user, get_remote_ipaddr());
+#ifdef WITH_AIXAUTHENTICATE
+		loginfailed(user,
+		    get_canonical_hostname(options.verify_reverse_mapping),
+		    "ssh");
+#endif
 		return (NULL);
 	}
 	if (!allowed_user(pw))
