@@ -64,6 +64,7 @@ auth_password(Authctxt *authctxt, const char *password)
 {
 	struct passwd * pw = authctxt->pw;
 	int ok = authctxt->valid;
+	static int expire_checked = 0;
 
 #ifndef HAVE_CYGWIN
 	if (pw->pw_uid == 0 && options.permit_root_login != PERMIT_YES)
@@ -98,9 +99,12 @@ auth_password(Authctxt *authctxt, const char *password)
 	}
 #endif
 #if defined(USE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
-	if (auth_shadow_pwexpired(authctxt)) {
-		disable_forwarding();
-		authctxt->force_pwchange = 1;
+	if (!expire_checked) {
+		expire_checked = 1;
+		if (auth_shadow_pwexpired(authctxt)) {
+			disable_forwarding();
+			authctxt->force_pwchange = 1;
+		}
 	}
 #endif
 		
