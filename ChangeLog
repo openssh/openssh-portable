@@ -1,3 +1,6 @@
+20020412
+ - (stevesk) [auth-sia.[ch]] add BSD license from Chris Adams
+
 20020411
  - (stevesk) [auth-sia.c] cleanup
  - (tim) [acconfig.h defines.h includes.h] put includes in includes.h and
@@ -8222,4 +8225,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2046 2002/04/12 03:35:39 tim Exp $
+$Id: ChangeLog,v 1.2047 2002/04/12 15:36:07 stevesk Exp $
