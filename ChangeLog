@@ -1,5 +1,7 @@
 20020707
  - (tim) [Makefile.in] use umask instead of chmod on $(PRIVSEP_PATH)
+ - (tim) [acconfig.h configure.ac sshd.c]
+   s/BROKEN_FD_PASSING/DISABLE_FD_PASSING/
 
 20020705
  - (tim) [configure.ac] AIX 4.2.1 has authenticate() in libs.
@@ -1283,4 +1285,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2338 2002/07/07 20:30:45 tim Exp $
+$Id: ChangeLog,v 1.2339 2002/07/07 20:43:36 tim Exp $

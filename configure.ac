@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.74 2002/07/05 14:12:34 tim Exp $
+# $Id: configure.ac,v 1.75 2002/07/07 20:43:36 tim Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -91,7 +91,7 @@ case "$host" in
 	AC_DEFINE(IPV4_DEFAULT)
 	AC_DEFINE(IP_TOS_IS_BROKEN)
 	AC_DEFINE(NO_X11_UNIX_SOCKETS)
-	AC_DEFINE(BROKEN_FD_PASSING)
+	AC_DEFINE(DISABLE_FD_PASSING)
 	AC_DEFINE(SETGROUPS_NOOP)
 	;;
 *-*-dgux*)
@@ -272,7 +272,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(HAVE_SECUREWARE)
 	AC_DEFINE(DISABLE_SHADOW)
-	AC_DEFINE(BROKEN_FD_PASSING)
+	AC_DEFINE(DISABLE_FD_PASSING)
 	AC_CHECK_FUNCS(getluid setluid)
 	MANTYPE=man
 	;;
@@ -280,7 +280,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	no_libsocket=1
 	no_libnsl=1
 	AC_DEFINE(USE_PIPES)
-	AC_DEFINE(BROKEN_FD_PASSING)
+	AC_DEFINE(DISABLE_FD_PASSING)
 	LDFLAGS="$LDFLAGS -Wl,-Dmsglevel=334:fatal,-L/usr/local/lib"
 	LIBS="$LIBS -lgen -lrsc"
 	;;

@@ -624,7 +624,7 @@ privsep_postauth(Authctxt *authctxt)
 	/* XXX - Remote port forwarding */
 	x_authctxt = authctxt;
 
-#ifdef BROKEN_FD_PASSING
+#ifdef DISABLE_FD_PASSING
 	if (1) {
 #else
 	if (authctxt->pw->pw_uid == 0 || options.use_login) {
