@@ -31,7 +31,7 @@ AC_SUBST(ssldir)
 AC_DEFINE_UNQUOTED(ssldir, "$ssldir")
 if test "$ssldir" != "/usr"; then
 	CFLAGS="$CFLAGS -I$ssldir/include"
-	LIBS="$LIBS -L$ssldir/lib"
+	LDFLAGS="$LDFLAGS -L$ssldir/lib"
 fi
 LIBS="$LIBS -lssl -lcrypto"
 AC_MSG_RESULT($ssldir)

@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: atomicio.c,v 1.7 1999/12/07 06:03:33 damien Exp $");
+RCSID("$Id: atomicio.c,v 1.8 1999/12/14 22:06:28 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -42,7 +42,7 @@ atomicio(f, fd, s, n)
 	int res, pos = 0;
 
 	while (n > pos) {
-		res = (f) (fd, s + pos, n - pos);
+		res = (f) (fd, (char*)s + pos, n - pos);
 		switch (res) {
 		case -1:
 			if (errno == EINTR || errno == EAGAIN)

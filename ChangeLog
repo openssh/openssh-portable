@@ -1,3 +1,8 @@
+19991215
+ - Integrated patchs from Juergen Keil <jk@tools.de>
+   - Avoid void* pointer arithmatic
+   - Use LDFLAGS correctly
+
 19991214
  - OpenBSD CVS Changes
    - [canohost.c]
