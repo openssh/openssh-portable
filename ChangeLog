@@ -1,3 +1,15 @@
+20010125
+ - (djm) Sync bsd-* support files:
+   - deraadt@cvs.openbsd.org 2000/01/26 03:43:20
+     [rresvport.c bindresvport.c]
+     new bindresvport() semantics that itojun, shin, jean-luc and i have 
+     agreed on, which will be happy for the future. bindresvport_sa() for
+     sockaddr *, too.  docs later..
+   - deraadt@cvs.openbsd.org 2000/01/24 02:24:21
+     [bindresvport.c]
+     in bindresvport(), if sin is non-NULL, example sin->sin_family for 
+     the actual family being processed
+
 20010124
  - (bal) OpenBSD Resync
    - markus@cvs.openbsd.org 2001/01/23 10:45:10

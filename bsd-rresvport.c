@@ -38,7 +38,7 @@
 #ifndef HAVE_RRESVPORT_AF
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char *rcsid = "$OpenBSD: rresvport.c,v 1.4 1999/12/17 20:48:03 deraadt Exp $";
+static char *rcsid = "$OpenBSD: rresvport.c,v 1.5 2000/01/26 03:43:20 deraadt Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "includes.h"
@@ -94,7 +94,8 @@ rresvport_af(int *alport, sa_family_t af)
 	}
 
 	*portp = 0;
-	if (bindresvport_af(s, sa, af) == -1) {
+	sa->sa_family = af;
+	if (bindresvport_sa(s, sa) == -1) {
 		(void)close(s);
 		return (-1);
 	}

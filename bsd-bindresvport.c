@@ -1,3 +1,5 @@
+/* This file has be modified from the original OpenBSD source */
+
 /*
  * Sun RPC is a product of Sun Microsystems, Inc. and is provided for
  * unrestricted use provided that this legend is included on all tape
@@ -29,10 +31,10 @@
 
 #include "config.h"
 
-#ifndef HAVE_BINDRESVPORT_AF
+#ifndef HAVE_BINDRESVPORT_SA
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char *rcsid = "$OpenBSD: bindresvport.c,v 1.11 1999/12/17 19:22:08 deraadt Exp $";
+static char *rcsid = "$OpenBSD: bindresvport.c,v 1.13 2000/01/26 03:43:21 deraadt Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /*
@@ -51,12 +53,11 @@ static char *rcsid = "$OpenBSD: bindresvport.c,v 1.11 1999/12/17 19:22:08 deraad
  * Bind a socket to a privileged IP port
  */
 int
-bindresvport_af(sd, sa, af)
+bindresvport_sa(sd, sa)
 	int sd;
 	struct sockaddr *sa;
-	int af;
 {
-	int error;
+	int error, af;
 	struct sockaddr_storage myaddr;
 	struct sockaddr_in *sin;
 	struct sockaddr_in6 *sin6;
@@ -68,7 +69,14 @@ bindresvport_af(sd, sa, af)
 	if (sa == NULL) {
 		memset(&myaddr, 0, sizeof(myaddr));
 		sa = (struct sockaddr *)&myaddr;
-	}
+
+		if (getsockname(sd, sa, &salen) == -1)
+			return -1;	/* errno is correctly set */
+
+		af = sa->sa_family;
+		memset(&myaddr, 0, salen);
+	} else
+		af = sa->sa_family;
 
 	if (af == AF_INET) {
 		sin = (struct sockaddr_in *)sa;
@@ -95,7 +103,7 @@ bindresvport_af(sd, sa, af)
 		*portp = htons(port);
 		
 		error = bind(sd, sa, salen);
-		
+
 		/* Terminate on success */
 		if (error == 0)
 			break;
@@ -112,4 +120,4 @@ bindresvport_af(sd, sa, af)
 	return (error);
 }
 
-#endif /* HAVE_BINDRESVPORT_AF */
+#endif /* HAVE_BINDRESVPORT_SA */

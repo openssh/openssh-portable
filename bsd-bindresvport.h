@@ -3,8 +3,8 @@
 
 #include "config.h"
 
-#ifndef HAVE_BINDRESVPORT_AF
-int bindresvport_af(int sd, struct sockaddr *sa, int af);
-#endif /* !HAVE_BINDRESVPORT_AF */
+#ifndef HAVE_BINDRESVPORT_SA
+int bindresvport_sa(int sd, struct sockaddr *sa);
+#endif /* !HAVE_BINDRESVPORT_SA */
 
 #endif /* _BSD_BINDRESVPORT_H */
