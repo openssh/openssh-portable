@@ -45,7 +45,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: scp.c,v 1.13 1999/12/15 00:04:25 damien Exp $");
+RCSID("$Id: scp.c,v 1.14 1999/12/16 02:05:17 damien Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -974,7 +974,7 @@ run_err(const char *fmt,...)
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	$Id: scp.c,v 1.13 1999/12/15 00:04:25 damien Exp $
+ *	$Id: scp.c,v 1.14 1999/12/16 02:05:17 damien Exp $
  */
 
 char *
@@ -1078,7 +1078,7 @@ alarmtimer(int wait)
 }
 
 void
-updateprogressmeter(void)
+updateprogressmeter(int sig)
 {
 	int save_errno = errno;
 
