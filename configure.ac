@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.235 2005/01/18 01:05:18 dtucker Exp $
+# $Id: configure.ac,v 1.236 2005/02/01 23:44:00 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -877,9 +877,9 @@ AC_ARG_WITH(libedit,
 dnl    Checks for library functions. Please keep in alphabetical order
 AC_CHECK_FUNCS(\
 	arc4random __b64_ntop b64_ntop __b64_pton b64_pton bcopy \
-	bindresvport_sa clock closefrom dirfd fchmod fchown freeaddrinfo \
-	futimes getaddrinfo getcwd getgrouplist getnameinfo getopt \
-	getpeereid _getpty getrlimit getttyent glob inet_aton \
+	bindresvport_sa clock closefrom dirfd fchdir fchmod fchown \
+	freeaddrinfo futimes getaddrinfo getcwd getgrouplist getnameinfo \
+	getopt getpeereid _getpty getrlimit getttyent glob inet_aton \
 	inet_ntoa inet_ntop innetgr login_getcapbool md5_crypt memmove \
 	mkdtemp mmap ngetaddrinfo nsleep ogetaddrinfo openlog_r openpty \
 	pstat prctl readpassphrase realpath recvmsg rresvport_af sendmsg \
