@@ -46,14 +46,18 @@ void
 aix_usrinfo(struct passwd *pw)
 {
 	u_int i;
+	size_t len;
 	char *cp;
 
-	cp = xmalloc(16 + 2 * strlen(pw->pw_name));
-	i = sprintf(cp, "LOGNAME=%s%cNAME=%s%c", pw->pw_name, 0, 
-	    pw->pw_name, 0);
+	len = sizeof("LOGNAME= NAME= ") + (2 * strlen(pw->pw_name));
+	cp = xmalloc(len);
+
+	i = snprintf(cp, "LOGNAME=%s%cNAME=%s%c", pw->pw_name, '\0', 
+	    pw->pw_name, '\0', len);
 	if (usrinfo(SETUINFO, cp, i) == -1)
 		fatal("Couldn't set usrinfo: %s", strerror(errno));
 	debug3("AIX/UsrInfo: set len %d", i);
+
 	xfree(cp);
 }
 
@@ -64,8 +68,9 @@ aix_usrinfo(struct passwd *pw)
 void
 record_failed_login(const char *user, const char *ttyname)
 {
-	loginfailed(user,
-	    get_canonical_hostname(options.verify_reverse_mapping), ttyname);
+	char *hostname = get_canonical_hostname(options.verify_reverse_mapping);
+
+	loginfailed(user, hostname, ttyname);
 }
 # endif /* CUSTOM_FAILED_LOGIN */
 #endif /* _AIX */

@@ -21,7 +21,7 @@
  *
  */
 
-/* $Id: bsd-waitpid.h,v 1.2 2001/02/09 01:55:36 djm Exp $ */
+/* $Id: bsd-waitpid.h,v 1.3 2003/05/18 14:13:39 djm Exp $ */
 
 #ifndef _BSD_WAITPID_H
 #define _BSD_WAITPID_H
@@ -43,7 +43,7 @@
 #define WCOREDUMP(w) 	((_W_INT(w)) & WCOREFLAG)
 
 /* Prototype */
-pid_t waitpid(int pid, int *stat_loc, int options);
+pid_t waitpid(int, int *, int);
 
 #endif /* !HAVE_WAITPID */
 #endif /* _BSD_WAITPID_H */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1999-2000 Damien Miller.  All rights reserved.
+ * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,7 +25,7 @@
 #include "includes.h"
 #include "xmalloc.h"
 
-RCSID("$Id: bsd-misc.c,v 1.12 2003/03/18 18:21:41 tim Exp $");
+RCSID("$Id: bsd-misc.c,v 1.13 2003/05/18 14:13:39 djm Exp $");
 
 /*
  * NB. duplicate __progname in case it is an alias for argv[0]
@@ -41,21 +41,21 @@ char *get_progname(char *argv0)
 	char *p;
 
 	if (argv0 == NULL)
-		return "unknown";	/* XXX */
+		return ("unknown");	/* XXX */
 	p = strrchr(argv0, '/');
 	if (p == NULL)
 		p = argv0;
 	else
 		p++;
 
-	return xstrdup(p);
+	return (xstrdup(p));
 #endif
 }
 
 #ifndef HAVE_SETLOGIN
 int setlogin(const char *name)
 {
-	return(0);
+	return (0);
 }
 #endif /* !HAVE_SETLOGIN */
 
@@ -63,21 +63,21 @@ int setlogin(const char *name)
 int innetgr(const char *netgroup, const char *host, 
             const char *user, const char *domain)
 {
-	return(0);
+	return (0);
 }
 #endif /* HAVE_INNETGR */
 
 #if !defined(HAVE_SETEUID) && defined(HAVE_SETREUID)
 int seteuid(uid_t euid)
 {
-	return(setreuid(-1,euid));
+	return (setreuid(-1, euid));
 }
 #endif /* !defined(HAVE_SETEUID) && defined(HAVE_SETREUID) */
 
 #if !defined(HAVE_SETEGID) && defined(HAVE_SETRESGID)
 int setegid(uid_t egid)
 {
-	return(setresgid(-1,egid,-1));
+	return(setresgid(-1, egid, -1));
 }
 #endif /* !defined(HAVE_SETEGID) && defined(HAVE_SETRESGID) */
 
@@ -88,9 +88,9 @@ const char *strerror(int e)
 	extern char *sys_errlist[];
 	
 	if ((e >= 0) && (e < sys_nerr))
-		return(sys_errlist[e]);
-	else
-		return("unlisted error");
+		return (sys_errlist[e]);
+
+	return ("unlisted error");
 }
 #endif
 
@@ -102,24 +102,25 @@ int utimes(char *filename, struct timeval *tvp)
 	ub.actime = tvp[0].tv_sec;
 	ub.modtime = tvp[1].tv_sec;
 	
-	return(utime(filename, &ub));
+	return (utime(filename, &ub));
 }
 #endif 
 
 #ifndef HAVE_TRUNCATE
-int truncate (const char *path, off_t length)
+int truncate(const char *path, off_t length)
 {
 	int fd, ret, saverrno;
 
 	fd = open(path, O_WRONLY);
 	if (fd < 0)
-		return -1;
+		return (-1);
 
 	ret = ftruncate(fd, length);
 	saverrno = errno;
-	(void) close (fd);
+	close(fd);
 	if (ret == -1)
 		errno = saverrno;
+
 	return(ret);
 }
 #endif /* HAVE_TRUNCATE */
@@ -131,7 +132,7 @@ int truncate (const char *path, off_t length)
 int
 setgroups(size_t size, const gid_t *list)
 {
-	return 0;
+	return (0);
 }
 #endif 
 

@@ -38,6 +38,7 @@ static char rcsid[] = "$OpenBSD: vis.c,v 1.11 2003/05/14 05:16:43 pjanzen Exp $"
 #endif /* LIBC_SCCS and not lint */
 
 #include <ctype.h>
+#include <string.h>
 
 #include "vis.h"
 

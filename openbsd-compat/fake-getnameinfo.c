@@ -12,7 +12,7 @@
 #include "includes.h"
 #include "ssh.h"
 
-RCSID("$Id: fake-getnameinfo.c,v 1.2 2001/02/09 01:55:36 djm Exp $");
+RCSID("$Id: fake-getnameinfo.c,v 1.3 2003/05/18 14:13:39 djm Exp $");
 
 #ifndef HAVE_GETNAMEINFO
 int getnameinfo(const struct sockaddr *sa, size_t salen, char *host, 
@@ -22,34 +22,31 @@ int getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 	struct hostent *hp;
 	char tmpserv[16];
 
-	if (serv) {
+	if (serv != NULL) {
 		snprintf(tmpserv, sizeof(tmpserv), "%d", ntohs(sin->sin_port));
-		if (strlen(tmpserv) >= servlen)
-			return EAI_MEMORY;
-		else
-			strcpy(serv, tmpserv);
+		if (strlcpy(serv, tmpserv, servlen) >= servlen)
+			return (EAI_MEMORY);
 	}
 
-	if (host) {
+	if (host != NULL) {
 		if (flags & NI_NUMERICHOST) {
-			if (strlen(inet_ntoa(sin->sin_addr)) >= hostlen)
-				return EAI_MEMORY;
-
-			strcpy(host, inet_ntoa(sin->sin_addr));
-			return 0;
+			if (strlcpy(host, inet_ntoa(sin->sin_addr),
+			    hostlen) >= hostlen)
+				return (EAI_MEMORY);
+			else
+				return (0);
 		} else {
 			hp = gethostbyaddr((char *)&sin->sin_addr, 
-				sizeof(struct in_addr), AF_INET);
+			    sizeof(struct in_addr), AF_INET);
 			if (hp == NULL)
-				return EAI_NODATA;
+				return (EAI_NODATA);
 			
-			if (strlen(hp->h_name) >= hostlen)
-				return EAI_MEMORY;
-
-			strcpy(host, hp->h_name);
-			return 0;
+			if (strlcpy(host, hp->h_name, hostlen) >= hostlen)
+				return (EAI_MEMORY);
+			else
+				return (0);
 		}
 	}
-	return 0;
+	return (0);
 }
 #endif /* !HAVE_GETNAMEINFO */

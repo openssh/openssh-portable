@@ -10,47 +10,48 @@
  */
 
 #include "includes.h"
+#include "xmalloc.h"
 #include "ssh.h"
 
-RCSID("$Id: fake-getaddrinfo.c,v 1.6 2003/05/14 11:48:51 dtucker Exp $");
+RCSID("$Id: fake-getaddrinfo.c,v 1.7 2003/05/18 14:13:39 djm Exp $");
 
 #ifndef HAVE_GAI_STRERROR
-char *gai_strerror(int ecode)
+char *
+gai_strerror(int err)
 {
-	switch (ecode) {
-		case EAI_NODATA:
-			return "no address associated with hostname.";
-		case EAI_MEMORY:
-			return "memory allocation failure.";
-		default:
-			return "unknown error.";
+	switch (err) {
+	case EAI_NODATA:
+		return ("no address associated with name");
+	case EAI_MEMORY:
+		return ("memory allocation failure.");
+	default:
+		return ("unknown/invalid error.");
 	}
 }    
 #endif /* !HAVE_GAI_STRERROR */
 
 #ifndef HAVE_FREEADDRINFO
-void freeaddrinfo(struct addrinfo *ai)
+void
+freeaddrinfo(struct addrinfo *ai)
 {
 	struct addrinfo *next;
 
-	do {
-		next = ai->ai_next;
+	for(;ai != NULL; next = ai->ai_next) {
 		free(ai);
-	} while (NULL != (ai = next));
+		ai = next;
+	}
 }
 #endif /* !HAVE_FREEADDRINFO */
 
 #ifndef HAVE_GETADDRINFO
-static struct addrinfo *malloc_ai(int port, u_long addr,
-		const struct addrinfo *hints)
+static struct
+addrinfo *malloc_ai(int port, u_long addr, const struct addrinfo *hints)
 {
 	struct addrinfo *ai;
 
-	ai = malloc(sizeof(struct addrinfo) + sizeof(struct sockaddr_in));
-	if (ai == NULL)
-		return(NULL);
+	ai = xmalloc(sizeof(*ai) + sizeof(struct sockaddr_in));
 	
-	memset(ai, 0, sizeof(struct addrinfo) + sizeof(struct sockaddr_in));
+	memset(ai, '\0', sizeof(*ai) + sizeof(struct sockaddr_in));
 	
 	ai->ai_addr = (struct sockaddr *)(ai + 1);
 	/* XXX -- ssh doesn't use sa_len */
@@ -69,13 +70,13 @@ static struct addrinfo *malloc_ai(int port, u_long addr,
 	if (hints->ai_protocol)
 		ai->ai_protocol = hints->ai_protocol;
 
-	return(ai);
+	return (ai);
 }
 
-int getaddrinfo(const char *hostname, const char *servname, 
-                const struct addrinfo *hints, struct addrinfo **res)
+int
+getaddrinfo(const char *hostname, const char *servname, 
+    const struct addrinfo *hints, struct addrinfo **res)
 {
-	struct addrinfo *cur, *prev = NULL;
 	struct hostent *hp;
 	struct servent *sp;
 	struct in_addr in;
@@ -100,37 +101,29 @@ int getaddrinfo(const char *hostname, const char *servname,
 		addr = htonl(0x00000000);
 		if (hostname && inet_aton(hostname, &in) != 0)
 			addr = in.s_addr;
-		if (NULL != (*res = malloc_ai(port, addr, hints)))
-			return 0;
-		else
-			return EAI_MEMORY;
+		*res = malloc_ai(port, addr, hints);
+		return (0);
 	}
 		
 	if (!hostname) {
-		if (NULL != (*res = malloc_ai(port, htonl(0x7f000001), hints)))
-			return 0;
-		else
-			return EAI_MEMORY;
+		*res = malloc_ai(port, htonl(0x7f000001), hints);
+		return (0);
 	}
 	
 	if (inet_aton(hostname, &in)) {
-		if (NULL != (*res = malloc_ai(port, in.s_addr, hints)))
-			return 0;
-		else
-			return EAI_MEMORY;
+		*res = malloc_ai(port, in.s_addr, hints);
+		return (0);
 	}
 	
 	hp = gethostbyname(hostname);
 	if (hp && hp->h_name && hp->h_name[0] && hp->h_addr_list[0]) {
+		struct addrinfo *cur, *prev;
+
+		cur = prev = NULL;
 		for (i = 0; hp->h_addr_list[i]; i++) {
-			cur = malloc_ai(port,
-			    ((struct in_addr *)hp->h_addr_list[i])->s_addr, hints);
-			if (cur == NULL) {
-				if (*res)
-					freeaddrinfo(*res);
-				return EAI_MEMORY;
-			}
-			
+			struct in_addr *in = (struct in_addr *)hp->h_addr_list[i];
+
+			cur = malloc_ai(port, in->s_addr, hints);
 			if (prev)
 				prev->ai_next = cur;
 			else
@@ -138,9 +131,9 @@ int getaddrinfo(const char *hostname, const char *servname,
 
 			prev = cur;
 		}
-		return 0;
+		return (0);
 	}
 	
-	return EAI_NODATA;
+	return (EAI_NODATA);
 }
 #endif /* !HAVE_GETADDRINFO */

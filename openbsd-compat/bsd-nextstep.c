@@ -1,3 +1,5 @@
+/* XXX - author */
+
 /*
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -22,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$Id: bsd-nextstep.c,v 1.4 2001/03/26 05:35:34 mouring Exp $");
+RCSID("$Id: bsd-nextstep.c,v 1.5 2003/05/18 14:13:39 djm Exp $");
 
 #ifdef HAVE_NEXT
 #include <errno.h>
@@ -40,7 +42,7 @@ posix_wait(int *status)
 	if (status)
 		*status = (int) statusp.w_status;
 
-	return wait_pid;
+	return (wait_pid);
 }
 
 int
