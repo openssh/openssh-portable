@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: sshd.8.in,v 1.1 1999/12/26 22:23:59 damien Exp $
+.\" $Id: sshd.8.in,v 1.2 2000/01/14 04:45:52 damien Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSHD 8
@@ -19,7 +19,7 @@
 .Nd secure shell daemon
 .Sh SYNOPSIS
 .Nm sshd
-.Op Fl diqQ
+.Op Fl diqQ46
 .Op Fl b Ar bits
 .Op Fl f Ar config_file
 .Op Fl g Ar login_grace_time
@@ -173,6 +173,14 @@ When this options is specified
 assumes the client has sent the given version string
 and skips the
 Protocol Version Identification Exchange.
+.It Fl 4
+Forces
+.Nm
+to use IPv4 addresses only.
+.It Fl 6
+Forces
+.Nm
+to use IPv6 addresses only.
 .El
 .Sh CONFIGURATION FILE
 .Nm
@@ -320,6 +328,10 @@ Specifies what local address
 .Nm
 should listen on.
 The default is to listen to all local addresses.
+Multiple options of this type are permitted.
+Additionally, the
+.Cm Ports
+options must precede this option.
 .It Cm LoginGraceTime
 The server disconnects after this time if the user has not
 successfully logged in.  If the value is 0, there is no time limit.
@@ -365,6 +377,7 @@ normally not allowed).
 Specifies the port number that
 .Nm
 listens on.  The default is 22.
+Multiple options of this type are permitted.
 .It Cm PrintMotd
 Specifies whether
 .Nm

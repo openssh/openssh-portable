@@ -19,7 +19,6 @@ CC=@CC@
 PATHS=-DETCDIR=\"$(sysconfdir)\" -DSSH_PROGRAM=\"$(SSH_PROGRAM)\" -DSSH_ASKPASS_DEFAULT=\"$(ASKPASS_PROGRAM)\"
 CFLAGS=@CFLAGS@ $(PATHS) @DEFS@
 EXTRA_TARGETS=@GNOME_ASKPASS@
-TARGETS=libssh.a ssh sshd ssh-add ssh-keygen ssh-agent scp $(EXTRA_TARGETS)
 LIBS=@LIBS@
 AR=@AR@
 RANLIB=@RANLIB@
@@ -30,34 +29,19 @@ LDFLAGS=-L. @LDFLAGS@
 GNOME_CFLAGS=`gnome-config --cflags gnome gnomeui`
 GNOME_LIBS=`gnome-config --libs gnome gnomeui`
 
-OBJS= atomicio.o authfd.o authfile.o auth-krb4.o auth-passwd.o auth-pam.o \
-  auth-rhosts.o auth-rh-rsa.o auth-rsa.o auth-skey.o bsd-daemon.o \
-  bsd-login.o bsd-misc.o bsd-mktemp.o bsd-snprintf.o bsd-strlcat.o \
-  bsd-strlcpy.o bufaux.o buffer.o canohost.o channels.o cipher.o \
-  clientloop.o compress.o crc32.o deattack.o hostfile.o \
-  log-client.o login.o log-server.o match.o md5crypt.o mpaux.o \
-  packet.o pty.o radix.o readconf.o readpass.o rsa.o servconf.o \
-  serverloop.o sshconnect.o tildexpand.o ttymodes.o uidswap.o \
-  xmalloc.o 
+TARGETS=ssh sshd ssh-add ssh-keygen ssh-agent scp $(EXTRA_TARGETS)
 
-LIBOBJS= atomicio.o authfd.o authfile.o bsd-daemon.o bsd-misc.o \
-  bsd-mktemp.o bsd-snprintf.o bsd-strlcat.o bsd-strlcpy.o bufaux.o \
-  buffer.o canohost.o channels.o cipher.o compat.o compress.o crc32.o \
-  deattack.o fingerprint.o hostfile.o log.o match.o mpaux.o nchan.o \
-  packet.o radix.o readpass.o rsa.o tildexpand.o ttymodes.o uidswap.o \
-  xmalloc.o 
+LIBOBJS= atomicio.o authfd.o authfile.o bsd-bindresvport.o bsd-daemon.o bsd-misc.o bsd-mktemp.o bsd-rresvport.o bsd-snprintf.o bsd-strlcat.o bsd-strlcpy.o bufaux.o buffer.o canohost.o channels.o cipher.o compat.o compress.o crc32.o deattack.o fake-getaddrinfo.o fake-getnameinfo.o fingerprint.o hostfile.o log.o match.o mpaux.o nchan.o packet.o radix.o readpass.o rsa.o tildexpand.o ttymodes.o uidswap.o xmalloc.o 
 
 SSHOBJS= ssh.o sshconnect.o log-client.o readconf.o clientloop.o
 
-SSHDOBJS= sshd.o auth-rhosts.o auth-krb4.o auth-pam.o auth-passwd.o \
-  auth-rsa.o auth-rh-rsa.o pty.o log-server.o login.o servconf.o \
-  serverloop.o bsd-login.o md5crypt.o
+SSHDOBJS= sshd.o auth-rhosts.o auth-krb4.o auth-pam.o auth-passwd.o auth-rsa.o auth-rh-rsa.o pty.o log-server.o login.o servconf.o serverloop.o bsd-login.o md5crypt.o
 
 MANPAGES=scp.1 ssh-add.1 ssh-agent.1 ssh-keygen.1 ssh.1 sshd.8
 
 CONFIGFILES=sshd_config ssh_config
 
-all: $(OBJS) $(TARGETS) $(MANPAGES) $(CONFIGFILES)
+all: $(TARGETS) $(MANPAGES) $(CONFIGFILES)
 
 $(OBJS): config.h
 
@@ -67,30 +51,26 @@ libssh.a: $(LIBOBJS)
 	$(AR) rv $@ $(LIBOBJS)
 	$(RANLIB) $@
 
-ssh: $(SSHOBJS) libssh.a
+ssh: libssh.a $(SSHOBJS)
 	$(CC) -o $@ $(SSHOBJS) $(LDFLAGS) -lssh $(LIBS)
 
-sshd:	$(SSHDOBJS) libssh.a
+sshd: libssh.a	$(SSHDOBJS)
 	$(CC) -o $@ $(SSHDOBJS) $(LDFLAGS) -lssh $(LIBS)
 
-scp:	scp.o libssh.a
+scp: libssh.a scp.o
 	$(CC) -o $@ scp.o $(LDFLAGS) -lssh $(LIBS) 
 
-ssh-add: ssh-add.o log-client.o libssh.a
+ssh-add: libssh.a ssh-add.o log-client.o
 	$(CC) -o $@ ssh-add.o log-client.o $(LDFLAGS) -lssh $(LIBS) 
 
-ssh-agent: ssh-agent.o log-client.o libssh.a
+ssh-agent: libssh.a ssh-agent.o log-client.o
 	$(CC) -o $@ ssh-agent.o log-client.o $(LDFLAGS) -lssh $(LIBS) 
 
-ssh-keygen: ssh-keygen.o log-client.o libssh.a
+ssh-keygen: libssh.a ssh-keygen.o log-client.o
 	$(CC) -o $@ ssh-keygen.o log-client.o $(LDFLAGS) -lssh $(LIBS) 
 
 gnome-ssh-askpass: gnome-ssh-askpass.c
 	$(CC) $(CFLAGS) $(GNOME_CFLAGS) -o $@ gnome-ssh-askpass.c $(GNOME_LIBS)
-
-clean:
-	rm -f *.o $(TARGETS) config.status config.cache config.log core \
-		*.1 *.8 sshd_config ssh_config
 
 scp.1: scp.1.in
 	$(PERL) $(FIXPATHS) -Dsysconfdir=${sysconfdir} $(srcdir)/scp.1.in
@@ -115,6 +95,18 @@ sshd_config: sshd_config.in
 
 ssh_config: ssh_config.in
 	$(PERL) $(FIXPATHS) -Dsysconfdir=${sysconfdir} ssh_config.in
+
+clean:
+	rm -f *.o *.a $(TARGETS) config.status config.cache config.log 
+	rm -f core *.1 *.8 sshd_config ssh_config
+
+distclean: clean
+	rm -f Makefile config.h core *~
+
+mrproper: distclean
+
+veryclean: distclean
+	rm -f configure config.h.in
 
 install: $(TARGETS)
 	$(INSTALL) -d $(bindir)
@@ -179,12 +171,4 @@ uninstall:
 	-rm -f $(mandir)/man1/slogin.1
 	-rm -f ${ASKPASS_PROGRAM}
 	-rmdir $(libexecdir)/ssh ;
-
-distclean: clean
-	rm -f Makefile config.h core *~
-
-mrproper: distclean
-
-veryclean: distclean
-	rm -f configure config.h.in
 

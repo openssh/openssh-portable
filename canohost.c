@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: canohost.c,v 1.6 1999/12/18 09:57:40 damien Exp $");
+RCSID("$Id: canohost.c,v 1.7 2000/01/14 04:45:48 damien Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -28,10 +28,12 @@ RCSID("$Id: canohost.c,v 1.6 1999/12/18 09:57:40 damien Exp $");
 char *
 get_remote_hostname(int socket)
 {
-	struct sockaddr_in from;
-	int fromlen, i;
-	struct hostent *hp;
+	struct sockaddr_storage from;
+	int i;
+	socklen_t fromlen;
+	struct addrinfo hints, *ai, *aitop;
 	char name[MAXHOSTNAMELEN];
+	char ntop[NI_MAXHOST], ntop2[NI_MAXHOST];
 
 	/* Get IP address of client. */
 	fromlen = sizeof(from);
@@ -40,20 +42,15 @@ get_remote_hostname(int socket)
 		debug("getpeername failed: %.100s", strerror(errno));
 		fatal_cleanup();
 	}
-	/* Map the IP address to a host name. */
-	hp = gethostbyaddr((char *) &from.sin_addr, sizeof(struct in_addr),
-			   from.sin_family);
-	if (hp) {
-		/* Got host name, find canonic host name. */
-		if (strchr(hp->h_name, '.') != 0)
-			strlcpy(name, hp->h_name, sizeof(name));
-		else if (hp->h_aliases != 0
-			 && hp->h_aliases[0] != 0
-			 && strchr(hp->h_aliases[0], '.') != 0)
-			strlcpy(name, hp->h_aliases[0], sizeof(name));
-		else
-			strlcpy(name, hp->h_name, sizeof(name));
+	if (getnameinfo((struct sockaddr *)&from, fromlen, ntop, sizeof(ntop),
+	     NULL, 0, NI_NUMERICHOST) != 0)
+		fatal("get_remote_hostname: getnameinfo NI_NUMERICHOST failed");
 
+	/* Map the IP address to a host name. */
+	if (getnameinfo((struct sockaddr *)&from, fromlen, name, sizeof(name),
+	     NULL, 0, NI_NAMEREQD) == 0) {
+		/* Got host name. */
+		name[sizeof(name) - 1] = '\0';
 		/*
 		 * Convert it to all lowercase (which is expected by the rest
 		 * of this software).
@@ -71,32 +68,34 @@ get_remote_hostname(int socket)
 		 * fooled if the intruder has access to the name server of
 		 * the domain).
 		 */
-		hp = gethostbyname(name);
-		if (!hp) {
-			log("reverse mapping checking gethostbyname for %.700s failed - POSSIBLE BREAKIN ATTEMPT!", name);
-			strlcpy(name, inet_ntoa(from.sin_addr), sizeof name);
+		memset(&hints, 0, sizeof(hints));
+		hints.ai_family = from.ss_family;
+		hints.ai_socktype = SOCK_STREAM;
+		if (getaddrinfo(name, NULL, &hints, &aitop) != 0) {
+			log("reverse mapping checking getaddrinfo for %.700s failed - POSSIBLE BREAKIN ATTEMPT!", name);
+			strlcpy(name, ntop, sizeof name);
 			goto check_ip_options;
 		}
 		/* Look for the address from the list of addresses. */
-		for (i = 0; hp->h_addr_list[i]; i++)
-			if (memcmp(hp->h_addr_list[i], &from.sin_addr, sizeof(from.sin_addr))
-			    == 0)
-				break;
-		/*
-		 * If we reached the end of the list, the address was not
-		 * there.
-		 */
-		if (!hp->h_addr_list[i]) {
+		for (ai = aitop; ai; ai = ai->ai_next) {
+			if (getnameinfo(ai->ai_addr, ai->ai_addrlen, ntop2,
+			    sizeof(ntop2), NULL, 0, NI_NUMERICHOST) == 0 &&
+			    (strcmp(ntop, ntop2) == 0))
+					break;
+		}
+		freeaddrinfo(aitop);
+		/* If we reached the end of the list, the address was not there. */
+		if (!ai) {
 			/* Address not found for the host name. */
 			log("Address %.100s maps to %.600s, but this does not map back to the address - POSSIBLE BREAKIN ATTEMPT!",
-			    inet_ntoa(from.sin_addr), name);
-			strlcpy(name, inet_ntoa(from.sin_addr), sizeof name);
+			    ntop, name);
+			strlcpy(name, ntop, sizeof name);
 			goto check_ip_options;
 		}
 		/* Address was found for the host name.  We accept the host name. */
 	} else {
 		/* Host name not found.  Use ascii representation of the address. */
-		strlcpy(name, inet_ntoa(from.sin_addr), sizeof name);
+		strlcpy(name, ntop, sizeof name);
 		log("Could not reverse map address %.100s.", name);
 	}
 
@@ -113,10 +112,12 @@ check_ip_options:
 	 * rest of the interaction and could still bypass security.  So we
 	 * exit here if we detect any IP options.
 	 */
-	{
+	/* IP options -- IPv4 only */
+	if (from.ss_family == AF_INET) {
 		unsigned char options[200], *ucp;
 		char text[1024], *cp;
-		int option_size, ipproto;
+		socklen_t option_size;
+		int ipproto;
 		struct protoent *ip;
 
 		if ((ip = getprotobyname("ip")) != NULL)
@@ -125,45 +126,19 @@ check_ip_options:
 			ipproto = IPPROTO_IP;
 		option_size = sizeof(options);
 		if (getsockopt(0, ipproto, IP_OPTIONS, (char *) options,
-			       &option_size) >= 0 && option_size != 0) {
+		    &option_size) >= 0 && option_size != 0) {
 			cp = text;
 			/* Note: "text" buffer must be at least 3x as big as options. */
 			for (ucp = options; option_size > 0; ucp++, option_size--, cp += 3)
 				sprintf(cp, " %2.2x", *ucp);
 			log("Connection from %.100s with IP options:%.800s",
-			    inet_ntoa(from.sin_addr), text);
+			    ntop, text);
 			packet_disconnect("Connection from %.100s with IP options:%.800s",
-					  inet_ntoa(from.sin_addr), text);
+					  ntop, text);
 		}
 	}
 
 	return xstrdup(name);
-}
-
-static char *canonical_host_name = NULL;
-static char *canonical_host_ip = NULL;
-
-/* Returns 1 if remote host is connected via socket, 0 if not. */
-
-int
-peer_connection_is_on_socket()
-{
-	struct sockaddr_in from;
-	int fromlen;
-	int in = packet_get_connection_in();
-	int out = packet_get_connection_out();
-
-	/* filedescriptors in and out are the same, so it's a socket */
-	if (in == out)
-		return 1;
-	fromlen = sizeof(from);
-	memset(&from, 0, sizeof(from));
-	if (getpeername(in, (struct sockaddr *) & from, &fromlen) < 0)
-		return 0;
-	if (from.sin_family != AF_INET)
-		return 0;
-
-	return 1;
 }
 
 /*
@@ -175,12 +150,14 @@ peer_connection_is_on_socket()
 const char *
 get_canonical_hostname()
 {
+	static char *canonical_host_name = NULL;
+
 	/* Check if we have previously retrieved this same name. */
 	if (canonical_host_name != NULL)
 		return canonical_host_name;
 
 	/* Get the real hostname if socket; otherwise return UNKNOWN. */
-	if (peer_connection_is_on_socket())
+	if (packet_connection_is_on_socket())
 		canonical_host_name = get_remote_hostname(packet_get_connection_in());
 	else
 		canonical_host_name = xstrdup("UNKNOWN");
@@ -190,21 +167,24 @@ get_canonical_hostname()
 
 /*
  * Returns the IP-address of the remote host as a string.  The returned
- * string need not be freed.
+ * string must not be freed.
  */
 
 const char *
 get_remote_ipaddr()
 {
-	struct sockaddr_in from;
-	int fromlen, socket;
+	static char *canonical_host_ip = NULL;
+	struct sockaddr_storage from;
+	socklen_t fromlen;
+	int socket;
+	char ntop[NI_MAXHOST];
 
 	/* Check whether we have chached the name. */
 	if (canonical_host_ip != NULL)
 		return canonical_host_ip;
 
 	/* If not a socket, return UNKNOWN. */
-	if (!peer_connection_is_on_socket()) {
+	if (!packet_connection_is_on_socket()) {
 		canonical_host_ip = xstrdup("UNKNOWN");
 		return canonical_host_ip;
 	}
@@ -219,48 +199,76 @@ get_remote_ipaddr()
 		fatal_cleanup();
 	}
 	/* Get the IP address in ascii. */
-	canonical_host_ip = xstrdup(inet_ntoa(from.sin_addr));
+	if (getnameinfo((struct sockaddr *)&from, fromlen, ntop, sizeof(ntop),
+	     NULL, 0, NI_NUMERICHOST) != 0)
+		fatal("get_remote_hostname: getnameinfo NI_NUMERICHOST failed");
+
+	canonical_host_ip = xstrdup(ntop);
 
 	/* Return ip address string. */
 	return canonical_host_ip;
 }
 
-/* Returns the port of the peer of the socket. */
+/* Returns the local/remote port for the socket. */
 
-int 
-get_peer_port(int sock)
+int
+get_sock_port(int sock, int local)
 {
-	struct sockaddr_in from;
-	int fromlen;
+	struct sockaddr_storage from;
+	socklen_t fromlen;
+	char strport[NI_MAXSERV];
 
 	/* Get IP address of client. */
 	fromlen = sizeof(from);
 	memset(&from, 0, sizeof(from));
-	if (getpeername(sock, (struct sockaddr *) & from, &fromlen) < 0) {
-		debug("getpeername failed: %.100s", strerror(errno));
-		fatal_cleanup();
+	if (local) {
+		if (getsockname(sock, (struct sockaddr *)&from, &fromlen) < 0) {
+			error("getsockname failed: %.100s", strerror(errno));
+			return 0;
+		}
+	} else {
+		if (getpeername(sock, (struct sockaddr *) & from, &fromlen) < 0) {
+			debug("getpeername failed: %.100s", strerror(errno));
+			fatal_cleanup();
+		}
 	}
 	/* Return port number. */
-	return ntohs(from.sin_port);
+	if (getnameinfo((struct sockaddr *)&from, fromlen, NULL, 0,
+	     strport, sizeof(strport), NI_NUMERICSERV) != 0)
+		fatal("get_sock_port: getnameinfo NI_NUMERICSERV failed");
+	return atoi(strport);
 }
 
-/* Returns the port number of the remote host.  */
+/* Returns remote/local port number for the current connection. */
 
 int 
-get_remote_port()
+get_port(int local)
 {
-	int socket;
-
 	/*
 	 * If the connection is not a socket, return 65535.  This is
 	 * intentionally chosen to be an unprivileged port number.
 	 */
-	if (!peer_connection_is_on_socket())
+	if (!packet_connection_is_on_socket())
 		return 65535;
 
-	/* Get client socket. */
-	socket = packet_get_connection_in();
+	/* Get socket and return the port number. */
+	return get_sock_port(packet_get_connection_in(), local);
+}
 
-	/* Get and return the peer port number. */
-	return get_peer_port(socket);
+int 
+get_peer_port(int sock)
+{
+	return get_sock_port(sock, 0);
+}
+
+int 
+get_remote_port()
+{
+	return get_port(0);
+}
+
+int
+get_local_port()
+{
+	return get_port(1);
 }

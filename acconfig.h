@@ -40,31 +40,17 @@
  * message at run-time. */
 #undef RSAREF
 
-/* Define is utmp.h has a ut_host field */
+/* struct utmp and struct utmpx fields */
 #undef HAVE_HOST_IN_UTMP
-
-/* Define is utmpx.h has a ut_host field */
 #undef HAVE_HOST_IN_UTMPX
-
-/* Define is utmp.h has a ut_addr field */
 #undef HAVE_ADDR_IN_UTMP
-
-/* Define is utmpx.h has a ut_addr field */
 #undef HAVE_ADDR_IN_UTMPX
-
-/* Define is utmpx.h has a syslen field */
+#undef HAVE_ADDR_V6_IN_UTMP
+#undef HAVE_ADDR_V6_IN_UTMPX
 #undef HAVE_SYSLEN_IN_UTMPX
-
-/* Define is utmp.h has a ut_pid field */
 #undef HAVE_PID_IN_UTMP
-
-/* Define is utmp.h has a ut_type field */
 #undef HAVE_TYPE_IN_UTMP
-
-/* Define is utmp.h has a ut_tv field */
 #undef HAVE_TV_IN_UTMP
-
-/* Define is utmp.h has a ut_id field */
 #undef HAVE_ID_IN_UTMP
 
 /* Define if you want to use utmpx */
@@ -125,6 +111,14 @@
 #undef HAVE_UINTXX_T
 #undef HAVE_SOCKLEN_T
 #undef HAVE_SIZE_T
+#undef HAVE_STRUCT_SOCKADDR_STORAGE
+#undef HAVE_STRUCT_ADDRINFO
+#undef HAVE_STRUCT_IN6_ADDR
+#undef HAVE_STRUCT_SOCKADDR_IN6
+
+/* Fields in struct sockaddr_storage */
+#undef HAVE_SS_FAMILY_IN_SS
+#undef HAVE___SS_FAMILY_IN_SS
 
 /* Define if you have /dev/ptmx */
 #undef HAVE_DEV_PTMX

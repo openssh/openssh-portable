@@ -18,7 +18,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: login.c,v 1.17 2000/01/02 00:45:33 damien Exp $");
+RCSID("$Id: login.c,v 1.18 2000/01/14 04:45:50 damien Exp $");
 
 #if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
 # include <utmpx.h>
@@ -137,7 +137,7 @@ get_last_login_time(uid_t uid, const char *logname,
 
 void 
 record_login(int pid, const char *ttyname, const char *user, uid_t uid,
-	     const char *host, struct sockaddr_in * addr)
+	     const char *host, struct sockaddr * addr)
 {
 #if defined(_PATH_LASTLOG) && !defined(DISABLE_LASTLOG)
 	struct lastlog ll;
@@ -173,7 +173,22 @@ record_login(int pid, const char *ttyname, const char *user, uid_t uid,
 	strncpy(u.ut_host, host, sizeof(u.ut_host));
 #endif
 #if defined(HAVE_ADDR_IN_UTMP)
-	u.ut_addr = addr->sin_addr.s_addr;
+	switch (addr->sa_family) {
+		case AF_INET: {
+			struct sockaddr_in *in = (struct sockaddr_in*)addr;
+			memcpy(&(u.ut_addr), &(in->sin_addr), sizeof(&(in->sin_addr)));
+			break;
+		}
+#if defined(HAVE_ADDR_V6_IN_UTMP)
+		case AF_INET6: {
+			struct sockaddr_in6 *in6 = (struct sockaddr_in6*)addr;
+			memcpy(u.ut_addr_v6, &(in6->sin6_addr), sizeof(&(in6->sin6_addr)));
+			break;
+		}
+#endif
+		default:
+			break;
+	}
 #endif
 
 #if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
@@ -192,9 +207,24 @@ record_login(int pid, const char *ttyname, const char *user, uid_t uid,
 	strncpy(utx.ut_host, host, sizeof(utx.ut_host));
 #  endif /* HAVE_SYSLEN_IN_UTMPX */
 # endif
-# if defined(HAVE_ADDR_IN_UTMPX)
-	utx.ut_addr = addr->sin_addr.s_addr;
-# endif
+#if defined(HAVE_ADDR_IN_UTMPX)
+	switch (addr->sa_family) {
+		case AF_INET: {
+			struct sockaddr_in *in = (struct sockaddr_in*)addr;
+			memcpy(&(utx.ut_addr), &(in->sin_addr), sizeof(&(in->sin_addr)));
+			break;
+		}
+#if defined(HAVE_ADDR_V6_IN_UTMPX)
+		case AF_INET6: {
+			struct sockaddr_in6 *in6 = (struct sockaddr_in6*)addr;
+			memcpy(utx.ut_addr_v6, &(in6->sin6_addr), sizeof(&(in6->sin6_addr)));
+			break;
+		}
+#endif
+		default:
+			break;
+	}
+#endif
 #endif /* defined(HAVE_UTMPX_H) && defined(USE_UTMPX) */
 
 /*#if defined(HAVE_UTMPX_H) && defined(USE_UTMPX) && !defined(HAVE_LOGIN)*/

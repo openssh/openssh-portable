@@ -16,7 +16,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: channels.c,v 1.14 1999/12/27 12:54:55 damien Exp $");
+RCSID("$Id: channels.c,v 1.15 2000/01/14 04:45:48 damien Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -374,7 +374,8 @@ void
 channel_after_select(fd_set * readset, fd_set * writeset)
 {
 	struct sockaddr addr;
-	int addrlen, newsock, i, newch, len;
+	int newsock, i, newch, len;
+	socklen_t addrlen;
 	Channel *ch;
 	char buf[16384], *remote_hostname;
 
@@ -412,7 +413,7 @@ channel_after_select(fd_set * readset, fd_set * writeset)
 			 * forwarded TCP/IP port.
 			 */
 			if (FD_ISSET(ch->sock, readset)) {
-				debug("Connection to port %d forwarding to %.100s:%d requested.",
+				debug("Connection to port %d forwarding to %.100s port %d requested.",
 				      ch->listening_port, ch->path, ch->host_port);
 				addrlen = sizeof(addr);
 				newsock = accept(ch->sock, &addr, &addrlen);
@@ -421,7 +422,7 @@ channel_after_select(fd_set * readset, fd_set * writeset)
 					break;
 				}
 				remote_hostname = get_remote_hostname(newsock);
-				snprintf(buf, sizeof buf, "listen port %d:%.100s:%d, connect from %.200s:%d",
+				snprintf(buf, sizeof buf, "listen port %d for %.100s port %d, connect from %.200s port %d",
 					 ch->listening_port, ch->path, ch->host_port,
 				remote_hostname, get_peer_port(newsock));
 				xfree(remote_hostname);
@@ -532,10 +533,19 @@ channel_output_poll()
 
 	for (i = 0; i < channels_alloc; i++) {
 		ch = &channels[i];
+
 		/* We are only interested in channels that can have buffered incoming data. */
-		if (ch->type != SSH_CHANNEL_OPEN &&
-		    ch->type != SSH_CHANNEL_INPUT_DRAINING)
-			continue;
+		if (compat13) {
+			if (ch->type != SSH_CHANNEL_OPEN &&
+			    ch->type != SSH_CHANNEL_INPUT_DRAINING)
+				continue;
+		} else {
+			if (ch->type != SSH_CHANNEL_OPEN)
+				continue;
+			if (ch->istate != CHAN_INPUT_OPEN &&
+			    ch->istate != CHAN_INPUT_WAIT_DRAIN)
+				continue;
+		}
 
 		/* Get the amount of buffered data for this channel. */
 		len = buffer_len(&ch->input);
@@ -575,25 +585,33 @@ channel_output_poll()
 void 
 channel_input_data(int payload_len)
 {
-	int channel;
+	int id;
 	char *data;
 	unsigned int data_len;
+	Channel *ch;
 
 	/* Get the channel number and verify it. */
-	channel = packet_get_int();
-	if (channel < 0 || channel >= channels_alloc ||
-	    channels[channel].type == SSH_CHANNEL_FREE)
-		packet_disconnect("Received data for nonexistent channel %d.", channel);
+	id = packet_get_int();
+	if (id < 0 || id >= channels_alloc)
+		packet_disconnect("Received data for nonexistent channel %d.", id);
+	ch = &channels[id];
+
+	if (ch->type == SSH_CHANNEL_FREE)
+		packet_disconnect("Received data for free channel %d.", ch->self);
 
 	/* Ignore any data for non-open channels (might happen on close) */
-	if (channels[channel].type != SSH_CHANNEL_OPEN &&
-	    channels[channel].type != SSH_CHANNEL_X11_OPEN)
+	if (ch->type != SSH_CHANNEL_OPEN &&
+	    ch->type != SSH_CHANNEL_X11_OPEN)
+		return;
+
+	/* same for protocol 1.5 if output end is no longer open */
+	if (!compat13 && ch->ostate != CHAN_OUTPUT_OPEN)
 		return;
 
 	/* Get the data. */
 	data = packet_get_string(&data_len);
 	packet_integrity_check(payload_len, 4 + 4 + data_len, SSH_MSG_CHANNEL_DATA);
-	buffer_append(&channels[channel].output, data, data_len);
+	buffer_append(&ch->output, data, data_len);
 	xfree(data);
 }
 
@@ -610,23 +628,11 @@ channel_not_very_much_buffered_data()
 
 	for (i = 0; i < channels_alloc; i++) {
 		ch = &channels[i];
-		switch (ch->type) {
-		case SSH_CHANNEL_X11_LISTENER:
-		case SSH_CHANNEL_PORT_LISTENER:
-		case SSH_CHANNEL_AUTH_SOCKET:
-			continue;
-		case SSH_CHANNEL_OPEN:
+		if (ch->type == SSH_CHANNEL_OPEN) {
 			if (buffer_len(&ch->input) > packet_get_maxsize())
 				return 0;
 			if (buffer_len(&ch->output) > packet_get_maxsize())
 				return 0;
-			continue;
-		case SSH_CHANNEL_INPUT_DRAINING:
-		case SSH_CHANNEL_OUTPUT_DRAINING:
-		case SSH_CHANNEL_X11_OPEN:
-		case SSH_CHANNEL_FREE:
-		default:
-			continue;
 		}
 	}
 	return 1;
@@ -853,9 +859,11 @@ channel_open_message()
 		case SSH_CHANNEL_X11_OPEN:
 		case SSH_CHANNEL_INPUT_DRAINING:
 		case SSH_CHANNEL_OUTPUT_DRAINING:
-			snprintf(buf, sizeof buf, "  #%d %.300s (t%d r%d i%d o%d)\r\n",
-				 c->self, c->remote_name,
-				 c->type, c->remote_id, c->istate, c->ostate);
+			snprintf(buf, sizeof buf, "  #%d %.300s (t%d r%d i%d/%d o%d/%d)\r\n",
+			    c->self, c->remote_name,
+			    c->type, c->remote_id,
+			    c->istate, buffer_len(&c->input),
+			    c->ostate, buffer_len(&c->output));
 			buffer_append(&buffer, buf, strlen(buf));
 			continue;
 		default:
@@ -878,50 +886,76 @@ void
 channel_request_local_forwarding(u_short port, const char *host,
 				 u_short host_port, int gateway_ports)
 {
-	int ch, sock, on = 1;
-	struct sockaddr_in sin;
+	int success, ch, sock, on = 1;
+	struct addrinfo hints, *ai, *aitop;
+	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
 	struct linger linger;
 
 	if (strlen(host) > sizeof(channels[0].path) - 1)
 		packet_disconnect("Forward host name too long.");
 
-	/* Create a port to listen for the host. */
-	sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (sock < 0)
-		packet_disconnect("socket: %.100s", strerror(errno));
-
-	/* Initialize socket address. */
-	memset(&sin, 0, sizeof(sin));
-	sin.sin_family = AF_INET;
-	if (gateway_ports == 1)
-		sin.sin_addr.s_addr = htonl(INADDR_ANY);
-	else
-		sin.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-	sin.sin_port = htons(port);
-
 	/*
-	 * Set socket options.  We would like the socket to disappear as soon
-	 * as it has been closed for whatever reason.
+	 * getaddrinfo returns a loopback address if the hostname is
+	 * set to NULL and hints.ai_flags is not AI_PASSIVE
 	 */
-	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void *)&on, sizeof(on));
-	linger.l_onoff = 1;
-	linger.l_linger = 5;
-	setsockopt(sock, SOL_SOCKET, SO_LINGER, (void *) &linger, sizeof(linger));
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = IPv4or6;
+	hints.ai_flags = gateway_ports ? AI_PASSIVE : 0;
+	hints.ai_socktype = SOCK_STREAM;
+	snprintf(strport, sizeof strport, "%d", port);
+	if (getaddrinfo(NULL, strport, &hints, &aitop) != 0)
+		packet_disconnect("getaddrinfo: fatal error");
 
-	/* Bind the socket to the address. */
-	if (bind(sock, (struct sockaddr *) & sin, sizeof(sin)) < 0)
-		packet_disconnect("bind: %.100s", strerror(errno));
+	success = 0;
+	for (ai = aitop; ai; ai = ai->ai_next) {
+		if (ai->ai_family != AF_INET && ai->ai_family != AF_INET6)
+			continue;
+		if (getnameinfo(ai->ai_addr, ai->ai_addrlen, ntop, sizeof(ntop),
+		    strport, sizeof(strport), NI_NUMERICHOST|NI_NUMERICSERV) != 0) {
+			error("channel_request_local_forwarding: getnameinfo failed");
+			continue;
+		}
+		/* Create a port to listen for the host. */
+		sock = socket(ai->ai_family, SOCK_STREAM, 0);
+		if (sock < 0) {
+			/* this is no error since kernel may not support ipv6 */
+			verbose("socket: %.100s", strerror(errno));
+			continue;
+		}
+		/*
+		 * Set socket options.  We would like the socket to disappear
+		 * as soon as it has been closed for whatever reason.
+		 */
+		setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void *)&on, sizeof(on));
+		linger.l_onoff = 1;
+		linger.l_linger = 5;
+		setsockopt(sock, SOL_SOCKET, SO_LINGER, (void *)&linger, sizeof(linger));
+		debug("Local forwarding listening on %s port %s.", ntop, strport);
 
-	/* Start listening for connections on the socket. */
-	if (listen(sock, 5) < 0)
-		packet_disconnect("listen: %.100s", strerror(errno));
-
-	/* Allocate a channel number for the socket. */
-	ch = channel_allocate(SSH_CHANNEL_PORT_LISTENER, sock,
-			      xstrdup("port listener"));
-	strlcpy(channels[ch].path, host, sizeof(channels[ch].path));
-	channels[ch].host_port = host_port;
-	channels[ch].listening_port = port;
+		/* Bind the socket to the address. */
+		if (bind(sock, ai->ai_addr, ai->ai_addrlen) < 0) {
+			/* address can be in use ipv6 address is already bound */
+			verbose("bind: %.100s", strerror(errno));
+			close(sock);
+			continue;
+		}
+		/* Start listening for connections on the socket. */
+		if (listen(sock, 5) < 0) {
+			error("listen: %.100s", strerror(errno));
+			close(sock);
+			continue;
+		}
+		/* Allocate a channel number for the socket. */
+		ch = channel_allocate(SSH_CHANNEL_PORT_LISTENER, sock,
+		    xstrdup("port listener"));
+		strlcpy(channels[ch].path, host, sizeof(channels[ch].path));
+		channels[ch].host_port = host_port;
+		channels[ch].listening_port = port;
+		success = 1;
+	}
+	if (success == 0)
+		packet_disconnect("cannot listen port: %d", port);
+	freeaddrinfo(aitop);
 }
 
 /*
@@ -1000,12 +1034,13 @@ channel_input_port_forward_request(int is_root)
 void 
 channel_input_port_open(int payload_len)
 {
-	int remote_channel, sock, newch, i;
+	int remote_channel, sock = 0, newch, i;
 	u_short host_port;
-	struct sockaddr_in sin;
 	char *host, *originator_string;
-	struct hostent *hp;
 	int host_len, originator_len;
+	struct addrinfo hints, *ai, *aitop;
+	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
+	int gaierr;
 
 	/* Get remote channel number. */
 	remote_channel = packet_get_int();
@@ -1047,41 +1082,47 @@ channel_input_port_open(int payload_len)
 			packet_send();
 		}
 	}
-	memset(&sin, 0, sizeof(sin));
-	sin.sin_addr.s_addr = inet_addr(host);
-	if ((sin.sin_addr.s_addr & 0xffffffff) != 0xffffffff) {
-		/* It was a valid numeric host address. */
-		sin.sin_family = AF_INET;
-	} else {
-		/* Look up the host address from the name servers. */
-		hp = gethostbyname(host);
-		if (!hp) {
-			error("%.100s: unknown host.", host);
-			goto fail;
-		}
-		if (!hp->h_addr_list[0]) {
-			error("%.100s: host has no IP address.", host);
-			goto fail;
-		}
-		sin.sin_family = hp->h_addrtype;
-		memcpy(&sin.sin_addr, hp->h_addr_list[0],
-		       sizeof(sin.sin_addr));
-	}
-	sin.sin_port = htons(host_port);
 
-	/* Create the socket. */
-	sock = socket(sin.sin_family, SOCK_STREAM, 0);
-	if (sock < 0) {
-		error("socket: %.100s", strerror(errno));
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = IPv4or6;
+	hints.ai_socktype = SOCK_STREAM;
+	snprintf(strport, sizeof strport, "%d", host_port);
+	if ((gaierr = getaddrinfo(host, strport, &hints, &aitop)) != 0) {
+		error("%.100s: unknown host (%s)", host, gai_strerror(gaierr));
 		goto fail;
 	}
-	/* Connect to the host/port. */
-	if (connect(sock, (struct sockaddr *) & sin, sizeof(sin)) < 0) {
-		error("connect %.100s:%d: %.100s", host, host_port,
-		      strerror(errno));
-		close(sock);
+
+	for (ai = aitop; ai; ai = ai->ai_next) {
+		if (ai->ai_family != AF_INET && ai->ai_family != AF_INET6)
+			continue;
+		if (getnameinfo(ai->ai_addr, ai->ai_addrlen, ntop, sizeof(ntop),
+		    strport, sizeof(strport), NI_NUMERICHOST|NI_NUMERICSERV) != 0) {
+			error("channel_input_port_open: getnameinfo failed");
+			continue;
+		}
+		/* Create the socket. */
+		sock = socket(ai->ai_family, SOCK_STREAM, 0);
+		if (sock < 0) {
+			error("socket: %.100s", strerror(errno));
+			continue;
+		}
+		/* Connect to the host/port. */
+		if (connect(sock, ai->ai_addr, ai->ai_addrlen) < 0) {
+			error("connect %.100s port %s: %.100s", ntop, strport,
+			    strerror(errno));
+			close(sock);
+			continue;	/* fail -- try next */	
+		}
+		break; /* success */
+
+	}
+	freeaddrinfo(aitop);
+
+	if (!ai) {
+		error("connect %.100s port %d: failed.", host, host_port);	
 		goto fail;
 	}
+
 	/* Successful connection. */
 
 	/* Allocate a channel for this connection. */
@@ -1115,48 +1156,73 @@ fail:
  * occurs.
  */
 
+#define	NUM_SOCKS	10
+
 char *
 x11_create_display_inet(int screen_number, int x11_display_offset)
 {
 	int display_number, sock;
 	u_short port;
-	struct sockaddr_in sin;
-	char buf[512];
+	struct addrinfo hints, *ai, *aitop;
+	char strport[NI_MAXSERV];
+	int gaierr, n, num_socks = 0, socks[NUM_SOCKS];
+	char display[512];
 	char hostname[MAXHOSTNAMELEN];
 
 	for (display_number = x11_display_offset;
 	     display_number < MAX_DISPLAYS;
 	     display_number++) {
 		port = 6000 + display_number;
-		memset(&sin, 0, sizeof(sin));
-		sin.sin_family = AF_INET;
-		sin.sin_addr.s_addr = htonl(INADDR_ANY);
-		sin.sin_port = htons(port);
-
-		sock = socket(AF_INET, SOCK_STREAM, 0);
-		if (sock < 0) {
-			error("socket: %.100s", strerror(errno));
+		memset(&hints, 0, sizeof(hints));
+		hints.ai_family = IPv4or6;
+		hints.ai_flags = AI_PASSIVE;		/* XXX loopback only ? */
+		hints.ai_socktype = SOCK_STREAM;
+		snprintf(strport, sizeof strport, "%d", port);
+		if ((gaierr = getaddrinfo(NULL, strport, &hints, &aitop)) != 0) {
+			error("getaddrinfo: %.100s", gai_strerror(gaierr));
 			return NULL;
 		}
-		if (bind(sock, (struct sockaddr *) & sin, sizeof(sin)) < 0) {
-			debug("bind port %d: %.100s", port, strerror(errno));
-			shutdown(sock, SHUT_RDWR);
-			close(sock);
-			continue;
+		for (ai = aitop; ai; ai = ai->ai_next) {
+			if (ai->ai_family != AF_INET && ai->ai_family != AF_INET6)
+				continue;
+			sock = socket(ai->ai_family, SOCK_STREAM, 0);
+			if (sock < 0) {
+				error("socket: %.100s", strerror(errno));
+				return NULL;
+			}
+			if (bind(sock, ai->ai_addr, ai->ai_addrlen) < 0) {
+				debug("bind port %d: %.100s", port, strerror(errno));
+				shutdown(sock, SHUT_RDWR);
+				close(sock);
+				for (n = 0; n < num_socks; n++) {
+					shutdown(socks[n], SHUT_RDWR);
+					close(socks[n]);
+				}
+				num_socks = 0;
+				break;
+			}
+			socks[num_socks++] = sock;
+			if (num_socks == NUM_SOCKS)
+				break;
 		}
-		break;
+		if (num_socks > 0)
+			break;
 	}
 	if (display_number >= MAX_DISPLAYS) {
 		error("Failed to allocate internet-domain X11 display socket.");
 		return NULL;
 	}
 	/* Start listening for connections on the socket. */
-	if (listen(sock, 5) < 0) {
-		error("listen: %.100s", strerror(errno));
-		shutdown(sock, SHUT_RDWR);
-		close(sock);
-		return NULL;
+	for (n = 0; n < num_socks; n++) {
+		sock = socks[n];
+		if (listen(sock, 5) < 0) {
+			error("listen: %.100s", strerror(errno));
+			shutdown(sock, SHUT_RDWR);
+			close(sock);
+			return NULL;
+		}
 	}
+
 	/* Set up a suitable value for the DISPLAY variable. */
 
 	if (gethostname(hostname, sizeof(hostname)) < 0)
@@ -1192,21 +1258,24 @@ x11_create_display_inet(int screen_number, int x11_display_offset)
 		memcpy(&my_addr, he->h_addr_list[0], sizeof(struct in_addr));
 
 		/* Set DISPLAY to <ip address>:screen.display */
-		snprintf(buf, sizeof(buf), "%.50s:%d.%d", inet_ntoa(my_addr), 
+		snprintf(display, sizeof(display), "%.50s:%d.%d", inet_ntoa(my_addr), 
 			display_number, screen_number);
 	}
 #else /* IPADDR_IN_DISPLAY */
 	/* Just set DISPLAY to hostname:screen.display */
-	snprintf(buf, sizeof buf, "%.400s:%d.%d", hostname,
+	snprintf(display, sizeof display, "%.400s:%d.%d", hostname,
 		display_number, screen_number);
 #endif /* IPADDR_IN_DISPLAY */
 
-	/* Allocate a channel for the socket. */
-	(void) channel_allocate(SSH_CHANNEL_X11_LISTENER, sock,
-				xstrdup("X11 inet listener"));
+	/* Allocate a channel for each socket. */
+	for (n = 0; n < num_socks; n++) {
+		sock = socks[n];
+		(void) channel_allocate(SSH_CHANNEL_X11_LISTENER, sock,
+					xstrdup("X11 inet listener"));
+	}
 
 	/* Return a suitable value for the DISPLAY environment variable. */
-	return xstrdup(buf);
+	return xstrdup(display);
 }
 
 #ifndef X_UNIX_PATH
@@ -1252,12 +1321,13 @@ connect_local_xsocket(unsigned int dnr)
 void 
 x11_input_open(int payload_len)
 {
-	int remote_channel, display_number, sock, newch;
+	int remote_channel, display_number, sock = 0, newch;
 	const char *display;
-	struct sockaddr_in sin;
 	char buf[1024], *cp, *remote_host;
-	struct hostent *hp;
 	int remote_len;
+	struct addrinfo hints, *ai, *aitop;
+	char strport[NI_MAXSERV];
+	int gaierr;
 
 	/* Get remote channel number. */
 	remote_channel = packet_get_int();
@@ -1323,42 +1393,38 @@ x11_input_open(int payload_len)
 		      display);
 		goto fail;
 	}
-	/* Try to parse the host name as a numeric IP address. */
-	memset(&sin, 0, sizeof(sin));
-	sin.sin_addr.s_addr = inet_addr(buf);
-	if ((sin.sin_addr.s_addr & 0xffffffff) != 0xffffffff) {
-		/* It was a valid numeric host address. */
-		sin.sin_family = AF_INET;
-	} else {
-		/* Not a numeric IP address. */
-		/* Look up the host address from the name servers. */
-		hp = gethostbyname(buf);
-		if (!hp) {
-			error("%.100s: unknown host.", buf);
-			goto fail;
-		}
-		if (!hp->h_addr_list[0]) {
-			error("%.100s: host has no IP address.", buf);
-			goto fail;
-		}
-		sin.sin_family = hp->h_addrtype;
-		memcpy(&sin.sin_addr, hp->h_addr_list[0],
-		       sizeof(sin.sin_addr));
-	}
-	/* Set port number. */
-	sin.sin_port = htons(6000 + display_number);
 
-	/* Create a socket. */
-	sock = socket(sin.sin_family, SOCK_STREAM, 0);
-	if (sock < 0) {
-		error("socket: %.100s", strerror(errno));
+	/* Look up the host address */
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = IPv4or6;
+	hints.ai_socktype = SOCK_STREAM;
+	snprintf(strport, sizeof strport, "%d", 6000 + display_number);
+	if ((gaierr = getaddrinfo(buf, strport, &hints, &aitop)) != 0) {
+		error("%.100s: unknown host. (%s)", buf, gai_strerror(gaierr));
 		goto fail;
 	}
+	for (ai = aitop; ai; ai = ai->ai_next) {
+		/* Create a socket. */
+		sock = socket(ai->ai_family, SOCK_STREAM, 0);
+		if (sock < 0) {
+			debug("socket: %.100s", strerror(errno));
+		continue;
+	}
 	/* Connect it to the display. */
-	if (connect(sock, (struct sockaddr *) & sin, sizeof(sin)) < 0) {
-		error("connect %.100s:%d: %.100s", buf, 6000 + display_number,
-		      strerror(errno));
+	if (connect(sock, ai->ai_addr, ai->ai_addrlen) < 0) {
+		debug("connect %.100s port %d: %.100s", buf, 6000 + display_number, 
+		    strerror(errno));
 		close(sock);
+		continue;
+	}
+	/* Success */
+	break;
+
+	} /* (ai = aitop, ai; ai = ai->ai_next) */
+	freeaddrinfo(aitop);
+	if (!ai) {
+		error("connect %.100s port %d: %.100s", buf, 6000 + display_number, 
+		    strerror(errno));
 		goto fail;
 	}
 success:

@@ -12,11 +12,14 @@
  */
 
 #include "includes.h"
-RCSID("$Id: servconf.c,v 1.7 1999/11/25 00:54:59 damien Exp $");
+RCSID("$Id: servconf.c,v 1.8 2000/01/14 04:45:51 damien Exp $");
 
 #include "ssh.h"
 #include "servconf.h"
 #include "xmalloc.h"
+
+/* add listen address */
+void add_listen_addr(ServerOptions *options, char *addr);
 
 /* Initializes the server options to their default values. */
 
@@ -24,8 +27,9 @@ void
 initialize_server_options(ServerOptions *options)
 {
 	memset(options, 0, sizeof(*options));
-	options->port = -1;
-	options->listen_addr.s_addr = htonl(INADDR_ANY);
+	options->num_ports = 0;
+	options->ports_from_cmdline = 0;
+	options->listen_addrs = NULL;
 	options->host_key_file = NULL;
 	options->server_key_bits = -1;
 	options->login_grace_time = -1;
@@ -68,16 +72,10 @@ initialize_server_options(ServerOptions *options)
 void 
 fill_default_server_options(ServerOptions *options)
 {
-	if (options->port == -1) {
-		struct servent *sp;
-
-		sp = getservbyname(SSH_SERVICE_NAME, "tcp");
-		if (sp)
-			options->port = ntohs(sp->s_port);
-		else
-			options->port = SSH_DEFAULT_PORT;
-		endservent();
-	}
+	if (options->num_ports == 0)
+		options->ports[options->num_ports++] = SSH_DEFAULT_PORT;
+	if (options->listen_addrs == NULL)
+		add_listen_addr(options, NULL);
 	if (options->host_key_file == NULL)
 		options->host_key_file = HOST_KEY_FILE;
 	if (options->server_key_bits == -1)
@@ -232,6 +230,37 @@ parse_token(const char *cp, const char *filename,
 	return sBadOption;
 }
 
+/*
+ * add listen address
+ */
+void 
+add_listen_addr(ServerOptions *options, char *addr)
+{
+	extern int IPv4or6;
+	struct addrinfo hints, *ai, *aitop;
+	char strport[NI_MAXSERV];
+	int gaierr;
+	int i;
+
+	if (options->num_ports == 0)
+		options->ports[options->num_ports++] = SSH_DEFAULT_PORT;
+	for (i = 0; i < options->num_ports; i++) {
+		memset(&hints, 0, sizeof(hints));
+		hints.ai_family = IPv4or6;
+		hints.ai_socktype = SOCK_STREAM;
+		hints.ai_flags = (addr == NULL) ? AI_PASSIVE : 0;
+		snprintf(strport, sizeof strport, "%d", options->ports[i]);
+		if ((gaierr = getaddrinfo(addr, strport, &hints, &aitop)) != 0)
+			fatal("bad addr or host: %s (%s)\n",
+			    addr ? addr : "<NULL>",
+			    gai_strerror(gaierr));
+		for (ai = aitop; ai->ai_next; ai = ai->ai_next)
+			;
+		ai->ai_next = options->listen_addrs;
+		options->listen_addrs = aitop;
+	}
+}
+
 /* Reads the server configuration file. */
 
 void 
@@ -262,7 +291,24 @@ read_server_config(ServerOptions *options, const char *filename)
 			bad_options++;
 			continue;
 		case sPort:
-			intptr = &options->port;
+			/* ignore ports from configfile if cmdline specifies ports */
+			if (options->ports_from_cmdline)
+				continue;
+			if (options->listen_addrs != NULL)
+				fatal("%s line %d: ports must be specified before "
+				    "ListenAdress.\n", filename, linenum);
+			if (options->num_ports >= MAX_PORTS)
+				fatal("%s line %d: too many ports.\n",
+			            filename, linenum);
+			cp = strtok(NULL, WHITESPACE);
+			if (!cp)
+				fatal("%s line %d: missing port number.\n",
+				    filename, linenum);
+			options->ports[options->num_ports++] = atoi(cp);
+			break;
+
+		case sServerKeyBits:
+			intptr = &options->server_key_bits;
 parse_int:
 			cp = strtok(NULL, WHITESPACE);
 			if (!cp) {
@@ -275,10 +321,6 @@ parse_int:
 				*intptr = value;
 			break;
 
-		case sServerKeyBits:
-			intptr = &options->server_key_bits;
-			goto parse_int;
-
 		case sLoginGraceTime:
 			intptr = &options->login_grace_time;
 			goto parse_int;
@@ -289,12 +331,10 @@ parse_int:
 
 		case sListenAddress:
 			cp = strtok(NULL, WHITESPACE);
-			if (!cp) {
-				fprintf(stderr, "%s line %d: missing inet addr.\n",
-					filename, linenum);
-				exit(1);
-			}
-			options->listen_addr.s_addr = inet_addr(cp);
+			if (!cp)
+				fatal("%s line %d: missing inet addr.\n",
+				    filename, linenum);
+			add_listen_addr(options, cp);
 			break;
 
 		case sHostKeyFile:

@@ -7,6 +7,8 @@
 - Replace the horror in acconfig.h which tries to comphensate for the 
   lack of u_intXX_t types. There must be a better way.
 
+- Move all compatability cruft (bsd-*, fake-*) into subordinate library
+
 - Hanging on logout:
 
 localhost$ ssh remotehost

@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.49 1999/12/30 04:08:44 damien Exp $");
+RCSID("$Id: sshd.c,v 1.50 2000/01/14 04:45:52 damien Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -45,6 +45,12 @@ ServerOptions options;
 /* Name of the server configuration file. */
 char *config_file_name = SERVER_CONFIG_FILE;
 
+/* 
+ * Flag indicating whether IPv4 or IPv6.  This can be set on the command line.
+ * Default value is AF_UNSPEC means both IPv4 and IPv6.
+ */
+int IPv4or6 = AF_UNSPEC;
+
 /*
  * Debug mode flag.  This can be set on the command line.  If debug
  * mode is enabled, extra debugging output will be sent to the system
@@ -66,10 +72,12 @@ char *av0;
 char **saved_argv;
 
 /*
- * This is set to the socket that the server is listening; this is used in
- * the SIGHUP signal handler.
+ * The sockets that the server is listening; this is used in the SIGHUP
+ * signal handler.
  */
-int listen_sock;
+#define	MAX_LISTEN_SOCKS	16
+int listen_socks[MAX_LISTEN_SOCKS];
+int num_listen_socks = 0;
 
 /*
  * the client's version string, passed by sshd2 in compat mode. if != NULL,
@@ -136,6 +144,18 @@ void do_child(const char *command, struct passwd * pw, const char *term,
 	      const char *auth_data, const char *ttyname);
 
 /*
+ * Close all listening sockets
+ */
+void
+close_listen_socks(void)
+{
+	int i;
+	for (i = 0; i < num_listen_socks; i++)
+		close(listen_socks[i]);
+	num_listen_socks = -1;
+}
+
+/*
  * Signal handler for SIGHUP.  Sshd execs itself when it receives SIGHUP;
  * the effect is to reread the configuration file (and to regenerate
  * the server key).
@@ -155,7 +175,7 @@ void
 sighup_restart()
 {
 	log("Received SIGHUP; restarting.");
-	close(listen_sock);
+	close_listen_socks();
 	execv(saved_argv[0], saved_argv);
 	log("RESTART FAILED: av0='%s', error: %s.", av0, strerror(errno));
 	exit(1);
@@ -170,7 +190,7 @@ void
 sigterm_handler(int sig)
 {
 	log("Received signal %d; terminating.", sig);
-	close(listen_sock);
+	close_listen_socks();
 	exit(255);
 }
 
@@ -277,11 +297,12 @@ main(int ac, char **av)
 {
 	extern char *optarg;
 	extern int optind;
-	int opt, aux, sock_in, sock_out, newsock, i, pid, on = 1;
+	int opt, sock_in = 0, sock_out = 0, newsock, i, fdsetsz, pid, on = 1;
+	socklen_t fromlen;
 	int remote_major, remote_minor;
 	int silentrsa = 0;
-	struct pollfd fds;
-	struct sockaddr_in sin;
+	fd_set *fdset;
+	struct sockaddr_storage from;
 	char buf[100];			/* Must not be larger than remote_version. */
 	char remote_version[100];	/* Must be at least as big as buf. */
 	const char *remote_ip;
@@ -289,6 +310,9 @@ main(int ac, char **av)
 	char *comment;
 	FILE *f;
 	struct linger linger;
+	struct addrinfo *ai;
+	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
+	int listen_sock, maxfd;
 
 	/* Save argv[0]. */
 	saved_argv = av;
@@ -301,8 +325,14 @@ main(int ac, char **av)
 	initialize_server_options(&options);
 
 	/* Parse command-line arguments. */
-	while ((opt = getopt(ac, av, "f:p:b:k:h:g:V:diqQ")) != EOF) {
+	while ((opt = getopt(ac, av, "f:p:b:k:h:g:V:diqQ46")) != EOF) {
 		switch (opt) {
+		case '4':
+			IPv4or6 = AF_INET;
+			break;
+		case '6':
+			IPv4or6 = AF_INET6;
+			break;
 		case 'f':
 			config_file_name = optarg;
 			break;
@@ -323,7 +353,10 @@ main(int ac, char **av)
 			options.server_key_bits = atoi(optarg);
 			break;
 		case 'p':
-			options.port = atoi(optarg);
+			options.ports_from_cmdline = 1;
+			if (options.num_ports >= MAX_PORTS)
+				fatal("too many ports.\n");
+			options.ports[options.num_ports++] = atoi(optarg);
 			break;
 		case 'g':
 			options.login_grace_time = atoi(optarg);
@@ -356,10 +389,21 @@ main(int ac, char **av)
 			fprintf(stderr, "  -g seconds Grace period for authentication (default: 300)\n");
 			fprintf(stderr, "  -b bits    Size of server RSA key (default: 768 bits)\n");
 			fprintf(stderr, "  -h file    File from which to read host key (default: %s)\n",
-				HOST_KEY_FILE);
+			    HOST_KEY_FILE);
+			fprintf(stderr, "  -4         Use IPv4 only\n");
+			fprintf(stderr, "  -6         Use IPv6 only\n");
 			exit(1);
 		}
 	}
+
+	/*
+	 * Force logging to stderr until we have loaded the private host
+	 * key (unless started from inetd)
+	 */
+	log_init(av0,
+	    options.log_level == -1 ? SYSLOG_LEVEL_INFO : options.log_level,
+	    options.log_facility == -1 ? SYSLOG_FACILITY_AUTH : options.log_facility,
+	    !inetd_flag);
 
 	/* check if RSA support exists */
 	if (rsa_alive() == 0) {
@@ -380,18 +424,11 @@ main(int ac, char **av)
 		fprintf(stderr, "Bad server key size.\n");
 		exit(1);
 	}
-	if (options.port < 1 || options.port > 65535) {
-		fprintf(stderr, "Bad port number.\n");
-		exit(1);
-	}
 	/* Check that there are no remaining arguments. */
 	if (optind < ac) {
 		fprintf(stderr, "Extra argument %s.\n", av[optind]);
 		exit(1);
 	}
-	/* Force logging to stderr while loading the private host key
-	   unless started from inetd */
-	log_init(av0, options.log_level, options.log_facility, !inetd_flag);
 
 	debug("sshd version %.100s", SSH_VERSION);
 
@@ -480,32 +517,66 @@ main(int ac, char **av)
 		arc4random_stir();
 		log("RSA key generation complete.");
 	} else {
-		/* Create socket for listening. */
-		listen_sock = socket(AF_INET, SOCK_STREAM, 0);
-		if (listen_sock < 0)
-			fatal("socket: %.100s", strerror(errno));
+		for (ai = options.listen_addrs; ai; ai = ai->ai_next) {
+			if (ai->ai_family != AF_INET && ai->ai_family != AF_INET6)
+				continue;
+			if (num_listen_socks >= MAX_LISTEN_SOCKS)
+				fatal("Too many listen sockets. "
+				    "Enlarge MAX_LISTEN_SOCKS");
+			if (getnameinfo(ai->ai_addr, ai->ai_addrlen,
+			    ntop, sizeof(ntop), strport, sizeof(strport),
+			    NI_NUMERICHOST|NI_NUMERICSERV) != 0) {
+				error("getnameinfo failed");
+				continue;
+			}
+			/* Create socket for listening. */
+			listen_sock = socket(ai->ai_family, SOCK_STREAM, 0);
+			if (listen_sock < 0) {
+				/* kernel may not support ipv6 */
+				verbose("socket: %.100s", strerror(errno));
+				continue;
+			}
+			if (fcntl(listen_sock, F_SETFL, O_NONBLOCK) < 0) {
+				error("listen_sock O_NONBLOCK: %s", strerror(errno));
+				close(listen_sock);
+				continue;
+			}
+			/*
+			 * Set socket options.  We try to make the port
+			 * reusable and have it close as fast as possible
+			 * without waiting in unnecessary wait states on
+			 * close.
+			 */
+			setsockopt(listen_sock, SOL_SOCKET, SO_REUSEADDR,
+			    (void *) &on, sizeof(on));
+			linger.l_onoff = 1;
+			linger.l_linger = 5;
+			setsockopt(listen_sock, SOL_SOCKET, SO_LINGER,
+			    (void *) &linger, sizeof(linger));
 
-		/* Set socket options.  We try to make the port reusable
-		   and have it close as fast as possible without waiting
-		   in unnecessary wait states on close. */
-		setsockopt(listen_sock, SOL_SOCKET, SO_REUSEADDR, (void *) &on,
-			   sizeof(on));
-		linger.l_onoff = 1;
-		linger.l_linger = 5;
-		setsockopt(listen_sock, SOL_SOCKET, SO_LINGER, (void *) &linger,
-			   sizeof(linger));
+			debug("Bind to port %s on %s.", strport, ntop);
 
-		memset(&sin, 0, sizeof(sin));
-		sin.sin_family = AF_INET;
-		sin.sin_addr = options.listen_addr;
-		sin.sin_port = htons(options.port);
+			/* Bind the socket to the desired port. */
+			if (bind(listen_sock, ai->ai_addr, ai->ai_addrlen) < 0) {
+				error("Bind to port %s on %s failed: %.200s.",
+				    strport, ntop, strerror(errno));
+				close(listen_sock);
+				continue;
+			}
+			listen_socks[num_listen_socks] = listen_sock;
+			num_listen_socks++;
 
-		if (bind(listen_sock, (struct sockaddr *) & sin, sizeof(sin)) < 0) {
-			error("bind: %.100s", strerror(errno));
-			shutdown(listen_sock, SHUT_RDWR);
-			close(listen_sock);
-			fatal("Bind to port %d failed.", options.port);
+			/* Start listening on the port. */
+			log("Server listening on %s port %s.", ntop, strport);
+			if (listen(listen_sock, 5) < 0)
+				fatal("listen: %.100s", strerror(errno));
+
 		}
+		freeaddrinfo(options.listen_addrs);
+
+		if (!num_listen_socks)
+			fatal("Cannot bind any address.");
+
 		if (!debug_flag) {
 			/*
 			 * Record our pid in /etc/sshd_pid to make it easier
@@ -520,10 +591,6 @@ main(int ac, char **av)
 				fclose(f);
 			}
 		}
-
-		log("Server listening on port %d.", options.port);
-		if (listen(listen_sock, 5) < 0)
-			fatal("listen: %.100s", strerror(errno));
 
 		public_key = RSA_new();
 		sensitive_data.private_key = RSA_new();
@@ -546,6 +613,14 @@ main(int ac, char **av)
 		/* Arrange SIGCHLD to be caught. */
 		signal(SIGCHLD, main_sigchld_handler);
 
+		/* setup fd set for listen */
+		maxfd = 0;
+		for (i = 0; i < num_listen_socks; i++)
+			if (listen_socks[i] > maxfd)
+				maxfd = listen_socks[i];
+		fdsetsz = howmany(maxfd, NFDBITS) * sizeof(fd_mask);         
+		fdset = (fd_set *)xmalloc(fdsetsz);                                  
+
 		/*
 		 * Stay listening for connections until the system crashes or
 		 * the daemon is killed with a signal.
@@ -553,26 +628,28 @@ main(int ac, char **av)
 		for (;;) {
 			if (received_sighup)
 				sighup_restart();
-			/* Wait in poll until there is a connection. */
-			memset(&fds, 0, sizeof(fds));
-			fds.fd = listen_sock;
-			fds.events = POLLIN;
-			if (poll(&fds, 1, -1) == -1) {
-				if (errno == EINTR)
-					continue;
-				fatal("poll: %.100s", strerror(errno));
-				/*NOTREACHED*/
-			}
-			if (fds.revents == 0)
+			/* Wait in select until there is a connection. */
+			memset(fdset, 0, fdsetsz);
+			for (i = 0; i < num_listen_socks; i++)
+				FD_SET(listen_socks[i], fdset);
+			if (select(maxfd + 1, fdset, NULL, NULL, NULL) < 0) {
+				if (errno != EINTR)
+					error("select: %.100s", strerror(errno));
 				continue;
-			aux = sizeof(sin);
-			newsock = accept(listen_sock, (struct sockaddr *) & sin, &aux);
-			if (received_sighup)
-				sighup_restart();
-			if (newsock < 0) {
-				if (errno == EINTR)
+			}
+			for (i = 0; i < num_listen_socks; i++) {
+				if (!FD_ISSET(listen_socks[i], fdset))
 					continue;
-				error("accept: %.100s", strerror(errno));
+			fromlen = sizeof(from);
+			newsock = accept(listen_socks[i], (struct sockaddr *)&from,
+			    &fromlen);
+			if (newsock < 0) {
+				if (errno != EINTR && errno != EWOULDBLOCK)
+					error("accept: %.100s", strerror(errno));
+				continue;
+			}
+			if (fcntl(newsock, F_SETFL, 0) < 0) {
+				error("newsock del O_NONBLOCK: %s", strerror(errno));
 				continue;
 			}
 			/*
@@ -586,7 +663,7 @@ main(int ac, char **av)
 				 * connection without forking.
 				 */
 				debug("Server will not fork when running in debugging mode.");
-				close(listen_sock);
+				close_listen_socks();
 				sock_in = newsock;
 				sock_out = newsock;
 				pid = getpid();
@@ -603,7 +680,7 @@ main(int ac, char **av)
 					 * accepted socket.  Reinitialize logging (since our pid has
 					 * changed).  We break out of the loop to handle the connection.
 					 */
-					close(listen_sock);
+					close_listen_socks();
 					sock_in = newsock;
 					sock_out = newsock;
 					log_init(av0, options.log_level, options.log_facility, log_stderr);
@@ -624,6 +701,10 @@ main(int ac, char **av)
 
 			/* Close the new socket (the child is now taking care of it). */
 			close(newsock);
+			} /* for (i = 0; i < num_listen_socks; i++) */
+			/* child process check (or debug mode) */
+			if (num_listen_socks < 0)
+				break;
 		}
 	}
 
@@ -662,6 +743,7 @@ main(int ac, char **av)
 
 	/* Check whether logins are denied from this host. */
 #ifdef LIBWRAP
+	/* XXX LIBWRAP noes not know about IPv6 */
 	{
 		struct request_info req;
 
@@ -673,12 +755,11 @@ main(int ac, char **av)
 			close(sock_out);
 			refuse(&req);
 		}
-		verbose("Connection from %.500s port %d", eval_client(&req), remote_port);
+/*XXX IPv6 verbose("Connection from %.500s port %d", eval_client(&req), remote_port); */
 	}
-#else
+#endif /* LIBWRAP */
 	/* Log the connection. */
 	verbose("Connection from %.500s port %d", remote_ip, remote_port);
-#endif /* LIBWRAP */
 
 	/*
 	 * We don\'t want to listen forever unless the other side
@@ -700,12 +781,12 @@ main(int ac, char **av)
 		snprintf(buf, sizeof buf, "SSH-%d.%d-%.100s\n",
 			 PROTOCOL_MAJOR, PROTOCOL_MINOR, SSH_VERSION);
 		if (atomicio(write, sock_out, buf, strlen(buf)) != strlen(buf))
-			fatal("Could not write ident string to %s.", get_remote_ipaddr());
+			fatal("Could not write ident string to %s.", remote_ip);
 
 		/* Read other side\'s version identification. */
 		for (i = 0; i < sizeof(buf) - 1; i++) {
 			if (read(sock_in, &buf[i], 1) != 1)
-				fatal("Did not receive ident string from %s.", get_remote_ipaddr());
+				fatal("Did not receive ident string from %s.", remote_ip);
 			if (buf[i] == '\r') {
 				buf[i] = '\n';
 				buf[i + 1] = 0;
@@ -732,7 +813,7 @@ main(int ac, char **av)
 		close(sock_in);
 		close(sock_out);
 		fatal("Bad protocol version identification '%.100s' from %s",
-		      buf, get_remote_ipaddr());
+		      buf, remote_ip);
 	}
 	debug("Client protocol version %d.%d; client software version %.100s",
 	      remote_major, remote_minor, remote_version);
@@ -743,8 +824,7 @@ main(int ac, char **av)
 		close(sock_in);
 		close(sock_out);
 		fatal("Protocol major versions differ for %s: %d vs. %d",
-		      get_remote_ipaddr(),
-		      PROTOCOL_MAJOR, remote_major);
+		      remote_ip, PROTOCOL_MAJOR, remote_major);
 	}
 	/* Check that the client has sufficiently high software version. */
 	if (remote_major == 1 && remote_minor < 3)
@@ -769,6 +849,14 @@ main(int ac, char **av)
 		options.rhosts_authentication = 0;
 		options.rhosts_rsa_authentication = 0;
 	}
+#ifdef KRB4
+	if (!packet_connection_is_ipv4() &&
+	    options.kerberos_authentication) {
+		debug("Kerberos Authentication disabled, only available for IPv4.");
+		options.kerberos_authentication = 0;
+	}
+#endif /* KRB4 */
+
 	packet_set_nonblocking();
 
 	/* Handle the connection. */
@@ -1935,8 +2023,8 @@ do_exec_pty(const char *command, int ptyfd, int ttyfd,
 	char line[256];
 	struct stat st;
 	int quiet_login;
-	struct sockaddr_in from;
-	int fromlen;
+	struct sockaddr_storage from;
+	socklen_t fromlen;
 	struct pty_cleanup_context cleanup_context;
 
 	/* Get remote host name. */
@@ -1997,7 +2085,7 @@ do_exec_pty(const char *command, int ptyfd, int ttyfd,
 		}
 		/* Record that there was a login on that terminal. */
 		record_login(pid, ttyname, pw->pw_name, pw->pw_uid, hostname,
-			     &from);
+			     (struct sockaddr *)&from);
 
 		/* Check if .hushlogin exists. */
 		snprintf(line, sizeof line, "%.200s/.hushlogin", pw->pw_dir);
@@ -2318,7 +2406,7 @@ do_child(const char *command, struct passwd * pw, const char *term,
 	}
 
 	snprintf(buf, sizeof buf, "%.50s %d %d",
-		 get_remote_ipaddr(), get_remote_port(), options.port);
+		 get_remote_ipaddr(), get_remote_port(), get_local_port());
 	child_set_env(&env, &envsize, "SSH_CLIENT", buf);
 
 	if (ttyname)
@@ -2385,7 +2473,6 @@ do_child(const char *command, struct passwd * pw, const char *term,
 	 * descriptors left by system functions.  They will be closed later.
 	 */
 	endpwent();
-	endhostent();
 
 	/*
 	 * Close any extra open file descriptors so that we don\'t have them

@@ -8,7 +8,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: sshconnect.c,v 1.20 2000/01/03 12:41:05 damien Exp $");
+RCSID("$Id: sshconnect.c,v 1.21 2000/01/14 04:45:52 damien Exp $");
 
 #ifdef HAVE_OPENSSL
 #include <openssl/bn.h>
@@ -35,6 +35,7 @@ RCSID("$Id: sshconnect.c,v 1.20 2000/01/03 12:41:05 damien Exp $");
 unsigned char session_id[16];
 
 extern Options options;
+extern char *__progname;
 
 /*
  * Connect to the given ssh server using a proxy command.
@@ -48,10 +49,10 @@ ssh_proxy_connect(const char *host, u_short port, uid_t original_real_uid,
 	char *command_string;
 	int pin[2], pout[2];
 	int pid;
-	char portstring[100];
+	char strport[NI_MAXSERV];
 
 	/* Convert the port number into a string. */
-	snprintf(portstring, sizeof portstring, "%hu", port);
+	snprintf(strport, sizeof strport, "%hu", port);
 
 	/* Build the final command string in the buffer by making the
 	   appropriate substitutions to the given proxy command. */
@@ -68,7 +69,7 @@ ssh_proxy_connect(const char *host, u_short port, uid_t original_real_uid,
 			continue;
 		}
 		if (cp[0] == '%' && cp[1] == 'p') {
-			buffer_append(&command, portstring, strlen(portstring));
+			buffer_append(&command, strport, strlen(strport));
 			cp++;
 			continue;
 		}
@@ -140,7 +141,7 @@ ssh_proxy_connect(const char *host, u_short port, uid_t original_real_uid,
  * Creates a (possibly privileged) socket for use as the ssh connection.
  */
 int
-ssh_create_socket(uid_t original_real_uid, int privileged)
+ssh_create_socket(uid_t original_real_uid, int privileged, int family)
 {
 	int sock;
 
@@ -150,10 +151,9 @@ ssh_create_socket(uid_t original_real_uid, int privileged)
 	 */
 	if (privileged) {
 		int p = IPPORT_RESERVED - 1;
-
-		sock = rresvport(&p);
+		sock = rresvport_af(&p, family);
 		if (sock < 0)
-			fatal("rresvport: %.100s", strerror(errno));
+			fatal("rresvport: af=%d %.100s", family, strerror(errno));
 		debug("Allocated local port %d.", p);
 	} else {
 		/*
@@ -161,17 +161,18 @@ ssh_create_socket(uid_t original_real_uid, int privileged)
 		 * the user's uid to create the socket.
 		 */
 		temporarily_use_uid(original_real_uid);
-		sock = socket(AF_INET, SOCK_STREAM, 0);
+		sock = socket(family, SOCK_STREAM, 0);
 		if (sock < 0)
-			fatal("socket: %.100s", strerror(errno));
+			error("socket: %.100s", strerror(errno));
 		restore_uid();
 	}
 	return sock;
 }
 
 /*
- * Opens a TCP/IP connection to the remote server on the given host.  If
- * port is 0, the default port will be used.  If anonymous is zero,
+ * Opens a TCP/IP connection to the remote server on the given host.
+ * The address of the remote host will be returned in hostaddr.
+ * If port is 0, the default port will be used.  If anonymous is zero,
  * a privileged port will be allocated to make the connection.
  * This requires super-user privileges if anonymous is false.
  * Connection_attempts specifies the maximum number of tries (one per
@@ -180,15 +181,16 @@ ssh_create_socket(uid_t original_real_uid, int privileged)
  * the daemon.
  */
 int
-ssh_connect(const char *host, struct sockaddr_in * hostaddr,
+ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 	    u_short port, int connection_attempts,
 	    int anonymous, uid_t original_real_uid,
 	    const char *proxy_command)
 {
-	int sock = -1, attempt, i;
-	int on = 1;
+	int sock = -1, attempt;
 	struct servent *sp;
-	struct hostent *hp;
+	struct addrinfo hints, *ai, *aitop;
+	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
+	int gaierr;
 	struct linger linger;
 
 	debug("ssh_connect: getuid %d geteuid %d anon %d",
@@ -208,8 +210,13 @@ ssh_connect(const char *host, struct sockaddr_in * hostaddr,
 
 	/* No proxy command. */
 
-	/* No host lookup made yet. */
-	hp = NULL;
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = IPv4or6;
+	hints.ai_socktype = SOCK_STREAM;
+	snprintf(strport, sizeof strport, "%d", port);
+	if ((gaierr = getaddrinfo(host, strport, &hints, &aitop)) != 0)
+		fatal("%s: %.100s: %s", __progname, host,
+		    gai_strerror(gaierr));
 
 	/*
 	 * Try to connect several times.  On some machines, the first time
@@ -220,82 +227,40 @@ ssh_connect(const char *host, struct sockaddr_in * hostaddr,
 		if (attempt > 0)
 			debug("Trying again...");
 
-		/* Try to parse the host name as a numeric inet address. */
-		memset(hostaddr, 0, sizeof(hostaddr));
-		hostaddr->sin_family = AF_INET;
-		hostaddr->sin_port = htons(port);
-		hostaddr->sin_addr.s_addr = inet_addr(host);
-		if ((hostaddr->sin_addr.s_addr & 0xffffffff) != 0xffffffff) {
-			/* Valid numeric IP address */
-			debug("Connecting to %.100s port %d.",
-			      inet_ntoa(hostaddr->sin_addr), port);
+		/* Loop through addresses for this host, and try each one in
+ 		   sequence until the connection succeeds. */
+		for (ai = aitop; ai; ai = ai->ai_next) {
+			if (ai->ai_family != AF_INET && ai->ai_family != AF_INET6)
+				continue;
+			if (getnameinfo(ai->ai_addr, ai->ai_addrlen,
+			    ntop, sizeof(ntop), strport, sizeof(strport),
+			    NI_NUMERICHOST|NI_NUMERICSERV) != 0) {
+				error("ssh_connect: getnameinfo failed");
+				continue;
+			}
+			debug("Connecting to %.200s [%.100s] port %s.",
+				host, ntop, strport);
 
-			/* Create a socket. */
-			sock = ssh_create_socket(original_real_uid,
-					  !anonymous && geteuid() == 0 &&
-						 port < IPPORT_RESERVED);
+			/* Create a socket for connecting. */
+			sock = ssh_create_socket(original_real_uid, 
+			    !anonymous && geteuid() == 0 && port < IPPORT_RESERVED,
+			    ai->ai_family);
+			if (sock < 0)
+				continue;
 
-			/*
-			 * Connect to the host.  We use the user's uid in the
-			 * hope that it will help with the problems of
-			 * tcp_wrappers showing the remote uid as root.
+			/* Connect to the host.  We use the user's uid in the
+			 * hope that it will help with tcp_wrappers showing
+			 * the remote uid as root.
 			 */
 			temporarily_use_uid(original_real_uid);
-			if (connect(sock, (struct sockaddr *) hostaddr, sizeof(*hostaddr))
-			    >= 0) {
-				/* Successful connect. */
+			if (connect(sock, ai->ai_addr, ai->ai_addrlen) >= 0) {
+				/* Successful connection. */
+				memcpy(hostaddr, ai->ai_addr, sizeof(*(ai->ai_addr)));
 				restore_uid();
 				break;
-			}
-			debug("connect: %.100s", strerror(errno));
-			restore_uid();
-
-			/* Destroy the failed socket. */
-			shutdown(sock, SHUT_RDWR);
-			close(sock);
-		} else {
-			/* Not a valid numeric inet address. */
-			/* Map host name to an address. */
-			if (!hp)
-				hp = gethostbyname(host);
-			if (!hp)
-				fatal("Bad host name: %.100s", host);
-			if (!hp->h_addr_list[0])
-				fatal("Host does not have an IP address: %.100s", host);
-
-			/* Loop through addresses for this host, and try
-			   each one in sequence until the connection
-			   succeeds. */
-			for (i = 0; hp->h_addr_list[i]; i++) {
-				/* Set the address to connect to. */
-				hostaddr->sin_family = hp->h_addrtype;
-				memcpy(&hostaddr->sin_addr, hp->h_addr_list[i],
-				       sizeof(hostaddr->sin_addr));
-
-				debug("Connecting to %.200s [%.100s] port %d.",
-				      host, inet_ntoa(hostaddr->sin_addr), port);
-
-				/* Create a socket for connecting. */
-				sock = ssh_create_socket(original_real_uid,
-					  !anonymous && geteuid() == 0 &&
-						 port < IPPORT_RESERVED);
-
-				/*
-				 * Connect to the host.  We use the user's
-				 * uid in the hope that it will help with
-				 * tcp_wrappers showing the remote uid as
-				 * root.
-				 */
-				temporarily_use_uid(original_real_uid);
-				if (connect(sock, (struct sockaddr *) hostaddr,
-					    sizeof(*hostaddr)) >= 0) {
-					/* Successful connection. */
-					restore_uid();
-					break;
-				}
+			} else {
 				debug("connect: %.100s", strerror(errno));
 				restore_uid();
-
 				/*
 				 * Close the failed socket; there appear to
 				 * be some problems when reusing a socket for
@@ -305,13 +270,16 @@ ssh_connect(const char *host, struct sockaddr_in * hostaddr,
 				shutdown(sock, SHUT_RDWR);
 				close(sock);
 			}
-			if (hp->h_addr_list[i])
-				break;	/* Successful connection. */
 		}
+		if (ai)
+			break;	/* Successful connection. */
 
 		/* Sleep a moment before retrying. */
 		sleep(1);
 	}
+
+	freeaddrinfo(aitop);
+
 	/* Return failure if we didn't get a successful connection. */
 	if (attempt >= connection_attempts)
 		return 0;
@@ -323,7 +291,6 @@ ssh_connect(const char *host, struct sockaddr_in * hostaddr,
 	 * as it has been closed for whatever reason.
 	 */
 	/* setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void *)&on, sizeof(on)); */
-	setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (void *) &on, sizeof(on));
 	linger.l_onoff = 1;
 	linger.l_linger = 5;
 	setsockopt(sock, SOL_SOCKET, SO_LINGER, (void *) &linger, sizeof(linger));
@@ -1095,17 +1062,43 @@ read_yes_or_no(const char *prompt, int defval)
  */
 
 void
-check_host_key(char *host,
-    struct sockaddr_in *hostaddr,
-    RSA *host_key)
+check_host_key(char *host, struct sockaddr *hostaddr, RSA *host_key)
 {
 	RSA *file_key;
 	char *ip = NULL;
 	char hostline[1000], *hostp;
 	HostStatus host_status;
 	HostStatus ip_status;
-	int host_ip_differ = 0;
-	int local = (ntohl(hostaddr->sin_addr.s_addr) >> 24) == IN_LOOPBACKNET;
+	int local = 0, host_ip_differ = 0;
+	int sa_len;
+	char ntop[NI_MAXHOST];
+
+	/*
+	 * Force accepting of the host key for loopback/localhost. The
+	 * problem is that if the home directory is NFS-mounted to multiple
+	 * machines, localhost will refer to a different machine in each of
+	 * them, and the user will get bogus HOST_CHANGED warnings.  This
+	 * essentially disables host authentication for localhost; however,
+	 * this is probably not a real problem.
+	 */
+	switch (hostaddr->sa_family) {
+	case AF_INET:
+		local = (ntohl(((struct sockaddr_in *)hostaddr)->sin_addr.s_addr) >> 24) == IN_LOOPBACKNET;
+		sa_len = sizeof(struct sockaddr_in);
+		break;
+	case AF_INET6:
+		local = IN6_IS_ADDR_LOOPBACK(&(((struct sockaddr_in6 *)hostaddr)->sin6_addr));
+		sa_len = sizeof(struct sockaddr_in6);
+		break;
+	default:
+		local = 0;
+		sa_len = sizeof(struct sockaddr_storage);
+		break;
+	}
+	if (local) {
+		debug("Forcing accepting of host key for loopback/localhost.");
+		return;
+	}
 
 	/*
 	 * Turn off check_host_ip for proxy connects, since
@@ -1114,8 +1107,12 @@ check_host_key(char *host,
 	if (options.proxy_command != NULL && options.check_host_ip)
 		options.check_host_ip = 0;
 
-	if (options.check_host_ip)
-		ip = xstrdup(inet_ntoa(hostaddr->sin_addr));
+	if (options.check_host_ip) {
+		if (getnameinfo(hostaddr, sa_len, ntop, sizeof(ntop),
+		    NULL, 0, NI_NUMERICHOST) != 0)
+			fatal("check_host_key: getnameinfo failed");
+		ip = xstrdup(ntop);
+	}
 
 	/*
 	 * Store the host key from the known host file in here so that we can
@@ -1136,18 +1133,6 @@ check_host_key(char *host,
 		host_status = check_host_in_hostfile(options.system_hostfile, host,
 						host_key->e, host_key->n,
 					       file_key->e, file_key->n);
-	/*
-	 * Force accepting of the host key for localhost and 127.0.0.1. The
-	 * problem is that if the home directory is NFS-mounted to multiple
-	 * machines, localhost will refer to a different machine in each of
-	 * them, and the user will get bogus HOST_CHANGED warnings.  This
-	 * essentially disables host authentication for localhost; however,
-	 * this is probably not a real problem.
-	 */
-	if (local) {
-		debug("Forcing accepting of host key for localhost.");
-		host_status = HOST_OK;
-	}
 	/*
 	 * Also perform check for the ip address, skip the check if we are
 	 * localhost or the hostname was an ip address to begin with
@@ -1301,7 +1286,7 @@ void
 ssh_login(int host_key_valid,
 	  RSA *own_host_key,
 	  const char *orighost,
-	  struct sockaddr_in *hostaddr,
+	  struct sockaddr *hostaddr,
 	  uid_t original_real_uid)
 {
 	int i, type;

@@ -2,6 +2,7 @@
 
 Port 22
 ListenAddress 0.0.0.0
+#ListenAddress ::
 HostKey @sysconfdir@/ssh_host_key
 ServerKeyBits 768
 LoginGraceTime 600

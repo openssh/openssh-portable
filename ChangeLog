@@ -1,3 +1,36 @@
+20000114
+ - Merged OpenBSD IPv6 patch:
+   - [sshd.c sshd.8 sshconnect.c ssh.h ssh.c servconf.h servconf.c scp.1]
+     [scp.c packet.h packet.c login.c log.c canohost.c channels.c]
+     [hostfile.c sshd_config]
+     ipv6 support: mostly gethostbyname->getaddrinfo/getnameinfo, new
+     features: sshd allows multiple ListenAddress and Port options. note 
+     that libwrap is not IPv6-ready. (based on patches from 
+     fujiwara@rcac.tdi.co.jp)
+   - [ssh.c canohost.c]
+     more hints (hints.ai_socktype=SOCK_STREAM) for getaddrinfo, 
+     from itojun@
+   - [channels.c]
+     listen on _all_ interfaces for X11-Fwd (hints.ai_flags = AI_PASSIVE)
+   - [packet.h]
+     allow auth-kerberos for IPv4 only
+   - [scp.1 sshd.8 servconf.h scp.c]
+     document -4, -6, and 'ssh -L 2022/::1/22'
+   - [ssh.c]
+     'ssh @host' is illegal (null user name), from 
+     karsten@gedankenpolizei.de
+   - [sshconnect.c]
+     better error message
+   - [sshd.c]
+     allow auth-kerberos for IPv4 only
+ - Big IPv6 merge:
+   - Cleanup overrun in sockaddr copying on RHL 6.1
+   - Replacements for getaddrinfo, getnameinfo, etc based on versions
+     from patch from KIKUCHI Takahiro <kick@kyoto.wide.ad.jp>
+   - Replacement for missing structures on systems that lack IPv6
+   - record_login needed to know about AF_INET6 addresses
+   - Borrowed more code from OpenBSD: rresvport_af and requisites
+
 20000110
  - Fixes to auth-skey to enable it to use the standard OpenSSL libraries
 

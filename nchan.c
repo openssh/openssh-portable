@@ -28,7 +28,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: nchan.c,v 1.4 1999/12/06 00:47:29 damien Exp $");
+RCSID("$Id: nchan.c,v 1.5 2000/01/14 04:45:50 damien Exp $");
 
 #include "ssh.h"
 
@@ -41,7 +41,7 @@ static void chan_send_ieof(Channel *c);
 static void chan_send_oclose(Channel *c);
 static void chan_shutdown_write(Channel *c);
 static void chan_shutdown_read(Channel *c);
-static void chan_delele_if_full_closed(Channel *c);
+static void chan_delete_if_full_closed(Channel *c);
 
 /*
  * EVENTS update channel input/output states execute ACTIONS
@@ -55,19 +55,25 @@ chan_rcvd_oclose(Channel *c)
 	case CHAN_INPUT_WAIT_OCLOSE:
 		debug("channel %d: INPUT_WAIT_OCLOSE -> INPUT_CLOSED [rcvd OCLOSE]", c->self);
 		c->istate = CHAN_INPUT_CLOSED;
-		chan_delele_if_full_closed(c);
 		break;
 	case CHAN_INPUT_OPEN:
 		debug("channel %d: INPUT_OPEN -> INPUT_CLOSED [rvcd OCLOSE, send IEOF]", c->self);
 		chan_shutdown_read(c);
 		chan_send_ieof(c);
 		c->istate = CHAN_INPUT_CLOSED;
-		chan_delele_if_full_closed(c);
+		break;
+	case CHAN_INPUT_WAIT_DRAIN:
+		/* both local read_failed and remote write_failed  */
+		log("channel %d: INPUT_WAIT_DRAIN -> INPUT_CLOSED [rvcd OCLOSE, send IEOF]", c->self);
+		debug("channel %d: INPUT_WAIT_DRAIN -> INPUT_CLOSED [rvcd OCLOSE, send IEOF]", c->self);
+		chan_send_ieof(c);
+		c->istate = CHAN_INPUT_CLOSED;
 		break;
 	default:
 		error("protocol error: chan_rcvd_oclose %d for istate %d", c->self, c->istate);
-		break;
+		return;
 	}
+	chan_delete_if_full_closed(c);
 }
 void
 chan_read_failed(Channel *c)
@@ -115,7 +121,7 @@ chan_rcvd_ieof(Channel *c)
 	case CHAN_OUTPUT_WAIT_IEOF:
 		debug("channel %d: OUTPUT_WAIT_IEOF -> OUTPUT_CLOSED [rvcd IEOF]", c->self);
 		c->ostate = CHAN_OUTPUT_CLOSED;
-		chan_delele_if_full_closed(c);
+		chan_delete_if_full_closed(c);
 		break;
 	default:
 		error("protocol error: chan_rcvd_ieof %d for ostate %d", c->self, c->ostate);
@@ -135,7 +141,7 @@ chan_write_failed(Channel *c)
 		debug("channel %d: OUTPUT_WAIT_DRAIN -> OUTPUT_CLOSED [write failed]", c->self);
 		chan_send_oclose(c);
 		c->ostate = CHAN_OUTPUT_CLOSED;
-		chan_delele_if_full_closed(c);
+		chan_delete_if_full_closed(c);
 		break;
 	default:
 		error("internal error: chan_write_failed %d for ostate %d", c->self, c->ostate);
@@ -154,7 +160,7 @@ chan_obuf_empty(Channel *c)
 		debug("channel %d: OUTPUT_WAIT_DRAIN -> OUTPUT_CLOSED [obuf empty, send OCLOSE]", c->self);
 		chan_send_oclose(c);
 		c->ostate = CHAN_OUTPUT_CLOSED;
-		chan_delele_if_full_closed(c);
+		chan_delete_if_full_closed(c);
 		break;
 	default:
 		error("internal error: chan_obuf_empty %d for ostate %d", c->self, c->ostate);
@@ -213,14 +219,14 @@ chan_shutdown_read(Channel *c)
 {
 	debug("channel %d: shutdown_read", c->self);
 	if (shutdown(c->sock, SHUT_RD) < 0)
-		error("chan_shutdown_read failed for #%d/fd%d: %.100s",
-		      c->self, c->sock, strerror(errno));
+		error("chan_shutdown_read failed for #%d/fd%d [i%d o%d]: %.100s",
+		      c->self, c->sock, c->istate, c->ostate, strerror(errno));
 }
 static void
-chan_delele_if_full_closed(Channel *c)
+chan_delete_if_full_closed(Channel *c)
 {
 	if (c->istate == CHAN_INPUT_CLOSED && c->ostate == CHAN_OUTPUT_CLOSED) {
-		debug("channel %d: closing", c->self);
+		debug("channel %d: full closed", c->self);
 		channel_free(c->self);
 	}
 }

@@ -52,6 +52,9 @@ arrow  from S3.n to S4.s
 box invis "rcvd OCLOSE/" "-" with .w at last arrow.c
 ellipse wid .9*ellipsewid ht .9*ellipseht at S4
 arrow "start" "" from S1.w+(-0.5,0) to S1.w
+arrow from S2.ne to S4.sw
+box invis "rcvd OCLOSE/     " with .e at last arrow.c
+box invis " send IEOF" with .w at last arrow.c
 .PE
 .SH
 Channel Output State Diagram
@@ -76,7 +79,7 @@ arrow "start" "" from S1.w+(-0.5,0) to S1.w
 Notes
 .PP
 The input buffer is filled with data from the socket
-(the socket represents the local comsumer/producer of the
+(the socket represents the local consumer/producer of the
 forwarded channel).
 The data is then sent over the INPUT-end (transmit-end) of the channel to the
 remote peer.
@@ -85,7 +88,7 @@ saved in the output buffer and written to the socket.
 .PP
 If the local protocol instance has forwarded all data on the
 INPUT-end of the channel, it sends an IEOF message to the peer.
-If the peer receives the IEOF and has comsumed all
+If the peer receives the IEOF and has consumed all
 data he replies with an OCLOSE.
 When the local instance receives the OCLOSE
 he considers the INPUT-half of the channel closed.
@@ -94,6 +97,6 @@ The peer has his OUTOUT-half closed.
 A channel can be deallocated by a protocol instance
 if both the INPUT- and the OUTOUT-half on his
 side of the channel are closed.
-Note that when an instance is unable to comsume the
+Note that when an instance is unable to consume the
 received data, he is permitted to send an OCLOSE
 before the matching IEOF is received.

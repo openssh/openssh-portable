@@ -15,7 +15,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: packet.c,v 1.8 1999/12/16 02:18:04 damien Exp $");
+RCSID("$Id: packet.c,v 1.9 2000/01/14 04:45:50 damien Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -102,6 +102,48 @@ packet_set_connection(int fd_in, int fd_out)
 	}
 	/* Kludge: arrange the close function to be called from fatal(). */
 	fatal_add_cleanup((void (*) (void *)) packet_close, NULL);
+}
+
+/* Returns 1 if remote host is connected via socket, 0 if not. */
+
+int
+packet_connection_is_on_socket()
+{
+	struct sockaddr_storage from, to;
+	socklen_t fromlen, tolen;
+
+	/* filedescriptors in and out are the same, so it's a socket */
+	if (connection_in == connection_out)
+		return 1;
+	fromlen = sizeof(from);
+	memset(&from, 0, sizeof(from));
+	if (getpeername(connection_in, (struct sockaddr *) & from, &fromlen) < 0)
+		return 0;
+	tolen = sizeof(to);
+	memset(&to, 0, sizeof(to));
+	if (getsockname(connection_out, (struct sockaddr *)&to, &tolen) < 0)
+		return 0;
+	if (fromlen != tolen || memcmp(&from, &to, fromlen) != 0)
+		return 0;
+	if (from.ss_family != AF_INET && from.ss_family != AF_INET6)
+		return 0;
+	return 1;
+}
+
+/* returns 1 if connection is via ipv4 */
+
+int
+packet_connection_is_ipv4()
+{
+	struct sockaddr_storage to;
+	socklen_t tolen;
+
+	memset(&to, 0, sizeof(to));
+	if (getsockname(connection_out, (struct sockaddr *)&to, &tolen) < 0)
+		return 0;
+	if (to.ss_family != AF_INET)
+		return 0;
+	return 1;
 }
 
 /* Sets the connection into non-blocking mode. */
@@ -735,19 +777,20 @@ packet_set_interactive(int interactive, int keepalives)
 	/* Record that we are in interactive mode. */
 	interactive_mode = interactive;
 
-	/*
-	 * Only set socket options if using a socket (as indicated by the
-	 * descriptors being the same).
-	 */
-	if (connection_in != connection_out)
+	/* Only set socket options if using a socket.  */
+	if (!packet_connection_is_on_socket())
 		return;
-
 	if (keepalives) {
 		/* Set keepalives if requested. */
 		if (setsockopt(connection_in, SOL_SOCKET, SO_KEEPALIVE, (void *) &on,
-			       sizeof(on)) < 0)
+		    sizeof(on)) < 0)
 			error("setsockopt SO_KEEPALIVE: %.100s", strerror(errno));
 	}
+	/*
+	 * IPTOS_LOWDELAY, TCP_NODELAY and IPTOS_THROUGHPUT are IPv4 only
+	 */
+	if (!packet_connection_is_ipv4())
+		return;
 	if (interactive) {
 		/*
 		 * Set IP options for an interactive connection.  Use
@@ -755,10 +798,10 @@ packet_set_interactive(int interactive, int keepalives)
 		 */
 		int lowdelay = IPTOS_LOWDELAY;
 		if (setsockopt(connection_in, IPPROTO_IP, IP_TOS, (void *) &lowdelay,
-			       sizeof(lowdelay)) < 0)
+		    sizeof(lowdelay)) < 0)
 			error("setsockopt IPTOS_LOWDELAY: %.100s", strerror(errno));
 		if (setsockopt(connection_in, IPPROTO_TCP, TCP_NODELAY, (void *) &on,
-			       sizeof(on)) < 0)
+		    sizeof(on)) < 0)
 			error("setsockopt TCP_NODELAY: %.100s", strerror(errno));
 	} else {
 		/*
@@ -767,7 +810,7 @@ packet_set_interactive(int interactive, int keepalives)
 		 */
 		int throughput = IPTOS_THROUGHPUT;
 		if (setsockopt(connection_in, IPPROTO_IP, IP_TOS, (void *) &throughput,
-			       sizeof(throughput)) < 0)
+		    sizeof(throughput)) < 0)
 			error("setsockopt IPTOS_THROUGHPUT: %.100s", strerror(errno));
 	}
 }

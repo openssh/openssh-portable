@@ -88,6 +88,10 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #endif
 
 #include "version.h"
+
+/* BSD function replacements */
+#include "bsd-bindresvport.h"
+#include "bsd-rresvport.h"
 #include "bsd-misc.h"
 #include "bsd-strlcpy.h"
 #include "bsd-strlcat.h"
@@ -95,6 +99,11 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #include "bsd-snprintf.h"
 #include "bsd-daemon.h"
 #include "bsd-login.h"
+
+/* rfc2553 socket API replacements */
+#include "fake-getaddrinfo.h"
+#include "fake-getnameinfo.h"
+#include "fake-socket.h"
 
 /* Define this to be the path of the xauth program. */
 #ifndef XAUTH_PATH

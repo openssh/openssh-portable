@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: ssh.1.in,v 1.1 1999/12/26 22:23:58 damien Exp $
+.\" $Id: ssh.1.in,v 1.2 2000/01/14 04:45:51 damien Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSH 1
@@ -24,7 +24,7 @@
 .Op Ar command
 .Pp
 .Nm ssh
-.Op Fl afgknqtvxCPX
+.Op Fl afgknqtvxCPX46
 .Op Fl c Ar blowfish | 3des
 .Op Fl e Ar escape_char
 .Op Fl i Ar identity_file
@@ -396,9 +396,13 @@ by allocating a socket to listen to
 on the local side, and whenever a connection is made to this port, the
 connection is forwarded over the secure channel, and a connection is
 made to
-.Ar host:hostport
+.Ar host
+port
+.Ar hostport
 from the remote machine.  Port forwardings can also be specified in the
 configuration file.  Only root can forward privileged ports.
+IPv6 addresses can be specified with an alternative syntax:
+.Ar port/host/hostport
 .It Fl R Ar port:host:hostport
 Specifies that the given port on the remote (server) host is to be
 forwarded to the given host and port on the local side.  This works
@@ -407,10 +411,20 @@ by allocating a socket to listen to
 on the remote side, and whenever a connection is made to this port, the
 connection is forwarded over the secure channel, and a connection is
 made to
-.Ar host:hostport
+.Ar host
+port
+.Ar hostport
 from the local machine.  Port forwardings can also be specified in the
 configuration file.  Privileged ports can be forwarded only when
 logging in as root on the remote machine.
+.It Fl 4
+Forces
+.Nm
+to use IPv4 addresses only.
+.It Fl 6
+Forces
+.Nm
+to use IPv6 addresses only.
 .El
 .Sh CONFIGURATION FILES
 .Nm

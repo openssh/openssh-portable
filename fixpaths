@@ -31,8 +31,6 @@ for $f (@ARGV) {
   $f =~ /(.*\/)*(.*)$/;
   $of = $2; $of =~ s/.in$//;
 
-  print("Making substitutions for $of\n");
-
   open(IN, "<$f")          || die ("$0: input file $f missing!\n");
   if (open(OUT, ">$of")) {
     while (<IN>) {

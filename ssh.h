@@ -13,7 +13,7 @@
  * 
  */
 
-/* RCSID("$Id: ssh.h,v 1.23 1999/12/30 04:50:55 damien Exp $"); */
+/* RCSID("$Id: ssh.h,v 1.24 2000/01/14 04:45:52 damien Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -21,6 +21,8 @@
 #include <netinet/in.h> /* For struct sockaddr_in */
 #include <pwd.h> /* For struct pw */
 #include <stdarg.h> /* For va_list */
+#include <sys/socket.h> /* For struct sockaddr_storage */
+#include "fake-socket.h" /* For struct sockaddr_storage */
 #ifdef HAVE_SYS_SELECT_H
 # include <sys/select.h>
 #endif
@@ -284,7 +286,7 @@ get_last_login_time(uid_t uid, const char *logname,
  */
 void 
 record_login(int pid, const char *ttyname, const char *user, uid_t uid,
-    const char *host, struct sockaddr_in * addr);
+    const char *host, struct sockaddr *addr);
 
 /*
  * Records that the user has logged out.  This does many thigs normally done
@@ -304,7 +306,7 @@ void    record_logout(int pid, const char *ttyname);
  * packet_set_connection for the connection.
  */
 int 
-ssh_connect(const char *host, struct sockaddr_in * hostaddr,
+ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
     u_short port, int connection_attempts,
     int anonymous, uid_t original_real_uid,
     const char *proxy_command);
@@ -320,7 +322,7 @@ ssh_connect(const char *host, struct sockaddr_in * hostaddr,
 
 void 
 ssh_login(int host_key_valid, RSA * host_key, const char *host,
-    struct sockaddr_in * hostaddr, uid_t original_real_uid);
+    struct sockaddr * hostaddr, uid_t original_real_uid);
 
 /*------------ Definitions for various authentication methods. -------*/
 
@@ -380,8 +382,10 @@ const char *get_remote_ipaddr(void);
 /* Returns the port number of the peer of the socket. */
 int     get_peer_port(int sock);
 
-/* Returns the port number of the remote host. */
+/* Returns the port number of the remote/local host. */
 int     get_remote_port(void);
+int	get_local_port(void);
+
 
 /*
  * Tries to match the host name (which must be in all lowercase) against the
@@ -740,6 +744,9 @@ int     radix_to_creds(const char *buf, CREDENTIALS * creds);
 char   *skey_fake_keyinfo(char *username);
 int	auth_skey_password(struct passwd * pw, const char *password);
 #endif				/* SKEY */
+
+/* AF_UNSPEC or AF_INET or AF_INET6 */
+extern int IPv4or6;
 
 #ifdef USE_PAM
 #include "auth-pam.h"

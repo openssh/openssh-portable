@@ -45,7 +45,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: scp.c,v 1.15 1999/12/30 22:16:40 damien Exp $");
+RCSID("$Id: scp.c,v 1.16 2000/01/14 04:45:51 damien Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -73,6 +73,12 @@ off_t totalbytes = 0;
 
 /* Name of current file being transferred. */
 char *curfile;
+
+/* This is set to non-zero if IPv4 is desired. */
+int IPv4 = 0;
+
+/* This is set to non-zero if IPv6 is desired. */
+int IPv6 = 0;
 
 /* This is set to non-zero to enable verbose mode. */
 int verbose_mode = 0;
@@ -144,6 +150,11 @@ do_cmd(char *host, char *remuser, char *cmd, int *fdin, int *fdout)
 		i = 0;
 		args[i++] = SSH_PROGRAM;
 		args[i++] = "-x";
+		args[i++] = "-oFallBackToRsh no";
+		if (IPv4)
+			args[i++] = "-4";
+		if (IPv6)
+			args[i++] = "-6";
 		args[i++] = "-oFallBackToRsh no";
 		if (verbose_mode)
 			args[i++] = "-v";
@@ -242,9 +253,15 @@ main(argc, argv)
 	extern int optind;
 
 	fflag = tflag = 0;
-	while ((ch = getopt(argc, argv, "dfprtvBCc:i:P:q")) != EOF)
+	while ((ch = getopt(argc, argv, "dfprtvBCc:i:P:q46")) != EOF)
 		switch (ch) {
 		/* User-visible flags. */
+		case '4':
+	       		IPv4 = 1;
+			break;
+		case '6':
+	       		IPv6 = 1;
+			break;
 		case 'p':
 			pflag = 1;
 			break;
@@ -334,6 +351,17 @@ main(argc, argv)
 	exit(errs != 0);
 }
 
+char *
+cleanhostname(host)
+	char *host;
+{
+	if (*host == '[' && host[strlen(host) - 1] == ']') {
+		host[strlen(host) - 1] = '\0';
+		return (host + 1);
+	} else
+		return host;
+}
+
 void
 toremote(targ, argc, argv)
 	char *targ, *argv[];
@@ -372,6 +400,7 @@ toremote(targ, argc, argv)
 			bp = xmalloc(len);
 			if (host) {
 				*host++ = 0;
+				host = cleanhostname(host);
 				suser = argv[i];
 				if (*suser == '\0')
 					suser = pwd->pw_name;
@@ -383,13 +412,15 @@ toremote(targ, argc, argv)
 					       suser, host, cmd, src,
 					       tuser ? tuser : "", tuser ? "@" : "",
 					       thost, targ);
-			} else
+			} else {
+				host = cleanhostname(argv[i]);
 				(void) sprintf(bp,
 					       "exec %s%s -x -o'FallBackToRsh no' -n %s %s %s '%s%s%s:%s'",
 					       SSH_PROGRAM, verbose_mode ? " -v" : "",
-					       argv[i], cmd, src,
+					       host, cmd, src,
 					       tuser ? tuser : "", tuser ? "@" : "",
 					       thost, targ);
+			}
 			if (verbose_mode)
 				fprintf(stderr, "Executing: %s\n", bp);
 			(void) system(bp);
@@ -399,7 +430,7 @@ toremote(targ, argc, argv)
 				len = strlen(targ) + CMDNEEDS + 20;
 				bp = xmalloc(len);
 				(void) sprintf(bp, "%s -t %s", cmd, targ);
-				host = thost;
+				host = cleanhostname(thost);
 				if (do_cmd(host, tuser,
 					   bp, &remin, &remout) < 0)
 					exit(1);
@@ -449,6 +480,7 @@ tolocal(argc, argv)
 			else if (!okname(suser))
 				continue;
 		}
+		host = cleanhostname(host);
 		len = strlen(src) + CMDNEEDS + 20;
 		bp = xmalloc(len);
 		(void) sprintf(bp, "%s -f %s", cmd, src);
@@ -913,7 +945,7 @@ void
 usage()
 {
 	(void) fprintf(stderr,
-		       "usage: scp [-pqrvC] [-P port] [-c cipher] [-i identity] f1 f2; or:\n       scp [options] f1 ... fn directory\n");
+		       "usage: scp [-pqrvC46] [-P port] [-c cipher] [-i identity] f1 f2; or:\n       scp [options] f1 ... fn directory\n");
 	exit(1);
 }
 
@@ -976,18 +1008,26 @@ run_err(const char *fmt,...)
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *	$Id: scp.c,v 1.15 1999/12/30 22:16:40 damien Exp $
+ *	$Id: scp.c,v 1.16 2000/01/14 04:45:51 damien Exp $
  */
 
 char *
 colon(cp)
 	char *cp;
 {
+	int flag = 0;
+
 	if (*cp == ':')		/* Leading colon is part of file name. */
 		return (0);
+	if (*cp == '[')
+		flag = 1;
 
 	for (; *cp; ++cp) {
-		if (*cp == ':')
+		if (*cp == '@' && *(cp+1) == '[')
+			flag = 1;
+		if (*cp == ']' && *(cp+1) == ':' && flag)
+			return (cp+1);
+		if (*cp == ':' && !flag)
 			return (cp);
 		if (*cp == '/')
 			return (0);

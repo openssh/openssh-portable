@@ -112,6 +112,10 @@ typedef unsigned int size_t;
 # define HAVE_SIZE_T
 #endif /* HAVE_SIZE_T */
 
+#if !defined(HAVE_SS_FAMILY_IN_SS) && defined(HAVE___SS_FAMILY_IN_SS)
+# define ss_family __ss_family
+#endif /* !defined(HAVE_SS_FAMILY_IN_SS) && defined(HAVE_SA_FAMILY_IN_SS) */
+
 /* Paths */
 
 /* If _PATH_LASTLOG is not defined by system headers, set it to the */
