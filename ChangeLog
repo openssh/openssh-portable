@@ -1,3 +1,7 @@
+19991218
+ - Redhat init script patch from Chun-Chung Chen 
+   <cjj@u.washington.edu>
+
 19991216
  - Makefile changes for Solaris from Peter Kocks 
    <peter.kocks@baygate.com>
@@ -409,7 +413,8 @@
    - [ssh.1] user/958: check ~/.ssh/known_hosts for rhosts-rsa, too
    - [sshd.8] user/958: check ~/.ssh/known_hosts for rhosts-rsa, too
  - Fix integer overflow which was messing up scp's progress bar for large 
-   file transfers. Fix submitted to OpenBSD developers.
+   file transfers. Fix submitted to OpenBSD developers. Report and fix
+   from Kees Cook <cook@cpoint.net>
  - Merged more OpenBSD CVS changes:
    - [auth-krb4.c auth-passwd.c] remove x11- and krb-cleanup from fatal() 
      + krb-cleanup cleanup

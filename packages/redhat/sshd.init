@@ -31,6 +31,7 @@ case "$1" in
 	      RETVAL=$?
 	    ;;
 	  esac
+	  [ $RETVAL -eq 0 ] && touch /var/lock/subsys/sshd
 	fi
 	echo
 	;;
@@ -40,6 +41,7 @@ case "$1" in
 		killproc sshd
 	fi
 	echo
+	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/sshd
 	;;
   restart)
         $0 stop
