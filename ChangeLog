@@ -3,6 +3,9 @@
    - deraadt@cvs.openbsd.org 2002/06/26 14:49:36
      [monitor.c]
      correct %u
+   - deraadt@cvs.openbsd.org 2002/06/26 14:50:04
+     [monitor_fdpass.c]
+     use ssize_t for recvmsg() and sendmsg() return
 
 20020626
  - (stevesk) [monitor.c] remove duplicate proto15 dispatch entry for PAM
@@ -1175,4 +1178,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2303 2002/06/27 00:12:57 mouring Exp $
+$Id: ChangeLog,v 1.2304 2002/06/27 00:21:03 mouring Exp $
