@@ -209,7 +209,9 @@ fi
 %doc CREDITS LICENCE
 %attr(0755,root,root) %{_bindir}/ssh-keygen
 %attr(0755,root,root) %{_bindir}/scp
+%attr(0755,root,root) %{_bindir}/ssh-keyscan
 %attr(0644,root,root) %{_mandir}/man1/ssh-keygen.1*
+%attr(0644,root,root) %{_mandir}/man1/ssh-keyscan.1*
 %attr(0644,root,root) %{_mandir}/man1/scp.1*
 %attr(0755,root,root) %dir %{_sysconfdir}
 %attr(0600,root,root) %config(noreplace) %{_sysconfdir}/primes

@@ -1,3 +1,8 @@
+20001211
+ - (bal) Applied patch to include ssh-keyscan into Redhat's package, and
+   patch to install ssh-keyscan manpage.  Patch by Pekka Savola
+   <pekka@netcore.fi>
+
 20001210
  - (bal) OpenBSD CVS updates
    - markus@cvs.openbsd.org 2000/12/09 13:41:51 
