@@ -58,7 +58,7 @@ gnome-ssh-askpass: gnome-ssh-askpass.c
 clean:
 	rm -f *.o core $(TARGETS) config.status config.cache config.log
 
-install:
+install: all
 	install -d $(bindir)
 	install -d $(sbindir)
 	install -d $(mandir)

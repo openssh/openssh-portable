@@ -44,6 +44,8 @@ patented algorithms to seperate libraries (OpenSSL).
 CFLAGS="$RPM_OPT_FLAGS" \
 	./configure --prefix=/usr --sysconfdir=/etc/ssh --enable-gnome-askpass
 
+make
+
 %install
 rm -rf $RPM_BUILD_ROOT
 make install prefix="$RPM_BUILD_ROOT/usr"
