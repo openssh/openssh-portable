@@ -14,7 +14,7 @@ Adds an identity to the authentication server, or removes an identity.
 */
 
 #include "includes.h"
-RCSID("$Id: ssh-add.c,v 1.5 1999/11/08 23:28:04 damien Exp $");
+RCSID("$Id: ssh-add.c,v 1.6 1999/11/12 04:46:08 damien Exp $");
 
 #include "rsa.h"
 #include "ssh.h"
@@ -60,12 +60,14 @@ add_file(AuthenticationConnection *ac, const char *filename)
   RSA *public_key;
   char *saved_comment, *comment, *pass;
   int first;
+#ifndef DISABLE_EXTERNAL_ASKPASS
   int pipes[2];
   char buf[BUFSIZE];
   int tmp;
   pid_t child;
   FILE *pipef;
-  
+#endif /* !DISABLE_EXTERNAL_ASKPASS */
+
   key = RSA_new();
   public_key = RSA_new();
   if (!load_public_key(filename, public_key, &saved_comment))
@@ -86,6 +88,7 @@ add_file(AuthenticationConnection *ac, const char *filename)
       /* Ask for a passphrase. */
       if (getenv("DISPLAY") && !isatty(fileno(stdin)))
 	{
+#ifndef DISABLE_EXTERNAL_ASKPASS
           if (pipe(pipes) ==-1)
             {
               fprintf(stderr, "Creating pipes failed: %s\n", strerror(errno));
@@ -152,6 +155,10 @@ add_file(AuthenticationConnection *ac, const char *filename)
                   return;
                 }
             }
+#else /* !DISABLE_EXTERNAL_ASKPASS */
+      xfree(saved_comment);
+      return;
+#endif /* !DISABLE_EXTERNAL_ASKPASS */
 	}
       else
 	{

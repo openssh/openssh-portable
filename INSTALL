@@ -71,6 +71,8 @@ sure of what you are doing, it is best to leave this alone.
 support and to specify a EGD pool socket. You will need to use this if your
 Unix does not support the /dev/urandom device (or similar).
 
+--without-askpass will disable X11 password requestor support in ssh-add
+
 
 3. Configuration
 ----------------

@@ -20,6 +20,7 @@
       * readconf.h is only included if necessary
    - [mpaux.c] clear temp buffer
    - [servconf.c] print _all_ bad options found in configfile
+ - Make ssh-askpass support optional through autoconf
 
 19991111
  - Added (untested) Entropy Gathering Daemon (EGD) support

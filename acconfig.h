@@ -21,8 +21,11 @@
 /* Define is libutil has login() function */
 #undef HAVE_LIBUTIL_LOGIN
 
+/* Define if you *don't* want to use an external ssh-askpass */
+#undef DISABLE_EXTERNAL_ASKPASS
 
-/* Shouldn't need to edit below this line *************************** */
+/* ******************* Shouldn't need to edit below this line ************** */
+
 #ifndef SHUT_RDWR
 enum
 {
