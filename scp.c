@@ -80,11 +80,7 @@ RCSID("$OpenBSD: scp.c,v 1.116 2004/07/08 12:47:21 dtucker Exp $");
 #include "misc.h"
 #include "progressmeter.h"
 
-#ifdef HAVE___PROGNAME
 extern char *__progname;
-#else
-char *__progname;
-#endif
 
 void bwlimit(int);
 

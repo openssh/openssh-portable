@@ -17,7 +17,11 @@
 #include "includes.h"
 #include "xmalloc.h"
 
-RCSID("$Id: bsd-misc.c,v 1.22 2004/06/25 04:03:34 dtucker Exp $");
+RCSID("$Id: bsd-misc.c,v 1.23 2004/07/17 04:07:42 dtucker Exp $");
+
+#ifndef HAVE__PROGNAME
+char *__progname;
+#endif
 
 /*
  * NB. duplicate __progname in case it is an alias for argv[0]

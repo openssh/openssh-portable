@@ -76,11 +76,7 @@ int print_generic = 0;
 char *key_type_name = NULL;
 
 /* argv0 */
-#ifdef HAVE___PROGNAME
 extern char *__progname;
-#else
-char *__progname;
-#endif
 
 char hostname[MAXHOSTNAMELEN];
 

@@ -106,11 +106,7 @@ char socket_dir[1024];
 int locked = 0;
 char *lock_passwd = NULL;
 
-#ifdef HAVE___PROGNAME
 extern char *__progname;
-#else
-char *__progname;
-#endif
 
 /* Default lifetime (0 == forever) */
 static int lifetime = 0;

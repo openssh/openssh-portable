@@ -1,3 +1,9 @@
+20040717
+ - (dtucker) [logintest.c scp.c sftp-server.c sftp.c ssh-add.c ssh-agent.c
+   ssh-keygen.c ssh-keyscan.c ssh-keysign.c ssh-rand-helper.c ssh.c sshd.c
+   openbsd-compat/bsd-misc.c] Move "char *__progname" to bsd-misc.c.  Reduces
+   diff vs OpenBSD; ok mouring@, tested by tim@ too.
+
 20040711
  - (dtucker) [auth-pam.c] Check for zero from waitpid() too, which allows
    the monitor to properly clean up the PAM thread (Debian bug #252676).
@@ -1503,4 +1509,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3473 2004/07/11 06:54:08 dtucker Exp $
+$Id: ChangeLog,v 1.3474 2004/07/17 04:07:42 dtucker Exp $

@@ -49,12 +49,6 @@ RCSID("$OpenBSD: ssh-add.c,v 1.70 2004/05/08 00:21:31 djm Exp $");
 #include "pathnames.h"
 #include "misc.h"
 
-#ifdef HAVE___PROGNAME
-extern char *__progname;
-#else
-char *__progname;
-#endif
-
 /* argv0 */
 extern char *__progname;
 

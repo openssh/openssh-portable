@@ -49,11 +49,7 @@ int timeout = 5;
 int maxfd;
 #define MAXCON (maxfd - 10)
 
-#ifdef HAVE___PROGNAME
 extern char *__progname;
-#else
-char *__progname;
-#endif
 fd_set *read_wait;
 size_t read_wait_size;
 int ncon;

@@ -45,11 +45,7 @@ RCSID("$OpenBSD: ssh-keysign.c,v 1.16 2004/04/18 23:10:26 djm Exp $");
 /* XXX readconf.c needs these */
 uid_t original_real_uid;
 
-#ifdef HAVE___PROGNAME
 extern char *__progname;
-#else
-char *__progname;
-#endif
 
 static int
 valid_request(struct passwd *pw, char *host, Key **ret, u_char *data,

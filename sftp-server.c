@@ -31,11 +31,7 @@ RCSID("$OpenBSD: sftp-server.c,v 1.47 2004/06/25 05:38:48 dtucker Exp $");
 #define get_string(lenp)		buffer_get_string(&iqueue, lenp);
 #define TRACE				debug
 
-#ifdef HAVE___PROGNAME
 extern char *__progname;
-#else
-char *__progname;
-#endif
 
 /* input and output queue */
 Buffer iqueue;

@@ -55,11 +55,7 @@ int sort_flag;
 int remote_glob(struct sftp_conn *, const char *, int,
     int (*)(const char *, int), glob_t *); /* proto for sftp-glob.c */
 
-#ifdef HAVE___PROGNAME
 extern char *__progname;
-#else
-char *__progname;
-#endif
 
 /* Separators for interactive commands */
 #define WHITESPACE " \t\r\n"

@@ -76,11 +76,7 @@ RCSID("$OpenBSD: ssh.c,v 1.222 2004/06/23 14:31:01 dtucker Exp $");
 #include "scard.h"
 #endif
 
-#ifdef HAVE___PROGNAME
 extern char *__progname;
-#else
-char *__progname;
-#endif
 
 /* Flag indicating whether debug mode is on.  This can be set on the command line. */
 int debug_flag = 0;
