@@ -1,3 +1,11 @@
+20020621
+ - (djm) Sync:
+   - djm@cvs.openbsd.org 2002/06/21 05:50:51
+     [monitor.c]
+     Don't initialise compression buffers when compression=no in sshd_config;
+     ok Niels@
+
+
 20020620
  - (bal) Fixed AIX environment handling, use setpcred() instead of existing
    code.  (Bugzilla Bug 261)
@@ -986,4 +994,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2234 2002/06/21 01:38:53 mouring Exp $
+$Id: ChangeLog,v 1.2235 2002/06/21 05:59:49 djm Exp $
