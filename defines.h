@@ -89,6 +89,10 @@ enum
 # define STDERR_FILENO   2
 #endif                   
 
+#ifndef NGROUP_MAX	/* Disable groupaccess if NGROUP_MAX is not set */
+#define NGROUP_MAX 0
+#endif
+
 #ifndef O_NONBLOCK	/* Non Blocking Open */
 # define O_NONBLOCK      00004 
 #endif

@@ -1,3 +1,7 @@
+20010105
+ - (bal) Disable groupaccess by setting NGROUP_MAX to 0 for platforms
+   that don't have NGROUP_MAX.
+
 20010104
  - (bal) I think this is the last of the bsd-*.h that don't belong.
  - (bal) Minor Makefile fix
