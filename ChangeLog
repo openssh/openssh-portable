@@ -4,6 +4,9 @@
    OpenSSL >= 0.9.7.  ok djm@
  - (dtucker) [session.c] Bug #789: Do not call do_pam_setcred as a non-root
    user, since some modules might fail due to lack of privilege.  ok djm@
+ - (dtucker) [configure.ac] Bug #748: Always define BROKEN_GETADDRINFO
+   for HP-UX 11.11.  If there are known-good configs where this is not
+   required, please report them.  ok djm@
 
 20040129
  - (dtucker) OpenBSD CVS Sync regress/
@@ -1789,4 +1792,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3207 2004/02/06 04:30:50 dtucker Exp $
+$Id: ChangeLog,v 1.3208 2004/02/06 04:59:06 dtucker Exp $

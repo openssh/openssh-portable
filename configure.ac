@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.191 2004/01/30 03:34:22 dtucker Exp $
+# $Id: configure.ac,v 1.192 2004/02/06 04:59:06 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -192,6 +192,10 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE(DISABLE_UTMP)
 	AC_DEFINE(LOCKED_PASSWD_STRING, "*")
 	AC_DEFINE(SPT_TYPE,SPT_PSTAT)
+	case "$host" in
+	*-*-hpux11.11*)
+		AC_DEFINE(BROKEN_GETADDRINFO);;
+	esac
 	LIBS="$LIBS -lsec"
 	AC_CHECK_LIB(xnet, t_error, ,AC_MSG_ERROR([*** -lxnet needed on HP-UX - check config.log ***]))
 	;;
