@@ -28,6 +28,11 @@ TEST_SSH_x: path to "ssh" command under test, where x=SSH,SSHD,SSHAGENT,SSHADD
 	SSHKEYGEN,SSHKEYSCAN,SFTP,SFTPSERVER
 OBJ: used by test scripts to access build dir.
 TEST_SHELL: shell used for running the test scripts.
+TEST_SSH_PORT: TCP port to be used for the listening tests.
+TEST_SSH_SSH_CONFOTPS: Configuration directives to be added to ssh_config
+	before running each test.
+TEST_SSH_SSHD_CONFOTPS: Configuration directives to be added to sshd_config
+	before running each test.
 
 
 Individual tests.
@@ -100,4 +105,4 @@ Known Issues.
   unless ssh-rand-helper is in pre-installed (the path to
   ssh-rand-helper is hard coded).
 
-$Id: README.regress,v 1.6 2004/06/18 04:14:43 dtucker Exp $
+$Id: README.regress,v 1.7 2004/06/28 05:52:51 dtucker Exp $

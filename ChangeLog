@@ -1,6 +1,7 @@
 20040627
  - (tim) update README files.
  - (dtucker) [mdoc2man.awk] Bug #883: correctly recognise .Pa and .Ev macros.
+ - (dtucker) [regress/README.regress] Document new variables.
 
 20040626
  - (djm) OpenBSD CVS Sync
@@ -1437,4 +1438,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3454 2004/06/28 05:45:08 dtucker Exp $
+$Id: ChangeLog,v 1.3455 2004/06/28 05:52:50 dtucker Exp $
