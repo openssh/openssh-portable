@@ -1,3 +1,9 @@
+20001209
+ - (bal) OpenSSH CVS updates:
+   - djm@cvs.openbsd.org 2000/12/07 4:24:59 
+     [ssh.1]
+     Typo fix from Wilfredo Sanchez <wsanchez@apple.com>; ok theo
+
 20001207
  - (bal) OpenSSH CVS updates:
    - markus@cvs.openbsd.org 2000/12/06 22:58:14 
