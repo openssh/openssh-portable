@@ -12,6 +12,9 @@
      delay detach of session if a channel gets closed but the child is 
      still alive.  however, release pty, since the fd's to the child are 
      already closed.
+   - markus@cvs.openbsd.org 2001/10/11 15:24:00
+     [clientloop.c]
+     clear select masks if we return before calling select().
 
 20011010
  - (djm) OpenBSD CVS Sync
@@ -6710,4 +6713,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1602 2001/10/12 01:35:50 djm Exp $
+$Id: ChangeLog,v 1.1603 2001/10/12 01:36:09 djm Exp $
