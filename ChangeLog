@@ -1,7 +1,12 @@
 20030916
  - (dtucker) [acconfig.h configure.ac defines.h session.c] Bug #252: Retrieve
    PATH (or SUPATH) and UMASK from /etc/default/login on platforms that have it
-   eg Solaris, Reliant Unix.  Patch from Robert.Dahlem at siemens.com.  ok djm@
+   (eg Solaris, Reliant Unix).  Patch from Robert.Dahlem at siemens.com.  
+   ok djm@
+ - (bal) OpenBSD Sync
+   - deraadt@cvs.openbsd.org 2003/09/16 03:03:47
+     [buffer.c]
+     do not expand buffer before attempting to reallocate it; markus ok
 
 20030914
  - (dtucker) [Makefile regress/Makefile] Fix portability issues preventing
@@ -1098,4 +1103,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2993 2003/09/16 03:24:50 dtucker Exp $
+$Id: ChangeLog,v 1.2994 2003/09/16 03:31:03 mouring Exp $
