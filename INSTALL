@@ -57,9 +57,10 @@ make install
 This will install the binaries in /opt/{bin,lib,sbin}, but will place the
 configuration files in /etc/ssh.
 
-If you are using PAM, you will need to manually install the sshd.pam
-control file as "/etc/pam.d/sshd". This file is customised for Redhat
-Linux, you may need to edit it before using it on your system.
+If you are using PAM, you will need to manually install a PAM control
+file as "/etc/pam.d/sshd" (or wherever your system prefers to keep
+them). A generic PAM configuration is included as "sshd.pam.generic",
+you may need to edit it before using it on your system.
 
 There are a few other options to the configure script:
 

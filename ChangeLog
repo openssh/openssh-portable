@@ -1,3 +1,8 @@
+19991123
+ - Added SuSE package files from Chris Saia <csaia@wtower.com>
+ - Restructured package-related files under packages/
+ - Added generic PAM config
+
 19991122
  - Make <enter> close gnome-ssh-askpass (Debian bug #50299)
  - OpenBSD CVS Changes

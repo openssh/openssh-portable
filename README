@@ -54,6 +54,7 @@ Theo de Raadt, and Dug Song - Creators of OpenSSH
 'jonchen' - the original author of PAM support of SSH
 Ben Taylor <bent@clark.net> - Solaris debugging and fixes
 Chip Salzenberg <chip@valinux.com> - Assorted patches
+Chris Saia <csaia@wtower.com> - SuSE packaging
 Dan Brosemer <odin@linuxfreak.com> - Autoconf and build fixes & Debian scripts
 Jim Knoble <jmknoble@pobox.com> - RPM spec file fixes
 Marc G. Fournier <marc.fournier@acadiau.ca> - Solaris patches

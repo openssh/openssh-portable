@@ -124,8 +124,8 @@ make install prefix="$RPM_BUILD_ROOT/usr"
 install -d $RPM_BUILD_ROOT/etc/ssh
 install -d $RPM_BUILD_ROOT/etc/pam.d/
 install -d $RPM_BUILD_ROOT/etc/rc.d/init.d
-install -m644 sshd.pam $RPM_BUILD_ROOT/etc/pam.d/sshd
-install -m755 sshd.init.redhat $RPM_BUILD_ROOT/etc/rc.d/init.d/sshd
+install -m644 packages/redhat/sshd.pam $RPM_BUILD_ROOT/etc/pam.d/sshd
+install -m755 packages/redhat/sshd.init $RPM_BUILD_ROOT/etc/rc.d/init.d/sshd
 install -m600 ssh_config $RPM_BUILD_ROOT/etc/ssh/ssh_config
 install -m600 sshd_config $RPM_BUILD_ROOT/etc/ssh/sshd_config
 
@@ -166,7 +166,7 @@ fi
 %attr(0644,root,root) /usr/man/man1/ssh.1
 %attr(0644,root,root) /usr/man/man1/ssh-agent.1
 %attr(0644,root,root) /usr/man/man1/ssh-add.1
-%attr(0644,root,root) %config /etc/ssh/ssh_config
+%attr(0644,root,root) %config(noreplace) /etc/ssh/ssh_config
 %attr(-,root,root) /usr/bin/slogin
 %attr(-,root,root) /usr/man/man1/slogin.1
 
@@ -174,8 +174,8 @@ fi
 %defattr(-,root,root)
 %attr(0755,root,root) /usr/sbin/sshd
 %attr(0644,root,root) /usr/man/man8/sshd.8
-%attr(0600,root,root) %config /etc/ssh/sshd_config
-%attr(0600,root,root) %config /etc/pam.d/sshd
+%attr(0600,root,root) %config(noreplace) /etc/ssh/sshd_config
+%attr(0600,root,root) %config(noreplace) /etc/pam.d/sshd
 %attr(0755,root,root) %config /etc/rc.d/init.d/sshd
 
 %files askpass
