@@ -1,5 +1,10 @@
 20030813
  - (dtucker) [session.c] Remove #ifdef TIOCSBRK kludge.
+ - (dtucker) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2003/08/13 08:33:02
+     [session.c]
+     use more portable tcsendbreak(3) and ignore break_length;
+     ok deraadt, millert
 
 20030811
  - (dtucker) OpenBSD CVS Sync
@@ -818,4 +823,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2889 2003/08/13 10:28:14 dtucker Exp $
+$Id: ChangeLog,v 1.2890 2003/08/13 10:31:05 dtucker Exp $

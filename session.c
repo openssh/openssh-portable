@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.159 2003/07/22 13:35:22 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.160 2003/08/13 08:33:02 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1693,18 +1693,12 @@ session_break_req(Session *s)
 {
 	u_int break_length;
 
-	break_length = packet_get_int();
+	break_length = packet_get_int();	/* ignored */
 	packet_check_eom();
 
-	if (s->ttyfd == -1)
+	if (s->ttyfd == -1 ||
+	    tcsendbreak(s->ttyfd, 0) < 0)
 		return 0;
-	/* we will sleep from 500ms to 3000ms */
-	break_length = MIN(break_length, 3000);
-	break_length = MAX(break_length,  500);
-	ioctl(s->ttyfd, TIOCSBRK, NULL);
-	/* should we care about EINTR? */
-	usleep(break_length * 1000);
-	ioctl(s->ttyfd, TIOCCBRK, NULL);
 	return 1;
 }
 
