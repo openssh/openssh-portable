@@ -9,7 +9,8 @@
      Ability to suppress abort on error in batchmode ("-put blah")
      Fixes mindrot bug #452; markus@ ok
    - fgsch@cvs.openbsd.org 2003/01/10 08:19:07
-     [scp.c sftp.1 sftp.c sftp-client.c sftp-int.c]
+     [scp.c sftp.1 sftp.c sftp-client.c sftp-int.c  progressmeter.c]
+     [progressmeter.h]
      sftp progress meter support.
      original diffs by Nils Nordman <nino at nforced dot com> via 
      markus@, merged to -current by me, djm@ ok.
@@ -993,4 +994,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2563 2003/01/10 10:45:12 djm Exp $
+$Id: ChangeLog,v 1.2564 2003/01/10 10:46:02 djm Exp $
