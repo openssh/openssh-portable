@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.133 2001/09/17 20:52:47 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.134 2001/09/17 21:04:01 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1292,14 +1292,17 @@ static int
 channel_handle_wfd(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	struct termios tio;
+	u_char *data;
+	u_int dlen;
 	int len;
 
 	/* Send buffered output data to the socket. */
 	if (c->wfd != -1 &&
 	    FD_ISSET(c->wfd, writeset) &&
 	    buffer_len(&c->output) > 0) {
-		len = write(c->wfd, buffer_ptr(&c->output),
-		    buffer_len(&c->output));
+		data = buffer_ptr(&c->output);
+		dlen = buffer_len(&c->output);
+		len = write(c->wfd, data, dlen);
 		if (len < 0 && (errno == EINTR || errno == EAGAIN))
 			return 1;
 		if (len <= 0) {
@@ -1316,7 +1319,7 @@ channel_handle_wfd(Channel *c, fd_set * readset, fd_set * writeset)
 			}
 			return -1;
 		}
-		if (compat20 && c->isatty) {
+		if (compat20 && c->isatty && dlen >= 1 && data[0] != '\r') {
 			if (tcgetattr(c->wfd, &tio) == 0 &&
 			    !(tio.c_lflag & ECHO) && (tio.c_lflag & ICANON)) {
 				/*

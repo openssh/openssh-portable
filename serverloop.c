@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.76 2001/07/17 21:04:58 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.77 2001/09/17 21:04:02 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -349,12 +349,15 @@ static void
 process_output(fd_set * writeset)
 {
 	struct termios tio;
+	u_char *data;
+	u_int dlen;
 	int len;
 
 	/* Write buffered data to program stdin. */
 	if (!compat20 && fdin != -1 && FD_ISSET(fdin, writeset)) {
-		len = write(fdin, buffer_ptr(&stdin_buffer),
-		    buffer_len(&stdin_buffer));
+		data = buffer_ptr(&stdin_buffer);
+		dlen = buffer_len(&stdin_buffer);
+		len = write(fdin, data, dlen);
 		if (len < 0 && (errno == EINTR || errno == EAGAIN)) {
 			/* do nothing */
 		} else if (len <= 0) {
@@ -369,7 +372,8 @@ process_output(fd_set * writeset)
 			fdin = -1;
 		} else {
 			/* Successful write. */
-			if (fdin_is_tty && tcgetattr(fdin, &tio) == 0 &&
+			if (fdin_is_tty && dlen >= 1 && data[0] != '\r' &&
+			    tcgetattr(fdin, &tio) == 0 &&
 			    !(tio.c_lflag & ECHO) && (tio.c_lflag & ICANON)) {
 				/*
 				 * Simulate echo to reduce the impact of
