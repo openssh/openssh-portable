@@ -30,7 +30,7 @@ RCSID("$OpenBSD: auth2.c,v 1.42 2001/02/13 22:49:40 markus Exp $");
 #include "ssh2.h"
 #include "xmalloc.h"
 #include "rsa.h"
-#include "pty.h"
+#include "sshpty.h"
 #include "packet.h"
 #include "buffer.h"
 #include "log.h"

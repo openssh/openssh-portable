@@ -1,3 +1,7 @@
+20010219
+ - (bal) Markus' blessing to rename login.[ch] -> sshlogin.[ch] and
+   pty.[ch] -> sshpty.[ch]
+
 20010218
  - (bal) Patch for fix FCHMOD reference in ftp-client.c by Tim Rice 
    <tim@multitalents.net> 
@@ -4038,4 +4042,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.800 2001/02/18 12:50:38 djm Exp $
+$Id: ChangeLog,v 1.801 2001/02/18 19:13:33 mouring Exp $

@@ -42,7 +42,7 @@ RCSID("$OpenBSD: serverloop.c,v 1.49 2001/02/15 23:19:59 markus Exp $");
 #include "buffer.h"
 #include "log.h"
 #include "servconf.h"
-#include "pty.h"
+#include "sshpty.h"
 #include "channels.h"
 #include "compat.h"
 #include "ssh1.h"

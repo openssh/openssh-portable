@@ -18,7 +18,7 @@ RCSID("$OpenBSD: pty.c,v 1.22 2001/02/08 19:30:52 itojun Exp $");
 # include <util.h>
 #endif /* HAVE_UTIL_H */
 
-#include "pty.h"
+#include "sshpty.h"
 #include "log.h"
 
 /* Pty allocated with _getpty gets broken if we do I_PUSH:es to it. */

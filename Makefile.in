@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.154 2001/02/18 04:23:10 djm Exp $
+# $Id: Makefile.in,v 1.155 2001/02/18 19:13:33 mouring Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -48,7 +48,7 @@ LIBSSH_OBJS=atomicio.o authfd.o authfile.o bufaux.o buffer.o canohost.o channels
 
 SSHOBJS= ssh.o sshconnect.o sshconnect1.o sshconnect2.o log-client.o readconf.o clientloop.o
 
-SSHDOBJS= sshd.o auth.o auth1.o auth2.o auth-chall.o auth2-chall.o auth-rhosts.o auth-options.o auth-krb4.o auth-pam.o auth2-pam.o auth-passwd.o auth-rsa.o auth-rh-rsa.o auth-sia.o dh.o pty.o log-server.o login.o loginrec.o servconf.o serverloop.o md5crypt.o session.o groupaccess.o
+SSHDOBJS= sshd.o auth.o auth1.o auth2.o auth-chall.o auth2-chall.o auth-rhosts.o auth-options.o auth-krb4.o auth-pam.o auth2-pam.o auth-passwd.o auth-rsa.o auth-rh-rsa.o auth-sia.o dh.o sshpty.o log-server.o sshlogin.o loginrec.o servconf.o serverloop.o md5crypt.o session.o groupaccess.o
 
 TROFFMAN	= scp.1 ssh-add.1 ssh-agent.1 ssh-keygen.1 ssh-keyscan.1 ssh.1 sshd.8 sftp-server.8 sftp.1
 CATMAN		= scp.0 ssh-add.0 ssh-agent.0 ssh-keygen.0 ssh-keyscan.0 ssh.0 sshd.0 sftp-server.0 sftp.0

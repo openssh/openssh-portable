@@ -51,7 +51,7 @@ RCSID("$OpenBSD: sshd.c,v 1.167 2001/02/12 23:26:20 markus Exp $");
 #include "ssh2.h"
 #include "xmalloc.h"
 #include "rsa.h"
-#include "pty.h"
+#include "sshpty.h"
 #include "packet.h"
 #include "mpaux.h"
 #include "log.h"
