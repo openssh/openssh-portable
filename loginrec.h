@@ -40,7 +40,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-/* RCSID("$Id: loginrec.h,v 1.2 2000/06/04 17:07:49 andre Exp $"); */
+/* RCSID("$Id: loginrec.h,v 1.3 2000/06/19 08:20:03 andre Exp $"); */
 
 /**
  ** you should use the login_* calls to work around platform dependencies
@@ -102,6 +102,9 @@ struct logininfo {
 /*
  * login recording functions
  */
+
+/** 'public' functions */
+
 /* construct a new login entry */
 struct logininfo *login_alloc_entry(int pid, const char *username,
 				    const char *hostname, const char *line);
@@ -113,15 +116,19 @@ int login_init_entry(struct logininfo *li, int pid, const char *username,
 /* place the current time in a logininfo struct */
 void login_set_current_time(struct logininfo *li);
 
-/* set the network address based on network address type */
-void login_set_addr(struct logininfo *li, const struct sockaddr *sa,
-		    const unsigned int sa_size);
+/* record the entry */
+int login_login (struct logininfo *li);
+int login_logout(struct logininfo *li);
+
+/** End of public functions */
 
 /* record the entry */
 int login_write (struct logininfo *li);
-int login_login (struct logininfo *li);
-int login_logout(struct logininfo *li);
 int login_log_entry(struct logininfo *li);
+
+/* set the network address based on network address type */
+void login_set_addr(struct logininfo *li, const struct sockaddr *sa,
+		    const unsigned int sa_size);
 
 /*
  * lastlog retrieval functions
