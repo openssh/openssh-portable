@@ -20,6 +20,7 @@ David Agraz <dagraz@jahoopa.com> - Build fixes
 David Del Piero <David.DelPiero@qed.qld.gov.au> - bug fixes
 David Hesprich <darkgrue@gue-tech.org> - Configure fixes
 David Rankin <drankin@bohemians.lexington.ky.us> - libwrap, AIX, NetBSD fixes
+Ed Eden <ede370@stl.rural.usda.gov> - configure fixes
 Gary E. Miller <gem@rellim.com> - SCO support
 Ged Lodder <lodder@yacc.com.au> - HPUX fixes and enhancements
 Gert Doering <gd@hilb1.medat.de> - bug and portability fixes

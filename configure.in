@@ -212,37 +212,27 @@ AC_CACHE_CHECK([for OpenSSL directory], ac_cv_openssldir, [
 			LDFLAGS="$saved_LDFLAGS"
 		fi
 
-		for WANTS_RSAREF in "" 1 ; do
-		
-			if test -z "$WANTS_RSAREF" ; then
-				LIBS="$saved_LIBS -lcrypto"
-			else
-				LIBS="$saved_LIBS -lcrypto -lRSAglue -lrsaref"
-			fi
+		LIBS="$saved_LIBS -lcrypto"
 
-			AC_TRY_RUN(
-				[
+		# Basic test to check for compatible version and correct linking
+		# *does not* test for RSA - that comes later.
+		AC_TRY_RUN(
+			[
 #include <string.h>
 #include <openssl/rand.h>
-#include <openssl/rsa.h>
-#include <openssl/bn.h>
-#include <openssl/sha.h>
 int main(void) 
 {
-	RSA *key; char a[2048],b[2048];;
-	memset(a, 0, sizeof(a));memset(b, 0, sizeof(b));
+	char a[2048];
+	memset(a, 0, sizeof(a));
 	RAND_add(a, sizeof(a), sizeof(a));
-	key=RSA_generate_key(32,3,NULL,NULL);
-	if (key==NULL) return(1);
-	return(-1==RSA_private_decrypt(RSA_size(key),a,b,key,RSA_NO_PADDING));
+	return(RAND_status() <= 0);
 }
-				],
-				[
-					found_crypto=1
-					break;
-				], []
-			)
-		done
+			],
+			[
+				found_crypto=1
+				break;
+			], []
+		)
 
 		if test ! -z "$found_crypto" ; then
 			break;
@@ -272,12 +262,53 @@ if test ! -z "$ac_cv_openssldir" -a ! "x$ac_cv_openssldir" = "x(system)" ; then
 		blibpath="$blibpath:$ssldir:$ssldir/lib"
 	fi
 fi
-if test -z "$WANTS_RSAREF" ; then
-	LIBS="$saved_LIBS -lcrypto"
-else
-	LIBS="$saved_LIBS -lcrypto -lRSAglue -lrsaref"
-fi
+LIBS="$saved_LIBS -lcrypto"
 
+# Now test RSA support
+saved_LIBS="$LIBS"
+AC_MSG_CHECKING([for RSA support])
+for WANTS_RSAREF in "" 1 ; do
+	if test -z "$WANTS_RSAREF" ; then
+		LIBS="$saved_LIBS"
+	else
+		LIBS="$saved_LIBS -lRSAglue -lrsaref"
+	fi
+	AC_TRY_RUN([
+#include <string.h>
+#include <openssl/rand.h>
+#include <openssl/rsa.h>
+#include <openssl/bn.h>
+#include <openssl/sha.h>
+int main(void) 
+{
+	int num; RSA *key; static unsigned char p_in[] = "blahblah";
+	unsigned char c[256], p[256];
+	memset(c, 0, sizeof(c)); RAND_add(c, sizeof(c), sizeof(c));
+	if ((key=RSA_generate_key(512, 3, NULL, NULL))==NULL) return(1);
+	num = RSA_public_encrypt(sizeof(p_in) - 1, p_in, c, key, RSA_PKCS1_PADDING);
+	return(-1 == RSA_private_decrypt(num, c, p, key, RSA_PKCS1_PADDING));
+}
+	],
+	[
+		rsa_works=1
+		break;
+	], [])
+done
+
+if test ! -z "$no_rsa" ; then
+	AC_MSG_RESULT(disabled)
+else
+	if test -z "$rsa_works" ; then
+		AC_MSG_WARN([*** No RSA support found *** ])
+	else
+		if test -z "$WANTS_RSAREF" ; then
+			AC_MSG_RESULT(yes)
+		else
+			AC_MSG_RESULT(using RSAref)
+			LIBS="$saved_LIBS -lcrypto -lRSAglue -lrsaref"
+		fi
+	fi
+fi
 
 # Checks for data types
 AC_CHECK_SIZEOF(char, 1)

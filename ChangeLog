@@ -32,6 +32,9 @@
  - Checking for ssize_t and memmove. Based on patch from SAKAI Kiyotaka 
    <ksakai@kso.netwk.ntt-at.co.jp>
  - RSAless operation patch from kevin_oconnor@standardandpoors.com
+ - Detect OpenSSL seperatly from RSA
+ - Better test for RSA (more compatible with RSAref). Based on work by 
+   Ed Eden <ede370@stl.rural.usda.gov>
 
 20000513
  - Fix for non-recognised DSA keys from Arkadiusz Miskiewicz 
