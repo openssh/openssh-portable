@@ -1,4 +1,4 @@
-/*	$OpenBSD: sshconnect.h,v 1.13 2001/10/08 19:05:05 markus Exp $	*/
+/*	$OpenBSD: sshconnect.h,v 1.14 2002/05/23 19:24:30 markus Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -26,20 +26,27 @@
 #ifndef SSHCONNECT_H
 #define SSHCONNECT_H
 
+typedef struct Sensitive Sensitive;
+struct Sensitive {
+        Key     **keys;
+        int     nkeys;
+        int     external_keysign;
+};
+
 int
 ssh_connect(const char *, struct sockaddr_storage *, u_short, int, int,
     int, struct passwd *, const char *);
 
 void
-ssh_login(Key **, int, const char *, struct sockaddr *, struct passwd *);
+ssh_login(Sensitive *, const char *, struct sockaddr *, struct passwd *);
 
 int	 verify_host_key(char *, struct sockaddr *, Key *);
 
 void	 ssh_kex(char *, struct sockaddr *);
 void	 ssh_kex2(char *, struct sockaddr *);
 
-void	 ssh_userauth1(const char *, const char *, char *, Key **, int);
-void	 ssh_userauth2(const char *, const char *, char *, Key **, int);
+void	 ssh_userauth1(const char *, const char *, char *, Sensitive *);
+void	 ssh_userauth2(const char *, const char *, char *, Sensitive *);
 
 void	 ssh_put_password(char *);
 

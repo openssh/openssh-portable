@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.172 2002/05/22 23:18:25 deraadt Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.173 2002/05/23 19:24:30 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -132,10 +132,7 @@ char *host;
 struct sockaddr_storage hostaddr;
 
 /* Private host keys. */
-struct {
-	Key     **keys;
-	int	nkeys;
-} sensitive_data;
+Sensitive sensitive_data;
 
 /* Original real UID. */
 uid_t original_real_uid;
@@ -689,6 +686,7 @@ again:
 	 */
 	sensitive_data.nkeys = 0;
 	sensitive_data.keys = NULL;
+	sensitive_data.external_keysign = 0;
 	if (!cerr && (options.rhosts_rsa_authentication ||
 	    options.hostbased_authentication)) {
 		sensitive_data.nkeys = 3;
@@ -699,6 +697,16 @@ again:
 		    _PATH_HOST_DSA_KEY_FILE, "", NULL);
 		sensitive_data.keys[2] = key_load_private_type(KEY_RSA,
 		    _PATH_HOST_RSA_KEY_FILE, "", NULL);
+
+		if (sensitive_data.keys[0] == NULL &&
+		    sensitive_data.keys[1] == NULL &&
+		    sensitive_data.keys[2] == NULL) {
+			sensitive_data.keys[1] = key_load_public(
+			    _PATH_HOST_DSA_KEY_FILE, NULL);
+			sensitive_data.keys[2] = key_load_public(
+			    _PATH_HOST_RSA_KEY_FILE, NULL);
+			sensitive_data.external_keysign = 1;
+		}
 	}
 	/*
 	 * Get rid of any extra privileges that we may have.  We will no
@@ -758,8 +766,7 @@ again:
 	signal(SIGPIPE, SIG_IGN); /* ignore SIGPIPE early */
 
 	/* Log into the remote system.  This never returns if the login fails. */
-	ssh_login(sensitive_data.keys, sensitive_data.nkeys,
-	    host, (struct sockaddr *)&hostaddr, pw);
+	ssh_login(&sensitive_data, host, (struct sockaddr *)&hostaddr, pw);
 
 	/* We no longer need the private host keys.  Clear them now. */
 	if (sensitive_data.nkeys != 0) {

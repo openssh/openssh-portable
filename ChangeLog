@@ -16,6 +16,11 @@
    - deraadt@cvs.openbsd.org 2002/05/22 23:18:25
      [ssh.c sshd.c]
      spelling; abishoff@arc.nasa.gov
+   - markus@cvs.openbsd.org 2002/05/23 19:24:30
+     [authfile.c authfile.h pathnames.h ssh.c sshconnect.c sshconnect.h 
+      sshconnect1.c sshconnect2.c ssh-keysign.8 ssh-keysign.c Makefile.in]
+     add /usr/libexec/ssh-keysign: a setuid helper program for hostbased 
+     authentication in protocol v2 (needs to access the hostkeys).
 
 20020604
  - (stevesk) [channels.c] bug #164 patch from YOSHIFUJI Hideaki (changed
@@ -700,4 +705,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2148 2002/06/06 19:51:58 mouring Exp $
+$Id: ChangeLog,v 1.2149 2002/06/06 19:57:33 mouring Exp $

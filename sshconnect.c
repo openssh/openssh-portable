@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.119 2002/01/21 15:13:51 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.120 2002/05/23 19:24:30 markus Exp $");
 
 #include <openssl/bn.h>
 
@@ -844,7 +844,7 @@ verify_host_key(char *host, struct sockaddr *hostaddr, Key *host_key)
  * This function does not require super-user privileges.
  */
 void
-ssh_login(Key **keys, int nkeys, const char *orighost,
+ssh_login(Sensitive *sensitive, const char *orighost,
     struct sockaddr *hostaddr, struct passwd *pw)
 {
 	char *host, *cp;
@@ -869,10 +869,10 @@ ssh_login(Key **keys, int nkeys, const char *orighost,
 	/* authenticate user */
 	if (compat20) {
 		ssh_kex2(host, hostaddr);
-		ssh_userauth2(local_user, server_user, host, keys, nkeys);
+		ssh_userauth2(local_user, server_user, host, sensitive);
 	} else {
 		ssh_kex(host, hostaddr);
-		ssh_userauth1(local_user, server_user, host, keys, nkeys);
+		ssh_userauth1(local_user, server_user, host, sensitive);
 	}
 }
 

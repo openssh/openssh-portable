@@ -1,4 +1,4 @@
-/*	$OpenBSD: pathnames.h,v 1.12 2002/03/19 03:03:43 stevesk Exp $	*/
+/*	$OpenBSD: pathnames.h,v 1.13 2002/05/23 19:24:30 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -118,6 +118,11 @@
  */
 #ifndef _PATH_SSH_ASKPASS_DEFAULT
 #define _PATH_SSH_ASKPASS_DEFAULT	"/usr/X11R6/bin/ssh-askpass"
+#endif
+
+/* Location of ssh-keysign for hostbased authentication */
+#ifndef _PATH_SSH_KEY_SIGN
+#define _PATH_SSH_KEY_SIGN            "/usr/libexec/ssh-keysign"
 #endif
 
 /* xauth for X11 forwarding */
