@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: servconf.h,v 1.37 2001/02/11 12:59:25 markus Exp $"); */
+/* RCSID("$OpenBSD: servconf.h,v 1.38 2001/02/12 16:16:23 markus Exp $"); */
 
 #ifndef SERVCONF_H
 #define SERVCONF_H
@@ -24,6 +24,14 @@
 #define MAX_DENY_GROUPS		256	/* Max # groups on deny list. */
 #define MAX_SUBSYSTEMS		256	/* Max # subsystems. */
 #define MAX_HOSTKEYS		256	/* Max # hostkeys. */
+
+/* permit_root_login */
+#define	PERMIT_NOT_SET		-1
+#define	PERMIT_NO		0
+#define	PERMIT_FORCED_ONLY	1
+#define	PERMIT_NO_PASSWD	2
+#define	PERMIT_YES		3
+
 
 typedef struct {
 	u_int num_ports;
@@ -38,7 +46,7 @@ typedef struct {
 	int     login_grace_time;	/* Disconnect if no auth in this time
 					 * (sec). */
 	int     key_regeneration_time;	/* Server key lifetime (seconds). */
-	int     permit_root_login;	/* If true, permit root login. */
+	int     permit_root_login;	/* PERMIT_*, see above */
 	int     ignore_rhosts;	/* Ignore .rhosts and .shosts. */
 	int     ignore_user_known_hosts;	/* Ignore ~/.ssh/known_hosts
 						 * for RhostsRsaAuth */

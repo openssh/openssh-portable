@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.42 2001/02/04 15:32:26 stevesk Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.43 2001/02/12 16:16:23 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -532,6 +532,7 @@ do_change_comment(struct passwd *pw)
 	public = key_new(KEY_RSA1);
 	if (!load_public_key(identity_file, public, NULL)) {
 		printf("%s is not a valid key file.\n", identity_file);
+		printf("Comments are only supported in RSA1 keys\n");
 		exit(1);
 	}
 

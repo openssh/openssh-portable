@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.15 2001/02/07 22:35:45 markus Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.16 2001/02/12 16:16:23 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -316,7 +316,8 @@ do_authloop(Authctxt *authctxt)
 		}
 #else
 		/* Special handling for root */
-		if (authenticated && authctxt->pw->pw_uid == 0 && !auth_root_allowed())
+		if (authenticated && authctxt->pw->pw_uid == 0 &&
+		    !auth_root_allowed(get_authname(type)))
 			authenticated = 0;
 #endif
 #ifdef USE_PAM

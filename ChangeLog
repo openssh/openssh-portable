@@ -15,6 +15,11 @@
      3) or the 'MACs' keyword in ssh(d)_config
      4) add hmac-{md5,sha1}-96
              ok stevesk@, provos@
+   - markus@cvs.openbsd.org 2001/02/12 16:16:23
+     [auth-passwd.c auth.c auth.h auth1.c auth2.c servconf.c servconf.h
+      ssh-keygen.c sshd.8]
+     PermitRootLogin={yes,without-password,forced-commands-only,no}
+     (before this change, root could login even if PermitRootLogin==no)
 
 20010214
  - (djm) Don't try to close PAM session or delete credentials if the
@@ -3943,4 +3948,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.763 2001/02/15 03:01:59 mouring Exp $
+$Id: ChangeLog,v 1.764 2001/02/15 03:08:27 mouring Exp $

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth.c,v 1.16 2001/02/04 15:32:22 stevesk Exp $");
+RCSID("$OpenBSD: auth.c,v 1.17 2001/02/12 16:16:23 markus Exp $");
 
 #ifdef HAVE_LOGIN_H
 #include <login.h>
@@ -216,19 +216,26 @@ auth_log(Authctxt *authctxt, int authenticated, char *method, char *info)
 }
 
 /*
- * Check if the user is logging in as root and root logins are disallowed.
- * Note that root login is _allways_ allowed for forced commands.
+ * Check whether root logins are disallowed.
  */
 int
-auth_root_allowed(void)
+auth_root_allowed(char *method)
 {
-	if (options.permit_root_login)
+	switch (options.permit_root_login) {
+	case PERMIT_YES:
 		return 1;
-	if (forced_command) {
-		log("Root login accepted for forced command.");
-		return 1;
-	} else {
-		log("ROOT LOGIN REFUSED FROM %.200s", get_remote_ipaddr());
-		return 0;
+		break;
+	case PERMIT_NO_PASSWD:
+		if (strcmp(method, "password") != 0)
+			return 1;
+		break;
+	case PERMIT_FORCED_ONLY:
+		if (forced_command) {
+			log("Root login accepted for forced command.");
+			return 1;
+		}
+		break;
 	}
+	log("ROOT LOGIN REFUSED FROM %.200s", get_remote_ipaddr());
+	return 0;
 }

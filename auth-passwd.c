@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-passwd.c,v 1.20 2001/01/21 19:05:42 markus Exp $");
+RCSID("$OpenBSD: auth-passwd.c,v 1.21 2001/02/12 16:16:23 markus Exp $");
 
 #if !defined(USE_PAM) && !defined(HAVE_OSF_SIA)
 
@@ -110,7 +110,7 @@ auth_password(struct passwd * pw, const char *password)
 	if (pw == NULL)
 		return 0;
 #ifndef HAVE_CYGWIN
-	if (pw->pw_uid == 0 && options.permit_root_login == 2)
+       if (pw->pw_uid == 0 && options.permit_root_login != PERMIT_YES)
 		return 0;
 #endif
 #ifdef HAVE_CYGWIN
