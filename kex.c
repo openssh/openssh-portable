@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.45 2002/02/14 23:41:01 markus Exp $");
+RCSID("$OpenBSD: kex.c,v 1.46 2002/02/23 17:59:02 markus Exp $");
 
 #include <openssl/crypto.h>
 
@@ -132,6 +132,7 @@ kex_finish(Kex *kex)
 
 	debug("waiting for SSH2_MSG_NEWKEYS");
 	packet_read_expect(SSH2_MSG_NEWKEYS);
+	packet_check_eom();
 	debug("SSH2_MSG_NEWKEYS received");
 
 	kex->done = 1;

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kexdh.c,v 1.14 2002/01/31 13:35:11 markus Exp $");
+RCSID("$OpenBSD: kexdh.c,v 1.15 2002/02/23 17:59:02 markus Exp $");
 
 #include <openssl/crypto.h>
 #include <openssl/bn.h>
@@ -220,6 +220,7 @@ kexdh_server(Kex *kex)
 	if ((dh_client_pub = BN_new()) == NULL)
 		fatal("dh_client_pub == NULL");
 	packet_get_bignum2(dh_client_pub);
+	packet_check_eom();
 
 #ifdef DEBUG_KEXDH
 	fprintf(stderr, "dh_client_pub= ");

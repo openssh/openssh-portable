@@ -23,6 +23,9 @@
    - markus@cvs.openbsd.org 2002/02/22 12:20:34
      [log.c log.h ssh-keyscan.c]
      overwrite fatal() in ssh-keyscan.c; fixes pr 2354; ok provos@
+   - markus@cvs.openbsd.org 2002/02/23 17:59:02
+     [kex.c kexdh.c kexgex.c]
+     don't allow garbage after payload.
 
 20020225
  - (bal) Last AIX patch.  Moved aix_usrinfo() outside of do_setuserconext()
@@ -7696,4 +7699,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1879 2002/02/26 17:52:14 mouring Exp $
+$Id: ChangeLog,v 1.1880 2002/02/26 17:58:29 mouring Exp $
