@@ -1,3 +1,6 @@
+20000530
+ - Define atexit for old Solaris
+
 20000520
  - Xauth fix from Markus Friedl <markus.friedl@informatik.uni-erlangen.de>
  - Don't touch utmp if USE_UTMPX defined

@@ -293,4 +293,8 @@ typedef int ssize_t;
 # define memmove(s1, s2, n) bcopy((s2), (s1), (n))
 #endif /* !defined(HAVE_MEMMOVE) && defined(HAVE_BCOPY) */
 
+#if !defined(HAVE_ATEXIT) && defined(HAVE_ON_EXIT)
+# define atexit(a) on_exit(a)
+#endif /* !defined(HAVE_ATEXIT) && defined(HAVE_ON_EXIT) */
+
 #endif /* _DEFINES_H */
