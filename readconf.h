@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: readconf.h,v 1.24 2000/12/27 12:30:20 markus Exp $"); */
+/* RCSID("$OpenBSD: readconf.h,v 1.25 2001/01/22 23:06:39 markus Exp $"); */
 
 #ifndef READCONF_H
 #define READCONF_H
@@ -36,7 +36,8 @@ typedef struct {
 						 * authentication. */
 	int     rsa_authentication;	/* Try RSA authentication. */
 	int     pubkey_authentication;	/* Try ssh2 pubkey authentication. */
-	int     skey_authentication;	/* Try S/Key or TIS authentication. */
+	int     challenge_reponse_authentication;
+					/* Try S/Key or TIS, authentication. */
 #ifdef KRB4
 	int     kerberos_authentication;	/* Try Kerberos
 						 * authentication. */

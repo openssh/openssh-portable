@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.156 2001/01/22 17:22:28 stevesk Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.157 2001/01/22 23:06:40 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1254,7 +1254,7 @@ do_ssh1_kex(void)
 	if (options.afs_token_passing)
 		auth_mask |= 1 << SSH_PASS_AFS_TOKEN;
 #endif
-	if (options.skey_authentication == 1)
+	if (options.challenge_reponse_authentication == 1)
 		auth_mask |= 1 << SSH_AUTH_TIS;
 	if (options.password_authentication)
 		auth_mask |= 1 << SSH_AUTH_PASSWORD;

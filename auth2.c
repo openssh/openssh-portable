@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.33 2001/01/22 08:32:53 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.34 2001/01/22 23:06:39 markus Exp $");
 
 #ifdef HAVE_OSF_SIA
 # include <sia.h>
@@ -122,6 +122,10 @@ do_authentication2()
 	Authctxt *authctxt = authctxt_new();
 
 	x_authctxt = authctxt;		/*XXX*/
+
+	/* challenge-reponse is implemented via keyboard interactive */
+	if (options.challenge_reponse_authentication)
+		options.kbd_interactive_authentication = 1;
 
 #ifdef AFS
 	/* If machine has AFS, set process authentication group. */
@@ -401,7 +405,8 @@ userauth_kbdint(Authctxt *authctxt)
 
 	debug("keyboard-interactive language %s devs %s", lang, devs);
 
-	authenticated = auth2_challenge(authctxt, devs);
+	if (options.challenge_reponse_authentication)
+		authenticated = auth2_challenge(authctxt, devs);
 
 #ifdef USE_PAM
 	if (authenticated == 0)

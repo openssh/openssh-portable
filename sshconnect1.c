@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.19 2001/01/22 08:15:00 markus Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.20 2001/01/22 23:06:40 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/evp.h>
@@ -613,7 +613,7 @@ send_afs_tokens(void)
  * Note that the client code is not tied to s/key or TIS.
  */
 int
-try_skey_authentication()
+try_challenge_reponse_authentication()
 {
 	int type, i;
 	int payload_len;
@@ -621,7 +621,7 @@ try_skey_authentication()
 	char prompt[1024];
 	char *challenge, *response;
 
-	debug("Doing skey authentication.");
+	debug("Doing challenge reponse authentication.");
 
 	for (i = 0; i < options.number_of_password_prompts; i++) {
 		/* request a challenge */
@@ -633,10 +633,10 @@ try_skey_authentication()
 		if (type != SSH_SMSG_FAILURE &&
 		    type != SSH_SMSG_AUTH_TIS_CHALLENGE) {
 			packet_disconnect("Protocol error: got %d in response "
-			    "to skey-auth", type);
+			    "to SSH_CMSG_AUTH_TIS", type);
 		}
 		if (type != SSH_SMSG_AUTH_TIS_CHALLENGE) {
-			debug("No challenge for skey authentication.");
+			debug("No challenge.");
 			return 0;
 		}
 		challenge = packet_get_string(&clen);
@@ -665,7 +665,7 @@ try_skey_authentication()
 			return 1;
 		if (type != SSH_SMSG_FAILURE)
 			packet_disconnect("Protocol error: got %d in response "
-			    "to skey-auth-reponse", type);
+			    "to SSH_CMSG_AUTH_TIS_RESPONSE", type);
 	}
 	/* failure */
 	return 0;
@@ -1018,10 +1018,10 @@ ssh_userauth(
 			    try_rsa_authentication(options.identity_files[i]))
 				return;
 	}
-	/* Try skey authentication if the server supports it. */
+	/* Try challenge response authentication if the server supports it. */
 	if ((supported_authentications & (1 << SSH_AUTH_TIS)) &&
-	    options.skey_authentication && !options.batch_mode) {
-		if (try_skey_authentication())
+	    options.challenge_reponse_authentication && !options.batch_mode) {
+		if (try_challenge_reponse_authentication())
 			return;
 	}
 	/* Try password authentication if the server supports it. */

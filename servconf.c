@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.62 2001/01/21 19:05:55 markus Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.63 2001/01/22 23:06:39 markus Exp $");
 
 #ifdef KRB4
 #include <krb.h>
@@ -77,7 +77,7 @@ initialize_server_options(ServerOptions *options)
 #endif
 	options->password_authentication = -1;
 	options->kbd_interactive_authentication = -1;
-	options->skey_authentication = -1;
+	options->challenge_reponse_authentication = -1;
 	options->permit_empty_passwd = -1;
 	options->use_login = -1;
 	options->allow_tcp_forwarding = -1;
@@ -171,8 +171,8 @@ fill_default_server_options(ServerOptions *options)
 		options->password_authentication = 1;
 	if (options->kbd_interactive_authentication == -1)
 		options->kbd_interactive_authentication = 0;
-	if (options->skey_authentication == -1)
-		options->skey_authentication = 1;
+	if (options->challenge_reponse_authentication == -1)
+		options->challenge_reponse_authentication = 1;
 	if (options->permit_empty_passwd == -1)
 		options->permit_empty_passwd = 0;
 	if (options->use_login == -1)
@@ -201,7 +201,7 @@ typedef enum {
 #ifdef AFS
 	sKerberosTgtPassing, sAFSTokenPassing,
 #endif
-	sSkeyAuthentication,
+	sChallengeResponseAuthentication,
 	sPasswordAuthentication, sKbdInteractiveAuthentication, sListenAddress,
 	sPrintMotd, sIgnoreRhosts, sX11Forwarding, sX11DisplayOffset,
 	sStrictModes, sEmptyPasswd, sRandomSeedFile, sKeepAlives, sCheckMail,
@@ -243,7 +243,8 @@ static struct {
 #endif
 	{ "passwordauthentication", sPasswordAuthentication },
 	{ "kbdinteractiveauthentication", sKbdInteractiveAuthentication },
-	{ "skeyauthentication", sSkeyAuthentication },
+	{ "challengeresponseauthentication", sChallengeResponseAuthentication },
+	{ "skeyauthentication", sChallengeResponseAuthentication }, /* alias */
 	{ "checkmail", sCheckMail },
 	{ "listenaddress", sListenAddress },
 	{ "printmotd", sPrintMotd },
@@ -537,8 +538,8 @@ parse_flag:
 			intptr = &options->check_mail;
 			goto parse_flag;
 
-		case sSkeyAuthentication:
-			intptr = &options->skey_authentication;
+		case sChallengeResponseAuthentication:
+			intptr = &options->challenge_reponse_authentication;
 			goto parse_flag;
 
 		case sPrintMotd:

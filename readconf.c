@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.58 2001/01/21 19:05:53 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.59 2001/01/22 23:06:39 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -93,7 +93,7 @@ typedef enum {
 	oBadOption,
 	oForwardAgent, oForwardX11, oGatewayPorts, oRhostsAuthentication,
 	oPasswordAuthentication, oRSAAuthentication, oFallBackToRsh, oUseRsh,
-	oSkeyAuthentication, oXAuthLocation,
+	oChallengeResponseAuthentication, oXAuthLocation,
 #ifdef KRB4
 	oKerberosAuthentication,
 #endif /* KRB4 */
@@ -104,7 +104,7 @@ typedef enum {
 	oUser, oHost, oEscapeChar, oRhostsRSAAuthentication, oProxyCommand,
 	oGlobalKnownHostsFile, oUserKnownHostsFile, oConnectionAttempts,
 	oBatchMode, oCheckHostIP, oStrictHostKeyChecking, oCompression,
-	oCompressionLevel, oKeepAlives, oNumberOfPasswordPrompts, oTISAuthentication,
+	oCompressionLevel, oKeepAlives, oNumberOfPasswordPrompts,
 	oUsePrivilegedPort, oLogLevel, oCiphers, oProtocol,
 	oGlobalKnownHostsFile2, oUserKnownHostsFile2, oPubkeyAuthentication,
 	oKbdInteractiveAuthentication, oKbdInteractiveDevices, oHostKeyAlias
@@ -127,8 +127,10 @@ static struct {
 	{ "kbdinteractivedevices", oKbdInteractiveDevices },
 	{ "rsaauthentication", oRSAAuthentication },
 	{ "pubkeyauthentication", oPubkeyAuthentication },
-	{ "dsaauthentication", oPubkeyAuthentication },		/* alias */
-	{ "skeyauthentication", oSkeyAuthentication },
+	{ "dsaauthentication", oPubkeyAuthentication },		    /* alias */
+	{ "challengeresponseauthentication", oChallengeResponseAuthentication },
+	{ "skeyauthentication", oChallengeResponseAuthentication }, /* alias */
+	{ "tisauthentication", oChallengeResponseAuthentication },  /* alias */
 #ifdef KRB4
 	{ "kerberosauthentication", oKerberosAuthentication },
 #endif /* KRB4 */
@@ -165,7 +167,6 @@ static struct {
 	{ "compressionlevel", oCompressionLevel },
 	{ "keepalive", oKeepAlives },
 	{ "numberofpasswordprompts", oNumberOfPasswordPrompts },
-	{ "tisauthentication", oTISAuthentication },
 	{ "loglevel", oLogLevel },
 	{ NULL, 0 }
 };
@@ -318,10 +319,8 @@ parse_flag:
 		intptr = &options->rhosts_rsa_authentication;
 		goto parse_flag;
 
-	case oTISAuthentication:
-		/* fallthrough, there is no difference on the client side */
-	case oSkeyAuthentication:
-		intptr = &options->skey_authentication;
+	case oChallengeResponseAuthentication:
+		intptr = &options->challenge_reponse_authentication;
 		goto parse_flag;
 
 #ifdef KRB4
@@ -669,7 +668,7 @@ initialize_options(Options * options)
 	options->rhosts_authentication = -1;
 	options->rsa_authentication = -1;
 	options->pubkey_authentication = -1;
-	options->skey_authentication = -1;
+	options->challenge_reponse_authentication = -1;
 #ifdef KRB4
 	options->kerberos_authentication = -1;
 #endif
@@ -736,8 +735,8 @@ fill_default_options(Options * options)
 		options->rsa_authentication = 1;
 	if (options->pubkey_authentication == -1)
 		options->pubkey_authentication = 1;
-	if (options->skey_authentication == -1)
-		options->skey_authentication = 0;
+	if (options->challenge_reponse_authentication == -1)
+		options->challenge_reponse_authentication = 0;
 #ifdef KRB4
 	if (options->kerberos_authentication == -1)
 		options->kerberos_authentication = 1;
@@ -751,7 +750,7 @@ fill_default_options(Options * options)
 	if (options->password_authentication == -1)
 		options->password_authentication = 1;
 	if (options->kbd_interactive_authentication == -1)
-		options->kbd_interactive_authentication = 0;
+		options->kbd_interactive_authentication = 1;
 	if (options->rhosts_rsa_authentication == -1)
 		options->rhosts_rsa_authentication = 1;
 	if (options->fallback_to_rsh == -1)
