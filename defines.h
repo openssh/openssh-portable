@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.117 2004/06/22 03:27:16 dtucker Exp $ */
+/* $Id: defines.h,v 1.118 2005/02/02 12:30:25 dtucker Exp $ */
 
 
 /* Constants */
@@ -642,6 +642,15 @@ struct winsize {
 #  undef USE_SHADOW
 # endif
 # define CUSTOM_SYS_AUTH_PASSWD 1
+#endif
+
+/* HP-UX 11.11 */
+#ifdef BTMP_FILE
+# define _PATH_BTMP BTMP_FILE
+#endif
+
+#if defined(USE_BTMP) && defined(_PATH_BTMP)
+# define CUSTOM_FAILED_LOGIN
 #endif
 
 /** end of login recorder definitions */

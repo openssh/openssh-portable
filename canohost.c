@@ -20,7 +20,6 @@ RCSID("$OpenBSD: canohost.c,v 1.41 2004/07/21 11:51:29 djm Exp $");
 #include "canohost.h"
 
 static void check_ip_options(int, char *);
-static void ipv64_normalise_mapped(struct sockaddr_storage *, socklen_t *);
 
 /*
  * Return the canonical name of the host at the other end of the socket. The
@@ -166,7 +165,7 @@ check_ip_options(int sock, char *ipaddr)
 #endif /* IP_OPTIONS */
 }
 
-static void
+void
 ipv64_normalise_mapped(struct sockaddr_storage *addr, socklen_t *len)
 {
 	struct sockaddr_in6 *a6 = (struct sockaddr_in6 *)addr;

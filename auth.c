@@ -244,7 +244,10 @@ auth_log(Authctxt *authctxt, int authenticated, char *method, char *info)
 	    info);
 
 #ifdef CUSTOM_FAILED_LOGIN
-	if (authenticated == 0 && strcmp(method, "password") == 0)
+	if (authenticated == 0 && !authctxt->postponed &&
+	    (strcmp(method, "password") == 0 ||
+	    strncmp(method, "keyboard-interactive", 20) == 0) ||
+	    strcmp(method, "challenge-response") == 0)
 		record_failed_login(authctxt->user,
 		    get_canonical_hostname(options.use_dns), "ssh");
 #endif

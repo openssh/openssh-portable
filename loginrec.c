@@ -25,6 +25,27 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*
+ * The btmp logging code is derived from login.c from util-linux and is under
+ * the the following license:
+ *
+ * Copyright (c) 1980, 1987, 1988 The Regents of the University of California.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms are permitted
+ * provided that the above copyright notice and this paragraph are
+ * duplicated in all such forms and that any documentation,
+ * advertising materials, and other materials related to such
+ * distribution and use acknowledge that the software was developed
+ * by the University of California, Berkeley.  The name of the
+ * University may not be used to endorse or promote products derived
+ * from this software without specific prior written permission.
+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ */
+
+
 /**
  ** loginrec.c:  platform-independent login recording and lastlog retrieval
  **/
@@ -131,6 +152,8 @@
 #include "loginrec.h"
 #include "log.h"
 #include "atomicio.h"
+#include "packet.h"
+#include "canohost.h"
 
 #ifdef HAVE_UTIL_H
 # include <util.h>
@@ -140,7 +163,7 @@
 # include <libutil.h>
 #endif
 
-RCSID("$Id: loginrec.c,v 1.62 2004/09/12 05:26:01 djm Exp $");
+RCSID("$Id: loginrec.c,v 1.63 2005/02/02 12:30:25 dtucker Exp $");
 
 /**
  ** prototypes for helper functions in this file
@@ -1563,3 +1586,82 @@ lastlog_get_entry(struct logininfo *li)
 	return (0);
 }
 #endif /* USE_LASTLOG */
+
+#ifdef USE_BTMP
+  /*
+   * Logs failed login attempts in _PATH_BTMP if that exists.
+   * The most common login failure is to give password instead of username.
+   * So the _PATH_BTMP file checked for the correct permission, so that
+   * only root can read it.
+   */
+
+void
+record_failed_login(const char *username, const char *hostname,
+    const char *ttyn)
+{
+	int fd;
+	struct utmp ut;
+	struct sockaddr_storage from;
+	size_t fromlen = sizeof(from);
+	struct sockaddr_in *a4;
+	struct sockaddr_in6 *a6;
+	time_t t;
+	struct stat fst;
+
+	if (geteuid() != 0)
+		return;
+	if ((fd = open(_PATH_BTMP, O_WRONLY | O_APPEND)) < 0) {
+		debug("Unable to open the btmp file %s: %s", _PATH_BTMP,
+		    strerror(errno));
+		return;
+	}
+	if (fstat(fd, &fst) < 0) {
+		logit("%s: fstat of %s failed: %s", __func__, _PATH_BTMP,
+		    strerror(errno));
+		goto out;
+	}
+	if((fst.st_mode & (S_IRWXG | S_IRWXO)) || (fst.st_uid != 0)){
+		logit("Excess permission or bad ownership on file %s",
+		    _PATH_BTMP);
+		goto out;
+	}
+
+	memset(&ut, 0, sizeof(ut));
+	/* strncpy because we don't necessarily want nul termination */
+	strncpy(ut.ut_user, username, sizeof(ut.ut_user));
+	strlcpy(ut.ut_line, "ssh:notty", sizeof(ut.ut_line));
+
+	time(&t);
+	ut.ut_time = t;     /* ut_time is not always a time_t */
+	ut.ut_type = LOGIN_PROCESS;
+	ut.ut_pid = getpid();
+
+	/* strncpy because we don't necessarily want nul termination */
+	strncpy(ut.ut_host, hostname, sizeof(ut.ut_host));
+
+	if (packet_connection_is_on_socket() &&
+	    getpeername(packet_get_connection_in(),
+	    (struct sockaddr *)&from, &fromlen) == 0) {
+		ipv64_normalise_mapped(&from, &fromlen);
+		if (from.ss_family == AF_INET) {
+			a4 = (struct sockaddr_in *)&from;
+			memcpy(&ut.ut_addr, &(a4->sin_addr),
+			    MIN_SIZEOF(ut.ut_addr, a4->sin_addr));
+		}
+#ifdef HAVE_ADDR_V6_IN_UTMP
+		if (from.ss_family == AF_INET6) {
+			a6 = (struct sockaddr_in6 *)&from;
+			memcpy(&ut.ut_addr_v6, &(a6->sin6_addr),
+			    MIN_SIZEOF(ut.ut_addr_v6, a6->sin6_addr));
+		}
+#endif
+	}
+
+	if (atomicio(vwrite, fd, &ut, sizeof(ut)) != sizeof(ut))
+		error("Failed to write to %s: %s", _PATH_BTMP,
+		    strerror(errno));
+
+out:
+	close(fd);
+}
+#endif	/* USE_BTMP */

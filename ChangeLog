@@ -9,6 +9,11 @@
    the process.  Since we also unset KRB5CCNAME at startup, if it's set after
    authentication it must have been set by the platform's native auth system.
    This was already done for AIX; this enables it for the general case.
+ - (dtucker) [auth.c canohost.c canohost.h configure.ac defines.h loginrec.c]
+   Bug #974: Teach sshd to write failed login records to btmp for failed auth
+   attempts (currently only for password, kbdint and C/R, only on Linux and
+   HP-UX), based on code from login.c from util-linux. With ashok_kovai at
+   hotmail.com, ok djm@
 
 20050201
  - (dtucker) [log.c] Bug #973: force log_init() to open syslog, since on some
@@ -2063,4 +2068,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3631 2005/02/02 07:30:33 dtucker Exp $
+$Id: ChangeLog,v 1.3632 2005/02/02 12:30:24 dtucker Exp $

@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.236 2005/02/01 23:44:00 dtucker Exp $
+# $Id: configure.ac,v 1.237 2005/02/02 12:30:25 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -219,6 +219,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE(DISABLE_UTMP)
 	AC_DEFINE(LOCKED_PASSWD_STRING, "*")
 	AC_DEFINE(SPT_TYPE,SPT_PSTAT)
+	AC_DEFINE(USE_BTMP, 1, [Use btmp to log bad logins])
 	check_for_hpux_broken_getaddrinfo=1
 	check_for_conflicting_getspnam=1
 	LIBS="$LIBS -lsec"
@@ -256,6 +257,8 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE(LOCKED_PASSWD_PREFIX, "!")
 	AC_DEFINE(SPT_TYPE,SPT_REUSEARGV)
 	AC_DEFINE(LINK_OPNOTSUPP_ERRNO, EPERM)
+	AC_DEFINE(_PATH_BTMP, "/var/log/btmp", [log for bad login attempts])
+	AC_DEFINE(USE_BTMP, 1, [Use btmp to log bad logins])
 	inet6_default_4in6=yes
 	case `uname -r` in
 	1.*|2.0.*)
