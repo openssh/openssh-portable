@@ -1,3 +1,7 @@
+19991216
+ - Makefile changes for Solaris from Peter Kocks 
+   <peter.kocks@baygate.com>
+
 19991215
  - Integrated patchs from Juergen Keil <jk@tools.de>
    - Avoid void* pointer arithmatic
@@ -6,7 +10,6 @@
    - Simplify status line printing in scp
  - Added better test for inline functions compiler support from  
    Darren_Hall@progressive.com
- - Released 1.2.1pre18
 
 19991214
  - OpenBSD CVS Changes
