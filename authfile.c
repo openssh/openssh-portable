@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfile.c,v 1.57 2004/06/21 17:36:31 avsm Exp $");
+RCSID("$OpenBSD: authfile.c,v 1.58 2004/08/23 11:48:09 djm Exp $");
 
 #include <openssl/err.h>
 #include <openssl/evp.h>
@@ -243,8 +243,10 @@ key_load_public_rsa1(int fd, const char *filename, char **commentp)
 		    filename, strerror(errno));
 		return NULL;
 	}
-	if (st.st_size > 1*1024*1024)
-		close(fd);
+	if (st.st_size > 1*1024*1024) {
+		error("key file %.200s too large", filename);
+		return NULL;
+	}
 	len = (size_t)st.st_size;		/* truncated */
 
 	buffer_init(&buffer);
@@ -335,6 +337,7 @@ key_load_private_rsa1(int fd, const char *filename, const char *passphrase,
 		return NULL;
 	}
 	if (st.st_size > 1*1024*1024) {
+		error("key file %.200s too large", filename);
 		close(fd);
 		return (NULL);
 	}

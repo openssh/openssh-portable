@@ -2,6 +2,10 @@
  - (dtucker) [openbsd-compat/getrrsetbyname.c] Prevent getrrsetbyname from
    failing with NOMEMORY if no sigs are returned and malloc(0) returns NULL.
    From Martin.Kraemer at Fujitsu-Siemens.com; ok djm@
+ - (dtucker) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2004/08/23 11:48:09
+     [authfile.c]
+     fix error path, spotted by Martin.Kraemer AT Fujitsu-Siemens.com; ok markus
 
 20040828
  - (dtucker) [openbsd-compat/mktemp.c] Remove superfluous Cygwin #ifdef; from
@@ -1669,4 +1673,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3522 2004/08/29 06:12:29 dtucker Exp $
+$Id: ChangeLog,v 1.3523 2004/08/29 06:28:39 dtucker Exp $
