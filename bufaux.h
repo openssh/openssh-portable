@@ -1,4 +1,4 @@
-/*	$OpenBSD: bufaux.h,v 1.16 2002/03/04 17:27:39 stevesk Exp $	*/
+/*	$OpenBSD: bufaux.h,v 1.17 2002/03/18 17:25:29 provos Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -37,5 +37,8 @@ void    buffer_put_char(Buffer *, int);
 void   *buffer_get_string(Buffer *, u_int *);
 void    buffer_put_string(Buffer *, const void *, u_int);
 void	buffer_put_cstring(Buffer *, const char *);
+
+#define buffer_skip_string(b) \
+    do { u_int l = buffer_get_int(b); buffer_consume(b, l); } while(0)
 
 #endif				/* BUFAUX_H */
