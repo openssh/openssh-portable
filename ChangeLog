@@ -1,3 +1,6 @@
+20011112
+ - (djm) Makefile correctness fix from Mark D. Baushke <mdb@juniper.net>
+
 20011109
  - (stevesk) auth-pam.c: use do_pam_authenticate(PAM_DISALLOW_NULL_AUTHTOK)
    if permit_empty_passwd == 0 so null password check cannot be bypassed.
@@ -6806,4 +6809,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1632 2001/11/09 20:22:16 stevesk Exp $
+$Id: ChangeLog,v 1.1633 2001/11/11 23:34:22 djm Exp $
