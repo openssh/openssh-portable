@@ -1,5 +1,6 @@
 20010925
  - (djm) Pull in auth-krb5.c from OpenBSD CVS. NB. it is not currently used.
+ - (djm) Sync $sysconfdir/moduli
 
 20010923
  - (bal) updated ssh.c to mirror minor getopts 'extern int' formating done
@@ -6566,4 +6567,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1560 2001/09/25 02:58:23 djm Exp $
+$Id: ChangeLog,v 1.1561 2001/09/25 03:06:18 djm Exp $
