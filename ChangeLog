@@ -32,6 +32,9 @@
    - markus@cvs.openbsd.org 2003/08/31 13:31:57
      [gss-serv.c]
      whitspace KNF
+   - markus@cvs.openbsd.org 2003/09/01 09:50:04
+     [sshd_config.5]
+     gss kex is not supported; sxw@inf.ed.ac.uk
 
 20030829
  - (bal) openbsd-compat/ clean up.  Considate headers, add in Id on our
@@ -947,4 +950,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2928 2003/09/02 12:56:42 djm Exp $
+$Id: ChangeLog,v 1.2929 2003/09/02 12:57:05 djm Exp $
