@@ -1,3 +1,10 @@
+20040129
+ - (dtucker) OpenBSD CVS Sync regress/
+   - dtucker@cvs.openbsd.org 2003/10/11 11:49:49
+     [Makefile banner.sh]
+     Test missing banner file, suppression of banner with ssh -q, check return
+     code from ssh.  ok markus@
+
 20040128
  - (dtucker) [regress/README.regress] Add tcpwrappers issue, noted by tim@
  - (dtucker) [moduli] Import new moduli file from OpenBSD.
@@ -1766,4 +1773,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3199 2004/01/28 04:44:04 dtucker Exp $
+$Id: ChangeLog,v 1.3200 2004/01/30 01:58:51 dtucker Exp $

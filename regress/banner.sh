@@ -1,13 +1,21 @@
-#	$OpenBSD: banner.sh,v 1.1 2003/10/07 01:52:13 dtucker Exp $
+#	$OpenBSD: banner.sh,v 1.2 2003/10/11 11:49:49 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="banner"
 echo "Banner $OBJ/banner.in" >> $OBJ/sshd_proxy
 
+rm -f $OBJ/banner.out $OBJ/banner.in $OBJ/empty.in
+touch $OBJ/empty.in
+
+trace "test missing banner file"
+verbose "test $tid: missing banner file"
+( ${SSH} -2 -F $OBJ/ssh_proxy otherhost true 2>$OBJ/banner.out && \
+	cmp $OBJ/empty.in $OBJ/banner.out ) || \
+	fail "missing banner file"
+
 for s in 0 10 100 1000 10000 100000 ; do
 	if [ "$s" = "0" ]; then
 		# create empty banner
-		rm -f $OBJ/banner.in
 		touch $OBJ/banner.in
 	elif [ "$s" = "10" ]; then
 		# create 10-byte banner file
@@ -22,8 +30,15 @@ for s in 0 10 100 1000 10000 100000 ; do
 
 	trace "test banner size $s"
 	verbose "test $tid: size $s"
-	${SSH} -2 -F $OBJ/ssh_proxy otherhost true 2>$OBJ/banner.out
-	cmp $OBJ/banner.in $OBJ/banner.out  ||  fail "banner size $s mismatch"
+	( ${SSH} -2 -F $OBJ/ssh_proxy otherhost true 2>$OBJ/banner.out && \
+		cmp $OBJ/banner.in $OBJ/banner.out ) || \
+		fail "banner size $s mismatch"
 done
 
-rm -f $OBJ/banner.out $OBJ/banner.in
+trace "test suppress banner (-q)"
+verbose "test $tid: suppress banner (-q)"
+( ${SSH} -q -2 -F $OBJ/ssh_proxy otherhost true 2>$OBJ/banner.out && \
+	cmp $OBJ/empty.in $OBJ/banner.out ) || \
+	fail "suppress banner (-q)"
+
+rm -f $OBJ/banner.out $OBJ/banner.in $OBJ/empty.in
