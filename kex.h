@@ -1,4 +1,4 @@
-/*	$OpenBSD: kex.h,v 1.28 2001/12/28 15:06:00 markus Exp $	*/
+/*	$OpenBSD: kex.h,v 1.29 2002/02/14 23:41:01 markus Exp $	*/
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -71,6 +71,8 @@ struct Enc {
 	char	*name;
 	Cipher	*cipher;
 	int	enabled;
+	u_int	key_len;
+	u_int	block_size;
 	u_char	*key;
 	u_char	*iv;
 };

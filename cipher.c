@@ -35,13 +35,24 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: cipher.c,v 1.50 2002/01/21 22:30:12 markus Exp $");
+RCSID("$OpenBSD: cipher.c,v 1.51 2002/02/14 23:41:01 markus Exp $");
 
 #include "xmalloc.h"
 #include "log.h"
 #include "cipher.h"
 
 #include <openssl/md5.h>
+
+struct Cipher {
+	char	*name;
+	int	number;		/* for ssh1 only */
+	u_int	block_size;
+	u_int	key_len;
+	void	(*setkey)(CipherContext *, const u_char *, u_int);
+	void	(*setiv)(CipherContext *, const u_char *, u_int);
+	void	(*encrypt)(CipherContext *, u_char *, const u_char *, u_int);
+	void	(*decrypt)(CipherContext *, u_char *, const u_char *, u_int);
+};
 
 /* no encryption */
 static void
@@ -397,6 +408,18 @@ Cipher ciphers[] = {
 
 /*--*/
 
+u_int   
+cipher_blocksize(Cipher *c)
+{
+	return (c->block_size);
+}
+
+u_int   
+cipher_keylen(Cipher *c)
+{
+	return (c->key_len);
+}
+
 u_int
 cipher_mask_ssh1(int client)
 {
@@ -479,8 +502,8 @@ cipher_name(int id)
 }
 
 void
-cipher_init(CipherContext *cc, Cipher *cipher,
-    const u_char *key, u_int keylen, const u_char *iv, u_int ivlen)
+cipher_init(CipherContext *cc, Cipher *cipher, const u_char *key,
+     u_int keylen, const u_char *iv, u_int ivlen, int encrypt)
 {
 	if (keylen < cipher->key_len)
 		fatal("cipher_init: key length %d is insufficient for %s.",
@@ -489,24 +512,26 @@ cipher_init(CipherContext *cc, Cipher *cipher,
 		fatal("cipher_init: iv length %d is insufficient for %s.",
 		    ivlen, cipher->name);
 	cc->cipher = cipher;
+	cc->encrypt = (encrypt == CIPHER_ENCRYPT);
 	cipher->setkey(cc, key, keylen);
 	cipher->setiv(cc, iv, ivlen);
 }
 
 void
-cipher_encrypt(CipherContext *cc, u_char *dest, const u_char *src, u_int len)
+cipher_crypt(CipherContext *cc, u_char *dest, const u_char *src, u_int len)
 {
 	if (len % cc->cipher->block_size)
 		fatal("cipher_encrypt: bad plaintext length %d", len);
-	cc->cipher->encrypt(cc, dest, src, len);
+	if (cc->encrypt)
+		cc->cipher->encrypt(cc, dest, src, len);
+	else
+		cc->cipher->decrypt(cc, dest, src, len);
 }
 
 void
-cipher_decrypt(CipherContext *cc, u_char *dest, const u_char *src, u_int len)
+cipher_cleanup(CipherContext *cc)
 {
-	if (len % cc->cipher->block_size)
-		fatal("cipher_decrypt: bad ciphertext length %d", len);
-	cc->cipher->decrypt(cc, dest, src, len);
+	memset(cc, 0, sizeof(*cc));
 }
 
 /*
@@ -516,7 +541,7 @@ cipher_decrypt(CipherContext *cc, u_char *dest, const u_char *src, u_int len)
 
 void
 cipher_set_key_string(CipherContext *cc, Cipher *cipher,
-    const char *passphrase)
+    const char *passphrase, int encrypt)
 {
 	MD5_CTX md;
 	u_char digest[16];
@@ -525,7 +550,7 @@ cipher_set_key_string(CipherContext *cc, Cipher *cipher,
 	MD5_Update(&md, (const u_char *)passphrase, strlen(passphrase));
 	MD5_Final(digest, &md);
 
-	cipher_init(cc, cipher, digest, 16, NULL, 0);
+	cipher_init(cc, cipher, digest, 16, NULL, 0, encrypt);
 
 	memset(digest, 0, sizeof(digest));
 	memset(&md, 0, sizeof(md));

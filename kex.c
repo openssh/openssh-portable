@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.44 2002/02/11 16:10:15 markus Exp $");
+RCSID("$OpenBSD: kex.c,v 1.45 2002/02/14 23:41:01 markus Exp $");
 
 #include <openssl/crypto.h>
 
@@ -232,13 +232,14 @@ choose_enc(Enc *enc, char *client, char *server)
 	char *name = match_list(client, server, NULL);
 	if (name == NULL)
 		fatal("no matching cipher found: client %s server %s", client, server);
-	enc->cipher = cipher_by_name(name);
-	if (enc->cipher == NULL)
+	if ((enc->cipher = cipher_by_name(name)) == NULL)
 		fatal("matching cipher is not supported: %s", name);
 	enc->name = name;
 	enc->enabled = 0;
 	enc->iv = NULL;
 	enc->key = NULL;
+	enc->key_len = cipher_keylen(enc->cipher);
+	enc->block_size = cipher_blocksize(enc->cipher);
 }
 static void
 choose_mac(Mac *mac, char *client, char *server)
@@ -341,10 +342,10 @@ kex_choose_conf(Kex *kex)
 	need = 0;
 	for (mode = 0; mode < MODE_MAX; mode++) {
 		newkeys = kex->newkeys[mode];
-		if (need < newkeys->enc.cipher->key_len)
-			need = newkeys->enc.cipher->key_len;
-		if (need < newkeys->enc.cipher->block_size)
-			need = newkeys->enc.cipher->block_size;
+		if (need < newkeys->enc.key_len)
+			need = newkeys->enc.key_len;
+		if (need < newkeys->enc.block_size)
+			need = newkeys->enc.block_size;
 		if (need < newkeys->mac.key_len)
 			need = newkeys->mac.key_len;
 	}

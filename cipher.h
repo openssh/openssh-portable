@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* RCSID("$OpenBSD: cipher.h,v 1.29 2001/08/23 11:31:59 markus Exp $"); */
+/* RCSID("$OpenBSD: cipher.h,v 1.30 2002/02/14 23:41:01 markus Exp $"); */
 
 #ifndef CIPHER_H
 #define CIPHER_H
@@ -59,9 +59,13 @@
 #define SSH_CIPHER_RESERVED	7
 #define SSH_CIPHER_MAX		31
 
+#define CIPHER_ENCRYPT		1
+#define CIPHER_DECRYPT		0
+
 typedef struct Cipher Cipher;
 typedef struct CipherContext CipherContext;
 
+struct Cipher;
 struct CipherContext {
 	union {
 		struct {
@@ -91,17 +95,9 @@ struct CipherContext {
 		} rijndael;
 		RC4_KEY rc4;
 	}       u;
+	int	plaintext;
+	int	encrypt;
 	Cipher *cipher;
-};
-struct Cipher {
-	char	*name;
-	int	number;		/* for ssh1 only */
-	u_int	block_size;
-	u_int	key_len;
-	void	(*setkey)(CipherContext *, const u_char *, u_int);
-	void	(*setiv)(CipherContext *, const u_char *, u_int);
-	void	(*encrypt)(CipherContext *, u_char *, const u_char *, u_int);
-	void	(*decrypt)(CipherContext *, u_char *, const u_char *, u_int);
 };
 
 u_int	 cipher_mask_ssh1(int);
@@ -111,9 +107,10 @@ int	 cipher_number(const char *);
 char	*cipher_name(int);
 int	 ciphers_valid(const char *);
 void	 cipher_init(CipherContext *, Cipher *, const u_char *, u_int,
-    const u_char *, u_int);
-void	 cipher_encrypt(CipherContext *, u_char *, const u_char *, u_int);
-void	 cipher_decrypt(CipherContext *, u_char *, const u_char *, u_int);
-void	 cipher_set_key_string(CipherContext *, Cipher *, const char *);
-
+    const u_char *, u_int, int);
+void	 cipher_crypt(CipherContext *, u_char *, const u_char *, u_int);
+void	 cipher_cleanup(CipherContext *);
+void	 cipher_set_key_string(CipherContext *, Cipher *, const char *, int);
+u_int	 cipher_blocksize(Cipher *);
+u_int	 cipher_keylen(Cipher *);
 #endif				/* CIPHER_H */

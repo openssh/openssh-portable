@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.87 2002/01/24 21:13:23 stevesk Exp $");
+RCSID("$OpenBSD: packet.c,v 1.88 2002/02/14 23:41:01 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -131,8 +131,8 @@ packet_set_connection(int fd_in, int fd_out)
 		fatal("packet_set_connection: cannot load cipher 'none'");
 	connection_in = fd_in;
 	connection_out = fd_out;
-	cipher_init(&send_context, none, "", 0, NULL, 0);
-	cipher_init(&receive_context, none, "", 0, NULL, 0);
+	cipher_init(&send_context, none, "", 0, NULL, 0, CIPHER_ENCRYPT);
+	cipher_init(&receive_context, none, "", 0, NULL, 0, CIPHER_DECRYPT);
 	newkeys[MODE_IN] = newkeys[MODE_OUT] = NULL;
 	if (!initialized) {
 		initialized = 1;
@@ -241,6 +241,8 @@ packet_close(void)
 		buffer_free(&compression_buffer);
 		buffer_compress_uninit();
 	}
+	cipher_cleanup(&send_context);
+	cipher_cleanup(&receive_context);
 }
 
 /* Sets remote side protocol flags. */
@@ -298,8 +300,8 @@ packet_set_encryption_key(const u_char *key, u_int keylen,
 		fatal("packet_set_encryption_key: unknown cipher number %d", number);
 	if (keylen < 20)
 		fatal("packet_set_encryption_key: keylen too small: %d", keylen);
-	cipher_init(&receive_context, cipher, key, keylen, NULL, 0);
-	cipher_init(&send_context, cipher, key, keylen, NULL, 0);
+	cipher_init(&send_context, cipher, key, keylen, NULL, 0, CIPHER_ENCRYPT);
+	cipher_init(&receive_context, cipher, key, keylen, NULL, 0, CIPHER_DECRYPT);
 }
 
 /* Start constructing a packet to send. */
@@ -388,7 +390,7 @@ packet_send1(void)
 
 	/* Insert padding. Initialized to zero in packet_start1() */
 	padding = 8 - len % 8;
-	if (send_context.cipher->number != SSH_CIPHER_NONE) {
+	if (!send_context.plaintext) {
 		cp = buffer_ptr(&outgoing_packet);
 		for (i = 0; i < padding; i++) {
 			if (i % 4 == 0)
@@ -414,7 +416,7 @@ packet_send1(void)
 	PUT_32BIT(buf, len);
 	buffer_append(&output, buf, 4);
 	cp = buffer_append_space(&output, buffer_len(&outgoing_packet));
-	cipher_encrypt(&send_context, cp, buffer_ptr(&outgoing_packet),
+	cipher_crypt(&send_context, cp, buffer_ptr(&outgoing_packet),
 	    buffer_len(&outgoing_packet));
 
 #ifdef PACKET_DEBUG
@@ -438,14 +440,20 @@ set_newkeys(int mode)
 	Mac *mac;
 	Comp *comp;
 	CipherContext *cc;
+	int encrypt;
 
 	debug("newkeys: mode %d", mode);
 
-	cc = (mode == MODE_OUT) ? &send_context : &receive_context;
+	if (mode == MODE_OUT) {
+		cc = &send_context;
+		encrypt = CIPHER_ENCRYPT;
+	} else {
+		cc = &receive_context;
+		encrypt = CIPHER_DECRYPT;
+	}
 	if (newkeys[mode] != NULL) {
 		debug("newkeys: rekeying");
-		/* todo: free old keys, reset compression/cipher-ctxt; */
-		memset(cc, 0, sizeof(*cc));
+		cipher_cleanup(cc);
 		enc  = &newkeys[mode]->enc;
 		mac  = &newkeys[mode]->mac;
 		comp = &newkeys[mode]->comp;
@@ -467,10 +475,10 @@ set_newkeys(int mode)
 	if (mac->md != NULL)
 		mac->enabled = 1;
 	DBG(debug("cipher_init_context: %d", mode));
-	cipher_init(cc, enc->cipher, enc->key, enc->cipher->key_len,
-	    enc->iv, enc->cipher->block_size);
-	memset(enc->iv,  0, enc->cipher->block_size);
-	memset(enc->key, 0, enc->cipher->key_len);
+	cipher_init(cc, enc->cipher, enc->key, enc->key_len,
+	    enc->iv, enc->block_size, encrypt);
+	memset(enc->iv,  0, enc->block_size);
+	memset(enc->key, 0, enc->key_len);
 	if (comp->type != 0 && comp->enabled == 0) {
 		packet_init_compression();
 		if (mode == MODE_OUT)
@@ -504,7 +512,7 @@ packet_send2(void)
 		mac  = &newkeys[MODE_OUT]->mac;
 		comp = &newkeys[MODE_OUT]->comp;
 	}
-	block_size = enc ? enc->cipher->block_size : 8;
+	block_size = enc ? enc->block_size : 8;
 
 	ucp = buffer_ptr(&outgoing_packet);
 	type = ucp[5];
@@ -548,7 +556,7 @@ packet_send2(void)
 		extra_pad = 0;
 	}
 	cp = buffer_append_space(&outgoing_packet, padlen);
-	if (enc && enc->cipher->number != SSH_CIPHER_NONE) {
+	if (enc && !send_context.plaintext) {
 		/* random padding */
 		for (i = 0; i < padlen; i++) {
 			if (i % 4 == 0)
@@ -576,7 +584,7 @@ packet_send2(void)
 	}
 	/* encrypt packet and append to output buffer. */
 	cp = buffer_append_space(&output, buffer_len(&outgoing_packet));
-	cipher_encrypt(&send_context, cp, buffer_ptr(&outgoing_packet),
+	cipher_crypt(&send_context, cp, buffer_ptr(&outgoing_packet),
 	    buffer_len(&outgoing_packet));
 	/* append unencrypted MAC */
 	if (mac && mac->enabled)
@@ -729,14 +737,14 @@ packet_read_poll1(void)
 	 * (C)1998 CORE-SDI, Buenos Aires Argentina
 	 * Ariel Futoransky(futo@core-sdi.com)
 	 */
-	if (receive_context.cipher->number != SSH_CIPHER_NONE &&
+	if (!receive_context.plaintext &&
 	    detect_attack(buffer_ptr(&input), padded_len, NULL) == DEATTACK_DETECTED)
 		packet_disconnect("crc32 compensation attack: network attack detected");
 
 	/* Decrypt data to incoming_packet. */
 	buffer_clear(&incoming_packet);
 	cp = buffer_append_space(&incoming_packet, padded_len);
-	cipher_decrypt(&receive_context, cp, buffer_ptr(&input), padded_len);
+	cipher_crypt(&receive_context, cp, buffer_ptr(&input), padded_len);
 
 	buffer_consume(&input, padded_len);
 
@@ -793,7 +801,7 @@ packet_read_poll2(u_int32_t *seqnr_p)
 		comp = &newkeys[MODE_IN]->comp;
 	}
 	maclen = mac && mac->enabled ? mac->mac_len : 0;
-	block_size = enc ? enc->cipher->block_size : 8;
+	block_size = enc ? enc->block_size : 8;
 
 	if (packet_length == 0) {
 		/*
@@ -804,7 +812,7 @@ packet_read_poll2(u_int32_t *seqnr_p)
 			return SSH_MSG_NONE;
 		buffer_clear(&incoming_packet);
 		cp = buffer_append_space(&incoming_packet, block_size);
-		cipher_decrypt(&receive_context, cp, buffer_ptr(&input),
+		cipher_crypt(&receive_context, cp, buffer_ptr(&input),
 		    block_size);
 		ucp = buffer_ptr(&incoming_packet);
 		packet_length = GET_32BIT(ucp);
@@ -833,7 +841,7 @@ packet_read_poll2(u_int32_t *seqnr_p)
 	buffer_dump(&input);
 #endif
 	cp = buffer_append_space(&incoming_packet, need);
-	cipher_decrypt(&receive_context, cp, buffer_ptr(&input), need);
+	cipher_crypt(&receive_context, cp, buffer_ptr(&input), need);
 	buffer_consume(&input, need);
 	/*
 	 * compute MAC over seqnr and packet,

@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfile.c,v 1.45 2001/12/29 21:56:01 stevesk Exp $");
+RCSID("$OpenBSD: authfile.c,v 1.46 2002/02/14 23:41:01 markus Exp $");
 
 #include <openssl/err.h>
 #include <openssl/evp.h>
@@ -69,7 +69,7 @@ key_save_private_rsa1(Key *key, const char *filename, const char *passphrase,
 {
 	Buffer buffer, encrypted;
 	u_char buf[100], *cp;
-	int fd, i;
+	int fd, i, cipher_num;
 	CipherContext ciphercontext;
 	Cipher *cipher;
 	u_int32_t rand;
@@ -78,11 +78,9 @@ key_save_private_rsa1(Key *key, const char *filename, const char *passphrase,
 	 * If the passphrase is empty, use SSH_CIPHER_NONE to ease converting
 	 * to another cipher; otherwise use SSH_AUTHFILE_CIPHER.
 	 */
-	if (strcmp(passphrase, "") == 0)
-		cipher = cipher_by_number(SSH_CIPHER_NONE);
-	else
-		cipher = cipher_by_number(SSH_AUTHFILE_CIPHER);
-	if (cipher == NULL)
+	cipher_num = (strcmp(passphrase, "") == 0) ?
+	    SSH_CIPHER_NONE : SSH_AUTHFILE_CIPHER;
+	if ((cipher = cipher_by_number(cipher_num)) == NULL)
 		fatal("save_private_key_rsa: bad cipher");
 
 	/* This buffer is used to built the secret part of the private key. */
@@ -119,7 +117,7 @@ key_save_private_rsa1(Key *key, const char *filename, const char *passphrase,
 	buffer_put_char(&encrypted, 0);
 
 	/* Store cipher type. */
-	buffer_put_char(&encrypted, cipher->number);
+	buffer_put_char(&encrypted, cipher_num);
 	buffer_put_int(&encrypted, 0);	/* For future extension */
 
 	/* Store public key.  This will be in plain text. */
@@ -131,9 +129,11 @@ key_save_private_rsa1(Key *key, const char *filename, const char *passphrase,
 	/* Allocate space for the private part of the key in the buffer. */
 	cp = buffer_append_space(&encrypted, buffer_len(&buffer));
 
-	cipher_set_key_string(&ciphercontext, cipher, passphrase);
-	cipher_encrypt(&ciphercontext, cp,
+	cipher_set_key_string(&ciphercontext, cipher, passphrase,
+	    CIPHER_ENCRYPT);
+	cipher_crypt(&ciphercontext, cp,
 	    buffer_ptr(&buffer), buffer_len(&buffer));
+	cipher_cleanup(&ciphercontext);
 	memset(&ciphercontext, 0, sizeof(ciphercontext));
 
 	/* Destroy temporary data. */
@@ -380,9 +380,11 @@ key_load_private_rsa1(int fd, const char *filename, const char *passphrase,
 	cp = buffer_append_space(&decrypted, buffer_len(&buffer));
 
 	/* Rest of the buffer is encrypted.  Decrypt it using the passphrase. */
-	cipher_set_key_string(&ciphercontext, cipher, passphrase);
-	cipher_decrypt(&ciphercontext, cp,
+	cipher_set_key_string(&ciphercontext, cipher, passphrase,
+	    CIPHER_DECRYPT);
+	cipher_crypt(&ciphercontext, cp,
 	    buffer_ptr(&buffer), buffer_len(&buffer));
+	cipher_cleanup(&ciphercontext);
 	memset(&ciphercontext, 0, sizeof(ciphercontext));
 	buffer_free(&buffer);
 
