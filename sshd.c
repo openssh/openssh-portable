@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.299 2004/07/17 05:31:41 dtucker Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.300 2004/07/28 08:56:22 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1548,6 +1548,21 @@ main(int ac, char **av)
 	/* This is the child processing a new connection. */
 	setproctitle("%s", "[accepted]");
 
+	/*
+	 * Create a new session and process group since the 4.4BSD
+	 * setlogin() affects the entire process group.  We don't
+	 * want the child to be able to affect the parent.
+	 */
+#if !defined(SSHD_ACQUIRES_CTTY)
+	/*
+	 * If setsid is called, on some platforms sshd will later acquire a
+	 * controlling terminal which will result in "could not set
+	 * controlling tty" errors.
+	 */
+	if (!debug_flag && !inetd_flag && setsid() < 0)
+		error("setsid: %.100s", strerror(errno));
+#endif
+
 	if (rexec_flag) {
 		int fd;
 
@@ -1586,21 +1601,6 @@ main(int ac, char **av)
 		debug("rexec cleanup in %d out %d newsock %d pipe %d sock %d",
 		    sock_in, sock_out, newsock, startup_pipe, config_s[0]);
 	}
-
-	/*
-	 * Create a new session and process group since the 4.4BSD
-	 * setlogin() affects the entire process group.  We don't
-	 * want the child to be able to affect the parent.
-	 */
-#if !defined(SSHD_ACQUIRES_CTTY)
-	/*
-	 * If setsid is called, on some platforms sshd will later acquire a
-	 * controlling terminal which will result in "could not set
-	 * controlling tty" errors.
-	 */
-	if (!debug_flag && !inetd_flag && setsid() < 0)
-		error("setsid: %.100s", strerror(errno));
-#endif
 
 	/*
 	 * Disable the key regeneration alarm.  We will not regenerate the
