@@ -1,4 +1,4 @@
-#	$OpenBSD: ssh-com-sftp.sh,v 1.3 2002/07/16 08:58:16 markus Exp $
+#	$OpenBSD: ssh-com-sftp.sh,v 1.4 2003/05/14 22:08:27 markus Exp $
 #	Placed in the Public Domain.
 
 tid="basic sftp put/get with ssh.com server"
@@ -26,6 +26,8 @@ VERSIONS="
 	3.0.0
 	3.1.0
 	3.2.0
+	3.2.2
+	3.2.3
 	3.3.0"
 
 # go for it
