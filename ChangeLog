@@ -1,3 +1,9 @@
+20010606
+ - OpenBSD CVS Sync                                                             
+   - markus@cvs.openbsd.org 2001/05/17 21:34:15                                 
+     [ssh.1]                                                                    
+     no spaces in PreferredAuthentications; 
+     meixner@rbg.informatik.tu-darmstadt.de                                                                              
 20010528
  - (tim) [conifgure.in] add setvbuf test needed for sftp-int.c
    Patch by Corinna Vinschen <vinschen@redhat.com>
@@ -5427,4 +5433,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1226 2001/05/28 17:17:34 tim Exp $
+$Id: ChangeLog,v 1.1227 2001/06/05 18:39:10 mouring Exp $
