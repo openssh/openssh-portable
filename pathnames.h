@@ -120,7 +120,9 @@
 #ifndef _PATH_SFTP_SERVER
 #define _PATH_SFTP_SERVER		"/usr/libexec/sftp-server"
 #endif
+#ifndef _PATH_LS
 #define _PATH_LS			"ls"
+#endif
 
 /* path to login program */
 #ifndef LOGIN_PROGRAM
