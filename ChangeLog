@@ -5,6 +5,9 @@
    - jmc@cvs.openbsd.org 2005/03/07 23:41:54
      [ssh.1 ssh_config.5]
      more macro simplification;
+   - djm@cvs.openbsd.org 2005/03/08 23:49:48
+     [version.h]
+     OpenSSH 4.0
 
 20050307
  - (dtucker) [configure.ac] Disable gettext search when configuring with
@@ -2314,4 +2317,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3704 2005/03/09 00:00:05 djm Exp $
+$Id: ChangeLog,v 1.3705 2005/03/09 00:00:42 djm Exp $
