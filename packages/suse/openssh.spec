@@ -11,10 +11,10 @@ Obsoletes: ssh
 # building prerequisites -- stuff for TCP Wrappers and Gnome
 # (This only works for RPM 2.95 and newer.)
 #
-BuildPrereq: nkitb
-BuildPrereq: glibdev
-BuildPrereq: gtkdev
-BuildPrereq: gnlibsd
+#BuildPrereq: nkitb
+#BuildPrereq: glibdev
+#BuildPrereq: gtkdev
+#BuildPrereq: gnlibsd
 
 %package clients
 Summary: OpenSSH Secure Shell protocol clients
