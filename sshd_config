@@ -41,8 +41,9 @@ RSAAuthentication yes
 PasswordAuthentication yes
 PermitEmptyPasswords no
 
-# Uncomment to disable s/key passwords 
-#ChallengeResponseAuthentication no
+# Comment to enable s/key passwords or PAM interactive authentication
+# NB. Neither of these are compiled in by default.
+ChallengeResponseAuthentication no
 
 # To change Kerberos options
 #KerberosAuthentication no

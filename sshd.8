@@ -644,11 +644,17 @@ The minimum value is 512, and the default is 768.
 Specifies whether
 challenge reponse
 authentication is allowed.
-Currently there is only support for
+Currently there is support for
 .Xr skey 1
-authentication.
+and PAM authentication.
 The default is
 .Dq yes .
+Note that enabling ChallengeResponseAuthentication for PAM bypasses 
+OpenSSH's password checking code, thus rendering options such as 
+.Cm PasswordAuthentication 
+and
+.Cm PermitEmptyPasswords
+ineffective.
 .It Cm StrictModes
 Specifies whether
 .Nm

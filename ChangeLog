@@ -1,5 +1,7 @@
 20010303
  - Remove make-ssh-known-hosts.pl, ssh-keyscan is better.
+ - Document PAM ChallengeResponseAuthentication in sshd.8
+ - Disable and comment ChallengeResponseAuthentication in sshd_config
 
 20010301
  - (djm) Properly add -lcrypt if needed. 
@@ -4178,4 +4180,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.846 2001/03/03 09:00:36 djm Exp $
+$Id: ChangeLog,v 1.847 2001/03/03 13:16:20 djm Exp $
