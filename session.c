@@ -708,10 +708,6 @@ do_login(Session *s)
 	}
 
 	/* Get the time and hostname when the user last logged in. */
-	last_login_time = get_last_login_time(pw->pw_uid, pw->pw_name,
-	    hostname, sizeof(hostname));
-
-	/* Get the time and hostname when the user last logged in. */
 	hostname[0] = '\0';
 	last_login_time = get_last_login_time(pw->pw_uid, pw->pw_name,
 	    hostname, sizeof(hostname));
