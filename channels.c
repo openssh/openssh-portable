@@ -16,7 +16,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: channels.c,v 1.12 1999/12/13 23:47:15 damien Exp $");
+RCSID("$Id: channels.c,v 1.13 1999/12/21 00:18:08 damien Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -1159,10 +1159,48 @@ x11_create_display_inet(int screen_number, int x11_display_offset)
 		return NULL;
 	}
 	/* Set up a suitable value for the DISPLAY variable. */
+
 	if (gethostname(hostname, sizeof(hostname)) < 0)
 		fatal("gethostname: %.100s", strerror(errno));
+
+#ifdef IPADDR_IN_DISPLAY
+	/* 
+	 * HPUX detects the local hostname in the DISPLAY variable and tries
+	 * to set up a shared memory connection to the server, which it
+	 * incorrectly supposes to be local.
+	 *
+	 * The workaround - as used in later $$H and other programs - is
+	 * is to set display to the host's IP address.
+	 */
+	{
+		struct hostent *he;
+		struct in_addr my_addr;
+
+		he = gethostbyname(hostname);
+		if (he == NULL) {
+			error("[X11-broken-fwd-hostname-workaround] Could not get "
+				"IP address for hostname %s.", hostname);
+
+			packet_send_debug("[X11-broken-fwd-hostname-workaround]"
+				"Could not get IP address for hostname %s.", hostname);
+
+			shutdown(sock, SHUT_RDWR);
+			close(sock);
+
+			return NULL;
+		}
+
+		memcpy(&my_addr, he->h_addr_list[0], sizeof(struct in_addr));
+
+		/* Set DISPLAY to <ip address>:screen.display */
+		snprintf(buf, sizeof(buf), "%.50s:%d.%d", inet_ntoa(my_addr), 
+			display_number, screen_number);
+	}
+#else /* IPADDR_IN_DISPLAY */
+	/* Just set DISPLAY to hostname:screen.display */
 	snprintf(buf, sizeof buf, "%.400s:%d.%d", hostname,
-		 display_number, screen_number);
+		display_number, screen_number);
+#endif /* IPADDR_IN_DISPLAY */
 
 	/* Allocate a channel for the socket. */
 	(void) channel_allocate(SSH_CHANNEL_X11_LISTENER, sock,

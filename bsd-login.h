@@ -6,7 +6,7 @@
 
 #include <utmp.h>
 
-void login(struct utmp *utp);
+void login(struct UTMP_STR *utp);
 
 #endif /* !HAVE_LOGIN */
 

@@ -3,6 +3,9 @@
 /* SSL directory.  */
 #undef ssldir
 
+/* Define if you want to disable lastlog support */
+#undef DISABLE_LASTLOG
+
 /* Location of lastlog file */
 #undef LASTLOG_LOCATION
 
@@ -57,8 +60,17 @@
 /* Define if your libraries define daemon() */
 #undef HAVE_DAEMON
 
+/* Define if xauth is found in your path */
+#undef XAUTH_PATH
+
 /* Define if you want to allow MD5 passwords */
 #undef HAVE_MD5_PASSWORDS
+
+/* Define if you want to disable shadow passwords */
+#undef DISABLE_SHADOW
+
+/* Define if you want have trusted HPUX */
+#undef HAVE_HPUX_TRUSTED_SYSTEM_PW
 
 /* Define if you have an old version of PAM which takes only one argument */
 /* to pam_strerror */
@@ -76,8 +88,8 @@
 /* Define if you have /dev/ptc */
 #undef HAVE_DEV_PTS_AND_PTC
 
-/* Path to xauth binary */
-#undef XAUTH_PATH
+/* Define if you need to use IP address instead of hostname in $DISPLAY */
+#undef IPADDR_IN_DISPLAY
 
 @BOTTOM@
 
@@ -233,6 +245,10 @@ enum
 #ifndef _PATH_MAILDIR
 # ifdef MAILDIR
 #  define _PATH_MAILDIR MAILDIR
+# else
+#  ifdef MAIL_DIRECTORY
+#   define _PATH_MAILDIR MAIL_DIRECTORY
+#  endif
 # endif
 #endif
 
@@ -267,3 +283,7 @@ enum
 #if !defined(__GNUC__) || (__GNUC__ < 2)
 #  define __attribute__(x)
 #endif /* !defined(__GNUC__) || (__GNUC__ < 2) */
+
+#if !defined(HAVE_SETEUID) && defined(HAVE_SETREUID)
+# define seteuid(a) setreuid(-1,a)
+#endif /* !defined(HAVE_SETEUID) && defined(HAVE_SETREUID) */

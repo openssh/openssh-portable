@@ -1,3 +1,11 @@
+19991221
+ - Integration of large HPUX patch from Andre Lucas 
+   <andre.lucas@dial.pipex.com>. Integrating it had a few other 
+   benefits:
+   - Ability to disable shadow passwords at configure time
+   - Ability to disable lastlog support at configure time
+   - Support for IP address in $DISPLAY
+
 19991218
  - Redhat init script patch from Chun-Chung Chen 
    <cjj@u.washington.edu>

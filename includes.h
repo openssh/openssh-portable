@@ -67,6 +67,9 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #ifdef HAVE_SYS_TIME_H
 # include <sys/time.h>
 #endif
+#ifdef HAVE_SYS_BSDTTY_H
+# include <sys/bsdtty.h>
+#endif
 #ifdef HAVE_LIBPAM
 # include <security/pam_appl.h>
 #endif

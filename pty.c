@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: pty.c,v 1.10 1999/12/13 23:54:47 damien Exp $");
+RCSID("$Id: pty.c,v 1.11 1999/12/21 00:18:08 damien Exp $");
 
 #ifdef HAVE_UTIL_H
 # include <util.h>
@@ -84,7 +84,7 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, int namebuflen)
 	}
 	return 1;
 #else /* HAVE__GETPTY */
-#ifdef HAVE_DEV_PTMX
+#if defined(HAVE_DEV_PTMX)
 	/*
 	 * This code is used e.g. on Solaris 2.x.  (Note that Solaris 2.3
 	 * also has bsd-style ptys, but they simply do not work.)
