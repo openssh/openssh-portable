@@ -179,6 +179,6 @@ getpass(const char *prompt)
 
 static void handler(int s)
 {
-fprintf(stderr, "COPPED A SGNAL\n");
+
 	signo = s;
 }
