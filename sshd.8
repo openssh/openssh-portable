@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.103 2001/03/04 18:21:28 deraadt Exp $
+.\" $OpenBSD: sshd.8,v 1.104 2001/03/05 14:28:47 deraadt Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -339,6 +339,15 @@ The contents of the specified file are sent to the remote user before
 authentication is allowed.
 This option is only available for protocol version 2.
 .Pp
+.It Cm ChallengeResponseAuthentication
+Specifies whether
+challenge response
+authentication is allowed.
+Currently there is only support for
+.Xr skey 1
+authentication.
+The default is
+.Dq yes .
 .It Cm Ciphers
 Specifies the ciphers allowed for protocol version 2.
 Multiple ciphers must be comma-separated.
@@ -373,11 +382,6 @@ and
 can be used as wildcards in the patterns.
 Only user names are valid; a numerical user ID isn't recognized.
 By default login is allowed regardless of the user name.
-.It Cm PubkeyAuthentication
-Specifies whether public key authentication is allowed.
-The default is
-.Dq yes .
-Note that this option applies to protocol version 2 only.
 .It Cm GatewayPorts
 Specifies whether remote hosts are allowed to connect to ports
 forwarded for the client.
@@ -611,6 +615,11 @@ and
 Multiple versions must be comma-separated.
 The default is
 .Dq 1 .
+.It Cm PubkeyAuthentication
+Specifies whether public key authentication is allowed.
+The default is
+.Dq yes .
+Note that this option applies to protocol version 2 only.
 .It Cm ReverseMappingCheck
 Specifies whether
 .Nm
@@ -642,21 +651,6 @@ Note that this option applies to protocol version 1 only.
 .It Cm ServerKeyBits
 Defines the number of bits in the server key.
 The minimum value is 512, and the default is 768.
-.It Cm ChallengeResponseAuthentication
-Specifies whether
-challenge response
-authentication is allowed.
-Currently there is support for
-.Xr skey 1
-and PAM authentication.
-The default is
-.Dq yes .
-Note that enabling ChallengeResponseAuthentication for PAM bypasses 
-OpenSSH's password checking code, thus rendering options such as 
-.Cm PasswordAuthentication 
-and
-.Cm PermitEmptyPasswords
-ineffective.
 .It Cm StrictModes
 Specifies whether
 .Nm

@@ -1,3 +1,9 @@
+20010306
+ - (bal) OpenBSD CVS Sync
+   - deraadt@cvs.openbsd.org 2001/03/05 14:28:47
+     [sshd.8]
+     alpha order; jcs@rt.fm
+
 20010305
  - (bal) CVS ID touch up on sshpty.[ch] and sshlogin.[ch]
  - (bal) CVS ID touch up on sftp-int.c 
@@ -4368,4 +4374,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.908 2001/03/05 19:50:57 stevesk Exp $
+$Id: ChangeLog,v 1.909 2001/03/06 01:00:03 mouring Exp $
