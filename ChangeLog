@@ -78,6 +78,8 @@
    - markus@cvs.openbsd.org  2000/10/13 13:12:02
      [myproposal.h]
      prefer no compression
+ - (djm) Fix scp user@host handling
+ - (djm) Don't clobber ssh_prng_cmds on install
 
 20001007
  - (stevesk) Print PAM return value in PAM log messages to aid

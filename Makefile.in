@@ -154,7 +154,9 @@ install-files:
 	fi
 	if [ -f ssh_prng_cmds -a ! -z "$(INSTALL_SSH_PRNG_CMDS)" ]; then \
 		$(PERL) $(srcdir)/fixprogs ssh_prng_cmds $(ENT); \
-		$(INSTALL) -m 644 ssh_prng_cmds.out $(DESTDIR)$(sysconfdir)/ssh_prng_cmds; \
+		if [ ! -f $(DESTDIR)$(sysconfdir)/ssh_prng_cmds ] ; then \
+			$(INSTALL) -m 644 ssh_prng_cmds.out $(DESTDIR)$(sysconfdir)/ssh_prng_cmds; \
+		fi ; \
 	fi
 
 host-key: ssh-keygen$(EXEEXT)
