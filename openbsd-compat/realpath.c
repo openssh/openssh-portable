@@ -45,13 +45,6 @@ static char *rcsid = "$OpenBSD: realpath..c,v 1.4 1998/05/18 09:55:19 deraadt Ex
 #include <unistd.h>
 
 /*
- * S_ISLNK compatibility
- */
-#ifndef S_ISLNK
-#define S_ISLNK(m) ((m & 0170000) == 0120000)
-#endif
-
-/*
  * MAXSYMLINKS
  */
 #ifndef MAXSYMLINKS

@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.59 2001/03/19 02:27:26 tim Exp $ */
+/* $Id: defines.h,v 1.60 2001/03/19 03:12:26 mouring Exp $ */
 
 /* Some platforms need this for the _r() functions */
 #if !defined(_REENTRANT) && !defined(SNI)
@@ -99,10 +99,17 @@ enum
 # define O_NONBLOCK      00004
 #endif
 
-#ifndef S_ISREG
+#ifndef S_ISDIR
 # define S_ISDIR(mode)	(((mode) & (_S_IFMT)) == (_S_IFDIR))
+#endif /* S_ISDIR */
+
+#ifndef S_ISREG 
 # define S_ISREG(mode)	(((mode) & (_S_IFMT)) == (_S_IFREG))
 #endif /* S_ISREG */
+
+#ifndef S_ISLNK
+# define S_ISLNK(mode)	(((mode) & (_S_IFMT)) == (_S_IFLNK))
+#endif /* S_ISLNK */
 
 #ifndef S_IXUSR
 # define S_IXUSR			0000100	/* execute/search permission, */

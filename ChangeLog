@@ -12,6 +12,7 @@
  - (bal) Use 'NGROUPS' for NeXT Since 'MAX_NGROUPS' is wrapped up in -lposix
    stuff.  Change suggested by Mark Miller <markm@swoon.net>
  - (bal) Small fix to scp.  %lu vs %ld
+ - (bal) NeXTStep lacks S_ISLNK.  Plus split up S_IS* 
 
 20010318
  - (bal) Fixed scp type casing issue which causes "scp: protocol error: 
@@ -4611,4 +4612,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.978 2001/03/19 03:09:40 mouring Exp $
+$Id: ChangeLog,v 1.979 2001/03/19 03:12:25 mouring Exp $
