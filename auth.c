@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth.c,v 1.36 2002/03/15 11:00:38 itojun Exp $");
+RCSID("$OpenBSD: auth.c,v 1.37 2002/03/17 20:25:56 provos Exp $");
 
 #ifdef HAVE_LOGIN_H
 #include <login.h>
@@ -438,4 +438,16 @@ secure_filename(FILE *f, const char *file, struct passwd *pw,
 			break;
 	}
 	return 0;
+}
+
+struct passwd *
+getpwnamallow(const char *user)
+{
+	struct passwd *pw;
+
+	pw = getpwnam(user);
+	if (pw != NULL && !allowed_user(pw))
+		pw = NULL;
+
+	return (pw);
 }

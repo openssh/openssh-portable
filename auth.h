@@ -1,4 +1,4 @@
-/*	$OpenBSD: auth.h,v 1.31 2002/03/16 17:22:09 markus Exp $	*/
+/*	$OpenBSD: auth.h,v 1.32 2002/03/17 20:25:56 provos Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -133,6 +133,7 @@ int	auth2_challenge(Authctxt *, char *);
 void	auth2_challenge_stop(Authctxt *);
 
 int	allowed_user(struct passwd *);
+struct passwd * getpwnamallow(const char *user);
 
 char	*get_challenge(Authctxt *);
 int	verify_response(Authctxt *, const char *);

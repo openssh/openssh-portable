@@ -30,6 +30,9 @@
    - stevesk@cvs.openbsd.org 2002/03/16 17:41:25
      [auth-krb5.c]
      BSD license.  from Daniel Kouril via Dug Song.  ok markus@
+   - provos@cvs.openbsd.org 2002/03/17 20:25:56
+     [auth.c auth.h auth1.c auth2.c]
+     getpwnamallow returns struct passwd * only if user valid; okay markus@
 
 20020317
  - (tim) [configure.ac] Assume path given with --with-pid-dir=PATH is wanted,
@@ -7876,4 +7879,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1933 2002/03/22 01:22:27 mouring Exp $
+$Id: ChangeLog,v 1.1934 2002/03/22 01:24:38 mouring Exp $

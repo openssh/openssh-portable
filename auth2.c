@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.85 2002/02/24 19:14:59 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.86 2002/03/17 20:25:56 provos Exp $");
 
 #include <openssl/evp.h>
 
@@ -184,8 +184,8 @@ input_userauth_request(int type, u_int32_t seq, void *ctxt)
 	if (authctxt->attempt++ == 0) {
 		/* setup auth context */
 		struct passwd *pw = NULL;
-		pw = getpwnam(user);
-		if (pw && allowed_user(pw) && strcmp(service, "ssh-connection")==0) {
+		pw = getpwnamallow(user);
+		if (pw && strcmp(service, "ssh-connection")==0) {
 			authctxt->pw = pwcopy(pw);
 			authctxt->valid = 1;
 			debug2("input_userauth_request: setting up authctxt for %s", user);
