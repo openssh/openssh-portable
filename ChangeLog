@@ -3,6 +3,7 @@
    <markm@swoon.net> 
  - (bal) Handle broken krb4 issues on Solaris with multiple defined u_*_t
    types.  Patch by Jan IVEN <Jan.Iven@cern.ch> 
+ - (bal) Fixed Makefile.in so that 'configure; make install' works.
 
 20010610
  - (bal) Missed two files in major resync.  auth-bsdauth.c and auth-skey.c
@@ -5601,4 +5602,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1275 2001/06/10 17:35:45 mouring Exp $
+$Id: ChangeLog,v 1.1276 2001/06/10 17:43:35 mouring Exp $
