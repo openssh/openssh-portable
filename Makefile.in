@@ -150,15 +150,17 @@ install-files:
 	fi
 
 host-key: ssh-keygen
-	if [ -f "$(DESTDIR)$(sysconfdir)/ssh_host_key" ] ; then \
-		echo "$(DESTDIR)$(sysconfdir)/ssh_host_key already exists, skipping." ; \
-	else \
-		./ssh-keygen -b 1024 -f $(DESTDIR)$(sysconfdir)/ssh_host_key -N "" ; \
-	fi ; \
-	if [ -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key ] ; then \
-		echo "$(DESTDIR)$(sysconfdir)/ssh_host_dsa_key already exists, skipping." ; \
-	else \
-		./ssh-keygen -d -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key -N "" ; \
+	if [ -z "$(DESTDIR)" ] ; then \
+		if [ -f "$(DESTDIR)$(sysconfdir)/ssh_host_key" ] ; then \
+			echo "$(DESTDIR)$(sysconfdir)/ssh_host_key already exists, skipping." ; \
+		else \
+			./ssh-keygen -b 1024 -f $(DESTDIR)$(sysconfdir)/ssh_host_key -N "" ; \
+		fi ; \
+		if [ -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key ] ; then \
+			echo "$(DESTDIR)$(sysconfdir)/ssh_host_dsa_key already exists, skipping." ; \
+		else \
+			./ssh-keygen -d -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key -N "" ; \
+		fi ; \
 	fi ;
 
 host-key-force: ssh-keygen
