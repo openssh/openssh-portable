@@ -4,6 +4,8 @@
  - (djm) Avoid warning on BSDgetopt
  - (djm) More makefile infrastructre for smartcard support, also based
    on Ben's work
+ - (djm) Specify --datadir in RPM spec files so smartcard applet gets
+    put somewhere sane. Add Ssh.bin to manifest.
 
 20010917
  - (djm) x11-ssh-askpass-1.2.4 in RPM spec, revert workarounds
@@ -6464,4 +6466,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1528 2001/09/18 05:06:21 djm Exp $
+$Id: ChangeLog,v 1.1529 2001/09/18 05:12:10 djm Exp $

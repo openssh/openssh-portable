@@ -89,12 +89,13 @@ passphrase dialog.
 %build
 CFLAGS="$RPM_OPT_FLAGS" \
 ./configure	--prefix=/usr \
-				--sysconfdir=/etc/ssh \
-				--with-pam \
-				--with-gnome-askpass \
-            --with-tcp-wrappers \
-				--with-ipv4-default \
-				--libexecdir=/usr/lib/ssh
+		--sysconfdir=/etc/ssh \
+		--datadir=/usr/share/openssh \
+		--with-pam \
+		--with-gnome-askpass \
+		--with-tcp-wrappers \
+		--with-ipv4-default \
+		--libexecdir=/usr/lib/ssh
 make
 
 cd contrib

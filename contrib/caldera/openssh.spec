@@ -158,6 +158,7 @@ CFLAGS="$RPM_OPT_FLAGS" \
             --prefix=/usr \
             --sysconfdir=/etc/ssh \
             --libexecdir=/usr/lib/ssh \
+            --datadir=/usr/share/openssh \
             --with-pam \
             --with-tcp-wrappers \
             --with-ipv4-default \
@@ -309,4 +310,4 @@ fi
 * Mon Jan 01 1998 ...
 Template Version: 1.31
 
-$Id: openssh.spec,v 1.17 2001/07/05 00:45:29 tim Exp $
+$Id: openssh.spec,v 1.18 2001/09/18 05:12:11 djm Exp $

@@ -139,6 +139,7 @@ GNOME GUI desktop environment.
 
 %configure \
 	--libexecdir=%{_libexecdir}/openssh \
+	--datadir=%{_datadir}/openssh \
 	--with-pam \
 	--with-tcp-wrappers \
 	--with-ipv4-default \
@@ -221,6 +222,8 @@ fi
 %attr(0755,root,root) %dir %{_sysconfdir}
 %attr(0600,root,root) %config(noreplace) %{_sysconfdir}/moduli
 %attr(0755,root,root) %dir %{_libexecdir}/openssh
+%attr(0755,root,root) %dir %{_datadir}/openssh
+%attr(0644,root,root) %{_datadir}/openssh/Ssh.bin
 
 %files clients
 %defattr(-,root,root)
