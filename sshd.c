@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.272 2003/07/14 12:36:37 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.273 2003/07/16 10:34:53 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -851,15 +851,11 @@ main(int ac, char **av)
 			config_file_name = optarg;
 			break;
 		case 'd':
-			if (0 == debug_flag) {
+			if (debug_flag == 0) {
 				debug_flag = 1;
 				options.log_level = SYSLOG_LEVEL_DEBUG1;
-			} else if (options.log_level < SYSLOG_LEVEL_DEBUG3) {
+			} else if (options.log_level < SYSLOG_LEVEL_DEBUG3)
 				options.log_level++;
-			} else {
-				fprintf(stderr, "Too high debugging level.\n");
-				exit(1);
-			}
 			break;
 		case 'D':
 			no_daemon_flag = 1;

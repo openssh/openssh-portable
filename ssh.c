@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.196 2003/07/03 08:09:06 djm Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.197 2003/07/16 10:34:53 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -338,14 +338,14 @@ again:
 			tty_flag = 1;
 			break;
 		case 'v':
-			if (0 == debug_flag) {
+			if (debug_flag == 0) {
 				debug_flag = 1;
 				options.log_level = SYSLOG_LEVEL_DEBUG1;
-			} else if (options.log_level < SYSLOG_LEVEL_DEBUG3) {
-				options.log_level++;
+			} else {
+				if (options.log_level < SYSLOG_LEVEL_DEBUG3)
+					options.log_level++;
 				break;
-			} else
-				fatal("Too high debugging level.");
+			}
 			/* fallthrough */
 		case 'V':
 			fprintf(stderr,
