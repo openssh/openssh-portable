@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.231 2004/09/30 11:17:08 dtucker Exp $
+# $Id: configure.ac,v 1.226.2.1 2004/11/02 09:29:54 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -14,7 +14,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-AC_INIT(OpenSSH, Portable)
+AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -220,6 +220,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE(LOCKED_PASSWD_STRING, "*")
 	AC_DEFINE(SPT_TYPE,SPT_PSTAT)
 	check_for_hpux_broken_getaddrinfo=1
+	check_for_conflicting_getspnam=1
 	LIBS="$LIBS -lsec"
 	AC_CHECK_LIB(xnet, t_error, ,AC_MSG_ERROR([*** -lxnet needed on HP-UX - check config.log ***]))
 	;;
@@ -506,17 +507,15 @@ AC_ARG_WITH(libs,
 )
 
 AC_MSG_CHECKING(compiler and flags for sanity)
-AC_RUN_IFELSE(
-	[AC_LANG_SOURCE([
+AC_TRY_RUN([
 #include <stdio.h>
 int main(){exit(0);}
-	])],
+	],
 	[	AC_MSG_RESULT(yes) ],
 	[
 		AC_MSG_RESULT(no)
 		AC_MSG_ERROR([*** compiler cannot create working executables, check config.log ***])
-	],
-	[	AC_MSG_WARN([cross compiling: not checking compiler sanity]) ]
+	]
 )
 
 # Checks for header files.
@@ -527,16 +526,9 @@ AC_CHECK_HEADERS(bstring.h crypt.h dirent.h endian.h features.h \
 	rpc/types.h security/pam_appl.h shadow.h stddef.h stdint.h \
 	strings.h sys/dir.h sys/strtio.h sys/audit.h sys/bitypes.h \
 	sys/bsdtty.h sys/cdefs.h sys/mman.h sys/ndir.h sys/prctl.h \
-	sys/pstat.h sys/select.h sys/stat.h sys/stream.h \
+	sys/pstat.h sys/ptms.h sys/select.h sys/stat.h sys/stream.h \
 	sys/stropts.h sys/sysmacros.h sys/time.h sys/timers.h sys/un.h \
 	time.h tmpdir.h ttyent.h usersec.h util.h utime.h utmp.h utmpx.h vis.h)
-
-# sys/ptms.h requires sys/stream.h to be included first on Solaris
-AC_CHECK_HEADERS(sys/ptms.h, [], [], [
-#ifdef HAVE_SYS_STREAM_H
-# include <sys/stream.h>
-#endif
-])
 
 # Checks for libraries.
 AC_CHECK_FUNC(yp_match, , AC_CHECK_LIB(nsl, yp_match))
@@ -649,7 +641,7 @@ AC_ARG_WITH(zlib-version-check,
 )
 
 AC_MSG_CHECKING(for zlib 1.1.4 or greater)
-AC_RUN_IFELSE([AC_LANG_SOURCE([[
+AC_TRY_RUN([
 #include <zlib.h>
 int main()
 {
@@ -661,7 +653,7 @@ int main()
 		exit(0);
 	exit(2);
 }
-	]])],
+	],
 	AC_MSG_RESULT(yes),
 	[ AC_MSG_RESULT(no)
 	  if test -z "$zlib_check_nonfatal" ; then
@@ -674,8 +666,7 @@ If you are in doubt, upgrade zlib to version 1.1.4 or greater.])
 	  else
 		AC_MSG_WARN([zlib version may have security problems])
 	  fi
-	],
-	[	AC_MSG_WARN([cross compiling: not checking zlib version]) ]
+	]
 )
 
 dnl UnixWare 2.x
@@ -729,19 +720,15 @@ AC_EGREP_CPP(FOUNDIT,
 )
 
 AC_MSG_CHECKING([whether struct dirent allocates space for d_name])
-AC_RUN_IFELSE(
-	[AC_LANG_SOURCE([[
+AC_TRY_RUN(
+	[
 #include <sys/types.h>
 #include <dirent.h>
 int main(void){struct dirent d;exit(sizeof(d.d_name)<=sizeof(char));}
-	]])],
+	],
 	[AC_MSG_RESULT(yes)],
 	[
 		AC_MSG_RESULT(no)
-		AC_DEFINE(BROKEN_ONE_BYTE_DIRENT_D_NAME)
-	],
-	[ 
-		AC_MSG_WARN([cross compiling: assuming BROKEN_ONE_BYTE_DIRENT_D_NAME])
 		AC_DEFINE(BROKEN_ONE_BYTE_DIRENT_D_NAME)
 	]
 )
@@ -902,32 +889,28 @@ AC_CHECK_DECLS(h_errno, , ,[#include <netdb.h>])
 AC_CHECK_FUNCS(setresuid, [
 	dnl Some platorms have setresuid that isn't implemented, test for this
 	AC_MSG_CHECKING(if setresuid seems to work)
-	AC_RUN_IFELSE(
-		[AC_LANG_SOURCE([[
+	AC_TRY_RUN([
 #include <stdlib.h>
 #include <errno.h>
 int main(){errno=0; setresuid(0,0,0); if (errno==ENOSYS) exit(1); else exit(0);}
-		]])],
+		],
 		[AC_MSG_RESULT(yes)],
 		[AC_DEFINE(BROKEN_SETRESUID)
-		 AC_MSG_RESULT(not implemented)],
-		[AC_MSG_WARN([cross compiling: not checking setresuid])]
+		 AC_MSG_RESULT(not implemented)]
 	)
 ])
 
 AC_CHECK_FUNCS(setresgid, [
 	dnl Some platorms have setresgid that isn't implemented, test for this
 	AC_MSG_CHECKING(if setresgid seems to work)
-	AC_RUN_IFELSE(
-		[AC_LANG_SOURCE([[
+	AC_TRY_RUN([
 #include <stdlib.h>
 #include <errno.h>
 int main(){errno=0; setresgid(0,0,0); if (errno==ENOSYS) exit(1); else exit(0);}
-		]])],
+		],
 		[AC_MSG_RESULT(yes)],
 		[AC_DEFINE(BROKEN_SETRESGID)
-		 AC_MSG_RESULT(not implemented)],
-		[AC_MSG_WARN([cross compiling: not checking setresuid])]
+		 AC_MSG_RESULT(not implemented)]
 	)
 ])
 
@@ -953,18 +936,17 @@ AC_CHECK_FUNC(getpagesize,
 # Check for broken snprintf
 if test "x$ac_cv_func_snprintf" = "xyes" ; then
 	AC_MSG_CHECKING([whether snprintf correctly terminates long strings])
-	AC_RUN_IFELSE(
-		[AC_LANG_SOURCE([[
+	AC_TRY_RUN(
+		[
 #include <stdio.h>
 int main(void){char b[5];snprintf(b,5,"123456789");exit(b[4]!='\0');}
-		]])],
+		],
 		[AC_MSG_RESULT(yes)],
 		[
 			AC_MSG_RESULT(no)
 			AC_DEFINE(BROKEN_SNPRINTF)
 			AC_MSG_WARN([****** Your snprintf() function is broken, complain to your vendor])
-		],
-		[ AC_MSG_WARN([cross compiling: Assuming working snprintf()]) ]
+		]
 	)
 fi
 
@@ -1123,6 +1105,24 @@ main(void)
 	)
 fi
 
+if test "x$check_for_conflicting_getspnam" = "x1"; then
+	AC_MSG_CHECKING(for conflicting getspnam in shadow.h)
+	AC_COMPILE_IFELSE(
+		[
+#include <shadow.h>
+int main(void) {exit(0);}
+		],
+		[
+			AC_MSG_RESULT(no)
+		],
+		[
+			AC_MSG_RESULT(yes)
+			AC_DEFINE(GETSPNAM_CONFLICTING_DEFS, 1,
+			    [Conflicting defs for getspnam])
+		]
+	)
+fi
+
 AC_FUNC_GETPGRP
 
 # Check for PAM libs
@@ -1225,8 +1225,8 @@ AC_TRY_LINK_FUNC(RAND_add, AC_DEFINE(HAVE_OPENSSL),
 
 # Determine OpenSSL header version
 AC_MSG_CHECKING([OpenSSL header version])
-AC_RUN_IFELSE(
-	[AC_LANG_SOURCE([[
+AC_TRY_RUN(
+	[
 #include <stdio.h>
 #include <string.h>
 #include <openssl/opensslv.h>
@@ -1244,7 +1244,7 @@ int main(void) {
 
 	exit(0);
 }
-	]])],
+	],
 	[
 		ssl_header_ver=`cat conftest.sslincver`
 		AC_MSG_RESULT($ssl_header_ver)
@@ -1252,16 +1252,13 @@ int main(void) {
 	[
 		AC_MSG_RESULT(not found)
 		AC_MSG_ERROR(OpenSSL version header not found.)
-	],
-	[
-		AC_MSG_WARN([cross compiling: not checking])
 	]
 )
 
 # Determine OpenSSL library version
 AC_MSG_CHECKING([OpenSSL library version])
-AC_RUN_IFELSE(
-	[AC_LANG_SOURCE([[
+AC_TRY_RUN(
+	[
 #include <stdio.h>
 #include <string.h>
 #include <openssl/opensslv.h>
@@ -1280,7 +1277,7 @@ int main(void) {
 
 	exit(0);
 }
-	]])],
+	],
 	[
 		ssl_library_ver=`cat conftest.ssllibver`
 		AC_MSG_RESULT($ssl_library_ver)
@@ -1288,20 +1285,17 @@ int main(void) {
 	[
 		AC_MSG_RESULT(not found)
 		AC_MSG_ERROR(OpenSSL library not found.)
-	],
-	[
-		AC_MSG_WARN([cross compiling: not checking])
 	]
 )
 
 # Sanity check OpenSSL headers
 AC_MSG_CHECKING([whether OpenSSL's headers match the library])
-AC_RUN_IFELSE(
-	[AC_LANG_SOURCE([[
+AC_TRY_RUN(
+	[
 #include <string.h>
 #include <openssl/opensslv.h>
 int main(void) { exit(SSLeay() == OPENSSL_VERSION_NUMBER ? 0 : 1); }
-	]])],
+	],
 	[
 		AC_MSG_RESULT(yes)
 	],
@@ -1310,9 +1304,6 @@ int main(void) { exit(SSLeay() == OPENSSL_VERSION_NUMBER ? 0 : 1); }
 		AC_MSG_ERROR([Your OpenSSL headers do not match your library.
 Check config.log for details.
 Also see contrib/findssl.sh for help identifying header/library mismatches.])
-	],
-	[
-		AC_MSG_WARN([cross compiling: not checking])
 	]
 )
 
@@ -1333,12 +1324,12 @@ fi
 
 # Check wheter OpenSSL seeds itself
 AC_MSG_CHECKING([whether OpenSSL's PRNG is internally seeded])
-AC_RUN_IFELSE(
-	[AC_LANG_SOURCE([[
+AC_TRY_RUN(
+	[
 #include <string.h>
 #include <openssl/rand.h>
 int main(void) { exit(RAND_status() == 1 ? 0 : 1); }
-	]])],
+	],
 	[
 		OPENSSL_SEEDS_ITSELF=yes
 		AC_MSG_RESULT(yes)
@@ -1348,12 +1339,6 @@ int main(void) { exit(RAND_status() == 1 ? 0 : 1); }
 		# Default to use of the rand helper if OpenSSL doesn't
 		# seed itself
 		USE_RAND_HELPER=yes
-	],
-	[
-		AC_MSG_WARN([cross compiling: assuming yes])
-		# This is safe, since all recent OpenSSL versions will
-		# complain at runtime if not seeded correctly. 
-		OPENSSL_SEEDS_ITSELF=yes
 	]
 )
 
@@ -1920,8 +1905,8 @@ if test "x$ac_cv_have_int64_t" = "xno" -a \
 	exit 1;
 else
 dnl test snprintf (broken on SCO w/gcc)
-	AC_RUN_IFELSE(
-		[AC_LANG_SOURCE([[
+	AC_TRY_RUN(
+		[
 #include <stdio.h>
 #include <string.h>
 #ifdef HAVE_SNPRINTF
@@ -1944,8 +1929,7 @@ main()
 #else
 main() { exit(0); }
 #endif
-		]])], [ true ], [ AC_DEFINE(BROKEN_SNPRINTF) ],
-		AC_MSG_WARN([cross compiling: Assuming working snprintf()])
+		], [ true ], [ AC_DEFINE(BROKEN_SNPRINTF) ]
 	)
 fi
 
@@ -2050,14 +2034,13 @@ fi
 dnl make sure we're using the real structure members and not defines
 AC_CACHE_CHECK([for msg_accrights field in struct msghdr],
 		ac_cv_have_accrights_in_msghdr, [
-	AC_COMPILE_IFELSE(
+	AC_TRY_RUN(
 		[
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/uio.h>
 int main() {
 #ifdef msg_accrights
-#error "msg_accrights is a macro"
 exit(1);
 #endif
 struct msghdr m;
@@ -2075,14 +2058,13 @@ fi
 
 AC_CACHE_CHECK([for msg_control field in struct msghdr],
 		ac_cv_have_control_in_msghdr, [
-	AC_COMPILE_IFELSE(
+	AC_TRY_RUN(
 		[
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/uio.h>
 int main() {
 #ifdef msg_control
-#error "msg_control is a macro"
 exit(1);
 #endif
 struct msghdr m;
@@ -2416,10 +2398,6 @@ if test ! -z "$MAIL" ; then
 	AC_DEFINE_UNQUOTED(MAIL_DIRECTORY, "$maildir")
 fi
 
-if test ! -z "$cross_compiling" && test "x$cross_compiling" = "xyes"; then
-	AC_MSG_WARN([cross compiling: Disabling /dev/ptmx test])
-	disable_ptmx_check=yes
-fi
 if test -z "$no_dev_ptmx" ; then
 	if test "x$disable_ptmx_check" != "xyes" ; then
 		AC_CHECK_FILE("/dev/ptmx",
@@ -2430,17 +2408,12 @@ if test -z "$no_dev_ptmx" ; then
 		)
 	fi
 fi
-
-if test ! -z "$cross_compiling" && test "x$cross_compiling" != "xyes"; then
-	AC_CHECK_FILE("/dev/ptc",
-		[
-			AC_DEFINE_UNQUOTED(HAVE_DEV_PTS_AND_PTC)
-			have_dev_ptc=1
-		]
-	)
-else
-	AC_MSG_WARN([cross compiling: Disabling /dev/ptc test])
-fi
+AC_CHECK_FILE("/dev/ptc",
+	[
+		AC_DEFINE_UNQUOTED(HAVE_DEV_PTS_AND_PTC)
+		have_dev_ptc=1
+	]
+)
 
 # Options from here on. Some of these are preset by platform above
 AC_ARG_WITH(mantype,
@@ -2537,17 +2510,13 @@ fi
 # check for /etc/default/login and use it if present.
 AC_ARG_ENABLE(etc-default-login,
 	[  --disable-etc-default-login       Disable using PATH from /etc/default/login [no]],,
-	[ AC_CHECK_FILE("/etc/default/login",
-	    [ external_path_file=/etc/default/login ])
+[
+AC_CHECK_FILE("/etc/default/login", [ external_path_file=/etc/default/login ])
 
-	if test ! -z "$cross_compiling" && test "x$cross_compiling" = "xyes";
-	then
-		AC_MSG_WARN([cross compiling: Disabling /etc/default/login test])
-	elif test "x$external_path_file" = "x/etc/default/login"; then
-		AC_DEFINE(HAVE_ETC_DEFAULT_LOGIN)
-	fi
-	]
-)
+if test "x$external_path_file" = "x/etc/default/login"; then
+	AC_DEFINE(HAVE_ETC_DEFAULT_LOGIN)
+fi
+])
 
 dnl BSD systems use /etc/login.conf so --with-default-path= has no effect
 if test $ac_cv_func_login_getcapbool = "yes" -a \
@@ -3047,8 +3016,7 @@ echo "         Libraries: ${LIBWRAP} ${LIBPAM} ${LIBS}"
 echo ""
 
 if test "x$MAKE_PACKAGE_SUPPORTED" = "xyes" ; then
-	echo "SVR4 style packages are supported with \"make package\""
-	echo ""
+	echo "SVR4 style packages are supported with \"make package\"\n"
 fi
 
 if test "x$PAM_MSG" = "xyes" ; then
