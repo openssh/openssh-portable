@@ -60,5 +60,7 @@ void arc4random_stir(void)
 	RC4_set_key(&rc4, sizeof(rand_buf), rand_buf);
 
 	memset(rand_buf, 0, sizeof(rand_buf));
+	
+	rc4_ready = 1;
 }
 #endif /* !HAVE_ARC4RANDOM */
