@@ -6,6 +6,9 @@
    - markus@cvs.openbsd.org 2004/05/26 23:02:39
      [channels.c]
      missing freeaddrinfo; Andrey Matveev
+   - dtucker@cvs.openbsd.org 2004/05/27 00:50:13
+     [readconf.c]
+     Kill dead code after fatal(); ok djm@
 
 20040603
  - (dtucker) [auth-pam.c] Don't use pam_* namespace for sshd's PAM functions.
@@ -1190,4 +1193,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3376 2004/06/15 00:27:15 djm Exp $
+$Id: ChangeLog,v 1.3377 2004/06/15 00:27:55 djm Exp $

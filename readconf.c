@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.130 2004/04/27 09:46:36 djm Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.131 2004/05/27 00:50:13 dtucker Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -809,16 +809,11 @@ read_config_file(const char *filename, const char *host, Options *options,
 	if (checkperm) {
 		struct stat sb;
 		
-		if (fstat(fileno(f), &sb) == -1) {
+		if (fstat(fileno(f), &sb) == -1)
 			fatal("fstat %s: %s", filename, strerror(errno));
-			fclose(f);
-			return (0);
-		}
 		if (((sb.st_uid != 0 && sb.st_uid != getuid()) ||
-		    (sb.st_mode & 022) != 0)) {
+		    (sb.st_mode & 022) != 0))
 			fatal("Bad owner or permissions on %s", filename);
-			return 0;
-		}
 	}
 
 	debug("Reading configuration data %.200s", filename);
