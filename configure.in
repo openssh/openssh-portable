@@ -165,7 +165,7 @@ if test -z "$no_pam" -a "x$ac_cv_header_security_pam_appl_h" = "xyes" ; then
 	AC_CHECK_LIB(dl, dlopen, , )
 	LIBS="$LIBS -lpam"
 
-	AC_CHECK_FUNC(pam_getenvlist)
+	AC_CHECK_FUNCS(pam_getenvlist)
 
 	# Check PAM strerror arguments (old PAM)
 	AC_MSG_CHECKING([whether pam_strerror takes only one argument])

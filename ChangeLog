@@ -12,6 +12,7 @@
  - Applied Tom Bertelson's <tbert@abac.com> AIX authentication fix
  - Avoid WCOREDUMP complation errors for systems that lack it
  - Avoid SIGCHLD warnings from entropy commands 
+ - Fix HAVE_PAM_GETENVLIST setting from Simon Wilkinson <sxw@dcs.ed.ac.uk>
 
 20000513
  - Fix for non-recognised DSA keys from Arkadiusz Miskiewicz 
