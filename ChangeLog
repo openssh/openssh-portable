@@ -1,3 +1,9 @@
+20021109
+ - (bal) OpenBSD CVS Sync
+   - itojun@cvs.openbsd.org 2002/10/16 14:31:48
+     [sftp-common.c]
+     64bit pedant.  %llu is "unsigned long long".  markus ok
+
 20021021
  - (djm) Bug #400: Kill ssh-rand-helper children on timeout, patch from 
    dtucker@zip.com.au
@@ -774,4 +780,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2499 2002/10/21 10:26:16 djm Exp $
+$Id: ChangeLog,v 1.2500 2002/11/09 15:40:34 mouring Exp $
