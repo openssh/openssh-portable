@@ -1,3 +1,6 @@
+20041206
+ - (dtucker) [TODO WARNING.RNG] Update to reflect current reality.  ok djm@
+
 20041203
  - (dtucker) OpenBSD CVS Sync
    - jmc@cvs.openbsd.org 2004/11/07 17:42:36
@@ -1870,4 +1873,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3584 2004/12/03 03:33:47 dtucker Exp $
+$Id: ChangeLog,v 1.3585 2004/12/06 11:40:10 dtucker Exp $
