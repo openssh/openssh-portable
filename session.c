@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.166 2003/10/14 19:54:39 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.167 2003/11/04 08:54:09 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1532,7 +1532,7 @@ session_open(Authctxt *authctxt, int chanid)
 	}
 	s->authctxt = authctxt;
 	s->pw = authctxt->pw;
-	if (s->pw == NULL)
+	if (s->pw == NULL || !authctxt->valid)
 		fatal("no user for session %d", s->self);
 	debug("session_open: session %d: link with channel %d", s->self, chanid);
 	s->chanid = chanid;

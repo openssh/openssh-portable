@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.111 2003/09/23 20:17:11 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.112 2003/11/04 08:54:09 djm Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -973,8 +973,8 @@ server_input_global_request(int type, u_int32_t seq, void *ctxt)
 		u_short listen_port;
 
 		pw = the_authctxt->pw;
-		if (pw == NULL)
-			fatal("server_input_global_request: no user");
+		if (pw == NULL || !the_authctxt->pw)
+			fatal("server_input_global_request: no/invalid user");
 		listen_address = packet_get_string(NULL);
 		listen_port = (u_short)packet_get_int();
 		debug("server_input_global_request: tcpip-forward listen %s port %d",

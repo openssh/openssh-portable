@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.53 2003/09/23 20:17:11 markus Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.54 2003/11/04 08:54:09 djm Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -139,7 +139,7 @@ do_authloop(Authctxt *authctxt)
 				    BN_num_bits(client_host_key->rsa->n), bits);
 			packet_check_eom();
 
-			authenticated = auth_rhosts_rsa(pw, client_user,
+			authenticated = auth_rhosts_rsa(authctxt, client_user,
 			    client_host_key);
 			key_free(client_host_key);
 
@@ -156,7 +156,7 @@ do_authloop(Authctxt *authctxt)
 				fatal("do_authloop: BN_new failed");
 			packet_get_bignum(n);
 			packet_check_eom();
-			authenticated = auth_rsa(pw, n);
+			authenticated = auth_rsa(authctxt, n);
 			BN_clear_free(n);
 			break;
 

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.103 2003/09/23 20:17:11 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.104 2003/11/04 08:54:09 djm Exp $");
 
 #include "ssh2.h"
 #include "xmalloc.h"
@@ -77,7 +77,6 @@ static void input_userauth_request(int, u_int32_t, void *);
 static Authmethod *authmethod_lookup(const char *);
 static char *authmethods_get(void);
 int user_key_allowed(struct passwd *, Key *);
-int hostbased_key_allowed(struct passwd *, const char *, char *, Key *);
 
 /*
  * loop until authctxt->success == TRUE
