@@ -1,3 +1,6 @@
+20010414
+ - Sync with OpenBSD glob.c, strlcat.c and vis.c changes
+
 20010413
  - OpenBSD CVS Sync                                                           
    - markus@cvs.openbsd.org 2001/04/12 14:29:09 
@@ -5049,4 +5052,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1107 2001/04/13 04:44:37 mouring Exp $
+$Id: ChangeLog,v 1.1108 2001/04/13 14:22:33 djm Exp $

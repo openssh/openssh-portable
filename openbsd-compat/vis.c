@@ -32,7 +32,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char rcsid[] = "$OpenBSD: vis.c,v 1.5 2000/07/19 15:25:13 deraadt Exp $";
+static char rcsid[] = "$OpenBSD: vis.c,v 1.6 2000/11/21 00:47:28 millert Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "includes.h"
@@ -40,18 +40,20 @@ static char rcsid[] = "$OpenBSD: vis.c,v 1.5 2000/07/19 15:25:13 deraadt Exp $";
 #ifndef HAVE_VIS
 
 #define	isoctal(c)	(((u_char)(c)) >= '0' && ((u_char)(c)) <= '7')
+#define isvisible(c)	(((u_int)(c) <= UCHAR_MAX && isascii((u_char)(c)) && \
+				isgraph((u_char)(c))) ||		     \
+				((flag & VIS_SP) == 0 && (c) == ' ') ||	     \
+				((flag & VIS_TAB) == 0 && (c) == '\t') ||    \
+				((flag & VIS_NL) == 0 && (c) == '\n') ||     \
+				((flag & VIS_SAFE) &&			     \
+				((c) == '\b' || (c) == '\007' || (c) == '\r')))
 
 /*
  * vis - visually encode characters
  */
 char *vis(char *dst, int c, int flag, int nextc)
 {
-	if (((u_int)c <= UCHAR_MAX && isascii((u_char)c) &&
-	    isgraph((u_char)c)) ||
-	   ((flag & VIS_SP) == 0 && c == ' ') ||
-	   ((flag & VIS_TAB) == 0 && c == '\t') ||
-	   ((flag & VIS_NL) == 0 && c == '\n') ||
-	   ((flag & VIS_SAFE) && (c == '\b' || c == '\007' || c == '\r'))) {
+	if (isvisible(c)) {
 		*dst++ = c;
 		if (c == '\\' && (flag & VIS_NOSLASH) == 0)
 			*dst++ = '\\';
