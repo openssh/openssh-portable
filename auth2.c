@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.49 2001/03/28 22:43:31 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.50 2001/04/04 20:32:56 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -274,11 +274,8 @@ userauth_banner(void)
 
 	if (options.banner == NULL || (datafellows & SSH_BUG_BANNER))
 		return;
-	if ((fd = open(options.banner, O_RDONLY)) < 0) {
-		error("userauth_banner: open %s failed: %s",
-		    options.banner, strerror(errno));
+	if ((fd = open(options.banner, O_RDONLY)) < 0)
 		return;
-	}
 	if (fstat(fd, &st) < 0)
 		goto done;
 	len = st.st_size;
