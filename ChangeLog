@@ -1,3 +1,11 @@
+20031117
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2003/11/03 09:03:37
+     [auth-chall.c]
+     make this a little more idiot-proof; ok markus@
+     (includes portable-specific changes)
+
+
 20031115
  - (dtucker) [regress/agent-ptrace.sh] Test for GDB output from Solaris and
    HP-UX, skip test on AIX.
@@ -1417,4 +1425,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3097 2003/11/15 01:13:16 dtucker Exp $
+$Id: ChangeLog,v 1.3098 2003/11/17 10:09:50 djm Exp $
