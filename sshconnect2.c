@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.58 2001/03/28 21:59:40 provos Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.59 2001/03/29 14:24:59 provos Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -336,7 +336,7 @@ ssh_dhgex_client(Kex *kex, char *host, struct sockaddr *hostaddr,
 
 		/* New GEX request */
 		min = DH_GRP_MIN;
-		max = MIN(DH_GRP_MAX, nbits * 1.25);
+		max = DH_GRP_MAX;
 
 		packet_start(SSH2_MSG_KEX_DH_GEX_REQUEST);
 		packet_put_int(min);
