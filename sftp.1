@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.39 2003/01/08 23:53:26 djm Exp $
+.\" $OpenBSD: sftp.1,v 1.40 2003/01/10 08:19:07 fgsch Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -228,6 +228,8 @@ Set local umask to
 .It Ic mkdir Ar path
 Create remote directory specified by
 .Ar path .
+.It Ic progress
+Toggle display of progress meter.
 .It Xo Ic put
 .Op Ar flags
 .Ar local-path

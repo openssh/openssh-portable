@@ -8,6 +8,11 @@
      Allow blank lines and comments in input
      Ability to suppress abort on error in batchmode ("-put blah")
      Fixes mindrot bug #452; markus@ ok
+   - fgsch@cvs.openbsd.org 2003/01/10 08:19:07
+     [scp.c sftp.1 sftp.c sftp-client.c sftp-int.c]
+     sftp progress meter support.
+     original diffs by Nils Nordman <nino at nforced dot com> via 
+     markus@, merged to -current by me, djm@ ok.
 
 20030108
  - (djm) Sync openbsd-compat/ with OpenBSD -current
@@ -976,4 +981,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2559 2003/01/10 10:40:00 djm Exp $
+$Id: ChangeLog,v 1.2560 2003/01/10 10:43:24 djm Exp $

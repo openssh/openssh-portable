@@ -28,7 +28,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.38 2003/01/06 23:51:22 djm Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.39 2003/01/10 08:19:07 fgsch Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -38,10 +38,13 @@ RCSID("$OpenBSD: sftp-client.c,v 1.38 2003/01/06 23:51:22 djm Exp $");
 #include "xmalloc.h"
 #include "log.h"
 #include "atomicio.h"
+#include "progressmeter.h"
 
 #include "sftp.h"
 #include "sftp-common.h"
 #include "sftp-client.h"
+
+extern int showprogress;
 
 /* Minimum amount of data to read at at time */
 #define MIN_READ_SIZE	512
@@ -741,6 +744,7 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 	int read_error, write_errno;
 	u_int64_t offset, size;
 	u_int handle_len, mode, type, id, buflen;
+	off_t progress_counter;
 	struct request {
 		u_int id;
 		u_int len;
@@ -806,6 +810,16 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 	/* Read from remote and write to local */
 	write_error = read_error = write_errno = num_req = offset = 0;
 	max_req = 1;
+	progress_counter = 0;
+
+	if (showprogress) {
+		if (size)
+			start_progress_meter(remote_path, size,
+			    &progress_counter);
+		else
+			printf("Fetching %s to %s\n", remote_path, local_path);
+	}
+
 	while (num_req > 0 || max_req > 0) {
 		char *data;
 		u_int len;
@@ -866,6 +880,7 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 				write_error = 1;
 				max_req = 0;
 			}
+			progress_counter += len;
 			xfree(data);
 
 			if (len == req->len) {
@@ -907,6 +922,9 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 			    SSH2_FXP_DATA, type);
 		}
 	}
+
+	if (showprogress && size)
+		stop_progress_meter();
 
 	/* Sanity check */
 	if (TAILQ_FIRST(&requests) != NULL)
@@ -1018,6 +1036,11 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 
 	/* Read from local and write to remote */
 	offset = 0;
+	if (showprogress)
+		start_progress_meter(local_path, sb.st_size, &offset);
+	else
+		printf("Uploading %s to %s\n", local_path, remote_path);
+
 	for (;;) {
 		int len;
 
@@ -1094,6 +1117,8 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 		}
 		offset += len;
 	}
+	if (showprogress)
+		stop_progress_meter();
 	xfree(data);
 
 	if (close(local_fd) == -1) {

@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.223 2003/01/09 01:22:59 tim Exp $
+# $Id: Makefile.in,v 1.224 2003/01/10 10:43:25 djm Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -117,8 +117,8 @@ ssh$(EXEEXT): $(LIBCOMPAT) libssh.a $(SSHOBJS)
 sshd$(EXEEXT): libssh.a	$(LIBCOMPAT) $(SSHDOBJS)
 	$(LD) -o $@ $(SSHDOBJS) $(LDFLAGS) -lssh -lopenbsd-compat $(LIBWRAP) $(LIBPAM) $(LIBS)
 
-scp$(EXEEXT): $(LIBCOMPAT) libssh.a scp.o
-	$(LD) -o $@ scp.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
+scp$(EXEEXT): $(LIBCOMPAT) libssh.a scp.o progressmeter.o
+	$(LD) -o $@ scp.o progressmeter.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
 ssh-add$(EXEEXT): $(LIBCOMPAT) libssh.a ssh-add.o
 	$(LD) -o $@ ssh-add.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
@@ -138,8 +138,8 @@ ssh-keyscan$(EXEEXT): $(LIBCOMPAT) libssh.a ssh-keyscan.o
 sftp-server$(EXEEXT): $(LIBCOMPAT) libssh.a sftp.o sftp-common.o sftp-server.o
 	$(LD) -o $@ sftp-server.o sftp-common.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS) 
 
-sftp$(EXEEXT): $(LIBCOMPAT) libssh.a sftp.o sftp-client.o sftp-int.o sftp-common.o sftp-glob.o
-	$(LD) -o $@ sftp.o sftp-client.o sftp-common.o sftp-int.o sftp-glob.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
+sftp$(EXEEXT): $(LIBCOMPAT) libssh.a sftp.o sftp-client.o sftp-int.o sftp-common.o sftp-glob.o progressmeter.o
+	$(LD) -o $@ progressmeter.o sftp.o sftp-client.o sftp-common.o sftp-int.o sftp-glob.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)
 
 ssh-rand-helper${EXEEXT}: $(LIBCOMPAT) libssh.a ssh-rand-helper.o
 	$(LD) -o $@ ssh-rand-helper.o $(LDFLAGS) -lssh -lopenbsd-compat $(LIBS)

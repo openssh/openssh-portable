@@ -75,13 +75,14 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.96 2002/12/13 15:20:52 markus Exp $");
+RCSID("$OpenBSD: scp.c,v 1.97 2003/01/10 08:19:07 fgsch Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
 #include "pathnames.h"
 #include "log.h"
 #include "misc.h"
+#include "progressmeter.h"
 
 #ifdef HAVE___PROGNAME
 extern char *__progname;
@@ -89,29 +90,8 @@ extern char *__progname;
 char *__progname;
 #endif
 
-/* For progressmeter() -- number of seconds before xfer considered "stalled" */
-#define STALLTIME	5
-/* alarm() interval for updating progress meter */
-#define PROGRESSTIME	1
-
-/* Visual statistics about files as they are transferred. */
-void progressmeter(int);
-
-/* Returns width of the terminal (for progress meter calculations). */
-int getttywidth(void);
-int do_cmd(char *host, char *remuser, char *cmd, int *fdin, int *fdout, int argc);
-
 /* Struct for addargs */
 arglist args;
-
-/* Time a transfer started. */
-static struct timeval start;
-
-/* Number of bytes of current file transferred so far. */
-volatile off_t statbytes;
-
-/* Total size of current file. */
-off_t totalbytes = 0;
 
 /* Name of current file being transferred. */
 char *curfile;
@@ -505,7 +485,7 @@ source(argc, argv)
 	struct stat stb;
 	static BUF buffer;
 	BUF *bp;
-	off_t i, amt, result;
+	off_t i, amt, result, statbytes;
 	int fd, haderr, indx;
 	char *last, *name, buf[2048];
 	int len;
@@ -578,10 +558,8 @@ syserr:			run_err("%s: %s", name, strerror(errno));
 next:			(void) close(fd);
 			continue;
 		}
-		if (showprogress) {
-			totalbytes = stb.st_size;
-			progressmeter(-1);
-		}
+		if (showprogress)
+			start_progress_meter(curfile, stb.st_size, &statbytes);
 		/* Keep writing after an error so that we stay sync'd up. */
 		for (haderr = i = 0; i < stb.st_size; i += bp->cnt) {
 			amt = bp->cnt;
@@ -602,7 +580,7 @@ next:			(void) close(fd);
 			}
 		}
 		if (showprogress)
-			progressmeter(1);
+			stop_progress_meter();
 
 		if (close(fd) < 0 && !haderr)
 			haderr = errno;
@@ -682,7 +660,7 @@ sink(argc, argv)
 	BUF *bp;
 	off_t i, j;
 	int amt, count, exists, first, mask, mode, ofd, omode;
-	off_t size;
+	off_t size, statbytes;
 	int setimes, targisdir, wrerrno = 0;
 	char ch, *cp, *np, *targ, *why, *vect[1], buf[2048];
 	struct timeval tv[2];
@@ -844,11 +822,9 @@ bad:			run_err("%s: %s", np, strerror(errno));
 		cp = bp->buf;
 		wrerr = NO;
 
-		if (showprogress) {
-			totalbytes = size;
-			progressmeter(-1);
-		}
 		statbytes = 0;
+		if (showprogress)
+			start_progress_meter(curfile, size, &statbytes);
 		for (count = i = 0; i < size; i += 4096) {
 			amt = 4096;
 			if (i + amt > size)
@@ -882,7 +858,7 @@ bad:			run_err("%s: %s", np, strerror(errno));
 			}
 		}
 		if (showprogress)
-			progressmeter(1);
+			stop_progress_meter();
 		if (count != 0 && wrerr == NO &&
 		    (j = atomicio(write, ofd, bp->buf, count)) != count) {
 			wrerr = YES;
@@ -1085,171 +1061,4 @@ lostconn(signo)
 		_exit(1);
 	else
 		exit(1);
-}
-
-static void
-updateprogressmeter(int ignore)
-{
-	int save_errno = errno;
-
-	progressmeter(0);
-	signal(SIGALRM, updateprogressmeter);
-	alarm(PROGRESSTIME);
-	errno = save_errno;
-}
-
-static int
-foregroundproc(void)
-{
-	static pid_t pgrp = -1;
-	int ctty_pgrp;
-
-	if (pgrp == -1)
-		pgrp = getpgrp();
-
-#ifdef HAVE_TCGETPGRP
-	return ((ctty_pgrp = tcgetpgrp(STDOUT_FILENO)) != -1 &&
-		ctty_pgrp == pgrp);
-#else
-	return ((ioctl(STDOUT_FILENO, TIOCGPGRP, &ctty_pgrp) != -1 &&
-		 ctty_pgrp == pgrp));
-#endif
-}
-
-void
-progressmeter(int flag)
-{
-	static const char spaces[] = "                          "
-	    "                                                   "
-	    "                                                   "
-	    "                                                   "
-	    "                                                   "
-	    "                                                   ";
-	static const char prefixes[] = " KMGTP";
-	static struct timeval lastupdate;
-	static off_t lastsize;
-	struct timeval now, td, wait;
-	off_t cursize, abbrevsize, bytespersec;
-	double elapsed;
-	int ratio, remaining, i, ai, bi, nspaces;
-	char buf[512];
-
-	if (flag == -1) {
-		(void) gettimeofday(&start, (struct timezone *) 0);
-		lastupdate = start;
-		lastsize = 0;
-	}
-	if (foregroundproc() == 0)
-		return;
-
-	(void) gettimeofday(&now, (struct timezone *) 0);
-	cursize = statbytes;
-	if (totalbytes != 0) {
-		ratio = 100.0 * cursize / totalbytes;
-		ratio = MAX(ratio, 0);
-		ratio = MIN(ratio, 100);
-	} else
-		ratio = 100;
-
-	abbrevsize = cursize;
-	for (ai = 0; abbrevsize >= 10000 && ai < sizeof(prefixes); ai++)
-		abbrevsize >>= 10;
-
-	timersub(&now, &lastupdate, &wait);
-	if (cursize > lastsize) {
-		lastupdate = now;
-		lastsize = cursize;
-		wait.tv_sec = 0;
-	}
-	timersub(&now, &start, &td);
-	elapsed = td.tv_sec + (td.tv_usec / 1000000.0);
-
-	bytespersec = 0;
-	if (statbytes > 0) {
-		bytespersec = statbytes;
-		if (elapsed > 0.0)
-			bytespersec /= elapsed;
-	}
-	for (bi = 1; bytespersec >= 1024000 && bi < sizeof(prefixes); bi++)
-		bytespersec >>= 10;
-
-	nspaces = MIN(getttywidth() - 79, sizeof(spaces) - 1);
-
-#ifdef HAVE_LONG_LONG_INT
-	snprintf(buf, sizeof(buf),
-	    "\r%-45.45s%.*s%3d%% %4lld%c%c %3lld.%01d%cB/s",
-	    curfile,
-	    nspaces,
-	    spaces,
-	    ratio,
-	    (long long)abbrevsize,
-	    prefixes[ai],
-	    ai == 0 ? ' ' : 'B',
-	    (long long)(bytespersec / 1024),
-	    (int)((bytespersec % 1024) * 10 / 1024),
-	    prefixes[bi]
-	);
-#else
-	snprintf(buf, sizeof(buf),
-	    "\r%-45.45s%.*s%3d%% %4lld%c%c %3lu.%01d%cB/s",
-	    curfile,
-	    nspaces,
-	    spaces,
-	    ratio,
-	    (u_long)abbrevsize,
-	    prefixes[ai],
-	    ai == 0 ? ' ' : 'B',
-	    (u_long)(bytespersec / 1024),
-	    (int)((bytespersec % 1024) * 10 / 1024),
-	    prefixes[bi]
-	);
-#endif
-
-	if (flag != 1 &&
-	    (statbytes <= 0 || elapsed <= 0.0 || cursize > totalbytes)) {
-		snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
-		    "   --:-- ETA");
-	} else if (wait.tv_sec >= STALLTIME) {
-		snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
-		    " - stalled -");
-	} else {
-		if (flag != 1)
-			remaining = (int)(totalbytes / (statbytes / elapsed) -
-			    elapsed);
-		else
-			remaining = elapsed;
-
-		i = remaining / 3600;
-		if (i)
-			snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
-			    "%2d:", i);
-		else
-			snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
-			    "   ");
-		i = remaining % 3600;
-		snprintf(buf + strlen(buf), sizeof(buf) - strlen(buf),
-		    "%02d:%02d%s", i / 60, i % 60,
-		    (flag != 1) ? " ETA" : "    ");
-	}
-	atomicio(write, fileno(stdout), buf, strlen(buf));
-
-	if (flag == -1) {
-		mysignal(SIGALRM, updateprogressmeter);
-		alarm(PROGRESSTIME);
-	} else if (flag == 1) {
-		alarm(0);
-		atomicio(write, fileno(stdout), "\n", 1);
-		statbytes = 0;
-	}
-}
-
-int
-getttywidth(void)
-{
-	struct winsize winsize;
-
-	if (ioctl(fileno(stdout), TIOCGWINSZ, &winsize) != -1)
-		return (winsize.ws_col ? winsize.ws_col : 80);
-	else
-		return (80);
 }

@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.33 2003/01/08 23:53:26 djm Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.34 2003/01/10 08:19:07 fgsch Exp $");
 
 /* XXX: short-form remote directory listings (like 'ls -C') */
 
@@ -48,6 +48,8 @@ char *__progname;
 FILE* infile;
 size_t copy_buffer_len = 32768;
 size_t num_requests = 16;
+
+extern int showprogress;
 
 static void
 connect_to_server(char *path, char **args, int *in, int *out, pid_t *sshpid)
@@ -162,6 +164,7 @@ main(int argc, char **argv)
 					fatal("%s (%s).", strerror(errno), optarg);
 			} else
 				fatal("Filename already specified.");
+			showprogress = 0;
 			break;
 		case 'P':
 			sftp_direct = optarg;

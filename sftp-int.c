@@ -25,7 +25,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.51 2003/01/08 23:53:26 djm Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.52 2003/01/10 08:19:07 fgsch Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -46,6 +46,9 @@ extern size_t copy_buffer_len;
 
 /* Number of concurrent outstanding requests */
 extern int num_requests;
+
+/* This is set to 0 if the progressmeter is not desired. */
+int showprogress = 1;
 
 /* Seperators for interactive commands */
 #define WHITESPACE " \t\r\n"
@@ -73,6 +76,7 @@ extern int num_requests;
 #define I_SHELL		20
 #define I_SYMLINK	21
 #define I_VERSION	22
+#define I_PROGRESS	23
 
 struct CMD {
 	const char *c;
@@ -100,6 +104,7 @@ const struct CMD cmds[] = {
 	{ "ls",		I_LS },
 	{ "lumask",	I_LUMASK },
 	{ "mkdir",	I_MKDIR },
+	{ "progress",	I_PROGRESS },
 	{ "put",	I_PUT },
 	{ "mput",	I_PUT },
 	{ "pwd",	I_PWD },
@@ -132,6 +137,7 @@ help(void)
 	printf("ls [path]                     Display remote directory listing\n");
 	printf("lumask umask                  Set local umask to 'umask'\n");
 	printf("mkdir path                    Create remote directory\n");
+	printf("preogress                     Toggle display of progress meter\n");
 	printf("put local-path [remote-path]  Upload file\n");
 	printf("pwd                           Display remote working directory\n");
 	printf("exit                          Quit sftp\n");
@@ -425,7 +431,6 @@ process_get(struct sftp_conn *conn, char *src, char *dst, char *pwd, int pflag)
 			err = -1;
 			goto out;
 		}
-		printf("Fetching %s to %s\n", g.gl_pathv[0], abs_dst);
 		err = do_download(conn, g.gl_pathv[0], abs_dst, pflag);
 		goto out;
 	}
@@ -507,7 +512,6 @@ process_put(struct sftp_conn *conn, char *src, char *dst, char *pwd, int pflag)
 			}
 			abs_dst = make_absolute(abs_dst, pwd);
 		}
-		printf("Uploading %s to %s\n", g.gl_pathv[0], abs_dst);
 		err = do_upload(conn, g.gl_pathv[0], abs_dst, pflag);
 		goto out;
 	}
@@ -810,6 +814,7 @@ parse_args(const char **cpp, int *pflag, int *lflag, int *iflag,
 	case I_LPWD:
 	case I_HELP:
 	case I_VERSION:
+	case I_PROGRESS:
 		break;
 	default:
 		fatal("Command not implemented");
@@ -1014,6 +1019,13 @@ parse_dispatch_command(struct sftp_conn *conn, const char *cmd, char **pwd,
 		break;
 	case I_VERSION:
 		printf("SFTP protocol version %u\n", sftp_proto_version(conn));
+		break;
+	case I_PROGRESS:
+		showprogress = !showprogress;
+		if (showprogress)
+			printf("Progress meter enabled\n");
+		else
+			printf("Progress meter disabled\n");
 		break;
 	default:
 		fatal("%d is not implemented", cmdnum);
