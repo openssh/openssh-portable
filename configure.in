@@ -9,10 +9,25 @@ AC_PROG_CPP
 AC_PROG_RANLIB
 AC_PROG_INSTALL
 AC_CHECK_PROG(AR, ar, ar)
-
-dnl Check for the path to xauth
 AC_PATH_PROG(xauth_path, xauth)
-AC_DEFINE_UNQUOTED(XAUTH_PATH, "$xauth_path")
+
+dnl Use ip address instead of hostname in $DISPLAY
+AC_ARG_WITH(rsh,
+	[  --with-rsh=PATH         Specify path to remote shell program ],
+	[
+		AC_DEFINE_UNQUOTED(RSH_PATH, "$withval")
+	],
+	[
+		AC_PATH_PROG(rsh_path, rsh)
+	]
+)
+
+if test ! -z "$xauth_path" ; then
+	AC_DEFINE_UNQUOTED(XAUTH_PATH, "$xauth_path")
+fi
+if test ! -z "$rsh_path" ; then
+	AC_DEFINE_UNQUOTED(RSH_PATH, "$rsh_path")
+fi
 
 dnl Checks for compiler characteristics
 if test "$GCC" = "yes"; then CFLAGS="$CFLAGS -Wall"; fi
@@ -27,6 +42,7 @@ case "$host" in
 	fi
 	CFLAGS="$CFLAGS -D_HPUX_SOURCE"
 	AC_DEFINE(IPADDR_IN_DISPLAY)
+	AC_DEFINE(USE_UTMPX)
 	AC_MSG_CHECKING(for HPUX trusted system password database)
 	if test -f /tcb/files/auth/system/default; then
 		AC_MSG_RESULT(yes)
@@ -80,15 +96,22 @@ AC_CHECK_LIB(util, login, AC_DEFINE(HAVE_LIBUTIL_LOGIN) LIBS="$LIBS -lutil")
 AC_CHECK_LIB(nsl, yp_match, , )
 AC_CHECK_LIB(socket, main, , )
 
-dnl libdl is needed by PAM on Redhat systems
-AC_CHECK_LIB(dl, dlopen, , )
-AC_CHECK_LIB(pam, pam_authenticate, , )
+dnl Use ip address instead of hostname in $DISPLAY
+AC_ARG_WITH(pam,
+	[  --without-pam           Disable PAM support ],
+	[
+		if test "x$withval" != "xno" ; then
+			AC_CHECK_LIB(dl, dlopen, , )
+			AC_CHECK_LIB(pam, pam_authenticate, , )
+		fi
+	]
+)
 
 dnl Checks for header files.
-AC_CHECK_HEADERS(endian.h lastlog.h login.h maillock.h netgroup.h paths.h poll.h pty.h shadow_h util.h utmp.h utmpx.h sys/bsdtty.h sys/poll.h sys/select.h sys/stropts.h sys/time.h)
+AC_CHECK_HEADERS(endian.h lastlog.h login.h maillock.h netgroup.h paths.h poll.h pty.h shadow.h util.h utmp.h utmpx.h sys/bsdtty.h sys/poll.h sys/select.h sys/stropts.h sys/time.h sys/ttcompat.h)
 
 dnl Checks for library functions.
-AC_CHECK_FUNCS(arc4random mkdtemp openpty _getpty setenv seteuid setlogin setproctitle setreuid snprintf strlcat strlcpy vsnprintf)
+AC_CHECK_FUNCS(arc4random updwtmpx mkdtemp openpty _getpty innetgr setenv seteuid setlogin setproctitle setreuid snprintf strlcat strlcpy vsnprintf)
 
 AC_CHECK_FUNC(login, 
 	[AC_DEFINE(HAVE_LOGIN)],
@@ -220,17 +243,19 @@ if test -z "$RANDOM_POOL" -a -z "$EGD_POOL"; then
 	AC_MSG_ERROR([No random device found, and no EGD random pool specified])
 fi
 
-dnl Check for ut_host field in utmp
 AC_MSG_CHECKING([whether utmp.h has ut_host field])
 AC_EGREP_HEADER(ut_host, utmp.h, 
 	[AC_DEFINE(HAVE_HOST_IN_UTMP) AC_MSG_RESULT(yes); ], 
 	[AC_MSG_RESULT(no)]
 )
-
-dnl Check for ut_host field in utmpx
 AC_MSG_CHECKING([whether utmpx.h has ut_host field])
 AC_EGREP_HEADER(ut_host, utmpx.h, 
 	[AC_DEFINE(HAVE_HOST_IN_UTMPX) AC_MSG_RESULT(yes); ], 
+	[AC_MSG_RESULT(no)]
+)
+AC_MSG_CHECKING([whether utmpx.h has syslen field])
+AC_EGREP_HEADER(syslen, utmpx.h, 
+	[AC_DEFINE(HAVE_SYSLEN_IN_UTMPX) AC_MSG_RESULT(yes); ], 
 	[AC_MSG_RESULT(no)]
 )
 

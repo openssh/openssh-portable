@@ -81,6 +81,7 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #include "bsd-mktemp.h"
 #include "bsd-snprintf.h"
 #include "bsd-daemon.h"
+#include "bsd-login.h"
 
 /* Define this to be the path of the xauth program. */
 #ifndef XAUTH_PATH

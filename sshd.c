@@ -11,7 +11,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.39 1999/12/14 04:43:03 damien Exp $");
+RCSID("$Id: sshd.c,v 1.40 1999/12/24 23:11:29 damien Exp $");
 
 #ifdef HAVE_POLL_H
 # include <poll.h>
@@ -146,6 +146,7 @@ void do_child(const char *command, struct passwd * pw, const char *term,
 #ifdef HAVE_LIBPAM
 static int pamconv(int num_msg, const struct pam_message **msg,
 	  struct pam_response **resp, void *appdata_ptr);
+int do_pam_auth(const char *user, const char *password);
 void do_pam_account(char *username, char *remote_user);
 void do_pam_session(char *username, char *ttyname);
 void pam_cleanup_proc(void *context);
@@ -234,6 +235,23 @@ void pam_cleanup_proc(void *context)
 			log("Cannot release PAM authentication: %.200s", 
 			PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
 		}
+	}
+}
+
+int do_pam_auth(const char *user, const char *password)
+{
+	int pam_retval;
+	
+	pampasswd = password;
+	
+	pam_retval = pam_authenticate((pam_handle_t *)pamh, 0);
+	if (pam_retval == PAM_SUCCESS) {
+		log("PAM Password authentication accepted for user \"%.100s\"", user);
+		return 1;
+	} else {
+		log("PAM Password authentication for \"%.100s\" failed: %s", 
+			user, PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
+		return 0;
 	}
 }
 
@@ -1292,7 +1310,11 @@ do_authentication(char *user)
 #ifdef KRB4
 	    (!options.kerberos_authentication || options.kerberos_or_local_passwd) &&
 #endif /* KRB4 */
+#ifdef HAVE_LIBPAM
+	    do_pam_auth(pw->pw_name, "")) {
+#else /* HAVE_LIBPAM */
 	    auth_password(pw, "")) {
+#endif /* HAVE_LIBPAM */
 		/* Authentication with empty password succeeded. */
 		log("Login for user %s from %.100s, accepted without authentication.",
 		    pw->pw_name, get_remote_ipaddr());
@@ -1503,29 +1525,14 @@ do_authloop(struct passwd * pw)
 
 #ifdef HAVE_LIBPAM
 			/* Do PAM auth with password */
-			pampasswd = password;
-			pam_retval = pam_authenticate((pam_handle_t *)pamh, 0);
-			if (pam_retval == PAM_SUCCESS) {
-				log("PAM Password authentication accepted for user \"%.100s\"", pw->pw_name);
-				memset(password, 0, strlen(password));
-				xfree(password);
-				authenticated = 1;
-				break;
-			}
-
-			log("PAM Password authentication for \"%.100s\" failed: %s", 
-				pw->pw_name, PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
-			memset(password, 0, strlen(password));
-			xfree(password);
-			break;
+			authenticated = do_pam_auth(pw->pw_name, password);
 #else /* HAVE_LIBPAM */
 			/* Try authentication with the password. */
 			authenticated = auth_password(pw, password);
-
+#endif /* HAVE_LIBPAM */
 			memset(password, 0, strlen(password));
 			xfree(password);
 			break;
-#endif /* HAVE_LIBPAM */
 
 #ifdef SKEY
 		case SSH_CMSG_AUTH_TIS:

@@ -1,3 +1,14 @@
+19991225
+ - More fixes from Andre Lucas <andre.lucas@dial.pipex.com>
+ - Cleanup of auth-passwd.c for shadow and MD5 passwords
+ - Cleanup and bugfix of PAM authentication code
+
+19991223
+ - Merged later HPUX patch from Andre Lucas 
+   <andre.lucas@dial.pipex.com>
+ - Above patch included better utmpx support from Ben Taylor
+   <bent@clark.net>:
+
 19991222
  - Fix undefined fd_set type in ssh.h from Povl H. Pedersen 
    <pope@netguide.dk>

@@ -18,7 +18,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: login.c,v 1.10 1999/12/22 05:09:48 damien Exp $");
+RCSID("$Id: login.c,v 1.11 1999/12/24 23:11:29 damien Exp $");
 
 #if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
 # include <utmpx.h>
@@ -133,28 +133,44 @@ record_login(int pid, const char *ttyname, const char *user, uid_t uid,
 	struct lastlog ll;
 	char *lastlog;
 #endif /* defined(_PATH_LASTLOG) && !defined(DISABLE_LASTLOG) */
-	struct UTMP_STR u;
-	const char *utmp, *wtmp;
+	struct utmp u;
+#if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
+	struct utmpx utx;
+#endif
 
 	/* Construct an utmp/wtmp entry. */
 	memset(&u, 0, sizeof(u));
 	strncpy(u.ut_line, ttyname + 5, sizeof(u.ut_line));
-#if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
-	u.ut_tv.tv_sec = time(NULL);
-	strncpy(u.ut_user, user, sizeof(u.ut_name));
-#else
+	u.ut_pid = (pid_t)pid;
 	u.ut_time = time(NULL);
 	strncpy(u.ut_name, user, sizeof(u.ut_name));
-#endif
-#if defined(HAVE_HOST_IN_UTMP) || defined(HAVE_HOST_IN_UTMPX)
+ 	u.ut_type = (uid == -1)?DEAD_PROCESS:USER_PROCESS;
+#if defined(HAVE_HOST_IN_UTMP)
 	strncpy(u.ut_host, host, sizeof(u.ut_host));
 #endif
 
-	/* Figure out the file names. */
-	utmp = _PATH_UTMP;
-	wtmp = _PATH_WTMP;
+#if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
+	memset(&utx, 0, sizeof(utx));
+	strncpy(utx.ut_user, user, sizeof(utx.ut_name));
+	strncpy(utx.ut_line, ttyname + 5, sizeof(utx.ut_line));
+	utx.ut_pid = (pid_t)pid;
+	utx.ut_tv.tv_sec = time(NULL);
+ 	u.ut_type = (uid == -1)?DEAD_PROCESS:USER_PROCESS;
+#ifdef HAVE_HOST_IN_UTMPX
+#ifdef HAVE_SYSLEN_IN_UTMPX
+	utx.ut_syslen = strlen(host);
+	strncpy(utx.ut_host, host, utx.ut_syslen );
+#else
+	strncpy(utx.ut_host, host, sizeof(utx.ut_host));
+#endif /* HAVE_SYSLEN_IN_UTMPX */
+#endif
+#endif /* defined(HAVE_UTMPX_H) && defined(USE_UTMPX) */
 
+#if defined(HAVE_UTMPX_H) && defined(USE_UTMPX) && !defined(HAVE_LOGIN)
+	login(&u, &utx);
+#else /* defined(HAVE_UTMPX_H) && defined(USE_UTMPX) */
 	login(&u);
+#endif /* defined(HAVE_UTMPX_H) && defined(USE_UTMPX) */
 
 #if defined(_PATH_LASTLOG) && !defined(DISABLE_LASTLOG)
 	lastlog = _PATH_LASTLOG;

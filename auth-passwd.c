@@ -9,9 +9,9 @@
 
 #include "includes.h"
 
-#ifndef HAVE_PAM
+#ifndef HAVE_LIBPAM
 
-RCSID("$Id: auth-passwd.c,v 1.10 1999/12/21 10:03:09 damien Exp $");
+RCSID("$Id: auth-passwd.c,v 1.11 1999/12/24 23:11:29 damien Exp $");
 
 #include "packet.h"
 #include "ssh.h"
@@ -35,6 +35,8 @@ auth_password(struct passwd * pw, const char *password)
 {
 	extern ServerOptions options;
 	char *encrypted_password;
+	char *pw_password;
+	char *salt;
 #ifdef HAVE_SHADOW_H
 	struct spwd *spw;
 #endif
@@ -68,48 +70,35 @@ auth_password(struct passwd * pw, const char *password)
 	if (strcmp(password, "") == 0 && strcmp(pw->pw_passwd, "") == 0)
 		return 1;
 
+	pw_password = pw->pw_passwd;
+
 #if defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW)
 	spw = getspnam(pw->pw_name);
-	if (spw == NULL)
+	if (spw == NULL) 
 		return(0);
-
-	if ((spw->sp_namp == NULL) || (strcmp(pw->pw_name, spw->sp_namp) != 0))
-		fatal("Shadow lookup returned garbage.");
 
 	/* Check for users with no password. */
 	if (strcmp(password, "") == 0 && strcmp(spw->sp_pwdp, "") == 0)
 		return 1;
 
-	if (strlen(spw->sp_pwdp) < 3)
-		return(0);
-
-	/* Encrypt the candidate password using the proper salt. */
-#ifdef HAVE_MD5_PASSWORDS
-	if (is_md5_salt(spw->sp_pwdp))
-		encrypted_password = md5_crypt(password, spw->sp_pwdp);
-	else
-		encrypted_password = crypt(password, spw->sp_pwdp);
-#else /* HAVE_MD5_PASSWORDS */    
-	encrypted_password = crypt(password, spw->sp_pwdp);
-#endif /* HAVE_MD5_PASSWORDS */    
-	/* Authentication is accepted if the encrypted passwords are identical. */
-	return (strcmp(encrypted_password, spw->sp_pwdp) == 0);
-#else /* defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW) */
-
-	if (strlen(pw->pw_passwd) < 3)
-		return(0);
-
-#ifdef HAVE_MD5_PASSWORDS
-	if (is_md5_salt(pw->pw_passwd))
-		encrypted_password = md5_crypt(password, pw->pw_passwd);
-	else
-		encrypted_password = crypt(password, pw->pw_passwd);
-#else /* HAVE_MD5_PASSWORDS */    
-	encrypted_password = crypt(password, pw->pw_passwd);
-#endif /* HAVE_MD5_PASSWORDS */    
-
-	/* Authentication is accepted if the encrypted passwords are identical. */
-	return (strcmp(encrypted_password, pw->pw_passwd) == 0);
+	pw_password = spw->sp_pwdp;
 #endif /* defined(HAVE_SHADOW_H) && !defined(DISABLE_SHADOW) */
+
+	if (pw_password[0] != '\0')
+		salt = pw_password;
+	else
+		salt = "xx";
+
+#ifdef HAVE_MD5_PASSWORDS
+	if (is_md5_salt(salt))
+		encrypted_password = md5_crypt(password, salt);
+	else
+		encrypted_password = crypt(password, salt);
+#else /* HAVE_MD5_PASSWORDS */    
+	encrypted_password = crypt(password, salt);
+#endif /* HAVE_MD5_PASSWORDS */    
+
+	/* Authentication is accepted if the encrypted passwords are identical. */
+	return (strcmp(encrypted_password, pw_password) == 0);
 }
-#endif /* !HAVE_PAM */
+#endif /* !HAVE_LIBPAM */

@@ -30,6 +30,9 @@
 /* Define is utmpx.h has a ut_host field */
 #undef HAVE_HOST_IN_UTMPX
 
+/* Define is utmpx.h has a syslen field */
+#undef HAVE_SYSLEN_IN_UTMPX
+
 /* Define if you want to use utmpx */
 #undef USE_UTMPX
 
@@ -63,6 +66,9 @@
 /* Define if xauth is found in your path */
 #undef XAUTH_PATH
 
+/* Define if rsh is found in your path */
+#undef RSH_PATH
+
 /* Define if you want to allow MD5 passwords */
 #undef HAVE_MD5_PASSWORDS
 
@@ -75,6 +81,9 @@
 /* Define if you have an old version of PAM which takes only one argument */
 /* to pam_strerror */
 #undef HAVE_OLD_PAM
+
+/* Set this to your mail directory if you don't have maillock.h */
+#undef MAIL_DIRECTORY
 
 /* Data types */
 #undef HAVE_QUAD_T
@@ -197,36 +206,19 @@ enum
 # endif
 #endif
 
-/* Use utmpx if supported */
-#if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
-# define UTMP_STR utmpx
-#else 
-# ifdef HAVE_UTMP_H
-#  define UTMP_STR utmp
-# endif
-#endif
-
 #ifndef _PATH_UTMP
-# if defined(UTMPX_FILE) && defined(USE_UTMPX)
-#  define _PATH_UTMP UTMPX_FILE
+# ifdef UTMP_FILE
+#  define _PATH_UTMP UTMP_FILE
 # else
-#  ifdef UTMP_FILE
-#   define _PATH_UTMP UTMP_FILE
-#  else
-#   define _PATH_UTMP "/var/adm/utmp"
-#  endif
+#  define _PATH_UTMP "/var/adm/utmp"
 # endif
 #endif
 
 #ifndef _PATH_WTMP
-# if defined(WTMPX_FILE) && defined(USE_UTMPX)
-#  define _PATH_WTMP WTMPX_FILE
+# ifdef WTMP_FILE
+#  define _PATH_WTMP WTMP_FILE
 # else
-#  ifdef WTMP_FILE
-#   define _PATH_WTMP WTMP_FILE
-#  else
-#   define _PATH_WTMP "/var/adm/wtmp"
-#  endif
+#  define _PATH_WTMP "/var/adm/wtmp"
 # endif
 #endif
 
@@ -242,15 +234,13 @@ enum
 # define _PATH_DEVNULL "/dev/null"
 #endif
 
-#ifndef _PATH_MAILDIR
-# ifdef MAILDIR
-#  define _PATH_MAILDIR MAILDIR
-# else
-#  ifdef MAIL_DIRECTORY
-#   define _PATH_MAILDIR MAIL_DIRECTORY
-#  endif
-# endif
+#ifndef MAILDIR
+# define MAILDIR MAIL_DIRECTORY
 #endif
+
+#if !defined(_PATH_MAILDIR) && defined(MAILDIR)
+# define _PATH_MAILDIR MAILDIR
+#endif /* !defined(_PATH_MAILDIR) && defined(MAILDIR) */
 
 #ifndef MAX
 # define MAX(a,b) (((a)>(b))?(a):(b))
@@ -287,3 +277,13 @@ enum
 #if !defined(HAVE_SETEUID) && defined(HAVE_SETREUID)
 # define seteuid(a) setreuid(-1,a)
 #endif /* !defined(HAVE_SETEUID) && defined(HAVE_SETREUID) */
+
+#ifndef HAVE_INNETGR
+# define innetgr(a,b,c,d) (0)
+#endif /* HAVE_INNETGR */
+
+#ifndef _PATH_RSH
+# ifdef RSH_PATH
+#  define _PATH_RSH RSH_PATH
+# endif /* RSH_PATH */
+#endif /* _PATH_RSH */

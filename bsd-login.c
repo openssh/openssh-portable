@@ -54,53 +54,63 @@ static char *rcsid = "$OpenBSD: login.c,v 1.5 1998/07/13 02:11:12 millert Exp $"
 #include <stdio.h>
 #include <string.h>
 
+#if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
+void
+login(utp,utx)
+	struct utmp *utp;
+	struct utmpx *utx;
+#else /* defined(HAVE_UTMPX_H) && defined(USE_UTMPX) */
 void
 login(utp)
-	struct UTMP_STR *utp;
+	struct utmp *utp;
+#endif /* defined(HAVE_UTMPX_H) && defined(USE_UTMPX) */
 {
-	struct UTMP_STR old_ut;
+	struct utmp old_ut;
+#if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
+	struct utmpx *old_utx;
+#endif /* defined(HAVE_UTMPX_H) && defined(USE_UTMPX) */
 	register int fd;
 	int tty;
 
 #ifndef UT_LINESIZE
 # define UT_LINESIZE (sizeof(old_ut.ut_line))
-# if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
-#  define UT_NAMESIZE (sizeof(old_ut.ut_user))
-# else
-#  define UT_NAMESIZE (sizeof(old_ut.ut_name))
-# endif
+# define UT_NAMESIZE (sizeof(old_ut.ut_name))
 # ifdef HAVE_HOST_IN_UTMP
-#  define UT_HOSTSIZE (sizeof(old_ut.ut_host))
-# endif
-# if defined(HAVE_HOST_IN_UTMPX) && defined(USE_UTMPX)
 #  define UT_HOSTSIZE (sizeof(old_ut.ut_host))
 # endif
 #endif
 
 	tty = ttyslot();
 	if (tty > 0 && (fd = open(_PATH_UTMP, O_RDWR|O_CREAT, 0644)) >= 0) {
-#if defined(HAVE_HOST_IN_UTMP) || defined(HAVE_HOST_IN_UTMPX)
-		(void)lseek(fd, (off_t)(tty * sizeof(struct UTMP_STR)), SEEK_SET);
+#if defined(HAVE_HOST_IN_UTMP)
+		(void)lseek(fd, (off_t)(tty * sizeof(struct utmp)), SEEK_SET);
 		/*
 		 * Prevent luser from zero'ing out ut_host.
 		 * If the new ut_line is empty but the old one is not
 		 * and ut_line and ut_name match, preserve the old ut_line.
 		 */
-		if (read(fd, &old_ut, sizeof(struct UTMP_STR)) ==
-		    sizeof(struct UTMP_STR) && utp->ut_host[0] == '\0' &&
+		if (read(fd, &old_ut, sizeof(struct utmp)) ==
+		    sizeof(struct utmp) && utp->ut_host[0] == '\0' &&
 		    old_ut.ut_host[0] != '\0' &&
 		    strncmp(old_ut.ut_line, utp->ut_line, UT_LINESIZE) == 0 &&
 		    strncmp(old_ut.ut_name, utp->ut_name, UT_NAMESIZE) == 0)
 			(void)memcpy(utp->ut_host, old_ut.ut_host, UT_HOSTSIZE);
-#endif /* defined(HAVE_HOST_IN_UTMP) || defined(HAVE_HOST_IN_UTMPX) */
-		(void)lseek(fd, (off_t)(tty * sizeof(struct UTMP_STR)), SEEK_SET);
-		(void)write(fd, utp, sizeof(struct UTMP_STR));
+#endif /* defined(HAVE_HOST_IN_UTMP) */
+		(void)lseek(fd, (off_t)(tty * sizeof(struct utmp)), SEEK_SET);
+		(void)write(fd, utp, sizeof(struct utmp));
 		(void)close(fd);
 	}
 	if ((fd = open(_PATH_WTMP, O_WRONLY|O_APPEND, 0)) >= 0) {
-		(void)write(fd, utp, sizeof(struct UTMP_STR));
+		(void)write(fd, utp, sizeof(struct utmp));
 		(void)close(fd);
 	}
+#if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
+	old_utx = pututxline(utx);
+# ifdef HAVE_UPDWTMPX
+	updwtmpx(_PATH_WTMPX, utx);
+# endif /* HAVE_UPDWTMPX */
+	endutxent();
+#endif /* defined(HAVE_UTMPX_H) && defined(USE_UTMPX) */
 }
 
 #endif /* HAVE_LOGIN */

@@ -1,6 +1,6 @@
 Summary: OpenSSH free Secure Shell (SSH) implementation
 Name: openssh
-Version: 1.2.1pre19
+Version: 1.2.1pre20
 Release: 1
 Packager: Damien Miller <djm@ibs.com.au>
 Source0: openssh-%{version}.tar.gz
