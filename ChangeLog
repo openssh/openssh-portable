@@ -3,6 +3,10 @@
    - matthieu@cvs.openbsd.org 2003/11/25 23:10:08
      [ssh-add.1]
      ssh-add doesn't need to be a descendant of ssh-agent. Ok markus@, jmc@.
+   - djm@cvs.openbsd.org 2003/11/26 21:44:29
+     [cipher-aes.c]
+     fix #ifdef before #define; ok markus@
+     (RCS ID sync only, Portable already had this)
 
 20031208
  - (tim) [configure.ac] Bug 770. Fix --without-rpath.
@@ -1541,4 +1545,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3132 2003/12/09 08:01:51 dtucker Exp $
+$Id: ChangeLog,v 1.3133 2003/12/09 08:05:42 dtucker Exp $
