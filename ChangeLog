@@ -13,6 +13,9 @@
    - provos@cvs.openbsd.org 2001/03/29 14:24:59
      [sshconnect2.c]
      use recommended defaults
+   - stevesk@cvs.openbsd.org 2001/03/29 21:06:21
+     [sshconnect2.c sshd.c]
+     need to set both STOC and CTOS for SSH_BUG_BIGENDIANAES; ok markus@
 
 20010329
  - OpenBSD CVS Sync
@@ -4783,4 +4786,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1039 2001/03/30 00:49:05 djm Exp $
+$Id: ChangeLog,v 1.1040 2001/03/30 00:49:35 djm Exp $
