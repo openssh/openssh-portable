@@ -39,6 +39,9 @@
      [auth1.c authfile.c auth-rsa.c dh.c kexdh.c kexgex.c key.c rsa.c]
      [scard.c ssh-agent.c sshconnect1.c sshd.c ssh-dss.c]
      call fatal() for openssl allocation failures
+   - stevesk@cvs.openbsd.org 2001/12/27 18:22:53
+     [sshd.8]
+     clarify -p; ok markus@
 
 20020121
  - (djm) Rework ssh-rand-helper:
@@ -7186,4 +7189,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1733 2002/01/22 12:09:22 djm Exp $
+$Id: ChangeLog,v 1.1734 2002/01/22 12:09:41 djm Exp $

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.157 2001/12/19 07:18:56 deraadt Exp $
+.\" $OpenBSD: sshd.8,v 1.158 2001/12/27 18:22:53 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -245,6 +245,9 @@ command-line flag.
 .It Fl p Ar port
 Specifies the port on which the server listens for connections
 (default 22).
+Multiple port options are permitted.
+Ports specified in the configuration file are ignored when a
+command-line port is specified.
 .It Fl q
 Quiet mode.
 Nothing is sent to the system log.
