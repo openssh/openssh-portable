@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.167 2003/09/19 11:25:24 dtucker Exp $ */
+/* $Id: acconfig.h,v 1.168 2003/10/15 06:57:57 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -417,9 +417,6 @@
 #undef LOCKED_PASSWD_STRING
 #undef LOCKED_PASSWD_PREFIX
 #undef LOCKED_PASSWD_SUBSTR
-
-/* Define if DNS support is to be activated */
-#undef DNS
 
 /* Define if getrrsetbyname() exists */
 #undef HAVE_GETRRSETBYNAME

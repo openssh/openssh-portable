@@ -48,7 +48,7 @@
 
 #include "includes.h"
 
-#if defined(DNS) && !defined(HAVE_GETRRSETBYNAME)
+#ifndef HAVE_GETRRSETBYNAME
 
 #include <sys/types.h>
 #include <netinet/in.h>

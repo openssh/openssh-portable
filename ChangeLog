@@ -39,6 +39,9 @@
    - markus@cvs.openbsd.org 2003/10/14 19:54:39
      [session.c ssh-agent.c]
      10X for mkdtemp; djm@
+ - (dtucker) [acconfig.h configure.ac dns.c openbsd-compat/getrrsetbyname.c
+   openbsd-compat/getrrsetbyname.h] DNS fingerprint support is now always
+   compiled in but disabled in config.
 
 20031009
  - (dtucker) [sshd_config.5] UsePAM defaults to "no".  ok djm@
@@ -1356,4 +1359,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3079 2003/10/15 06:10:25 dtucker Exp $
+$Id: ChangeLog,v 1.3080 2003/10/15 06:57:57 dtucker Exp $

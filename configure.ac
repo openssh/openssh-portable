@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.172 2003/10/07 10:35:57 dtucker Exp $
+# $Id: configure.ac,v 1.173 2003/10/15 06:57:57 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -1961,28 +1961,18 @@ if test x$opensc_config_prefix != x ; then
   fi
 fi
 
-# Check whether user wants DNS support
-DNS_MSG="no" 
-AC_ARG_WITH(dns,
-	[  --with-dns              Support for fetching keys from DNS (experimental)],
+# Check libraries needed by DNS fingerprint support
+AC_SEARCH_LIBS(getrrsetbyname, resolv, 
+	[AC_DEFINE(HAVE_GETRRSETBYNAME)],
 	[
-		if test "x$withval" != "xno" ; then
-			DNS_MSG="yes"
-			AC_DEFINE(DNS)
-			AC_SEARCH_LIBS(getrrsetbyname, resolv, 
-				[AC_DEFINE(HAVE_GETRRSETBYNAME)],
-				[
-					# Needed by our getrrsetbyname()
-					AC_SEARCH_LIBS(res_query, resolv)
-					AC_SEARCH_LIBS(dn_expand, resolv)
-					AC_CHECK_FUNCS(_getshort _getlong)
-					AC_CHECK_MEMBER(HEADER.ad,
-						[AC_DEFINE(HAVE_HEADER_AD)],,
-						[#include <arpa/nameser.h>])
-				])
-		fi
-	]
-)
+		# Needed by our getrrsetbyname()
+		AC_SEARCH_LIBS(res_query, resolv)
+		AC_SEARCH_LIBS(dn_expand, resolv)
+		AC_CHECK_FUNCS(_getshort _getlong)
+		AC_CHECK_MEMBER(HEADER.ad,
+			[AC_DEFINE(HAVE_HEADER_AD)],,
+			[#include <arpa/nameser.h>])
+	])
 
 # Check whether user wants Kerberos 5 support
 KRB5_MSG="no" 
