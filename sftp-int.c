@@ -26,7 +26,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.41 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.42 2002/02/05 00:00:46 djm Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -41,6 +41,9 @@ RCSID("$OpenBSD: sftp-int.c,v 1.41 2001/12/19 07:18:56 deraadt Exp $");
 
 /* File to read commands from */
 extern FILE *infile;
+
+/* Size of buffer used when copying files */
+extern size_t copy_buffer_len;
 
 /* Version of server we are speaking to */
 int version;
@@ -381,7 +384,8 @@ process_get(int in, int out, char *src, char *dst, char *pwd, int pflag)
 			goto out;
 		}
 		printf("Fetching %s to %s\n", g.gl_pathv[0], abs_dst);
-		err = do_download(in, out, g.gl_pathv[0], abs_dst, pflag);
+		err = do_download(in, out, g.gl_pathv[0], abs_dst, pflag,
+		    copy_buffer_len);
 		goto out;
 	}
 
@@ -405,7 +409,8 @@ process_get(int in, int out, char *src, char *dst, char *pwd, int pflag)
 			abs_dst = tmp;
 
 		printf("Fetching %s to %s\n", g.gl_pathv[i], abs_dst);
-		if (do_download(in, out, g.gl_pathv[i], abs_dst, pflag) == -1)
+		if (do_download(in, out, g.gl_pathv[i], abs_dst, pflag,
+		    copy_buffer_len) == -1)
 			err = -1;
 		xfree(abs_dst);
 		abs_dst = NULL;
@@ -463,7 +468,8 @@ process_put(int in, int out, char *src, char *dst, char *pwd, int pflag)
 			abs_dst = make_absolute(abs_dst, pwd);
 		}
 		printf("Uploading %s to %s\n", g.gl_pathv[0], abs_dst);
-		err = do_upload(in, out, g.gl_pathv[0], abs_dst, pflag);
+		err = do_upload(in, out, g.gl_pathv[0], abs_dst, pflag,
+		    copy_buffer_len);
 		goto out;
 	}
 
@@ -487,7 +493,8 @@ process_put(int in, int out, char *src, char *dst, char *pwd, int pflag)
 			abs_dst = make_absolute(tmp, pwd);
 
 		printf("Uploading %s to %s\n", g.gl_pathv[i], abs_dst);
-		if (do_upload(in, out, g.gl_pathv[i], abs_dst, pflag) == -1)
+		if (do_upload(in, out, g.gl_pathv[i], abs_dst, pflag, 
+		    copy_buffer_len) == -1)
 			err = -1;
 	}
 

@@ -29,7 +29,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.19 2001/12/19 07:18:56 deraadt Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.20 2002/02/05 00:00:46 djm Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
@@ -41,10 +41,6 @@ RCSID("$OpenBSD: sftp-client.c,v 1.19 2001/12/19 07:18:56 deraadt Exp $");
 #include "sftp.h"
 #include "sftp-common.h"
 #include "sftp-client.h"
-
-/* How much data to read/write at at time during copies */
-/* XXX: what should this be? */
-#define COPY_SIZE	8192
 
 /* Message ID */
 static u_int msg_id = 1;
@@ -670,15 +666,14 @@ do_readlink(int fd_in, int fd_out, char *path)
 
 int
 do_download(int fd_in, int fd_out, char *remote_path, char *local_path,
-    int pflag)
+    int pflag, size_t buflen)
 {
-	int local_fd;
+	int local_fd, status;
 	u_int expected_id, handle_len, mode, type, id;
 	u_int64_t offset;
 	char *handle;
 	Buffer msg;
 	Attrib junk, *a;
-	int status;
 
 	a = do_stat(fd_in, fd_out, remote_path, 0);
 	if (a == NULL)
@@ -736,10 +731,10 @@ do_download(int fd_in, int fd_out, char *remote_path, char *local_path,
 		buffer_put_int(&msg, id);
 		buffer_put_string(&msg, handle, handle_len);
 		buffer_put_int64(&msg, offset);
-		buffer_put_int(&msg, COPY_SIZE);
+		buffer_put_int(&msg, buflen);
 		send_msg(fd_out, &msg);
 		debug3("Sent message SSH2_FXP_READ I:%d O:%llu S:%u",
-		    id, (u_int64_t)offset, COPY_SIZE);
+		    id, (u_int64_t)offset, buflen);
 
 		buffer_clear(&msg);
 
@@ -767,9 +762,9 @@ do_download(int fd_in, int fd_out, char *remote_path, char *local_path,
 		}
 
 		data = buffer_get_string(&msg, &len);
-		if (len > COPY_SIZE)
+		if (len > buflen)
 			fatal("Received more data than asked for %d > %d",
-			    len, COPY_SIZE);
+			    len, buflen);
 
 		debug3("In read loop, got %d offset %llu", len,
 		    (u_int64_t)offset);
@@ -814,16 +809,15 @@ done:
 
 int
 do_upload(int fd_in, int fd_out, char *local_path, char *remote_path,
-    int pflag)
+    int pflag, size_t buflen)
 {
-	int local_fd;
+	int local_fd, status;
 	u_int handle_len, id;
 	u_int64_t offset;
-	char *handle;
+	char *handle, *data;
 	Buffer msg;
 	struct stat sb;
 	Attrib a;
-	int status;
 
 	if ((local_fd = open(local_path, O_RDONLY, 0)) == -1) {
 		error("Couldn't open local file \"%s\" for reading: %s",
@@ -865,18 +859,19 @@ do_upload(int fd_in, int fd_out, char *local_path, char *remote_path,
 		return(-1);
 	}
 
+	data = xmalloc(buflen);
+
 	/* Read from local and write to remote */
 	offset = 0;
 	for (;;) {
 		int len;
-		char data[COPY_SIZE];
 
 		/*
 		 * Can't use atomicio here because it returns 0 on EOF, thus losing
 		 * the last block of the file
 		 */
 		do
-			len = read(local_fd, data, COPY_SIZE);
+			len = read(local_fd, data, buflen);
 		while ((len == -1) && (errno == EINTR || errno == EAGAIN));
 
 		if (len == -1)
@@ -908,6 +903,7 @@ do_upload(int fd_in, int fd_out, char *local_path, char *remote_path,
 
 		offset += len;
 	}
+	xfree(data);
 
 	if (close(local_fd) == -1) {
 		error("Couldn't close local file \"%s\": %s", local_path,

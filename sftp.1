@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.27 2002/02/04 21:53:11 djm Exp $
+.\" $OpenBSD: sftp.1,v 1.28 2002/02/05 00:00:46 djm Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -31,6 +31,7 @@
 .Sh SYNOPSIS
 .Nm sftp
 .Op Fl 1Cv
+.Op Fl B Ar buffer_size
 .Op Fl b Ar batchfile
 .Op Fl F Ar ssh_config
 .Op Fl o Ar ssh_option
@@ -66,6 +67,11 @@ The options are as follows:
 .Bl -tag -width Ds
 .It Fl 1
 Specify the use of protocol version 1.
+.It Fl B Ar buffer_size
+Specify  the size of the buffer that 
+.Nm
+uses when transferring files. Larger buffers require fewer round trips at
+the cost of higher memory consumption. The default is 32768 bytes.
 .It Fl P Ar sftp_server path
 Connect directly to a local 
 .Nm sftp-server 
