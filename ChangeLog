@@ -1,4 +1,7 @@
 20001014
+ - (bal) Add support for realpath and getcwd for platforms with broken
+   or missing realpath implementations for sftp-server.
+ - (bal) Corrected mistake in INSTALL in regards to GNU rx library
  - (bal) Add support for GNU rx library for those lacking regexp support 
  - (djm) Don't accept PAM_PROMPT_ECHO_ON messages during initial auth
  - (djm) Revert SSH2 serverloop hack, will find a better way.

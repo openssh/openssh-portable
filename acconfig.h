@@ -55,6 +55,9 @@
 /* Define if you lack native POSIX regex and you are using GNU rx library */
 #undef HAVE_LIBRX
 
+/* Define if you have a broken realpath. */
+#undef BROKEN_REALPATH
+
 /* Define if you are on NeXT */
 #undef HAVE_NEXT
 

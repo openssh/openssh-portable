@@ -6,6 +6,8 @@
 /* BSD function replacements */
 #include "bsd-arc4random.h"
 #include "bsd-bindresvport.h"
+#include "bsd-getcwd.h"
+#include "bsd-realpath.h"
 #include "bsd-rresvport.h"
 #include "bsd-misc.h"
 #include "bsd-strlcpy.h"
