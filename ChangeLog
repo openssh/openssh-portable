@@ -1,8 +1,11 @@
 20010718
  - OpenBSD CVS Sync
-    - stevesk@cvs.openbsd.org 2001/07/14 15:10:17
-      [readpass.c sftp-client.c sftp-common.c sftp-glob.c]
-      delete spurious #includes; ok deraadt@ markus@
+   - stevesk@cvs.openbsd.org 2001/07/14 15:10:17
+     [readpass.c sftp-client.c sftp-common.c sftp-glob.c]
+     delete spurious #includes; ok deraadt@ markus@
+   - markus@cvs.openbsd.org 2001/07/15 16:17:08 
+     [serverloop.c]
+     schedule client alive for ssh2 only, greg@cheers.bungi.com
 
 20010715
  - (bal) Set "BROKEN_GETADDRINFO" for darwin platform.  Reported by
@@ -6042,4 +6045,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1404 2001/07/18 15:45:44 mouring Exp $
+$Id: ChangeLog,v 1.1405 2001/07/18 15:48:57 mouring Exp $

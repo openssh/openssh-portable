@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.74 2001/07/02 22:52:57 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.75 2001/07/15 16:17:08 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -183,11 +183,11 @@ wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp, int *maxfdp,
 	 * this could be randomized somewhat to make traffic
 	 * analysis more difficult, but we're not doing it yet.  
 	 */
-	if (max_time_milliseconds == 0 && options.client_alive_interval) {
+	if (compat20 &&
+	    max_time_milliseconds == 0 && options.client_alive_interval) {
 		client_alive_scheduled = 1;
 		max_time_milliseconds = options.client_alive_interval * 1000;
-	} else 
-		client_alive_scheduled = 0;
+	}
 
 	/* When select fails we restart from here. */
 retry_select:
@@ -1000,4 +1000,3 @@ server_init_dispatch(void)
 	else
 		server_init_dispatch_15();
 }
-
