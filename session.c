@@ -1017,10 +1017,6 @@ do_child(const char *command, struct passwd * pw, const char *term,
 #endif /* WITH_IRIX_ARRAY */
 #endif /* WITH_IRIX_JOBS */
 
-#ifdef USE_PAM
-	do_pam_session(pw->pw_name, ttyname);
-	do_pam_setcred();
-#endif /* USE_PAM */
 
 	/* login(1) is only called if we execute the login shell */
 	if (options.use_login && command != NULL)
@@ -1146,6 +1142,11 @@ do_child(const char *command, struct passwd * pw, const char *term,
 #ifdef HAVE_LOGIN_CAP
 	shell = login_getcapstr(lc, "shell", (char *)shell, (char *)shell);
 #endif
+
+#ifdef USE_PAM
+	do_pam_session(pw->pw_name, ttyname);
+	do_pam_setcred();
+#endif /* USE_PAM */
 
 #ifdef AFS
 	/* Try to get AFS tokens for the local cell. */

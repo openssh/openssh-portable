@@ -2,6 +2,10 @@
  - (bal) Removed -L/usr/ucblib -R/usr/ucblib for Solaris platform.
  - (bal) Fixed OpenSSL rework to use $saved_*.  Patch by Tim Rice 
    <tim@multitalents.net>
+ - (bal) Reverted out of 2001/02/15 patch by djm below because it
+   breaks Solaris.
+	- (djm) Move PAM session setup back to before setuid to user.
+	  fixes problems on Solaris-drived PAMs.
 
 20010220
  - (bal) Fix mixed up params to memmove() from Jan 5th in setenv.c and
@@ -4083,4 +4087,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.807 2001/02/21 02:35:37 mouring Exp $
+$Id: ChangeLog,v 1.808 2001/02/21 05:53:33 mouring Exp $
