@@ -8,6 +8,9 @@
      behaviour for bsdauth is maintained by checking authctxt->valid in the
      bsdauth driver.  Note that any third-party kbdint drivers will now need
      to be able to handle responses for invalid logins.  ok markus@
+ - (dtucker) [auth-pam.c] Bug #971: Prevent leaking information about user
+   existence via keyboard-interactive/pam, in conjunction with previous
+   auth2-chall.c change; with Colin Watson and djm.
 
 20041102
  - (dtucker) [configure.ac includes.h] Bug #947: Fix compile error on HP-UX
@@ -1674,4 +1677,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3517.2.3 2005/01/20 03:27:39 dtucker Exp $
+$Id: ChangeLog,v 1.3517.2.4 2005/01/20 03:29:03 dtucker Exp $
