@@ -1,7 +1,12 @@
+20001113
+ - (djm) Add pointer to http://www.imasy.or.jp/~gotoh/connect.c to 
+   contrib/README
+
 20001112
  - (bal) SCO Patch to add needed libraries for configure.in.  Patch by
    Phillips Porch <root@theporch.com>
- - (bal) IRIX patch to adding Job Limits.  Patch by Denis Parker <dcp@sgi.com>
+ - (bal) IRIX patch to adding Job Limits.  Patch by Denis Parker
+   <dcp@sgi.com>
  - (stevesk) pty.c: HP-UX 10 and 11 don't define TIOCSCTTY.  Add error() to
    failed ioctl(TIOCSCTTY) call.
 

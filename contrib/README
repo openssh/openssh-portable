@@ -1,6 +1,13 @@
 Other patches and addons for OpenSSH. Please send submissions to 
 djm@ibs.com.au
 
+Elsewhere
+---------
+
+http://www.imasy.or.jp/~gotoh/connect.c is a Unix and Windows 
+ProxyCommand which allows OpenSSH to make connections through a SOCKS5
+or http proxy which supports the CONNECT method (eg. Squid).
+
 In this directory
 -----------------
 
