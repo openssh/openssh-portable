@@ -16,7 +16,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.52 2004/06/21 22:04:50 djm Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.53 2004/06/21 22:30:45 djm Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -65,16 +65,16 @@ char *__progname;
 #define WHITESPACE " \t\r\n"
 
 /* ls flags */
-#define LONG_VIEW	0x01	/* Full view ala ls -l */
-#define SHORT_VIEW	0x02	/* Single row view ala ls -1 */
-#define NUMERIC_VIEW	0x04	/* Long view with numeric uid/gid */
-#define NAME_SORT	0x08	/* Sort by name (default) */
-#define TIME_SORT	0x10	/* Sort by mtime */
-#define SIZE_SORT	0x20	/* Sort by file size */
-#define REVERSE_SORT	0x40	/* Reverse sort order */
+#define LS_LONG_VIEW	0x01	/* Full view ala ls -l */
+#define LS_SHORT_VIEW	0x02	/* Single row view ala ls -1 */
+#define LS_NUMERIC_VIEW	0x04	/* Long view with numeric uid/gid */
+#define LS_NAME_SORT	0x08	/* Sort by name (default) */
+#define LS_TIME_SORT	0x10	/* Sort by mtime */
+#define LS_SIZE_SORT	0x20	/* Sort by file size */
+#define LS_REVERSE_SORT	0x40	/* Reverse sort order */
 
-#define VIEW_FLAGS	(LONG_VIEW|SHORT_VIEW|NUMERIC_VIEW)
-#define SORT_FLAGS	(NAME_SORT|TIME_SORT|SIZE_SORT)
+#define VIEW_FLAGS	(LS_LONG_VIEW|LS_SHORT_VIEW|LS_NUMERIC_VIEW)
+#define SORT_FLAGS	(LS_NAME_SORT|LS_TIME_SORT|LS_SIZE_SORT)
 
 /* Commands for interactive mode */
 #define I_CHDIR		1
@@ -346,7 +346,7 @@ parse_ls_flags(const char **cpp, int *lflag)
 	const char *cp = *cpp;
 
 	/* Defaults */
-	*lflag = NAME_SORT;
+	*lflag = LS_NAME_SORT;
 
 	/* Check for flags */
 	if (cp++[0] == '-') {
@@ -354,26 +354,26 @@ parse_ls_flags(const char **cpp, int *lflag)
 			switch (*cp) {
 			case 'l':
 				*lflag &= ~VIEW_FLAGS;
-				*lflag |= LONG_VIEW;
+				*lflag |= LS_LONG_VIEW;
 				break;
 			case '1':
 				*lflag &= ~VIEW_FLAGS;
-				*lflag |= SHORT_VIEW;
+				*lflag |= LS_SHORT_VIEW;
 				break;
 			case 'n':
 				*lflag &= ~VIEW_FLAGS;
-				*lflag |= NUMERIC_VIEW|LONG_VIEW;
+				*lflag |= LS_NUMERIC_VIEW|LS_LONG_VIEW;
 				break;
 			case 'S':
 				*lflag &= ~SORT_FLAGS;
-				*lflag |= SIZE_SORT;
+				*lflag |= LS_SIZE_SORT;
 				break;
 			case 't':
 				*lflag &= ~SORT_FLAGS;
-				*lflag |= TIME_SORT;
+				*lflag |= LS_TIME_SORT;
 				break;
 			case 'r':
-				*lflag |= REVERSE_SORT;
+				*lflag |= LS_REVERSE_SORT;
 				break;
 			case 'f':
 				*lflag &= ~SORT_FLAGS;
@@ -637,14 +637,14 @@ sdirent_comp(const void *aa, const void *bb)
 {
 	SFTP_DIRENT *a = *(SFTP_DIRENT **)aa;
 	SFTP_DIRENT *b = *(SFTP_DIRENT **)bb;
-	int rmul = sort_flag & REVERSE_SORT ? -1 : 1;
+	int rmul = sort_flag & LS_REVERSE_SORT ? -1 : 1;
 
 #define NCMP(a,b) (a == b ? 0 : (a < b ? 1 : -1))
-	if (sort_flag & NAME_SORT)
+	if (sort_flag & LS_NAME_SORT)
 		return (rmul * strcmp(a->filename, b->filename));
-	else if (sort_flag & TIME_SORT)
+	else if (sort_flag & LS_TIME_SORT)
 		return (rmul * NCMP(a->a.mtime, b->a.mtime));
-	else if (sort_flag & SIZE_SORT)
+	else if (sort_flag & LS_SIZE_SORT)
 		return (rmul * NCMP(a->a.size, b->a.size));
 
 	fatal("Unknown ls sort type");
@@ -660,7 +660,7 @@ do_ls_dir(struct sftp_conn *conn, char *path, char *strip_path, int lflag)
 	if ((n = do_readdir(conn, path, &d)) != 0)
 		return (n);
 
-	if (!(lflag & SHORT_VIEW)) {
+	if (!(lflag & LS_SHORT_VIEW)) {
 		int m = 0, width = 80;
 		struct winsize ws;
 		char *tmp;
@@ -684,7 +684,7 @@ do_ls_dir(struct sftp_conn *conn, char *path, char *strip_path, int lflag)
 	}
 
 	if (lflag & SORT_FLAGS) {
-		sort_flag = lflag & (SORT_FLAGS|REVERSE_SORT);
+		sort_flag = lflag & (SORT_FLAGS|LS_REVERSE_SORT);
 		qsort(d, n, sizeof(*d), sdirent_comp);
 	}
 
@@ -695,8 +695,8 @@ do_ls_dir(struct sftp_conn *conn, char *path, char *strip_path, int lflag)
 		fname = path_strip(tmp, strip_path);
 		xfree(tmp);
 
-		if (lflag & LONG_VIEW) {
-			if (lflag & NUMERIC_VIEW) {
+		if (lflag & LS_LONG_VIEW) {
+			if (lflag & LS_NUMERIC_VIEW) {
 				char *lname;
 				struct stat sb;
 
@@ -719,7 +719,7 @@ do_ls_dir(struct sftp_conn *conn, char *path, char *strip_path, int lflag)
 		xfree(fname);
 	}
 
-	if (!(lflag & LONG_VIEW) && (c != 1))
+	if (!(lflag & LS_LONG_VIEW) && (c != 1))
 		printf("\n");
 
 	free_sftp_dirents(d);
@@ -763,7 +763,7 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 		}
 	}
 
-	if (!(lflag & SHORT_VIEW)) {
+	if (!(lflag & LS_SHORT_VIEW)) {
 		int m = 0, width = 80;
 		struct winsize ws;
 
@@ -784,7 +784,7 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 
 		fname = path_strip(g.gl_pathv[i], strip_path);
 
-		if (lflag & LONG_VIEW) {
+		if (lflag & LS_LONG_VIEW) {
 			char *lname;
 			struct stat sb;
 
@@ -813,7 +813,7 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 		xfree(fname);
 	}
 
-	if (!(lflag & LONG_VIEW) && (c != 1))
+	if (!(lflag & LS_LONG_VIEW) && (c != 1))
 		printf("\n");
 
  out:
