@@ -71,7 +71,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.105 2003/06/04 12:40:39 djm Exp $");
+RCSID("$OpenBSD: scp.c,v 1.106 2003/06/12 15:34:09 nino Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -151,7 +151,7 @@ do_cmd(char *host, char *remuser, char *cmd, int *fdin, int *fdout, int argc)
 	close(reserved[0]);
 	close(reserved[1]);
 
-	/* For a child to execute the command on the remote host using ssh. */
+	/* Fork a child to execute the command on the remote host using ssh. */
 	do_cmd_pid = fork();
 	if (do_cmd_pid == 0) {
 		/* Child. */
