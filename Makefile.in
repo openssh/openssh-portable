@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.161 2001/03/14 00:39:46 djm Exp $
+# $Id: Makefile.in,v 1.162 2001/03/21 02:13:41 djm Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -73,7 +73,7 @@ PATHSUBS	= \
 
 FIXPATHSCMD	= $(PERL) $(srcdir)/fixpaths $(PATHSUBS)
 
-all: $(TARGETS) $(CONFIGFILES)
+all: $(CONFIGFILES) $(TARGETS) 
 
 manpages: $(MANPAGES)
 
