@@ -89,6 +89,11 @@
    - markus@cvs.openbsd.org 2002/03/19 10:35:39
      [auth-options.c auth.h session.c session.h sshd.c]
      clean up prototypes
+   - markus@cvs.openbsd.org 2002/03/19 10:49:35
+     [auth-krb5.c auth-rh-rsa.c auth.c cipher.c key.c misc.h packet.c session.c
+      sftp-client.c sftp-glob.h sftp.c ssh-add.c ssh.c sshconnect2.c sshd.c
+      ttymodes.c]
+     KNF whitespace
 
 20020317
  - (tim) [configure.ac] Assume path given with --with-pid-dir=PATH is wanted,
@@ -7935,4 +7940,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1950 2002/03/22 02:50:06 mouring Exp $
+$Id: ChangeLog,v 1.1951 2002/03/22 02:54:23 mouring Exp $

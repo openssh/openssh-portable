@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.91 2002/03/18 17:16:38 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.92 2002/03/19 10:49:35 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -173,7 +173,7 @@ packet_connection_is_on_socket(void)
 	return 1;
 }
 
-/* 
+/*
  * Exports an IV from the CipherContext required to export the key
  * state back from the unprivileged child to the privileged parent
  * process.
@@ -196,7 +196,7 @@ int
 packet_get_keycontext(int mode, u_char *dat)
 {
 	CipherContext *cc;
-	
+
 	if (mode == MODE_OUT)
 		cc = &send_context;
 	else
@@ -209,7 +209,7 @@ void
 packet_set_keycontext(int mode, u_char *dat)
 {
 	CipherContext *cc;
-	
+
 	if (mode == MODE_OUT)
 		cc = &send_context;
 	else

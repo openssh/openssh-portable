@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.26 2002/02/12 12:32:27 djm Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.27 2002/03/19 10:49:35 markus Exp $");
 
 /* XXX: short-form remote directory listings (like 'ls -C') */
 
@@ -94,7 +94,7 @@ static void
 usage(void)
 {
 	extern char *__progname;
-	
+
 	fprintf(stderr,
 	    "usage: %s [-vC1] [-b batchfile] [-o option] [-s subsystem|path] [-B buffer_size]\n"
 	    "            [-F config] [-P direct server path] [-S program]\n"
@@ -172,7 +172,7 @@ main(int argc, char **argv)
 		case 'R':
 			num_requests = strtol(optarg, &cp, 10);
 			if (num_requests == 0 || *cp != '\0')
-				fatal("Invalid number of requests \"%s\"", 
+				fatal("Invalid number of requests \"%s\"",
 				    optarg);
 			break;
 		case 'h':
@@ -218,19 +218,19 @@ main(int argc, char **argv)
 			addargs(&args, "-s");
 
 		addargs(&args, "%s", host);
-		addargs(&args, "%s", (sftp_server != NULL ? 
+		addargs(&args, "%s", (sftp_server != NULL ?
 		    sftp_server : "sftp"));
 		args.list[0] = ssh_program;
 
 		fprintf(stderr, "Connecting to %s...\n", host);
-		connect_to_server(ssh_program, args.list, &in, &out, 
+		connect_to_server(ssh_program, args.list, &in, &out,
 		    &sshpid);
 	} else {
 		args.list = NULL;
 		addargs(&args, "sftp-server");
 
 		fprintf(stderr, "Attaching to %s...\n", sftp_direct);
-		connect_to_server(sftp_direct, args.list, &in, &out, 
+		connect_to_server(sftp_direct, args.list, &in, &out,
 		    &sshpid);
 	}
 

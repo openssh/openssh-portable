@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.97 2002/02/25 16:33:27 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.98 2002/03/19 10:49:35 markus Exp $");
 
 #include "ssh.h"
 #include "ssh2.h"
@@ -391,7 +391,7 @@ input_userauth_pk_ok(int type, u_int32_t seq, void *ctxt)
 			debug("no key from blob. pkalg %s", pkalg);
 			break;
 		}
-		if (key->type != pktype) { 
+		if (key->type != pktype) {
 			error("input_userauth_pk_ok: type mismatch "
 			    "for decoded key (received %d, expected %d)",
 			     key->type, pktype);

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth.c,v 1.38 2002/03/18 03:41:08 provos Exp $");
+RCSID("$OpenBSD: auth.c,v 1.39 2002/03/19 10:49:35 markus Exp $");
 
 #ifdef HAVE_LOGIN_H
 #include <login.h>
@@ -125,17 +125,17 @@ allowed_user(struct passwd * pw)
 	/* Return false if user is listed in DenyUsers */
 	if (options.num_deny_users > 0) {
 		for (i = 0; i < options.num_deny_users; i++)
- 			if (match_user(pw->pw_name, hostname, ipaddr,
+			if (match_user(pw->pw_name, hostname, ipaddr,
 			    options.deny_users[i])) {
- 				log("User %.100s not allowed because listed in DenyUsers",
- 				    pw->pw_name);
+				log("User %.100s not allowed because listed in DenyUsers",
+				    pw->pw_name);
 				return 0;
 			}
 	}
 	/* Return false if AllowUsers isn't empty and user isn't listed there */
 	if (options.num_allow_users > 0) {
 		for (i = 0; i < options.num_allow_users; i++)
- 			if (match_user(pw->pw_name, hostname, ipaddr,
+			if (match_user(pw->pw_name, hostname, ipaddr,
 			    options.allow_users[i]))
 				break;
 		/* i < options.num_allow_users iff we break for loop */

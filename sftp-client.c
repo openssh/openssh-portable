@@ -28,7 +28,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.27 2002/03/11 03:19:53 itojun Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.28 2002/03/19 10:49:35 markus Exp $");
 
 #if defined(HAVE_SYS_QUEUE_H) && !defined(HAVE_BOGUS_SYS_QUEUE_H)
 #include <sys/queue.h>
@@ -449,7 +449,7 @@ do_rm(struct sftp_conn *conn, char *path)
 	debug2("Sending SSH2_FXP_REMOVE \"%s\"", path);
 
 	id = conn->msg_id++;
-	send_string_request(conn->fd_out, id, SSH2_FXP_REMOVE, path, 
+	send_string_request(conn->fd_out, id, SSH2_FXP_REMOVE, path,
 	    strlen(path));
 	status = get_status(conn->fd_in, id);
 	if (status != SSH2_FX_OK)
@@ -496,8 +496,8 @@ do_stat(struct sftp_conn *conn, char *path, int quiet)
 
 	id = conn->msg_id++;
 
-	send_string_request(conn->fd_out, id, 
-	    conn->version == 0 ? SSH2_FXP_STAT_VERSION_0 : SSH2_FXP_STAT, 
+	send_string_request(conn->fd_out, id,
+	    conn->version == 0 ? SSH2_FXP_STAT_VERSION_0 : SSH2_FXP_STAT,
 	    path, strlen(path));
 
 	return(get_decode_stat(conn->fd_in, id, quiet));
@@ -727,7 +727,7 @@ send_read_request(int fd_out, u_int id, u_int64_t offset, u_int len,
     char *handle, u_int handle_len)
 {
 	Buffer msg;
-	
+
 	buffer_init(&msg);
 	buffer_clear(&msg);
 	buffer_put_char(&msg, SSH2_FXP_READ);
@@ -737,7 +737,7 @@ send_read_request(int fd_out, u_int id, u_int64_t offset, u_int len,
 	buffer_put_int(&msg, len);
 	send_msg(fd_out, &msg);
 	buffer_free(&msg);
-}	
+}
 
 int
 do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
@@ -754,7 +754,7 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 		u_int id;
 		u_int len;
 		u_int64_t offset;
-		TAILQ_ENTRY(request) tq; 
+		TAILQ_ENTRY(request) tq;
 	};
 	TAILQ_HEAD(reqhead, request) requests;
 	struct request *req;
@@ -820,7 +820,7 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 
 		/* Send some more requests */
 		while (num_req < max_req) {
-			debug3("Request range %llu -> %llu (%d/%d)", 
+			debug3("Request range %llu -> %llu (%d/%d)",
 			    (unsigned long long)offset,
 			    (unsigned long long)offset + buflen - 1,
 			    num_req, max_req);
@@ -831,7 +831,7 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 			offset += buflen;
 			num_req++;
 			TAILQ_INSERT_TAIL(&requests, req, tq);
-			send_read_request(conn->fd_out, req->id, req->offset, 
+			send_read_request(conn->fd_out, req->id, req->offset,
 			    req->len, handle, handle_len);
 		}
 
@@ -862,7 +862,7 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 		case SSH2_FXP_DATA:
 			data = buffer_get_string(&msg, &len);
 			debug3("Received data %llu -> %llu",
-			    (unsigned long long)req->offset, 
+			    (unsigned long long)req->offset,
 			    (unsigned long long)req->offset + len - 1);
 			if (len > req->len)
 				fatal("Received more data than asked for "
@@ -884,13 +884,13 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 				/* Resend the request for the missing data */
 				debug3("Short data block, re-requesting "
 				    "%llu -> %llu (%2d)",
-				    (unsigned long long)req->offset + len, 
+				    (unsigned long long)req->offset + len,
 				    (unsigned long long)req->offset +
 				    req->len - 1, num_req);
 				req->id = conn->msg_id++;
 				req->len -= len;
 				req->offset += len;
-				send_read_request(conn->fd_out, req->id, 
+				send_read_request(conn->fd_out, req->id,
 				    req->offset, req->len, handle, handle_len);
 				/* Reduce the request size */
 				if (len < buflen)
@@ -921,7 +921,7 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 		fatal("Transfer complete, but requests still in queue");
 
 	if (read_error) {
-		error("Couldn't read from remote file \"%s\" : %s", 
+		error("Couldn't read from remote file \"%s\" : %s",
 		    remote_path, fx2txt(status));
 		do_close(conn, handle, handle_len);
 	} else if (write_error) {
@@ -974,7 +974,7 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 		u_int id;
 		u_int len;
 		u_int64_t offset;
-		TAILQ_ENTRY(outstanding_ack) tq; 
+		TAILQ_ENTRY(outstanding_ack) tq;
 	};
 	TAILQ_HEAD(ackhead, outstanding_ack) acks;
 	struct outstanding_ack *ack;
@@ -1063,7 +1063,7 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 		if (ack == NULL)
 			fatal("Unexpected ACK %u", id);
 
-		if (id == startid || len == 0 || 
+		if (id == startid || len == 0 ||
 		    id - ackid >= conn->num_requests) {
 			buffer_clear(&msg);
 			get_msg(conn->fd_in, &msg);
@@ -1093,7 +1093,7 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 				close(local_fd);
 				goto done;
 			}
-			debug3("In write loop, ack for %u %d bytes at %llu", 
+			debug3("In write loop, ack for %u %d bytes at %llu",
 			   ack->id, ack->len, (unsigned long long)ack->offset);
 			++ackid;
 			free(ack);

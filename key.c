@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: key.c,v 1.42 2002/03/18 17:23:31 markus Exp $");
+RCSID("$OpenBSD: key.c,v 1.43 2002/03/19 10:49:35 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -808,7 +808,7 @@ Key *
 key_demote(Key *k)
 {
 	Key *pk;
-	
+
 	pk = xmalloc(sizeof(*pk));
 	pk->type = k->type;
 	pk->flags = k->flags;

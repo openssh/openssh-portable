@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.164 2002/02/14 23:28:00 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.165 2002/03/19 10:49:35 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -475,7 +475,7 @@ again:
 				/* NOTREACHED */
 			}
 			if ((fwd_port = a2port(sfwd_port)) == 0 ||
-	  		    (fwd_host_port = a2port(sfwd_host_port)) == 0) {
+			    (fwd_host_port = a2port(sfwd_host_port)) == 0) {
 				fprintf(stderr,
 				    "Bad forwarding port(s) '%s'\n", optarg);
 				exit(1);

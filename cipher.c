@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: cipher.c,v 1.53 2002/03/18 17:13:15 markus Exp $");
+RCSID("$OpenBSD: cipher.c,v 1.54 2002/03/19 10:49:35 markus Exp $");
 
 #include "xmalloc.h"
 #include "log.h"
@@ -78,17 +78,17 @@ struct Cipher {
 
 /*--*/
 
-u_int	
+u_int
 cipher_blocksize(Cipher *c)
 {
 	return (c->block_size);
 }
-u_int	
+u_int
 cipher_keylen(Cipher *c)
 {
 	return (c->key_len);
 }
-u_int	
+u_int
 cipher_get_number(Cipher *c)
 {
 	return (c->number);
@@ -509,7 +509,7 @@ ssh_rijndael_cbc(EVP_CIPHER_CTX *ctx, u_char *dest, const u_char *src,
 			rijndael_decrypt(&c->r_ctx, cnow, plain);
 }
 
-/* 
+/*
  * Exports an IV from the CipherContext required to export the key
  * state back from the unprivileged child to the privileged parent
  * process.
@@ -612,7 +612,7 @@ cipher_set_keyiv(CipherContext *cc, u_char *iv)
 		memcpy(desc->k2.iv, iv + 8, 8);
 		memcpy(desc->k3.iv, iv + 16, 8);
 		return;
-	} 
+	}
 	default:
 		fatal("%s: bad cipher %d", __FUNCTION__, c->number);
 	}

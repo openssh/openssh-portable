@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.233 2002/03/19 10:35:39 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.234 2002/03/19 10:49:35 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -538,7 +538,7 @@ privsep_preauth_child(void)
 		    strerror(errno));
 	if (chdir("/") == -1)
 		fatal("chdir(/)");
-		
+
 	/* Drop our privileges */
 	setegid(options.unprivileged_group);
 	setgid(options.unprivileged_group);
@@ -564,7 +564,7 @@ privsep_postauth(Authctxt *authctxt, pid_t pid)
 		use_privsep = 0;
 		return;
 	}
-	
+
 	/* Authentication complete */
 	alarm(0);
 	if (startup_pipe != -1) {
@@ -1376,7 +1376,7 @@ main(int ac, char **av)
 
 	if (!use_privsep)
 		goto skip_privilegeseparation;
-		
+
 	/* Set up unprivileged child process to deal with network data */
 	monitor = monitor_init();
 	/* Store a pointer to the kex for later rekeying */
@@ -1422,7 +1422,7 @@ main(int ac, char **av)
 		exit(0);
 
  authenticated:
-	/* 
+	/*
 	 * In privilege separation, we fork another child and prepare
 	 * file descriptor passing.
 	 */
