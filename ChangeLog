@@ -10,6 +10,8 @@
    - djm@cvs.openbsd.org 2004/06/17 14:53:27
      [regress/multiplex.sh]
      shared connection env passing regress test
+ - (dtucker) [regress/README.regress] Add detail on how to run a single
+   test from the top-level Makefile.
 
 20040617
  - (dtucker) [regress/scp.sh] diff -N is not portable (but needed for some
@@ -1283,4 +1285,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3407 2004/06/17 15:23:03 djm Exp $
+$Id: ChangeLog,v 1.3408 2004/06/18 04:14:43 dtucker Exp $

@@ -32,8 +32,12 @@ TEST_SHELL: shell used for running the test scripts.
 
 Individual tests.
 
-You can invoke test-exec.sh directly if you set up the path to find the
-binaries under test and the test scripts themselves, for example:
+You can run an individual test from the top-level Makefile, eg:
+$ make tests LTESTS=agent-timeout
+
+If you need to manipulate the environment more you can invoke test-exec.sh
+directly if you set up the path to find the binaries under test and the
+test scripts themselves, for example:
 
 $ cd regress
 $ PATH=`pwd`/..:$PATH:. TEST_SHELL=/bin/sh sh test-exec.sh `pwd` \
@@ -96,4 +100,4 @@ Known Issues.
   unless ssh-rand-helper is in pre-installed (the path to
   ssh-rand-helper is hard coded).
 
-$Id: README.regress,v 1.5 2004/06/16 11:08:32 dtucker Exp $
+$Id: README.regress,v 1.6 2004/06/18 04:14:43 dtucker Exp $
