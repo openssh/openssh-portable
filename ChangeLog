@@ -1,3 +1,7 @@
+20031123
+ - (djm) [canohost.c] Move IPv4inV6 mapped address normalisation to its own
+   function and call it unconditionally
+
 20031122
  - (dtucker) [channels.c] Make AIX write limit code clearer.  Suggested by djm@
  - (dtucker) [auth-passwd.c openbsd-compat/port-aix.c openbsd-compat/port-aix.h]
@@ -1510,4 +1514,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3125 2003/11/22 04:02:42 djm Exp $
+$Id: ChangeLog,v 1.3126 2003/11/24 01:57:25 djm Exp $

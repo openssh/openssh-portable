@@ -20,6 +20,7 @@ RCSID("$OpenBSD: canohost.c,v 1.38 2003/09/23 20:17:11 markus Exp $");
 #include "canohost.h"
 
 static void check_ip_options(int, char *);
+static void ipv64_normalise_mapped(struct sockaddr_storage *, socklen_t *);
 
 /*
  * Return the canonical name of the host at the other end of the socket. The
@@ -42,29 +43,9 @@ get_remote_hostname(int socket, int use_dns)
 		debug("getpeername failed: %.100s", strerror(errno));
 		cleanup_exit(255);
 	}
-#ifdef IPV4_IN_IPV6
-	if (from.ss_family == AF_INET6) {
-		struct sockaddr_in6 *from6 = (struct sockaddr_in6 *)&from;
 
-		/* Detect IPv4 in IPv6 mapped address and convert it to */
-		/* plain (AF_INET) IPv4 address */
-		if (IN6_IS_ADDR_V4MAPPED(&from6->sin6_addr)) {
-			struct sockaddr_in *from4 = (struct sockaddr_in *)&from;
-			struct in_addr addr;
-			u_int16_t port;
+	ipv64_normalise_mapped(&from, &fromlen);
 
-			memcpy(&addr, ((char *)&from6->sin6_addr) + 12, sizeof(addr));
-			port = from6->sin6_port;
-
-			memset(&from, 0, sizeof(from));
-
-			from4->sin_family = AF_INET;
-			fromlen = sizeof(*from4);
-			memcpy(&from4->sin_addr, &addr, sizeof(addr));
-			from4->sin_port = port;
-		}
-	}
-#endif
 	if (from.ss_family == AF_INET6)
 		fromlen = sizeof(struct sockaddr_in6);
 
@@ -183,6 +164,31 @@ check_ip_options(int socket, char *ipaddr)
 		    ipaddr, text);
 	}
 #endif /* IP_OPTIONS */
+}
+
+static void
+ipv64_normalise_mapped(struct sockaddr_storage *addr, socklen_t *len)
+{
+	struct sockaddr_in6 *a6 = (struct sockaddr_in6 *)addr;
+	struct sockaddr_in *a4 = (struct sockaddr_in *)addr;
+	struct in_addr inaddr;
+	u_int16_t port;
+
+	if (addr->ss_family != AF_INET6 || 
+	    !IN6_IS_ADDR_V4MAPPED(&a6->sin6_addr))
+		return;
+
+	debug3("Normalising mapped IPv4 in IPv6 address");
+
+	memcpy(&inaddr, ((char *)&a6->sin6_addr) + 12, sizeof(inaddr));
+	port = a6->sin6_port;
+
+	memset(addr, 0, sizeof(*a4));
+
+	a4->sin_family = AF_INET;
+	*len = sizeof(*a4);
+	memcpy(&a4->sin_addr, &inaddr, sizeof(inaddr));
+	a4->sin_port = port;
 }
 
 /*
