@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.104 2003/05/11 16:56:48 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.105 2003/05/14 18:16:20 jakob Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -70,6 +70,7 @@ char *identity_comment = NULL;
 int convert_to_ssh2 = 0;
 int convert_from_ssh2 = 0;
 int print_public = 0;
+int print_generic = 0;
 
 char *key_type_name = NULL;
 
@@ -620,6 +621,38 @@ do_change_passphrase(struct passwd *pw)
 	exit(0);
 }
 
+#ifdef DNS
+/*
+ * Print the SSHFP RR.
+ */
+static void
+do_print_resource_record(struct passwd *pw, char *hostname)
+{
+	Key *public;
+	char *comment = NULL;
+	struct stat st;
+
+	if (!have_identity)
+		ask_filename(pw, "Enter file in which the key is");
+	if (stat(identity_file, &st) < 0) {
+		perror(identity_file);
+		exit(1);
+	}
+	public = key_load_public(identity_file, &comment);
+	if (public != NULL) {
+		export_dns_rr(hostname, public, stdout, print_generic);
+		key_free(public);
+		xfree(comment);
+		exit(0);
+	}
+	if (comment)
+		xfree(comment);
+
+	printf("failed to read v2 public key from %s.\n", identity_file);
+	exit(1);
+}
+#endif /* DNS */
+
 /*
  * Change the comment of a private key file.
  */
@@ -726,6 +759,7 @@ usage(void)
 	fprintf(stderr, "  -c          Change comment in private and public key files.\n");
 	fprintf(stderr, "  -e          Convert OpenSSH to IETF SECSH key file.\n");
 	fprintf(stderr, "  -f filename Filename of the key file.\n");
+	fprintf(stderr, "  -g          Use generic DNS resource record format.\n");
 	fprintf(stderr, "  -i          Convert IETF SECSH to OpenSSH key file.\n");
 	fprintf(stderr, "  -l          Show fingerprint of key file.\n");
 	fprintf(stderr, "  -p          Change passphrase of private key file.\n");
@@ -736,6 +770,9 @@ usage(void)
 	fprintf(stderr, "  -C comment  Provide new comment.\n");
 	fprintf(stderr, "  -N phrase   Provide new passphrase.\n");
 	fprintf(stderr, "  -P phrase   Provide old passphrase.\n");
+#ifdef DNS
+	fprintf(stderr, "  -r hostname Print DNS resource record.\n");
+#endif /* DNS */
 #ifdef SMARTCARD
 	fprintf(stderr, "  -D reader   Download public key from smartcard.\n");
 	fprintf(stderr, "  -U reader   Upload private key to smartcard.\n");
@@ -752,6 +789,7 @@ main(int ac, char **av)
 {
 	char dotsshdir[MAXPATHLEN], comment[1024], *passphrase1, *passphrase2;
 	char *reader_id = NULL;
+	char *resource_record_hostname = NULL;
 	Key *private, *public;
 	struct passwd *pw;
 	struct stat st;
@@ -778,7 +816,7 @@ main(int ac, char **av)
 		exit(1);
 	}
 
-	while ((opt = getopt(ac, av, "deiqpclBRxXyb:f:t:U:D:P:N:C:")) != -1) {
+	while ((opt = getopt(ac, av, "degiqpclBRxXyb:f:t:U:D:P:N:C:r:")) != -1) {
 		switch (opt) {
 		case 'b':
 			bits = atoi(optarg);
@@ -802,6 +840,9 @@ main(int ac, char **av)
 		case 'f':
 			strlcpy(identity_file, optarg, sizeof(identity_file));
 			have_identity = 1;
+			break;
+		case 'g':
+			print_generic = 1;
 			break;
 		case 'P':
 			identity_passphrase = optarg;
@@ -843,6 +884,9 @@ main(int ac, char **av)
 		case 'U':
 			reader_id = optarg;
 			break;
+		case 'r':
+			resource_record_hostname = optarg;
+			break;
 		case '?':
 		default:
 			usage();
@@ -868,6 +912,13 @@ main(int ac, char **av)
 		do_convert_from_ssh2(pw);
 	if (print_public)
 		do_print_public(pw);
+	if (resource_record_hostname != NULL) {
+#ifdef DNS
+		do_print_resource_record(pw, resource_record_hostname);
+#else /* DNS */
+		fatal("no DNS support.");
+#endif /* DNS */
+	}
 	if (reader_id != NULL) {
 #ifdef SMARTCARD
 		if (download)

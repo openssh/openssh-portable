@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.106 2003/04/09 12:00:37 djm Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.107 2003/05/14 18:16:20 jakob Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -114,7 +114,7 @@ typedef enum {
 	oDynamicForward, oPreferredAuthentications, oHostbasedAuthentication,
 	oHostKeyAlgorithms, oBindAddress, oSmartcardDevice,
 	oClearAllForwardings, oNoHostAuthenticationForLocalhost,
-	oEnableSSHKeysign, oRekeyLimit,
+	oEnableSSHKeysign, oRekeyLimit, oVerifyHostKeyDNS,
 	oDeprecated
 } OpCodes;
 
@@ -187,6 +187,7 @@ static struct {
 	{ "smartcarddevice", oSmartcardDevice },
 	{ "clearallforwardings", oClearAllForwardings },
 	{ "enablesshkeysign", oEnableSSHKeysign },
+	{ "verifyhostkeydns", oVerifyHostKeyDNS },
 	{ "nohostauthenticationforlocalhost", oNoHostAuthenticationForLocalhost },
 	{ "rekeylimit", oRekeyLimit },
 	{ NULL, oBadOption }
@@ -390,6 +391,10 @@ parse_flag:
 
 	case oCheckHostIP:
 		intptr = &options->check_host_ip;
+		goto parse_flag;
+
+	case oVerifyHostKeyDNS:
+		intptr = &options->verify_host_key_dns;
 		goto parse_flag;
 
 	case oStrictHostKeyChecking:
@@ -829,6 +834,7 @@ initialize_options(Options * options)
 	options->enable_ssh_keysign = - 1;
 	options->no_host_authentication_for_localhost = - 1;
 	options->rekey_limit = - 1;
+	options->verify_host_key_dns = -1;
 }
 
 /*
@@ -947,6 +953,8 @@ fill_default_options(Options * options)
 		options->enable_ssh_keysign = 0;
 	if (options->rekey_limit == -1)
 		options->rekey_limit = 0;
+	if (options->verify_host_key_dns == -1)
+		options->verify_host_key_dns = 0;
 	/* options->proxy_command should not be set by default */
 	/* options->user will be set in the main program if appropriate */
 	/* options->hostname will be set in the main program if appropriate */

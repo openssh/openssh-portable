@@ -4,6 +4,12 @@
      [ssh-agent.1]
      setup -> set up;
      from wiz@netbsd
+   - jakob@cvs.openbsd.org 2003/05/14 18:16:20
+     [key.c key.h readconf.c readconf.h ssh_config.5 sshconnect.c]
+     [dns.c dns.h README.dns ssh-keygen.1 ssh-keygen.c]
+     add experimental support for verifying hos keys using DNS as described
+     in draft-ietf-secsh-dns-xx.txt. more information in README.dns.
+     ok markus@ and henning@
 
 20030514
  - (djm) Bug #117: Don't lie to PAM about username
@@ -1479,4 +1485,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2701 2003/05/15 00:16:21 djm Exp $
+$Id: ChangeLog,v 1.2702 2003/05/15 00:19:46 djm Exp $

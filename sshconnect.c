@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.139 2003/04/14 14:17:50 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.140 2003/05/14 18:16:21 jakob Exp $");
 
 #include <openssl/bn.h>
 
@@ -32,6 +32,10 @@ RCSID("$OpenBSD: sshconnect.c,v 1.139 2003/04/14 14:17:50 markus Exp $");
 #include "atomicio.h"
 #include "misc.h"
 #include "readpass.h"
+
+#ifdef DNS
+#include "dns.h"
+#endif
 
 char *client_version_string = NULL;
 char *server_version_string = NULL;
@@ -797,10 +801,27 @@ fail:
 	return -1;
 }
 
+/* returns 0 if key verifies or -1 if key does NOT verify */
 int
 verify_host_key(char *host, struct sockaddr *hostaddr, Key *host_key)
 {
 	struct stat st;
+
+#ifdef DNS
+	if (options.verify_host_key_dns) {
+		switch(verify_host_key_dns(host, hostaddr, host_key)) {
+		case DNS_VERIFY_OK:
+			return 0;
+		case DNS_VERIFY_FAILED:
+			return -1;
+		case DNS_VERIFY_ERROR:
+			break;
+		default:
+			debug3("bad return value from verify_host_key_dns");
+			break;
+		}
+	}
+#endif /* DNS */
 
 	/* return ok if the key can be found in an old keyfile */
 	if (stat(options.system_hostfile2, &st) == 0 ||

@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.232 2003/05/14 04:31:11 djm Exp $
+# $Id: Makefile.in,v 1.233 2003/05/15 00:19:46 djm Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -62,11 +62,11 @@ TARGETS=ssh$(EXEEXT) sshd$(EXEEXT) ssh-add$(EXEEXT) ssh-keygen$(EXEEXT) ssh-keys
 
 LIBSSH_OBJS=authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o \
 	cipher.o compat.o compress.o crc32.o deattack.o fatal.o \
-	hostfile.o log.o match.o mpaux.o nchan.o packet.o radix.o readpass.o \
-	rsa.o tildexpand.o ttymodes.o xmalloc.o atomicio.o \
+	hostfile.o log.o match.o mpaux.o nchan.o packet.o radix.o \
+	readpass.o rsa.o tildexpand.o ttymodes.o xmalloc.o atomicio.o \
 	key.o dispatch.o kex.o mac.o uuencode.o misc.o \
 	rijndael.o ssh-dss.o ssh-rsa.o dh.o kexdh.o kexgex.o \
-	kexdhc.o kexgexc.o scard.o msg.o progressmeter.o \
+	kexdhc.o kexgexc.o scard.o msg.o progressmeter.o dns.o \
 	entropy.o
 
 SSHOBJS= ssh.o readconf.o clientloop.o sshtty.o \
