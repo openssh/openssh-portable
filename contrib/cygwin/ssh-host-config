@@ -434,9 +434,9 @@ then
   then
     if [ "${with_comment}" -eq 0 ]
     then
-      echo 'ssh  stream  tcp     nowait  root    /usr/sbin/sshd -i' >> "${_inetcnf}"
+      echo 'ssh  stream  tcp     nowait  root    /usr/sbin/sshd sshd -i' >> "${_inetcnf}"
     else
-      echo '# ssh  stream  tcp     nowait  root    /usr/sbin/sshd -i' >> "${_inetcnf}"
+      echo '# ssh  stream  tcp     nowait  root    /usr/sbin/sshd sshd -i' >> "${_inetcnf}"
     fi
     echo "Added ssh to ${_inetcnf}"
   fi
