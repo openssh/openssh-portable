@@ -164,6 +164,7 @@ install -d $RPM_BUILD_ROOT/etc/ssh/
 install -d $RPM_BUILD_ROOT/etc/pam.d/
 install -d $RPM_BUILD_ROOT/sbin/init.d/
 install -d $RPM_BUILD_ROOT/var/adm/fillup-templates
+install -d $RPM_BUILD_ROOT/usr/libexec/ssh
 install -m644 sshd.pam.generic $RPM_BUILD_ROOT/etc/pam.d/sshd
 install -m744 contrib/suse/rc.sshd $RPM_BUILD_ROOT/sbin/init.d/sshd
 ln -s ../../sbin/init.d/sshd $RPM_BUILD_ROOT/usr/sbin/rcsshd
