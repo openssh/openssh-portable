@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.78 2001/10/04 15:05:40 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.79 2001/10/04 15:12:37 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -80,6 +80,7 @@ static int connection_in;	/* Connection to client (input). */
 static int connection_out;	/* Connection to client (output). */
 static int connection_closed = 0;	/* Connection to client closed. */
 static u_int buffer_high;	/* "Soft" max buffer size. */
+static int client_alive_timeouts = 0;
 
 /*
  * This SIGCHLD kludge is used to detect when the child exits.  The server
@@ -90,8 +91,6 @@ static volatile int child_terminated;	/* The child has terminated. */
 
 /* prototypes */
 static void server_init_dispatch(void);
-
-int client_alive_timeouts = 0;
 
 static void
 sigchld_handler(int sig)
@@ -159,6 +158,26 @@ make_packets_from_stdout_data(void)
 		buffer_consume(&stdout_buffer, len);
 		stdout_bytes += len;
 	}
+}
+
+static void
+client_alive_check(void)
+{
+	int id;
+
+	/* timeout, check to see how many we have had */
+	if (++client_alive_timeouts > options.client_alive_count_max)
+		packet_disconnect("Timeout, your session not responding.");
+
+	id = channel_find_open();
+	if (id == -1)
+		packet_disconnect("No open channels after timeout!");
+	/*
+	 * send a bogus channel request with "wantreply",
+	 * we should get back a failure
+	 */
+	channel_request_start(id, "keepalive@openssh.com", 1);
+	packet_send();
 }
 
 /*
@@ -261,30 +280,8 @@ retry_select:
 		else
 			goto retry_select;
 	}
-	if (ret == 0 && client_alive_scheduled) {
-		/* timeout, check to see how many we have had */
-		client_alive_timeouts++;
-
-		if (client_alive_timeouts > options.client_alive_count_max ) {
-			packet_disconnect(
-				"Timeout, your session not responding.");
-		} else {
-			/*
-			 * send a bogus channel request with "wantreply" 
-			 * we should get back a failure
-			 */
-			int id;
-			
-			id = channel_find_open();
-			if (id != -1) {
-				channel_request_start(id,
-				  "keepalive@openssh.com", 1);
-				packet_send();
-			} else 
-				packet_disconnect(
-					"No open channels after timeout!");
-		}
-	} 
+	if (ret == 0 && client_alive_scheduled)
+		client_alive_check();
 }
 
 /*
