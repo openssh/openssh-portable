@@ -1,4 +1,7 @@
 20050222
+ - (djm) [configure.ac] in_addr_t test needs sys/types.h too
+
+20050222
  - (dtucker) [uidswap.c] Skip uid restore test on Cygwin.  Patch from
    vinschen at redhat.com.
 
@@ -2160,4 +2163,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3662 2005/02/22 06:57:13 dtucker Exp $
+$Id: ChangeLog,v 1.3663 2005/02/24 01:12:34 djm Exp $

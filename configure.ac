@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.246 2005/02/20 12:27:11 dtucker Exp $
+# $Id: configure.ac,v 1.247 2005/02/24 01:12:35 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -1877,7 +1877,9 @@ TYPE_SOCKLEN_T
 
 AC_CHECK_TYPES(sig_atomic_t,,,[#include <signal.h>])
 
-AC_CHECK_TYPES(in_addr_t,,,[#include <netinet/in.h>])
+AC_CHECK_TYPES(in_addr_t,,,
+[#include <sys/types.h>
+#include <netinet/in.h>])
 
 AC_CACHE_CHECK([for size_t], ac_cv_have_size_t, [
 	AC_TRY_COMPILE(
