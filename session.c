@@ -201,6 +201,7 @@ display_loginmsg(void)
 		printf("%s\n", (char *)buffer_ptr(&loginmsg));
 		buffer_clear(&loginmsg);
 	}
+	fflush(stdout);
 }
 
 void

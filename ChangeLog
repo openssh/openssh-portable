@@ -1,3 +1,7 @@
+20040407
+ - (dtucker) [session.c] Flush stdout after displaying loginmsg.  From
+   f_mohr at yahoo.de.
+
 20040406
  - (dtucker) [acconfig.h configure.ac defines.h] Bug #820: don't use
    updwtmpx() on IRIX since it seems to clobber utmp.  ok djm@
@@ -936,4 +940,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3301 2004/04/06 11:39:02 dtucker Exp $
+$Id: ChangeLog,v 1.3302 2004/04/06 22:04:09 dtucker Exp $
