@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.75 2001/07/15 16:17:08 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.76 2001/07/17 21:04:58 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -169,7 +169,7 @@ make_packets_from_stdout_data(void)
  */
 static void
 wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp, int *maxfdp,
-    u_int max_time_milliseconds)
+    int *nallocp, u_int max_time_milliseconds)
 {
 	struct timeval tv, *tvp;
 	int ret;
@@ -193,7 +193,7 @@ wait_until_can_do_something(fd_set **readsetp, fd_set **writesetp, int *maxfdp,
 retry_select:
 
 	/* Allocate and update select() masks for channel descriptors. */
-	channel_prepare_select(readsetp, writesetp, maxfdp, 0);
+	channel_prepare_select(readsetp, writesetp, maxfdp, nallocp, 0);
 
 	if (compat20) {
 		/* wrong: bad condition XXX */
@@ -435,7 +435,7 @@ void
 server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 {
 	fd_set *readset = NULL, *writeset = NULL;
-	int max_fd;
+	int max_fd = 0, nalloc = 0;
 	int wait_status;	/* Status returned by wait(). */
 	pid_t wait_pid;		/* pid returned by wait(). */
 	int waiting_termination = 0;	/* Have displayed waiting close message. */
@@ -476,12 +476,14 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 	else
 		buffer_high = 64 * 1024;
 
+#if 0
 	/* Initialize max_fd to the maximum of the known file descriptors. */
-	max_fd = MAX(fdin, fdout);
+	max_fd = MAX(connection_in, connection_out);
+	max_fd = MAX(max_fd, fdin);
+	max_fd = MAX(max_fd, fdout);
 	if (fderr != -1)
 		max_fd = MAX(max_fd, fderr);
-	max_fd = MAX(max_fd, connection_in);
-	max_fd = MAX(max_fd, connection_out);
+#endif
 
 	/* Initialize Initialize buffers. */
 	buffer_init(&stdin_buffer);
@@ -567,9 +569,14 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 				xfree(cp);
 			}
 		}
+		max_fd = MAX(connection_in, connection_out);
+		max_fd = MAX(max_fd, fdin);
+		max_fd = MAX(max_fd, fdout);
+		max_fd = MAX(max_fd, fderr);
+
 		/* Sleep in select() until we can do something. */
 		wait_until_can_do_something(&readset, &writeset, &max_fd,
-		    max_time_milliseconds);
+		    &nalloc, max_time_milliseconds);
 
 		/* Process any channel events. */
 		channel_after_select(readset, writeset);
@@ -662,7 +669,7 @@ void
 server_loop2(Authctxt *authctxt)
 {
 	fd_set *readset = NULL, *writeset = NULL;
-	int rekeying = 0, max_fd, status;
+	int rekeying = 0, max_fd, status, nalloc = 0;
 	pid_t pid;
 
 	debug("Entering interactive session for SSH2.");
@@ -685,7 +692,7 @@ server_loop2(Authctxt *authctxt)
 		if (!rekeying && packet_not_very_much_data_to_write())
 			channel_output_poll();
 		wait_until_can_do_something(&readset, &writeset, &max_fd,
-		    rekeying);
+		    &nalloc, 0);
 		if (child_terminated) {
 			while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
 				session_close_by_pid(pid, status);

@@ -32,7 +32,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* RCSID("$OpenBSD: channels.h,v 1.44 2001/07/02 22:52:57 markus Exp $"); */
+/* RCSID("$OpenBSD: channels.h,v 1.45 2001/07/17 21:04:57 markus Exp $"); */
 
 #ifndef CHANNEL_H
 #define CHANNEL_H
@@ -152,6 +152,7 @@ void	 channel_register_callback(int, int mtype, channel_callback_fn *, void *);
 void	 channel_register_cleanup(int, channel_callback_fn *);
 void	 channel_register_filter(int, channel_filter_fn *);
 void	 channel_cancel_cleanup(int);
+int	 channel_close_fd(int *);
 
 /* protocol handler */
 
@@ -169,7 +170,7 @@ void	 channel_input_window_adjust(int, int, void *);
 
 /* file descriptor handling (read/write) */
 
-void	 channel_prepare_select(fd_set **, fd_set **, int *, int);
+void	 channel_prepare_select(fd_set **, fd_set **, int *, int*, int);
 void     channel_after_select(fd_set *, fd_set *);
 void     channel_output_poll(void);
 

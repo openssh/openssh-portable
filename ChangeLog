@@ -15,6 +15,10 @@
    - markus@cvs.openbsd.org 2001/07/17 20:48:42                      
      [ssh-agent.c]                                                   
      update maxfd if maxfd is closed; report from jmcelroy@dtgnet.com
+   - markus@cvs.openbsd.org 2001/07/17 21:04:58                    
+     [channels.c channels.h clientloop.c nchan.c serverloop.c]     
+     keep track of both maxfd and the size of the malloc'ed fdsets.
+     update maxfd if maxfd gets closed.
 
 20010715
  - (bal) Set "BROKEN_GETADDRINFO" for darwin platform.  Reported by
@@ -6054,4 +6058,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1408 2001/07/18 15:58:08 mouring Exp $
+$Id: ChangeLog,v 1.1409 2001/07/18 16:01:46 mouring Exp $

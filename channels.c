@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.131 2001/07/02 22:52:56 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.132 2001/07/17 21:04:56 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -266,6 +266,37 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 	return c;
 }
 
+static int
+channel_find_maxfd(void)
+{
+	int i, max = 0;
+	Channel *c;
+
+	for (i = 0; i < channels_alloc; i++) {
+		c = channels[i];
+		if (c != NULL) {
+			max = MAX(max, c->rfd);
+			max = MAX(max, c->wfd);
+			max = MAX(max, c->efd);
+		}
+	}
+	return max;
+}
+
+int
+channel_close_fd(int *fdp)
+{
+	int ret = 0, fd = *fdp;
+
+	if (fd != -1) {
+		ret = close(fd);
+		*fdp = -1;
+		if (fd == channel_max_fd)
+			channel_max_fd = channel_find_maxfd();
+	}
+	return ret;
+}
+
 /* Close all channel fd/socket. */
 
 static void
@@ -274,22 +305,10 @@ channel_close_fds(Channel *c)
 	debug3("channel_close_fds: channel %d: r %d w %d e %d",
 	    c->self, c->rfd, c->wfd, c->efd);
 
-	if (c->sock != -1) {
-		close(c->sock);
-		c->sock = -1;
-	}
-	if (c->rfd != -1) {
-		close(c->rfd);
-		c->rfd = -1;
-	}
-	if (c->wfd != -1) {
-		close(c->wfd);
-		c->wfd = -1;
-	}
-	if (c->efd != -1) {
-		close(c->efd);
-		c->efd = -1;
-	}
+	channel_close_fd(&c->sock);
+	channel_close_fd(&c->rfd);
+	channel_close_fd(&c->wfd);
+	channel_close_fd(&c->efd);
 }
 
 /* Free the channel and close its fd/socket. */
@@ -387,7 +406,7 @@ channel_stop_listening(void)
 			case SSH_CHANNEL_PORT_LISTENER:
 			case SSH_CHANNEL_RPORT_LISTENER:
 			case SSH_CHANNEL_X11_LISTENER:
-				close(c->sock);
+				channel_close_fd(&c->sock);
 				channel_free(c);
 				break;
 			}
@@ -842,7 +861,7 @@ channel_pre_x11_open_13(Channel *c, fd_set * readset, fd_set * writeset)
 		log("X11 connection rejected because of wrong authentication.");
 		buffer_clear(&c->input);
 		buffer_clear(&c->output);
-		close(c->sock);
+		channel_close_fd(&c->sock);
 		c->sock = -1;
 		c->type = SSH_CHANNEL_CLOSED;
 		packet_start(SSH_MSG_CHANNEL_CLOSE);
@@ -1333,8 +1352,7 @@ channel_handle_efd(Channel *c, fd_set * readset, fd_set * writeset)
 			if (len <= 0) {
 				debug2("channel %d: closing write-efd %d",
 				    c->self, c->efd);
-				close(c->efd);
-				c->efd = -1;
+				channel_close_fd(&c->efd);
 			} else {
 				buffer_consume(&c->extended, len);
 				c->local_consumed += len;
@@ -1349,8 +1367,7 @@ channel_handle_efd(Channel *c, fd_set * readset, fd_set * writeset)
 			if (len <= 0) {
 				debug2("channel %d: closing read-efd %d",
 				    c->self, c->efd);
-				close(c->efd);
-				c->efd = -1;
+				channel_close_fd(&c->efd);
 			} else {
 				buffer_append(&c->extended, buf, len);
 			}
@@ -1532,7 +1549,7 @@ channel_handler(chan_fn *ftab[], fd_set * readset, fd_set * writeset)
  */
 void
 channel_prepare_select(fd_set **readsetp, fd_set **writesetp, int *maxfdp,
-    int rekeying)
+    int *nallocp, int rekeying)
 {
 	int n;
 	u_int sz;
@@ -1540,15 +1557,13 @@ channel_prepare_select(fd_set **readsetp, fd_set **writesetp, int *maxfdp,
 	n = MAX(*maxfdp, channel_max_fd);
 
 	sz = howmany(n+1, NFDBITS) * sizeof(fd_mask);
-	if (*readsetp == NULL || n > *maxfdp) {
-		if (*readsetp)
-			xfree(*readsetp);
-		if (*writesetp)
-			xfree(*writesetp);
-		*readsetp = xmalloc(sz);
-		*writesetp = xmalloc(sz);
-		*maxfdp = n;
+	/* perhaps check sz < nalloc/2 and shrink? */
+	if (*readsetp == NULL || sz > *nallocp) {
+		*readsetp = xrealloc(*readsetp, sz);
+		*writesetp = xrealloc(*writesetp, sz);
+		*nallocp = sz;
 	}
+	*maxfdp = n;
 	memset(*readsetp, 0, sz);
 	memset(*writesetp, 0, sz);
 
