@@ -1,4 +1,4 @@
-%define ver 3.6.1p2
+%define ver 3.7p1
 %define rel 3
 
 # OpenSSH privilege separation requires a user & group ID
@@ -84,7 +84,7 @@ BuildPreReq: /bin/login
 %if ! %{build6x}
 BuildPreReq: glibc-devel, pam
 %else
-BuildPreReq: db1-devel, /usr/include/security/pam_appl.h
+BuildPreReq: /usr/include/security/pam_appl.h
 %endif
 %if ! %{no_x11_askpass}
 BuildPreReq: XFree86-devel
