@@ -1,3 +1,7 @@
+20000403
+ - Wrote entropy collection routines for systems that lack /dev/random
+   and EGD
+
 20000401
  - Big OpenBSD CVS update (mainly beginnings of SSH2 infrastructure)
    - [auth.c session.c sshd.c auth.h]

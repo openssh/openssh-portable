@@ -27,35 +27,9 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _BSD_MISC_H
-#define _BSD_MISC_H
+#ifndef _RANDOMS_H
+#define _RANDOMS_H
 
-#include "config.h"
+void seed_rng(void);
 
-#ifndef HAVE_ARC4RANDOM
-unsigned int arc4random(void);
-void arc4random_stir(void);
-#endif /* !HAVE_ARC4RANDOM */
-
-#ifndef HAVE_SETPROCTITLE
-void setproctitle(const char *fmt, ...);
-#endif /* !HAVE_SETPROCTITLE */
-
-#ifndef HAVE_SETENV
-int setenv(const char *name, const char *value, int overwrite);
-#endif /* !HAVE_SETENV */
-
-#ifndef HAVE_SETLOGIN
-int setlogin(const char *name);
-#endif /* !HAVE_SETLOGIN */
-
-#ifndef HAVE_INNETGR
-int innetgr(const char *netgroup, const char *host, 
-            const char *user, const char *domain);
-#endif /* HAVE_INNETGR */
-
-#if !defined(HAVE_SETEUID) && defined(HAVE_SETREUID)
-int seteuid(uid_t euid);
-#endif /* !defined(HAVE_SETEUID) && defined(HAVE_SETREUID) */
-
-#endif /* _BSD_MISC_H */
+#endif /* _RANDOMS_H */

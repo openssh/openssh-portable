@@ -24,17 +24,8 @@
 /* Location of random number pool  */
 #undef RANDOM_POOL
 
-/* Are we using the Entropy gathering daemon */
-#undef HAVE_EGD
-
-/* Define if using the Dante SOCKS library. */
-#undef HAVE_DANTE
-
-/* Define if using the Socks4 SOCKS library. */
-#undef HAVE_SOCKS4
-
-/* Define if using the Socks5 SOCKS library. */
-#undef HAVE_SOCKS5
+/* Location of EGD random number socket */
+#undef EGD_SOCKET
 
 /* Define if you want to install preformatted manpages.*/
 #undef MANTYPE
@@ -158,6 +149,23 @@
 
 /* Detect IPv4 in IPv6 mapped addresses and treat as IPv4 */
 #undef IPV4_IN_IPV6
+
+/* Programs used in entropy collection */
+#undef PROG_LS
+#undef PROG_NETSTAT
+#undef PROG_ARP
+#undef PROG_IFCONFIG
+#undef PROG_PS
+#undef PROG_W
+#undef PROG_WHO
+#undef PROG_LAST
+#undef PROG_LASTLOG
+#undef PROG_DF
+#undef PROG_VMSTAT
+#undef PROG_UPTIME
+#undef PROG_IPCS
+#undef PROG_TAIL
+
 
 @BOTTOM@
 

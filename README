@@ -32,11 +32,6 @@ The PAM support is now more functional than the popular packages of
 commercial ssh-1.2.x. It checks "account" and "session" modules for
 all logins, not just when using password authentication.
 
-All new code is released under a XFree style license, which is very
-liberal. Please refer to the source files for details. The code in
-bsd-*.[ch] is from the OpenBSD project and has its own license (again,
-see the source files for details).
-
 OpenSSH depends on Zlib[2], OpenSSL[3] and optionally PAM[4] and
 Dante[6]. To build the GNOME[5] pass-phrase requester
 (--with-gnome-askpass), you will need the GNOME libraries installed.
@@ -63,10 +58,6 @@ Miscellania -
 This version of SSH is based upon code retrieved from the OpenBSD CVS
 repository which in turn was based on the last free 
 version of SSH released by Tatu Ylonen.
-
-Code in bsd-misc.[ch] and gnome-ssh-askpass.c is Copyright 1999 Damien
-Miller & Internet Business Solutions and is released under a X11-style
-license (see source files for details).
 
 References -
 

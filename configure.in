@@ -12,6 +12,36 @@ AC_CHECK_PROG(AR, ar, ar)
 AC_PATH_PROG(PERL, perl)
 AC_SUBST(PERL)
 
+# We may need these for entropy collection
+AC_PATH_PROG(PROG_LS, ls)
+AC_DEFINE_UNQUOTED(PROG_LS, "$PROG_LS")
+AC_PATH_PROG(PROG_NETSTAT, netstat)
+AC_DEFINE_UNQUOTED(PROG_NETSTAT, "$PROG_NETSTAT")
+AC_PATH_PROG(PROG_ARP, arp)
+AC_DEFINE_UNQUOTED(PROG_ARP, "$PROG_ARP")
+AC_PATH_PROG(PROG_IFCONFIG, ifconfig)
+AC_DEFINE_UNQUOTED(PROG_IFCONFIG, "$PROG_IFCONFIG")
+AC_PATH_PROG(PROG_PS, ps)
+AC_DEFINE_UNQUOTED(PROG_PS, "$PROG_PS")
+AC_PATH_PROG(PROG_W, w)
+AC_DEFINE_UNQUOTED(PROG_W, "$PROG_W")
+AC_PATH_PROG(PROG_WHO, who)
+AC_DEFINE_UNQUOTED(PROG_WHO, "$PROG_WHO")
+AC_PATH_PROG(PROG_LAST, last)
+AC_DEFINE_UNQUOTED(PROG_LAST, "$PROG_LAST")
+AC_PATH_PROG(PROG_LASTLOG, lastlog)
+AC_DEFINE_UNQUOTED(PROG_LASTLOG, "$PROG_LASTLOG")
+AC_PATH_PROG(PROG_DF, df)
+AC_DEFINE_UNQUOTED(PROG_DF, "$PROG_DF")
+AC_PATH_PROG(PROG_VMSTAT, vmstat)
+AC_DEFINE_UNQUOTED(PROG_VMSTAT, "$PROG_VMSTAT")
+AC_PATH_PROG(PROG_UPTIME, uptime)
+AC_DEFINE_UNQUOTED(PROG_UPTIME, "$PROG_UPTIME")
+AC_PATH_PROG(PROG_IPCS, ipcs)
+AC_DEFINE_UNQUOTED(PROG_UPTIME, "$PROG_UPTIME")
+AC_PATH_PROG(PROG_TAIL, tail)
+AC_DEFINE_UNQUOTED(PROG_TAIL, "$PROG_TAIL")
+
 if test -z "$LD" ; then
 	LD=$CC
 fi
@@ -110,7 +140,7 @@ fi
 AC_CHECK_HEADERS(bstring.h endian.h lastlog.h login.h maillock.h netdb.h netgroup.h paths.h poll.h pty.h shadow.h security/pam_appl.h sys/bitypes.h sys/bsdtty.h sys/cdefs.h sys/poll.h sys/select.h sys/stropts.h sys/sysmacros.h sys/time.h sys/ttcompat.h stddef.h util.h utmp.h utmpx.h)
 
 # Checks for library functions.
-AC_CHECK_FUNCS(arc4random bindresvport_af freeaddrinfo gai_strerror getaddrinfo getnameinfo innetgr md5_crypt mkdtemp openpty rresvport_af setenv seteuid setlogin setproctitle setreuid snprintf strlcat strlcpy updwtmpx vsnprintf _getpty)
+AC_CHECK_FUNCS(arc4random bindresvport_af clock freeaddrinfo gai_strerror getaddrinfo getnameinfo getrusage innetgr md5_crypt mkdtemp openpty rresvport_af setenv seteuid setlogin setproctitle setreuid snprintf strlcat strlcpy updwtmpx vsnprintf _getpty)
 
 AC_CHECK_FUNC(login, 
 	[AC_DEFINE(HAVE_LOGIN)],
@@ -604,8 +634,10 @@ AC_CHECK_FILE("/dev/ptc",
 AC_ARG_WITH(random,
 	[  --with-random=FILE      read randomness from FILE (default=/dev/urandom)],
 	[
-		RANDOM_POOL="$withval";
-		AC_DEFINE_UNQUOTED(RANDOM_POOL, "$RANDOM_POOL")
+		if test "x$withval" != "xno" ; then
+			RANDOM_POOL="$withval";
+			AC_DEFINE_UNQUOTED(RANDOM_POOL, "$RANDOM_POOL")
+		fi
 	],
 	[
 		# Check for random device
@@ -623,17 +655,12 @@ AC_ARG_WITH(random,
 AC_ARG_WITH(egd-pool,
 	[  --with-egd-pool=FILE    read randomness from EGD pool FILE (default none)],
 	[
-		RANDOM_POOL="$withval";
-		AC_DEFINE(HAVE_EGD)
-		AC_SUBST(RANDOM_POOL)
-		AC_DEFINE_UNQUOTED(RANDOM_POOL, "$RANDOM_POOL")
+		if test "x$withval" != "xno" ; then
+			EGD_SOCKET="$withval";
+			AC_DEFINE_UNQUOTED(EGD_SOCKET, "$EGD_SOCKET")
+		fi
 	]
 )
-
-# Make sure we have some random number support
-if test -z "$RANDOM_POOL" -a -z "$EGD_POOL"; then
-	AC_MSG_ERROR([No random device found, and no EGD random pool specified])
-fi
 
 AC_ARG_WITH(catman,
 	[  --with-catman=man|cat   Install preformatted manpages[no]],
