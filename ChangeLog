@@ -1,3 +1,7 @@
+20000813
+ - (djm) Add $(srcdir) to includes when compiling (for VPATH). Report from
+   Fabrice bacchella <fabrice.bacchella@marchfirst.fr>
+
 20000809
  - (djm) Define AIX hard limits if headers don't. Report from 
    Bill Painter <william.t.painter@lmco.com>
