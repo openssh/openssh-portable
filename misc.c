@@ -131,8 +131,12 @@ pwcopy(struct passwd *pw)
 	copy->pw_gecos = xstrdup(pw->pw_gecos);
 	copy->pw_uid = pw->pw_uid;
 	copy->pw_gid = pw->pw_gid;
+#ifdef HAVE_PW_EXPIRE_IN_PASSWD
 	copy->pw_expire = pw->pw_expire;
+#endif
+#ifdef HAVE_PW_CHANGE_IN_PASSWD
 	copy->pw_change = pw->pw_change;
+#endif
 #ifdef HAVE_PW_CLASS_IN_PASSWD
 	copy->pw_class = xstrdup(pw->pw_class);
 #endif

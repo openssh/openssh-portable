@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.290 2001/06/10 17:24:52 mouring Exp $
+# $Id: configure.in,v 1.291 2001/06/22 21:14:19 stevesk Exp $
 
 AC_INIT(ssh.c)
 
@@ -1144,6 +1144,35 @@ if test "x$ac_cv_have_pw_class_in_struct_passwd" = "xyes" ; then
 	AC_DEFINE(HAVE_PW_CLASS_IN_PASSWD)
 fi
 
+AC_CACHE_CHECK([for pw_expire field in struct passwd],
+		ac_cv_have_pw_expire_in_struct_passwd, [
+	AC_TRY_COMPILE(
+		[
+#include <pwd.h>
+		],
+		[ struct passwd p; p.pw_expire = 0; ],
+		[ ac_cv_have_pw_expire_in_struct_passwd="yes" ],
+		[ ac_cv_have_pw_expire_in_struct_passwd="no" ]
+	)
+])
+if test "x$ac_cv_have_pw_expire_in_struct_passwd" = "xyes" ; then
+	AC_DEFINE(HAVE_PW_EXPIRE_IN_PASSWD)
+fi
+
+AC_CACHE_CHECK([for pw_change field in struct passwd],
+		ac_cv_have_pw_change_in_struct_passwd, [
+	AC_TRY_COMPILE(
+		[
+#include <pwd.h>
+		],
+		[ struct passwd p; p.pw_change = 0; ],
+		[ ac_cv_have_pw_change_in_struct_passwd="yes" ],
+		[ ac_cv_have_pw_change_in_struct_passwd="no" ]
+	)
+])
+if test "x$ac_cv_have_pw_change_in_struct_passwd" = "xyes" ; then
+	AC_DEFINE(HAVE_PW_CHANGE_IN_PASSWD)
+fi
 
 AC_CACHE_CHECK([if libc defines __progname], ac_cv_libc_defines___progname, [
 	AC_TRY_LINK([], 

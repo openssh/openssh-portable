@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.111 2001/05/08 20:33:06 mouring Exp $ */
+/* $Id: acconfig.h,v 1.112 2001/06/22 21:14:19 stevesk Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -25,6 +25,12 @@
 
 /* Define if your password has a pw_class field */
 #undef HAVE_PW_CLASS_IN_PASSWD
+
+/* Define if your password has a pw_expire field */
+#undef HAVE_PW_EXPIRE_IN_PASSWD
+
+/* Define if your password has a pw_change field */
+#undef HAVE_PW_CHANGE_IN_PASSWD
 
 /* Define if your system's struct sockaddr_un has a sun_len member */
 #undef HAVE_SUN_LEN_IN_SOCKADDR_UN
