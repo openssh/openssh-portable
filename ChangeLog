@@ -1,6 +1,10 @@
 20000626
- - Better fix to aclocal tests from Garrick James <garrick@james.net>
- 
+ - (djm) Better fix to aclocal tests from Garrick James <garrick@james.net>
+ - OpenBSD CVS update
+   - provos@cvs.openbsd.org  2000/06/25 14:17:58
+     [channels.c]
+     correct check for bad channel ids; from Wei Dai <weidai@eskimo.com>
+
 20000623
  - (djm) Use sa_family_t in prototype for rresvport_af. Patch from 
    Svante Signell <svante.signell@telia.com>
