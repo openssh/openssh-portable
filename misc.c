@@ -102,10 +102,10 @@ mysignal(int sig, mysig_t act)
 #ifdef HAVE_SIGACTION
 	struct sigaction sa, osa;
 
-	if (sigaction(sig, 0, &osa) == -1)
+	if (sigaction(sig, NULL, &osa) == -1)
 		return (mysig_t) -1;
 	if (osa.sa_handler != act) {
-		memset(&sa, 0, sizeof sa);
+		memset(&sa, 0, sizeof(sa));
 		sigemptyset(&sa.sa_mask);
 		sa.sa_flags = 0;
 #ifdef SA_RESTART
@@ -113,7 +113,7 @@ mysignal(int sig, mysig_t act)
 			sa.sa_flags |= SA_RESTART;
 #endif
 		sa.sa_handler = act;
-		if (sigaction(sig, &sa, 0) == -1)
+		if (sigaction(sig, &sa, NULL) == -1)
 			return (mysig_t) -1;
 	}
 	return (osa.sa_handler);
