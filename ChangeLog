@@ -12,6 +12,9 @@
    - markus@cvs.openbsd.org 2004/01/13 19:23:15
      [compress.c session.c]
      -Wall; ok henning
+   - markus@cvs.openbsd.org 2004/01/13 19:45:15
+     [compress.c]
+     cast for portability; millert@
 
 20040114
  - (dtucker) [auth-pam.c] Have monitor die if PAM authentication thread exits
@@ -1681,4 +1684,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3172 2004/01/21 00:00:46 djm Exp $
+$Id: ChangeLog,v 1.3173 2004/01/21 00:01:23 djm Exp $
