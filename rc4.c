@@ -41,6 +41,9 @@
 
 /* $Id: rc4.c,v 1.1.1.1 1999/10/26 05:48:13 damien Exp $ */
 
+#include "config.h"
+
+#ifndef HAVE_ARC4RANDOM
 #include "rc4.h"
 
 
@@ -103,3 +106,4 @@ void rc4_getbytes(rc4_t *r, unsigned char *buffer, int len)
 		c++;
 	}
 }
+#endif /* !HAVE_ARC4RANDOM */

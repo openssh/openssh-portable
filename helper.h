@@ -36,8 +36,15 @@
 #ifndef _HELPER_H
 #define _HELPER_H
 
+#include "config.h"
+
+#ifndef HAVE_ARC4RANDOM
 unsigned int arc4random(void);
 void arc4random_stir(void);
+#endif /* !HAVE_ARC4RANDOM */
+
+#ifndef HAVE_SETPROCTITLE
 void setproctitle(const char *fmt, ...);
+#endif /* !HAVE_SETPROCTITLE */
 
 #endif /* _HELPER_H */

@@ -47,7 +47,10 @@ static char rcsid[] = "$OpenBSD: mktemp.c,v 1.13 1998/06/30 23:03:13 deraadt Exp
 #include <ctype.h>
 #include <unistd.h>
 
+#include "config.h"
 #include "helper.h"
+
+#ifndef HAVE_MKDTEMP
 
 static int _gettemp __P((char *, int *, int, int));
 
@@ -181,3 +184,5 @@ _gettemp(path, doopen, domkdir, slen)
 	}
 	/*NOTREACHED*/
 }
+
+#endif /* !HAVE_MKDTEMP */

@@ -44,6 +44,9 @@
 #ifndef _RC4_H
 #define _RC4_H
 
+#include "config.h"
+#ifndef HAVE_ARC4RANDOM
+
 /*! \struct rc4_t
     \brief RC4 stream cipher state object
 	 \var s State array
@@ -106,5 +109,7 @@ void rc4_crypt(rc4_t *r, unsigned char *plaintext, int len);
 	 number generator with a very long period.
 */
 void rc4_getbytes(rc4_t *r, unsigned char *buffer, int len);
+
+#endif /* !HAVE_ARC4RANDOM */
 
 #endif /* _RC4_H */

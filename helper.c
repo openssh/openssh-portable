@@ -45,17 +45,14 @@
 
 #include "rc4.h"
 #include "xmalloc.h"
-
+#include "config.h"
 #include "helper.h"
+
+#ifndef HAVE_ARC4RANDOM
 
 void get_random_bytes(unsigned char *buf, int len);
 
 static rc4_t *rc4 = NULL;
-
-void setproctitle(const char *fmt, ...)
-{
-	/* FIXME */
-}
 
 unsigned int arc4random(void)
 {
@@ -105,4 +102,11 @@ void get_random_bytes(unsigned char *buf, int len)
 		exit(1);
 	}
 }
+#endif /* !HAVE_ARC4RANDOM */
 
+#ifndef HAVE_SETPROCTITLE
+void setproctitle(const char *fmt, ...)
+{
+	/* FIXME */
+}
+#endif /* !HAVE_SETPROCTITLE */
