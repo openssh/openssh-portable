@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.247 2003/09/07 02:34:54 dtucker Exp $
+# $Id: Makefile.in,v 1.248 2003/09/12 20:02:16 tim Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -372,7 +372,7 @@ uninstall:
 
 tests:	$(TARGETS)
 	BUILDDIR=`pwd`; \
-	mkdir -p `pwd`/regress; \
+	[ -d `pwd`/regress ]  ||  mkdir -p `pwd`/regress; \
 	TEST_SSH_SSH="$${BUILDDIR}/ssh"; \
 	TEST_SSH_SSHD="$${BUILDDIR}/sshd"; \
 	TEST_SSH_SSHAGENT="$${BUILDDIR}/ssh-agent"; \

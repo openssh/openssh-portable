@@ -1,5 +1,6 @@
 20030912
  - (tim) [regress/agent-ptrace.sh] sh doesn't like "if ! shell_function; then".
+ - (tim) [Makefile.in] only mkdir regress if it does not exist.
 
 20030911
  - (dtucker) [configure.ac] Bug #588, #615: Move other libgen tests to after
@@ -1073,4 +1074,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2983 2003/09/12 18:20:32 tim Exp $
+$Id: ChangeLog,v 1.2984 2003/09/12 20:02:16 tim Exp $
