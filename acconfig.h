@@ -261,8 +261,6 @@ enum
 # define __P(x) x
 #endif
 
-#if defined(__GNUC__) && (__GNUC__ < 2)
+#if !defined(__GNUC__) || (__GNUC__ < 2)
 #  define __attribute__(x)
-#else
-#  define __attribute__(x)
-#endif /* defined(__GNUC__) && (__GNUC__ < 2) */
+#endif /* !defined(__GNUC__) || (__GNUC__ < 2) */
