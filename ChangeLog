@@ -1,3 +1,6 @@
+19991030
+ - Integrated debian package support from Dan Brosemer <odin@linuxfreak.com>
+
 19991029
  - Renamed openssh* back to ssh* at request of Theo de Raadt
  - Incorporated latest changes from OpenBSD's CVS
