@@ -3,6 +3,7 @@ exec_prefix=@exec_prefix@
 bindir=@bindir@
 sbindir=@sbindir@
 libdir=@libdir@
+libexecdir=@libexecdir@
 mandir=@mandir@
 sysconfdir=@sysconfdir@
 
