@@ -1532,7 +1532,7 @@ session_open(int chanid)
 	}
 	s->pw = auth_get_user();
 	if (s->pw == NULL)
-		fatal("no user for session %i", s->self);
+		fatal("no user for session %d", s->self);
 	debug("session_open: session %d: link with channel %d", s->self, chanid);
 	s->chanid = chanid;
 	return 1;
@@ -1842,7 +1842,7 @@ session_pty_cleanup(Session *s)
 	if (s == NULL || s->ttyfd == -1)
 		return;
 
-	debug("session_pty_cleanup: session %i release %s", s->self, s->tty);
+	debug("session_pty_cleanup: session %d release %s", s->self, s->tty);
 
 	/* Cancel the cleanup function. */
 	fatal_remove_cleanup(pty_cleanup_proc, (void *)s);
@@ -2008,7 +2008,6 @@ session_proctitle(Session *s)
 void
 do_authenticated2(Authctxt *authctxt)
 {
-
 	/*
 	 * Cancel the alarm we set to limit the time taken for
 	 * authentication.
