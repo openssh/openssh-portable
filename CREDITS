@@ -74,6 +74,7 @@ Phil Karn <karn@ka9q.ampr.org> - Autoconf fixes
 Philippe WILLEM <Philippe.WILLEM@urssaf.fr> - Bugfixes
 Phill Camp <P.S.S.Camp@ukc.ac.uk> - login code fix
 Rip Loomis <loomisg@cist.saic.com> - Solaris package support, fixes
+Roumen Petrov <openssh@roumenpetrov.info> - Compile & configure fixes
 SAKAI Kiyotaka <ksakai@kso.netwk.ntt-at.co.jp> - Multiple bugfixes
 Simon Wilkinson <sxw@dcs.ed.ac.uk> - PAM fixes, Compat with MIT KrbV
 Solar Designer <solar@openwall.com> - many patches and technical assistance
@@ -91,5 +92,5 @@ Apologies to anyone I have missed.
 
 Damien Miller <djm@mindrot.org>
 
-$Id: CREDITS,v 1.68 2003/04/29 13:22:40 djm Exp $
+$Id: CREDITS,v 1.69 2003/06/28 04:27:29 dtucker Exp $
 
