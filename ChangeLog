@@ -8,6 +8,10 @@
      [auth-chall.c auth.h auth1.c auth2-chall.c auth2.c readconf.c 
       readconf.h servconf.c servconf.h sshconnect1.c sshconnect2.c sshd.c]
      improved kbd-interactive support. work by per@appgate.com and me
+   - djm@cvs.openbsd.org 2001/05/19 00:36:40
+     [session.c]
+     Disable X11 forwarding if xauth binary is not found. Patch from Nalin
+     Dahyabhai <nalin@redhat.com>; ok markus@
 
 20010528
  - (tim) [conifgure.in] add setvbuf test needed for sftp-int.c
@@ -5438,4 +5442,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1228 2001/06/05 18:56:16 mouring Exp $
+$Id: ChangeLog,v 1.1229 2001/06/05 19:29:20 mouring Exp $

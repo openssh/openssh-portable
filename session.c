@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.75 2001/05/03 15:45:15 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.76 2001/05/19 00:36:40 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -255,6 +255,7 @@ do_authenticated1(Authctxt *authctxt)
 	int success, type, fd, n_bytes, plen, screen_flag, have_pty = 0;
 	int compression_level = 0, enable_compression_after_reply = 0;
 	u_int proto_len, data_len, dlen;
+	struct stat st;
 
 	s = session_new();
 	s->pw = authctxt->pw;
@@ -337,7 +338,8 @@ do_authenticated1(Authctxt *authctxt)
 				packet_send_debug("X11 forwarding disabled in server configuration file.");
 				break;
 			}
-			if (!options.xauth_location) {
+			if (!options.xauth_location ||
+			    (stat(options.xauth_location, &st) == -1)) {
 				packet_send_debug("No xauth program; cannot forward with spoofing.");
 				break;
 			}
@@ -1752,12 +1754,18 @@ int
 session_x11_req(Session *s)
 {
 	int fd;
+	struct stat st;
 	if (no_x11_forwarding_flag) {
 		debug("X11 forwarding disabled in user configuration file.");
 		return 0;
 	}
 	if (!options.x11_forwarding) {
 		debug("X11 forwarding disabled in server configuration file.");
+		return 0;
+	}
+	if (!options.xauth_location ||
+	    (stat(options.xauth_location, &st) == -1)) {
+		packet_send_debug("No xauth program; cannot forward with spoofing.");
 		return 0;
 	}
 	if (xauthfile != NULL) {
