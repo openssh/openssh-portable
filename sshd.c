@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.266 2003/05/24 09:30:40 djm Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.267 2003/05/29 16:58:45 deraadt Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -564,8 +564,10 @@ privsep_preauth_child(void)
 	do_setusercontext(pw);
 #else
 	gidset[0] = pw->pw_gid;
+	if (setegid(pw->pw_gid) < 0)
+		fatal("setegid failed for %u", (u_int)pw->pw_gid);
 	if (setgid(pw->pw_gid) < 0)
-		fatal("setgid failed for %u", (u_int)pw->pw_gid );
+		fatal("setgid failed for %u", (u_int)pw->pw_gid);
 	if (setgroups(1, gidset) < 0)
 		fatal("setgroups: %.100s", strerror(errno));
 	permanently_set_uid(pw);

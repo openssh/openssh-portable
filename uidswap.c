@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: uidswap.c,v 1.23 2002/07/15 17:15:31 stevesk Exp $");
+RCSID("$OpenBSD: uidswap.c,v 1.24 2003/05/29 16:58:45 deraadt Exp $");
 
 #include "log.h"
 #include "uidswap.h"
@@ -147,8 +147,12 @@ permanently_set_uid(struct passwd *pw)
 		fatal("permanently_set_uid: temporarily_use_uid effective");
 	debug("permanently_set_uid: %u/%u", (u_int)pw->pw_uid,
 	    (u_int)pw->pw_gid);
+	if (setegid(pw->pw_gid) < 0)
+		fatal("setegid %u: %.100s", (u_int)pw->pw_gid, strerror(errno));
 	if (setgid(pw->pw_gid) < 0)
 		fatal("setgid %u: %.100s", (u_int)pw->pw_gid, strerror(errno));
+	if (seteuid(pw->pw_uid) < 0)
+		fatal("seteuid %u: %.100s", (u_int)pw->pw_uid, strerror(errno));
 	if (setuid(pw->pw_uid) < 0)
 		fatal("setuid %u: %.100s", (u_int)pw->pw_uid, strerror(errno));
 }
