@@ -1,3 +1,8 @@
+20040513
+ - (dtucker) [configure.ac] Bug #867: Additional tests for res_query in
+   libresolv, fixes problems detecting it on some platforms
+   (eg Linux/x86-64).  From Kurt Roeckx via Debian, ok mouring@
+
 20040423
  - (dtucker) [configure.ac openbsd-compat/getrrsetbyname.c] Declare h_errno
    as extern int if not already declared.  Fixes compile errors on old SCO
@@ -989,4 +994,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3316.2.3 2004/04/23 08:56:31 dtucker Exp $
+$Id: ChangeLog,v 1.3316.2.4 2004/05/13 01:56:40 dtucker Exp $
