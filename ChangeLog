@@ -33,6 +33,9 @@
   - stevesk@cvs.openbsd.org 2002/11/26 02:35:30
      [ssh-keygen.1]
      remove outdated statement; ok markus@ deraadt@
+   - stevesk@cvs.openbsd.org 2002/11/26 02:38:54
+     [canohost.c]
+     KNF, comment and error message repair; ok markus@
 
 20021205
  - (djm) PERL-free fixpaths from stuge-openssh-unix-dev@cdy.org
@@ -868,4 +871,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2524 2002/12/23 02:11:54 mouring Exp $
+$Id: ChangeLog,v 1.2525 2002/12/23 02:13:37 mouring Exp $
