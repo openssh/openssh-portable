@@ -73,7 +73,7 @@ struct utmp * utp;
 	int t = 0;
 	struct utmp * u;
 
-#ifdef HAVE_TYPE_IN_UTMP
+#if defined(HAVE_TYPE_IN_UTMP) || defined(HAVE_TYPE_IN_UTMPX)
 	setutent();
 
 	while((u = getutent()) != NULL) {
@@ -123,16 +123,26 @@ login(utp)
 	 */
 	tty = find_tty_slot(utp);
 
+#ifdef USE_UTMPX
+	fd = open(_PATH_UTMPX, O_RDWR|O_CREAT, 0644);
+	if (fd == -1) {
+		log("Couldn't open %s: %s", _PATH_UTMPX, strerror(errno));
+#else /* USE_UTMPX */
 	fd = open(_PATH_UTMP, O_RDWR|O_CREAT, 0644);
 	if (fd == -1) {
 		log("Couldn't open %s: %s", _PATH_UTMP, strerror(errno));
+#endif /* USE_UTMPX */
 	} else {
 		/* If no tty was found... */
 		if (tty == -1) {
 			/* ... append it to utmp on login */
-#ifdef HAVE_TYPE_IN_UTMP
+#if defined(HAVE_TYPE_IN_UTMP) || defined(HAVE_TYPE_IN_UTMPX)
 			if (utp->ut_type == USER_PROCESS) {
+#ifdef USE_UTMPX
+				if ((fd = open(_PATH_UTMPX, O_WRONLY|O_APPEND, 0)) >= 0) {
+#else /* USE_UTMPX */
 				if ((fd = open(_PATH_UTMP, O_WRONLY|O_APPEND, 0)) >= 0) {
+#endif /* USE_UTMPX */
 					(void)write(fd, utp, sizeof(struct utmp));
 					(void)close(fd);
 				}
