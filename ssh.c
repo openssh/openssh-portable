@@ -13,6 +13,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  *
  * Copyright (c) 1999 Niels Provos.  All rights reserved.
+ * Copyright (c) 2000, 2001, 2002 Markus Friedl.  All rights reserved.
  *
  * Modified to work with SSL by Niels Provos <provos@citi.umich.edu>
  * in Canada (German citizen).
@@ -39,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.168 2002/03/25 21:04:02 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.169 2002/03/26 11:37:05 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
