@@ -4,6 +4,9 @@
    - markus@cvs.openbsd.org 2004/11/25 22:22:14
      [sftp-client.c sftp.c]
      leak; from mpech
+   - jmc@cvs.openbsd.org 2004/11/29 00:05:17
+     [sftp.1]
+     missing full stop;
 
 20041203
  - (dtucker) OpenBSD CVS Sync
@@ -1877,4 +1880,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3586 2004/12/06 11:43:43 dtucker Exp $
+$Id: ChangeLog,v 1.3587 2004/12/06 11:44:32 dtucker Exp $
