@@ -1,3 +1,7 @@
+20040105
+ - (dtucker) [contrib/ssh-copy-id] Bug #781: exit if ssh fails.  Patch from
+   cjwatson at debian.org.
+
 20040102
  - (djm) OSX/Darwin needs BIND_8_COMPAT to build getrrsetbyname. Report from
    jakob@
@@ -1644,4 +1648,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3161 2004/01/02 07:01:30 djm Exp $
+$Id: ChangeLog,v 1.3162 2004/01/04 21:16:34 dtucker Exp $
