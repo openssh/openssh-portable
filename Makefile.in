@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.220 2002/07/09 02:10:06 tim Exp $
+# $Id: Makefile.in,v 1.221 2002/07/12 16:04:07 tim Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -202,7 +202,7 @@ install: $(CONFIGFILES) $(MANPAGES) $(TARGETS) install-files host-key check-user
 install-nokeys: $(CONFIGFILES) $(MANPAGES) $(TARGETS) install-files
 
 check-user:
-	id $(SSH_PRIVSEP_USER) || \
+	@id $(SSH_PRIVSEP_USER) || \
 		echo "WARNING: Privilege separation user \"$(SSH_PRIVSEP_USER)\" does not exist"
 
 scard-install:
@@ -253,17 +253,17 @@ install-files: scard-install
 	if [ ! -d $(DESTDIR)$(sysconfdir) ]; then \
 		$(srcdir)/mkinstalldirs $(DESTDIR)$(sysconfdir); \
 	fi
-	if [ ! -f $(DESTDIR)$(sysconfdir)/ssh_config ]; then \
+	@if [ ! -f $(DESTDIR)$(sysconfdir)/ssh_config ]; then \
 		$(INSTALL) -m 644 ssh_config.out $(DESTDIR)$(sysconfdir)/ssh_config; \
 	else \
 		echo "$(DESTDIR)$(sysconfdir)/ssh_config already exists, install will not overwrite"; \
 	fi
-	if [ ! -f $(DESTDIR)$(sysconfdir)/sshd_config ]; then \
+	@if [ ! -f $(DESTDIR)$(sysconfdir)/sshd_config ]; then \
 		$(INSTALL) -m 644 sshd_config.out $(DESTDIR)$(sysconfdir)/sshd_config; \
 	else \
 		echo "$(DESTDIR)$(sysconfdir)/sshd_config already exists, install will not overwrite"; \
 	fi
-	if [ -f ssh_prng_cmds -a ! -z "$(INSTALL_SSH_PRNG_CMDS)" ]; then \
+	@if [ -f ssh_prng_cmds -a ! -z "$(INSTALL_SSH_PRNG_CMDS)" ]; then \
 		$(PERL) $(srcdir)/fixprogs ssh_prng_cmds $(ENT); \
 		if [ ! -f $(DESTDIR)$(sysconfdir)/ssh_prng_cmds ] ; then \
 			$(INSTALL) -m 644 ssh_prng_cmds.out $(DESTDIR)$(sysconfdir)/ssh_prng_cmds; \
@@ -271,7 +271,7 @@ install-files: scard-install
 			echo "$(DESTDIR)$(sysconfdir)/ssh_prng_cmds already exists, install will not overwrite"; \
 		fi ; \
 	fi
-	if [ ! -f $(DESTDIR)$(sysconfdir)/moduli ]; then \
+	@if [ ! -f $(DESTDIR)$(sysconfdir)/moduli ]; then \
 		if [ -f $(DESTDIR)$(sysconfdir)/primes ]; then \
 			echo "moving $(DESTDIR)$(sysconfdir)/primes to $(DESTDIR)$(sysconfdir)/moduli"; \
 			mv "$(DESTDIR)$(sysconfdir)/primes" "$(DESTDIR)$(sysconfdir)/moduli"; \
@@ -283,7 +283,7 @@ install-files: scard-install
 	fi
 
 host-key: ssh-keygen$(EXEEXT)
-	if [ -z "$(DESTDIR)" ] ; then \
+	@if [ -z "$(DESTDIR)" ] ; then \
 		if [ -f "$(DESTDIR)$(sysconfdir)/ssh_host_key" ] ; then \
 			echo "$(DESTDIR)$(sysconfdir)/ssh_host_key already exists, skipping." ; \
 		else \
