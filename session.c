@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.102 2001/09/16 14:46:54 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.103 2001/10/06 00:36:42 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -560,17 +560,13 @@ do_exec_pty(Session *s, const char *command)
 		/* Make the pseudo tty our controlling tty. */
 		pty_make_controlling_tty(&ttyfd, s->tty);
 
-		/* Redirect stdin from the pseudo tty. */
-		if (dup2(ttyfd, fileno(stdin)) < 0)
-			error("dup2 stdin failed: %.100s", strerror(errno));
-
-		/* Redirect stdout to the pseudo tty. */
-		if (dup2(ttyfd, fileno(stdout)) < 0)
-			error("dup2 stdin failed: %.100s", strerror(errno));
-
-		/* Redirect stderr to the pseudo tty. */
-		if (dup2(ttyfd, fileno(stderr)) < 0)
-			error("dup2 stdin failed: %.100s", strerror(errno));
+		/* Redirect stdin/stdout/stderr from the pseudo tty. */
+		if (dup2(ttyfd, 0) < 0)
+			error("dup2 stdin: %s", strerror(errno));
+		if (dup2(ttyfd, 1) < 0)
+			error("dup2 stdout: %s", strerror(errno));
+		if (dup2(ttyfd, 2) < 0)
+			error("dup2 stderr: %s", strerror(errno));
 
 		/* Close the extra descriptor for the pseudo tty. */
 		close(ttyfd);
