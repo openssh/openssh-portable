@@ -42,6 +42,9 @@
    - stevesk@cvs.openbsd.org 2002/06/20 20:00:05
      [scp.1 sftp.1]
      ssh_config(5)
+   - stevesk@cvs.openbsd.org 2002/06/20 20:03:34
+     [ssh_config sshd_config]
+     refer to config file man page
  - (bal) Cygwin special handling of empty passwords wrong.  Patch by
    vinschen@redhat.com
 
@@ -972,4 +975,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2228 2002/06/21 01:00:40 mouring Exp $
+$Id: ChangeLog,v 1.2229 2002/06/21 01:06:03 mouring Exp $
