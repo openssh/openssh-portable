@@ -34,7 +34,7 @@
 #include "xmalloc.h"
 #include "servconf.h"
 
-RCSID("$Id: auth-pam.c,v 1.9 2000/07/08 00:14:08 djm Exp $");
+RCSID("$Id: auth-pam.c,v 1.10 2000/07/09 11:21:52 djm Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: You password has expired, please change it now"
@@ -246,6 +246,7 @@ void start_pam(struct passwd *pw)
 			PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
 	}
 
+#ifdef PAM_TTY_KLUDGE
 	/*
 	 * Some PAM modules (e.g. pam_time) require a TTY to operate,
 	 * and will fail in various stupid ways if they don't get one. 
@@ -258,6 +259,7 @@ void start_pam(struct passwd *pw)
 		fatal("PAM set tty failed: %.200s", 
 			PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
 	}
+#endif /* PAM_TTY_KLUDGE */
 
 	fatal_add_cleanup(&pam_cleanup_proc, NULL);
 }

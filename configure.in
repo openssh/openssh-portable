@@ -99,6 +99,7 @@ case "$host" in
 *-*-linux*)
 	no_dev_ptmx=1
 	AC_DEFINE(DONT_TRY_OTHER_AF)
+	AC_DEFINE(PAM_TTY_KLUDGE)
 	inet6_default_4in6=yes
 	;;
 *-*-netbsd*)

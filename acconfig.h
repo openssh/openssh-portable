@@ -6,6 +6,9 @@
 
 @TOP@
 
+/* Work around problematic Linux PAM modules handling of PAM_TTY */
+#undef PAM_TTY_KLUDGE
+
 /* Use PIPES instead of a socketpair() */
 #undef USE_PIPES
 

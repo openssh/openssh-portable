@@ -1,3 +1,7 @@
+20000709
+ - (djm) Only enable PAM_TTY kludge for Linux. Problem report from
+   Kevin Steves <stevesk@sweden.hp.com>
+
 20000708
  - (djm) Fix bad fprintf format handling in auth-pam.c. Patch from 
    Aaron Hopkins <aaron@die.net>
