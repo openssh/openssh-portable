@@ -4,6 +4,9 @@
      [sshconnect2.c]
      Don't use logit for banner, since it truncates to MSGBUFSIZ; bz #668 & #707.
      ok markus@
+   - djm@cvs.openbsd.org 2003/10/07 07:04:16
+     [sftp-int.c]
+     sftp quoting fix from admorten AT umich.edu; ok markus@
 
 20031007
  - (dtucker) [contrib/redhat/openssh.spec] Bug #714: Now that UsePAM is a
@@ -1222,4 +1225,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2994.2.43 2003/10/08 07:31:17 dtucker Exp $
+$Id: ChangeLog,v 1.2994.2.44 2003/10/08 07:33:53 dtucker Exp $
