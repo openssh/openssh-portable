@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.315 2001/10/22 00:53:59 tim Exp $
+# $Id: configure.in,v 1.316 2001/10/23 17:14:01 mouring Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -156,6 +156,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(PAM_SUN_CODEBASE)
 	AC_DEFINE(LOGIN_NEEDS_UTMPX)
 	AC_DEFINE(LOGIN_NEEDS_TERM)
+	AC_DEFINE(PAM_TTY_KLUDGE)
 	# hardwire lastlog location (can't detect it on some versions)
 	conf_lastlog_location="/var/adm/lastlog"
 	AC_MSG_CHECKING(for obsolete utmp and wtmp in solaris2.x)
