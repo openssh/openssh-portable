@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.81 2001/08/29 20:44:03 markus Exp $");
+RCSID("$OpenBSD: scp.c,v 1.82 2001/09/12 18:18:25 stevesk Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -237,6 +237,7 @@ main(argc, argv)
 	args.list = NULL;
 	addargs(&args, "ssh");	 	/* overwritten with ssh_program */
 	addargs(&args, "-x");
+	addargs(&args, "-oForwardAgent no");
 	addargs(&args, "-oFallBackToRsh no");
 
 	fflag = tflag = 0;
