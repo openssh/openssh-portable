@@ -35,7 +35,7 @@
 
 #ifndef HAVE_STRTOK_R
 
-#include "bsd-strtok.h"
+#include "strtok.h"
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char *rcsid = "$OpenBSD: strtok.c,v 1.3 1999/11/09 11:19:46 art Exp $";

@@ -1,3 +1,6 @@
+20010104
+ - (bal) I think this is the last of the bsd-*.h that don't belong.
+
 20010103
  - (bal) Cygwin clean up by Corinna Vinschen <vinschen@redhat.com>
  - (bal) renamed queue.h to fake-queue.h (even if it's an OpenBSD

@@ -47,7 +47,7 @@ static char rcsid[] = "$OpenBSD: inet_ntoa.c,v 1.2 1996/08/19 08:29:16 tholo Exp
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <stdio.h>
-#include "bsd-inet_ntoa.h"
+#include "inet_ntoa.h"
 
 char *inet_ntoa(struct in_addr in)
 {
