@@ -31,6 +31,10 @@
    - mouring@cvs.openbsd.org 2003/05/15 03:39:07
      [sftp-int.c]
      Make put/get (globed and nonglobed) code more consistant. OK djm@
+   - mouring@cvs.openbsd.org 2003/05/15 03:43:59
+     [sftp-int.c]
+     Teach ls how to display multiple column display and allow users 
+     to return to single column format via 'ls -1'.  OK @djm
  - (djm) Always parse UsePAM
  - (djm) Configure glue for DNS support (code doesn't work in portable yet)
  - (djm) Import getrrsetbyname() function from OpenBSD libc (for DNS support)
@@ -1511,4 +1515,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2713 2003/05/15 03:48:59 djm Exp $
+$Id: ChangeLog,v 1.2714 2003/05/15 03:49:21 djm Exp $

@@ -25,7 +25,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.59 2003/05/15 03:39:07 mouring Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.60 2003/05/15 03:43:59 mouring Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -52,6 +52,10 @@ int showprogress = 1;
 
 /* Seperators for interactive commands */
 #define WHITESPACE " \t\r\n"
+
+/* Define what type of ls view (0 - multi-column) */
+#define LONG_VIEW 1		/* Full view ala ls -l */
+#define SHORT_VIEW 2		/* Single row view ala ls -1 */
 
 /* Commands for interactive mode */
 #define I_CHDIR		1
@@ -307,7 +311,10 @@ parse_ls_flags(const char **cpp, int *lflag)
 		for(; strchr(WHITESPACE, *cp) == NULL; cp++) {
 			switch (*cp) {
 			case 'l':
-				*lflag = 1;
+				*lflag = LONG_VIEW;
+				break;
+			case '1':
+				*lflag = SHORT_VIEW;
 				break;
 			default:
 				error("Invalid flag -%c", *cp);
@@ -558,15 +565,26 @@ sdirent_comp(const void *aa, const void *bb)
 static int
 do_ls_dir(struct sftp_conn *conn, char *path, char *strip_path, int lflag)
 {
-	int n;
+	int n, c = 1, colspace = 0, columns = 1;
 	SFTP_DIRENT **d;
 
 	if ((n = do_readdir(conn, path, &d)) != 0)
 		return (n);
 
-	/* Count entries for sort */
-	for (n = 0; d[n] != NULL; n++)
-		;
+	if (!(lflag & SHORT_VIEW)) {
+		int m = 0, width = 80;
+		struct winsize ws;
+
+		/* Count entries for sort and find longest filename */
+		for (n = 0; d[n] != NULL; n++)
+			m = MAX(m, strlen(d[n]->filename));
+
+		if (ioctl(fileno(stdin), TIOCGWINSZ, &ws) != -1) 
+			width = ws.ws_col;
+
+		columns = width / (m + 2);
+		colspace = width / columns;
+	}
 
 	qsort(d, n, sizeof(*d), sdirent_comp);
 
@@ -577,7 +595,7 @@ do_ls_dir(struct sftp_conn *conn, char *path, char *strip_path, int lflag)
 		fname = path_strip(tmp, strip_path);
 		xfree(tmp);
 
-		if (lflag) {
+		if (lflag & LONG_VIEW) {
 			char *lname;
 			struct stat sb;
 
@@ -587,12 +605,19 @@ do_ls_dir(struct sftp_conn *conn, char *path, char *strip_path, int lflag)
 			printf("%s\n", lname);
 			xfree(lname);
 		} else {
-			/* XXX - multicolumn display would be nice here */
-			printf("%s\n", fname);
+			printf("%-*s", colspace, fname);
+			if (c >= columns) {
+				printf("\n");
+				c = 1;
+			} else
+				c++;
 		}
 
 		xfree(fname);
 	}
+
+	if (!(lflag & LONG_VIEW) && (c != 1))
+		printf("\n");
 
 	free_sftp_dirents(d);
 	return (0);
@@ -604,9 +629,8 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
     int lflag)
 {
 	glob_t g;
-	int i;
+	int i, c = 1, colspace = 0, columns = 1;
 	Attrib *a;
-	struct stat sb;
 
 	memset(&g, 0, sizeof(g));
 
@@ -633,12 +657,30 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 		}
 	}
 
+	if (!(lflag & SHORT_VIEW)) {
+		int m = 0, width = 80;
+		struct winsize ws;	
+
+		/* Count entries for sort and find longest filename */
+ 		for (i = 0; g.gl_pathv[i]; i++)
+			m = MAX(m, strlen(g.gl_pathv[i]));
+
+		if (ioctl(fileno(stdin), TIOCGWINSZ, &ws) != -1)
+			width = ws.ws_col;
+
+		columns = width / (m + 2);
+		colspace = width / columns;
+	}
+
 	for (i = 0; g.gl_pathv[i]; i++) {
-		char *fname, *lname;
+		char *fname;
 
 		fname = path_strip(g.gl_pathv[i], strip_path);
 
-		if (lflag) {
+		if (lflag & LONG_VIEW) {
+			char *lname;
+			struct stat sb;
+
 			/*
 			 * XXX: this is slow - 1 roundtrip per path
 			 * A solution to this is to fork glob() and
@@ -654,11 +696,18 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 			printf("%s\n", lname);
 			xfree(lname);
 		} else {
-			/* XXX - multicolumn display would be nice here */
-			printf("%s\n", fname);
+			printf("%-*s", colspace, fname);
+			if (c >= columns) {
+				printf("\n");
+				c = 1;
+			} else
+				c++;
 		}
 		xfree(fname);
 	}
+
+	if (!(lflag & LONG_VIEW) && (c != 1))
+		printf("\n");
 
 	if (g.gl_pathc)
 		globfree(&g);
