@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.166 2001/04/06 01:58:37 stevesk Exp $
+# $Id: Makefile.in,v 1.167 2001/04/14 23:21:51 mouring Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -46,7 +46,7 @@ TARGETS=ssh$(EXEEXT) sshd$(EXEEXT) ssh-add$(EXEEXT) ssh-keygen$(EXEEXT) ssh-keys
 
 LIBSSH_OBJS=atomicio.o authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o cipher.o cli.o compat.o compress.o crc32.o deattack.o dh.o dispatch.o mac.o hostfile.o key.o kex.o kexdh.o kexgex.o log.o match.o misc.o mpaux.o nchan.o packet.o radix.o rijndael.o entropy.o readpass.o rsa.o ssh-dss.o ssh-rsa.o tildexpand.o ttymodes.o uidswap.o uuencode.o xmalloc.o 
 
-SSHOBJS= ssh.o sshconnect.o sshconnect1.o sshconnect2.o readconf.o clientloop.o
+SSHOBJS= ssh.o sshconnect.o sshconnect1.o sshconnect2.o sshtty.o readconf.o clientloop.o
 
 SSHDOBJS= sshd.o auth.o auth1.o auth2.o auth-chall.o auth2-chall.o auth-rhosts.o auth-options.o auth-krb4.o auth-pam.o auth2-pam.o auth-passwd.o auth-rsa.o auth-rh-rsa.o auth-sia.o sshpty.o sshlogin.o loginrec.o servconf.o serverloop.o md5crypt.o session.o groupaccess.o
 
