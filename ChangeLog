@@ -4,6 +4,7 @@
  - (stevesk) configure and cpp __FUNCTION__ gymnastics to handle nielsisms
  - (stevesk) [monitor_fdpass.c] support for access rights style file
    descriptor passing
+ - (stevesk) [auth2.c] merge cleanup/sync
 
 20020321
  - (bal) OpenBSD CVS Sync
@@ -7998,4 +7999,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1970 2002/03/22 19:32:53 stevesk Exp $
+$Id: ChangeLog,v 1.1971 2002/03/22 20:43:05 stevesk Exp $

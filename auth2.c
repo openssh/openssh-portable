@@ -184,14 +184,12 @@ input_userauth_request(int type, u_int32_t seq, void *ctxt)
 
 	if (authctxt->attempt++ == 0) {
 		/* setup auth context */
-		struct passwd *pw = NULL;
-		pw = PRIVSEP(getpwnamallow(user));
-		if (pw && strcmp(service, "ssh-connection")==0) {
-			authctxt->pw = pwcopy(pw);
+		authctxt->pw = PRIVSEP(getpwnamallow(user));
+		if (authctxt->pw && strcmp(service, "ssh-connection")==0) {
 			authctxt->valid = 1;
 			debug2("input_userauth_request: setting up authctxt for %s", user);
 #ifdef USE_PAM
-			start_pam(pw->pw_name);
+			start_pam(authctxt->pw->pw_name);
 #endif
 		} else {
 			log("input_userauth_request: illegal user %s", user);
