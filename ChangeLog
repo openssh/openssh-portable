@@ -5,6 +5,9 @@
      don't create ~/.ssh only if the user wants to store the private 
      key there. show fingerprint instead of public-key after 
      keygeneration. ok niels@
+ - Added OpenBSD bsd-strlcat.c, created bsd-strlcat.h
+ - Added timersum() macro
+ - Tidy RCSIDs of bsd-*.c
 
 19991121
  - OpenBSD CVS Changes:

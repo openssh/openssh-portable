@@ -27,7 +27,6 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
-#include <sys/time.h>
 #include <sys/un.h>
 #include <sys/resource.h>
 
@@ -65,6 +64,9 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #ifdef HAVE_SYS_SELECT_H
 # include <sys/select.h>
 #endif
+#ifdef HAVE_SYS_TIME_H
+# include <sys/time.h>
+#endif
 #ifdef HAVE_LIBPAM
 # include <security/pam_appl.h>
 #endif
@@ -72,6 +74,7 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #include "version.h"
 #include "helper.h"
 #include "bsd-strlcpy.h"
+#include "bsd-strlcat.h"
 #include "bsd-mktemp.h"
 
 /* Define this to be the path of the xauth program. */
