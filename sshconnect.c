@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.111 2001/10/01 21:51:16 markus Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.112 2001/10/06 00:14:50 markus Exp $");
 
 #include <openssl/bn.h>
 
@@ -491,7 +491,7 @@ ssh_exchange_identification(void)
 
 /* defaults to 'no' */
 static int
-read_yes_or_no(const char *prompt, int defval)
+confirm(const char *prompt)
 {
 	char buf[1024];
 	FILE *f;
@@ -499,33 +499,22 @@ read_yes_or_no(const char *prompt, int defval)
 
 	if (options.batch_mode)
 		return 0;
-
 	if (isatty(STDIN_FILENO))
 		f = stdin;
 	else
 		f = fopen(_PATH_TTY, "rw");
-
 	if (f == NULL)
 		return 0;
-
 	fflush(stdout);
-
 	while (1) {
 		fprintf(stderr, "%s", prompt);
 		if (fgets(buf, sizeof(buf), f) == NULL) {
-			/*
-			 * Print a newline (the prompt probably didn\'t have
-			 * one).
-			 */
 			fprintf(stderr, "\n");
 			strlcpy(buf, "no", sizeof buf);
 		}
 		/* Remove newline from response. */
 		if (strchr(buf, '\n'))
 			*strchr(buf, '\n') = 0;
-
-		if (buf[0] == 0)
-			retval = defval;
 		if (strcmp(buf, "yes") == 0)
 			retval = 1;
 		else if (strcmp(buf, "no") == 0)
@@ -713,7 +702,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 			    "Are you sure you want to continue connecting "
 			    "(yes/no)? ", host, ip, type, fp);
 			xfree(fp);
-			if (!read_yes_or_no(prompt, -1)) {
+			if (!confirm(prompt)) {
 				log("Aborted by user!");
 				goto fail;
 			}
@@ -830,8 +819,8 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 			error("Exiting, you have requested strict checking.");
 			goto fail;
 		} else if (options.strict_host_key_checking == 2) {
-			if (!read_yes_or_no("Are you sure you want " 
-			    "to continue connecting (yes/no)? ", -1)) {
+			if (!confirm("Are you sure you want " 
+			    "to continue connecting (yes/no)? ")) {
 				log("Aborted by user!");
 				goto fail;
 			}
