@@ -3,6 +3,14 @@
    - stevesk@cvs.openbsd.org 2001/04/06 22:12:47
      [hostfile.c]
      unused; typo in comment
+   - stevesk@cvs.openbsd.org 2001/04/06 22:25:25
+     [servconf.c]
+     in addition to:
+     ListenAddress host|ipv4_addr|ipv6_addr
+     permit:
+     ListenAddress [host|ipv4_addr|ipv6_addr]:port
+     ListenAddress host|ipv4_addr:port
+     sshd.8 updates coming.  ok markus@
 
 20010407
  - (bal) CVS ID Resync of version.h
@@ -4929,4 +4937,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1078 2001/04/07 17:23:43 mouring Exp $
+$Id: ChangeLog,v 1.1079 2001/04/07 17:25:48 mouring Exp $
