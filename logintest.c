@@ -32,7 +32,7 @@
  **               and lastlog retrieval
  **/
 
-#include "config.h"
+#include "includes.h"
 
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -48,8 +48,10 @@
 
 #include "loginrec.h"
 
-RCSID("$Id: logintest.c,v 1.5 2000/06/13 00:43:47 andre Exp $");
+RCSID("$Id: logintest.c,v 1.6 2000/06/19 08:25:36 andre Exp $");
 
+
+#define PAUSE_BEFORE_LOGOUT 3
 
 int nologtest = 0;
 int compile_opts_only = 0;
@@ -70,7 +72,6 @@ dump_logininfo(struct logininfo *li, char *descname)
 	       "struct login_netinfo hostaddr {\n\t\t"
 	       "struct sockaddr sa {\n"
 	       "\t\t\tfamily\t%d\n\t\t}\n"
-	       "\t\t** !!! IP6 stuff not supported yet **\n"
 	       "\t}\n"
 	       "}\n",
 	       descname, li->progname, li->type, 
@@ -91,8 +92,9 @@ testAPI()
 	char cmdstring[256], stripline[8];
 	char username[32];
 #ifdef HAVE_TIME_H
-	time_t t0, t1, t2, logouttime;
-	char s_t0[64],s_t1[64],s_t2[64], s_logouttime[64]; /* ctime() strings */
+	time_t t0, t1, t2, logintime, logouttime;
+	char s_t0[64],s_t1[64],s_t2[64];
+	char s_logintime[64], s_logouttime[64]; /* ctime() strings */
 #endif
 
 	printf("**\n** Testing the API...\n**\n");
@@ -103,7 +105,8 @@ testAPI()
 	/* gethostname(hostname, sizeof(hostname)); */
 
 	printf("login_alloc_entry test (no host info):\n");
-	/* !!! fake tty more effectively */
+
+	/* FIXME fake tty more effectively - this could upset some platforms */
 	li1 = login_alloc_entry((int)getpid(), username, NULL, ttyname(0));
 	strlcpy(li1->progname, "OpenSSH-logintest", sizeof(li1->progname));
 
@@ -126,7 +129,7 @@ testAPI()
 
 	if ((int)geteuid() != 0) {
 		printf("NOT RUNNING LOGIN TESTS - you are not root!\n");
-		return 1; /* this isn't necessarily an error */
+		return 1;
 	}
 
 	if (nologtest)
@@ -136,7 +139,7 @@ testAPI()
 
 	printf("Performing an invalid login attempt (no type field)\n--\n");
 	login_write(li1);
-	printf("--\n(Should have written an error to stderr)\n");
+	printf("--\n(Should have written errors to stderr)\n");
 
 #ifdef HAVE_TIME_H
 	(void)time(&t0);
@@ -148,15 +151,21 @@ testAPI()
 	       (int)t0, s_t0, (int)t1, s_t1);
 #endif
 
-	printf("Performing a login on line %s...\n--\n", stripline);
+	printf("Performing a login on line %s ", stripline);
+#ifdef HAVE_TIME_H
+	(void)time(&logintime);
+	strlcpy(s_logintime, ctime(&logintime), sizeof(s_logintime));
+	printf("at %d - %s", (int)logintime, s_logintime);
+#endif
+	printf("--\n");
 	login_login(li1);
   
 	snprintf(cmdstring, sizeof(cmdstring), "who | grep '%s '",
 		 stripline);
 	system(cmdstring);
   
-	printf("--\nWaiting for a few seconds...\n");
-	sleep(2);
+	printf("--\nPausing for %d second(s)...\n", PAUSE_BEFORE_LOGOUT);
+	sleep(PAUSE_BEFORE_LOGOUT);
 
 	printf("Performing a logout ");
 #ifdef HAVE_TIME_H
@@ -164,7 +173,7 @@ testAPI()
 	strlcpy(s_logouttime, ctime(&logouttime), sizeof(s_logouttime));
 	printf("at %d - %s", (int)logouttime, s_logouttime);
 #endif
-	printf("(the root login shown above should be gone)\n"
+	printf("\nThe root login shown above should be gone.\n"
 	       "If the root login hasn't gone, but another user on the same\n"
 	       "pty has, this is OK - we're hacking it here, and there\n"
 	       "shouldn't be two users on one pty in reality...\n"
@@ -183,9 +192,13 @@ testAPI()
 		       "same.\nThis indicates that lastlog is ** NOT WORKING "
 		       "CORRECTLY **\n");
 	else if (t0 != t2)
+		/* We can be off by a second or so, even when recording works fine.
+		 * I'm not 100% sure why, but it's true. */
 		printf("** The login time and the lastlog time differ.\n"
 		       "** This indicates that lastlog is either recording the "
-		       "wrong time,\n** or retrieving the wrong entry.\n");
+		       "wrong time,\n** or retrieving the wrong entry.\n"
+		       "If it's off by less than %d second(s) "
+		       "run the test again.\n", PAUSE_BEFORE_LOGOUT);
 	else
 		printf("lastlog agrees with the login time. This is a good thing.\n");
 
