@@ -9,6 +9,9 @@
    - deraadt@cvs.openbsd.org 2001/03/06 15:10:42
      [sftp.1]
      order things
+   - deraadt@cvs.openbsd.org 2001/03/07 01:19:06
+     [ssh.1 sshd.8]
+     the name "secure shell" is boring, noone ever uses it
 
 20010306
  - (bal) OpenBSD CVS Sync
@@ -4423,4 +4426,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.921 2001/03/07 01:29:17 mouring Exp $
+$Id: ChangeLog,v 1.922 2001/03/07 06:07:22 mouring Exp $
