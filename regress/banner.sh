@@ -23,9 +23,7 @@ for s in 0 10 100 1000 10000 100000 ; do
 	trace "test banner size $s"
 	verbose "test $tid: size $s"
 	${SSH} -2 -F $OBJ/ssh_proxy otherhost true 2>$OBJ/banner.out
-	if ! cmp $OBJ/banner.in $OBJ/banner.out ; then
-		fail "banner size $s mismatch"
-	fi
+	cmp $OBJ/banner.in $OBJ/banner.out  ||  fail "banner size $s mismatch"
 done
 
 rm -f $OBJ/banner.out $OBJ/banner.in

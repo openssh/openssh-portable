@@ -4,6 +4,7 @@
      [sshconnect2.c]
      search keys in reverse order; fixes #684
  - (dtucker) [auth.c] Check for disabled password expiry on HP-UX Trusted Mode.
+ - (tim) [regress/banner.sh] portability fix.
 
 20031009
  - (dtucker) [sshd_config.5] UsePAM defaults to "no".  ok djm@
@@ -1244,4 +1245,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2994.2.50 2003/10/15 07:51:49 dtucker Exp $
+$Id: ChangeLog,v 1.2994.2.51 2003/10/15 16:23:18 tim Exp $
