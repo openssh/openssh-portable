@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.101 2002/05/24 08:45:14 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.102 2002/05/25 08:50:39 markus Exp $");
 
 #include "ssh.h"
 #include "ssh2.h"
@@ -933,7 +933,7 @@ ssh_keysign(
 		close(to[1]);
 		if (dup2(to[0], STDIN_FILENO) < 0)
 			fatal("ssh_keysign: dup2: %s", strerror(errno));
-		execlp(_PATH_SSH_KEY_SIGN, _PATH_SSH_KEY_SIGN, (char *) 0);
+		execl(_PATH_SSH_KEY_SIGN, _PATH_SSH_KEY_SIGN, (char *) 0);
 		fatal("ssh_keysign: exec(%s): %s", _PATH_SSH_KEY_SIGN,
 		    strerror(errno));
 	}
