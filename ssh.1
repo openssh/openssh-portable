@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.143 2002/01/05 21:51:56 stevesk Exp $
+.\" $OpenBSD: ssh.1,v 1.144 2002/01/16 17:42:33 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -443,11 +443,15 @@ something like
 .It Fl g
 Allows remote hosts to connect to local forwarded ports.
 .It Fl i Ar identity_file
-Selects the file from which the identity (private key) for
+Selects a file from which the identity (private key) for
 RSA or DSA authentication is read.
-Default is
+The default is
 .Pa $HOME/.ssh/identity
-in the user's home directory.
+for protocol version 1, and
+.Pa $HOME/.ssh/id_rsa
+and
+.Pa $HOME/.ssh/id_dsa
+for protocol version 2.
 Identity files may also be specified on
 a per-host basis in the configuration file.
 It is possible to have multiple
@@ -915,10 +919,14 @@ Numeric IP addresses are also permitted (both on the command line and in
 .Cm HostName
 specifications).
 .It Cm IdentityFile
-Specifies the file from which the user's RSA or DSA authentication identity
-is read (default
+Specifies a file from which the user's RSA or DSA authentication identity
+is read. The default is
 .Pa $HOME/.ssh/identity
-in the user's home directory).
+for protocol version 1, and
+.Pa $HOME/.ssh/id_rsa
+and
+.Pa $HOME/.ssh/id_dsa
+for protocol version 2.
 Additionally, any identities represented by the authentication agent
 will be used for authentication.
 The file name may use the tilde
