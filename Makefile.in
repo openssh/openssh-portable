@@ -12,10 +12,12 @@ CC=@CC@
 PATHS=-DETCDIR=\"@sysconfdir@\" -DSSH_PROGRAM=\"$(SSH_PROGRAM)\" -DASKPASS_PROGRAM=\"$(ASKPASS_PROGRAM)\"
 CFLAGS=@CFLAGS@ $(PATHS) @DEFS@
 TARGETS=libssh.a ssh sshd ssh-add ssh-keygen ssh-agent scp
-LFLAGS=-L.
-LIBS=-lssh @LIBS@
+LIBS=@LIBS@
 AR=@AR@
 RANLIB=@RANLIB@
+
+GNOME_CFLAGS=`gnome-config --cflags gnome gnomeui`
+GNOME_LIBS=`gnome-config --libs gnome gnomeui`
 
 OBJS=	authfd.o authfile.o auth-passwd.o auth-rhosts.o auth-rh-rsa.o \
 		auth-rsa.o bufaux.o buffer.o canohost.o channels.o cipher.o \
@@ -31,23 +33,26 @@ libssh.a: authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o cipher.o c
 	$(AR) rv $@ $^
 	$(RANLIB) $@
 
-ssh: ssh.o sshconnect.o log-client.o readconf.o clientloop.o
+ssh: ssh.o sshconnect.o log-client.o readconf.o clientloop.o libssh.a
 	$(CC) -o $@ $^ $(LFLAGS) $(LIBS) 
 
-sshd:	sshd.o auth-rhosts.o auth-passwd.o auth-rsa.o auth-rh-rsa.o pty.o log-server.o login.o servconf.o serverloop.o
+sshd:	sshd.o auth-rhosts.o auth-passwd.o auth-rsa.o auth-rh-rsa.o pty.o log-server.o login.o servconf.o serverloop.o libssh.a
 	$(CC) -o $@ $^ $(LFLAGS) $(LIBS) 
 
-scp:	scp.o
+scp:	scp.o libssh.a
 	$(CC) -o $@ $^ $(LFLAGS) $(LIBS) 
 
-ssh-add: ssh-add.o log-client.o
+ssh-add: ssh-add.o log-client.o libssh.a
 	$(CC) -o $@ $^ $(LFLAGS) $(LIBS) 
 
-ssh-agent: ssh-agent.o log-client.o
+ssh-agent: ssh-agent.o log-client.o libssh.a
 	$(CC) -o $@ $^ $(LFLAGS) $(LIBS) 
 
-ssh-keygen: ssh-keygen.o log-client.o
+ssh-keygen: ssh-keygen.o log-client.o libssh.a
 	$(CC) -o $@ $^ $(LFLAGS) $(LIBS) 
+
+gnome-ssh-askpass: gnome-ssh-askpass.c
+	$(CC) $(CFLAGS) $(GNOME_CFLAGS) -o $@ gnome-ssh-askpass.c $(GNOME_LIBS)
 
 clean:
 	rm -f *.o core $(TARGETS) config.status config.cache config.log
