@@ -1,3 +1,10 @@
+20031002
+ - OpenBSD CVS Sync
+    - markus@cvs.openbsd.org 2003/09/23 20:18:52
+     [progressmeter.c]
+     don't print trailing \0; bug #709; Robert.Dahlem@siemens.com
+     ok millert/deraadt@
+
 20030925
  - (dtucker) [configure.ac openbsd-compat/xcrypt.c] Bug #633: Remove
    DISABLE_SHADOW for HP-UX, use getspnam instead of getprpwnam.  Patch from
@@ -1193,4 +1200,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2994.2.35 2003/09/25 10:17:53 dtucker Exp $
+$Id: ChangeLog,v 1.2994.2.36 2003/10/02 06:44:13 dtucker Exp $
