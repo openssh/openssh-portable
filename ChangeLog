@@ -64,6 +64,10 @@
    - markus@cvs.openbsd.org 2003/09/19 11:33:09
      [packet.c sshd.c]
      do not call packet_close on fatal; ok deraadt
+   - markus@cvs.openbsd.org 2003/09/19 17:40:20
+     [scp.c]
+     error handling for remote-remote copy; #638; report Harald Koenig;
+     ok millert, fgs, henning, deraadt
 
 20030919
  - (djm) Bug #683: Remove reference to --with-ipv4-default from INSTALL;
@@ -1200,4 +1204,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3034 2003/09/22 11:13:59 dtucker Exp $
+$Id: ChangeLog,v 1.3035 2003/09/22 11:14:55 dtucker Exp $

@@ -71,7 +71,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.108 2003/07/18 01:54:25 deraadt Exp $");
+RCSID("$OpenBSD: scp.c,v 1.109 2003/09/19 17:40:20 markus Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -426,7 +426,8 @@ toremote(char *targ, int argc, char **argv)
 			}
 			if (verbose_mode)
 				fprintf(stderr, "Executing: %s\n", bp);
-			(void) system(bp);
+			if (system(bp) != 0)
+				errs = 1;
 			(void) xfree(bp);
 		} else {	/* local to remote */
 			if (remin == -1) {
