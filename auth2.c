@@ -93,8 +93,12 @@ void
 do_authentication2()
 {
 	/* turn off skey/kerberos, not supported by SSH2 */
+#ifdef SKEY
 	options.skey_authentication = 0;
+#endif
+#ifdef KRB4
 	options.kerberos_authentication = 0;
+#endif
 
 	dispatch_init(&protocol_error);
 	dispatch_set(SSH2_MSG_SERVICE_REQUEST, &input_service_request);
