@@ -252,7 +252,7 @@ cipher_init(CipherContext *cc, Cipher *cipher,
 		type->key_len = keylen;
 	}
 	EVP_CipherInit(&cc->evp, type, (u_char *)key, (u_char *)iv,
-	    (encrypt == CIPHER_ENCRYPT));
+	    (do_encrypt == CIPHER_ENCRYPT));
 #else
 	if (EVP_CipherInit(&cc->evp, type, NULL, (u_char *)iv,
 	    (do_encrypt == CIPHER_ENCRYPT)) == 0)
