@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.261 2002/11/07 16:28:47 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.262 2003/01/27 17:06:31 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1066,8 +1066,8 @@ main(int ac, char **av)
 #else
 		if (st.st_uid != 0 || (st.st_mode & (S_IWGRP|S_IWOTH)) != 0)
 #endif
-			fatal("Bad owner or mode for %s",
-			    _PATH_PRIVSEP_CHROOT_DIR);
+			fatal("%s must be owned by root and not group or "
+			    "world-writable.", _PATH_PRIVSEP_CHROOT_DIR);
 	}
 
 	/* Configuration looks good, so exit if in test mode. */
