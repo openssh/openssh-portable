@@ -551,9 +551,9 @@ syserr:			run_err("%s: %s", name, strerror(errno));
 		    (long long) stb.st_size, last);
 #else
 		/* XXX: Handle integer overflow? */
-		snprintf(buf, sizeof buf, "C%04o %ld %s\n",
+		snprintf(buf, sizeof buf, "C%04o %lu %s\n",
 		    (u_int) (stb.st_mode & FILEMODEMASK),
-		    (long) stb.st_size, last);
+		    (u_long) stb.st_size, last);
 #endif
 
 		if (verbose_mode) {

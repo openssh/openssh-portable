@@ -9,8 +9,9 @@
  - (djm) Make scp work on systems without 64-bit ints
  - tim@mindrot.org 2001/03/18 18:28:39 [defines.h]
    move HAVE_LONG_LONG_INT where it works
- - Use 'NGROUPS' for NeXT Since 'MAX_NGROUPS' is wrapped up in -lposix
+ - (bal) Use 'NGROUPS' for NeXT Since 'MAX_NGROUPS' is wrapped up in -lposix
    stuff.  Change suggested by Mark Miller <markm@swoon.net>
+ - (bal) Small fix to scp.  %lu vs %ld
 
 20010318
  - (bal) Fixed scp type casing issue which causes "scp: protocol error: 
@@ -4610,4 +4611,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.977 2001/03/19 03:01:56 mouring Exp $
+$Id: ChangeLog,v 1.978 2001/03/19 03:09:40 mouring Exp $
