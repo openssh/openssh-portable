@@ -16,6 +16,13 @@
      [ssh.c]
      /* fallthrough */ is something a programmer understands.  But
      /* FALLTHROUGH */ is also understood by lint, so that is better.
+   - jaredy@cvs.openbsd.org 2004/09/15 03:25:41
+     [sshd_config.5]
+     mention PrintLastLog only prints last login time for interactive
+     sessions, like PrintMotd mentions.
+     From Michael Knudsen, with wording changed slightly to match the
+     PrintMotd description.
+     ok djm
 
 20041102
  - (dtucker) [configure.ac includes.h] Bug #947: Fix compile error on HP-UX
@@ -1795,4 +1802,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3566 2004/11/05 09:05:32 dtucker Exp $
+$Id: ChangeLog,v 1.3567 2004/11/05 09:06:59 dtucker Exp $
