@@ -4,6 +4,9 @@
      [canohost.c]
      change get_peer_ipaddr() and get_local_ipaddr() to not return NULL for
      non-sockets; fixes a problem passing NULL to snprintf(). ok markus@
+   - markus@cvs.openbsd.org 2002/09/23 22:11:05
+     [monitor.c]
+     only call auth_krb5 if kerberos is enabled; ok deraadt@
 
 20020923
  - (tim) [configure.ac] s/return/exit/ patch by dtucker@zip.com.au
@@ -703,4 +706,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2477 2002/09/25 02:19:08 djm Exp $
+$Id: ChangeLog,v 1.2478 2002/09/25 02:19:39 djm Exp $

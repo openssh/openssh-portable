@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.26 2002/09/09 14:54:15 markus Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.27 2002/09/23 22:11:05 markus Exp $");
 
 #include <openssl/dh.h>
 
@@ -1299,7 +1299,8 @@ mm_answer_krb5(int socket, Buffer *m)
 	tkt.data = buffer_get_string(m, &len);
 	tkt.length = len;
 
-	success = auth_krb5(authctxt, &tkt, &client_user, &reply);
+	success = (options.kerberos_authentication == 1) &&
+	    auth_krb5(authctxt, &tkt, &client_user, &reply);
 
 	if (tkt.length)
 		xfree(tkt.data);
