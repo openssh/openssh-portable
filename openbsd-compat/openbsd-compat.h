@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.8 2001/06/25 08:09:17 djm Exp $ */
+/* $Id: openbsd-compat.h,v 1.9 2001/06/28 23:30:38 mouring Exp $ */
 
 #ifndef _OPENBSD_H
 #define _OPENBSD_H
@@ -20,14 +20,11 @@
 #include "sigact.h"
 #include "inet_aton.h"
 #include "inet_ntoa.h"
-#include "inet_ntop.h"
 #include "strsep.h"
-#include "strtok.h"
 #include "vis.h"
 #include "setproctitle.h"
 #include "getgrouplist.h"
 #include "glob.h"
-#include "getusershell.h"
 #include "readpassphrase.h"
 
 /* Home grown routines */
