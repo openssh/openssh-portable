@@ -6,6 +6,9 @@
 
 @TOP@
 
+/* Define if your socketpair() has bugs */
+#undef USE_PIPES
+
 /* Define if your system's struct sockaddr_un has a sun_len member */
 #undef HAVE_SUN_LEN_IN_SOCKADDR_UN
 

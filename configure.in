@@ -49,6 +49,7 @@ case "$host" in
 	fi
 	CFLAGS="$CFLAGS -D_HPUX_SOURCE"
 	AC_DEFINE(IPADDR_IN_DISPLAY)
+	AC_DEFINE(USE_PIPES)
 	AC_MSG_CHECKING(for HPUX trusted system password database)
 	if test -f /tcb/files/auth/system/default; then
 		AC_MSG_RESULT(yes)
@@ -142,6 +143,7 @@ case "$host" in
 	conf_utmp_location=/etc/utmp
 	conf_wtmp_location=/var/adm/wtmp
 	conf_lastlog_location=/var/adm/lastlog
+	AC_DEFINE(USE_PIPES)
 	MANTYPE='$(CATMAN)'
 	mansubdir=cat
 	;;

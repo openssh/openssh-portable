@@ -1,3 +1,9 @@
+20000823
+ - (djm) Define USE_PIPES to avoid socketpair problems on HPUX 10 and SunOS 4
+   Avoids "scp never exits" problem. Reports from Lutz Jaenicke 
+   <Lutz.Jaenicke@aet.TU-Cottbus.DE> and Tamito KAJIYAMA 
+   <kajiyama@grad.sccs.chukyo-u.ac.jp>
+
 20000818
  - (djm) OpenBSD CVS changes:
    - markus@cvs.openbsd.org  2000/07/22 03:14:37
