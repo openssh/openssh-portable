@@ -37,6 +37,9 @@
  - (dtucker) [regress/agent-ptrace.sh] Skip ptrace test on OSF1/DUnix/Tru64
    too; patch from cmadams at hiwaay.net.
  - (dtucker) [configure.ac] Replace non-portable echo \n with extra echo.
+ - (dtucker) [openbsd-compat/port-aix.c] Bug #712: Explicitly check for
+   accounts with authentication configs that sshd can't support (ie
+   SYSTEM=NONE and AUTH1=something).
 
 20040828
  - (dtucker) [openbsd-compat/mktemp.c] Remove superfluous Cygwin #ifdef; from
@@ -1704,4 +1707,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3535 2004/08/29 11:18:09 dtucker Exp $
+$Id: ChangeLog,v 1.3536 2004/08/29 11:43:33 dtucker Exp $

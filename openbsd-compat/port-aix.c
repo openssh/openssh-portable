@@ -1,6 +1,7 @@
 /*
  *
  * Copyright (c) 2001 Gert Doering.  All rights reserved.
+ * Copyright (c) 2003,2004 Darren Tucker.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -92,6 +93,59 @@ aix_remove_embedded_newlines(char *p)
 }
 
 /*
+ * Test specifically for the case where SYSTEM == NONE and AUTH1 contains
+ * anything other than NONE or SYSTEM, which indicates that the admin has
+ * configured the account for purely AUTH1-type authentication.
+ *
+ * Since authenticate() doesn't check AUTH1, and sshd can't sanely support
+ * AUTH1 itself, in such a case authenticate() will allow access without
+ * authentation, which is almost certainly not what the admin intends.
+ *
+ * (The native tools, eg login, will process the AUTH1 list in addition to
+ * the SYSTEM list by using ckuserID(), however ckuserID() and AUTH1 methods
+ * have been deprecated since AIX 4.2.x and would be very difficult for sshd
+ * to support.
+ *
+ * Returns 0 if an unsupportable combination is found, 1 otherwise.
+ */
+static int
+aix_valid_authentications(const char *user)
+{
+	char *auth1, *sys, *p;
+	int valid = 1;
+
+	if (getuserattr((char *)user, S_AUTHSYSTEM, &sys, SEC_CHAR) != 0) {
+		logit("Can't retrieve attribute SYSTEM for %s: %.100s",
+		    user, strerror(errno));
+		return 0;
+	}
+
+	debug3("AIX SYSTEM attribute %s", sys);
+	if (strcmp(sys, "NONE") != 0)
+		return 1;	/* not "NONE", so is OK */
+
+	if (getuserattr((char *)user, S_AUTH1, &auth1, SEC_LIST) != 0) {
+		logit("Can't retrieve attribute auth1 for %s: %.100s",
+		    user, strerror(errno));
+		return 0;
+	}
+
+	p = auth1;
+	/* A SEC_LIST is concatenated strings, ending with two NULs. */
+	while (p[0] != '\0' && p[1] != '\0') {
+		debug3("AIX auth1 attribute list member %s", p);
+		if (strcmp(p, "NONE") != 0 && strcmp(p, "SYSTEM")) {
+			logit("Account %s has unsupported auth1 value '%s'",
+			    user, p);
+			valid = 0;
+		}
+		p += strlen(p) + 1;
+	}
+
+	return (valid);
+}
+
+/*
  * Do authentication via AIX's authenticate routine.  We loop until the
  * reenter parameter is 0, but normally authenticate is called only once.
  *
@@ -111,6 +165,9 @@ sys_auth_passwd(Authctxt *ctxt, const char *password)
 		debug3("AIX/authenticate result %d, msg %.100s", result,
 		    authmsg);
 	} while (reenter);
+
+	if (!aix_valid_authentications(name))
+		result = -1;
 
 	if (result == 0) {
 		authsuccess = 1;
