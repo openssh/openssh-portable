@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.301 2004/08/11 11:50:09 dtucker Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.302 2004/08/28 01:01:48 djm Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -884,7 +884,7 @@ main(int ac, char **av)
 	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
 	char *line;
 	int listen_sock, maxfd;
-	int startup_p[2], config_s[2];
+	int startup_p[2] = { -1 , -1 }, config_s[2] = { -1 , -1 };
 	int startups = 0;
 	Key *key;
 	Authctxt *authctxt;
@@ -1507,7 +1507,8 @@ main(int ac, char **av)
 						sock_in = newsock;
 						sock_out = newsock;
 						log_init(__progname, options.log_level, options.log_facility, log_stderr);
-						close(config_s[0]);
+						if (rexec_flag)
+							close(config_s[0]);
 						break;
 					}
 				}
