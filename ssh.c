@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.221 2004/06/21 17:36:31 avsm Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.222 2004/06/23 14:31:01 dtucker Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -1304,9 +1304,11 @@ control_client(const char *path)
 			
 		buffer_put_int(&m, num_env);
 
-		for (i = 0; environ[i] != NULL && num_env >= 0; i++, num_env--)
-			if (env_permitted(environ[i]))
+		for (i = 0; environ[i] != NULL && num_env >= 0; i++)
+			if (env_permitted(environ[i])) {
+				num_env--;
 				buffer_put_cstring(&m, environ[i]);
+			}
 	}
 
 	if (ssh_msg_send(sock, /* version */0, &m) == -1)

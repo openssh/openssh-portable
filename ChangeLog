@@ -16,6 +16,9 @@
    - mouring@cvs.openbsd.org 2004/06/23 00:39:38
      [rijndael.c]
      -Wshadow fix up s/encrypt/do_encrypt/.  OK djm@, markus@
+   - dtucker@cvs.openbsd.org 2004/06/23 14:31:01
+     [ssh.c]
+     Fix counting in master/slave when passing environment variables; ok djm@
  - (dtucker) [cipher.c] encrypt->do_encrypt inside SSH_OLD_EVP to match
    -Wshadow change.
  - (bal) [Makefile.in] Remove opensshd.init on 'make distclean'
@@ -1396,4 +1399,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3442 2004/06/23 14:33:48 dtucker Exp $
+$Id: ChangeLog,v 1.3443 2004/06/23 14:34:53 dtucker Exp $
