@@ -6,6 +6,7 @@
      ok millert/deraadt@
  - (dtucker) [session.c] Fix bus errors on some 64-bit Solaris configurations.
    Based on patches by Matthias Koeppe and Thomas Baden.  ok djm@
+ - (tim) [sshd_config] UsePAM defaults to no.
 
 20030925
  - (dtucker) [configure.ac openbsd-compat/xcrypt.c] Bug #633: Remove
@@ -1202,4 +1203,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2994.2.37 2003/10/02 10:09:18 dtucker Exp $
+$Id: ChangeLog,v 1.2994.2.38 2003/10/02 16:38:19 tim Exp $
