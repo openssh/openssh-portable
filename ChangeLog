@@ -15,6 +15,9 @@
    - dtucker@cvs.openbsd.org 2005/01/30 11:18:08
      [monitor.c]
      Make code match intent; ok djm@
+   - dtucker@cvs.openbsd.org 2005/02/08 22:24:57
+     [sshd.c]
+     Provide reason in error message if getnameinfo fails; ok markus@
 
 20050208
  - (dtucker) [regress/test-exec.sh] Bug #912: Set _POSIX2_VERSION for the
@@ -2104,4 +2107,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3643 2005/02/08 22:52:17 dtucker Exp $
+$Id: ChangeLog,v 1.3644 2005/02/08 22:53:48 dtucker Exp $
