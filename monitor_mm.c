@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor_mm.c,v 1.4 2002/03/25 20:12:10 stevesk Exp $");
+RCSID("$OpenBSD: monitor_mm.c,v 1.5 2002/05/28 16:45:27 stevesk Exp $");
 
 #ifdef HAVE_SYS_MMAN_H
 #include <sys/mman.h>
@@ -88,7 +88,7 @@ mm_create(struct mm_master *mmalloc, size_t size)
 	address = mmap(NULL, size, PROT_WRITE|PROT_READ, MAP_ANON|MAP_SHARED,
 	    -1, 0);
 	if (address == MAP_FAILED)
-		fatal("mmap(%lu)", (u_long)size);
+		fatal("mmap(%lu): %s", (u_long)size, strerror(errnor));
 #else
 	fatal("%s: UsePrivilegeSeparation=yes not supported",
 	    __FUNCTION__);
@@ -132,7 +132,8 @@ mm_destroy(struct mm_master *mm)
 
 #ifdef HAVE_MMAP
 	if (munmap(mm->address, mm->size) == -1)
-		fatal("munmap(%p, %lu)", mm->address, (u_long)mm->size);
+		fatal("munmap(%p, %lu): %s", mm->address, (u_long)mm->size
+		    strerror(errno));
 #else
 	fatal("%s: UsePrivilegeSeparation=yes not supported",
 	    __FUNCTION__);
