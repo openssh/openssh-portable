@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.91 2001/02/15 23:19:59 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.92 2001/02/16 13:38:18 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -800,7 +800,6 @@ channel_handle_wfd(Channel *c, fd_set * readset, fd_set * writeset)
 				memset(buffer_ptr(&c->output), 0, len);
 				packet_put_string(buffer_ptr(&c->output), len);
 				packet_send();
-				debug("channel: %d simulate echo (%d)", c->self, len);
 			}
 		}
 		buffer_consume(&c->output, len);

@@ -1,3 +1,9 @@
+20010217
+ - (bal) OpenBSD Sync:
+   - markus@cvs.openbsd.org 2001/02/16 13:38:18
+     [channel.c]                               
+     remove debug                              
+
 20010216
  - (bal) added '--with-prce'  to allow overriding of system regex when
    required (tested by David Dulek <ddulek@fastenal.com>)
@@ -3995,4 +4001,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.780 2001/02/16 14:58:12 stevesk Exp $
+$Id: ChangeLog,v 1.781 2001/02/16 15:56:31 mouring Exp $
