@@ -63,6 +63,10 @@
      [sftp.1]
      emphasise the batchmode functionality and make reference to pubkey auth,
      both of which are FAQs; ok markus@
+   - markus@cvs.openbsd.org 2003/05/14 02:15:47
+     [auth2.c monitor.c sshconnect2.c auth2-krb5.c]
+     implement kerberos over ssh2 ("kerberos-2@ssh.com"); tested with jakob@
+     server interops with commercial client; ok jakob@ djm@
 
 20030512
  - (djm) Redhat spec: Don't install profile.d scripts when not 
@@ -1450,4 +1454,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2691 2003/05/14 03:47:07 djm Exp $
+$Id: ChangeLog,v 1.2692 2003/05/14 03:47:37 djm Exp $

@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.38 2003/04/08 20:21:28 itojun Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.39 2003/05/14 02:15:47 markus Exp $");
 
 #include <openssl/dh.h>
 
@@ -182,6 +182,9 @@ struct mon_table mon_dispatch_proto20[] = {
 #endif
     {MONITOR_REQ_KEYALLOWED, MON_ISAUTH, mm_answer_keyallowed},
     {MONITOR_REQ_KEYVERIFY, MON_AUTH, mm_answer_keyverify},
+#ifdef KRB5
+    {MONITOR_REQ_KRB5, MON_ONCE|MON_AUTH, mm_answer_krb5},
+#endif
     {0, 0, NULL}
 };
 
@@ -1482,6 +1485,8 @@ mm_answer_krb5(int socket, Buffer *m)
 			xfree(reply.data);
 	}
 	mm_request_send(socket, MONITOR_ANS_KRB5, m);
+
+	auth_method = "kerberos";
 
 	return success;
 }

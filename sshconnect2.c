@@ -23,7 +23,11 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.117 2003/05/12 16:55:37 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.118 2003/05/14 02:15:47 markus Exp $");
+
+#ifdef KRB5
+#include <krb5.h>
+#endif
 
 #include "ssh.h"
 #include "ssh2.h"
@@ -190,6 +194,7 @@ int	userauth_pubkey(Authctxt *);
 int	userauth_passwd(Authctxt *);
 int	userauth_kbdint(Authctxt *);
 int	userauth_hostbased(Authctxt *);
+int	userauth_kerberos(Authctxt *);
 
 void	userauth(Authctxt *, char *);
 
@@ -208,6 +213,12 @@ Authmethod authmethods[] = {
 		userauth_hostbased,
 		&options.hostbased_authentication,
 		NULL},
+#if KRB5
+	{"kerberos-2@ssh.com",
+		userauth_kerberos,
+		&options.kerberos_authentication,
+		NULL},
+#endif
 	{"publickey",
 		userauth_pubkey,
 		&options.pubkey_authentication,
@@ -1111,6 +1122,94 @@ userauth_hostbased(Authctxt *authctxt)
 	packet_send();
 	return 1;
 }
+
+#if KRB5
+static int
+ssh_krb5_helper(krb5_data *ap)
+{
+	krb5_context xcontext = NULL;	/* XXX share with ssh1 */
+	krb5_auth_context xauth_context = NULL;
+
+	krb5_context *context;
+	krb5_auth_context *auth_context;
+	krb5_error_code problem;
+	const char *tkfile;
+	struct stat buf;
+	krb5_ccache ccache = NULL;
+	const char *remotehost;
+	int ret;
+
+	memset(ap, 0, sizeof(*ap));
+
+	context = &xcontext;
+	auth_context = &xauth_context;
+
+	problem = krb5_init_context(context);
+	if (problem) {
+		debug("Kerberos v5: krb5_init_context failed");
+		ret = 0;
+		goto out;
+	}
+
+	tkfile = krb5_cc_default_name(*context);
+	if (strncmp(tkfile, "FILE:", 5) == 0)
+		tkfile += 5;
+
+	if (stat(tkfile, &buf) == 0 && getuid() != buf.st_uid) {
+		debug("Kerberos v5: could not get default ccache (permission denied).");
+		ret = 0;
+		goto out;
+	}
+
+	problem = krb5_cc_default(*context, &ccache);
+	if (problem) {
+		debug("Kerberos v5: krb5_cc_default failed: %s",
+		    krb5_get_err_text(*context, problem));
+		ret = 0;
+		goto out;
+	}
+
+	remotehost = get_canonical_hostname(1);
+
+	problem = krb5_mk_req(*context, auth_context, AP_OPTS_MUTUAL_REQUIRED,
+	    "host", remotehost, NULL, ccache, ap);
+	if (problem) {
+		debug("Kerberos v5: krb5_mk_req failed: %s",
+		    krb5_get_err_text(*context, problem));
+		ret = 0;
+		goto out;
+	}
+	ret = 1;
+
+ out:
+	if (ccache != NULL)
+		krb5_cc_close(*context, ccache);
+	if (*auth_context)
+		krb5_auth_con_free(*context, *auth_context);
+	if (*context)
+		krb5_free_context(*context);
+	return (ret);
+}
+
+int
+userauth_kerberos(Authctxt *authctxt)
+{
+	krb5_data ap;
+
+	if (ssh_krb5_helper(&ap) == 0)
+		return (0);
+
+	packet_start(SSH2_MSG_USERAUTH_REQUEST);
+	packet_put_cstring(authctxt->server_user);
+	packet_put_cstring(authctxt->service);
+	packet_put_cstring(authctxt->method->name);
+	packet_put_string(ap.data, ap.length);
+	packet_send();
+
+	krb5_data_free(&ap);
+	return (1);
+}
+#endif
 
 /* find auth method */
 
