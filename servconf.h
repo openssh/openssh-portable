@@ -126,9 +126,11 @@ typedef struct {
 					 * for this many intervals, above
 					 * diconnect the session 
 					 */
-	char   *authorized_keys_file;   /* File containing public RSA keys */ 
-	char   *authorized_keys_file2;  /* File containing public SSH2 keys */
+
+	char   *authorized_keys_file;	/* File containing public keys */
+	char   *authorized_keys_file2;
 	int	pam_authentication_via_kbd_int;
+
 }       ServerOptions;
 
 void	 initialize_server_options(ServerOptions *);
