@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.305 2004/12/23 23:11:00 djm Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.306 2005/01/17 22:48:39 dtucker Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1192,7 +1192,7 @@ main(int ac, char **av)
 	}
 
 	/* Initialize the log (it is reinitialized below in case we forked). */
-	if (debug_flag && !inetd_flag)
+	if (debug_flag && (!inetd_flag || rexeced_flag))
 		log_stderr = 1;
 	log_init(__progname, options.log_level, options.log_facility, log_stderr);
 

@@ -19,6 +19,9 @@
    - dtucker@cvs.openbsd.org 2005/01/17 03:25:46
      [moduli.c]
      Correct spelling: SCHNOOR->SCHNORR; ok djm@
+   - dtucker@cvs.openbsd.org 2005/01/17 22:48:39
+     [sshd.c]
+     Make debugging output continue after reexec; ok djm@
 
 20050118
  - (dtucker) [INSTALL Makefile.in configure.ac survey.sh.in] Implement
@@ -1991,4 +1994,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3614 2005/01/20 00:02:26 dtucker Exp $
+$Id: ChangeLog,v 1.3615 2005/01/20 00:03:08 dtucker Exp $
