@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.20 2000/09/21 11:25:07 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.21 2000/09/27 21:41:34 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
@@ -534,8 +534,8 @@ userauth_pubkey_identity(Authctxt *authctxt, char *filename)
 		char *passphrase;
 		char prompt[300];
 		snprintf(prompt, sizeof prompt,
-		     "Enter passphrase for DSA key '%.100s': ",
-		     filename);
+		     "Enter passphrase for %s key '%.100s': ",
+		     key_type(k), filename);
 		for (i = 0; i < options.number_of_password_prompts; i++) {
 			passphrase = read_passphrase(prompt, 0);
 			if (strcmp(passphrase, "") != 0) {

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.15 2000/09/21 11:25:32 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.16 2000/09/27 21:41:34 markus Exp $");
 
 #include <openssl/dsa.h>
 #include <openssl/rsa.h>
@@ -472,8 +472,10 @@ user_dsa_key_allowed(struct passwd *pw, Key *key)
 		if (fstat(fileno(f), &st) < 0 ||
 		    (st.st_uid != 0 && st.st_uid != pw->pw_uid) ||
 		    (st.st_mode & 022) != 0) {
-			snprintf(buf, sizeof buf, "DSA authentication refused for %.100s: "
-			    "bad ownership or modes for '%s'.", pw->pw_name, file);
+			snprintf(buf, sizeof buf,
+			    "%s authentication refused for %.100s: "
+			    "bad ownership or modes for '%s'.",
+			    key_type(key), pw->pw_name, file);
 			fail = 1;
 		} else {
 			/* Check path to SSH_USER_PERMITTED_KEYS */
@@ -488,9 +490,9 @@ user_dsa_key_allowed(struct passwd *pw, Key *key)
 				    (st.st_uid != 0 && st.st_uid != pw->pw_uid) ||
 				    (st.st_mode & 022) != 0) {
 					snprintf(buf, sizeof buf,
-					    "DSA authentication refused for %.100s: "
+					    "%s authentication refused for %.100s: "
 					    "bad ownership or modes for '%s'.",
-					    pw->pw_name, line);
+					    key_type(key), pw->pw_name, line);
 					fail = 1;
 					break;
 				}
@@ -504,7 +506,7 @@ user_dsa_key_allowed(struct passwd *pw, Key *key)
 		}
 	}
 	found_key = 0;
-	found = key_new(KEY_DSA);
+	found = key_new(key->type);
 
 	while (fgets(line, sizeof(line), f)) {
 		char *cp, *options = NULL;

@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.36 2000/09/21 11:25:33 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.37 2000/09/26 19:59:58 markus Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -333,7 +333,7 @@ client_check_window_change()
 	if (ioctl(fileno(stdin), TIOCGWINSZ, &ws) < 0)
 		return;
 
-	debug("client_check_window_change: changed");
+	debug2("client_check_window_change: changed");
 
 	if (compat20) {
 		channel_request_start(session_ident, "window-change", 0);
@@ -360,8 +360,6 @@ client_check_window_change()
 void
 client_wait_until_can_do_something(fd_set * readset, fd_set * writeset)
 {
-	/*debug("client_wait_until_can_do_something"); */
-
 	/* Initialize select masks. */
 	FD_ZERO(readset);
 	FD_ZERO(writeset);
@@ -480,7 +478,6 @@ client_process_net_input(fd_set * readset)
 	if (FD_ISSET(connection_in, readset)) {
 		/* Read as much as possible. */
 		len = read(connection_in, buf, sizeof(buf));
-/*debug("read connection_in len %d", len); XXX */
 		if (len == 0) {
 			/* Received EOF.  The remote host has closed the connection. */
 			snprintf(buf, sizeof buf, "Connection to %.300s closed by remote host.\r\n",
@@ -852,7 +849,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 		client_process_buffered_input_packets();
 
 		if (compat20 && !channel_still_open()) {
-			debug("!channel_still_open.");
+			debug2("!channel_still_open.");
 			break;
 		}
 
@@ -1042,7 +1039,7 @@ client_input_channel_open(int type, int plen, void *ctxt)
 		int originator_port;
 		originator = packet_get_string(NULL);
 		if (datafellows & SSH_BUG_X11FWD) {
-			debug("buggy server: x11 request w/o originator_port");
+			debug2("buggy server: x11 request w/o originator_port");
 			originator_port = 0;
 		} else {
 			originator_port = packet_get_int();
@@ -1172,7 +1169,7 @@ client_input_channel_req(int id, void *arg)
 void
 client_set_session_ident(int id)
 {
-	debug("client_set_session_ident: id %d", id);
+	debug2("client_set_session_ident: id %d", id);
 	session_ident = id;
 	channel_register_callback(id, SSH2_MSG_CHANNEL_REQUEST,
 	    client_input_channel_req, (void *)0);

@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.69 2000/09/21 11:25:33 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.70 2000/09/28 18:03:18 markus Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -234,7 +234,7 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 		/* There are no free slots.  Take last+1 slot and expand the array.  */
 		found = channels_alloc;
 		channels_alloc += 10;
-		debug("channel: expanding %d", channels_alloc);
+		debug2("channel: expanding %d", channels_alloc);
 		channels = xrealloc(channels, channels_alloc * sizeof(Channel));
 		for (i = found; i < channels_alloc; i++)
 			channels[i].type = SSH_CHANNEL_FREE;
@@ -737,7 +737,7 @@ channel_handle_efd(Channel *c, fd_set * readset, fd_set * writeset)
 		    buffer_len(&c->extended) > 0) {
 			len = write(c->efd, buffer_ptr(&c->extended),
 			    buffer_len(&c->extended));
-			debug("channel %d: written %d to efd %d",
+			debug2("channel %d: written %d to efd %d",
 			    c->self, len, c->efd);
 			if (len > 0) {
 				buffer_consume(&c->extended, len);
@@ -746,7 +746,7 @@ channel_handle_efd(Channel *c, fd_set * readset, fd_set * writeset)
 		} else if (c->extended_usage == CHAN_EXTENDED_READ &&
 		    FD_ISSET(c->efd, readset)) {
 			len = read(c->efd, buf, sizeof(buf));
-			debug("channel %d: read %d from efd %d",
+			debug2("channel %d: read %d from efd %d",
 			     c->self, len, c->efd);
 			if (len == 0) {
 				debug("channel %d: closing efd %d",
@@ -769,7 +769,7 @@ channel_check_window(Channel *c, fd_set * readset, fd_set * writeset)
 		packet_put_int(c->remote_id);
 		packet_put_int(c->local_consumed);
 		packet_send();
-		debug("channel %d: window %d sent adjust %d",
+		debug2("channel %d: window %d sent adjust %d",
 		    c->self, c->local_window,
 		    c->local_consumed);
 		c->local_window += c->local_consumed;
@@ -1076,7 +1076,7 @@ channel_input_extended_data(int type, int plen, void *ctxt)
 		xfree(data);
 		return;
 	}
-	debug("channel %d: rcvd ext data %d", c->self, data_len);
+	debug2("channel %d: rcvd ext data %d", c->self, data_len);
 	c->local_window -= data_len;
 	buffer_append(&c->extended, data, data_len);
 	xfree(data);
@@ -1218,9 +1218,9 @@ channel_input_open_confirmation(int type, int plen, void *ctxt)
 		c->remote_maxpacket = packet_get_int();
 		packet_done();
 		if (c->cb_fn != NULL && c->cb_event == type) {
-			debug("callback start");
+			debug2("callback start");
 			c->cb_fn(c->self, c->cb_arg);
-			debug("callback done");
+			debug2("callback done");
 		}
 		debug("channel %d: open confirm rwindow %d rmax %d", c->self,
 		    c->remote_window, c->remote_maxpacket);
@@ -1269,13 +1269,13 @@ channel_input_channel_request(int type, int plen, void *ctxt)
 		packet_disconnect("Received request for "
 		    "non-open channel %d.", id);
 	if (c->cb_fn != NULL && c->cb_event == type) {
-		debug("callback start");
+		debug2("callback start");
 		c->cb_fn(c->self, c->cb_arg);
-		debug("callback done");
+		debug2("callback done");
 	} else {
 		char *service = packet_get_string(NULL);
 		debug("channel: %d rcvd request for %s", c->self, service);
-debug("cb_fn %p cb_event %d", c->cb_fn , c->cb_event);
+		debug("cb_fn %p cb_event %d", c->cb_fn , c->cb_event);
 		xfree(service);
 	}
 }
@@ -1300,7 +1300,7 @@ channel_input_window_adjust(int type, int plen, void *ctxt)
 	}
 	adjust = packet_get_int();
 	packet_done();
-	debug("channel %d: rcvd adjust %d", id, adjust);
+	debug2("channel %d: rcvd adjust %d", id, adjust);
 	c->remote_window += adjust;
 }
 

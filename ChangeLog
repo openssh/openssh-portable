@@ -6,6 +6,16 @@
  - (djm) Ignore SIGPIPEs from serverloop to child. Fixes crashes with
    very short lived X connections. Bug report from Tobias Oetiker 
    <oetiker@ee.ethz.ch>. Fix from Markus Friedl <markus@cvs.openbsd.org>
+ - (djm) CVS OpenBSD sync:
+   - markus@cvs.openbsd.org  2000/09/26 13:59:59
+     [clientloop.c]
+     use debug2
+   - markus@cvs.openbsd.org  2000/09/27 15:41:34
+     [auth2.c sshconnect2.c]
+     use key_type()
+   - markus@cvs.openbsd.org  2000/09/28 12:03:18
+     [channels.c]
+     debug -> debug2 cleanup
 
 20000929
  - (djm) Fix SSH2 not terminating until all background tasks done problem.
