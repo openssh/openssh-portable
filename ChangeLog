@@ -58,6 +58,9 @@
      [ssh-keyscan.c]
      handle connection close during read of protocol version string.
      fixes erroneous "bad greeting".  ok markus@
+   - markus@cvs.openbsd.org 2002/03/04 19:37:58
+     [channels.c]
+     off by one; thanks to joost@pine.nl
 
 20020226
  - (tim) Bug 12 [configure.ac] add sys/bitypes.h to int64_t tests
@@ -7789,4 +7792,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1905 2002/03/05 01:54:52 mouring Exp $
+$Id: ChangeLog,v 1.1906 2002/03/05 01:57:44 mouring Exp $
