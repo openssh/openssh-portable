@@ -1434,7 +1434,7 @@ do_child(Session *s, const char *command)
 		 * generated messages, so if this in an interactive
 		 * login then display them too.
 		 */
-		if (command == NULL)
+		if (!check_quietlogin(s, command))
 			display_loginmsg();
 #endif /* HAVE_OSF_SIA */
 	}
