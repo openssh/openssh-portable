@@ -18,7 +18,7 @@ agent connections.
 */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.1 1999/10/27 03:42:46 damien Exp $");
+RCSID("$Id: sshd.c,v 1.2 1999/10/27 13:42:05 damien Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -46,14 +46,6 @@ int deny_severity = LOG_WARNING;
 #ifdef KRB4
 char *ticket = NULL;
 #endif /* KRB4 */
-
-#ifdef HAVE_PAM
-#include <security/pam_appl.h>
-struct pam_handle_t *pamh=NULL;
-char *pampasswd=NULL;
-int retval;
-int origretval;
-#endif /* HAVE_PAM */
 
 /* Local Xauthority file. */
 char *xauthfile = NULL;
@@ -139,69 +131,127 @@ void do_child(const char *command, struct passwd *pw, const char *term,
 #ifdef HAVE_PAM
 static int pamconv(int num_msg, const struct pam_message **msg,
                    struct pam_response **resp, void *appdata_ptr);
+void do_pam_authentication(const char *username, const char *password, 
+                           const char *remote_user, const char *remote_host);
+void pam_cleanup_proc(void *context);
 
 static struct pam_conv conv = {
     pamconv,
     NULL
 };
+struct pam_handle_t *pamh = NULL;
+const char *pampasswd = NULL;
 
 static int pamconv(int num_msg, const struct pam_message **msg,
                    struct pam_response **resp, void *appdata_ptr)
 {
   int count = 0;
-  int replies = 0;
   struct pam_response *reply = NULL;
-  int size = sizeof(struct pam_response);
 
+  /* PAM will free this later */
+  reply = malloc(num_msg * sizeof(*reply));
+  if (reply == NULL)
+    return PAM_CONV_ERR; 
+  
   for(count = 0; count < num_msg; count++)
   {
     switch (msg[count]->msg_style)
     {
-      case PAM_PROMPT_ECHO_ON:
       case PAM_PROMPT_ECHO_OFF:
-        if (reply == NULL) 
-          reply = xmalloc(size); 
-        else 
-          reply = realloc(reply, size);
-			 
-		  if (reply == NULL)
-          return PAM_CONV_ERR; 
-			 
-        size += sizeof(struct pam_response);
-		  
-		  reply[replies].resp_retcode = PAM_SUCCESS;
-		  
-		  reply[replies++].resp = xstrdup(pampasswd);
-			 /* PAM frees resp */
-		  break;
-
-		case PAM_TEXT_INFO:
-		  /* ignore it... */
-		  break;
-
-		case PAM_ERROR_MSG:
-		default:
-		  /* Must be an error of some sort... */
-		  if (reply != NULL)
+      	if (pampasswd == NULL)
+        {
           free(reply);
+          return PAM_CONV_ERR;
+        }
+        reply[count].resp_retcode = PAM_SUCCESS;
+        reply[count].resp = xstrdup(pampasswd);
+        break;
 
-		  return PAM_CONV_ERR;
-	 }
+      case PAM_TEXT_INFO:
+        reply[count].resp_retcode = PAM_SUCCESS;
+        reply[count].resp = xstrdup("");
+        break;
+
+      case PAM_PROMPT_ECHO_ON:
+      case PAM_ERROR_MSG:
+      default:
+        free(reply);
+        return PAM_CONV_ERR;
+    }
   }
 
-  if (reply != NULL)
-    *resp = reply;
+  *resp = reply;
 	 
   return PAM_SUCCESS;
 }
 
 void pam_cleanup_proc(void *context)
 {
-  if (retval == PAM_SUCCESS) 
+  int retval;
+  
+  if (pamh != NULL)
+  {
     retval = pam_close_session((pam_handle_t *)pamh, 0);
 	 
-  if (pam_end((pam_handle_t *)pamh, retval) != PAM_SUCCESS)
-    log("Cannot release PAM authentication.");
+    if (pam_end((pam_handle_t *)pamh, retval) != PAM_SUCCESS)
+      log("Cannot release PAM authentication.");
+  }
+}
+
+void do_pam_authentication(const char *username, const char *password, const char *remote_user, const char *remote_host)
+{
+  int pam_auth_ok = 1;
+
+  pampasswd = password;
+  
+  do
+  {
+    if (PAM_SUCCESS != pam_start("ssh", username, &conv, (pam_handle_t**)&pamh))
+    {
+      pam_auth_ok = 0;
+      break;
+    }
+
+    fatal_add_cleanup(&pam_cleanup_proc, NULL); 
+
+    if (remote_host && (PAM_SUCCESS != pam_set_item((pam_handle_t *)pamh, PAM_RHOST, remote_host)))
+    {
+      pam_auth_ok = 0;
+      break;
+    }
+
+    if (remote_user && (PAM_SUCCESS != pam_set_item((pam_handle_t *)pamh, PAM_RUSER, remote_user)))
+    {
+      pam_auth_ok = 0;
+      break;
+    }
+    
+    if (PAM_SUCCESS != pam_authenticate((pam_handle_t *)pamh, 0))
+    {
+      pam_auth_ok = 0;
+      break;
+    }
+
+    if (PAM_SUCCESS != pam_acct_mgmt((pam_handle_t *)pamh, 0))
+    {
+      pam_auth_ok = 0;
+      break;
+    }
+
+    if (PAM_SUCCESS != pam_open_session((pam_handle_t *)pamh, 0))
+    {
+      pam_auth_ok = 0;
+      break;
+    }
+  } while (0);
+  
+  if (!pam_auth_ok)
+  {
+    packet_start(SSH_SMSG_FAILURE);
+    packet_send();
+    packet_write_wait();
+    packet_disconnect("PAM authentication failed.");
+  }
 }
 #endif /* HAVE_PAM */
 
@@ -788,13 +838,19 @@ main(int ac, char **av)
   log("Closing connection to %.100s", inet_ntoa(sin.sin_addr));
 
 #ifdef HAVE_PAM
-  if (retval == PAM_SUCCESS)
-    retval = pam_close_session((pam_handle_t *)pamh, 0);
+  {
+    int retval;
+    
+    if (pamh != NULL)
+    {
+      retval = pam_close_session((pam_handle_t *)pamh, 0);
 
-  if (pam_end((pam_handle_t *)pamh, retval) != PAM_SUCCESS)
-    log("Cannot release PAM authentication.");
+      if (pam_end((pam_handle_t *)pamh, retval) != PAM_SUCCESS)
+        log("Cannot release PAM authentication.");
 	 
-  fatal_remove_cleanup(&pam_cleanup_proc, NULL);
+      fatal_remove_cleanup(&pam_cleanup_proc, NULL);
+    }
+  }
 #endif /* HAVE_PAM */
 
   packet_close();
@@ -1078,14 +1134,11 @@ do_authentication(char *user, int privileged_port)
   int type;
   int authenticated = 0;
   int authentication_failures = 0;
-  char *password;
+  char *password = NULL;
   struct passwd *pw, pwcopy;
-  char *client_user;
+  char *client_user = NULL;
   unsigned int client_host_key_bits;
   BIGNUM *client_host_key_e, *client_host_key_n;
-#ifdef HAVE_PAM
-  int pam_auth_ok;
-#endif /* HAVE_PAM */
 			 
 #ifdef AFS
   /* If machine has AFS, set process authentication group. */
@@ -1097,21 +1150,7 @@ do_authentication(char *user, int privileged_port)
        
   /* Verify that the user is a valid user. */
   pw = getpwnam(user);
-#ifdef HAVE_PAM
-  if ((pw != NULL) && allowed_user(pw))
-  {
-    /* Initialise PAM */
-    retval = pam_start("ssh", pw->pw_name, &conv, (pam_handle_t **)&pamh);
-    fatal_add_cleanup(&pam_cleanup_proc, NULL); 
-    origretval = retval;
-    if (retval == PAM_SUCCESS)
-	 	pam_auth_ok = 1;
-  }
-  
-  if (pam_auth_ok == 0)
-#else /* HAVE_PAM */
   if (!pw || !allowed_user(pw))
-#endif /* HAVE_PAM */
     {
       /* The user does not exist or access is denied,
          but fake indication that authentication is needed. */
@@ -1306,12 +1345,16 @@ do_authentication(char *user, int privileged_port)
 	      log("Rhosts authentication accepted for %.100s, remote %.100s on %.700s.",
 		  user, client_user, get_canonical_hostname());
 	      authenticated = 1;
+#ifndef HAVE_PAM
 	      xfree(client_user);
+#endif /* HAVE_PAM */
 	      break;
 	    }
 	  log("Rhosts authentication failed for %.100s, remote %.100s.",
 		user, client_user);
+#ifndef HAVE_PAM
 	  xfree(client_user);
+#endif /* HAVE_PAM */
 	  break;
 
 	case SSH_CMSG_AUTH_RHOSTS_RSA:
@@ -1354,14 +1397,18 @@ do_authentication(char *user, int privileged_port)
 	    {
 	      /* Authentication accepted. */
 	      authenticated = 1;
+#ifndef HAVE_PAM
 	      xfree(client_user);
+#endif /* HAVE_PAM */
 	      BN_clear_free(client_host_key_e);
 	      BN_clear_free(client_host_key_n);
 	      break;
 	    }
 	  log("Rhosts authentication failed for %.100s, remote %.100s.",
 		user, client_user);
-	  xfree(client_user);
+#ifndef HAVE_PAM
+          xfree(client_user);
+#endif /* HAVE_PAM */
 	  BN_clear_free(client_host_key_e);
 	  BN_clear_free(client_host_key_n);
 	  break;
@@ -1412,6 +1459,12 @@ do_authentication(char *user, int privileged_port)
 	    packet_integrity_check(plen, 4 + passw_len, type);
 	  }
 
+#ifdef HAVE_PAM
+          /* Authentication will be handled later */
+          /* keep password around until then */
+          authenticated = 1;
+          break;
+#else /* HAVE_PAM */
 	  /* Try authentication with the password. */
 	  if (auth_password(pw, password))
 	    {
@@ -1427,6 +1480,7 @@ do_authentication(char *user, int privileged_port)
 	  memset(password, 0, strlen(password));
 	  xfree(password);
 	  break;
+#endif /* HAVE_PAM */
 
 	case SSH_CMSG_AUTH_TIS:
 	  /* TIS Authentication is unsupported */
@@ -1463,6 +1517,20 @@ do_authentication(char *user, int privileged_port)
 	packet_disconnect("ROOT LOGIN REFUSED FROM %.200s", 
 			  get_canonical_hostname());
     }
+
+#ifdef HAVE_PAM
+  do_pam_authentication(pw->pw_name, password, client_user, get_canonical_hostname());
+
+  /* Clean up */
+  if (client_user != NULL)
+    xfree(client_user);
+
+  if (password != NULL)
+  {
+    memset(password, 0, strlen(password));
+    xfree(password);
+  }
+#endif /* HAVE_PAM */
 
   /* The user has been authenticated and accepted. */
   packet_start(SSH_SMSG_SUCCESS);
@@ -2150,10 +2218,6 @@ void do_child(const char *command, struct passwd *pw, const char *term,
       if (pw->pw_uid != 0)
 	exit(254);
     }
-
-  /* Set login name in the kernel. */
-  if (setlogin(pw->pw_name) < 0)
-    error("setlogin failed: %s", strerror(errno));
 
   /* Set uid, gid, and groups. */
   /* Login(1) does this as well, and it needs uid 0 for the "-h" switch,

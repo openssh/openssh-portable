@@ -1,8 +1,8 @@
 OPT_FLAGS=-g
-CFLAGS=$(OPT_FLAGS) -Wall -DETCDIR=\"/etc/ssh\" -DHAVE_PAM
+CFLAGS=$(OPT_FLAGS) -Wall -DETCDIR=\"/etc/ssh\" -DHAVE_PAM -DHAVE_PWDB
 TARGETS=bin/libssh.a bin/ssh bin/sshd bin/ssh-add bin/ssh-keygen bin/ssh-agent bin/scp
 LFLAGS=-L./bin
-LIBS=-lssh -lcrypto -lz -lutil -lpam -ldl
+LIBS=-lssh -lcrypto -lz -lutil  -lpwdb -lpam -ldl
 AR=ar
 RANLIB=ranlib
 
