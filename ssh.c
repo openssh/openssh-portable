@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.75 2000/11/30 07:02:35 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.77 2000/12/12 23:11:48 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/dsa.h>
@@ -575,11 +575,10 @@ main(int ac, char **av)
 	if (!options.use_privileged_port) {
 #else
 	if (original_effective_uid != 0 || !options.use_privileged_port) {
-		debug("Rhosts Authentication methods disabled, "
-		    "originating port will not be trusted.");
 #endif
+		debug("Rhosts Authentication disabled, "
+		    "originating port will not be trusted.");
 		options.rhosts_authentication = 0;
-		options.rhosts_rsa_authentication = 0;
 	}
 	/*
 	 * If using rsh has been selected, exec it now (without trying
@@ -602,17 +601,13 @@ main(int ac, char **av)
 	/* Restore our superuser privileges. */
 	restore_uid();
 
-	/*
-	 * Open a connection to the remote host.  This needs root privileges
-	 * if rhosts_{rsa_}authentication is enabled.
-	 */
+	/* Open a connection to the remote host. */
 
 	ok = ssh_connect(host, &hostaddr, options.port,
-			 options.connection_attempts,
-			 !options.rhosts_authentication &&
-			 !options.rhosts_rsa_authentication,
-			 original_real_uid,
-			 options.proxy_command);
+	    options.connection_attempts,
+	    original_effective_uid != 0 || !options.use_privileged_port,
+	    original_real_uid,
+	    options.proxy_command);
 
 	/*
 	 * If we successfully made the connection, load the host private key

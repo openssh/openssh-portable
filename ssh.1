@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.71 2000/12/07 04:24:59 djm Exp $
+.\" $OpenBSD: ssh.1,v 1.72 2000/12/12 23:11:48 markus Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -464,7 +464,8 @@ not permit connections from privileged ports.
 Note that this option turns off
 .Cm RhostsAuthentication
 and
-.Cm RhostsRSAAuthentication .
+.Cm RhostsRSAAuthentication
+for older servers.
 .It Fl q
 Quiet mode.
 Causes all warning and diagnostic messages to be suppressed.
@@ -948,7 +949,8 @@ Note that setting this option to
 turns off
 .Cm RhostsAuthentication
 and
-.Cm RhostsRSAAuthentication .
+.Cm RhostsRSAAuthentication
+for older servers.
 .It Cm User
 Specifies the user to log in as.
 This can be useful if you have a different user name on different machines.

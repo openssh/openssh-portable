@@ -15,6 +15,15 @@
    - deraadt@cvs.openbsd.org 2000/12/13 06:36:05
      [pty.c]
      KNF
+   - markus@cvs.openbsd.org 2000/12/12 14:45:21
+     [sshd.c]
+     source port < 1024 is no longer required for rhosts-rsa since it
+     adds no additional security.
+   - markus@cvs.openbsd.org 2000/12/12 16:11:49
+     [ssh.1 ssh.c]
+     rhosts-rsa is no longer automagically disabled if ssh is not privileged.
+     UsePrivilegedPort=no disables rhosts-rsa _only_ for old servers.
+     these changes should not change the visible default behaviour of the ssh client.
 
 20001213
  - (djm) Make sure we reset the SIGPIPE disposition after we fork. Report

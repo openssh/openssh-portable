@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.136 2000/12/05 16:47:28 todd Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.137 2000/12/12 21:45:21 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -1119,18 +1119,17 @@ main(int ac, char **av)
 
 	sshd_exchange_identification(sock_in, sock_out);
 	/*
-	 * Check that the connection comes from a privileged port.  Rhosts-
-	 * and Rhosts-RSA-Authentication only make sense from priviledged
+	 * Check that the connection comes from a privileged port.
+	 * Rhosts-Authentication only makes sense from priviledged
 	 * programs.  Of course, if the intruder has root access on his local
 	 * machine, he can connect from any port.  So do not use these
 	 * authentication methods from machines that you do not trust.
 	 */
 	if (remote_port >= IPPORT_RESERVED ||
 	    remote_port < IPPORT_RESERVED / 2) {
-		debug("Rhosts Authentication methods disabled, "
+		debug("Rhosts Authentication disabled, "
 		    "originating port not trusted.");
 		options.rhosts_authentication = 0;
-		options.rhosts_rsa_authentication = 0;
 	}
 #ifdef KRB4
 	if (!packet_connection_is_ipv4() &&
