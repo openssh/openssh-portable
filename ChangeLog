@@ -1,3 +1,7 @@
+20010107
+ - (bal) Save the whole path to AR in configure.  Some Solaris 2.7 installs
+   seem lose track of it while in openbsd-compat/  (two confirmed reports)
+
 20010105
  - (bal) Disable groupaccess by setting NGROUPS_MAX to 0 for platforms
    that don't have NGROUPS_MAX.
