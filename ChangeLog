@@ -43,6 +43,11 @@
    - djm@cvs.openbsd.org 2003/11/17 09:45:39
      [msg.c msg.h sshconnect2.c ssh-keysign.c]
      return error on msg send/receive failure (rather than fatal); ok markus@
+   - markus@cvs.openbsd.org 2003/11/17 11:06:07
+     [auth2-gss.c gss-genr.c gss-serv.c monitor.c monitor.h monitor_wrap.c]
+     [monitor_wrap.h sshconnect2.c ssh-gss.h]
+     replace "gssapi" with "gssapi-with-mic"; from Simon Wilkinson; 
+     test + ok jakob.
  - (djm) Bug #632: Don't call pam_end indirectly from within kbd-int
    conversation function
  - (djm) Export environment variables from authentication subprocess to 
@@ -1467,4 +1472,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3111 2003/11/17 10:41:42 djm Exp $
+$Id: ChangeLog,v 1.3112 2003/11/17 11:18:21 djm Exp $

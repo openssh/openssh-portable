@@ -1,4 +1,4 @@
-/*	$OpenBSD: monitor_wrap.h,v 1.12 2003/09/23 20:17:11 markus Exp $	*/
+/*	$OpenBSD: monitor_wrap.h,v 1.13 2003/11/17 11:06:07 markus Exp $	*/
 
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
@@ -62,6 +62,7 @@ OM_uint32 mm_ssh_gssapi_server_ctx(Gssctxt **ctxt, gss_OID oid);
 OM_uint32 mm_ssh_gssapi_accept_ctx(Gssctxt *ctxt,
    gss_buffer_desc *recv, gss_buffer_desc *send, OM_uint32 *flags);
 int mm_ssh_gssapi_userok(char *user);
+OM_uint32 mm_ssh_gssapi_checkmic(Gssctxt *, gss_buffer_t, gss_buffer_t);
 #endif
 
 #ifdef USE_PAM

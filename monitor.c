@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.51 2003/11/04 08:54:09 djm Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.52 2003/11/17 11:06:07 markus Exp $");
 
 #include <openssl/dh.h>
 
@@ -134,6 +134,7 @@ int mm_answer_pam_free_ctx(int, Buffer *);
 int mm_answer_gss_setup_ctx(int, Buffer *);
 int mm_answer_gss_accept_ctx(int, Buffer *);
 int mm_answer_gss_userok(int, Buffer *);
+int mm_answer_gss_checkmic(int, Buffer *);
 #endif
 
 static Authctxt *authctxt;
@@ -193,6 +194,7 @@ struct mon_table mon_dispatch_proto20[] = {
     {MONITOR_REQ_GSSSETUP, MON_ISAUTH, mm_answer_gss_setup_ctx},
     {MONITOR_REQ_GSSSTEP, MON_ISAUTH, mm_answer_gss_accept_ctx},
     {MONITOR_REQ_GSSUSEROK, MON_AUTH, mm_answer_gss_userok},
+    {MONITOR_REQ_GSSCHECKMIC, MON_ISAUTH, mm_answer_gss_checkmic},
 #endif
     {0, 0, NULL}
 };
@@ -1781,11 +1783,39 @@ mm_answer_gss_accept_ctx(int socket, Buffer *m)
 
 	gss_release_buffer(&minor, &out);
 
-	/* Complete - now we can do signing */
 	if (major==GSS_S_COMPLETE) {
 		monitor_permit(mon_dispatch, MONITOR_REQ_GSSSTEP, 0);
 		monitor_permit(mon_dispatch, MONITOR_REQ_GSSUSEROK, 1);
+		monitor_permit(mon_dispatch, MONITOR_REQ_GSSCHECKMIC, 1);
 	}
+	return (0);
+}
+
+int
+mm_answer_gss_checkmic(int socket, Buffer *m)
+{
+	gss_buffer_desc gssbuf, mic;
+	OM_uint32 ret;
+	u_int len;
+	
+	gssbuf.value = buffer_get_string(m, &len);
+	gssbuf.length = len;
+	mic.value = buffer_get_string(m, &len);
+	mic.length = len;
+	
+	ret = ssh_gssapi_checkmic(gsscontext, &gssbuf, &mic);
+	
+	xfree(gssbuf.value);
+	xfree(mic.value);
+	
+	buffer_clear(m);
+	buffer_put_int(m, ret);
+	
+	mm_request_send(socket, MONITOR_ANS_GSSCHECKMIC, m);
+	
+	if (!GSS_ERROR(ret))
+		monitor_permit(mon_dispatch, MONITOR_REQ_GSSUSEROK, 1);
+	
 	return (0);
 }
 
@@ -1802,7 +1832,7 @@ mm_answer_gss_userok(int socket, Buffer *m)
 	debug3("%s: sending result %d", __func__, authenticated);
 	mm_request_send(socket, MONITOR_ANS_GSSUSEROK, m);
 
-	auth_method="gssapi";
+	auth_method="gssapi-with-mic";
 
 	/* Monitor loop will terminate if authenticated */
 	return (authenticated);

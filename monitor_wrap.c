@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor_wrap.c,v 1.34 2003/10/15 09:48:45 markus Exp $");
+RCSID("$OpenBSD: monitor_wrap.c,v 1.35 2003/11/17 11:06:07 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dh.h>
@@ -1132,6 +1132,25 @@ mm_ssh_gssapi_accept_ctx(Gssctxt *ctx, gss_buffer_desc *in,
 	buffer_free(&m);
 
 	return (major);
+}
+
+OM_uint32
+mm_ssh_gssapi_checkmic(Gssctxt *ctx, gss_buffer_t gssbuf, gss_buffer_t gssmic)
+{
+	Buffer m;
+	OM_uint32 major;
+
+	buffer_init(&m);
+	buffer_put_string(&m, gssbuf->value, gssbuf->length);
+	buffer_put_string(&m, gssmic->value, gssmic->length);
+
+	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_GSSCHECKMIC, &m);
+	mm_request_receive_expect(pmonitor->m_recvfd, MONITOR_ANS_GSSCHECKMIC,
+	    &m);
+
+	major = buffer_get_int(&m);
+	buffer_free(&m);
+	return(major);
 }
 
 int

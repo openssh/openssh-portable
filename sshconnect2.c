@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.131 2003/11/17 09:45:39 djm Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.132 2003/11/17 11:06:07 markus Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -222,7 +222,7 @@ static char *authmethods_get(void);
 
 Authmethod authmethods[] = {
 #ifdef GSSAPI
-	{"gssapi",
+	{"gssapi-with-mic",
 		userauth_gssapi,
 		&options.gss_authentication,
 		NULL},
@@ -543,10 +543,12 @@ process_gssapi_token(void *ctxt, gss_buffer_t recv_tok)
 	Authctxt *authctxt = ctxt;
 	Gssctxt *gssctxt = authctxt->methoddata;
 	gss_buffer_desc send_tok = GSS_C_EMPTY_BUFFER;
-	OM_uint32 status, ms;
+	gss_buffer_desc gssbuf, mic;
+	OM_uint32 status, ms, flags;
+	Buffer b;
 	
 	status = ssh_gssapi_init_ctx(gssctxt, options.gss_deleg_creds,
-	    recv_tok, &send_tok, NULL);
+	    recv_tok, &send_tok, &flags);
 
 	if (send_tok.length > 0) {
 		if (GSS_ERROR(status))
@@ -560,9 +562,29 @@ process_gssapi_token(void *ctxt, gss_buffer_t recv_tok)
 	}
 	
 	if (status == GSS_S_COMPLETE) {
-		/* If that succeeded, send a exchange complete message */
-		packet_start(SSH2_MSG_USERAUTH_GSSAPI_EXCHANGE_COMPLETE);
-		packet_send();
+		/* send either complete or MIC, depending on mechanism */
+		if (!(flags & GSS_C_INTEG_FLAG)) {
+			packet_start(SSH2_MSG_USERAUTH_GSSAPI_EXCHANGE_COMPLETE);
+			packet_send();
+		} else {
+			ssh_gssapi_buildmic(&b, authctxt->server_user,
+			    authctxt->service, "gssapi-with-mic");
+
+			gssbuf.value = buffer_ptr(&b);
+			gssbuf.length = buffer_len(&b);
+			
+			status = ssh_gssapi_sign(gssctxt, &gssbuf, &mic);
+			
+			if (!GSS_ERROR(status)) {
+				packet_start(SSH2_MSG_USERAUTH_GSSAPI_MIC);
+				packet_put_string(mic.value, mic.length);
+				
+				packet_send();
+			}
+				
+			buffer_free(&b);
+			gss_release_buffer(&ms, &mic);
+		}	   
 	}
 	
 	return status;

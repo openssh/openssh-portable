@@ -1,4 +1,4 @@
-/*	$OpenBSD: gss-serv.c,v 1.4 2003/09/23 20:17:11 markus Exp $	*/
+/*	$OpenBSD: gss-serv.c,v 1.5 2003/11/17 11:06:07 markus Exp $	*/
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -285,6 +285,16 @@ ssh_gssapi_userok(char *user)
 	else
 		debug("ssh_gssapi_userok: Unknown GSSAPI mechanism");
 	return (0);
+}
+
+/* Priviledged */
+OM_uint32
+ssh_gssapi_checkmic(Gssctxt *ctx, gss_buffer_t gssbuf, gss_buffer_t gssmic)
+{
+	ctx->major = gss_verify_mic(&ctx->minor, ctx->context,
+	    gssbuf, gssmic, NULL);
+
+	return (ctx->major);
 }
 
 #endif
