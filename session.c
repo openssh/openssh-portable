@@ -1959,7 +1959,7 @@ session_close_by_pid(pid_t pid, int status)
 {
 	Session *s = session_by_pid(pid);
 	if (s == NULL) {
-		debug("session_close_by_pid: no session for pid %d", s->pid);
+		debug("session_close_by_pid: no session for pid %d", pid);
 		return;
 	}
 	if (s->chanid != -1)
