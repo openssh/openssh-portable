@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.203 2004/12/06 11:41:03 dtucker Exp $
+.\" $OpenBSD: sshd.8,v 1.204 2005/02/25 10:55:13 jmc Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -652,6 +652,20 @@ These files should be writable only by root/the owner.
 should be world-readable, and
 .Pa $HOME/.ssh/known_hosts
 can, but need not be, world-readable.
+.It Pa /etc/motd
+See
+.Xr motd 5 .
+.It Pa $HOME/.hushlogin
+This file is used to suppress printing the last login time and
+.Pa /etc/motd ,
+if
+.Cm PrintLastLog
+and
+.Cm PrintMotd ,
+respectively,
+are enabled.
+It does not suppress printing of the banner specified by
+.Cm Banner .
 .It Pa /etc/nologin
 If this file exists,
 .Nm

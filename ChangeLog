@@ -11,6 +11,10 @@
      turn on ssh batch mode when in sftp batch mode, patch from 
      jdmossh AT nand.net;
      ok markus@
+   - jmc@cvs.openbsd.org 2005/02/25 10:55:13
+     [sshd.8]
+     add /etc/motd and $HOME/.hushlogin to FILES;
+     from michael knudsen;
 
 20050226
  - (dtucker) [openbsd-compat/bsd-openpty.c openbsd-compat/inet_ntop.c]
@@ -2187,4 +2191,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3669 2005/03/01 10:16:47 djm Exp $
+$Id: ChangeLog,v 1.3670 2005/03/01 10:17:09 djm Exp $
