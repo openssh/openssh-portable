@@ -170,7 +170,7 @@
 #include "xmalloc.h"
 #include "loginrec.h"
 
-RCSID("$Id: loginrec.c,v 1.13 2000/07/01 03:17:42 djm Exp $");
+RCSID("$Id: loginrec.c,v 1.14 2000/07/01 22:43:18 djm Exp $");
 
 /**
  ** prototypes for helper functions in this file
@@ -1271,8 +1271,8 @@ syslogin_perform_logout(struct logininfo *li)
 #  ifdef HAVE_LOGWTMP
 	} else {
 		logwtmp(line, "", "");
-	}
 #  endif
+	}
 	/* FIXME: (ATL - if the need arises) What to do if we have
 	 * login, but no logout?  what if logout but no logwtmp? All
 	 * routines are in libutil so they should all be there,
