@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.68 2001/05/06 21:45:14 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.69 2001/05/08 19:17:31 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1150,20 +1150,21 @@ client_input_channel_open(int type, int plen, void *ctxt)
 		c->remote_id = rchan;
 		c->remote_window = rwindow;
 		c->remote_maxpacket = rmaxpack;
-
-		packet_start(SSH2_MSG_CHANNEL_OPEN_CONFIRMATION);
-		packet_put_int(c->remote_id);
-		packet_put_int(c->self);
-		packet_put_int(c->local_window);
-		packet_put_int(c->local_maxpacket);
-		packet_send();
+		if (c->type != SSH_CHANNEL_CONNECTING) {
+			packet_start(SSH2_MSG_CHANNEL_OPEN_CONFIRMATION);
+			packet_put_int(c->remote_id);
+			packet_put_int(c->self);
+			packet_put_int(c->local_window);
+			packet_put_int(c->local_maxpacket);
+			packet_send();
+		}
 	} else {
 		debug("failure %s", ctype);
 		packet_start(SSH2_MSG_CHANNEL_OPEN_FAILURE);
 		packet_put_int(rchan);
 		packet_put_int(SSH2_OPEN_ADMINISTRATIVELY_PROHIBITED);
 		if (!(datafellows & SSH_BUG_OPENFAILURE)) {
-			packet_put_cstring("bla bla");
+			packet_put_cstring("open failed");
 			packet_put_cstring("");
 		}
 		packet_send();

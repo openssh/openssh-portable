@@ -4,7 +4,7 @@
      [cli.c]
      cli_read() fails to catch SIGINT + overflow; from obdb@zzlevo.net
    - markus@cvs.openbsd.org 2001/05/08 19:17:31
-     [channels.c serverloop.c]
+     [channels.c serverloop.c clientloop.c]
      adds correct error reporting to async connect()s
      fixes the server-discards-data-before-connected-bug found by 
      onoe@sm.sony.co.jp
@@ -5379,4 +5379,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1211 2001/05/08 23:58:37 mouring Exp $
+$Id: ChangeLog,v 1.1212 2001/05/09 00:01:18 mouring Exp $
