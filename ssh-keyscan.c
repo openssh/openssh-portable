@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keyscan.c,v 1.39 2002/07/06 01:01:26 deraadt Exp $");
+RCSID("$OpenBSD: ssh-keyscan.c,v 1.40 2002/07/06 17:47:58 stevesk Exp $");
 
 #include "openbsd-compat/fake-queue.h"
 
@@ -171,7 +171,6 @@ Linebuf_lineno(Linebuf * lb)
 static char *
 Linebuf_getline(Linebuf * lb)
 {
-	u_int size;
 	int n = 0;
 	void *p;
 
