@@ -23,9 +23,10 @@ SYSVINIT_NAME=opensshd
 MAKE=${MAKE:="make"}
 SSHDUID=67	# Default privsep uid
 SSHDGID=67	# Default privsep gid
-# uncomment these next two as needed
+# uncomment these next three as needed
 #PERMIT_ROOT_LOGIN=no
 #X11_FORWARDING=yes
+#USR_LOCAL_IS_SYMLINK=yes
 # list of system directories we do NOT want to change owner/group/perms
 # when installing our package
 SYSTEM_DIR="/etc	\
@@ -369,6 +370,12 @@ cat >mk-proto.awk << _EOF
 _EOF
 find . | egrep -v "prototype|pkginfo|mk-proto.awk" | sort | \
 	pkgproto $PROTO_ARGS | nawk -f mk-proto.awk > prototype
+
+# /usr/local is a symlink on some systems
+[ "${USR_LOCAL_IS_SYMLINK}" = yes ]  &&  {
+	grep -v "^d none /usr/local ? ? ?$" prototype > prototype.new
+	mv prototype.new prototype
+}
 
 ## Step back a directory and now build the package.
 echo "Building package.."

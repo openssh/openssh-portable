@@ -3,6 +3,8 @@
    GSSAPI detection, libs and includes.  ok djm@
  - (dtucker) [session.c] Enable AFS support in conjunction with KRB5 not
    just HEIMDAL.
+ - (tim) [contrib/solaris/buildpkg.sh] Allow for the possibility of
+   /usr/local being a symbolic link. Fixes problem reported by Henry Grebler.
 
 20040121
  - (djm) OpenBSD CVS Sync
@@ -1707,4 +1709,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3179 2004/01/22 01:48:26 dtucker Exp $
+$Id: ChangeLog,v 1.3180 2004/01/23 00:10:03 tim Exp $
