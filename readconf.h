@@ -13,7 +13,7 @@
  *
  */
 
-/* RCSID("$Id: readconf.h,v 1.12 2000/06/07 09:55:44 djm Exp $"); */
+/* RCSID("$OpenBSD: readconf.h,v 1.20 2000/06/20 01:39:43 markus Exp $"); */
 
 #ifndef READCONF_H
 #define READCONF_H

@@ -6,7 +6,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: crc32.c,v 1.2 1999/11/24 13:26:22 damien Exp $");
+RCSID("$OpenBSD: crc32.c,v 1.5 2000/06/20 01:39:40 markus Exp $");
 
 #include "crc32.h"
 

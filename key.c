@@ -121,8 +121,6 @@ key_equal(Key *a, Key *b)
 	return 0;
 }
 
-#define FPRINT "%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x"
-
 /*
  * Generate key fingerprint in ascii format.
  * Based on ideas and code from Bjoern Groenvall <bg@sics.se>
@@ -130,7 +128,7 @@ key_equal(Key *a, Key *b)
 char *
 key_fingerprint(Key *k)
 {
-	static char retval[80];
+	static char retval[(EVP_MAX_MD_SIZE+1)*3];
 	unsigned char *blob = NULL;
 	int len = 0;
 	int nlen, elen;
@@ -151,15 +149,22 @@ key_fingerprint(Key *k)
 		fatal("key_fingerprint: bad key type %d", k->type);
 		break;
 	}
+	retval[0] = '\0';
+
 	if (blob != NULL) {
-		unsigned char d[16];
-		EVP_MD_CTX md;
-		EVP_DigestInit(&md, EVP_md5());
-		EVP_DigestUpdate(&md, blob, len);
-		EVP_DigestFinal(&md, d, NULL);
-		snprintf(retval, sizeof(retval), FPRINT,
-		    d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7],
-		    d[8], d[9], d[10], d[11], d[12], d[13], d[14], d[15]);
+		int i;
+		unsigned char digest[EVP_MAX_MD_SIZE];
+		EVP_MD *md = EVP_md5();
+		EVP_MD_CTX ctx;
+		EVP_DigestInit(&ctx, md);
+		EVP_DigestUpdate(&ctx, blob, len);
+		EVP_DigestFinal(&ctx, digest, NULL);
+		for(i = 0; i < md->md_size; i++) {
+			char hex[4];
+			snprintf(hex, sizeof(hex), "%02x:", digest[i]);
+			strlcat(retval, hex, sizeof(retval));
+		}
+		retval[strlen(retval) - 1] = '\0';
 		memset(blob, 0, len);
 		xfree(blob);
 	}

@@ -27,7 +27,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$Id: dispatch.c,v 1.3 2000/04/16 01:18:42 damien Exp $");
+RCSID("$OpenBSD: dispatch.c,v 1.3 2000/06/20 01:39:41 markus Exp $");
 #include "ssh.h"
 #include "dispatch.h"
 #include "packet.h"

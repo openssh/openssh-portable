@@ -28,7 +28,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.13 2000/06/02 02:00:19 todd Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.15 2000/06/21 16:46:10 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
@@ -295,6 +295,7 @@ ssh2_try_pubkey(char *filename,
 	unsigned char *blob, *signature;
 	int bloblen, slen;
 	struct stat st;
+	int skip = 0;
 
 	if (stat(filename, &st) != 0) {
 		debug("key does not exist: %s", filename);
@@ -314,14 +315,22 @@ ssh2_try_pubkey(char *filename,
 		success = load_private_key(filename, passphrase, k, NULL);
 		memset(passphrase, 0, strlen(passphrase));
 		xfree(passphrase);
-		if (!success)
+		if (!success) {
+			key_free(k);
 			return 0;
+		}
 	}
 	dsa_make_key_blob(k, &blob, &bloblen);
 
 	/* data to be signed */
 	buffer_init(&b);
-	buffer_append(&b, session_id2, session_id2_len);
+	if (datafellows & SSH_COMPAT_SESSIONID_ENCODING) {
+		buffer_put_string(&b, session_id2, session_id2_len);
+		skip = buffer_len(&b);
+	} else {
+		buffer_append(&b, session_id2, session_id2_len);
+		skip = session_id2_len; 
+	}
 	buffer_put_char(&b, SSH2_MSG_USERAUTH_REQUEST);
 	buffer_put_cstring(&b, server_user);
 	buffer_put_cstring(&b,
@@ -340,7 +349,6 @@ ssh2_try_pubkey(char *filename,
 	buffer_dump(&b);
 #endif
 	if (datafellows & SSH_BUG_PUBKEYAUTH) {
-		/* e.g. ssh-2.0.13: data-to-be-signed != data-on-the-wire */
 		buffer_clear(&b);
 		buffer_append(&b, session_id2, session_id2_len);
 		buffer_put_char(&b, SSH2_MSG_USERAUTH_REQUEST);
@@ -357,9 +365,9 @@ ssh2_try_pubkey(char *filename,
 	xfree(signature);
 
 	/* skip session id and packet type */
-	if (buffer_len(&b) < session_id2_len + 1)
+	if (buffer_len(&b) < skip + 1)
 		fatal("ssh2_try_pubkey: internal error");
-	buffer_consume(&b, session_id2_len + 1);
+	buffer_consume(&b, skip + 1);
 
 	/* put remaining data from buffer into packet */
 	packet_start(SSH2_MSG_USERAUTH_REQUEST);

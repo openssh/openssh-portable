@@ -13,7 +13,7 @@
  *
  */
 
-/* RCSID("$Id: buffer.h,v 1.4 2000/04/16 02:31:50 damien Exp $"); */
+/* RCSID("$OpenBSD: buffer.h,v 1.5 2000/06/20 01:39:39 markus Exp $"); */
 
 #ifndef BUFFER_H
 #define BUFFER_H

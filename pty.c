@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: pty.c,v 1.19 2000/04/20 13:12:59 damien Exp $");
+RCSID("$OpenBSD: pty.c,v 1.14 2000/06/20 01:39:43 markus Exp $");
 
 #ifdef HAVE_UTIL_H
 # include <util.h>

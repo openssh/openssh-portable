@@ -28,7 +28,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: dsa.c,v 1.7 2000/05/08 17:42:24 markus Exp $");
+RCSID("$OpenBSD: dsa.c,v 1.9 2000/06/20 01:39:41 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -72,7 +72,7 @@ dsa_key_from_blob(
 	buffer_append(&b, blob, blen);
 	ktype = buffer_get_string(&b, NULL);
 	if (strcmp(KEX_DSS, ktype) != 0) {
-		error("dsa_key_from_blob: cannot handle type  %s", ktype);
+		error("dsa_key_from_blob: cannot handle type %s", ktype);
 		key_free(key);
 		return NULL;
 	}
@@ -197,7 +197,6 @@ dsa_verify(
 	DSA_SIG *sig;
 	EVP_MD *evp_md = EVP_sha1();
 	EVP_MD_CTX md;
-	char *ktype;
 	unsigned char *sigblob;
 	char *txt;
 	unsigned int len;
@@ -227,14 +226,24 @@ dsa_verify(
 		len = signaturelen;
 	} else {
 		/* ietf-drafts */
+		char *ktype;
 		buffer_init(&b);
 		buffer_append(&b, (char *) signature, signaturelen);
 		ktype = buffer_get_string(&b, NULL);
+		if (strcmp(KEX_DSS, ktype) != 0) {
+			error("dsa_verify: cannot handle type %s", ktype);
+			buffer_free(&b);
+			return -1;
+		}
 		sigblob = (unsigned char *)buffer_get_string(&b, &len);
 		rlen = buffer_len(&b);
-		if(rlen != 0)
+		if(rlen != 0) {
 			error("remaining bytes in signature %d", rlen);
+			buffer_free(&b);
+			return -1;
+		}
 		buffer_free(&b);
+		xfree(ktype);
 	}
 
 	if (len != SIGBLOB_LEN) {

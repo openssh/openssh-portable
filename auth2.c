@@ -27,7 +27,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.10 2000/06/18 04:05:02 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.11 2000/06/19 00:50:11 markus Exp $");
 
 #include <openssl/dsa.h>
 #include <openssl/rsa.h>
@@ -302,8 +302,11 @@ ssh2_auth_pubkey(struct passwd *pw, char *service)
 			sig = packet_get_string(&slen);
 			packet_done();
 			buffer_init(&b);
-			buffer_append(&b, session_id2, session_id2_len);
-
+			if (datafellows & SSH_COMPAT_SESSIONID_ENCODING) {
+				buffer_put_string(&b, session_id2, session_id2_len);
+			} else {
+				buffer_append(&b, session_id2, session_id2_len);
+			}
 			/* reconstruct packet */
 			buffer_put_char(&b, SSH2_MSG_USERAUTH_REQUEST);
 			buffer_put_cstring(&b, pw->pw_name);

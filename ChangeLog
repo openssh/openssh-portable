@@ -2,6 +2,29 @@
  - (djm) Automatically generate host key during "make install". Suggested
    by Gary E. Miller <gem@rellim.com>
  - (djm) Paranoia before kill() system call
+ - OpenBSD CVS Updates:
+   - markus@cvs.openbsd.org  2000/06/18 18:50:11
+     [auth2.c compat.c compat.h sshconnect2.c]
+     make userauth+pubkey interop with ssh.com-2.2.0
+   - markus@cvs.openbsd.org  2000/06/18 20:56:17
+     [dsa.c]
+     mem leak + be more paranoid in dsa_verify.
+   - markus@cvs.openbsd.org  2000/06/18 21:29:50
+     [key.c]
+     cleanup fingerprinting, less hardcoded sizes
+   - markus@cvs.openbsd.org  2000/06/19 19:39:45
+     [atomicio.c auth-options.c auth-passwd.c auth-rh-rsa.c auth-rhosts.c]
+     [auth-rsa.c auth-skey.c authfd.c authfd.h authfile.c bufaux.c bufaux.h]
+     [buffer.c buffer.h canohost.c channels.c channels.h cipher.c cipher.h] 
+     [clientloop.c compat.c compat.h compress.c compress.h crc32.c crc32.h]
+     [deattack.c dispatch.c dsa.c fingerprint.c fingerprint.h getput.h hmac.c]
+     [kex.c log-client.c log-server.c login.c match.c mpaux.c mpaux.h nchan.c] 
+     [nchan.h packet.c packet.h pty.c pty.h readconf.c readconf.h readpass.c] 
+     [rsa.c rsa.h scp.c servconf.c servconf.h ssh-add.c ssh-keygen.c ssh.c]
+     [ssh.h tildexpand.c ttymodes.c ttymodes.h uidswap.c xmalloc.c xmalloc.h]
+     OpenBSD tag
+   - markus@cvs.openbsd.org  2000/06/21 10:46:10
+     sshconnect2.c missing free; nuke old comment
 
 20000620
  - (djm) Replace use of '-o' and '-a' logical operators in configure tests

@@ -11,7 +11,7 @@
 
 #ifndef USE_PAM
 
-RCSID("$Id: auth-passwd.c,v 1.20 2000/05/20 05:03:00 damien Exp $");
+RCSID("$OpenBSD: auth-passwd.c,v 1.16 2000/06/20 01:39:38 markus Exp $");
 
 #include "packet.h"
 #include "ssh.h"

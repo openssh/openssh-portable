@@ -1,5 +1,5 @@
 /*
- * $Id: deattack.c,v 1.3 1999/11/24 13:26:22 damien Exp $
+ * $OpenBSD: deattack.c,v 1.7 2000/06/20 01:39:41 markus Exp $
  * Cryptographic attack detector for ssh - source code
  *
  * Copyright (c) 1998 CORE SDI S.A., Buenos Aires, Argentina.
