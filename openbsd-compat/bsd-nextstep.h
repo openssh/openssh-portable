@@ -21,19 +21,13 @@
  *
  */
 
-/* $Id: bsd-nextstep.h,v 1.3 2001/02/12 15:57:18 mouring Exp $ */
+/* $Id: bsd-nextstep.h,v 1.4 2001/02/13 02:18:50 mouring Exp $ */
 
 #ifndef _NEXT_POSIX_H
 #define _NEXT_POSIX_H
 
 #ifdef HAVE_NEXT
 #include <sys/dir.h>
-
-/* 
- * Temporary hack to let bsd-snprintf.c work.  bsd-snprintf.c really
- * needs to be cleaned up.
- */
-#define HAVE_STDARG_H 1
 
 /* NeXT's readdir() is BSD (struct direct) not POSIX (struct dirent) */
 #define dirent direct

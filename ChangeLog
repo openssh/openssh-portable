@@ -1,7 +1,8 @@
 20010213
- - (bal) added NeXT work around for bsd-snprintf.c in bsd-nextstep.h.
- - (bal) added TODO item to clean up and sort out 'varargs' from 'stdargs'
  - (djm) Only test -S potential EGD sockets if they exist and are readable.
+ - (bal) Cleaned out bsd-snprintf.c.  VARARGS have been banished and
+   I did a base KNF over the whe whole file to make it more acceptable.
+   (backed out of original patch and removed it from ChangeLog)
 
 20010212
  - (djm) Update Redhat specfile to allow --define "skip_x11_askpass 1", 
@@ -3909,4 +3910,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.751 2001/02/13 01:11:17 djm Exp $
+$Id: ChangeLog,v 1.752 2001/02/13 02:18:50 mouring Exp $

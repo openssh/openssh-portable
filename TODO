@@ -29,9 +29,6 @@ Programming:
 - Verify that It's safe to enable NGROUPS_MAX under NeXTStep for
   groupaccess features. (mouring@eviladmin.org)
 
-- Clean up bsd-snprintf.c  and sort out how to detect between VARARGS
-  and STDARGS for better portablity (mouring@eviladmin.org)
-
 Documentation:
 - More and better
 
@@ -65,4 +62,4 @@ Packaging:
 - HP/UX: Provide DEPOT package scripts.
   (gilbert.r.loomis@saic.com)
 
-$Id: TODO,v 1.34 2001/02/12 15:57:18 mouring Exp $
+$Id: TODO,v 1.35 2001/02/13 02:18:50 mouring Exp $
