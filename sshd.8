@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: sshd.8,v 1.5 1999/11/11 00:43:13 damien Exp $
+.\" $Id: sshd.8,v 1.6 1999/11/11 06:57:40 damien Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSHD 8
@@ -231,15 +231,6 @@ can be used as
 wildcards in the patterns.  Only user names are valid, a numerical user
 id isn't recognized.  By default login is allowed regardless of
 the user name.
-.Pp
-.It Cm FascistLogging
-Specifies whether to use verbose logging.  Verbose logging violates
-the privacy of users and is not recommended.  The argument must be
-.Dq yes
-or
-.Dq no .
-The default is
-.Dq no .
 .It Cm HostKey
 Specifies the file containing the private host key (default
 .Pa /etc/ssh/ssh_host_key ) .
@@ -312,6 +303,14 @@ The default is to listen to all local addresses.
 The server disconnects after this time if the user has not
 successfully logged in.  If the value is 0, there is no time limit.
 The default is 600 (seconds).
+.It Cm LogLevel
+Gives the verbosity level that is used when logging messages from
+.Nm sshd .
+The possible values are:
+QUIET, FATAL, ERROR, INFO, CHAT and DEBUG.
+The default is INFO.
+Logging with level DEBUG violates the privacy of users
+and is not recommended.
 .It Cm PasswordAuthentication
 Specifies whether password authentication is allowed.
 The default is
@@ -355,11 +354,6 @@ printed by the shell,
 .Pa /etc/profile ,
 or equivalent.)  The default is
 .Dq yes .
-.It Cm QuietMode
-Specifies whether the system runs in quiet mode.  In quiet mode,
-nothing is logged in the system log, except fatal errors.  The default
-is
-.Dq no .
 .It Cm RandomSeed
 Obsolete.  Random number generation uses other techniques.
 .It Cm RhostsAuthentication
@@ -622,8 +616,8 @@ This file must be readable by root (which may on some machines imply
 it being world-readable if the user's home directory resides on an NFS
 volume).  It is recommended that it not be accessible by others.  The
 format of this file is described above.
-.It Pa "/etc/ssh/ssh_known_hosts" and "$HOME/.ssh/known_hosts"
-This file is consulted when using rhosts with RSA host
+.It Pa "/etc/ssh_known_hosts" and "$HOME/.ssh/known_hosts"
+These files are consulted when using rhosts with RSA host
 authentication to check the public key of the host.  The key must be
 listed in one of these files to be accepted.
 The client uses the same files

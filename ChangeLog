@@ -7,8 +7,15 @@
    - [sshd.8] user/958: check ~/.ssh/known_hosts for rhosts-rsa, too
  - Fix integer overflow which was messing up scp's progress bar for large 
    file transfers. Fix submitted to OpenBSD developers.
- - Released 1.2pre10
-
+ - Merged more OpenBSD CVS changes:
+   - [auth-krb4.c auth-passwd.c] remove x11- and krb-cleanup from fatal() 
+     + krb-cleanup cleanup
+   - [clientloop.c log-client.c log-server.c ]
+     [readconf.c readconf.h servconf.c servconf.h ]
+     [ssh.1 ssh.c ssh.h sshd.8]
+     add LogLevel {QUIET, FATAL, ERROR, INFO, CHAT, DEBUG} to ssh/sshd,
+     obsoletes QuietMode and FascistLogging in sshd.
+     
 19991110
  - Merged several minor fixed:
    - ssh-agent commandline parsing

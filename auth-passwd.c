@@ -15,16 +15,12 @@ the password is valid for the user.
 */
 
 #include "includes.h"
-RCSID("$Id: auth-passwd.c,v 1.2 1999/10/27 13:42:05 damien Exp $");
+RCSID("$Id: auth-passwd.c,v 1.3 1999/11/11 06:57:39 damien Exp $");
 
 #include "packet.h"
 #include "ssh.h"
 #include "servconf.h"
 #include "xmalloc.h"
-
-#ifdef KRB4
-extern char *ticket;
-#endif /* KRB4 */
 
 /* Tries to authenticate the user using password.  Returns true if
    authentication succeeds. */
@@ -80,9 +76,9 @@ int auth_password(struct passwd *pw, const char *password)
       KTEXT_ST tkt;
       struct hostent *hp;
       unsigned long faddr;
-      char localhost[MAXHOSTNAMELEN];	/* local host name */
-      char phost[INST_SZ];		/* host instance */
-      char realm[REALM_SZ];		/* local Kerberos realm */
+      char localhost[MAXHOSTNAMELEN];
+      char phost[INST_SZ];
+      char realm[REALM_SZ];
       int r;
       
       /* Try Kerberos password authentication only for non-root
@@ -90,9 +86,8 @@ int auth_password(struct passwd *pw, const char *password)
       if (pw->pw_uid != 0 && krb_get_lrealm(realm, 1) == KSUCCESS) {
 
 	/* Set up our ticket file. */
-	if (!ssh_tf_init(pw->pw_uid)) {
-	  log("Couldn't initialize Kerberos ticket file for %s!",
-	      pw->pw_name);
+	if (!krb4_init(pw->pw_uid)) {
+	  log("Couldn't initialize Kerberos ticket file for %s!", pw->pw_name);
 	  goto kerberos_auth_failure;
 	}
 	/* Try to get TGT using our password. */
@@ -104,13 +99,12 @@ int auth_password(struct passwd *pw, const char *password)
 	  goto kerberos_auth_failure;
 	}
 	/* Successful authentication. */
-	chown(ticket, pw->pw_uid, pw->pw_gid);
-	
-	(void) gethostname(localhost, sizeof(localhost));
-	(void) strlcpy(phost, (char *)krb_get_phost(localhost), INST_SZ);
+	chown(tkt_string(), pw->pw_uid, pw->pw_gid);
 	
 	/* Now that we have a TGT, try to get a local "rcmd" ticket to
 	   ensure that we are not talking to a bogus Kerberos server. */
+	(void) gethostname(localhost, sizeof(localhost));
+	(void) strlcpy(phost, (char *)krb_get_phost(localhost), INST_SZ);
 	r = krb_mk_req(&tkt, KRB4_SERVICE_NAME, phost, realm, 33);
 
 	if (r == KSUCCESS) {
@@ -150,10 +144,10 @@ int auth_password(struct passwd *pw, const char *password)
 	return 1;
 	
       kerberos_auth_failure:
-	(void) dest_tkt();
-	xfree(ticket);
-	ticket = NULL;
-	if (!options.kerberos_or_local_passwd ) return 0;
+	krb4_cleanup_proc(NULL);
+	
+	if (!options.kerberos_or_local_passwd)
+	  return 0;
       }
       else {
 	/* Logging in as root or no local Kerberos realm. */

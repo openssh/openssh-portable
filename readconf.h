@@ -13,7 +13,7 @@ Functions for reading the configuration file.
 
 */
 
-/* RCSID("$Id: readconf.h,v 1.1 1999/10/27 03:42:44 damien Exp $"); */
+/* RCSID("$Id: readconf.h,v 1.2 1999/11/11 06:57:39 damien Exp $"); */
 
 #ifndef READCONF_H
 #define READCONF_H
@@ -54,6 +54,7 @@ typedef struct
   int compression;		/* Compress packets in both directions. */
   int compression_level;	/* Compression level 1 (fast) to 9 (best). */
   int keepalives;		/* Set SO_KEEPALIVE. */
+  LogLevel log_level;		/* Level for logging. */
 
   int port;			/* Port to connect. */
   int connection_attempts;	/* Max attempts (seconds) before giving up */

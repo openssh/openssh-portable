@@ -6,7 +6,7 @@
 
    Kerberos v4 authentication and ticket-passing routines.
 
-   $Id: auth-krb4.c,v 1.2 1999/11/08 04:49:41 damien Exp $
+   $Id: auth-krb4.c,v 1.3 1999/11/11 06:57:39 damien Exp $
 */
 
 #include "includes.h"
@@ -15,38 +15,59 @@
 #include "ssh.h"
 
 #ifdef KRB4
-int ssh_tf_init(uid_t uid)
+char *ticket = NULL;
+
+void
+krb4_cleanup_proc(void *ignore)
 {
-  extern char *ticket;
+  debug("krb4_cleanup_proc called");
+  
+  if (ticket) {
+    (void) dest_tkt();
+    xfree(ticket);
+    ticket = NULL;
+  }
+}
+
+int krb4_init(uid_t uid)
+{
+  static int cleanup_registered = 0;
   char *tkt_root = TKT_ROOT;
   struct stat st;
   int fd;
-  
-  /* Set unique ticket string manually since we're still root. */
-  ticket = xmalloc(MAXPATHLEN);
-#ifdef AFS
-  if (lstat("/ticket", &st) != -1)
-    tkt_root = "/ticket/";
-#endif /* AFS */
-  snprintf(ticket, MAXPATHLEN, "%s%d_%d", tkt_root, uid, getpid());
-  (void) krb_set_tkt_string(ticket);
 
-  /* Make sure we own this ticket file, and we created it. */
-  if (lstat(ticket, &st) == -1 && errno == ENOENT) {
-    /* good, no ticket file exists. create it. */
-    if ((fd = open(ticket, O_RDWR|O_CREAT|O_EXCL, 0600)) != -1) {
-      close(fd);
-      return 1;
-    }
+  if (!ticket) {
+    /* Set unique ticket string manually since we're still root. */
+    ticket = xmalloc(MAXPATHLEN);
+#ifdef AFS
+    if (lstat("/ticket", &st) != -1)
+      tkt_root = "/ticket/";
+#endif /* AFS */
+    snprintf(ticket, MAXPATHLEN, "%s%d_%d", tkt_root, uid, getpid());
+    (void) krb_set_tkt_string(ticket);
   }
-  else {
-    /* file exists. make sure server_user owns it (e.g. just passed ticket),
-       and that it isn't a symlink, and that it is mode 600. */
+  /* Register ticket cleanup in case of fatal error. */
+  if (!cleanup_registered) {
+    fatal_add_cleanup(krb4_cleanup_proc, NULL);
+    cleanup_registered = 1;
+  }
+  /* Try to create our ticket file. */
+  if ((fd = mkstemp(ticket)) != -1) {
+    close(fd);
+    return 1;
+  }
+  /* Ticket file exists - make sure user owns it (just passed ticket). */
+  if (lstat(ticket, &st) != -1) {
     if (st.st_mode == (S_IFREG|S_IRUSR|S_IWUSR) && st.st_uid == uid)
       return 1;
   }
-  /* Failure. */
+  /* Failure - cancel cleanup function, leaving bad ticket for inspection. */
   log("WARNING: bad ticket file %s", ticket);
+  fatal_remove_cleanup(krb4_cleanup_proc, NULL);
+  cleanup_registered = 0;
+  xfree(ticket);
+  ticket = NULL;
+  
   return 0;
 }
 
@@ -103,8 +124,7 @@ int auth_krb4(const char *server_user, KTEXT auth, char **client)
     reply.dat[0] = 0;
     reply.length = 0;
   }
-  else
-    reply.length = r;
+  else reply.length = r;
   
   /* Clear session key. */
   memset(&adat.session, 0, sizeof(&adat.session));
@@ -121,8 +141,6 @@ int auth_krb4(const char *server_user, KTEXT auth, char **client)
 int auth_kerberos_tgt(struct passwd *pw, const char *string)
 {
   CREDENTIALS creds;
-  extern char *ticket;
-  int r;
   
   if (!radix_to_creds(string, &creds)) {
     log("Protocol error decoding Kerberos V4 tgt");
@@ -133,37 +151,39 @@ int auth_kerberos_tgt(struct passwd *pw, const char *string)
     strlcpy(creds.service, "krbtgt", sizeof creds.service);
   
   if (strcmp(creds.service, "krbtgt")) {
-    log("Kerberos V4 tgt (%s%s%s@%s) rejected for uid %d",
-	creds.pname, creds.pinst[0] ? "." : "", creds.pinst, creds.realm,
-	pw->pw_uid);
-    packet_send_debug("Kerberos V4 tgt (%s%s%s@%s) rejected for uid %d",
+    log("Kerberos V4 tgt (%s%s%s@%s) rejected for %s", creds.pname,
+	creds.pinst[0] ? "." : "", creds.pinst, creds.realm, pw->pw_name);
+    packet_send_debug("Kerberos V4 tgt (%s%s%s@%s) rejected for %s",
 		      creds.pname, creds.pinst[0] ? "." : "", creds.pinst,
-		      creds.realm, pw->pw_uid);
+		      creds.realm, pw->pw_name);
     goto auth_kerberos_tgt_failure;
   }
-  if (!ssh_tf_init(pw->pw_uid) ||
-      (r = in_tkt(creds.pname, creds.pinst)) ||
-      (r = save_credentials(creds.service, creds.instance, creds.realm,
-			    creds.session, creds.lifetime, creds.kvno,
-			    &creds.ticket_st, creds.issue_date))) {
-    xfree(ticket);
-    ticket = NULL;
+  if (!krb4_init(pw->pw_uid))
+    goto auth_kerberos_tgt_failure;
+
+  if (in_tkt(creds.pname, creds.pinst) != KSUCCESS)
+    goto auth_kerberos_tgt_failure;
+  
+  if (save_credentials(creds.service, creds.instance, creds.realm,
+		       creds.session, creds.lifetime, creds.kvno,
+		       &creds.ticket_st, creds.issue_date) != KSUCCESS) {
     packet_send_debug("Kerberos V4 tgt refused: couldn't save credentials");
     goto auth_kerberos_tgt_failure;
   }
   /* Successful authentication, passed all checks. */
-  chown(ticket, pw->pw_uid, pw->pw_gid);
-  packet_send_debug("Kerberos V4 tgt accepted (%s.%s@%s, %s%s%s@%s)",
-		    creds.service, creds.instance, creds.realm,
-		    creds.pname, creds.pinst[0] ? "." : "",
-		    creds.pinst, creds.realm);
+  chown(tkt_string(), pw->pw_uid, pw->pw_gid);
   
+  packet_send_debug("Kerberos V4 tgt accepted (%s.%s@%s, %s%s%s@%s)",
+		    creds.service, creds.instance, creds.realm, creds.pname,
+		    creds.pinst[0] ? "." : "", creds.pinst, creds.realm);
+  memset(&creds, 0, sizeof(creds));
   packet_start(SSH_SMSG_SUCCESS);
   packet_send();
   packet_write_wait();
   return 1;
-
-auth_kerberos_tgt_failure:
+  
+ auth_kerberos_tgt_failure:
+  krb4_cleanup_proc(NULL);
   memset(&creds, 0, sizeof(creds));
   packet_start(SSH_SMSG_FAILURE);
   packet_send();
@@ -191,10 +211,11 @@ int auth_afs_token(struct passwd *pw, const char *token_string)
     uid = atoi(creds.pname + 7);
   
   if (kafs_settoken(creds.realm, uid, &creds)) {
-    log("AFS token (%s@%s) rejected for uid %d", creds.pname,
-	creds.realm, uid);
-    packet_send_debug("AFS token (%s@%s) rejected for uid %d", creds.pname,
-		      creds.realm, uid);
+    log("AFS token (%s@%s) rejected for %s", creds.pname, creds.realm,
+	pw->pw_name);
+    packet_send_debug("AFS token (%s@%s) rejected for %s", creds.pname,
+		      creds.realm, pw->pw_name);
+    memset(&creds, 0, sizeof(creds));
     packet_start(SSH_SMSG_FAILURE);
     packet_send();
     packet_write_wait();
@@ -202,6 +223,7 @@ int auth_afs_token(struct passwd *pw, const char *token_string)
   }
   packet_send_debug("AFS token accepted (%s@%s, %s@%s)", creds.service,
 		    creds.realm, creds.pname, creds.realm);
+  memset(&creds, 0, sizeof(creds));
   packet_start(SSH_SMSG_SUCCESS);
   packet_send();
   packet_write_wait();

@@ -18,7 +18,7 @@ Modified to work with SSL by Niels Provos <provos@citi.umich.edu> in Canada.
 */
 
 #include "includes.h"
-RCSID("$Id: ssh.c,v 1.4 1999/10/30 01:39:56 damien Exp $");
+RCSID("$Id: ssh.c,v 1.5 1999/11/11 06:57:40 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -31,9 +31,6 @@ RCSID("$Id: ssh.c,v 1.4 1999/10/30 01:39:56 damien Exp $");
 /* Flag indicating whether debug mode is on.  This can be set on the
    command line. */
 int debug_flag = 0;
-
-/* Flag indicating whether quiet mode is on. */
-int quiet_flag = 0;
 
 /* Flag indicating whether to allocate a pseudo tty.  This can be set on the
    command line, and is automatically set if no command is given on the command
@@ -306,16 +303,17 @@ main(int ac, char **av)
 
 	case 'v':
 	case 'V':
-	  debug_flag = 1;
 	  fprintf(stderr, "SSH Version %s, protocol version %d.%d.\n",
 		  SSH_VERSION, PROTOCOL_MAJOR, PROTOCOL_MINOR);
 	  fprintf(stderr, "Compiled with SSL.\n");
 	  if (opt == 'V')
 	    exit(0);
+	  debug_flag = 1;
+	  options.log_level = SYSLOG_LEVEL_DEBUG;
 	  break;
 
 	case 'q':
-	  quiet_flag = 1;
+	  options.log_level = SYSLOG_LEVEL_QUIET;
 	  break;
 
 	case 'e':
@@ -466,7 +464,7 @@ main(int ac, char **av)
 
   /* Initialize "log" output.  Since we are the client all output actually
      goes to the terminal. */
-  log_init(av[0], 1, debug_flag, quiet_flag, SYSLOG_FACILITY_USER);
+  log_init(av[0], options.log_level, SYSLOG_FACILITY_USER, 0);
 
   /* Read per-user configuration file. */
   snprintf(buf, sizeof buf, "%.100s/%.100s", pw->pw_dir, SSH_USER_CONFFILE);
@@ -477,6 +475,10 @@ main(int ac, char **av)
 
   /* Fill configuration defaults. */
   fill_default_options(&options);
+
+  /* reinit */
+  log_init(av[0], options.log_level, SYSLOG_FACILITY_USER, 0);
+
   if (options.user == NULL)
     options.user = xstrdup(pw->pw_name);
 

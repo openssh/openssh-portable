@@ -13,26 +13,14 @@ Generic header file for ssh.
 
 */
 
-/* RCSID("$Id: ssh.h,v 1.9 1999/11/10 23:40:23 damien Exp $"); */
+/* RCSID("$Id: ssh.h,v 1.10 1999/11/11 06:57:40 damien Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
 
 #include <netinet/in.h> /* For struct sockaddr_in */
 #include <pwd.h> /* For struct pw */
-
-#ifndef SHUT_RDWR
-enum
-{
-  SHUT_RD = 0,    /* No more receptions.  */
-#define SHUT_RD   SHUT_RD
-  SHUT_WR,    /* No more transmissions.  */
-#define SHUT_WR   SHUT_WR
-  SHUT_RDWR   /* No more receptions or transmissions.  */
-#define SHUT_RDWR SHUT_RDWR
-};
-#endif
-
+#include <stdarg.h> /* For va_list */
 
 #include "rsa.h"
 #include "cipher.h"
@@ -234,9 +222,58 @@ only by root, whereas ssh_config should be world-readable. */
 #define SSH_CMSG_HAVE_AFS_TOKEN			65	/* token (s) */
 
 
-/* Includes that need definitions above. */
+/*------------ Definitions for logging. -----------------------*/
 
-#include "readconf.h"
+/* Supported syslog facilities and levels. */
+typedef enum
+{
+  SYSLOG_FACILITY_DAEMON,
+  SYSLOG_FACILITY_USER,
+  SYSLOG_FACILITY_AUTH,
+  SYSLOG_FACILITY_LOCAL0,
+  SYSLOG_FACILITY_LOCAL1,
+  SYSLOG_FACILITY_LOCAL2,
+  SYSLOG_FACILITY_LOCAL3,
+  SYSLOG_FACILITY_LOCAL4,
+  SYSLOG_FACILITY_LOCAL5,
+  SYSLOG_FACILITY_LOCAL6,
+  SYSLOG_FACILITY_LOCAL7
+} SyslogFacility;
+
+typedef enum
+{
+  SYSLOG_LEVEL_QUIET,
+  SYSLOG_LEVEL_FATAL,
+  SYSLOG_LEVEL_ERROR,
+  SYSLOG_LEVEL_INFO,
+  SYSLOG_LEVEL_CHAT,
+  SYSLOG_LEVEL_DEBUG
+} LogLevel;
+
+/* Initializes logging. */
+void log_init(char *av0, LogLevel level, SyslogFacility facility, int on_stderr);
+
+/* Logging implementation, depending on server or client */
+void do_log(LogLevel level, const char *fmt, va_list args);
+
+/* Output a message to syslog or stderr */
+void fatal(const char *fmt, ...);
+void error(const char *fmt, ...);
+void log(const char *fmt, ...);
+void chat(const char *fmt, ...);
+void debug(const char *fmt, ...);
+
+/* same as fatal() but w/o logging */
+void fatal_cleanup(void);
+
+/* Registers a cleanup function to be called by fatal()/fatal_cleanup() before exiting. 
+   It is permissible to call fatal_remove_cleanup for the function itself
+   from the function. */
+void fatal_add_cleanup(void (*proc)(void *context), void *context);
+
+/* Removes a cleanup function to be called at fatal(). */
+void fatal_remove_cleanup(void (*proc)(void *context), void *context);
+
 
 /*------------ definitions for login.c -------------*/
 
@@ -276,6 +313,10 @@ int ssh_connect(const char *host, struct sockaddr_in *hostaddr,
    If login fails, this function prints an error and never returns. 
    This initializes the random state, and leaves it initialized (it will also
    have references from the packet module). */
+
+/* for Options */
+#include "readconf.h"
+
 void ssh_login(int host_key_valid, RSA *host_key, const char *host,
 	       struct sockaddr_in *hostaddr, Options *options,
 	       uid_t original_real_uid);
@@ -380,59 +421,6 @@ int load_public_key(const char *filename, RSA *pub,
    with xfree. */
 int load_private_key(const char *filename, const char *passphrase,
 		     RSA *private_key, char **comment_return);
-
-/*------------ Definitions for logging. -----------------------*/
-
-/* Supported syslog facilities. */
-typedef enum
-{
-  SYSLOG_FACILITY_DAEMON,
-  SYSLOG_FACILITY_USER,
-  SYSLOG_FACILITY_AUTH,
-  SYSLOG_FACILITY_LOCAL0,
-  SYSLOG_FACILITY_LOCAL1,
-  SYSLOG_FACILITY_LOCAL2,
-  SYSLOG_FACILITY_LOCAL3,
-  SYSLOG_FACILITY_LOCAL4,
-  SYSLOG_FACILITY_LOCAL5,
-  SYSLOG_FACILITY_LOCAL6,
-  SYSLOG_FACILITY_LOCAL7
-} SyslogFacility;
-
-/* Initializes logging.  If debug is non-zero, debug() will output something.
-   If quiet is non-zero, none of these will log send anything to syslog
-   (but maybe to stderr). */
-void log_init(char *av0, int on_stderr, int debug, int quiet,
-	      SyslogFacility facility);
-
-/* Outputs a message to syslog or stderr, depending on the implementation. 
-   The format must guarantee that the final message does not exceed 1024 
-   characters.  The message should not contain newline. */
-void log(const char *fmt, ...);
-
-/* Outputs a message to syslog or stderr, depending on the implementation. 
-   The format must guarantee that the final message does not exceed 1024 
-   characters.  The message should not contain newline. */
-void debug(const char *fmt, ...);
-
-/* Outputs a message to syslog or stderr, depending on the implementation. 
-   The format must guarantee that the final message does not exceed 1024 
-   characters.  The message should not contain newline. */
-void error(const char *fmt, ...);
-
-/* Outputs a message to syslog or stderr, depending on the implementation. 
-   The format must guarantee that the final message does not exceed 1024 
-   characters.  The message should not contain newline.  
-   This call never returns. */
-void fatal(const char *fmt, ...);
-
-/* Registers a cleanup function to be called by fatal() before exiting. 
-   It is permissible to call fatal_remove_cleanup for the function itself
-   from the function. */
-void fatal_add_cleanup(void (*proc)(void *context), void *context);
-
-/* Removes a cleanup frunction to be called at fatal(). */
-void fatal_remove_cleanup(void (*proc)(void *context), void *context);
 
 /*---------------- definitions for channels ------------------*/
 
@@ -547,9 +535,6 @@ void x11_request_forwarding(void);
    This should be called in the client only.  */
 void x11_request_forwarding_with_spoofing(const char *proto, const char *data);
 
-/* Local Xauthority file (server only). */
-extern char *xauthfile;
-
 /* Sends a message to the server to request authentication fd forwarding. */
 void auth_request_forwarding(void);
 
@@ -596,7 +581,8 @@ struct envstring {
    0 if the client could not be authenticated, and 1 if authentication was
    successful.  This may exit if there is a serious protocol violation. */
 int auth_krb4(const char *server_user, KTEXT auth, char **client);
-int ssh_tf_init(uid_t uid);
+int krb4_init(uid_t uid);
+void krb4_cleanup_proc(void *ignore);
 
 #ifdef AFS
 #include <kafs.h>

@@ -20,3 +20,17 @@
 
 /* Define is libutil has login() function */
 #undef HAVE_LIBUTIL_LOGIN
+
+
+/* Shouldn't need to edit below this line *************************** */
+#ifndef SHUT_RDWR
+enum
+{
+  SHUT_RD = 0,    /* No more receptions.  */
+#define SHUT_RD   SHUT_RD
+  SHUT_WR,    /* No more transmissions.  */
+#define SHUT_WR   SHUT_WR
+  SHUT_RDWR   /* No more receptions or transmissions.  */
+#define SHUT_RDWR SHUT_RDWR
+};
+#endif

@@ -14,7 +14,7 @@ Functions for reading the configuration files.
 */
 
 #include "includes.h"
-RCSID("$Id: readconf.c,v 1.1 1999/10/27 03:42:44 damien Exp $");
+RCSID("$Id: readconf.c,v 1.2 1999/11/11 06:57:39 damien Exp $");
 
 #include "ssh.h"
 #include "cipher.h"
@@ -101,7 +101,7 @@ typedef enum
   oGlobalKnownHostsFile, oUserKnownHostsFile, oConnectionAttempts,
   oBatchMode, oCheckHostIP, oStrictHostKeyChecking, oCompression,
   oCompressionLevel, oKeepAlives, oNumberOfPasswordPrompts, oTISAuthentication,
-  oUsePrivilegedPort
+  oUsePrivilegedPort, oLogLevel
 } OpCodes;
 
 /* Textual representations of the tokens. */
@@ -150,6 +150,24 @@ static struct
   { "keepalive", oKeepAlives },
   { "numberofpasswordprompts", oNumberOfPasswordPrompts },
   { "tisauthentication", oTISAuthentication },
+  { "loglevel", oLogLevel },
+  { NULL, 0 }
+};
+
+/* textual representation of log-levels */
+
+static struct 
+{
+  const char *name;
+  LogLevel level;
+} log_levels[] =
+{
+  { "QUIET", SYSLOG_LEVEL_QUIET },
+  { "FATAL", SYSLOG_LEVEL_FATAL },
+  { "ERROR", SYSLOG_LEVEL_ERROR },
+  { "INFO",  SYSLOG_LEVEL_INFO },
+  { "CHAT",  SYSLOG_LEVEL_CHAT },
+  { "DEBUG", SYSLOG_LEVEL_DEBUG },
   { NULL, 0 }
 };
 
@@ -218,7 +236,7 @@ void process_config_line(Options *options, const char *host,
 			 int *activep)
 {
   char buf[256], *cp, *string, **charptr;
-  int opcode, *intptr, value, fwd_port, fwd_host_port;
+  int opcode, *intptr, value, fwd_port, fwd_host_port, i;
 
   /* Skip leading whitespace. */
   cp = line + strspn(line, WHITESPACE);
@@ -445,6 +463,27 @@ void process_config_line(Options *options, const char *host,
       if (*activep && *intptr == -1)
 	*intptr = value;
       break;
+
+    case oLogLevel:
+      cp = strtok(NULL, WHITESPACE);
+      if (!cp)
+        {
+          fprintf(stderr, "%s line %d: missing level name.\n",
+	          filename, linenum);
+          exit(1);
+        }
+      for (i = 0; log_levels[i].name; i++)
+        if (strcasecmp(log_levels[i].name, cp) == 0)
+          break;
+      if (!log_levels[i].name)
+        {
+          fprintf(stderr, "%s line %d: unsupported log level %s\n",
+	          filename, linenum, cp);
+          exit(1);
+        }
+      if (options->log_level == (LogLevel)(-1))
+        options->log_level = log_levels[i].level;
+      break;
       
     case oRemoteForward:
       cp = strtok(NULL, WHITESPACE);
@@ -607,6 +646,7 @@ void initialize_options(Options *options)
   options->user_hostfile = NULL;
   options->num_local_forwards = 0;
   options->num_remote_forwards = 0;
+  options->log_level = (LogLevel)-1;
 }
 
 /* Called after processing other sources of option data, this fills those
@@ -677,6 +717,8 @@ void fill_default_options(Options *options)
     options->system_hostfile = SSH_SYSTEM_HOSTFILE;
   if (options->user_hostfile == NULL)
     options->user_hostfile = SSH_USER_HOSTFILE;
+  if (options->log_level == (LogLevel)-1)
+    options->log_level = SYSLOG_LEVEL_INFO;
   /* options->proxy_command should not be set by default */
   /* options->user will be set in the main program if appropriate */
   /* options->hostname will be set in the main program if appropriate */

@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: ssh.1,v 1.5 1999/11/11 00:43:13 damien Exp $
+.\" $Id: ssh.1,v 1.6 1999/11/11 06:57:40 damien Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSH 1
@@ -602,6 +602,12 @@ this keyword must be
 .Dq yes
 or
 .Dq no .
+.It Cm LogLevel
+Gives the verbosity level that is used when logging messages from
+.Nm ssh .
+The possible values are:
+QUIET, FATAL, ERROR, INFO, CHAT and DEBUG.
+The default is INFO.
 .It Cm NumberOfPasswordPrompts
 Specifies the number of password prompts before giving up. The
 argument to this keyword must be an integer. Default is 3.

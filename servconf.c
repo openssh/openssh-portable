@@ -12,7 +12,7 @@ Created: Mon Aug 21 15:48:58 1995 ylo
 */
 
 #include "includes.h"
-RCSID("$Id: servconf.c,v 1.1 1999/10/27 03:42:45 damien Exp $");
+RCSID("$Id: servconf.c,v 1.2 1999/11/11 06:57:39 damien Exp $");
 
 #include "ssh.h"
 #include "servconf.h"
@@ -31,8 +31,6 @@ void initialize_server_options(ServerOptions *options)
   options->key_regeneration_time = -1;
   options->permit_root_login = -1;
   options->ignore_rhosts = -1;
-  options->quiet_mode = -1;
-  options->fascist_logging = -1;
   options->print_motd = -1;
   options->check_mail = -1;
   options->x11_forwarding = -1;
@@ -40,6 +38,7 @@ void initialize_server_options(ServerOptions *options)
   options->strict_modes = -1;
   options->keepalives = -1;
   options->log_facility = (SyslogFacility)-1;
+  options->log_level = (LogLevel)-1;
   options->rhosts_authentication = -1;
   options->rhosts_rsa_authentication = -1;
   options->rsa_authentication = -1;
@@ -89,12 +88,8 @@ void fill_default_server_options(ServerOptions *options)
     options->permit_root_login = 1;		 /* yes */
   if (options->ignore_rhosts == -1)
     options->ignore_rhosts = 0;
-  if (options->quiet_mode == -1)
-    options->quiet_mode = 0;
   if (options->check_mail == -1)
     options->check_mail = 0;
-  if (options->fascist_logging == -1)
-    options->fascist_logging = 1;
   if (options->print_motd == -1)
     options->print_motd = 1;
   if (options->x11_forwarding == -1)
@@ -107,6 +102,8 @@ void fill_default_server_options(ServerOptions *options)
     options->keepalives = 1;
   if (options->log_facility == (SyslogFacility)(-1))
     options->log_facility = SYSLOG_FACILITY_AUTH;
+  if (options->log_level == (LogLevel)(-1))
+    options->log_level = SYSLOG_LEVEL_INFO;
   if (options->rhosts_authentication == -1)
     options->rhosts_authentication = 0;
   if (options->rhosts_rsa_authentication == -1)
@@ -145,7 +142,7 @@ void fill_default_server_options(ServerOptions *options)
 typedef enum 
 {
   sPort, sHostKeyFile, sServerKeyBits, sLoginGraceTime, sKeyRegenerationTime,
-  sPermitRootLogin, sQuietMode, sFascistLogging, sLogFacility,
+  sPermitRootLogin, sLogFacility, sLogLevel,
   sRhostsAuthentication, sRhostsRSAAuthentication, sRSAAuthentication,
 #ifdef KRB4
   sKerberosAuthentication, sKerberosOrLocalPasswd, sKerberosTicketCleanup,
@@ -176,9 +173,8 @@ static struct
   { "logingracetime", sLoginGraceTime },
   { "keyregenerationinterval", sKeyRegenerationTime },
   { "permitrootlogin", sPermitRootLogin },
-  { "quietmode", sQuietMode },
-  { "fascistlogging", sFascistLogging },
   { "syslogfacility", sLogFacility },
+  { "loglevel", sLogLevel },
   { "rhostsauthentication", sRhostsAuthentication },
   { "rhostsrsaauthentication", sRhostsRSAAuthentication },
   { "rsaauthentication", sRSAAuthentication },
@@ -230,6 +226,21 @@ static struct
   { "LOCAL5", SYSLOG_FACILITY_LOCAL5 },
   { "LOCAL6", SYSLOG_FACILITY_LOCAL6 },
   { "LOCAL7", SYSLOG_FACILITY_LOCAL7 },
+  { NULL, 0 }
+};
+
+static struct 
+{
+  const char *name;
+  LogLevel level;
+} log_levels[] =
+{
+  { "QUIET", SYSLOG_LEVEL_QUIET },
+  { "FATAL", SYSLOG_LEVEL_FATAL },
+  { "ERROR", SYSLOG_LEVEL_ERROR },
+  { "INFO",  SYSLOG_LEVEL_INFO },
+  { "CHAT",  SYSLOG_LEVEL_CHAT },
+  { "DEBUG", SYSLOG_LEVEL_DEBUG },
   { NULL, 0 }
 };
 
@@ -392,14 +403,6 @@ void read_server_config(ServerOptions *options, const char *filename)
 	    *intptr = value;
 	  break;
 	  
-	case sQuietMode:
-	  intptr = &options->quiet_mode;
-	  goto parse_flag;
-
-	case sFascistLogging:
-	  intptr = &options->fascist_logging;
-	  goto parse_flag;
-
 	case sRhostsAuthentication:
 	  intptr = &options->rhosts_authentication;
 	  goto parse_flag;
@@ -487,7 +490,7 @@ void read_server_config(ServerOptions *options, const char *filename)
 	      exit(1);
 	    }
 	  for (i = 0; log_facilities[i].name; i++)
-	    if (strcmp(log_facilities[i].name, cp) == 0)
+	    if (strcasecmp(log_facilities[i].name, cp) == 0)
 	      break;
 	  if (!log_facilities[i].name)
 	    {
@@ -497,6 +500,27 @@ void read_server_config(ServerOptions *options, const char *filename)
 	    }
 	  if (options->log_facility == (SyslogFacility)(-1))
 	    options->log_facility = log_facilities[i].facility;
+	  break;
+
+	case sLogLevel:
+	  cp = strtok(NULL, WHITESPACE);
+	  if (!cp)
+	    {
+	      fprintf(stderr, "%s line %d: missing level name.\n",
+		      filename, linenum);
+	      exit(1);
+	    }
+	  for (i = 0; log_levels[i].name; i++)
+	    if (strcasecmp(log_levels[i].name, cp) == 0)
+	      break;
+	  if (!log_levels[i].name)
+	    {
+	      fprintf(stderr, "%s line %d: unsupported log level %s\n",
+		      filename, linenum, cp);
+	      exit(1);
+	    }
+	  if (options->log_level == (LogLevel)(-1))
+	    options->log_level = log_levels[i].level;
 	  break;
 	  
 	case sAllowUsers:

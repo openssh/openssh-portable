@@ -13,7 +13,7 @@ Definitions for server configuration data and for the functions reading it.
 
 */
 
-/* RCSID("$Id: servconf.h,v 1.1 1999/10/27 03:42:45 damien Exp $"); */
+/* RCSID("$Id: servconf.h,v 1.2 1999/11/11 06:57:40 damien Exp $"); */
 
 #ifndef SERVCONF_H
 #define SERVCONF_H
@@ -33,8 +33,6 @@ typedef struct
   int key_regeneration_time;	/* Server key lifetime (seconds). */
   int permit_root_login;	/* If true, permit root login. */
   int ignore_rhosts;		/* Ignore .rhosts and .shosts. */
-  int quiet_mode;		/* If true, don't log anything but fatals. */
-  int fascist_logging;		/* Perform very verbose logging. */
   int print_motd;		/* If true, print /etc/motd. */
   int check_mail;               /* If true, check for new mail. */
   int x11_forwarding;		/* If true, permit inet (spoofing) X11 fwd. */
@@ -42,6 +40,7 @@ typedef struct
   int strict_modes;		/* If true, require string home dir modes. */
   int keepalives;		/* If true, set SO_KEEPALIVE. */
   SyslogFacility log_facility;	/* Facility for system logging. */
+  LogLevel log_level;		/* Level for system logging. */
   int rhosts_authentication;	/* If true, permit rhosts authentication. */
   int rhosts_rsa_authentication;/* If true, permit rhosts RSA authentication.*/
   int rsa_authentication;	/* If true, permit RSA authentication. */

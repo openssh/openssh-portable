@@ -15,16 +15,17 @@ The main loop for the interactive session (client side).
 */
 
 #include "includes.h"
-RCSID("$Id: clientloop.c,v 1.1 1999/10/27 03:42:44 damien Exp $");
+RCSID("$Id: clientloop.c,v 1.2 1999/11/11 06:57:39 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
 #include "packet.h"
 #include "buffer.h"
 #include "authfd.h"
+#include "readconf.h"
 
 /* Flag indicating whether quiet mode is on. */
-extern int quiet_flag;
+extern Options options;
 
 /* Flag indicating that stdin should be redirected from /dev/null. */
 extern int stdin_null_flag;
@@ -866,7 +867,7 @@ int client_loop(int have_pty, int escape_char_arg)
 
   /* In interactive mode (with pseudo tty) display a message indicating that
      the connection has been closed. */
-  if (have_pty && !quiet_flag)
+  if (have_pty && options.log_level != SYSLOG_LEVEL_QUIET)
     {
       snprintf(buf, sizeof buf, "Connection to %.64s closed.\r\n", host);
       buffer_append(&stderr_buffer, buf, strlen(buf));
