@@ -34,6 +34,10 @@
      [channels.c serverloop.c]
      don't send fake dummy packets on CR (\r)
      bugreport from yyua@cs.sfu.ca via solar@@openwall.com
+   - markus@cvs.openbsd.org 2001/09/17 21:09:47
+     [compat.c]
+     more versions suffering the SSH_BUG_DEBUG bug;
+     3.0.x reported by dbutts@maddog.storability.com
 
 20010917
  - (djm) x11-ssh-askpass-1.2.4 in RPM spec, revert workarounds
@@ -6494,4 +6498,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1538 2001/09/18 05:53:12 mouring Exp $
+$Id: ChangeLog,v 1.1539 2001/09/18 05:55:10 mouring Exp $
