@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.90 2001/06/19 12:34:09 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.91 2001/06/19 14:09:45 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1978,6 +1978,11 @@ session_setup_x11fwd(Session *s)
 	if (!options.xauth_location ||
 	    (stat(options.xauth_location, &st) == -1)) {
 		packet_send_debug("No xauth program; cannot forward with spoofing.");
+		return 0;
+	}
+	if (options.use_login) {
+		packet_send_debug("X11 forwarding disabled; "
+		    "not compatible with UseLogin=yes.");
 		return 0;
 	}
 	if (s->display != NULL) {

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.126 2001/06/11 16:04:38 markus Exp $
+.\" $OpenBSD: sshd.8,v 1.127 2001/06/19 14:09:45 markus Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -796,11 +796,18 @@ The default is AUTH.
 Specifies whether
 .Xr login 1
 is used for interactive login sessions.
+The default is
+.Dq no .
 Note that
 .Xr login 1
 is never used for remote command execution.
-The default is
-.Dq no .
+Note also, that if this is enabled,                                                           
+.Cm X11Forwarding                                                             
+will be disabled because
+.Xr login 1
+does not know how to handle
+.Xr xauth 1                                                                   
+cookies.
 .It Cm X11DisplayOffset
 Specifies the first display number available for
 .Nm sshd Ns 's
@@ -815,6 +822,9 @@ The default is
 .Dq no .
 Note that disabling X11 forwarding does not improve security in any
 way, as users can always install their own forwarders.
+X11 forwarding is automatically disabled if                                                     
+.Cm UseLogin                                                                  
+is enabled.          
 .It Cm XAuthLocation
 Specifies the location of the
 .Xr xauth 1
