@@ -105,6 +105,7 @@
  - (djm) Set PAM_RHOST earlier, patch from Andrew Bartlett 
    <abartlet@pcug.org.au>
  - (stevesk) misc.c: ssh.h not needed.
+ - (stevesk) compat.c: more friendly cpp error
  - (stevesk) OpenBSD sync:
    - stevesk@cvs.openbsd.org 2001/02/11 06:15:57
      [LICENSE]
@@ -3892,4 +3893,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.743 2001/02/11 16:43:05 stevesk Exp $
+$Id: ChangeLog,v 1.744 2001/02/11 18:49:23 stevesk Exp $
