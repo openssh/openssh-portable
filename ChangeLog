@@ -1,5 +1,10 @@
 20020410
  - (stevesk) [auth-sia.c] compile fix Chris Adams <cmadams@hiwaay.net>
+ - (bal) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2002/04/10 08:21:47
+     [auth1.c compat.c compat.h]
+     strip '@' from username only for KerbV and known broken clients, bug #204
+
 
 20020408
  - (bal) Minor OpenSC updates.  Fix up header locations and update
@@ -8206,4 +8211,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2041 2002/04/10 16:09:51 stevesk Exp $
+$Id: ChangeLog,v 1.2042 2002/04/10 16:17:34 mouring Exp $
