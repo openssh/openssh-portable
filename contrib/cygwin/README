@@ -57,6 +57,13 @@ Install sshd as daemon via SRVANY.EXE (recommended on NT/W2K), via inetd
 (results in very slow deamon startup!) or from the command line (recommended
 on 9X/ME).
 
+If you start sshd as deamon via SRVANY.EXE you will see two
+sshd processes in the process list unless you give the "-D"
+option to sshd. That will avoid that sshd detaches from the
+controlling terminal and it will remain under process control
+of SRVANY.EXE. That allows easy killing of the service by
+using the `net stop <servicename>' command.
+
 If starting via inetd, copy sshd to eg. /usr/sbin/in.sshd and add the
 following line to your inetd.conf file:
 
