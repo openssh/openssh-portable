@@ -1,5 +1,6 @@
 20040225
  - (djm) Trim ChangeLog 
+ - (djm) Don't specify path to PAM modules in Redhat sshd.pam; from Fedora
 
 20040224
  - (dtucker) OpenBSD CVS Sync
@@ -797,4 +798,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3258 2004/02/24 23:56:31 djm Exp $
+$Id: ChangeLog,v 1.3259 2004/02/24 23:57:45 djm Exp $
