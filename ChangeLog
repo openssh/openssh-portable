@@ -6,6 +6,7 @@
    Fix typo/thinko.  Pass in as to auth_approval(), not NULL.
    Closes PR 2659.
  - Crank version
+ - Crank RPM spec versions
 
 20020521
  - (stevesk) [sshd.c] bug 245; disable setsid() for now
@@ -669,4 +670,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2139 2002/05/22 04:14:00 djm Exp $
+$Id: ChangeLog,v 1.2140 2002/05/22 04:14:54 djm Exp $
