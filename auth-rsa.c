@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rsa.c,v 1.52 2002/03/18 17:50:31 provos Exp $");
+RCSID("$OpenBSD: auth-rsa.c,v 1.53 2002/03/25 09:21:13 markus Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/md5.h>
@@ -165,7 +165,7 @@ auth_rsa_key_allowed(struct passwd *pw, BIGNUM *client_n, Key **rkey)
 		/* Restore the privileged uid. */
 		restore_uid();
 		xfree(file);
-		return (NULL);
+		return (0);
 	}
 	/* Open the file containing the authorized keys. */
 	f = fopen(file, "r");
@@ -173,7 +173,7 @@ auth_rsa_key_allowed(struct passwd *pw, BIGNUM *client_n, Key **rkey)
 		/* Restore the privileged uid. */
 		restore_uid();
 		xfree(file);
-		return (NULL);
+		return (0);
 	}
 	if (options.strict_modes &&
 	    secure_filename(f, file, pw, line, sizeof(line)) != 0) {
@@ -181,7 +181,7 @@ auth_rsa_key_allowed(struct passwd *pw, BIGNUM *client_n, Key **rkey)
 		fclose(f);
 		log("Authentication refused: %s", line);
 		restore_uid();
-		return (NULL);
+		return (0);
 	}
 
 	/* Flag indicating whether the key is allowed. */
