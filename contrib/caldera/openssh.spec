@@ -18,6 +18,9 @@ Packager    	: Stephan Seyboth <sps@caldera.de>
 URL         	: http://www.openssh.com/
 
 Obsoletes   	: ssh, ssh-clients, openssh-clients
+ 
+# uncomment for >= Caldera 3.1
+#Requires    	: SysVinit-scripts >= 1.07
 
 BuildRoot   	: /tmp/%{Name}-%{Version}
 
@@ -278,4 +281,4 @@ fi
 * Mon Jan 01 1998 ...
 Template Version: 1.31
 
-$Id: openssh.spec,v 1.15 2001/04/27 05:50:49 tim Exp $
+$Id: openssh.spec,v 1.16 2001/04/30 18:00:13 tim Exp $
