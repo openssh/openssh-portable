@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: sftp-server.c,v 1.19 2001/02/07 18:01:18 itojun Exp $");
+RCSID("$OpenBSD: sftp-server.c,v 1.20 2001/02/21 09:12:56 deraadt Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
@@ -93,8 +93,8 @@ int
 flags_from_portable(int pflags)
 {
 	int flags = 0;
-	if (pflags & SSH2_FXF_READ &&
-	    pflags & SSH2_FXF_WRITE) {
+	if ((pflags & SSH2_FXF_READ) &&
+	    (pflags & SSH2_FXF_WRITE)) {
 		flags = O_RDWR;
 	} else if (pflags & SSH2_FXF_READ) {
 		flags = O_RDONLY;

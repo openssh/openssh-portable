@@ -10,6 +10,9 @@
    - deraadt@cvs.openbsd.org 2001/02/21 09:05:54
      [authfile.c]
      improve fd handling
+   - deraadt@cvs.openbsd.org 2001/02/21 09:12:56
+     [sftp-server.c]
+     careful with & and &&; markus ok
 
 20010304
  - (bal) Remove make-ssh-known-hosts.1 since it's no longer valid.
@@ -4202,4 +4205,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.854 2001/03/05 04:59:27 mouring Exp $
+$Id: ChangeLog,v 1.855 2001/03/05 05:02:08 mouring Exp $
