@@ -1,6 +1,8 @@
 20040814
  - (dtucker) [auth-krb5.c gss-serv-krb5.c openbsd-compat/xmmap.c]
    Explicitly set umask for mkstemp; ok djm@
+ - (dtucker) [includes.h] Undef _INCLUDE__STDC__ on HP-UX, otherwise
+   prot.h and shadow.h provide conflicting declarations of getspnam.  ok djm@
 
 20040813
  - (dtucker) [openbsd-compat/bsd-misc.c] Typo in #ifdef; from vinschen at
@@ -1626,4 +1628,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3506 2004/08/14 13:55:37 dtucker Exp $
+$Id: ChangeLog,v 1.3507 2004/08/14 14:01:48 dtucker Exp $

@@ -181,6 +181,16 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 # include <kafs.h>
 #endif
 
+/*
+ * On HP-UX 11.11, shadow.h and prot.h provide conflicting declarations
+ * of getspnam when _INCLUDE__STDC__ is defined, so we unset it here.
+ */
+#ifdef __hpux
+# ifdef _INCLUDE__STDC__
+#  undef _INCLUDE__STDC__
+# endif
+#endif
+
 #include <openssl/opensslv.h> /* For OPENSSL_VERSION_NUMBER */
 
 #include "defines.h"
