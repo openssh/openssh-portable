@@ -3,6 +3,8 @@
  - (djm) Sync scard/ stuff
  - (djm) Redhat spec file cleanups from Pekka Savola <pekkas@netcore.fi> and
    Redhat
+ - (djm) Redhat initscript config sanity checking from Pekka Savola 
+   <pekkas@netcore.fi>
 
 20010914
  - (bal) OpenBSD CVS Sync
@@ -6434,4 +6436,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1517 2001/09/15 11:01:41 djm Exp $
+$Id: ChangeLog,v 1.1518 2001/09/15 11:03:10 djm Exp $

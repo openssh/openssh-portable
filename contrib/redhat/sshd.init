@@ -96,6 +96,16 @@ do_dsa_keygen() {
 		fi
 	fi
 }
+do_restart_sanity_check() {
+	sshd -t
+	RETVAL=$?
+	if [ ! "$RETVAL" = 0 ]; then
+		my_failure "Configuration file or keys"
+		echo
+		exit $RETVAL
+	fi
+}
+
 
 case "$1" in
 	start)
@@ -127,12 +137,14 @@ case "$1" in
 		echo
 		;;
 	restart)
+		do_restart_sanity_check
 		$0 stop
 		$0 start
 		RETVAL=$?
 		;;
 	condrestart)
 		if [ -f /var/lock/subsys/sshd ] ; then
+			do_restart_sanity_check
 			$0 stop
 			$0 start
 			RETVAL=$?
