@@ -1,6 +1,6 @@
 /*
 **
-** OpenBSD emulation routines
+** OpenBSD replacement routines
 **
 ** Damien Miller <djm@ibs.com.au>
 ** 
