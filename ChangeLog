@@ -26,6 +26,9 @@
    - stevesk@cvs.openbsd.org 2001/03/28 20:04:38
      [scp.c]
      usage more like rcp and add missing -B to usage; ok markus@
+   - markus@cvs.openbsd.org 2001/03/28 20:50:45
+     [sshd.c]
+     call refuse() before close(); from olemx@ans.pl
 
 20010328
  - (djm) Reorder tests and library inclusion for Krb4/AFS to try to 
@@ -4764,4 +4767,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1033 2001/03/29 00:43:54 mouring Exp $
+$Id: ChangeLog,v 1.1034 2001/03/29 00:45:12 mouring Exp $

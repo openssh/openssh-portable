@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.181 2001/03/27 17:46:49 provos Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.182 2001/03/28 20:50:45 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1099,9 +1099,9 @@ main(int ac, char **av)
 		fromhost(&req);
 
 		if (!hosts_access(&req)) {
+			refuse(&req);
 			close(sock_in);
 			close(sock_out);
-			refuse(&req);
 		}
 /*XXX IPv6 verbose("Connection from %.500s port %d", eval_client(&req), remote_port); */
 	}
