@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.215 2004/06/17 14:52:48 djm Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.216 2004/06/17 15:10:14 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -1044,7 +1044,7 @@ ssh_control_listener(void)
 	mode_t old_umask;
 	int addr_len;
 
-	if (options.control_path == NULL || options.control_master != 1)
+	if (options.control_path == NULL || options.control_master <= 0)
 		return;
 
 	memset(&addr, '\0', sizeof(addr));
@@ -1266,6 +1266,9 @@ control_client(const char *path)
 		fatal("%s: msg_recv", __func__);
 	if (buffer_get_char(&m) != 0)
 		fatal("%s: wrong version", __func__);
+	/* Connection allowed? */
+	if (buffer_get_int(&m) != 1)
+		fatal("Connection to master denied");
 	control_server_pid = buffer_get_int(&m);
 
 	buffer_clear(&m);

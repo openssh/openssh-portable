@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.h,v 1.15 2004/06/14 01:44:39 djm Exp $	*/
+/*	$OpenBSD: misc.h,v 1.16 2004/06/17 15:10:14 djm Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -43,5 +43,6 @@ char	*tilde_expand_filename(const char *, uid_t);
 #define RP_ECHO			0x0001
 #define RP_ALLOW_STDIN		0x0002
 #define RP_ALLOW_EOF		0x0004
+#define RP_USE_ASKPASS		0x0008
 
 char	*read_passphrase(const char *, int);

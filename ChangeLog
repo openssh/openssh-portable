@@ -3,6 +3,10 @@
    - djm@cvs.openbsd.org 2004/06/17 14:52:48
      [clientloop.c clientloop.h ssh.c]
      support environment passing over shared connections; ok markus@
+   - djm@cvs.openbsd.org 2004/06/17 15:10:14
+     [clientloop.c misc.h readconf.c readpass.c ssh.c ssh_config.5]
+     Add option for confirmation (ControlMaster=ask) via ssh-askpass before 
+     opening shared connections; ok markus@
 
 20040617
  - (dtucker) [regress/scp.sh] diff -N is not portable (but needed for some
@@ -1276,4 +1280,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3405 2004/06/17 15:17:29 djm Exp $
+$Id: ChangeLog,v 1.3406 2004/06/17 15:19:03 djm Exp $

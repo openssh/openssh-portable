@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.126 2004/06/17 14:52:48 djm Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.127 2004/06/17 15:10:13 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -549,7 +549,7 @@ client_extra_session2_setup(int id, void *arg)
 	client_session2_setup(id, cctx->want_tty, cctx->want_subsys, 
 	    cctx->term, &cctx->tio, c->rfd, &cctx->cmd, cctx->env,
 	    client_subsystem_reply);
-	
+
 	c->confirm_ctx = NULL;
 	buffer_free(&cctx->cmd);
 	xfree(cctx->term);
@@ -566,7 +566,7 @@ client_process_control(fd_set * readset)
 {
 	Buffer m;
 	Channel *c;
-	int client_fd, new_fd[3], ver, i;
+	int client_fd, new_fd[3], ver, i, allowed;
 	socklen_t addrlen;
 	struct sockaddr_storage addr;
 	struct confirm_ctx *cctx;
@@ -600,23 +600,52 @@ client_process_control(fd_set * readset)
 		close(client_fd);
 		return;
 	}
-	/* XXX: implement use of ssh-askpass to confirm additional channels */
+
+	allowed = 1;
+	if (options.control_master == 2) {
+		char *p, prompt[1024];
+
+		allowed = 0;
+		snprintf(prompt, sizeof(prompt),
+		    "Allow shared connection to %s? ", host);
+		p = read_passphrase(prompt, RP_USE_ASKPASS|RP_ALLOW_EOF);
+		if (p != NULL) {
+			/*
+			 * Accept empty responses and responses consisting
+			 * of the word "yes" as affirmative.
+			 */
+			if (*p == '\0' || *p == '\n' || 
+			    strcasecmp(p, "yes") == 0)
+				allowed = 1;
+			xfree(p);
+		}
+	}
 
 	unset_nonblock(client_fd);
 
 	buffer_init(&m);
 
+	buffer_put_int(&m, allowed);
 	buffer_put_int(&m, getpid());
 	if (ssh_msg_send(client_fd, /* version */0, &m) == -1) {
 		error("%s: client msg_send failed", __func__);
 		close(client_fd);
+		buffer_free(&m);
 		return;
 	}
 	buffer_clear(&m);
 
+	if (!allowed) {
+		error("Refused control connection");
+		close(client_fd);
+		buffer_free(&m);
+		return;
+	}
+
 	if (ssh_msg_recv(client_fd, &m) == -1) {
 		error("%s: client msg_recv failed", __func__);
 		close(client_fd);
+		buffer_free(&m);
 		return;
 	}
 
@@ -670,6 +699,7 @@ client_process_control(fd_set * readset)
 		close(new_fd[0]);
 		close(new_fd[1]);
 		close(new_fd[2]);
+		buffer_free(&m);
 		return;
 	}
 	buffer_free(&m);

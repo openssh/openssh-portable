@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.36 2004/06/13 15:03:02 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.37 2004/06/17 15:10:14 djm Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -273,6 +273,15 @@ set to
 (the default.)
 These sessions will reuse the master instance's network connection rather
 than initiating new ones.
+Setting this to
+.Dq ask
+will cause
+.Nm ssh
+to listen for control connections, but require confirmation using the
+.Ev SSH_ASKPASS
+program before they are accepted (see
+.Xr ssh-add 1
+for details)
 .It Cm ControlPath
 Specify a the path to the control socket used for connection sharing.
 See
