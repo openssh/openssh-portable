@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.78 2001/05/18 14:13:28 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.79 2001/05/24 18:57:53 stevesk Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -641,7 +641,7 @@ parse_int:
 		else if (strlen(arg) == 1)
 			value = (u_char) arg[0];
 		else if (strcmp(arg, "none") == 0)
-			value = -2;
+			value = SSH_ESCAPECHAR_NONE;
 		else {
 			fatal("%.200s line %d: Bad escape character.",
 			      filename, linenum);

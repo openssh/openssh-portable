@@ -50,6 +50,9 @@
    - markus@cvs.openbsd.org 2001/05/24 11:12:42
      [auth.c]                                  
      fix comment; from jakob@                  
+   - stevesk@cvs.openbsd.org 2001/05/24 18:57:53                         
+     [clientloop.c readconf.c ssh.c ssh.h]                               
+     don't perform escape processing when ``EscapeChar none''; ok markus@
 
 20010528
  - (tim) [conifgure.in] add setvbuf test needed for sftp-int.c
@@ -5480,4 +5483,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1237 2001/06/05 20:27:53 mouring Exp $
+$Id: ChangeLog,v 1.1238 2001/06/05 20:32:21 mouring Exp $

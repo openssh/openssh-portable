@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.118 2001/05/04 23:47:34 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.119 2001/05/24 18:57:53 stevesk Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -422,7 +422,7 @@ main(int ac, char **av)
 			else if (strlen(optarg) == 1)
 				options.escape_char = (u_char) optarg[0];
 			else if (strcmp(optarg, "none") == 0)
-				options.escape_char = -2;
+				options.escape_char = SSH_ESCAPECHAR_NONE;
 			else {
 				fprintf(stderr, "Bad escape character '%s'.\n", optarg);
 				exit(1);
@@ -961,7 +961,8 @@ ssh_session(void)
 	}
 
 	/* Enter the interactive session. */
-	return client_loop(have_tty, tty_flag ? options.escape_char : -1, 0);
+	return client_loop(have_tty, tty_flag ?
+	    options.escape_char : SSH_ESCAPECHAR_NONE, 0);
 }
 
 void
@@ -1117,7 +1118,8 @@ ssh_session2(void)
 		if (daemon(1, 1) < 0)
 			fatal("daemon() failed: %.200s", strerror(errno));
 
-	return client_loop(tty_flag, tty_flag ? options.escape_char : -1, id);
+	return client_loop(tty_flag, tty_flag ?
+	    options.escape_char : SSH_ESCAPECHAR_NONE, id);
 }
 
 void

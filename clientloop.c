@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.71 2001/05/16 21:53:53 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.72 2001/05/24 18:57:53 stevesk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -572,7 +572,7 @@ process_escapes(Buffer *bin, Buffer *bout, Buffer *berr, char *buf, int len)
 "%c?\r\n\
 Supported escape sequences:\r\n\
 ~.  - terminate connection\r\n\
-~R - Request rekey (SSH protocol 2 only)\r\n\
+~R  - Request rekey (SSH protocol 2 only)\r\n\
 ~^Z - suspend ssh\r\n\
 ~#  - list forwarded connections\r\n\
 ~&  - background ssh (when waiting for connections to terminate)\r\n\
@@ -657,7 +657,7 @@ client_process_input(fd_set * readset)
 				packet_start(SSH_CMSG_EOF);
 				packet_send();
 			}
-		} else if (escape_char == -1) {
+		} else if (escape_char == SSH_ESCAPECHAR_NONE) {
 			/*
 			 * Normal successful read, and no escape character.
 			 * Just append the data to buffer.
@@ -765,8 +765,8 @@ client_channel_closed(int id, void *arg)
 /*
  * Implements the interactive session with the server.  This is called after
  * the user has been authenticated, and a command has been started on the
- * remote host.  If escape_char != -1, it is the character used as an escape
- * character for terminating or suspending the session.
+ * remote host.  If escape_char != SSH_ESCAPECHAR_NONE, it is the character
+ * used as an escape character for terminating or suspending the session.
  */
 
 int
@@ -829,7 +829,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 
 	if (compat20) {
 		session_ident = ssh2_chan_id;
-		if (escape_char != -1)
+		if (escape_char != SSH_ESCAPECHAR_NONE)
 			channel_register_filter(session_ident,
 			    simple_escape_filter);
 		if (session_ident != -1)
