@@ -1,4 +1,19 @@
 20000502
+ - OpenBSD CVS update
+   [channels.c]
+   - init all fds, close all fds.
+   [sshconnect2.c]
+   - check whether file exists before asking for passphrase
+   [servconf.c servconf.h sshd.8 sshd.c]
+   - PidFile, pr 1210
+   [channels.c]
+   - EINTR
+   [channels.c]
+   - unbreak, ok niels@
+   [sshd.c]
+   - unlink pid file, ok niels@
+   [auth2.c]
+   - Add missing #ifdefs; ok - markus
  - Release 2.0.0beta1
 
 20000501

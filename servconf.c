@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: servconf.c,v 1.13 2000/04/29 13:57:11 damien Exp $");
+RCSID("$Id: servconf.c,v 1.14 2000/05/01 23:23:45 damien Exp $");
 
 #include "ssh.h"
 #include "servconf.h"
@@ -33,6 +33,7 @@ initialize_server_options(ServerOptions *options)
 	options->listen_addrs = NULL;
 	options->host_key_file = NULL;
 	options->dsa_key_file = NULL;
+	options->pid_file = NULL;
 	options->server_key_bits = -1;
 	options->login_grace_time = -1;
 	options->key_regeneration_time = -1;
@@ -84,6 +85,8 @@ fill_default_server_options(ServerOptions *options)
 		options->host_key_file = HOST_KEY_FILE;
 	if (options->dsa_key_file == NULL)
 		options->dsa_key_file = DSA_KEY_FILE;
+	if (options->pid_file == NULL)
+		options->pid_file = SSH_DAEMON_PID_FILE;
 	if (options->server_key_bits == -1)
 		options->server_key_bits = 768;
 	if (options->login_grace_time == -1)
@@ -167,7 +170,7 @@ typedef enum {
 	sPrintMotd, sIgnoreRhosts, sX11Forwarding, sX11DisplayOffset,
 	sStrictModes, sEmptyPasswd, sRandomSeedFile, sKeepAlives, sCheckMail,
 	sUseLogin, sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
-	sIgnoreUserKnownHosts, sDSAKeyFile, sCiphers, sProtocol
+	sIgnoreUserKnownHosts, sDSAKeyFile, sCiphers, sProtocol, sPidFile
 } ServerOpCodes;
 
 /* Textual representation of the tokens. */
@@ -178,6 +181,7 @@ static struct {
 	{ "port", sPort },
 	{ "hostkey", sHostKeyFile },
 	{ "dsakey", sDSAKeyFile },
+ 	{ "pidfile", sPidFile },
 	{ "serverkeybits", sServerKeyBits },
 	{ "logingracetime", sLoginGraceTime },
 	{ "keyregenerationinterval", sKeyRegenerationTime },
@@ -355,7 +359,19 @@ parse_int:
 			cp = strtok(NULL, WHITESPACE);
 			if (!cp) {
 				fprintf(stderr, "%s line %d: missing file name.\n",
-					filename, linenum);
+				    filename, linenum);
+				exit(1);
+			}
+			if (*charptr == NULL)
+				*charptr = tilde_expand_filename(cp, getuid());
+			break;
+
+		case sPidFile:
+			charptr = &options->pid_file;
+			cp = strtok(NULL, WHITESPACE);
+			if (!cp) {
+				fprintf(stderr, "%s line %d: missing file name.\n",
+				    filename, linenum);
 				exit(1);
 			}
 			if (*charptr == NULL)

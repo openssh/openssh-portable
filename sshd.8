@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: sshd.8,v 1.19 2000/05/01 11:10:34 damien Exp $
+.\" $Id: sshd.8,v 1.20 2000/05/01 23:23:46 damien Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSHD 8
@@ -415,6 +415,12 @@ option has been
 specified will be allowed regardless of the value of this setting
 (which may be useful for taking remote backups even if root login is
 normally not allowed).
+.It Cm PidFile
+Specifies the file that contains the process identifier of the
+.Nm
+daemon.
+The default is
+.Pa /var/run/sshd.pid .
 .It Cm Port
 Specifies the port number that
 .Nm

@@ -27,7 +27,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.4 2000/05/01 07:45:08 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.5 2000/05/01 23:13:39 djm Exp $");
 
 #include <openssl/dsa.h>
 #include <openssl/rsa.h>

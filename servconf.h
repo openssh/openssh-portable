@@ -13,7 +13,7 @@
  *
  */
 
-/* RCSID("$Id: servconf.h,v 1.9 2000/04/16 01:18:45 damien Exp $"); */
+/* RCSID("$Id: servconf.h,v 1.10 2000/05/01 23:23:46 damien Exp $"); */
 
 #ifndef SERVCONF_H
 #define SERVCONF_H
@@ -33,6 +33,7 @@ typedef struct {
 	struct addrinfo *listen_addrs;	/* Addresses on which the server listens. */
 	char   *host_key_file;	/* File containing host key. */
 	char   *dsa_key_file;	/* File containing dsa host key. */
+	char   *pid_file;	/* Where to put our pid */
 	int     server_key_bits;/* Size of the server key. */
 	int     login_grace_time;	/* Disconnect if no auth in this time
 					 * (sec). */

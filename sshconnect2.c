@@ -28,7 +28,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.4 2000/04/27 17:54:01 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.5 2000/05/01 18:41:06 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
@@ -310,7 +310,12 @@ ssh2_try_pubkey(char *filename,
 	Key *k;
 	unsigned char *blob, *signature;
 	int bloblen, slen;
+	struct stat st;
 
+	if (stat(filename, &st) != 0) {
+		debug("key does not exist: %s", filename);
+		return 0;
+	}
 	debug("try pubkey: %s", filename);
 
 	k = key_new(KEY_DSA);
@@ -318,9 +323,9 @@ ssh2_try_pubkey(char *filename,
 		int success = 0;
 		char *passphrase;
 		char prompt[300];
-                snprintf(prompt, sizeof prompt,
+		snprintf(prompt, sizeof prompt,
 		     "Enter passphrase for DSA key '%.100s': ",
-                     filename);
+		     filename);
 		passphrase = read_passphrase(prompt, 0);
 		success = load_private_key(filename, passphrase, k, NULL);
 		memset(passphrase, 0, strlen(passphrase));

@@ -17,7 +17,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: channels.c,v 1.27 2000/04/30 00:00:53 damien Exp $");
+RCSID("$Id: channels.c,v 1.28 2000/05/01 23:23:45 damien Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -148,17 +148,13 @@ channel_lookup(int id)
 }
 
 /*
- * Allocate a new channel object and set its type and socket. This will cause
- * remote_name to be freed.
+ * register filedescriptors for a channel, used when allocating a channel or
+ * when the channel consumer/producer is ready, e.g. shell exec'd
  */
 
-int
-channel_new(char *ctype, int type, int rfd, int wfd, int efd,
-    int window, int maxpack, int extended_usage, char *remote_name)
+void
+channel_register_fds(Channel *c, int rfd, int wfd, int efd, int extusage)
 {
-	int i, found;
-	Channel *c;
-
 	/* Update the maximum file descriptor value. */
 	if (rfd > channel_max_fd_value)
 		channel_max_fd_value = rfd;
@@ -167,6 +163,24 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 	if (efd > channel_max_fd_value)
 		channel_max_fd_value = efd;
 	/* XXX set close-on-exec -markus */
+	c->rfd = rfd;
+	c->wfd = wfd;
+	c->sock = (rfd == wfd) ? rfd : -1;
+	c->efd = efd;
+	c->extended_usage = extusage;
+}
+
+/*
+ * Allocate a new channel object and set its type and socket. This will cause
+ * remote_name to be freed.
+ */
+
+int
+channel_new(char *ctype, int type, int rfd, int wfd, int efd,
+    int window, int maxpack, int extusage, char *remote_name)
+{
+	int i, found;
+	Channel *c;
 
 	/* Do initial allocation if this is the first call. */
 	if (channels_alloc == 0) {
@@ -203,14 +217,10 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 	buffer_init(&c->output);
 	buffer_init(&c->extended);
 	chan_init_iostates(c);
+	channel_register_fds(c, rfd, wfd, efd, extusage);
 	c->self = found;
 	c->type = type;
 	c->ctype = ctype;
-	c->rfd = rfd;
-	c->wfd = wfd;
-	c->sock = (rfd == wfd) ? rfd : -1;
-	c->efd = efd;
-	c->extended_usage = extended_usage;
 	c->local_window = window;
 	c->local_window_max = window;
 	c->local_consumed = 0;
@@ -226,13 +236,38 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 	debug("channel %d: new [%s]", found, remote_name);
 	return found;
 }
+/* old interface XXX */
 int
 channel_allocate(int type, int sock, char *remote_name)
 {
 	return channel_new("", type, sock, sock, -1, 0, 0, 0, remote_name);
 }
 
-/* Free the channel and close its socket. */
+
+/* Close all channel fd/socket. */
+
+void
+channel_close_fds(Channel *c)
+{
+	if (c->sock != -1) {
+		close(c->sock);
+		c->sock = -1;
+	}
+	if (c->rfd != -1) {
+		close(c->rfd);
+		c->rfd = -1;
+	}
+	if (c->wfd != -1) {
+		close(c->wfd);
+		c->wfd = -1;
+	}
+	if (c->efd != -1) {
+		close(c->efd);
+		c->efd = -1;
+	}
+}
+
+/* Free the channel and close its fd/socket. */
 
 void
 channel_free(int id)
@@ -245,25 +280,9 @@ channel_free(int id)
 		debug("channel_free: channel %d: dettaching channel user", id);
 		c->dettach_user(c->self, NULL);
 	}
-	if (c->sock != -1) {
+	if (c->sock != -1)
 		shutdown(c->sock, SHUT_RDWR);
-		close(c->sock);
-		c->sock = -1;
-	}
-	if (compat20) {
-		if (c->rfd != -1) {
-			close(c->rfd);
-			c->rfd = -1;
-		}
-		if (c->wfd != -1) {
-			close(c->wfd);
-			c->wfd = -1;
-		}
-		if (c->efd != -1) {
-			close(c->efd);
-			c->efd = -1;
-		}
-	}
+	channel_close_fds(c);
 	buffer_free(&c->input);
 	buffer_free(&c->output);
 	buffer_free(&c->extended);
@@ -614,6 +633,8 @@ channel_handle_rfd(Channel *c, fd_set * readset, fd_set * writeset)
 	if (c->rfd != -1 &&
 	    FD_ISSET(c->rfd, readset)) {
 		len = read(c->rfd, buf, sizeof(buf));
+		if (len < 0 && (errno == EINTR || errno == EAGAIN))
+			return 1;
 		if (len <= 0) {
 			debug("channel %d: read<=0 rfd %d len %d",
 			    c->self, c->rfd, len);
@@ -640,7 +661,9 @@ channel_handle_wfd(Channel *c, fd_set * readset, fd_set * writeset)
 	    FD_ISSET(c->wfd, writeset) &&
 	    buffer_len(&c->output) > 0) {
 		len = write(c->wfd, buffer_ptr(&c->output),
-			    buffer_len(&c->output));
+		    buffer_len(&c->output));
+		if (len < 0 && (errno == EINTR || errno == EAGAIN))
+			return 1;
 		if (len <= 0) {
 			if (compat13) {
 				buffer_consume(&c->output, buffer_len(&c->output));
@@ -1267,7 +1290,7 @@ channel_stop_listening()
 }
 
 /*
- * Closes the sockets of all channels.  This is used to close extra file
+ * Closes the sockets/fds of all channels.  This is used to close extra file
  * descriptors after a fork.
  */
 
@@ -1275,10 +1298,9 @@ void
 channel_close_all()
 {
 	int i;
-	for (i = 0; i < channels_alloc; i++) {
+	for (i = 0; i < channels_alloc; i++)
 		if (channels[i].type != SSH_CHANNEL_FREE)
-			close(channels[i].sock);
-	}
+			channel_close_fds(&channels[i]);
 }
 
 /* Returns the maximum file descriptor number used by the channels. */
@@ -2269,17 +2291,9 @@ channel_set_fds(int id, int rfd, int wfd, int efd, int extusage)
 	Channel *c = channel_lookup(id);
 	if (c == NULL || c->type != SSH_CHANNEL_LARVAL)
 		fatal("channel_activate for non-larval channel %d.", id);
-	if (rfd > channel_max_fd_value)
-		channel_max_fd_value = rfd;
-	if (wfd > channel_max_fd_value)
-		channel_max_fd_value = wfd;
-	if (efd > channel_max_fd_value)
-		channel_max_fd_value = efd;
+
+	channel_register_fds(c, rfd, wfd, efd, extusage);
 	c->type = SSH_CHANNEL_OPEN;
-	c->rfd = rfd;
-	c->wfd = wfd;
-	c->efd = efd;
-	c->extended_usage = extusage;
 	/* XXX window size? */
 	c->local_window = c->local_window_max = c->local_maxpacket/2;
 	packet_start(SSH2_MSG_CHANNEL_WINDOW_ADJUST);
