@@ -35,7 +35,7 @@
 
 extern char *__progname;
 
-RCSID("$Id: auth-pam.c,v 1.37 2001/04/23 18:38:37 stevesk Exp $");
+RCSID("$Id: auth-pam.c,v 1.38 2001/10/28 11:33:48 djm Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now"
@@ -374,7 +374,7 @@ void start_pam(const char *user)
 	 * not even need one (for tty-less connections)
 	 * Kludge: Set a fake PAM_TTY
 	 */
-	pam_retval = pam_set_item(__pamh, PAM_TTY, "ssh");
+	pam_retval = pam_set_item(__pamh, PAM_TTY, "NODEVssh");
 	if (pam_retval != PAM_SUCCESS)
 		fatal("PAM set tty failed[%d]: %.200s",
 		    pam_retval, PAM_STRERROR(__pamh, pam_retval));
