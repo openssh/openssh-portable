@@ -1,6 +1,8 @@
 20030909
  - (tim) [regress/Makefile] Fixes for building outside of a read-only
    source tree.
+ - (tim) [regress/agent-timeout.sh] s/TIMEOUT/SSHAGENT_TIMEOUT/ Fixes conflict
+   with shell read-only variable.
 
 20030908
  - (tim) [configure.ac openbsd-compat/getrrsetbyname.c] wrap _getshort and
@@ -1048,4 +1050,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2973 2003/09/09 13:07:10 tim Exp $
+$Id: ChangeLog,v 1.2974 2003/09/09 15:27:40 tim Exp $
