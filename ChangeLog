@@ -3,6 +3,10 @@
    - dtucker@cvs.openbsd.org 2004/07/03 05:11:33
      [sshlogin.c] (RCSID sync only, the corresponding code is not in Portable)
      Use '\0' not 0 for string; ok djm@, deraadt@
+   - dtucker@cvs.openbsd.org 2004/07/03 11:02:25
+     [monitor_wrap.c]
+     Put s/key functions inside #ifdef SKEY same as monitor.c,
+     from des@freebsd via bz #330, ok markus@
 
 20040702
  - (dtucker) [mdoc2man.awk] Teach it to ignore .Bk -words, reported by
@@ -1487,4 +1491,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3469 2004/07/08 13:08:26 dtucker Exp $
+$Id: ChangeLog,v 1.3470 2004/07/08 13:09:42 dtucker Exp $
