@@ -1,3 +1,6 @@
+20011123
+ - (djm) Compat define for OpenSSL < 0.9.6 (No OPENSSL_free)
+
 20011031
  - (djm) Unsmoke drugs: config files should be noreplace.
 
@@ -6792,4 +6795,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1629 2001/10/30 23:31:13 djm Exp $
+$Id: ChangeLog,v 1.1630 2001/10/31 22:32:34 djm Exp $

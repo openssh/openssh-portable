@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.74 2001/10/30 02:50:40 tim Exp $ */
+/* $Id: defines.h,v 1.75 2001/10/31 22:32:34 djm Exp $ */
 
 /* Necessary headers */
 
@@ -45,6 +45,7 @@
 #include <unistd.h> /* For STDIN_FILENO, etc */
 #include <termios.h> /* Struct winsize */
 #include <fcntl.h> /* For O_NONBLOCK */
+#include <openssl/opensslv.h> /* For OPENSSL_VERSION_NUMBER */
 
 /* *-*-nto-qnx needs these headers for strcasecmp and LASTLOG_FILE respectively */
 #ifdef HAVE_STRINGS_H
@@ -448,6 +449,11 @@ struct winsize {
 
 #ifndef GETPGRP_VOID
 # define getpgrp() getpgrp(0)
+#endif
+
+/* OPENSSL_free() is Free() in versions before OpenSSL 0.9.6 */
+#if !defined(OPENSSL_VERSION_NUMBER) || (OPENSSL_VERSION_NUMBER < 0x0090600f)
+# define OPENSSL_free(x) Free(x)
 #endif
 
 /*
