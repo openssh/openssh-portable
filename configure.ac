@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.209 2004/04/06 11:39:02 dtucker Exp $
+# $Id: configure.ac,v 1.210 2004/04/06 11:41:51 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -981,8 +981,6 @@ main()
 		]
 	)
 fi
-
-check_for_hpux_broken_getaddrinfo=1
 
 if test "x$ac_cv_func_getaddrinfo" = "xyes" -a "x$check_for_hpux_broken_getaddrinfo" = "x1"; then
 	AC_MSG_CHECKING(if getaddrinfo seems to work)
