@@ -1,6 +1,10 @@
 20010220
  - (bal) Fix mixed up params to memmove() from Jan 5th in setenv.c and
    getcwd.c.
+ - (bal) OpenBSD CVS Sync:
+   - deraadt@cvs.openbsd.org 2001/02/19 23:09:05
+     [sshd.c]
+     clarify message to make it not mention "ident"
 
 20010219
  - (bal) Markus' blessing to rename login.[ch] -> sshlogin.[ch] and
@@ -4074,4 +4078,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.804 2001/02/19 19:54:43 mouring Exp $
+$Id: ChangeLog,v 1.805 2001/02/20 01:20:47 mouring Exp $

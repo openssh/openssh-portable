@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.167 2001/02/12 23:26:20 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.168 2001/02/19 23:09:05 deraadt Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -328,7 +328,8 @@ sshd_exchange_identification(int sock_in, int sock_out)
 		memset(buf, 0, sizeof(buf)); 
 		for (i = 0; i < sizeof(buf) - 1; i++) {
 			if (atomicio(read, sock_in, &buf[i], 1) != 1) {
-				log("Did not receive ident string from %s.", get_remote_ipaddr());
+				log("Did not receive identification string from %s.",
+				    get_remote_ipaddr());
 				fatal_cleanup();
 			}
 			if (buf[i] == '\r') {
