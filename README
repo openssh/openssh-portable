@@ -27,6 +27,11 @@ need the GNOME libraries installed. If you are building OpenSSH on a
 Unix which lacks a kernel random number pool (/dev/random), you will
 need to install EGD[1].
 
+There is now a mailing list for this port of OpenSSH. To subscribe, 
+send a message conststing of the word 'SUBSCRIBE' to 
+openssh-unix-dev-request@mindrot.org. This mailing list is intended for
+developers.
+
 To build OpenSSH, use the configure script provided. For example:
 
 ./configure --prefix=/opt/openssh
