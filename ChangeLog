@@ -32,6 +32,9 @@
      [sshpty.c]
      don't call error() for readonly /dev; from soekris list; ok mcbride,
      henning, deraadt.
+   - markus@cvs.openbsd.org 2003/02/04 09:32:08
+     [key.c]
+     better debug3 message
 
 20030211
  - (djm) Cygwin needs libcrypt too. Patch from vinschen@redhat.com
@@ -1132,4 +1135,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2601 2003/02/24 00:54:10 djm Exp $
+$Id: ChangeLog,v 1.2602 2003/02/24 00:54:57 djm Exp $

@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: key.c,v 1.49 2002/09/09 14:54:14 markus Exp $");
+RCSID("$OpenBSD: key.c,v 1.50 2003/02/04 09:32:08 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -410,14 +410,14 @@ key_read(Key *ret, char **cpp)
 	case KEY_DSA:
 		space = strchr(cp, ' ');
 		if (space == NULL) {
-			debug3("key_read: no space");
+			debug3("key_read: missing whitespace");
 			return -1;
 		}
 		*space = '\0';
 		type = key_type_from_name(cp);
 		*space = ' ';
 		if (type == KEY_UNSPEC) {
-			debug3("key_read: no key found");
+			debug3("key_read: missing keytype");
 			return -1;
 		}
 		cp = space+1;
