@@ -39,6 +39,9 @@
      [ssh.1 sshd.8]
      move configuration file options from ssh.1/sshd.8 to
      ssh_config.5/sshd_config.5; ok deraadt@ millert@
+   - stevesk@cvs.openbsd.org 2002/06/20 20:00:05
+     [scp.1 sftp.1]
+     ssh_config(5)
  - (bal) Cygwin special handling of empty passwords wrong.  Patch by
    vinschen@redhat.com
 
@@ -969,4 +972,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2227 2002/06/21 00:59:05 mouring Exp $
+$Id: ChangeLog,v 1.2228 2002/06/21 01:00:40 mouring Exp $
