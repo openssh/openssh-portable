@@ -22,6 +22,11 @@
  - (djm) Convert mandoc manpages to man automatically. Patch from Mark D.
    Roth <roth+openssh@feep.net>
  - (bal) CVS ID fix up and slight manpage fix from OpenBSD tree.
+  - (djm) OpenBSD CVS Sync
+   - mouring@cvs.openbsd.org 2001/04/16 02:31:44
+     [scp.c sftp.c]
+     IPv6 support for sftp (which I bungled in my last patch) which is
+     borrowed from scp.c.  Thanks to Markus@ for pointing it out.
 
 20010415
  - OpenBSD CVS Sync
@@ -5107,4 +5112,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1124 2001/04/16 02:13:26 mouring Exp $
+$Id: ChangeLog,v 1.1125 2001/04/16 08:26:41 djm Exp $
