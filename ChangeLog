@@ -1,3 +1,6 @@
+20050215
+ - (dtucker) [config.sh.in] Collect oslevel -r too.
+
 20050211
  - (dtucker) [configure.ac] Tidy up configure --help output.
  - (dtucker) [openbsd-compat/fake-rfc2553.h] We now need EAI_SYSTEM too.
@@ -2123,4 +2126,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3650 2005/02/11 07:32:13 dtucker Exp $
+$Id: ChangeLog,v 1.3651 2005/02/15 10:26:32 dtucker Exp $

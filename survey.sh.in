@@ -45,6 +45,8 @@ echo "uname-p: `uname -p`"
 echo
 echo "oslevel: `oslevel 2>/dev/null`"
 echo
+echo "oslevel-r: `oslevel -r 2>/dev/null`"
+echo
 echo "cc: $CC"
 echo
 echo "cflags: $CFLAGS"
