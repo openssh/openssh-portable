@@ -70,9 +70,9 @@
 #KerberosTgtPassing no
 
 # Set this to 'yes' to enable PAM authentication (via challenge-response)
-# and session processing
-# Warning: enabling this may bypass the setting of 'PasswordAuthentication'
-#UsePAM no
+# and session processing. Depending on your PAM configuration, this may
+# bypass the setting of 'PasswordAuthentication'
+#UsePAM yes
 
 #X11Forwarding no
 #X11DisplayOffset 10
