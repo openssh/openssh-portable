@@ -1,3 +1,6 @@
+20020607
+ - (bal) Missed __progname in ssh-keysign.c  patch by dtucker@zip.com.au
+
 20020606
  - (bal) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2002/05/15 21:56:38
@@ -822,4 +825,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2185 2002/06/07 03:19:35 mouring Exp $
+$Id: ChangeLog,v 1.2186 2002/06/07 14:37:00 mouring Exp $

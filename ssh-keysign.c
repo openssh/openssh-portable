@@ -38,6 +38,12 @@ RCSID("$OpenBSD: ssh-keysign.c,v 1.2 2002/05/31 10:30:33 markus Exp $");
 #include "canohost.h"
 #include "pathnames.h"
 
+#ifdef HAVE___PROGNAME
+extern char *__progname;
+#else
+char *__progname;
+#endif
+
 static int
 valid_request(struct passwd *pw, char *host, Key **ret, u_char *data,
     u_int datalen)

@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.64 2002/05/28 00:37:33 tim Exp $
+# $Id: configure.ac,v 1.65 2002/06/07 14:37:00 mouring Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -230,13 +230,11 @@ mips-sony-bsd|mips-sony-newsos4)
 *-*-sysv4.2*)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
-#	enable_suid_ssh=no
 	AC_DEFINE(USE_PIPES)
 	;;
 *-*-sysv5*)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
-#	enable_suid_ssh=no
 	AC_DEFINE(USE_PIPES)
 	;;
 *-*-sysv*)
@@ -2095,25 +2093,6 @@ AC_ARG_WITH(bsd-auth,
 		fi
 	]
 )
-
-AC_MSG_CHECKING(whether to install ssh as suid root)
-AC_ARG_ENABLE(suid-ssh,
-[  --enable-suid-ssh       Install ssh as suid root (default)
-  --disable-suid-ssh      Install ssh without suid bit],
-[ case "$enableval" in
-  no)
-       AC_MSG_RESULT(no)
-       SSHMODE=0711
-       ;;
-  *)   AC_MSG_RESULT(yes)
-       SSHMODE=4711
-       ;;
-  esac ],
-  AC_MSG_RESULT(yes)
-  SSHMODE=4711
-)
-AC_SUBST(SSHMODE)
-
 
 # Where to place sshd.pid
 piddir=/var/run

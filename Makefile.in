@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.212 2002/06/07 03:11:38 mouring Exp $
+# $Id: Makefile.in,v 1.213 2002/06/07 14:37:00 mouring Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -51,7 +51,6 @@ ENT=@ENT@
 XAUTH_PATH=@XAUTH_PATH@
 LDFLAGS=-L. -Lopenbsd-compat/ @LDFLAGS@
 EXEEXT=@EXEEXT@
-SSH_MODE= @SSHMODE@
 
 INSTALL_SSH_PRNG_CMDS=@INSTALL_SSH_PRNG_CMDS@
 INSTALL_SSH_RAND_HELPER=@INSTALL_SSH_RAND_HELPER@
@@ -212,7 +211,7 @@ install-files: scard-install
 	$(srcdir)/mkinstalldirs $(DESTDIR)$(mandir)/$(mansubdir)1
 	$(srcdir)/mkinstalldirs $(DESTDIR)$(mandir)/$(mansubdir)8
 	$(srcdir)/mkinstalldirs $(DESTDIR)$(libexecdir)
-	$(INSTALL) -m $(SSH_MODE) -s ssh $(DESTDIR)$(bindir)/ssh
+	$(INSTALL) -m 0755 -s ssh $(DESTDIR)$(bindir)/ssh
 	$(INSTALL) -m 0755 -s scp $(DESTDIR)$(bindir)/scp
 	$(INSTALL) -m 0755 -s ssh-add $(DESTDIR)$(bindir)/ssh-add
 	$(INSTALL) -m 0755 -s ssh-agent $(DESTDIR)$(bindir)/ssh-agent
