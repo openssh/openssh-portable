@@ -134,9 +134,10 @@
  - (bal) Forgot to add msg.c Makefile.in.
  - (bal) monitor_mm.c typos.
  - (bal) Refixed auth2.c.  It was never fully commited while spliting out
-	authentication to different files.
+   authentication to different files.
  - (bal) ssh-keysign should build and install correctly now.  Phase two
    would be to clean out any dead wood and disable ssh setuid on install.
+ - (bal) Reverse logic, use __func__ first since it's C99
 
 20020604
  - (stevesk) [channels.c] bug #164 patch from YOSHIFUJI Hideaki (changed
@@ -821,4 +822,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2184 2002/06/07 03:11:38 mouring Exp $
+$Id: ChangeLog,v 1.2185 2002/06/07 03:19:35 mouring Exp $

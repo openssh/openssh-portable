@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.89 2002/04/25 17:56:07 stevesk Exp $ */
+/* $Id: defines.h,v 1.90 2002/06/07 03:19:36 mouring Exp $ */
 
 
 /* Constants */
@@ -460,10 +460,10 @@ struct winsize {
 # define OPENSSL_free(x) Free(x)
 #endif
 
-#if defined(HAVE___func__)
-#  define __FUNCTION__ __func__
-#elif !defined(HAVE___FUNCTION__)
-#  define __FUNCTION__ ""
+#if !defined(HAVE___func__) && defined(HAVE___FUNCTION__)
+#  define __func__ __FUNCTION__
+#elif !defined(HAVE___func__)
+#  define __func__ ""
 #endif
 
 /*
