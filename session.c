@@ -1090,14 +1090,24 @@ do_setup_env(Session *s, const char *shell)
 		child_set_env(&env, &envsize, "TMPDIR", cray_tmpdir);
 #endif /* _UNICOS */
 
+	/*
+	 * Since we clear KRB5CCNAME at startup, if it's set now then it
+	 * must have been set by a native authentication method (eg AIX or
+	 * SIA), so copy it to the child.
+	 */
+	{
+		char *cp;
+
+		if ((cp = getenv("KRB5CCNAME")) != NULL)
+			child_set_env(&env, &envsize, "KRB5CCNAME", cp);
+	}
+
 #ifdef _AIX
 	{
 		char *cp;
 
 		if ((cp = getenv("AUTHSTATE")) != NULL)
 			child_set_env(&env, &envsize, "AUTHSTATE", cp);
-		if ((cp = getenv("KRB5CCNAME")) != NULL)
-			child_set_env(&env, &envsize, "KRB5CCNAME", cp);
 		read_environment_file(&env, &envsize, "/etc/environment");
 	}
 #endif
