@@ -11,9 +11,8 @@ Created: Wed Apr 19 17:41:39 1995 ylo
 
 */
 
-#include "config.h"
 #include "includes.h"
-RCSID("$Id: cipher.c,v 1.4 1999/11/08 05:15:55 damien Exp $");
+RCSID("$Id: cipher.c,v 1.5 1999/11/12 23:51:58 damien Exp $");
 
 #include "ssh.h"
 #include "cipher.h"
