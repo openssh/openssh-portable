@@ -1,3 +1,8 @@
+20020510
+ - (djm) Rework RedHat RPM files. Based on spec from Nalin 
+   Dahyabhai <nalin@redhat.com> and patches from 
+   Pekka Savola <pekkas@netcore.fi>
+
 20020509
  - (tim) [Makefile.in] Unbreak make -f Makefile.in distprep
 
@@ -548,4 +553,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2100 2002/05/09 14:05:59 tim Exp $
+$Id: ChangeLog,v 1.2101 2002/05/10 02:19:23 djm Exp $
