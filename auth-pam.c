@@ -35,7 +35,7 @@
 
 extern char *__progname;
 
-RCSID("$Id: auth-pam.c,v 1.36 2001/04/23 17:28:29 stevesk Exp $");
+RCSID("$Id: auth-pam.c,v 1.37 2001/04/23 18:38:37 stevesk Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now"
@@ -209,7 +209,7 @@ int auth_pam_password(struct passwd *pw, const char *password)
 	/* deny if no user. */
 	if (pw == NULL)
 		return 0;
-	if (pw->pw_uid == 0 && options.permit_root_login == 2)
+	if (pw->pw_uid == 0 && options.permit_root_login == PERMIT_NO_PASSWD)
 		return 0;
 	if (*password == '\0' && options.permit_empty_passwd == 0)
 		return 0;
