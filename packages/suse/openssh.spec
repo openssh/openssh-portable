@@ -135,7 +135,8 @@ This package contains the GNOME passphrase dialog.
 - Initial RPMification, based on Jan "Yenya" Kasprzak's <kas@fi.muni.cz> spec.
 
 %prep
-%setup
+
+%setup -q
 
 %build
 CFLAGS="$RPM_OPT_FLAGS" \

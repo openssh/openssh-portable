@@ -112,7 +112,7 @@ This package contains the GNOME passphrase dialog.
 
 %prep
 
-%setup
+%setup -q
 
 %build
 
