@@ -43,6 +43,8 @@
    - deraadt@cvs.openbsd.org 2002/02/19 02:50:59
      [sshd_config]
      stategy is not an english word
+ - (bal) Migrate IRIX jobs/projects/audit/etc code to 
+   openbsd-compat/port-irix.[ch] to improve readiblity of do_child()
 
 20020218
  - (tim) newer config.guess from ftp://ftp.gnu.org/gnu/config/config.guess
@@ -7640,4 +7642,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1865 2002/02/19 04:29:02 djm Exp $
+$Id: ChangeLog,v 1.1866 2002/02/19 20:02:48 mouring Exp $
