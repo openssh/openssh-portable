@@ -38,7 +38,7 @@
 #include "pathnames.h"
 #include "log.h"
 
-RCSID("$Id: entropy.c,v 1.26 2001/02/05 12:42:17 stevesk Exp $");
+RCSID("$Id: entropy.c,v 1.27 2001/02/18 01:44:29 djm Exp $");
 
 #ifndef offsetof
 # define offsetof(type, member) ((size_t) &((type *)0)->member)
@@ -71,7 +71,8 @@ int get_random_bytes(unsigned char *buf, int len)
 	int fd;
 	char msg[2];
 	struct sockaddr_un addr;
-	int addr_len;
+	int addr_len, rval, errors;
+	struct sigaction nsa, osa;
 
 	/* Sanity checks */
 	if (sizeof(EGD_SOCKET) > sizeof(addr.sun_path))
@@ -84,17 +85,22 @@ int get_random_bytes(unsigned char *buf, int len)
 	strlcpy(addr.sun_path, EGD_SOCKET, sizeof(addr.sun_path));
 	addr_len = offsetof(struct sockaddr_un, sun_path) + sizeof(EGD_SOCKET);
 
+	memset(&nsa, 0, sizeof(nsa));
+	nsa.sa_handler = SIG_IGN;
+	(void) sigaction(SIGPIPE, &nsa, &osa);
+
+	errors = rval = 0;
+reopen:
 	fd = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (fd == -1) {
 		error("Couldn't create AF_UNIX socket: %s", strerror(errno));
-		return(0);
+		goto done;
 	}
 
 	if (connect(fd, (struct sockaddr*)&addr, addr_len) == -1) {
 		error("Couldn't connect to EGD socket \"%s\": %s",
 			addr.sun_path, strerror(errno));
-		close(fd);
-		return(0);
+		goto done;
 	}
 
 	/* Send blocking read request to EGD */
@@ -102,22 +108,33 @@ int get_random_bytes(unsigned char *buf, int len)
 	msg[1] = len;
 
 	if (atomicio(write, fd, msg, sizeof(msg)) != sizeof(msg)) {
+		if (errno == EPIPE && errors < 10) {
+			close(fd);
+			errors++;
+			goto reopen;
+		}
 		error("Couldn't write to EGD socket \"%s\": %s",
 			EGD_SOCKET, strerror(errno));
-		close(fd);
-		return(0);
+		goto done;
 	}
 
 	if (atomicio(read, fd, buf, len) != len) {
+		if (errno == EPIPE && errors < 10) {
+			close(fd);
+			errors++;
+			goto reopen;
+		}
 		error("Couldn't read from EGD socket \"%s\": %s",
 			EGD_SOCKET, strerror(errno));
-		close(fd);
-		return(0);
+		goto done;
 	}
 
-	close(fd);
-
-	return(1);
+	rval = 1;
+done:
+	(void) sigaction(SIGPIPE, &osa, NULL);
+	if (fd != -1)
+		close(fd);
+	return(rval);
 }
 #else /* !EGD_SOCKET */
 #ifdef RANDOM_POOL

@@ -7,6 +7,8 @@
    <vinschen@redhat.com> and myself.
  - (djm) Close listen_sock on bind() failures. Patch from Arkadiusz
    Miskiewicz <misiek@pld.ORG.PL>
+ - (djm) Robustify EGD/PRNGd code in face of socket closures. Patch from
+   Todd C. Miller <Todd.Miller@courtesan.com>
 
 20010217
  - (bal) OpenBSD Sync:
@@ -4014,4 +4016,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.786 2001/02/18 01:36:39 djm Exp $
+$Id: ChangeLog,v 1.787 2001/02/18 01:44:29 djm Exp $
