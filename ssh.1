@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.79 2001/01/28 20:36:16 stevesk Exp $
+.\" $OpenBSD: ssh.1,v 1.80 2001/01/29 12:36:10 djm Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -48,7 +48,7 @@
 .Op Ar command
 .Pp
 .Nm ssh
-.Op Fl afgknqtvxACNPTX246
+.Op Fl afgknqstvxACNPTX246
 .Op Fl c Ar cipher_spec
 .Op Fl e Ar escape_char
 .Op Fl i Ar identity_file
@@ -470,6 +470,10 @@ for older servers.
 Quiet mode.
 Causes all warning and diagnostic messages to be suppressed.
 Only fatal errors are displayed.
+.It Fl s
+May be used to request invocation of a subsystem on the remote system. Subsystems are a feature of the SSH2 protocol which facilitate the use 
+of SSH as a secure transport for other application (eg. sftp). The 
+subsystem is specified as the remote command.
 .It Fl t
 Force pseudo-tty allocation.
 This can be used to execute arbitrary

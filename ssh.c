@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.84 2001/01/21 19:05:58 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.85 2001/01/29 12:36:10 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -139,6 +139,9 @@ uid_t original_real_uid;
 /* command to be executed */
 Buffer command;
 
+/* Should we execute a command or invoke a subsystem? */
+int subsystem_flag = 0;
+
 /* Prints a help message to the user.  This function never returns. */
 
 void
@@ -181,6 +184,7 @@ usage()
 	fprintf(stderr, "  -6          Use IPv6 only.\n");
 	fprintf(stderr, "  -2          Force protocol version 2.\n");
 	fprintf(stderr, "  -o 'option' Process the option as if it was read from a configuration file.\n");
+	fprintf(stderr, "  -s          Invoke command (mandatory) as SSH2 subsystem.\n");
 	exit(1);
 }
 
@@ -484,6 +488,9 @@ main(int ac, char **av)
 					 "command-line", 0, &dummy) != 0)
 				exit(1);
 			break;
+		case 's':
+			subsystem_flag = 1;
+			break;
 		default:
 			usage();
 		}
@@ -507,6 +514,10 @@ main(int ac, char **av)
 	if (optind == ac) {
 		/* No command specified - execute shell on a tty. */
 		tty_flag = 1;
+		if (subsystem_flag) {
+			fprintf(stderr, "You must specify a subsystem to invoke.");
+			usage();
+		}
 	} else {
 		/* A command has been specified.  Store it into the
 		   buffer. */
@@ -978,8 +989,13 @@ ssh_session2_callback(int id, void *arg)
 	if (len > 0) {
 		if (len > 900)
 			len = 900;
-		debug("Sending command: %.*s", len, buffer_ptr(&command));
-		channel_request_start(id, "exec", 0);
+		if (subsystem_flag) {
+			debug("Sending subsystem: %.*s", len, buffer_ptr(&command));
+			channel_request_start(id, "subsystem", 0);
+		} else {
+			debug("Sending command: %.*s", len, buffer_ptr(&command));
+			channel_request_start(id, "exec", 0);
+		}
 		packet_put_string(buffer_ptr(&command), len);
 		packet_send();
 	} else {

@@ -10,6 +10,9 @@
      [rsa.c rsa.h ssh-agent.c sshconnect1.c sshd.c]
      handle rsa_private_decrypt failures; helps against the Bleichenbacher
      pkcs#1 attack
+   - djm@cvs.openbsd.org     2001/01/29 05:36:11
+     [ssh.1 ssh.c]
+     Allow invocation of sybsystem by commandline (-s); ok markus@
 
 20000129
  - (stevesk) sftp-server.c: use %lld vs. %qd
