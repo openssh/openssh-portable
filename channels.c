@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.202 2004/05/21 11:33:11 djm Exp $");
+RCSID("$OpenBSD: channels.c,v 1.203 2004/05/26 23:02:39 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -2570,6 +2570,7 @@ x11_create_display_inet(int x11_display_offset, int x11_use_localhost,
 			if (sock < 0) {
 				if ((errno != EINVAL) && (errno != EAFNOSUPPORT)) {
 					error("socket: %.100s", strerror(errno));
+					freeaddrinfo(aitop);
 					return -1;
 				} else {
 					debug("x11_create_display_inet: Socket family %d not supported",
