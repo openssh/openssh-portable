@@ -45,12 +45,6 @@ lacks /dev/random and don't want to use OpenSSH's internal entropy collection.
 
 http://www.lothar.com/tech/crypto/
 
-GNU Make:
-ftp://ftp.gnu.org/gnu/make/
-
-OpenSSH has only been tested with GNU make. It may work with other
-'make' programs, but you are on your own.
-
 S/Key Libraries:
 http://www.sparc.spb.su/solaris/skey/
 
@@ -224,4 +218,4 @@ Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
 
 
-$Id: INSTALL,v 1.47 2001/12/07 17:20:48 mouring Exp $
+$Id: INSTALL,v 1.48 2001/12/27 22:57:34 djm Exp $

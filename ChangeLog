@@ -1,3 +1,7 @@
+20011228
+ - (djm) Remove recommendation to use GNU make, we should support most
+   make programs.
+
 20011225
  - (stevesk) [Makefile.in ssh-rand-helper.c]
    portable lib and __progname support for ssh-rand-helper; ok djm@
@@ -7104,4 +7108,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1708 2001/12/25 04:32:58 stevesk Exp $
+$Id: ChangeLog,v 1.1709 2001/12/27 22:57:33 djm Exp $
