@@ -19,6 +19,7 @@
      "grep -q" -> "grep >/dev/null"
    - [regress/agent.sh regress/proto-version.sh regress/ssh-com.sh
      regress/test-exec.sh] Handle different was of echoing without newlines.
+   - [regress/dynamic-forward.sh] Some "which" programs output on stderr.
 
 20030903
  - (djm) OpenBSD CVS Sync
@@ -1009,4 +1010,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2952 2003/09/04 05:16:56 dtucker Exp $
+$Id: ChangeLog,v 1.2953 2003/09/04 05:22:01 dtucker Exp $
