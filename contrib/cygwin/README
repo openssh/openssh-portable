@@ -195,27 +195,36 @@ configure are used for the Cygwin binary distribution:
 
 	--prefix=/usr \
 	--sysconfdir=/etc \
-	--libexecdir='$(sbindir)' \
+	--libexecdir='${sbindir}' \
 	--localstatedir=/var \
-	--datadir='$(prefix)/share' \
-	--mandir='$(datadir)/man' \
+	--datadir='${prefix}/share' \
+	--mandir='${datadir}/man' \
+	--infodir='${datadir}/info'
 	--with-tcp-wrappers
 
 If you want to create a Cygwin package, equivalent to the one
 in the Cygwin binary distribution, install like this:
 
 	mkdir /tmp/cygwin-ssh
-	cd $(builddir)
+	cd ${builddir}
 	make install DESTDIR=/tmp/cygwin-ssh
-	cd $(srcdir)/contrib/cygwin
+	cd ${srcdir}/contrib/cygwin
 	make cygwin-postinstall DESTDIR=/tmp/cygwin-ssh
 	cd /tmp/cygwin-ssh
 	find * \! -type d | tar cvjfT my-openssh.tar.bz2 -
-	
-You must have installed the zlib, the openssl-devel and the minires-devel
-packages to be able to build OpenSSH!
+
+You must have installed the following packages to be able to build OpenSSH:
+
+- zlib
+- openssl-devel
+- minires-devel
+
+If you want to build with --with-tcp-wrappers, you also need the package
+
+- tcp_wrappers
 
 Please send requests, error reports etc. to cygwin@cygwin.com.
+
 
 Have fun,
 
