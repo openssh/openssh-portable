@@ -23,7 +23,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: auth2-chall.c,v 1.21 2004/06/01 14:20:45 dtucker Exp $");
+RCSID("$OpenBSD: auth2-chall.c,v 1.22 2005/01/19 13:11:47 dtucker Exp $");
 
 #include "ssh2.h"
 #include "auth.h"
@@ -274,12 +274,7 @@ input_userauth_info_response(int type, u_int32_t seq, void *ctxt)
 	}
 	packet_check_eom();
 
-	if (authctxt->valid) {
-		res = kbdintctxt->device->respond(kbdintctxt->ctxt,
-		    nresp, response);
-	} else {
-		res = -1;
-	}
+	res = kbdintctxt->device->respond(kbdintctxt->ctxt, nresp, response);
 
 	for (i = 0; i < nresp; i++) {
 		memset(response[i], 'r', strlen(response[i]));
@@ -291,7 +286,7 @@ input_userauth_info_response(int type, u_int32_t seq, void *ctxt)
 	switch (res) {
 	case 0:
 		/* Success! */
-		authenticated = 1;
+		authenticated = authctxt->valid ? 1 : 0;
 		break;
 	case 1:
 		/* Authentication needs further interaction */

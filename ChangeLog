@@ -22,6 +22,14 @@
    - dtucker@cvs.openbsd.org 2005/01/17 22:48:39
      [sshd.c]
      Make debugging output continue after reexec; ok djm@
+   - dtucker@cvs.openbsd.org 2005/01/19 13:11:47
+     [auth-bsdauth.c auth2-chall.c]
+     Have keyboard-interactive code call the drivers even for responses for
+     invalid logins.  This allows the drivers themselves to decide how to
+     handle them and prevent leaking information where possible.  Existing
+     behaviour for bsdauth is maintained by checking authctxt->valid in the
+     bsdauth driver.  Note that any third-party kbdint drivers will now need
+     to be able to handle responses for invalid logins.  ok markus@
 
 20050118
  - (dtucker) [INSTALL Makefile.in configure.ac survey.sh.in] Implement
@@ -1994,4 +2002,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3615 2005/01/20 00:03:08 dtucker Exp $
+$Id: ChangeLog,v 1.3616 2005/01/20 00:05:34 dtucker Exp $
