@@ -23,6 +23,9 @@
    - markus@cvs.openbsd.org 2001/11/21 15:51:24
      [key.c]
      mem leak
+   - stevesk@cvs.openbsd.org 2001/11/21 18:49:14
+     [ssh-keygen.1]
+     more on passphrase construction; ok markus@
 
 20011126
  - (tim) [contrib/cygwin/README, openbsd-compat/bsd-cygwin_util.c,
@@ -6945,4 +6948,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1673 2001/12/06 16:41:41 mouring Exp $
+$Id: ChangeLog,v 1.1674 2001/12/06 16:43:21 mouring Exp $

@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.50 2001/10/25 21:14:32 markus Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.51 2001/11/21 18:49:14 stevesk Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -111,10 +111,14 @@ The program also asks for a passphrase.
 The passphrase may be empty to indicate no passphrase
 (host keys must have an empty passphrase), or it may be a string of
 arbitrary length.
-Good passphrases are 10-30 characters long and are
+A passphrase is similar to a password, except it can be a phrase with a
+series of words, punctuation, numbers, whitespace, or any string of
+characters you want.
+Good passphrases are 10-30 characters long, are
 not simple sentences or otherwise easily guessable (English
 prose has only 1-2 bits of entropy per character, and provides very bad
-passphrases).
+passphrases), and contain a mix of upper and lowercase letters,
+numbers, and non-alphanumeric characters.
 The passphrase can be changed later by using the
 .Fl p
 option.
