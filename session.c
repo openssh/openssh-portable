@@ -28,6 +28,10 @@ RCSID("$OpenBSD: session.c,v 1.20 2000/06/18 04:42:54 markus Exp $");
 #include "auth.h"
 #include "auth-options.h"
 
+#ifdef WITH_IRIX_PROJECT
+#include <proj.h>
+#endif /* WITH_IRIX_PROJECT */
+
 /* types */
 
 #define TTYSZ 64
@@ -799,6 +803,9 @@ do_child(const char *command, struct passwd * pw, const char *term,
 	extern char **environ;
 	struct stat st;
 	char *argv[10];
+#ifdef WITH_IRIX_PROJECT
+	prid_t projid;
+#endif /* WITH_IRIX_PROJECT */
 
 	/* login(1) is only called if we execute the login shell */
 	if (options.use_login && command != NULL)
@@ -835,6 +842,25 @@ do_child(const char *command, struct passwd * pw, const char *term,
 				exit(1);
 			}
 			endgrent();
+
+#ifdef WITH_IRIX_ARRAY
+			/* initialize array session */
+			if (newarraysess() != 0)
+				fatal("Failed to set up new array session: %.100s",
+				      strerror(errno));
+#endif /* WITH_IRIX_ARRAY */
+
+#ifdef WITH_IRIX_PROJECT
+			/* initialize irix project info */
+			if ((projid = getdfltprojuser(pw->pw_name)) == -1) {
+			  debug("Failed to get project id, using projid 0");
+			  projid = 0;
+			}
+			
+			if (setprid(projid))
+			  fatal("Failed to initialize project %d for %s: %.100s",
+				(int)projid, pw->pw_name, strerror(errno));
+#endif /* WITH_IRIX_PROJECT */
 
 			/* Permanently switch to the desired uid. */
 			permanently_set_uid(pw->pw_uid);

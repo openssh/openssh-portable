@@ -90,7 +90,9 @@ case "$host" in
 	CFLAGS="$CFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS"
 	MANTYPE='$(CATMAN)'
-	AC_MSG_WARN([*** Irix 6.x is not tested, please report you experiences *** ])
+	AC_DEFINE(WITH_IRIX_ARRAY)
+	AC_DEFINE(WITH_IRIX_PROJECT)
+	AC_DEFINE(WITH_IRIX_AUDIT)
 	no_libsocket=1
 	no_libnsl=1
 	;;

@@ -45,6 +45,7 @@ Kiyokazu SUTO <suto@ks-and-ks.ne.jp> - Bugfixes
 Lutz Jaenicke <Lutz.Jaenicke@aet.TU-Cottbus.DE> - Bugfixes
 Marc G. Fournier <marc.fournier@acadiau.ca> - Solaris patches
 Matt Richards <v2matt@btv.ibm.com> - AIX patches
+Michael Stone <mstone@cs.loyola.edu> - Irix enhancements
 Nalin Dahyabhai <nalin.dahyabhai@pobox.com> - PAM environment patch
 Niels Kristian Bech Jensen <nkbj@image.dk> - Assorted patches
 Peter Kocks <peter.kocks@baygate.com> - Makefile fixes
