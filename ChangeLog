@@ -1,6 +1,7 @@
 20020513
  - (djm) Add --with-superuser-path=xxx configure option to specify what $PATH
    the superuser receives.
+ - (djm) Bug #231: UsePrivilegeSeparation turns off Banner.
 
 20020511
  - (tim) [configure.ac] applied a rework of djm's OpenSSL search cleanup patch.
@@ -571,4 +572,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2107 2002/05/13 00:48:57 djm Exp $
+$Id: ChangeLog,v 1.2108 2002/05/13 01:07:41 djm Exp $

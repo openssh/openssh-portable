@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.89 2002/03/19 14:27:39 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.90 2002/05/12 23:53:45 djm Exp $");
 
 #include <openssl/evp.h>
 
@@ -283,25 +283,45 @@ userauth_finish(Authctxt *authctxt, int authenticated, char *method)
 	}
 }
 
-static void
-userauth_banner(void)
+char *
+auth2_read_banner(void)
 {
 	struct stat st;
 	char *banner = NULL;
 	off_t len, n;
 	int fd;
 
-	if (options.banner == NULL || (datafellows & SSH_BUG_BANNER))
-		return;
-	if ((fd = open(options.banner, O_RDONLY)) < 0)
-		return;
-	if (fstat(fd, &st) < 0)
-		goto done;
+	if ((fd = open(options.banner, O_RDONLY)) == -1)
+		return (NULL);
+	if (fstat(fd, &st) == -1) {
+		close(fd);
+		return (NULL);
+	}
 	len = st.st_size;
 	banner = xmalloc(len + 1);
-	if ((n = read(fd, banner, len)) < 0)
-		goto done;
+	n = atomicio(read, fd, banner, len);
+	close(fd);
+
+	if (n != len) {
+		free(banner);
+		return (NULL);
+	}
 	banner[n] = '\0';
+	
+	return (banner);
+}
+
+static void
+userauth_banner(void)
+{
+	char *banner = NULL;
+
+	if (options.banner == NULL || (datafellows & SSH_BUG_BANNER))
+		return;
+
+	if ((banner = PRIVSEP(auth2_read_banner())) == NULL)
+		goto done;
+
 	packet_start(SSH2_MSG_USERAUTH_BANNER);
 	packet_put_cstring(banner);
 	packet_put_cstring("");		/* language, unused */
@@ -310,7 +330,6 @@ userauth_banner(void)
 done:
 	if (banner)
 		xfree(banner);
-	close(fd);
 	return;
 }
 

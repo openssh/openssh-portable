@@ -1,4 +1,4 @@
-/*	$OpenBSD: auth.h,v 1.35 2002/03/19 10:35:39 markus Exp $	*/
+/*	$OpenBSD: auth.h,v 1.36 2002/05/12 23:53:45 djm Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -135,6 +135,8 @@ Authctxt *authctxt_new(void);
 void	auth_log(Authctxt *, int, char *, char *);
 void	userauth_finish(Authctxt *, int, char *);
 int	auth_root_allowed(char *);
+
+char	*auth2_read_banner(void);
 
 void	privsep_challenge_enable(void);
 
