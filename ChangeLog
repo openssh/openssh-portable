@@ -1,3 +1,7 @@
+20040223
+ - (dtucker) [session.c] Bug #789: Only make setcred call for !privsep in the
+   non-interactive path.  ok djm@
+
 20040222
  - (dtucker) [auth-shadow.c auth.c auth.h] Move shadow account expiry test
    to auth-shadow.c, no functional change.  ok djm@
@@ -1896,4 +1900,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3242 2004/02/22 00:55:07 dtucker Exp $
+$Id: ChangeLog,v 1.3243 2004/02/23 13:01:27 dtucker Exp $
