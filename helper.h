@@ -36,7 +36,7 @@
 #ifndef _HELPER_H
 #define _HELPER_H
 
-unsigned char arc4random(void);
+unsigned int arc4random(void);
 void arc4random_stir(void);
 void setproctitle(const char *fmt, ...);
 

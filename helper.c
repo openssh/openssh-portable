@@ -57,14 +57,14 @@ void setproctitle(const char *fmt, ...)
 	/* FIXME */
 }
 
-unsigned char arc4random(void)
+unsigned int arc4random(void)
 {
-	unsigned char r;
+	unsigned int r;
 
 	if (rc4 == NULL)
 		arc4random_stir();
 	
-	rc4_getbytes(rc4, &r, 1);
+	rc4_getbytes(rc4, (unsigned char *)&r, sizeof(r));
 	
 	return(r);
 }

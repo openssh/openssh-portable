@@ -18,7 +18,7 @@ agent connections.
 */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.2 1999/10/27 13:42:05 damien Exp $");
+RCSID("$Id: sshd.c,v 1.3 1999/10/28 03:20:30 damien Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -117,6 +117,7 @@ RSA *public_key;
 /* Prototypes for various functions defined later in this file. */
 void do_connection(int privileged_port);
 void do_authentication(char *user, int privileged_port);
+void eat_packets_and_disconnect(const char *user);
 void do_authenticated(struct passwd *pw);
 void do_exec_pty(const char *command, int ptyfd, int ttyfd, 
 		 const char *ttyname, struct passwd *pw, const char *term,
@@ -131,7 +132,7 @@ void do_child(const char *command, struct passwd *pw, const char *term,
 #ifdef HAVE_PAM
 static int pamconv(int num_msg, const struct pam_message **msg,
                    struct pam_response **resp, void *appdata_ptr);
-void do_pam_authentication(const char *username, const char *password, 
+void do_pam_account_and_session(const char *username, const char *password, 
                            const char *remote_user, const char *remote_host);
 void pam_cleanup_proc(void *context);
 
@@ -158,7 +159,7 @@ static int pamconv(int num_msg, const struct pam_message **msg,
     switch (msg[count]->msg_style)
     {
       case PAM_PROMPT_ECHO_OFF:
-      	if (pampasswd == NULL)
+        if (pampasswd == NULL)
         {
           free(reply);
           return PAM_CONV_ERR;
@@ -198,59 +199,30 @@ void pam_cleanup_proc(void *context)
   }
 }
 
-void do_pam_authentication(const char *username, const char *password, const char *remote_user, const char *remote_host)
+void do_pam_account_and_session(const char *username, const char *password, const char *remote_user, const char *remote_host)
 {
-  int pam_auth_ok = 1;
-
-  pampasswd = password;
-  
-  do
+  if (remote_host && (PAM_SUCCESS != pam_set_item((pam_handle_t *)pamh, PAM_RHOST, remote_host)))
   {
-    if (PAM_SUCCESS != pam_start("ssh", username, &conv, (pam_handle_t**)&pamh))
-    {
-      pam_auth_ok = 0;
-      break;
-    }
+    log("PAM setup failed.");
+	 eat_packets_and_disconnect(username);
+  }
 
-    fatal_add_cleanup(&pam_cleanup_proc, NULL); 
-
-    if (remote_host && (PAM_SUCCESS != pam_set_item((pam_handle_t *)pamh, PAM_RHOST, remote_host)))
-    {
-      pam_auth_ok = 0;
-      break;
-    }
-
-    if (remote_user && (PAM_SUCCESS != pam_set_item((pam_handle_t *)pamh, PAM_RUSER, remote_user)))
-    {
-      pam_auth_ok = 0;
-      break;
-    }
+  if (remote_user && (PAM_SUCCESS != pam_set_item((pam_handle_t *)pamh, PAM_RUSER, remote_user)))
+  {
+    log("PAM setup failed.");
+	 eat_packets_and_disconnect(username);
+  }
     
-    if (PAM_SUCCESS != pam_authenticate((pam_handle_t *)pamh, 0))
-    {
-      pam_auth_ok = 0;
-      break;
-    }
-
-    if (PAM_SUCCESS != pam_acct_mgmt((pam_handle_t *)pamh, 0))
-    {
-      pam_auth_ok = 0;
-      break;
-    }
-
-    if (PAM_SUCCESS != pam_open_session((pam_handle_t *)pamh, 0))
-    {
-      pam_auth_ok = 0;
-      break;
-    }
-  } while (0);
-  
-  if (!pam_auth_ok)
+  if (PAM_SUCCESS != pam_acct_mgmt((pam_handle_t *)pamh, 0))
   {
-    packet_start(SSH_SMSG_FAILURE);
-    packet_send();
-    packet_write_wait();
-    packet_disconnect("PAM authentication failed.");
+    log("PAM rejected by account configuration.");
+	 eat_packets_and_disconnect(username);
+  }
+
+  if (PAM_SUCCESS != pam_open_session((pam_handle_t *)pamh, 0))
+  {
+    log("PAM session setup failed.");
+	 eat_packets_and_disconnect(username);
   }
 }
 #endif /* HAVE_PAM */
@@ -1151,48 +1123,8 @@ do_authentication(char *user, int privileged_port)
   /* Verify that the user is a valid user. */
   pw = getpwnam(user);
   if (!pw || !allowed_user(pw))
-    {
-      /* The user does not exist or access is denied,
-         but fake indication that authentication is needed. */
-      packet_start(SSH_SMSG_FAILURE);
-      packet_send();
-      packet_write_wait();
-
-      /* Keep reading packets, and always respond with a failure.  This is to
-	 avoid disclosing whether such a user really exists. */
-      for (;;)
-	{
-	  /* Read a packet.  This will not return if the client disconnects. */
-	  int plen;
-	  int type = packet_read(&plen);
-#ifdef SKEY
-	  int passw_len;
-	  char *password, *skeyinfo;
-	  if (options.password_authentication &&
-	     options.skey_authentication == 1 &&
-	     type == SSH_CMSG_AUTH_PASSWORD &&
-	     (password = packet_get_string(&passw_len)) != NULL &&
-	     passw_len == 5 &&
-	     strncasecmp(password, "s/key", 5) == 0 &&
-	     (skeyinfo = skey_fake_keyinfo(user)) != NULL ){
-	    /* Send a fake s/key challenge. */
-	    packet_send_debug(skeyinfo);
-          }
-#endif
-	  /* Send failure.  This should be indistinguishable from a failed
-	     authentication. */
-	  packet_start(SSH_SMSG_FAILURE);
-	  packet_send();
-	  packet_write_wait();
-          if (++authentication_failures >= MAX_AUTH_FAILURES) {
-	    packet_disconnect("Too many authentication failures for %.100s from %.200s", 
-            		       user, get_canonical_hostname());
-          }
-	}
-      /*NOTREACHED*/
-      abort();
-    }
-  
+    eat_packets_and_disconnect(user);
+	   
   /* Take a copy of the returned structure. */
   memset(&pwcopy, 0, sizeof(pwcopy));
   pwcopy.pw_name = xstrdup(pw->pw_name);
@@ -1202,6 +1134,18 @@ do_authentication(char *user, int privileged_port)
   pwcopy.pw_dir = xstrdup(pw->pw_dir);
   pwcopy.pw_shell = xstrdup(pw->pw_shell);
   pw = &pwcopy;
+
+#ifdef HAVE_PAM
+  if (PAM_SUCCESS != pam_start("ssh", pw->pw_name, &conv, (pam_handle_t**)&pamh))
+  {
+    packet_start(SSH_SMSG_FAILURE);
+    packet_send();
+    packet_write_wait();
+    packet_disconnect("PAM initialisation failed.");
+  }
+#endif
+
+  fatal_add_cleanup(&pam_cleanup_proc, NULL); 
 
   /* If we are not running as root, the user must have the same uid as the
      server. */
@@ -1460,10 +1404,18 @@ do_authentication(char *user, int privileged_port)
 	  }
 
 #ifdef HAVE_PAM
-          /* Authentication will be handled later */
-          /* keep password around until then */
-          authenticated = 1;
-          break;
+          pampasswd = password;
+  
+          if (PAM_SUCCESS == pam_authenticate((pam_handle_t *)pamh, 0))
+          {
+            log("PAM Password authentication accepted for %.100s.", user);
+            authenticated = 1;
+            break;
+          } else
+	  {
+ 	    log("PAM Password authentication for %.100s failed.", user);
+            break;
+	  }
 #else /* HAVE_PAM */
 	  /* Try authentication with the password. */
 	  if (auth_password(pw, password))
@@ -1519,7 +1471,7 @@ do_authentication(char *user, int privileged_port)
     }
 
 #ifdef HAVE_PAM
-  do_pam_authentication(pw->pw_name, password, client_user, get_canonical_hostname());
+  do_pam_account_and_session(pw->pw_name, password, client_user, get_canonical_hostname());
 
   /* Clean up */
   if (client_user != NULL)
@@ -1539,6 +1491,55 @@ do_authentication(char *user, int privileged_port)
 
   /* Perform session preparation. */
   do_authenticated(pw);
+}
+
+/* Read authentication messages, but return only failures until */
+/* max auth attempts exceeded, then disconnect */
+void eat_packets_and_disconnect(const char *user)
+{
+  int authentication_failures = 0;
+  
+  packet_start(SSH_SMSG_FAILURE);
+  packet_send();
+  packet_write_wait();
+
+  /* Keep reading packets, and always respond with a failure.  This is to
+     avoid disclosing whether such a user really exists. */
+  while(1)
+  {
+    /* Read a packet.  This will not return if the client disconnects. */
+    int plen;
+#ifndef SKEY
+    (void) packet_read(&plen);
+#else /* SKEY */
+    int type = packet_read(&plen);
+    int passw_len;
+    char *password, *skeyinfo;
+    if (options.password_authentication &&
+        options.skey_authentication == 1 &&
+        type == SSH_CMSG_AUTH_PASSWORD &&
+        (password = packet_get_string(&passw_len)) != NULL &&
+        passw_len == 5 &&
+        strncasecmp(password, "s/key", 5) == 0 &&
+        (skeyinfo = skey_fake_keyinfo(user)) != NULL )
+    {
+      /* Send a fake s/key challenge. */
+	   packet_send_debug(skeyinfo);
+    }
+#endif /* SKEY */
+    /* Send failure.  This should be indistinguishable from a failed
+       authentication. */
+    packet_start(SSH_SMSG_FAILURE);
+    packet_send();
+    packet_write_wait();
+    if (++authentication_failures >= MAX_AUTH_FAILURES)
+	 {
+      packet_disconnect("Too many authentication failures for %.100s from %.200s", 
+            		       user, get_canonical_hostname());
+    }
+  }
+  /*NOTREACHED*/
+  abort();
 }
 
 /* Prepares for an interactive session.  This is called after the user has
