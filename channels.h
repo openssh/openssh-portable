@@ -32,7 +32,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* RCSID("$OpenBSD: channels.h,v 1.30 2001/04/07 08:55:17 markus Exp $"); */
+/* RCSID("$OpenBSD: channels.h,v 1.31 2001/04/13 22:46:53 beck Exp $"); */
 
 #ifndef CHANNELS_H
 #define CHANNELS_H
@@ -306,5 +306,7 @@ void    auth_input_open_request(int type, int plen, void *ctxt);
 int	channel_connect_to(const char *host, u_short host_port);
 int	channel_connect_by_listen_adress(u_short listen_port);
 int	x11_connect_display(void);
+
+int	channel_find_open(void);
 
 #endif

@@ -2,6 +2,15 @@
  - Sync with OpenBSD glob.c, strlcat.c and vis.c changes
  - Cygwin sftp/sftp-server binary mode patch from Corinna Vinschen 
    <vinschen@redhat.com>
+ - OpenBSD CVS Sync
+   - beck@cvs.openbsd.org 2001/04/13 22:46:54
+     [channels.c channels.h servconf.c servconf.h serverloop.c sshd.8]
+     Add options ClientAliveInterval and ClientAliveCountMax to sshd.
+     This gives the ability to do a "keepalive" via the encrypted channel
+     which can't be spoofed (unlike TCP keepalives). Useful for when you want
+     to use ssh connections to authenticate people for something, and know
+     relatively quickly when they are no longer authenticated. Disabled
+     by default (of course). ok markus@
 
 20010413
  - OpenBSD CVS Sync                                                           
@@ -5054,4 +5063,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1109 2001/04/13 14:28:42 djm Exp $
+$Id: ChangeLog,v 1.1110 2001/04/13 23:28:01 mouring Exp $

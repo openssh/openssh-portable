@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.76 2001/04/12 20:09:37 stevesk Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.77 2001/04/13 22:46:53 beck Exp $");
 
 #ifdef KRB4
 #include <krb.h>
@@ -99,6 +99,8 @@ initialize_server_options(ServerOptions *options)
 	options->max_startups = -1;
 	options->banner = NULL;
 	options->reverse_mapping_check = -1;
+	options->client_alive_interval = -1;
+	options->client_alive_count_max = -1;
 }
 
 void
@@ -201,6 +203,10 @@ fill_default_server_options(ServerOptions *options)
 		options->max_startups_begin = options->max_startups;
 	if (options->reverse_mapping_check == -1)
 		options->reverse_mapping_check = 0;
+	if (options->client_alive_interval == -1)
+		options->client_alive_interval = 0;  
+	if (options->client_alive_count_max == -1)
+		options->client_alive_count_max = 3;
 }
 
 /* Keyword tokens. */
@@ -225,7 +231,8 @@ typedef enum {
 	sIgnoreUserKnownHosts, sCiphers, sMacs, sProtocol, sPidFile,
 	sGatewayPorts, sPubkeyAuthentication, sXAuthLocation, sSubsystem, sMaxStartups,
 	sBanner, sReverseMappingCheck, sHostbasedAuthentication,
-	sHostbasedUsesNameFromPacketOnly
+	sHostbasedUsesNameFromPacketOnly, sClientAliveInterval, 
+	sClientAliveCountMax
 } ServerOpCodes;
 
 /* Textual representation of the tokens. */
@@ -289,6 +296,8 @@ static struct {
 	{ "maxstartups", sMaxStartups },
 	{ "banner", sBanner },
 	{ "reversemappingcheck", sReverseMappingCheck },
+	{ "clientaliveinterval", sClientAliveInterval },
+	{ "clientalivecountmax", sClientAliveCountMax },
 	{ NULL, 0 }
 };
 
@@ -792,7 +801,12 @@ parse_flag:
 		case sBanner:
 			charptr = &options->banner;
 			goto parse_filename;
-
+		case sClientAliveInterval:
+			intptr = &options->client_alive_interval;
+			goto parse_int;
+		case sClientAliveCountMax:
+			intptr = &options->client_alive_count_max;
+			goto parse_int;
 		default:
 			fprintf(stderr, "%s line %d: Missing handler for opcode %s (%d)\n",
 				filename, linenum, arg, opcode);

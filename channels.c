@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.106 2001/04/11 13:56:13 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.107 2001/04/13 22:46:52 beck Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/dsa.h>
@@ -1842,6 +1842,41 @@ channel_still_open()
 		}
 	return 0;
 }
+
+/* Returns the id of an open channel suitable for keepaliving */
+
+int
+channel_find_open()
+{
+	u_int i;
+	for (i = 0; i < channels_alloc; i++)
+		switch (channels[i].type) {
+		case SSH_CHANNEL_CLOSED:
+			continue;
+		case SSH_CHANNEL_LARVAL:
+		case SSH_CHANNEL_DYNAMIC:
+		case SSH_CHANNEL_AUTH_SOCKET:
+		case SSH_CHANNEL_CONNECTING: 	/* XXX ??? */
+		case SSH_CHANNEL_FREE:
+		case SSH_CHANNEL_X11_LISTENER:
+		case SSH_CHANNEL_PORT_LISTENER:
+		case SSH_CHANNEL_RPORT_LISTENER:
+		case SSH_CHANNEL_OPENING:
+		case SSH_CHANNEL_OPEN:
+		case SSH_CHANNEL_X11_OPEN:
+			return i;
+		case SSH_CHANNEL_INPUT_DRAINING:
+		case SSH_CHANNEL_OUTPUT_DRAINING:
+			if (!compat13)
+				fatal("cannot happen: OUT_DRAIN");
+			return i;
+		default:
+			fatal("channel_find_open: bad channel type %d", channels[i].type);
+			/* NOTREACHED */
+		}
+	return -1;
+}
+
 
 /*
  * Returns a message describing the currently open forwarded connections,
