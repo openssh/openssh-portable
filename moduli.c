@@ -1,4 +1,4 @@
-/* $OpenBSD: moduli.c,v 1.7 2004/05/09 00:06:47 djm Exp $ */
+/* $OpenBSD: moduli.c,v 1.8 2004/05/21 08:43:03 markus Exp $ */
 /*
  * Copyright 1994 Phil Karn <karn@qualcomm.com>
  * Copyright 1996-1998, 2003 William Allen Simpson <wsimpson@greendragon.com>
@@ -144,6 +144,8 @@ static u_int32_t *LargeSieve, largewords, largetries, largenumbers;
 static u_int32_t largebits, largememory;	/* megabytes */
 static BIGNUM *largebase;
 
+int gen_candidates(FILE *, int, int, BIGNUM *);
+int prime_test(FILE *, FILE *, u_int32_t, u_int32_t);
 
 /*
  * print moduli out in consistent form,

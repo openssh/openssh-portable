@@ -1,4 +1,4 @@
-/*	$OpenBSD: kex.h,v 1.33 2003/02/16 17:09:57 markus Exp $	*/
+/*	$OpenBSD: kex.h,v 1.34 2004/05/21 08:43:03 markus Exp $	*/
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -136,6 +136,9 @@ kex_dh_hash(char *, char *, char *, int, char *, int, u_char *, int,
 u_char *
 kexgex_hash(char *, char *, char *, int, char *, int, u_char *, int,
     int, int, int, BIGNUM *, BIGNUM *, BIGNUM *, BIGNUM *, BIGNUM *);
+
+void
+derive_ssh1_session_id(BIGNUM *, BIGNUM *, u_int8_t[8], u_int8_t[16]);
 
 #if defined(DEBUG_KEX) || defined(DEBUG_KEXDH)
 void	dump_digest(char *, u_char *, int);

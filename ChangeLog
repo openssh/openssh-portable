@@ -7,6 +7,9 @@
    - dtucker@cvs.openbsd.org 2004/05/20 10:58:05
      [clientloop.c]
      Trivial type fix 0 -> '\0'; ok markus@
+   - markus@cvs.openbsd.org 2004/05/21 08:43:03
+     [kex.h moduli.c tildexpand.c]
+     add prototypes for -Wall; ok djm
 
 20040523
  - (djm) [sshd_config] Explain consequences of UsePAM=yes a little better in 
@@ -1136,4 +1139,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3360 2004/05/24 00:13:07 dtucker Exp $
+$Id: ChangeLog,v 1.3361 2004/05/24 00:14:24 dtucker Exp $
