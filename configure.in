@@ -1010,8 +1010,8 @@ if test -z "$conf_lastlog_location"; then
 				fi
 		done
 		if test -z "$conf_lastlog_location"; then
-			AC_MSG_WARN([** Cannot find lastlog - disabling feature **])
-			AC_DEFINE(DISABLE_LASTLOG)
+			AC_MSG_WARN([** Cannot find lastlog **])
+			dnl Don't define DISABLE_LASTLOG - that means we don't try wtmp/wtmpx
 		fi
 	fi
 fi
