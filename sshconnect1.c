@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.45 2001/12/28 12:14:27 markus Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.46 2001/12/28 13:57:33 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/evp.h>
@@ -67,7 +67,7 @@ try_agent_authentication(void)
 	AuthenticationConnection *auth;
 	u_char response[16];
 	u_int i;
-	int plen, clen;
+	int plen;
 	Key *key;
 	BIGNUM *challenge;
 
@@ -108,7 +108,7 @@ try_agent_authentication(void)
 			packet_disconnect("Protocol error during RSA authentication: %d",
 					  type);
 
-		packet_get_bignum(challenge, &clen);
+		packet_get_bignum(challenge);
 		packet_check_eom();
 
 		debug("Received RSA challenge from server.");
@@ -209,7 +209,7 @@ try_rsa_authentication(int idx)
 	BIGNUM *challenge;
 	Key *public, *private;
 	char buf[300], *passphrase, *comment, *authfile;
-	int i, type, quit, plen, clen;
+	int i, type, quit, plen;
 
 	public = options.identity_keys[idx];
 	authfile = options.identity_files[idx];
@@ -242,7 +242,7 @@ try_rsa_authentication(int idx)
 	/* Get the challenge from the packet. */
 	if ((challenge = BN_new()) == NULL)
 		fatal("try_rsa_authentication: BN_new failed");
-	packet_get_bignum(challenge, &clen);
+	packet_get_bignum(challenge);
 	packet_check_eom();
 
 	debug("Received RSA challenge from server.");
@@ -327,7 +327,7 @@ try_rhosts_rsa_authentication(const char *local_user, Key * host_key)
 {
 	int type;
 	BIGNUM *challenge;
-	int plen, clen;
+	int plen;
 
 	debug("Trying rhosts or /etc/hosts.equiv with RSA host authentication.");
 
@@ -356,7 +356,7 @@ try_rhosts_rsa_authentication(const char *local_user, Key * host_key)
 	/* Get the challenge from the packet. */
 	if ((challenge = BN_new()) == NULL)
 		fatal("try_rhosts_rsa_authentication: BN_new failed");
-	packet_get_bignum(challenge, &clen);
+	packet_get_bignum(challenge);
 	packet_check_eom();
 
 	debug("Received RSA challenge for host key from server.");
@@ -917,7 +917,7 @@ ssh_kex(char *host, struct sockaddr *hostaddr)
 	u_char cookie[8];
 	u_int supported_ciphers;
 	u_int server_flags, client_flags;
-	int payload_len, clen, sum_len = 0;
+	int payload_len;
 	u_int32_t rand = 0;
 
 	debug("Waiting for server public key.");
@@ -932,10 +932,8 @@ ssh_kex(char *host, struct sockaddr *hostaddr)
 	/* Get the public key. */
 	server_key = key_new(KEY_RSA1);
 	bits = packet_get_int();
-	packet_get_bignum(server_key->rsa->e, &clen);
-	sum_len += clen;
-	packet_get_bignum(server_key->rsa->n, &clen);
-	sum_len += clen;
+	packet_get_bignum(server_key->rsa->e);
+	packet_get_bignum(server_key->rsa->n);
 
 	rbits = BN_num_bits(server_key->rsa->n);
 	if (bits != rbits) {
@@ -946,10 +944,8 @@ ssh_kex(char *host, struct sockaddr *hostaddr)
 	/* Get the host key. */
 	host_key = key_new(KEY_RSA1);
 	bits = packet_get_int();
-	packet_get_bignum(host_key->rsa->e, &clen);
-	sum_len += clen;
-	packet_get_bignum(host_key->rsa->n, &clen);
-	sum_len += clen;
+	packet_get_bignum(host_key->rsa->e);
+	packet_get_bignum(host_key->rsa->n);
 
 	rbits = BN_num_bits(host_key->rsa->n);
 	if (bits != rbits) {

@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.32 2001/12/28 12:14:27 markus Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.33 2001/12/28 13:57:33 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -71,7 +71,7 @@ do_authloop(Authctxt *authctxt)
 	char *client_user, *password;
 	char info[1024];
 	u_int dlen;
-	int plen, nlen, elen;
+	int plen;
 	u_int ulen;
 	int type = 0;
 	struct passwd *pw = authctxt->pw;
@@ -203,8 +203,8 @@ do_authloop(Authctxt *authctxt)
 			/* Get the client host key. */
 			client_host_key = key_new(KEY_RSA1);
 			bits = packet_get_int();
-			packet_get_bignum(client_host_key->rsa->e, &elen);
-			packet_get_bignum(client_host_key->rsa->n, &nlen);
+			packet_get_bignum(client_host_key->rsa->e);
+			packet_get_bignum(client_host_key->rsa->n);
 
 			if (bits != BN_num_bits(client_host_key->rsa->n))
 				verbose("Warning: keysize mismatch for client_host_key: "
@@ -227,7 +227,7 @@ do_authloop(Authctxt *authctxt)
 			/* RSA authentication requested. */
 			if ((n = BN_new()) == NULL)
 				fatal("do_authloop: BN_new failed");
-			packet_get_bignum(n, &nlen);
+			packet_get_bignum(n);
 			packet_check_eom();
 			authenticated = auth_rsa(pw, n);
 			BN_clear_free(n);

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kexdh.c,v 1.10 2001/12/28 12:14:27 markus Exp $");
+RCSID("$OpenBSD: kexdh.c,v 1.11 2001/12/28 13:57:33 markus Exp $");
 
 #include <openssl/crypto.h>
 #include <openssl/bn.h>
@@ -97,7 +97,7 @@ kexdh_client(Kex *kex)
 	u_char *server_host_key_blob = NULL, *signature = NULL;
 	u_char *kbuf, *hash;
 	u_int klen, kout, slen, sbloblen;
-	int dlen, plen;
+	int plen;
 
 	/* generate and send 'e', client DH public key */
 	dh = dh_new_group1();
@@ -131,7 +131,7 @@ kexdh_client(Kex *kex)
 	/* DH paramter f, server public DH key */
 	if ((dh_server_pub = BN_new()) == NULL)
 		fatal("dh_server_pub == NULL");
-	packet_get_bignum2(dh_server_pub, &dlen);
+	packet_get_bignum2(dh_server_pub);
 
 #ifdef DEBUG_KEXDH
 	fprintf(stderr, "dh_server_pub= ");
@@ -201,7 +201,7 @@ kexdh_server(Kex *kex)
 	Key *server_host_key;
 	u_char *kbuf, *hash, *signature = NULL, *server_host_key_blob = NULL;
 	u_int sbloblen, klen, kout;
-	int dlen, slen, plen;
+	int slen, plen;
 
 	/* generate server DH public key */
 	dh = dh_new_group1();
@@ -219,7 +219,7 @@ kexdh_server(Kex *kex)
 	/* key, cert */
 	if ((dh_client_pub = BN_new()) == NULL)
 		fatal("dh_client_pub == NULL");
-	packet_get_bignum2(dh_client_pub, &dlen);
+	packet_get_bignum2(dh_client_pub);
 
 #ifdef DEBUG_KEXDH
 	fprintf(stderr, "dh_client_pub= ");

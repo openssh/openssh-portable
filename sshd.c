@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.220 2001/12/28 12:14:27 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.221 2001/12/28 13:57:33 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1251,7 +1251,7 @@ static void
 do_ssh1_kex(void)
 {
 	int i, len;
-	int plen, slen;
+	int plen;
 	int rsafail = 0;
 	BIGNUM *session_key_int;
 	u_char session_key[SSH_SESSION_KEY_LENGTH];
@@ -1354,7 +1354,7 @@ do_ssh1_kex(void)
 	/* Get the encrypted integer. */
 	if ((session_key_int = BN_new()) == NULL)
 		fatal("do_ssh1_kex: BN_new failed");
-	packet_get_bignum(session_key_int, &slen);
+	packet_get_bignum(session_key_int);
 
 	protocol_flags = packet_get_int();
 	packet_set_protocol_flags(protocol_flags);

@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kexgex.c,v 1.13 2001/12/28 12:14:27 markus Exp $");
+RCSID("$OpenBSD: kexgex.c,v 1.14 2001/12/28 13:57:33 markus Exp $");
 
 #include <openssl/bn.h>
 
@@ -107,7 +107,7 @@ kexgex_client(Kex *kex)
 	Key *server_host_key;
 	u_char *kbuf, *hash, *signature = NULL, *server_host_key_blob = NULL;
 	u_int klen, kout, slen, sbloblen;
-	int dlen, plen, min, max, nbits;
+	int plen, min, max, nbits;
 	DH *dh;
 
 	nbits = dh_estimate(kex->we_need * 8);
@@ -142,10 +142,10 @@ kexgex_client(Kex *kex)
 
 	if ((p = BN_new()) == NULL)
 		fatal("BN_new");
-	packet_get_bignum2(p, &dlen);
+	packet_get_bignum2(p);
 	if ((g = BN_new()) == NULL)
 		fatal("BN_new");
-	packet_get_bignum2(g, &dlen);
+	packet_get_bignum2(g);
 	packet_check_eom();
 
 	if (BN_num_bits(p) < min || BN_num_bits(p) > max)
@@ -185,7 +185,7 @@ kexgex_client(Kex *kex)
 	/* DH paramter f, server public DH key */
 	if ((dh_server_pub = BN_new()) == NULL)
 		fatal("dh_server_pub == NULL");
-	packet_get_bignum2(dh_server_pub, &dlen);
+	packet_get_bignum2(dh_server_pub);
 
 #ifdef DEBUG_KEXDH
 	fprintf(stderr, "dh_server_pub= ");
@@ -261,7 +261,7 @@ kexgex_server(Kex *kex)
 	DH *dh = dh;
 	u_char *kbuf, *hash, *signature = NULL, *server_host_key_blob = NULL;
 	u_int sbloblen, klen, kout;
-	int min = -1, max = -1, nbits = -1, type, plen, dlen, slen;
+	int min = -1, max = -1, nbits = -1, type, plen, slen;
 
 	if (kex->load_host_key == NULL)
 		fatal("Cannot load hostkey");
@@ -317,7 +317,7 @@ kexgex_server(Kex *kex)
 	/* key, cert */
 	if ((dh_client_pub = BN_new()) == NULL)
 		fatal("dh_client_pub == NULL");
-	packet_get_bignum2(dh_client_pub, &dlen);
+	packet_get_bignum2(dh_client_pub);
 
 #ifdef DEBUG_KEXDH
 	fprintf(stderr, "dh_client_pub= ");

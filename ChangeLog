@@ -56,8 +56,13 @@
      [serverloop.c session.c ssh.c sshconnect1.c sshd.c ttymodes.c]
      get rid of packet_integrity_check, use packet_done() instead.
    - markus@cvs.openbsd.org 2001/12/28 12:14:27
-     [auth1.c auth2.c auth2-chall.c auth-rsa.c channels.c clientloop.c kex.c kexdh.c kexgex.c packet.c packet.h serverloop.c session.c ssh.c sshconnect1.c sshconnect2.c sshd.c]
+     [auth1.c auth2.c auth2-chall.c auth-rsa.c channels.c clientloop.c]
+     [kex.c kexdh.c kexgex.c packet.c packet.h serverloop.c session.c]
+     [ssh.c sshconnect1.c sshconnect2.c sshd.c]
      s/packet_done/packet_check_eom/ (end-of-message); ok djm@
+   - markus@cvs.openbsd.org 2001/12/28 13:57:33
+     [auth1.c kexdh.c kexgex.c packet.c packet.h sshconnect1.c sshd.c]
+     packet_get_bignum* no longer returns a size
 
 
 20020121
@@ -7206,4 +7211,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1740 2002/01/22 12:14:10 djm Exp $
+$Id: ChangeLog,v 1.1741 2002/01/22 12:14:44 djm Exp $
