@@ -13,7 +13,7 @@
 #include "xmalloc.h"
 #include "ssh.h"
 
-RCSID("$Id: fake-getaddrinfo.c,v 1.7 2003/05/18 14:13:39 djm Exp $");
+RCSID("$Id: fake-getaddrinfo.c,v 1.8 2003/05/19 00:39:37 djm Exp $");
 
 #ifndef HAVE_GAI_STRERROR
 char *
@@ -36,7 +36,8 @@ freeaddrinfo(struct addrinfo *ai)
 {
 	struct addrinfo *next;
 
-	for(;ai != NULL; next = ai->ai_next) {
+	for(; ai != NULL;) {
+		next = ai->ai_next;
 		free(ai);
 		ai = next;
 	}
