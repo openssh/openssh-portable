@@ -1042,8 +1042,17 @@ do_setup_env(Session *s, const char *shell)
 		    s->authctxt->krb5_ticket_file);
 #endif
 #ifdef USE_PAM
-	/* Pull in any environment variables that may have been set by PAM. */
-	copy_environment(fetch_pam_environment(), &env, &envsize);
+	/*
+	 * Pull in any environment variables that may have
+	 * been set by PAM.
+	 */
+	{
+		char **p;
+
+		p = fetch_pam_environment();
+		copy_environment(p, &env, &envsize);
+		free_pam_environment(p);
+	}
 #endif /* USE_PAM */
 
 	if (auth_sock_name != NULL)

@@ -38,7 +38,7 @@ extern char *__progname;
 
 extern int use_privsep;
 
-RCSID("$Id: auth-pam.c,v 1.51 2002/07/21 23:59:39 stevesk Exp $");
+RCSID("$Id: auth-pam.c,v 1.52 2002/07/23 00:44:07 stevesk Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now."
@@ -419,6 +419,16 @@ char **fetch_pam_environment(void)
 #else /* HAVE_PAM_GETENVLIST */
 	return(NULL);
 #endif /* HAVE_PAM_GETENVLIST */
+}
+
+void free_pam_environment(char **env)
+{
+	int i;
+
+	if (env != NULL) {
+		for (i = 0; env[i] != NULL; i++)
+			xfree(env[i]);
+	}
 }
 
 /* Print any messages that have been generated during authentication */

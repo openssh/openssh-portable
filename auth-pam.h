@@ -1,4 +1,4 @@
-/* $Id: auth-pam.h,v 1.15 2002/07/21 23:59:39 stevesk Exp $ */
+/* $Id: auth-pam.h,v 1.16 2002/07/23 00:44:07 stevesk Exp $ */
 
 /*
  * Copyright (c) 2000 Damien Miller.  All rights reserved.
@@ -35,6 +35,7 @@ void start_pam(const char *user);
 void finish_pam(void);
 int auth_pam_password(Authctxt *authctxt, const char *password);
 char **fetch_pam_environment(void);
+void free_pam_environment(char **env);
 int do_pam_authenticate(int flags);
 int do_pam_account(char *username, char *remote_user);
 void do_pam_session(char *username, const char *ttyname);
