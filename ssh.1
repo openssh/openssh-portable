@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.64 2000/10/16 21:46:31 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.68 2000/11/12 19:50:38 markus Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -209,9 +209,9 @@ At first, the client attempts to authenticate using the public key method.
 If this method fails password authentication is tried.
 .Pp
 The public key method is similar to RSA authentication described
-in the previous section except that the DSA algorithm is used
-instead of the patented RSA algorithm.
-The client uses his private DSA key
+in the previous section except that the DSA or RSA algorithm is used
+instead.
+The client uses his private key
 .Pa $HOME/.ssh/id_dsa
 to sign the session identifier and sends the result to the server.
 The server checks whether the matching public key is listed in
@@ -331,7 +331,7 @@ identifications for all hosts it has ever been used with.
 RSA host keys are stored in
 .Pa $HOME/.ssh/known_hosts
 and
-DSA host keys are stored in
+host keys used in the protocol version 2 are stored in
 .Pa $HOME/.ssh/known_hosts2
 in the user's home directory.
 Additionally, the files
@@ -352,7 +352,8 @@ The
 .Cm StrictHostKeyChecking
 option (see below) can be used to prevent logins to machines whose
 host key is not known or has changed.
-.Sh OPTIONS
+.Pp
+The options are as follows:
 .Bl -tag -width Ds
 .It Fl a
 Disables forwarding of the authentication agent connection.
@@ -407,7 +408,7 @@ something like
 Allows remote hosts to connect to local forwarded ports.
 .It Fl i Ar identity_file
 Selects the file from which the identity (private key) for
-RSA authentication is read.
+RSA or DSA authentication is read.
 Default is
 .Pa $HOME/.ssh/identity
 in the user's home directory.
@@ -552,6 +553,22 @@ Forces
 .Nm
 to use IPv6 addresses only.
 .El
+.Pp
+If
+.Nm
+is not invoked with one of the standard program names
+.Pf ( Dq ssh ,
+.Dq slogin ,
+.Dq rsh ,
+.Dq rlogin ,
+or
+.Dq remsh ) ,
+it uses this name as its
+.Ar hostname
+argument.
+This is consistent with traditional
+.Xr rsh 1
+behavior.
 .Sh CONFIGURATION FILES
 .Nm
 obtains configuration data from the following sources (in this order):
@@ -660,14 +677,12 @@ Specifies the number of tries (one per second) to make before falling
 back to rsh or exiting.
 The argument must be an integer.
 This may be useful in scripts if the connection sometimes fails.
-.It Cm DSAAuthentication
-Specifies whether to try DSA authentication.
+.It Cm PubkeyAuthentication
+Specifies whether to try public key authentication.
 The argument to this keyword must be
 .Dq yes
 or
 .Dq no .
-DSA authentication will only be
-attempted if a DSA identity file exists.
 Note that this option applies to protocol version 2 only.
 .It Cm EscapeChar
 Sets the escape character (default:
@@ -740,16 +755,6 @@ is read (default
 in the user's home directory).
 Additionally, any identities represented by the authentication agent
 will be used for authentication.
-The file name may use the tilde
-syntax to refer to a user's home directory.
-It is possible to have
-multiple identity files specified in configuration files; all these
-identities will be tried in sequence.
-.It Cm IdentityFile2
-Specifies the file from which the user's DSA authentication identity
-is read (default
-.Pa $HOME/.ssh/id_dsa
-in the user's home directory).
 The file name may use the tilde
 syntax to refer to a user's home directory.
 It is possible to have
@@ -1096,7 +1101,7 @@ spaces).
 This file is not highly sensitive, but the recommended
 permissions are read/write for the user, and not accessible by others.
 .It Pa $HOME/.ssh/authorized_keys2
-Lists the DSA keys that can be used for logging in as this user.
+Lists the public keys (DSA/RSA) that can be used for logging in as this user.
 This file is not highly sensitive, but the recommended
 permissions are read/write for the user, and not accessible by others.
 .It Pa /etc/ssh_known_hosts, /etc/ssh_known_hosts2
@@ -1104,7 +1109,7 @@ Systemwide list of known host keys.
 .Pa /etc/ssh_known_hosts
 contains RSA and
 .Pa /etc/ssh_known_hosts2
-contains DSA keys.
+contains DSA or RSA keys for protocol version 2.
 These files should be prepared by the
 system administrator to contain the public host keys of all machines in the
 organization.
@@ -1219,7 +1224,7 @@ above.
 A version of this library which includes support for the RSA algorithm
 is required for proper operation.
 .El
-.Sh AUTHOR
+.Sh AUTHORS
 OpenSSH
 is a derivative of the original (free) ssh 1.2.12 release by Tatu Ylonen,
 but with bugs removed and newer features re-added.

@@ -85,7 +85,7 @@ struct Kex {
 	int		we_need;
 	int		server;
 	char		*name;
-	char		*hostkeyalg;
+	int		hostkey_type;
 	int		kex_type;
 };
 

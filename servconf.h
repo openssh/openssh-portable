@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: servconf.h,v 1.30 2000/10/14 12:12:09 markus Exp $"); */
+/* RCSID("$OpenBSD: servconf.h,v 1.31 2000/11/12 19:50:38 markus Exp $"); */
 
 #ifndef SERVCONF_H
 #define SERVCONF_H
@@ -23,6 +23,7 @@
 #define MAX_ALLOW_GROUPS	256	/* Max # groups on allow list. */
 #define MAX_DENY_GROUPS		256	/* Max # groups on deny list. */
 #define MAX_SUBSYSTEMS		256	/* Max # subsystems. */
+#define MAX_HOSTKEYS		256	/* Max # hostkeys. */
 
 typedef struct {
 	unsigned int num_ports;
@@ -30,8 +31,8 @@ typedef struct {
 	u_short ports[MAX_PORTS];	/* Port number to listen on. */
 	char   *listen_addr;		/* Address on which the server listens. */
 	struct addrinfo *listen_addrs;	/* Addresses on which the server listens. */
-	char   *host_key_file;	/* File containing host key. */
-	char   *host_dsa_key_file;	/* File containing dsa host key. */
+	char   *host_key_files[MAX_HOSTKEYS];	/* Files containing host keys. */
+	int     num_host_key_files;     /* Number of files for host keys. */
 	char   *pid_file;	/* Where to put our pid */
 	int     server_key_bits;/* Size of the server key. */
 	int     login_grace_time;	/* Disconnect if no auth in this time
@@ -59,7 +60,7 @@ typedef struct {
 	int     rhosts_rsa_authentication;	/* If true, permit rhosts RSA
 						 * authentication. */
 	int     rsa_authentication;	/* If true, permit RSA authentication. */
-	int     dsa_authentication;	/* If true, permit DSA authentication. */
+	int     pubkey_authentication;	/* If true, permit ssh2 pubkey authentication. */
 #ifdef KRB4
 	int     kerberos_authentication;	/* If true, permit Kerberos
 						 * authentication. */

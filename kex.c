@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.12 2000/10/11 20:27:23 markus Exp $");
+RCSID("$OpenBSD: kex.c,v 1.13 2000/11/12 19:50:37 markus Exp $");
 
 #include "ssh.h"
 #include "ssh2.h"
@@ -43,6 +43,7 @@ RCSID("$OpenBSD: kex.c,v 1.12 2000/10/11 20:27:23 markus Exp $");
 #include <openssl/pem.h>
 
 #include "kex.h"
+#include "key.h"
 
 #define KEX_COOKIE_LEN	16
 
@@ -454,11 +455,12 @@ choose_kex(Kex *k, char *client, char *server)
 void
 choose_hostkeyalg(Kex *k, char *client, char *server)
 {
-	k->hostkeyalg = get_match(client, server);
-	if (k->hostkeyalg == NULL)
+	char *hostkeyalg = get_match(client, server);
+	if (hostkeyalg == NULL)
 		fatal("no hostkey alg");
-	if (strcmp(k->hostkeyalg, KEX_DSS) != 0)
-		fatal("bad hostkey alg %s", k->hostkeyalg);
+	k->hostkey_type = key_type_from_name(hostkeyalg);
+	if (k->hostkey_type == KEY_UNSPEC)
+		fatal("bad hostkey alg '%s'", hostkeyalg);
 }
 
 Kex *

@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.39 2000/10/27 07:48:22 markus Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.40 2000/11/06 23:04:56 markus Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -75,6 +75,10 @@ RCSID("$OpenBSD: clientloop.c,v 1.39 2000/10/27 07:48:22 markus Exp $");
 #include "buffer.h"
 #include "bufaux.h"
 
+#include <openssl/dsa.h>
+#include <openssl/rsa.h>
+#include "key.h"
+#include "authfd.h"
 
 /* import options */
 extern Options options;
@@ -1016,13 +1020,99 @@ client_input_exit_status(int type, int plen, void *ctxt)
 	quit_pending = 1;
 }
 
+Channel *
+client_request_forwarded_tcpip(const char *request_type, int rchan)
+{
+	Channel* c = NULL;
+	char *listen_address, *originator_address;
+	int listen_port, originator_port;
+	int sock, newch;
+
+	/* Get rest of the packet */
+	listen_address = packet_get_string(NULL);
+	listen_port = packet_get_int();
+	originator_address = packet_get_string(NULL);
+	originator_port = packet_get_int();
+	packet_done();
+
+	debug("client_request_forwarded_tcpip: listen %s port %d, originator %s port %d",
+	    listen_address, listen_port, originator_address, originator_port);
+
+	sock = channel_connect_by_listen_adress(listen_port);
+	if (sock >= 0) {
+		newch = channel_new("forwarded-tcpip",
+		    SSH_CHANNEL_OPEN, sock, sock, -1,
+		    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_WINDOW_DEFAULT, 0,
+		    xstrdup(originator_address), 1);
+		c = channel_lookup(newch);
+	}
+	xfree(originator_address);
+	xfree(listen_address);
+	return c;
+}
+
+Channel*
+client_request_x11(const char *request_type, int rchan)
+{
+	Channel *c = NULL;
+	char *originator;
+	int originator_port;
+	int sock, newch;
+
+	if (!options.forward_x11) {
+		error("Warning: ssh server tried X11 forwarding.");
+		error("Warning: this is probably a break in attempt by a malicious server.");
+		return NULL;
+	}
+	originator = packet_get_string(NULL);
+	if (datafellows & SSH_BUG_X11FWD) {
+		debug2("buggy server: x11 request w/o originator_port");
+		originator_port = 0;
+	} else {
+		originator_port = packet_get_int();
+	}
+	packet_done();
+	/* XXX check permission */
+	sock = x11_connect_display();
+	if (sock >= 0) {
+		newch = channel_new("x11",
+		    SSH_CHANNEL_X11_OPEN, sock, sock, -1,
+		    CHAN_TCP_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT, 0,
+		    xstrdup("x11"), 1);
+		c = channel_lookup(newch);
+	}
+	xfree(originator);
+	return c;
+}
+
+Channel*
+client_request_agent(const char *request_type, int rchan)
+{
+	Channel *c = NULL;
+	int sock, newch;
+
+	if (!options.forward_agent) {
+		error("Warning: ssh server tried agent forwarding.");
+		error("Warning: this is probably a break in attempt by a malicious server.");
+		return NULL;
+	}
+	sock =  ssh_get_authentication_socket();
+	if (sock >= 0) {
+		newch = channel_new("authentication agent connection",
+		    SSH_CHANNEL_OPEN, sock, sock, -1,
+		    CHAN_X11_WINDOW_DEFAULT, CHAN_TCP_WINDOW_DEFAULT, 0,
+		    xstrdup("authentication agent connection"), 1);
+		c = channel_lookup(newch);
+	}
+	return c;
+}
+
 /* XXXX move to generic input handler */
 void
 client_input_channel_open(int type, int plen, void *ctxt)
 {
 	Channel *c = NULL;
 	char *ctype;
-	int id;
 	unsigned int len;
 	int rchan;
 	int rmaxpack;
@@ -1036,28 +1126,12 @@ client_input_channel_open(int type, int plen, void *ctxt)
 	debug("client_input_channel_open: ctype %s rchan %d win %d max %d",
 	    ctype, rchan, rwindow, rmaxpack);
 
-	if (strcmp(ctype, "x11") == 0 && options.forward_x11) {
-		int sock;
-		char *originator;
-		int originator_port;
-		originator = packet_get_string(NULL);
-		if (datafellows & SSH_BUG_X11FWD) {
-			debug2("buggy server: x11 request w/o originator_port");
-			originator_port = 0;
-		} else {
-			originator_port = packet_get_int();
-		}
-		packet_done();
-		/* XXX check permission */
-		xfree(originator);
-		/* XXX move to channels.c */
-		sock = x11_connect_display();
-		if (sock >= 0) {
-			id = channel_new("x11", SSH_CHANNEL_X11_OPEN,
-			    sock, sock, -1, CHAN_X11_WINDOW_DEFAULT,
-			    CHAN_X11_PACKET_DEFAULT, 0, xstrdup("x11"), 1);
-			c = channel_lookup(id);
-		}
+	if (strcmp(ctype, "forwarded-tcpip") == 0) {
+		c = client_request_forwarded_tcpip(ctype, rchan);
+	} else if (strcmp(ctype, "x11") == 0) {
+		c = client_request_x11(ctype, rchan);
+	} else if (strcmp(ctype, "auth-agent@openssh.com") == 0) {
+		c = client_request_agent(ctype, rchan);
 	}
 /* XXX duplicate : */
 	if (c != NULL) {

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.20 2000/10/14 12:16:56 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.21 2000/11/12 19:50:37 markus Exp $");
 
 #ifdef HAVE_OSF_SIA
 # include <sia.h>
@@ -52,7 +52,6 @@ RCSID("$OpenBSD: auth2.c,v 1.20 2000/10/14 12:16:56 markus Exp $");
 #include "key.h"
 #include "kex.h"
 
-#include "dsa.h"
 #include "uidswap.h"
 #include "auth-options.h"
 
@@ -89,7 +88,7 @@ void	protocol_error(int type, int plen, void *ctxt);
 /* helper */
 Authmethod	*authmethod_lookup(const char *name);
 struct passwd	*pwcopy(struct passwd *pw);
-int	user_dsa_key_allowed(struct passwd *pw, Key *key);
+int	user_key_allowed(struct passwd *pw, Key *key);
 char	*authmethods_get(void);
 
 /* auth */
@@ -104,7 +103,7 @@ Authmethod authmethods[] = {
 		&one},
 	{"publickey",
 		userauth_pubkey,
-		&options.dsa_authentication},
+		&options.pubkey_authentication},
 	{"keyboard-interactive",
 		userauth_kbdint,
 		&options.kbd_interactive_authentication},
@@ -422,7 +421,7 @@ userauth_pubkey(Authctxt *authctxt)
 	Key *key;
 	char *pkalg, *pkblob, *sig;
 	unsigned int alen, blen, slen;
-	int have_sig;
+	int have_sig, pktype;
 	int authenticated = 0;
 
 	if (!authctxt->valid) {
@@ -431,13 +430,14 @@ userauth_pubkey(Authctxt *authctxt)
 	}
 	have_sig = packet_get_char();
 	pkalg = packet_get_string(&alen);
-	if (strcmp(pkalg, KEX_DSS) != 0) {
-		log("bad pkalg %s", pkalg);	/*XXX*/
+	pktype = key_type_from_name(pkalg);
+	if (pktype == KEY_UNSPEC) {
+		log("bad pkalg %s", pkalg);
 		xfree(pkalg);
 		return 0;
 	}
 	pkblob = packet_get_string(&blen);
-	key = dsa_key_from_blob(pkblob, blen);
+	key = key_from_blob(pkblob, blen);
 	if (key != NULL) {
 		if (have_sig) {
 			sig = packet_get_string(&slen);
@@ -457,14 +457,14 @@ userauth_pubkey(Authctxt *authctxt)
 			    authctxt->service);
 			buffer_put_cstring(&b, "publickey");
 			buffer_put_char(&b, have_sig);
-			buffer_put_cstring(&b, KEX_DSS);
+			buffer_put_cstring(&b, key_ssh_name(key));
 			buffer_put_string(&b, pkblob, blen);
-#ifdef DEBUG_DSS
+#ifdef DEBUG_PK
 			buffer_dump(&b);
 #endif
 			/* test for correct signature */
-			if (user_dsa_key_allowed(authctxt->pw, key) &&
-			    dsa_verify(key, sig, slen, buffer_ptr(&b), buffer_len(&b)) == 1)
+			if (user_key_allowed(authctxt->pw, key) &&
+			    key_verify(key, sig, slen, buffer_ptr(&b), buffer_len(&b)) == 1)
 				authenticated = 1;
 			buffer_clear(&b);
 			xfree(sig);
@@ -480,7 +480,7 @@ userauth_pubkey(Authctxt *authctxt)
 			 * if a user is not allowed to login. is this an
 			 * issue? -markus
 			 */
-			if (user_dsa_key_allowed(authctxt->pw, key)) {
+			if (user_key_allowed(authctxt->pw, key)) {
 				packet_start(SSH2_MSG_USERAUTH_PK_OK);
 				packet_put_string(pkalg, alen);
 				packet_put_string(pkblob, blen);
@@ -493,6 +493,7 @@ userauth_pubkey(Authctxt *authctxt)
 			auth_clear_options();
 		key_free(key);
 	}
+	debug2("userauth_pubkey: authenticated %d pkalg %s", authenticated, pkalg);
 	xfree(pkalg);
 	xfree(pkblob);
 #ifdef HAVE_CYGWIN
@@ -560,11 +561,10 @@ authmethod_lookup(const char *name)
 
 /* return 1 if user allows given key */
 int
-user_dsa_key_allowed(struct passwd *pw, Key *key)
+user_key_allowed(struct passwd *pw, Key *key)
 {
 	char line[8192], file[1024];
 	int found_key = 0;
-	unsigned int bits = -1;
 	FILE *f;
 	unsigned long linenum = 0;
 	struct stat st;
@@ -645,10 +645,10 @@ user_dsa_key_allowed(struct passwd *pw, Key *key)
 		if (!*cp || *cp == '\n' || *cp == '#')
 			continue;
 
-		bits = key_read(found, &cp);
-		if (bits == 0) {
+		if (key_read(found, &cp) == -1) {
 			/* no key?  check if there are options for this key */
 			int quoted = 0;
+			debug2("user_key_allowed: check options: '%s'", cp);
 			options = cp;
 			for (; *cp && (quoted || (*cp != ' ' && *cp != '\t')); cp++) {
 				if (*cp == '\\' && cp[1] == '"')
@@ -659,8 +659,8 @@ user_dsa_key_allowed(struct passwd *pw, Key *key)
 			/* Skip remaining whitespace. */
 			for (; *cp == ' ' || *cp == '\t'; cp++)
 				;
-			bits = key_read(found, &cp);
-			if (bits == 0) {
+			if (key_read(found, &cp) == -1) {
+				debug2("user_key_allowed: advance: '%s'", cp);
 				/* still no key?  advance to next line*/
 				continue;
 			}

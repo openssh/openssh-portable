@@ -32,7 +32,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* RCSID("$OpenBSD: channels.h,v 1.22 2000/10/27 07:48:22 markus Exp $"); */
+/* RCSID("$OpenBSD: channels.h,v 1.23 2000/11/06 23:04:56 markus Exp $"); */
 
 #ifndef CHANNELS_H
 #define CHANNELS_H
@@ -49,7 +49,8 @@
 #define SSH_CHANNEL_INPUT_DRAINING	8	/* sending remaining data to conn */
 #define SSH_CHANNEL_OUTPUT_DRAINING	9	/* sending remaining data to app */
 #define SSH_CHANNEL_LARVAL		10	/* larval session */
-#define SSH_CHANNEL_MAX_TYPE		11
+#define SSH_CHANNEL_RPORT_LISTENER	11	/* Listening to a R-style port  */
+#define SSH_CHANNEL_MAX_TYPE		12
 
 /*
  * Data structure for channel data.  This is iniailized in channel_allocate
@@ -147,7 +148,6 @@ void	channel_input_open_confirmation(int type, int plen, void *ctxt);
 void	channel_input_open_failure(int type, int plen, void *ctxt);
 void	channel_input_port_open(int type, int plen, void *ctxt);
 void	channel_input_window_adjust(int type, int plen, void *ctxt);
-void	channel_input_open(int type, int plen, void *ctxt);
 
 /* Sets specific protocol options. */
 void    channel_set_options(int hostname_in_open);
@@ -202,12 +202,15 @@ char   *channel_open_message(void);
 
 /*
  * Initiate forwarding of connections to local port "port" through the secure
- * channel to host:port from remote side.  This never returns if there was an
- * error.
+ * channel to host:port from remote side.
  */
 void
-channel_request_local_forwarding(u_short port, const char *host,
-    u_short remote_port, int gateway_ports);
+channel_request_local_forwarding(u_short listen_port,
+    const char *host_to_connect, u_short port_to_connect, int gateway_ports);
+void
+channel_request_forwarding(const char *listen_address, u_short listen_port,
+    const char *host_to_connect, u_short port_to_connect, int gateway_ports,
+    int remote_fwd);
 
 /*
  * Initiate forwarding of connections to port "port" on remote host through
@@ -288,6 +291,7 @@ void    auth_input_open_request(int type, int plen, void *ctxt);
 
 /* XXX */
 int	channel_connect_to(const char *host, u_short host_port);
+int	channel_connect_by_listen_adress(u_short listen_port);
 int	x11_connect_display(void);
 
 #endif

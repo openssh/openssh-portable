@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.49 2000/10/11 20:27:23 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.50 2000/11/12 19:50:37 markus Exp $");
 
 #include "ssh.h"
 #include "readconf.h"
@@ -68,7 +68,7 @@ RCSID("$OpenBSD: readconf.c,v 1.49 2000/10/11 20:27:23 markus Exp $");
    # Defaults for various options
    Host *
      ForwardAgent no
-     ForwardX11 yes
+     ForwardX11 no
      RhostsAuthentication yes
      PasswordAuthentication yes
      RSAAuthentication yes
@@ -101,8 +101,8 @@ typedef enum {
 	oGlobalKnownHostsFile, oUserKnownHostsFile, oConnectionAttempts,
 	oBatchMode, oCheckHostIP, oStrictHostKeyChecking, oCompression,
 	oCompressionLevel, oKeepAlives, oNumberOfPasswordPrompts, oTISAuthentication,
-	oUsePrivilegedPort, oLogLevel, oCiphers, oProtocol, oIdentityFile2,
-	oGlobalKnownHostsFile2, oUserKnownHostsFile2, oDSAAuthentication,
+	oUsePrivilegedPort, oLogLevel, oCiphers, oProtocol,
+	oGlobalKnownHostsFile2, oUserKnownHostsFile2, oPubkeyAuthentication,
 	oKbdInteractiveAuthentication, oKbdInteractiveDevices
 } OpCodes;
 
@@ -122,7 +122,8 @@ static struct {
 	{ "kbdinteractiveauthentication", oKbdInteractiveAuthentication },
 	{ "kbdinteractivedevices", oKbdInteractiveDevices },
 	{ "rsaauthentication", oRSAAuthentication },
-	{ "dsaauthentication", oDSAAuthentication },
+	{ "pubkeyauthentication", oPubkeyAuthentication },
+	{ "dsaauthentication", oPubkeyAuthentication },		/* alias */
 	{ "skeyauthentication", oSkeyAuthentication },
 #ifdef KRB4
 	{ "kerberosauthentication", oKerberosAuthentication },
@@ -134,7 +135,7 @@ static struct {
 	{ "fallbacktorsh", oFallBackToRsh },
 	{ "usersh", oUseRsh },
 	{ "identityfile", oIdentityFile },
-	{ "identityfile2", oIdentityFile2 },
+	{ "identityfile2", oIdentityFile },			/* alias */
 	{ "hostname", oHostName },
 	{ "proxycommand", oProxyCommand },
 	{ "port", oPort },
@@ -300,8 +301,8 @@ parse_flag:
 		charptr = &options->kbd_interactive_devices;
 		goto parse_string;
 
-	case oDSAAuthentication:
-		intptr = &options->dsa_authentication;
+	case oPubkeyAuthentication:
+		intptr = &options->pubkey_authentication;
 		goto parse_flag;
 
 	case oRSAAuthentication:
@@ -386,20 +387,15 @@ parse_flag:
 		goto parse_int;
 
 	case oIdentityFile:
-	case oIdentityFile2:
 		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
 		if (*activep) {
-			intptr = (opcode == oIdentityFile) ?
-			    &options->num_identity_files :
-			    &options->num_identity_files2;
+			intptr = &options->num_identity_files;
 			if (*intptr >= SSH_MAX_IDENTITY_FILES)
 				fatal("%.200s line %d: Too many identity files specified (max %d).",
 				      filename, linenum, SSH_MAX_IDENTITY_FILES);
-			charptr = (opcode == oIdentityFile) ?
-			    &options->identity_files[*intptr] :
-			    &options->identity_files2[*intptr];
+			charptr =  &options->identity_files[*intptr];
 			*charptr = xstrdup(arg);
 			*intptr = *intptr + 1;
 		}
@@ -664,7 +660,7 @@ initialize_options(Options * options)
 	options->use_privileged_port = -1;
 	options->rhosts_authentication = -1;
 	options->rsa_authentication = -1;
-	options->dsa_authentication = -1;
+	options->pubkey_authentication = -1;
 	options->skey_authentication = -1;
 #ifdef KRB4
 	options->kerberos_authentication = -1;
@@ -692,7 +688,6 @@ initialize_options(Options * options)
 	options->ciphers = NULL;
 	options->protocol = SSH_PROTO_UNKNOWN;
 	options->num_identity_files = 0;
-	options->num_identity_files2 = 0;
 	options->hostname = NULL;
 	options->proxy_command = NULL;
 	options->user = NULL;
@@ -730,8 +725,8 @@ fill_default_options(Options * options)
 		options->rhosts_authentication = 1;
 	if (options->rsa_authentication == -1)
 		options->rsa_authentication = 1;
-	if (options->dsa_authentication == -1)
-		options->dsa_authentication = 1;
+	if (options->pubkey_authentication == -1)
+		options->pubkey_authentication = 1;
 	if (options->skey_authentication == -1)
 		options->skey_authentication = 0;
 #ifdef KRB4
@@ -779,16 +774,18 @@ fill_default_options(Options * options)
 	if (options->protocol == SSH_PROTO_UNKNOWN)
 		options->protocol = SSH_PROTO_1|SSH_PROTO_2|SSH_PROTO_1_PREFERRED;
 	if (options->num_identity_files == 0) {
-		options->identity_files[0] =
-			xmalloc(2 + strlen(SSH_CLIENT_IDENTITY) + 1);
-		sprintf(options->identity_files[0], "~/%.100s", SSH_CLIENT_IDENTITY);
-		options->num_identity_files = 1;
-	}
-	if (options->num_identity_files2 == 0) {
-		options->identity_files2[0] =
-			xmalloc(2 + strlen(SSH_CLIENT_ID_DSA) + 1);
-		sprintf(options->identity_files2[0], "~/%.100s", SSH_CLIENT_ID_DSA);
-		options->num_identity_files2 = 1;
+		if (options->protocol & SSH_PROTO_1) {
+			options->identity_files[options->num_identity_files] =
+			    xmalloc(2 + strlen(SSH_CLIENT_IDENTITY) + 1);
+			sprintf(options->identity_files[options->num_identity_files++],
+			    "~/%.100s", SSH_CLIENT_IDENTITY);
+		}
+		if (options->protocol & SSH_PROTO_2) {
+			options->identity_files[options->num_identity_files] =
+			    xmalloc(2 + strlen(SSH_CLIENT_ID_DSA) + 1);
+			sprintf(options->identity_files[options->num_identity_files++],
+			    "~/%.100s", SSH_CLIENT_ID_DSA);
+		}
 	}
 	if (options->escape_char == -1)
 		options->escape_char = '~';

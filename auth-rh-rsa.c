@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rh-rsa.c,v 1.17 2000/10/03 18:03:03 markus Exp $");
+RCSID("$OpenBSD: auth-rh-rsa.c,v 1.18 2000/11/12 19:50:37 markus Exp $");
 
 #include "packet.h"
 #include "ssh.h"
@@ -53,10 +53,10 @@ auth_rhosts_rsa(struct passwd *pw, const char *client_user, RSA *client_host_key
 	debug("Rhosts RSA authentication: canonical host %.900s", canonical_hostname);
 
 	/* wrap the RSA key into a 'generic' key */
-	client_key = key_new(KEY_RSA);
+	client_key = key_new(KEY_RSA1);
 	BN_copy(client_key->rsa->e, client_host_key->e);
 	BN_copy(client_key->rsa->n, client_host_key->n);
-	found = key_new(KEY_RSA);
+	found = key_new(KEY_RSA1);
 
 	/* Check if we know the host and its host key. */
 	host_status = check_host_in_hostfile(SSH_SYSTEM_HOSTFILE, canonical_hostname,

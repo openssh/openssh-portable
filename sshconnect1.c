@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect1.c,v 1.8 2000/10/12 09:59:19 markus Exp $");
+RCSID("$OpenBSD: sshconnect1.c,v 1.9 2000/11/12 19:50:38 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dsa.h>
@@ -62,7 +62,7 @@ try_agent_authentication()
 		return 0;
 
 	challenge = BN_new();
-	key = key_new(KEY_RSA);
+	key = key_new(KEY_RSA1);
 
 	/* Loop through identities served by the agent. */
 	for (key = ssh_get_first_identity(auth, &comment, 1);
@@ -196,7 +196,7 @@ try_rsa_authentication(const char *authfile)
 	int plen, clen;
 
 	/* Try to load identification for the authentication key. */
-	public = key_new(KEY_RSA);
+	public = key_new(KEY_RSA1);
 	if (!load_public_key(authfile, public, &comment)) {
 		key_free(public);
 		/* Could not load it.  Fail. */
@@ -237,7 +237,7 @@ try_rsa_authentication(const char *authfile)
 
 	debug("Received RSA challenge from server.");
 
-	private = key_new(KEY_RSA);
+	private = key_new(KEY_RSA1);
 	/*
 	 * Load the private key.  Try first with empty passphrase; if it
 	 * fails, ask for a passphrase.
@@ -760,7 +760,7 @@ ssh_kex(char *host, struct sockaddr *hostaddr)
 	packet_integrity_check(payload_len,
 			       8 + 4 + sum_len + 0 + 4 + 0 + 0 + 4 + 4 + 4,
 			       SSH_SMSG_PUBLIC_KEY);
-	k.type = KEY_RSA;
+	k.type = KEY_RSA1;
 	k.rsa = host_key;
 	check_host_key(host, hostaddr, &k,
 	    options.user_hostfile, options.system_hostfile);
@@ -994,7 +994,8 @@ ssh_userauth(
 
 		/* Try RSA authentication for each identity. */
 		for (i = 0; i < options.num_identity_files; i++)
-			if (try_rsa_authentication(options.identity_files[i]))
+			if (options.identity_files_type[i] == KEY_RSA1 &&
+			    try_rsa_authentication(options.identity_files[i]))
 				return;
 	}
 	/* Try skey authentication if the server supports it. */

@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.42 2000/10/27 07:32:18 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.43 2000/11/06 23:04:56 markus Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -1735,6 +1735,19 @@ session_exec_req(Session *s)
 	return 1;
 }
 
+int
+session_auth_agent_req(Session *s)
+{
+	static int called = 0;
+	packet_done();
+	if (called) {
+		return 0;
+	} else {
+		called = 1;
+		return auth_input_request_forwarding(s->pw);
+	}
+}
+
 void
 session_input_channel_req(int id, void *arg)
 {
@@ -1771,6 +1784,8 @@ session_input_channel_req(int id, void *arg)
 			success =  session_pty_req(s);
 		} else if (strcmp(rtype, "x11-req") == 0) {
 			success = session_x11_req(s);
+		} else if (strcmp(rtype, "auth-agent-req@openssh.com") == 0) {
+			success = session_auth_agent_req(s);
 		} else if (strcmp(rtype, "subsystem") == 0) {
 			success = session_subsystem_req(s);
 		}

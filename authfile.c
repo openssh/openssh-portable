@@ -36,11 +36,12 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfile.c,v 1.20 2000/10/11 20:27:23 markus Exp $");
+RCSID("$OpenBSD: authfile.c,v 1.21 2000/11/12 19:50:37 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dsa.h>
 #include <openssl/rsa.h>
+#include <openssl/err.h>
 #include <openssl/pem.h>
 #include <openssl/evp.h>
 
@@ -61,7 +62,7 @@ RCSID("$OpenBSD: authfile.c,v 1.20 2000/10/11 20:27:23 markus Exp $");
  */
 
 int
-save_private_key_rsa(const char *filename, const char *passphrase,
+save_private_key_rsa1(const char *filename, const char *passphrase,
     RSA *key, const char *comment)
 {
 	Buffer buffer, encrypted;
@@ -155,16 +156,17 @@ save_private_key_rsa(const char *filename, const char *passphrase,
 	return 1;
 }
 
-/* save DSA key in OpenSSL PEM format */
-
+/* save SSH2 key in OpenSSL PEM format */
 int
-save_private_key_dsa(const char *filename, const char *passphrase,
-    DSA *dsa, const char *comment)
+save_private_key_ssh2(const char *filename, const char *_passphrase,
+    Key *key, const char *comment)
 {
 	FILE *fp;
 	int fd;
-	int success = 1;
-	int len = strlen(passphrase);
+	int success = 0;
+	int len = strlen(_passphrase);
+	char *passphrase = (len > 0) ? (char *)_passphrase : NULL;
+	EVP_CIPHER *cipher = (len > 0) ? EVP_des_ede3_cbc() : NULL;
 
 	if (len > 0 && len <= 4) {
 		error("passphrase too short: %d bytes", len);
@@ -182,14 +184,15 @@ save_private_key_dsa(const char *filename, const char *passphrase,
 		close(fd);
 		return 0;
 	}
-	if (len > 0) {
-		if (!PEM_write_DSAPrivateKey(fp, dsa, EVP_des_ede3_cbc(),
-		    (char *)passphrase, strlen(passphrase), NULL, NULL))
-			success = 0;
-	} else {
-		if (!PEM_write_DSAPrivateKey(fp, dsa, NULL,
-		    NULL, 0, NULL, NULL))
-			success = 0;
+	switch (key->type) {
+		case KEY_DSA:
+			success = PEM_write_DSAPrivateKey(fp, key->dsa,
+			    cipher, passphrase, len, NULL, NULL);
+			break;
+		case KEY_RSA:
+			success = PEM_write_RSAPrivateKey(fp, key->rsa,
+			    cipher, passphrase, len, NULL, NULL);
+			break;
 	}
 	fclose(fp);
 	return success;
@@ -200,11 +203,12 @@ save_private_key(const char *filename, const char *passphrase, Key *key,
     const char *comment)
 {
 	switch (key->type) {
-	case KEY_RSA:
-		return save_private_key_rsa(filename, passphrase, key->rsa, comment);
+	case KEY_RSA1:
+		return save_private_key_rsa1(filename, passphrase, key->rsa, comment);
 		break;
 	case KEY_DSA:
-		return save_private_key_dsa(filename, passphrase, key->dsa, comment);
+	case KEY_RSA:
+		return save_private_key_ssh2(filename, passphrase, key, comment);
 		break;
 	default:
 		break;
@@ -246,7 +250,7 @@ load_public_key_rsa(const char *filename, RSA * pub, char **comment_return)
 
 	/* Check that it is at least big enought to contain the ID string. */
 	if (len < strlen(AUTHFILE_ID_STRING) + 1) {
-		debug("Bad key file %.200s.", filename);
+		debug3("Bad RSA1 key file %.200s.", filename);
 		buffer_free(&buffer);
 		return 0;
 	}
@@ -256,7 +260,7 @@ load_public_key_rsa(const char *filename, RSA * pub, char **comment_return)
 	 */
 	for (i = 0; i < (unsigned int) strlen(AUTHFILE_ID_STRING) + 1; i++)
 		if (buffer_get_char(&buffer) != (u_char) AUTHFILE_ID_STRING[i]) {
-			debug("Bad key file %.200s.", filename);
+			debug3("Bad RSA1 key file %.200s.", filename);
 			buffer_free(&buffer);
 			return 0;
 		}
@@ -288,10 +292,11 @@ int
 load_public_key(const char *filename, Key * key, char **comment_return)
 {
 	switch (key->type) {
-	case KEY_RSA:
+	case KEY_RSA1:
 		return load_public_key_rsa(filename, key->rsa, comment_return);
 		break;
 	case KEY_DSA:
+	case KEY_RSA:
 	default:
 		break;
 	}
@@ -306,7 +311,7 @@ load_public_key(const char *filename, Key * key, char **comment_return)
  */
 
 int
-load_private_key_rsa(int fd, const char *filename,
+load_private_key_rsa1(int fd, const char *filename,
     const char *passphrase, RSA * prv, char **comment_return)
 {
 	int i, check1, check2, cipher_type;
@@ -326,7 +331,7 @@ load_private_key_rsa(int fd, const char *filename,
 
 	if (read(fd, cp, (size_t) len) != (size_t) len) {
 		debug("Read from key file %.200s failed: %.100s", filename,
-		      strerror(errno));
+		    strerror(errno));
 		buffer_free(&buffer);
 		close(fd);
 		return 0;
@@ -335,7 +340,7 @@ load_private_key_rsa(int fd, const char *filename,
 
 	/* Check that it is at least big enought to contain the ID string. */
 	if (len < strlen(AUTHFILE_ID_STRING) + 1) {
-		debug("Bad key file %.200s.", filename);
+		debug3("Bad RSA1 key file %.200s.", filename);
 		buffer_free(&buffer);
 		return 0;
 	}
@@ -344,8 +349,8 @@ load_private_key_rsa(int fd, const char *filename,
 	 * from the buffer.
 	 */
 	for (i = 0; i < (unsigned int) strlen(AUTHFILE_ID_STRING) + 1; i++)
-		if (buffer_get_char(&buffer) != (unsigned char) AUTHFILE_ID_STRING[i]) {
-			debug("Bad key file %.200s.", filename);
+		if (buffer_get_char(&buffer) != (u_char) AUTHFILE_ID_STRING[i]) {
+			debug3("Bad RSA1 key file %.200s.", filename);
 			buffer_free(&buffer);
 			return 0;
 		}
@@ -431,40 +436,59 @@ fail:
 }
 
 int
-load_private_key_dsa(int fd, const char *passphrase, Key *k, char **comment_return)
+load_private_key_ssh2(int fd, const char *passphrase, Key *k, char **comment_return)
 {
-	DSA *dsa;
-	BIO *in;
 	FILE *fp;
+	int success = 0;
+	EVP_PKEY *pk = NULL;
+	char *name = "<no key>";
 
-	in = BIO_new(BIO_s_file());
-	if (in == NULL) {
-		error("BIO_new failed");
-		return 0;
-	}
 	fp = fdopen(fd, "r");
 	if (fp == NULL) {
 		error("fdopen failed");
 		return 0;
 	}
-	BIO_set_fp(in, fp, BIO_NOCLOSE);
-	dsa = PEM_read_bio_DSAPrivateKey(in, NULL, NULL, (char *)passphrase);
-	if (dsa == NULL) {
-		debug("PEM_read_bio_DSAPrivateKey failed");
-	} else {
-		/* replace k->dsa with loaded key */
-		DSA_free(k->dsa);
-		k->dsa = dsa;
-	}
-	BIO_free(in);
-	fclose(fp);
-	if (comment_return)
-		*comment_return = xstrdup("dsa w/o comment");
-	debug("read DSA private key done");
-#ifdef DEBUG_DSS
-	DSA_print_fp(stderr, dsa, 8);
+	pk = PEM_read_PrivateKey(fp, NULL, NULL, (char *)passphrase);
+	if (pk == NULL) {
+		debug("PEM_read_PrivateKey failed");
+		(void)ERR_get_error();
+	} else if (pk->type == EVP_PKEY_RSA) {
+		/* replace k->rsa with loaded key */
+		if (k->type == KEY_RSA || k->type == KEY_UNSPEC) {
+			if (k->rsa != NULL)
+				RSA_free(k->rsa);
+			k->rsa = EVP_PKEY_get1_RSA(pk);
+			k->type = KEY_RSA;
+			name = "rsa w/o comment";
+			success = 1;
+#ifdef DEBUG_PK
+			RSA_print_fp(stderr, k->rsa, 8);
 #endif
-	return dsa != NULL ? 1 : 0;
+		}
+	} else if (pk->type == EVP_PKEY_DSA) {
+		/* replace k->dsa with loaded key */
+		if (k->type == KEY_DSA || k->type == KEY_UNSPEC) {
+			if (k->dsa != NULL)
+				DSA_free(k->dsa);
+			k->dsa = EVP_PKEY_get1_DSA(pk);
+			k->type = KEY_DSA;
+			name = "dsa w/o comment";
+#ifdef DEBUG_PK
+			DSA_print_fp(stderr, k->dsa, 8);
+#endif
+			success = 1;
+		}
+	} else {
+		error("PEM_read_PrivateKey: mismatch or "
+		    "unknown EVP_PKEY save_type %d", pk->save_type);
+	}
+	fclose(fp);
+	if (pk != NULL)
+		EVP_PKEY_free(pk);
+	if (success && comment_return)
+		*comment_return = xstrdup(name);
+	debug("read SSH2 private key done: name %s success %d", name, success);
+	return success;
 }
 
 int
@@ -496,7 +520,7 @@ load_private_key(const char *filename, const char *passphrase, Key *key,
 		return 0;
 	}
 	switch (key->type) {
-	case KEY_RSA:
+	case KEY_RSA1:
 		if (key->rsa->e != NULL) {
 			BN_clear_free(key->rsa->e);
 			key->rsa->e = NULL;
@@ -505,11 +529,13 @@ load_private_key(const char *filename, const char *passphrase, Key *key,
 			BN_clear_free(key->rsa->n);
 			key->rsa->n = NULL;
 		}
-		ret = load_private_key_rsa(fd, filename, passphrase,
+		ret = load_private_key_rsa1(fd, filename, passphrase,
 		     key->rsa, comment_return);
 		break;
 	case KEY_DSA:
-		ret = load_private_key_dsa(fd, passphrase, key, comment_return);
+	case KEY_RSA:
+	case KEY_UNSPEC:
+		ret = load_private_key_ssh2(fd, passphrase, key, comment_return);
 	default:
 		break;
 	}
@@ -521,7 +547,6 @@ int
 do_load_public_key(const char *filename, Key *k, char **commentp)
 {
 	FILE *f;
-	unsigned int bits;
 	char line[1024];
 	char *cp;
 
@@ -540,8 +565,7 @@ do_load_public_key(const char *filename, Key *k, char **commentp)
 			for (; *cp && (*cp == ' ' || *cp == '\t'); cp++)
 				;
 			if (*cp) {
-				bits = key_read(k, &cp);
-				if (bits != 0) {
+				if (key_read(k, &cp) == 1) {
 					if (commentp)
 						*commentp=xstrdup(filename);
 					fclose(f);

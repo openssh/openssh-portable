@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: authfd.h,v 1.13 2000/10/09 21:51:00 markus Exp $"); */
+/* RCSID("$OpenBSD: authfd.h,v 1.14 2000/11/12 19:50:37 markus Exp $"); */
 
 #ifndef AUTHFD_H
 #define AUTHFD_H
@@ -73,6 +73,11 @@ AuthenticationConnection *ssh_get_authentication_connection();
  * memory.
  */
 void    ssh_close_authentication_connection(AuthenticationConnection *auth);
+
+/*
+ * Returns the number authentication identity held by the agent.
+ */
+int	ssh_get_num_identities(AuthenticationConnection *auth, int version);
 
 /*
  * Returns the first authentication identity held by the agent or NULL if

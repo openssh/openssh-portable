@@ -5,6 +5,8 @@ Port 22
 ListenAddress 0.0.0.0
 #ListenAddress ::
 HostKey /etc/ssh_host_key
+HostKey /etc/ssh_host_rsa_key
+HostKey /etc/ssh_host_dsa_key
 ServerKeyBits 768
 LoginGraceTime 600
 KeyRegenerationInterval 3600

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.70 2000/10/16 09:38:44 djm Exp $
+.\" $OpenBSD: sshd.8,v 1.72 2000/11/12 19:50:38 markus Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -144,7 +144,7 @@ through a cryptographic message authentication code
 (hmac-sha1 or hmac-md5).
 .Pp
 Protocol version 2 provides a public key based
-user authentication method (DSAAuthentication)
+user authentication method (PubkeyAuthentication)
 and conventional password authentication.
 .Pp
 .Ss Command execution and data forwarding
@@ -359,8 +359,8 @@ and
 can be used as wildcards in the patterns.
 Only user names are valid; a numerical user ID isn't recognized.
 By default login is allowed regardless of the user name.
-.It Cm DSAAuthentication
-Specifies whether DSA authentication is allowed.
+.It Cm PubkeyAuthentication
+Specifies whether public key authentication is allowed.
 The default is
 .Dq yes .
 Note that this option applies to protocol version 2 only.
@@ -373,20 +373,20 @@ or
 .Dq no .
 The default is
 .Dq no .
-.It Cm HostDSAKey
-Specifies the file containing the private DSA host key (default
-.Pa /etc/ssh_host_dsa_key )
-used by SSH protocol 2.0.
-Note that
-.Nm
-disables protocol 2.0 if this file is group/world-accessible.
 .It Cm HostKey
-Specifies the file containing the private RSA host key (default
+Specifies the file containing the private host keys (default
 .Pa /etc/ssh_host_key )
-used by SSH protocols 1.3 and 1.5.
+used by SSH protocol versions 1 and 2.
 Note that
 .Nm
-disables protocols 1.3 and 1.5 if this file is group/world-accessible.
+if this file is group/world-accessible.
+It is possible to have multiple host key files.
+.Dq rsa1
+keys are used for version 1 and
+.Dq dsa
+or
+.Dq rsa
+are used for version 2 of the SSH protocol.
 .It Cm IgnoreRhosts
 Specifies that
 .Pa .rhosts
@@ -1039,7 +1039,7 @@ This can be used to specify
 machine-specific login-time initializations globally.
 This file should be writable only by root, and should be world-readable.
 .El
-.Sh AUTHOR
+.Sh AUTHORS
 OpenSSH
 is a derivative of the original (free) ssh 1.2.12 release by Tatu Ylonen,
 but with bugs removed and newer features re-added.

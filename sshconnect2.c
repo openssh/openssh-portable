@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.27 2000/10/19 16:45:16 provos Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.28 2000/11/12 19:50:38 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
@@ -45,7 +45,6 @@ RCSID("$OpenBSD: sshconnect2.c,v 1.27 2000/10/19 16:45:16 provos Exp $");
 #include "kex.h"
 #include "myproposal.h"
 #include "key.h"
-#include "dsa.h"
 #include "sshconnect.h"
 #include "authfile.h"
 #include "cli.h"
@@ -196,7 +195,7 @@ ssh_dh1_client(Kex *kex, char *host, struct sockaddr *hostaddr,
 
 	/* key, cert */
 	server_host_key_blob = packet_get_string(&sbloblen);
-	server_host_key = dsa_key_from_blob(server_host_key_blob, sbloblen);
+	server_host_key = key_from_blob(server_host_key_blob, sbloblen);
 	if (server_host_key == NULL)
 		fatal("cannot decode server_host_key_blob");
 
@@ -258,8 +257,8 @@ ssh_dh1_client(Kex *kex, char *host, struct sockaddr *hostaddr,
 		fprintf(stderr, "%02x", (hash[i])&0xff);
 	fprintf(stderr, "\n");
 #endif
-	if (dsa_verify(server_host_key, (unsigned char *)signature, slen, hash, 20) != 1)
-		fatal("dsa_verify failed for server_host_key");
+	if (key_verify(server_host_key, (unsigned char *)signature, slen, hash, 20) != 1)
+		fatal("key_verify failed for server_host_key");
 	key_free(server_host_key);
 
 	kex_derive_keys(kex, hash, shared_secret);
@@ -366,7 +365,7 @@ ssh_dhgex_client(Kex *kex, char *host, struct sockaddr *hostaddr,
 
 	/* key, cert */
 	server_host_key_blob = packet_get_string(&sbloblen);
-	server_host_key = dsa_key_from_blob(server_host_key_blob, sbloblen);
+	server_host_key = key_from_blob(server_host_key_blob, sbloblen);
 	if (server_host_key == NULL)
 		fatal("cannot decode server_host_key_blob");
 
@@ -429,8 +428,8 @@ ssh_dhgex_client(Kex *kex, char *host, struct sockaddr *hostaddr,
 		fprintf(stderr, "%02x", (hash[i])&0xff);
 	fprintf(stderr, "\n");
 #endif
-	if (dsa_verify(server_host_key, (unsigned char *)signature, slen, hash, 20) != 1)
-		fatal("dsa_verify failed for server_host_key");
+	if (key_verify(server_host_key, (unsigned char *)signature, slen, hash, 20) != 1)
+		fatal("key_verify failed for server_host_key");
 	key_free(server_host_key);
 
 	kex_derive_keys(kex, hash, shared_secret);
@@ -485,7 +484,7 @@ Authmethod *authmethod_lookup(const char *name);
 Authmethod authmethods[] = {
 	{"publickey",
 		userauth_pubkey,
-		&options.dsa_authentication,
+		&options.pubkey_authentication,
 		NULL},
 	{"password",
 		userauth_passwd,
@@ -653,8 +652,10 @@ sign_and_send_pubkey(Authctxt *authctxt, Key *k, sign_cb_fn *sign_callback)
 	int ret = -1;
 	int have_sig = 1;
 
-	dsa_make_key_blob(k, &blob, &bloblen);
-
+	if (key_to_blob(k, &blob, &bloblen) == 0) {
+		/* we cannot handle this key */
+		return 0;
+	}
 	/* data to be signed */
 	buffer_init(&b);
 	if (datafellows & SSH_OLD_SESSIONID) {
@@ -672,7 +673,7 @@ sign_and_send_pubkey(Authctxt *authctxt, Key *k, sign_cb_fn *sign_callback)
 	    authctxt->service);
 	buffer_put_cstring(&b, authctxt->method->name);
 	buffer_put_char(&b, have_sig);
-	buffer_put_cstring(&b, KEX_DSS); 
+	buffer_put_cstring(&b, key_ssh_name(k)); 
 	buffer_put_string(&b, blob, bloblen);
 
 	/* generate signature */
@@ -682,7 +683,7 @@ sign_and_send_pubkey(Authctxt *authctxt, Key *k, sign_cb_fn *sign_callback)
 		buffer_free(&b);
 		return 0;
 	}
-#ifdef DEBUG_DSS
+#ifdef DEBUG_PK
 	buffer_dump(&b);
 #endif
 	if (datafellows & SSH_BUG_PUBKEYAUTH) {
@@ -693,7 +694,7 @@ sign_and_send_pubkey(Authctxt *authctxt, Key *k, sign_cb_fn *sign_callback)
 		buffer_put_cstring(&b, authctxt->service);
 		buffer_put_cstring(&b, authctxt->method->name);
 		buffer_put_char(&b, have_sig);
-		buffer_put_cstring(&b, KEX_DSS); 
+		buffer_put_cstring(&b, key_ssh_name(k)); 
 		buffer_put_string(&b, blob, bloblen);
 	}
 	xfree(blob);
@@ -719,10 +720,10 @@ sign_and_send_pubkey(Authctxt *authctxt, Key *k, sign_cb_fn *sign_callback)
 }
 
 /* sign callback */
-int dsa_sign_cb(Authctxt *authctxt, Key *key, unsigned char **sigp, int *lenp,
+int key_sign_cb(Authctxt *authctxt, Key *key, unsigned char **sigp, int *lenp,
     unsigned char *data, int datalen)
 {
-	return dsa_sign(key, sigp, lenp, data, datalen);
+	return key_sign(key, sigp, lenp, data, datalen);
 }
 
 int
@@ -738,14 +739,13 @@ userauth_pubkey_identity(Authctxt *authctxt, char *filename)
 	}
 	debug("try pubkey: %s", filename);
 
-	k = key_new(KEY_DSA);
+	k = key_new(KEY_UNSPEC);
 	if (!load_private_key(filename, "", k, NULL)) {
 		int success = 0;
 		char *passphrase;
 		char prompt[300];
 		snprintf(prompt, sizeof prompt,
-		     "Enter passphrase for %s key '%.100s': ",
-		     key_type(k), filename);
+		     "Enter passphrase for key '%.100s': ", filename);
 		for (i = 0; i < options.number_of_password_prompts; i++) {
 			passphrase = read_passphrase(prompt, 0);
 			if (strcmp(passphrase, "") != 0) {
@@ -766,7 +766,7 @@ userauth_pubkey_identity(Authctxt *authctxt, char *filename)
 			return 0;
 		}
 	}
-	ret = sign_and_send_pubkey(authctxt, k, dsa_sign_cb);
+	ret = sign_and_send_pubkey(authctxt, k, key_sign_cb);
 	key_free(k);
 	return ret;
 }
@@ -782,24 +782,26 @@ int
 userauth_pubkey_agent(Authctxt *authctxt)
 {
 	static int called = 0;
+	int ret = 0;
 	char *comment;
 	Key *k;
-	int ret;
 
 	if (called == 0) {
-		k = ssh_get_first_identity(authctxt->agent, &comment, 2);
+		if (ssh_get_num_identities(authctxt->agent, 2) == 0)
+			debug2("userauth_pubkey_agent: no keys at all");
 		called = 1;
-	} else {
-		k = ssh_get_next_identity(authctxt->agent, &comment, 2);
 	}
+	k = ssh_get_next_identity(authctxt->agent, &comment, 2);
 	if (k == NULL) {
-		debug2("no more DSA keys from agent");
-		return 0;
+		debug2("userauth_pubkey_agent: no more keys");
+	} else {
+		debug("userauth_pubkey_agent: trying agent key %s", comment);
+		xfree(comment);
+		ret = sign_and_send_pubkey(authctxt, k, agent_sign_cb);
+		key_free(k);
 	}
-	debug("trying DSA agent key %s", comment);
-	xfree(comment);
-	ret = sign_and_send_pubkey(authctxt, k, agent_sign_cb);
-	key_free(k);
+	if (ret == 0)
+		debug2("userauth_pubkey_agent: no message sent");
 	return ret;
 }
 
@@ -809,10 +811,17 @@ userauth_pubkey(Authctxt *authctxt)
 	static int idx = 0;
 	int sent = 0;
 
-	if (authctxt->agent != NULL)
-		sent = userauth_pubkey_agent(authctxt);
-	while (sent == 0 && idx < options.num_identity_files2)
-		sent = userauth_pubkey_identity(authctxt, options.identity_files2[idx++]);
+	if (authctxt->agent != NULL) {
+		do {
+			sent = userauth_pubkey_agent(authctxt);
+		} while(!sent && authctxt->agent->howmany > 0);
+	}
+	while (!sent && idx < options.num_identity_files) {
+		if (options.identity_files_type[idx] != KEY_RSA1)
+			sent = userauth_pubkey_identity(authctxt,
+			    options.identity_files[idx]);
+		idx++;
+	}
 	return sent;
 }
 

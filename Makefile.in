@@ -35,7 +35,7 @@ INSTALL_SSH_PRNG_CMDS=@INSTALL_SSH_PRNG_CMDS@
 
 TARGETS=ssh$(EXEEXT) sshd$(EXEEXT) ssh-add$(EXEEXT) ssh-keygen$(EXEEXT) ssh-agent$(EXEEXT) scp$(EXEEXT) sftp-server$(EXEEXT) $(EXTRA_TARGETS)
 
-LIBSSH_OBJS=atomicio.o authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o cipher.o cli.o compat.o compress.o crc32.o cygwin_util.o deattack.o dispatch.o dsa.o hmac.o hostfile.o key.o kex.o log.o match.o mpaux.o nchan.o packet.o radix.o rijndael.o entropy.o readpass.o rsa.o tildexpand.o ttymodes.o uidswap.o util.o uuencode.o xmalloc.o 
+LIBSSH_OBJS=atomicio.o authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o cipher.o cli.o compat.o compress.o crc32.o cygwin_util.o deattack.o dispatch.o hmac.o hostfile.o key.o kex.o log.o match.o mpaux.o nchan.o packet.o radix.o rijndael.o entropy.o readpass.o rsa.o ssh-dss.o ssh-rsa.o tildexpand.o ttymodes.o uidswap.o util.o uuencode.o xmalloc.o 
 
 LIBOPENBSD_COMPAT_OBJS=bsd-arc4random.o bsd-base64.o bsd-bindresvport.o bsd-daemon.o bsd-getcwd.o bsd-inet_aton.o bsd-inet_ntoa.o bsd-misc.o bsd-mktemp.o bsd-realpath.o bsd-rresvport.o bsd-setenv.o bsd-sigaction.o bsd-snprintf.o bsd-strlcat.o bsd-strlcpy.o bsd-strsep.o bsd-strtok.o bsd-vis.o bsd-setproctitle.o bsd-waitpid.o fake-getaddrinfo.o fake-getnameinfo.o next-posix.o
 
@@ -179,18 +179,24 @@ host-key: ssh-keygen$(EXEEXT)
 		if [ -f "$(DESTDIR)$(sysconfdir)/ssh_host_key" ] ; then \
 			echo "$(DESTDIR)$(sysconfdir)/ssh_host_key already exists, skipping." ; \
 		else \
-			$(srcdir)/ssh-keygen -b 1024 -f $(DESTDIR)$(sysconfdir)/ssh_host_key -N "" ; \
+			$(srcdir)/ssh-keygen -t rsa1 -f $(DESTDIR)$(sysconfdir)/ssh_host_key -N "" ; \
 		fi ; \
 		if [ -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key ] ; then \
 			echo "$(DESTDIR)$(sysconfdir)/ssh_host_dsa_key already exists, skipping." ; \
 		else \
-			$(srcdir)/ssh-keygen -d -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key -N "" ; \
+			$(srcdir)/ssh-keygen -t dsa -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key -N "" ; \
+		fi ; \
+		if [ -f $(DESTDIR)$(sysconfdir)/ssh_host_rsa_key ] ; then \
+			echo "$(DESTDIR)$(sysconfdir)/ssh_host_rsa_key already exists, skipping." ; \
+		else \
+			$(srcdir)/ssh-keygen -t rsa -f $(DESTDIR)$(sysconfdir)/ssh_host_rsa_key -N "" ; \
 		fi ; \
 	fi ;
 
 host-key-force: ssh-keygen$(EXEEXT)
-	$(srcdir)/ssh-keygen -b 1024 -f $(DESTDIR)$(sysconfdir)/ssh_host_key -N ""
-	$(srcdir)/ssh-keygen -d -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key -N ""
+	$(srcdir)/ssh-keygen -t rsa1 -f $(DESTDIR)$(sysconfdir)/ssh_host_key -N ""
+	$(srcdir)/ssh-keygen -t dsa -f $(DESTDIR)$(sysconfdir)/ssh_host_dsa_key -N ""
+	$(srcdir)/ssh-keygen -t rsa -f $(DESTDIR)$(sysconfdir)/ssh_host_rsa_key -N ""
 
 uninstallall:	uninstall
 	-rm -f $(DESTDIR)$(sysconfdir)/ssh_config

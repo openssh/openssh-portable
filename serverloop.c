@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.34 2000/10/27 07:32:18 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.35 2000/11/06 23:04:56 markus Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -50,6 +50,7 @@ RCSID("$OpenBSD: serverloop.c,v 1.34 2000/10/27 07:32:18 markus Exp $");
 #include "session.h"
 #include "dispatch.h"
 #include "auth-options.h"
+#include "auth.h"
 
 extern ServerOptions options;
 
@@ -739,10 +740,10 @@ server_input_window_size(int type, int plen, void *ctxt)
 		pty_change_window_size(fdin, row, col, xpixel, ypixel);
 }
 
-int
-input_direct_tcpip(void)
+Channel *
+server_request_direct_tcpip(char *ctype)
 {
-	int sock;
+	int sock, newch;
 	char *target, *originator;
 	int target_port, originator_port;
 
@@ -752,23 +753,52 @@ input_direct_tcpip(void)
 	originator_port = packet_get_int();
 	packet_done();
 
-	debug("open direct-tcpip: from %s port %d to %s port %d",
+	debug("server_request_direct_tcpip: originator %s port %d, target %s port %d",
 	   originator, originator_port, target, target_port);
 
 	/* XXX check permission */
 	if (no_port_forwarding_flag || !options.allow_tcp_forwarding) {
 		xfree(target);
 		xfree(originator);
-		return -1;
+		return NULL;
 	}
 	sock = channel_connect_to(target, target_port);
 	xfree(target);
 	xfree(originator);
 	if (sock < 0)
-		return -1;
-	return channel_new("direct-tcpip", SSH_CHANNEL_OPEN,
+		return NULL;
+	newch = channel_new(ctype, SSH_CHANNEL_OPEN,
 	    sock, sock, -1, CHAN_TCP_WINDOW_DEFAULT,
 	    CHAN_TCP_PACKET_DEFAULT, 0, xstrdup("direct-tcpip"), 1);
+	return (newch >= 0) ? channel_lookup(newch) : NULL;
+}
+
+Channel *
+server_request_session(char *ctype)
+{
+	int newch;
+
+	debug("input_session_request");
+	packet_done();
+	/*
+	 * A server session has no fd to read or write until a
+	 * CHANNEL_REQUEST for a shell is made, so we set the type to
+	 * SSH_CHANNEL_LARVAL.  Additionally, a callback for handling all
+	 * CHANNEL_REQUEST messages is registered.
+	 */
+	newch = channel_new(ctype, SSH_CHANNEL_LARVAL,
+	    -1, -1, -1, 0, CHAN_SES_PACKET_DEFAULT,
+	    0, xstrdup("server-session"), 1);
+	if (session_open(newch) == 1) {
+		channel_register_callback(newch, SSH2_MSG_CHANNEL_REQUEST,
+		    session_input_channel_req, (void *)0);
+		channel_register_cleanup(newch, session_close_by_channel);
+		return channel_lookup(newch);
+	} else {
+		debug("session open failed, free channel %d", newch);
+		channel_free(newch);
+	}
+	return NULL;
 }
 
 void
@@ -776,7 +806,6 @@ server_input_channel_open(int type, int plen, void *ctxt)
 {
 	Channel *c = NULL;
 	char *ctype;
-	int id;
 	unsigned int len;
 	int rchan;
 	int rmaxpack;
@@ -791,34 +820,12 @@ server_input_channel_open(int type, int plen, void *ctxt)
 	    ctype, rchan, rwindow, rmaxpack);
 
 	if (strcmp(ctype, "session") == 0) {
-		debug("open session");
-		packet_done();
-		/*
-		 * A server session has no fd to read or write
-		 * until a CHANNEL_REQUEST for a shell is made,
-		 * so we set the type to SSH_CHANNEL_LARVAL.
-		 * Additionally, a callback for handling all
-		 * CHANNEL_REQUEST messages is registered.
-		 */
-		id = channel_new(ctype, SSH_CHANNEL_LARVAL,
-		    -1, -1, -1, 0, CHAN_SES_PACKET_DEFAULT,
-		    0, xstrdup("server-session"), 1);
-		if (session_open(id) == 1) {
-			channel_register_callback(id, SSH2_MSG_CHANNEL_REQUEST,
-			    session_input_channel_req, (void *)0);
-			channel_register_cleanup(id, session_close_by_channel);
-			c = channel_lookup(id);
-		} else {
-			debug("session open failed, free channel %d", id);
-			channel_free(id);
-		}
+		c = server_request_session(ctype);
 	} else if (strcmp(ctype, "direct-tcpip") == 0) {
-		id = input_direct_tcpip();
-		if (id >= 0)
-			c = channel_lookup(id);
+		c = server_request_direct_tcpip(ctype);
 	}
 	if (c != NULL) {
-		debug("confirm %s", ctype);
+		debug("server_input_channel_open: confirm %s", ctype);
 		c->remote_id = rchan;
 		c->remote_window = rwindow;
 		c->remote_maxpacket = rmaxpack;
@@ -830,7 +837,7 @@ server_input_channel_open(int type, int plen, void *ctxt)
 		packet_put_int(c->local_maxpacket);
 		packet_send();
 	} else {
-		debug("failure %s", ctype);
+		debug("server_input_channel_open: failure %s", ctype);
 		packet_start(SSH2_MSG_CHANNEL_OPEN_FAILURE);
 		packet_put_int(rchan);
 		packet_put_int(SSH2_OPEN_ADMINISTRATIVELY_PROHIBITED);
@@ -839,6 +846,56 @@ server_input_channel_open(int type, int plen, void *ctxt)
 		packet_send();
 	}
 	xfree(ctype);
+}
+
+void 
+server_input_global_request(int type, int plen, void *ctxt)
+{
+	char *rtype;
+	int want_reply;
+	int success = 0;
+
+	rtype = packet_get_string(NULL);
+	want_reply = packet_get_char();
+	debug("server_input_global_request: rtype %s want_reply %d", rtype, want_reply);
+	
+	if (strcmp(rtype, "tcpip-forward") == 0) {
+		struct passwd *pw;
+		char *listen_address;
+		u_short listen_port;
+
+		pw = auth_get_user();
+		if (pw == NULL)
+			fatal("server_input_global_request: no user");
+		listen_address = packet_get_string(NULL); /* XXX currently ignored */
+		listen_port = (u_short)packet_get_int();
+		debug("server_input_global_request: tcpip-forward listen %s port %d",
+		    listen_address, listen_port);
+
+		/* check permissions */
+		if (!options.allow_tcp_forwarding ||
+		    no_port_forwarding_flag ||
+		    (listen_port < IPPORT_RESERVED && pw->pw_uid != 0)) {
+			success = 0;
+			packet_send_debug("Server has disabled port forwarding.");
+		} else {
+			/* Start listening on the port */
+			channel_request_forwarding(
+			    listen_address, listen_port,
+			    /*unspec host_to_connect*/ "<unspec host>",
+			    /*unspec port_to_connect*/ 0,
+			    options.gateway_ports, /*remote*/ 1);
+			success = 1;
+		}
+		xfree(listen_address);
+	}
+	if (want_reply) {
+		packet_start(success ?
+		    SSH2_MSG_REQUEST_SUCCESS : SSH2_MSG_REQUEST_FAILURE);
+		packet_send();
+		packet_write_wait();
+	}
+	xfree(rtype);
 }
 
 void
@@ -855,6 +912,7 @@ server_init_dispatch_20()
 	dispatch_set(SSH2_MSG_CHANNEL_OPEN_FAILURE, &channel_input_open_failure);
 	dispatch_set(SSH2_MSG_CHANNEL_REQUEST, &channel_input_channel_request);
 	dispatch_set(SSH2_MSG_CHANNEL_WINDOW_ADJUST, &channel_input_window_adjust);
+	dispatch_set(SSH2_MSG_GLOBAL_REQUEST, &server_input_global_request);
 }
 void
 server_init_dispatch_13()

@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.22 2000/09/07 20:27:54 deraadt Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.23 2000/11/12 19:50:38 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/rsa.h>
@@ -60,10 +60,10 @@ delete_file(AuthenticationConnection *ac, const char *filename)
 	Key *public;
 	char *comment;
 
-	public = key_new(KEY_RSA);
+	public = key_new(KEY_RSA1);
 	if (!load_public_key(filename, public, &comment)) {
 		key_free(public);
-		public = key_new(KEY_DSA);
+		public = key_new(KEY_UNSPEC);
 		if (!try_load_public_key(filename, public, &comment)) {
 			printf("Bad key file %s\n", filename);
 			return;
@@ -144,7 +144,7 @@ add_file(AuthenticationConnection *ac, const char *filename)
 	char buf[1024], msg[1024];
 	int success;
 	int interactive = isatty(STDIN_FILENO);
-	int type = KEY_RSA;
+	int type = KEY_RSA1;
 
 	if (stat(filename, &st) < 0) {
 		perror(filename);
@@ -154,10 +154,10 @@ add_file(AuthenticationConnection *ac, const char *filename)
 	 * try to load the public key. right now this only works for RSA,
 	 * since DSA keys are fully encrypted
 	 */
-	public = key_new(KEY_RSA);
+	public = key_new(KEY_RSA1);
 	if (!load_public_key(filename, public, &saved_comment)) {
-		/* ok, so we will asume this is a DSA key */
-		type = KEY_DSA;
+		/* ok, so we will assume this is 'some' key */
+		type = KEY_UNSPEC;
 		saved_comment = xstrdup(filename);
 	}
 	key_free(public);
@@ -223,8 +223,9 @@ list_identities(AuthenticationConnection *ac, int fp)
 		     key = ssh_get_next_identity(ac, &comment, version)) {
 			had_identities = 1;
 			if (fp) {
-				printf("%d %s %s\n",
-				    key_size(key), key_fingerprint(key), comment);
+				printf("%d %s %s (%s)\n",
+				    key_size(key), key_fingerprint(key),
+				    comment, key_type(key));
 			} else {
 				if (!key_write(key, stdout))
 					fprintf(stderr, "key_write failed");
@@ -250,13 +251,6 @@ main(int argc, char **argv)
 
 	init_rng();
 
-	/* check if RSA support exists */
-	if (rsa_alive() == 0) {
-		fprintf(stderr,
-			"%s: no RSA support in libssl and libcrypto.  See ssl(8).\n",
-			__progname);
-		exit(1);
-	}
         SSLeay_add_all_algorithms();
 
 	/* At first, get a connection to the authentication agent. */

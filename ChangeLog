@@ -1,6 +1,39 @@
 20001113
  - (djm) Add pointer to http://www.imasy.or.jp/~gotoh/connect.c to 
    contrib/README
+ - (djm) Merge OpenBSD changes:
+   - markus@cvs.openbsd.org  2000/11/06 16:04:56
+     [channels.c channels.h clientloop.c nchan.c serverloop.c]
+     [session.c ssh.c]
+     agent forwarding and -R for ssh2, based on work from
+     jhuuskon@messi.uku.fi
+   - markus@cvs.openbsd.org  2000/11/06 16:13:27
+     [ssh.c sshconnect.c sshd.c]
+     do not disabled rhosts(rsa) if server port > 1024; from
+     pekkas@netcore.fi
+   - markus@cvs.openbsd.org  2000/11/06 16:16:35
+     [sshconnect.c]
+     downgrade client to 1.3 if server is 1.4; help from mdb@juniper.net
+   - markus@cvs.openbsd.org  2000/11/09 18:04:40
+     [auth1.c]
+     typo; from mouring@pconline.com
+   - markus@cvs.openbsd.org  2000/11/12 12:03:28
+     [ssh-agent.c]
+     off-by-one when removing a key from the agent
+   - markus@cvs.openbsd.org  2000/11/12 12:50:39
+     [auth-rh-rsa.c auth2.c authfd.c authfd.h]
+     [authfile.c hostfile.c kex.c kex.h key.c key.h myproposal.h]
+     [readconf.c readconf.h rsa.c rsa.h servconf.c servconf.h ssh-add.c]
+     [ssh-agent.c ssh-keygen.1 ssh-keygen.c ssh.1 ssh.c ssh_config]
+     [sshconnect1.c sshconnect2.c sshd.8 sshd.c sshd_config ssh-dss.c]
+     [ssh-dss.h ssh-rsa.c ssh-rsa.h dsa.c dsa.h]                   
+     add support for RSA to SSH2.  please test.
+     there are now 3 types of keys: RSA1 is used by ssh-1 only,
+     RSA and DSA are used by SSH2.
+     you can use 'ssh-keygen -t rsa -f ssh2_rsa_file' to generate RSA
+     keys for SSH2 and use the RSA keys for hostkeys or for user keys.
+     SSH2 RSA or DSA keys are added to .ssh/authorised_keys2 as before.
+ - (djm) Fix up Makefile and Redhat init script to create RSA host keys
 
 20001112
  - (bal) SCO Patch to add needed libraries for configure.in.  Patch by

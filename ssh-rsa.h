@@ -21,25 +21,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef DSA_H
-#define DSA_H
-
-Key	*dsa_key_from_blob(char *blob, int blen);
-int	dsa_make_key_blob(Key *key, unsigned char **blobp, unsigned int *lenp);
+#ifndef SSH_RSA_H
+#define SSH_RSA_H
 
 int
-dsa_sign(
+ssh_rsa_sign(
     Key *key,
     unsigned char **sigp, int *lenp,
     unsigned char *data, int datalen);
 
 int
-dsa_verify(
+ssh_rsa_verify(
     Key *key,
     unsigned char *signature, int signaturelen,
     unsigned char *data, int datalen);
-
-Key *
-dsa_generate_key(unsigned int bits);
 
 #endif

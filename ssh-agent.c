@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.37 2000/09/21 11:07:51 markus Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.39 2000/11/12 19:50:38 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.37 2000/09/21 11:07:51 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.39 2000/11/12 19:50:38 markus Exp $");
 
 #include "ssh.h"
 #include "rsa.h"
@@ -54,7 +54,6 @@ RCSID("$OpenBSD: ssh-agent.c,v 1.37 2000/09/21 11:07:51 markus Exp $");
 #include <openssl/rsa.h>
 #include "key.h"
 #include "authfd.h"
-#include "dsa.h"
 #include "kex.h"
 #include "compat.h"
 
@@ -147,14 +146,14 @@ process_request_identities(SocketEntry *e, int version)
 	buffer_put_int(&msg, tab->nentries);
 	for (i = 0; i < tab->nentries; i++) {
 		Identity *id = &tab->identities[i];
-		if (id->key->type == KEY_RSA) {
+		if (id->key->type == KEY_RSA1) {
 			buffer_put_int(&msg, BN_num_bits(id->key->rsa->n));
 			buffer_put_bignum(&msg, id->key->rsa->e);
 			buffer_put_bignum(&msg, id->key->rsa->n);
 		} else {
 			unsigned char *blob;
 			unsigned int blen;
-			dsa_make_key_blob(id->key, &blob, &blen);
+			key_to_blob(id->key, &blob, &blen);
 			buffer_put_string(&msg, blob, blen);
 			xfree(blob);
 		}
@@ -178,7 +177,7 @@ process_authentication_challenge1(SocketEntry *e)
 	unsigned int response_type;
 
 	buffer_init(&msg);
-	key = key_new(KEY_RSA);
+	key = key_new(KEY_RSA1);
 	challenge = BN_new();
 
 	buffer_get_int(&e->input);				/* ignored */
@@ -251,11 +250,11 @@ process_sign_request2(SocketEntry *e)
 	if (flags & SSH_AGENT_OLD_SIGNATURE)
 		datafellows = SSH_BUG_SIGBLOB;
 
-	key = dsa_key_from_blob(blob, blen);
+	key = key_from_blob(blob, blen);
 	if (key != NULL) {
 		private = lookup_private_key(key, NULL, 2);
 		if (private != NULL)
-			ok = dsa_sign(private, &signature, &slen, data, dlen);
+			ok = key_sign(private, &signature, &slen, data, dlen);
 	}
 	key_free(key);
 	buffer_init(&msg);
@@ -287,7 +286,7 @@ process_remove_identity(SocketEntry *e, int version)
 
 	switch(version){
 	case 1:
-		key = key_new(KEY_RSA);
+		key = key_new(KEY_RSA1);
 		bits = buffer_get_int(&e->input);
 		buffer_get_bignum(&e->input, key->rsa->e);
 		buffer_get_bignum(&e->input, key->rsa->n);
@@ -298,7 +297,7 @@ process_remove_identity(SocketEntry *e, int version)
 		break;
 	case 2:
 		blob = buffer_get_string(&e->input, &blen);
-		key = dsa_key_from_blob(blob, blen);
+		key = key_from_blob(blob, blen);
 		xfree(blob);
 		break;
 	}
@@ -315,8 +314,12 @@ process_remove_identity(SocketEntry *e, int version)
 			Idtab *tab = idtab_lookup(version);
 			key_free(tab->identities[idx].key);
 			xfree(tab->identities[idx].comment);
-			if (idx != tab->nentries)
-				tab->identities[idx] = tab->identities[tab->nentries];
+			if (tab->nentries < 1)
+				fatal("process_remove_identity: "
+				    "internal error: tab->nentries %d",
+				    tab->nentries);
+			if (idx != tab->nentries - 1)
+				tab->identities[idx] = tab->identities[tab->nentries - 1];
 			tab->nentries--;
 			success = 1;
 		}
@@ -349,79 +352,80 @@ process_remove_all_identities(SocketEntry *e, int version)
 }
 
 void
+generate_additional_parameters(RSA *rsa)
+{
+	BIGNUM *aux;
+	BN_CTX *ctx;
+	/* Generate additional parameters */
+	aux = BN_new();
+	ctx = BN_CTX_new();
+
+	BN_sub(aux, rsa->q, BN_value_one());
+	BN_mod(rsa->dmq1, rsa->d, aux, ctx);
+
+	BN_sub(aux, rsa->p, BN_value_one());
+	BN_mod(rsa->dmp1, rsa->d, aux, ctx);
+
+	BN_clear_free(aux);
+	BN_CTX_free(ctx);
+}
+
+void
 process_add_identity(SocketEntry *e, int version)
 {
 	Key *k = NULL;
-	RSA *rsa;
-	BIGNUM *aux;
-	BN_CTX *ctx;
-	char *type;
+	char *type_name;
 	char *comment;
-	int success = 0;
+	int type, success = 0;
 	Idtab *tab = idtab_lookup(version);
 
 	switch (version) {
 	case 1:
-		k = key_new(KEY_RSA);
-		rsa = k->rsa;
-
-		/* allocate mem for private key */
-		/* XXX rsa->n and rsa->e are already allocated */
-		rsa->d = BN_new();
-		rsa->iqmp = BN_new();
-		rsa->q = BN_new();
-		rsa->p = BN_new();
-		rsa->dmq1 = BN_new();
-		rsa->dmp1 = BN_new();
-
-		buffer_get_int(&e->input);		 /* ignored */
-
-		buffer_get_bignum(&e->input, rsa->n);
-		buffer_get_bignum(&e->input, rsa->e);
-		buffer_get_bignum(&e->input, rsa->d);
-		buffer_get_bignum(&e->input, rsa->iqmp);
+		k = key_new_private(KEY_RSA1);
+		buffer_get_int(&e->input);		 	/* ignored */
+		buffer_get_bignum(&e->input, k->rsa->n);
+		buffer_get_bignum(&e->input, k->rsa->e);
+		buffer_get_bignum(&e->input, k->rsa->d);
+		buffer_get_bignum(&e->input, k->rsa->iqmp);
 
 		/* SSH and SSL have p and q swapped */
-		buffer_get_bignum(&e->input, rsa->q);	/* p */
-		buffer_get_bignum(&e->input, rsa->p);	/* q */
+		buffer_get_bignum(&e->input, k->rsa->q);	/* p */
+		buffer_get_bignum(&e->input, k->rsa->p);	/* q */
 
 		/* Generate additional parameters */
-		aux = BN_new();
-		ctx = BN_CTX_new();
-
-		BN_sub(aux, rsa->q, BN_value_one());
-		BN_mod(rsa->dmq1, rsa->d, aux, ctx);
-
-		BN_sub(aux, rsa->p, BN_value_one());
-		BN_mod(rsa->dmp1, rsa->d, aux, ctx);
-
-		BN_clear_free(aux);
-		BN_CTX_free(ctx);
-
+		generate_additional_parameters(k->rsa);
 		break;
 	case 2:
-		type = buffer_get_string(&e->input, NULL);
-		if (strcmp(type, KEX_DSS)) {
+		type_name = buffer_get_string(&e->input, NULL);
+                type = key_type_from_name(type_name);
+		xfree(type_name);
+		switch(type) {
+		case KEY_DSA:
+			k = key_new_private(type);
+			buffer_get_bignum2(&e->input, k->dsa->p);
+			buffer_get_bignum2(&e->input, k->dsa->q);
+			buffer_get_bignum2(&e->input, k->dsa->g);
+			buffer_get_bignum2(&e->input, k->dsa->pub_key);
+			buffer_get_bignum2(&e->input, k->dsa->priv_key);
+			break;
+		case KEY_RSA:
+			k = key_new_private(type);
+			buffer_get_bignum2(&e->input, k->rsa->n);
+			buffer_get_bignum2(&e->input, k->rsa->e);
+			buffer_get_bignum2(&e->input, k->rsa->d);
+			buffer_get_bignum2(&e->input, k->rsa->iqmp);
+			buffer_get_bignum2(&e->input, k->rsa->p);
+			buffer_get_bignum2(&e->input, k->rsa->q);
+
+			/* Generate additional parameters */
+			generate_additional_parameters(k->rsa);
+			break;
+		default:
 			buffer_clear(&e->input);
-			xfree(type);
 			goto send;
 		}
-		xfree(type);
-
-		k = key_new(KEY_DSA);
-
-		/* allocate mem for private key */
-		k->dsa->priv_key = BN_new();
-
-		buffer_get_bignum2(&e->input, k->dsa->p);
-		buffer_get_bignum2(&e->input, k->dsa->q);
-		buffer_get_bignum2(&e->input, k->dsa->g);
-		buffer_get_bignum2(&e->input, k->dsa->pub_key);
-		buffer_get_bignum2(&e->input, k->dsa->priv_key);
-
 		break;
 	}
-
 	comment = buffer_get_string(&e->input, NULL);
 	if (k == NULL) {
 		xfree(comment);
@@ -670,13 +674,6 @@ main(int ac, char **av)
 	
 	init_rng();
 	
-	/* check if RSA support exists */
-	if (rsa_alive() == 0) {
-		fprintf(stderr,
-			"%s: no RSA support in libssl and libcrypto.  See ssl(8).\n",
-			__progname);
-		exit(1);
-	}
 #ifdef __GNU_LIBRARY__
 	while ((ch = getopt(ac, av, "+cks")) != -1) {
 #else /* __GNU_LIBRARY__ */

@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.53 2000/10/14 12:12:09 markus Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.54 2000/11/12 19:50:38 markus Exp $");
 
 #include "ssh.h"
 #include "servconf.h"
@@ -29,8 +29,7 @@ initialize_server_options(ServerOptions *options)
 	options->num_ports = 0;
 	options->ports_from_cmdline = 0;
 	options->listen_addrs = NULL;
-	options->host_key_file = NULL;
-	options->host_dsa_key_file = NULL;
+	options->num_host_key_files = 0;
 	options->pid_file = NULL;
 	options->server_key_bits = -1;
 	options->login_grace_time = -1;
@@ -50,7 +49,7 @@ initialize_server_options(ServerOptions *options)
 	options->rhosts_authentication = -1;
 	options->rhosts_rsa_authentication = -1;
 	options->rsa_authentication = -1;
-	options->dsa_authentication = -1;
+	options->pubkey_authentication = -1;
 #ifdef KRB4
 	options->kerberos_authentication = -1;
 	options->kerberos_or_local_passwd = -1;
@@ -84,14 +83,19 @@ initialize_server_options(ServerOptions *options)
 void
 fill_default_server_options(ServerOptions *options)
 {
+	if (options->protocol == SSH_PROTO_UNKNOWN)
+		options->protocol = SSH_PROTO_1|SSH_PROTO_2;
+	if (options->num_host_key_files == 0) {
+		/* fill default hostkeys for protocols */
+		if (options->protocol & SSH_PROTO_1)
+			options->host_key_files[options->num_host_key_files++] = HOST_KEY_FILE;
+		if (options->protocol & SSH_PROTO_2)
+			options->host_key_files[options->num_host_key_files++] = HOST_DSA_KEY_FILE;
+	}
 	if (options->num_ports == 0)
 		options->ports[options->num_ports++] = SSH_DEFAULT_PORT;
 	if (options->listen_addrs == NULL)
 		add_listen_addr(options, NULL);
-	if (options->host_key_file == NULL)
-		options->host_key_file = HOST_KEY_FILE;
-	if (options->host_dsa_key_file == NULL)
-		options->host_dsa_key_file = HOST_DSA_KEY_FILE;
 	if (options->pid_file == NULL)
 		options->pid_file = SSH_DAEMON_PID_FILE;
 	if (options->server_key_bits == -1)
@@ -132,8 +136,8 @@ fill_default_server_options(ServerOptions *options)
 		options->rhosts_rsa_authentication = 0;
 	if (options->rsa_authentication == -1)
 		options->rsa_authentication = 1;
-	if (options->dsa_authentication == -1)
-		options->dsa_authentication = 1;
+	if (options->pubkey_authentication == -1)
+		options->pubkey_authentication = 1;
 #ifdef KRB4
 	if (options->kerberos_authentication == -1)
 		options->kerberos_authentication = (access(KEYFILE, R_OK) == 0);
@@ -162,8 +166,6 @@ fill_default_server_options(ServerOptions *options)
 		options->use_login = 0;
 	if (options->allow_tcp_forwarding == -1)
 		options->allow_tcp_forwarding = 1;
-	if (options->protocol == SSH_PROTO_UNKNOWN)
-		options->protocol = SSH_PROTO_1|SSH_PROTO_2;
 	if (options->gateway_ports == -1)
 		options->gateway_ports = 0;
 	if (options->max_startups == -1)
@@ -194,8 +196,8 @@ typedef enum {
 	sStrictModes, sEmptyPasswd, sRandomSeedFile, sKeepAlives, sCheckMail,
 	sUseLogin, sAllowTcpForwarding,
 	sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
-	sIgnoreUserKnownHosts, sHostDSAKeyFile, sCiphers, sProtocol, sPidFile,
-	sGatewayPorts, sDSAAuthentication, sXAuthLocation, sSubsystem, sMaxStartups
+	sIgnoreUserKnownHosts, sCiphers, sProtocol, sPidFile,
+	sGatewayPorts, sPubkeyAuthentication, sXAuthLocation, sSubsystem, sMaxStartups,
 } ServerOpCodes;
 
 /* Textual representation of the tokens. */
@@ -205,7 +207,7 @@ static struct {
 } keywords[] = {
 	{ "port", sPort },
 	{ "hostkey", sHostKeyFile },
-	{ "hostdsakey", sHostDSAKeyFile },
+	{ "hostdsakey", sHostKeyFile },					/* alias */
  	{ "pidfile", sPidFile },
 	{ "serverkeybits", sServerKeyBits },
 	{ "logingracetime", sLoginGraceTime },
@@ -216,7 +218,8 @@ static struct {
 	{ "rhostsauthentication", sRhostsAuthentication },
 	{ "rhostsrsaauthentication", sRhostsRSAAuthentication },
 	{ "rsaauthentication", sRSAAuthentication },
-	{ "dsaauthentication", sDSAAuthentication },
+	{ "pubkeyauthentication", sPubkeyAuthentication },
+	{ "dsaauthentication", sPubkeyAuthentication },			/* alias */
 #ifdef KRB4
 	{ "kerberosauthentication", sKerberosAuthentication },
 	{ "kerberosorlocalpasswd", sKerberosOrLocalPasswd },
@@ -336,6 +339,8 @@ read_server_config(ServerOptions *options, const char *filename)
 			arg = strdelim(&cp);
 		if (!*arg || *arg == '#')
 			continue;
+		intptr = NULL;
+		charptr = NULL;
 		opcode = parse_token(arg, filename, linenum);
 		switch (opcode) {
 		case sBadOption:
@@ -389,9 +394,13 @@ parse_int:
 			break;
 
 		case sHostKeyFile:
-		case sHostDSAKeyFile:
-			charptr = (opcode == sHostKeyFile ) ?
-			    &options->host_key_file : &options->host_dsa_key_file;
+			intptr = &options->num_host_key_files;
+			if (*intptr >= MAX_HOSTKEYS) {
+				fprintf(stderr, "%s line %d: to many host keys specified (max %d).\n",
+				    filename, linenum, MAX_HOSTKEYS);
+				exit(1);
+			}
+			charptr = &options->host_key_files[*intptr];
 parse_filename:
 			arg = strdelim(&cp);
 			if (!arg || *arg == '\0') {
@@ -399,8 +408,12 @@ parse_filename:
 				    filename, linenum);
 				exit(1);
 			}
-			if (*charptr == NULL)
+			if (*charptr == NULL) {
 				*charptr = tilde_expand_filename(arg, getuid());
+				/* increase optional counter */
+				if (intptr != NULL)
+					*intptr = *intptr + 1;
+			}
 			break;
 
 		case sPidFile:
@@ -474,8 +487,8 @@ parse_flag:
 			intptr = &options->rsa_authentication;
 			goto parse_flag;
 
-		case sDSAAuthentication:
-			intptr = &options->dsa_authentication;
+		case sPubkeyAuthentication:
+			intptr = &options->pubkey_authentication;
 			goto parse_flag;
 
 #ifdef KRB4

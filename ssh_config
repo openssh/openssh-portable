@@ -13,9 +13,9 @@
 # Site-wide defaults for various options
 
 # Host *
-#   ForwardAgent yes
-#   ForwardX11 yes
-#   RhostsAuthentication yes
+#   ForwardAgent no
+#   ForwardX11 no
+#   RhostsAuthentication no
 #   RhostsRSAAuthentication yes
 #   RSAAuthentication yes
 #   PasswordAuthentication yes
@@ -23,9 +23,12 @@
 #   UseRsh no
 #   BatchMode no
 #   CheckHostIP yes
-#   StrictHostKeyChecking no
+#   StrictHostKeyChecking yes
 #   IdentityFile ~/.ssh/identity
+#   IdentityFile ~/.ssh/id_dsa
+#   IdentityFile ~/.ssh/id_rsa1
+#   IdentityFile ~/.ssh/id_rsa2
 #   Port 22
-#   Protocol 2,1
+#   Protocol 1,2
 #   Cipher blowfish
 #   EscapeChar ~

@@ -26,9 +26,10 @@
 
 typedef struct Key Key;
 enum types {
+	KEY_RSA1,
 	KEY_RSA,
 	KEY_DSA,
-	KEY_EMPTY
+	KEY_UNSPEC
 };
 struct Key {
 	int	type;
@@ -37,12 +38,33 @@ struct Key {
 };
 
 Key	*key_new(int type);
+Key	*key_new_private(int type);
 void	key_free(Key *k);
 int	key_equal(Key *a, Key *b);
 char	*key_fingerprint(Key *k);
 char	*key_type(Key *k);
 int	key_write(Key *key, FILE *f);
-unsigned int	key_read(Key *key, char **cpp);
-unsigned int	key_size(Key *k);
+int	key_read(Key *key, char **cpp);
+u_int	key_size(Key *k);
+
+Key	*key_generate(int type, unsigned int bits);
+Key	*key_from_private(Key *k);
+int	key_type_from_name(char *name);
+
+Key	*key_from_blob(char *blob, int blen);
+int	key_to_blob(Key *key, unsigned char **blobp, unsigned int *lenp);
+char	*key_ssh_name(Key *k);
+
+int
+key_sign(
+    Key *key,
+    unsigned char **sigp, int *lenp,
+    unsigned char *data, int datalen);
+
+int
+key_verify(
+    Key *key,
+    unsigned char *signature, int signaturelen,
+    unsigned char *data, int datalen);
 
 #endif

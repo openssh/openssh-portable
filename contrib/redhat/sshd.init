@@ -19,13 +19,27 @@ RETVAL=0
 
 # Some functions to make the below more readable
 KEYGEN=/usr/bin/ssh-keygen
-RSA_KEY=/etc/ssh/ssh_host_key
+RSA1_KEY=/etc/ssh/ssh_host_key
+RSA_KEY=/etc/ssh/ssh_host_rsa_key
 DSA_KEY=/etc/ssh/ssh_host_dsa_key
 PID_FILE=/var/run/sshd.pid
+do_rsa1_keygen() {
+	if ! test -f $RSA1_KEY ; then
+		echo -n "Generating SSH1 RSA host key: "
+		if $KEYGEN -q -t rsa1 -f $RSA1_KEY -C '' -N '' >&/dev/null; then
+			success "RSA1 key generation"
+			echo
+		else
+			failure "RSA1 key generation"
+			echo
+			exit 1
+		fi
+	fi
+}
 do_rsa_keygen() {
-	if $KEYGEN -R && ! test -f $RSA_KEY ; then
-		echo -n "Generating SSH RSA host key: "
-		if $KEYGEN -q -b 1024 -f $RSA_KEY -C '' -N '' >&/dev/null; then
+	if ! test -f $RSA_KEY ; then
+		echo -n "Generating SSH2 RSA host key: "
+		if $KEYGEN -q -t rsa -f $RSA_KEY -C '' -N '' >&/dev/null; then
 			success "RSA key generation"
 			echo
 		else
@@ -37,8 +51,8 @@ do_rsa_keygen() {
 }
 do_dsa_keygen() {
 	if ! test -f $DSA_KEY ; then
-		echo -n "Generating SSH DSA host key: "
-		if $KEYGEN -q -d -b 1024 -f $DSA_KEY -C '' -N '' >&/dev/null; then
+		echo -n "Generating SSH2 DSA host key: "
+		if $KEYGEN -q -t dsa -f $DSA_KEY -C '' -N '' >&/dev/null; then
 			success "DSA key generation"
 			echo
 		else
@@ -52,6 +66,7 @@ do_dsa_keygen() {
 case "$1" in
 	start)
 		# Create keys if necessary
+		do_rsa1_keygen;
 		do_rsa_keygen;
 		do_dsa_keygen;
 		

@@ -43,8 +43,9 @@
 .Nd authentication key generation
 .Sh SYNOPSIS
 .Nm ssh-keygen
-.Op Fl dq
+.Op Fl q
 .Op Fl b Ar bits
+.Op Fl t Ar type
 .Op Fl N Ar new_passphrase
 .Op Fl C Ar comment
 .Op Fl f Ar output_keyfile
@@ -79,8 +80,8 @@ generates and manages authentication keys for
 .Nm
 defaults to generating an RSA key for use by protocols 1.3 and 1.5;
 specifying the
-.Fl d
-flag will create a DSA key instead for use by protocol 2.0.
+.Fl t
+allows you to create a key for use by protocol 2.0.
 .Pp
 Normally each user wishing to use SSH
 with RSA or DSA authentication runs this once to create the authentication
@@ -154,6 +155,17 @@ Silence
 Used by
 .Pa /etc/rc
 when creating a new key.
+.It Fl t Ar type
+Specifies the type of the key to create.
+The possible values are
+.Dq rsa1
+for protocol version 1 and
+.Dq rsa
+or
+.Dq dsa
+for protocol version 2.
+The default is
+.Dq rsa .
 .It Fl C Ar comment
 Provides the new comment.
 .It Fl N Ar new_passphrase
@@ -173,7 +185,7 @@ SSH2-compatible private (or public) key file and
 print an OpenSSH compatible private (or public) key to stdout.
 .It Fl y
 This option will read a private
-OpenSSH DSA format file and print an OpenSSH DSA public key to stdout.
+OpenSSH format file and print an OpenSSH public key to stdout.
 .El
 .Sh FILES
 .Bl -tag -width Ds
@@ -211,10 +223,10 @@ Contains the public key for authentication.
 The contents of this file should be added to
 .Pa $HOME/.ssh/authorized_keys2
 on all machines
-where you wish to log in using DSA authentication.
+where you wish to log in using public key authentication.
 There is no need to keep the contents of this file secret.
 .El
-.Sh AUTHOR
+.Sh AUTHORS
 Tatu Ylonen <ylo@cs.hut.fi>
 .Pp
 OpenSSH
