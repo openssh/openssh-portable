@@ -41,6 +41,9 @@
    - markus@cvs.openbsd.org 2003/09/01 13:52:18
      [ssh.h]
      rm whitespace
+   - markus@cvs.openbsd.org 2003/09/01 18:15:50
+     [readconf.c readconf.h servconf.c servconf.h ssh.c]
+     remove unused kerberos code; ok henning@
 
 20030829
  - (bal) openbsd-compat/ clean up.  Considate headers, add in Id on our
@@ -956,4 +959,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2931 2003/09/02 12:57:54 djm Exp $
+$Id: ChangeLog,v 1.2932 2003/09/02 12:58:22 djm Exp $

@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.126 2003/08/28 12:54:34 markus Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.127 2003/09/01 18:15:50 markus Exp $");
 
 #include "ssh.h"
 #include "log.h"
@@ -72,7 +72,6 @@ initialize_server_options(ServerOptions *options)
 	options->kerberos_authentication = -1;
 	options->kerberos_or_local_passwd = -1;
 	options->kerberos_ticket_cleanup = -1;
-	options->kerberos_tgt_passing = -1;
 	options->gss_authentication=-1;
 	options->gss_cleanup_creds = -1;
 	options->password_authentication = -1;
@@ -182,8 +181,6 @@ fill_default_server_options(ServerOptions *options)
 		options->kerberos_or_local_passwd = 1;
 	if (options->kerberos_ticket_cleanup == -1)
 		options->kerberos_ticket_cleanup = 1;
-	if (options->kerberos_tgt_passing == -1)
-		options->kerberos_tgt_passing = 0;
 	if (options->gss_authentication == -1)
 		options->gss_authentication = 0;
 	if (options->gss_cleanup_creds == -1)
@@ -630,10 +627,6 @@ parse_flag:
 
 	case sKerberosTicketCleanup:
 		intptr = &options->kerberos_ticket_cleanup;
-		goto parse_flag;
-
-	case sKerberosTgtPassing:
-		intptr = &options->kerberos_tgt_passing;
 		goto parse_flag;
 
 	case sGssAuthentication:

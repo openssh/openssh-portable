@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.120 2003/09/01 12:50:46 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.121 2003/09/01 18:15:50 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -92,7 +92,6 @@ typedef enum {
 	oForwardAgent, oForwardX11, oGatewayPorts,
 	oPasswordAuthentication, oRSAAuthentication,
 	oChallengeResponseAuthentication, oXAuthLocation,
-	oKerberosAuthentication, oKerberosTgtPassing,
 	oIdentityFile, oHostName, oPort, oCipher, oRemoteForward, oLocalForward,
 	oUser, oHost, oEscapeChar, oRhostsRSAAuthentication, oProxyCommand,
 	oGlobalKnownHostsFile, oUserKnownHostsFile, oConnectionAttempts,
@@ -381,14 +380,6 @@ parse_flag:
 
 	case oChallengeResponseAuthentication:
 		intptr = &options->challenge_response_authentication;
-		goto parse_flag;
-
-	case oKerberosAuthentication:
-		intptr = &options->kerberos_authentication;
-		goto parse_flag;
-
-	case oKerberosTgtPassing:
-		intptr = &options->kerberos_tgt_passing;
 		goto parse_flag;
 
 	case oGssAuthentication:
@@ -821,8 +812,6 @@ initialize_options(Options * options)
 	options->rsa_authentication = -1;
 	options->pubkey_authentication = -1;
 	options->challenge_response_authentication = -1;
-	options->kerberos_authentication = -1;
-	options->kerberos_tgt_passing = -1;
 	options->gss_authentication = -1;
 	options->gss_deleg_creds = -1;
 	options->password_authentication = -1;
@@ -895,10 +884,6 @@ fill_default_options(Options * options)
 		options->pubkey_authentication = 1;
 	if (options->challenge_response_authentication == -1)
 		options->challenge_response_authentication = 1;
-	if (options->kerberos_authentication == -1)
-		options->kerberos_authentication = 1;
-	if (options->kerberos_tgt_passing == -1)
-		options->kerberos_tgt_passing = 1;
 	if (options->gss_authentication == -1)
 		options->gss_authentication = 1;
 	if (options->gss_deleg_creds == -1)
