@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.278 2001/04/18 18:04:23 mouring Exp $
+# $Id: configure.in,v 1.279 2001/04/21 21:31:53 tim Exp $
 
 AC_INIT(ssh.c)
 
@@ -12,7 +12,7 @@ AC_PROG_CPP
 AC_PROG_RANLIB
 AC_PROG_INSTALL
 AC_PATH_PROG(AR, ar)
-AC_PATH_PROG(PERL, perl5 perl)
+AC_PATH_PROGS(PERL, perl5 perl)
 AC_SUBST(PERL)
 AC_PATH_PROG(ENT, ent)
 AC_SUBST(ENT)
@@ -1412,7 +1412,7 @@ AC_ARG_WITH(catman,
 	]
 )
 if test -z "$MANTYPE"; then
-	AC_PATH_PROGS(NROFF, nroff awf, /bin/false, /usr/bin)
+	AC_PATH_PROGS(NROFF, nroff awf, /bin/false)
 	if ${NROFF} -mdoc ${srcdir}/ssh.1 >/dev/null 2>&1; then
 		MANTYPE=doc
 	elif ${NROFF} -man ${srcdir}/ssh.1 >/dev/null 2>&1; then

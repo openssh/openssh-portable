@@ -8,6 +8,8 @@
  - (stevesk) set the default PAM service name to __progname instead
    of the hard-coded value "sshd"; from Mark D. Roth <roth@feep.net>
  - (stevesk) document PAM service name change in INSTALL
+ - tim@mindrot.org 2001/04/21 14:25:57 [Makefile.in configure.in]
+   fix perl test, fix nroff test, fix Makefile to build outside source tree
 
 20010420
  - OpenBSD CVS Sync                         
@@ -5198,4 +5200,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1151 2001/04/20 20:56:21 stevesk Exp $
+$Id: ChangeLog,v 1.1152 2001/04/21 21:31:52 tim Exp $

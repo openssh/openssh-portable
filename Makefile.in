@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.172 2001/04/18 18:04:22 mouring Exp $
+# $Id: Makefile.in,v 1.173 2001/04/21 21:31:53 tim Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -123,9 +123,9 @@ logintest: logintest.o $(LIBCOMPAT) libssh.a loginrec.o
 
 $(MANPAGES)::
 	if test "$(MANTYPE)" = "cat"; then \
-		manpage=`echo $@ | sed 's/\.[1-9]$$/\.0/'`; \
+		manpage=$(srcdir)/`echo $@ | sed 's/\.[1-9]$$/\.0/'`; \
 	else \
-		manpage=$@; \
+		manpage=$(srcdir)/$@; \
 	fi; \
 	if test "$(MANTYPE)" = "man"; then \
 		$(FIXPATHSCMD) $${manpage} | $(PERL) $(srcdir)/mdoc2man.pl > $@.out; \
