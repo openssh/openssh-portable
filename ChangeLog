@@ -1,5 +1,7 @@
 20010504
  - (bal) Updated Cygwin README by Corinna Vinschen <vinschen@redhat.com>
+ - (bal) Avoid socket file security issues in ssh-agent for Cygwin.
+   Patch by Egor Duda <deo@logos-m.ru>
 
 20010430
  - (djm) Add .cvsignore files, suggested by Wayne Davison <wayne@blorf.net>
@@ -5280,4 +5282,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1179.2.7 2001/05/03 22:48:03 mouring Exp $
+$Id: ChangeLog,v 1.1179.2.8 2001/05/03 23:00:39 mouring Exp $
