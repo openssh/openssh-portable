@@ -16,6 +16,10 @@
    - stevesk@cvs.openbsd.org 2003/01/28 17:24:51
      [scp.1]
      remove example not pertinent with -1 addition; ok markus@
+   - jmc@cvs.openbsd.org 2003/01/31 21:54:40
+     [sshd.8]
+     typos; sshd(8): help and ok markus@
+     help and ok millert@
 
 20030211
  - (djm) Cygwin needs libcrypt too. Patch from vinschen@redhat.com
@@ -1116,4 +1120,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2597 2003/02/24 00:51:32 djm Exp $
+$Id: ChangeLog,v 1.2598 2003/02/24 00:52:26 djm Exp $
