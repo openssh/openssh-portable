@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rsa.c,v 1.51 2002/03/14 16:56:33 markus Exp $");
+RCSID("$OpenBSD: auth-rsa.c,v 1.52 2002/03/18 17:50:31 provos Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/md5.h>
@@ -32,6 +32,7 @@ RCSID("$OpenBSD: auth-rsa.c,v 1.51 2002/03/14 16:56:33 markus Exp $");
 #include "servconf.h"
 #include "auth.h"
 #include "hostfile.h"
+#include "monitor_wrap.h"
 
 /* import */
 extern ServerOptions options;
@@ -52,7 +53,7 @@ extern u_char session_id[16];
  * description of the options.
  */
 
-static BIGNUM *
+BIGNUM *
 auth_rsa_generate_challenge(Key *key)
 {
 	BIGNUM *challenge;
@@ -70,7 +71,7 @@ auth_rsa_generate_challenge(Key *key)
 	return challenge;
 }
 
-static int
+int
 auth_rsa_verify_response(Key *key, BIGNUM *challenge, u_char response[16])
 {
 	u_char buf[32], mdbuf[16];
@@ -113,7 +114,7 @@ auth_rsa_challenge_dialog(Key *key)
 	if ((encrypted_challenge = BN_new()) == NULL)
 		fatal("auth_rsa_challenge_dialog: BN_new() failed");
 
-	challenge = auth_rsa_generate_challenge(key);
+	challenge = PRIVSEP(auth_rsa_generate_challenge(key));
 
 	/* Encrypt the challenge with the public key. */
 	rsa_public_encrypt(encrypted_challenge, challenge, key->rsa);
@@ -131,7 +132,7 @@ auth_rsa_challenge_dialog(Key *key)
 		response[i] = packet_get_char();
 	packet_check_eom();
 
-	success = auth_rsa_verify_response(key, challenge, response);
+	success = PRIVSEP(auth_rsa_verify_response(key, challenge, response));
 	BN_clear_free(challenge);
 	return (success);
 }
@@ -141,11 +142,11 @@ auth_rsa_challenge_dialog(Key *key)
  * return key if login is allowed, NULL otherwise
  */
 
-static int
+int
 auth_rsa_key_allowed(struct passwd *pw, BIGNUM *client_n, Key **rkey)
 {
 	char line[8192], *file;
-	int allowed;
+	int allowed = 0;
 	u_int bits;
 	FILE *f;
 	u_long linenum = 0;
@@ -284,7 +285,7 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 	if (pw == NULL)
 		return 0;
 
-	if (auth_rsa_key_allowed(pw, client_n, &key) == 0) {
+	if (!PRIVSEP(auth_rsa_key_allowed(pw, client_n, &key))) {
 		auth_clear_options();
 		return (0);
 	}

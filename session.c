@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.129 2002/03/18 03:41:08 provos Exp $");
+RCSID("$OpenBSD: session.c,v 1.130 2002/03/18 17:50:31 provos Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -56,6 +56,7 @@ RCSID("$OpenBSD: session.c,v 1.129 2002/03/18 03:41:08 provos Exp $");
 #include "serverloop.h"
 #include "canohost.h"
 #include "session.h"
+#include "monitor_wrap.h"
 
 #ifdef HAVE_CYGWIN
 #include <windows.h>
@@ -63,39 +64,11 @@ RCSID("$OpenBSD: session.c,v 1.129 2002/03/18 03:41:08 provos Exp $");
 #define is_winnt       (GetVersion() < 0x80000000)
 #endif
 
-/* types */
-
-#define TTYSZ 64
-typedef struct Session Session;
-struct Session {
-	int	used;
-	int	self;
-	struct passwd *pw;
-	Authctxt *authctxt;
-	pid_t	pid;
-	/* tty */
-	char	*term;
-	int	ptyfd, ttyfd, ptymaster;
-	int	row, col, xpixel, ypixel;
-	char	tty[TTYSZ];
-	/* X11 */
-	int	display_number;
-	char	*display;
-	int	screen;
-	char	*auth_display;
-	char	*auth_proto;
-	char	*auth_data;
-	int	single_connection;
-	/* proto 2 */
-	int	chanid;
-	int	is_subsystem;
-};
-
 /* func */
 
 Session *session_new(void);
 void	session_set_fds(Session *, int, int, int);
-static void	session_pty_cleanup(void *);
+void	session_pty_cleanup(void *);
 void	session_proctitle(Session *);
 int	session_setup_x11fwd(Session *);
 void	do_exec_pty(Session *, const char *);
@@ -112,7 +85,6 @@ int	check_quietlogin(Session *, const char *);
 static void do_authenticated1(Authctxt *);
 static void do_authenticated2(Authctxt *);
 
-static void session_close(Session *);
 static int session_pty_req(Session *);
 
 /* import */
@@ -1087,7 +1059,7 @@ do_nologin(struct passwd *pw)
 }
 
 /* Set login name, uid, gid, and groups. */
-static void
+void
 do_setusercontext(struct passwd *pw)
 {
 #ifdef HAVE_CYGWIN
@@ -1140,6 +1112,23 @@ do_setusercontext(struct passwd *pw)
 	}
 	if (getuid() != pw->pw_uid || geteuid() != pw->pw_uid)
 		fatal("Failed to set uids to %u.", (u_int) pw->pw_uid);
+}
+
+void
+launch_login(struct passwd *pw, const char *hostname)
+{
+	/* Launch login(1). */
+
+	execl("/usr/bin/login", "login", "-h", hostname,
+#ifdef LOGIN_NEEDS_TERM
+                    (s->term ? s->term : "unknown"),
+#endif /* LOGIN_NEEDS_TERM */
+	    "-p", "-f", "--", pw->pw_name, (char *)NULL);
+
+	/* Login couldn't be executed, die. */
+
+	perror("login");
+	exit(1);
 }
 
 /*
@@ -1267,18 +1256,8 @@ do_child(Session *s, const char *command)
 	signal(SIGPIPE,  SIG_DFL);
 
 	if (options.use_login) {
-		/* Launch login(1). */
-
-		execl(LOGIN_PROGRAM, "login", "-h", hostname,
-#ifdef LOGIN_NEEDS_TERM
-		    (s->term ? s->term : "unknown"),
-#endif /* LOGIN_NEEDS_TERM */
-		    "-p", "-f", "--", pw->pw_name, (char *)NULL);
-
-		/* Login couldn't be executed, die. */
-
-		perror("login");
-		exit(1);
+		launch_login(pw, hostname);
+		/* NEVERREACHED */
 	}
 
 	/* Get the last component of the shell name. */
@@ -1388,6 +1367,22 @@ session_open(Authctxt *authctxt, int chanid)
 	return 1;
 }
 
+Session *
+session_by_tty(char *tty)
+{
+	int i;
+	for (i = 0; i < MAX_SESSIONS; i++) {
+		Session *s = &sessions[i];
+		if (s->used && s->ttyfd != -1 && strcmp(s->tty, tty) == 0) {
+			debug("session_by_tty: session %d tty %s", i, tty);
+			return s;
+		}
+	}
+	debug("session_by_tty: unknown tty %.100s", tty);
+	session_dump();
+	return NULL;
+}
+
 static Session *
 session_by_channel(int id)
 {
@@ -1436,7 +1431,7 @@ session_pty_req(Session *s)
 {
 	u_int len;
 	int n_bytes;
-
+	
 	if (no_pty_flag) {
 		debug("Allocating a pty not permitted for this authentication.");
 		return 0;
@@ -1465,7 +1460,7 @@ session_pty_req(Session *s)
 
 	/* Allocate a pty and open it. */
 	debug("Allocating pty.");
-	if (!pty_allocate(&s->ptyfd, &s->ttyfd, s->tty, sizeof(s->tty))) {
+	if (!PRIVSEP(pty_allocate(&s->ptyfd, &s->ttyfd, s->tty, sizeof(s->tty)))) {
 		if (s->term)
 			xfree(s->term);
 		s->term = NULL;
@@ -1486,7 +1481,8 @@ session_pty_req(Session *s)
 	 * time in case we call fatal() (e.g., the connection gets closed).
 	 */
 	fatal_add_cleanup(session_pty_cleanup, (void *)s);
-	pty_setowner(s->pw, s->tty);
+	if (!use_privsep)
+		pty_setowner(s->pw, s->tty);
 
 	/* Set window size from the packet. */
 	pty_change_window_size(s->ptyfd, s->row, s->col, s->xpixel, s->ypixel);
@@ -1649,8 +1645,8 @@ session_set_fds(Session *s, int fdin, int fdout, int fderr)
  * Function to perform pty cleanup. Also called if we get aborted abnormally
  * (e.g., due to a dropped connection).
  */
-static void
-session_pty_cleanup(void *session)
+void
+session_pty_cleanup2(void *session)
 {
 	Session *s = session;
 
@@ -1668,7 +1664,8 @@ session_pty_cleanup(void *session)
 		record_logout(s->pid, s->tty, s->pw->pw_name);
 
 	/* Release the pseudo-tty. */
-	pty_release(s->tty);
+	if (getuid() == 0)
+		pty_release(s->tty);
 
 	/*
 	 * Close the server side of the socket pairs.  We must do this after
@@ -1676,10 +1673,16 @@ session_pty_cleanup(void *session)
 	 * while we're still cleaning up.
 	 */
 	if (close(s->ptymaster) < 0)
-		error("close(s->ptymaster): %s", strerror(errno));
+		error("close(s->ptymaster/%d): %s", s->ptymaster, strerror(errno));
 
 	/* unlink pty from session */
 	s->ttyfd = -1;
+}
+
+void
+session_pty_cleanup(void *session)
+{
+	PRIVSEP(session_pty_cleanup2(session));
 }
 
 static void
@@ -1727,7 +1730,7 @@ session_exit_message(Session *s, int status)
 	s->chanid = -1;
 }
 
-static void
+void
 session_close(Session *s)
 {
 	debug("session_close: session %d pid %d", s->self, s->pid);
@@ -1794,13 +1797,17 @@ session_close_by_channel(int id, void *arg)
 }
 
 void
-session_destroy_all(void)
+session_destroy_all(void (*closefunc)(Session *))
 {
 	int i;
 	for (i = 0; i < MAX_SESSIONS; i++) {
 		Session *s = &sessions[i];
-		if (s->used)
-			session_close(s);
+		if (s->used) {
+			if (closefunc != NULL)
+				closefunc(s);
+			else
+				session_close(s);
+		}
 	}
 }
 

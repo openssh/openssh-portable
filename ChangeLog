@@ -59,6 +59,12 @@
    - provos@cvs.openbsd.org 2002/03/18 17:31:54
      [compress.c]
      export compression streams for ssh-privsep
+   - provos@cvs.openbsd.org 2002/03/18 17:50:31
+     [auth-bsdauth.c auth-options.c auth-rh-rsa.c auth-rsa.c auth-skey.c auth.h
+      auth1.c auth2-chall.c auth2.c kex.c kex.h kexdh.c kexgex.c servconf.c
+      session.h servconf.h serverloop.c session.c sshd.c]
+     integrate privilege separated openssh; its turned off by default for now.
+     work done by me and markus@
 
 20020317
  - (tim) [configure.ac] Assume path given with --with-pid-dir=PATH is wanted,
@@ -7905,4 +7911,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1942 2002/03/22 01:51:24 mouring Exp $
+$Id: ChangeLog,v 1.1943 2002/03/22 02:30:41 mouring Exp $

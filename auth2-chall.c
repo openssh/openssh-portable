@@ -23,7 +23,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: auth2-chall.c,v 1.16 2002/01/13 17:57:37 markus Exp $");
+RCSID("$OpenBSD: auth2-chall.c,v 1.17 2002/03/18 17:50:31 provos Exp $");
 
 #include "ssh2.h"
 #include "auth.h"
@@ -309,4 +309,23 @@ input_userauth_info_response(int type, u_int32_t seq, void *ctxt)
 	}
 	userauth_finish(authctxt, authenticated, method);
 	xfree(method);
+}
+
+void
+privsep_challenge_enable(void)
+{
+#ifdef BSD_AUTH
+	extern KbdintDevice mm_bsdauth_device;
+#endif
+#ifdef SKEY
+	extern KbdintDevice mm_skey_device;
+#endif
+	/* As long as SSHv1 has devices[0] hard coded this is fine */
+#ifdef BSD_AUTH
+	devices[0] = &mm_bsdauth_device;
+#else
+#ifdef SKEY
+	devices[0] = &mm_skey_device;
+#endif
+#endif
 }

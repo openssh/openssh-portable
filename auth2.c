@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.87 2002/03/18 01:12:14 provos Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.88 2002/03/18 17:50:31 provos Exp $");
 
 #include <openssl/evp.h>
 
@@ -51,13 +51,14 @@ RCSID("$OpenBSD: auth2.c,v 1.87 2002/03/18 01:12:14 provos Exp $");
 #include "hostfile.h"
 #include "canohost.h"
 #include "match.h"
+#include "monitor_wrap.h"
 
 /* import */
 extern ServerOptions options;
 extern u_char *session_id2;
 extern int session_id2_len;
 
-static Authctxt	*x_authctxt = NULL;
+Authctxt *x_authctxt = NULL;
 static int one = 1;
 
 typedef struct Authmethod Authmethod;
@@ -75,8 +76,8 @@ static void input_userauth_request(int, u_int32_t, void *);
 /* helper */
 static Authmethod *authmethod_lookup(const char *);
 static char *authmethods_get(void);
-static int user_key_allowed(struct passwd *, Key *);
-static int hostbased_key_allowed(struct passwd *, const char *, char *, Key *);
+int user_key_allowed(struct passwd *, Key *);
+int hostbased_key_allowed(struct passwd *, const char *, char *, Key *);
 
 /* auth */
 static void userauth_banner(void);
@@ -185,7 +186,7 @@ input_userauth_request(int type, u_int32_t seq, void *ctxt)
 	if (authctxt->attempt++ == 0) {
 		/* setup auth context */
 		struct passwd *pw = NULL;
-		pw = getpwnamallow(user);
+		pw = PRIVSEP(getpwnamallow(user));
 		if (pw && strcmp(service, "ssh-connection")==0) {
 			authctxt->pw = pwcopy(pw);
 			authctxt->valid = 1;
@@ -199,10 +200,18 @@ input_userauth_request(int type, u_int32_t seq, void *ctxt)
 			start_pam("NOUSER");
 #endif
 		}
-		setproctitle("%s", pw ? user : "unknown");
+		/* Free memory */
+		if (use_privsep && pw != NULL)
+			pwfree(pw);
+
+		setproctitle("%s%s", pw ? user : "unknown",
+		    use_privsep ? " [net]" : "");
 		authctxt->user = xstrdup(user);
 		authctxt->service = xstrdup(service);
 		authctxt->style = style ? xstrdup(style) : NULL;
+
+		if (use_privsep)
+			mm_inform_authserv(service, style);
 	} else if (strcmp(user, authctxt->user) != 0 ||
 	    strcmp(service, authctxt->service) != 0) {
 		packet_disconnect("Change of username or service not allowed: "
@@ -333,7 +342,7 @@ userauth_none(Authctxt *authctxt)
 #elif defined(HAVE_OSF_SIA)
 	return 0;
 #else /* !HAVE_OSF_SIA && !USE_PAM */
-	return auth_password(authctxt, "");
+	return PRIVSEP(auth_password(authctxt, ""));
 #endif /* USE_PAM */
 }
 
@@ -358,7 +367,7 @@ userauth_passwd(Authctxt *authctxt)
 #elif defined(HAVE_OSF_SIA)
 	    auth_sia_password(authctxt->user, password) == 1)
 #else /* !USE_PAM && !HAVE_OSF_SIA */
-	    auth_password(authctxt, password) == 1)
+	    PRIVSEP(auth_password(authctxt, password)) == 1)
 #endif /* USE_PAM */
 		authenticated = 1;
 	memset(password, 0, len);
@@ -468,8 +477,10 @@ userauth_pubkey(Authctxt *authctxt)
 		buffer_dump(&b);
 #endif
 		/* test for correct signature */
-		if (user_key_allowed(authctxt->pw, key) &&
-		    key_verify(key, sig, slen, buffer_ptr(&b), buffer_len(&b)) == 1)
+		authenticated = 0;
+		if (PRIVSEP(user_key_allowed(authctxt->pw, key)) &&
+		    PRIVSEP(key_verify(key, sig, slen, buffer_ptr(&b),
+				buffer_len(&b))) == 1)
 			authenticated = 1;
 		buffer_clear(&b);
 		xfree(sig);
@@ -485,7 +496,7 @@ userauth_pubkey(Authctxt *authctxt)
 		 * if a user is not allowed to login. is this an
 		 * issue? -markus
 		 */
-		if (user_key_allowed(authctxt->pw, key)) {
+		if (PRIVSEP(user_key_allowed(authctxt->pw, key))) {
 			packet_start(SSH2_MSG_USERAUTH_PK_OK);
 			packet_put_string(pkalg, alen);
 			packet_put_string(pkblob, blen);
@@ -573,8 +584,10 @@ userauth_hostbased(Authctxt *authctxt)
 	buffer_dump(&b);
 #endif
 	/* test for allowed key and correct signature */
-	if (hostbased_key_allowed(authctxt->pw, cuser, chost, key) &&
-	    key_verify(key, sig, slen, buffer_ptr(&b), buffer_len(&b)) == 1)
+	authenticated = 0;
+	if (PRIVSEP(hostbased_key_allowed(authctxt->pw, cuser, chost, key)) &&
+	    PRIVSEP(key_verify(key, sig, slen, buffer_ptr(&b),
+			buffer_len(&b))) == 1)
 		authenticated = 1;
 
 	buffer_clear(&b);
@@ -731,7 +744,7 @@ user_key_allowed2(struct passwd *pw, Key *key, char *file)
 }
 
 /* check whether given key is in .ssh/authorized_keys* */
-static int
+int
 user_key_allowed(struct passwd *pw, Key *key)
 {
 	int success;
@@ -751,7 +764,7 @@ user_key_allowed(struct passwd *pw, Key *key)
 }
 
 /* return 1 if given hostkey is allowed */
-static int
+int
 hostbased_key_allowed(struct passwd *pw, const char *cuser, char *chost,
     Key *key)
 {

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.47 2002/02/28 15:46:33 markus Exp $");
+RCSID("$OpenBSD: kex.c,v 1.48 2002/03/18 17:50:31 provos Exp $");
 
 #include <openssl/crypto.h>
 
@@ -40,8 +40,14 @@ RCSID("$OpenBSD: kex.c,v 1.47 2002/02/28 15:46:33 markus Exp $");
 #include "mac.h"
 #include "match.h"
 #include "dispatch.h"
+#include "monitor.h"
 
 #define KEX_COOKIE_LEN	16
+
+/* Use privilege separation for sshd */
+int use_privsep;
+struct monitor *monitor;
+
 
 /* prototype */
 static void kex_kexinit_finish(Kex *);

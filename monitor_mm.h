@@ -1,7 +1,6 @@
-/*	$OpenBSD: session.h,v 1.15 2002/03/18 17:50:31 provos Exp $	*/
-
 /*
- * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
+ * Copyright 2002 Niels Provos <provos@citi.umich.edu>
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,45 +22,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef SESSION_H
-#define SESSION_H
 
-#define TTYSZ 64
-typedef struct Session Session;
-struct Session {
-	int	used;
-	int	self;
-	struct passwd *pw;
-	Authctxt *authctxt;
-	pid_t	pid;
-	/* tty */
-	char	*term;
-	int	ptyfd, ttyfd, ptymaster;
-	int	row, col, xpixel, ypixel;
-	char	tty[TTYSZ];
-	/* X11 */
-	int	display_number;
-	char	*display;
-	int	screen;
-	char	*auth_display;
-	char	*auth_proto;
-	char	*auth_data;
-	int	single_connection;
-	/* proto 2 */
-	int	chanid;
-	int	is_subsystem;
+#ifndef _MM_H_
+#define _MM_H_
+#include <sys/tree.h>
+
+struct mm_share {
+	RB_ENTRY(mm_share) next;
+	void *address;
+	size_t size;
 };
 
-void	 do_authenticated(Authctxt *);
+struct mm_master {
+	RB_HEAD(mmtree, mm_share) rb_free;
+	struct mmtree rb_allocated;
+	void *address;
+	size_t size;
 
-int	 session_open(Authctxt*, int);
-int	 session_input_channel_req(Channel *, const char *);
-void	 session_close_by_pid(pid_t, int);
-void	 session_close_by_channel(int, void *);
-void	 session_destroy_all(void (*)(Session *));
+	struct mm_master *mmalloc;	/* Used to completely share */
 
-Session	*session_new(void);
-Session	*session_by_tty(char *);
-void	 session_close(Session *);
-void	 do_setusercontext(struct passwd *);
-#endif
+	int write;		/* used to writing to other party */
+	int read;		/* used for reading from other party */
+};
+
+RB_PROTOTYPE(mmtree, mm_share, next, mm_compare)
+
+#define MM_MINSIZE		128
+
+#define MM_ADDRESS_END(x)	(void *)((u_char *)(x)->address + (x)->size)
+
+struct mm_master *mm_create(struct mm_master *, size_t);
+void mm_destroy(struct mm_master *);
+
+void mm_share_sync(struct mm_master **, struct mm_master **);
+
+void *mm_malloc(struct mm_master *, size_t);
+void *mm_xmalloc(struct mm_master *, size_t);
+void mm_free(struct mm_master *, void *);
+
+void mm_memvalid(struct mm_master *, void *, size_t);
+#endif /* _MM_H_ */

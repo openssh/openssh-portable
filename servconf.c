@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.101 2002/02/04 12:15:25 markus Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.102 2002/03/18 17:50:31 provos Exp $");
 
 #if defined(KRB4) || defined(KRB5)
 #include <krb.h>
@@ -36,6 +36,8 @@ static void add_one_listen_addr(ServerOptions *, char *, u_short);
 
 /* AF_UNSPEC or AF_INET or AF_INET6 */
 extern int IPv4or6;
+/* Use of privilege separation or not */
+extern int use_privsep;
 
 /* Initializes the server options to their default values. */
 
@@ -110,6 +112,13 @@ initialize_server_options(ServerOptions *options)
 	options->client_alive_count_max = -1;
 	options->authorized_keys_file = NULL;
 	options->authorized_keys_file2 = NULL;
+
+	options->unprivileged_user = -1;
+	options->unprivileged_group = -1;
+	options->unprivileged_dir = NULL;
+
+	/* Needs to be accessable in many places */
+	use_privsep = -1;
 }
 
 void
@@ -235,6 +244,16 @@ fill_default_server_options(ServerOptions *options)
 	}
 	if (options->authorized_keys_file == NULL)
 		options->authorized_keys_file = _PATH_SSH_USER_PERMITTED_KEYS;
+
+	/* Turn privilege separation _off_ by default */
+	if (use_privsep == -1)
+		use_privsep = 0;
+	if (options->unprivileged_user == -1)
+		options->unprivileged_user = 32767;
+	if (options->unprivileged_group == -1)
+		options->unprivileged_group = 32767;
+	if (options->unprivileged_dir == NULL)
+		options->unprivileged_dir = "/var/empty";
 }
 
 /* Keyword tokens. */
@@ -267,6 +286,7 @@ typedef enum {
 	sBanner, sVerifyReverseMapping, sHostbasedAuthentication,
 	sHostbasedUsesNameFromPacketOnly, sClientAliveInterval,
 	sClientAliveCountMax, sAuthorizedKeysFile, sAuthorizedKeysFile2,
+	sUsePrivilegeSeparation, sUnprivUser, sUnprivGroup, sUnprivDir,
 	sDeprecated
 } ServerOpCodes;
 
@@ -342,6 +362,10 @@ static struct {
 	{ "clientalivecountmax", sClientAliveCountMax },
 	{ "authorizedkeysfile", sAuthorizedKeysFile },
 	{ "authorizedkeysfile2", sAuthorizedKeysFile2 },
+	{ "useprivilegeseparation", sUsePrivilegeSeparation},
+	{ "unprivuser", sUnprivUser},
+	{ "unprivgroup", sUnprivGroup},
+	{ "unprivdir", sUnprivDir},
 	{ NULL, sBadOption }
 };
 
@@ -717,6 +741,22 @@ parse_flag:
 	case sAllowTcpForwarding:
 		intptr = &options->allow_tcp_forwarding;
 		goto parse_flag;
+
+	case sUsePrivilegeSeparation:
+		intptr = &use_privsep;
+		goto parse_flag;
+
+	case sUnprivUser:
+		intptr = &options->unprivileged_user;
+		goto parse_flag;
+
+	case sUnprivGroup:
+		intptr = &options->unprivileged_group;
+		goto parse_flag;
+
+	case sUnprivDir:
+		charptr = &options->unprivileged_dir;
+		goto parse_filename;
 
 	case sAllowUsers:
 		while ((arg = strdelim(&cp)) && *arg != '\0') {

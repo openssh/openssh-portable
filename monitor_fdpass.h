@@ -1,7 +1,6 @@
-/*	$OpenBSD: session.h,v 1.15 2002/03/18 17:50:31 provos Exp $	*/
-
 /*
- * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
+ * Copyright 2002 Niels Provos <provos@citi.umich.edu>
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,45 +22,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef SESSION_H
-#define SESSION_H
 
-#define TTYSZ 64
-typedef struct Session Session;
-struct Session {
-	int	used;
-	int	self;
-	struct passwd *pw;
-	Authctxt *authctxt;
-	pid_t	pid;
-	/* tty */
-	char	*term;
-	int	ptyfd, ttyfd, ptymaster;
-	int	row, col, xpixel, ypixel;
-	char	tty[TTYSZ];
-	/* X11 */
-	int	display_number;
-	char	*display;
-	int	screen;
-	char	*auth_display;
-	char	*auth_proto;
-	char	*auth_data;
-	int	single_connection;
-	/* proto 2 */
-	int	chanid;
-	int	is_subsystem;
-};
+#ifndef _MM_FDPASS_H_
+#define _MM_FDPASS_H_
 
-void	 do_authenticated(Authctxt *);
+void mm_send_fd(int, int);
+int mm_receive_fd(int);
 
-int	 session_open(Authctxt*, int);
-int	 session_input_channel_req(Channel *, const char *);
-void	 session_close_by_pid(pid_t, int);
-void	 session_close_by_channel(int, void *);
-void	 session_destroy_all(void (*)(Session *));
-
-Session	*session_new(void);
-Session	*session_by_tty(char *);
-void	 session_close(Session *);
-void	 do_setusercontext(struct passwd *);
-#endif
+#endif /* _MM_FDPASS_H_ */

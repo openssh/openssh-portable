@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rh-rsa.c,v 1.31 2002/03/16 17:22:09 markus Exp $");
+RCSID("$OpenBSD: auth-rh-rsa.c,v 1.32 2002/03/18 17:50:31 provos Exp $");
 
 #include "packet.h"
 #include "uidswap.h"
@@ -24,6 +24,8 @@ RCSID("$OpenBSD: auth-rh-rsa.c,v 1.31 2002/03/16 17:22:09 markus Exp $");
 #include "pathnames.h"
 #include "auth.h"
 #include "canohost.h"
+
+#include "monitor_wrap.h"
 
 /* import */
 extern ServerOptions options;
@@ -69,7 +71,7 @@ auth_rhosts_rsa(struct passwd *pw, char *cuser, Key *client_host_key)
 	chost = (char *)get_canonical_hostname(options.verify_reverse_mapping);
 	debug("Rhosts RSA authentication: canonical host %.900s", chost);
 
-	if (!auth_rhosts_rsa_key_allowed(pw, cuser, chost, client_host_key)) {
+	if (!PRIVSEP(auth_rhosts_rsa_key_allowed(pw, cuser, chost, client_host_key))) {
 		debug("Rhosts with RSA host authentication denied: unknown or invalid host key");
 		packet_send_debug("Your host key cannot be verified: unknown or invalid host key.");
 		return 0;

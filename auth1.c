@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.37 2002/03/18 01:12:14 provos Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.38 2002/03/18 17:50:31 provos Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -26,6 +26,7 @@ RCSID("$OpenBSD: auth1.c,v 1.37 2002/03/18 01:12:14 provos Exp $");
 #include "session.h"
 #include "misc.h"
 #include "uidswap.h"
+#include "monitor_wrap.h"
 
 /* import */
 extern ServerOptions options;
@@ -89,7 +90,7 @@ do_authloop(Authctxt *authctxt)
 #elif defined(HAVE_OSF_SIA)
 	    0) {
 #else
-	    auth_password(authctxt, "")) {
+	    PRIVSEP(auth_password(authctxt, ""))) {
 #endif
 		auth_log(authctxt, 1, "without authentication", "");
 		return;
@@ -253,9 +254,8 @@ do_authloop(Authctxt *authctxt)
 			/* Do SIA auth with password */
 			authenticated = auth_sia_password(authctxt->user, 
 			    password);
-#else /* !USE_PAM && !HAVE_OSF_SIA */
 			/* Try authentication with the password. */
-			authenticated = auth_password(authctxt, password);
+			authenticated = PRIVSEP(auth_password(authctxt, password));
 #endif /* USE_PAM */
 
 			memset(password, 0, strlen(password));
@@ -359,7 +359,7 @@ Authctxt *
 do_authentication(void)
 {
 	Authctxt *authctxt;
-	struct passwd *pw;
+	struct passwd *pw = NULL, *pwent;
 	u_int ulen;
 	char *p, *user, *style = NULL;
 
@@ -382,17 +382,22 @@ do_authentication(void)
 	authctxt->style = style;
 
 	/* Verify that the user is a valid user. */
-	pw = getpwnamallow(user);
-	if (pw) {
+	pwent = PRIVSEP(getpwnamallow(user));
+	if (pwent) {
 		authctxt->valid = 1;
-		pw = pwcopy(pw);
+		pw = pwcopy(pwent);
 	} else {
 		debug("do_authentication: illegal user %s", user);
 		pw = NULL;
 	}
+	/* Free memory */
+	if (use_privsep && pwent != NULL)
+		pwfree(pwent);
+
 	authctxt->pw = pw;
 
-	setproctitle("%s", pw ? user : "unknown");
+	setproctitle("%s%s", pw ? user : "unknown",
+	    use_privsep ? " [net]" : "");
 
 #ifdef USE_PAM
 	start_pam(pw == NULL ? "NOUSER" : user);
@@ -403,7 +408,7 @@ do_authentication(void)
 	 * the server. (Unless you are running Windows)
 	 */
 #ifndef HAVE_CYGWIN
-	if (getuid() != 0 && pw && pw->pw_uid != getuid())
+	if (!use_privsep && getuid() != 0 && pw && pw->pw_uid != getuid())
 		packet_disconnect("Cannot change user when server not running as root.");
 #endif
 
