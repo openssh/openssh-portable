@@ -80,6 +80,9 @@
 /* Define if you want IRIX audit trails */
 #undef WITH_IRIX_AUDIT
 
+/* Define if you want IRIX kernel jobs */
+#undef WITH_IRIX_JOBS
+
 /* Location of random number pool  */
 #undef RANDOM_POOL
 

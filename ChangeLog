@@ -1,3 +1,8 @@
+20001112
+ - (bal) SCO Patch to add needed libraries for configure.in.  Patch by
+   Phillips Porch <root@theporch.com>
+ - (bal) IRIX patch to adding Job Limits.  Patch by Denis Parker <dcp@sgi.com>
+
 20001111
  - (djm) Added /etc/primes for kex DH group neg, fixup Makefile.in and
    packaging files
@@ -5,7 +10,7 @@
  - (djm) Fix vsprintf("%h") in bsd-snprintf.c, short int va_args are 
    promoted to type int. Report and fix from Dan Astoorian 
    <djast@cs.toronto.edu>
- - (djm) Hardware sysconfdir in RPM spec files as some RPM versions get 
+ - (djm) Hardwire sysconfdir in RPM spec files as some RPM versions get 
    it wrong. Report from Bennett Todd <bet@rahul.net>
 
 20001110

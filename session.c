@@ -55,6 +55,9 @@ RCSID("$OpenBSD: session.c,v 1.42 2000/10/27 07:32:18 markus Exp $");
 #ifdef WITH_IRIX_PROJECT
 #include <proj.h>
 #endif /* WITH_IRIX_PROJECT */
+#ifdef WITH_IRIX_JOBS
+#include <sys/resource.h>
+#endif
 
 #if defined(HAVE_USERSEC_H)
 #include <usersec.h>
@@ -1014,6 +1017,14 @@ do_child(const char *command, struct passwd * pw, const char *term,
 #ifdef WITH_IRIX_PROJECT
 	prid_t projid;
 #endif /* WITH_IRIX_PROJECT */
+#ifdef WITH_IRIX_JOBS
+	jid_t jid = 0;
+#else
+#ifdef WITH_IRIX_ARRAY
+	int jid = 0;
+#endif /* WITH_IRIX_ARRAY */
+#endif /* WITH_IRIX_JOBS */
+
 
 	/* login(1) is only called if we execute the login shell */
 	if (options.use_login && command != NULL)
@@ -1086,11 +1097,21 @@ do_child(const char *command, struct passwd * pw, const char *term,
 				exit(1);
 			}
 			endgrent();
+#  ifdef WITH_IRIX_JOBS
+			jid = jlimit_startjob(pw->pw_name, pw->pw_uid, "interactive");
+			if (jid == -1) {
+				fatal("Failed to create job container: %.100s",
+				      strerror(errno));
+                        }
+#  endif /* WITH_IRIX_JOBS */
+
 #  ifdef WITH_IRIX_ARRAY
 			/* initialize array session */
-			if (newarraysess() != 0)
-				fatal("Failed to set up new array session: %.100s",
-				      strerror(errno));
+			if (jid == 0) {
+				if (newarraysess() != 0)
+					fatal("Failed to set up new array session: %.100s",
+					      strerror(errno));
+			}
 #  endif /* WITH_IRIX_ARRAY */
 #  ifdef WITH_IRIX_PROJECT
 			/* initialize irix project info */
