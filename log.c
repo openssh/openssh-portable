@@ -391,7 +391,7 @@ do_log(LogLevel level, const char *fmt, va_list args)
 		vsnprintf(msgbuf, sizeof(msgbuf), fmt, args);
 	}
 	/* Escape magic chars in output. */
-	strnvis(fmtbuf, msgbuf, sizeof(fmtbuf), VIS_OCTAL);
+	strnvis(fmtbuf, msgbuf, sizeof(fmtbuf), VIS_SAFE|VIS_OCTAL);
 	
 	if (log_on_stderr) {
 		snprintf(fmtbuf, sizeof fmtbuf, "%s\r\n", msgbuf);
