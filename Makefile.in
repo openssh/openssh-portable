@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.178 2001/06/27 11:52:33 djm Exp $
+# $Id: Makefile.in,v 1.179 2001/06/28 10:23:15 djm Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -221,7 +221,7 @@ install-files:
 		if [ -f $(DESTDIR)$(sysconfdir)/primes ]; then \
 			echo "moving $(DESTDIR)$(sysconfdir)/primes to $(DESTDIR)$(sysconfdir)/moduli"; \
 			mv "$(DESTDIR)$(sysconfdir)/primes" "$(DESTDIR)$(sysconfdir)/moduli"; \
-		else ; \
+		else \
 			$(INSTALL) -m 644 moduli.out $(DESTDIR)$(sysconfdir)/moduli; \
 		fi ; \
 	else \

@@ -1,5 +1,7 @@
 20010628
  - (djm) Sync openbsd-compat with -current libc
+ - (djm) Fix from Lutz Jaenicke <Lutz.Jaenicke@aet.TU-Cottbus.DE> for my 
+   broken makefile
 
 20010627
  - (djm) Reintroduce pam_session call for non-pty sessions.
@@ -5812,4 +5814,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1335 2001/06/28 04:48:28 djm Exp $
+$Id: ChangeLog,v 1.1336 2001/06/28 10:23:14 djm Exp $
