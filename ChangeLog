@@ -1,3 +1,9 @@
+20020307
+ - (djm) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2002/03/06 00:20:54
+     [compat.c dh.c]
+     compat.c
+
 20020305
    - stevesk@cvs.openbsd.org 2002/03/02 09:34:42
      [LICENCE]
@@ -7798,4 +7804,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1908 2002/03/05 18:03:10 stevesk Exp $
+$Id: ChangeLog,v 1.1909 2002/03/07 01:58:24 djm Exp $

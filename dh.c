@@ -23,13 +23,14 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: dh.c,v 1.19 2001/12/27 19:37:22 markus Exp $");
+RCSID("$OpenBSD: dh.c,v 1.20 2002/03/06 00:20:54 markus Exp $");
 
 #include "xmalloc.h"
 
 #include <openssl/bn.h>
 #include <openssl/dh.h>
 #include <openssl/evp.h>
+#include <openssl/err.h>
 
 #include "buffer.h"
 #include "cipher.h"
@@ -207,8 +208,10 @@ dh_gen_key(DH *dh, int need)
 		if ((dh->priv_key = BN_new()) == NULL)
 			fatal("dh_gen_key: BN_new failed");
 		/* generate a 2*need bits random private exponent */
-		if (!BN_rand(dh->priv_key, 2*need, 0, 0))
-			fatal("dh_gen_key: BN_rand failed");
+		if (!BN_rand(dh->priv_key, 2*need, 0, 0)) {
+			int ecode = ERR_get_error();
+			fatal("dh_gen_key: BN_rand failed: %s", ERR_error_string(ecode, NULL));
+		}
 		if (DH_generate_key(dh) == 0)
 			fatal("DH_generate_key");
 		for (i = 0; i <= BN_num_bits(dh->priv_key); i++)
