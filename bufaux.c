@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: bufaux.c,v 1.31 2003/11/10 16:23:41 jakob Exp $");
+RCSID("$OpenBSD: bufaux.c,v 1.32 2004/02/23 15:12:46 markus Exp $");
 
 #include <openssl/bn.h>
 #include "bufaux.h"
@@ -103,46 +103,47 @@ buffer_get_bignum(Buffer *buffer, BIGNUM *value)
 void
 buffer_put_bignum2(Buffer *buffer, const BIGNUM *value)
 {
-	u_int bytes = BN_num_bytes(value) + 1;
-	u_char *buf = xmalloc(bytes);
+	u_int bytes;
+	u_char *buf;
 	int oi;
 	u_int hasnohigh = 0;
 
+	if (BN_is_zero(value)) {
+		buffer_put_int(buffer, 0);
+		return;
+	}
+	if (value->neg)
+		fatal("buffer_put_bignum2: negative numbers not supported");
+	bytes = BN_num_bytes(value) + 1; /* extra padding byte */
+	if (bytes < 2)
+		fatal("buffer_put_bignum2: BN too small");
+	buf = xmalloc(bytes);
 	buf[0] = '\0';
 	/* Get the value of in binary */
 	oi = BN_bn2bin(value, buf+1);
 	if (oi != bytes-1)
-		fatal("buffer_put_bignum: BN_bn2bin() failed: oi %d != bin_size %d",
-		    oi, bytes);
+		fatal("buffer_put_bignum2: BN_bn2bin() failed: "
+		    "oi %d != bin_size %d", oi, bytes);
 	hasnohigh = (buf[1] & 0x80) ? 0 : 1;
-	if (value->neg) {
-		/**XXX should be two's-complement */
-		int i, carry;
-		u_char *uc = buf;
-		logit("negativ!");
-		for (i = bytes-1, carry = 1; i>=0; i--) {
-			uc[i] ^= 0xff;
-			if (carry)
-				carry = !++uc[i];
-		}
-	}
 	buffer_put_string(buffer, buf+hasnohigh, bytes-hasnohigh);
 	memset(buf, 0, bytes);
 	xfree(buf);
 }
 
-/* XXX does not handle negative BNs */
 void
 buffer_get_bignum2(Buffer *buffer, BIGNUM *value)
 {
 	u_int len;
 	u_char *bin = buffer_get_string(buffer, &len);
 
+	if (len > 0 && (bin[0] & 0x80))
+		fatal("buffer_get_bignum2: negative numbers not supported");
 	if (len > 8 * 1024)
 		fatal("buffer_get_bignum2: cannot handle BN of size %d", len);
 	BN_bin2bn(bin, len, value);
 	xfree(bin);
 }
+
 /*
  * Returns integers from the buffer (msb first).
  */
