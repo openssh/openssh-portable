@@ -55,13 +55,6 @@
 #  include "md5crypt.h"
 # endif 
 
-# ifdef HAVE_CYGWIN
-#  undef ERROR
-#  include <windows.h>
-#  include <sys/cygwin.h>
-#  define is_winnt       (GetVersion() < 0x80000000)
-# endif
-
 char *
 xcrypt(const char *password, const char *salt)
 {

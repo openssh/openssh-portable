@@ -6,6 +6,8 @@
      mcc -> fcc; from Love Hörnquist Åstrand <lha@it.su.se>
      otherwise the kerberos credentinal is stored in a memory cache
      in the privileged sshd. ok jabob@, hin@ (some time ago)
+ - (dtucker) [openbsd-compat/xcrypt.c] Remove Cygwin #ifdef block (duplicate
+   in bsd-cygwin_util.h).
 
 20030808
  - (dtucker) [openbsd-compat/fake-rfc2553.h] Older Linuxes have AI_PASSIVE and
@@ -813,4 +815,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2887 2003/08/11 12:55:36 dtucker Exp $
+$Id: ChangeLog,v 1.2888 2003/08/11 13:00:33 dtucker Exp $
