@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.166 2003/09/16 01:52:19 dtucker Exp $ */
+/* $Id: acconfig.h,v 1.167 2003/09/19 11:25:24 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -88,6 +88,9 @@
 
 /* Define if you have the getuserattr function.  */
 #undef HAVE_GETUSERATTR
+
+/* Define if you have the basename function. */
+#undef HAVE_BASENAME
 
 /* Work around problematic Linux PAM modules handling of PAM_TTY */
 #undef PAM_TTY_KLUDGE

@@ -11,6 +11,7 @@
  - (dtucker) [session.c] Bug #643: Fix size_t -> u_int and fix null deref
    when /etc/default/login doesn't exist or isn't readable.  Fixes from
    jparsons-lists at saffron.net and georg.oppenberg at deu mci com.
+ - (dtucker) [acconfig.h] Updated basename test needs HAVE_BASENAME
 
 20030918
  - (djm) Bug #652: Fix empty password auth
@@ -1132,4 +1133,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3007 2003/09/19 10:56:51 dtucker Exp $
+$Id: ChangeLog,v 1.3008 2003/09/19 11:25:23 dtucker Exp $
