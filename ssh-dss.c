@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-dss.c,v 1.6 2001/02/08 19:30:52 itojun Exp $");
+RCSID("$OpenBSD: ssh-dss.c,v 1.7 2001/06/06 23:13:54 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/evp.h>
@@ -45,15 +45,11 @@ ssh_dss_sign(
     u_char **sigp, int *lenp,
     u_char *data, int datalen)
 {
-	u_char *digest;
-	u_char *ret;
 	DSA_SIG *sig;
 	EVP_MD *evp_md = EVP_sha1();
 	EVP_MD_CTX md;
-	u_int rlen;
-	u_int slen;
-	u_int len, dlen;
-	u_char sigblob[SIGBLOB_LEN];
+	u_char *digest, *ret, sigblob[SIGBLOB_LEN];
+	u_int rlen, slen, len, dlen;
 	Buffer b;
 
 	if (key == NULL || key->type != KEY_DSA || key->dsa == NULL) {
@@ -67,11 +63,13 @@ ssh_dss_sign(
 	EVP_DigestFinal(&md, digest, NULL);
 
 	sig = DSA_do_sign(digest, dlen, key->dsa);
-	if (sig == NULL) {
-		fatal("ssh_dss_sign: cannot sign");
-	}
+
 	memset(digest, 0, dlen);
 	xfree(digest);
+	if (sig == NULL) {
+		error("ssh_dss_sign: sign failed");
+		return -1;
+	}
 
 	rlen = BN_num_bytes(sig->r);
 	slen = BN_num_bytes(sig->s);
@@ -80,15 +78,12 @@ ssh_dss_sign(
 		DSA_SIG_free(sig);
 		return -1;
 	}
-	debug("sig size %d %d", rlen, slen);
-
 	memset(sigblob, 0, SIGBLOB_LEN);
 	BN_bn2bin(sig->r, sigblob+ SIGBLOB_LEN - INTBLOB_LEN - rlen);
 	BN_bn2bin(sig->s, sigblob+ SIGBLOB_LEN - slen);
 	DSA_SIG_free(sig);
 
 	if (datafellows & SSH_BUG_SIGBLOB) {
-		debug("datafellows");
 		ret = xmalloc(SIGBLOB_LEN);
 		memcpy(ret, sigblob, SIGBLOB_LEN);
 		if (lenp != NULL)
@@ -117,33 +112,18 @@ ssh_dss_verify(
     u_char *signature, int signaturelen,
     u_char *data, int datalen)
 {
-	Buffer b;
-	u_char *digest;
 	DSA_SIG *sig;
 	EVP_MD *evp_md = EVP_sha1();
 	EVP_MD_CTX md;
-	u_char *sigblob;
-	char *txt;
+	u_char *digest, *sigblob;
 	u_int len, dlen;
-	int rlen;
-	int ret;
+	int rlen, ret;
+	Buffer b;
 
 	if (key == NULL || key->type != KEY_DSA || key->dsa == NULL) {
 		error("ssh_dss_verify: no DSA key");
 		return -1;
 	}
-
-	if (!(datafellows & SSH_BUG_SIGBLOB) &&
-	    signaturelen == SIGBLOB_LEN) {
-		datafellows |= ~SSH_BUG_SIGBLOB;
-		log("autodetect SSH_BUG_SIGBLOB");
-	} else if ((datafellows & SSH_BUG_SIGBLOB) &&
-	    signaturelen != SIGBLOB_LEN) {
-		log("autoremove SSH_BUG_SIGBLOB");
-		datafellows &= ~SSH_BUG_SIGBLOB;
-	}
-
-	debug("len %d datafellows %d", signaturelen, datafellows);
 
 	/* fetch signature */
 	if (datafellows & SSH_BUG_SIGBLOB) {
@@ -200,18 +180,7 @@ ssh_dss_verify(
 	xfree(digest);
 	DSA_SIG_free(sig);
 
-	switch (ret) {
-	case 1:
-		txt = "correct";
-		break;
-	case 0:
-		txt = "incorrect";
-		break;
-	case -1:
-	default:
-		txt = "error";
-		break;
-	}
-	debug("ssh_dss_verify: signature %s", txt);
+	debug("ssh_dss_verify: signature %s",
+	    ret == 1 ? "correct" : ret == 0 ? "incorrect" : "error");
 	return ret;
 }
