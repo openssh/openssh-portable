@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.67 2001/02/12 16:16:23 markus Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.68 2001/02/22 04:29:37 deraadt Exp $");
 
 #ifdef KRB4
 #include <krb.h>
@@ -414,7 +414,8 @@ parse_int:
 		case sHostKeyFile:
 			intptr = &options->num_host_key_files;
 			if (*intptr >= MAX_HOSTKEYS) {
-				fprintf(stderr, "%s line %d: to many host keys specified (max %d).\n",
+				fprintf(stderr,
+				    "%s line %d: too many host keys specified (max %d).\n",
 				    filename, linenum, MAX_HOSTKEYS);
 				exit(1);
 			}
