@@ -8,6 +8,9 @@
  - (djm) Bug #698: Specify FILE: for KRB5CCNAME; patch from 
    stadal@suse.cz and simon@sxw.org.uk
  - (dtucker) [auth-pam.c] Tidy up PAM debugging.  ok djm@
+ - (dtucker) [auth-pam.c] Store output from pam_session and pam_setcred for
+   display after login.  Should fix problems like pam_motd not displaying
+   anything, noticed by cjwatson at debian.org.  ok djm@
 
 20040212
  - (tim) [Makefile.in regress/sftp-badcmds.sh regress/test-exec.sh]
@@ -1863,4 +1866,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3232 2004/02/17 09:46:59 dtucker Exp $
+$Id: ChangeLog,v 1.3233 2004/02/17 12:20:07 dtucker Exp $
