@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.189 2004/01/27 03:03:39 tim Exp $
+# $Id: configure.ac,v 1.190 2004/01/30 03:20:59 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -580,6 +580,15 @@ AC_CHECK_LIB(z, deflate, ,
 	]
 )
 AC_CHECK_HEADER([zlib.h], ,AC_MSG_ERROR([*** zlib.h missing - please install first or check config.log ***]))
+
+AC_ARG_WITH(zlib-version-check,
+	[  --without-zlib-version-check Disable zlib version check],
+	[  if test "x$withval" = "xno" ; then
+		zlib_check_nonfatal=1
+	   fi
+	]
+)
+
 AC_MSG_CHECKING(for zlib 1.1.4 or greater)
 AC_TRY_RUN([
 #include <zlib.h>
@@ -596,9 +605,18 @@ int main()
 	],
 	AC_MSG_RESULT(yes),
 	[ AC_MSG_RESULT(no)
-	  AC_MSG_ERROR([*** zlib too old - check config.log ***]) ]
+	  if test -z "$zlib_check_nonfatal" ; then
+		AC_MSG_ERROR([*** zlib too old - check config.log ***
+Your reported zlib version has known security problems.  It's possible your
+vendor has fixed these problems without changing the version number.  If you
+are sure this is the case, you can disable the check by running
+"./configure --without-zlib-version-check".
+If you are in doubt, upgrade zlib to version 1.1.4 or greater.])
+	  else
+		AC_MSG_WARN([zlib version may have security problems])
+	  fi
+	]
 )
-	
 
 dnl UnixWare 2.x
 AC_CHECK_FUNC(strcasecmp,
