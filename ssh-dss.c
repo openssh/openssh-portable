@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-dss.c,v 1.8 2001/09/17 19:27:15 stevesk Exp $");
+RCSID("$OpenBSD: ssh-dss.c,v 1.9 2001/11/07 22:10:28 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/evp.h>
@@ -138,17 +138,19 @@ ssh_dss_verify(
 		if (strcmp("ssh-dss", ktype) != 0) {
 			error("ssh_dss_verify: cannot handle type %s", ktype);
 			buffer_free(&b);
+			xfree(ktype);
 			return -1;
 		}
+		xfree(ktype);
 		sigblob = buffer_get_string(&b, &len);
 		rlen = buffer_len(&b);
+		buffer_free(&b);
 		if(rlen != 0) {
-			error("remaining bytes in signature %d", rlen);
-			buffer_free(&b);
+			error("ssh_dss_verify: "
+			    "remaining bytes in signature %d", rlen);
+			xfree(sigblob);
 			return -1;
 		}
-		buffer_free(&b);
-		xfree(ktype);
 	}
 
 	if (len != SIGBLOB_LEN) {

@@ -30,6 +30,9 @@
    - markus@cvs.openbsd.org 2001/11/07 21:40:21
      [ssh-rsa.c]
      ssh_rsa_sign/verify: SSH_BUG_SIGBLOB not supported
+   - markus@cvs.openbsd.org 2001/11/07 22:10:28
+     [ssh-dss.c ssh-rsa.c]
+     missing free and sync dss/rsa code.
 
 20011109
  - (stevesk) auth-pam.c: use do_pam_authenticate(PAM_DISALLOW_NULL_AUTHTOK)
@@ -6839,4 +6842,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1643 2001/11/12 00:03:16 djm Exp $
+$Id: ChangeLog,v 1.1644 2001/11/12 00:03:35 djm Exp $

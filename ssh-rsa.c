@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-rsa.c,v 1.11 2001/11/07 21:40:21 markus Exp $");
+RCSID("$OpenBSD: ssh-rsa.c,v 1.12 2001/11/07 22:10:28 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -151,14 +151,14 @@ ssh_rsa_verify(
 	rlen = buffer_len(&b);
 	buffer_free(&b);
 	if(rlen != 0) {
-		xfree(sigblob);
 		error("ssh_rsa_verify: remaining bytes in signature %d", rlen);
+		xfree(sigblob);
 		return -1;
 	}
 	nid = (datafellows & SSH_BUG_RSASIGMD5) ? NID_md5 : NID_sha1;
 	if ((evp_md = EVP_get_digestbynid(nid)) == NULL) {
-		xfree(sigblob);
 		error("ssh_rsa_verify: EVP_get_digestbynid %d failed", nid);
+		xfree(sigblob);
 		return -1;
 	}
 	dlen = evp_md->md_size;
