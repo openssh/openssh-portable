@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.48 2002/03/18 17:50:31 provos Exp $");
+RCSID("$OpenBSD: kex.c,v 1.49 2002/03/26 23:14:51 markus Exp $");
 
 #include <openssl/crypto.h>
 
@@ -57,16 +57,15 @@ static void kex_choose_conf(Kex *);
 static void
 kex_prop2buf(Buffer *b, char *proposal[PROPOSAL_MAX])
 {
-	u_int32_t rand = 0;
 	int i;
 
 	buffer_clear(b);
-	for (i = 0; i < KEX_COOKIE_LEN; i++) {
-		if (i % 4 == 0)
-			rand = arc4random();
-		buffer_put_char(b, rand & 0xff);
-		rand >>= 8;
-	}
+	/*
+	 * add a dummy cookie, the cookie will be overwritten by
+	 * kex_send_kexinit(), each time a kexinit is set
+	 */
+	for (i = 0; i < KEX_COOKIE_LEN; i++)
+		buffer_put_char(b, 0);
 	for (i = 0; i < PROPOSAL_MAX; i++)
 		buffer_put_cstring(b, proposal[i]);
 	buffer_put_char(b, 0);			/* first_kex_packet_follows */
@@ -152,6 +151,10 @@ kex_finish(Kex *kex)
 void
 kex_send_kexinit(Kex *kex)
 {
+	u_int32_t rand = 0;
+	u_char *cookie;
+	int i;
+
 	if (kex == NULL) {
 		error("kex_send_kexinit: no kex, cannot rekey");
 		return;
@@ -161,6 +164,17 @@ kex_send_kexinit(Kex *kex)
 		return;
 	}
 	kex->done = 0;
+
+	/* generate a random cookie */
+	if (buffer_len(&kex->my) < KEX_COOKIE_LEN)
+		fatal("kex_send_kexinit: kex proposal too short");
+	cookie = buffer_ptr(&kex->my);
+	for (i = 0; i < KEX_COOKIE_LEN; i++) {
+		if (i % 4 == 0)
+			rand = arc4random();
+		cookie[i] = rand;
+		rand >>= 8;
+	}
 	packet_start(SSH2_MSG_KEXINIT);
 	packet_put_raw(buffer_ptr(&kex->my), buffer_len(&kex->my));
 	packet_send();

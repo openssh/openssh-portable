@@ -20,6 +20,9 @@
    - markus@cvs.openbsd.org 2002/03/26 23:13:03
      [auth-rsa.c]
      disallow RSA keys < 768 for protocol 1, too (rhosts-rsa and rsa auth)
+   - markus@cvs.openbsd.org 2002/03/26 23:14:51
+     [kex.c]
+     generate a new cookie for each SSH2_MSG_KEXINIT message we send out
 
 20020325
  - (stevesk) import OpenBSD <sys/tree.h> as "openbsd-compat/tree.h"
@@ -8083,4 +8086,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1999 2002/03/27 17:38:43 mouring Exp $
+$Id: ChangeLog,v 1.2000 2002/03/27 17:42:57 mouring Exp $
