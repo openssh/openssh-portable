@@ -41,6 +41,10 @@
    - markus@cvs.openbsd.org 2004/06/22 03:12:13
      [regress/envpass.sh regress/multiplex.sh]
      more portable env passing tests
+   - dtucker@cvs.openbsd.org 2004/06/22 05:05:45
+     [monitor.c monitor_wrap.c]
+     Change login->username, will prevent -Wshadow errors in Portable;
+     ok markus@
  - (dtucker) [monitor.c] Fix Portable-specific -Wshadow warnings on "socket".
  - (dtucker) [defines.h] Define __dead if not already defined.
 
@@ -1365,4 +1369,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3431 2004/06/22 03:38:56 dtucker Exp $
+$Id: ChangeLog,v 1.3432 2004/06/22 05:06:46 dtucker Exp $

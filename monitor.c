@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.59 2004/06/21 17:36:31 avsm Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.60 2004/06/22 05:05:45 dtucker Exp $");
 
 #include <openssl/dh.h>
 
@@ -551,7 +551,7 @@ mm_answer_sign(int sock, Buffer *m)
 int
 mm_answer_pwnamallow(int sock, Buffer *m)
 {
-	char *login;
+	char *username;
 	struct passwd *pwent;
 	int allowed = 0;
 
@@ -560,13 +560,13 @@ mm_answer_pwnamallow(int sock, Buffer *m)
 	if (authctxt->attempt++ != 0)
 		fatal("%s: multiple attempts for getpwnam", __func__);
 
-	login = buffer_get_string(m, NULL);
+	username = buffer_get_string(m, NULL);
 
-	pwent = getpwnamallow(login);
+	pwent = getpwnamallow(username);
 
-	authctxt->user = xstrdup(login);
-	setproctitle("%s [priv]", pwent ? login : "unknown");
-	xfree(login);
+	authctxt->user = xstrdup(username);
+	setproctitle("%s [priv]", pwent ? username : "unknown");
+	xfree(username);
 
 	buffer_clear(m);
 

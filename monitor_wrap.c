@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor_wrap.c,v 1.36 2004/06/21 17:36:31 avsm Exp $");
+RCSID("$OpenBSD: monitor_wrap.c,v 1.37 2004/06/22 05:05:45 dtucker Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dh.h>
@@ -194,7 +194,7 @@ mm_key_sign(Key *key, u_char **sigp, u_int *lenp, u_char *data, u_int datalen)
 }
 
 struct passwd *
-mm_getpwnamallow(const char *login)
+mm_getpwnamallow(const char *username)
 {
 	Buffer m;
 	struct passwd *pw;
@@ -203,7 +203,7 @@ mm_getpwnamallow(const char *login)
 	debug3("%s entering", __func__);
 
 	buffer_init(&m);
-	buffer_put_cstring(&m, login);
+	buffer_put_cstring(&m, username);
 
 	mm_request_send(pmonitor->m_recvfd, MONITOR_REQ_PWNAM, &m);
 
