@@ -17,11 +17,11 @@
 #old cvs stuff.  please update before use.  may be deprecated.
 %define use_stable	1
 %if %{use_stable}
-  %define version 	3.8.1p1
+  %define version 	3.9p1
   %define cvs		%{nil}
   %define release 	1
 %else
-  %define version 	3.8.1p1
+  %define version 	3.9p1
   %define cvs		cvs20011009
   %define release 	0r1
 %endif
@@ -363,4 +363,4 @@ fi
 * Mon Jan 01 1998 ...
 Template Version: 1.31
 
-$Id: openssh.spec,v 1.50 2004/05/26 23:59:32 dtucker Exp $
+$Id: openssh.spec,v 1.51 2004/08/17 12:49:12 djm Exp $
