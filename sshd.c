@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.280 2003/10/02 10:41:59 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.281 2003/11/10 16:23:41 jakob Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -668,7 +668,8 @@ static char *
 list_hostkey_types(void)
 {
 	Buffer b;
-	char *p;
+	const char *p;
+	char *ret;
 	int i;
 
 	buffer_init(&b);
@@ -687,10 +688,10 @@ list_hostkey_types(void)
 		}
 	}
 	buffer_append(&b, "\0", 1);
-	p = xstrdup(buffer_ptr(&b));
+	ret = xstrdup(buffer_ptr(&b));
 	buffer_free(&b);
-	debug("list_hostkey_types: %s", p);
-	return p;
+	debug("list_hostkey_types: %s", ret);
+	return ret;
 }
 
 Key *

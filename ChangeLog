@@ -23,6 +23,11 @@
    - jmc@cvs.openbsd.org 2003/11/08 19:17:29
      [sftp-int.c]
      typos from Jonathon Gray;
+   - jakob@cvs.openbsd.org 2003/11/10 16:23:41
+     [bufaux.c bufaux.h cipher.c cipher.h hostfile.c hostfile.h key.c]
+     [key.h sftp-common.c sftp-common.h sftp-server.c sshconnect.c sshd.c]
+     [ssh-dss.c ssh-rsa.c uuencode.c uuencode.h]
+     constify. ok markus@ & djm@
 
 20031115
  - (dtucker) [regress/agent-ptrace.sh] Test for GDB output from Solaris and
@@ -1443,4 +1448,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3103 2003/11/17 10:17:24 djm Exp $
+$Id: ChangeLog,v 1.3104 2003/11/17 10:18:23 djm Exp $

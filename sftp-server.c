@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: sftp-server.c,v 1.43 2003/06/25 22:39:36 miod Exp $");
+RCSID("$OpenBSD: sftp-server.c,v 1.44 2003/11/10 16:23:41 jakob Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
@@ -149,7 +149,7 @@ handle_init(void)
 }
 
 static int
-handle_new(int use, char *name, int fd, DIR *dirp)
+handle_new(int use, const char *name, int fd, DIR *dirp)
 {
 	int i;
 
@@ -184,7 +184,7 @@ handle_to_string(int handle, char **stringp, int *hlenp)
 }
 
 static int
-handle_from_string(char *handle, u_int hlen)
+handle_from_string(const char *handle, u_int hlen)
 {
 	int val;
 
@@ -298,7 +298,7 @@ send_status(u_int32_t id, u_int32_t error)
 	buffer_free(&msg);
 }
 static void
-send_data_or_handle(char type, u_int32_t id, char *data, int dlen)
+send_data_or_handle(char type, u_int32_t id, const char *data, int dlen)
 {
 	Buffer msg;
 
@@ -311,7 +311,7 @@ send_data_or_handle(char type, u_int32_t id, char *data, int dlen)
 }
 
 static void
-send_data(u_int32_t id, char *data, int dlen)
+send_data(u_int32_t id, const char *data, int dlen)
 {
 	TRACE("sent data id %u len %d", id, dlen);
 	send_data_or_handle(SSH2_FXP_DATA, id, data, dlen);
@@ -330,7 +330,7 @@ send_handle(u_int32_t id, int handle)
 }
 
 static void
-send_names(u_int32_t id, int count, Stat *stats)
+send_names(u_int32_t id, int count, const Stat *stats)
 {
 	Buffer msg;
 	int i;
@@ -350,7 +350,7 @@ send_names(u_int32_t id, int count, Stat *stats)
 }
 
 static void
-send_attrib(u_int32_t id, Attrib *a)
+send_attrib(u_int32_t id, const Attrib *a)
 {
 	Buffer msg;
 
@@ -567,7 +567,7 @@ process_fstat(void)
 }
 
 static struct timeval *
-attrib_to_tv(Attrib *a)
+attrib_to_tv(const Attrib *a)
 {
 	static struct timeval tv[2];
 

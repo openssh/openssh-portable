@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: bufaux.c,v 1.30 2003/09/18 13:02:21 miod Exp $");
+RCSID("$OpenBSD: bufaux.c,v 1.31 2003/11/10 16:23:41 jakob Exp $");
 
 #include <openssl/bn.h>
 #include "bufaux.h"
@@ -50,7 +50,7 @@ RCSID("$OpenBSD: bufaux.c,v 1.30 2003/09/18 13:02:21 miod Exp $");
  * by (bits+7)/8 bytes of binary data, msb first.
  */
 void
-buffer_put_bignum(Buffer *buffer, BIGNUM *value)
+buffer_put_bignum(Buffer *buffer, const BIGNUM *value)
 {
 	int bits = BN_num_bits(value);
 	int bin_size = (bits + 7) / 8;
@@ -101,7 +101,7 @@ buffer_get_bignum(Buffer *buffer, BIGNUM *value)
  * Stores an BIGNUM in the buffer in SSH2 format.
  */
 void
-buffer_put_bignum2(Buffer *buffer, BIGNUM *value)
+buffer_put_bignum2(Buffer *buffer, const BIGNUM *value)
 {
 	u_int bytes = BN_num_bytes(value) + 1;
 	u_char *buf = xmalloc(bytes);

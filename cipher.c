@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: cipher.c,v 1.65 2003/05/17 04:27:52 markus Exp $");
+RCSID("$OpenBSD: cipher.c,v 1.66 2003/11/10 16:23:41 jakob Exp $");
 
 #include "xmalloc.h"
 #include "log.h"
@@ -99,19 +99,19 @@ struct Cipher {
 /*--*/
 
 u_int
-cipher_blocksize(Cipher *c)
+cipher_blocksize(const Cipher *c)
 {
 	return (c->block_size);
 }
 
 u_int
-cipher_keylen(Cipher *c)
+cipher_keylen(const Cipher *c)
 {
 	return (c->key_len);
 }
 
 u_int
-cipher_get_number(Cipher *c)
+cipher_get_number(const Cipher *c)
 {
 	return (c->number);
 }
@@ -311,7 +311,7 @@ cipher_set_key_string(CipherContext *cc, Cipher *cipher,
  */
 
 int
-cipher_get_keyiv_len(CipherContext *cc)
+cipher_get_keyiv_len(const CipherContext *cc)
 {
 	Cipher *c = cc->cipher;
 	int ivlen;
@@ -397,7 +397,7 @@ cipher_set_keyiv(CipherContext *cc, u_char *iv)
 #endif
 
 int
-cipher_get_keycontext(CipherContext *cc, u_char *dat)
+cipher_get_keycontext(const CipherContext *cc, u_char *dat)
 {
 	Cipher *c = cc->cipher;
 	int plen = 0;
