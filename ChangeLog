@@ -12,6 +12,7 @@
   - Use vhangup to clean up Linux ttys
   - Force posix getopt processing on GNU libc systems
  - Debian bug #55910 - remove references to ssl(8) manpages
+ - Debian bug #58031 - ssh_config lies about default cipher
 
 20000419
  - OpenBSD CVS updates

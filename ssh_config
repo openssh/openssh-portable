@@ -27,7 +27,7 @@
 #   IdentityFile ~/.ssh/identity
 #   Port 22
 #   Protocol 2,1
-#   Cipher blowfish
+#   Cipher 3des
 #   EscapeChar ~
 
 # Be paranoid by default
