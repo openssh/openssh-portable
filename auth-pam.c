@@ -485,6 +485,9 @@ KbdintDevice mm_sshpam_device = {
 void
 start_pam(const char *user)
 {
+	if (!options.use_pam)
+		fatal("PAM: initialisation requested when UsePAM=no");
+
 	if (sshpam_init(user) == -1)
 		fatal("PAM: initialisation failed");
 }
