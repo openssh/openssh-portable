@@ -6,6 +6,7 @@ Theo de Raadt, and Dug Song - Creators of OpenSSH
 Andrew Stribblehill <a.d.stribblehill@durham.ac.uk> - Bugfixes
 Andre Lucas <andre.lucas@dial.pipex.com> - build, login and many other fixes
 Andy Sloane <andy@guildsoftware.com> - bugfixes
+Arkadiusz Miskiewicz <misiek@pld.org.pl> - IPv6 compat fixes
 Ben Taylor <bent@clark.net> - Solaris debugging and fixes
 Chip Salzenberg <chip@valinux.com> - Assorted patches
 Chris Saia <csaia@wtower.com> - SuSE packaging

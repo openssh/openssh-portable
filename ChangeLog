@@ -1,6 +1,9 @@
 20000303
  - Added "make host-key" target, Suggestion from Dominik Brettnacher
  <domi@saargate.de>
+ - Don't permanently fail on bind() if getaddrinfo has more choices left for 
+   us. Needed to work around messy IPv6 on Linux. Patch from Arkadiusz
+   Miskiewicz <misiek@pld.org.pl>
 
 20000302
  - Big cleanup of autoconf code

@@ -558,7 +558,8 @@ main(int ac, char **av)
 			debug("Bind to port %s on %s.", strport, ntop);
 
 			/* Bind the socket to the desired port. */
-			if (bind(listen_sock, ai->ai_addr, ai->ai_addrlen) < 0) {
+			if ((bind(listen_sock, ai->ai_addr, ai->ai_addrlen) < 0) &&
+				 (!ai->ai_next)) {
 				error("Bind to port %s on %s failed: %.200s.",
 				    strport, ntop, strerror(errno));
 				close(listen_sock);
