@@ -88,12 +88,12 @@ Tom Bertelson's <tbert@abac.com> - AIX auth fixes
 Tor-Ake Fransson <torake@hotmail.com> - AIX support
 Tudor Bosman <tudorb@jm.nu> - MD5 password support
 Udo Schweigert <ust@cert.siemens.de> - ReliantUNIX support
-Wendy Palm <wendyp at cray.com> - Cray fixes.
+Wendy Palm <wendyp at cray.com> - Cray support.
 Zack Weinberg <zack@wolery.cumb.org> - GNOME askpass enhancement
 
 Apologies to anyone I have missed.
 
 Damien Miller <djm@mindrot.org>
 
-$Id: CREDITS,v 1.76 2004/01/30 03:34:21 dtucker Exp $
+$Id: CREDITS,v 1.77 2004/01/30 04:00:50 dtucker Exp $
 
