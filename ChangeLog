@@ -13,6 +13,9 @@
    - markus@cvs.openbsd.org 2001/07/04 23:39:07
      [ssh-agent.c]
      for smartcards remove both RSA1/2 keys
+   - markus@cvs.openbsd.org 2001/07/04 23:49:27
+     [ssh-agent.c]
+     handle mutiple adds of the same smartcard key
 
 20010711
  - (djm) dirname(3) may modify its argument on glibc and other systems. 
@@ -5988,4 +5991,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1389 2001/07/14 02:13:49 djm Exp $
+$Id: ChangeLog,v 1.1390 2001/07/14 02:14:27 djm Exp $

@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.63 2001/07/04 23:39:07 markus Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.64 2001/07/04 23:49:27 markus Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.63 2001/07/04 23:39:07 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.64 2001/07/04 23:49:27 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -464,6 +464,7 @@ process_add_smartcard_key (SocketEntry *e)
 	success = 1;
 
 	tab = idtab_lookup(1);
+	k->type = KEY_RSA1;
 	if (lookup_private_key(k, NULL, 1) == NULL) {
 		if (tab->nentries == 0)
 			tab->identities = xmalloc(sizeof(Identity));
@@ -479,6 +480,7 @@ process_add_smartcard_key (SocketEntry *e)
 		    xstrdup("rsa1 smartcard");
 		tab->nentries++;
 	}
+	k->type = KEY_RSA;
 	tab = idtab_lookup(2);
 	if (lookup_private_key(k, NULL, 2) == NULL) {
 		if (tab->nentries == 0)
