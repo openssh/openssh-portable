@@ -1,4 +1,8 @@
 20031117
+ - (djm) Fix early exit for root auth success when UsePAM=yes and 
+   PermitRootLogin=no
+
+20031117
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2003/11/03 09:03:37
      [auth-chall.c]
@@ -1472,4 +1476,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3112 2003/11/17 11:18:21 djm Exp $
+$Id: ChangeLog,v 1.3113 2003/11/17 23:45:20 djm Exp $

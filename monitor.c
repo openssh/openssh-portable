@@ -309,7 +309,7 @@ monitor_child_preauth(Authctxt *_authctxt, struct monitor *pmonitor)
 				authenticated = 0;
 #ifdef USE_PAM
 			/* PAM needs to perform account checks after auth */
-			if (options.use_pam) {
+			if (options.use_pam && authenticated) {
 				Buffer m;
 
 				buffer_init(&m);
