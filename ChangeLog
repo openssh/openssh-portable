@@ -1,3 +1,11 @@
+20020121
+ - (djm) Rework ssh-rand-helper:
+   - Reduce quantity of ifdef code, in preparation for ssh_rand_conf
+   - Always seed from system calls, even when doing PRNGd seeding
+   - Tidy and comment #define knobs
+   - Remove unused facility for multiple runs through command list
+   - KNF, cleanup, update copyright
+
 20020114
  - (djm) Bug #50 - make autoconf entropy path checks more robust
 
@@ -7136,4 +7144,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1720 2002/01/14 08:01:03 djm Exp $
+$Id: ChangeLog,v 1.1721 2002/01/21 12:44:12 djm Exp $

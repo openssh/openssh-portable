@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001 Damien Miller.  All rights reserved.
+ * Copyright (c) 2001-2002 Damien Miller.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,36 +39,40 @@
 #include "pathnames.h"
 #include "log.h"
 
+RCSID("$Id: ssh-rand-helper.c,v 1.3 2002/01/21 12:44:12 djm Exp $");
+
+/* Number of bytes we write out */
+#define OUTPUT_SEED_SIZE	48
+
+/* Length of on-disk seedfiles */
+#define SEED_FILE_SIZE		1024
+
+/* Maximum number of command-line arguments to read from file */
+#define NUM_ARGS		10
+
+/* Minimum number of usable commands to be considered sufficient */
+#define MIN_ENTROPY_SOURCES	16
+
+/* Path to on-disk seed file (relative to user's home directory */
+#ifndef SSH_PRNG_SEED_FILE
+# define SSH_PRNG_SEED_FILE      _PATH_SSH_USER_DIR"/prng_seed"
+#endif
+
+/* Path to PRNG commands list */
+#ifndef SSH_PRNG_COMMAND_FILE
+# define SSH_PRNG_COMMAND_FILE   ETCDIR "/ssh_prng_cmds"
+#endif
+
+
 #ifdef HAVE___PROGNAME
 extern char *__progname;
 #else
 char *__progname;
 #endif
 
-RCSID("$Id: ssh-rand-helper.c,v 1.2 2001/12/25 04:32:58 stevesk Exp $");
-
-#define RANDOM_SEED_SIZE 48
-
-#ifndef SSH_PRNG_SEED_FILE
-# define SSH_PRNG_SEED_FILE      _PATH_SSH_USER_DIR"/prng_seed"
-#endif /* SSH_PRNG_SEED_FILE */
-#ifndef SSH_PRNG_COMMAND_FILE
-# define SSH_PRNG_COMMAND_FILE   ETCDIR "/ssh_prng_cmds"
-#endif /* SSH_PRNG_COMMAND_FILE */
-
-
 #ifndef offsetof
 # define offsetof(type, member) ((size_t) &((type *)0)->member)
 #endif
-
-/* Number of times to pass through command list gathering entropy */
-#define NUM_ENTROPY_RUNS	1
-
-/* Scale entropy estimates back by this amount on subsequent runs */
-#define SCALE_PER_RUN		10.0
-
-/* Minimum number of commands to be considered valid */
-#define MIN_ENTROPY_SOURCES 16
 
 #define WHITESPACE " \t\n"
 
@@ -81,70 +85,104 @@ RCSID("$Id: ssh-rand-helper.c,v 1.2 2001/12/25 04:32:58 stevesk Exp $");
 
 #if defined(PRNGD_SOCKET) || defined(PRNGD_PORT)
 # define USE_PRNGD
+#else
+# define USE_SEED_FILES
 #endif
 
-#ifdef USE_PRNGD
-/* Collect entropy from PRNGD/EGD */
+typedef struct {
+	/* Proportion of data that is entropy */
+	double rate;
+	/* Counter goes positive if this command times out */
+	unsigned int badness;
+	/* Increases by factor of two each timeout */
+	unsigned int sticky_badness;
+	/* Path to executable */
+	char *path;
+	/* argv to pass to executable */
+	char *args[NUM_ARGS]; /* XXX: arbitrary limit */
+	/* full command string (debug) */
+	char *cmdstring;
+} entropy_cmd_t;
+
+/* slow command timeouts (all in milliseconds) */
+/* static int entropy_timeout_default = ENTROPY_TIMEOUT_MSEC; */
+static int entropy_timeout_current = ENTROPY_TIMEOUT_MSEC;
+
+/* this is initialised from a file, by prng_read_commands() */
+static entropy_cmd_t *entropy_cmds = NULL;
+
+/* Prototypes */
+double stir_from_system(void);
+double stir_from_programs(void);
+double stir_gettimeofday(double entropy_estimate);
+double stir_clock(double entropy_estimate);
+double stir_rusage(int who, double entropy_estimate);
+double hash_command_output(entropy_cmd_t *src, char *hash);
+int get_random_bytes_prngd(unsigned char *buf, int len, 
+    unsigned short tcp_port, char *socket_path);
+
+/*
+ * Collect 'len' bytes of entropy into 'buf' from PRNGD/EGD daemon
+ * listening either on 'tcp_port', or via Unix domain socket at *
+ * 'socket_path'.
+ * Either a non-zero tcp_port or a non-null socket_path must be 
+ * supplied.
+ * Returns 0 on success, -1 on error
+ */
 int
-get_random_bytes(unsigned char *buf, int len)
+get_random_bytes_prngd(unsigned char *buf, int len, 
+    unsigned short tcp_port, char *socket_path)
 {
-	int fd;
+	int fd, addr_len, rval, errors;
 	char msg[2];
-#ifdef PRNGD_PORT
-	struct sockaddr_in addr;
-#else
-	struct sockaddr_un addr;
-#endif
-	int addr_len, rval, errors;
+	struct sockaddr_storage addr;
+	struct sockaddr_in *addr_in = (struct sockaddr_in *)&addr;
+	struct sockaddr_un *addr_un = (struct sockaddr_un *)&addr;
 	mysig_t old_sigpipe;
 
+	/* Sanity checks */
+	if (socket_path == NULL && tcp_port == 0)
+		fatal("You must specify a port or a socket");
+	if (socket_path != NULL &&
+	    strlen(socket_path) >= sizeof(addr_un->sun_path))
+		fatal("Random pool path is too long");
 	if (len > 255)
 		fatal("Too many bytes to read from PRNGD");
 
 	memset(&addr, '\0', sizeof(addr));
 
-#ifdef PRNGD_PORT
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-	addr.sin_port = htons(PRNGD_PORT);
-	addr_len = sizeof(struct sockaddr_in);
-#else /* use IP socket PRNGD_SOCKET instead */
-	/* Sanity checks */
-	if (sizeof(PRNGD_SOCKET) > sizeof(addr.sun_path))
-		fatal("Random pool path is too long");
-
-	addr.sun_family = AF_UNIX;
-	strlcpy(addr.sun_path, PRNGD_SOCKET, sizeof(addr.sun_path));
-	addr_len = offsetof(struct sockaddr_un, sun_path) +
-	    sizeof(PRNGD_SOCKET);
-#endif
+	if (tcp_port != 0) {
+		addr_in->sin_family = AF_INET;
+		addr_in->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+		addr_in->sin_port = htons(tcp_port);
+		addr_len = sizeof(*addr_in);
+	} else {
+		addr_un->sun_family = AF_UNIX;
+		strlcpy(addr_un->sun_path, socket_path,
+		    sizeof(addr_un->sun_path));
+		addr_len = offsetof(struct sockaddr_un, sun_path) +
+		    strlen(socket_path) + 1;
+	}
 
 	old_sigpipe = mysignal(SIGPIPE, SIG_IGN);
 
-	errors = rval = 0;
+	errors = 0;
+	rval = -1;
 reopen:
-#ifdef PRNGD_PORT
-	fd = socket(addr.sin_family, SOCK_STREAM, 0);
+	fd = socket(addr.ss_family, SOCK_STREAM, 0);
 	if (fd == -1) {
-		error("Couldn't create AF_INET socket: %s", strerror(errno));
+		error("Couldn't create socket: %s", strerror(errno));
 		goto done;
 	}
-#else
-	fd = socket(addr.sun_family, SOCK_STREAM, 0);
-	if (fd == -1) {
-		error("Couldn't create AF_UNIX socket: %s", strerror(errno));
-		goto done;
-	}
-#endif
 
 	if (connect(fd, (struct sockaddr*)&addr, addr_len) == -1) {
-#ifdef PRNGD_PORT
-		error("Couldn't connect to PRNGD port %d: %s",
-		    PRNGD_PORT, strerror(errno));
-#else
-		error("Couldn't connect to PRNGD socket \"%s\": %s",
-		    addr.sun_path, strerror(errno));
-#endif
+		if (tcp_port != 0) {
+			error("Couldn't connect to PRNGD port %d: %s",
+			    tcp_port, strerror(errno));
+		} else {
+			error("Couldn't connect to PRNGD socket \"%s\": %s",
+			    addr_un->sun_path, strerror(errno));
+		}
 		goto done;
 	}
 
@@ -174,146 +212,12 @@ reopen:
 		goto done;
 	}
 
-	rval = 1;
+	rval = 0;
 done:
 	mysignal(SIGPIPE, old_sigpipe);
 	if (fd != -1)
 		close(fd);
-	return(rval);
-}
-
-static void
-seed_openssl_rng(void)
-{
-	unsigned char buf[RANDOM_SEED_SIZE];
-
-	if (!get_random_bytes(buf, sizeof(buf)))
-		fatal("Entropy collection failed");
-
-	RAND_add(buf, sizeof(buf), sizeof(buf));
-	memset(buf, '\0', sizeof(buf));
-}
-
-#else /* USE_PRNGD */
-
-/*
- * FIXME: proper entropy estimations. All current values are guesses
- * FIXME: (ATL) do estimates at compile time?
- * FIXME: More entropy sources
- */
-
-/* slow command timeouts (all in milliseconds) */
-/* static int entropy_timeout_default = ENTROPY_TIMEOUT_MSEC; */
-static int entropy_timeout_current = ENTROPY_TIMEOUT_MSEC;
-
-typedef struct
-{
-	/* Proportion of data that is entropy */
-	double rate;
-	/* Counter goes positive if this command times out */
-	unsigned int badness;
-	/* Increases by factor of two each timeout */
-	unsigned int sticky_badness;
-	/* Path to executable */
-	char *path;
-	/* argv to pass to executable */
-	char *args[5];
-	/* full command string (debug) */
-	char *cmdstring;
-} entropy_source_t;
-
-double stir_from_system(void);
-double stir_from_programs(void);
-double stir_gettimeofday(double entropy_estimate);
-double stir_clock(double entropy_estimate);
-double stir_rusage(int who, double entropy_estimate);
-double hash_output_from_command(entropy_source_t *src, char *hash);
-
-/* this is initialised from a file, by prng_read_commands() */
-entropy_source_t *entropy_sources = NULL;
-
-double
-stir_from_system(void)
-{
-	double total_entropy_estimate;
-	long int i;
-
-	total_entropy_estimate = 0;
-
-	i = getpid();
-	RAND_add(&i, sizeof(i), 0.5);
-	total_entropy_estimate += 0.1;
-
-	i = getppid();
-	RAND_add(&i, sizeof(i), 0.5);
-	total_entropy_estimate += 0.1;
-
-	i = getuid();
-	RAND_add(&i, sizeof(i), 0.0);
-	i = getgid();
-	RAND_add(&i, sizeof(i), 0.0);
-
-	total_entropy_estimate += stir_gettimeofday(1.0);
-	total_entropy_estimate += stir_clock(0.5);
-	total_entropy_estimate += stir_rusage(RUSAGE_SELF, 2.0);
-
-	return(total_entropy_estimate);
-}
-
-double
-stir_from_programs(void)
-{
-	int i;
-	int c;
-	double entropy_estimate;
-	double total_entropy_estimate;
-	char hash[SHA_DIGEST_LENGTH];
-
-	total_entropy_estimate = 0;
-	for(i = 0; i < NUM_ENTROPY_RUNS; i++) {
-		c = 0;
-		while (entropy_sources[c].path != NULL) {
-
-			if (!entropy_sources[c].badness) {
-				/* Hash output from command */
-				entropy_estimate = hash_output_from_command(&entropy_sources[c], hash);
-
-				/* Scale back entropy estimate according to command's rate */
-				entropy_estimate *= entropy_sources[c].rate;
-
-				/* Upper bound of entropy estimate is SHA_DIGEST_LENGTH */
-				if (entropy_estimate > SHA_DIGEST_LENGTH)
-					entropy_estimate = SHA_DIGEST_LENGTH;
-
-				/* Scale back estimates for subsequent passes through list */
-				entropy_estimate /= SCALE_PER_RUN * (i + 1.0);
-
-				/* Stir it in */
-				RAND_add(hash, sizeof(hash), entropy_estimate);
-
-				debug3("Got %0.2f bytes of entropy from '%s'", entropy_estimate,
-					entropy_sources[c].cmdstring);
-
-				total_entropy_estimate += entropy_estimate;
-
-			/* Execution times should be a little unpredictable */
-				total_entropy_estimate += stir_gettimeofday(0.05);
-				total_entropy_estimate += stir_clock(0.05);
-				total_entropy_estimate += stir_rusage(RUSAGE_SELF, 0.1);
-				total_entropy_estimate += stir_rusage(RUSAGE_CHILDREN, 0.1);
-			} else {
-				debug2("Command '%s' disabled (badness %d)",
-					entropy_sources[c].cmdstring, entropy_sources[c].badness);
-
-				if (entropy_sources[c].badness > 0)
-					entropy_sources[c].badness--;
-			}
-
-			c++;
-		}
-	}
-
-	return(total_entropy_estimate);
+	return rval;
 }
 
 double
@@ -326,7 +230,7 @@ stir_gettimeofday(double entropy_estimate)
 
 	RAND_add(&tv, sizeof(tv), entropy_estimate);
 
-	return(entropy_estimate);
+	return entropy_estimate;
 }
 
 double
@@ -338,9 +242,9 @@ stir_clock(double entropy_estimate)
 	c = clock();
 	RAND_add(&c, sizeof(c), entropy_estimate);
 
-	return(entropy_estimate);
+	return entropy_estimate;
 #else /* _HAVE_CLOCK */
-	return(0);
+	return 0;
 #endif /* _HAVE_CLOCK */
 }
 
@@ -351,19 +255,19 @@ stir_rusage(int who, double entropy_estimate)
 	struct rusage ru;
 
 	if (getrusage(who, &ru) == -1)
-		return(0);
+		return 0;
 
 	RAND_add(&ru, sizeof(ru), entropy_estimate);
 
-	return(entropy_estimate);
+	return entropy_estimate;
 #else /* _HAVE_GETRUSAGE */
-	return(0);
+	return 0;
 #endif /* _HAVE_GETRUSAGE */
 }
 
-
 static int
-_get_timeval_msec_difference(struct timeval *t1, struct timeval *t2) {
+timeval_diff(struct timeval *t1, struct timeval *t2)
+{
 	int secdiff, usecdiff;
 
 	secdiff = t2->tv_sec - t1->tv_sec;
@@ -372,27 +276,24 @@ _get_timeval_msec_difference(struct timeval *t1, struct timeval *t2) {
 }
 
 double
-hash_output_from_command(entropy_source_t *src, char *hash)
+hash_command_output(entropy_cmd_t *src, char *hash)
 {
-	static int devnull = -1;
-	int p[2];
+	char buf[8192];
 	fd_set rdset;
-	int cmd_eof = 0, error_abort = 0;
-	struct timeval tv_start, tv_current;
-	int msec_elapsed = 0;
+	int bytes_read, cmd_eof, error_abort, msec_elapsed, p[2];
+	int status, total_bytes_read;
+	static int devnull = -1;
 	pid_t pid;
-	int status;
-	char buf[16384];
-	int bytes_read;
-	int total_bytes_read;
 	SHA_CTX sha;
+	struct timeval tv_start, tv_current;
 
 	debug3("Reading output from \'%s\'", src->cmdstring);
 
 	if (devnull == -1) {
 		devnull = open("/dev/null", O_RDWR);
 		if (devnull == -1)
-			fatal("Couldn't open /dev/null: %s", strerror(errno));
+			fatal("Couldn't open /dev/null: %s", 
+			    strerror(errno));
 	}
 
 	if (pipe(p) == -1)
@@ -415,8 +316,9 @@ hash_output_from_command(entropy_source_t *src, char *hash)
 			close(devnull);
 
 			execv(src->path, (char**)(src->args));
-			debug("(child) Couldn't exec '%s': %s", src->cmdstring,
-			      strerror(errno));
+
+			debug("(child) Couldn't exec '%s': %s", 
+			    src->cmdstring, strerror(errno));
 			_exit(-1);
 		default: /* Parent */
 			break;
@@ -428,15 +330,15 @@ hash_output_from_command(entropy_source_t *src, char *hash)
 
 	/* Hash output from child */
 	SHA1_Init(&sha);
-	total_bytes_read = 0;
 
+	cmd_eof = error_abort = msec_elapsed = total_bytes_read = 0;
 	while (!error_abort && !cmd_eof) {
 		int ret;
 		struct timeval tv;
 		int msec_remaining;
 
 		(void) gettimeofday(&tv_current, 0);
-		msec_elapsed = _get_timeval_msec_difference(&tv_start, &tv_current);
+		msec_elapsed = timeval_diff(&tv_start, &tv_current);
 		if (msec_elapsed >= entropy_timeout_current) {
 			error_abort=1;
 			continue;
@@ -445,10 +347,10 @@ hash_output_from_command(entropy_source_t *src, char *hash)
 
 		FD_ZERO(&rdset);
 		FD_SET(p[0], &rdset);
-		tv.tv_sec =  msec_remaining / 1000;
+		tv.tv_sec = msec_remaining / 1000;
 		tv.tv_usec = (msec_remaining % 1000) * 1000;
 
-		ret = select(p[0]+1, &rdset, NULL, NULL, &tv);
+		ret = select(p[0] + 1, &rdset, NULL, NULL, &tv);
 
 		RAND_add(&tv, sizeof(tv), 0.0);
 
@@ -476,8 +378,8 @@ hash_output_from_command(entropy_source_t *src, char *hash)
 		case -1:
 		default:
 			/* error */
-			debug("Command '%s': select() failed: %s", src->cmdstring,
-			      strerror(errno));
+			debug("Command '%s': select() failed: %s", 
+			    src->cmdstring, strerror(errno));
 			error_abort = 1;
 			break;
 		}
@@ -490,93 +392,174 @@ hash_output_from_command(entropy_source_t *src, char *hash)
 	debug3("Time elapsed: %d msec", msec_elapsed);
 
 	if (waitpid(pid, &status, 0) == -1) {
-	       error("Couldn't wait for child '%s' completion: %s", src->cmdstring,
-		     strerror(errno));
-		return(0.0);
+	       error("Couldn't wait for child '%s' completion: %s",
+	           src->cmdstring, strerror(errno));
+		return 0.0;
 	}
 
 	RAND_add(&status, sizeof(&status), 0.0);
 
 	if (error_abort) {
-		/* closing p[0] on timeout causes the entropy command to
-		 * SIGPIPE. Take whatever output we got, and mark this command
-		 * as slow */
+		/*
+		 * Closing p[0] on timeout causes the entropy command to
+		 * SIGPIPE. Take whatever output we got, and mark this 
+		 * command as slow 
+		 */
 		debug2("Command '%s' timed out", src->cmdstring);
 		src->sticky_badness *= 2;
 		src->badness = src->sticky_badness;
-		return(total_bytes_read);
+		return total_bytes_read;
 	}
 
 	if (WIFEXITED(status)) {
-		if (WEXITSTATUS(status)==0) {
-			return(total_bytes_read);
+		if (WEXITSTATUS(status) == 0) {
+			return total_bytes_read;
 		} else {
-			debug2("Command '%s' exit status was %d", src->cmdstring,
-				WEXITSTATUS(status));
+			debug2("Command '%s' exit status was %d",
+			    src->cmdstring, WEXITSTATUS(status));
 			src->badness = src->sticky_badness = 128;
-			return (0.0);
+			return 0.0;
 		}
 	} else if (WIFSIGNALED(status)) {
-		debug2("Command '%s' returned on uncaught signal %d !", src->cmdstring,
-			status);
+		debug2("Command '%s' returned on uncaught signal %d !",
+		    src->cmdstring, status);
 		src->badness = src->sticky_badness = 128;
-		return(0.0);
+		return 0.0;
 	} else
-		return(0.0);
+		return 0.0;
+}
+
+double
+stir_from_system(void)
+{
+	double total_entropy_estimate;
+	long int i;
+
+	total_entropy_estimate = 0;
+
+	i = getpid();
+	RAND_add(&i, sizeof(i), 0.5);
+	total_entropy_estimate += 0.1;
+
+	i = getppid();
+	RAND_add(&i, sizeof(i), 0.5);
+	total_entropy_estimate += 0.1;
+
+	i = getuid();
+	RAND_add(&i, sizeof(i), 0.0);
+	i = getgid();
+	RAND_add(&i, sizeof(i), 0.0);
+
+	total_entropy_estimate += stir_gettimeofday(1.0);
+	total_entropy_estimate += stir_clock(0.5);
+	total_entropy_estimate += stir_rusage(RUSAGE_SELF, 2.0);
+
+	return total_entropy_estimate;
+}
+
+double
+stir_from_programs(void)
+{
+	int c;
+	double entropy, total_entropy;
+	char hash[SHA_DIGEST_LENGTH];
+
+	total_entropy = 0;
+	for(c = 0; entropy_cmds[c].path != NULL; c++) {
+		if (!entropy_cmds[c].badness) {
+			/* Hash output from command */
+			entropy = hash_command_output(&entropy_cmds[c],
+			    hash);
+
+			/* Scale back estimate by command's rate */
+			entropy *= entropy_cmds[c].rate;
+
+			/* Upper bound of entropy is SHA_DIGEST_LENGTH */
+			if (entropy > SHA_DIGEST_LENGTH)
+				entropy = SHA_DIGEST_LENGTH;
+
+			/* Stir it in */
+			RAND_add(hash, sizeof(hash), entropy);
+
+			debug3("Got %0.2f bytes of entropy from '%s'", 
+			    entropy, entropy_cmds[c].cmdstring);
+
+			total_entropy += entropy;
+
+			/* Execution time should be a bit unpredictable */
+			total_entropy += stir_gettimeofday(0.05);
+			total_entropy += stir_clock(0.05);
+			total_entropy += stir_rusage(RUSAGE_SELF, 0.1);
+			total_entropy += stir_rusage(RUSAGE_CHILDREN, 0.1);
+		} else {
+			debug2("Command '%s' disabled (badness %d)",
+			    entropy_cmds[c].cmdstring, 
+			    entropy_cmds[c].badness);
+
+			if (entropy_cmds[c].badness > 0)
+				entropy_cmds[c].badness--;
+		}
+	}
+
+	return total_entropy;
 }
 
 /*
  * prng seedfile functions
  */
 int
-prng_check_seedfile(char *filename) {
-
+prng_check_seedfile(char *filename)
+{
 	struct stat st;
 
-	/* FIXME raceable: eg replace seed between this stat and subsequent open */
-	/* Not such a problem because we don't trust the seed file anyway */
+	/*
+	 * XXX raceable: eg replace seed between this stat and subsequent 
+	 * open. Not such a problem because we don't really trust the 
+	 * seed file anyway.
+	 * XXX: use secure path checking as elsewhere in OpenSSH
+	 */
 	if (lstat(filename, &st) == -1) {
 		/* Give up on hard errors */
 		if (errno != ENOENT)
-			debug("WARNING: Couldn't stat random seed file \"%s\": %s",
-			   filename, strerror(errno));
-
-		return(0);
+			debug("WARNING: Couldn't stat random seed file "
+			    "\"%.100s\": %s", filename, strerror(errno));
+		return 0;
 	}
 
 	/* regular file? */
 	if (!S_ISREG(st.st_mode))
-		fatal("PRNG seedfile %.100s is not a regular file", filename);
+		fatal("PRNG seedfile %.100s is not a regular file",
+		    filename);
 
 	/* mode 0600, owned by root or the current user? */
 	if (((st.st_mode & 0177) != 0) || !(st.st_uid == getuid())) {
-		debug("WARNING: PRNG seedfile %.100s must be mode 0600, owned by uid %d",
-			 filename, getuid());
-		return(0);
+		debug("WARNING: PRNG seedfile %.100s must be mode 0600, "
+		    "owned by uid %d", filename, getuid());
+		return 0;
 	}
 
-	return(1);
+	return 1;
 }
 
 void
-prng_write_seedfile(void) {
+prng_write_seedfile(void)
+{
 	int fd;
-	char seed[1024];
-	char filename[1024];
+	char seed[SEED_FILE_SIZE], filename[MAXPATHLEN];
 	struct passwd *pw;
 
 	pw = getpwuid(getuid());
 	if (pw == NULL)
-		fatal("Couldn't get password entry for current user (%i): %s",
-			getuid(), strerror(errno));
+		fatal("Couldn't get password entry for current user "
+		    "(%i): %s", getuid(), strerror(errno));
 
 	/* Try to ensure that the parent directory is there */
 	snprintf(filename, sizeof(filename), "%.512s/%s", pw->pw_dir,
-		_PATH_SSH_USER_DIR);
+	    _PATH_SSH_USER_DIR);
 	mkdir(filename, 0700);
 
 	snprintf(filename, sizeof(filename), "%.512s/%s", pw->pw_dir,
-		SSH_PRNG_SEED_FILE);
+	    SSH_PRNG_SEED_FILE);
 
 	debug("writing PRNG seed to file %.100s", filename);
 
@@ -586,27 +569,27 @@ prng_write_seedfile(void) {
 	prng_check_seedfile(filename);
 
 	if ((fd = open(filename, O_WRONLY|O_TRUNC|O_CREAT, 0600)) == -1) {
-		debug("WARNING: couldn't access PRNG seedfile %.100s (%.100s)",
-		   filename, strerror(errno));
+		debug("WARNING: couldn't access PRNG seedfile %.100s "
+		    "(%.100s)", filename, strerror(errno));
 	} else {
-		if (atomicio(write, fd, &seed, sizeof(seed)) != sizeof(seed))
-			fatal("problem writing PRNG seedfile %.100s (%.100s)", filename,
-				 strerror(errno));
+		if (atomicio(write, fd, &seed, sizeof(seed)) < sizeof(seed))
+			fatal("problem writing PRNG seedfile %.100s "
+			    "(%.100s)", filename, strerror(errno));
 		close(fd);
 	}
 }
 
 void
-prng_read_seedfile(void) {
+prng_read_seedfile(void)
+{
 	int fd;
-	char seed[1024];
-	char filename[1024];
+	char seed[SEED_FILE_SIZE], filename[MAXPATHLEN];
 	struct passwd *pw;
 
 	pw = getpwuid(getuid());
 	if (pw == NULL)
-		fatal("Couldn't get password entry for current user (%i): %s",
-			getuid(), strerror(errno));
+		fatal("Couldn't get password entry for current user "
+		    "(%i): %s", getuid(), strerror(errno));
 
 	snprintf(filename, sizeof(filename), "%.512s/%s", pw->pw_dir,
 		SSH_PRNG_SEED_FILE);
@@ -614,19 +597,19 @@ prng_read_seedfile(void) {
 	debug("loading PRNG seed from file %.100s", filename);
 
 	if (!prng_check_seedfile(filename)) {
-		verbose("Random seed file not found or not valid, ignoring.");
+		verbose("Random seed file not found or invalid, ignoring.");
 		return;
 	}
 
 	/* open the file and read in the seed */
 	fd = open(filename, O_RDONLY);
 	if (fd == -1)
-		fatal("could not open PRNG seedfile %.100s (%.100s)", filename,
-			strerror(errno));
+		fatal("could not open PRNG seedfile %.100s (%.100s)",
+		    filename, strerror(errno));
 
-	if (atomicio(read, fd, &seed, sizeof(seed)) != sizeof(seed)) {
-		verbose("invalid or short read from PRNG seedfile %.100s - ignoring",
-			filename);
+	if (atomicio(read, fd, &seed, sizeof(seed)) < sizeof(seed)) {
+		verbose("invalid or short read from PRNG seedfile "
+		    "%.100s - ignoring", filename);
 		memset(seed, '\0', sizeof(seed));
 	}
 	close(fd);
@@ -642,81 +625,78 @@ prng_read_seedfile(void) {
 int
 prng_read_commands(char *cmdfilename)
 {
-	FILE *f;
-	char *cp;
-	char line[1024];
-	char cmd[1024];
-	char path[256];
-	int linenum;
-	int num_cmds = 64;
-	int cur_cmd = 0;
+	char cmd[SEED_FILE_SIZE], *cp, line[1024], path[SEED_FILE_SIZE];
 	double est;
-	entropy_source_t *entcmd;
+	entropy_cmd_t *entcmd;
+	FILE *f;
+	int cur_cmd, linenum, num_cmds, arg;
 
-	f = fopen(cmdfilename, "r");
-	if (!f) {
+	if ((f = fopen(cmdfilename, "r")) == NULL) {
 		fatal("couldn't read entropy commands file %.100s: %.100s",
 		    cmdfilename, strerror(errno));
 	}
 
-	entcmd = (entropy_source_t *)xmalloc(num_cmds * sizeof(entropy_source_t));
-	memset(entcmd, '\0', num_cmds * sizeof(entropy_source_t));
+	num_cmds = 64;
+	entcmd = xmalloc(num_cmds * sizeof(entropy_cmd_t));
+	memset(entcmd, '\0', num_cmds * sizeof(entropy_cmd_t));
 
 	/* Read in file */
-	linenum = 0;
+	cur_cmd = linenum = 0;
 	while (fgets(line, sizeof(line), f)) {
-		int arg;
-		char *argv;
-
 		linenum++;
 
-		/* skip leading whitespace, test for blank line or comment */
+		/* Skip leading whitespace, blank lines and comments */
 		cp = line + strspn(line, WHITESPACE);
 		if ((*cp == 0) || (*cp == '#'))
 			continue; /* done with this line */
 
-		/* First non-whitespace char should be double quote delimiting */
-		/* commandline */
+		/*
+		 * The first non-whitespace char should be a double quote 
+		 * delimiting the commandline
+		 */
 		if (*cp != '"') {
-			error("bad entropy command, %.100s line %d", cmdfilename,
-			     linenum);
+			error("bad entropy command, %.100s line %d",
+			    cmdfilename, linenum);
 			continue;
 		}
 
-		/* first token, command args (incl. argv[0]) in double quotes */
+		/*
+		 * First token, command args (incl. argv[0]) in double
+		 * quotes
+		 */
 		cp = strtok(cp, "\"");
 		if (cp == NULL) {
-			error("missing or bad command string, %.100s line %d -- ignored",
-			      cmdfilename, linenum);
+			error("missing or bad command string, %.100s "
+			    "line %d -- ignored", cmdfilename, linenum);
 			continue;
 		}
 		strlcpy(cmd, cp, sizeof(cmd));
 
-		/* second token, full command path */
+		/* Second token, full command path */
 		if ((cp = strtok(NULL, WHITESPACE)) == NULL) {
-			error("missing command path, %.100s line %d -- ignored",
-			      cmdfilename, linenum);
+			error("missing command path, %.100s "
+			    "line %d -- ignored", cmdfilename, linenum);
 			continue;
 		}
 
-		/* did configure mark this as dead? */
+		/* Did configure mark this as dead? */
 		if (strncmp("undef", cp, 5) == 0)
 			continue;
 
 		strlcpy(path, cp, sizeof(path));
 
-		/* third token, entropy rate estimate for this command */
+		/* Third token, entropy rate estimate for this command */
 		if ((cp = strtok(NULL, WHITESPACE)) == NULL) {
-			error("missing entropy estimate, %.100s line %d -- ignored",
-			      cmdfilename, linenum);
+			error("missing entropy estimate, %.100s "
+			    "line %d -- ignored", cmdfilename, linenum);
 			continue;
 		}
-		est = strtod(cp, &argv);
+		est = strtod(cp, NULL);
 
 		/* end of line */
 		if ((cp = strtok(NULL, WHITESPACE)) != NULL) {
-			error("garbage at end of line %d in %.100s -- ignored", linenum,
-				cmdfilename);
+			error("garbage at end of line %d in %.100s "
+			    "-- ignored", linenum, cmdfilename);
 			continue;
 		}
 
@@ -726,17 +706,14 @@ prng_read_commands(char *cmdfilename)
 		/* split the command args */
 		cp = strtok(cmd, WHITESPACE);
 		arg = 0;
-		argv = NULL;
 		do {
-			char *s = (char*)xmalloc(strlen(cp) + 1);
-			strncpy(s, cp, strlen(cp) + 1);
-			entcmd[cur_cmd].args[arg] = s;
+			entcmd[cur_cmd].args[arg] = xstrdup(cp);
 			arg++;
-		} while ((arg < 5) && (cp = strtok(NULL, WHITESPACE)));
+		} while(arg < NUM_ARGS && (cp = strtok(NULL, WHITESPACE)));
 
 		if (strtok(NULL, WHITESPACE))
-			error("ignored extra command elements (max 5), %.100s line %d",
-			      cmdfilename, linenum);
+			error("ignored extra commands (max %d), %.100s "
+			    "line %d", NUM_ARGS, cmdfilename, linenum);
 
 		/* Copy the command path and rate estimate */
 		entcmd[cur_cmd].path = xstrdup(path);
@@ -747,56 +724,80 @@ prng_read_commands(char *cmdfilename)
 
 		cur_cmd++;
 
-		/* If we've filled the array, reallocate it twice the size */
-		/* Do this now because even if this we're on the last command,
-		   we need another slot to mark the last entry */
+		/*
+		 * If we've filled the array, reallocate it twice the size
+		 * Do this now because even if this we're on the last 
+		 * command we need another slot to mark the last entry
+		 */
 		if (cur_cmd == num_cmds) {
 			num_cmds *= 2;
-			entcmd = xrealloc(entcmd, num_cmds * sizeof(entropy_source_t));
+			entcmd = xrealloc(entcmd, num_cmds *
+			    sizeof(entropy_cmd_t));
 		}
 	}
 
 	/* zero the last entry */
-	memset(&entcmd[cur_cmd], '\0', sizeof(entropy_source_t));
+	memset(&entcmd[cur_cmd], '\0', sizeof(entropy_cmd_t));
 
 	/* trim to size */
-	entropy_sources = xrealloc(entcmd, (cur_cmd+1) * sizeof(entropy_source_t));
+	entropy_cmds = xrealloc(entcmd, (cur_cmd + 1) *
+	    sizeof(entropy_cmd_t));
 
-	debug("Loaded %d entropy commands from %.100s", cur_cmd, cmdfilename);
+	debug("Loaded %d entropy commands from %.100s", cur_cmd,
+	    cmdfilename);
 
-	return (cur_cmd >= MIN_ENTROPY_SOURCES);
+	return cur_cmd < MIN_ENTROPY_SOURCES ? -1 : 0;
 }
-
-static void
-seed_openssl_rng(void)
-{
-	/* Read in collection commands */
-	if (!prng_read_commands(SSH_PRNG_COMMAND_FILE))
-		fatal("PRNG initialisation failed -- exiting.");
-
-	prng_read_seedfile();
-
-	debug("Seeded RNG with %i bytes from programs", 
-	    (int)stir_from_programs());
-	debug("Seeded RNG with %i bytes from system calls", 
-	    (int)stir_from_system());
-
-	prng_write_seedfile();
-}
-
-#endif /* USE_PRNGD */
 
 int 
 main(int argc, char **argv)
 {
-	unsigned char buf[48];
+	unsigned char buf[OUTPUT_SEED_SIZE];
 	int ret;
 
 	__progname = get_progname(argv[0]);
 	/* XXX: need some debugging mode */
 	log_init(argv[0], SYSLOG_LEVEL_INFO, SYSLOG_FACILITY_USER, 1);
 
-	seed_openssl_rng();
+#ifdef USE_SEED_FILES
+	prng_read_seedfile();
+#endif
+
+	/*
+	 * Seed the RNG from wherever we can
+	 */
+	 
+	/* Take whatever is on the stack, but don't credit it */
+	RAND_add(buf, sizeof(buf), 0);
+
+	debug("Seeded RNG with %i bytes from system calls", 
+	    (int)stir_from_system());
+
+#ifdef PRNGD_PORT
+	if (get_random_bytes_prngd(buf, sizeof(buf), PRNGD_PORT,
+	    NULL) == -1)
+		fatal("Entropy collection failed");
+	RAND_add(buf, sizeof(buf), sizeof(buf));
+#elif PRNGD_SOCKET
+	if (get_random_bytes_prngd(buf, sizeof(buf), PRNGD_SOCKET,
+	    NULL) == -1)
+		fatal("Entropy collection failed");
+	RAND_add(buf, sizeof(buf), sizeof(buf));
+#else
+	/* Read in collection commands */
+	if (prng_read_commands(SSH_PRNG_COMMAND_FILE) == -1)
+		fatal("PRNG initialisation failed -- exiting.");
+	debug("Seeded RNG with %i bytes from programs", 
+	    (int)stir_from_programs());
+#endif
+
+#ifdef USE_SEED_FILES
+	prng_write_seedfile();
+#endif
+
+	/*
+	 * Write the seed to stdout
+	 */
 
 	if (!RAND_status())
 		fatal("Not enough entropy in RNG");
