@@ -19,7 +19,7 @@
 %if %{use_stable}
   %define version 	3.7p1
   %define cvs		%{nil}
-  %define release 	2
+  %define release 	1
 %else
   %define version 	2.9.9p2
   %define cvs		cvs20011009
@@ -364,4 +364,4 @@ fi
 * Mon Jan 01 1998 ...
 Template Version: 1.31
 
-$Id: openssh.spec,v 1.43.2.1 2003/09/16 03:59:43 djm Exp $
+$Id: openssh.spec,v 1.43.2.2 2003/09/16 06:02:40 djm Exp $

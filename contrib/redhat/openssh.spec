@@ -1,5 +1,5 @@
 %define ver 3.7p1
-%define rel 3
+%define rel 1
 
 # OpenSSH privilege separation requires a user & group ID
 %define sshd_uid    74
