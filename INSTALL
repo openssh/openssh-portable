@@ -52,7 +52,7 @@ OpenSSH has only been tested with GNU make. It may work with other
 'make' programs, but you are on your own.
 
 PCRE (PERL-compatible Regular Expression library):
-ftp://ftp.cus.cam.ac.uk/pub/software/programs/pcre/
+ftp://ftp.cus.cam.ac.uk/pub/software/programing/pcre/
 
 Most platforms do not require this.  However older Unices may not have a 
 posix regex library. PCRE provides a POSIX interface.
@@ -227,4 +227,4 @@ Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
 
 
-$Id: INSTALL,v 1.43 2001/04/20 20:56:21 stevesk Exp $
+$Id: INSTALL,v 1.44 2001/04/28 16:32:11 mouring Exp $
