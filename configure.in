@@ -1,4 +1,4 @@
-# $Id: configure.in,v 1.308 2001/09/15 11:31:54 djm Exp $
+# $Id: configure.in,v 1.309 2001/09/17 21:34:34 tim Exp $
 
 AC_INIT(ssh.c)
 
@@ -198,13 +198,13 @@ mips-sony-bsd|mips-sony-newsos4)
 *-*-sysv4.2*)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
-	enable_suid_ssh=no
+#	enable_suid_ssh=no
 	AC_DEFINE(USE_PIPES)
 	;;
 *-*-sysv5*)
 	CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
-	enable_suid_ssh=no
+#	enable_suid_ssh=no
 	AC_DEFINE(USE_PIPES)
 	;;
 *-*-sysv*)

@@ -51,6 +51,9 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #ifdef HAVE_GETOPT_H
 # include <getopt.h>
 #endif
+#ifndef HAVE_GETOPT_OPTRESET
+#define getopt(ac, av, o)  BSDgetopt(ac, av, o)
+#endif
 #ifdef HAVE_BSTRING_H
 # include <bstring.h>
 #endif

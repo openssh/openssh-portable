@@ -1,4 +1,4 @@
-/* $Id: getopt.h,v 1.2 2001/07/14 16:05:55 stevesk Exp $ */
+/* $Id: getopt.h,v 1.3 2001/09/17 21:34:34 tim Exp $ */
 
 #ifndef _GETOPT_H
 #define _GETOPT_H
@@ -7,7 +7,7 @@
 
 #ifndef HAVE_GETOPT_H
 
-int getopt(int argc, char * const *argv, const char *opts);
+int BSDgetopt(int argc, char * const *argv, const char *opts);
 
 #endif
 

@@ -57,7 +57,7 @@ char	*optarg;		/* argument associated with option */
  *	Parse argc/argv argument vector.
  */
 int
-getopt(nargc, nargv, ostr)
+BSDgetopt(nargc, nargv, ostr)
 	int nargc;
 	char * const *nargv;
 	const char *ostr;

@@ -1,5 +1,10 @@
 20010917
  - (djm) x11-ssh-askpass-1.2.4 in RPM spec, revert workarounds
+ - (tim) [includes.h openbsd-compat/getopt.c openbsd-compat/getopt.h]
+	 rename getopt() to BSDgetopt() to keep form conflicting with
+	 system getopt().
+	 [Makefile.in configure.in] disable filepriv until I can add
+	 missing procpriv calls.
 
 20010916
  - (djm) Workaround XFree breakage in RPM spec file
@@ -6452,4 +6457,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1523 2001/09/17 05:07:23 djm Exp $
+$Id: ChangeLog,v 1.1524 2001/09/17 21:34:33 tim Exp $
