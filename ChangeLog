@@ -2,6 +2,8 @@
  - Cleanup of auth.c, login.c and fake-*
  - Cleanup of auth-pam.c, save and print "account expired" error messages
  - Fix EGD read bug by IWAMURO Motonori <iwa@mmp.fujitsu.co.jp>
+ - Rewrote bsd-login to use proper utmp API if available. Major cleanup
+   of fallback DIY code.
 
 20000530
  - Define atexit for old Solaris

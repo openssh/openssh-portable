@@ -1,5 +1,5 @@
 /*
- * This file has been modified from the original OpenBSD version 
+ * This file has been heavily modified from the original OpenBSD version 
  */
 
 /*	$OpenBSD: login.c,v 1.5 1998/07/13 02:11:12 millert Exp $	*/
@@ -74,7 +74,7 @@ struct utmp * utp;
 	int t = 0;
 	struct utmp * u;
 
-#if defined(HAVE_TYPE_IN_UTMP) || defined(HAVE_TYPE_IN_UTMPX)
+# if defined(HAVE_TYPE_IN_UTMP) || defined(HAVE_TYPE_IN_UTMPX)
 	setutent();
 
 	while((u = getutent()) != NULL) {
@@ -93,35 +93,47 @@ struct utmp * utp;
 	}
 
 	endutent();
-#endif
+# endif /* defined(HAVE_TYPE_IN_UTMP) || defined(HAVE_TYPE_IN_UTMPX) */
 	return(-1);
 }
-#else
-int find_tty_slot( utp )
-struct utmp * utp;
+#else /* USER_PROCESS */
+int find_tty_slot(struct utmp *utp)
 {
 	return(ttyslot());
 }
-#endif
+#endif /* USER_PROCESS */
 
 #if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
-void
-login(utp,utx)
-	struct utmp *utp;
-	struct utmpx *utx;
+void login(struct utmpx *utx)
 #else /* defined(HAVE_UTMPX_H) && defined(USE_UTMPX) */
-void
-login(utp)
-	struct utmp *utp;
+void login(struct utmp *utp)
 #endif /* defined(HAVE_UTMPX_H) && defined(USE_UTMPX) */
 {
-#if defined(HAVE_HOST_IN_UTMP)
-	struct utmp old_ut;
-#endif
-#if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
-	struct utmpx *old_utx;
-#endif /* defined(HAVE_UTMPX_H) && defined(USE_UTMPX) */
-	register int fd;
+	/* Use proper API if we have it */
+#if defined(USE_UTMPX)
+# if defined(HAVE_PUTUTXLINE)
+	setutxent();
+	pututxline(utx);
+	endutxent();	
+# endif /* defined(HAVE_PUTUTXLINE) */
+# if defined(HAVE_UPDWTMPX)
+	updwtmpx(_PATH_WTMPX, utx);
+# endif /* defined(HAVE_UPDWTMPX) */
+#else /* defined(USE_UTMPX) */
+# if defined(HAVE_PUTUTLINE)
+	setutent();
+	pututline(utp);
+	endutent();	
+# endif /* defined(HAVE_PUTUTLINE) */
+# if defined(HAVE_UPDWTMPX)
+	updwtmp(_PATH_WTMP, utp);
+# endif /* defined(HAVE_UPDWTMP) */
+#endif /* defined(USE_UTMPX) */
+
+	/* Otherwise DIY */
+#if (defined(USE_UTMPX) && !defined(HAVE_PUTUTXLINE)) || \
+	(!defined(USE_UTMPX) && !defined(HAVE_PUTUTLINE)) 
+	int fd;
 	int tty;
 
 	/* can't use ttyslot here, as that will not work for logout
@@ -132,72 +144,52 @@ login(utp)
 	tty = find_tty_slot(utp);
 
 #ifdef USE_UTMPX
+	/* If no tty was found, append it to utmpx */
+	if (tty == -1) {
+		if ((fd = open(_PATH_UTMPX, O_WRONLY|O_APPEND, 0)) >= 0) {
+			(void)write(fd, utp, sizeof(struct utmp));
+			(void)close(fd);
+			return;
+		}
+	}
+	/* Otherwise, tty was found - update at its location */
 	fd = open(_PATH_UTMPX, O_RDWR|O_CREAT, 0644);
 	if (fd == -1) {
 		log("Couldn't open %s: %s", _PATH_UTMPX, strerror(errno));
+		return;
+	}
+	lseek(fd, (off_t)(tty * sizeof(struct utmpx)), SEEK_SET);
+	write(fd, utx, sizeof(struct utmpx));
+	close(fd);
+	if ((fd = open(_PATH_WTMPX, O_WRONLY|O_APPEND, 0)) >= 0) {
+		(void)write(fd, utx, sizeof(struct utmpx));
+		(void)close(fd);
+	}
 #else /* USE_UTMPX */
+	/* If no tty was found, append it to utmp */
+	if (tty == -1) {
+		if ((fd = open(_PATH_UTMP, O_WRONLY|O_APPEND, 0)) >= 0) {
+			(void)write(fd, utp, sizeof(struct utmp));
+			(void)close(fd);
+			return;
+		}
+	}
+	/* Otherwise, tty was found - update at its location */
 	fd = open(_PATH_UTMP, O_RDWR|O_CREAT, 0644);
 	if (fd == -1) {
 		log("Couldn't open %s: %s", _PATH_UTMP, strerror(errno));
-#endif /* USE_UTMPX */
-	} else {
-		/* If no tty was found... */
-		if (tty == -1) {
-			/* ... append it to utmp on login */
-#if defined(HAVE_TYPE_IN_UTMP) || defined(HAVE_TYPE_IN_UTMPX)
-			if (utp->ut_type == USER_PROCESS) {
-#ifdef USE_UTMPX
-				if ((fd = open(_PATH_UTMPX, O_WRONLY|O_APPEND, 0)) >= 0) {
-#else /* USE_UTMPX */
-				if ((fd = open(_PATH_UTMP, O_WRONLY|O_APPEND, 0)) >= 0) {
-#endif /* USE_UTMPX */
-					(void)write(fd, utp, sizeof(struct utmp));
-					(void)close(fd);
-				}
-			} else {
-				/* Shouldn't get to here unless somthing happened to utmp */
-				/* Between login and logout */
-				log("No tty slot found at logout");
-			}
-#endif
-		} else {
-			/* Otherwise, tty was found - update at its location */
-#if defined(HAVE_HOST_IN_UTMP)
-# ifndef UT_LINESIZE
-#  define UT_LINESIZE (sizeof(old_ut.ut_line))
-#  define UT_NAMESIZE (sizeof(old_ut.ut_name))
-#  define UT_HOSTSIZE (sizeof(old_ut.ut_host))
-# endif
-			(void)lseek(fd, (off_t)(tty * sizeof(struct utmp)), SEEK_SET);
-			/*
-			 * Prevent luser from zero'ing out ut_host.
-			 * If the new ut_line is empty but the old one is not
-			 * and ut_line and ut_name match, preserve the old ut_line.
-			 */
-			if (read(fd, &old_ut, sizeof(struct utmp)) ==
-		   	 sizeof(struct utmp) && utp->ut_host[0] == '\0' &&
-		   	 old_ut.ut_host[0] != '\0' &&
-		   	 strncmp(old_ut.ut_line, utp->ut_line, UT_LINESIZE) == 0 &&
-		   	 strncmp(old_ut.ut_name, utp->ut_name, UT_NAMESIZE) == 0)
-				(void)memcpy(utp->ut_host, old_ut.ut_host, UT_HOSTSIZE);
-#endif /* defined(HAVE_HOST_IN_UTMP) */
-			(void)lseek(fd, (off_t)(tty * sizeof(struct utmp)), SEEK_SET);
-			(void)write(fd, utp, sizeof(struct utmp));
-			(void)close(fd);
-		}
+		return;
 	}
-
+	lseek(fd, (off_t)(tty * sizeof(struct utmp)), SEEK_SET);
+	write(fd, utp, sizeof(struct utmp));
+	close(fd);
 	if ((fd = open(_PATH_WTMP, O_WRONLY|O_APPEND, 0)) >= 0) {
 		(void)write(fd, utp, sizeof(struct utmp));
 		(void)close(fd);
 	}
-#if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
-	old_utx = pututxline(utx);
-# ifdef HAVE_UPDWTMPX
-	updwtmpx(_PATH_WTMPX, utx);
-# endif /* HAVE_UPDWTMPX */
-	endutxent();
-#endif /* defined(HAVE_UTMPX_H) && defined(USE_UTMPX) */
+#endif /* USE_UTMPX */
+#endif /* (defined(USE_UTMPX) && !defined(HAVE_PUTUTXLINE)) || \
+			(!defined(USE_UTMPX) && !defined(HAVE_PUTUTLINE)) */
 }
 
 #endif /* HAVE_LOGIN */
