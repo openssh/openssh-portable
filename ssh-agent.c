@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.49 2001/01/29 19:47:31 markus Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.50 2001/02/08 19:30:52 itojun Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.49 2001/01/29 19:47:31 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.50 2001/02/08 19:30:52 itojun Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -705,7 +705,7 @@ cleanup_handler(int sig)
 }
 
 void
-usage()
+usage(void)
 {
 	fprintf(stderr, "ssh-agent version %s\n", SSH_VERSION);
 	fprintf(stderr, "Usage: %s [-c | -s] [-k] [command {args...]]\n",
