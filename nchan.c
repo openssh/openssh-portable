@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: nchan.c,v 1.36 2002/01/10 12:47:59 markus Exp $");
+RCSID("$OpenBSD: nchan.c,v 1.37 2002/01/13 21:31:20 markus Exp $");
 
 #include "ssh1.h"
 #include "ssh2.h"
@@ -83,6 +83,28 @@ static void	chan_send_eof2(Channel *);
 static void	chan_shutdown_write(Channel *);
 static void	chan_shutdown_read(Channel *);
 
+static char *ostates[] = { "open", "drain", "wait_ieof", "closed" };
+static char *istates[] = { "open", "drain", "wait_oclose", "closed" };
+
+static void
+chan_set_istate(Channel *c, u_int next)
+{
+	if (c->istate > CHAN_INPUT_CLOSED || next > CHAN_INPUT_CLOSED)
+		fatal("chan_set_istate: bad state %d -> %d", c->istate, next);
+	debug("channel %d: input %s -> %s", c->self, istates[c->istate],
+	    istates[next]);
+	c->istate = next;
+}
+static void
+chan_set_ostate(Channel *c, u_int next)
+{
+	if (c->ostate > CHAN_OUTPUT_CLOSED || next > CHAN_OUTPUT_CLOSED)
+		fatal("chan_set_ostate: bad state %d -> %d", c->ostate, next);
+	debug("channel %d: output %s -> %s", c->self, ostates[c->ostate],
+	    ostates[next]);
+	c->ostate = next;
+}
+
 /*
  * SSH1 specific implementation of event functions
  */
@@ -93,20 +115,17 @@ chan_rcvd_oclose1(Channel *c)
 	debug("channel %d: rcvd oclose", c->self);
 	switch (c->istate) {
 	case CHAN_INPUT_WAIT_OCLOSE:
-		debug("channel %d: input wait_oclose -> closed", c->self);
-		c->istate = CHAN_INPUT_CLOSED;
+		chan_set_istate(c, CHAN_INPUT_CLOSED);
 		break;
 	case CHAN_INPUT_OPEN:
-		debug("channel %d: input open -> closed", c->self);
 		chan_shutdown_read(c);
 		chan_send_ieof1(c);
-		c->istate = CHAN_INPUT_CLOSED;
+		chan_set_istate(c, CHAN_INPUT_CLOSED);
 		break;
 	case CHAN_INPUT_WAIT_DRAIN:
 		/* both local read_failed and remote write_failed  */
-		log("channel %d: input drain -> closed", c->self);
 		chan_send_ieof1(c);
-		c->istate = CHAN_INPUT_CLOSED;
+		chan_set_istate(c, CHAN_INPUT_CLOSED);
 		break;
 	default:
 		error("channel %d: protocol error: rcvd_oclose for istate %d",
@@ -120,9 +139,8 @@ chan_read_failed_12(Channel *c)
 	debug("channel %d: read failed", c->self);
 	switch (c->istate) {
 	case CHAN_INPUT_OPEN:
-		debug("channel %d: input open -> drain", c->self);
 		chan_shutdown_read(c);
-		c->istate = CHAN_INPUT_WAIT_DRAIN;
+		chan_set_istate(c, CHAN_INPUT_WAIT_DRAIN);
 		break;
 	default:
 		error("channel %d: chan_read_failed for istate %d",
@@ -141,9 +159,8 @@ chan_ibuf_empty1(Channel *c)
 	}
 	switch (c->istate) {
 	case CHAN_INPUT_WAIT_DRAIN:
-		debug("channel %d: input drain -> wait_oclose", c->self);
 		chan_send_ieof1(c);
-		c->istate = CHAN_INPUT_WAIT_OCLOSE;
+		chan_set_istate(c, CHAN_INPUT_WAIT_OCLOSE);
 		break;
 	default:
 		error("channel %d: chan_ibuf_empty for istate %d",
@@ -157,12 +174,10 @@ chan_rcvd_ieof1(Channel *c)
 	debug("channel %d: rcvd ieof", c->self);
 	switch (c->ostate) {
 	case CHAN_OUTPUT_OPEN:
-		debug("channel %d: output open -> drain", c->self);
-		c->ostate = CHAN_OUTPUT_WAIT_DRAIN;
+		chan_set_ostate(c, CHAN_OUTPUT_WAIT_DRAIN);
 		break;
 	case CHAN_OUTPUT_WAIT_IEOF:
-		debug("channel %d: output wait_ieof -> closed", c->self);
-		c->ostate = CHAN_OUTPUT_CLOSED;
+		chan_set_ostate(c, CHAN_OUTPUT_CLOSED);
 		break;
 	default:
 		error("channel %d: protocol error: rcvd_ieof for ostate %d",
@@ -176,14 +191,12 @@ chan_write_failed1(Channel *c)
 	debug("channel %d: write failed", c->self);
 	switch (c->ostate) {
 	case CHAN_OUTPUT_OPEN:
-		debug("channel %d: output open -> wait_ieof", c->self);
 		chan_send_oclose1(c);
-		c->ostate = CHAN_OUTPUT_WAIT_IEOF;
+		chan_set_ostate(c, CHAN_OUTPUT_WAIT_IEOF);
 		break;
 	case CHAN_OUTPUT_WAIT_DRAIN:
-		debug("channel %d: output wait_drain -> closed", c->self);
 		chan_send_oclose1(c);
-		c->ostate = CHAN_OUTPUT_CLOSED;
+		chan_set_ostate(c, CHAN_OUTPUT_CLOSED);
 		break;
 	default:
 		error("channel %d: chan_write_failed for ostate %d",
@@ -202,9 +215,8 @@ chan_obuf_empty1(Channel *c)
 	}
 	switch (c->ostate) {
 	case CHAN_OUTPUT_WAIT_DRAIN:
-		debug("channel %d: output drain -> closed", c->self);
 		chan_send_oclose1(c);
-		c->ostate = CHAN_OUTPUT_CLOSED;
+		chan_set_ostate(c, CHAN_OUTPUT_CLOSED);
 		break;
 	default:
 		error("channel %d: internal error: obuf_empty for ostate %d",
@@ -261,8 +273,8 @@ chan_rcvd_oclose2(Channel *c)
 	c->flags |= CHAN_CLOSE_RCVD;
 	if (c->type == SSH_CHANNEL_LARVAL) {
 		/* tear down larval channels immediately */
-		c->ostate = CHAN_OUTPUT_CLOSED;
-		c->istate = CHAN_INPUT_CLOSED;
+		chan_set_ostate(c, CHAN_OUTPUT_CLOSED);
+		chan_set_istate(c, CHAN_INPUT_CLOSED);
 		return;
 	}
 	switch (c->ostate) {
@@ -271,21 +283,18 @@ chan_rcvd_oclose2(Channel *c)
 		 * wait until a data from the channel is consumed if a CLOSE
 		 * is received
 		 */
-		debug("channel %d: output open -> drain", c->self);
-		c->ostate = CHAN_OUTPUT_WAIT_DRAIN;
+		chan_set_ostate(c, CHAN_OUTPUT_WAIT_DRAIN);
 		break;
 	}
 	switch (c->istate) {
 	case CHAN_INPUT_OPEN:
-		debug("channel %d: input open -> closed", c->self);
 		chan_shutdown_read(c);
 		break;
 	case CHAN_INPUT_WAIT_DRAIN:
-		debug("channel %d: input drain -> closed", c->self);
 		chan_send_eof2(c);
 		break;
 	}
-	c->istate = CHAN_INPUT_CLOSED;
+	chan_set_istate(c, CHAN_INPUT_CLOSED);
 }
 static void
 chan_ibuf_empty2(Channel *c)
@@ -298,10 +307,9 @@ chan_ibuf_empty2(Channel *c)
 	}
 	switch (c->istate) {
 	case CHAN_INPUT_WAIT_DRAIN:
-		debug("channel %d: input drain -> closed", c->self);
 		if (!(c->flags & CHAN_CLOSE_SENT))
 			chan_send_eof2(c);
-		c->istate = CHAN_INPUT_CLOSED;
+		chan_set_istate(c, CHAN_INPUT_CLOSED);
 		break;
 	default:
 		error("channel %d: chan_ibuf_empty for istate %d",
@@ -313,10 +321,8 @@ static void
 chan_rcvd_ieof2(Channel *c)
 {
 	debug("channel %d: rcvd eof", c->self);
-	if (c->ostate == CHAN_OUTPUT_OPEN) {
-		debug("channel %d: output open -> drain", c->self);
-		c->ostate = CHAN_OUTPUT_WAIT_DRAIN;
-	}
+	if (c->ostate == CHAN_OUTPUT_OPEN)
+		chan_set_ostate(c, CHAN_OUTPUT_WAIT_DRAIN);
 }
 static void
 chan_write_failed2(Channel *c)
@@ -324,14 +330,12 @@ chan_write_failed2(Channel *c)
 	debug("channel %d: write failed", c->self);
 	switch (c->ostate) {
 	case CHAN_OUTPUT_OPEN:
-		debug("channel %d: output open -> closed", c->self);
 		chan_shutdown_write(c); /* ?? */
-		c->ostate = CHAN_OUTPUT_CLOSED;
+		chan_set_ostate(c, CHAN_OUTPUT_CLOSED);
 		break;
 	case CHAN_OUTPUT_WAIT_DRAIN:
-		debug("channel %d: output drain -> closed", c->self);
 		chan_shutdown_write(c);
-		c->ostate = CHAN_OUTPUT_CLOSED;
+		chan_set_ostate(c, CHAN_OUTPUT_CLOSED);
 		break;
 	default:
 		error("channel %d: chan_write_failed for ostate %d",
@@ -350,9 +354,8 @@ chan_obuf_empty2(Channel *c)
 	}
 	switch (c->ostate) {
 	case CHAN_OUTPUT_WAIT_DRAIN:
-		debug("channel %d: output drain -> closed", c->self);
 		chan_shutdown_write(c);
-		c->ostate = CHAN_OUTPUT_CLOSED;
+		chan_set_ostate(c, CHAN_OUTPUT_CLOSED);
 		break;
 	default:
 		error("channel %d: chan_obuf_empty for ostate %d",

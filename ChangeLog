@@ -159,6 +159,10 @@
      [auth2.c auth2-chall.c compat.c sshconnect2.c sshd.c]
      use buffer API and avoid static strings of fixed size; 
      ok provos@/mouring@
+   - markus@cvs.openbsd.org 2002/01/13 21:31:20
+     [channels.h nchan.c]
+     add chan_set_[io]state(), order states, state is now an u_int,
+     simplifies debugging messages; ok provos@
 
 
 20020121
@@ -7307,4 +7311,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1768 2002/01/22 12:26:38 djm Exp $
+$Id: ChangeLog,v 1.1769 2002/01/22 12:27:11 djm Exp $

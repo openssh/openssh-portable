@@ -32,7 +32,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-/* RCSID("$OpenBSD: channels.h,v 1.56 2001/12/28 15:06:00 markus Exp $"); */
+/* RCSID("$OpenBSD: channels.h,v 1.57 2002/01/13 21:31:20 markus Exp $"); */
 
 #ifndef CHANNEL_H
 #define CHANNEL_H
@@ -68,8 +68,8 @@ struct Channel {
 	int     type;		/* channel type/state */
 	int     self;		/* my own channel identifier */
 	int     remote_id;	/* channel identifier for remote peer */
-	int     istate;		/* input from channel (state of receive half) */
-	int     ostate;		/* output to channel  (state of transmit half) */
+	u_int   istate;		/* input from channel (state of receive half) */
+	u_int   ostate;		/* output to channel  (state of transmit half) */
 	int     flags;		/* close sent/rcvd */
 	int     rfd;		/* read fd */
 	int     wfd;		/* write fd */
@@ -123,16 +123,16 @@ struct Channel {
 #define CHAN_X11_PACKET_DEFAULT	(CHAN_X11_WINDOW_DEFAULT/2)
 
 /* possible input states */
-#define CHAN_INPUT_OPEN			0x01
-#define CHAN_INPUT_WAIT_DRAIN		0x02
-#define CHAN_INPUT_WAIT_OCLOSE		0x04
-#define CHAN_INPUT_CLOSED		0x08
+#define CHAN_INPUT_OPEN			0
+#define CHAN_INPUT_WAIT_DRAIN		1
+#define CHAN_INPUT_WAIT_OCLOSE		2
+#define CHAN_INPUT_CLOSED		3
 
 /* possible output states */
-#define CHAN_OUTPUT_OPEN		0x10
-#define CHAN_OUTPUT_WAIT_DRAIN		0x20
-#define CHAN_OUTPUT_WAIT_IEOF		0x40
-#define CHAN_OUTPUT_CLOSED		0x80
+#define CHAN_OUTPUT_OPEN		0
+#define CHAN_OUTPUT_WAIT_DRAIN		1
+#define CHAN_OUTPUT_WAIT_IEOF		2
+#define CHAN_OUTPUT_CLOSED		3
 
 #define CHAN_CLOSE_SENT			0x01
 #define CHAN_CLOSE_RCVD			0x02
