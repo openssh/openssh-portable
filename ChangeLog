@@ -38,6 +38,7 @@
    - markus@cvs.openbsd.org  2000/08/17 14:06:34
      [session.c sshd.8 sshd.c]
       sshd -u len, similar to telnetd
+ - (djm) Lastlog was not getting closed after writing login entry
 
 20000816
  - (djm) Replacement for inet_ntoa for Irix (which breaks on gcc)

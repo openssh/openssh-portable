@@ -160,7 +160,7 @@
 #include "xmalloc.h"
 #include "loginrec.h"
 
-RCSID("$Id: loginrec.c,v 1.20 2000/08/15 00:21:17 djm Exp $");
+RCSID("$Id: loginrec.c,v 1.21 2000/08/18 04:08:38 djm Exp $");
 
 /**
  ** prototypes for helper functions in this file
@@ -1403,17 +1403,19 @@ lastlog_perform_login(struct logininfo *li)
 	/* create our struct lastlog */
 	lastlog_construct(li, &last);
 
+	if (!lastlog_openseek(li, &fd, O_RDWR|O_CREAT))
+		return(0);
+		
 	/* write the entry */
-	if (lastlog_openseek(li, &fd, O_RDWR|O_CREAT)) {
-		if (atomicio(write, fd, &last, sizeof(last)) != sizeof(last)) {
-			log("lastlog_write_filemode: Error writing to %s: %s",
-			    LASTLOG_FILE, strerror(errno));
-			return 0;
-		}
-		return 1;
-	} else {
+	if (atomicio(write, fd, &last, sizeof(last)) != sizeof(last)) {
+		close(fd);
+		log("lastlog_write_filemode: Error writing to %s: %s",
+		    LASTLOG_FILE, strerror(errno));
 		return 0;
 	}
+
+	close(fd);
+	return 1;
 }
 
 int
