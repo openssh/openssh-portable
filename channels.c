@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.78 2000/12/29 11:05:55 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.79 2000/12/29 22:19:13 markus Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -307,9 +307,13 @@ void
 channel_free(int id)
 {
 	Channel *c = channel_lookup(id);
+	char *s = channel_open_message();
+
 	if (c == NULL)
 		packet_disconnect("channel free: bad local channel %d", id);
-	debug("channel_free: channel %d: status: %s", id, channel_open_message());
+	debug("channel_free: channel %d: status: %s", id, s);
+	xfree(s);
+
 	if (c->dettach_user != NULL) {
 		debug("channel_free: channel %d: dettaching channel user", id);
 		c->dettach_user(c->self, NULL);

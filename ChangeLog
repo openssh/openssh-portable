@@ -3,6 +3,9 @@
    - markus@cvs.openbsd.org 2000/12/28 18:58:30
      [ssh-keygen.c]
      enable 'ssh-keygen -l -f ~/.ssh/{authorized_keys,known_hosts}{,2}
+   - markus@cvs.openbsd.org 2000/12/29 22:19:13
+     [channels.c]
+     missing xfree; from vaughan99@yahoo.com
  - (bal) Resynced CVS ID with OpenBSD for channel.c and uidswap.c
  - (bal) if no MAXHOSTNAMELEN is defined.  Default to 64 character defination.
    Suggested by Christian Kurz <shorty@debain.org>
