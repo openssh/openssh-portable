@@ -54,6 +54,25 @@ static sigjmp_buf bail;
 
 #define EXTRABYTES	2	/* XXX: why 2? you don't want to know */
 
+#ifndef HAVE_GETPAGESIZE
+int
+getpagesize()
+{
+#ifdef EXEC_PAGESIZE
+  return EXEC_PAGESIZE;
+#else /* !EXEC_PAGESIZE */
+# ifdef NBPG
+#  ifndef CLSIZE
+#   define CLSIZE	1
+#  endif /* No CLSIZE */
+  return NBPG * CLSIZE;
+# else /* !NBPG */
+  return NBPC;
+# endif /* NBPG */
+#endif /* EXEC_PAGESIZE */
+}
+#endif /* HAVE_GETPAGESIZE */
+
 static char *
 msetup(str, n)
 	char *str;

@@ -1,3 +1,6 @@
+19991228
+ - Replacement for getpagesize() for systems which lack it
+
 19991227
  - Automatically correct paths in manpages and configuration files. Patch
    and script from Andre Lucas <andre.lucas@dial.pipex.com>
