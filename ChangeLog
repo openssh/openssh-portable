@@ -24,6 +24,10 @@
    - jakob@cvs.openbsd.org 2001/12/18 10:05:15
      [auth2.c]
      log fingerprint on successful public key authentication; ok markus@
+   - jakob@cvs.openbsd.org 2001/12/18 10:06:24
+     [auth-rsa.c]
+     log fingerprint on successful public key authentication, simplify 
+     usage of key structs; ok markus@
 
 20011219
  - (stevesk) OpenBSD CVS sync X11 localhost display
@@ -7052,4 +7056,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1699 2001/12/21 01:48:54 djm Exp $
+$Id: ChangeLog,v 1.1700 2001/12/21 01:52:39 djm Exp $

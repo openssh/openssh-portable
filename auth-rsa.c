@@ -14,7 +14,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rsa.c,v 1.45 2001/11/29 22:08:48 markus Exp $");
+RCSID("$OpenBSD: auth-rsa.c,v 1.46 2001/12/18 10:06:24 jakob Exp $");
 
 #include <openssl/rsa.h>
 #include <openssl/md5.h>
@@ -31,6 +31,7 @@ RCSID("$OpenBSD: auth-rsa.c,v 1.45 2001/11/29 22:08:48 markus Exp $");
 #include "log.h"
 #include "servconf.h"
 #include "auth.h"
+#include "hostfile.h"
 
 /* import */
 extern ServerOptions options;
@@ -128,7 +129,8 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 	FILE *f;
 	u_long linenum = 0;
 	struct stat st;
-	RSA *pk;
+	Key *key;
+	char *fp;
 
 	/* no user given */
 	if (pw == NULL)
@@ -170,9 +172,7 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 	/* Flag indicating whether authentication has succeeded. */
 	authenticated = 0;
 
-	pk = RSA_new();
-	pk->e = BN_new();
-	pk->n = BN_new();
+	key = key_new(KEY_RSA1);
 
 	/*
 	 * Go though the accepted keys, looking for the current key.  If
@@ -210,7 +210,7 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 			options = NULL;
 
 		/* Parse the key from the line. */
-		if (!auth_rsa_read_key(&cp, &bits, pk->e, pk->n)) {
+		if (hostfile_read_key(&cp, &bits, key) == 0) {
 			debug("%.100s, line %lu: non ssh1 key syntax",
 			    file, linenum);
 			continue;
@@ -218,14 +218,14 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 		/* cp now points to the comment part. */
 
 		/* Check if the we have found the desired key (identified by its modulus). */
-		if (BN_cmp(pk->n, client_n) != 0)
+		if (BN_cmp(key->rsa->n, client_n) != 0)
 			continue;
 
 		/* check the real bits  */
-		if (bits != BN_num_bits(pk->n))
+		if (bits != BN_num_bits(key->rsa->n))
 			log("Warning: %s, line %lu: keysize mismatch: "
 			    "actual %d vs. announced %d.",
-			    file, linenum, BN_num_bits(pk->n), bits);
+			    file, linenum, BN_num_bits(key->rsa->n), bits);
 
 		/* We have found the desired key. */
 		/*
@@ -236,7 +236,7 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 			continue;
 
 		/* Perform the challenge-response dialog for this key. */
-		if (!auth_rsa_challenge_dialog(pk)) {
+		if (!auth_rsa_challenge_dialog(key->rsa)) {
 			/* Wrong response. */
 			verbose("Wrong response to RSA authentication challenge.");
 			packet_send_debug("Wrong response to RSA authentication challenge.");
@@ -255,6 +255,12 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 		 * otherwise continue searching.
 		 */
 		authenticated = 1;
+
+	 	fp = key_fingerprint(key, SSH_FP_MD5, SSH_FP_HEX);
+		verbose("Found matching %s key: %s",
+		    key_type(key), fp);
+		xfree(fp);
+
 		break;
 	}
 
@@ -265,7 +271,7 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n)
 	xfree(file);
 	fclose(f);
 
-	RSA_free(pk);
+	key_free(key);
 
 	if (authenticated)
 		packet_send_debug("RSA authentication accepted.");
