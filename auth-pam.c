@@ -29,6 +29,7 @@
 #include "xmalloc.h"
 #include "log.h"
 #include "auth.h"
+#include "auth-options.h"
 #include "auth-pam.h"
 #include "servconf.h"
 #include "canohost.h"
@@ -36,10 +37,14 @@
 
 extern char *__progname;
 
-RCSID("$Id: auth-pam.c,v 1.48 2002/07/21 17:26:54 stevesk Exp $");
+extern int use_privsep;
+
+RCSID("$Id: auth-pam.c,v 1.49 2002/07/21 17:57:01 stevesk Exp $");
 
 #define NEW_AUTHTOK_MSG \
 	"Warning: Your password has expired, please change it now."
+#define NEW_AUTHTOK_MSG_PRIVSEP \
+	"Your password has expired, the session cannot proceed."
 
 static int do_pam_conversation(int num_msg, const struct pam_message **msg,
 	struct pam_response **resp, void *appdata_ptr);
@@ -254,9 +259,14 @@ int do_pam_account(char *username, char *remote_user)
 			break;
 #if 0
 		case PAM_NEW_AUTHTOK_REQD:
-			message_cat(&__pam_msg, NEW_AUTHTOK_MSG);
+			message_cat(&__pam_msg, use_privsep ?
+			    NEW_AUTHTOK_MSG_PRIVSEP : NEW_AUTHTOK_MSG);
 			/* flag that password change is necessary */
 			password_change_required = 1;
+			/* disallow other functionality for now */
+			no_port_forwarding_flag |= 2;
+			no_agent_forwarding_flag |= 2;
+			no_x11_forwarding_flag |= 2;
 			break;
 #endif
 		default:
@@ -335,11 +345,23 @@ void do_pam_chauthtok(void)
 	do_pam_set_conv(&conv);
 
 	if (password_change_required) {
+		if (use_privsep)
+			fatal("Password changing is currently unsupported"
+			    " with privilege separation");
 		pamstate = OTHER;
 		pam_retval = pam_chauthtok(__pamh, PAM_CHANGE_EXPIRED_AUTHTOK);
 		if (pam_retval != PAM_SUCCESS)
 			fatal("PAM pam_chauthtok failed[%d]: %.200s",
 			    pam_retval, PAM_STRERROR(__pamh, pam_retval));
+#if 0
+		/* XXX: This would need to be done in the parent process,
+		 * but there's currently no way to pass such request. */
+		no_port_forwarding_flag &= ~2;
+		no_agent_forwarding_flag &= ~2;
+		no_x11_forwarding_flag &= ~2;
+		if (!no_port_forwarding_flag && options.allow_tcp_forwarding)
+			channel_permit_all_opens();
+#endif
 	}
 }
 
