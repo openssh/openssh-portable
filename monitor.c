@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.57 2004/05/11 19:01:43 deraadt Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.58 2004/06/13 12:53:24 djm Exp $");
 
 #include <openssl/dh.h>
 
@@ -1546,6 +1546,7 @@ mm_get_kex(Buffer *m)
 		fatal("mm_get_get: internal error: bad session id");
 	kex->we_need = buffer_get_int(m);
 	kex->kex[KEX_DH_GRP1_SHA1] = kexdh_server;
+	kex->kex[KEX_DH_GRP14_SHA1] = kexdh_server;
 	kex->kex[KEX_DH_GEX_SHA1] = kexgex_server;
 	kex->server = 1;
 	kex->hostkey_type = buffer_get_int(m);

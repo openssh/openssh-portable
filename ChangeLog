@@ -15,6 +15,11 @@
    - pedro@cvs.openbsd.org 2004/06/03 12:22:20
      [sftp-client.c sftp.c]
      initialize pointers, ok markus@
+   - djm@cvs.openbsd.org 2004/06/13 12:53:24
+     [dh.c dh.h kex.c kex.h kexdhc.c kexdhs.c monitor.c myproposal.h] 
+     [ssh-keyscan.c sshconnect2.c sshd.c]
+     implement diffie-hellman-group14-sha1 kex method (trivial extension to
+     existing diffie-hellman-group1-sha1); ok markus@
 
 20040603
  - (dtucker) [auth-pam.c] Don't use pam_* namespace for sshd's PAM functions.
@@ -1199,4 +1204,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3379 2004/06/15 00:28:56 djm Exp $
+$Id: ChangeLog,v 1.3380 2004/06/15 00:30:09 djm Exp $

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.58 2004/05/09 01:26:48 djm Exp $");
+RCSID("$OpenBSD: kex.c,v 1.59 2004/06/13 12:53:24 djm Exp $");
 
 #include <openssl/crypto.h>
 
@@ -293,6 +293,8 @@ choose_kex(Kex *k, char *client, char *server)
 		fatal("no kex alg");
 	if (strcmp(k->name, KEX_DH1) == 0) {
 		k->kex_type = KEX_DH_GRP1_SHA1;
+	} else if (strcmp(k->name, KEX_DH14) == 0) {
+		k->kex_type = KEX_DH_GRP14_SHA1;
 	} else if (strcmp(k->name, KEX_DHGEX) == 0) {
 		k->kex_type = KEX_DH_GEX_SHA1;
 	} else

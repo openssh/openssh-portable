@@ -1,4 +1,4 @@
-/*	$OpenBSD: kex.h,v 1.34 2004/05/21 08:43:03 markus Exp $	*/
+/*	$OpenBSD: kex.h,v 1.35 2004/06/13 12:53:24 djm Exp $	*/
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -32,6 +32,7 @@
 #include "key.h"
 
 #define	KEX_DH1		"diffie-hellman-group1-sha1"
+#define	KEX_DH14	"diffie-hellman-group14-sha1"
 #define	KEX_DHGEX	"diffie-hellman-group-exchange-sha1"
 
 enum kex_init_proposals {
@@ -56,6 +57,7 @@ enum kex_modes {
 
 enum kex_exchange {
 	KEX_DH_GRP1_SHA1,
+	KEX_DH_GRP14_SHA1,
 	KEX_DH_GEX_SHA1,
 	KEX_MAX
 };
