@@ -3,6 +3,8 @@
    Patch by Pekka Savola <pekkas@netcore.fi>
  - (bal) Renamed sigaction.[ch] to sigact.[ch].  Causes problems with
    some platforms.
+ - (bal) Generalize lack of UNIX sockets since this also effects Cray
+   not just Cygwin.  Based on patch by Wendy Palm <wendyp@cray.com>
 
 20010223
  - (bal) Fix --define rh7 in openssh.spec file.  Patch by Steve Tell
@@ -4112,4 +4114,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.817 2001/02/24 00:24:19 mouring Exp $
+$Id: ChangeLog,v 1.818 2001/02/24 00:55:04 mouring Exp $

@@ -1,7 +1,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.55 2001/02/16 01:34:57 djm Exp $ */
+/* $Id: defines.h,v 1.56 2001/02/24 00:55:05 mouring Exp $ */
 
 /* Some platforms need this for the _r() functions */
 #if !defined(_REENTRANT) && !defined(SNI)
@@ -138,12 +138,20 @@ typedef char int8_t;
 # if (SIZEOF_SHORT_INT == 2)
 typedef short int int16_t;
 # else
-#  error "16 bit int type not found."
+#  ifdef _CRAY
+typedef long  int16_t;
+#  else
+#   error "16 bit int type not found."
+#  endif /* _CRAY */
 # endif
 # if (SIZEOF_INT == 4)
 typedef int int32_t;
 # else
-#  error "32 bit int type not found."
+#  ifdef _CRAY
+typedef long  int32_t;
+#  else
+#   error "32 bit int type not found."
+#  endif /* _CRAY */
 # endif
 #endif
 
@@ -163,12 +171,20 @@ typedef unsigned char u_int8_t;
 #  if (SIZEOF_SHORT_INT == 2)
 typedef unsigned short int u_int16_t;
 #  else
-#   error "16 bit int type not found."
+#   ifdef _CRAY
+typedef unsigned long  u_int16_t;
+#   else
+#    error "16 bit int type not found."
+#   endif
 #  endif
 #  if (SIZEOF_INT == 4)
 typedef unsigned int u_int32_t;
 #  else
-#   error "32 bit int type not found."
+#   ifdef _CRAY
+typedef unsigned long  u_int32_t;
+#   else
+#    error "32 bit int type not found."
+#   endif
 #  endif
 # endif
 #endif

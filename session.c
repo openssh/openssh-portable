@@ -1366,13 +1366,13 @@ do_child(const char *command, struct passwd * pw, const char *term,
 					    "Running %.100s add %.100s %.100s %.100s\n",
 					    options.xauth_location, display,
 					    auth_proto, auth_data);
-#ifndef HAVE_CYGWIN /* Unix sockets are not supported */
+#ifndef NO_X11_UNIX_SOCKETS
 					if (screen != NULL)
 						fprintf(stderr,
 						    "Adding %.*s/unix%s %s %s\n",
 						    (int)(screen-display), display,
 						    screen, auth_proto, auth_data);
-#endif
+#endif /* NO_X11_UNIX_SOCKETS */
 				}
 				snprintf(cmd, sizeof cmd, "%s -q -",
 				    options.xauth_location);
@@ -1380,12 +1380,12 @@ do_child(const char *command, struct passwd * pw, const char *term,
 				if (f) {
 					fprintf(f, "add %s %s %s\n", display,
 					    auth_proto, auth_data);
-#ifndef HAVE_CYGWIN /* Unix sockets are not supported */
+#ifndef NO_X11_UNIX_SOCKETS
 					if (screen != NULL)
 						fprintf(f, "add %.*s/unix%s %s %s\n",
 						    (int)(screen-display), display,
 						    screen, auth_proto, auth_data);
-#endif
+#endif /* NO_X11_UNIX_SOCKETS */
 					pclose(f);
 				} else {
 					fprintf(stderr, "Could not run %s\n",
