@@ -12,7 +12,7 @@ Created: Mon Aug 21 15:48:58 1995 ylo
 */
 
 #include "includes.h"
-RCSID("$Id: servconf.c,v 1.3 1999/11/12 00:33:04 damien Exp $");
+RCSID("$Id: servconf.c,v 1.4 1999/11/12 04:19:27 damien Exp $");
 
 #include "ssh.h"
 #include "servconf.h"
@@ -144,6 +144,7 @@ void fill_default_server_options(ServerOptions *options)
 /* Keyword tokens. */
 typedef enum 
 {
+  sBadOption, /* == unknown option */
   sPort, sHostKeyFile, sServerKeyBits, sLoginGraceTime, sKeyRegenerationTime,
   sPermitRootLogin, sLogFacility, sLogLevel,
   sRhostsAuthentication, sRhostsRSAAuthentication, sRSAAuthentication,
@@ -260,9 +261,9 @@ static ServerOpCodes parse_token(const char *cp, const char *filename,
     if (strcmp(cp, keywords[i].name) == 0)
       return keywords[i].opcode;
 
-  fprintf(stderr, "%s line %d: Bad configuration option: %s\n", 
+  fprintf(stderr, "%s: line %d: Bad configuration option: %s\n", 
 	  filename, linenum, cp);
-  exit(1);
+  return sBadOption;
 }
 
 /* Reads the server configuration file. */
@@ -273,6 +274,7 @@ void read_server_config(ServerOptions *options, const char *filename)
   char line[1024];
   char *cp, **charptr;
   int linenum, *intptr, i, value;
+  int bad_options = 0;
   ServerOpCodes opcode;
 
   f = fopen(filename, "r");
@@ -300,6 +302,9 @@ void read_server_config(ServerOptions *options, const char *filename)
       opcode = parse_token(cp, filename, linenum);
       switch (opcode)
 	{
+	case sBadOption:
+	  bad_options++;
+          continue;
 	case sPort:
 	  intptr = &options->port;
 	parse_int:
@@ -596,4 +601,9 @@ void read_server_config(ServerOptions *options, const char *filename)
 	}
     }
   fclose(f);
+  if (bad_options > 0) {
+    fprintf(stderr, "%s: terminating, %d bad configuration options\n", 
+	    filename, bad_options);
+    exit(1);
+  }
 }

@@ -9,6 +9,17 @@
  - Released 1.2pre10
 
  - Added INSTALL documentation
+ - Merged yet more changes from OpenBSD CVS
+   - [auth-rh-rsa.c auth-rhosts.c auth-rsa.c channels.c clientloop.c]
+     [ssh.c ssh.h sshconnect.c sshd.c]
+     make all access to options via 'extern Options options'
+     and 'extern ServerOptions options' respectively;
+     options are no longer passed as arguments:
+      * make options handling more consistent
+      * remove #include "readconf.h" from ssh.h
+      * readconf.h is only included if necessary
+   - [mpaux.c] clear temp buffer
+   - [servconf.c] print _all_ bad options found in configfile
 
 19991111
  - Added (untested) Entropy Gathering Daemon (EGD) support

@@ -13,7 +13,7 @@ Generic header file for ssh.
 
 */
 
-/* RCSID("$Id: ssh.h,v 1.11 1999/11/12 00:33:04 damien Exp $"); */
+/* RCSID("$Id: ssh.h,v 1.12 1999/11/12 04:19:27 damien Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -221,60 +221,6 @@ only by root, whereas ssh_config should be world-readable. */
 #define SSH_CMSG_HAVE_KERBEROS_TGT		44	/* credentials (s) */
 #define SSH_CMSG_HAVE_AFS_TOKEN			65	/* token (s) */
 
-
-/*------------ Definitions for logging. -----------------------*/
-
-/* Supported syslog facilities and levels. */
-typedef enum
-{
-  SYSLOG_FACILITY_DAEMON,
-  SYSLOG_FACILITY_USER,
-  SYSLOG_FACILITY_AUTH,
-  SYSLOG_FACILITY_LOCAL0,
-  SYSLOG_FACILITY_LOCAL1,
-  SYSLOG_FACILITY_LOCAL2,
-  SYSLOG_FACILITY_LOCAL3,
-  SYSLOG_FACILITY_LOCAL4,
-  SYSLOG_FACILITY_LOCAL5,
-  SYSLOG_FACILITY_LOCAL6,
-  SYSLOG_FACILITY_LOCAL7
-} SyslogFacility;
-
-typedef enum
-{
-  SYSLOG_LEVEL_QUIET,
-  SYSLOG_LEVEL_FATAL,
-  SYSLOG_LEVEL_ERROR,
-  SYSLOG_LEVEL_INFO,
-  SYSLOG_LEVEL_CHAT,
-  SYSLOG_LEVEL_DEBUG
-} LogLevel;
-
-/* Initializes logging. */
-void log_init(char *av0, LogLevel level, SyslogFacility facility, int on_stderr);
-
-/* Logging implementation, depending on server or client */
-void do_log(LogLevel level, const char *fmt, va_list args);
-
-/* Output a message to syslog or stderr */
-void fatal(const char *fmt, ...);
-void error(const char *fmt, ...);
-void log(const char *fmt, ...);
-void chat(const char *fmt, ...);
-void debug(const char *fmt, ...);
-
-/* same as fatal() but w/o logging */
-void fatal_cleanup(void);
-
-/* Registers a cleanup function to be called by fatal()/fatal_cleanup() before exiting. 
-   It is permissible to call fatal_remove_cleanup for the function itself
-   from the function. */
-void fatal_add_cleanup(void (*proc)(void *context), void *context);
-
-/* Removes a cleanup function to be called at fatal(). */
-void fatal_remove_cleanup(void (*proc)(void *context), void *context);
-
-
 /*------------ definitions for login.c -------------*/
 
 /* Returns the time when the user last logged in.  Returns 0 if the 
@@ -314,21 +260,15 @@ int ssh_connect(const char *host, struct sockaddr_in *hostaddr,
    This initializes the random state, and leaves it initialized (it will also
    have references from the packet module). */
 
-/* for Options */
-#include "readconf.h"
-
 void ssh_login(int host_key_valid, RSA *host_key, const char *host,
-	       struct sockaddr_in *hostaddr, Options *options,
-	       uid_t original_real_uid);
+	       struct sockaddr_in *hostaddr, uid_t original_real_uid);
 
 /*------------ Definitions for various authentication methods. -------*/
 
 /* Tries to authenticate the user using the .rhosts file.  Returns true if
    authentication succeeds.  If ignore_rhosts is non-zero, this will not
-   consider .rhosts and .shosts (/etc/hosts.equiv will still be used). 
-   If strict_modes is true, checks ownership and modes of .rhosts/.shosts. */
-int auth_rhosts(struct passwd *pw, const char *client_user,
-		int ignore_rhosts, int strict_modes);
+   consider .rhosts and .shosts (/etc/hosts.equiv will still be used).  */
+int auth_rhosts(struct passwd *pw, const char *client_user);
 
 /* Tries to authenticate the user using the .rhosts file and the host using
    its host key.  Returns true if authentication succeeds. */
@@ -343,7 +283,7 @@ int auth_password(struct passwd *pw, const char *password);
 /* Performs the RSA authentication dialog with the client.  This returns
    0 if the client could not be authenticated, and 1 if authentication was
    successful.  This may exit if there is a serious protocol violation. */
-int auth_rsa(struct passwd *pw, BIGNUM *client_n, int strict_modes);
+int auth_rsa(struct passwd *pw, BIGNUM *client_n);
 
 /* Parses an RSA key (number of bits, e, n) from a string.  Moves the pointer
    over the key.  Skips any whitespace at the beginning and at end. */
@@ -420,6 +360,58 @@ int load_public_key(const char *filename, RSA *pub,
    with xfree. */
 int load_private_key(const char *filename, const char *passphrase,
 		     RSA *private_key, char **comment_return);
+
+/*------------ Definitions for logging. -----------------------*/
+
+/* Supported syslog facilities and levels. */
+typedef enum
+{
+  SYSLOG_FACILITY_DAEMON,
+  SYSLOG_FACILITY_USER,
+  SYSLOG_FACILITY_AUTH,
+  SYSLOG_FACILITY_LOCAL0,
+  SYSLOG_FACILITY_LOCAL1,
+  SYSLOG_FACILITY_LOCAL2,
+  SYSLOG_FACILITY_LOCAL3,
+  SYSLOG_FACILITY_LOCAL4,
+  SYSLOG_FACILITY_LOCAL5,
+  SYSLOG_FACILITY_LOCAL6,
+  SYSLOG_FACILITY_LOCAL7
+} SyslogFacility;
+
+typedef enum
+{
+  SYSLOG_LEVEL_QUIET,
+  SYSLOG_LEVEL_FATAL,
+  SYSLOG_LEVEL_ERROR,
+  SYSLOG_LEVEL_INFO,
+  SYSLOG_LEVEL_CHAT,
+  SYSLOG_LEVEL_DEBUG
+} LogLevel;
+
+/* Initializes logging. */
+void log_init(char *av0, LogLevel level, SyslogFacility facility, int on_stderr);
+
+/* Logging implementation, depending on server or client */
+void do_log(LogLevel level, const char *fmt, va_list args);
+
+/* Output a message to syslog or stderr */
+void fatal(const char *fmt, ...);
+void error(const char *fmt, ...);
+void log(const char *fmt, ...);
+void chat(const char *fmt, ...);
+void debug(const char *fmt, ...);
+
+/* same as fatal() but w/o logging */
+void fatal_cleanup(void);
+
+/* Registers a cleanup function to be called by fatal()/fatal_cleanup() before exiting. 
+   It is permissible to call fatal_remove_cleanup for the function itself
+   from the function. */
+void fatal_add_cleanup(void (*proc)(void *context), void *context);
+
+/* Removes a cleanup function to be called at fatal(). */
+void fatal_remove_cleanup(void (*proc)(void *context), void *context);
 
 /*---------------- definitions for channels ------------------*/
 

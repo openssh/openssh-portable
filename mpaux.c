@@ -16,7 +16,7 @@ precision integers.
 
 #include "config.h"
 #include "includes.h"
-RCSID("$Id: mpaux.c,v 1.3 1999/10/28 05:23:30 damien Exp $");
+RCSID("$Id: mpaux.c,v 1.4 1999/11/12 04:19:27 damien Exp $");
 
 #ifdef HAVE_OPENSSL
 #include <openssl/bn.h>
@@ -50,5 +50,6 @@ compute_session_id(unsigned char session_id[16],
   MD5_Init(&md);
   MD5_Update(&md, buf, bytes);
   MD5_Final(session_id, &md);
+  memset(buf, 0, bytes);
   xfree(buf);
 }

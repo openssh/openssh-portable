@@ -15,7 +15,7 @@ The main loop for the interactive session (client side).
 */
 
 #include "includes.h"
-RCSID("$Id: clientloop.c,v 1.2 1999/11/11 06:57:39 damien Exp $");
+RCSID("$Id: clientloop.c,v 1.3 1999/11/12 04:19:27 damien Exp $");
 
 #include "xmalloc.h"
 #include "ssh.h"
@@ -23,9 +23,6 @@ RCSID("$Id: clientloop.c,v 1.2 1999/11/11 06:57:39 damien Exp $");
 #include "buffer.h"
 #include "authfd.h"
 #include "readconf.h"
-
-/* Flag indicating whether quiet mode is on. */
-extern Options options;
 
 /* Flag indicating that stdin should be redirected from /dev/null. */
 extern int stdin_null_flag;
@@ -764,6 +761,7 @@ void client_process_output(fd_set *writeset)
 
 int client_loop(int have_pty, int escape_char_arg)
 {
+  extern Options options;
   double start_time, total_time;
   int len;
   char buf[100];

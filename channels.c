@@ -16,7 +16,7 @@ arbitrary tcp/ip connections, and the authentication agent connection.
 */
 
 #include "includes.h"
-RCSID("$Id: channels.c,v 1.4 1999/11/08 05:15:55 damien Exp $");
+RCSID("$Id: channels.c,v 1.5 1999/11/12 04:19:27 damien Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -24,6 +24,7 @@ RCSID("$Id: channels.c,v 1.4 1999/11/08 05:15:55 damien Exp $");
 #include "buffer.h"
 #include "authfd.h"
 #include "uidswap.h"
+#include "readconf.h"
 #include "servconf.h"
 
 #include "channels.h"

@@ -16,12 +16,13 @@ the login based on rhosts authentication.  This file also processes
 */
 
 #include "includes.h"
-RCSID("$Id: auth-rhosts.c,v 1.1 1999/10/27 03:42:43 damien Exp $");
+RCSID("$Id: auth-rhosts.c,v 1.2 1999/11/12 04:19:27 damien Exp $");
 
 #include "packet.h"
 #include "ssh.h"
 #include "xmalloc.h"
 #include "uidswap.h"
+#include "servconf.h"
 
 /* This function processes an rhosts-style file (.rhosts, .shosts, or
    /etc/hosts.equiv).  This returns true if authentication can be granted
@@ -155,9 +156,9 @@ int check_rhosts_file(const char *filename, const char *hostname,
    true, only /etc/hosts.equiv will be considered (.rhosts and .shosts
    are ignored). */
 
-int auth_rhosts(struct passwd *pw, const char *client_user,
-		int ignore_rhosts, int strict_modes)
+int auth_rhosts(struct passwd *pw, const char *client_user)
 {
+  extern ServerOptions options;
   char buf[1024];
   const char *hostname, *ipaddr;
   int port;
@@ -234,7 +235,7 @@ int auth_rhosts(struct passwd *pw, const char *client_user,
 			pw->pw_name, pw->pw_dir);
       return 0;
     }
-  if (strict_modes && 
+  if (options.strict_modes && 
       ((st.st_uid != 0 && st.st_uid != pw->pw_uid) ||
        (st.st_mode & 022) != 0))
     {
@@ -261,7 +262,7 @@ int auth_rhosts(struct passwd *pw, const char *client_user,
 	 and make sure it is not writable by anyone but the owner.  This is
 	 to help avoid novices accidentally allowing access to their account
 	 by anyone. */
-      if (strict_modes &&
+      if (options.strict_modes &&
 	  ((st.st_uid != 0 && st.st_uid != pw->pw_uid) ||
 	   (st.st_mode & 022) != 0))
 	{
@@ -273,7 +274,7 @@ int auth_rhosts(struct passwd *pw, const char *client_user,
 
       /* Check if we have been configured to ignore .rhosts and .shosts 
 	 files. */
-      if (ignore_rhosts)
+      if (options.ignore_rhosts)
 	{
 	  packet_send_debug("Server has been configured to ignore %.100s.",
 			    rhosts_files[rhosts_file_index]);

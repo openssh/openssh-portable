@@ -17,7 +17,7 @@ validity of the host key.
 
 #include "config.h"
 #include "includes.h"
-RCSID("$Id: auth-rsa.c,v 1.4 1999/11/08 05:15:55 damien Exp $");
+RCSID("$Id: auth-rsa.c,v 1.5 1999/11/12 04:19:27 damien Exp $");
 
 #include "rsa.h"
 #include "packet.h"
@@ -25,6 +25,7 @@ RCSID("$Id: auth-rsa.c,v 1.4 1999/11/08 05:15:55 damien Exp $");
 #include "ssh.h"
 #include "mpaux.h"
 #include "uidswap.h"
+#include "servconf.h"
 
 #ifdef HAVE_OPENSSL
 #include <openssl/rsa.h>
@@ -100,7 +101,6 @@ auth_rsa_challenge_dialog(unsigned int bits, BIGNUM *e, BIGNUM *n)
   len = BN_num_bytes(challenge);
   if (len <= 0 || len > 32)
     fatal("auth_rsa_challenge_dialog: bad challenge length %d", len);
-
   memset(buf, 0, 32);
   BN_bn2bin(challenge, buf + 32 - len);
   MD5_Init(&md);
@@ -136,8 +136,9 @@ auth_rsa_challenge_dialog(unsigned int bits, BIGNUM *e, BIGNUM *n)
    successful.  This may exit if there is a serious protocol violation. */
 
 int
-auth_rsa(struct passwd *pw, BIGNUM *client_n, int strict_modes)
+auth_rsa(struct passwd *pw, BIGNUM *client_n)
 {
+  extern ServerOptions options;
   char line[8192];
   int authenticated;
   unsigned int bits;
@@ -172,7 +173,7 @@ auth_rsa(struct passwd *pw, BIGNUM *client_n, int strict_modes)
       return 0;
     }
 
-  if (strict_modes) {
+  if (options.strict_modes) {
     int fail=0;
     char buf[1024];
     /* Check open file in order to avoid open/stat races */
