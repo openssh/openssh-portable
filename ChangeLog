@@ -1,3 +1,7 @@
+20030624
+ - (dtucker) Have configure refer the user to config.log and
+   contrib/findssl.sh for OpenSSL header/library mismatches.
+
 20030622
  - (dtucker) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2003/06/21 09:14:05
@@ -579,4 +583,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2822 2003/06/22 11:22:04 dtucker Exp $
+$Id: ChangeLog,v 1.2823 2003/06/24 10:22:09 dtucker Exp $

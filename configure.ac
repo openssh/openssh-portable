@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.126 2003/06/04 23:53:31 djm Exp $
+# $Id: configure.ac,v 1.127 2003/06/24 10:22:10 dtucker Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -957,7 +957,9 @@ int main(void) { exit(SSLeay() == OPENSSL_VERSION_NUMBER ? 0 : 1); }
 	],
 	[
 		AC_MSG_RESULT(no)
-		AC_MSG_ERROR(Your OpenSSL headers do not match your library)
+		AC_MSG_ERROR([Your OpenSSL headers do not match your library.
+Check config.log for details.
+Also see contrib/findssl.sh for help identifying header/library mismatches.])
 	]
 )
 
