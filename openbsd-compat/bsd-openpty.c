@@ -151,7 +151,7 @@ openpty(int *amaster, int *aslave, char *name, struct termios *termp,
 
 	for (i = 0; i < highpty; i++) {
 		snprintf(ptbuf, sizeof(ptbuf), "/dev/pty/%03d", i);
-		snprintf(ttbuf, sideof(ttbuf), "/dev/ttyp%03d", i);
+		snprintf(ttbuf, sizeof(ttbuf), "/dev/ttyp%03d", i);
 		if ((*amaster = open(ptbuf, O_RDWR|O_NOCTTY)) == -1)
 			continue;
 		/* Open the slave side. */

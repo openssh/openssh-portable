@@ -1,3 +1,6 @@
+20040124
+ - (djm) Typo in openbsd-compat/bsd-openpty.c; from wendyp AT cray.com
+
 20040123 
  - (djm) Do pam_session processing for systems with HAVE_LOGIN_CAP; from 
    ralf.hack AT pipex.net; ok dtucker@
@@ -1726,4 +1729,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3186 2004/01/24 02:35:16 tim Exp $
+$Id: ChangeLog,v 1.3187 2004/01/24 02:50:39 djm Exp $
