@@ -34,7 +34,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: log.c,v 1.26 2003/04/08 20:21:28 itojun Exp $");
+RCSID("$OpenBSD: log.c,v 1.27 2003/05/18 23:22:01 deraadt Exp $");
 
 #include "log.h"
 #include "xmalloc.h"
@@ -339,6 +339,9 @@ log_init(char *av0, LogLevel level, SyslogFacility facility, int on_stderr)
 void
 do_log(LogLevel level, const char *fmt, va_list args)
 {
+#ifdef OPENLOG_R
+	struct syslog_data sdata = SYSLOG_DATA_INIT;
+#endif
 	char msgbuf[MSGBUFSIZ];
 	char fmtbuf[MSGBUFSIZ];
 	char *txt = NULL;
@@ -391,10 +394,17 @@ do_log(LogLevel level, const char *fmt, va_list args)
 	strnvis(fmtbuf, msgbuf, sizeof(fmtbuf), VIS_OCTAL);
 	
 	if (log_on_stderr) {
-		fprintf(stderr, "%s\r\n", fmtbuf);
+		snprintf(fmtbuf, sizeof fmtbuf, "%s\r\n", msgbuf);
+		write(STDERR_FILENO, fmtbuf, strlen(fmtbuf));
 	} else {
+#ifdef OPENLOG_R
+		openlog_r(argv0 ? argv0 : __progname, LOG_PID, log_facility, &sdata);
+		syslog_r(pri, &sdata, "%.500s", msgbuf);
+		closelog_r(&sdata);
+#else
 		openlog(argv0 ? argv0 : __progname, LOG_PID, log_facility);
 		syslog(pri, "%.500s", fmtbuf);
 		closelog();
+#endif
 	}
 }
