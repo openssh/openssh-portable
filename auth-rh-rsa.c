@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rh-rsa.c,v 1.29 2002/03/04 12:43:06 markus Exp $");
+RCSID("$OpenBSD: auth-rh-rsa.c,v 1.30 2002/03/14 16:56:33 markus Exp $");
 
 #include "packet.h"
 #include "uidswap.h"
@@ -63,7 +63,7 @@ auth_rhosts_rsa(struct passwd *pw, const char *client_user, Key *client_host_key
 	/* A matching host key was found and is known. */
 
 	/* Perform the challenge-response dialog with the client for the host key. */
-	if (!auth_rsa_challenge_dialog(client_host_key->rsa)) {
+	if (!auth_rsa_challenge_dialog(client_host_key)) {
 		log("Client on %.800s failed to respond correctly to host authentication.",
 		    canonical_hostname);
 		return 0;
