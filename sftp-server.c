@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: sftp-server.c,v 1.40 2003/03/05 22:33:43 markus Exp $");
+RCSID("$OpenBSD: sftp-server.c,v 1.41 2003/03/26 04:02:51 deraadt Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
@@ -836,20 +836,31 @@ process_rename(void)
 	u_int32_t id;
 	char *oldpath, *newpath;
 	int status;
+	struct stat sb;
 
 	id = get_int();
 	oldpath = get_string(NULL);
 	newpath = get_string(NULL);
 	TRACE("rename id %u old %s new %s", id, oldpath, newpath);
-	/* fail if 'newpath' exists */
-	if (link(oldpath, newpath) == -1)
+	status = SSH2_FX_FAILURE;
+	if (lstat(oldpath, &sb) == -1)
 		status = errno_to_portable(errno);
-	else if (unlink(oldpath) == -1) {
-		status = errno_to_portable(errno);
-		/* clean spare link */
-		unlink(newpath);
-	} else
-		status = SSH2_FX_OK;
+	else if (S_ISREG(sb.st_mode)) {
+		/* Race-free rename of regular files */
+		if (link(oldpath, newpath) == -1)
+			status = errno_to_portable(errno);
+		else if (unlink(oldpath) == -1) {
+			status = errno_to_portable(errno);
+			/* clean spare link */
+			unlink(newpath);
+		} else
+			status = SSH2_FX_OK;
+	} else if (stat(newpath, &sb) == -1) {
+		if (rename(oldpath, newpath) == -1)
+			status = errno_to_portable(errno);
+		else
+			status = SSH2_FX_OK;
+	}
 	send_status(id, status);
 	xfree(oldpath);
 	xfree(newpath);
