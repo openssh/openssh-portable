@@ -16,6 +16,7 @@
      [clientloop.c]
      clear select masks if we return before calling select().
  - (djm) "make veryclean" fix from Tom Holroyd <tomh@po.crl.go.jp>
+ - (djm) Clean some autoconf-2.52 junk when doing "make distclean"
 
 20011010
  - (djm) OpenBSD CVS Sync
@@ -6714,4 +6715,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1604 2001/10/12 02:04:04 djm Exp $
+$Id: ChangeLog,v 1.1605 2001/10/12 09:15:27 djm Exp $

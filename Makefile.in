@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.187 2001/10/12 02:04:05 djm Exp $
+# $Id: Makefile.in,v 1.188 2001/10/12 09:15:28 djm Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -142,13 +142,14 @@ $(CONFIGFILES): $(CONFIGFILES_IN)
 
 clean:
 	rm -f *.o *.a $(TARGETS) logintest config.cache config.log 
-	rm -f *.out core
+	rm -f *.out core 
 	(cd openbsd-compat; $(MAKE) clean)
 
 distclean:
 	rm -f *.o *.a $(TARGETS) logintest config.cache config.log 
 	rm -f *.out core
 	rm -f Makefile config.h config.status ssh_prng_cmds *~
+	rm -rf autom4te.cache
 	(cd openbsd-compat; $(MAKE) distclean)
 	(cd scard; $(MAKE) distclean)
 
