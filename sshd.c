@@ -825,7 +825,6 @@ main(int ac, char **av)
 
 	/* Save argv. Duplicate so setproctitle emulation doesn't clobber it */
 	saved_argc = ac;
-	saved_argv = av;
 	saved_argv = xmalloc(sizeof(*saved_argv) * (ac + 1));
 	for (i = 0; i < ac; i++)
 		saved_argv[i] = xstrdup(av[i]);
@@ -834,6 +833,7 @@ main(int ac, char **av)
 #ifndef HAVE_SETPROCTITLE
 	/* Prepare for later setproctitle emulation */
 	compat_init_setproctitle(ac, av);
+	av = saved_argv;
 #endif
 
 	/* Initialize configuration options to their default values. */
