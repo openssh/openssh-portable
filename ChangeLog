@@ -19,6 +19,9 @@
    - markus@cvs.openbsd.org 2001/03/29 21:17:40
      [dh.c dh.h kex.c kex.h]
      prepare for rekeying: move DH code to dh.c
+   - djm@cvs.openbsd.org 2001/03/29 23:42:01
+     [sshd.c]
+     Protocol 1 key regeneration log => verbose, some KNF; ok markus@
 
 20010329
  - OpenBSD CVS Sync
@@ -4789,4 +4792,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1041 2001/03/30 00:50:10 djm Exp $
+$Id: ChangeLog,v 1.1042 2001/03/30 00:50:32 djm Exp $

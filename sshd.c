@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.184 2001/03/29 21:06:21 stevesk Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.185 2001/03/29 23:42:01 djm Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -278,12 +278,13 @@ generate_ephemeral_server_key(void)
 	u_int32_t rand = 0;
 	int i;
 
-	log("Generating %s%d bit RSA key.", sensitive_data.server_key ? "new " : "",
-	    options.server_key_bits);
+	verbose("Generating %s%d bit RSA key.", 
+	    sensitive_data.server_key ? "new " : "", options.server_key_bits);
 	if (sensitive_data.server_key != NULL)
 		key_free(sensitive_data.server_key);
-	sensitive_data.server_key = key_generate(KEY_RSA1, options.server_key_bits);
-	log("RSA key generation complete.");
+	sensitive_data.server_key = key_generate(KEY_RSA1, 
+	    options.server_key_bits);
+	verbose("RSA key generation complete.");
 
 	for (i = 0; i < SSH_SESSION_KEY_LENGTH; i++) {
 		if (i % 4 == 0)
