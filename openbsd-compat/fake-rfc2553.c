@@ -2,13 +2,13 @@
  * Pseudo-implementation of RFC2553 name / address resolution functions
  *
  * But these functions are not implemented correctly. The minimum subset
- * is implemented for ssh use only. For exapmle, this routine assumes
+ * is implemented for ssh use only. For example, this routine assumes
  * that ai_family is AF_INET. Don't use it for another purpose.
  */
 
 #include "includes.h"
 
-RCSID("$Id: fake-rfc2553.c,v 1.2 2003/06/05 09:37:30 dtucker Exp $");
+RCSID("$Id: fake-rfc2553.c,v 1.3 2003/06/11 13:56:41 dtucker Exp $");
 
 #ifndef HAVE_GETNAMEINFO
 int getnameinfo(const struct sockaddr *sa, size_t salen, char *host, 

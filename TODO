@@ -89,11 +89,11 @@ PrivSep Issues:
 - PAM 
   + See above PAM notes
 - AIX
-  + usrinfo() does not set TTY, but only required for legicy systems.  Works
+  + usrinfo() does not set TTY, but only required for legacy systems.  Works
     with PrivSep.
 - OSF
   + SIA is broken
 - Cygwin
   + Privsep for Pre-auth only (no fd passing)
 
-$Id: TODO,v 1.54 2003/05/18 11:44:07 djm Exp $
+$Id: TODO,v 1.55 2003/06/11 13:56:41 dtucker Exp $

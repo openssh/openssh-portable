@@ -2,11 +2,11 @@
  * Pseudo-implementation of RFC2553 name / address resolution functions
  *
  * But these functions are not implemented correctly. The minimum subset
- * is implemented for ssh use only. For exapmle, this routine assumes
+ * is implemented for ssh use only. For example, this routine assumes
  * that ai_family is AF_INET. Don't use it for another purpose.
  */
 
-/* $Id: fake-rfc2553.h,v 1.2 2003/06/05 12:20:11 dtucker Exp $ */
+/* $Id: fake-rfc2553.h,v 1.3 2003/06/11 13:56:41 dtucker Exp $ */
 
 #ifndef _FAKE_RFC2553_H
 #define _FAKE_RFC2553_H
