@@ -26,7 +26,7 @@
 #include "xmalloc.h"
 #include "ssh.h"
 
-RCSID("$Id: bsd-misc.c,v 1.2 2001/02/09 01:55:36 djm Exp $");
+RCSID("$Id: bsd-misc.c,v 1.3 2001/03/13 23:38:20 mouring Exp $");
 
 char *get_progname(char *argv0)
 {
@@ -76,10 +76,10 @@ const char *strerror(int e)
 	extern int sys_nerr;
 	extern char *sys_errlist[];
 	
-	if ((e >= 0) || (e < sys_nerr))
-		return("unlisted error");
-	else
+	if ((e >= 0) && (e < sys_nerr))
 		return(sys_errlist[e]);
+	else
+		return("unlisted error");
 }
 #endif
 
