@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: sftp-server.c,v 1.25 2001/04/05 10:42:53 markus Exp $");
+RCSID("$OpenBSD: sftp-server.c,v 1.26 2001/05/12 19:53:13 markus Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
@@ -883,18 +883,19 @@ void
 process_readlink(void)
 {
 	u_int32_t id;
+	int len;
 	char link[MAXPATHLEN];
 	char *path;
 
 	id = get_int();
 	path = get_string(NULL);
 	TRACE("readlink id %d path %s", id, path);
-	if (readlink(path, link, sizeof(link) - 1) == -1)
+	if ((len = readlink(path, link, sizeof(link) - 1)) == -1)
 		send_status(id, errno_to_portable(errno));
 	else {
 		Stat s;
 		
-		link[sizeof(link) - 1] = '\0';
+		link[len] = '\0';
 		attrib_clear(&s.attrib);
 		s.name = s.long_name = link;
 		send_names(id, 1, &s);
