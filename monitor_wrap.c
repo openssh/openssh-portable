@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor_wrap.c,v 1.20 2002/11/21 23:03:51 deraadt Exp $");
+RCSID("$OpenBSD: monitor_wrap.c,v 1.21 2003/02/04 09:33:22 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/dh.h>
@@ -714,7 +714,7 @@ mm_bsdauth_query(void *ctx, char **name, char **infotxt,
    u_int *numprompts, char ***prompts, u_int **echo_on)
 {
 	Buffer m;
-	int res;
+	u_int success;
 	char *challenge;
 
 	debug3("%s: entering", __func__);
@@ -724,8 +724,8 @@ mm_bsdauth_query(void *ctx, char **name, char **infotxt,
 
 	mm_request_receive_expect(pmonitor->m_recvfd, MONITOR_ANS_BSDAUTHQUERY,
 	    &m);
-	res = buffer_get_int(&m);
-	if (res == -1) {
+	success = buffer_get_int(&m);
+	if (success == 0) {
 		debug3("%s: no challenge", __func__);
 		buffer_free(&m);
 		return (-1);
@@ -771,7 +771,8 @@ mm_skey_query(void *ctx, char **name, char **infotxt,
    u_int *numprompts, char ***prompts, u_int **echo_on)
 {
 	Buffer m;
-	int len, res;
+	int len;
+	u_int success;
 	char *p, *challenge;
 
 	debug3("%s: entering", __func__);
@@ -781,8 +782,8 @@ mm_skey_query(void *ctx, char **name, char **infotxt,
 
 	mm_request_receive_expect(pmonitor->m_recvfd, MONITOR_ANS_SKEYQUERY,
 	    &m);
-	res = buffer_get_int(&m);
-	if (res == -1) {
+	success = buffer_get_int(&m);
+	if (success == 0) {
 		debug3("%s: no challenge", __func__);
 		buffer_free(&m);
 		return (-1);

@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.30 2002/11/05 19:45:20 markus Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.31 2003/02/04 09:33:22 markus Exp $");
 
 #include <openssl/dh.h>
 
@@ -634,20 +634,20 @@ mm_answer_bsdauthquery(int socket, Buffer *m)
 	u_int numprompts;
 	u_int *echo_on;
 	char **prompts;
-	int res;
+	u_int success;
 
-	res = bsdauth_query(authctxt, &name, &infotxt, &numprompts,
-	    &prompts, &echo_on);
+	success = bsdauth_query(authctxt, &name, &infotxt, &numprompts,
+	    &prompts, &echo_on) < 0 ? 0 : 1;
 
 	buffer_clear(m);
-	buffer_put_int(m, res);
-	if (res != -1)
+	buffer_put_int(m, success);
+	if (success)
 		buffer_put_cstring(m, prompts[0]);
 
-	debug3("%s: sending challenge res: %d", __func__, res);
+	debug3("%s: sending challenge success: %u", __func__, success);
 	mm_request_send(socket, MONITOR_ANS_BSDAUTHQUERY, m);
 
-	if (res != -1) {
+	if (success) {
 		xfree(name);
 		xfree(infotxt);
 		xfree(prompts);
@@ -691,16 +691,16 @@ mm_answer_skeyquery(int socket, Buffer *m)
 {
 	struct skey skey;
 	char challenge[1024];
-	int res;
+	u_int success;
 
-	res = skeychallenge(&skey, authctxt->user, challenge);
+	success = skeychallenge(&skey, authctxt->user, challenge) < 0 ? 0 : 1;
 
 	buffer_clear(m);
-	buffer_put_int(m, res);
-	if (res != -1)
+	buffer_put_int(m, success);
+	if (success)
 		buffer_put_cstring(m, challenge);
 
-	debug3("%s: sending challenge res: %d", __func__, res);
+	debug3("%s: sending challenge success: %u", __func__, success);
 	mm_request_send(socket, MONITOR_ANS_SKEYQUERY, m);
 
 	return (0);
