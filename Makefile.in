@@ -107,7 +107,7 @@ install: $(TARGETS)
 	$(INSTALL) -d $(DESTDIR)$(mandir)
 	$(INSTALL) -d $(DESTDIR)$(mandir)/$(mansubdir)1
 	$(INSTALL) -d $(DESTDIR)$(mandir)/$(mansubdir)8
-	$(INSTALL) -s ssh $(DESTDIR)$(bindir)/ssh
+	$(INSTALL) -m 4755 -s ssh $(DESTDIR)$(bindir)/ssh
 	$(INSTALL) -s scp $(DESTDIR)$(bindir)/scp
 	$(INSTALL) -s ssh-add $(DESTDIR)$(bindir)/ssh-add
 	$(INSTALL) -s ssh-agent $(DESTDIR)$(bindir)/ssh-agent
