@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.100 2002/11/21 22:45:31 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.101 2002/12/10 19:26:50 markus Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -1314,16 +1314,26 @@ packet_not_very_much_data_to_write(void)
 		return buffer_len(&output) < 128 * 1024;
 }
 
+void
+packet_set_tos(int interactive)
+{
+	int tos = interactive ? IPTOS_LOWDELAY : IPTOS_THROUGHPUT;
+
+	if (!packet_connection_is_on_socket() ||
+	    !packet_connection_is_ipv4())
+		return;
+	if (setsockopt(connection_in, IPPROTO_IP, IP_TOS, &tos,
+	    sizeof(tos)) < 0)
+		error("setsockopt IP_TOS %d: %.100s:",
+		    tos, strerror(errno));
+}
+
 /* Informs that the current session is interactive.  Sets IP flags for that. */
 
 void
 packet_set_interactive(int interactive)
 {
 	static int called = 0;
-#if defined(IP_TOS) && !defined(IP_TOS_IS_BROKEN)
-	int lowdelay = IPTOS_LOWDELAY;
-	int throughput = IPTOS_THROUGHPUT;
-#endif
 
 	if (called)
 		return;
@@ -1334,35 +1344,12 @@ packet_set_interactive(int interactive)
 
 	/* Only set socket options if using a socket.  */
 	if (!packet_connection_is_on_socket())
-		return;
-	/*
-	 * IPTOS_LOWDELAY and IPTOS_THROUGHPUT are IPv4 only
-	 */
-	if (interactive) {
-		/*
-		 * Set IP options for an interactive connection.  Use
-		 * IPTOS_LOWDELAY and TCP_NODELAY.
-		 */
-#if defined(IP_TOS) && !defined(IP_TOS_IS_BROKEN)
-		if (packet_connection_is_ipv4()) {
-			if (setsockopt(connection_in, IPPROTO_IP, IP_TOS,
-			    &lowdelay, sizeof(lowdelay)) < 0)
-				error("setsockopt IPTOS_LOWDELAY: %.100s",
-				    strerror(errno));
-		}
-#endif
+	if (interactive)
 		set_nodelay(connection_in);
-	} else if (packet_connection_is_ipv4()) {
-		/*
-		 * Set IP options for a non-interactive connection.  Use
-		 * IPTOS_THROUGHPUT.
-		 */
 #if defined(IP_TOS) && !defined(IP_TOS_IS_BROKEN)
-		if (setsockopt(connection_in, IPPROTO_IP, IP_TOS, &throughput,
-		    sizeof(throughput)) < 0)
-			error("setsockopt IPTOS_THROUGHPUT: %.100s", strerror(errno));
+	packet_set_tos(interactive);
 #endif
-	}
+
 }
 
 /* Returns true if the current connection is interactive. */
