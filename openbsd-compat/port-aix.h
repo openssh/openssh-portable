@@ -1,4 +1,4 @@
-/* $Id: port-aix.h,v 1.16 2003/11/22 03:16:57 dtucker Exp $ */
+/* $Id: port-aix.h,v 1.17 2004/02/06 05:17:52 dtucker Exp $ */
 
 /*
  *
@@ -51,6 +51,14 @@
 # include <sys/timers.h>
 #endif
 
+/*
+ * According to the setauthdb man page, AIX password registries must be 15
+ * chars or less plus terminating NUL.
+ */
+#ifdef HAVE_SETAUTHDB
+# define REGISTRY_SIZE	16
+#endif
+
 void aix_usrinfo(struct passwd *);
 
 #ifdef WITH_AIXAUTHENTICATE
@@ -60,5 +68,6 @@ void record_failed_login(const char *, const char *);
 
 int aix_authenticate(const char *, const char *, const char *);
 void aix_setauthdb(const char *);
+void aix_restoreauthdb(void);
 void aix_remove_embedded_newlines(char *);
 #endif /* _AIX */

@@ -39,6 +39,10 @@
 extern ServerOptions options;
 extern Buffer loginmsg;
 
+# ifdef HAVE_SETAUTHDB
+static char old_registry[REGISTRY_SIZE] = "";
+# endif
+
 /*
  * AIX has a "usrinfo" area where logname and other stuff is stored - 
  * a few applications actually use this and die if it's not set
@@ -119,6 +123,7 @@ aix_authenticate(const char *name, const char *password, const char *host)
 				xfree(msg);
 			}
 		}
+		aix_restoreauthdb();
 	}
 
 	if (authmsg != NULL)
@@ -145,22 +150,21 @@ record_failed_login(const char *user, const char *ttyname)
 #   else
 	loginfailed((char *)user, hostname, (char *)ttyname);
 #   endif
+	aix_restoreauthdb();
 }
 #  endif /* CUSTOM_FAILED_LOGIN */
 
 /*
  * If we have setauthdb, retrieve the password registry for the user's
- * account then feed it to setauthdb.  This may load registry-specific method
- * code.  If we don't have setauthdb or have already called it this is a no-op.
+ * account then feed it to setauthdb.  This will mean that subsequent AIX auth
+ * functions will only use the specified loadable module.  If we don't have
+ * setauthdb this is a no-op.
  */
 void
 aix_setauthdb(const char *user)
 {
 #  ifdef HAVE_SETAUTHDB
-	static char *registry = NULL;
-
-	if (registry != NULL)	/* have already done setauthdb */
-		return;
+	char *registry;
 
 	if (setuserdb(S_READ) == -1) {
 		debug3("%s: Could not open userdb to read", __func__);
@@ -168,16 +172,34 @@ aix_setauthdb(const char *user)
 	}
 	
 	if (getuserattr((char *)user, S_REGISTRY, &registry, SEC_CHAR) == 0) {
-		if (setauthdb(registry, NULL) == 0)
-			debug3("%s: AIX/setauthdb set registry %s", __func__,
-			    registry);
+		if (setauthdb(registry, old_registry) == 0)
+			debug3("AIX/setauthdb set registry '%s'", registry);
 		else 
-			debug3("%s: AIX/setauthdb set registry %s failed: %s",
-			    __func__, registry, strerror(errno));
+			debug3("AIX/setauthdb set registry '%s' failed: %s",
+			    registry, strerror(errno));
 	} else
 		debug3("%s: Could not read S_REGISTRY for user: %s", __func__,
 		    strerror(errno));
 	enduserdb();
+#  endif /* HAVE_SETAUTHDB */
+}
+
+/*
+ * Restore the user's registry settings from old_registry.
+ * Note that if the first aix_setauthdb fails, setauthdb("") is still safe
+ * (it restores the system default behaviour).  If we don't have setauthdb,
+ * this is a no-op.
+ */
+void
+aix_restoreauthdb(void)
+{
+#  ifdef HAVE_SETAUTHDB
+	if (setauthdb(old_registry, NULL) == 0)
+		debug3("%s: restoring old registry '%s'", __func__,
+		    old_registry);
+	else
+		debug3("%s: failed to restore old registry %s", __func__,
+		    old_registry);
 #  endif /* HAVE_SETAUTHDB */
 }
 
