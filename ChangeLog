@@ -2,6 +2,8 @@
  - Integrated patchs from Juergen Keil <jk@tools.de>
    - Avoid void* pointer arithmatic
    - Use LDFLAGS correctly
+ - Added better test for inline functions compiler support from  
+   Darren_Hall@progressive.com
 
 19991214
  - OpenBSD CVS Changes

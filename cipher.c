@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: cipher.c,v 1.10 1999/12/14 22:06:28 damien Exp $");
+RCSID("$Id: cipher.c,v 1.11 1999/12/14 22:34:31 damien Exp $");
 
 #include "ssh.h"
 #include "cipher.h"
@@ -111,7 +111,7 @@ swap_bytes(const unsigned char *src, unsigned char *dst_, int n)
 
 void (*cipher_attack_detected) (const char *fmt,...) = fatal;
 
-static INLINE void
+static inline void
 detect_cbc_attack(const unsigned char *src,
 		  unsigned int len)
 {

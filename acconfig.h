@@ -261,14 +261,8 @@ enum
 # define __P(x) x
 #endif
 
-#ifdef __GNUC__
-#  if __GNUC__ < 2
-#    define INLINE inline
-#    define __attribute__(x)
-#  else
-#    define INLINE __inline__
-#  endif /* __GNUC__ < 2 */
+#if defined(__GNUC__) && (__GNUC__ < 2)
+#  define __attribute__(x)
 #else
 #  define __attribute__(x)
-#  define INLINE
-#endif /* __GNUC__ */
+#endif /* defined(__GNUC__) && (__GNUC__ < 2) */
