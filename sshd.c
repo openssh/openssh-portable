@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.200 2001/06/23 15:12:21 itojun Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.201 2001/06/23 19:12:43 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -876,6 +876,22 @@ main(int ac, char **av)
 		if (!num_listen_socks)
 			fatal("Cannot bind any address.");
 
+		if (options.protocol & SSH_PROTO_1)
+			generate_ephemeral_server_key();
+
+		/*
+		 * Arrange to restart on SIGHUP.  The handler needs
+		 * listen_sock.
+		 */
+		signal(SIGHUP, sighup_handler);
+
+		signal(SIGTERM, sigterm_handler);
+		signal(SIGQUIT, sigterm_handler);
+
+		/* Arrange SIGCHLD to be caught. */
+		signal(SIGCHLD, main_sigchld_handler);
+
+		/* Write out the pid file after the sigterm handler is setup */
 		if (!debug_flag) {
 			/*
 			 * Record our pid in /var/run/sshd.pid to make it
@@ -890,17 +906,6 @@ main(int ac, char **av)
 				fclose(f);
 			}
 		}
-		if (options.protocol & SSH_PROTO_1)
-			generate_ephemeral_server_key();
-
-		/* Arrange to restart on SIGHUP.  The handler needs listen_sock. */
-		signal(SIGHUP, sighup_handler);
-
-		signal(SIGTERM, sigterm_handler);
-		signal(SIGQUIT, sigterm_handler);
-
-		/* Arrange SIGCHLD to be caught. */
-		signal(SIGCHLD, main_sigchld_handler);
 
 		/* setup fd set for listen */
 		fdset = NULL;
