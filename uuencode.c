@@ -1,4 +1,4 @@
-/*     $OpenBSD: uuencode.c,v 1.10 2001/02/08 19:30:53 itojun Exp $    */
+/*	$OpenBSD: uuencode.c,v 1.10 2001/02/08 19:30:53 itojun Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -27,6 +27,8 @@
 #include "includes.h"
 #include "xmalloc.h"
 #include "uuencode.h"
+
+#include <resolv.h>
 
 RCSID("$OpenBSD: uuencode.c,v 1.10 2001/02/08 19:30:53 itojun Exp $");
 
