@@ -32,14 +32,8 @@ send a message conststing of the word 'SUBSCRIBE' to
 openssh-unix-dev-request@mindrot.org. This mailing list is intended for
 developers.
 
-To build OpenSSH, use the configure script provided. For example:
-
-./configure --prefix=/opt/openssh
-make
-make install
-
-Will install the OpenSSH binaries in /opt/openssh/bin, the 
-configuration files in /opt/openssh/etc, and so forth.
+Please refer to the INSTALL document for information on how to install
+OpenSSH on your system.
 
 Damien Miller <djm@ibs.com.au>
 Internet Business Solutions

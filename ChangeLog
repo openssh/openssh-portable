@@ -8,6 +8,8 @@
  - Grab server in gnome-ssh-askpass (Debian bug #49872)
  - Released 1.2pre10
 
+ - Added INSTALL documentation
+
 19991111
  - Added (untested) Entropy Gathering Daemon (EGD) support
  - Fixed /dev/urandom fd leak (Debian bug #49722)

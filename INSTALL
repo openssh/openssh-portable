@@ -1,0 +1,86 @@
+1. Prerequisites
+----------------
+
+You will need working installations of Zlib and OpenSSL.
+
+Zlib:
+http://www.cdrom.com/pub/infozip/zlib/
+
+OpenSSL:
+http://www.openssl.org/
+
+OpenSSH can utilise Pluggable Authentication Modules (PAM) if your system
+supports it. PAM is standard on Redhat and Debian Linux and on Solaris.
+
+PAM:
+http://www.kernel.org/pub/linux/libs/pam/
+
+If you wish to build the GNOME passphrase requestor, you will need the GNOME
+libraries and headers.
+
+GNOME:
+http://www.gnome.org/
+
+If you are planning to use OpenSSH on a Unix which lacks a Kernel random
+number generator (/dev/urandom), you will need to install the Entropy
+Gathering Daemon (or similar). You will also need to specify the 
+--with-egd-pool option to ./configure.
+
+EGD:
+http://www.lothar.com/tech/crypto/
+
+
+2. Building / Installation
+--------------------------
+
+To install OpenSSH with default options:
+
+./configure
+make
+make install
+
+This will install the OpenSSH binaries in /usr/local/bin, configuration files
+in /usr/local/etc, the server in /usr/local/sbin, etc. To specify a different
+installation prefix, use the --prefix option to configure:
+
+./configure --prefix=/opt
+make
+make install
+
+Will install OpenSSH in /opt/{bin,etc,lib,sbin}. You can also override 
+specific paths, for example:
+
+./configure --prefix=/opt --sysconfdir=/etc/ssh
+make
+make install
+
+This will install the binaries in /opt/{bin,lib,sbin}, but will place the
+configuration files in /etc/ssh.
+
+There are a few other options to the configure script:
+
+--enable-gnome-askpass will build the GNOME passphrase dialog. You need a 
+working installation of GNOME, including the development headers, for this
+to work.
+
+--with-random=/some/file allows you to specify an alternate source of 
+random numbers (the default is /dev/urandom). Unless you are absolutly 
+sure of what you are doing, it is best to leave this alone.
+
+--with-egd-pool=/some/file allows you to enable Entropy Gathering Daemon 
+support and to specify a EGD pool socket. You will need to use this if your
+Unix does not support the /dev/urandom device (or similar).
+
+
+3. Configuration
+----------------
+
+The runtime configuration files are installed by in ${prefix}/etc or 
+whatever you specified as your --sysconfdir (/usr/local/etc by default).
+
+The default configuration should be instantly usable, though you should 
+review it to ensure that it matches your security requirements.
+
+For more information on configuration, please refer to the manual pages 
+for sshd, ssh and ssh-agent.
+
