@@ -24,15 +24,16 @@
 
 #include "includes.h"
 #ifdef SMARTCARD
-RCSID("$OpenBSD: scard.c,v 1.18 2002/03/21 16:38:06 markus Exp $");
-
+RCSID("$OpenBSD: scard.c,v 1.20 2002/03/21 16:57:15 markus Exp $");
 #include <openssl/engine.h>
+#include <openssl/evp.h>
 #include <sectok.h>
 
 #include "key.h"
 #include "log.h"
 #include "xmalloc.h"
 #include "scard.h"
+#include "readpass.h"
 
 #ifdef OPENSSL_VERSION_NUMBER
 #if OPENSSL_VERSION_NUMBER >= 0x00907000L
@@ -187,7 +188,7 @@ err:
 /* private key operations */
 
 static int
-sc_private_decrypt(int flen, const u_char *from, u_char *to, RSA *rsa,
+sc_private_decrypt(int flen, u_char *from, u_char *to, RSA *rsa,
     int padding)
 {
 	u_char *padded = NULL;
@@ -231,7 +232,7 @@ err:
 }
 
 static int
-sc_private_encrypt(int flen, const u_char *from, u_char *to, RSA *rsa,
+sc_private_encrypt(int flen, u_char *from, u_char *to, RSA *rsa,
     int padding)
 {
 	u_char *padded = NULL;
@@ -362,5 +363,118 @@ sc_get_key(const char *id)
 		return NULL;
 	}
 	return k;
+}
+
+#define NUM_RSA_KEY_ELEMENTS 5+1
+#define COPY_RSA_KEY(x, i) \
+	do { \
+		len = BN_num_bytes(prv->rsa->x); \
+		elements[i] = xmalloc(len); \
+		debug("#bytes %d", len); \
+		if (BN_bn2bin(prv->rsa->x, elements[i]) < 0) \
+			goto done; \
+	} while (0)
+
+static int
+get_AUT0(char *aut0)
+{
+	const EVP_MD *evp_md = EVP_sha1();
+	EVP_MD_CTX md;
+	char *pass;
+
+	pass = read_passphrase("Enter passphrase for smartcard: ", RP_ALLOW_STDIN);
+	if (pass == NULL)
+		return -1;
+	EVP_DigestInit(&md, evp_md);
+	EVP_DigestUpdate(&md, pass, strlen(pass));
+	EVP_DigestFinal(&md, aut0, NULL);
+	memset(pass, 0, strlen(pass));
+	xfree(pass);
+	return 0;
+}
+
+int
+sc_put_key(Key *prv, const char *id)
+{
+	u_char *elements[NUM_RSA_KEY_ELEMENTS];
+	u_char key_fid[2];
+	u_char DEFAUT0[] = {0xad, 0x9f, 0x61, 0xfe, 0xfa, 0x20, 0xce, 0x63};
+	u_char AUT0[EVP_MAX_MD_SIZE];
+	int len, status = -1, i, fd = -1, ret;
+	int sw = 0, cla = 0x00;
+
+	for (i = 0; i < NUM_RSA_KEY_ELEMENTS; i++)
+		elements[i] = NULL;
+
+	COPY_RSA_KEY(q, 0);
+	COPY_RSA_KEY(p, 1);
+	COPY_RSA_KEY(iqmp, 2);
+	COPY_RSA_KEY(dmq1, 3);
+	COPY_RSA_KEY(dmp1, 4);
+	COPY_RSA_KEY(n, 5);
+	len = BN_num_bytes(prv->rsa->n);
+	fd = sectok_friendly_open(sc_reader_id, STONOWAIT, &sw);
+	if (fd < 0) {
+		error("sectok_open failed: %s", sectok_get_sw(sw));
+		goto done;
+	}
+	if (! sectok_cardpresent(fd)) {
+		error("smartcard in reader %s not present",
+		    sc_reader_id);
+		goto done;
+	}
+	ret = sectok_reset(fd, 0, NULL, &sw);
+	if (ret <= 0) {
+		error("sectok_reset failed: %s", sectok_get_sw(sw));
+		goto done;
+	}
+	if ((cla = cyberflex_inq_class(fd)) < 0) {
+		error("cyberflex_inq_class failed");
+		goto done;
+	}
+	memcpy(AUT0, DEFAUT0, sizeof(DEFAUT0));
+	if (cyberflex_verify_AUT0(fd, cla, AUT0, sizeof(DEFAUT0)) < 0) {
+		if (get_AUT0(AUT0) < 0 ||
+		    cyberflex_verify_AUT0(fd, cla, AUT0, sizeof(DEFAUT0)) < 0) {
+			error("cyberflex_verify_AUT0 failed");
+			goto done;
+		}
+	}
+	key_fid[0] = 0x00;
+	key_fid[1] = 0x12;
+	if (cyberflex_load_rsa_priv(fd, cla, key_fid, 5, 8*len, elements,
+	    &sw) < 0) {
+		error("cyberflex_load_rsa_priv failed: %s", sectok_get_sw(sw));
+		goto done;
+	}
+	if (!sectok_swOK(sw))
+		goto done;
+	log("cyberflex_load_rsa_priv done");
+	key_fid[0] = 0x73;
+	key_fid[1] = 0x68;
+	if (cyberflex_load_rsa_pub(fd, cla, key_fid, len, elements[5],
+	    &sw) < 0) {
+		error("cyberflex_load_rsa_pub failed: %s", sectok_get_sw(sw));
+		goto done;
+	}
+	if (!sectok_swOK(sw))
+		goto done;
+	log("cyberflex_load_rsa_pub done");
+	status = 0;
+
+done:
+	memset(elements[0], '\0', BN_num_bytes(prv->rsa->q));
+	memset(elements[1], '\0', BN_num_bytes(prv->rsa->p));
+	memset(elements[2], '\0', BN_num_bytes(prv->rsa->iqmp));
+	memset(elements[3], '\0', BN_num_bytes(prv->rsa->dmq1));
+	memset(elements[4], '\0', BN_num_bytes(prv->rsa->dmp1));
+	memset(elements[5], '\0', BN_num_bytes(prv->rsa->n));
+
+	for (i = 0; i < NUM_RSA_KEY_ELEMENTS; i++)
+		if (elements[i])
+			xfree(elements[i]);
+	if (fd != -1)
+		sectok_close(fd);
+	return (status);
 }
 #endif /* SMARTCARD */
