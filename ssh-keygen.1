@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.54 2002/06/19 00:27:55 deraadt Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.55 2002/11/26 02:35:30 stevesk Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -147,8 +147,7 @@ The options are as follows:
 .It Fl b Ar bits
 Specifies the number of bits in the key to create.
 Minimum is 512 bits.
-Generally 1024 bits is considered sufficient, and key sizes
-above that no longer improve security but make things slower.
+Generally, 1024 bits is considered sufficient.
 The default is 1024 bits.
 .It Fl c
 Requests changing the comment in the private and public key files.
