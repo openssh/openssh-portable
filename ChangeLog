@@ -3,6 +3,7 @@
    port, ignore EINVAL errors (Linux) when searching for free port.
  - Revert __snprintf -> snprintf aliasing. Apparently Solaris 
    __snprintf isn't. Report from Theo de Raadt <theo@cvs.openbsd.org>
+ - Document location of Redhat PAM file in INSTALL.
 
 20000116
  - Renamed --with-xauth-path to --with-xauth
