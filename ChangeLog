@@ -128,8 +128,8 @@
  - (bal) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2002/04/06 00:30:08
      [sftp-client.c]
-     Fix occasional corruption on upload due to bad reuse of request id, spotted
-     by chombier@mac.com; ok markus@
+     Fix occasional corruption on upload due to bad reuse of request 
+     id, spotted by chombier@mac.com; ok markus@
    - mouring@cvs.openbsd.org 2002/04/06 18:24:09
      [scp.c]
      Fixes potental double // within path.
@@ -488,4 +488,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2077 2002/04/23 13:22:25 djm Exp $
+$Id: ChangeLog,v 1.2078 2002/04/23 13:32:38 djm Exp $
