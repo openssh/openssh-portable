@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.53 2001/03/26 23:23:24 markus Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.54 2001/04/03 13:56:11 stevesk Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.53 2001/03/26 23:23:24 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.54 2001/04/03 13:56:11 stevesk Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -563,9 +563,9 @@ prepare_select(fd_set **fdrp, fd_set **fdwp, int *fdl)
 	sz = howmany(n+1, NFDBITS) * sizeof(fd_mask);
 	if (*fdrp == NULL || n > *fdl) {
 		if (*fdrp)
-			free(*fdrp);
+			xfree(*fdrp);
 		if (*fdwp)
-			free(*fdwp);
+			xfree(*fdwp);
 		*fdrp = xmalloc(sz);
 		*fdwp = xmalloc(sz);
 		*fdl = n;

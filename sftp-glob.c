@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-glob.c,v 1.2 2001/03/16 08:16:18 djm Exp $");
+RCSID("$OpenBSD: sftp-glob.c,v 1.3 2001/04/03 13:56:11 stevesk Exp $");
 
 #include "ssh.h"
 #include "buffer.h"
@@ -104,7 +104,7 @@ struct dirent *fudge_readdir(struct SFTP_OPENDIR *od)
 void fudge_closedir(struct SFTP_OPENDIR *od)
 {
 	free_sftp_dirents(od->dir);
-	free(od);
+	xfree(od);
 }
 
 void attrib_to_stat(Attrib *a, struct stat *st)
