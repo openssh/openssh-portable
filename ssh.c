@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.210 2004/04/18 23:10:26 djm Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.211 2004/04/19 21:51:49 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -526,7 +526,7 @@ again:
 	 * file if the user specifies a config file on the command line.
 	 */
 	if (config != NULL) {
-		if (!read_config_file(config, host, &options, 0), 0)
+		if (!read_config_file(config, host, &options, 0))
 			fatal("Can't open user config file %.100s: "
 			    "%.100s", config, strerror(errno));
 	} else  {
