@@ -494,7 +494,9 @@ mm_answer_pwnamallow(int socket, Buffer *m)
 	buffer_put_cstring(m, pwent->pw_name);
 	buffer_put_cstring(m, "*");
 	buffer_put_cstring(m, pwent->pw_gecos);
+#ifdef HAVE_PW_CLASS_IN_PASSWD
 	buffer_put_cstring(m, pwent->pw_class);
+#endif
 	buffer_put_cstring(m, pwent->pw_dir);
 	buffer_put_cstring(m, pwent->pw_shell);
 

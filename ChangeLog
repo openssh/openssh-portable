@@ -1,5 +1,6 @@
 20020322
  - (stevesk) HAVE_ACCRIGHTS_IN_MSGHDR configure support
+ - (stevesk) [monitor.c monitor_wrap.c] #ifdef HAVE_PW_CLASS_IN_PASSWD
 
 20020321
  - (bal) OpenBSD CVS Sync
@@ -7994,4 +7995,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1967 2002/03/22 17:23:25 stevesk Exp $
+$Id: ChangeLog,v 1.1968 2002/03/22 18:07:17 stevesk Exp $

@@ -197,7 +197,9 @@ mm_getpwnamallow(const char *login)
 	pw->pw_name = buffer_get_string(&m, NULL);
 	pw->pw_passwd = buffer_get_string(&m, NULL);
 	pw->pw_gecos = buffer_get_string(&m, NULL);
+#ifdef HAVE_PW_CLASS_IN_PASSWD
 	pw->pw_class = buffer_get_string(&m, NULL);
+#endif
 	pw->pw_dir = buffer_get_string(&m, NULL);
 	pw->pw_shell = buffer_get_string(&m, NULL);
 	buffer_free(&m);
