@@ -6,6 +6,10 @@
    - markus@cvs.openbsd.org 2002/09/25 15:19:02
      [sshd.c]
      typo; pilot@monkey.org
+   - markus@cvs.openbsd.org 2002/09/26 11:38:43
+     [auth1.c auth.h auth-krb4.c monitor.c monitor.h monitor_wrap.c]
+     [monitor_wrap.h]
+     krb4 + privsep; ok dugsong@, deraadt@
 
 20020925
  - (bal) Fix issue where successfull login does not clear failure counts
@@ -730,4 +734,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2484 2002/09/27 03:22:31 djm Exp $
+$Id: ChangeLog,v 1.2485 2002/09/27 03:25:58 djm Exp $

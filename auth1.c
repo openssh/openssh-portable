@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.43 2002/09/09 06:48:06 itojun Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.44 2002/09/26 11:38:43 markus Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -118,17 +118,24 @@ do_authloop(Authctxt *authctxt)
 
 				if (kdata[0] == 4) { /* KRB_PROT_VERSION */
 #ifdef KRB4
-					KTEXT_ST tkt;
-
+					KTEXT_ST tkt, reply;
 					tkt.length = dlen;
 					if (tkt.length < MAX_KTXT_LEN)
 						memcpy(tkt.dat, kdata, tkt.length);
 
-					if (auth_krb4(authctxt, &tkt, &client_user)) {
+					if (PRIVSEP(auth_krb4(authctxt, &tkt,
+					    &client_user, &reply))) {
 						authenticated = 1;
 						snprintf(info, sizeof(info),
 						    " tktuser %.100s",
 						    client_user);
+
+						packet_start(
+						    SSH_SMSG_AUTH_KERBEROS_RESPONSE);
+						packet_put_string((char *)
+						    reply.dat, reply.length);
+						packet_send();
+						packet_write_wait();
 					}
 #endif /* KRB4 */
 				} else {
