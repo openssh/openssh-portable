@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.202 2005/03/01 14:47:58 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.203 2005/03/02 02:21:07 djm Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -831,10 +831,23 @@ Users with the ability to bypass file permissions on the remote host
 (for the user's X authorization database)
 can access the local X11 display through the forwarded connection.
 An attacker may then be able to perform activities such as keystroke monitoring.
+.Pp
+For this reason, X11 forwarding is subjected X11 SECURITY extension
+restrictions by default.
+Please refer to the
+.Nm
+.Fl Y
+option and the
+.Cm ForwardX11Trusted
+directive in
+.Xr ssh_config 5
+for more information.
 .It Fl x
 Disables X11 forwarding.
 .It Fl Y
 Enables trusted X11 forwarding.
+Trusted X11 forwardings are not subjected to the X11 SECURITY extension
+controls.
 .El
 .Sh CONFIGURATION FILES
 .Nm

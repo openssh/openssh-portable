@@ -42,6 +42,10 @@
    - djm@cvs.openbsd.org 2005/03/02 01:27:41
      [ssh-keygen.c]
      ignore hostnames with metachars when hashing; ok deraadt@
+   - djm@cvs.openbsd.org 2005/03/02 02:21:07
+     [ssh.1]
+     bz#987: mention ForwardX11Trusted in ssh.1,
+     reported by andrew.benham AT thus.net; ok deraadt@
 
 20050301
  - (djm) OpenBSD CVS sync:
@@ -2261,4 +2265,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3686 2005/03/02 01:33:04 djm Exp $
+$Id: ChangeLog,v 1.3687 2005/03/02 02:22:30 djm Exp $
