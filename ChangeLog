@@ -4,6 +4,8 @@
      [reconfigure.sh]
      missing $SUDO; from dtucker@zip.com.au
  - (dtucker) [regress/authorized_keys_root] Remove temp data file from CVS.
+ - (dtucker) [openbsd-compat/setproctitle.c] Ensure SPT_TYPE is defined before
+   testing its value.
 
 20030618
  - (djm) OpenBSD CVS Sync
@@ -567,4 +569,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2817 2003/06/22 02:33:27 dtucker Exp $
+$Id: ChangeLog,v 1.2818 2003/06/22 08:32:10 dtucker Exp $
