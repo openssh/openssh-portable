@@ -45,7 +45,7 @@ foreach (@infile) {
      # child
      close STDIN; close STDOUT; close STDERR;
      open (STDIN,  "</dev/null");
-     open (STDOUT, ">/tmp/foo");
+     open (STDOUT, ">/dev/null");
      open (STDERR, ">/dev/null");
      exec $path @args;
      exit 1; # shouldn't be here
