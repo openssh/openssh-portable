@@ -5,6 +5,8 @@
    Problem report from Niklas Edmundsson <nikke@ing.umu.se>
  - (djm) Missing $(DESTDIR) on host-key target causing problems with RPM 
    builds. Problem report from Gregory Leblanc <GLeblanc@cu-portland.edu>
+ - (djm) Replace ut_name with ut_user. Patch from Jim Watt
+   <jimw@peisj.pebio.com>
 
 20000708
  - (djm) Fix bad fprintf format handling in auth-pam.c. Patch from 

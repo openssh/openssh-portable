@@ -170,7 +170,7 @@
 #include "xmalloc.h"
 #include "loginrec.h"
 
-RCSID("$Id: loginrec.c,v 1.14 2000/07/01 22:43:18 djm Exp $");
+RCSID("$Id: loginrec.c,v 1.15 2000/07/09 11:37:49 djm Exp $");
 
 /**
  ** prototypes for helper functions in this file
@@ -680,7 +680,7 @@ construct_utmpx(struct logininfo *li, struct utmpx *utx)
 	 */
 
 	/* strncpy(): Don't necessarily want null termination */
-	strncpy(utx->ut_name, li->username, MIN_SIZEOF(utx->ut_name, li->username));
+	strncpy(utx->ut_user, li->username, MIN_SIZEOF(utx->ut_user, li->username));
 # ifdef HAVE_HOST_IN_UTMPX
 	strncpy(utx->ut_host, li->hostname, MIN_SIZEOF(utx->ut_host, li->hostname));
 # endif
@@ -740,12 +740,12 @@ utmp_write_direct(struct logininfo *li, struct utmp *ut)
 		/*
 		 * Prevent luser from zero'ing out ut_host.
 		 * If the new ut_line is empty but the old one is not
-		 * and ut_line and ut_name match, preserve the old ut_line.
+		 * and ut_line and ut_user match, preserve the old ut_line.
 		 */
 		if (atomicio(read, fd, &old_ut, sizeof(old_ut)) == sizeof(old_ut) && 
 			(ut->ut_host[0] == '\0') && (old_ut.ut_host[0] != '\0') && 
 			(strncmp(old_ut.ut_line, ut->ut_line, sizeof(ut->ut_line)) == 0) && 
-			(strncmp(old_ut.ut_name, ut->ut_name, sizeof(ut->ut_name)) == 0)) {
+			(strncmp(old_ut.ut_user, ut->ut_user, sizeof(ut->ut_user)) == 0)) {
 			(void)memcpy(ut->ut_host, old_ut.ut_host, sizeof(ut->ut_host));
 		}
 		
