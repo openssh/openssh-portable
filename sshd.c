@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.303 2004/09/15 18:42:27 mickey Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.304 2004/09/25 03:45:14 djm Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -765,7 +765,7 @@ drop_connection(int startups)
 	p += options.max_startups_rate;
 	r = arc4random() % 100;
 
-	debug("drop_connection: p %g, r %g", p, r);
+	debug("drop_connection: p %d, r %d", p, r);
 	return (r < p) ? 1 : 0;
 }
 
