@@ -1,5 +1,8 @@
 20010222                                                             
  - (bal) Corrected SCO luid patch by svaughan <svaughan@asterion.com>
+ - (bal) Added mdoc2man.pl from Mark Roth <roth@feep.net>
+ - (bal) Removed reference to liblogin from contrib/README.  It was
+   integrated into OpenSSH a long while ago.
 
 20010221
  - (bal) Removed -L/usr/ucblib -R/usr/ucblib for Solaris platform.
@@ -4093,4 +4096,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.810 2001/02/21 20:00:28 mouring Exp $
+$Id: ChangeLog,v 1.811 2001/02/22 06:20:10 mouring Exp $

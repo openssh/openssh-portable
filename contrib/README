@@ -37,10 +37,15 @@ sshd.pam.generic:
 
 A generic PAM config file which may be useful on your system. YMMV
 
-sshd.pam.freebsd
+sshd.pam.freebsd:
 
 A PAM config file which works with FreeBSD's PAM port. Contributed by
 Dominik Brettnacher <domi@saargate.de>
+
+mdoc2man.pl:
+
+Converts mdoc formated manpages into normal manpages.  This can be used
+on Solaris machines to provide manpages that are not preformated.
 
 redhat:
 
@@ -53,17 +58,6 @@ RPM spec file an scripts for building SuSE packages
 
 Externally maintained
 ---------------------
-
-liblogin:
-
-liblogin is Andre Lucas' cross platform login library. It handles all the 
-yucky details of wtmp, utmp and lastlog (which every OS vendor has
-seen fit to implement differently) in one clean library.
-
-OpenSSH will require liblogin in the near future, but for now it is 
-recommended for users with login logging problems or curiosity.
-
-http://dspace.dial.pipex.com/andre.lucas/liblogin.html
 
 X11 SSH Askpass:
 
