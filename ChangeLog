@@ -9,6 +9,9 @@
    - markus@cvs.openbsd.org 2003/07/16 10:34:53
      [ssh.c sshd.c]
      don't exit on multiple -v or -d; ok deraadt@
+   - markus@cvs.openbsd.org 2003/07/16 10:36:28
+     [sshtty.c]
+     clear IUCLC in enter_raw_mode; from rob@pitman.co.za; ok deraadt@, fgs@
 
 20030714
  - (dtucker) [acconfig.h configure.ac port-aix.c] Older AIXes don't declare
@@ -705,4 +708,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2859 2003/07/19 09:54:31 dtucker Exp $
+$Id: ChangeLog,v 1.2860 2003/07/19 09:56:18 dtucker Exp $
