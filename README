@@ -14,7 +14,9 @@ support (for Linux and Solaris), EGD[1] support, and replacements
 for OpenBSD library functions that are (regrettably) absent from
 other unices. This port has been best tested on Linux, Solaris and
 HPUX, though support for AIX and Irix is underway. This version 
-actively tracks changes in the OpenBSD CVS repository.
+actively tracks changes in the OpenBSD CVS repository. This port
+also has optional support for using the Dante SOCKS library[6],
+version 1.1.1pre1 or later.
 
 The PAM support is now more functional than the popular packages of
 commercial ssh-1.2.x. It checks "account" and "session" modules for
@@ -25,11 +27,11 @@ liberal. Please refer to the source files for details. The code in
 bsd-*.[ch] is from the OpenBSD project and has its own license (again,
 see the source files for details).
 
-OpenSSH depends on Zlib[2], OpenSSL[3] and optionally PAM[4]. To build
-the GNOME[5] pass-phrase requester (--with-gnome-askpass), you will
-need the GNOME libraries installed. If you are building OpenSSH on a
-Unix which lacks a kernel random number pool (/dev/random), you will
-need to install EGD[1].
+OpenSSH depends on Zlib[2], OpenSSL[3] and optionally PAM[4] and
+Dante[6]. To build the GNOME[5] pass-phrase requester
+(--with-gnome-askpass), you will need the GNOME libraries installed.
+If you are building OpenSSH on a Unix which lacks a kernel random
+number pool (/dev/random), you will need to install EGD[1]. 
 
 There is now a mailing list for this port of OpenSSH. To
 subscribe, send a message consisting of the word 'SUBSCRIBE' to
@@ -71,4 +73,5 @@ References -
 [3] http://www.openssl.org/
 [4] http://www.kernel.org/pub/linux/libs/pam/ (PAM is standard on Solaris)
 [5] http://www.gnome.org/
+[6] http://www.inet.no/dante
 

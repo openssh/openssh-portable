@@ -5,6 +5,9 @@
  - Removed most of the pam code into its own file auth-pam.[ch]. This 
    cleaned up sshd.c up significantly.
  - Several other cleanups
+ - Merged Dante SOCKS support patch from David Rankin
+  <drankin@bohemians.lexington.ky.us>
+ - Updated documentation with ./configure options
 
 19991229
  - Applied another NetBSD portability patch from David Rankin 

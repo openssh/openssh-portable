@@ -15,6 +15,12 @@ supports it. PAM is standard on Redhat and Debian Linux and on Solaris.
 PAM:
 http://www.kernel.org/pub/linux/libs/pam/
 
+Dante:
+http://www.inet.no/dante
+
+OpenSSH can also use the Dante SOCKS libraries, version 1.1.1pre1 or higher,
+if you have them installed on your system. 
+
 If you wish to build the GNOME passphrase requester, you will need the GNOME
 libraries and headers.
 
@@ -75,6 +81,14 @@ you may need to edit it before using it on your system.
 
 There are a few other options to the configure script:
 
+--with-rsh=PATH allows you to specify the path to your rsh program. 
+Normally ./configure will search the current $PATH for 'rsh'. You 
+may need to specify this option if rsh is not in your path or has a
+different name.
+
+--without-pam will disable PAM support. PAM is automatically detected 
+and switched on if found.
+
 --enable-gnome-askpass will build the GNOME passphrase dialog. You
 need a working installation of GNOME, including the development
 headers, for this to work.
@@ -88,6 +102,12 @@ Daemon support and to specify a EGD pool socket. You will need to
 use this if your Unix does not support the /dev/urandom device (or
 similar). The file argument refers to the EGD pool file, not the 
 EGD program itself. Please refer to the EGD documentation.
+
+--with-lastlog=FILE will specify the location of the lastlog file. 
+./configure searches a few locations for lastlog, but may not find
+it if lastlog is installed in a different place.
+
+--without-lastlog will disable lastlog support entirely.
 
 --with-kerberos4 will enable Kerberos IV support. You will need to
 have the Kerberos libraries and header files installed for this to
@@ -104,6 +124,21 @@ support. You will need libwrap.a and tcpd.h installed.
 
 --with-md5-passwords will enable the use of MD5 passwords. Enable this
 if your operating system uses MD5 passwords without using PAM.
+
+--with-utmpx enables utmpx support. utmpx support is automatic for 
+some platforms.
+
+--without-shadow disables shadow password support.
+
+--with-ipaddr-display forces the use of a numeric IP address in the 
+$DISPLAY environment variable. Some broken systems need this.
+
+--with-default-path=PATH allows you to specify a default $PATH for sessions
+started by sshd.
+
+--with-dante[=DIR] will enable Dante SOCKS library support. If the Dante
+libsocks library isn't installed in a library searched by the compiler,
+add the directory name as the option.
 
 If you need to pass special options to the compiler or linker, you
 can specify these as enviornment variables before running ./configure.

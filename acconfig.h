@@ -24,6 +24,9 @@
 /* Are we using the Entropy gathering daemon */
 #undef HAVE_EGD
 
+/* Define if using the Dante SOCKS library. */
+#undef HAVE_DANTE
+
 /* Define if your ssl headers are included with #include <ssl/header.h>  */
 #undef HAVE_SSL
 

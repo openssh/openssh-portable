@@ -13,7 +13,7 @@
  * 
  */
 
-/* RCSID("$Id: ssh.h,v 1.22 1999/12/30 04:08:44 damien Exp $"); */
+/* RCSID("$Id: ssh.h,v 1.23 1999/12/30 04:50:55 damien Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -744,5 +744,50 @@ int	auth_skey_password(struct passwd * pw, const char *password);
 #ifdef USE_PAM
 #include "auth-pam.h"
 #endif /* USE_PAM */
+
+#ifdef HAVE_DANTE
+/*
+ * The following defines map the normal socket operations to SOCKSified
+ * versions coming from the Dante SOCKS package.
+ */
+#define accept Raccept
+#define bind Rbind
+#define bindresvport Rbindresvport
+#define connect Rconnect
+#define gethostbyname Rgethostbyname
+#define gethostbyname2 Rgethostbyname2
+#define getpeername Rgetpeername
+#define getsockname Rgetsockname
+#define read Rread
+#define readv Rreadv
+#define recv Rrecv
+#define recvmsg Rrecvmsg
+#define recvfrom Rrecvfrom
+#define rresvport Rrresvport
+#define send Rsend
+#define sendmsg Rsendmsg
+#define sendto Rsendto
+#define write Rwrite
+#define writev Rwritev
+int     Raccept (int, struct sockaddr *, socklen_t *);
+int     Rbind (int, const struct sockaddr *, socklen_t);
+int	Rbindresvport(int , struct sockaddr_in *);
+int     Rconnect (int, const struct sockaddr *, socklen_t);
+struct hostent *Rgethostbyname(const char *);
+struct hostent *Rgethostbyname2(const char *, int);
+int     Rgetpeername (int, struct sockaddr *, socklen_t *);
+int     Rgetsockname (int, struct sockaddr *, socklen_t *);
+ssize_t Rread(int , void *, size_t );
+ssize_t Rreadv(int d, const struct iovec *iov, int iovcnt);
+ssize_t Rrecv (int, void *, size_t, int);
+ssize_t Rrecvfrom (int, void *, size_t, int, struct sockaddr *,
+            socklen_t *);
+ssize_t Rsend (int, const void *, size_t, int);
+ssize_t Rsendmsg (int, const struct msghdr *, int);
+ssize_t Rsendto (int, const void *,
+            size_t, int, const struct sockaddr *, socklen_t);
+ssize_t Rwrite(int , const void *, size_t );
+ssize_t Rwritev(int , const struct iovec *, int );
+#endif /* HAVE_DANTE */
 
 #endif				/* SSH_H */

@@ -17,7 +17,9 @@ dnl Use ip address instead of hostname in $DISPLAY
 AC_ARG_WITH(rsh,
 	[  --with-rsh=PATH         Specify path to remote shell program ],
 	[
-		AC_DEFINE_UNQUOTED(RSH_PATH, "$withval")
+		if test "x$withval" != "$xno" ; then
+			AC_DEFINE_UNQUOTED(RSH_PATH, "$withval")
+		fi
 	],
 	[
 		AC_PATH_PROG(rsh_path, rsh)
@@ -367,6 +369,20 @@ if test ! -z "$nolastlog" ; then
 	AC_DEFINE(DISABLE_LASTLOG)
 fi
 
+dnl Compile with dante SOCKS library
+AC_ARG_WITH(dante,
+	[  --with-dante=DIR        Use Dante SOCKS lib (default is system library path)],
+	[
+		AC_DEFINE(HAVE_DANTE)
+		if test "x$withval" != "xno" ; then
+			if test -n $withval ; then
+				LIBS="$LIBS -L$withval"
+			fi
+			LIBS="$LIBS -lsocks"
+		fi
+	]
+)
+
 AC_CHECK_FILE("/dev/ptmx", AC_DEFINE_UNQUOTED(HAVE_DEV_PTMX))
 AC_CHECK_FILE("/dev/ptc", AC_DEFINE_UNQUOTED(HAVE_DEV_PTS_AND_PTC))
 
@@ -386,9 +402,11 @@ dnl Check whether user wants Kerberos support
 AC_ARG_WITH(kerberos4,
 	[  --with-kerberos4        Enable Kerberos 4 support],
 	[
-		AC_DEFINE(KRB4)
-		LIBS="$LIBS -lkrb"
-		CFLAGS="$CFLAGS -I/usr/include/kerberosIV"
+		if test "x$withval" != "$xno" ; then
+			AC_DEFINE(KRB4)
+			LIBS="$LIBS -lkrb"
+			CFLAGS="$CFLAGS -I/usr/include/kerberosIV"
+		fi
 	]
 )
 
@@ -396,8 +414,10 @@ dnl Check whether user wants AFS support
 AC_ARG_WITH(afs,
 	[  --with-afs              Enable AFS support],
 	[
-		AC_DEFINE(AFS)
-		LIBS="$LIBS -lkafs"
+		if test "x$withval" != "$xno" ; then
+			AC_DEFINE(AFS)
+			LIBS="$LIBS -lkafs"
+		fi
 	]
 )
 
@@ -405,8 +425,10 @@ dnl Check whether user wants S/Key support
 AC_ARG_WITH(skey,
 	[  --with-skey             Enable S/Key support],
 	[
-		AC_DEFINE(SKEY)
-		LIBS="$LIBS -lskey"
+		if test "x$withval" != "$xno" ; then
+			AC_DEFINE(SKEY)
+			LIBS="$LIBS -lskey"
+		fi
 	]
 )
 
@@ -414,8 +436,10 @@ dnl Check whether user wants TCP wrappers support
 AC_ARG_WITH(tcp-wrappers,
 	[  --with-tcp-wrappers     Enable tcpwrappers support],
 	[
-		AC_DEFINE(LIBWRAP)
-		LIBWRAP="-lwrap"
+		if test "x$withval" != "$xno" ; then
+			AC_DEFINE(LIBWRAP)
+			LIBWRAP="-lwrap"
+		fi
 	]
 )
 AC_SUBST(LIBWRAP)
@@ -423,7 +447,11 @@ AC_SUBST(LIBWRAP)
 dnl Check whether to enable MD5 passwords
 AC_ARG_WITH(md5-passwords,
 	[  --with-md5-passwords    Enable use of MD5 passwords],
-	[AC_DEFINE(HAVE_MD5_PASSWORDS)]
+	[
+		if test "x$withval" != "$xno" ; then
+			AC_DEFINE(HAVE_MD5_PASSWORDS)
+		fi
+	]
 )
 
 dnl Check whether to enable utmpx support
