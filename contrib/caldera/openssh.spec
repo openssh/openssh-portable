@@ -1,11 +1,11 @@
 %define use-stable	1
 %if %{use-stable}
-  %define version 	3.2p1
+  %define version 	3.2.1p1
   %define cvs		%{nil}
   %define release 	1
 %else
-  %define version 	3.0p1
-  %define cvs		cvs20011102
+  %define version 	3.2.1p1
+  %define cvs		cvs20020515
   %define release 	0r1
 %endif
 %define xsa		x11-ssh-askpass		
@@ -224,4 +224,4 @@ by Jim Knoble <jmknoble@pobox.com>.
 %ChangeLog
 * Mon Jan 01 1998 ...
 
-$Id: openssh.spec,v 1.29 2002/04/30 03:53:13 tim Exp $
+$Id: openssh.spec,v 1.30 2002/05/14 16:03:46 tim Exp $

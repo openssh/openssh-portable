@@ -6,6 +6,7 @@
  - (tim) [README.privsep] UnixWare 7 and OpenUNIX 8 work.
  - (tim) [README.privsep] remove reference to UnixWare 7 and OpenUNIX 8
    from PAM-enabled pragraph. UnixWare has no PAM.
+ - (tim) [contrib/caldera/openssh.spec] update version.
 
 20020513
  - (stevesk) add initial README.privsep
@@ -588,4 +589,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2117 2002/05/14 03:50:38 tim Exp $
+$Id: ChangeLog,v 1.2118 2002/05/14 16:03:46 tim Exp $
