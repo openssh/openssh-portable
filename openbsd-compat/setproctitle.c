@@ -31,7 +31,7 @@
  * to contain some useful information. Mechanism differs wildly across
  * platforms.
  *
- * $Header: /var/cvs/openssh/openbsd-compat/setproctitle.c,v 1.4 2003/01/12 23:04:59 djm Exp $
+ * $Header: /var/cvs/openssh/openbsd-compat/setproctitle.c,v 1.5 2003/01/20 02:15:11 djm Exp $
  *
  * Copyright 2000 by PostgreSQL Global Development Group
  * various details abducted from various places
@@ -50,8 +50,6 @@
 #include <machine/vmparam.h>	/* for old BSD */
 #include <sys/exec.h>
 #endif
-
-extern char **environ;
 
 /*------
  * Alternative ways of updating ps display:
@@ -86,6 +84,9 @@ extern char **environ;
 #ifndef SETPROCTITLE_PS_PADDING
 # define SETPROCTITLE_PS_PADDING	' '
 #endif
+#endif /* HAVE_SETPROCTITLE */
+
+extern char **environ;
 
 /*
  * argv clobbering uses existing argv space, all other methods need a buffer
@@ -104,6 +105,7 @@ static char **save_argv;
 
 extern char *__progname;
 
+#ifndef HAVE_SETPROCTITLE
 /*
  * Call this to update the ps status display to a fixed prefix plus an
  * indication of what you're currently doing passed in the argument.

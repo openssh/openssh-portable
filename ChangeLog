@@ -1,3 +1,6 @@
+20030120
+ - (djm) Fix compilation for NetBSD from dtucker@zip.com.au
+
 20030118
  - (djm) Revert fix for Bug #442 for now.
 
@@ -1034,4 +1037,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2575 2003/01/18 05:24:06 djm Exp $
+$Id: ChangeLog,v 1.2576 2003/01/20 02:15:10 djm Exp $
