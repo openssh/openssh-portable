@@ -27,6 +27,9 @@
      [scp.c sftp.c]
      IPv6 support for sftp (which I bungled in my last patch) which is
      borrowed from scp.c.  Thanks to Markus@ for pointing it out.
+   - deraadt@cvs.openbsd.org 2001/04/16 08:05:34
+     [xmalloc.c]
+     xrealloc dealing with ptr == nULL; mouring
 
 20010415
  - OpenBSD CVS Sync
@@ -5112,4 +5115,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1125 2001/04/16 08:26:41 djm Exp $
+$Id: ChangeLog,v 1.1126 2001/04/16 08:27:07 djm Exp $
