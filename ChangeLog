@@ -9,6 +9,7 @@
      do not expand buffer before attempting to reallocate it; markus ok
  - (djm) Crank spec versions
  - (djm) Release 3.7p1
+ - (tim) [configure.ac] Fix portability issues.
 
 20030914
  - (dtucker) [Makefile regress/Makefile] Fix portability issues preventing
@@ -1105,4 +1106,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2994.2.2 2003/09/16 04:08:37 djm Exp $
+$Id: ChangeLog,v 1.2994.2.3 2003/09/16 05:48:15 tim Exp $
