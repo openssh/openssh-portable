@@ -210,10 +210,13 @@ input_userauth_request(int type, int plen, void *ctxt)
 			authctxt->valid = 1;
 			debug2("input_userauth_request: setting up authctxt for %s", user);
 #ifdef USE_PAM
-			start_pam(pw);
+			start_pam(pw->pw_name);
 #endif
 		} else {
 			log("input_userauth_request: illegal user %s", user);
+#ifdef USE_PAM
+			start_pam("NOUSER");
+#endif
 		}
 		authctxt->user = xstrdup(user);
 		authctxt->service = xstrdup(service);

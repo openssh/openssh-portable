@@ -17,6 +17,8 @@
    - markus@cvs.openbsd.org 2001/01/18 17:12:43
      [auth-chall.c auth2-chall.c]
      rename *-skey.c *-chall.c since the files are not skey specific
+ - (djm) Merge patch from Tim Waugh (via Nalin Dahyabhai <nalin@redhat.com>)
+   to fix NULL pointer deref and fake authloop breakage in PAM code.
  
 20010118
  - (bal) Super Sized OpenBSD Resync

@@ -414,7 +414,7 @@ do_authentication()
 
 #ifdef USE_PAM
 	if (pw)
-		start_pam(pw);
+		start_pam(user);
 #endif
 
 	/*

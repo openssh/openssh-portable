@@ -3,7 +3,7 @@
 
 #include <pwd.h> /* For struct passwd */
 
-void start_pam(struct passwd *pw);
+void start_pam(const char *user);
 void finish_pam(void);
 int auth_pam_password(struct passwd *pw, const char *password);
 char **fetch_pam_environment(void);
