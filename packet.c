@@ -1403,10 +1403,10 @@ packet_not_very_much_data_to_write(void)
 }
 
 
-#if defined(IP_TOS) && !defined(IP_TOS_IS_BROKEN)
 static void
 packet_set_tos(int interactive)
 {
+#if defined(IP_TOS) && !defined(IP_TOS_IS_BROKEN)
 	int tos = interactive ? IPTOS_LOWDELAY : IPTOS_THROUGHPUT;
 
 	if (!packet_connection_is_on_socket() ||
@@ -1416,8 +1416,8 @@ packet_set_tos(int interactive)
 	    sizeof(tos)) < 0)
 		error("setsockopt IP_TOS %d: %.100s:",
 		    tos, strerror(errno));
-}
 #endif
+}
 
 /* Informs that the current session is interactive.  Sets IP flags for that. */
 
@@ -1438,10 +1438,7 @@ packet_set_interactive(int interactive)
 		return;
 	if (interactive)
 		set_nodelay(connection_in);
-#if defined(IP_TOS) && !defined(IP_TOS_IS_BROKEN)
 	packet_set_tos(interactive);
-#endif
-
 }
 
 /* Returns true if the current connection is interactive. */
