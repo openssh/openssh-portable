@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.12 2001/04/05 10:42:54 markus Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.13 2001/04/08 20:52:55 deraadt Exp $");
 
 /* XXX: commandline mode */
 /* XXX: copy between two remote hosts (commandline) */
@@ -205,7 +205,7 @@ main(int argc, char **argv)
 	if (optind == argc || argc > (optind + 1))
 		usage();
 
-	userhost = argv[optind];
+	userhost = xstrdup(argv[optind]);
 
 	if ((host = strchr(userhost, '@')) == NULL)
 		host = userhost;

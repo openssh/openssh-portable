@@ -1,3 +1,9 @@
+20010410
+ - OpenBSD CVS Sync
+   - deraadt@cvs.openbsd.org 2001/04/08 20:52:55
+     [sftp.c]
+     do not modify an actual argv[] entry
+
 20010409
  - (stevesk) use setresgid() for setegid() if needed
  - (stevesk) configure.in: typo
@@ -4966,4 +4972,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1087 2001/04/09 14:50:52 stevesk Exp $
+$Id: ChangeLog,v 1.1088 2001/04/10 02:40:17 mouring Exp $
