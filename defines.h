@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.107 2004/01/08 12:32:04 dtucker Exp $ */
+/* $Id: defines.h,v 1.108 2004/01/27 00:02:17 tim Exp $ */
 
 
 /* Constants */
@@ -131,6 +131,14 @@ including rpc/rpc.h breaks Solaris 6
 
 #ifndef __unused
 #define __unused
+#endif
+
+#ifndef HFIXEDSZ
+#define HFIXEDSZ 12
+#endif
+
+#ifndef T_SIG
+#define T_SIG 24
 #endif
 
 /* Types */
