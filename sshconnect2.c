@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.73 2001/05/18 14:13:29 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.74 2001/05/19 16:32:16 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -202,6 +202,10 @@ Authmethod authmethods[] = {
 		userauth_pubkey,
 		&options.pubkey_authentication,
 		NULL},
+	{"hostbased",
+		userauth_hostbased,
+		&options.hostbased_authentication,
+		NULL},
 	{"password",
 		userauth_passwd,
 		&options.password_authentication,
@@ -210,10 +214,6 @@ Authmethod authmethods[] = {
 		userauth_kbdint,
 		&options.kbd_interactive_authentication,
 		&options.batch_mode},
-	{"hostbased",
-		userauth_hostbased,
-		&options.hostbased_authentication,
-		NULL},
 	{"none",
 		userauth_none,
 		NULL,

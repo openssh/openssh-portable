@@ -19,6 +19,11 @@
    - markus@cvs.openbsd.org 2001/05/19 16:08:43 
      [sshd.8]                                   
      sort options; Matthew.Stier@fnc.fujitsu.com
+   - markus@cvs.openbsd.org 2001/05/19 16:32:16            
+     [ssh.1 sshconnect2.c]                                 
+     change preferredauthentication order to               
+        publickey,hostbased,password,keyboard-interactive  
+     document that hostbased defaults to no, document order
 
 20010528
  - (tim) [conifgure.in] add setvbuf test needed for sftp-int.c
@@ -5449,4 +5454,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1231 2001/06/05 19:33:22 mouring Exp $
+$Id: ChangeLog,v 1.1232 2001/06/05 19:37:25 mouring Exp $
