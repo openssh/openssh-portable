@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.140 2001/10/30 20:29:09 markus Exp $
+.\" $OpenBSD: ssh.1,v 1.141 2001/11/08 17:49:53 markus Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -1389,6 +1389,15 @@ This file provides defaults for those
 values that are not specified in the user's configuration file, and
 for those users who do not have a configuration file.
 This file must be world-readable.
+.It Pa /etc/ssh_host_key, /etc/ssh_host_dsa_key, /etc/ssh_host_rsa_key
+These three files contain the private parts of the host keys
+and are used for
+.Cm RhostsRSAAuthentication
+and
+.Cm HostbasedAuthentication .
+Since they are readable only by root
+.Nm
+must be setuid root if these authentication methods are desired.
 .It Pa $HOME/.rhosts
 This file is used in
 .Pa \&.rhosts
