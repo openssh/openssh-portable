@@ -1,5 +1,9 @@
 20040817
  - (dtucker) [regress/README.regress] Note compatibility issues with GNU head.
+ - (djm) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2004/08/16 08:17:01
+     [version.h]
+     3.9
 
 20040816
  - (dtucker) [acconfig.h auth-pam.c configure.ac] Set real uid to non-root
@@ -1648,4 +1652,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3514 2004/08/17 12:31:32 dtucker Exp $
+$Id: ChangeLog,v 1.3515 2004/08/17 12:47:41 djm Exp $
