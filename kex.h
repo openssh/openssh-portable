@@ -1,4 +1,4 @@
-/*	$OpenBSD: kex.h,v 1.14 2001/02/11 12:59:24 markus Exp $	*/
+/*	$OpenBSD: kex.h,v 1.15 2001/03/05 17:17:20 markus Exp $	*/
 
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
@@ -106,7 +106,7 @@ void	packet_set_kex(Kex *k);
 int	dh_pub_is_valid(DH *dh, BIGNUM *dh_pub);
 DH	*dh_new_group_asc(const char *, const char *);
 DH	*dh_new_group(BIGNUM *, BIGNUM *);
-void	dh_gen_key(DH *);
+void	dh_gen_key(DH *, int);
 DH	*dh_new_group1(void);
 
 u_char *

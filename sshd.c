@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.172 2001/03/04 17:42:28 millert Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.173 2001/03/05 17:17:21 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1519,7 +1519,7 @@ ssh_dh1_server(Kex *kex, Buffer *client_kexinit, Buffer *server_kexinit)
 /* KEXDH */
 	/* generate DH key */
 	dh = dh_new_group1();			/* XXX depends on 'kex' */
-	dh_gen_key(dh);
+	dh_gen_key(dh, kex->we_need * 8);
 
 	debug("Wait SSH2_MSG_KEXDH_INIT.");
 	packet_read_expect(&payload_len, SSH2_MSG_KEXDH_INIT);
@@ -1662,7 +1662,7 @@ ssh_dhgex_server(Kex *kex, Buffer *client_kexinit, Buffer *server_kexinit)
 
 	/* Compute our exchange value in parallel with the client */
 
-	dh_gen_key(dh);
+	dh_gen_key(dh, kex->we_need * 8);
 
 	debug("Wait SSH2_MSG_KEX_DH_GEX_INIT.");
 	packet_read_expect(&payload_len, SSH2_MSG_KEX_DH_GEX_INIT);

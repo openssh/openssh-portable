@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.49 2001/02/28 09:57:07 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.50 2001/03/05 17:17:21 markus Exp $");
 
 #include <openssl/bn.h>
 #include <openssl/md5.h>
@@ -171,7 +171,7 @@ ssh_dh1_client(Kex *kex, char *host, struct sockaddr *hostaddr,
 	debug("Sending SSH2_MSG_KEXDH_INIT.");
 	/* generate and send 'e', client DH public key */
 	dh = dh_new_group1();
-	dh_gen_key(dh);
+	dh_gen_key(dh, kex->we_need * 8);
 	packet_start(SSH2_MSG_KEXDH_INIT);
 	packet_put_bignum2(dh->pub_key);
 	packet_send();
@@ -316,7 +316,7 @@ ssh_dhgex_client(Kex *kex, char *host, struct sockaddr *hostaddr,
 	u_char *kbuf;
 	u_char *hash;
 
-	nbits = dh_estimate(kex->enc[MODE_OUT].cipher->key_len * 8);
+	nbits = dh_estimate(kex->we_need * 8);
 
 	debug("Sending SSH2_MSG_KEX_DH_GEX_REQUEST.");
 	packet_start(SSH2_MSG_KEX_DH_GEX_REQUEST);
@@ -342,7 +342,7 @@ ssh_dhgex_client(Kex *kex, char *host, struct sockaddr *hostaddr,
 	packet_get_bignum2(g, &dlen);
 	dh = dh_new_group(g, p);
 
-	dh_gen_key(dh);
+	dh_gen_key(dh, kex->we_need * 8);
 
 #ifdef DEBUG_KEXDH
 	fprintf(stderr, "\np= ");
