@@ -219,6 +219,8 @@ for ssldir in "" $tryssldir /usr/local/openssl /usr/lib/openssl /usr/local/ssl /
 
 		AC_TRY_RUN(
 			[
+#include <string.h>
+#include <openssl/rand.h>
 #include <openssl/rsa.h>
 #include <openssl/bn.h>
 #include <openssl/sha.h>

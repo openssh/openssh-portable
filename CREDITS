@@ -39,6 +39,7 @@ Nalin Dahyabhai <nalin.dahyabhai@pobox.com> - PAM environment patch
 Niels Kristian Bech Jensen <nkbj@image.dk> - Assorted patches
 Peter Kocks <peter.kocks@baygate.com> - Makefile fixes
 Phil Hands <phil@hands.com> - Debian scripts, assorted patches
+Phil Karn <karn@ka9q.ampr.org> - Autoconf fix
 Thomas Neumann <tom@smart.ruhr.de> - Shadow passwords
 Tor-Ake Fransson <torake@hotmail.com> - AIX support
 Tudor Bosman <tudorb@jm.nu> - MD5 password support

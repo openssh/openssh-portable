@@ -2,6 +2,8 @@
  - OpenBSD CVS update
    [packet.c]
    - send debug messages in SSH2 format
+ - Include missing headers for OpenSSL tests. Fix from Phil Karn 
+   <karn@ka9q.ampr.org>
 
 20000430
  - Merge HP-UX fixes and TCB support from Ged Lodder <lodder@yacc.com.au>
