@@ -8,6 +8,7 @@
  - Fixed PAM config files to allow empty passwords if server does.
  - Explained spurious PAM auth warning workaround in UPGRADING
  - Use last few chars of tty line as ut_id
+ - New SuSE RPM spec file from Chris Saia <csaia@wtower.com>
 
 19991226
  - Enabled utmpx support by default for Solaris
