@@ -10,6 +10,9 @@
      ssh_config.5 sshconnect2.c sshd_config sshd_config.5]
      support GSS API user authentication; patches from Simon Wilkinson,
      stripped down and tested by Jakob and myself.
+   - markus@cvs.openbsd.org 2003/08/22 13:20:03
+     [sshconnect2.c]
+     remove support for "kerberos-2@ssh.com"
  - (dtucker) [Makefile.in acconfig.h auth-krb5.c auth-pam.c auth-pam.h
    configure.ac defines.h gss-serv-krb5.c session.c ssh-gss.h sshconnect1.c
    sshconnect2.c] Add Portable GSSAPI support, patch by Simon Wilkinson.
@@ -885,4 +888,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2908 2003/08/26 01:58:16 dtucker Exp $
+$Id: ChangeLog,v 1.2909 2003/08/26 02:04:31 dtucker Exp $
