@@ -29,7 +29,12 @@ if [ -z "`eval $GET_ID`" -a -r "${ID_FILE}" ] ; then
 fi
 
 if [ -z "`eval $GET_ID`" ]; then
-  echo "$0: ERROR: No identities found"
+  echo "$0: ERROR: No identities found" >&2
+  exit 1
+fi
+
+if [ "$#" -lt 1 ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo "Usage: $0 [-i [identity_file]] [user@]machine" >&2
   exit 1
 fi
 
