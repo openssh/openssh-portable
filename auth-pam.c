@@ -31,7 +31,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.93 2004/02/10 02:23:29 dtucker Exp $");
+RCSID("$Id: auth-pam.c,v 1.94 2004/02/17 09:46:59 dtucker Exp $");
 
 #ifdef USE_PAM
 #if defined(HAVE_SECURITY_PAM_APPL_H)
@@ -242,7 +242,7 @@ sshpam_thread_conv(int n, const struct pam_message **msg,
 	struct pam_response *reply;
 	int i;
 
-	debug3("PAM: %s entering, %d responses", __func__, n);
+	debug3("PAM: %s entering, %d messages", __func__, n);
 	*resp = NULL;
 
 	ctxt = data;
@@ -416,7 +416,7 @@ static int
 sshpam_null_conv(int n, const struct pam_message **msg,
     struct pam_response **resp, void *data)
 {
-	debug3("PAM: %s entering, %d responses", __func__, n);
+	debug3("PAM: %s entering, %d messages", __func__, n);
 	return (PAM_CONV_ERR);
 }
 
@@ -753,6 +753,8 @@ pam_tty_conv(int n, const struct pam_message **msg,
 	char input[PAM_MAX_MSG_SIZE];
 	struct pam_response *reply;
 	int i;
+
+	debug3("PAM: %s called with %d messages", __func__, n);
 
 	*resp = NULL;
 

@@ -7,6 +7,7 @@
      switch to license.template for code written by me (belated, I know...)
  - (djm) Bug #698: Specify FILE: for KRB5CCNAME; patch from 
    stadal@suse.cz and simon@sxw.org.uk
+ - (dtucker) [auth-pam.c] Tidy up PAM debugging.  ok djm@
 
 20040212
  - (tim) [Makefile.in regress/sftp-badcmds.sh regress/test-exec.sh]
@@ -1862,4 +1863,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3231 2004/02/17 09:33:52 djm Exp $
+$Id: ChangeLog,v 1.3232 2004/02/17 09:46:59 dtucker Exp $
