@@ -6,6 +6,9 @@
    - djm@cvs.openbsd.org 2004/08/23 11:48:09
      [authfile.c]
      fix error path, spotted by Martin.Kraemer AT Fujitsu-Siemens.com; ok markus
+   - djm@cvs.openbsd.org 2004/08/23 11:48:47
+     [channels.c]
+     typo, spotted by Martin.Kraemer AT Fujitsu-Siemens.com; ok markus
 
 20040828
  - (dtucker) [openbsd-compat/mktemp.c] Remove superfluous Cygwin #ifdef; from
@@ -1673,4 +1676,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3523 2004/08/29 06:28:39 dtucker Exp $
+$Id: ChangeLog,v 1.3524 2004/08/29 06:29:44 dtucker Exp $
