@@ -73,6 +73,10 @@
      [ssh-keyscan.c]
      do not assume malloc() returns zero-filled region.  found by 
      malloc.conf=AJ.
+   - markus@cvs.openbsd.org 2001/02/08 22:35:30
+     [sshconnect.c]
+     don't connect if batch_mode is true and stricthostkeychecking set to 
+    'ask'
  - (bal) fixed sftp-client.c.  Return 'status' instead of '0'  
    (from the OpenBSD tree)
  - (bal) Synced ssh.1, ssh-add.1 and sshd.8 w/ OpenBSD
@@ -3860,4 +3864,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.732 2001/02/10 23:18:11 mouring Exp $
+$Id: ChangeLog,v 1.733 2001/02/10 23:21:09 mouring Exp $
