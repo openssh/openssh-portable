@@ -14,7 +14,7 @@ Functions for reading the configuration files.
 */
 
 #include "includes.h"
-RCSID("$Id: readconf.c,v 1.3 1999/11/15 04:25:10 damien Exp $");
+RCSID("$Id: readconf.c,v 1.4 1999/11/21 02:23:53 damien Exp $");
 
 #include "ssh.h"
 #include "cipher.h"
@@ -155,23 +155,6 @@ static struct
   { NULL, 0 }
 };
 
-/* textual representation of log-levels */
-
-static struct 
-{
-  const char *name;
-  LogLevel level;
-} log_levels[] =
-{
-  { "QUIET", SYSLOG_LEVEL_QUIET },
-  { "FATAL", SYSLOG_LEVEL_FATAL },
-  { "ERROR", SYSLOG_LEVEL_ERROR },
-  { "INFO",  SYSLOG_LEVEL_INFO },
-  { "CHAT",  SYSLOG_LEVEL_CHAT },
-  { "DEBUG", SYSLOG_LEVEL_DEBUG },
-  { NULL, 0 }
-};
-
 /* Characters considered whitespace in strtok calls. */
 #define WHITESPACE " \t\r\n"
 
@@ -237,7 +220,7 @@ process_config_line(Options *options, const char *host,
 			 int *activep)
 {
   char buf[256], *cp, *string, **charptr;
-  int opcode, *intptr, value, fwd_port, fwd_host_port, i;
+  int opcode, *intptr, value, fwd_port, fwd_host_port;
 
   /* Skip leading whitespace. */
   cp = line + strspn(line, WHITESPACE);
@@ -462,30 +445,21 @@ process_config_line(Options *options, const char *host,
       cp = strtok(NULL, WHITESPACE);
       value = cipher_number(cp);
       if (value == -1)
-	fatal("%.200s line %d: Bad cipher.", filename, linenum);
+	fatal("%.200s line %d: Bad cipher '%s'.",
+	      filename, linenum, cp ? cp : "<NONE>");
       if (*activep && *intptr == -1)
 	*intptr = value;
       break;
 
     case oLogLevel:
+      intptr = (int *)&options->log_level;
       cp = strtok(NULL, WHITESPACE);
-      if (!cp)
-        {
-          fprintf(stderr, "%s line %d: missing level name.\n",
-	          filename, linenum);
-          exit(1);
-        }
-      for (i = 0; log_levels[i].name; i++)
-        if (strcasecmp(log_levels[i].name, cp) == 0)
-          break;
-      if (!log_levels[i].name)
-        {
-          fprintf(stderr, "%s line %d: unsupported log level %s\n",
-	          filename, linenum, cp);
-          exit(1);
-        }
-      if (options->log_level == (LogLevel)(-1))
-        options->log_level = log_levels[i].level;
+      value = log_level_number(cp);
+      if (value == (LogLevel)-1)
+        fatal("%.200s line %d: unsupported log level '%s'\n",
+	      filename, linenum, cp ? cp : "<NONE>");
+      if (*activep && (LogLevel)*intptr == -1)
+	*intptr = (LogLevel)value;
       break;
       
     case oRemoteForward:

@@ -15,7 +15,7 @@ with the other side.  This same code is used both on client and server side.
 */
 
 #include "includes.h"
-RCSID("$Id: packet.c,v 1.3 1999/11/16 02:37:16 damien Exp $");
+RCSID("$Id: packet.c,v 1.4 1999/11/21 02:23:53 damien Exp $");
 
 #include "xmalloc.h"
 #include "buffer.h"
@@ -65,6 +65,9 @@ static Buffer compression_buffer;
 
 /* Flag indicating whether packet compression/decompression is enabled. */
 static int packet_compression = 0;
+
+/* default maximum packet size */
+int max_packet_size = 32768;
 
 /* Flag indicating whether this module has been initialized. */
 static int initialized = 0;
@@ -744,4 +747,21 @@ int
 packet_is_interactive()
 {
   return interactive_mode;
+}
+
+int
+packet_set_maxsize(int s)
+{
+  static int called = 0;
+  if (called) {
+    log("packet_set_maxsize: called twice: old %d new %d", max_packet_size, s);
+    return -1;
+  }
+  if (s < 4*1024 || s > 1024*1024) {
+    log("packet_set_maxsize: bad size %d", s);
+    return -1;
+  }
+  log("packet_set_maxsize: setting to %d", s);
+  max_packet_size = s;
+  return s;
 }

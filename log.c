@@ -5,7 +5,7 @@ Shared versions of debug(), log(), etc.
 */
 
 #include "includes.h"
-RCSID("$OpenBSD: log.c,v 1.1 1999/11/10 23:36:44 markus Exp $");
+RCSID("$OpenBSD: log.c,v 1.2 1999/11/19 16:04:17 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -132,4 +132,64 @@ fatal_cleanup(void)
     }
 
   exit(255);
+}
+
+/* textual representation of log-facilities/levels */
+
+
+static struct 
+{
+  const char *name;
+  SyslogFacility val;
+} log_facilities[] =
+{
+  { "DAEMON", SYSLOG_FACILITY_DAEMON },
+  { "USER", SYSLOG_FACILITY_USER },
+  { "AUTH", SYSLOG_FACILITY_AUTH },
+  { "LOCAL0", SYSLOG_FACILITY_LOCAL0 },
+  { "LOCAL1", SYSLOG_FACILITY_LOCAL1 },
+  { "LOCAL2", SYSLOG_FACILITY_LOCAL2 },
+  { "LOCAL3", SYSLOG_FACILITY_LOCAL3 },
+  { "LOCAL4", SYSLOG_FACILITY_LOCAL4 },
+  { "LOCAL5", SYSLOG_FACILITY_LOCAL5 },
+  { "LOCAL6", SYSLOG_FACILITY_LOCAL6 },
+  { "LOCAL7", SYSLOG_FACILITY_LOCAL7 },
+  { NULL, 0 }
+};
+
+static struct 
+{
+  const char *name;
+  LogLevel val;
+} log_levels[] =
+{
+  { "QUIET",   SYSLOG_LEVEL_QUIET },
+  { "FATAL",   SYSLOG_LEVEL_FATAL },
+  { "ERROR",   SYSLOG_LEVEL_ERROR },
+  { "INFO",    SYSLOG_LEVEL_INFO },
+  { "CHAT",	SYSLOG_LEVEL_CHAT },
+  { "DEBUG",   SYSLOG_LEVEL_DEBUG },
+  { NULL, 0 }
+};
+
+SyslogFacility
+log_facility_number(char *name)
+{
+  int i;
+  if (name != NULL)
+    for (i = 0; log_facilities[i].name; i++)
+      if (strcasecmp(log_facilities[i].name, name) == 0)
+        return log_facilities[i].val;
+  return (SyslogFacility)-1;
+}
+
+LogLevel
+log_level_number(char *name)
+{
+  int i;
+  if (name != NULL)
+    for (i = 0; log_levels[i].name; i++)
+      if (strcasecmp(log_levels[i].name, name) == 0)
+        return log_levels[i].val;
+  return (LogLevel)-1;
 }

@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: sshd.8,v 1.7 1999/11/12 00:33:04 damien Exp $
+.\" $Id: sshd.8,v 1.8 1999/11/21 02:23:53 damien Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSHD 8
@@ -19,7 +19,7 @@
 .Nd secure shell daemon
 .Sh SYNOPSIS
 .Nm sshd
-.Op Fl diq
+.Op Fl diqQ
 .Op Fl b Ar bits
 .Op Fl f Ar config_file
 .Op Fl g Ar login_grace_time
@@ -105,6 +105,10 @@ the client, and both sides exit.
 can be configured using command-line options or a configuration
 file.  Command-line options override values specified in the
 configuration file.
+.Pp
+.Nm
+rereads its configuration file when it receives a hangup signal,
+.Dv SIGHUP .
 .Pp
 The options are as follows:
 .Bl -tag -width Ds

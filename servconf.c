@@ -12,7 +12,7 @@ Created: Mon Aug 21 15:48:58 1995 ylo
 */
 
 #include "includes.h"
-RCSID("$Id: servconf.c,v 1.4 1999/11/12 04:19:27 damien Exp $");
+RCSID("$Id: servconf.c,v 1.5 1999/11/21 02:23:53 damien Exp $");
 
 #include "ssh.h"
 #include "servconf.h"
@@ -214,41 +214,6 @@ static struct
   { NULL, 0 }
 };
 
-static struct 
-{
-  const char *name;
-  SyslogFacility facility;
-} log_facilities[] =
-{
-  { "DAEMON", SYSLOG_FACILITY_DAEMON },
-  { "USER", SYSLOG_FACILITY_USER },
-  { "AUTH", SYSLOG_FACILITY_AUTH },
-  { "LOCAL0", SYSLOG_FACILITY_LOCAL0 },
-  { "LOCAL1", SYSLOG_FACILITY_LOCAL1 },
-  { "LOCAL2", SYSLOG_FACILITY_LOCAL2 },
-  { "LOCAL3", SYSLOG_FACILITY_LOCAL3 },
-  { "LOCAL4", SYSLOG_FACILITY_LOCAL4 },
-  { "LOCAL5", SYSLOG_FACILITY_LOCAL5 },
-  { "LOCAL6", SYSLOG_FACILITY_LOCAL6 },
-  { "LOCAL7", SYSLOG_FACILITY_LOCAL7 },
-  { NULL, 0 }
-};
-
-static struct 
-{
-  const char *name;
-  LogLevel level;
-} log_levels[] =
-{
-  { "QUIET", SYSLOG_LEVEL_QUIET },
-  { "FATAL", SYSLOG_LEVEL_FATAL },
-  { "ERROR", SYSLOG_LEVEL_ERROR },
-  { "INFO",  SYSLOG_LEVEL_INFO },
-  { "CHAT",  SYSLOG_LEVEL_CHAT },
-  { "DEBUG", SYSLOG_LEVEL_DEBUG },
-  { NULL, 0 }
-};
-
 /* Returns the number of the token pointed to by cp of length len.
    Never returns if the token is not known. */
 
@@ -273,7 +238,7 @@ void read_server_config(ServerOptions *options, const char *filename)
   FILE *f;
   char line[1024];
   char *cp, **charptr;
-  int linenum, *intptr, i, value;
+  int linenum, *intptr, value;
   int bad_options = 0;
   ServerOpCodes opcode;
 
@@ -495,45 +460,25 @@ void read_server_config(ServerOptions *options, const char *filename)
           goto parse_flag;
 
 	case sLogFacility:
+	  intptr = (int *)&options->log_facility;
 	  cp = strtok(NULL, WHITESPACE);
-	  if (!cp)
-	    {
-	      fprintf(stderr, "%s line %d: missing facility name.\n",
-		      filename, linenum);
-	      exit(1);
-	    }
-	  for (i = 0; log_facilities[i].name; i++)
-	    if (strcasecmp(log_facilities[i].name, cp) == 0)
-	      break;
-	  if (!log_facilities[i].name)
-	    {
-	      fprintf(stderr, "%s line %d: unsupported log facility %s\n",
-		      filename, linenum, cp);
-	      exit(1);
-	    }
-	  if (options->log_facility == (SyslogFacility)(-1))
-	    options->log_facility = log_facilities[i].facility;
+	  value = log_facility_number(cp);
+	  if (value == (SyslogFacility)-1)
+	    fatal("%.200s line %d: unsupported log facility '%s'\n",
+      	      filename, linenum, cp ? cp : "<NONE>");
+	  if (*intptr == -1)
+	    *intptr = (SyslogFacility)value;
 	  break;
 
 	case sLogLevel:
+	  intptr = (int *)&options->log_level;
 	  cp = strtok(NULL, WHITESPACE);
-	  if (!cp)
-	    {
-	      fprintf(stderr, "%s line %d: missing level name.\n",
-		      filename, linenum);
-	      exit(1);
-	    }
-	  for (i = 0; log_levels[i].name; i++)
-	    if (strcasecmp(log_levels[i].name, cp) == 0)
-	      break;
-	  if (!log_levels[i].name)
-	    {
-	      fprintf(stderr, "%s line %d: unsupported log level %s\n",
-		      filename, linenum, cp);
-	      exit(1);
-	    }
-	  if (options->log_level == (LogLevel)(-1))
-	    options->log_level = log_levels[i].level;
+	  value = log_level_number(cp);
+	  if (value == (LogLevel)-1)
+	    fatal("%.200s line %d: unsupported log level '%s'\n",
+      	      filename, linenum, cp ? cp : "<NONE>");
+	  if (*intptr == -1)
+	    *intptr = (LogLevel)value;
 	  break;
 	  
 	case sAllowUsers:

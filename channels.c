@@ -16,7 +16,7 @@ arbitrary tcp/ip connections, and the authentication agent connection.
 */
 
 #include "includes.h"
-RCSID("$Id: channels.c,v 1.5 1999/11/12 04:19:27 damien Exp $");
+RCSID("$Id: channels.c,v 1.6 1999/11/21 02:23:53 damien Exp $");
 
 #include "ssh.h"
 #include "packet.h"
@@ -208,7 +208,7 @@ void channel_prepare_select(fd_set *readset, fd_set *writeset)
 
 	case SSH_CHANNEL_OPEN:
 	  if(compat13){
-	    if (buffer_len(&ch->input) < 32768)
+	    if (buffer_len(&ch->input) < packet_get_maxsize())
 	      FD_SET(ch->sock, readset);
 	    if (buffer_len(&ch->output) > 0)
 	      FD_SET(ch->sock, writeset);
@@ -216,7 +216,7 @@ void channel_prepare_select(fd_set *readset, fd_set *writeset)
 	  }
 	  /* test whether sockets are 'alive' for read/write */
           if (ch->istate == CHAN_INPUT_OPEN)
-            if (buffer_len(&ch->input) < 32768)
+            if (buffer_len(&ch->input) < packet_get_maxsize())
               FD_SET(ch->sock, readset);
           if (ch->ostate == CHAN_OUTPUT_OPEN || ch->ostate == CHAN_OUTPUT_WAIT_DRAIN){
             if (buffer_len(&ch->output) > 0){
@@ -611,9 +611,9 @@ int channel_not_very_much_buffered_data()
 	case SSH_CHANNEL_AUTH_SOCKET:
 	  continue;
 	case SSH_CHANNEL_OPEN:
-	  if (buffer_len(&ch->input) > 32768)
+	  if (buffer_len(&ch->input) > packet_get_maxsize())
 	    return 0;
-	  if (buffer_len(&ch->output) > 32768)
+	  if (buffer_len(&ch->output) > packet_get_maxsize())
 	    return 0;
 	  continue;
 	case SSH_CHANNEL_INPUT_DRAINING:

@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.19 1999/11/18 14:00:49 markus Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.20 1999/11/19 10:20:51 markus Exp $	*/
 
 /*
 
@@ -16,7 +16,7 @@ The authentication agent program.
 */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.19 1999/11/18 14:00:49 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.20 1999/11/19 10:20:51 markus Exp $");
 
 #include "ssh.h"
 #include "rsa.h"

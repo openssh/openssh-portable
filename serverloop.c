@@ -176,8 +176,8 @@ void make_packets_from_stderr_data()
 	}
       else
 	{
-	  if (len > 32768)
-	    len = 32768;  /* Keep the packets at reasonable size. */
+	  if (len > packet_get_maxsize())
+	    len = packet_get_maxsize();  /* Keep the packets at reasonable size. */
 	}
       packet_start(SSH_SMSG_STDERR_DATA);
       packet_put_string(buffer_ptr(&stderr_buffer), len);
@@ -206,8 +206,8 @@ void make_packets_from_stdout_data()
 	}
       else
 	{
-	  if (len > 32768)
-	    len = 32768;  /* Keep the packets at reasonable size. */
+	  if (len > packet_get_maxsize())
+	    len = packet_get_maxsize();  /* Keep the packets at reasonable size. */
 	}
       packet_start(SSH_SMSG_STDOUT_DATA);
       packet_put_string(buffer_ptr(&stdout_buffer), len);

@@ -18,7 +18,7 @@ agent connections.
 */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.25 1999/11/18 21:25:48 damien Exp $");
+RCSID("$Id: sshd.c,v 1.26 1999/11/21 02:23:53 damien Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -1753,6 +1753,11 @@ void do_authenticated(struct passwd *pw)
 	  channel_input_port_forward_request(pw->pw_uid == 0);
 	  break;
 
+	case SSH_CMSG_MAX_PACKET_SIZE:
+          if (packet_set_maxsize(packet_get_int()) < 0)
+	    goto fail;
+	  break;
+
 	case SSH_CMSG_EXEC_SHELL:
 	  /* Set interactive/non-interactive mode. */
 	  packet_set_interactive(have_pty || display != NULL, 
@@ -1790,10 +1795,6 @@ void do_authenticated(struct passwd *pw)
 	    do_exec_no_pty(command, pw, display, proto, data);
 	  xfree(command);
 	  return;
-
-	case SSH_CMSG_MAX_PACKET_SIZE:
-      	  debug("The server does not support limiting packet size.");
-	  goto fail;
 
 	default:
 	  /* Any unknown messages in this phase are ignored, and a failure
