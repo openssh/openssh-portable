@@ -4,6 +4,9 @@
      [kex.c]
      restore kexinit handler if we reset the dispatcher, this unbreaks
      rekeying s/kex_clear_dispatch/kex_reset_dispatch/
+   - markus@cvs.openbsd.org 2002/02/11 16:15:46
+     [sshconnect1.c]
+     include md5.h, not evp.h
 
 20020210
  - (djm) OpenBSD CVS Sync
@@ -7551,4 +7554,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1839 2002/02/13 02:54:06 djm Exp $
+$Id: ChangeLog,v 1.1840 2002/02/13 02:54:27 djm Exp $
