@@ -1,3 +1,11 @@
+20020205
+ - (djm) OpenBSD CVS Sync
+   - stevesk@cvs.openbsd.org 2002/01/24 21:09:25
+     [channels.c misc.c misc.h packet.c]
+     add set_nodelay() to set TCP_NODELAY on a socket (prep for nagle tuning).
+     no nagle changes just yet; ok djm@ markus@
+
+
 20020130
  - (djm) Delay PRNG seeding until we need it in ssh-keygen, from markus@
  - (tim) [configure.ac] fix logic on when ssh-rand-helper is installed.
@@ -7399,4 +7407,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1798 2002/01/31 06:14:03 tim Exp $
+$Id: ChangeLog,v 1.1799 2002/02/05 00:52:13 djm Exp $
