@@ -279,12 +279,14 @@ then
 # Host *
 #   ForwardAgent no
 #   ForwardX11 no
-#   RhostsAuthentication no
 #   RhostsRSAAuthentication no
 #   RSAAuthentication yes
 #   PasswordAuthentication yes
+#   HostbasedAuthentication no
 #   BatchMode no
 #   CheckHostIP yes
+#   AddressFamily any
+#   ConnectTimeout 0
 #   StrictHostKeyChecking ask
 #   IdentityFile ~/.ssh/identity
 #   IdentityFile ~/.ssh/id_dsa
@@ -397,7 +399,7 @@ Port $port_number
 #HostKey ${SYSCONFDIR}/ssh_host_dsa_key
 
 # Lifetime and size of ephemeral version 1 server key
-#KeyRegenerationInterval 3600
+#KeyRegenerationInterval 1h
 #ServerKeyBits 768
 
 # Logging
@@ -407,7 +409,7 @@ Port $port_number
 
 # Authentication:
 
-#LoginGraceTime 120
+#LoginGraceTime 2m
 #PermitRootLogin yes
 # The following setting overrides permission checks on host key files
 # and directories. For security reasons set this to "yes" when running
@@ -418,10 +420,6 @@ StrictModes no
 #PubkeyAuthentication yes
 #AuthorizedKeysFile     .ssh/authorized_keys
 
-# rhosts authentication should not be used
-#RhostsAuthentication no
-# Don't read the user's ~/.rhosts and ~/.shosts files
-#IgnoreRhosts yes
 # For this to work you will also need host keys in ${SYSCONFDIR}/ssh_known_hosts
 #RhostsRSAAuthentication no
 # similar for protocol version 2
@@ -429,6 +427,8 @@ StrictModes no
 # Change to yes if you don't trust ~/.ssh/known_hosts for
 # RhostsRSAAuthentication and HostbasedAuthentication
 #IgnoreUserKnownHosts no
+# Don't read the user's ~/.rhosts and ~/.shosts files
+#IgnoreRhosts yes
 
 # To disable tunneled clear text passwords, change to no here!
 #PasswordAuthentication yes
@@ -437,6 +437,8 @@ StrictModes no
 # Change to no to disable s/key passwords
 #ChallengeResponseAuthentication yes
 
+#AllowTcpForwarding yes
+#GatewayPorts no
 #X11Forwarding no
 #X11DisplayOffset 10
 #X11UseLocalhost yes
@@ -447,11 +449,14 @@ StrictModes no
 UsePrivilegeSeparation $privsep_used
 #PermitUserEnvironment no
 #Compression yes
-
+#ClientAliveInterval 0
+#ClientAliveCountMax 3
+#UseDNS yes
+#PidFile /var/run/sshd.pid
 #MaxStartups 10
+
 # no default banner path
 #Banner /some/path
-#VerifyReverseMapping no
 
 # override default of no subsystems
 Subsystem      sftp    /usr/sbin/sftp-server
