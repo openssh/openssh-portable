@@ -1,3 +1,8 @@
+20010506
+ - (djm) Update config.guess and config.sub with latest versions (from
+   ftp://ftp.gnu.org/gnu/config/) to allow configure on ia64-hpux.
+   Suggested by Jason Mader <jason@ncac.gwu.edu>
+
 20010505
  - OpenBSD CVS Sync
    - stevesk@cvs.openbsd.org 2001/05/04 14:21:56
@@ -5,8 +10,8 @@
      typos
    - markus@cvs.openbsd.org 2001/05/04 14:34:34
      [channels.c]
-     channel_new() reallocs channels[], we cannot use Channel *c after calling
-     channel_new(), XXX fix this in the future...
+     channel_new() reallocs channels[], we cannot use Channel *c after
+     calling channel_new(), XXX fix this in the future...
    - markus@cvs.openbsd.org 2001/05/04 23:47:34
      [channels.c channels.h clientloop.c nchan.c nchan.h serverloop.c ssh.c]
      move to Channel **channels (instead of Channel *channels), fixes realloc 
@@ -5342,4 +5347,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1199 2001/05/05 04:09:47 mouring Exp $
+$Id: ChangeLog,v 1.1200 2001/05/06 00:54:15 djm Exp $
