@@ -507,6 +507,44 @@ ssh_rijndael_cbc(EVP_CIPHER_CTX *ctx, u_char *dest, const u_char *src,
 		for (i = blocks; i > 0; i--, cnow-=RIJNDAEL_BLOCKSIZE,
 		    plain-=RIJNDAEL_BLOCKSIZE) {
 			rijndael_decrypt(&c->r_ctx, cnow, plain);
+			ivp = (i == 1) ? c->r_iv : cnow-RIJNDAEL_BLOCKSIZE;
+			for (j = 0; j < RIJNDAEL_BLOCKSIZE; j++)
+				plain[j] ^= ivp[j];
+		}
+		memcpy(c->r_iv, buf, RIJNDAEL_BLOCKSIZE);
+	}
+	return (1);
+}
+static int
+ssh_rijndael_cleanup(EVP_CIPHER_CTX *ctx)
+{
+	struct ssh_rijndael_ctx *c;
+
+	if ((c = EVP_CIPHER_CTX_get_app_data(ctx)) != NULL) {
+		memset(c, 0, sizeof(*c));
+		xfree(c);
+		EVP_CIPHER_CTX_set_app_data(ctx, NULL);
+	}
+	return (1);
+}
+static EVP_CIPHER *
+evp_rijndael(void)
+{
+	static EVP_CIPHER rijndal_cbc;
+
+	memset(&rijndal_cbc, 0, sizeof(EVP_CIPHER));
+	rijndal_cbc.nid = NID_undef;
+	rijndal_cbc.block_size = RIJNDAEL_BLOCKSIZE;
+	rijndal_cbc.iv_len = RIJNDAEL_BLOCKSIZE;
+	rijndal_cbc.key_len = 16;
+	rijndal_cbc.init = ssh_rijndael_init;
+	rijndal_cbc.cleanup = ssh_rijndael_cleanup;
+	rijndal_cbc.do_cipher = ssh_rijndael_cbc;
+#ifndef SSH_OLD_EVP
+	rijndal_cbc.flags = EVP_CIPH_CBC_MODE | EVP_CIPH_VARIABLE_LENGTH |
+	    EVP_CIPH_ALWAYS_CALL_INIT;
+#endif
+	return (&rijndal_cbc);
 }
 
 /*
@@ -675,42 +713,4 @@ cipher_set_keycontext(CipherContext *cc, u_char *dat)
 		plen = EVP_X_STATE_LEN(cc->evp);
 		memcpy(EVP_X_STATE(cc->evp), dat, plen);
 	}
-			ivp = (i == 1) ? c->r_iv : cnow-RIJNDAEL_BLOCKSIZE;
-			for (j = 0; j < RIJNDAEL_BLOCKSIZE; j++)
-				plain[j] ^= ivp[j];
-		}
-		memcpy(c->r_iv, buf, RIJNDAEL_BLOCKSIZE);
-	}
-	return (1);
-}
-static int
-ssh_rijndael_cleanup(EVP_CIPHER_CTX *ctx)
-{
-	struct ssh_rijndael_ctx *c;
-
-	if ((c = EVP_CIPHER_CTX_get_app_data(ctx)) != NULL) {
-		memset(c, 0, sizeof(*c));
-		xfree(c);
-		EVP_CIPHER_CTX_set_app_data(ctx, NULL);
-	}
-	return (1);
-}
-static EVP_CIPHER *
-evp_rijndael(void)
-{
-	static EVP_CIPHER rijndal_cbc;
-
-	memset(&rijndal_cbc, 0, sizeof(EVP_CIPHER));
-	rijndal_cbc.nid = NID_undef;
-	rijndal_cbc.block_size = RIJNDAEL_BLOCKSIZE;
-	rijndal_cbc.iv_len = RIJNDAEL_BLOCKSIZE;
-	rijndal_cbc.key_len = 16;
-	rijndal_cbc.init = ssh_rijndael_init;
-	rijndal_cbc.cleanup = ssh_rijndael_cleanup;
-	rijndal_cbc.do_cipher = ssh_rijndael_cbc;
-#ifndef SSH_OLD_EVP
-	rijndal_cbc.flags = EVP_CIPH_CBC_MODE | EVP_CIPH_VARIABLE_LENGTH |
-	    EVP_CIPH_ALWAYS_CALL_INIT;
-#endif
-	return (&rijndal_cbc);
 }

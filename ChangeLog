@@ -10,6 +10,7 @@
  - (stevesk) [defines.h] #define MAP_ANON MAP_ANONYMOUS for HP-UX; other
    platforms may need this--I'm not sure.  mmap() issues will need to be
    addressed further.
+ - (tim) [cipher.c] fix problem with OpenBSD sync
 
 20020321
  - (bal) OpenBSD CVS Sync
@@ -8004,4 +8005,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1973 2002/03/22 21:08:03 stevesk Exp $
+$Id: ChangeLog,v 1.1974 2002/03/22 21:27:40 tim Exp $
