@@ -3,6 +3,16 @@
    current.
  - (dtucker) [auth-pam.c] Append newlines to lines output by the
    pam_chauthtok_conv().
+ - (dtucker) [README ssh-host-config ssh-user-config Makefile] (All
+   contrib/cygwin).  Major update from vinschen at redhat.com.
+   - Makefile provides a `cygwin-postinstall' target to run right after
+     `make install'.
+   - Better support for Windows 2003 Server.
+   - Try to get permissions as correct as possible.
+   - New command line options to allow full automated host configuration.
+   - Create configs from skeletons in /etc/defaults/etc.
+   - Use /bin/bash, allows reading user input with readline support.
+   - Remove really old configs from /usr/local.
 
 20031103
  - (dtucker) [contrib/cygwin/ssh-host-config] Ensure entries in /etc/services
@@ -1267,4 +1277,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2994.2.58 2003/11/13 00:22:44 dtucker Exp $
+$Id: ChangeLog,v 1.2994.2.59 2003/11/13 00:31:00 dtucker Exp $
