@@ -1,5 +1,9 @@
 20030917
  - (djm) Sync with V_3_7 branch
+ - (djm) OpenBSD Sync
+   - markus@cvs.openbsd.org 2003/09/16 21:02:40
+     [buffer.c channels.c version.h]
+     more malloc/fatal fixes; ok millert/deraadt; ghudson at MIT.EDU
 
 20030916
  - (dtucker) [acconfig.h configure.ac defines.h session.c] Bug #252: Retrieve
@@ -1108,4 +1112,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2997 2003/09/16 21:24:25 djm Exp $
+$Id: ChangeLog,v 1.2998 2003/09/16 21:31:14 djm Exp $
