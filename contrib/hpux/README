@@ -29,11 +29,11 @@ o Verify egd.pl path in egd.rc match your local installation
 o Customize egd if needed (EGD_ARGS and EGD_LOG)
 o Add pseudo account:
 
-# groupadd egd
-# useradd -g egd egd
-# mkdir -p /etc/opt/egd
-# chown egd:egd /etc/opt/egd
-# chmod 711 /etc/opt/egd
+  # groupadd egd
+  # useradd -g egd egd
+  # mkdir -p /etc/opt/egd
+  # chown egd:egd /etc/opt/egd
+  # chmod 711 /etc/opt/egd
 
 o Install:
 
