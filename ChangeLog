@@ -19,6 +19,9 @@
    - stevesk@cvs.openbsd.org 2002/03/29 19:18:33
      [auth-rsa.c ssh-rsa.c ssh.h]
      make RSA modulus minimum #define; ok markus@
+   - markus@cvs.openbsd.org 2002/03/30 18:51:15
+     [monitor.c serverloop.c sftp-int.c sftp.c sshd.c]
+     check waitpid for EINTR; based on patch from peter@ifm.liu.se
 
 20020401
  - (stevesk) [monitor.c] PAM should work again; will *not* work with
@@ -8126,4 +8129,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2012 2002/04/02 20:43:11 mouring Exp $
+$Id: ChangeLog,v 1.2013 2002/04/02 20:48:19 mouring Exp $

@@ -26,7 +26,7 @@
 /* XXX: recursive operations */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-int.c,v 1.45 2002/03/19 06:32:56 mpech Exp $");
+RCSID("$OpenBSD: sftp-int.c,v 1.46 2002/03/30 18:51:15 markus Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -176,8 +176,9 @@ local_do_shell(const char *args)
 		    strerror(errno));
 		_exit(1);
 	}
-	if (waitpid(pid, &status, 0) == -1)
-		fatal("Couldn't wait for child: %s", strerror(errno));
+	while (waitpid(pid, &status, 0) == -1)
+		if (errno != EINTR)
+			fatal("Couldn't wait for child: %s", strerror(errno));
 	if (!WIFEXITED(status))
 		error("Shell exited abormally");
 	else if (WEXITSTATUS(status))

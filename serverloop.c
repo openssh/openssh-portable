@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.100 2002/03/24 16:00:27 markus Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.101 2002/03/30 18:51:15 markus Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -670,10 +670,10 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 	/* We no longer want our SIGCHLD handler to be called. */
 	mysignal(SIGCHLD, SIG_DFL);
 
-	wait_pid = waitpid(-1, &wait_status, 0);
-	if (wait_pid == -1)
-		packet_disconnect("wait: %.100s", strerror(errno));
-	else if (wait_pid != pid)
+	while ((wait_pid = waitpid(-1, &wait_status, 0)) < 0)
+		if (errno != EINTR)
+			packet_disconnect("wait: %.100s", strerror(errno));
+	if (wait_pid != pid)
 		error("Strange, wait returned pid %d, expected %d",
 		    wait_pid, pid);
 
@@ -723,8 +723,10 @@ collect_children(void)
 	sigaddset(&nset, SIGCHLD);
 	sigprocmask(SIG_BLOCK, &nset, &oset);
 	if (child_terminated) {
-		while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
-			session_close_by_pid(pid, status);
+		while ((pid = waitpid(-1, &status, WNOHANG)) > 0 ||
+		    (pid < 0 && errno == EINTR))
+			if (pid > 0)
+				session_close_by_pid(pid, status);
 		child_terminated = 0;
 	}
 	sigprocmask(SIG_SETMASK, &oset, NULL);

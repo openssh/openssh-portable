@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.238 2002/03/23 20:57:26 stevesk Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.239 2002/03/30 18:51:15 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -276,10 +276,12 @@ sigterm_handler(int sig)
 static void
 main_sigchld_handler(int sig)
 {
+	pid_t pid;
 	int save_errno = errno;
 	int status;
 
-	while (waitpid(-1, &status, WNOHANG) > 0)
+	while ((pid = waitpid(-1, &status, WNOHANG)) > 0 ||
+	    (pid < 0 && errno == EINTR))
 		;
 
 	signal(SIGCHLD, main_sigchld_handler);
@@ -577,8 +579,9 @@ privsep_preauth(void)
 		monitor_sync(monitor);
 
 		/* Wait for the child's exit status */
-		waitpid(pid, &status, 0);
-
+		while (waitpid(pid, &status, 0) < 0)
+			if (errno != EINTR)
+				break;
 		return (authctxt);
 	} else {
 		/* child */

@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.8 2002/03/27 17:45:42 mouring Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.9 2002/03/30 18:51:15 markus Exp $");
 
 #include <openssl/dh.h>
 
@@ -1211,8 +1211,9 @@ mm_answer_term(int socket, Buffer *req)
 	/* The child is terminating */
 	session_destroy_all(&mm_session_close);
 
-	if (waitpid(monitor->m_pid, &status, 0) == -1)
-		exit(1);
+	while (waitpid(monitor->m_pid, &status, 0) == -1)
+		if (errno != EINTR)
+			exit(1);
 
 	res = WIFEXITED(status) ? WEXITSTATUS(status) : 1;
 

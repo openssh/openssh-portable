@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.27 2002/03/19 10:49:35 markus Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.28 2002/03/30 18:51:15 markus Exp $");
 
 /* XXX: short-form remote directory listings (like 'ls -C') */
 
@@ -246,8 +246,10 @@ main(int argc, char **argv)
 	if (infile != stdin)
 		fclose(infile);
 
-	if (waitpid(sshpid, NULL, 0) == -1)
-		fatal("Couldn't wait for ssh process: %s", strerror(errno));
+	while (waitpid(sshpid, NULL, 0) == -1)
+		if (errno != EINTR)
+			fatal("Couldn't wait for ssh process: %s",
+			    strerror(errno));
 
 	exit(0);
 }
