@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2.c,v 1.82 2002/01/13 17:57:37 markus Exp $");
+RCSID("$OpenBSD: auth2.c,v 1.83 2002/01/29 14:32:03 markus Exp $");
 
 #include <openssl/evp.h>
 
@@ -743,7 +743,7 @@ hostbased_key_allowed(struct passwd *pw, const char *cuser, char *chost,
 	HostStatus host_status;
 	int len;
 
-	resolvedname = get_canonical_hostname(options.reverse_mapping_check);
+	resolvedname = get_canonical_hostname(options.verify_reverse_mapping);
 	ipaddr = get_remote_ipaddr();
 
 	debug2("userauth_hostbased: chost %s resolvedname %s ipaddr %s",

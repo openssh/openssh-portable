@@ -11,7 +11,7 @@
  * called by a name other than "ssh" or "Secure Shell".
  */
 
-/* RCSID("$OpenBSD: servconf.h,v 1.52 2002/01/27 14:57:46 stevesk Exp $"); */
+/* RCSID("$OpenBSD: servconf.h,v 1.53 2002/01/29 14:32:03 markus Exp $"); */
 
 #ifndef SERVCONF_H
 #define SERVCONF_H
@@ -116,7 +116,7 @@ typedef struct {
 	int	max_startups_rate;
 	int	max_startups;
 	char   *banner;			/* SSH-2 banner message */
-	int	reverse_mapping_check;	/* cross-check ip and dns */
+	int	verify_reverse_mapping;	/* cross-check ip and dns */
 	int	client_alive_interval;	/*
 					 * poke the client this often to
 					 * see if it's still there

@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.99 2002/01/27 14:57:46 stevesk Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.100 2002/01/29 14:32:03 markus Exp $");
 
 #if defined(KRB4) || defined(KRB5)
 #include <krb.h>
@@ -105,7 +105,7 @@ initialize_server_options(ServerOptions *options)
 	options->max_startups_rate = -1;
 	options->max_startups = -1;
 	options->banner = NULL;
-	options->reverse_mapping_check = -1;
+	options->verify_reverse_mapping = -1;
 	options->client_alive_interval = -1;
 	options->client_alive_count_max = -1;
 	options->authorized_keys_file = NULL;
@@ -220,8 +220,8 @@ fill_default_server_options(ServerOptions *options)
 		options->max_startups_rate = 100;		/* 100% */
 	if (options->max_startups_begin == -1)
 		options->max_startups_begin = options->max_startups;
-	if (options->reverse_mapping_check == -1)
-		options->reverse_mapping_check = 0;
+	if (options->verify_reverse_mapping == -1)
+		options->verify_reverse_mapping = 0;
 	if (options->client_alive_interval == -1)
 		options->client_alive_interval = 0;
 	if (options->client_alive_count_max == -1)
@@ -264,7 +264,7 @@ typedef enum {
 	sAllowUsers, sDenyUsers, sAllowGroups, sDenyGroups,
 	sIgnoreUserKnownHosts, sCiphers, sMacs, sProtocol, sPidFile,
 	sGatewayPorts, sPubkeyAuthentication, sXAuthLocation, sSubsystem, sMaxStartups,
-	sBanner, sReverseMappingCheck, sHostbasedAuthentication,
+	sBanner, sVerifyReverseMapping, sHostbasedAuthentication,
 	sHostbasedUsesNameFromPacketOnly, sClientAliveInterval,
 	sClientAliveCountMax, sAuthorizedKeysFile, sAuthorizedKeysFile2,
 	sDeprecated
@@ -336,7 +336,8 @@ static struct {
 	{ "subsystem", sSubsystem },
 	{ "maxstartups", sMaxStartups },
 	{ "banner", sBanner },
-	{ "reversemappingcheck", sReverseMappingCheck },
+	{ "verifyreversemapping", sVerifyReverseMapping },
+	{ "reversemappingcheck", sVerifyReverseMapping },
 	{ "clientaliveinterval", sClientAliveInterval },
 	{ "clientalivecountmax", sClientAliveCountMax },
 	{ "authorizedkeysfile", sAuthorizedKeysFile },
@@ -687,8 +688,8 @@ parse_flag:
 		intptr = &options->gateway_ports;
 		goto parse_flag;
 
-	case sReverseMappingCheck:
-		intptr = &options->reverse_mapping_check;
+	case sVerifyReverseMapping:
+		intptr = &options->verify_reverse_mapping;
 		goto parse_flag;
 
 	case sLogFacility:

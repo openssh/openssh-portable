@@ -31,6 +31,11 @@
    - markus@cvs.openbsd.org 2002/01/29 14:27:57
      [ssh-add.c]
      exit 2 if no agent, exit 1 if list fails; debian#61078; ok djm@
+   - markus@cvs.openbsd.org 2002/01/29 14:32:03
+     [auth2.c auth.c auth-options.c auth-rhosts.c auth-rh-rsa.c canohost.c]
+     [servconf.c servconf.h session.c sshd.8 sshd_config]
+     s/ReverseMappingCheck/VerifyReverseMapping/ and avoid confusion; 
+     ok stevesk@
 
 20020130
  - (djm) Delay PRNG seeding until we need it in ssh-keygen, from markus@
@@ -7433,4 +7438,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1807 2002/02/05 01:12:49 djm Exp $
+$Id: ChangeLog,v 1.1808 2002/02/05 01:13:41 djm Exp $

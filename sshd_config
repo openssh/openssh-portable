@@ -1,4 +1,4 @@
-#	$OpenBSD: sshd_config,v 1.45 2002/01/27 14:57:46 stevesk Exp $
+#	$OpenBSD: sshd_config,v 1.46 2002/01/29 14:32:03 markus Exp $
 
 # This is the sshd server system-wide configuration file.  See sshd(8)
 # for more information.
@@ -86,7 +86,7 @@
 #MaxStartups 10
 # no default banner path
 #Banner /some/path
-#ReverseMappingCheck no
+#VerifyReverseMapping no
 
 # override default of no subsystems
 Subsystem	sftp	/usr/libexec/sftp-server

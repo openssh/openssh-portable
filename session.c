@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.119 2002/01/27 14:57:46 stevesk Exp $");
+RCSID("$OpenBSD: session.c,v 1.120 2002/01/29 14:32:03 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -717,7 +717,7 @@ do_login(Session *s, const char *command)
 
 	/* Record that there was a login on that tty from the remote host. */
 	record_login(pid, s->tty, pw->pw_name, pw->pw_uid,
-	    get_remote_name_or_ip(utmp_len, options.reverse_mapping_check),
+	    get_remote_name_or_ip(utmp_len, options.verify_reverse_mapping),
 	    (struct sockaddr *)&from);
 
 #ifdef USE_PAM
@@ -1287,7 +1287,7 @@ do_child(Session *s, const char *command)
 	/* we have to stash the hostname before we close our socket. */
 	if (options.use_login)
 		hostname = get_remote_name_or_ip(utmp_len,
-		    options.reverse_mapping_check);
+		    options.verify_reverse_mapping);
 	/*
 	 * Close the connection descriptors; note that this is the child, and
 	 * the server will still have the socket open, and it is important
