@@ -12,9 +12,9 @@
      add prototypes for -Wall; ok djm
    - djm@cvs.openbsd.org 2004/05/21 11:33:11
      [channels.c channels.h clientloop.c serverloop.c ssh.1]
-     bz #756: add support for the cancel-tcpip-forward request for the server and
-     the client (through the ~C commandline). reported by z3p AT twistedmatrix.com;
-     ok markus@
+     bz #756: add support for the cancel-tcpip-forward request for the server
+     and the client (through the ~C commandline). reported by z3p AT
+     twistedmatrix.com; ok markus@
    - djm@cvs.openbsd.org 2004/05/22 06:32:12
      [clientloop.c ssh.1]
      use '-h' for help in ~C commandline instead of '-?'; inspired by jmc@
@@ -22,8 +22,12 @@
      [ssh.1]
      kill whitespace at eol;
    - dtucker@cvs.openbsd.org 2004/05/23 23:59:53
-     [auth.c auth.h auth1.c auth2.c servconf.c servconf.h sshd_config sshd_config.5]
+     [auth.c auth.h auth1.c auth2.c servconf.c servconf.h sshd_config
+     sshd_config.5]
      Add MaxAuthTries sshd config option; ok markus@
+ - (dtucker) [auth-pam.c] Bug #839: Ensure that pam authentication "thread"
+   is terminated if the privsep slave exits during keyboard-interactive
+   authentication.  ok djm@
 
 20040523
  - (djm) [sshd_config] Explain consequences of UsePAM=yes a little better in 
@@ -1153,4 +1157,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3365 2004/05/24 00:36:23 dtucker Exp $
+$Id: ChangeLog,v 1.3366 2004/05/24 01:55:36 dtucker Exp $
