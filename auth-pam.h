@@ -1,4 +1,4 @@
-/* $Id: auth-pam.h,v 1.17 2003/05/10 09:28:02 djm Exp $ */
+/* $Id: auth-pam.h,v 1.18 2003/05/19 01:28:44 djm Exp $ */
 
 /*
  * Copyright (c) 2000 Damien Miller.  All rights reserved.
@@ -31,19 +31,15 @@
 # define SSHD_PAM_SERVICE		__progname
 #endif
 
-void start_pam(const char *user);
+void start_pam(const char *);
 void finish_pam(void);
-int auth_pam_password(Authctxt *authctxt, const char *password);
-char **fetch_pam_environment(void);
-void free_pam_environment(char **env);
-int do_pam_authenticate(int flags);
-int do_pam_account(const char *user, const char *ruser);
-void do_pam_session(const char *user, const char *tty);
-void do_pam_setcred(int init);
-void print_pam_messages(void);
+int do_pam_account(const char *, const char *);
+void do_pam_session(const char *, const char *);
+void do_pam_setcred(int );
 int is_pam_password_change_required(void);
 void do_pam_chauthtok(void);
-void do_pam_set_conv(struct pam_conv *);
-void message_cat(char **p, const char *a);
+void print_pam_messages(void);
+char ** fetch_pam_environment(void);
+void free_pam_environment(char **);
 
 #endif /* USE_PAM */

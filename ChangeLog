@@ -1,4 +1,7 @@
-20030517
+20030519
+ - (djm) Sync auth-pam.h with what we actually implement
+
+20030518
  - (djm) Return of the dreaded PAM_TTY_KLUDGE, which went missing in 
    recent merge
  - (djm) OpenBSD CVS Sync
@@ -1575,4 +1578,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2741 2003/05/18 14:50:02 djm Exp $
+$Id: ChangeLog,v 1.2742 2003/05/19 01:28:44 djm Exp $
