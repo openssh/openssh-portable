@@ -11,6 +11,9 @@
    - markus@cvs.openbsd.org 2003/01/23 14:01:53
      [scp.c]
      bandwidth limitation patch (scp -l) from niels@; ok todd@, deraadt@
+   - markus@cvs.openbsd.org 2003/01/23 14:06:15
+     [scp.1 scp.c]
+     scp -12; Sam Smith and others; ok provos@, deraadt@
 
 20030123
  - (djm) OpenBSD CVS Sync
@@ -1070,4 +1073,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2585 2003/01/24 00:36:58 djm Exp $
+$Id: ChangeLog,v 1.2586 2003/01/24 00:37:38 djm Exp $

@@ -75,7 +75,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.99 2003/01/23 14:01:53 markus Exp $");
+RCSID("$OpenBSD: scp.c,v 1.100 2003/01/23 14:06:15 markus Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -225,9 +225,11 @@ main(argc, argv)
 	addargs(&args, "-oClearAllForwardings yes");
 
 	fflag = tflag = 0;
-	while ((ch = getopt(argc, argv, "dfl:prtvBCc:i:P:q46S:o:F:")) != -1)
+	while ((ch = getopt(argc, argv, "dfl:prtvBCc:i:P:q1246S:o:F:")) != -1)
 		switch (ch) {
 		/* User-visible flags. */
+		case '1':
+		case '2':
 		case '4':
 		case '6':
 		case 'C':
@@ -1025,7 +1027,7 @@ void
 usage(void)
 {
 	(void) fprintf(stderr,
-	    "usage: scp [-pqrvBC46] [-F config] [-S program] [-P port]\n"
+	    "usage: scp [-pqrvBC1246] [-F config] [-S program] [-P port]\n"
 	    "           [-c cipher] [-i identity] [-l limit] [-o option]\n"
 	    "           [[user@]host1:]file1 [...] [[user@]host2:]file2\n");
 	exit(1);
