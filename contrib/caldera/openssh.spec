@@ -1,6 +1,6 @@
 %define use-stable	1
 %if %{use-stable}
-  %define version 	3.1p1
+  %define version 	3.2p1
   %define cvs		%{nil}
   %define release 	1
 %else
@@ -224,4 +224,4 @@ by Jim Knoble <jmknoble@pobox.com>.
 %ChangeLog
 * Mon Jan 01 1998 ...
 
-$Id: openssh.spec,v 1.27 2002/03/07 02:04:38 djm Exp $
+$Id: openssh.spec,v 1.28 2002/04/23 11:15:32 djm Exp $
