@@ -34,6 +34,7 @@ case "$host" in
 	if test "$LD" != "gcc" -a -z "$blibpath"; then
 		blibpath="/usr/lib:/lib:/usr/local/lib"
 	fi
+	AC_CHECK_FUNC(authenticate, [AC_DEFINE(WITH_AIXAUTHENTICATE)])
 	AC_DEFINE(BROKEN_GETADDRINFO)
 	;;
 *-*-hpux10*)

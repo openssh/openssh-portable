@@ -18,7 +18,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: login.c,v 1.26 2000/05/17 11:34:08 damien Exp $");
+RCSID("$Id: login.c,v 1.27 2000/05/17 12:00:03 damien Exp $");
 
 #if defined(HAVE_UTMPX_H) && defined(USE_UTMPX)
 # include <utmpx.h>
@@ -53,6 +53,10 @@ unsigned long
 get_last_login_time(uid_t uid, const char *logname,
 		    char *buf, unsigned int bufsize)
 {
+#if defined(WITH_AIXAUTHENTICATE)
+	/* This is done in do_authentication */
+	return (unsigned long) 0;
+#else
 #if defined(_PATH_LASTLOG) && !defined(DISABLE_LASTLOG)
 	struct lastlog ll;
 	char *lastlog;
@@ -132,6 +136,7 @@ get_last_login_time(uid_t uid, const char *logname,
 	return 0;
 # endif /* HAVE_TYPE_IN_UTMP */
 #endif /* defined(_PATH_LASTLOG) && !defined(DISABLE_LASTLOG) */
+#endif /* defined(WITH_AIXAUTHENTICATE) */
 }
 
 /*
@@ -246,7 +251,8 @@ record_login(pid_t pid, const char *ttyname, const char *user, uid_t uid,
 	login(&u);
 #endif /* defined(HAVE_UTMPX_H) && defined(USE_UTMPX) */
 
-#if defined(_PATH_LASTLOG) && !defined(DISABLE_LASTLOG)
+#if defined(_PATH_LASTLOG) && !defined(DISABLE_LASTLOG) && !defined(WITH_AIXAUTHENTICATE)
+	/* AIX does this in do_authentication */
 	lastlog = _PATH_LASTLOG;
 
 	/* Update lastlog unless actually recording a logout. */
@@ -276,7 +282,7 @@ record_login(pid_t pid, const char *ttyname, const char *user, uid_t uid,
 			close(fd);
 		}
 	}
-#endif /* defined(_PATH_LASTLOG) && !defined(DISABLE_LASTLOG) */
+#endif /* defined(_PATH_LASTLOG) && !defined(DISABLE_LASTLOG) && !defined(WITH_AIXAUTHENTICATE) */
 }
 
 /* Records that the user has logged out. */

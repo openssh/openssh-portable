@@ -9,6 +9,7 @@
 	 after select()
   - 'fixprogs' perl script to eliminate non-working entropy commands, and
 	 optionally run 'ent' to measure command entropy
+ - Applied Tom Bertelson's <tbert@abac.com> AIX authentication fix
 
 20000513
  - Fix for non-recognised DSA keys from Arkadiusz Miskiewicz 

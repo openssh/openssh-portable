@@ -154,9 +154,9 @@ input_userauth_request(int type, int plen)
 	int authenticated = 0;
 	char *raw, *user, *service, *method, *authmsg = NULL;
 	struct passwd *pw;
-
-	if (++attempt == AUTH_FAIL_MAX)
-		packet_disconnect("too many failed userauth_requests");
+#ifdef WITH_AIXAUTHENTICATE
+	extern char *aixloginmsg;
+#endif /* WITH_AIXAUTHENTICATE */
 
 	raw = packet_get_raw(&rlen);
 	if (plen != rlen)
@@ -164,6 +164,12 @@ input_userauth_request(int type, int plen)
 	user = packet_get_string(&len);
 	service = packet_get_string(&len);
 	method = packet_get_string(&len);
+	if (++attempt == AUTH_FAIL_MAX) {
+#ifdef WITH_AIXAUTHENTICATE 
+		loginfailed(user,get_canonical_hostname(),"ssh");
+#endif /* WITH_AIXAUTHENTICATE */
+		packet_disconnect("too many failed userauth_requests");
+	}
 	debug("userauth-request for user %s service %s method %s", user, service, method);
 
 	/* XXX we only allow the ssh-connection service */
@@ -211,6 +217,12 @@ input_userauth_request(int type, int plen)
 
 	/* XXX todo: check if multiple auth methods are needed */
 	if (authenticated == 1) {
+#ifdef WITH_AIXAUTHENTICATE
+		/* We don't have a pty yet, so just label the line as "ssh" */
+		if (loginsuccess(user,get_canonical_hostname(),"ssh",
+				&aixloginmsg) < 0)
+			aixloginmsg = NULL;
+#endif /* WITH_AIXAUTHENTICATE */
 		/* turn off userauth */
 		dispatch_set(SSH2_MSG_USERAUTH_REQUEST, &protocol_error);
 		packet_start(SSH2_MSG_USERAUTH_SUCCESS);

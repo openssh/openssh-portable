@@ -9,7 +9,7 @@
 /* Define if you want to disable PAM support */
 #undef DISABLE_PAM
 
-/* Define if you want to disable AIX4's authenticate function */
+/* Define if you want to enable AIX4's authenticate function */
 #undef WITH_AIXAUTHENTICATE
 
 /* Define if you want to disable lastlog support */

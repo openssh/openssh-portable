@@ -66,9 +66,7 @@ do_fake_authloop1(char *user)
 	    get_remote_port());
 
 #ifdef WITH_AIXAUTHENTICATE 
-		if (strncmp(get_authname(type),"password",
-		    strlen(get_authname(type))) == 0)
-			loginfailed(pw->pw_name,get_canonical_hostname(),"ssh");
+	loginfailed(user,get_canonical_hostname(),"ssh");
 #endif /* WITH_AIXAUTHENTICATE */
 
 	/* Indicate that authentication is needed. */
@@ -408,8 +406,12 @@ do_authloop(struct passwd * pw)
 			client_user = NULL;
 		}
 
-		if (attempt > AUTH_FAIL_MAX)
+		if (attempt > AUTH_FAIL_MAX) {
+#ifdef WITH_AIXAUTHENTICATE 
+			loginfailed(pw->pw_name,get_canonical_hostname(),"ssh");
+#endif /* WITH_AIXAUTHENTICATE */
 			packet_disconnect(AUTH_FAIL_MSG, pw->pw_name);
+		}
 
 		/* Send a message indicating that the authentication attempt failed. */
 		packet_start(SSH_SMSG_FAILURE);
@@ -430,7 +432,7 @@ do_authentication()
 	unsigned int ulen;
 	char *user;
 #ifdef WITH_AIXAUTHENTICATE
-	char *loginmsg;
+	extern char *aixloginmsg;
 #endif /* WITH_AIXAUTHENTICATE */
 
 	/* Get the name of the user that we wish to log in as. */
@@ -501,7 +503,9 @@ do_authentication()
 
 	/* The user has been authenticated and accepted. */
 #ifdef WITH_AIXAUTHENTICATE
-	loginsuccess(user,get_canonical_hostname(),"ssh",&loginmsg);
+	/* We don't have a pty yet, so just label the line as "ssh" */
+	if (loginsuccess(user,get_canonical_hostname(),"ssh",&aixloginmsg) < 0)
+		aixloginmsg = NULL;
 #endif /* WITH_AIXAUTHENTICATE */
 	packet_start(SSH_SMSG_SUCCESS);
 	packet_send();

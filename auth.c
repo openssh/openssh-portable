@@ -19,6 +19,9 @@ RCSID("$OpenBSD: auth.c,v 1.6 2000/04/26 21:28:31 markus Exp $");
 #include "compat.h"
 #include "channels.h"
 #include "match.h"
+#ifdef HAVE_LOGIN_H
+#include <login.h>
+#endif
 
 #include "bufaux.h"
 #include "ssh2.h"
@@ -111,8 +114,20 @@ allowed_user(struct passwd * pw)
 	}
 
 #ifdef WITH_AIXAUTHENTICATE
-	if (loginrestrictions(pw->pw_name,S_LOGIN,NULL,&loginmsg) != 0)
+	if (loginrestrictions(pw->pw_name,S_RLOGIN,NULL,&loginmsg) != 0) {
+		if (loginmsg && *loginmsg) {
+			/* Remove embedded newlines (if any) */
+			char *p;
+			for (p = loginmsg; *p; p++)
+				if (*p == '\n')
+					*p = ' ';
+			/* Remove trailing newline */
+			*--p = '\0';
+			log("Login restricted for %s: %.100s",
+					pw->pw_name, loginmsg);
+		}
 		return 0;
+	}
 #endif /* WITH_AIXAUTHENTICATE */
 
 	/* We found no reason not to let this user try to log on... */

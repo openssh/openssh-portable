@@ -83,6 +83,10 @@ static char *xauthfile;
 /* data */
 #define MAX_SESSIONS 10
 Session	sessions[MAX_SESSIONS];
+#ifdef WITH_AIXAUTHENTICATE
+/* AIX's lastlogin message, set in auth1.c */
+char *aixloginmsg;
+#endif /* WITH_AIXAUTHENTICATE */
 
 /* Flags set in auth-rsa from authorized_keys flags.  These are set in auth-rsa.c. */
 int no_port_forwarding_flag = 0;
@@ -631,6 +635,15 @@ do_exec_pty(Session *s, const char *command, struct passwd * pw)
 				fclose(f);
 			}
 		}
+#if defined(WITH_AIXAUTHENTICATE)
+		/*
+		 * AIX handles the lastlog info differently.  Display it here.
+		 */
+		if (command == NULL && aixloginmsg && *aixloginmsg &&
+		    !quiet_login && !options.use_login) {
+			printf("%s\n", aixloginmsg);
+		}
+#endif
 		/* Do common processing for the child, such as execing the command. */
 		do_child(command, pw, s->term, s->display, s->auth_proto, s->auth_data, s->tty);
 		/* NOTREACHED */
