@@ -1,42 +1,23 @@
-dnl Process this file with autoconf to produce a configure script.
-
-AC_INIT(auth-krb4.c)
+AC_INIT(ssh.c)
 
 AC_CONFIG_HEADER(config.h)
 
 dnl Checks for programs.
 AC_PROG_CC
+AC_PROG_CPP
 AC_PROG_RANLIB
 AC_CHECK_PROG(AR, ar, ar)
 if test "$GCC" = "yes"; then CFLAGS="$CFLAGS -Wall"; fi
 
-dnl Checks for libraries.
-dnl Replace `main' with a function in -lcrypto:
-AC_CHECK_LIB(crypto, CRYPTO_lock, ,AC_MSG_ERROR([*** libcrypto missing - please install first ***]))
-dnl Replace `main' with a function in -lutil:
-AC_CHECK_LIB(util, logout, ,AC_MSG_ERROR([*** -lutil missing - this is part of libc. ***]))
-dnl Replace `main' with a function in -lz:
-AC_CHECK_LIB(z, deflate, ,AC_MSG_ERROR([*** zlib missing - please install first ***]))
-dnl check for nsl
-AC_CHECK_LIB(nsl, yp_match, , )
-dnl check for dl
-AC_CHECK_LIB(dl, dlopen, , )
-dnl check for pam
-AC_CHECK_LIB(pam, pam_authenticate, , )
-
 dnl Check for OpenSSL/SSLeay directories.
 AC_MSG_CHECKING([for OpenSSL/SSLeay directory])
-for dir in /usr /usr/local/openssl /usr/lib/openssl /usr/local/ssl /usr/lib/ssl /usr/local /usr/pkg ; do
-    ssldir="$dir"
-    if test -f "$dir/include/openssl/crypto.h"; then
+for ssldir in /usr /usr/local/openssl /usr/lib/openssl /usr/local/ssl /usr/lib/ssl /usr/local $prefix /usr/pkg ; do
+    if test -f "$ssldir/include/openssl/crypto.h"; then
         AC_DEFINE(HAVE_OPENSSL)
         break
     fi
-    if test -f "$dir/include/ssl/crypto.h"; then
+    if test -f "$ssldir/include/ssl/crypto.h"; then
         AC_DEFINE(HAVE_SSL)
-        break
-    fi
-    if test -f "$dir/include/crypto.h"; then
         break
     fi
 done
@@ -57,17 +38,67 @@ AC_TRY_LINK([], [],
 [AC_MSG_RESULT(yes); ],
 [AC_MSG_RESULT(no)]; LIBS="$saved_LIBS")
 
+dnl Checks for libraries.
+AC_CHECK_LIB(crypto, CRYPTO_lock, ,AC_MSG_ERROR([*** libcrypto missing - please install first ***]))
+AC_CHECK_LIB(z, deflate, ,AC_MSG_ERROR([*** zlib missing - please install first ***]))
+AC_CHECK_LIB(util, login, AC_DEFINE(HAVE_LIBUTIL_LOGIN) LIBS="$LIBS -lutil")
+AC_CHECK_LIB(nsl, yp_match, , )
+AC_CHECK_LIB(socket, main, , )
+
+dnl libdl is needed by PAM on Redhat systems
+AC_CHECK_LIB(dl, dlopen, , )
+AC_CHECK_LIB(pam, pam_authenticate, , )
+
 dnl Checks for header files.
-AC_CHECK_HEADERS(pty.h)
+AC_CHECK_HEADERS(pty.h endian.h paths.h lastlog.h)
 
 dnl Checks for library functions.
 AC_PROG_GCC_TRADITIONAL
 AC_CHECK_FUNCS(openpty strlcpy mkdtemp arc4random setproctitle)
+
+dnl Check for ut_host field in utmp
+AC_MSG_CHECKING([whether utmp.h has ut_host field])
+AC_EGREP_HEADER(ut_host, utmp.h, 
+	[AC_DEFINE(HAVE_HOST_IN_UTMP) AC_MSG_RESULT(yes); ], 
+	[AC_MSG_RESULT(no)]
+)
 
 dnl Check whether user wants GNOME ssh-askpass
 AC_ARG_WITH(gnome-askpass,
 	[  --with-gnome-askpass    Build and use the GNOME passphrase requester],
 	[GNOME_ASKPASS="gnome-ssh-askpass"])
 AC_SUBST(GNOME_ASKPASS)
+
+dnl Check for user-specified random device
+AC_ARG_WITH(random,
+	[  --with-random=FILE      read randomness from FILE (default /dev/urandom)],
+	[
+		RANDOM_POOL="$withval";
+		AC_DEFINE(RANDOM_POOL, "$RANDOM_POOL")
+	],
+	[
+		dnl Check for random device
+		AC_CHECK_FILE("/dev/urandom",
+			[
+				RANDOM_POOL="/dev/urandom"; 
+				AC_DEFINE(RANDOM_POOL, "$RANDOM_POOL")
+			]
+		)
+	]
+)
+
+dnl Check for EGD pool file
+AC_ARG_WITH(egd-pool,
+	[  --with-egd-pool=FILE    read randomness from EGD pool FILE],
+	[
+		RANDOM_POOL="$withval";
+		AC_DEFINE(HAVE_EGD)
+		AC_DEFINE(RANDOM_POOL, "$RANDOM_POOL")
+	]
+)
+
+if test -z "$RANDOM_POOL" -a -z "$EGD_POOL"; then
+	AC_MSG_ERROR([No random device found, and no EGD random pool specified])
+fi
 
 AC_OUTPUT(Makefile)

@@ -37,7 +37,6 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #include <arpa/inet.h>
 #include <netdb.h>
 
-#include <endian.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <errno.h>
@@ -52,13 +51,18 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #include <grp.h>
 #include <unistd.h>
 #include <time.h>
-#include <paths.h>
 #include <dirent.h>
-
-#include "version.h"
 
 #include "config.h"
 
+#ifdef HAVE_PATHS_H
+# include <paths.h>
+#endif 
+#ifdef HAVE_ENDIAN_H
+# include <endian.h>
+#endif
+
+#include "version.h"
 #include "helper.h"
 #include "mktemp.h"
 #include "strlcpy.h"

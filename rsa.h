@@ -13,7 +13,7 @@ RSA key generation, encryption and decryption.
 
 */
 
-/* RCSID("$Id: rsa.h,v 1.2 1999/10/28 03:25:17 damien Exp $"); */
+/* RCSID("$Id: rsa.h,v 1.3 1999/11/10 23:40:23 damien Exp $"); */
 #include "config.h"
 
 #ifndef RSA_H
@@ -34,11 +34,11 @@ void rsa_generate_key(RSA *prv, RSA *pub, unsigned int bits);
 
 /* Indicates whether the rsa module is permitted to show messages on
    the terminal. */
-void rsa_set_verbose __P((int verbose));
+void rsa_set_verbose(int verbose);
 
-int  rsa_alive __P((void));
+int  rsa_alive(void);
 
-void rsa_public_encrypt __P((BIGNUM *out, BIGNUM *in, RSA *prv));
-void rsa_private_decrypt __P((BIGNUM *out, BIGNUM *in, RSA *prv));
+void rsa_public_encrypt(BIGNUM *out, BIGNUM *in, RSA *prv);
+void rsa_private_decrypt(BIGNUM *out, BIGNUM *in, RSA *prv);
 
 #endif /* RSA_H */

@@ -18,9 +18,14 @@ on a tty.
 */
 
 #include "includes.h"
-RCSID("$Id: login.c,v 1.1 1999/10/27 03:42:44 damien Exp $");
+RCSID("$Id: login.c,v 1.2 1999/11/10 23:40:23 damien Exp $");
 
 #include <utmp.h>
+
+#ifdef HAVE_LASTLOG_H
+# include <lastlog.h>
+#endif
+
 #include "ssh.h"
 
 /* Returns the time when the user last logged in.  Returns 0 if the 
@@ -76,7 +81,9 @@ void record_login(int pid, const char *ttyname, const char *user, uid_t uid,
   strncpy(u.ut_line, ttyname + 5, sizeof(u.ut_line));
   u.ut_time = time(NULL);
   strncpy(u.ut_name, user, sizeof(u.ut_name));
+#ifdef HAVE_HOST_IN_UTMP
   strncpy(u.ut_host, host, sizeof(u.ut_host));
+#endif
 
   /* Figure out the file names. */
   utmp = _PATH_UTMP;
@@ -108,11 +115,14 @@ void record_login(int pid, const char *ttyname, const char *user, uid_t uid,
     }
 }
   
-/* Records that the user has logged out. */
-
 void record_logout(int pid, const char *ttyname)
 {
+#ifdef HAVE_LIBUTIL_LOGIN
   const char *line = ttyname + 5; /* /dev/ttyq8 -> ttyq8 */
   if (logout(line))
     logwtmp(line, "", "");
+#else /* HAVE_LIBUTIL_LOGIN */
+  record_login(pid, ttyname, "", -1, "", NULL);
+#endif /* HAVE_LIBUTIL_LOGIN */
 }
+

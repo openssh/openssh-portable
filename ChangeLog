@@ -1,8 +1,13 @@
+19991111
+ - Added (untested) Entropy Gathering Daemon (EGD) support
+
 19991110
  - Merged several minor fixed:
    - ssh-agent commandline parsing
    - RPM spec file now installs ssh setuid root
    - Makefile creates libdir
+   - Merged beginnings of Solaris compability from Marc G. Fournier
+     <marc.fournier@acadiau.ca>
 
 19991109
  - Autodetection of SSL/Crypto library location via autoconf

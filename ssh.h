@@ -13,12 +13,14 @@ Generic header file for ssh.
 
 */
 
-/* RCSID("$Id: ssh.h,v 1.8 1999/11/08 23:28:04 damien Exp $"); */
+/* RCSID("$Id: ssh.h,v 1.9 1999/11/10 23:40:23 damien Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
 
-/* Added by Dan */
+#include <netinet/in.h> /* For struct sockaddr_in */
+#include <pwd.h> /* For struct pw */
+
 #ifndef SHUT_RDWR
 enum
 {

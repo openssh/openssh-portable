@@ -52,7 +52,7 @@ static char rcsid[] = "$OpenBSD: mktemp.c,v 1.13 1998/06/30 23:03:13 deraadt Exp
 
 #ifndef HAVE_MKDTEMP
 
-static int _gettemp __P((char *, int *, int, int));
+static int _gettemp(char *, int *, int, int);
 
 int
 mkstemps(path, slen)

@@ -45,6 +45,7 @@
 
 #include "rc4.h"
 #include "xmalloc.h"
+#include "ssh.h"
 #include "config.h"
 #include "helper.h"
 
@@ -79,28 +80,35 @@ void arc4random_stir(void)
 
 void get_random_bytes(unsigned char *buf, int len)
 {
-	int urandom;
+	int random_pool;
 	int c;
+#ifdef HAVE_EGD
+	char egd_message[2] = { 0x02, 0x00 };
+#endif /* HAVE_EGD */
 	
-	urandom = open("/dev/urandom", O_RDONLY);
-	if (urandom == -1)
-	{
-		fprintf(stderr, "Couldn't open /dev/urandom: %s", strerror(errno));
-		exit(1);
-	}
+	random_pool = open(RANDOM_POOL, O_RDONLY);
+	if (random_pool == -1)
+		fatal("Couldn't open random pool \"%s\": %s", RANDOM_POOL, strerror(errno));
 	
-	c = read(urandom, buf, len);
+#ifdef HAVE_EGD
+	if (len > 255)
+		fatal("Too many bytes to read from EGD");
+	
+	/* Send blocking read request to EGD */
+	egd_message[1] = len;
+	c = write(random_pool, egd_message, sizeof(egd_message));
 	if (c == -1)
-	{
-		fprintf(stderr, "Couldn't read from /dev/urandom: %s", strerror(errno));
-		exit(1);
-	}
+		fatal("Couldn't write to EGD socket \"%s\": %s", RANDOM_POOL, strerror(errno));
+#endif /* HAVE_EGD */
+
+	c = read(random_pool, buf, len);
+	if (c == -1)
+		fatal("Couldn't read from random pool \"%s\": %s", RANDOM_POOL, strerror(errno));
 
 	if (c != len)
-	{
-		fprintf(stderr, "Short read from /dev/urandom");
-		exit(1);
-	}
+		fatal("Short read from random pool \"%s\"", RANDOM_POOL);
+	
+	close(random_pool);
 }
 #endif /* !HAVE_ARC4RANDOM */
 

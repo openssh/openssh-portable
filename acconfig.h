@@ -3,8 +3,20 @@
 /* SSL directory.  */
 #undef ssldir
 
+/* Random number pool  */
+#undef RANDOM_POOL
+
+/* Are we using the Entropy gathering daemon */
+#undef HAVE_EGD
+
 /* Define if your ssl headers are included with #include <ssl/header.h>  */
 #undef HAVE_SSL
 
 /* Define if your ssl headers are included with #include <openssl/header.h>  */
 #undef HAVE_OPENSSL
+
+/* Define is utmp.h has a ut_host field */
+#undef HAVE_HOST_IN_UTMP
+
+/* Define is libutil has login() function */
+#undef HAVE_LIBUTIL_LOGIN
