@@ -263,7 +263,8 @@ fi
 %attr(0755,root,root) %{_libexecdir}/openssh/sftp-server
 %attr(0644,root,root) %{_mandir}/man8/sshd.8*
 %attr(0644,root,root) %{_mandir}/man8/sftp-server.8*
-%attr(0600,root,root) %config(noreplace) %{_sysconfdir}/sshd_config
+#%attr(0600,root,root) %config(noreplace) %{_sysconfdir}/sshd_config
+%attr(0600,root,root) %config %{_sysconfdir}/sshd_config
 %attr(0600,root,root) %config(noreplace) /etc/pam.d/sshd
 %attr(0755,root,root) %config /etc/rc.d/init.d/sshd
 
