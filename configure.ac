@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.59 2002/05/13 03:51:40 stevesk Exp $
+# $Id: configure.ac,v 1.60 2002/05/13 04:41:31 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -2404,7 +2404,7 @@ echo "                       AFS support: $AFS_MSG"
 echo "                     S/KEY support: $SKEY_MSG"
 echo "              TCP Wrappers support: $TCPW_MSG"
 echo "              MD5 password support: $MD5_MSG"
-echo "      IP address in \$DISPLAY hack: $DISPLAY_HACK_MSG"
+echo "       IP address in \$DISPLAY hack: $DISPLAY_HACK_MSG"
 echo "          Use IPv4 by default hack: $IPV4_HACK_MSG"
 echo "           Translate v4 in v6 hack: $IPV4_IN6_HACK_MSG"
 echo "                  BSD Auth support: $BSD_AUTH_MSG"
