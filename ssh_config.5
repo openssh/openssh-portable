@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.32 2004/04/27 09:46:37 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.33 2004/04/28 05:17:10 djm Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -575,8 +575,8 @@ Specifies what variables from the local
 .Xr environ 7
 should be sent to the server.
 Note that environment passing is only supported for protocol 2, the
-server must also support it and must be configured to accept these
-enviornment variables.
+server must also support it, and the server must be configured to
+accept these environment variables.
 Refer to
 .Cm AcceptEnv
 in
@@ -586,7 +586,7 @@ Variables are specified by name, which may contain the wildcard characters
 .Ql \&*
 and
 .Ql \&? .
-Multiple environment variables may be seperated by whitespace or spread
+Multiple environment variables may be separated by whitespace or spread
 across multiple
 .Cm SendEnv
 directives.
