@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.89 2002/09/26 00:38:47 tim Exp $
+# $Id: configure.ac,v 1.90 2002/10/04 23:54:55 mouring Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -330,6 +330,7 @@ mips-sony-bsd|mips-sony-newsos4)
 			AC_MSG_RESULT(no)
 		fi
 	fi
+	AC_DEFINE(DISABLE_FD_PASSING)
 	;;
 
 *-*-nto-qnx)
