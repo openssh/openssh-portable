@@ -5,8 +5,8 @@ tid="disallow agent ptrace attach"
 
 if [ -x `which uname 2>&1` ]; then
 	case `uname` in
-	Linux|HP-UX|SunOS|NetBSD|AIX)
-		echo "skipped (not supported)"
+	Linux|HP-UX|SunOS|NetBSD|AIX|CYGWIN*)
+		echo "skipped (not supported on this platform)"
 		exit 0
 		;;
 	esac

@@ -27,6 +27,7 @@
    - [regress/README.regress] Add a basic readme.
    - [Makefile.in regress/agent-getpeereid.sh] config.h is now in $BUILDDIR
      not $OBJ.
+   - [Makefile.in regress/agent-ptrace] Fix minor regress issues on Cygwin.
 
 20030903
  - (djm) OpenBSD CVS Sync
@@ -1017,4 +1018,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2959 2003/09/04 08:04:16 dtucker Exp $
+$Id: ChangeLog,v 1.2960 2003/09/04 12:06:16 dtucker Exp $

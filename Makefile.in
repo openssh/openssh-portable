@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.244 2003/09/04 08:04:16 dtucker Exp $
+# $Id: Makefile.in,v 1.245 2003/09/04 12:06:16 dtucker Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -394,5 +394,5 @@ tests:	$(TARGETS)
 		TEST_SSH_SSHKEYSCAN="$${TEST_SSH_SSHKEYSCAN}" \
 		TEST_SSH_SFTP="$${TEST_SSH_SFTP}" \
 		TEST_SSH_SFTPSERVER="$${TEST_SSH_SFTPSERVER}" \
-		EXEEXT="$${EXEEXT}" \
+		EXEEXT="$(EXEEXT)" \
 		$@
