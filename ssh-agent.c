@@ -1,4 +1,4 @@
-/*	$OpenBSD: ssh-agent.c,v 1.47 2001/01/21 19:05:56 markus Exp $	*/
+/*	$OpenBSD: ssh-agent.c,v 1.48 2001/01/25 08:06:33 deraadt Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.47 2001/01/21 19:05:56 markus Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.48 2001/01/25 08:06:33 deraadt Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/md5.h>
@@ -683,8 +683,10 @@ check_parent_exists(int sig)
 void
 cleanup_socket(void)
 {
-	unlink(socket_name);
-	rmdir(socket_dir);
+	if (socket_name[0])
+		unlink(socket_name);
+	if (socket_dir[0])
+		rmdir(socket_dir);
 }
 
 void
@@ -692,6 +694,13 @@ cleanup_exit(int i)
 {
 	cleanup_socket();
 	exit(i);
+}
+
+void
+cleanup_handler(int sig)
+{
+	cleanup_socket();
+	_exit(2);
 }
 
 void
@@ -866,8 +875,8 @@ main(int ac, char **av)
 	idtab_init();
 	signal(SIGINT, SIG_IGN);
 	signal(SIGPIPE, SIG_IGN);
-	signal(SIGHUP, cleanup_exit);
-	signal(SIGTERM, cleanup_exit);
+	signal(SIGHUP, cleanup_handler);
+	signal(SIGTERM, cleanup_handler);
 	while (1) {
 		prepare_select(&readsetp, &writesetp, &max_fd);
 		if (select(max_fd + 1, readsetp, writesetp, NULL, NULL) < 0) {

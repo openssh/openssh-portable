@@ -1,6 +1,10 @@
 20010126
  - (bal) SSH_PROGRAM vs _PATH_SSH_PROGRAM fix pointed out by Roumen 
    Petrov <roumen.petrov@skalasoft.com>
+ - (bal) OpenBSD Sync
+   - deraadt@cvs.openbsd.org 2001/01/25 8:06:33
+     [ssh-agent.c]
+     call _exit() in signal handler
 
 20010125
  - (djm) Sync bsd-* support files:
