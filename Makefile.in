@@ -85,7 +85,7 @@ install: all
 
 	$(INSTALL) -d $(libexecdir) ;
 	$(INSTALL) -d $(libexecdir)/ssh ;
-	if [ -z "@GNOME_ASKPASS@" ] ; then \
+	if [ ! -z "@GNOME_ASKPASS@" ] ; then \
 		$(INSTALL) -s @GNOME_ASKPASS@ ${ASKPASS_PROGRAM} ; \
 	fi
 
