@@ -1,4 +1,5 @@
 20020423
+ - (stevesk) [acconfig.h configure.ac session.c] LOGIN_NO_ENDOPT for HP-UX
  - (stevesk) [acconfig.h] NEED_IN_SYSTM_H unused
  - (markus) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2002/04/23 12:58:26
@@ -493,4 +494,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2080 2002/04/23 20:11:13 stevesk Exp $
+$Id: ChangeLog,v 1.2081 2002/04/23 20:45:55 stevesk Exp $

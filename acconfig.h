@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.133 2002/04/23 20:11:13 stevesk Exp $ */
+/* $Id: acconfig.h,v 1.134 2002/04/23 20:45:56 stevesk Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -164,6 +164,9 @@
 
 /* Some versions of /bin/login need the TERM supplied on the commandline */
 #undef LOGIN_NEEDS_TERM
+
+/* Define if your login program cannot handle end of options ("--") */
+#undef LOGIN_NO_ENDOPT
 
 /* Define if you want to specify the path to your lastlog file */
 #undef CONF_LASTLOG_FILE

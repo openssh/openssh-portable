@@ -1117,7 +1117,11 @@ launch_login(struct passwd *pw, const char *hostname)
 #ifdef xxxLOGIN_NEEDS_TERM
                     (s->term ? s->term : "unknown"),
 #endif /* LOGIN_NEEDS_TERM */
+#ifdef LOGIN_NO_ENDOPT
+	    "-p", "-f", pw->pw_name, (char *)NULL);
+#else
 	    "-p", "-f", "--", pw->pw_name, (char *)NULL);
+#endif
 
 	/* Login couldn't be executed, die. */
 
