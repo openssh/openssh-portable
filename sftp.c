@@ -16,7 +16,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.49 2004/06/18 06:13:25 dtucker Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.50 2004/06/20 18:53:39 djm Exp $");
 
 #include "buffer.h"
 #include "xmalloc.h"
@@ -61,9 +61,11 @@ char *__progname;
 /* Separators for interactive commands */
 #define WHITESPACE " \t\r\n"
 
-/* Define what type of ls view (0 - multi-column) */
-#define LONG_VIEW 1		/* Full view ala ls -l */
-#define SHORT_VIEW 2		/* Single row view ala ls -1 */
+/* Define what type of ls view */
+#define LONG_VIEW	1	/* Full view ala ls -l */
+#define SHORT_VIEW	2	/* Single row view ala ls -1 */
+#define NUMERIC_VIEW	4	/* Long view with numeric uid/gid */
+#define VIEW_FLAGS	(LONG_VIEW|SHORT_VIEW|NUMERIC_VIEW)
 
 /* Commands for interactive mode */
 #define I_CHDIR		1
@@ -339,10 +341,16 @@ parse_ls_flags(const char **cpp, int *lflag)
 		for(; strchr(WHITESPACE, *cp) == NULL; cp++) {
 			switch (*cp) {
 			case 'l':
-				*lflag = LONG_VIEW;
+				*lflag &= ~VIEW_FLAGS;
+				*lflag |= LONG_VIEW;
 				break;
 			case '1':
-				*lflag = SHORT_VIEW;
+				*lflag &= ~VIEW_FLAGS;
+				*lflag |= SHORT_VIEW;
+				break;
+			case 'n':
+				*lflag &= ~VIEW_FLAGS;
+				*lflag |= NUMERIC_VIEW|LONG_VIEW;
 				break;
 			default:
 				error("Invalid flag -%c", *cp);
@@ -650,14 +658,17 @@ do_ls_dir(struct sftp_conn *conn, char *path, char *strip_path, int lflag)
 		xfree(tmp);
 
 		if (lflag & LONG_VIEW) {
-			char *lname;
-			struct stat sb;
+			if (lflag & NUMERIC_VIEW) {
+				char *lname;
+				struct stat sb;
 
-			memset(&sb, 0, sizeof(sb));
-			attrib_to_stat(&d[n]->a, &sb);
-			lname = ls_file(fname, &sb, 1);
-			printf("%s\n", lname);
-			xfree(lname);
+				memset(&sb, 0, sizeof(sb));
+				attrib_to_stat(&d[n]->a, &sb);
+				lname = ls_file(fname, &sb, 1);
+				printf("%s\n", lname);
+				xfree(lname);
+			} else
+				printf("%s\n", d[n]->longname);
 		} else {
 			printf("%-*s", colspace, fname);
 			if (c >= columns) {
