@@ -27,6 +27,9 @@
 /* Location of EGD random number socket */
 #undef EGD_SOCKET
 
+/* Builtin PRNG command timeout */
+#undef ENTROPY_TIMEOUT_MSEC
+
 /* Define if you want to install preformatted manpages.*/
 #undef MANTYPE
 
@@ -97,6 +100,9 @@
 
 /* Define if you want have trusted HPUX */
 #undef HAVE_HPUX_TRUSTED_SYSTEM_PW
+
+/* Defined if in_systm.h needs to be included with netinet/ip.h (HPUX - <sigh/>) */
+#undef NEED_IN_SYSTM_H
 
 /* Define if you have an old version of PAM which takes only one argument */
 /* to pam_strerror */

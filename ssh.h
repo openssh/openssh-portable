@@ -13,7 +13,7 @@
  *
  */
 
-/* RCSID("$Id: ssh.h,v 1.35 2000/04/29 13:57:12 damien Exp $"); */
+/* RCSID("$Id: ssh.h,v 1.36 2000/04/29 23:30:46 damien Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -122,6 +122,13 @@
  * directory should be world-readable (though not all files are).
  */
 #define SSH_USER_DIR		".ssh"
+
+/*
+ * Relevant only when using builtin PRNG.
+ */
+#ifndef SSH_PRNG_SEED_FILE
+# define SSH_PRNG_SEED_FILE      SSH_USER_DIR"/prng_seed"
+#endif /* SSH_PRNG_SEED_FILE */
 
 /*
  * Per-user file containing host keys of known hosts.  This file need not be

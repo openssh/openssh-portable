@@ -35,7 +35,7 @@
 #include <openssl/rand.h>
 #include <openssl/sha.h>
 
-RCSID("$Id: entropy.c,v 1.5 2000/04/16 02:31:50 damien Exp $");
+RCSID("$Id: entropy.c,v 1.6 2000/04/29 23:30:46 damien Exp $");
 
 #ifdef EGD_SOCKET
 #ifndef offsetof
@@ -109,87 +109,100 @@ void get_random_bytes(unsigned char *buf, int len)
 #if !defined(EGD_SOCKET) && !defined(RANDOM_POOL)
 /* 
  * FIXME: proper entropy estimations. All current values are guesses
- * FIXME: Need timeout for slow moving programs
+ * FIXME: (ATL) do estimates at compile time?
  * FIXME: More entropy sources
+ * FIXME: (ATL) bring in entropy sources from file
+ * FIXME: (ATL) add heuristic to increase the timeout if needed
  */
 
-double stir_from_system(void);
-double stir_from_programs(void);
-double stir_gettimeofday(double entropy_estimate);
-double stir_clock(double entropy_estimate);
-double stir_rusage(int who, double entropy_estimate);
-double hash_output_from_command(const char *path, const char **args, char *hash);
+/* slow command timeouts (all in milliseconds) */
+/* static int entropy_timeout_default = ENTROPY_TIMEOUT_MSEC; */
+static int entropy_timeout_current = ENTROPY_TIMEOUT_MSEC;
+
+static int prng_seed_loaded = 0;
+static int prng_seed_saved = 0;		
 
 typedef struct
 {
 	/* Proportion of data that is entropy */
 	double rate;
+	/* Counter goes positive if this command times out */
+	unsigned int badness;
+	/* Increases by factor of two each timeout */
+	unsigned int sticky_badness;
 	/* Path to executable */
 	const char *path;
 	/* argv to pass to executable */
 	const char *args[5];
 } entropy_source_t;
 
+double stir_from_system(void);
+double stir_from_programs(void);
+double stir_gettimeofday(double entropy_estimate);
+double stir_clock(double entropy_estimate);
+double stir_rusage(int who, double entropy_estimate);
+double hash_output_from_command(entropy_source_t *src, char *hash);
+
 entropy_source_t entropy_sources[] = {
 #ifdef PROG_LS
-	{ 0.002, PROG_LS,       { "ls", "-alni", "/var/log", NULL } },
-	{ 0.002, PROG_LS,       { "ls", "-alni", "/var/adm", NULL } },
-	{ 0.002, PROG_LS,       { "ls", "-alni", "/var/mail", NULL } },
-	{ 0.002, PROG_LS,       { "ls", "-alni", "/var/spool/mail", NULL } },
-	{ 0.002, PROG_LS,       { "ls", "-alni", "/proc", NULL } },
-	{ 0.002, PROG_LS,       { "ls", "-alni", "/tmp", NULL } },
+	{ 0.002, 0, 1, PROG_LS,       { "ls", "-alni", "/var/log", NULL } },
+	{ 0.002, 0, 1, PROG_LS,       { "ls", "-alni", "/var/adm", NULL } },
+	{ 0.002, 0, 1, PROG_LS,       { "ls", "-alni", "/var/mail", NULL } },
+	{ 0.002, 0, 1, PROG_LS,       { "ls", "-alni", "/var/spool/mail", NULL } },
+	{ 0.002, 0, 1, PROG_LS,       { "ls", "-alni", "/proc", NULL } },
+	{ 0.002, 0, 1, PROG_LS,       { "ls", "-alni", "/tmp", NULL } },
 #endif
 #ifdef PROG_NETSTAT
-	{ 0.005, PROG_NETSTAT,  { "netstat","-an", NULL, NULL } },
-	{ 0.010, PROG_NETSTAT,  { "netstat","-in", NULL, NULL } },
-	{ 0.002, PROG_NETSTAT,  { "netstat","-rn", NULL, NULL } },
-	{ 0.002, PROG_NETSTAT,  { "netstat","-s", NULL, NULL } },
+	{ 0.005, 0, 1, PROG_NETSTAT,  { "netstat","-an", NULL, NULL } },
+	{ 0.010, 0, 1, PROG_NETSTAT,  { "netstat","-in", NULL, NULL } },
+	{ 0.002, 0, 1, PROG_NETSTAT,  { "netstat","-rn", NULL, NULL } },
+	{ 0.002, 0, 1, PROG_NETSTAT,  { "netstat","-s", NULL, NULL } },
 #endif
 #ifdef PROG_ARP
-	{ 0.002, PROG_ARP,      { "arp","-a","-n", NULL } },
+	{ 0.002, 0, 1, PROG_ARP,      { "arp","-a","-n", NULL } },
 #endif
 #ifdef PROG_IFCONFIG
-	{ 0.002, PROG_IFCONFIG, { "ifconfig", "-a", NULL, NULL } },
+	{ 0.002, 0, 1, PROG_IFCONFIG, { "ifconfig", "-a", NULL, NULL } },
 #endif
 #ifdef PROG_PS
-	{ 0.003, PROG_PS,       { "ps", "laxww", NULL, NULL } },
-	{ 0.003, PROG_PS,       { "ps", "-al", NULL, NULL } },
-	{ 0.003, PROG_PS,       { "ps", "-efl", NULL, NULL } },
+	{ 0.003, 0, 1, PROG_PS,       { "ps", "laxww", NULL, NULL } },
+	{ 0.003, 0, 1, PROG_PS,       { "ps", "-al", NULL, NULL } },
+	{ 0.003, 0, 1, PROG_PS,       { "ps", "-efl", NULL, NULL } },
 #endif
 #ifdef PROG_W
-	{ 0.005, PROG_W,        { "w", NULL, NULL, NULL } },
+	{ 0.005, 0, 1, PROG_W,        { "w", NULL, NULL, NULL } },
 #endif
 #ifdef PROG_WHO
-	{ 0.001, PROG_WHO,      { "who","-i", NULL, NULL } },
+	{ 0.001, 0, 1, PROG_WHO,      { "who","-i", NULL, NULL } },
 #endif
 #ifdef PROG_LAST
-	{ 0.001, PROG_LAST,     { "last", NULL, NULL, NULL } },
+	{ 0.001, 0, 1, PROG_LAST,     { "last", NULL, NULL, NULL } },
 #endif
 #ifdef PROG_LASTLOG
-	{ 0.001, PROG_LASTLOG,  { "lastlog", NULL, NULL, NULL } },
+	{ 0.001, 0, 1, PROG_LASTLOG,  { "lastlog", NULL, NULL, NULL } },
 #endif
 #ifdef PROG_DF
-	{ 0.010, PROG_DF,       { "df", NULL, NULL, NULL } },
-	{ 0.010, PROG_DF,       { "df", "-i", NULL, NULL } },
+	{ 0.010, 0, 1, PROG_DF,       { "df", NULL, NULL, NULL } },
+	{ 0.010, 0, 1, PROG_DF,       { "df", "-i", NULL, NULL } },
 #endif
 #ifdef PROG_VMSTAT
-	{ 0.010, PROG_VMSTAT,   { "vmstat", NULL, NULL, NULL } },
+	{ 0.010, 0, 1, PROG_VMSTAT,   { "vmstat", NULL, NULL, NULL } },
 #endif
 #ifdef PROG_UPTIME
-	{ 0.001, PROG_UPTIME,   { "uptime", NULL, NULL, NULL } },
+	{ 0.001, 0, 1, PROG_UPTIME,   { "uptime", NULL, NULL, NULL } },
 #endif
 #ifdef PROG_IPCS
-	{ 0.001, PROG_IPCS,     { "-a", NULL, NULL, NULL } },
+	{ 0.001, 0, 1, PROG_IPCS,     { "-a", NULL, NULL, NULL } },
 #endif
 #ifdef PROG_TAIL
-	{ 0.001, PROG_TAIL,     { "tail", "-200", "/var/log/messages", NULL, NULL } },
-	{ 0.001, PROG_TAIL,     { "tail", "-200", "/var/log/syslog", NULL, NULL } },
-	{ 0.001, PROG_TAIL,     { "tail", "-200", "/var/adm/messages", NULL, NULL } },
-	{ 0.001, PROG_TAIL,     { "tail", "-200", "/var/adm/syslog", NULL, NULL } },
-	{ 0.001, PROG_TAIL,     { "tail", "-200", "/var/log/maillog", NULL, NULL } },
-	{ 0.001, PROG_TAIL,     { "tail", "-200", "/var/adm/maillog", NULL, NULL } },
+	{ 0.001, 0, 1, PROG_TAIL,     { "tail", "-200", "/var/log/messages", NULL, NULL } },
+	{ 0.001, 0, 1, PROG_TAIL,     { "tail", "-200", "/var/log/syslog", NULL, NULL } },
+	{ 0.001, 0, 1, PROG_TAIL,     { "tail", "-200", "/var/adm/messages", NULL, NULL } },
+	{ 0.001, 0, 1, PROG_TAIL,     { "tail", "-200", "/var/adm/syslog", NULL, NULL } },
+	{ 0.001, 0, 1, PROG_TAIL,     { "tail", "-200", "/var/log/maillog", NULL, NULL } },
+	{ 0.001, 0, 1, PROG_TAIL,     { "tail", "-200", "/var/adm/maillog", NULL, NULL } },
 #endif
-	{ 0.000, NULL,          { NULL, NULL, NULL, NULL, NULL } },
+	{ 0.000, 0, 0, NULL,          { NULL, NULL, NULL, NULL, NULL } },
 };
 
 double 
@@ -236,37 +249,49 @@ stir_from_programs(void)
 	for(i = 0; i < 2; i++) {
 		c = 0;
 		while (entropy_sources[c].path != NULL) {
-			/* Hash output from command */
-			entropy_estimate = hash_output_from_command(entropy_sources[c].path,
-				entropy_sources[c].args, hash);
 
-			/* Scale back entropy estimate according to command's rate */
-			entropy_estimate *= entropy_sources[c].rate;
+			if (!entropy_sources[c].badness) {
+				/* Hash output from command */
+				entropy_estimate = hash_output_from_command(&entropy_sources[c], hash);
+
+				/* Scale back entropy estimate according to command's rate */
+				entropy_estimate *= entropy_sources[c].rate;
  
-			/* Upper bound of entropy estimate is SHA_DIGEST_LENGTH */
-			if (entropy_estimate > SHA_DIGEST_LENGTH)
-				entropy_estimate = SHA_DIGEST_LENGTH;
+				/* Upper bound of entropy estimate is SHA_DIGEST_LENGTH */
+				if (entropy_estimate > SHA_DIGEST_LENGTH)
+					entropy_estimate = SHA_DIGEST_LENGTH;
 
  			/* * Scale back estimates for subsequent passes through list */
-			entropy_estimate /= 10.0 * (i + 1.0);
+				entropy_estimate /= 10.0 * (i + 1.0);
 			
-			/* Stir it in */
-			RAND_add(hash, sizeof(hash), entropy_estimate);
+				/* Stir it in */
+				RAND_add(hash, sizeof(hash), entropy_estimate);
 
 /* FIXME: turn this off later */
 #if 1
-			debug("Got %0.2f bytes of entropy from %s", entropy_estimate, 
-				entropy_sources[c].path);
+				debug("Got %0.2f bytes of entropy from %s", entropy_estimate, 
+					entropy_sources[c].path);
 #endif
 
-			total_entropy_estimate += entropy_estimate;
+				total_entropy_estimate += entropy_estimate;
 
 			/* Execution times should be a little unpredictable */
-			total_entropy_estimate += stir_gettimeofday(0.05);
-			total_entropy_estimate += stir_clock(0.05);
-			total_entropy_estimate += stir_rusage(RUSAGE_SELF, 0.1);
-			total_entropy_estimate += stir_rusage(RUSAGE_CHILDREN, 0.1);
-			
+				total_entropy_estimate += stir_gettimeofday(0.05);
+				total_entropy_estimate += stir_clock(0.05);
+				total_entropy_estimate += stir_rusage(RUSAGE_SELF, 0.1);
+				total_entropy_estimate += stir_rusage(RUSAGE_CHILDREN, 0.1);
+			} else {
+/* FIXME: turn this off later */
+#if 1
+				debug("Command '%s %s %s' disabled (badness %d)",
+					entropy_sources[c].path, entropy_sources[c].args[1],
+					entropy_sources[c].args[2], entropy_sources[c].badness);
+#endif
+
+				if (entropy_sources[c].badness > 0)
+					entropy_sources[c].badness--;
+			}
+
 			c++;
 		}
 	}
@@ -308,7 +333,7 @@ stir_rusage(int who, double entropy_estimate)
 #ifdef HAVE_GETRUSAGE
 	struct rusage ru;
 	
-   if (getrusage(who, &ru) == -1)
+	if (getrusage(who, &ru) == -1)
 		fatal("Couldn't getrusage: %s", strerror(errno));
 
 	RAND_add(&ru, sizeof(ru), 0.1);
@@ -320,10 +345,12 @@ stir_rusage(int who, double entropy_estimate)
 }
 
 double
-hash_output_from_command(const char *path, const char **args, char *hash)
+hash_output_from_command(entropy_source_t *src, char *hash)
 {
 	static int devnull = -1;
 	int p[2];
+	fd_set rdset;
+	int cmd_eof = 0, error_abort = 0;
 	pid_t pid;
 	int status;
 	char buf[2048];
@@ -347,18 +374,17 @@ hash_output_from_command(const char *path, const char **args, char *hash)
 			fatal("Couldn't fork: %s", strerror(errno));
 			/* NOTREACHED */
 		case 0: /* Child */
-			close(0);
-			close(1);
-			close(2);
-			dup2(devnull, 0);
-			dup2(p[1], 1);
-			dup2(p[1], 2);
+			dup2(devnull, STDIN_FILENO);
+			dup2(p[1], STDOUT_FILENO);
+			dup2(p[1], STDERR_FILENO);
 			close(p[0]);
 			close(p[1]);
 			close(devnull);
 
-			execv(path, (char**)args);
-			debug("(child) Couldn't exec '%s': %s", path, strerror(errno));
+			execv(src->path, (char**)(src->args));
+			debug("(child) Couldn't exec '%s %s %s': %s", src->path,
+				src->args[1], src->args[2], strerror(errno));
+			src->badness = src->sticky_badness = 128;
 			_exit(-1);
 		default: /* Parent */
 			break;
@@ -371,31 +397,208 @@ hash_output_from_command(const char *path, const char **args, char *hash)
 	/* Hash output from child */
 	SHA1_Init(&sha);
 	total_bytes_read = 0;
-	while ((bytes_read = read(p[0], buf, sizeof(buf)))	> 0) {
-		SHA1_Update(&sha, buf, bytes_read);
-		total_bytes_read += bytes_read;
-		RAND_add(&bytes_read, sizeof(&bytes_read), 0.0);
-	}
+
+	while (!error_abort && !cmd_eof) {
+		int ret;
+		struct timeval tv;
+
+		FD_ZERO(&rdset);
+		FD_SET(p[0], &rdset);
+		tv.tv_sec = entropy_timeout_current / 1000;
+		tv.tv_usec = (entropy_timeout_current % 1000) * 1000;
+
+		ret = select(p[0]+1, &rdset, NULL, NULL, &tv);
+		switch (ret) {
+		case 0:
+			/* timer expired */
+			error_abort = 1;
+			break;
+			
+		case 1:
+			/* command input */
+			bytes_read = read(p[0], buf, sizeof(buf));
+			if (bytes_read == -1) {
+				error_abort = 1;
+				break;
+			}
+			SHA1_Update(&sha, buf, bytes_read);
+			total_bytes_read += bytes_read;
+			RAND_add(&bytes_read, sizeof(&bytes_read), 0.0);
+			cmd_eof = bytes_read ? 0 : 1;
+
+			break;
+
+		case -1:
+		default:
+			error("Command '%s %s': select() failed: %s", src->path, src->args[1],
+				strerror(errno));
+			error_abort = 1;
+			break;
+		} /* switch ret */
+
+		RAND_add(&tv, sizeof(&tv), 0.0);
+	} /* while !error_abort && !cmd_eof */
+
 	SHA1_Final(hash, &sha);
 
 	close(p[0]);
 	
 	if (waitpid(pid, &status, 0) == -1) {
-		error("Couldn't wait for child '%s' completion: %s", path, 
-			strerror(errno));
-		return(-1);
+		error("Couldn't wait for child '%s %s' completion: %s", src->path,
+			src->args[1], strerror(errno));
+		/* return(-1); */ /* FIXME: (ATL) this doesn't feel right */
+		return(0.0);
 	}
 
 	RAND_add(&status, sizeof(&status), 0.0);
 
-	if (!WIFEXITED(status) || (WEXITSTATUS(status) != 0))
-		return(0.0);
-	else
+	if (error_abort) {
+		/* closing p[0] on timeout causes the entropy command to
+		 * SIGPIPE. Take whatever output we got, and mark this command
+		 * as slow */
+		debug("Command %s %s timed out", src->path, src->args[1]);
+		src->sticky_badness *= 2;
+		src->badness = src->sticky_badness;
 		return(total_bytes_read);
+	}
+
+	if (WIFEXITED(status)) {
+		if (WEXITSTATUS(status)==0) {
+			return(total_bytes_read);
+		} else {
+			debug("Exit status was %d", WEXITSTATUS(status));
+			src->badness = src->sticky_badness = 128;
+			return (0.0);
+		}
+	} else if (WIFSIGNALED(status)) {
+		debug("Returned on uncaught signal %d !", status);
+		src->badness = src->sticky_badness = 128;
+		return(0.0);
+	} else
+		return(0.0);
 }
+
+/*
+ * prng seedfile functions
+ */
+int
+prng_check_seedfile(char *filename) {
+
+	struct stat st;
+
+	/* FIXME raceable: eg replace seed between this stat and subsequent open */
+	/* Not such a problem because we don't trust the seed file anyway */
+	if (lstat(filename, &st) == -1) {
+		/* Fail on hard errors */
+		if (errno != ENOENT)
+			fatal("Couldn't stat random seed file \"%s\": %s", filename,
+				strerror(errno));
+
+		return(0);
+	}
+
+	/* regular file? */
+	if (!S_ISREG(st.st_mode))
+		fatal("PRNG seedfile %.100s is not a regular file", filename);
+
+	/* mode 0600, owned by root or the current user? */
+	if (((st.st_mode & 0177) != 0) || !(st.st_uid == geteuid()))
+		fatal("PRNG seedfile %.100s must be mode 0600, owned by uid %d",
+			 filename, getuid());
+
+	return(1);
+}
+
+void
+prng_write_seedfile(void) {
+	int fd;
+	char seed[1024];
+	char filename[1024];
+	struct passwd *pw;
+
+	/* Don't bother if we have already saved a seed */
+	if (prng_seed_saved)
+		return;
+	
+	pw = getpwuid(getuid());
+	if (pw == NULL)
+		fatal("Couldn't get password entry for current user (%i): %s", 
+			getuid(), strerror(errno));
+				
+	/* Try to ensure that the parent directory is there */
+	snprintf(filename, sizeof(filename), "%.512s/%s", pw->pw_dir, 
+		SSH_USER_DIR);
+	mkdir(filename, 0700);
+
+	snprintf(filename, sizeof(filename), "%.512s/%s", pw->pw_dir, 
+		SSH_PRNG_SEED_FILE);
+
+	debug("writing PRNG seed to file %.100s", filename);
+
+	RAND_bytes(seed, sizeof(seed));
+
+	/* Don't care if the seed doesn't exist */
+	prng_check_seedfile(filename);
+	
+	if ((fd = open(filename, O_WRONLY|O_TRUNC|O_CREAT, 0600)) == -1)
+		fatal("couldn't access PRNG seedfile %.100s (%.100s)", filename, 
+			strerror(errno));
+	
+	if (atomicio(write, fd, &seed, sizeof(seed)) != sizeof(seed))
+		fatal("problem writing PRNG seedfile %.100s (%.100s)", filename, 
+			 strerror(errno));
+
+	close(fd);
+}
+
+void
+prng_read_seedfile(void) {
+	int fd;
+	char seed[1024];
+	char filename[1024];
+	struct passwd *pw;
+	
+	pw = getpwuid(getuid());
+	if (pw == NULL)
+		fatal("Couldn't get password entry for current user (%i): %s", 
+			getuid(), strerror(errno));
+			
+	snprintf(filename, sizeof(filename), "%.512s/%s", pw->pw_dir, 
+		SSH_PRNG_SEED_FILE);
+
+	debug("loading PRNG seed from file %.100s", filename);
+
+	if (!prng_check_seedfile(filename)) {
+		verbose("Random seed file not found, creating new");
+		prng_write_seedfile();
+		
+		/* Reseed immediatly */
+		(void)stir_from_system();
+		(void)stir_from_programs();
+		return;
+	}
+
+	/* open the file and read in the seed */
+	fd = open(filename, O_RDONLY);
+	if (fd == -1)
+		fatal("could not open PRNG seedfile %.100s (%.100s)", filename, 
+			strerror(errno));
+
+	if (atomicio(read, fd, &seed, sizeof(seed)) != sizeof(seed)) {
+		verbose("invalid or short read from PRNG seedfile %.100s - ignoring",
+			filename);
+		memset(seed, '\0', sizeof(seed));
+	}
+	close(fd);
+
+	/* stir in the seed, with estimated entropy zero */
+	RAND_add(&seed, sizeof(seed), 0.0);
+}
+
 #endif /* defined(EGD_SOCKET) || defined(RANDOM_POOL) */
 
 #if defined(EGD_SOCKET) || defined(RANDOM_POOL)
+
 /*
  * Seed OpenSSL's random number pool from Kernel random number generator
  * or EGD
@@ -410,9 +613,21 @@ seed_rng(void)
 	RAND_add(buf, sizeof(buf), sizeof(buf));
 	memset(buf, '\0', sizeof(buf));
 }
+
 #else /* defined(EGD_SOCKET) || defined(RANDOM_POOL) */
+
 /*
- * Conditionally Seed OpenSSL's random number pool syscalls and program output
+ * Write a keyfile at exit
+ */ 
+void
+prng_seed_cleanup(void *junk)
+{
+	prng_write_seedfile();
+}
+
+/*
+ * Conditionally Seed OpenSSL's random number pool from
+ * syscalls and program output
  */
 void
 seed_rng(void)
@@ -422,5 +637,14 @@ seed_rng(void)
 	debug("%i bytes from system calls", (int)stir_from_system());
 	debug("%i bytes from programs", (int)stir_from_programs());
 	debug("OpenSSL random status is now %i\n", RAND_status());
+
+	if (!prng_seed_loaded)
+	{
+		prng_seed_loaded = 1;
+		prng_seed_saved = 0;		
+		prng_read_seedfile();
+		fatal_add_cleanup(prng_seed_cleanup, NULL);
+		atexit(prng_write_seedfile);
+	}
 }
 #endif /* defined(EGD_SOCKET) || defined(RANDOM_POOL) */

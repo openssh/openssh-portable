@@ -1,6 +1,13 @@
 20000430
  - Merge HP-UX fixes and TCB support from Ged Lodder <lodder@yacc.com.au>
- -
+ - Integrate Andre Lucas' <andre.lucas@dial.pipex.com> entropy collection
+   patch.
+   - Adds timeout to entropy collection
+   - Disables slow entropy sources
+   - Load and save seed file
+ - Changed entropy seed code to user per-user seeds only (server seed is 
+   saved in root's .ssh directory)
+ - Use atexit() and fatal cleanups to save seed on exit
 
 20000429
  - Merge big update to OpenSSH-2.0 from OpenBSD CVS

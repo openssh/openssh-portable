@@ -43,6 +43,7 @@ case "$host" in
 	LDFLAGS="$LDFLAGS -L/usr/local/lib"
 	AC_DEFINE(IPADDR_IN_DISPLAY)
 	AC_DEFINE(USE_UTMPX)
+	AC_DEFINE(NEED_IN_SYSTM_H)
 	AC_MSG_CHECKING(for HPUX trusted system password database)
 	if test -f /tcb/files/auth/system/default; then
 		AC_MSG_RESULT(yes)
@@ -907,8 +908,23 @@ AC_ARG_WITH(pid-dir,
 		fi
 	]
 )
+
 AC_DEFINE_UNQUOTED(PIDDIR, "$piddir")
 AC_SUBST(piddir)
+
+
+# Change default command timeout for builtin PRNG
+entropy_timeout=100
+AC_ARG_WITH(entropy-timeout,
+	[  --with-entropy-timeout  Specify entropy gathering command timeout (msec)],
+	[
+		if test "x$withval" != "xno" ; then
+			entropy_timeout=$withval
+		fi
+	]	
+)
+AC_DEFINE_UNQUOTED(ENTROPY_TIMEOUT_MSEC, $entropy_timeout)
+
 
 if test ! -z "$blibpath" ; then
 	LDFLAGS="$LDFLAGS -blibpath:$blibpath"
