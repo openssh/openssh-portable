@@ -39,7 +39,7 @@
 #include "pathnames.h"
 #include "log.h"
 
-RCSID("$Id: entropy.c,v 1.29 2001/02/18 11:34:32 stevesk Exp $");
+RCSID("$Id: entropy.c,v 1.30 2001/02/26 09:49:59 djm Exp $");
 
 #ifndef offsetof
 # define offsetof(type, member) ((size_t) &((type *)0)->member)
@@ -825,13 +825,34 @@ void init_rng(void)
 	prng_seed_saved = 0;
 
 	/* Give up privs while reading seed file */
+#ifdef SAVED_IDS_WORK_WITH_SETEUID
 	if ((original_uid != original_euid) && (seteuid(original_uid) == -1))
 		fatal("Couldn't give up privileges");
+#else /* SAVED_IDS_WORK_WITH_SETEUID */
+	/*
+	 * Propagate the privileged uid to all of our uids.
+	 * Set the effective uid to the given (unprivileged) uid. 
+	 */
+	if (original_uid != original_euid && setuid(original_euid) == -1 || 
+	    seteuid(original_uid) == -1)
+		fatal("Couldn't give up privileges");
+#endif /* SAVED_IDS_WORK_WITH_SETEUID */
 
 	prng_read_seedfile();
 
+#ifdef SAVED_IDS_WORK_WITH_SETEUID
 	if ((original_uid != original_euid) && (seteuid(original_euid) == -1))
 		fatal("Couldn't restore privileges");
+#else /* SAVED_IDS_WORK_WITH_SETEUID */
+	/*
+	 * We are unable to restore the real uid to its unprivileged value.
+	 * Propagate the real uid (usually more privileged) to effective uid
+	 * as well.
+	 */
+	if (original_uid != original_euid && seteuid(original_euid) == -1 || 
+	    setuid(original_uid) == -1)
+		fatal("Couldn't restore privileges");
+#endif /* SAVED_IDS_WORK_WITH_SETEUID */
 
 	fatal_add_cleanup(prng_seed_cleanup, NULL);
 	atexit(prng_write_seedfile);

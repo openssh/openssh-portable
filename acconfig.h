@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.103 2001/02/24 21:41:10 mouring Exp $ */
+/* $Id: acconfig.h,v 1.104 2001/02/26 09:49:59 djm Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -295,6 +295,9 @@
 
 /* Define if X11 doesn't support AF_UNIX sockets on that system */
 #undef NO_X11_UNIX_SOCKETS
+
+/* Needed for SCO and NeXT */
+#undef SAVED_IDS_WORK_WITH_SETEUID
 
 @BOTTOM@
 
