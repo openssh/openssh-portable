@@ -9,7 +9,14 @@ tid="sftp commands"
 
 DATA=/bin/ls
 COPY=${OBJ}/copy
-GLOBFILES=`(cd /bin;echo l*)`
+# test that these files are readable!
+for i in `(cd /bin;echo l*)`
+do
+	if [ -r $i ]; then
+		GLOBFILES="$GLOBFILES $i"
+	fi
+done
+
 
 # Path with embedded quote
 QUOTECOPY=${COPY}".\"blah\""
