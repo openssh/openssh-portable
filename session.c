@@ -601,8 +601,9 @@ do_exec_pty(Session *s, const char *command, struct passwd * pw)
 			}
 		}
 		/* Record that there was a login on that terminal. */
-		record_login(pid, s->tty, pw->pw_name, pw->pw_uid, hostname, 
-		     (struct sockaddr *)&from);
+		if (!options.use_login || command != NULL)
+			record_login(pid, s->tty, pw->pw_name, pw->pw_uid, 
+			    hostname, (struct sockaddr *)&from);
 
 		/* Check if .hushlogin exists. */
 		snprintf(line, sizeof line, "%.200s/.hushlogin", pw->pw_dir);

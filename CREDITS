@@ -49,6 +49,7 @@ Marc G. Fournier <marc.fournier@acadiau.ca> - Solaris patches
 Matt Richards <v2matt@btv.ibm.com> - AIX patches
 Michael Stone <mstone@cs.loyola.edu> - Irix enhancements
 Nalin Dahyabhai <nalin.dahyabhai@pobox.com> - PAM environment patch
+Nate Itkin <nitkin@europa.com> - SunOS 4.1.x fixes
 Niels Kristian Bech Jensen <nkbj@image.dk> - Assorted patches
 Peter Kocks <peter.kocks@baygate.com> - Makefile fixes
 Phil Hands <phil@hands.com> - Debian scripts, assorted patches

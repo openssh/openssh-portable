@@ -70,6 +70,9 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #ifdef HAVE_SYS_BSDTTY_H
 # include <sys/bsdtty.h>
 #endif
+#ifdef HAVE_TTYENT_H
+# include <ttyent.h>
+#endif
 #ifdef USE_PAM
 # include <security/pam_appl.h>
 #endif

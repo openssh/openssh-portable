@@ -160,7 +160,7 @@
 #include "xmalloc.h"
 #include "loginrec.h"
 
-RCSID("$Id: loginrec.c,v 1.18 2000/08/09 06:34:28 djm Exp $");
+RCSID("$Id: loginrec.c,v 1.19 2000/08/15 00:01:22 djm Exp $");
 
 /**
  ** prototypes for helper functions in this file
@@ -273,7 +273,7 @@ login_get_lastlog(struct logininfo *li, const int uid)
 {
 	struct passwd *pw;
 
-	memset(li, '\0', sizeof(struct logininfo));
+	memset(li, '\0', sizeof(*li));
 	li->uid = uid;
 
 	/* 
@@ -311,7 +311,7 @@ logininfo *login_alloc_entry(int pid, const char *username,
 {
 	struct logininfo *newli;
 
-	newli = (struct logininfo *) xmalloc (sizeof(struct logininfo));
+	newli = (struct logininfo *) xmalloc (sizeof(*newli));
 	(void)login_init_entry(newli, pid, username, hostname, line);
 	return newli;
 }
@@ -339,7 +339,7 @@ login_init_entry(struct logininfo *li, int pid, const char *username,
 {
 	struct passwd *pw;
 	
-	memset(li, 0, sizeof(struct logininfo));
+	memset(li, 0, sizeof(*li));
   
 	li->pid = pid;
 
@@ -569,7 +569,7 @@ void
 construct_utmp(struct logininfo *li,
 		    struct utmp *ut)
 {
-	memset(ut, '\0', sizeof(struct utmp));
+	memset(ut, '\0', sizeof(*ut));
 
 	/* First fill out fields used for both logins and logouts */
 
@@ -643,7 +643,7 @@ set_utmpx_time(struct logininfo *li, struct utmpx *utx)
 void
 construct_utmpx(struct logininfo *li, struct utmpx *utx)
 {
-	memset(utx, '\0', sizeof(struct utmpx));
+	memset(utx, '\0', sizeof(*utx));
 # ifdef HAVE_ID_IN_UTMPX
 	line_abbrevname(utx->ut_id, li->line, sizeof(utx->ut_id));
 # endif
@@ -723,7 +723,29 @@ utmp_write_direct(struct logininfo *li, struct utmp *ut)
 	int tty;
 
 	/* FIXME: (ATL) ttyslot() needs local implementation */
+
+#if defined(SUNOS4) && defined(HAVE_GETTTYENT)
+	register struct ttyent *ty;
+
+	tty=0;
+
+	setttyent();
+	while ((struct ttyent *)0 != (ty = getttyent())) {
+		tty++;
+		if (!strncmp(ty->ty_name, ut->ut_line, sizeof(ut->ut_line)))
+			break;
+	}
+	endttyent();
+
+	if((struct ttyent *)0 == ty) {
+		log("utmp_write_entry: tty not found");
+		return(1);
+	}
+#else /* FIXME */
+
 	tty = ttyslot(); /* seems only to work for /dev/ttyp? style names */
+
+#endif /* SUNOS4 && HAVE_GETTTYENT */
 
 	if (tty > 0 && (fd = open(UTMP_FILE, O_RDWR|O_CREAT, 0644)) >= 0) {
 		(void)lseek(fd, (off_t)(tty * sizeof(struct utmp)), SEEK_SET);
@@ -1031,7 +1053,7 @@ wtmp_get_entry(struct logininfo *li)
 	}
 
 	/* Seek to the start of the last struct utmp */
-	if (lseek(fd, (off_t)(0-sizeof(struct utmp)), SEEK_END) == -1) {
+	if (lseek(fd, (off_t)(0 - sizeof(struct utmp)), SEEK_END) == -1) {
 		/* Looks like we've got a fresh wtmp file */
 		close(fd);
 		return 0;
@@ -1238,7 +1260,7 @@ syslogin_perform_login(struct logininfo *li)
 {
 	struct utmp *ut;
 
-	if (! (ut = (struct utmp *)malloc(sizeof(struct utmp)))) {
+	if (! (ut = (struct utmp *)malloc(sizeof(*ut)))) {
 		log("syslogin_perform_login: couldn't malloc()");
 		return 0;
 	}
@@ -1301,7 +1323,7 @@ static void
 lastlog_construct(struct logininfo *li, struct lastlog *last)
 {
 	/* clear the structure */
-	memset(last, '\0', sizeof(struct lastlog));
+	memset(last, '\0', sizeof(*last));
   
 	(void)line_stripname(last->ll_line, li->line, sizeof(last->ll_line));
 	strlcpy(last->ll_host, li->hostname,
