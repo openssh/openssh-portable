@@ -40,6 +40,9 @@
    - markus@cvs.openbsd.org 2002/02/18 17:55:20
      [ssh.1]
      -q: Fatal errors are _not_ displayed.
+   - deraadt@cvs.openbsd.org 2002/02/19 02:50:59
+     [sshd_config]
+     stategy is not an english word
 
 20020218
  - (tim) newer config.guess from ftp://ftp.gnu.org/gnu/config/config.guess
@@ -7637,4 +7640,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1864 2002/02/19 04:27:23 djm Exp $
+$Id: ChangeLog,v 1.1865 2002/02/19 04:29:02 djm Exp $

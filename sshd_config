@@ -5,7 +5,7 @@
 
 # This sshd was compiled with PATH=/usr/bin:/bin:/usr/sbin:/sbin
 
-# The stategy used for options in the default sshd_config shipped with
+# The strategy used for options in the default sshd_config shipped with
 # OpenSSH is to specify options with their default value where
 # possible, but leave them commented.  Uncommented options change a
 # default value.
