@@ -3,6 +3,11 @@
    - markus@cvs.openbsd.org 2004/08/30 09:18:08
      [LICENCE]
      s/keygen/keyscan/
+   - jmc@cvs.openbsd.org 2004/08/30 21:22:49
+     [ssh-add.1 ssh.1]
+     .Xsession -> .xsession;
+     originally from a pr from f at obiit dot org, but missed by myself;
+     ok markus@ matthieu@
 
 20041102
  - (dtucker) [configure.ac includes.h] Bug #947: Fix compile error on HP-UX
@@ -1782,4 +1787,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3563 2004/11/05 09:00:03 dtucker Exp $
+$Id: ChangeLog,v 1.3564 2004/11/05 09:01:03 dtucker Exp $
