@@ -19,6 +19,9 @@
      [ssh-keygen.c ssh.h]
      print keytype when generating a key.
      reasonable defaults for RSA1/RSA/DSA keys.
+ - (djm) Patch from Pekka Savola <Pekka.Savola@netcore.fi> to include a few
+   more manpage paths in fixpaths calls
+ - (djm) Also add xauth path at Pekka's suggestion.
 
 20001125
  - (djm) Give up privs when reading seed file

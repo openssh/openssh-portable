@@ -936,8 +936,13 @@ AC_ARG_WITH(xauth,
 	]
 )
 
-if test ! -z "$xauth_path" ; then
+if test -z "$xauth_path" ; then
+	XAUTH_PATH="undefined"
+	AC_SUBST(XAUTH_PATH)
+else
 	AC_DEFINE_UNQUOTED(XAUTH_PATH, "$xauth_path")
+	XAUTH_PATH=$xauth_path
+	AC_SUBST(XAUTH_PATH)
 fi
 if test ! -z "$rsh_path" ; then
 	AC_DEFINE_UNQUOTED(RSH_PATH, "$rsh_path")
