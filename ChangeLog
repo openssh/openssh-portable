@@ -42,6 +42,9 @@
    - markus@cvs.openbsd.org 2003/02/05 09:02:28
      [readconf.c]
      simplify ProxyCommand parsing, remove strcat/xrealloc; ok henning@, djm@
+   - markus@cvs.openbsd.org 2003/02/06 09:26:23
+     [session.c]
+     missing call to setproctitle() after authentication; ok provos@
 
 20030211
  - (djm) Cygwin needs libcrypt too. Patch from vinschen@redhat.com
@@ -1142,4 +1145,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2604 2003/02/24 00:56:27 djm Exp $
+$Id: ChangeLog,v 1.2605 2003/02/24 00:57:01 djm Exp $

@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.152 2002/12/10 08:56:00 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.153 2003/02/06 09:26:23 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -201,6 +201,8 @@ auth_input_request_forwarding(struct passwd * pw)
 void
 do_authenticated(Authctxt *authctxt)
 {
+	setproctitle("%s", authctxt->pw->pw_name);
+
 	/*
 	 * Cancel the alarm we set to limit the time taken for
 	 * authentication.
