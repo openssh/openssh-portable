@@ -1,3 +1,7 @@
+20030829
+ - (bal) openbsd-compat/ clean up.  Considate headers, add in $Id: ChangeLog,v 1.2918 2003/08/29 16:59:52 mouring Exp $ on our
+   files, and added missing license to header.
+
 20030826
  - (djm) Bug #629: Mark ssh_config option "pamauthenticationviakbdint"
    as deprecated. Remove mention from README.privsep. Patch from 
@@ -908,4 +912,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2917 2003/08/26 04:22:12 dtucker Exp $
+$Id: ChangeLog,v 1.2918 2003/08/29 16:59:52 mouring Exp $

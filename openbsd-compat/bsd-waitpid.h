@@ -1,3 +1,5 @@
+/* $Id: bsd-waitpid.h,v 1.5 2003/08/29 16:59:52 mouring Exp $ */
+
 /*
  * Copyright (c) 2000 Ben Lindstrom.  All rights reserved.
  *
@@ -22,8 +24,6 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-
-/* $Id: bsd-waitpid.h,v 1.4 2003/06/01 03:23:57 mouring Exp $ */
 
 #ifndef _BSD_WAITPID_H
 #define _BSD_WAITPID_H

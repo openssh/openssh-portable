@@ -32,7 +32,7 @@
  *	@(#)vis.h	5.9 (Berkeley) 4/3/91
  */
 
-#include "config.h"
+#include "includes.h"
 #if !defined(HAVE_STRNVIS)
 
 #ifndef _VIS_H_

@@ -1,3 +1,5 @@
+/* $Id: bsd-nextstep.h,v 1.9 2003/08/29 16:59:52 mouring Exp $ */
+
 /*
  * Copyright (c) 2000,2001 Ben Lindstrom.  All rights reserved.
  *
@@ -22,8 +24,6 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-
-/* $Id: bsd-nextstep.h,v 1.8 2003/06/01 03:23:57 mouring Exp $ */
 
 #ifndef _NEXT_POSIX_H
 #define _NEXT_POSIX_H

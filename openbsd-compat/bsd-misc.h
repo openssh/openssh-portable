@@ -1,3 +1,5 @@
+/* $Id: bsd-misc.h,v 1.13 2003/08/29 16:59:52 mouring Exp $ */
+
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
  *
@@ -22,12 +24,10 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: bsd-misc.h,v 1.12 2003/08/25 01:16:22 mouring Exp $ */
-
 #ifndef _BSD_MISC_H
 #define _BSD_MISC_H
 
-#include "config.h"
+#include "includes.h"
 
 char *ssh_get_progname(char *);
 
