@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.152 2001/09/20 00:15:54 stevesk Exp $
+.\" $OpenBSD: sshd.8,v 1.153 2001/09/27 17:53:24 camield Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -1173,9 +1173,8 @@ are displayed to anyone trying to log in, and non-root connections are
 refused.
 The file should be world-readable.
 .It Pa /etc/hosts.allow, /etc/hosts.deny
-If compiled with
-.Sy LIBWRAP
-support, tcp-wrappers access controls may be defined here as described in
+Access controls that should be enforced by tcp-wrappers are defined here.
+Further details are described in
 .Xr hosts_access 5 .
 .It Pa $HOME/.rhosts
 This file contains host-username pairs, separated by a space, one per

@@ -10,6 +10,10 @@
    - markus@cvs.openbsd.org 2001/09/27 15:31:17
      [auth2.c auth2-chall.c sshconnect1.c]
      typos; from solar
+   - camield@cvs.openbsd.org 2001/09/27 17:53:24
+     [sshd.8]
+     don't talk about compile-time options
+     ok markus@
 
 20011001
  - (stevesk) loginrec.c: fix type conversion problems exposed when using
@@ -6602,4 +6606,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1572 2001/10/03 17:12:43 mouring Exp $
+$Id: ChangeLog,v 1.1573 2001/10/03 17:15:32 mouring Exp $
