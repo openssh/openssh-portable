@@ -153,6 +153,8 @@ make
 
 %if ! %{no_x11_askpass}
 pushd x11-ssh-askpass-%{aversion}
+%configure \
+        --libexecdir=%{_libexecdir}/openssh \
 xmkmf -a
 make
 popd
