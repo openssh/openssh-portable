@@ -12,7 +12,7 @@
 #include "includes.h"
 #include "ssh.h"
 
-RCSID("$Id: fake-getaddrinfo.c,v 1.5 2003/03/24 02:35:59 djm Exp $");
+RCSID("$Id: fake-getaddrinfo.c,v 1.6 2003/05/14 11:48:51 dtucker Exp $");
 
 #ifndef HAVE_GAI_STRERROR
 char *gai_strerror(int ecode)
@@ -41,7 +41,8 @@ void freeaddrinfo(struct addrinfo *ai)
 #endif /* !HAVE_FREEADDRINFO */
 
 #ifndef HAVE_GETADDRINFO
-static struct addrinfo *malloc_ai(int port, u_long addr)
+static struct addrinfo *malloc_ai(int port, u_long addr,
+		const struct addrinfo *hints)
 {
 	struct addrinfo *ai;
 
@@ -59,6 +60,15 @@ static struct addrinfo *malloc_ai(int port, u_long addr)
 	((struct sockaddr_in *)(ai)->ai_addr)->sin_port = port;
 	((struct sockaddr_in *)(ai)->ai_addr)->sin_addr.s_addr = addr;
 	
+	/* XXX: the following is not generally correct, but does what we want */
+	if (hints->ai_socktype)
+		ai->ai_socktype = hints->ai_socktype;
+	else
+		ai->ai_socktype = SOCK_STREAM;
+
+	if (hints->ai_protocol)
+		ai->ai_protocol = hints->ai_protocol;
+
 	return(ai);
 }
 
@@ -90,21 +100,21 @@ int getaddrinfo(const char *hostname, const char *servname,
 		addr = htonl(0x00000000);
 		if (hostname && inet_aton(hostname, &in) != 0)
 			addr = in.s_addr;
-		if (NULL != (*res = malloc_ai(port, addr)))
+		if (NULL != (*res = malloc_ai(port, addr, hints)))
 			return 0;
 		else
 			return EAI_MEMORY;
 	}
 		
 	if (!hostname) {
-		if (NULL != (*res = malloc_ai(port, htonl(0x7f000001))))
+		if (NULL != (*res = malloc_ai(port, htonl(0x7f000001), hints)))
 			return 0;
 		else
 			return EAI_MEMORY;
 	}
 	
 	if (inet_aton(hostname, &in)) {
-		if (NULL != (*res = malloc_ai(port, in.s_addr)))
+		if (NULL != (*res = malloc_ai(port, in.s_addr, hints)))
 			return 0;
 		else
 			return EAI_MEMORY;
@@ -113,7 +123,8 @@ int getaddrinfo(const char *hostname, const char *servname,
 	hp = gethostbyname(hostname);
 	if (hp && hp->h_name && hp->h_name[0] && hp->h_addr_list[0]) {
 		for (i = 0; hp->h_addr_list[i]; i++) {
-			cur = malloc_ai(port, ((struct in_addr *)hp->h_addr_list[i])->s_addr);
+			cur = malloc_ai(port,
+			    ((struct in_addr *)hp->h_addr_list[i])->s_addr, hints);
 			if (cur == NULL) {
 				if (*res)
 					freeaddrinfo(*res);
