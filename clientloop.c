@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.130 2004/08/11 21:43:04 avsm Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.131 2004/09/07 23:41:30 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1196,6 +1196,8 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 	 * Set signal handlers, (e.g. to restore non-blocking mode)
 	 * but don't overwrite SIG_IGN, matches behaviour from rsh(1)
 	 */
+	if (signal(SIGHUP, SIG_IGN) != SIG_IGN)
+		signal(SIGHUP, signal_handler);
 	if (signal(SIGINT, SIG_IGN) != SIG_IGN)
 		signal(SIGINT, signal_handler);
 	if (signal(SIGQUIT, SIG_IGN) != SIG_IGN)

@@ -8,6 +8,10 @@
      .Xsession -> .xsession;
      originally from a pr from f at obiit dot org, but missed by myself;
      ok markus@ matthieu@
+   - djm@cvs.openbsd.org 2004/09/07 23:41:30
+     [clientloop.c ssh.c]
+     cleanup multiplex control socket on SIGHUP too, spotted by sturm@
+     ok markus@ deraadt@
 
 20041102
  - (dtucker) [configure.ac includes.h] Bug #947: Fix compile error on HP-UX
@@ -1787,4 +1791,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3564 2004/11/05 09:01:03 dtucker Exp $
+$Id: ChangeLog,v 1.3565 2004/11/05 09:02:16 dtucker Exp $
