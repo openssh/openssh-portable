@@ -1,3 +1,6 @@
+20040220
+ - (djm) [openbsd-compat/setproctitle.c] fix comments; from grange@
+
 20040218
  - (dtucker) [configure.ac] Handle case where krb5-config --libs returns a
    path with a "-" in it.  From Sergio.Gelato at astro.su.se.
@@ -1883,4 +1886,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3239 2004/02/18 11:59:43 djm Exp $
+$Id: ChangeLog,v 1.3240 2004/02/20 09:37:44 djm Exp $
