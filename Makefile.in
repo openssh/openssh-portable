@@ -7,7 +7,7 @@ mandir=@mandir@
 
 CC=@CC@
 OPT_FLAGS=-g
-CFLAGS=$(OPT_FLAGS) -Wall -DETCDIR=\"@sysconfdir@\" @DEFS@
+CFLAGS=$(OPT_FLAGS) -Wall -DETCDIR=\"@sysconfdir@\" -DSSH_PROGRAM=\"@bindir@/ssh\" @DEFS@
 TARGETS=libssh.a ssh sshd ssh-add ssh-keygen ssh-agent scp
 LFLAGS=-L.
 LIBS=-lssh @LIBS@
@@ -48,7 +48,7 @@ ssh-keygen: ssh-keygen.o log-client.o
 
 clean:
 	rm -f *.o core $(TARGETS) config.status config.cache config.log
-	
+
 install:
 	install -d $(bindir)
 	install -d $(sbindir)
@@ -56,12 +56,15 @@ install:
 	install -d $(mandir)/man1
 	install -d $(mandir)/man8
 	install -s -c ssh $(bindir)/ssh
+	ln -s ssh $(bindir)/slogin
 	install -s -c scp $(bindir)/scp
 	install -s -c ssh-add $(bindir)/ssh-add
+	install -m755 -c ssh-askpass $(libdir)/ssh/ssh-askpass
 	install -s -c ssh-agent $(bindir)/ssh-agent
 	install -s -c ssh-keygen $(bindir)/ssh-keygen
 	install -s -c sshd $(sbindir)/sshd
 	install -m644 -c ssh.1 $(mandir)/man1/ssh.1
+	ln -s ssh.1 $(mandir)/man1/slogin.1
 	install -m644 -c scp.1 $(mandir)/man1/scp.1
 	install -m644 -c ssh-add.1 $(mandir)/man1/ssh-add.1
 	install -m644 -c ssh-agent.1 $(mandir)/man1/ssh-agent.1
@@ -69,6 +72,9 @@ install:
 	install -m644 -c sshd.8 $(mandir)/man8/sshd.8
 
 distclean: clean
-	rm -f Makefile config.h core configure *~
+	rm -f Makefile config.h core *~
 
 mrproper: distclean
+
+veryclean: distclean
+	rm -f configure

@@ -1,6 +1,6 @@
 Summary: OpenSSH free Secure Shell (SSH) implementation
 Name: openssh
-Version: 1.2pre7
+Version: 1.2pre8
 Release: 1
 Packager: Damien Miller <djm@ibs.com.au>
 Source0: openssh-%{version}-linux.tar.gz
@@ -20,6 +20,9 @@ up to date in terms of security and features, as well as removing all
 patented algorithms to seperate libraries (OpenSSL).
 
 %changelog
+* Mon Nov 08 1999 Damien Miller <djm@ibs.com.au>
+- Added links for slogin
+- Fixed perms on manpages
 * Sat Oct 30 1999 Damien Miller <djm@ibs.com.au>
 - Renamed init script
 * Fri Oct 29 1999 Damien Miller <djm@ibs.com.au>
@@ -60,6 +63,7 @@ install -s -m755 scp $RPM_BUILD_ROOT/usr/bin
 install -s -m755 ssh-agent $RPM_BUILD_ROOT/usr/bin
 install -s -m755 ssh-add $RPM_BUILD_ROOT/usr/bin
 install -s -m755 ssh-keygen $RPM_BUILD_ROOT/usr/bin
+ln -s ssh $RPM_BUILD_ROOT/usr/bin/slogin
 
 install -m644 sshd.8 $RPM_BUILD_ROOT/usr/man/man8
 install -m644 ssh.1 $RPM_BUILD_ROOT/usr/man/man1
@@ -67,6 +71,7 @@ install -m644 scp.1 $RPM_BUILD_ROOT/usr/man/man1
 install -m644 ssh-agent.1 $RPM_BUILD_ROOT/usr/man/man1
 install -m644 ssh-add.1 $RPM_BUILD_ROOT/usr/man/man1
 install -m644 ssh-keygen.1 $RPM_BUILD_ROOT/usr/man/man1
+ln -s ssh.1 $RPM_BUILD_ROOT/usr/bin/slogin.1
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -98,13 +103,15 @@ fi
 %attr(0755,root,root) /usr/bin/ssh-keygen
 %attr(0755,root,root) /usr/bin/ssh-add
 %attr(0755,root,root) /usr/bin/scp
+%attr(0755,root,root) /usr/bin/slogin
 
-%attr(0755,root,root) /usr/man/man8/sshd.8
-%attr(0755,root,root) /usr/man/man1/ssh.1
-%attr(0755,root,root) /usr/man/man1/ssh-agent.1
-%attr(0755,root,root) /usr/man/man1/ssh-keygen.1
-%attr(0755,root,root) /usr/man/man1/ssh-add.1
-%attr(0755,root,root) /usr/man/man1/scp.1
+%attr(0644,root,root) /usr/man/man8/sshd.8
+%attr(0644,root,root) /usr/man/man1/ssh.1
+%attr(0644,root,root) /usr/man/man1/ssh-agent.1
+%attr(0644,root,root) /usr/man/man1/ssh-keygen.1
+%attr(0644,root,root) /usr/man/man1/ssh-add.1
+%attr(0644,root,root) /usr/man/man1/scp.1
+%attr(0644,root,root) /usr/man/man1/slogin.1
 
 %attr(0600,root,root) %config /etc/ssh/sshd_config
 %attr(0600,root,root) %config /etc/pam.d/sshd

@@ -35,7 +35,7 @@ Description of the RSA algorithm can be found e.g. from the following sources:
 */
 
 #include "includes.h"
-RCSID("$Id: rsa.c,v 1.1 1999/10/27 03:42:44 damien Exp $");
+RCSID("$Id: rsa.c,v 1.2 1999/11/08 04:30:59 damien Exp $");
 
 #include "rsa.h"
 #include "ssh.h"
@@ -70,8 +70,8 @@ rsa_generate_key(RSA *prv, RSA *pub, unsigned int bits)
   }
 
   key = RSA_generate_key(bits, 35, NULL, NULL);
-
-  assert(key != NULL);
+  if (key == NULL)
+    fatal("rsa_generate_key: key generation failed.");
 
   /* Copy public key parameters */
   pub->n = BN_new();
@@ -110,24 +110,28 @@ void
 rsa_public_encrypt(BIGNUM *out, BIGNUM *in, RSA* key)
 {
   char *inbuf, *outbuf;
+  int in_len;
+  int out_len;
   int len;
 
   if (BN_num_bits(key->e) < 2 || !BN_is_odd(key->e))
     fatal("rsa_public_encrypt() exponent too small or not odd");
 
-  len = BN_num_bytes(key->n);
-  outbuf = xmalloc(len);
+  out_len = BN_num_bytes(key->n);
+  outbuf = xmalloc(out_len);
 
-  len = BN_num_bytes(in);
-  inbuf = xmalloc(len);
+  in_len = BN_num_bytes(in);
+  inbuf = xmalloc(in_len);
   BN_bn2bin(in, inbuf);
 
-  if ((len = RSA_public_encrypt(len, inbuf, outbuf, key,
+  if ((len = RSA_public_encrypt(in_len, inbuf, outbuf, key,
 				RSA_PKCS1_PADDING)) <= 0)
     fatal("rsa_public_encrypt() failed");
 
   BN_bin2bn(outbuf, len, out);
 
+  memset(outbuf, 0, out_len);
+  memset(inbuf, 0, in_len);
   xfree(outbuf);
   xfree(inbuf);
 }
@@ -136,21 +140,25 @@ void
 rsa_private_decrypt(BIGNUM *out, BIGNUM *in, RSA *key)
 {
   char *inbuf, *outbuf;
+  int in_len;
+  int out_len;
   int len;
 
-  len = BN_num_bytes(key->n);
-  outbuf = xmalloc(len);
+  out_len = BN_num_bytes(key->n);
+  outbuf = xmalloc(out_len);
 
-  len = BN_num_bytes(in);
-  inbuf = xmalloc(len);
+  in_len = BN_num_bytes(in);
+  inbuf = xmalloc(in_len);
   BN_bn2bin(in, inbuf);
 
-  if ((len = RSA_private_decrypt(len, inbuf, outbuf, key,
+  if ((len = RSA_private_decrypt(in_len, inbuf, outbuf, key,
 				 RSA_SSLV23_PADDING)) <= 0)
     fatal("rsa_private_decrypt() failed");
 
   BN_bin2bn(outbuf, len, out);
 
+  memset(outbuf, 0, out_len);
+  memset(inbuf, 0, in_len);
   xfree(outbuf);
   xfree(inbuf);
 }

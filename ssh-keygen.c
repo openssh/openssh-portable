@@ -14,7 +14,7 @@ Identity and host key generation and maintenance.
 */
 
 #include "includes.h"
-RCSID("$Id: ssh-keygen.c,v 1.1 1999/10/27 03:42:45 damien Exp $");
+RCSID("$Id: ssh-keygen.c,v 1.2 1999/11/08 04:30:59 damien Exp $");
 
 #include "rsa.h"
 #include "ssh.h"
@@ -117,7 +117,7 @@ do_change_passphrase(struct passwd *pw)
     xfree(old_passphrase);
   }
   printf("Key has comment '%s'\n", comment);
-  
+   
   /* Ask the new passphrase (twice). */
   if (identity_new_passphrase)
     {

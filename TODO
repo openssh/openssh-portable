@@ -1,0 +1,7 @@
+-- Replacement for setproctitle()
+
+-- Improve PAM support (a pam_lastlog module will cause sshd to exit)
+
+-- Better documentation
+
+-- Port to other platforms

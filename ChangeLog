@@ -1,3 +1,33 @@
+19991108
+ - Removed debian/ directory. This is now being maintained separately.
+ - Added symlinks for slogin in RPM spec file
+ - Fixed permissions on manpages in RPM spec file
+ - Added references to required libraries in README file
+ - Removed config.h.in from CVS
+ - Removed pwdb support (better pluggable auth is provided by glibc)
+ - Made PAM and requisite libdl optional
+ - Removed lots of unnecessary checks from autoconf
+ - Added support and autoconf test for openpty() function (Unix98 pty support)
+ - Fix for scp not finding ssh if not installed as /usr/bin/ssh
+ - Added TODO file
+ - Merged parts of Debian patch From Phil Hands <phil@hands.com>:
+   - Added ssh-askpass program
+   - Added ssh-askpass support to ssh-add.c
+   - Create symlinks for slogin on install
+   - Fix "distclean" target in makefile
+   - Added example for ssh-agent to manpage
+   - Added support for PAM_TEXT_INFO messages
+   - Disable internal /etc/nologin support if PAM enabled
+ - Merged latest OpenBSD CVS changes:
+   - [sshd.c] don't send fail-msg but disconnect if too many authentication
+     failures
+   - [sshd.c] replace assert() with error, fatal or packet_disconnect
+   - [sshd.c] remove unused argument. ok dugsong
+   - [sshd.c] typo
+   - [rsa.c] clear buffers used for encryption. ok: niels
+   - [rsa.c] replace assert() with error, fatal or packet_disconnect
+ - Fixed coredump after merge of OpenBSD rsa.c patch
+
 19991102
  - Merged change from OpenBSD CVS
   - One-line cleanup in sshd.c

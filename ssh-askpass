@@ -1,0 +1,38 @@
+#!/usr/bin/perl -w
+
+# Written by Tommi Virtanen <tv@debian.org>.  Consider it public domain.
+
+use strict;
+use Tk;
+
+sub do_it($$;) {
+  my ($passphrase, $main) = @_;
+  print $passphrase->get(), "\n";
+  $main->destroy();
+}
+
+sub ask($;) {
+  my ($prompt)=@_;
+  my $main=MainWindow->new;
+  $main->Label(-text=>$prompt)->pack(-fill=>'x');
+  my $passphrase=$main->Entry(-show=>'*')->pack(-fill=>'x');
+  $passphrase->focus();
+  my $buttons=$main->Frame;
+  $buttons->pack(-side=>'right');
+  my $ok=$buttons->Button(-text=>'Ok', 
+                          -command=>sub {do_it $passphrase, $main}
+                         )->pack(-side=>'left');
+  my $cancel=$buttons->Button(-text=>'Cancel', -command=>[$main=>'destroy'])
+    ->pack(-side=>'right');
+  $main->bind('Tk::Button', '<Return>' => 'invoke');
+  $main->bind('<Return>', [$ok => 'invoke']);
+  $main->bind('<Escape>', [$cancel => 'invoke']);
+  $main->bind('<Visibility>' => [$main => 'grabGlobal']); 
+
+  MainLoop;
+}
+
+ask ($#ARGV==0
+     ? $ARGV[0]
+     : 'Please enter your authentication passphrase:');
+

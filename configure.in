@@ -16,12 +16,10 @@ dnl Replace `main' with a function in -lz:
 AC_CHECK_LIB(z, deflate, ,AC_MSG_ERROR([*** zlib missing - please install first ***]))
 dnl check for nsl
 AC_CHECK_LIB(nsl, yp_match, , )
-dnl check for pwdb
-AC_CHECK_LIB(pwdb, pwdb_new, , )
 dnl check for dl
-AC_CHECK_LIB(dl, dlopen, ,AC_MSG_ERROR([*** libdl missing - please install first ***]))
+AC_CHECK_LIB(dl, dlopen, , )
 dnl check for pam
-AC_CHECK_LIB(pam, pam_authenticate, ,AC_MSG_ERROR([*** PAM missing - please install first ***]))
+AC_CHECK_LIB(pam, pam_authenticate, , )
 
 dnl Check for stuff in path.
 AC_CHECK_PROG(AR, ar, ar)
@@ -31,10 +29,7 @@ dnl Check for ssl headers
 AC_CHECK_HEADER(openssl/bn.h, [AC_DEFINE(HAVE_OPENSSL)], [AC_CHECK_HEADER(ssl/bn.h, [AC_DEFINE(HAVE_SSL)], [AC_MSG_ERROR([*** ssl library missing - please install first ***])])])
 
 dnl Checks for header files.
-AC_HEADER_DIRENT
-AC_HEADER_STDC
-AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS(fcntl.h paths.h sys/ioctl.h sys/time.h syslog.h unistd.h)
+AC_CHECK_HEADERS(pty.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -48,10 +43,6 @@ AC_HEADER_TIME
 
 dnl Checks for library functions.
 AC_PROG_GCC_TRADITIONAL
-AC_FUNC_MEMCMP
-AC_TYPE_SIGNAL
-AC_FUNC_UTIME_NULL
-AC_FUNC_VPRINTF
-AC_CHECK_FUNCS(gethostname gettimeofday mkdir rmdir select socket strerror strspn strtol strlcpy mkdtemp arc4random setproctitle)
+AC_CHECK_FUNCS(openpty strlcpy mkdtemp arc4random setproctitle)
 
 AC_OUTPUT(Makefile)

@@ -67,10 +67,6 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #include <security/pam_appl.h>
 #endif /* HAVE_PAM */
 
-#ifdef HAVE_LIBPWDB
-#include <pwdb/pwdb_map.h>
-#endif /* HAVE_PWDB */
-
 /* Define this to be the path of the xauth program. */
 #ifndef XAUTH_PATH
 #define XAUTH_PATH "/usr/X11R6/bin/xauth"

@@ -109,6 +109,14 @@ environment variable holds the agent's PID.
 .Pp
 The agent exits automatically when the command given on the command
 line terminates.
+.Pp
+Here's a trick that will allow you to start this up from your .bash_profile (just put it in as the first thing that happens):
+.Sp
+.Vb 1
+
+\&	[ ! "$SSH_AGENT_PID" ] && exec ssh-agent -- bash --login
+\&	ssh-add
+.Ve
 .Sh FILES
 .Bl -tag -width Ds
 .It Pa $HOME/.ssh/identity

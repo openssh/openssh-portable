@@ -18,7 +18,7 @@ agent connections.
 */
 
 #include "includes.h"
-RCSID("$Id: sshd.c,v 1.10 1999/11/02 08:05:02 damien Exp $");
+RCSID("$Id: sshd.c,v 1.11 1999/11/08 04:30:59 damien Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -142,6 +142,7 @@ static struct pam_conv conv = {
 };
 struct pam_handle_t *pamh = NULL;
 const char *pampasswd = NULL;
+char *pamconv_msg = NULL;
 
 static int pamconv(int num_msg, const struct pam_message **msg,
                    struct pam_response **resp, void *appdata_ptr)
@@ -171,6 +172,26 @@ static int pamconv(int num_msg, const struct pam_message **msg,
       case PAM_TEXT_INFO:
         reply[count].resp_retcode = PAM_SUCCESS;
         reply[count].resp = xstrdup("");
+	
+	if (msg[count]->msg == NULL) break;
+	debug("Adding PAM message: %s", msg[count]->msg);
+	if (pamconv_msg == NULL)
+	{
+	  pamconv_msg = malloc(strlen(msg[count]->msg) + 2);
+	  
+	  if (pamconv_msg == NULL)
+	    return PAM_CONV_ERR;
+	    
+	  strncpy(pamconv_msg, msg[count]->msg, strlen(msg[count]->msg));
+	  pamconv_msg[strlen(msg[count]->msg)] = '\n';
+	  pamconv_msg[strlen(msg[count]->msg) + 1] = '\0';
+	} else
+	{
+	  pamconv_msg = realloc(pamconv_msg, strlen(pamconv_msg) + strlen(msg[count]->msg) + 2);
+	  strncat(pamconv_msg, msg[count]->msg, strlen(msg[count]->msg));
+	  pamconv_msg[strlen(pamconv_msg)] = '\n';
+	  pamconv_msg[strlen(pamconv_msg) + 1] = '\0';
+	}
         break;
 
       case PAM_PROMPT_ECHO_ON:
@@ -964,8 +985,14 @@ void do_connection(int privileged_port)
   if (BN_cmp(sensitive_data.private_key->n, sensitive_data.host_key->n) > 0)
     {
       /* Private key has bigger modulus. */
-      assert(BN_num_bits(sensitive_data.private_key->n) >= 
-	     BN_num_bits(sensitive_data.host_key->n) + SSH_KEY_BITS_RESERVED);
+      if (BN_num_bits(sensitive_data.private_key->n) < 
+	  BN_num_bits(sensitive_data.host_key->n) + SSH_KEY_BITS_RESERVED) {
+        fatal("do_connection: private_key %d < host_key %d + SSH_KEY_BITS_RESERVED %d",
+	      BN_num_bits(sensitive_data.private_key->n),
+              BN_num_bits(sensitive_data.host_key->n),
+	      SSH_KEY_BITS_RESERVED);
+      }
+
       rsa_private_decrypt(session_key_int, session_key_int,
 			  sensitive_data.private_key);
       rsa_private_decrypt(session_key_int, session_key_int,
@@ -974,9 +1001,13 @@ void do_connection(int privileged_port)
   else
     {
       /* Host key has bigger modulus (or they are equal). */
-      assert(BN_num_bits(sensitive_data.host_key->n) >= 
-	     BN_num_bits(sensitive_data.private_key->n) +
-	     SSH_KEY_BITS_RESERVED);
+      if (BN_num_bits(sensitive_data.host_key->n) < 
+	  BN_num_bits(sensitive_data.private_key->n) + SSH_KEY_BITS_RESERVED) {
+        fatal("do_connection: host_key %d < private_key %d + SSH_KEY_BITS_RESERVED %d",
+	      BN_num_bits(sensitive_data.host_key->n),
+              BN_num_bits(sensitive_data.private_key->n),
+	      SSH_KEY_BITS_RESERVED);
+      }
       rsa_private_decrypt(session_key_int, session_key_int,
 			  sensitive_data.host_key);
       rsa_private_decrypt(session_key_int, session_key_int,
@@ -994,7 +1025,10 @@ void do_connection(int privileged_port)
      least significant 256 bits of the integer; the first byte of the 
      key is in the highest bits. */
   BN_mask_bits(session_key_int, sizeof(session_key) * 8);
-  assert(BN_num_bytes(session_key_int) == sizeof(session_key));
+  if (BN_num_bytes(session_key_int) != sizeof(session_key)){
+    fatal("do_connection: session_key_int %d != sizeof(session_key) %d",
+	  BN_num_bytes(session_key_int), sizeof(session_key));
+  }
   BN_bn2bin(session_key_int, session_key);
   
   /* Xor the first 16 bytes of the session key with the session id. */
@@ -1243,7 +1277,7 @@ do_authentication(char *user, int privileged_port)
 	    int dlen;
 	    char *token_string = packet_get_string(&dlen);
 	    packet_integrity_check(plen, 4 + dlen, type);
-	    if (!auth_afs_token(user, pw->pw_uid, token_string))
+	    if (!auth_afs_token(pw, token_string))
 	      debug("AFS token REFUSED for %s", user);
 	    xfree(token_string);
 	    continue;
@@ -1478,15 +1512,15 @@ do_authentication(char *user, int privileged_port)
       if (authenticated)
 	break;
 
-      /* Send a message indicating that the authentication attempt failed. */
-      packet_start(SSH_SMSG_FAILURE);
-      packet_send();
-      packet_write_wait();
-
       if (++authentication_failures >= MAX_AUTH_FAILURES) {
 	packet_disconnect("Too many authentication failures for %.100s from %.200s", 
           pw->pw_name, get_canonical_hostname());
       }
+
+      /* Send a message indicating that the authentication attempt failed. */
+      packet_start(SSH_SMSG_FAILURE);
+      packet_send();
+      packet_write_wait();
     }
 
   /* Check if the user is logging in as root and root logins are disallowed. */
@@ -1556,16 +1590,16 @@ void eat_packets_and_disconnect(const char *user)
 	   packet_send_debug(skeyinfo);
     }
 #endif /* SKEY */
-    /* Send failure.  This should be indistinguishable from a failed
-       authentication. */
-    packet_start(SSH_SMSG_FAILURE);
-    packet_send();
-    packet_write_wait();
     if (++authentication_failures >= MAX_AUTH_FAILURES)
 	 {
       packet_disconnect("Too many authentication failures for %.100s from %.200s", 
             		       user, get_canonical_hostname());
     }
+    /* Send failure.  This should be indistinguishable from a failed
+       authentication. */
+    packet_start(SSH_SMSG_FAILURE);
+    packet_send();
+    packet_write_wait();
   }
   /*NOTREACHED*/
   abort();
@@ -2049,7 +2083,13 @@ void do_exec_pty(const char *command, int ptyfd, int ttyfd,
       /* Check if .hushlogin exists. */
       snprintf(line, sizeof line, "%.200s/.hushlogin", pw->pw_dir);
       quiet_login = stat(line, &st) >= 0;
-      
+
+#ifdef HAVE_LIBPAM
+      /* output the results of the pamconv() */
+      if (!quiet_login && pamconv_msg != NULL)
+	fprintf(stderr, pamconv_msg);
+#endif
+	
       /* If the user has logged in before, display the time of last login. 
          However, don't display anything extra if a command has been 
 	 specified (so that ssh can be used to execute commands on a remote
@@ -2238,6 +2278,7 @@ void do_child(const char *command, struct passwd *pw, const char *term,
   struct stat st;
   char *argv[10];
 
+#ifndef HAVE_LIBPAM /* pam_nologin handles this */
   /* Check /etc/nologin. */
   f = fopen("/etc/nologin", "r");
   if (f)
@@ -2248,6 +2289,7 @@ void do_child(const char *command, struct passwd *pw, const char *term,
       if (pw->pw_uid != 0)
 	exit(254);
     }
+#endif
 
   /* Set uid, gid, and groups. */
   /* Login(1) does this as well, and it needs uid 0 for the "-h" switch,
@@ -2387,7 +2429,7 @@ void do_child(const char *command, struct passwd *pw, const char *term,
   if (auth_get_socket_name() != NULL)
       child_set_env(&env, &envsize, SSH_AUTHSOCKET_ENV_NAME, 
 		    auth_get_socket_name());
-
+  
   /* Read $HOME/.ssh/environment. */
   if(!options.use_login) {
     snprintf(buf, sizeof buf, "%.200s/.ssh/environment", pw->pw_dir);
@@ -2525,6 +2567,7 @@ void do_child(const char *command, struct passwd *pw, const char *term,
             }
           }
         }
+
         /* Start the shell.  Set initial character to '-'. */
         buf[0] = '-';
         strncpy(buf + 1, cp, sizeof(buf) - 1);
@@ -2540,7 +2583,7 @@ void do_child(const char *command, struct passwd *pw, const char *term,
       } else {
         /* Launch login(1). */
 
-        execl("/usr/bin/login", "login", "-h", get_remote_ipaddr(), "-p", "-f", "--", pw->pw_name, NULL);
+        execl(LOGIN_PROGRAM, "login", "-h", get_remote_ipaddr(), "-p", "-f", "--", pw->pw_name, NULL);
 
         /* Login couldn't be executed, die. */
 

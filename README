@@ -23,8 +23,8 @@ or abuse of this software. The code in strlcpy.c and mktemp.c is from
 the OpenBSD project and has its own license (see source file for 
 details). 
 
-OpenSSH depends on Zlib, OpenSSL and PAM and optionally libpwdb. It now
-uses autoconf to build thanks to Dan Brosemer <odin@linuxfreak.com>
+OpenSSH depends on Zlib[1], OpenSSL[2] and optionally PAM[3].
+It now uses autoconf to build thanks to Dan Brosemer <odin@linuxfreak.com>
 
 Damien Miller <djm@ibs.com.au>
 Internet Business Solutions
@@ -51,3 +51,8 @@ is released under a X11-style license (see source file for details).
 (A)RC4 code in rc4.[ch] is Copyright 1999 Damien Miller. It too is
 under a X11-style license (see source file for details).
 
+References -
+
+[1] http://www.cdrom.com/pub/infozip/zlib/
+[2] http://www.openssl.org/
+[3] http://www.kernel.org/pub/linux/libs/pam/

@@ -14,7 +14,7 @@ Adds an identity to the authentication server, or removes an identity.
 */
 
 #include "includes.h"
-RCSID("$Id: ssh-add.c,v 1.2 1999/10/28 05:23:30 damien Exp $");
+RCSID("$Id: ssh-add.c,v 1.3 1999/11/08 04:30:59 damien Exp $");
 
 #include "rsa.h"
 #include "ssh.h"
@@ -52,6 +52,7 @@ delete_all(AuthenticationConnection *ac)
     fprintf(stderr, "Failed to remove all identitities.\n");
 }
 
+#define BUFSIZE 1024
 void
 add_file(AuthenticationConnection *ac, const char *filename)
 {
@@ -59,6 +60,11 @@ add_file(AuthenticationConnection *ac, const char *filename)
   RSA *public_key;
   char *saved_comment, *comment, *pass;
   int first;
+  int pipes[2];
+  char buf[BUFSIZE];
+  int tmp;
+  pid_t child;
+  FILE *pipef;
   
   key = RSA_new();
   public_key = RSA_new();
@@ -80,8 +86,72 @@ add_file(AuthenticationConnection *ac, const char *filename)
       /* Ask for a passphrase. */
       if (getenv("DISPLAY") && !isatty(fileno(stdin)))
 	{
-	      xfree(saved_comment);
-	      return;
+          if (pipe(pipes) ==-1)
+            {
+              fprintf(stderr, "Creating pipes failed: %s\n", strerror(errno));
+              exit(1);
+            }
+          if (fflush(NULL)==EOF)
+            {
+              fprintf(stderr, "Cannot flush buffers: %s\n", strerror(errno));
+              exit(1);
+            }
+          switch (child=fork())
+            {
+            case -1:
+              fprintf(stderr, "Cannot fork: %s\n", strerror(errno));
+              exit(1);
+            case 0:
+              close(pipes[0]);
+              if (dup2(pipes[1], 1) ==-1)
+                {
+                  fprintf(stderr, "dup2 failed: %s\n", strerror(errno));
+                  exit(1);
+                }
+              tmp=snprintf(buf, BUFSIZE, "Need passphrase for %s (%s)",
+                           filename, saved_comment);
+              /* skip the prompt if it won't fit */
+              if (tmp < 0 || tmp >= BUFSIZE)
+                tmp=execlp("/usr/lib/ssh/ssh-askpass", "ssh-askpass", 0);
+              else
+                tmp=execlp("/usr/lib/ssh/ssh-askpass", "ssh-askpass", buf, 0);
+              if (tmp==-1)
+                {
+                  fprintf(stderr, "Executing ssh-askpass failed: %s\n",
+                          strerror(errno));
+                  exit(1);
+                }
+              break;
+            default:
+              close(pipes[1]);
+              if ( (pipef=fdopen(pipes[0], "r")) ==NULL)
+                {
+                  fprintf(stderr, "fdopen failed: %s\n", strerror(errno));
+                  exit(1);
+                }
+              if(fgets(buf, sizeof(buf), pipef)==NULL)
+                {
+                  xfree(saved_comment);
+                  return;
+                }
+              fclose(pipef);
+              if (strchr(buf, '\n'))
+                *strchr(buf, '\n') = 0;
+              pass = xstrdup(buf);
+              memset(buf, 0, sizeof(buf));
+              if (waitpid(child, NULL, 0) ==-1)
+                {
+                  fprintf(stderr, "Waiting for child failed: %s\n",
+                          strerror(errno));
+                  exit(1);
+                }
+              if (strcmp(pass, "") == 0)
+                {
+                  xfree(saved_comment);
+                  xfree(pass);
+                  return;
+                }
+            }
 	}
       else
 	{
