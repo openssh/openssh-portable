@@ -23,7 +23,10 @@
    - markus@cvs.openbsd.org 2002/03/26 23:14:51
      [kex.c]
      generate a new cookie for each SSH2_MSG_KEXINIT message we send out
-
+   - mouring@cvs.openbsd.org 2002/03/27 11:45:42
+     [monitor.c]
+     monitor_allowed_key() returns int instead of pointer.  ok markus@
+  
 20020325
  - (stevesk) import OpenBSD <sys/tree.h> as "openbsd-compat/tree.h"
  - (bal) OpenBSD CVS Sync
@@ -8086,4 +8089,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.2000 2002/03/27 17:42:57 mouring Exp $
+$Id: ChangeLog,v 1.2001 2002/03/27 18:00:59 mouring Exp $

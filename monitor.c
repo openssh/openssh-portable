@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.7 2002/03/24 23:20:00 stevesk Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.8 2002/03/27 17:45:42 mouring Exp $");
 
 #include <openssl/dh.h>
 
@@ -866,7 +866,7 @@ mm_answer_keyverify(int socket, Buffer *m)
 	data = buffer_get_string(m, &datalen);
 
 	if (hostbased_cuser == NULL || hostbased_chost == NULL ||
-	   monitor_allowed_key(blob, bloblen) == NULL)
+	  !monitor_allowed_key(blob, bloblen))
 		fatal("%s: bad key, not previously allowed", __FUNCTION__);
 
 	key = key_from_blob(blob, bloblen);
