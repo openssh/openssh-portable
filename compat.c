@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: compat.c,v 1.66 2003/04/01 10:31:26 markus Exp $");
+RCSID("$OpenBSD: compat.c,v 1.67 2003/04/08 20:21:28 itojun Exp $");
 
 #include "buffer.h"
 #include "packet.h"

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth.c,v 1.46 2002/11/04 10:07:53 markus Exp $");
+RCSID("$OpenBSD: auth.c,v 1.47 2003/04/08 20:21:28 itojun Exp $");
 
 #ifdef HAVE_LOGIN_H
 #include <login.h>

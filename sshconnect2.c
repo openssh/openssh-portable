@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect2.c,v 1.115 2003/04/02 09:48:07 markus Exp $");
+RCSID("$OpenBSD: sshconnect2.c,v 1.116 2003/04/08 20:21:29 itojun Exp $");
 
 #include "ssh.h"
 #include "ssh2.h"

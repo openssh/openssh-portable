@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.263 2003/02/16 17:09:57 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.264 2003/04/08 20:21:29 itojun Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>

@@ -22,7 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: sftp-server.c,v 1.41 2003/03/26 04:02:51 deraadt Exp $");
+RCSID("$OpenBSD: sftp-server.c,v 1.42 2003/04/08 20:21:29 itojun Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth2-passwd.c,v 1.2 2002/05/31 11:35:15 markus Exp $");
+RCSID("$OpenBSD: auth2-passwd.c,v 1.3 2003/04/08 20:21:28 itojun Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
