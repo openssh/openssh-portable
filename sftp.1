@@ -1,4 +1,4 @@
-.\" $OpenBSD: sftp.1,v 1.44 2003/05/20 12:03:35 jmc Exp $
+.\" $OpenBSD: sftp.1,v 1.45 2003/09/02 18:50:06 jmc Exp $
 .\"
 .\" Copyright (c) 2001 Damien Miller.  All rights reserved.
 .\"
@@ -43,16 +43,16 @@
 .Ar host
 .Ek
 .Nm sftp
-.Oo Oo Ar user Ns No @ Oc Ns
+.Oo Oo Ar user Ns @ Oc Ns
 .Ar host Ns Oo : Ns Ar file Oo
 .Ar file Oc Oc Oc
 .Nm sftp
-.Oo Oo Ar user Ns No @ Oc Ns
+.Oo Oo Ar user Ns @ Oc Ns
 .Ar host Ns Oo : Ns Ar dir Ns
 .Oo Ar / Oc Oc Oc
 .Nm sftp
 .Fl b Ar batchfile
-.Oo Ar user Ns No @ Oc Ns Ar host Ns
+.Oo Ar user Ns @ Oc Ns Ar host
 .Sh DESCRIPTION
 .Nm
 is an interactive file transfer program, similar to
@@ -295,13 +295,13 @@ to
 Display the
 .Nm
 protocol version.
-.It Ic ! Ar command
+.It Ic \&! Ar command
 Execute
 .Ar command
 in local shell.
-.It Ic !
+.It Ic \&!
 Escape to local shell.
-.It Ic ?
+.It Ic \&?
 Synonym for help.
 .El
 .Sh SEE ALSO

@@ -12,6 +12,10 @@
    - markus@cvs.openbsd.org 2003/09/02 16:40:29
      [version.h]
      enter 3.7
+   - jmc@cvs.openbsd.org 2003/09/02 18:50:06
+     [sftp.1 ssh_config.5]
+     escape punctuation;
+     ok deraadt@
 
 20030902
  - (djm) OpenBSD CVS Sync
@@ -983,4 +987,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2940 2003/09/03 02:12:54 djm Exp $
+$Id: ChangeLog,v 1.2941 2003/09/03 02:13:30 djm Exp $
