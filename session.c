@@ -169,7 +169,8 @@ do_authenticated(struct passwd * pw)
 	 * authentication.
 	 */
 	alarm(0);
-	close(startup_pipe);
+	if (startup_pipe != -1)
+		close(startup_pipe);
 
 	/*
 	 * Inform the channel mechanism that we are the server side and that
@@ -1792,7 +1793,8 @@ do_authenticated2(void)
 	 * authentication.
 	 */
 	alarm(0);
-	close(startup_pipe);
+	if (startup_pipe != -1)
+		close(startup_pipe);
 	server_loop2();
 	if (xauthfile)
 		xauthfile_cleanup_proc(NULL);

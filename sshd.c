@@ -855,6 +855,7 @@ main(int ac, char **av)
 					sock_in = newsock;
 					sock_out = newsock;
 					pid = getpid();
+					startup_pipe = -1;
 					break;
 				} else {
 					/*

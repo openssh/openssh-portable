@@ -49,6 +49,7 @@
    - ho@cvs.openbsd.org      2000/07/10 10:30:25
      [cipher.c kex.c servconf.c]
      strtok() --> strsep(). (niels@ ok)
+ - (djm) Fix problem with debug mode and MaxStartups
 
 20000709
  - (djm) Only enable PAM_TTY kludge for Linux. Problem report from
