@@ -1,3 +1,7 @@
+20020103
+ - (djm) Use bigcrypt() on systems with SCO_PROTECTED_PW. Patch from 
+   Roger Cornelius <rac@tenzing.org>
+
 20011229
  - (djm) Apply Cygwin pointer deref fix from Corinna Vinschen 
    <vinschen@redhat.com> Could be abused to guess valid usernames
@@ -7114,4 +7118,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1713 2001/12/31 00:59:53 djm Exp $
+$Id: ChangeLog,v 1.1714 2002/01/02 23:30:56 djm Exp $

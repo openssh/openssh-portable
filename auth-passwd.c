@@ -212,7 +212,11 @@ auth_password(Authctxt *authctxt, const char *password)
 	else
 		encrypted_password = crypt(password, salt);
 # else
+#  ifdef HAVE_SCO_PROTECTED_PW
+	encrypted_password = bigcrypt(password, salt);
+#  else
 	encrypted_password = crypt(password, salt);
+#  endif /* HAVE_SCO_PROTECTED_PW */
 # endif /* __hpux */
 #endif /* HAVE_MD5_PASSWORDS */
 
