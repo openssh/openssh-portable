@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.246 2002/06/20 23:05:56 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.247 2002/06/22 16:40:19 stevesk Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1011,6 +1011,9 @@ main(int ac, char **av)
 		if ((stat(_PATH_PRIVSEP_CHROOT_DIR, &st) == -1) ||
 		    (S_ISDIR(st.st_mode) == 0))
 			fatal("Missing privilege separation directory: %s",
+			    _PATH_PRIVSEP_CHROOT_DIR);
+		if (st.st_uid != 0 || (st.st_mode & (S_IWGRP|S_IWOTH)) != 0)
+			fatal("Bad owner or mode for %s",
 			    _PATH_PRIVSEP_CHROOT_DIR);
 	}
 
