@@ -9,7 +9,7 @@
 .\"
 .\" Created: Sat Apr 22 21:55:14 1995 ylo
 .\"
-.\" $Id: ssh.1,v 1.26 2000/05/17 12:34:24 damien Exp $
+.\" $Id: ssh.1,v 1.27 2000/05/30 03:44:54 damien Exp $
 .\"
 .Dd September 25, 1999
 .Dt SSH 1
@@ -24,7 +24,7 @@
 .Op Ar command
 .Pp
 .Nm ssh
-.Op Fl afgknqtvxCNPTX246
+.Op Fl afgknqtvxACNPTX246
 .Op Fl c Ar cipher_spec
 .Op Fl e Ar escape_char
 .Op Fl i Ar identity_file
@@ -332,7 +332,9 @@ host key is not known or has changed.
 .Bl -tag -width Ds
 .It Fl a
 Disables forwarding of the authentication agent connection.
-This may also be specified on a per-host basis in the configuration file.
+.It Fl A
+Enables forwarding of the authentication agent connection.
+This can also be specified on a per-host basis in a configuration file.
 .It Fl c Ar blowfish|3des
 Selects the cipher to use for encrypting the session.
 .Ar 3des
@@ -460,9 +462,9 @@ The verbose mode is also used to display
 challenges, if the user entered "s/key" as password.
 .It Fl x
 Disables X11 forwarding.
-This can also be specified on a per-host basis in a configuration file.
 .It Fl X
 Enables X11 forwarding.
+This can also be specified on a per-host basis in a configuration file.
 .It Fl C
 Requests compression of all data (including stdin, stdout, stderr, and
 data for forwarded X11 and TCP/IP connections).
@@ -670,6 +672,8 @@ will be forwarded to the remote machine.
 The argument must be
 .Dq yes
 or
+.Dq no .
+The default is
 .Dq no .
 .It Cm ForwardX11
 Specifies whether X11 connections will be automatically redirected

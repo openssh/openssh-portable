@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$Id: servconf.c,v 1.16 2000/05/09 01:03:01 damien Exp $");
+RCSID("$Id: servconf.c,v 1.17 2000/05/30 03:44:53 damien Exp $");
 
 #include "ssh.h"
 #include "servconf.h"
@@ -588,6 +588,8 @@ parse_flag:
 
 		case sCiphers:
 			cp = strtok(NULL, WHITESPACE);
+			if (!cp)
+				fatal("%s line %d: Missing argument.", filename, linenum);
 			if (!ciphers_valid(cp))
 				fatal("%s line %d: Bad SSH2 cipher spec '%s'.",
 				    filename, linenum, cp ? cp : "<NONE>");
@@ -598,6 +600,8 @@ parse_flag:
 		case sProtocol:
 			intptr = &options->protocol;
 			cp = strtok(NULL, WHITESPACE);
+			if (!cp)
+				fatal("%s line %d: Missing argument.", filename, linenum);
 			value = proto_spec(cp);
 			if (value == SSH_PROTO_UNKNOWN)
 				fatal("%s line %d: Bad protocol spec '%s'.",

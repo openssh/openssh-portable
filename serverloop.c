@@ -164,33 +164,37 @@ retry_select:
 
 	/* Initialize select() masks. */
 	FD_ZERO(readset);
+	FD_ZERO(writeset);
 
-	/*
-	 * Read packets from the client unless we have too much buffered
-	 * stdin or channel data.
-	 */
 	if (compat20) {
 		/* wrong: bad condition XXX */
 		if (channel_not_very_much_buffered_data())
 			FD_SET(connection_in, readset);
 	} else {
-		if (buffer_len(&stdin_buffer) < 4096 &&
+		/*
+		 * Read packets from the client unless we have too much
+		 * buffered stdin or channel data.
+		 */
+		if (buffer_len(&stdin_buffer) < buffer_high &&
 		    channel_not_very_much_buffered_data())
 			FD_SET(connection_in, readset);
+		/*
+		 * If there is not too much data already buffered going to
+		 * the client, try to get some more data from the program.
+		 */
+		if (packet_not_very_much_data_to_write()) {
+			if (!fdout_eof)
+				FD_SET(fdout, readset);
+			if (!fderr_eof)
+				FD_SET(fderr, readset);
+		}
+		/*
+		 * If we have buffered data, try to write some of that data
+		 * to the program.
+		 */
+		if (fdin != -1 && buffer_len(&stdin_buffer) > 0)
+			FD_SET(fdin, writeset);
 	}
-
-	/*
-	 * If there is not too much data already buffered going to the
-	 * client, try to get some more data from the program.
-	 */
-	if (!compat20 && packet_not_very_much_data_to_write()) {
-		if (!fdout_eof)
-			FD_SET(fdout, readset);
-		if (!fderr_eof)
-			FD_SET(fderr, readset);
-	}
-	FD_ZERO(writeset);
-
 	/* Set masks for channel descriptors. */
 	channel_prepare_select(readset, writeset);
 
@@ -200,11 +204,6 @@ retry_select:
 	 */
 	if (packet_have_data_to_write())
 		FD_SET(connection_out, writeset);
-
-	/* If we have buffered data, try to write some of that data to the
-	   program. */
-	if (!compat20 && fdin != -1 && buffer_len(&stdin_buffer) > 0)
-		FD_SET(fdin, writeset);
 
 	/* Update the maximum descriptor number if appropriate. */
 	if (channel_max_fd() > max_fd)
@@ -377,6 +376,7 @@ process_buffered_input_packets()
 void
 server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 {
+	fd_set readset, writeset;
 	int wait_status;	/* Status returned by wait(). */
 	pid_t wait_pid;		/* pid returned by wait(). */
 	int waiting_termination = 0;	/* Have displayed waiting close message. */
@@ -445,7 +445,6 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 
 	/* Main loop of the server for the interactive session mode. */
 	for (;;) {
-		fd_set readset, writeset;
 
 		/* Process buffered packets from the client. */
 		process_buffered_input_packets();
@@ -717,6 +716,9 @@ input_direct_tcpip(void)
 	originator = packet_get_string(NULL);
 	originator_port = packet_get_int();
 	packet_done();
+
+	debug("open direct-tcpip: from %s port %d to %s port %d",
+	   originator, originator_port, target, target_port);
 	/* XXX check permission */
 	sock = channel_connect_to(target, target_port);
 	xfree(target);
@@ -768,7 +770,6 @@ server_input_channel_open(int type, int plen)
 			channel_free(id);
 		}
 	} else if (strcmp(ctype, "direct-tcpip") == 0) {
-		debug("open direct-tcpip");
 		id = input_direct_tcpip();
 		if (id >= 0)
 			c = channel_lookup(id);

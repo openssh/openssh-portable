@@ -2,6 +2,23 @@
  - Define atexit for old Solaris
  - Fix buffer overrun in login.c for systems which use syslen in utmpx.
    patch from YOSHIFUJI Hideaki <yoshfuji@cerberus.nemoto.ecei.tohoku.ac.jp>
+ - OpenBSD CVS updates:
+  - markus@cvs.openbsd.org
+    [session.c]
+    make x11-fwd work w/ localhost (xauth add host/unix:11)
+    [cipher.c compat.c readconf.c servconf.c]
+    check strtok() != NULL; ok niels@
+    [key.c]
+    fix key_read() for uuencoded keys w/o '='
+    [serverloop.c]
+    group ssh1 vs. ssh2 in serverloop
+    [kex.c kex.h myproposal.h sshconnect2.c sshd.c]
+    split kexinit/kexdh, factor out common code
+    [readconf.c ssh.1 ssh.c]
+    forwardagent defaults to no, add ssh -A
+  - theo@cvs.openbsd.org
+    [session.c]
+    just some line shortening
 
 20000520
  - Xauth fix from Markus Friedl <markus.friedl@informatik.uni-erlangen.de>
