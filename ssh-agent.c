@@ -511,7 +511,11 @@ main(int ac, char **av)
 			__progname);
 		exit(1);
 	}
+#ifdef __GNU_LIBRARY__
+	while ((ch = getopt(ac, av, "+cks")) != -1) {
+#else /* __GNU_LIBRARY__ */
 	while ((ch = getopt(ac, av, "cks")) != -1) {
+#endif /* __GNU_LIBRARY__ */
 		switch (ch) {
 		case 'c':
 			if (s_flag)

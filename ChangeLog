@@ -7,6 +7,10 @@
   [session.c]
   - remove bogus chan_read_failed. this could cause data
     corruption (missing data) at end of a SSH2 session.
+ - Merge fixes from Debian patch from Phil Hands <phil@hands.com>
+  - Allow setting of PAM service name through CFLAGS (SSHD_PAM_SERVICE)
+  - Use vhangup to clean up Linux ttys
+  - Force posix getopt processing on GNU libc systems
 
 20000419
  - OpenBSD CVS updates

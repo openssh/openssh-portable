@@ -13,7 +13,7 @@
 #include "xmalloc.h"
 #include "servconf.h"
 
-RCSID("$Id: auth-pam.c,v 1.2 2000/01/26 23:55:38 damien Exp $");
+RCSID("$Id: auth-pam.c,v 1.3 2000/04/20 13:12:58 damien Exp $");
 
 /* Callbacks */
 static int pamconv(int num_msg, const struct pam_message **msg,
@@ -215,7 +215,8 @@ void start_pam(struct passwd *pw)
 
 	debug("Starting up PAM with username \"%.200s\"", pw->pw_name);
 
-	pam_retval = pam_start("sshd", pw->pw_name, &conv, (pam_handle_t**)&pamh);
+	pam_retval = pam_start(SSHD_PAM_SERVICE, pw->pw_name, &conv, 
+		(pam_handle_t**)&pamh);
 	if (pam_retval != PAM_SUCCESS)
 		fatal("PAM initialisation failed: %.200s", PAM_STRERROR((pam_handle_t *)pamh, pam_retval));
 

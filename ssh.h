@@ -13,7 +13,7 @@
  *
  */
 
-/* RCSID("$Id: ssh.h,v 1.33 2000/04/19 21:42:22 damien Exp $"); */
+/* RCSID("$Id: ssh.h,v 1.34 2000/04/20 13:12:59 damien Exp $"); */
 
 #ifndef SSH_H
 #define SSH_H
@@ -70,6 +70,10 @@
  * default port if present.
  */
 #define SSH_SERVICE_NAME	"ssh"
+
+#if defined(USE_PAM) && !defined(SSHD_PAM_SERVICE)
+# define SSHD_PAM_SERVICE       "sshd"
+#endif
 
 #ifndef ETCDIR
 #define ETCDIR			"/etc"
