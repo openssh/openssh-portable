@@ -1,7 +1,9 @@
-# $Id: Makefile.in,v 1.206 2002/05/09 14:05:59 tim Exp $
+# $Id: Makefile.in,v 1.207 2002/05/13 03:15:43 djm Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
+
+AUTORECONF=autoreconf
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -21,12 +23,14 @@ VPATH=@srcdir@
 SSH_PROGRAM=@bindir@/ssh
 ASKPASS_PROGRAM=$(libexecdir)/ssh-askpass
 SFTP_SERVER=$(libexecdir)/sftp-server
+PRIVSEP_PATH=@PRIVSEP_PATH@
 
 PATHS= -DSSHDIR=\"$(sysconfdir)\" \
 	-D_PATH_SSH_PROGRAM=\"$(SSH_PROGRAM)\" \
 	-D_PATH_SSH_ASKPASS_DEFAULT=\"$(ASKPASS_PROGRAM)\" \
 	-D_PATH_SFTP_SERVER=\"$(SFTP_SERVER)\" \
 	-D_PATH_SSH_PIDDIR=\"$(piddir)\" \
+	-D_PATH_PRIVSEP_CHROOT_DIR=\"$(PRIVSEP_PATH)\"
 	-DSSH_RAND_HELPER=\"$(libexecdir)/ssh-rand-helper\"
 
 CC=@CC@
@@ -80,6 +84,7 @@ PATHSUBS	= \
 	-D/etc/ssh/moduli=$(sysconfdir)/moduli \
 	-D/etc/ssh/sshrc=$(sysconfdir)/sshrc \
 	-D/usr/X11R6/bin/xauth=$(XAUTH_PATH) \
+	-D/var/empty=$(PRIVSEP_PATH) \
 	-D/usr/bin:/bin:/usr/sbin:/sbin=@user_path@
 
 FIXPATHSCMD	= $(PERL) $(srcdir)/fixpaths $(PATHSUBS)
@@ -184,7 +189,7 @@ catman-do:
 	done
 
 distprep: catman-do
-	autoreconf
+	$(AUTORECONF)
 	(cd scard && $(MAKE) -f Makefile.in distprep)
 
 install: $(CONFIGFILES) $(MANPAGES) $(TARGETS) install-files host-key

@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.136 2002/05/13 00:56:51 djm Exp $ */
+/* $Id: acconfig.h,v 1.137 2002/05/13 03:15:43 djm Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -351,6 +351,9 @@
 
 /* Define if you want a different $PATH for the superuser */
 #undef SUPERUSER_PATH
+
+/* Path that unprivileged child will chroot() to in privep mode */
+#undef PRIVSEP_PATH
 
 @BOTTOM@
 

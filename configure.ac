@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.57 2002/05/13 00:48:58 djm Exp $
+# $Id: configure.ac,v 1.58 2002/05/13 03:15:43 djm Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -1792,6 +1792,17 @@ AC_ARG_WITH(rsh,
 	]
 )
 
+PRIVSEP_PATH=/var/empty
+AC_ARG_WITH(privsep-path,
+	[  --with-privsep-path=xxx Path for privilege seperation chroot ],
+	[
+		if test "x$withval" != "$no" ; then
+			PRIVSEP_PATH=$withval
+		fi
+	]
+)
+AC_SUBST(PRIVSEP_PATH)
+
 AC_ARG_WITH(xauth,
 	[  --with-xauth=PATH       Specify path to xauth program ],
 	[
@@ -2363,41 +2374,43 @@ D=`eval echo ${sysconfdir}` ; D=`eval echo ${D}`
 E=`eval echo ${libexecdir}/ssh-askpass` ; E=`eval echo ${E}`
 F=`eval echo ${mandir}/${mansubdir}X` ; F=`eval echo ${F}`
 G=`eval echo ${piddir}` ; G=`eval echo ${G}`
-H=`eval echo ${user_path}` ; H=`eval echo ${H}`
-I=`eval echo ${superuser_path}` ; I=`eval echo ${I}`
+H=`eval echo ${PRIVSEP_PATH}` ; H=`eval echo ${H}`
+I=`eval echo ${user_path}` ; I=`eval echo ${I}`
+J=`eval echo ${superuser_path}` ; J=`eval echo ${J}`
 
 echo ""
 echo "OpenSSH has been configured with the following options:"
-echo "                 User binaries: $B"
-echo "               System binaries: $C"
-echo "           Configuration files: $D"
-echo "               Askpass program: $E"
-echo "                  Manual pages: $F"
-echo "                      PID file: $G"
+echo "                     User binaries: $B"
+echo "                   System binaries: $C"
+echo "               Configuration files: $D"
+echo "                   Askpass program: $E"
+echo "                      Manual pages: $F"
+echo "                          PID file: $G"
+echo "  Privilege separation chroot path: $H"
 if test "$USES_LOGIN_CONF" = "yes" ; then
-echo "        At runtime, sshd will use the path defined in /etc/login.conf"
+echo "   At runtime, sshd will use the path defined in /etc/login.conf"
 else
-echo "        sshd default user PATH: $H"
+echo "            sshd default user PATH: $I"
 fi
 if test ! -z "$superuser_path" ; then
-echo "      sshd superuser user PATH: $I"
+echo "          sshd superuser user PATH: $J"
 fi
-echo "                Manpage format: $MANTYPE"
-echo "                   PAM support: ${PAM_MSG}"
-echo "            KerberosIV support: $KRB4_MSG"
-echo "             KerberosV support: $KRB5_MSG"
-echo "             Smartcard support: $SCARD_MSG"
-echo "                   AFS support: $AFS_MSG"
-echo "                 S/KEY support: $SKEY_MSG"
-echo "          TCP Wrappers support: $TCPW_MSG"
-echo "          MD5 password support: $MD5_MSG"
-echo "   IP address in \$DISPLAY hack: $DISPLAY_HACK_MSG"
-echo "      Use IPv4 by default hack: $IPV4_HACK_MSG"
-echo "       Translate v4 in v6 hack: $IPV4_IN6_HACK_MSG"
-echo "              BSD Auth support: $BSD_AUTH_MSG"
-echo "          Random number source: $RAND_MSG"
+echo "                    Manpage format: $MANTYPE"
+echo "                       PAM support: ${PAM_MSG}"
+echo "                KerberosIV support: $KRB4_MSG"
+echo "                 KerberosV support: $KRB5_MSG"
+echo "                 Smartcard support: $SCARD_MSG"
+echo "                       AFS support: $AFS_MSG"
+echo "                     S/KEY support: $SKEY_MSG"
+echo "              TCP Wrappers support: $TCPW_MSG"
+echo "              MD5 password support: $MD5_MSG"
+echo "      IP address in \$DISPLAY hack: $DISPLAY_HACK_MSG"
+echo "          Use IPv4 by default hack: $IPV4_HACK_MSG"
+echo "           Translate v4 in v6 hack: $IPV4_IN6_HACK_MSG"
+echo "                  BSD Auth support: $BSD_AUTH_MSG"
+echo "              Random number source: $RAND_MSG"
 if test ! -z "$USE_RAND_HELPER" ; then
-	echo " ssh-rand-helper collects from: $RAND_HELPER_MSG"
+echo "     ssh-rand-helper collects from: $RAND_HELPER_MSG"
 fi
 
 echo ""
