@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.101 2001/03/03 23:59:34 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.102 2001/03/04 10:57:53 stevesk Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -175,6 +175,7 @@ usage(void)
 
 	fprintf(stderr, "  -c cipher   Select encryption algorithm: "
 	    "``3des'', ``blowfish''\n");
+	fprintf(stderr, "  -m macs     Specify MAC algorithms for protocol version 2.\n");
 	fprintf(stderr, "  -p port     Connect to this port.  Server must be on the same port.\n");
 	fprintf(stderr, "  -L listen-port:host:port   Forward local port to remote address\n");
 	fprintf(stderr, "  -R listen-port:host:port   Forward remote port to local address\n");
