@@ -201,6 +201,9 @@
    - stevesk@cvs.openbsd.org 2002/01/17 04:27:37
      [log.c]
      casts to silence enum type warnings for bugzilla bug 37; ok markus@
+   - stevesk@cvs.openbsd.org 2002/01/18 17:14:16
+     [sshd.8]
+     correct Ciphers default; paola.mannaro@ubs.com
 
 20020121
  - (djm) Rework ssh-rand-helper:
@@ -7348,4 +7351,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1779 2002/01/22 12:32:57 djm Exp $
+$Id: ChangeLog,v 1.1780 2002/01/22 12:33:15 djm Exp $

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.161 2002/01/05 21:51:56 stevesk Exp $
+.\" $OpenBSD: sshd.8,v 1.162 2002/01/18 17:14:16 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -397,7 +397,11 @@ The default is
 Specifies the ciphers allowed for protocol version 2.
 Multiple ciphers must be comma-separated.
 The default is
-.Dq aes128-cbc,3des-cbc,blowfish-cbc,cast128-cbc,arcfour .
+.Pp
+.Bd -literal
+  ``aes128-cbc,3des-cbc,blowfish-cbc,cast128-cbc,arcfour,
+    aes192-cbc,aes256-cbc''
+.Ed
 .It Cm ClientAliveInterval
 Sets a timeout interval in seconds after which if no data has been received
 from the client,
