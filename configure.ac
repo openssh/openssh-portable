@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.24 2002/03/08 03:11:08 mouring Exp $
+# $Id: configure.ac,v 1.25 2002/03/08 03:50:58 mouring Exp $
 
 AC_INIT
 AC_CONFIG_SRCDIR([ssh.c])
@@ -115,7 +115,7 @@ case "$host" in
 	AC_DEFINE(WITH_IRIX_ARRAY)
 	AC_DEFINE(WITH_IRIX_PROJECT)
 	AC_DEFINE(WITH_IRIX_AUDIT)
-	AC_CHECK_FUNC(jlimit_startjob, [AC_DEFINE(WITH_IRIX_JOBS)])
+	AC_DEFINE(WITH_IRIX_JOBS)
 	AC_DEFINE(BROKEN_INET_NTOA)
 	;;
 *-*-linux*)

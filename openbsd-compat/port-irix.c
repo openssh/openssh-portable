@@ -3,13 +3,20 @@
 #if defined(WITH_IRIX_PROJECT) || defined(WITH_IRIX_JOBS) || defined(WITH_IRIX_ARRAY)
 
 #ifdef WITH_IRIX_PROJECT
-#include <proj.h>
+# include <proj.h>
 #endif /* WITH_IRIX_PROJECT */
 #ifdef WITH_IRIX_JOBS
-#include <sys/resource.h>
-#endif
+# include <sys/resource.h>
+# include <optional_sym.h>
+# if !defined(JLIMIT_CPU)
+/* Simulate job limit support so we can still test for it at runtime. */
+typedef __int64_t jid_t;
+extern jid_t jlimit_startjob(char *, uid_t, char *);
+#  pragma optional jlimit_startjob
+# endif
+#endif /* WITH_IRIX_JOBS */
 #ifdef WITH_IRIX_AUDIT
-#include <sat.h>
+# include <sat.h>
 #endif /* WITH_IRIX_AUDIT */
 
 void
@@ -27,10 +34,16 @@ irix_setusercontext(struct passwd *pw)
 #endif /* WITH_IRIX_JOBS */
 
 #ifdef WITH_IRIX_JOBS
-        jid = jlimit_startjob(pw->pw_name, pw->pw_uid, "interactive");
-        if (jid == -1)
-                fatal("Failed to create job container: %.100s",
+	if (_MIPS_SYMBOL_PRESENT(jlimit_startjob)) {
+	  jid = jlimit_startjob(pw->pw_name, pw->pw_uid, "interactive");
+	  if (jid == -1) {
+	    if (errno == ENOPKG)
+	      jid = 0;
+	    else
+	      fatal("Failed to create job container: %.100s",
                     strerror(errno));
+	  }
+	}
 #endif /* WITH_IRIX_JOBS */
 #ifdef WITH_IRIX_ARRAY
         /* initialize array session */
