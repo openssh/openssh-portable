@@ -1,3 +1,7 @@
+20040416
+ - (dtucker) [regress/sftp-cmds.sh] Skip quoting test on Cygwin, since
+   FAT/NTFS does not permit quotes in filenames.  From vinschen at redhat.com
+
 20040412
  - (dtucker) [sshd_config.5] Add PermitRootLogin without-password warning
    from bug #701 (text from jfh at cise.ufl.edu).
@@ -966,4 +970,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3311 2004/04/14 10:14:26 djm Exp $
+$Id: ChangeLog,v 1.3312 2004/04/16 07:58:28 dtucker Exp $
