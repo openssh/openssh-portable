@@ -17,6 +17,9 @@
      [sshconnect2.c]
      reorder default sequence of userauth methods to match ssh behaviour:
      hostbased,publickey,keyboard-interactive,password
+   - markus@cvs.openbsd.org 2001/07/23 12:47:05
+     [ssh.1]
+     sync PreferredAuthentications
 
 20010803
  - (djm) Fix interrupted read in entropy gatherer. Spotted by markus@ on
@@ -6127,4 +6130,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1430 2001/08/06 20:57:11 mouring Exp $
+$Id: ChangeLog,v 1.1431 2001/08/06 20:58:51 mouring Exp $
