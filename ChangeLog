@@ -1,3 +1,6 @@
+20001029
+ - (stevesk) Fix typo in auth.c: USE_PAM not PAM
+
 20001028
  - (djm) fix select hack in serverloop.c from Philippe WILLEM 
    <Philippe.WILLEM@urssaf.fr>

@@ -80,7 +80,7 @@ allowed_user(struct passwd * pw)
 #ifdef WITH_AIXAUTHENTICATE
 	char *loginmsg;
 #endif /* WITH_AIXAUTHENTICATE */
-#if !defined(PAM) && defined(HAVE_SHADOW_H) && \
+#if !defined(USE_PAM) && defined(HAVE_SHADOW_H) && \
 	!defined(DISABLE_SHADOW) && defined(HAS_SHADOW_EXPIRE)
   struct spwd *spw;
 
