@@ -1,3 +1,9 @@
+20010621
+ - OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2001/06/16 08:49:38
+     [misc.c]
+     typo; dunlap@apl.washington.edu
+
 20010615
  - (stevesk) don't set SA_RESTART and set SIGCHLD to SIG_DFL
    around grantpt().
@@ -5649,4 +5655,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1288 2001/06/15 04:23:12 stevesk Exp $
+$Id: ChangeLog,v 1.1289 2001/06/21 03:04:37 mouring Exp $
