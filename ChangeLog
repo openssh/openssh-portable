@@ -43,6 +43,9 @@
    - markus@cvs.openbsd.org 2001/02/10 12:09:21
      [sshconnect2.c]
      remove some lines
+   - markus@cvs.openbsd.org 2001/02/09 13:38:07
+     [auth-options.c]
+     reset options if no option is given; from han.holl@prismant.nl
    instead of '0'  (from the OpenBSD tree)
  - (bal) Synced ssh.1 and sshd.8 w/ OpenBSD
 
@@ -3828,4 +3831,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.724 2001/02/10 22:19:23 mouring Exp $
+$Id: ChangeLog,v 1.725 2001/02/10 22:27:19 mouring Exp $
