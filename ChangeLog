@@ -6,6 +6,9 @@
      [ssh-rsa.c]
      backout last change, since it violates pkcs#1
      switch to share/misc/license.template
+   - djm@cvs.openbsd.org 2003/06/20 05:47:58
+     [sshd_config.5]
+     sync description of protocol 2 cipher proposal; ok markus
  - (dtucker) [regress/authorized_keys_root] Remove temp data file from CVS.
  - (dtucker) [openbsd-compat/setproctitle.c] Ensure SPT_TYPE is defined before
    testing its value.
@@ -572,4 +575,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.2819 2003/06/22 10:45:15 dtucker Exp $
+$Id: ChangeLog,v 1.2820 2003/06/22 10:46:53 dtucker Exp $
