@@ -1,4 +1,6 @@
 20020510
+ - (stevesk) [auth.c] Shadow account and expiration cleanup.  Now
+   check for root forced expire.  Still don't check for inactive.
  - (djm) Rework RedHat RPM files. Based on spec from Nalin 
    Dahyabhai <nalin@redhat.com> and patches from 
    Pekka Savola <pekkas@netcore.fi>
@@ -557,4 +559,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2103 2002/05/10 02:40:15 mouring Exp $
+$Id: ChangeLog,v 1.2104 2002/05/10 15:48:52 stevesk Exp $
