@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.18 2003/01/07 06:04:18 djm Exp $ */
+/* $Id: openbsd-compat.h,v 1.19 2003/02/24 01:55:56 djm Exp $ */
 
 #ifndef _OPENBSD_H
 #define _OPENBSD_H
@@ -6,6 +6,7 @@
 #include "config.h"
 
 /* OpenBSD function replacements */
+#include "basename.h"
 #include "bindresvport.h"
 #include "getcwd.h"
 #include "realpath.h"

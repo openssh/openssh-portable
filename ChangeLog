@@ -82,6 +82,7 @@
  - (djm) Bug #501: gai_strerror should return char*; 
    fix from dtucker@zip.com.au
  - (djm) Most of Bug #499: Cygwin compile fixes for new progressmeter
+ - (djm) Rest of Bug #499: Import a basename() function from OpenBSD libc
 
 20030211
  - (djm) Cygwin needs libcrypt too. Patch from vinschen@redhat.com
@@ -1182,4 +1183,4 @@
      save auth method before monitor_reset_key_state(); bugzilla bug #284;
      ok provos@
 
-$Id: ChangeLog,v 1.2618 2003/02/24 01:47:15 djm Exp $
+$Id: ChangeLog,v 1.2619 2003/02/24 01:55:55 djm Exp $
