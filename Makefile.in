@@ -34,14 +34,14 @@ OBJS=	authfd.o authfile.o auth-passwd.o auth-rhosts.o auth-rh-rsa.o \
 
 all: $(OBJS) $(TARGETS)
 
-libssh.a: authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o cipher.o compat.o compress.o crc32.o deattack.o hostfile.o match.o mpaux.o nchan.o packet.o readpass.o rsa.o tildexpand.o ttymodes.o uidswap.o xmalloc.o helper.o rc4.o bsd-mktemp.o bsd-strlcpy.o bsd-strlcat.o bsd-snprintf.o log.o fingerprint.o
+libssh.a: authfd.o authfile.o bufaux.o buffer.o canohost.o channels.o cipher.o compat.o compress.o crc32.o deattack.o hostfile.o match.o mpaux.o nchan.o packet.o readpass.o rsa.o tildexpand.o ttymodes.o uidswap.o xmalloc.o helper.o rc4.o bsd-mktemp.o bsd-strlcpy.o bsd-strlcat.o bsd-snprintf.o bsd-daemon.o log.o fingerprint.o
 	$(AR) rv $@ $^
 	$(RANLIB) $@
 
 ssh: ssh.o sshconnect.o log-client.o readconf.o clientloop.o libssh.a
 	$(CC) -o $@ $^ $(LFLAGS) $(LIBS) 
 
-sshd:	sshd.o auth-rhosts.o auth-passwd.o auth-rsa.o auth-rh-rsa.o pty.o log-server.o login.o servconf.o serverloop.o bsd-login.o bsd-daemon.o md5crypt.o libssh.a
+sshd:	sshd.o auth-rhosts.o auth-passwd.o auth-rsa.o auth-rh-rsa.o pty.o log-server.o login.o servconf.o serverloop.o bsd-login.o md5crypt.o libssh.a
 	$(CC) -o $@ $^ $(LFLAGS) $(LIBS) 
 
 scp:	scp.o libssh.a
@@ -80,8 +80,10 @@ install: all
 	$(INSTALL) -m644 ssh-agent.1 $(mandir)/man1/ssh-agent.1
 	$(INSTALL) -m644 ssh-keygen.1 $(mandir)/man1/ssh-keygen.1
 	$(INSTALL) -m644 sshd.8 $(mandir)/man8/sshd.8
-	ln -sf ssh $(bindir)/slogin
-	ln -sf ssh.1 $(mandir)/man1/slogin.1
+	-rm -f $(bindir)/slogin
+	ln -s ssh $(bindir)/slogin
+	-rm -f $(mandir)/man1/slogin.1
+	ln -s ssh.1 $(mandir)/man1/slogin.1
 
 	$(INSTALL) -d $(libexecdir) ;
 	$(INSTALL) -d $(libexecdir)/ssh ;
