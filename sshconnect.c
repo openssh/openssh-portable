@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.116 2001/12/05 10:06:13 deraadt Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.117 2001/12/06 18:02:32 stevesk Exp $");
 
 #include <openssl/bn.h>
 
@@ -340,7 +340,6 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 				 * which connect() has already returned an
 				 * error.
 				 */
-				shutdown(sock, SHUT_RDWR);
 				close(sock);
 			}
 		}
