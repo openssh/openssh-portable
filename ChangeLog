@@ -39,6 +39,10 @@
    - markus@cvs.openbsd.org 2002/03/25 21:04:02
      [ssh.c]
      simplify num_identity_files handling
+   - markus@cvs.openbsd.org 2002/03/25 21:13:51
+     [channels.c channels.h compat.c compat.h nchan.c]
+     don't send stderr data after EOF, accept this from older known (broken)
+     sshd servers only, fixes http://bugzilla.mindrot.org/show_bug.cgi?id=179
 
 20020324
  - (stevesk) [session.c] disable LOGIN_NEEDS_TERM until we are sure
@@ -8053,4 +8057,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1989 2002/03/26 03:23:00 mouring Exp $
+$Id: ChangeLog,v 1.1990 2002/03/26 03:26:24 mouring Exp $

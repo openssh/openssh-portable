@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.171 2002/03/04 19:37:58 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.172 2002/03/25 21:13:51 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -706,7 +706,11 @@ channel_pre_open(Channel *c, fd_set * readset, fd_set * writeset)
 		if (buffer_len(&c->output) > 0) {
 			FD_SET(c->wfd, writeset);
 		} else if (c->ostate == CHAN_OUTPUT_WAIT_DRAIN) {
-			chan_obuf_empty(c);
+			if (CHANNEL_EFD_OUTPUT_ACTIVE(c))
+                               debug2("channel %d: obuf_empty delayed efd %d/(%d)",
+                                   c->self, c->efd, buffer_len(&c->extended));
+			else
+				chan_obuf_empty(c);
 		}
 	}
 	/** XXX check close conditions, too */
@@ -714,7 +718,8 @@ channel_pre_open(Channel *c, fd_set * readset, fd_set * writeset)
 		if (c->extended_usage == CHAN_EXTENDED_WRITE &&
 		    buffer_len(&c->extended) > 0)
 			FD_SET(c->efd, writeset);
-		else if (c->extended_usage == CHAN_EXTENDED_READ &&
+		else if (!(c->flags & CHAN_EOF_SENT) &&
+		    c->extended_usage == CHAN_EXTENDED_READ &&
 		    buffer_len(&c->extended) < c->remote_window)
 			FD_SET(c->efd, readset);
 	}
@@ -1632,12 +1637,18 @@ channel_output_poll(void)
 				fatal("cannot happen: istate == INPUT_WAIT_DRAIN for proto 1.3");
 			/*
 			 * input-buffer is empty and read-socket shutdown:
-			 * tell peer, that we will not send more data: send IEOF
+			 * tell peer, that we will not send more data: send IEOF.
+			 * hack for extended data: delay EOF if EFD still in use.
 			 */
-			chan_ibuf_empty(c);
+			if (CHANNEL_EFD_INPUT_ACTIVE(c))
+                               debug2("channel %d: ibuf_empty delayed efd %d/(%d)",
+                                   c->self, c->efd, buffer_len(&c->extended));
+			else
+				chan_ibuf_empty(c);
 		}
 		/* Send extended data, i.e. stderr */
 		if (compat20 &&
+		    !(c->flags & CHAN_EOF_SENT) &&
 		    c->remote_window > 0 &&
 		    (len = buffer_len(&c->extended)) > 0 &&
 		    c->extended_usage == CHAN_EXTENDED_READ) {
@@ -1725,6 +1736,13 @@ channel_input_extended_data(int type, u_int32_t seq, void *ctxt)
 	if (c->type != SSH_CHANNEL_OPEN) {
 		log("channel %d: ext data for non open", id);
 		return;
+	}
+	if (c->flags & CHAN_EOF_RCVD) {
+		if (datafellows & SSH_BUG_EXTEOF)
+			debug("channel %d: accepting ext data after eof", id);
+		else
+			packet_disconnect("Received extended_data after EOF "
+			    "on channel %d.", id);
 	}
 	tcode = packet_get_int();
 	if (c->efd == -1 ||
