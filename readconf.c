@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.128 2004/03/05 10:53:58 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.129 2004/04/18 23:10:26 djm Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -779,7 +779,8 @@ parse_int:
  */
 
 int
-read_config_file(const char *filename, const char *host, Options *options)
+read_config_file(const char *filename, const char *host, Options *options, 
+    int checkperm)
 {
 	FILE *f;
 	char line[1024];
@@ -787,9 +788,23 @@ read_config_file(const char *filename, const char *host, Options *options)
 	int bad_options = 0;
 
 	/* Open the file. */
-	f = fopen(filename, "r");
-	if (!f)
+	if ((f = fopen(filename, "r")) == NULL)
 		return 0;
+
+	if (checkperm) {
+		struct stat sb;
+		
+		if (fstat(fileno(f), &sb) == -1) {
+			fatal("fstat %s: %s", filename, strerror(errno));
+			fclose(f);
+			return (0);
+		}
+		if (((sb.st_uid != 0 && sb.st_uid != getuid()) ||
+		    (sb.st_mode & 022) != 0)) {
+			fatal("Bad owner or permissions on %s", filename);
+			return 0;
+		}
+	}
 
 	debug("Reading configuration data %.200s", filename);
 

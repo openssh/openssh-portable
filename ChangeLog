@@ -4,6 +4,11 @@
      [sshconnect2.c]
      swap the last two parameters to TAILQ_FOREACH_REVERSE. matches what FreeBSD     and NetBSD do.
      ok millert@ mcbride@ markus@ ho@, checked to not affect ports by naddy@
+   - djm@cvs.openbsd.org 2004/04/18 23:10:26
+     [readconf.c readconf.h ssh-keysign.c ssh.c]
+     perform strict ownership and modes checks for ~/.ssh/config files, 
+     as these can be used to execute arbitrary programs; ok markus@
+     NB. ssh will now exit when it detects a config with poor permissions
  - (djm) [openbsd-compat/sys-queue.h] Sync with OpenBSD, needed for above change
 
 20040419
@@ -1009,4 +1014,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3323 2004/04/20 10:10:46 djm Exp $
+$Id: ChangeLog,v 1.3324 2004/04/20 10:11:57 djm Exp $
