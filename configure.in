@@ -380,7 +380,7 @@ fi
 AC_ARG_WITH(ssl-dir,
 	[  --with-ssl-dir=PATH     Specify path to OpenSSL installation ],
 	[
-		if test "x$withval" != "$xno" ; then
+		if test "x$withval" != "xno" ; then
 			tryssldir=$withval
 		fi
 	]
@@ -1043,7 +1043,7 @@ AC_ARG_WITH(kerberos4,
 	[
 		if test "x$withval" != "xno" ; then
 	
-			if test "x$withval" != "$xyes" ; then
+			if test "x$withval" != "xyes" ; then
 				CFLAGS="$CFLAGS -I${withval}/include"
 				LDFLAGS="$LDFLAGS -L${withval}/lib"
 				if test ! -z "$need_dash_r" ; then

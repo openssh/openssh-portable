@@ -2,6 +2,7 @@
  - (stevesk) Fix typo in auth.c: USE_PAM not PAM
  - (stevesk) Create contrib/cygwin/ directory; patch from
    Corinna Vinschen <vinschen@redhat.com>
+ - (bal) Resolved more $xno and $xyes issues in configure.in
 
 20001028
  - (djm) fix select hack in serverloop.c from Philippe WILLEM 
