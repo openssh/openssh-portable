@@ -1,4 +1,49 @@
-This package is the actual port of OpenSSH to Cygwin 1.5.
+This package describes important Cygwin specific stuff concerning OpenSSH.
+
+The binary package is usually built for recent Cygwin versions and might
+not run on older versions.  Please check http://cygwin.com/ for information
+about current Cygwin releases.
+
+Build instructions are at the end of the file.
+
+===========================================================================
+Important change since 3.7.1p2-2:
+
+The ssh-host-config file doesn't create the /etc/ssh_config and
+/etc/sshd_config files from builtin here-scripts anymore, but it uses
+skeleton files installed in /etc/defaults/etc.
+
+Also it now tries hard to create appropriate permissions on files.
+Same applies for ssh-user-config.
+
+After creating the sshd service with ssh-host-config, it's advisable to
+call ssh-user-config for all affected users, also already exising user
+configurations.  In the latter case, file and directory permissions are
+checked and changed, if requireed to match the host configuration.
+
+Important note for Windows 2003 Server users:
+---------------------------------------------
+
+2003 Server has a funny new feature.  When starting services under SYSTEM
+account, these services have nearly all user rights which SYSTEM holds... 
+except for the "Create a token object" right, which is needed to allow
+public key authentication :-(
+
+There's no way around this, except for creating a substitute account which
+has the appropriate privileges.  Basically, this account should be member
+of the administrators group, plus it should have the following user rights:
+
+	Create a token object
+	Logon as a service
+	Replace a process level token
+	Increase Quota
+
+The ssh-host-config script asks you, if it should create such an account,
+called "sshd_server".  If you say "no" here, you're on your own.  Please
+follow the instruction in ssh-host-config exactly if possible.  Note that
+ssh-user-config sets the permissions on 2003 Server machines dependent of
+whether a sshd_server account exists or not.
+===========================================================================
 
 ===========================================================================
 Important change since 3.4p1-2:
@@ -114,54 +159,6 @@ ${SYSTEMROOT}/system32/drivers/etc/services file:
 
    ssh         22/tcp          #SSH daemon
 
-===========================================================================
-The following restrictions only apply to Cygwin versions up to 1.3.1
-===========================================================================
-
-Authentication to sshd is possible in one of two ways.
-You'll have to decide before starting sshd!
-
-- If you want to authenticate via RSA and you want to login to that
-  machine to exactly one user account you can do so by running sshd
-  under that user account. You must change /etc/sshd_config
-  to contain the following:
-
-  RSAAuthentication yes
-
-  Moreover it's possible to use rhosts and/or rhosts with
-  RSA authentication by setting the following in sshd_config:
-
-  RhostsAuthentication yes
-  RhostsRSAAuthentication yes
-
-- If you want to be able to login to different user accounts you'll
-  have to start sshd under system account or any other account that
-  is able to switch user context. Note that administrators are _not_
-  able to do that by default! You'll have to give the following
-  special user rights to the user:
-  "Act as part of the operating system"
-  "Replace process level token"
-  "Increase quotas"
-  and if used via service manager
-  "Logon as a service".
-
-  The system account does of course own that user rights by default.
-
-  Unfortunately, if you choose that way, you can only logon with
-  NT password authentification and you should change
-  /etc/sshd_config to contain the following:
-
-    PasswordAuthentication yes
-    RhostsAuthentication no
-    RhostsRSAAuthentication no
-    RSAAuthentication no
-
-  However you can login to the user which has started sshd with
-  RSA authentication anyway. If you want that, change the RSA
-  authentication setting back to "yes":
-     
-    RSAAuthentication yes
-
 Please note that OpenSSH does never use the value of $HOME to
 search for the users configuration files! It always uses the
 value of the pw_dir field in /etc/passwd as the home directory.
@@ -169,7 +166,7 @@ If no home diretory is set in /etc/passwd, the root directory
 is used instead!
 
 You may use all features of the CYGWIN=ntsec setting the same
-way as they are used by the `login' port on sources.redhat.com:
+way as they are used by Cygwin's login(1) port:
 
   The pw_gecos field may contain an additional field, that begins
   with (upper case!) "U-", followed by the domain and the username
@@ -186,6 +183,8 @@ way as they are used by the `login' port on sources.redhat.com:
 
     locuser::1104:513:John Doe,U-user,S-1-5-21-...
 
+Note that the CYGWIN=ntsec setting is required for public key authentication.
+
 SSH2 server and user keys are generated by the `ssh-*-config' scripts
 as well.
 
@@ -194,15 +193,30 @@ configure are used for the Cygwin binary distribution:
 
 	--prefix=/usr \
 	--sysconfdir=/etc \
-	--libexecdir='${exec_prefix}/sbin'
+	--libexecdir='$(sbindir)' \
+	--localstatedir=/var \
+	--datadir='$(prefix)/share' \
+	--mandir='$(datadir)/man' \
+	--with-tcp-wrappers
 
-You must have installed the zlib and openssl packages to be able to
+If you want to create a Cygwin package, equivalent to the one
+in the Cygwin binary distribution, install like this:
+
+	mkdir /tmp/cygwin-ssh
+	cd $(builddir)
+	make install DESTDIR=/tmp/cygwin-ssh
+	cd $(srcdir)/contrib/cygwin
+	make cygwin-postinstall DESTDIR=/tmp/cygwin-ssh
+	cd /tmp/cygwin-ssh
+	find * \! -type d | tar cvjfT my-openssh.tar.bz2 -
+	
+You must have installed the zlib and openssl-devel packages to be able to
 build OpenSSH!
 
 Please send requests, error reports etc. to cygwin@cygwin.com.
 
 Have fun,
 
-Corinna Vinschen <vinschen@redhat.com>
+Corinna Vinschen
 Cygwin Developer
 Red Hat Inc.

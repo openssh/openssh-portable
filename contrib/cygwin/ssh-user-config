@@ -1,8 +1,11 @@
 #!/bin/sh
 #
-# ssh-user-config, Copyright 2000, Red Hat Inc.
+# ssh-user-config, Copyright 2000, 2001, 2002, 2003, Red Hat Inc.
 #
 # This file is part of the Cygwin port of OpenSSH.
+
+# Directory where the config files are stored
+SYSCONFDIR=/etc
 
 progname=$0
 auto_answer=""
@@ -32,6 +35,15 @@ request()
     return 1
   fi
 }
+
+# Check if running on NT
+_sys="`uname -a`"
+_nt=`expr "$_sys" : "CYGWIN_NT"`
+# If running on NT, check if running under 2003 Server or later
+if [ $_nt -gt 0 ]
+then
+  _nt2003=`uname | awk -F- '{print ( $2 >= 5.2 ) ? 1 : 0;}'`
+fi
 
 # Check options
 
@@ -84,27 +96,27 @@ done
 
 # Ask user if user identity should be generated
 
-if [ ! -f /etc/passwd ]
+if [ ! -f ${SYSCONFDIR}/passwd ]
 then
-  echo '/etc/passwd is nonexistant. Please generate an /etc/passwd file'
+  echo "${SYSCONFDIR}/passwd is nonexistant. Please generate an ${SYSCONFDIR}/passwd file"
   echo 'first using mkpasswd. Check if it contains an entry for you and'
   echo 'please care for the home directory in your entry as well.'
   exit 1
 fi
 
 uid=`id -u`
-pwdhome=`awk -F: '{ if ( $3 == '${uid}' ) print $6; }' < /etc/passwd`
+pwdhome=`awk -F: '{ if ( $3 == '${uid}' ) print $6; }' < ${SYSCONFDIR}/passwd`
 
 if [ "X${pwdhome}" = "X" ]
 then
-  echo 'There is no home directory set for you in /etc/passwd.'
+  echo "There is no home directory set for you in ${SYSCONFDIR}/passwd."
   echo 'Setting $HOME is not sufficient!'
   exit 1
 fi
 
 if [ ! -d "${pwdhome}" ]
 then
-  echo "${pwdhome} is set in /etc/passwd as your home directory"
+  echo "${pwdhome} is set in ${SYSCONFDIR}/passwd as your home directory"
   echo 'but it is not a valid directory. Cannot create user identity files.'
   exit 1
 fi
@@ -114,13 +126,24 @@ fi
 if [ "X${pwdhome}" = "X/" ]
 then
   # But first raise a warning!
-  echo 'Your home directory in /etc/passwd is set to root (/). This is not recommended!'
+  echo "Your home directory in ${SYSCONFDIR}/passwd is set to root (/). This is not recommended!"
   if request "Would you like to proceed anyway?"
   then
     pwdhome=''
   else
     exit 1
   fi
+fi
+
+if [ -d "${pwdhome}" -a $_nt -gt 0 -a -n "`chmod -c g-w,o-w "${pwdhome}"`" ]
+then
+  echo
+  echo 'WARNING: group and other have been revoked write permission to your home'
+  echo "         directory ${pwdhome}."
+  echo '         This is required by OpenSSH to allow public key authentication using'
+  echo '         the key files stored in your .ssh subdirectory.'
+  echo '         Revert this change ONLY if you know what you are doing!'
+  echo
 fi
 
 if [ -e "${pwdhome}/.ssh" -a ! -d "${pwdhome}/.ssh" ]
@@ -135,6 +158,21 @@ then
   if [ ! -e "${pwdhome}/.ssh" ]
   then
     echo "Creating users ${pwdhome}/.ssh directory failed"
+    exit 1
+  fi
+fi
+
+if [ $_nt -gt 0 ]
+then
+  _user="system"
+  if [ $_nt2003 -gt 0 ]
+  then
+    grep -q '^sshd_server:' ${SYSCONFDIR}/passwd && _user="sshd_server"
+  fi
+  if ! setfacl -m "u::rwx,u:${_user}:r--,g::---,o::---" "${pwdhome}/.ssh"
+  then
+    echo "${pwdhome}/.ssh couldn't be given the correct permissions."
+    echo "Please try to solve this problem first."
     exit 1
   fi
 fi
@@ -193,6 +231,18 @@ then
       echo "Adding to ${pwdhome}/.ssh/authorized_keys"
       cat "${pwdhome}/.ssh/id_dsa.pub" >> "${pwdhome}/.ssh/authorized_keys"
     fi
+  fi
+fi
+
+if [ $_nt -gt 0 -a -e "${pwdhome}/.ssh/authorized_keys" ]
+then
+  if ! setfacl -m "u::rw-,u:${_user}:r--,g::---,o::---" "${pwdhome}/.ssh/authorized_keys"
+  then
+    echo
+    echo "WARNING: Setting correct permissions to ${pwdhome}/.ssh/authorized_keys"
+    echo "failed.  Please care for the correct permissions.  The minimum requirement"
+    echo "is, the owner and ${_user} both need read permissions."
+    echo
   fi
 fi
 
