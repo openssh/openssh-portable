@@ -3,6 +3,8 @@
    Linuxes, since that's what many use.  ok djm@
  - (dtucker) [auth-pam.c] rename the_authctxt to sshpam_authctxt in auth-pam.c
    to reduce potential confusion with the one in sshd.c.  ok djm@
+ - (djm) Bug #825: Fix ip_options_check() for mapped IPv4/IPv6 connection; 
+   with & ok dtucker@
 
 20040327
  - (dtucker) [session.c] Bug #817: Clear loginmsg after fork to prevent
@@ -928,4 +930,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3298 2004/03/30 10:57:57 dtucker Exp $
+$Id: ChangeLog,v 1.3299 2004/03/31 05:17:54 djm Exp $
