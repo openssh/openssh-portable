@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.171 2002/05/16 22:09:59 stevesk Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.172 2002/05/22 23:18:25 deraadt Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -107,7 +107,7 @@ int stdin_null_flag = 0;
 
 /*
  * Flag indicating that ssh should fork after authentication.  This is useful
- * so that the pasphrase can be entered manually, and then ssh goes to the
+ * so that the passphrase can be entered manually, and then ssh goes to the
  * background.
  */
 int fork_after_authentication_flag = 0;
@@ -1124,7 +1124,7 @@ ssh_session2_setup(int id, void *arg)
 			debug("Sending subsystem: %.*s", len, (u_char *)buffer_ptr(&command));
 			channel_request_start(id, "subsystem", /*want reply*/ 1);
 			/* register callback for reply */
-			/* XXX we asume that client_loop has already been called */
+			/* XXX we assume that client_loop has already been called */
 			dispatch_set(SSH2_MSG_CHANNEL_FAILURE, &client_subsystem_reply);
 			dispatch_set(SSH2_MSG_CHANNEL_SUCCESS, &client_subsystem_reply);
 		} else {
