@@ -39,6 +39,10 @@
    - markus@cvs.openbsd.org 2003/09/18 07:56:05
      [authfile.c]
      missing  buffer_free(&encrypted); #662; zardoz at users.sf.net
+   - markus@cvs.openbsd.org 2003/09/18 08:49:45
+     [deattack.c misc.c session.c ssh-agent.c]
+     more buffer allocation fixes; from Solar Designer; CAN-2003-0682;
+     ok millert@
 
 20030919
  - (djm) Bug #683: Remove reference to --with-ipv4-default from INSTALL;
@@ -1175,4 +1179,4 @@
  - Fix sshd BindAddress and -b options for systems using fake-getaddrinfo.
    Report from murple@murple.net, diagnosis from dtucker@zip.com.au
 
-$Id: ChangeLog,v 1.3026 2003/09/22 11:01:27 dtucker Exp $
+$Id: ChangeLog,v 1.3027 2003/09/22 11:04:23 dtucker Exp $
