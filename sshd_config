@@ -1,4 +1,4 @@
-#	$OpenBSD: sshd_config,v 1.60 2003/06/02 09:17:34 markus Exp $
+#	$OpenBSD: sshd_config,v 1.61 2003/06/20 05:48:21 djm Exp $
 
 # This is the sshd server system-wide configuration file.  See
 # sshd_config(5) for more information.
@@ -22,7 +22,7 @@
 #HostKey /etc/ssh/ssh_host_dsa_key
 
 # Lifetime and size of ephemeral version 1 server key
-#KeyRegenerationInterval 3600
+#KeyRegenerationInterval 1h
 #ServerKeyBits 768
 
 # Logging
@@ -32,7 +32,7 @@
 
 # Authentication:
 
-#LoginGraceTime 120
+#LoginGraceTime 2m
 #PermitRootLogin yes
 #StrictModes yes
 
@@ -74,6 +74,8 @@
 # bypass the setting of 'PasswordAuthentication'
 #UsePAM yes
 
+#AllowTcpForwarding yes
+#GatewayPorts no
 #X11Forwarding no
 #X11DisplayOffset 10
 #X11UseLocalhost yes
@@ -84,11 +86,14 @@
 #UsePrivilegeSeparation yes
 #PermitUserEnvironment no
 #Compression yes
-
+#ClientAliveInterval 0
+#ClientAliveCountMax 3
+#UseDNS yes
+#PidFile /var/run/sshd.pid
 #MaxStartups 10
+
 # no default banner path
 #Banner /some/path
-#UseDNS yes
 
 # override default of no subsystems
 Subsystem	sftp	/usr/libexec/sftp-server
