@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.87 2001/12/21 08:52:22 djm Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.88 2001/12/27 18:10:29 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -936,10 +936,6 @@ main(int ac, char **av)
 		printf("Too many arguments.\n");
 		usage();
 	}
-	if (key_type_name == NULL) {
-		printf("You must specify a key type (-t).\n");
-		usage();
-	}
 	if (change_passphrase && change_comment) {
 		printf("Can only have one of -p and -c.\n");
 		usage();
@@ -969,6 +965,10 @@ main(int ac, char **av)
 
 	arc4random_stir();
 
+	if (key_type_name == NULL) {
+		printf("You must specify a key type (-t).\n");
+		usage();
+	}
 	type = key_type_from_name(key_type_name);
 	if (type == KEY_UNSPEC) {
 		fprintf(stderr, "unknown key type %s\n", key_type_name);

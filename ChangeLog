@@ -32,6 +32,9 @@
    - markus@cvs.openbsd.org 2001/12/25 18:53:00
      [auth1.c]
      be more carefull on allocation
+   - markus@cvs.openbsd.org 2001/12/27 18:10:29
+     [ssh-keygen.c]
+     -t is only needed for key generation (unbreaks -i, -e, etc).
 
 20020121
  - (djm) Rework ssh-rand-helper:
@@ -7179,4 +7182,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1731 2002/01/22 12:07:52 djm Exp $
+$Id: ChangeLog,v 1.1732 2002/01/22 12:08:16 djm Exp $
