@@ -1,4 +1,4 @@
-#	$OpenBSD: scp.sh,v 1.1 2004/06/13 13:51:02 dtucker Exp $
+#	$OpenBSD: scp.sh,v 1.2 2004/06/16 13:15:09 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="scp"
@@ -45,15 +45,17 @@ cmp ${COPY} ${DIR}/copy || fail "corrupted copy"
 
 verbose "$tid: recursive local dir to remote dir"
 scpclean
+rm -rf ${DIR2}
 cp ${DATA} ${DIR}/copy
 $SCP $scpopts -r ${DIR} somehost:${DIR2} || fail "copy failed"
-cmp ${DIR} ${DIR2} || fail "corrupted copy"
+diff -rN ${DIR} ${DIR2} || fail "corrupted copy"
 
 verbose "$tid: recursive remote dir to local dir"
 scpclean
+rm -rf ${DIR2}
 cp ${DATA} ${DIR}/copy
 $SCP $scpopts -r somehost:${DIR} ${DIR2} || fail "copy failed"
-cmp ${DIR} ${DIR2} || fail "corrupted copy"
+diff -rN ${DIR} ${DIR2} || fail "corrupted copy"
 
 for i in 0 1 2 3 4; do
 	verbose "$tid: disallow bad server #$i"
