@@ -1,6 +1,7 @@
 20020623
  - (stevesk) [configure.ac] bug #255 LOGIN_NEEDS_UTMPX for AIX.
  - (bal) removed GNUism for getops in ssh-agent since glibc lacks optreset.
+ - (bal) add extern char *getopt.  Based on report by dtucker@zip.com.au 
 
 20020622
  - (djm) Update README.privsep; spotted by fries@
@@ -1010,4 +1011,4 @@
  - (stevesk) entropy.c: typo in debug message
  - (djm) ssh-keygen -i needs seeded RNG; report from markus@
 
-$Id: ChangeLog,v 1.2243 2002/06/23 00:18:15 mouring Exp $
+$Id: ChangeLog,v 1.2244 2002/06/23 00:20:50 mouring Exp $

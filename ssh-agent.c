@@ -939,6 +939,7 @@ main(int ac, char **av)
 	char *shell, *format, *pidstr, pidstrbuf[1 + 3 * sizeof pid];
 	char *agentsocket = NULL;
 	extern int optind;
+	extern char *optarg;
 	fd_set *readsetp = NULL, *writesetp = NULL;
 
 	SSLeay_add_all_algorithms();
