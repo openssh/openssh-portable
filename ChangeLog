@@ -11,6 +11,7 @@
    Ben Lindstrom <mouring@pconline.com>
  - (djm) Make building of X11-Askpass and GNOME-Askpass optional in RPM
    spec file.
+ - (djm) Released 2.1.1p3
 
 20000711
  - (djm) Fixup for AIX getuserattr() support from Tom Bertelson
