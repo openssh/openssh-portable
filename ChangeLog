@@ -36,6 +36,8 @@
      Add examples to ssh-agent.1, bz#481 from Ralf Hauser; ok deraadt@
  - (dtucker) [sshd.8] Bug #843: Add warning about PasswordAuthentication to
    UsePAM section.  Parts from djm@ and jmc@.
+ - (dtucker) [auth-pam.c scard-opensc.c] Tinderbox says auth-pam.c uses
+   readpass.h, grep says scard-opensc.c does too.  Replace with misc.h.
 
 20040502
  - (dtucker) OpenBSD CVS Sync
@@ -1112,4 +1114,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3352 2004/05/13 06:51:40 dtucker Exp $
+$Id: ChangeLog,v 1.3353 2004/05/13 07:29:35 dtucker Exp $

@@ -31,7 +31,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.100 2004/04/18 01:00:26 dtucker Exp $");
+RCSID("$Id: auth-pam.c,v 1.101 2004/05/13 07:29:35 dtucker Exp $");
 
 #ifdef USE_PAM
 #if defined(HAVE_SECURITY_PAM_APPL_H)
@@ -49,7 +49,7 @@ RCSID("$Id: auth-pam.c,v 1.100 2004/04/18 01:00:26 dtucker Exp $");
 #include "monitor_wrap.h"
 #include "msg.h"
 #include "packet.h"
-#include "readpass.h"
+#include "misc.h"
 #include "servconf.h"
 #include "ssh2.h"
 #include "xmalloc.h"
