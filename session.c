@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.65 2001/03/21 11:43:44 markus Exp $");
+RCSID("$OpenBSD: session.c,v 1.66 2001/03/21 21:06:30 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1515,6 +1515,7 @@ session_new(void)
 			s->chanid = -1;
 			s->ptyfd = -1;
 			s->ttyfd = -1;
+			s->tty[0] = '\0';                                                       
 			s->term = NULL;
 			s->pw = NULL;
 			s->display = NULL;

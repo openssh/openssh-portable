@@ -20,6 +20,9 @@
    - jakob@cvs.openbsd.org 2001/03/21 14:20:45
      [ssh-keygen.c]
      add -B flag to usage
+   - markus@cvs.openbsd.org 2001/03/21 21:06:30
+     [session.c]
+     missing init; from mib@unimelb.edu.au
 
 20010321
  - (djm) Fix ttyname breakage for AIX and Tru64. Patch from Steve 
@@ -4679,4 +4682,4 @@
  - Wrote replacements for strlcpy and mkdtemp
  - Released 1.0pre1
 
-$Id: ChangeLog,v 1.1007 2001/03/22 02:05:32 mouring Exp $
+$Id: ChangeLog,v 1.1008 2001/03/22 02:06:57 mouring Exp $
