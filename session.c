@@ -749,7 +749,7 @@ do_login(Session *s)
 		time_string = ctime(&last_login_time);
 		if (strchr(time_string, '\n'))
 			*strchr(time_string, '\n') = 0;
-		if (strcmp(buf, "") == 0)
+		if (strcmp(hostname, "") == 0)
 			printf("Last login: %s\r\n", time_string);
 		else
 			printf("Last login: %s from %s\r\n", time_string, hostname);
