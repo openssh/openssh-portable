@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.127 2001/06/26 20:14:11 markus Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.128 2001/07/09 05:58:47 fgsch Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -252,9 +252,9 @@ static void load_public_identity_files(void);
 int
 main(int ac, char **av)
 {
-	int i, opt, optind, exit_status, ok;
+	int i, opt, exit_status, ok;
 	u_short fwd_port, fwd_host_port;
-	char *optarg, *p, *cp, buf[256];
+	char *p, *cp, buf[256];
 	struct stat st;
 	struct passwd *pw;
 	int dummy;
@@ -311,37 +311,9 @@ main(int ac, char **av)
 	/* Parse command-line arguments. */
 	host = NULL;
 
-	for (optind = 1; optind < ac; optind++) {
-		if (av[optind][0] != '-') {
-			if (host)
-				break;
-			if (strchr(av[optind], '@')) {
-				p = xstrdup(av[optind]);
-				cp = strchr(p, '@');
-				if(cp == NULL || cp == p)
-					usage();
-				options.user = p;
-				*cp = '\0';
-				host = ++cp;
-			} else
-				host = av[optind];
-			continue;
-		}
-		opt = av[optind][1];
-		if (!opt)
-			usage();
-		if (strchr("eilcmpbILRDo", opt)) {   /* options with arguments */
-			optarg = av[optind] + 2;
-			if (strcmp(optarg, "") == 0) {
-				if (optind >= ac - 1)
-					usage();
-				optarg = av[++optind];
-			}
-		} else {
-			if (av[optind][2])
-				usage();
-			optarg = NULL;
-		}
+again:
+	while ((opt = getopt(ac, av,
+	    "1246nfxXgpaAki:I:tvVqe:c:m:p:l:R:L:D:CNTo:sb:")) != -1) {
 		switch (opt) {
 		case '1':
 			options.protocol = SSH_PROTO_1;
@@ -388,14 +360,16 @@ main(int ac, char **av)
 #endif
 		case 'i':
 			if (stat(optarg, &st) < 0) {
-				fprintf(stderr, "Warning: Identity file %s does not exist.\n",
-				    optarg);
+				fprintf(stderr, "Warning: Identity file %s "
+				    "does not exist.\n", optarg);
 				break;
 			}
-			if (options.num_identity_files >= SSH_MAX_IDENTITY_FILES)
-				fatal("Too many identity files specified (max %d)",
-				    SSH_MAX_IDENTITY_FILES);
-			options.identity_files[options.num_identity_files++] = xstrdup(optarg);
+			if (options.num_identity_files >=
+			    SSH_MAX_IDENTITY_FILES)
+				fatal("Too many identity files specified "
+				    "(max %d)", SSH_MAX_IDENTITY_FILES);
+			options.identity_files[options.num_identity_files++] =
+			    xstrdup(optarg);
 			break;
 		case 'I':
 #ifdef SMARTCARD
@@ -416,9 +390,8 @@ main(int ac, char **av)
 			} else if (options.log_level < SYSLOG_LEVEL_DEBUG3) {
 				options.log_level++;
 				break;
-			} else {
+			} else
 				fatal("Too high debugging level.");
-			}
 			/* fallthrough */
 		case 'V':
 			fprintf(stderr,
@@ -435,14 +408,16 @@ main(int ac, char **av)
 			break;
 		case 'e':
 			if (optarg[0] == '^' && optarg[2] == 0 &&
-			    (u_char) optarg[1] >= 64 && (u_char) optarg[1] < 128)
+			    (u_char) optarg[1] >= 64 &&
+			    (u_char) optarg[1] < 128)
 				options.escape_char = (u_char) optarg[1] & 31;
 			else if (strlen(optarg) == 1)
 				options.escape_char = (u_char) optarg[0];
 			else if (strcmp(optarg, "none") == 0)
 				options.escape_char = SSH_ESCAPECHAR_NONE;
 			else {
-				fprintf(stderr, "Bad escape character '%s'.\n", optarg);
+				fprintf(stderr, "Bad escape character '%s'.\n",
+				    optarg);
 				exit(1);
 			}
 			break;
@@ -455,23 +430,25 @@ main(int ac, char **av)
 				/* SSH1 only */
 				options.cipher = cipher_number(optarg);
 				if (options.cipher == -1) {
-					fprintf(stderr, "Unknown cipher type '%s'\n", optarg);
+					fprintf(stderr,
+					    "Unknown cipher type '%s'\n",
+					    optarg);
 					exit(1);
 				}
-				if (options.cipher == SSH_CIPHER_3DES) {
+				if (options.cipher == SSH_CIPHER_3DES)
 					options.ciphers = "3des-cbc";
-				} else if (options.cipher == SSH_CIPHER_BLOWFISH) {
+				else if (options.cipher == SSH_CIPHER_BLOWFISH)
 					options.ciphers = "blowfish-cbc";
-				} else {
+				else
 					options.ciphers = (char *)-1;
-				}
 			}
 			break;
 		case 'm':
 			if (mac_valid(optarg))
 				options.macs = xstrdup(optarg);
 			else {
-				fprintf(stderr, "Unknown mac type '%s'\n", optarg);
+				fprintf(stderr, "Unknown mac type '%s'\n",
+				    optarg);
 				exit(1);
 			}
 			break;
@@ -490,28 +467,35 @@ main(int ac, char **av)
 			    &fwd_host_port) != 3 &&
 			    sscanf(optarg, "%hu:%255[^:]:%hu", &fwd_port, buf,
 			    &fwd_host_port) != 3) {
-				fprintf(stderr, "Bad forwarding specification '%s'.\n", optarg);
+				fprintf(stderr,
+				    "Bad forwarding specification '%s'.\n",
+				    optarg);
 				usage();
 				/* NOTREACHED */
 			}
-			add_remote_forward(&options, fwd_port, buf, fwd_host_port);
+			add_remote_forward(&options, fwd_port, buf,
+			     fwd_host_port);
 			break;
 		case 'L':
 			if (sscanf(optarg, "%hu/%255[^/]/%hu", &fwd_port, buf,
 			    &fwd_host_port) != 3 &&
 			    sscanf(optarg, "%hu:%255[^:]:%hu", &fwd_port, buf,
 			    &fwd_host_port) != 3) {
-				fprintf(stderr, "Bad forwarding specification '%s'.\n", optarg);
+				fprintf(stderr,
+				    "Bad forwarding specification '%s'.\n",
+				    optarg);
 				usage();
 				/* NOTREACHED */
 			}
-			add_local_forward(&options, fwd_port, buf, fwd_host_port);
+			add_local_forward(&options, fwd_port, buf,
+			    fwd_host_port);
 			break;
 
 		case 'D':
 			fwd_port = a2port(optarg);
 			if (fwd_port == 0) {
-				fprintf(stderr, "Bad dynamic port '%s'\n", optarg);
+				fprintf(stderr, "Bad dynamic port '%s'\n",
+				    optarg);
 				exit(1);
 			}
 			add_local_forward(&options, fwd_port, "socks4", 0);
@@ -529,8 +513,8 @@ main(int ac, char **av)
 			break;
 		case 'o':
 			dummy = 1;
-			if (process_config_line(&options, host ? host : "", optarg,
-					 "command-line", 0, &dummy) != 0)
+			if (process_config_line(&options, host ? host : "",
+			    optarg, "command-line", 0, &dummy) != 0)
 				exit(1);
 			break;
 		case 's':
@@ -541,6 +525,28 @@ main(int ac, char **av)
 			break;
 		default:
 			usage();
+		}
+	}
+
+	ac -= optind;
+	av += optind;
+
+	if (ac > 0 && !host && **av != '-') {
+		if (strchr(*av, '@')) {
+			p = xstrdup(*av);
+			cp = strchr(p, '@');
+			if (cp == NULL || cp == p)
+				usage();
+			options.user = p;
+			*cp = '\0';
+			host = ++cp;
+		} else
+			host = *av;
+		ac--, av++;
+		if (ac > 0) {
+			optind = 0;
+			optreset = 1;
+			goto again;
 		}
 	}
 
@@ -559,18 +565,18 @@ main(int ac, char **av)
 	 * is no limit on the length of the command, except by the maximum
 	 * packet size.  Also sets the tty flag if there is no command.
 	 */
-	if (optind == ac) {
+	if (!ac) {
 		/* No command specified - execute shell on a tty. */
 		tty_flag = 1;
 		if (subsystem_flag) {
-			fprintf(stderr, "You must specify a subsystem to invoke.\n");
+			fprintf(stderr,
+			    "You must specify a subsystem to invoke.\n");
 			usage();
 		}
 	} else {
-		/* A command has been specified.  Store it into the
-		   buffer. */
-		for (i = optind; i < ac; i++) {
-			if (i > optind)
+		/* A command has been specified.  Store it into the buffer. */
+		for (i = 0; i < ac; i++) {
+			if (i)
 				buffer_append(&command, " ", 1);
 			buffer_append(&command, av[i], strlen(av[i]));
 		}
