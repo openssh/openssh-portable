@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.106 2001/03/03 13:29:21 djm Exp $ */
+/* $Id: acconfig.h,v 1.107 2001/03/14 00:39:46 djm Exp $ */
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
@@ -301,6 +301,9 @@
 
 /* Needed for SCO and NeXT */
 #undef BROKEN_SAVED_UIDS
+
+/* Define if your system glob() function has the GLOB_ALTDIRFUNC extension */
+#undef GLOB_HAS_ALTDIRFUNC
 
 @BOTTOM@
 

@@ -21,7 +21,7 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 
 #include "config.h"
 
-#include "bsd-nextstep.h"
+#include "openbsd-compat/bsd-nextstep.h"
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -53,6 +53,9 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 #endif
 #ifdef HAVE_BSTRING_H
 # include <bstring.h>
+#endif
+#if defined(HAVE_GLOB_H) && defined(GLOB_HAS_ALTDIRFUNC)
+# include <glob.h>
 #endif
 #ifdef HAVE_NETGROUP_H
 # include <netgroup.h>
@@ -95,8 +98,8 @@ static /**/const char *const rcsid[] = { (char *)rcsid, "\100(#)" msg }
 # include <vis.h>
 #endif
 #include "version.h"
-#include "openbsd-compat.h"
-#include "bsd-cygwin_util.h"
+#include "openbsd-compat/openbsd-compat.h"
+#include "openbsd-compat/bsd-cygwin_util.h"
 #include "entropy.h"
 
 #endif /* INCLUDES_H */

@@ -25,8 +25,6 @@
 #include "includes.h"
 RCSID("$OpenBSD: sftp-glob.c,v 1.1 2001/03/13 22:42:54 djm Exp $");
 
-#include <glob.h>
-
 #include "ssh.h"
 #include "buffer.h"
 #include "bufaux.h"

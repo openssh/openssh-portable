@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.160 2001/03/13 23:27:09 djm Exp $
+# $Id: Makefile.in,v 1.161 2001/03/14 00:39:46 djm Exp $
 
 prefix=@prefix@
 exec_prefix=@exec_prefix@
@@ -26,7 +26,7 @@ PATHS= -DETCDIR=\"$(sysconfdir)\" \
 CC=@CC@
 LD=@LD@
 CFLAGS=@CFLAGS@
-CPPFLAGS=-I. -I$(srcdir) -I$(srcdir)/openbsd-compat @CPPFLAGS@ $(PATHS) @DEFS@
+CPPFLAGS=-I. -I$(srcdir) @CPPFLAGS@ $(PATHS) @DEFS@
 LIBS=@LIBS@
 AR=@AR@
 RANLIB=@RANLIB@

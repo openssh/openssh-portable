@@ -28,8 +28,6 @@
 #include "includes.h"
 RCSID("$OpenBSD: sftp-int.c,v 1.27 2001/03/13 22:42:54 djm Exp $");
 
-#include <glob.h>
-
 #include "buffer.h"
 #include "xmalloc.h"
 #include "log.h"
