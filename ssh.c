@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.113 2001/04/12 20:09:37 stevesk Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.114 2001/04/13 01:26:17 stevesk Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -544,7 +544,7 @@ main(int ac, char **av)
 		/* No command specified - execute shell on a tty. */
 		tty_flag = 1;
 		if (subsystem_flag) {
-			fprintf(stderr, "You must specify a subsystem to invoke.");
+			fprintf(stderr, "You must specify a subsystem to invoke.\n");
 			usage();
 		}
 	} else {
