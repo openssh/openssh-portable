@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.258 2005/04/05 09:22:45 dtucker Exp $
+# $Id: configure.ac,v 1.259 2005/04/12 02:00:18 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -361,6 +361,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(SETEUID_BREAKS_SETUID)
 	AC_DEFINE(BROKEN_SETREUID)
 	AC_DEFINE(BROKEN_SETREGID)
+	AC_DEFINE(PASSWD_NEEDS_USERNAME, 1, [must supply username to passwd])
 	;;
 # UnixWare 7.x, OpenUNIX 8
 *-*-sysv5*)
@@ -368,6 +369,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(SETEUID_BREAKS_SETUID)
 	AC_DEFINE(BROKEN_SETREUID)
 	AC_DEFINE(BROKEN_SETREGID)
+	AC_DEFINE(PASSWD_NEEDS_USERNAME, 1, [must supply username to passwd])
 	;;
 *-*-sysv*)
 	;;
