@@ -2,6 +2,7 @@
  - (dtucker) [INSTALL] Reference README.privsep for the privilege separation
    requirements.  Pointed out by Bengt Svensson.
  - (dtucker) [INSTALL] Put the s/key text and URL back together.
+ - (dtucker) [INSTALL] Fix s/key text too.
 
 20050411
  - (tim) [configure.ac] UnixWare needs PASSWD_NEEDS_USERNAME
@@ -2435,4 +2436,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3743 2005/04/19 05:31:49 dtucker Exp $
+$Id: ChangeLog,v 1.3744 2005/04/19 05:40:51 dtucker Exp $

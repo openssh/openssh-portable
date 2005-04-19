@@ -51,9 +51,8 @@ http://www.lothar.com/tech/crypto/
 
 S/Key Libraries:
 
-If you wish to use --with-skey then you will need the above library
-installed.  No other current S/Key library is currently known to be
-supported.
+If you wish to use --with-skey then you will need the library below
+installed.  No other S/Key library is currently known to be supported.
 
 http://www.sparc.spb.su/solaris/skey/
 
@@ -226,4 +225,4 @@ Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
 
 
-$Id: INSTALL,v 1.68 2005/04/19 05:31:49 dtucker Exp $
+$Id: INSTALL,v 1.69 2005/04/19 05:40:51 dtucker Exp $
