@@ -1,3 +1,7 @@
+20050419
+ - (dtucker) [INSTALL] Reference README.privsep for the privilege separation
+   requirements.  Pointed out by Bengt Svensson.
+
 20050411
  - (tim) [configure.ac] UnixWare needs PASSWD_NEEDS_USERNAME
 
@@ -2430,4 +2434,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3741 2005/04/12 02:00:18 tim Exp $
+$Id: ChangeLog,v 1.3742 2005/04/19 02:21:21 dtucker Exp $
