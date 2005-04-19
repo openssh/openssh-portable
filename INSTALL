@@ -50,19 +50,20 @@ lacks /dev/random and don't want to use OpenSSH's internal entropy collection.
 http://www.lothar.com/tech/crypto/
 
 S/Key Libraries:
-http://www.sparc.spb.su/solaris/skey/
-
-LibEdit:
-
-sftp now supports command-line editing via NetBSD's libedit.  If your
-platform has it available natively you can use that, alternatively
-you might try these multi-platform ports:
-http://www.thrysoee.dk/editline/
-http://sourceforge.net/projects/libedit/
 
 If you wish to use --with-skey then you will need the above library
 installed.  No other current S/Key library is currently known to be
 supported.
+
+http://www.sparc.spb.su/solaris/skey/
+
+LibEdit:
+sftp now supports command-line editing via NetBSD's libedit.  If your
+platform has it available natively you can use that, alternatively
+you might try these multi-platform ports:
+
+http://www.thrysoee.dk/editline/
+http://sourceforge.net/projects/libedit/
 
 2. Building / Installation
 --------------------------
@@ -225,4 +226,4 @@ Please refer to the "reporting bugs" section of the webpage at
 http://www.openssh.com/
 
 
-$Id: INSTALL,v 1.67 2005/04/19 02:21:21 dtucker Exp $
+$Id: INSTALL,v 1.68 2005/04/19 05:31:49 dtucker Exp $
