@@ -1,3 +1,8 @@
+20050421
+ - (dtucker) [session.c] Bug #1024: Don't check pam_session_is_open if
+   UseLogin is set as PAM is not used to establish credentials in that
+   case.  Found by Michael Selvesteen, ok djm@
+
 20050419
  - (dtucker) [INSTALL] Reference README.privsep for the privilege separation
    requirements.  Pointed out by Bengt Svensson.
@@ -2436,4 +2441,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3744 2005/04/19 05:40:51 dtucker Exp $
+$Id: ChangeLog,v 1.3745 2005/04/21 09:50:55 dtucker Exp $
