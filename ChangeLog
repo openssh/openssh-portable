@@ -1,3 +1,6 @@
+20050423
+ - (tim) [config.guess] Add support for OpenServer 6.
+
 20050421
  - (dtucker) [session.c] Bug #1024: Don't check pam_session_is_open if
    UseLogin is set as PAM is not used to establish credentials in that
@@ -2441,4 +2444,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3745 2005/04/21 09:50:55 dtucker Exp $
+$Id: ChangeLog,v 1.3746 2005/04/24 01:17:29 tim Exp $
