@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.259 2005/04/12 02:00:18 tim Exp $
+# $Id: configure.ac,v 1.260 2005/04/24 07:52:23 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -643,29 +643,40 @@ AC_ARG_WITH(zlib-version-check,
 	]
 )
 
-AC_MSG_CHECKING(for zlib 1.1.4 or greater)
+AC_MSG_CHECKING(for possibly buggy zlib)
 AC_RUN_IFELSE([AC_LANG_SOURCE([[
+#include <stdio.h>
 #include <zlib.h>
 int main()
 {
-	int a, b, c, v;
-	if (sscanf(ZLIB_VERSION, "%d.%d.%d", &a, &b, &c) != 3)
+	int a=0, b=0, c=0, d=0, n, v;
+	n = sscanf(ZLIB_VERSION, "%d.%d.%d.%d", &a, &b, &c, &d);
+	if (n != 3 && n != 4)
 		exit(1);
-	v = a*1000000 + b*1000 + c;
-	if (v >= 1001004)
+	v = a*1000000 + b*10000 + c*100 + d;
+	fprintf(stderr, "found zlib version %s (%d)\n", ZLIB_VERSION, v);
+
+	/* 1.1.4 is OK */
+	if (a == 1 && b == 1 && c >= 4)
 		exit(0);
+
+	/* 1.2.1.2 and up are OK */
+	if (v >= 1020102)
+		exit(0);
+
 	exit(2);
 }
 	]])],
-	AC_MSG_RESULT(yes),
-	[ AC_MSG_RESULT(no)
+	AC_MSG_RESULT(no),
+	[ AC_MSG_RESULT(yes)
 	  if test -z "$zlib_check_nonfatal" ; then
 		AC_MSG_ERROR([*** zlib too old - check config.log ***
 Your reported zlib version has known security problems.  It's possible your
 vendor has fixed these problems without changing the version number.  If you
 are sure this is the case, you can disable the check by running
 "./configure --without-zlib-version-check".
-If you are in doubt, upgrade zlib to version 1.1.4 or greater.])
+If you are in doubt, upgrade zlib to version 1.2.1.2 or greater.
+See http://www.gzip.org/zlib/ for details.])
 	  else
 		AC_MSG_WARN([zlib version may have security problems])
 	  fi

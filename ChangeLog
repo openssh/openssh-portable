@@ -1,3 +1,7 @@
+20050424
+ - (dtucker) [INSTALL configure.ac] Make zlib version check test for 1.1.4 or
+   1.2.1.2 or higher.  With tim@, ok djm@
+
 20050423
  - (tim) [config.guess] Add support for OpenServer 6.
 
@@ -5,6 +9,10 @@
  - (dtucker) [session.c] Bug #1024: Don't check pam_session_is_open if
    UseLogin is set as PAM is not used to establish credentials in that
    case.  Found by Michael Selvesteen, ok djm@
+ - (dtucker) [auth-pam.c] Since people don't seem to be getting the message,
+   USE_POSIX_THREADS is now known as UNSUPPORTED_POSIX_THREADS_HACK.
+   USE_POSIX_THREADS will now generate an error so we don't silently change
+   behaviour.  ok djm@
 
 20050419
  - (dtucker) [INSTALL] Reference README.privsep for the privilege separation
@@ -2444,4 +2452,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3746 2005/04/24 01:17:29 tim Exp $
+$Id: ChangeLog,v 1.3747 2005/04/24 07:52:22 dtucker Exp $
