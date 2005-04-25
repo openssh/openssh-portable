@@ -1,3 +1,8 @@
+20050425
+ - (dtucker) [regress/multiplex.sh] Use "kill -0 $pid" to check for the
+   existence of a process since it's more portable.  Found by jbasney at
+   ncsa.uiuc.edu; ok tim@
+
 20050424
  - (dtucker) [INSTALL configure.ac] Make zlib version check test for 1.1.4 or
    1.2.1.2 or higher.  With tim@, ok djm@
@@ -2452,4 +2457,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3747 2005/04/24 07:52:22 dtucker Exp $
+$Id: ChangeLog,v 1.3748 2005/04/25 04:48:22 dtucker Exp $

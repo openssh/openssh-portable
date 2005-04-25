@@ -89,6 +89,6 @@ ${SSH} -S $CTL -Oexit otherhost || fail "send exit command failed"
 # Wait for master to exit
 sleep 2
 
-ps -p $MASTER_PID >/dev/null && fail "exit command failed" 
+kill -0 $MASTER_PID >/dev/null 2>&1 && fail "exit command failed" 
 
 cleanup
