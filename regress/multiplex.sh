@@ -1,7 +1,7 @@
 #	$OpenBSD: multiplex.sh,v 1.10 2005/02/27 11:33:30 dtucker Exp $
 #	Placed in the Public Domain.
 
-CTL=$OBJ/ctl-sock
+CTL=/tmp/openssh.regress.ctl-sock.$$
 
 tid="connection multiplexing"
 
