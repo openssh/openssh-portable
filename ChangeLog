@@ -5,7 +5,7 @@
  - (dtucker) [regress/multiplex.sh] Remove cleanup call since test-exec.sh
    will clean up anyway.  From tim@
  - (dtucker) [regress/multiplex.sh] Put control socket in /tmp so running
-   "make tests" works even if you'r building on a filesystem that doesn't
+   "make tests" works even if you're building on a filesystem that doesn't
    support sockets.  From deengert at anl.gov, ok djm@
 
 20050424
@@ -2462,4 +2462,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3750 2005/04/25 07:01:26 dtucker Exp $
+$Id: ChangeLog,v 1.3751 2005/04/25 07:03:29 dtucker Exp $
