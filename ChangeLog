@@ -1,3 +1,11 @@
+20050503
+ - (dtucker) [canohost.c] normalise socket addresses returned by
+   get_remote_hostname().  This means that IPv4 addresses in log messages
+   on IPv6 enabled machines will no longer be prefixed by "::ffff:" and
+   AllowUsers, DenyUsers, AllowGroups, DenyGroups will match IPv4-style
+   addresses only for 4-in-6 mapped connections, regardless of whether
+   or not the machine is IPv6 enabled.  ok djm@
+
 20050425
  - (dtucker) [regress/multiplex.sh] Use "kill -0 $pid" to check for the
    existence of a process since it's more portable.  Found by jbasney at
@@ -2462,4 +2470,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3751 2005/04/25 07:03:29 dtucker Exp $
+$Id: ChangeLog,v 1.3752 2005/05/03 09:05:32 dtucker Exp $
