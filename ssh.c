@@ -1095,7 +1095,7 @@ ssh_control_listener(void)
 	old_umask = umask(0177);
 	if (bind(control_fd, (struct sockaddr*)&addr, addr_len) == -1) {
 		control_fd = -1;
-		if (errno == EINVAL)
+		if (errno == EINVAL || errno == EADDRINUSE)
 			fatal("ControlSocket %s already exists",
 			    options.control_path);
 		else

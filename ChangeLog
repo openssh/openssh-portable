@@ -1,3 +1,7 @@
+20050504
+ - (djm) [ssh.c] some systems return EADDRINUSE on a bind to an already-used
+   unix domain socket, so catch that too; from jakob@ ok dtucker@
+
 20050503
  - (dtucker) [canohost.c] normalise socket addresses returned by
    get_remote_hostname().  This means that IPv4 addresses in log messages
@@ -2470,4 +2474,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3752 2005/05/03 09:05:32 dtucker Exp $
+$Id: ChangeLog,v 1.3753 2005/05/04 05:33:09 djm Exp $
