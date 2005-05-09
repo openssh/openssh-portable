@@ -583,6 +583,16 @@ then
 	chown "${_user}".544 ${LOCALSTATEDIR}/log/sshd.log
       fi
     fi
+    if ! ( mount | egrep -q 'on /(|usr/(bin|lib)) type system' )
+    then
+      echo
+      echo "Warning: It appears that you have user mode mounts (\"Just me\""
+      echo "chosen during install.)  Any daemons installed as services will"
+      echo "fail to function unless system mounts are used.  To change this,"
+      echo "re-run setup.exe and choose \"All users\"."
+      echo
+      echo "For more information, see http://cygwin.com/faq/faq0.html#TOC33"
+    fi
   fi
 fi
 

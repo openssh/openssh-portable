@@ -1,3 +1,7 @@
+20050509
+ - (dtucker) [contrib/cygwin/ssh-host-config] Add a test and warning for a
+   user-mode mounts in Cygwin installation.  Patch from vinschen at redhat.com.
+
 20050504
  - (djm) [ssh.c] some systems return EADDRINUSE on a bind to an already-used
    unix domain socket, so catch that too; from jakob@ ok dtucker@
@@ -2474,4 +2478,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3753 2005/05/04 05:33:09 djm Exp $
+$Id: ChangeLog,v 1.3754 2005/05/09 13:48:17 dtucker Exp $
