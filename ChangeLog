@@ -1,3 +1,7 @@
+20050512
+ - (tim) [buildpkg.sh.in] missing ${PKG_INSTALL_ROOT} in init script
+   hard link section. Bug 1038.
+
 20050509
  - (dtucker) [contrib/cygwin/ssh-host-config] Add a test and warning for a
    user-mode mounts in Cygwin installation.  Patch from vinschen at redhat.com.
@@ -2478,4 +2482,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3754 2005/05/09 13:48:17 dtucker Exp $
+$Id: ChangeLog,v 1.3755 2005/05/12 17:32:19 tim Exp $
