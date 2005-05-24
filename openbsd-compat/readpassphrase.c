@@ -138,7 +138,7 @@ restart:
 
 	/* Restore old terminal settings and signals. */
 	if (memcmp(&term, &oterm, sizeof(term)) != 0) {
-		while (tcsetattr(input, TCSANOW|TCSASOFT, &oterm) == -1 &&
+		while (tcsetattr(input, _T_FLUSH, &oterm) == -1 &&
 		    errno == EINTR)
 			continue;
 	}
