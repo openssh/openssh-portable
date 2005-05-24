@@ -138,7 +138,9 @@ restart:
 
 	/* Restore old terminal settings and signals. */
 	if (memcmp(&term, &oterm, sizeof(term)) != 0)
-		(void)tcsetattr(input, _T_FLUSH, &oterm);
+		for (;tcsetattr(input, _T_FLUSH, &oterm) == -1 &&
+		    errno == EINTR;)
+			;
 	(void)sigaction(SIGALRM, &savealrm, NULL);
 	(void)sigaction(SIGHUP, &savehup, NULL);
 	(void)sigaction(SIGINT, &saveint, NULL);

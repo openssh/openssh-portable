@@ -1,4 +1,9 @@
 20050512
+ - (djm) [openbsd-compat/readpassphrase.c] bz #950: Retry tcsetattr to ensure
+   terminal modes are reset correctly. Fix from peak AT argo.troja.mff.cuni.cz;
+   "looks ok" dtucker@
+
+20050512
  - (tim) [buildpkg.sh.in] missing ${PKG_INSTALL_ROOT} in init script
    hard link section. Bug 1038.
 
@@ -2482,4 +2487,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3755 2005/05/12 17:32:19 tim Exp $
+$Id: ChangeLog,v 1.3756 2005/05/24 05:54:27 djm Exp $
