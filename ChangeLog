@@ -6,6 +6,9 @@
    idea, it is now known as UNSUPPORTED_POSIX_THREADS_HACK.  Attempting to use
    USE_POSIX_THREADS will now generate an error so we don't silently change
    behaviour.  ok djm@
+ - (dtucker) [openbsd-compat/bsd-cygwin_util.c] Ensure sufficient memory
+   allocation when retrieving core Windows environment.  Add CYGWIN variable
+   to propagated variables.  Patch from vinschen at redhat.com, ok djm@
 
 20050524
  - (djm) [openbsd-compat/readpassphrase.c] bz #950: Retry tcsetattr to ensure
@@ -2492,4 +2495,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3758 2005/05/25 06:18:09 dtucker Exp $
+$Id: ChangeLog,v 1.3759 2005/05/25 09:42:10 dtucker Exp $
