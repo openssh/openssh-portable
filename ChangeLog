@@ -1,6 +1,11 @@
 20050524
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
          [contrib/suse/openssh.spec] Update spec file versions to 4.1p1
+ - (dtucker) [auth-pam.c] Since people don't seem to be getting the message
+   that USE_POSIX_THREADS is unsupported, not recommended and generally a bad
+   idea, it is now known as UNSUPPORTED_POSIX_THREADS_HACK.  Attempting to use
+   USE_POSIX_THREADS will now generate an error so we don't silently change
+   behaviour.  ok djm@
 
 20050524
  - (djm) [openbsd-compat/readpassphrase.c] bz #950: Retry tcsetattr to ensure
@@ -48,10 +53,6 @@
  - (dtucker) [session.c] Bug #1024: Don't check pam_session_is_open if
    UseLogin is set as PAM is not used to establish credentials in that
    case.  Found by Michael Selvesteen, ok djm@
- - (dtucker) [auth-pam.c] Since people don't seem to be getting the message,
-   USE_POSIX_THREADS is now known as UNSUPPORTED_POSIX_THREADS_HACK.
-   USE_POSIX_THREADS will now generate an error so we don't silently change
-   behaviour.  ok djm@
 
 20050419
  - (dtucker) [INSTALL] Reference README.privsep for the privilege separation
@@ -2491,4 +2492,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3757 2005/05/25 04:43:47 djm Exp $
+$Id: ChangeLog,v 1.3758 2005/05/25 06:18:09 dtucker Exp $
