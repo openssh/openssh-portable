@@ -1,4 +1,8 @@
-20050512
+20050524
+ - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
+         [contrib/suse/openssh.spec] Update spec file versions to 4.1p1
+
+20050524
  - (djm) [openbsd-compat/readpassphrase.c] bz #950: Retry tcsetattr to ensure
    terminal modes are reset correctly. Fix from peak AT argo.troja.mff.cuni.cz;
    "looks ok" dtucker@
@@ -2487,4 +2491,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3756 2005/05/24 05:54:27 djm Exp $
+$Id: ChangeLog,v 1.3757 2005/05/25 04:43:47 djm Exp $
