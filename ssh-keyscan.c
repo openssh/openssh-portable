@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keyscan.c,v 1.52 2005/03/01 15:47:14 jmc Exp $");
+RCSID("$OpenBSD: ssh-keyscan.c,v 1.53 2005/04/28 10:17:56 moritz Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -543,6 +543,11 @@ congreet(int s)
 	n = snprintf(buf, sizeof buf, "SSH-%d.%d-OpenSSH-keyscan\r\n",
 	    c->c_keytype == KT_RSA1? PROTOCOL_MAJOR_1 : PROTOCOL_MAJOR_2,
 	    c->c_keytype == KT_RSA1? PROTOCOL_MINOR_1 : PROTOCOL_MINOR_2);
+	if (n == -1 || n >= sizeof buf) {
+		error("snprintf: buffer too small");
+		confree(s);
+		return;
+	}
 	if (atomicio(vwrite, s, buf, n) != n) {
 		error("write (%s): %s", c->c_name, strerror(errno));
 		confree(s);

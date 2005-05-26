@@ -41,6 +41,9 @@
    - jakob@cvs.openbsd.org 2005/04/26 13:08:37
      [ssh.c ssh_config.5]
      fallback gracefully if client cannot connect to ControlPath. ok djm@
+   - moritz@cvs.openbsd.org 2005/04/28 10:17:56
+     [progressmeter.c ssh-keyscan.c]
+     add snprintf checks. ok djm@ markus@
 
 20050524
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
@@ -2540,4 +2543,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3772 2005/05/26 02:07:13 djm Exp $
+$Id: ChangeLog,v 1.3773 2005/05/26 02:07:32 djm Exp $
