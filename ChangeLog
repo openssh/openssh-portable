@@ -59,6 +59,9 @@
    - djm@cvs.openbsd.org 2005/05/19 02:39:55
      [sshd_config.5]
      sort config options, from grunk AT pestilenz.org; ok jmc@
+   - djm@cvs.openbsd.org 2005/05/19 02:40:52
+     [sshd_config]
+     whitespace nit, from grunk AT pestilenz.org
 
 20050524
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
@@ -2558,4 +2561,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3778 2005/05/26 02:12:19 djm Exp $
+$Id: ChangeLog,v 1.3779 2005/05/26 02:12:37 djm Exp $
