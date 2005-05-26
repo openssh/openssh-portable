@@ -20,6 +20,9 @@
      [ssh.1]
      arg to -b is an address, not if_name;
      ok markus@
+   - jakob@cvs.openbsd.org 2005/04/20 10:05:45
+     [dns.c]
+     do not try to look up SSHFP for numerical hostname. ok djm@
 
 20050524
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
@@ -2519,4 +2522,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3766 2005/05/26 02:03:15 djm Exp $
+$Id: ChangeLog,v 1.3767 2005/05/26 02:03:31 djm Exp $
