@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: misc.c,v 1.29 2005/03/10 22:01:05 deraadt Exp $");
+RCSID("$OpenBSD: misc.c,v 1.30 2005/04/09 04:32:54 djm Exp $");
 
 #include "misc.h"
 #include "log.h"
@@ -373,6 +373,51 @@ addargs(arglist *args, char *fmt, ...)
 	args->nalloc = nalloc;
 	args->list[args->num++] = xstrdup(buf);
 	args->list[args->num] = NULL;
+}
+
+/*
+ * Expands tildes in the file name.  Returns data allocated by xmalloc.
+ * Warning: this calls getpw*.
+ */
+char *
+tilde_expand_filename(const char *filename, uid_t uid)
+{
+	const char *path;
+	char user[128], ret[MAXPATHLEN];
+	struct passwd *pw;
+	int len;
+
+	if (*filename != '~')
+		return (xstrdup(filename));
+	filename++;
+
+	path = strchr(filename, '/');
+	if (path != NULL && path > filename) {		/* ~user/path */
+		if (path - filename > sizeof(user) - 1)
+			fatal("tilde_expand_filename: ~username too long");
+		memcpy(user, filename, path - filename);
+		user[path - filename] = '\0';
+		if ((pw = getpwnam(user)) == NULL)
+			fatal("tilde_expand_filename: No such user %s", user);
+	} else if ((pw = getpwuid(uid)) == NULL)	/* ~/path */
+		fatal("tilde_expand_filename: No such uid %d", uid);
+
+	if (strlcpy(ret, pw->pw_dir, sizeof(ret)) >= sizeof(ret))
+		fatal("tilde_expand_filename: Path too long");
+
+	/* Make sure directory has a trailing '/' */
+	len = strlen(pw->pw_dir);
+	if ((len == 0 || pw->pw_dir[len - 1] != '/') &&
+	    strlcat(ret, "/", sizeof(ret)) >= sizeof(ret))
+		fatal("tilde_expand_filename: Path too long");
+
+	/* Skip leading '/' from specified path */
+	if (path != NULL)
+		filename = path + 1;
+	if (strlcat(ret, filename, sizeof(ret)) >= sizeof(ret))
+		fatal("tilde_expand_filename: Path too long");
+
+	return (xstrdup(ret));
 }
 
 /*

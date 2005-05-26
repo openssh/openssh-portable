@@ -12,6 +12,10 @@
      [ssh.c]
      Fix debug call for port forwards; patch from pete at seebeyond.com,
      ok djm@ (ID sync only - change already in portable)
+   - djm@cvs.openbsd.org 2005/04/09 04:32:54
+     [misc.c misc.h tildexpand.c Makefile.in]
+     replace tilde_expand_filename with a simpler implementation, ahead of
+     more whacking; ok deraadt@
 
 20050524
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
@@ -2511,4 +2515,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3764 2005/05/26 02:01:22 djm Exp $
+$Id: ChangeLog,v 1.3765 2005/05/26 02:02:14 djm Exp $

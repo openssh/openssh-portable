@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.h,v 1.21 2005/03/01 10:09:52 djm Exp $	*/
+/*	$OpenBSD: misc.h,v 1.22 2005/04/09 04:32:54 djm Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -24,6 +24,7 @@ char	*hpdelim(char **);
 char	*cleanhostname(char *);
 char	*colon(char *);
 long	 convtime(const char *);
+char	*tilde_expand_filename(const char *, uid_t);
 
 struct passwd *pwcopy(struct passwd *);
 
@@ -34,10 +35,6 @@ struct arglist {
 	u_int   nalloc;
 };
 void	 addargs(arglist *, char *, ...) __attribute__((format(printf, 2, 3)));
-
-/* tildexpand.c */
-
-char	*tilde_expand_filename(const char *, uid_t);
 
 /* readpass.c */
 
