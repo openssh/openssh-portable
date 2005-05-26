@@ -946,7 +946,8 @@ read_etc_default_login(char ***env, u_int *envsize, uid_t uid)
 }
 #endif /* HAVE_ETC_DEFAULT_LOGIN */
 
-void copy_environment(char **source, char ***env, u_int *envsize)
+void
+copy_environment(char **source, char ***env, u_int *envsize)
 {
 	char *var_name, *var_val;
 	int i;
