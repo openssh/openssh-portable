@@ -104,6 +104,11 @@
  - (dtucker) [configure.ac openbsd-compat/getrrsetbyname.c] Bug #1033: Provide
    templates for _getshort and _getlong if missing to prevent compiler warnings
    on Linux.
+ - (djm) [configure.ac openbsd-compat/Makefile.in]
+         [openbsd-compat/openbsd-compat.h openbsd-compat/strtonum.c]
+         Add strtonum(3) from OpenBSD libc, new code needs it. 
+         Unfortunately Linux forces us to do a bizarre dance with compiler
+         options to get LLONG_MIN/MAX; Spotted by and ok dtucker@ 
 
 20050524
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
@@ -2603,4 +2608,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3789 2005/05/26 10:12:15 dtucker Exp $
+$Id: ChangeLog,v 1.3790 2005/05/26 10:48:25 djm Exp $

@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.261 2005/05/26 10:12:15 dtucker Exp $
+# $Id: configure.ac,v 1.262 2005/05/26 10:48:25 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -79,6 +79,15 @@ AC_SUBST(LD)
 AC_C_INLINE
 if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 	CFLAGS="$CFLAGS -Wall -Wpointer-arith -Wno-uninitialized"
+
+	# Check for -std=gnu99 support (needed for LLONG_MIN/MAX on Linux)
+	saved_CFLAGS="$CFLAGS"
+	CFLAGS="$CFLAGS -std=gnu99"
+	AC_MSG_CHECKING(whether cc accepts -std=gnu99 option)
+	AC_TRY_COMPILE([], [return(0);], [AC_MSG_RESULT(yes)],
+		[AC_MSG_RESULT(no)
+		CFLAGS="$saved_CFLAGS"],
+	)
 fi
 
 AC_ARG_WITH(rpath,
@@ -922,7 +931,7 @@ AC_CHECK_FUNCS(\
 	setdtablesize setegid setenv seteuid setgroups setlogin setpcred \
 	setproctitle setregid setreuid setrlimit \
 	setsid setvbuf sigaction sigvec snprintf socketpair strerror \
-	strlcat strlcpy strmode strnvis strtoul sysconf tcgetpgrp \
+	strlcat strlcpy strmode strnvis strtonum strtoul sysconf tcgetpgrp \
 	truncate unsetenv updwtmpx utimes vhangup vsnprintf waitpid \
 )
 
