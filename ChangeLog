@@ -1,6 +1,9 @@
 20050525
  - (djm) [mpaux.c mpaux.h Makefile.in] Remove old mpaux.[ch] code, it has not 
    been used for a while
+ - (djm) OpenBSD CVS Sync
+   - otto@cvs.openbsd.org 2005/04/05 13:45:31
+     [ssh-keygen.c]
 
 20050524
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
@@ -2500,4 +2503,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3761 2005/05/26 01:35:37 djm Exp $
+$Id: ChangeLog,v 1.3762 2005/05/26 01:59:06 djm Exp $

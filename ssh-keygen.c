@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.122 2005/03/11 14:59:06 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.123 2005/04/05 13:45:31 otto Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -959,31 +959,38 @@ usage(void)
 {
 	fprintf(stderr, "Usage: %s [options]\n", __progname);
 	fprintf(stderr, "Options:\n");
-	fprintf(stderr, "  -b bits     Number of bits in the key to create.\n");
-	fprintf(stderr, "  -c          Change comment in private and public key files.\n");
-	fprintf(stderr, "  -e          Convert OpenSSH to IETF SECSH key file.\n");
-	fprintf(stderr, "  -f filename Filename of the key file.\n");
-	fprintf(stderr, "  -g          Use generic DNS resource record format.\n");
-	fprintf(stderr, "  -i          Convert IETF SECSH to OpenSSH key file.\n");
-	fprintf(stderr, "  -l          Show fingerprint of key file.\n");
-	fprintf(stderr, "  -p          Change passphrase of private key file.\n");
-	fprintf(stderr, "  -q          Quiet.\n");
-	fprintf(stderr, "  -y          Read private key file and print public key.\n");
-	fprintf(stderr, "  -t type     Specify type of key to create.\n");
+	fprintf(stderr, "  -a trials   Number of trials for screening DH-GEX moduli.\n");
 	fprintf(stderr, "  -B          Show bubblebabble digest of key file.\n");
-	fprintf(stderr, "  -H          Hash names in known_hosts file\n");
-	fprintf(stderr, "  -F hostname Find hostname in known hosts file\n");
+	fprintf(stderr, "  -b bits     Number of bits in the key to create.\n");
 	fprintf(stderr, "  -C comment  Provide new comment.\n");
-	fprintf(stderr, "  -N phrase   Provide new passphrase.\n");
-	fprintf(stderr, "  -P phrase   Provide old passphrase.\n");
-	fprintf(stderr, "  -r hostname Print DNS resource record.\n");
+	fprintf(stderr, "  -c          Change comment in private and public key files.\n");
 #ifdef SMARTCARD
 	fprintf(stderr, "  -D reader   Download public key from smartcard.\n");
+#endif /* SMARTCARD */
+	fprintf(stderr, "  -e          Convert OpenSSH to IETF SECSH key file.\n");
+	fprintf(stderr, "  -F hostname Find hostname in known hosts file.\n");
+	fprintf(stderr, "  -f filename Filename of the key file.\n");
+	fprintf(stderr, "  -G file     Generate candidates for DH-GEX moduli.\n");
+	fprintf(stderr, "  -g          Use generic DNS resource record format.\n");
+	fprintf(stderr, "  -H          Hash names in known_hosts file.\n");
+	fprintf(stderr, "  -i          Convert IETF SECSH to OpenSSH key file.\n");
+	fprintf(stderr, "  -l          Show fingerprint of key file.\n");
+	fprintf(stderr, "  -M memory   Amount of memory (MB) to use for generating DH-GEX moduli.\n");
+	fprintf(stderr, "  -N phrase   Provide new passphrase.\n");
+	fprintf(stderr, "  -P phrase   Provide old passphrase.\n");
+	fprintf(stderr, "  -p          Change passphrase of private key file.\n");
+	fprintf(stderr, "  -q          Quiet.\n");
+	fprintf(stderr, "  -R hostname Remove host from known_hosts file.\n");
+	fprintf(stderr, "  -r hostname Print DNS resource record.\n");
+	fprintf(stderr, "  -S start    Start point (hex) for generating DH-GEX moduli.\n");
+	fprintf(stderr, "  -T file     Screen candidates for DH-GEX moduli.\n");
+	fprintf(stderr, "  -t type     Specify type of key to create.\n");
+#ifdef SMARTCARD
 	fprintf(stderr, "  -U reader   Upload private key to smartcard.\n");
 #endif /* SMARTCARD */
-
-	fprintf(stderr, "  -G file     Generate candidates for DH-GEX moduli\n");
-	fprintf(stderr, "  -T file     Screen candidates for DH-GEX moduli\n");
+	fprintf(stderr, "  -v          Verbose.\n");
+	fprintf(stderr, "  -W gen      Generator to use for generating DH-GEX moduli.\n");
+	fprintf(stderr, "  -y          Read private key file and print public key.\n");
 
 	exit(1);
 }
