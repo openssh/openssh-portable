@@ -76,6 +76,10 @@
      - removes signed/unsigned comparisons in moduli generation
      - use strtonum instead of atoi where its easier
      - check some strlcpy overflow and fatal instead of truncate
+   - djm@cvs.openbsd.org 2005/05/23 23:32:46
+     [cipher.c myproposal.h ssh.1 ssh_config.5 sshd_config.5]
+     add support for draft-harris-ssh-arcfour-fixes-02 improved arcfour modes;
+     ok markus@
 
 20050524
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
@@ -2575,4 +2579,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3783 2005/05/26 02:16:18 djm Exp $
+$Id: ChangeLog,v 1.3784 2005/05/26 02:19:17 djm Exp $
