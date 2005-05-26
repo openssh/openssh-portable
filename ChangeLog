@@ -23,6 +23,10 @@
    - jakob@cvs.openbsd.org 2005/04/20 10:05:45
      [dns.c]
      do not try to look up SSHFP for numerical hostname. ok djm@
+   - djm@cvs.openbsd.org 2005/04/21 06:17:50
+     [ssh-add.1 ssh-agent.1 ssh-keygen.1 ssh.1 ssh_config.5 sshd.8]
+     [sshd_config.5] OpenSSH doesn't ever look at the $HOME environment
+     variable, so don't say that we do (bz #623); ok deraadt@
 
 20050524
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
@@ -2522,4 +2526,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3767 2005/05/26 02:03:31 djm Exp $
+$Id: ChangeLog,v 1.3768 2005/05/26 02:04:02 djm Exp $

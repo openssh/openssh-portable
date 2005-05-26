@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.49 2005/03/16 11:10:38 jmc Exp $
+.\" $OpenBSD: ssh_config.5,v 1.50 2005/04/21 06:17:50 djm Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -43,7 +43,7 @@
 .Nd OpenSSH SSH client configuration files
 .Sh SYNOPSIS
 .Bl -tag -width Ds -compact
-.It Pa $HOME/.ssh/config
+.It Pa ~/.ssh/config
 .It Pa /etc/ssh/ssh_config
 .El
 .Sh DESCRIPTION
@@ -55,7 +55,7 @@ the following order:
 command-line options
 .It
 user's configuration file
-.Pq Pa $HOME/.ssh/config
+.Pq Pa ~/.ssh/config
 .It
 system-wide configuration file
 .Pq Pa /etc/ssh/ssh_config
@@ -411,7 +411,7 @@ Note that this option applies to protocol version 2 only.
 Indicates that
 .Nm ssh
 should hash host names and addresses when they are added to
-.Pa $HOME/.ssh/known_hosts .
+.Pa ~/.ssh/known_hosts .
 These hashed names may be used normally by
 .Nm ssh
 and
@@ -457,11 +457,11 @@ specifications).
 Specifies a file from which the user's RSA or DSA authentication identity
 is read.
 The default is
-.Pa $HOME/.ssh/identity
+.Pa ~/.ssh/identity
 for protocol version 1, and
-.Pa $HOME/.ssh/id_rsa
+.Pa ~/.ssh/id_rsa
 and
-.Pa $HOME/.ssh/id_dsa
+.Pa ~/.ssh/id_dsa
 for protocol version 2.
 Additionally, any identities represented by the authentication agent
 will be used for authentication.
@@ -751,7 +751,7 @@ If this flag is set to
 .Dq yes ,
 .Nm ssh
 will never automatically add host keys to the
-.Pa $HOME/.ssh/known_hosts
+.Pa ~/.ssh/known_hosts
 file, and refuses to connect to hosts whose host key has changed.
 This provides maximum protection against trojan horse attacks,
 however, can be annoying when the
@@ -823,7 +823,7 @@ having to remember to give the user name on the command line.
 .It Cm UserKnownHostsFile
 Specifies a file to use for the user
 host key database instead of
-.Pa $HOME/.ssh/known_hosts .
+.Pa ~/.ssh/known_hosts .
 .It Cm VerifyHostKeyDNS
 Specifies whether to verify the remote key using DNS and SSHFP resource
 records.
@@ -856,7 +856,7 @@ The default is
 .El
 .Sh FILES
 .Bl -tag -width Ds
-.It Pa $HOME/.ssh/config
+.It Pa ~/.ssh/config
 This is the per-user configuration file.
 The format of this file is described above.
 This file is used by the
