@@ -95,6 +95,8 @@
              err(1,"read");
 
      ok deraadt@, cloder@, djm@
+ - (dtucker) [regress/reexec.sh] Add ${EXEEXT} so this test also works on
+   Cygwin.
 
 20050524
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
@@ -2594,4 +2596,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3786 2005/05/26 02:23:44 djm Exp $
+$Id: ChangeLog,v 1.3787 2005/05/26 03:43:57 dtucker Exp $
