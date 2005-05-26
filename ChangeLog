@@ -56,6 +56,9 @@
    - markus@cvs.openbsd.org 2005/05/16 15:30:51
      [readconf.c servconf.c]
      check return value from strdelim() for NULL (AddressFamily); mpech
+   - djm@cvs.openbsd.org 2005/05/19 02:39:55
+     [sshd_config.5]
+     sort config options, from grunk AT pestilenz.org; ok jmc@
 
 20050524
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
@@ -2555,4 +2558,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3777 2005/05/26 02:11:56 djm Exp $
+$Id: ChangeLog,v 1.3778 2005/05/26 02:12:19 djm Exp $
