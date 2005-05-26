@@ -8,6 +8,10 @@
      [sshd.c]
      avoid harmless logspam by not performing setsockopt() on non-socket;
      ok markus@
+   - dtucker@cvs.openbsd.org 2005/04/06 12:26:06
+     [ssh.c]
+     Fix debug call for port forwards; patch from pete at seebeyond.com,
+     ok djm@ (ID sync only - change already in portable)
 
 20050524
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
@@ -2507,4 +2511,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3763 2005/05/26 01:59:32 djm Exp $
+$Id: ChangeLog,v 1.3764 2005/05/26 02:01:22 djm Exp $
