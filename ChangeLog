@@ -80,6 +80,9 @@
      [cipher.c myproposal.h ssh.1 ssh_config.5 sshd_config.5]
      add support for draft-harris-ssh-arcfour-fixes-02 improved arcfour modes;
      ok markus@
+   - avsm@cvs.openbsd.org 2005/05/24 02:05:09
+     [ssh-keygen.c]
+     some style nits from dmiller@, and use a fatal() instead of a printf()/exit
 
 20050524
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
@@ -2579,4 +2582,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3784 2005/05/26 02:19:17 djm Exp $
+$Id: ChangeLog,v 1.3785 2005/05/26 02:19:39 djm Exp $

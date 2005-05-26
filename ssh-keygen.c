@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.124 2005/05/23 22:44:01 avsm Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.125 2005/05/24 02:05:09 avsm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -1008,15 +1008,15 @@ main(int ac, char **av)
 	struct passwd *pw;
 	struct stat st;
 	int opt, type, fd, download = 0;
-        uint32_t memory = 0, generator_wanted = 0, trials = 100;
+	uint32_t memory = 0, generator_wanted = 0, trials = 100;
 	int do_gen_candidates = 0, do_screen_candidates = 0;
 	int log_level = SYSLOG_LEVEL_INFO;
 	BIGNUM *start = NULL;
 	FILE *f;
+	const char *errstr;
 
 	extern int optind;
 	extern char *optarg;
-	const char *errstr;
 
 	__progname = ssh_get_progname(av[0]);
 
@@ -1042,10 +1042,9 @@ main(int ac, char **av)
 		switch (opt) {
 		case 'b':
 			bits = strtonum(optarg, 512, 32768, &errstr);
-			if (errstr) {
-				printf("Bits has bad value %s (%s)\n", optarg, errstr);
-				exit(1);
-			}
+			if (errstr)
+				fatal("Bits has bad value %s (%s)",
+					optarg, errstr);
 			break;
 		case 'F':
 			find_host = 1;
