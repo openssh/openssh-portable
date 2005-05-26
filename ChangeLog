@@ -71,6 +71,11 @@
    - jmc@cvs.openbsd.org 2005/05/20 11:23:32
      [ssh_config.5]
      oops - article and spacing;
+   - avsm@cvs.openbsd.org 2005/05/23 22:44:01
+     [moduli.c ssh-keygen.c]
+     - removes signed/unsigned comparisons in moduli generation
+     - use strtonum instead of atoi where its easier
+     - check some strlcpy overflow and fatal instead of truncate
 
 20050524
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
@@ -2570,4 +2575,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3782 2005/05/26 02:14:32 djm Exp $
+$Id: ChangeLog,v 1.3783 2005/05/26 02:16:18 djm Exp $
