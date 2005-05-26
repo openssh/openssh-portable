@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keyscan.c,v 1.53 2005/04/28 10:17:56 moritz Exp $");
+RCSID("$OpenBSD: ssh-keyscan.c,v 1.54 2005/05/24 17:32:44 avsm Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -493,10 +493,10 @@ conrecycle(int s)
 static void
 congreet(int s)
 {
-	int remote_major = 0, remote_minor = 0, n = 0;
+	int remote_major = 0, remote_minor = 0;
 	char buf[256], *cp;
 	char remote_version[sizeof buf];
-	size_t bufsiz;
+	size_t bufsiz, n = 0;
 	con *c = &fdcon[s];
 
 	bufsiz = sizeof(buf);
@@ -506,14 +506,17 @@ congreet(int s)
 			*cp = '\n';
 		cp++;
 	}
-	if (n < 0) {
-		if (errno != ECONNREFUSED)
-			error("read (%s): %s", c->c_name, strerror(errno));
-		conrecycle(s);
-		return;
-	}
 	if (n == 0) {
-		error("%s: Connection closed by remote host", c->c_name);
+		switch (errno) {
+		case EPIPE:
+			error("%s: Connection closed by remote host", c->c_name);
+			break;
+		case ECONNREFUSED:
+			break;
+		default:
+			error("read (%s): %s", c->c_name, strerror(errno));
+			break;
+		}
 		conrecycle(s);
 		return;
 	}
@@ -566,14 +569,14 @@ static void
 conread(int s)
 {
 	con *c = &fdcon[s];
-	int n;
+	size_t n;
 
 	if (c->c_status == CS_CON) {
 		congreet(s);
 		return;
 	}
 	n = atomicio(read, s, c->c_data + c->c_off, c->c_len - c->c_off);
-	if (n < 0) {
+	if (n == 0) {
 		error("read (%s): %s", c->c_name, strerror(errno));
 		confree(s);
 		return;

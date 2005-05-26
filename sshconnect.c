@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.162 2005/03/10 22:01:06 deraadt Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.163 2005/05/24 17:32:44 avsm Exp $");
 
 #include <openssl/bn.h>
 
@@ -426,14 +426,15 @@ ssh_exchange_identification(void)
 	int connection_out = packet_get_connection_out();
 	int minor1 = PROTOCOL_MINOR_1;
 
-	/* Read other side\'s version identification. */
+	/* Read other side's version identification. */
 	for (;;) {
 		for (i = 0; i < sizeof(buf) - 1; i++) {
-			int len = atomicio(read, connection_in, &buf[i], 1);
-			if (len < 0)
-				fatal("ssh_exchange_identification: read: %.100s", strerror(errno));
-			if (len != 1)
+			size_t len = atomicio(read, connection_in, &buf[i], 1);
+
+			if (len != 1 && errno == EPIPE) 
 				fatal("ssh_exchange_identification: Connection closed by remote host");
+			else if (len != 1)
+				fatal("ssh_exchange_identification: read: %.100s", strerror(errno));
 			if (buf[i] == '\r') {
 				buf[i] = '\n';
 				buf[i + 1] = 0;

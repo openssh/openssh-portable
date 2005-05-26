@@ -71,7 +71,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.121 2005/04/02 12:41:16 djm Exp $");
+RCSID("$OpenBSD: scp.c,v 1.122 2005/05/24 17:32:43 avsm Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -502,7 +502,8 @@ source(int argc, char **argv)
 	struct stat stb;
 	static BUF buffer;
 	BUF *bp;
-	off_t i, amt, result, statbytes;
+	off_t i, amt, statbytes;
+	size_t result;
 	int fd, haderr, indx;
 	char *last, *name, buf[2048];
 	int len;
@@ -578,14 +579,14 @@ next:			(void) close(fd);
 			if (!haderr) {
 				result = atomicio(read, fd, bp->buf, amt);
 				if (result != amt)
-					haderr = result >= 0 ? EIO : errno;
+					haderr = errno;
 			}
 			if (haderr)
 				(void) atomicio(vwrite, remout, bp->buf, amt);
 			else {
 				result = atomicio(vwrite, remout, bp->buf, amt);
 				if (result != amt)
-					haderr = result >= 0 ? EIO : errno;
+					haderr = errno;
 				statbytes += result;
 			}
 			if (limit_rate)
@@ -720,7 +721,8 @@ sink(int argc, char **argv)
 		YES, NO, DISPLAYED
 	} wrerr;
 	BUF *bp;
-	off_t i, j;
+	off_t i;
+	size_t j;
 	int amt, count, exists, first, mask, mode, ofd, omode;
 	off_t size, statbytes;
 	int setimes, targisdir, wrerrno = 0;
@@ -748,7 +750,7 @@ sink(int argc, char **argv)
 		targisdir = 1;
 	for (first = 1;; first = 0) {
 		cp = buf;
-		if (atomicio(read, remin, cp, 1) <= 0)
+		if (atomicio(read, remin, cp, 1) != 1)
 			return;
 		if (*cp++ == '\n')
 			SCREWUP("unexpected <newline>");
@@ -902,7 +904,7 @@ bad:			run_err("%s: %s", np, strerror(errno));
 			count += amt;
 			do {
 				j = atomicio(read, remin, cp, amt);
-				if (j <= 0) {
+				if (j == 0) {
 					run_err("%s", j ? strerror(errno) :
 					    "dropped connection");
 					exit(1);
@@ -918,10 +920,10 @@ bad:			run_err("%s: %s", np, strerror(errno));
 			if (count == bp->cnt) {
 				/* Keep reading so we stay sync'd up. */
 				if (wrerr == NO) {
-					j = atomicio(vwrite, ofd, bp->buf, count);
-					if (j != count) {
+					if (atomicio(vwrite, ofd, bp->buf,
+					    count) != count) {
 						wrerr = YES;
-						wrerrno = j >= 0 ? EIO : errno;
+						wrerrno = errno;
 					}
 				}
 				count = 0;
@@ -931,9 +933,9 @@ bad:			run_err("%s: %s", np, strerror(errno));
 		if (showprogress)
 			stop_progress_meter();
 		if (count != 0 && wrerr == NO &&
-		    (j = atomicio(vwrite, ofd, bp->buf, count)) != count) {
+		    atomicio(vwrite, ofd, bp->buf, count) != count) {
 			wrerr = YES;
-			wrerrno = j >= 0 ? EIO : errno;
+			wrerrno = errno;
 		}
 		if (wrerr == NO && ftruncate(ofd, size) != 0) {
 			run_err("%s: truncate: %s", np, strerror(errno));

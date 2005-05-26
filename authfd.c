@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfd.c,v 1.64 2004/08/11 21:44:31 avsm Exp $");
+RCSID("$OpenBSD: authfd.c,v 1.65 2005/05/24 17:32:43 avsm Exp $");
 
 #include <openssl/evp.h>
 
@@ -149,8 +149,7 @@ ssh_request_reply(AuthenticationConnection *auth, Buffer *request, Buffer *reply
 		l = len;
 		if (l > sizeof(buf))
 			l = sizeof(buf);
-		l = atomicio(read, auth->fd, buf, l);
-		if (l <= 0) {
+		if (atomicio(read, auth->fd, buf, l) != l) {
 			error("Error reading response from authentication socket.");
 			return 0;
 		}

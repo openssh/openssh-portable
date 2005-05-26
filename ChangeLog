@@ -83,6 +83,18 @@
    - avsm@cvs.openbsd.org 2005/05/24 02:05:09
      [ssh-keygen.c]
      some style nits from dmiller@, and use a fatal() instead of a printf()/exit
+   - avsm@cvs.openbsd.org 2005/05/24 17:32:44
+     [atomicio.c atomicio.h authfd.c monitor_wrap.c msg.c scp.c sftp-client.c]
+     [ssh-keyscan.c sshconnect.c]
+     Switch atomicio to use a simpler interface; it now returns a size_t
+     (containing number of bytes read/written), and indicates error by
+     returning 0.  EOF is signalled by errno==EPIPE.
+     Typical use now becomes:
+
+     if (atomicio(read, ..., len) != len)
+             err(1,"read");
+
+     ok deraadt@, cloder@, djm@
 
 20050524
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
@@ -2582,4 +2594,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3785 2005/05/26 02:19:39 djm Exp $
+$Id: ChangeLog,v 1.3786 2005/05/26 02:23:44 djm Exp $
