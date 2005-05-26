@@ -44,6 +44,9 @@
    - moritz@cvs.openbsd.org 2005/04/28 10:17:56
      [progressmeter.c ssh-keyscan.c]
      add snprintf checks. ok djm@ markus@
+   - markus@cvs.openbsd.org 2005/05/02 21:13:22
+     [readpass.c]
+     missing {}
 
 20050524
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
@@ -2543,4 +2546,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3773 2005/05/26 02:07:32 djm Exp $
+$Id: ChangeLog,v 1.3774 2005/05/26 02:07:47 djm Exp $
