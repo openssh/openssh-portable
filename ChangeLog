@@ -1,3 +1,7 @@
+20050525
+ - (djm) [mpaux.c mpaux.h Makefile.in] Remove old mpaux.[ch] code, it has not 
+   been used for a while
+
 20050524
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
          [contrib/suse/openssh.spec] Update spec file versions to 4.1p1
@@ -2496,4 +2500,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3760 2005/05/26 01:34:36 djm Exp $
+$Id: ChangeLog,v 1.3761 2005/05/26 01:35:37 djm Exp $
