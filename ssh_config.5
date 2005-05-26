@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.50 2005/04/21 06:17:50 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.51 2005/04/26 13:08:37 jakob Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -270,6 +270,11 @@ to listen for control connections, but require confirmation using the
 program before they are accepted (see
 .Xr ssh-add 1
 for details).
+If the
+.Cm ControlPath
+can not be opened,
+.Nm ssh
+will continue without connecting to a master instance.
 .It Cm ControlPath
 Specify the path to the control socket used for connection sharing.
 See

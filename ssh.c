@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.236 2005/04/21 11:47:19 djm Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.237 2005/04/26 13:08:37 jakob Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -613,7 +613,7 @@ again:
 		   options.control_path, original_real_uid);
 	}
 	if (options.control_path != NULL && options.control_master == 0)
-		control_client(options.control_path); /* This doesn't return */
+		control_client(options.control_path);
 
 	/* Open a connection to the remote host. */
 	if (ssh_connect(host, &hostaddr, options.port,
@@ -1290,15 +1290,6 @@ control_client(const char *path)
 	extern char **environ;
 	u_int  flags;
 
-	if (stdin_null_flag) {
-		if ((fd = open(_PATH_DEVNULL, O_RDONLY)) == -1)
-			fatal("open(/dev/null): %s", strerror(errno));
-		if (dup2(fd, STDIN_FILENO) == -1)
-			fatal("dup2: %s", strerror(errno));
-		if (fd > STDERR_FILENO)
-			close(fd);
-	}
-
 	memset(&addr, '\0', sizeof(addr));
 	addr.sun_family = AF_UNIX;
 	addr_len = offsetof(struct sockaddr_un, sun_path) +
@@ -1311,8 +1302,20 @@ control_client(const char *path)
 	if ((sock = socket(PF_UNIX, SOCK_STREAM, 0)) < 0)
 		fatal("%s socket(): %s", __func__, strerror(errno));
 
-	if (connect(sock, (struct sockaddr*)&addr, addr_len) == -1)
-		fatal("Couldn't connect to %s: %s", path, strerror(errno));
+	if (connect(sock, (struct sockaddr*)&addr, addr_len) == -1) {
+		debug("Couldn't connect to %s: %s", path, strerror(errno));
+		close(sock);
+		return;
+	}
+
+	if (stdin_null_flag) {
+		if ((fd = open(_PATH_DEVNULL, O_RDONLY)) == -1)
+			fatal("open(/dev/null): %s", strerror(errno));
+		if (dup2(fd, STDIN_FILENO) == -1)
+			fatal("dup2: %s", strerror(errno));
+		if (fd > STDERR_FILENO)
+			close(fd);
+	}
 
 	if ((term = getenv("TERM")) == NULL)
 		term = "";
