@@ -9,6 +9,7 @@
  - (dtucker) [openbsd-compat/bsd-cygwin_util.c] Ensure sufficient memory
    allocation when retrieving core Windows environment.  Add CYGWIN variable
    to propagated variables.  Patch from vinschen at redhat.com, ok djm@
+ - Release 4.1p1
 
 20050524
  - (djm) [openbsd-compat/readpassphrase.c] bz #950: Retry tcsetattr to ensure
@@ -2495,4 +2496,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3759 2005/05/25 09:42:10 dtucker Exp $
+$Id: ChangeLog,v 1.3760 2005/05/26 01:34:36 djm Exp $
