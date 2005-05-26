@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.139 2005/03/10 22:01:05 deraadt Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.140 2005/05/16 15:30:51 markus Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -743,6 +743,9 @@ parse_int:
 
 	case oAddressFamily:
 		arg = strdelim(&s);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: missing address family.",
+			    filename, linenum);
 		intptr = &options->address_family;
 		if (strcasecmp(arg, "inet") == 0)
 			value = AF_INET;

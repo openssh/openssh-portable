@@ -53,6 +53,9 @@
    - djm@cvs.openbsd.org 2005/05/10 10:30:43
      [ssh.c]
      report real errors on fallback from ControlMaster=no to normal connect
+   - markus@cvs.openbsd.org 2005/05/16 15:30:51
+     [readconf.c servconf.c]
+     check return value from strdelim() for NULL (AddressFamily); mpech
 
 20050524
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
@@ -2552,4 +2555,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3776 2005/05/26 02:11:28 djm Exp $
+$Id: ChangeLog,v 1.3777 2005/05/26 02:11:56 djm Exp $
