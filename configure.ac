@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.260 2005/04/24 07:52:23 dtucker Exp $
+# $Id: configure.ac,v 1.261 2005/05/26 10:12:15 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -2402,6 +2402,7 @@ int main()
 			 AC_MSG_RESULT(no)])
 		    ])
 		AC_CHECK_FUNCS(_getshort _getlong)
+		AC_CHECK_DECLS([_getshort, _getlong])
 		AC_CHECK_MEMBER(HEADER.ad,
 			[AC_DEFINE(HAVE_HEADER_AD)],,
 			[#include <arpa/nameser.h>])

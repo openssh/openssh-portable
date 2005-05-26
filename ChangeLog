@@ -98,9 +98,12 @@
  - (dtucker) [regress/reexec.sh] Add ${EXEEXT} so this test also works on
    Cygwin.
  - (dtucker) [auth-pam.c] Bug #1033: Fix warnings building with PAM on Linux:
-  warning: dereferencing type-punned pointer will break strict-aliasing rules
-  warning: passing arg 3 of `pam_get_item' from incompatible pointer type
-  The type-punned pointer fix is based on a patch from SuSE's rpm.  ok djm@
+   warning: dereferencing type-punned pointer will break strict-aliasing rules
+   warning: passing arg 3 of `pam_get_item' from incompatible pointer type
+   The type-punned pointer fix is based on a patch from SuSE's rpm.  ok djm@
+ - (dtucker) [configure.ac openbsd-compat/getrrsetbyname.c] Bug #1033: Provide
+   templates for _getshort and _getlong if missing to prevent compiler warnings
+   on Linux.
 
 20050524
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
@@ -2600,4 +2603,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3788 2005/05/26 09:59:48 dtucker Exp $
+$Id: ChangeLog,v 1.3789 2005/05/26 10:12:15 dtucker Exp $
