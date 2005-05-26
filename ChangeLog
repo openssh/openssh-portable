@@ -47,6 +47,9 @@
    - markus@cvs.openbsd.org 2005/05/02 21:13:22
      [readpass.c]
      missing {}
+   - djm@cvs.openbsd.org 2005/05/10 10:28:11
+     [ssh.c]
+     print nice error message for EADDRINUSE as well (ID sync only)
 
 20050524
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
@@ -2546,4 +2549,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3774 2005/05/26 02:07:47 djm Exp $
+$Id: ChangeLog,v 1.3775 2005/05/26 02:09:32 djm Exp $
