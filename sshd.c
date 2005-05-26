@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.308 2005/02/08 22:24:57 dtucker Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.309 2005/04/06 09:43:59 djm Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1615,17 +1615,16 @@ main(int ac, char **av)
 	signal(SIGCHLD, SIG_DFL);
 	signal(SIGINT, SIG_DFL);
 
-	/* Set SO_KEEPALIVE if requested. */
-	if (options.tcp_keep_alive &&
-	    setsockopt(sock_in, SOL_SOCKET, SO_KEEPALIVE, &on,
-	    sizeof(on)) < 0)
-		error("setsockopt SO_KEEPALIVE: %.100s", strerror(errno));
-
 	/*
 	 * Register our connection.  This turns encryption off because we do
 	 * not have a key.
 	 */
 	packet_set_connection(sock_in, sock_out);
+
+	/* Set SO_KEEPALIVE if requested. */
+	if (options.tcp_keep_alive && packet_connection_is_on_socket() &&
+	    setsockopt(sock_in, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on)) < 0)
+		error("setsockopt SO_KEEPALIVE: %.100s", strerror(errno));
 
 	remote_port = get_remote_port();
 	remote_ip = get_remote_ipaddr();
