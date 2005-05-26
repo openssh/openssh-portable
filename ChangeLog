@@ -31,6 +31,10 @@
      [ssh.c]
      don't allocate a pty when -n flag (/dev/null stdin) is set, patch from
      ignasi.roca AT fujitsu-siemens.com (bz #829); ok dtucker@
+   - dtucker@cvs.openbsd.org 2005/04/23 23:43:47
+     [readpass.c]
+     Add debug message if read_passphrase can't open /dev/tty; bz #471;
+     ok djm@
 
 20050524
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
@@ -2530,4 +2534,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3769 2005/05/26 02:05:05 djm Exp $
+$Id: ChangeLog,v 1.3770 2005/05/26 02:05:28 djm Exp $
