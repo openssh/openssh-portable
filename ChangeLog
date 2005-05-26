@@ -65,6 +65,9 @@
    - djm@cvs.openbsd.org 2005/05/19 02:42:26
      [includes.h]
      fix cast, from grunk AT pestilenz.org
+   - djm@cvs.openbsd.org 2005/05/20 10:50:55
+     [ssh_config.5]
+     give a ProxyCommand example using nc(1), with and ok jmc@
 
 20050524
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
@@ -2564,4 +2567,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3780 2005/05/26 02:13:42 djm Exp $
+$Id: ChangeLog,v 1.3781 2005/05/26 02:13:56 djm Exp $

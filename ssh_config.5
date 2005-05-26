@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.51 2005/04/26 13:08:37 jakob Exp $
+.\" $OpenBSD: ssh_config.5,v 1.52 2005/05/20 10:50:55 djm Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -620,6 +620,15 @@ disables this option entirely.
 Note that
 .Cm CheckHostIP
 is not available for connects with a proxy command.
+.Pp
+This directive is useful in conjunction with
+.Xr nc 1
+and its proxy support.
+For example, the following directive would connect via a HTTP proxy at
+192.0.2.0:
+.Bd -literal -offset 3n
+ProxyCommand /usr/bin/nc -X connect -x 192.0.2.0:8080 %h %p
+.Ed
 .Pp
 .It Cm PubkeyAuthentication
 Specifies whether to try public key authentication.
