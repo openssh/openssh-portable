@@ -68,6 +68,9 @@
    - djm@cvs.openbsd.org 2005/05/20 10:50:55
      [ssh_config.5]
      give a ProxyCommand example using nc(1), with and ok jmc@
+   - jmc@cvs.openbsd.org 2005/05/20 11:23:32
+     [ssh_config.5]
+     oops - article and spacing;
 
 20050524
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
@@ -2567,4 +2570,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3781 2005/05/26 02:13:56 djm Exp $
+$Id: ChangeLog,v 1.3782 2005/05/26 02:14:32 djm Exp $
