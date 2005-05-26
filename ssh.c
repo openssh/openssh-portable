@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.235 2005/04/06 12:26:06 dtucker Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.236 2005/04/21 11:47:19 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -550,7 +550,7 @@ again:
 	if (no_tty_flag)
 		tty_flag = 0;
 	/* Do not allocate a tty if stdin is not a tty. */
-	if (!isatty(fileno(stdin)) && !force_tty_flag) {
+	if ((!isatty(fileno(stdin)) || stdin_null_flag) && !force_tty_flag) {
 		if (tty_flag)
 			logit("Pseudo-terminal will not be allocated because stdin is not a terminal.");
 		tty_flag = 0;
