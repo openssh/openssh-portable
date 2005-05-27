@@ -1,3 +1,7 @@
+20050527
+ - (djm) [defines.h] Use our realpath if we have to define PATH_MAX, spotted by
+   David Leach; ok dtucker@
+
 20050525
  - (djm) [mpaux.c mpaux.h Makefile.in] Remove old mpaux.[ch] code, it has not 
    been used for a while
@@ -2608,4 +2612,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3790 2005/05/26 10:48:25 djm Exp $
+$Id: ChangeLog,v 1.3791 2005/05/27 09:36:56 djm Exp $
