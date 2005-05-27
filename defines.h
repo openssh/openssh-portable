@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.120 2005/05/27 09:36:56 djm Exp $ */
+/* $Id: defines.h,v 1.121 2005/05/27 11:13:41 dtucker Exp $ */
 
 
 /* Constants */
@@ -667,5 +667,13 @@ struct winsize {
 #endif
 
 /** end of login recorder definitions */
+
+#ifdef BROKEN_GETGROUPS
+# define getgroups(a,b) ((a)==0 && (b)==NULL ? NGROUPS_MAX : getgroups((a),(b)))
+#endif
+
+#if defined(HAVE_MMAP) && defined(BROKEN_MMAP)
+# undef HAVE_MMAP
+#endif
 
 #endif /* _DEFINES_H */

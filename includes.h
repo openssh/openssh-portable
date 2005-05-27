@@ -181,6 +181,10 @@ static /**/const char *const rcsid[] = { (const char *)rcsid, "\100(#)" msg }
 # include <kafs.h>
 #endif
 
+#if defined(HAVE_SYS_SYSLOG_H)
+# include <sys/syslog.h>
+#endif
+
 /*
  * On HP-UX 11.11, shadow.h and prot.h provide conflicting declarations
  * of getspnam when _INCLUDE__STDC__ is defined, so we unset it here.

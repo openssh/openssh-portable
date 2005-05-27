@@ -1,4 +1,4 @@
-/* $Id: acconfig.h,v 1.181 2005/02/25 23:07:38 dtucker Exp $ */
+/* $Id: acconfig.h,v 1.182 2005/05/27 11:13:41 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -118,9 +118,6 @@
 
 /* Define if you are on NeXT */
 #undef HAVE_NEXT
-
-/* Define if you are on NEWS-OS */
-#undef HAVE_NEWS4
 
 /* Define if you want to enable PAM support */
 #undef USE_PAM

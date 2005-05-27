@@ -1,6 +1,9 @@
 20050527
  - (djm) [defines.h] Use our realpath if we have to define PATH_MAX, spotted by
    David Leach; ok dtucker@
+ - (dtucker) [acconfig.h configure.ac defines.h includes.h sshpty.c
+   openbsd-compat/bsd-misc.c] Add support for Ultrix.  No, that's not a typo.
+   Required changes from Bernhard Simon, integrated by me.  ok djm@
 
 20050525
  - (djm) [mpaux.c mpaux.h Makefile.in] Remove old mpaux.[ch] code, it has not 
@@ -2612,4 +2615,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3791 2005/05/27 09:36:56 djm Exp $
+$Id: ChangeLog,v 1.3792 2005/05/27 11:13:40 dtucker Exp $
