@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.266 2005/05/28 06:54:36 dtucker Exp $
+# $Id: configure.ac,v 1.267 2005/05/28 06:57:00 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -589,6 +589,7 @@ AC_CHECK_HEADERS( \
 	time.h \
 	tmpdir.h \
 	ttyent.h \
+	unistd.h \
 	usersec.h \
 	util.h \
 	utime.h \
