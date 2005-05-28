@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.264 2005/05/28 05:58:14 dtucker Exp $
+# $Id: configure.ac,v 1.265 2005/05/28 06:01:18 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -593,7 +593,7 @@ AC_CHECK_HEADERS( \
 	utime.h \
 	utmp.h \
 	utmpx.h \
-	vis.h\
+	vis.h \
 )
 
 # sys/ptms.h requires sys/stream.h to be included first on Solaris
