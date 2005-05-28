@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.265 2005/05/28 06:01:18 dtucker Exp $
+# $Id: configure.ac,v 1.266 2005/05/28 06:54:36 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -566,6 +566,7 @@ AC_CHECK_HEADERS( \
 	shadow.h \
 	stddef.h \
 	stdint.h \
+	string.h \
 	strings.h \
 	sys/audit.h \
 	sys/bitypes.h \
@@ -1074,8 +1075,15 @@ str = gai_strerror(0);],[
 AC_SEARCH_LIBS(nanosleep, rt posix4, AC_DEFINE(HAVE_NANOSLEEP))
 
 dnl Make sure prototypes are defined for these before using them.
-AC_CHECK_DECL(strsep, [AC_CHECK_FUNCS(strsep)])
 AC_CHECK_DECL(getrusage, [AC_CHECK_FUNCS(getrusage)])
+AC_CHECK_DECL(strsep,
+	[AC_CHECK_FUNCS(strsep)],
+	[],
+	[
+#ifdef HAVE_STRING_H
+# include <string.h>
+#endif
+	])
 
 dnl tcsendbreak might be a macro
 AC_CHECK_DECL(tcsendbreak,
