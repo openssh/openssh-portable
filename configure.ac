@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.267 2005/05/28 06:57:00 dtucker Exp $
+# $Id: configure.ac,v 1.268 2005/05/28 08:31:42 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -190,26 +190,8 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE(BROKEN_SETREGID)
 	AC_DEFINE_UNQUOTED(BIND_8_COMPAT, 1)
 	;;
-*-*-hpux10.26)
-	if test -z "$GCC"; then
-		CFLAGS="$CFLAGS -Ae"
-	fi
-	CPPFLAGS="$CPPFLAGS -D_HPUX_SOURCE -D_XOPEN_SOURCE -D_XOPEN_SOURCE_EXTENDED=1"
-	IPADDR_IN_DISPLAY=yes
-	AC_DEFINE(HAVE_SECUREWARE)
-	AC_DEFINE(USE_PIPES)
-	AC_DEFINE(LOGIN_NO_ENDOPT)
-	AC_DEFINE(LOGIN_NEEDS_UTMPX)
-	AC_DEFINE(LOCKED_PASSWD_STRING, "*")
-	AC_DEFINE(SPT_TYPE,SPT_PSTAT)
-	LIBS="$LIBS -lsec -lsecpw"
-	AC_CHECK_LIB(xnet, t_error, ,AC_MSG_ERROR([*** -lxnet needed on HP-UX - check config.log ***]))
-	disable_ptmx_check=yes
-	;;
-*-*-hpux10*)
-	if test -z "$GCC"; then
-		CFLAGS="$CFLAGS -Ae"
-	fi
+*-*-hpux*)
+	# first we define all of the options common to all HP-UX releases
 	CPPFLAGS="$CPPFLAGS -D_HPUX_SOURCE -D_XOPEN_SOURCE -D_XOPEN_SOURCE_EXTENDED=1"
 	IPADDR_IN_DISPLAY=yes
 	AC_DEFINE(USE_PIPES)
@@ -218,23 +200,33 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE(LOCKED_PASSWD_STRING, "*")
 	AC_DEFINE(SPT_TYPE,SPT_PSTAT)
 	LIBS="$LIBS -lsec"
-	AC_CHECK_LIB(xnet, t_error, ,AC_MSG_ERROR([*** -lxnet needed on HP-UX - check config.log ***]))
-	;;
-*-*-hpux11*)
-	CPPFLAGS="$CPPFLAGS -D_HPUX_SOURCE -D_XOPEN_SOURCE -D_XOPEN_SOURCE_EXTENDED=1"
-	IPADDR_IN_DISPLAY=yes
-	AC_DEFINE(PAM_SUN_CODEBASE)
-	AC_DEFINE(USE_PIPES)
-	AC_DEFINE(LOGIN_NO_ENDOPT)
-	AC_DEFINE(LOGIN_NEEDS_UTMPX)
-	AC_DEFINE(DISABLE_UTMP)
-	AC_DEFINE(LOCKED_PASSWD_STRING, "*")
-	AC_DEFINE(SPT_TYPE,SPT_PSTAT)
-	AC_DEFINE(USE_BTMP, 1, [Use btmp to log bad logins])
-	check_for_hpux_broken_getaddrinfo=1
-	check_for_conflicting_getspnam=1
-	LIBS="$LIBS -lsec"
-	AC_CHECK_LIB(xnet, t_error, ,AC_MSG_ERROR([*** -lxnet needed on HP-UX - check config.log ***]))
+	AC_CHECK_LIB(xnet, t_error, ,
+	    AC_MSG_ERROR([*** -lxnet needed on HP-UX - check config.log ***]))
+
+	# next, we define all of the options specific to major releases
+	case "$host" in
+	*-*-hpux10*)
+		if test -z "$GCC"; then
+			CFLAGS="$CFLAGS -Ae"
+		fi
+		;;
+	*-*-hpux11*)
+		AC_DEFINE(PAM_SUN_CODEBASE)
+		AC_DEFINE(DISABLE_UTMP)
+		AC_DEFINE(USE_BTMP, 1, [Use btmp to log bad logins])
+		check_for_hpux_broken_getaddrinfo=1
+		check_for_conflicting_getspnam=1
+		;;
+	esac
+
+	# lastly, we define options specific to minor releases
+	case "$host" in
+	*-*-hpux10.26)
+		AC_DEFINE(HAVE_SECUREWARE)
+		disable_ptmx_check=yes
+		LIBS="$LIBS -lsecpw"
+		;;
+	esac
 	;;
 *-*-irix5*)
 	PATH="$PATH:/usr/etc"
