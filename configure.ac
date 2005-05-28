@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.263 2005/05/27 11:13:41 dtucker Exp $
+# $Id: configure.ac,v 1.264 2005/05/28 05:58:14 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -537,17 +537,64 @@ int main(){exit(0);}
 	[	AC_MSG_WARN([cross compiling: not checking compiler sanity]) ]
 )
 
-# Checks for header files.
-AC_CHECK_HEADERS(bstring.h crypt.h dirent.h endian.h features.h \
-	floatingpoint.h getopt.h glob.h ia.h lastlog.h limits.h login.h \
-	login_cap.h maillock.h ndir.h netdb.h netgroup.h \
-	netinet/in_systm.h pam/pam_appl.h paths.h pty.h readpassphrase.h \
-	rpc/types.h security/pam_appl.h shadow.h stddef.h stdint.h \
-	strings.h sys/dir.h sys/strtio.h sys/audit.h sys/bitypes.h \
-	sys/bsdtty.h sys/cdefs.h sys/mman.h sys/ndir.h sys/prctl.h \
-	sys/pstat.h sys/select.h sys/stat.h sys/stream.h \
-	sys/stropts.h sys/sysmacros.h sys/time.h sys/timers.h sys/un.h \
-	time.h tmpdir.h ttyent.h usersec.h util.h utime.h utmp.h utmpx.h vis.h)
+dnl Checks for header files.
+AC_CHECK_HEADERS( \
+	bstring.h \
+	crypt.h \
+	dirent.h \
+	endian.h \
+	features.h \
+	floatingpoint.h \
+	getopt.h \
+	glob.h \
+	ia.h \
+	lastlog.h \
+	limits.h \
+	login.h \
+	login_cap.h \
+	maillock.h \
+	ndir.h \
+	netdb.h \
+	netgroup.h \
+	netinet/in_systm.h \
+	pam/pam_appl.h \
+	paths.h \
+	pty.h \
+	readpassphrase.h \
+	rpc/types.h \
+	security/pam_appl.h \
+	shadow.h \
+	stddef.h \
+	stdint.h \
+	strings.h \
+	sys/audit.h \
+	sys/bitypes.h \
+	sys/bsdtty.h \
+	sys/cdefs.h \
+	sys/dir.h \
+	sys/mman.h \
+	sys/ndir.h \
+	sys/prctl.h \
+	sys/pstat.h \
+	sys/select.h \
+	sys/stat.h \
+	sys/stream.h \
+	sys/stropts.h \
+	sys/strtio.h \
+	sys/sysmacros.h \
+	sys/time.h \
+	sys/timers.h \
+	sys/un.h \
+	time.h \
+	tmpdir.h \
+	ttyent.h \
+	usersec.h \
+	util.h \
+	utime.h \
+	utmp.h \
+	utmpx.h \
+	vis.h\
+)
 
 # sys/ptms.h requires sys/stream.h to be included first on Solaris
 AC_CHECK_HEADERS(sys/ptms.h, [], [], [
@@ -926,19 +973,87 @@ AC_ARG_WITH(audit,
 )
 
 dnl    Checks for library functions. Please keep in alphabetical order
-AC_CHECK_FUNCS(\
-	arc4random __b64_ntop b64_ntop __b64_pton b64_pton bcopy \
-	bindresvport_sa clock closefrom dirfd fchdir fchmod fchown \
-	freeaddrinfo futimes getaddrinfo getcwd getgrouplist getnameinfo \
-	getopt getpeereid _getpty getrlimit getttyent glob inet_aton \
-	inet_ntoa inet_ntop innetgr login_getcapbool md5_crypt memmove \
-	mkdtemp mmap ngetaddrinfo nsleep ogetaddrinfo openlog_r openpty \
-	pstat prctl readpassphrase realpath recvmsg rresvport_af sendmsg \
-	setdtablesize setegid setenv seteuid setgroups setlogin setpcred \
-	setproctitle setregid setreuid setrlimit setsid setvbuf \
-	sigaction sigvec snprintf socketpair strdup strerror \
-	strlcat strlcpy strmode strnvis strtonum strtoul sysconf tcgetpgrp \
-	truncate unsetenv updwtmpx utimes vhangup vsnprintf waitpid \
+AC_CHECK_FUNCS( \
+	arc4random \
+	b64_ntop \
+	__b64_ntop \
+	b64_pton \
+	__b64_pton \
+	bcopy \
+	bindresvport_sa \
+	clock \
+	closefrom \
+	dirfd \
+	fchdir \
+	fchmod \
+	fchown \
+	freeaddrinfo \
+	futimes \
+	getaddrinfo \
+	getcwd \
+	getgrouplist \
+	getnameinfo \
+	getopt \
+	getpeereid \
+	_getpty \
+	getrlimit \
+	getttyent \
+	glob \
+	inet_aton \
+	inet_ntoa \
+	inet_ntop \
+	innetgr \
+	login_getcapbool \
+	md5_crypt \
+	memmove \
+	mkdtemp \
+	mmap \
+	ngetaddrinfo \
+	nsleep \
+	ogetaddrinfo \
+	openlog_r \
+	openpty \
+	prctl \
+	pstat \
+	readpassphrase \
+	realpath \
+	recvmsg \
+	rresvport_af \
+	sendmsg \
+	setdtablesize \
+	setegid \
+	setenv \
+	seteuid \
+	setgroups \
+	setlogin \
+	setpcred \
+	setproctitle \
+	setregid \
+	setreuid \
+	setrlimit \
+	setsid \
+	setvbuf \
+	sigaction \
+	sigvec \
+	snprintf \
+	socketpair \
+	strdup \
+	strerror \
+	strlcat \
+	strlcpy \
+	strmode \
+	strnvis \
+	strtonum \
+	strtoul \
+	sysconf \
+	tcgetpgrp \
+	truncate \
+	unsetenv \
+	updwtmpx \
+	utimes \
+	vhangup \
+	vsnprintf \
+	waitpid \
 )
 
 # IRIX has a const char return value for gai_strerror()

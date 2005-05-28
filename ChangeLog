@@ -1,3 +1,7 @@
+20050528
+ - (dtucker) [configure.ac] For AC_CHECK_HEADERS() and AC_CHECK_FUNCS() have
+   one entry per line to make it easier to merge changes.  ok djm@
+
 20050527
  - (djm) [defines.h] Use our realpath if we have to define PATH_MAX, spotted by
    David Leach; ok dtucker@
@@ -2615,4 +2619,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3792 2005/05/27 11:13:40 dtucker Exp $
+$Id: ChangeLog,v 1.3793 2005/05/28 05:58:14 dtucker Exp $
