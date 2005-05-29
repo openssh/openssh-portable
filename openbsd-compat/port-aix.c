@@ -1,7 +1,7 @@
 /*
  *
  * Copyright (c) 2001 Gert Doering.  All rights reserved.
- * Copyright (c) 2003,2004 Darren Tucker.  All rights reserved.
+ * Copyright (c) 2003,2004,2005 Darren Tucker.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -153,7 +153,7 @@ aix_valid_authentications(const char *user)
 int
 sys_auth_passwd(Authctxt *ctxt, const char *password)
 {
-	char *authmsg = NULL, *msg, *name = ctxt->pw->pw_name;
+	char *authmsg = NULL, *msg = NULL, *name = ctxt->pw->pw_name;
 	int authsuccess = 0, expired, reenter, result;
 
 	do {
@@ -257,7 +257,7 @@ int
 sys_auth_record_login(const char *user, const char *host, const char *ttynm,
     Buffer *loginmsg)
 {
-	char *msg;
+	char *msg = NULL;
 	int success = 0;
 
 	aix_setauthdb(user);
