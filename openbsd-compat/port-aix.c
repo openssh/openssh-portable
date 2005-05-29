@@ -158,7 +158,7 @@ sys_auth_passwd(Authctxt *ctxt, const char *password)
 		result = authenticate((char *)name, (char *)password, &reenter,
 		    &authmsg);
 		aix_remove_embedded_newlines(authmsg);	
-		debug3("AIX/authenticate result %d, msg %.100s", result,
+		debug3("AIX/authenticate result %d, authmsg %.100s", result,
 		    authmsg);
 	} while (reenter);
 
