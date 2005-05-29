@@ -42,14 +42,12 @@ static char old_registry[REGISTRY_SIZE] = "";
 # endif
 
 /*
- * AIX has a "usrinfo" area where logname and other stuff is stored - 
+ * AIX has a "usrinfo" area where logname and other stuff is stored -
  * a few applications actually use this and die if it's not set
  *
  * NOTE: TTY= should be set, but since no one uses it and it's hard to
  * acquire due to privsep code.  We will just drop support.
  */
-
-
 void
 aix_usrinfo(struct passwd *pw)
 {
@@ -60,7 +58,7 @@ aix_usrinfo(struct passwd *pw)
 	len = sizeof("LOGNAME= NAME= ") + (2 * strlen(pw->pw_name));
 	cp = xmalloc(len);
 
-	i = snprintf(cp, len, "LOGNAME=%s%cNAME=%s%c", pw->pw_name, '\0', 
+	i = snprintf(cp, len, "LOGNAME=%s%cNAME=%s%c", pw->pw_name, '\0',
 	    pw->pw_name, '\0');
 	if (usrinfo(SETUINFO, cp, i) == -1)
 		fatal("Couldn't set usrinfo: %s", strerror(errno));
@@ -170,7 +168,7 @@ sys_auth_passwd(Authctxt *ctxt, const char *password)
 	if (result == 0) {
 		authsuccess = 1;
 
-	       	/*
+		/*
 		 * Record successful login.  We don't have a pty yet, so just
 		 * label the line as "ssh"
 		 */

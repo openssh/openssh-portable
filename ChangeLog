@@ -3,6 +3,7 @@
    argument to passwdexpired to be initialized to NULL.  Suggested by tim@
    While at it, initialize the other arguments to auth functions in case they
    ever acquire this behaviour.
+ - (dtucker) [openbsd-compat/port-aix.c] Whitespace cleanups while there.
 
 20050528
  - (dtucker) [configure.ac] For AC_CHECK_HEADERS() and AC_CHECK_FUNCS() have
@@ -2634,4 +2635,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3798 2005/05/29 00:28:48 dtucker Exp $
+$Id: ChangeLog,v 1.3799 2005/05/29 00:32:47 dtucker Exp $
