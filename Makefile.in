@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.272 2005/05/26 02:02:15 djm Exp $
+# $Id: Makefile.in,v 1.273 2005/05/29 07:22:29 dtucker Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -190,7 +190,7 @@ ssh_prng_cmds.out:	ssh_prng_cmds
 		$(PERL) $(srcdir)/fixprogs ssh_prng_cmds $(ENT); \
 	fi
 
-# fake rule to stop make trying to compile moduli.o into a binary "modulo"
+# fake rule to stop make trying to compile moduli.o into a binary "moduli.o"
 moduli:
 	echo
 
