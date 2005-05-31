@@ -1,6 +1,7 @@
 20050531
  - (dtucker) [contrib/aix/pam.conf] Correct comments.  From davidl at
    vintela.com.
+ - (dtucker) [mdoc2man.awk] Teach it to understand .Ox.
 
 20050530
  - (dtucker) [README] Link to new release notes.  Beter late than never...
@@ -2644,4 +2645,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3801 2005/05/31 06:51:07 dtucker Exp $
+$Id: ChangeLog,v 1.3802 2005/05/31 06:59:16 dtucker Exp $
