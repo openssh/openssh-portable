@@ -1,3 +1,10 @@
+20050531
+ - (dtucker) [contrib/aix/pam.conf] Correct comments.  From davidl at
+   vintela.com.
+
+20050530
+ - (dtucker) [README] Link to new release notes.  Beter late than never...
+
 20050529
  - (dtucker) [openbsd-compat/port-aix.c] Bug #1046: AIX 5.3 expects the
    argument to passwdexpired to be initialized to NULL.  Suggested by tim@
@@ -2637,4 +2644,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3800 2005/05/29 00:54:27 dtucker Exp $
+$Id: ChangeLog,v 1.3801 2005/05/31 06:51:07 dtucker Exp $
