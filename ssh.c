@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.239 2005/05/10 10:30:43 djm Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.240 2005/05/27 08:30:37 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -145,7 +145,7 @@ pid_t proxy_command_pid = 0;
 int control_fd = -1;
 
 /* Multiplexing control command */
-static u_int mux_command = SSHMUX_COMMAND_OPEN;
+static u_int mux_command = 0;
 
 /* Only used in control client mode */
 volatile sig_atomic_t control_client_terminate = 0;
@@ -612,8 +612,13 @@ again:
 		options.control_path = tilde_expand_filename(
 		   options.control_path, original_real_uid);
 	}
-	if (options.control_path != NULL && options.control_master == 0)
+	if (mux_command != 0 && options.control_path == NULL)
+		fatal("No ControlPath specified for \"-O\" command");
+	if (options.control_path != NULL && options.control_master == 0) {
+		if (mux_command == 0)
+			mux_command = SSHMUX_COMMAND_OPEN;
 		control_client(options.control_path);
+	}
 
 	/* Open a connection to the remote host. */
 	if (ssh_connect(host, &hostaddr, options.port,
@@ -1303,6 +1308,10 @@ control_client(const char *path)
 		fatal("%s socket(): %s", __func__, strerror(errno));
 
 	if (connect(sock, (struct sockaddr*)&addr, addr_len) == -1) {
+		if (mux_command != SSHMUX_COMMAND_OPEN) {
+			fatal("Control socket connect(%.100s): %s", path,
+			    strerror(errno));
+		}
 		if (errno == ENOENT)
 	 		debug("Control socket \"%.100s\" does not exist", path);
 		else {
