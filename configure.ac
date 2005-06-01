@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.269 2005/06/01 08:57:45 dtucker Exp $
+# $Id: configure.ac,v 1.270 2005/06/01 11:39:33 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -1038,6 +1038,7 @@ AC_CHECK_FUNCS( \
 	strmode \
 	strnvis \
 	strtonum \
+	strtoll \
 	strtoul \
 	sysconf \
 	tcgetpgrp \
