@@ -71,7 +71,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.122 2005/05/24 17:32:43 avsm Exp $");
+RCSID("$OpenBSD: scp.c,v 1.123 2005/05/26 02:08:05 avsm Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -109,11 +109,13 @@ static void
 killchild(int signo)
 {
 	if (do_cmd_pid > 1) {
-		kill(do_cmd_pid, signo);
+		kill(do_cmd_pid, signo ? signo : SIGTERM);
 		waitpid(do_cmd_pid, NULL, 0);
 	}
 
-	_exit(1);
+	if (signo)
+		_exit(1);
+	exit(1);
 }
 
 /*
@@ -1072,7 +1074,7 @@ verifydir(char *cp)
 		errno = ENOTDIR;
 	}
 	run_err("%s: %s", cp, strerror(errno));
-	exit(1);
+	killchild(0);
 }
 
 int

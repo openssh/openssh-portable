@@ -3,7 +3,13 @@
    arpa/nameser.h.
  - (dtucker) [configure.ac openbsd-compat/Makefile.in openbsd-compat/strtoll.c]
    Add strtoll to the compat library, from OpenBSD.
-
+ - (dtucker) OpenBSD CVS Sync
+   - avsm@cvs.openbsd.org 2005/05/26 02:08:05
+     [scp.c]
+     If copying multiple files to a target file (which normally fails, as it
+     must be a target directory), kill the spawned ssh child before exiting.
+     This stops it trying to authenticate and spewing lots of output.
+     deraadt@ ok
 
 20050531
  - (dtucker) [contrib/aix/pam.conf] Correct comments.  From davidl at
@@ -2652,4 +2658,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3804 2005/06/01 11:39:33 dtucker Exp $
+$Id: ChangeLog,v 1.3805 2005/06/01 13:01:12 dtucker Exp $
