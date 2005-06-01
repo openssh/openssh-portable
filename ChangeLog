@@ -1,3 +1,7 @@
+20050601
+ - (dtucker) [configure.ac] Look for _getshort and _getlong in
+   arpa/nameser.h.
+
 20050531
  - (dtucker) [contrib/aix/pam.conf] Correct comments.  From davidl at
    vintela.com.
@@ -2645,4 +2649,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3802 2005/05/31 06:59:16 dtucker Exp $
+$Id: ChangeLog,v 1.3803 2005/06/01 08:57:45 dtucker Exp $
