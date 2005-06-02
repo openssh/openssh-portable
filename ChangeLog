@@ -18,6 +18,7 @@
      fix -O for cases where no ControlPath has been specified or socket at
      ControlPath is not contactable; spotted by and ok avsm@
  - (tim) [config.guess config.sub] Update to '2005-05-27' version.
+ - (tim) [configure.ac] set TEST_SHELL for OpenServer 6
 
 20050531
  - (dtucker) [contrib/aix/pam.conf] Correct comments.  From davidl at
@@ -2666,4 +2667,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3808 2005/06/02 02:57:45 tim Exp $
+$Id: ChangeLog,v 1.3809 2005/06/02 03:09:28 tim Exp $

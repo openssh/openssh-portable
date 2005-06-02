@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.270 2005/06/01 11:39:33 dtucker Exp $
+# $Id: configure.ac,v 1.271 2005/06/02 03:09:28 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -371,6 +371,11 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(BROKEN_SETREUID)
 	AC_DEFINE(BROKEN_SETREGID)
 	AC_DEFINE(PASSWD_NEEDS_USERNAME, 1, [must supply username to passwd])
+	case "$host" in
+	*-*-sysv5SCO_SV*)	# SCO OpenServer 6.x
+		TEST_SHELL=/u95/bin/sh
+		;;
+	esac
 	;;
 *-*-sysv*)
 	;;
