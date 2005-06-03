@@ -3,6 +3,8 @@
    defined, and check that it helps before keeping it in CFLAGS.  Some old
    gcc's don't set an error code when encountering an unknown value in -std.
    Found and tested by tim@.
+ - (dtucker) [configure.ac] Point configure's reporting address at the
+   openssh-unix-dev list.  ok tim@ djm@
 
 20050602
  - (tim) [configure.ac] Some platforms need sys/types.h for arpa/nameser.h.
@@ -2679,4 +2681,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3811 2005/06/03 07:58:31 dtucker Exp $
+$Id: ChangeLog,v 1.3812 2005/06/03 09:33:10 dtucker Exp $
