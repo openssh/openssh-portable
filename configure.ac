@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.271 2005/06/02 03:09:28 tim Exp $
+# $Id: configure.ac,v 1.272 2005/06/03 03:28:29 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -479,7 +479,8 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(BROKEN_GETGROUPS, [], [getgroups(0,NULL) will return -1])
 	AC_DEFINE(BROKEN_MMAP, [], [Ultrix mmap can't map files])
 	AC_DEFINE(NEED_SETPRGP, [], [Need setpgrp to acquire controlling tty])
-	AC_CHECK_HEADERS(sys/syslog.h)
+	AC_DEFINE(HAVE_SYS_SYSLOG_H, 1, [Force use of sys/syslog.h on Ultrix])
+	;;
 esac
 
 # Allow user to specify flags
@@ -2540,7 +2541,8 @@ int main()
 		    ])
 		AC_CHECK_FUNCS(_getshort _getlong)
 		AC_CHECK_DECLS([_getshort, _getlong], , ,
-		    [#include <arpa/nameser.h>])
+		    [#include <sys/types.h>
+		    #include <arpa/nameser.h>])
 		AC_CHECK_MEMBER(HEADER.ad,
 			[AC_DEFINE(HAVE_HEADER_AD)],,
 			[#include <arpa/nameser.h>])

@@ -1,3 +1,9 @@
+20050602
+ - (tim) [configure.ac] Some platforms need sys/types.h for arpa/nameser.h.
+   Take AC_CHECK_HEADERS test out of ultrix section. It caused other platforms
+   to skip builtin standard includes tests. (first AC_CHECK_HEADERS test
+   must be run on all platforms) Add missing ;; to case statement. OK dtucker@
+
 20050601
  - (dtucker) [configure.ac] Look for _getshort and _getlong in
    arpa/nameser.h.
@@ -2667,4 +2673,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3809 2005/06/02 03:09:28 tim Exp $
+$Id: ChangeLog,v 1.3810 2005/06/03 03:28:29 tim Exp $
