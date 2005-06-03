@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.272 2005/06/03 03:28:29 tim Exp $
+# $Id: configure.ac,v 1.273 2005/06/03 07:58:31 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -77,17 +77,23 @@ fi
 AC_SUBST(LD)
 
 AC_C_INLINE
+
+AC_CHECK_DECL(LLONG_MAX, have_llong_max=1, , [#include <limits.h>])
+
 if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 	CFLAGS="$CFLAGS -Wall -Wpointer-arith -Wno-uninitialized"
 
-	# Check for -std=gnu99 support (needed for LLONG_MIN/MAX on Linux)
-	saved_CFLAGS="$CFLAGS"
-	CFLAGS="$CFLAGS -std=gnu99"
-	AC_MSG_CHECKING(whether cc accepts -std=gnu99 option)
-	AC_TRY_COMPILE([], [return(0);], [AC_MSG_RESULT(yes)],
-		[AC_MSG_RESULT(no)
-		CFLAGS="$saved_CFLAGS"],
-	)
+	if test -z "$have_llong_max"; then
+		# retry LLONG_MAX with -std=gnu99, needed on some Linuxes
+		unset ac_cv_have_decl_LLONG_MAX
+		saved_CFLAGS="$CFLAGS"
+		CFLAGS="$CFLAGS -std=gnu99"
+		AC_CHECK_DECL(LLONG_MAX,
+		    [have_llong_max=1],
+		    [CFLAGS="$saved_CFLAGS"],
+		    [#include <limits.h>]
+		)
+	fi
 fi
 
 AC_ARG_WITH(rpath,
