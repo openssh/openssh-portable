@@ -56,9 +56,10 @@ References -
 [2] http://www.aet.tu-cottbus.de/personen/jaenicke/postfix_tls/prngd.html
 [3] http://www.gzip.org/zlib/
 [4] http://www.openssl.org/
-[5] http://www.kernel.org/pub/linux/libs/pam/ (PAM is standard on Solaris
-    and HP-UX 11)
+[5] http://www.openpam.org
+    http://www.kernel.org/pub/linux/libs/pam/ 
+    (PAM also is standard on Solaris and HP-UX 11)
 [6] http://www.openbsd.org/cgi-bin/man.cgi?query=style&sektion=9
 [7] http://www.openssh.com/faq.html
 
-$Id: README,v 1.58 2005/05/29 23:58:40 dtucker Exp $
+$Id: README,v 1.59 2005/06/04 23:21:41 djm Exp $
