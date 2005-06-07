@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.274 2005/06/03 09:33:10 dtucker Exp $
+# $Id: configure.ac,v 1.275 2005/06/07 07:53:40 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -94,6 +94,70 @@ if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 		    [#include <limits.h>]
 		)
 	fi
+fi
+
+if test -z "$have_llong_max"; then
+	AC_MSG_CHECKING([for max value of long long])
+	AC_RUN_IFELSE(
+		[AC_LANG_SOURCE([[
+#include <stdio.h>
+/* Why is this so damn hard? */
+#ifdef __GNUC__
+# undef __GNUC__
+#endif
+#define __USE_ISOC99
+#include <limits.h>
+#define DATA "conftest.llminmax"
+int main(void) {
+	FILE *f;
+	long long i, llmin, llmax = 0;
+
+	if((f = fopen(DATA,"w")) == NULL)
+		exit(1);
+
+#if defined(LLONG_MIN) && defined(LLONG_MAX)
+	fprintf(stderr, "Using system header for LLONG_MIN and LLONG_MAX\n");
+	llmin = LLONG_MIN;
+	llmax = LLONG_MAX;
+#else
+	fprintf(stderr, "Calculating  LLONG_MIN and LLONG_MAX\n");
+	/* This will work on one's complement and two's complement */
+	for (i = 1; i > llmax; i <<= 1, i++)
+		llmax = i;
+	llmin = llmax + 1LL;	/* wrap */
+#endif
+
+	/* Sanity check */
+	if (llmin + 1 < llmin || llmin - 1 < llmin || llmax + 1 > llmax
+	    || llmax - 1 > llmax) {
+		fprintf(f, "unknown unknown\n");
+		exit(2);
+	}
+
+	if (fprintf(f ,"%lld %lld", llmin, llmax) < 0)
+		exit(3);
+
+	exit(0);
+}
+		]])],
+		[
+			llong_min=`$AWK '{print $1}' conftest.llminmax`
+			llong_max=`$AWK '{print $2}' conftest.llminmax`
+			AC_MSG_RESULT($llong_max)
+			AC_DEFINE_UNQUOTED(LLONG_MAX, [${llong_max}LL],
+			    [max value of long long calculated by configure])
+			AC_MSG_CHECKING([for min value of long long])
+			AC_MSG_RESULT($llong_min)
+			AC_DEFINE_UNQUOTED(LLONG_MIN, [${llong_min}LL],
+			    [min value of long long calculated by configure])
+		],
+		[
+			AC_MSG_RESULT(not found)
+		],
+		[
+			AC_MSG_WARN([cross compiling: not checking])
+		]
+	)
 fi
 
 AC_ARG_WITH(rpath,

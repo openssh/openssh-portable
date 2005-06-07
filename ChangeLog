@@ -1,3 +1,8 @@
+20050607
+ - (dtucker) [configure.ac] Continue the hunt for LLONG_MIN and LLONG_MAX:
+   in today's episode we attempt to coax it from limits.h where it may be
+   hiding, failing that we take the DIY approach.  Tested by tim@
+
 20050603
  - (dtucker) [configure.ac] Only try gcc -std=gnu99 if LLONG_MAX isn't
    defined, and check that it helps before keeping it in CFLAGS.  Some old
@@ -2681,4 +2686,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3812 2005/06/03 09:33:10 dtucker Exp $
+$Id: ChangeLog,v 1.3813 2005/06/07 07:53:40 dtucker Exp $
