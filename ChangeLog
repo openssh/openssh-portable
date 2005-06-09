@@ -1,6 +1,6 @@
 20050609
  - (dtucker) [cipher.c openbsd-compat/Makefile.in
-   openbsd-compat/openbsd-compat.{c,h} openbsd-compat/openssl-compat.h]
+   openbsd-compat/openbsd-compat.h openbsd-compat/openssl-compat.{c,h}]
    Move compatibility code for supporting older OpenSSL versions to the
    compat layer.  Suggested by and "no objection" djm@
 
@@ -2692,4 +2692,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3814 2005/06/09 11:45:10 dtucker Exp $
+$Id: ChangeLog,v 1.3815 2005/06/09 13:40:39 dtucker Exp $
