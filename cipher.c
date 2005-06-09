@@ -43,26 +43,6 @@ RCSID("$OpenBSD: cipher.c,v 1.74 2005/05/23 23:32:46 djm Exp $");
 
 #include <openssl/md5.h>
 
-#if OPENSSL_VERSION_NUMBER < 0x00906000L
-#define SSH_OLD_EVP
-#define EVP_CIPHER_CTX_get_app_data(e)          ((e)->app_data)
-#endif
-
-#if OPENSSL_VERSION_NUMBER < 0x00907000L
-extern const EVP_CIPHER *evp_rijndael(void);
-extern void ssh_rijndael_iv(EVP_CIPHER_CTX *, int, u_char *, u_int);
-#endif
-
-#if !defined(EVP_CTRL_SET_ACSS_MODE)
-# if (OPENSSL_VERSION_NUMBER >= 0x00907000L)
-extern const EVP_CIPHER *evp_acss(void);
-#  define EVP_acss evp_acss
-#  define EVP_CTRL_SET_ACSS_MODE xxx	/* used below */
-# else
-#  define EVP_acss NULL /* Don't try to support ACSS on older OpenSSL */
-# endif /* (OPENSSL_VERSION_NUMBER >= 0x00906000L) */
-#endif /* !defined(EVP_CTRL_SET_ACSS_MODE) */
-
 extern const EVP_CIPHER *evp_ssh1_bf(void);
 extern const EVP_CIPHER *evp_ssh1_3des(void);
 extern void ssh1_3des_iv(EVP_CIPHER_CTX *, int, u_char *, int);
@@ -88,25 +68,15 @@ struct Cipher {
 	{ "arcfour",		SSH_CIPHER_SSH2, 8, 16, 0, EVP_rc4 },
 	{ "arcfour128",		SSH_CIPHER_SSH2, 8, 16, 1536, EVP_rc4 },
 	{ "arcfour256",		SSH_CIPHER_SSH2, 8, 32, 1536, EVP_rc4 },
-#if OPENSSL_VERSION_NUMBER < 0x00907000L
-	{ "aes128-cbc",		SSH_CIPHER_SSH2, 16, 16, 0, evp_rijndael },
-	{ "aes192-cbc",		SSH_CIPHER_SSH2, 16, 24, 0, evp_rijndael },
-	{ "aes256-cbc",		SSH_CIPHER_SSH2, 16, 32, 0, evp_rijndael },
-	{ "rijndael-cbc@lysator.liu.se",
-				SSH_CIPHER_SSH2, 16, 32, 0, evp_rijndael },
-#else
 	{ "aes128-cbc",		SSH_CIPHER_SSH2, 16, 16, 0, EVP_aes_128_cbc },
 	{ "aes192-cbc",		SSH_CIPHER_SSH2, 16, 24, 0, EVP_aes_192_cbc },
 	{ "aes256-cbc",		SSH_CIPHER_SSH2, 16, 32, 0, EVP_aes_256_cbc },
 	{ "rijndael-cbc@lysator.liu.se",
 				SSH_CIPHER_SSH2, 16, 32, 0, EVP_aes_256_cbc },
-#endif
-#if OPENSSL_VERSION_NUMBER >= 0x00905000L
 	{ "aes128-ctr",		SSH_CIPHER_SSH2, 16, 16, 0, evp_aes_128_ctr },
 	{ "aes192-ctr",		SSH_CIPHER_SSH2, 16, 24, 0, evp_aes_128_ctr },
 	{ "aes256-ctr",		SSH_CIPHER_SSH2, 16, 32, 0, evp_aes_128_ctr },
-#endif
-#if defined(EVP_CTRL_SET_ACSS_MODE)
+#ifdef USE_CIPHER_ACSS
 	{ "acss@openssh.org",	SSH_CIPHER_SSH2, 16, 5, 0, EVP_acss },
 #endif
 	{ NULL,			SSH_CIPHER_INVALID, 0, 0, 0, NULL }
@@ -225,8 +195,8 @@ cipher_init(CipherContext *cc, Cipher *cipher,
 	EVP_CIPHER *type;
 #else
 	const EVP_CIPHER *type;
-#endif
 	int klen;
+#endif
 	u_char *junk, *discard;
 
 	if (cipher->number == SSH_CIPHER_DES) {
@@ -293,23 +263,15 @@ cipher_crypt(CipherContext *cc, u_char *dest, const u_char *src, u_int len)
 {
 	if (len % cc->cipher->block_size)
 		fatal("cipher_encrypt: bad plaintext length %d", len);
-#ifdef SSH_OLD_EVP
-	EVP_Cipher(&cc->evp, dest, (u_char *)src, len);
-#else
 	if (EVP_Cipher(&cc->evp, dest, (u_char *)src, len) == 0)
 		fatal("evp_crypt: EVP_Cipher failed");
-#endif
 }
 
 void
 cipher_cleanup(CipherContext *cc)
 {
-#ifdef SSH_OLD_EVP
-	EVP_CIPHER_CTX_cleanup(&cc->evp);
-#else
 	if (EVP_CIPHER_CTX_cleanup(&cc->evp) == 0)
 		error("cipher_cleanup: EVP_CIPHER_CTX_cleanup failed");
-#endif
 }
 
 /*
