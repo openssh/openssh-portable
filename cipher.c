@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: cipher.c,v 1.74 2005/05/23 23:32:46 djm Exp $");
+RCSID("$OpenBSD: cipher.c,v 1.75 2005/06/09 13:43:49 dtucker Exp $");
 
 #include "xmalloc.h"
 #include "log.h"

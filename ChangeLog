@@ -15,6 +15,10 @@
      [clientloop.c readconf.c readconf.h ssh.c ssh_config.5]
      add ControlMaster=auto/autoask options to support opportunistic
      multiplexing; tested avsm@ and jakob@, ok markus@
+   - dtucker@cvs.openbsd.org 2005/06/09 13:43:49
+     [cipher.c]
+     Correctly initialize end of array sentinel; ok djm@
+     (Id sync only, change already in portable)
 
 20050609
  - (dtucker) [cipher.c openbsd-compat/Makefile.in
@@ -2710,4 +2714,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3819 2005/06/16 03:19:41 djm Exp $
+$Id: ChangeLog,v 1.3820 2005/06/16 03:21:17 djm Exp $
