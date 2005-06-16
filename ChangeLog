@@ -11,6 +11,10 @@
      [ssh-keygen.1 ssh-keygen.c sshd.8]
      increase default rsa/dsa key length from 1024 to 2048 bits;
      ok markus@ deraadt@
+   - djm@cvs.openbsd.org 2005/06/08 11:25:09
+     [clientloop.c readconf.c readconf.h ssh.c ssh_config.5]
+     add ControlMaster=auto/autoask options to support opportunistic
+     multiplexing; tested avsm@ and jakob@, ok markus@
 
 20050609
  - (dtucker) [cipher.c openbsd-compat/Makefile.in
@@ -2706,4 +2710,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3818 2005/06/16 03:19:06 djm Exp $
+$Id: ChangeLog,v 1.3819 2005/06/16 03:19:41 djm Exp $

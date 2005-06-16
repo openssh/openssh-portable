@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.136 2005/03/10 22:01:05 deraadt Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.137 2005/06/08 11:25:09 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -616,13 +616,15 @@ client_process_control(fd_set * readset)
 
 	switch (command) {
 	case SSHMUX_COMMAND_OPEN:
-		if (options.control_master == 2)
+		if (options.control_master == SSHCTL_MASTER_ASK ||
+		    options.control_master == SSHCTL_MASTER_AUTO_ASK)
 			allowed = ask_permission("Allow shared connection "
 			    "to %s? ", host);
 		/* continue below */
 		break;
 	case SSHMUX_COMMAND_TERMINATE:
-		if (options.control_master == 2)
+		if (options.control_master == SSHCTL_MASTER_ASK ||
+		    options.control_master == SSHCTL_MASTER_AUTO_ASK)
 			allowed = ask_permission("Terminate shared connection "
 			    "to %s? ", host);
 		if (allowed)

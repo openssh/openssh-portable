@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.55 2005/06/06 11:20:36 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.56 2005/06/08 11:25:09 djm Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -278,6 +278,17 @@ If the
 can not be opened,
 .Nm ssh
 will continue without connecting to a master instance.
+.Pp
+Two additional options allow for opportunistic multiplexing: try to use a
+master connection but fall back to creating a new one if one does not already
+exist.
+These options are:
+.Dq auto
+and
+.Dq autoask .
+The latter requires confirmation like the
+.Dq ask
+option.
 .It Cm ControlPath
 Specify the path to the control socket used for connection sharing as described
 in the
@@ -290,6 +301,11 @@ will be substituted by the target host name,
 the port and
 .Ql %r
 by the remote login username.
+It is recommended that any
+.Cm ControlPath
+used for opportunistic connection sharing include
+all three of these escape sequences.
+This ensures that shared connections are uniquely identified.
 .It Cm DynamicForward
 Specifies that a TCP/IP port on the local machine be forwarded
 over the secure channel, and the application

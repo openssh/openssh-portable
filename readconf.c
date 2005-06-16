@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.140 2005/05/16 15:30:51 markus Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.141 2005/06/08 11:25:09 djm Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -796,7 +796,27 @@ parse_int:
 
 	case oControlMaster:
 		intptr = &options->control_master;
-		goto parse_yesnoask;
+		arg = strdelim(&s);
+		if (!arg || *arg == '\0')
+			fatal("%.200s line %d: Missing ControlMaster argument.",
+			    filename, linenum);
+		value = 0;	/* To avoid compiler warning... */
+		if (strcmp(arg, "yes") == 0 || strcmp(arg, "true") == 0)
+			value = SSHCTL_MASTER_YES;
+		else if (strcmp(arg, "no") == 0 || strcmp(arg, "false") == 0)
+			value = SSHCTL_MASTER_NO;
+		else if (strcmp(arg, "auto") == 0)
+			value = SSHCTL_MASTER_AUTO;
+		else if (strcmp(arg, "ask") == 0)
+			value = SSHCTL_MASTER_ASK;
+		else if (strcmp(arg, "autoask") == 0)
+			value = SSHCTL_MASTER_AUTO_ASK;
+		else
+			fatal("%.200s line %d: Bad ControlMaster argument.",
+			    filename, linenum);
+		if (*activep && *intptr == -1)
+			*intptr = value;
+		break;
 
 	case oHashKnownHosts:
 		intptr = &options->hash_known_hosts;
