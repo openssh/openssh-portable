@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.207 2005/04/21 06:17:50 djm Exp $
+.\" $OpenBSD: sshd.8,v 1.208 2005/06/08 03:50:00 djm Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -80,7 +80,7 @@ supports both SSH protocol version 1 and 2 simultaneously.
 works as follows:
 .Ss SSH protocol version 1
 Each host has a host-specific RSA key
-(normally 1024 bits) used to identify the host.
+(normally 2048 bits) used to identify the host.
 Additionally, when
 the daemon starts, it generates a server RSA key (normally 768 bits).
 This key is normally regenerated every hour if it has been used, and

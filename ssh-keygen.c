@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.126 2005/05/26 09:08:12 dtucker Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.127 2005/06/08 03:50:00 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -36,7 +36,7 @@ RCSID("$OpenBSD: ssh-keygen.c,v 1.126 2005/05/26 09:08:12 dtucker Exp $");
 #include "dns.h"
 
 /* Number of bits in the RSA/DSA key.  This value can be changed on the command line. */
-u_int32_t bits = 1024;
+u_int32_t bits = 2048;
 
 /*
  * Flag indicating that we just want to change the passphrase.  This can be

@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.68 2005/04/21 06:17:50 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.69 2005/06/08 03:50:00 djm Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -188,8 +188,8 @@ Show the bubblebabble digest of specified private or public key file.
 .It Fl b Ar bits
 Specifies the number of bits in the key to create.
 Minimum is 512 bits.
-Generally, 1024 bits is considered sufficient.
-The default is 1024 bits.
+Generally, 2048 bits is considered sufficient.
+The default is 2048 bits.
 .It Fl C Ar comment
 Provides a new comment.
 .It Fl c
