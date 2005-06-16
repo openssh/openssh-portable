@@ -3,7 +3,10 @@
    - jaredy@cvs.openbsd.org 2005/06/07 13:25:23
      [progressmeter.c]
      catch SIGWINCH and resize progress meter accordingly; ok markus dtucker
-
+   - djm@cvs.openbsd.org 2005/06/06 11:20:36
+     [auth.c auth.h misc.c misc.h ssh.c ssh_config.5 sshconnect.c]
+     introduce a generic %foo expansion function. replace existing % expansion 
+     and add expansion to ControlPath; ok markus@
 
 20050609
  - (dtucker) [cipher.c openbsd-compat/Makefile.in
@@ -2699,4 +2702,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3816 2005/06/16 03:18:04 djm Exp $
+$Id: ChangeLog,v 1.3817 2005/06/16 03:18:34 djm Exp $

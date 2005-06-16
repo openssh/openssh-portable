@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
+ * Copyright (c) 2005 Damien Miller.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -23,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: misc.c,v 1.30 2005/04/09 04:32:54 djm Exp $");
+RCSID("$OpenBSD: misc.c,v 1.31 2005/06/06 11:20:36 djm Exp $");
 
 #include "misc.h"
 #include "log.h"
@@ -418,6 +419,68 @@ tilde_expand_filename(const char *filename, uid_t uid)
 		fatal("tilde_expand_filename: Path too long");
 
 	return (xstrdup(ret));
+}
+
+/*
+ * Expand a string with a set of %[char] escapes. A number of escapes may be
+ * specified as (char *escape_chars, char *replacement) pairs. The list must
+ * be terminated by an escape_char of -1. Returns replaced string in memory
+ * allocated by xmalloc.
+ */
+char *
+percent_expand(const char *string, ...)
+{
+#define EXPAND_MAX_KEYS	16
+	struct {
+		const char *key;
+		const char *repl;
+	} keys[EXPAND_MAX_KEYS];
+	int num_keys, i, j;
+	char buf[4096];
+	va_list ap;
+
+	/* Gather keys */
+	va_start(ap, string);
+	for (num_keys = 0; num_keys < EXPAND_MAX_KEYS; num_keys++) {
+		keys[num_keys].key = va_arg(ap, char *);
+		if (keys[num_keys].key == NULL)
+			break;
+		keys[num_keys].repl = va_arg(ap, char *);
+		if (keys[num_keys].repl == NULL)
+			fatal("percent_expand: NULL replacement");
+	}
+	va_end(ap);
+
+	if (num_keys >= EXPAND_MAX_KEYS)
+		fatal("percent_expand: too many keys");
+
+	/* Expand string */
+	*buf = '\0';
+	for (i = 0; *string != '\0'; string++) {
+		if (*string != '%') {
+ append:
+			buf[i++] = *string;
+			if (i >= sizeof(buf))
+				fatal("percent_expand: string too long");
+			buf[i] = '\0';
+			continue;
+		}
+		string++;
+		if (*string == '%')
+			goto append;
+		for (j = 0; j < num_keys; j++) {
+			if (strchr(keys[j].key, *string) != NULL) {
+				i = strlcat(buf, keys[j].repl, sizeof(buf));
+				if (i >= sizeof(buf))
+					fatal("percent_expand: string too long");
+				break;
+			}
+		}
+		if (j >= num_keys)
+			fatal("percent_expand: unknown key %%%c", *string);
+	}
+	return (xstrdup(buf));
+#undef EXPAND_MAX_KEYS
 }
 
 /*

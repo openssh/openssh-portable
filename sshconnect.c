@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.163 2005/05/24 17:32:44 avsm Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.164 2005/06/06 11:20:36 djm Exp $");
 
 #include <openssl/bn.h>
 
@@ -59,12 +59,11 @@ static void warn_changed_key(Key *);
 static int
 ssh_proxy_connect(const char *host, u_short port, const char *proxy_command)
 {
-	Buffer command;
-	const char *cp;
-	char *command_string;
+	char *command_string, *tmp;
 	int pin[2], pout[2];
 	pid_t pid;
 	char strport[NI_MAXSERV];
+	size_t len;
 
 	/* Convert the port number into a string. */
 	snprintf(strport, sizeof strport, "%hu", port);
@@ -76,31 +75,13 @@ ssh_proxy_connect(const char *host, u_short port, const char *proxy_command)
 	 * Use "exec" to avoid "sh -c" processes on some platforms
 	 * (e.g. Solaris)
 	 */
-	buffer_init(&command);
-	buffer_append(&command, "exec ", 5);
-
-	for (cp = proxy_command; *cp; cp++) {
-		if (cp[0] == '%' && cp[1] == '%') {
-			buffer_append(&command, "%", 1);
-			cp++;
-			continue;
-		}
-		if (cp[0] == '%' && cp[1] == 'h') {
-			buffer_append(&command, host, strlen(host));
-			cp++;
-			continue;
-		}
-		if (cp[0] == '%' && cp[1] == 'p') {
-			buffer_append(&command, strport, strlen(strport));
-			cp++;
-			continue;
-		}
-		buffer_append(&command, cp, 1);
-	}
-	buffer_append(&command, "\0", 1);
-
-	/* Get the final command string. */
-	command_string = buffer_ptr(&command);
+	len = strlen(proxy_command) + 6;
+	tmp = xmalloc(len);
+	strlcpy(tmp, "exec ", len);
+	strlcat(tmp, proxy_command, len);
+	command_string = percent_expand(tmp, "h", host,
+	    "p", strport, (char *)NULL);
+	xfree(tmp);
 
 	/* Create pipes for communicating with the proxy. */
 	if (pipe(pin) < 0 || pipe(pout) < 0)
@@ -154,7 +135,7 @@ ssh_proxy_connect(const char *host, u_short port, const char *proxy_command)
 	close(pout[1]);
 
 	/* Free the command name. */
-	buffer_free(&command);
+	xfree(command_string);
 
 	/* Set the connection file descriptors. */
 	packet_set_connection(pout[0], pin[1]);

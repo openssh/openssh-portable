@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.240 2005/05/27 08:30:37 djm Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.241 2005/06/06 11:20:36 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -609,8 +609,12 @@ again:
 		options.proxy_command = NULL;
 
 	if (options.control_path != NULL) {
-		options.control_path = tilde_expand_filename(
-		   options.control_path, original_real_uid);
+		snprintf(buf, sizeof(buf), "%d", options.port);
+		cp = tilde_expand_filename(options.control_path,
+		    original_real_uid);
+		options.control_path = percent_expand(cp, "p", buf, "h", host,
+		    "r", options.user, (char *)NULL);
+		xfree(cp);
 	}
 	if (mux_command != 0 && options.control_path == NULL)
 		fatal("No ControlPath specified for \"-O\" command");

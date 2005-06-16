@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.54 2005/05/23 23:32:46 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.55 2005/06/06 11:20:36 djm Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -279,10 +279,17 @@ can not be opened,
 .Nm ssh
 will continue without connecting to a master instance.
 .It Cm ControlPath
-Specify the path to the control socket used for connection sharing.
-See
+Specify the path to the control socket used for connection sharing as described
+in the
 .Cm ControlMaster
-above.
+section above.
+In the path,
+.Ql %h
+will be substituted by the target host name,
+.Ql %p
+the port and
+.Ql %r
+by the remote login username.
 .It Cm DynamicForward
 Specifies that a TCP/IP port on the local machine be forwarded
 over the secure channel, and the application

@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth.c,v 1.58 2005/03/14 11:44:42 dtucker Exp $");
+RCSID("$OpenBSD: auth.c,v 1.59 2005/06/06 11:20:36 djm Exp $");
 
 #ifdef HAVE_LOGIN_H
 #include <login.h>
@@ -326,64 +326,41 @@ auth_root_allowed(char *method)
  *
  * This returns a buffer allocated by xmalloc.
  */
-char *
-expand_filename(const char *filename, struct passwd *pw)
+static char *
+expand_authorized_keys(const char *filename, struct passwd *pw)
 {
-	Buffer buffer;
-	char *file;
-	const char *cp;
+	char *file, *ret;
 
-	/*
-	 * Build the filename string in the buffer by making the appropriate
-	 * substitutions to the given file name.
-	 */
-	buffer_init(&buffer);
-	for (cp = filename; *cp; cp++) {
-		if (cp[0] == '%' && cp[1] == '%') {
-			buffer_append(&buffer, "%", 1);
-			cp++;
-			continue;
-		}
-		if (cp[0] == '%' && cp[1] == 'h') {
-			buffer_append(&buffer, pw->pw_dir, strlen(pw->pw_dir));
-			cp++;
-			continue;
-		}
-		if (cp[0] == '%' && cp[1] == 'u') {
-			buffer_append(&buffer, pw->pw_name,
-			    strlen(pw->pw_name));
-			cp++;
-			continue;
-		}
-		buffer_append(&buffer, cp, 1);
-	}
-	buffer_append(&buffer, "\0", 1);
+	file = percent_expand(filename, "h", pw->pw_dir,
+	    "u", pw->pw_name, (char *)NULL);
 
 	/*
 	 * Ensure that filename starts anchored. If not, be backward
 	 * compatible and prepend the '%h/'
 	 */
-	file = xmalloc(MAXPATHLEN);
-	cp = buffer_ptr(&buffer);
-	if (*cp != '/')
-		snprintf(file, MAXPATHLEN, "%s/%s", pw->pw_dir, cp);
-	else
-		strlcpy(file, cp, MAXPATHLEN);
+	if (*file == '/')
+		return (file);
 
-	buffer_free(&buffer);
-	return file;
+	ret = xmalloc(MAXPATHLEN);
+	if (strlcpy(ret, pw->pw_dir, MAXPATHLEN) >= MAXPATHLEN ||
+	    strlcat(ret, "/", MAXPATHLEN) >= MAXPATHLEN ||
+	    strlcat(ret, file, MAXPATHLEN) >= MAXPATHLEN)
+		fatal("expand_authorized_keys: path too long");
+
+	xfree(file);
+	return (ret);
 }
 
 char *
 authorized_keys_file(struct passwd *pw)
 {
-	return expand_filename(options.authorized_keys_file, pw);
+	return expand_authorized_keys(options.authorized_keys_file, pw);
 }
 
 char *
 authorized_keys_file2(struct passwd *pw)
 {
-	return expand_filename(options.authorized_keys_file2, pw);
+	return expand_authorized_keys(options.authorized_keys_file2, pw);
 }
 
 /* return ok if key exists in sysfile or userfile */
