@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: canohost.c,v 1.42 2005/02/18 03:05:53 djm Exp $");
+RCSID("$OpenBSD: canohost.c,v 1.43 2005/06/16 08:00:00 markus Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -346,7 +346,7 @@ get_sock_port(int sock, int local)
 	} else {
 		if (getpeername(sock, (struct sockaddr *)&from, &fromlen) < 0) {
 			debug("getpeername failed: %.100s", strerror(errno));
-			cleanup_exit(255);
+			return -1;
 		}
 	}
 

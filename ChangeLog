@@ -4,7 +4,10 @@
      [channels.c channels.h clientloop.c clientloop.h ssh.c]
      move x11_get_proto from ssh.c to clientloop.c, to make muliplexed xfwd
      easier later; ok deraadt@
-
+   - markus@cvs.openbsd.org 2005/06/16 08:00:00
+     [canohost.c channels.c sshd.c]
+     don't exit if getpeername fails for forwarded ports; bugzilla #1054;
+     ok djm
 
 20050616
  - (djm) OpenBSD CVS Sync
@@ -2722,4 +2725,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3821 2005/06/17 02:54:33 djm Exp $
+$Id: ChangeLog,v 1.3822 2005/06/17 02:55:03 djm Exp $

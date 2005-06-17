@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.309 2005/04/06 09:43:59 djm Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.310 2005/06/16 08:00:00 markus Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1626,7 +1626,10 @@ main(int ac, char **av)
 	    setsockopt(sock_in, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on)) < 0)
 		error("setsockopt SO_KEEPALIVE: %.100s", strerror(errno));
 
-	remote_port = get_remote_port();
+	if ((remote_port = get_remote_port()) < 0) {
+		debug("get_remote_port failed");
+		cleanup_exit(255);
+	}
 	remote_ip = get_remote_ipaddr();
 
 #ifdef SSH_AUDIT_EVENTS
