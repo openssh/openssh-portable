@@ -1,3 +1,11 @@
+20050617
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2005/06/16 03:38:36
+     [channels.c channels.h clientloop.c clientloop.h ssh.c]
+     move x11_get_proto from ssh.c to clientloop.c, to make muliplexed xfwd
+     easier later; ok deraadt@
+
+
 20050616
  - (djm) OpenBSD CVS Sync
    - jaredy@cvs.openbsd.org 2005/06/07 13:25:23
@@ -2714,4 +2722,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3820 2005/06/16 03:21:17 djm Exp $
+$Id: ChangeLog,v 1.3821 2005/06/17 02:54:33 djm Exp $

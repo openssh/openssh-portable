@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.214 2005/03/14 11:46:56 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.215 2005/06/16 03:38:36 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -2952,7 +2952,7 @@ deny_input_open(int type, u_int32_t seq, void *ctxt)
  * This should be called in the client only.
  */
 void
-x11_request_forwarding_with_spoofing(int client_session_id,
+x11_request_forwarding_with_spoofing(int client_session_id, const char *disp,
     const char *proto, const char *data)
 {
 	u_int data_len = (u_int) strlen(data) / 2;
@@ -2962,9 +2962,9 @@ x11_request_forwarding_with_spoofing(int client_session_id,
 	const char *cp;
 	u_int32_t rnd = 0;
 
-	cp = getenv("DISPLAY");
-	if (cp)
-		cp = strchr(cp, ':');
+	cp = disp;
+	if (disp)
+		cp = strchr(disp, ':');
 	if (cp)
 		cp = strchr(cp, '.');
 	if (cp)
