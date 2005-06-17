@@ -8,6 +8,15 @@
      [canohost.c channels.c sshd.c]
      don't exit if getpeername fails for forwarded ports; bugzilla #1054;
      ok djm
+   - djm@cvs.openbsd.org 2005/06/17 02:44:33
+     [auth-rsa.c auth.c auth1.c auth2-chall.c auth2-gss.c authfd.c authfile.c]
+     [bufaux.c canohost.c channels.c cipher.c clientloop.c dns.c gss-serv.c]
+     [kex.c kex.h key.c mac.c match.c misc.c packet.c packet.h scp.c]
+     [servconf.c session.c session.h sftp-client.c sftp-server.c sftp.c]
+     [ssh-keyscan.c ssh-rsa.c sshconnect.c sshconnect1.c sshconnect2.c sshd.c]
+     make this -Wsign-compare clean; ok avsm@ markus@
+     NB. auth1.c changes not committed yet (conflicts with uncommitted sync)
+     NB2. more work may be needed to make portable Wsign-compare clean
 
 20050616
  - (djm) OpenBSD CVS Sync
@@ -2725,4 +2734,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3822 2005/06/17 02:55:03 djm Exp $
+$Id: ChangeLog,v 1.3823 2005/06/17 02:59:34 djm Exp $

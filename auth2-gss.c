@@ -1,4 +1,4 @@
-/*	$OpenBSD: auth2-gss.c,v 1.8 2004/06/21 17:36:31 avsm Exp $	*/
+/*	$OpenBSD: auth2-gss.c,v 1.9 2005/06/17 02:44:32 djm Exp $	*/
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -61,7 +61,7 @@ userauth_gssapi(Authctxt *authctxt)
 	int present;
 	OM_uint32 ms;
 	u_int len;
-	char *doid = NULL;
+	u_char *doid = NULL;
 
 	if (!authctxt->valid || authctxt->user == NULL)
 		return (0);

@@ -1,4 +1,4 @@
-/*	$OpenBSD: dns.c,v 1.11 2005/04/20 10:05:45 jakob Exp $	*/
+/*	$OpenBSD: dns.c,v 1.12 2005/06/17 02:44:32 djm Exp $	*/
 
 /*
  * Copyright (c) 2003 Wesley Griffin. All rights reserved.
@@ -43,7 +43,7 @@
 #include "uuencode.h"
 
 extern char *__progname;
-RCSID("$OpenBSD: dns.c,v 1.11 2005/04/20 10:05:45 jakob Exp $");
+RCSID("$OpenBSD: dns.c,v 1.12 2005/06/17 02:44:32 djm Exp $");
 
 #ifndef LWRES
 static const char *errset_text[] = {
@@ -171,7 +171,7 @@ int
 verify_host_key_dns(const char *hostname, struct sockaddr *address,
     const Key *hostkey, int *flags)
 {
-	int counter;
+	u_int counter;
 	int result;
 	struct rrsetinfo *fingerprints = NULL;
 
@@ -274,7 +274,7 @@ export_dns_rr(const char *hostname, const Key *key, FILE *f, int generic)
 	u_char *rdata_digest;
 	u_int rdata_digest_len;
 
-	int i;
+	u_int i;
 	int success = 0;
 
 	if (dns_read_key(&rdata_pubkey_algorithm, &rdata_digest_type,

@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.116 2004/10/20 11:48:53 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.117 2005/06/17 02:44:32 djm Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -992,7 +992,7 @@ packet_read_poll2(u_int32_t *seqnr_p)
 	static u_int packet_length = 0;
 	u_int padlen, need;
 	u_char *macbuf, *cp, type;
-	int maclen, block_size;
+	u_int maclen, block_size;
 	Enc *enc   = NULL;
 	Mac *mac   = NULL;
 	Comp *comp = NULL;
@@ -1229,9 +1229,9 @@ packet_get_bignum2(BIGNUM * value)
 }
 
 void *
-packet_get_raw(int *length_ptr)
+packet_get_raw(u_int *length_ptr)
 {
-	int bytes = buffer_len(&incoming_packet);
+	u_int bytes = buffer_len(&incoming_packet);
 
 	if (length_ptr != NULL)
 		*length_ptr = bytes;

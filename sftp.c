@@ -16,7 +16,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.63 2005/03/10 22:01:05 deraadt Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.64 2005/06/17 02:44:33 djm Exp $");
 
 #ifdef USE_LIBEDIT
 #include <histedit.h>
@@ -404,7 +404,7 @@ get_pathname(const char **cpp, char **path)
 {
 	const char *cp = *cpp, *end;
 	char quot;
-	int i, j;
+	u_int i, j;
 
 	cp += strspn(cp, WHITESPACE);
 	if (!*cp) {
@@ -664,14 +664,15 @@ sdirent_comp(const void *aa, const void *bb)
 static int
 do_ls_dir(struct sftp_conn *conn, char *path, char *strip_path, int lflag)
 {
-	int n, c = 1, colspace = 0, columns = 1;
+	int n;
+	u_int c = 1, colspace = 0, columns = 1;
 	SFTP_DIRENT **d;
 
 	if ((n = do_readdir(conn, path, &d)) != 0)
 		return (n);
 
 	if (!(lflag & LS_SHORT_VIEW)) {
-		int m = 0, width = 80;
+		u_int m = 0, width = 80;
 		struct winsize ws;
 		char *tmp;
 
@@ -747,7 +748,7 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
     int lflag)
 {
 	glob_t g;
-	int i, c = 1, colspace = 0, columns = 1;
+	u_int i, c = 1, colspace = 0, columns = 1;
 	Attrib *a = NULL;
 
 	memset(&g, 0, sizeof(g));
@@ -783,7 +784,7 @@ do_globbed_ls(struct sftp_conn *conn, char *path, char *strip_path,
 	}
 
 	if (!(lflag & LS_SHORT_VIEW)) {
-		int m = 0, width = 80;
+		u_int m = 0, width = 80;
 		struct winsize ws;
 
 		/* Count entries for sort and find longest filename */

@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.216 2005/06/16 08:00:00 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.217 2005/06/17 02:44:32 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -894,7 +894,7 @@ static int
 channel_decode_socks4(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	char *p, *host;
-	int len, have, i, found;
+	u_int len, have, i, found;
 	char username[256];
 	struct {
 		u_int8_t version;
@@ -979,7 +979,7 @@ channel_decode_socks5(Channel *c, fd_set * readset, fd_set * writeset)
 	} s5_req, s5_rsp;
 	u_int16_t dest_port;
 	u_char *p, dest_addr[255+1];
-	int i, have, found, nmethods, addrlen, af;
+	u_int have, i, found, nmethods, addrlen, af;
 
 	debug2("channel %d: decode socks5", c->self);
 	p = buffer_ptr(&c->input);
@@ -1075,7 +1075,8 @@ static void
 channel_pre_dynamic(Channel *c, fd_set * readset, fd_set * writeset)
 {
 	u_char *p;
-	int have, ret;
+	u_int have;
+	int ret;
 
 	have = buffer_len(&c->input);
 	c->delayed = 0;

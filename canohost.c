@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: canohost.c,v 1.43 2005/06/16 08:00:00 markus Exp $");
+RCSID("$OpenBSD: canohost.c,v 1.44 2005/06/17 02:44:32 djm Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -143,7 +143,8 @@ check_ip_options(int sock, char *ipaddr)
 	u_char options[200];
 	char text[sizeof(options) * 3 + 1];
 	socklen_t option_size;
-	int i, ipproto;
+	u_int i;
+	int ipproto;
 	struct protoent *ip;
 
 	if ((ip = getprotobyname("ip")) != NULL)

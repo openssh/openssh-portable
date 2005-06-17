@@ -1,4 +1,4 @@
-/*	$OpenBSD: packet.h,v 1.41 2004/05/11 19:01:43 deraadt Exp $	*/
+/*	$OpenBSD: packet.h,v 1.42 2005/06/17 02:44:33 djm Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -52,7 +52,7 @@ u_int	 packet_get_char(void);
 u_int	 packet_get_int(void);
 void     packet_get_bignum(BIGNUM * value);
 void     packet_get_bignum2(BIGNUM * value);
-void	*packet_get_raw(int *length_ptr);
+void	*packet_get_raw(u_int *length_ptr);
 void	*packet_get_string(u_int *length_ptr);
 void     packet_disconnect(const char *fmt,...) __attribute__((format(printf, 1, 2)));
 void     packet_send_debug(const char *fmt,...) __attribute__((format(printf, 1, 2)));

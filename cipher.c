@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: cipher.c,v 1.75 2005/06/09 13:43:49 dtucker Exp $");
+RCSID("$OpenBSD: cipher.c,v 1.76 2005/06/17 02:44:32 djm Exp $");
 
 #include "xmalloc.h"
 #include "log.h"
@@ -235,7 +235,7 @@ cipher_init(CipherContext *cc, Cipher *cipher,
 		fatal("cipher_init: EVP_CipherInit failed for %s",
 		    cipher->name);
 	klen = EVP_CIPHER_CTX_key_length(&cc->evp);
-	if (klen > 0 && keylen != klen) {
+	if (klen > 0 && keylen != (u_int)klen) {
 		debug2("cipher_init: set keylen (%d -> %d)", klen, keylen);
 		if (EVP_CIPHER_CTX_set_key_length(&cc->evp, keylen) == 0)
 			fatal("cipher_init: set keylen failed (%d -> %d)",
@@ -326,9 +326,9 @@ cipher_get_keyiv(CipherContext *cc, u_char *iv, u_int len)
 	case SSH_CIPHER_DES:
 	case SSH_CIPHER_BLOWFISH:
 		evplen = EVP_CIPHER_CTX_iv_length(&cc->evp);
-		if (evplen == 0)
+		if (evplen <= 0)
 			return;
-		if (evplen != len)
+		if ((u_int)evplen != len)
 			fatal("%s: wrong iv length %d != %d", __func__,
 			    evplen, len);
 #if OPENSSL_VERSION_NUMBER < 0x00907000L

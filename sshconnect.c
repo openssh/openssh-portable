@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.164 2005/06/06 11:20:36 djm Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.165 2005/06/17 02:44:33 djm Exp $");
 
 #include <openssl/bn.h>
 
@@ -402,10 +402,11 @@ static void
 ssh_exchange_identification(void)
 {
 	char buf[256], remote_version[256];	/* must be same size! */
-	int remote_major, remote_minor, i, mismatch;
+	int remote_major, remote_minor, mismatch;
 	int connection_in = packet_get_connection_in();
 	int connection_out = packet_get_connection_out();
 	int minor1 = PROTOCOL_MINOR_1;
+	u_int i;
 
 	/* Read other side's version identification. */
 	for (;;) {

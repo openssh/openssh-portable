@@ -20,7 +20,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.54 2005/05/24 17:32:44 avsm Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.55 2005/06/17 02:44:33 djm Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -311,7 +311,7 @@ do_lsreaddir(struct sftp_conn *conn, char *path, int printflag,
     SFTP_DIRENT ***dir)
 {
 	Buffer msg;
-	u_int type, id, handle_len, i, expected_id, ents = 0;
+	u_int count, type, id, handle_len, i, expected_id, ents = 0;
 	char *handle;
 
 	id = conn->msg_id++;
@@ -335,8 +335,6 @@ do_lsreaddir(struct sftp_conn *conn, char *path, int printflag,
 	}
 
 	for (; !interrupted;) {
-		int count;
-
 		id = expected_id = conn->msg_id++;
 
 		debug3("Sending SSH2_FXP_READDIR I:%u", id);
@@ -744,10 +742,10 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 	Attrib junk, *a;
 	Buffer msg;
 	char *handle;
-	int local_fd, status, num_req, max_req, write_error;
+	int local_fd, status, write_error;
 	int read_error, write_errno;
 	u_int64_t offset, size;
-	u_int handle_len, mode, type, id, buflen;
+	u_int handle_len, mode, type, id, buflen, num_req, max_req;
 	off_t progress_counter;
 	struct request {
 		u_int id;

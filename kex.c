@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.60 2004/06/21 17:36:31 avsm Exp $");
+RCSID("$OpenBSD: kex.c,v 1.61 2005/06/17 02:44:32 djm Exp $");
 
 #include <openssl/crypto.h>
 
@@ -52,7 +52,7 @@ static void kex_choose_conf(Kex *);
 static void
 kex_prop2buf(Buffer *b, char *proposal[PROPOSAL_MAX])
 {
-	int i;
+	u_int i;
 
 	buffer_clear(b);
 	/*
@@ -101,7 +101,7 @@ kex_buf2prop(Buffer *raw, int *first_kex_follows)
 static void
 kex_prop_free(char **proposal)
 {
-	int i;
+	u_int i;
 
 	for (i = 0; i < PROPOSAL_MAX; i++)
 		xfree(proposal[i]);
@@ -150,7 +150,7 @@ kex_send_kexinit(Kex *kex)
 {
 	u_int32_t rnd = 0;
 	u_char *cookie;
-	int i;
+	u_int i;
 
 	if (kex == NULL) {
 		error("kex_send_kexinit: no kex, cannot rekey");
@@ -183,8 +183,7 @@ void
 kex_input_kexinit(int type, u_int32_t seq, void *ctxt)
 {
 	char *ptr;
-	int dlen;
-	int i;
+	u_int i, dlen;
 	Kex *kex = (Kex *)ctxt;
 
 	debug("SSH2_MSG_KEXINIT received");
@@ -343,9 +342,7 @@ kex_choose_conf(Kex *kex)
 	char **my, **peer;
 	char **cprop, **sprop;
 	int nenc, nmac, ncomp;
-	int mode;
-	int ctos;				/* direction: if true client-to-server */
-	int need;
+	u_int mode, ctos, need;
 	int first_kex_follows, type;
 
 	my   = kex_buf2prop(&kex->my, NULL);
@@ -405,15 +402,19 @@ kex_choose_conf(Kex *kex)
 }
 
 static u_char *
-derive_key(Kex *kex, int id, int need, u_char *hash, BIGNUM *shared_secret)
+derive_key(Kex *kex, int id, u_int need, u_char *hash, BIGNUM *shared_secret)
 {
 	Buffer b;
 	const EVP_MD *evp_md = EVP_sha1();
 	EVP_MD_CTX md;
 	char c = id;
-	int have;
+	u_int have;
 	int mdsz = EVP_MD_size(evp_md);
-	u_char *digest = xmalloc(roundup(need, mdsz));
+	u_char *digest;
+	
+	if (mdsz < 0)
+		fatal("derive_key: mdsz < 0");
+	digest = xmalloc(roundup(need, mdsz));
 
 	buffer_init(&b);
 	buffer_put_bignum2(&b, shared_secret);
@@ -455,7 +456,7 @@ void
 kex_derive_keys(Kex *kex, u_char *hash, BIGNUM *shared_secret)
 {
 	u_char *keys[NKEYS];
-	int i, mode, ctos;
+	u_int i, mode, ctos;
 
 	for (i = 0; i < NKEYS; i++)
 		keys[i] = derive_key(kex, 'A'+i, kex->we_need, hash, shared_secret);
@@ -493,13 +494,13 @@ derive_ssh1_session_id(BIGNUM *host_modulus, BIGNUM *server_modulus,
 	EVP_DigestInit(&md, evp_md);
 
 	len = BN_num_bytes(host_modulus);
-	if (len < (512 / 8) || len > sizeof(nbuf))
+	if (len < (512 / 8) || (u_int)len > sizeof(nbuf))
 		fatal("%s: bad host modulus (len %d)", __func__, len);
 	BN_bn2bin(host_modulus, nbuf);
 	EVP_DigestUpdate(&md, nbuf, len);
 
 	len = BN_num_bytes(server_modulus);
-	if (len < (512 / 8) || len > sizeof(nbuf))
+	if (len < (512 / 8) || (u_int)len > sizeof(nbuf))
 		fatal("%s: bad server modulus (len %d)", __func__, len);
 	BN_bn2bin(server_modulus, nbuf);
 	EVP_DigestUpdate(&md, nbuf, len);
@@ -518,7 +519,7 @@ derive_ssh1_session_id(BIGNUM *host_modulus, BIGNUM *server_modulus,
 void
 dump_digest(char *msg, u_char *digest, int len)
 {
-	int i;
+	u_int i;
 
 	fprintf(stderr, "%s\n", msg);
 	for (i = 0; i< len; i++) {

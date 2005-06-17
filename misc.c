@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: misc.c,v 1.31 2005/06/06 11:20:36 djm Exp $");
+RCSID("$OpenBSD: misc.c,v 1.32 2005/06/17 02:44:32 djm Exp $");
 
 #include "misc.h"
 #include "log.h"
@@ -386,7 +386,7 @@ tilde_expand_filename(const char *filename, uid_t uid)
 	const char *path;
 	char user[128], ret[MAXPATHLEN];
 	struct passwd *pw;
-	int len;
+	u_int len, slash;
 
 	if (*filename != '~')
 		return (xstrdup(filename));
@@ -394,10 +394,11 @@ tilde_expand_filename(const char *filename, uid_t uid)
 
 	path = strchr(filename, '/');
 	if (path != NULL && path > filename) {		/* ~user/path */
-		if (path - filename > sizeof(user) - 1)
+		slash = path - filename;
+		if (slash > sizeof(user) - 1)
 			fatal("tilde_expand_filename: ~username too long");
-		memcpy(user, filename, path - filename);
-		user[path - filename] = '\0';
+		memcpy(user, filename, slash);
+		user[slash] = '\0';
 		if ((pw = getpwnam(user)) == NULL)
 			fatal("tilde_expand_filename: No such user %s", user);
 	} else if ((pw = getpwuid(uid)) == NULL)	/* ~/path */
@@ -435,7 +436,7 @@ percent_expand(const char *string, ...)
 		const char *key;
 		const char *repl;
 	} keys[EXPAND_MAX_KEYS];
-	int num_keys, i, j;
+	u_int num_keys, i, j;
 	char buf[4096];
 	va_list ap;
 

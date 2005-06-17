@@ -23,7 +23,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: auth2-chall.c,v 1.22 2005/01/19 13:11:47 dtucker Exp $");
+RCSID("$OpenBSD: auth2-chall.c,v 1.23 2005/06/17 02:44:32 djm Exp $");
 
 #include "ssh2.h"
 #include "auth.h"
@@ -239,8 +239,7 @@ send_userauth_info_request(Authctxt *authctxt)
 {
 	KbdintAuthctxt *kbdintctxt;
 	char *name, *instr, **prompts;
-	int i;
-	u_int *echo_on;
+	u_int i, *echo_on;
 
 	kbdintctxt = authctxt->kbdintctxt;
 	if (kbdintctxt->device->query(kbdintctxt->ctxt,
@@ -273,8 +272,8 @@ input_userauth_info_response(int type, u_int32_t seq, void *ctxt)
 {
 	Authctxt *authctxt = ctxt;
 	KbdintAuthctxt *kbdintctxt;
-	int i, authenticated = 0, res, len;
-	u_int nresp;
+	int authenticated = 0, res, len;
+	u_int i, nresp;
 	char **response = NULL, *method;
 
 	if (authctxt == NULL)

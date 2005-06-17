@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.310 2005/06/16 08:00:00 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.311 2005/06/17 02:44:33 djm Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -358,7 +358,8 @@ key_regeneration_alarm(int sig)
 static void
 sshd_exchange_identification(int sock_in, int sock_out)
 {
-	int i, mismatch;
+	u_int i;
+	int mismatch;
 	int remote_major, remote_minor;
 	int major, minor;
 	char *s;
@@ -1900,7 +1901,7 @@ do_ssh1_kex(void)
 	if (!rsafail) {
 		BN_mask_bits(session_key_int, sizeof(session_key) * 8);
 		len = BN_num_bytes(session_key_int);
-		if (len < 0 || len > sizeof(session_key)) {
+		if (len < 0 || (u_int)len > sizeof(session_key)) {
 			error("do_connection: bad session key len from %s: "
 			    "session_key_int %d > sizeof(session_key) %lu",
 			    get_remote_ipaddr(), len, (u_long)sizeof(session_key));

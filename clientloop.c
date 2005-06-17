@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.138 2005/06/16 03:38:36 djm Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.139 2005/06/17 02:44:32 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -659,12 +659,12 @@ client_process_control(fd_set * readset)
 {
 	Buffer m;
 	Channel *c;
-	int client_fd, new_fd[3], ver, i, allowed;
+	int client_fd, new_fd[3], ver, allowed;
 	socklen_t addrlen;
 	struct sockaddr_storage addr;
 	struct confirm_ctx *cctx;
 	char *cmd;
-	u_int len, env_len, command, flags;
+	u_int i, len, env_len, command, flags;
 	uid_t euid;
 	gid_t egid;
 
@@ -971,7 +971,10 @@ process_escapes(Buffer *bin, Buffer *bout, Buffer *berr, char *buf, int len)
 	u_char ch;
 	char *s;
 
-	for (i = 0; i < len; i++) {
+	if (len <= 0)
+		return (0);
+
+	for (i = 0; i < (u_int)len; i++) {
 		/* Get one character at a time. */
 		ch = buf[i];
 

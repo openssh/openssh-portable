@@ -71,7 +71,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.123 2005/05/26 02:08:05 avsm Exp $");
+RCSID("$OpenBSD: scp.c,v 1.124 2005/06/17 02:44:33 djm Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -186,7 +186,7 @@ do_cmd(char *host, char *remuser, char *cmd, int *fdin, int *fdout, int argc)
 }
 
 typedef struct {
-	int cnt;
+	size_t cnt;
 	char *buf;
 } BUF;
 
@@ -724,8 +724,8 @@ sink(int argc, char **argv)
 	} wrerr;
 	BUF *bp;
 	off_t i;
-	size_t j;
-	int amt, count, exists, first, mask, mode, ofd, omode;
+	size_t j, count;
+	int amt, exists, first, mask, mode, ofd, omode;
 	off_t size, statbytes;
 	int setimes, targisdir, wrerrno = 0;
 	char ch, *cp, *np, *targ, *why, *vect[1], buf[2048];
@@ -833,7 +833,7 @@ sink(int argc, char **argv)
 		}
 		if (targisdir) {
 			static char *namebuf;
-			static int cursize;
+			static size_t cursize;
 			size_t need;
 
 			need = strlen(targ) + strlen(cp) + 250;

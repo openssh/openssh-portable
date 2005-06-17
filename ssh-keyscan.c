@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keyscan.c,v 1.54 2005/05/24 17:32:44 avsm Exp $");
+RCSID("$OpenBSD: ssh-keyscan.c,v 1.55 2005/06/17 02:44:33 djm Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -166,7 +166,7 @@ Linebuf_lineno(Linebuf * lb)
 static char *
 Linebuf_getline(Linebuf * lb)
 {
-	int n = 0;
+	size_t n = 0;
 	void *p;
 
 	lb->lineno++;
@@ -493,10 +493,10 @@ conrecycle(int s)
 static void
 congreet(int s)
 {
-	int remote_major = 0, remote_minor = 0;
+	int n = 0, remote_major = 0, remote_minor = 0;
 	char buf[256], *cp;
 	char remote_version[sizeof buf];
-	size_t bufsiz, n = 0;
+	size_t bufsiz;
 	con *c = &fdcon[s];
 
 	bufsiz = sizeof(buf);
@@ -546,12 +546,12 @@ congreet(int s)
 	n = snprintf(buf, sizeof buf, "SSH-%d.%d-OpenSSH-keyscan\r\n",
 	    c->c_keytype == KT_RSA1? PROTOCOL_MAJOR_1 : PROTOCOL_MAJOR_2,
 	    c->c_keytype == KT_RSA1? PROTOCOL_MINOR_1 : PROTOCOL_MINOR_2);
-	if (n == -1 || n >= sizeof buf) {
+	if (n < 0 || (size_t)n >= sizeof(buf)) {
 		error("snprintf: buffer too small");
 		confree(s);
 		return;
 	}
-	if (atomicio(vwrite, s, buf, n) != n) {
+	if (atomicio(vwrite, s, buf, n) != (size_t)n) {
 		error("write (%s): %s", c->c_name, strerror(errno));
 		confree(s);
 		return;

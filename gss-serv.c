@@ -1,4 +1,4 @@
-/*	$OpenBSD: gss-serv.c,v 1.5 2003/11/17 11:06:07 markus Exp $	*/
+/*	$OpenBSD: gss-serv.c,v 1.6 2005/06/17 02:44:32 djm Exp $	*/
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -134,7 +134,7 @@ ssh_gssapi_accept_ctx(Gssctxt *ctx, gss_buffer_desc *recv_tok,
 static OM_uint32
 ssh_gssapi_parse_ename(Gssctxt *ctx, gss_buffer_t ename, gss_buffer_t name)
 {
-	char *tok;
+	u_char *tok;
 	OM_uint32 offset;
 	OM_uint32 oidl;
 
