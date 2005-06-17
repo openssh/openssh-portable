@@ -43,6 +43,9 @@ RCSID("$OpenBSD: cipher.c,v 1.76 2005/06/17 02:44:32 djm Exp $");
 
 #include <openssl/md5.h>
 
+/* compatibility with old or broken OpenSSL versions */
+#include "openbsd-compat/openssl-compat.h"
+
 extern const EVP_CIPHER *evp_ssh1_bf(void);
 extern const EVP_CIPHER *evp_ssh1_3des(void);
 extern void ssh1_3des_iv(EVP_CIPHER_CTX *, int, u_char *, int);

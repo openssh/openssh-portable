@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.28 2005/06/09 11:45:11 dtucker Exp $ */
+/* $Id: openbsd-compat.h,v 1.29 2005/06/17 11:15:21 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -167,9 +167,6 @@ char *shadow_pw(struct passwd *pw);
 
 /* rfc2553 socket API replacements */
 #include "fake-rfc2553.h"
-
-/* compatibility with old or broken OpenSSL versions */
-#include "openssl-compat.h"
 
 /* Routines for a single OS platform */
 #include "bsd-cray.h"

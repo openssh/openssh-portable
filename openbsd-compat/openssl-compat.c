@@ -1,4 +1,4 @@
-/* $Id: openssl-compat.c,v 1.1 2005/06/09 11:45:11 dtucker Exp $ */
+/* $Id: openssl-compat.c,v 1.2 2005/06/17 11:15:21 dtucker Exp $ */
 
 /*
  * Copyright (c) 2005 Darren Tucker <dtucker@zip.com.au>
@@ -16,8 +16,10 @@
  * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#define SSH_DONT_REDEF_EVP
 #include "includes.h"
+
+#define SSH_DONT_REDEF_EVP
+#include "openssl-compat.h"
 
 #ifdef SSH_OLD_EVP
 int

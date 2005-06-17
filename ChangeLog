@@ -17,6 +17,10 @@
      make this -Wsign-compare clean; ok avsm@ markus@
      NB. auth1.c changes not committed yet (conflicts with uncommitted sync)
      NB2. more work may be needed to make portable Wsign-compare clean
+ - (dtucker) [cipher.c openbsd-compat/openbsd-compat.h
+   openbsd-compat/openssl-compat.c] only include openssl compat stuff where
+   it's needed as it can cause conflicts elsewhere (eg xcrypt.c).  Found by
+   and ok tim@
 
 20050616
  - (djm) OpenBSD CVS Sync
@@ -2734,4 +2738,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3823 2005/06/17 02:59:34 djm Exp $
+$Id: ChangeLog,v 1.3824 2005/06/17 11:15:20 dtucker Exp $
