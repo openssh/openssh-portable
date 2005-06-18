@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.60 2005/05/20 12:57:01 djm Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.61 2005/06/17 02:44:32 djm Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -140,7 +140,7 @@ auth1_process_rsa(Authctxt *authctxt, char *info, size_t infolen)
 static int
 auth1_process_rhosts_rsa(Authctxt *authctxt, char *info, size_t infolen)
 {
-	int authenticated = 0;
+	int keybits, authenticated = 0;
 	u_int bits;
 	Key *client_host_key;
 	u_int ulen;
@@ -158,7 +158,8 @@ auth1_process_rhosts_rsa(Authctxt *authctxt, char *info, size_t infolen)
 	packet_get_bignum(client_host_key->rsa->e);
 	packet_get_bignum(client_host_key->rsa->n);
 
-	if (bits != BN_num_bits(client_host_key->rsa->n)) {
+	keybits = BN_num_bits(client_host_key->rsa->n);
+	if (keybits < 0 || bits != (u_int)keybits) {
 		verbose("Warning: keysize mismatch for client_host_key: "
 		    "actual %d, announced %d",
 		    BN_num_bits(client_host_key->rsa->n), bits);
