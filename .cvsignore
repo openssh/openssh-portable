@@ -25,3 +25,4 @@ autom4te.cache
 ssh-rand-helper
 survey.sh
 survey
+opensshd.init
