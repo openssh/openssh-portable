@@ -165,7 +165,7 @@
 # include <libutil.h>
 #endif
 
-RCSID("$Id: loginrec.c,v 1.67 2005/02/15 11:19:28 dtucker Exp $");
+RCSID("$Id: loginrec.c,v 1.68 2005/06/19 00:19:43 djm Exp $");
 
 /**
  ** prototypes for helper functions in this file
@@ -534,7 +534,7 @@ getlast_entry(struct logininfo *li)
  * sure dst has enough space, if not just copy src (ugh)
  */
 char *
-line_fullname(char *dst, const char *src, int dstsize)
+line_fullname(char *dst, const char *src, u_int dstsize)
 {
 	memset(dst, '\0', dstsize);
 	if ((strncmp(src, "/dev/", 5) == 0) || (dstsize < (strlen(src) + 5)))

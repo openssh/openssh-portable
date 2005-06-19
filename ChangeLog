@@ -6,6 +6,8 @@
    polish dtucker@)
    - djm@cvs.openbsd.org 2005/06/17 02:44:33
    [auth1.c] make this -Wsign-compare clean; ok avsm@ markus@
+ - (djm) [loginrec.c ssh-rand-helper.c] Fix -Wsign-compare for portable,
+   tested and fixes tim@
 
 20050617
  - (djm) OpenBSD CVS Sync
@@ -2747,4 +2749,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3826 2005/06/18 21:36:10 djm Exp $
+$Id: ChangeLog,v 1.3827 2005/06/19 00:19:43 djm Exp $
