@@ -7,6 +7,9 @@
    - djm@cvs.openbsd.org 2005/06/18 04:30:36
      [ssh.c ssh_config.5]
      allow ControlPath=none, patch from dwmw2 AT infradead.org; ok dtucker@
+   - djm@cvs.openbsd.org 2005/06/25 22:47:49
+     [ssh.c]
+     do the default port filling code a few lines earlier, so it really does fix %p
 
 20050618
  - (djm) OpenBSD CVS Sync
@@ -2759,4 +2762,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3829 2005/06/25 22:56:03 djm Exp $
+$Id: ChangeLog,v 1.3830 2005/06/25 22:56:31 djm Exp $

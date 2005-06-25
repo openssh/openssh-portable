@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.245 2005/06/18 04:30:36 djm Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.246 2005/06/25 22:47:49 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -607,6 +607,12 @@ again:
 				*p = tolower(*p);
 	}
 
+	/* Get default port if port has not been set. */
+	if (options.port == 0) {
+		sp = getservbyname(SSH_SERVICE_NAME, "tcp");
+		options.port = sp ? ntohs(sp->s_port) : SSH_DEFAULT_PORT;
+	}
+
 	if (options.proxy_command != NULL &&
 	    strcmp(options.proxy_command, "none") == 0)
 		options.proxy_command = NULL;
@@ -626,12 +632,6 @@ again:
 		fatal("No ControlPath specified for \"-O\" command");
 	if (options.control_path != NULL)
 		control_client(options.control_path);
-
-	/* Get default port if port has not been set. */
-	if (options.port == 0) {
-		sp = getservbyname(SSH_SERVICE_NAME, "tcp");
-		options.port = sp ? ntohs(sp->s_port) : SSH_DEFAULT_PORT;
-	}
 
 	/* Open a connection to the remote host. */
 	if (ssh_connect(host, &hostaddr, options.port,
