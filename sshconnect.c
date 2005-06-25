@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.165 2005/06/17 02:44:33 djm Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.166 2005/06/17 22:53:47 djm Exp $");
 
 #include <openssl/bn.h>
 
@@ -289,18 +289,9 @@ ssh_connect(const char *host, struct sockaddr_storage * hostaddr,
 	int sock = -1, attempt;
 	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
 	struct addrinfo hints, *ai, *aitop;
-	struct servent *sp;
 
 	debug2("ssh_connect: needpriv %d", needpriv);
 
-	/* Get default port if port has not been set. */
-	if (port == 0) {
-		sp = getservbyname(SSH_SERVICE_NAME, "tcp");
-		if (sp)
-			port = ntohs(sp->s_port);
-		else
-			port = SSH_DEFAULT_PORT;
-	}
 	/* If a proxy command is given, connect using it. */
 	if (proxy_command != NULL)
 		return ssh_proxy_connect(host, port, proxy_command);

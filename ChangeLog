@@ -1,3 +1,10 @@
+20050626
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2005/06/17 22:53:47
+     [ssh.c sshconnect.c]
+     Fix ControlPath's %p expanding to "0" for a default port,
+     spotted dwmw2 AT infradead.org; ok markus@
+
 20050618
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2005/05/20 12:57:01;
@@ -2749,4 +2756,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3827 2005/06/19 00:19:43 djm Exp $
+$Id: ChangeLog,v 1.3828 2005/06/25 22:55:25 djm Exp $
