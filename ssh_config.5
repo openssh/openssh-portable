@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.56 2005/06/08 11:25:09 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.57 2005/06/18 04:30:36 djm Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -293,7 +293,9 @@ option.
 Specify the path to the control socket used for connection sharing as described
 in the
 .Cm ControlMaster
-section above.
+section above or the string
+.Dq none
+to disable connection sharing.
 In the path,
 .Ql %h
 will be substituted by the target host name,

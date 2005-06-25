@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.244 2005/06/17 22:53:46 djm Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.245 2005/06/18 04:30:36 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -610,6 +610,9 @@ again:
 	if (options.proxy_command != NULL &&
 	    strcmp(options.proxy_command, "none") == 0)
 		options.proxy_command = NULL;
+	if (options.control_path != NULL &&
+	    strcmp(options.control_path, "none") == 0)
+		options.control_path = NULL;
 
 	if (options.control_path != NULL) {
 		snprintf(buf, sizeof(buf), "%d", options.port);
