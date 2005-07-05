@@ -13,6 +13,9 @@
    - jmc@cvs.openbsd.org 2005/07/04 11:29:51
      [ssh_config.5]
      fix Xr and a little grammar;
+   - markus@cvs.openbsd.org 2005/07/04 14:04:11
+     [channels.c]
+     don't forget to set x11_saved_display
 
 20050626
  - (djm) OpenBSD CVS Sync
@@ -2779,4 +2782,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3834 2005/07/05 23:44:59 djm Exp $
+$Id: ChangeLog,v 1.3835 2005/07/05 23:45:26 djm Exp $

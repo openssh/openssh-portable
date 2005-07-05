@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.219 2005/07/04 00:58:42 djm Exp $");
+RCSID("$OpenBSD: channels.c,v 1.220 2005/07/04 14:04:11 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -2964,7 +2964,9 @@ x11_request_forwarding_with_spoofing(int client_session_id, const char *disp,
 	const char *cp;
 	u_int32_t rnd = 0;
 
-	if (x11_saved_display && strcmp(disp, x11_saved_display) != 0) {
+	if (x11_saved_display == NULL)
+		x11_saved_display = xstrdup(disp);
+	else if (strcmp(disp, x11_saved_display) != 0) {
 		error("x11_request_forwarding_with_spoofing: different "
 		    "$DISPLAY already forwarded");
 		return;
