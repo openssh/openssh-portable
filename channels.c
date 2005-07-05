@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.217 2005/06/17 02:44:32 djm Exp $");
+RCSID("$OpenBSD: channels.c,v 1.218 2005/07/01 13:19:47 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -2196,11 +2196,11 @@ channel_setup_fwd_listener(int type, const char *listen_addr, u_short listen_por
 
 	if (host == NULL) {
 		error("No forward host name.");
-		return success;
+		return 0;
 	}
 	if (strlen(host) > SSH_CHANNEL_PATH_LEN - 1) {
 		error("Forward host name too long.");
-		return success;
+		return 0;
 	}
 
 	/*
@@ -2251,12 +2251,10 @@ channel_setup_fwd_listener(int type, const char *listen_addr, u_short listen_por
 			packet_disconnect("getaddrinfo: fatal error: %s",
 			    gai_strerror(r));
 		} else {
-			verbose("channel_setup_fwd_listener: "
-			    "getaddrinfo(%.64s): %s", addr, gai_strerror(r));
-			packet_send_debug("channel_setup_fwd_listener: "
+			error("channel_setup_fwd_listener: "
 			    "getaddrinfo(%.64s): %s", addr, gai_strerror(r));
 		}
-		aitop = NULL;
+		return 0;
 	}
 
 	for (ai = aitop; ai; ai = ai->ai_next) {
