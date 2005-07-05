@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.246 2005/06/25 22:47:49 djm Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.247 2005/07/04 00:58:43 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -1250,41 +1250,44 @@ control_client(const char *path)
 	 		error("Control socket connect(%.100s): %s", path,
 			    strerror(errno));
 		}
-		close(sock);
-		return;
-	}
-
-	if (stdin_null_flag) {
-		if ((fd = open(_PATH_DEVNULL, O_RDONLY)) == -1)
-			fatal("open(/dev/null): %s", strerror(errno));
-		if (dup2(fd, STDIN_FILENO) == -1)
-			fatal("dup2: %s", strerror(errno));
-		if (fd > STDERR_FILENO)
-			close(fd);
-	}
-
-	if ((term = getenv("TERM")) == NULL)
-		term = "";
+ 		close(sock);
+ 		return;
+ 	}
+ 
+ 	if (stdin_null_flag) {
+ 		if ((fd = open(_PATH_DEVNULL, O_RDONLY)) == -1)
+ 			fatal("open(/dev/null): %s", strerror(errno));
+ 		if (dup2(fd, STDIN_FILENO) == -1)
+ 			fatal("dup2: %s", strerror(errno));
+ 		if (fd > STDERR_FILENO)
+ 			close(fd);
+ 	}
+  
+	term = getenv("TERM");
 
 	flags = 0;
 	if (tty_flag)
 		flags |= SSHMUX_FLAG_TTY;
 	if (subsystem_flag)
 		flags |= SSHMUX_FLAG_SUBSYS;
+	if (options.forward_x11)
+		flags |= SSHMUX_FLAG_X11_FWD;
+	if (options.forward_agent)
+		flags |= SSHMUX_FLAG_AGENT_FWD;
 
 	buffer_init(&m);
 
 	/* Send our command to server */
 	buffer_put_int(&m, mux_command);
 	buffer_put_int(&m, flags);
-	if (ssh_msg_send(sock, /* version */1, &m) == -1)
+	if (ssh_msg_send(sock, SSHMUX_VER, &m) == -1)
 		fatal("%s: msg_send", __func__);
 	buffer_clear(&m);
 
 	/* Get authorisation status and PID of controlee */
 	if (ssh_msg_recv(sock, &m) == -1)
 		fatal("%s: msg_recv", __func__);
-	if (buffer_get_char(&m) != 1)
+	if (buffer_get_char(&m) != SSHMUX_VER)
 		fatal("%s: wrong version", __func__);
 	if (buffer_get_int(&m) != 1)
 		fatal("Connection to master denied");
@@ -1308,7 +1311,7 @@ control_client(const char *path)
 	}
 
 	/* SSHMUX_COMMAND_OPEN */
-	buffer_put_cstring(&m, term);
+	buffer_put_cstring(&m, term ? term : "");
 	buffer_append(&command, "\0", 1);
 	buffer_put_cstring(&m, buffer_ptr(&command));
 
@@ -1330,7 +1333,7 @@ control_client(const char *path)
 			}
 	}
 
-	if (ssh_msg_send(sock, /* version */1, &m) == -1)
+	if (ssh_msg_send(sock, SSHMUX_VER, &m) == -1)
 		fatal("%s: msg_send", __func__);
 
 	mm_send_fd(sock, STDIN_FILENO);
@@ -1341,7 +1344,7 @@ control_client(const char *path)
 	buffer_clear(&m);
 	if (ssh_msg_recv(sock, &m) == -1)
 		fatal("%s: msg_recv", __func__);
-	if (buffer_get_char(&m) != 1)
+	if (buffer_get_char(&m) != SSHMUX_VER)
 		fatal("%s: wrong version", __func__);
 	buffer_free(&m);
 

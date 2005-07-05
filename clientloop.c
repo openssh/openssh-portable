@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.139 2005/06/17 02:44:32 djm Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.140 2005/07/04 00:58:43 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -140,6 +140,8 @@ int	session_ident = -1;
 struct confirm_ctx {
 	int want_tty;
 	int want_subsys;
+	int want_x_fwd;
+	int want_agent_fwd;
 	Buffer cmd;
 	char *term;
 	struct termios tio;
@@ -631,6 +633,7 @@ static void
 client_extra_session2_setup(int id, void *arg)
 {
 	struct confirm_ctx *cctx = arg;
+	const char *display;
 	Channel *c;
 	int i;
 
@@ -638,6 +641,24 @@ client_extra_session2_setup(int id, void *arg)
 		fatal("%s: cctx == NULL", __func__);
 	if ((c = channel_lookup(id)) == NULL)
 		fatal("%s: no channel for id %d", __func__, id);
+
+	display = getenv("DISPLAY");	
+	if (cctx->want_x_fwd && options.forward_x11 && display != NULL) {
+		char *proto, *data;
+		/* Get reasonable local authentication information. */
+		client_x11_get_proto(display, options.xauth_location,
+		    options.forward_x11_trusted, &proto, &data);
+		/* Request forwarding with authentication spoofing. */
+		debug("Requesting X11 forwarding with authentication spoofing.");
+		x11_request_forwarding_with_spoofing(id, display, proto, data);
+		/* XXX wait for reply */
+	}
+
+	if (cctx->want_agent_fwd && options.forward_agent) {
+		debug("Requesting authentication agent forwarding.");
+		channel_request_start(id, "auth-agent-req@openssh.com", 0);
+		packet_send();
+	}
 
 	client_session2_setup(id, cctx->want_tty, cctx->want_subsys,
 	    cctx->term, &cctx->tio, c->rfd, &cctx->cmd, cctx->env,
@@ -704,7 +725,7 @@ client_process_control(fd_set * readset)
 		buffer_free(&m);
 		return;
 	}
-	if ((ver = buffer_get_char(&m)) != 1) {
+	if ((ver = buffer_get_char(&m)) != SSHMUX_VER) {
 		error("%s: wrong client version %d", __func__, ver);
 		buffer_free(&m);
 		close(client_fd);
@@ -738,7 +759,7 @@ client_process_control(fd_set * readset)
 		buffer_clear(&m);
 		buffer_put_int(&m, allowed);
 		buffer_put_int(&m, getpid());
-		if (ssh_msg_send(client_fd, /* version */1, &m) == -1) {
+		if (ssh_msg_send(client_fd, SSHMUX_VER, &m) == -1) {
 			error("%s: client msg_send failed", __func__);
 			close(client_fd);
 			buffer_free(&m);
@@ -758,7 +779,7 @@ client_process_control(fd_set * readset)
 	buffer_clear(&m);
 	buffer_put_int(&m, allowed);
 	buffer_put_int(&m, getpid());
-	if (ssh_msg_send(client_fd, /* version */1, &m) == -1) {
+	if (ssh_msg_send(client_fd, SSHMUX_VER, &m) == -1) {
 		error("%s: client msg_send failed", __func__);
 		close(client_fd);
 		buffer_free(&m);
@@ -779,7 +800,7 @@ client_process_control(fd_set * readset)
 		buffer_free(&m);
 		return;
 	}
-	if ((ver = buffer_get_char(&m)) != 1) {
+	if ((ver = buffer_get_char(&m)) != SSHMUX_VER) {
 		error("%s: wrong client version %d", __func__, ver);
 		buffer_free(&m);
 		close(client_fd);
@@ -790,6 +811,8 @@ client_process_control(fd_set * readset)
 	memset(cctx, 0, sizeof(*cctx));
 	cctx->want_tty = (flags & SSHMUX_FLAG_TTY) != 0;
 	cctx->want_subsys = (flags & SSHMUX_FLAG_SUBSYS) != 0;
+	cctx->want_x_fwd = (flags & SSHMUX_FLAG_X11_FWD) != 0;
+	cctx->want_agent_fwd = (flags & SSHMUX_FLAG_AGENT_FWD) != 0;
 	cctx->term = buffer_get_string(&m, &len);
 
 	cmd = buffer_get_string(&m, &len);
@@ -823,7 +846,7 @@ client_process_control(fd_set * readset)
 
 	/* This roundtrip is just for synchronisation of ttymodes */
 	buffer_clear(&m);
-	if (ssh_msg_send(client_fd, /* version */1, &m) == -1) {
+	if (ssh_msg_send(client_fd, SSHMUX_VER, &m) == -1) {
 		error("%s: client msg_send failed", __func__);
 		close(client_fd);
 		close(new_fd[0]);

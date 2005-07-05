@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: misc.c,v 1.32 2005/06/17 02:44:32 djm Exp $");
+RCSID("$OpenBSD: misc.c,v 1.33 2005/07/04 00:58:43 djm Exp $");
 
 #include "misc.h"
 #include "log.h"
@@ -506,3 +506,20 @@ read_keyfile_line(FILE *f, const char *filename, char *buf, size_t bufsz,
 	}
 	return -1;
 }
+
+char *
+tohex(const u_char *d, u_int l)
+{
+	char b[3], *r;
+	u_int i, hl;
+
+	hl = l * 2 + 1;
+	r = xmalloc(hl);
+	*r = '\0';
+	for (i = 0; i < l; i++) {
+		snprintf(b, sizeof(b), "%02x", d[i]);
+		strlcat(r, b, hl);
+	}
+	return (r);
+}
+

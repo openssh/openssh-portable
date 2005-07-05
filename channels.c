@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.218 2005/07/01 13:19:47 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.219 2005/07/04 00:58:42 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -110,6 +110,9 @@ static int all_opens_permitted = 0;
 
 /* Maximum number of fake X11 displays to try. */
 #define MAX_DISPLAYS  1000
+
+/* Saved X11 local (client) display. */
+static char *x11_saved_display = NULL;
 
 /* Saved X11 authentication protocol name. */
 static char *x11_saved_proto = NULL;
@@ -2955,11 +2958,17 @@ x11_request_forwarding_with_spoofing(int client_session_id, const char *disp,
     const char *proto, const char *data)
 {
 	u_int data_len = (u_int) strlen(data) / 2;
-	u_int i, value, len;
+	u_int i, value;
 	char *new_data;
 	int screen_number;
 	const char *cp;
 	u_int32_t rnd = 0;
+
+	if (x11_saved_display && strcmp(disp, x11_saved_display) != 0) {
+		error("x11_request_forwarding_with_spoofing: different "
+		    "$DISPLAY already forwarded");
+		return;
+	}
 
 	cp = disp;
 	if (disp)
@@ -2971,33 +2980,31 @@ x11_request_forwarding_with_spoofing(int client_session_id, const char *disp,
 	else
 		screen_number = 0;
 
-	/* Save protocol name. */
-	x11_saved_proto = xstrdup(proto);
-
-	/*
-	 * Extract real authentication data and generate fake data of the
-	 * same length.
-	 */
-	x11_saved_data = xmalloc(data_len);
-	x11_fake_data = xmalloc(data_len);
-	for (i = 0; i < data_len; i++) {
-		if (sscanf(data + 2 * i, "%2x", &value) != 1)
-			fatal("x11_request_forwarding: bad authentication data: %.100s", data);
-		if (i % 4 == 0)
-			rnd = arc4random();
-		x11_saved_data[i] = value;
-		x11_fake_data[i] = rnd & 0xff;
-		rnd >>= 8;
+	if (x11_saved_proto == NULL) {
+		/* Save protocol name. */
+		x11_saved_proto = xstrdup(proto);
+		/*
+		 * Extract real authentication data and generate fake data 
+		 * of the same length.
+		 */
+		x11_saved_data = xmalloc(data_len);
+		x11_fake_data = xmalloc(data_len);
+		for (i = 0; i < data_len; i++) {
+			if (sscanf(data + 2 * i, "%2x", &value) != 1)
+				fatal("x11_request_forwarding: bad "
+				    "authentication data: %.100s", data);
+			if (i % 4 == 0)
+				rnd = arc4random();
+			x11_saved_data[i] = value;
+			x11_fake_data[i] = rnd & 0xff;
+			rnd >>= 8;
+		}
+		x11_saved_data_len = data_len;
+		x11_fake_data_len = data_len;
 	}
-	x11_saved_data_len = data_len;
-	x11_fake_data_len = data_len;
 
 	/* Convert the fake data into hex. */
-	len = 2 * data_len + 1;
-	new_data = xmalloc(len);
-	for (i = 0; i < data_len; i++)
-		snprintf(new_data + 2 * i, len - 2 * i,
-		    "%02x", (u_char) x11_fake_data[i]);
+	new_data = tohex(x11_fake_data, data_len);
 
 	/* Send the request packet. */
 	if (compat20) {
