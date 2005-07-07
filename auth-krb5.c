@@ -222,7 +222,7 @@ ssh_krb5_cc_gen(krb5_context ctx, krb5_ccache *ccache) {
 	ret = snprintf(ccname, sizeof(ccname),
 	    "FILE:/tmp/krb5cc_%d_XXXXXXXXXX", geteuid());
 	if (ret == -1 || ret >= sizeof(ccname))
-		return errno;
+		return ENOMEM;
 
 	old_umask = umask(0177);
 	tmpfd = mkstemp(ccname + strlen("FILE:"));
