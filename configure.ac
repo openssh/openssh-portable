@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.276 2005/06/19 00:19:43 djm Exp $
+# $Id: configure.ac,v 1.277 2005/07/07 10:33:36 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -2717,7 +2717,6 @@ AC_ARG_WITH(kerberos5,
 
 	LIBS="$LIBS $K5LIBS"
 	AC_SEARCH_LIBS(k_hasafs, kafs, AC_DEFINE(USE_AFS))
-	AC_SEARCH_LIBS(krb5_init_ets, $K5LIBS, AC_DEFINE(KRB5_INIT_ETS))
 	]
 )
 

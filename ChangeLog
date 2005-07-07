@@ -6,6 +6,10 @@
  - (dtucker) [auth-krb5.c] There's no guarantee that snprintf will set errno
    in the case where the buffer is insufficient, so always return ENOMEM.
    Also pointed out by sxw at inf.ed.ac.uk.
+ - (dtucker) [acconfig.h auth-krb5.c configure.ac gss-serv-krb5.c] Remove
+   calls to krb5_init_ets, which has not been required since krb-1.1.x and
+   most Kerberos versions no longer export in their public API.  From sxw
+   at inf.ed.ac.uk, ok djm@
 
 20050706
  - (djm) OpenBSD CVS Sync
@@ -2791,4 +2795,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3837 2005/07/07 10:09:35 dtucker Exp $
+$Id: ChangeLog,v 1.3838 2005/07/07 10:33:36 dtucker Exp $

@@ -65,9 +65,6 @@ ssh_gssapi_krb5_init(void)
 		logit("Cannot initialize krb5 context");
 		return 0;
 	}
-#ifdef KRB5_INIT_ETS
-	krb5_init_ets(krb_context);
-#endif
 
 	return 1;
 }
