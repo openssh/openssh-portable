@@ -191,4 +191,9 @@ int	 sys_auth_passwd(Authctxt *, const char *);
 #define AUTH_FAIL_MSG "Too many authentication failures for %.100s"
 
 #define SKEY_PROMPT "\nS/Key Password: "
+
+#if defined(KRB5) && !defined(HEIMDAL)
+#include <krb5.h>
+krb5_error_code ssh_krb5_cc_gen(krb5_context, krb5_ccache *);
+#endif
 #endif

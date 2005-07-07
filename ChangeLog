@@ -1,3 +1,8 @@
+20050707
+ - [auth-krb5.c auth.h gss-serv-krb5.c] Move KRB5CCNAME generation for the MIT
+   Kerberos code path into a common function and expand mkstemp template to be
+   consistent with the rest of OpenSSH.  From sxw at inf.ed.ac.uk, ok djm@
+
 20050706
  - (djm) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2005/07/01 13:19:47
@@ -2782,4 +2787,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3835 2005/07/05 23:45:26 djm Exp $
+$Id: ChangeLog,v 1.3836 2005/07/07 01:50:20 dtucker Exp $
