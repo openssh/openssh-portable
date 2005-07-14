@@ -17,6 +17,9 @@
    - dtucker@cvs.openbsd.org 2005/07/08 10:20:41
      [ssh_config.5]
      change BindAddress to match recent ssh -b change; prompted by markus@
+   - jmc@cvs.openbsd.org 2005/07/08 12:53:10
+     [ssh_config.5]
+     new sentence, new line;
 
 20050707
  - dtucker [auth-krb5.c auth.h gss-serv-krb5.c] Move KRB5CCNAME generation for
@@ -2815,4 +2818,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3842 2005/07/14 07:06:21 dtucker Exp $
+$Id: ChangeLog,v 1.3843 2005/07/14 07:06:50 dtucker Exp $
