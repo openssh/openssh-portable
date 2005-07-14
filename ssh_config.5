@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.59 2005/07/04 11:29:51 jmc Exp $
+.\" $OpenBSD: ssh_config.5,v 1.60 2005/07/08 10:20:41 dtucker Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -136,8 +136,8 @@ or
 The default is
 .Dq no .
 .It Cm BindAddress
-Specify the interface to transmit from on machines with multiple
-interfaces or aliased addresses.
+Use the specified address on the local machine as the source address of
+the connection.  Only useful on systems with more than one address.
 Note that this option does not work if
 .Cm UsePrivilegedPort
 is set to

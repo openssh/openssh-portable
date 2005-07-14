@@ -14,6 +14,9 @@
         2a) no EOF has been seen OR
         2b) there is buffered data
      report, initial fix and testing Chuck Cranor
+   - dtucker@cvs.openbsd.org 2005/07/08 10:20:41
+     [ssh_config.5]
+     change BindAddress to match recent ssh -b change; prompted by markus@
 
 20050707
  - dtucker [auth-krb5.c auth.h gss-serv-krb5.c] Move KRB5CCNAME generation for
@@ -2812,4 +2815,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3841 2005/07/14 07:05:51 dtucker Exp $
+$Id: ChangeLog,v 1.3842 2005/07/14 07:06:21 dtucker Exp $
