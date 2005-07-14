@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.277 2005/07/07 10:33:36 dtucker Exp $
+# $Id: configure.ac,v 1.278 2005/07/14 07:22:11 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -367,6 +367,9 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(BROKEN_REALPATH)
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(BROKEN_SAVED_UIDS)
+	;;
+*-*-openbsd*)
+	AC_DEFINE(HAVE_ATTRIBUTE__SENTINEL__, 1, [OpenBSD's gcc has sentinel])
 	;;
 *-*-solaris*)
 	if test "x$withval" != "xno" ; then

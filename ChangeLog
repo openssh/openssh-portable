@@ -23,6 +23,10 @@
    - dtucker@cvs.openbsd.org 2005/07/14 04:00:43
      [misc.h]
      use __sentinel__ attribute; ok deraadt@ djm@ markus@
+ - (dtucker) [configure.ac defines.h] Define __sentinel__ to nothing if the
+   compiler doesn't understand it to prevent warnings.  If any mainstream
+   compiler versions acquire it we can test for those versions.  Based on
+   discussion with djm@.
 
 20050707
  - dtucker [auth-krb5.c auth.h gss-serv-krb5.c] Move KRB5CCNAME generation for
@@ -2821,4 +2825,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3844 2005/07/14 07:07:21 dtucker Exp $
+$Id: ChangeLog,v 1.3845 2005/07/14 07:22:11 dtucker Exp $
