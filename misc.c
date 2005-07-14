@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: misc.c,v 1.33 2005/07/04 00:58:43 djm Exp $");
+RCSID("$OpenBSD: misc.c,v 1.34 2005/07/08 09:26:18 dtucker Exp $");
 
 #include "misc.h"
 #include "log.h"
@@ -425,7 +425,7 @@ tilde_expand_filename(const char *filename, uid_t uid)
 /*
  * Expand a string with a set of %[char] escapes. A number of escapes may be
  * specified as (char *escape_chars, char *replacement) pairs. The list must
- * be terminated by an escape_char of -1. Returns replaced string in memory
+ * be terminated by a NULL escape_char. Returns replaced string in memory
  * allocated by xmalloc.
  */
 char *

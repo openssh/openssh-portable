@@ -3,6 +3,9 @@
    - dtucker@cvs.openbsd.org 2005/07/06 09:33:05
      [ssh.1]
      clarify meaning of ssh -b ; with & ok jmc@
+   - dtucker@cvs.openbsd.org 2005/07/08 09:26:18
+     [misc.c]
+     Make comment match code; ok djm@
 
 20050707
  - dtucker [auth-krb5.c auth.h gss-serv-krb5.c] Move KRB5CCNAME generation for
@@ -2801,4 +2804,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3839 2005/07/14 07:04:18 dtucker Exp $
+$Id: ChangeLog,v 1.3840 2005/07/14 07:05:02 dtucker Exp $
