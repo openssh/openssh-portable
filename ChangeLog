@@ -1,3 +1,9 @@
+20050714
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2005/07/06 09:33:05
+     [ssh.1]
+     clarify meaning of ssh -b ; with & ok jmc@
+
 20050707
  - dtucker [auth-krb5.c auth.h gss-serv-krb5.c] Move KRB5CCNAME generation for
    the MIT Kerberos code path into a common function and expand mkstemp
@@ -2795,4 +2801,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3838 2005/07/07 10:33:36 dtucker Exp $
+$Id: ChangeLog,v 1.3839 2005/07/14 07:04:18 dtucker Exp $
