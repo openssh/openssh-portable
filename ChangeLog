@@ -1,3 +1,8 @@
+20050716
+ - (dtucker) [auth-pam.c] Ensure that only one side of the authentication
+   socketpair stays open on in both the monitor and PAM process.  Patch from
+   Joerg Sonnenberger.
+
 20050714
  - (dtucker) OpenBSD CVS Sync
    - dtucker@cvs.openbsd.org 2005/07/06 09:33:05
@@ -2825,4 +2830,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3845 2005/07/14 07:22:11 dtucker Exp $
+$Id: ChangeLog,v 1.3846 2005/07/16 01:33:06 dtucker Exp $
