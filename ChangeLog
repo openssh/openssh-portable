@@ -8,6 +8,14 @@
    [cipher-acss.c loginrec.c ssh-rand-helper.c sshd.c] Fix whitespace at EOL 
    in portable too ("perl -p -i -e 's/\s+$/\n/' *.[ch]")
  - (djm) [auth-pam.c sftp.c] spaces vs. tabs at start of line
+   - djm@cvs.openbsd.org 2005/07/17 06:49:04
+     [channels.c channels.h session.c session.h]
+     Fix a number of X11 forwarding channel leaks:
+     1. Refuse multiple X11 forwarding requests on the same session
+     2. Clean up all listeners after a single_connection X11 forward, not just
+        the one that made the single connection
+     3. Destroy X11 listeners when the session owning them goes away
+     testing and ok dtucker@
 
 20050716
  - (dtucker) [auth-pam.c] Ensure that only one side of the authentication
@@ -2841,4 +2849,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3849 2005/07/17 07:18:49 djm Exp $
+$Id: ChangeLog,v 1.3850 2005/07/17 07:19:24 djm Exp $
