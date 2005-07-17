@@ -7,6 +7,7 @@
  - (djm) [acss.c auth-pam.c auth-shadow.c auth-skey.c auth1.c canohost.c]
    [cipher-acss.c loginrec.c ssh-rand-helper.c sshd.c] Fix whitespace at EOL 
    in portable too ("perl -p -i -e 's/\s+$/\n/' *.[ch]")
+ - (djm) [auth-pam.c sftp.c] spaces vs. tabs at start of line
 
 20050716
  - (dtucker) [auth-pam.c] Ensure that only one side of the authentication
@@ -2840,4 +2841,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3848 2005/07/17 07:04:47 djm Exp $
+$Id: ChangeLog,v 1.3849 2005/07/17 07:18:49 djm Exp $

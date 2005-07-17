@@ -1299,8 +1299,8 @@ interactive_loop(int fd_in, int fd_out, char *file1, char *file2)
 	setvbuf(stdout, NULL, _IOLBF, 0);
 	setvbuf(infile, NULL, _IOLBF, 0);
 #else
-       setlinebuf(stdout);
-       setlinebuf(infile);
+	setlinebuf(stdout);
+	setlinebuf(infile);
 #endif
 
 	err = 0;
@@ -1562,8 +1562,8 @@ main(int argc, char **argv)
 	err = interactive_loop(in, out, file1, file2);
 
 #if !defined(USE_PIPES)
-       shutdown(in, SHUT_RDWR);
-       shutdown(out, SHUT_RDWR);
+	shutdown(in, SHUT_RDWR);
+	shutdown(out, SHUT_RDWR);
 #endif
 
 	close(in);
