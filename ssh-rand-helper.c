@@ -39,7 +39,7 @@
 #include "pathnames.h"
 #include "log.h"
 
-RCSID("$Id: ssh-rand-helper.c,v 1.25 2005/07/17 07:04:47 djm Exp $");
+RCSID("$Id: ssh-rand-helper.c,v 1.26 2005/07/17 07:26:44 djm Exp $");
 
 /* Number of bytes we write out */
 #define OUTPUT_SEED_SIZE	48
@@ -398,8 +398,8 @@ hash_command_output(entropy_cmd_t *src, unsigned char *hash)
 	debug3("Time elapsed: %d msec", msec_elapsed);
 
 	if (waitpid(pid, &status, 0) == -1) {
-	       error("Couldn't wait for child '%s' completion: %s",
-		   src->cmdstring, strerror(errno));
+		error("Couldn't wait for child '%s' completion: %s",
+		    src->cmdstring, strerror(errno));
 		return 0.0;
 	}
 

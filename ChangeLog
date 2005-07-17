@@ -22,6 +22,8 @@
      [serverloop.c session.c sftp-client.c sftp.c ssh-add.c ssh-keygen.c]
      [sshconnect.c sshconnect2.c]
      knf says that a 2nd level indent is four (not three or five) spaces
+ -(djm) [audit.c auth1.c auth2.c entropy.c loginrec.c serverloop.c]
+  [ssh-rand-helper.c] fix portable 2nd level indents at 4 spaces too
 
 20050716
  - (dtucker) [auth-pam.c] Ensure that only one side of the authentication
@@ -2855,4 +2857,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3851 2005/07/17 07:22:45 djm Exp $
+$Id: ChangeLog,v 1.3852 2005/07/17 07:26:43 djm Exp $

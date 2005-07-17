@@ -323,7 +323,7 @@ do_authloop(Authctxt *authctxt)
 			size_t len;
 
 			error("Access denied for user %s by PAM account "
-			   "configuration", authctxt->user);
+			    "configuration", authctxt->user);
 			len = buffer_len(&loginmsg);
 			buffer_append(&loginmsg, "\0", 1);
 			msg = buffer_ptr(&loginmsg);
