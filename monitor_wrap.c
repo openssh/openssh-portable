@@ -764,7 +764,8 @@ mm_sshpam_query(void *ctx, char **name, char **info,
     u_int *num, char ***prompts, u_int **echo_on)
 {
 	Buffer m;
-	int i, ret;
+	u_int i;
+	int ret;
 
 	debug3("%s", __func__);
 	buffer_init(&m);
@@ -790,7 +791,8 @@ int
 mm_sshpam_respond(void *ctx, u_int num, char **resp)
 {
 	Buffer m;
-	int i, ret;
+	u_int i;
+	int ret;
 
 	debug3("%s", __func__);
 	buffer_init(&m);
