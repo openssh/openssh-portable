@@ -1034,7 +1034,7 @@ main(int ac, char **av)
 	/*
 	 * Unset KRB5CCNAME, otherwise the user's session may inherit it from
 	 * root's environment
-	 */ 
+	 */
 	if (getenv("KRB5CCNAME") != NULL)
 		unsetenv("KRB5CCNAME");
 

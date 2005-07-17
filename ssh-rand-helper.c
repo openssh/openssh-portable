@@ -39,7 +39,7 @@
 #include "pathnames.h"
 #include "log.h"
 
-RCSID("$Id: ssh-rand-helper.c,v 1.24 2005/06/19 00:19:44 djm Exp $");
+RCSID("$Id: ssh-rand-helper.c,v 1.25 2005/07/17 07:04:47 djm Exp $");
 
 /* Number of bytes we write out */
 #define OUTPUT_SEED_SIZE	48
@@ -600,7 +600,7 @@ prng_write_seedfile(void)
 			save_errno = errno;
 			unlink(tmpseed);
 			fatal("problem renaming PRNG seedfile from %.100s "
-			    "to %.100s (%.100s)", tmpseed, filename, 
+			    "to %.100s (%.100s)", tmpseed, filename,
 			    strerror(save_errno));
 		}
 	}

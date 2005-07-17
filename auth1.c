@@ -171,7 +171,7 @@ auth1_process_rhosts_rsa(Authctxt *authctxt, char *info, size_t infolen)
 	key_free(client_host_key);
 
 	snprintf(info, infolen, " ruser %.100s", client_user);
-	
+
 	return (authenticated);
 }
 
@@ -299,7 +299,7 @@ do_authloop(Authctxt *authctxt)
 
 #ifdef HAVE_CYGWIN
 		if (authenticated &&
-		    !check_nt_auth(type == SSH_CMSG_AUTH_PASSWORD, 
+		    !check_nt_auth(type == SSH_CMSG_AUTH_PASSWORD,
 		    authctxt->pw)) {
 			packet_disconnect("Authentication rejected for uid %d.",
 			    authctxt->pw == NULL ? -1 : authctxt->pw->pw_uid);

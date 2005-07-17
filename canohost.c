@@ -174,7 +174,7 @@ ipv64_normalise_mapped(struct sockaddr_storage *addr, socklen_t *len)
 	struct in_addr inaddr;
 	u_int16_t port;
 
-	if (addr->ss_family != AF_INET6 || 
+	if (addr->ss_family != AF_INET6 ||
 	    !IN6_IS_ADDR_V4MAPPED(&a6->sin6_addr))
 		return;
 
