@@ -1,3 +1,10 @@
+20050717
+- OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2005/07/16 01:35:24
+     [auth1.c channels.c cipher.c clientloop.c kex.c session.c ssh.c]
+     [sshconnect.c]
+     spacing
+
 20050716
  - (dtucker) [auth-pam.c] Ensure that only one side of the authentication
    socketpair stays open on in both the monitor and PAM process.  Patch from
@@ -2830,4 +2837,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3846 2005/07/16 01:33:06 dtucker Exp $
+$Id: ChangeLog,v 1.3847 2005/07/17 07:02:09 djm Exp $

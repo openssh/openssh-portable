@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.140 2005/07/04 00:58:43 djm Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.141 2005/07/16 01:35:24 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -642,7 +642,7 @@ client_extra_session2_setup(int id, void *arg)
 	if ((c = channel_lookup(id)) == NULL)
 		fatal("%s: no channel for id %d", __func__, id);
 
-	display = getenv("DISPLAY");	
+	display = getenv("DISPLAY");
 	if (cctx->want_x_fwd && options.forward_x11 && display != NULL) {
 		char *proto, *data;
 		/* Get reasonable local authentication information. */

@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: cipher.c,v 1.76 2005/06/17 02:44:32 djm Exp $");
+RCSID("$OpenBSD: cipher.c,v 1.77 2005/07/16 01:35:24 djm Exp $");
 
 #include "xmalloc.h"
 #include "log.h"
@@ -249,7 +249,7 @@ cipher_init(CipherContext *cc, Cipher *cipher,
 		    cipher->name);
 #endif
 
-	if (cipher->discard_len > 0) {		
+	if (cipher->discard_len > 0) {
 		junk = xmalloc(cipher->discard_len);
 		discard = xmalloc(cipher->discard_len);
 		if (EVP_Cipher(&cc->evp, discard, junk,

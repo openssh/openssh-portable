@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.247 2005/07/04 00:58:43 djm Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.248 2005/07/16 01:35:24 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -790,8 +790,8 @@ ssh_init_forwarding(void)
 	for (i = 0; i < options.num_remote_forwards; i++) {
 		debug("Remote connections from %.200s:%d forwarded to "
 		    "local address %.200s:%d",
-		    (options.remote_forwards[i].listen_host == NULL) ? 
-		    (options.gateway_ports ? "*" : "LOCALHOST") : 
+		    (options.remote_forwards[i].listen_host == NULL) ?
+		    (options.gateway_ports ? "*" : "LOCALHOST") :
 		    options.remote_forwards[i].listen_host,
 		    options.remote_forwards[i].listen_port,
 		    options.remote_forwards[i].connect_host,
@@ -1037,7 +1037,7 @@ ssh_session2_setup(int id, void *arg)
 	const char *display;
 	int interactive = tty_flag;
 
-	display = getenv("DISPLAY");	
+	display = getenv("DISPLAY");
 	if (options.forward_x11 && display != NULL) {
 		char *proto, *data;
 		/* Get reasonable local authentication information. */
@@ -1253,7 +1253,7 @@ control_client(const char *path)
  		close(sock);
  		return;
  	}
- 
+
  	if (stdin_null_flag) {
  		if ((fd = open(_PATH_DEVNULL, O_RDONLY)) == -1)
  			fatal("open(/dev/null): %s", strerror(errno));
@@ -1262,7 +1262,7 @@ control_client(const char *path)
  		if (fd > STDERR_FILENO)
  			close(fd);
  	}
-  
+
 	term = getenv("TERM");
 
 	flags = 0;

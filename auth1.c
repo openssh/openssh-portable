@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.61 2005/06/17 02:44:32 djm Exp $");
+RCSID("$OpenBSD: auth1.c,v 1.62 2005/07/16 01:35:24 djm Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"
@@ -179,7 +179,7 @@ static int
 auth1_process_tis_challenge(Authctxt *authctxt, char *info, size_t infolen)
 {
 	char *challenge;
-	
+
 	if ((challenge = get_challenge(authctxt)) == NULL)
 		return (0);
 

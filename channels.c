@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.220 2005/07/04 14:04:11 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.221 2005/07/16 01:35:24 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -2986,7 +2986,7 @@ x11_request_forwarding_with_spoofing(int client_session_id, const char *disp,
 		/* Save protocol name. */
 		x11_saved_proto = xstrdup(proto);
 		/*
-		 * Extract real authentication data and generate fake data 
+		 * Extract real authentication data and generate fake data
 		 * of the same length.
 		 */
 		x11_saved_data = xmalloc(data_len);

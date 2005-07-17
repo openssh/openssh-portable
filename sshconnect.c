@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.166 2005/06/17 22:53:47 djm Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.167 2005/07/16 01:35:24 djm Exp $");
 
 #include <openssl/bn.h>
 
@@ -404,7 +404,7 @@ ssh_exchange_identification(void)
 		for (i = 0; i < sizeof(buf) - 1; i++) {
 			size_t len = atomicio(read, connection_in, &buf[i], 1);
 
-			if (len != 1 && errno == EPIPE) 
+			if (len != 1 && errno == EPIPE)
 				fatal("ssh_exchange_identification: Connection closed by remote host");
 			else if (len != 1)
 				fatal("ssh_exchange_identification: read: %.100s", strerror(errno));
