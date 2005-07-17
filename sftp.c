@@ -16,7 +16,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.64 2005/06/17 02:44:33 djm Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.65 2005/07/17 07:17:55 djm Exp $");
 
 #ifdef USE_LIBEDIT
 #include <histedit.h>
@@ -1476,7 +1476,7 @@ main(int argc, char **argv)
 
 			/* Allow "-" as stdin */
 			if (strcmp(optarg, "-") != 0 &&
-			   (infile = fopen(optarg, "r")) == NULL)
+			    (infile = fopen(optarg, "r")) == NULL)
 				fatal("%s (%s).", strerror(errno), optarg);
 			showprogress = 0;
 			batchmode = 1;

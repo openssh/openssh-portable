@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.184 2005/07/17 06:49:04 djm Exp $");
+RCSID("$OpenBSD: session.c,v 1.185 2005/07/17 07:17:55 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1530,7 +1530,7 @@ do_child(Session *s, const char *command)
 	 */
 
 	if (options.kerberos_get_afs_token && k_hasafs() &&
-	     (s->authctxt->krb5_ctx != NULL)) {
+	    (s->authctxt->krb5_ctx != NULL)) {
 		char cell[64];
 
 		debug("Getting AFS token");

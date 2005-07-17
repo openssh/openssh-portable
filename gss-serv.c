@@ -1,4 +1,4 @@
-/*	$OpenBSD: gss-serv.c,v 1.6 2005/06/17 02:44:32 djm Exp $	*/
+/*	$OpenBSD: gss-serv.c,v 1.7 2005/07/17 07:17:55 djm Exp $	*/
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -164,7 +164,7 @@ ssh_gssapi_parse_ename(Gssctxt *ctx, gss_buffer_t ename, gss_buffer_t name)
 	 */
 	if (tok[4] != 0x06 || tok[5] != oidl ||
 	    ename->length < oidl+6 ||
-	   !ssh_gssapi_check_oid(ctx,tok+6,oidl))
+	    !ssh_gssapi_check_oid(ctx,tok+6,oidl))
 		return GSS_S_FAILURE;
 
 	offset = oidl+6;
@@ -267,7 +267,7 @@ ssh_gssapi_do_child(char ***envp, u_int *envsizep)
 		debug("Setting %s to %s", gssapi_client.store.envvar,
 		gssapi_client.store.envval);
 		child_set_env(envp, envsizep, gssapi_client.store.envvar,
-		     gssapi_client.store.envval);
+		    gssapi_client.store.envval);
 	}
 }
 

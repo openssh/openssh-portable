@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.127 2005/06/08 03:50:00 djm Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.128 2005/07/17 07:17:55 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -738,7 +738,7 @@ do_known_hosts(struct passwd *pw, const char *name)
 			fprintf(stderr, "WARNING: %s contains unhashed "
 			    "entries\n", old);
 			fprintf(stderr, "Delete this file to ensure privacy "
-			     "of hostnames\n");
+			    "of hostnames\n");
 		}
 	}
 

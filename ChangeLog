@@ -16,6 +16,12 @@
         the one that made the single connection
      3. Destroy X11 listeners when the session owning them goes away
      testing and ok dtucker@
+   - djm@cvs.openbsd.org 2005/07/17 07:17:55
+     [auth-rh-rsa.c auth-rhosts.c auth2-chall.c auth2-gss.c channels.c]
+     [cipher-ctr.c gss-genr.c gss-serv.c kex.c moduli.c readconf.c]
+     [serverloop.c session.c sftp-client.c sftp.c ssh-add.c ssh-keygen.c]
+     [sshconnect.c sshconnect2.c]
+     knf says that a 2nd level indent is four (not three or five) spaces
 
 20050716
  - (dtucker) [auth-pam.c] Ensure that only one side of the authentication
@@ -2849,4 +2855,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3850 2005/07/17 07:19:24 djm Exp $
+$Id: ChangeLog,v 1.3851 2005/07/17 07:22:45 djm Exp $

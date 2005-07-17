@@ -20,7 +20,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.55 2005/06/17 02:44:33 djm Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.56 2005/07/17 07:17:55 djm Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -1126,7 +1126,7 @@ do_upload(struct sftp_conn *conn, char *local_path, char *remote_path,
 				goto done;
 			}
 			debug3("In write loop, ack for %u %u bytes at %llu",
-			   ack->id, ack->len, (unsigned long long)ack->offset);
+			    ack->id, ack->len, (unsigned long long)ack->offset);
 			++ackid;
 			xfree(ack);
 		}

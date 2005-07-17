@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.167 2005/07/16 01:35:24 djm Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.168 2005/07/17 07:17:55 djm Exp $");
 
 #include <openssl/bn.h>
 
@@ -547,7 +547,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 	switch (hostaddr->sa_family) {
 	case AF_INET:
 		local = (ntohl(((struct sockaddr_in *)hostaddr)->
-		   sin_addr.s_addr) >> 24) == IN_LOOPBACKNET;
+		    sin_addr.s_addr) >> 24) == IN_LOOPBACKNET;
 		salen = sizeof(struct sockaddr_in);
 		break;
 	case AF_INET6:
@@ -680,8 +680,8 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 
 			if (show_other_keys(host, host_key))
 				snprintf(msg1, sizeof(msg1),
-				   "\nbut keys of different type are already"
-				   " known for this host.");
+				    "\nbut keys of different type are already"
+				    " known for this host.");
 			else
 				snprintf(msg1, sizeof(msg1), ".");
 			/* The default */

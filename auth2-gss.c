@@ -1,4 +1,4 @@
-/*	$OpenBSD: auth2-gss.c,v 1.9 2005/06/17 02:44:32 djm Exp $	*/
+/*	$OpenBSD: auth2-gss.c,v 1.10 2005/07/17 07:17:54 djm Exp $	*/
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -82,9 +82,8 @@ userauth_gssapi(Authctxt *authctxt)
 		present = 0;
 		doid = packet_get_string(&len);
 
-		if (len > 2 &&
-		   doid[0] == SSH_GSS_OIDTYPE &&
-		   doid[1] == len - 2) {
+		if (len > 2 && doid[0] == SSH_GSS_OIDTYPE &&
+		    doid[1] == len - 2) {
 			goid.elements = doid + 2;
 			goid.length   = len - 2;
 			gss_test_oid_set_member(&ms, &goid, supported,
