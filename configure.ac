@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.278 2005/07/14 07:22:11 dtucker Exp $
+# $Id: configure.ac,v 1.279 2005/07/25 05:24:21 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -796,8 +796,8 @@ int main()
 	if (a == 1 && b == 1 && c >= 4)
 		exit(0);
 
-	/* 1.2.1.2 and up are OK */
-	if (v >= 1020102)
+	/* 1.2.3 and up are OK */
+	if (v >= 1020300)
 		exit(0);
 
 	exit(2);
