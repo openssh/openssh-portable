@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.185 2005/07/17 07:17:55 djm Exp $");
+RCSID("$OpenBSD: session.c,v 1.186 2005/07/25 11:59:40 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -56,6 +56,7 @@ RCSID("$OpenBSD: session.c,v 1.185 2005/07/17 07:17:55 djm Exp $");
 #include "serverloop.h"
 #include "canohost.h"
 #include "session.h"
+#include "kex.h"
 #include "monitor_wrap.h"
 
 #if defined(KRB5) && defined(USE_AFS)
@@ -272,7 +273,7 @@ do_authenticated1(Authctxt *authctxt)
 				    compression_level);
 				break;
 			}
-			if (!options.compression) {
+			if (options.compression == COMP_NONE) {
 				debug2("compression disabled");
 				break;
 			}

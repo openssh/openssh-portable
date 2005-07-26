@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.43 2005/05/23 23:32:46 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.44 2005/07/25 11:59:40 markus Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -217,13 +217,15 @@ The default
 is 0, indicating that these messages will not be sent to the client.
 This option applies to protocol version 2 only.
 .It Cm Compression
-Specifies whether compression is allowed.
+Specifies whether compression is allowed, or delayed until
+the user has authenticated successfully.
 The argument must be
-.Dq yes
+.Dq yes ,
+.Dq delayed ,
 or
 .Dq no .
 The default is
-.Dq yes .
+.Dq delayed .
 .It Cm DenyGroups
 This keyword can be followed by a list of group name patterns, separated
 by spaces.

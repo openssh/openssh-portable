@@ -1,4 +1,4 @@
-#	$OpenBSD: sshd_config,v 1.71 2005/05/19 02:40:52 djm Exp $
+#	$OpenBSD: sshd_config,v 1.72 2005/07/25 11:59:40 markus Exp $
 
 # This is the sshd server system-wide configuration file.  See
 # sshd_config(5) for more information.
@@ -90,7 +90,7 @@
 #UseLogin no
 #UsePrivilegeSeparation yes
 #PermitUserEnvironment no
-#Compression yes
+#Compression delayed
 #ClientAliveInterval 0
 #ClientAliveCountMax 3
 #UseDNS yes

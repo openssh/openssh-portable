@@ -1,4 +1,4 @@
-/*	$OpenBSD: kex.h,v 1.36 2005/06/17 02:44:32 djm Exp $	*/
+/*	$OpenBSD: kex.h,v 1.37 2005/07/25 11:59:39 markus Exp $	*/
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -34,6 +34,10 @@
 #define	KEX_DH1		"diffie-hellman-group1-sha1"
 #define	KEX_DH14	"diffie-hellman-group14-sha1"
 #define	KEX_DHGEX	"diffie-hellman-group-exchange-sha1"
+
+#define COMP_NONE	0
+#define COMP_ZLIB	1
+#define COMP_DELAYED	2
 
 enum kex_init_proposals {
 	PROPOSAL_KEX_ALGS,

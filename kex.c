@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.63 2005/07/17 07:17:55 djm Exp $");
+RCSID("$OpenBSD: kex.c,v 1.64 2005/07/25 11:59:39 markus Exp $");
 
 #include <openssl/crypto.h>
 
@@ -275,10 +275,12 @@ choose_comp(Comp *comp, char *client, char *server)
 	char *name = match_list(client, server, NULL);
 	if (name == NULL)
 		fatal("no matching comp found: client %s server %s", client, server);
-	if (strcmp(name, "zlib") == 0) {
-		comp->type = 1;
+	if (strcmp(name, "zlib@openssh.com") == 0) {
+		comp->type = COMP_DELAYED;
+	} else if (strcmp(name, "zlib") == 0) {
+		comp->type = COMP_ZLIB;
 	} else if (strcmp(name, "none") == 0) {
-		comp->type = 0;
+		comp->type = COMP_NONE;
 	} else {
 		fatal("unsupported comp %s", name);
 	}

@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.142 2005/06/17 02:44:33 djm Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.143 2005/07/25 11:59:40 markus Exp $");
 
 #include "ssh.h"
 #include "log.h"
@@ -201,7 +201,7 @@ fill_default_server_options(ServerOptions *options)
 	if (options->use_login == -1)
 		options->use_login = 0;
 	if (options->compression == -1)
-		options->compression = 1;
+		options->compression = COMP_DELAYED;
 	if (options->allow_tcp_forwarding == -1)
 		options->allow_tcp_forwarding = 1;
 	if (options->gateway_ports == -1)
@@ -725,7 +725,23 @@ parse_flag:
 
 	case sCompression:
 		intptr = &options->compression;
-		goto parse_flag;
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: missing yes/no/delayed "
+			    "argument.", filename, linenum);
+		value = 0;	/* silence compiler */
+		if (strcmp(arg, "delayed") == 0)
+			value = COMP_DELAYED;
+		else if (strcmp(arg, "yes") == 0)
+			value = COMP_ZLIB;
+		else if (strcmp(arg, "no") == 0)
+			value = COMP_NONE;
+		else
+			fatal("%s line %d: Bad yes/no/delayed "
+			    "argument: %s", filename, linenum, arg);
+		if (*intptr == -1)
+			*intptr = value;
+		break;
 
 	case sGatewayPorts:
 		intptr = &options->gateway_ports;

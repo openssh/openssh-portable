@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.117 2005/06/17 02:44:32 djm Exp $");
+RCSID("$OpenBSD: packet.c,v 1.118 2005/07/25 11:59:39 markus Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -115,6 +115,12 @@ static int initialized = 0;
 
 /* Set to true if the connection is interactive. */
 static int interactive_mode = 0;
+
+/* Set to true if we are the server side. */
+static int server_side = 0;
+
+/* Set to true if we are authenticated. */
+static int after_authentication = 0;
 
 /* Session key information for Encryption and MAC */
 Newkeys *newkeys[MODE_MAX];
@@ -624,7 +630,9 @@ set_newkeys(int mode)
 	/* Deleting the keys does not gain extra security */
 	/* memset(enc->iv,  0, enc->block_size);
 	   memset(enc->key, 0, enc->key_len); */
-	if (comp->type != 0 && comp->enabled == 0) {
+	if ((comp->type == COMP_ZLIB ||
+	    (comp->type == COMP_DELAYED && after_authentication)) &&
+	    comp->enabled == 0) {
 		packet_init_compression();
 		if (mode == MODE_OUT)
 			buffer_compress_init_send(6);
@@ -642,6 +650,34 @@ set_newkeys(int mode)
 		*max_blocks = ((u_int64_t)1 << 30) / enc->block_size;
 	if (rekey_limit)
 		*max_blocks = MIN(*max_blocks, rekey_limit / enc->block_size);
+}
+
+/*
+ * Delayed compression for SSH2 is enabled after authentication:
+ * This happans on the server side after a SSH2_MSG_USERAUTH_SUCCESS is sent,
+ * and on the client side after a SSH2_MSG_USERAUTH_SUCCESS is received.
+ */
+static void
+packet_enable_delayed_compress(void)
+{
+	Comp *comp = NULL;
+	int mode;
+
+	/*
+	 * Remember that we are past the authentication step, so rekeying
+	 * with COMP_DELAYED will turn on compression immediately.
+	 */
+	after_authentication = 1;
+	for (mode = 0; mode < MODE_MAX; mode++) {
+		comp = &newkeys[mode]->comp;
+		if (comp && !comp->enabled && comp->type == COMP_DELAYED) {
+			if (mode == MODE_OUT)
+				buffer_compress_init_send(6);
+			else
+				buffer_compress_init_recv();
+			comp->enabled = 1;
+		}
+	}
 }
 
 /*
@@ -757,6 +793,8 @@ packet_send2_wrapped(void)
 
 	if (type == SSH2_MSG_NEWKEYS)
 		set_newkeys(MODE_OUT);
+	else if (type == SSH2_MSG_USERAUTH_SUCCESS && server_side)
+		packet_enable_delayed_compress();
 }
 
 static void
@@ -1099,6 +1137,8 @@ packet_read_poll2(u_int32_t *seqnr_p)
 		packet_disconnect("Invalid ssh2 packet type: %d", type);
 	if (type == SSH2_MSG_NEWKEYS)
 		set_newkeys(MODE_IN);
+	else if (type == SSH2_MSG_USERAUTH_SUCCESS && !server_side)
+		packet_enable_delayed_compress();
 #ifdef PACKET_DEBUG
 	fprintf(stderr, "read/plain[%d]:\r\n", type);
 	buffer_dump(&incoming_packet);
@@ -1523,4 +1563,16 @@ void
 packet_set_rekey_limit(u_int32_t bytes)
 {
 	rekey_limit = bytes;
+}
+
+void
+packet_set_server(void)
+{
+	server_side = 1;
+}
+
+void
+packet_set_authenticated(void)
+{
+	after_authentication = 1;
 }
