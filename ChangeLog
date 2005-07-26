@@ -1,3 +1,7 @@
+20050726
+ - (dtucker) [configure.ac] Update zlib warning message too, pointed out by
+   tim@.
+
 20050725
  - (dtucker) [configure.ac] Update zlib version check for CAN-2005-2096.
 
@@ -2861,4 +2865,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3854 2005/07/25 05:24:21 dtucker Exp $
+$Id: ChangeLog,v 1.3855 2005/07/26 02:00:42 dtucker Exp $

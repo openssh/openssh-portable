@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.279 2005/07/25 05:24:21 dtucker Exp $
+# $Id: configure.ac,v 1.280 2005/07/26 02:00:42 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -811,7 +811,7 @@ Your reported zlib version has known security problems.  It's possible your
 vendor has fixed these problems without changing the version number.  If you
 are sure this is the case, you can disable the check by running
 "./configure --without-zlib-version-check".
-If you are in doubt, upgrade zlib to version 1.2.1.2 or greater.
+If you are in doubt, upgrade zlib to version 1.2.3 or greater.
 See http://www.gzip.org/zlib/ for details.])
 	  else
 		AC_MSG_WARN([zlib version may have security problems])
