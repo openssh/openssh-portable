@@ -20,7 +20,7 @@
 /* XXX: copy between two remote sites */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp-client.c,v 1.56 2005/07/17 07:17:55 djm Exp $");
+RCSID("$OpenBSD: sftp-client.c,v 1.57 2005/07/27 10:39:03 dtucker Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -742,7 +742,7 @@ do_download(struct sftp_conn *conn, char *remote_path, char *local_path,
 	Attrib junk, *a;
 	Buffer msg;
 	char *handle;
-	int local_fd, status, write_error;
+	int local_fd, status = 0, write_error;
 	int read_error, write_errno;
 	u_int64_t offset, size;
 	u_int handle_len, mode, type, id, buflen, num_req, max_req;

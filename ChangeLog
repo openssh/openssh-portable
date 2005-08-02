@@ -1,3 +1,9 @@
+20050802
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2005/07/27 10:39:03
+     [scp.c hostfile.c sftp-client.c]
+     Silence bogus -Wuninitialized warnings; ok djm@
+
 20050726
  - (dtucker) [configure.ac] Update zlib warning message too, pointed out by
    tim@.
@@ -2879,4 +2885,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3857 2005/07/26 11:54:56 djm Exp $
+$Id: ChangeLog,v 1.3858 2005/08/02 07:07:07 dtucker Exp $
