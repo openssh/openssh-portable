@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.281 2005/08/02 07:21:29 dtucker Exp $
+# $Id: configure.ac,v 1.282 2005/08/02 14:20:15 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -591,6 +591,17 @@ AC_ARG_WITH(libs,
 		if test -n "$withval"  &&  test "x$withval" != "xno"  &&  \
 		    test "x${withval}" != "xyes"; then
 			LIBS="$LIBS $withval"
+		fi
+	]
+)
+AC_ARG_WITH(Werror,
+	[  --with-Werror           Build main code with -Werror],
+	[
+		if test -n "$withval"  &&  test "x$withval" != "xno"; then
+			werror_flags="-Werror"
+			if "x${withval}" != "xyes"; then
+				werror_flags="$withval"
+			fi
 		fi
 	]
 )
@@ -3357,6 +3368,10 @@ fi
 if test "$ac_cv_lib_pam_pam_set_item" = yes ; then
 	LIBS=`echo $LIBS | sed 's/-ldl //'`
 fi
+
+dnl Adding -Werror to CFLAGS early prevents configure tests from running.
+dnl Add now.
+CFLAGS="$CFLAGS $werror_flags"
 
 AC_EXEEXT
 AC_CONFIG_FILES([Makefile buildpkg.sh opensshd.init openbsd-compat/Makefile \

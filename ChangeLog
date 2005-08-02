@@ -5,6 +5,8 @@
      Silence bogus -Wuninitialized warnings; ok djm@
  - (dtucker) [configure.ac] Enable -Wuninitialized by default when compiling
    with gcc.  ok djm@
+ - (dtucker) [configure.ac] Add a --with-Werror option to configure for
+   adding -Werror to CFLAGS when all of the configure tests are done. ok djm@
 
 20050726
  - (dtucker) [configure.ac] Update zlib warning message too, pointed out by
@@ -2887,4 +2889,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3859 2005/08/02 07:21:29 dtucker Exp $
+$Id: ChangeLog,v 1.3860 2005/08/02 14:20:15 dtucker Exp $
