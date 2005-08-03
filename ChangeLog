@@ -2,6 +2,8 @@
  - (dtucker) [openbsd-compat/fake-rfc2553.h] Check for EAI_* defines
    individually and use a value less likely to collide with real values from
    netdb.h.  Fixes compile warnings on FreeBSD 5.3.  ok djm@
+ - (dtucker) [openbsd-compat/fake-rfc2553.h] MAX_INT -> INT_MAX since the
+   latter is specified in the standard.
 
 20050802
  - (dtucker) OpenBSD CVS Sync
@@ -2894,4 +2896,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3861 2005/08/03 00:57:15 dtucker Exp $
+$Id: ChangeLog,v 1.3862 2005/08/03 05:36:21 dtucker Exp $
