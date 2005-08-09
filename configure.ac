@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.282 2005/08/02 14:20:15 dtucker Exp $
+# $Id: configure.ac,v 1.283 2005/08/09 17:09:54 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -1050,6 +1050,8 @@ AC_ARG_WITH(audit,
 		AUDIT_MODULE=debug
 		AC_MSG_RESULT(debug)
 		AC_DEFINE(SSH_AUDIT_EVENTS, [], Use audit debugging module)
+		;;
+	  no)
 		;;
 	  *)
 		AC_MSG_ERROR([Unknown audit module $withval])

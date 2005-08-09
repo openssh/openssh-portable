@@ -1,3 +1,7 @@
+20050809
+ - (tim) [configure.ac] Allow --with-audit=no. OK dtucker@
+   Report by skeleten AT shillest.net
+
 20050803
  - (dtucker) [openbsd-compat/fake-rfc2553.h] Check for EAI_* defines
    individually and use a value less likely to collide with real values from
@@ -2896,4 +2900,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3862 2005/08/03 05:36:21 dtucker Exp $
+$Id: ChangeLog,v 1.3863 2005/08/09 17:09:53 tim Exp $
