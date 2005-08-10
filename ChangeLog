@@ -1,3 +1,7 @@
+20050810
+ - (dtucker) [configure.ac] Test libedit library and headers for compatibility.
+   Report from skeleten AT shillest.net, ok djm@
+
 20050809
  - (tim) [configure.ac] Allow --with-audit=no. OK dtucker@
    Report by skeleten AT shillest.net
@@ -2900,4 +2904,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3863 2005/08/09 17:09:53 tim Exp $
+$Id: ChangeLog,v 1.3864 2005/08/10 10:34:15 dtucker Exp $
