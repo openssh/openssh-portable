@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.122 2005/07/14 07:22:11 dtucker Exp $ */
+/* $Id: defines.h,v 1.123 2005/08/10 11:52:36 dtucker Exp $ */
 
 
 /* Constants */
@@ -61,6 +61,10 @@ enum
 #  endif /* BROKEN_REALPATH */
 # endif /* PATH_MAX */
 #endif /* MAXPATHLEN */
+
+#ifndef MAXSYMLINKS
+# define MAXSYMLINKS 5
+#endif
 
 #ifndef STDIN_FILENO
 # define STDIN_FILENO    0

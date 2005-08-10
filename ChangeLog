@@ -1,6 +1,9 @@
 20050810
  - (dtucker) [configure.ac] Test libedit library and headers for compatibility.
    Report from skeleten AT shillest.net, ok djm@
+ - (dtucker) [LICENCE configure.ac defines.h openbsd-compat/realpath.c]
+   Sync current (thread-safe) version of realpath.c from OpenBSD (which is
+   in turn based on FreeBSD's).  ok djm@
 
 20050809
  - (tim) [configure.ac] Allow --with-audit=no. OK dtucker@
@@ -2904,4 +2907,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3864 2005/08/10 10:34:15 dtucker Exp $
+$Id: ChangeLog,v 1.3865 2005/08/10 11:52:36 dtucker Exp $

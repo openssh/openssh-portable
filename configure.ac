@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.284 2005/08/10 10:34:15 dtucker Exp $
+# $Id: configure.ac,v 1.285 2005/08/10 11:52:36 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -1085,7 +1085,6 @@ AC_CHECK_FUNCS( \
 	clock \
 	closefrom \
 	dirfd \
-	fchdir \
 	fchmod \
 	fchown \
 	freeaddrinfo \
