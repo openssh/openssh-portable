@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.248 2005/07/16 01:35:24 djm Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.249 2005/07/30 01:26:16 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -439,7 +439,7 @@ again:
 				fwd.listen_host = cleanhostname(fwd.listen_host);
 			} else {
 				fwd.listen_port = a2port(fwd.listen_host);
-				fwd.listen_host = "";
+				fwd.listen_host = NULL;
 			}
 
 			if (fwd.listen_port == 0) {

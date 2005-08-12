@@ -3,6 +3,10 @@
    - markus@cvs.openbsd.org 2005/07/28 17:36:22
      [packet.c]
      missing packet_init_compression(); from solar
+   - djm@cvs.openbsd.org 2005/07/30 01:26:16
+     [ssh.c]
+     fix -D listen_host initialisation, so it picks up gateway_ports setting
+     correctly
 
 20050810
  - (dtucker) [configure.ac] Test libedit library and headers for compatibility.
@@ -2913,4 +2917,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3866 2005/08/12 12:10:28 djm Exp $
+$Id: ChangeLog,v 1.3867 2005/08/12 12:10:56 djm Exp $
