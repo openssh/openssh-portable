@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.142 2005/07/17 07:17:55 djm Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.143 2005/07/30 02:03:47 djm Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -695,7 +695,7 @@ parse_int:
 			fwd.listen_host = cleanhostname(fwd.listen_host);
 		} else {
 			fwd.listen_port = a2port(fwd.listen_host);
-			fwd.listen_host = "";
+			fwd.listen_host = NULL;
 		}
 		if (fwd.listen_port == 0)
 			fatal("%.200s line %d: Badly formatted port number.",

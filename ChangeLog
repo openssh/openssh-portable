@@ -7,6 +7,9 @@
      [ssh.c]
      fix -D listen_host initialisation, so it picks up gateway_ports setting
      correctly
+   - djm@cvs.openbsd.org 2005/07/30 02:03:47
+     [readconf.c]
+     listen_hosts initialisation here too; spotted greg AT y2005.nest.cx
 
 20050810
  - (dtucker) [configure.ac] Test libedit library and headers for compatibility.
@@ -2917,4 +2920,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3867 2005/08/12 12:10:56 djm Exp $
+$Id: ChangeLog,v 1.3868 2005/08/12 12:11:18 djm Exp $
