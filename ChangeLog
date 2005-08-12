@@ -14,6 +14,14 @@
      [servconf.c]
      Unbreak sshd ListenAddress for bare IPv6 addresses.
      Report from Janusz Mucka; ok djm@
+   - jaredy@cvs.openbsd.org 2005/08/08 13:22:48
+     [sftp.c]
+     sftp prompt enhancements:
+     - in non-interactive mode, do not print an empty prompt at the end
+       before finishing
+     - print newline after EOF in editline mode
+     - call el_end() in editline mode
+     ok dtucker djm
 
 20050810
  - (dtucker) [configure.ac] Test libedit library and headers for compatibility.
@@ -2924,4 +2932,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3870 2005/08/12 12:11:58 djm Exp $
+$Id: ChangeLog,v 1.3871 2005/08/12 12:16:22 djm Exp $
