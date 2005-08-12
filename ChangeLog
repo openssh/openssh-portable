@@ -1,3 +1,9 @@
+20050812
+ - (djm) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2005/07/28 17:36:22
+     [packet.c]
+     missing packet_init_compression(); from solar
+
 20050810
  - (dtucker) [configure.ac] Test libedit library and headers for compatibility.
    Report from skeleten AT shillest.net, ok djm@
@@ -2907,4 +2913,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3865 2005/08/10 11:52:36 dtucker Exp $
+$Id: ChangeLog,v 1.3866 2005/08/12 12:10:28 djm Exp $

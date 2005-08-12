@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.118 2005/07/25 11:59:39 markus Exp $");
+RCSID("$OpenBSD: packet.c,v 1.119 2005/07/28 17:36:22 markus Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -671,6 +671,7 @@ packet_enable_delayed_compress(void)
 	for (mode = 0; mode < MODE_MAX; mode++) {
 		comp = &newkeys[mode]->comp;
 		if (comp && !comp->enabled && comp->type == COMP_DELAYED) {
+			packet_init_compression();
 			if (mode == MODE_OUT)
 				buffer_compress_init_send(6);
 			else
