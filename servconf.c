@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.143 2005/07/25 11:59:40 markus Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.144 2005/08/06 10:03:12 dtucker Exp $");
 
 #include "ssh.h"
 #include "log.h"
@@ -517,6 +517,12 @@ parse_time:
 		if (arg == NULL || *arg == '\0')
 			fatal("%s line %d: missing address",
 			    filename, linenum);
+		/* check for bare IPv6 address: no "[]" and 2 or more ":" */
+		if (strchr(arg, '[') == NULL && (p = strchr(arg, ':')) != NULL
+		    && strchr(p+1, ':') != NULL) {
+			add_listen_addr(options, arg, 0);
+			break;
+		}
 		p = hpdelim(&arg);
 		if (p == NULL)
 			fatal("%s line %d: bad address:port usage",

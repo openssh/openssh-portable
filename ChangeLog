@@ -10,6 +10,9 @@
    - djm@cvs.openbsd.org 2005/07/30 02:03:47
      [readconf.c]
      listen_hosts initialisation here too; spotted greg AT y2005.nest.cx
+   - dtucker@cvs.openbsd.org 2005/08/06 10:03:12
+     [servconf.c]
+     Unbreak sshd ListenAddress for bare IPv6 addresses.
 
 20050810
  - (dtucker) [configure.ac] Test libedit library and headers for compatibility.
@@ -2920,4 +2923,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3868 2005/08/12 12:11:18 djm Exp $
+$Id: ChangeLog,v 1.3869 2005/08/12 12:11:37 djm Exp $
