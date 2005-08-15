@@ -1355,8 +1355,10 @@ interactive_loop(int fd_in, int fd_out, char *file1, char *file2)
 	}
 	xfree(pwd);
 
+#ifdef USE_LIBEDIT
 	if (el != NULL)
 		el_end(el);
+#endif /* USE_LIBEDIT */
 
 	/* err == 1 signifies normal "quit" exit */
 	return (err >= 0 ? 0 : -1);

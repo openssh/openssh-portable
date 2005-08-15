@@ -1,3 +1,6 @@
+20050815
+ - (tim) wrap el_end() in #ifdef USE_LIBEDIT
+
 20050812
  - (djm) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2005/07/28 17:36:22
@@ -2932,4 +2935,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3871 2005/08/12 12:16:22 djm Exp $
+$Id: ChangeLog,v 1.3872 2005/08/15 21:52:50 tim Exp $
