@@ -1,3 +1,7 @@
+20050816
+ - (djm) [ttymodes.c] bugzilla #1054: Fix encoding of _POSIX_VDISABLE,
+   from Jacob Nevins; ok dtucker@
+
 20050815
  - (tim) [sftp.c] wrap el_end() in #ifdef USE_LIBEDIT
  - (tim) [configure.ac] corrections to libedit tests. Report and patches
@@ -2937,4 +2941,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3873 2005/08/16 00:48:40 tim Exp $
+$Id: ChangeLog,v 1.3874 2005/08/16 11:32:09 djm Exp $
