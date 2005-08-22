@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.286 2005/08/16 00:48:41 tim Exp $
+# $Id: configure.ac,v 1.287 2005/08/22 22:06:56 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -555,6 +555,12 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(NEED_SETPRGP, [], [Need setpgrp to acquire controlling tty])
 	AC_DEFINE(HAVE_SYS_SYSLOG_H, 1, [Force use of sys/syslog.h on Ultrix])
 	;;
+
+*-*-lynxos)
+        CFLAGS="$CFLAGS -D__NO_INCLUDE_WARN__"
+        AC_DEFINE(MISSING_HOWMANY)
+        AC_DEFINE(BROKEN_SETVBUF, 1, [LynxOS has broken setvbuf() implementation])
+        ;;
 esac
 
 # Allow user to specify flags

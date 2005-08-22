@@ -21,6 +21,7 @@ static /**/const char *const rcsid[] = { (const char *)rcsid, "\100(#)" msg }
 
 #include "config.h"
 
+#include <stdarg.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <errno.h>

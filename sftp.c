@@ -1295,7 +1295,7 @@ interactive_loop(int fd_in, int fd_out, char *file1, char *file2)
 		xfree(dir);
 	}
 
-#if HAVE_SETVBUF
+#if defined(HAVE_SETVBUF) && !defined(BROKEN_SETVBUF)
 	setvbuf(stdout, NULL, _IOLBF, 0);
 	setvbuf(infile, NULL, _IOLBF, 0);
 #else

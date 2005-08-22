@@ -1,3 +1,7 @@
+20050821
+ - (dtucker) [configure.ac defines.h includes.h sftp.c] Add support for
+   LynxOS, patch from Olli Savia (ops at iki.fi).  ok djm@
+
 20050816
  - (djm) [ttymodes.c] bugzilla #1054: Fix encoding of _POSIX_VDISABLE,
    from Jacob Nevins; ok dtucker@
@@ -2941,4 +2945,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3874 2005/08/16 11:32:09 djm Exp $
+$Id: ChangeLog,v 1.3875 2005/08/22 22:06:55 dtucker Exp $
