@@ -1,3 +1,8 @@
+20050823
+ - (dtucker) [regress/test-exec.sh] Do not prepend an extra "/" to a fully-
+   qualified sshd pathname since some systems (eg Cygwin) may consider "/foo"
+   and "//foo" to be different.  Spotted by vinschen at redhat.com.
+
 20050821
  - (dtucker) [configure.ac defines.h includes.h sftp.c] Add support for
    LynxOS, patch from Olli Savia (ops at iki.fi).  ok djm@
@@ -2945,4 +2950,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3875 2005/08/22 22:06:55 dtucker Exp $
+$Id: ChangeLog,v 1.3876 2005/08/23 13:32:05 dtucker Exp $
