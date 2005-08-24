@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.287 2005/08/22 22:06:56 dtucker Exp $
+# $Id: configure.ac,v 1.288 2005/08/24 00:11:26 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -82,7 +82,13 @@ AC_CHECK_DECL(LLONG_MAX, have_llong_max=1, , [#include <limits.h>])
 
 if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 	CFLAGS="$CFLAGS -Wall -Wpointer-arith -Wuninitialized"
-	CFLAGS="$CFLAGS -Wsign-compare"
+	GCC_VER=`$CC --version`
+	case $GCC_VER in
+		1.*) ;;
+		2.8* | 2.9*) CFLAGS="$CFLAGS -Wsign-compare" ;;
+		2.*) ;;
+		*) CFLAGS="$CFLAGS -Wsign-compare" ;;
+	esac
 
 	if test -z "$have_llong_max"; then
 		# retry LLONG_MAX with -std=gnu99, needed on some Linuxes
