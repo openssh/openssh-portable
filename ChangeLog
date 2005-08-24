@@ -2,7 +2,9 @@
  - (dtucker) [regress/test-exec.sh] Do not prepend an extra "/" to a fully-
    qualified sshd pathname since some systems (eg Cygwin) may consider "/foo"
    and "//foo" to be different.  Spotted by vinschen at redhat.com.
- - (tim) [configure.ac ] Not all gcc's support -Wsign-compare
+ - (tim) [configure.ac] Not all gcc's support -Wsign-compare. Enhancements
+   and OK dtucker@
+ - (tim) [defines.h] PATH_MAX bits for OpenServer OK dtucker@
 
 20050821
  - (dtucker) [configure.ac defines.h includes.h sftp.c] Add support for
@@ -2951,4 +2953,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3877 2005/08/24 00:11:26 tim Exp $
+$Id: ChangeLog,v 1.3878 2005/08/24 00:18:21 tim Exp $
