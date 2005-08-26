@@ -1,3 +1,11 @@
+20050826
+ - (tim) [CREDITS LICENCE auth.c configure.ac defines.h includes.h session.c
+   openbsd-compat/Makefile.in openbsd-compat/openbsd-compat.h
+   openbsd-compat/xcrypt.c] New files [openssh/openbsd-compat/port-uw.c
+   openssh/openbsd-compat/port-uw.h] Support long passwords (> 8-char)
+   on UnixWare 7 from Dhiraj Gulati and Ahsan Rashid. Cleanup and testing
+   by tim@. Feedback and OK dtucker@
+
 20050823
  - (dtucker) [regress/test-exec.sh] Do not prepend an extra "/" to a fully-
    qualified sshd pathname since some systems (eg Cygwin) may consider "/foo"
@@ -2953,4 +2961,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3878 2005/08/24 00:18:21 tim Exp $
+$Id: ChangeLog,v 1.3879 2005/08/26 20:15:19 tim Exp $

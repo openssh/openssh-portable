@@ -97,7 +97,11 @@ allowed_user(struct passwd * pw)
 	/* grab passwd field for locked account check */
 #ifdef USE_SHADOW
 	if (spw != NULL)
+#ifdef HAVE_LIBIAF
+		passwd = get_iaf_password(pw);
+#else
 		passwd = spw->sp_pwdp;
+#endif /* HAVE_LIBIAF */
 #else
 	passwd = pw->pw_passwd;
 #endif

@@ -169,6 +169,10 @@ static /**/const char *const rcsid[] = { (const char *)rcsid, "\100(#)" msg }
 # include <ia.h>
 #endif
 
+#ifdef HAVE_IAF_H
+# include <iaf.h>
+#endif
+
 #ifdef HAVE_TMPDIR_H
 # include <tmpdir.h>
 #endif

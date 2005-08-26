@@ -91,7 +91,11 @@ shadow_pw(struct passwd *pw)
 	struct spwd *spw = getspnam(pw->pw_name);
 
 	if (spw != NULL)
+#ifdef HAVE_LIBIAF
+		pw_password = get_iaf_password(pw);
+#else
 		pw_password = spw->sp_pwdp;
+#endif /* HAVE_LIBIAF */
 # endif
 # if defined(HAVE_GETPWANAM) && !defined(DISABLE_SHADOW)
 	struct passwd_adjunct *spw;

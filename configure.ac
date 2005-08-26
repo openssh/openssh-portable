@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.288 2005/08/24 00:11:26 tim Exp $
+# $Id: configure.ac,v 1.289 2005/08/26 20:15:20 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -446,6 +446,8 @@ mips-sony-bsd|mips-sony-newsos4)
 	;;
 # UnixWare 7.x, OpenUNIX 8
 *-*-sysv5*)
+	check_for_libcrypt_later=1
+	AC_DEFINE(UNIXWARE_LONG_PASSWORDS, 1, [Support passwords > 8 chars])
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(SETEUID_BREAKS_SETUID)
 	AC_DEFINE(BROKEN_SETREUID)
@@ -643,6 +645,7 @@ AC_CHECK_HEADERS( \
 	getopt.h \
 	glob.h \
 	ia.h \
+	iaf.h \
 	lastlog.h \
 	limits.h \
 	login.h \
@@ -1721,6 +1724,7 @@ if test "x$check_for_libcrypt_later" = "x1"; then
 	AC_CHECK_LIB(crypt, crypt, LIBS="$LIBS -lcrypt")
 fi
 
+AC_CHECK_LIB(iaf, ia_openinfo)
 
 ### Configure cryptographic random number support
 

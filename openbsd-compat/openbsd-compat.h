@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.29 2005/06/17 11:15:21 dtucker Exp $ */
+/* $Id: openbsd-compat.h,v 1.30 2005/08/26 20:15:20 tim Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -173,5 +173,6 @@ char *shadow_pw(struct passwd *pw);
 #include "bsd-cygwin_util.h"
 #include "port-irix.h"
 #include "port-aix.h"
+#include "port-uw.h"
 
 #endif /* _OPENBSD_COMPAT_H */

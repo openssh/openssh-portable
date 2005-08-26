@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.125 2005/08/24 00:18:21 tim Exp $ */
+/* $Id: defines.h,v 1.126 2005/08/26 20:15:20 tim Exp $ */
 
 
 /* Constants */
@@ -685,6 +685,10 @@ struct winsize {
 # ifdef USE_SHADOW
 #  undef USE_SHADOW
 # endif
+# define CUSTOM_SYS_AUTH_PASSWD 1
+#endif
+
+#ifdef UNIXWARE_LONG_PASSWORDS
 # define CUSTOM_SYS_AUTH_PASSWD 1
 #endif
 
