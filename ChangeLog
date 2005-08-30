@@ -1,3 +1,7 @@
+20050829
+ - (tim) [configure.ac] ia_openinfo() seems broken on OSR6. Limit UW long
+   password support to 7.x for now.
+
 20050826
  - (tim) [CREDITS LICENCE auth.c configure.ac defines.h includes.h session.c
    openbsd-compat/Makefile.in openbsd-compat/openbsd-compat.h
@@ -2961,4 +2965,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3879 2005/08/26 20:15:19 tim Exp $
+$Id: ChangeLog,v 1.3880 2005/08/30 00:17:37 tim Exp $
