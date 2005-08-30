@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.290 2005/08/30 00:17:38 tim Exp $
+# $Id: configure.ac,v 1.291 2005/08/30 14:12:02 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -446,6 +446,8 @@ mips-sony-bsd|mips-sony-newsos4)
 	;;
 # UnixWare 7.x, OpenUNIX 8
 *-*-sysv5*)
+	check_for_libcrypt_later=1
+	AC_DEFINE(UNIXWARE_LONG_PASSWORDS, 1, [Support passwords > 8 chars])
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(SETEUID_BREAKS_SETUID)
 	AC_DEFINE(BROKEN_SETREUID)
@@ -454,10 +456,6 @@ mips-sony-bsd|mips-sony-newsos4)
 	case "$host" in
 	*-*-sysv5SCO_SV*)	# SCO OpenServer 6.x
 		TEST_SHELL=/u95/bin/sh
-		;;
-	*-*-sysv5*)
-		check_for_libcrypt_later=1
-		AC_DEFINE(UNIXWARE_LONG_PASSWORDS, 1, [Support passwords > 8 chars])
 		;;
 	esac
 	;;

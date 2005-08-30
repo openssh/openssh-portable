@@ -1,3 +1,6 @@
+20050830
+ - (tim) [configure.ac] Back out last change. It needs to be done differently.
+
 20050829
  - (tim) [configure.ac] ia_openinfo() seems broken on OSR6. Limit UW long
    password support to 7.x for now.
@@ -2965,4 +2968,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3880 2005/08/30 00:17:37 tim Exp $
+$Id: ChangeLog,v 1.3881 2005/08/30 14:12:02 tim Exp $
