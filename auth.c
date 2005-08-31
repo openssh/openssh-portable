@@ -97,11 +97,11 @@ allowed_user(struct passwd * pw)
 	/* grab passwd field for locked account check */
 #ifdef USE_SHADOW
 	if (spw != NULL)
-#ifdef HAVE_LIBIAF
+#if defined(HAVE_LIBIAF)  &&  !defined(BROKEN_LIBIAF)
 		passwd = get_iaf_password(pw);
 #else
 		passwd = spw->sp_pwdp;
-#endif /* HAVE_LIBIAF */
+#endif /* HAVE_LIBIAF  && !BROKEN_LIBIAF */
 #else
 	passwd = pw->pw_passwd;
 #endif
@@ -123,6 +123,9 @@ allowed_user(struct passwd * pw)
 		if (strstr(passwd, LOCKED_PASSWD_SUBSTR))
 			locked = 1;
 #endif
+#if defined(HAVE_LIBIAF)  &&  !defined(BROKEN_LIBIAF)
+		free(passwd);
+#endif /* HAVE_LIBIAF  && !BROKEN_LIBIAF */
 		if (locked) {
 			logit("User %.100s not allowed because account is locked",
 			    pw->pw_name);

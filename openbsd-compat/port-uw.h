@@ -24,7 +24,7 @@
 
 #include "includes.h"
 
-#ifdef HAVE_LIBIAF
+#if defined(HAVE_LIBIAF)  &&  !defined(BROKEN_LIBIAF)
 char * get_iaf_password(struct passwd *pw);
-#endif /* HAVE_LIBIAF */
+#endif
 

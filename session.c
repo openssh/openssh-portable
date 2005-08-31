@@ -1334,11 +1334,11 @@ do_setusercontext(struct passwd *pw)
 # ifdef _AIX
 		aix_usrinfo(pw);
 # endif /* _AIX */
-# ifdef HAVE_LIBIAF
+#if defined(HAVE_LIBIAF)  &&  !defined(BROKEN_LIBIAF)
 		if (set_id(pw->pw_name) != 0) {
 			exit(1);
 		}
-# endif
+#endif /* HAVE_LIBIAF  && !BROKEN_LIBIAF */
 		/* Permanently switch to the desired uid. */
 		permanently_set_uid(pw);
 #endif

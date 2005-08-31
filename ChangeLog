@@ -1,4 +1,4 @@
-20050830
+20050831
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2005/08/30 22:08:05
      [gss-serv.c sshconnect2.c]
@@ -11,6 +11,10 @@
      [version.h]
      4.2
  - (dtucker) [README] Update release note URL to 4.2
+ - (tim) [configure.ac auth.c defines.h session.c openbsd-compat/port-uw.c
+   openbsd-compat/port-uw.h openbsd-compat/xcrypt.c] libiaf cleanup. Disable
+   libiaf bits for OpenServer6. Free memory allocated by ia_get_logpwd().
+   Feedback and OK dtucker@
 
 20050830
  - (tim) [configure.ac] Back out last change. It needs to be done differently.
@@ -2982,4 +2986,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3885 2005/08/31 14:05:56 dtucker Exp $
+$Id: ChangeLog,v 1.3886 2005/08/31 16:59:49 tim Exp $

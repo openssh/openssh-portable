@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.291 2005/08/30 14:12:02 tim Exp $
+# $Id: configure.ac,v 1.292 2005/08/31 16:59:49 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -456,6 +456,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	case "$host" in
 	*-*-sysv5SCO_SV*)	# SCO OpenServer 6.x
 		TEST_SHELL=/u95/bin/sh
+		AC_DEFINE(BROKEN_LIBIAF, 1, [ia_uinfo routines not supported by OS yet])
 		;;
 	esac
 	;;
