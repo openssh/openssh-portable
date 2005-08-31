@@ -10,6 +10,7 @@
    - markus@cvs.openbsd.org 2005/08/31 09:28:42
      [version.h]
      4.2
+ - (dtucker) [README] Update release note URL to 4.2
 
 20050830
  - (tim) [configure.ac] Back out last change. It needs to be done differently.
@@ -2981,4 +2982,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3884 2005/08/31 09:47:07 djm Exp $
+$Id: ChangeLog,v 1.3885 2005/08/31 14:05:56 dtucker Exp $
