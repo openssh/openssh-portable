@@ -26,7 +26,7 @@
    LynxOS, patch from Olli Savia (ops at iki.fi).  ok djm@
 
 20050816
- - (djm) [ttymodes.c] bugzilla #1054: Fix encoding of _POSIX_VDISABLE,
+ - (djm) [ttymodes.c] bugzilla #1025: Fix encoding of _POSIX_VDISABLE,
    from Jacob Nevins; ok dtucker@
 
 20050815
@@ -2968,4 +2968,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3881 2005/08/30 14:12:02 tim Exp $
+$Id: ChangeLog,v 1.3882 2005/08/31 09:42:20 djm Exp $
