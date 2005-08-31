@@ -1,4 +1,4 @@
-/*	$OpenBSD: gss-serv.c,v 1.7 2005/07/17 07:17:55 djm Exp $	*/
+/*	$OpenBSD: gss-serv.c,v 1.8 2005/08/30 22:08:05 djm Exp $	*/
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -275,13 +275,24 @@ ssh_gssapi_do_child(char ***envp, u_int *envsizep)
 int
 ssh_gssapi_userok(char *user)
 {
+	OM_uint32 lmin;
+
 	if (gssapi_client.exportedname.length == 0 ||
 	    gssapi_client.exportedname.value == NULL) {
 		debug("No suitable client data");
 		return 0;
 	}
 	if (gssapi_client.mech && gssapi_client.mech->userok)
-		return ((*gssapi_client.mech->userok)(&gssapi_client, user));
+		if ((*gssapi_client.mech->userok)(&gssapi_client, user))
+			return 1;
+		else {
+			/* Destroy delegated credentials if userok fails */
+			gss_release_buffer(&lmin, &gssapi_client.displayname);
+			gss_release_buffer(&lmin, &gssapi_client.exportedname);
+			gss_release_cred(&lmin, &gssapi_client.creds);
+			memset(&gssapi_client, 0, sizeof(ssh_gssapi_client));
+			return 0;
+		}
 	else
 		debug("ssh_gssapi_userok: Unknown GSSAPI mechanism");
 	return (0);

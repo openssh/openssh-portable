@@ -1,4 +1,14 @@
 20050830
+ - (djm) OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2005/08/30 22:08:05
+     [gss-serv.c sshconnect2.c]
+     destroy credentials if krb5_kuserok() call fails. Stops credentials being
+     delegated to users who are not authorised for GSSAPIAuthentication when
+     GSSAPIDeletegateCredentials=yes and another authentication mechanism 
+     succeeds; bz#1073 reported by paul.moore AT centrify.com, fix by 
+     simon AT sxw.org.uk, tested todd@ biorn@ jakob@; ok deraadt@
+
+20050830
  - (tim) [configure.ac] Back out last change. It needs to be done differently.
 
 20050829
@@ -2968,4 +2978,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3882 2005/08/31 09:42:20 djm Exp $
+$Id: ChangeLog,v 1.3883 2005/08/31 09:46:26 djm Exp $
