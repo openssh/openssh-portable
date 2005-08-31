@@ -7,6 +7,9 @@
      GSSAPIDeletegateCredentials=yes and another authentication mechanism 
      succeeds; bz#1073 reported by paul.moore AT centrify.com, fix by 
      simon AT sxw.org.uk, tested todd@ biorn@ jakob@; ok deraadt@
+   - markus@cvs.openbsd.org 2005/08/31 09:28:42
+     [version.h]
+     4.2
 
 20050830
  - (tim) [configure.ac] Back out last change. It needs to be done differently.
@@ -2978,4 +2981,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3883 2005/08/31 09:46:26 djm Exp $
+$Id: ChangeLog,v 1.3884 2005/08/31 09:47:07 djm Exp $
