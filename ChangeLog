@@ -1,3 +1,6 @@
+20050901
+ - (djm) Update RPM spec file versions
+
 20050831
  - (djm) OpenBSD CVS Sync
    - djm@cvs.openbsd.org 2005/08/30 22:08:05
@@ -2986,4 +2989,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3886 2005/08/31 16:59:49 tim Exp $
+$Id: ChangeLog,v 1.3887 2005/09/01 09:10:48 djm Exp $
