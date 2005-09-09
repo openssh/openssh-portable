@@ -1,3 +1,8 @@
+20050908
+ - (tim) [defines.h openbsd-compat/port-uw.c] Add long password support to
+   OpenServer 6 and add osr5bigcrypt support so when someone migrates
+   passwords between UnixWare and OpenServer they will still work. OK dtucker@
+
 20050901
  - (djm) Update RPM spec file versions
 
@@ -2989,4 +2994,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3887 2005/09/01 09:10:48 djm Exp $
+$Id: ChangeLog,v 1.3888 2005/09/09 04:56:33 tim Exp $
