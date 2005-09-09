@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.127 2005/08/31 16:59:49 tim Exp $ */
+/* $Id: defines.h,v 1.128 2005/09/09 05:04:59 tim Exp $ */
 
 
 /* Constants */
@@ -688,7 +688,7 @@ struct winsize {
 # define CUSTOM_SYS_AUTH_PASSWD 1
 #endif
 
-#if defined(HAVE_LIBIAF)  &&  !defined(BROKEN_LIBIAF)
+#ifdef HAVE_LIBIAF
 # define CUSTOM_SYS_AUTH_PASSWD 1
 #endif
 
