@@ -1,3 +1,7 @@
+20050912
+ - (tim) [configure.ac] Bug 1078. Fix --without-kerberos5. Reported by
+   Mike Frysinger.
+
 20050908
  - (tim) [defines.h openbsd-compat/port-uw.c] Add long password support to
    OpenServer 6 and add osr5bigcrypt support so when someone migrates
@@ -2994,4 +2998,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3888 2005/09/09 04:56:33 tim Exp $
+$Id: ChangeLog,v 1.3889 2005/09/13 00:36:10 tim Exp $

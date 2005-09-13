@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.292 2005/08/31 16:59:49 tim Exp $
+# $Id: configure.ac,v 1.293 2005/09/13 00:36:10 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -2757,14 +2757,14 @@ AC_ARG_WITH(kerberos5,
 		if test ! -z "$blibpath" ; then
 			blibpath="$blibpath:${KRB5ROOT}/lib"
 		fi
+
+		AC_CHECK_HEADERS(gssapi.h gssapi/gssapi.h)
+		AC_CHECK_HEADERS(gssapi_krb5.h gssapi/gssapi_krb5.h)
+		AC_CHECK_HEADERS(gssapi_generic.h gssapi/gssapi_generic.h)
+
+		LIBS="$LIBS $K5LIBS"
+		AC_SEARCH_LIBS(k_hasafs, kafs, AC_DEFINE(USE_AFS))
 	fi
-
-	AC_CHECK_HEADERS(gssapi.h gssapi/gssapi.h)
-	AC_CHECK_HEADERS(gssapi_krb5.h gssapi/gssapi_krb5.h)
-	AC_CHECK_HEADERS(gssapi_generic.h gssapi/gssapi_generic.h)
-
-	LIBS="$LIBS $K5LIBS"
-	AC_SEARCH_LIBS(k_hasafs, kafs, AC_DEFINE(USE_AFS))
 	]
 )
 
