@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.293 2005/09/13 00:36:10 tim Exp $
+# $Id: configure.ac,v 1.294 2005/09/19 16:33:39 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -57,7 +57,9 @@ fi
 
 # Use LOGIN_PROGRAM from environment if possible
 if test ! -z "$LOGIN_PROGRAM" ; then
-	AC_DEFINE_UNQUOTED(LOGIN_PROGRAM_FALLBACK, "$LOGIN_PROGRAM")
+	AC_DEFINE_UNQUOTED(LOGIN_PROGRAM_FALLBACK, "$LOGIN_PROGRAM",
+		[If your header files don't define LOGIN_PROGRAM,
+		then use this (detected) from environment and PATH])
 else
 	# Search for login
 	AC_PATH_PROG(LOGIN_PROGRAM_FALLBACK, login)
@@ -68,7 +70,8 @@ fi
 
 AC_PATH_PROG(PATH_PASSWD_PROG, passwd)
 if test ! -z "$PATH_PASSWD_PROG" ; then
-	AC_DEFINE_UNQUOTED(_PATH_PASSWD_PROG, "$PATH_PASSWD_PROG")
+	AC_DEFINE_UNQUOTED(_PATH_PASSWD_PROG, "$PATH_PASSWD_PROG",
+		[Full path of your "passwd" program])
 fi
 
 if test -z "$LD" ; then
@@ -201,7 +204,8 @@ case "$host" in
 	fi
 	LDFLAGS="$saved_LDFLAGS"
 	dnl Check for authenticate.  Might be in libs.a on older AIXes
-	AC_CHECK_FUNC(authenticate, [AC_DEFINE(WITH_AIXAUTHENTICATE)],
+	AC_CHECK_FUNC(authenticate, [AC_DEFINE(WITH_AIXAUTHENTICATE, 1,
+		[Define if you want to enable AIX4's authenticate function])],
 		[AC_CHECK_LIB(s,authenticate,
 			[ AC_DEFINE(WITH_AIXAUTHENTICATE)
 				LIBS="$LIBS -ls"
@@ -217,7 +221,9 @@ case "$host" in
 			[#include <usersec.h>],
 			[(void)loginfailed("user","host","tty",0);],
 			[AC_MSG_RESULT(yes)
-			 AC_DEFINE(AIX_LOGINFAILED_4ARG)],
+			 AC_DEFINE(AIX_LOGINFAILED_4ARG, 1,
+				[Define if your AIX loginfailed() function
+				takes 4 arguments (AIX >= 5.2)])],
 			[AC_MSG_RESULT(no)]
 		)],
 		[],
@@ -225,25 +231,36 @@ case "$host" in
 	)
 	AC_CHECK_FUNCS(setauthdb)
 	check_for_aix_broken_getaddrinfo=1
-	AC_DEFINE(BROKEN_REALPATH)
-	AC_DEFINE(SETEUID_BREAKS_SETUID)
-	AC_DEFINE(BROKEN_SETREUID)
-	AC_DEFINE(BROKEN_SETREGID)
+	AC_DEFINE(BROKEN_REALPATH, 1, [Define if you have a broken realpath.])
+	AC_DEFINE(SETEUID_BREAKS_SETUID, 1,
+	    [Define if your platform breaks doing a seteuid before a setuid])
+	AC_DEFINE(BROKEN_SETREUID, 1, [Define if your setreuid() is broken])
+	AC_DEFINE(BROKEN_SETREGID, 1, [Define if your setregid() is broken])
 	dnl AIX handles lastlog as part of its login message
-	AC_DEFINE(DISABLE_LASTLOG)
-	AC_DEFINE(LOGIN_NEEDS_UTMPX)
-	AC_DEFINE(SPT_TYPE,SPT_REUSEARGV)
+	AC_DEFINE(DISABLE_LASTLOG, 1, [Define if you don't want to use lastlog])
+	AC_DEFINE(LOGIN_NEEDS_UTMPX, 1,
+		[Some systems need a utmpx entry for /bin/login to work])
+	AC_DEFINE(SPT_TYPE,SPT_REUSEARGV,
+		[Define to a Set Process Title type if your system is
+		supported by bsd-setproctitle.c])
 	;;
 *-*-cygwin*)
 	check_for_libcrypt_later=1
 	LIBS="$LIBS /usr/lib/textmode.o"
-	AC_DEFINE(HAVE_CYGWIN)
-	AC_DEFINE(USE_PIPES)
-	AC_DEFINE(DISABLE_SHADOW)
-	AC_DEFINE(IP_TOS_IS_BROKEN)
-	AC_DEFINE(NO_X11_UNIX_SOCKETS)
-	AC_DEFINE(NO_IPPORT_RESERVED_CONCEPT)
-	AC_DEFINE(DISABLE_FD_PASSING)
+	AC_DEFINE(HAVE_CYGWIN, 1, [Define if you are on Cygwin])
+	AC_DEFINE(USE_PIPES, 1, [Use PIPES instead of a socketpair()])
+	AC_DEFINE(DISABLE_SHADOW, 1,
+		[Define if you want to disable shadow passwords])
+	AC_DEFINE(IP_TOS_IS_BROKEN, 1,
+		[Define if your system choked on IP TOS setting])
+	AC_DEFINE(NO_X11_UNIX_SOCKETS, 1,
+		[Define if X11 doesn't support AF_UNIX sockets on that system])
+	AC_DEFINE(NO_IPPORT_RESERVED_CONCEPT, 1,
+		[Define if the concept of ports only accessible to
+		superusers isn't known])
+	AC_DEFINE(DISABLE_FD_PASSING, 1,
+		[Define if your platform needs to skip post auth
+		file descriptor passing])
 	;;
 *-*-dgux*)
 	AC_DEFINE(IP_TOS_IS_BROKEN)
@@ -260,21 +277,24 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 		exit(1);
 }], [AC_MSG_RESULT(working)],
 	[AC_MSG_RESULT(buggy)
-	AC_DEFINE(BROKEN_GETADDRINFO)],
+	AC_DEFINE(BROKEN_GETADDRINFO, 1, [getaddrinfo is broken (if present)])],
 	[AC_MSG_RESULT(assume it is working)])
 	AC_DEFINE(SETEUID_BREAKS_SETUID)
 	AC_DEFINE(BROKEN_SETREUID)
 	AC_DEFINE(BROKEN_SETREGID)
-	AC_DEFINE_UNQUOTED(BIND_8_COMPAT, 1)
+	AC_DEFINE_UNQUOTED(BIND_8_COMPAT, 1,
+		[Define if your resolver libs need this for getrrsetbyname])
 	;;
 *-*-hpux*)
 	# first we define all of the options common to all HP-UX releases
 	CPPFLAGS="$CPPFLAGS -D_HPUX_SOURCE -D_XOPEN_SOURCE -D_XOPEN_SOURCE_EXTENDED=1"
 	IPADDR_IN_DISPLAY=yes
 	AC_DEFINE(USE_PIPES)
-	AC_DEFINE(LOGIN_NO_ENDOPT)
+	AC_DEFINE(LOGIN_NO_ENDOPT, 1,
+	    [Define if your login program cannot handle end of options ("--")])
 	AC_DEFINE(LOGIN_NEEDS_UTMPX)
-	AC_DEFINE(LOCKED_PASSWD_STRING, "*")
+	AC_DEFINE(LOCKED_PASSWD_STRING, "*",
+		[String used in /etc/passwd to denote locked account])
 	AC_DEFINE(SPT_TYPE,SPT_PSTAT)
 	LIBS="$LIBS -lsec"
 	AC_CHECK_LIB(xnet, t_error, ,
@@ -288,8 +308,12 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 		fi
 		;;
 	*-*-hpux11*)
-		AC_DEFINE(PAM_SUN_CODEBASE)
-		AC_DEFINE(DISABLE_UTMP)
+		AC_DEFINE(PAM_SUN_CODEBASE, 1,
+			[Define if you are using Solaris-derived PAM which
+			passes pam_messages to the conversation function
+			with an extra level of indirection])
+		AC_DEFINE(DISABLE_UTMP, 1,
+			[Define if you don't want to use utmp])
 		AC_DEFINE(USE_BTMP, 1, [Use btmp to log bad logins])
 		check_for_hpux_broken_getaddrinfo=1
 		check_for_conflicting_getspnam=1
@@ -299,7 +323,9 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	# lastly, we define options specific to minor releases
 	case "$host" in
 	*-*-hpux10.26)
-		AC_DEFINE(HAVE_SECUREWARE)
+		AC_DEFINE(HAVE_SECUREWARE, 1,
+			[Define if you have SecureWare-based
+			protected password database])
 		disable_ptmx_check=yes
 		LIBS="$LIBS -lsecpw"
 		;;
@@ -307,24 +333,33 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	;;
 *-*-irix5*)
 	PATH="$PATH:/usr/etc"
-	AC_DEFINE(BROKEN_INET_NTOA)
+	AC_DEFINE(BROKEN_INET_NTOA, 1,
+		[Define if you system's inet_ntoa is busted
+		(e.g. Irix gcc issue)])
 	AC_DEFINE(SETEUID_BREAKS_SETUID)
 	AC_DEFINE(BROKEN_SETREUID)
 	AC_DEFINE(BROKEN_SETREGID)
-	AC_DEFINE(WITH_ABBREV_NO_TTY)
+	AC_DEFINE(WITH_ABBREV_NO_TTY, 1,
+		[Define if you shouldn't strip 'tty' from your
+		ttyname in [uw]tmp])
 	AC_DEFINE(LOCKED_PASSWD_STRING, "*LK*")
 	;;
 *-*-irix6*)
 	PATH="$PATH:/usr/etc"
-	AC_DEFINE(WITH_IRIX_ARRAY)
-	AC_DEFINE(WITH_IRIX_PROJECT)
-	AC_DEFINE(WITH_IRIX_AUDIT)
-	AC_CHECK_FUNC(jlimit_startjob, [AC_DEFINE(WITH_IRIX_JOBS)])
+	AC_DEFINE(WITH_IRIX_ARRAY, 1,
+		[Define if you have/want arrays
+		(cluster-wide session managment, not C arrays)])
+	AC_DEFINE(WITH_IRIX_PROJECT, 1,
+		[Define if you want IRIX project management])
+	AC_DEFINE(WITH_IRIX_AUDIT, 1,
+		[Define if you want IRIX audit trails])
+	AC_CHECK_FUNC(jlimit_startjob, [AC_DEFINE(WITH_IRIX_JOBS, 1,
+		[Define if you want IRIX kernel jobs])])
 	AC_DEFINE(BROKEN_INET_NTOA)
 	AC_DEFINE(SETEUID_BREAKS_SETUID)
 	AC_DEFINE(BROKEN_SETREUID)
 	AC_DEFINE(BROKEN_SETREGID)
-	AC_DEFINE(BROKEN_UPDWTMPX)
+	AC_DEFINE(BROKEN_UPDWTMPX, 1, [updwtmpx is broken (if present)])
 	AC_DEFINE(WITH_ABBREV_NO_TTY)
 	AC_DEFINE(LOCKED_PASSWD_STRING, "*LK*")
 	;;
@@ -332,22 +367,27 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	no_dev_ptmx=1
 	check_for_libcrypt_later=1
 	check_for_openpty_ctty_bug=1
-	AC_DEFINE(DONT_TRY_OTHER_AF)
-	AC_DEFINE(PAM_TTY_KLUDGE)
-	AC_DEFINE(LOCKED_PASSWD_PREFIX, "!")
+	AC_DEFINE(DONT_TRY_OTHER_AF, 1, [Workaround more Linux IPv6 quirks])
+	AC_DEFINE(PAM_TTY_KLUDGE, 1,
+		[Work around problematic Linux PAM modules handling of PAM_TTY])
+	AC_DEFINE(LOCKED_PASSWD_PREFIX, "!",
+		[String used in /etc/passwd to denote locked account])
 	AC_DEFINE(SPT_TYPE,SPT_REUSEARGV)
-	AC_DEFINE(LINK_OPNOTSUPP_ERRNO, EPERM)
+	AC_DEFINE(LINK_OPNOTSUPP_ERRNO, EPERM,
+		[Define to whatever link() returns for "not supported"
+		if it doesn't return EOPNOTSUPP.])
 	AC_DEFINE(_PATH_BTMP, "/var/log/btmp", [log for bad login attempts])
-	AC_DEFINE(USE_BTMP, 1, [Use btmp to log bad logins])
+	AC_DEFINE(USE_BTMP)
 	inet6_default_4in6=yes
 	case `uname -r` in
 	1.*|2.0.*)
-		AC_DEFINE(BROKEN_CMSG_TYPE)
+		AC_DEFINE(BROKEN_CMSG_TYPE, 1,
+			[Define if cmsg_type is not passed correctly])
 		;;
 	esac
 	;;
 mips-sony-bsd|mips-sony-newsos4)
-	AC_DEFINE(NEED_SETPRGP, [], [Need setpgrp to acquire controlling tty])
+	AC_DEFINE(NEED_SETPRGP, 1, [Need setpgrp to acquire controlling tty])
 	SONY=1
 	;;
 *-*-netbsd*)
@@ -369,10 +409,10 @@ mips-sony-bsd|mips-sony-newsos4)
 	conf_utmp_location=/etc/utmp
 	conf_wtmp_location=/usr/adm/wtmp
 	MAIL=/usr/spool/mail
-	AC_DEFINE(HAVE_NEXT)
+	AC_DEFINE(HAVE_NEXT, 1, [Define if you are on NeXT])
 	AC_DEFINE(BROKEN_REALPATH)
 	AC_DEFINE(USE_PIPES)
-	AC_DEFINE(BROKEN_SAVED_UIDS)
+	AC_DEFINE(BROKEN_SAVED_UIDS, 1, [Needed for NeXT])
 	;;
 *-*-openbsd*)
 	AC_DEFINE(HAVE_ATTRIBUTE__SENTINEL__, 1, [OpenBSD's gcc has sentinel])
@@ -383,12 +423,18 @@ mips-sony-bsd|mips-sony-newsos4)
 	fi
 	AC_DEFINE(PAM_SUN_CODEBASE)
 	AC_DEFINE(LOGIN_NEEDS_UTMPX)
-	AC_DEFINE(LOGIN_NEEDS_TERM)
+	AC_DEFINE(LOGIN_NEEDS_TERM, 1,
+		[Some versions of /bin/login need the TERM supplied
+		on the commandline])
 	AC_DEFINE(PAM_TTY_KLUDGE)
-	AC_DEFINE(SSHPAM_CHAUTHTOK_NEEDS_RUID)
+	AC_DEFINE(SSHPAM_CHAUTHTOK_NEEDS_RUID, 1,
+		[Define if pam_chauthtok wants real uid set
+		to the unpriv'ed user])
 	AC_DEFINE(LOCKED_PASSWD_STRING, "*LK*")
 	# Pushing STREAMS modules will cause sshd to acquire a controlling tty.
-	AC_DEFINE(SSHD_ACQUIRES_CTTY)
+	AC_DEFINE(SSHD_ACQUIRES_CTTY, 1,
+		[Define if sshd somehow reacquires a controlling TTY
+		after setsid()])
 	external_path_file=/etc/default/login
 	# hardwire lastlog location (can't detect it on some versions)
 	conf_lastlog_location="/var/adm/lastlog"
@@ -397,7 +443,8 @@ mips-sony-bsd|mips-sony-newsos4)
 	if test "$sol2ver" -ge 8; then
 		AC_MSG_RESULT(yes)
 		AC_DEFINE(DISABLE_UTMP)
-		AC_DEFINE(DISABLE_WTMP)
+		AC_DEFINE(DISABLE_WTMP, 1,
+			[Define if you don't want to use wtmp])
 	else
 		AC_MSG_RESULT(no)
 	fi
@@ -452,11 +499,12 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(SETEUID_BREAKS_SETUID)
 	AC_DEFINE(BROKEN_SETREUID)
 	AC_DEFINE(BROKEN_SETREGID)
-	AC_DEFINE(PASSWD_NEEDS_USERNAME, 1, [must supply username to passwd])
+	AC_DEFINE(PASSWD_NEEDS_USERNAME)
 	case "$host" in
 	*-*-sysv5SCO_SV*)	# SCO OpenServer 6.x
 		TEST_SHELL=/u95/bin/sh
-		AC_DEFINE(BROKEN_LIBIAF, 1, [ia_uinfo routines not supported by OS yet])
+		AC_DEFINE(BROKEN_LIBIAF, 1,
+			[ia_uinfo routines not supported by OS yet])
 		;;
 	esac
 	;;
@@ -482,13 +530,14 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(BROKEN_SETREGID)
 	AC_DEFINE(WITH_ABBREV_NO_TTY)
 	AC_DEFINE(BROKEN_UPDWTMPX)
-	AC_DEFINE(PASSWD_NEEDS_USERNAME, 1, [must supply username to passwd])
+	AC_DEFINE(PASSWD_NEEDS_USERNAME)
 	AC_CHECK_FUNCS(getluid setluid)
 	MANTYPE=man
 	TEST_SHELL=ksh
 	;;
 *-*-unicosmk*)
-	AC_DEFINE(NO_SSH_LASTLOG)
+	AC_DEFINE(NO_SSH_LASTLOG, 1,
+		[Define if you don't want to use lastlog in session.c])
 	AC_DEFINE(SETEUID_BREAKS_SETUID)
 	AC_DEFINE(BROKEN_SETREUID)
 	AC_DEFINE(BROKEN_SETREGID)
@@ -535,13 +584,18 @@ mips-sony-bsd|mips-sony-newsos4)
 	if test -z "$no_osfsia" ; then
 		if test -f /etc/sia/matrix.conf; then
 			AC_MSG_RESULT(yes)
-			AC_DEFINE(HAVE_OSF_SIA)
-			AC_DEFINE(DISABLE_LOGIN)
+			AC_DEFINE(HAVE_OSF_SIA, 1,
+				[Define if you have Digital Unix Security
+				Integration Architecture])
+			AC_DEFINE(DISABLE_LOGIN, 1,
+				[Define if you don't want to use your
+				system's login() call])
 			AC_DEFINE(DISABLE_FD_PASSING)
 			LIBS="$LIBS -lsecurity -ldb -lm -laud"
 		else
 			AC_MSG_RESULT(no)
-			AC_DEFINE(LOCKED_PASSWD_SUBSTR, "Nologin")
+			AC_DEFINE(LOCKED_PASSWD_SUBSTR, "Nologin",
+			  [String used in /etc/passwd to denote locked account])
 		fi
 	fi
 	AC_DEFINE(BROKEN_GETADDRINFO)
@@ -553,21 +607,21 @@ mips-sony-bsd|mips-sony-newsos4)
 *-*-nto-qnx)
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(NO_X11_UNIX_SOCKETS)
-	AC_DEFINE(MISSING_NFDBITS)
-	AC_DEFINE(MISSING_HOWMANY)
-	AC_DEFINE(MISSING_FD_MASK)
+	AC_DEFINE(MISSING_NFDBITS, 1, [Define on *nto-qnx systems])
+	AC_DEFINE(MISSING_HOWMANY, 1, [Define on *nto-qnx systems])
+	AC_DEFINE(MISSING_FD_MASK, 1, [Define on *nto-qnx systems])
 	;;
 
 *-*-ultrix*)
-	AC_DEFINE(BROKEN_GETGROUPS, [], [getgroups(0,NULL) will return -1])
-	AC_DEFINE(BROKEN_MMAP, [], [Ultrix mmap can't map files])
-	AC_DEFINE(NEED_SETPRGP, [], [Need setpgrp to acquire controlling tty])
+	AC_DEFINE(BROKEN_GETGROUPS, 1, [getgroups(0,NULL) will return -1])
+	AC_DEFINE(BROKEN_MMAP, 1, [Ultrix mmap can't map files])
+	AC_DEFINE(NEED_SETPRGP)
 	AC_DEFINE(HAVE_SYS_SYSLOG_H, 1, [Force use of sys/syslog.h on Ultrix])
 	;;
 
 *-*-lynxos)
         CFLAGS="$CFLAGS -D__NO_INCLUDE_WARN__"
-        AC_DEFINE(MISSING_HOWMANY)
+	AC_DEFINE(MISSING_HOWMANY)
         AC_DEFINE(BROKEN_SETVBUF, 1, [LynxOS has broken setvbuf() implementation])
         ;;
 esac
@@ -747,7 +801,8 @@ int main(int argc, char **argv) {
 
 AC_CHECK_FUNC(getspnam, ,
 	AC_CHECK_LIB(gen, getspnam, LIBS="$LIBS -lgen"))
-AC_SEARCH_LIBS(basename, gen, AC_DEFINE(HAVE_BASENAME))
+AC_SEARCH_LIBS(basename, gen, AC_DEFINE(HAVE_BASENAME, 1,
+	[Define if you have the basename function.]))
 
 dnl zlib is required
 AC_ARG_WITH(zlib,
@@ -858,7 +913,8 @@ AC_CHECK_FUNC(utimes,
 
 dnl    Checks for libutil functions
 AC_CHECK_HEADERS(libutil.h)
-AC_SEARCH_LIBS(login, util bsd, [AC_DEFINE(HAVE_LOGIN)])
+AC_SEARCH_LIBS(login, util bsd, [AC_DEFINE(HAVE_LOGIN, 1,
+	[Define if your libraries define login()])])
 AC_CHECK_FUNCS(logout updwtmp logwtmp)
 
 AC_FUNC_STRFTIME
@@ -873,7 +929,9 @@ AC_EGREP_CPP(FOUNDIT,
 		#endif
 	],
 	[
-		AC_DEFINE(GLOB_HAS_ALTDIRFUNC)
+		AC_DEFINE(GLOB_HAS_ALTDIRFUNC, 1,
+			[Define if your system glob() function has
+			the GLOB_ALTDIRFUNC extension])
 		AC_MSG_RESULT(yes)
 	],
 	[
@@ -889,7 +947,9 @@ AC_EGREP_CPP(FOUNDIT,
 		int main(void){glob_t g; g.gl_matchc = 1;}
 	],
 	[
-		AC_DEFINE(GLOB_HAS_GL_MATCHC)
+		AC_DEFINE(GLOB_HAS_GL_MATCHC, 1,
+			[Define if your system glob() function has
+			gl_matchc options in glob_t])
 		AC_MSG_RESULT(yes)
 	],
 	[
@@ -907,7 +967,9 @@ int main(void){struct dirent d;exit(sizeof(d.d_name)<=sizeof(char));}
 	[AC_MSG_RESULT(yes)],
 	[
 		AC_MSG_RESULT(no)
-		AC_DEFINE(BROKEN_ONE_BYTE_DIRENT_D_NAME)
+		AC_DEFINE(BROKEN_ONE_BYTE_DIRENT_D_NAME, 1,
+			[Define in your struct dirent expects you to
+			allocate extra space for d_name])
 	],
 	[
 		AC_MSG_WARN([cross compiling: assuming BROKEN_ONE_BYTE_DIRENT_D_NAME])
@@ -917,7 +979,7 @@ int main(void){struct dirent d;exit(sizeof(d.d_name)<=sizeof(char));}
 
 AC_MSG_CHECKING([for /proc/pid/fd directory])
 if test -d "/proc/$$/fd" ; then
-	AC_DEFINE(HAVE_PROC_PID)
+	AC_DEFINE(HAVE_PROC_PID, 1, [Define if you have /proc/$pid/fd])
 	AC_MSG_RESULT(yes)
 else
 	AC_MSG_RESULT(no)
@@ -935,7 +997,7 @@ AC_ARG_WITH(skey,
 				LDFLAGS="$LDFLAGS -L${withval}/lib"
 			fi
 
-			AC_DEFINE(SKEY)
+			AC_DEFINE(SKEY, 1, [Define if you want S/Key support])
 			LIBS="-lskey $LIBS"
 			SKEY_MSG="yes"
 
@@ -957,7 +1019,9 @@ int main() { char *ff = skey_keyinfo(""); ff=""; exit(0); }
 				 #include <skey.h>],
 				[(void)skeychallenge(NULL,"name","",0);],
 				[AC_MSG_RESULT(yes)
-				 AC_DEFINE(SKEYCHALLENGE_4ARG)],
+				 AC_DEFINE(SKEYCHALLENGE_4ARG, 1,
+					[Define if your skeychallenge()
+					function takes 4 arguments (NetBSD)])],
 				[AC_MSG_RESULT(no)]
         		)
 		fi
@@ -1008,7 +1072,9 @@ AC_ARG_WITH(tcp-wrappers,
 				[hosts_access(0);],
 				[
 					AC_MSG_RESULT(yes)
-					AC_DEFINE(LIBWRAP)
+					AC_DEFINE(LIBWRAP, 1,
+						[Define if you want
+						TCP Wrappers support])
 					AC_SUBST(LIBWRAP)
 					TCPW_MSG="yes"
 				],
@@ -1031,7 +1097,7 @@ AC_ARG_WITH(libedit,
 			LDFLAGS="$LDFLAGS -L$withval/lib"
 		fi
 		AC_CHECK_LIB(edit, el_init,
-			[ AC_DEFINE(USE_LIBEDIT, [], [Use libedit for sftp])
+			[ AC_DEFINE(USE_LIBEDIT, 1, [Use libedit for sftp])
 			  LIBEDIT="-ledit -lcurses"
 			  LIBEDIT_MSG="yes"
 			  AC_SUBST(LIBEDIT)
@@ -1075,12 +1141,12 @@ AC_ARG_WITH(audit,
 		    [AC_MSG_ERROR(BSM enabled and required function not found)])
 		# These are optional
 		AC_CHECK_FUNCS(getaudit_addr)
-		AC_DEFINE(USE_BSM_AUDIT, [], [Use BSM audit module])
+		AC_DEFINE(USE_BSM_AUDIT, 1, [Use BSM audit module])
 		;;
 	  debug)
 		AUDIT_MODULE=debug
 		AC_MSG_RESULT(debug)
-		AC_DEFINE(SSH_AUDIT_EVENTS, [], Use audit debugging module)
+		AC_DEFINE(SSH_AUDIT_EVENTS, 1, Use audit debugging module)
 		;;
 	  no)
 		AC_MSG_RESULT(no)
@@ -1190,7 +1256,8 @@ str = gai_strerror(0);],[
 		AC_DEFINE(HAVE_CONST_GAI_STRERROR_PROTO, 1,
 		[Define if gai_strerror() returns const char *])])])
 
-AC_SEARCH_LIBS(nanosleep, rt posix4, AC_DEFINE(HAVE_NANOSLEEP))
+AC_SEARCH_LIBS(nanosleep, rt posix4, AC_DEFINE(HAVE_NANOSLEEP, 1,
+	[Some systems put nanosleep outside of libc]))
 
 dnl Make sure prototypes are defined for these before using them.
 AC_CHECK_DECL(getrusage, [AC_CHECK_FUNCS(getrusage)])
@@ -1222,7 +1289,8 @@ AC_CHECK_FUNCS(setresuid, [
 int main(){errno=0; setresuid(0,0,0); if (errno==ENOSYS) exit(1); else exit(0);}
 		]])],
 		[AC_MSG_RESULT(yes)],
-		[AC_DEFINE(BROKEN_SETRESUID)
+		[AC_DEFINE(BROKEN_SETRESUID, 1,
+			[Define if your setresuid() is broken])
 		 AC_MSG_RESULT(not implemented)],
 		[AC_MSG_WARN([cross compiling: not checking setresuid])]
 	)
@@ -1238,7 +1306,8 @@ AC_CHECK_FUNCS(setresgid, [
 int main(){errno=0; setresgid(0,0,0); if (errno==ENOSYS) exit(1); else exit(0);}
 		]])],
 		[AC_MSG_RESULT(yes)],
-		[AC_DEFINE(BROKEN_SETRESGID)
+		[AC_DEFINE(BROKEN_SETRESGID, 1,
+			[Define if your setresgid() is broken])
 		 AC_MSG_RESULT(not implemented)],
 		[AC_MSG_WARN([cross compiling: not checking setresuid])]
 	)
@@ -1254,13 +1323,16 @@ AC_CHECK_FUNCS(endutxent getutxent getutxid getutxline pututxline )
 AC_CHECK_FUNCS(setutxent utmpxname)
 
 AC_CHECK_FUNC(daemon,
-	[AC_DEFINE(HAVE_DAEMON)],
-	[AC_CHECK_LIB(bsd, daemon, [LIBS="$LIBS -lbsd"; AC_DEFINE(HAVE_DAEMON)])]
+	[AC_DEFINE(HAVE_DAEMON, 1, [Define if your libraries define daemon()])],
+	[AC_CHECK_LIB(bsd, daemon,
+		[LIBS="$LIBS -lbsd"; AC_DEFINE(HAVE_DAEMON)])]
 )
 
 AC_CHECK_FUNC(getpagesize,
-	[AC_DEFINE(HAVE_GETPAGESIZE)],
-	[AC_CHECK_LIB(ucb, getpagesize, [LIBS="$LIBS -lucb"; AC_DEFINE(HAVE_GETPAGESIZE)])]
+	[AC_DEFINE(HAVE_GETPAGESIZE, 1,
+		[Define if your libraries define getpagesize()])],
+	[AC_CHECK_LIB(ucb, getpagesize,
+		[LIBS="$LIBS -lucb"; AC_DEFINE(HAVE_GETPAGESIZE)])]
 )
 
 # Check for broken snprintf
@@ -1274,7 +1346,8 @@ int main(void){char b[5];snprintf(b,5,"123456789");exit(b[4]!='\0');}
 		[AC_MSG_RESULT(yes)],
 		[
 			AC_MSG_RESULT(no)
-			AC_DEFINE(BROKEN_SNPRINTF)
+			AC_DEFINE(BROKEN_SNPRINTF, 1,
+				[Define if your snprintf is busted])
 			AC_MSG_WARN([****** Your snprintf() function is broken, complain to your vendor])
 		],
 		[ AC_MSG_WARN([cross compiling: Assuming working snprintf()]) ]
@@ -1290,7 +1363,7 @@ if test "x$ac_cv_func_getpeereid" != "xyes" ; then
 		 #include <sys/socket.h>],
 		[int i = SO_PEERCRED;],
 		[ AC_MSG_RESULT(yes)
-		  AC_DEFINE(HAVE_SO_PEERCRED, [], [Have PEERCRED socket option])
+		  AC_DEFINE(HAVE_SO_PEERCRED, 1, [Have PEERCRED socket option])
 		],
 		[AC_MSG_RESULT(no)
 		NO_PEERCHECK=1]
@@ -1314,7 +1387,7 @@ unlink(template); exit(0);
 	],
 	[
 		AC_MSG_RESULT(yes)
-		AC_DEFINE(HAVE_STRICT_MKSTEMP)
+		AC_DEFINE(HAVE_STRICT_MKSTEMP, 1, [Silly mkstemp()])
 	],
 	[
 		AC_MSG_RESULT(yes)
@@ -1488,8 +1561,9 @@ main(void)
 		],
 		[
 			AC_MSG_RESULT(yes)
-			AC_DEFINE(AIX_GETNAMEINFO_HACK, [],
-[Define if you have a getaddrinfo that fails for the all-zeros IPv6 address])
+			AC_DEFINE(AIX_GETNAMEINFO_HACK, 1,
+				[Define if you have a getaddrinfo that fails
+				for the all-zeros IPv6 address])
 		],
 		[
 			AC_MSG_RESULT(no)
@@ -1536,7 +1610,8 @@ AC_ARG_WITH(pam,
 
 			PAM_MSG="yes"
 
-			AC_DEFINE(USE_PAM)
+			AC_DEFINE(USE_PAM, 1,
+				[Define if you want to enable PAM support])
 			if test $ac_cv_lib_dl_dlopen = yes; then
 				LIBPAM="-lpam -ldl"
 			else
@@ -1563,7 +1638,9 @@ if test "x$PAM_MSG" = "xyes" ; then
 		[(void)pam_strerror((pam_handle_t *)NULL, -1);],
 		[AC_MSG_RESULT(no)],
 		[
-			AC_DEFINE(HAVE_OLD_PAM)
+			AC_DEFINE(HAVE_OLD_PAM, 1,
+				[Define if you have an old version of PAM
+				which takes only one argument to pam_strerror])
 			AC_MSG_RESULT(yes)
 			PAM_MSG="yes (old library)"
 		]
@@ -1603,7 +1680,9 @@ AC_ARG_WITH(ssl-dir,
 	]
 )
 LIBS="-lcrypto $LIBS"
-AC_TRY_LINK_FUNC(RAND_add, AC_DEFINE(HAVE_OPENSSL),
+AC_TRY_LINK_FUNC(RAND_add, AC_DEFINE(HAVE_OPENSSL, 1,
+	[Define if your ssl headers are included
+	with #include <openssl/header.h>]),
 	[
 		dnl Check default openssl install dir
 		if test -n "${need_dash_r}"; then
@@ -1777,7 +1856,8 @@ AC_ARG_WITH(rand-helper,
 # Which randomness source do we use?
 if test ! -z "$OPENSSL_SEEDS_ITSELF" && test -z "$USE_RAND_HELPER" ; then
 	# OpenSSL only
-	AC_DEFINE(OPENSSL_PRNG_ONLY)
+	AC_DEFINE(OPENSSL_PRNG_ONLY, 1,
+		[Define if you want OpenSSL's internally seeded PRNG only])
 	RAND_MSG="OpenSSL internal ONLY"
 	INSTALL_SSH_RAND_HELPER=""
 elif test ! -z "$USE_RAND_HELPER" ; then
@@ -1805,7 +1885,8 @@ AC_ARG_WITH(prngd-port,
 		esac
 		if test ! -z "$withval" ; then
 			PRNGD_PORT="$withval"
-			AC_DEFINE_UNQUOTED(PRNGD_PORT, $PRNGD_PORT)
+			AC_DEFINE_UNQUOTED(PRNGD_PORT, $PRNGD_PORT,
+				[Port number of PRNGD/EGD random number socket])
 		fi
 	]
 )
@@ -1836,7 +1917,8 @@ AC_ARG_WITH(prngd-socket,
 				AC_MSG_WARN(Entropy socket is not readable)
 			fi
 			PRNGD_SOCKET="$withval"
-			AC_DEFINE_UNQUOTED(PRNGD_SOCKET, "$PRNGD_SOCKET")
+			AC_DEFINE_UNQUOTED(PRNGD_SOCKET, "$PRNGD_SOCKET",
+				[Location of PRNGD/EGD random number socket])
 		fi
 	],
 	[
@@ -1871,7 +1953,8 @@ AC_ARG_WITH(entropy-timeout,
 		fi
 	]
 )
-AC_DEFINE_UNQUOTED(ENTROPY_TIMEOUT_MSEC, $entropy_timeout)
+AC_DEFINE_UNQUOTED(ENTROPY_TIMEOUT_MSEC, $entropy_timeout,
+	[Builtin PRNG command timeout])
 
 SSH_PRIVSEP_USER=sshd
 AC_ARG_WITH(privsep-user,
@@ -1883,7 +1966,8 @@ AC_ARG_WITH(privsep-user,
 		fi
 	]
 )
-AC_DEFINE_UNQUOTED(SSH_PRIVSEP_USER, "$SSH_PRIVSEP_USER")
+AC_DEFINE_UNQUOTED(SSH_PRIVSEP_USER, "$SSH_PRIVSEP_USER",
+	[non-privileged user for privilege separation])
 AC_SUBST(SSH_PRIVSEP_USER)
 
 # We do this little dance with the search path to insure
@@ -1963,7 +2047,7 @@ AC_CACHE_CHECK([for u_int type], ac_cv_have_u_int, [
 	)
 ])
 if test "x$ac_cv_have_u_int" = "xyes" ; then
-	AC_DEFINE(HAVE_U_INT)
+	AC_DEFINE(HAVE_U_INT, 1, [define if you have u_int data type])
 	have_u_int=1
 fi
 
@@ -1976,7 +2060,7 @@ AC_CACHE_CHECK([for intXX_t types], ac_cv_have_intxx_t, [
 	)
 ])
 if test "x$ac_cv_have_intxx_t" = "xyes" ; then
-	AC_DEFINE(HAVE_INTXX_T)
+	AC_DEFINE(HAVE_INTXX_T, 1, [define if you have intxx_t data type])
 	have_intxx_t=1
 fi
 
@@ -2013,7 +2097,7 @@ AC_CACHE_CHECK([for int64_t type], ac_cv_have_int64_t, [
 	)
 ])
 if test "x$ac_cv_have_int64_t" = "xyes" ; then
-	AC_DEFINE(HAVE_INT64_T)
+	AC_DEFINE(HAVE_INT64_T, 1, [define if you have int64_t data type])
 fi
 
 AC_CACHE_CHECK([for u_intXX_t types], ac_cv_have_u_intxx_t, [
@@ -2025,7 +2109,7 @@ AC_CACHE_CHECK([for u_intXX_t types], ac_cv_have_u_intxx_t, [
 	)
 ])
 if test "x$ac_cv_have_u_intxx_t" = "xyes" ; then
-	AC_DEFINE(HAVE_U_INTXX_T)
+	AC_DEFINE(HAVE_U_INTXX_T, 1, [define if you have u_intxx_t data type])
 	have_u_intxx_t=1
 fi
 
@@ -2051,7 +2135,7 @@ AC_CACHE_CHECK([for u_int64_t types], ac_cv_have_u_int64_t, [
 	)
 ])
 if test "x$ac_cv_have_u_int64_t" = "xyes" ; then
-	AC_DEFINE(HAVE_U_INT64_T)
+	AC_DEFINE(HAVE_U_INT64_T, 1, [define if you have u_int64_t data type])
 	have_u_int64_t=1
 fi
 
@@ -2080,7 +2164,8 @@ if test -z "$have_u_intxx_t" ; then
 		)
 	])
 	if test "x$ac_cv_have_uintxx_t" = "xyes" ; then
-		AC_DEFINE(HAVE_UINTXX_T)
+		AC_DEFINE(HAVE_UINTXX_T, 1,
+			[define if you have uintxx_t data type])
 	fi
 fi
 
@@ -2131,7 +2216,7 @@ AC_CACHE_CHECK([for u_char], ac_cv_have_u_char, [
 	)
 ])
 if test "x$ac_cv_have_u_char" = "xyes" ; then
-	AC_DEFINE(HAVE_U_CHAR)
+	AC_DEFINE(HAVE_U_CHAR, 1, [define if you have u_char data type])
 fi
 
 TYPE_SOCKLEN_T
@@ -2153,7 +2238,7 @@ AC_CACHE_CHECK([for size_t], ac_cv_have_size_t, [
 	)
 ])
 if test "x$ac_cv_have_size_t" = "xyes" ; then
-	AC_DEFINE(HAVE_SIZE_T)
+	AC_DEFINE(HAVE_SIZE_T, 1, [define if you have size_t data type])
 fi
 
 AC_CACHE_CHECK([for ssize_t], ac_cv_have_ssize_t, [
@@ -2167,7 +2252,7 @@ AC_CACHE_CHECK([for ssize_t], ac_cv_have_ssize_t, [
 	)
 ])
 if test "x$ac_cv_have_ssize_t" = "xyes" ; then
-	AC_DEFINE(HAVE_SSIZE_T)
+	AC_DEFINE(HAVE_SSIZE_T, 1, [define if you have ssize_t data type])
 fi
 
 AC_CACHE_CHECK([for clock_t], ac_cv_have_clock_t, [
@@ -2181,7 +2266,7 @@ AC_CACHE_CHECK([for clock_t], ac_cv_have_clock_t, [
 	)
 ])
 if test "x$ac_cv_have_clock_t" = "xyes" ; then
-	AC_DEFINE(HAVE_CLOCK_T)
+	AC_DEFINE(HAVE_CLOCK_T, 1, [define if you have clock_t data type])
 fi
 
 AC_CACHE_CHECK([for sa_family_t], ac_cv_have_sa_family_t, [
@@ -2206,7 +2291,8 @@ AC_CACHE_CHECK([for sa_family_t], ac_cv_have_sa_family_t, [
 	)
 ])
 if test "x$ac_cv_have_sa_family_t" = "xyes" ; then
-	AC_DEFINE(HAVE_SA_FAMILY_T)
+	AC_DEFINE(HAVE_SA_FAMILY_T, 1,
+		[define if you have sa_family_t data type])
 fi
 
 AC_CACHE_CHECK([for pid_t], ac_cv_have_pid_t, [
@@ -2220,7 +2306,7 @@ AC_CACHE_CHECK([for pid_t], ac_cv_have_pid_t, [
 	)
 ])
 if test "x$ac_cv_have_pid_t" = "xyes" ; then
-	AC_DEFINE(HAVE_PID_T)
+	AC_DEFINE(HAVE_PID_T, 1, [define if you have pid_t data type])
 fi
 
 AC_CACHE_CHECK([for mode_t], ac_cv_have_mode_t, [
@@ -2234,7 +2320,7 @@ AC_CACHE_CHECK([for mode_t], ac_cv_have_mode_t, [
 	)
 ])
 if test "x$ac_cv_have_mode_t" = "xyes" ; then
-	AC_DEFINE(HAVE_MODE_T)
+	AC_DEFINE(HAVE_MODE_T, 1, [define if you have mode_t data type])
 fi
 
 
@@ -2250,7 +2336,8 @@ AC_CACHE_CHECK([for struct sockaddr_storage], ac_cv_have_struct_sockaddr_storage
 	)
 ])
 if test "x$ac_cv_have_struct_sockaddr_storage" = "xyes" ; then
-	AC_DEFINE(HAVE_STRUCT_SOCKADDR_STORAGE)
+	AC_DEFINE(HAVE_STRUCT_SOCKADDR_STORAGE, 1,
+		[define if you have struct sockaddr_storage data type])
 fi
 
 AC_CACHE_CHECK([for struct sockaddr_in6], ac_cv_have_struct_sockaddr_in6, [
@@ -2265,7 +2352,8 @@ AC_CACHE_CHECK([for struct sockaddr_in6], ac_cv_have_struct_sockaddr_in6, [
 	)
 ])
 if test "x$ac_cv_have_struct_sockaddr_in6" = "xyes" ; then
-	AC_DEFINE(HAVE_STRUCT_SOCKADDR_IN6)
+	AC_DEFINE(HAVE_STRUCT_SOCKADDR_IN6, 1,
+		[define if you have struct sockaddr_in6 data type])
 fi
 
 AC_CACHE_CHECK([for struct in6_addr], ac_cv_have_struct_in6_addr, [
@@ -2280,7 +2368,8 @@ AC_CACHE_CHECK([for struct in6_addr], ac_cv_have_struct_in6_addr, [
 	)
 ])
 if test "x$ac_cv_have_struct_in6_addr" = "xyes" ; then
-	AC_DEFINE(HAVE_STRUCT_IN6_ADDR)
+	AC_DEFINE(HAVE_STRUCT_IN6_ADDR, 1,
+		[define if you have struct in6_addr data type])
 fi
 
 AC_CACHE_CHECK([for struct addrinfo], ac_cv_have_struct_addrinfo, [
@@ -2296,7 +2385,8 @@ AC_CACHE_CHECK([for struct addrinfo], ac_cv_have_struct_addrinfo, [
 	)
 ])
 if test "x$ac_cv_have_struct_addrinfo" = "xyes" ; then
-	AC_DEFINE(HAVE_STRUCT_ADDRINFO)
+	AC_DEFINE(HAVE_STRUCT_ADDRINFO, 1,
+		[define if you have struct addrinfo data type])
 fi
 
 AC_CACHE_CHECK([for struct timeval], ac_cv_have_struct_timeval, [
@@ -2308,7 +2398,7 @@ AC_CACHE_CHECK([for struct timeval], ac_cv_have_struct_timeval, [
 	)
 ])
 if test "x$ac_cv_have_struct_timeval" = "xyes" ; then
-	AC_DEFINE(HAVE_STRUCT_TIMEVAL)
+	AC_DEFINE(HAVE_STRUCT_TIMEVAL, 1, [define if you have struct timeval])
 	have_struct_timeval=1
 fi
 
@@ -2387,7 +2477,7 @@ AC_CACHE_CHECK([for ss_family field in struct sockaddr_storage],
 	)
 ])
 if test "x$ac_cv_have_ss_family_in_struct_ss" = "xyes" ; then
-	AC_DEFINE(HAVE_SS_FAMILY_IN_SS)
+	AC_DEFINE(HAVE_SS_FAMILY_IN_SS, 1, [Fields in struct sockaddr_storage])
 fi
 
 AC_CACHE_CHECK([for __ss_family field in struct sockaddr_storage],
@@ -2403,7 +2493,8 @@ AC_CACHE_CHECK([for __ss_family field in struct sockaddr_storage],
 	)
 ])
 if test "x$ac_cv_have___ss_family_in_struct_ss" = "xyes" ; then
-	AC_DEFINE(HAVE___SS_FAMILY_IN_SS)
+	AC_DEFINE(HAVE___SS_FAMILY_IN_SS, 1,
+		[Fields in struct sockaddr_storage])
 fi
 
 AC_CACHE_CHECK([for pw_class field in struct passwd],
@@ -2418,7 +2509,8 @@ AC_CACHE_CHECK([for pw_class field in struct passwd],
 	)
 ])
 if test "x$ac_cv_have_pw_class_in_struct_passwd" = "xyes" ; then
-	AC_DEFINE(HAVE_PW_CLASS_IN_PASSWD)
+	AC_DEFINE(HAVE_PW_CLASS_IN_PASSWD, 1,
+		[Define if your password has a pw_class field])
 fi
 
 AC_CACHE_CHECK([for pw_expire field in struct passwd],
@@ -2433,7 +2525,8 @@ AC_CACHE_CHECK([for pw_expire field in struct passwd],
 	)
 ])
 if test "x$ac_cv_have_pw_expire_in_struct_passwd" = "xyes" ; then
-	AC_DEFINE(HAVE_PW_EXPIRE_IN_PASSWD)
+	AC_DEFINE(HAVE_PW_EXPIRE_IN_PASSWD, 1,
+		[Define if your password has a pw_expire field])
 fi
 
 AC_CACHE_CHECK([for pw_change field in struct passwd],
@@ -2448,7 +2541,8 @@ AC_CACHE_CHECK([for pw_change field in struct passwd],
 	)
 ])
 if test "x$ac_cv_have_pw_change_in_struct_passwd" = "xyes" ; then
-	AC_DEFINE(HAVE_PW_CHANGE_IN_PASSWD)
+	AC_DEFINE(HAVE_PW_CHANGE_IN_PASSWD, 1,
+		[Define if your password has a pw_change field])
 fi
 
 dnl make sure we're using the real structure members and not defines
@@ -2474,7 +2568,9 @@ exit(0);
 	)
 ])
 if test "x$ac_cv_have_accrights_in_msghdr" = "xyes" ; then
-	AC_DEFINE(HAVE_ACCRIGHTS_IN_MSGHDR)
+	AC_DEFINE(HAVE_ACCRIGHTS_IN_MSGHDR, 1,
+		[Define if your system uses access rights style
+		file descriptor passing])
 fi
 
 AC_CACHE_CHECK([for msg_control field in struct msghdr],
@@ -2499,7 +2595,9 @@ exit(0);
 	)
 ])
 if test "x$ac_cv_have_control_in_msghdr" = "xyes" ; then
-	AC_DEFINE(HAVE_CONTROL_IN_MSGHDR)
+	AC_DEFINE(HAVE_CONTROL_IN_MSGHDR, 1,
+		[Define if your system uses ancillary data style
+		file descriptor passing])
 fi
 
 AC_CACHE_CHECK([if libc defines __progname], ac_cv_libc_defines___progname, [
@@ -2510,7 +2608,7 @@ AC_CACHE_CHECK([if libc defines __progname], ac_cv_libc_defines___progname, [
 	)
 ])
 if test "x$ac_cv_libc_defines___progname" = "xyes" ; then
-	AC_DEFINE(HAVE___PROGNAME)
+	AC_DEFINE(HAVE___PROGNAME, 1, [Define if libc defines __progname])
 fi
 
 AC_CACHE_CHECK([whether $CC implements __FUNCTION__], ac_cv_cc_implements___FUNCTION__, [
@@ -2523,7 +2621,8 @@ AC_CACHE_CHECK([whether $CC implements __FUNCTION__], ac_cv_cc_implements___FUNC
 	)
 ])
 if test "x$ac_cv_cc_implements___FUNCTION__" = "xyes" ; then
-	AC_DEFINE(HAVE___FUNCTION__)
+	AC_DEFINE(HAVE___FUNCTION__, 1,
+		[Define if compiler implements __FUNCTION__])
 fi
 
 AC_CACHE_CHECK([whether $CC implements __func__], ac_cv_cc_implements___func__, [
@@ -2536,7 +2635,7 @@ AC_CACHE_CHECK([whether $CC implements __func__], ac_cv_cc_implements___func__, 
 	)
 ])
 if test "x$ac_cv_cc_implements___func__" = "xyes" ; then
-	AC_DEFINE(HAVE___func__)
+	AC_DEFINE(HAVE___func__, 1, [Define if compiler implements __func__])
 fi
 
 AC_CACHE_CHECK([whether getopt has optreset support],
@@ -2551,7 +2650,8 @@ AC_CACHE_CHECK([whether getopt has optreset support],
 	)
 ])
 if test "x$ac_cv_have_getopt_optreset" = "xyes" ; then
-	AC_DEFINE(HAVE_GETOPT_OPTRESET)
+	AC_DEFINE(HAVE_GETOPT_OPTRESET, 1,
+		[Define if your getopt(3) defines and uses optreset])
 fi
 
 AC_CACHE_CHECK([if libc defines sys_errlist], ac_cv_libc_defines_sys_errlist, [
@@ -2562,7 +2662,8 @@ AC_CACHE_CHECK([if libc defines sys_errlist], ac_cv_libc_defines_sys_errlist, [
 	)
 ])
 if test "x$ac_cv_libc_defines_sys_errlist" = "xyes" ; then
-	AC_DEFINE(HAVE_SYS_ERRLIST)
+	AC_DEFINE(HAVE_SYS_ERRLIST, 1,
+		[Define if your system defines sys_errlist[]])
 fi
 
 
@@ -2574,7 +2675,7 @@ AC_CACHE_CHECK([if libc defines sys_nerr], ac_cv_libc_defines_sys_nerr, [
 	)
 ])
 if test "x$ac_cv_libc_defines_sys_nerr" = "xyes" ; then
-	AC_DEFINE(HAVE_SYS_NERR)
+	AC_DEFINE(HAVE_SYS_NERR, 1, [Define if your system defines sys_nerr])
 fi
 
 SCARD_MSG="no"
@@ -2601,8 +2702,11 @@ AC_ARG_WITH(sectok,
 			if test "$ac_cv_lib_sectok_sectok_open" != yes; then
 				AC_MSG_ERROR(Can't find libsectok)
 			fi
-			AC_DEFINE(SMARTCARD)
-			AC_DEFINE(USE_SECTOK)
+			AC_DEFINE(SMARTCARD, 1,
+				[Define if you want smartcard support])
+			AC_DEFINE(USE_SECTOK, 1,
+				[Define if you want smartcard support
+				using sectok])
 			SCARD_MSG="yes, using sectok"
 		fi
 	]
@@ -2625,7 +2729,9 @@ AC_ARG_WITH(opensc,
 			CPPFLAGS="$CPPFLAGS $LIBOPENSC_CFLAGS"
 			LDFLAGS="$LDFLAGS $LIBOPENSC_LIBS"
 			AC_DEFINE(SMARTCARD)
-			AC_DEFINE(USE_OPENSC)
+			AC_DEFINE(USE_OPENSC, 1,
+				[Define if you want smartcard support
+				using OpenSC])
 			SCARD_MSG="yes, using OpenSC"
 		fi
 	    fi
@@ -2634,7 +2740,8 @@ AC_ARG_WITH(opensc,
 
 # Check libraries needed by DNS fingerprint support
 AC_SEARCH_LIBS(getrrsetbyname, resolv,
-	[AC_DEFINE(HAVE_GETRRSETBYNAME)],
+	[AC_DEFINE(HAVE_GETRRSETBYNAME, 1,
+		[Define if getrrsetbyname() exists])],
 	[
 		# Needed by our getrrsetbyname()
 		AC_SEARCH_LIBS(res_query, resolv)
@@ -2663,7 +2770,8 @@ int main()
 		    [#include <sys/types.h>
 		    #include <arpa/nameser.h>])
 		AC_CHECK_MEMBER(HEADER.ad,
-			[AC_DEFINE(HAVE_HEADER_AD)],,
+			[AC_DEFINE(HAVE_HEADER_AD, 1,
+			    [Define if HEADER.ad exists in arpa/nameser.h])],,
 			[#include <arpa/nameser.h>])
 	])
 
@@ -2678,7 +2786,7 @@ AC_ARG_WITH(kerberos5,
 			KRB5ROOT=${withval}
 		fi
 
-		AC_DEFINE(KRB5)
+		AC_DEFINE(KRB5, 1, [Define if you want Kerberos 5 support])
 		KRB5_MSG="yes"
 
 		AC_MSG_CHECKING(for krb5-config)
@@ -2689,7 +2797,9 @@ AC_ARG_WITH(kerberos5,
 			AC_MSG_CHECKING(for gssapi support)
 			if $KRB5CONF | grep gssapi >/dev/null ; then
 				AC_MSG_RESULT(yes)
-				AC_DEFINE(GSSAPI)
+				AC_DEFINE(GSSAPI, 1,
+					[Define this if you want GSSAPI
+					support in the version 2 protocol])
 				k5confopts=gssapi
 			else
 				AC_MSG_RESULT(no)
@@ -2702,7 +2812,9 @@ AC_ARG_WITH(kerberos5,
 			AC_TRY_COMPILE([ #include <krb5.h> ],
 				       [ char *tmp = heimdal_version; ],
 				       [ AC_MSG_RESULT(yes)
-					 AC_DEFINE(HEIMDAL) ],
+					 AC_DEFINE(HEIMDAL, 1,
+					[Define this if you are using the
+					Heimdal version of Kerberos V5]) ],
 				         AC_MSG_RESULT(no)
 			)
 		else
@@ -2763,7 +2875,8 @@ AC_ARG_WITH(kerberos5,
 		AC_CHECK_HEADERS(gssapi_generic.h gssapi/gssapi_generic.h)
 
 		LIBS="$LIBS $K5LIBS"
-		AC_SEARCH_LIBS(k_hasafs, kafs, AC_DEFINE(USE_AFS))
+		AC_SEARCH_LIBS(k_hasafs, kafs, AC_DEFINE(USE_AFS, 1,
+			[Define this if you want to use libkafs' AFS support]))
 	fi
 	]
 )
@@ -2818,7 +2931,8 @@ if test -z "$xauth_path" ; then
 	XAUTH_PATH="undefined"
 	AC_SUBST(XAUTH_PATH)
 else
-	AC_DEFINE_UNQUOTED(XAUTH_PATH, "$xauth_path")
+	AC_DEFINE_UNQUOTED(XAUTH_PATH, "$xauth_path",
+		[Define if xauth is found in your path])
 	XAUTH_PATH=$xauth_path
 	AC_SUBST(XAUTH_PATH)
 fi
@@ -2826,7 +2940,8 @@ fi
 # Check for mail directory (last resort if we cannot get it from headers)
 if test ! -z "$MAIL" ; then
 	maildir=`dirname $MAIL`
-	AC_DEFINE_UNQUOTED(MAIL_DIRECTORY, "$maildir")
+	AC_DEFINE_UNQUOTED(MAIL_DIRECTORY, "$maildir",
+		[Set this to your mail directory if you don't have maillock.h])
 fi
 
 if test ! -z "$cross_compiling" && test "x$cross_compiling" = "xyes"; then
@@ -2837,7 +2952,8 @@ if test -z "$no_dev_ptmx" ; then
 	if test "x$disable_ptmx_check" != "xyes" ; then
 		AC_CHECK_FILE("/dev/ptmx",
 			[
-				AC_DEFINE_UNQUOTED(HAVE_DEV_PTMX)
+				AC_DEFINE_UNQUOTED(HAVE_DEV_PTMX, 1,
+					[Define if you have /dev/ptmx])
 				have_dev_ptmx=1
 			]
 		)
@@ -2847,7 +2963,8 @@ fi
 if test ! -z "$cross_compiling" && test "x$cross_compiling" != "xyes"; then
 	AC_CHECK_FILE("/dev/ptc",
 		[
-			AC_DEFINE_UNQUOTED(HAVE_DEV_PTS_AND_PTC)
+			AC_DEFINE_UNQUOTED(HAVE_DEV_PTS_AND_PTC, 1,
+				[Define if you have /dev/ptc])
 			have_dev_ptc=1
 		]
 	)
@@ -2894,7 +3011,8 @@ AC_ARG_WITH(md5-passwords,
 	[  --with-md5-passwords    Enable use of MD5 passwords],
 	[
 		if test "x$withval" != "xno" ; then
-			AC_DEFINE(HAVE_MD5_PASSWORDS)
+			AC_DEFINE(HAVE_MD5_PASSWORDS, 1,
+				[Define if you want to allow MD5 passwords])
 			MD5_MSG="yes"
 		fi
 	]
@@ -2924,7 +3042,8 @@ if test -z "$disable_shadow" ; then
 
 	if test "x$sp_expire_available" = "xyes" ; then
 		AC_MSG_RESULT(yes)
-		AC_DEFINE(HAS_SHADOW_EXPIRE)
+		AC_DEFINE(HAS_SHADOW_EXPIRE, 1,
+		    [Define if you want to use shadow password expire field])
 	else
 		AC_MSG_RESULT(no)
 	fi
@@ -2933,7 +3052,9 @@ fi
 # Use ip address instead of hostname in $DISPLAY
 if test ! -z "$IPADDR_IN_DISPLAY" ; then
 	DISPLAY_HACK_MSG="yes"
-	AC_DEFINE(IPADDR_IN_DISPLAY)
+	AC_DEFINE(IPADDR_IN_DISPLAY, 1,
+		[Define if you need to use IP address
+		instead of hostname in $DISPLAY])
 else
 	DISPLAY_HACK_MSG="no"
 	AC_ARG_WITH(ipaddr-display,
@@ -2966,7 +3087,8 @@ if test "x$etc_default_login" != "xno"; then
 	then
 		AC_MSG_WARN([cross compiling: Disabling /etc/default/login test])
 	elif test "x$external_path_file" = "x/etc/default/login"; then
-		AC_DEFINE(HAVE_ETC_DEFAULT_LOGIN)
+		AC_DEFINE(HAVE_ETC_DEFAULT_LOGIN, 1,
+			[Define if your system has /etc/default/login])
 	fi
 fi
 
@@ -3059,7 +3181,7 @@ main()
 	fi ]
 )
 if test "x$external_path_file" != "x/etc/login.conf" ; then
-	AC_DEFINE_UNQUOTED(USER_PATH, "$user_path")
+	AC_DEFINE_UNQUOTED(USER_PATH, "$user_path", [Specify default $PATH])
 	AC_SUBST(user_path)
 fi
 
@@ -3069,7 +3191,9 @@ AC_ARG_WITH(superuser-path,
 	[
 		if test -n "$withval"  &&  test "x$withval" != "xno"  &&  \
 		    test "x${withval}" != "xyes"; then
-			AC_DEFINE_UNQUOTED(SUPERUSER_PATH, "$withval")
+			AC_DEFINE_UNQUOTED(SUPERUSER_PATH, "$withval",
+				[Define if you want a different $PATH
+				for the superuser])
 			superuser_path=$withval
 		fi
 	]
@@ -3083,7 +3207,9 @@ AC_ARG_WITH(4in6,
 	[
 		if test "x$withval" != "xno" ; then
 			AC_MSG_RESULT(yes)
-			AC_DEFINE(IPV4_IN_IPV6)
+			AC_DEFINE(IPV4_IN_IPV6, 1,
+				[Detect IPv4 in IPv6 mapped addresses
+				and treat as IPv4])
 			IPV4_IN6_HACK_MSG="yes"
 		else
 			AC_MSG_RESULT(no)
@@ -3105,7 +3231,8 @@ AC_ARG_WITH(bsd-auth,
 	[  --with-bsd-auth         Enable BSD auth support],
 	[
 		if test "x$withval" != "xno" ; then
-			AC_DEFINE(BSD_AUTH)
+			AC_DEFINE(BSD_AUTH, 1,
+				[Define if you have BSD auth support])
 			BSD_AUTH_MSG=yes
 		fi
 	]
@@ -3134,7 +3261,7 @@ AC_ARG_WITH(pid-dir,
 	]
 )
 
-AC_DEFINE_UNQUOTED(_PATH_SSH_PIDDIR, "$piddir")
+AC_DEFINE_UNQUOTED(_PATH_SSH_PIDDIR, "$piddir", [Specify location of ssh.pid])
 AC_SUBST(piddir)
 
 dnl allow user to disable some login recording features
@@ -3158,7 +3285,8 @@ AC_ARG_ENABLE(utmpx,
 	[  --disable-utmpx         disable use of utmpx even if detected [no]],
 	[
 		if test "x$enableval" = "xno" ; then
-			AC_DEFINE(DISABLE_UTMPX)
+			AC_DEFINE(DISABLE_UTMPX, 1,
+				[Define if you don't want to use utmpx])
 		fi
 	]
 )
@@ -3174,7 +3302,8 @@ AC_ARG_ENABLE(wtmpx,
 	[  --disable-wtmpx         disable use of wtmpx even if detected [no]],
 	[
 		if test "x$enableval" = "xno" ; then
-			AC_DEFINE(DISABLE_WTMPX)
+			AC_DEFINE(DISABLE_WTMPX, 1,
+				[Define if you don't want to use wtmpx])
 		fi
 	]
 )
@@ -3190,7 +3319,9 @@ AC_ARG_ENABLE(pututline,
 	[  --disable-pututline     disable use of pututline() etc. ([uw]tmp) [no]],
 	[
 		if test "x$enableval" = "xno" ; then
-			AC_DEFINE(DISABLE_PUTUTLINE)
+			AC_DEFINE(DISABLE_PUTUTLINE, 1,
+				[Define if you don't want to use pututline()
+				etc. to write [uw]tmp])
 		fi
 	]
 )
@@ -3198,7 +3329,9 @@ AC_ARG_ENABLE(pututxline,
 	[  --disable-pututxline    disable use of pututxline() etc. ([uw]tmpx) [no]],
 	[
 		if test "x$enableval" = "xno" ; then
-			AC_DEFINE(DISABLE_PUTUTXLINE)
+			AC_DEFINE(DISABLE_PUTUTXLINE, 1,
+				[Define if you don't want to use pututxline()
+				etc. to write [uw]tmpx])
 		fi
 	]
 )
@@ -3273,7 +3406,8 @@ if test -z "$conf_lastlog_location"; then
 fi
 
 if test -n "$conf_lastlog_location"; then
-	AC_DEFINE_UNQUOTED(CONF_LASTLOG_FILE, "$conf_lastlog_location")
+	AC_DEFINE_UNQUOTED(CONF_LASTLOG_FILE, "$conf_lastlog_location",
+		[Define if you want to specify the path to your lastlog file])
 fi
 
 dnl utmp detection
@@ -3303,7 +3437,8 @@ if test -z "$conf_utmp_location"; then
 	fi
 fi
 if test -n "$conf_utmp_location"; then
-	AC_DEFINE_UNQUOTED(CONF_UTMP_FILE, "$conf_utmp_location")
+	AC_DEFINE_UNQUOTED(CONF_UTMP_FILE, "$conf_utmp_location",
+		[Define if you want to specify the path to your utmp file])
 fi
 
 dnl wtmp detection
@@ -3333,7 +3468,8 @@ if test -z "$conf_wtmp_location"; then
 	fi
 fi
 if test -n "$conf_wtmp_location"; then
-	AC_DEFINE_UNQUOTED(CONF_WTMP_FILE, "$conf_wtmp_location")
+	AC_DEFINE_UNQUOTED(CONF_WTMP_FILE, "$conf_wtmp_location",
+		[Define if you want to specify the path to your wtmp file])
 fi
 
 
@@ -3361,7 +3497,8 @@ if test -z "$conf_utmpx_location"; then
 		AC_DEFINE(DISABLE_UTMPX)
 	fi
 else
-	AC_DEFINE_UNQUOTED(CONF_UTMPX_FILE, "$conf_utmpx_location")
+	AC_DEFINE_UNQUOTED(CONF_UTMPX_FILE, "$conf_utmpx_location",
+		[Define if you want to specify the path to your utmpx file])
 fi
 
 dnl wtmpx detection
@@ -3386,7 +3523,8 @@ if test -z "$conf_wtmpx_location"; then
 		AC_DEFINE(DISABLE_WTMPX)
 	fi
 else
-	AC_DEFINE_UNQUOTED(CONF_WTMPX_FILE, "$conf_wtmpx_location")
+	AC_DEFINE_UNQUOTED(CONF_WTMPX_FILE, "$conf_wtmpx_location",
+		[Define if you want to specify the path to your wtmpx file])
 fi
 
 
