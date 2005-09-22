@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.294 2005/09/19 16:33:39 tim Exp $
+# $Id: configure.ac,v 1.295 2005/09/22 10:15:08 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -1093,8 +1093,12 @@ AC_ARG_WITH(libedit,
 	[  --with-libedit[[=PATH]]   Enable libedit support for sftp],
 	[ if test "x$withval" != "xno" ; then
 		if test "x$withval" != "xyes"; then
-			CPPFLAGS="$CPPFLAGS -I$withval/include"
-			LDFLAGS="$LDFLAGS -L$withval/lib"
+			CPPFLAGS="$CPPFLAGS -I${withval}/include"
+			if test -n "${need_dash_r}"; then
+				LDFLAGS="-L${withval}/lib -R${withval}/lib ${LDFLAGS}"
+			else
+				LDFLAGS="-L${withval}/lib ${LDFLAGS}"
+			fi
 		fi
 		AC_CHECK_LIB(edit, el_init,
 			[ AC_DEFINE(USE_LIBEDIT, 1, [Use libedit for sftp])

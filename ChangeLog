@@ -1,3 +1,7 @@
+20050922
+ - (dtucker) [configure.ac] Use -R linker flag for libedit too; patch from
+   skeleten at shillest.net.
+
 20050919
  - (tim) [aclocal.m4 configure.ac] Delete acconfig.h and add templates to
    AC_DEFINE and AC_DEFINE_UNQUOTED to quiet autoconf 2.59 warning messages.
@@ -3003,4 +3007,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3891 2005/09/19 16:36:55 tim Exp $
+$Id: ChangeLog,v 1.3892 2005/09/22 10:15:08 dtucker Exp $
