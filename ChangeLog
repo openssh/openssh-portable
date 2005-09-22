@@ -1,6 +1,8 @@
 20050922
  - (dtucker) [configure.ac] Use -R linker flag for libedit too; patch from
    skeleten at shillest.net.
+ - (dtucker) [configure.ac] Fix help for --with-opensc; patch from skeleten at
+   shillest.net.
 
 20050919
  - (tim) [aclocal.m4 configure.ac] Delete acconfig.h and add templates to
@@ -3007,4 +3009,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3892 2005/09/22 10:15:08 dtucker Exp $
+$Id: ChangeLog,v 1.3893 2005/09/22 10:19:54 dtucker Exp $

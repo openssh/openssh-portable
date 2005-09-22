@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.295 2005/09/22 10:15:08 dtucker Exp $
+# $Id: configure.ac,v 1.296 2005/09/22 10:19:54 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -2719,7 +2719,7 @@ AC_ARG_WITH(sectok,
 # Check whether user wants OpenSC support
 OPENSC_CONFIG="no"
 AC_ARG_WITH(opensc,
-	[--with-opensc[[=PFX]]       Enable smartcard support using OpenSC (optionally in PATH)],
+	[  --with-opensc[[=PFX]]     Enable smartcard support using OpenSC (optionally in PATH)],
 	[
 	    if test "x$withval" != "xno" ; then
 		if test "x$withval" != "xyes" ; then
