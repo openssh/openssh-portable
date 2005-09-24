@@ -1,3 +1,7 @@
+20050924
+ - (dtucker) [auth2.c] Move start_pam() calls out of if-else block to remove
+   duplicate call.  ok djm@
+
 20050922
  - (dtucker) [configure.ac] Use -R linker flag for libedit too; patch from
    skeleten at shillest.net.
@@ -3009,4 +3013,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3893 2005/09/22 10:19:54 dtucker Exp $
+$Id: ChangeLog,v 1.3894 2005/09/24 02:43:51 dtucker Exp $
