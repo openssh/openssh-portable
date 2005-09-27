@@ -800,6 +800,7 @@ send_rexec_state(int fd, Buffer *conf)
 	 *	bignum	iqmp			"
 	 *	bignum	p			"
 	 *	bignum	q			"
+	 *	string rngseed		(only if OpenSSL is not self-seeded)
 	 */
 	buffer_init(&m);
 	buffer_put_cstring(&m, buffer_ptr(conf));
@@ -815,6 +816,10 @@ send_rexec_state(int fd, Buffer *conf)
 		buffer_put_bignum(&m, sensitive_data.server_key->rsa->q);
 	} else
 		buffer_put_int(&m, 0);
+
+#ifndef OPENSSL_PRNG_ONLY
+	rexec_send_rng_seed(&m);
+#endif
 
 	if (ssh_msg_send(fd, 0, &m) == -1)
 		fatal("%s: ssh_msg_send failed", __func__);
@@ -858,6 +863,11 @@ recv_rexec_state(int fd, Buffer *conf)
 		rsa_generate_additional_parameters(
 		    sensitive_data.server_key->rsa);
 	}
+
+#ifndef OPENSSL_PRNG_ONLY
+	rexec_recv_rng_seed(&m);
+#endif
+
 	buffer_free(&m);
 
 	debug3("%s: done", __func__);
@@ -1051,8 +1061,6 @@ main(int ac, char **av)
 	drop_cray_privs();
 #endif
 
-	seed_rng();
-
 	sensitive_data.server_key = NULL;
 	sensitive_data.ssh1_host_key = NULL;
 	sensitive_data.have_ssh1_key = 0;
@@ -1070,6 +1078,8 @@ main(int ac, char **av)
 
 	if (!rexec_flag)
 		buffer_free(&cfg);
+
+	seed_rng();
 
 	/* Fill in default values for those options not explicitly set. */
 	fill_default_server_options(&options);
