@@ -1,3 +1,6 @@
+20050928
+ - (dtucker) [entropy.c] Use u_char for receiving RNG seed for consistency.
+
 20050927
  - (dtucker) [entropy.c] Remove unnecessary tests for getuid and geteuid
    calls, since they can't possibly fail.  ok djm@
@@ -3020,4 +3023,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3896 2005/09/27 12:46:32 dtucker Exp $
+$Id: ChangeLog,v 1.3897 2005/09/27 22:26:30 dtucker Exp $

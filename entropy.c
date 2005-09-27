@@ -48,7 +48,7 @@
  * XXX: we should tell the child how many bytes we need.
  */
 
-RCSID("$Id: entropy.c,v 1.51 2005/09/27 12:46:32 dtucker Exp $");
+RCSID("$Id: entropy.c,v 1.52 2005/09/27 22:26:30 dtucker Exp $");
 
 #ifndef OPENSSL_PRNG_ONLY
 #define RANDOM_SEED_SIZE 48
@@ -170,7 +170,7 @@ rexec_send_rng_seed(Buffer *m)
 void
 rexec_recv_rng_seed(Buffer *m)
 {
-	char *buf;
+	u_char *buf;
 	u_int len;
 
 	buf = buffer_get_string_ret(m, &len);
