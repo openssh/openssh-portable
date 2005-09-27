@@ -1,3 +1,7 @@
+20050927
+ - (dtucker) [entropy.c] Remove unnecessary tests for getuid and geteuid
+   calls, since they can't possibly fail.  ok djm@
+
 20050924
  - (dtucker) [auth2.c] Move start_pam() calls out of if-else block to remove
    duplicate call.  ok djm@
@@ -3013,4 +3017,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3894 2005/09/24 02:43:51 dtucker Exp $
+$Id: ChangeLog,v 1.3895 2005/09/27 09:50:25 dtucker Exp $
