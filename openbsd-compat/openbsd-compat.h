@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.30 2005/08/26 20:15:20 tim Exp $ */
+/* $Id: openbsd-compat.h,v 1.31 2005/09/29 23:55:50 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -151,6 +151,10 @@ int openpty(int *, int *, char *, struct termios *, struct winsize *);
 #ifndef HAVE_SNPRINTF
 int snprintf(char *, size_t, const char *, ...);
 #endif 
+
+#ifndef HAVE_STRTOLL
+long long strtoll(const char *, char **, int);
+#endif
 
 #ifndef HAVE_STRTONUM
 long long strtonum(const char *, long long, long long, const char **);
