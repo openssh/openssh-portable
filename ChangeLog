@@ -1,3 +1,7 @@
+20050929
+ - (dtucker) [monitor_wrap.c] Remove duplicate definition of loginmsg
+   introduced during sync.
+
 20050928
  - (dtucker) [entropy.c] Use u_char for receiving RNG seed for consistency.
  - (dtucker) [auth-pam.c] Bug #1028: send final non-query messages from
@@ -3025,4 +3029,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3898 2005/09/28 12:33:27 dtucker Exp $
+$Id: ChangeLog,v 1.3899 2005/09/29 12:01:10 dtucker Exp $
