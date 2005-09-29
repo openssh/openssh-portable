@@ -1,3 +1,7 @@
+20050930
+ - (dtucker) [openbsd-compat/openbsd-compat.h] Bug #1096: Add prototype
+   for strtoll.  Patch from o.flebbe at science-computing.de.
+
 20050922
  - (dtucker) [configure.ac] Use -R linker flag for libedit too; patch from
    skeleten at shillest.net.
@@ -2993,4 +2997,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3887.2.1 2005/09/22 10:14:24 dtucker Exp $
+$Id: ChangeLog,v 1.3887.2.2 2005/09/29 23:55:12 dtucker Exp $
