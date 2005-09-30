@@ -1,6 +1,10 @@
 20050930
  - (dtucker) [openbsd-compat/openbsd-compat.h] Bug #1096: Add prototype
    for strtoll.  Patch from o.flebbe at science-computing.de.
+ - (dtucker) [monitor.c] Bug #1087: Send loginmsg to preauth privsep
+   child during PAM account check without clearing it.  This restores the
+   post-login warnings such as LDAP password expiry.  Patch from Tomas Mraz
+   with help from several others.
 
 20050929
  - (dtucker) [monitor_wrap.c] Remove duplicate definition of loginmsg
@@ -3033,4 +3037,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3900 2005/09/29 23:55:49 dtucker Exp $
+$Id: ChangeLog,v 1.3901 2005/09/30 00:23:21 dtucker Exp $

@@ -834,9 +834,7 @@ mm_answer_pam_account(int sock, Buffer *m)
 	ret = do_pam_account();
 
 	buffer_put_int(m, ret);
-	buffer_append(&loginmsg, "\0", 1);
-	buffer_put_cstring(m, buffer_ptr(&loginmsg));
-	buffer_clear(&loginmsg);
+	buffer_put_string(m, buffer_ptr(&loginmsg), buffer_len(&loginmsg));
 
 	mm_request_send(sock, MONITOR_ANS_PAM_ACCOUNT, m);
 
