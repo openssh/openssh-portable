@@ -5,6 +5,8 @@
    child during PAM account check without clearing it.  This restores the
    post-login warnings such as LDAP password expiry.  Patch from Tomas Mraz
    with help from several others.
+ - (dtucker) [auth-pam.c] Bug #1028: send final non-query messages from
+   PAM via keyboard-interactive.  Patch tested by the folks at Vintela.
 
 20050922
  - (dtucker) [configure.ac] Use -R linker flag for libedit too; patch from
@@ -3001,4 +3003,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3887.2.3 2005/09/30 00:22:45 dtucker Exp $
+$Id: ChangeLog,v 1.3887.2.4 2005/09/30 00:55:17 dtucker Exp $
