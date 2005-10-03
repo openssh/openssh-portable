@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: canohost.c,v 1.44 2005/06/17 02:44:32 djm Exp $");
+RCSID("$OpenBSD: canohost.c,v 1.45 2005/10/03 07:44:42 dtucker Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -43,9 +43,6 @@ get_remote_hostname(int sock, int use_dns)
 		cleanup_exit(255);
 	}
 
-	if (from.ss_family == AF_INET)
-		check_ip_options(sock, ntop);
-
 	ipv64_normalise_mapped(&from, &fromlen);
 
 	if (from.ss_family == AF_INET6)
@@ -54,6 +51,9 @@ get_remote_hostname(int sock, int use_dns)
 	if (getnameinfo((struct sockaddr *)&from, fromlen, ntop, sizeof(ntop),
 	    NULL, 0, NI_NUMERICHOST) != 0)
 		fatal("get_remote_hostname: getnameinfo NI_NUMERICHOST failed");
+
+	if (from.ss_family == AF_INET)
+		check_ip_options(sock, ntop);
 
 	if (!use_dns)
 		return xstrdup(ntop);
