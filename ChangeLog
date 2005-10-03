@@ -1,3 +1,9 @@
+20051003
+ - (dtucker) OpenBSD CVS Sync
+   - markus@cvs.openbsd.org 2005/09/07 08:53:53
+     [channels.c]
+     enforce chanid != NULL; ok djm
+
 20050930
  - (dtucker) [openbsd-compat/openbsd-compat.h] Bug #1096: Add prototype
    for strtoll.  Patch from o.flebbe at science-computing.de.
@@ -3037,4 +3043,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3901 2005/09/30 00:23:21 dtucker Exp $
+$Id: ChangeLog,v 1.3902 2005/10/03 08:03:05 dtucker Exp $

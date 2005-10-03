@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.223 2005/07/17 07:17:54 djm Exp $");
+RCSID("$OpenBSD: channels.c,v 1.224 2005/09/07 08:53:53 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -2668,6 +2668,9 @@ x11_create_display_inet(int x11_display_offset, int x11_use_localhost,
 	char strport[NI_MAXSERV];
 	int gaierr, n, num_socks = 0, socks[NUM_SOCKS];
 
+	if (chanids == NULL)
+		return -1;
+
 	for (display_number = x11_display_offset;
 	    display_number < MAX_DISPLAYS;
 	    display_number++) {
@@ -2749,8 +2752,7 @@ x11_create_display_inet(int x11_display_offset, int x11_use_localhost,
 	}
 
 	/* Allocate a channel for each socket. */
-	if (chanids != NULL)
-		*chanids = xmalloc(sizeof(**chanids) * (num_socks + 1));
+	*chanids = xmalloc(sizeof(**chanids) * (num_socks + 1));
 	for (n = 0; n < num_socks; n++) {
 		sock = socks[n];
 		nc = channel_new("x11 listener",
@@ -2758,11 +2760,9 @@ x11_create_display_inet(int x11_display_offset, int x11_use_localhost,
 		    CHAN_X11_WINDOW_DEFAULT, CHAN_X11_PACKET_DEFAULT,
 		    0, "X11 inet listener", 1);
 		nc->single_connection = single_connection;
-		if (*chanids != NULL)
-			(*chanids)[n] = nc->self;
+		(*chanids)[n] = nc->self;
 	}
-	if (*chanids != NULL)
-		(*chanids)[n] = -1;
+	(*chanids)[n] = -1;
 
 	/* Return the display number for the DISPLAY environment variable. */
 	*display_numberp = display_number;
