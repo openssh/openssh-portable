@@ -10,6 +10,10 @@
      [sshd.c ssh.c misc.h sftp.c ssh-keygen.c ssh-keysign.c sftp-server.c
      scp.c misc.c ssh-keyscan.c ssh-add.c ssh-agent.c]
      ensure that stdio fds are attached; ok deraadt@
+   - djm@cvs.openbsd.org 2005/09/19 11:37:34
+     [ssh_config.5 ssh.1]
+     mention ability to specify bind_address for DynamicForward and -D options;
+     bz#1077 spotted by Haruyama Seigo
 
 20050930
  - (dtucker) [openbsd-compat/openbsd-compat.h] Bug #1096: Add prototype
@@ -3050,4 +3054,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3904 2005/10/03 08:11:24 dtucker Exp $
+$Id: ChangeLog,v 1.3905 2005/10/03 08:13:42 dtucker Exp $
