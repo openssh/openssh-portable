@@ -14,6 +14,10 @@
      [ssh_config.5 ssh.1]
      mention ability to specify bind_address for DynamicForward and -D options;
      bz#1077 spotted by Haruyama Seigo
+   - djm@cvs.openbsd.org 2005/09/19 11:47:09
+     [sshd.c]
+     stop connection abort on rekey with delayed compression enabled when
+     post-auth privsep is disabled (e.g. when root is logged in); ok dtucker@
 
 20050930
  - (dtucker) [openbsd-compat/openbsd-compat.h] Bug #1096: Add prototype
@@ -3054,4 +3058,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3905 2005/10/03 08:13:42 dtucker Exp $
+$Id: ChangeLog,v 1.3906 2005/10/03 08:16:02 dtucker Exp $
