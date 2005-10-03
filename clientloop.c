@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.141 2005/07/16 01:35:24 djm Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.142 2005/09/09 19:18:05 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -266,7 +266,7 @@ client_x11_get_proto(const char *display, const char *xauth_path,
 			}
 		}
 		snprintf(cmd, sizeof(cmd),
-		    "%s %s%s list %s . 2>" _PATH_DEVNULL,
+		    "%s %s%s list %s 2>" _PATH_DEVNULL,
 		    xauth_path,
 		    generated ? "-f " : "" ,
 		    generated ? xauthfile : "",

@@ -3,6 +3,9 @@
    - markus@cvs.openbsd.org 2005/09/07 08:53:53
      [channels.c]
      enforce chanid != NULL; ok djm
+   - markus@cvs.openbsd.org 2005/09/09 19:18:05
+     [clientloop.c]
+     typo; from mark at mcs.vuw.ac.nz, bug #1082
 
 20050930
  - (dtucker) [openbsd-compat/openbsd-compat.h] Bug #1096: Add prototype
@@ -3009,4 +3012,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3887.2.5 2005/10/03 08:03:33 dtucker Exp $
+$Id: ChangeLog,v 1.3887.2.6 2005/10/03 08:05:43 dtucker Exp $
