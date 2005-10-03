@@ -6,6 +6,10 @@
    - markus@cvs.openbsd.org 2005/09/09 19:18:05
      [clientloop.c]
      typo; from mark at mcs.vuw.ac.nz, bug #1082
+   - djm@cvs.openbsd.org 2005/09/19 11:37:34
+     [ssh_config.5 ssh.1]
+     mention ability to specify bind_address for DynamicForward and -D options;
+     bz#1077 spotted by Haruyama Seigo
 
 20050930
  - (dtucker) [openbsd-compat/openbsd-compat.h] Bug #1096: Add prototype
@@ -3012,4 +3016,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3887.2.6 2005/10/03 08:05:43 dtucker Exp $
+$Id: ChangeLog,v 1.3887.2.7 2005/10/03 08:14:14 dtucker Exp $

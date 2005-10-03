@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.61 2005/07/08 12:53:10 jmc Exp $
+.\" $OpenBSD: ssh_config.5,v 1.62 2005/09/19 11:37:34 djm Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -320,7 +320,29 @@ Specifies that a TCP/IP port on the local machine be forwarded
 over the secure channel, and the application
 protocol is then used to determine where to connect to from the
 remote machine.
-The argument must be a port number.
+.Pp
+The argument must be
+.Sm off
+.Oo Ar bind_address : Oc Ar port .
+.Sm on
+IPv6 addresses can be specified by enclosing addresses in square brackets or
+by using an alternative syntax:
+.Oo Ar bind_address Ns / Oc Ns Ar port .
+By default, the local port is bound in accordance with the
+.Cm GatewayPorts
+setting.
+However, an explicit
+.Ar bind_address
+may be used to bind the connection to a specific address.
+The
+.Ar bind_address
+of
+.Dq localhost
+indicates that the listening port be bound for local use only, while an
+empty address or
+.Sq *
+indicates that the port should be available from all interfaces.
+.Pp
 Currently the SOCKS4 and SOCKS5 protocols are supported, and
 .Nm ssh
 will act as a SOCKS server.

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.209 2005/07/06 09:33:05 dtucker Exp $
+.\" $OpenBSD: ssh.1,v 1.210 2005/09/19 11:37:34 djm Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -47,7 +47,12 @@
 .Op Fl 1246AaCfgkMNnqsTtVvXxY
 .Op Fl b Ar bind_address
 .Op Fl c Ar cipher_spec
-.Op Fl D Ar port
+.Oo Fl D\ \&
+.Sm off
+.Oo Ar bind_address : Oc
+.Ar port
+.Sm on
+.Oc
 .Op Fl e Ar escape_char
 .Op Fl F Ar configfile
 .Op Fl i Ar identity_file
@@ -494,13 +499,20 @@ The default is
     arcfour256,arcfour,aes192-cbc,aes256-cbc,aes128-ctr,
     aes192-ctr,aes256-ctr''
 .Ed
-.It Fl D Ar port
+.It Fl D Xo
+.Sm off
+.Oo Ar bind_address : Oc
+.Ar port
+.Sm on
+.Xc
 Specifies a local
 .Dq dynamic
 application-level port forwarding.
 This works by allocating a socket to listen to
 .Ar port
-on the local side, and whenever a connection is made to this port, the
+on the local side, optionally bound to the specified
+.Ar bind_address .
+Whenever a connection is made to this port, the
 connection is forwarded over the secure channel, and the application
 protocol is then used to determine where to connect to from the
 remote machine.
@@ -509,6 +521,30 @@ Currently the SOCKS4 and SOCKS5 protocols are supported, and
 will act as a SOCKS server.
 Only root can forward privileged ports.
 Dynamic port forwardings can also be specified in the configuration file.
+.Pp
+IPv6 addresses can be specified with an alternative syntax:
+.Sm off
+.Xo
+.Op Ar bind_address No /
+.Ar port
+.Xc
+.Sm on
+or by enclosing the address in square brackets.
+Only the superuser can forward privileged ports.
+By default, the local port is bound in accordance with the
+.Cm GatewayPorts
+setting.
+However, an explicit
+.Ar bind_address
+may be used to bind the connection to a specific address.
+The
+.Ar bind_address
+of
+.Dq localhost
+indicates that the listening port be bound for local use only, while an
+empty address or
+.Sq *
+indicates that the port should be available from all interfaces.
 .It Fl e Ar ch | ^ch | none
 Sets the escape character for sessions with a pty (default:
 .Ql ~ ) .
