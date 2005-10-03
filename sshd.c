@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.314 2005/09/19 11:47:09 djm Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.315 2005/09/21 23:37:11 djm Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -634,7 +634,7 @@ privsep_postauth(Authctxt *authctxt)
 #endif
 		/* File descriptor passing is broken or root login */
 		use_privsep = 0;
-		goto out;
+		goto skip;
 	}
 
 	/* Authentication complete */
@@ -668,7 +668,7 @@ privsep_postauth(Authctxt *authctxt)
 	/* Drop privileges */
 	do_setusercontext(authctxt->pw);
 
- out:
+ skip:
 	/* It is safe now to apply the key state */
 	monitor_apply_keystate(pmonitor);
 

@@ -33,6 +33,9 @@
    - djm@cvs.openbsd.org 2005/09/21 23:36:54
      [sshd_config.5]
      aquire -> acquire, from stevesk@
+   - djm@cvs.openbsd.org 2005/09/21 23:37:11
+     [sshd.c]
+     change label at markus@'s request
 
 20050930
  - (dtucker) [openbsd-compat/openbsd-compat.h] Bug #1096: Add prototype
@@ -3073,4 +3076,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3911 2005/10/03 08:19:06 dtucker Exp $
+$Id: ChangeLog,v 1.3912 2005/10/03 08:20:00 dtucker Exp $
