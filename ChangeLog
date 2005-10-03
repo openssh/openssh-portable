@@ -18,6 +18,9 @@
      [sshd.c]
      stop connection abort on rekey with delayed compression enabled when
      post-auth privsep is disabled (e.g. when root is logged in); ok dtucker@
+   - djm@cvs.openbsd.org 2005/09/19 11:48:10
+     [gss-serv.c]
+     typo
 
 20050930
  - (dtucker) [openbsd-compat/openbsd-compat.h] Bug #1096: Add prototype
@@ -3058,4 +3061,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3906 2005/10/03 08:16:02 dtucker Exp $
+$Id: ChangeLog,v 1.3907 2005/10/03 08:17:02 dtucker Exp $

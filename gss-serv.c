@@ -1,4 +1,4 @@
-/*	$OpenBSD: gss-serv.c,v 1.8 2005/08/30 22:08:05 djm Exp $	*/
+/*	$OpenBSD: gss-serv.c,v 1.9 2005/09/19 11:48:10 djm Exp $	*/
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -271,7 +271,7 @@ ssh_gssapi_do_child(char ***envp, u_int *envsizep)
 	}
 }
 
-/* Priviledged */
+/* Privileged */
 int
 ssh_gssapi_userok(char *user)
 {
