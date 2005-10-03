@@ -44,6 +44,8 @@
      Relocate check_ip_options call to prevent logging of garbage for
      connections with IP options set.  bz#1092 from David Leonard,
      "looks good" deraadt@
+ - (dtucker) [regress/README.regress] Bug #989: Document limitation that scp
+   is required in the system path for the multiplex test to work.
 
 20050930
  - (dtucker) [openbsd-compat/openbsd-compat.h] Bug #1096: Add prototype
@@ -3084,4 +3086,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3914 2005/10/03 08:23:44 dtucker Exp $
+$Id: ChangeLog,v 1.3915 2005/10/03 10:14:18 dtucker Exp $
