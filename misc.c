@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: misc.c,v 1.34 2005/07/08 09:26:18 dtucker Exp $");
+RCSID("$OpenBSD: misc.c,v 1.35 2005/09/13 23:40:07 djm Exp $");
 
 #include "misc.h"
 #include "log.h"
@@ -505,6 +505,26 @@ read_keyfile_line(FILE *f, const char *filename, char *buf, size_t bufsz,
 		}
 	}
 	return -1;
+}
+
+void
+sanitise_stdfd(void)
+{
+	int nullfd;
+
+	if ((nullfd = open(_PATH_DEVNULL, O_RDWR)) == -1) {
+		fprintf(stderr, "Couldn't open /dev/null: %s", strerror(errno));
+		exit(1);
+	}
+	while (nullfd < 2) {
+		if (dup2(nullfd, nullfd + 1) == -1) {
+			fprintf(stderr, "dup2: %s", strerror(errno));
+			exit(1);
+		}
+		nullfd++;
+	}
+	if (nullfd > 2)
+		close(nullfd);
 }
 
 char *

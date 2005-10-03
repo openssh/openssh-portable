@@ -6,6 +6,10 @@
    - markus@cvs.openbsd.org 2005/09/09 19:18:05
      [clientloop.c]
      typo; from mark at mcs.vuw.ac.nz, bug #1082
+   - djm@cvs.openbsd.org 2005/09/13 23:40:07
+     [sshd.c ssh.c misc.h sftp.c ssh-keygen.c ssh-keysign.c sftp-server.c
+     scp.c misc.c ssh-keyscan.c ssh-add.c ssh-agent.c]
+     ensure that stdio fds are attached; ok deraadt@
 
 20050930
  - (dtucker) [openbsd-compat/openbsd-compat.h] Bug #1096: Add prototype
@@ -3046,4 +3050,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3903 2005/10/03 08:05:26 dtucker Exp $
+$Id: ChangeLog,v 1.3904 2005/10/03 08:11:24 dtucker Exp $

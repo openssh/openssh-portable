@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.h,v 1.25 2005/07/14 04:00:43 dtucker Exp $	*/
+/*	$OpenBSD: misc.h,v 1.26 2005/09/13 23:40:07 djm Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -27,6 +27,7 @@ long	 convtime(const char *);
 char	*tilde_expand_filename(const char *, uid_t);
 char	*percent_expand(const char *, ...) __attribute__((__sentinel__));
 char	*tohex(const u_char *, u_int);
+void	 sanitise_stdfd(void);
 
 struct passwd *pwcopy(struct passwd *);
 

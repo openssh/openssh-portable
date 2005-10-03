@@ -16,7 +16,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.66 2005/08/08 13:22:48 jaredy Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.67 2005/09/13 23:40:07 djm Exp $");
 
 #ifdef USE_LIBEDIT
 #include <histedit.h>
@@ -1446,6 +1446,9 @@ main(int argc, char **argv)
 	arglist args;
 	extern int optind;
 	extern char *optarg;
+
+	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
+	sanitise_stdfd();
 
 	__progname = ssh_get_progname(argv[0]);
 	args.list = NULL;

@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.72 2005/07/17 07:17:55 djm Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.73 2005/09/13 23:40:07 djm Exp $");
 
 #include <openssl/evp.h>
 
@@ -311,6 +311,9 @@ main(int argc, char **argv)
 	AuthenticationConnection *ac = NULL;
 	char *sc_reader_id = NULL;
 	int i, ch, deleting = 0, ret = 0;
+
+	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
+	sanitise_stdfd();
 
 	__progname = ssh_get_progname(argv[0]);
 	init_rng();

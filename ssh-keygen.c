@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.128 2005/07/17 07:17:55 djm Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.129 2005/09/13 23:40:07 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -1017,6 +1017,9 @@ main(int ac, char **av)
 
 	extern int optind;
 	extern char *optarg;
+
+	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
+	sanitise_stdfd();
 
 	__progname = ssh_get_progname(av[0]);
 

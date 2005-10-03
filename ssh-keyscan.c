@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keyscan.c,v 1.55 2005/06/17 02:44:33 djm Exp $");
+RCSID("$OpenBSD: ssh-keyscan.c,v 1.56 2005/09/13 23:40:07 djm Exp $");
 
 #include "openbsd-compat/sys-queue.h"
 
@@ -711,6 +711,9 @@ main(int argc, char **argv)
 	init_rng();
 	seed_rng();
 	TAILQ_INIT(&tq);
+
+	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
+	sanitise_stdfd();
 
 	if (argc <= 1)
 		usage();

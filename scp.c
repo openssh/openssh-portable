@@ -71,7 +71,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.125 2005/07/27 10:39:03 dtucker Exp $");
+RCSID("$OpenBSD: scp.c,v 1.126 2005/09/13 23:40:07 djm Exp $");
 
 #include "xmalloc.h"
 #include "atomicio.h"
@@ -221,6 +221,9 @@ main(int argc, char **argv)
 	char *targ, *endp;
 	extern char *optarg;
 	extern int optind;
+
+	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
+	sanitise_stdfd();
 
 	__progname = ssh_get_progname(argv[0]);
 

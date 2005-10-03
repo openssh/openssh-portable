@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.312 2005/07/25 11:59:40 markus Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.313 2005/09/13 23:40:07 djm Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -923,6 +923,9 @@ main(int ac, char **av)
 
 	if (geteuid() == 0 && setgroups(0, NULL) == -1)
 		debug("setgroups(): %.200s", strerror(errno));
+
+	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
+	sanitise_stdfd();
 
 	/* Initialize configuration options to their default values. */
 	initialize_server_options(&options);

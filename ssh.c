@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.249 2005/07/30 01:26:16 djm Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.250 2005/09/13 23:40:07 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -187,6 +187,9 @@ main(int ac, char **av)
 	extern char *optarg;
 	struct servent *sp;
 	Forward fwd;
+
+	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
+	sanitise_stdfd();
 
 	__progname = ssh_get_progname(av[0]);
 	init_rng();

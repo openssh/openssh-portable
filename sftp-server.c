@@ -14,13 +14,14 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: sftp-server.c,v 1.48 2005/06/17 02:44:33 djm Exp $");
+RCSID("$OpenBSD: sftp-server.c,v 1.49 2005/09/13 23:40:07 djm Exp $");
 
 #include "buffer.h"
 #include "bufaux.h"
 #include "getput.h"
 #include "log.h"
 #include "xmalloc.h"
+#include "misc.h"
 
 #include "sftp.h"
 #include "sftp-common.h"
@@ -1035,6 +1036,9 @@ main(int ac, char **av)
 	fd_set *rset, *wset;
 	int in, out, max;
 	ssize_t len, olen, set_size;
+
+	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
+	sanitise_stdfd();
 
 	/* XXX should use getopt */
 
