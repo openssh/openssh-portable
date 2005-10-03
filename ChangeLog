@@ -27,6 +27,9 @@
    - jmc@cvs.openbsd.org 2005/09/19 15:42:44
      [ssh.c]
      update -D usage here too;
+   - djm@cvs.openbsd.org 2005/09/19 23:31:31
+     [ssh.1]
+     spelling nit from stevesk@
 
 20050930
  - (dtucker) [openbsd-compat/openbsd-compat.h] Bug #1096: Add prototype
@@ -3067,4 +3070,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3909 2005/10/03 08:18:05 dtucker Exp $
+$Id: ChangeLog,v 1.3910 2005/10/03 08:18:40 dtucker Exp $
