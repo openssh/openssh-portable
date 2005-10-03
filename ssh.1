@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.210 2005/09/19 11:37:34 djm Exp $
+.\" $OpenBSD: ssh.1,v 1.211 2005/09/19 15:38:27 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -43,7 +43,6 @@
 .Nd OpenSSH SSH client (remote login program)
 .Sh SYNOPSIS
 .Nm ssh
-.Bk -words
 .Op Fl 1246AaCfgkMNnqsTtVvXxY
 .Op Fl b Ar bind_address
 .Op Fl c Ar cipher_spec
@@ -55,14 +54,18 @@
 .Oc
 .Op Fl e Ar escape_char
 .Op Fl F Ar configfile
+.Bk -words
 .Op Fl i Ar identity_file
+.Ek
 .Oo Fl L\ \&
 .Sm off
 .Oo Ar bind_address : Oc
 .Ar port : host : hostport
 .Sm on
 .Oc
+.Bk -words
 .Op Fl l Ar login_name
+.Ek
 .Op Fl m Ar mac_spec
 .Op Fl O Ar ctl_cmd
 .Op Fl o Ar option
@@ -76,7 +79,6 @@
 .Op Fl S Ar ctl_path
 .Oo Ar user Ns @ Oc Ns Ar hostname
 .Op Ar command
-.Ek
 .Sh DESCRIPTION
 .Nm
 (SSH client) is a program for logging into a remote machine and for

@@ -21,6 +21,9 @@
    - djm@cvs.openbsd.org 2005/09/19 11:48:10
      [gss-serv.c]
      typo
+   - jmc@cvs.openbsd.org 2005/09/19 15:38:27
+     [ssh.1]
+     some more .Bk/.Ek to avoid ugly line split;
 
 20050930
  - (dtucker) [openbsd-compat/openbsd-compat.h] Bug #1096: Add prototype
@@ -3061,4 +3064,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3907 2005/10/03 08:17:02 dtucker Exp $
+$Id: ChangeLog,v 1.3908 2005/10/03 08:17:38 dtucker Exp $
