@@ -1,3 +1,8 @@
+20051005
+ - (dtucker) [configure.ac sshd.8] Enable locked account check (a prepended
+   "*LOCKED*" string) for FreeBSD.  Patch jeremie at le-hen.org and
+   senthilkumar_sen at hotpop.com.
+
 20051003
  - (dtucker) OpenBSD CVS Sync
    - markus@cvs.openbsd.org 2005/09/07 08:53:53
@@ -3086,4 +3091,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3915 2005/10/03 10:14:18 dtucker Exp $
+$Id: ChangeLog,v 1.3916 2005/10/05 13:02:16 dtucker Exp $
