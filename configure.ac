@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.292.2.2 2005/10/05 12:59:09 dtucker Exp $
+# $Id: configure.ac,v 1.292.2.3 2005/10/05 15:40:43 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -358,7 +358,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	;;
 *-*-freebsd*)
 	check_for_libcrypt_later=1
-	AC_DEFINED(LOCKED_PASSWD_PREFIX, "*LOCKED*")
+	AC_DEFINE(LOCKED_PASSWD_PREFIX, "*LOCKED*", [Account locked with pw(1)])
 	;;
 *-*-bsdi*)
 	AC_DEFINE(SETEUID_BREAKS_SETUID)
