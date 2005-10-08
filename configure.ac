@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.298 2005/10/05 15:39:58 dtucker Exp $
+# $Id: configure.ac,v 1.299 2005/10/08 02:07:02 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -296,6 +296,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE(LOCKED_PASSWD_STRING, "*",
 		[String used in /etc/passwd to denote locked account])
 	AC_DEFINE(SPT_TYPE,SPT_PSTAT)
+	MAIL="/var/mail/username"
 	LIBS="$LIBS -lsec"
 	AC_CHECK_LIB(xnet, t_error, ,
 	    AC_MSG_ERROR([*** -lxnet needed on HP-UX - check config.log ***]))
