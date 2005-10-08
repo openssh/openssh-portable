@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.299 2005/10/08 02:07:02 dtucker Exp $
+# $Id: configure.ac,v 1.300 2005/10/08 06:21:20 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -670,7 +670,7 @@ AC_ARG_WITH(Werror,
 	[
 		if test -n "$withval"  &&  test "x$withval" != "xno"; then
 			werror_flags="-Werror"
-			if "x${withval}" != "xyes"; then
+			if test "x${withval}" != "xyes"; then
 				werror_flags="$withval"
 			fi
 		fi

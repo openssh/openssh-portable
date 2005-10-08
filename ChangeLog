@@ -1,6 +1,7 @@
 20051008
  - (dtucker) [configure.ac] Bug #1098: define $MAIL for HP-UX; report from
    brian.smith at agilent com.
+ - (djm) [configure.ac] missing 'test' call for -with-Werror test
 
 20051005
  - (dtucker) [configure.ac sshd.8] Enable locked account check (a prepended
@@ -3095,4 +3096,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3917 2005/10/08 02:07:01 dtucker Exp $
+$Id: ChangeLog,v 1.3918 2005/10/08 06:21:19 djm Exp $
