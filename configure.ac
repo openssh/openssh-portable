@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.292.2.3 2005/10/05 15:40:43 dtucker Exp $
+# $Id: configure.ac,v 1.292.2.4 2005/10/08 02:06:30 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -276,6 +276,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_DEFINE(LOGIN_NEEDS_UTMPX)
 	AC_DEFINE(LOCKED_PASSWD_STRING, "*")
 	AC_DEFINE(SPT_TYPE,SPT_PSTAT)
+	MAIL="/var/mail/username"
 	LIBS="$LIBS -lsec"
 	AC_CHECK_LIB(xnet, t_error, ,
 	    AC_MSG_ERROR([*** -lxnet needed on HP-UX - check config.log ***]))
