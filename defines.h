@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.128 2005/09/09 05:04:59 tim Exp $ */
+/* $Id: defines.h,v 1.129 2005/10/09 01:40:04 dtucker Exp $ */
 
 
 /* Constants */
@@ -448,6 +448,10 @@ struct winsize {
 
 #if !defined(HAVE_ATTRIBUTE__SENTINEL__) && !defined(__sentinel__)
 # define __sentinel__
+#endif
+
+#if !defined(HAVE_ATTRIBUTE__BOUNDED__) && !defined(__bounded__)
+# define __bounded__(x, y, z)
 #endif
 
 /* *-*-nto-qnx doesn't define this macro in the system headers */

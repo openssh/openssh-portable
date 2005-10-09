@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.300 2005/10/08 06:21:20 djm Exp $
+# $Id: configure.ac,v 1.301 2005/10/09 01:40:03 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -418,6 +418,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	;;
 *-*-openbsd*)
 	AC_DEFINE(HAVE_ATTRIBUTE__SENTINEL__, 1, [OpenBSD's gcc has sentinel])
+	AC_DEFINE(HAVE_ATTRIBUTE__BOUNDED__, 1, [OpenBSD's gcc has bounded])
 	;;
 *-*-solaris*)
 	if test "x$withval" != "xno" ; then
