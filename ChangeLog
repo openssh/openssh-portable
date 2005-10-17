@@ -1,3 +1,8 @@
+20051017
+ - (dtucker) [configure.ac] Bug #1097: Fix configure for cross-compiling.
+   /etc/default/login report and testing from aabaker at iee.org, corrections
+   from tim@.
+
 20051008
  - (dtucker) [configure.ac] Bug #1098: define $MAIL for HP-UX; report from
    brian.smith at agilent com.
@@ -3034,4 +3039,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3887.2.11 2005/10/08 02:06:30 dtucker Exp $
+$Id: ChangeLog,v 1.3887.2.12 2005/10/17 13:29:09 dtucker Exp $
