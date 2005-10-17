@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.301 2005/10/09 01:40:03 dtucker Exp $
+# $Id: configure.ac,v 1.302 2005/10/17 13:29:23 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -772,8 +772,8 @@ AC_CHECK_FUNCS(dirname, [AC_CHECK_HEADERS(libgen.h)] ,[
 			ac_cv_have_broken_dirname, [
 			save_LIBS="$LIBS"
 			LIBS="$LIBS -lgen"
-			AC_TRY_RUN(
-				[
+			AC_RUN_IFELSE(
+				[AC_LANG_SOURCE([[
 #include <libgen.h>
 #include <string.h>
 
@@ -788,9 +788,10 @@ int main(int argc, char **argv) {
 	exit(0);
     }
 }
-				],
+				]])],
 				[ ac_cv_have_broken_dirname="no" ],
-				[ ac_cv_have_broken_dirname="yes" ]
+				[ ac_cv_have_broken_dirname="yes" ],
+				[ ac_cv_have_broken_dirname="no" ],
 			)
 			LIBS="$save_LIBS"
 		])
@@ -1005,12 +1006,12 @@ AC_ARG_WITH(skey,
 			SKEY_MSG="yes"
 
 			AC_MSG_CHECKING([for s/key support])
-			AC_TRY_RUN(
-				[
+			AC_LINK_IFELSE(
+				[AC_LANG_SOURCE([[
 #include <stdio.h>
 #include <skey.h>
 int main() { char *ff = skey_keyinfo(""); ff=""; exit(0); }
-				],
+				]])],
 				[AC_MSG_RESULT(yes)],
 				[
 					AC_MSG_RESULT(no)
@@ -1380,15 +1381,15 @@ fi
 dnl see whether mkstemp() requires XXXXXX
 if test "x$ac_cv_func_mkdtemp" = "xyes" ; then
 AC_MSG_CHECKING([for (overly) strict mkstemp])
-AC_TRY_RUN(
-	[
+AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[
 #include <stdlib.h>
 main() { char template[]="conftest.mkstemp-test";
 if (mkstemp(template) == -1)
 	exit(1);
 unlink(template); exit(0);
 }
-	],
+	]])],
 	[
 		AC_MSG_RESULT(no)
 	],
@@ -1406,8 +1407,8 @@ fi
 dnl make sure that openpty does not reacquire controlling terminal
 if test ! -z "$check_for_openpty_ctty_bug"; then
 	AC_MSG_CHECKING(if openpty correctly handles controlling tty)
-	AC_TRY_RUN(
-		[
+	AC_RUN_IFELSE(
+		[AC_LANG_SOURCE([[
 #include <stdio.h>
 #include <sys/fcntl.h>
 #include <sys/types.h>
@@ -1439,13 +1440,16 @@ main()
 			exit(0);	/* Did not acquire ctty: OK */
 	}
 }
-		],
+		]])],
 		[
 			AC_MSG_RESULT(yes)
 		],
 		[
 			AC_MSG_RESULT(no)
 			AC_DEFINE(SSHD_ACQUIRES_CTTY)
+		],
+		[
+			AC_MSG_RESULT(cross-compiling, assuming yes)
 		]
 	)
 fi
@@ -1453,8 +1457,8 @@ fi
 if test "x$ac_cv_func_getaddrinfo" = "xyes" && \
     test "x$check_for_hpux_broken_getaddrinfo" = "x1"; then
 	AC_MSG_CHECKING(if getaddrinfo seems to work)
-	AC_TRY_RUN(
-		[
+	AC_RUN_IFELSE(
+		[AC_LANG_SOURCE([[
 #include <stdio.h>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -1508,13 +1512,16 @@ main(void)
 	}
 	exit(0);
 }
-		],
+		]])],
 		[
 			AC_MSG_RESULT(yes)
 		],
 		[
 			AC_MSG_RESULT(no)
 			AC_DEFINE(BROKEN_GETADDRINFO)
+		],
+		[
+			AC_MSG_RESULT(cross-compiling, assuming yes)
 		]
 	)
 fi
@@ -1522,8 +1529,8 @@ fi
 if test "x$ac_cv_func_getaddrinfo" = "xyes" && \
     test "x$check_for_aix_broken_getaddrinfo" = "x1"; then
 	AC_MSG_CHECKING(if getaddrinfo seems to work)
-	AC_TRY_RUN(
-		[
+	AC_RUN_IFELSE(
+		[AC_LANG_SOURCE([[
 #include <stdio.h>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -1565,7 +1572,7 @@ main(void)
 	}
 	exit(0);
 }
-		],
+		]])],
 		[
 			AC_MSG_RESULT(yes)
 			AC_DEFINE(AIX_GETNAMEINFO_HACK, 1,
@@ -1575,6 +1582,8 @@ main(void)
 		[
 			AC_MSG_RESULT(no)
 			AC_DEFINE(BROKEN_GETADDRINFO)
+		],
+			AC_MSG_RESULT(cross-compiling, assuming no)
 		]
 	)
 fi
@@ -3084,16 +3093,19 @@ AC_ARG_ENABLE(etc-default-login,
 	  else
 		etc_default_login=yes
 	  fi ],
-	[ etc_default_login=yes ]
+	[ if test ! -z "$cross_compiling" && test "x$cross_compiling" = "xyes";
+	  then
+		AC_MSG_WARN([cross compiling: not checking /etc/default/login])
+		etc_default_login=no
+	  else
+		etc_default_login=yes
+	  fi ]
 )
 
 if test "x$etc_default_login" != "xno"; then
 	AC_CHECK_FILE("/etc/default/login",
 	    [ external_path_file=/etc/default/login ])
-	if test ! -z "$cross_compiling" && test "x$cross_compiling" = "xyes";
-	then
-		AC_MSG_WARN([cross compiling: Disabling /etc/default/login test])
-	elif test "x$external_path_file" = "x/etc/default/login"; then
+	if test "x$external_path_file" = "x/etc/default/login"; then
 		AC_DEFINE(HAVE_ETC_DEFAULT_LOGIN, 1,
 			[Define if your system has /etc/default/login])
 	fi
@@ -3132,8 +3144,8 @@ $external_path_file .])
 If PATH is defined in $external_path_file, ensure the path to scp is included,
 otherwise scp will not work.])
 		fi
-		AC_TRY_RUN(
-			[
+		AC_RUN_IFELSE(
+			[AC_LANG_SOURCE([[
 /* find out what STDPATH is */
 #include <stdio.h>
 #ifdef HAVE_PATHS_H
@@ -3165,7 +3177,8 @@ main()
 
 	exit(0);
 }
-		], [ user_path=`cat conftest.stdpath` ],
+		]])],
+		[ user_path=`cat conftest.stdpath` ],
 		[ user_path="/usr/bin:/bin:/usr/sbin:/sbin" ],
 		[ user_path="/usr/bin:/bin:/usr/sbin:/sbin" ]
 	)
