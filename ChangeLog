@@ -5,6 +5,8 @@
  - (dtucker) [configure.ac] Bug #1104: Tru64's printf family doesn't
    understand "%lld", even though the compiler has "long long", so handle
    it as a special case.  Patch tested by mcaskill.scott at epa.gov.
+ - (dtucker) [contrib/cygwin/ssh-user-config] Remove duplicate yes/no
+   prompt.  Patch from vinschen at redhat.com.
 
 20051017
  - (dtucker) [configure.ac] Bug #1097: Fix configure for cross-compiling.
@@ -3113,4 +3115,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3922 2005/10/25 08:52:31 dtucker Exp $
+$Id: ChangeLog,v 1.3923 2005/10/25 08:55:00 dtucker Exp $

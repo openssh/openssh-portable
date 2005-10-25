@@ -198,7 +198,7 @@ fi
 
 if [ ! -f "${pwdhome}/.ssh/id_rsa" ]
 then
-  if request "Shall I create an SSH2 RSA identity file for you? (yes/no) "
+  if request "Shall I create an SSH2 RSA identity file for you?"
   then
     echo "Generating ${pwdhome}/.ssh/id_rsa"
     if [ "${with_passphrase}" = "yes" ]
@@ -217,7 +217,7 @@ fi
 
 if [ ! -f "${pwdhome}/.ssh/id_dsa" ]
 then
-  if request "Shall I create an SSH2 DSA identity file for you? (yes/no) "
+  if request "Shall I create an SSH2 DSA identity file for you?"
   then
     echo "Generating ${pwdhome}/.ssh/id_dsa"
     if [ "${with_passphrase}" = "yes" ]
