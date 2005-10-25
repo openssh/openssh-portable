@@ -1,3 +1,8 @@
+20051025
+ - (dtucker) [configure.ac] Relocate LLONG_MAX calculation to after the
+   sizeof(long long) checks, to make fixing bug #1104 easier (no changes
+   yet).
+
 20051017
  - (dtucker) [configure.ac] Bug #1097: Fix configure for cross-compiling.
    /etc/default/login report and testing from aabaker at iee.org, corrections
@@ -3105,4 +3110,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3920 2005/10/17 13:29:23 dtucker Exp $
+$Id: ChangeLog,v 1.3921 2005/10/25 08:38:33 dtucker Exp $

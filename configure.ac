@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.302 2005/10/17 13:29:23 dtucker Exp $
+# $Id: configure.ac,v 1.303 2005/10/25 08:38:34 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -104,70 +104,6 @@ if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 		    [#include <limits.h>]
 		)
 	fi
-fi
-
-if test -z "$have_llong_max"; then
-	AC_MSG_CHECKING([for max value of long long])
-	AC_RUN_IFELSE(
-		[AC_LANG_SOURCE([[
-#include <stdio.h>
-/* Why is this so damn hard? */
-#ifdef __GNUC__
-# undef __GNUC__
-#endif
-#define __USE_ISOC99
-#include <limits.h>
-#define DATA "conftest.llminmax"
-int main(void) {
-	FILE *f;
-	long long i, llmin, llmax = 0;
-
-	if((f = fopen(DATA,"w")) == NULL)
-		exit(1);
-
-#if defined(LLONG_MIN) && defined(LLONG_MAX)
-	fprintf(stderr, "Using system header for LLONG_MIN and LLONG_MAX\n");
-	llmin = LLONG_MIN;
-	llmax = LLONG_MAX;
-#else
-	fprintf(stderr, "Calculating  LLONG_MIN and LLONG_MAX\n");
-	/* This will work on one's complement and two's complement */
-	for (i = 1; i > llmax; i <<= 1, i++)
-		llmax = i;
-	llmin = llmax + 1LL;	/* wrap */
-#endif
-
-	/* Sanity check */
-	if (llmin + 1 < llmin || llmin - 1 < llmin || llmax + 1 > llmax
-	    || llmax - 1 > llmax) {
-		fprintf(f, "unknown unknown\n");
-		exit(2);
-	}
-
-	if (fprintf(f ,"%lld %lld", llmin, llmax) < 0)
-		exit(3);
-
-	exit(0);
-}
-		]])],
-		[
-			llong_min=`$AWK '{print $1}' conftest.llminmax`
-			llong_max=`$AWK '{print $2}' conftest.llminmax`
-			AC_MSG_RESULT($llong_max)
-			AC_DEFINE_UNQUOTED(LLONG_MAX, [${llong_max}LL],
-			    [max value of long long calculated by configure])
-			AC_MSG_CHECKING([for min value of long long])
-			AC_MSG_RESULT($llong_min)
-			AC_DEFINE_UNQUOTED(LLONG_MIN, [${llong_min}LL],
-			    [min value of long long calculated by configure])
-		],
-		[
-			AC_MSG_RESULT(not found)
-		],
-		[
-			AC_MSG_WARN([cross compiling: not checking])
-		]
-	)
 fi
 
 AC_ARG_WITH(rpath,
@@ -2052,6 +1988,84 @@ AC_CHECK_SIZEOF(long long int, 8)
 if test "x$ac_cv_sizeof_long_long_int" = "x4" ; then
 	ac_cv_sizeof_long_long_int=0
 fi
+
+# compute LLONG_MIN and LLONG_MAX if we don't know them.
+if test -z "$have_llong_max"; then
+	AC_MSG_CHECKING([for max value of long long])
+	AC_RUN_IFELSE(
+		[AC_LANG_SOURCE([[
+#include <stdio.h>
+/* Why is this so damn hard? */
+#ifdef __GNUC__
+# undef __GNUC__
+#endif
+#define __USE_ISOC99
+#include <limits.h>
+#define DATA "conftest.llminmax"
+int main(void) {
+	FILE *f;
+	long long i, llmin, llmax = 0;
+
+	if((f = fopen(DATA,"w")) == NULL)
+		exit(1);
+
+#if defined(LLONG_MIN) && defined(LLONG_MAX)
+	fprintf(stderr, "Using system header for LLONG_MIN and LLONG_MAX\n");
+	llmin = LLONG_MIN;
+	llmax = LLONG_MAX;
+#else
+	fprintf(stderr, "Calculating  LLONG_MIN and LLONG_MAX\n");
+	/* This will work on one's complement and two's complement */
+	for (i = 1; i > llmax; i <<= 1, i++)
+		llmax = i;
+	llmin = llmax + 1LL;	/* wrap */
+#endif
+
+	/* Sanity check */
+	if (llmin + 1 < llmin || llmin - 1 < llmin || llmax + 1 > llmax
+	    || llmax - 1 > llmax) {
+		fprintf(f, "unknown unknown\n");
+		exit(2);
+	}
+
+	if (fprintf(f ,"%lld %lld", llmin, llmax) < 0)
+		exit(3);
+
+	exit(0);
+}
+		]])],
+		[
+			llong_min=`$AWK '{print $1}' conftest.llminmax`
+			llong_max=`$AWK '{print $2}' conftest.llminmax`
+
+			# snprintf on some Tru64s doesn't understand "%lld"
+			case "$host" in
+			alpha-dec-osf*)
+				if test "x$ac_cv_sizeof_long_long_int" = "x8" &&
+				  test "x$llong_max" = "xld"; then
+					llong_min="-9223372036854775808"
+					llong_max="9223372036854775807"
+				fi
+				;;
+			esac
+
+			AC_MSG_RESULT($llong_max)
+			AC_DEFINE_UNQUOTED(LLONG_MAX, [${llong_max}LL],
+			    [max value of long long calculated by configure])
+			AC_MSG_CHECKING([for min value of long long])
+			AC_MSG_RESULT($llong_min)
+			AC_DEFINE_UNQUOTED(LLONG_MIN, [${llong_min}LL],
+			    [min value of long long calculated by configure])
+		],
+		[
+			AC_MSG_RESULT(not found)
+		],
+		[
+			AC_MSG_WARN([cross compiling: not checking])
+		]
+	)
+fi
+
 
 # More checks for data types
 AC_CACHE_CHECK([for u_int type], ac_cv_have_u_int, [
