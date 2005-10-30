@@ -1,14 +1,29 @@
-Summary: OpenSSH, a free Secure Shell (SSH) protocol implementation
-Name: openssh
-Version: 4.2p1
-URL: http://www.openssh.com/
-Release: 1
-Source0: openssh-%{version}.tar.gz
-Copyright: BSD
-Group: Applications/Internet
-BuildRoot: /tmp/openssh-%{version}-buildroot
-PreReq: openssl
-Obsoletes: ssh
+# Default values for additional components
+%define build_x11_askpass	1
+
+# Define the UID/GID to use for privilege separation
+%define sshd_gid	65
+%define sshd_uid	71
+
+# The version of x11-ssh-askpass to use
+%define xversion	1.2.4.1
+
+# Allow the ability to override defaults with -D skip_xxx=1
+%{?skip_x11_askpass:%define build_x11_askpass 0}
+
+Summary:	OpenSSH, a free Secure Shell (SSH) protocol implementation
+Name:		openssh
+Version:	4.2p1
+URL:		http://www.openssh.com/
+Release:	1
+Source0:	openssh-%{version}.tar.gz
+Source1:	x11-ssh-askpass-%{xversion}.tar.gz
+License:	BSD
+Group:		Productivity/Networking/SSH
+BuildRoot:	%{_tmppath}/openssh-%{version}-buildroot
+PreReq:		openssl
+Obsoletes:	ssh
+Provides:	ssh
 #
 # (Build[ing] Prereq[uisites] only work for RPM 2.95 and newer.)
 # building prerequisites -- stuff for
@@ -16,14 +31,25 @@ Obsoletes: ssh
 #   TCP Wrappers (nkitb),
 #   and Gnome (glibdev, gtkdev, and gnlibsd)
 #
-BuildPrereq: openssl
-BuildPrereq: nkitb
-BuildPrereq: glibdev
-BuildPrereq: gtkdev
-BuildPrereq: gnlibsd
+BuildPrereq:	openssl
+BuildPrereq:	nkitb
+#BuildPrereq:	glibdev
+#BuildPrereq:	gtkdev
+#BuildPrereq:	gnlibsd
+
+%package	askpass
+Summary:	A passphrase dialog for OpenSSH and the X window System.
+Group:		Productivity/Networking/SSH
+Requires:	openssh = %{version}
+Obsoletes:	ssh-extras
+Provides:	openssh:${_libdir}/ssh/ssh-askpass
+
+%if %{build_x11_askpass}
+BuildPrereq:	XFree86-devel
+%endif
 
 %description
-Ssh (Secure Shell) a program for logging into a remote machine and for
+Ssh (Secure Shell) is a program for logging into a remote machine and for
 executing commands in a remote machine.  It is intended to replace
 rlogin and rsh, and provide secure encrypted communications between
 two untrusted hosts over an insecure network.  X11 connections and
@@ -34,10 +60,26 @@ up to date in terms of security and features, as well as removing all
 patented algorithms to seperate libraries (OpenSSL).
 
 This package includes all files necessary for both the OpenSSH
-client and server. Additionally, this package contains the GNOME
-passphrase dialog.
+client and server.
+
+%description askpass
+Ssh (Secure Shell) is a program for logging into a remote machine and for
+executing commands in a remote machine.  It is intended to replace
+rlogin and rsh, and provide secure encrypted communications between
+two untrusted hosts over an insecure network.  X11 connections and
+arbitrary TCP/IP ports can also be forwarded over the secure channel.
+
+OpenSSH is OpenBSD's rework of the last free version of SSH, bringing it
+up to date in terms of security and features, as well as removing all
+patented algorithms to seperate libraries (OpenSSL).
+
+This package contains an X Window System passphrase dialog for OpenSSH.
 
 %changelog
+* Wed Oct 26 2005 Iain Morgan <imorgan@nas.nasa.gov>
+- Removed accidental inclusion of --without-zlib-version-check
+* Tue Oct 25 2005 Iain Morgan <imorgan@nas.nasa.gov>
+- Overhaul to deal with newer versions of SuSE and OpenSSH
 * Mon Jun 12 2000 Damien Miller <djm@mindrot.org>
 - Glob manpages to catch compressed files
 * Wed Mar 15 2000 Damien Miller <djm@ibs.com.au>
@@ -84,116 +126,124 @@ passphrase dialog.
 
 %prep
 
+%if %{build_x11_askpass}
+%setup -q -a 1
+%else
 %setup -q
+%endif
 
 %build
 CFLAGS="$RPM_OPT_FLAGS" \
-./configure	--prefix=/usr \
-		--sysconfdir=/etc/ssh \
-		--datadir=/usr/share/openssh \
+%configure	--prefix=/usr \
+		--sysconfdir=%{_sysconfdir}/ssh \
+		--mandir=%{_mandir} \
+		--with-privsep-path=/var/lib/empty \
 		--with-pam \
-		--with-gnome-askpass \
 		--with-tcp-wrappers \
-		--with-ipv4-default \
-		--libexecdir=/usr/lib/ssh
+		--libexecdir=%{_libdir}/ssh
 make
 
-cd contrib
-gcc -O -g `gnome-config --cflags gnome gnomeui` \
-	gnome-ssh-askpass.c -o gnome-ssh-askpass \
-	`gnome-config --libs gnome gnomeui`
+%if %{build_x11_askpass}
+cd x11-ssh-askpass-%{xversion}
+%configure	--mandir=/usr/X11R6/man \
+		--libexecdir=%{_libdir}/ssh
+xmkmf -a
+make
 cd ..
+%endif
 
 %install
 rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT/
-install -d $RPM_BUILD_ROOT/etc/ssh/
 install -d $RPM_BUILD_ROOT/etc/pam.d/
-install -d $RPM_BUILD_ROOT/sbin/init.d/
+install -d $RPM_BUILD_ROOT/etc/init.d/
 install -d $RPM_BUILD_ROOT/var/adm/fillup-templates
-install -d $RPM_BUILD_ROOT/usr/lib/ssh
 install -m644 contrib/sshd.pam.generic $RPM_BUILD_ROOT/etc/pam.d/sshd
-install -m744 contrib/suse/rc.sshd $RPM_BUILD_ROOT/sbin/init.d/sshd
-ln -s ../../sbin/init.d/sshd $RPM_BUILD_ROOT/usr/sbin/rcsshd
-install -s contrib/gnome-ssh-askpass $RPM_BUILD_ROOT/usr/lib/ssh/gnome-ssh-askpass
-ln -s gnome-ssh-askpass $RPM_BUILD_ROOT/usr/lib/ssh/ssh-askpass
-install -m744 contrib/suse/rc.config.sshd \
+install -m744 contrib/suse/rc.sshd $RPM_BUILD_ROOT/etc/init.d/sshd
+install -m744 contrib/suse/sysconfig.ssh \
    $RPM_BUILD_ROOT/var/adm/fillup-templates
+
+%if %{build_x11_askpass}
+cd x11-ssh-askpass-%{xversion}
+make install install.man BINDIR=%{_libdir}/ssh DESTDIR=$RPM_BUILD_ROOT/
+rm -f $RPM_BUILD_ROOT/usr/share/Ssh.bin
+%endif
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+%pre
+/usr/sbin/groupadd -g %{sshd_gid} -o -r sshd 2> /dev/null || :
+/usr/sbin/useradd -r -o -g sshd -u %{sshd_uid} -s /bin/false -c "SSH Privilege Separation User" -d /var/lib/sshd sshd 2> /dev/null || :
+
 %post
-if [ "$1" = 1 ]; then
-  echo "Creating SSH stop/start scripts in the rc directories..."
-  ln -s ../sshd /sbin/init.d/rc2.d/K20sshd
-  ln -s ../sshd /sbin/init.d/rc2.d/S20sshd
-  ln -s ../sshd /sbin/init.d/rc3.d/K20sshd
-  ln -s ../sshd /sbin/init.d/rc3.d/S20sshd
-fi
-echo "Updating /etc/rc.config..."
-if [ -x /bin/fillup ] ; then
-  /bin/fillup -q -d = etc/rc.config var/adm/fillup-templates/rc.config.sshd
-else
-  echo "ERROR: fillup not found.  This should NOT happen in SuSE Linux."
-  echo "Update /etc/rc.config by hand from the following template file:"
-  echo "  /var/adm/fillup-templates/rc.config.sshd"
-fi
 if [ ! -f /etc/ssh/ssh_host_key -o ! -s /etc/ssh/ssh_host_key ]; then
-	echo "Generating SSH host key..."
-	/usr/bin/ssh-keygen -b 1024 -f /etc/ssh/ssh_host_key -N '' >&2
+	echo "Generating SSH RSA host key..."
+	/usr/bin/ssh-keygen -t rsa -f /etc/ssh/ssh_host_rsa_key -N '' >&2
 fi
 if [ ! -f /etc/ssh/ssh_host_dsa_key -o ! -s /etc/ssh/ssh_host_dsa_key ]; then
 	echo "Generating SSH DSA host key..."
-	/usr/bin/ssh-keygen -d -f /etc/ssh/ssh_host_dsa_key -N '' >&2
+	/usr/bin/ssh-keygen -t dsa -f /etc/ssh/ssh_host_dsa_key -N '' >&2
 fi
-if test -r /var/run/sshd.pid
-then
-	echo "Restarting the running SSH daemon..."
-	/usr/sbin/rcsshd restart >&2
-fi
+%{fillup_and_insserv -n -s -y ssh sshd START_SSHD}
+%run_permissions
+
+%verifyscript
+%verify_permissions -e /etc/ssh/sshd_config -e /etc/ssh/ssh_config -e /usr/bin/ssh
 
 %preun
-if [ "$1" = 0 ]
-then
-	echo "Stopping the SSH daemon..."
-	/usr/sbin/rcsshd stop >&2
-	echo "Removing SSH stop/start scripts from the rc directories..."
-	rm /sbin/init.d/rc2.d/K20sshd
-	rm /sbin/init.d/rc2.d/S20sshd
-	rm /sbin/init.d/rc3.d/K20sshd
-	rm /sbin/init.d/rc3.d/S20sshd
-fi
+%stop_on_removal sshd
+
+%postun
+%restart_on_update sshd
+%{insserv_cleanup}
 
 %files
 %defattr(-,root,root)
 %doc ChangeLog OVERVIEW README*
 %doc RFC.nroff TODO CREDITS LICENCE
-%attr(0755,root,root) %dir /etc/ssh
-%attr(0644,root,root) %config /etc/ssh/ssh_config
-%attr(0600,root,root) %config /etc/ssh/sshd_config
-%attr(0600,root,root) %config /etc/ssh/moduli
-%attr(0644,root,root) %config /etc/pam.d/sshd
-%attr(0755,root,root) %config /sbin/init.d/sshd
-%attr(0755,root,root) /usr/bin/ssh-keygen
-%attr(0755,root,root) /usr/bin/scp
-%attr(4755,root,root) /usr/bin/ssh
-%attr(-,root,root) /usr/bin/slogin
-%attr(0755,root,root) /usr/bin/ssh-agent
-%attr(0755,root,root) /usr/bin/ssh-add
-%attr(0755,root,root) /usr/bin/ssh-keyscan
-%attr(0755,root,root) /usr/bin/sftp
-%attr(0755,root,root) /usr/sbin/sshd
-%attr(-,root,root) /usr/sbin/rcsshd
-%attr(0755,root,root) %dir /usr/lib/ssh
-%attr(0755,root,root) /usr/lib/ssh/ssh-askpass
-%attr(0755,root,root) /usr/lib/ssh/gnome-ssh-askpass
-%attr(0644,root,root) %doc /usr/man/man1/scp.1*
-%attr(0644,root,root) %doc /usr/man/man1/ssh.1*
-%attr(-,root,root) %doc /usr/man/man1/slogin.1*
-%attr(0644,root,root) %doc /usr/man/man1/ssh-agent.1*
-%attr(0644,root,root) %doc /usr/man/man1/ssh-add.1*
-%attr(0644,root,root) %doc /usr/man/man1/ssh-keygen.1*
-%attr(0644,root,root) %doc /usr/man/man8/sshd.8*
-%attr(0644,root,root) /var/adm/fillup-templates/rc.config.sshd
+%attr(0755,root,root) %dir %{_sysconfdir}/ssh
+%attr(0644,root,root) %config(noreplace) %{_sysconfdir}/ssh/ssh_config
+%attr(0600,root,root) %config(noreplace) %{_sysconfdir}/ssh/sshd_config
+%attr(0600,root,root) %config(noreplace) %{_sysconfdir}/ssh/moduli
+%attr(0644,root,root) %config(noreplace) /etc/pam.d/sshd
+%attr(0755,root,root) %config /etc/init.d/sshd
+%attr(0755,root,root) %{_bindir}/ssh-keygen
+%attr(0755,root,root) %{_bindir}/scp
+%attr(0755,root,root) %{_bindir}/ssh
+%attr(-,root,root) %{_bindir}/slogin
+%attr(0755,root,root) %{_bindir}/ssh-agent
+%attr(0755,root,root) %{_bindir}/ssh-add
+%attr(0755,root,root) %{_bindir}/ssh-keyscan
+%attr(0755,root,root) %{_bindir}/sftp
+%attr(0755,root,root) %{_sbindir}/sshd
+%attr(0755,root,root) %dir %{_libdir}/ssh
+%attr(0755,root,root) %{_libdir}/ssh/sftp-server
+%attr(4711,root,root) %{_libdir}/ssh/ssh-keysign
+%attr(0644,root,root) %doc %{_mandir}/man1/scp.1*
+%attr(0644,root,root) %doc %{_mandir}/man1/sftp.1*
+%attr(-,root,root) %doc %{_mandir}/man1/slogin.1*
+%attr(0644,root,root) %doc %{_mandir}/man1/ssh.1*
+%attr(0644,root,root) %doc %{_mandir}/man1/ssh-add.1*
+%attr(0644,root,root) %doc %{_mandir}/man1/ssh-agent.1*
+%attr(0644,root,root) %doc %{_mandir}/man1/ssh-keygen.1*
+%attr(0644,root,root) %doc %{_mandir}/man1/ssh-keyscan.1*
+%attr(0644,root,root) %doc %{_mandir}/man5/ssh_config.5*
+%attr(0644,root,root) %doc %{_mandir}/man5/sshd_config.5*
+%attr(0644,root,root) %doc %{_mandir}/man8/sftp-server.8*
+%attr(0644,root,root) %doc %{_mandir}/man8/ssh-keysign.8*
+%attr(0644,root,root) %doc %{_mandir}/man8/sshd.8*
+%attr(0644,root,root) /var/adm/fillup-templates/sysconfig.ssh
 
+%if %{build_x11_askpass}
+%files askpass
+%defattr(-,root,root)
+%doc x11-ssh-askpass-%{xversion}/README
+%doc x11-ssh-askpass-%{xversion}/ChangeLog
+%doc x11-ssh-askpass-%{xversion}/SshAskpass*.ad
+%attr(0755,root,root) %{_libdir}/ssh/ssh-askpass
+%attr(0755,root,root) %{_libdir}/ssh/x11-ssh-askpass
+%attr(0644,root,root) %doc /usr/X11R6/man/man1/ssh-askpass.1x*
+%attr(0644,root,root) %doc /usr/X11R6/man/man1/x11-ssh-askpass.1x*
+%attr(0644,root,root) %config /usr/X11R6/lib/X11/app-defaults/SshAskpass
+%endif
