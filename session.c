@@ -1471,7 +1471,9 @@ do_child(Session *s, const char *command)
 		if (!check_quietlogin(s, command))
 			do_motd();
 #else /* HAVE_OSF_SIA */
-		do_nologin(pw);
+		/* When PAM is enabled we rely on it to do the nologin check */
+		if (!options.use_pam)
+			do_nologin(pw);
 		do_setusercontext(pw);
 		/*
 		 * PAM session modules in do_setusercontext may have

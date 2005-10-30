@@ -2,6 +2,11 @@
  - (djm) [contrib/suse/openssh.spec contrib/suse/rc.
    sshd contrib/suse/sysconfig.ssh] Bug #1106: Updated SuSE spec and init 
    files from imorgan AT nas.nasa.gov
+ - (dtucker) [session.c] Bug #1045do not check /etc/nologin when PAM is
+   enabled, instead allow PAM to handle it.  Note that on platforms using PAM,
+   the pam_nologin module should be added to sshd's session stack in order to
+   maintain exising behaviour.  Based on patch and discussion from t8m at
+   centrum.cz, ok djm@
 
 20051025
  - (dtucker) [configure.ac] Relocate LLONG_MAX calculation to after the
@@ -3120,4 +3125,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3924 2005/10/30 00:55:45 djm Exp $
+$Id: ChangeLog,v 1.3925 2005/10/30 04:31:55 dtucker Exp $
