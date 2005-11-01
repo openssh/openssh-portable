@@ -1,3 +1,11 @@
+20051102
+ - (dtucker) [openbsd-compat/bsd-misc.c] Bug #1108: fix broken strdup().
+   Reported by olavi at ipunplugged.com and antoine.brodin at laposte.net
+   via FreeBSD.
+
+  20051030
+   - (djm) [contrib/suse/openssh.spec contrib/suse/rc.
+     sshd contrib/suse/sysconfig.ssh] Bug #1106: Updated SuSE spec and init 
 20051025
  - (dtucker) [configure.ac] Relocate LLONG_MAX calculation to after the
    sizeof(long long) checks, to make fixing bug #1104 easier (no changes
@@ -3047,4 +3055,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3887.2.14 2005/10/25 08:51:48 dtucker Exp $
+$Id: ChangeLog,v 1.3887.2.15 2005/11/01 22:06:50 dtucker Exp $
