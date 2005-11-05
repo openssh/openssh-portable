@@ -1,4 +1,4 @@
-/*	$OpenBSD: dns.c,v 1.14 2005/10/17 13:45:05 stevesk Exp $	*/
+/*	$OpenBSD: dns.c,v 1.15 2005/10/17 14:01:28 stevesk Exp $	*/
 
 /*
  * Copyright (c) 2003 Wesley Griffin. All rights reserved.
@@ -29,21 +29,15 @@
 #include "includes.h"
 
 #include <openssl/bn.h>
-#ifdef LWRES
-#include <lwres/netdb.h>
-#include <dns/result.h>
-#else /* LWRES */
 #include <netdb.h>
-#endif /* LWRES */
 
 #include "xmalloc.h"
 #include "key.h"
 #include "dns.h"
 #include "log.h"
 
-RCSID("$OpenBSD: dns.c,v 1.14 2005/10/17 13:45:05 stevesk Exp $");
+RCSID("$OpenBSD: dns.c,v 1.15 2005/10/17 14:01:28 stevesk Exp $");
 
-#ifndef LWRES
 static const char *errset_text[] = {
 	"success",		/* 0 ERRSET_SUCCESS */
 	"out of memory",	/* 1 ERRSET_NOMEMORY */
@@ -73,8 +67,6 @@ dns_result_totext(unsigned int res)
 		return "unknown error";
 	}
 }
-#endif /* LWRES */
-
 
 /*
  * Read SSHFP parameters from key buffer.

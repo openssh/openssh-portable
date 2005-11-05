@@ -42,6 +42,15 @@
    - stevesk@cvs.openbsd.org 2005/10/15 15:28:12
      [sshconnect.c]
      make external definition static; ok deraadt@
+   - stevesk@cvs.openbsd.org 2005/10/17 13:45:05
+     [dns.c]
+     fix memory leaks from 2 sources:
+         1) key_fingerprint_raw()
+         2) malloc in dns_read_rdata()
+     ok jakob@
+   - stevesk@cvs.openbsd.org 2005/10/17 14:01:28
+     [dns.c]
+     remove #ifdef LWRES; ok jakob@
 
 20051102
  - (dtucker) [openbsd-compat/bsd-misc.c] Bug #1108: fix broken strdup().
@@ -3175,4 +3184,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3937 2005/11/05 04:08:57 djm Exp $
+$Id: ChangeLog,v 1.3938 2005/11/05 04:10:42 djm Exp $
