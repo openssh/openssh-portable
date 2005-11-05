@@ -1,4 +1,4 @@
-/*	$OpenBSD: gss-serv.c,v 1.11 2005/10/13 14:20:37 stevesk Exp $	*/
+/*	$OpenBSD: gss-serv.c,v 1.12 2005/10/13 19:08:08 stevesk Exp $	*/
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -38,8 +38,6 @@
 #include "getput.h"
 
 #include "ssh-gss.h"
-
-extern ServerOptions options;
 
 static ssh_gssapi_client gssapi_client =
     { GSS_C_EMPTY_BUFFER, GSS_C_EMPTY_BUFFER,

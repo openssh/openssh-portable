@@ -23,6 +23,10 @@
    - stevesk@cvs.openbsd.org 2005/10/13 14:20:37
      [gss-serv.c]
      spelling in comments
+   - stevesk@cvs.openbsd.org 2005/10/13 19:08:08
+     [gss-serv-krb5.c gss-serv.c]
+     unused declarations; ok deraadt@
+     (id sync only for gss-serv-krb5.c)
 
 20051102
  - (dtucker) [openbsd-compat/bsd-misc.c] Bug #1108: fix broken strdup().
@@ -3156,4 +3160,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3931 2005/11/05 04:03:48 djm Exp $
+$Id: ChangeLog,v 1.3932 2005/11/05 04:05:28 djm Exp $
