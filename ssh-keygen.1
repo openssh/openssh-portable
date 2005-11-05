@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.69 2005/06/08 03:50:00 djm Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.70 2005/10/31 11:12:49 djm Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -118,6 +118,9 @@ keys for use by SSH protocol version 2.
 The type of key to be generated is specified with the
 .Fl t
 option.
+If invoked without any arguments,
+.Nm
+will generate a RSA key for use in SSH protocol 2 connections.
 .Pp
 .Nm
 is also used to generate groups for use in Diffie-Hellman group
