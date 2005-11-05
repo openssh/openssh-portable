@@ -90,6 +90,9 @@
    - jmc@cvs.openbsd.org 2005/10/31 19:55:25
      [ssh-keygen.1]
      grammar;
+   - dtucker@cvs.openbsd.org 2005/11/03 13:38:29
+     [canohost.c]
+     Cache reverse lookups with and without DNS separately; ok markus@
 
 20051102
  - (dtucker) [openbsd-compat/bsd-misc.c] Bug #1108: fix broken strdup().
@@ -3223,4 +3226,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3949 2005/11/05 04:16:27 djm Exp $
+$Id: ChangeLog,v 1.3950 2005/11/05 04:16:52 djm Exp $

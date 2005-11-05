@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: canohost.c,v 1.46 2005/10/30 08:29:29 dtucker Exp $");
+RCSID("$OpenBSD: canohost.c,v 1.47 2005/11/03 13:38:29 dtucker Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -198,26 +198,27 @@ ipv64_normalise_mapped(struct sockaddr_storage *addr, socklen_t *len)
 const char *
 get_canonical_hostname(int use_dns)
 {
+	char *host;
 	static char *canonical_host_name = NULL;
-	static int use_dns_done = 0;
+	static char *remote_ip = NULL;
 
 	/* Check if we have previously retrieved name with same option. */
-	if (canonical_host_name != NULL) {
-		if (use_dns_done != use_dns)
-			xfree(canonical_host_name);
-		else
-			return canonical_host_name;
-	}
+	if (use_dns && canonical_host_name != NULL)
+		return canonical_host_name;
+	if (!use_dns && remote_ip != NULL)
+		return remote_ip;
 
 	/* Get the real hostname if socket; otherwise return UNKNOWN. */
 	if (packet_connection_is_on_socket())
-		canonical_host_name = get_remote_hostname(
-		    packet_get_connection_in(), use_dns);
+		host = get_remote_hostname(packet_get_connection_in(), use_dns);
 	else
-		canonical_host_name = xstrdup("UNKNOWN");
+		host = "UNKNOWN";
 
-	use_dns_done = use_dns;
-	return canonical_host_name;
+	if (use_dns)
+		canonical_host_name = host;
+	else
+		remote_ip = host;
+	return host;
 }
 
 /*

@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.120 2005/10/30 08:52:17 djm Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.121 2005/10/31 11:48:29 djm Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -61,6 +61,7 @@ extern ServerOptions options;
 /* XXX */
 extern Kex *xxx_kex;
 extern Authctxt *the_authctxt;
+extern int use_privsep;
 
 static Buffer stdin_buffer;	/* Buffer for stdin data. */
 static Buffer stdout_buffer;	/* Buffer for stdout data. */
@@ -89,6 +90,9 @@ static int client_alive_timeouts = 0;
  */
 
 static volatile sig_atomic_t child_terminated = 0;	/* The child has terminated. */
+
+/* Cleanup on signals (!use_privsep case only) */
+static volatile sig_atomic_t received_sigterm = 0;
 
 /* prototypes */
 static void server_init_dispatch(void);
@@ -149,6 +153,12 @@ sigchld_handler(int sig)
 #endif
 	notify_parent();
 	errno = save_errno;
+}
+
+static void
+sigterm_handler(int sig)
+{
+	received_sigterm = sig;
 }
 
 /*
@@ -502,6 +512,12 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 	child_terminated = 0;
 	mysignal(SIGCHLD, sigchld_handler);
 
+	if (!use_privsep) {
+		signal(SIGTERM, sigterm_handler);
+		signal(SIGINT, sigterm_handler);
+		signal(SIGQUIT, sigterm_handler);
+	}
+
 	/* Initialize our global variables. */
 	fdin = fdin_arg;
 	fdout = fdout_arg;
@@ -629,6 +645,12 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 		wait_until_can_do_something(&readset, &writeset, &max_fd,
 		    &nalloc, max_time_milliseconds);
 
+		if (received_sigterm) {
+			logit("Exiting on signal %d", received_sigterm);
+			/* Clean up sessions, utmp, etc. */
+			cleanup_exit(255);
+		}
+
 		/* Process any channel events. */
 		channel_after_select(readset, writeset);
 
@@ -749,6 +771,12 @@ server_loop2(Authctxt *authctxt)
 	connection_in = packet_get_connection_in();
 	connection_out = packet_get_connection_out();
 
+	if (!use_privsep) {
+		signal(SIGTERM, sigterm_handler);
+		signal(SIGINT, sigterm_handler);
+		signal(SIGQUIT, sigterm_handler);
+	}
+
 	notify_setup();
 
 	max_fd = MAX(connection_in, connection_out);
@@ -765,6 +793,12 @@ server_loop2(Authctxt *authctxt)
 			channel_output_poll();
 		wait_until_can_do_something(&readset, &writeset, &max_fd,
 		    &nalloc, 0);
+
+		if (received_sigterm) {
+			logit("Exiting on signal %d", received_sigterm);
+			/* Clean up sessions, utmp, etc. */
+			cleanup_exit(255);
+		}
 
 		collect_children();
 		if (!rekeying) {
