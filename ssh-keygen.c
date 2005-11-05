@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.130 2005/10/07 11:13:57 markus Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.131 2005/10/14 02:17:59 stevesk Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -1222,7 +1222,7 @@ main(int ac, char **av)
 		if (bits == 0)
 			bits = DEFAULT_BITS;
 		if (gen_candidates(out, memory, bits, start) != 0)
-			fatal("modulus candidate generation failed\n");
+			fatal("modulus candidate generation failed");
 
 		return (0);
 	}
@@ -1245,7 +1245,7 @@ main(int ac, char **av)
 			    out_file, strerror(errno));
 		}
 		if (prime_test(in, out, trials, generator_wanted) != 0)
-			fatal("modulus screening failed\n");
+			fatal("modulus screening failed");
 		return (0);
 	}
 

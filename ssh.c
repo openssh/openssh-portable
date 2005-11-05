@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.251 2005/09/19 15:42:44 jmc Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.252 2005/10/14 02:17:59 stevesk Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -1013,7 +1013,7 @@ ssh_control_listener(void)
 		fatal("ControlPath too long");
 
 	if ((control_fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0)
-		fatal("%s socket(): %s\n", __func__, strerror(errno));
+		fatal("%s socket(): %s", __func__, strerror(errno));
 
 	old_umask = umask(0177);
 	if (bind(control_fd, (struct sockaddr*)&addr, addr_len) == -1) {
@@ -1022,12 +1022,12 @@ ssh_control_listener(void)
 			fatal("ControlSocket %s already exists",
 			    options.control_path);
 		else
-			fatal("%s bind(): %s\n", __func__, strerror(errno));
+			fatal("%s bind(): %s", __func__, strerror(errno));
 	}
 	umask(old_umask);
 
 	if (listen(control_fd, 64) == -1)
-		fatal("%s listen(): %s\n", __func__, strerror(errno));
+		fatal("%s listen(): %s", __func__, strerror(errno));
 
 	set_nonblock(control_fd);
 }
