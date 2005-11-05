@@ -81,6 +81,12 @@
    - djm@cvs.openbsd.org 2005/10/31 11:12:49
      [ssh-keygen.1 ssh-keygen.c]
      generate a protocol 2 RSA key by default
+   - djm@cvs.openbsd.org 2005/10/31 11:48:29
+     [serverloop.c]
+     make sure we clean up wtmp, etc. file when we receive a SIGTERM,
+     SIGINT or SIGQUIT when running without privilege separation (the
+     normal privsep case is already OK). Patch mainly by dtucker@ and
+     senthilkumar_sen AT hotpop.com; ok dtucker@
 
 20051102
  - (dtucker) [openbsd-compat/bsd-misc.c] Bug #1108: fix broken strdup().
@@ -3214,4 +3220,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3947 2005/11/05 04:15:49 djm Exp $
+$Id: ChangeLog,v 1.3948 2005/11/05 04:16:12 djm Exp $
