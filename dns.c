@@ -1,4 +1,4 @@
-/*	$OpenBSD: dns.c,v 1.13 2005/10/13 19:13:41 stevesk Exp $	*/
+/*	$OpenBSD: dns.c,v 1.14 2005/10/17 13:45:05 stevesk Exp $	*/
 
 /*
  * Copyright (c) 2003 Wesley Griffin. All rights reserved.
@@ -41,7 +41,7 @@
 #include "dns.h"
 #include "log.h"
 
-RCSID("$OpenBSD: dns.c,v 1.13 2005/10/13 19:13:41 stevesk Exp $");
+RCSID("$OpenBSD: dns.c,v 1.14 2005/10/17 13:45:05 stevesk Exp $");
 
 #ifndef LWRES
 static const char *errset_text[] = {
@@ -93,12 +93,14 @@ dns_read_key(u_int8_t *algorithm, u_int8_t *digest_type,
 		*algorithm = SSHFP_KEY_DSA;
 		break;
 	default:
-		*algorithm = SSHFP_KEY_RESERVED;
+		*algorithm = SSHFP_KEY_RESERVED; /* 0 */
 	}
 
 	if (*algorithm) {
 		*digest_type = SSHFP_HASH_SHA1;
 		*digest = key_fingerprint_raw(key, SSH_FP_SHA1, digest_len);
+		if (*digest == NULL)
+			fatal("dns_read_key: null from key_fingerprint_raw()");
 		success = 1;
 	} else {
 		*digest_type = SSHFP_HASH_RESERVED;
@@ -131,7 +133,7 @@ dns_read_rdata(u_int8_t *algorithm, u_int8_t *digest_type,
 			*digest = (u_char *) xmalloc(*digest_len);
 			memcpy(*digest, rdata + 2, *digest_len);
 		} else {
-			*digest = NULL;
+			*digest = xstrdup("");
 		}
 
 		success = 1;
@@ -245,8 +247,10 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
 				*flags |= DNS_VERIFY_MATCH;
 			}
 		}
+		xfree(dnskey_digest);
 	}
 
+	xfree(hostkey_digest); /* from key_fingerprint_raw() */
 	freerrset(fingerprints);
 
 	if (*flags & DNS_VERIFY_FOUND)
@@ -289,6 +293,7 @@ export_dns_rr(const char *hostname, const Key *key, FILE *f, int generic)
 		for (i = 0; i < rdata_digest_len; i++)
 			fprintf(f, "%02x", rdata_digest[i]);
 		fprintf(f, "\n");
+		xfree(rdata_digest); /* from key_fingerprint_raw() */
 		success = 1;
 	} else {
 		error("dns_export_rr: unsupported algorithm");
