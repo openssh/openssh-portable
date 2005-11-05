@@ -75,6 +75,9 @@
      [clientloop.c packet.c serverloop.c session.c ssh-agent.c ssh-keygen.c]
      [ssh.c sshconnect.c sshconnect1.c sshd.c]
      no need to escape single quotes in comments, no binary change
+   - dtucker@cvs.openbsd.org 2005/10/31 06:15:04
+     [sftp.c]
+     Fix sorting with "ls -1" command. From Robert Tsai, "looks right" deraadt@
 
 20051102
  - (dtucker) [openbsd-compat/bsd-misc.c] Bug #1108: fix broken strdup().
@@ -3208,4 +3211,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3945 2005/11/05 04:14:59 djm Exp $
+$Id: ChangeLog,v 1.3946 2005/11/05 04:15:23 djm Exp $
