@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.129 2005/09/13 23:40:07 djm Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.130 2005/10/07 11:13:57 markus Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -35,8 +35,10 @@ RCSID("$OpenBSD: ssh-keygen.c,v 1.129 2005/09/13 23:40:07 djm Exp $");
 #endif
 #include "dns.h"
 
-/* Number of bits in the RSA/DSA key.  This value can be changed on the command line. */
-u_int32_t bits = 2048;
+/* Number of bits in the RSA/DSA key.  This value can be set on the command line. */
+#define DEFAULT_BITS		2048
+#define DEFAULT_BITS_DSA	1024
+u_int32_t bits = 0;
 
 /*
  * Flag indicating that we just want to change the passphrase.  This can be
@@ -1217,6 +1219,8 @@ main(int ac, char **av)
 			    out_file, strerror(errno));
 			return (1);
 		}
+		if (bits == 0)
+			bits = DEFAULT_BITS;
 		if (gen_candidates(out, memory, bits, start) != 0)
 			fatal("modulus candidate generation failed\n");
 
@@ -1258,6 +1262,8 @@ main(int ac, char **av)
 	}
 	if (!quiet)
 		printf("Generating public/private %s key pair.\n", key_type_name);
+	if (bits == 0)
+		bits = (type == KEY_DSA) ? DEFAULT_BITS_DSA : DEFAULT_BITS;
 	private = key_generate(type, bits);
 	if (private == NULL) {
 		fprintf(stderr, "key_generate failed");
