@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.143 2005/10/10 10:23:08 djm Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.144 2005/10/14 02:29:37 stevesk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1880,7 +1880,7 @@ client_session2_setup(int id, int want_tty, int want_subsystem,
 			/* Split */
 			name = xstrdup(env[i]);
 			if ((val = strchr(name, '=')) == NULL) {
-				free(name);
+				xfree(name);
 				continue;
 			}
 			*val++ = '\0';
@@ -1894,7 +1894,7 @@ client_session2_setup(int id, int want_tty, int want_subsystem,
 			}
 			if (!matched) {
 				debug3("Ignored env %s", name);
-				free(name);
+				xfree(name);
 				continue;
 			}
 
@@ -1903,7 +1903,7 @@ client_session2_setup(int id, int want_tty, int want_subsystem,
 			packet_put_cstring(name);
 			packet_put_cstring(val);
 			packet_send();
-			free(name);
+			xfree(name);
 		}
 	}
 

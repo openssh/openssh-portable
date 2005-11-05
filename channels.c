@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.226 2005/10/11 23:37:37 djm Exp $");
+RCSID("$OpenBSD: channels.c,v 1.227 2005/10/14 02:29:37 stevesk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -2464,7 +2464,7 @@ channel_request_rforward_cancel(const char *host, u_short port)
 
 	permitted_opens[i].listen_port = 0;
 	permitted_opens[i].port_to_connect = 0;
-	free(permitted_opens[i].host_to_connect);
+	xfree(permitted_opens[i].host_to_connect);
 	permitted_opens[i].host_to_connect = NULL;
 }
 
