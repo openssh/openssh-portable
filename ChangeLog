@@ -39,6 +39,9 @@
    - stevesk@cvs.openbsd.org 2005/10/14 02:29:37
      [channels.c clientloop.c]
      free()->xfree(); ok djm@
+   - stevesk@cvs.openbsd.org 2005/10/15 15:28:12
+     [sshconnect.c]
+     make external definition static; ok deraadt@
 
 20051102
  - (dtucker) [openbsd-compat/bsd-misc.c] Bug #1108: fix broken strdup().
@@ -3172,4 +3175,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3936 2005/11/05 04:07:59 djm Exp $
+$Id: ChangeLog,v 1.3937 2005/11/05 04:08:57 djm Exp $

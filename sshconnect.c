@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.168 2005/07/17 07:17:55 djm Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.169 2005/10/15 15:28:12 stevesk Exp $");
 
 #include <openssl/bn.h>
 
@@ -31,13 +31,12 @@ RCSID("$OpenBSD: sshconnect.c,v 1.168 2005/07/17 07:17:55 djm Exp $");
 #include "readconf.h"
 #include "atomicio.h"
 #include "misc.h"
-
 #include "dns.h"
 
 char *client_version_string = NULL;
 char *server_version_string = NULL;
 
-int matching_host_key_dns = 0;
+static int matching_host_key_dns = 0;
 
 /* import */
 extern Options options;
