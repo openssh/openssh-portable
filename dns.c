@@ -1,4 +1,4 @@
-/*	$OpenBSD: dns.c,v 1.12 2005/06/17 02:44:32 djm Exp $	*/
+/*	$OpenBSD: dns.c,v 1.13 2005/10/13 19:13:41 stevesk Exp $	*/
 
 /*
  * Copyright (c) 2003 Wesley Griffin. All rights reserved.
@@ -40,10 +40,8 @@
 #include "key.h"
 #include "dns.h"
 #include "log.h"
-#include "uuencode.h"
 
-extern char *__progname;
-RCSID("$OpenBSD: dns.c,v 1.12 2005/06/17 02:44:32 djm Exp $");
+RCSID("$OpenBSD: dns.c,v 1.13 2005/10/13 19:13:41 stevesk Exp $");
 
 #ifndef LWRES
 static const char *errset_text[] = {
@@ -223,7 +221,7 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
 	if (fingerprints->rri_nrdatas)
 		*flags |= DNS_VERIFY_FOUND;
 
-	for (counter = 0 ; counter < fingerprints->rri_nrdatas ; counter++)  {
+	for (counter = 0; counter < fingerprints->rri_nrdatas; counter++)  {
 		/*
 		 * Extract the key from the answer. Ignore any badly
 		 * formatted fingerprints.
