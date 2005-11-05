@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.225 2005/10/10 10:23:08 djm Exp $");
+RCSID("$OpenBSD: channels.c,v 1.226 2005/10/11 23:37:37 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1230,6 +1230,19 @@ port_open_helper(Channel *c, char *rtype)
 	xfree(remote_ipaddr);
 }
 
+static void
+channel_set_reuseaddr(int fd)
+{
+	int on = 1;
+
+	/*
+	 * Set socket options.
+	 * Allow local port reuse in TIME_WAIT.
+	 */
+	if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) == -1)
+		error("setsockopt SO_REUSEADDR fd %d: %s", fd, strerror(errno));
+}
+
 /*
  * This socket is listening for connections to a forwarded TCP/IP port.
  */
@@ -2191,7 +2204,7 @@ channel_setup_fwd_listener(int type, const char *listen_addr, u_short listen_por
     const char *host_to_connect, u_short port_to_connect, int gateway_ports)
 {
 	Channel *c;
-	int sock, r, success = 0, on = 1, wildcard = 0, is_client;
+	int sock, r, success = 0, wildcard = 0, is_client;
 	struct addrinfo hints, *ai, *aitop;
 	const char *host, *addr;
 	char ntop[NI_MAXHOST], strport[NI_MAXSERV];
@@ -2278,13 +2291,8 @@ channel_setup_fwd_listener(int type, const char *listen_addr, u_short listen_por
 			verbose("socket: %.100s", strerror(errno));
 			continue;
 		}
-		/*
-		 * Set socket options.
-		 * Allow local port reuse in TIME_WAIT.
-		 */
-		if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &on,
-		    sizeof(on)) == -1)
-			error("setsockopt SO_REUSEADDR: %s", strerror(errno));
+
+		channel_set_reuseaddr(sock);
 
 		debug("Local forwarding listening on %s port %s.", ntop, strport);
 
@@ -2710,6 +2718,7 @@ x11_create_display_inet(int x11_display_offset, int x11_use_localhost,
 					error("setsockopt IPV6_V6ONLY: %.100s", strerror(errno));
 			}
 #endif
+			channel_set_reuseaddr(sock);
 			if (bind(sock, ai->ai_addr, ai->ai_addrlen) < 0) {
 				debug2("bind port %d: %.100s", port, strerror(errno));
 				close(sock);

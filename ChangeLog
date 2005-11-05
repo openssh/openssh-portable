@@ -12,6 +12,11 @@
      fix regression I introduced in 4.2: X11 forwardings initiated after
      a session has exited (e.g. "(sleep 5; xterm) &") would not start.
      bz #1086 reported by t8m AT centrum.cz; ok markus@ dtucker@
+   - djm@cvs.openbsd.org 2005/10/11 23:37:37
+     [channels.c]
+     bz #1076 set SO_REUSEADDR on X11 forwarding listner sockets, preventing
+     bind() failure when a previous connection's listeners are in TIME_WAIT,
+     reported by plattner AT inf.ethz.ch; ok dtucker@
 
 20051102
  - (dtucker) [openbsd-compat/bsd-misc.c] Bug #1108: fix broken strdup().
@@ -3145,4 +3150,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3928 2005/11/05 03:52:50 djm Exp $
+$Id: ChangeLog,v 1.3929 2005/11/05 03:53:39 djm Exp $
