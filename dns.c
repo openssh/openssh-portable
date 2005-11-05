@@ -1,4 +1,4 @@
-/*	$OpenBSD: dns.c,v 1.15 2005/10/17 14:01:28 stevesk Exp $	*/
+/*	$OpenBSD: dns.c,v 1.16 2005/10/17 14:13:35 stevesk Exp $	*/
 
 /*
  * Copyright (c) 2003 Wesley Griffin. All rights reserved.
@@ -25,18 +25,15 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #include "includes.h"
+RCSID("$OpenBSD: dns.c,v 1.16 2005/10/17 14:13:35 stevesk Exp $");
 
-#include <openssl/bn.h>
 #include <netdb.h>
 
 #include "xmalloc.h"
 #include "key.h"
 #include "dns.h"
 #include "log.h"
-
-RCSID("$OpenBSD: dns.c,v 1.15 2005/10/17 14:01:28 stevesk Exp $");
 
 static const char *errset_text[] = {
 	"success",		/* 0 ERRSET_SUCCESS */
@@ -179,7 +176,7 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
 
 	*flags = 0;
 
-	debug3("verify_hostkey_dns");
+	debug3("verify_host_key_dns");
 	if (hostkey == NULL)
 		fatal("No key to look up!");
 
@@ -256,7 +253,6 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
 	return 0;
 }
 
-
 /*
  * Export the fingerprint of a key as a DNS resource record
  */
@@ -272,7 +268,7 @@ export_dns_rr(const char *hostname, const Key *key, FILE *f, int generic)
 	int success = 0;
 
 	if (dns_read_key(&rdata_pubkey_algorithm, &rdata_digest_type,
-			 &rdata_digest, &rdata_digest_len, key)) {
+	    &rdata_digest, &rdata_digest_len, key)) {
 
 		if (generic)
 			fprintf(f, "%s IN TYPE%d \\# %d %02x %02x ", hostname,
@@ -288,7 +284,7 @@ export_dns_rr(const char *hostname, const Key *key, FILE *f, int generic)
 		xfree(rdata_digest); /* from key_fingerprint_raw() */
 		success = 1;
 	} else {
-		error("dns_export_rr: unsupported algorithm");
+		error("export_dns_rr: unsupported algorithm");
 	}
 
 	return success;
