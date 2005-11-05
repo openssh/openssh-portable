@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.62 2005/09/19 11:37:34 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.63 2005/10/30 01:23:19 djm Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -263,8 +263,10 @@ with
 set to
 .Dq no
 (the default).
-These sessions will reuse the master instance's network connection rather
-than initiating new ones.
+These sessions will try to reuse the master instance's network connection 
+rather than initiating new ones, but will fall back to connecting normally
+if the control socket does not exist, or is not listening.
+.Pp
 Setting this to
 .Dq ask
 will cause

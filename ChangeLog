@@ -54,6 +54,10 @@
    - stevesk@cvs.openbsd.org 2005/10/17 14:13:35
      [dns.c dns.h]
      more cleanups; ok jakob@
+   - djm@cvs.openbsd.org 2005/10/30 01:23:19
+     [ssh_config.5]
+     mention control socket fallback behaviour, reported by 
+     tryponraj AT gmail.com
 
 20051102
  - (dtucker) [openbsd-compat/bsd-misc.c] Bug #1108: fix broken strdup().
@@ -3187,4 +3191,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3939 2005/11/05 04:11:15 djm Exp $
+$Id: ChangeLog,v 1.3940 2005/11/05 04:11:48 djm Exp $
