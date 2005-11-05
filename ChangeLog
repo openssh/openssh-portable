@@ -62,6 +62,9 @@
      [ssh-keyscan.c]
      make ssh-keygen discard junk from server before SSH- ident, spotted by
      dave AT cirt.net; ok dtucker@
+   - djm@cvs.openbsd.org 2005/10/30 04:03:24
+     [ssh.c]
+     fix misleading debug message; ok dtucker@
 
 20051102
  - (dtucker) [openbsd-compat/bsd-misc.c] Bug #1108: fix broken strdup().
@@ -3195,4 +3198,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3941 2005/11/05 04:12:28 djm Exp $
+$Id: ChangeLog,v 1.3942 2005/11/05 04:12:59 djm Exp $
