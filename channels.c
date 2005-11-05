@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.224 2005/09/07 08:53:53 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.225 2005/10/10 10:23:08 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -269,6 +269,7 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 	c->force_drain = 0;
 	c->single_connection = 0;
 	c->detach_user = NULL;
+	c->detach_close = 0;
 	c->confirm = NULL;
 	c->confirm_ctx = NULL;
 	c->input_filter = NULL;
@@ -628,7 +629,7 @@ channel_register_confirm(int id, channel_callback_fn *fn, void *ctx)
 	c->confirm_ctx = ctx;
 }
 void
-channel_register_cleanup(int id, channel_callback_fn *fn)
+channel_register_cleanup(int id, channel_callback_fn *fn, int do_close)
 {
 	Channel *c = channel_lookup(id);
 
@@ -637,6 +638,7 @@ channel_register_cleanup(int id, channel_callback_fn *fn)
 		return;
 	}
 	c->detach_user = fn;
+	c->detach_close = do_close;
 }
 void
 channel_cancel_cleanup(int id)
@@ -648,6 +650,7 @@ channel_cancel_cleanup(int id)
 		return;
 	}
 	c->detach_user = NULL;
+	c->detach_close = 0;
 }
 void
 channel_register_filter(int id, channel_filter_fn *fn)
@@ -1666,7 +1669,7 @@ channel_garbage_collect(Channel *c)
 	if (c == NULL)
 		return;
 	if (c->detach_user != NULL) {
-		if (!chan_is_dead(c, 0))
+		if (!chan_is_dead(c, c->detach_close))
 			return;
 		debug2("channel %d: gc: notify user", c->self);
 		c->detach_user(c->self, NULL);

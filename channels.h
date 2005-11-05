@@ -1,4 +1,4 @@
-/*	$OpenBSD: channels.h,v 1.79 2005/07/17 06:49:04 djm Exp $	*/
+/*	$OpenBSD: channels.h,v 1.80 2005/10/10 10:23:08 djm Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -106,8 +106,9 @@ struct Channel {
 
 	/* callback */
 	channel_callback_fn	*confirm;
-	channel_callback_fn	*detach_user;
 	void			*confirm_ctx;
+	channel_callback_fn	*detach_user;
+	int			detach_close;
 
 	/* filter */
 	channel_filter_fn	*input_filter;
@@ -163,7 +164,7 @@ void	 channel_stop_listening(void);
 
 void	 channel_send_open(int);
 void	 channel_request_start(int, char *, int);
-void	 channel_register_cleanup(int, channel_callback_fn *);
+void	 channel_register_cleanup(int, channel_callback_fn *, int);
 void	 channel_register_confirm(int, channel_callback_fn *, void *);
 void	 channel_register_filter(int, channel_filter_fn *);
 void	 channel_cancel_cleanup(int);

@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.118 2005/07/17 07:17:55 djm Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.119 2005/10/10 10:23:08 djm Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -900,7 +900,7 @@ server_request_session(void)
 		channel_free(c);
 		return NULL;
 	}
-	channel_register_cleanup(c->self, session_close_by_channel);
+	channel_register_cleanup(c->self, session_close_by_channel, 0);
 	return c;
 }
 

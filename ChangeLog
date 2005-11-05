@@ -7,6 +7,11 @@
      in order to improve the security of DSA you need to change more
      components of DSA key generation (e.g. the internal SHA1 hash);
      ok deraadt
+   - djm@cvs.openbsd.org 2005/10/10 10:23:08
+     [channels.c channels.h clientloop.c serverloop.c session.c]
+     fix regression I introduced in 4.2: X11 forwardings initiated after
+     a session has exited (e.g. "(sleep 5; xterm) &") would not start.
+     bz #1086 reported by t8m AT centrum.cz; ok markus@ dtucker@
 
 20051102
  - (dtucker) [openbsd-compat/bsd-misc.c] Bug #1108: fix broken strdup().
@@ -3140,4 +3145,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3927 2005/11/05 03:52:18 djm Exp $
+$Id: ChangeLog,v 1.3928 2005/11/05 03:52:50 djm Exp $
