@@ -87,6 +87,9 @@
      SIGINT or SIGQUIT when running without privilege separation (the
      normal privsep case is already OK). Patch mainly by dtucker@ and
      senthilkumar_sen AT hotpop.com; ok dtucker@
+   - jmc@cvs.openbsd.org 2005/10/31 19:55:25
+     [ssh-keygen.1]
+     grammar;
 
 20051102
  - (dtucker) [openbsd-compat/bsd-misc.c] Bug #1108: fix broken strdup().
@@ -3220,4 +3223,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3948 2005/11/05 04:16:12 djm Exp $
+$Id: ChangeLog,v 1.3949 2005/11/05 04:16:27 djm Exp $
