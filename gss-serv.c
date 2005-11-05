@@ -1,4 +1,4 @@
-/*	$OpenBSD: gss-serv.c,v 1.10 2005/10/13 14:03:01 stevesk Exp $	*/
+/*	$OpenBSD: gss-serv.c,v 1.11 2005/10/13 14:20:37 stevesk Exp $	*/
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -59,7 +59,7 @@ ssh_gssapi_mech* supported_mechs[]= {
 	&gssapi_null_mech,
 };
 
-/* Unpriviledged */
+/* Unprivileged */
 void
 ssh_gssapi_supported_oids(gss_OID_set *oidset)
 {
@@ -88,7 +88,7 @@ ssh_gssapi_supported_oids(gss_OID_set *oidset)
  *    oid
  *    credentials	(from ssh_gssapi_acquire_cred)
  */
-/* Priviledged */
+/* Privileged */
 OM_uint32
 ssh_gssapi_accept_ctx(Gssctxt *ctx, gss_buffer_desc *recv_tok,
     gss_buffer_desc *send_tok, OM_uint32 *flags)
@@ -186,7 +186,7 @@ ssh_gssapi_parse_ename(Gssctxt *ctx, gss_buffer_t ename, gss_buffer_t name)
 /* Extract the client details from a given context. This can only reliably
  * be called once for a context */
 
-/* Priviledged (called from accept_secure_ctx) */
+/* Privileged (called from accept_secure_ctx) */
 OM_uint32
 ssh_gssapi_getclient(Gssctxt *ctx, ssh_gssapi_client *client)
 {
@@ -296,7 +296,7 @@ ssh_gssapi_userok(char *user)
 	return (0);
 }
 
-/* Priviledged */
+/* Privileged */
 OM_uint32
 ssh_gssapi_checkmic(Gssctxt *ctx, gss_buffer_t gssbuf, gss_buffer_t gssmic)
 {

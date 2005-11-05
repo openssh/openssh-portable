@@ -20,6 +20,9 @@
    - stevesk@cvs.openbsd.org 2005/10/13 14:03:01
      [auth2-gss.c gss-genr.c gss-serv.c]
      remove unneeded #includes; ok markus@
+   - stevesk@cvs.openbsd.org 2005/10/13 14:20:37
+     [gss-serv.c]
+     spelling in comments
 
 20051102
  - (dtucker) [openbsd-compat/bsd-misc.c] Bug #1108: fix broken strdup().
@@ -3153,4 +3156,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3930 2005/11/05 04:03:24 djm Exp $
+$Id: ChangeLog,v 1.3931 2005/11/05 04:03:48 djm Exp $
