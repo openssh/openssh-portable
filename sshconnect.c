@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.169 2005/10/15 15:28:12 stevesk Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.170 2005/10/30 08:52:18 djm Exp $");
 
 #include <openssl/bn.h>
 
@@ -603,7 +603,7 @@ check_host_key(char *host, struct sockaddr *hostaddr, Key *host_key,
 	file_key = key_new(host_key->type);
 
 	/*
-	 * Check if the host key is present in the user\'s list of known
+	 * Check if the host key is present in the user's list of known
 	 * hosts or in the systemwide list.
 	 */
 	host_file = user_hostfile;

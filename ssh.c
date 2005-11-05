@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.253 2005/10/30 04:03:24 djm Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.254 2005/10/30 08:52:18 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -698,7 +698,7 @@ again:
 
 	/*
 	 * Now that we are back to our own permissions, create ~/.ssh
-	 * directory if it doesn\'t already exist.
+	 * directory if it doesn't already exist.
 	 */
 	snprintf(buf, sizeof buf, "%.100s%s%.100s", pw->pw_dir, strcmp(pw->pw_dir, "/") ? "/" : "", _PATH_SSH_USER_DIR);
 	if (stat(buf, &st) < 0)
@@ -810,7 +810,7 @@ static void
 check_agent_present(void)
 {
 	if (options.forward_agent) {
-		/* Clear agent forwarding if we don\'t have an agent. */
+		/* Clear agent forwarding if we don't have an agent. */
 		if (!ssh_agent_present())
 			options.forward_agent = 0;
 	}

@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.119 2005/10/10 10:23:08 djm Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.120 2005/10/30 08:52:17 djm Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -548,7 +548,7 @@ server_loop(pid_t pid, int fdin_arg, int fdout_arg, int fderr_arg)
 	 * If we have no separate fderr (which is the case when we have a pty
 	 * - there we cannot make difference between data sent to stdout and
 	 * stderr), indicate that we have seen an EOF from stderr.  This way
-	 * we don\'t need to check the descriptor everywhere.
+	 * we don't need to check the descriptor everywhere.
 	 */
 	if (fderr == -1)
 		fderr_eof = 1;

@@ -33,7 +33,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.187 2005/10/10 10:23:08 djm Exp $");
+RCSID("$OpenBSD: session.c,v 1.188 2005/10/30 08:52:17 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1419,7 +1419,7 @@ child_close_fds(void)
 	endpwent();
 
 	/*
-	 * Close any extra open file descriptors so that we don\'t have them
+	 * Close any extra open file descriptors so that we don't have them
 	 * hanging around in clients.  Note that we want to do this after
 	 * initgroups, because at least on Solaris 2.3 it leaves file
 	 * descriptors open.
@@ -1554,7 +1554,7 @@ do_child(Session *s, const char *command)
 	}
 #endif
 
-	/* Change current directory to the user\'s home directory. */
+	/* Change current directory to the user's home directory. */
 	if (chdir(pw->pw_dir) < 0) {
 		fprintf(stderr, "Could not chdir to home directory %s: %s\n",
 		    pw->pw_dir, strerror(errno));

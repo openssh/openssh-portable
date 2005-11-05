@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.144 2005/10/14 02:29:37 stevesk Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.145 2005/10/30 08:52:17 djm Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -113,7 +113,7 @@ extern char *host;
 static volatile sig_atomic_t received_window_change_signal = 0;
 static volatile sig_atomic_t received_signal = 0;
 
-/* Flag indicating whether the user\'s terminal is in non-blocking mode. */
+/* Flag indicating whether the user's terminal is in non-blocking mode. */
 static int in_non_blocking_mode = 0;
 
 /* Common data for the client loop code. */
