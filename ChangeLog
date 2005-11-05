@@ -98,6 +98,10 @@
      remove hardcoded hash lengths in key exchange code, allowing
      implementation of KEX methods with different hashes (e.g. SHA-256);
      ok markus@ dtucker@ stevesk@
+   - djm@cvs.openbsd.org 2005/11/05 05:01:15
+     [bufaux.c]
+     Fix leaks in error paths, bz #1109 and #1110 reported by kremenek AT
+     cs.stanford.edu; ok dtucker@
 
 20051102
  - (dtucker) [openbsd-compat/bsd-misc.c] Bug #1108: fix broken strdup().
@@ -3231,4 +3235,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3951 2005/11/05 04:19:35 djm Exp $
+$Id: ChangeLog,v 1.3952 2005/11/05 05:04:36 djm Exp $
