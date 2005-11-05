@@ -1,4 +1,4 @@
-/*	$OpenBSD: auth2-gss.c,v 1.10 2005/07/17 07:17:54 djm Exp $	*/
+/*	$OpenBSD: auth2-gss.c,v 1.11 2005/10/13 14:03:01 stevesk Exp $	*/
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -34,7 +34,6 @@
 #include "log.h"
 #include "dispatch.h"
 #include "servconf.h"
-#include "compat.h"
 #include "packet.h"
 #include "monitor_wrap.h"
 

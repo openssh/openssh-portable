@@ -1,4 +1,4 @@
-/*	$OpenBSD: gss-genr.c,v 1.4 2005/07/17 07:17:55 djm Exp $	*/
+/*	$OpenBSD: gss-genr.c,v 1.5 2005/10/13 14:03:01 stevesk Exp $	*/
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -30,9 +30,7 @@
 
 #include "xmalloc.h"
 #include "bufaux.h"
-#include "compat.h"
 #include "log.h"
-#include "monitor_wrap.h"
 #include "ssh2.h"
 
 #include "ssh-gss.h"
