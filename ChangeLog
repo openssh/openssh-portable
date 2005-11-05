@@ -65,6 +65,9 @@
    - djm@cvs.openbsd.org 2005/10/30 04:03:24
      [ssh.c]
      fix misleading debug message; ok dtucker@
+   - dtucker@cvs.openbsd.org 2005/10/30 08:29:29
+     [canohost.c sshd.c]
+     Check for connections with IP options earlier and drop silently.  ok djm@
 
 20051102
  - (dtucker) [openbsd-compat/bsd-misc.c] Bug #1108: fix broken strdup().
@@ -3198,4 +3201,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3942 2005/11/05 04:12:59 djm Exp $
+$Id: ChangeLog,v 1.3943 2005/11/05 04:13:24 djm Exp $

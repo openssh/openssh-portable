@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.315 2005/09/21 23:37:11 djm Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.316 2005/10/30 08:29:29 dtucker Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -1651,7 +1651,12 @@ main(int ac, char **av)
 		debug("get_remote_port failed");
 		cleanup_exit(255);
 	}
-	remote_ip = get_remote_ipaddr();
+
+	/*
+	 * We use get_canonical_hostname with usedns = 0 instead of
+	 * get_remote_ipaddr here so IP options will be checked.
+	 */
+	remote_ip = get_canonical_hostname(0);
 
 #ifdef SSH_AUDIT_EVENTS
 	audit_connection_from(remote_ip, remote_port);
