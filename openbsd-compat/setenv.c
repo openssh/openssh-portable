@@ -41,6 +41,8 @@ static char *rcsid = "$OpenBSD: setenv.c,v 1.6 2003/06/02 20:18:38 millert Exp $
 
 char *__findenv(const char *name, int *offset);
 
+/* OpenSSH Portable: __findenv is from getenv.c rev 1.8 */
+
 /*
  * __findenv --
  *	Returns pointer to value associated with name, if any, else NULL.
@@ -51,14 +53,12 @@ char *__findenv(const char *name, int *offset);
  *	This routine *should* be a static; don't use it.
  */
 char *
-__findenv(name, offset)
-	register const char *name;
-	int *offset;
+__findenv(const char *name, int *offset)
 {
 	extern char **environ;
-	register int len, i;
-	register const char *np;
-	register char **p, *cp;
+	int len, i;
+	const char *np;
+	char **p, *cp;
 
 	if (name == NULL || environ == NULL)
 		return (NULL);
