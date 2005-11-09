@@ -39,9 +39,7 @@ static char *rcsid = "$OpenBSD: setenv.c,v 1.6 2003/06/02 20:18:38 millert Exp $
 #include <stdlib.h>
 #include <string.h>
 
-char *__findenv(const char *name, int *offset);
-
-/* OpenSSH Portable: __findenv is from getenv.c rev 1.8 */
+/* OpenSSH Portable: __findenv is from getenv.c rev 1.8, made static */
 
 /*
  * __findenv --
@@ -49,10 +47,8 @@ char *__findenv(const char *name, int *offset);
  *	Sets offset to be the offset of the name/value combination in the
  *	environmental array, for use by setenv(3) and unsetenv(3).
  *	Explicitly removes '=' in argument name.
- *
- *	This routine *should* be a static; don't use it.
  */
-char *
+static char *
 __findenv(const char *name, int *offset)
 {
 	extern char **environ;

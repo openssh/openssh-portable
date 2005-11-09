@@ -2,6 +2,8 @@
  - (dtucker) [openbsd-compat/getenv.c] Merge changes for __findenv from
    OpenBSD getenv.c revs 1.4 - 1.8 (ANSIfication of arguments, removal of
    "register").
+ - (dtucker) [openbsd-compat/getenv.c] Make __findenv static, remove
+   unnecessary prototype.
 
 20051105
  - (djm) OpenBSD CVS Sync
@@ -3244,4 +3246,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3955 2005/11/09 23:10:10 dtucker Exp $
+$Id: ChangeLog,v 1.3956 2005/11/09 23:13:06 dtucker Exp $
