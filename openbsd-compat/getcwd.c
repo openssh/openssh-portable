@@ -144,10 +144,8 @@ getcwd(char *pt, size_t size)
 		*bup++ = '.';
 		*bup = '\0';
 
-		/* Open and stat parent directory. 
-		 * RACE?? - replaced fstat(dirfd(dir), &s) w/ lstat(up,&s) 
-                 */
-		if (!(dir = opendir(up)) || lstat(up,&s))
+		/* Open and stat parent directory. */
+		if (!(dir = opendir(up)) || fstat(dirfd(dir), &s))
 			goto err;
 
 		/* Add trailing slash for next directory. */
