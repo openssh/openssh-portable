@@ -34,22 +34,15 @@
 
 #ifndef HAVE_RRESVPORT_AF
 
-#if defined(LIBC_SCCS) && !defined(lint)
-static char *rcsid = "$OpenBSD: rresvport.c,v 1.6 2003/06/03 02:11:35 deraadt Exp $";
-#endif /* LIBC_SCCS and not lint */
-
-#include "includes.h"
-
 #if 0
 int
-rresvport(alport)
-	int *alport;
+rresvport(int *alport)
 {
 	return rresvport_af(alport, AF_INET);
 }
 #endif
 
-int 
+int
 rresvport_af(int *alport, sa_family_t af)
 {
 	struct sockaddr_storage ss;

@@ -39,6 +39,7 @@
  - (dtucker) [openbsd-compat/strsep.c] Update from OpenBSD 1.5 -> 1.6.
  - (dtucker) [openbsd-compat/daemon.c] Update from OpenBSD 1.10 -> 1.13.
  - (dtucker) [openbsd-compat/mktemp.c] Update from OpenBSD 1.17 -> 1.19.
+ - (dtucker) [openbsd-compat/rresvport.c] Update from OpenBSD 1.6 -> 1.8.
 
 20051105
  - (djm) OpenBSD CVS Sync
@@ -3281,4 +3282,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3981 2005/11/10 06:37:02 dtucker Exp $
+$Id: ChangeLog,v 1.3982 2005/11/10 06:42:40 dtucker Exp $
