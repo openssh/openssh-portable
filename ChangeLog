@@ -21,6 +21,8 @@
  - (dtucker) [openbsd-compat/sigact.h] Add "OPENBSD ORIGINAL" marker.
  - (dtucker) [openbsd-compat/strmode.c] Update from OpenBSD 1.5 -> 1.7.
    Removal of rcsid, "whiteout" inode type.
+ - (dtucker) [openbsd-compat/basename.c] Update from OpenBSD 1.11 -> 1.14.
+   Removal of rcsid, will no longer strlcpy parts of the string.
 
 20051105
  - (djm) OpenBSD CVS Sync
@@ -3263,4 +3265,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3965 2005/11/10 05:38:54 dtucker Exp $
+$Id: ChangeLog,v 1.3966 2005/11/10 05:42:51 dtucker Exp $
