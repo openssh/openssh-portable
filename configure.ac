@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.303 2005/10/25 08:38:34 dtucker Exp $
+# $Id: configure.ac,v 1.304 2005/11/10 03:46:49 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -90,7 +90,8 @@ if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 		1.*) ;;
 		2.8* | 2.9*) CFLAGS="$CFLAGS -Wsign-compare" ;;
 		2.*) ;;
-		*) CFLAGS="$CFLAGS -Wsign-compare" ;;
+		3.*) CFLAGS="$CFLAGS -Wsign-compare" ;;
+		*) CFLAGS="$CFLAGS -Wsign-compare -Wno-pointer-sign" ;;
 	esac
 
 	if test -z "$have_llong_max"; then

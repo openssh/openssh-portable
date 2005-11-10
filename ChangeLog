@@ -8,6 +8,8 @@
    revs 1.7 - 1.9.
  - (dtucker) [auth-krb5.c] Fix -Wsign-compare warning in non-Heimdal path.
    Patch from djm@.
+ - (dtucker) [configure.ac] Disable pointer-sign warnings on gcc 4.0+
+   since they're not useful right now.  Patch from djm@.
 
 20051105
  - (djm) OpenBSD CVS Sync
@@ -3250,4 +3252,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3958 2005/11/10 03:43:11 dtucker Exp $
+$Id: ChangeLog,v 1.3959 2005/11/10 03:46:48 dtucker Exp $
