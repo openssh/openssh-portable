@@ -28,6 +28,7 @@
  - (dtucker) [openbsd-compat/readpassphrase.c] Update from OpenBSD 1.16 -> 1.18.
  - (dtucker) [openbsd-compat/readpassphrase.h] Update from OpenBSD 1.3 -> 1.5.
  - (dtucker) [openbsd-compat/glob.c] Update from OpenBSD 1.22 -> 1.25.
+ - (dtucker) [openbsd-compat/glob.h] Update from OpenBSD 1.8 -> 1.9.
 
 20051105
  - (djm) OpenBSD CVS Sync
@@ -3270,4 +3271,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3971 2005/11/10 06:02:21 dtucker Exp $
+$Id: ChangeLog,v 1.3972 2005/11/10 06:03:22 dtucker Exp $
