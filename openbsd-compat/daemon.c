@@ -1,3 +1,4 @@
+/*	$OpenBSD: daemon.c,v 1.6 2005/08/08 08:05:33 espie Exp $ */
 /*-
  * Copyright (c) 1990, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -32,10 +33,6 @@
 #include "includes.h"
 
 #ifndef HAVE_DAEMON
-
-#if defined(LIBC_SCCS) && !defined(lint)
-static char rcsid[] = "$OpenBSD: daemon.c,v 1.5 2003/07/15 17:32:41 deraadt Exp $";
-#endif /* LIBC_SCCS and not lint */
 
 int
 daemon(int nochdir, int noclose)
