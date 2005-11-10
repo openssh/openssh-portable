@@ -48,6 +48,8 @@
    -Wsign-compare fixes from djm.
  - (dtucker) [openbsd-compat/sigact.h] Update from OpenBSD 1.2 -> 1.3.
    Id and copyright sync only, there were no substantial changes we need.
+ - (dtucker) [configure.ac] Try to get the gcc version number in a way that
+   doesn't change between versions, and use a safer default.
 
 20051105
  - (djm) OpenBSD CVS Sync
@@ -3290,4 +3292,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3988 2005/11/10 08:43:48 dtucker Exp $
+$Id: ChangeLog,v 1.3989 2005/11/10 10:30:36 dtucker Exp $
