@@ -1,5 +1,3 @@
-/* OPENBSD ORIGINAL: lib/libcurses/base/sigaction.c */
-
 /*	$OpenBSD: sigaction.c,v 1.3 1999/06/27 08:14:21 millert Exp $	*/
 
 /****************************************************************************
@@ -34,6 +32,8 @@
  *  Author: Zeyd M. Ben-Halim <zmbenhal@netcom.com> 1992,1995               *
  *     and: Eric S. Raymond <esr@snark.thyrsus.com>                         *
  ****************************************************************************/
+
+/* OPENBSD ORIGINAL: lib/libcurses/base/sigaction.c */
 
 #include "includes.h"
 #include <signal.h>

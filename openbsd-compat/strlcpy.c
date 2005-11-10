@@ -1,5 +1,3 @@
-/* OPENBSD ORIGINAL: lib/libc/string/strlcpy.c */
-
 /*	$OpenBSD: strlcpy.c,v 1.8 2003/06/17 21:56:24 millert Exp $	*/
 
 /*
@@ -17,6 +15,8 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+
+/* OPENBSD ORIGINAL: lib/libc/string/strlcpy.c */
 
 #include "includes.h"
 #ifndef HAVE_STRLCPY

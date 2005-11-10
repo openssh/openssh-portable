@@ -1,5 +1,3 @@
-/* OPENBSD ORIGINAL: lib/libc/string/strlcat.c */
-
 /*	$OpenBSD: strlcat.c,v 1.13 2005/08/08 08:05:37 espie Exp $	*/
 
 /*
@@ -17,6 +15,8 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+
+/* OPENBSD ORIGINAL: lib/libc/string/strlcat.c */
 
 #include "includes.h"
 #ifndef HAVE_STRLCAT

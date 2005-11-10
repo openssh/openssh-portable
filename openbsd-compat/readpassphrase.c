@@ -1,5 +1,3 @@
-/* OPENBSD ORIGINAL: lib/libc/gen/readpassphrase.c */
-
 /*	$OpenBSD: readpassphrase.c,v 1.16 2003/06/17 21:56:23 millert Exp $	*/
 
 /*
@@ -21,6 +19,8 @@
  * Agency (DARPA) and Air Force Research Laboratory, Air Force
  * Materiel Command, USAF, under agreement number F39502-99-1-0512.
  */
+
+/* OPENBSD ORIGINAL: lib/libc/gen/readpassphrase.c */
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char rcsid[] = "$OpenBSD: readpassphrase.c,v 1.16 2003/06/17 21:56:23 millert Exp $";

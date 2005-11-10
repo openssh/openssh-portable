@@ -1,5 +1,3 @@
-/* OPENBSD ORIGINAL: include/readpassphrase.h */
-
 /*	$OpenBSD: readpassphrase.h,v 1.3 2002/06/28 12:32:22 millert Exp $	*/
 
 /*
@@ -28,6 +26,8 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+/* OPENBSD ORIGINAL: include/readpassphrase.h */
 
 #ifndef _READPASSPHRASE_H_
 #define _READPASSPHRASE_H_

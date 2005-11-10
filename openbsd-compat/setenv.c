@@ -1,5 +1,3 @@
-/* OPENBSD ORIGINAL: lib/libc/stdlib/setenv.c */
-
 /*	$OpenBSD: setenv.c,v 1.9 2005/08/08 08:05:37 espie Exp $ */
 /*
  * Copyright (c) 1987 Regents of the University of California.
@@ -29,6 +27,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
+
+/* OPENBSD ORIGINAL: lib/libc/stdlib/setenv.c */
 
 #include "includes.h"
 #if !defined(HAVE_SETENV) || !defined(HAVE_UNSETENV)

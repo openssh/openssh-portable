@@ -1,5 +1,3 @@
-/* OPENBSD ORIGINAL: lib/libc/net/inet_ntoa.c */
-
 /*
  * Copyright (c) 1983, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -28,6 +26,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
+
+/* OPENBSD ORIGINAL: lib/libc/net/inet_ntoa.c */
 
 #include "includes.h"
 

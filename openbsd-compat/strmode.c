@@ -1,5 +1,3 @@
-/* OPENBSD ORIGINAL: lib/libc/string/strmode.c */
-
 /*-
  * Copyright (c) 1990 The Regents of the University of California.
  * All rights reserved.
@@ -28,6 +26,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
+
+/* OPENBSD ORIGINAL: lib/libc/string/strmode.c */
 
 #include "includes.h"
 #ifndef HAVE_STRMODE

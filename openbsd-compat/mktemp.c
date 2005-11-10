@@ -1,5 +1,3 @@
-/* OPENBSD ORIGINAL: lib/libc/stdio/mktemp.c */
-
 /* THIS FILE HAS BEEN MODIFIED FROM THE ORIGINAL OPENBSD SOURCE */
 /* Changes: Removed mktemp */
 
@@ -31,6 +29,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
+
+/* OPENBSD ORIGINAL: lib/libc/stdio/mktemp.c */
 
 #include "includes.h"
 

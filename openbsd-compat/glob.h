@@ -1,5 +1,3 @@
-/* OPENBSD ORIGINAL: include/glob.h */
-
 /*	$OpenBSD: glob.h,v 1.8 2003/06/02 19:34:12 millert Exp $	*/
 /*	$NetBSD: glob.h,v 1.5 1994/10/26 00:55:56 cgd Exp $	*/
 
@@ -36,6 +34,8 @@
  *
  *	@(#)glob.h	8.1 (Berkeley) 6/2/93
  */
+
+/* OPENBSD ORIGINAL: include/glob.h */
 
 #if !defined(HAVE_GLOB_H) || !defined(GLOB_HAS_ALTDIRFUNC) || \
     !defined(GLOB_HAS_GL_MATCHC)

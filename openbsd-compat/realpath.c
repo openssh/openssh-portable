@@ -1,5 +1,3 @@
-/* OPENBSD ORIGINAL: lib/libc/stdlib/realpath.c */
-
 /*
  * Copyright (c) 2003 Constantin S. Svintsoff <kostik@iclub.nsu.ru>
  *
@@ -27,6 +25,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
+
+/* OPENBSD ORIGINAL: lib/libc/stdlib/realpath.c */
 
 #include "includes.h"
 

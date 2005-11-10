@@ -1,5 +1,3 @@
-/* OPENBSD ORIGINAL: lib/libc/gen/glob.c */
-
 /*
  * Copyright (c) 1989, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -31,6 +29,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
+
+/* OPENBSD ORIGINAL: lib/libc/gen/glob.c */
 
 #include "includes.h"
 #include <ctype.h>

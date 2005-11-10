@@ -1,5 +1,3 @@
-/* OPENBSD ORIGINAL: lib/libc/net/getrrsetbyname.c */
-
 /* $OpenBSD: getrrsetbyname.c,v 1.10 2005/03/30 02:58:28 tedu Exp $ */
 
 /*
@@ -44,6 +42,8 @@
  * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+
+/* OPENBSD ORIGINAL: lib/libc/net/getrrsetbyname.c */
 
 #include "includes.h"
 

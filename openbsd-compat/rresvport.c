@@ -1,5 +1,3 @@
-/* OPENBSD ORIGINAL: lib/libc/net/rresvport.c */
-
 /*
  * Copyright (c) 1995, 1996, 1998 Theo de Raadt.  All rights reserved.
  * Copyright (c) 1983, 1993, 1994
@@ -29,6 +27,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
+
+/* OPENBSD ORIGINAL: lib/libc/net/rresvport.c */
 
 #include "includes.h"
 

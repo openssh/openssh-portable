@@ -1,5 +1,3 @@
-/* OPENBSD ORIGINAL: lib/libc/gen/vis.c */
-
 /*	$OpenBSD: vis.c,v 1.19 2005/09/01 17:15:49 millert Exp $ */
 /*-
  * Copyright (c) 1989, 1993
@@ -29,6 +27,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
+
+/* OPENBSD ORIGINAL: lib/libc/gen/vis.c */
 
 #include "includes.h"
 #if !defined(HAVE_STRNVIS)

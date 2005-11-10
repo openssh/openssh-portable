@@ -1,5 +1,3 @@
-/* OPENBSD ORIGINAL: lib/libc/net/inet_ntop.c */
-
 /*	$OpenBSD: inet_ntop.c,v 1.5 2002/08/23 16:27:31 itojun Exp $	*/
 
 /* Copyright (c) 1996 by Internet Software Consortium.
@@ -17,6 +15,8 @@
  * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
  * SOFTWARE.
  */
+
+/* OPENBSD ORIGINAL: lib/libc/net/inet_ntop.c */
 
 #include "includes.h"
 

@@ -1,5 +1,3 @@
-/* OPENBSD ORIGINAL: include/vis.h */
-
 /*	$OpenBSD: vis.h,v 1.11 2005/08/09 19:38:31 millert Exp $	*/
 /*	$NetBSD: vis.h,v 1.4 1994/10/26 00:56:41 cgd Exp $	*/
 
@@ -33,6 +31,8 @@
  *
  *	@(#)vis.h	5.9 (Berkeley) 4/3/91
  */
+
+/* OPENBSD ORIGINAL: include/vis.h */
 
 #include "includes.h"
 #if !defined(HAVE_STRNVIS)

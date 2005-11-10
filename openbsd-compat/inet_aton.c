@@ -1,5 +1,3 @@
-/* OPENBSD ORIGINAL: lib/libc/net/inet_addr.c */
-
 /*	$OpenBSD: inet_addr.c,v 1.7 2003/06/02 20:18:35 millert Exp $	*/
 
 /*
@@ -50,6 +48,8 @@
  * -
  * --Copyright--
  */
+
+/* OPENBSD ORIGINAL: lib/libc/net/inet_addr.c */
 
 #include "includes.h"
 

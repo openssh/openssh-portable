@@ -14,6 +14,9 @@
    prototypes, removal of "register").
  - (dtucker) [openbsd-compat/strlcat.c] Sync OpenBSD revs 1.11 - 1.12 (removal
    of "register").
+ - (dtucker) [openbsd-compat/{LOTS}] Move the "OPENBSD ORIGINAL" markers to
+   after the copyright notices.  Having them at the top next to the CVSIDs
+   guarantees a conflict for each and every sync.
 
 20051105
  - (djm) OpenBSD CVS Sync
@@ -3256,4 +3259,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3961 2005/11/10 05:05:37 dtucker Exp $
+$Id: ChangeLog,v 1.3962 2005/11/10 05:18:56 dtucker Exp $

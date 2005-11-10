@@ -1,5 +1,3 @@
-/* OPENBSD ORIGINAL: lib/libc/gen/getgrouplist.c */
-
 /*	$OpenBSD: getgrouplist.c,v 1.12 2005/08/08 08:05:34 espie Exp $ */
 /*
  * Copyright (c) 1991, 1993
@@ -29,6 +27,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
+
+/* OPENBSD ORIGINAL: lib/libc/gen/getgrouplist.c */
 
 #include "includes.h"
 
