@@ -19,6 +19,8 @@
    guarantees a conflict for each and every sync.
  - (dtucker) [openbsd-compat/strlcpy.c] Update from OpenBSD 1.8 -> 1.10.
  - (dtucker) [openbsd-compat/sigact.h] Add "OPENBSD ORIGINAL" marker.
+ - (dtucker) [openbsd-compat/strmode.c] Update from OpenBSD 1.5 -> 1.7.
+   Removal of rcsid, "whiteout" inode type.
 
 20051105
  - (djm) OpenBSD CVS Sync
@@ -3261,4 +3263,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3964 2005/11/10 05:31:55 dtucker Exp $
+$Id: ChangeLog,v 1.3965 2005/11/10 05:38:54 dtucker Exp $
