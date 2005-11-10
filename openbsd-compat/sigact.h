@@ -40,6 +40,8 @@
  * and usually no sigaction() nor <termios.h>
  */
 
+/* OPENBSD ORIGINAL: lib/libcurses/SigAction.h */
+
 #ifndef _SIGACTION_H
 #define _SIGACTION_H
 
