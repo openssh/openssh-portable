@@ -23,6 +23,8 @@
    Removal of rcsid, "whiteout" inode type.
  - (dtucker) [openbsd-compat/basename.c] Update from OpenBSD 1.11 -> 1.14.
    Removal of rcsid, will no longer strlcpy parts of the string.
+ - (dtucker) [openbsd-compat/strtoll.c] Update from OpenBSD 1.4 -> 1.5.
+   Removal of rcsid.
 
 20051105
  - (djm) OpenBSD CVS Sync
@@ -3265,4 +3267,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3966 2005/11/10 05:42:51 dtucker Exp $
+$Id: ChangeLog,v 1.3967 2005/11/10 05:46:26 dtucker Exp $

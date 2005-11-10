@@ -32,10 +32,6 @@
 #include "includes.h"
 #ifndef HAVE_STRTOLL
 
-#if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$OpenBSD: strtoll.c,v 1.4 2005/03/30 18:51:49 pat Exp $";
-#endif /* LIBC_SCCS and not lint */
-
 #include <sys/types.h>
 
 #include <ctype.h>
