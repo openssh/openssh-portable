@@ -1,6 +1,6 @@
 /* This file has be substantially modified from the original OpenBSD source */
 
-/*	$OpenBSD: bindresvport.c,v 1.15 2003/05/20 22:42:35 deraadt Exp $	*/
+/*	$OpenBSD: bindresvport.c,v 1.16 2005/04/01 07:44:03 otto Exp $	*/
 
 /*
  * Copyright 1996, Jason Downs.  All rights reserved.
@@ -44,9 +44,7 @@
  * Bind a socket to a privileged IP port
  */
 int
-bindresvport_sa(sd, sa)
-	int sd;
-	struct sockaddr *sa;
+bindresvport_sa(int sd, struct sockaddr *sa)
 {
 	int error, af;
 	struct sockaddr_storage myaddr;
