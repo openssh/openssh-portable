@@ -28,6 +28,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/* OPENBSD ORIGINAL: lib/libc/rpc/bindresvport.c */
+
 #include "includes.h"
 
 #ifndef HAVE_BINDRESVPORT_SA
