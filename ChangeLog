@@ -33,6 +33,7 @@
  - (dtucker) [openbsd-compat/getcwd.c] Replace lstat with fstat to match up
    with OpenBSD code since we don't support platforms without fstat any more.
  - (dtucker) [openbsd-compat/inet_aton.c] Update from OpenBSD 1.7 -> 1.9.
+ - (dtucker) [openbsd-compat/inet_nto.c] Update from OpenBSD 1.4 -> 1.6.
 
 20051105
  - (djm) OpenBSD CVS Sync
@@ -3275,4 +3276,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3975 2005/11/10 06:21:21 dtucker Exp $
+$Id: ChangeLog,v 1.3976 2005/11/10 06:23:54 dtucker Exp $
