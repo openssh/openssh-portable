@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.305 2005/11/10 10:30:36 dtucker Exp $
+# $Id: configure.ac,v 1.306 2005/11/12 04:20:53 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -85,7 +85,7 @@ AC_CHECK_DECL(LLONG_MAX, have_llong_max=1, , [#include <limits.h>])
 
 if test "$GCC" = "yes" || test "$GCC" = "egcs"; then
 	CFLAGS="$CFLAGS -Wall -Wpointer-arith -Wuninitialized"
-	GCC_VER=`$CC -v 2>&1 | awk '/gcc version /{print $3}'`
+	GCC_VER=`$CC -v 2>&1 | $AWK '/gcc version /{print $3}'`
 	case $GCC_VER in
 		1.*) ;;
 		2.8* | 2.9*) CFLAGS="$CFLAGS -Wsign-compare" ;;
