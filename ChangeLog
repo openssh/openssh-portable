@@ -3,6 +3,7 @@
    ifdef lost during sync.  Spotted by tim@.
  - (dtucker) [openbsd-compat/{realpath.c,stroll.c,rresvport.c}] $OpenBSD tag.
  - (dtucker) [configure.ac] Use "$AWK" instead of "awk" in gcc version test.
+ - (dtucker) [configure.ac] Remove duplicate utimes() check.  ok djm@
 
 20051110
  - (dtucker) [openbsd-compat/setenv.c] Merge changes for __findenv from
@@ -3298,4 +3299,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3993 2005/11/12 04:20:52 dtucker Exp $
+$Id: ChangeLog,v 1.3994 2005/11/12 07:42:36 dtucker Exp $
