@@ -1,3 +1,4 @@
+/*	$OpenBSD: realpath.c,v 1.13 2005/08/08 08:05:37 espie Exp $ */
 /*
  * Copyright (c) 2003 Constantin S. Svintsoff <kostik@iclub.nsu.ru>
  *
