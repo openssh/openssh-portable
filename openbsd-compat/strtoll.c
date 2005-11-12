@@ -1,3 +1,4 @@
+/* $OpenBSD: strtoll.c,v 1.6 2005/11/10 10:00:17 espie Exp $ */
 /*-
  * Copyright (c) 1992 The Regents of the University of California.
  * All rights reserved.
