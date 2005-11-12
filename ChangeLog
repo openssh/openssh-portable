@@ -4,6 +4,9 @@
  - (dtucker) [openbsd-compat/{realpath.c,stroll.c,rresvport.c}] $OpenBSD tag.
  - (dtucker) [configure.ac] Use "$AWK" instead of "awk" in gcc version test.
  - (dtucker) [configure.ac] Remove duplicate utimes() check.  ok djm@
+ - (dtucker) [regress/reconfigure.sh] Fix potential race in the reconfigure
+   test: if sshd takes too long to reconfigure the subsequent connection will
+   fail.  Zap pidfile before HUPing sshd which will rewrite it when it's ready.
 
 20051110
  - (dtucker) [openbsd-compat/setenv.c] Merge changes for __findenv from
@@ -3299,4 +3302,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3994 2005/11/12 07:42:36 dtucker Exp $
+$Id: ChangeLog,v 1.3995 2005/11/12 10:30:07 dtucker Exp $
