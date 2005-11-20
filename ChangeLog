@@ -1,3 +1,7 @@
+20051120
+ - (dtucker) [openbsd-compat/openssl-compat.h] Add comment explaining what
+   is going on.
+
 20051112
  - (dtucker) [openbsd-compat/getrrsetbyname.c] Restore Portable-specific
    ifdef lost during sync.  Spotted by tim@.
@@ -3302,4 +3306,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3995 2005/11/12 10:30:07 dtucker Exp $
+$Id: ChangeLog,v 1.3996 2005/11/20 03:09:59 dtucker Exp $

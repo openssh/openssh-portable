@@ -1,4 +1,4 @@
-/* $Id: openssl-compat.h,v 1.1 2005/06/09 11:45:11 dtucker Exp $ */
+/* $Id: openssl-compat.h,v 1.2 2005/11/20 03:10:00 dtucker Exp $ */
 
 /*
  * Copyright (c) 2005 Darren Tucker <dtucker@zip.com.au>
@@ -43,7 +43,12 @@ extern const EVP_CIPHER *evp_acss(void);
 #endif
 
 /*
- * insert comment here
+ * We overload some of the OpenSSL crypto functions with ssh_* equivalents
+ * which cater for older and/or less featureful OpenSSL version.
+ *
+ * In order for the compat library to call the real functions, it must
+ * define SSH_DONT_OVERLOAD_OPENSSL_FUNCS before including this file and
+ * implement the ssh_* equivalents.
  */
 #ifdef SSH_OLD_EVP
 
