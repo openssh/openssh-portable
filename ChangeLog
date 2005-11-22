@@ -12,6 +12,12 @@
      will pull it in.  At the moment it gets pulled in by sys/select.h
      (which ssh has no business including) via event.h.  OK markus@
      (ID sync only in -portable)
+   - dtucker@cvs.openbsd.org 2005/11/21 09:42:10
+     [auth-krb5.c]
+     Perform Kerberos calls even for invalid users to prevent leaking
+     information about account validity.  bz #975, patch originally from
+     Senthil Kumar, sanity checked by Simon Wilkinson, tested by djm@, biorn@,
+     ok markus@
 
 20051120
  - (dtucker) [openbsd-compat/openssl-compat.h] Add comment explaining what
@@ -3321,4 +3327,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3999 2005/11/22 08:41:33 dtucker Exp $
+$Id: ChangeLog,v 1.4000 2005/11/22 08:42:42 dtucker Exp $
