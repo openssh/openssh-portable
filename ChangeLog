@@ -1,3 +1,9 @@
+20051122
+ - (dtucker) OpenBSD CVS Sync
+   - deraadt@cvs.openbsd.org 2005/11/12 18:37:59
+     [ssh-add.c]
+     space
+
 20051120
  - (dtucker) [openbsd-compat/openssl-compat.h] Add comment explaining what
    is going on.
@@ -3306,4 +3312,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3996 2005/11/20 03:09:59 dtucker Exp $
+$Id: ChangeLog,v 1.3997 2005/11/22 08:37:08 dtucker Exp $
