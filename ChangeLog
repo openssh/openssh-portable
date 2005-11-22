@@ -3,6 +3,9 @@
    - deraadt@cvs.openbsd.org 2005/11/12 18:37:59
      [ssh-add.c]
      space
+   - deraadt@cvs.openbsd.org 2005/11/12 18:38:15
+     [scp.c]
+     avoid close(-1), as in rcp; ok cloder
 
 20051120
  - (dtucker) [openbsd-compat/openssl-compat.h] Add comment explaining what
@@ -3312,4 +3315,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3997 2005/11/22 08:37:08 dtucker Exp $
+$Id: ChangeLog,v 1.3998 2005/11/22 08:38:06 dtucker Exp $
