@@ -6,6 +6,12 @@
    - deraadt@cvs.openbsd.org 2005/11/12 18:38:15
      [scp.c]
      avoid close(-1), as in rcp; ok cloder
+   - millert@cvs.openbsd.org 2005/11/15 11:59:54
+     [includes.h]
+     Include sys/queue.h explicitly instead of assuming some other header
+     will pull it in.  At the moment it gets pulled in by sys/select.h
+     (which ssh has no business including) via event.h.  OK markus@
+     (ID sync only in -portable)
 
 20051120
  - (dtucker) [openbsd-compat/openssl-compat.h] Add comment explaining what
@@ -3315,4 +3321,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.3998 2005/11/22 08:38:06 dtucker Exp $
+$Id: ChangeLog,v 1.3999 2005/11/22 08:41:33 dtucker Exp $
