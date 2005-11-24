@@ -6,6 +6,8 @@
    dtucker and tim; ok dtucker@
  - (dtucker) [configure.ac] Fix typos in comments and AC_SEARCH_LIB argument
    order in Reliant Unix block.  Patch from johane at lysator.liu.se.
+ - (dtucker) [regress/test-exec.sh] Use 1024 bit keys since we generate so
+   many and use them only once.  Speeds up testing on older/slower hardware.
 
 20051122
  - (dtucker) OpenBSD CVS Sync
@@ -3342,4 +3344,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4004 2005/11/24 11:34:54 dtucker Exp $
+$Id: ChangeLog,v 1.4005 2005/11/24 12:18:54 dtucker Exp $

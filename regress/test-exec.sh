@@ -244,7 +244,7 @@ trace "generate keys"
 for t in rsa rsa1; do
 	# generate user key
 	rm -f $OBJ/$t
-	${SSHKEYGEN} -q -N '' -t $t  -f $OBJ/$t ||\
+	${SSHKEYGEN} -b 1024 -q -N '' -t $t  -f $OBJ/$t ||\
 		fail "ssh-keygen for $t failed"
 
 	# known hosts file for client
