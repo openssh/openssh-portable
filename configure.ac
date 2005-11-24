@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.307 2005/11/12 07:42:37 dtucker Exp $
+# $Id: configure.ac,v 1.308 2005/11/24 08:58:20 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -426,6 +426,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	;;
 # UnixWare 1.x, UnixWare 2.x, and others based on code from Univel.
 *-*-sysv4.2*)
+	CFLAGS="$CFLAGS -Dva_list=_VA_LIST"
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(SETEUID_BREAKS_SETUID)
 	AC_DEFINE(BROKEN_SETREUID)
@@ -1106,6 +1107,7 @@ AC_ARG_WITH(audit,
 dnl    Checks for library functions. Please keep in alphabetical order
 AC_CHECK_FUNCS( \
 	arc4random \
+	asprintf \
 	b64_ntop \
 	__b64_ntop \
 	b64_pton \
@@ -1181,6 +1183,7 @@ AC_CHECK_FUNCS( \
 	truncate \
 	unsetenv \
 	updwtmpx \
+	vasprintf \
 	vhangup \
 	vsnprintf \
 	waitpid \
@@ -1296,6 +1299,40 @@ int main(void){char b[5];snprintf(b,5,"123456789");exit(b[4]!='\0');}
 			AC_MSG_WARN([****** Your snprintf() function is broken, complain to your vendor])
 		],
 		[ AC_MSG_WARN([cross compiling: Assuming working snprintf()]) ]
+	)
+fi
+
+# If we don't have a working asprintf, then we strongly depend on vsnprintf
+# returning the right thing on overflow: the number of characters it tried to
+# create (as per SUSv3)
+if test "x$ac_cv_func_asprintf" != "xyes" && \
+   test "x$ac_cv_func_vsnprintf" = "xyes" ; then
+	AC_MSG_CHECKING([whether vsnprintf returns correct values on overflow])
+	AC_RUN_IFELSE(
+		[AC_LANG_SOURCE([[
+#include <sys/types.h>
+#include <stdio.h>
+#include <stdarg.h>
+
+int x_snprintf(char *str,size_t count,const char *fmt,...)
+{
+	size_t ret; va_list ap;
+	va_start(ap, fmt); ret = vsnprintf(str, count, fmt, ap); va_end(ap);
+	return ret;
+}
+int main(void)
+{
+	char x[1];
+	exit(x_snprintf(x, 1, "%s %d", "hello", 12345) == 11 ? 0 : 1);
+} ]])],
+		[AC_MSG_RESULT(yes)],
+		[
+			AC_MSG_RESULT(no)
+			AC_DEFINE(BROKEN_SNPRINTF, 1,
+				[Define if your snprintf is busted])
+			AC_MSG_WARN([****** Your vsnprintf() function is broken, complain to your vendor])
+		],
+		[ AC_MSG_WARN([cross compiling: Assuming working vsnprintf()]) ]
 	)
 fi
 
@@ -1978,7 +2015,10 @@ if test ! -z "$SONY" ; then
   LIBS="$LIBS -liberty";
 fi
 
-# Checks for data types
+# Check for  long long datatypes
+AC_CHECK_TYPES([long long, unsigned long long, long double])
+
+# Check datatype sizes
 AC_CHECK_SIZEOF(char, 1)
 AC_CHECK_SIZEOF(short int, 2)
 AC_CHECK_SIZEOF(int, 4)
@@ -2667,6 +2707,32 @@ AC_CACHE_CHECK([whether $CC implements __func__], ac_cv_cc_implements___func__, 
 ])
 if test "x$ac_cv_cc_implements___func__" = "xyes" ; then
 	AC_DEFINE(HAVE___func__, 1, [Define if compiler implements __func__])
+fi
+
+AC_CACHE_CHECK([whether va_copy exists], ac_cv_have_va_copy, [
+	AC_TRY_LINK(
+		[#include <stdarg.h>
+		 va_list x,y;],
+	    	[va_copy(x,y);],
+		[ ac_cv_have_va_copy="yes" ],
+		[ ac_cv_have_va_copy="no" ]
+	)
+])
+if test "x$ac_cv_have_va_copy" = "xyes" ; then
+	AC_DEFINE(HAVE_VA_COPY, 1, [Define if va_copy exists])
+fi
+
+AC_CACHE_CHECK([whether __va_copy exists], ac_cv_have___va_copy, [
+	AC_TRY_LINK(
+		[#include <stdarg.h>
+		 va_list x,y;],
+	    	[__va_copy(x,y);],
+		[ ac_cv_have___va_copy="yes" ],
+		[ ac_cv_have___va_copy="no" ]
+	)
+])
+if test "x$ac_cv_have___va_copy" = "xyes" ; then
+	AC_DEFINE(HAVE___VA_COPY, 1, [Define if __va_copy exists])
 fi
 
 AC_CACHE_CHECK([whether getopt has optreset support],

@@ -1,4 +1,11 @@
 20051122
+ - (djm) [configure.ac openbsd-compat/Makefile.in openbsd-compat/bsd-asprintf.c 
+   openbsd-compat/bsd-snprintf.c openbsd-compat/openbsd-compat.h] Add an 
+   asprintf() implementation, after syncing our {v,}snprintf() implementation
+   with some extra fixes from Samba's version. With help and debugging from 
+   dtucker and tim; ok dtucker@
+
+20051122
  - (dtucker) OpenBSD CVS Sync
    - deraadt@cvs.openbsd.org 2005/11/12 18:37:59
      [ssh-add.c]
@@ -3333,4 +3340,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4002 2005/11/22 08:55:13 dtucker Exp $
+$Id: ChangeLog,v 1.4003 2005/11/24 08:58:19 djm Exp $
