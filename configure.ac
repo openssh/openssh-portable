@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.308 2005/11/24 08:58:20 djm Exp $
+# $Id: configure.ac,v 1.309 2005/11/24 11:34:54 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -410,8 +410,8 @@ mips-sony-bsd|mips-sony-newsos4)
 *-sni-sysv*)
 	# /usr/ucblib MUST NOT be searched on ReliantUNIX
 	AC_CHECK_LIB(dl, dlsym, ,)
-	# -lresolv needs to be at then end of LIBS or DNS lookups break
-	AC_CHECK_LIB(res_query, resolv, [ LIBS="$LIBS -lresolv" ])
+	# -lresolv needs to be at the end of LIBS or DNS lookups break
+	AC_CHECK_LIB(resolv, res_query, [ LIBS="$LIBS -lresolv" ])
 	IPADDR_IN_DISPLAY=yes
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(IP_TOS_IS_BROKEN)
@@ -911,7 +911,7 @@ int main(void){struct dirent d;exit(sizeof(d.d_name)<=sizeof(char));}
 	[
 		AC_MSG_RESULT(no)
 		AC_DEFINE(BROKEN_ONE_BYTE_DIRENT_D_NAME, 1,
-			[Define in your struct dirent expects you to
+			[Define if your struct dirent expects you to
 			allocate extra space for d_name])
 	],
 	[

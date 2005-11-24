@@ -4,6 +4,8 @@
    asprintf() implementation, after syncing our {v,}snprintf() implementation
    with some extra fixes from Samba's version. With help and debugging from 
    dtucker and tim; ok dtucker@
+ - (dtucker) [configure.ac] Fix typos in comments and AC_SEARCH_LIB argument
+   order in Reliant Unix block.  Patch from johane at lysator.liu.se.
 
 20051122
  - (dtucker) OpenBSD CVS Sync
@@ -3340,4 +3342,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4003 2005/11/24 08:58:19 djm Exp $
+$Id: ChangeLog,v 1.4004 2005/11/24 11:34:54 dtucker Exp $
