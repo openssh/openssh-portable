@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.309 2005/11/24 11:34:54 dtucker Exp $
+# $Id: configure.ac,v 1.310 2005/11/25 02:14:58 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -2534,6 +2534,17 @@ OSSH_CHECK_HEADER_FOR_FIELD(ut_time, utmpx.h, HAVE_TIME_IN_UTMPX)
 OSSH_CHECK_HEADER_FOR_FIELD(ut_tv, utmpx.h, HAVE_TV_IN_UTMPX)
 
 AC_CHECK_MEMBERS([struct stat.st_blksize])
+AC_CHECK_MEMBER([struct __res_state.retrans], [], [AC_DEFINE(__res_state, state,
+	[Define if we don't have struct __res_state in resolv.h])],
+[
+#include <stdio.h>
+#if HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif
+#include <netinet/in.h>
+#include <arpa/nameser.h>
+#include <resolv.h>
+])
 
 AC_CACHE_CHECK([for ss_family field in struct sockaddr_storage],
 		ac_cv_have_ss_family_in_struct_ss, [

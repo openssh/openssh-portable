@@ -1,4 +1,9 @@
-20051122
+20051125
+ - (dtucker) [configure.ac] Apply tim's fix for older systems where the
+   resolver state in resolv.h is "state" not "__res_state".  With slight
+   modification by me to also work on old AIXes.  ok djm@
+
+20051124
  - (djm) [configure.ac openbsd-compat/Makefile.in openbsd-compat/bsd-asprintf.c 
    openbsd-compat/bsd-snprintf.c openbsd-compat/openbsd-compat.h] Add an 
    asprintf() implementation, after syncing our {v,}snprintf() implementation
@@ -3344,4 +3349,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4005 2005/11/24 12:18:54 dtucker Exp $
+$Id: ChangeLog,v 1.4006 2005/11/25 02:14:58 dtucker Exp $
