@@ -428,7 +428,7 @@ process_read(void)
 	len = get_int();
 
 	TRACE("read id %u handle %d off %llu len %d", id, handle,
-	    (u_int64_t)off, len);
+	    (unsigned long long)off, len);
 	if (len > sizeof buf) {
 		len = sizeof buf;
 		logit("read change len %d", len);
@@ -469,7 +469,7 @@ process_write(void)
 	data = get_string(&len);
 
 	TRACE("write id %u handle %d off %llu len %d", id, handle,
-	    (u_int64_t)off, len);
+	    (unsigned long long)off, len);
 	fd = handle_to_fd(handle);
 	if (fd >= 0) {
 		if (lseek(fd, off, SEEK_SET) < 0) {

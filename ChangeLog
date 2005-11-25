@@ -2,6 +2,9 @@
  - (dtucker) [configure.ac] Apply tim's fix for older systems where the
    resolver state in resolv.h is "state" not "__res_state".  With slight
    modification by me to also work on old AIXes.  ok djm@
+ - (dtucker) [progressmeter.c scp.c sftp-server.c] Use correct casts for
+   snprintf formats, fixes warnings on some 64 bit platforms.  Patch from
+   shaw at vranix.com, ok djm@
 
 20051124
  - (djm) [configure.ac openbsd-compat/Makefile.in openbsd-compat/bsd-asprintf.c 
@@ -3349,4 +3352,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4006 2005/11/25 02:14:58 dtucker Exp $
+$Id: ChangeLog,v 1.4007 2005/11/25 03:44:55 dtucker Exp $
