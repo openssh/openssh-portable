@@ -1,3 +1,9 @@
+20051126
+ - (dtucker) [configure.ac] Bug #1126: AIX 5.2 and 5.3 (and presumably newer,
+   when they're available) need the real UID set otherwise pam_chauthtok will
+   set ADMCHG after changing the password, forcing the user to change it
+   again immediately.
+
 20051125
  - (dtucker) [configure.ac] Apply tim's fix for older systems where the
    resolver state in resolv.h is "state" not "__res_state".  With slight
@@ -3352,4 +3358,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4007 2005/11/25 03:44:55 dtucker Exp $
+$Id: ChangeLog,v 1.4008 2005/11/26 11:24:09 dtucker Exp $
