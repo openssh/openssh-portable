@@ -1,6 +1,13 @@
 20051128
  - (dtucker) [regress/yes-head.sh] Work around breakage caused by some
    versions of GNU head.  Based on patch from zappaman at buraphalinux.org
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2005/11/28 05:16:53
+     [ssh-keygen.1 ssh-keygen.c]
+     Enforce DSA key length of exactly 1024 bits to comply with FIPS-186-2,
+     increase minumum RSA key size to 768 bits and update man page to reflect
+     these.  Patch originally bz#1119 (senthilkumar_sen at hotpop.com),
+     ok djm@, grudging ok deraadt@.
 
 20051126
  - (dtucker) [configure.ac] Bug #1126: AIX 5.2 and 5.3 (and presumably newer,
@@ -3362,4 +3369,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4009 2005/11/28 05:41:03 dtucker Exp $
+$Id: ChangeLog,v 1.4010 2005/11/28 05:41:46 dtucker Exp $

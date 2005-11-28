@@ -1,4 +1,4 @@
-.\"	$OpenBSD: ssh-keygen.1,v 1.71 2005/10/31 19:55:25 jmc Exp $
+.\"	$OpenBSD: ssh-keygen.1,v 1.72 2005/11/28 05:16:53 dtucker Exp $
 .\"
 .\"  -*- nroff -*-
 .\"
@@ -190,9 +190,9 @@ command.
 Show the bubblebabble digest of specified private or public key file.
 .It Fl b Ar bits
 Specifies the number of bits in the key to create.
-Minimum is 512 bits.
+For RSA keys, the minimum size is 768 bits and the default is 2048 bits.
 Generally, 2048 bits is considered sufficient.
-The default is 2048 bits.
+DSA keys must be exactly 1024 bits as specified by FIPS 186-2.
 .It Fl C Ar comment
 Provides a new comment.
 .It Fl c
