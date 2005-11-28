@@ -1,3 +1,7 @@
+20051128
+ - (dtucker) [regress/yes-head.sh] Work around breakage caused by some
+   versions of GNU head.  Based on patch from zappaman at buraphalinux.org
+
 20051126
  - (dtucker) [configure.ac] Bug #1126: AIX 5.2 and 5.3 (and presumably newer,
    when they're available) need the real UID set otherwise pam_chauthtok will
@@ -3358,4 +3362,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4008 2005/11/26 11:24:09 dtucker Exp $
+$Id: ChangeLog,v 1.4009 2005/11/28 05:41:03 dtucker Exp $
