@@ -8,6 +8,10 @@
      increase minumum RSA key size to 768 bits and update man page to reflect
      these.  Patch originally bz#1119 (senthilkumar_sen at hotpop.com),
      ok djm@, grudging ok deraadt@.
+   - dtucker@cvs.openbsd.org 2005/11/28 06:02:56
+     [ssh-agent.1]
+     Update agent socket path templates to reflect reality, correct xref for
+     time formats.  bz#1121, patch from openssh at roumenpetrov.info, ok djm@
 
 20051126
  - (dtucker) [configure.ac] Bug #1126: AIX 5.2 and 5.3 (and presumably newer,
@@ -3369,4 +3373,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4010 2005/11/28 05:41:46 dtucker Exp $
+$Id: ChangeLog,v 1.4011 2005/11/28 06:05:40 dtucker Exp $
