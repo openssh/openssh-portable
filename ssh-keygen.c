@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.134 2005/11/28 05:16:53 dtucker Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.135 2005/11/29 02:04:55 dtucker Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/pem.h>
@@ -1259,12 +1259,12 @@ main(int ac, char **av)
 		fprintf(stderr, "unknown key type %s\n", key_type_name);
 		exit(1);
 	}
-	if (!quiet)
-		printf("Generating public/private %s key pair.\n", key_type_name);
 	if (bits == 0)
 		bits = (type == KEY_DSA) ? DEFAULT_BITS_DSA : DEFAULT_BITS;
 	if (type == KEY_DSA && bits != 1024)
 		fatal("DSA keys must be 1024 bits");
+	if (!quiet)
+		printf("Generating public/private %s key pair.\n", key_type_name);
 	private = key_generate(type, bits);
 	if (private == NULL) {
 		fprintf(stderr, "key_generate failed");

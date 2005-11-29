@@ -1,6 +1,10 @@
 20051129
  - (tim) [ssh-keygen.c] Move DSA length test after setting default when
    bits == 0.
+ - (dtucker) OpenBSD CVS Sync
+   - dtucker@cvs.openbsd.org 2005/11/29 02:04:55
+     [ssh-keygen.c]
+     Populate default key sizes before checking them; from & ok tim@
 
 20051128
  - (dtucker) [regress/yes-head.sh] Work around breakage caused by some
@@ -3379,4 +3383,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4013 2005/11/29 01:45:32 tim Exp $
+$Id: ChangeLog,v 1.4014 2005/11/29 02:10:24 dtucker Exp $
