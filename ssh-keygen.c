@@ -1259,12 +1259,12 @@ main(int ac, char **av)
 		fprintf(stderr, "unknown key type %s\n", key_type_name);
 		exit(1);
 	}
-	if (type == KEY_DSA && bits != 1024)
-		fatal("DSA keys must be 1024 bits");
 	if (!quiet)
 		printf("Generating public/private %s key pair.\n", key_type_name);
 	if (bits == 0)
 		bits = (type == KEY_DSA) ? DEFAULT_BITS_DSA : DEFAULT_BITS;
+	if (type == KEY_DSA && bits != 1024)
+		fatal("DSA keys must be 1024 bits");
 	private = key_generate(type, bits);
 	if (private == NULL) {
 		fprintf(stderr, "key_generate failed");

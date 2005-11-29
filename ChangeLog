@@ -1,3 +1,7 @@
+20051129
+ - (tim) [ssh-keygen.c] Move DSA length test after setting default when
+   bits == 0.
+
 20051128
  - (dtucker) [regress/yes-head.sh] Work around breakage caused by some
    versions of GNU head.  Based on patch from zappaman at buraphalinux.org
@@ -3375,4 +3379,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4012 2005/11/28 11:28:59 dtucker Exp $
+$Id: ChangeLog,v 1.4013 2005/11/29 01:45:32 tim Exp $
