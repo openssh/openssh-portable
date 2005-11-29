@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.311 2005/11/26 11:24:10 dtucker Exp $
+# $Id: configure.ac,v 1.312 2005/11/29 02:40:34 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -434,6 +434,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(BROKEN_SETREUID)
 	AC_DEFINE(BROKEN_SETREGID)
 	AC_DEFINE(PASSWD_NEEDS_USERNAME, 1, [must supply username to passwd])
+	AC_DEFINE(LOCKED_PASSWD_STRING, "*LK*")
 	;;
 # UnixWare 7.x, OpenUNIX 8
 *-*-sysv5*)
@@ -449,6 +450,8 @@ mips-sony-bsd|mips-sony-newsos4)
 		TEST_SHELL=/u95/bin/sh
 		AC_DEFINE(BROKEN_LIBIAF, 1,
 			[ia_uinfo routines not supported by OS yet])
+		;;
+	*)	AC_DEFINE(LOCKED_PASSWD_STRING, "*LK*")
 		;;
 	esac
 	;;
