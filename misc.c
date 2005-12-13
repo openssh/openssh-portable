@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: misc.c,v 1.36 2005/12/06 22:38:27 reyk Exp $");
+RCSID("$OpenBSD: misc.c,v 1.37 2005/12/08 18:34:11 reyk Exp $");
 
 #include "misc.h"
 #include "log.h"
@@ -202,7 +202,7 @@ a2tun(const char *s, int *remote)
 	int tun;
 
 	if (remote != NULL) {
-		*remote = -1;
+		*remote = SSH_TUNID_ANY;
 		sp = xstrdup(s);
 		if ((ep = strchr(sp, ':')) == NULL) {
 			xfree(sp);
@@ -212,15 +212,15 @@ a2tun(const char *s, int *remote)
 		*remote = a2tun(ep, NULL);
 		tun = a2tun(sp, NULL);
 		xfree(sp);
-		return (tun);
+		return (*remote == SSH_TUNID_ERR ? *remote : tun);
 	}
 
 	if (strcasecmp(s, "any") == 0)
-		return (-1);
+		return (SSH_TUNID_ANY);
 
-	tun = strtonum(s, 0, INT_MAX, &errstr);
-	if (errstr != NULL || tun < -1)
-		return (-2);
+	tun = strtonum(s, 0, SSH_TUNID_MAX, &errstr);
+	if (errstr != NULL)
+		return (SSH_TUNID_ERR);
 
 	return (tun);
 }
@@ -539,27 +539,60 @@ read_keyfile_line(FILE *f, const char *filename, char *buf, size_t bufsz,
 }
 
 int
-tun_open(int tun)
+tun_open(int tun, int mode)
 {
+	struct ifreq ifr;
 	char name[100];
-	int i, fd;
+	int fd = -1, sock;
 
-	if (tun > -1) {
+	/* Open the tunnel device */
+	if (tun <= SSH_TUNID_MAX) {
 		snprintf(name, sizeof(name), "/dev/tun%d", tun);
-		if ((fd = open(name, O_RDWR)) >= 0)  {
-			debug("%s: %s: %d", __func__, name, fd);
-			return (fd);
+		fd = open(name, O_RDWR);
+	} else if (tun == SSH_TUNID_ANY) {
+		for (tun = 100; tun >= 0; tun--) {
+			snprintf(name, sizeof(name), "/dev/tun%d", tun);
+			if ((fd = open(name, O_RDWR)) >= 0)
+				break;
 		}
 	} else {
-		for (i = 100; i >= 0; i--) {
-			snprintf(name, sizeof(name), "/dev/tun%d", i);
-			if ((fd = open(name, O_RDWR)) >= 0)  {
-				debug("%s: %s: %d", __func__, name, fd);
-				return (fd);
-			}
-		}
+		debug("%s: invalid tunnel %u\n", __func__, tun);
+		return (-1);
 	}
-	debug("%s: %s failed: %s", __func__, name, strerror(errno));
+
+	if (fd < 0) {
+		debug("%s: %s open failed: %s", __func__, name, strerror(errno));
+		return (-1);
+	}
+
+	debug("%s: %s mode %d fd %d", __func__, name, mode, fd);
+
+	/* Set the tunnel device operation mode */
+	snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "tun%d", tun);
+	if ((sock = socket(PF_UNIX, SOCK_STREAM, 0)) == -1)
+		goto failed;
+
+	if (ioctl(sock, SIOCGIFFLAGS, &ifr) == -1)
+		goto failed;
+	if (mode == SSH_TUNMODE_ETHERNET) {
+		ifr.ifr_flags |= IFF_LINK0;
+		if (ioctl(sock, SIOCSIFFLAGS, &ifr) == -1)
+			goto failed;
+	}
+	ifr.ifr_flags |= IFF_UP;
+	if (ioctl(sock, SIOCSIFFLAGS, &ifr) == -1)
+		goto failed;
+
+	close(sock);
+	return (fd);
+
+ failed:
+	if (fd >= 0)
+		close(fd);
+	if (sock >= 0)
+		close(sock);
+	debug("%s: failed to set %s mode %d: %s", __func__, name,
+	    mode, strerror(errno));
 	return (-1);
 }
 

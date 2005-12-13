@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.255 2005/12/06 22:38:27 reyk Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.256 2005/12/08 18:34:11 reyk Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -341,9 +341,10 @@ again:
 				exit(0);
 			break;
 		case 'w':
-			options.tun_open = 1;
+			if (options.tun_open == -1)
+				options.tun_open = SSH_TUNMODE_DEFAULT;
 			options.tun_local = a2tun(optarg, &options.tun_remote);
-			if (options.tun_local < -1) {
+			if (options.tun_local == SSH_TUNID_ERR) {
 				fprintf(stderr, "Bad tun device '%s'\n", optarg);
 				exit(1);
 			}
@@ -1067,12 +1068,13 @@ ssh_session2_setup(int id, void *arg)
 		packet_send();
 	}
 
-	if (options.tun_open) {
+	if (options.tun_open != SSH_TUNMODE_NO) {
 		Channel *c;
 		int fd;
 
 		debug("Requesting tun.");
-		if ((fd = tun_open(options.tun_local)) >= 0) {
+		if ((fd = tun_open(options.tun_local,
+		    options.tun_open)) >= 0) {
 			c = channel_new("tun", SSH_CHANNEL_OPENING, fd, fd, -1,
 			    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT,
 			    0, "tun", 1);
@@ -1082,6 +1084,7 @@ ssh_session2_setup(int id, void *arg)
 			packet_put_int(c->self);
 			packet_put_int(c->local_window_max);
 			packet_put_int(c->local_maxpacket);
+			packet_put_int(options.tun_open);
 			packet_put_int(options.tun_remote);
 			packet_send();
 		}

@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.122 2005/12/06 22:38:27 reyk Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.123 2005/12/08 18:34:11 reyk Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -917,20 +917,31 @@ static Channel *
 server_request_tun(void)
 {
 	Channel *c = NULL;
-	int sock, tun;
+	int mode, tun;
+	int sock;
 
-	if (!options.permit_tun) {
-		packet_send_debug("Server has disabled tunnel device forwarding.");
+	mode = packet_get_int();
+	switch (mode) {
+	case SSH_TUNMODE_POINTOPOINT:
+	case SSH_TUNMODE_ETHERNET:
+		break;
+	default:
+		packet_send_debug("Unsupported tunnel device mode.");
+		return NULL;
+	}
+	if ((options.permit_tun & mode) == 0) {
+		packet_send_debug("Server has rejected tunnel device "
+		    "forwarding");
 		return NULL;
 	}
 
 	tun = packet_get_int();
-	if (forced_tun_device != -1) {
-	 	if (tun != -1 && forced_tun_device != tun)
+	if (forced_tun_device != SSH_TUNID_ANY) {
+	 	if (tun != SSH_TUNID_ANY && forced_tun_device != tun)
 			goto done;
 		tun = forced_tun_device;
 	}
-	sock = tun_open(tun);
+	sock = tun_open(tun, mode);
 	if (sock < 0)
 		goto done;
 	c = channel_new("tun", SSH_CHANNEL_OPEN, sock, sock, -1,

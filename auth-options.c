@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-options.c,v 1.32 2005/12/06 22:38:27 reyk Exp $");
+RCSID("$OpenBSD: auth-options.c,v 1.33 2005/12/08 18:34:11 reyk Exp $");
 
 #include "xmalloc.h"
 #include "match.h"
@@ -296,7 +296,7 @@ auth_parse_options(struct passwd *pw, char *opts, char *file, u_long linenum)
 			tun[i] = 0;
 			forced_tun_device = a2tun(tun, NULL);
 			xfree(tun);
-			if (forced_tun_device < -1) {
+			if (forced_tun_device == SSH_TUNID_ERR) {
 				debug("%.100s, line %lu: invalid tun device",
 				    file, linenum);
 				auth_debug_add("%.100s, line %lu: invalid tun device",

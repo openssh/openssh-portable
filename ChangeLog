@@ -36,6 +36,18 @@
    - jmc@cvs.openbsd.org 2005/12/08 15:06:29
      [ssh_config.5]
      keep options in order;
+   - reyk@cvs.openbsd.org 2005/12/08 18:34:11
+     [auth-options.c includes.h misc.c misc.h readconf.c servconf.c]
+     [serverloop.c ssh.c ssh_config.5 sshd_config.5 configure.ac]
+     two changes to the new ssh tunnel support. this breaks compatibility
+     with the initial commit but is required for a portable approach.
+     - make the tunnel id u_int and platform friendly, use predefined types.
+     - support configuration of layer 2 (ethernet) or layer 3
+     (point-to-point, default) modes. configuration is done using the
+     Tunnel (yes|point-to-point|ethernet|no) option is ssh_config(5) and
+     restricted by the PermitTunnel (yes|point-to-point|ethernet|no) option
+     in sshd_config(5).
+     ok djm@, man page bits by jmc@
 
 20051201
  - (djm) [envpass.sh] Remove regress script that was accidentally committed 
@@ -3428,4 +3440,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4023 2005/12/13 08:30:45 djm Exp $
+$Id: ChangeLog,v 1.4024 2005/12/13 08:33:19 djm Exp $

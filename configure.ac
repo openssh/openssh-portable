@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.312 2005/11/29 02:40:34 tim Exp $
+# $Id: configure.ac,v 1.313 2005/12/13 08:33:20 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -654,6 +654,7 @@ AC_CHECK_HEADERS( \
 	login_cap.h \
 	maillock.h \
 	ndir.h \
+	net/if.h \
 	netdb.h \
 	netgroup.h \
 	netinet/in_systm.h \

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.46 2005/12/06 22:38:28 reyk Exp $
+.\" $OpenBSD: sshd_config.5,v 1.47 2005/12/08 18:34:11 reyk Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -506,6 +506,12 @@ root is not allowed to log in.
 Specifies whether
 .Xr tun 4
 device forwarding is allowed.
+The argument must be
+.Dq yes ,
+.Dq point-to-point ,
+.Dq ethernet
+or
+.Dq no .
 The default is
 .Dq no .
 .It Cm PermitUserEnvironment

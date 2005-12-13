@@ -10,7 +10,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: servconf.c,v 1.145 2005/12/06 22:38:27 reyk Exp $");
+RCSID("$OpenBSD: servconf.c,v 1.146 2005/12/08 18:34:11 reyk Exp $");
 
 #include "ssh.h"
 #include "log.h"
@@ -231,7 +231,7 @@ fill_default_server_options(ServerOptions *options)
 	if (options->authorized_keys_file == NULL)
 		options->authorized_keys_file = _PATH_SSH_USER_PERMITTED_KEYS;
 	if (options->permit_tun == -1)
-		options->permit_tun = 0;
+		options->permit_tun = SSH_TUNMODE_NO;
 
 	/* Turn privilege separation on by default */
 	if (use_privsep == -1)
@@ -968,7 +968,25 @@ parse_flag:
 
 	case sPermitTunnel:
 		intptr = &options->permit_tun;
-		goto parse_flag;
+		arg = strdelim(&cp);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: Missing yes/point-to-point/"
+			    "ethernet/no argument.", filename, linenum);
+		value = 0;	/* silence compiler */
+		if (strcasecmp(arg, "ethernet") == 0)
+			value = SSH_TUNMODE_ETHERNET;
+		else if (strcasecmp(arg, "point-to-point") == 0)
+			value = SSH_TUNMODE_POINTOPOINT;
+		else if (strcasecmp(arg, "yes") == 0)
+			value = SSH_TUNMODE_YES;
+		else if (strcasecmp(arg, "no") == 0)
+			value = SSH_TUNMODE_NO;
+		else
+			fatal("%s line %d: Bad yes/point-to-point/ethernet/"
+			    "no argument: %s", filename, linenum, arg);
+		if (*intptr == -1)
+			*intptr = value;
+		break;
 
 	case sDeprecated:
 		logit("%s line %d: Deprecated option %s",

@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.144 2005/12/06 22:38:27 reyk Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.145 2005/12/08 18:34:11 reyk Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -273,7 +273,7 @@ clear_forwardings(Options *options)
 		xfree(options->remote_forwards[i].connect_host);
 	}
 	options->num_remote_forwards = 0;
-	options->tun_open = 0;
+	options->tun_open = SSH_TUNMODE_NO;
 }
 
 /*
@@ -835,14 +835,32 @@ parse_int:
 
 	case oTunnel:
 		intptr = &options->tun_open;
-		goto parse_flag;
+		arg = strdelim(&s);
+		if (!arg || *arg == '\0')
+			fatal("%s line %d: Missing yes/point-to-point/"
+			    "ethernet/no argument.", filename, linenum);
+		value = 0;	/* silence compiler */
+		if (strcasecmp(arg, "ethernet") == 0)
+			value = SSH_TUNMODE_ETHERNET;
+		else if (strcasecmp(arg, "point-to-point") == 0)
+			value = SSH_TUNMODE_POINTOPOINT;
+		else if (strcasecmp(arg, "yes") == 0)
+			value = SSH_TUNMODE_DEFAULT;
+		else if (strcasecmp(arg, "no") == 0)
+			value = SSH_TUNMODE_NO;
+		else
+			fatal("%s line %d: Bad yes/point-to-point/ethernet/"
+			    "no argument: %s", filename, linenum, arg);
+		if (*activep)
+			*intptr = value;
+		break;
 
 	case oTunnelDevice:
 		arg = strdelim(&s);
 		if (!arg || *arg == '\0')
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
 		value = a2tun(arg, &value2);
-		if (value < -1)
+		if (value == SSH_TUNID_ERR)
 			fatal("%.200s line %d: Bad tun device.", filename, linenum);
 		if (*activep) {
 			options->tun_local = value;
@@ -1132,7 +1150,11 @@ fill_default_options(Options * options)
 	if (options->hash_known_hosts == -1)
 		options->hash_known_hosts = 0;
 	if (options->tun_open == -1)
-		options->tun_open = 0;
+		options->tun_open = SSH_TUNMODE_NO;
+	if (options->tun_local == -1)
+		options->tun_local = SSH_TUNID_ANY;
+	if (options->tun_remote == -1)
+		options->tun_remote = SSH_TUNID_ANY;
 	if (options->permit_local_command == -1)
 		options->permit_local_command = 0;
 	/* options->local_command should not be set by default */

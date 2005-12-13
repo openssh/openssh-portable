@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.h,v 1.27 2005/12/06 22:38:27 reyk Exp $	*/
+/*	$OpenBSD: misc.h,v 1.28 2005/12/08 18:34:11 reyk Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -50,4 +50,16 @@ void	 addargs(arglist *, char *, ...) __attribute__((format(printf, 2, 3)));
 char	*read_passphrase(const char *, int);
 int	 ask_permission(const char *, ...) __attribute__((format(printf, 1, 2)));
 int	 read_keyfile_line(FILE *, const char *, char *, size_t, u_long *);
-int	 tun_open(int);
+
+int	 tun_open(int, int);
+
+/* Common definitions for ssh tunnel device forwarding */
+#define SSH_TUNMODE_NO		0x00
+#define SSH_TUNMODE_POINTOPOINT	0x01
+#define SSH_TUNMODE_ETHERNET	0x02
+#define SSH_TUNMODE_DEFAULT	SSH_TUNMODE_POINTOPOINT
+#define SSH_TUNMODE_YES		(SSH_TUNMODE_POINTOPOINT|SSH_TUNMODE_ETHERNET)
+
+#define SSH_TUNID_ANY		0x7fffffff
+#define SSH_TUNID_ERR		(SSH_TUNID_ANY - 1)
+#define SSH_TUNID_MAX		(SSH_TUNID_ANY - 2)
