@@ -1,3 +1,9 @@
+20051213
+ - (djm) OpenBSD CVS Sync
+   - jmc@cvs.openbsd.org 2005/11/30 11:18:27
+     [ssh.1]
+     timezone -> time zone
+
 20051201
  - (djm) [envpass.sh] Remove regress script that was accidentally committed 
    in top level directory and not noticed for over a year :)
@@ -3389,4 +3395,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4016 2005/12/01 01:51:59 djm Exp $
+$Id: ChangeLog,v 1.4017 2005/12/13 08:25:21 djm Exp $
