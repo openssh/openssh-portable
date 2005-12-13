@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.65 2005/12/06 22:38:27 reyk Exp $
+.\" $OpenBSD: ssh_config.5,v 1.66 2005/12/08 14:59:44 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -640,7 +640,7 @@ Default is 22.
 Allow local command execution via the
 .Ic LocalCommand
 option or using the
-.Ic ! Ar command
+.Ic !\& Ns Ar command
 escape sequence in
 .Xr ssh 1 .
 The argument must be

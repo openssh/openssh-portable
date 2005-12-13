@@ -29,6 +29,10 @@
      - avoid line split in SYNOPSIS
      - add args to -w
      - kill trailing whitespace
+   - jmc@cvs.openbsd.org 2005/12/08 14:59:44
+     [ssh.1 ssh_config.5]
+     make `!command' a little clearer;
+     ok reyk
 
 20051201
  - (djm) [envpass.sh] Remove regress script that was accidentally committed 
@@ -3421,4 +3425,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4021 2005/12/13 08:30:05 djm Exp $
+$Id: ChangeLog,v 1.4022 2005/12/13 08:30:27 djm Exp $

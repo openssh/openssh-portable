@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.216 2005/12/07 10:52:13 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.217 2005/12/08 14:59:44 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -304,8 +304,7 @@ options (see below).
 It also allows the cancellation of existing remote port-forwardings
 using
 .Fl KR Ar hostport .
-The
-.Ic ! Ar command
+.Ic !\& Ns Ar command
 allows the user to execute a local command if the
 .Ic PermitLocalCommand
 option is enabled in
