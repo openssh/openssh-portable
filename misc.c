@@ -541,6 +541,9 @@ read_keyfile_line(FILE *f, const char *filename, char *buf, size_t bufsz,
 int
 tun_open(int tun, int mode)
 {
+#if defined(CUSTOM_SYS_TUN_OPEN)
+	return (sys_tun_open(tun, mode));
+#elif defined(SSH_TUN_BSD)
 	struct ifreq ifr;
 	char name[100];
 	int fd = -1, sock;
@@ -594,6 +597,10 @@ tun_open(int tun, int mode)
 	debug("%s: failed to set %s mode %d: %s", __func__, name,
 	    mode, strerror(errno));
 	return (-1);
+#else
+	error("Tunnel interfaces are not supported on this platform");
+	return (-1);
+#endif
 }
 
 void

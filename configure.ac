@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.313 2005/12/13 08:33:20 djm Exp $
+# $Id: configure.ac,v 1.314 2005/12/13 09:44:13 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -359,6 +359,7 @@ mips-sony-bsd|mips-sony-newsos4)
 *-*-openbsd*)
 	AC_DEFINE(HAVE_ATTRIBUTE__SENTINEL__, 1, [OpenBSD's gcc has sentinel])
 	AC_DEFINE(HAVE_ATTRIBUTE__BOUNDED__, 1, [OpenBSD's gcc has bounded])
+	AC_DEFINE(SSH_TUN_BSD, 1, [Open tunnel devices the BSD way])
 	;;
 *-*-solaris*)
 	if test "x$withval" != "xno" ; then

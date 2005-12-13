@@ -55,6 +55,11 @@
      [channels.c channels.h session.c]
      make sure protocol messages for internal channels are ignored.
      allow adjust messages for non-open channels; with and ok djm@
+ - (djm) [misc.c] Disable tunnel code for non-OpenBSD (for now), enable
+   again by providing a sys_tun_open() function for your platform and 
+   setting the CUSTOM_SYS_TUN_OPEN define. More work is required to match 
+   OpenBSD's tunnel protocol, which prepends the address family to the 
+   packet
 
 20051201
  - (djm) [envpass.sh] Remove regress script that was accidentally committed 
@@ -3447,4 +3452,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4026 2005/12/13 08:33:57 djm Exp $
+$Id: ChangeLog,v 1.4027 2005/12/13 09:44:13 djm Exp $
