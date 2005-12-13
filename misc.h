@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.h,v 1.26 2005/09/13 23:40:07 djm Exp $	*/
+/*	$OpenBSD: misc.h,v 1.27 2005/12/06 22:38:27 reyk Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -20,6 +20,7 @@ int	 set_nonblock(int);
 int	 unset_nonblock(int);
 void	 set_nodelay(int);
 int	 a2port(const char *);
+int	 a2tun(const char *, int *);
 char	*hpdelim(char **);
 char	*cleanhostname(char *);
 char	*colon(char *);
@@ -49,3 +50,4 @@ void	 addargs(arglist *, char *, ...) __attribute__((format(printf, 2, 3)));
 char	*read_passphrase(const char *, int);
 int	 ask_permission(const char *, ...) __attribute__((format(printf, 1, 2)));
 int	 read_keyfile_line(FILE *, const char *, char *, size_t, u_long *);
+int	 tun_open(int);

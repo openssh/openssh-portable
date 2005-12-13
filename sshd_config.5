@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.45 2005/09/21 23:36:54 djm Exp $
+.\" $OpenBSD: sshd_config.5,v 1.46 2005/12/06 22:38:28 reyk Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -502,6 +502,12 @@ All other authentication methods are disabled for root.
 If this option is set to
 .Dq no
 root is not allowed to log in.
+.It Cm PermitTunnel
+Specifies whether
+.Xr tun 4
+device forwarding is allowed.
+The default is
+.Dq no .
 .It Cm PermitUserEnvironment
 Specifies whether
 .Pa ~/.ssh/environment

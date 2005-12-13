@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.254 2005/10/30 08:52:18 djm Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.255 2005/12/06 22:38:27 reyk Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -162,7 +162,7 @@ usage(void)
 "           [-i identity_file] [-L [bind_address:]port:host:hostport]\n"
 "           [-l login_name] [-m mac_spec] [-O ctl_cmd] [-o option] [-p port]\n"
 "           [-R [bind_address:]port:host:hostport] [-S ctl_path]\n"
-"           [user@]hostname [command]\n"
+"           [-w tunnel:tunnel] [user@]hostname [command]\n"
 	);
 	exit(1);
 }
@@ -244,7 +244,7 @@ main(int ac, char **av)
 
 again:
 	while ((opt = getopt(ac, av,
-	    "1246ab:c:e:fgi:kl:m:no:p:qstvxACD:F:I:L:MNO:PR:S:TVXY")) != -1) {
+	    "1246ab:c:e:fgi:kl:m:no:p:qstvxACD:F:I:L:MNO:PR:S:TVw:XY")) != -1) {
 		switch (opt) {
 		case '1':
 			options.protocol = SSH_PROTO_1;
@@ -339,6 +339,14 @@ again:
 			    SSH_RELEASE, SSLeay_version(SSLEAY_VERSION));
 			if (opt == 'V')
 				exit(0);
+			break;
+		case 'w':
+			options.tun_open = 1;
+			options.tun_local = a2tun(optarg, &options.tun_remote);
+			if (options.tun_local < -1) {
+				fprintf(stderr, "Bad tun device '%s'\n", optarg);
+				exit(1);
+			}
 			break;
 		case 'q':
 			options.log_level = SYSLOG_LEVEL_QUIET;
@@ -1059,6 +1067,26 @@ ssh_session2_setup(int id, void *arg)
 		packet_send();
 	}
 
+	if (options.tun_open) {
+		Channel *c;
+		int fd;
+
+		debug("Requesting tun.");
+		if ((fd = tun_open(options.tun_local)) >= 0) {
+			c = channel_new("tun", SSH_CHANNEL_OPENING, fd, fd, -1,
+			    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT,
+			    0, "tun", 1);
+			c->datagram = 1;
+			packet_start(SSH2_MSG_CHANNEL_OPEN);
+			packet_put_cstring("tun@openssh.com");
+			packet_put_int(c->self);
+			packet_put_int(c->local_window_max);
+			packet_put_int(c->local_maxpacket);
+			packet_put_int(options.tun_remote);
+			packet_send();
+		}
+	}
+
 	client_session2_setup(id, tty_flag, subsystem_flag, getenv("TERM"),
 	    NULL, fileno(stdin), &command, environ, &ssh_subsystem_reply);
 
@@ -1122,6 +1150,11 @@ ssh_session2(void)
 
 	if (!no_shell_flag || (datafellows & SSH_BUG_DUMMYCHAN))
 		id = ssh_session2_open();
+
+	/* Execute a local command */
+	if (options.local_command != NULL &&
+	    options.permit_local_command)
+		ssh_local_cmd(options.local_command);
 
 	/* If requested, let ssh continue in the background. */
 	if (fork_after_authentication_flag)

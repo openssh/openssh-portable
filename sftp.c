@@ -16,7 +16,7 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.68 2005/10/31 06:15:04 dtucker Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.69 2005/12/06 22:38:27 reyk Exp $");
 
 #ifdef USE_LIBEDIT
 #include <histedit.h>
@@ -1457,6 +1457,7 @@ main(int argc, char **argv)
 	addargs(&args, "ssh");		/* overwritten with ssh_program */
 	addargs(&args, "-oForwardX11 no");
 	addargs(&args, "-oForwardAgent no");
+	addargs(&args, "-oPermitLocalCommand no");
 	addargs(&args, "-oClearAllForwardings yes");
 
 	ll = SYSLOG_LEVEL_INFO;

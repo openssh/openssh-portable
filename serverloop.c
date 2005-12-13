@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.121 2005/10/31 11:48:29 djm Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.122 2005/12/06 22:38:27 reyk Exp $");
 
 #include "xmalloc.h"
 #include "packet.h"
@@ -914,6 +914,36 @@ server_request_direct_tcpip(void)
 }
 
 static Channel *
+server_request_tun(void)
+{
+	Channel *c = NULL;
+	int sock, tun;
+
+	if (!options.permit_tun) {
+		packet_send_debug("Server has disabled tunnel device forwarding.");
+		return NULL;
+	}
+
+	tun = packet_get_int();
+	if (forced_tun_device != -1) {
+	 	if (tun != -1 && forced_tun_device != tun)
+			goto done;
+		tun = forced_tun_device;
+	}
+	sock = tun_open(tun);
+	if (sock < 0)
+		goto done;
+	c = channel_new("tun", SSH_CHANNEL_OPEN, sock, sock, -1,
+	    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT, 0, "tun", 1);
+	c->datagram = 1;
+
+ done:
+	if (c == NULL)
+		packet_send_debug("Failed to open the tunnel device.");
+	return c;
+}
+
+static Channel *
 server_request_session(void)
 {
 	Channel *c;
@@ -958,6 +988,8 @@ server_input_channel_open(int type, u_int32_t seq, void *ctxt)
 		c = server_request_session();
 	} else if (strcmp(ctype, "direct-tcpip") == 0) {
 		c = server_request_direct_tcpip();
+	} else if (strcmp(ctype, "tun@openssh.com") == 0) {
+		c = server_request_tun();
 	}
 	if (c != NULL) {
 		debug("server_input_channel_open: confirm %s", ctype);

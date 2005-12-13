@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.145 2005/10/30 08:52:17 djm Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.146 2005/12/06 22:38:27 reyk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -914,6 +914,15 @@ process_cmdline(void)
 		logit("      -Lport:host:hostport    Request local forward");
 		logit("      -Rport:host:hostport    Request remote forward");
 		logit("      -KRhostport             Cancel remote forward");
+		if (!options.permit_local_command)
+			goto out;
+		logit("      !args                   Execute local command");
+		goto out;
+	}
+
+	if (*s == '!' && options.permit_local_command) {
+		s++;
+		ssh_local_cmd(s);
 		goto out;
 	}
 

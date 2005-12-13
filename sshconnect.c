@@ -13,7 +13,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.170 2005/10/30 08:52:18 djm Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.171 2005/12/06 22:38:27 reyk Exp $");
 
 #include <openssl/bn.h>
 
@@ -1033,4 +1033,40 @@ warn_changed_key(Key *host_key)
 	error("Please contact your system administrator.");
 
 	xfree(fp);
+}
+
+/*
+ * Execute a local command
+ */
+int
+ssh_local_cmd(const char *args)
+{
+	char *shell;
+	pid_t pid;
+	int status;
+
+	if (!options.permit_local_command ||
+	    args == NULL || !*args)
+		return (1);
+
+	if ((shell = getenv("SHELL")) == NULL)
+		shell = _PATH_BSHELL;
+
+	pid = fork();
+	if (pid == 0) {
+		debug3("Executing %s -c \"%s\"", shell, args);
+		execl(shell, shell, "-c", args, (char *)NULL);
+		error("Couldn't execute %s -c \"%s\": %s",
+		    shell, args, strerror(errno));
+		_exit(1);
+	} else if (pid == -1)
+		fatal("fork failed: %.100s", strerror(errno));
+	while (waitpid(pid, &status, 0) == -1)
+		if (errno != EINTR)
+			fatal("Couldn't wait for child: %s", strerror(errno));
+
+	if (!WIFEXITED(status))
+		return (1);
+
+	return (WEXITSTATUS(status));
 }

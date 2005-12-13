@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.214 2005/11/30 11:45:20 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.215 2005/12/06 22:38:27 reyk Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -77,6 +77,7 @@
 .Sm on
 .Oc
 .Op Fl S Ar ctl_path
+.Op Fl w Ar tunnel : tunnel
 .Oo Ar user Ns @ Oc Ns Ar hostname
 .Op Ar command
 .Sh DESCRIPTION
@@ -301,6 +302,12 @@ options (see below).
 It also allows the cancellation of existing remote port-forwardings
 using
 .Fl KR Ar hostport .
+The 
+.Ic ! Ar command
+allows the user to execute a local command if the
+.Ic PermitLocalCommand
+option is enabled in
+.Xr ssh_config 5 .
 Basic help is available, using the
 .Fl h
 option.
@@ -747,12 +754,14 @@ For full details of the options listed below, and their possible values, see
 .It IdentityFile
 .It IdentitiesOnly
 .It KbdInteractiveDevices
+.It LocalCommand
 .It LocalForward
 .It LogLevel
 .It MACs
 .It NoHostAuthenticationForLocalhost
 .It NumberOfPasswordPrompts
 .It PasswordAuthentication
+.It PermitLocalCommand
 .It Port
 .It PreferredAuthentications
 .It Protocol
@@ -767,6 +776,8 @@ For full details of the options listed below, and their possible values, see
 .It SmartcardDevice
 .It StrictHostKeyChecking
 .It TCPKeepAlive
+.It Tunnel
+.It TunnelDevice
 .It UsePrivilegedPort
 .It User
 .It UserKnownHostsFile
@@ -866,6 +877,13 @@ Multiple
 .Fl v
 options increase the verbosity.
 The maximum is 3.
+.It Fl w
+Requests a
+.Xr tun 4
+device on the client and server like the
+.Cm Tunnel
+directive in
+.Xr ssh_config 5 .
 .It Fl X
 Enables X11 forwarding.
 This can also be specified on a per-host basis in a configuration file.

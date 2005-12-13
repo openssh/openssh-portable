@@ -7,6 +7,21 @@
      [ssh.1]
      avoid ambiguities in describing TZ;
      ok djm@
+   - reyk@cvs.openbsd.org 2005/12/06 22:38:28
+     [auth-options.c auth-options.h channels.c channels.h clientloop.c]
+     [misc.c misc.h readconf.c readconf.h scp.c servconf.c servconf.h]
+     [serverloop.c sftp.c ssh.1 ssh.c ssh_config ssh_config.5 sshconnect.c]
+     [sshconnect.h sshd.8 sshd_config sshd_config.5]
+     Add support for tun(4) forwarding over OpenSSH, based on an idea and
+     initial channel code bits by markus@. This is a simple and easy way to
+     use OpenSSH for ad hoc virtual private network connections, e.g.
+     administrative tunnels or secure wireless access. It's based on a new
+     ssh channel and works similar to the existing TCP forwarding support,
+     except that it depends on the tun(4) network interface on both ends of
+     the connection for layer 2 or layer 3 tunneling. This diff also adds
+     support for LocalCommand in the ssh(1) client.
+
+     ok djm@, markus@, jmc@ (manpages), tested and discussed with others
 
 20051201
  - (djm) [envpass.sh] Remove regress script that was accidentally committed 
@@ -3399,4 +3414,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4018 2005/12/13 08:25:43 djm Exp $
+$Id: ChangeLog,v 1.4019 2005/12/13 08:29:02 djm Exp $

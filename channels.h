@@ -1,4 +1,4 @@
-/*	$OpenBSD: channels.h,v 1.80 2005/10/10 10:23:08 djm Exp $	*/
+/*	$OpenBSD: channels.h,v 1.81 2005/12/06 22:38:27 reyk Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -112,6 +112,8 @@ struct Channel {
 
 	/* filter */
 	channel_filter_fn	*input_filter;
+
+	int     datagram;	/* keep boundaries */
 };
 
 #define CHAN_EXTENDED_IGNORE		0

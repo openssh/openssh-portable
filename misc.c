@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: misc.c,v 1.35 2005/09/13 23:40:07 djm Exp $");
+RCSID("$OpenBSD: misc.c,v 1.36 2005/12/06 22:38:27 reyk Exp $");
 
 #include "misc.h"
 #include "log.h"
@@ -192,6 +192,37 @@ a2port(const char *s)
 		return 0;
 
 	return port;
+}
+
+int
+a2tun(const char *s, int *remote)
+{
+	const char *errstr = NULL;
+	char *sp, *ep;
+	int tun;
+
+	if (remote != NULL) {
+		*remote = -1;
+		sp = xstrdup(s);
+		if ((ep = strchr(sp, ':')) == NULL) {
+			xfree(sp);
+			return (a2tun(s, NULL));
+		}
+		ep[0] = '\0'; ep++;
+		*remote = a2tun(ep, NULL);
+		tun = a2tun(sp, NULL);
+		xfree(sp);
+		return (tun);
+	}
+
+	if (strcasecmp(s, "any") == 0)
+		return (-1);
+
+	tun = strtonum(s, 0, INT_MAX, &errstr);
+	if (errstr != NULL || tun < -1)
+		return (-2);
+
+	return (tun);
 }
 
 #define SECONDS		1
@@ -505,6 +536,31 @@ read_keyfile_line(FILE *f, const char *filename, char *buf, size_t bufsz,
 		}
 	}
 	return -1;
+}
+
+int
+tun_open(int tun)
+{
+	char name[100];
+	int i, fd;
+
+	if (tun > -1) {
+		snprintf(name, sizeof(name), "/dev/tun%d", tun);
+		if ((fd = open(name, O_RDWR)) >= 0)  {
+			debug("%s: %s: %d", __func__, name, fd);
+			return (fd);
+		}
+	} else {
+		for (i = 100; i >= 0; i--) {
+			snprintf(name, sizeof(name), "/dev/tun%d", i);
+			if ((fd = open(name, O_RDWR)) >= 0)  {
+				debug("%s: %s: %d", __func__, name, fd);
+				return (fd);
+			}
+		}
+	}
+	debug("%s: %s failed: %s", __func__, name, strerror(errno));
+	return (-1);
 }
 
 void

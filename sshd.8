@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.208 2005/06/08 03:50:00 djm Exp $
+.\" $OpenBSD: sshd.8,v 1.209 2005/12/06 22:38:28 reyk Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -518,6 +518,12 @@ Multiple
 options may be applied separated by commas.
 No pattern matching is performed on the specified hostnames,
 they must be literal domains or addresses.
+.It Cm tunnel="n"
+Force a
+.Xr tun 4
+device on the server.
+Without this option, the next available device will be used if
+the client requests a tunnel.
 .El
 .Ss Examples
 1024 33 12121...312314325 ylo@foo.bar
@@ -527,6 +533,8 @@ from="*.niksula.hut.fi,!pc.niksula.hut.fi" 1024 35 23...2334 ylo@niksula
 command="dump /home",no-pty,no-port-forwarding 1024 33 23...2323 backup.hut.fi
 .Pp
 permitopen="10.2.1.55:80",permitopen="10.2.1.56:25" 1024 33 23...2323
+.Pp
+tunnel="0",command="sh /etc/netstart tun0" ssh-rsa AAAA...== reyk@openbsd.org
 .Sh SSH_KNOWN_HOSTS FILE FORMAT
 The
 .Pa /etc/ssh/ssh_known_hosts

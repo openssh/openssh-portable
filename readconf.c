@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.143 2005/07/30 02:03:47 djm Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.144 2005/12/06 22:38:27 reyk Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -70,6 +70,10 @@ RCSID("$OpenBSD: readconf.c,v 1.143 2005/07/30 02:03:47 djm Exp $");
      Cipher none
      PasswordAuthentication no
 
+   Host vpn.fake.com
+     Tunnel yes
+     TunnelDevice 3
+
    # Defaults for various options
    Host *
      ForwardAgent no
@@ -107,6 +111,7 @@ typedef enum {
 	oAddressFamily, oGssAuthentication, oGssDelegateCreds,
 	oServerAliveInterval, oServerAliveCountMax, oIdentitiesOnly,
 	oSendEnv, oControlPath, oControlMaster, oHashKnownHosts,
+	oTunnel, oTunnelDevice, oLocalCommand, oPermitLocalCommand,
 	oDeprecated, oUnsupported
 } OpCodes;
 
@@ -198,6 +203,10 @@ static struct {
 	{ "controlpath", oControlPath },
 	{ "controlmaster", oControlMaster },
 	{ "hashknownhosts", oHashKnownHosts },
+	{ "tunnel", oTunnel },
+	{ "tunneldevice", oTunnelDevice },
+	{ "localcommand", oLocalCommand },
+	{ "permitlocalcommand", oPermitLocalCommand },
 	{ NULL, oBadOption }
 };
 
@@ -264,6 +273,7 @@ clear_forwardings(Options *options)
 		xfree(options->remote_forwards[i].connect_host);
 	}
 	options->num_remote_forwards = 0;
+	options->tun_open = 0;
 }
 
 /*
@@ -296,7 +306,7 @@ process_config_line(Options *options, const char *host,
 		    int *activep)
 {
 	char *s, **charptr, *endofnumber, *keyword, *arg, *arg2, fwdarg[256];
-	int opcode, *intptr, value;
+	int opcode, *intptr, value, value2;
 	size_t len;
 	Forward fwd;
 
@@ -553,9 +563,10 @@ parse_string:
 		goto parse_string;
 
 	case oProxyCommand:
+		charptr = &options->proxy_command;
+parse_command:
 		if (s == NULL)
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
-		charptr = &options->proxy_command;
 		len = strspn(s, WHITESPACE "=");
 		if (*activep && *charptr == NULL)
 			*charptr = xstrdup(s + len);
@@ -822,6 +833,31 @@ parse_int:
 		intptr = &options->hash_known_hosts;
 		goto parse_flag;
 
+	case oTunnel:
+		intptr = &options->tun_open;
+		goto parse_flag;
+
+	case oTunnelDevice:
+		arg = strdelim(&s);
+		if (!arg || *arg == '\0')
+			fatal("%.200s line %d: Missing argument.", filename, linenum);
+		value = a2tun(arg, &value2);
+		if (value < -1)
+			fatal("%.200s line %d: Bad tun device.", filename, linenum);
+		if (*activep) {
+			options->tun_local = value;
+			options->tun_remote = value2;
+		}
+		break;
+
+	case oLocalCommand:
+		charptr = &options->local_command;
+		goto parse_command;
+
+	case oPermitLocalCommand:
+		intptr = &options->permit_local_command;
+		goto parse_flag;
+
 	case oDeprecated:
 		debug("%s line %d: Deprecated option \"%s\"",
 		    filename, linenum, keyword);
@@ -966,6 +1002,11 @@ initialize_options(Options * options)
 	options->control_path = NULL;
 	options->control_master = -1;
 	options->hash_known_hosts = -1;
+	options->tun_open = -1;
+	options->tun_local = -1;
+	options->tun_remote = -1;
+	options->local_command = NULL;
+	options->permit_local_command = -1;
 }
 
 /*
@@ -1090,6 +1131,11 @@ fill_default_options(Options * options)
 		options->control_master = 0;
 	if (options->hash_known_hosts == -1)
 		options->hash_known_hosts = 0;
+	if (options->tun_open == -1)
+		options->tun_open = 0;
+	if (options->permit_local_command == -1)
+		options->permit_local_command = 0;
+	/* options->local_command should not be set by default */
 	/* options->proxy_command should not be set by default */
 	/* options->user will be set in the main program if appropriate */
 	/* options->hostname will be set in the main program if appropriate */

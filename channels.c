@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.227 2005/10/14 02:29:37 stevesk Exp $");
+RCSID("$OpenBSD: channels.c,v 1.228 2005/12/06 22:38:27 reyk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1414,6 +1414,8 @@ channel_handle_rfd(Channel *c, fd_set * readset, fd_set * writeset)
 				debug2("channel %d: filter stops", c->self);
 				chan_read_failed(c);
 			}
+		} else if (c->datagram) {
+			buffer_put_string(&c->input, buf, len);
 		} else {
 			buffer_append(&c->input, buf, len);
 		}
@@ -1432,6 +1434,23 @@ channel_handle_wfd(Channel *c, fd_set * readset, fd_set * writeset)
 	if (c->wfd != -1 &&
 	    FD_ISSET(c->wfd, writeset) &&
 	    buffer_len(&c->output) > 0) {
+		if (c->datagram) {
+			data = buffer_get_string(&c->output, &dlen);
+			/* ignore truncated writes, datagrams might get lost */
+			c->local_consumed += dlen + 4;
+			len = write(c->wfd, data, dlen);
+			xfree(data);
+			if (len < 0 && (errno == EINTR || errno == EAGAIN))
+				return 1;
+			if (len <= 0) {
+				if (c->type != SSH_CHANNEL_OPEN)
+					chan_mark_dead(c);
+				else
+					chan_write_failed(c);
+				return -1;
+			}
+			return 1;
+		}
 		data = buffer_ptr(&c->output);
 		dlen = buffer_len(&c->output);
 #ifdef _AIX
@@ -1792,6 +1811,22 @@ channel_output_poll(void)
 		if ((c->istate == CHAN_INPUT_OPEN ||
 		    c->istate == CHAN_INPUT_WAIT_DRAIN) &&
 		    (len = buffer_len(&c->input)) > 0) {
+			if (c->datagram) {
+				if (len > 0) {
+					u_char *data;
+					u_int dlen;
+
+					data = buffer_get_string(&c->input,
+					    &dlen);
+					packet_start(SSH2_MSG_CHANNEL_DATA);
+					packet_put_int(c->remote_id);
+					packet_put_string(data, dlen);
+					packet_send();
+					c->remote_window -= dlen + 4;
+					xfree(data);
+				}
+				continue;
+			}
 			/*
 			 * Send some data for the other side over the secure
 			 * connection.
@@ -1914,7 +1949,10 @@ channel_input_data(int type, u_int32_t seq, void *ctxt)
 		c->local_window -= data_len;
 	}
 	packet_check_eom();
-	buffer_append(&c->output, data, data_len);
+	if (c->datagram)
+		buffer_put_string(&c->output, data, data_len);
+	else
+		buffer_append(&c->output, data, data_len);
 	xfree(data);
 }
 

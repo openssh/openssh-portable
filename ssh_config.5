@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.64 2005/10/30 08:43:47 jmc Exp $
+.\" $OpenBSD: ssh_config.5,v 1.65 2005/12/06 22:38:27 reyk Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -556,6 +556,14 @@ The default is
 Specifies the list of methods to use in keyboard-interactive authentication.
 Multiple method names must be comma-separated.
 The default is to use the server specified list.
+.It Cm LocalCommand
+Specifies a command to execute on the local machine after successfully
+connecting to the server.
+The command string extends to the end of the line, and is executed with
+.Pa /bin/sh .
+This directive is ignored unless
+.Cm PermitLocalCommand
+has been enabled.
 .It Cm LocalForward
 Specifies that a TCP/IP port on the local machine be forwarded over
 the secure channel to the specified host and port from the remote machine.
@@ -628,6 +636,19 @@ The default is
 .It Cm Port
 Specifies the port number to connect on the remote host.
 Default is 22.
+.It Cm PermitLocalCommand
+Allow local command execution via the
+.Ic LocalCommand
+option or using the
+.Ic ! Ar command
+escape sequence in
+.Xr ssh 1 .
+The argument must be
+.Dq yes
+or
+.Dq no .
+The default is
+.Dq no .
 .It Cm PreferredAuthentications
 Specifies the order in which the client should try protocol 2
 authentication methods.
@@ -887,6 +908,21 @@ Note that this option must be set to
 for
 .Cm RhostsRSAAuthentication
 with older servers.
+.It Cm Tunnel
+Request starting
+.Xr tun 4
+device forwarding between the client and the server.
+The argument must be
+.Dq yes
+or
+.Dq no .
+The default is
+.Dq no .
+.It Cm TunnelDevice
+Force a specified
+.Xr tun 4
+device on the client.
+Without this option, the next available device will be used.
 .It Cm User
 Specifies the user to log in as.
 This can be useful when a different user name is used on different machines.
