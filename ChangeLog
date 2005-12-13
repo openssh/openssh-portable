@@ -20,11 +20,15 @@
      except that it depends on the tun(4) network interface on both ends of
      the connection for layer 2 or layer 3 tunneling. This diff also adds
      support for LocalCommand in the ssh(1) client.
-
      ok djm@, markus@, jmc@ (manpages), tested and discussed with others
    - djm@cvs.openbsd.org 2005/12/07 03:52:22
      [clientloop.c]
      reyk forgot to compile with -Werror (missing header)
+   - jmc@cvs.openbsd.org 2005/12/07 10:52:13
+     [ssh.1]
+     - avoid line split in SYNOPSIS
+     - add args to -w
+     - kill trailing whitespace
 
 20051201
  - (djm) [envpass.sh] Remove regress script that was accidentally committed 
@@ -3417,4 +3421,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4020 2005/12/13 08:29:36 djm Exp $
+$Id: ChangeLog,v 1.4021 2005/12/13 08:30:05 djm Exp $
