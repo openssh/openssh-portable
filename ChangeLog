@@ -33,6 +33,9 @@
      [ssh.1 ssh_config.5]
      make `!command' a little clearer;
      ok reyk
+   - jmc@cvs.openbsd.org 2005/12/08 15:06:29
+     [ssh_config.5]
+     keep options in order;
 
 20051201
  - (djm) [envpass.sh] Remove regress script that was accidentally committed 
@@ -3425,4 +3428,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4022 2005/12/13 08:30:27 djm Exp $
+$Id: ChangeLog,v 1.4023 2005/12/13 08:30:45 djm Exp $

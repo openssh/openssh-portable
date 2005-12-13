@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.66 2005/12/08 14:59:44 jmc Exp $
+.\" $OpenBSD: ssh_config.5,v 1.67 2005/12/08 15:06:29 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -517,23 +517,6 @@ Default is the name given on the command line.
 Numeric IP addresses are also permitted (both on the command line and in
 .Cm HostName
 specifications).
-.It Cm IdentityFile
-Specifies a file from which the user's RSA or DSA authentication identity
-is read.
-The default is
-.Pa ~/.ssh/identity
-for protocol version 1, and
-.Pa ~/.ssh/id_rsa
-and
-.Pa ~/.ssh/id_dsa
-for protocol version 2.
-Additionally, any identities represented by the authentication agent
-will be used for authentication.
-The file name may use the tilde
-syntax to refer to a user's home directory.
-It is possible to have
-multiple identity files specified in configuration files; all these
-identities will be tried in sequence.
 .It Cm IdentitiesOnly
 Specifies that
 .Nm ssh
@@ -552,6 +535,23 @@ This option is intented for situations where
 offers many different identities.
 The default is
 .Dq no .
+.It Cm IdentityFile
+Specifies a file from which the user's RSA or DSA authentication identity
+is read.
+The default is
+.Pa ~/.ssh/identity
+for protocol version 1, and
+.Pa ~/.ssh/id_rsa
+and
+.Pa ~/.ssh/id_dsa
+for protocol version 2.
+Additionally, any identities represented by the authentication agent
+will be used for authentication.
+The file name may use the tilde
+syntax to refer to a user's home directory.
+It is possible to have
+multiple identity files specified in configuration files; all these
+identities will be tried in sequence.
 .It Cm KbdInteractiveDevices
 Specifies the list of methods to use in keyboard-interactive authentication.
 Multiple method names must be comma-separated.
@@ -633,9 +633,6 @@ or
 .Dq no .
 The default is
 .Dq yes .
-.It Cm Port
-Specifies the port number to connect on the remote host.
-Default is 22.
 .It Cm PermitLocalCommand
 Allow local command execution via the
 .Ic LocalCommand
@@ -649,6 +646,9 @@ or
 .Dq no .
 The default is
 .Dq no .
+.It Cm Port
+Specifies the port number to connect on the remote host.
+Default is 22.
 .It Cm PreferredAuthentications
 Specifies the order in which the client should try protocol 2
 authentication methods.
@@ -796,15 +796,6 @@ across multiple
 .Cm SendEnv
 directives.
 The default is not to send any environment variables.
-.It Cm ServerAliveInterval
-Sets a timeout interval in seconds after which if no data has been received
-from the server,
-.Nm ssh
-will send a message through the encrypted
-channel to request a response from the server.
-The default
-is 0, indicating that these messages will not be sent to the server.
-This option applies to protocol version 2 only.
 .It Cm ServerAliveCountMax
 Sets the number of server alive messages (see above) which may be
 sent without
@@ -832,6 +823,15 @@ If, for example,
 .Cm ServerAliveCountMax
 is left at the default, if the server becomes unresponsive ssh
 will disconnect after approximately 45 seconds.
+.It Cm ServerAliveInterval
+Sets a timeout interval in seconds after which if no data has been received
+from the server,
+.Nm ssh
+will send a message through the encrypted
+channel to request a response from the server.
+The default
+is 0, indicating that these messages will not be sent to the server.
+This option applies to protocol version 2 only.
 .It Cm SmartcardDevice
 Specifies which smartcard device to use.
 The argument to this keyword is the device
