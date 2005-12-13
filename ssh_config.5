@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.68 2005/12/08 18:34:11 reyk Exp $
+.\" $OpenBSD: ssh_config.5,v 1.69 2005/12/08 21:37:50 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -911,9 +911,9 @@ with older servers.
 .It Cm Tunnel
 Request starting
 .Xr tun 4
-device forwarding between the client and the server.  This option also
-allows requesting layer 2 (ethernet) instead of layer 3
-(point-to-point) tunneling from the server.
+device forwarding between the client and the server.
+This option also allows requesting layer 2 (ethernet)
+instead of layer 3 (point-to-point) tunneling from the server.
 The argument must be
 .Dq yes ,
 .Dq point-to-point ,

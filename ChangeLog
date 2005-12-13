@@ -48,6 +48,9 @@
      restricted by the PermitTunnel (yes|point-to-point|ethernet|no) option
      in sshd_config(5).
      ok djm@, man page bits by jmc@
+   - jmc@cvs.openbsd.org 2005/12/08 21:37:50
+     [ssh_config.5]
+     new sentence, new line;
 
 20051201
  - (djm) [envpass.sh] Remove regress script that was accidentally committed 
@@ -3440,4 +3443,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4024 2005/12/13 08:33:19 djm Exp $
+$Id: ChangeLog,v 1.4025 2005/12/13 08:33:37 djm Exp $
