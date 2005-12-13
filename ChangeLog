@@ -3,6 +3,10 @@
    - jmc@cvs.openbsd.org 2005/11/30 11:18:27
      [ssh.1]
      timezone -> time zone
+   - jmc@cvs.openbsd.org 2005/11/30 11:45:20
+     [ssh.1]
+     avoid ambiguities in describing TZ;
+     ok djm@
 
 20051201
  - (djm) [envpass.sh] Remove regress script that was accidentally committed 
@@ -3395,4 +3399,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4017 2005/12/13 08:25:21 djm Exp $
+$Id: ChangeLog,v 1.4018 2005/12/13 08:25:43 djm Exp $
