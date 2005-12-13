@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.228 2005/12/06 22:38:27 reyk Exp $");
+RCSID("$OpenBSD: channels.c,v 1.229 2005/12/12 13:46:18 markus Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -142,20 +142,48 @@ static void port_open_helper(Channel *c, char *rtype);
 /* -- channel core */
 
 Channel *
-channel_lookup(int id)
+channel_by_id(int id)
 {
 	Channel *c;
 
 	if (id < 0 || (u_int)id >= channels_alloc) {
-		logit("channel_lookup: %d: bad id", id);
+		logit("channel_by_id: %d: bad id", id);
 		return NULL;
 	}
 	c = channels[id];
 	if (c == NULL) {
-		logit("channel_lookup: %d: bad id: channel free", id);
+		logit("channel_by_id: %d: bad id: channel free", id);
 		return NULL;
 	}
 	return c;
+}
+
+/*
+ * Returns the channel if it is allowed to receive protocol messages.
+ * Private channels, like listening sockets, may not receive messages.
+ */
+Channel *
+channel_lookup(int id)
+{
+	Channel *c;
+
+	if ((c = channel_by_id(id)) == NULL)
+		return (NULL);
+
+	switch(c->type) {
+	case SSH_CHANNEL_X11_OPEN:
+	case SSH_CHANNEL_LARVAL:
+	case SSH_CHANNEL_CONNECTING:
+	case SSH_CHANNEL_DYNAMIC:
+	case SSH_CHANNEL_OPENING:
+	case SSH_CHANNEL_OPEN:
+	case SSH_CHANNEL_INPUT_DRAINING:
+	case SSH_CHANNEL_OUTPUT_DRAINING:
+		return (c);
+		break;
+	}
+	logit("Non-public channel %d, type %d.", id, c->type);
+	return (NULL);
 }
 
 /*
@@ -631,7 +659,7 @@ channel_register_confirm(int id, channel_callback_fn *fn, void *ctx)
 void
 channel_register_cleanup(int id, channel_callback_fn *fn, int do_close)
 {
-	Channel *c = channel_lookup(id);
+	Channel *c = channel_by_id(id);
 
 	if (c == NULL) {
 		logit("channel_register_cleanup: %d: bad id", id);
@@ -643,7 +671,7 @@ channel_register_cleanup(int id, channel_callback_fn *fn, int do_close)
 void
 channel_cancel_cleanup(int id)
 {
-	Channel *c = channel_lookup(id);
+	Channel *c = channel_by_id(id);
 
 	if (c == NULL) {
 		logit("channel_cancel_cleanup: %d: bad id", id);
@@ -2183,9 +2211,8 @@ channel_input_window_adjust(int type, u_int32_t seq, void *ctxt)
 	id = packet_get_int();
 	c = channel_lookup(id);
 
-	if (c == NULL || c->type != SSH_CHANNEL_OPEN) {
-		logit("Received window adjust for "
-		    "non-open channel %d.", id);
+	if (c == NULL) {
+		logit("Received window adjust for non-open channel %d.", id);
 		return;
 	}
 	adjust = packet_get_int();

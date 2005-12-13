@@ -51,6 +51,10 @@
    - jmc@cvs.openbsd.org 2005/12/08 21:37:50
      [ssh_config.5]
      new sentence, new line;
+   - markus@cvs.openbsd.org 2005/12/12 13:46:18
+     [channels.c channels.h session.c]
+     make sure protocol messages for internal channels are ignored.
+     allow adjust messages for non-open channels; with and ok djm@
 
 20051201
  - (djm) [envpass.sh] Remove regress script that was accidentally committed 
@@ -3443,4 +3447,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4025 2005/12/13 08:33:37 djm Exp $
+$Id: ChangeLog,v 1.4026 2005/12/13 08:33:57 djm Exp $
