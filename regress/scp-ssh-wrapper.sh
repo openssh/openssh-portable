@@ -16,8 +16,11 @@ printname () {
 	done
 }
 
-# discard first 5 args
-shift; shift; shift; shift; shift
+# Discard all but last argument.  We use arg later.
+while test "$1" != ""; do
+	arg="$1"
+	shift
+done
 
 BAD="../../../../../../../../../../../../../${DIR}/dotpathdir"
 
@@ -49,6 +52,6 @@ badserver_4)
 	echo "X"
 	;;
 *)
-	exec $1
+	exec $arg
 	;;
 esac
