@@ -89,7 +89,7 @@
 
 #include "includes.h"
 
-RCSID("$Id: bsd-snprintf.c,v 1.10 2005/11/24 08:58:21 djm Exp $");
+RCSID("$Id: bsd-snprintf.c,v 1.11 2005/12/17 11:32:04 dtucker Exp $");
 
 #if defined(BROKEN_SNPRINTF)		/* For those with broken snprintf() */
 # undef HAVE_SNPRINTF
@@ -788,7 +788,7 @@ int vsnprintf (char *str, size_t count, const char *fmt, va_list args)
 #endif
 
 #if !defined(HAVE_SNPRINTF)
-int snprintf(char *str,size_t count,const char *fmt,...)
+int snprintf(char *str, size_t count, SNPRINTF_CONST char *fmt, ...)
 {
 	size_t ret;
 	va_list ap;

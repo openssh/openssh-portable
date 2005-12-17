@@ -1,6 +1,10 @@
 20051217
  - (dtucker) [defines.h] HP-UX system headers define "YES" and "NO" which
    scp.c also uses, so undef them here.
+ - (dtucker) [configure.ac openbsd-compat/bsd-snprintf.c] Bug #1133: Our
+   snprintf replacement can have a conflicting declaration in HP-UX's system
+   headers (const vs. no const) so we now check for and work around it.  Patch
+   from the dynamic duo of David Leonard and Ted Percival.
 
 20051214
  - (dtucker) OpenBSD CVS Sync (regress/)
@@ -3462,4 +3466,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4029 2005/12/17 11:04:08 dtucker Exp $
+$Id: ChangeLog,v 1.4030 2005/12/17 11:32:03 dtucker Exp $
