@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.129 2005/10/09 01:40:04 dtucker Exp $ */
+/* $Id: defines.h,v 1.130 2005/12/17 11:04:09 dtucker Exp $ */
 
 
 /* Constants */
@@ -713,6 +713,14 @@ struct winsize {
 
 #if defined(HAVE_MMAP) && defined(BROKEN_MMAP)
 # undef HAVE_MMAP
+#endif
+
+/* some system headers on HP-UX define YES/NO */
+#ifdef YES
+# undef YES
+#endif
+#ifdef NO
+# undef NO
 #endif
 
 #endif /* _DEFINES_H */

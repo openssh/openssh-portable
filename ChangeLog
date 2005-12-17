@@ -1,3 +1,7 @@
+20051217
+ - (dtucker) [defines.h] HP-UX system headers define "YES" and "NO" which
+   scp.c also uses, so undef them here.
+
 20051214
  - (dtucker) OpenBSD CVS Sync (regress/)
    - dtucker@cvs.openbsd.org 2005/12/30 04:36:39
@@ -3458,4 +3462,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4028 2005/12/14 04:39:20 dtucker Exp $
+$Id: ChangeLog,v 1.4029 2005/12/17 11:04:08 dtucker Exp $
