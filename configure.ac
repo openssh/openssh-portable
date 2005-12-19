@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.315 2005/12/17 11:32:03 dtucker Exp $
+# $Id: configure.ac,v 1.316 2005/12/19 06:40:40 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -1800,6 +1800,24 @@ Also see contrib/findssl.sh for help identifying header/library mismatches.])
 	],
 	[
 		AC_MSG_WARN([cross compiling: not checking])
+	]
+)
+
+# Check for OpenSSL without EVP_aes_{192,256}_cbc
+AC_MSG_CHECKING([whether OpenSSL has crippled AES support])
+AC_COMPILE_IFELSE(
+	[AC_LANG_SOURCE([[
+#include <string.h>
+#include <openssl/evp.h>
+int main(void) { exit(EVP_aes_192_cbc() == NULL || EVP_aes_256_cbc() == NULL)}
+	]])],
+	[
+		AC_MSG_RESULT(no)
+	],
+	[
+		AC_MSG_RESULT(yes)
+		AC_DEFINE(OPENSSL_LOBOTOMISED_AES, 1,
+		    [libcrypto is missing AES 192 and 256 bit functions])
 	]
 )
 

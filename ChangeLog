@@ -1,3 +1,8 @@
+20051219
+ - (dtucker) [cipher-aes.c cipher-ctr.c cipher.c configure.ac
+   openbsd-compat/openssl-compat.h] Check for and work around broken AES
+   ciphers >128bit on (some) Solaris 10 systems.  ok djm@
+
 20051217
  - (dtucker) [defines.h] HP-UX system headers define "YES" and "NO" which
    scp.c also uses, so undef them here.
@@ -3466,4 +3471,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4030 2005/12/17 11:32:03 dtucker Exp $
+$Id: ChangeLog,v 1.4031 2005/12/19 06:40:40 dtucker Exp $
