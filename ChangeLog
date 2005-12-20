@@ -3,6 +3,10 @@
    - reyk@cvs.openbsd.org 2005/12/13 15:03:02
      [serverloop.c]
      if forced_tun_device is not set, it is -1 and not SSH_TUNID_ANY
+   - jmc@cvs.openbsd.org 2005/12/16 18:07:08
+     [ssh.1]
+     move the option descriptions up the page: start of a restructure;
+     ok markus deraadt
 
 20051219
  - (dtucker) [cipher-aes.c cipher-ctr.c cipher.c configure.ac
@@ -3477,4 +3481,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4032 2005/12/20 05:08:42 dtucker Exp $
+$Id: ChangeLog,v 1.4033 2005/12/20 05:09:36 dtucker Exp $

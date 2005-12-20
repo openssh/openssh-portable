@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.217 2005/12/08 14:59:44 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.218 2005/12/16 18:07:08 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -107,304 +107,6 @@ If
 is specified,
 .Ar command
 is executed on the remote host instead of a login shell.
-.Ss SSH protocol version 1
-The first authentication method is the
-.Em rhosts
-or
-.Em hosts.equiv
-method combined with RSA-based host authentication.
-If the machine the user logs in from is listed in
-.Pa /etc/hosts.equiv
-or
-.Pa /etc/shosts.equiv
-on the remote machine, and the user names are
-the same on both sides, or if the files
-.Pa ~/.rhosts
-or
-.Pa ~/.shosts
-exist in the user's home directory on the
-remote machine and contain a line containing the name of the client
-machine and the name of the user on that machine, the user is
-considered for log in.
-Additionally, if the server can verify the client's
-host key (see
-.Pa /etc/ssh/ssh_known_hosts
-and
-.Pa ~/.ssh/known_hosts
-in the
-.Sx FILES
-section), only then is login permitted.
-This authentication method closes security holes due to IP
-spoofing, DNS spoofing and routing spoofing.
-[Note to the administrator:
-.Pa /etc/hosts.equiv ,
-.Pa ~/.rhosts ,
-and the rlogin/rsh protocol in general, are inherently insecure and should be
-disabled if security is desired.]
-.Pp
-As a second authentication method,
-.Nm
-supports RSA based authentication.
-The scheme is based on public-key cryptography: there are cryptosystems
-where encryption and decryption are done using separate keys, and it
-is not possible to derive the decryption key from the encryption key.
-RSA is one such system.
-The idea is that each user creates a public/private
-key pair for authentication purposes.
-The server knows the public key, and only the user knows the private key.
-.Pp
-The file
-.Pa ~/.ssh/authorized_keys
-lists the public keys that are permitted for logging in.
-When the user logs in, the
-.Nm
-program tells the server which key pair it would like to use for
-authentication.
-The server checks if this key is permitted, and if so,
-sends the user (actually the
-.Nm
-program running on behalf of the user) a challenge, a random number,
-encrypted by the user's public key.
-The challenge can only be decrypted using the proper private key.
-The user's client then decrypts the challenge using the private key,
-proving that he/she knows the private key
-but without disclosing it to the server.
-.Pp
-.Nm
-implements the RSA authentication protocol automatically.
-The user creates his/her RSA key pair by running
-.Xr ssh-keygen 1 .
-This stores the private key in
-.Pa ~/.ssh/identity
-and stores the public key in
-.Pa ~/.ssh/identity.pub
-in the user's home directory.
-The user should then copy the
-.Pa identity.pub
-to
-.Pa ~/.ssh/authorized_keys
-in his/her home directory on the remote machine (the
-.Pa authorized_keys
-file corresponds to the conventional
-.Pa ~/.rhosts
-file, and has one key
-per line, though the lines can be very long).
-After this, the user can log in without giving the password.
-.Pp
-The most convenient way to use RSA authentication may be with an
-authentication agent.
-See
-.Xr ssh-agent 1
-for more information.
-.Pp
-If other authentication methods fail,
-.Nm
-prompts the user for a password.
-The password is sent to the remote
-host for checking; however, since all communications are encrypted,
-the password cannot be seen by someone listening on the network.
-.Ss SSH protocol version 2
-When a user connects using protocol version 2,
-similar authentication methods are available.
-Using the default values for
-.Cm PreferredAuthentications ,
-the client will try to authenticate first using the hostbased method;
-if this method fails, public key authentication is attempted,
-and finally if this method fails, keyboard-interactive and
-password authentication are tried.
-.Pp
-The public key method is similar to RSA authentication described
-in the previous section and allows the RSA or DSA algorithm to be used:
-The client uses his private key,
-.Pa ~/.ssh/id_dsa
-or
-.Pa ~/.ssh/id_rsa ,
-to sign the session identifier and sends the result to the server.
-The server checks whether the matching public key is listed in
-.Pa ~/.ssh/authorized_keys
-and grants access if both the key is found and the signature is correct.
-The session identifier is derived from a shared Diffie-Hellman value
-and is only known to the client and the server.
-.Pp
-If public key authentication fails or is not available, a password
-can be sent encrypted to the remote host to prove the user's identity.
-.Pp
-Additionally,
-.Nm
-supports hostbased or challenge response authentication.
-.Pp
-Protocol 2 provides additional mechanisms for confidentiality
-(the traffic is encrypted using AES, 3DES, Blowfish, CAST128 or Arcfour)
-and integrity (hmac-md5, hmac-sha1, hmac-ripemd160).
-Note that protocol 1 lacks a strong mechanism for ensuring the
-integrity of the connection.
-.Ss Login session and remote execution
-When the user's identity has been accepted by the server, the server
-either executes the given command, or logs into the machine and gives
-the user a normal shell on the remote machine.
-All communication with
-the remote command or shell will be automatically encrypted.
-.Pp
-If a pseudo-terminal has been allocated (normal login session), the
-user may use the escape characters noted below.
-.Pp
-If no pseudo-tty has been allocated,
-the session is transparent and can be used to reliably transfer binary data.
-On most systems, setting the escape character to
-.Dq none
-will also make the session transparent even if a tty is used.
-.Pp
-The session terminates when the command or shell on the remote
-machine exits and all X11 and TCP/IP connections have been closed.
-The exit status of the remote program is returned as the exit status of
-.Nm ssh .
-.Ss Escape Characters
-When a pseudo-terminal has been requested,
-.Nm
-supports a number of functions through the use of an escape character.
-.Pp
-A single tilde character can be sent as
-.Ic ~~
-or by following the tilde by a character other than those described below.
-The escape character must always follow a newline to be interpreted as
-special.
-The escape character can be changed in configuration files using the
-.Cm EscapeChar
-configuration directive or on the command line by the
-.Fl e
-option.
-.Pp
-The supported escapes (assuming the default
-.Ql ~ )
-are:
-.Bl -tag -width Ds
-.It Cm ~.
-Disconnect.
-.It Cm ~^Z
-Background
-.Nm ssh .
-.It Cm ~#
-List forwarded connections.
-.It Cm ~&
-Background
-.Nm
-at logout when waiting for forwarded connection / X11 sessions to terminate.
-.It Cm ~?
-Display a list of escape characters.
-.It Cm ~B
-Send a BREAK to the remote system
-(only useful for SSH protocol version 2 and if the peer supports it).
-.It Cm ~C
-Open command line.
-Currently this allows the addition of port forwardings using the
-.Fl L
-and
-.Fl R
-options (see below).
-It also allows the cancellation of existing remote port-forwardings
-using
-.Fl KR Ar hostport .
-.Ic !\& Ns Ar command
-allows the user to execute a local command if the
-.Ic PermitLocalCommand
-option is enabled in
-.Xr ssh_config 5 .
-Basic help is available, using the
-.Fl h
-option.
-.It Cm ~R
-Request rekeying of the connection
-(only useful for SSH protocol version 2 and if the peer supports it).
-.El
-.Ss X11 and TCP forwarding
-If the
-.Cm ForwardX11
-variable is set to
-.Dq yes
-(or see the description of the
-.Fl X
-and
-.Fl x
-options described later)
-and the user is using X11 (the
-.Ev DISPLAY
-environment variable is set), the connection to the X11 display is
-automatically forwarded to the remote side in such a way that any X11
-programs started from the shell (or command) will go through the
-encrypted channel, and the connection to the real X server will be made
-from the local machine.
-The user should not manually set
-.Ev DISPLAY .
-Forwarding of X11 connections can be
-configured on the command line or in configuration files.
-.Pp
-The
-.Ev DISPLAY
-value set by
-.Nm
-will point to the server machine, but with a display number greater than zero.
-This is normal, and happens because
-.Nm
-creates a
-.Dq proxy
-X server on the server machine for forwarding the
-connections over the encrypted channel.
-.Pp
-.Nm
-will also automatically set up Xauthority data on the server machine.
-For this purpose, it will generate a random authorization cookie,
-store it in Xauthority on the server, and verify that any forwarded
-connections carry this cookie and replace it by the real cookie when
-the connection is opened.
-The real authentication cookie is never
-sent to the server machine (and no cookies are sent in the plain).
-.Pp
-If the
-.Cm ForwardAgent
-variable is set to
-.Dq yes
-(or see the description of the
-.Fl A
-and
-.Fl a
-options described later) and
-the user is using an authentication agent, the connection to the agent
-is automatically forwarded to the remote side.
-.Pp
-Forwarding of arbitrary TCP/IP connections over the secure channel can
-be specified either on the command line or in a configuration file.
-One possible application of TCP/IP forwarding is a secure connection to an
-electronic purse; another is going through firewalls.
-.Ss Server authentication
-.Nm
-automatically maintains and checks a database containing
-identifications for all hosts it has ever been used with.
-Host keys are stored in
-.Pa ~/.ssh/known_hosts
-in the user's home directory.
-Additionally, the file
-.Pa /etc/ssh/ssh_known_hosts
-is automatically checked for known hosts.
-Any new hosts are automatically added to the user's file.
-If a host's identification ever changes,
-.Nm
-warns about this and disables password authentication to prevent a
-trojan horse from getting the user's password.
-Another purpose of this mechanism is to prevent man-in-the-middle attacks
-which could otherwise be used to circumvent the encryption.
-The
-.Cm StrictHostKeyChecking
-option can be used to prevent logins to machines whose
-host key is not known or has changed.
-.Pp
-.Nm
-can be configured to verify host identification using fingerprint resource
-records (SSHFP) published in DNS.
-The
-.Cm VerifyHostKeyDNS
-option can be used to control how DNS lookups are performed.
-SSHFP resource records can be generated using
-.Xr ssh-keygen 1 .
 .Pp
 The options are as follows:
 .Bl -tag -width Ds
@@ -912,12 +614,310 @@ Enables trusted X11 forwarding.
 Trusted X11 forwardings are not subjected to the X11 SECURITY extension
 controls.
 .El
-.Sh CONFIGURATION FILES
+.Ss SSH protocol version 1
+The first authentication method is the
+.Em rhosts
+or
+.Em hosts.equiv
+method combined with RSA-based host authentication.
+If the machine the user logs in from is listed in
+.Pa /etc/hosts.equiv
+or
+.Pa /etc/shosts.equiv
+on the remote machine, and the user names are
+the same on both sides, or if the files
+.Pa ~/.rhosts
+or
+.Pa ~/.shosts
+exist in the user's home directory on the
+remote machine and contain a line containing the name of the client
+machine and the name of the user on that machine, the user is
+considered for log in.
+Additionally, if the server can verify the client's
+host key (see
+.Pa /etc/ssh/ssh_known_hosts
+and
+.Pa ~/.ssh/known_hosts
+in the
+.Sx FILES
+section), only then is login permitted.
+This authentication method closes security holes due to IP
+spoofing, DNS spoofing and routing spoofing.
+[Note to the administrator:
+.Pa /etc/hosts.equiv ,
+.Pa ~/.rhosts ,
+and the rlogin/rsh protocol in general, are inherently insecure and should be
+disabled if security is desired.]
+.Pp
+As a second authentication method,
+.Nm
+supports RSA based authentication.
+The scheme is based on public-key cryptography: there are cryptosystems
+where encryption and decryption are done using separate keys, and it
+is not possible to derive the decryption key from the encryption key.
+RSA is one such system.
+The idea is that each user creates a public/private
+key pair for authentication purposes.
+The server knows the public key, and only the user knows the private key.
+.Pp
+The file
+.Pa ~/.ssh/authorized_keys
+lists the public keys that are permitted for logging in.
+When the user logs in, the
+.Nm
+program tells the server which key pair it would like to use for
+authentication.
+The server checks if this key is permitted, and if so,
+sends the user (actually the
+.Nm
+program running on behalf of the user) a challenge, a random number,
+encrypted by the user's public key.
+The challenge can only be decrypted using the proper private key.
+The user's client then decrypts the challenge using the private key,
+proving that he/she knows the private key
+but without disclosing it to the server.
+.Pp
+.Nm
+implements the RSA authentication protocol automatically.
+The user creates his/her RSA key pair by running
+.Xr ssh-keygen 1 .
+This stores the private key in
+.Pa ~/.ssh/identity
+and stores the public key in
+.Pa ~/.ssh/identity.pub
+in the user's home directory.
+The user should then copy the
+.Pa identity.pub
+to
+.Pa ~/.ssh/authorized_keys
+in his/her home directory on the remote machine (the
+.Pa authorized_keys
+file corresponds to the conventional
+.Pa ~/.rhosts
+file, and has one key
+per line, though the lines can be very long).
+After this, the user can log in without giving the password.
+.Pp
+The most convenient way to use RSA authentication may be with an
+authentication agent.
+See
+.Xr ssh-agent 1
+for more information.
+.Pp
+If other authentication methods fail,
+.Nm
+prompts the user for a password.
+The password is sent to the remote
+host for checking; however, since all communications are encrypted,
+the password cannot be seen by someone listening on the network.
+.Ss SSH protocol version 2
+When a user connects using protocol version 2,
+similar authentication methods are available.
+Using the default values for
+.Cm PreferredAuthentications ,
+the client will try to authenticate first using the hostbased method;
+if this method fails, public key authentication is attempted,
+and finally if this method fails, keyboard-interactive and
+password authentication are tried.
+.Pp
+The public key method is similar to RSA authentication described
+in the previous section and allows the RSA or DSA algorithm to be used:
+The client uses his private key,
+.Pa ~/.ssh/id_dsa
+or
+.Pa ~/.ssh/id_rsa ,
+to sign the session identifier and sends the result to the server.
+The server checks whether the matching public key is listed in
+.Pa ~/.ssh/authorized_keys
+and grants access if both the key is found and the signature is correct.
+The session identifier is derived from a shared Diffie-Hellman value
+and is only known to the client and the server.
+.Pp
+If public key authentication fails or is not available, a password
+can be sent encrypted to the remote host to prove the user's identity.
+.Pp
+Additionally,
+.Nm
+supports hostbased or challenge response authentication.
+.Pp
+Protocol 2 provides additional mechanisms for confidentiality
+(the traffic is encrypted using AES, 3DES, Blowfish, CAST128 or Arcfour)
+and integrity (hmac-md5, hmac-sha1, hmac-ripemd160).
+Note that protocol 1 lacks a strong mechanism for ensuring the
+integrity of the connection.
+.Ss Login session and remote execution
+When the user's identity has been accepted by the server, the server
+either executes the given command, or logs into the machine and gives
+the user a normal shell on the remote machine.
+All communication with
+the remote command or shell will be automatically encrypted.
+.Pp
+If a pseudo-terminal has been allocated (normal login session), the
+user may use the escape characters noted below.
+.Pp
+If no pseudo-tty has been allocated,
+the session is transparent and can be used to reliably transfer binary data.
+On most systems, setting the escape character to
+.Dq none
+will also make the session transparent even if a tty is used.
+.Pp
+The session terminates when the command or shell on the remote
+machine exits and all X11 and TCP/IP connections have been closed.
+The exit status of the remote program is returned as the exit status of
+.Nm ssh .
+.Pp
 .Nm
 may additionally obtain configuration data from
 a per-user configuration file and a system-wide configuration file.
 The file format and configuration options are described in
 .Xr ssh_config 5 .
+.Ss Escape Characters
+When a pseudo-terminal has been requested,
+.Nm
+supports a number of functions through the use of an escape character.
+.Pp
+A single tilde character can be sent as
+.Ic ~~
+or by following the tilde by a character other than those described below.
+The escape character must always follow a newline to be interpreted as
+special.
+The escape character can be changed in configuration files using the
+.Cm EscapeChar
+configuration directive or on the command line by the
+.Fl e
+option.
+.Pp
+The supported escapes (assuming the default
+.Ql ~ )
+are:
+.Bl -tag -width Ds
+.It Cm ~.
+Disconnect.
+.It Cm ~^Z
+Background
+.Nm ssh .
+.It Cm ~#
+List forwarded connections.
+.It Cm ~&
+Background
+.Nm
+at logout when waiting for forwarded connection / X11 sessions to terminate.
+.It Cm ~?
+Display a list of escape characters.
+.It Cm ~B
+Send a BREAK to the remote system
+(only useful for SSH protocol version 2 and if the peer supports it).
+.It Cm ~C
+Open command line.
+Currently this allows the addition of port forwardings using the
+.Fl L
+and
+.Fl R
+options (see below).
+It also allows the cancellation of existing remote port-forwardings
+using
+.Fl KR Ar hostport .
+.Ic !\& Ns Ar command
+allows the user to execute a local command if the
+.Ic PermitLocalCommand
+option is enabled in
+.Xr ssh_config 5 .
+Basic help is available, using the
+.Fl h
+option.
+.It Cm ~R
+Request rekeying of the connection
+(only useful for SSH protocol version 2 and if the peer supports it).
+.El
+.Ss X11 and TCP forwarding
+If the
+.Cm ForwardX11
+variable is set to
+.Dq yes
+(or see the description of the
+.Fl X
+and
+.Fl x
+options described later)
+and the user is using X11 (the
+.Ev DISPLAY
+environment variable is set), the connection to the X11 display is
+automatically forwarded to the remote side in such a way that any X11
+programs started from the shell (or command) will go through the
+encrypted channel, and the connection to the real X server will be made
+from the local machine.
+The user should not manually set
+.Ev DISPLAY .
+Forwarding of X11 connections can be
+configured on the command line or in configuration files.
+.Pp
+The
+.Ev DISPLAY
+value set by
+.Nm
+will point to the server machine, but with a display number greater than zero.
+This is normal, and happens because
+.Nm
+creates a
+.Dq proxy
+X server on the server machine for forwarding the
+connections over the encrypted channel.
+.Pp
+.Nm
+will also automatically set up Xauthority data on the server machine.
+For this purpose, it will generate a random authorization cookie,
+store it in Xauthority on the server, and verify that any forwarded
+connections carry this cookie and replace it by the real cookie when
+the connection is opened.
+The real authentication cookie is never
+sent to the server machine (and no cookies are sent in the plain).
+.Pp
+If the
+.Cm ForwardAgent
+variable is set to
+.Dq yes
+(or see the description of the
+.Fl A
+and
+.Fl a
+options described later) and
+the user is using an authentication agent, the connection to the agent
+is automatically forwarded to the remote side.
+.Pp
+Forwarding of arbitrary TCP/IP connections over the secure channel can
+be specified either on the command line or in a configuration file.
+One possible application of TCP/IP forwarding is a secure connection to an
+electronic purse; another is going through firewalls.
+.Ss Server authentication
+.Nm
+automatically maintains and checks a database containing
+identifications for all hosts it has ever been used with.
+Host keys are stored in
+.Pa ~/.ssh/known_hosts
+in the user's home directory.
+Additionally, the file
+.Pa /etc/ssh/ssh_known_hosts
+is automatically checked for known hosts.
+Any new hosts are automatically added to the user's file.
+If a host's identification ever changes,
+.Nm
+warns about this and disables password authentication to prevent a
+trojan horse from getting the user's password.
+Another purpose of this mechanism is to prevent man-in-the-middle attacks
+which could otherwise be used to circumvent the encryption.
+The
+.Cm StrictHostKeyChecking
+option can be used to prevent logins to machines whose
+host key is not known or has changed.
+.Pp
+.Nm
+can be configured to verify host identification using fingerprint resource
+records (SSHFP) published in DNS.
+The
+.Cm VerifyHostKeyDNS
+option can be used to control how DNS lookups are performed.
+SSHFP resource records can be generated using
+.Xr ssh-keygen 1 .
 .Sh ENVIRONMENT
 .Nm
 will normally set the following environment variables:
