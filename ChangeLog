@@ -10,6 +10,9 @@
    - jmc@cvs.openbsd.org 2005/12/16 18:08:53
      [ssh.1]
      simplify a sentence;
+   - jmc@cvs.openbsd.org 2005/12/16 18:12:22
+     [ssh.1]
+     make the description of -c a little nicer;
    - jmc@cvs.openbsd.org 2005/12/16 18:14:40
      [ssh.1]
      signpost the protocol sections;
@@ -3487,4 +3490,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4035 2005/12/20 05:11:35 dtucker Exp $
+$Id: ChangeLog,v 1.4036 2005/12/20 05:12:24 dtucker Exp $
