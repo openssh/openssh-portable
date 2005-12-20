@@ -22,6 +22,9 @@
    - stevesk@cvs.openbsd.org 2005/12/17 21:36:42
      [ssh_config.5]
      spelling: intented -> intended
+   - dtucker@cvs.openbsd.org 2005/12/20 04:41:07
+     [ssh.c]
+     exit(255) on error to match description in ssh(1); bz #1137; ok deraadt@
 
 20051219
  - (dtucker) [cipher-aes.c cipher-ctr.c cipher.c configure.ac
@@ -3496,4 +3499,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4038 2005/12/20 05:15:14 dtucker Exp $
+$Id: ChangeLog,v 1.4039 2005/12/20 05:15:51 dtucker Exp $

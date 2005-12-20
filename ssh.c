@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.256 2005/12/08 18:34:11 reyk Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.257 2005/12/20 04:41:07 dtucker Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -164,7 +164,7 @@ usage(void)
 "           [-R [bind_address:]port:host:hostport] [-S ctl_path]\n"
 "           [-w tunnel:tunnel] [user@]hostname [command]\n"
 	);
-	exit(1);
+	exit(255);
 }
 
 static int ssh_session(void);
@@ -223,7 +223,7 @@ main(int ac, char **av)
 	pw = getpwuid(original_real_uid);
 	if (!pw) {
 		logit("You don't exist, go away!");
-		exit(1);
+		exit(255);
 	}
 	/* Take a copy of the returned structure. */
 	pw = pwcopy(pw);
@@ -346,7 +346,7 @@ again:
 			options.tun_local = a2tun(optarg, &options.tun_remote);
 			if (options.tun_local == SSH_TUNID_ERR) {
 				fprintf(stderr, "Bad tun device '%s'\n", optarg);
-				exit(1);
+				exit(255);
 			}
 			break;
 		case 'q':
@@ -364,7 +364,7 @@ again:
 			else {
 				fprintf(stderr, "Bad escape character '%s'.\n",
 				    optarg);
-				exit(1);
+				exit(255);
 			}
 			break;
 		case 'c':
@@ -379,7 +379,7 @@ again:
 					fprintf(stderr,
 					    "Unknown cipher type '%s'\n",
 					    optarg);
-					exit(1);
+					exit(255);
 				}
 				if (options.cipher == SSH_CIPHER_3DES)
 					options.ciphers = "3des-cbc";
@@ -395,7 +395,7 @@ again:
 			else {
 				fprintf(stderr, "Unknown mac type '%s'\n",
 				    optarg);
-				exit(1);
+				exit(255);
 			}
 			break;
 		case 'M':
@@ -408,7 +408,7 @@ again:
 			options.port = a2port(optarg);
 			if (options.port == 0) {
 				fprintf(stderr, "Bad port '%s'\n", optarg);
-				exit(1);
+				exit(255);
 			}
 			break;
 		case 'l':
@@ -422,7 +422,7 @@ again:
 				fprintf(stderr,
 				    "Bad local forwarding specification '%s'\n",
 				    optarg);
-				exit(1);
+				exit(255);
 			}
 			break;
 
@@ -433,7 +433,7 @@ again:
 				fprintf(stderr,
 				    "Bad remote forwarding specification "
 				    "'%s'\n", optarg);
-				exit(1);
+				exit(255);
 			}
 			break;
 
@@ -444,7 +444,7 @@ again:
 			if ((fwd.listen_host = hpdelim(&cp)) == NULL) {
 				fprintf(stderr, "Bad dynamic forwarding "
 				    "specification '%.100s'\n", optarg);
-				exit(1);
+				exit(255);
 			}
 			if (cp != NULL) {
 				fwd.listen_port = a2port(cp);
@@ -457,7 +457,7 @@ again:
 			if (fwd.listen_port == 0) {
 				fprintf(stderr, "Bad dynamic port '%s'\n",
 				    optarg);
-				exit(1);
+				exit(255);
 			}
 			add_local_forward(&options, &fwd);
 			xfree(p);
@@ -478,7 +478,7 @@ again:
 			line = xstrdup(optarg);
 			if (process_config_line(&options, host ? host : "",
 			    line, "command-line", 0, &dummy) != 0)
-				exit(1);
+				exit(255);
 			xfree(line);
 			break;
 		case 's':
@@ -654,7 +654,7 @@ again:
 	    original_effective_uid == 0 && options.use_privileged_port,
 #endif
 	    options.proxy_command) != 0)
-		exit(1);
+		exit(255);
 
 	/*
 	 * If we successfully made the connection, load the host private key
