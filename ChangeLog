@@ -7,6 +7,9 @@
      [ssh.1]
      move the option descriptions up the page: start of a restructure;
      ok markus deraadt
+   - jmc@cvs.openbsd.org 2005/12/16 18:08:53
+     [ssh.1]
+     simplify a sentence;
 
 20051219
  - (dtucker) [cipher-aes.c cipher-ctr.c cipher.c configure.ac
@@ -3481,4 +3484,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4033 2005/12/20 05:09:36 dtucker Exp $
+$Id: ChangeLog,v 1.4034 2005/12/20 05:10:09 dtucker Exp $
