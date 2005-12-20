@@ -19,6 +19,9 @@
    - stevesk@cvs.openbsd.org 2005/12/17 21:13:05
      [ssh_config.5 session.c]
      spelling: fowarding, fowarded
+   - stevesk@cvs.openbsd.org 2005/12/17 21:36:42
+     [ssh_config.5]
+     spelling: intented -> intended
 
 20051219
  - (dtucker) [cipher-aes.c cipher-ctr.c cipher.c configure.ac
@@ -3493,4 +3496,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4037 2005/12/20 05:14:15 dtucker Exp $
+$Id: ChangeLog,v 1.4038 2005/12/20 05:15:14 dtucker Exp $
