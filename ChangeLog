@@ -10,6 +10,9 @@
    - jmc@cvs.openbsd.org 2005/12/16 18:08:53
      [ssh.1]
      simplify a sentence;
+   - jmc@cvs.openbsd.org 2005/12/16 18:14:40
+     [ssh.1]
+     signpost the protocol sections;
 
 20051219
  - (dtucker) [cipher-aes.c cipher-ctr.c cipher.c configure.ac
@@ -3484,4 +3487,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4034 2005/12/20 05:10:09 dtucker Exp $
+$Id: ChangeLog,v 1.4035 2005/12/20 05:11:35 dtucker Exp $
