@@ -1,3 +1,9 @@
+20051220
+ - (dtucker) OpenBSD CVS Sync
+   - reyk@cvs.openbsd.org 2005/12/13 15:03:02
+     [serverloop.c]
+     if forced_tun_device is not set, it is -1 and not SSH_TUNID_ANY
+
 20051219
  - (dtucker) [cipher-aes.c cipher-ctr.c cipher.c configure.ac
    openbsd-compat/openssl-compat.h] Check for and work around broken AES
@@ -3471,4 +3477,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4031 2005/12/19 06:40:40 dtucker Exp $
+$Id: ChangeLog,v 1.4032 2005/12/20 05:08:42 dtucker Exp $
