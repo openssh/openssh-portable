@@ -33,6 +33,13 @@
      [ssh.1]
      expand the description of -w somewhat;
      help/ok reyk
+   - jmc@cvs.openbsd.org 2005/12/23 14:55:53
+     [ssh.1]
+     - sync the description of -e w/ synopsis
+     - simplify the description of -I
+     - note that -I is only available if support compiled in, and that it
+     isn't by default
+     feedback/ok djm@
 
 20051220
  - (dtucker) OpenBSD CVS Sync
@@ -3535,4 +3542,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4048 2005/12/24 03:56:04 djm Exp $
+$Id: ChangeLog,v 1.4049 2005/12/24 03:56:29 djm Exp $

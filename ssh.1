@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.228 2005/12/22 11:23:42 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.229 2005/12/23 14:55:53 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -256,7 +256,7 @@ indicates that the listening port be bound for local use only, while an
 empty address or
 .Sq *
 indicates that the port should be available from all interfaces.
-.It Fl e Ar ch | ^ch | none
+.It Fl e Ar escape_char
 Sets the escape character for sessions with a pty (default:
 .Ql ~ ) .
 The escape character is only recognized at the beginning of a line.
@@ -292,11 +292,12 @@ something like
 .It Fl g
 Allows remote hosts to connect to local forwarded ports.
 .It Fl I Ar smartcard_device
-Specifies which smartcard device to use.
-The argument is the device
+Specify the device
 .Nm
 should use to communicate with a smartcard used for storing the user's
 private RSA key.
+This option is only available if support for smartcard devices
+is compiled in (default is no support).
 .It Fl i Ar identity_file
 Selects a file from which the identity (private key) for
 RSA or DSA authentication is read.
