@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.223 2005/12/20 22:02:50 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.224 2005/12/20 22:09:41 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -613,6 +613,16 @@ Enables trusted X11 forwarding.
 Trusted X11 forwardings are not subjected to the X11 SECURITY extension
 controls.
 .El
+.Pp
+.Nm
+may additionally obtain configuration data from
+a per-user configuration file and a system-wide configuration file.
+The file format and configuration options are described in
+.Xr ssh_config 5 .
+.Pp
+.Nm
+exits with the exit status of the remote command or with 255
+if an error occurred.
 .Sh AUTHENTICATION
 The OpenSSH SSH client supports OpenSSH protocols 1 and 2.
 Protocol 2 is the default, with
@@ -777,14 +787,6 @@ will also make the session transparent even if a tty is used.
 .Pp
 The session terminates when the command or shell on the remote
 machine exits and all X11 and TCP/IP connections have been closed.
-The exit status of the remote program is returned as the exit status of
-.Nm ssh .
-.Pp
-.Nm
-may additionally obtain configuration data from
-a per-user configuration file and a system-wide configuration file.
-The file format and configuration options are described in
-.Xr ssh_config 5 .
 .Sh ESCAPE CHARACTERS
 When a pseudo-terminal has been requested,
 .Nm
@@ -1223,10 +1225,6 @@ Contains additional definitions for environment variables, see section
 .Sx ENVIRONMENT
 above.
 .El
-.Sh DIAGNOSTICS
-.Nm
-exits with the exit status of the remote command or with 255
-if an error occurred.
 .Sh SEE ALSO
 .Xr gzip 1 ,
 .Xr rsh 1 ,

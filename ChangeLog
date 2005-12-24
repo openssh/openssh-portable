@@ -9,6 +9,10 @@
    - jmc@cvs.openbsd.org 2005/12/20 22:02:50
      [ssh.1]
      .Ss -> .Sh: subsections have not made this page more readable
+   - jmc@cvs.openbsd.org 2005/12/20 22:09:41
+     [ssh.1]
+     move info on ssh return values and config files up into the main
+     description;
 
 20051220
  - (dtucker) OpenBSD CVS Sync
@@ -3511,4 +3515,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4041 2005/12/24 03:52:36 djm Exp $
+$Id: ChangeLog,v 1.4042 2005/12/24 03:53:04 djm Exp $
