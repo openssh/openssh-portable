@@ -16,6 +16,9 @@
    - jmc@cvs.openbsd.org 2005/12/21 11:48:16
      [ssh.1]
      -L and -R descriptions are now above, not below, ~C description;
+   - jmc@cvs.openbsd.org 2005/12/21 11:57:25
+     [ssh.1]
+     options now described `above', rather than `later';
 
 20051220
  - (dtucker) OpenBSD CVS Sync
@@ -3518,4 +3521,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4043 2005/12/24 03:53:23 djm Exp $
+$Id: ChangeLog,v 1.4044 2005/12/24 03:53:44 djm Exp $
