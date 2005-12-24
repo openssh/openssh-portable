@@ -42,7 +42,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.317 2005/10/30 08:52:18 djm Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.318 2005/12/24 02:27:41 djm Exp $");
 
 #include <openssl/dh.h>
 #include <openssl/bn.h>
@@ -635,13 +635,6 @@ privsep_postauth(Authctxt *authctxt)
 		/* File descriptor passing is broken or root login */
 		use_privsep = 0;
 		goto skip;
-	}
-
-	/* Authentication complete */
-	alarm(0);
-	if (startup_pipe != -1) {
-		close(startup_pipe);
-		startup_pipe = -1;
 	}
 
 	/* New socket pair */
@@ -1732,6 +1725,17 @@ main(int ac, char **av)
 	}
 
  authenticated:
+	/*
+	 * Cancel the alarm we set to limit the time taken for
+	 * authentication.
+	 */
+	alarm(0);
+	signal(SIGALRM, SIG_DFL);
+	if (startup_pipe != -1) {
+		close(startup_pipe);
+		startup_pipe = -1;
+	}
+
 #ifdef SSH_AUDIT_EVENTS
 	audit_event(SSH_AUTH_SUCCESS);
 #endif

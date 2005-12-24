@@ -43,6 +43,10 @@
    - jmc@cvs.openbsd.org 2005/12/23 23:46:23
      [ssh.1]
      less mark up for -c;
+   - djm@cvs.openbsd.org 2005/12/24 02:27:41
+     [session.c sshd.c]
+     eliminate some code duplicated in privsep and non-privsep paths, and
+     explicitly clear SIGALRM handler; "groovy" deraadt@
 
 20051220
  - (dtucker) OpenBSD CVS Sync
@@ -3545,4 +3549,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4050 2005/12/24 03:56:47 djm Exp $
+$Id: ChangeLog,v 1.4051 2005/12/24 03:59:12 djm Exp $
