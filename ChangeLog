@@ -29,6 +29,10 @@
    - jmc@cvs.openbsd.org 2005/12/22 10:31:40
      [ssh_config.5]
      put the description of "UsePrivilegedPort" in the correct place;
+   - jmc@cvs.openbsd.org 2005/12/22 11:23:42
+     [ssh.1]
+     expand the description of -w somewhat;
+     help/ok reyk
 
 20051220
  - (dtucker) OpenBSD CVS Sync
@@ -3531,4 +3535,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4047 2005/12/24 03:55:47 djm Exp $
+$Id: ChangeLog,v 1.4048 2005/12/24 03:56:04 djm Exp $
