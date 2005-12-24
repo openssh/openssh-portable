@@ -1,3 +1,12 @@
+20051224
+ - (djm) OpenBSD CVS Sync
+   - jmc@cvs.openbsd.org 2005/12/20 21:59:43
+     [ssh.1]
+     merge the sections on protocols 1 and 2 into one section on
+     authentication;
+     feedback djm dtucker
+     ok deraadt markus dtucker
+
 20051220
  - (dtucker) OpenBSD CVS Sync
    - reyk@cvs.openbsd.org 2005/12/13 15:03:02
@@ -3499,4 +3508,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4039 2005/12/20 05:15:51 dtucker Exp $
+$Id: ChangeLog,v 1.4040 2005/12/24 03:52:13 djm Exp $

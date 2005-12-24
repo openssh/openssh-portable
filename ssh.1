@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.221 2005/12/16 18:14:40 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.222 2005/12/20 21:59:43 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -613,12 +613,38 @@ Enables trusted X11 forwarding.
 Trusted X11 forwardings are not subjected to the X11 SECURITY extension
 controls.
 .El
-.Ss SSH protocol version 1
-The first authentication method is the
-.Em rhosts
-or
-.Em hosts.equiv
-method combined with RSA-based host authentication.
+.Sh AUTHENTICATION
+The OpenSSH SSH client supports OpenSSH protocols 1 and 2.
+Protocol 2 is the default, with
+.Nm
+falling back to protocol 1 if it detects protocol 2 is unsupported.
+These settings may be altered using the
+.Cm Protocol
+option in
+.Xr ssh_config 5 ,
+or enforced using the
+.Fl 1
+and
+.Fl 2
+options (see above).
+Both protocols support similar authentication methods,
+but protocol 2 is preferred since
+it provides additional mechanisms for confidentiality
+(the traffic is encrypted using AES, 3DES, Blowfish, CAST128, or Arcfour)
+and integrity (hmac-md5, hmac-sha1, hmac-ripemd160).
+Protocol 1 lacks a strong mechanism for ensuring the
+integrity of the connection.
+.Pp
+The methods available for authentication are:
+host-based authentication,
+public key authentication,
+challenge-response authentication,
+and password authentication.
+Authentication methods are tried in the order specified above,
+though protocol 2 has a configuration option to change the default order:
+.Cm PreferredAuthentications .
+.Pp
+Host-based authentication works as follows:
 If the machine the user logs in from is listed in
 .Pa /etc/hosts.equiv
 or
@@ -631,33 +657,42 @@ or
 exist in the user's home directory on the
 remote machine and contain a line containing the name of the client
 machine and the name of the user on that machine, the user is
-considered for log in.
-Additionally, if the server can verify the client's
-host key (see
+considered for login.
+Additionally, the server
+.Em must
+be able to verify the client's
+host key (see the description of
 .Pa /etc/ssh/ssh_known_hosts
 and
-.Pa ~/.ssh/known_hosts
-in the
-.Sx FILES
-section), only then is login permitted.
+.Pa ~/.ssh/known_hosts ,
+below)
+for login to be permitted.
 This authentication method closes security holes due to IP
-spoofing, DNS spoofing and routing spoofing.
+spoofing, DNS spoofing, and routing spoofing.
 [Note to the administrator:
 .Pa /etc/hosts.equiv ,
 .Pa ~/.rhosts ,
 and the rlogin/rsh protocol in general, are inherently insecure and should be
 disabled if security is desired.]
 .Pp
-As a second authentication method,
-.Nm
-supports RSA based authentication.
-The scheme is based on public-key cryptography: there are cryptosystems
-where encryption and decryption are done using separate keys, and it
-is not possible to derive the decryption key from the encryption key.
-RSA is one such system.
+Public key authentication works as follows:
+The scheme is based on public-key cryptography,
+using cryptosystems
+where encryption and decryption are done using separate keys,
+and it is unfeasible to derive the decryption key from the encryption key.
 The idea is that each user creates a public/private
 key pair for authentication purposes.
 The server knows the public key, and only the user knows the private key.
+.Nm
+implements public key authentication protocol automatically,
+using either the RSA or DSA algorithms.
+Protocol 1 is restricted to using only RSA keys,
+but protocol 2 may use either.
+The
+.Sx HISTORY
+section of
+.Xr ssl 8
+contains a brief discussion of the two algorithms.
 .Pp
 The file
 .Pa ~/.ssh/authorized_keys
@@ -666,84 +701,64 @@ When the user logs in, the
 .Nm
 program tells the server which key pair it would like to use for
 authentication.
-The server checks if this key is permitted, and if so,
-sends the user (actually the
-.Nm
-program running on behalf of the user) a challenge, a random number,
-encrypted by the user's public key.
-The challenge can only be decrypted using the proper private key.
-The user's client then decrypts the challenge using the private key,
-proving that he/she knows the private key
-but without disclosing it to the server.
+The client proves that it has access to the private key
+and the server checks that the corresponding public key
+is authorized to accept the account.
 .Pp
-.Nm
-implements the RSA authentication protocol automatically.
-The user creates his/her RSA key pair by running
+The user creates his/her key pair by running
 .Xr ssh-keygen 1 .
 This stores the private key in
 .Pa ~/.ssh/identity
+(protocol 1),
+.Pa ~/.ssh/id_dsa
+(protocol 2 DSA),
+or
+.Pa ~/.ssh/id_rsa
+(protocol 2 RSA)
 and stores the public key in
 .Pa ~/.ssh/identity.pub
+(protocol 1),
+.Pa ~/.ssh/id_dsa.pub
+(protocol 2 DSA),
+or
+.Pa ~/.ssh/id_rsa.pub
+(protocol 2 RSA)
 in the user's home directory.
-The user should then copy the
-.Pa identity.pub
+The user should then copy the public key
 to
 .Pa ~/.ssh/authorized_keys
-in his/her home directory on the remote machine (the
+in his/her home directory on the remote machine.
+The
 .Pa authorized_keys
 file corresponds to the conventional
 .Pa ~/.rhosts
 file, and has one key
-per line, though the lines can be very long).
+per line, though the lines can be very long.
 After this, the user can log in without giving the password.
 .Pp
-The most convenient way to use RSA authentication may be with an
+The most convenient way to use public key authentication may be with an
 authentication agent.
 See
 .Xr ssh-agent 1
 for more information.
 .Pp
-If other authentication methods fail,
+Challenge-response authentication works as follows:
+The server sends an arbitrary
+.Qq challenge
+text, and prompts for a response.
+Protocol 2 allows multiple challenges and responses;
+protocol 1 is restricted to just one challenge/response.
+Examples of challenge-response authentication include
+BSD Authentication (see
+.Xr login.conf 5 )
+and PAM (some non-OpenBSD systems).
+.Pp
+Finally, if other authentication methods fail,
 .Nm
 prompts the user for a password.
 The password is sent to the remote
 host for checking; however, since all communications are encrypted,
 the password cannot be seen by someone listening on the network.
-.Ss SSH protocol version 2
-When a user connects using protocol version 2,
-similar authentication methods are available.
-Using the default values for
-.Cm PreferredAuthentications ,
-the client will try to authenticate first using the hostbased method;
-if this method fails, public key authentication is attempted,
-and finally if this method fails, keyboard-interactive and
-password authentication are tried.
-.Pp
-The public key method is similar to RSA authentication described
-in the previous section and allows the RSA or DSA algorithm to be used:
-The client uses his private key,
-.Pa ~/.ssh/id_dsa
-or
-.Pa ~/.ssh/id_rsa ,
-to sign the session identifier and sends the result to the server.
-The server checks whether the matching public key is listed in
-.Pa ~/.ssh/authorized_keys
-and grants access if both the key is found and the signature is correct.
-The session identifier is derived from a shared Diffie-Hellman value
-and is only known to the client and the server.
-.Pp
-If public key authentication fails or is not available, a password
-can be sent encrypted to the remote host to prove the user's identity.
-.Pp
-Additionally,
-.Nm
-supports hostbased or challenge response authentication.
-.Pp
-Protocol 2 provides additional mechanisms for confidentiality
-(the traffic is encrypted using AES, 3DES, Blowfish, CAST128 or Arcfour)
-and integrity (hmac-md5, hmac-sha1, hmac-ripemd160).
-Note that protocol 1 lacks a strong mechanism for ensuring the
-integrity of the connection.
 .Ss Login session and remote execution
 When the user's identity has been accepted by the server, the server
 either executes the given command, or logs into the machine and gives
