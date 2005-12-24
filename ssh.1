@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.222 2005/12/20 21:59:43 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.223 2005/12/20 22:02:50 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -759,7 +759,7 @@ prompts the user for a password.
 The password is sent to the remote
 host for checking; however, since all communications are encrypted,
 the password cannot be seen by someone listening on the network.
-.Ss Login session and remote execution
+.Sh LOGIN SESSION AND REMOTE EXECUTION
 When the user's identity has been accepted by the server, the server
 either executes the given command, or logs into the machine and gives
 the user a normal shell on the remote machine.
@@ -785,7 +785,7 @@ may additionally obtain configuration data from
 a per-user configuration file and a system-wide configuration file.
 The file format and configuration options are described in
 .Xr ssh_config 5 .
-.Ss Escape Characters
+.Sh ESCAPE CHARACTERS
 When a pseudo-terminal has been requested,
 .Nm
 supports a number of functions through the use of an escape character.
@@ -843,7 +843,7 @@ option.
 Request rekeying of the connection
 (only useful for SSH protocol version 2 and if the peer supports it).
 .El
-.Ss X11 and TCP forwarding
+.Sh X11 AND TCP FORWARDING
 If the
 .Cm ForwardX11
 variable is set to
@@ -902,7 +902,7 @@ Forwarding of arbitrary TCP/IP connections over the secure channel can
 be specified either on the command line or in a configuration file.
 One possible application of TCP/IP forwarding is a secure connection to an
 electronic purse; another is going through firewalls.
-.Ss Server authentication
+.Sh SERVER AUTHENTICATION
 .Nm
 automatically maintains and checks a database containing
 identifications for all hosts it has ever been used with.

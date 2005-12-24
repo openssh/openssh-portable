@@ -6,6 +6,9 @@
      authentication;
      feedback djm dtucker
      ok deraadt markus dtucker
+   - jmc@cvs.openbsd.org 2005/12/20 22:02:50
+     [ssh.1]
+     .Ss -> .Sh: subsections have not made this page more readable
 
 20051220
  - (dtucker) OpenBSD CVS Sync
@@ -3508,4 +3511,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4040 2005/12/24 03:52:13 djm Exp $
+$Id: ChangeLog,v 1.4041 2005/12/24 03:52:36 djm Exp $
