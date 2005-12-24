@@ -23,6 +23,9 @@
      [ssh.1]
      -Y does X11 forwarding too;
      ok markus
+   - stevesk@cvs.openbsd.org 2005/12/21 22:44:26
+     [sshd.8]
+     clarify precedence of -p, Port, ListenAddress; ok and help jmc@
 
 20051220
  - (dtucker) OpenBSD CVS Sync
@@ -3525,4 +3528,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4045 2005/12/24 03:54:03 djm Exp $
+$Id: ChangeLog,v 1.4046 2005/12/24 03:55:16 djm Exp $

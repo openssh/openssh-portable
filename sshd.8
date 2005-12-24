@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.209 2005/12/06 22:38:28 reyk Exp $
+.\" $OpenBSD: sshd.8,v 1.210 2005/12/21 22:44:26 stevesk Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -288,8 +288,12 @@ For full details of the options, and their values, see
 Specifies the port on which the server listens for connections
 (default 22).
 Multiple port options are permitted.
-Ports specified in the configuration file are ignored when a
-command-line port is specified.
+Ports specified in the configuration file with the
+.Cm Port
+option are ignored when a command-line port is specified.
+Ports specified using the
+.Cm ListenAddress
+option override command-line ports.
 .It Fl q
 Quiet mode.
 Nothing is sent to the system log.
