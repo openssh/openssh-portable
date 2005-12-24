@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.71 2005/12/17 21:36:42 stevesk Exp $
+.\" $OpenBSD: ssh_config.5,v 1.72 2005/12/22 10:31:40 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -891,23 +891,6 @@ This is important in scripts, and many users want it too.
 .Pp
 To disable TCP keepalive messages, the value should be set to
 .Dq no .
-.It Cm UsePrivilegedPort
-Specifies whether to use a privileged port for outgoing connections.
-The argument must be
-.Dq yes
-or
-.Dq no .
-The default is
-.Dq no .
-If set to
-.Dq yes
-.Nm ssh
-must be setuid root.
-Note that this option must be set to
-.Dq yes
-for
-.Cm RhostsRSAAuthentication
-with older servers.
 .It Cm Tunnel
 Request starting
 .Xr tun 4
@@ -927,6 +910,23 @@ Force a specified
 .Xr tun 4
 device on the client.
 Without this option, the next available device will be used.
+.It Cm UsePrivilegedPort
+Specifies whether to use a privileged port for outgoing connections.
+The argument must be
+.Dq yes
+or
+.Dq no .
+The default is
+.Dq no .
+If set to
+.Dq yes
+.Nm ssh
+must be setuid root.
+Note that this option must be set to
+.Dq yes
+for
+.Cm RhostsRSAAuthentication
+with older servers.
 .It Cm User
 Specifies the user to log in as.
 This can be useful when a different user name is used on different machines.
