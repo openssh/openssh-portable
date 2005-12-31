@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.36 2005/11/24 08:58:21 djm Exp $
+# $Id: Makefile.in,v 1.37 2005/12/31 05:33:37 djm Exp $
 
 sysconfdir=@sysconfdir@
 piddir=@piddir@
@@ -20,7 +20,7 @@ OPENBSD=base64.o basename.o bindresvport.o daemon.o dirname.o getcwd.o getgroupl
 
 COMPAT=bsd-arc4random.o bsd-asprintf.o bsd-closefrom.o bsd-cray.o bsd-cygwin_util.o bsd-getpeereid.o bsd-misc.o bsd-nextstep.o bsd-openpty.o bsd-snprintf.o bsd-waitpid.o fake-rfc2553.o openssl-compat.o xmmap.o xcrypt.o
 
-PORTS=port-irix.o port-aix.o port-uw.o
+PORTS=port-irix.o port-aix.o port-uw.o port-tun.o
 
 .c.o:
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<

@@ -16,6 +16,10 @@
    - stevesk@cvs.openbsd.org 2005/12/31 01:38:45
      [ssh.1]
      document -MM; ok djm@
+ - (djm) [openbsd-compat/port-tun.c openbsd-compat/port-tun.h configure.ac]
+   [serverloop.c ssh.c openbsd-compat/Makefile.in]
+   [openbsd-compat/openbsd-compat.h] Implement tun(4) forwarding 
+   compatability support for Linux, diff from reyk@
 
 20051229
  - (tim) [buildpkg.sh.in] grep for $SSHDUID instead of $SSHDGID on /etc/passwd
@@ -3571,4 +3575,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4056 2005/12/31 05:23:15 djm Exp $
+$Id: ChangeLog,v 1.4057 2005/12/31 05:33:36 djm Exp $

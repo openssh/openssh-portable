@@ -1079,6 +1079,11 @@ ssh_session2_setup(int id, void *arg)
 			    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT,
 			    0, "tun", 1);
 			c->datagram = 1;
+#if defined(SSH_TUN_FILTER)
+			if (options.tun_open == SSH_TUNMODE_POINTOPOINT)
+				channel_register_filter(c->self, sys_tun_infilter,
+				    sys_tun_outfilter);
+#endif
 			packet_start(SSH2_MSG_CHANNEL_OPEN);
 			packet_put_cstring("tun@openssh.com");
 			packet_put_int(c->self);

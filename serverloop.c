@@ -947,6 +947,11 @@ server_request_tun(void)
 	c = channel_new("tun", SSH_CHANNEL_OPEN, sock, sock, -1,
 	    CHAN_TCP_WINDOW_DEFAULT, CHAN_TCP_PACKET_DEFAULT, 0, "tun", 1);
 	c->datagram = 1;
+#if defined(SSH_TUN_FILTER)
+	if (mode == SSH_TUNMODE_POINTOPOINT)
+		channel_register_filter(c->self, sys_tun_infilter,
+		    sys_tun_outfilter);
+#endif
 
  done:
 	if (c == NULL)

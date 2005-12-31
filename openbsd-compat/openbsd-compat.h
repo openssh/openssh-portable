@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.32 2005/11/24 08:58:21 djm Exp $ */
+/* $Id: openbsd-compat.h,v 1.33 2005/12/31 05:33:37 djm Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -186,5 +186,6 @@ char *shadow_pw(struct passwd *pw);
 #include "port-irix.h"
 #include "port-aix.h"
 #include "port-uw.h"
+#include "port-tun.h"
 
 #endif /* _OPENBSD_COMPAT_H */
