@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.318 2005/12/31 05:42:03 djm Exp $
+# $Id: configure.ac,v 1.319 2005/12/31 06:05:58 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -327,7 +327,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 		;;
 	esac
 	# tun(4) forwarding compat code
-	AC_CHECK_HEADERS(linux/tun.h)
+	AC_CHECK_HEADERS(linux/if_tun.h)
 	if test "x$ac_cv_header_linux_tun_h" = "xyes" ; then
 		AC_DEFINE(SSH_TUN_LINUX, 1,
 		    [Open tunnel devices the Linux tun/tap way])

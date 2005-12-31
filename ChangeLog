@@ -22,6 +22,7 @@
    compatability support for Linux, diff from reyk@
  - (djm) [configure.ac] Disable Linux tun(4) compat code if linux/tun.h does
    not exist
+ - (djm) [configure.ac] oops, make that linux/if_tun.h
 
 20051229
  - (tim) [buildpkg.sh.in] grep for $SSHDUID instead of $SSHDGID on /etc/passwd
@@ -3577,4 +3578,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4058 2005/12/31 05:42:03 djm Exp $
+$Id: ChangeLog,v 1.4059 2005/12/31 06:05:58 djm Exp $
