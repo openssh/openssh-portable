@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.317 2005/12/31 05:33:37 djm Exp $
+# $Id: configure.ac,v 1.318 2005/12/31 05:42:03 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -326,9 +326,16 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 			[Define if cmsg_type is not passed correctly])
 		;;
 	esac
-	AC_DEFINE(SSH_TUN_LINUX, 1, [Open tunnel devices the Linux tun/tap way])
-	AC_DEFINE(SSH_TUN_COMPAT_AF, 1, [Use tunnel device compatibility to OpenBSD])
-	AC_DEFINE(SSH_TUN_PREPEND_AF, 1, [Prepend the address family to IP tunnel traffic])
+	# tun(4) forwarding compat code
+	AC_CHECK_HEADERS(linux/tun.h)
+	if test "x$ac_cv_header_linux_tun_h" = "xyes" ; then
+		AC_DEFINE(SSH_TUN_LINUX, 1,
+		    [Open tunnel devices the Linux tun/tap way])
+		AC_DEFINE(SSH_TUN_COMPAT_AF, 1,
+		    [Use tunnel device compatibility to OpenBSD])
+		AC_DEFINE(SSH_TUN_PREPEND_AF, 1,
+		    [Prepend the address family to IP tunnel traffic])
+	fi
 	;;
 mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(NEED_SETPRGP, 1, [Need setpgrp to acquire controlling tty])
