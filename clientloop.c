@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.148 2005/12/28 22:46:06 stevesk Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.149 2005/12/30 15:56:37 reyk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1386,7 +1386,7 @@ client_loop(int have_pty, int escape_char_arg, int ssh2_chan_id)
 		session_ident = ssh2_chan_id;
 		if (escape_char != SSH_ESCAPECHAR_NONE)
 			channel_register_filter(session_ident,
-			    simple_escape_filter);
+			    simple_escape_filter, NULL);
 		if (session_ident != -1)
 			channel_register_cleanup(session_ident,
 			    client_channel_closed, 0);

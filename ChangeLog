@@ -3,6 +3,10 @@
    - stevesk@cvs.openbsd.org 2005/12/28 22:46:06
      [canohost.c channels.c clientloop.c]
      use 'break-in' for consistency; ok deraadt@ ok and input jmc@
+   - reyk@cvs.openbsd.org 2005/12/30 15:56:37
+     [channels.c channels.h clientloop.c]
+     add channel output filter interface.
+     ok djm@, suggested by markus@
 
 20051229
  - (tim) [buildpkg.sh.in] grep for $SSHDUID instead of $SSHDGID on /etc/passwd
@@ -3558,4 +3562,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4053 2005/12/31 05:19:53 djm Exp $
+$Id: ChangeLog,v 1.4054 2005/12/31 05:22:32 djm Exp $
