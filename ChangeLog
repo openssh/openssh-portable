@@ -7,6 +7,12 @@
      [channels.c channels.h clientloop.c]
      add channel output filter interface.
      ok djm@, suggested by markus@
+   - jmc@cvs.openbsd.org 2005/12/30 16:59:00
+     [sftp.1]
+     do not suggest that interactive authentication will work
+     with the -b flag;
+     based on a diff from john l. scarfone;
+     ok djm
 
 20051229
  - (tim) [buildpkg.sh.in] grep for $SSHDUID instead of $SSHDGID on /etc/passwd
@@ -3562,4 +3568,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4054 2005/12/31 05:22:32 djm Exp $
+$Id: ChangeLog,v 1.4055 2005/12/31 05:22:55 djm Exp $
