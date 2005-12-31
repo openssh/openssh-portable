@@ -59,7 +59,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.147 2005/12/07 03:52:22 djm Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.148 2005/12/28 22:46:06 stevesk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1688,7 +1688,7 @@ client_request_x11(const char *request_type, int rchan)
 
 	if (!options.forward_x11) {
 		error("Warning: ssh server tried X11 forwarding.");
-		error("Warning: this is probably a break in attempt by a malicious server.");
+		error("Warning: this is probably a break-in attempt by a malicious server.");
 		return NULL;
 	}
 	originator = packet_get_string(NULL);
@@ -1721,7 +1721,7 @@ client_request_agent(const char *request_type, int rchan)
 
 	if (!options.forward_agent) {
 		error("Warning: ssh server tried agent forwarding.");
-		error("Warning: this is probably a break in attempt by a malicious server.");
+		error("Warning: this is probably a break-in attempt by a malicious server.");
 		return NULL;
 	}
 	sock =  ssh_get_authentication_socket();

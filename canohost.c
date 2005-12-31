@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: canohost.c,v 1.47 2005/11/03 13:38:29 dtucker Exp $");
+RCSID("$OpenBSD: canohost.c,v 1.48 2005/12/28 22:46:06 stevesk Exp $");
 
 #include "packet.h"
 #include "xmalloc.h"
@@ -102,7 +102,7 @@ get_remote_hostname(int sock, int use_dns)
 	hints.ai_socktype = SOCK_STREAM;
 	if (getaddrinfo(name, NULL, &hints, &aitop) != 0) {
 		logit("reverse mapping checking getaddrinfo for %.700s "
-		    "failed - POSSIBLE BREAKIN ATTEMPT!", name);
+		    "failed - POSSIBLE BREAK-IN ATTEMPT!", name);
 		return xstrdup(ntop);
 	}
 	/* Look for the address from the list of addresses. */
@@ -117,7 +117,7 @@ get_remote_hostname(int sock, int use_dns)
 	if (!ai) {
 		/* Address not found for the host name. */
 		logit("Address %.100s maps to %.600s, but this does not "
-		    "map back to the address - POSSIBLE BREAKIN ATTEMPT!",
+		    "map back to the address - POSSIBLE BREAK-IN ATTEMPT!",
 		    ntop, name);
 		return xstrdup(ntop);
 	}

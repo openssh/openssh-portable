@@ -1,4 +1,10 @@
 20051229
+ - (djm) OpenBSD CVS Sync
+   - stevesk@cvs.openbsd.org 2005/12/28 22:46:06
+     [canohost.c channels.c clientloop.c]
+     use 'break-in' for consistency; ok deraadt@ ok and input jmc@
+
+20051229
  - (tim) [buildpkg.sh.in] grep for $SSHDUID instead of $SSHDGID on /etc/passwd
 
 20051224
@@ -3552,4 +3558,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4052 2005/12/28 22:28:08 tim Exp $
+$Id: ChangeLog,v 1.4053 2005/12/31 05:19:53 djm Exp $

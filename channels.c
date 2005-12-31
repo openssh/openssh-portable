@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.229 2005/12/12 13:46:18 markus Exp $");
+RCSID("$OpenBSD: channels.c,v 1.230 2005/12/28 22:46:06 stevesk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -3025,7 +3025,7 @@ deny_input_open(int type, u_int32_t seq, void *ctxt)
 		error("deny_input_open: type %d", type);
 		break;
 	}
-	error("Warning: this is probably a break in attempt by a malicious server.");
+	error("Warning: this is probably a break-in attempt by a malicious server.");
 	packet_start(SSH_MSG_CHANNEL_OPEN_FAILURE);
 	packet_put_int(rchan);
 	packet_send();
