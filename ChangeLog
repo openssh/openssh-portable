@@ -5,6 +5,7 @@
          limited to IPv4 tunnels only, and most versions don't support the
          tap(4) device at all.
  - (djm) [configure.ac] Fix linux/if_tun.h test
+ - (djm) [openbsd-compat/port-tun.c] Linux needs linux/if.h too
 
 20051229
  - (djm) OpenBSD CVS Sync
@@ -3586,4 +3587,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4061 2006/01/01 10:03:30 djm Exp $
+$Id: ChangeLog,v 1.4062 2006/01/01 10:15:50 djm Exp $
