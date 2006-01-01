@@ -543,7 +543,7 @@ tun_open(int tun, int mode)
 {
 #if defined(CUSTOM_SYS_TUN_OPEN)
 	return (sys_tun_open(tun, mode));
-#elif defined(SSH_TUN_BSD)
+#elif defined(SSH_TUN_OPENBSD)
 	struct ifreq ifr;
 	char name[100];
 	int fd = -1, sock;

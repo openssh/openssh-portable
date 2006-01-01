@@ -89,6 +89,88 @@ sys_tun_open(int tun, int mode)
 }
 #endif /* SSH_TUN_LINUX */
 
+#ifdef SSH_TUN_FREEBSD
+#include <sys/socket.h>
+#include <net/if.h>
+#include <net/if_tun.h>
+
+int
+sys_tun_open(int tun, int mode)
+{
+	struct ifreq ifr;
+	char name[100];
+	int fd = -1, sock, flag;
+	const char *tunbase = "tun";
+
+	if (mode == SSH_TUNMODE_ETHERNET) {
+#ifdef SSH_TUN_NO_L2
+		debug("%s: no layer 2 tunnelling support", __func__);
+		return (-1);
+#else
+		tunbase = "tap";
+#endif
+	}
+
+	/* Open the tunnel device */
+	if (tun <= SSH_TUNID_MAX) {
+		snprintf(name, sizeof(name), "/dev/%s%d", tunbase, tun);
+		fd = open(name, O_RDWR);
+	} else if (tun == SSH_TUNID_ANY) {
+		for (tun = 100; tun >= 0; tun--) {
+			snprintf(name, sizeof(name), "/dev/%s%d",
+			    tunbase, tun);
+			if ((fd = open(name, O_RDWR)) >= 0)
+				break;
+		}
+	} else {
+		debug("%s: invalid tunnel %u\n", __func__, tun);
+		return (-1);
+	}
+
+	if (fd < 0) {
+		debug("%s: %s open failed: %s", __func__, name,
+		    strerror(errno));
+		return (-1);
+	}
+
+	/* Turn on tunnel headers */
+	flag = 1;
+#if defined(TUNSIFHEAD) && !defined(SSH_TUN_PREPEND_AF)
+	if (mode != SSH_TUNMODE_ETHERNET &&
+	    ioctl(fd, TUNSIFHEAD, &flag) == -1) {
+		debug("%s: ioctl(%d, TUNSIFHEAD, 1): %s", __func__, fd,
+		    strerror(errno));
+		close(fd);
+	}
+#endif
+
+	debug("%s: %s mode %d fd %d", __func__, name, mode, fd);
+
+	/* Set the tunnel device operation mode */
+	snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s%d", tunbase, tun);
+	if ((sock = socket(PF_UNIX, SOCK_STREAM, 0)) == -1)
+		goto failed;
+
+	if (ioctl(sock, SIOCGIFFLAGS, &ifr) == -1)
+		goto failed;
+	ifr.ifr_flags |= IFF_UP;
+	if (ioctl(sock, SIOCSIFFLAGS, &ifr) == -1)
+		goto failed;
+
+	close(sock);
+	return (fd);
+
+ failed:
+	if (fd >= 0)
+		close(fd);
+	if (sock >= 0)
+		close(sock);
+	debug("%s: failed to set %s mode %d: %s", __func__, name,
+	    mode, strerror(errno));
+	return (-1);
+}
+#endif /* SSH_TUN_FREEBSD */
+
 /*
  * System-specific channel filters
  */
@@ -102,16 +184,29 @@ sys_tun_infilter(struct Channel *c, char *buf, int len)
 {
 #if defined(SSH_TUN_PREPEND_AF)
 	char rbuf[CHAN_RBUF];
+	struct ip *iph;
 #endif
 	u_int32_t *af;
 	char *ptr = buf;
 
 #if defined(SSH_TUN_PREPEND_AF)
-	if (len > (int)(sizeof(rbuf) - sizeof(*af)))
+	if (len <= 0 || len > (int)(sizeof(rbuf) - sizeof(*af)))
 		return (-1);
 	ptr = (char *)&rbuf[0];
 	bcopy(buf, ptr + sizeof(u_int32_t), len);
 	len += sizeof(u_int32_t);
+	af = (u_int32_t *)ptr;
+
+	iph = (struct ip *)(ptr + sizeof(u_int32_t));
+	switch (iph->ip_v) {
+	case 6:
+		*af = AF_INET6;
+		break;
+	case 4:
+	default:
+		*af = AF_INET;
+		break;
+	}
 #endif
 
 #if defined(SSH_TUN_COMPAT_AF)
@@ -124,6 +219,7 @@ sys_tun_infilter(struct Channel *c, char *buf, int len)
 	else
 		*af = htonl(OPENBSD_AF_INET);
 #endif
+
 	buffer_put_string(&c->input, ptr, len);
 	return (0);
 }

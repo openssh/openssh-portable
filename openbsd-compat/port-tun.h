@@ -19,7 +19,7 @@
 
 #include "channels.h"
 
-#if defined(SSH_TUN_LINUX)
+#if defined(SSH_TUN_LINUX) || defined(SSH_TUN_FREEBSD)
 # define CUSTOM_SYS_TUN_OPEN
 int	  sys_tun_open(int, int);
 #endif

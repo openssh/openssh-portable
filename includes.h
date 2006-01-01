@@ -148,9 +148,6 @@ static /**/const char *const rcsid[] = { (const char *)rcsid, "\100(#)" msg }
 #include <netinet/in.h> /* For IPv6 macros */
 #include <netinet/ip.h> /* For IPTOS macros */
 #include <netinet/tcp.h>
-#ifdef HAVE_NET_IF_H
-# include <net/if.h>
-#endif
 #include <arpa/inet.h>
 #if defined(HAVE_NETDB_H)
 # include <netdb.h>

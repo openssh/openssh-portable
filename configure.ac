@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.319 2005/12/31 06:05:58 djm Exp $
+# $Id: configure.ac,v 1.320 2006/01/01 08:47:05 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -346,10 +346,18 @@ mips-sony-bsd|mips-sony-newsos4)
 	if test "x$withval" != "xno" ; then
 		need_dash_r=1
 	fi
+	AC_DEFINE(SSH_TUN_FREEBSD, 1, [Open tunnel devices the FreeBSD way])
+	AC_CHECK_HEADER([net/if_tap.h], ,
+	    AC_DEFINE(SSH_TUN_NO_L2, 1, [No layer 2 tunnel support]))
+	AC_DEFINE(SSH_TUN_PREPEND_AF, 1,
+	    [Prepend the address family to IP tunnel traffic])
 	;;
 *-*-freebsd*)
 	check_for_libcrypt_later=1
 	AC_DEFINE(LOCKED_PASSWD_PREFIX, "*LOCKED*", [Account locked with pw(1)])
+	AC_DEFINE(SSH_TUN_FREEBSD, 1, [Open tunnel devices the FreeBSD way])
+	AC_CHECK_HEADER([net/if_tap.h], ,
+	    AC_DEFINE(SSH_TUN_NO_L2, 1, [No layer 2 tunnel support]))
 	;;
 *-*-bsdi*)
 	AC_DEFINE(SETEUID_BREAKS_SETUID)
@@ -369,7 +377,7 @@ mips-sony-bsd|mips-sony-newsos4)
 *-*-openbsd*)
 	AC_DEFINE(HAVE_ATTRIBUTE__SENTINEL__, 1, [OpenBSD's gcc has sentinel])
 	AC_DEFINE(HAVE_ATTRIBUTE__BOUNDED__, 1, [OpenBSD's gcc has bounded])
-	AC_DEFINE(SSH_TUN_BSD, 1, [Open tunnel devices the BSD way])
+	AC_DEFINE(SSH_TUN_OPENBSD, 1, [Open tunnel devices the OpenBSD way])
 	;;
 *-*-solaris*)
 	if test "x$withval" != "xno" ; then
