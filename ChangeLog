@@ -4,6 +4,7 @@
          for tunnel forwarding for FreeBSD and NetBSD. NetBSD's support is
          limited to IPv4 tunnels only, and most versions don't support the
          tap(4) device at all.
+ - (djm) [configure.ac] Fix linux/if_tun.h test
 
 20051229
  - (djm) OpenBSD CVS Sync
@@ -3585,4 +3586,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4060 2006/01/01 08:47:05 djm Exp $
+$Id: ChangeLog,v 1.4061 2006/01/01 10:03:30 djm Exp $
