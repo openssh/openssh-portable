@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.231 2005/12/31 01:38:45 stevesk Exp $
+.\" $OpenBSD: ssh.1,v 1.232 2005/12/31 10:46:17 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -788,7 +788,36 @@ prompts the user for a password.
 The password is sent to the remote
 host for checking; however, since all communications are encrypted,
 the password cannot be seen by someone listening on the network.
-.Sh LOGIN SESSION AND REMOTE EXECUTION
+.Pp
+.Nm
+automatically maintains and checks a database containing
+identification for all hosts it has ever been used with.
+Host keys are stored in
+.Pa ~/.ssh/known_hosts
+in the user's home directory.
+Additionally, the file
+.Pa /etc/ssh/ssh_known_hosts
+is automatically checked for known hosts.
+Any new hosts are automatically added to the user's file.
+If a host's identification ever changes,
+.Nm
+warns about this and disables password authentication to prevent
+server spoofing or man-in-the-middle attacks,
+which could otherwise be used to circumvent the encryption.
+The
+.Cm StrictHostKeyChecking
+option can be used to control logins to machines whose
+host key is not known or has changed.
+.Pp
+.Nm
+can be configured to verify host identification using fingerprint resource
+records (SSHFP) published in DNS.
+The
+.Cm VerifyHostKeyDNS
+option can be used to control how DNS lookups are performed.
+SSHFP resource records can be generated using
+.Xr ssh-keygen 1 .
+.Pp
 When the user's identity has been accepted by the server, the server
 either executes the given command, or logs into the machine and gives
 the user a normal shell on the remote machine.
@@ -924,36 +953,6 @@ Forwarding of arbitrary TCP/IP connections over the secure channel can
 be specified either on the command line or in a configuration file.
 One possible application of TCP/IP forwarding is a secure connection to an
 electronic purse; another is going through firewalls.
-.Sh SERVER AUTHENTICATION
-.Nm
-automatically maintains and checks a database containing
-identifications for all hosts it has ever been used with.
-Host keys are stored in
-.Pa ~/.ssh/known_hosts
-in the user's home directory.
-Additionally, the file
-.Pa /etc/ssh/ssh_known_hosts
-is automatically checked for known hosts.
-Any new hosts are automatically added to the user's file.
-If a host's identification ever changes,
-.Nm
-warns about this and disables password authentication to prevent a
-trojan horse from getting the user's password.
-Another purpose of this mechanism is to prevent man-in-the-middle attacks
-which could otherwise be used to circumvent the encryption.
-The
-.Cm StrictHostKeyChecking
-option can be used to prevent logins to machines whose
-host key is not known or has changed.
-.Pp
-.Nm
-can be configured to verify host identification using fingerprint resource
-records (SSHFP) published in DNS.
-The
-.Cm VerifyHostKeyDNS
-option can be used to control how DNS lookups are performed.
-SSHFP resource records can be generated using
-.Xr ssh-keygen 1 .
 .Sh ENVIRONMENT
 .Nm
 will normally set the following environment variables:
