@@ -11,6 +11,9 @@
    - jmc@cvs.openbsd.org 2005/12/31 13:44:04
      [ssh.1]
      clean up ENVIRONMENT a little;
+   - jmc@cvs.openbsd.org 2005/12/31 13:45:19
+     [ssh.1]
+     .Nm does not require an argument;
 
 20060101
  - (djm) [Makefile.in configure.ac includes.h misc.c]
@@ -3601,4 +3604,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4065 2006/01/02 12:38:21 djm Exp $
+$Id: ChangeLog,v 1.4066 2006/01/02 12:38:37 djm Exp $
