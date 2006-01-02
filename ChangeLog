@@ -28,6 +28,10 @@
      clarify tun(4) opening - set the mode and bring the interface up. also
      (re)sets the tun(4) layer 2 LINK0 flag for existing tunnel interfaces.
      suggested and ok by djm@
+   - jmc@cvs.openbsd.org 2006/01/02 12:31:06
+     [ssh.1]
+     start to cut some duplicate info from FILES;
+     help/ok djm
 
 20060101
  - (djm) [Makefile.in configure.ac includes.h misc.c]
@@ -3618,4 +3622,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4070 2006/01/02 12:41:21 djm Exp $
+$Id: ChangeLog,v 1.4071 2006/01/02 12:41:37 djm Exp $

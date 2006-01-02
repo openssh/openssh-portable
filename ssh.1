@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.234 2005/12/31 13:45:19 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.235 2006/01/02 12:31:06 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -1061,38 +1061,21 @@ in
 See
 .Xr sshd 8 .
 .It Pa ~/.ssh/identity, ~/.ssh/id_dsa, ~/.ssh/id_rsa
-Contains the authentication identity of the user.
-They are for protocol 1 RSA, protocol 2 DSA, and protocol 2 RSA, respectively.
+Contains the private key for authentication.
 These files
 contain sensitive data and should be readable by the user but not
 accessible by others (read/write/execute).
-Note that
 .Nm
-ignores a private key file if it is accessible by others.
+will simply ignore a private key file if it is accessible by others.
 It is possible to specify a passphrase when
-generating the key; the passphrase will be used to encrypt the
+generating the key which will be used to encrypt the
 sensitive part of this file using 3DES.
 .It Pa ~/.ssh/identity.pub, ~/.ssh/id_dsa.pub, ~/.ssh/id_rsa.pub
-Contains the public key for authentication (public part of the
-identity file in human-readable form).
-The contents of the
-.Pa ~/.ssh/identity.pub
-file should be added to the file
-.Pa ~/.ssh/authorized_keys
-on all machines
-where the user wishes to log in using protocol version 1 RSA authentication.
-The contents of the
-.Pa ~/.ssh/id_dsa.pub
-and
-.Pa ~/.ssh/id_rsa.pub
-file should be added to
-.Pa ~/.ssh/authorized_keys
-on all machines
-where the user wishes to log in using protocol version 2 DSA/RSA authentication.
+Contains the public key for authentication.
 These files are not
 sensitive and can (but need not) be readable by anyone.
-These files are
-never used automatically and are not necessary; they are only provided for
+They are
+never used automatically and are not necessary: they are only provided for
 the convenience of the user.
 .It Pa ~/.ssh/config
 This is the per-user configuration file.
