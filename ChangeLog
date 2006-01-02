@@ -17,6 +17,9 @@
    - stevesk@cvs.openbsd.org 2006/01/01 08:59:27
      [includes.h misc.c]
      move <net/if.h>; ok djm@
+   - stevesk@cvs.openbsd.org 2006/01/01 10:08:48
+     [misc.c]
+     no trailing "\n" for debug()
 
 20060101
  - (djm) [Makefile.in configure.ac includes.h misc.c]
@@ -3607,4 +3610,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4067 2006/01/02 12:40:10 djm Exp $
+$Id: ChangeLog,v 1.4068 2006/01/02 12:40:30 djm Exp $
