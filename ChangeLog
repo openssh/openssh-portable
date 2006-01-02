@@ -1,3 +1,6 @@
+20060102
+ - (djm) [README.tun] Add README.tun, missed during sync of tun(4) support
+
 20060101
  - (djm) [Makefile.in configure.ac includes.h misc.c]
          [openbsd-compat/port-tun.c openbsd-compat/port-tun.h] Add support
@@ -3587,4 +3590,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4062 2006/01/01 10:15:50 djm Exp $
+$Id: ChangeLog,v 1.4063 2006/01/02 09:23:18 djm Exp $
