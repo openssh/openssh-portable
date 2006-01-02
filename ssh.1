@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.232 2005/12/31 10:46:17 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.233 2005/12/31 13:44:04 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -964,9 +964,12 @@ variable indicates the location of the X11 server.
 It is automatically set by
 .Nm
 to point to a value of the form
-.Dq hostname:n
-where hostname indicates
-the host where the shell runs, and n is an integer \*(Ge 1.
+.Dq hostname:n ,
+where
+.Dq hostname
+indicates the host where the shell runs, and
+.Sq n
+is an integer \*(Ge 1.
 .Nm
 uses this special value to forward X11 connections over the secure
 channel.
@@ -1012,15 +1015,16 @@ may be necessary to redirect the input from
 .Pa /dev/null
 to make this work.)
 .It Ev SSH_AUTH_SOCK
-Identifies the path of a unix-domain socket used to communicate with the
-agent.
+Identifies the path of a
+.Ux Ns -domain
+socket used to communicate with the agent.
 .It Ev SSH_CONNECTION
 Identifies the client and server ends of the connection.
 The variable contains
-four space-separated values: client ip-address, client port number,
-server ip-address and server port number.
+four space-separated values: client IP address, client port number,
+server IP address, and server port number.
 .It Ev SSH_ORIGINAL_COMMAND
-The variable contains the original command line if a forced command
+This variable contains the original command line if a forced command
 is executed.
 It can be used to extract the original arguments.
 .It Ev SSH_TTY
@@ -1042,7 +1046,7 @@ reads
 .Pa ~/.ssh/environment ,
 and adds lines of the format
 .Dq VARNAME=value
-to the environment if the file exists and if users are allowed to
+to the environment if the file exists and users are allowed to
 change their environment.
 For more information, see the
 .Cm PermitUserEnvironment
