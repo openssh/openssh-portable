@@ -24,7 +24,11 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: misc.c,v 1.37 2005/12/08 18:34:11 reyk Exp $");
+RCSID("$OpenBSD: misc.c,v 1.38 2006/01/01 08:59:27 stevesk Exp $");
+
+#ifdef SSH_TUN_OPENBSD
+#include <net/if.h>
+#endif
 
 #include "misc.h"
 #include "log.h"

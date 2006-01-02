@@ -1,4 +1,4 @@
-/*	$OpenBSD: includes.h,v 1.21 2005/12/08 18:34:11 reyk Exp $	*/
+/*	$OpenBSD: includes.h,v 1.22 2006/01/01 08:59:27 stevesk Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
