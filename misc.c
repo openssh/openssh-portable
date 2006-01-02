@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: misc.c,v 1.39 2006/01/01 10:08:48 stevesk Exp $");
+RCSID("$OpenBSD: misc.c,v 1.40 2006/01/02 07:53:44 reyk Exp $");
 
 #ifdef SSH_TUN_OPENBSD
 #include <net/if.h>
@@ -581,11 +581,17 @@ tun_open(int tun, int mode)
 
 	if (ioctl(sock, SIOCGIFFLAGS, &ifr) == -1)
 		goto failed;
-	if (mode == SSH_TUNMODE_ETHERNET) {
+
+	/* Set interface mode */
+	ifr.ifr_flags &= ~IFF_UP;
+	if (mode == SSH_TUNMODE_ETHERNET)
 		ifr.ifr_flags |= IFF_LINK0;
-		if (ioctl(sock, SIOCSIFFLAGS, &ifr) == -1)
-			goto failed;
-	}
+	else
+		ifr.ifr_flags &= ~IFF_LINK0;
+	if (ioctl(sock, SIOCSIFFLAGS, &ifr) == -1)
+		goto failed;
+
+	/* Bring interface up */
 	ifr.ifr_flags |= IFF_UP;
 	if (ioctl(sock, SIOCSIFFLAGS, &ifr) == -1)
 		goto failed;

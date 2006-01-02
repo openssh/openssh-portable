@@ -23,6 +23,11 @@
    - djm@cvs.openbsd.org 2006/01/02 01:20:31
      [sftp-client.c sftp-common.h sftp-server.c]
      use a common max. packet length, no binary change
+   - reyk@cvs.openbsd.org 2006/01/02 07:53:44
+     [misc.c]
+     clarify tun(4) opening - set the mode and bring the interface up. also
+     (re)sets the tun(4) layer 2 LINK0 flag for existing tunnel interfaces.
+     suggested and ok by djm@
 
 20060101
  - (djm) [Makefile.in configure.ac includes.h misc.c]
@@ -3613,4 +3618,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4069 2006/01/02 12:40:50 djm Exp $
+$Id: ChangeLog,v 1.4070 2006/01/02 12:41:21 djm Exp $
