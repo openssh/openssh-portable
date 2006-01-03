@@ -1491,8 +1491,6 @@ channel_handle_wfd(Channel *c, fd_set * readset, fd_set * writeset)
 			}
 			return 1;
 		}
-		data = buffer_ptr(&c->output);
-		dlen = buffer_len(&c->output);
 #ifdef _AIX
 		/* XXX: Later AIX versions can't push as much data to tty */
 		if (compat20 && c->wfd_isatty)

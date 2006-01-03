@@ -1,4 +1,7 @@
 20060103
+ - (djm) [channels.c] clean up harmless merge error, from reyk@
+
+20060103
  - (djm) OpenBSD CVS Sync
    - jmc@cvs.openbsd.org 2006/01/02 17:09:49
      [ssh_config.5 sshd_config.5]
@@ -3628,4 +3631,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4072 2006/01/03 07:47:31 djm Exp $
+$Id: ChangeLog,v 1.4073 2006/01/03 20:27:50 djm Exp $
