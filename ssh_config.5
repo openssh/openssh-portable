@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.72 2005/12/22 10:31:40 jmc Exp $
+.\" $OpenBSD: ssh_config.5,v 1.73 2006/01/02 17:09:49 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -797,7 +797,7 @@ across multiple
 directives.
 The default is not to send any environment variables.
 .It Cm ServerAliveCountMax
-Sets the number of server alive messages (see above) which may be
+Sets the number of server alive messages (see below) which may be
 sent without
 .Nm ssh
 receiving any messages back from the server.
@@ -819,7 +819,7 @@ server depend on knowing when a connection has become inactive.
 The default value is 3.
 If, for example,
 .Cm ServerAliveInterval
-(above) is set to 15, and
+(see below) is set to 15, and
 .Cm ServerAliveCountMax
 is left at the default, if the server becomes unresponsive ssh
 will disconnect after approximately 45 seconds.

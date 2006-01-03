@@ -1,3 +1,9 @@
+20060103
+ - (djm) OpenBSD CVS Sync
+   - jmc@cvs.openbsd.org 2006/01/02 17:09:49
+     [ssh_config.5 sshd_config.5]
+     some corrections from michael knudsen;
+
 20060102
  - (djm) [README.tun] Add README.tun, missed during sync of tun(4) support
  - (djm) OpenBSD CVS Sync
@@ -3622,4 +3628,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4071 2006/01/02 12:41:37 djm Exp $
+$Id: ChangeLog,v 1.4072 2006/01/03 07:47:31 djm Exp $
