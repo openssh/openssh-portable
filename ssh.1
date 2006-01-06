@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.237 2006/01/03 16:35:30 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.238 2006/01/03 16:52:36 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -1054,109 +1054,6 @@ option in
 .Xr sshd_config 5 .
 .Sh FILES
 .Bl -tag -width Ds -compact
-.It ~/.ssh/known_hosts
-Records host keys for all hosts the user has logged into that are not
-in
-.Pa /etc/ssh/ssh_known_hosts .
-See
-.Xr sshd 8 .
-.Pp
-.It ~/.ssh/identity
-.It ~/.ssh/id_dsa
-.It ~/.ssh/id_rsa
-Contains the private key for authentication.
-These files
-contain sensitive data and should be readable by the user but not
-accessible by others (read/write/execute).
-.Nm
-will simply ignore a private key file if it is accessible by others.
-It is possible to specify a passphrase when
-generating the key which will be used to encrypt the
-sensitive part of this file using 3DES.
-.Pp
-.It ~/.ssh/identity.pub
-.It ~/.ssh/id_dsa.pub
-.It ~/.ssh/id_rsa.pub
-Contains the public key for authentication.
-These files are not
-sensitive and can (but need not) be readable by anyone.
-They are
-never used automatically and are not necessary: they are only provided for
-the convenience of the user.
-.Pp
-.It ~/.ssh/config
-This is the per-user configuration file.
-The file format and configuration options are described in
-.Xr ssh_config 5 .
-Because of the potential for abuse, this file must have strict permissions:
-read/write for the user, and not accessible by others.
-.Pp
-.It ~/.ssh/authorized_keys
-Lists the public keys (RSA/DSA) that can be used for logging in as this user.
-The format of this file is described in the
-.Xr sshd 8
-manual page.
-In the simplest form the format is the same as the
-.Pa .pub
-identity files.
-This file is not highly sensitive, but the recommended
-permissions are read/write for the user, and not accessible by others.
-.Pp
-.It /etc/ssh/ssh_known_hosts
-Systemwide list of known host keys.
-This file should be prepared by the
-system administrator to contain the public host keys of all machines in the
-organization.
-This file should be world-readable.
-This file contains
-public keys, one per line, in the following format (fields separated
-by spaces): system name, public key and optional comment field.
-When different names are used
-for the same machine, all such names should be listed, separated by
-commas.
-The format is described in the
-.Xr sshd 8
-manual page.
-.Pp
-The canonical system name (as returned by name servers) is used by
-.Xr sshd 8
-to verify the client host when logging in; other names are needed because
-.Nm
-does not convert the user-supplied name to a canonical name before
-checking the key, because someone with access to the name servers
-would then be able to fool host authentication.
-.Pp
-.It Pa /etc/ssh/ssh_config
-Systemwide configuration file.
-The file format and configuration options are described in
-.Xr ssh_config 5 .
-.Pp
-.It /etc/ssh/ssh_host_key
-.It /etc/ssh/ssh_host_dsa_key
-.It /etc/ssh/ssh_host_rsa_key
-These three files contain the private parts of the host keys
-and are used for
-.Cm RhostsRSAAuthentication
-and
-.Cm HostbasedAuthentication .
-If the protocol version 1
-.Cm RhostsRSAAuthentication
-method is used,
-.Nm
-must be setuid root, since the host key is readable only by root.
-For protocol version 2,
-.Nm
-uses
-.Xr ssh-keysign 8
-to access the host keys for
-.Cm HostbasedAuthentication .
-This eliminates the requirement that
-.Nm
-be setuid root when that authentication method is used.
-By default
-.Nm
-is not setuid root.
-.Pp
 .It ~/.rhosts
 This file is used in
 .Cm RhostsRSAAuthentication
@@ -1206,6 +1103,68 @@ authentication without permitting login with
 or
 .Xr rsh 1 .
 .Pp
+.It ~/.ssh/authorized_keys
+Lists the public keys (RSA/DSA) that can be used for logging in as this user.
+The format of this file is described in the
+.Xr sshd 8
+manual page.
+In the simplest form the format is the same as the
+.Pa .pub
+identity files.
+This file is not highly sensitive, but the recommended
+permissions are read/write for the user, and not accessible by others.
+.Pp
+.It ~/.ssh/config
+This is the per-user configuration file.
+The file format and configuration options are described in
+.Xr ssh_config 5 .
+Because of the potential for abuse, this file must have strict permissions:
+read/write for the user, and not accessible by others.
+.Pp
+.It ~/.ssh/environment
+Contains additional definitions for environment variables, see section
+.Sx ENVIRONMENT
+above.
+.Pp
+.It ~/.ssh/identity
+.It ~/.ssh/id_dsa
+.It ~/.ssh/id_rsa
+Contains the private key for authentication.
+These files
+contain sensitive data and should be readable by the user but not
+accessible by others (read/write/execute).
+.Nm
+will simply ignore a private key file if it is accessible by others.
+It is possible to specify a passphrase when
+generating the key which will be used to encrypt the
+sensitive part of this file using 3DES.
+.Pp
+.It ~/.ssh/identity.pub
+.It ~/.ssh/id_dsa.pub
+.It ~/.ssh/id_rsa.pub
+Contains the public key for authentication.
+These files are not
+sensitive and can (but need not) be readable by anyone.
+They are
+never used automatically and are not necessary: they are only provided for
+the convenience of the user.
+.Pp
+.It ~/.ssh/known_hosts
+Records host keys for all hosts the user has logged into that are not
+in
+.Pa /etc/ssh/ssh_known_hosts .
+See
+.Xr sshd 8 .
+.Pp
+.It ~/.ssh/rc
+Commands in this file are executed by
+.Nm
+when the user logs in just before the user's shell (or command) is
+started.
+See the
+.Xr sshd 8
+manual page for more information.
+.Pp
 .It /etc/hosts.equiv
 This file is used during
 .Cm RhostsRSAAuthentication
@@ -1229,6 +1188,61 @@ This file may be useful to permit logins using
 .Nm
 but not using rsh/rlogin.
 .Pp
+.It Pa /etc/ssh/ssh_config
+Systemwide configuration file.
+The file format and configuration options are described in
+.Xr ssh_config 5 .
+.Pp
+.It /etc/ssh/ssh_host_key
+.It /etc/ssh/ssh_host_dsa_key
+.It /etc/ssh/ssh_host_rsa_key
+These three files contain the private parts of the host keys
+and are used for
+.Cm RhostsRSAAuthentication
+and
+.Cm HostbasedAuthentication .
+If the protocol version 1
+.Cm RhostsRSAAuthentication
+method is used,
+.Nm
+must be setuid root, since the host key is readable only by root.
+For protocol version 2,
+.Nm
+uses
+.Xr ssh-keysign 8
+to access the host keys for
+.Cm HostbasedAuthentication .
+This eliminates the requirement that
+.Nm
+be setuid root when that authentication method is used.
+By default
+.Nm
+is not setuid root.
+.Pp
+.It /etc/ssh/ssh_known_hosts
+Systemwide list of known host keys.
+This file should be prepared by the
+system administrator to contain the public host keys of all machines in the
+organization.
+This file should be world-readable.
+This file contains
+public keys, one per line, in the following format (fields separated
+by spaces): system name, public key and optional comment field.
+When different names are used
+for the same machine, all such names should be listed, separated by
+commas.
+The format is described in the
+.Xr sshd 8
+manual page.
+.Pp
+The canonical system name (as returned by name servers) is used by
+.Xr sshd 8
+to verify the client host when logging in; other names are needed because
+.Nm
+does not convert the user-supplied name to a canonical name before
+checking the key, because someone with access to the name servers
+would then be able to fool host authentication.
+.Pp
 .It /etc/ssh/sshrc
 Commands in this file are executed by
 .Nm
@@ -1236,20 +1250,6 @@ when the user logs in just before the user's shell (or command) is started.
 See the
 .Xr sshd 8
 manual page for more information.
-.Pp
-.It ~/.ssh/rc
-Commands in this file are executed by
-.Nm
-when the user logs in just before the user's shell (or command) is
-started.
-See the
-.Xr sshd 8
-manual page for more information.
-.Pp
-.It ~/.ssh/environment
-Contains additional definitions for environment variables, see section
-.Sx ENVIRONMENT
-above.
 .El
 .Sh SEE ALSO
 .Xr gzip 1 ,
