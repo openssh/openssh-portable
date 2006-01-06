@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.239 2006/01/03 16:55:18 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.240 2006/01/04 18:42:46 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -1055,19 +1055,9 @@ option in
 .Sh FILES
 .Bl -tag -width Ds -compact
 .It ~/.rhosts
-This file is used in
-.Cm RhostsRSAAuthentication
-and
-.Cm HostbasedAuthentication
-authentication to list the
-host/user pairs that are permitted to log in.
-(Note that this file is
-also used by rlogin and rsh, which makes using this file insecure.)
-Each line of the file contains a host name (in the canonical form
-returned by name servers), and then a user name on that host,
-separated by a space.
+This file is used for host-based authentication (see above).
 On some machines this file may need to be
-world-readable if the user's home directory is on a NFS partition,
+world-readable if the user's home directory is on an NFS partition,
 because
 .Xr sshd 8
 reads it as root.
@@ -1077,31 +1067,11 @@ The recommended
 permission for most machines is read/write for the user, and not
 accessible by others.
 .Pp
-Note that
-.Xr sshd 8
-allows authentication only in combination with client host key
-authentication before permitting log in.
-If the server machine does not have the client's host key in
-.Pa /etc/ssh/ssh_known_hosts ,
-it can be stored in
-.Pa ~/.ssh/known_hosts .
-The easiest way to do this is to
-connect back to the client from the server machine using ssh; this
-will automatically add the host key to
-.Pa ~/.ssh/known_hosts .
-.Pp
 .It ~/.shosts
-This file is used exactly the same way as
-.Pa .rhosts .
-The purpose for
-having this file is to be able to use
-.Cm RhostsRSAAuthentication
-and
-.Cm HostbasedAuthentication
-authentication without permitting login with
-.Xr rlogin
-or
-.Xr rsh 1 .
+This file is used in exactly the same way as
+.Pa .rhosts ,
+but allows host-based authentication without permitting login with
+rlogin/rsh.
 .Pp
 .It ~/.ssh/authorized_keys
 Lists the public keys (RSA/DSA) that can be used for logging in as this user.
@@ -1166,27 +1136,14 @@ See the
 manual page for more information.
 .Pp
 .It /etc/hosts.equiv
-This file is used during
-.Cm RhostsRSAAuthentication
-and
-.Cm HostbasedAuthentication
-authentication.
-It contains
-canonical hosts names, one per line (the full format is described in the
-.Xr sshd 8
-manual page).
-If the client host is found in this file, login is
-automatically permitted provided client and server user names are the
-same.
-Additionally, successful client host key authentication is required.
-This file should only be writable by root.
+This file is for host-based authentication (see above).
+It should only be writable by root.
 .Pp
 .It /etc/shosts.equiv
-This file is processed exactly as
-.Pa /etc/hosts.equiv .
-This file may be useful to permit logins using
-.Nm
-but not using rsh/rlogin.
+This file is used in exactly the same way as
+.Pa hosts.equiv ,
+but allows host-based authentication without permitting login with
+rlogin/rsh.
 .Pp
 .It Pa /etc/ssh/ssh_config
 Systemwide configuration file.

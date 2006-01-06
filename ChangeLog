@@ -15,6 +15,11 @@
    - jmc@cvs.openbsd.org 2006/01/03 16:55:18
      [ssh.1]
      tweak the description of ~/.ssh/environment
+   - jmc@cvs.openbsd.org 2006/01/04 18:42:46
+     [ssh.1]
+     chop out some duplication in the .{r,s}hosts/{h,sh}osts.equiv FILES
+     entries;
+     ok markus
 
 20060103
  - (djm) [channels.c] clean up harmless merge error, from reyk@
@@ -3649,4 +3654,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4077 2006/01/06 03:49:17 djm Exp $
+$Id: ChangeLog,v 1.4078 2006/01/06 03:49:38 djm Exp $
