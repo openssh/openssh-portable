@@ -23,6 +23,9 @@
    - jmc@cvs.openbsd.org 2006/01/04 18:45:01
      [ssh.1]
      remove .Xr's to rsh(1) and telnet(1): they are hardly needed;
+   - jmc@cvs.openbsd.org 2006/01/04 19:40:24
+     [ssh.1]
+     +.Xr ssh-keyscan 1 ,
 
 20060103
  - (djm) [channels.c] clean up harmless merge error, from reyk@
@@ -3657,4 +3660,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4079 2006/01/06 03:49:54 djm Exp $
+$Id: ChangeLog,v 1.4080 2006/01/06 03:50:11 djm Exp $
