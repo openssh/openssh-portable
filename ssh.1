@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.236 2006/01/03 16:31:10 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.237 2006/01/03 16:35:30 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -956,7 +956,7 @@ electronic purse; another is going through firewalls.
 .Sh ENVIRONMENT
 .Nm
 will normally set the following environment variables:
-.Bl -tag -width LOGNAME
+.Bl -tag -width "SSH_ORIGINAL_COMMAND"
 .It Ev DISPLAY
 The
 .Ev DISPLAY
