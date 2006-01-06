@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: misc.c,v 1.40 2006/01/02 07:53:44 reyk Exp $");
+RCSID("$OpenBSD: misc.c,v 1.41 2006/01/05 23:43:53 djm Exp $");
 
 #ifdef SSH_TUN_OPENBSD
 #include <net/if.h>
@@ -616,18 +616,20 @@ tun_open(int tun, int mode)
 void
 sanitise_stdfd(void)
 {
-	int nullfd;
+	int nullfd, dupfd;
 
-	if ((nullfd = open(_PATH_DEVNULL, O_RDWR)) == -1) {
+	if ((nullfd = dupfd = open(_PATH_DEVNULL, O_RDWR)) == -1) {
 		fprintf(stderr, "Couldn't open /dev/null: %s", strerror(errno));
 		exit(1);
 	}
-	while (nullfd < 2) {
-		if (dup2(nullfd, nullfd + 1) == -1) {
+	while (++dupfd <= 2) {
+		/* Only clobber closed fds */
+		if (fcntl(dupfd, F_GETFL, 0) >= 0)
+			continue;
+		if (dup2(nullfd, dupfd) == -1) {
 			fprintf(stderr, "dup2: %s", strerror(errno));
 			exit(1);
 		}
-		nullfd++;
 	}
 	if (nullfd > 2)
 		close(nullfd);

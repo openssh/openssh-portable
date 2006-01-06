@@ -29,6 +29,12 @@
    - jmc@cvs.openbsd.org 2006/01/04 19:50:09
      [ssh.1]
      -.Xr gzip 1 ,
+   - djm@cvs.openbsd.org 2006/01/05 23:43:53
+     [misc.c]
+     check that stdio file descriptors are actually closed before clobbering
+     them in sanitise_stdfd(). problems occurred when a lower numbered fd was
+     closed, but higher ones weren't. spotted by, and patch tested by
+     Frédéric Olivié
 
 20060103
  - (djm) [channels.c] clean up harmless merge error, from reyk@
@@ -3663,4 +3669,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4081 2006/01/06 03:50:26 djm Exp $
+$Id: ChangeLog,v 1.4082 2006/01/06 03:50:44 djm Exp $
