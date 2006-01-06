@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.235 2006/01/02 12:31:06 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.236 2006/01/03 16:31:10 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -1053,14 +1053,17 @@ For more information, see the
 option in
 .Xr sshd_config 5 .
 .Sh FILES
-.Bl -tag -width Ds
-.It Pa ~/.ssh/known_hosts
+.Bl -tag -width Ds -compact
+.It ~/.ssh/known_hosts
 Records host keys for all hosts the user has logged into that are not
 in
 .Pa /etc/ssh/ssh_known_hosts .
 See
 .Xr sshd 8 .
-.It Pa ~/.ssh/identity, ~/.ssh/id_dsa, ~/.ssh/id_rsa
+.Pp
+.It ~/.ssh/identity
+.It ~/.ssh/id_dsa
+.It ~/.ssh/id_rsa
 Contains the private key for authentication.
 These files
 contain sensitive data and should be readable by the user but not
@@ -1070,20 +1073,25 @@ will simply ignore a private key file if it is accessible by others.
 It is possible to specify a passphrase when
 generating the key which will be used to encrypt the
 sensitive part of this file using 3DES.
-.It Pa ~/.ssh/identity.pub, ~/.ssh/id_dsa.pub, ~/.ssh/id_rsa.pub
+.Pp
+.It ~/.ssh/identity.pub
+.It ~/.ssh/id_dsa.pub
+.It ~/.ssh/id_rsa.pub
 Contains the public key for authentication.
 These files are not
 sensitive and can (but need not) be readable by anyone.
 They are
 never used automatically and are not necessary: they are only provided for
 the convenience of the user.
-.It Pa ~/.ssh/config
+.Pp
+.It ~/.ssh/config
 This is the per-user configuration file.
 The file format and configuration options are described in
 .Xr ssh_config 5 .
 Because of the potential for abuse, this file must have strict permissions:
 read/write for the user, and not accessible by others.
-.It Pa ~/.ssh/authorized_keys
+.Pp
+.It ~/.ssh/authorized_keys
 Lists the public keys (RSA/DSA) that can be used for logging in as this user.
 The format of this file is described in the
 .Xr sshd 8
@@ -1093,7 +1101,8 @@ In the simplest form the format is the same as the
 identity files.
 This file is not highly sensitive, but the recommended
 permissions are read/write for the user, and not accessible by others.
-.It Pa /etc/ssh/ssh_known_hosts
+.Pp
+.It /etc/ssh/ssh_known_hosts
 Systemwide list of known host keys.
 This file should be prepared by the
 system administrator to contain the public host keys of all machines in the
@@ -1116,11 +1125,15 @@ to verify the client host when logging in; other names are needed because
 does not convert the user-supplied name to a canonical name before
 checking the key, because someone with access to the name servers
 would then be able to fool host authentication.
+.Pp
 .It Pa /etc/ssh/ssh_config
 Systemwide configuration file.
 The file format and configuration options are described in
 .Xr ssh_config 5 .
-.It Pa /etc/ssh/ssh_host_key, /etc/ssh/ssh_host_dsa_key, /etc/ssh/ssh_host_rsa_key
+.Pp
+.It /etc/ssh/ssh_host_key
+.It /etc/ssh/ssh_host_dsa_key
+.It /etc/ssh/ssh_host_rsa_key
 These three files contain the private parts of the host keys
 and are used for
 .Cm RhostsRSAAuthentication
@@ -1143,7 +1156,8 @@ be setuid root when that authentication method is used.
 By default
 .Nm
 is not setuid root.
-.It Pa ~/.rhosts
+.Pp
+.It ~/.rhosts
 This file is used in
 .Cm RhostsRSAAuthentication
 and
@@ -1178,7 +1192,8 @@ The easiest way to do this is to
 connect back to the client from the server machine using ssh; this
 will automatically add the host key to
 .Pa ~/.ssh/known_hosts .
-.It Pa ~/.shosts
+.Pp
+.It ~/.shosts
 This file is used exactly the same way as
 .Pa .rhosts .
 The purpose for
@@ -1190,7 +1205,8 @@ authentication without permitting login with
 .Xr rlogin
 or
 .Xr rsh 1 .
-.It Pa /etc/hosts.equiv
+.Pp
+.It /etc/hosts.equiv
 This file is used during
 .Cm RhostsRSAAuthentication
 and
@@ -1205,20 +1221,23 @@ automatically permitted provided client and server user names are the
 same.
 Additionally, successful client host key authentication is required.
 This file should only be writable by root.
-.It Pa /etc/shosts.equiv
+.Pp
+.It /etc/shosts.equiv
 This file is processed exactly as
 .Pa /etc/hosts.equiv .
 This file may be useful to permit logins using
 .Nm
 but not using rsh/rlogin.
-.It Pa /etc/ssh/sshrc
+.Pp
+.It /etc/ssh/sshrc
 Commands in this file are executed by
 .Nm
 when the user logs in just before the user's shell (or command) is started.
 See the
 .Xr sshd 8
 manual page for more information.
-.It Pa ~/.ssh/rc
+.Pp
+.It ~/.ssh/rc
 Commands in this file are executed by
 .Nm
 when the user logs in just before the user's shell (or command) is
@@ -1226,7 +1245,8 @@ started.
 See the
 .Xr sshd 8
 manual page for more information.
-.It Pa ~/.ssh/environment
+.Pp
+.It ~/.ssh/environment
 Contains additional definitions for environment variables, see section
 .Sx ENVIRONMENT
 above.
