@@ -551,14 +551,14 @@ then
       [ -z "${_cygwin}" ] && _cygwin="ntsec"
       if [ $_nt2003 -gt 0 -a "${sshd_server_in_sam}" = "yes" ]
       then
-	if cygrunsrv -I sshd -d "CYGWIN sshd" -p /usr/sbin/sshd -a -D -u sshd_server -w "${_password}" -e "CYGWIN=${_cygwin}"
+	if cygrunsrv -I sshd -d "CYGWIN sshd" -p /usr/sbin/sshd -a -D -u sshd_server -w "${_password}" -e "CYGWIN=${_cygwin}" -y tcpip
 	then
 	  echo
 	  echo "The service has been installed under sshd_server account."
 	  echo "To start the service, call \`net start sshd' or \`cygrunsrv -S sshd'."
 	fi
       else
-	if cygrunsrv -I sshd -d "CYGWIN sshd" -p /usr/sbin/sshd -a -D -e "CYGWIN=${_cygwin}"
+	if cygrunsrv -I sshd -d "CYGWIN sshd" -p /usr/sbin/sshd -a -D -e "CYGWIN=${_cygwin}" -y tcpip
 	then
 	  echo
 	  echo "The service has been installed under LocalSystem account."

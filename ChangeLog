@@ -1,3 +1,8 @@
+20060109
+ - (dtucker) [contrib/cygwin/ssh-host-config] Make sshd service depend on
+   tcpip service so it's always started after IP is up.  Patch from
+   vinschen at redhat.com.
+
 20060106
  - (djm) OpenBSD CVS Sync
    - jmc@cvs.openbsd.org 2006/01/03 16:31:10
@@ -3669,4 +3674,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4082 2006/01/06 03:50:44 djm Exp $
+$Id: ChangeLog,v 1.4083 2006/01/09 13:02:44 dtucker Exp $
