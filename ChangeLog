@@ -22,6 +22,9 @@
    - jmc@cvs.openbsd.org 2006/01/12 22:20:00
      [sshd.8]
      refer to TCP forwarding, rather than TCP/IP forwarding;
+   - jmc@cvs.openbsd.org 2006/01/12 22:26:02
+     [ssh_config.5]
+     refer to TCP forwarding, rather than TCP/IP forwarding;
 
 20060109
  - (dtucker) [contrib/cygwin/ssh-host-config] Make sshd service depend on
@@ -3699,4 +3702,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4088 2006/01/13 23:09:56 djm Exp $
+$Id: ChangeLog,v 1.4089 2006/01/13 23:10:17 djm Exp $

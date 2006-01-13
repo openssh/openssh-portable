@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.73 2006/01/02 17:09:49 jmc Exp $
+.\" $OpenBSD: ssh_config.5,v 1.74 2006/01/12 22:26:02 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -318,7 +318,7 @@ used for opportunistic connection sharing include
 all three of these escape sequences.
 This ensures that shared connections are uniquely identified.
 .It Cm DynamicForward
-Specifies that a TCP/IP port on the local machine be forwarded
+Specifies that a TCP port on the local machine be forwarded
 over the secure channel, and the application
 protocol is then used to determine where to connect to from the
 remote machine.
@@ -565,7 +565,7 @@ This directive is ignored unless
 .Cm PermitLocalCommand
 has been enabled.
 .It Cm LocalForward
-Specifies that a TCP/IP port on the local machine be forwarded over
+Specifies that a TCP port on the local machine be forwarded over
 the secure channel to the specified host and port from the remote machine.
 The first argument must be
 .Sm off
@@ -719,7 +719,7 @@ The default is
 .Dq yes .
 This option applies to protocol version 2 only.
 .It Cm RemoteForward
-Specifies that a TCP/IP port on the remote machine be forwarded over
+Specifies that a TCP port on the remote machine be forwarded over
 the secure channel to the specified host and port from the local machine.
 The first argument must be
 .Sm off
