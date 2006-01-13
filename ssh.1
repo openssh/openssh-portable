@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.244 2006/01/06 13:27:32 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.245 2006/01/06 13:29:10 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -1078,9 +1078,6 @@ Lists the public keys (RSA/DSA) that can be used for logging in as this user.
 The format of this file is described in the
 .Xr sshd 8
 manual page.
-In the simplest form the format is the same as the
-.Pa .pub
-identity files.
 This file is not highly sensitive, but the recommended
 permissions are read/write for the user, and not accessible by others.
 .Pp
@@ -1129,7 +1126,7 @@ for further details of the format of this file.
 .It ~/.ssh/rc
 Commands in this file are executed by
 .Nm
-when the user logs in just before the user's shell (or command) is
+when the user logs in, just before the user's shell (or command) is
 started.
 See the
 .Xr sshd 8
@@ -1154,24 +1151,18 @@ The file format and configuration options are described in
 .It /etc/ssh/ssh_host_dsa_key
 .It /etc/ssh/ssh_host_rsa_key
 These three files contain the private parts of the host keys
-and are used for
-.Cm RhostsRSAAuthentication
-and
-.Cm HostbasedAuthentication .
-If the protocol version 1
-.Cm RhostsRSAAuthentication
-method is used,
+and are used for host-based authentication.
+If protocol version 1 is used,
 .Nm
 must be setuid root, since the host key is readable only by root.
 For protocol version 2,
 .Nm
 uses
 .Xr ssh-keysign 8
-to access the host keys for
-.Cm HostbasedAuthentication .
-This eliminates the requirement that
+to access the host keys,
+eliminating the requirement that
 .Nm
-be setuid root when that authentication method is used.
+be setuid root when host-based authentication is used.
 By default
 .Nm
 is not setuid root.
@@ -1189,7 +1180,7 @@ for further details of the format of this file.
 .It /etc/ssh/sshrc
 Commands in this file are executed by
 .Nm
-when the user logs in just before the user's shell (or command) is started.
+when the user logs in, just before the user's shell (or command) is started.
 See the
 .Xr sshd 8
 manual page for more information.
