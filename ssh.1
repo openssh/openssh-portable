@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.245 2006/01/06 13:29:10 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.246 2006/01/12 14:44:12 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -893,7 +893,67 @@ option.
 Request rekeying of the connection
 (only useful for SSH protocol version 2 and if the peer supports it).
 .El
-.Sh X11 AND TCP FORWARDING
+.Sh TCP FORWARDING
+Forwarding of arbitrary TCP connections over the secure channel can
+be specified either on the command line or in a configuration file.
+One possible application of TCP forwarding is a secure connection to a
+mail server; another is going through firewalls.
+.Pp
+In the example below, we look at encrypting communication between
+an IRC client and server, even though the IRC server does not directly
+support encrypted communications.
+This works as follows:
+the user connects to the remote host using
+.Nm ,
+specifying a port to be used to forward connections
+to the remote server.
+After that it is possible to start the service which is to be encrypted
+on the client machine,
+connecting to the same local port,
+and
+.Nm
+will encrypt and forward the connection.
+.Pp
+The following example tunnels an IRC session from client machine
+.Dq 127.0.0.1
+(localhost)
+to remote server
+.Dq server.example.com :
+.Bd -literal -offset 4n
+$ ssh -f -L 1234:localhost:6667 server.example.com sleep 10
+$ irc -c '#users' -p 1234 pinky 127.0.0.1
+.Ed
+.Pp
+This tunnels a connection to IRC server
+.Dq server.example.com ,
+joining channel
+.Dq #users ,
+nickname
+.Dq pinky ,
+using port 1234.
+It doesn't matter which port is used,
+as long as it's greater than 1023
+(remember, only root can open sockets on privileged ports)
+and doesn't conflict with any ports already in use.
+The connection is forwarded to port 6667 on the remote server,
+since that's the standard port for IRC services.
+.Pp
+The
+.Fl f
+option backgrounds
+.Nm
+and the remote command
+.Dq sleep 10
+is specified to allow an amount of time
+(10 seconds, in the example)
+to start the service which is to be tunnelled.
+If no connections are made within the time specified,
+.Nm
+will exit.
+Once opened,
+a SSH connection will remain active
+until all actively forwarded connections have closed.
+.Sh X11 FORWARDING
 If the
 .Cm ForwardX11
 variable is set to
@@ -948,11 +1008,6 @@ and
 options above) and
 the user is using an authentication agent, the connection to the agent
 is automatically forwarded to the remote side.
-.Pp
-Forwarding of arbitrary TCP/IP connections over the secure channel can
-be specified either on the command line or in a configuration file.
-One possible application of TCP/IP forwarding is a secure connection to an
-electronic purse; another is going through firewalls.
 .Sh ENVIRONMENT
 .Nm
 will normally set the following environment variables:
