@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.246 2006/01/12 14:44:12 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.247 2006/01/12 18:48:48 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -89,7 +89,7 @@ executing commands on a remote machine.
 It is intended to replace rlogin and rsh,
 and provide secure encrypted communications between
 two untrusted hosts over an insecure network.
-X11 connections and arbitrary TCP/IP ports
+X11 connections and arbitrary TCP ports
 can also be forwarded over the secure channel.
 .Pp
 .Nm
@@ -146,7 +146,7 @@ of the connection.
 Only useful on systems with more than one address.
 .It Fl C
 Requests compression of all data (including stdin, stdout, stderr, and
-data for forwarded X11 and TCP/IP connections).
+data for forwarded X11 and TCP connections).
 The compression algorithm is the same used by
 .Xr gzip 1 ,
 and the
@@ -834,7 +834,7 @@ On most systems, setting the escape character to
 will also make the session transparent even if a tty is used.
 .Pp
 The session terminates when the command or shell on the remote
-machine exits and all X11 and TCP/IP connections have been closed.
+machine exits and all X11 and TCP connections have been closed.
 .Sh ESCAPE CHARACTERS
 When a pseudo-terminal has been requested,
 .Nm

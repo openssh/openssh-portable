@@ -14,6 +14,11 @@
      split sections on tcp and x11 forwarding into two sections.
      add an example in the tcp section, based on sth i wrote for ssh faq;
      help + ok: djm markus dtucker
+   - jmc@cvs.openbsd.org 2006/01/12 18:48:48
+     [ssh.1]
+     refer to `TCP' rather than `TCP/IP' in the context of connection
+     forwarding;
+     ok markus
 
 20060109
  - (dtucker) [contrib/cygwin/ssh-host-config] Make sshd service depend on
@@ -3691,4 +3696,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4086 2006/01/13 23:09:13 djm Exp $
+$Id: ChangeLog,v 1.4087 2006/01/13 23:09:30 djm Exp $
