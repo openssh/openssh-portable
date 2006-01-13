@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.243 2006/01/04 19:50:09 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.244 2006/01/06 13:27:32 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -1120,11 +1120,11 @@ never used automatically and are not necessary: they are only provided for
 the convenience of the user.
 .Pp
 .It ~/.ssh/known_hosts
-Records host keys for all hosts the user has logged into that are not
-in
-.Pa /etc/ssh/ssh_known_hosts .
+Contains a list of host keys for all hosts the user has logged into
+that are not already in the systemwide list of known host keys.
 See
-.Xr sshd 8 .
+.Xr sshd 8
+for further details of the format of this file.
 .Pp
 .It ~/.ssh/rc
 Commands in this file are executed by
@@ -1181,24 +1181,10 @@ Systemwide list of known host keys.
 This file should be prepared by the
 system administrator to contain the public host keys of all machines in the
 organization.
-This file should be world-readable.
-This file contains
-public keys, one per line, in the following format (fields separated
-by spaces): system name, public key and optional comment field.
-When different names are used
-for the same machine, all such names should be listed, separated by
-commas.
-The format is described in the
+It should be world-readable.
+See
 .Xr sshd 8
-manual page.
-.Pp
-The canonical system name (as returned by name servers) is used by
-.Xr sshd 8
-to verify the client host when logging in; other names are needed because
-.Nm
-does not convert the user-supplied name to a canonical name before
-checking the key, because someone with access to the name servers
-would then be able to fool host authentication.
+for further details of the format of this file.
 .Pp
 .It /etc/ssh/sshrc
 Commands in this file are executed by
