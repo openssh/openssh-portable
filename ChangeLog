@@ -6,6 +6,10 @@
    - jmc@cvs.openbsd.org 2006/01/18 10:53:29
      [ssh.1]
      add a section on ssh-based vpn, based on reyk's README.tun;
+   - dtucker@cvs.openbsd.org 2006/01/20 00:14:55
+     [scp.1 ssh.1 ssh_config.5 sftp.1]
+     Document RekeyLimit.  Based on patch from jan.iven at cern.ch from mindrot
+     #1056 with feedback from jmc, djm and markus; ok jmc@ djm@
 
 20060114
  - (djm) OpenBSD CVS Sync
@@ -3714,4 +3718,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4092 2006/01/20 00:30:58 dtucker Exp $
+$Id: ChangeLog,v 1.4093 2006/01/20 00:31:47 dtucker Exp $

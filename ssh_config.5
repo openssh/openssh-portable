@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.74 2006/01/12 22:26:02 jmc Exp $
+.\" $OpenBSD: ssh_config.5,v 1.75 2006/01/20 00:14:55 dtucker Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -718,6 +718,21 @@ or
 The default is
 .Dq yes .
 This option applies to protocol version 2 only.
+.It Cm RekeyLimit
+Specifies the maximum amount of data that may be transmitted before the
+session key will be renegotiated.
+The argument is the number of bytes, with an optional suffix of
+.Dq K ,
+.Dq M ,
+or
+.Dq G
+to indicate Kilobytes, Megabytes, or Gigabytes, respectively.
+The default is between
+.Dq 1G
+and
+.Dq 4G ,
+depending on the cipher.
+Note that this option applies to protocol version 2 only.
 .It Cm RemoteForward
 Specifies that a TCP port on the remote machine be forwarded over
 the secure channel to the specified host and port from the local machine.
