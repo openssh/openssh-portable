@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.249 2006/01/15 17:37:05 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.250 2006/01/18 10:53:29 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -1005,6 +1005,56 @@ and
 options above) and
 the user is using an authentication agent, the connection to the agent
 is automatically forwarded to the remote side.
+.Sh SSH-BASED VIRTUAL PRIVATE NETWORKS
+.Nm
+contains support for Virtual Private Network (VPN) tunnelling
+using the
+.Xr tun 4
+network pseudo-device,
+allowing two networks to be joined securely.
+The
+.Xr sshd_config 5
+configuration option
+.Cm PermitTunnel
+controls whether the server supports this,
+and at what level (layer 2 or 3 traffic).
+.Pp
+The following example would connect client network 10.0.50.0/24
+with remote network 10.0.99.0/24, provided that the SSH server
+running on the gateway to the remote network,
+at 192.168.1.15, allows it:
+.Bd -literal -offset indent
+# ssh -f -w 0:1 192.168.1.15 true
+# ifconfig tun0 10.0.50.1 10.0.99.1 netmask 255.255.255.252
+.Ed
+.Pp
+Client access may be more finely tuned via the
+.Pa /root/.ssh/authorized_keys
+file (see below) and the
+.Cm PermitRootLogin
+server option.
+The following entry would permit connections on the first
+.Xr tun 4
+device from user
+.Dq jane
+and on the second device from user
+.Dq john ,
+if
+.Cm PermitRootLogin
+is set to
+.Dq forced-commands-only :
+.Bd -literal -offset 2n
+tunnel="1",command="sh /etc/netstart tun1" ssh-rsa ... jane
+tunnel="2",command="sh /etc/netstart tun1" ssh-rsa ... john
+.Ed
+.Pp
+Since a SSH-based setup entails a fair amount of overhead,
+it may be more suited to temporary setups,
+such as for wireless VPNs.
+More permanent VPNs are better provided by tools such as
+.Xr ipsecctl 8
+and
+.Xr isakmpd 8 .
 .Sh ENVIRONMENT
 .Nm
 will normally set the following environment variables:
@@ -1244,6 +1294,7 @@ manual page for more information.
 .Xr ssh-agent 1 ,
 .Xr ssh-keygen 1 ,
 .Xr ssh-keyscan 1 ,
+.Xr tun 4 ,
 .Xr hosts.equiv 5 ,
 .Xr ssh_config 5 ,
 .Xr ssh-keysign 8 ,

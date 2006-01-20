@@ -3,6 +3,9 @@
    - jmc@cvs.openbsd.org 2006/01/15 17:37:05
      [ssh.1]
      correction from deraadt
+   - jmc@cvs.openbsd.org 2006/01/18 10:53:29
+     [ssh.1]
+     add a section on ssh-based vpn, based on reyk's README.tun;
 
 20060114
  - (djm) OpenBSD CVS Sync
@@ -3711,4 +3714,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4091 2006/01/20 00:30:14 dtucker Exp $
+$Id: ChangeLog,v 1.4092 2006/01/20 00:30:58 dtucker Exp $
