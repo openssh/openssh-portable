@@ -47,7 +47,7 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.127 2005/09/28 12:33:27 dtucker Exp $");
+RCSID("$Id: auth-pam.c,v 1.128 2006/01/29 05:46:13 dtucker Exp $");
 
 #ifdef USE_PAM
 #if defined(HAVE_SECURITY_PAM_APPL_H)
@@ -773,7 +773,7 @@ sshpam_respond(void *ctx, u_int num, char **resp)
 	Buffer buffer;
 	struct pam_ctxt *ctxt = ctx;
 
-	debug2("PAM: %s entering, %d responses", __func__, num);
+	debug2("PAM: %s entering, %u responses", __func__, num);
 	switch (ctxt->pam_done) {
 	case 1:
 		sshpam_authenticated = 1;
