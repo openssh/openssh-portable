@@ -1,3 +1,7 @@
+20060129
+ - (dtucker) [configure.ac opensshd.init.in] Bug #1144: Use /bin/sh for the
+   opensshd.init script interpretter if /sbin/sh does not exist.  ok tim@
+
 20060120
  - (dtucker) OpenBSD CVS Sync
    - jmc@cvs.openbsd.org 2006/01/15 17:37:05
@@ -3718,4 +3722,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4093 2006/01/20 00:31:47 dtucker Exp $
+$Id: ChangeLog,v 1.4094 2006/01/29 13:22:39 dtucker Exp $

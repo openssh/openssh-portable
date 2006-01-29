@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.321 2006/01/01 10:03:30 djm Exp $
+# $Id: configure.ac,v 1.322 2006/01/29 13:22:39 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -47,6 +47,11 @@ AC_PATH_PROG(PATH_GROUPADD_PROG, groupadd, groupadd,
 AC_PATH_PROG(PATH_USERADD_PROG, useradd, useradd,
 	[/usr/sbin${PATH_SEPARATOR}/etc])
 AC_CHECK_PROG(MAKE_PACKAGE_SUPPORTED, pkgmk, yes, no)
+if test -x /sbin/sh; then
+	AC_SUBST(STARTUP_SCRIPT_SHELL,/sbin/sh)
+else
+	AC_SUBST(STARTUP_SCRIPT_SHELL,/bin/sh)
+fi
 
 # System features
 AC_SYS_LARGEFILE
