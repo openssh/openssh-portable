@@ -1,5 +1,5 @@
 #!/bin/sh
-#       $OpenBSD: scp-ssh-wrapper.sh,v 1.1 2004/06/13 13:51:02 dtucker Exp $
+#       $OpenBSD: scp-ssh-wrapper.sh,v 1.2 2005/12/14 04:36:39 dtucker Exp $
 #       Placed in the Public Domain.
 
 printname () {
