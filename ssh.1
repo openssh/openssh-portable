@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.252 2006/01/26 08:47:56 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.253 2006/01/30 13:37:49 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -1256,9 +1256,6 @@ sensitive part of this file using 3DES.
 Contains the public key for authentication.
 These files are not
 sensitive and can (but need not) be readable by anyone.
-They are
-never used automatically and are not necessary: they are only provided for
-the convenience of the user.
 .Pp
 .It ~/.ssh/known_hosts
 Contains a list of host keys for all hosts the user has logged into

@@ -23,6 +23,11 @@
      mark channel as write failed or dead instead of read failed on error
      of the channel output filter.
      ok markus@
+   - jmc@cvs.openbsd.org 2006/01/30 13:37:49
+     [ssh.1]
+     remove an incorrect sentence;
+     reported by roumen petrov;
+     ok djm markus
 
 20060129
  - (dtucker) [configure.ac opensshd.init.in] Bug #1144: Use /bin/sh for the
@@ -3748,4 +3753,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4099 2006/01/31 10:47:15 djm Exp $
+$Id: ChangeLog,v 1.4100 2006/01/31 10:47:58 djm Exp $
