@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.212 2006/01/25 09:04:34 jmc Exp $
+.\" $OpenBSD: sshd.8,v 1.213 2006/01/25 09:07:22 jmc Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -233,7 +233,7 @@ This implementation of
 supports both SSH protocol version 1 and 2 simultaneously.
 .Nm
 works as follows:
-.Ss SSH protocol version 1
+.Sh SSH PROTOCOL VERSION 1
 Each host has a host-specific RSA key
 (normally 2048 bits) used to identify the host.
 Additionally, when
@@ -301,7 +301,7 @@ are disabled (thus completely disabling
 and
 .Xr rsh
 into the machine).
-.Ss SSH protocol version 2
+.Sh SSH PROTOCOL VERSION 2
 Version 2 works similarly:
 Each host has a host-specific key (RSA or DSA) used to identify the host.
 However, when the daemon starts, it does not generate a server key.
@@ -320,7 +320,7 @@ Protocol version 2 provides a public key based
 user (PubkeyAuthentication) or
 client host (HostbasedAuthentication) authentication method,
 conventional password authentication and challenge response based methods.
-.Ss Command execution and data forwarding
+.Sh COMMAND EXECUTION AND DATA FORWARDING
 If the client successfully authenticates itself, a dialog for
 preparing the session is entered.
 At this time the client may request
