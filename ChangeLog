@@ -18,6 +18,11 @@
      written with a lot of help from jakob;
      feedback dtucker/markus;
      ok markus
+   - reyk@cvs.openbsd.org 2006/01/30 12:22:22
+     [channels.c]
+     mark channel as write failed or dead instead of read failed on error
+     of the channel output filter.
+     ok markus@
 
 20060129
  - (dtucker) [configure.ac opensshd.init.in] Bug #1144: Use /bin/sh for the
@@ -3743,4 +3748,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4098 2006/01/31 10:46:51 djm Exp $
+$Id: ChangeLog,v 1.4099 2006/01/31 10:47:15 djm Exp $

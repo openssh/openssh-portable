@@ -39,7 +39,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.231 2005/12/30 15:56:36 reyk Exp $");
+RCSID("$OpenBSD: channels.c,v 1.232 2006/01/30 12:22:22 reyk Exp $");
 
 #include "ssh.h"
 #include "ssh1.h"
@@ -1466,7 +1466,11 @@ channel_handle_wfd(Channel *c, fd_set * readset, fd_set * writeset)
 		if (c->output_filter != NULL) {
 			if ((buf = c->output_filter(c, &data, &dlen)) == NULL) {
 				debug2("channel %d: filter stops", c->self);
-				chan_read_failed(c);
+				if (c->type != SSH_CHANNEL_OPEN)
+					chan_mark_dead(c);
+				else
+					chan_write_failed(c);
+				return -1;
 			}
 		} else if (c->datagram) {
 			buf = data = buffer_get_string(&c->output, &dlen);
