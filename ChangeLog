@@ -66,6 +66,9 @@
    - djm@cvs.openbsd.org 2006/01/31 10:23:23
      [scp.sh]
      regression test for CVE-2006-0225 written by dtucker@
+   - djm@cvs.openbsd.org 2006/01/31 10:36:33
+     [scp.sh]
+     regress test for "scp a b c" where "c" is not a directory
 
 20060129
  - (dtucker) [configure.ac opensshd.init.in] Bug #1144: Use /bin/sh for the
@@ -3791,4 +3794,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4110 2006/01/31 11:06:14 djm Exp $
+$Id: ChangeLog,v 1.4111 2006/01/31 11:06:41 djm Exp $

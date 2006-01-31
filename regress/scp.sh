@@ -1,4 +1,4 @@
-#	$OpenBSD: scp.sh,v 1.6 2006/01/31 10:23:23 djm Exp $
+#	$OpenBSD: scp.sh,v 1.7 2006/01/31 10:36:33 djm Exp $
 #	Placed in the Public Domain.
 
 tid="scp"
@@ -115,6 +115,13 @@ for i in 0 1 2 3 4; do
 	$SCP -r $scpopts somehost:${DATA} ${DIR2} >/dev/null 2>/dev/null
 	[ -d ${DIR}/dotpathdir ] && fail "allows dir creation outside of subdir"
 done
+
+verbose "$tid: detect non-directory target"
+scpclean
+echo a > ${COPY}
+echo b > ${COPY2}
+$SCP $scpopts ${DATA} ${COPY} ${COPY2}
+cmp ${COPY} ${COPY2} >/dev/null && fail "corrupt target"
 
 scpclean
 rm -f ${OBJ}/scp-ssh-wrapper.scp
