@@ -60,6 +60,9 @@
      [regress/scp-ssh-wrapper.sh]
      Fix assumption about how many args scp will pass; ok djm@
      NB. ID sync only, we already had this
+   - djm@cvs.openbsd.org 2006/01/27 06:49:21
+     [scp.sh]
+     regress test for local to local scp copies; ok dtucker@
 
 20060129
  - (dtucker) [configure.ac opensshd.init.in] Bug #1144: Use /bin/sh for the
@@ -3785,4 +3788,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4108 2006/01/31 11:03:11 djm Exp $
+$Id: ChangeLog,v 1.4109 2006/01/31 11:05:23 djm Exp $
