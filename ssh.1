@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.251 2006/01/20 00:14:55 dtucker Exp $
+.\" $OpenBSD: ssh.1,v 1.252 2006/01/26 08:47:56 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -810,15 +810,6 @@ The
 option can be used to control logins to machines whose
 host key is not known or has changed.
 .Pp
-.Nm
-can be configured to verify host identification using fingerprint resource
-records (SSHFP) published in DNS.
-The
-.Cm VerifyHostKeyDNS
-option can be used to control how DNS lookups are performed.
-SSHFP resource records can be generated using
-.Xr ssh-keygen 1 .
-.Pp
 When the user's identity has been accepted by the server, the server
 either executes the given command, or logs into the machine and gives
 the user a normal shell on the remote machine.
@@ -1006,6 +997,56 @@ and
 options above) and
 the user is using an authentication agent, the connection to the agent
 is automatically forwarded to the remote side.
+.Sh VERIFYING HOST KEYS
+When connecting to a server for the first time,
+a fingerprint of the server's public key is presented to the user
+(unless the option
+.Cm StrictHostKeyChecking
+has been disabled).
+Fingerprints can be determined using
+.Xr ssh-keygen 1 :
+.Pp
+.Dl $ ssh-keygen -l -f /etc/ssh/ssh_host_rsa_key
+.Pp
+If the fingerprint is already known,
+it can be matched and verified,
+and the key can be accepted.
+If the fingerprint is unknown,
+an alternative method of verification is available:
+SSH fingerprints verified by DNS.
+An additional resource record (RR),
+SSHFP,
+is added to a zonefile
+and the connecting client is able to match the fingerprint
+with that of the key presented.
+.Pp
+In this example, we are connecting a client to a server,
+.Dq host.example.com .
+The SSHFP resource records should first be added to the zonefile for
+host.example.com:
+.Bd -literal -offset indent
+$ ssh-keygen -f /etc/ssh/ssh_host_rsa_key.pub -r host.example.com.
+$ ssh-keygen -f /etc/ssh/ssh_host_dsa_key.pub -r host.example.com.
+.Ed
+.Pp
+The output lines will have to be added to the zonefile.
+To check that the zone is answering fingerprint queries:
+.Pp
+.Dl $ dig -t SSHFP host.example.com
+.Pp
+Finally the client connects:
+.Bd -literal -offset indent
+$ ssh -o "VerifyHostKeyDNS ask" host.example.com
+[...]
+Matching host key fingerprint found in DNS.
+Are you sure you want to continue connecting (yes/no)?
+.Ed
+.Pp
+See the
+.Cm VerifyHostKeyDNS
+option in
+.Xr ssh_config 5
+for more information.
 .Sh SSH-BASED VIRTUAL PRIVATE NETWORKS
 .Nm
 contains support for Virtual Private Network (VPN) tunnelling

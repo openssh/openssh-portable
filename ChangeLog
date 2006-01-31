@@ -12,6 +12,12 @@
    - jmc@cvs.openbsd.org 2006/01/25 09:07:22
      [sshd.8]
      move subsections to full sections;
+   - jmc@cvs.openbsd.org 2006/01/26 08:47:56
+     [ssh.1]
+     add a section on verifying host keys in dns;
+     written with a lot of help from jakob;
+     feedback dtucker/markus;
+     ok markus
 
 20060129
  - (dtucker) [configure.ac opensshd.init.in] Bug #1144: Use /bin/sh for the
@@ -3737,4 +3743,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4097 2006/01/31 10:46:20 djm Exp $
+$Id: ChangeLog,v 1.4098 2006/01/31 10:46:51 djm Exp $
