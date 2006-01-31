@@ -1,4 +1,4 @@
-#	$OpenBSD: scp.sh,v 1.5 2006/01/27 06:49:21 djm Exp $
+#	$OpenBSD: scp.sh,v 1.6 2006/01/31 10:23:23 djm Exp $
 #	Placed in the Public Domain.
 
 tid="scp"
@@ -81,6 +81,13 @@ rm -rf ${DIR2}
 cp ${DATA} ${DIR}/copy
 $SCP $scpopts -r somehost:${DIR} ${DIR2} || fail "copy failed"
 diff ${DIFFOPT} ${DIR} ${DIR2} || fail "corrupted copy"
+
+verbose "$tid: shell metacharacters"
+scpclean
+(cd ${DIR} && \
+touch '`touch metachartest`' && \
+$SCP $scpopts *metachar* ${DIR2} 2>/dev/null; \
+[ ! -f metachartest ] ) || fail "shell metacharacters"
 
 if [ ! -z "$SUDO" ]; then
 	verbose "$tid: skipped file after scp -p with failed chown+utimes"
