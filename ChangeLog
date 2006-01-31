@@ -33,6 +33,10 @@
      fix local arbitrary command execution vulnerability on local/local and
      remote/remote copies (CVE-2006-0225, bz #1094), patch by
      t8m AT centrum.cz, polished by dtucker@ and myself; ok markus@
+   - djm@cvs.openbsd.org 2006/01/31 10:35:43
+     [scp.c]
+     "scp a b c" shouldn't clobber "c" when it is not a directory, report and
+     fix from biorn@; ok markus@
  - (djm) Sync regress tests to OpenBSD:
    - dtucker@cvs.openbsd.org 2005/03/10 10:20:39
      [regress/forwarding.sh]
@@ -3794,4 +3798,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4111 2006/01/31 11:06:41 djm Exp $
+$Id: ChangeLog,v 1.4112 2006/01/31 11:11:37 djm Exp $
