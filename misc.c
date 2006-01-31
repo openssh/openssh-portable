@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: misc.c,v 1.41 2006/01/05 23:43:53 djm Exp $");
+RCSID("$OpenBSD: misc.c,v 1.42 2006/01/31 10:19:02 djm Exp $");
 
 #ifdef SSH_TUN_OPENBSD
 #include <net/if.h>
@@ -391,12 +391,15 @@ void
 addargs(arglist *args, char *fmt, ...)
 {
 	va_list ap;
-	char buf[1024];
+	char *cp;
 	u_int nalloc;
+	int r;
 
 	va_start(ap, fmt);
-	vsnprintf(buf, sizeof(buf), fmt, ap);
+	r = vasprintf(&cp, fmt, ap);
 	va_end(ap);
+	if (r == -1)
+		fatal("addargs: argument too long");
 
 	nalloc = args->nalloc;
 	if (args->list == NULL) {
@@ -407,8 +410,42 @@ addargs(arglist *args, char *fmt, ...)
 
 	args->list = xrealloc(args->list, nalloc * sizeof(char *));
 	args->nalloc = nalloc;
-	args->list[args->num++] = xstrdup(buf);
+	args->list[args->num++] = cp;
 	args->list[args->num] = NULL;
+}
+
+void
+replacearg(arglist *args, u_int which, char *fmt, ...)
+{
+	va_list ap;
+	char *cp;
+	int r;
+
+	va_start(ap, fmt);
+	r = vasprintf(&cp, fmt, ap);
+	va_end(ap);
+	if (r == -1)
+		fatal("replacearg: argument too long");
+
+	if (which >= args->num)
+		fatal("replacearg: tried to replace invalid arg %d >= %d",
+		    which, args->num);
+	xfree(args->list[which]);
+	args->list[which] = cp;
+}
+
+void
+freeargs(arglist *args)
+{
+	u_int i;
+
+	if (args->list != NULL) {
+		for (i = 0; i < args->num; i++)
+			xfree(args->list[i]);
+		xfree(args->list);
+		args->nalloc = args->num = 0;
+		args->list = NULL;
+	}
 }
 
 /*

@@ -1,4 +1,4 @@
-/*	$OpenBSD: misc.h,v 1.28 2005/12/08 18:34:11 reyk Exp $	*/
+/*	$OpenBSD: misc.h,v 1.29 2006/01/31 10:19:02 djm Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -38,7 +38,11 @@ struct arglist {
 	u_int   num;
 	u_int   nalloc;
 };
-void	 addargs(arglist *, char *, ...) __attribute__((format(printf, 2, 3)));
+void	 addargs(arglist *, char *, ...)
+	     __attribute__((format(printf, 2, 3)));
+void	 replacearg(arglist *, u_int, char *, ...)
+	     __attribute__((format(printf, 3, 4)));
+void	 freeargs(arglist *);
 
 /* readpass.c */
 

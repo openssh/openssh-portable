@@ -28,6 +28,11 @@
      remove an incorrect sentence;
      reported by roumen petrov;
      ok djm markus
+   - djm@cvs.openbsd.org 2006/01/31 10:19:02
+     [misc.c misc.h scp.c sftp.c]
+     fix local arbitrary command execution vulnerability on local/local and
+     remote/remote copies (CVE-2006-0225, bz #1094), patch by
+     t8m AT centrum.cz, polished by dtucker@ and myself; ok markus@
 
 20060129
  - (dtucker) [configure.ac opensshd.init.in] Bug #1144: Use /bin/sh for the
@@ -3753,4 +3758,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4100 2006/01/31 10:47:58 djm Exp $
+$Id: ChangeLog,v 1.4101 2006/01/31 10:49:27 djm Exp $
