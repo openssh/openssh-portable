@@ -52,6 +52,10 @@
    - markus@cvs.openbsd.org 2005/06/30 11:02:37
      [regress/scp.sh]
      allow SUDO=sudo; from Alexander Bluhm
+   - grunk@cvs.openbsd.org 2005/11/14 21:25:56
+     [regress/agent-getpeereid.sh]
+     all other scripts in this dir use $SUDO, not 'sudo', so pull this even
+     ok markus@
 
 20060129
  - (dtucker) [configure.ac opensshd.init.in] Bug #1144: Use /bin/sh for the
@@ -3777,4 +3781,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4106 2006/01/31 11:01:42 djm Exp $
+$Id: ChangeLog,v 1.4107 2006/01/31 11:02:16 djm Exp $
