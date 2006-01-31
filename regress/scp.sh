@@ -1,4 +1,4 @@
-#	$OpenBSD: scp.sh,v 1.3 2004/07/08 12:59:35 dtucker Exp $
+#	$OpenBSD: scp.sh,v 1.4 2005/06/30 11:02:37 markus Exp $
 #	Placed in the Public Domain.
 
 tid="scp"
@@ -73,7 +73,7 @@ if [ ! -z "$SUDO" ]; then
 	chmod 660 ${DIR2}/copy
 	$SUDO chown root ${DIR2}/copy
 	$SCP -p $scpopts somehost:${DIR}/\* ${DIR2} >/dev/null 2>&1
-	diff ${DIFFOPT} ${DIR} ${DIR2} || fail "corrupted copy"
+	$SUDO diff ${DIFFOPT} ${DIR} ${DIR2} || fail "corrupted copy"
 	$SUDO rm ${DIR2}/copy
 fi
 
