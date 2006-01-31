@@ -46,6 +46,9 @@
      [regress/test-exec.sh]
      force addressfamily=inet for tests, unbreaking dynamic-forward regress for
      recently committed nc SOCKS5 changes
+   - djm@cvs.openbsd.org 2005/05/24 04:10:54
+     [try-ciphers.sh]
+     oops, new arcfour modes here too
 
 20060129
  - (dtucker) [configure.ac opensshd.init.in] Bug #1144: Use /bin/sh for the
@@ -3771,4 +3774,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4104 2006/01/31 10:59:01 djm Exp $
+$Id: ChangeLog,v 1.4105 2006/01/31 10:59:35 djm Exp $
