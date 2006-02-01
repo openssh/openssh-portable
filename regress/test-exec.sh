@@ -24,6 +24,8 @@ if [ -x /usr/ucb/whoami ]; then
 	USER=`/usr/ucb/whoami`
 elif whoami >/dev/null 2>&1; then
 	USER=`whoami`
+elif logname >/dev/null 2>&1; then
+	USER=`logname`
 else
 	USER=`id -un`
 fi

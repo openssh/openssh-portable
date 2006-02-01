@@ -1,3 +1,8 @@
+20060201
+ - (djm) [regress/test-exec.sh] Try 'logname' as well as 'whoami' to 
+   determine the user's login name - needed for regress tests on Solaris 
+   10 and OpenSolaris
+
 20060131
  - (djm) OpenBSD CVS Sync
    - jmc@cvs.openbsd.org 2006/01/20 11:21:45
@@ -3798,4 +3803,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4112 2006/01/31 11:11:37 djm Exp $
+$Id: ChangeLog,v 1.4113 2006/02/01 00:21:01 djm Exp $
