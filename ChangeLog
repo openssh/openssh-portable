@@ -16,6 +16,7 @@
    - markus@cvs.openbsd.org 2006/02/01 11:27:22
      [version.h]
      openssh 4.3
+ - (djm) Release OpenSSH 4.3p1
 
 20060131
  - (djm) OpenBSD CVS Sync
@@ -3817,4 +3818,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4117 2006/02/01 11:27:31 djm Exp $
+$Id: ChangeLog,v 1.4118 2006/02/01 11:32:17 djm Exp $
