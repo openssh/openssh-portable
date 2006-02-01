@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.213 2006/01/25 09:07:22 jmc Exp $
+.\" $OpenBSD: sshd.8,v 1.214 2006/02/01 09:06:50 jmc Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -227,20 +227,26 @@ USER@HOST pattern in
 or
 .Cm DenyUsers .
 .El
+.Sh AUTHENTICATION
+The OpenSSH SSH daemon supports SSH protocols 1 and 2.
+Both protocols are supported by default,
+though this can be changed via the
+.Cm Protocol
+option in
+.Xr sshd_config 5 .
+Protocol 2 supports both RSA and DSA keys;
+protocol 1 only supports RSA keys.
+For both protocols,
+each host has a host-specific key,
+normally 2048 bits,
+used to identify the host.
 .Pp
-This implementation of
-.Nm
-supports both SSH protocol version 1 and 2 simultaneously.
-.Nm
-works as follows:
-.Sh SSH PROTOCOL VERSION 1
-Each host has a host-specific RSA key
-(normally 2048 bits) used to identify the host.
-Additionally, when
-the daemon starts, it generates a server RSA key (normally 768 bits).
+Forward security for protocol 1 is provided through
+an additional server key,
+normally 768 bits,
+generated when the server starts.
 This key is normally regenerated every hour if it has been used, and
 is never stored on disk.
-.Pp
 Whenever a client connects, the daemon responds with its public
 host and server keys.
 The client compares the
@@ -258,12 +264,23 @@ being used by default.
 The client selects the encryption algorithm
 to use from those offered by the server.
 .Pp
-Next, the server and the client enter an authentication dialog.
+For protocol 2,
+forward security is provided through a Diffie-Hellman key agreement.
+This key agreement results in a shared session key.
+The rest of the session is encrypted using a symmetric cipher, currently
+128-bit AES, Blowfish, 3DES, CAST128, Arcfour, 192-bit AES, or 256-bit AES.
+The client selects the encryption algorithm
+to use from those offered by the server.
+Additionally, session integrity is provided
+through a cryptographic message authentication code
+(hmac-sha1 or hmac-md5).
+.Pp
+Finally, the server and the client enter an authentication dialog.
 The client tries to authenticate itself using
-.Em rhosts
-authentication combined with RSA host
-authentication, RSA challenge-response authentication, or password
-based authentication.
+host-based authentication,
+public key authentication,
+challenge-response authentication,
+or password authentication.
 .Pp
 Regardless of the authentication type, the account is checked to
 ensure that it is accessible.  An account is not accessible if it is
@@ -301,25 +318,6 @@ are disabled (thus completely disabling
 and
 .Xr rsh
 into the machine).
-.Sh SSH PROTOCOL VERSION 2
-Version 2 works similarly:
-Each host has a host-specific key (RSA or DSA) used to identify the host.
-However, when the daemon starts, it does not generate a server key.
-Forward security is provided through a Diffie-Hellman key agreement.
-This key agreement results in a shared session key.
-.Pp
-The rest of the session is encrypted using a symmetric cipher, currently
-128-bit AES, Blowfish, 3DES, CAST128, Arcfour, 192-bit AES, or 256-bit AES.
-The client selects the encryption algorithm
-to use from those offered by the server.
-Additionally, session integrity is provided
-through a cryptographic message authentication code
-(hmac-sha1 or hmac-md5).
-.Pp
-Protocol version 2 provides a public key based
-user (PubkeyAuthentication) or
-client host (HostbasedAuthentication) authentication method,
-conventional password authentication and challenge response based methods.
 .Sh COMMAND EXECUTION AND DATA FORWARDING
 If the client successfully authenticates itself, a dialog for
 preparing the session is entered.
@@ -337,15 +335,6 @@ command on the server side, and the user terminal in the client side.
 When the user program terminates and all forwarded X11 and other
 connections have been closed, the server sends command exit status to
 the client, and both sides exit.
-.Sh CONFIGURATION FILE
-.Nm
-reads configuration data from
-.Pa /etc/ssh/sshd_config
-(or the file specified with
-.Fl f
-on the command line).
-The file format and configuration options are described in
-.Xr sshd_config 5 .
 .Sh LOGIN PROCESS
 When a user successfully logs in,
 .Nm
