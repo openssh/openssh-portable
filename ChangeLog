@@ -13,6 +13,9 @@
      small tweak;
  - (djm) [contrib/caldera/openssh.spec contrib/redhat/openssh.spec]
    [contrib/suse/openssh.spec] Update versions ahead of release
+   - markus@cvs.openbsd.org 2006/02/01 11:27:22
+     [version.h]
+     openssh 4.3
 
 20060131
  - (djm) OpenBSD CVS Sync
@@ -3814,4 +3817,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4116 2006/02/01 11:10:47 djm Exp $
+$Id: ChangeLog,v 1.4117 2006/02/01 11:27:31 djm Exp $
