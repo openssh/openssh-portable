@@ -8,6 +8,9 @@
      - merge sections on protocols 1 and 2 into a single section
      - remove configuration file section
      ok markus
+   - jmc@cvs.openbsd.org 2006/02/01 09:11:41
+     [sshd.8]
+     small tweak;
 
 20060131
  - (djm) OpenBSD CVS Sync
@@ -3809,4 +3812,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4114 2006/02/01 11:05:25 djm Exp $
+$Id: ChangeLog,v 1.4115 2006/02/01 11:05:42 djm Exp $
