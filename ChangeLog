@@ -1,3 +1,7 @@
+20060202
+ - (dtucker) [configure.ac] Bug #1148: Fix "crippled AES" test so that it
+   works with picky compilers.  Patch from alex.kiernan at thus.net.
+
 20060201
  - (djm) [regress/test-exec.sh] Try 'logname' as well as 'whoami' to 
    determine the user's login name - needed for regress tests on Solaris 
@@ -3818,4 +3822,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4118 2006/02/01 11:32:17 djm Exp $
+$Id: ChangeLog,v 1.4119 2006/02/02 07:44:19 dtucker Exp $

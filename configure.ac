@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.322 2006/01/29 13:22:39 dtucker Exp $
+# $Id: configure.ac,v 1.323 2006/02/02 07:44:19 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -1832,7 +1832,7 @@ AC_COMPILE_IFELSE(
 	[AC_LANG_SOURCE([[
 #include <string.h>
 #include <openssl/evp.h>
-int main(void) { exit(EVP_aes_192_cbc() == NULL || EVP_aes_256_cbc() == NULL)}
+int main(void) { exit(EVP_aes_192_cbc() == NULL || EVP_aes_256_cbc() == NULL);}
 	]])],
 	[
 		AC_MSG_RESULT(no)
