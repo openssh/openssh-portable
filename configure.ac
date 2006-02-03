@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.323 2006/02/02 07:44:19 dtucker Exp $
+# $Id: configure.ac,v 1.324 2006/02/03 03:11:56 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -27,6 +27,7 @@ AC_PROG_AWK
 AC_PROG_CPP
 AC_PROG_RANLIB
 AC_PROG_INSTALL
+AC_PROG_EGREP
 AC_PATH_PROG(AR, ar)
 AC_PATH_PROG(CAT, cat)
 AC_PATH_PROG(KILL, kill)

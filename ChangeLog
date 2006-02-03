@@ -1,3 +1,11 @@
+20060203
+ - (tim) [configure.ac] test for egrep (AC_PROG_EGREP) before first
+   AC_CHECK_HEADERS test. Without it, if AC_CHECK_HEADERS is first run
+   by a platform specific check, builtin standard includes tests will be
+   skipped on the other platforms.
+   Analysis and suggestion by vinschen at redhat.com, patch by dtucker@.
+   OK tim@, djm@.
+
 20060202
  - (dtucker) [configure.ac] Bug #1148: Fix "crippled AES" test so that it
    works with picky compilers.  Patch from alex.kiernan at thus.net.
@@ -3822,4 +3830,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4119 2006/02/02 07:44:19 dtucker Exp $
+$Id: ChangeLog,v 1.4120 2006/02/03 03:11:56 tim Exp $
