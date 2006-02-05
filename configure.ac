@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.322.2.4 2006/02/05 01:44:01 tim Exp $
+# $Id: configure.ac,v 1.322.2.5 2006/02/05 19:28:11 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.322.2.4 $)
+AC_REVISION($Revision: 1.322.2.5 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -680,10 +680,8 @@ AC_CHECK_HEADERS( \
 	login_cap.h \
 	maillock.h \
 	ndir.h \
-	net/if.h \
 	netdb.h \
 	netgroup.h \
-	netinet/in_systm.h \
 	pam/pam_appl.h \
 	paths.h \
 	pty.h \
