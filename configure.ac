@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.324 2006/02/03 03:11:56 tim Exp $
+# $Id: configure.ac,v 1.325 2006/02/05 01:33:55 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,6 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
+AC_REVISION($Revision: 1.325 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -673,7 +674,6 @@ AC_CHECK_HEADERS( \
 	glob.h \
 	ia.h \
 	iaf.h \
-	lastlog.h \
 	limits.h \
 	login.h \
 	login_cap.h \
@@ -723,6 +723,13 @@ AC_CHECK_HEADERS( \
 	utmpx.h \
 	vis.h \
 )
+
+# lastlog.h requires sys/time.h to be included first on Solaris
+AC_CHECK_HEADERS(lastlog.h, [], [], [
+#ifdef HAVE_SYS_TIME_H
+# include <sys/time.h>
+#endif
+])
 
 # sys/ptms.h requires sys/stream.h to be included first on Solaris
 AC_CHECK_HEADERS(sys/ptms.h, [], [], [

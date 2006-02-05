@@ -1,3 +1,7 @@
+20060205
+ - (tim) [configure.ac] Add AC_REVISION. Add sys/time.h to lastlog.h test
+   for Solaris. OK dtucker@.
+
 20060203
  - (tim) [configure.ac] test for egrep (AC_PROG_EGREP) before first
    AC_CHECK_HEADERS test. Without it, if AC_CHECK_HEADERS is first run
@@ -3830,4 +3834,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4120 2006/02/03 03:11:56 tim Exp $
+$Id: ChangeLog,v 1.4121 2006/02/05 01:33:55 tim Exp $
