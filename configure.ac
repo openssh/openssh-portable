@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.325 2006/02/05 01:33:55 tim Exp $
+# $Id: configure.ac,v 1.326 2006/02/05 01:42:58 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.325 $)
+AC_REVISION($Revision: 1.326 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -577,12 +577,13 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(BROKEN_SETREGID)
 	;;
 
-*-*-nto-qnx)
+*-*-nto-qnx*)
 	AC_DEFINE(USE_PIPES)
 	AC_DEFINE(NO_X11_UNIX_SOCKETS)
 	AC_DEFINE(MISSING_NFDBITS, 1, [Define on *nto-qnx systems])
 	AC_DEFINE(MISSING_HOWMANY, 1, [Define on *nto-qnx systems])
 	AC_DEFINE(MISSING_FD_MASK, 1, [Define on *nto-qnx systems])
+	AC_DEFINE(DISABLE_LASTLOG)
 	;;
 
 *-*-ultrix*)

@@ -1,6 +1,8 @@
 20060205
  - (tim) [configure.ac] Add AC_REVISION. Add sys/time.h to lastlog.h test
    for Solaris. OK dtucker@.
+ - (tim) [configure.ac] Bug #1149. Changes in QNX section only. Patch by
+   kraai at ftbfs.org.
 
 20060203
  - (tim) [configure.ac] test for egrep (AC_PROG_EGREP) before first
@@ -3834,4 +3836,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4121 2006/02/05 01:33:55 tim Exp $
+$Id: ChangeLog,v 1.4122 2006/02/05 01:42:58 tim Exp $
