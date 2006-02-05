@@ -1,3 +1,7 @@
+20060206
+ - (tim) [configure.ac] Remove unnecessary tests for net/if.h and 
+   netinet/in_systm.h. OK dtucker@.
+
 20060205
  - (tim) [configure.ac] Add AC_REVISION. Add sys/time.h to lastlog.h test
    for Solaris. OK dtucker@.
@@ -3836,4 +3840,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4122 2006/02/05 01:42:58 tim Exp $
+$Id: ChangeLog,v 1.4123 2006/02/05 19:27:10 tim Exp $
