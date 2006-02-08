@@ -2,6 +2,8 @@
  - (tim) [session.c] Logout records were not updated on systems with
    post auth privsep disabled due to bug 1086 changes. Analysis and patch
    by vinschen at redhat.com. OK tim@, dtucker@.
+ - (dtucker) [configure.ac] Typo in Ultrix and NewsOS sections (NEED_SETPRGP
+   -> NEED_SETPGRP), reported by Berhard Simon.  ok tim@
 
 20060206
  - (tim) [configure.ac] Remove unnecessary tests for net/if.h and 
@@ -3845,4 +3847,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4124 2006/02/07 23:17:44 tim Exp $
+$Id: ChangeLog,v 1.4125 2006/02/08 11:11:27 dtucker Exp $

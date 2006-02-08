@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.327 2006/02/05 19:27:10 tim Exp $
+# $Id: configure.ac,v 1.328 2006/02/08 11:11:28 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.327 $)
+AC_REVISION($Revision: 1.328 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -345,7 +345,7 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	fi
 	;;
 mips-sony-bsd|mips-sony-newsos4)
-	AC_DEFINE(NEED_SETPRGP, 1, [Need setpgrp to acquire controlling tty])
+	AC_DEFINE(NEED_SETPGRP, 1, [Need setpgrp to acquire controlling tty])
 	SONY=1
 	;;
 *-*-netbsd*)
@@ -589,7 +589,7 @@ mips-sony-bsd|mips-sony-newsos4)
 *-*-ultrix*)
 	AC_DEFINE(BROKEN_GETGROUPS, 1, [getgroups(0,NULL) will return -1])
 	AC_DEFINE(BROKEN_MMAP, 1, [Ultrix mmap can't map files])
-	AC_DEFINE(NEED_SETPRGP)
+	AC_DEFINE(NEED_SETPGRP)
 	AC_DEFINE(HAVE_SYS_SYSLOG_H, 1, [Force use of sys/syslog.h on Ultrix])
 	;;
 
