@@ -1,3 +1,6 @@
+20060211
+ - (dtucker) [README] Bump release notes URL.
+
 20060208
  - (tim) [session.c] Logout records were not updated on systems with
    post auth privsep disabled due to bug 1086 changes. Analysis and patch
@@ -3847,4 +3850,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4117.2.8 2006/02/08 11:11:05 dtucker Exp $
+$Id: ChangeLog,v 1.4117.2.9 2006/02/10 23:43:33 dtucker Exp $
