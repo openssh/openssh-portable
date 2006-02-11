@@ -1,5 +1,6 @@
 20060211
  - (dtucker) [README] Bump release notes URL.
+ - (djm) Release 4.3p2
 
 20060208
  - (tim) [session.c] Logout records were not updated on systems with
@@ -3850,4 +3851,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4117.2.9 2006/02/10 23:43:33 dtucker Exp $
+$Id: ChangeLog,v 1.4117.2.10 2006/02/11 00:00:44 djm Exp $
