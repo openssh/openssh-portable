@@ -1,6 +1,7 @@
 20060212
  - (dtucker) [openbsd-compat/bsd-cygwin_util.c] Make loop counter unsigned
    to silence compiler warning, from vinschen at redhat.com.
+ - (tim) [configure.ac] Bug #1149. Disable /etc/default/login check for QNX.
 
 20060208
  - (tim) [session.c] Logout records were not updated on systems with
@@ -3851,4 +3852,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4126 2006/02/12 00:59:08 dtucker Exp $
+$Id: ChangeLog,v 1.4127 2006/02/12 02:37:48 tim Exp $

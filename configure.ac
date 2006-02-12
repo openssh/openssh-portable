@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.328 2006/02/08 11:11:28 dtucker Exp $
+# $Id: configure.ac,v 1.329 2006/02/12 02:37:48 tim Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.328 $)
+AC_REVISION($Revision: 1.329 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -584,6 +584,7 @@ mips-sony-bsd|mips-sony-newsos4)
 	AC_DEFINE(MISSING_HOWMANY, 1, [Define on *nto-qnx systems])
 	AC_DEFINE(MISSING_FD_MASK, 1, [Define on *nto-qnx systems])
 	AC_DEFINE(DISABLE_LASTLOG)
+	enable_etc_default_login=no	# has incompatible /etc/default/login
 	;;
 
 *-*-ultrix*)
