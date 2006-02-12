@@ -29,7 +29,7 @@
 
 #include "includes.h"
 
-RCSID("$Id: bsd-cygwin_util.c,v 1.14 2005/05/25 09:42:11 dtucker Exp $");
+RCSID("$Id: bsd-cygwin_util.c,v 1.15 2006/02/12 00:59:09 dtucker Exp $");
 
 #ifdef HAVE_CYGWIN
 
@@ -268,7 +268,7 @@ char **
 fetch_windows_environment(void)
 {
 	char **e, **p;
-	int i, idx = 0;
+	unsigned int i, idx = 0;
 
 	p = xmalloc((WENV_SIZ + 1) * sizeof(char *));
 	for (e = environ; *e != NULL; ++e) {
