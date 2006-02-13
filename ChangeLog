@@ -1,3 +1,7 @@
+20060214
+ - (tim) [buildpkg.sh.in] Make the names consistent.
+   s/pkg_post_make_install_fixes.sh/pkg-post-make-install-fixes.sh/ OK dtucker@
+
 20060212
  - (dtucker) [openbsd-compat/bsd-cygwin_util.c] Make loop counter unsigned
    to silence compiler warning, from vinschen at redhat.com.
@@ -3855,4 +3859,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4128 2006/02/12 05:48:56 dtucker Exp $
+$Id: ChangeLog,v 1.4129 2006/02/13 20:46:44 tim Exp $

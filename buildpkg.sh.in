@@ -35,7 +35,7 @@ SSHDGID=67	# Default privsep gid
 SYSVINITSTART=S98
 SYSVINITSTOPT=K30
 # We will source these if they exist
-POST_MAKE_INSTALL_FIXES=./pkg_post_make_install_fixes.sh
+POST_MAKE_INSTALL_FIXES=./pkg-post-make-install-fixes.sh
 POST_PROTOTYPE_EDITS=./pkg-post-prototype-edit.sh
 # We'll be one level deeper looking for these
 PKG_PREINSTALL_LOCAL=../pkg-preinstall.local
