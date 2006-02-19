@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.329 2006/02/12 02:37:48 tim Exp $
+# $Id: configure.ac,v 1.330 2006/02/19 11:50:20 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.329 $)
+AC_REVISION($Revision: 1.330 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -3729,7 +3729,7 @@ CFLAGS="$CFLAGS $werror_flags"
 
 AC_EXEEXT
 AC_CONFIG_FILES([Makefile buildpkg.sh opensshd.init openbsd-compat/Makefile \
-	scard/Makefile ssh_prng_cmds survey.sh])
+	openbsd-compat/regress/Makefile scard/Makefile ssh_prng_cmds survey.sh])
 AC_OUTPUT
 
 # Print summary of options

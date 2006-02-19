@@ -1,3 +1,7 @@
+20060219
+ - (dtucker) [Makefile.in configure.ac, added openbsd-compat/regress/]
+   Add first attempt at regress tests for compat library.  ok djm@
+
 20060214
  - (tim) [buildpkg.sh.in] Make the names consistent.
    s/pkg_post_make_install_fixes.sh/pkg-post-make-install-fixes.sh/ OK dtucker@
@@ -3859,4 +3863,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4129 2006/02/13 20:46:44 tim Exp $
+$Id: ChangeLog,v 1.4130 2006/02/19 11:50:20 dtucker Exp $
