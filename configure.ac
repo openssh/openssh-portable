@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.330 2006/02/19 11:50:20 dtucker Exp $
+# $Id: configure.ac,v 1.331 2006/02/20 09:17:36 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.330 $)
+AC_REVISION($Revision: 1.331 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -1832,6 +1832,24 @@ Also see contrib/findssl.sh for help identifying header/library mismatches.])
 	[
 		AC_MSG_WARN([cross compiling: not checking])
 	]
+)
+
+AC_ARG_WITH(ssl-engine,
+	[  --with-ssl-engine       Enable OpenSSL (hardware) ENGINE support ],
+	[ if test "x$withval" != "xno" ; then
+		AC_MSG_CHECKING(for OpenSSL ENGINE support)
+		AC_TRY_COMPILE(
+			[ #include <openssl/engine.h>],
+			[
+int main(void){ENGINE_load_builtin_engines();ENGINE_register_all_complete();}
+			],
+			[ AC_MSG_RESULT(yes)
+			  AC_DEFINE(USE_OPENSSL_ENGINE, 1,
+			     [Enable OpenSSL engine support])
+			],
+			[ AC_MSG_ERROR(OpenSSL ENGINE support not found)]
+		)
+	  fi ]
 )
 
 # Check for OpenSSL without EVP_aes_{192,256}_cbc

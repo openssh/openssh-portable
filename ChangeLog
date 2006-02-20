@@ -1,3 +1,9 @@
+20060220
+ - (dtucker) [INSTALL configure.ac openbsd-compat/openssl-compat.{c,h}]
+   Add optional enabling of OpenSSL's (hardware) Engine support, via
+   configure --with-ssl-engine.  Based in part on a diff by michal at
+   logix.cz.
+
 20060219
  - (dtucker) [Makefile.in configure.ac, added openbsd-compat/regress/]
    Add first attempt at regress tests for compat library.  ok djm@
@@ -3863,4 +3869,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4130 2006/02/19 11:50:20 dtucker Exp $
+$Id: ChangeLog,v 1.4131 2006/02/20 09:17:35 dtucker Exp $
