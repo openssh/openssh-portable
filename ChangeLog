@@ -1,3 +1,7 @@
+20060221
+ - (dtucker) [openbsd-compat/openssl-compat.h] Prevent warning about
+   redefinition of SSLeay_add_all_algorithms.
+
 20060220
  - (dtucker) [INSTALL configure.ac openbsd-compat/openssl-compat.{c,h}]
    Add optional enabling of OpenSSL's (hardware) Engine support, via
@@ -3869,4 +3873,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4131 2006/02/20 09:17:35 dtucker Exp $
+$Id: ChangeLog,v 1.4132 2006/02/21 13:00:27 dtucker Exp $
