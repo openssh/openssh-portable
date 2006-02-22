@@ -1,3 +1,7 @@
+2006022
+ - (dtucker) [openbsd-compat/openssl-compat.{c,h}] Minor tidy up: only
+   compile in compat code if required.
+
 20060221
  - (dtucker) [openbsd-compat/openssl-compat.h] Prevent warning about
    redefinition of SSLeay_add_all_algorithms.
@@ -3873,4 +3877,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4132 2006/02/21 13:00:27 dtucker Exp $
+$Id: ChangeLog,v 1.4133 2006/02/22 11:24:47 dtucker Exp $

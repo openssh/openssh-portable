@@ -1,4 +1,4 @@
-/* $Id: openssl-compat.c,v 1.3 2006/02/20 09:17:36 dtucker Exp $ */
+/* $Id: openssl-compat.c,v 1.4 2006/02/22 11:24:47 dtucker Exp $ */
 
 /*
  * Copyright (c) 2005 Darren Tucker <dtucker@zip.com.au>
@@ -49,14 +49,14 @@ ssh_EVP_CIPHER_CTX_cleanup(EVP_CIPHER_CTX *evp)
 }
 #endif
 
+#ifdef	USE_OPENSSL_ENGINE
 void
 ssh_SSLeay_add_all_algorithms(void)
 {
 	SSLeay_add_all_algorithms();
 
-#ifdef	USE_OPENSSL_ENGINE
 	/* Enable use of crypto hardware */
 	ENGINE_load_builtin_engines();
 	ENGINE_register_all_complete();
-#endif
 }
+#endif

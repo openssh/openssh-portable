@@ -1,4 +1,4 @@
-/* $Id: openssl-compat.h,v 1.5 2006/02/21 13:00:28 dtucker Exp $ */
+/* $Id: openssl-compat.h,v 1.6 2006/02/22 11:24:47 dtucker Exp $ */
 
 /*
  * Copyright (c) 2005 Darren Tucker <dtucker@zip.com.au>
@@ -70,11 +70,11 @@ extern const EVP_CIPHER *evp_acss(void);
 #   undef SSLeay_add_all_algorithms
 #  endif
 #  define SSLeay_add_all_algorithms()	ssh_SSLeay_add_all_algorithms()
-void ssh_SSLeay_add_all_algorithms(void);
 #endif
 
 int ssh_EVP_CipherInit(EVP_CIPHER_CTX *, const EVP_CIPHER *, unsigned char *,
     unsigned char *, int);
 int ssh_EVP_Cipher(EVP_CIPHER_CTX *, char *, char *, int);
 int ssh_EVP_CIPHER_CTX_cleanup(EVP_CIPHER_CTX *);
+void ssh_SSLeay_add_all_algorithms(void);
 #endif	/* SSH_DONT_OVERLOAD_OPENSSL_FUNCS */
