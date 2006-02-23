@@ -1,3 +1,7 @@
+2006023
+ - (dtucker) [sshd_config sshd_config.5] Update UsePAM to reflect current
+   reality.  Pointed out by tryponraj at gmail.com.
+
 2006022
  - (dtucker) [openbsd-compat/openssl-compat.{c,h}] Minor tidy up: only
    compile in compat code if required.
@@ -3877,4 +3881,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4133 2006/02/22 11:24:47 dtucker Exp $
+$Id: ChangeLog,v 1.4134 2006/02/23 10:35:30 dtucker Exp $

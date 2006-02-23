@@ -677,7 +677,10 @@ If set to
 .Dq yes
 this will enable PAM authentication using
 .Cm ChallengeResponseAuthentication
-and PAM account and session module processing for all authentication types.
+and
+.Cm PasswordAuthentication
+in addition to PAM account and session module processing for all
+authentication types.
 .Pp
 Because PAM challenge-response authentication usually serves an equivalent
 role to password authentication, you should disable either
