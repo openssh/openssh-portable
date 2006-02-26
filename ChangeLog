@@ -1,8 +1,12 @@
-2006023
+20060226
+ - (dtucker) [configure.ac] Bug #1156: QNX apparently needs SSHD_ACQUIRES_CTTY
+   patch from kraai at ftbfs.org.
+
+20060223
  - (dtucker) [sshd_config sshd_config.5] Update UsePAM to reflect current
    reality.  Pointed out by tryponraj at gmail.com.
 
-2006022
+20060222
  - (dtucker) [openbsd-compat/openssl-compat.{c,h}] Minor tidy up: only
    compile in compat code if required.
 
@@ -3881,4 +3885,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4134 2006/02/23 10:35:30 dtucker Exp $
+$Id: ChangeLog,v 1.4135 2006/02/26 01:31:48 dtucker Exp $
