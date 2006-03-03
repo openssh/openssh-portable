@@ -1,3 +1,7 @@
+20060304
+ - (dtucker) [gss-serv-krb5.c] Bug #1166: Correct #ifdefs for gssapi_krb5.h
+   includes.  Patch from gentoo.riverrat at gmail.com.
+
 20060211
  - (dtucker) [README] Bump release notes URL.
  - (djm) Release 4.3p2
@@ -3851,4 +3855,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4117.2.10 2006/02/11 00:00:44 djm Exp $
+$Id: ChangeLog,v 1.4117.2.11 2006/03/03 21:59:21 dtucker Exp $
