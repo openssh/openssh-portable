@@ -41,9 +41,9 @@ extern ServerOptions options;
 #ifdef HEIMDAL
 # include <krb5.h>
 #else
-# ifdef HAVE_GSSAPI_KRB5
+# ifdef HAVE_GSSAPI_KRB5_H
 #  include <gssapi_krb5.h>
-# elif HAVE_GSSAPI_GSSAPI_KRB5
+# elif HAVE_GSSAPI_GSSAPI_KRB5_H
 #  include <gssapi/gssapi_krb5.h>
 # endif
 #endif
