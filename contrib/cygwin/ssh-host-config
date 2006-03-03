@@ -153,22 +153,31 @@ fi
 
 # Create /var/log and /var/log/lastlog if not already existing
 
-if [ -f ${LOCALSTATEDIR}/log ]
+if [ -e ${LOCALSTATEDIR}/log -a ! -d ${LOCALSTATEDIR}/log ]
 then
-  echo "Creating ${LOCALSTATEDIR}/log failed!"
-else
-  if [ ! -d ${LOCALSTATEDIR}/log ]
-  then
-    mkdir -p ${LOCALSTATEDIR}/log
-  fi
-  if [ -d ${LOCALSTATEDIR}/log/lastlog ]
-  then
-    chmod 777 ${LOCALSTATEDIR}/log/lastlog
-  elif [ ! -f ${LOCALSTATEDIR}/log/lastlog ]
-  then
-    cat /dev/null > ${LOCALSTATEDIR}/log/lastlog
-    chmod 666 ${LOCALSTATEDIR}/log/lastlog
-  fi
+  echo
+  echo "${LOCALSTATEDIR}/log is existant but not a directory."
+  echo "Cannot create ssh host configuration."
+  echo
+  exit 1
+fi
+if [ ! -e ${LOCALSTATEDIR}/log ]
+then
+  mkdir -p ${LOCALSTATEDIR}/log
+fi
+
+if [ -e ${LOCALSTATEDIR}/log/lastlog -a ! -f ${LOCALSTATEDIR}/log/lastlog ]
+then
+  echo 
+  echo "${LOCALSTATEDIR}/log/lastlog exists, but is not a file."
+  echo "Cannot create ssh host configuration."
+  echo 
+  exit 1
+fi
+if [ ! -e ${LOCALSTATEDIR}/log/lastlog ]
+then
+  cat /dev/null > ${LOCALSTATEDIR}/log/lastlog
+  chmod 644 ${LOCALSTATEDIR}/log/lastlog
 fi
 
 # Create /var/empty file used as chroot jail for privilege separation
@@ -578,6 +587,7 @@ then
       fi
       chown "${_user}" ${SYSCONFDIR}/ssh*
       chown "${_user}".544 ${LOCALSTATEDIR}/empty
+      chown "${_user}".544 ${LOCALSTATEDIR}/log/lastlog
       if [ -f ${LOCALSTATEDIR}/log/sshd.log ]
       then
 	chown "${_user}".544 ${LOCALSTATEDIR}/log/sshd.log

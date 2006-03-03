@@ -1,3 +1,8 @@
+20060304
+ - (dtucker) [contrib/cygwin/ssh-host-config] Require use of lastlog as a
+   file rather than directory, required as Cygwin will be importing lastlog(1).
+   Also tightens up permissions on the file.  Patch from vinschen@redhat.com.
+
 20060226
  - (dtucker) [configure.ac] Bug #1156: QNX apparently needs SSHD_ACQUIRES_CTTY
    patch from kraai at ftbfs.org.
@@ -3885,4 +3890,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4135 2006/02/26 01:31:48 dtucker Exp $
+$Id: ChangeLog,v 1.4136 2006/03/03 21:50:31 dtucker Exp $
