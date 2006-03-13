@@ -1,3 +1,9 @@
+20060313
+ - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
+   since not all platforms support it.  Instead, use internal equivalent while
+   computing LLONG_MIN and LLONG_MAX.  Remove special case for alpha-dec-osf*
+   as it's no longer required.  Tested by Bernhard Simon, ok djm@
+
 20060304
  - (dtucker) [contrib/cygwin/ssh-host-config] Require use of lastlog as a
    file rather than directory, required as Cygwin will be importing lastlog(1).
@@ -3892,4 +3898,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4138 2006/03/03 22:00:19 dtucker Exp $
+$Id: ChangeLog,v 1.4139 2006/03/13 08:06:51 dtucker Exp $

@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.332 2006/02/26 01:31:49 dtucker Exp $
+# $Id: configure.ac,v 1.333 2006/03/13 08:06:51 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.332 $)
+AC_REVISION($Revision: 1.333 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -2132,6 +2132,34 @@ if test -z "$have_llong_max"; then
 #define __USE_ISOC99
 #include <limits.h>
 #define DATA "conftest.llminmax"
+#define my_abs(a) ((a) < 0 ? ((a) * -1) : (a))
+
+/*
+ * printf in libc on some platforms (eg old Tru64) does not understand %lld so
+ * we do this the hard way.
+ */
+static int
+fprint_ll(FILE *f, long long n)
+{
+	unsigned int i;
+	int l[sizeof(long long) * 8];
+
+	if (n < 0)
+		if (fprintf(f, "-") < 0)
+			return -1;
+	for (i = 0; n != 0; i++) {
+		l[i] = my_abs(n % 10);
+		n /= 10;
+	}
+	do {
+		if (fprintf(f, "%d", l[--i]) < 0)
+			return -1;
+	} while (i != 0);
+	if (fprintf(f, " ") < 0)
+		return -1;
+	return 0;
+}
+
 int main(void) {
 	FILE *f;
 	long long i, llmin, llmax = 0;
@@ -2153,31 +2181,24 @@ int main(void) {
 
 	/* Sanity check */
 	if (llmin + 1 < llmin || llmin - 1 < llmin || llmax + 1 > llmax
-	    || llmax - 1 > llmax) {
+	    || llmax - 1 > llmax || llmin == llmax || llmin == 0
+	    || llmax == 0 || llmax < LONG_MAX || llmin > LONG_MIN) {
 		fprintf(f, "unknown unknown\n");
 		exit(2);
 	}
 
-	if (fprintf(f ,"%lld %lld", llmin, llmax) < 0)
+	if (fprint_ll(f, llmin) < 0)
 		exit(3);
-
+	if (fprint_ll(f, llmax) < 0)
+		exit(4);
+	if (fclose(f) < 0)
+		exit(5);
 	exit(0);
 }
 		]])],
 		[
 			llong_min=`$AWK '{print $1}' conftest.llminmax`
 			llong_max=`$AWK '{print $2}' conftest.llminmax`
-
-			# snprintf on some Tru64s doesn't understand "%lld"
-			case "$host" in
-			alpha-dec-osf*)
-				if test "x$ac_cv_sizeof_long_long_int" = "x8" &&
-				  test "x$llong_max" = "xld"; then
-					llong_min="-9223372036854775808"
-					llong_max="9223372036854775807"
-				fi
-				;;
-			esac
 
 			AC_MSG_RESULT($llong_max)
 			AC_DEFINE_UNQUOTED(LLONG_MAX, [${llong_max}LL],
