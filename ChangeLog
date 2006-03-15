@@ -215,6 +215,11 @@
      Set TCP_NODELAY for all connections not just "interactive" ones.  Fixes
      poor performance and protocol stalls under some network conditions (mindrot
      bugs #556 and #981). Patch originally from markus@, ok djm@
+   - dtucker@cvs.openbsd.org 2006/03/13 08:43:16
+     [ssh-keygen.c]
+     Make ssh-keygen handle CR and CRLF line termination when converting IETF
+     format keys, in adition to vanilla LF.  mindrot #1157, tested by Chris
+     Pepper, ok djm@
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4116,4 +4121,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4201 2006/03/15 01:05:22 djm Exp $
+$Id: ChangeLog,v 1.4202 2006/03/15 01:05:40 djm Exp $

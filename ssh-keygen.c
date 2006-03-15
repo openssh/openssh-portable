@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.136 2006/02/20 17:19:54 stevesk Exp $");
+RCSID("$OpenBSD: ssh-keygen.c,v 1.137 2006/03/13 08:43:16 dtucker Exp $");
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -305,13 +305,42 @@ do_convert_private_ssh2_from_blob(u_char *blob, u_int blen)
 	return key;
 }
 
+static int
+get_line(FILE *fp, char *line, size_t len)
+{
+	int c;
+	size_t pos = 0;
+
+	line[0] = '\0';
+	while ((c = fgetc(fp)) != EOF) {
+		if (pos >= len - 1) {
+			fprintf(stderr, "input line too long.\n");
+			exit(1);
+		}
+		switch(c) {
+		case '\r':
+			c = fgetc(fp);
+			if (c != EOF && c != '\n' && ungetc(c, fp) == EOF) {
+				fprintf(stderr, "unget: %s\n", strerror(errno));
+				exit(1);
+			}
+			return pos;
+		case '\n':
+			return pos;
+		}
+		line[pos++] = c;
+		line[pos] = '\0';
+	}
+	return pos;
+}
+
 static void
 do_convert_from_ssh2(struct passwd *pw)
 {
 	Key *k;
 	int blen;
 	u_int len;
-	char line[1024], *p;
+	char line[1024];
 	u_char blob[8096];
 	char encoded[8096];
 	struct stat st;
@@ -330,12 +359,8 @@ do_convert_from_ssh2(struct passwd *pw)
 		exit(1);
 	}
 	encoded[0] = '\0';
-	while (fgets(line, sizeof(line), fp)) {
-		if (!(p = strchr(line, '\n'))) {
-			fprintf(stderr, "input line too long.\n");
-			exit(1);
-		}
-		if (p > line && p[-1] == '\\')
+	while ((blen = get_line(fp, line, sizeof(line))) != -1) {
+		if (line[blen - 1] == '\\')
 			escaped++;
 		if (strncmp(line, "----", 4) == 0 ||
 		    strstr(line, ": ") != NULL) {
@@ -352,7 +377,6 @@ do_convert_from_ssh2(struct passwd *pw)
 			/* fprintf(stderr, "escaped: %s", line); */
 			continue;
 		}
-		*p = '\0';
 		strlcat(encoded, line, sizeof(encoded));
 	}
 	len = strlen(encoded);
