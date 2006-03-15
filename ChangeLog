@@ -267,6 +267,7 @@
  - (tim) [includes.h] put sys/stat.h back in to quiet some "macro redefined:"
  - (tim) [openssh/sshpty.c openssh/openbsd-compat/port-tun.c] put in some
    includes removed from includes.h
+ - (dtucker) [configure.ac] Fix glob test conversion to AC_TRY_COMPILE
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4168,4 +4169,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4220 2006/03/15 06:09:50 tim Exp $
+$Id: ChangeLog,v 1.4221 2006/03/15 10:31:39 dtucker Exp $

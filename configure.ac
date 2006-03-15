@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.335 2006/03/15 02:12:41 djm Exp $
+# $Id: configure.ac,v 1.336 2006/03/15 10:31:39 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.335 $)
+AC_REVISION($Revision: 1.336 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -924,7 +924,7 @@ AC_EGREP_CPP(FOUNDIT,
 
 # Check for g.gl_matchc glob() extension
 AC_MSG_CHECKING(for gl_matchc field in glob_t)
-AC_TRY_COMPILE(FOUNDIT,
+AC_TRY_COMPILE(
 	[ #include <glob.h> ],
 	[glob_t g; g.gl_matchc = 1;],
 	[
