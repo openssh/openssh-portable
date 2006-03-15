@@ -82,6 +82,9 @@
    - jmc@cvs.openbsd.org 2006/02/12 10:49:44
      [ssh_config.5]
      slight rewording; ok djm
+   - jmc@cvs.openbsd.org 2006/02/12 10:52:41
+     [sshd.8]
+     rework the description of authorized_keys a little;
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -3983,4 +3986,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4162 2006/03/15 00:31:01 djm Exp $
+$Id: ChangeLog,v 1.4163 2006/03/15 00:31:22 djm Exp $

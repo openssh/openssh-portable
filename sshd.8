@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.216 2006/02/09 10:10:47 jmc Exp $
+.\" $OpenBSD: sshd.8,v 1.217 2006/02/12 10:52:41 jmc Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -374,27 +374,24 @@ authentication protocol and cookie in standard input.
 Runs user's shell or command.
 .El
 .Sh AUTHORIZED_KEYS FILE FORMAT
-.Pa ~/.ssh/authorized_keys
-is the default file that lists the public keys that are
-permitted for RSA authentication in protocol version 1
-and for public key authentication (PubkeyAuthentication)
-in protocol version 2.
 .Cm AuthorizedKeysFile
-may be used to specify an alternative file.
-.Pp
+specifies the file containing public keys for
+public key authentication;
+if none is specified, the default is
+.Pa ~/.ssh/authorized_keys .
 Each line of the file contains one
 key (empty lines and lines starting with a
 .Ql #
 are ignored as
 comments).
-Each RSA public key consists of the following fields, separated by
-spaces: options, bits, exponent, modulus, comment.
-Each protocol version 2 public key consists of:
-options, keytype, base64 encoded key, comment.
-The options field
-is optional; its presence is determined by whether the line starts
+Protocol 1 public keys consist of the following space-separated fields:
+options, bits, exponent, modulus, comment.
+Protocol 2 public key consist of:
+options, keytype, base64-encoded key, comment.
+The options field is optional;
+its presence is determined by whether the line starts
 with a number or not (the options field never starts with a number).
-The bits, exponent, modulus and comment fields give the RSA key for
+The bits, exponent, modulus, and comment fields give the RSA key for
 protocol version 1; the
 comment field is not used for anything (but may be convenient for the
 user to identify the key).
@@ -409,7 +406,7 @@ Note that lines in this file are usually several hundred bytes long
 keys up to 16 kilobits.
 You don't want to type them in; instead, copy the
 .Pa identity.pub ,
-.Pa id_dsa.pub
+.Pa id_dsa.pub ,
 or the
 .Pa id_rsa.pub
 file and edit it.
