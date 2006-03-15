@@ -1,4 +1,4 @@
-/*	$OpenBSD: includes.h,v 1.26 2006/02/08 12:15:27 stevesk Exp $	*/
+/*	$OpenBSD: includes.h,v 1.27 2006/02/08 12:32:49 stevesk Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -140,7 +140,6 @@ static /**/const char *const rcsid[] = { (const char *)rcsid, "\100(#)" msg }
 #include <netinet/in_systm.h> /* For typedefs */
 #include <netinet/in.h> /* For IPv6 macros */
 #include <netinet/ip.h> /* For IPTOS macros */
-#include <netinet/tcp.h>
 #include <arpa/inet.h>
 #if defined(HAVE_NETDB_H)
 # include <netdb.h>
