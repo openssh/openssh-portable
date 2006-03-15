@@ -107,6 +107,9 @@
    - jmc@cvs.openbsd.org 2006/02/13 11:27:25
      [sshd.8]
      sort FILES and use a -compact list;
+   - david@cvs.openbsd.org 2006/02/15 05:08:24
+     [sftp-client.c]
+     typo in comment; ok djm@
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4008,4 +4011,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4169 2006/03/15 00:33:56 djm Exp $
+$Id: ChangeLog,v 1.4170 2006/03/15 00:34:25 djm Exp $
