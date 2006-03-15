@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.227 2006/02/19 20:02:17 jmc Exp $
+.\" $OpenBSD: sshd.8,v 1.228 2006/02/19 20:05:00 jmc Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -753,7 +753,7 @@ These files should only be owned by root, readable only by root, and not
 accessible to others.
 Note that
 .Nm
-does not start if this file is group/world-accessible.
+does not start if these files are group/world-accessible.
 .Pp
 .It /etc/ssh/ssh_host_key.pub
 .It /etc/ssh/ssh_host_dsa_key.pub

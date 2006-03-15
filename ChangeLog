@@ -126,6 +126,9 @@
    - jmc@cvs.openbsd.org 2006/02/19 20:02:17
      [sshd.8]
      sync the (s)hosts.equiv FILES entries w/ those from ssh.1;
+   - jmc@cvs.openbsd.org 2006/02/19 20:05:00
+     [sshd.8]
+     grammar;
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4027,4 +4030,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4175 2006/03/15 00:36:18 djm Exp $
+$Id: ChangeLog,v 1.4176 2006/03/15 00:36:45 djm Exp $
