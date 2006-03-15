@@ -36,8 +36,8 @@
 
 /* OPENBSD ORIGINAL: include/sha2.h */
 
-#ifndef _SHA2_H
-#define _SHA2_H
+#ifndef _SSHSHA2_H
+#define _SSHSHA2_H
 
 #include "includes.h"
 
@@ -122,4 +122,4 @@ char *SHA512_Data(const u_int8_t *, size_t, char *)
 
 #endif /* !defined(HAVE_SHA256_UPDATE) && !defined(HAVE_EVP_SHA256) */
 
-#endif /* _SHA2_H */
+#endif /* _SSHSHA2_H */
