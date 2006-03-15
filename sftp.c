@@ -15,8 +15,9 @@
  */
 
 #include "includes.h"
+RCSID("$OpenBSD: sftp.c,v 1.72 2006/02/10 00:27:13 stevesk Exp $");
 
-RCSID("$OpenBSD: sftp.c,v 1.71 2006/02/08 12:15:27 stevesk Exp $");
+#include <sys/ioctl.h>
 
 #ifdef HAVE_PATHS_H
 # include <paths.h>

@@ -58,6 +58,10 @@
      [sshd.8]
      - move some text into a CAVEATS section
      - merge the COMMAND EXECUTION... section into AUTHENTICATION
+   - stevesk@cvs.openbsd.org 2006/02/10 00:27:13
+     [channels.c clientloop.c includes.h misc.c progressmeter.c sftp.c]
+     [ssh.c sshd.c sshpty.c]
+     move #include <sys/ioctl.h> out of includes.h; ok markus@
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -3959,4 +3963,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4156 2006/03/15 00:27:20 djm Exp $
+$Id: ChangeLog,v 1.4157 2006/03/15 00:28:34 djm Exp $

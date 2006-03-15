@@ -12,7 +12,9 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshpty.c,v 1.14 2006/02/08 12:15:27 stevesk Exp $");
+RCSID("$OpenBSD: sshpty.c,v 1.15 2006/02/10 00:27:13 stevesk Exp $");
+
+#include <sys/ioctl.h>
 
 #ifdef HAVE_PATHS_H
 # include <paths.h>
