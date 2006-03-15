@@ -37,7 +37,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.121 2006/02/08 14:38:18 stevesk Exp $");
+RCSID("$OpenBSD: packet.c,v 1.122 2006/03/13 08:33:00 dtucker Exp $");
  
 #include "openbsd-compat/sys-queue.h"
 #include <netinet/in_systm.h>
@@ -1482,8 +1482,7 @@ packet_set_interactive(int interactive)
 	/* Only set socket options if using a socket.  */
 	if (!packet_connection_is_on_socket())
 		return;
-	if (interactive)
-		set_nodelay(connection_in);
+	set_nodelay(connection_in);
 	packet_set_tos(interactive);
 }
 
