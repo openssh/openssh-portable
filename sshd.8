@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.218 2006/02/12 17:57:19 jmc Exp $
+.\" $OpenBSD: sshd.8,v 1.219 2006/02/13 10:16:39 jmc Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -503,16 +503,16 @@ device on the server.
 Without this option, the next available device will be used if
 the client requests a tunnel.
 .El
-.Ss Examples
-1024 33 12121...312314325 ylo@foo.bar
 .Pp
-from="*.niksula.hut.fi,!pc.niksula.hut.fi" 1024 35 23...2334 ylo@niksula
-.Pp
-command="dump /home",no-pty,no-port-forwarding 1024 33 23...2323 backup.hut.fi
-.Pp
-permitopen="10.2.1.55:80",permitopen="10.2.1.56:25" 1024 33 23...2323
-.Pp
-tunnel="0",command="sh /etc/netstart tun0" ssh-rsa AAAA...== reyk@openbsd.org
+An example authorized_keys file:
+.Bd -literal
+# Comments allowed at start of line
+ssh-rsa AAAAB3Nza...LiPk== user@example.net
+from="*.sales.example.net,!pc.sales.example.net" ssh-rsa AAAAB2...19Q== john@example.net
+command="dump /home",no-pty,no-port-forwarding ssh-dss AAAAC3...51R== example.net
+permitopen="192.0.2.1:80",permitopen="192.0.2.2:25" ssh-dss AAAAB5...21S==
+tunnel="0",command="sh /etc/netstart tun0" ssh-rsa AAAA...== jane@example.net
+.Ed
 .Sh SSH_KNOWN_HOSTS FILE FORMAT
 The
 .Pa /etc/ssh/ssh_known_hosts

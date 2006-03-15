@@ -89,6 +89,11 @@
      [sshd.8]
      sort the list of options permissable w/ authorized_keys;
      ok djm dtucker
+   - jmc@cvs.openbsd.org 2006/02/13 10:16:39
+     [sshd.8]
+     no need to subsection the authorized_keys examples - instead, convert
+     this to look like an actual file. also use proto 2 keys, and use IETF
+     example addresses;
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -3990,4 +3995,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4164 2006/03/15 00:31:44 djm Exp $
+$Id: ChangeLog,v 1.4165 2006/03/15 00:32:06 djm Exp $
