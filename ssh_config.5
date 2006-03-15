@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.83 2006/02/24 20:31:31 jmc Exp $
+.\" $OpenBSD: ssh_config.5,v 1.84 2006/02/24 23:20:07 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -47,7 +47,7 @@
 .It Pa /etc/ssh/ssh_config
 .El
 .Sh DESCRIPTION
-.Nm ssh
+.Xr ssh 1
 obtains configuration data from the following sources in
 the following order:
 .Pp
@@ -154,7 +154,7 @@ Specifies which address family to use when connecting.
 Valid arguments are
 .Dq any ,
 .Dq inet
-(use IPv4 only) or
+(use IPv4 only), or
 .Dq inet6
 (use IPv6 only).
 .It Cm BatchMode
@@ -188,7 +188,8 @@ The default is
 .It Cm CheckHostIP
 If this flag is set to
 .Dq yes ,
-ssh will additionally check the host IP address in the
+.Xr ssh 1
+will additionally check the host IP address in the
 .Pa known_hosts
 file.
 This allows ssh to detect if a host key changed due to DNS spoofing.
@@ -208,7 +209,7 @@ and
 are supported.
 .Ar des
 is only supported in the
-.Nm ssh
+.Xr ssh 1
 client for interoperability with legacy protocol 1 implementations
 that do not support the
 .Ar 3des
@@ -234,18 +235,18 @@ The supported ciphers are
 .Dq blowfish-cbc ,
 and
 .Dq cast128-cbc .
-The default is
-.Bd -literal
-  ``aes128-cbc,3des-cbc,blowfish-cbc,cast128-cbc,arcfour128,
-    arcfour256,arcfour,aes192-cbc,aes256-cbc,aes128-ctr,
-    aes192-ctr,aes256-ctr''
+The default is:
+.Bd -literal -offset 3n
+aes128-cbc,3des-cbc,blowfish-cbc,cast128-cbc,arcfour128,
+arcfour256,arcfour,aes192-cbc,aes256-cbc,aes128-ctr,
+aes192-ctr,aes256-ctr
 .Ed
 .It Cm ClearAllForwardings
-Specifies that all local, remote and dynamic port forwardings
+Specifies that all local, remote, and dynamic port forwardings
 specified in the configuration files or on the command line be
 cleared.
 This option is primarily useful when used from the
-.Nm ssh
+.Xr ssh 1
 command line to clear port forwardings set in
 configuration files, and is automatically set by
 .Xr scp 1
@@ -278,15 +279,15 @@ The argument must be an integer.
 This may be useful in scripts if the connection sometimes fails.
 The default is 1.
 .It Cm ConnectTimeout
-Specifies the timeout (in seconds) used when connecting to the ssh
-server, instead of using the default system TCP timeout.
+Specifies the timeout (in seconds) used when connecting to the
+SSH server, instead of using the default system TCP timeout.
 This value is used only when the target is down or really unreachable,
 not when it refuses the connection.
 .It Cm ControlMaster
 Enables the sharing of multiple sessions over a single network connection.
 When set to
-.Dq yes
-.Nm ssh
+.Dq yes ,
+.Xr ssh 1
 will listen for connections on a control socket specified using the
 .Cm ControlPath
 argument.
@@ -303,8 +304,7 @@ if the control socket does not exist, or is not listening.
 .Pp
 Setting this to
 .Dq ask
-will cause
-.Nm ssh
+will cause ssh
 to listen for control connections, but require confirmation using the
 .Ev SSH_ASKPASS
 program before they are accepted (see
@@ -312,9 +312,8 @@ program before they are accepted (see
 for details).
 If the
 .Cm ControlPath
-can not be opened,
-.Nm ssh
-will continue without connecting to a master instance.
+cannot be opened,
+ssh will continue without connecting to a master instance.
 .Pp
 X11 and
 .Xr ssh-agent 1
@@ -345,7 +344,7 @@ will be substituted by the local host name,
 .Ql %h
 will be substituted by the target host name,
 .Ql %p
-the port and
+the port, and
 .Ql %r
 by the remote login username.
 It is recommended that any
@@ -382,7 +381,7 @@ empty address or
 indicates that the port should be available from all interfaces.
 .Pp
 Currently the SOCKS4 and SOCKS5 protocols are supported, and
-.Nm ssh
+.Xr ssh 1
 will act as a SOCKS server.
 Multiple forwardings may be specified, and
 additional forwardings can be given on the command line.
@@ -457,12 +456,12 @@ if the
 option is also enabled.
 .It Cm ForwardX11Trusted
 If this option is set to
-.Dq yes
-then remote X11 clients will have full access to the original X11 display.
+.Dq yes ,
+remote X11 clients will have full access to the original X11 display.
 .Pp
 If this option is set to
-.Dq no
-then remote X11 clients will be considered untrusted and prevented
+.Dq no ,
+remote X11 clients will be considered untrusted and prevented
 from stealing or tampering with data belonging to trusted X11
 clients.
 Furthermore, the
@@ -479,12 +478,11 @@ the restrictions imposed on untrusted clients.
 Specifies whether remote hosts are allowed to connect to local
 forwarded ports.
 By default,
-.Nm ssh
+.Xr ssh 1
 binds local port forwardings to the loopback address.
 This prevents other remote hosts from connecting to forwarded ports.
 .Cm GatewayPorts
-can be used to specify that
-.Nm ssh
+can be used to specify that ssh
 should bind local port forwardings to the wildcard address,
 thus allowing remote hosts to connect to forwarded ports.
 The argument must be
@@ -509,13 +507,13 @@ The default is
 Note that this option applies to protocol version 2 only.
 .It Cm HashKnownHosts
 Indicates that
-.Nm ssh
+.Xr ssh 1
 should hash host names and addresses when they are added to
 .Pa ~/.ssh/known_hosts .
 These hashed names may be used normally by
-.Nm ssh
+.Xr ssh 1
 and
-.Nm sshd ,
+.Xr sshd 8 ,
 but they do not reveal identifying information should the file's contents
 be disclosed.
 The default is
@@ -544,30 +542,29 @@ The default for this option is:
 Specifies an alias that should be used instead of the
 real host name when looking up or saving the host key
 in the host key database files.
-This option is useful for tunneling ssh connections
+This option is useful for tunneling SSH connections
 or for multiple servers running on a single host.
 .It Cm HostName
 Specifies the real host name to log into.
 This can be used to specify nicknames or abbreviations for hosts.
-Default is the name given on the command line.
+The default is the name given on the command line.
 Numeric IP addresses are also permitted (both on the command line and in
 .Cm HostName
 specifications).
 .It Cm IdentitiesOnly
 Specifies that
-.Nm ssh
+.Xr ssh 1
 should only use the authentication identity files configured in the
 .Nm
 files,
-even if the
-.Nm ssh-agent
+even if
+.Xr ssh-agent 1
 offers more identities.
 The argument to this keyword must be
 .Dq yes
 or
 .Dq no .
-This option is intended for situations where
-.Nm ssh-agent
+This option is intended for situations where ssh-agent
 offers many different identities.
 The default is
 .Dq no .
@@ -633,9 +630,9 @@ empty address or
 indicates that the port should be available from all interfaces.
 .It Cm LogLevel
 Gives the verbosity level that is used when logging messages from
-.Nm ssh .
+.Xr ssh 1 .
 The possible values are:
-QUIET, FATAL, ERROR, INFO, VERBOSE, DEBUG, DEBUG1, DEBUG2 and DEBUG3.
+QUIET, FATAL, ERROR, INFO, VERBOSE, DEBUG, DEBUG1, DEBUG2, and DEBUG3.
 The default is INFO.
 DEBUG and DEBUG1 are equivalent.
 DEBUG2 and DEBUG3 each specify higher levels of verbose output.
@@ -645,7 +642,7 @@ in order of preference.
 The MAC algorithm is used in protocol version 2
 for data integrity protection.
 Multiple algorithms must be comma-separated.
-The default is
+The default is:
 .Dq hmac-md5,hmac-sha1,hmac-ripemd160,hmac-sha1-96,hmac-md5-96 .
 .It Cm NoHostAuthenticationForLocalhost
 This option can be used if the home directory is shared across machines.
@@ -660,7 +657,7 @@ The default is to check the host key for localhost.
 .It Cm NumberOfPasswordPrompts
 Specifies the number of password prompts before giving up.
 The argument to this keyword must be an integer.
-Default is 3.
+The default is 3.
 .It Cm PasswordAuthentication
 Specifies whether to use password authentication.
 The argument to this keyword must be
@@ -684,7 +681,7 @@ The default is
 .Dq no .
 .It Cm Port
 Specifies the port number to connect on the remote host.
-Default is 22.
+The default is 22.
 .It Cm PreferredAuthentications
 Specifies the order in which the client should try protocol 2
 authentication methods.
@@ -696,17 +693,16 @@ The default for this option is:
 .Dq hostbased,publickey,keyboard-interactive,password .
 .It Cm Protocol
 Specifies the protocol versions
-.Nm ssh
+.Xr ssh 1
 should support in order of preference.
 The possible values are
-.Dq 1
+.Sq 1
 and
-.Dq 2 .
+.Sq 2 .
 Multiple versions must be comma-separated.
 The default is
 .Dq 2,1 .
-This means that
-.Nm ssh
+This means that ssh
 tries version 2 and falls back to version 1
 if version 2 is not available.
 .It Cm ProxyCommand
@@ -764,9 +760,9 @@ or
 .Sq G
 to indicate Kilobytes, Megabytes, or Gigabytes, respectively.
 The default is between
-.Dq 1G
+.Sq 1G
 and
-.Dq 4G ,
+.Sq 4G ,
 depending on the cipher.
 This option applies to protocol version 2 only.
 .It Cm RemoteForward
@@ -812,7 +808,7 @@ or
 The default is
 .Dq no .
 This option applies to protocol version 1 only and requires
-.Nm ssh
+.Xr ssh 1
 to be setuid root.
 .It Cm RSAAuthentication
 Specifies whether to try RSA authentication.
@@ -830,8 +826,8 @@ Note that this option applies to protocol version 1 only.
 Specifies what variables from the local
 .Xr environ 7
 should be sent to the server.
-Note that environment passing is only supported for protocol 2, the
-server must also support it, and the server must be configured to
+Note that environment passing is only supported for protocol 2.
+The server must also support it, and the server must be configured to
 accept these environment variables.
 Refer to
 .Cm AcceptEnv
@@ -851,11 +847,10 @@ for more information on patterns.
 .It Cm ServerAliveCountMax
 Sets the number of server alive messages (see below) which may be
 sent without
-.Nm ssh
+.Xr ssh 1
 receiving any messages back from the server.
 If this threshold is reached while server alive messages are being sent,
-.Nm ssh
-will disconnect from the server, terminating the session.
+ssh will disconnect from the server, terminating the session.
 It is important to note that the use of server alive messages is very
 different from
 .Cm TCPKeepAlive
@@ -871,14 +866,14 @@ server depend on knowing when a connection has become inactive.
 The default value is 3.
 If, for example,
 .Cm ServerAliveInterval
-(see below) is set to 15, and
+(see below) is set to 15 and
 .Cm ServerAliveCountMax
-is left at the default, if the server becomes unresponsive ssh
-will disconnect after approximately 45 seconds.
+is left at the default, if the server becomes unresponsive,
+ssh will disconnect after approximately 45 seconds.
 .It Cm ServerAliveInterval
 Sets a timeout interval in seconds after which if no data has been received
 from the server,
-.Nm ssh
+.Xr ssh 1
 will send a message through the encrypted
 channel to request a response from the server.
 The default
@@ -887,41 +882,39 @@ This option applies to protocol version 2 only.
 .It Cm SmartcardDevice
 Specifies which smartcard device to use.
 The argument to this keyword is the device
-.Nm ssh
+.Xr ssh 1
 should use to communicate with a smartcard used for storing the user's
 private RSA key.
 By default, no device is specified and smartcard support is not activated.
 .It Cm StrictHostKeyChecking
 If this flag is set to
 .Dq yes ,
-.Nm ssh
+.Xr ssh 1
 will never automatically add host keys to the
 .Pa ~/.ssh/known_hosts
 file, and refuses to connect to hosts whose host key has changed.
 This provides maximum protection against trojan horse attacks,
-however, can be annoying when the
+though it can be annoying when the
 .Pa /etc/ssh/ssh_known_hosts
-file is poorly maintained, or connections to new hosts are
+file is poorly maintained or when connections to new hosts are
 frequently made.
 This option forces the user to manually
 add all new hosts.
 If this flag is set to
 .Dq no ,
-.Nm ssh
-will automatically add new host keys to the
+ssh will automatically add new host keys to the
 user known hosts files.
 If this flag is set to
 .Dq ask ,
 new host keys
 will be added to the user known host files only after the user
 has confirmed that is what they really want to do, and
-.Nm ssh
-will refuse to connect to hosts whose host key has changed.
+ssh will refuse to connect to hosts whose host key has changed.
 The host keys of
 known hosts will be verified automatically in all cases.
 The argument must be
 .Dq yes ,
-.Dq no
+.Dq no ,
 or
 .Dq ask .
 The default is
@@ -952,7 +945,7 @@ instead of layer 3 (point-to-point) tunneling from the server.
 The argument must be
 .Dq yes ,
 .Dq point-to-point ,
-.Dq ethernet
+.Dq ethernet ,
 or
 .Dq no .
 The default is
@@ -971,8 +964,8 @@ or
 The default is
 .Dq no .
 If set to
-.Dq yes
-.Nm ssh
+.Dq yes ,
+.Xr ssh 1
 must be setuid root.
 Note that this option must be set to
 .Dq yes
@@ -1005,12 +998,17 @@ need to confirm new host keys according to the
 option.
 The argument must be
 .Dq yes ,
-.Dq no
+.Dq no ,
 or
 .Dq ask .
 The default is
 .Dq no .
 Note that this option applies to protocol version 2 only.
+.Pp
+See also
+.Sx VERIFYING HOST KEYS
+in
+.Xr ssh 1 .
 .It Cm XAuthLocation
 Specifies the full pathname of the
 .Xr xauth 1
@@ -1023,9 +1021,7 @@ The default is
 .It Pa ~/.ssh/config
 This is the per-user configuration file.
 The format of this file is described above.
-This file is used by the
-.Nm ssh
-client.
+This file is used by the SSH client.
 Because of the potential for abuse, this file must have strict permissions:
 read/write for the user, and not accessible by others.
 .It Pa /etc/ssh/ssh_config
