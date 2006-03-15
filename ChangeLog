@@ -43,6 +43,10 @@
    - stevesk@cvs.openbsd.org 2006/02/08 14:31:30
      [includes.h ssh-agent.c ssh-keyscan.c ssh.c]
      move #include <sys/resource.h> out of includes.h; ok markus@
+   - stevesk@cvs.openbsd.org 2006/02/08 14:38:18
+     [includes.h packet.c]
+     move #include <netinet/in_systm.h> and <netinet/ip.h> out of
+     includes.h; ok markus@
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -3944,4 +3948,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4152 2006/03/15 00:22:47 djm Exp $
+$Id: ChangeLog,v 1.4153 2006/03/15 00:24:12 djm Exp $
