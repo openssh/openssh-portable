@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.224 2006/02/15 16:55:33 jmc Exp $
+.\" $OpenBSD: sshd.8,v 1.225 2006/02/16 09:05:34 jmc Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -605,45 +605,31 @@ It does not suppress printing of the banner specified by
 .Cm Banner .
 .Pp
 .It ~/.rhosts
-This file is used during
-.Cm RhostsRSAAuthentication
-and
-.Cm HostbasedAuthentication
-and contains host-username pairs, separated by a space, one per
-line.
-The given user on the corresponding host is permitted to log in
-without a password.
-The same file is used by rlogind and rshd.
-The file must
-be writable only by the user; it is recommended that it not be
+This file is used for host-based authentication (see
+.Xr ssh 1
+for more information).
+On some machines this file may need to be
+world-readable if the user's home directory is on an NFS partition,
+because
+.Nm
+reads it as root.
+Additionally, this file must be owned by the user,
+and must not have write permissions for anyone else.
+The recommended
+permission for most machines is read/write for the user, and not
 accessible by others.
 .Pp
-It is also possible to use netgroups in the file.
-Either host or user
-name may be of the form +@groupname to specify all hosts or all users
-in the group.
-.Pp
 .It ~/.shosts
-For ssh,
-this file is exactly the same as for
-.Pa .rhosts .
-However, this file is
-not used by rlogin and rshd, so using this permits access using SSH only.
+This file is used in exactly the same way as
+.Pa .rhosts ,
+but allows host-based authentication without permitting login with
+rlogin/rsh.
 .Pp
 .It ~/.ssh/authorized_keys
-Lists the public keys (RSA or DSA) that can be used to log into the user's account.
-This file must be readable by root (which may on some machines imply
-it being world-readable if the user's home directory resides on an NFS
-volume).
-It is recommended that it not be accessible by others.
+Lists the public keys (RSA/DSA) that can be used for logging in as this user.
 The format of this file is described above.
-Users will place the contents of their
-.Pa identity.pub ,
-.Pa id_dsa.pub
-and/or
-.Pa id_rsa.pub
-files into this file, as described in
-.Xr ssh-keygen 1 .
+This file is not highly sensitive, but the recommended
+permissions are read/write for the user, and not accessible by others.
 .Pp
 .It ~/.ssh/environment
 This file is read into the environment at login (if it exists).
@@ -658,17 +644,10 @@ controlled via the
 option.
 .Pp
 .It ~/.ssh/known_hosts
-.It /etc/ssh/ssh_known_hosts
-These files are consulted when using rhosts with RSA host
-authentication or protocol version 2 hostbased authentication
-to check the public key of the host.
-The key must be listed in one of these files to be accepted.
-The client uses the same files
-to verify that it is connecting to the correct remote host.
-These files should be writable only by root/the owner.
-.Pa /etc/ssh/ssh_known_hosts
-should be world-readable, and
-.Pa ~/.ssh/known_hosts
+Contains a list of host keys for all hosts the user has logged into
+that are not already in the systemwide list of known host keys.
+The format of this file is described above.
+This file should be writable only by root/the owner and
 can, but need not be, world-readable.
 .Pp
 .It ~/.ssh/rc
@@ -783,6 +762,15 @@ This is processed exactly as
 .Pa /etc/hosts.equiv .
 However, this file may be useful in environments that want to run both
 rsh/rlogin and ssh.
+.Pp
+.It /etc/ssh/ssh_known_hosts
+Systemwide list of known host keys.
+This file should be prepared by the
+system administrator to contain the public host keys of all machines in the
+organization.
+The format of this file is described above.
+This file should be writable only by root/the owner and
+should be world-readable.
 .Pp
 .It /etc/ssh/ssh_host_key
 .It /etc/ssh/ssh_host_dsa_key
