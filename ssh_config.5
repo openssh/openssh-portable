@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.85 2006/02/25 12:26:17 jmc Exp $
+.\" $OpenBSD: ssh_config.5,v 1.86 2006/02/26 17:17:18 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -73,42 +73,7 @@ The matched host name is the one given on the command line.
 Since the first obtained value for each parameter is used, more
 host-specific declarations should be given near the beginning of the
 file, and general defaults at the end.
-.Sh PATTERNS
-A
-.Em pattern
-consists of zero or more non-whitespace characters,
-.Sq *
-(a wildcard that matches zero or more characters),
-or
-.Sq ?\&
-(a wildcard that matches exactly one character).
-For example, to specify a set of declarations for any host in the
-.Dq .co.uk
-set of domains,
-the following pattern could be used:
 .Pp
-.Dl Host *.co.uk
-.Pp
-The following pattern
-would match any host in the 192.168.0.[0-9] network range:
-.Pp
-.Dl Host 192.168.0.?
-.Pp
-A
-.Em pattern-list
-is a comma-separated list of patterns.
-Patterns within pattern-lists may be negated
-by preceding them with an exclamation mark
-.Pq Sq !\& .
-For example,
-to allow a key to be used from anywhere within an organisation
-except from the
-.Dq dialup
-pool,
-the following entry (in authorized_keys) could be used:
-.Pp
-.Dl from=\&"!*.dialup.example.com,*.example.com\&"
-.Sh FILE FORMAT
 The configuration file has the following format:
 .Pp
 Empty lines and lines starting with
@@ -1023,6 +988,41 @@ program.
 The default is
 .Pa /usr/X11R6/bin/xauth .
 .El
+.Sh PATTERNS
+A
+.Em pattern
+consists of zero or more non-whitespace characters,
+.Sq *
+(a wildcard that matches zero or more characters),
+or
+.Sq ?\&
+(a wildcard that matches exactly one character).
+For example, to specify a set of declarations for any host in the
+.Dq .co.uk
+set of domains,
+the following pattern could be used:
+.Pp
+.Dl Host *.co.uk
+.Pp
+The following pattern
+would match any host in the 192.168.0.[0-9] network range:
+.Pp
+.Dl Host 192.168.0.?
+.Pp
+A
+.Em pattern-list
+is a comma-separated list of patterns.
+Patterns within pattern-lists may be negated
+by preceding them with an exclamation mark
+.Pq Sq !\& .
+For example,
+to allow a key to be used from anywhere within an organisation
+except from the
+.Dq dialup
+pool,
+the following entry (in authorized_keys) could be used:
+.Pp
+.Dl from=\&"!*.dialup.example.com,*.example.com\&"
 .Sh FILES
 .Bl -tag -width Ds
 .It Pa ~/.ssh/config

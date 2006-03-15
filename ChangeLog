@@ -186,6 +186,9 @@
      [sshd_config.5]
      document the order in which allow/deny directives are processed;
      help/ok dtucker
+   - jmc@cvs.openbsd.org 2006/02/26 17:17:18
+     [ssh_config.5]
+     move PATTERNS to the end of the main body; requested by dtucker
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4087,4 +4090,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4193 2006/03/15 00:58:49 djm Exp $
+$Id: ChangeLog,v 1.4194 2006/03/15 00:59:08 djm Exp $
