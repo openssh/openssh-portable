@@ -20,7 +20,11 @@
 
 #ifndef HAVE_EVP_SHA256
 
+#include <string.h>
 #include <openssl/evp.h>
+#if defined(HAVE_SHA2_H) && defined(HAVE_SHA256_UPDATE)
+# include <sha2.h>
+#endif
 
 RCSID("$OpenBSD: md-sha256.c,v 1.1 2006/03/07 09:07:40 djm Exp $");
 
