@@ -233,6 +233,9 @@
      [canohost.c]
      log the originating address and not just the name when a reverse
      mapping check fails, requested by linux AT linuon.com
+   - markus@cvs.openbsd.org 2006/03/14 16:32:48
+     [ssh_config.5 sshd_config.5]
+     *AliveCountMax applies to protcol v2 only; ok dtucker, djm
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4134,4 +4137,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4205 2006/03/15 01:06:41 djm Exp $
+$Id: ChangeLog,v 1.4206 2006/03/15 01:06:55 djm Exp $
