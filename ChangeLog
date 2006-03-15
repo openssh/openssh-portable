@@ -50,6 +50,10 @@
    - stevesk@cvs.openbsd.org 2006/02/08 23:51:24
      [includes.h scp.c sftp-glob.c sftp-server.c]
      move #include <dirent.h> out of includes.h; ok markus@
+   - stevesk@cvs.openbsd.org 2006/02/09 00:32:07
+     [includes.h]
+     #include <sys/endian.h> not needed; ok djm@
+     NB. ID Sync only - we still need this (but it may move later)
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -3951,4 +3955,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4154 2006/03/15 00:25:13 djm Exp $
+$Id: ChangeLog,v 1.4155 2006/03/15 00:26:55 djm Exp $
