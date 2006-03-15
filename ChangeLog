@@ -269,6 +269,8 @@
    includes removed from includes.h
  - (dtucker) [configure.ac] Fix glob test conversion to AC_TRY_COMPILE
  - (djm) [includes.h] Put back paths.h, it is needed in defines.h
+ - (dtucker) [openbsd-compat/openbsd-compat.h] AIX (at least) needs
+   sys/ioctl.h for struct winsize.
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4170,4 +4172,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4222 2006/03/15 10:48:54 djm Exp $
+$Id: ChangeLog,v 1.4223 2006/03/15 11:25:54 dtucker Exp $

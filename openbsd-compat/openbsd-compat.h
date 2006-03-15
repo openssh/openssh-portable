@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.34 2006/03/15 02:02:31 djm Exp $ */
+/* $Id: openbsd-compat.h,v 1.35 2006/03/15 11:25:55 dtucker Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -147,6 +147,7 @@ int asprintf(char **, const char *, ...);
 #endif 
 
 #ifndef HAVE_OPENPTY
+# include <sys/ioctl.h>	/* for struct winsize */
 int openpty(int *, int *, char *, struct termios *, struct winsize *);
 #endif /* HAVE_OPENPTY */
 
