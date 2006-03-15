@@ -24,6 +24,17 @@
 
 #include "includes.h"
 
+#include <sys/types.h>
+#include <sys/resource.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
+
+#ifdef HAVE_SYS_UN_H
+# include <sys/un.h>
+#endif
+
+#include <signal.h>
+
 #include <openssl/rand.h>
 #include <openssl/sha.h>
 #include <openssl/crypto.h>
@@ -39,7 +50,7 @@
 #include "pathnames.h"
 #include "log.h"
 
-RCSID("$Id: ssh-rand-helper.c,v 1.26 2005/07/17 07:26:44 djm Exp $");
+RCSID("$Id: ssh-rand-helper.c,v 1.27 2006/03/15 03:02:36 djm Exp $");
 
 /* Number of bytes we write out */
 #define OUTPUT_SEED_SIZE	48
