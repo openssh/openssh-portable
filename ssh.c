@@ -51,6 +51,7 @@ RCSID("$OpenBSD: ssh.c,v 1.264 2006/02/20 17:19:54 stevesk Exp $");
 #include <sys/un.h>
 
 #include <paths.h>
+#include <signal.h>
 
 #include <openssl/evp.h>
 #include <openssl/err.h>

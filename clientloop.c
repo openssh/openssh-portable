@@ -68,6 +68,7 @@ RCSID("$OpenBSD: clientloop.c,v 1.154 2006/02/20 17:19:54 stevesk Exp $");
 #include <sys/ioctl.h>
 
 #include <paths.h>
+#include <signal.h>
 #include <termios.h>
 
 #include "ssh.h"

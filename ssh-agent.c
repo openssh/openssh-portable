@@ -34,7 +34,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-agent.c,v 1.128 2006/02/20 16:36:14 stevesk Exp $");
+RCSID("$OpenBSD: ssh-agent.c,v 1.129 2006/02/20 17:02:44 stevesk Exp $");
 
 #include <sys/types.h>
 #ifdef HAVE_SYS_UN_H
@@ -45,6 +45,8 @@ RCSID("$OpenBSD: ssh-agent.c,v 1.128 2006/02/20 16:36:14 stevesk Exp $");
 #ifdef HAVE_PATHS_H
 # include <paths.h>
 #endif
+#include <signal.h>
+
 #include <openssl/evp.h>
 #include <openssl/md5.h>
 

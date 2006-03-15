@@ -139,6 +139,13 @@
      [clientloop.c includes.h monitor.c progressmeter.c scp.c]
      [serverloop.c session.c sftp.c ssh-agent.c ssh.c sshd.c]
      move #include <signal.h> out of includes.h; ok markus@
+   - stevesk@cvs.openbsd.org 2006/02/20 17:19:54
+     [auth-rhosts.c auth-rsa.c auth.c auth2-none.c auth2-pubkey.c]
+     [authfile.c clientloop.c includes.h readconf.c scp.c session.c]
+     [sftp-client.c sftp-common.c sftp-common.h sftp-glob.c]
+     [sftp-server.c sftp.c ssh-add.c ssh-keygen.c ssh.c sshconnect.c]
+     [sshconnect2.c sshd.c sshpty.c]
+     move #include <sys/stat.h> out of includes.h; ok markus@
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4040,4 +4047,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4179 2006/03/15 00:45:54 djm Exp $
+$Id: ChangeLog,v 1.4180 2006/03/15 00:52:09 djm Exp $

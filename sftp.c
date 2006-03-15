@@ -32,6 +32,7 @@ RCSID("$OpenBSD: sftp.c,v 1.75 2006/02/20 17:19:54 stevesk Exp $");
 #else
 typedef void EditLine;
 #endif
+#include <signal.h>
 
 #include "buffer.h"
 #include "xmalloc.h"

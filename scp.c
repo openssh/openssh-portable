@@ -80,6 +80,7 @@ RCSID("$OpenBSD: scp.c,v 1.134 2006/02/20 17:19:54 stevesk Exp $");
 #include <sys/wait.h>
 
 #include <dirent.h>
+#include <signal.h>
 
 #include "xmalloc.h"
 #include "atomicio.h"
