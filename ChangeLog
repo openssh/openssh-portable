@@ -251,6 +251,7 @@
  - (djm) [Makefile.in openbsd-compat/Makefile.in] Add added files
  - (djm) [md-sha256.c configure.ac] md-sha256.c needs sha2.h if present
  - (djm) [regress/.cvsignore] Ignore Makefile here
+ - (djm) [loginrec.c] Need stat.h
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4152,4 +4153,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4212 2006/03/15 02:13:27 djm Exp $
+$Id: ChangeLog,v 1.4213 2006/03/15 03:01:11 djm Exp $
