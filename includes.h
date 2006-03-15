@@ -110,6 +110,9 @@ static /**/const char *const rcsid[] = { (const char *)rcsid, "\100(#)" msg }
 #ifdef HAVE_SYS_CDEFS_H
 # include <sys/cdefs.h> /* For __P() */
 #endif
+#ifdef HAVE_SYS_STAT_H
+# include <sys/stat.h> /* For S_* constants and macros */
+#endif
 #ifdef HAVE_SYS_SYSMACROS_H
 # include <sys/sysmacros.h> /* For MIN, MAX, etc */
 #endif
