@@ -1,4 +1,4 @@
-/*	$OpenBSD: includes.h,v 1.22 2006/01/01 08:59:27 stevesk Exp $	*/
+/*	$OpenBSD: includes.h,v 1.23 2006/02/07 01:08:04 stevesk Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -50,9 +50,6 @@ static /**/const char *const rcsid[] = { (const char *)rcsid, "\100(#)" msg }
 #if defined(HAVE_GLOB_H) && defined(GLOB_HAS_ALTDIRFUNC) && \
     defined(GLOB_HAS_GL_MATCHC)
 # include <glob.h>
-#endif
-#ifdef HAVE_NETGROUP_H
-# include <netgroup.h>
 #endif
 #ifdef HAVE_ENDIAN_H
 # include <endian.h>

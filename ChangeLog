@@ -7,6 +7,9 @@
    - jmc@cvs.openbsd.org 2006/02/06 21:44:47
      [ssh.1]
      make this a little less ambiguous...
+   - stevesk@cvs.openbsd.org 2006/02/07 01:08:04
+     [auth-rhosts.c includes.h]
+     move #include <netgroup.h> out of includes.h; ok markus@
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -3908,4 +3911,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4141 2006/03/15 00:05:59 djm Exp $
+$Id: ChangeLog,v 1.4142 2006/03/15 00:08:02 djm Exp $
