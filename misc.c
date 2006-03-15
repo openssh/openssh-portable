@@ -27,7 +27,7 @@
 RCSID("$OpenBSD: misc.c,v 1.43 2006/02/08 12:15:27 stevesk Exp $");
 
 #ifdef HAVE_PATHS_H
-#  include <paths.h>
+# include <paths.h>
 #endif
 #ifdef SSH_TUN_OPENBSD
 #include <net/if.h>

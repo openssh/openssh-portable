@@ -19,7 +19,7 @@
 RCSID("$OpenBSD: sftp.c,v 1.71 2006/02/08 12:15:27 stevesk Exp $");
 
 #ifdef HAVE_PATHS_H
-#  include <paths.h>
+# include <paths.h>
 #endif
 #ifdef USE_LIBEDIT
 #include <histedit.h>

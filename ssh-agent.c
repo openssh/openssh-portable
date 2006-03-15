@@ -38,7 +38,7 @@
 RCSID("$OpenBSD: ssh-agent.c,v 1.126 2006/02/08 12:15:27 stevesk Exp $");
 
 #ifdef HAVE_PATHS_H
-#  include <paths.h>
+# include <paths.h>
 #endif
 #include <openssl/evp.h>
 #include <openssl/md5.h>

@@ -26,7 +26,7 @@
 RCSID("$OpenBSD: readpass.c,v 1.34 2006/02/08 12:15:27 stevesk Exp $");
 
 #ifdef HAVE_PATHS_H
-#  include <paths.h>
+# include <paths.h>
 #endif
 
 #include "xmalloc.h"
