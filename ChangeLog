@@ -229,6 +229,10 @@
      Make ssh-add check file permissions before attempting to load private
      key files multiple times; it will fail anyway and this prevents confusing
      multiple prompts and warnings.  mindrot #1138, ok djm@
+   - djm@cvs.openbsd.org 2006/03/14 00:15:39
+     [canohost.c]
+     log the originating address and not just the name when a reverse
+     mapping check fails, requested by linux AT linuon.com
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4130,4 +4134,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4204 2006/03/15 01:06:23 djm Exp $
+$Id: ChangeLog,v 1.4205 2006/03/15 01:06:41 djm Exp $
