@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.226 2006/02/19 19:52:10 jmc Exp $
+.\" $OpenBSD: sshd.8,v 1.227 2006/02/19 20:02:17 jmc Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -708,43 +708,9 @@ Further details are described in
 .Xr hosts_access 5 .
 .Pp
 .It /etc/hosts.equiv
-This file is used during
-.Cm RhostsRSAAuthentication
-and
-.Cm HostbasedAuthentication
-authentication.
-In the simplest form, this file contains host names, one per line.
-Users on
-those hosts are permitted to log in without a password, provided they
-have the same user name on both machines.
-The host name may also be
-followed by a user name; such users are permitted to log in as
-.Em any
-user on this machine (except root).
-Additionally, the syntax
-.Dq +@group
-can be used to specify netgroups.
-Negated entries start with
-.Ql \&- .
-.Pp
-If the client host/user is successfully matched in this file, login is
-automatically permitted provided the client and server user names are the
-same.
-Additionally, successful client host key authentication is required.
-This file must be writable only by root; it is recommended
-that it be world-readable.
-.Pp
-.Sy "Warning: It is almost never a good idea to use user names in"
-.Pa hosts.equiv .
-Beware that it really means that the named user(s) can log in as
-.Em anybody ,
-which includes bin, daemon, adm, and other accounts that own critical
-binaries and directories.
-Using a user name practically grants the user root access.
-The only valid use for user names that I can think
-of is in negative entries.
-.Pp
-Note that this warning also applies to rsh/rlogin.
+This file is for host-based authentication (see
+.Xr ssh 1 ) .
+It should only be writable by root.
 .Pp
 .It /etc/moduli
 Contains Diffie-Hellman groups used for the "Diffie-Hellman Group Exchange".
@@ -765,10 +731,10 @@ refused.
 The file should be world-readable.
 .Pp
 .It /etc/shosts.equiv
-This is processed exactly as
-.Pa /etc/hosts.equiv .
-However, this file may be useful in environments that want to run both
-rsh/rlogin and ssh.
+This file is used in exactly the same way as
+.Pa hosts.equiv ,
+but allows host-based authentication without permitting login with
+rlogin/rsh.
 .Pp
 .It /etc/ssh/ssh_known_hosts
 Systemwide list of known host keys.
