@@ -59,7 +59,9 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.149 2005/12/30 15:56:37 reyk Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.150 2006/02/07 01:42:00 stevesk Exp $");
+
+#include <termios.h>
 
 #include "ssh.h"
 #include "ssh1.h"

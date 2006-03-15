@@ -12,7 +12,9 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshpty.c,v 1.12 2004/06/21 17:36:31 avsm Exp $");
+RCSID("$OpenBSD: sshpty.c,v 1.13 2006/02/07 01:42:00 stevesk Exp $");
+ 
+#include <termios.h>
 
 #ifdef HAVE_UTIL_H
 # include <util.h>

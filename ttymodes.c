@@ -43,7 +43,9 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ttymodes.c,v 1.19 2003/04/08 20:21:29 itojun Exp $");
+RCSID("$OpenBSD: ttymodes.c,v 1.20 2006/02/07 01:42:00 stevesk Exp $");
+
+#include <termios.h>
 
 #include "packet.h"
 #include "log.h"

@@ -1,4 +1,4 @@
-/*	$OpenBSD: clientloop.h,v 1.14 2005/07/04 00:58:43 djm Exp $	*/
+/*	$OpenBSD: clientloop.h,v 1.15 2006/02/07 01:42:00 stevesk Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -34,6 +34,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+#include <termios.h>
 
 /* Client side main loop for the interactive session. */
 int	 client_loop(int, int, int);

@@ -1,4 +1,4 @@
-/*	$OpenBSD: packet.h,v 1.43 2005/07/25 11:59:40 markus Exp $	*/
+/*	$OpenBSD: packet.h,v 1.44 2006/02/07 01:42:00 stevesk Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -15,6 +15,8 @@
 
 #ifndef PACKET_H
 #define PACKET_H
+
+#include <termios.h>
 
 #include <openssl/bn.h>
 
