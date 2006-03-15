@@ -1,4 +1,4 @@
-/*	$OpenBSD: authfile.h,v 1.10 2002/05/23 19:24:30 markus Exp $	*/
+/*	$OpenBSD: authfile.h,v 1.11 2006/03/13 10:26:52 dtucker Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -21,5 +21,6 @@ Key	*key_load_public_type(int, const char *, char **);
 Key	*key_load_private(const char *, const char *, char **);
 Key	*key_load_private_type(int, const char *, const char *, char **);
 Key	*key_load_private_pem(int, int, const char *, char **);
+int	 key_perm_ok(int, const char *);
 
 #endif

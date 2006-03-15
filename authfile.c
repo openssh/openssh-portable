@@ -36,7 +36,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: authfile.c,v 1.62 2006/02/20 17:19:54 stevesk Exp $");
+RCSID("$OpenBSD: authfile.c,v 1.63 2006/03/13 10:26:52 dtucker Exp $");
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -510,7 +510,7 @@ key_load_private_pem(int fd, int type, const char *passphrase,
 	return prv;
 }
 
-static int
+int
 key_perm_ok(int fd, const char *filename)
 {
 	struct stat st;

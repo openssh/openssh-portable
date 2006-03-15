@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.75 2006/02/20 17:19:54 stevesk Exp $");
+RCSID("$OpenBSD: ssh-add.c,v 1.76 2006/03/13 10:26:52 dtucker Exp $");
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -127,16 +127,25 @@ delete_all(AuthenticationConnection *ac)
 static int
 add_file(AuthenticationConnection *ac, const char *filename)
 {
-	struct stat st;
 	Key *private;
 	char *comment = NULL;
 	char msg[1024];
-	int ret = -1;
+	int fd, perms_ok, ret = -1;
 
-	if (stat(filename, &st) < 0) {
+	if ((fd = open(filename, 0)) < 0) {
 		perror(filename);
 		return -1;
 	}
+
+	/*
+	 * Since we'll try to load a keyfile multiple times, permission errors
+	 * will occur multiple times, so check perms first and bail if wrong.
+	 */
+	perms_ok = key_perm_ok(fd, filename);
+	close(fd);
+	if (!perms_ok)
+		return -1;
+
 	/* At first, try empty passphrase */
 	private = key_load_private(filename, "", &comment);
 	if (comment == NULL)

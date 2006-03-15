@@ -224,6 +224,11 @@
      [misc.c ssh_config.5 sshd_config.5]
      Allow config directives to contain whitespace by surrounding them by double
      quotes.  mindrot #482, man page help from jmc@, ok djm@
+   - dtucker@cvs.openbsd.org 2006/03/13 10:26:52
+     [authfile.c authfile.h ssh-add.c]
+     Make ssh-add check file permissions before attempting to load private
+     key files multiple times; it will fail anyway and this prevents confusing
+     multiple prompts and warnings.  mindrot #1138, ok djm@
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4125,4 +4130,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4203 2006/03/15 01:05:59 djm Exp $
+$Id: ChangeLog,v 1.4204 2006/03/15 01:06:23 djm Exp $
