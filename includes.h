@@ -1,4 +1,4 @@
-/*	$OpenBSD: includes.h,v 1.27 2006/02/08 12:32:49 stevesk Exp $	*/
+/*	$OpenBSD: includes.h,v 1.28 2006/02/08 14:31:30 stevesk Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -98,7 +98,6 @@ static /**/const char *const rcsid[] = { (const char *)rcsid, "\100(#)" msg }
 #ifdef HAVE_SYS_TIME_H
 # include <sys/time.h> /* For timersub */
 #endif
-#include <sys/resource.h>
 #ifdef HAVE_SYS_SELECT_H
 # include <sys/select.h>
 #endif
