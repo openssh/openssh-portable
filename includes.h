@@ -61,7 +61,10 @@ static /**/const char *const rcsid[] = { (const char *)rcsid, "\100(#)" msg }
 # include <maillock.h> /* For _PATH_MAILDIR */
 #endif
 #ifdef HAVE_NEXT
-#  include <libc.h>
+# include <libc.h>
+#endif
+#ifdef HAVE_PATHS
+# include <paths.h>
 #endif
 #include <unistd.h> /* For STDIN_FILENO, etc */
 
