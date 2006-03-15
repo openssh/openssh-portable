@@ -119,6 +119,10 @@
    - jmc@cvs.openbsd.org 2006/02/16 09:05:34
      [sshd.8]
      sync some of the FILES entries w/ ssh.1;
+   - jmc@cvs.openbsd.org 2006/02/19 19:52:10
+     [sshd.8]
+     move the sshrc stuff out of FILES, and into its own section:
+     FILES is not a good place to document how stuff works;
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4020,4 +4024,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4173 2006/03/15 00:35:27 djm Exp $
+$Id: ChangeLog,v 1.4174 2006/03/15 00:35:54 djm Exp $
