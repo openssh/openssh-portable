@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.336 2006/03/15 10:31:39 dtucker Exp $
+# $Id: configure.ac,v 1.337 2006/03/15 11:28:17 dtucker Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.336 $)
+AC_REVISION($Revision: 1.337 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -679,7 +679,6 @@ AC_CHECK_HEADERS( \
 	iaf.h \
 	limits.h \
 	login.h \
-	login_cap.h \
 	maillock.h \
 	ndir.h \
 	netdb.h \
@@ -738,6 +737,11 @@ AC_CHECK_HEADERS(sys/ptms.h, [], [], [
 #ifdef HAVE_SYS_STREAM_H
 # include <sys/stream.h>
 #endif
+])
+
+# login_cap.h requires sys/types.h on NetBSD
+AC_CHECK_HEADERS(login_cap.h, [], [], [
+#include <sys/types.h>
 ])
 
 # Checks for libraries.
