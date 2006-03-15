@@ -25,7 +25,10 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.66 2006/02/08 13:15:44 stevesk Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.67 2006/02/10 01:44:26 stevesk Exp $");
+
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #include <paths.h>
 

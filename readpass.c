@@ -23,7 +23,10 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readpass.c,v 1.34 2006/02/08 12:15:27 stevesk Exp $");
+RCSID("$OpenBSD: readpass.c,v 1.35 2006/02/10 01:44:26 stevesk Exp $");
+
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #ifdef HAVE_PATHS_H
 # include <paths.h>

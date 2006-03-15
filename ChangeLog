@@ -62,6 +62,10 @@
      [channels.c clientloop.c includes.h misc.c progressmeter.c sftp.c]
      [ssh.c sshd.c sshpty.c]
      move #include <sys/ioctl.h> out of includes.h; ok markus@
+   - stevesk@cvs.openbsd.org 2006/02/10 01:44:27
+     [includes.h monitor.c readpass.c scp.c serverloop.c session.c]
+     [sftp.c sshconnect.c sshconnect2.c sshd.c]
+     move #include <sys/wait.h> out of includes.h; ok markus@
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -3963,4 +3967,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4157 2006/03/15 00:28:34 djm Exp $
+$Id: ChangeLog,v 1.4158 2006/03/15 00:29:24 djm Exp $

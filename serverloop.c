@@ -35,7 +35,10 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.125 2006/02/07 01:42:00 stevesk Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.126 2006/02/10 01:44:26 stevesk Exp $");
+
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #include <termios.h>
 
