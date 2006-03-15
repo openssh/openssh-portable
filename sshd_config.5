@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.53 2006/02/24 23:51:17 jmc Exp $
+.\" $OpenBSD: sshd_config.5,v 1.54 2006/02/25 12:28:34 jmc Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -101,6 +101,12 @@ If specified, login is allowed only for users whose primary
 group or supplementary group list matches one of the patterns.
 Only group names are valid; a numerical group ID is not recognized.
 By default, login is allowed for all groups.
+The allow/deny directives are processed in the following order:
+.Cm DenyUsers ,
+.Cm AllowUsers ,
+.Cm DenyGroups ,
+and finally
+.Cm AllowGroups .
 .Pp
 See
 .Sx PATTERNS
@@ -124,6 +130,12 @@ By default, login is allowed for all users.
 If the pattern takes the form USER@HOST then USER and HOST
 are separately checked, restricting logins to particular
 users from particular hosts.
+The allow/deny directives are processed in the following order:
+.Cm DenyUsers ,
+.Cm AllowUsers ,
+.Cm DenyGroups ,
+and finally
+.Cm AllowGroups .
 .Pp
 See
 .Sx PATTERNS
@@ -234,6 +246,12 @@ Login is disallowed for users whose primary group or supplementary
 group list matches one of the patterns.
 Only group names are valid; a numerical group ID is not recognized.
 By default, login is allowed for all groups.
+The allow/deny directives are processed in the following order:
+.Cm DenyUsers ,
+.Cm AllowUsers ,
+.Cm DenyGroups ,
+and finally
+.Cm AllowGroups .
 .Pp
 See
 .Sx PATTERNS
@@ -249,6 +267,12 @@ By default, login is allowed for all users.
 If the pattern takes the form USER@HOST then USER and HOST
 are separately checked, restricting logins to particular
 users from particular hosts.
+The allow/deny directives are processed in the following order:
+.Cm DenyUsers ,
+.Cm AllowUsers ,
+.Cm DenyGroups ,
+and finally
+.Cm AllowGroups .
 .Pp
 See
 .Sx PATTERNS
