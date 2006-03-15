@@ -835,6 +835,7 @@ SHA512_Final(u_int8_t digest[SHA512_DIGEST_LENGTH], SHA512_CTX *context)
 }
 
 
+#if 0
 /*** SHA-384: *********************************************************/
 void
 SHA384_Init(SHA384_CTX *context)
@@ -872,5 +873,6 @@ SHA384_Final(u_int8_t digest[SHA384_DIGEST_LENGTH], SHA384_CTX *context)
 	/* Zero out state data */
 	memset(context, 0, sizeof(*context));
 }
+#endif
 
 #endif /* !defined(HAVE_SHA256_UPDATE) && !defined(HAVE_EVP_SHA256) */

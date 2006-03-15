@@ -67,7 +67,9 @@ typedef struct _SHA512_CTX {
 	u_int8_t	buffer[SHA512_BLOCK_LENGTH];
 } SHA512_CTX;
 
+#if 0
 typedef SHA512_CTX SHA384_CTX;
+#endif
 
 void SHA256_Init(SHA256_CTX *);
 void SHA256_Transform(u_int32_t state[8], const u_int8_t [SHA256_BLOCK_LENGTH]);
@@ -86,6 +88,7 @@ char *SHA256_Data(const u_int8_t *, size_t, char *)
 	__attribute__((__bounded__(__string__,1,2)))
 	__attribute__((__bounded__(__minbytes__,3,SHA256_DIGEST_STRING_LENGTH)));
 
+#if 0
 void SHA384_Init(SHA384_CTX *);
 void SHA384_Transform(u_int64_t state[8], const u_int8_t [SHA384_BLOCK_LENGTH]);
 void SHA384_Update(SHA384_CTX *, const u_int8_t *, size_t)
@@ -102,6 +105,7 @@ char *SHA384_FileChunk(const char *, char *, off_t, off_t)
 char *SHA384_Data(const u_int8_t *, size_t, char *)
 	__attribute__((__bounded__(__string__,1,2)))
 	__attribute__((__bounded__(__minbytes__,3,SHA384_DIGEST_STRING_LENGTH)));
+#endif /* 0 */
 
 void SHA512_Init(SHA512_CTX *);
 void SHA512_Transform(u_int64_t state[8], const u_int8_t [SHA512_BLOCK_LENGTH]);
