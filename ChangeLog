@@ -79,6 +79,9 @@
      raise error when the user specifies a RekeyLimit that is smaller than 16
      (the smallest of our cipher's blocksize) or big enough to cause integer
      wraparound; ok & feedback dtucker@
+   - jmc@cvs.openbsd.org 2006/02/12 10:49:44
+     [ssh_config.5]
+     slight rewording; ok djm
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -3980,4 +3983,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4161 2006/03/15 00:30:38 djm Exp $
+$Id: ChangeLog,v 1.4162 2006/03/15 00:31:01 djm Exp $

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.77 2006/02/12 06:45:34 djm Exp $
+.\" $OpenBSD: ssh_config.5,v 1.78 2006/02/12 10:49:44 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -317,7 +317,7 @@ by the remote login username.
 It is recommended that any
 .Cm ControlPath
 used for opportunistic connection sharing include
-at least the last three of these escape sequences (%h, %p and %r).
+at least %h, %p, and %r.
 This ensures that shared connections are uniquely identified.
 .It Cm DynamicForward
 Specifies that a TCP port on the local machine be forwarded
