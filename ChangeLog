@@ -54,6 +54,10 @@
      [includes.h]
      #include <sys/endian.h> not needed; ok djm@
      NB. ID Sync only - we still need this (but it may move later)
+   - jmc@cvs.openbsd.org 2006/02/09 10:10:47
+     [sshd.8]
+     - move some text into a CAVEATS section
+     - merge the COMMAND EXECUTION... section into AUTHENTICATION
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -3955,4 +3959,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4155 2006/03/15 00:26:55 djm Exp $
+$Id: ChangeLog,v 1.4156 2006/03/15 00:27:20 djm Exp $

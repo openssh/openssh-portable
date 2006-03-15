@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.215 2006/02/01 09:11:41 jmc Exp $
+.\" $OpenBSD: sshd.8,v 1.216 2006/02/09 10:10:47 jmc Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -308,17 +308,6 @@ or
 .Ql \&*NP\&*
 ).
 .Pp
-System security is not improved unless
-.Nm rshd ,
-.Nm rlogind ,
-and
-.Nm rexecd
-are disabled (thus completely disabling
-.Xr rlogin
-and
-.Xr rsh
-into the machine).
-.Sh COMMAND EXECUTION AND DATA FORWARDING
 If the client successfully authenticates itself, a dialog for
 preparing the session is entered.
 At this time the client may request
@@ -326,7 +315,7 @@ things like allocating a pseudo-tty, forwarding X11 connections,
 forwarding TCP connections, or forwarding the authentication agent
 connection over the secure channel.
 .Pp
-Finally, the client either requests a shell or execution of a command.
+After this, the client either requests a shell or execution of a command.
 The sides then enter session mode.
 In this mode, either side may send
 data at any time, and such data is forwarded to/from the shell or
@@ -867,3 +856,14 @@ Markus Friedl contributed the support for SSH
 protocol versions 1.5 and 2.0.
 Niels Provos and Markus Friedl contributed support
 for privilege separation.
+.Sh CAVEATS
+System security is not improved unless
+.Nm rshd ,
+.Nm rlogind ,
+and
+.Nm rexecd
+are disabled (thus completely disabling
+.Xr rlogin
+and
+.Xr rsh
+into the machine).
