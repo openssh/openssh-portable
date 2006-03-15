@@ -22,8 +22,12 @@
 
 #include <string.h>
 #include <openssl/evp.h>
-#if defined(HAVE_SHA2_H) && defined(HAVE_SHA256_UPDATE)
-# include <sha2.h>
+#ifdef HAVE_SHA256_UPDATE
+# ifdef HAVE_SHA2_H
+#  include <sha2.h>
+# elif defined(HAVE_CRYPTO_SHA2_H)
+#  include <crypto/sha2.h>
+# endif
 #endif
 
 RCSID("$OpenBSD: md-sha256.c,v 1.1 2006/03/07 09:07:40 djm Exp $");
