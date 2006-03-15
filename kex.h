@@ -1,4 +1,4 @@
-/*	$OpenBSD: kex.h,v 1.38 2005/11/04 05:15:59 djm Exp $	*/
+/*	$OpenBSD: kex.h,v 1.39 2006/03/07 09:07:40 djm Exp $	*/
 
 /*
  * Copyright (c) 2000, 2001 Markus Friedl.  All rights reserved.
@@ -34,6 +34,7 @@
 #define	KEX_DH1			"diffie-hellman-group1-sha1"
 #define	KEX_DH14		"diffie-hellman-group14-sha1"
 #define	KEX_DHGEX_SHA1		"diffie-hellman-group-exchange-sha1"
+#define	KEX_DHGEX_SHA256	"diffie-hellman-group-exchange-sha256"
 
 #define COMP_NONE	0
 #define COMP_ZLIB	1
@@ -63,6 +64,7 @@ enum kex_exchange {
 	KEX_DH_GRP1_SHA1,
 	KEX_DH_GRP14_SHA1,
 	KEX_DH_GEX_SHA1,
+	KEX_DH_GEX_SHA256,
 	KEX_MAX
 };
 

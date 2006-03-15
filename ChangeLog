@@ -236,6 +236,12 @@
    - markus@cvs.openbsd.org 2006/03/14 16:32:48
      [ssh_config.5 sshd_config.5]
      *AliveCountMax applies to protcol v2 only; ok dtucker, djm
+   - djm@cvs.openbsd.org 2006/03/07 09:07:40
+     [kex.c kex.h monitor.c myproposal.h ssh-keyscan.c sshconnect2.c sshd.c]
+     Implement the diffie-hellman-group-exchange-sha256 key exchange method
+     using the SHA256 code in libc (and wrapper to make it into an OpenSSL
+     EVP), interop tested against CVS PuTTY
+     NB. no portability bits committed yet
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4137,4 +4143,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4206 2006/03/15 01:06:55 djm Exp $
+$Id: ChangeLog,v 1.4207 2006/03/15 01:08:28 djm Exp $

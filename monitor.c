@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.68 2006/02/20 17:02:44 stevesk Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.69 2006/03/07 09:07:40 djm Exp $");
 
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -543,7 +543,11 @@ mm_answer_sign(int sock, Buffer *m)
 	keyid = buffer_get_int(m);
 	p = buffer_get_string(m, &datlen);
 
-	if (datlen != 20)
+	/*
+	 * Supported KEX types will only return SHA1 (20 byte) or 
+	 * SHA256 (32 byte) hashes
+	 */
+	if (datlen != 20 && datlen != 32)
 		fatal("%s: data length incorrect: %u", __func__, datlen);
 
 	/* save session id, it will be passed on the first call */
@@ -1627,6 +1631,7 @@ mm_get_kex(Buffer *m)
 	kex->kex[KEX_DH_GRP1_SHA1] = kexdh_server;
 	kex->kex[KEX_DH_GRP14_SHA1] = kexdh_server;
 	kex->kex[KEX_DH_GEX_SHA1] = kexgex_server;
+	kex->kex[KEX_DH_GEX_SHA256] = kexgex_server;
 	kex->server = 1;
 	kex->hostkey_type = buffer_get_int(m);
 	kex->kex_type = buffer_get_int(m);

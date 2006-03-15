@@ -7,7 +7,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keyscan.c,v 1.59 2006/02/08 14:31:30 stevesk Exp $");
+RCSID("$OpenBSD: ssh-keyscan.c,v 1.60 2006/03/07 09:07:40 djm Exp $");
  
 #include "openbsd-compat/sys-queue.h"
 #include <sys/resource.h>
@@ -351,6 +351,7 @@ keygrab_ssh2(con *c)
 	c->c_kex->kex[KEX_DH_GRP1_SHA1] = kexdh_client;
 	c->c_kex->kex[KEX_DH_GRP14_SHA1] = kexdh_client;
 	c->c_kex->kex[KEX_DH_GEX_SHA1] = kexgex_client;
+	c->c_kex->kex[KEX_DH_GEX_SHA256] = kexgex_client;
 	c->c_kex->verify_host_key = hostjump;
 
 	if (!(j = setjmp(kexjmp))) {

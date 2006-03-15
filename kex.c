@@ -23,7 +23,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: kex.c,v 1.65 2005/11/04 05:15:59 djm Exp $");
+RCSID("$OpenBSD: kex.c,v 1.66 2006/03/07 09:07:40 djm Exp $");
 
 #include <openssl/crypto.h>
 
@@ -43,6 +43,8 @@ RCSID("$OpenBSD: kex.c,v 1.65 2005/11/04 05:15:59 djm Exp $");
 #include "monitor.h"
 
 #define KEX_COOKIE_LEN	16
+
+extern const EVP_MD *evp_ssh_sha256(void);
 
 /* prototype */
 static void kex_kexinit_finish(Kex *);
@@ -301,6 +303,9 @@ choose_kex(Kex *k, char *client, char *server)
 	} else if (strcmp(k->name, KEX_DHGEX_SHA1) == 0) {
 		k->kex_type = KEX_DH_GEX_SHA1;
 		k->evp_md = EVP_sha1();
+	} else if (strcmp(k->name, KEX_DHGEX_SHA256) == 0) {
+		k->kex_type = KEX_DH_GEX_SHA256;
+		k->evp_md = evp_ssh_sha256();
 	} else
 		fatal("bad kex alg %s", k->name);
 }
