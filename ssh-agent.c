@@ -37,6 +37,7 @@
 RCSID("$OpenBSD: ssh-agent.c,v 1.129 2006/02/20 17:02:44 stevesk Exp $");
 
 #include <sys/types.h>
+#include <sys/stat.h>
 #ifdef HAVE_SYS_UN_H
 # include <sys/un.h>
 #endif

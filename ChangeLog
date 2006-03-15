@@ -255,6 +255,7 @@
  - (djm) [openbsd-compat/sha2.h] Avoid include macro clash with
    system sha2.h
  - (djm) [ssh-rand-helper.c] Needs a bunch of headers
+ - (djm) [ssh-agent.c] Restore dropped stat.h
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4156,4 +4157,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4215 2006/03/15 03:02:36 djm Exp $
+$Id: ChangeLog,v 1.4216 2006/03/15 03:03:06 djm Exp $
