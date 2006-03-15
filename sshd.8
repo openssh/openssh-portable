@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.220 2006/02/13 10:21:25 jmc Exp $
+.\" $OpenBSD: sshd.8,v 1.221 2006/02/13 11:02:26 jmc Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -576,12 +576,12 @@ Rather, generate them by a script
 or by taking
 .Pa /etc/ssh/ssh_host_key.pub
 and adding the host names at the front.
-.Ss Examples
-.Bd -literal
-closenet,...,130.233.208.41 1024 37 159...93 closenet.hut.fi
-cvs.openbsd.org,199.185.137.3 ssh-rsa AAAA1234.....=
-.Ed
-.Bd -literal
+.Pp
+An example ssh_known_hosts file:
+.Bd -literal -offset 3n
+# Comments allowed at start of line
+closenet,...,192.0.2.53 1024 37 159...93 closenet.example.net
+cvs.example.net,192.0.2.10 ssh-rsa AAAA1234.....=
 # A hashed hostname
 |1|JfKTdBh7rNbXkVAQCRp4OQoPfmI=|USECr3SWf1JUPsms5AqfD5QfxkM= ssh-rsa
 AAAA1234.....=

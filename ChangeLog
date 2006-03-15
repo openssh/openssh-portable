@@ -97,6 +97,9 @@
    - jmc@cvs.openbsd.org 2006/02/13 10:21:25
      [sshd.8]
      small tweaks for the ssh_known_hosts section;
+   - jmc@cvs.openbsd.org 2006/02/13 11:02:26
+     [sshd.8]
+     turn this into an example ssh_known_hosts file; ok djm
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -3998,4 +4001,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4166 2006/03/15 00:32:42 djm Exp $
+$Id: ChangeLog,v 1.4167 2006/03/15 00:33:00 djm Exp $
