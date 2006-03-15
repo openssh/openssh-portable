@@ -1,4 +1,4 @@
-/*	$OpenBSD: includes.h,v 1.33 2006/02/10 01:44:26 stevesk Exp $	*/
+/*	$OpenBSD: includes.h,v 1.34 2006/02/20 16:36:14 stevesk Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -102,9 +102,6 @@ static /**/const char *const rcsid[] = { (const char *)rcsid, "\100(#)" msg }
 # include <sys/bsdtty.h>
 #endif
 #include <sys/param.h> /* For MAXPATHLEN and roundup() */
-#ifdef HAVE_SYS_UN_H
-# include <sys/un.h> /* For sockaddr_un */
-#endif
 #ifdef HAVE_STDINT_H
 # include <stdint.h>
 #endif

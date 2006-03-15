@@ -39,9 +39,11 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: channels.c,v 1.234 2006/02/10 00:27:13 stevesk Exp $");
+RCSID("$OpenBSD: channels.c,v 1.235 2006/02/20 16:36:14 stevesk Exp $");
 
 #include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/un.h>
 
 #include <termios.h>
 

@@ -132,6 +132,9 @@
    - jmc@cvs.openbsd.org 2006/02/19 20:12:25
      [ssh_config.5]
      add some vertical space;
+   - stevesk@cvs.openbsd.org 2006/02/20 16:36:15
+     [authfd.c channels.c includes.h session.c ssh-agent.c ssh.c]
+     move #include <sys/un.h> out of includes.h; ok djm@
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4033,4 +4036,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4177 2006/03/15 00:37:02 djm Exp $
+$Id: ChangeLog,v 1.4178 2006/03/15 00:40:10 djm Exp $
