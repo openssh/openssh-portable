@@ -17,8 +17,10 @@
 /* EVP wrapper for SHA256 */
 
 #include "includes.h"
+
+#ifndef HAVE_EVP_SHA256
+
 #include <openssl/evp.h>
-#include <sha2.h>
 
 RCSID("$OpenBSD: md-sha256.c,v 1.1 2006/03/07 09:07:40 djm Exp $");
 
@@ -69,3 +71,6 @@ evp_ssh_sha256(void)
 
 	return (&ssh_sha256);
 }
+
+#endif /* HAVE_EVP_SHA256 */
+

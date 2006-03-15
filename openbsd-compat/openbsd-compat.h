@@ -1,4 +1,4 @@
-/* $Id: openbsd-compat.h,v 1.33 2005/12/31 05:33:37 djm Exp $ */
+/* $Id: openbsd-compat.h,v 1.34 2006/03/15 02:02:31 djm Exp $ */
 
 /*
  * Copyright (c) 1999-2003 Damien Miller.  All rights reserved.
@@ -38,7 +38,7 @@
 #include "readpassphrase.h"
 #include "vis.h"
 #include "getrrsetbyname.h"
-
+#include "sha2.h"
 
 #ifndef HAVE_BASENAME
 char *basename(const char *path);

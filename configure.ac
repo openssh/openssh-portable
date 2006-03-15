@@ -1,4 +1,4 @@
-# $Id: configure.ac,v 1.333 2006/03/13 08:06:51 dtucker Exp $
+# $Id: configure.ac,v 1.334 2006/03/15 02:02:28 djm Exp $
 #
 # Copyright (c) 1999-2004 Damien Miller
 #
@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 AC_INIT(OpenSSH, Portable, openssh-unix-dev@mindrot.org)
-AC_REVISION($Revision: 1.333 $)
+AC_REVISION($Revision: 1.334 $)
 AC_CONFIG_SRCDIR([ssh.c])
 
 AC_CONFIG_HEADER(config.h)
@@ -923,11 +923,9 @@ AC_EGREP_CPP(FOUNDIT,
 
 # Check for g.gl_matchc glob() extension
 AC_MSG_CHECKING(for gl_matchc field in glob_t)
-AC_EGREP_CPP(FOUNDIT,
-	[
-		#include <glob.h>
-		int main(void){glob_t g; g.gl_matchc = 1;}
-	],
+AC_TRY_COMPILE(FOUNDIT,
+	[ #include <glob.h> ],
+	[glob_t g; g.gl_matchc = 1;],
 	[
 		AC_DEFINE(GLOB_HAS_GL_MATCHC, 1,
 			[Define if your system glob() function has
@@ -1882,6 +1880,9 @@ fi
 if test "x$check_for_libcrypt_later" = "x1"; then
 	AC_CHECK_LIB(crypt, crypt, LIBS="$LIBS -lcrypt")
 fi
+
+# Search for SHA256 support in libc and/or OpenSSL
+AC_CHECK_FUNCS(SHA256_Update EVP_sha256)
 
 AC_CHECK_LIB(iaf, ia_openinfo)
 

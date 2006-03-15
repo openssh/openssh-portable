@@ -44,7 +44,11 @@ RCSID("$OpenBSD: kex.c,v 1.66 2006/03/07 09:07:40 djm Exp $");
 
 #define KEX_COOKIE_LEN	16
 
+#ifdef HAVE_EVP_SHA256
+# define evp_ssh_sha256 EVP_sha256
+#else /* HAVE_EVP_SHA256 */
 extern const EVP_MD *evp_ssh_sha256(void);
+#endif /* HAVE_EVP_SHA256 */
 
 /* prototype */
 static void kex_kexinit_finish(Kex *);

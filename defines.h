@@ -25,7 +25,7 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
-/* $Id: defines.h,v 1.130 2005/12/17 11:04:09 dtucker Exp $ */
+/* $Id: defines.h,v 1.131 2006/03/15 02:02:28 djm Exp $ */
 
 
 /* Constants */
@@ -495,6 +495,22 @@ struct winsize {
 #ifndef offsetof
 # define offsetof(type, member) ((size_t) &((type *)0)->member)
 #endif
+
+/* Set up BSD-style BYTE_ORDER definition if it isn't there already */
+/* XXX: doesn't try to cope with strange byte orders (PDP_ENDIAN) */
+#ifndef BYTE_ORDER
+# ifndef LITTLE_ENDIAN
+#  define LITTLE_ENDIAN  1234
+# endif /* LITTLE_ENDIAN */
+# ifndef BIG_ENDIAN
+#  define BIG_ENDIAN     4321
+# endif /* BIG_ENDIAN */
+# ifdef WORDS_BIGENDIAN
+#  define BYTE_ORDER BIG_ENDIAN
+# else /* WORDS_BIGENDIAN */
+#  define BYTE_ORDER LITTLE_ENDIAN
+# endif /* WORDS_BIGENDIAN */
+#endif /* BYTE_ORDER */
 
 /* Function replacement / compatibility hacks */
 

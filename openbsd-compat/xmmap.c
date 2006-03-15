@@ -23,13 +23,15 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/* $Id: xmmap.c,v 1.6 2004/10/06 13:15:44 dtucker Exp $ */
+/* $Id: xmmap.c,v 1.7 2006/03/15 02:02:31 djm Exp $ */
 
 #include "includes.h"
 
+#include <sys/types.h>
 #ifdef HAVE_SYS_MMAN_H
 #include <sys/mman.h>
 #endif
+#include <sys/stat.h>
 
 #include "log.h"
 

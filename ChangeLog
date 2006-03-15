@@ -242,6 +242,11 @@
      using the SHA256 code in libc (and wrapper to make it into an OpenSSL
      EVP), interop tested against CVS PuTTY
      NB. no portability bits committed yet
+ - (djm) [configure.ac defines.h kex.c md-sha256.c]
+   [openbsd-compat/sha2.h openbsd-compat/openbsd-compat.h]
+   [openbsd-compat/sha2.c] First stab at portability glue for SHA256
+   KEX support, should work with libc SHA256 support or OpenSSL
+   EVP_sha256 if present
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4143,4 +4148,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4207 2006/03/15 01:08:28 djm Exp $
+$Id: ChangeLog,v 1.4208 2006/03/15 02:02:28 djm Exp $
