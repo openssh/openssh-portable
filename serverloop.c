@@ -35,7 +35,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: serverloop.c,v 1.127 2006/02/20 17:02:44 stevesk Exp $");
+RCSID("$OpenBSD: serverloop.c,v 1.128 2006/03/04 04:12:58 djm Exp $");
 
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -152,7 +152,6 @@ static void
 sigchld_handler(int sig)
 {
 	int save_errno = errno;
-	debug("Received SIGCHLD.");
 	child_terminated = 1;
 #ifndef _UNICOS
 	mysignal(SIGCHLD, sigchld_handler);
@@ -755,6 +754,7 @@ collect_children(void)
 	sigaddset(&nset, SIGCHLD);
 	sigprocmask(SIG_BLOCK, &nset, &oset);
 	if (child_terminated) {
+		debug("Received SIGCHLD.");
 		while ((pid = waitpid(-1, &status, WNOHANG)) > 0 ||
 		    (pid < 0 && errno == EINTR))
 			if (pid > 0)
