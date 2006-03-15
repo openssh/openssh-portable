@@ -16,6 +16,9 @@
 
 #include "includes.h"
 
+#include <sys/ioctl.h>
+#include <netinet/ip.h>
+
 #include "log.h"
 #include "misc.h"
 #include "bufaux.h"
