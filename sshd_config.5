@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.50 2006/02/24 20:22:16 jmc Exp $
+.\" $OpenBSD: sshd_config.5,v 1.51 2006/02/24 20:31:31 jmc Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -72,7 +72,7 @@ in
 for how to configure the client.
 Note that environment passing is only supported for protocol 2.
 Variables are specified by name, which may contain the wildcard characters
-.Ql \&*
+.Ql *
 and
 .Ql \&? .
 Multiple environment variables may be separated by whitespace or spread
@@ -456,7 +456,7 @@ The default is 10.
 Alternatively, random early drop can be enabled by specifying
 the three colon separated values
 .Dq start:rate:full
-(e.g., "10:30:60").
+(e.g. "10:30:60").
 .Nm sshd
 will refuse connection attempts with a probability of
 .Dq rate/100
@@ -612,7 +612,7 @@ directory or files world-writable.
 The default is
 .Dq yes .
 .It Cm Subsystem
-Configures an external subsystem (e.g., file transfer daemon).
+Configures an external subsystem (e.g. file transfer daemon).
 Arguments should be a subsystem name and a command to execute upon subsystem
 request.
 The command

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.229 2006/02/24 10:39:52 jmc Exp $
+.\" $OpenBSD: sshd.8,v 1.230 2006/02/24 20:31:31 jmc Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -81,7 +81,7 @@ configuration file.
 .Nm
 rereads its configuration file when it receives a hangup signal,
 .Dv SIGHUP ,
-by executing itself with the name and options it was started with, e.g.,
+by executing itself with the name and options it was started with, e.g.\&
 .Pa /usr/sbin/sshd .
 .Pp
 The options are as follows:
@@ -154,7 +154,7 @@ is normally not run
 from inetd because it needs to generate the server key before it can
 respond to the client, and this may take tens of seconds.
 Clients would have to wait too long if the key was regenerated every time.
-However, with small key sizes (e.g., 512) using
+However, with small key sizes (e.g. 512) using
 .Nm
 from inetd may
 be feasible.
@@ -519,7 +519,7 @@ authentication.
 .It Cm no-port-forwarding
 Forbids TCP forwarding when this key is used for authentication.
 Any port forward requests by the client will return an error.
-This might be used, e.g., in connection with the
+This might be used, e.g. in connection with the
 .Cm command
 option.
 .It Cm no-pty

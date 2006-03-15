@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.256 2006/02/15 16:53:20 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.257 2006/02/24 20:31:30 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -569,7 +569,7 @@ Disable pseudo-tty allocation.
 Force pseudo-tty allocation.
 This can be used to execute arbitrary
 screen-based programs on a remote machine, which can be very useful,
-e.g., when implementing menu services.
+e.g. when implementing menu services.
 Multiple
 .Fl t
 options force tty allocation, even if
@@ -1178,7 +1178,7 @@ If the current session has no tty,
 this variable is not set.
 .It Ev TZ
 This variable is set to indicate the present time zone if it
-was set when the daemon was started (i.e., the daemon passes the value
+was set when the daemon was started (i.e. the daemon passes the value
 on to new connections).
 .It Ev USER
 Set to the name of the user logging in.
