@@ -178,6 +178,9 @@
    - jmc@cvs.openbsd.org 2006/02/24 23:51:17
      [sshd_config.5]
      oops - bits i missed;
+   - jmc@cvs.openbsd.org 2006/02/25 12:26:17
+     [ssh_config.5]
+     document the possible values for KbdInteractiveDevices;
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4079,4 +4082,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4190 2006/03/15 00:57:25 djm Exp $
+$Id: ChangeLog,v 1.4191 2006/03/15 00:57:55 djm Exp $
