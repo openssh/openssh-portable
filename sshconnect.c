@@ -20,7 +20,9 @@ RCSID("$OpenBSD: sshconnect.c,v 1.176 2006/02/22 00:04:45 stevesk Exp $");
 #include <sys/stat.h>
 
 #include <ctype.h>
+#ifdef HAVE_PATHS_H
 #include <paths.h>
+#endif
 
 #include "ssh.h"
 #include "xmalloc.h"

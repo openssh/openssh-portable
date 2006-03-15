@@ -103,6 +103,7 @@ static /**/const char *const rcsid[] = { (const char *)rcsid, "\100(#)" msg }
 #ifdef HAVE_STDINT_H
 # include <stdint.h>
 #endif
+#include <termios.h>
 #ifdef HAVE_SYS_BITYPES_H
 # include <sys/bitypes.h> /* For u_intXX_t */
 #endif

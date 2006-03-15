@@ -258,6 +258,12 @@
  - (djm) [ssh-agent.c] Restore dropped stat.h
  - (djm) [openbsd-compat/sha2.h openbsd-compat/sha2.c] Comment out 
    SHA384, which we don't need and doesn't compile without tweaks
+ - (djm) [auth-pam.c clientloop.c includes.h monitor.c session.c]
+   [sftp-client.c ssh-keysign.c ssh.c sshconnect.c sshconnect2.c]
+   [sshd.c openbsd-compat/bsd-misc.c openbsd-compat/bsd-openpty.c]
+   [openbsd-compat/glob.c openbsd-compat/mktemp.c]
+   [openbsd-compat/readpassphrase.c] Lots of include fixes for
+   OpenSolaris
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4159,4 +4165,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4217 2006/03/15 03:37:48 djm Exp $
+$Id: ChangeLog,v 1.4218 2006/03/15 03:42:54 djm Exp $

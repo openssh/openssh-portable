@@ -68,7 +68,9 @@ RCSID("$OpenBSD: clientloop.c,v 1.155 2006/02/22 00:04:44 stevesk Exp $");
 #include <sys/ioctl.h>
 
 #include <ctype.h>
+#ifdef HAVE_PATHS_H
 #include <paths.h>
+#endif
 #include <signal.h>
 #include <termios.h>
 

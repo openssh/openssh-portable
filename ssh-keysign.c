@@ -24,7 +24,9 @@
 #include "includes.h"
 RCSID("$OpenBSD: ssh-keysign.c,v 1.20 2006/02/08 12:15:27 stevesk Exp $");
 
+#ifdef HAVE_PATHS_H
 #include <paths.h>
+#endif
 
 #include <openssl/evp.h>
 #include <openssl/rand.h>

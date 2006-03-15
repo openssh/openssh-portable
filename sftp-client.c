@@ -26,6 +26,7 @@ RCSID("$OpenBSD: sftp-client.c,v 1.60 2006/02/20 17:19:54 stevesk Exp $");
 #ifdef HAVE_SYS_STAT_H
 # include <sys/stat.h>
 #endif
+# include <signal.h>
 
 #include "openbsd-compat/sys-queue.h"
 

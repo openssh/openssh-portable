@@ -27,6 +27,8 @@
 #ifndef HAVE_READPASSPHRASE
 
 #include <termios.h>
+#include <signal.h>
+#include <ctype.h>
 #include <readpassphrase.h>
 
 #ifdef TCSASOFT

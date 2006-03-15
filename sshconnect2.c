@@ -27,7 +27,6 @@ RCSID("$OpenBSD: sshconnect2.c,v 1.147 2006/03/07 09:07:40 djm Exp $");
 
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <sys/queue.h>
 #include <sys/stat.h>
 
 #include "openbsd-compat/sys-queue.h"

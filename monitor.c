@@ -30,7 +30,9 @@ RCSID("$OpenBSD: monitor.c,v 1.69 2006/03/07 09:07:40 djm Exp $");
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#ifdef HAVE_PATHS_H
 #include <paths.h>
+#endif
 #include <signal.h>
 
 #ifdef SKEY

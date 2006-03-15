@@ -42,7 +42,9 @@ RCSID("$OpenBSD: session.c,v 1.197 2006/02/28 01:10:21 djm Exp $");
 #include <sys/wait.h>
 #include <sys/un.h>
 
+#ifdef HAVE_PATHS_H
 #include <paths.h>
+#endif
 #include <signal.h>
 
 #include "ssh.h"

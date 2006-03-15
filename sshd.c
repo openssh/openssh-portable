@@ -51,7 +51,9 @@ RCSID("$OpenBSD: sshd.c,v 1.325 2006/03/13 08:16:00 djm Exp $");
 #include <sys/ioctl.h>
 #include <sys/wait.h>
 
+#ifdef HAVE_PATHS_H
 #include <paths.h>
+#endif
 #include <signal.h>
 
 #include <openssl/dh.h>

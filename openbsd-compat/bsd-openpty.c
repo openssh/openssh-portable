@@ -46,6 +46,8 @@
 # include <sys/stropts.h>
 #endif
 
+#include <signal.h>
+
 #ifndef O_NOCTTY
 #define O_NOCTTY 0
 #endif
