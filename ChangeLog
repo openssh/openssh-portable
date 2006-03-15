@@ -248,6 +248,7 @@
    KEX support, should work with libc SHA256 support or OpenSSL
    EVP_sha256 if present
  - (djm) [includes.h] Restore accidentally dropped netinet/in.h
+ - (djm) [Makefile.in openbsd-compat/Makefile.in] Add added files
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4149,4 +4150,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4209 2006/03/15 02:07:48 djm Exp $
+$Id: ChangeLog,v 1.4210 2006/03/15 02:09:18 djm Exp $

@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.275 2006/02/19 11:50:20 dtucker Exp $
+# $Id: Makefile.in,v 1.276 2006/03/15 02:09:18 djm Exp $
 
 # uncomment if you run a non bourne compatable shell. Ie. csh
 #SHELL = @SH@
@@ -66,7 +66,7 @@ LIBSSH_OBJS=acss.o authfd.o authfile.o bufaux.o buffer.o \
 	canohost.o channels.o cipher.o cipher-acss.o cipher-aes.o \
 	cipher-bf1.o cipher-ctr.o cipher-3des1.o cleanup.o \
 	compat.o compress.o crc32.o deattack.o fatal.o hostfile.o \
-	log.o match.o moduli.o nchan.o packet.o \
+	log.o match.o md-sha256.o moduli.o nchan.o packet.o \
 	readpass.o rsa.o ttymodes.o xmalloc.o \
 	atomicio.o key.o dispatch.o kex.o mac.o uidswap.o uuencode.o misc.o \
 	monitor_fdpass.o rijndael.o ssh-dss.o ssh-rsa.o dh.o kexdh.o \
