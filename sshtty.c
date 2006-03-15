@@ -35,12 +35,11 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshtty.c,v 1.7 2006/02/07 01:42:00 stevesk Exp $");
+RCSID("$OpenBSD: sshtty.c,v 1.8 2006/02/07 01:52:50 stevesk Exp $");
 
 #include <termios.h>
 
 #include "sshpty.h"
-#include "log.h"
 
 static struct termios _saved_tio;
 static int _in_raw_mode = 0;

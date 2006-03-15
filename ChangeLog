@@ -17,6 +17,9 @@
      [channels.c clientloop.c clientloop.h includes.h packet.h]
      [serverloop.c sshpty.c sshpty.h sshtty.c ttymodes.c]
      move #include <termios.h> out of includes.h; ok markus@
+   - stevesk@cvs.openbsd.org 2006/02/07 01:52:50
+     [sshtty.c]
+     "log.h" not needed
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -3918,4 +3921,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4144 2006/03/15 00:11:28 djm Exp $
+$Id: ChangeLog,v 1.4145 2006/03/15 00:11:56 djm Exp $
