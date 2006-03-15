@@ -206,6 +206,10 @@
    - djm@cvs.openbsd.org 2006/03/12 04:23:07
      [ssh.c]
      knf nit
+   - djm@cvs.openbsd.org 2006/03/13 08:16:00
+     [sshd.c]
+     don't log that we are listening on a socket before the listen() call
+     actually succeeds, bz #1162 reported by Senthil Kumar; ok dtucker@
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4107,4 +4111,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4199 2006/03/15 01:03:53 djm Exp $
+$Id: ChangeLog,v 1.4200 2006/03/15 01:04:36 djm Exp $
