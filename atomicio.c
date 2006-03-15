@@ -25,7 +25,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: atomicio.c,v 1.13 2005/05/24 17:32:43 avsm Exp $");
+RCSID("$OpenBSD: atomicio.c,v 1.14 2006/02/11 19:31:18 otto Exp $");
 
 #include "atomicio.h"
 
@@ -58,7 +58,7 @@ atomicio(f, fd, _s, n)
 			errno = EPIPE;
 			return pos;
 		default:
-			pos += (u_int)res;
+			pos += (size_t)res;
 		}
 	}
 	return (pos);

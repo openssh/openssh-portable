@@ -66,6 +66,9 @@
      [includes.h monitor.c readpass.c scp.c serverloop.c session.c]
      [sftp.c sshconnect.c sshconnect2.c sshd.c]
      move #include <sys/wait.h> out of includes.h; ok markus@
+   - otto@cvs.openbsd.org 2006/02/11 19:31:18
+     [atomicio.c]
+     type correctness; from Ray Lai in PR 5011; ok millert@
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -3967,4 +3970,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4158 2006/03/15 00:29:24 djm Exp $
+$Id: ChangeLog,v 1.4159 2006/03/15 00:29:51 djm Exp $
