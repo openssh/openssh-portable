@@ -1,3 +1,6 @@
+20060316
+ - (dtucker) [entropy.c] Add headers for WIFEXITED and friends.
+
 20060315
  - (djm) OpenBSD CVS Sync:
    - msf@cvs.openbsd.org 2006/02/06 15:54:07
@@ -4173,4 +4176,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4224 2006/03/15 11:28:17 dtucker Exp $
+$Id: ChangeLog,v 1.4225 2006/03/15 20:21:35 dtucker Exp $

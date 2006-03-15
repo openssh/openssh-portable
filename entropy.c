@@ -24,6 +24,9 @@
 
 #include "includes.h"
 
+#include <sys/types.h>
+#include <sys/wait.h>
+
 #include <openssl/rand.h>
 #include <openssl/crypto.h>
 #include <openssl/err.h>
@@ -48,7 +51,7 @@
  * XXX: we should tell the child how many bytes we need.
  */
 
-RCSID("$Id: entropy.c,v 1.52 2005/09/27 22:26:30 dtucker Exp $");
+RCSID("$Id: entropy.c,v 1.53 2006/03/15 20:21:35 dtucker Exp $");
 
 #ifndef OPENSSL_PRNG_ONLY
 #define RANDOM_SEED_SIZE 48
