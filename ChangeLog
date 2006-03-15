@@ -100,6 +100,10 @@
    - jmc@cvs.openbsd.org 2006/02/13 11:02:26
      [sshd.8]
      turn this into an example ssh_known_hosts file; ok djm
+   - jmc@cvs.openbsd.org 2006/02/13 11:08:43
+     [sshd.8]
+     - avoid nasty line split
+     - `*' does not need to be escaped
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4001,4 +4005,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4167 2006/03/15 00:33:00 djm Exp $
+$Id: ChangeLog,v 1.4168 2006/03/15 00:33:25 djm Exp $

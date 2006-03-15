@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.221 2006/02/13 11:02:26 jmc Exp $
+.\" $OpenBSD: sshd.8,v 1.222 2006/02/13 11:08:43 jmc Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -454,7 +454,7 @@ is enabled.
 Specifies that in addition to public key authentication, the canonical name
 of the remote host must be present in the comma-separated list of
 patterns
-.Pf ( Ql \&*
+.Pf ( Ql *
 and
 .Ql \&?
 serve as wildcards).
@@ -505,13 +505,17 @@ the client requests a tunnel.
 .El
 .Pp
 An example authorized_keys file:
-.Bd -literal
+.Bd -literal -offset 3n
 # Comments allowed at start of line
 ssh-rsa AAAAB3Nza...LiPk== user@example.net
-from="*.sales.example.net,!pc.sales.example.net" ssh-rsa AAAAB2...19Q== john@example.net
-command="dump /home",no-pty,no-port-forwarding ssh-dss AAAAC3...51R== example.net
-permitopen="192.0.2.1:80",permitopen="192.0.2.2:25" ssh-dss AAAAB5...21S==
-tunnel="0",command="sh /etc/netstart tun0" ssh-rsa AAAA...== jane@example.net
+from="*.sales.example.net,!pc.sales.example.net" ssh-rsa
+AAAAB2...19Q== john@example.net
+command="dump /home",no-pty,no-port-forwarding ssh-dss
+AAAAC3...51R== example.net
+permitopen="192.0.2.1:80",permitopen="192.0.2.2:25" ssh-dss
+AAAAB5...21S==
+tunnel="0",command="sh /etc/netstart tun0" ssh-rsa AAAA...==
+jane@example.net
 .Ed
 .Sh SSH_KNOWN_HOSTS FILE FORMAT
 The
