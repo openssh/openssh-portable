@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.253 2006/01/30 13:37:49 jmc Exp $
+.\" $OpenBSD: ssh.1,v 1.254 2006/02/06 15:54:07 msf Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -1087,7 +1087,7 @@ is set to
 .Dq forced-commands-only :
 .Bd -literal -offset 2n
 tunnel="1",command="sh /etc/netstart tun1" ssh-rsa ... jane
-tunnel="2",command="sh /etc/netstart tun1" ssh-rsa ... john
+tunnel="2",command="sh /etc/netstart tun2" ssh-rsa ... john
 .Ed
 .Pp
 Since a SSH-based setup entails a fair amount of overhead,

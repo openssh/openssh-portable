@@ -1,3 +1,10 @@
+20060315
+ - (djm) OpenBSD CVS Sync:
+   - msf@cvs.openbsd.org 2006/02/06 15:54:07
+     [ssh.1]
+     - typo fix
+     ok jmc@
+
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
    since not all platforms support it.  Instead, use internal equivalent while
@@ -3898,4 +3905,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4139 2006/03/13 08:06:51 dtucker Exp $
+$Id: ChangeLog,v 1.4140 2006/03/15 00:05:35 djm Exp $
