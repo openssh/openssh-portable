@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.51 2006/02/24 20:31:31 jmc Exp $
+.\" $OpenBSD: sshd_config.5,v 1.52 2006/02/24 23:43:57 jmc Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -89,7 +89,7 @@ Specifies which address family should be used by
 Valid arguments are
 .Dq any ,
 .Dq inet
-(use IPv4 only) or
+(use IPv4 only), or
 .Dq inet6
 (use IPv6 only).
 The default is
@@ -135,9 +135,9 @@ Specifies the file that contains the public keys that can be used
 for user authentication.
 .Cm AuthorizedKeysFile
 may contain tokens of the form %T which are substituted during connection
-set-up.
+setup.
 The following tokens are defined: %% is replaced by a literal '%',
-%h is replaced by the home directory of the user being authenticated and
+%h is replaced by the home directory of the user being authenticated, and
 %u is replaced by the username of that user.
 After expansion,
 .Cm AuthorizedKeysFile
@@ -176,20 +176,19 @@ The supported ciphers are
 .Dq blowfish-cbc ,
 and
 .Dq cast128-cbc .
-The default is
-.Bd -literal
-  ``aes128-cbc,3des-cbc,blowfish-cbc,cast128-cbc,arcfour128,
-    arcfour256,arcfour,aes192-cbc,aes256-cbc,aes128-ctr,
-    aes192-ctr,aes256-ctr''
+The default is:
+.Bd -literal -offset 3n
+aes128-cbc,3des-cbc,blowfish-cbc,cast128-cbc,arcfour128,
+arcfour256,arcfour,aes192-cbc,aes256-cbc,aes128-ctr,
+aes192-ctr,aes256-ctr
 .Ed
 .It Cm ClientAliveCountMax
 Sets the number of client alive messages (see below) which may be
 sent without
-.Nm sshd
+.Xr sshd 8
 receiving any messages back from the client.
 If this threshold is reached while client alive messages are being sent,
-.Nm sshd
-will disconnect the client, terminating the session.
+sshd will disconnect the client, terminating the session.
 It is important to note that the use of client alive messages is very
 different from
 .Cm TCPKeepAlive
@@ -207,12 +206,12 @@ If
 .Cm ClientAliveInterval
 (see below) is set to 15, and
 .Cm ClientAliveCountMax
-is left at the default, unresponsive ssh clients
+is left at the default, unresponsive SSH clients
 will be disconnected after approximately 45 seconds.
 .It Cm ClientAliveInterval
 Sets a timeout interval in seconds after which if no data has been received
 from the client,
-.Nm sshd
+.Xr sshd 8
 will send a message through the encrypted
 channel to request a response from the client.
 The default
@@ -260,12 +259,11 @@ for more information on patterns.
 Specifies whether remote hosts are allowed to connect to ports
 forwarded for the client.
 By default,
-.Nm sshd
+.Xr sshd 8
 binds remote port forwardings to the loopback address.
 This prevents other remote hosts from connecting to forwarded ports.
 .Cm GatewayPorts
-can be used to specify that
-.Nm sshd
+can be used to specify that sshd
 should allow remote port forwardings to bind to non-loopback addresses, thus
 allowing other hosts to connect.
 The argument may be
@@ -308,7 +306,7 @@ and
 .Pa /etc/ssh/ssh_host_dsa_key
 for protocol version 2.
 Note that
-.Nm sshd
+.Xr sshd 8
 will refuse to use a file if it is group/world-accessible.
 It is possible to have multiple host key files.
 .Dq rsa1
@@ -335,7 +333,7 @@ The default is
 .Dq yes .
 .It Cm IgnoreUserKnownHosts
 Specifies whether
-.Nm sshd
+.Xr sshd 8
 should ignore the user's
 .Pa ~/.ssh/known_hosts
 during
@@ -350,24 +348,24 @@ Specifies whether the password provided by the user for
 will be validated through the Kerberos KDC.
 To use this option, the server needs a
 Kerberos servtab which allows the verification of the KDC's identity.
-Default is
+The default is
 .Dq no .
 .It Cm KerberosGetAFSToken
 If AFS is active and the user has a Kerberos 5 TGT, attempt to acquire
 an AFS token before accessing the user's home directory.
-Default is
+The default is
 .Dq no .
 .It Cm KerberosOrLocalPasswd
-If set then if password authentication through Kerberos fails then
+If password authentication through Kerberos fails then
 the password will be validated via any additional local mechanism
 such as
 .Pa /etc/passwd .
-Default is
+The default is
 .Dq yes .
 .It Cm KerberosTicketCleanup
 Specifies whether to automatically destroy the user's ticket cache
 file on logout.
-Default is
+The default is
 .Dq yes .
 .It Cm KeyRegenerationInterval
 In protocol version 1, the ephemeral server key is automatically regenerated
@@ -380,7 +378,7 @@ If the value is 0, the key is never regenerated.
 The default is 3600 (seconds).
 .It Cm ListenAddress
 Specifies the local addresses
-.Nm sshd
+.Xr sshd 8
 should listen on.
 The following forms may be used:
 .Pp
@@ -406,8 +404,7 @@ The following forms may be used:
 If
 .Ar port
 is not specified,
-.Nm sshd
-will listen on the address and all prior
+sshd will listen on the address and all prior
 .Cm Port
 options specified.
 The default is to listen on all local addresses.
@@ -416,7 +413,7 @@ Multiple
 options are permitted.
 Additionally, any
 .Cm Port
-options must precede this option for non port qualified addresses.
+options must precede this option for non-port qualified addresses.
 .It Cm LoginGraceTime
 The server disconnects after this time if the user has not
 successfully logged in.
@@ -426,7 +423,7 @@ The default is 120 seconds.
 Gives the verbosity level that is used when logging messages from
 .Nm sshd .
 The possible values are:
-QUIET, FATAL, ERROR, INFO, VERBOSE, DEBUG, DEBUG1, DEBUG2 and DEBUG3.
+QUIET, FATAL, ERROR, INFO, VERBOSE, DEBUG, DEBUG1, DEBUG2, and DEBUG3.
 The default is INFO.
 DEBUG and DEBUG1 are equivalent.
 DEBUG2 and DEBUG3 each specify higher levels of debugging output.
@@ -436,7 +433,7 @@ Specifies the available MAC (message authentication code) algorithms.
 The MAC algorithm is used in protocol version 2
 for data integrity protection.
 Multiple algorithms must be comma-separated.
-The default is
+The default is:
 .Dq hmac-md5,hmac-sha1,hmac-ripemd160,hmac-sha1-96,hmac-md5-96 .
 .It Cm MaxAuthTries
 Specifies the maximum number of authentication attempts permitted per
@@ -446,8 +443,7 @@ additional failures are logged.
 The default is 6.
 .It Cm MaxStartups
 Specifies the maximum number of concurrent unauthenticated connections to the
-.Nm sshd
-daemon.
+SSH daemon.
 Additional connections will be dropped until authentication succeeds or the
 .Cm LoginGraceTime
 expires for a connection.
@@ -484,18 +480,18 @@ Specifies whether root can log in using
 The argument must be
 .Dq yes ,
 .Dq without-password ,
-.Dq forced-commands-only
+.Dq forced-commands-only ,
 or
 .Dq no .
 The default is
 .Dq yes .
 .Pp
 If this option is set to
-.Dq without-password
+.Dq without-password ,
 password authentication is disabled for root.
 .Pp
 If this option is set to
-.Dq forced-commands-only
+.Dq forced-commands-only ,
 root login with public key authentication will be allowed,
 but only if the
 .Ar command
@@ -505,7 +501,7 @@ normally not allowed).
 All other authentication methods are disabled for root.
 .Pp
 If this option is set to
-.Dq no
+.Dq no ,
 root is not allowed to log in.
 .It Cm PermitTunnel
 Specifies whether
@@ -514,7 +510,7 @@ device forwarding is allowed.
 The argument must be
 .Dq yes ,
 .Dq point-to-point ,
-.Dq ethernet
+.Dq ethernet ,
 or
 .Dq no .
 The default is
@@ -527,7 +523,7 @@ and
 options in
 .Pa ~/.ssh/authorized_keys
 are processed by
-.Nm sshd .
+.Xr sshd 8 .
 The default is
 .Dq no .
 Enabling environment processing may enable users to bypass access
@@ -541,7 +537,7 @@ The default is
 .Pa /var/run/sshd.pid .
 .It Cm Port
 Specifies the port number that
-.Nm sshd
+.Xr sshd 8
 listens on.
 The default is 22.
 Multiple options of this type are permitted.
@@ -549,14 +545,14 @@ See also
 .Cm ListenAddress .
 .It Cm PrintLastLog
 Specifies whether
-.Nm sshd
+.Xr sshd 8
 should print the date and time of the last user login when a user logs
 in interactively.
 The default is
 .Dq yes .
 .It Cm PrintMotd
 Specifies whether
-.Nm sshd
+.Xr sshd 8
 should print
 .Pa /etc/motd
 when a user logs in interactively.
@@ -567,12 +563,12 @@ The default is
 .Dq yes .
 .It Cm Protocol
 Specifies the protocol versions
-.Nm sshd
+.Xr sshd 8
 supports.
 The possible values are
-.Dq 1
+.Sq 1
 and
-.Dq 2 .
+.Sq 2 .
 Multiple versions must be comma-separated.
 The default is
 .Dq 2,1 .
@@ -604,7 +600,7 @@ Defines the number of bits in the ephemeral protocol version 1 server key.
 The minimum value is 512, and the default is 768.
 .It Cm StrictModes
 Specifies whether
-.Nm sshd
+.Xr sshd 8
 should check file modes and ownership of the
 user's files and home directory before accepting login.
 This is normally desirable because novices sometimes accidentally leave their
@@ -651,7 +647,7 @@ To disable TCP keepalive messages, the value should be set to
 .Dq no .
 .It Cm UseDNS
 Specifies whether
-.Nm sshd
+.Xr sshd 8
 should look up the remote host name and check that
 the resolved host name for the remote IP address maps back to the
 very same IP address.
@@ -702,7 +698,7 @@ The default is
 .Dq no .
 .It Cm UsePrivilegeSeparation
 Specifies whether
-.Nm sshd
+.Xr sshd 8
 separates privileges by creating an unprivileged child process
 to deal with incoming network traffic.
 After successful authentication, another process will be created that has
@@ -713,11 +709,9 @@ The default is
 .Dq yes .
 .It Cm X11DisplayOffset
 Specifies the first display number available for
-.Nm sshd Ns 's
+.Xr sshd 8 Ns 's
 X11 forwarding.
-This prevents
-.Nm sshd
-from interfering with real X11 servers.
+This prevents sshd from interfering with real X11 servers.
 The default is 10.
 .It Cm X11Forwarding
 Specifies whether X11 forwarding is permitted.
@@ -730,14 +724,14 @@ The default is
 .Pp
 When X11 forwarding is enabled, there may be additional exposure to
 the server and to client displays if the
-.Nm sshd
+.Xr sshd 8
 proxy display is configured to listen on the wildcard address (see
 .Cm X11UseLocalhost
-below), however this is not the default.
+below), though this is not the default.
 Additionally, the authentication spoofing and authentication data
 verification and substitution occur on the client side.
 The security risk of using X11 forwarding is that the client's X11
-display server may be exposed to attack when the ssh client requests
+display server may be exposed to attack when the SSH client requests
 forwarding (see the warnings for
 .Cm ForwardX11
 in
@@ -755,12 +749,11 @@ X11 forwarding is automatically disabled if
 is enabled.
 .It Cm X11UseLocalhost
 Specifies whether
-.Nm sshd
+.Xr sshd 8
 should bind the X11 forwarding server to the loopback address or to
 the wildcard address.
 By default,
-.Nm sshd
-binds the forwarding server to the loopback address and sets the
+sshd binds the forwarding server to the loopback address and sets the
 hostname part of the
 .Ev DISPLAY
 environment variable to

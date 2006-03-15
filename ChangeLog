@@ -172,6 +172,9 @@
    - jmc@cvs.openbsd.org 2006/02/24 23:20:07
      [ssh_config.5]
      some grammar/wording fixes;
+   - jmc@cvs.openbsd.org 2006/02/24 23:43:57
+     [sshd_config.5]
+     some grammar/wording fixes;
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4073,4 +4076,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4188 2006/03/15 00:56:18 djm Exp $
+$Id: ChangeLog,v 1.4189 2006/03/15 00:56:56 djm Exp $
