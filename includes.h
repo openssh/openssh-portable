@@ -125,6 +125,7 @@ static /**/const char *const rcsid[] = { (const char *)rcsid, "\100(#)" msg }
 #include <sys/ptms.h>	/* for grantpt() and friends */
 #endif
 
+#include <netinet/in.h>
 #include <netinet/in_systm.h> /* For typedefs */
 #include <arpa/inet.h>
 #if defined(HAVE_NETDB_H)
