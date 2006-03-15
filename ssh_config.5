@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.80 2006/02/24 10:25:14 jmc Exp $
+.\" $OpenBSD: ssh_config.5,v 1.81 2006/02/24 10:37:07 jmc Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -141,13 +141,14 @@ A single
 .Ql \&*
 as a pattern can be used to provide global
 defaults for all hosts.
-See
-.Sx PATTERNS
-for more information on patterns.
 The host is the
 .Ar hostname
 argument given on the command line (i.e., the name is not converted to
 a canonicalized host name before matching).
+.Pp
+See
+.Sx PATTERNS
+for more information on patterns.
 .It Cm AddressFamily
 Specifies which address family to use when connecting.
 Valid arguments are
@@ -838,14 +839,15 @@ in
 .Xr sshd_config 5
 for how to configure the server.
 Variables are specified by name, which may contain wildcard characters.
-See
-.Sx PATTERNS
-for more information on patterns.
 Multiple environment variables may be separated by whitespace or spread
 across multiple
 .Cm SendEnv
 directives.
 The default is not to send any environment variables.
+.Pp
+See
+.Sx PATTERNS
+for more information on patterns.
 .It Cm ServerAliveCountMax
 Sets the number of server alive messages (see below) which may be
 sent without

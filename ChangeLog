@@ -157,6 +157,9 @@
    - jmc@cvs.openbsd.org 2006/02/24 10:33:54
      [sshd_config.5]
      signpost to PATTERNS;
+   - jmc@cvs.openbsd.org 2006/02/24 10:37:07
+     [ssh_config.5]
+     tidy up the refs to PATTERNS;
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4058,4 +4061,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4183 2006/03/15 00:54:21 djm Exp $
+$Id: ChangeLog,v 1.4184 2006/03/15 00:54:36 djm Exp $
