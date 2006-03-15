@@ -146,6 +146,10 @@
      [sftp-server.c sftp.c ssh-add.c ssh-keygen.c ssh.c sshconnect.c]
      [sshconnect2.c sshd.c sshpty.c]
      move #include <sys/stat.h> out of includes.h; ok markus@
+   - stevesk@cvs.openbsd.org 2006/02/22 00:04:45
+     [canohost.c clientloop.c includes.h match.c readconf.c scp.c ssh.c]
+     [sshconnect.c]
+     move #include <ctype.h> out of includes.h; ok djm@
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4047,4 +4051,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4180 2006/03/15 00:52:09 djm Exp $
+$Id: ChangeLog,v 1.4181 2006/03/15 00:53:45 djm Exp $
