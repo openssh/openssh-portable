@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.49 2006/02/24 10:33:54 jmc Exp $
+.\" $OpenBSD: sshd_config.5,v 1.50 2006/02/24 20:22:16 jmc Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -153,7 +153,7 @@ authentication is allowed.
 This option is only available for protocol version 2.
 By default, no banner is displayed.
 .It Cm ChallengeResponseAuthentication
-Specifies whether challenge response authentication is allowed.
+Specifies whether challenge-response authentication is allowed.
 All authentication styles from
 .Xr login.conf 5
 are supported.
@@ -291,7 +291,7 @@ Note that this option applies to protocol version 2 only.
 .It Cm HostbasedAuthentication
 Specifies whether rhosts or /etc/hosts.equiv authentication together
 with successful public key client host authentication is allowed
-(hostbased authentication).
+(host-based authentication).
 This option is similar to
 .Cm RhostsRSAAuthentication
 and applies to protocol version 2 only.
