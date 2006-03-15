@@ -154,6 +154,9 @@
      [ssh_config.5]
      add section on patterns;
      from dtucker + myself
+   - jmc@cvs.openbsd.org 2006/02/24 10:33:54
+     [sshd_config.5]
+     signpost to PATTERNS;
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4055,4 +4058,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4182 2006/03/15 00:54:05 djm Exp $
+$Id: ChangeLog,v 1.4183 2006/03/15 00:54:21 djm Exp $
