@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.219 2006/02/13 10:16:39 jmc Exp $
+.\" $OpenBSD: sshd.8,v 1.220 2006/02/13 10:21:25 jmc Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -521,7 +521,7 @@ and
 files contain host public keys for all known hosts.
 The global file should
 be prepared by the administrator (optional), and the per-user file is
-maintained automatically: whenever the user connects from an unknown host
+maintained automatically: whenever the user connects from an unknown host,
 its key is added to the per-user file.
 .Pp
 Each line in these files contains the following fields: hostnames,
@@ -529,7 +529,7 @@ bits, exponent, modulus, comment.
 The fields are separated by spaces.
 .Pp
 Hostnames is a comma-separated list of patterns
-.Pf ( Ql \&*
+.Pf ( Ql *
 and
 .Ql \&?
 act as
@@ -551,7 +551,7 @@ Only one hashed hostname may appear on a single line and none of the above
 negation or wildcard operators may be applied.
 .Pp
 Bits, exponent, and modulus are taken directly from the RSA host key; they
-can be obtained, e.g., from
+can be obtained, for example, from
 .Pa /etc/ssh/ssh_host_key.pub .
 The optional comment field continues to the end of the line, and is not used.
 .Pp
