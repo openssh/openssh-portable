@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd.8,v 1.228 2006/02/19 20:05:00 jmc Exp $
+.\" $OpenBSD: sshd.8,v 1.229 2006/02/24 10:39:52 jmc Exp $
 .Dd September 25, 1999
 .Dt SSHD 8
 .Os
@@ -498,15 +498,7 @@ is enabled.
 .It Cm from="pattern-list"
 Specifies that in addition to public key authentication, the canonical name
 of the remote host must be present in the comma-separated list of
-patterns
-.Pf ( Ql *
-and
-.Ql \&?
-serve as wildcards).
-The list may also contain
-patterns negated by prefixing them with
-.Ql \&! ;
-if the canonical host name matches a negated pattern, the key is not accepted.
+patterns.
 The purpose
 of this option is to optionally increase security: public key authentication
 by itself does not trust the network or name servers or anything (but
@@ -515,6 +507,12 @@ permits an intruder to log in from anywhere in the world.
 This additional option makes using a stolen key more difficult (name
 servers and/or routers would have to be compromised in addition to
 just the key).
+.Pp
+See
+.Sx PATTERNS
+in
+.Xr ssh_config 5
+for more information on patterns.
 .It Cm no-agent-forwarding
 Forbids authentication agent forwarding when this key is used for
 authentication.
