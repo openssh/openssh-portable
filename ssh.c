@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.260 2006/02/10 00:27:13 stevesk Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.261 2006/02/12 06:45:34 djm Exp $");
 
 #include <sys/resource.h>
 #include <sys/ioctl.h>
@@ -638,11 +638,15 @@ again:
 		options.control_path = NULL;
 
 	if (options.control_path != NULL) {
+		char me[NI_MAXHOST];
+
+		if (gethostname(me, sizeof(me)) == -1)
+			fatal("gethostname: %s", strerror(errno));
 		snprintf(buf, sizeof(buf), "%d", options.port);
 		cp = tilde_expand_filename(options.control_path,
 		    original_real_uid);
 		options.control_path = percent_expand(cp, "p", buf, "h", host,
-		    "r", options.user, (char *)NULL);
+		    "r", options.user, "l", me, (char *)NULL);
 		xfree(cp);
 	}
 	if (mux_command != 0 && options.control_path == NULL)

@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.76 2006/01/20 11:21:45 jmc Exp $
+.\" $OpenBSD: ssh_config.5,v 1.77 2006/02/12 06:45:34 djm Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -306,6 +306,8 @@ section above or the string
 .Dq none
 to disable connection sharing.
 In the path,
+.Ql %l
+will be substituted by the local host name,
 .Ql %h
 will be substituted by the target host name,
 .Ql %p
@@ -315,7 +317,7 @@ by the remote login username.
 It is recommended that any
 .Cm ControlPath
 used for opportunistic connection sharing include
-all three of these escape sequences.
+at least the last three of these escape sequences (%h, %p and %r).
 This ensures that shared connections are uniquely identified.
 .It Cm DynamicForward
 Specifies that a TCP port on the local machine be forwarded

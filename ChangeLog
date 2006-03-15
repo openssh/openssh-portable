@@ -69,6 +69,11 @@
    - otto@cvs.openbsd.org 2006/02/11 19:31:18
      [atomicio.c]
      type correctness; from Ray Lai in PR 5011; ok millert@
+   - djm@cvs.openbsd.org 2006/02/12 06:45:34
+     [ssh.c ssh_config.5]
+     add a %l expansion code to the ControlPath, which is filled in with the
+     local hostname at runtime. Requested by henning@ to avoid some problems
+     with /home on NFS; ok dtucker@
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -3970,4 +3975,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4159 2006/03/15 00:29:51 djm Exp $
+$Id: ChangeLog,v 1.4160 2006/03/15 00:30:13 djm Exp $
