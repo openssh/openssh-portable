@@ -40,7 +40,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh.c,v 1.265 2006/02/22 00:04:45 stevesk Exp $");
+RCSID("$OpenBSD: ssh.c,v 1.266 2006/03/12 04:23:07 djm Exp $");
 
 #include <sys/types.h>
 #ifdef HAVE_SYS_STAT_H
@@ -254,7 +254,7 @@ main(int ac, char **av)
 	/* Parse command-line arguments. */
 	host = NULL;
 
-again:
+ again:
 	while ((opt = getopt(ac, av,
 	    "1246ab:c:e:fgi:kl:m:no:p:qstvxACD:F:I:L:MNO:PR:S:TVw:XY")) != -1) {
 		switch (opt) {

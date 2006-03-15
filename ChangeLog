@@ -203,6 +203,9 @@
    - djm@cvs.openbsd.org 2006/03/04 04:12:58
      [serverloop.c]
      move a debug() outside of a signal handler; ok markus@ a little while back
+   - djm@cvs.openbsd.org 2006/03/12 04:23:07
+     [ssh.c]
+     knf nit
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4104,4 +4107,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4198 2006/03/15 01:01:34 djm Exp $
+$Id: ChangeLog,v 1.4199 2006/03/15 01:03:53 djm Exp $
