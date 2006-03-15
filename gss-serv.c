@@ -1,4 +1,4 @@
-/*	$OpenBSD: gss-serv.c,v 1.13 2005/10/13 22:24:31 stevesk Exp $	*/
+/*	$OpenBSD: gss-serv.c,v 1.14 2006/02/08 13:15:44 stevesk Exp $	*/
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -175,7 +175,7 @@ ssh_gssapi_parse_ename(Gssctxt *ctx, gss_buffer_t ename, gss_buffer_t name)
 		return GSS_S_FAILURE;
 
 	name->value = xmalloc(name->length+1);
-	memcpy(name->value, tok+offset,name->length);
+	memcpy(name->value, tok+offset, name->length);
 	((char *)name->value)[name->length] = 0;
 
 	return GSS_S_COMPLETE;
@@ -234,7 +234,8 @@ ssh_gssapi_cleanup_creds(void)
 {
 	if (gssapi_client.store.filename != NULL) {
 		/* Unlink probably isn't sufficient */
-		debug("removing gssapi cred file\"%s\"", gssapi_client.store.filename);
+		debug("removing gssapi cred file\"%s\"",
+		    gssapi_client.store.filename);
 		unlink(gssapi_client.store.filename);
 	}
 }

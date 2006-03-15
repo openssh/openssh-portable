@@ -34,6 +34,9 @@
    - stevesk@cvs.openbsd.org 2006/02/08 12:32:49
      [includes.h misc.c]
      move #include <netinet/tcp.h> out of includes.h; ok markus@
+   - stevesk@cvs.openbsd.org 2006/02/08 13:15:44
+     [gss-serv.c monitor.c]
+     small KNF
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -3935,4 +3938,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4149 2006/03/15 00:19:42 djm Exp $
+$Id: ChangeLog,v 1.4150 2006/03/15 00:20:03 djm Exp $
