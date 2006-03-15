@@ -113,6 +113,9 @@
    - jmc@cvs.openbsd.org 2006/02/15 16:53:20
      [ssh.1]
      remove the IETF draft references and replace them with some updated RFCs;
+   - jmc@cvs.openbsd.org 2006/02/15 16:55:33
+     [sshd.8]
+     remove ietf draft references; RFC list now maintained in ssh.1;
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4014,4 +4017,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4171 2006/03/15 00:34:45 djm Exp $
+$Id: ChangeLog,v 1.4172 2006/03/15 00:35:05 djm Exp $
