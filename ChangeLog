@@ -26,6 +26,11 @@
    - stevesk@cvs.openbsd.org 2006/02/07 03:59:20
      [deattack.c]
      duplicate #include
+   - stevesk@cvs.openbsd.org 2006/02/08 12:15:27
+     [auth.c clientloop.c includes.h misc.c monitor.c readpass.c]
+     [session.c sftp.c ssh-agent.c ssh-keysign.c ssh.c sshconnect.c]
+     [sshd.c sshpty.c]
+     move #include <paths.h> out of includes.h; ok markus@
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -3927,4 +3932,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4147 2006/03/15 00:12:38 djm Exp $
+$Id: ChangeLog,v 1.4148 2006/03/15 00:16:59 djm Exp $

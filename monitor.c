@@ -25,13 +25,15 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.64 2005/10/13 22:24:31 stevesk Exp $");
+RCSID("$OpenBSD: monitor.c,v 1.65 2006/02/08 12:15:27 stevesk Exp $");
 
-#include <openssl/dh.h>
+#include <paths.h>
 
 #ifdef SKEY
 #include <skey.h>
 #endif
+
+#include <openssl/dh.h>
 
 #include "ssh.h"
 #include "auth.h"

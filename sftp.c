@@ -16,8 +16,11 @@
 
 #include "includes.h"
 
-RCSID("$OpenBSD: sftp.c,v 1.70 2006/01/31 10:19:02 djm Exp $");
+RCSID("$OpenBSD: sftp.c,v 1.71 2006/02/08 12:15:27 stevesk Exp $");
 
+#ifdef HAVE_PATHS_H
+#  include <paths.h>
+#endif
 #ifdef USE_LIBEDIT
 #include <histedit.h>
 #else

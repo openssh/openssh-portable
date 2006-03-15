@@ -13,7 +13,9 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.171 2005/12/06 22:38:27 reyk Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.172 2006/02/08 12:15:27 stevesk Exp $");
+
+#include <paths.h>
 
 #include <openssl/bn.h>
 

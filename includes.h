@@ -1,4 +1,4 @@
-/*	$OpenBSD: includes.h,v 1.25 2006/02/07 01:42:00 stevesk Exp $	*/
+/*	$OpenBSD: includes.h,v 1.26 2006/02/08 12:15:27 stevesk Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -89,9 +89,6 @@ static /**/const char *const rcsid[] = { (const char *)rcsid, "\100(#)" msg }
 #endif
 #ifdef HAVE_LASTLOG_H
 #  include <lastlog.h>
-#endif
-#ifdef HAVE_PATHS_H
-#  include <paths.h> /* For _PATH_XXX */
 #endif
 
 #include <sys/types.h>
