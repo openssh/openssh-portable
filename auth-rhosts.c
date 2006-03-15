@@ -14,7 +14,10 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth-rhosts.c,v 1.34 2006/02/07 01:08:04 stevesk Exp $");
+RCSID("$OpenBSD: auth-rhosts.c,v 1.35 2006/02/20 17:19:53 stevesk Exp $");
+
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #ifdef HAVE_NETGROUP_H
 # include <netgroup.h>

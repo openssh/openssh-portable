@@ -23,7 +23,10 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth.c,v 1.61 2006/02/08 12:15:27 stevesk Exp $");
+RCSID("$OpenBSD: auth.c,v 1.62 2006/02/20 17:19:53 stevesk Exp $");
+
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #ifdef HAVE_PATHS_H
 # include <paths.h>

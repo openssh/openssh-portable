@@ -71,9 +71,12 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: scp.c,v 1.132 2006/02/10 01:44:26 stevesk Exp $");
+RCSID("$OpenBSD: scp.c,v 1.134 2006/02/20 17:19:54 stevesk Exp $");
 
 #include <sys/types.h>
+#ifdef HAVE_SYS_STAT_H
+# include <sys/stat.h>
+#endif
 #include <sys/wait.h>
 
 #include <dirent.h>

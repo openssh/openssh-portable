@@ -59,8 +59,12 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: clientloop.c,v 1.152 2006/02/10 00:27:13 stevesk Exp $");
+RCSID("$OpenBSD: clientloop.c,v 1.154 2006/02/20 17:19:54 stevesk Exp $");
 
+#include <sys/types.h>
+#ifdef HAVE_SYS_STAT_H
+# include <sys/stat.h>
+#endif
 #include <sys/ioctl.h>
 
 #include <paths.h>

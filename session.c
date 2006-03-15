@@ -33,9 +33,12 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.194 2006/02/20 16:36:14 stevesk Exp $");
+RCSID("$OpenBSD: session.c,v 1.196 2006/02/20 17:19:54 stevesk Exp $");
 
 #include <sys/types.h>
+#ifdef HAVE_SYS_STAT_H
+# include <sys/stat.h>
+#endif
 #include <sys/wait.h>
 #include <sys/un.h>
 

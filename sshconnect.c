@@ -13,10 +13,11 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.174 2006/02/10 01:44:27 stevesk Exp $");
+RCSID("$OpenBSD: sshconnect.c,v 1.175 2006/02/20 17:19:54 stevesk Exp $");
 
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 
 #include <paths.h>
 

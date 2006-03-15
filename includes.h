@@ -1,4 +1,4 @@
-/*	$OpenBSD: includes.h,v 1.34 2006/02/20 16:36:14 stevesk Exp $	*/
+/*	$OpenBSD: includes.h,v 1.36 2006/02/20 17:19:53 stevesk Exp $	*/
 
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
@@ -110,9 +110,6 @@ static /**/const char *const rcsid[] = { (const char *)rcsid, "\100(#)" msg }
 #endif
 #ifdef HAVE_SYS_CDEFS_H
 # include <sys/cdefs.h> /* For __P() */
-#endif
-#ifdef HAVE_SYS_STAT_H
-# include <sys/stat.h> /* For S_* constants and macros */
 #endif
 #ifdef HAVE_SYS_SYSMACROS_H
 # include <sys/sysmacros.h> /* For MIN, MAX, etc */

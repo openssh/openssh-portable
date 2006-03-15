@@ -42,10 +42,13 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshd.c,v 1.321 2006/02/10 01:44:27 stevesk Exp $");
+RCSID("$OpenBSD: sshd.c,v 1.323 2006/02/20 17:19:54 stevesk Exp $");
 
-#include <sys/ioctl.h>
 #include <sys/types.h>
+#ifdef HAVE_SYS_STAT_H
+# include <sys/stat.h>
+#endif
+#include <sys/ioctl.h>
 #include <sys/wait.h>
 
 #include <paths.h>
