@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh_config.5,v 1.87 2006/02/26 18:03:10 jmc Exp $
+.\" $OpenBSD: ssh_config.5,v 1.88 2006/03/13 10:14:29 dtucker Exp $
 .Dd September 25, 1999
 .Dt SSH_CONFIG 5
 .Os
@@ -92,6 +92,9 @@ and
 .Nm sftp
 .Fl o
 option.
+Arguments may optionally be enclosed in double quotes
+.Pq \&"
+in order to represent arguments containing spaces.
 .Pp
 The possible
 keywords and their meanings are as follows (note that

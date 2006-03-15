@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: sshd_config.5,v 1.55 2006/02/26 18:01:13 jmc Exp $
+.\" $OpenBSD: sshd_config.5,v 1.56 2006/03/13 10:14:29 dtucker Exp $
 .Dd September 25, 1999
 .Dt SSHD_CONFIG 5
 .Os
@@ -56,6 +56,9 @@ The file contains keyword-argument pairs, one per line.
 Lines starting with
 .Ql #
 and empty lines are interpreted as comments.
+Arguments may optionally be enclosed in double quotes
+.Pq \&"
+in order to represent arguments containing spaces.
 .Pp
 The possible
 keywords and their meanings are as follows (note that

@@ -24,7 +24,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: misc.c,v 1.45 2006/02/10 00:27:13 stevesk Exp $");
+RCSID("$OpenBSD: misc.c,v 1.46 2006/03/13 10:14:29 dtucker Exp $");
 
 #include <sys/ioctl.h>
 #include <netinet/tcp.h>
@@ -128,6 +128,7 @@ set_nodelay(int fd)
 
 /* Characters considered whitespace in strsep calls. */
 #define WHITESPACE " \t\r\n"
+#define QUOTE	"\""
 
 /* return next token in configuration line */
 char *
@@ -141,15 +142,27 @@ strdelim(char **s)
 
 	old = *s;
 
-	*s = strpbrk(*s, WHITESPACE "=");
+	*s = strpbrk(*s, WHITESPACE QUOTE "=");
 	if (*s == NULL)
 		return (old);
+
+	if (*s[0] == '\"') {
+		memmove(*s, *s + 1, strlen(*s)); /* move nul too */
+		/* Find matching quote */
+		if ((*s = strpbrk(*s, QUOTE)) == NULL) {
+			return (NULL);		/* no matching quote */
+		} else {
+			*s[0] = '\0';
+			return (old);
+		}
+	}
 
 	/* Allow only one '=' to be skipped */
 	if (*s[0] == '=')
 		wspace = 1;
 	*s[0] = '\0';
 
+	/* Skip any extra whitespace after first token */
 	*s += strspn(*s + 1, WHITESPACE) + 1;
 	if (*s[0] == '=' && !wspace)
 		*s += strspn(*s + 1, WHITESPACE) + 1;
