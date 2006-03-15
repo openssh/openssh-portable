@@ -195,6 +195,11 @@
    - jmc@cvs.openbsd.org 2006/02/26 18:03:10
      [ssh_config.5]
      comma;
+   - djm@cvs.openbsd.org 2006/02/28 01:10:21
+     [session.c]
+     fix logout recording when privilege separation is disabled, analysis and
+     patch from vinschen at redhat.com; tested by dtucker@ ok deraadt@
+     NB. ID sync only - patch already in portable
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4096,4 +4101,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4196 2006/03/15 00:59:39 djm Exp $
+$Id: ChangeLog,v 1.4197 2006/03/15 01:01:14 djm Exp $
