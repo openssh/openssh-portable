@@ -74,6 +74,11 @@
      add a %l expansion code to the ControlPath, which is filled in with the
      local hostname at runtime. Requested by henning@ to avoid some problems
      with /home on NFS; ok dtucker@
+   - djm@cvs.openbsd.org 2006/02/12 10:44:18
+     [readconf.c]
+     raise error when the user specifies a RekeyLimit that is smaller than 16
+     (the smallest of our cipher's blocksize) or big enough to cause integer
+     wraparound; ok & feedback dtucker@
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -3975,4 +3980,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4160 2006/03/15 00:30:13 djm Exp $
+$Id: ChangeLog,v 1.4161 2006/03/15 00:30:38 djm Exp $

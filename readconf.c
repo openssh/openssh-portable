@@ -12,7 +12,7 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.145 2005/12/08 18:34:11 reyk Exp $");
+RCSID("$OpenBSD: readconf.c,v 1.146 2006/02/12 10:44:18 djm Exp $");
 
 #include "ssh.h"
 #include "xmalloc.h"
@@ -306,7 +306,8 @@ process_config_line(Options *options, const char *host,
 		    int *activep)
 {
 	char *s, **charptr, *endofnumber, *keyword, *arg, *arg2, fwdarg[256];
-	int opcode, *intptr, value, value2;
+	int opcode, *intptr, value, value2, scale;
+	long long orig, val64;
 	size_t len;
 	Forward fwd;
 
@@ -479,22 +480,36 @@ parse_yesnoask:
 			fatal("%.200s line %d: Missing argument.", filename, linenum);
 		if (arg[0] < '0' || arg[0] > '9')
 			fatal("%.200s line %d: Bad number.", filename, linenum);
-		value = strtol(arg, &endofnumber, 10);
+		orig = val64 = strtoll(arg, &endofnumber, 10);
 		if (arg == endofnumber)
 			fatal("%.200s line %d: Bad number.", filename, linenum);
 		switch (toupper(*endofnumber)) {
+		case '\0':
+			scale = 1;
+			break;
 		case 'K':
-			value *= 1<<10;
+			scale = 1<<10;
 			break;
 		case 'M':
-			value *= 1<<20;
+			scale = 1<<20;
 			break;
 		case 'G':
-			value *= 1<<30;
+			scale = 1<<30;
 			break;
+		default:
+			fatal("%.200s line %d: Invalid RekeyLimit suffix",
+			    filename, linenum);
 		}
+		val64 *= scale;
+		/* detect integer wrap and too-large limits */
+		if ((val64 / scale) != orig || val64 > INT_MAX)
+			fatal("%.200s line %d: RekeyLimit too large",
+			    filename, linenum);
+		if (val64 < 16)
+			fatal("%.200s line %d: RekeyLimit too small",
+			    filename, linenum);
 		if (*activep && *intptr == -1)
-			*intptr = value;
+			*intptr = (int)val64;
 		break;
 
 	case oIdentityFile:
