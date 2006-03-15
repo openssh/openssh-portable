@@ -110,6 +110,9 @@
    - david@cvs.openbsd.org 2006/02/15 05:08:24
      [sftp-client.c]
      typo in comment; ok djm@
+   - jmc@cvs.openbsd.org 2006/02/15 16:53:20
+     [ssh.1]
+     remove the IETF draft references and replace them with some updated RFCs;
 
 20060313
  - (dtucker) [configure.ac] Bug #1171: Don't use printf("%lld", longlong)
@@ -4011,4 +4014,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4170 2006/03/15 00:34:25 djm Exp $
+$Id: ChangeLog,v 1.4171 2006/03/15 00:34:45 djm Exp $
