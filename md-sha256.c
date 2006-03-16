@@ -17,8 +17,9 @@
 /* EVP wrapper for SHA256 */
 
 #include "includes.h"
+#include <openssl/opensslv.h>
 
-#ifndef HAVE_EVP_SHA256
+#if !defined(HAVE_EVP_SHA256) && (OPENSSL_VERSION_NUMBER >= 0x00907000L)
 
 #include <string.h>
 #include <openssl/evp.h>
@@ -80,5 +81,5 @@ evp_ssh_sha256(void)
 	return (&ssh_sha256);
 }
 
-#endif /* HAVE_EVP_SHA256 */
+#endif /* !defined(HAVE_EVP_SHA256) && (OPENSSL_VERSION_NUMBER >= 0x00907000L) */
 

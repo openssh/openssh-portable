@@ -41,7 +41,10 @@
 
 #include "includes.h"
 
-#if !defined(HAVE_SHA256_UPDATE) && !defined(HAVE_EVP_SHA256)
+#include <openssl/opensslv.h>
+
+#if !defined(HAVE_EVP_SHA256) && !defined(HAVE_SHA256_UPDATE) && \
+    (OPENSSL_VERSION_NUMBER >= 0x00907000L)
 
 /*** SHA-256/384/512 Various Length Definitions ***********************/
 #define SHA256_BLOCK_LENGTH		64
@@ -124,6 +127,7 @@ char *SHA512_Data(const u_int8_t *, size_t, char *)
 	__attribute__((__bounded__(__string__,1,2)))
 	__attribute__((__bounded__(__minbytes__,3,SHA512_DIGEST_STRING_LENGTH)));
 
-#endif /* !defined(HAVE_SHA256_UPDATE) && !defined(HAVE_EVP_SHA256) */
+#endif /* !defined(HAVE_EVP_SHA256) && !defined(HAVE_SHA256_UPDATE) && \
+    (OPENSSL_VERSION_NUMBER >= 0x00907000L) */
 
 #endif /* _SSHSHA2_H */

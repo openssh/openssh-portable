@@ -38,7 +38,10 @@
 
 #include "includes.h"
 
-#if !defined(HAVE_SHA256_UPDATE) && !defined(HAVE_EVP_SHA256)
+#include <openssl/opensslv.h>
+
+#if !defined(HAVE_EVP_SHA256) && !defined(HAVE_SHA256_UPDATE) && \
+    (OPENSSL_VERSION_NUMBER >= 0x00907000L)
 #include <sys/types.h>
 #include <string.h>
 #include "sha2.h"
@@ -875,4 +878,5 @@ SHA384_Final(u_int8_t digest[SHA384_DIGEST_LENGTH], SHA384_CTX *context)
 }
 #endif
 
-#endif /* !defined(HAVE_SHA256_UPDATE) && !defined(HAVE_EVP_SHA256) */
+#endif /* !defined(HAVE_EVP_SHA256) && !defined(HAVE_SHA256_UPDATE) && \
+    (OPENSSL_VERSION_NUMBER >= 0x00907000L) */
