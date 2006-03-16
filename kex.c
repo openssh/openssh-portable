@@ -44,12 +44,12 @@ RCSID("$OpenBSD: kex.c,v 1.66 2006/03/07 09:07:40 djm Exp $");
 
 #define KEX_COOKIE_LEN	16
 
-#if OPENSSL_VERSION_NUMBER < 0x00907000L
-# define evp_ssh_sha256() NULL
-#elif defined(HAVE_EVP_SHA256)
+#if OPENSSL_VERSION_NUMBER >= 0x00907000L
+# if defined(HAVE_EVP_SHA256)
 # define evp_ssh_sha256 EVP_sha256
-#else
+# else
 extern const EVP_MD *evp_ssh_sha256(void);
+# endif
 #endif
 
 /* prototype */
@@ -309,9 +309,11 @@ choose_kex(Kex *k, char *client, char *server)
 	} else if (strcmp(k->name, KEX_DHGEX_SHA1) == 0) {
 		k->kex_type = KEX_DH_GEX_SHA1;
 		k->evp_md = EVP_sha1();
+#if OPENSSL_VERSION_NUMBER >= 0x00907000L
 	} else if (strcmp(k->name, KEX_DHGEX_SHA256) == 0) {
 		k->kex_type = KEX_DH_GEX_SHA256;
 		k->evp_md = evp_ssh_sha256();
+#endif
 	} else
 		fatal("bad kex alg %s", k->name);
 }
