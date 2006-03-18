@@ -1,3 +1,8 @@
+20060318
+ - (dtucker) [openbsd-compat/bsd-snprintf.c] Bug #1173: make fmtint() take
+   a LLONG rather than a long.  Fixes scp'ing of large files on platforms
+   with missing/broken snprintfs.  Patch from e.borovac at bom.gov.au.
+
 20060304
  - (dtucker) [gss-serv-krb5.c] Bug #1166: Correct #ifdefs for gssapi_krb5.h
    includes.  Patch from gentoo.riverrat at gmail.com.
@@ -3855,4 +3860,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4117.2.11 2006/03/03 21:59:21 dtucker Exp $
+$Id: ChangeLog,v 1.4117.2.12 2006/03/18 13:09:49 dtucker Exp $
