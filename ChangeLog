@@ -1,3 +1,7 @@
+20060318
+- (djm) [auth-pam.c] Fix memleak in error path, from Coverity via
+  elad AT NetBSD.org
+
 20060316
  - (dtucker) [entropy.c] Add headers for WIFEXITED and friends.
  - (dtucker) [configure.ac md-sha256.c] NetBSD has sha2.h in
@@ -4182,4 +4186,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4228 2006/03/16 07:22:18 djm Exp $
+$Id: ChangeLog,v 1.4229 2006/03/18 12:04:49 djm Exp $
