@@ -1,6 +1,9 @@
 20060318
-- (djm) [auth-pam.c] Fix memleak in error path, from Coverity via
-  elad AT NetBSD.org
+ - (djm) [auth-pam.c] Fix memleak in error path, from Coverity via
+   elad AT NetBSD.org
+ - (dtucker) [openbsd-compat/bsd-snprintf.c] Bug #1173: make fmtint() take
+   a LLONG rather than a long.  Fixes scp'ing of large files on platforms
+   with missing/broken snprintfs.  Patch from e.borovac at bom.gov.au.
 
 20060316
  - (dtucker) [entropy.c] Add headers for WIFEXITED and friends.
@@ -4186,4 +4189,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4229 2006/03/18 12:04:49 djm Exp $
+$Id: ChangeLog,v 1.4230 2006/03/18 13:07:07 dtucker Exp $

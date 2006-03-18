@@ -89,7 +89,7 @@
 
 #include "includes.h"
 
-RCSID("$Id: bsd-snprintf.c,v 1.11 2005/12/17 11:32:04 dtucker Exp $");
+RCSID("$Id: bsd-snprintf.c,v 1.12 2006/03/18 13:07:07 dtucker Exp $");
 
 #if defined(BROKEN_SNPRINTF)		/* For those with broken snprintf() */
 # undef HAVE_SNPRINTF
@@ -161,7 +161,7 @@ static size_t dopr(char *buffer, size_t maxlen, const char *format,
 static void fmtstr(char *buffer, size_t *currlen, size_t maxlen,
 		    char *value, int flags, int min, int max);
 static void fmtint(char *buffer, size_t *currlen, size_t maxlen,
-		    long value, int base, int min, int max, int flags);
+		    LLONG value, int base, int min, int max, int flags);
 static void fmtfp(char *buffer, size_t *currlen, size_t maxlen,
 		   LDOUBLE fvalue, int min, int max, int flags);
 static void dopr_outch(char *buffer, size_t *currlen, size_t maxlen, char c);
@@ -468,10 +468,10 @@ static void fmtstr(char *buffer, size_t *currlen, size_t maxlen,
 /* Have to handle DP_F_NUM (ie 0x and 0 alternates) */
 
 static void fmtint(char *buffer, size_t *currlen, size_t maxlen,
-		    long value, int base, int min, int max, int flags)
+		    LLONG value, int base, int min, int max, int flags)
 {
 	int signvalue = 0;
-	unsigned long uvalue;
+	unsigned LLONG uvalue;
 	char convert[20];
 	int place = 0;
 	int spadlen = 0; /* amount to space pad */
