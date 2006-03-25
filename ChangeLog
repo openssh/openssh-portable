@@ -47,6 +47,9 @@
    - deraadt@cvs.openbsd.org 2006/03/20 18:14:02
      [monitor_wrap.h sshpty.h]
      sprinkle u_int throughout pty subsystem, ok markus
+   - deraadt@cvs.openbsd.org 2006/03/20 18:26:55
+     [session.h]
+     annoying spacing fixes getting in the way of real diffs
 
 20060318
  - (djm) [auth-pam.c] Fix memleak in error path, from Coverity via
@@ -4239,4 +4242,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4237 2006/03/25 13:06:14 djm Exp $
+$Id: ChangeLog,v 1.4238 2006/03/25 13:06:32 djm Exp $
