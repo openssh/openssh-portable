@@ -1,4 +1,4 @@
-/*	$OpenBSD: dns.c,v 1.17 2006/03/19 18:51:18 deraadt Exp $	*/
+/*	$OpenBSD: dns.c,v 1.18 2006/03/20 18:41:43 deraadt Exp $	*/
 
 /*
  * Copyright (c) 2003 Wesley Griffin. All rights reserved.
@@ -121,7 +121,7 @@ dns_read_rdata(u_int8_t *algorithm, u_int8_t *digest_type,
 			*digest = (u_char *) xmalloc(*digest_len);
 			memcpy(*digest, rdata + 2, *digest_len);
 		} else {
-			*digest = xstrdup("");
+			*digest = (u_char *)xstrdup("");
 		}
 
 		success = 1;
