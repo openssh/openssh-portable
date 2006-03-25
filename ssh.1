@@ -34,7 +34,7 @@
 .\" (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 .\" THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .\"
-.\" $OpenBSD: ssh.1,v 1.258 2006/03/16 04:24:42 djm Exp $
+.\" $OpenBSD: ssh.1,v 1.259 2006/03/22 21:16:24 jakob Exp $
 .Dd September 25, 1999
 .Dt SSH 1
 .Os
@@ -1025,8 +1025,7 @@ In this example, we are connecting a client to a server,
 The SSHFP resource records should first be added to the zonefile for
 host.example.com:
 .Bd -literal -offset indent
-$ ssh-keygen -f /etc/ssh/ssh_host_rsa_key.pub -r host.example.com.
-$ ssh-keygen -f /etc/ssh/ssh_host_dsa_key.pub -r host.example.com.
+$ ssh-keygen -r host.example.com.
 .Ed
 .Pp
 The output lines will have to be added to the zonefile.

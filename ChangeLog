@@ -53,6 +53,9 @@
    - deraadt@cvs.openbsd.org 2006/03/20 18:41:43
      [dns.c]
      cast xstrdup to propert u_char *
+   - jakob@cvs.openbsd.org 2006/03/22 21:16:24
+     [ssh.1]
+     simplify SSHFP example; ok jmc@
 
 20060318
  - (djm) [auth-pam.c] Fix memleak in error path, from Coverity via
@@ -4245,4 +4248,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4239 2006/03/25 13:06:48 djm Exp $
+$Id: ChangeLog,v 1.4240 2006/03/25 13:07:02 djm Exp $
