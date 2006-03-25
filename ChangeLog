@@ -44,6 +44,9 @@
      [gss-serv.c]
      last lot of GSSAPI related leaks detected by Coverity via
      elad AT netbsd.org; reviewed by simon AT sxw.org.uk; deraadt@ ok
+   - deraadt@cvs.openbsd.org 2006/03/20 18:14:02
+     [monitor_wrap.h sshpty.h]
+     sprinkle u_int throughout pty subsystem, ok markus
 
 20060318
  - (djm) [auth-pam.c] Fix memleak in error path, from Coverity via
@@ -4236,4 +4239,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4236 2006/03/25 13:05:44 djm Exp $
+$Id: ChangeLog,v 1.4237 2006/03/25 13:06:14 djm Exp $

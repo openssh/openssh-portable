@@ -1,4 +1,4 @@
-/*	$OpenBSD: monitor_wrap.h,v 1.14 2004/06/21 17:36:31 avsm Exp $	*/
+/*	$OpenBSD: monitor_wrap.h,v 1.15 2006/03/20 18:14:02 deraadt Exp $	*/
 
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
@@ -82,7 +82,7 @@ void mm_audit_run_command(const char *);
 
 struct Session;
 void mm_terminate(void);
-int mm_pty_allocate(int *, int *, char *, int);
+int mm_pty_allocate(int *, int *, char *, size_t);
 void mm_session_pty_cleanup2(struct Session *);
 
 /* SSHv1 interfaces */
