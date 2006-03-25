@@ -1,4 +1,4 @@
-/*	$OpenBSD: gss-serv.c,v 1.14 2006/02/08 13:15:44 stevesk Exp $	*/
+/*	$OpenBSD: gss-serv.c,v 1.15 2006/03/20 04:08:18 djm Exp $	*/
 
 /*
  * Copyright (c) 2001-2003 Simon Wilkinson. All rights reserved.
@@ -78,6 +78,8 @@ ssh_gssapi_supported_oids(gss_OID_set *oidset)
 			    &supported_mechs[i]->oid, oidset);
 		i++;
 	}
+
+	gss_release_oid_set(&min_status, &supported);
 }
 
 
