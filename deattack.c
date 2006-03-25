@@ -49,22 +49,17 @@ static void
 crc_update(u_int32_t *a, u_int32_t b)
 {
 	b ^= *a;
-	*a = ssh_crc32((u_char *) &b, sizeof(b));
+	*a = ssh_crc32((u_char *)&b, sizeof(b));
 }
 
 /* detect if a block is used in a particular pattern */
 static int
-check_crc(u_char *S, u_char *buf, u_int32_t len,
-	  u_char *IV)
+check_crc(u_char *S, u_char *buf, u_int32_t len)
 {
 	u_int32_t crc;
 	u_char *c;
 
 	crc = 0;
-	if (IV && !CMP(S, IV)) {
-		crc_update(&crc, 1);
-		crc_update(&crc, 0);
-	}
 	for (c = buf; c < buf + len; c += SSH_BLOCKSIZE) {
 		if (!CMP(S, c)) {
 			crc_update(&crc, 1);
@@ -80,7 +75,7 @@ check_crc(u_char *S, u_char *buf, u_int32_t len,
 
 /* Detect a crc32 compensation attack on a packet */
 int
-detect_attack(u_char *buf, u_int32_t len, u_char *IV)
+detect_attack(u_char *buf, u_int32_t len)
 {
 	static u_int16_t *h = (u_int16_t *) NULL;
 	static u_int32_t n = HASH_MINSIZE / HASH_ENTRYSIZE;
@@ -109,15 +104,9 @@ detect_attack(u_char *buf, u_int32_t len, u_char *IV)
 
 	if (len <= HASH_MINBLOCKS) {
 		for (c = buf; c < buf + len; c += SSH_BLOCKSIZE) {
-			if (IV && (!CMP(c, IV))) {
-				if ((check_crc(c, buf, len, IV)))
-					return (DEATTACK_DETECTED);
-				else
-					break;
-			}
 			for (d = buf; d < c; d += SSH_BLOCKSIZE) {
 				if (!CMP(c, d)) {
-					if ((check_crc(c, buf, len, IV)))
+					if ((check_crc(c, buf, len)))
 						return (DEATTACK_DETECTED);
 					else
 						break;
@@ -128,21 +117,11 @@ detect_attack(u_char *buf, u_int32_t len, u_char *IV)
 	}
 	memset(h, HASH_UNUSEDCHAR, n * HASH_ENTRYSIZE);
 
-	if (IV)
-		h[HASH(IV) & (n - 1)] = HASH_IV;
-
 	for (c = buf, j = 0; c < (buf + len); c += SSH_BLOCKSIZE, j++) {
 		for (i = HASH(c) & (n - 1); h[i] != HASH_UNUSED;
 		    i = (i + 1) & (n - 1)) {
-			if (h[i] == HASH_IV) {
-				if (!CMP(c, IV)) {
-					if (check_crc(c, buf, len, IV))
-						return (DEATTACK_DETECTED);
-					else
-						break;
-				}
-			} else if (!CMP(c, buf + h[i] * SSH_BLOCKSIZE)) {
-				if (check_crc(c, buf, len, IV))
+			if (!CMP(c, buf + h[i] * SSH_BLOCKSIZE)) {
+				if (check_crc(c, buf, len))
 					return (DEATTACK_DETECTED);
 				else
 					break;
