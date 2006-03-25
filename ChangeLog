@@ -1,3 +1,10 @@
+20060325
+ - OpenBSD CVS Sync
+   - djm@cvs.openbsd.org 2006/03/16 04:24:42
+     [ssh.1]
+     Add RFC4419 (Diffie-Hellman group exchange KEX) to the list of SSH RFCs
+     that OpenSSH supports
+
 20060318
  - (djm) [auth-pam.c] Fix memleak in error path, from Coverity via
    elad AT NetBSD.org
@@ -4189,4 +4196,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4230 2006/03/18 13:07:07 dtucker Exp $
+$Id: ChangeLog,v 1.4231 2006/03/25 12:39:29 djm Exp $
