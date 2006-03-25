@@ -24,7 +24,6 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor_mm.c,v 1.9 2004/05/11 19:01:43 deraadt Exp $");
 
 #ifdef HAVE_SYS_MMAN_H
 #include <sys/mman.h>

@@ -24,7 +24,6 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: misc.c,v 1.46 2006/03/13 10:14:29 dtucker Exp $");
 
 #include <sys/ioctl.h>
 #include <netinet/tcp.h>

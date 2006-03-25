@@ -4,6 +4,31 @@
      [ssh.1]
      Add RFC4419 (Diffie-Hellman group exchange KEX) to the list of SSH RFCs
      that OpenSSH supports
+   - deraadt@cvs.openbsd.org 2006/03/19 18:51:18
+     [atomicio.c auth-bsdauth.c auth-chall.c auth-krb5.c auth-options.c]
+     [auth-pam.c auth-passwd.c auth-rh-rsa.c auth-rhosts.c auth-rsa.c]
+     [auth-shadow.c auth-skey.c auth.c auth1.c auth2-chall.c]
+     [auth2-hostbased.c auth2-kbdint.c auth2-none.c auth2-passwd.c]
+     [auth2-pubkey.c auth2.c authfd.c authfile.c bufaux.c buffer.c]
+     [canohost.c channels.c cipher-3des1.c cipher-acss.c cipher-aes.c]
+     [cipher-bf1.c cipher-ctr.c cipher.c cleanup.c clientloop.c compat.c]
+     [compress.c deattack.c dh.c dispatch.c dns.c entropy.c fatal.c]
+     [groupaccess.c hostfile.c includes.h kex.c kexdh.c kexdhc.c]
+     [kexdhs.c kexgex.c kexgexc.c kexgexs.c key.c log.c loginrec.c]
+     [loginrec.h logintest.c mac.c match.c md-sha256.c md5crypt.c misc.c]
+     [monitor.c monitor_fdpass.c monitor_mm.c monitor_wrap.c msg.c]
+     [nchan.c packet.c progressmeter.c readconf.c readpass.c rsa.c]
+     [scard.c scp.c servconf.c serverloop.c session.c sftp-client.c]
+     [sftp-common.c sftp-glob.c sftp-server.c sftp.c ssh-add.c]
+     [ssh-agent.c ssh-dss.c ssh-keygen.c ssh-keyscan.c ssh-keysign.c]
+     [ssh-rand-helper.c ssh-rsa.c ssh.c sshconnect.c sshconnect1.c]
+     [sshconnect2.c sshd.c sshlogin.c sshpty.c sshtty.c ttymodes.c]
+     [uidswap.c uuencode.c xmalloc.c openbsd-compat/bsd-arc4random.c]
+     [openbsd-compat/bsd-closefrom.c openbsd-compat/bsd-cygwin_util.c]
+     [openbsd-compat/bsd-getpeereid.c openbsd-compat/bsd-misc.c]
+     [openbsd-compat/bsd-nextstep.c openbsd-compat/bsd-snprintf.c]
+     [openbsd-compat/bsd-waitpid.c openbsd-compat/fake-rfc2553.c]
+     RCSID() can die
 
 20060318
  - (djm) [auth-pam.c] Fix memleak in error path, from Coverity via
@@ -4196,4 +4221,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4231 2006/03/25 12:39:29 djm Exp $
+$Id: ChangeLog,v 1.4232 2006/03/25 13:03:21 djm Exp $

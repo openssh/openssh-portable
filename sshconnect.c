@@ -13,7 +13,6 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sshconnect.c,v 1.176 2006/02/22 00:04:45 stevesk Exp $");
 
 #include <sys/types.h>
 #include <sys/wait.h>

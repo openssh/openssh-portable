@@ -12,7 +12,6 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: compress.c,v 1.21 2004/01/13 19:45:15 markus Exp $");
 
 #include "log.h"
 #include "buffer.h"

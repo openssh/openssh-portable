@@ -25,7 +25,6 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor.c,v 1.69 2006/03/07 09:07:40 djm Exp $");
 
 #include <sys/types.h>
 #include <sys/wait.h>

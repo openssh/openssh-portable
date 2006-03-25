@@ -23,7 +23,6 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: cipher-3des1.c,v 1.2 2003/12/22 20:29:55 markus Exp $");
 
 #include <openssl/evp.h>
 #include "xmalloc.h"

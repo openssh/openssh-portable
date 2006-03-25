@@ -89,8 +89,6 @@
 
 #include "includes.h"
 
-RCSID("$Id: bsd-snprintf.c,v 1.12 2006/03/18 13:07:07 dtucker Exp $");
-
 #if defined(BROKEN_SNPRINTF)		/* For those with broken snprintf() */
 # undef HAVE_SNPRINTF
 # undef HAVE_VSNPRINTF

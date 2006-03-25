@@ -16,8 +16,6 @@
 
 #include "includes.h"
 
-RCSID("$Id: bsd-getpeereid.c,v 1.3 2004/02/17 05:49:55 djm Exp $");
-
 #if !defined(HAVE_GETPEEREID)
 
 #if defined(SO_PEERCRED)

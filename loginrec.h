@@ -35,8 +35,6 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-/* RCSID("$Id: loginrec.h,v 1.10 2005/06/19 00:19:44 djm Exp $"); */
-
 /**
  ** you should use the login_* calls to work around platform dependencies
  **/

@@ -31,8 +31,6 @@
 # endif
 #endif
 
-RCSID("$OpenBSD: md-sha256.c,v 1.1 2006/03/07 09:07:40 djm Exp $");
-
 const EVP_MD *evp_ssh_sha256(void);
 
 static int

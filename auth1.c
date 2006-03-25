@@ -10,7 +10,6 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: auth1.c,v 1.62 2005/07/16 01:35:24 djm Exp $");
 
 #include "xmalloc.h"
 #include "rsa.h"

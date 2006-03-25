@@ -168,8 +168,6 @@
 # include <libutil.h>
 #endif
 
-RCSID("$Id: loginrec.c,v 1.72 2006/03/15 03:01:11 djm Exp $");
-
 /**
  ** prototypes for helper functions in this file
  **/

@@ -50,8 +50,6 @@
 #include "pathnames.h"
 #include "log.h"
 
-RCSID("$Id: ssh-rand-helper.c,v 1.27 2006/03/15 03:02:36 djm Exp $");
-
 /* Number of bytes we write out */
 #define OUTPUT_SEED_SIZE	48
 

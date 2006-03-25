@@ -47,7 +47,6 @@
 
 /* Based on $FreeBSD: src/crypto/openssh/auth2-pam-freebsd.c,v 1.11 2003/03/31 13:48:18 des Exp $ */
 #include "includes.h"
-RCSID("$Id: auth-pam.c,v 1.130 2006/03/18 12:04:49 djm Exp $");
 
 #include <sys/types.h>
 #include <sys/stat.h>

@@ -24,7 +24,6 @@
 
 #include "includes.h"
 #if defined(SMARTCARD) && defined(USE_SECTOK)
-RCSID("$OpenBSD: scard.c,v 1.29 2004/05/08 00:21:31 djm Exp $");
 
 #include <openssl/evp.h>
 #include <sectok.h>

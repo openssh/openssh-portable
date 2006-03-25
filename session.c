@@ -33,7 +33,6 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: session.c,v 1.197 2006/02/28 01:10:21 djm Exp $");
 
 #include <sys/types.h>
 #ifdef HAVE_SYS_STAT_H

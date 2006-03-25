@@ -37,7 +37,6 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: packet.c,v 1.122 2006/03/13 08:33:00 dtucker Exp $");
  
 #include "openbsd-compat/sys-queue.h"
 #include <netinet/in_systm.h>

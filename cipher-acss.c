@@ -17,8 +17,6 @@
 #include "includes.h"
 #include <openssl/evp.h>
 
-RCSID("$Id: cipher-acss.c,v 1.3 2005/07/17 07:04:47 djm Exp $");
-
 #if !defined(EVP_CTRL_SET_ACSS_MODE) && (OPENSSL_VERSION_NUMBER >= 0x00907000L)
 
 #include "acss.h"

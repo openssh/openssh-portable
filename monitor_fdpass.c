@@ -24,7 +24,6 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: monitor_fdpass.c,v 1.6 2004/08/13 02:51:48 djm Exp $");
 
 #include <sys/uio.h>
 

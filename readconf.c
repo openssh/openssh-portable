@@ -12,7 +12,6 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: readconf.c,v 1.148 2006/02/22 00:04:44 stevesk Exp $");
 
 #include <sys/types.h>
 #include <sys/stat.h>

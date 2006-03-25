@@ -12,7 +12,6 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-keygen.c,v 1.137 2006/03/13 08:43:16 dtucker Exp $");
 
 #include <sys/types.h>
 #include <sys/stat.h>

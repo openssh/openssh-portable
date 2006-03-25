@@ -35,7 +35,6 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: ssh-add.c,v 1.76 2006/03/13 10:26:52 dtucker Exp $");
 
 #include <sys/types.h>
 #include <sys/stat.h>

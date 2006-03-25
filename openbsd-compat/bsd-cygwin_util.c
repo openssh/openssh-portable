@@ -29,8 +29,6 @@
 
 #include "includes.h"
 
-RCSID("$Id: bsd-cygwin_util.c,v 1.15 2006/02/12 00:59:09 dtucker Exp $");
-
 #ifdef HAVE_CYGWIN
 
 #include <fcntl.h>

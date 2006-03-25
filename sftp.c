@@ -15,7 +15,6 @@
  */
 
 #include "includes.h"
-RCSID("$OpenBSD: sftp.c,v 1.75 2006/02/20 17:19:54 stevesk Exp $");
 
 #include <sys/types.h>
 #ifdef HAVE_SYS_STAT_H

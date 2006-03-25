@@ -22,7 +22,6 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: auth-bsdauth.c,v 1.6 2005/01/19 13:11:47 dtucker Exp $");
 
 #ifdef BSD_AUTH
 #include "xmalloc.h"

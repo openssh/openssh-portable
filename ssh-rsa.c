@@ -14,7 +14,6 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #include "includes.h"
-RCSID("$OpenBSD: ssh-rsa.c,v 1.32 2005/06/17 02:44:33 djm Exp $");
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
