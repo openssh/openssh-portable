@@ -36,6 +36,10 @@
      [auth2-gss.c]
      GSSAPI related leaks detected by Coverity via elad AT netbsd.org;
      reviewed by simon AT sxw.org.uk; deraadt@ ok
+   - djm@cvs.openbsd.org 2006/03/20 04:07:49
+     [gss-genr.c]
+     more GSSAPI related leaks detected by Coverity via elad AT netbsd.org;
+     reviewed by simon AT sxw.org.uk; deraadt@ ok
 
 20060318
  - (djm) [auth-pam.c] Fix memleak in error path, from Coverity via
@@ -4228,4 +4232,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4234 2006/03/25 13:04:53 djm Exp $
+$Id: ChangeLog,v 1.4235 2006/03/25 13:05:23 djm Exp $
