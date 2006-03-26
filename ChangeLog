@@ -159,6 +159,9 @@
    - deraadt@cvs.openbsd.org 2006/03/25 18:36:15
      [sshlogin.c sshlogin.h]
      nicer size_t and time_t types
+   - deraadt@cvs.openbsd.org 2006/03/25 18:40:14
+     [ssh-keygen.c]
+     cast strtonum() result to right type
 
 20060325
  - OpenBSD CVS Sync
@@ -4416,4 +4419,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4280 2006/03/26 03:27:35 djm Exp $
+$Id: ChangeLog,v 1.4281 2006/03/26 03:27:57 djm Exp $

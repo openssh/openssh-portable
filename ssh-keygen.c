@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keygen.c,v 1.141 2006/03/25 13:17:02 djm Exp $ */
+/* $OpenBSD: ssh-keygen.c,v 1.142 2006/03/25 18:40:14 deraadt Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1994 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -1075,7 +1075,7 @@ main(int ac, char **av)
 	    "degiqpclBHvxXyF:b:f:t:U:D:P:N:C:r:g:R:T:G:M:S:a:W:")) != -1) {
 		switch (opt) {
 		case 'b':
-			bits = strtonum(optarg, 768, 32768, &errstr);
+			bits = (u_int32_t)strtonum(optarg, 768, 32768, &errstr);
 			if (errstr)
 				fatal("Bits has bad value %s (%s)",
 					optarg, errstr);
@@ -1162,19 +1162,20 @@ main(int ac, char **av)
 			rr_hostname = optarg;
 			break;
 		case 'W':
-			generator_wanted = strtonum(optarg, 1, UINT_MAX, &errstr);
+			generator_wanted = (u_int32_t)strtonum(optarg, 1,
+			    UINT_MAX, &errstr);
 			if (errstr)
 				fatal("Desired generator has bad value: %s (%s)",
 					optarg, errstr);
 			break;
 		case 'a':
-			trials = strtonum(optarg, 1, UINT_MAX, &errstr);
+			trials = (u_int32_t)strtonum(optarg, 1, UINT_MAX, &errstr);
 			if (errstr)
 				fatal("Invalid number of trials: %s (%s)",
 					optarg, errstr);
 			break;
 		case 'M':
-			memory = strtonum(optarg, 1, UINT_MAX, &errstr);
+			memory = (u_int32_t)strtonum(optarg, 1, UINT_MAX, &errstr);
 			if (errstr) {
 				fatal("Memory limit is %s: %s", errstr, optarg);
 			}
