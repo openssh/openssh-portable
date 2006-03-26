@@ -1106,15 +1106,15 @@ run_err(const char *fmt,...)
 	va_list ap;
 
 	++errs;
-	if (fp == NULL && !(fp = fdopen(remout, "w")))
-		return;
-	(void) fprintf(fp, "%c", 0x01);
-	(void) fprintf(fp, "scp: ");
-	va_start(ap, fmt);
-	(void) vfprintf(fp, fmt, ap);
-	va_end(ap);
-	(void) fprintf(fp, "\n");
-	(void) fflush(fp);
+	if (fp != NULL || (remout != -1 && (fp = fdopen(remout, "w")))) {
+		(void) fprintf(fp, "%c", 0x01);
+		(void) fprintf(fp, "scp: ");
+		va_start(ap, fmt);
+		(void) vfprintf(fp, fmt, ap);
+		va_end(ap);
+		(void) fprintf(fp, "\n");
+		(void) fflush(fp);
+	}
 
 	if (!iamremote) {
 		va_start(ap, fmt);
