@@ -259,6 +259,7 @@ packet_get_keyiv_len(int mode)
 
 	return (cipher_get_keyiv_len(cc));
 }
+
 void
 packet_set_iv(int mode, u_char *dat)
 {
@@ -271,6 +272,7 @@ packet_set_iv(int mode, u_char *dat)
 
 	cipher_set_keyiv(cc, dat);
 }
+
 int
 packet_get_ssh1_cipher(void)
 {
@@ -472,31 +474,37 @@ packet_put_char(int value)
 
 	buffer_append(&outgoing_packet, &ch, 1);
 }
+
 void
 packet_put_int(u_int value)
 {
 	buffer_put_int(&outgoing_packet, value);
 }
+
 void
 packet_put_string(const void *buf, u_int len)
 {
 	buffer_put_string(&outgoing_packet, buf, len);
 }
+
 void
 packet_put_cstring(const char *str)
 {
 	buffer_put_cstring(&outgoing_packet, str);
 }
+
 void
 packet_put_raw(const void *buf, u_int len)
 {
 	buffer_append(&outgoing_packet, buf, len);
 }
+
 void
 packet_put_bignum(BIGNUM * value)
 {
 	buffer_put_bignum(&outgoing_packet, value);
 }
+
 void
 packet_put_bignum2(BIGNUM * value)
 {
