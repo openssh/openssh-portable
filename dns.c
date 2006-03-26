@@ -1,4 +1,4 @@
-/*	$OpenBSD: dns.c,v 1.17 2006/03/19 18:51:18 deraadt Exp $	*/
+/*	$OpenBSD: dns.c,v 1.18 2006/03/20 18:41:43 deraadt Exp $	*/
 
 /*
  * Copyright (c) 2003 Wesley Griffin. All rights reserved.
