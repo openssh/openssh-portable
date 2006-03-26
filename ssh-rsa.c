@@ -144,7 +144,7 @@ ssh_rsa_verify(const Key *key, const u_char *signature, u_int signaturelen,
 		u_int diff = modlen - len;
 		debug("ssh_rsa_verify: add padding: modlen %u > len %u",
 		    modlen, len);
-		sigblob = xrealloc(sigblob, modlen);
+		sigblob = xrealloc(sigblob, 1, modlen);
 		memmove(sigblob + diff, sigblob, len);
 		memset(sigblob, 0, diff);
 		len = modlen;

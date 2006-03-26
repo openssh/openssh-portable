@@ -1190,7 +1190,7 @@ allocbuf(BUF *bp, int fd, int blksize)
 	if (bp->buf == NULL)
 		bp->buf = xmalloc(size);
 	else
-		bp->buf = xrealloc(bp->buf, size);
+		bp->buf = xrealloc(bp->buf, 1, size);
 	memset(bp->buf, 0, size);
 	bp->cnt = size;
 	return (bp);

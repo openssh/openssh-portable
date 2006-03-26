@@ -109,7 +109,7 @@ restart:
 	if (newlen > BUFFER_MAX_LEN)
 		fatal("buffer_append_space: alloc %u not supported",
 		    newlen);
-	buffer->buf = xrealloc(buffer->buf, newlen);
+	buffer->buf = xrealloc(buffer->buf, 1, newlen);
 	buffer->alloc = newlen;
 	goto restart;
 	/* NOTREACHED */

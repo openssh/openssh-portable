@@ -118,6 +118,16 @@
      to die
 
      feedback and ok deraadt@
+   - djm@cvs.openbsd.org 2006/03/25 01:13:23
+     [buffer.c channels.c deattack.c misc.c scp.c session.c sftp-client.c]
+     [sftp-server.c ssh-agent.c ssh-rsa.c xmalloc.c xmalloc.h auth-pam.c]
+     [uidswap.c]
+     change OpenSSH's xrealloc() function from being xrealloc(p, new_size)
+     to xrealloc(p, new_nmemb, new_itemsize).
+
+     realloc is particularly prone to integer overflows because it is
+     almost always allocating "n * size" bytes, so this is a far safer 
+     API; ok deraadt@
 
 20060325
  - OpenBSD CVS Sync
@@ -4375,4 +4385,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4273 2006/03/26 03:19:21 djm Exp $
+$Id: ChangeLog,v 1.4274 2006/03/26 03:22:47 djm Exp $

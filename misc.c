@@ -425,7 +425,7 @@ addargs(arglist *args, char *fmt, ...)
 	} else if (args->num+2 >= nalloc)
 		nalloc *= 2;
 
-	args->list = xrealloc(args->list, nalloc * sizeof(char *));
+	args->list = xrealloc(args->list, nalloc, sizeof(char *));
 	args->nalloc = nalloc;
 	args->list[args->num++] = cp;
 	args->list[args->num] = NULL;

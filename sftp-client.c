@@ -393,8 +393,7 @@ do_lsreaddir(struct sftp_conn *conn, char *path, int printflag,
 				printf("%s\n", longname);
 
 			if (dir) {
-				*dir = xrealloc(*dir, sizeof(**dir) *
-				    (ents + 2));
+				*dir = xrealloc(*dir, ents + 2, sizeof(**dir));
 				(*dir)[ents] = xmalloc(sizeof(***dir));
 				(*dir)[ents]->filename = xstrdup(filename);
 				(*dir)[ents]->longname = xstrdup(longname);

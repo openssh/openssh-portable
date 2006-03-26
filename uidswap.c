@@ -76,7 +76,7 @@ temporarily_use_uid(struct passwd *pw)
 		fatal("getgroups: %.100s", strerror(errno));
 	if (saved_egroupslen > 0) {
 		saved_egroups = xrealloc(saved_egroups,
-		    saved_egroupslen * sizeof(gid_t));
+		    saved_egroupslen, sizeof(gid_t));
 		if (getgroups(saved_egroupslen, saved_egroups) < 0)
 			fatal("getgroups: %.100s", strerror(errno));
 	} else { /* saved_egroupslen == 0 */
@@ -95,7 +95,7 @@ temporarily_use_uid(struct passwd *pw)
 			fatal("getgroups: %.100s", strerror(errno));
 		if (user_groupslen > 0) {
 			user_groups = xrealloc(user_groups,
-			    user_groupslen * sizeof(gid_t));
+			    user_groupslen, sizeof(gid_t));
 			if (getgroups(user_groupslen, user_groups) < 0)
 				fatal("getgroups: %.100s", strerror(errno));
 		} else { /* user_groupslen == 0 */

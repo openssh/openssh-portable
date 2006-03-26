@@ -266,8 +266,8 @@ channel_new(char *ctype, int type, int rfd, int wfd, int efd,
 		if (channels_alloc > 10000)
 			fatal("channel_new: internal error: channels_alloc %d "
 			    "too big.", channels_alloc);
-		channels = xrealloc(channels,
-		    (channels_alloc + 10) * sizeof(Channel *));
+		channels = xrealloc(channels, channels_alloc + 10,
+		    sizeof(Channel *));
 		channels_alloc += 10;
 		debug2("channel: expanding %d", channels_alloc);
 		for (i = found; i < channels_alloc; i++)
@@ -1789,15 +1789,20 @@ void
 channel_prepare_select(fd_set **readsetp, fd_set **writesetp, int *maxfdp,
     u_int *nallocp, int rekeying)
 {
-	u_int n, sz;
+	u_int n, sz, nfdset;
 
 	n = MAX(*maxfdp, channel_max_fd);
 
-	sz = howmany(n+1, NFDBITS) * sizeof(fd_mask);
+	nfdset = howmany(n+1, NFDBITS);
+	/* Explicitly test here, because xrealloc isn't always called */
+	if (nfdset && SIZE_T_MAX / nfdset < sizeof(fd_mask))
+		fatal("channel_prepare_select: max_fd (%d) is too large", n);
+	sz = nfdset * sizeof(fd_mask);
+
 	/* perhaps check sz < nalloc/2 and shrink? */
 	if (*readsetp == NULL || sz > *nallocp) {
-		*readsetp = xrealloc(*readsetp, sz);
-		*writesetp = xrealloc(*writesetp, sz);
+		*readsetp = xrealloc(*readsetp, nfdset, sizeof(fd_mask));
+		*writesetp = xrealloc(*writesetp, nfdset, sizeof(fd_mask));
 		*nallocp = sz;
 	}
 	*maxfdp = n;

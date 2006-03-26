@@ -803,7 +803,7 @@ new_socket(sock_type type, int fd)
 		}
 	old_alloc = sockets_alloc;
 	new_alloc = sockets_alloc + 10;
-	sockets = xrealloc(sockets, new_alloc * sizeof(sockets[0]));
+	sockets = xrealloc(sockets, new_alloc, sizeof(sockets[0]));
 	for (i = old_alloc; i < new_alloc; i++)
 		sockets[i].type = AUTH_UNUSED;
 	sockets_alloc = new_alloc;

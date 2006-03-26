@@ -716,7 +716,7 @@ process_readdir(void)
 		while ((dp = readdir(dirp)) != NULL) {
 			if (count >= nstats) {
 				nstats *= 2;
-				stats = xrealloc(stats, nstats * sizeof(Stat));
+				stats = xrealloc(stats, nstats, sizeof(Stat));
 			}
 /* XXX OVERFLOW ? */
 			snprintf(pathname, sizeof pathname, "%s%s%s", path,

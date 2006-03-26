@@ -768,7 +768,7 @@ prng_read_commands(char *cmdfilename)
 		 */
 		if (cur_cmd == num_cmds) {
 			num_cmds *= 2;
-			entcmd = xrealloc(entcmd, num_cmds *
+			entcmd = xrealloc(entcmd, num_cmds,
 			    sizeof(entropy_cmd_t));
 		}
 	}
@@ -777,7 +777,7 @@ prng_read_commands(char *cmdfilename)
 	memset(&entcmd[cur_cmd], '\0', sizeof(entropy_cmd_t));
 
 	/* trim to size */
-	entropy_cmds = xrealloc(entcmd, (cur_cmd + 1) *
+	entropy_cmds = xrealloc(entcmd, (cur_cmd + 1),
 	    sizeof(entropy_cmd_t));
 
 	debug("Loaded %d entropy commands from %.100s", cur_cmd,

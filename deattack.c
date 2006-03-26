@@ -97,7 +97,7 @@ detect_attack(u_char *buf, u_int32_t len)
 		n = l;
 	} else {
 		if (l > n) {
-			h = (u_int16_t *) xrealloc(h, l * HASH_ENTRYSIZE);
+			h = (u_int16_t *)xrealloc(h, l, HASH_ENTRYSIZE);
 			n = l;
 		}
 	}

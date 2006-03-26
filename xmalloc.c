@@ -35,7 +35,7 @@ xcalloc(size_t nmemb, size_t size)
 {
 	void *ptr;
 
-        if (nmemb && size && SIZE_T_MAX / nmemb < size)
+	if (nmemb && size && SIZE_T_MAX / nmemb < size)
 		fatal("xcalloc: nmemb * size > SIZE_T_MAX");
 	if (size == 0 || nmemb == 0)
 		fatal("xcalloc: zero size");
@@ -47,10 +47,13 @@ xcalloc(size_t nmemb, size_t size)
 }
 
 void *
-xrealloc(void *ptr, size_t new_size)
+xrealloc(void *ptr, size_t nmemb, size_t size)
 {
 	void *new_ptr;
+	size_t new_size = nmemb * size;
 
+	if (nmemb && size && SIZE_T_MAX / nmemb < size)
+		fatal("xrealloc: nmemb * size > SIZE_T_MAX");
 	if (new_size == 0)
 		fatal("xrealloc: zero size");
 	if (ptr == NULL)
@@ -58,7 +61,8 @@ xrealloc(void *ptr, size_t new_size)
 	else
 		new_ptr = realloc(ptr, new_size);
 	if (new_ptr == NULL)
-		fatal("xrealloc: out of memory (new_size %lu bytes)", (u_long) new_size);
+		fatal("xrealloc: out of memory (new_size %lu bytes)",
+		    (u_long) new_size);
 	return new_ptr;
 }
 

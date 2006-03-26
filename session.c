@@ -837,7 +837,7 @@ child_set_env(char ***envp, u_int *envsizep, const char *name,
 			if (envsize >= 1000)
 				fatal("child_set_env: too many env vars");
 			envsize += 50;
-			env = (*envp) = xrealloc(env, envsize * sizeof(char *));
+			env = (*envp) = xrealloc(env, envsize, sizeof(char *));
 			*envsizep = envsize;
 		}
 		/* Need to set the NULL pointer at end of array beyond the new slot. */
@@ -1941,8 +1941,8 @@ session_env_req(Session *s)
 	for (i = 0; i < options.num_accept_env; i++) {
 		if (match_pattern(name, options.accept_env[i])) {
 			debug2("Setting env %d: %s=%s", s->num_env, name, val);
-			s->env = xrealloc(s->env, sizeof(*s->env) *
-			    (s->num_env + 1));
+			s->env = xrealloc(s->env, s->num_env + 1,
+			    sizeof(*s->env));
 			s->env[s->num_env].name = name;
 			s->env[s->num_env].val = val;
 			s->num_env++;
