@@ -105,7 +105,7 @@ ssh_get_authentication_socket(void)
 		close(sock);
 		return -1;
 	}
-	if (connect(sock, (struct sockaddr *) &sunaddr, sizeof sunaddr) < 0) {
+	if (connect(sock, (struct sockaddr *)&sunaddr, sizeof sunaddr) < 0) {
 		close(sock);
 		return -1;
 	}

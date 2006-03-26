@@ -76,7 +76,7 @@ static const struct AuthMethod1
 {
 	int i;
 
-	for(i = 0; auth1_methods[i].name != NULL; i++)
+	for (i = 0; auth1_methods[i].name != NULL; i++)
 		if (auth1_methods[i].type == type)
 			return (&(auth1_methods[i]));
 

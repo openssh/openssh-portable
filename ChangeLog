@@ -37,6 +37,9 @@
    - dtucker@cvs.openbsd.org 2006/03/19 11:51:52
      [servconf.c]
      Correct strdelim null test; ok djm@
+   - deraadt@cvs.openbsd.org 2006/03/19 18:52:11
+     [auth1.c authfd.c channels.c]
+     spacing
 
 20060325
  - OpenBSD CVS Sync
@@ -4294,4 +4297,4 @@
    - (djm) Trim deprecated options from INSTALL. Mention UsePAM
    - (djm) Fix quote handling in sftp; Patch from admorten AT umich.edu
 
-$Id: ChangeLog,v 1.4251 2006/03/26 02:54:37 djm Exp $
+$Id: ChangeLog,v 1.4252 2006/03/26 02:57:41 djm Exp $

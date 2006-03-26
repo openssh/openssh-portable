@@ -173,7 +173,7 @@ channel_lookup(int id)
 	if ((c = channel_by_id(id)) == NULL)
 		return (NULL);
 
-	switch(c->type) {
+	switch (c->type) {
 	case SSH_CHANNEL_X11_OPEN:
 	case SSH_CHANNEL_LARVAL:
 	case SSH_CHANNEL_CONNECTING:
@@ -183,7 +183,6 @@ channel_lookup(int id)
 	case SSH_CHANNEL_INPUT_DRAINING:
 	case SSH_CHANNEL_OUTPUT_DRAINING:
 		return (c);
-		break;
 	}
 	logit("Non-public channel %d, type %d.", id, c->type);
 	return (NULL);
@@ -723,25 +722,25 @@ channel_set_fds(int id, int rfd, int wfd, int efd,
  * 'channel_post*': perform any appropriate operations for channels which
  * have events pending.
  */
-typedef void chan_fn(Channel *c, fd_set * readset, fd_set * writeset);
+typedef void chan_fn(Channel *c, fd_set *readset, fd_set *writeset);
 chan_fn *channel_pre[SSH_CHANNEL_MAX_TYPE];
 chan_fn *channel_post[SSH_CHANNEL_MAX_TYPE];
 
 static void
-channel_pre_listener(Channel *c, fd_set * readset, fd_set * writeset)
+channel_pre_listener(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	FD_SET(c->sock, readset);
 }
 
 static void
-channel_pre_connecting(Channel *c, fd_set * readset, fd_set * writeset)
+channel_pre_connecting(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	debug3("channel %d: waiting for connection", c->self);
 	FD_SET(c->sock, writeset);
 }
 
 static void
-channel_pre_open_13(Channel *c, fd_set * readset, fd_set * writeset)
+channel_pre_open_13(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	if (buffer_len(&c->input) < packet_get_maxsize())
 		FD_SET(c->sock, readset);
@@ -750,7 +749,7 @@ channel_pre_open_13(Channel *c, fd_set * readset, fd_set * writeset)
 }
 
 static void
-channel_pre_open(Channel *c, fd_set * readset, fd_set * writeset)
+channel_pre_open(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	u_int limit = compat20 ? c->remote_window : packet_get_maxsize();
 
@@ -790,7 +789,7 @@ channel_pre_open(Channel *c, fd_set * readset, fd_set * writeset)
 }
 
 static void
-channel_pre_input_draining(Channel *c, fd_set * readset, fd_set * writeset)
+channel_pre_input_draining(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	if (buffer_len(&c->input) == 0) {
 		packet_start(SSH_MSG_CHANNEL_CLOSE);
@@ -802,7 +801,7 @@ channel_pre_input_draining(Channel *c, fd_set * readset, fd_set * writeset)
 }
 
 static void
-channel_pre_output_draining(Channel *c, fd_set * readset, fd_set * writeset)
+channel_pre_output_draining(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	if (buffer_len(&c->output) == 0)
 		chan_mark_dead(c);
@@ -878,7 +877,7 @@ x11_open_helper(Buffer *b)
 }
 
 static void
-channel_pre_x11_open_13(Channel *c, fd_set * readset, fd_set * writeset)
+channel_pre_x11_open_13(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	int ret = x11_open_helper(&c->output);
 
@@ -904,7 +903,7 @@ channel_pre_x11_open_13(Channel *c, fd_set * readset, fd_set * writeset)
 }
 
 static void
-channel_pre_x11_open(Channel *c, fd_set * readset, fd_set * writeset)
+channel_pre_x11_open(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	int ret = x11_open_helper(&c->output);
 
@@ -931,7 +930,7 @@ channel_pre_x11_open(Channel *c, fd_set * readset, fd_set * writeset)
 
 /* try to decode a socks4 header */
 static int
-channel_decode_socks4(Channel *c, fd_set * readset, fd_set * writeset)
+channel_decode_socks4(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	char *p, *host;
 	u_int len, have, i, found;
@@ -1009,7 +1008,7 @@ channel_decode_socks4(Channel *c, fd_set * readset, fd_set * writeset)
 #define SSH_SOCKS5_SUCCESS	0x00
 
 static int
-channel_decode_socks5(Channel *c, fd_set * readset, fd_set * writeset)
+channel_decode_socks5(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	struct {
 		u_int8_t version;
@@ -1112,7 +1111,7 @@ channel_decode_socks5(Channel *c, fd_set * readset, fd_set * writeset)
 
 /* dynamic port forwarding */
 static void
-channel_pre_dynamic(Channel *c, fd_set * readset, fd_set * writeset)
+channel_pre_dynamic(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	u_char *p;
 	u_int have;
@@ -1156,7 +1155,7 @@ channel_pre_dynamic(Channel *c, fd_set * readset, fd_set * writeset)
 
 /* This is our fake X11 server socket. */
 static void
-channel_post_x11_listener(Channel *c, fd_set * readset, fd_set * writeset)
+channel_post_x11_listener(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	Channel *nc;
 	struct sockaddr addr;
@@ -1281,7 +1280,7 @@ channel_set_reuseaddr(int fd)
  * This socket is listening for connections to a forwarded TCP/IP port.
  */
 static void
-channel_post_port_listener(Channel *c, fd_set * readset, fd_set * writeset)
+channel_post_port_listener(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	Channel *nc;
 	struct sockaddr addr;
@@ -1338,7 +1337,7 @@ channel_post_port_listener(Channel *c, fd_set * readset, fd_set * writeset)
  * clients.
  */
 static void
-channel_post_auth_listener(Channel *c, fd_set * readset, fd_set * writeset)
+channel_post_auth_listener(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	Channel *nc;
 	int newsock;
@@ -1371,7 +1370,7 @@ channel_post_auth_listener(Channel *c, fd_set * readset, fd_set * writeset)
 }
 
 static void
-channel_post_connecting(Channel *c, fd_set * readset, fd_set * writeset)
+channel_post_connecting(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	int err = 0;
 	socklen_t sz = sizeof(err);
@@ -1417,7 +1416,7 @@ channel_post_connecting(Channel *c, fd_set * readset, fd_set * writeset)
 }
 
 static int
-channel_handle_rfd(Channel *c, fd_set * readset, fd_set * writeset)
+channel_handle_rfd(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	char buf[CHAN_RBUF];
 	int len;
@@ -1457,7 +1456,7 @@ channel_handle_rfd(Channel *c, fd_set * readset, fd_set * writeset)
 	return 1;
 }
 static int
-channel_handle_wfd(Channel *c, fd_set * readset, fd_set * writeset)
+channel_handle_wfd(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	struct termios tio;
 	u_char *data = NULL, *buf;
@@ -1544,7 +1543,7 @@ channel_handle_wfd(Channel *c, fd_set * readset, fd_set * writeset)
 	return 1;
 }
 static int
-channel_handle_efd(Channel *c, fd_set * readset, fd_set * writeset)
+channel_handle_efd(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	char buf[CHAN_RBUF];
 	int len;
@@ -1587,7 +1586,7 @@ channel_handle_efd(Channel *c, fd_set * readset, fd_set * writeset)
 	return 1;
 }
 static int
-channel_handle_ctl(Channel *c, fd_set * readset, fd_set * writeset)
+channel_handle_ctl(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	char buf[16];
 	int len;
@@ -1634,7 +1633,7 @@ channel_check_window(Channel *c)
 }
 
 static void
-channel_post_open(Channel *c, fd_set * readset, fd_set * writeset)
+channel_post_open(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	if (c->delayed)
 		return;
@@ -1648,7 +1647,7 @@ channel_post_open(Channel *c, fd_set * readset, fd_set * writeset)
 }
 
 static void
-channel_post_output_drain_13(Channel *c, fd_set * readset, fd_set * writeset)
+channel_post_output_drain_13(Channel *c, fd_set *readset, fd_set *writeset)
 {
 	int len;
 
@@ -1765,7 +1764,7 @@ channel_garbage_collect(Channel *c)
 }
 
 static void
-channel_handler(chan_fn *ftab[], fd_set * readset, fd_set * writeset)
+channel_handler(chan_fn *ftab[], fd_set *readset, fd_set *writeset)
 {
 	static int did_init = 0;
 	u_int i;
@@ -1817,7 +1816,7 @@ channel_prepare_select(fd_set **readsetp, fd_set **writesetp, int *maxfdp,
  * events pending.
  */
 void
-channel_after_select(fd_set * readset, fd_set * writeset)
+channel_after_select(fd_set *readset, fd_set *writeset)
 {
 	channel_handler(channel_post, readset, writeset);
 }
