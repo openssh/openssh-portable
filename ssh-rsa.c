@@ -219,7 +219,6 @@ openssh_RSA_verify(int type, u_char *hash, u_int hashlen,
 		break;
 	default:
 		goto done;
-		break;
 	}
 	if (hashlen != hlen) {
 		error("bad hashlen");
